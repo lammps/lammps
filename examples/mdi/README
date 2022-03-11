@@ -1,0 +1,113 @@
+These are examples that work the MDI package in LAMMPS which uses the
+MolSSI MDI library for coupling codes together and communicating
+between them with MDI messages.
+
+To use the serial_drive.py example you will need Python 3 with Numpy
+and mpi4py available in your Python.  Make sure LAMMPS and Python are
+using same the same version of MPI.
+
+In MDI lingo, one code is the driver and another code is the engine.
+The 2 codes can be written in any language; C++ (LAMMPS) and Python
+are illustrated here.  The 2 codes can be run on different numbers of
+processors.  
+
+The 2 codes can communicate either via TCP (sockets) or via MPI.  For
+the TCP case, the driver and engine need to be launched separately,
+e.g. in 2 windows on your desktop machine.  For the MPI case, a single
+mpirun command launches both codes.
+
+The example run commands below have variants for these options.
+
+-------------------------------------------------
+-------------------------------------------------
+
+* Example #1 = AIMD with LAMMPS as both a driver and engine
+  As an engine, LAMMPS is acting as a surrogate for a quantum code.
+
+Note that the 2 input scripts in.aimd.alone and in.aimd.driver
+have an option for running in NVE vs NPT mode.  Comment in/out
+the appropriate line to change modes.  Nothing needs to be
+changed in the 3rd input script in.aimd.engine.
+
+---
+
+Run the entire calculation with a single instance of LAMMPS by itself
+  results should be identical to running in driver/engine mode
+
+% lmp_mpi < in.aimd.alone
+
+---
+
+Run with TCP: 1 proc each
+
+% lmp_mpi -mdi "-name driver -role DRIVER -method TCP -port 8021" -log log.aimd.driver -in in.aimd.driver
+
+% lmp_mpi -mdi "-name LAMMPS -role ENGINE -method TCP -port 8021 -hostname localhost" -log log.aimd.engine -in in.aimd.engine
+
+---
+
+Run with TCP: 3 procs + 4 procs
+
+% mpirun -np 3 lmp_mpi -mdi "-name driver -role DRIVER -method TCP -port 8021" -log log.aimd.driver -in in.aimd.driver
+
+% mpirun -np 4 lmp_mpi -mdi "-name LAMMPS -role ENGINE -method TCP -port 8021 -hostname localhost" -log log.aimd.engine -in in.aimd.engine
+
+---
+
+Run with MPI: 1 proc each
+
+% mpirun -np 1 lmp_mpi -mdi "-name driver -role DRIVER -method MPI" -log log.aimd.driver -in in.aimd.driver : -np 1 ../lammps/git/src/lmp_mpi -mdi "-name LAMMPS -role ENGINE -method MPI" -log log.aimd.engine -in in.aimd.engine
+
+---
+
+Run with MPI: 3 procs + 4 procs
+
+% mpirun -np 3 lmp_mpi -mdi "-name driver -role DRIVER -method MPI" -log log.aimd.driver -in in.aimd.driver : -np 4 ../lammps/git/src/lmp_mpi -mdi "-name LAMMPS -role ENGINE -method MPI" -log log.aimd.engine -in in.aimd.engine
+
+-------------------------------------------------
+-------------------------------------------------
+
+* Example #2 = Use a Python driver code to run a series of independent 
+  LAMMPS calculations
+
+Note that the series_driver.py code allows for optional arguments in
+addition to -mdi (required).  The example run commands below just
+using the default values.  The options are explained the top of the file;
+the info is copied here:
+
+#   -n 10
+#     number of calculations to perform, default = 1
+#   -mode eval/run/min
+#     style of calculations: single snapshot evals, dynamics, minimization
+#     default = eval
+#   -size Nx Ny Nz
+#     cubic lattice, default = 2 2 2
+#   -rho 0.75 0.1
+#     reduced density and random variation thereof, default = 0.75 0.1
+#   -delta 0.1
+#     randomly perturb atoms initially by this distance, default 0.0
+#   -nsteps 100
+#     number of timesteps in dynamics runs, default = 100
+#   -temp 1.0
+#     initial temperature in dynamics runs, default = 1.0
+#   -tol 0.001
+#     tolerance for minimizations, default = 0.001
+#   -seed 12345
+#     random number seed > 0, default = 12345
+
+---
+
+Run with TCP: 1 proc each
+
+% python3 series_driver.py -mdi "-role DRIVER -name aimd -method TCP -port 8021"
+
+% lmp_mpi -mdi "-role ENGINE -name LAMMPS -method TCP -port 8021 -hostname localhost" -log log.series -in in.series
+
+---
+
+Run with TCP: 1 proc + 4 procs
+
+% python3 series_driver.py -mdi "-role DRIVER -name aimd -method TCP -port 8021"
+
+% mpirun -np 4 lmp_mpi -mdi "-role ENGINE -name LAMMPS -method TCP -port 8021 -hostname localhost" -log log.series -in in.series
+

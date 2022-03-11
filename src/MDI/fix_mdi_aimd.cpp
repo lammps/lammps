@@ -42,10 +42,10 @@ FixMDIAimd::FixMDIAimd(LAMMPS *lmp, int narg, char **arg) :
   // check requirements for LAMMPS to work with MDI as an engine
 
   if (atom->tag_enable == 0) 
-    error->all(FLERR, "Cannot use mdi engined without atom IDs");
+    error->all(FLERR, "Cannot use MDI engine without atom IDs");
 
   if (atom->natoms && atom->tag_consecutive() == 0) 
-    error->all(FLERR, "mdi engine requires consecutive atom IDs");
+    error->all(FLERR, "MDI engine requires consecutive atom IDs");
 
   // confirm LAMMPS is being run as a driver
   

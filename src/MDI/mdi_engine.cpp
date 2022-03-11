@@ -635,7 +635,7 @@ void MDIEngine::mdi_commands()
 
   // ------------------------------------
   // custom commands and nodes which LAMMPS supports
-  // max length for a command is current 11 chars in MDI
+  // max length for a command is currently 11 chars in MDI
   // ------------------------------------
 
   MDI_Register_command("@DEFAULT", "NBYTES");
@@ -1377,8 +1377,8 @@ void MDIEngine::evaluate()
 
 /* ----------------------------------------------------------------------
    RESET_BOX command
-   9 values = boxlo, boxhi, xy, yz, xz
    wrapper on library reset_box() method
+   9 values = boxlo, boxhi, xy, yz, xz
    requires no atoms exist
    allows caller to define a new simulation box
 ---------------------------------------------------------------------- */

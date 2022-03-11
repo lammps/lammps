@@ -61,6 +61,7 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   chemflag = 0;
   bnormflag = 0;
   wselfallflag = 0;
+  switchinnerflag = 1;
   nelements = 1;
 
   // process required arguments
@@ -148,7 +149,8 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
 
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
-                   chemflag, bnormflag, wselfallflag, nelements);
+                   chemflag, bnormflag, wselfallflag,
+		   nelements, switchinnerflag);
 
   ncoeff = snaptr->ncoeff;
   nperdim = ncoeff;
@@ -354,7 +356,8 @@ void ComputeSnap::compute_array()
       for (int jj = 0; jj < ninside; jj++) {
         const int j = snaptr->inside[jj];
         snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-                                    snaptr->rcutij[jj], jj, snaptr->element[jj]);
+			       snaptr->rcutij[jj], jj, snaptr->element[jj],
+			       snaptr->rinnerij[jj], snaptr->drinnerij[jj]);
         snaptr->compute_dbidrj();
 
         // Accumulate dBi/dRi, -dBi/dRj

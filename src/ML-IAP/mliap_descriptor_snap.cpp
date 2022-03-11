@@ -46,7 +46,8 @@ MLIAPDescriptorSNAP::MLIAPDescriptorSNAP(LAMMPS *lmp, char *paramfilename):
 
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
-                   chemflag, bnormflag, wselfallflag, nelements);
+                   chemflag, bnormflag, wselfallflag,
+		   nelements, switchinnerflag);
 
   ndescriptors = snaptr->ncoeff;
 }
@@ -162,10 +163,12 @@ void MLIAPDescriptorSNAP::compute_forces(class MLIAPData* data)
       int j = snaptr->inside[jj];
       if (chemflag)
         snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-                               snaptr->rcutij[jj],jj, snaptr->element[jj]);
+			       snaptr->rcutij[jj], jj, snaptr->element[jj],
+			       snaptr->rinnerij[jj], snaptr->drinnerij[jj]);
       else
         snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-                               snaptr->rcutij[jj],jj, 0);
+			       snaptr->rcutij[jj], jj, 0,
+			       snaptr->rinnerij[jj], snaptr->drinnerij[jj]);
 
       snaptr->compute_deidrj(fij);
 
@@ -236,10 +239,12 @@ void MLIAPDescriptorSNAP::compute_force_gradients(class MLIAPData* data)
 
       if (chemflag)
         snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-                               snaptr->rcutij[jj],jj, snaptr->element[jj]);
+			       snaptr->rcutij[jj], jj, snaptr->element[jj],
+			       snaptr->rinnerij[jj], snaptr->drinnerij[jj]);
       else
         snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-                               snaptr->rcutij[jj],jj, 0);
+			       snaptr->rcutij[jj], jj, 0,
+			       snaptr->rinnerij[jj], snaptr->drinnerij[jj]);
 
       snaptr->compute_dbidrj();
 
@@ -309,10 +314,12 @@ void MLIAPDescriptorSNAP::compute_descriptor_gradients(class MLIAPData* data)
     for (int jj = 0; jj < ninside; jj++) {
       if (chemflag)
         snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-                               snaptr->rcutij[jj],jj, snaptr->element[jj]);
+			       snaptr->rcutij[jj], jj, snaptr->element[jj],
+			       snaptr->rinnerij[jj], snaptr->drinnerij[jj]);
       else
         snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-                               snaptr->rcutij[jj],jj, 0);
+			       snaptr->rcutij[jj], jj, 0,
+			       snaptr->rinnerij[jj], snaptr->drinnerij[jj]);
 
       snaptr->compute_dbidrj();
 
@@ -361,6 +368,7 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
   chemflag = 0;
   bnormflag = 0;
   wselfallflag = 0;
+  switchinnerflag = 1;
 
   for (int i = 0; i < nelements; i++) delete[] elements[i];
   delete[] elements;

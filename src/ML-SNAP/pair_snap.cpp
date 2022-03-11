@@ -174,10 +174,13 @@ void PairSNAP::compute(int eflag, int vflag)
       int j = snaptr->inside[jj];
       if (chemflag)
         snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-                               snaptr->rcutij[jj],jj, snaptr->element[jj]);
+                               snaptr->rcutij[jj], jj, snaptr->element[jj],
+			       snaptr->rinnerij[jj], snaptr->drinnerij[jj]);
       else
         snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-                               snaptr->rcutij[jj],jj, 0);
+                               snaptr->rcutij[jj], jj, 0,
+			       //			       snaptr->rinnerij[jj], snaptr->drinnerij[jj],jj);
+			       0.0, 1.0);
 
       snaptr->compute_deidrj(fij);
 
@@ -403,7 +406,8 @@ void PairSNAP::coeff(int narg, char **arg)
 
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
-                   chemflag, bnormflag, wselfallflag, nelements);
+                   chemflag, bnormflag, wselfallflag,
+		   nelements, switchinnerflag);
 
   if (ncoeff != snaptr->ncoeff) {
     if (comm->me == 0)
@@ -626,6 +630,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   chemflag = 0;
   bnormflag = 0;
   wselfallflag = 0;
+  switchinnerflag = 1;
   chunksize = 32768;
   parallel_thresh = 8192;
 

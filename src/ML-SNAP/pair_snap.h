@@ -59,6 +59,7 @@ class PairSNAP : public Pair {
   double **scale;         // for thermodynamic integration
   int twojmax, switchflag, bzeroflag, bnormflag;
   int chemflag, wselfallflag;
+  int switchinnerflag;
   int chunksize,parallel_thresh;
   double rfac0, rmin0, wj1, wj2;
   int rcutfacflag, twojmaxflag;    // flags for required parameters

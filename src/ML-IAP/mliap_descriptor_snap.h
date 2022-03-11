@@ -39,6 +39,7 @@ class MLIAPDescriptorSNAP : public MLIAPDescriptor {
 
   int twojmax, switchflag, bzeroflag;
   int chemflag, bnormflag, wselfallflag;
+  int switchinnerflag;
   double rfac0, rmin0;
 };
 

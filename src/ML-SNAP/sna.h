@@ -33,7 +33,7 @@ struct SNA_BINDICES {
 class SNA : protected Pointers {
 
  public:
-  SNA(LAMMPS *, double, int, double, int, int, int, int, int, int);
+  SNA(LAMMPS *, double, int, double, int, int, int, int, int, int, int);
 
   SNA(LAMMPS *lmp) : Pointers(lmp){};
   ~SNA() override;
@@ -53,7 +53,7 @@ class SNA : protected Pointers {
 
   // functions for derivatives
 
-  void compute_duidrj(double *, double, double, int, int);
+  void compute_duidrj(double *, double, double, int, int, double, double);
   void compute_dbidrj();
   void compute_deidrj(double *);
   double compute_sfac(double, double);
@@ -64,12 +64,14 @@ class SNA : protected Pointers {
   
   double *blist;
   double **dblist;
-  double **rij;
-  int *inside;
-  double *wj;
-  double *rcutij;
-  int *element;    // index on [0,nelements)
-  int nmax;
+  double **rij;     // short rij list
+  int *inside;      // short neighbor list
+  double *wj;       // short weight list
+  double *rcutij;   // short cutoff list 
+  double *rinnerij; // short inner cutoff list
+  double *drinnerij;// short inner range list
+  int *element;     // short element list [0,nelements)
+  int nmax;         // allocated size of short lists
 
   void grow_rij(int);
 
@@ -90,7 +92,7 @@ class SNA : protected Pointers {
   int ***idxcg_block;
 
   double *ulisttot_r, *ulisttot_i;
-  double **ulist_r_ij, **ulist_i_ij;
+  double **ulist_r_ij, **ulist_i_ij; // short u list
   int *idxu_block;
 
   double *zlist_r, *zlist_i;
@@ -107,11 +109,12 @@ class SNA : protected Pointers {
   void print_clebsch_gordan();
   void init_rootpqarray();
   void zero_uarraytot(int);
-  void add_uarraytot(double, double, double, int, int);
+  void add_uarraytot(double, double, double, int, int, double, double);
   void compute_uarray(double, double, double, double, double, int);
   double deltacg(int, int, int);
   void compute_ncoeff();
-  void compute_duarray(double, double, double, double, double, double, double, double, int);
+  void compute_duarray(double, double, double, double, double, double,
+		       double, double, int, double, double);
 
   // Sets the style for the switching function
   // 0 = none

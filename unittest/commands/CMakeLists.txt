@@ -41,6 +41,11 @@ target_compile_definitions(test_reset_ids PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CU
 target_link_libraries(test_reset_ids PRIVATE lammps GTest::GMock)
 add_test(NAME ResetIDs COMMAND test_reset_ids)
 
+add_executable(test_compute_global test_compute_global.cpp)
+target_compile_definitions(test_compute_global PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(test_compute_global PRIVATE lammps GTest::GMock)
+add_test(NAME ComputeGlobal COMMAND test_compute_global)
+
 add_executable(test_mpi_load_balancing test_mpi_load_balancing.cpp)
 target_link_libraries(test_mpi_load_balancing PRIVATE lammps GTest::GMock)
 target_compile_definitions(test_mpi_load_balancing PRIVATE ${TEST_CONFIG_DEFS})

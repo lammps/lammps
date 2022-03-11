@@ -230,7 +230,9 @@ and their required arguments are:
 
 1. *gaussian* : :math:`\sigma` (distance units)
 2. *gaussian_erfc* : :math:`\sigma`\ , :math:`R_p`, :math:`\xi` (all in distance units)
-3. *erfc* : :math:`R_p`\ , :math:`\xi` (both in distance units)
+1. *gaussian* : :math:`\sigma^2` (distance:math:`^2` units)
+ 2. *gaussian_erfc* : :math:`\sigma^2`\ , :math:`R_p`, :math:`\xi` (distance units except for :math:`\sigma^2` )
+ 3. *erfc* : :math:`R_p`\ , :math:`\xi` (both in distance units)
 
 .. note::
 

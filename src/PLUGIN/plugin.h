@@ -32,7 +32,7 @@ class Plugin : public Command {
 };
 
 void plugin_auto_load(LAMMPS *);
-void plugin_load(const char *, LAMMPS *);
+int plugin_load(const char *, LAMMPS *);
 void plugin_register(lammpsplugin_t *, void *);
 
 void plugin_unload(const char *, const char *, LAMMPS *);

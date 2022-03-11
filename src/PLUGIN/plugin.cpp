@@ -34,6 +34,8 @@ static std::list<lammpsplugin_t> pluginlist;
 // map for counting references to dso handles
 static std::map<void *, int> dso_refcounter;
 
+static bool verbose = true;
+
 /* ---------------------------------------------------------------------- */
 
 Plugin::Plugin(LAMMPS *lmp) : Command(lmp) {}
@@ -74,18 +76,19 @@ void plugin_auto_load(LAMMPS *lmp)
 {
 #if defined(LMP_PLUGIN)
   for (const auto &plugin_dir : platform::list_pathenv("LAMMPS_PLUGIN_PATH")) {
-    if (lmp->comm->me == 0)
-      utils::logmesg(lmp, "Looking for LAMMPS plugins in: {}\n", plugin_dir);
+    verbose = false;
+    int count = 0;
     for (const auto &file : platform::list_directory(plugin_dir)) {
       if (utils::strmatch(file, "\\plugin.so$"))
-        plugin_load(platform::path_join(plugin_dir, file).c_str(), lmp);
+        count += plugin_load(platform::path_join(plugin_dir, file).c_str(), lmp);
     }
+    if (lmp->comm->me == 0) utils::logmesg(lmp, "Loaded {} plugins from {}\n", count, plugin_dir);
   }
 #endif
 }
 
 // load DSO and call included registration function
-void plugin_load(const char *file, LAMMPS *lmp)
+int plugin_load(const char *file, LAMMPS *lmp)
 {
 #if defined(LMP_PLUGIN)
   int me = lmp->comm->me;
@@ -96,7 +99,7 @@ void plugin_load(const char *file, LAMMPS *lmp)
   void *dso = platform::dlopen(file);
   if (dso == nullptr) {
     if (me == 0) utils::logmesg(lmp, "Open of file {} failed: {}\n", file, platform::dlerror());
-    return;
+    return 0;
   }
 
   // look up lammpsplugin_init() function in DSO
@@ -110,7 +113,7 @@ void plugin_load(const char *file, LAMMPS *lmp)
     if (me == 0)
       utils::logmesg(lmp, "Plugin symbol lookup failure in file {}: {}\n", file,
                      platform::dlerror());
-    return;
+    return 0;
   }
 
   // call initializer function loaded from DSO and pass a pointer
@@ -118,6 +121,7 @@ void plugin_load(const char *file, LAMMPS *lmp)
   // and plugin registration function pointer
 
   (*(lammpsplugin_initfunc) (initfunc))((void *) lmp, dso, (void *) &plugin_register);
+  return 1;
 #endif
 }
 
@@ -139,13 +143,13 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
   // ignore load request if same plugin already loaded
   int idx = plugin_find(plugin->style, plugin->name);
   if (idx >= 0) {
-    if (me == 0)
+    if (verbose && (me == 0))
       utils::logmesg(lmp, "Ignoring load of {} style {}: must unload existing {} plugin first\n",
                      plugin->style, plugin->name, plugin->name);
     return;
   }
 
-  if (me == 0) {
+  if (verbose && (me == 0)) {
     utils::logmesg(lmp, "Loading plugin: {} by {}\n", plugin->info, plugin->author);
     // print version info only if the versions of host and plugin don't match
     if ((plugin->version) && (strcmp(plugin->version, lmp->version) != 0))
@@ -280,7 +284,7 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
 
   // remove selected plugin from list of plugins
 
-  if (me == 0) utils::logmesg(lmp, "Unloading {} style {}\n", style, name);
+  if (verbose && (me == 0)) utils::logmesg(lmp, "Unloading {} style {}\n", style, name);
   plugin_erase(style, name);
 
   // remove style of given name from corresponding map
@@ -393,10 +397,12 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
 
 void plugin_clear(LAMMPS *lmp)
 {
+  verbose = false;
   while (pluginlist.size() > 0) {
     auto p = pluginlist.begin();
     plugin_unload(p->style, p->name, lmp);
   }
+  verbose = true;
 }
 
 /* --------------------------------------------------------------------

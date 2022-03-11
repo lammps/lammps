@@ -52,7 +52,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   loop_respa(nullptr), step_respa(nullptr), x(nullptr), v(nullptr), f(nullptr), ftmp(nullptr),
   vtmp(nullptr), mass(nullptr), rmass(nullptr), type(nullptr), shake_flag(nullptr),
   shake_atom(nullptr), shake_type(nullptr), xshake(nullptr), nshake(nullptr), list(nullptr),
-  b_count(nullptr), b_count_all(nullptr), b_atom(nullptr), b_ave(nullptr), b_max(nullptr),
+  b_count(nullptr), b_count_all(nullptr), b_atom(nullptr), b_atom_all(nullptr), b_ave(nullptr), b_max(nullptr),
   b_min(nullptr), b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr), a_count(nullptr),
   a_count_all(nullptr), a_ave(nullptr), a_max(nullptr), a_min(nullptr), a_ave_all(nullptr),
   a_max_all(nullptr), a_min_all(nullptr), atommols(nullptr), onemols(nullptr)
@@ -198,6 +198,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
     b_count = new int[nb];
     b_count_all = new int[nb];
     b_atom = new int[nb];
+    b_atom_all = new int[nb];
     b_ave = new double[nb];
     b_ave_all = new double[nb];
     b_max = new double[nb];
@@ -291,6 +292,7 @@ FixShake::~FixShake()
     delete[] b_count;
     delete[] b_count_all;
     delete[] b_atom;
+    delete[] b_atom_all;
     delete[] b_ave;
     delete[] b_ave_all;
     delete[] b_max;
@@ -2472,6 +2474,7 @@ void FixShake::stats()
     b_count[i] = 0;
     b_ave[i] = b_max[i] = 0.0;
     b_min[i] = BIG;
+    b_atom[i] = -1;
   }
   for (i = 0; i < na; i++) {
     a_count[i] = 0;
@@ -2547,6 +2550,7 @@ void FixShake::stats()
   // sum across all procs
 
   MPI_Allreduce(b_count,b_count_all,nb,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(b_atom,b_atom_all,nb,MPI_INT,MPI_MAX,world);
   MPI_Allreduce(b_ave,b_ave_all,nb,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(b_max,b_max_all,nb,MPI_DOUBLE,MPI_MAX,world);
   MPI_Allreduce(b_min,b_min_all,nb,MPI_DOUBLE,MPI_MIN,world);
@@ -2566,7 +2570,7 @@ void FixShake::stats()
       const auto bcnt = b_count_all[i];
       if (bcnt)
         mesg += fmt::format("Bond:  {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
-                            b_ave_all[i]/bcnt,b_max_all[i]-b_min_all[i],bcnt/b_atom[i]);
+                            b_ave_all[i]/bcnt,b_max_all[i]-b_min_all[i],bcnt/b_atom_all[i]);
     }
     for (i = 1; i < na; i++) {
       const auto acnt = a_count_all[i];

@@ -183,7 +183,9 @@ Flory-Higgins prefactor :math:`\chi`. See the :math:`A` prefactors in the
 
 The *tild set_rho0* keyword is used to set the TILD density which is calculated
 separately from any other density in LAMMPS. Each defined `gaussian` shape
-particle has a mass of 1, each defined `erfc` shape has a density of 
+The *tild set_rho0* keyword is used to set the TILD number density which is calculated
+ separately from any other density in LAMMPS. Each defined `gaussian` shape
+ particle contributes 1, while each defined `erfc` shape has a density of 
 :math:`4/3 \pi r^3 \rho_{NP}`\ . Particles without any defined shape functions do not contribute to the
 overall density, even if they are included in a `cross-interaction`. 
 Defining a *rho0* for a system without any shape functions (but with `cross-interaction` functions) will

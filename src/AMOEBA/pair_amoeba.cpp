@@ -41,7 +41,7 @@ using namespace LAMMPS_NS;
 enum{INDUCE,RSD,SETUP_AMOEBA,SETUP_HIPPO,KMPOLE,AMGROUP,PVAL};  // forward comm
 enum{FIELD,ZRSD,TORQUE,UFLD};                                   // reverse comm
 enum{ARITHMETIC,GEOMETRIC,CUBIC_MEAN,R_MIN,SIGMA,DIAMETER,HARMONIC,HHG,W_H};
-enum{VDWL,REPULSE,QFER,DISP,MPOLE,POLAR,USOLV,DISP_LONG,MPOLE_LONG,POLAR_LONG};
+enum{HAL,REPULSE,QFER,DISP,MPOLE,POLAR,USOLV,DISP_LONG,MPOLE_LONG,POLAR_LONG};
 enum{MPOLE_GRID,POLAR_GRID,POLAR_GRIDC,DISP_GRID,INDUCE_GRID,INDUCE_GRIDC};
 enum{MUTUAL,OPT,TCG,DIRECT};
 enum{GEAR,ASPC,LSQR};
@@ -481,20 +481,24 @@ void PairAmoeba::compute(int eflag, int vflag)
     utils::logmesg(lmp,"\nAMEOBA/HIPPO timing info:\n");
     utils::logmesg(lmp,"  Init   time: {:.6g} {:.6g}\n",
                    time_init,time_init/time_amtot);
-    utils::logmesg(lmp,"  Hal    time: {:.6g} {:.6g}\n",
-                   time_hal,time_hal/time_amtot*100);
-    utils::logmesg(lmp,"  Repls  time: {:.6g} {:.6g}\n",
-                   time_repulse,time_repulse/time_amtot*100);
-    utils::logmesg(lmp,"  Disp   time: {:.6g} {:.6g}\n",
-                   time_disp,time_disp/time_amtot*100);
+    if (amoeba)
+      utils::logmesg(lmp,"  Hal    time: {:.6g} {:.6g}\n",
+                     time_hal,time_hal/time_amtot*100);
+    if (hippo)
+      utils::logmesg(lmp,"  Repls  time: {:.6g} {:.6g}\n",
+                     time_repulse,time_repulse/time_amtot*100);
+    if (hippo)
+      utils::logmesg(lmp,"  Disp   time: {:.6g} {:.6g}\n",
+                     time_disp,time_disp/time_amtot*100);
     utils::logmesg(lmp,"  Mpole  time: {:.6g} {:.6g}\n",
                    time_mpole,time_mpole/time_amtot*100);
     utils::logmesg(lmp,"  Induce time: {:.6g} {:.6g}\n",
                    time_induce,time_induce/time_amtot*100);
     utils::logmesg(lmp,"  Polar  time: {:.6g} {:.6g}\n",
                    time_polar,time_polar/time_amtot*100);
-    utils::logmesg(lmp,"  Qxfer  time: {:.6g} {:.6g}\n",
-                   time_qxfer,time_qxfer/time_amtot*100);
+    if (hippo)
+      utils::logmesg(lmp,"  Qxfer  time: {:.6g} {:.6g}\n",
+                     time_qxfer,time_qxfer/time_amtot*100);
     utils::logmesg(lmp,"  Total  time: {:.6g}\n\n",time_amtot);
   }
 }
@@ -988,32 +992,41 @@ void PairAmoeba::init_style()
 void PairAmoeba::print_settings(FILE *fp)
 {
   fprintf(fp,"AMOEBA/HIPPO force field settings\n");
-  choose(VDWL);
-  fprintf(fp,"  vdwl: cut %g taper %g vscale %g %g %g %g\n",
-	  sqrt(off2),sqrt(cut2),
-	  special_hal[1],special_hal[2],special_hal[3],special_hal[4]);
+
+  if (amoeba) {
+    choose(HAL);
+    fprintf(fp,"  hal: cut %g taper %g vscale %g %g %g %g\n",
+            sqrt(off2),sqrt(cut2),
+            special_hal[1],special_hal[2],special_hal[3],special_hal[4]);
+  }
+
+  if (hippo) {
+    choose(REPULSE);
+    fprintf(fp,"  repulsion: cut %g taper %g rscale %g %g %g %g\n",
+            sqrt(off2),sqrt(cut2),
+            special_repel[1],special_repel[2],special_repel[3],special_repel[4]);
+  }
   
-  choose(REPULSE);
-  fprintf(fp,"  repulsion: cut %g taper %g rscale %g %g %g %g\n",
-	  sqrt(off2),sqrt(cut2),
-	  special_repel[1],special_repel[2],special_repel[3],special_repel[4]);
+  if (hippo) {
+    choose(QFER);
+    fprintf(fp,"  qxfer: cut %g taper %g mscale %g %g %g %g\n",
+            sqrt(off2),sqrt(cut2),
+            special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
+  }
   
-  choose(QFER);
-  fprintf(fp,"  qxfer: cut %g taper %g mscale %g %g %g %g\n",
-	  sqrt(off2),sqrt(cut2),
-	  special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
-  
-  if (use_dewald) {
-    choose(DISP_LONG);
-    fprintf(fp,"  dispersion: cut %g aewald %g bsorder %d "
-	    "FFT %d %d %d dspscale %g %g %g %g\n",
-	    sqrt(off2),aewald,bsdorder,ndfft1,ndfft2,ndfft3,
-	    special_disp[1],special_disp[2],special_disp[3],special_disp[4]);
-  } else {
-    choose(DISP);
-    fprintf(fp,"  dispersion: cut %g aewald %g dspscale %g %g %g %g\n",
-	    sqrt(off2),aewald,
-	    special_disp[1],special_disp[2],special_disp[3],special_disp[4]);
+  if (hippo) {
+    if (use_dewald) {
+      choose(DISP_LONG);
+      fprintf(fp,"  dispersion: cut %g aewald %g bsorder %d "
+              "FFT %d %d %d dspscale %g %g %g %g\n",
+              sqrt(off2),aewald,bsdorder,ndfft1,ndfft2,ndfft3,
+              special_disp[1],special_disp[2],special_disp[3],special_disp[4]);
+    } else {
+      choose(DISP);
+      fprintf(fp,"  dispersion: cut %g aewald %g dspscale %g %g %g %g\n",
+              sqrt(off2),aewald,
+              special_disp[1],special_disp[2],special_disp[3],special_disp[4]);
+    }
   }
   
   if (use_ewald) {
@@ -1068,15 +1081,21 @@ double PairAmoeba::init_one(int i, int j)
 {
   double cutoff = 0.0;
 
-  choose(VDWL);
-  cutoff = MAX(cutoff,sqrt(off2));
+  if (amoeba) {
+    choose(HAL);
+    cutoff = MAX(cutoff,sqrt(off2));
+  }
 
-  choose(REPULSE);
-  cutoff = MAX(cutoff,sqrt(off2));
+  if (hippo) {
+    choose(REPULSE);
+    cutoff = MAX(cutoff,sqrt(off2));
+  }
 
-  if (use_dewald) choose(DISP_LONG);
-  else choose(DISP);
-  cutoff = MAX(cutoff,sqrt(off2));
+  if (hippo) {
+    if (use_dewald) choose(DISP_LONG);
+    else choose(DISP);
+    cutoff = MAX(cutoff,sqrt(off2));
+  }
 
   if (use_ewald) choose(MPOLE_LONG);
   else choose(MPOLE);
@@ -1086,8 +1105,10 @@ double PairAmoeba::init_one(int i, int j)
   else choose(POLAR);
   cutoff = MAX(cutoff,sqrt(off2));
 
-  choose(QFER);
-  cutoff = MAX(cutoff,sqrt(off2));
+  if (hippo) {
+    choose(QFER);
+    cutoff = MAX(cutoff,sqrt(off2));
+  }
 
   return cutoff;
 }
@@ -1910,7 +1931,7 @@ void PairAmoeba::choose(int which)
 
   // short-range only terms
   
-  if (which == VDWL) {
+  if (which == HAL) {
     off = vdwcut;
     cut = vdwtaper;
   } else if (which == REPULSE) {

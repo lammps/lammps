@@ -375,11 +375,7 @@ a z wall velocity without implementing fixed BCs in z");
                  domain->zprd / comm->procgrid[2]);
     dx_lb = mindomain / floor(mindomain / dx_lb1);
 
-    if (comm->me == 0) {
-      char str[128];
-      sprintf(str, "Setting the lattice-Boltzmann dx to %10.6f", dx_lb);
-      error->message(FLERR, str);
-    }
+    if (comm->me == 0) utils::logmesg(lmp, "Setting lattice-Boltzmann dx to {:10.6f}", dx_lb);
   }
   //--------------------------------------------------------------------------
   // Set a0 if it wasn't specified in the input
@@ -389,11 +385,8 @@ a z wall velocity without implementing fixed BCs in z");
   // convert average pressure gradient into fractional change in density
   rhofactor = rhofactor / 1000 * domain->xprd / densityinit_real / a_0_real;
   if (fabs(rhofactor) > 2) error->all(FLERR, "Illegal pressure jump");
-  if (comm->me == 0 && fabs(rhofactor) > 0.15) {
-    char str[128];
-    sprintf(str, "Warning: Huge pressure jump requested.");
-    error->message(FLERR, str);
-  }
+  if (comm->me == 0 && fabs(rhofactor) > 0.15)
+    error->warning(FLERR, "Huge pressure jump requested.");
 
   //--------------------------------------------------------------------------
   // Check to make sure that the total number of grid points in each direction
@@ -407,40 +400,30 @@ a z wall velocity without implementing fixed BCs in z");
   double eps = 1.0e-8;
   aa = (domain->xprd / comm->procgrid[0]) / dx_lb;
   if (fabs(aa - floor(aa + 0.5)) > eps) {
-    if (domain->boundary[0][0] != 0) { error->all(FLERR, "the x-direction must be periodic"); }
-    char errormessage[200];
-    sprintf(errormessage,
-            "With dx= %f, and the simulation domain divided by %i processors in the x direction, "
-            "the simulation domain in the x direction must be a multiple of %f",
-            dx_lb, comm->procgrid[0], comm->procgrid[0] * dx_lb);
-    error->all(FLERR, errormessage);
+    if (domain->boundary[0][0] != 0) error->all(FLERR, "the x-direction must be periodic");
+    error->all(FLERR,
+               "With dx= {}, and the simulation domain divided by {} processors in x "
+               "direction, the simulation domain in x direction must be a multiple of {}",
+               dx_lb, comm->procgrid[0], comm->procgrid[0] * dx_lb);
   }
   aa = (domain->yprd / comm->procgrid[1]) / dx_lb;
   if (fabs(aa - floor(aa + 0.5)) > eps) {
-    // if(domain->boundary[1][0] != 0){
-    //   error->all(FLERR,"the y-direction must be periodic");
-    // }
-    if (domain->boundary[1][0] == 2 || domain->boundary[1][0] == 3) {
+    if (domain->boundary[1][0] == 2 || domain->boundary[1][0] == 3)
       error->all(FLERR, "the y-direction can not have shrink-wrap boundary conditions");
-    }
-    char errormessage[200];
-    sprintf(errormessage,
-            "With dx= %f, and the simulation domain divided by %i processors in the y direction, "
-            "the simulation domain in the y direction must be a multiple of %f",
-            dx_lb, comm->procgrid[1], comm->procgrid[1] * dx_lb);
-    error->all(FLERR, errormessage);
+    error->all(FLERR,
+               "With dx= {}, and the simulation domain divided by {} processors in y "
+               "direction, the simulation domain in y direction must be a multiple of {}",
+               dx_lb, comm->procgrid[1], comm->procgrid[1] * dx_lb);
   }
   aa = (domain->zprd / comm->procgrid[2]) / dx_lb;
   if (fabs(aa - floor(aa + 0.5)) > eps) {
     if (domain->boundary[2][0] == 2 || domain->boundary[2][0] == 3) {
       error->all(FLERR, "the z-direction can not have shrink-wrap boundary conditions");
     }
-    char errormessage[200];
-    sprintf(errormessage,
-            "With dx= %f, and the simulation domain divided by %i processors in the z direction, "
-            "the simulation domain in the z direction must be a multiple of %f",
-            dx_lb, comm->procgrid[2], comm->procgrid[2] * dx_lb);
-    error->all(FLERR, errormessage);
+    error->all(FLERR,
+               "With dx= {}, and the simulation domain divided by {} processors in z "
+               "direction, the simulation domain in z direction must be a multiple of {}",
+               dx_lb, comm->procgrid[2], comm->procgrid[2] * dx_lb);
   }
 
   //--------------------------------------------------------------------------
@@ -471,17 +454,11 @@ a z wall velocity without implementing fixed BCs in z");
   }
 
   if (comm->me == 0) {
-    char str[128];
-    if (setdx == 1) {
-      sprintf(str,
-              "Using a lattice-Boltzmann grid of %i by %i by %i total grid points. To change, use "
-              "the dx keyword",
-              Nbx, Nby, Nbz);
-    } else {
-      sprintf(str, "Using a lattice-Boltzmann grid of %i by %i by %i total grid points.", Nbx, Nby,
-              Nbz);
-    }
-    error->message(FLERR, str);
+    utils::logmesg(lmp, "Using a lattice-Boltzmann grid of {} by {} by {} points. ", Nbx, Nby, Nbz);
+    if (setdx == 1)
+      utils::logmesg(lmp, "To change, use the dx keyword\n");
+    else
+      utils::logmesg(lmp, "\n");
   }
 
   //--------------------------------------------------------------------------
@@ -491,18 +468,17 @@ a z wall velocity without implementing fixed BCs in z");
     h_s = (Nbz - 1) - h_p;
     if (w_p == 0) w_p = Nby;
     if (comm->me == 0) {
-      if (h_s <= 1) error->all(FLERR, "hp too big for system size in z-direction");
-      if (w_p > Nby) error->all(FLERR, "wp bigger than system size in y-direction");
+      if (h_s <= 1) error->all(FLERR, "hp too big for system in z-direction");
+      if (w_p > Nby) error->all(FLERR, "wp bigger than system in y-direction");
       if (w_p && sw)
-        error->message(FLERR,
-                       "wp ignored if there are side walls, pits are full width in y-direction");
+        utils::logmesg(lmp, "wp ignored with side walls, pits are full width in y-direction\n");
       if (2 * l_e + npits * l_p + (npits - 1) * l_pp < Nbx)
         error->all(FLERR,
-                   "length of pits and end segments too little to fill system size in x-direction");
+                   "length of pits and end segments too small to fill system in x-direction");
       else if (2 * l_e + npits * l_p + (npits - 1) * l_pp > Nbx)
-        error->message(FLERR,
-                       "length of pits and end segments larger than system size in x-direction: "
-                       "truncation will occur");
+        utils::logmesg(lmp,
+                       "length of pits and end segments larger than system "
+                       "in x-direction: truncation will occur\n");
       if (numvel == 19)
         error->all(FLERR, "Pit geometry options not available for D3Q19, use D3Q15 instead");
       if (vwtp != 0.0 || vwbt != 0.0)
@@ -790,11 +766,10 @@ void FixLbFluid::init(void)
   }
 
   // Warn if the fluid force is not applied to any of the particles.
-  if (!(groupbit_viscouslb) && comm->me == 0) {
-    error->message(FLERR,
-                   "Not adding the fluid force to any of the MD particles.  To add this force use "
-                   "lb/viscous fix");
-  }
+  if (!(groupbit_viscouslb) && comm->me == 0)
+    utils::logmesg(lmp,
+                   "Not adding the fluid force to any of the MD particles.  "
+                   "To add this force use lb/viscous fix\n");
 }
 
 void FixLbFluid::setup(int /* vflag */)
@@ -806,13 +781,6 @@ void FixLbFluid::setup(int /* vflag */)
   // original forces would be nonzero.  As such, seems better to just leave
   // the hydro forces as zero for the first 1/2 step on restart.
   //--------------------------------------------------------------------------
-  //
-  //if(step > 0) {  //step set to 0 for normal run, set to 1 for restart in initialize_feq
-  //  calc_fluidforceweight();
-  //  calc_fluidforceI();
-  //  if(comm->me == 0)
-  //    utils::logmest(lmp, "calc_force in lb setup...");
-  //}
 }
 
 void FixLbFluid::initial_integrate(int /* vflag */)
@@ -994,11 +962,8 @@ void FixLbFluid::InitializeFirstRun(void)
 
   // Initialize local lattice geometry based on global geometry.
   initializeGeometry();
-  if (comm->me == 0) {
-    char str[128];
-    sprintf(str, "Local Grid Geometry created.");
-    error->message(FLERR, str);
-  }
+  if (comm->me == 0) utils::logmesg(lmp, "Local Grid Geometry created.\n");
+
   // Destroy redundant global lattice.
   memory->destroy(wholelattice);
   MPI_Barrier(world);
@@ -2558,11 +2523,8 @@ void FixLbFluid::write_restartfile(void)
   MPI_Datatype realtype;
   MPI_Datatype filetype;
 
-  char *hfile;
-  hfile = new char[32];
-  sprintf(hfile, "FluidRestart_" BIGINT_FORMAT ".dat", update->ntimestep);
-
-  MPI_File_open(world, hfile, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
+  auto hfile = fmt::format("FluidRestart_{}.dat", update->ntimestep);
+  MPI_File_open(world, hfile.c_str(), MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
 
   int realsizes[4] = {subNbx, subNby, subNbz, numvel};
   int realstarts[4] = {1, 1, 1, 0};
@@ -2570,9 +2532,8 @@ void FixLbFluid::write_restartfile(void)
   int lsizes[4] = {subNbx - 2, subNby - 2, subNbz - 2, numvel};
   int starts[4] = {comm->myloc[0] * (subNbx - 2), comm->myloc[1] * (subNby - 2),
                    comm->myloc[2] * (subNbz - 2), 0};
-  if (domain->periodicity[2] == 0 && comm->myloc[2] == comm->procgrid[2] - 1) {
+  if (domain->periodicity[2] == 0 && comm->myloc[2] == comm->procgrid[2] - 1)
     starts[2] = comm->myloc[2] * (subNbz - 3);
-  }
 
   MPI_Type_create_subarray(4, realsizes, lsizes, realstarts, MPI_ORDER_C, MPI_DOUBLE, &realtype);
   MPI_Type_commit(&realtype);
@@ -2586,7 +2547,6 @@ void FixLbFluid::write_restartfile(void)
   MPI_Type_free(&realtype);
   MPI_Type_free(&filetype);
   MPI_File_close(&fh);
-  delete[] hfile;
 }
 
 //==========================================================================

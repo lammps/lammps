@@ -40,7 +40,6 @@ FixLbMomentum::FixLbMomentum(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 4) error->all(FLERR, "Illegal fix lb/momentum command");
   nevery = utils::inumeric(FLERR, arg[3], false, lmp);
-  ;
   if (nevery <= 0) error->all(FLERR, "Illegal fix lb/momentum command");
 
   linear = 1;
@@ -159,9 +158,9 @@ void FixLbMomentum::end_of_step()
         etacov[1] = rho * ucmx;
         etacov[2] = rho * ucmy;
         etacov[3] = rho * ucmz;
-        etacov[4] = rho * (2. * u_lb[i][j][k][0] * ucmx - ucmx * ucmx);
-        etacov[5] = rho * (2. * u_lb[i][j][k][1] * ucmy - ucmy * ucmy);
-        etacov[6] = rho * (2. * u_lb[i][j][k][2] * ucmz - ucmz * ucmz);
+        etacov[4] = rho * (2.0 * u_lb[i][j][k][0] * ucmx - ucmx * ucmx);
+        etacov[5] = rho * (2.0 * u_lb[i][j][k][1] * ucmy - ucmy * ucmy);
+        etacov[6] = rho * (2.0 * u_lb[i][j][k][2] * ucmz - ucmz * ucmz);
         etacov[7] = rho * (u_lb[i][j][k][0] * ucmy + u_lb[i][j][k][1] * ucmx - ucmx * ucmy);
         etacov[8] = rho * (u_lb[i][j][k][1] * ucmz + u_lb[i][j][k][2] * ucmy - ucmy * ucmz);
         etacov[9] = rho * (u_lb[i][j][k][0] * ucmz + u_lb[i][j][k][2] * ucmx - ucmx * ucmz);
@@ -174,14 +173,12 @@ void FixLbMomentum::end_of_step()
                ucmx * ucmy * u_lb[i][j][k][2] + ucmx * ucmy * ucmz);
 
           for (int l = 0; l < 15; l++)
-            for (int ii = 1; ii < 14; ii++) {
+            for (int ii = 1; ii < 14; ii++)
               f_lb[i][j][k][l] -= w_lb15[l] * mg_lb15[ii][l] * etacov[ii] * Ng_lb15[ii];
-            }
         } else    // 19-velocity model
           for (int l = 0; l < 19; l++)
-            for (int ii = 1; ii < 14; ii++) {
+            for (int ii = 1; ii < 14; ii++)
               f_lb[i][j][k][l] -= w_lb19[l] * mg_lb19[ii][l] * etacov[ii] * Ng_lb19[ii];
-            }
 
         if (xflag) u_lb[i][j][k][0] -= vcmall[0];
         if (yflag) u_lb[i][j][k][1] -= vcmall[1];

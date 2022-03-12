@@ -43,7 +43,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_fix_lbfluid[] =
-    "fix lb/fluid command:\n\n"
+    "fix lb/fluid command: doi:10.1016/j.cpc.2022.108318\n\n"
     "@Article{Denniston et al.,\n"
     " author = {C. Denniston, N. Afrasiabian, M.G. Cole-Andre,"
     "F.E. Mackay, S.T.T. Ollila, T. Whitehead},\n"
@@ -68,12 +68,11 @@ class Site {
 /* ------------------------------------------------------------------------ */
 
 FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  Gamma(nullptr), hydroF(nullptr), massp(nullptr),
-  density_lb(nullptr), u_lb(nullptr), f_lb(nullptr), fnew(nullptr), feq(nullptr),
-  Ff(nullptr), Wf(nullptr), Fftempx(nullptr), Wftempx(nullptr),
-  Fftempy(nullptr), Wftempy(nullptr), Fftempz(nullptr), Wftempz(nullptr),
-  sublattice(nullptr), wholelattice(nullptr)
+    Fix(lmp, narg, arg), Gamma(nullptr), hydroF(nullptr), massp(nullptr), density_lb(nullptr),
+    u_lb(nullptr), f_lb(nullptr), fnew(nullptr), feq(nullptr), Ff(nullptr), Wf(nullptr),
+    Fftempx(nullptr), Wftempx(nullptr), Fftempy(nullptr), Wftempy(nullptr), Fftempz(nullptr),
+    Wftempz(nullptr), n_stencil(2), random(nullptr), dof_lb(0), sublattice(nullptr),
+    wholelattice(nullptr)
 {
   //=====================================================================================================
   //  Sample inputfile call:
@@ -215,8 +214,9 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
   h_s = h_p = w_p = l_pp = l_e = l_p = 0;
   lin_init = 0;
 
-  Gamma = new double[atom->ntypes + 1];
-  for (int i = 0; i <= atom->ntypes; i++) Gamma[i] = 1.0;
+  const int ntypes = atom->ntypes;
+  Gamma = new double[ntypes + 1];
+  for (int i = 0; i <= ntypes; i++) Gamma[i] = 1.0;
 
   // Flags for fix references (i.e. quantities accessible via f_ID[n]
   vector_flag = 1;
@@ -233,7 +233,7 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
       else
         itype = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       double scalefactor = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
-      if (itype < 0 || itype > atom->ntypes)
+      if (itype < 0 || itype > ntypes)
         error->all(FLERR, "Illegal fix lb/fluid command: scaleGamma");
       if (itype)
         Gamma[itype] = scalefactor;

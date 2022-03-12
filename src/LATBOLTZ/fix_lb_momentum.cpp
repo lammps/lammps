@@ -35,7 +35,8 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixLbMomentum::FixLbMomentum(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixLbMomentum::FixLbMomentum(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), fix_lb_fluid(nullptr)
 {
   if (narg < 4) error->all(FLERR, "Illegal fix lb/momentum command");
   nevery = utils::inumeric(FLERR, arg[3], false, lmp);
@@ -84,9 +85,8 @@ void FixLbMomentum::init()
   if ((count = group->count(igroup)) == 0)
     error->warning(FLERR, "Fix lb/momentum group has no atoms: Only fluid momentum affected");
 
-  for (int ifix = 0; ifix < modify->nfix; ifix++)
-    if (strcmp(modify->fix[ifix]->style, "lb/fluid") == 0)
-      fix_lb_fluid = (FixLbFluid *) modify->fix[ifix];
+  auto ifix = modify->get_fix_by_style("lb/fluid");
+  if (ifix.size() > 0) fix_lb_fluid = (FixLbFluid *) ifix[0];
 
   count ? masstotal = group->mass(igroup) : 0;
 }

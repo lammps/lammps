@@ -173,6 +173,9 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   if (lmp->citeme) lmp->citeme->add(cite_fix_lbfluid);
 
+  // we require continuous time stepping
+  time_depend = 1;
+
   if (narg < 6) error->all(FLERR, "Illegal fix lb/fluid command");
 
   if (comm->style != 0)
@@ -730,16 +733,20 @@ int FixLbFluid::setmask()
 
 void FixLbFluid::init(void)
 {
+  if (modify->get_fix_by_style("lb/fluid").size() > 1)
+    error->all(FLERR, "Only one fix lb/fluid at a time is supported");
+
+  if (modify->get_fix_by_style("dt/reset").size() > 1)
+    error->all(FLERR, "Fix lb/fluid is not compatible with fix dt/reset");
+
   //--------------------------------------------------------------------------
   // Check to see if the MD timestep has changed between runs.
   //--------------------------------------------------------------------------
   double dt_lb_now;
   dt_lb_now = nevery * (update->dt);
 
-  if (fabs(dt_lb_now - dt_lb) > 1.0e-12) {
-    error->warning(
-        FLERR, "Timestep change between runs with the same lb/fluid. Unphysical results may occur");
-  }
+  if (fabs(dt_lb_now - dt_lb) > 1.0e-12)
+    error->warning(FLERR, "Timestep changed between runs.  Must re-issue fix lb/fluid command.");
 
   //--------------------------------------------------------------------------
   // Make sure the size of the simulation domain has not changed
@@ -788,11 +795,12 @@ void FixLbFluid::init(void)
   // Check if the lb/viscous fix is also called:
   //--------------------------------------------------------------------------
   groupbit_viscouslb = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style, "lb/viscous") == 0) {
-      fixviscouslb = 1;
-      groupbit_viscouslb = group->bitmask[modify->fix[i]->igroup];
-    }
+  auto fixlbv = modify->get_fix_by_style("lb/viscous");
+  if (fixlbv.size() > 0) {
+    if (fixlbv.size() > 1)
+      error->all(FLERR, "More than one fix lb/viscous at a time is not supported");
+    fixviscouslb = 1;
+    groupbit_viscouslb = group->bitmask[fixlbv[0]->igroup];
   }
 
   // Warn if the fluid force is not applied to any of the particles.
@@ -4489,22 +4497,16 @@ void FixLbFluid::calc_MPT(double &totalmass, double totalmomentum[3], double &Ta
 
 int FixLbFluid::adjust_dof_fix() /* Based on same private method in compute class */
 {                                /* altered to return fix_dof */
-  Fix **fix = modify->fix;
-  int nfix = modify->nfix;
-
   int fix_dof = 0;
-  for (int i = 0; i < nfix; i++)
-    if (fix[i]->dof_flag) fix_dof += fix[i]->dof(igroup);
+  for (auto &ifix : modify->get_fix_list())
+    if (ifix->dof_flag) fix_dof += ifix->dof(igroup);
   return fix_dof;
 }
 
 double FixLbFluid::dof_compute() /* Based on same protected member of compute_temp class */
 { /* with extra_dof variable replaced by its default domain->dimension */
-  //int fix_dof = adjust_dof_fix();
 
   double dof;
-  //double dof = domain->dimension * (group->count(igroup));
-  //dof -= fix_dof; // CM can tranfer to lb fluid so no constraint requiring removal of 1 domain->dimension
 
   if (setdof)
     dof = setdof;
@@ -4512,8 +4514,6 @@ double FixLbFluid::dof_compute() /* Based on same protected member of compute_te
     MPI_Allreduce(&dof_lb, &dof, 1, MPI_DOUBLE, MPI_SUM, world);
     dof = 3.0 * dof;
   }
-
-  //std::cout << dof << std::endl;
 
   double tfactor;
   if (dof > FLT_EPSILON)

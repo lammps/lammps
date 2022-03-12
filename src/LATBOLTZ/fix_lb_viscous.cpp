@@ -36,22 +36,19 @@ FixLbViscous::FixLbViscous(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, a
 
   int groupbit_lb_fluid = 0;
 
-  for (int ifix = 0; ifix < modify->nfix; ifix++)
-    if (strcmp(modify->fix[ifix]->style, "lb/fluid") == 0) {
-      fix_lb_fluid = (FixLbFluid *) modify->fix[ifix];
-      groupbit_lb_fluid = group->bitmask[modify->fix[ifix]->igroup];
-    }
-
-  if (groupbit_lb_fluid == 0)
+  auto ifix = modify->get_fix_by_style("lb/fluid");
+  if (ifix.size() > 0) {
+    fix_lb_fluid = (FixLbFluid *) ifix[0];
+    groupbit_lb_fluid = group->bitmask[ifix[0]->igroup];
+  } else {
     error->all(FLERR, "the lb/fluid fix must also be used if using the lb/viscous fix");
+  }
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   for (int j = 0; j < nlocal; j++) {
     if ((mask[j] & groupbit) && !(mask[j] & groupbit_lb_fluid))
-      error->one(
-          FLERR,
-          "to apply a fluid force onto an atom, the lb/fluid fix must be used for that atom.");
+      error->one(FLERR, "Atoms must be in the fix lb/fluid group to apply a fluid force to them");
   }
 }
 
@@ -70,7 +67,7 @@ int FixLbViscous::setmask()
 
 void FixLbViscous::init()
 {
-  if (utils::strmatch(update->integrate_style,"^respa"))
+  if (utils::strmatch(update->integrate_style, "^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 

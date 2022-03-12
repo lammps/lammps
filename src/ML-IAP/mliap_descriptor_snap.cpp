@@ -42,6 +42,9 @@ MLIAPDescriptorSNAP::MLIAPDescriptorSNAP(LAMMPS *lmp, char *paramfilename):
   radelem = nullptr;
   wjelem = nullptr;
   snaptr = nullptr;
+  rinnerelem = nullptr;
+  drinnerelem = nullptr;
+
   read_paramfile(paramfilename);
 
   snaptr = new SNA(lmp, rfac0, twojmax,
@@ -59,6 +62,11 @@ MLIAPDescriptorSNAP::~MLIAPDescriptorSNAP()
   memory->destroy(radelem);
   memory->destroy(wjelem);
   delete snaptr;
+
+  if (switchinnerflag) {
+      memory->destroy(rinnerelem);
+      memory->destroy(drinnerelem);
+    }
 }
 
 /* ----------------------------------------------------------------------
@@ -88,6 +96,10 @@ void MLIAPDescriptorSNAP::compute_descriptors(class MLIAPData* data)
       snaptr->inside[ninside] = j;
       snaptr->wj[ninside] = wjelem[jelem];
       snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
+      if (switchinnerflag) {
+	snaptr->rinnerij[ninside] = 0.5*(rinnerelem[ielem]+rinnerelem[jelem]);
+	snaptr->drinnerij[ninside] = 0.5*(drinnerelem[ielem]+drinnerelem[jelem]);
+      }
       if (chemflag) snaptr->element[ninside] = jelem;
       ninside++;
       ij++;
@@ -141,6 +153,10 @@ void MLIAPDescriptorSNAP::compute_forces(class MLIAPData* data)
       snaptr->inside[ninside] = j;
       snaptr->wj[ninside] = wjelem[jelem];
       snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
+      if (switchinnerflag) {
+	snaptr->rinnerij[ninside] = 0.5*(rinnerelem[ielem]+rinnerelem[jelem]);
+	snaptr->drinnerij[ninside] = 0.5*(drinnerelem[ielem]+drinnerelem[jelem]);
+      }
       if (chemflag) snaptr->element[ninside] = jelem;
       ninside++;
       ij++;
@@ -211,6 +227,10 @@ void MLIAPDescriptorSNAP::compute_force_gradients(class MLIAPData* data)
       snaptr->inside[ninside] = j;
       snaptr->wj[ninside] = wjelem[jelem];
       snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
+      if (switchinnerflag) {
+	snaptr->rinnerij[ninside] = 0.5*(rinnerelem[ielem]+rinnerelem[jelem]);
+	snaptr->drinnerij[ninside] = 0.5*(drinnerelem[ielem]+drinnerelem[jelem]);
+      }
       if (chemflag) snaptr->element[ninside] = jelem;
       ninside++;
       ij++;
@@ -279,6 +299,10 @@ void MLIAPDescriptorSNAP::compute_descriptor_gradients(class MLIAPData* data)
       snaptr->inside[ninside] = j;
       snaptr->wj[ninside] = wjelem[jelem];
       snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
+      if (switchinnerflag) {
+	snaptr->rinnerij[ninside] = 0.5*(rinnerelem[ielem]+rinnerelem[jelem]);
+	snaptr->drinnerij[ninside] = 0.5*(drinnerelem[ielem]+drinnerelem[jelem]);
+      }
       if (chemflag) snaptr->element[ninside] = jelem;
       ninside++;
       ij++;
@@ -347,6 +371,11 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
   wselfallflag = 0;
   switchinnerflag = 0;
 
+  // set local input checks
+
+  int rinnerflag = 0;
+  int drinnerflag = 0;
+
   for (int i = 0; i < nelements; i++) delete[] elements[i];
   delete[] elements;
   memory->destroy(radelem);
@@ -396,7 +425,9 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
 
     if (strcmp(keywd,"elems") == 0 ||
         strcmp(keywd,"radelems") == 0 ||
-        strcmp(keywd,"welems") == 0) {
+        strcmp(keywd,"welems") == 0 ||
+	strcmp(keywd,"rinnerelems") == 0 ||
+	strcmp(keywd,"drinnerelems") == 0) {
 
       if (nelementsflag == 0 || nwords != nelements+1)
         error->all(FLERR,"Incorrect SNAP parameter file");
@@ -422,6 +453,18 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
           keyval = strtok(nullptr,"' \t\n\r\f");
         }
         wjelemflag = 1;
+      } else if (strcmp(keywd,"rinnerelems") == 0) {
+        for (int ielem = 0; ielem < nelements; ielem++) {
+          rinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
+          keyval = strtok(nullptr,"' \t\n\r\f");
+        }
+        rinnerflag = 1;
+      } else if (strcmp(keywd,"drinnerelems") == 0) {
+        for (int ielem = 0; ielem < nelements; ielem++) {
+          drinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
+          keyval = strtok(nullptr,"' \t\n\r\f");
+        }
+        rinnerflag = 1;
       }
 
     } else {
@@ -435,39 +478,46 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
 	utils::logmesg(lmp,"SNAP keyword {} {} \n", keywd, keyval);
 
       if (strcmp(keywd,"nelems") == 0) {
-        nelements = atoi(keyval);
+        nelements = utils::inumeric(FLERR,keyval,false,lmp);
         elements = new char*[nelements];
         memory->create(radelem,nelements,"mliap_snap_descriptor:radelem");
         memory->create(wjelem,nelements,"mliap_snap_descriptor:wjelem");
         nelementsflag = 1;
       } else if (strcmp(keywd,"rcutfac") == 0) {
-        rcutfac = atof(keyval);
+        rcutfac = utils::numeric(FLERR,keyval,false,lmp);
         rcutfacflag = 1;
       } else if (strcmp(keywd,"twojmax") == 0) {
-        twojmax = atoi(keyval);
+        twojmax = utils::inumeric(FLERR,keyval,false,lmp);
         twojmaxflag = 1;
       } else if (strcmp(keywd,"rfac0") == 0)
-        rfac0 = atof(keyval);
+        rfac0 = utils::numeric(FLERR,keyval,false,lmp);
       else if (strcmp(keywd,"rmin0") == 0)
-        rmin0 = atof(keyval);
+        rmin0 = utils::numeric(FLERR,keyval,false,lmp);
       else if (strcmp(keywd,"switchflag") == 0)
-        switchflag = atoi(keyval);
+        switchflag = utils::inumeric(FLERR,keyval,false,lmp);
       else if (strcmp(keywd,"bzeroflag") == 0)
-        bzeroflag = atoi(keyval);
+        bzeroflag = utils::inumeric(FLERR,keyval,false,lmp);
       else if (strcmp(keywd,"chemflag") == 0)
-        chemflag = atoi(keyval);
+        chemflag = utils::inumeric(FLERR,keyval,false,lmp);
       else if (strcmp(keywd,"bnormflag") == 0)
-        bnormflag = atoi(keyval);
+        bnormflag = utils::inumeric(FLERR,keyval,false,lmp);
       else if (strcmp(keywd,"wselfallflag") == 0)
-        wselfallflag = atoi(keyval);
+        wselfallflag = utils::inumeric(FLERR,keyval,false,lmp);
+      else if (keywd == "switchinnerflag")
+	switchinnerflag = utils::inumeric(FLERR,keyval,false,lmp);
       else
         error->all(FLERR,"Incorrect SNAP parameter file");
-
     }
   }
 
   if (!rcutfacflag || !twojmaxflag || !nelementsflag ||
       !elementsflag || !radelemflag || !wjelemflag)
+    error->all(FLERR,"Incorrect SNAP parameter file");
+
+  if (switchinnerflag && !(rinnerflag && drinnerflag)) 
+    error->all(FLERR,"Incorrect SNAP parameter file");
+
+  if (!switchinnerflag && (rinnerflag || drinnerflag)) 
     error->all(FLERR,"Incorrect SNAP parameter file");
 
   // construct cutsq

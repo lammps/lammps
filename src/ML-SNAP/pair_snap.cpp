@@ -64,9 +64,12 @@ PairSNAP::~PairSNAP()
   memory->destroy(radelem);
   memory->destroy(wjelem);
   memory->destroy(coeffelem);
-  memory->destroy(rinnerelem);
-  memory->destroy(drinnerelem);
 
+  if (switchinnerflag) {
+    memory->destroy(rinnerelem);
+    memory->destroy(drinnerelem);
+  }
+  
   memory->destroy(beta);
   memory->destroy(bispectrum);
 
@@ -158,8 +161,6 @@ void PairSNAP::compute(int eflag, int vflag)
 	if (switchinnerflag) {
 	  snaptr->rinnerij[ninside] = 0.5*(rinnerelem[ielem]+rinnerelem[jelem]);
 	  snaptr->drinnerij[ninside] = 0.5*(drinnerelem[ielem]+drinnerelem[jelem]);
-	  // snaptr->rinnerij[ninside] = 0.0;
-	  // snaptr->drinnerij[ninside] = 1.5;
 	}
 	if (chemflag) snaptr->element[ninside] = jelem;
         ninside++;
@@ -333,8 +334,6 @@ void PairSNAP::compute_bispectrum()
 	if (switchinnerflag) {
 	  snaptr->rinnerij[ninside] = 0.5*(rinnerelem[ielem]+rinnerelem[jelem]);
 	  snaptr->drinnerij[ninside] = 0.5*(drinnerelem[ielem]+drinnerelem[jelem]);
-	  // snaptr->rinnerij[ninside] = 0.0;
-	  // snaptr->drinnerij[ninside] = 1.5;
 	}
 	if (chemflag) snaptr->element[ninside] = jelem;
         ninside++;
@@ -520,14 +519,18 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   memory->destroy(radelem);
   memory->destroy(wjelem);
   memory->destroy(coeffelem);
-  memory->destroy(rinnerelem);
-  memory->destroy(drinnerelem);
+  if (switchinnerflag) {
+    memory->destroy(rinnerelem);
+    memory->destroy(drinnerelem);
+  }
   memory->create(radelem,nelements,"pair:radelem");
   memory->create(wjelem,nelements,"pair:wjelem");
   memory->create(coeffelem,nelements,ncoeffall,"pair:coeffelem");
-  memory->create(rinnerelem,nelements,"pair:rinnerelem");
-  memory->create(drinnerelem,nelements,"pair:drinnerelem");
-
+  if (switchinnerflag) {
+    memory->create(rinnerelem,nelements,"pair:rinnerelem");
+    memory->create(drinnerelem,nelements,"pair:drinnerelem");
+  }
+  
   // initialize checklist for all required nelements
 
   int *elementflags = new int[nelements];
@@ -707,14 +710,14 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       if (keywd == "rinner") {
 	keyval = words[iword];
         for (int ielem = 0; ielem < nelements; ielem++) {
-          rinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
+	  rinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
 	  iword++;
         }
         rinnerflag = 1;
       } else if (keywd == "drinner") {
 	keyval = words[iword];
         for (int ielem = 0; ielem < nelements; ielem++) {
-          drinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
+	  drinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
 	  iword++;
         }
         drinnerflag = 1;

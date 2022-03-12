@@ -1927,6 +1927,7 @@ mbt
 MBytes
 mc
 McLachlan
+mcmoves
 md
 mdf
 mdi
@@ -2227,6 +2228,7 @@ Nelement
 Nelements
 nelems
 nemd
+netapp
 netcdf
 netstat
 Nettleton

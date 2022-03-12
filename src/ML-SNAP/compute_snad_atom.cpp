@@ -32,12 +32,10 @@ using namespace LAMMPS_NS;
 
 ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), snad(nullptr),
-  radelem(nullptr), wjelem(nullptr)
+  radelem(nullptr), wjelem(nullptr), rinnerelem(nullptr), drinnerelem(nullptr)
 {
   double rfac0, rmin0;
   int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
-  radelem = nullptr;
-  wjelem = nullptr;
 
   int ntypes = atom->ntypes;
   int nargmin = 6+2*ntypes;
@@ -132,6 +130,19 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute snad/atom command");
       wselfallflag = atoi(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"switchinnerflag") == 0) {
+      if (iarg+1+2*ntypes > narg)
+        error->all(FLERR,"Illegal compute snad/atom command");
+      switchinnerflag = 1;
+      iarg++;
+      memory->create(rinnerelem,ntypes+1,"snad/atom:rinnerelem");
+      memory->create(drinnerelem,ntypes+1,"snad/atom:drinnerelem");
+      for (int i = 0; i < ntypes; i++)
+       rinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+      iarg += ntypes;
+      for (int i = 0; i < ntypes; i++)
+       drinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+      iarg += ntypes;
     } else error->all(FLERR,"Illegal compute snad/atom command");
   }
 
@@ -162,6 +173,13 @@ ComputeSNADAtom::~ComputeSNADAtom()
   memory->destroy(wjelem);
   memory->destroy(cutsq);
   delete snaptr;
+
+  if (chemflag) memory->destroy(map);
+
+  if (switchinnerflag) {
+    memory->destroy(rinnerelem);
+    memory->destroy(drinnerelem);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -288,6 +306,10 @@ void ComputeSNADAtom::compute_peratom()
           snaptr->inside[ninside] = j;
           snaptr->wj[ninside] = wjelem[jtype];
           snaptr->rcutij[ninside] = (radi+radelem[jtype])*rcutfac;
+	  if (switchinnerflag) {
+	    snaptr->rinnerij[ninside] = 0.5*(rinnerelem[itype]+rinnerelem[jtype]);
+	    snaptr->drinnerij[ninside] = 0.5*(drinnerelem[itype]+drinnerelem[jtype]);
+	  }
           if (chemflag) snaptr->element[ninside] = jelem;
           ninside++;
         }

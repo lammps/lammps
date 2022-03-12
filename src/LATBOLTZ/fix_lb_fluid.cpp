@@ -31,12 +31,10 @@
 #include "modify.h"
 #include "random_mars.h"
 #include "update.h"
+
 #include <cfloat>
 #include <cmath>
 #include <cstring>
-#include <fstream>
-#include <iomanip>
-#include <sstream>
 #include <vector>
 
 #include "latboltz_const.h"
@@ -688,14 +686,8 @@ FixLbFluid::~FixLbFluid()
               "    </Grid>\n"
               "  </Domain>\n"
               "</Xdmf>\n");
-      if (fclose(dump_file_handle_xdmf) != 0) {
-        std::ostringstream combined;
-
-        // The message plus the status
-        combined << std::string("unable to close \"") + dump_file_name_xdmf + std::string("\"");
-
-        error->one(FLERR, combined.str().c_str());
-      }
+      if (fclose(dump_file_handle_xdmf))
+        error->one(FLERR, "Unable to close \"{}\": {}", dump_file_name_xdmf, utils::getsyserror());
     }
     MPI_File_close(&dump_file_handle_raw);
   }
@@ -732,8 +724,8 @@ FixLbFluid::~FixLbFluid()
 
 int FixLbFluid::setmask()
 {
-  return FixConst::INITIAL_INTEGRATE | FixConst::PRE_FORCE | FixConst::POST_FORCE |
-      FixConst::FINAL_INTEGRATE | FixConst::END_OF_STEP;
+  return FixConst::INITIAL_INTEGRATE | FixConst::POST_FORCE | FixConst::FINAL_INTEGRATE |
+      FixConst::END_OF_STEP;
 }
 
 void FixLbFluid::init(void)
@@ -855,8 +847,6 @@ void FixLbFluid::initial_integrate(int /* vflag */)
   parametercalc_full();
   timePCalc += MPI_Wtime() - st;
 }
-
-void FixLbFluid::pre_force(int vflag) {}
 
 void FixLbFluid::post_force(int /*vflag*/)
 {
@@ -1042,7 +1032,7 @@ void FixLbFluid::InitializeFirstRun(void)
   // Output for t=0
   dump(update->ntimestep);
 
-  if (me == 0) utils::logmesg(lmp,"First Run initialized\n");
+  if (me == 0) utils::logmesg(lmp, "First Run initialized\n");
 }
 
 //==========================================================================
@@ -2355,15 +2345,9 @@ void FixLbFluid::SetupBuffers(void)
   if (dump_interval) {
     if (me == 0) {
       dump_file_handle_xdmf = fopen(dump_file_name_xdmf.c_str(), "w");
-      if (!dump_file_handle_xdmf) {
-        std::ostringstream combined;
-
-        // The message plus the status
-        combined << std::string("unable to truncate/create \"") + dump_file_name_xdmf +
-                std::string("\"");
-
-        error->one(FLERR, combined.str().c_str());
-      }
+      if (!dump_file_handle_xdmf)
+        error->one(FLERR, "Unable to truncate/create \"{}\": {}", dump_file_name_xdmf,
+                   utils::getsyserror());
       fprintf(dump_file_handle_xdmf,
               "<?xml version=\"1.0\" ?>\n"
               "<!DOCTYPE Xdmf SYSTEM \"Xdmf.dtd\" []>\n"
@@ -2372,9 +2356,6 @@ void FixLbFluid::SetupBuffers(void)
               "    <Grid Name=\"fluid\" GridType=\"Collection\" CollectionType=\"Temporal\">\n\n");
     }
 
-    // MPI_File_open(world, const_cast<char*>(dump_file_name_raw.c_str()),
-    //               MPI_MODE_CREATE|MPI_MODE_WRONLY|MPI_MODE_UNIQUE_OPEN,
-    //               MPI_INFO_NULL, &dump_file_handle_raw);
     MPI_File_open(world, const_cast<char *>(dump_file_name_raw.c_str()),
                   MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &dump_file_handle_raw);
 
@@ -3796,62 +3777,57 @@ void FixLbFluid::initializeGeometry()
   // Output local geometry to data files labeled with processor number
   // Type dump
   if (geodump) {
-    char datfile[FILENAME_MAX];
-    sprintf(datfile, "subgeom_%d_end_type.dmp", me);
-    std::ofstream outFile(datfile);
-
-    if (!outFile.is_open()) {
+    auto datfile = fmt::format("subgeom_{}_end_type.dmp", me);
+    FILE *outfile = fopen(datfile.c_str(), "w");
+    if (!outfile)
       error->one(FLERR, " file {} could not be opened: {}", datfile, utils::getsyserror());
-    }
-    outFile << std::endl;
-    outFile << "me: " << me << " px: " << comm->myloc[0] << " py: " << comm->myloc[1]
-            << " pz: " << comm->myloc[2] << std::endl;
+
+    fmt::print(outfile, "\n me: {} px: {} py: {} pz: {}\n", me, comm->myloc[0], comm->myloc[1],
+               comm->myloc[2]);
+
     for (i = 0; i < subNbx; i++) {
-      outFile << "i=" << i << std::endl;
+      fmt::print(outfile, "i={}\n", i);
       for (k = subNbz - 1; k > -1; k--) {
         if (k == subNbz - 2 || k == 0) {
-          for (j = 0; j < subNby + 2; j++) outFile << "---";
-          outFile << std::endl;
+          for (j = 0; j < subNby + 2; j++) fputs("---", outfile);
+          fputs("\n", outfile);
         }
         for (j = 0; j < subNby; j++) {
-          outFile << " " << sublattice[i][j][k].type << " ";
-          if (j == 0 || j == subNby - 2) outFile << " | ";
-          if (j == subNby - 1) outFile << std::endl;
+          fmt::print(outfile, " {} ", sublattice[i][j][k].type);
+          if (j == 0 || j == subNby - 2) fputs(" | ", outfile);
+          if (j == subNby - 1) fputs("\n", outfile);
         }
       }
-      outFile << " " << std::endl;
-      outFile << " " << std::endl;
+      fputs(" \n \n", outfile);
     }
-    outFile << std::endl;
-    outFile.close();
+    fputs("\n", outfile);
+    fclose(outfile);
 
     // Orientation dump
-    sprintf(datfile, "subgeom_%d_end_ori.dmp", me);
-    outFile.open(datfile);
+    datfile = fmt::format("subgeom_{}_end_ori.dmp", me);
+    outfile = fopen(datfile.c_str(), "w");
 
-    if (!outFile.is_open()) {
+    if (!outfile)
       error->one(FLERR, " file {} could not be opened: {}", datfile, utils::getsyserror());
-    }
-    outFile << std::endl;
-    outFile << "me: " << me << std::endl;
+
+    fmt::print("\nme: {}\n", me);
     for (i = 0; i < subNbx; i++) {
-      outFile << "i=" << i << std::endl;
+      fmt::print("i={}\n", i);
       for (k = subNbz - 1; k > -1; k--) {
         if (k == subNbz - 2 || k == 0) {
-          for (j = 0; j < subNby + 2; j++) outFile << "---";
-          outFile << std::endl;
+          for (j = 0; j < subNby + 2; j++) fputs("---", outfile);
+          fputs("\bn", outfile);
         }
         for (j = 0; j < subNby; j++) {
-          outFile << " " << sublattice[i][j][k].orientation << " ";
-          if (j == 0 || j == subNby - 2) outFile << " | ";
-          if (j == subNby - 1) outFile << std::endl;
+          fmt::print(outfile, " {} ", sublattice[i][j][k].orientation);
+          if (j == 0 || j == subNby - 2) fputs(" | ", outfile);
+          if (j == subNby - 1) fputs("\n", outfile);
         }
       }
-      outFile << " " << std::endl;
-      outFile << " " << std::endl;
+      fputs(" \n \n", outfile);
     }
-    outFile << std::endl;
-    outFile.close();
+    fputs("\n", outfile);
+    fclose(outfile);
   }
 }
 

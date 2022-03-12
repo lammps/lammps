@@ -35,7 +35,7 @@ Syntax
        *dumpxdmf* values = N file timeI
            N = output the force and torque every N timesteps
            file = output file name
-	   timeI = 1 (use simulation time to index xdmf file), 0 (use output frame number to index xdmf file)
+           timeI = 1 (use simulation time to index xdmf file), 0 (use output frame number to index xdmf file)
        *dof* values = dof = specify the number of degrees of freedom for temperature calculation
        *scaleGamma* values = type gammaFactor
            type = atom type (1-N)
@@ -43,10 +43,10 @@ Syntax
        *a0* values = a_0_real = the square of the speed of sound in the fluid.
        *npits* values = npits h_p l_p l_pp l_e
            npits = number of pit regions
-	   h_p = z-height of pit regions (floor to bottom of slit)
-	   l_p = x-length of pit regions
-	   l_pp = x-length of slit regions between consecutive pits
-	   l_e = x-length of slit regions at ends
+           h_p = z-height of pit regions (floor to bottom of slit)
+           l_p = x-length of pit regions
+           l_pp = x-length of slit regions between consecutive pits
+           l_e = x-length of slit regions at ends
        *wp* values = w_p = y-width of slit regions (defaults to full width if not present or if sw active)
        *sw* values = none  (turns on y-sidewalls (in xz plane) if npits option active)
 

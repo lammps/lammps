@@ -9,7 +9,7 @@ gives links to documentation, example scripts, and pictures/movies (if
 available) that illustrate use of the package.
 
 The majority of packages can be included in a LAMMPS build with a
-single setting (``-D PGK_<NAME>=on`` for CMake) or command
+single setting (``-D PKG_<NAME>=on`` for CMake) or command
 (``make yes-<name>`` for make).  See the :doc:`Build package <Build_package>`
 page for more info.  A few packages may require additional steps;
 this is indicated in the descriptions below.  The :doc:`Build extras <Build_extras>`

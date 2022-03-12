@@ -1192,13 +1192,7 @@ void FixRigidNHSmall::compute_dof()
       for (int k = 0; k < dimension; k++)
         if (fabs(b->inertia[k]) < EPSILON) nf_r--;
     }
-  } else if (dimension == 2) {
-    nf_r = nlocal_body;
-    for (int ibody = 0; ibody < nlocal_body; ibody++) {
-      Body *b = &body[ibody];
-      if (fabs(b->inertia[2]) < EPSILON) nf_r--;
-    }
-  }
+  } else if (dimension == 2) nf_r = nlocal_body;
 
   double nf[2], nfall[2];
   nf[0] = nf_t;

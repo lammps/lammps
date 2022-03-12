@@ -519,17 +519,13 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   memory->destroy(radelem);
   memory->destroy(wjelem);
   memory->destroy(coeffelem);
-  if (switchinnerflag) {
-    memory->destroy(rinnerelem);
-    memory->destroy(drinnerelem);
-  }
+  memory->destroy(rinnerelem);
+  memory->destroy(drinnerelem);
   memory->create(radelem,nelements,"pair:radelem");
   memory->create(wjelem,nelements,"pair:wjelem");
   memory->create(coeffelem,nelements,ncoeffall,"pair:coeffelem");
-  if (switchinnerflag) {
-    memory->create(rinnerelem,nelements,"pair:rinnerelem");
-    memory->create(drinnerelem,nelements,"pair:drinnerelem");
-  }
+  memory->create(rinnerelem,nelements,"pair:rinnerelem");
+  memory->create(drinnerelem,nelements,"pair:drinnerelem");
   
   // initialize checklist for all required nelements
 
@@ -710,6 +706,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       if (keywd == "rinner") {
 	keyval = words[iword];
         for (int ielem = 0; ielem < nelements; ielem++) {
+	  printf("rinnerelem = %p ielem = %d nelements = %d iword = %d nwords = %d\n",rinnerelem, ielem, nelements, iword, nwords);
 	  rinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
 	  iword++;
         }

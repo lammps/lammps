@@ -64,9 +64,9 @@ MLIAPDescriptorSNAP::~MLIAPDescriptorSNAP()
   delete snaptr;
 
   if (switchinnerflag) {
-      memory->destroy(rinnerelem);
-      memory->destroy(drinnerelem);
-    }
+    memory->destroy(rinnerelem);
+    memory->destroy(drinnerelem);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -482,6 +482,8 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
         elements = new char*[nelements];
         memory->create(radelem,nelements,"mliap_snap_descriptor:radelem");
         memory->create(wjelem,nelements,"mliap_snap_descriptor:wjelem");
+        memory->create(rinnerelem,nelements,"mliap_snap_descriptor:rinner");
+        memory->create(drinnerelem,nelements,"mliap_snap_descriptor:drinner");
         nelementsflag = 1;
       } else if (strcmp(keywd,"rcutfac") == 0) {
         rcutfac = utils::numeric(FLERR,keyval,false,lmp);
@@ -503,7 +505,7 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
         bnormflag = utils::inumeric(FLERR,keyval,false,lmp);
       else if (strcmp(keywd,"wselfallflag") == 0)
         wselfallflag = utils::inumeric(FLERR,keyval,false,lmp);
-      else if (keywd == "switchinnerflag")
+      else if (strcmp(keywd,"switchinnerflag") == 0)
 	switchinnerflag = utils::inumeric(FLERR,keyval,false,lmp);
       else
         error->all(FLERR,"Incorrect SNAP parameter file");

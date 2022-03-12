@@ -19,6 +19,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_lb_momentum.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
@@ -26,6 +27,8 @@
 #include "fix_lb_fluid.h"
 #include "group.h"
 #include "modify.h"
+
+#include "latboltz_const.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

@@ -38,6 +38,8 @@
 #include <sstream>
 #include <vector>
 
+#include "latboltz_const.h"
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 

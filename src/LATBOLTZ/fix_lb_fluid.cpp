@@ -1410,7 +1410,6 @@ void FixLbFluid::keys_interpolationweight(int i)
   //The atom is allowed to be within one lattice grid point outside the
   //local processor sub-domain.
   if (ix < 0 || ix > (subNbx - 1) || iy < 0 || iy > (subNby - 1) || iz < 0 || iz > (subNbz - 1)) {
-    //std::cout << "tstep=" << update->ntimestep << " i=" << i << ", (x,y,z)=(" << x[i][0] << "," << x[i][1] << "," << x[i][2] << "), (ix,iy,iz)=(" << ix << "," << iy << "," << iz << "), (ixp,iyp,izp)=(" << ixp << "," << iyp << "," << izp << ")\n";
     error->one(FLERR,
                "Atom outside local processor simulation domain!"
                " Either unstable fluid pararmeters or require more frequent neighborlist rebuilds");
@@ -1708,7 +1707,6 @@ void FixLbFluid::IBM3_interpolationweight(int i)
   //The atom is allowed to be within one lattice grid point outside the
   //local processor sub-domain.  ??? Not sure these all make sense ???
   if (ix < 0 || ix > (subNbx - 1) || iy < 0 || iy > (subNby - 1) || iz < 0 || iz > (subNbz - 1)) {
-    //std::cout << "tstep=" << update->ntimestep << " i=" << i << ", (x,y,z)=(" << x[i][0] << "," << x[i][1] << "," << x[i][2] << "), (ix,iy,iz)=(" << ix << "," << iy << "," << iz << "), (ixp,iyp,izp)=(" << ixp << "," << iyp << "," << izp << ")\n";
     error->one(FLERR,
                "Atom outside local processor simulation domain!"
                " Either unstable fluid pararmeters or require more frequent neighborlist rebuilds");
@@ -1723,19 +1721,6 @@ void FixLbFluid::IBM3_interpolationweight(int i)
   if (dx1 < 0.5) imin = -1;
   if (dy1 < 0.5) jmin = -1;
   if (dz1 < 0.5) kmin = -1;
-
-  // if (dx1 < 0.0) {
-  //   std::cout << "fuck\n";
-  //   exit(0);
-  // }
-  // if (dy1 < 0.0) {
-  //   std::cout << "fuck\n";
-  //   exit(0);
-  // }
-  // if (dz1 < 0.0) {
-  //   std::cout << "fuck\n";
-  //   exit(0);
-  // }
 
   //--------------------------------------------------------------------------
   // Calculate the interpolation weights
@@ -1779,7 +1764,6 @@ void FixLbFluid::IBM3_interpolationweight(int i)
       }
     }
   }
-  //std::cout << "Finish weights\n";
 }
 
 //==========================================================================
@@ -3708,8 +3692,6 @@ void FixLbFluid::initializeGlobalGeometry()
   // lattice structure through the lattice array
   // --------------------------------------------
 
-  //if(comm->me==0) std::cout << "before adding any topo" << std::endl;
-
   if (npits > -1) {
 
     // Add topography block by block along x-direction.
@@ -3719,24 +3701,14 @@ void FixLbFluid::initializeGlobalGeometry()
     } else
       addslit(ix, h_s, h_p, l_e, sw);    // if l_e = 0, does not add anything
 
-    //if(comm->me==0) std::cout << "after left end, ix=" << ix << std::endl;
-
     for (int nn = 0; nn < npits; nn++) {
       addpit(ix, h_s, h_p, w_p, l_p, sw);    // if l_p=Nbx, no corners/edges along z axis
-      //if(comm->me==0) std::cout << "after pit nn=" << nn << ", ix=" << ix << std::endl;
-      if (nn < npits - 1) {
-        addslit(ix, h_s, h_p, l_pp - 1, sw);
-        //if(comm->me==0) std::cout << "after slit after pit nn=" << nn << ", ix=" << ix << std::endl;
-      }
+      if (nn < npits - 1) { addslit(ix, h_s, h_p, l_pp - 1, sw); }
     }
-
-    //if(comm->me==0) std::cout << "after all pits, ix=" << ix << std::endl;
 
     if (npits > 0 && ix < Nbx - 1) {
       addslit(ix, h_s, h_p, l_e - 1, sw);    //***should probably make this one go to Nbx
     }
-
-    //if(comm->me==0) std::cout << "after right end, ix=" << ix << std::endl;
 
   } else {    // no pit geometry so all sites active if periodic or zwalls.
     for (int i = 0; i < Nbx; i++)
@@ -3881,47 +3853,6 @@ void FixLbFluid::initializeGeometry()
     outFile << std::endl;
     outFile.close();
   }
-  // sprintf(datfile,"subgeom_%d_side.dmp",me);
-  // outFile.open(datfile);
-
-  //  if(!outFile.is_open()) {
-  //    error->one(FLERR, " file {} could not be opened: {}", datfile, utils::getsyserror());
-  //  }
-  //  outFile << std::endl;
-  //  outFile << "me: " << me << std::endl;
-  //  for(i=0; i<subNbx; i++) {
-
-  //    outFile << "i=" << i << std::endl;
-  //    for(k=subNbz-1; k>-1; k--) {
-
-  //      if(k==subNbz-2 || k==0) {
-  //        for(i=0; i<subNbx+2; i++)
-  //          outFile << "---";
-  //          outFile << std::endl;
-  //      }
-  //      for(i=0; i<subNbx; i++) {
-  //        outFile << " " << sublattice[i][subNby/2][k].type << " ";
-  //        if(i==0 || i==subNbx-2) outFile << " | ";
-  //        if(i==subNbx-1) outFile << std::endl;
-  //    }
-
-  //    // if(k==subNbz-2 || k==0) {
-  //    //   for(j=0; j<subNby+2; j++)
-  //    //      outFile << "---";
-  //    //   outFile << std::endl;
-  //    // }
-  //    // for(j=0; j<subNby; j++) {
-  //    //   outFile << " " << sublattice[i][j][k].type << " ";
-  //    //   if(j==0 || j==subNby-2) outFile << " | ";
-  //    //   if(j==subNby-1) outFile << std::endl;
-  //    // }
-
-  //    }
-  //    outFile << " " << std::endl;
-  //    outFile << " " << std::endl;
-  //  }
-  //  outFile << std::endl;
-  //  outFile.close();
 }
 
 void FixLbFluid::addslit(int &x0, const int HS, const int HP, const int LE, const int SW)

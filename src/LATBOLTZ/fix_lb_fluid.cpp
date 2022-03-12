@@ -19,6 +19,7 @@
 ------------------------------------------------------------------------ */
 
 #include "fix_lb_fluid.h"
+
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
@@ -55,6 +56,18 @@ static const char cite_fix_lbfluid[] =
     " volume =  275,\n"
     " pages =   {108318}\n"
     "}\n\n";
+
+/* ------------------------------------------------------------------------ */
+
+namespace LAMMPS_NS {
+class Site {
+ public:
+  int type;
+  int orientation;
+};
+}    // namespace LAMMPS_NS
+
+/* ------------------------------------------------------------------------ */
 
 FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
@@ -885,7 +898,7 @@ void FixLbFluid::grow_arrays(int nmax)
 //==========================================================================
 //   copy values within local atom-based array
 //==========================================================================
-void FixLbFluid::copy_arrays(int i, int j, int delflag)
+void FixLbFluid::copy_arrays(int i, int j, int /* delflag */)
 {
   hydroF[j][0] = hydroF[i][0];
   hydroF[j][1] = hydroF[i][1];
@@ -2198,7 +2211,7 @@ void FixLbFluid::trilinear_interpolation(int i, int uonly)
 ///     xXXXXXXXx  global_size = { 5, 5, 5 }     xXooOOOOo  global_size = { 5, 5, 5 }
 ///     xxxxxxxxx                                xxooooooo
 ///
-static MPI_Datatype mpiTypeGlobalWrite(const int local_ghost, const int *local_size,
+static MPI_Datatype mpiTypeGlobalWrite(const int /*local_ghost*/, const int *local_size,
                                        const int *global_offset, const int global_ghost,
                                        const int *global_size, const MPI_Datatype mpitype)
 {

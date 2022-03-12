@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(lb/viscous,FixLbViscous)
+FixStyle(lb/viscous,FixLbViscous);
 // clang-format on
 #else
 
@@ -27,7 +27,6 @@ namespace LAMMPS_NS {
 class FixLbViscous : public Fix {
  public:
   FixLbViscous(class LAMMPS *, int, char **);
-  ~FixLbViscous();
   int setmask() override;
   void init() override;
   void setup(int) override;

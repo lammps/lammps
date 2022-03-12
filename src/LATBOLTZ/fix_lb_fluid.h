@@ -1,6 +1,6 @@
 /* -*- c++ -*- -----------------------------------------------------------
-   LAMMPS 2003 (July 31) - Molecular Dynamics Simulator
-   Sandia National Laboratories, www.cs.sandia.gov/~sjplimp/lammps.html
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -8,12 +8,12 @@
    certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
-   For more info, see the README file in the top-level LAMMPS directory.
+   See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------ */
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(lb/fluid,FixLbFluid)
+FixStyle(lb/fluid,FixLbFluid);
 // clang-format on
 #else
 
@@ -28,12 +28,6 @@ FixStyle(lb/fluid,FixLbFluid)
 
 namespace LAMMPS_NS {
 
-class Site {
- public:
-  int type;
-  int orientation;
-};
-
 class FixLbFluid : public Fix {
   friend class FixLbMomentum;
   friend class FixLbViscous;
@@ -45,7 +39,6 @@ class FixLbFluid : public Fix {
   void init() override;
   void initial_integrate(int) override;
   void setup(int) override;
-  void pre_force(int) override;
   void post_force(int) override;
   void final_integrate() override;
   void end_of_step() override;
@@ -203,7 +196,7 @@ class FixLbFluid : public Fix {
   int sw;              // side walls on/off
   int openingsites;    // Number of active fluid sites at x=0
 
-  Site ***sublattice, ***wholelattice;    // lattice geometry
+  class Site ***sublattice, ***wholelattice;    // lattice geometry
 
   /* nanopit routines */
   void addslit(int &, int, int, int, int);

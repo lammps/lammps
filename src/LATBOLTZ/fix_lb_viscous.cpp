@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_lb_viscous.h"
+
 #include "atom.h"
 #include "error.h"
 #include "fix_lb_fluid.h"
@@ -56,10 +57,6 @@ FixLbViscous::FixLbViscous(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, a
 
 /* ---------------------------------------------------------------------- */
 
-FixLbViscous::~FixLbViscous() {}
-
-/* ---------------------------------------------------------------------- */
-
 int FixLbViscous::setmask()
 {
   int mask = 0;
@@ -73,8 +70,7 @@ int FixLbViscous::setmask()
 
 void FixLbViscous::init()
 {
-
-  if (strcmp(update->integrate_style, "respa") == 0)
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 

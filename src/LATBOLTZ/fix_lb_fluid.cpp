@@ -67,7 +67,13 @@ class Site {
 
 /* ------------------------------------------------------------------------ */
 
-FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg),
+  Gamma(nullptr), hydroF(nullptr), massp(nullptr),
+  density_lb(nullptr), u_lb(nullptr), f_lb(nullptr), fnew(nullptr), feq(nullptr),
+  Ff(nullptr), Wf(nullptr), Fftempx(nullptr), Wftempx(nullptr),
+  Fftempy(nullptr), Wftempy(nullptr), Fftempz(nullptr), Wftempz(nullptr),
+  sublattice(nullptr), wholelattice(nullptr)
 {
   //=====================================================================================================
   //  Sample inputfile call:
@@ -345,8 +351,6 @@ a z wall velocity without implementing fixed BCs in z");
   // perform initial allocation of atom-based array register
   // with Atom class
   //--------------------------------------------------------------------------
-  hydroF = nullptr;
-  massp = nullptr;
   grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 
@@ -354,20 +358,6 @@ a z wall velocity without implementing fixed BCs in z");
     massp[i] = 0.0;
     for (int j = 0; j < 3; j++) { hydroF[i][j] = 0.0; }
   }
-
-  feq = nullptr;
-  f_lb = nullptr;
-  fnew = nullptr;
-  density_lb = nullptr;
-  u_lb = nullptr;
-  Ff = nullptr;
-  Wf = nullptr;
-  Fftempx = nullptr;
-  Wftempx = nullptr;
-  Fftempy = nullptr;
-  Wftempy = nullptr;
-  Fftempz = nullptr;
-  Wftempz = nullptr;
 
   //--------------------------------------------------------------------------
   // Set the lattice Boltzmann dt.
@@ -657,10 +647,6 @@ a z wall velocity without implementing fixed BCs in z");
 
   //Intialize Timers
   timeEqb = timeUpdate = timePCalc = timefluidForce = timeCorrectU = 0.0;
-
-  //Geometry arrays
-  sublattice = nullptr;
-  wholelattice = nullptr;
 
   // Setup buffers for output.
   SetupBuffers();

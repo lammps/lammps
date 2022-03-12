@@ -157,7 +157,7 @@ void PairSNAP::compute(int eflag, int vflag)
         snaptr->rcutij[ninside] = (radi + radelem[jelem])*rcutfac;
 	if (switchinnerflag) {
 	  snaptr->rinnerij[ninside] = 0.5*(rinnerelem[ielem]+rinnerelem[jelem]);
-	  snaptr->rinnerij[ninside] = 0.5*(drinnerelem[ielem]+drinnerelem[jelem]);
+	  snaptr->drinnerij[ninside] = 0.5*(drinnerelem[ielem]+drinnerelem[jelem]);
 	  // snaptr->rinnerij[ninside] = 0.0;
 	  // snaptr->drinnerij[ninside] = 1.5;
 	}
@@ -332,7 +332,7 @@ void PairSNAP::compute_bispectrum()
         snaptr->rcutij[ninside] = (radi + radelem[jelem])*rcutfac;
 	if (switchinnerflag) {
 	  snaptr->rinnerij[ninside] = 0.5*(rinnerelem[ielem]+rinnerelem[jelem]);
-	  snaptr->rinnerij[ninside] = 0.5*(drinnerelem[ielem]+drinnerelem[jelem]);
+	  snaptr->drinnerij[ninside] = 0.5*(drinnerelem[ielem]+drinnerelem[jelem]);
 	  // snaptr->rinnerij[ninside] = 0.0;
 	  // snaptr->drinnerij[ninside] = 1.5;
 	}
@@ -702,18 +702,20 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       if (comm->me == 0)
 	utils::logmesg(lmp,"SNAP keyword {} {} ... \n", keywd, keyval);
 
+      int iword = 1;
+
       if (keywd == "rinner") {
+	keyval = words[iword];
         for (int ielem = 0; ielem < nelements; ielem++) {
           rinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
-          keyval = strtok(nullptr,"' \t\n\r\f");
+	  iword++;
         }
         rinnerflag = 1;
       } else if (keywd == "drinner") {
-	printf("drinner nelements = %d %s\n",nelements,keyval.c_str());
+	keyval = words[iword];
         for (int ielem = 0; ielem < nelements; ielem++) {
           drinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
-          keyval = strtok(nullptr,"' \t\n\r\f");
-	  printf("drinner ielem = %d drinnerelem[ielem] = %g\n",ielem,drinnerelem[ielem]);
+	  iword++;
         }
         drinnerflag = 1;
       }

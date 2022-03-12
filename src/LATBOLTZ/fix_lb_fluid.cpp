@@ -647,15 +647,30 @@ FixLbFluid::~FixLbFluid()
   // Close off output
   if (dump_interval) {
     if (me == 0) {
-      fprintf(dump_file_handle_xdmf,
-              "    </Grid>\n"
-              "  </Domain>\n"
-              "</Xdmf>\n");
+      fprintf(dump_file_handle_xdmf,"    </Grid>\n  </Domain>\n</Xdmf>\n");
       if (fclose(dump_file_handle_xdmf))
         error->one(FLERR, "Unable to close \"{}\": {}", dump_file_name_xdmf, utils::getsyserror());
     }
     MPI_File_close(&dump_file_handle_raw);
   }
+  MPI_Type_free(&realType3_mpitype);
+  MPI_Type_free(&passxf);
+  MPI_Type_free(&passyf);
+  MPI_Type_free(&passzf);
+  MPI_Type_free(&passxu);
+  MPI_Type_free(&passyu);
+  MPI_Type_free(&passzu);
+  MPI_Type_free(&passxrho);
+  MPI_Type_free(&passyrho);
+  MPI_Type_free(&passzrho);
+  MPI_Type_free(&passxtemp);
+  MPI_Type_free(&passytemp);
+  MPI_Type_free(&passztemp);
+  MPI_Type_free(&passxWtemp);
+  MPI_Type_free(&passyWtemp);
+  MPI_Type_free(&passzWtemp);
+  MPI_Type_free(&fluid_density_2_mpitype);
+  MPI_Type_free(&fluid_velocity_2_mpitype);
   MPI_Type_free(&dump_file_mpitype);
 
   // Unregister fix callback
@@ -2263,6 +2278,7 @@ static MPI_Datatype mpiTypeDumpGlobal(const int *local_size, const int *global_o
     // Release local use types
     MPI_Type_free(&velocity_mpitype);
     MPI_Type_free(&density_mpitype);
+    MPI_Type_free(&realType3_mpitype);
   }
 
   return dump;

@@ -30,7 +30,8 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixLbViscous::FixLbViscous(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixLbViscous::FixLbViscous(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), fix_lb_fluid(nullptr)
 {
   if (narg < 3) error->all(FLERR, "Illegal fix lb/viscous command");
 

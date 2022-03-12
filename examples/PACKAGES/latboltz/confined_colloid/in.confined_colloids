@@ -19,7 +19,10 @@ units       micro
 dimension   3
 boundary    p p f
 atom_style  molecular
-read_data   confinedcolloids.dat
+
+# try to download
+shell test -f confinedcolloids.dat.gz || curl -L -o confinedcolloids.dat.gz http://publish.uwo.ca/~cdennist/confinedcolloids.dat.gz
+read_data   confinedcolloids.dat.gz
 
 mass * 0.00010287
 

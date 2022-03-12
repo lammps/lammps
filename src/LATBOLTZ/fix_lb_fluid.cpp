@@ -2539,8 +2539,8 @@ void FixLbFluid::write_restartfile(void)
   MPI_Datatype realtype;
   MPI_Datatype filetype;
 
-  auto hfile = fmt::format("FluidRestart_{}.dat", update->ntimestep);
-  MPI_File_open(world, hfile.c_str(), MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
+  char *hfile = utils::strdup(fmt::format("FluidRestart_{}.dat", update->ntimestep));
+  MPI_File_open(world, hfile, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
 
   int realsizes[4] = {subNbx, subNby, subNbz, numvel};
   int realstarts[4] = {1, 1, 1, 0};
@@ -2563,6 +2563,7 @@ void FixLbFluid::write_restartfile(void)
   MPI_Type_free(&realtype);
   MPI_Type_free(&filetype);
   MPI_File_close(&fh);
+  delete[] hfile;
 }
 
 //==========================================================================

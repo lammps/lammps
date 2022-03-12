@@ -57,7 +57,7 @@ At every time step, given a configuration of the physical charges in the system
 (such as atoms and charged particles) these fixes compute and update
 the charge of the interface particles. The interfaces are allowed to move
 during the simulation with appropriate time integrators (for example,
-with :doc:`fix_rigid <fix_rigid>`d).
+with :doc:`fix_rigid <fix_rigid>`).
 
 Consider an interface between two media: one with dielectric constant
 of 78 (water), the other of 4 (silica). The interface is discretized
@@ -80,9 +80,9 @@ It is assumed that the particles cannot pass through the interface during the si
 so that its local dielectric constant value does not change.
 
 There are some example scripts for using these fixes
-with LAMMPS in the examples/PACKAGES/dielectric directory. The README file
+with LAMMPS in the ``examples/PACKAGES/dielectric directory``. The README file
 therein contains specific details on the system setup. Note that the example data files
-show the additional fields (columns) needed for :doc:`atom_style dielectric <atom_style>
+show the additional fields (columns) needed for :doc:`atom_style dielectric <atom_style>`
 beyond the conventional fields *id*, *mol*, *type*, *q*, *x*, *y*, and *z*.
 
 ----------

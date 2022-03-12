@@ -465,6 +465,8 @@ pair_coeff * * 0.0 0.0
 
 timestep 0.025
 
+unfix FL
+
 reset_timestep 0
 
 #variable total_force equal 0.2

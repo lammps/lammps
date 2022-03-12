@@ -173,9 +173,17 @@ else &
 #equilibration run
 run 10000
 
+unfix 2
+unfix FL
 # data gathering run
-reset_timestep 0 
+reset_timestep 0
 
+if "${is_bonded} == 1" then &
+"fix   FL all lb/fluid 1 1.0 0.0009982071 stencil ${stpts} dx 1.2 noise 300.0 181920" &
+else &
+"fix   FL all lb/fluid 1 1.0 0.0009982071 stencil ${stpts} dx 1.2 noise 300.0 181920 dof 6"
+
+fix   2 all lb/viscous
 #----------------------------------------------------------------------------
 # Create variables containing the positions/velocity of the colloids center 
 #   of mass.

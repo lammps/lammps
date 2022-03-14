@@ -301,9 +301,7 @@ a z wall velocity without implementing fixed BCs in z");
     } else if (strcmp(arg[iarg], "dof") == 0) {
       setdof = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    }
-    // Santtu -- nano pits -- begins -----
-    else if (strcmp(arg[iarg], "npits") == 0) {
+    } else if (strcmp(arg[iarg], "npits") == 0) {
       npits = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       h_p = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       l_p = utils::inumeric(FLERR, arg[iarg + 3], false, lmp);
@@ -316,9 +314,7 @@ a z wall velocity without implementing fixed BCs in z");
     } else if (strcmp(arg[iarg], "wp") == 0) {
       w_p = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    }
-    // Santtu -- nano pits -- ends -----
-    else
+    } else
       error->all(FLERR, "Illegal fix lb/fluid command");
   }
 
@@ -647,7 +643,7 @@ FixLbFluid::~FixLbFluid()
   // Close off output
   if (dump_interval) {
     if (me == 0) {
-      fprintf(dump_file_handle_xdmf,"    </Grid>\n  </Domain>\n</Xdmf>\n");
+      fprintf(dump_file_handle_xdmf, "    </Grid>\n  </Domain>\n</Xdmf>\n");
       if (fclose(dump_file_handle_xdmf))
         error->one(FLERR, "Unable to close \"{}\": {}", dump_file_name_xdmf, utils::getsyserror());
     }
@@ -1955,13 +1951,13 @@ void FixLbFluid::trilinear_interpolationweight(int i)
   //--------------------------------------------------------------------------
   // Calculate the interpolation weights
   //--------------------------------------------------------------------------
-  FfP[0] = (1. - dx1) * (1. - dy1) * (1. - dz1);
-  FfP[1] = (1. - dx1) * (1. - dy1) * dz1;
-  FfP[2] = (1. - dx1) * dy1 * (1. - dz1);
-  FfP[3] = (1. - dx1) * dy1 * dz1;
-  FfP[4] = dx1 * (1. - dy1) * (1. - dz1);
-  FfP[5] = dx1 * (1. - dy1) * dz1;
-  FfP[6] = dx1 * dy1 * (1. - dz1);
+  FfP[0] = (1.0 - dx1) * (1.0 - dy1) * (1.0 - dz1);
+  FfP[1] = (1.0 - dx1) * (1.0 - dy1) * dz1;
+  FfP[2] = (1.0 - dx1) * dy1 * (1.0 - dz1);
+  FfP[3] = (1.0 - dx1) * dy1 * dz1;
+  FfP[4] = dx1 * (1.0 - dy1) * (1.0 - dz1);
+  FfP[5] = dx1 * (1.0 - dy1) * dz1;
+  FfP[6] = dx1 * dy1 * (1.0 - dz1);
   FfP[7] = dx1 * dy1 * dz1;
 
   ixp = (ix + 1);
@@ -2037,13 +2033,13 @@ void FixLbFluid::trilinear_interpolation(int i, int uonly)
   //--------------------------------------------------------------------------
   // Calculate the interpolation weights
   //--------------------------------------------------------------------------
-  FfP[0] = (1. - dx1) * (1. - dy1) * (1. - dz1);
-  FfP[1] = (1. - dx1) * (1. - dy1) * dz1;
-  FfP[2] = (1. - dx1) * dy1 * (1. - dz1);
-  FfP[3] = (1. - dx1) * dy1 * dz1;
-  FfP[4] = dx1 * (1. - dy1) * (1. - dz1);
-  FfP[5] = dx1 * (1. - dy1) * dz1;
-  FfP[6] = dx1 * dy1 * (1. - dz1);
+  FfP[0] = (1.0 - dx1) * (1.0 - dy1) * (1.0 - dz1);
+  FfP[1] = (1.0 - dx1) * (1.0 - dy1) * dz1;
+  FfP[2] = (1.0 - dx1) * dy1 * (1.0 - dz1);
+  FfP[3] = (1.0 - dx1) * dy1 * dz1;
+  FfP[4] = dx1 * (1.0 - dy1) * (1.0 - dz1);
+  FfP[5] = dx1 * (1.0 - dy1) * dz1;
+  FfP[6] = dx1 * dy1 * (1.0 - dz1);
   FfP[7] = dx1 * dy1 * dz1;
 
   ixp = (ix + 1);
@@ -2572,25 +2568,18 @@ void FixLbFluid::write_restartfile(void)
 //==========================================================================
 void FixLbFluid::equilibriumdist15(int xstart, int xend, int ystart, int yend, int zstart, int zend)
 {
+  for (int i = xstart; i < xend; ++i) {
+    for (int j = ystart; j < yend; ++j) {
+      for (int k = zstart; k < zend; ++k) {
 
-  for (int i = xstart; i < xend; i++) {
-    for (int j = ystart; j < yend; j++) {
-      for (int k = zstart; k < zend; k++) {
+        if (sublattice[i][j][k].type != 2) {
+          const double rho = density_lb[i][j][k];
+          const double p0 = rho * a_0;
+          const double tauR = tau - 0.5;
 
-        int type = sublattice[i][j][k].type;
-        //int ori = sublattice[i][j][k].orientation;
-
-        if (type != 2) {
-          double rho = density_lb[i][j][k];
-
-          double p0 = rho * a_0;
-
-          double tauR = tau;
-          tauR = (tau - 0.5);
-
-          double Fx_w = Ff[i][j][k][0];
-          double Fy_w = Ff[i][j][k][1];
-          double Fz_w = Ff[i][j][k][2];
+          const double Fx_w = Ff[i][j][k][0];
+          const double Fy_w = Ff[i][j][k][1];
+          const double Fz_w = Ff[i][j][k][2];
 
           double etacov[15];
           etacov[0] = rho;
@@ -2598,11 +2587,11 @@ void FixLbFluid::equilibriumdist15(int xstart, int xend, int ystart, int yend, i
           etacov[2] = rho * u_lb[i][j][k][1] + (Fy_w + rho * bodyforcey) * tauR;
           etacov[3] = rho * u_lb[i][j][k][2] + (Fz_w + rho * bodyforcez) * tauR;
 
-          etacov[4] = p0 + rho * u_lb[i][j][k][0] * u_lb[i][j][k][0] - rho / 3. +
+          etacov[4] = p0 + rho * u_lb[i][j][k][0] * u_lb[i][j][k][0] - rho / 3.0 +
               tauR * (2.0 * u_lb[i][j][k][0] * (Fx_w + rho * bodyforcex));
-          etacov[5] = p0 + rho * u_lb[i][j][k][1] * u_lb[i][j][k][1] - rho / 3. +
+          etacov[5] = p0 + rho * u_lb[i][j][k][1] * u_lb[i][j][k][1] - rho / 3.0 +
               tauR * (2.0 * u_lb[i][j][k][1] * (Fy_w + rho * bodyforcey));
-          etacov[6] = p0 + rho * u_lb[i][j][k][2] * u_lb[i][j][k][2] - rho / 3. +
+          etacov[6] = p0 + rho * u_lb[i][j][k][2] * u_lb[i][j][k][2] - rho / 3.0 +
               tauR * (2.0 * u_lb[i][j][k][2] * (Fz_w + rho * bodyforcez));
           etacov[7] = rho * u_lb[i][j][k][0] * u_lb[i][j][k][1] +
               tauR *
@@ -2620,8 +2609,6 @@ void FixLbFluid::equilibriumdist15(int xstart, int xend, int ystart, int yend, i
           etacov[11] = 0.0;
           etacov[12] = 0.0;
           etacov[13] = rho * u_lb[i][j][k][0] * u_lb[i][j][k][1] * u_lb[i][j][k][2];
-          //const double TrP = Pxx+Pyy+Pzz;
-          //etacov[14] = K_0*(rho-TrP);
           etacov[14] = K_0 * rho * (1.0 - 3.0 * a_0);    // should be looked at if kappa != 0;
 
           for (int l = 0; l < 15; l++) {
@@ -2631,9 +2618,9 @@ void FixLbFluid::equilibriumdist15(int xstart, int xend, int ystart, int yend, i
           }
 
           if (noisestress == 1) {
-            double stdv = sqrt(namp * rho);
-
+            const double stdv = sqrt(namp * rho);
             double S[2][3];
+
             for (int jj = 0; jj < 3; jj++) S[0][jj] = stdv * random->gaussian();
             for (int jj = 0; jj < 3; jj++) S[1][jj] = stdv * random->gaussian();
 
@@ -2655,7 +2642,7 @@ void FixLbFluid::equilibriumdist15(int xstart, int xend, int ystart, int yend, i
                 -K_0 * (etacov[4] + etacov[5] + etacov[6]);    //correction from noise to TrP
 
             for (int l = 0; l < 15; l++) {
-              double ghostnoise = w_lb15[l] *
+              const double ghostnoise = w_lb15[l] *
                   (mg_lb15[4][l] * etacov[4] * Ng_lb15[4] + mg_lb15[5][l] * etacov[5] * Ng_lb15[5] +
                    mg_lb15[6][l] * etacov[6] * Ng_lb15[6] + mg_lb15[7][l] * etacov[7] * Ng_lb15[7] +
                    mg_lb15[8][l] * etacov[8] * Ng_lb15[8] + mg_lb15[9][l] * etacov[9] * Ng_lb15[9] +
@@ -2681,35 +2668,18 @@ void FixLbFluid::equilibriumdist15(int xstart, int xend, int ystart, int yend, i
 //==========================================================================
 void FixLbFluid::equilibriumdist19(int xstart, int xend, int ystart, int yend, int zstart, int zend)
 {
+  for (int i = xstart; i < xend; ++i) {
+    for (int j = ystart; j < yend; ++j) {
+      for (int k = zstart; k < zend; ++k) {
+        const int iup = i + 1;
+        const int idwn = i - 1;
+        const int jup = j + 1;
+        const int jdwn = j - 1;
+        const int kup = k + 1;
+        const int kdwn = k - 1;
 
-  double rho;
-  int i, j, k, l, iup, idwn, jup, jdwn, kup, kdwn;
-  double Fx_w, Fy_w, Fz_w;
-
-  double total_density(0.0);
-  double drhox, drhoy, drhoz, drhoxx, drhoyy, drhozz;
-  double Pxx, Pyy, Pzz, Pxy, Pxz, Pyz;
-  double grs, p0;
-  double dPdrho;
-
-  double S[2][3], std;
-  int jj;
-
-  double etacov[19], ghostnoise;
-
-  for (i = xstart; i < xend; i++) {
-    iup = i + 1;
-    idwn = i - 1;
-    for (j = ystart; j < yend; j++) {
-      jup = j + 1;
-      jdwn = j - 1;
-      for (k = zstart; k < zend; k++) {
-        kup = k + 1;
-        kdwn = k - 1;
-
-        rho = density_lb[i][j][k];
-        total_density += rho;
-
+        const double rho = density_lb[i][j][k];
+        double drhox, drhoy, drhoz, drhoxx, drhoyy, drhozz;
         if (kappa_lb > 0) {    // kappa_lb is the square gradient coeff in the pressure tensor
           // Derivatives.
           drhox = (density_lb[iup][j][k] - density_lb[idwn][j][k]) / 2.0;
@@ -2723,6 +2693,7 @@ void FixLbFluid::equilibriumdist19(int xstart, int xend, int ystart, int yend, i
 
           // Need one-sided derivatives for the boundary of the domain, if fixed boundary
           // conditions are used.
+
           if (domain->periodicity[2] == 0) {
             if (comm->myloc[2] == 0 && k == 1) {
               drhoz = (-3.0 * density_lb[i][j][k] + 4.0 * density_lb[i][j][k + 1] -
@@ -2739,53 +2710,50 @@ void FixLbFluid::equilibriumdist19(int xstart, int xend, int ystart, int yend, i
                         5.0 * density_lb[i][j][k - 1] + 2.0 * rho);
             }
           }
+          // clang-format on
         } else {
-          drhox = drhoy = drhoz = 0;
-          drhoxx = drhoyy = drhozz = 0;
+          drhox = drhoy = drhoz = 0.0;
+          drhoxx = drhoyy = drhozz = 0.0;
         }
+        const double grs = drhox * drhox + drhoy * drhoy + drhoz * drhoz;
+        const double p0 = rho * a_0 - kappa_lb * rho * (drhoxx + drhoyy + drhozz);
+        const double dPdrho = a_0;    //assuming here that kappa_lb = 0.
+        const double tauR = tau - 0.5;
 
-        grs = drhox * drhox + drhoy * drhoy + drhoz * drhoz;
-
-        p0 = rho * a_0 - kappa_lb * rho * (drhoxx + drhoyy + drhozz);
-
-        dPdrho = a_0;    //assuming here that kappa_lb = 0.
-
-        double tauR = tau;
-        tauR = tau - 0.5;
-
-        Pxx = p0 + kappa_lb * (drhox * drhox - 0.5 * grs) +
+        const double Pxx = p0 + kappa_lb * (drhox * drhox - 0.5 * grs) +
             tauR * (1.0 / 3.0 - dPdrho) *
                 (3.0 * u_lb[i][j][k][0] * drhox + u_lb[i][j][k][1] * drhoy +
                  u_lb[i][j][k][2] * drhoz);
-        Pyy = p0 + kappa_lb * (drhoy * drhoy - 0.5 * grs) +
+        const double Pyy = p0 + kappa_lb * (drhoy * drhoy - 0.5 * grs) +
             tauR * (1.0 / 3.0 - dPdrho) *
                 (u_lb[i][j][k][0] * drhox + 3.0 * u_lb[i][j][k][1] * drhoy +
                  u_lb[i][j][k][2] * drhoz);
-        Pzz = p0 + kappa_lb * (drhoz * drhoz - 0.5 * grs) +
+        const double Pzz = p0 + kappa_lb * (drhoz * drhoz - 0.5 * grs) +
             tauR * (1.0 / 3.0 - dPdrho) *
                 (u_lb[i][j][k][0] * drhox + u_lb[i][j][k][1] * drhoy +
                  3.0 * u_lb[i][j][k][2] * drhoz);
-        Pxy = kappa_lb * drhox * drhoy +
+        const double Pxy = kappa_lb * drhox * drhoy +
             tauR * (1.0 / 3.0 - dPdrho) * (u_lb[i][j][k][0] * drhoy + u_lb[i][j][k][1] * drhox);
-        Pxz = kappa_lb * drhox * drhoz +
+        const double Pxz = kappa_lb * drhox * drhoz +
             tauR * (1.0 / 3.0 - dPdrho) * (u_lb[i][j][k][0] * drhoz + u_lb[i][j][k][2] * drhox);
-        Pyz = kappa_lb * drhoy * drhoz +
+        const double Pyz = kappa_lb * drhoy * drhoz +
             tauR * (1.0 / 3.0 - dPdrho) * (u_lb[i][j][k][1] * drhoz + u_lb[i][j][k][2] * drhoy);
 
-        Fx_w = Ff[i][j][k][0];
-        Fy_w = Ff[i][j][k][1];
-        Fz_w = Ff[i][j][k][2];
+        const double Fx_w = Ff[i][j][k][0];
+        const double Fy_w = Ff[i][j][k][1];
+        const double Fz_w = Ff[i][j][k][2];
 
+        double etacov[19];
         etacov[0] = rho;
         etacov[1] = rho * u_lb[i][j][k][0] + (Fx_w + rho * bodyforcex) * tauR;
         etacov[2] = rho * u_lb[i][j][k][1] + (Fy_w + rho * bodyforcey) * tauR;
         etacov[3] = rho * u_lb[i][j][k][2] + (Fz_w + rho * bodyforcez) * tauR;
 
-        etacov[4] = Pxx + rho * u_lb[i][j][k][0] * u_lb[i][j][k][0] - rho / 3. +
+        etacov[4] = Pxx + rho * u_lb[i][j][k][0] * u_lb[i][j][k][0] - rho / 3.0 +
             tauR * (2.0 * u_lb[i][j][k][0] * (Fx_w + rho * bodyforcex));
-        etacov[5] = Pyy + rho * u_lb[i][j][k][1] * u_lb[i][j][k][1] - rho / 3. +
+        etacov[5] = Pyy + rho * u_lb[i][j][k][1] * u_lb[i][j][k][1] - rho / 3.0 +
             tauR * (2.0 * u_lb[i][j][k][1] * (Fy_w + rho * bodyforcey));
-        etacov[6] = Pzz + rho * u_lb[i][j][k][2] * u_lb[i][j][k][2] - rho / 3. +
+        etacov[6] = Pzz + rho * u_lb[i][j][k][2] * u_lb[i][j][k][2] - rho / 3.0 +
             tauR * (2.0 * u_lb[i][j][k][2] * (Fz_w + rho * bodyforcez));
         etacov[7] = Pxy + rho * u_lb[i][j][k][0] * u_lb[i][j][k][1] +
             tauR *
@@ -2809,17 +2777,18 @@ void FixLbFluid::equilibriumdist19(int xstart, int xend, int ystart, int yend, i
         etacov[17] = 0.0;
         etacov[18] = 0.0;
 
-        for (l = 0; l < 19; l++) {
+        for (int l = 0; l < 19; l++) {
           feq[i][j][k][l] = 0.0;
           for (int ii = 0; ii < 19; ii++)
             feq[i][j][k][l] += w_lb19[l] * mg_lb19[ii][l] * etacov[ii] * Ng_lb19[ii];
         }
 
         if (noisestress == 1) {
-          std = sqrt(namp * rho);
+          const double std = sqrt(namp * rho);
+          double S[2][3];
 
-          for (jj = 0; jj < 3; jj++) S[0][jj] = std * random->gaussian();
-          for (jj = 0; jj < 3; jj++) S[1][jj] = std * random->gaussian();
+          for (int jj = 0; jj < 3; jj++) S[0][jj] = std * random->gaussian();
+          for (int jj = 0; jj < 3; jj++) S[1][jj] = std * random->gaussian();
 
           etacov[4] = (S[0][0] * sqrt(3.0 - 3.0 * a_0));
           etacov[5] = ((1.0 - 3.0 * a_0) * S[0][0] / sqrt(3.0 - 3.0 * a_0) +
@@ -2831,12 +2800,12 @@ void FixLbFluid::equilibriumdist19(int xstart, int xend, int ystart, int yend, i
           etacov[8] = S[1][1];
           etacov[9] = S[1][2];
 
-          for (l = 10; l < 19; l++) {
+          for (int l = 10; l < 19; l++) {
             etacov[l] = sqrt(9.0 * namp * rho / Ng_lb19[l]) * random->gaussian();
           }
 
-          for (l = 0; l < 19; l++) {
-            ghostnoise = w_lb19[l] *
+          for (int l = 0; l < 19; l++) {
+            const double ghostnoise = w_lb19[l] *
                 (mg_lb19[4][l] * etacov[4] * Ng_lb19[4] + mg_lb19[5][l] * etacov[5] * Ng_lb19[5] +
                  mg_lb19[6][l] * etacov[6] * Ng_lb19[6] + mg_lb19[7][l] * etacov[7] * Ng_lb19[7] +
                  mg_lb19[8][l] * etacov[8] * Ng_lb19[8] + mg_lb19[9][l] * etacov[9] * Ng_lb19[9] +
@@ -3210,7 +3179,7 @@ void FixLbFluid::update_periodic(int xstart, int xend, int ystart, int yend, int
               fnew[i][j][k][2] = r * feq[i][j][k][2];
               fnew[i][j][k][4] = r * feq[i][j][k][4];
               fnew[i][j][k][0] = rb -
-                  2. *
+                  2.0 *
                       (fnew[i][j][k][6] + fnew[i][j][k][11] + fnew[i][j][k][12] +
                        fnew[i][j][k][13] + fnew[i][j][k][14] + fnew[i][j][k][2] +
                        fnew[i][j][k][4]) +
@@ -3218,15 +3187,16 @@ void FixLbFluid::update_periodic(int xstart, int xend, int ystart, int yend, int
               fnew[i][j][k][1] = 0.5 * (fnew[i][j][k][2] + fnew[i][j][k][4] - rvw2);
               fnew[i][j][k][3] = fnew[i][j][k][1];
               fnew[i][j][k][5] = fnew[i][j][k][6] +
-                  2. *
+                  2.0 *
                       (fnew[i][j][k][11] + fnew[i][j][k][12] + fnew[i][j][k][13] +
                        fnew[i][j][k][14]) +
                   fnew[i][j][k][2] + fnew[i][j][k][4] - seqyy;
-              fnew[i][j][k][7] = 0.25 * (rbvw + seqyy - 2. * fnew[i][j][k][2]) - fnew[i][j][k][11];
-              fnew[i][j][k][8] = 0.25 * (rbvw + seqyy - 2. * fnew[i][j][k][2]) - fnew[i][j][k][12];
-              fnew[i][j][k][9] = 0.25 * (-rbvw + seqyy - 2. * fnew[i][j][k][4]) - fnew[i][j][k][13];
+              fnew[i][j][k][7] = 0.25 * (rbvw + seqyy - 2.0 * fnew[i][j][k][2]) - fnew[i][j][k][11];
+              fnew[i][j][k][8] = 0.25 * (rbvw + seqyy - 2.0 * fnew[i][j][k][2]) - fnew[i][j][k][12];
+              fnew[i][j][k][9] =
+                  0.25 * (-rbvw + seqyy - 2.0 * fnew[i][j][k][4]) - fnew[i][j][k][13];
               fnew[i][j][k][10] =
-                  0.25 * (-rbvw + seqyy - 2. * fnew[i][j][k][4]) - fnew[i][j][k][14];
+                  0.25 * (-rbvw + seqyy - 2.0 * fnew[i][j][k][4]) - fnew[i][j][k][14];
 
             } else {    // top wall modified return (ori should now be 16 or something is messed up)
               double rb, rbvw, rvw2, seqyy, r;
@@ -3246,21 +3216,22 @@ void FixLbFluid::update_periodic(int xstart, int xend, int ystart, int yend, int
               fnew[i][j][k][2] = r * feq[i][j][k][2];
               fnew[i][j][k][4] = r * feq[i][j][k][4];
               fnew[i][j][k][0] = rb -
-                  2. *
+                  2.0 *
                       (fnew[i][j][k][5] + fnew[i][j][k][7] + fnew[i][j][k][8] + fnew[i][j][k][9] +
                        fnew[i][j][k][10] + fnew[i][j][k][2] + fnew[i][j][k][4]) +
                   rvw2;
               fnew[i][j][k][1] = 0.5 * (fnew[i][j][k][2] + fnew[i][j][k][4] - rvw2);
               fnew[i][j][k][3] = fnew[i][j][k][1];
               fnew[i][j][k][6] = fnew[i][j][k][5] +
-                  2. *
+                  2.0 *
                       (fnew[i][j][k][7] + fnew[i][j][k][8] + fnew[i][j][k][9] + fnew[i][j][k][10]) +
                   fnew[i][j][k][2] + fnew[i][j][k][4] - seqyy;
-              fnew[i][j][k][11] = 0.25 * (rbvw + seqyy - 2. * fnew[i][j][k][2]) - fnew[i][j][k][7];
-              fnew[i][j][k][12] = 0.25 * (rbvw + seqyy - 2. * fnew[i][j][k][2]) - fnew[i][j][k][8];
-              fnew[i][j][k][13] = 0.25 * (-rbvw + seqyy - 2. * fnew[i][j][k][4]) - fnew[i][j][k][9];
+              fnew[i][j][k][11] = 0.25 * (rbvw + seqyy - 2.0 * fnew[i][j][k][2]) - fnew[i][j][k][7];
+              fnew[i][j][k][12] = 0.25 * (rbvw + seqyy - 2.0 * fnew[i][j][k][2]) - fnew[i][j][k][8];
+              fnew[i][j][k][13] =
+                  0.25 * (-rbvw + seqyy - 2.0 * fnew[i][j][k][4]) - fnew[i][j][k][9];
               fnew[i][j][k][14] =
-                  0.25 * (-rbvw + seqyy - 2. * fnew[i][j][k][4]) - fnew[i][j][k][10];
+                  0.25 * (-rbvw + seqyy - 2.0 * fnew[i][j][k][4]) - fnew[i][j][k][10];
             }
           } else {
             for (int m = 0; m < 19; m++) {
@@ -3296,7 +3267,6 @@ void FixLbFluid::update_full15(void)
     MPI_Isend(&feq[subNbx - 2][1][1][0], 1, passxf, comm->procneigh[0][1], 25, world, &requests[2]);
     MPI_Irecv(&feq[subNbx - 1][1][1][0], 1, passxf, comm->procneigh[0][1], 15, world, &requests[3]);
 
-    //if (npits == -1) update_periodic(2,subNbx-2,2,subNby-2,2,subNbz-2);
     MPI_Waitall(numrequests, requests, MPI_STATUS_IGNORE);
 
     for (int i = 0; i < numrequests; i++) requests[i] = MPI_REQUEST_NULL;
@@ -3305,10 +3275,6 @@ void FixLbFluid::update_full15(void)
     MPI_Isend(&feq[0][subNby - 2][1][0], 1, passyf, comm->procneigh[1][1], 25, world, &requests[2]);
     MPI_Irecv(&feq[0][subNby - 1][1][0], 1, passyf, comm->procneigh[1][1], 15, world, &requests[3]);
 
-    // if (npits == -1) {
-    //   update_periodic(1,2,2,subNby-2,2,subNbz-2);
-    //   update_periodic(subNbx-2,subNbx-1,2,subNby-2,2,subNbz-2);
-    // }
     MPI_Waitall(numrequests, requests, MPI_STATUS_IGNORE);
 
     for (int i = 0; i < numrequests; i++) requests[i] = MPI_REQUEST_NULL;
@@ -3317,19 +3283,13 @@ void FixLbFluid::update_full15(void)
     MPI_Isend(&feq[0][0][subNbz - 2][0], 1, passzf, comm->procneigh[2][1], 25, world, &requests[2]);
     MPI_Irecv(&feq[0][0][subNbz - 1][0], 1, passzf, comm->procneigh[2][1], 15, world, &requests[3]);
 
-    // if (npits == -1) {
-    //   update_periodic(1,subNbx-1,1,2,2,subNbz-2);
-    //   update_periodic(1,subNbx-1,subNby-2,subNby-1,2,subNbz-2);
-    // }
     MPI_Waitall(numrequests, requests, MPI_STATUS_IGNORE);
 
-    // if (npits != -1) {
     update_periodic(2, subNbx - 2, 2, subNby - 2, 2, subNbz - 2);
     update_periodic(1, 2, 2, subNby - 2, 2, subNbz - 2);
     update_periodic(subNbx - 2, subNbx - 1, 2, subNby - 2, 2, subNbz - 2);
     update_periodic(1, subNbx - 1, 1, 2, 2, subNbz - 2);
     update_periodic(1, subNbx - 1, subNby - 2, subNby - 1, 2, subNbz - 2);
-    //}
     update_periodic(1, subNbx - 1, 1, subNby - 1, 1, 2);
     update_periodic(1, subNbx - 1, 1, subNby - 1, subNbz - 2, subNbz - 1);
 
@@ -4388,7 +4348,6 @@ void FixLbFluid::addpit(int &x0, const int HS, const int HP, const int WP, const
     }
   }
   x0 += (xend - x0) + 1;
-  //x0 += LP+1;
 }
 
 /* nanopit routines end */
@@ -4499,8 +4458,6 @@ double FixLbFluid::compute_scalar() /* Based on same member of compute_temp clas
 
   double t = 0.0;
 
-  //calc_fluidforceII();
-
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
@@ -4528,8 +4485,6 @@ double FixLbFluid::compute_vector(int n)
 
   if (laststep != update->ntimestep) {
     laststep = update->ntimestep;
-
-    //if (me==0) std::cout << "recalculating...\n";
 
     double fluidmass, fluidmomentum[3];
     calc_MPT(fluidmass, fluidmomentum, Tav);

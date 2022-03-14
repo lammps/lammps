@@ -80,7 +80,7 @@ class PairAmoeba : public Pair {
   int polar_rspace_flag,polar_kspace_flag;
   int mpole_rspace_flag,mpole_kspace_flag;
   int bond_flag,angle_flag,dihedral_flag,improper_flag;
-  int urey_flag,pitorsion_flag,xtorsion_flag;
+  int urey_flag,pitorsion_flag,bitorsion_flag;
 
   // DEBUG timers
 

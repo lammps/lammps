@@ -13,20 +13,20 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(pitorsion,FixPiTorsion);
+FixStyle(bitorsion,FixBiTorsion);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_PITORSION_H
-#define LMP_FIX_PITORSION_H
+#ifndef LMP_FIX_BITORSION_H
+#define LMP_FIX_BITORSION_H
 
 #include "fix.h"
 namespace LAMMPS_NS {
 
-class FixPiTorsion : public Fix {
+class FixBiTorsion : public Fix {
  public:
-  FixPiTorsion(class LAMMPS *, int, char **);
-  ~FixPiTorsion();
+  FixBiTorsion(class LAMMPS *, int, char **);
+  ~FixBiTorsion();
   int setmask();
   void init();
   void setup(int);
@@ -69,29 +69,30 @@ class FixPiTorsion : public Fix {
   int eflag_caller;
   int ilevel_respa;
   int disable;
-  bigint npitorsions;
-  int npitorsion_types;
-  double epitorsion;
-  double onesixth;
+  bigint nbitorsions;
+  double ebitorsion;
+  double onefifth;
 
-  double *kpit;
+  // per-atom data for bitorsions stored with each owned atom
 
-  // per-atom data for pitorsions stored with each owned atom
-
-  int *num_pitorsion;
-  int **pitorsion_type;
-  tagint **pitorsion_atom1, **pitorsion_atom2, **pitorsion_atom3;
-  tagint **pitorsion_atom4, **pitorsion_atom5, **pitorsion_atom6;
+  int *num_bitorsion;
+  int **bitorsion_type;
+  tagint **bitorsion_atom1, **bitorsion_atom2, **bitorsion_atom3;
+  tagint **bitorsion_atom4, **bitorsion_atom5;
 
   // previous max atoms on this proc before grow() is called
 
   int nmax_previous;
 
-  // list of all pitorsions to compute on this proc
+  // list of all bitorsions to compute on this proc
 
-  int npitorsion_list;
-  int max_pitorsion_list;
-  int **pitorsion_list;
+  int nbitorsion_list;
+  int max_bitorsion_list;
+  int **bitorsion_list;
+
+  // read BiTorsion grid data
+
+  void read_grid_map(char *);
 };
 }    // namespace LAMMPS_NS
 

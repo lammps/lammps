@@ -533,7 +533,7 @@ void PairAmoeba::settings(int narg, char **arg)
   polar_rspace_flag = polar_kspace_flag = 1;
   mpole_rspace_flag = mpole_kspace_flag = 1;
   bond_flag = angle_flag = dihedral_flag = improper_flag = 1;
-  urey_flag = pitorsion_flag = xtorsion_flag = 1;
+  urey_flag = pitorsion_flag = bitorsion_flag = 1;
 
   int newvalue = -1;
 
@@ -546,7 +546,7 @@ void PairAmoeba::settings(int narg, char **arg)
     polar_rspace_flag = polar_kspace_flag = 0;
     mpole_rspace_flag = mpole_kspace_flag = 0;
     bond_flag = angle_flag = dihedral_flag = improper_flag = 0;
-    urey_flag = pitorsion_flag = xtorsion_flag = 0;
+    urey_flag = pitorsion_flag = bitorsion_flag = 0;
 
   // exclude only specified FF components
 
@@ -583,7 +583,7 @@ void PairAmoeba::settings(int narg, char **arg)
     else if (strcmp(arg[iarg],"improper") == 0) improper_flag = newvalue;
     else if (strcmp(arg[iarg],"urey") == 0) urey_flag = newvalue;
     else if (strcmp(arg[iarg],"pitorsion") == 0) pitorsion_flag = newvalue;
-    else if (strcmp(arg[iarg],"xtorsion") == 0) xtorsion_flag = newvalue;
+    else if (strcmp(arg[iarg],"bitorsion") == 0) bitorsion_flag = newvalue;
     else error->all(FLERR,"Illegal pair_style command");
   }
 }
@@ -2090,6 +2090,7 @@ void *PairAmoeba::extract(const char *str, int &dim)
   if (strcmp(str,"improper_flag") == 0) return (void *) &improper_flag;
   if (strcmp(str,"urey_flag") == 0) return (void *) &urey_flag;
   if (strcmp(str,"pitorsion_flag") == 0) return (void *) &pitorsion_flag;
+  if (strcmp(str,"bitorsion_flag") == 0) return (void *) &bitorsion_flag;
 
   if (strcmp(str,"opbend_cubic") == 0) return (void *) &opbend_cubic;
   if (strcmp(str,"opbend_quartic") == 0) return (void *) &opbend_quartic;

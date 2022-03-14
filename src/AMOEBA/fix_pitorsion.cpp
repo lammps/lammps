@@ -32,9 +32,10 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-#define PITORSIONMAX 6
+#define PITORSIONMAX 6   // max # of PiTorsion terms stored by one atom
 #define LISTDELTA 8196
 #define LB_FACTOR 1.5
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -116,7 +117,7 @@ FixPiTorsion::~FixPiTorsion()
   memory->destroy(pitorsion_atom5);
   memory->destroy(pitorsion_atom6);
 
-  // compute list
+  // local list of bitorsions to compute
 
   memory->destroy(pitorsion_list);
 
@@ -248,13 +249,6 @@ void FixPiTorsion::pre_neighbor()
       atom4 = domain->closest_image(i,atom4);
       atom5 = domain->closest_image(i,atom5);
       atom6 = domain->closest_image(i,atom6);
-
-      /*
-      if (atom1 >= nlocal || atom2 >= nlocal || atom3 >= nlocal ||
-          atom4 >= nlocal || atom5 >= nlocal || atom6 >= nlocal)
-        printf("ATOM 123456: %d %d %d %d %d %d\n",
-               atom1,atom2,atom3,atom4,atom5,atom6);
-      */
 
       if (i <= atom1 && i <= atom2 && i <= atom3 &&
           i <= atom4 && i <= atom5 && i <= atom6) {
@@ -437,7 +431,7 @@ void FixPiTorsion::post_force(int vflag)
     dphi2 = 2.0 * (cosine2*s2 - sine2*c2);
 
     // calculate pi-system torsion energy and master chain rule term
-    // NOTE: remove ptornunit if 1.0 ?
+    // NOTE: remove ptorunit if 1.0 ?
 
     double ptorunit = 1.0;
     e = ptorunit * v2 * phi2;
@@ -898,10 +892,12 @@ void FixPiTorsion::write_data_section(int mth, FILE *fp,
   if (mth == 0) {
     for (int i = 0; i < n; i++)
       fprintf(fp,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT
-              " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
+              " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT 
+              " " TAGINT_FORMAT "\n",
               index+i,(int) ubuf(buf[i][0]).i,(tagint) ubuf(buf[i][1]).i,
               (tagint) ubuf(buf[i][2]).i,(tagint) ubuf(buf[i][3]).i,
-              (tagint) ubuf(buf[i][4]).i,(tagint) ubuf(buf[i][5]).i);
+              (tagint) ubuf(buf[i][4]).i,(tagint) ubuf(buf[i][5]).i,
+              (tagint) ubuf(buf[i][6]).i);
 
   // PiTorsion Coeffs section
 

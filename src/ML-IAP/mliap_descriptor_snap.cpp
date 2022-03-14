@@ -24,6 +24,7 @@
 #include "mliap_data.h"
 #include "pair_mliap.h"
 #include "sna.h"
+#include "tokenizer.h"
 
 #include <cmath>
 #include <cstring>
@@ -402,59 +403,43 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
 
     // strip comment, skip line if blank
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
+    if ((ptr = strchr(line, '#'))) *ptr = '\0';
 
-    // words = ptrs to all words in line
     // strip single and double quotes from words
+    Tokenizer words(line, "\"' \t\n\t\f");
+    if (words.count() == 0) continue;
 
-    char* keywd = strtok(line,"' \t\n\r\f");
-    char* keyval = strtok(nullptr,"' \t\n\r\f");
+    auto keywd = words.next();
 
     // check for keywords with one value per element
 
-    if (strcmp(keywd,"elems") == 0 ||
-        strcmp(keywd,"radelems") == 0 ||
-        strcmp(keywd,"welems") == 0 ||
-	strcmp(keywd,"rinnerelems") == 0 ||
-	strcmp(keywd,"drinnerelems") == 0) {
+    if ((keywd == "elems") || (keywd == "radelems") || (keywd == "welems") ||
+        (keywd == "rinnerelems") || (keywd == "drinnerelems")) {
 
-      if (nelementsflag == 0 || nwords != nelements+1)
-        error->all(FLERR,"Incorrect SNAP parameter file");
+      if ((nelementsflag == 0) || (words.count() != nelements + 1))
+        error->all(FLERR, "Incorrect SNAP parameter file");
 
-      if (comm->me == 0)
-	utils::logmesg(lmp,"SNAP keyword {} {} ... \n", keywd, keyval);
+      if (comm->me == 0) utils::logmesg(lmp, "SNAP keyword {} \n", utils::trim(line));
 
-      if (strcmp(keywd,"elems") == 0) {
-        for (int ielem = 0; ielem < nelements; ielem++) {
-          elements[ielem] = utils::strdup(keyval);
-          keyval = strtok(nullptr,"' \t\n\r\f");
-        }
+      if (keywd == "elems") {
+        for (int ielem = 0; ielem < nelements; ielem++)
+          elements[ielem] = utils::strdup(words.next());
         elementsflag = 1;
-      } else if (strcmp(keywd,"radelems") == 0) {
-        for (int ielem = 0; ielem < nelements; ielem++) {
-          radelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
-          keyval = strtok(nullptr,"' \t\n\r\f");
-        }
+      } else if (keywd == "radelems") {
+        for (int ielem = 0; ielem < nelements; ielem++)
+          radelem[ielem] = utils::numeric(FLERR, words.next(), false, lmp);
         radelemflag = 1;
-      } else if (strcmp(keywd,"welems") == 0) {
-        for (int ielem = 0; ielem < nelements; ielem++) {
-          wjelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
-          keyval = strtok(nullptr,"' \t\n\r\f");
-        }
+      } else if (keywd == "welems") {
+        for (int ielem = 0; ielem < nelements; ielem++)
+          wjelem[ielem] = utils::numeric(FLERR, words.next(), false, lmp);
         wjelemflag = 1;
-      } else if (strcmp(keywd,"rinnerelems") == 0) {
-        for (int ielem = 0; ielem < nelements; ielem++) {
-          rinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
-          keyval = strtok(nullptr,"' \t\n\r\f");
-        }
+      } else if (keywd == "rinnerelems") {
+        for (int ielem = 0; ielem < nelements; ielem++)
+          rinnerelem[ielem] = utils::numeric(FLERR, words.next(), false, lmp);
         rinnerflag = 1;
-      } else if (strcmp(keywd,"drinnerelems") == 0) {
-        for (int ielem = 0; ielem < nelements; ielem++) {
-          drinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
-          keyval = strtok(nullptr,"' \t\n\r\f");
-        }
+      } else if (keywd == "drinnerelems") {
+        for (int ielem = 0; ielem < nelements; ielem++)
+          drinnerelem[ielem] = utils::numeric(FLERR, words.next(), false, lmp);
         rinnerflag = 1;
       }
 
@@ -462,44 +447,43 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
 
       // all other keywords take one value
 
-      if (nwords != 2)
-        error->all(FLERR,"Incorrect SNAP parameter file");
+      if (words.count() != 2) error->all(FLERR, "Incorrect SNAP parameter file");
 
-      if (comm->me == 0)
-	utils::logmesg(lmp,"SNAP keyword {} {} \n", keywd, keyval);
+      auto keyval = words.next();
+      if (comm->me == 0) utils::logmesg(lmp, "SNAP keyword {} {} \n", keywd, keyval);
 
-      if (strcmp(keywd,"nelems") == 0) {
-        nelements = utils::inumeric(FLERR,keyval,false,lmp);
-        elements = new char*[nelements];
-        memory->create(radelem,nelements,"mliap_snap_descriptor:radelem");
-        memory->create(wjelem,nelements,"mliap_snap_descriptor:wjelem");
-        memory->create(rinnerelem,nelements,"mliap_snap_descriptor:rinner");
-        memory->create(drinnerelem,nelements,"mliap_snap_descriptor:drinner");
+      if (keywd == "nelems") {
+        nelements = utils::inumeric(FLERR, keyval, false, lmp);
+        elements = new char *[nelements];
+        memory->create(radelem, nelements, "mliap_snap_descriptor:radelem");
+        memory->create(wjelem, nelements, "mliap_snap_descriptor:wjelem");
+        memory->create(rinnerelem, nelements, "mliap_snap_descriptor:rinner");
+        memory->create(drinnerelem, nelements, "mliap_snap_descriptor:drinner");
         nelementsflag = 1;
-      } else if (strcmp(keywd,"rcutfac") == 0) {
-        rcutfac = utils::numeric(FLERR,keyval,false,lmp);
+      } else if (keywd == "rcutfac") {
+        rcutfac = utils::numeric(FLERR, keyval, false, lmp);
         rcutfacflag = 1;
-      } else if (strcmp(keywd,"twojmax") == 0) {
-        twojmax = utils::inumeric(FLERR,keyval,false,lmp);
+      } else if (keywd == "twojmax") {
+        twojmax = utils::inumeric(FLERR, keyval, false, lmp);
         twojmaxflag = 1;
-      } else if (strcmp(keywd,"rfac0") == 0)
-        rfac0 = utils::numeric(FLERR,keyval,false,lmp);
-      else if (strcmp(keywd,"rmin0") == 0)
-        rmin0 = utils::numeric(FLERR,keyval,false,lmp);
-      else if (strcmp(keywd,"switchflag") == 0)
-        switchflag = utils::inumeric(FLERR,keyval,false,lmp);
-      else if (strcmp(keywd,"bzeroflag") == 0)
-        bzeroflag = utils::inumeric(FLERR,keyval,false,lmp);
-      else if (strcmp(keywd,"chemflag") == 0)
-        chemflag = utils::inumeric(FLERR,keyval,false,lmp);
-      else if (strcmp(keywd,"bnormflag") == 0)
-        bnormflag = utils::inumeric(FLERR,keyval,false,lmp);
-      else if (strcmp(keywd,"wselfallflag") == 0)
-        wselfallflag = utils::inumeric(FLERR,keyval,false,lmp);
-      else if (strcmp(keywd,"switchinnerflag") == 0)
-	switchinnerflag = utils::inumeric(FLERR,keyval,false,lmp);
+      } else if (keywd == "rfac0")
+        rfac0 = utils::numeric(FLERR, keyval, false, lmp);
+      else if (keywd == "rmin0")
+        rmin0 = utils::numeric(FLERR, keyval, false, lmp);
+      else if (keywd == "switchflag")
+        switchflag = utils::inumeric(FLERR, keyval, false, lmp);
+      else if (keywd == "bzeroflag")
+        bzeroflag = utils::inumeric(FLERR, keyval, false, lmp);
+      else if (keywd == "chemflag")
+        chemflag = utils::inumeric(FLERR, keyval, false, lmp);
+      else if (keywd == "bnormflag")
+        bnormflag = utils::inumeric(FLERR, keyval, false, lmp);
+      else if (keywd == "wselfallflag")
+        wselfallflag = utils::inumeric(FLERR, keyval, false, lmp);
+      else if (keywd == "switchinnerflag")
+        switchinnerflag = utils::inumeric(FLERR, keyval, false, lmp);
       else
-        error->all(FLERR,"Incorrect SNAP parameter file");
+        error->all(FLERR, "Incorrect SNAP parameter file");
     }
   }
 

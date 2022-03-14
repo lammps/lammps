@@ -33,8 +33,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPModelNN::MLIAPModelNN(LAMMPS* lmp, char* coefffilename) :
-  MLIAPModel(lmp, coefffilename)
+MLIAPModelNN::MLIAPModelNN(LAMMPS* _lmp, char* coefffilename) :
+  MLIAPModel(_lmp, coefffilename)
 {
   nnodes = nullptr;
   activation = nullptr;
@@ -73,8 +73,8 @@ void MLIAPModelNN::read_coeffs(char *coefffilename)
   if (comm->me == 0) {
     fpcoeff = utils::open_potential(coefffilename,lmp,nullptr);
     if (fpcoeff == nullptr)
-      error->one(FLERR,"Cannot open MLIAPModel coeff file {}: {}",
-                                   coefffilename,utils::getsyserror());
+      error->one(FLERR,"Cannot open MLIAPModel coeff file {}: {}", coefffilename,
+                 utils::getsyserror());
   }
 
   char line[MAXLINE], *ptr, *tstr;
@@ -111,8 +111,7 @@ void MLIAPModelNN::read_coeffs(char *coefffilename)
     nelements = coeffs.next_int();
     nparams = coeffs.next_int();
   } catch (TokenizerException &e) {
-    error->all(FLERR,"Incorrect format in MLIAPModel coefficient "
-                                 "file: {}",e.what());
+    error->all(FLERR,"Incorrect format in MLIAPModel coefficient file: {}",e.what());
   }
 
   // set up coeff lists
@@ -141,70 +140,73 @@ void MLIAPModelNN::read_coeffs(char *coefffilename)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
+
     nwords = utils::trim_and_count_words(line);
     if (nwords == 0) continue;
 
+    ValueTokenizer values(line, "\"' \t\n\t\f");
     if (stats == 0) { // Header NET
-      tstr = strtok(line,"' \t\n\r\f");
-      if (strncmp(tstr, "NET", 3) != 0) error->all(FLERR,"Incorrect format in MLIAPModel coefficient file");
+      auto tstr = values.next_string();
+      if (tstr.substr(0,3) != "NET")
+        error->all(FLERR,"Incorrect format in MLIAPModel coefficient file");
 
-      ndescriptors = atoi(strtok(nullptr,"' \t\n\r\f"));
-      nlayers = atoi(strtok(nullptr,"' \t\n\r\f"));
+      ndescriptors = values.next_int();
+      nlayers = values.next_int();
 
       memory->create(activation,nlayers,"mliap_model:activation");
       memory->create(nnodes,nlayers,"mliap_model:nnodes");
       memory->create(scale,nelements,2,ndescriptors,"mliap_model:scale");
 
       for (int ilayer = 0; ilayer < nlayers; ilayer++) {
-        tstr = strtok(nullptr,"' \t\n\r\f");
-        nnodes[ilayer] = atoi(strtok(nullptr,"' \t\n\r\f"));
+        tstr = values.next_string();
+        nnodes[ilayer] = values.next_int();
 
-        if (strncmp(tstr, "linear", 6) == 0) activation[ilayer] = 0;
-        else if (strncmp(tstr, "sigmoid", 7) == 0) activation[ilayer] = 1;
-        else if (strncmp(tstr, "tanh", 4) == 0) activation[ilayer] = 2;
-        else if (strncmp(tstr, "relu", 4) == 0) activation[ilayer] = 3;
+        if (tstr == "linear") activation[ilayer] = 0;
+        else if (tstr == "sigmoid") activation[ilayer] = 1;
+        else if (tstr == "tanh") activation[ilayer] = 2;
+        else if (tstr == "relu") activation[ilayer] = 3;
         else activation[ilayer] = 4;
       }
 
       stats = 1;
 
     } else if (stats == 1) {
-        scale[ielem][0][l] = atof(strtok(line,"' \t\n\r\f"));
-        for (int icoeff = 1; icoeff < nwords; icoeff++) {
-          scale[ielem][0][l+icoeff] = atof(strtok(nullptr,"' \t\n\r\f"));
-        }
-        l += nwords;
-        if (l == ndescriptors) {
-          stats = 2;
-          l = 0;
-        }
+      scale[ielem][0][l] = values.next_double();
+      for (int icoeff = 1; icoeff < nwords; icoeff++) {
+        scale[ielem][0][l+icoeff] = values.next_double();
+      }
+      l += nwords;
+      if (l == ndescriptors) {
+        stats = 2;
+        l = 0;
+      }
 
     } else if (stats == 2) {
-        scale[ielem][1][l] = atof(strtok(line,"' \t\n\r\f"));
-        for (int icoeff = 1; icoeff < nwords; icoeff++) {
-          scale[ielem][1][l+icoeff] = atof(strtok(nullptr,"' \t\n\r\f"));
-        }
-        l += nwords;
-        if (l == ndescriptors) {
-          stats = 3;
-          l = 0;
-        }
+      scale[ielem][1][l] = values.next_double();
+      for (int icoeff = 1; icoeff < nwords; icoeff++) {
+        scale[ielem][1][l+icoeff] = values.next_double();
+      }
+      l += nwords;
+      if (l == ndescriptors) {
+        stats = 3;
+        l = 0;
+      }
 
-    // set up coeff lists
+      // set up coeff lists
 
     } else if (stats == 3) {
-        if (nwords > 30) error->all(FLERR,"Incorrect format in MLIAPModel coefficient file");
+      if (nwords > 30) error->all(FLERR,"Incorrect format in MLIAPModel coefficient file");
 
-        coeffelem[ielem][l] = atof(strtok(line,"' \t\n\r\f"));
-        for (int icoeff = 1; icoeff < nwords; icoeff++) {
-          coeffelem[ielem][l+icoeff] = atof(strtok(nullptr,"' \t\n\r\f"));
-        }
-        l += nwords;
-        if (l == nparams) {
-          stats = 1;
-          l = 0;
-          ielem++;
-        }
+      coeffelem[ielem][l] = values.next_double();
+      for (int icoeff = 1; icoeff < nwords; icoeff++) {
+        coeffelem[ielem][l+icoeff] = values.next_double();
+      }
+      l += nwords;
+      if (l == nparams) {
+        stats = 1;
+        l = 0;
+        ielem++;
+      }
     }
   }
 }

@@ -7,6 +7,7 @@
 #   -amoeba file = AMOEBA PRM force field file name (required, or hippo)
 #   -hippo file = HIPPO PRM force field file name (required, or amoeba)
 #   -data file = LAMMPS data file to output (required)
+#   -bitorsion file = LAMMPS fix bitorsion file to output (required if BiTorsions)
 #   -nopbc = non-periodic system (default)
 #   -pbc xhi yhi zhi = periodic system from 0 to hi in each dimension (optional)
 
@@ -31,6 +32,7 @@ def error(txt=""):
     print "  -amoeba file"
     print "  -hippo file"
     print "  -data file"
+    print "  -bitorsion file"
     print "  -nopbc"
     print "  -pbc xhi yhi zhi"
   else: print "ERROR:",txt
@@ -108,6 +110,7 @@ class PRMfile:
     self.opbendparams = self.opbend()
     self.ureyparams = self.ureybonds()
     self.pitorsionparams = self.pitorsions()
+    self.bitorsionparams = self.bitorsions()
     self.ntypes = len(self.masses)
 
   # find a section in the PRM file
@@ -329,10 +332,10 @@ class PRMfile:
           class4 = int(words[4])
           
           if len(words) <= 5:
-            error("Torsion has no params: %d %d %d %d" % \
+            error("torsion has no params: %d %d %d %d" % \
                   (class1,class2,class3,class4))
           if (len(words)-5) % 3: 
-            error("Torsion does not have triplets of params: %d %d %d %d" % \
+            error("torsion does not have triplets of params: %d %d %d %d" % \
                   (class1,class2,class3,class4))
 
           mfourier = (len(words)-5) / 3
@@ -399,7 +402,7 @@ class PRMfile:
       iline += 1
     return params
 
-  # Pi Torsion params, will be read from data file by fix pitorsion
+  # PiTorsion params, will be read from data file by fix pitorsion
 
   def pitorsions(self):
     params = []
@@ -421,6 +424,43 @@ class PRMfile:
       iline += 1
     return params
 
+  # BiTorsion params, will be read from data file by fix bitorsion
+
+  def bitorsions(self):
+    params = []
+    iline = self.find_section("Torsion-Torsion Parameters")
+    if iline < 0: return params
+    iline += 3
+
+    while iline < self.nlines:
+      words = self.lines[iline].split()
+      if len(words):
+        if words[0].startswith("###########"): break
+        if words[0] == "tortors":
+          class1 = int(words[1])
+          class2 = int(words[2])
+          class3 = int(words[3])
+          class4 = int(words[4])
+          class5 = int(words[5])
+          nx = int(words[6])
+          ny = int(words[7])
+          iline += 1
+          array = []
+          for iy in range(ny):
+            xrow = []
+            for ix in range(nx):
+              words = self.lines[iline].split()
+              xgrid = float(words[0])
+              ygrid = float(words[1])
+              value = float(words[2])
+              tuple3 = (xgrid,ygrid,value)
+              xrow.append(tuple3)
+              iline += 1
+            array.append(xrow)
+          params.append((class1,class2,class3,class4,class5,nx,ny,array))
+      iline += 1
+    return params
+
 # ----------------------------------------
 # main program
 # ----------------------------------------
@@ -434,6 +474,7 @@ amoeba = hippo = 0
 xyzfile = ""
 prmfile = ""
 datafile = ""
+bitorsionfile = ""
 pbcflag = 0
 
 iarg = 0
@@ -455,6 +496,10 @@ while iarg < narg:
   elif args[iarg] == "-data":
     if iarg + 2 > narg: error()
     datafile = args[iarg+1]
+    iarg += 2
+  elif args[iarg] == "-bitorsion":
+    if iarg + 2 > narg: error()
+    bitorsionfile = args[iarg+1]
     iarg += 2
   elif args[iarg] == "-nopbc":
     pbcflag = 0
@@ -673,11 +718,7 @@ for atom1,atom2,atom3 in alist:
   elif (c3,c2,c1) in ubdict:
     ublist.append((atom3,atom2,atom1))
 
-# ----------------------------------------
-# create list of 6-body Pi-Torsion interactions
-# ----------------------------------------
-
-# create ptorslist = list of 6-body interactions
+# create pitorslist = list of 6-body interactions
 # based on central bond, each bond atom is bonded to exactly 2 other atoms
 # avoid double counting by requiring atom1 < atom2
 # NOTE: need more info on how to order the 6 atoms for Tinker to compute on
@@ -716,9 +757,28 @@ for atom1 in id:
 
       pitorsionlist.append((atom3,atom4,atom1,atom2,atom5,atom6))
 
-# DEBUG - if uncommented, no PiTorsions appear in data file
+# create bitorslist = list of 5-body interactions
+# generate topology via double loop over neighbors of central atom3
+#   additional double loop over bonds of atom2 and bonds of atom4
+# avoid double counting the reverse bitorsion by use of btdict dictionary
 
-#pitorsionlist = []
+type = xyz.type
+classes = prm.classes
+bonds = xyz.bonds
+
+bitorsionlist = []
+btdict = {}
+
+for atom3 in id:
+  for atom2 in bonds[atom3-1]:
+    for atom4 in bonds[atom3-1]:
+      if atom2 == atom4: continue
+      for atom1 in bonds[atom2-1]:
+        for atom5 in bonds[atom4-1]:
+          if atom1 == atom3 or atom5 == atom3 or atom1 == atom5: continue
+          if (atom5,atom4,atom3,atom2,atom1) in btdict: continue
+          bitorsionlist.append((atom1,atom2,atom3,atom4,atom5))
+          btdict[(atom1,atom2,atom3,atom4,atom5)] = 1
 
 # ----------------------------------------
 # create lists of bond/angle/dihedral/improper types
@@ -752,7 +812,7 @@ for atom1,atom2 in blist:
   
   if (c1,c2) in bdict: m,params = bdict[(c1,c2)]
   elif (c2,c1) in bdict: m,params = bdict[(c2,c1)]
-  else: error("Bond not found: %d %d: %d %d" % (atom1,atom2,c1,c2))
+  else: error("bond not found: %d %d: %d %d" % (atom1,atom2,c1,c2))
     
   if not flags[m]:
     v1,v2,v3,v4 = params[2:]
@@ -869,7 +929,7 @@ for i,one in enumerate(alist):
         m += 2
 
   else:
-    error("Angle not found: %d %d %d: %d %d %d" % (atom1,atom2,atom3,c1,c2,c3))
+    error("angle not found: %d %d %d: %d %d %d" % (atom1,atom2,atom3,c1,c2,c3))
     
   if not flags[m]:
     pflag,ubflag,v1,v2,v3,v4,v5,v6 = params[3][which-1]
@@ -979,7 +1039,7 @@ for atom1,atom2,atom3,atom4 in dlist:
   if (c1,c2,c3,c4) in ddict: m,params = ddict[(c1,c2,c3,c4)]
   elif (c4,c3,c2,c1) in ddict: m,params = ddict[(c4,c3,c2,c1)]
   else:
-    error("Dihedral not found: %d %d %d %d: %d %d %d %d" % \
+    error("dihedral not found: %d %d %d %d: %d %d %d %d" % \
           (atom1,atom2,atom3,atom4,c1,c2,c3,c4))
 
   if not flags[m]:
@@ -1063,7 +1123,7 @@ for tmp1,tmp2,atom1,atom2,tmp3,tmp4 in pitorsionlist:
   c1 = classes[type1-1]
   c2 = classes[type2-1]
 
-  # 6-tuple is only a PiTorsion if central 2 atoms math an entry in PRM file
+  # 6-tuple is only a PiTorsion if central 2 atoms match an entry in PRM file
   # pitorsionlist_reduced = list of just these 6-tuples
   
   if (c1,c2) in pitdict or (c2,c1) in pitdict:
@@ -1080,6 +1140,57 @@ for tmp1,tmp2,atom1,atom2,tmp3,tmp4 in pitorsionlist:
 # replace original pitorsionlist with reduced version
 
 pitorsionlist = pitorsionlist_reduced
+
+# generate bitorsiontype = LAMMPS type of each bitorsion
+# generate bitorsionparams = LAMMPS params for each bitorsion type
+# flags[i] = which LAMMPS bitorsion type (1-N) the Ith Tinker PRM file btors is
+#        0 = none
+# convert prm.bitorsionparams to a dictionary for efficient searching
+# key = (class1,class2,class3,class4,class5)
+# value = (M,params) where M is index into prm.bitorsionparams
+
+id = xyz.id
+type = xyz.type
+classes = prm.classes
+
+bitdict = {}
+for m,params in enumerate(prm.bitorsionparams):
+  bitdict[(params[0],params[1],params[2],params[3],params[4])] = (m,params)
+
+flags = len(prm.bitorsionparams)*[0]
+bitorsiontype = []
+bitorsionparams = []
+bitorsionlist_reduced = []
+
+for atom1,atom2,atom3,atom4,atom5 in bitorsionlist:
+  type1 = type[atom1-1]
+  type2 = type[atom2-1]
+  type3 = type[atom3-1]
+  type4 = type[atom4-1]
+  type5 = type[atom5-1]
+  c1 = classes[type1-1]
+  c2 = classes[type2-1]
+  c3 = classes[type3-1]
+  c4 = classes[type4-1]
+  c5 = classes[type5-1]
+
+  # 5-tuple is only a BiTorsion if 5 atoms match an entry in PRM file
+  # bitorsionlist_reduced = list of just these 5-tuples
+  
+  if (c1,c2,c3,c4,c5) in bitdict or (c5,c4,c3,c2,c1) in bitdict:
+    if (c1,c2,c3,c4,c5) in bitdict: m,params = bitdict[(c1,c2,c3,c4,c5)]
+    else: m,params = bitdict[(c5,c4,c3,c2,c1)]
+    bitorsionlist_reduced.append((atom1,atom2,atom3,atom4,atom5))
+
+    if not flags[m]:
+      v1 = params[5:]
+      bitorsionparams.append(v1)
+      flags[m] = len(bitorsionparams)
+    bitorsiontype.append(flags[m])
+    
+# replace original bitorsionlist with reduced version
+
+bitorsionlist = bitorsionlist_reduced
 
 # ----------------------------------------
 # assign each atom to a Tinker group
@@ -1136,6 +1247,7 @@ nangles = len(alist)
 ndihedrals = len(dlist)
 nimpropers = len(olist)
 npitorsions = len(pitorsionlist)
+nbitorsions = len(bitorsionlist)
 
 # data file header values
 
@@ -1271,6 +1383,36 @@ if npitorsions:
     lines.append(line+'\n')
   d.sections["PiTorsions"] = lines
 
+if nbitorsions:
+  d.headers["bitorsions"] = len(pitorsionlist)
+
+  # if there are bitorsions, then -bitorsion file must have been specified
+  
+  if not bitorsionfile:
+    error("no -bitorsion file was specified, but %d bitorsions exist" % \
+          nbitorsions)
+
+  fp = open(bitorsionfile,'w')
+  print >>fp,"Tinker BiTorsion parameter file for fix bitorsion\n"
+  print >>fp,"%d bitorsion types" % len(bitorsionparams)
+  itype = 0
+  for nx,ny,array in bitorsionparams:
+    itype += 1
+    print >>fp
+    print >>fp,itype,nx,ny
+    for ix in range(nx):
+      for iy in range(ny):
+        xgrid,ygrid,value = array[ix][iy]
+        print >>fp," ",xgrid,ygrid,value
+  fp.close()
+  
+  lines = [] 
+  for i,one in enumerate(bitorsionlist):
+    line = "%d %d %d %d %d %d %d" % \
+           (i+1,bitorsiontype[i],one[0],one[1],one[2],one[3],one[4])
+    lines.append(line+'\n')
+  d.sections["BiTorsions"] = lines
+
 d.write(datafile)
 
 # print stats to screen
@@ -1286,8 +1428,10 @@ print "Nangles =",nangles
 print "Ndihedrals =",ndihedrals
 print "Nimpropers =",nimpropers
 print "Npitorsions =",npitorsions
+print "Nbitorsions =",nbitorsions
 print "Nbondtypes =",len(bparams)
 print "Nangletypes =",len(aparams)
 print "Ndihedraltypes =",len(dparams)
 print "Nimpropertypes =",len(oparams)
 print "Npitorsiontypes =",len(pitorsionparams)
+print "Nbitorsiontypes =",len(bitorsionparams)

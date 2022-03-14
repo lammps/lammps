@@ -113,7 +113,7 @@ using namespace MathSpecial;
 SNA::SNA(LAMMPS* lmp, double rfac0_in, int twojmax_in,
          double rmin0_in, int switch_flag_in, int bzero_flag_in,
          int chem_flag_in, int bnorm_flag_in, int wselfall_flag_in,
-	 int nelements_in, int switch_inner_flag_in) : Pointers(lmp)
+         int nelements_in, int switch_inner_flag_in) : Pointers(lmp)
 {
   wself = 1.0;
 
@@ -1017,7 +1017,7 @@ void SNA::add_uarraytot(double r, int jj)
 {
   double sfac;
   int jelem;
-  
+
   sfac = compute_sfac(r, rcutij[jj]);
   sfac *= wj[jj];
 
@@ -1026,7 +1026,7 @@ void SNA::add_uarraytot(double r, int jj)
 
   if (chem_flag) jelem = element[jj];
   else jelem = 0;
-  
+
   double* ulist_r = ulist_r_ij[jj];
   double* ulist_i = ulist_i_ij[jj];
 
@@ -1274,7 +1274,7 @@ void SNA::compute_duarray(double x, double y, double z,
     dsfac = dsfac*sfac_inner + sfac*compute_dsfac_inner(r, rinnerij[jj], drinnerij[jj]);
     sfac *= sfac_inner;
   }
-  
+
   sfac *= wj;
   dsfac *= wj;
   for (int j = 0; j <= twojmax; j++) {
@@ -1342,7 +1342,7 @@ double SNA::memory_usage()
     bytes += (double)nmax * sizeof(double);                      // drinnerij
   }
   if (chem_flag) bytes += (double)nmax * sizeof(int);            // element
-  
+
   return bytes;
 }
 /* ---------------------------------------------------------------------- */

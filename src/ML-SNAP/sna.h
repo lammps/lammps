@@ -69,7 +69,7 @@ class SNA : protected Pointers {
   double **dblist;
 
   // short neighbor list data
-  
+
   void grow_rij(int);
   int nmax;         // allocated size of short lists
 
@@ -79,12 +79,12 @@ class SNA : protected Pointers {
   double *rcutij;   // short cutoff list
 
   // only allocated for switch_inner_flag=1
-  
+
   double *rinnerij; // short inner cutoff list
   double *drinnerij;// short inner range list
 
   // only allocated for chem_flag=1
-  
+
   int *element;     // short element list [0,nelements)
 
  private:
@@ -125,7 +125,7 @@ class SNA : protected Pointers {
   double deltacg(int, int, int);
   void compute_ncoeff();
   void compute_duarray(double, double, double, double, double, double,
-		       double, double, int);
+                       double, double, int);
 
   // Sets the style for the switching function
   // 0 = none

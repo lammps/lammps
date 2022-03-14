@@ -146,13 +146,13 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
       for (int i = 0; i < ntypes; i++)
        drinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
       iarg += ntypes;
-    } else error->all(FLERR,"Illegal compute sna/atom command");    
+    } else error->all(FLERR,"Illegal compute sna/atom command");
   }
 
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
                    chemflag, bnormflag, wselfallflag,
-		   nelements, switchinnerflag);
+                   nelements, switchinnerflag);
 
   ncoeff = snaptr->ncoeff;
   size_peratom_cols = ncoeff;
@@ -289,10 +289,10 @@ void ComputeSNAAtom::compute_peratom()
           snaptr->inside[ninside] = j;
           snaptr->wj[ninside] = wjelem[jtype];
           snaptr->rcutij[ninside] = (radi+radelem[jtype])*rcutfac;
-	  if (switchinnerflag) {
-	    snaptr->rinnerij[ninside] = 0.5*(rinnerelem[itype]+rinnerelem[jtype]);
-	    snaptr->drinnerij[ninside] = 0.5*(drinnerelem[itype]+drinnerelem[jtype]);
-	  }
+          if (switchinnerflag) {
+            snaptr->rinnerij[ninside] = 0.5*(rinnerelem[itype]+rinnerelem[jtype]);
+            snaptr->drinnerij[ninside] = 0.5*(drinnerelem[itype]+drinnerelem[jtype]);
+          }
           if (chemflag) snaptr->element[ninside] = jelem;
           ninside++;
         }

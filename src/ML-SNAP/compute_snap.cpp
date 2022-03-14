@@ -150,10 +150,10 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
       memory->create(rinnerelem,ntypes+1,"snap:rinnerelem");
       memory->create(drinnerelem,ntypes+1,"snap:drinnerelem");
       for (int i = 0; i < ntypes; i++)
-	rinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+        rinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
       iarg += ntypes;
       for (int i = 0; i < ntypes; i++)
-	drinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+        drinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
       iarg += ntypes;
     } else error->all(FLERR,"Illegal compute snap command");
   }
@@ -161,7 +161,7 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
                    chemflag, bnormflag, wselfallflag,
-		   nelements, switchinnerflag);
+                   nelements, switchinnerflag);
 
   ncoeff = snaptr->ncoeff;
   nperdim = ncoeff;
@@ -360,10 +360,10 @@ void ComputeSnap::compute_array()
           snaptr->inside[ninside] = j;
           snaptr->wj[ninside] = wjelem[jtype];
           snaptr->rcutij[ninside] = (radi+radelem[jtype])*rcutfac;
-	  if (switchinnerflag) {
-	    snaptr->rinnerij[ninside] = 0.5*(rinnerelem[itype]+rinnerelem[jtype]);
-	    snaptr->drinnerij[ninside] = 0.5*(drinnerelem[itype]+drinnerelem[jtype]);
-	  }
+          if (switchinnerflag) {
+            snaptr->rinnerij[ninside] = 0.5*(rinnerelem[itype]+rinnerelem[jtype]);
+            snaptr->drinnerij[ninside] = 0.5*(drinnerelem[itype]+drinnerelem[jtype]);
+          }
           if (chemflag) snaptr->element[ninside] = jelem;
           ninside++;
         }

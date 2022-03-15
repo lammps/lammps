@@ -13,20 +13,20 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(bitorsion,FixBiTorsion);
+FixStyle(amoeba/bitorsion,FixAmoebaBiTorsion);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_BITORSION_H
-#define LMP_FIX_BITORSION_H
+#ifndef LMP_FIX_AMOEBA_BITORSION_H
+#define LMP_FIX_AMOEBA_BITORSION_H
 
 #include "fix.h"
 namespace LAMMPS_NS {
 
-class FixBiTorsion : public Fix {
+class FixAmoebaBiTorsion : public Fix {
  public:
-  FixBiTorsion(class LAMMPS *, int, char **);
-  ~FixBiTorsion();
+  FixAmoebaBiTorsion(class LAMMPS *, int, char **);
+  ~FixAmoebaBiTorsion();
   int setmask();
   void init();
   void setup(int);

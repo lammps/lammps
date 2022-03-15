@@ -810,7 +810,8 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
 
   const char *exceptions[] =
     {"GPU", "OMP", "INTEL", "property/atom", "cmap", "cmap3", "rx",
-     "deprecated", "STORE/KIM", "pitorsion", "bitorsion", nullptr};
+     "deprecated", "STORE/KIM", "amoeba/pitorsion", "amoeba/bitorsion", 
+     nullptr};
 
   if (domain->box_exist == 0) {
     int m;

@@ -12,7 +12,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "fix_pitorsion.h"
+#include "fix_amoeba_pitorsion.h"
 
 #include <cmath>
 
@@ -36,16 +36,15 @@ using namespace MathConst;
 #define LISTDELTA 8196
 #define LB_FACTOR 1.5
 
-
 /* ---------------------------------------------------------------------- */
 
-FixPiTorsion::FixPiTorsion(LAMMPS *lmp, int narg, char **arg) :
+FixAmoebaPiTorsion::FixAmoebaPiTorsion(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   pitorsion_list(nullptr), num_pitorsion(nullptr), pitorsion_type(nullptr),
   pitorsion_atom1(nullptr), pitorsion_atom2(nullptr), pitorsion_atom3(nullptr),
   pitorsion_atom4(nullptr), pitorsion_atom5(nullptr), pitorsion_atom6(nullptr)
 {
-  if (narg != 3) error->all(FLERR,"Illegal fix pitorsion command");
+  if (narg != 3) error->all(FLERR,"Illegal fix amoeba/pitorsion command");
 
   // settings for this fix
 
@@ -103,7 +102,7 @@ FixPiTorsion::FixPiTorsion(LAMMPS *lmp, int narg, char **arg) :
 
 /* --------------------------------------------------------------------- */
 
-FixPiTorsion::~FixPiTorsion()
+FixAmoebaPiTorsion::~FixAmoebaPiTorsion()
 {
   // unregister callbacks to this fix from Atom class
 
@@ -132,7 +131,7 @@ FixPiTorsion::~FixPiTorsion()
 
 /* ---------------------------------------------------------------------- */
 
-int FixPiTorsion::setmask()
+int FixAmoebaPiTorsion::setmask()
 {
   int mask = 0;
   mask |= PRE_NEIGHBOR;
@@ -145,7 +144,7 @@ int FixPiTorsion::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPiTorsion::init()
+void FixAmoebaPiTorsion::init()
 {
   if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
@@ -170,7 +169,7 @@ void FixPiTorsion::init()
 
 /* --------------------------------------------------------------------- */
 
-void FixPiTorsion::setup(int vflag)
+void FixAmoebaPiTorsion::setup(int vflag)
 {
   pre_neighbor();
 
@@ -185,21 +184,21 @@ void FixPiTorsion::setup(int vflag)
 
 /* --------------------------------------------------------------------- */
 
-void FixPiTorsion::setup_pre_neighbor()
+void FixAmoebaPiTorsion::setup_pre_neighbor()
 {
   pre_neighbor();
 }
 
 /* --------------------------------------------------------------------- */
 
-void FixPiTorsion::setup_pre_reverse(int eflag, int vflag)
+void FixAmoebaPiTorsion::setup_pre_reverse(int eflag, int vflag)
 {
   pre_reverse(eflag,vflag);
 }
 
 /* --------------------------------------------------------------------- */
 
-void FixPiTorsion::min_setup(int vflag)
+void FixAmoebaPiTorsion::min_setup(int vflag)
 {
   pre_neighbor();
   post_force(vflag);
@@ -211,7 +210,7 @@ void FixPiTorsion::min_setup(int vflag)
      this proc lists the pitorsion exactly once
 ------------------------------------------------------------------------- */
 
-void FixPiTorsion::pre_neighbor()
+void FixAmoebaPiTorsion::pre_neighbor()
 {
   int i,m,atom1,atom2,atom3,atom4,atom5,atom6;
 
@@ -278,7 +277,7 @@ void FixPiTorsion::pre_neighbor()
    store eflag, so can use it in post_force to tally per-atom energies
 ------------------------------------------------------------------------- */
 
-void FixPiTorsion::pre_reverse(int eflag, int /*vflag*/)
+void FixAmoebaPiTorsion::pre_reverse(int eflag, int /*vflag*/)
 {
   eflag_caller = eflag;
 }
@@ -287,7 +286,7 @@ void FixPiTorsion::pre_reverse(int eflag, int /*vflag*/)
    compute PiTorsion terms
 ------------------------------------------------------------------------- */
 
-void FixPiTorsion::post_force(int vflag)
+void FixAmoebaPiTorsion::post_force(int vflag)
 {
   if (disable) return;
 
@@ -568,14 +567,14 @@ void FixPiTorsion::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPiTorsion::post_force_respa(int vflag, int ilevel, int /*iloop*/)
+void FixAmoebaPiTorsion::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixPiTorsion::min_post_force(int vflag)
+void FixAmoebaPiTorsion::min_post_force(int vflag)
 {
   post_force(vflag);
 }
@@ -584,7 +583,7 @@ void FixPiTorsion::min_post_force(int vflag)
    energy of PiTorsion term
 ------------------------------------------------------------------------- */
 
-double FixPiTorsion::compute_scalar()
+double FixAmoebaPiTorsion::compute_scalar()
 {
   double all;
   MPI_Allreduce(&epitorsion,&all,1,MPI_DOUBLE,MPI_SUM,world);
@@ -597,13 +596,14 @@ double FixPiTorsion::compute_scalar()
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
 
-void FixPiTorsion::read_data_header(char *line)
+void FixAmoebaPiTorsion::read_data_header(char *line)
 {
   if (strstr(line,"pitorsions")) {
     sscanf(line,BIGINT_FORMAT,&npitorsions);
   } else if (strstr(line,"pitorsion types")) {
     sscanf(line,"%d",&npitorsion_types);
-  } else error->all(FLERR,"Invalid read data header line for fix pitorsion");
+  } else error->all(FLERR,
+                    "Invalid read data header line for amoeba/fix pitorsion");
 }
 
 /* ----------------------------------------------------------------------
@@ -611,7 +611,7 @@ void FixPiTorsion::read_data_header(char *line)
    id_offset is applied to atomID fields if multiple data files are read
 ------------------------------------------------------------------------- */
 
-void FixPiTorsion::read_data_section(char *keyword, int n, char *buf,
+void FixAmoebaPiTorsion::read_data_section(char *keyword, int n, char *buf,
                                      tagint id_offset)
 {
   int which;
@@ -622,7 +622,7 @@ void FixPiTorsion::read_data_section(char *keyword, int n, char *buf,
   } else if (strstr(keyword,"PiTorsion Coeffs")) {
     sscanf(keyword,"%d",&npitorsion_types);
     which = 1;
-  } else error->all(FLERR,"Invalid read data section for fix pitorsion");
+  } else error->all(FLERR,"Invalid read data section for fix amoeba/pitorsion");
   
   // loop over lines of PiTorsion Coeffs
   // tokenize the line into values
@@ -640,7 +640,7 @@ void FixPiTorsion::read_data_section(char *keyword, int n, char *buf,
       *next = '\0';
       sscanf(buf,"%d %lg",&itype,&value);
       if (itype <= 0 || itype > npitorsion_types)
-        error->all(FLERR,"Incorrect args for pitorsion coefficients");
+        error->all(FLERR,"Incorrect args for fix amoeba/pitorsion coeffs");
       kpit[itype] = value;
       buf = next + 1;
     }
@@ -763,7 +763,7 @@ void FixPiTorsion::read_data_section(char *keyword, int n, char *buf,
 
 /* ---------------------------------------------------------------------- */
 
-bigint FixPiTorsion::read_data_skip_lines(char *keyword)
+bigint FixAmoebaPiTorsion::read_data_skip_lines(char *keyword)
 {
   if (strcmp(keyword,"PiTorsions") == 0) return npitorsions;
   if (strcmp(keyword,"PiTorsion Coeffs") == 0) return (bigint) npitorsion_types;
@@ -775,7 +775,7 @@ bigint FixPiTorsion::read_data_skip_lines(char *keyword)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void FixPiTorsion::write_data_header(FILE *fp, int mth)
+void FixAmoebaPiTorsion::write_data_header(FILE *fp, int mth)
 {
   if (mth == 0) fprintf(fp,BIGINT_FORMAT " pitorsions\n",npitorsions);
   else if (mth == 1) 
@@ -787,7 +787,7 @@ void FixPiTorsion::write_data_header(FILE *fp, int mth)
    # of data sections = 2 for this fix
 ------------------------------------------------------------------------- */
 
-void FixPiTorsion::write_data_section_size(int mth, int &nx, int &ny)
+void FixAmoebaPiTorsion::write_data_section_size(int mth, int &nx, int &ny)
 {
   int i,m;
 
@@ -824,7 +824,7 @@ void FixPiTorsion::write_data_section_size(int mth, int &nx, int &ny)
    buf allocated by caller as owned PiTorsions by 7
 ------------------------------------------------------------------------- */
 
-void FixPiTorsion::write_data_section_pack(int mth, double **buf)
+void FixAmoebaPiTorsion::write_data_section_pack(int mth, double **buf)
 {
   int i,m;
 
@@ -875,7 +875,7 @@ void FixPiTorsion::write_data_section_pack(int mth, double **buf)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void FixPiTorsion::write_data_section_keyword(int mth, FILE *fp)
+void FixAmoebaPiTorsion::write_data_section_keyword(int mth, FILE *fp)
 {
   if (mth == 0) fprintf(fp,"\nPiTorsions\n\n");
   else if (mth == 1) fprintf(fp,"\nPiTorsion Coeffs\n\n");
@@ -888,7 +888,7 @@ void FixPiTorsion::write_data_section_keyword(int mth, FILE *fp)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void FixPiTorsion::write_data_section(int mth, FILE *fp,
+void FixAmoebaPiTorsion::write_data_section(int mth, FILE *fp,
                                       int n, double **buf, int index)
 {
   // PiTorsions section
@@ -921,7 +921,7 @@ void FixPiTorsion::write_data_section(int mth, FILE *fp,
    pack entire state of Fix into one write
 ------------------------------------------------------------------------- */
 
-void FixPiTorsion::write_restart(FILE *fp)
+void FixAmoebaPiTorsion::write_restart(FILE *fp)
 {
   if (comm->me == 0) {
     int size = sizeof(bigint);
@@ -934,7 +934,7 @@ void FixPiTorsion::write_restart(FILE *fp)
    use state info from restart file to restart the Fix
 ------------------------------------------------------------------------- */
 
-void FixPiTorsion::restart(char *buf)
+void FixAmoebaPiTorsion::restart(char *buf)
 {
   npitorsions = *((bigint *) buf);
 }
@@ -943,7 +943,7 @@ void FixPiTorsion::restart(char *buf)
    pack values in local atom-based arrays for restart file
 ------------------------------------------------------------------------- */
 
-int FixPiTorsion::pack_restart(int i, double *buf)
+int FixAmoebaPiTorsion::pack_restart(int i, double *buf)
 {
   int n = 1;
   for (int m = 0; m < num_pitorsion[i]; m++) {
@@ -964,7 +964,7 @@ int FixPiTorsion::pack_restart(int i, double *buf)
    unpack values from atom->extra array to restart the fix
 ------------------------------------------------------------------------- */
 
-void FixPiTorsion::unpack_restart(int nlocal, int nth)
+void FixAmoebaPiTorsion::unpack_restart(int nlocal, int nth)
 {
   double **extra = atom->extra;
 
@@ -992,7 +992,7 @@ void FixPiTorsion::unpack_restart(int nlocal, int nth)
    maxsize of any atom's restart data
 ------------------------------------------------------------------------- */
 
-int FixPiTorsion::maxsize_restart()
+int FixAmoebaPiTorsion::maxsize_restart()
 {
   return 1 + PITORSIONMAX*6;
 }
@@ -1001,7 +1001,7 @@ int FixPiTorsion::maxsize_restart()
    size of atom nlocal's restart data
 ------------------------------------------------------------------------- */
 
-int FixPiTorsion::size_restart(int nlocal)
+int FixAmoebaPiTorsion::size_restart(int nlocal)
 {
   return 1 + num_pitorsion[nlocal]*7;
 }
@@ -1010,7 +1010,7 @@ int FixPiTorsion::size_restart(int nlocal)
    allocate atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixPiTorsion::grow_arrays(int nmax)
+void FixAmoebaPiTorsion::grow_arrays(int nmax)
 {
   num_pitorsion = memory->grow(num_pitorsion,nmax,"pitorsion:num_pitorsion");
   pitorsion_type = memory->grow(pitorsion_type,nmax,PITORSIONMAX,
@@ -1039,7 +1039,7 @@ void FixPiTorsion::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixPiTorsion::copy_arrays(int i, int j, int /*delflag*/)
+void FixAmoebaPiTorsion::copy_arrays(int i, int j, int /*delflag*/)
 {
   num_pitorsion[j] = num_pitorsion[i];
 
@@ -1058,7 +1058,7 @@ void FixPiTorsion::copy_arrays(int i, int j, int /*delflag*/)
    initialize one atom's array values, called when atom is created
 ------------------------------------------------------------------------- */
 
-void FixPiTorsion::set_arrays(int i)
+void FixAmoebaPiTorsion::set_arrays(int i)
 {
   num_pitorsion[i] = 0;
 }
@@ -1067,7 +1067,7 @@ void FixPiTorsion::set_arrays(int i)
    pack values in local atom-based array for exchange with another proc
 ------------------------------------------------------------------------- */
 
-int FixPiTorsion::pack_exchange(int i, double *buf)
+int FixAmoebaPiTorsion::pack_exchange(int i, double *buf)
 {
   int n = 0;
   buf[n++] = ubuf(num_pitorsion[i]).d;
@@ -1087,7 +1087,7 @@ int FixPiTorsion::pack_exchange(int i, double *buf)
    unpack values in local atom-based array from exchange with another proc
 ------------------------------------------------------------------------- */
 
-int FixPiTorsion::unpack_exchange(int nlocal, double *buf)
+int FixAmoebaPiTorsion::unpack_exchange(int nlocal, double *buf)
 {
   int n = 0;
   num_pitorsion[nlocal] = (int) ubuf(buf[n++]).i;
@@ -1107,7 +1107,7 @@ int FixPiTorsion::unpack_exchange(int nlocal, double *buf)
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
-double FixPiTorsion::memory_usage()
+double FixAmoebaPiTorsion::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = (double)nmax * sizeof(int);             // num_pitorsion

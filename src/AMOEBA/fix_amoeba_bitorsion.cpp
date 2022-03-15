@@ -12,7 +12,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "fix_bitorsion.h"
+#include "fix_amoeba_bitorsion.h"
 
 #include <cmath>
 
@@ -78,13 +78,13 @@ void bcuint1(double *ftt, double *ft1, double *ft2, double *ft12,
 
 /* ---------------------------------------------------------------------- */
 
-FixBiTorsion::FixBiTorsion(LAMMPS *lmp, int narg, char **arg) :
+FixAmoebaBiTorsion::FixAmoebaBiTorsion(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   bitorsion_list(nullptr), num_bitorsion(nullptr), bitorsion_type(nullptr),
   bitorsion_atom1(nullptr), bitorsion_atom2(nullptr), bitorsion_atom3(nullptr),
   bitorsion_atom4(nullptr), bitorsion_atom5(nullptr)
 {
-  if (narg != 4) error->all(FLERR,"Illegal fix bitorsion command");
+  if (narg != 4) error->all(FLERR,"Illegal fix amoeba/bitorsion command");
 
   restart_global = 1;
   restart_peratom = 1;
@@ -139,7 +139,7 @@ FixBiTorsion::FixBiTorsion(LAMMPS *lmp, int narg, char **arg) :
 
 /* --------------------------------------------------------------------- */
 
-FixBiTorsion::~FixBiTorsion()
+FixAmoebaBiTorsion::~FixAmoebaBiTorsion()
 {
   // unregister callbacks to this fix from Atom class
 
@@ -171,7 +171,7 @@ FixBiTorsion::~FixBiTorsion()
 
 /* ---------------------------------------------------------------------- */
 
-int FixBiTorsion::setmask()
+int FixAmoebaBiTorsion::setmask()
 {
   int mask = 0;
   mask |= PRE_NEIGHBOR;
@@ -184,7 +184,7 @@ int FixBiTorsion::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBiTorsion::init()
+void FixAmoebaBiTorsion::init()
 {
   if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
@@ -209,7 +209,7 @@ void FixBiTorsion::init()
 
 /* --------------------------------------------------------------------- */
 
-void FixBiTorsion::setup(int vflag)
+void FixAmoebaBiTorsion::setup(int vflag)
 {
   pre_neighbor();
 
@@ -224,21 +224,21 @@ void FixBiTorsion::setup(int vflag)
 
 /* --------------------------------------------------------------------- */
 
-void FixBiTorsion::setup_pre_neighbor()
+void FixAmoebaBiTorsion::setup_pre_neighbor()
 {
   pre_neighbor();
 }
 
 /* --------------------------------------------------------------------- */
 
-void FixBiTorsion::setup_pre_reverse(int eflag, int vflag)
+void FixAmoebaBiTorsion::setup_pre_reverse(int eflag, int vflag)
 {
   pre_reverse(eflag,vflag);
 }
 
 /* --------------------------------------------------------------------- */
 
-void FixBiTorsion::min_setup(int vflag)
+void FixAmoebaBiTorsion::min_setup(int vflag)
 {
   pre_neighbor();
   post_force(vflag);
@@ -250,7 +250,7 @@ void FixBiTorsion::min_setup(int vflag)
      this proc lists the bitorsion exactly once
 ------------------------------------------------------------------------- */
 
-void FixBiTorsion::pre_neighbor()
+void FixAmoebaBiTorsion::pre_neighbor()
 {
   int i,m,atom1,atom2,atom3,atom4,atom5;
 
@@ -313,14 +313,14 @@ void FixBiTorsion::pre_neighbor()
    store eflag, so can use it in post_force to tally per-atom energies
 ------------------------------------------------------------------------- */
 
-void FixBiTorsion::pre_reverse(int eflag, int /*vflag*/)
+void FixAmoebaBiTorsion::pre_reverse(int eflag, int /*vflag*/)
 {
   eflag_caller = eflag;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixBiTorsion::post_force(int vflag)
+void FixAmoebaBiTorsion::post_force(int vflag)
 {
   if (disable) return;
 
@@ -667,14 +667,14 @@ void FixBiTorsion::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixBiTorsion::post_force_respa(int vflag, int ilevel, int /*iloop*/)
+void FixAmoebaBiTorsion::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixBiTorsion::min_post_force(int vflag)
+void FixAmoebaBiTorsion::min_post_force(int vflag)
 {
   post_force(vflag);
 }
@@ -683,7 +683,7 @@ void FixBiTorsion::min_post_force(int vflag)
    energy of BiTorision term
 ------------------------------------------------------------------------- */
 
-double FixBiTorsion::compute_scalar()
+double FixAmoebaBiTorsion::compute_scalar()
 {
   double all;
   MPI_Allreduce(&ebitorsion,&all,1,MPI_DOUBLE,MPI_SUM,world);
@@ -696,7 +696,7 @@ double FixBiTorsion::compute_scalar()
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
 
-void FixBiTorsion::read_grid_data(char *bitorsion_file)
+void FixAmoebaBiTorsion::read_grid_data(char *bitorsion_file)
 {
   char line[MAXLINE];
   char *eof;
@@ -705,19 +705,20 @@ void FixBiTorsion::read_grid_data(char *bitorsion_file)
   if (me == 0) {
     fp = utils::open_potential(bitorsion_file,lmp,nullptr);
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open fix bitorsion file {}: {}",
+      error->one(FLERR,"Cannot open fix amoeba/bitorsion file {}: {}",
                  bitorsion_file, utils::getsyserror());
 
     eof = fgets(line,MAXLINE,fp);
     eof = fgets(line,MAXLINE,fp);
     eof = fgets(line,MAXLINE,fp);
-    if (eof == nullptr) error->one(FLERR,"Unexpected end of fix bitorsion file");
+    if (eof == nullptr) 
+      error->one(FLERR,"Unexpected end of fix amoeba/bitorsion file");
 
     sscanf(line,"%d",&ntypes);
   }
 
   MPI_Bcast(&ntypes,1,MPI_INT,0,world);
-  if (ntypes == 0) error->all(FLERR,"Fix bitorsion file has no types");
+  if (ntypes == 0) error->all(FLERR,"Fix amoeba/bitorsion file has no types");
 
   btgrid = new double***[ntypes+1];
   nxgrid = new int[ntypes+1];
@@ -733,7 +734,7 @@ void FixBiTorsion::read_grid_data(char *bitorsion_file)
       eof = fgets(line,MAXLINE,fp);
       eof = fgets(line,MAXLINE,fp);
       if (eof == nullptr) 
-        error->one(FLERR,"Unexpected end of fix bitorsion file");
+        error->one(FLERR,"Unexpected end of fix amoeba/bitorsion file");
       sscanf(line,"%d %d %d",&tmp,&nx,&ny);
     }
 
@@ -751,7 +752,7 @@ void FixBiTorsion::read_grid_data(char *bitorsion_file)
         for (int ix = 0; ix < nx; ix++) {
           eof = fgets(line,MAXLINE,fp);
           if (eof == nullptr) 
-            error->one(FLERR,"Unexpected end of fix bitorsion file");
+            error->one(FLERR,"Unexpected end of fix amoeba/bitorsion file");
           sscanf(line,"%lg %lg %lg",&xgrid,&ygrid,&value);
           btgrid[itype][ix][iy][0] = xgrid;
           btgrid[itype][ix][iy][1] = ygrid;
@@ -772,11 +773,12 @@ void FixBiTorsion::read_grid_data(char *bitorsion_file)
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
 
-void FixBiTorsion::read_data_header(char *line)
+void FixAmoebaBiTorsion::read_data_header(char *line)
 {
   if (strstr(line,"bitorsions")) {
     sscanf(line,BIGINT_FORMAT,&nbitorsions);
-  } else error->all(FLERR,"Invalid read data header line for fix bitorsion");
+  } else error->all(FLERR,
+                    "Invalid read data header line for fix amoeba/bitorsion");
 }
 
 /* ----------------------------------------------------------------------
@@ -784,7 +786,7 @@ void FixBiTorsion::read_data_header(char *line)
    id_offset is applied to atomID fields if multiple data files are read
 ------------------------------------------------------------------------- */
 
-void FixBiTorsion::read_data_section(char *keyword, int n, char *buf,
+void FixAmoebaBiTorsion::read_data_section(char *keyword, int n, char *buf,
                                      tagint id_offset)
 {
   int m,tmp,itype;
@@ -882,7 +884,7 @@ void FixBiTorsion::read_data_section(char *keyword, int n, char *buf,
 
 /* ---------------------------------------------------------------------- */
 
-bigint FixBiTorsion::read_data_skip_lines(char * /*keyword*/)
+bigint FixAmoebaBiTorsion::read_data_skip_lines(char * /*keyword*/)
 {
   return nbitorsions;
 }
@@ -892,7 +894,7 @@ bigint FixBiTorsion::read_data_skip_lines(char * /*keyword*/)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void FixBiTorsion::write_data_header(FILE *fp, int /*mth*/)
+void FixAmoebaBiTorsion::write_data_header(FILE *fp, int /*mth*/)
 {
   fprintf(fp,BIGINT_FORMAT " bitorsions\n",nbitorsions);
 }
@@ -905,7 +907,7 @@ void FixBiTorsion::write_data_header(FILE *fp, int /*mth*/)
   // ny = 6 columns = type + 5 atom IDs
 ------------------------------------------------------------------------- */
 
-void FixBiTorsion::write_data_section_size(int /*mth*/, int &nx, int &ny)
+void FixAmoebaBiTorsion::write_data_section_size(int /*mth*/, int &nx, int &ny)
 {
   int i,m;
 
@@ -925,7 +927,7 @@ void FixBiTorsion::write_data_section_size(int /*mth*/, int &nx, int &ny)
    buf allocated by caller as owned BiTorsions by 6
 ------------------------------------------------------------------------- */
 
-void FixBiTorsion::write_data_section_pack(int /*mth*/, double **buf)
+void FixAmoebaBiTorsion::write_data_section_pack(int /*mth*/, double **buf)
 {
   int i,m;
 
@@ -956,7 +958,7 @@ void FixBiTorsion::write_data_section_pack(int /*mth*/, double **buf)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void FixBiTorsion::write_data_section_keyword(int /*mth*/, FILE *fp)
+void FixAmoebaBiTorsion::write_data_section_keyword(int /*mth*/, FILE *fp)
 {
   fprintf(fp,"\nBiTorsions\n\n");
 }
@@ -968,7 +970,7 @@ void FixBiTorsion::write_data_section_keyword(int /*mth*/, FILE *fp)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void FixBiTorsion::write_data_section(int /*mth*/, FILE *fp,
+void FixAmoebaBiTorsion::write_data_section(int /*mth*/, FILE *fp,
                                   int n, double **buf, int index)
 {
   for (int i = 0; i < n; i++)
@@ -989,7 +991,7 @@ void FixBiTorsion::write_data_section(int /*mth*/, FILE *fp,
    pack entire state of Fix into one write
 ------------------------------------------------------------------------- */
 
-void FixBiTorsion::write_restart(FILE *fp)
+void FixAmoebaBiTorsion::write_restart(FILE *fp)
 {
   if (comm->me == 0) {
     int size = sizeof(bigint);
@@ -1002,7 +1004,7 @@ void FixBiTorsion::write_restart(FILE *fp)
    use state info from restart file to restart the Fix
 ------------------------------------------------------------------------- */
 
-void FixBiTorsion::restart(char *buf)
+void FixAmoebaBiTorsion::restart(char *buf)
 {
   nbitorsions = *((bigint *) buf);
 }
@@ -1011,7 +1013,7 @@ void FixBiTorsion::restart(char *buf)
    pack values in local atom-based arrays for restart file
 ------------------------------------------------------------------------- */
 
-int FixBiTorsion::pack_restart(int i, double *buf)
+int FixAmoebaBiTorsion::pack_restart(int i, double *buf)
 {
   int n = 1;
   for (int m = 0; m < num_bitorsion[i]; m++) {
@@ -1031,7 +1033,7 @@ int FixBiTorsion::pack_restart(int i, double *buf)
    unpack values from atom->extra array to restart the fix
 ------------------------------------------------------------------------- */
 
-void FixBiTorsion::unpack_restart(int nlocal, int nth)
+void FixAmoebaBiTorsion::unpack_restart(int nlocal, int nth)
 {
   double **extra = atom->extra;
 
@@ -1058,7 +1060,7 @@ void FixBiTorsion::unpack_restart(int nlocal, int nth)
    maxsize of any atom's restart data
 ------------------------------------------------------------------------- */
 
-int FixBiTorsion::maxsize_restart()
+int FixAmoebaBiTorsion::maxsize_restart()
 {
   return 1 + BITORSIONMAX*6;
 }
@@ -1067,7 +1069,7 @@ int FixBiTorsion::maxsize_restart()
    size of atom nlocal's restart data
 ------------------------------------------------------------------------- */
 
-int FixBiTorsion::size_restart(int nlocal)
+int FixAmoebaBiTorsion::size_restart(int nlocal)
 {
   return 1 + num_bitorsion[nlocal]*6;
 }
@@ -1076,7 +1078,7 @@ int FixBiTorsion::size_restart(int nlocal)
    allocate atom-based array
 ------------------------------------------------------------------------- */
 
-void FixBiTorsion::grow_arrays(int nmax)
+void FixAmoebaBiTorsion::grow_arrays(int nmax)
 {
   num_bitorsion = memory->grow(num_bitorsion,nmax,"cmap:num_bitorsion");
   bitorsion_type = memory->grow(bitorsion_type,nmax,BITORSIONMAX,
@@ -1103,7 +1105,7 @@ void FixBiTorsion::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixBiTorsion::copy_arrays(int i, int j, int /*delflag*/)
+void FixAmoebaBiTorsion::copy_arrays(int i, int j, int /*delflag*/)
 {
   num_bitorsion[j] = num_bitorsion[i];
 
@@ -1121,7 +1123,7 @@ void FixBiTorsion::copy_arrays(int i, int j, int /*delflag*/)
    initialize one atom's array values, called when atom is created
 ------------------------------------------------------------------------- */
 
-void FixBiTorsion::set_arrays(int i)
+void FixAmoebaBiTorsion::set_arrays(int i)
 {
   num_bitorsion[i] = 0;
 }
@@ -1130,7 +1132,7 @@ void FixBiTorsion::set_arrays(int i)
    pack values in local atom-based array for exchange with another proc
 ------------------------------------------------------------------------- */
 
-int FixBiTorsion::pack_exchange(int i, double *buf)
+int FixAmoebaBiTorsion::pack_exchange(int i, double *buf)
 {
   int n = 0;
   buf[n++] = ubuf(num_bitorsion[i]).d;
@@ -1149,7 +1151,7 @@ int FixBiTorsion::pack_exchange(int i, double *buf)
    unpack values in local atom-based array from exchange with another proc
 ------------------------------------------------------------------------- */
 
-int FixBiTorsion::unpack_exchange(int nlocal, double *buf)
+int FixAmoebaBiTorsion::unpack_exchange(int nlocal, double *buf)
 {
   int n = 0;
   num_bitorsion[nlocal] = (int) ubuf(buf[n++]).i;
@@ -1168,7 +1170,7 @@ int FixBiTorsion::unpack_exchange(int nlocal, double *buf)
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
-double FixBiTorsion::memory_usage()
+double FixAmoebaBiTorsion::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = (double)nmax * sizeof(int);              // num_bitorsion

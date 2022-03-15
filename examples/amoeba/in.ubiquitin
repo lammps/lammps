@@ -14,10 +14,10 @@ improper_style  amoeba
 # per-atom properties required by AMOEBA or HIPPO
 
 fix             amtype all property/atom i_amtype ghost yes
-fix             pitorsion all pitorsion
-fix_modify      pitorsion energy yes
-fix             bitorsion all bitorsion bitorsion.ubiquitin.data
-fix_modify      bitorsion energy yes
+fix             pit all amoeba/pitorsion
+fix_modify      pit energy yes
+fix             bit all amoeba/bitorsion bitorsion.ubiquitin.data
+fix_modify      bit energy yes
 
 fix             extra all property/atom &
                 i_amgroup i_ired i_xaxis i_yaxis i_zaxis d_pval ghost yes
@@ -25,9 +25,9 @@ fix             extra2 all property/atom i_polaxe
 
 #read_data       data.ubiquitin fix amtype NULL "Tinker Types"
 read_data       data.ubiquitin fix amtype NULL "Tinker Types" &
-                fix pitorsion "pitorsion types" "PiTorsion Coeffs" &
-                fix pitorsion pitorsions PiTorsions &
-                fix bitorsion bitorsions BiTorsions
+                fix pit "pitorsion types" "PiTorsion Coeffs" &
+                fix pit pitorsions PiTorsions &
+                fix bit bitorsions BiTorsions
 
 pair_style      amoeba exclude bitorsion
 pair_coeff      * * amoeba_ubiquitin.prm amoeba_ubiquitin.key

@@ -178,17 +178,17 @@ void MDIEngineOld::command(int narg, char ** /*arg*/)
 
   // if the mdi/engine fix is not already present, add it now
 
-  int ifix = modify->find_fix_by_style("mdi/engine/old");
+  std::vector<Fix *> matches = modify->get_fix_by_style("mdi/engine/old");
   bool added_mdi_engine_fix = false;
-  if (ifix < 0) {
+  if (matches.size() == 0) {
     modify->add_fix("MDI_ENGINE_INTERNAL all mdi/engine/old");
     added_mdi_engine_fix = true;
   }
 
   // identify the mdi_engine fix
 
-  ifix = modify->find_fix_by_style("mdi/engine/old");
-  mdi_fix = static_cast<FixMDIEngineOld *>(modify->fix[ifix]);
+  matches = modify->get_fix_by_style("mdi/engine/old");
+  mdi_fix = (FixMDIEngineOld *) matches[0];
 
   // check that LAMMPS is setup as a compatible MDI engine
 

@@ -30,6 +30,7 @@
 #include "group.h"
 #include "input.h"
 //#include "irregular.h"
+#include "integrate.h"
 #include "library.h"
 #include "memory.h"
 #include "min.h"
@@ -202,7 +203,7 @@ void MDIEngine::mdi_engine(int narg, char **arg)
   delete [] id_pe;
   delete [] id_press;
 
-  //delete irregular;
+  // delete irregular;
 
   memory->destroy(ibuf1);
   memory->destroy(buf1);
@@ -662,18 +663,8 @@ void MDIEngine::mdi_commands()
 
 void MDIEngine::mdi_md()
 {
-  //int ifix = modify->find_fix_by_style("mdi/engine2");
-  //bool added_mdi_engine_fix = false;
-  //if (ifix < 0) {
-
-  // NOTE: delete fix if already defined ?
-  // also delete in destructor if defined
-  // remove mdi/engine fix this method instantiated
-  //modify->delete_fix("MDI_ENGINE_INTERNAL");
-
-  modify->add_fix("MDI_ENGINE_INTERNAL all mdi/engine");
-  int ifix = modify->find_fix_by_style("mdi/engine");
-  mdi_fix = static_cast<FixMDIEngine *>(modify->fix[ifix]);
+  modify->add_fix("MDI_ENGINE_INTERNAL all MDI/ENGINE");
+  mdi_fix = (FixMDIEngine *) modify->get_fix_by_id("MDI_ENGINE_INTERNAL");
   mdi_fix->mdi_engine = this;
 
   // initialize a new MD simulation
@@ -716,8 +707,12 @@ void MDIEngine::mdi_md()
     update->integrate->run(1);
 
     // driver triggers end of MD loop by senging @DEFAULT or EXIT
+    // delete fix with ID = MDI_ENGINE_INTERNAL
 
-    if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) return;
+    if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) {
+      modify->delete_fix("MDI_ENGINE_INTERNAL");
+      return;
+    }
   }
 }
 
@@ -727,10 +722,6 @@ void MDIEngine::mdi_md()
 
 void MDIEngine::mdi_optg()
 {
-  // initialize an energy minization
-
-  Minimize *minimizer = new Minimize(lmp);
-
   // setup the minimizer in a way that ensures optimization
   // will continue until MDI driver exits
 

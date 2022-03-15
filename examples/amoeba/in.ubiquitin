@@ -16,6 +16,8 @@ improper_style  amoeba
 fix             amtype all property/atom i_amtype ghost yes
 fix             pitorsion all pitorsion
 fix_modify      pitorsion energy yes
+fix             bitorsion all bitorsion bitorsion.ubiquitin.data
+fix_modify      bitorsion energy yes
 
 fix             extra all property/atom &
                 i_amgroup i_ired i_xaxis i_yaxis i_zaxis d_pval ghost yes
@@ -26,7 +28,7 @@ read_data       data.ubiquitin fix amtype NULL "Tinker Types" &
                 fix pitorsion "pitorsion types" "PiTorsion Coeffs" &
                 fix pitorsion pitorsions PiTorsions
 
-pair_style      amoeba
+pair_style      amoeba include bitorsion
 pair_coeff      * * amoeba_ubiquitin.prm amoeba_ubiquitin.key
 
 special_bonds   lj/coul 0.5 0.5 0.5 one/five yes

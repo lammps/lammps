@@ -90,9 +90,15 @@ class FixBiTorsion : public Fix {
   int max_bitorsion_list;
   int **bitorsion_list;
 
+  // BiTorsion grid data
+
+  int ntypes;
+  int *nxgrid,*nygrid;
+  double ****btgrid;
+
   // read BiTorsion grid data
 
-  void read_grid_map(char *);
+  void read_grid_data(char *);
 };
 }    // namespace LAMMPS_NS
 

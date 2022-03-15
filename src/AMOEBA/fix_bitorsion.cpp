@@ -35,6 +35,7 @@ using namespace MathConst;
 #define BITORSIONMAX 6   // max # of BiTorsion terms stored by one atom
 #define LISTDELTA 10000
 #define LB_FACTOR 1.5
+#define MAXLINE 1024
 
 // NOTE: extra until figure things out
 
@@ -106,7 +107,7 @@ FixBiTorsion::FixBiTorsion(LAMMPS *lmp, int narg, char **arg) :
 
   // read and setup BiTorsion grid data
 
-  read_grid_map(arg[3]);
+  read_grid_data(arg[3]);
 
   // perform initial allocation of atom-based arrays
 
@@ -130,6 +131,12 @@ FixBiTorsion::FixBiTorsion(LAMMPS *lmp, int narg, char **arg) :
   nbitorsion_list = 0;
   max_bitorsion_list = 0;
   bitorsion_list = nullptr;
+
+  // BiTorsion grid data
+
+  ntypes = 0;
+  nxgrid,nygrid = nullptr;
+  btgrid = nullptr;
 }
 
 /* --------------------------------------------------------------------- */
@@ -154,6 +161,14 @@ FixBiTorsion::~FixBiTorsion()
   // local list of bitorsions to compute
 
   memory->destroy(bitorsion_list);
+
+  // BiTorsion grid data
+
+  delete [] nxgrid;
+  delete [] nygrid;
+  for (int itype = 0; itype < ntypes; itype++)
+    memory->destroy(btgrid[itype]);
+  delete [] btgrid;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -679,47 +694,92 @@ double FixBiTorsion::compute_scalar()
 
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
-// methods to read BiTorsion potential file, perform interpolation
+// methods to read BiTorsion grid file, perform interpolation
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
 
-void FixBiTorsion::read_grid_map(char *bitorsion_file)
+void FixBiTorsion::read_grid_data(char *bitorsion_file)
 {
-  int MAXLINE = 1024;
-  char linebuf[MAXLINE];
-  char *chunk,*line;
-  int i1, i2, i3, i4, i5, i6, j1, j2, j3, j4, j5, j6, counter;
+  char line[MAXLINE];
+  char *eof;
 
   FILE *fp = nullptr;
   if (me == 0) {
     fp = utils::open_potential(bitorsion_file,lmp,nullptr);
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open fix cmap file {}: {}",
+      error->one(FLERR,"Cannot open fix bitorsion file {}: {}",
                  bitorsion_file, utils::getsyserror());
 
+    eof = fgets(line,MAXLINE,fp);
+    eof = fgets(line,MAXLINE,fp);
+    eof = fgets(line,MAXLINE,fp);
+    if (eof == nullptr) error->one(FLERR,"Unexpected end of fix bitorsion file");
+
+    sscanf(line,"%d",&ntypes);
   }
 
-  int done;
+  MPI_Bcast(&ntypes,1,MPI_INT,0,world);
+  if (ntypes == 0) error->all(FLERR,"Fix bitorsion file has no types");
 
-  while (!done) {
-    // only read on rank 0 and broadcast to all other ranks
-    if (me == 0)
-      done = (fgets(linebuf,MAXLINE,fp) == nullptr);
+  btgrid = new double***[ntypes];
+  nxgrid = new int[ntypes];
+  nygrid = new int[ntypes];
 
-    MPI_Bcast(&done,1,MPI_INT,0,world);
-    if (done) continue;
+  // read one array for each BiTorsion type from file
 
-    MPI_Bcast(linebuf,MAXLINE,MPI_CHAR,0,world);
+  int tmp,nx,ny;
+  double xgrid,ygrid,value;
 
-    // remove leading whitespace
-    line = linebuf;
-    while (line && (*line == ' ' || *line == '\t' || *line == '\r')) ++line;
+  for (int itype = 0; itype < ntypes; itype++) {
+    if (me == 0) {
+      eof = fgets(line,MAXLINE,fp);
+      eof = fgets(line,MAXLINE,fp);
+      if (eof == nullptr) 
+        error->one(FLERR,"Unexpected end of fix bitorsion file");
+      sscanf(line,"%d %d %d",&tmp,&nx,&ny);
+    }
 
-    // skip if empty line or comment
-    if (!line || *line =='\n' || *line == '\0' || *line == '#') continue;
+    MPI_Bcast(&nx,1,MPI_INT,0,world);
+    MPI_Bcast(&ny,1,MPI_INT,0,world);
+    nxgrid[itype] = nx;
+    nygrid[itype] = ny;
+
+    memory->create(btgrid[itype],nx,ny,3,"bitorsion:btgrid");
+
+    // NOTE: should read this chunk of lines with utils in single read
+
+    if (me == 0) {
+      for (int iy = 0; iy < ny; iy++) {
+        for (int ix = 0; ix < nx; ix++) {
+          eof = fgets(line,MAXLINE,fp);
+          if (eof == nullptr) 
+            error->one(FLERR,"Unexpected end of fix bitorsion file");
+          sscanf(line,"%lg %lg %lg",&xgrid,&ygrid,&value);
+          btgrid[itype][ix][iy][0] = xgrid;
+          btgrid[itype][ix][iy][1] = ygrid;
+          btgrid[itype][ix][iy][2] = value;
+        }
+      }
+    }
+
+    MPI_Bcast(&btgrid[itype][0][0][0],nx*ny*3,MPI_DOUBLE,0,world);
   }
 
   if (me == 0) fclose(fp);
+
+  // DEBUG
+
+  for (int i = 0; i < ntypes; i++) {
+    printf("ITYPE %d NXY %d %d\n",i+1,nxgrid[i],nygrid[i]);
+    for (int iy = 0; iy < ny; iy++) {
+      for (int ix = 0; ix < nx; ix++) {
+        printf("  IXY %d %d, values %g %g %g\n",ix+1,iy+1,
+               btgrid[i][ix][iy][0],
+               btgrid[i][ix][iy][1],
+               btgrid[i][ix][iy][2]);
+      }
+    }
+  }
 }
 
 // ----------------------------------------------------------------------

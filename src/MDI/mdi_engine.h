@@ -114,8 +114,7 @@ class MDIEngine : public Command {
   void evaluate();
   void reset_box();
   void create_atoms(int);
-  void send_pressure();
-  void send_ptensor();
+  void send_stress();
 
   void unit_conversions();
   void reallocate();

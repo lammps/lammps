@@ -113,7 +113,7 @@ void MDIEngine::mdi_engine(int narg, char **arg)
   node_driver = new char[MDI_COMMAND_LENGTH];
   strncpy(node_driver,"\0",MDI_COMMAND_LENGTH);
 
-  // create computes for KE. PE, pressure
+  // create computes for KE. PE, stress
  
   id_ke = utils::strdup(std::string("MDI_ENGINE") + "_ke");
   modify->add_compute(fmt::format("{} all ke", id_ke));
@@ -122,7 +122,7 @@ void MDIEngine::mdi_engine(int narg, char **arg)
   modify->add_compute(fmt::format("{} all pe", id_pe));
 
   id_press = utils::strdup(std::string("MDI_ENGINE") + "_press");
-  modify->add_compute(fmt::format("{} all pressure thermo_temp", id_press));
+  modify->add_compute(fmt::format("{} all pressure NULL virial", id_press));
 
   int icompute_ke = modify->find_compute(id_ke);
   int icompute_pe = modify->find_compute(id_pe);
@@ -288,79 +288,77 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     error->all(FLERR,"MDI: Received a command unsupported by engine node");
 
   // ---------------------------------------
-  // respond to each possible driver command
+  // respond to MDI standard commands
+  // listed in alphabetic order: receives first, sends second
   // ---------------------------------------
 
-  if (strcmp(command,">NATOMS") == 0) {
-
-    // natoms cannot exceed 32-bit int for use with MDI
-
-    int natoms;
-    ierr = MDI_Recv(&natoms,1,MDI_INT,mdicomm);
-    if (ierr) error->all(FLERR,"MDI: >NATOMS data");
-    MPI_Bcast(&natoms,1,MPI_INT,0,world);
-    if (natoms < 0) error->all(FLERR,"MDI received natoms < 0");
-    atom->natoms = natoms;
-
-  } else if (strcmp(command,"<NATOMS") == 0) {
-
-    // natoms cannot exceed 32-bit int for use with MDI
-
-    int natoms = static_cast<int> (atom->natoms);
-    ierr = MDI_Send(&natoms,1,MDI_INT,mdicomm);
-    if (ierr != 0) error->all(FLERR,"MDI: <NATOMS data");
-
-  } else if (strcmp(command, "<NTYPES") == 0) {
-    ierr = MDI_Send(&atom->ntypes,1,MDI_INT,mdicomm);
-    if (ierr != 0) error->all(FLERR, "MDI: <NTYPES data");
-
-  } else if (strcmp(command, "<TYPES") == 0) {
-    send_int1(TYPE);
-
-  } else if (strcmp(command, "<MASSES") == 0) {
-    send_double1(MASS);
-
-  } else if (strcmp(command, "<LABELS") == 0) {
-    send_labels();
-
-  } else if (strcmp(command, "<CELL") == 0) {
-    send_cell();
-
-  } else if (strcmp(command, ">CELL") == 0) {
+  if (strcmp(command,">CELL") == 0) {
     receive_cell();
 
-  } else if (strcmp(command, "<CELL_DISPL") == 0) {
-    send_celldispl();
-
-  } else if (strcmp(command, ">CELL_DISPL") == 0) {
+  } else if (strcmp(command,">CELL_DISPL") == 0) {
     receive_celldispl();
 
-  } else if (strcmp(command, ">COORDS") == 0) {
+  } else if (strcmp(command,">COORDS") == 0) {
     receive_double3(COORD,0);
 
-  } else if (strcmp(command, "<COORDS") == 0) {
-    send_double3(COORD);
-
-  } else if (strcmp(command, "<CHARGES") == 0) {
-    send_double1(CHARGE);
-
-  } else if (strcmp(command, "<FORCES") == 0) {
-    send_double3(FORCE);
-
-  } else if (strcmp(command, ">FORCES") == 0) {
+  } else if (strcmp(command,">FORCES") == 0) {
     receive_double3(FORCE,0);
 
-  } else if (strcmp(command, ">+FORCES") == 0) {
+  } else if (strcmp(command,">+FORCES") == 0) {
     receive_double3(FORCE,1);
 
-  } else if (strcmp(command, "<ENERGY") == 0) {
-    send_total_energy();
+  } else if (strcmp(command,">NATOMS") == 0) {
+    receive_natoms();
 
-  } else if (strcmp(command, "<PE") == 0) {
+  } else if (strcmp(command,">VELOCITIES") == 0) {
+    receive_double3(VELOCITY,0);
+
+  // -----------------------------------------------
+
+  } else if (strcmp(command,"<CELL") == 0) {
+    send_cell();
+
+  } else if (strcmp(command,"<CELL_DISPL") == 0) {
+    send_celldispl();
+
+  } else if (strcmp(command,"<CHARGES") == 0) {
+    send_double1(CHARGE);
+
+  } else if (strcmp(command,"<COORDS") == 0) {
+    send_double3(COORD);
+
+  } else if (strcmp(command,"<ENERGY") == 0) {
+    evaluate();
     send_pe();
 
-  } else if (strcmp(command, "<KE") == 0) {
+  } else if (strcmp(command,"<FORCES") == 0) {
+    evaluate()
+    send_double3(FORCE);
+
+  } else if (strcmp(command,"<KE") == 0) {
     send_ke();
+
+  } else if (strcmp(command,"<LABELS") == 0) {
+    send_labels();
+
+  } else if (strcmp(command,"<MASSES") == 0) {
+    send_double1(MASS);
+
+  } else if (strcmp(command,"<NATOMS") == 0) {
+    send_natoms();
+
+  } else if (strcmp(command,"<NTYPES") == 0) {
+    send_ntypes();
+
+  } else if (strcmp(command,"<STRESS") == 0) {
+    evaluate();
+    send_stress();
+
+  } else if (strcmp(command,"<TYPES") == 0) {
+    send_int1(TYPE);
+
+  } else if (strcmp(command,"<VELOCITIES") == 0) {
+    send_double3(VELOCITY);
 
   // MDI node commands
 
@@ -390,13 +388,13 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     strncpy(node_driver,"@DEFAULT",MDI_COMMAND_LENGTH);
     node_match = false;
 
-    // are we in the middle of a geometry optimization?
+    // are we in the middle of a geometry optimization? 
+    // ensure that the energy and force tolerances are met
+    // set the maximum number of force evaluations to 0
+
     if (mode == OPT) {
-      // ensure that the energy and force tolerances are met
       update->etol = std::numeric_limits<double>::max();
       update->ftol = std::numeric_limits<double>::max();
-
-      // set the maximum number of force evaluations to 0
       update->max_eval = 0;
     }
 
@@ -439,8 +437,6 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     many_commands();
   } else if (strcmp(command,"INFILE") == 0) {
     infile();
-  } else if (strcmp(command,"EVAL") == 0) {
-    evaluate();
   } else if (strcmp(command,"RESET_BOX") == 0) {
     reset_box();
   } else if (strcmp(command,"CREATE_ATOM") == 0) {
@@ -457,10 +453,6 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     create_atoms(CREATE_IMAGE);
   } else if (strcmp(command,"CREATE_GO") == 0) {
     create_atoms(CREATE_GO);
-  } else if (strcmp(command,"<PRESSURE") == 0) {
-    send_pressure();
-  } else if (strcmp(command,"<PTENSOR") == 0) {
-    send_ptensor();
 
   // -------------------------------------------------------
   // unknown command
@@ -481,11 +473,12 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
 void MDIEngine::mdi_commands()
 {
   // ------------------------------------
-  // commands and nodes that an MDI-compliant MD code supports
-  // NOTE: is all of this correct?
+  // nodes and commands that an MDI-compliant MD engine supports
+  // each command must be registered under a node that supports it
+  // including commands to switch nodes
   // ------------------------------------
 
-  // default node and its commands
+  // default node, MDI standard commands
 
   MDI_Register_node("@DEFAULT");
   MDI_Register_command("@DEFAULT", "<@");
@@ -498,13 +491,34 @@ void MDIEngine::mdi_commands()
   MDI_Register_command("@DEFAULT", "<LABELS");
   MDI_Register_command("@DEFAULT", "<MASSES");
   MDI_Register_command("@DEFAULT", "<NATOMS");
+  MDI_Register_command("@DEFAULT", "<STRESS");
   MDI_Register_command("@DEFAULT", "<TYPES");
+  MDI_Register_command("@DEFAULT", "<VELOCITIES");
   MDI_Register_command("@DEFAULT", ">CELL");
   MDI_Register_command("@DEFAULT", ">CELL_DISPL");
   MDI_Register_command("@DEFAULT", ">COORDS");
+  MDI_Register_command("@DEFAULT", ">VELOCITIES");
   MDI_Register_command("@DEFAULT", "@INIT_MD");
   MDI_Register_command("@DEFAULT", "@INIT_OPTG");
   MDI_Register_command("@DEFAULT", "EXIT");
+
+  // default node, custom commands added by LAMMPS
+  // max length for a command is currently 11 chars
+
+  MDI_Register_command("@DEFAULT", "NBYTES");
+  MDI_Register_command("@DEFAULT", "COMMAND");
+  MDI_Register_command("@DEFAULT", "COMMANDS");
+  MDI_Register_command("@DEFAULT", "INFILE");
+  MDI_Register_command("@DEFAULT", "RESET_BOX");
+  MDI_Register_command("@DEFAULT", "CREATE_ATOM");
+  MDI_Register_command("@DEFAULT", "CREATE_ID");
+  MDI_Register_command("@DEFAULT", "CREATE_TYPE");
+  MDI_Register_command("@DEFAULT", "CREATE_X");
+  MDI_Register_command("@DEFAULT", "CREATE_V");
+  MDI_Register_command("@DEFAULT", "CREATE_IMG");
+  MDI_Register_command("@DEFAULT", "CREATE_GO");
+  MDI_Register_command("@DEFAULT", ">NATOMS");
+  MDI_Register_command("@DEFAULT", "<KE");
 
   // node for setting up and running a dynamics simulation
 
@@ -631,30 +645,6 @@ void MDIEngine::mdi_commands()
   MDI_Register_command("@ENDSTEP", "@FORCES");
   MDI_Register_command("@ENDSTEP", "@ENDSTEP");
   MDI_Register_command("@ENDSTEP", "EXIT");
-
-  // ------------------------------------
-  // custom commands and nodes which LAMMPS supports
-  // max length for a command is currently 11 chars in MDI
-  // ------------------------------------
-
-  MDI_Register_command("@DEFAULT", "NBYTES");
-  MDI_Register_command("@DEFAULT", "COMMAND");
-  MDI_Register_command("@DEFAULT", "COMMANDS");
-  MDI_Register_command("@DEFAULT", "INFILE");
-  MDI_Register_command("@DEFAULT", "EVAL");
-  MDI_Register_command("@DEFAULT", "RESET_BOX");
-  MDI_Register_command("@DEFAULT", "CREATE_ATOM");
-  MDI_Register_command("@DEFAULT", "CREATE_ID");
-  MDI_Register_command("@DEFAULT", "CREATE_TYPE");
-  MDI_Register_command("@DEFAULT", "CREATE_X");
-  MDI_Register_command("@DEFAULT", "CREATE_V");
-  MDI_Register_command("@DEFAULT", "CREATE_IMG");
-  MDI_Register_command("@DEFAULT", "CREATE_GO");
-  MDI_Register_command("@DEFAULT", ">NATOMS");
-  MDI_Register_command("@DEFAULT", "<KE");
-  MDI_Register_command("@DEFAULT", "<PE");
-  MDI_Register_command("@DEFAULT", "<PRESSURE");
-  MDI_Register_command("@DEFAULT", "<PTENSOR");
 }
 
 /* ----------------------------------------------------------------------
@@ -771,10 +761,47 @@ void MDIEngine::mdi_optg()
 // ----------------------------------------------------------------------
 
 /* ----------------------------------------------------------------------
-   >CHARGES command
+   >NATOMS command
+   natoms cannot exceed 32-bit int for use with MDI
+---------------------------------------------------------------------- */
+
+void MDIEngine::receive_natoms()
+{
+  int natoms;
+  ierr = MDI_Recv(&natoms,1,MDI_INT,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: >NATOMS data");
+  MPI_Bcast(&natoms,1,MPI_INT,0,world);
+  if (natoms < 0) error->all(FLERR,"MDI received natoms < 0");
+  atom->natoms = natoms;
+}
+
+/* ----------------------------------------------------------------------
+   <NATOMS command
+   natoms cannot exceed 32-bit int for use with MDI
+---------------------------------------------------------------------- */
+
+void MDIEngine::send_natoms()
+{
+  int natoms = static_cast<int> (atom->natoms);
+  ierr = MDI_Send(&natoms,1,MDI_INT,mdicomm);
+  if (ierr != 0) error->all(FLERR,"MDI: <NATOMS data");
+}
+
+/* ----------------------------------------------------------------------
+   <NTYPES command
+---------------------------------------------------------------------- */
+
+void MDIEngine::send_ntypes()
+{
+  ierr = MDI_Send(&atom->ntypes,1,MDI_INT,mdicomm);
+  if (ierr != 0) error->all(FLERR, "MDI: <NTYPES data");
+}
+
+/* ----------------------------------------------------------------------
    receive vector of 1 double for all atoms
    atoms are ordered by atomID, 1 to Natoms
    assumes all atoms already exist
+   used by >CHARGES command
 ---------------------------------------------------------------------- */
 
 void MDIEngine::receive_double1(int which)
@@ -785,8 +812,8 @@ void MDIEngine::receive_double1(int which)
   if (ierr) error->all(FLERR,"MDI: >double1 data");
   MPI_Bcast(buf1,atom->natoms,MPI_DOUBLE,0,world);
 
-  // extract onwed atom value
-  // use atomID to index into ordered buf3
+  // extract onwed atom values
+  // use atomID to index into ordered buf
 
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
@@ -803,10 +830,10 @@ void MDIEngine::receive_double1(int which)
 }
 
 /* ----------------------------------------------------------------------
-   >TYPES command
    receive vector of 1 int for all atoms
    atoms are ordered by atomID, 1 to Natoms
    assumes all atoms already exist
+   used by >TYPES command
 ---------------------------------------------------------------------- */
 
 void MDIEngine::receive_int1(int which)
@@ -817,8 +844,8 @@ void MDIEngine::receive_int1(int which)
   if (ierr) error->all(FLERR,"MDI: >int1 data");
   MPI_Bcast(ibuf1,atom->natoms,MPI_INT,0,world);
 
-  // extract onwed atom value
-  // use atomID to index into ordered buf3
+  // extract onwed atom values
+  // use atomID to index into ordered buf
 
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
@@ -835,11 +862,11 @@ void MDIEngine::receive_int1(int which)
 }
 
 /* ----------------------------------------------------------------------
-   >COORDS, >FORCES commands
    receive vector of 3 doubles for all atoms
    atoms are ordered by atomID, 1 to Natoms
    assumes all atoms already exist
-   for which = COORD, assumes atom displacement is small
+   used by >COORDS, >FORCES, >VELOCITIES commands
+   for COORD, assumes atom displacement is small
 ---------------------------------------------------------------------- */
 
 void MDIEngine::receive_double3(int which, int addflag)
@@ -851,7 +878,7 @@ void MDIEngine::receive_double3(int which, int addflag)
   MPI_Bcast(buf3,3*atom->natoms,MPI_DOUBLE,0,world);
 
   // extract owned atom values
-  // use atomID to index into ordered buf3
+  // use atomID to index into ordered buf
 
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
@@ -884,6 +911,14 @@ void MDIEngine::receive_double3(int which, int addflag)
         f[i][2] += buf3[3*ilocal+2] * mdi2lmp_force;
       }
     }
+  } else if (which == VELOCITY) {
+    double **v = atom->v;
+    for (int i = 0; i < nlocal; i++) {
+      ilocal = static_cast<int> (tag[i]) - 1;
+      v[i][0] = buf3[3*ilocal+0] * mdi2lmp_velocity;
+      v[i][1] = buf3[3*ilocal+1] * mdi2lmp_velocity;
+      v[i][2] = buf3[3*ilocal+2] * mdi2lmp_velocity;
+    }
   }
 
   // NOTE: these operations cannot be done in the middle
@@ -899,8 +934,8 @@ void MDIEngine::receive_double3(int which, int addflag)
   domain->reset_box();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
-  // move atoms to new processors via irregular() only needed if
-  // migrate_check() says an atom moves too far
+  // move atoms to new processors via irregular() 
+  // only needed if migrate_check() says an atom moves too far
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   if (irregular->migrate_check()) irregular->migrate_atoms();
@@ -909,9 +944,9 @@ void MDIEngine::receive_double3(int which, int addflag)
 }
 
 /* ----------------------------------------------------------------------
-   <CHARGE, <MASSES commands
    send vector of 1 double for all atoms
    atoms are ordered by atomID, 1 to Natoms
+   used by <CHARGE, <MASSES commands
 ---------------------------------------------------------------------- */
 
 void MDIEngine::send_double1(int which)
@@ -956,9 +991,9 @@ void MDIEngine::send_double1(int which)
 }
 
 /* ----------------------------------------------------------------------
-   <TYPES command
    send vector of 1 int for all atoms
    atoms are ordered by atomID, 1 to Natoms
+   use by <TYPES command
 ---------------------------------------------------------------------- */
 
 void MDIEngine::send_int1(int which)
@@ -988,7 +1023,7 @@ void MDIEngine::send_int1(int which)
 }
 
 /* ----------------------------------------------------------------------
-   <COORDS, <FORCES commands
+   <COORDS, <FORCES, <VELOCITIES commands
    send vector of 3 doubles for all atoms
    atoms are ordered by atomID, 1 to Natoms
 ---------------------------------------------------------------------- */
@@ -1020,6 +1055,14 @@ void MDIEngine::send_double3(int which)
       buf3[3*ilocal+0] = f[i][0] * lmp2mdi_force;
       buf3[3*ilocal+1] = f[i][1] * lmp2mdi_force;
       buf3[3*ilocal+2] = f[i][2] * lmp2mdi_force;
+    }
+  } else if (which == VELOCITY) {
+    double **v = atom->v;
+    for (int i = 0; i < nlocal; i++) {
+      ilocal = static_cast<int> (tag[i]) - 1;
+      buf3[3*ilocal+0] = v[i][0] * lmp2mdi_velocity;
+      buf3[3*ilocal+1] = v[i][1] * lmp2mdi_velocity;
+      buf3[3*ilocal+2] = v[i][2] * lmp2mdi_velocity;
     }
   }
 
@@ -1496,33 +1539,19 @@ void MDIEngine::create_atoms(int flag)
 }
 
 /* ----------------------------------------------------------------------
-   <PRESSURE command
-   send scalar pressure value
+   <STRESS command
+   send 6-component stress tensor (no kinetic energy term)
 ---------------------------------------------------------------------- */
 
-void MDIEngine::send_pressure()
+void MDIEngine::send_stress()
 {
-  double pressure = press->compute_scalar();
-  pressure *= lmp2mdi_pressure;
-
-  int ierr = MDI_Send(&pressure, 1, MDI_DOUBLE, mdicomm);
-  if (ierr) error->all(FLERR,"MDI: <PRESSURE data");
-}
-
-/* ----------------------------------------------------------------------
-   <PTENSOR command
-   send 6-component pressure tensor
----------------------------------------------------------------------- */
-
-void MDIEngine::send_ptensor()
-{
-  double ptensor[6];
+  double vtensor[6];
   press->compute_vector();
   for (int i = 0; i < 6; i++)
-    ptensor[i] = press->vector[i] * lmp2mdi_pressure;
+    vtensor[i] = press->vector[i] * lmp2mdi_pressure;
 
-  int ierr = MDI_Send(ptensor,6,MDI_DOUBLE,mdicomm);
-  if (ierr) error->all(FLERR,"MDI: <PTENSOR data");
+  int ierr = MDI_Send(vtensor,6,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: <STRESS data");
 }
 
 // ----------------------------------------------------------------------
@@ -1567,11 +1596,12 @@ void MDIEngine::reallocate()
 
 void MDIEngine::unit_conversions()
 {
-  double angstrom_to_bohr,kelvin_to_hartree,ev_to_hartree;
+  double angstrom_to_bohr,kelvin_to_hartree,ev_to_hartree,second_to_aut;
 
   MDI_Conversion_factor("angstrom","bohr",&angstrom_to_bohr);
   MDI_Conversion_factor("kelvin_energy","hartree",&kelvin_to_hartree);
   MDI_Conversion_factor("electron_volt","hartree",&ev_to_hartree);
+  MDI_Conversion_Factor("second","atomic_unit_of_time",&second_to_aut);
 
   // length units
 
@@ -1596,7 +1626,7 @@ void MDIEngine::unit_conversions()
     mdi2lmp_energy = 1.0 / ev_to_hartree;
   }
 
-  // force units
+  // force units = energy/length
 
   mdi2lmp_force = 1.0;
   lmp2mdi_force = 1.0;
@@ -1609,13 +1639,31 @@ void MDIEngine::unit_conversions()
     mdi2lmp_force = angstrom_to_bohr / ev_to_hartree;
   }
 
-  // pressure units
+  // pressure or stress units = force/area = energy/volume
 
   mdi2lmp_pressure = 1.0;
   lmp2mdi_pressure = 1.0;
 
-  // velocity units
+  if (lmpunits == REAL) {
+    lmp2mdi_pressure = (kelvin_to_hartree / force->boltz) / 
+      (angstrom_to_bohr * angstrom_to_bohr * angstrom_to_bohr) / force->nktv2p;
+    mdi2lmp_pressure = 1.0 / lmp2mdi_pressure;
+  } else if (lmpunits == METAL) {
+    lmp2mdi_pressure = ev_to_hartree /
+      (angstrom_to_bohr * angstrom_to_bohr * angstrom_to_bohr) / force->nktv2p;
+    mdi2lmp_pressure = 1.0 / lmp2mdi_pressure;
+  }
+
+  // velocity units = distance/time
 
   mdi2lmp_velocity = 1.0;
   lmp2mdi_velocity = 1.0;
+
+  if (lmpunits == REAL) {
+    lmp2mdi_velocity = angstrom_to_bohr / (1.0e-15 * second_to_aut);
+    mdi2lmp_velocity = 1.0 / lmp2mdi_velocity;
+  } else if (lmpunits == METAL) {
+    lmp2mdi_velocity = angstrom_to_bohr / (1.0e-12 * second_to_aut);
+    mdi2lmp_velocity = 1.0 / lmp2mdi_velocity;
+  }
 }

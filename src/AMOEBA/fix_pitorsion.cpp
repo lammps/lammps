@@ -95,6 +95,10 @@ FixPiTorsion::FixPiTorsion(LAMMPS *lmp, int narg, char **arg) :
   // pitorsion coeff
 
   kpit = nullptr;
+
+  // zero thermo energy
+
+  epitorsion = 0.0;
 }
 
 /* --------------------------------------------------------------------- */

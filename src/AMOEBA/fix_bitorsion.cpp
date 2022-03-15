@@ -132,11 +132,9 @@ FixBiTorsion::FixBiTorsion(LAMMPS *lmp, int narg, char **arg) :
   max_bitorsion_list = 0;
   bitorsion_list = nullptr;
 
-  // BiTorsion grid data
+  // zero thermo energy
 
-  ntypes = 0;
-  nxgrid,nygrid = nullptr;
-  btgrid = nullptr;
+  ebitorsion = 0.0;
 }
 
 /* --------------------------------------------------------------------- */
@@ -166,7 +164,7 @@ FixBiTorsion::~FixBiTorsion()
 
   delete [] nxgrid;
   delete [] nygrid;
-  for (int itype = 0; itype < ntypes; itype++)
+  for (int itype = 1; itype <= ntypes; itype++)
     memory->destroy(btgrid[itype]);
   delete [] btgrid;
 }
@@ -304,7 +302,7 @@ void FixBiTorsion::pre_neighbor()
         bitorsion_list[nbitorsion_list][2] = atom3;
         bitorsion_list[nbitorsion_list][3] = atom4;
         bitorsion_list[nbitorsion_list][4] = atom5;
-        bitorsion_list[nbitorsion_list][6] = bitorsion_type[i][m];
+        bitorsion_list[nbitorsion_list][5] = bitorsion_type[i][m];
         nbitorsion_list++;
       }
     }
@@ -399,7 +397,7 @@ void FixBiTorsion::post_force(int vflag)
     id = bitorsion_list[n][3];
     ie = bitorsion_list[n][4];
 
-    // NOTE: is a btype ever needed, maybe as index into spline tables?
+    // NOTE: is a btype ever used, i.e. as index into spline tables?
 
     btype = bitorsion_list[n][5];
 
@@ -721,16 +719,16 @@ void FixBiTorsion::read_grid_data(char *bitorsion_file)
   MPI_Bcast(&ntypes,1,MPI_INT,0,world);
   if (ntypes == 0) error->all(FLERR,"Fix bitorsion file has no types");
 
-  btgrid = new double***[ntypes];
-  nxgrid = new int[ntypes];
-  nygrid = new int[ntypes];
+  btgrid = new double***[ntypes+1];
+  nxgrid = new int[ntypes+1];
+  nygrid = new int[ntypes+1];
 
   // read one array for each BiTorsion type from file
 
   int tmp,nx,ny;
   double xgrid,ygrid,value;
 
-  for (int itype = 0; itype < ntypes; itype++) {
+  for (int itype = 1; itype <= ntypes; itype++) {
     if (me == 0) {
       eof = fgets(line,MAXLINE,fp);
       eof = fgets(line,MAXLINE,fp);
@@ -766,20 +764,6 @@ void FixBiTorsion::read_grid_data(char *bitorsion_file)
   }
 
   if (me == 0) fclose(fp);
-
-  // DEBUG
-
-  for (int i = 0; i < ntypes; i++) {
-    printf("ITYPE %d NXY %d %d\n",i+1,nxgrid[i],nygrid[i]);
-    for (int iy = 0; iy < ny; iy++) {
-      for (int ix = 0; ix < nx; ix++) {
-        printf("  IXY %d %d, values %g %g %g\n",ix+1,iy+1,
-               btgrid[i][ix][iy][0],
-               btgrid[i][ix][iy][1],
-               btgrid[i][ix][iy][2]);
-      }
-    }
-  }
 }
 
 // ----------------------------------------------------------------------

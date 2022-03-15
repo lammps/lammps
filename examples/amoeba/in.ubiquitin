@@ -26,9 +26,10 @@ fix             extra2 all property/atom i_polaxe
 #read_data       data.ubiquitin fix amtype NULL "Tinker Types"
 read_data       data.ubiquitin fix amtype NULL "Tinker Types" &
                 fix pitorsion "pitorsion types" "PiTorsion Coeffs" &
-                fix pitorsion pitorsions PiTorsions
+                fix pitorsion pitorsions PiTorsions &
+                fix bitorsion bitorsions BiTorsions
 
-pair_style      amoeba include bitorsion
+pair_style      amoeba exclude bitorsion
 pair_coeff      * * amoeba_ubiquitin.prm amoeba_ubiquitin.key
 
 special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
@@ -38,7 +39,7 @@ special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
 compute virial all pressure NULL virial
 
 thermo_style    custom step temp epair ebond eangle edihed eimp &
-                emol etotal press c_virial[*]
+                emol etotal #press c_virial[*]
 
 # zero step run
 

@@ -1384,7 +1384,7 @@ if npitorsions:
   d.sections["PiTorsions"] = lines
 
 if nbitorsions:
-  d.headers["bitorsions"] = len(pitorsionlist)
+  d.headers["bitorsions"] = len(bitorsionlist)
 
   # if there are bitorsions, then -bitorsion file must have been specified
   

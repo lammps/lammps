@@ -90,6 +90,10 @@ class MDIEngine : public Command {
   void mdi_md();
   void mdi_optg();
 
+  void receive_natoms();
+  void send_natoms();
+  void send_ntypes();
+
   void receive_double1(int);
   void receive_int1(int);
   void receive_double3(int, int);
@@ -99,7 +103,7 @@ class MDIEngine : public Command {
   void send_labels();
 
   void send_total_energy();
-  void send_pe();
+  void send_energy();
   void send_ke();
 
   void send_cell();

@@ -329,10 +329,10 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
 
   } else if (strcmp(command,"<ENERGY") == 0) {
     evaluate();
-    send_pe();
+    send_energy();
 
   } else if (strcmp(command,"<FORCES") == 0) {
-    evaluate()
+    evaluate();
     send_double3(FORCE);
 
   } else if (strcmp(command,"<KE") == 0) {
@@ -768,7 +768,7 @@ void MDIEngine::mdi_optg()
 void MDIEngine::receive_natoms()
 {
   int natoms;
-  ierr = MDI_Recv(&natoms,1,MDI_INT,mdicomm);
+  int ierr = MDI_Recv(&natoms,1,MDI_INT,mdicomm);
   if (ierr) error->all(FLERR,"MDI: >NATOMS data");
   MPI_Bcast(&natoms,1,MPI_INT,0,world);
   if (natoms < 0) error->all(FLERR,"MDI received natoms < 0");
@@ -783,7 +783,7 @@ void MDIEngine::receive_natoms()
 void MDIEngine::send_natoms()
 {
   int natoms = static_cast<int> (atom->natoms);
-  ierr = MDI_Send(&natoms,1,MDI_INT,mdicomm);
+  int ierr = MDI_Send(&natoms,1,MDI_INT,mdicomm);
   if (ierr != 0) error->all(FLERR,"MDI: <NATOMS data");
 }
 
@@ -793,7 +793,7 @@ void MDIEngine::send_natoms()
 
 void MDIEngine::send_ntypes()
 {
-  ierr = MDI_Send(&atom->ntypes,1,MDI_INT,mdicomm);
+  int ierr = MDI_Send(&atom->ntypes,1,MDI_INT,mdicomm);
   if (ierr != 0) error->all(FLERR, "MDI: <NTYPES data");
 }
 
@@ -1118,7 +1118,7 @@ void MDIEngine::send_total_energy()
    send potential energy
 ---------------------------------------------------------------------- */
 
-void MDIEngine::send_pe()
+void MDIEngine::send_energy()
 {
   double potential_energy = pe->compute_scalar();
   potential_energy *= lmp2mdi_energy;

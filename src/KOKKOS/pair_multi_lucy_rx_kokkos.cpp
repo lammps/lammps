@@ -39,6 +39,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using MathConst::MY_PI;
 
 enum{NONE,RLINEAR,RSQ};
 
@@ -272,7 +273,6 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
   double mixWtSite2old_i,mixWtSite2old_j;
   double mixWtSite1_i;
 
-  double pi = MathConst::MY_PI;
   double A_i, A_j;
   double fraction_i,fraction_j;
   int jtable;
@@ -407,7 +407,7 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
     evdwl = d_table_const.e(tidx,itable) + fraction_i*d_table_const.de(tidx,itable);
   } else k_error_flag.template view<DeviceType>()() = 3;
 
-  evdwl *=(pi*d_cutsq(itype,itype)*d_cutsq(itype,itype))/84.0;
+  evdwl *=(MY_PI*d_cutsq(itype,itype)*d_cutsq(itype,itype))/84.0;
   evdwlOld = mixWtSite1old_i*evdwl;
   evdwl = mixWtSite1_i*evdwl;
 
@@ -448,15 +448,13 @@ void PairMultiLucyRXKokkos<DeviceType>::computeLocalDensity()
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
 
-  const double pi = MathConst::MY_PI;
-
   const bool newton_pair = force->newton_pair;
   const bool one_type = (atom->ntypes == 1);
 
   // Special cut-off values for when there's only one type.
   cutsq_type11 = cutsq[1][1];
   rcut_type11 = sqrt(cutsq_type11);
-  factor_type11 = 84.0/(5.0*pi*rcut_type11*rcut_type11*rcut_type11);
+  factor_type11 = 84.0/(5.0*MY_PI*rcut_type11*rcut_type11*rcut_type11);
 
   // zero out density
   int m = nlocal;
@@ -538,8 +536,6 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXComputeLoca
   const int itype = type[i];
   const int jnum = d_numneigh[i];
 
-  const double pi = MathConst::MY_PI;
-
   for (int jj = 0; jj < jnum; jj++) {
     const int j = (d_neighbors(i,jj) & NEIGHMASK);
     const int jtype = type[j];
@@ -564,7 +560,7 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXComputeLoca
       const double rcut = sqrt(d_cutsq(itype,jtype));
       const double tmpFactor = 1.0-sqrt(rsq)/rcut;
       const double tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
-      const double factor = (84.0/(5.0*pi*rcut*rcut*rcut))*(1.0+3.0*sqrt(rsq)/(2.0*rcut))*tmpFactor4;
+      const double factor = (84.0/(5.0*MY_PI*rcut*rcut*rcut))*(1.0+3.0*sqrt(rsq)/(2.0*rcut))*tmpFactor4;
       rho_i_contrib += factor;
       if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
         a_rho[j] += factor;

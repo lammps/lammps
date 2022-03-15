@@ -403,22 +403,21 @@ void PairLJClass2::compute_outer(int eflag, int vflag)
 void PairLJClass2::allocate()
 {
   allocated = 1;
-  int n = atom->ntypes;
+  const int np1 = atom->ntypes + 1;
 
-  memory->create(setflag, n + 1, n + 1, "pair:setflag");
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++) setflag[i][j] = 0;
+  memory->create(setflag, np1, np1, "pair:setflag");
+  for (int i = 1; i < np1; i++)
+    for (int j = i; j < np1; j++) setflag[i][j] = 0;
 
-  memory->create(cutsq, n + 1, n + 1, "pair:cutsq");
-
-  memory->create(cut, n + 1, n + 1, "pair:cut");
-  memory->create(epsilon, n + 1, n + 1, "pair:epsilon");
-  memory->create(sigma, n + 1, n + 1, "pair:sigma");
-  memory->create(lj1, n + 1, n + 1, "pair:lj1");
-  memory->create(lj2, n + 1, n + 1, "pair:lj2");
-  memory->create(lj3, n + 1, n + 1, "pair:lj3");
-  memory->create(lj4, n + 1, n + 1, "pair:lj4");
-  memory->create(offset, n + 1, n + 1, "pair:offset");
+  memory->create(cutsq, np1, np1, "pair:cutsq");
+  memory->create(cut, np1, np1, "pair:cut");
+  memory->create(epsilon, np1, np1, "pair:epsilon");
+  memory->create(sigma, np1, np1, "pair:sigma");
+  memory->create(lj1, np1, np1, "pair:lj1");
+  memory->create(lj2, np1, np1, "pair:lj2");
+  memory->create(lj3, np1, np1, "pair:lj3");
+  memory->create(lj4, np1, np1, "pair:lj4");
+  memory->create(offset, np1, np1, "pair:offset");
 }
 
 /* ----------------------------------------------------------------------

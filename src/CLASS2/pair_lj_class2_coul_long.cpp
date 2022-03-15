@@ -31,13 +31,13 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define EWALD_F 1.12837917
-#define EWALD_P 0.3275911
-#define A1 0.254829592
-#define A2 -0.284496736
-#define A3 1.421413741
-#define A4 -1.453152027
-#define A5 1.061405429
+static constexpr double EWALD_F = 1.12837917;
+static constexpr double EWALD_P = 0.3275911;
+static constexpr double A1 = 0.254829592;
+static constexpr double A2 = -0.284496736;
+static constexpr double A3 = 1.421413741;
+static constexpr double A4 = -1.453152027;
+static constexpr double A5 = 1.061405429;
 
 /* ---------------------------------------------------------------------- */
 
@@ -583,23 +583,22 @@ void PairLJClass2CoulLong::compute_outer(int eflag, int vflag)
 void PairLJClass2CoulLong::allocate()
 {
   allocated = 1;
-  int n = atom->ntypes;
+  const int np1 = atom->ntypes + 1;
 
-  memory->create(setflag, n + 1, n + 1, "pair:setflag");
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++) setflag[i][j] = 0;
+  memory->create(setflag, np1, np1, "pair:setflag");
+  for (int i = 1; i < np1; i++)
+    for (int j = i; j < np1; j++) setflag[i][j] = 0;
 
-  memory->create(cutsq, n + 1, n + 1, "pair:cutsq");
-
-  memory->create(cut_lj, n + 1, n + 1, "pair:cut_lj");
-  memory->create(cut_ljsq, n + 1, n + 1, "pair:cut_ljsq");
-  memory->create(epsilon, n + 1, n + 1, "pair:epsilon");
-  memory->create(sigma, n + 1, n + 1, "pair:sigma");
-  memory->create(lj1, n + 1, n + 1, "pair:lj1");
-  memory->create(lj2, n + 1, n + 1, "pair:lj2");
-  memory->create(lj3, n + 1, n + 1, "pair:lj3");
-  memory->create(lj4, n + 1, n + 1, "pair:lj4");
-  memory->create(offset, n + 1, n + 1, "pair:offset");
+  memory->create(cutsq, np1, np1, "pair:cutsq");
+  memory->create(cut_lj, np1, np1, "pair:cut_lj");
+  memory->create(cut_ljsq, np1, np1, "pair:cut_ljsq");
+  memory->create(epsilon, np1, np1, "pair:epsilon");
+  memory->create(sigma, np1, np1, "pair:sigma");
+  memory->create(lj1, np1, np1, "pair:lj1");
+  memory->create(lj2, np1, np1, "pair:lj2");
+  memory->create(lj3, np1, np1, "pair:lj3");
+  memory->create(lj4, np1, np1, "pair:lj4");
+  memory->create(offset, np1, np1, "pair:offset");
 }
 
 /* ----------------------------------------------------------------------

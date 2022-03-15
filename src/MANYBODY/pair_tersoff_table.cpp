@@ -27,6 +27,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -36,6 +37,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using MathConst::MY_PI;
 
 #define MAXLINE 1024
 #define DELTA 4
@@ -542,7 +544,6 @@ void PairTersoffTable::allocateGrids()
   double  deltaArgumentCutoffFunction, deltaArgumentExponential, deltaArgumentBetaZetaPower;
   double  deltaArgumentGtetaFunction;
   double  r, minMu, maxLambda, maxCutoff;
-  double const PI=acos(-1.0);
 
   deallocateGrids();
 
@@ -651,8 +652,8 @@ void PairTersoffTable::allocateGrids()
         }
 
         for (l = numGridPointsOneCutoffFunction; l < numGridPointsCutoffFunction; l++) {
-          cutoffFunction[i][j][l] = 0.5 + 0.5 * cos (PI * (r - cutoffR)/(cutoffS-cutoffR)) ;
-          cutoffFunctionDerived[i][j][l] =  -0.5 * PI * sin (PI * (r - cutoffR)/(cutoffS-cutoffR)) / (cutoffS-cutoffR) ;
+          cutoffFunction[i][j][l] = 0.5 + 0.5 * cos (MY_PI * (r - cutoffR)/(cutoffS-cutoffR)) ;
+          cutoffFunctionDerived[i][j][l] =  -0.5 * MY_PI * sin (MY_PI * (r - cutoffR)/(cutoffS-cutoffR)) / (cutoffS-cutoffR);
           r += deltaArgumentCutoffFunction;
         }
       }

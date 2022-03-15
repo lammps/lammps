@@ -289,7 +289,7 @@ void PairSW::read_file(char *file)
 
   if (comm->me == 0) {
     PotentialFileReader reader(lmp, file, "sw", unit_convert_flag);
-    char * line;
+    char *line;
 
     // transparently convert units for supported conversions
 

@@ -55,6 +55,8 @@ class MDIEngine : public Command {
   class Minimize *minimizer;
   class Compute *ke,*pe,*press;
 
+  int need_evaluation;    // 1 if system has changed, else 0
+
   int nbytes;         // NBYTES command value used by other commands
 
   // create_atoms state
@@ -90,6 +92,8 @@ class MDIEngine : public Command {
   void mdi_md();
   void mdi_optg();
 
+  void evaluate();
+
   void receive_natoms();
   void send_natoms();
   void send_ntypes();
@@ -115,7 +119,6 @@ class MDIEngine : public Command {
   void single_command();
   void many_commands();
   void infile();
-  void evaluate();
   void reset_box();
   void create_atoms(int);
   void send_stress();

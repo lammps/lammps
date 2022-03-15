@@ -150,6 +150,7 @@ void MDIEngine::mdi_engine(int narg, char **arg)
   ibuf1 = ibuf1all = nullptr;
   maxbuf = 0;
 
+  need_evaluation = 1;
   nbytes = -1;
   create_atoms_flag = 0;
 
@@ -300,6 +301,7 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
 
   } else if (strcmp(command,">COORDS") == 0) {
     receive_double3(COORD,0);
+    need_evaluation = 1;
 
   } else if (strcmp(command,">FORCES") == 0) {
     receive_double3(FORCE,0);
@@ -328,11 +330,17 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     send_double3(COORD);
 
   } else if (strcmp(command,"<ENERGY") == 0) {
-    evaluate();
+    if (need_evaluation) {
+      evaluate();
+      need_evaluation = 0;
+    }
     send_energy();
 
   } else if (strcmp(command,"<FORCES") == 0) {
-    evaluate();
+    if (need_evaluation) {
+      evaluate();
+      need_evaluation = 0;
+    }
     send_double3(FORCE);
 
   } else if (strcmp(command,"<KE") == 0) {
@@ -351,7 +359,10 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     send_ntypes();
 
   } else if (strcmp(command,"<STRESS") == 0) {
-    evaluate();
+    if (need_evaluation) {
+      evaluate();
+      need_evaluation = 0;
+    }
     send_stress();
 
   } else if (strcmp(command,"<TYPES") == 0) {
@@ -752,6 +763,57 @@ void MDIEngine::mdi_optg()
   error->all(FLERR,
              fmt::format("MDI reached end of OPTG simulation "
                          "with invalid command: {}",mdicmd));
+}
+
+/* ----------------------------------------------------------------------
+   evaluate() = compute forces, energy, pressure of current system
+   usage modes:
+   (1) called many times by a driver for system that is continuously evolving
+   (2) called once per system by a driver that is passing in many systems
+   distinguishes between:
+     (a) first-time call
+     (b) system needs reneighboring
+     (c) system does not need reneighboring
+  for (b) and (c), timestep is advanced
+---------------------------------------------------------------------- */
+
+void MDIEngine::evaluate()
+{
+  // NOTE: ago is not a good test
+  //       caller should decide which verion of evaluate() is needed?
+  // currently cannot call it interspersed with "delete atoms" calls
+  //   b/c whichflag stays set
+  // separate issue, need to unset whichflag when done
+
+  if (neighbor->ago < 0) {
+
+    update->whichflag = 1;
+    lmp->init(); 
+    update->integrate->setup(1);
+    update->whichflag = 0;
+
+  } else {
+
+    // insure potential energy and virial are tallied on this step
+
+    update->ntimestep++;
+    pe->addstep(update->ntimestep);
+    press->addstep(update->ntimestep);
+
+    int nflag = neighbor->decide();
+    if (nflag == 0) {
+      comm->forward_comm();
+      update->integrate->setup_minimal(0);
+      modify->clearstep_compute();
+      output->thermo->compute(1);
+      modify->addstep_compute(update->ntimestep+1);
+    } else {
+      update->integrate->setup_minimal(1);
+      modify->clearstep_compute();
+      output->thermo->compute(1);
+      modify->addstep_compute(update->ntimestep+1);
+    }
+  }
 }
 
 // ----------------------------------------------------------------------
@@ -1354,57 +1416,6 @@ void MDIEngine::infile()
   lammps_file(lmp,infile);
 
   delete [] infile;
-}
-
-/* ----------------------------------------------------------------------
-   EVAL command
-   compute forces, energy, pressure of current system
-   can be called multiple times by driver
-     for a system that is continuously evolving
-   distinguishes between:
-     (1) first-time call
-     (2) system needs reneighboring
-     (3) system does not need reneighboring
-   this method does NOT increment timestep
----------------------------------------------------------------------- */
-
-void MDIEngine::evaluate()
-{
-  // NOTE: ago is not a good test
-  //       caller needs to distinguish
-  // currently cannot call it interspersed with "delete atoms" calls
-  //   b/c whichflag stays set
-  // separate issue, need to unset whichflag when done
-
-  if (neighbor->ago < 0) {
-
-    update->whichflag = 1;
-    lmp->init(); 
-    update->integrate->setup(1);
-    update->whichflag = 0;
-
-  } else {
-
-    // insure potential energy and virial are tallied on this step
-
-    update->ntimestep++;
-    pe->addstep(update->ntimestep);
-    press->addstep(update->ntimestep);
-
-    int nflag = neighbor->decide();
-    if (nflag == 0) {
-      comm->forward_comm();
-      update->integrate->setup_minimal(0);
-      modify->clearstep_compute();
-      output->thermo->compute(1);
-      modify->addstep_compute(update->ntimestep+1);
-    } else {
-      update->integrate->setup_minimal(1);
-      modify->clearstep_compute();
-      output->thermo->compute(1);
-      modify->addstep_compute(update->ntimestep+1);
-    }
-  }
 }
 
 /* ----------------------------------------------------------------------

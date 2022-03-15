@@ -54,7 +54,7 @@ class FixMDIAimd : public Fix {
   double lmp2mdi_energy,mdi2lmp_energy;
   double lmp2mdi_force,mdi2lmp_force;
   double lmp2mdi_pressure,mdi2lmp_pressure;
-  double lmp2mdi_virial,mdi2lmp_virial;
+  double lmp2mdi_velocity,mdi2lmp_velocity;
 
   // buffers for MDI comm
 

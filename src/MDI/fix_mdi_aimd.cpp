@@ -185,12 +185,8 @@ void FixMDIAimd::post_force(int vflag)
   ierr = MDI_Send(buf3all,3*atom->natoms,MDI_DOUBLE,mdicomm);
   if (ierr) error->all(FLERR,"MDI: >COORDS data");
 
-  // trigger engine to evaluate forces,energy,pressure for current system
-
-  ierr = MDI_Send_command("EVAL",mdicomm);
-  if (ierr) error->all(FLERR,"MDI: EVAL command");
-
   // request forces from MDI engine
+  // this triggers engine to evaluate forces,energy,stress for current system
 
   ierr = MDI_Send_command("<FORCES",mdicomm);
   if (ierr) error->all(FLERR,"MDI: <FORCES command");
@@ -214,10 +210,10 @@ void FixMDIAimd::post_force(int vflag)
   // divide by nprocs so each proc stores a portion
 
   if (eflag_global) {
-    ierr = MDI_Send_command("<PE",mdicomm);
-    if (ierr) error->all(FLERR,"MDI: <PE command");
+    ierr = MDI_Send_command("<ENERGY",mdicomm);
+    if (ierr) error->all(FLERR,"MDI: <ENERGY command");
     ierr = MDI_Recv(&engine_energy,1,MDI_DOUBLE,mdicomm);
-    if (ierr) error->all(FLERR,"MDI: <PE data");
+    if (ierr) error->all(FLERR,"MDI: <ENERGY data");
     MPI_Bcast(&engine_energy,1,MPI_DOUBLE,0,world);
     engine_energy *= mdi2lmp_energy / nprocs;
   }
@@ -227,10 +223,10 @@ void FixMDIAimd::post_force(int vflag)
 
   if (vflag_global) {
     double ptensor[6];
-    ierr = MDI_Send_command("<PTENSOR",mdicomm);
-    if (ierr) error->all(FLERR,"MDI: <PTENSOR command");
+    ierr = MDI_Send_command("<STRESS",mdicomm);
+    if (ierr) error->all(FLERR,"MDI: <STRESS command");
     ierr = MDI_Recv(ptensor,6,MDI_DOUBLE,mdicomm);
-    if (ierr) error->all(FLERR,"MDI: <PTENSOR data");
+    if (ierr) error->all(FLERR,"MDI: <STRESS data");
     MPI_Bcast(ptensor,6,MPI_DOUBLE,0,world);
 
     double volume = domain->xprd * domain->yprd * domain->zprd;
@@ -283,11 +279,12 @@ void FixMDIAimd::reallocate()
 
 void FixMDIAimd::unit_conversions()
 {
-  double angstrom_to_bohr,kelvin_to_hartree,ev_to_hartree;
+  double angstrom_to_bohr,kelvin_to_hartree,ev_to_hartree,second_to_aut;
 
   MDI_Conversion_factor("angstrom","bohr",&angstrom_to_bohr);
   MDI_Conversion_factor("kelvin_energy","hartree",&kelvin_to_hartree);
   MDI_Conversion_factor("electron_volt","hartree",&ev_to_hartree);
+  MDI_Conversion_Factor("second","atomic_unit_of_time",&second_to_aut);
 
   // length units
 
@@ -312,7 +309,7 @@ void FixMDIAimd::unit_conversions()
     mdi2lmp_energy = 1.0 / ev_to_hartree;
   }
 
-  // force units
+  // force units = energy/length
 
   mdi2lmp_force = 1.0;
   lmp2mdi_force = 1.0;
@@ -325,8 +322,31 @@ void FixMDIAimd::unit_conversions()
     mdi2lmp_force = angstrom_to_bohr / ev_to_hartree;
   }
 
-  // pressure units
+  // pressure or stress units = force/area = energy/volume
 
   mdi2lmp_pressure = 1.0;
   lmp2mdi_pressure = 1.0;
+
+  if (lmpunits == REAL) {
+    lmp2mdi_pressure = (kelvin_to_hartree / force->boltz) / 
+      (angstrom_to_bohr * angstrom_to_bohr * angstrom_to_bohr) / force->nktv2p;
+    mdi2lmp_pressure = 1.0 / lmp2mdi_pressure;
+  } else if (lmpunits == METAL) {
+    lmp2mdi_pressure = ev_to_hartree /
+      (angstrom_to_bohr * angstrom_to_bohr * angstrom_to_bohr) / force->nktv2p;
+    mdi2lmp_pressure = 1.0 / lmp2mdi_pressure;
+  }
+
+  // velocity units = distance/time
+
+  mdi2lmp_velocity = 1.0;
+  lmp2mdi_velocity = 1.0;
+
+  if (lmpunits == REAL) {
+    lmp2mdi_velocity = angstrom_to_bohr / (1.0e-15 * second_to_aut);
+    mdi2lmp_velocity = 1.0 / lmp2mdi_velocity;
+  } else if (lmpunits == METAL) {
+    lmp2mdi_velocity = angstrom_to_bohr / (1.0e-12 * second_to_aut);
+    mdi2lmp_velocity = 1.0 / lmp2mdi_velocity;
+  }
 }

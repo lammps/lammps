@@ -56,13 +56,13 @@ Run with TCP: 3 procs + 4 procs
 
 Run with MPI: 1 proc each
 
-% mpirun -np 1 lmp_mpi -mdi "-name driver -role DRIVER -method MPI" -log log.aimd.driver -in in.aimd.driver : -np 1 ../lammps/git/src/lmp_mpi -mdi "-name LAMMPS -role ENGINE -method MPI" -log log.aimd.engine -in in.aimd.engine
+% mpirun -np 1 lmp_mpi -mdi "-name driver -role DRIVER -method MPI" -log log.aimd.driver -in in.aimd.driver : -np 1 lmp_mpi -mdi "-name LAMMPS -role ENGINE -method MPI" -log log.aimd.engine -in in.aimd.engine
 
 ---
 
 Run with MPI: 3 procs + 4 procs
 
-% mpirun -np 3 lmp_mpi -mdi "-name driver -role DRIVER -method MPI" -log log.aimd.driver -in in.aimd.driver : -np 4 ../lammps/git/src/lmp_mpi -mdi "-name LAMMPS -role ENGINE -method MPI" -log log.aimd.engine -in in.aimd.engine
+% mpirun -np 3 lmp_mpi -mdi "-name driver -role DRIVER -method MPI" -log log.aimd.driver -in in.aimd.driver : -np 4 lmp_mpi -mdi "-name LAMMPS -role ENGINE -method MPI" -log log.aimd.engine -in in.aimd.engine
 
 -------------------------------------------------
 -------------------------------------------------

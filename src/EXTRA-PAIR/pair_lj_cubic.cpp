@@ -102,6 +102,7 @@ void PairLJCubic::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
+
       if (rsq < cutsq[itype][jtype]) {
         r2inv = 1.0/rsq;
         if (rsq <= cut_inner_sq[itype][jtype]) {

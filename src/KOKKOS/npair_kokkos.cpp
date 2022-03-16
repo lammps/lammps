@@ -338,7 +338,11 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
 
   list->k_ilist.template modify<DeviceType>();
 
-  Kokkos::deep_copy(list->d_neighbors,list->d_neighbors_build);
+  //Kokkos::deep_copy(list->d_neighbors,list->d_neighbors_build);
+  {
+    // Perform an optimized transpose
+    NPairKokkosTransposeHelper<DeviceType, typename AT::t_neighbors_2d, typename AT::t_neighbors_2d_lr>(list->d_neighbors, list->d_neighbors_build);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

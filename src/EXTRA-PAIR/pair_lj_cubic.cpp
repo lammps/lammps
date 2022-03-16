@@ -102,7 +102,6 @@ void PairLJCubic::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-
       if (rsq < cutsq[itype][jtype]) {
         r2inv = 1.0/rsq;
         if (rsq <= cut_inner_sq[itype][jtype]) {
@@ -241,6 +240,8 @@ double PairLJCubic::init_one(int i, int j)
   lj2[j][i] = lj2[i][j];
   lj3[j][i] = lj3[i][j];
   lj4[j][i] = lj4[i][j];
+  epsilon[j][i] = epsilon[i][j];
+  sigma[j][i] = sigma[i][j];
 
   return cut[i][j];
 }

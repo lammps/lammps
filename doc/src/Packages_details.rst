@@ -774,25 +774,28 @@ tools/eff; see its README file.
 .. _PKG-ELECTRODE:
 
 ELECTRODE package
---------------------
+-----------------
 
 **Contents:**
 
 The ELECTRODE package allows the user to enforce a constant potential method for
 groups of atoms that interact with the remaining atoms as electrolyte.
 
-**Authors:** The ELECTRODE library is written and maintained by Ludwig Ahrens-Iwers
-(TUHH, Hamburg, Germany), Shern Tee (UQ, Brisbane, Australia) and Robert Meissner (TUHH, Hamburg, Germany).
+**Authors:** The ELECTRODE library is written and maintained by Ludwig
+Ahrens-Iwers (TUHH, Hamburg, Germany), Shern Tee (UQ, Brisbane, Australia) and
+Robert Meissner (TUHH, Hamburg, Germany).
 
 **Install:**
 
-This package has :ref:`specific installation instructions <electrode>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <electrode>` on the
+:doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
 * :doc:`fix electrode/conp <fix_electrode_conp>`
 
 ----------
+
 .. _PKG-EXTRA-COMPUTE:
 
 EXTRA-COMPUTE package

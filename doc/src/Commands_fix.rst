@@ -67,8 +67,11 @@ OPT.
    * :doc:`efield <fix_efield>`
    * :doc:`ehex <fix_ehex>`
    * :doc:`electrode/conp <fix_electrode_conp>`
-   * :doc:`electrode/conq <fix_electrode_conq>`
-   * :doc:`electrode/thermo <fix_electrode_thermo>`
+   * :doc:`electrode/conq <fix_electrode_conp>`
+   * :doc:`electrode/thermo <fix_electrode_conp>`
+   * :doc:`electrode/conp (i) <fix_electrode_conp>`
+   * :doc:`electrode/conq (i) <fix_electrode_conp>`
+   * :doc:`electrode/thermo (i) <fix_electrode_conp>`
    * :doc:`electron/stopping <fix_electron_stopping>`
    * :doc:`electron/stopping/fit <fix_electron_stopping>`
    * :doc:`enforce2d (k) <fix_enforce2d>`

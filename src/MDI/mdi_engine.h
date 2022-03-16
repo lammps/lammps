@@ -35,8 +35,10 @@ class MDIEngine : public Command {
   void engine_node(const char *node);
 
  private:
-  int lmpunits;    // REAL or METAL or NATIVE
-  int root;        // 1 for proc 0, otherwise 0
+  int lmpunits;      // REAL or METAL or NATIVE
+  int root;          // 1 for proc 0, otherwise 0
+
+  int enable_fix;    // 1 if mdi engine command asked for node support
 
   // state of MDI engine
 
@@ -59,7 +61,15 @@ class MDIEngine : public Command {
 
   int nbytes;         // NBYTES command value used by other commands
 
+  // @INIT_SYS state
+
+  int sys_natoms;
+  int *sys_types;
+  double *sys_charges,*sys_coords,*sys_velocities;
+  double *sys_cell,*sys_cell_displ;
+    
   // create_atoms state
+
 
   int create_atoms_flag;
   int create_natoms;
@@ -91,29 +101,52 @@ class MDIEngine : public Command {
   void mdi_commands();
   void mdi_md();
   void mdi_optg();
+  void mdi_sys();
 
   void evaluate();
 
+  void receive_cell();
+  void receive_cell_default();
+  void receive_cell_sys();
+
+  void receive_cell_displ();
+  void receive_cell_displ_default();
+  void receive_cell_displ_sys();
+
+  void receive_charges();
+  void receive_charges_sys();
+
+  void receive_coords();
+  void receive_coords_sys();
+
   void receive_natoms();
-  void send_natoms();
-  void send_ntypes();
+  void receive_natoms_default();
+  void receive_natoms_sys();
+
+  void receive_types();
+  void receive_types_sys();
+
+  void receive_velocities();
+  void receive_velocities_sys();
 
   void receive_double1(int);
   void receive_int1(int);
   void receive_double3(int, int);
+
+  void send_natoms();
+  void send_ntypes();
+
   void send_double1(int);
   void send_int1(int);
   void send_double3(int);
   void send_labels();
 
   void send_total_energy();
-  void send_energy();
+  void send_pe();
   void send_ke();
 
   void send_cell();
-  void receive_cell();
-  void send_celldispl();
-  void receive_celldispl();
+  void send_cell_displ();
 
   void nbytes_command();
   void single_command();

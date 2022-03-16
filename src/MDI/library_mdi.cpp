@@ -98,7 +98,14 @@ int MDI_Plugin_init_lammps()
     lmp = lammps_open(mdi_argc, mdi_argv, mpi_world_comm, nullptr);
   else
     lmp = lammps_open_no_mpi(mdi_argc, mdi_argv, nullptr);
+
+  // process the specified input script
+  // must contain "mdi engine" command
+
   lammps_file(lmp, filename);
+
+  // shut down the plugin
+
   lammps_close(lmp);
 
   return 0;

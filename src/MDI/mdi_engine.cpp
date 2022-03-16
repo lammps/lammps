@@ -46,7 +46,7 @@
 using namespace LAMMPS_NS;
 
 enum{NATIVE,REAL,METAL};       // LAMMPS units which MDI supports
-enum{DEFAULT,MD,OPT};          // top-level MDI engine mode
+enum{DEFAULT,MD,OPT,SYS};      // top-level MDI engine mode
 
 // per-atom data which engine commands access
 
@@ -80,7 +80,19 @@ void MDIEngine::command(int narg, char **arg)
 
 void MDIEngine::mdi_engine(int narg, char **arg)
 {
-  if (narg > 0) error->all(FLERR,"Illegal mdi engine command");
+  // process args
+
+  enable_fix = 0;
+
+  int iarg = 0;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"nodes") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal mdi engine command");
+      if (strcmp(arg[iarg+1],"yes") == 0) enable_fix = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) enable_fix = 0;
+      iarg += 2;
+    } else error->all(FLERR,"Illegal mdi engine command");
+  }
 
   // check requirements for LAMMPS to work with MDI as an engine
 
@@ -103,17 +115,14 @@ void MDIEngine::mdi_engine(int narg, char **arg)
 
   // MDI setup
 
-  mode = DEFAULT;
-  node_match = true;
-  exit_command = false;
-
   mdicmd = new char[MDI_COMMAND_LENGTH];
   node_engine = new char[MDI_COMMAND_LENGTH];
   strncpy(node_engine,"@DEFAULT",MDI_COMMAND_LENGTH);
   node_driver = new char[MDI_COMMAND_LENGTH];
   strncpy(node_driver,"\0",MDI_COMMAND_LENGTH);
 
-  // create computes for KE. PE, stress
+  // create computes for KE. PE, pressure
+  // pressure compute only calculates virial, no kinetic term
  
   id_ke = utils::strdup(std::string("MDI_ENGINE") + "_ke");
   modify->add_compute(fmt::format("{} all ke", id_ke));
@@ -141,17 +150,16 @@ void MDIEngine::mdi_engine(int narg, char **arg)
   unit_conversions();
 
   // irregular class and data structs used by MDI
-  // NOTE: not clear if irregular comm is ever needed
-
-  //irregular = new Irregular(lmp);
 
   buf1 = buf1all = nullptr;
   buf3 = buf3all = nullptr;
   ibuf1 = ibuf1all = nullptr;
   maxbuf = 0;
 
-  need_evaluation = 1;
+  // internal state of engine
+
   nbytes = -1;
+  need_evaluation = 1;
   create_atoms_flag = 0;
 
   // define MDI commands that LAMMPS engine recognizes
@@ -165,10 +173,14 @@ void MDIEngine::mdi_engine(int narg, char **arg)
 
   // endless engine loop, responding to driver commands
 
+  mode = DEFAULT;
+  node_match = true;
+  exit_command = false;
+
   while (1) {
 
     // top-level mdi engine only recognizes three nodes
-    // DEFAULT, INIT_MD, INIT_OPTG
+    // DEFAULT, INIT_MD, INIT_OPTG, INIT_SYS
 
     engine_node("@DEFAULT");
 
@@ -176,18 +188,23 @@ void MDIEngine::mdi_engine(int narg, char **arg)
 
     if (strcmp(mdicmd,"@INIT_MD") == 0) {
       mdi_md();
-      if (strcmp(mdicmd,"EXIT")) break;
+      if (exit_command) break;
 
     } else if (strcmp(mdicmd,"@INIT_OPTG") == 0) {
       mdi_optg();
-      if (strcmp(mdicmd,"EXIT")) break;
+      if (exit_command) break;
 
-    } else if (strcmp(mdicmd,"EXIT") == 0) {
+    } else if (strcmp(mdicmd,"@INIT_SYS") == 0) {
+      mdi_sys();
+      if (exit_command) break;
+
+    } else if (exit_command) {
       break;
 
     } else
       error->all(FLERR,
-                 fmt::format("MDI node exited with invalid command: {}",mdicmd));
+                 fmt::format("MDI engine exited with invalid command: {}",
+                             mdicmd));
   }
 
   // clean up
@@ -217,7 +234,7 @@ void MDIEngine::mdi_engine(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    engine is now at this MDI node
-   loop over received commands so long as driver also at this node
+   loop over received commands so long as driver is also at this node
    return when not the case or EXIT command received
 ---------------------------------------------------------------------- */
 
@@ -225,7 +242,7 @@ void MDIEngine::engine_node(const char *node)
 {
   int ierr;
 
-  // do not process commands if engine and driver are not at same node
+  // do not process commands if engine and driver request are not the same
 
   strncpy(node_engine,node,MDI_COMMAND_LENGTH);
 
@@ -250,13 +267,13 @@ void MDIEngine::engine_node(const char *node)
 
     execute_command(mdicmd,mdicomm);
 
-    // check if driver node is now somewhere other than engine node
+    // check if driver request is now different than engine node
 
     if (strcmp(node_driver,"\0") != 0 && strcmp(node_driver,node_engine) != 0)
       node_match = false;
   }
 
-  // node exit was triggered so reset node exit flag
+  // node exit was triggered so reset node_match
 
   node_match = true;
 }
@@ -273,9 +290,9 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   int ierr;
 
   // confirm this command is supported at this node
-  // otherwise is an error
+  // otherwise is error
 
-  int command_exists = 1;
+  int command_exists;
   if (root) {
     ierr = MDI_Check_command_exists(node_engine,command,MDI_COMM_NULL,
                                     &command_exists);
@@ -290,38 +307,42 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
 
   // ---------------------------------------
   // respond to MDI standard commands
-  // listed in alphabetic order: receives first, sends second
+  // receives first, sends second, node commands third
   // ---------------------------------------
 
   if (strcmp(command,">CELL") == 0) {
     receive_cell();
 
   } else if (strcmp(command,">CELL_DISPL") == 0) {
-    receive_celldispl();
+    receive_cell_displ();
+
+  } else if (strcmp(command,">CHARGES") == 0) {
+    receive_charges();
 
   } else if (strcmp(command,">COORDS") == 0) {
-    receive_double3(COORD,0);
+    receive_coords();
     need_evaluation = 1;
-
-  } else if (strcmp(command,">FORCES") == 0) {
-    receive_double3(FORCE,0);
-
-  } else if (strcmp(command,">+FORCES") == 0) {
-    receive_double3(FORCE,1);
 
   } else if (strcmp(command,">NATOMS") == 0) {
     receive_natoms();
 
+  } else if (strcmp(command,">TYPES") == 0) {
+    receive_types();
+
   } else if (strcmp(command,">VELOCITIES") == 0) {
-    receive_double3(VELOCITY,0);
+    receive_velocities();
 
   // -----------------------------------------------
+
+  } else if (strcmp(command,"<@") == 0) {
+    ierr = MDI_Send(node_engine,MDI_NAME_LENGTH,MDI_CHAR,mdicomm);
+    if (ierr) error->all(FLERR,"MDI: <@ data");
 
   } else if (strcmp(command,"<CELL") == 0) {
     send_cell();
 
   } else if (strcmp(command,"<CELL_DISPL") == 0) {
-    send_celldispl();
+    send_cell_displ();
 
   } else if (strcmp(command,"<CHARGES") == 0) {
     send_double1(CHARGE);
@@ -334,7 +355,7 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
       evaluate();
       need_evaluation = 0;
     }
-    send_energy();
+    send_total_energy();
 
   } else if (strcmp(command,"<FORCES") == 0) {
     if (need_evaluation) {
@@ -342,9 +363,6 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
       need_evaluation = 0;
     }
     send_double3(FORCE);
-
-  } else if (strcmp(command,"<KE") == 0) {
-    send_ke();
 
   } else if (strcmp(command,"<LABELS") == 0) {
     send_labels();
@@ -355,8 +373,12 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   } else if (strcmp(command,"<NATOMS") == 0) {
     send_natoms();
 
-  } else if (strcmp(command,"<NTYPES") == 0) {
-    send_ntypes();
+  } else if (strcmp(command,"<PE") == 0) {
+    if (need_evaluation) {
+      evaluate();
+      need_evaluation = 0;
+    }
+    send_pe();
 
   } else if (strcmp(command,"<STRESS") == 0) {
     if (need_evaluation) {
@@ -389,19 +411,12 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     strncpy(node_driver,"\0",MDI_COMMAND_LENGTH);
     node_match = false;
 
-  } else if (strcmp(command,"<@") == 0) {
-    ierr = MDI_Send(node_engine,MDI_NAME_LENGTH,MDI_CHAR,mdicomm);
-    if (ierr) error->all(FLERR,"MDI: <@ data");
-
   } else if (strcmp(command,"@DEFAULT") == 0) {
     mode = DEFAULT;
-
     strncpy(node_driver,"@DEFAULT",MDI_COMMAND_LENGTH);
     node_match = false;
 
-    // are we in the middle of a geometry optimization? 
-    // ensure that the energy and force tolerances are met
-    // set the maximum number of force evaluations to 0
+    // if minimization in progress, force it to quit
 
     if (mode == OPT) {
       update->etol = std::numeric_limits<double>::max();
@@ -423,12 +438,10 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
 
   // exit command
 
-  } else if (strcmp(command, "EXIT") == 0) {
+  } else if (strcmp(command,"EXIT") == 0) {
     exit_command = true;
 
-    // are we in the middle of a geometry optimization?
-    // if so, ensure energy and force tolerances are met
-    // set the maximum number of force evaluations to 0
+    // if minimization in progress, force it to quit
 
     if (mode == OPT) {
       update->etol = std::numeric_limits<double>::max();
@@ -440,6 +453,12 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   // custom LAMMPS commands
   // -------------------------------------------------------
 
+  } else if (strcmp(command,"@INIT_SYS") == 0) {
+    if (mode != DEFAULT) 
+      error->all(FLERR,"MDI: MDI engine is already performing a simulation");
+    mode = SYS;
+    node_match = false;
+
   } else if (strcmp(command,"NBYTES") == 0) {
     nbytes_command();
   } else if (strcmp(command,"COMMAND") == 0) {
@@ -448,22 +467,8 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     many_commands();
   } else if (strcmp(command,"INFILE") == 0) {
     infile();
-  } else if (strcmp(command,"RESET_BOX") == 0) {
-    reset_box();
-  } else if (strcmp(command,"CREATE_ATOM") == 0) {
-    create_atoms(CREATE_ATOM);
-  } else if (strcmp(command,"CREATE_ID") == 0) {
-    create_atoms(CREATE_ID);
-  } else if (strcmp(command,"CREATE_TYPE") == 0) {
-    create_atoms(CREATE_TYPE);
-  } else if (strcmp(command,"CREATE_X") == 0) {
-    create_atoms(CREATE_X);
-  } else if (strcmp(command,"CREATE_V") == 0) {
-    create_atoms(CREATE_V);
-  } else if (strcmp(command,"CREATE_IMG") == 0) {
-    create_atoms(CREATE_IMAGE);
-  } else if (strcmp(command,"CREATE_GO") == 0) {
-    create_atoms(CREATE_GO);
+  } else if (strcmp(command,"<KE") == 0) {
+    send_ke();
 
   // -------------------------------------------------------
   // unknown command
@@ -477,18 +482,13 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
 }
 
 /* ----------------------------------------------------------------------
-   define which MDI commands the LAMMPS engine recognizes at which node
-   standard MDI commands and custom LAMMPS commands
+   define which MDI commands the LAMMPS engine recognizes at each node
+   both standard MDI commands and custom LAMMPS commands
+   max length for a command is currently 11 chars
 ---------------------------------------------------------------------- */
 
 void MDIEngine::mdi_commands()
 {
-  // ------------------------------------
-  // nodes and commands that an MDI-compliant MD engine supports
-  // each command must be registered under a node that supports it
-  // including commands to switch nodes
-  // ------------------------------------
-
   // default node, MDI standard commands
 
   MDI_Register_node("@DEFAULT");
@@ -502,56 +502,47 @@ void MDIEngine::mdi_commands()
   MDI_Register_command("@DEFAULT", "<LABELS");
   MDI_Register_command("@DEFAULT", "<MASSES");
   MDI_Register_command("@DEFAULT", "<NATOMS");
+  MDI_Register_command("@DEFAULT", "<PE");
   MDI_Register_command("@DEFAULT", "<STRESS");
   MDI_Register_command("@DEFAULT", "<TYPES");
   MDI_Register_command("@DEFAULT", "<VELOCITIES");
   MDI_Register_command("@DEFAULT", ">CELL");
   MDI_Register_command("@DEFAULT", ">CELL_DISPL");
+  MDI_Register_command("@DEFAULT", ">CHARGES");
   MDI_Register_command("@DEFAULT", ">COORDS");
+  MDI_Register_command("@DEFAULT", ">NATOMS");
+  MDI_Register_command("@DEFAULT", ">TYPES");
   MDI_Register_command("@DEFAULT", ">VELOCITIES");
   MDI_Register_command("@DEFAULT", "@INIT_MD");
   MDI_Register_command("@DEFAULT", "@INIT_OPTG");
   MDI_Register_command("@DEFAULT", "EXIT");
 
   // default node, custom commands added by LAMMPS
-  // max length for a command is currently 11 chars
 
   MDI_Register_command("@DEFAULT", "NBYTES");
   MDI_Register_command("@DEFAULT", "COMMAND");
   MDI_Register_command("@DEFAULT", "COMMANDS");
   MDI_Register_command("@DEFAULT", "INFILE");
-  MDI_Register_command("@DEFAULT", "RESET_BOX");
-  MDI_Register_command("@DEFAULT", "CREATE_ATOM");
-  MDI_Register_command("@DEFAULT", "CREATE_ID");
-  MDI_Register_command("@DEFAULT", "CREATE_TYPE");
-  MDI_Register_command("@DEFAULT", "CREATE_X");
-  MDI_Register_command("@DEFAULT", "CREATE_V");
-  MDI_Register_command("@DEFAULT", "CREATE_IMG");
-  MDI_Register_command("@DEFAULT", "CREATE_GO");
-  MDI_Register_command("@DEFAULT", ">NATOMS");
   MDI_Register_command("@DEFAULT", "<KE");
+  MDI_Register_command("@DEFAULT", "@INIT_SYS");
+
+  // custom nodes added by LAMMPS
+
+  MDI_Register_node("@INIT_SYS");
+  MDI_Register_command("@INIT_SYS", ">CELL");
+  MDI_Register_command("@INIT_SYS", ">CELL_DISPL");
+  MDI_Register_command("@INIT_SYS", ">CHARGES");
+  MDI_Register_command("@INIT_SYS", ">COORDS");
+  MDI_Register_command("@INIT_SYS", ">NATOMS");
+  MDI_Register_command("@INIT_SYS", ">TYPES");
+  MDI_Register_command("@INIT_SYS", ">VELOCITIES");
+  MDI_Register_command("@INIT_SYS", "EXIT");
 
   // node for setting up and running a dynamics simulation
 
   MDI_Register_node("@INIT_MD");
   MDI_Register_command("@INIT_MD", "<@");
-  MDI_Register_command("@INIT_MD", "<CELL");
-  MDI_Register_command("@INIT_MD", "<CELL_DISPL");
-  MDI_Register_command("@INIT_MD", "<CHARGES");
-  MDI_Register_command("@INIT_MD", "<COORDS");
-  MDI_Register_command("@INIT_MD", "<ENERGY");
-  MDI_Register_command("@INIT_MD", "<FORCES");
-  MDI_Register_command("@INIT_MD", "<KE");
-  MDI_Register_command("@INIT_MD", "<LABELS");
-  MDI_Register_command("@INIT_MD", "<MASSES");
   MDI_Register_command("@INIT_MD", "<NATOMS");
-  MDI_Register_command("@INIT_MD", "<PE");
-  MDI_Register_command("@INIT_MD", "<TYPES");
-  MDI_Register_command("@INIT_MD", ">CELL");
-  MDI_Register_command("@INIT_MD", ">CELL_DISPL");
-  MDI_Register_command("@INIT_MD", ">COORDS");
-  MDI_Register_command("@INIT_MD", ">FORCES");
-  MDI_Register_command("@INIT_MD", ">+FORCES");
   MDI_Register_command("@INIT_MD", "@");
   MDI_Register_command("@INIT_MD", "@DEFAULT");
   MDI_Register_command("@INIT_MD", "@COORDS");
@@ -563,23 +554,7 @@ void MDIEngine::mdi_commands()
 
   MDI_Register_node("@INIT_OPTG");
   MDI_Register_command("@INIT_OPTG", "<@");
-  MDI_Register_command("@INIT_OPTG", "<CELL");
-  MDI_Register_command("@INIT_OPTG", "<CELL_DISPL");
-  MDI_Register_command("@INIT_OPTG", "<CHARGES");
-  MDI_Register_command("@INIT_OPTG", "<COORDS");
-  MDI_Register_command("@INIT_OPTG", "<ENERGY");
-  MDI_Register_command("@INIT_OPTG", "<FORCES");
-  MDI_Register_command("@INIT_OPTG", "<KE");
-  MDI_Register_command("@INIT_OPTG", "<LABELS");
-  MDI_Register_command("@INIT_OPTG", "<MASSES");
   MDI_Register_command("@INIT_OPTG", "<NATOMS");
-  MDI_Register_command("@INIT_OPTG", "<PE");
-  MDI_Register_command("@INIT_OPTG", "<TYPES");
-  MDI_Register_command("@INIT_OPTG", ">CELL");
-  MDI_Register_command("@INIT_OPTG", ">CELL_DISPL");
-  MDI_Register_command("@INIT_OPTG", ">COORDS");
-  MDI_Register_command("@INIT_OPTG", ">FORCES");
-  MDI_Register_command("@INIT_OPTG", ">+FORCES");
   MDI_Register_command("@INIT_OPTG", "@");
   MDI_Register_command("@INIT_OPTG", "@DEFAULT");
   MDI_Register_command("@INIT_OPTG", "@COORDS");
@@ -588,82 +563,74 @@ void MDIEngine::mdi_commands()
   MDI_Register_command("@INIT_OPTG", "EXIT");
 
   // node at POST_INTEGRATE location in timestep
+  // only if fix MDI/ENGINE is instantiated
 
-  MDI_Register_node("@COORDS");
-  MDI_Register_command("@COORDS", "<@");
-  MDI_Register_command("@COORDS", "<CELL");
-  MDI_Register_command("@COORDS", "<CELL_DISPL");
-  MDI_Register_command("@COORDS", "<CHARGES");
-  MDI_Register_command("@COORDS", "<COORDS");
-  MDI_Register_command("@COORDS", "<ENERGY");
-  MDI_Register_command("@COORDS", "<FORCES");
-  MDI_Register_command("@COORDS", "<KE");
-  MDI_Register_command("@COORDS", "<LABELS");
-  MDI_Register_command("@COORDS", "<MASSES");
-  MDI_Register_command("@COORDS", "<NATOMS");
-  MDI_Register_command("@COORDS", "<PE");
-  MDI_Register_command("@COORDS", "<TYPES");
-  MDI_Register_command("@COORDS", ">CELL");
-  MDI_Register_command("@COORDS", ">CELL_DISPL");
-  MDI_Register_command("@COORDS", ">COORDS");
-  MDI_Register_command("@COORDS", ">FORCES");
-  MDI_Register_command("@COORDS", ">+FORCES");
-  MDI_Register_command("@COORDS", "@");
-  MDI_Register_command("@COORDS", "@DEFAULT");
-  MDI_Register_command("@COORDS", "@COORDS");
-  MDI_Register_command("@COORDS", "@FORCES");
-  MDI_Register_command("@COORDS", "@ENDSTEP");
-  MDI_Register_command("@COORDS", "EXIT");
+  if (enable_fix) {
+    MDI_Register_node("@COORDS");
+    MDI_Register_command("@COORDS", "<@");
+    MDI_Register_command("@COORDS", "<COORDS");
+    MDI_Register_command("@COORDS", ">COORDS");
+    MDI_Register_command("@COORDS", "@");
+    MDI_Register_command("@COORDS", "@DEFAULT");
+    MDI_Register_command("@COORDS", "@COORDS");
+    MDI_Register_command("@COORDS", "@FORCES");
+    MDI_Register_command("@COORDS", "@ENDSTEP");
+    MDI_Register_command("@COORDS", "EXIT");
+  }
 
   // node at POST_FORCE location in timestep
+  // only if fix MDI/ENGINE is instantiated
 
-  MDI_Register_node("@FORCES");
-  MDI_Register_callback("@FORCES", ">FORCES");
-  MDI_Register_callback("@FORCES", ">+FORCES");
-  MDI_Register_command("@FORCES", "<@");
-  MDI_Register_command("@FORCES", "<CELL");
-  MDI_Register_command("@FORCES", "<CELL_DISPL");
-  MDI_Register_command("@FORCES", "<CHARGES");
-  MDI_Register_command("@FORCES", "<COORDS");
-  MDI_Register_command("@FORCES", "<ENERGY");
-  MDI_Register_command("@FORCES", "<FORCES");
-  MDI_Register_command("@FORCES", "<KE");
-  MDI_Register_command("@FORCES", "<LABELS");
-  MDI_Register_command("@FORCES", "<MASSES");
-  MDI_Register_command("@FORCES", "<NATOMS");
-  MDI_Register_command("@FORCES", "<PE");
-  MDI_Register_command("@FORCES", "<TYPES");
-  MDI_Register_command("@FORCES", ">CELL");
-  MDI_Register_command("@FORCES", ">CELL_DISPL");
-  MDI_Register_command("@FORCES", ">COORDS");
-  MDI_Register_command("@FORCES", ">FORCES");
-  MDI_Register_command("@FORCES", ">+FORCES");
-  MDI_Register_command("@FORCES", "@");
-  MDI_Register_command("@FORCES", "@DEFAULT");
-  MDI_Register_command("@FORCES", "@COORDS");
-  MDI_Register_command("@FORCES", "@FORCES");
-  MDI_Register_command("@FORCES", "@ENDSTEP");
-  MDI_Register_command("@FORCES", "EXIT");
+  if (enable_fix) {
+    MDI_Register_node("@FORCES");
+    MDI_Register_command("@FORCES", "<@"); 
+    MDI_Register_command("@FORCES", "<ENERGY");
+    MDI_Register_command("@FORCES", "<FORCES");
+    MDI_Register_command("@FORCES", "<PE");
+    MDI_Register_command("@FORCES", "<STRESS");
+    MDI_Register_callback("@FORCES", ">FORCES");
+    MDI_Register_callback("@FORCES", ">+FORCES");
+    MDI_Register_command("@FORCES", "<KE");
+    MDI_Register_command("@FORCES", "@");
+    MDI_Register_command("@FORCES", "@DEFAULT");
+    MDI_Register_command("@FORCES", "@COORDS");
+    MDI_Register_command("@FORCES", "@FORCES");
+    MDI_Register_command("@FORCES", "@ENDSTEP");
+    MDI_Register_command("@FORCES", "EXIT");
+  }
 
   // node at END_OF_STEP location in timestep
+  // only if fix MDI/ENGINE is instantiated
 
-  MDI_Register_node("@ENDSTEP");
-  MDI_Register_command("@ENDSTEP", "<@");
-  MDI_Register_command("@ENDSTEP", "<ENERGY");
-  MDI_Register_command("@ENDSTEP", "@");
-  MDI_Register_command("@ENDSTEP", "@DEFAULT");
-  MDI_Register_command("@ENDSTEP", "@COORDS");
-  MDI_Register_command("@ENDSTEP", "@FORCES");
-  MDI_Register_command("@ENDSTEP", "@ENDSTEP");
-  MDI_Register_command("@ENDSTEP", "EXIT");
+  if (enable_fix) {
+    MDI_Register_node("@ENDSTEP");
+    MDI_Register_command("@ENDSTEP", "<@");
+    MDI_Register_command("@FORCES", "<ENERGY");
+    MDI_Register_command("@FORCES", "<FORCES");
+    MDI_Register_command("@FORCES", "<PE");
+    MDI_Register_command("@FORCES", "<STRESS");
+    MDI_Register_command("@ENDSTEP", "@");
+    MDI_Register_command("@ENDSTEP", "@DEFAULT");
+    MDI_Register_command("@ENDSTEP", "@COORDS");
+    MDI_Register_command("@ENDSTEP", "@FORCES");
+    MDI_Register_command("@ENDSTEP", "@ENDSTEP");
+    MDI_Register_command("@ENDSTEP", "EXIT");
+  }
 }
 
 /* ----------------------------------------------------------------------
-   run  MD simulation under control of driver one step at a time
+   run MD simulation under control of driver one step at a time
+   use of fix MDI/ENGINE allows MDI comm within timesteps
 ---------------------------------------------------------------------- */
 
 void MDIEngine::mdi_md()
 {
+  // add an instance of fix MDI/ENGINE
+  // delete the instance before this method returns
+
+  if (!enable_fix) 
+    error->all(FLERR,"MDI engine command did not enable @INIT_MD support");
+
   modify->add_fix("MDI_ENGINE_INTERNAL all MDI/ENGINE");
   mdi_fix = (FixMDIEngine *) modify->get_fix_by_id("MDI_ENGINE_INTERNAL");
   mdi_fix->mdi_engine = this;
@@ -682,10 +649,14 @@ void MDIEngine::mdi_md()
   lmp->init();
 
   // engine is now at @INIT_MD node
-  // receive any commands driver may wish to send
+  // receive any commands driver wishes to send
 
   engine_node("@INIT_MD");
-  if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) return;
+
+  if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) {
+    modify->delete_fix("MDI_ENGINE_INTERNAL");
+    return;
+  }
 
   // setup the MD simulation
 
@@ -707,8 +678,7 @@ void MDIEngine::mdi_md()
 
     update->integrate->run(1);
 
-    // driver triggers end of MD loop by senging @DEFAULT or EXIT
-    // delete fix with ID = MDI_ENGINE_INTERNAL
+    // driver triggers end of MD loop by sending @DEFAULT or EXIT
 
     if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) {
       modify->delete_fix("MDI_ENGINE_INTERNAL");
@@ -718,13 +688,24 @@ void MDIEngine::mdi_md()
 }
 
 /* ----------------------------------------------------------------------
-   perform minimization under control of driver
+   perform minimization under control of driver one iteration at a time
+   use of fix MDI/ENGINE allows MDI comm within iteration
 ---------------------------------------------------------------------- */
 
 void MDIEngine::mdi_optg()
 {
-  // setup the minimizer in a way that ensures optimization
-  // will continue until MDI driver exits
+  // add an instance of fix MDI/ENGINE
+  // delete the instance before this method returns
+
+  if (!enable_fix) 
+    error->all(FLERR,"MDI engine command did not enable @INIT_OPTG support");
+
+  modify->add_fix("MDI_ENGINE_INTERNAL all MDI/ENGINE");
+  mdi_fix = (FixMDIEngine *) modify->get_fix_by_id("MDI_ENGINE_INTERNAL");
+  mdi_fix->mdi_engine = this;
+
+  // set tolerances to epsilon and iteration limits huge
+  // allows MDI driver to force an exit
 
   update->etol = std::numeric_limits<double>::min();
   update->ftol = std::numeric_limits<double>::min();
@@ -738,10 +719,14 @@ void MDIEngine::mdi_optg()
   lmp->init();
 
   // engine is now at @INIT_OPTG node
+  // receive any commands driver wishes to send
 
   engine_node("@INIT_OPTG");
 
-  if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) return;
+  if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) {
+    modify->delete_fix("MDI_ENGINE_INTERNAL");
+    return;
+  }
 
   // setup the minimization
 
@@ -749,20 +734,87 @@ void MDIEngine::mdi_optg()
 
   if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) return;
 
-  // Start a minimization, which is configured to run (essentially)
-  //       infinite steps.  When the driver sends the EXIT command,
-  //       the minimizer's energy and force tolerances are set to
-  //       extremely large values, causing the minimization to end.
+  // start minimization
+  // when the driver sends @DEFAULT or EXIT minimizer tolerances are 
+  // set to large values to force it to exit
 
   update->minimize->iterate(update->nsteps);
 
   // return if driver sends @DEFAULT or EXIT
 
+  if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) {
+    modify->delete_fix("MDI_ENGINE_INTERNAL");
+    return;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   initialize a new simulation for single-point calc or dynamics or min
+---------------------------------------------------------------------- */
+
+void MDIEngine::mdi_sys()
+{
+  // engine is now at @INIT_SYS node
+  // receive commands driver sends to define the system
+  // GO command will force return from INIT_SYS
+
+  engine_node("@INIT_SYS");
+
   if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) return;
 
-  error->all(FLERR,
-             fmt::format("MDI reached end of OPTG simulation "
-                         "with invalid command: {}",mdicmd));
+  // clear system via delete_atoms command
+  // lib->reset_box()
+  // lib->create_atoms()
+  // then init LAMMPS for new system for MD or min
+
+  //lmp->input->command();
+
+  // initialize a new simulation
+
+  update->whichflag = 1;
+  timer->init_timeout();
+  update->nsteps = 1;
+  update->ntimestep = 0;
+  update->firststep = update->ntimestep;
+  update->laststep = update->ntimestep + update->nsteps;
+  update->beginstep = update->firststep;
+  update->endstep = update->laststep;
+
+  lmp->init();
+
+  // setup the MD simulation
+
+  update->integrate->setup(1);
+
+  // run MD one step at a time until driver sends @DEFAULT or EXIT
+  // driver can communicate with LAMMPS within each timestep 
+  // by sending a node command which matches a method in FixMDIEngine
+
+  while (true) {
+    update->whichflag = 1;
+    timer->init_timeout();
+    update->nsteps += 1;
+    update->laststep += 1;
+    update->endstep = update->laststep;
+    output->next = update->ntimestep + 1;
+
+    // single MD timestep
+
+    update->integrate->run(1);
+
+    // driver triggers end of MD loop by sending @DEFAULT or EXIT
+
+    if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) {
+      modify->delete_fix("MDI_ENGINE_INTERNAL");
+      return;
+    }
+  }
+
+  // check that return is NOT GO
+
+  engine_node("@INIT_SYS");
+
+  if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) return;
 }
 
 /* ----------------------------------------------------------------------
@@ -818,9 +870,167 @@ void MDIEngine::evaluate()
 
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
-// responses to standard MDI driver commands
+// responses to ">" MDI driver commands that send data
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
+
+/* ----------------------------------------------------------------------
+   >CELL command
+   reset the simulation box edge vectors
+   in conjunction with >CELL_DISPL this can adjust box arbitrarily
+---------------------------------------------------------------------- */
+
+void MDIEngine::receive_cell()
+{
+  if (mode == DEFAULT) receive_cell_default();
+  else if (mode == SYS) receive_cell_sys();
+}
+
+void MDIEngine::receive_cell_default()
+{
+  double cell[9];
+
+  int ierr = MDI_Recv(cell,9,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >CELL data");
+  MPI_Bcast(cell,9,MPI_DOUBLE,0,world);
+
+  for (int icell = 0; icell < 9; icell++) 
+    cell[icell] *= mdi2lmp_length;
+
+  // error check that edge vectors match LAMMPS triclinic requirement
+
+  if (cell[1] != 0.0 || cell[2] != 0.0 || cell[5] != 0.0)
+    error->all(FLERR,"MDI: Received cell edges are not LAMMPS compatible");
+
+  // convert atoms to lamda coords before changing box
+
+  domain->x2lamda(atom->nlocal);
+
+  // convert celldata to new boxlo, boxhi, and tilt factors
+
+  domain->boxhi[0] = cell[0] + domain->boxlo[0];
+  domain->boxhi[1] = cell[4] + domain->boxlo[1];
+  domain->boxhi[2] = cell[8] + domain->boxlo[2];
+
+  domain->xy = cell[3];
+  domain->xz = cell[6];
+  domain->yz = cell[7];
+
+  // reset all Domain variables that depend on box size/shape
+  // convert atoms coords back to new box coords
+
+  domain->set_global_box();
+  domain->set_local_box();
+  domain->lamda2x(atom->nlocal);
+}
+
+void MDIEngine::receive_cell_sys()
+{
+  int ierr = MDI_Recv(sys_cell,9,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >CELL data");
+  MPI_Bcast(sys_cell,9,MPI_DOUBLE,0,world);
+
+  for (int icell = 0; icell < 9; icell++) 
+    sys_cell[icell] *= mdi2lmp_length;
+
+  // error check that edge vectors match LAMMPS triclinic requirement
+
+  if (sys_cell[1] != 0.0 || sys_cell[2] != 0.0 || sys_cell[5] != 0.0)
+    error->all(FLERR,"MDI: Received cell edges are not LAMMPS compatible");
+}
+
+/* ----------------------------------------------------------------------
+   >CELL_DISPL command
+   reset simulation box origin = lower-left corner
+---------------------------------------------------------------------- */
+
+void MDIEngine::receive_cell_displ()
+{
+  if (mode == DEFAULT) receive_cell_displ_default();
+  else if (mode == SYS) receive_cell_displ_sys();
+}
+
+void MDIEngine::receive_cell_displ_default()
+{
+  double cell_displ[3];
+  int ierr = MDI_Recv(cell_displ,3,MDI_DOUBLE,mdicomm);
+  if (ierr) 
+    error->all(FLERR,"MDI: >CELL_DISPLS data");
+  MPI_Bcast(cell_displ,3,MPI_DOUBLE,0,world);
+
+  for (int icell = 0; icell < 3; icell++)
+    cell_displ[icell] *= mdi2lmp_length;
+
+  // convert atoms to lamda coords before changing box
+
+  domain->x2lamda(atom->nlocal);
+
+  // convert cell_displ to new boxlo and boxhi
+  
+  double old_boxlo[3];
+  old_boxlo[0] = domain->boxlo[0];
+  old_boxlo[1] = domain->boxlo[1];
+  old_boxlo[2] = domain->boxlo[2];
+
+  domain->boxlo[0] = cell_displ[0];
+  domain->boxlo[1] = cell_displ[1];
+  domain->boxlo[2] = cell_displ[2];
+
+  domain->boxhi[0] += domain->boxlo[0] - old_boxlo[0];
+  domain->boxhi[1] += domain->boxlo[1] - old_boxlo[1];
+  domain->boxhi[2] += domain->boxlo[2] - old_boxlo[2];
+
+  // reset all Domain variables that depend on box origin
+  // convert atoms coords back to new box coords
+
+  domain->set_global_box();
+  domain->set_local_box();
+  domain->lamda2x(atom->nlocal);
+}
+
+void MDIEngine::receive_cell_displ_sys()
+{
+  int ierr = MDI_Recv(sys_cell_displ,3,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: >CELL_DISPLS data");
+  MPI_Bcast(sys_cell_displ,3,MPI_DOUBLE,0,world);
+
+  for (int icell = 0; icell < 3; icell++)
+    sys_cell_displ[icell] *= mdi2lmp_length;
+}
+
+/* ----------------------------------------------------------------------
+   >CHARGES command
+---------------------------------------------------------------------- */
+
+void MDIEngine::receive_charges()
+{
+  if (mode == DEFAULT) receive_double1(CHARGE);
+  else if (mode == SYS) receive_charges_sys();
+}
+
+void MDIEngine::receive_charges_sys()
+{
+  int ierr = MDI_Recv(sys_charges,sys_natoms,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: >CHARGES data");
+  MPI_Bcast(sys_charges,sys_natoms,MPI_DOUBLE,0,world);
+}
+
+/* ----------------------------------------------------------------------
+   >COORDS command
+---------------------------------------------------------------------- */
+
+void MDIEngine::receive_coords()
+{
+  if (mode == DEFAULT) receive_double3(COORD,0);
+  else if (mode == SYS) receive_coords_sys();
+}
+
+void MDIEngine::receive_coords_sys()
+{
+  int ierr = MDI_Recv(sys_coords,3*sys_natoms,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: >COORDS data");
+  MPI_Bcast(sys_coords,3*sys_natoms,MPI_DOUBLE,0,world);
+}
 
 /* ----------------------------------------------------------------------
    >NATOMS command
@@ -828,6 +1038,12 @@ void MDIEngine::evaluate()
 ---------------------------------------------------------------------- */
 
 void MDIEngine::receive_natoms()
+{
+  if (mode == DEFAULT) receive_natoms_default();
+  else if (mode == SYS) receive_natoms_sys();
+}
+
+void MDIEngine::receive_natoms_default()
 {
   int natoms;
   int ierr = MDI_Recv(&natoms,1,MDI_INT,mdicomm);
@@ -837,26 +1053,46 @@ void MDIEngine::receive_natoms()
   atom->natoms = natoms;
 }
 
-/* ----------------------------------------------------------------------
-   <NATOMS command
-   natoms cannot exceed 32-bit int for use with MDI
----------------------------------------------------------------------- */
-
-void MDIEngine::send_natoms()
+void MDIEngine::receive_natoms_sys()
 {
-  int natoms = static_cast<int> (atom->natoms);
-  int ierr = MDI_Send(&natoms,1,MDI_INT,mdicomm);
-  if (ierr != 0) error->all(FLERR,"MDI: <NATOMS data");
+  int ierr = MDI_Recv(&sys_natoms,1,MDI_INT,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: >NATOMS data");
+  MPI_Bcast(&sys_natoms,1,MPI_INT,0,world);
+  if (sys_natoms < 0) error->all(FLERR,"MDI received natoms < 0");
 }
 
 /* ----------------------------------------------------------------------
-   <NTYPES command
+   >TYPES command
 ---------------------------------------------------------------------- */
 
-void MDIEngine::send_ntypes()
+void MDIEngine::receive_types()
 {
-  int ierr = MDI_Send(&atom->ntypes,1,MDI_INT,mdicomm);
-  if (ierr != 0) error->all(FLERR, "MDI: <NTYPES data");
+  if (mode == DEFAULT) receive_int1(TYPE);
+  else if (mode == SYS) receive_types_sys();
+}
+
+void MDIEngine::receive_types_sys()
+{
+  int ierr = MDI_Recv(sys_types,sys_natoms,MDI_INT,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: >TYPES data");
+  MPI_Bcast(sys_types,sys_natoms,MPI_INT,0,world);
+}
+
+/* ----------------------------------------------------------------------
+   >VELOCITIES command
+---------------------------------------------------------------------- */
+
+void MDIEngine::receive_velocities()
+{
+  if (mode == DEFAULT) receive_double3(VELOCITY,0);
+  else if (mode == SYS) receive_velocities_sys();
+}
+
+void MDIEngine::receive_velocities_sys()
+{
+  int ierr = MDI_Recv(sys_velocities,3*sys_natoms,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: >VELOCITIES data");
+  MPI_Bcast(sys_velocities,3*sys_natoms,MPI_DOUBLE,0,world);
 }
 
 /* ----------------------------------------------------------------------
@@ -874,7 +1110,7 @@ void MDIEngine::receive_double1(int which)
   if (ierr) error->all(FLERR,"MDI: >double1 data");
   MPI_Bcast(buf1,atom->natoms,MPI_DOUBLE,0,world);
 
-  // extract onwed atom values
+  // extract owned atom values
   // use atomID to index into ordered buf
 
   tagint *tag = atom->tag;
@@ -906,7 +1142,7 @@ void MDIEngine::receive_int1(int which)
   if (ierr) error->all(FLERR,"MDI: >int1 data");
   MPI_Bcast(ibuf1,atom->natoms,MPI_INT,0,world);
 
-  // extract onwed atom values
+  // extract owned atom values
   // use atomID to index into ordered buf
 
   tagint *tag = atom->tag;
@@ -982,28 +1218,37 @@ void MDIEngine::receive_double3(int which, int addflag)
       v[i][2] = buf3[3*ilocal+2] * mdi2lmp_velocity;
     }
   }
-
-  // NOTE: these operations cannot be done in the middle
-  //       of an arbitrary timestep, only when reneighboring is done
-
-  /*
-  // ensure atoms are in current box & update box via shrink-wrap
-  // has to be be done before invoking Irregular::migrate_atoms()
-  //   since it requires atoms be inside simulation box
-
-  if (domain->triclinic) domain->x2lamda(atom->nlocal);
-  domain->pbc();
-  domain->reset_box();
-  if (domain->triclinic) domain->lamda2x(atom->nlocal);
-
-  // move atoms to new processors via irregular() 
-  // only needed if migrate_check() says an atom moves too far
-
-  if (domain->triclinic) domain->x2lamda(atom->nlocal);
-  if (irregular->migrate_check()) irregular->migrate_atoms();
-  if (domain->triclinic) domain->lamda2x(atom->nlocal);
-  */
 }
+
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+// responses to "<" MDI driver commands that request data
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+
+/* ----------------------------------------------------------------------
+   <NATOMS command
+   natoms cannot exceed 32-bit int for use with MDI
+---------------------------------------------------------------------- */
+
+void MDIEngine::send_natoms()
+{
+  int natoms = static_cast<int> (atom->natoms);
+  int ierr = MDI_Send(&natoms,1,MDI_INT,mdicomm);
+  if (ierr != 0) error->all(FLERR,"MDI: <NATOMS data");
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* ----------------------------------------------------------------------
    send vector of 1 double for all atoms
@@ -1180,7 +1425,7 @@ void MDIEngine::send_total_energy()
    send potential energy
 ---------------------------------------------------------------------- */
 
-void MDIEngine::send_energy()
+void MDIEngine::send_pe()
 {
   double potential_energy = pe->compute_scalar();
   potential_energy *= lmp2mdi_energy;
@@ -1230,55 +1475,11 @@ void MDIEngine::send_cell()
 }
 
 /* ----------------------------------------------------------------------
-   >CELL command
-   reset the simulation box edge vectors
-   in conjunction with >CELL_DISPL this can adjust box arbitrarily
----------------------------------------------------------------------- */
-
-void MDIEngine::receive_cell()
-{
-  double celldata[9];
-
-  int ierr = MDI_Recv(celldata,9,MDI_DOUBLE,mdicomm);
-  if (ierr) error->all(FLERR, "MDI: >CELL data");
-  MPI_Bcast(celldata,9,MPI_DOUBLE,0,world);
-
-  for (int icell = 0; icell < 9; icell++) 
-    celldata[icell] *= mdi2lmp_length;
-
-  // error check that edge vectors match LAMMPS triclinic requirement
-
-  if (celldata[1] != 0.0 || celldata[2] != 0.0 || celldata[5] != 0.0)
-    error->all(FLERR,"MDI: Received cell edges are not LAMMPS compatible");
-
-  // convert atoms to lamda coords before changing box
-
-  domain->x2lamda(atom->nlocal);
-
-  // convert celldata to new boxlo, boxhi, and tilt factors
-
-  domain->boxhi[0] = celldata[0] + domain->boxlo[0];
-  domain->boxhi[1] = celldata[4] + domain->boxlo[1];
-  domain->boxhi[2] = celldata[8] + domain->boxlo[2];
-
-  domain->xy = celldata[3];
-  domain->xz = celldata[6];
-  domain->yz = celldata[7];
-
-  // reset all Domain variables that depend on box size/shape
-  // convert atoms coords back to new box coords
-
-  domain->set_global_box();
-  domain->set_local_box();
-  domain->lamda2x(atom->nlocal);
-}
-
-/* ----------------------------------------------------------------------
    <CELL_DISPL command
    send simulation box origin = lower-left corner
 ---------------------------------------------------------------------- */
 
-void MDIEngine::send_celldispl()
+void MDIEngine::send_cell_displ()
 {
   double celldata[3];
 
@@ -1291,49 +1492,6 @@ void MDIEngine::send_celldispl()
 
   int ierr = MDI_Send(celldata,3,MDI_DOUBLE,mdicomm);
   if (ierr) error->all(FLERR,"MDI: <CELL_DISPLS data");
-}
-
-/* ----------------------------------------------------------------------
-   >CELL_DISPL command
-   reset simulation box origin = lower-left corner
----------------------------------------------------------------------- */
-
-void MDIEngine::receive_celldispl()
-{
-  double celldata[3];
-  int ierr = MDI_Recv(celldata,3,MDI_DOUBLE,mdicomm);
-  if (ierr) 
-    error->all(FLERR,"MDI: >CELL_DISPLS data");
-  MPI_Bcast(celldata,3,MPI_DOUBLE,0,world);
-
-  for (int icell = 0; icell < 3; icell++)
-    celldata[icell] *= mdi2lmp_length;
-
-  // convert atoms to lamda coords before changing box
-
-  domain->x2lamda(atom->nlocal);
-
-  // convert celldata to new boxlo and boxhi
-  
-  double old_boxlo[3];
-  old_boxlo[0] = domain->boxlo[0];
-  old_boxlo[1] = domain->boxlo[1];
-  old_boxlo[2] = domain->boxlo[2];
-
-  domain->boxlo[0] = celldata[0];
-  domain->boxlo[1] = celldata[1];
-  domain->boxlo[2] = celldata[2];
-
-  domain->boxhi[0] += domain->boxlo[0] - old_boxlo[0];
-  domain->boxhi[1] += domain->boxlo[1] - old_boxlo[1];
-  domain->boxhi[2] += domain->boxlo[2] - old_boxlo[2];
-
-  // reset all Domain variables that depend on box origin
-  // convert atoms coords back to new box coords
-
-  domain->set_global_box();
-  domain->set_local_box();
-  domain->lamda2x(atom->nlocal);
 }
 
 // ----------------------------------------------------------------------

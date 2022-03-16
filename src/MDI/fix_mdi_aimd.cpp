@@ -206,14 +206,14 @@ void FixMDIAimd::post_force(int vflag)
     f[i][2] += buf3[3*ilocal+2] * mdi2lmp_force;
   }
 
-  // optionally request energy from MDI engine
+  // optionally request potential energy from MDI engine
   // divide by nprocs so each proc stores a portion
 
   if (eflag_global) {
-    ierr = MDI_Send_command("<ENERGY",mdicomm);
-    if (ierr) error->all(FLERR,"MDI: <ENERGY command");
+    ierr = MDI_Send_command("<PE",mdicomm);
+    if (ierr) error->all(FLERR,"MDI: <PE command");
     ierr = MDI_Recv(&engine_energy,1,MDI_DOUBLE,mdicomm);
-    if (ierr) error->all(FLERR,"MDI: <ENERGY data");
+    if (ierr) error->all(FLERR,"MDI: <PE data");
     MPI_Bcast(&engine_energy,1,MPI_DOUBLE,0,world);
     engine_energy *= mdi2lmp_energy / nprocs;
   }

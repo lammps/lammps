@@ -49,6 +49,8 @@ int FixMDIEngine::setmask()
 
 void FixMDIEngine::setup(int vflag)
 {
+  // engine is now at FORCES node
+
   mdi_engine->engine_node("@FORCES");
 }
 
@@ -56,6 +58,8 @@ void FixMDIEngine::setup(int vflag)
 
 void FixMDIEngine::post_integrate()
 {
+  // engine is now at COORDS node for MD
+
   mdi_engine->engine_node("@COORDS");
 }
 
@@ -63,6 +67,8 @@ void FixMDIEngine::post_integrate()
 
 void FixMDIEngine::min_pre_force(int vflag)
 {
+  // engine is now at COORDS node for minimizer
+
   mdi_engine->engine_node("@COORDS");
 }
 
@@ -70,6 +76,8 @@ void FixMDIEngine::min_pre_force(int vflag)
 
 void FixMDIEngine::post_force(int vflag)
 {
+  // engine is now at FORCES node for MD
+
   mdi_engine->engine_node("@FORCES");
 }
 
@@ -77,6 +85,8 @@ void FixMDIEngine::post_force(int vflag)
 
 void FixMDIEngine::min_post_force(int vflag)
 {
+  // engine is now at FORCES node for minimizer
+
   mdi_engine->engine_node("@FORCES");
 }
 
@@ -84,5 +94,7 @@ void FixMDIEngine::min_post_force(int vflag)
 
 void FixMDIEngine::end_of_step()
 {
+  // engine is now at ENDSTEP node for MD
+
   mdi_engine->engine_node("@ENDSTEP");
 }

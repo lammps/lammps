@@ -176,6 +176,7 @@ class log:
 
     # write col names from dict in the right order
     if writenames:
+      print("# ", file=f, end="")
       colnames = [k for j in colmap for k,v in self.ptr.items() if v == j]
       for j in range(len(colnames)):
         print(colnames[j], file=f, end=" ")

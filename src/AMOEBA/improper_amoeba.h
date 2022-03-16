@@ -11,46 +11,36 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef ANGLE_CLASS
+#ifdef IMPROPER_CLASS
 // clang-format off
-AngleStyle(amoeba,AngleAmoeba);
+ImproperStyle(amoeba,ImproperAmoeba);
 // clang-format on
 #else
 
-#ifndef LMP_ANGLE_AMOEBA_H
-#define LMP_ANGLE_AMOEBA_H
+#ifndef LMP_IMPROPER_AMOEBA_H
+#define LMP_IMPROPER_AMOEBA_H
 
-#include "angle.h"
+#include "improper.h"
 
 namespace LAMMPS_NS {
 
-class AngleAmoeba : public Angle {
+class ImproperAmoeba : public Improper {
  public:
-  AngleAmoeba(class LAMMPS *);
-  virtual ~AngleAmoeba();
+  ImproperAmoeba(class LAMMPS *);
+  ~ImproperAmoeba();
   void compute(int, int);
   void coeff(int, char **);
   void init_style();
-  double equilibrium_angle(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_data(FILE *);
-  double single(int, int, int, int);
 
  protected:
-  int *pflag, *ubflag;
-  double *theta0, *k2, *k3, *k4, *k5, *k6;
-  double *ba_k1, *ba_k2, *ba_r1, *ba_r2;
-  double *ub_k, *ub_r0;
-  int *setflag_a, *setflag_ba, *setflag_ub;
+  int disable;
+  double opbend_cubic,opbend_quartic,opbend_pentic,opbend_sextic;
+  double *k;
 
-  int enable_angle,enable_urey;
-
-  void tinker_angle(int, int, int, int, int);
-  void tinker_anglep(int, int, int, int, int);
-  void tinker_bondangle(int, int, int, int, int);
-  void tinker_urey_bradley(int, int, int, int);
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS
@@ -60,7 +50,12 @@ class AngleAmoeba : public Angle {
 
 /* ERROR/WARNING messages:
 
-E: Incorrect args for angle coefficients
+W: Improper problem: %d %ld %d %d %d %d
+
+Conformation of the 4 listed improper atoms is extreme; you may want
+to check your simulation geometry.
+
+E: Incorrect args for improper coefficients
 
 Self-explanatory.  Check the input script or data file.
 

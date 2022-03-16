@@ -30,6 +30,7 @@ class BondClass2 : public Bond {
   virtual ~BondClass2();
   virtual void compute(int, int);
   virtual void coeff(int, char **);
+  void init_style();
   double equilibrium_distance(int);
   void write_restart(FILE *);
   virtual void read_restart(FILE *);
@@ -39,6 +40,7 @@ class BondClass2 : public Bond {
 
  protected:
   double *r0, *k2, *k3, *k4;
+  int disable;
 
   void allocate();
 };

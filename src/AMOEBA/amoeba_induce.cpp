@@ -41,6 +41,8 @@ enum{GORDON1,GORDON2};
 
 #define DEBYE 4.80321    // conversion factor from q-Angs (real units) to Debye
 
+#define UIND_DEBUG 0
+
 /* ----------------------------------------------------------------------
    induce = induced dipole moments via pre-conditioned CG solver
    adapted from Tinker induce0a() routine
@@ -586,7 +588,7 @@ void PairAmoeba::induce()
 
   // DEBUG output to dump file
 
-  if (uind_flag) 
+  if (UIND_DEBUG) 
     dump6(fp_uind,"id uindx uindy uindz uinpx uinpy uinpz",DEBYE,uind,uinp);
 
   // deallocation of arrays
@@ -762,11 +764,11 @@ void PairAmoeba::ufield0c(double **field, double **fieldp)
 
   // get the reciprocal space part of the mutual field
 
-  if (kspace_flag) umutual1(field,fieldp);
+  if (polar_kspace_flag) umutual1(field,fieldp);
 
   // get the real space portion of the mutual field
 
-  if (rspace_flag) umutual2b(field,fieldp);
+  if (polar_rspace_flag) umutual2b(field,fieldp);
   
   // add the self-energy portion of the mutual field
 
@@ -1030,7 +1032,7 @@ void PairAmoeba::dfield0c(double **field, double **fieldp)
 
   // get the reciprocal space part of the permanent field
 
-  if (kspace_flag) udirect1(field);
+  if (polar_kspace_flag) udirect1(field);
 
   for (i = 0; i < nlocal; i++) {
     for (j = 0; j < 3; j++) {
@@ -1040,7 +1042,7 @@ void PairAmoeba::dfield0c(double **field, double **fieldp)
 
   // get the real space portion of the permanent field
 
-  if (rspace_flag) udirect2b(field,fieldp);
+  if (polar_rspace_flag) udirect2b(field,fieldp);
 
   // get the self-energy portion of the permanent field
 

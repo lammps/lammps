@@ -7,12 +7,13 @@
 #   -amoeba file = AMOEBA PRM force field file name (required, or hippo)
 #   -hippo file = HIPPO PRM force field file name (required, or amoeba)
 #   -data file = LAMMPS data file to output (required)
+#   -bitorsion file = LAMMPS fix bitorsion file to output (required if BiTorsions)
 #   -nopbc = non-periodic system (default)
 #   -pbc xhi yhi zhi = periodic system from 0 to hi in each dimension (optional)
 
+# Author: Steve Plimpton
+
 import sys,os,math
-path = os.environ["LAMMPS_PYTHON_TOOLS"]
-sys.path.append(path)
 from data import data
 
 BIG = 1.0e20
@@ -31,10 +32,11 @@ def error(txt=""):
     print "  -amoeba file"
     print "  -hippo file"
     print "  -data file"
+    print "  -bitorsion file"
     print "  -nopbc"
     print "  -pbc xhi yhi zhi"
   else: print "ERROR:",txt
-  sys.exit()
+  #sys.exit()
 
 # read and store values from a Tinker xyz file
 
@@ -105,8 +107,22 @@ class PRMfile:
     self.angleparams = self.angles()
     self.bondangleparams = self.bondangles()
     self.torsionparams = self.torsions()
+    self.opbendparams = self.opbend()
+    self.ureyparams = self.ureybonds()
+    self.pitorsionparams = self.pitorsions()
+    self.bitorsionparams = self.bitorsions()
     self.ntypes = len(self.masses)
 
+  # find a section in the PRM file
+  
+  def find_section(self,txt):
+    txt = "##  %s  ##" % txt
+    for iline,line in enumerate(self.lines):
+      if txt in line: return iline
+    return -1
+
+  # scalar params
+  
   def force_field_definition(self):
     iline = self.find_section("Force Field Definition")
     iline += 3
@@ -121,7 +137,9 @@ class PRMfile:
         elif words[0] == "angle-pentic": self.angle_pentic = float(words[1])
         elif words[0] == "angle-sextic": self.angle_sextic = float(words[1])
       iline += 1
-      
+
+  # atom classes and masses
+  
   def peratom(self):
     classes = []
     masses = []
@@ -139,6 +157,8 @@ class PRMfile:
       iline += 1
     return classes,masses
 
+  # polarization groups
+  
   def polarize(self):
     polgroup = []
     iline = self.find_section("Dipole Polarizability Parameters")
@@ -189,6 +209,7 @@ class PRMfile:
   
   def angles(self):
     r2d = 180.0 / math.pi
+    ubflag = 0
     params = []
     iline = self.find_section("Angle Bending Parameters")
     if iline < 0: return params
@@ -219,17 +240,17 @@ class PRMfile:
           lmp5 = self.angle_pentic * value1 * r2d*r2d*r2d
           lmp6 = self.angle_sextic * value1 * r2d*r2d*r2d*r2d
           
-          option1 = (pflag,lmp1,lmp2,lmp3,lmp4,lmp5,lmp6)
+          option1 = (pflag,ubflag,lmp1,lmp2,lmp3,lmp4,lmp5,lmp6)
           
           if len(words) >= 7:
             value3 = float(words[6])
             lmp1 = value3
-            option2 = (pflag,lmp1,lmp2,lmp3,lmp4,lmp5,lmp6)
+            option2 = (pflag,ubflag,lmp1,lmp2,lmp3,lmp4,lmp5,lmp6)
             
           if len(words) == 8:
             value4 = float(words[7])
             lmp1 = value4
-            option3 = (pflag,lmp1,lmp2,lmp3,lmp4,lmp5,lmp6)
+            option3 = (pflag,ubflag,lmp1,lmp2,lmp3,lmp4,lmp5,lmp6)
 
           if not option2 and not option3:
             params.append((class1,class2,class3,[option1]))
@@ -248,14 +269,14 @@ class PRMfile:
   
   def bondangles(self):
     params = []
-    iline = self.find_section("Stretch Bend Parameters")
+    iline = self.find_section("Stretch-Bend Parameters")
     if iline < 0: return params
     iline += 3
 
     bdict = {}
-    for m,params in enumerate(self.bondparams):
-      bdict[(params[0],params[1])] = params[2]
-    
+    for m,bparams in enumerate(self.bondparams):
+      bdict[(bparams[0],bparams[1])] = bparams[2]
+
     while iline < self.nlines:
       words = self.lines[iline].split()
       if len(words):
@@ -268,18 +289,33 @@ class PRMfile:
           value2 = float(words[5])
           lmp1 = value1
           lmp2 = value2
-          lmp3 = lmp4 = 0.0
-          if (class2,class1) in bdict: lmp3 = bdict[(class2,class1)]
-          if (class1,class2) in bdict: lmp3 = bdict[(class1,class2)]
-          if (class2,class3) in bdict: lmp4 = bdict[(class2,class3)]
-          if (class3,class2) in bdict: lmp4 = bdict[(class3,class2)]
-          if lmp3 == 0.0 or lmp4 == 0.0:
-            print "Bond in BondAngle term not found",class1,class2,class3
-            sys.exit()
+          
+          if (class1,class2) in bdict:
+            lmp3 = bdict[(class1,class2)]
+          elif (class2,class1) in bdict:
+            lmp3 = bdict[(class2,class1)]
+          else:
+            error("1st bond in BondAngle term not found: %d %d %d" % \
+                  (class1,class2,class3))
+            # NOTE: just for debugging
+            lmp3 = 0.0
+
+          if (class2,class3) in bdict:
+            lmp4 = bdict[(class2,class3)]
+          elif (class3,class2) in bdict:
+            lmp4 = bdict[(class3,class2)]
+          else:
+            error("2nd bond in BondAngle term not found: %d %d %d" % \
+                  (class1,class2,class3))
+            # NOTE: just for debugging
+            lmp4 = 0.0
+            
           params.append((class1,class2,class3,lmp1,lmp2,lmp3,lmp4))
       iline += 1
     return params
 
+  # dihedral interactions
+  
   def torsions(self):
     params = []
     iline = self.find_section("Torsional Parameters")
@@ -294,26 +330,136 @@ class PRMfile:
           class2 = int(words[2])
           class3 = int(words[3])
           class4 = int(words[4])
-          value1 = words[5]
-          value2 = words[6]
-          value3 = words[7]
-          value4 = words[8]
-          value5 = words[9]
-          value6 = words[10]
-          value7 = words[11]
-          value8 = words[12]
-          value9 = words[13]
-          params.append((class1,class2,class3,class4,
-                         value1,value2,value3,value4,value5,
-                         value6,value7,value8,value9))
+          
+          if len(words) <= 5:
+            error("torsion has no params: %d %d %d %d" % \
+                  (class1,class2,class3,class4))
+          if (len(words)-5) % 3: 
+            error("torsion does not have triplets of params: %d %d %d %d" % \
+                  (class1,class2,class3,class4))
+
+          mfourier = (len(words)-5) / 3
+          oneparams = [class1,class2,class3,class4,mfourier]
+
+          for iset in range(mfourier):
+            value1 = float(words[5 + iset*3 + 0])
+            value2 = float(words[5 + iset*3 + 1])
+            value3 = int(words[5 + iset*3 + 2])
+            lmp1 = value1/2.0
+            lmp2 = value3
+            lmp3 = value2
+            oneparams += [lmp1,lmp2,lmp3]
+            
+          params.append(oneparams)
+      iline += 1
+    return params
+
+  # improper or out-of-plane bend interactions
+  
+  def opbend(self):
+    params = []
+    iline = self.find_section("Out-of-Plane Bend Parameters")
+    if iline < 0: return params
+    iline += 3
+    while iline < self.nlines:
+      words = self.lines[iline].split()
+      if len(words):
+        if words[0].startswith("###########"): break
+        if words[0] == "opbend":
+          class1 = int(words[1])
+          class2 = int(words[2])
+          class3 = int(words[3])
+          class4 = int(words[4])
+          value1 = float(words[5])
+          lmp1 = value1
+          params.append((class1,class2,class3,class4,lmp1))
       iline += 1
     return params
     
-  def find_section(self,txt):
-    txt = "##  %s  ##" % txt
-    for iline,line in enumerate(self.lines):
-      if txt in line: return iline
-    return -1
+  # convert PRMfile params to LAMMPS angle_style amoeba UB params
+  # coeffs for K2,K3 = 0.0 since Urey-Bradley is simple harmonic
+  
+  def ureybonds(self):
+    params = []
+    iline = self.find_section("Urey-Bradley Parameters")
+    if iline < 0: return params
+    iline += 3
+
+    while iline < self.nlines:
+      words = self.lines[iline].split()
+      if len(words):
+        if words[0].startswith("###########"): break
+        if words[0] == "ureybrad":
+          class1 = int(words[1])
+          class2 = int(words[2])
+          class3 = int(words[3])
+          value1 = float(words[4])
+          value2 = float(words[5])
+          lmp1 = value1
+          lmp2 = value2
+            
+          params.append((class1,class2,class3,lmp1,lmp2))
+      iline += 1
+    return params
+
+  # PiTorsion params, will be read from data file by fix pitorsion
+
+  def pitorsions(self):
+    params = []
+    iline = self.find_section("Pi-Torsion Parameters")
+    if iline < 0: return params
+    iline += 3
+
+    while iline < self.nlines:
+      words = self.lines[iline].split()
+      if len(words):
+        if words[0].startswith("###########"): break
+        if words[0] == "pitors":
+          class1 = int(words[1])
+          class2 = int(words[2])
+          value1 = float(words[3])
+          lmp1 = value1
+            
+          params.append((class1,class2,lmp1))
+      iline += 1
+    return params
+
+  # BiTorsion params, will be read from data file by fix bitorsion
+
+  def bitorsions(self):
+    params = []
+    iline = self.find_section("Torsion-Torsion Parameters")
+    if iline < 0: return params
+    iline += 3
+
+    while iline < self.nlines:
+      words = self.lines[iline].split()
+      if len(words):
+        if words[0].startswith("###########"): break
+        if words[0] == "tortors":
+          class1 = int(words[1])
+          class2 = int(words[2])
+          class3 = int(words[3])
+          class4 = int(words[4])
+          class5 = int(words[5])
+          nx = int(words[6])
+          ny = int(words[7])
+          iline += 1
+          array = []
+          for iy in range(ny):
+            xrow = []
+            for ix in range(nx):
+              words = self.lines[iline].split()
+              xgrid = float(words[0])
+              ygrid = float(words[1])
+              value = float(words[2])
+              tuple3 = (xgrid,ygrid,value)
+              xrow.append(tuple3)
+              iline += 1
+            array.append(xrow)
+          params.append((class1,class2,class3,class4,class5,nx,ny,array))
+      iline += 1
+    return params
 
 # ----------------------------------------
 # main program
@@ -328,6 +474,7 @@ amoeba = hippo = 0
 xyzfile = ""
 prmfile = ""
 datafile = ""
+bitorsionfile = ""
 pbcflag = 0
 
 iarg = 0
@@ -349,6 +496,10 @@ while iarg < narg:
   elif args[iarg] == "-data":
     if iarg + 2 > narg: error()
     datafile = args[iarg+1]
+    iarg += 2
+  elif args[iarg] == "-bitorsion":
+    if iarg + 2 > narg: error()
+    bitorsionfile = args[iarg+1]
     iarg += 2
   elif args[iarg] == "-nopbc":
     pbcflag = 0
@@ -455,7 +606,7 @@ for i in id:
         stack.append(k)
 
 # ----------------------------------------
-# create lists of bonds, angles, dihedrals
+# create lists of bonds, angles, dihedrals, impropers
 # ----------------------------------------
 
 # create blist = list of bonds
@@ -493,13 +644,18 @@ for atom2 in id:
 # generate topology via triple loop over neighbors of dihedral atom2
 #   double loop over bonds of atom2
 #   additional loop over bonds of atom3
-# avoid double counting by requiring atom1 < atom3
+# avoid double counting the reverse dihedral by use of ddict dictionary
+
+# NOTE: could just avoid double count by "if atom1 < atom4" as in bond, angle ?
+#       gives different list, but is it still identical ?
+#       would have to check 2 data files, write comparison Py script
 
 id = xyz.id
 type = xyz.type
 bonds = xyz.bonds
 
 dlist = []
+ddict = {}
 
 for atom2 in id:
   for atom1 in bonds[atom2-1]:
@@ -507,11 +663,125 @@ for atom2 in id:
       if atom3 == atom1: continue
       for atom4 in bonds[atom3-1]:
         if atom4 == atom2 or atom4 == atom1: continue
-        if atom1 < atom3:
-          dlist.append((atom1,atom2,atom3,atom4))
+        if (atom4,atom3,atom2,atom1) in ddict: continue
+        dlist.append((atom1,atom2,atom3,atom4))
+        ddict[(atom1,atom2,atom3,atom4)] = 1
+
+# create olist = list of out-of-plane impropers
+# generate topology by triple loop over bonds of center atom2
+# atom2 must have 3 or more bonds to be part of an improper
+# avoid double counting by requiring atom3 < atom4
+# this is since in Tinker the final 2 atoms in the improper are interchangeable
+
+id = xyz.id
+type = xyz.type
+bonds = xyz.bonds
+
+olist = []
+
+for atom2 in id:
+  if len(bonds[atom2-1]) < 3: continue
+  for atom1 in bonds[atom2-1]:
+    for atom3 in bonds[atom2-1]:
+      for atom4 in bonds[atom2-1]:
+        if atom1 == atom3: continue
+        if atom1 == atom4: continue
+        if atom3 >= atom4: continue
+        olist.append((atom1,atom2,atom3,atom4))
 
 # ----------------------------------------
-# create lists of bond/angle/dihedral types
+# create list of Urey-Bradley triplet matches
+# ----------------------------------------
+
+# scan list of angles to find triplets that match UB parameters
+# if match, add it to UB bond list
+
+type = xyz.type
+classes = prm.classes
+
+ublist = []
+
+ubdict = {}
+for m,params in enumerate(prm.ureyparams):
+  ubdict[(params[0],params[1],params[2])] = (m,params)
+
+for atom1,atom2,atom3 in alist:
+  type1 = type[atom1-1]
+  type2 = type[atom2-1]
+  type3 = type[atom3-1]
+  c1 = classes[type1-1]
+  c2 = classes[type2-1]
+  c3 = classes[type3-1]
+
+  if (c1,c2,c3) in ubdict:
+    ublist.append((atom1,atom2,atom3))
+  elif (c3,c2,c1) in ubdict:
+    ublist.append((atom3,atom2,atom1))
+
+# create pitorslist = list of 6-body interactions
+# based on central bond, each bond atom is bonded to exactly 2 other atoms
+# avoid double counting by requiring atom1 < atom2
+# NOTE: need more info on how to order the 6 atoms for Tinker to compute on
+
+type = xyz.type
+classes = prm.classes
+bonds = xyz.bonds
+
+pitorsionlist = []
+
+for atom1 in id:
+  for atom2 in bonds[atom1-1]:
+    if atom1 < atom2:
+      if len(bonds[atom1-1]) != 3: continue
+      if len(bonds[atom2-1]) != 3: continue
+      
+      if bonds[atom1-1][0] == atom2:
+        atom3 = bonds[atom1-1][1]
+        atom4 = bonds[atom1-1][2]
+      elif bonds[atom1-1][1] == atom2:
+        atom3 = bonds[atom1-1][0]
+        atom4 = bonds[atom1-1][2]
+      elif bonds[atom1-1][2] == atom2:
+        atom3 = bonds[atom1-1][0]
+        atom4 = bonds[atom1-1][1]
+
+      if bonds[atom2-1][0] == atom1:
+        atom5 = bonds[atom2-1][1]
+        atom6 = bonds[atom2-1][2]
+      elif bonds[atom2-1][1] == atom1:
+        atom5 = bonds[atom2-1][0]
+        atom6 = bonds[atom2-1][2]
+      elif bonds[atom2-1][2] == atom1:
+        atom5 = bonds[atom2-1][0]
+        atom6 = bonds[atom2-1][1]
+
+      pitorsionlist.append((atom3,atom4,atom1,atom2,atom5,atom6))
+
+# create bitorslist = list of 5-body interactions
+# generate topology via double loop over neighbors of central atom3
+#   additional double loop over bonds of atom2 and bonds of atom4
+# avoid double counting the reverse bitorsion by use of btdict dictionary
+
+type = xyz.type
+classes = prm.classes
+bonds = xyz.bonds
+
+bitorsionlist = []
+btdict = {}
+
+for atom3 in id:
+  for atom2 in bonds[atom3-1]:
+    for atom4 in bonds[atom3-1]:
+      if atom2 == atom4: continue
+      for atom1 in bonds[atom2-1]:
+        for atom5 in bonds[atom4-1]:
+          if atom1 == atom3 or atom5 == atom3 or atom1 == atom5: continue
+          if (atom5,atom4,atom3,atom2,atom1) in btdict: continue
+          bitorsionlist.append((atom1,atom2,atom3,atom4,atom5))
+          btdict[(atom1,atom2,atom3,atom4,atom5)] = 1
+
+# ----------------------------------------
+# create lists of bond/angle/dihedral/improper types
 # ----------------------------------------
 
 # generate btype = LAMMPS type of each bond
@@ -542,19 +812,16 @@ for atom1,atom2 in blist:
   
   if (c1,c2) in bdict: m,params = bdict[(c1,c2)]
   elif (c2,c1) in bdict: m,params = bdict[(c2,c1)]
-  else:
-    print "Bond not found",atom1,atom2,c1,c2
-    sys.exit()
+  else: error("bond not found: %d %d: %d %d" % (atom1,atom2,c1,c2))
     
   if not flags[m]:
     v1,v2,v3,v4 = params[2:]
     bparams.append((v1,v2,v3,v4))
     flags[m] = len(bparams)
   btype.append(flags[m])
-
+  
 # generate atype = LAMMPS type of each angle
 # generate aparams = LAMMPS params for each angle type
-# generate baparams = LAMMPS bond-angle params for each angle type
 # flags[i] = which LAMMPS angle type (1-N) the Tinker FF file angle I is
 #        0 = none
 # Tinker FF file angle entries can have 1, 2, or 3 options
@@ -575,15 +842,11 @@ for m,params in enumerate(prm.angleparams):
   noptions += n
   
 flags = noptions*[0]
-#baflags = len(baprm)*[0]
 atype = []
 aparams = []
-baparams = []
 
-#DEBUG
-opcount = 0
-
-for atom1,atom2,atom3 in alist:
+for i,one in enumerate(alist):
+  atom1,atom2,atom3 = one
   type1 = type[atom1-1]
   type2 = type[atom2-1]
   type3 = type[atom3-1]
@@ -593,8 +856,19 @@ for atom1,atom2,atom3 in alist:
 
   if (c1,c2,c3) in adict or (c3,c2,c1) in adict:
     if (c1,c2,c3) in adict: m,params = adict[(c1,c2,c3)]
-    if (c3,c2,c1) in adict: m,params = adict[(c3,c2,c1)]
+
+    # IMPORTANT subtlety
+    # flip order of 3 atoms in alist if the angle
+    #   matches Angle Bending section of PRM file in reverse order
+    # necessary b/c BondAngle coeffs will be generated with r1,r2 params
+    #   from Bond Stretching section of PRM file
+    # since in general r1 != r2, the LAMMPS AngleAmoeba class requires
+    #   the 3 atoms in the angle be in the order that matches r1 and r2
     
+    if (c3,c2,c1) in adict:
+      m,params = adict[(c3,c2,c1)]
+      alist[i] = (atom3,atom2,atom1)
+      
     # params is a sequence of 1 or 2 or 3 options
     # which = which of 1,2,3 options this atom triplet matches
     # for which = 2 or 3, increment m to index correct position in flags
@@ -609,9 +883,6 @@ for atom1,atom2,atom3 in alist:
     #     option 2 if one of 2 additional bonds is to an H atom
     #     option 3 if both of 2 additional bonds is to an H atom
 
-    # DEBUG
-    debugflag = 0
-    
     if len(params[3]) == 1:
       which = 1
       
@@ -624,7 +895,7 @@ for atom1,atom2,atom3 in alist:
         print "  angle atom classes:",c1,c2,c3
         print "  Tinker FF file param options:",len(params[3])
         print "  Nbonds and hydrogen count:",nbonds,hcount
-        #sys.exit()      // NOTE: allow this for now
+        #sys.exit()      NOTE: allow this for now
 
       if hcount == 0: which = 1
       elif hcount == 1:
@@ -638,10 +909,6 @@ for atom1,atom2,atom3 in alist:
       print "  Nbonds and hydrogen count:",nbonds,hcount
       print "  which:",which,m
 
-      # DEBUG
-      debugflag = 1
-      opcount += 1
-      
     elif len(params[3]) == 3:
       nbonds,hcount = xyz.angle_hbond_count(atom1,atom2,atom3,lmptype,lmpmass)
       
@@ -651,7 +918,7 @@ for atom1,atom2,atom3 in alist:
         print "  angle atom classes:",c1,c2,c3
         print "  Tinker FF file param options:",len(params[3])
         print "  Nbonds and hydrogen count:",nbonds,hcount
-        #sys.exit()     // NOTE: allow this for now
+        #sys.exit()     NOTE: allow this for now
         
       if hcount == 0: which = 1
       elif hcount == 1:
@@ -661,56 +928,90 @@ for atom1,atom2,atom3 in alist:
         which = 3
         m += 2
 
-      print "4-bond angle"
-      print "  angle atom IDs:",atom1,atom2,atom3
-      print "  angle atom classes:",c1,c2,c3
-      print "  Tinker FF file param options:",len(params[3])
-      print "  Nbonds and hydrogen count:",nbonds,hcount
-      print "  which:",which,m
-
-      # DEBUG
-      debugflag = 1
-      opcount += 1
-
   else:
-    print "Angle not found",atom1,atom2,atom3,c1,c2,c3
-    sys.exit()
+    error("angle not found: %d %d %d: %d %d %d" % (atom1,atom2,atom3,c1,c2,c3))
     
   if not flags[m]:
-    pflag,v1,v2,v3,v4,v5,v6 = params[3][which-1]
-    # DEBUG single line
-    if debugflag: pflag = 2
-    aparams.append((pflag,v1,v2,v3,v4,v5,v6))
+    pflag,ubflag,v1,v2,v3,v4,v5,v6 = params[3][which-1]
+    aparams.append((pflag,ubflag,v1,v2,v3,v4,v5,v6))
     flags[m] = len(aparams)
   atype.append(flags[m])
 
-print "OPTION angles",opcount
+# augment the aparams with bond-angle cross terms from bondangleparams
+# generate baparams = LAMMPS bond-angle params for each angle type
+# badict = dictionary for angle tuples in bongangleparams
 
-  # NOTE: baparams may need to be flipped if match is 3,2,1 instead of 1,2,3
+badict = {}
+for v1,v2,v3,v4,v5,v6,v7 in prm.bondangleparams:
+  if (v1,v2,v3) in badict: continue
+  badict[(v1,v2,v3)] = (v4,v5,v6,v7)
+
+baparams = []
+
+for itype in range(len(aparams)):
+  iangle = atype.index(itype+1) 
+  atom1,atom2,atom3 = alist[iangle]
+  type1 = type[atom1-1]
+  type2 = type[atom2-1]
+  type3 = type[atom3-1]
+  c1 = classes[type1-1]
+  c2 = classes[type2-1]
+  c3 = classes[type3-1]
+
+  if (c1,c2,c3) in badict:
+    n1,n2,r1,r2 = badict[(c1,c2,c3)]
+  elif (c3,c2,c1) in badict:
+    n1,n2,r1,r2 = badict[(c3,c2,c1)]
+  else:
+    print "Bond-stretch angle triplet not found: %d %d %d" % (c1,c2,c3)
+    n1,n2,r1,r2 = 4*[0.0]
+    
+  baparams.append((n1,n2,r1,r2))
+
+# augment the aparams with Urey_Bradley terms from ureyparams
+# generate ubparams = LAMMPS UB params for 1-3 bond in each angle type
+# ubdict = dictionary for angle tuples in ureyparams
+
+ubdict = {}
+for v1,v2,v3,v4,v5 in prm.ureyparams:
+  if (v1,v2,v3) in ubdict: continue
+  ubdict[(v1,v2,v3)] = (v4,v5)
+
+ubparams = []
+
+for itype in range(len(aparams)):
+  iangle = atype.index(itype+1) 
+  atom1,atom2,atom3 = alist[iangle]
+  type1 = type[atom1-1]
+  type2 = type[atom2-1]
+  type3 = type[atom3-1]
+  c1 = classes[type1-1]
+  c2 = classes[type2-1]
+  c3 = classes[type3-1]
+
+  # if UB settings exist for this angle type, set ubflag in aparams to 1
   
-  # NOTE: mismatch between angle and bondangle params may not be handled right
-  # should be a new LAMMPS type if either angle or bondangle params do not match?
-  #for m,params in enumerate(baprm):
-  #  c1,c2,c3,v1,v2,v3,v4 = params
-  #  if (c1 == class1 and c2 == class2 and c3 == class3) or \
-  #     (c1 == class3 and c2 == class2 and c3 == class1):
-  #    found += 1
-  #    if baflags[m]:
-  #      continue
-  #      #atype.append(baflags[m])
-  #    else:
-  #      baparams.append((v1,v2,v3,v4))
-  #      baflags[m] = len(baparams)
-  #      #atype.append(baflags[m])
-  #    break
-  #  if found != 1: print "Not found",atom1,atom2,atom3,class1,class2,class3
+  if (c1,c2,c3) in ubdict:
+    r1,r2 = ubdict[(c1,c2,c3)]
+    pflag,ubflag,v1,v2,v3,v4,v5,v6 = aparams[itype]
+    ubflag = 1
+    aparams[itype] = (pflag,ubflag,v1,v2,v3,v4,v5,v6)
+  elif (c3,c2,c1) in ubdict:
+    r1,r2 = ubdict[(c3,c2,c1)]
+    pflag,ubflag,v1,v2,v3,v4,v5,v6 = aparams[itype]
+    ubflag = 1
+    aparams[itype] = (pflag,ubflag,v1,v2,v3,v4,v5,v6)
+  else:
+    r1,r2 = 2*[0.0]
+    
+  ubparams.append((r1,r2))
 
 # generate dtype = LAMMPS type of each dihedral
 # generate dparams = LAMMPS params for each dihedral type
 # flags[i] = which LAMMPS dihedral type (1-N) the Tinker FF file dihedral I is
 #        0 = none
 # convert prm.torsionparams to a dictionary for efficient searching
-# key = (class1,class2)
+# key = (class1,class2,class3,class4)
 # value = (M,params) where M is index into prm.torsionparams
 
 id = xyz.id
@@ -738,14 +1039,158 @@ for atom1,atom2,atom3,atom4 in dlist:
   if (c1,c2,c3,c4) in ddict: m,params = ddict[(c1,c2,c3,c4)]
   elif (c4,c3,c2,c1) in ddict: m,params = ddict[(c4,c3,c2,c1)]
   else:
-    print "Dihedral not found",atom1,atom2,atom3,atom4,c1,c2,c3,c4
-    sys.exit()
+    error("dihedral not found: %d %d %d %d: %d %d %d %d" % \
+          (atom1,atom2,atom3,atom4,c1,c2,c3,c4))
 
   if not flags[m]:
-    v1,v2,v3,v4,v5,v6,v7,v8,v9 = params[4:]
-    dparams.append((v1,v2,v3,v4,v5,v6,v7,v8,v9))
+    oneparams = params[4:]
+    dparams.append(oneparams)
     flags[m] = len(dparams)
   dtype.append(flags[m])
+
+# generate otype = LAMMPS type of each out-of-plane improper
+# generate oparams = LAMMPS params for each improper type
+# flags[i] = which LAMMPS improper type (1-N) the Tinker FF file improper I is
+#        0 = none
+# convert prm.opbendparams to a dictionary for efficient searching
+# key = (class1,class2)
+# value = (M,params) where M is index into prm.opbendparams
+
+id = xyz.id
+type = xyz.type
+classes = prm.classes
+
+odict = {}
+for m,params in enumerate(prm.opbendparams):
+  odict[(params[0],params[1])] = (m,params)
+
+flags = len(prm.opbendparams)*[0]
+otype = []
+oparams = []
+olist_reduced = []
+
+for atom1,atom2,atom3,atom4 in olist:
+  type1 = type[atom1-1]
+  type2 = type[atom2-1]
+  type3 = type[atom3-1]
+  type4 = type[atom4-1]
+  c1 = classes[type1-1]
+  c2 = classes[type2-1]
+  c3 = classes[type3-1]
+  c4 = classes[type4-1]
+
+  # 4-tuple is only an improper if matches an entry in PRM file
+  # olist_reduced = list of just these 4-tuples
+  
+  if (c1,c2) in odict:
+    m,params = odict[(c1,c2)]
+    olist_reduced.append((atom1,atom2,atom3,atom4))
+    
+    if not flags[m]:
+      oneparams = params[4:]
+      oparams.append(oneparams)
+      flags[m] = len(oparams)
+    otype.append(flags[m])
+
+# replace original olist with reduced version
+
+olist = olist_reduced
+
+# generate pitorsiontype = LAMMPS type of each pitorsion
+# generate pitorsionparams = LAMMPS params for each pitorsion type
+# flags[i] = which LAMMPS pitorsion type (1-N) the Ith Tinker PRM file ptors is
+#        0 = none
+# convert prm.pitorsionparams to a dictionary for efficient searching
+# key = (class1,class2)
+# value = (M,params) where M is index into prm.pitorsionparams
+
+id = xyz.id
+type = xyz.type
+classes = prm.classes
+
+pitdict = {}
+for m,params in enumerate(prm.pitorsionparams):
+  pitdict[(params[0],params[1])] = (m,params)
+         
+flags = len(prm.pitorsionparams)*[0]
+pitorsiontype = []
+pitorsionparams = []
+pitorsionlist_reduced = []
+
+for tmp1,tmp2,atom1,atom2,tmp3,tmp4 in pitorsionlist:
+  type1 = type[atom1-1]
+  type2 = type[atom2-1]
+  c1 = classes[type1-1]
+  c2 = classes[type2-1]
+
+  # 6-tuple is only a PiTorsion if central 2 atoms match an entry in PRM file
+  # pitorsionlist_reduced = list of just these 6-tuples
+  
+  if (c1,c2) in pitdict or (c2,c1) in pitdict:
+    if (c1,c2) in pitdict: m,params = pitdict[(c1,c2)]
+    else: m,params = pitdict[(c2,c1)]
+    pitorsionlist_reduced.append((tmp1,tmp2,atom1,atom2,tmp3,tmp4))
+
+    if not flags[m]:
+      v1 = params[2:]
+      pitorsionparams.append(v1)
+      flags[m] = len(pitorsionparams)
+    pitorsiontype.append(flags[m])
+    
+# replace original pitorsionlist with reduced version
+
+pitorsionlist = pitorsionlist_reduced
+
+# generate bitorsiontype = LAMMPS type of each bitorsion
+# generate bitorsionparams = LAMMPS params for each bitorsion type
+# flags[i] = which LAMMPS bitorsion type (1-N) the Ith Tinker PRM file btors is
+#        0 = none
+# convert prm.bitorsionparams to a dictionary for efficient searching
+# key = (class1,class2,class3,class4,class5)
+# value = (M,params) where M is index into prm.bitorsionparams
+
+id = xyz.id
+type = xyz.type
+classes = prm.classes
+
+bitdict = {}
+for m,params in enumerate(prm.bitorsionparams):
+  bitdict[(params[0],params[1],params[2],params[3],params[4])] = (m,params)
+
+flags = len(prm.bitorsionparams)*[0]
+bitorsiontype = []
+bitorsionparams = []
+bitorsionlist_reduced = []
+
+for atom1,atom2,atom3,atom4,atom5 in bitorsionlist:
+  type1 = type[atom1-1]
+  type2 = type[atom2-1]
+  type3 = type[atom3-1]
+  type4 = type[atom4-1]
+  type5 = type[atom5-1]
+  c1 = classes[type1-1]
+  c2 = classes[type2-1]
+  c3 = classes[type3-1]
+  c4 = classes[type4-1]
+  c5 = classes[type5-1]
+
+  # 5-tuple is only a BiTorsion if 5 atoms match an entry in PRM file
+  # bitorsionlist_reduced = list of just these 5-tuples
+  
+  if (c1,c2,c3,c4,c5) in bitdict or (c5,c4,c3,c2,c1) in bitdict:
+    if (c1,c2,c3,c4,c5) in bitdict: m,params = bitdict[(c1,c2,c3,c4,c5)]
+    else: m,params = bitdict[(c5,c4,c3,c2,c1)]
+    bitorsionlist_reduced.append((atom1,atom2,atom3,atom4,atom5))
+
+    if not flags[m]:
+      v1 = params[5:]
+      bitorsionparams.append(v1)
+      flags[m] = len(bitorsionparams)
+    bitorsiontype.append(flags[m])
+    
+# replace original bitorsionlist with reduced version
+
+bitorsionlist = bitorsionlist_reduced
 
 # ----------------------------------------
 # assign each atom to a Tinker group
@@ -800,6 +1245,9 @@ ttype = xyz.type
 nbonds = len(blist)
 nangles = len(alist)
 ndihedrals = len(dlist)
+nimpropers = len(olist)
+npitorsions = len(pitorsionlist)
+nbitorsions = len(bitorsionlist)
 
 # data file header values
 
@@ -863,17 +1311,19 @@ if nangles:
     lines.append(line+'\n')
   d.sections["Angle Coeffs"] = lines
 
-  #lines = []
-  #for i,one in enumerate(aparams):
-  #  line = "%d %g %g %g" % (i+1,0.0,0.0,0.0)
-  #  lines.append(line+'\n')
-  #d.sections["BondBond Coeffs"] = lines
+  lines = []
+  for i,one in enumerate(baparams):
+    strone = [str(single) for single in one]
+    line = "%d %s" % (i+1,' '.join(strone))
+    lines.append(line+'\n')
+  d.sections["BondAngle Coeffs"] = lines
 
-  #lines = []
-  #for i,one in enumerate(aparams):
-  #  line = "%d %g %g %g %g" % (i+1,0.0,0.0,0.0,0.0)
-  #  lines.append(line+'\n')
-  # d.sections["BondAngle Coeffs"] = lines
+  lines = []
+  for i,one in enumerate(ubparams):
+    strone = [str(single) for single in one]
+    line = "%d %s" % (i+1,' '.join(strone))
+    lines.append(line+'\n')
+  d.sections["UreyBradley Coeffs"] = lines
 
   lines = [] 
   for i,one in enumerate(alist):
@@ -887,7 +1337,8 @@ if ndihedrals:
   
   lines = []
   for i,one in enumerate(dparams):
-    line = "%d %s" % (i+1,' '.join(one))
+    strone = [str(single) for single in one]
+    line = "%d %s" % (i+1,' '.join(strone))
     lines.append(line+'\n')
   d.sections["Dihedral Coeffs"] = lines
 
@@ -896,6 +1347,71 @@ if ndihedrals:
     line = "%d %d %d %d %d %d" % (i+1,dtype[i],one[0],one[1],one[2],one[3])
     lines.append(line+'\n')
   d.sections["Dihedrals"] = lines
+
+if nimpropers:
+  d.headers["impropers"] = len(olist)
+  d.headers["improper types"] = len(oparams)
+  
+  lines = []
+  for i,one in enumerate(oparams):
+    strone = [str(single) for single in one]
+    line = "%d %s" % (i+1,' '.join(strone))
+    lines.append(line+'\n')
+  d.sections["Improper Coeffs"] = lines
+
+  lines = [] 
+  for i,one in enumerate(olist):
+    line = "%d %d %d %d %d %d" % (i+1,otype[i],one[0],one[1],one[2],one[3])
+    lines.append(line+'\n')
+  d.sections["Impropers"] = lines
+
+if npitorsions:
+  d.headers["pitorsions"] = len(pitorsionlist)
+  d.headers["pitorsion types"] = len(pitorsionparams)
+  
+  lines = []
+  for i,one in enumerate(pitorsionparams):
+    strone = [str(single) for single in one]
+    line = "%d %s" % (i+1,' '.join(strone))
+    lines.append(line+'\n')
+  d.sections["PiTorsion Coeffs"] = lines
+
+  lines = [] 
+  for i,one in enumerate(pitorsionlist):
+    line = "%d %d %d %d %d %d %d %d" % \
+           (i+1,pitorsiontype[i],one[0],one[1],one[2],one[3],one[4],one[5])
+    lines.append(line+'\n')
+  d.sections["PiTorsions"] = lines
+
+if nbitorsions:
+  d.headers["bitorsions"] = len(bitorsionlist)
+
+  # if there are bitorsions, then -bitorsion file must have been specified
+  
+  if not bitorsionfile:
+    error("no -bitorsion file was specified, but %d bitorsions exist" % \
+          nbitorsions)
+
+  fp = open(bitorsionfile,'w')
+  print >>fp,"Tinker BiTorsion parameter file for fix bitorsion\n"
+  print >>fp,"%d bitorsion types" % len(bitorsionparams)
+  itype = 0
+  for nx,ny,array in bitorsionparams:
+    itype += 1
+    print >>fp
+    print >>fp,itype,nx,ny
+    for ix in range(nx):
+      for iy in range(ny):
+        xgrid,ygrid,value = array[ix][iy]
+        print >>fp," ",xgrid,ygrid,value
+  fp.close()
+  
+  lines = [] 
+  for i,one in enumerate(bitorsionlist):
+    line = "%d %d %d %d %d %d %d" % \
+           (i+1,bitorsiontype[i],one[0],one[1],one[2],one[3],one[4])
+    lines.append(line+'\n')
+  d.sections["BiTorsions"] = lines
 
 d.write(datafile)
 
@@ -907,9 +1423,15 @@ print "Tinker XYZ types =",len(tink2lmp)
 print "Tinker PRM types =",prm.ntypes
 #print "Tinker groups =",ngroups
 print "Nmol =",nmol
-print "Nbonds =",len(blist)
-print "Nangles =",len(alist)
-print "Ndihedrals =",len(dlist)
+print "Nbonds =",nbonds
+print "Nangles =",nangles
+print "Ndihedrals =",ndihedrals
+print "Nimpropers =",nimpropers
+print "Npitorsions =",npitorsions
+print "Nbitorsions =",nbitorsions
 print "Nbondtypes =",len(bparams)
 print "Nangletypes =",len(aparams)
 print "Ndihedraltypes =",len(dparams)
+print "Nimpropertypes =",len(oparams)
+print "Npitorsiontypes =",len(pitorsionparams)
+print "Nbitorsiontypes =",len(bitorsionparams)

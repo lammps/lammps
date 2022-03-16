@@ -78,6 +78,7 @@ class Angle : protected Pointers {
   void ev_tally(int, int, int, int, int, double, double *, double *, double, double, double, double,
                 double, double);
   void ev_tally4(int, int, int, int, int, int, double, double *, double *, double *, double *);
+  void ev_tally2(int, int, int, int, double, double, double, double, double);
 };
 
 }    // namespace LAMMPS_NS

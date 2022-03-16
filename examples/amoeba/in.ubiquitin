@@ -2,23 +2,34 @@
 
 units           real
 boundary        p p p
+atom_modify     sort 0 0.0
 
-atom_style amoeba
-#atom_modify sort 1000 7.0
+atom_style      amoeba
+
 bond_style      class2
 angle_style     amoeba
-dihedral_style  none
+dihedral_style  fourier
+improper_style  amoeba
 
 # per-atom properties required by AMOEBA or HIPPO
 
 fix             amtype all property/atom i_amtype ghost yes
+fix             pit all amoeba/pitorsion
+fix_modify      pit energy yes
+fix             bit all amoeba/bitorsion bitorsion.ubiquitin.data
+fix_modify      bit energy yes
+
 fix             extra all property/atom &
                 i_amgroup i_ired i_xaxis i_yaxis i_zaxis d_pval ghost yes
 fix             extra2 all property/atom i_polaxe
 
-read_data       data.ubiquitin fix amtype NULL "Tinker Types"
+#read_data       data.ubiquitin fix amtype NULL "Tinker Types"
+read_data       data.ubiquitin fix amtype NULL "Tinker Types" &
+                fix pit "pitorsion types" "PiTorsion Coeffs" &
+                fix pit pitorsions PiTorsions &
+                fix bit bitorsions BiTorsions
 
-pair_style      amoeba
+pair_style      amoeba exclude bitorsion
 pair_coeff      * * amoeba_ubiquitin.prm amoeba_ubiquitin.key
 
 special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
@@ -37,17 +48,8 @@ fix             fqxfer all store/state 0 fx fy fz
 compute virial all pressure NULL virial
 
 thermo_style    custom step temp epair ebond eangle edihed eimp &
-                emol etotal press c_virial[*]
-
-# DEBUG: setup force components this way so can dump them
-
-fix             fhal all store/state 0 fx fy fz
-fix             frepulse all store/state 0 fx fy fz
-fix             fdisp all store/state 0 fx fy fz
-fix             fpolar all store/state 0 fx fy fz
-fix             fmpole all store/state 0 fx fy fz
-fix             fqxfer all store/state 0 fx fy fz
+                emol etotal #press c_virial[*]
 
 # zero step run
 
-run             0
+run              0

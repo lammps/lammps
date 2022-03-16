@@ -658,6 +658,13 @@ void ReadData::command(int narg, char **arg)
           error->all(FLERR,"Must define angle_style before BondAngle Coeffs");
         if (firstpass) anglecoeffs(2);
         else skip_lines(nangletypes);
+      } else if (strcmp(keyword,"UreyBradley Coeffs") == 0) {
+        if (atom->avec->angles_allow == 0)
+          error->all(FLERR,"Invalid data file section: UreyBradley Coeffs");
+        if (force->angle == nullptr)
+          error->all(FLERR,"Must define angle_style before UreyBradley Coeffs");
+        if (firstpass) anglecoeffs(3);
+        else skip_lines(nangletypes);
 
       } else if (strcmp(keyword,"MiddleBondTorsion Coeffs") == 0) {
         if (atom->avec->dihedrals_allow == 0)
@@ -722,7 +729,6 @@ void ReadData::command(int narg, char **arg)
             if (firstpass) fix(fix_index[i],keyword);
             else skip_lines(modify->fix[fix_index[i]]->
                             read_data_skip_lines(keyword));
-            parse_keyword(0);
             break;
           }
         if (i == nfix)
@@ -1852,6 +1858,7 @@ void ReadData::anglecoeffs(int which)
     if (which == 0) parse_coeffs(buf,nullptr,0,1,aoffset);
     else if (which == 1) parse_coeffs(buf,"bb",0,1,aoffset);
     else if (which == 2) parse_coeffs(buf,"ba",0,1,aoffset);
+    else if (which == 3) parse_coeffs(buf,"ub",0,1,aoffset);
     if (ncoeffarg == 0) error->all(FLERR,"Unexpected empty line in AngleCoeffs section");
     force->angle->coeff(ncoeffarg,coeffarg);
     buf = next + 1;

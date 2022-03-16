@@ -24,21 +24,14 @@ read_data       data.water_hexamer.amoeba fix amtype NULL "Tinker Types"
 pair_style      amoeba
 pair_coeff      * * amoeba_water.prm amoeba_water.key
 
+special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
+
 # thermo output
 
 compute         virial all pressure NULL virial
 
 thermo_style    custom step temp epair ebond eangle edihed eimp &
                 emol etotal press c_virial[*]
-
-# DEBUG: setup force components this way so can dump them
-
-fix             fhal all store/state 0 fx fy fz
-fix             frepulse all store/state 0 fx fy fz
-fix             fdisp all store/state 0 fx fy fz
-fix             fpolar all store/state 0 fx fy fz
-fix             fmpole all store/state 0 fx fy fz
-fix             fqxfer all store/state 0 fx fy fz
 
 # zero step run
 

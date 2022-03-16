@@ -85,12 +85,12 @@ void PairAmoeba::multipole()
 
   // compute the real space part of the Ewald summation
 
-  if (rspace_flag) multipole_real();
+  if (mpole_rspace_flag) multipole_real();
 
   // compute the reciprocal space part of the Ewald summation
 
   //printf("zero check %e \n",empole);
-  if (kspace_flag) multipole_kspace();
+  if (mpole_kspace_flag) multipole_kspace();
   //printf("kspace energy %e \n",empole);
 
   // compute the Ewald self-energy term over all the atoms
@@ -519,9 +519,9 @@ void PairAmoeba::multipole_real()
 
       // increment force-based gradient and torque on first site
 
-      fmpole[i][0] += frcx;
-      fmpole[i][1] += frcy;
-      fmpole[i][2] += frcz;
+      f[i][0] += frcx;
+      f[i][1] += frcy;
+      f[i][2] += frcz;
       tq[i][0] += ttmi[0];
       tq[i][1] += ttmi[1];
       tq[i][2] += ttmi[2];
@@ -529,9 +529,9 @@ void PairAmoeba::multipole_real()
       // increment force-based gradient and torque on second site
       // commenting out j parts for DEBUGGING
 
-      fmpole[j][0] -= frcx;
-      fmpole[j][1] -= frcy;
-      fmpole[j][2] -= frcz;
+      f[j][0] -= frcx;
+      f[j][1] -= frcy;
+      f[j][2] -= frcz;
       tq[j][0] += ttmk[0];
       tq[j][1] += ttmk[1];
       tq[j][2] += ttmk[2];
@@ -569,7 +569,7 @@ void PairAmoeba::multipole_real()
   // resolve site torques then increment forces and virial
 
   for (i = 0; i < nlocal; i++) {
-    torque2force(i,tq[i],fix,fiy,fiz,fmpole);
+    torque2force(i,tq[i],fix,fiy,fiz,f);  
 
     iz = zaxis2local[i];
     ix = xaxis2local[i];
@@ -648,6 +648,7 @@ void PairAmoeba::multipole_kspace()
   // owned atoms
 
   double **x = atom->x;
+  double **f = atom->f;
   int nlocal = atom->nlocal;
 
   double volbox = domain->prd[0] * domain->prd[1] * domain->prd[2];
@@ -817,12 +818,12 @@ void PairAmoeba::multipole_kspace()
     h1 = recip[0][0]*f1 + recip[0][1]*f2 + recip[0][2]*f3;  // matvec?
     h2 = recip[1][0]*f1 + recip[1][1]*f2 + recip[1][2]*f3;
     h3 = recip[2][0]*f1 + recip[2][1]*f2 + recip[2][2]*f3;
-    fmpole[i][0] += h1;
-    fmpole[i][1] += h2;
-    fmpole[i][2] += h3;
+    f[i][0] += h1;
+    f[i][1] += h2;
+    f[i][2] += h3;
   }
   empole += 0.5*e;
-  //printf("mpole_force %g %g %g \n", fmpole[0][0], fmpole[0][1], fmpole[0][2]);
+  //printf("mpole_force %g %g %g \n", f[0][0], f[0][1], f[0][2]);
   
   // augment the permanent multipole virial contributions
 
@@ -860,7 +861,7 @@ void PairAmoeba::multipole_kspace()
       cmp[i][7]*cphi[i][4] + cmp[i][9]*cphi[i][8] - 
       cmp[i][7]*cphi[i][5] - cmp[i][8]*cphi[i][9];
 
-    torque2force(i,tem,fix,fiy,fiz,fmpole);
+    torque2force(i,tem,fix,fiy,fiz,f);
 
     iz = zaxis2local[i];
     ix = xaxis2local[i];

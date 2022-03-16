@@ -41,12 +41,14 @@ using namespace LAMMPS_NS;
 enum{INDUCE,RSD,SETUP_AMOEBA,SETUP_HIPPO,KMPOLE,AMGROUP,PVAL};  // forward comm
 enum{FIELD,ZRSD,TORQUE,UFLD};                                   // reverse comm
 enum{ARITHMETIC,GEOMETRIC,CUBIC_MEAN,R_MIN,SIGMA,DIAMETER,HARMONIC,HHG,W_H};
-enum{VDWL,REPULSE,QFER,DISP,MPOLE,POLAR,USOLV,DISP_LONG,MPOLE_LONG,POLAR_LONG};
+enum{HAL,REPULSE,QFER,DISP,MPOLE,POLAR,USOLV,DISP_LONG,MPOLE_LONG,POLAR_LONG};
 enum{MPOLE_GRID,POLAR_GRID,POLAR_GRIDC,DISP_GRID,INDUCE_GRID,INDUCE_GRIDC};
 enum{MUTUAL,OPT,TCG,DIRECT};
 enum{GEAR,ASPC,LSQR};
 
-#define DELTASTACK 1    // change this when debugged
+#define DELTASTACK 16
+
+#define UIND_DEBUG 0       // also in amoeba_induce.cpp
 
 /* ---------------------------------------------------------------------- */
 
@@ -226,9 +228,7 @@ PairAmoeba::~PairAmoeba()
 
   // DEBUG
 
-  if (me == 0) {
-    if (uind_flag) fclose(fp_uind);
-  }
+  if (me == 0 && UIND_DEBUG) fclose(fp_uind);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -247,9 +247,18 @@ void PairAmoeba::compute(int eflag, int vflag)
   evdwl = 0.0;
   ev_init(eflag,vflag);
 
-  // zero internal energy, force, virial terms
+  // zero energy/virial components
 
-  zero_energy_force_virial();
+  ehal = erepulse = edisp = epolar = empole = eqxfer = 0.0;
+
+  for (int i = 0; i < 6; i++) {
+    virhal[i] = 0.0;
+    virrepulse[i] = 0.0;
+    virdisp[i] = 0.0;
+    virpolar[i] = 0.0;
+    virmpole[i] = 0.0;
+    virqxfer[i] = 0.0;
+  }
 
   // grow local vectors and arrays if necessary
 
@@ -313,7 +322,7 @@ void PairAmoeba::compute(int eflag, int vflag)
     add_onefive_neighbors();
     if (amoeba) find_hydrogen_neighbors();
     find_multipole_neighbors();
-    if (induce_flag && poltyp == MUTUAL && pcgprec) precond_neigh();
+    if (poltyp == MUTUAL && pcgprec) precond_neigh();
   }
 
   // reset KSpace recip matrix if box size/shape change dynamically
@@ -377,18 +386,18 @@ void PairAmoeba::compute(int eflag, int vflag)
 
   // Ewald dispersion, pairwise and long range
 
-  if (hippo && disp_flag) dispersion();
+  if (hippo && (disp_rspace_flag || disp_kspace_flag)) dispersion();
   time4 = MPI_Wtime();
 
   // multipole, pairwise and long range
 
-  if (mpole_flag) multipole();
+  if (mpole_rspace_flag || mpole_kspace_flag) multipole();
   time5 = MPI_Wtime();
 
   // induced dipoles, interative CG relaxation
   // communicate induce() output values needed by ghost atoms
 
-  if (induce_flag) {
+  if (polar_rspace_flag || polar_kspace_flag) {
     induce();
     cfstyle = INDUCE;
     comm->forward_comm_pair(this);
@@ -397,7 +406,7 @@ void PairAmoeba::compute(int eflag, int vflag)
 
   // dipoles, pairwise and long range
 
-  if (polar_flag) polar();
+  if (polar_rspace_flag || polar_kspace_flag) polar();
   time7 = MPI_Wtime();
 
   // charge transfer, pairwise
@@ -413,15 +422,6 @@ void PairAmoeba::compute(int eflag, int vflag)
   double **f = atom->f;
   nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
-
-  for (int i = 0; i < nall; i++) {
-    f[i][0] = fhal[i][0] + frepulse[i][0] + fdisp[i][0] + 
-      fmpole[i][0] + fpolar[i][0] + fqxfer[i][0];
-    f[i][1] = fhal[i][1] + frepulse[i][1] + fdisp[i][1] + 
-      fmpole[i][1] + fpolar[i][1] + fqxfer[i][1];
-    f[i][2] = fhal[i][2] + frepulse[i][2] + fdisp[i][2] + 
-      fmpole[i][2] + fpolar[i][2] + fqxfer[i][2];
-  }
 
   for (int i = 0; i < 6; i++)
     virial[i] = virhal[i] + virrepulse[i] + virdisp[i] + 
@@ -481,20 +481,24 @@ void PairAmoeba::compute(int eflag, int vflag)
     utils::logmesg(lmp,"\nAMEOBA/HIPPO timing info:\n");
     utils::logmesg(lmp,"  Init   time: {:.6g} {:.6g}\n",
                    time_init,time_init/time_amtot);
-    utils::logmesg(lmp,"  Hal    time: {:.6g} {:.6g}\n",
-                   time_hal,time_hal/time_amtot*100);
-    utils::logmesg(lmp,"  Repls  time: {:.6g} {:.6g}\n",
-                   time_repulse,time_repulse/time_amtot*100);
-    utils::logmesg(lmp,"  Disp   time: {:.6g} {:.6g}\n",
-                   time_disp,time_disp/time_amtot*100);
+    if (amoeba)
+      utils::logmesg(lmp,"  Hal    time: {:.6g} {:.6g}\n",
+                     time_hal,time_hal/time_amtot*100);
+    if (hippo)
+      utils::logmesg(lmp,"  Repls  time: {:.6g} {:.6g}\n",
+                     time_repulse,time_repulse/time_amtot*100);
+    if (hippo)
+      utils::logmesg(lmp,"  Disp   time: {:.6g} {:.6g}\n",
+                     time_disp,time_disp/time_amtot*100);
     utils::logmesg(lmp,"  Mpole  time: {:.6g} {:.6g}\n",
                    time_mpole,time_mpole/time_amtot*100);
     utils::logmesg(lmp,"  Induce time: {:.6g} {:.6g}\n",
                    time_induce,time_induce/time_amtot*100);
     utils::logmesg(lmp,"  Polar  time: {:.6g} {:.6g}\n",
                    time_polar,time_polar/time_amtot*100);
-    utils::logmesg(lmp,"  Qxfer  time: {:.6g} {:.6g}\n",
-                   time_qxfer,time_qxfer/time_amtot*100);
+    if (hippo)
+      utils::logmesg(lmp,"  Qxfer  time: {:.6g} {:.6g}\n",
+                     time_qxfer,time_qxfer/time_amtot*100);
     utils::logmesg(lmp,"  Total  time: {:.6g}\n\n",time_amtot);
   }
 }
@@ -522,49 +526,65 @@ void PairAmoeba::allocate()
 
 void PairAmoeba::settings(int narg, char **arg)
 {
-  // for now, allow turn on/off of individual FF terms
-
-  // if (narg) error->all(FLERR,"Illegal pair_style command");
-
   // turn on all FF components by default
   
-  hal_flag = repulse_flag = disp_flag = induce_flag = 
-    polar_flag = mpole_flag = qxfer_flag = 1;
-  rspace_flag = kspace_flag = 1;
+  hal_flag = repulse_flag = qxfer_flag = 1;
+  disp_rspace_flag = disp_kspace_flag = 1;
+  polar_rspace_flag = polar_kspace_flag = 1;
+  mpole_rspace_flag = mpole_kspace_flag = 1;
+  bond_flag = angle_flag = dihedral_flag = improper_flag = 1;
+  urey_flag = pitorsion_flag = bitorsion_flag = 1;
 
-  // turn off debug output by default
+  int newvalue = -1;
 
-  uind_flag = 0;
+  // include only specified FF components
 
-  // process optional args
-  // none turns all FF components off
-  
-  int iarg = 0;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"none") == 0) {
-      hal_flag = repulse_flag = disp_flag = induce_flag = 
-        polar_flag = mpole_flag = qxfer_flag = 0;
-      rspace_flag = kspace_flag = 0;
-    }
-    else if (strcmp(arg[iarg],"hal") == 0) hal_flag = 1;
-    else if (strcmp(arg[iarg],"repulse") == 0) repulse_flag = 1;
-    else if (strcmp(arg[iarg],"disp") == 0) disp_flag = 1;
-    else if (strcmp(arg[iarg],"induce") == 0) induce_flag = 1;
-    else if (strcmp(arg[iarg],"polar") == 0) polar_flag = 1;
-    else if (strcmp(arg[iarg],"mpole") == 0) mpole_flag = 1;
-    else if (strcmp(arg[iarg],"qxfer") == 0) qxfer_flag = 1;
-    
-    else if (strcmp(arg[iarg],"rspace") == 0) rspace_flag = 1;
-    else if (strcmp(arg[iarg],"kspace") == 0) kspace_flag = 1;
-    else if (strcmp(arg[iarg],"no-rspace") == 0) rspace_flag = 0;
-    else if (strcmp(arg[iarg],"no-kspace") == 0) kspace_flag = 0;
+  if (narg && (strcmp(arg[0],"include") == 0)) {
+    newvalue = 1;
+    hal_flag = repulse_flag = qxfer_flag = 0;
+    disp_rspace_flag = disp_kspace_flag = 0;
+    polar_rspace_flag = polar_kspace_flag = 0;
+    mpole_rspace_flag = mpole_kspace_flag = 0;
+    bond_flag = angle_flag = dihedral_flag = improper_flag = 0;
+    urey_flag = pitorsion_flag = bitorsion_flag = 0;
 
-    // DEBUG flags
-    
-    else if (strcmp(arg[iarg],"uind") == 0) uind_flag = 1;
-    
+  // exclude only specified FF components
+
+  } else if (narg && (strcmp(arg[0],"exclude") == 0)) {
+    newvalue = 0;
+
+  } else if (narg) error->all(FLERR,"Illegal pair_style command");
+
+  if (narg == 0) return;
+
+  if (narg < 2) error->all(FLERR,"Illegal pair_style command");
+
+  // toggle components to include or exclude
+
+  for (int iarg = 1; iarg < narg; iarg++) {
+    if (strcmp(arg[iarg],"hal") == 0) hal_flag = newvalue;
+    else if (strcmp(arg[iarg],"repulse") == 0) repulse_flag = newvalue;
+    else if (strcmp(arg[iarg],"qxfer") == 0) qxfer_flag = newvalue;
+    else if (strcmp(arg[iarg],"disp") == 0) 
+      disp_rspace_flag = disp_kspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"disp/rspace") == 0) disp_rspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"disp/kspace") == 0) disp_rspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"polar") == 0) 
+      polar_rspace_flag = polar_kspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"polar/rspace") == 0) polar_rspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"polar/kspace") == 0) polar_rspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"mpole") == 0) 
+      mpole_rspace_flag = mpole_kspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"mpole/rspace") == 0) mpole_rspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"mpole/kspace") == 0) mpole_rspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"bond") == 0) bond_flag = newvalue;
+    else if (strcmp(arg[iarg],"angle") == 0) angle_flag = newvalue;
+    else if (strcmp(arg[iarg],"dihedral") == 0) dihedral_flag = newvalue;
+    else if (strcmp(arg[iarg],"improper") == 0) improper_flag = newvalue;
+    else if (strcmp(arg[iarg],"urey") == 0) urey_flag = newvalue;
+    else if (strcmp(arg[iarg],"pitorsion") == 0) pitorsion_flag = newvalue;
+    else if (strcmp(arg[iarg],"bitorsion") == 0) bitorsion_flag = newvalue;
     else error->all(FLERR,"Illegal pair_style command");
-    iarg++;
   }
 }
 
@@ -677,14 +697,9 @@ void PairAmoeba::init_style()
   //if (!force->special_onefive)
   //  error->all(FLERR,"Pair style amoeba/hippo requires special_bonds one/five be set");
 
-  // b/c induce computes fopt,foptp used by polar
-
-  if (kspace_flag && optorder && polar_flag && !induce_flag)
-    error->all(FLERR,"Pair amoeba with optorder requires induce and polar together");
-
   // b/c polar uses mutipole virial terms
 
-  if (kspace_flag && apewald == aeewald && polar_flag && !mpole_flag)
+  if (apewald == aeewald && polar_kspace_flag && !mpole_kspace_flag)
     error->all(FLERR,
 	       "Pair amoeba with apewald = aeewald requires mpole and polar together");
     
@@ -718,19 +733,6 @@ void PairAmoeba::init_style()
   index_pval = atom->find_custom("pval",flag,cols);
   if (index_pval < 0 || !flag || cols) 
     error->all(FLERR,"Pair amoeba pval is not defined");
-
-  // check for fix store/state commands that stores force components
-
-  ifhal = modify->find_fix("fhal");
-  ifrepulse = modify->find_fix("frepulse");
-  ifdisp = modify->find_fix("fdisp");
-  ifpolar = modify->find_fix("fpolar");
-  ifmpole = modify->find_fix("fmpole");
-  ifqxfer = modify->find_fix("fqxfer");
-
-  if (ifhal < 0 || ifrepulse < 0 || ifdisp < 0 || 
-      ifpolar < 0 || ifmpole < 0 || ifqxfer < 0)
-    error->all(FLERR,"Pair amoeba fix store/state commands not defined");
 
   // -------------------------------------------------------------------
   // one-time initializations
@@ -982,7 +984,7 @@ void PairAmoeba::init_style()
   if (me == 0) {
     char fname[32];
     sprintf(fname,"tmp.uind.kspace.%d",nprocs);
-    if (uind_flag) fp_uind = fopen(fname,"w");
+    if (UIND_DEBUG) fp_uind = fopen(fname,"w");
   }
 }
 
@@ -993,32 +995,41 @@ void PairAmoeba::init_style()
 void PairAmoeba::print_settings(FILE *fp)
 {
   fprintf(fp,"AMOEBA/HIPPO force field settings\n");
-  choose(VDWL);
-  fprintf(fp,"  vdwl: cut %g taper %g vscale %g %g %g %g\n",
-	  sqrt(off2),sqrt(cut2),
-	  special_hal[1],special_hal[2],special_hal[3],special_hal[4]);
+
+  if (amoeba) {
+    choose(HAL);
+    fprintf(fp,"  hal: cut %g taper %g vscale %g %g %g %g\n",
+            sqrt(off2),sqrt(cut2),
+            special_hal[1],special_hal[2],special_hal[3],special_hal[4]);
+  }
+
+  if (hippo) {
+    choose(REPULSE);
+    fprintf(fp,"  repulsion: cut %g taper %g rscale %g %g %g %g\n",
+            sqrt(off2),sqrt(cut2),
+            special_repel[1],special_repel[2],special_repel[3],special_repel[4]);
+  }
   
-  choose(REPULSE);
-  fprintf(fp,"  repulsion: cut %g taper %g rscale %g %g %g %g\n",
-	  sqrt(off2),sqrt(cut2),
-	  special_repel[1],special_repel[2],special_repel[3],special_repel[4]);
+  if (hippo) {
+    choose(QFER);
+    fprintf(fp,"  qxfer: cut %g taper %g mscale %g %g %g %g\n",
+            sqrt(off2),sqrt(cut2),
+            special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
+  }
   
-  choose(QFER);
-  fprintf(fp,"  qxfer: cut %g taper %g mscale %g %g %g %g\n",
-	  sqrt(off2),sqrt(cut2),
-	  special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
-  
-  if (use_dewald) {
-    choose(DISP_LONG);
-    fprintf(fp,"  dispersion: cut %g aewald %g bsorder %d "
-	    "FFT %d %d %d dspscale %g %g %g %g\n",
-	    sqrt(off2),aewald,bsdorder,ndfft1,ndfft2,ndfft3,
-	    special_disp[1],special_disp[2],special_disp[3],special_disp[4]);
-  } else {
-    choose(DISP);
-    fprintf(fp,"  dispersion: cut %g aewald %g dspscale %g %g %g %g\n",
-	    sqrt(off2),aewald,
-	    special_disp[1],special_disp[2],special_disp[3],special_disp[4]);
+  if (hippo) {
+    if (use_dewald) {
+      choose(DISP_LONG);
+      fprintf(fp,"  dispersion: cut %g aewald %g bsorder %d "
+              "FFT %d %d %d dspscale %g %g %g %g\n",
+              sqrt(off2),aewald,bsdorder,ndfft1,ndfft2,ndfft3,
+              special_disp[1],special_disp[2],special_disp[3],special_disp[4]);
+    } else {
+      choose(DISP);
+      fprintf(fp,"  dispersion: cut %g aewald %g dspscale %g %g %g %g\n",
+              sqrt(off2),aewald,
+              special_disp[1],special_disp[2],special_disp[3],special_disp[4]);
+    }
   }
   
   if (use_ewald) {
@@ -1073,35 +1084,31 @@ double PairAmoeba::init_one(int i, int j)
 {
   double cutoff = 0.0;
 
-  if (hal_flag) {
-    choose(VDWL);
+  if (amoeba) {
+    choose(HAL);
     cutoff = MAX(cutoff,sqrt(off2));
   }
-  if (repulse_flag) {
+
+  if (hippo) {
     choose(REPULSE);
     cutoff = MAX(cutoff,sqrt(off2));
   }
-  if (disp_flag) {
+
+  if (hippo) {
     if (use_dewald) choose(DISP_LONG);
     else choose(DISP);
     cutoff = MAX(cutoff,sqrt(off2));
   }
-  if (mpole_flag) {
-    if (use_ewald) choose(MPOLE_LONG);
-    else choose(MPOLE);
-    cutoff = MAX(cutoff,sqrt(off2));
-  }
-  if (induce_flag) {
-    if (use_ewald) choose(POLAR_LONG);
-    else choose(POLAR);
-    cutoff = MAX(cutoff,sqrt(off2));
-  }
-  if (polar_flag) {
-    if (use_ewald) choose(POLAR_LONG);
-    else choose(POLAR);
-    cutoff = MAX(cutoff,sqrt(off2));
-  }
-  if (qxfer_flag) {
+
+  if (use_ewald) choose(MPOLE_LONG);
+  else choose(MPOLE);
+  cutoff = MAX(cutoff,sqrt(off2));
+
+  if (use_ewald) choose(POLAR_LONG);
+  else choose(POLAR);
+  cutoff = MAX(cutoff,sqrt(off2));
+
+  if (hippo) {
     choose(QFER);
     cutoff = MAX(cutoff,sqrt(off2));
   }
@@ -1927,7 +1934,7 @@ void PairAmoeba::choose(int which)
 
   // short-range only terms
   
-  if (which == VDWL) {
+  if (which == HAL) {
     off = vdwcut;
     cut = vdwtaper;
   } else if (which == REPULSE) {
@@ -2075,39 +2082,24 @@ void PairAmoeba::mix()
   }
 }
 
-/* ----------------------------------------------------------------------
-   zero internal energy and virial terms
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-void PairAmoeba::zero_energy_force_virial()
+void *PairAmoeba::extract(const char *str, int &dim)
 {
-  ehal = erepulse = edisp = epolar = empole = eqxfer = 0.0;
+  dim = 0;
+  if (strcmp(str,"bond_flag") == 0) return (void *) &bond_flag;
+  if (strcmp(str,"angle_flag") == 0) return (void *) &angle_flag;
+  if (strcmp(str,"dihedral_flag") == 0) return (void *) &dihedral_flag;
+  if (strcmp(str,"improper_flag") == 0) return (void *) &improper_flag;
+  if (strcmp(str,"urey_flag") == 0) return (void *) &urey_flag;
+  if (strcmp(str,"pitorsion_flag") == 0) return (void *) &pitorsion_flag;
+  if (strcmp(str,"bitorsion_flag") == 0) return (void *) &bitorsion_flag;
 
-  fhal = modify->fix[ifhal]->array_atom;
-  frepulse = modify->fix[ifrepulse]->array_atom;
-  fdisp = modify->fix[ifdisp]->array_atom;
-  fpolar = modify->fix[ifpolar]->array_atom;
-  fmpole = modify->fix[ifmpole]->array_atom;
-  fqxfer = modify->fix[ifqxfer]->array_atom;
-
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
-
-  memset(&fhal[0][0],0,3*nall*sizeof(double));
-  memset(&frepulse[0][0],0,3*nall*sizeof(double));
-  memset(&fdisp[0][0],0,3*nall*sizeof(double));
-  memset(&fpolar[0][0],0,3*nall*sizeof(double));
-  memset(&fmpole[0][0],0,3*nall*sizeof(double));
-  memset(&fqxfer[0][0],0,3*nall*sizeof(double));
-
-  for (int i = 0; i < 6; i++) {
-    virhal[i] = 0.0;
-    virrepulse[i] = 0.0;
-    virdisp[i] = 0.0;
-    virpolar[i] = 0.0;
-    virmpole[i] = 0.0;
-    virqxfer[i] = 0.0;
-  }
+  if (strcmp(str,"opbend_cubic") == 0) return (void *) &opbend_cubic;
+  if (strcmp(str,"opbend_quartic") == 0) return (void *) &opbend_quartic;
+  if (strcmp(str,"opbend_pentic") == 0) return (void *) &opbend_pentic;
+  if (strcmp(str,"opbend_sextic") == 0) return (void *) &opbend_sextic;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------

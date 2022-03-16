@@ -57,6 +57,8 @@ class PairAmoeba : public Pair {
   void pack_reverse_grid(int, void *, int, int *);
   void unpack_reverse_grid(int, void *, int, int *);
 
+  void *extract(const char *, int &);
+
  protected:
   int me,nprocs;
   int nmax;        // allocation for owned+ghost
@@ -73,23 +75,21 @@ class PairAmoeba : public Pair {
 
   // turn on/off components of force field
 
-  int hal_flag,repulse_flag,disp_flag,induce_flag,polar_flag,mpole_flag,qxfer_flag;
-  int rspace_flag,kspace_flag;
-
-  // DEBUG flags
-
-  int uind_flag;
+  int hal_flag,repulse_flag,qxfer_flag;
+  int disp_rspace_flag,disp_kspace_flag;
+  int polar_rspace_flag,polar_kspace_flag;
+  int mpole_rspace_flag,mpole_kspace_flag;
+  int bond_flag,angle_flag,dihedral_flag,improper_flag;
+  int urey_flag,pitorsion_flag,bitorsion_flag;
 
   // DEBUG timers
 
   double time_init,time_hal,time_repulse,time_disp;
   double time_mpole,time_induce,time_polar,time_qxfer;
   
-  // energy, force, and virial components
+  // energy/virial components
 
-  int ifhal,ifrepulse,ifdisp,ifpolar,ifmpole,ifqxfer;
   double ehal,erepulse,edisp,epolar,empole,eqxfer;
-  double **fhal,**frepulse,**fdisp,**fpolar,**fmpole,**fqxfer;
   double virhal[6],virrepulse[6],virdisp[6],virpolar[6],virmpole[6],virqxfer[6];
 
   // scalar values defined in force-field file

@@ -57,6 +57,7 @@ void PairAmoeba::charge_transfer()
   // owned atoms
 
   double **x = atom->x;
+  double **f = atom->f;
   int nlocal = atom->nlocal;
 
   // neigh list
@@ -138,12 +139,12 @@ void PairAmoeba::charge_transfer()
 
       // increment the total charge transfer energy and derivatives
 
-      fqxfer[i][0] -= frcx;
-      fqxfer[i][1] -= frcy;
-      fqxfer[i][2] -= frcz;
-      fqxfer[j][0] += frcx;
-      fqxfer[j][1] += frcy;
-      fqxfer[j][2] += frcz;
+      f[i][0] -= frcx;
+      f[i][1] -= frcy;
+      f[i][2] -= frcz;
+      f[j][0] += frcx;
+      f[j][1] += frcy;
+      f[j][2] += frcz;
 
       // increment the internal virial tensor components
 

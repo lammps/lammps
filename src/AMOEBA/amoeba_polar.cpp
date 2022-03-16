@@ -68,6 +68,7 @@ void PairAmoeba::polar()
   // owned atoms
 
   double **x = atom->x;
+  double **f = atom->f;
   int nlocal = atom->nlocal;
 
   // set the energy unit conversion factor
@@ -80,11 +81,11 @@ void PairAmoeba::polar()
 
   // compute the real space part of the dipole interactions
 
-  if (rspace_flag) polar_real();
+  if (polar_rspace_flag) polar_real();
 
   // compute the reciprocal space part of dipole interactions
 
-  if (kspace_flag) polar_kspace();
+  if (polar_kspace_flag) polar_kspace();
 
   // compute the Ewald self-energy torque and virial terms
 
@@ -101,7 +102,7 @@ void PairAmoeba::polar()
     tep[1] = term * (diz*uix-dix*uiz);
     tep[2] = term * (dix*uiy-diy*uix);
 
-    torque2force(i,tep,fix,fiy,fiz,fpolar);
+    torque2force(i,tep,fix,fiy,fiz,f);
 
     iz = zaxis2local[i];
     ix = xaxis2local[i];
@@ -277,6 +278,7 @@ void PairAmoeba::polar_real()
   pval = atom->dvector[index_pval];
 
   double **x = atom->x;
+  double **f = atom->f;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
 
@@ -1138,12 +1140,12 @@ void PairAmoeba::polar_real()
       
       // increment force-based gradient on the interaction sites
       
-      fpolar[i][0] -= frcx;
-      fpolar[i][1] -= frcy;
-      fpolar[i][2] -= frcz;
-      fpolar[j][0] += frcx;
-      fpolar[j][1] += frcy;
-      fpolar[j][2] += frcz;
+      f[i][0] -= frcx;
+      f[i][1] -= frcy;
+      f[i][2] -= frcz;
+      f[j][0] += frcx;
+      f[j][1] += frcy;
+      f[j][2] += frcz;
 
       // increment the virial due to pairwise Cartesian forces
       
@@ -1197,10 +1199,8 @@ void PairAmoeba::polar_real()
       qiyz*dufld[i][3] - qixz*dufld[i][4] + 
       2.0*qixy*(dufld[i][0]-dufld[i][2]) + (qiyy-qixx)*dufld[i][1];
 
-    torque2force(i,tep,fix,fiy,fiz,fpolar);
-
-    //if (i < 10) printf("i = %d: tep = %f %f %f\n", i, tep[0], tep[1], tep[2]);
-
+    torque2force(i,tep,fix,fiy,fiz,f);
+    
     iz = zaxis2local[i];
     ix = xaxis2local[i];
     iy = yaxis2local[i];
@@ -1282,6 +1282,7 @@ void PairAmoeba::polar_kspace()
   // owned atoms
 
   double **x = atom->x;
+  double **f = atom->f;
   int nlocal = atom->nlocal;
 
   double volbox = domain->prd[0] * domain->prd[1] * domain->prd[2];
@@ -1517,9 +1518,9 @@ void PairAmoeba::polar_kspace()
     h1 = recip[0][0]*f1 + recip[0][1]*f2 + recip[0][2]*f3;
     h2 = recip[1][0]*f1 + recip[1][1]*f2 + recip[1][2]*f3;
     h3 = recip[2][0]*f1 + recip[2][1]*f2 + recip[2][2]*f3;
-    fpolar[i][0] += h1;
-    fpolar[i][1] += h2;
-    fpolar[i][2] += h3;
+    f[i][0] += h1;
+    f[i][1] += h2;
+    f[i][2] += h3;
   }
 
   // set the potential to be the induced dipole average
@@ -1606,7 +1607,7 @@ void PairAmoeba::polar_kspace()
       2.0*(cmp[i][5]-cmp[i][4])*cphidp[i][7] + cmp[i][7]*cphidp[i][4] + 
       cmp[i][9]*cphidp[i][8] - cmp[i][7]*cphidp[i][5] - cmp[i][8]*cphidp[i][9];
     
-    torque2force(i,tep,fix,fiy,fiz,fpolar);
+    torque2force(i,tep,fix,fiy,fiz,f);
 
     iz = zaxis2local[i];
     ix = xaxis2local[i];
@@ -1671,9 +1672,9 @@ void PairAmoeba::polar_kspace()
           h2 = recip[1][0]*f1 + recip[1][1]*f2 + recip[1][2]*f3;
           h3 = recip[2][0]*f1 + recip[2][1]*f2 + recip[2][2]*f3;
 
-          fpolar[i][0] += copm[k+m+1]*h1;
-          fpolar[i][1] += copm[k+m+1]*h2;
-          fpolar[i][2] += copm[k+m+1]*h3;
+          f[i][0] += copm[k+m+1]*h1;
+          f[i][1] += copm[k+m+1]*h2;
+          f[i][2] += copm[k+m+1]*h3;
 
           for (j = 1; j < 4; j++) {
             cphid[j] = 0.0;
@@ -1761,9 +1762,9 @@ void PairAmoeba::polar_kspace()
         h1 = recip[0][0]*f1 + recip[0][1]*f2 + recip[0][2]*f3;
         h2 = recip[1][0]*f1 + recip[1][1]*f2 + recip[1][2]*f3;
         h3 = recip[2][0]*f1 + recip[2][1]*f2 + recip[2][2]*f3;
-        fpolar[i][0] += h1;
-        fpolar[i][1] += h2;
-        fpolar[i][2] += h3;
+        f[i][0] += h1;
+        f[i][1] += h2;
+        f[i][2] += h3;
 
         for (j = 1; j < 4; j++) {
           cphid[j] = 0.0;
@@ -1837,9 +1838,9 @@ void PairAmoeba::polar_kspace()
         h1 = recip[0][0]*f1 + recip[0][1]*f2 + recip[0][2]*f3;  // matvec
         h2 = recip[1][0]*f1 + recip[1][1]*f2 + recip[1][2]*f3;
         h3 = recip[2][0]*f1 + recip[2][1]*f2 + recip[2][2]*f3;
-        fpolar[i][0] += h1;
-        fpolar[i][1] += h2;
-        fpolar[i][2] += h3;
+        f[i][0] += h1;
+        f[i][1] += h2;
+        f[i][2] += h3;
 
         for (j = 1; j < 4; j++) {
           cphid[j] = 0.0;

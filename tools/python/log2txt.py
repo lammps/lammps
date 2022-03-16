@@ -34,7 +34,7 @@ lg = log(logfile)
 if columns == []:
   lg.write(datafile, writenames)
 else:
-  str = f"lg.write(datafile, {writenames},"
-  for word in columns: str += '"' + word + '",'
-  str = str[:-1] + ')'
+  str = "lg.write(datafile, %r" % writenames
+  for word in columns: str += ',"' + word + '"'
+  str += ')'
   eval(str)

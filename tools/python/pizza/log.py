@@ -73,7 +73,7 @@ class log:
     self.data = []
 
     # flist = list of all log file names
-    
+
     words = arglist[0].split()
     self.flist = []
     for word in words: self.flist += glob.glob(word)
@@ -102,7 +102,7 @@ class log:
 
     # sort entries by timestep, cull duplicates
 
-    self.data.sort(key=(lambda elem: elem[0])) 
+    self.data.sort(key=(lambda elem: elem[0]))
     self.cull()
     self.nlen = len(self.data)
     print("read %d log entries" % self.nlen)
@@ -176,6 +176,7 @@ class log:
 
     # write col names from dict in the right order
     if writenames:
+      print("# ", file=f, end="")
       colnames = [k for j in colmap for k,v in self.ptr.items() if v == j]
       for j in range(len(colnames)):
         print(colnames[j], file=f, end=" ")

@@ -55,9 +55,9 @@ static const char cite_compute_stress_cartesian[] =
   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
 ComputeStressCartesian::ComputeStressCartesian(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), dens(NULL), pkxx(NULL), pkyy(NULL), pkzz(NULL), pcxx(NULL), pcyy(NULL),
-    pczz(NULL), tdens(NULL), tpkxx(NULL), tpkyy(NULL), tpkzz(NULL), tpcxx(NULL), tpcyy(NULL),
-    tpczz(NULL)
+    Compute(lmp, narg, arg), dens(nullptr), pkxx(nullptr), pkyy(nullptr), pkzz(nullptr),
+    pcxx(nullptr), pcyy(nullptr), pczz(nullptr), tdens(nullptr), tpkxx(nullptr), tpkyy(nullptr),
+    tpkzz(nullptr), tpcxx(nullptr), tpcyy(nullptr), tpczz(nullptr), list(nullptr)
 {
 
   if (lmp->citeme) lmp->citeme->add(cite_compute_stress_cartesian);
@@ -175,7 +175,7 @@ ComputeStressCartesian::~ComputeStressCartesian()
 
 void ComputeStressCartesian::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR, "No pair style is defined for compute stress/cartesian");
   if (force->pair->single_enable == 0)
     error->all(FLERR, "Pair style does not support compute stress/cartesian");

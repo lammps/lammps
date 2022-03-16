@@ -4756,10 +4756,8 @@ int lammps_has_id(void *handle, const char *category, const char *name) {
       if (strcmp(name,dump[i]->id) == 0) return 1;
     }
   } else if (strcmp(category,"fix") == 0) {
-    int nfix = lmp->modify->nfix;
-    Fix **fix = lmp->modify->fix;
-    for (int i=0; i < nfix; ++i) {
-      if (strcmp(name,fix[i]->id) == 0) return 1;
+    for (auto &ifix : lmp->modify->get_fix_list()) {
+      if (strcmp(name,ifix->id) == 0) return 1;
     }
   } else if (strcmp(category,"group") == 0) {
     int ngroup = lmp->group->ngroup;

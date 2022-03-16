@@ -38,8 +38,7 @@ while iarg < narg:
   else: break
 
 if iarg < narg or not outfile or not rfiles:
-  print "Syntax: neb_final.py -o outfile -b backfile -r dump1 dump2 ..."
-  sys.exit()
+  sys.exit("Syntax: neb_final.py -o outfile -b backfile -r dump1 dump2 ...")
 
 if os.path.exists(outfile): os.remove(outfile)
 

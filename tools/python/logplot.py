@@ -8,7 +8,7 @@
 #          once plot appears, you are in Python interpreter, type C-D to exit
 # Author:  Steve Plimpton (Sandia), sjplimp at sandia.gov
 
-import sys,os
+import sys,os,code
 path = os.environ["LAMMPS_PYTHON_TOOLS"]
 sys.path.append(path)
 from log import log
@@ -25,3 +25,4 @@ lg = log(logfile)
 x,y = lg.get(xlabel,ylabel)
 g = gnu()
 g.plot(x,y)
+code.interact()

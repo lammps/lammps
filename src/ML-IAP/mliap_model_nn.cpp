@@ -75,11 +75,8 @@ void MLIAPModelNN::read_coeffs(char *coefffilename)
                  utils::getsyserror());
   }
 
-  char line[MAXLINE], *ptr, *tstr;
-  int eof = 0;
-
-  int n;
-  int nwords = 0;
+  char line[MAXLINE], *ptr;
+  int n, eof = 0, nwords = 0;
   while (nwords == 0) {
     if (comm->me == 0) {
       ptr = fgets(line, MAXLINE, fpcoeff);

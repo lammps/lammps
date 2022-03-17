@@ -197,7 +197,6 @@ void PairPACE::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      const int jtype = type[j];
       j &= NEIGHMASK;
       delx = x[j][0] - xtmp;
       dely = x[j][1] - ytmp;

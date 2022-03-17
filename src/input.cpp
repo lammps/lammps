@@ -1218,10 +1218,17 @@ void Input::shell()
   } else if (strcmp(arg[0],"rm") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal shell rm command");
     if (me == 0) {
-      for (int i = 1; i < narg; i++) {
+      int i = 1;
+      bool warn = true;
+      if (strcmp(arg[i], "-f") == 0) {
+        warn = false;
+        ++i;
+      }
+      for (;i < narg; i++) {
         if (platform::unlink(arg[i]) < 0)
-          error->warning(FLERR, "Shell command 'rm {}' failed with error '{}'",
-                         arg[i], utils::getsyserror());
+          if (warn)
+            error->warning(FLERR, "Shell command 'rm {}' failed with error '{}'",
+                           arg[i], utils::getsyserror());
       }
     }
   } else if (strcmp(arg[0],"rmdir") == 0) {

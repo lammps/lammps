@@ -21,7 +21,8 @@ Syntax
        *mv* args = old new
          old = old filename
          new = new filename or destination folder
-       *rm* args = file1 file2 ...
+       *rm* args = [-f] file1 file2 ...
+         -f = turn off warnings (optional)
          file1,file2 = one or more filenames to delete
        *rmdir* args = dir1 dir2 ...
          dir1,dir2 = one or more directories to delete

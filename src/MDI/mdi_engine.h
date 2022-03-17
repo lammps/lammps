@@ -63,21 +63,15 @@ class MDIEngine : public Command {
 
   // @INIT_SYS state
 
+  int sys_natoms_flag,sys_types_flag,sys_charges_flag;
+  int sys_coords_flag,sys_velocities_flag;
+  int sys_cell_flag,sys_cell_displ_flag;
+
   int sys_natoms;
   int *sys_types;
   double *sys_charges,*sys_coords,*sys_velocities;
   double *sys_cell,*sys_cell_displ;
     
-  // create_atoms state
-
-
-  int create_atoms_flag;
-  int create_natoms;
-  tagint *create_id;
-  int *create_type;
-  double *create_x,*create_v;
-  imageint *create_image;
-
   // unit conversion factors
 
   double lmp2mdi_length,mdi2lmp_length;

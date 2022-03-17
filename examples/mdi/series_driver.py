@@ -150,9 +150,9 @@ random.seed(seed)
 
 for icalc in range(ncalc):
 
-  # delete all atoms so can run a new calculation
+  # define a new system
 
-  send_command("delete_atoms group all")
+  mdi.MDI_Send_command("@INIT_SYS",mdicomm)
 
   # define simulation box
 
@@ -166,8 +166,8 @@ for icalc in range(ncalc):
   
   # send simulation box to engine
 
-  vec = [xlo,ylo,zlo,xhi,yhi,zhi,0.0,0.0,0.0]
-  mdi.MDI_Send_command("RESET_BOX",mdicomm)
+  vec = [xhi-xlo,0.0,0.0] + [0.0,yhi-ylo,0.0] + [0.0,0.0,zhi-zlo]
+  mdi.MDI_Send_command(">CELL",mdicomm)
   mdi.MDI_Send(vec,9,mdi.MDI_DOUBLE,mdicomm)
   
   # create atoms on perfect lattice
@@ -203,36 +203,43 @@ for icalc in range(ncalc):
 
   # send atoms and their properties to engine
   
-  mdi.MDI_Send_command("CREATE_ATOM",mdicomm)
+  mdi.MDI_Send_command(">NATOMS",mdicomm)
   mdi.MDI_Send(natoms,1,mdi.MDI_INT,mdicomm)
-  mdi.MDI_Send_command("CREATE_TYPE",mdicomm)
+  mdi.MDI_Send_command(">TYPES",mdicomm)
   mdi.MDI_Send(atypes,natoms,mdi.MDI_INT,mdicomm)
-  mdi.MDI_Send_command("CREATE_X",mdicomm)
+  mdi.MDI_Send_command(">COORDS",mdicomm)
   mdi.MDI_Send(coords,3*natoms,mdi.MDI_DOUBLE,mdicomm)
-  mdi.MDI_Send_command("CREATE_V",mdicomm)
+  mdi.MDI_Send_command(">VELOCITIES",mdicomm)
   mdi.MDI_Send(vels,3*natoms,mdi.MDI_DOUBLE,mdicomm)
-  mdi.MDI_Send_command("CREATE_GO",mdicomm)
   
   # eval or run or minimize
 
+  mdi.MDI_Send_command("@EVAL",mdicomm)
+
   if mode == "eval":
-    mdi.MDI_Send_command("EVAL",mdicomm)
+    mdi.MDI_Send_command(">STEPS",mdicomm)
+    mdi.MDI_Send(0,1,mdi.MDI_INT,mdicomm)
   elif mode == "run":
-    send_command("run %d" % nsteps)
+    mdi.MDI_Send_command(">STEPS",mdicomm)
+    mdi.MDI_Send(steps,1,mdi.MDI_INT,mdicomm)
   elif mode == "min":
-    send_command("minimize %g %g 1000 1000" % (tol,tol))
+    mdi.MDI_Send_command(">TOLERANCE",mdicomm)
+    params = [1.0e-4,1.0e-4,1000.0,1000.0]
+    mdi.MDI_Send(params,4,mdi.MDI_DOUBLE,mdicomm)
 
-  # request energy
+  mdi.MDI_Send_command("@DEFAULT",mdicomm)
 
-  mdi.MDI_Send_command("<ENERGY",mdicomm)
-  energy = mdi.MDI_Recv(1,mdi.MDI_DOUBLE,mdicomm)
-  energy = world.bcast(energy,root=0)
+  # request potential energy
 
-  # request pressure tensor
+  mdi.MDI_Send_command("<PE",mdicomm)
+  pe = mdi.MDI_Recv(1,mdi.MDI_DOUBLE,mdicomm)
+  pe = world.bcast(pe,root=0)
 
-  mdi.MDI_Send_command("<PTENSOR",mdicomm)
-  ptensor = mdi.MDI_Recv(6,mdi.MDI_DOUBLE,mdicomm)
-  ptensor = world.bcast(ptensor,root=0)
+  # request virial tensor
+
+  mdi.MDI_Send_command("<STRESS",mdicomm)
+  virial = mdi.MDI_Recv(6,mdi.MDI_DOUBLE,mdicomm)
+  virial = world.bcast(virial,root=0)
 
   # request forces
   
@@ -241,9 +248,10 @@ for icalc in range(ncalc):
   world.Bcast(forces,root=0)
 
   # final output from each calculation
-
-  aveeng = energy/natoms
-  pressure = (ptensor[0] + ptensor[1] + ptensor[2]) / 3.0
+  # pressure = just virial component, no kinetic component
+  
+  aveeng = pe/natoms
+  pressure = (virial[0] + virial[1] + virial[2]) / 3.0
 
   m = 0
   fx = fy = fz = 0.0
@@ -257,7 +265,7 @@ for icalc in range(ncalc):
   fy /= natoms
   fz /= natoms
 
-  line = "Calc %d: eng %7.5g press %7.5g aveForce %7.5g %7.5g %7.5g" % \
+  line = "Calc %d: eng %7.5g pressure %7.5g aveForce %7.5g %7.5g %7.5g" % \
          (icalc+1,aveeng,pressure,fx,fy,fz)
   if me == 0: print(line)
   

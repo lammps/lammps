@@ -52,10 +52,6 @@ enum{DEFAULT,MD,OPT,SYS};      // top-level MDI engine mode
 
 enum{TYPE,CHARGE,MASS,COORD,VELOCITY,FORCE};  
 
-// stages of CREATE_ATOM commands
-
-enum{CREATE_ATOM,CREATE_ID,CREATE_TYPE,CREATE_X,CREATE_V,CREATE_IMAGE,CREATE_GO};
-
 /* ----------------------------------------------------------------------
    mdi command: engine
    NOTE: may later have other MDI command variants?
@@ -160,7 +156,6 @@ void MDIEngine::mdi_engine(int narg, char **arg)
 
   nbytes = -1;
   need_evaluation = 1;
-  create_atoms_flag = 0;
 
   // define MDI commands that LAMMPS engine recognizes
 
@@ -180,7 +175,7 @@ void MDIEngine::mdi_engine(int narg, char **arg)
   while (1) {
 
     // top-level mdi engine only recognizes three nodes
-    // DEFAULT, INIT_MD, INIT_OPTG, INIT_SYS
+    // DEFAULT, INIT_MD, INIT_OPTG, INIT_SYS, EVAL
 
     engine_node("@DEFAULT");
 
@@ -196,6 +191,10 @@ void MDIEngine::mdi_engine(int narg, char **arg)
 
     } else if (strcmp(mdicmd,"@INIT_SYS") == 0) {
       mdi_sys();
+      if (exit_command) break;
+
+    } else if (strcmp(mdicmd,"@EVAL") == 0) {
+      mdi_eval();
       if (exit_command) break;
 
     } else if (exit_command) {
@@ -458,6 +457,11 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
       error->all(FLERR,"MDI: MDI engine is already performing a simulation");
     mode = SYS;
     node_match = false;
+  } else if (strcmp(command,"@EVAL") == 0) {
+    if (mode != DEFAULT) 
+      error->all(FLERR,"MDI: MDI engine is already performing a simulation");
+    mode = EVAL;
+    node_match = false;
 
   } else if (strcmp(command,"NBYTES") == 0) {
     nbytes_command();
@@ -466,7 +470,11 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   } else if (strcmp(command,"COMMANDS") == 0) {
     many_commands();
   } else if (strcmp(command,"INFILE") == 0) {
-    infile();
+    infile();w
+  } else if (strcmp(command,">STEPS") == 0) {
+    send_steps();
+  } else if (strcmp(command,">TOLERANCE") == 0) {
+    send_tolerance();
   } else if (strcmp(command,"<KE") == 0) {
     send_ke();
 
@@ -536,7 +544,14 @@ void MDIEngine::mdi_commands()
   MDI_Register_command("@INIT_SYS", ">NATOMS");
   MDI_Register_command("@INIT_SYS", ">TYPES");
   MDI_Register_command("@INIT_SYS", ">VELOCITIES");
+  MDI_Register_command("@INIT_SYS", "@DEFAULT");
   MDI_Register_command("@INIT_SYS", "EXIT");
+
+  // custom nodes added by LAMMPS
+
+  MDI_Register_node("@EVAL");
+  MDI_Register_command("@EVAL", ">STEPS");
+  MDI_Register_command("@EVAL", ">TOLERANC");
 
   // node for setting up and running a dynamics simulation
 
@@ -749,72 +764,129 @@ void MDIEngine::mdi_optg()
 }
 
 /* ----------------------------------------------------------------------
-   initialize a new simulation for single-point calc or dynamics or min
+   initialize a new simulation
 ---------------------------------------------------------------------- */
 
 void MDIEngine::mdi_sys()
 {
   // engine is now at @INIT_SYS node
   // receive commands driver sends to define the system
-  // GO command will force return from INIT_SYS
+  // another @ command will trigger setup of the system
+
+  sys_natoms_flag = sys_types_flag = sys_charges_flag = 0;
+  sys_coords_flag = sys_velocities_flag = 0;
+  sys_cell_flag = sys_cell_displ_flag = 0;
 
   engine_node("@INIT_SYS");
 
-  if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) return;
+  if (strcmp(mdicmd,"EXIT") == 0) return;
+
+  // >CELL, >NATOMS, >TYPES, >COORDS commands must have been issued
+
+  if (sys_cell_flag == 0 || sys_natoms_flag == 0)
+    error->all(FLERR,"@INIT_SYS requires >NATOMS and >CELL MDI commands");
+  if (sys_types_flag == 0 || sys_coords_flag == 0)
+    error->all(FLERR,"@INIT_SYS requires >TYPES and >COORDS MDI commands");
 
   // clear system via delete_atoms command
+
+  lmp->input->one("delete_atoms group all");
+
   // lib->reset_box()
-  // lib->create_atoms()
-  // then init LAMMPS for new system for MD or min
 
-  //lmp->input->command();
+  double boxlo[3],boxhi[3];
+  double xy,yz,xz;
 
-  // initialize a new simulation
-
-  update->whichflag = 1;
-  timer->init_timeout();
-  update->nsteps = 1;
-  update->ntimestep = 0;
-  update->firststep = update->ntimestep;
-  update->laststep = update->ntimestep + update->nsteps;
-  update->beginstep = update->firststep;
-  update->endstep = update->laststep;
-
-  lmp->init();
-
-  // setup the MD simulation
-
-  update->integrate->setup(1);
-
-  // run MD one step at a time until driver sends @DEFAULT or EXIT
-  // driver can communicate with LAMMPS within each timestep 
-  // by sending a node command which matches a method in FixMDIEngine
-
-  while (true) {
-    update->whichflag = 1;
-    timer->init_timeout();
-    update->nsteps += 1;
-    update->laststep += 1;
-    update->endstep = update->laststep;
-    output->next = update->ntimestep + 1;
-
-    // single MD timestep
-
-    update->integrate->run(1);
-
-    // driver triggers end of MD loop by sending @DEFAULT or EXIT
-
-    if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) {
-      modify->delete_fix("MDI_ENGINE_INTERNAL");
-      return;
-    }
+  if (sys_cell_displ_flag) {
+    boxlo[0] = sys_cell_displ[0];
+    boxlo[1] = sys_cell_displ[1];
+    boxlo[2] = sys_cell_displ[2];
+  } else {
+    boxlo[0] = boxlo[1] = boxlo[2] = 0.0;
   }
 
-  // check that return is NOT GO
+  boxhi[0] = boxlo[0] + sys_cell[0];
+  boxhi[1] = boxlo[1] + sys_cell[4];
+  boxhi[2] = boxlo[2] + sys_cell[8];
+  
+  xy = sys_cell[3];
+  yz = sys_cell[7];
+  xz = sys_cell[6];
 
-  engine_node("@INIT_SYS");
+  lammps_reset_box(lmp,boxlo,boxhi,xy,yz,xz);
 
-  if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) return;
+  // lib->create_atoms()
+  // optionally set charges if specified by ">CHARGES"
+
+  if (sys_velocities_flag)
+    int natoms = lammps_create_atoms(lmp,sys_natoms,NULL,sys_types,
+                                     sys_coords,sys_velocities,NULL,1);
+  else
+    int natoms = lammps_create_atoms(lmp,sys_natoms,NULL,sys_types,
+                                     sys_coords,NULL,NULL,1);
+
+  if (sys_charges_flag) lammps_scatter_atoms(lmp,(char *) "q",1,1,sys_charges);
+
+  // new system
+
+  update->ntimestep = 0;
+}
+
+/* ----------------------------------------------------------------------
+   perform a single-point calc or dynamics or min
+---------------------------------------------------------------------- */
+
+void MDIEngine::mdi_eval()
+{
+  // engine is now at @EVAL node
+  // receive commands driver sends to define the evaluation
+  // another @ command will trigger the calculation to be performed
+
+  engine_node("@EVAL");
+
+  if (strcmp(mdicmd,"EXIT") == 0) return;
+
+  if (evalmode == POINT or evalmode == MD) {
+    update->whichflag = 1;
+    timer->init_timeout();
+
+    update->nsteps = nsteps;
+    update->beginstep = update->firststep = update->ntimestep;
+    update->endstep = update->laststep = update->ntimestep + update->nsteps;
+    
+    lmp->init();
+    update->integrate->setup(1);
+
+    timer->init();
+    timer->barrier_start();
+    update->integrate->run(nsteps);
+    timer->barrier_stop();
+
+    update->integrate->cleanup();
+  }
+
+  if (evalmode == MINIMIZE) {
+    update->etol = etol[0];
+    update->ftol = ftol[1];
+    update->nsteps = nsteps;
+    update->max_eval = max_eval;
+
+    update->whichflag = 2;
+    timer->init_timeout();
+
+    update->beginstep = update->firststep = update->ntimestep;
+    update->endstep = update->laststep = update->firststep + update->nsteps;
+    
+    lmp->init();
+    update->minimize->setup();
+
+    timer->init();
+    timer->barrier_start();
+    update->minimize->run(update->nsteps);
+    timer->barrier_stop();
+
+    update->minimize->cleanup();
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1227,6 +1299,93 @@ void MDIEngine::receive_double3(int which, int addflag)
 // ----------------------------------------------------------------------
 
 /* ----------------------------------------------------------------------
+   <CELL command
+   send simulation box edge vectors
+---------------------------------------------------------------------- */
+
+void MDIEngine::send_cell()
+{
+  double celldata[9];
+
+  celldata[0] = domain->boxhi[0] - domain->boxlo[0];
+  celldata[1] = 0.0;
+  celldata[2] = 0.0;
+  celldata[3] = domain->xy;
+  celldata[4] = domain->boxhi[1] - domain->boxlo[1];
+  celldata[5] = 0.0;
+  celldata[6] = domain->xz;
+  celldata[7] = domain->yz;
+  celldata[8] = domain->boxhi[2] - domain->boxlo[2];
+
+  for (int icell = 0; icell < 9; icell++) 
+    celldata[icell] *= lmp2mdi_length;
+
+  int ierr = MDI_Send(celldata,9,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: <CELL data");
+}
+
+/* ----------------------------------------------------------------------
+   <CELL_DISPL command
+   send simulation box origin = lower-left corner
+---------------------------------------------------------------------- */
+
+void MDIEngine::send_cell_displ()
+{
+  double celldata[3];
+
+  celldata[0] = domain->boxlo[0];
+  celldata[1] = domain->boxlo[1];
+  celldata[2] = domain->boxlo[2];
+
+  for (int icell = 0; icell < 3; icell++)
+    celldata[icell] *= lmp2mdi_length;
+
+  int ierr = MDI_Send(celldata,3,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: <CELL_DISPLS data");
+}
+
+/* ----------------------------------------------------------------------
+   <ENERGY command
+   send total energy = PE + KE
+---------------------------------------------------------------------- */
+
+void MDIEngine::send_total_energy()
+{
+  double potential_energy = pe->compute_scalar();
+  double kinetic_energy = ke->compute_scalar();
+  double total_energy = potential_energy + kinetic_energy;
+  total_energy *= lmp2mdi_energy;
+
+  int ierr = MDI_Send(&total_energy,1,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: <ENERGY data");
+}
+
+/* ----------------------------------------------------------------------
+   <LABELS command
+   convert atom type to string for each atom
+   atoms are ordered by atomID, 1 to Natoms
+---------------------------------------------------------------------- */
+
+void MDIEngine::send_labels()
+{
+  char *labels = new char[atom->natoms * MDI_LABEL_LENGTH];
+  memset(labels,' ',atom->natoms * MDI_LABEL_LENGTH);
+
+  // NOTE: this loop will not work in parallel
+
+  for (int iatom = 0; iatom < atom->natoms; iatom++) {
+    std::string label = std::to_string(atom->type[iatom]);
+    int label_len = std::min(int(label.length()), MDI_LABEL_LENGTH);
+    strncpy(&labels[iatom * MDI_LABEL_LENGTH], label.c_str(), label_len);
+  }
+
+  int ierr = MDI_Send(labels,atom->natoms*MDI_LABEL_LENGTH,MDI_CHAR,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: <LABELS data");
+
+  delete [] labels;
+}
+
+/* ----------------------------------------------------------------------
    <NATOMS command
    natoms cannot exceed 32-bit int for use with MDI
 ---------------------------------------------------------------------- */
@@ -1238,17 +1397,35 @@ void MDIEngine::send_natoms()
   if (ierr != 0) error->all(FLERR,"MDI: <NATOMS data");
 }
 
+/* ----------------------------------------------------------------------
+   <PE command
+   send potential energy
+---------------------------------------------------------------------- */
 
+void MDIEngine::send_pe()
+{
+  double potential_energy = pe->compute_scalar();
+  potential_energy *= lmp2mdi_energy;
 
+  int ierr = MDI_Send(&potential_energy,1,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: <PE data");
+}
 
+/* ----------------------------------------------------------------------
+   <STRESS command
+   send 6-component stress tensor (no kinetic energy term)
+---------------------------------------------------------------------- */
 
+void MDIEngine::send_stress()
+{
+  double vtensor[6];
+  press->compute_vector();
+  for (int i = 0; i < 6; i++)
+    vtensor[i] = press->vector[i] * lmp2mdi_pressure;
 
-
-
-
-
-
-
+  int ierr = MDI_Send(vtensor,6,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: <STRESS data");
+}
 
 /* ----------------------------------------------------------------------
    send vector of 1 double for all atoms
@@ -1379,121 +1556,6 @@ void MDIEngine::send_double3(int which)
   if (ierr) error->all(FLERR,"MDI: <double3 data");
 }
 
-/* ----------------------------------------------------------------------
-   <LABELS command
-   convert atom type to string for each atom
-   atoms are ordered by atomID, 1 to Natoms
----------------------------------------------------------------------- */
-
-void MDIEngine::send_labels()
-{
-  char *labels = new char[atom->natoms * MDI_LABEL_LENGTH];
-  memset(labels,' ',atom->natoms * MDI_LABEL_LENGTH);
-
-  // NOTE: this loop will not work in parallel
-
-  for (int iatom = 0; iatom < atom->natoms; iatom++) {
-    std::string label = std::to_string(atom->type[iatom]);
-    int label_len = std::min(int(label.length()), MDI_LABEL_LENGTH);
-    strncpy(&labels[iatom * MDI_LABEL_LENGTH], label.c_str(), label_len);
-  }
-
-  int ierr = MDI_Send(labels,atom->natoms*MDI_LABEL_LENGTH,MDI_CHAR,mdicomm);
-  if (ierr) error->all(FLERR,"MDI: <LABELS data");
-
-  delete [] labels;
-}
-
-/* ----------------------------------------------------------------------
-   <ENERGY command
-   send total energy = PE + KE
----------------------------------------------------------------------- */
-
-void MDIEngine::send_total_energy()
-{
-  double potential_energy = pe->compute_scalar();
-  double kinetic_energy = ke->compute_scalar();
-  double total_energy = potential_energy + kinetic_energy;
-  total_energy *= lmp2mdi_energy;
-
-  int ierr = MDI_Send(&total_energy,1,MDI_DOUBLE,mdicomm);
-  if (ierr) error->all(FLERR,"MDI: <ENERGY data");
-}
-
-/* ----------------------------------------------------------------------
-   <PE command
-   send potential energy
----------------------------------------------------------------------- */
-
-void MDIEngine::send_pe()
-{
-  double potential_energy = pe->compute_scalar();
-  potential_energy *= lmp2mdi_energy;
-
-  int ierr = MDI_Send(&potential_energy,1,MDI_DOUBLE,mdicomm);
-  if (ierr) error->all(FLERR,"MDI: <PE data");
-}
-
-/* ----------------------------------------------------------------------
-   <KE command
-   send kinetic energy
----------------------------------------------------------------------- */
-
-void MDIEngine::send_ke()
-{
-  double kinetic_energy = ke->compute_scalar();
-  kinetic_energy *= lmp2mdi_energy;
-
-  int ierr = MDI_Send(&kinetic_energy,1,MDI_DOUBLE,mdicomm);
-  if (ierr) error->all(FLERR,"MDI: <KE data");
-}
-
-/* ----------------------------------------------------------------------
-   <CELL command
-   send simulation box edge vectors
----------------------------------------------------------------------- */
-
-void MDIEngine::send_cell()
-{
-  double celldata[9];
-
-  celldata[0] = domain->boxhi[0] - domain->boxlo[0];
-  celldata[1] = 0.0;
-  celldata[2] = 0.0;
-  celldata[3] = domain->xy;
-  celldata[4] = domain->boxhi[1] - domain->boxlo[1];
-  celldata[5] = 0.0;
-  celldata[6] = domain->xz;
-  celldata[7] = domain->yz;
-  celldata[8] = domain->boxhi[2] - domain->boxlo[2];
-
-  for (int icell = 0; icell < 9; icell++) 
-    celldata[icell] *= lmp2mdi_length;
-
-  int ierr = MDI_Send(celldata,9,MDI_DOUBLE,mdicomm);
-  if (ierr) error->all(FLERR,"MDI: <CELL data");
-}
-
-/* ----------------------------------------------------------------------
-   <CELL_DISPL command
-   send simulation box origin = lower-left corner
----------------------------------------------------------------------- */
-
-void MDIEngine::send_cell_displ()
-{
-  double celldata[3];
-
-  celldata[0] = domain->boxlo[0];
-  celldata[1] = domain->boxlo[1];
-  celldata[2] = domain->boxlo[2];
-
-  for (int icell = 0; icell < 3; icell++)
-    celldata[icell] *= lmp2mdi_length;
-
-  int ierr = MDI_Send(celldata,3,MDI_DOUBLE,mdicomm);
-  if (ierr) error->all(FLERR,"MDI: <CELL_DISPLS data");
-}
-
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
 // responses to custom LAMMPS MDI commands
@@ -1577,150 +1639,17 @@ void MDIEngine::infile()
 }
 
 /* ----------------------------------------------------------------------
-   RESET_BOX command
-   wrapper on library reset_box() method
-   9 values = boxlo, boxhi, xy, yz, xz
-   requires no atoms exist
-   allows caller to define a new simulation box
+   <KE command
+   send kinetic energy
 ---------------------------------------------------------------------- */
 
-void MDIEngine::reset_box()
+void MDIEngine::send_ke()
 {
-  int ierr;
-  double values[9];
+  double kinetic_energy = ke->compute_scalar();
+  kinetic_energy *= lmp2mdi_energy;
 
-  if (atom->natoms > 0) 
-    error->all(FLERR,"MDI RESET_BOX cannot be used when atoms exist");
-
-  ierr = MDI_Recv(values,9,MDI_DOUBLE,mdicomm);
-  MPI_Bcast(values,9,MPI_DOUBLE,0,world);
-
-  lammps_reset_box(lmp,&values[0],&values[3],values[6],values[7],values[8]);
-}
-
-/* ----------------------------------------------------------------------
-   CREATE_ATOM command
-   wrapper on library create_atoms() method
-   requires simulation box be defined
-   allows caller to define a new set of atoms
-     with their IDs, types, coords, velocities, image flags
-   called in stages via flag
-     since MDI plugin mode only allows 1 MDI Send/Recv per MDI command
-   assumes current atom->natoms set by >NATOMS command is correct
----------------------------------------------------------------------- */
-
-void MDIEngine::create_atoms(int flag)
-{
-  int ierr;
-
-  // NOTE: error check on imageint = INT
-
-  if (flag == CREATE_ATOM) {
-
-    if (create_atoms_flag) 
-      error->all(FLERR,"MDI CREATE_ATOM already in progress");
-
-    ierr = MDI_Recv(&create_natoms,1,MDI_INT,mdicomm);
-    MPI_Bcast(&create_natoms,1,MPI_INT,0,world);
-
-    create_atoms_flag = 1;
-    create_id = nullptr;
-    create_type = nullptr;
-    create_x = nullptr;
-    create_v = nullptr;
-    create_image = nullptr;
-
-  } else if (flag == CREATE_ID) {
-
-    if (!create_atoms_flag) error->all(FLERR,"MDI CREATE_ATOM not in progress");
-    if (create_id) error->all(FLERR,"MDI CREATE_ATOM already in progress");
-    
-    int natom = create_natoms;
-    memory->create(create_id,natom,"mdi:create_id");
-    ierr = MDI_Recv(create_id,natom,MDI_INT,mdicomm);
-    MPI_Bcast(create_id,natom,MPI_INT,0,world);
-
-  } else if (flag == CREATE_TYPE) {
-
-    if (!create_atoms_flag) error->all(FLERR,"MDI CREATE_ATOM not in progress");
-    if (create_type) error->all(FLERR,"MDI CREATE_ATOM already in progress");
-
-    int natom = create_natoms;
-    if (create_type) error->all(FLERR,"MDI CREATE_ATOM already in progress");
-    memory->create(create_type,natom,"mdi:create_type");
-    ierr = MDI_Recv(create_type,natom,MDI_INT,mdicomm);
-    MPI_Bcast(create_type,natom,MPI_INT,0,world);
-
-  } else if (flag == CREATE_X) {
-
-    if (!create_atoms_flag) error->all(FLERR,"MDI CREATE_ATOM not in progress");
-    if (create_x) error->all(FLERR,"MDI CREATE_ATOM already in progress");
-
-    int natom = create_natoms;
-    if (create_x) error->all(FLERR,"MDI CREATE_ATOM already in progress");
-    memory->create(create_x,3*natom,"mdi:create_x");
-    ierr = MDI_Recv(create_x,3*natom,MDI_DOUBLE,mdicomm);
-    MPI_Bcast(create_x,3*natom,MPI_DOUBLE,0,world);
-
-  } else if (flag == CREATE_V) {
-
-    if (!create_atoms_flag) error->all(FLERR,"MDI CREATE_ATOM not in progress");
-    if (create_v) error->all(FLERR,"MDI CREATE_ATOM already in progress");
-
-    int natom = create_natoms;
-    if (create_v) error->all(FLERR,"MDI CREATE_ATOM already in progress");
-    memory->create(create_v,3*natom,"mdi:create_x");
-    ierr = MDI_Recv(create_v,3*natom,MDI_DOUBLE,mdicomm);
-    MPI_Bcast(create_v,3*natom,MPI_DOUBLE,0,world);
-
-  } else if (flag == CREATE_IMAGE) {
-
-    if (!create_atoms_flag) error->all(FLERR,"MDI CREATE_ATOM not in progress");
-    if (create_image) error->all(FLERR,"MDI CREATE_ATOM already in progress");
-
-    int natom = create_natoms;
-    if (create_image) error->all(FLERR,"MDI CREATE_ATOM already in progress");
-    memory->create(create_image,natom,"mdi:create_image");
-    ierr = MDI_Recv(create_image,natom,MDI_INT,mdicomm);
-    MPI_Bcast(create_image,natom,MPI_INT,0,world);
-
-  } else if (flag == CREATE_GO) {
-
-    if (!create_atoms_flag) error->all(FLERR,"MDI CREATE_ATOM not in progress");
-    if (!create_type || !create_x)
-      error->all(FLERR,"MDI: CREATE_ATOM requires types and coords");
- 
-    int ncreate = lammps_create_atoms(lmp,create_natoms,create_id,create_type,
-                                      create_x,create_v,create_image,1);
-    
-    if (ncreate != create_natoms) 
-      error->all(FLERR, "MDI: CREATE ATOM created atoms != sent atoms");
-
-    // clean up create_atoms state
-
-    create_atoms_flag = 0;
-    memory->destroy(create_id);
-    memory->destroy(create_type);
-    memory->destroy(create_x);
-    memory->destroy(create_v);
-    memory->destroy(create_image);
-  }
-}
-
-/* ----------------------------------------------------------------------
-   <STRESS command
-   send 6-component stress tensor (no kinetic energy term)
----------------------------------------------------------------------- */
-
-void MDIEngine::send_stress()
-{
-  double vtensor[6];
-  press->compute_vector();
-  for (int i = 0; i < 6; i++)
-    vtensor[i] = press->vector[i] * lmp2mdi_pressure;
-
-  int ierr = MDI_Send(vtensor,6,MDI_DOUBLE,mdicomm);
-  if (ierr) error->all(FLERR,"MDI: <STRESS data");
+  int ierr = MDI_Send(&kinetic_energy,1,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: <KE data");
 }
 
 // ----------------------------------------------------------------------

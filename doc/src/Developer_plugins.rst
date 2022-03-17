@@ -261,4 +261,4 @@ in case the new code is intended to be later included in LAMMPS directly.
 A plugin may be registered under an existing style name.  In that case
 the plugin will override the existing code.  This can be used to modify
 the behavior of existing styles or to debug new versions of them without
-having to recompile/reinstall all of LAMMPS.
+having to re-compile or re-install all of LAMMPS.

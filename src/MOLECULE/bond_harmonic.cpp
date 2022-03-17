@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondHarmonic::BondHarmonic(LAMMPS *lmp) : Bond(lmp)
+BondHarmonic::BondHarmonic(LAMMPS *_lmp) : Bond(_lmp)
 {
   reinitflag = 1;
 }
@@ -107,7 +107,7 @@ void BondHarmonic::compute(int eflag, int vflag)
 void BondHarmonic::allocate()
 {
   allocated = 1;
-  int np1 = atom->nbondtypes + 1;
+  const int np1 = atom->nbondtypes + 1;
 
   memory->create(k, np1, "bond:k");
   memory->create(r0, np1, "bond:r0");

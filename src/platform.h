@@ -272,6 +272,11 @@ namespace platform {
 
   /*! Create a directory
    *
+   * Unlike the the ``mkdir()`` or ``_mkdir()`` functions of the
+   * C library, this function will also try to create non-existing sub-directories
+   * in case they don't exist, and thus behave like the ``mkdir -p`` command rather
+   * than plain ``mkdir`` or ``md`.
+   *
    * \param  path  directory path
    * \return -1 if unsuccessful, otherwise >= 0  */
 
@@ -279,7 +284,7 @@ namespace platform {
 
   /*! Delete a directory
    *
-   * Unlike the the ``rmdir()`` or ``_rmdir()`` function of the
+   * Unlike the the ``rmdir()`` or ``_rmdir()`` functions of the
    * C library, this function will check for the contents of the
    * folder and recurse into any sub-folders, if necessary and
    * delete all contained folders and their contents before

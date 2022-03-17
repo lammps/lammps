@@ -29,7 +29,8 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
-using MathConst::MY_PI;
+using MathConst::DEG2RAD;
+using MathConst::RAD2DEG;
 
 static constexpr double SMALL = 0.001;
 
@@ -211,7 +212,7 @@ void AngleCharmm::coeff(int narg, char **arg)
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     k[i] = k_one;
-    theta0[i] = theta0_one / 180.0 * MY_PI;
+    theta0[i] = DEG2RAD * theta0_one;
     k_ub[i] = k_ub_one;
     r_ub[i] = r_ub_one;
     setflag[i] = 1;
@@ -269,7 +270,7 @@ void AngleCharmm::read_restart(FILE *fp)
 void AngleCharmm::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp, "%d %g %g %g %g\n", i, k[i], theta0[i] / MY_PI * 180.0, k_ub[i], r_ub[i]);
+    fprintf(fp, "%d %g %g %g %g\n", i, k[i], RAD2DEG * theta0[i], k_ub[i], r_ub[i]);
 }
 
 /* ---------------------------------------------------------------------- */

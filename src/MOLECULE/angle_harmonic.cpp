@@ -25,7 +25,8 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::DEG2RAD;
+using MathConst::RAD2DEG;
 
 static constexpr double SMALL = 0.001;
 
@@ -183,7 +184,7 @@ void AngleHarmonic::coeff(int narg, char **arg)
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     k[i] = k_one;
-    theta0[i] = theta0_one / 180.0 * MY_PI;
+    theta0[i] = DEG2RAD * theta0_one;
     setflag[i] = 1;
     count++;
   }
@@ -233,7 +234,7 @@ void AngleHarmonic::read_restart(FILE *fp)
 void AngleHarmonic::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp, "%d %g %g\n", i, k[i], theta0[i] / MY_PI * 180.0);
+    fprintf(fp, "%d %g %g\n", i, k[i], RAD2DEG * theta0[i]);
 }
 
 /* ---------------------------------------------------------------------- */

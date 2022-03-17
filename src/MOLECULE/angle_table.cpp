@@ -32,7 +32,9 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using MathConst::DEG2RAD;
 using MathConst::MY_PI;
+using MathConst::RAD2DEG;
 
 enum { LINEAR, SPLINE };
 
@@ -243,8 +245,8 @@ void AngleTable::coeff(int narg, char **arg)
   // convert theta from degrees to radians
 
   for (int i = 0; i < tb->ninput; i++) {
-    tb->afile[i] *= MY_PI / 180.0;
-    tb->ffile[i] *= 180.0 / MY_PI;
+    tb->afile[i] *= DEG2RAD;
+    tb->ffile[i] *= RAD2DEG;
   }
 
   // spline read-in and compute a,e,f vectors within table
@@ -519,10 +521,10 @@ void AngleTable::param_extract(Table *tb, char *line)
         tb->fpflag = 1;
         tb->fplo = values.next_double();
         tb->fphi = values.next_double();
-        tb->fplo *= (180.0 / MY_PI) * (180.0 / MY_PI);
-        tb->fphi *= (180.0 / MY_PI) * (180.0 / MY_PI);
+        tb->fplo *= RAD2DEG * RAD2DEG;
+        tb->fphi *= RAD2DEG * RAD2DEG;
       } else if (word == "EQ") {
-        tb->theta0 = values.next_double() / 180.0 * MY_PI;
+        tb->theta0 = DEG2RAD * values.next_double();
       } else {
         error->one(FLERR, "Invalid keyword in angle table parameters");
       }

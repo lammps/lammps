@@ -29,7 +29,8 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
-using MathConst::MY_PI;
+using MathConst::DEG2RAD;
+using MathConst::RAD2DEG;
 
 /* ---------------------------------------------------------------------- */
 
@@ -181,7 +182,7 @@ void AngleCosineSquared::coeff(int narg, char **arg)
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     k[i] = k_one;
-    theta0[i] = theta0_one / 180.0 * MY_PI;
+    theta0[i] = DEG2RAD * theta0_one;
     setflag[i] = 1;
     count++;
   }
@@ -231,7 +232,7 @@ void AngleCosineSquared::read_restart(FILE *fp)
 void AngleCosineSquared::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp, "%d %g %g\n", i, k[i], theta0[i] / MY_PI * 180.0);
+    fprintf(fp, "%d %g %g\n", i, k[i], RAD2DEG * theta0[i]);
 }
 
 /* ---------------------------------------------------------------------- */

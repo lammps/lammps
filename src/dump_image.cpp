@@ -40,7 +40,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::DEG2RAD;
 
 #define BIG 1.0e20
 
@@ -228,18 +228,15 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       if (utils::strmatch(arg[iarg+1],"^v_")) {
         thetastr = utils::strdup(arg[iarg+1]+2);
       } else {
-        double theta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        const double theta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         if (theta < 0.0 || theta > 180.0)
           error->all(FLERR,"Invalid dump image theta value");
-        theta *= MY_PI/180.0;
-        image->theta = theta;
+        image->theta = DEG2RAD * theta;
       }
       if (utils::strmatch(arg[iarg+2],"^v_")) {
         phistr = utils::strdup(arg[iarg+2]+2);
       } else {
-        double phi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-        phi *= MY_PI/180.0;
-        image->phi = phi;
+        image->phi = DEG2RAD * utils::numeric(FLERR,arg[iarg+2],false,lmp);
       }
       iarg += 3;
 
@@ -652,18 +649,13 @@ void DumpImage::view_params()
   // view direction theta and phi
 
   if (thetastr) {
-    double theta = input->variable->compute_equal(thetavar);
+    const double theta = input->variable->compute_equal(thetavar);
     if (theta < 0.0 || theta > 180.0)
       error->all(FLERR,"Invalid dump image theta value");
-    theta *= MY_PI/180.0;
-    image->theta = theta;
+    image->theta = DEG2RAD * theta;
   }
 
-  if (phistr) {
-    double phi = input->variable->compute_equal(phivar);
-    phi *= MY_PI/180.0;
-    image->phi = phi;
-  }
+  if (phistr) image->phi = DEG2RAD * input->variable->compute_equal(phivar);
 
   // up vector
 

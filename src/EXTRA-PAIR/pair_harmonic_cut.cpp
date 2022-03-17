@@ -99,8 +99,8 @@ void PairHarmonicCut::compute(int eflag, int vflag)
       if (rsq < cutsq[itype][jtype]) {
         const double r = sqrt(rsq);
         const double delta = cut[itype][jtype] - r;
-        const double philj = factor_lj * delta * k[itype][jtype];
-        const double fpair = delta * philj / r;
+        const double prefactor = factor_lj * delta * k[itype][jtype];
+        const double fpair = 2.0 * prefactor / r;
 
         fxtmp += delx * fpair;
         fytmp += dely * fpair;
@@ -111,7 +111,10 @@ void PairHarmonicCut::compute(int eflag, int vflag)
           f[j][2] -= delz * fpair;
         }
 
-        if (evflag) ev_tally(i, j, nlocal, newton_pair, philj, 0.0, fpair, delx, dely, delz);
+        if (evflag) {
+          const double philj = prefactor * delta;
+          ev_tally(i, j, nlocal, newton_pair, philj, 0.0, fpair, delx, dely, delz);
+        }
       }
     }
     f[i][0] += fxtmp;
@@ -296,8 +299,8 @@ double PairHarmonicCut::single(int /*i*/, int /*j*/, int itype, int jtype, doubl
   }
   const double r = sqrt(rsq);
   const double delta = cut[itype][jtype] - r;
-  const double philj = factor_lj * delta * k[itype][jtype];
-  fforce = delta * philj / r;
+  const double philj = factor_lj * delta * delta * k[itype][jtype];
+  fforce = 2.0 * philj / (r * delta);
   return philj;
 }
 

@@ -189,7 +189,6 @@ void ComputeStressSpherical::compute_array()
   double r, vr, vt, vp, theta;
   double **x = atom->x;
   double **v = atom->v;
-  double *mass = atom->mass;
   tagint *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
@@ -246,10 +245,6 @@ void ComputeStressSpherical::compute_array()
 
   Pair *pair = force->pair;
   double **cutsq = force->pair->cutsq;
-
-  double risq, rjsq;
-  double dir1i, dir2i, dir3i, dir1j, dir2j, dir3j;
-  double xi, yi, zi, xj, yj, zj;
 
   double qi[3], l1, l2, l3, l4, R1, R2, Fa, Fb, l_sum;
   double rij, f, ririj, sqr, la, lb, sql0, lambda0;

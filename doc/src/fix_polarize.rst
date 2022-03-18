@@ -143,7 +143,7 @@ control the induced charge solver and the initial values of the interface elemen
 *polarize/bem/gmres* or *polarize/bem/icc* compute a global 2-element vector
 which can be accessed by various :doc:`output commands <Howto_output>`.
 The first element is the number of iterations when the solver terminates
-(of which the upperbound is set by *iter_max*). The second element is the RMS error.
+(of which the upper bound is set by *iter_max*). The second element is the RMS error.
 
 
 Restrictions

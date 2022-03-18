@@ -233,55 +233,62 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
       else
         itype = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       double scalefactor = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
-      if (itype < 0 || itype > ntypes)
-        error->all(FLERR, "Illegal fix lb/fluid command: scaleGamma");
+      if ((itype < 0) || (itype > ntypes))
+        error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       if (itype)
         Gamma[itype] = scalefactor;
       else
         for (int it = 1; it <= atom->ntypes; it++) Gamma[it] = scalefactor;
       iarg += 3;
     } else if (strcmp(arg[iarg], "dx") == 0) {
+      if ((iarg + 2) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       dx_lb = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
       setdx = 0;
     } else if (strcmp(arg[iarg], "dm") == 0) {
+      if ((iarg + 2) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       dm_lb = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "a0") == 0) {
+      if ((iarg + 2) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       a_0_real = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
       seta0 = 0;
     } else if (strcmp(arg[iarg], "noise") == 0) {
+      if ((iarg + 3) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       noisestress = 1;
       T = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
-      seed = atoi(arg[iarg + 2]);
+      seed = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       iarg += 3;
     } else if (strcmp(arg[iarg], "stencil") == 0) {
+      if ((iarg + 2) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       n_stencil = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "read_restart") == 0) {
+      if ((iarg + 2) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       readrestart = 1;
-      int nlength = strlen(arg[iarg + 1]) + 16;
-      char *filename = new char[nlength];
-      strcpy(filename, arg[iarg + 1]);
+      char *filename = utils::strdup(arg[iarg + 1]);
       MPI_File_open(world, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &pFileRead);
       delete[] filename;
       iarg += 2;
     } else if (strcmp(arg[iarg], "write_restart") == 0) {
+      if ((iarg + 2) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       printrestart = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "zwall_velocity") == 0) {
+      if ((iarg + 3) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       if (domain->periodicity[2] != 0)
-        error->all(FLERR, "fix lb/fluid error: setting \
-a z wall velocity without implementing fixed BCs in z");
+        error->all(FLERR, "setting a z wall velocity without implementing fixed BCs in z");
       vwbt = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       vwtp = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       iarg += 3;
     } else if (strcmp(arg[iarg], "pressurebcx") == 0) {
+      if ((iarg + 2) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       pressure = 1;
       rhofactor = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "bodyforce") == 0) {
+      if ((iarg + 4) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       bodyforcex = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       bodyforcey = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       bodyforcez = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
@@ -290,6 +297,7 @@ a z wall velocity without implementing fixed BCs in z");
       numvel = 19;
       iarg += 1;
     } else if (strcmp(arg[iarg], "dumpxdmf") == 0) {
+      if ((iarg + 4) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       dump_interval = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       dump_file_name_xdmf = std::string(arg[iarg + 2]) + std::string(".xdmf");
       dump_file_name_raw = std::string(arg[iarg + 2]) + std::string(".raw");
@@ -299,9 +307,11 @@ a z wall velocity without implementing fixed BCs in z");
       lin_init = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg], "dof") == 0) {
+      if ((iarg + 2) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       setdof = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "npits") == 0) {
+      if ((iarg + 6) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       npits = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       h_p = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       l_p = utils::inumeric(FLERR, arg[iarg + 3], false, lmp);
@@ -312,10 +322,11 @@ a z wall velocity without implementing fixed BCs in z");
       sw = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg], "wp") == 0) {
+      if ((iarg + 2) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       w_p = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else
-      error->all(FLERR, "Illegal fix lb/fluid command");
+      error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
   }
 
   //-------------------------------------------------------------------------
@@ -2339,59 +2350,59 @@ void FixLbFluid::SetupBuffers(void)
 //==========================================================================
 // Output fluid density and velocity to file in XDMF format
 //==========================================================================
-void FixLbFluid::dump(const int step)
+void FixLbFluid::dump(const bigint step)
 {
-  static int frameindex = 0;
+  static bigint frameindex = 0;
 
   if (dump_interval && step % dump_interval == 0) {
     // Write XDMF grid entry for time step
     if (me == 0) {
-      long int block = (long int) fluid_global_n0[0] * fluid_global_n0[1] * fluid_global_n0[2] *
-          sizeof(MPI_DOUBLE);
-      long int offset = frameindex * block * (1 + 3);
+      bigint block =
+          (bigint) fluid_global_n0[0] * fluid_global_n0[1] * fluid_global_n0[2] * sizeof(double);
+      bigint offset = frameindex * block * (1 + 3);
       double time = dump_time_index ? update->ntimestep * dt_lb : frameindex;
 
-      fprintf(dump_file_handle_xdmf,
-              "      <Grid Name=\"%d\">\n"
-              "        <Time Value=\"%f\"/>\n\n"
-              "        <Topology TopologyType=\"3DCoRectMesh\" Dimensions=\"%d %d %d\"/>\n"
-              "        <Geometry GeometryType=\"ORIGIN_DXDYDZ\">\n"
-              "          <DataItem Dimensions=\"3\">\n"
-              "            %f %f %f\n"
-              "          </DataItem>\n"
-              "          <DataItem Dimensions=\"3\">\n"
-              "            %f %f %f\n"
-              "          </DataItem>\n"
-              "        </Geometry>\n\n",
-              step, time, fluid_global_n0[2], fluid_global_n0[1], fluid_global_n0[0],
-              domain->boxlo[2], domain->boxlo[1], domain->boxlo[0], dx_lb, dx_lb, dx_lb);
-      fprintf(dump_file_handle_xdmf,
-              "        <Attribute Name=\"density\">\n"
-              "          <DataItem ItemType=\"Function\" Function=\"$0 * %f\" Dimensions=\"%d %d "
-              "%d\">\n"
-              "            <DataItem Precision=\"%zd\" Format=\"Binary\" Seek=\"%ld\" "
-              "Dimensions=\"%d %d %d\">\n"
-              "              %s\n"
-              "            </DataItem>\n"
-              "          </DataItem>\n"
-              "        </Attribute>\n\n",
-              dm_lb / (dx_lb * dx_lb * dx_lb), fluid_global_n0[2], fluid_global_n0[1],
-              fluid_global_n0[0], sizeof(MPI_DOUBLE), offset, fluid_global_n0[2],
-              fluid_global_n0[1], fluid_global_n0[0], dump_file_name_raw.c_str());
-      fprintf(dump_file_handle_xdmf,
-              "        <Attribute Name=\"velocity\" AttributeType=\"Vector\">\n"
-              "          <DataItem ItemType=\"Function\" Function=\"$0 * %f\" Dimensions=\"%d %d "
-              "%d 3\">\n"
-              "            <DataItem Precision=\"%zd\" Format=\"Binary\" Seek=\"%ld\" "
-              "Dimensions=\"%d %d %d 3\">\n"
-              "              %s\n"
-              "            </DataItem>\n"
-              "          </DataItem>\n"
-              "        </Attribute>\n\n",
-              dx_lb / dt_lb, fluid_global_n0[2], fluid_global_n0[1], fluid_global_n0[0],
-              sizeof(MPI_DOUBLE), offset + block * 1, fluid_global_n0[2], fluid_global_n0[1],
-              fluid_global_n0[0], dump_file_name_raw.c_str());
-      fprintf(dump_file_handle_xdmf, "      </Grid>\n\n");
+      fmt::print(dump_file_handle_xdmf,
+                 "      <Grid Name=\"{}\">\n"
+                 "        <Time Value=\"{:f}\"/>\n\n"
+                 "        <Topology TopologyType=\"3DCoRectMesh\" Dimensions=\"{} {} {}\"/>\n"
+                 "        <Geometry GeometryType=\"ORIGIN_DXDYDZ\">\n"
+                 "          <DataItem Dimensions=\"3\">\n"
+                 "            {:f} {:f} {:f}\n"
+                 "          </DataItem>\n"
+                 "          <DataItem Dimensions=\"3\">\n"
+                 "            {:f} {:f} {:f}\n"
+                 "          </DataItem>\n"
+                 "        </Geometry>\n\n",
+                 step, time, fluid_global_n0[2], fluid_global_n0[1], fluid_global_n0[0],
+                 domain->boxlo[2], domain->boxlo[1], domain->boxlo[0], dx_lb, dx_lb, dx_lb);
+      fmt::print(dump_file_handle_xdmf,
+                 "        <Attribute Name=\"density\">\n"
+                 "          <DataItem ItemType=\"Function\" Function=\"$0 * {:f}\" "
+                 "Dimensions=\"{} {} {}\">\n"
+                 "            <DataItem Precision=\"{}\" Format=\"Binary\" Seek=\"{}\" "
+                 "Dimensions=\"{} {} {}\">\n"
+                 "              {}\n"
+                 "            </DataItem>\n"
+                 "          </DataItem>\n"
+                 "        </Attribute>\n\n",
+                 dm_lb / (dx_lb * dx_lb * dx_lb), fluid_global_n0[2], fluid_global_n0[1],
+                 fluid_global_n0[0], sizeof(double), offset, fluid_global_n0[2],
+                 fluid_global_n0[1], fluid_global_n0[0], dump_file_name_raw.c_str());
+      fmt::print(dump_file_handle_xdmf,
+                 "        <Attribute Name=\"velocity\" AttributeType=\"Vector\">\n"
+                 "          <DataItem ItemType=\"Function\" Function=\"$0 * {:f}\" "
+                 "Dimensions=\"{} {} {} 3\">\n"
+                 "            <DataItem Precision=\"{}\" Format=\"Binary\" Seek=\"{}\" "
+                 "Dimensions=\"{} {} {} 3\">\n"
+                 "              {}\n"
+                 "            </DataItem>\n"
+                 "          </DataItem>\n"
+                 "        </Attribute>\n\n",
+                 dx_lb / dt_lb, fluid_global_n0[2], fluid_global_n0[1], fluid_global_n0[0],
+                 sizeof(double), offset + block * 1, fluid_global_n0[2], fluid_global_n0[1],
+                 fluid_global_n0[0], dump_file_name_raw.c_str());
+      fmt::print(dump_file_handle_xdmf, "      </Grid>\n\n");
 
       frameindex++;
     }
@@ -3658,7 +3669,8 @@ void FixLbFluid::initializeGeometry()
   //  initializeGeometry defines the local lattice
   //  structure through the sublattice array
   // --------------------------------------------
-  int geodump = 0;
+#define GEODUMP 0
+
   int i, j, k;
   int boxlims[3][2];    // absolute subvolume coordinates
 
@@ -3705,61 +3717,61 @@ void FixLbFluid::initializeGeometry()
         }
       }
 
-  // Output local geometry to data files labeled with processor number
-  // Type dump
-  if (geodump) {
-    auto datfile = fmt::format("subgeom_{}_end_type.dmp", me);
-    FILE *outfile = fopen(datfile.c_str(), "w");
-    if (!outfile)
-      error->one(FLERR, " file {} could not be opened: {}", datfile, utils::getsyserror());
+      // Output local geometry to data files labeled with processor number
+      // Type dump
+#if GEODUMP
+  auto datfile = fmt::format("subgeom_{}_end_type.dmp", me);
+  FILE *outfile = fopen(datfile.c_str(), "w");
+  if (!outfile)
+    error->one(FLERR, " file {} could not be opened: {}", datfile, utils::getsyserror());
 
-    fmt::print(outfile, "\n me: {} px: {} py: {} pz: {}\n", me, comm->myloc[0], comm->myloc[1],
-               comm->myloc[2]);
+  fmt::print(outfile, "\n me: {} px: {} py: {} pz: {}\n", me, comm->myloc[0], comm->myloc[1],
+             comm->myloc[2]);
 
-    for (i = 0; i < subNbx; i++) {
-      fmt::print(outfile, "i={}\n", i);
-      for (k = subNbz - 1; k > -1; k--) {
-        if (k == subNbz - 2 || k == 0) {
-          for (j = 0; j < subNby + 2; j++) fputs("---", outfile);
-          fputs("\n", outfile);
-        }
-        for (j = 0; j < subNby; j++) {
-          fmt::print(outfile, " {} ", sublattice[i][j][k].type);
-          if (j == 0 || j == subNby - 2) fputs(" | ", outfile);
-          if (j == subNby - 1) fputs("\n", outfile);
-        }
+  for (i = 0; i < subNbx; i++) {
+    fmt::print(outfile, "i={}\n", i);
+    for (k = subNbz - 1; k > -1; k--) {
+      if (k == subNbz - 2 || k == 0) {
+        for (j = 0; j < subNby + 2; j++) fputs("---", outfile);
+        fputs("\n", outfile);
       }
-      fputs(" \n \n", outfile);
-    }
-    fputs("\n", outfile);
-    fclose(outfile);
-
-    // Orientation dump
-    datfile = fmt::format("subgeom_{}_end_ori.dmp", me);
-    outfile = fopen(datfile.c_str(), "w");
-
-    if (!outfile)
-      error->one(FLERR, " file {} could not be opened: {}", datfile, utils::getsyserror());
-
-    fmt::print("\nme: {}\n", me);
-    for (i = 0; i < subNbx; i++) {
-      fmt::print("i={}\n", i);
-      for (k = subNbz - 1; k > -1; k--) {
-        if (k == subNbz - 2 || k == 0) {
-          for (j = 0; j < subNby + 2; j++) fputs("---", outfile);
-          fputs("\bn", outfile);
-        }
-        for (j = 0; j < subNby; j++) {
-          fmt::print(outfile, " {} ", sublattice[i][j][k].orientation);
-          if (j == 0 || j == subNby - 2) fputs(" | ", outfile);
-          if (j == subNby - 1) fputs("\n", outfile);
-        }
+      for (j = 0; j < subNby; j++) {
+        fmt::print(outfile, " {} ", sublattice[i][j][k].type);
+        if (j == 0 || j == subNby - 2) fputs(" | ", outfile);
+        if (j == subNby - 1) fputs("\n", outfile);
       }
-      fputs(" \n \n", outfile);
     }
-    fputs("\n", outfile);
-    fclose(outfile);
+    fputs(" \n \n", outfile);
   }
+  fputs("\n", outfile);
+  fclose(outfile);
+
+  // Orientation dump
+  datfile = fmt::format("subgeom_{}_end_ori.dmp", me);
+  outfile = fopen(datfile.c_str(), "w");
+
+  if (!outfile)
+    error->one(FLERR, " file {} could not be opened: {}", datfile, utils::getsyserror());
+
+  fmt::print("\nme: {}\n", me);
+  for (i = 0; i < subNbx; i++) {
+    fmt::print("i={}\n", i);
+    for (k = subNbz - 1; k > -1; k--) {
+      if (k == subNbz - 2 || k == 0) {
+        for (j = 0; j < subNby + 2; j++) fputs("---", outfile);
+        fputs("\bn", outfile);
+      }
+      for (j = 0; j < subNby; j++) {
+        fmt::print(outfile, " {} ", sublattice[i][j][k].orientation);
+        if (j == 0 || j == subNby - 2) fputs(" | ", outfile);
+        if (j == subNby - 1) fputs("\n", outfile);
+      }
+    }
+    fputs(" \n \n", outfile);
+  }
+  fputs("\n", outfile);
+  fclose(outfile);
+#endif
 }
 
 void FixLbFluid::addslit(int &x0, const int HS, const int HP, const int LE, const int SW)

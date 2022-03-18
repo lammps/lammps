@@ -17,12 +17,14 @@
 ------------------------------------------------------------------------- */
 
 #include "sna.h"
-#include <cmath>
+
+#include "comm.h"
+#include "error.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
-#include "error.h"
-#include "comm.h"
+
+#include <cmath>
 
 using namespace std;
 using namespace LAMMPS_NS;

@@ -206,7 +206,7 @@ void ComputeStressCartesian::init_list(int /* id */, NeighList *ptr)
 void ComputeStressCartesian::compute_array()
 {
   int i, j, ii, jj, inum, jnum, itype, jtype;
-  int bin, bin1, bin2, bin3;
+  int bin, bin1, bin2;
   tagint itag, jtag;
   double xtmp, ytmp, ztmp, delx, dely, delz;
   double rsq, fpair, factor_coul, factor_lj;
@@ -266,7 +266,6 @@ void ComputeStressCartesian::compute_array()
   Pair *pair = force->pair;
   double **cutsq = force->pair->cutsq;
 
-  double risq, rjsq;
   double xi1, xi2, xj1, xj2;
 
   for (ii = 0; ii < inum; ii++) {
@@ -362,7 +361,7 @@ void ComputeStressCartesian::compute_pressure_1d(double fpair, double xi, double
                                                  double dely, double delz)
 {
   int bin_s, bin_e, bin_step, bin, bin_limit;
-  double xa, xb, l_sum;
+  double xa, xb;
 
   if (xi < domain->boxlo[dir1])
     xi += (domain->boxhi[dir1] - domain->boxlo[dir1]);
@@ -456,8 +455,8 @@ void ComputeStressCartesian::compute_pressure_1d(double fpair, double xi, double
   }
 }
 
-void ComputeStressCartesian::compute_pressure_2d(double fpair, double xi, double yi, double xj,
-                                                 double yj, double delx, double dely, double delz)
+void ComputeStressCartesian::compute_pressure_2d(double fpair, double xi, double yi, double /*xj*/,
+                                                 double /*yj*/, double delx, double dely, double delz)
 {
   int bin1, bin2, next_bin1, next_bin2;
   double la = 0.0, lb = 0.0, l_sum = 0.0;

@@ -3656,7 +3656,8 @@ void FixLbFluid::initializeGeometry()
   //  initializeGeometry defines the local lattice
   //  structure through the sublattice array
   // --------------------------------------------
-  int geodump = 0;
+#define GEODUMP 0
+
   int i, j, k;
   int boxlims[3][2];    // absolute subvolume coordinates
 
@@ -3703,61 +3704,61 @@ void FixLbFluid::initializeGeometry()
         }
       }
 
-  // Output local geometry to data files labeled with processor number
-  // Type dump
-  if (geodump) {
-    auto datfile = fmt::format("subgeom_{}_end_type.dmp", me);
-    FILE *outfile = fopen(datfile.c_str(), "w");
-    if (!outfile)
-      error->one(FLERR, " file {} could not be opened: {}", datfile, utils::getsyserror());
+      // Output local geometry to data files labeled with processor number
+      // Type dump
+#if GEODUMP
+  auto datfile = fmt::format("subgeom_{}_end_type.dmp", me);
+  FILE *outfile = fopen(datfile.c_str(), "w");
+  if (!outfile)
+    error->one(FLERR, " file {} could not be opened: {}", datfile, utils::getsyserror());
 
-    fmt::print(outfile, "\n me: {} px: {} py: {} pz: {}\n", me, comm->myloc[0], comm->myloc[1],
-               comm->myloc[2]);
+  fmt::print(outfile, "\n me: {} px: {} py: {} pz: {}\n", me, comm->myloc[0], comm->myloc[1],
+             comm->myloc[2]);
 
-    for (i = 0; i < subNbx; i++) {
-      fmt::print(outfile, "i={}\n", i);
-      for (k = subNbz - 1; k > -1; k--) {
-        if (k == subNbz - 2 || k == 0) {
-          for (j = 0; j < subNby + 2; j++) fputs("---", outfile);
-          fputs("\n", outfile);
-        }
-        for (j = 0; j < subNby; j++) {
-          fmt::print(outfile, " {} ", sublattice[i][j][k].type);
-          if (j == 0 || j == subNby - 2) fputs(" | ", outfile);
-          if (j == subNby - 1) fputs("\n", outfile);
-        }
+  for (i = 0; i < subNbx; i++) {
+    fmt::print(outfile, "i={}\n", i);
+    for (k = subNbz - 1; k > -1; k--) {
+      if (k == subNbz - 2 || k == 0) {
+        for (j = 0; j < subNby + 2; j++) fputs("---", outfile);
+        fputs("\n", outfile);
       }
-      fputs(" \n \n", outfile);
-    }
-    fputs("\n", outfile);
-    fclose(outfile);
-
-    // Orientation dump
-    datfile = fmt::format("subgeom_{}_end_ori.dmp", me);
-    outfile = fopen(datfile.c_str(), "w");
-
-    if (!outfile)
-      error->one(FLERR, " file {} could not be opened: {}", datfile, utils::getsyserror());
-
-    fmt::print("\nme: {}\n", me);
-    for (i = 0; i < subNbx; i++) {
-      fmt::print("i={}\n", i);
-      for (k = subNbz - 1; k > -1; k--) {
-        if (k == subNbz - 2 || k == 0) {
-          for (j = 0; j < subNby + 2; j++) fputs("---", outfile);
-          fputs("\bn", outfile);
-        }
-        for (j = 0; j < subNby; j++) {
-          fmt::print(outfile, " {} ", sublattice[i][j][k].orientation);
-          if (j == 0 || j == subNby - 2) fputs(" | ", outfile);
-          if (j == subNby - 1) fputs("\n", outfile);
-        }
+      for (j = 0; j < subNby; j++) {
+        fmt::print(outfile, " {} ", sublattice[i][j][k].type);
+        if (j == 0 || j == subNby - 2) fputs(" | ", outfile);
+        if (j == subNby - 1) fputs("\n", outfile);
       }
-      fputs(" \n \n", outfile);
     }
-    fputs("\n", outfile);
-    fclose(outfile);
+    fputs(" \n \n", outfile);
   }
+  fputs("\n", outfile);
+  fclose(outfile);
+
+  // Orientation dump
+  datfile = fmt::format("subgeom_{}_end_ori.dmp", me);
+  outfile = fopen(datfile.c_str(), "w");
+
+  if (!outfile)
+    error->one(FLERR, " file {} could not be opened: {}", datfile, utils::getsyserror());
+
+  fmt::print("\nme: {}\n", me);
+  for (i = 0; i < subNbx; i++) {
+    fmt::print("i={}\n", i);
+    for (k = subNbz - 1; k > -1; k--) {
+      if (k == subNbz - 2 || k == 0) {
+        for (j = 0; j < subNby + 2; j++) fputs("---", outfile);
+        fputs("\bn", outfile);
+      }
+      for (j = 0; j < subNby; j++) {
+        fmt::print(outfile, " {} ", sublattice[i][j][k].orientation);
+        if (j == 0 || j == subNby - 2) fputs(" | ", outfile);
+        if (j == subNby - 1) fputs("\n", outfile);
+      }
+    }
+    fputs(" \n \n", outfile);
+  }
+  fputs("\n", outfile);
+  fclose(outfile);
+#endif
 }
 
 void FixLbFluid::addslit(int &x0, const int HS, const int HP, const int LE, const int SW)

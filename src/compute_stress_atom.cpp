@@ -13,21 +13,23 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_stress_atom.h"
-#include <cstring>
-#include "atom.h"
-#include "update.h"
-#include "comm.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
+
 #include "angle.h"
+#include "atom.h"
+#include "bond.h"
+#include "comm.h"
 #include "dihedral.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
 #include "improper.h"
 #include "kspace.h"
-#include "modify.h"
-#include "fix.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "pair.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -218,11 +220,9 @@ void ComputeStressAtom::compute_peratom()
   //   and fix ave/spatial uses a per-atom stress from this compute as input
 
   if (fixflag) {
-    Fix **fix = modify->fix;
-    int nfix = modify->nfix;
-    for (int ifix = 0; ifix < nfix; ifix++)
-      if (fix[ifix]->virial_peratom_flag && fix[ifix]->thermo_virial) {
-        double **vatom = fix[ifix]->vatom;
+    for (auto &ifix : modify->get_fix_list())
+      if (ifix->virial_peratom_flag && ifix->thermo_virial) {
+        double **vatom = ifix->vatom;
         if (vatom)
           for (i = 0; i < nlocal; i++)
             for (j = 0; j < 6; j++)

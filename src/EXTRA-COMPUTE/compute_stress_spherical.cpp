@@ -61,7 +61,7 @@ static const char cite_compute_stress_sphere[] =
 ComputeStressSpherical::ComputeStressSpherical(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), dens(nullptr), pkrr(nullptr), pktt(nullptr), pkpp(nullptr),
     pcrr(nullptr), pctt(nullptr), pcpp(nullptr), tdens(nullptr), tpkrr(nullptr), tpktt(nullptr),
-    tpkpp(nullptr), tpcrr(nullptr), tpctt(nullptr), tpcpp(nullptr)
+    tpkpp(nullptr), tpcrr(nullptr), tpctt(nullptr), tpcpp(nullptr), list(nullptr)
 {
 
   if (lmp->citeme) lmp->citeme->add(cite_compute_stress_sphere);

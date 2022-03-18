@@ -437,8 +437,24 @@ void FixACKS2ReaxFFKokkos<DeviceType>::allocate_matrix()
   // determine the total space for the H matrix
 
   m_cap = 0;
-  FixACKS2ReaxFFKokkosNumNeighFunctor<DeviceType> neigh_functor(this);
-  Kokkos::parallel_reduce(nn,neigh_functor,m_cap);
+
+  // limit scope of functor to allow deallocation of views
+  {
+    FixACKS2ReaxFFKokkosNumNeighFunctor<DeviceType> neigh_functor(this);
+    Kokkos::parallel_reduce(nn,neigh_functor,m_cap);
+  }
+
+  // deallocate first to reduce memory overhead
+
+  d_firstnbr = typename AT::t_int_1d();
+  d_numnbrs = typename AT::t_int_1d();
+  d_jlist = typename AT::t_int_1d();
+  d_val = typename AT::t_ffloat_1d();
+
+  d_firstnbr_X = typename AT::t_int_1d();
+  d_numnbrs_X = typename AT::t_int_1d();
+  d_jlist_X = typename AT::t_int_1d();
+  d_val_X = typename AT::t_ffloat_1d();
 
   // H matrix
 

@@ -11,6 +11,7 @@ units cgs
 dimension 3
 boundary p p f
 atom_style atomic
+processors * 1 *
 
 #-------------------------------------------------------------------------#
 # Set up the simulation box
@@ -464,11 +465,11 @@ pair_style lj/cut 1.2
 pair_coeff * * 0.0 0.0
 
 timestep 0.025
-
-unfix FL
+if "$(is_defined(dump,mydump))" then "undump mydump"
 
 reset_timestep 0
 
+#dump mydump all atom 10000 run.lammpstrj
 #variable total_force equal 0.2
 #variable node_force equal "v_total_force / 178"
 #fix drag all addforce 0.0 0.0 0.0

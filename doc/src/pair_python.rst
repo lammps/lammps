@@ -223,19 +223,21 @@ be explicitly provided.  The corresponding python code is:
 .. admonition:: Performance Impact
    :class: note
 
-   The evaluation of scripted python code will slow down the
-   computation pairwise interactions quite significantly. However, this
-   can be largely worked around through using the python pair style not
-   for the actual simulation, but to generate tabulated potentials on the
-   fly using the :doc:`pair_write <pair_write>` command. Please see below
-   for an example LAMMPS input of how to build a table file:
+   The evaluation of scripted python code will slow down the computation
+   of pairwise interactions quite significantly. However, this performance
+   penalty can be worked around through using the python pair style not
+   for the actual simulation, but to generate tabulated potentials using
+   the :doc:`pair_write <pair_write>` command.  This will also enable
+   GPU or multi-thread acceleration through the GPU, KOKKOS, or OPENMP
+   package versions of the *table* pair style.  Please see below for a
+   LAMMPS input example demonstrating how to build a table file:
 
 .. code-block:: LAMMPS
 
    pair_style python 2.5
    pair_coeff * * py_pot.LJCutMelt lj
-   shell rm -f melt.table
-   pair_write  1 1 2000 rsq 0.01 2.5 lj1_lj2.table lj
+   shell rm -f lj.table
+   pair_write  1 1 2000 rsq 0.01 2.5 lj.table lj
 
 Note that it is strongly recommended to try to **delete** the potential
 table file before generating it. Since the *pair_write* command will
@@ -250,7 +252,7 @@ to be assigned to the LAMMPS atom types like this:
 .. code-block:: LAMMPS
 
    pair_style      table linear 2000
-   pair_coeff      1  1  melt.table lj
+   pair_coeff      1  1  lj.table lj
 
 This can also be done for more complex systems.  Please see the
 *examples/python* folders for a few more examples.

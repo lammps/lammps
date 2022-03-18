@@ -83,10 +83,10 @@ are three main algorithms that can be selected by the :doc:`neighbor
 command <neighbor>`: `bin` (the default, uses binning to achieve linear
 scaling with system size), `nsq` (without binning, quadratic scaling),
 `multi` (with binning, optimized for varying cutoffs or polydisperse
-granular particles).  In addition how the neighbor lists are constructed
-a number of different variants of neighbor lists need to be created
-(e.g. "full" or "half") for different purposes and styles and those may
-be be required in every time step ("perpetual") or on some steps
+granular particles).  In addition to how the neighbor lists are
+constructed a number of different variants of neighbor lists need to be
+created (e.g. "full" or "half") for different purposes and styles and
+those may be required in every time step ("perpetual") or on some steps
 ("occasional").
 
 The neighbor list creation is managed by the ``Neighbor`` class.
@@ -120,12 +120,14 @@ Thus these are the default settings when a neighbor list request is created in:
 The ``this`` pointer argument is required so the neighbor list code can
 access the requesting class instance to store the assembled neighbor
 list with that instance by calling its ``init_list()`` member function.
-The second argument contains a bitmask of flags that determines the kind
-of neighbor list, i.e. a perpetual "half" neighbor list here.
+The optional second argument (omitted here) contains a bitmask of flags
+that determines the kind of neighbor list requested.  The default value
+used here asks for a perpetual "half" neighbor list.
 
-To adjust a neighbor list request to the specific needs of a style
-an additional request flag is needed.  The :doc:`tersoff <pair_tersoff>` pair
-style, for example, needs a "full" neighbor list:
+Non-default values of the second argument need to be used to adjust a
+neighbor list request to the specific needs of a style an additional
+request flag is needed.  The :doc:`tersoff <pair_tersoff>` pair style,
+for example, needs a "full" neighbor list:
 
 .. code-block:: C++
 

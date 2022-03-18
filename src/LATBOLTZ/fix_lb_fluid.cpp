@@ -2339,59 +2339,59 @@ void FixLbFluid::SetupBuffers(void)
 //==========================================================================
 // Output fluid density and velocity to file in XDMF format
 //==========================================================================
-void FixLbFluid::dump(const int step)
+void FixLbFluid::dump(const bigint step)
 {
-  static int frameindex = 0;
+  static bigint frameindex = 0;
 
   if (dump_interval && step % dump_interval == 0) {
     // Write XDMF grid entry for time step
     if (me == 0) {
-      long int block = (long int) fluid_global_n0[0] * fluid_global_n0[1] * fluid_global_n0[2] *
-          sizeof(MPI_DOUBLE);
-      long int offset = frameindex * block * (1 + 3);
+      bigint block =
+          (bigint) fluid_global_n0[0] * fluid_global_n0[1] * fluid_global_n0[2] * sizeof(double);
+      bigint offset = frameindex * block * (1 + 3);
       double time = dump_time_index ? update->ntimestep * dt_lb : frameindex;
 
-      fprintf(dump_file_handle_xdmf,
-              "      <Grid Name=\"%d\">\n"
-              "        <Time Value=\"%f\"/>\n\n"
-              "        <Topology TopologyType=\"3DCoRectMesh\" Dimensions=\"%d %d %d\"/>\n"
-              "        <Geometry GeometryType=\"ORIGIN_DXDYDZ\">\n"
-              "          <DataItem Dimensions=\"3\">\n"
-              "            %f %f %f\n"
-              "          </DataItem>\n"
-              "          <DataItem Dimensions=\"3\">\n"
-              "            %f %f %f\n"
-              "          </DataItem>\n"
-              "        </Geometry>\n\n",
-              step, time, fluid_global_n0[2], fluid_global_n0[1], fluid_global_n0[0],
-              domain->boxlo[2], domain->boxlo[1], domain->boxlo[0], dx_lb, dx_lb, dx_lb);
-      fprintf(dump_file_handle_xdmf,
-              "        <Attribute Name=\"density\">\n"
-              "          <DataItem ItemType=\"Function\" Function=\"$0 * %f\" Dimensions=\"%d %d "
-              "%d\">\n"
-              "            <DataItem Precision=\"%zd\" Format=\"Binary\" Seek=\"%ld\" "
-              "Dimensions=\"%d %d %d\">\n"
-              "              %s\n"
-              "            </DataItem>\n"
-              "          </DataItem>\n"
-              "        </Attribute>\n\n",
-              dm_lb / (dx_lb * dx_lb * dx_lb), fluid_global_n0[2], fluid_global_n0[1],
-              fluid_global_n0[0], sizeof(MPI_DOUBLE), offset, fluid_global_n0[2],
-              fluid_global_n0[1], fluid_global_n0[0], dump_file_name_raw.c_str());
-      fprintf(dump_file_handle_xdmf,
-              "        <Attribute Name=\"velocity\" AttributeType=\"Vector\">\n"
-              "          <DataItem ItemType=\"Function\" Function=\"$0 * %f\" Dimensions=\"%d %d "
-              "%d 3\">\n"
-              "            <DataItem Precision=\"%zd\" Format=\"Binary\" Seek=\"%ld\" "
-              "Dimensions=\"%d %d %d 3\">\n"
-              "              %s\n"
-              "            </DataItem>\n"
-              "          </DataItem>\n"
-              "        </Attribute>\n\n",
-              dx_lb / dt_lb, fluid_global_n0[2], fluid_global_n0[1], fluid_global_n0[0],
-              sizeof(MPI_DOUBLE), offset + block * 1, fluid_global_n0[2], fluid_global_n0[1],
-              fluid_global_n0[0], dump_file_name_raw.c_str());
-      fprintf(dump_file_handle_xdmf, "      </Grid>\n\n");
+      fmt::print(dump_file_handle_xdmf,
+                 "      <Grid Name=\"{}\">\n"
+                 "        <Time Value=\"{:f}\"/>\n\n"
+                 "        <Topology TopologyType=\"3DCoRectMesh\" Dimensions=\"{} {} {}\"/>\n"
+                 "        <Geometry GeometryType=\"ORIGIN_DXDYDZ\">\n"
+                 "          <DataItem Dimensions=\"3\">\n"
+                 "            {:f} {:f} {:f}\n"
+                 "          </DataItem>\n"
+                 "          <DataItem Dimensions=\"3\">\n"
+                 "            {:f} {:f} {:f}\n"
+                 "          </DataItem>\n"
+                 "        </Geometry>\n\n",
+                 step, time, fluid_global_n0[2], fluid_global_n0[1], fluid_global_n0[0],
+                 domain->boxlo[2], domain->boxlo[1], domain->boxlo[0], dx_lb, dx_lb, dx_lb);
+      fmt::print(dump_file_handle_xdmf,
+                 "        <Attribute Name=\"density\">\n"
+                 "          <DataItem ItemType=\"Function\" Function=\"$0 * {:f}\" "
+                 "Dimensions=\"{} {} {}\">\n"
+                 "            <DataItem Precision=\"{}\" Format=\"Binary\" Seek=\"{}\" "
+                 "Dimensions=\"{} {} {}\">\n"
+                 "              {}\n"
+                 "            </DataItem>\n"
+                 "          </DataItem>\n"
+                 "        </Attribute>\n\n",
+                 dm_lb / (dx_lb * dx_lb * dx_lb), fluid_global_n0[2], fluid_global_n0[1],
+                 fluid_global_n0[0], sizeof(double), offset, fluid_global_n0[2],
+                 fluid_global_n0[1], fluid_global_n0[0], dump_file_name_raw.c_str());
+      fmt::print(dump_file_handle_xdmf,
+                 "        <Attribute Name=\"velocity\" AttributeType=\"Vector\">\n"
+                 "          <DataItem ItemType=\"Function\" Function=\"$0 * {:f}\" "
+                 "Dimensions=\"{} {} {} 3\">\n"
+                 "            <DataItem Precision=\"{}\" Format=\"Binary\" Seek=\"{}\" "
+                 "Dimensions=\"{} {} {} 3\">\n"
+                 "              {}\n"
+                 "            </DataItem>\n"
+                 "          </DataItem>\n"
+                 "        </Attribute>\n\n",
+                 dx_lb / dt_lb, fluid_global_n0[2], fluid_global_n0[1], fluid_global_n0[0],
+                 sizeof(double), offset + block * 1, fluid_global_n0[2], fluid_global_n0[1],
+                 fluid_global_n0[0], dump_file_name_raw.c_str());
+      fmt::print(dump_file_handle_xdmf, "      </Grid>\n\n");
 
       frameindex++;
     }

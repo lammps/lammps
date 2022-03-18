@@ -51,7 +51,7 @@ class FixLbFluid : public Fix {
   double compute_scalar() override;
   double compute_vector(int) override;
 
-  void dump(int);
+  void dump(const bigint);
 
  private:
   double viscosity, densityinit_real, a_0_real, T;

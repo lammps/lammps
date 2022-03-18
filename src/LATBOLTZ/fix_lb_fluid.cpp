@@ -233,53 +233,62 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
       else
         itype = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       double scalefactor = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
-      if (itype < 0 || itype > ntypes)
-        error->all(FLERR, "Illegal fix lb/fluid command: scaleGamma");
+      if ((itype < 0) || (itype > ntypes))
+        error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       if (itype)
         Gamma[itype] = scalefactor;
       else
         for (int it = 1; it <= atom->ntypes; it++) Gamma[it] = scalefactor;
       iarg += 3;
     } else if (strcmp(arg[iarg], "dx") == 0) {
+      if ((iarg + 2) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       dx_lb = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
       setdx = 0;
     } else if (strcmp(arg[iarg], "dm") == 0) {
+      if ((iarg + 2) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       dm_lb = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "a0") == 0) {
+      if ((iarg + 2) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       a_0_real = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
       seta0 = 0;
     } else if (strcmp(arg[iarg], "noise") == 0) {
+      if ((iarg + 3) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       noisestress = 1;
       T = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       seed = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       iarg += 3;
     } else if (strcmp(arg[iarg], "stencil") == 0) {
+      if ((iarg + 2) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       n_stencil = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "read_restart") == 0) {
+      if ((iarg + 2) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       readrestart = 1;
       char *filename = utils::strdup(arg[iarg + 1]);
       MPI_File_open(world, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &pFileRead);
       delete[] filename;
       iarg += 2;
     } else if (strcmp(arg[iarg], "write_restart") == 0) {
+      if ((iarg + 2) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       printrestart = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "zwall_velocity") == 0) {
+      if ((iarg + 3) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       if (domain->periodicity[2] != 0)
-        error->all(FLERR, "fix lb/fluid error: setting \
-a z wall velocity without implementing fixed BCs in z");
+        error->all(FLERR, "setting a z wall velocity without implementing fixed BCs in z");
       vwbt = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       vwtp = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       iarg += 3;
     } else if (strcmp(arg[iarg], "pressurebcx") == 0) {
+      if ((iarg + 2) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       pressure = 1;
       rhofactor = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "bodyforce") == 0) {
+      if ((iarg + 4) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       bodyforcex = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       bodyforcey = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       bodyforcez = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
@@ -288,6 +297,7 @@ a z wall velocity without implementing fixed BCs in z");
       numvel = 19;
       iarg += 1;
     } else if (strcmp(arg[iarg], "dumpxdmf") == 0) {
+      if ((iarg + 4) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       dump_interval = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       dump_file_name_xdmf = std::string(arg[iarg + 2]) + std::string(".xdmf");
       dump_file_name_raw = std::string(arg[iarg + 2]) + std::string(".raw");
@@ -297,9 +307,11 @@ a z wall velocity without implementing fixed BCs in z");
       lin_init = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg], "dof") == 0) {
+      if ((iarg + 2) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       setdof = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "npits") == 0) {
+      if ((iarg + 6) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       npits = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       h_p = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       l_p = utils::inumeric(FLERR, arg[iarg + 3], false, lmp);
@@ -310,10 +322,11 @@ a z wall velocity without implementing fixed BCs in z");
       sw = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg], "wp") == 0) {
+      if ((iarg + 2) > narg) error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
       w_p = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else
-      error->all(FLERR, "Illegal fix lb/fluid command");
+      error->all(FLERR, "Illegal fix lb/fluid command: {}", arg[iarg]);
   }
 
   //-------------------------------------------------------------------------

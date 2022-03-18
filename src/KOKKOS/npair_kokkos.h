@@ -602,7 +602,7 @@ struct NPairKokkosTransposeHelper {
         [&] (const int i) {
 
         if (elem[0] + i < d_src.extent(0)) {
-          if (perfect_pad[0]) {
+          if (perfect_pad[1]) {
             for (int j = 0; j < vector_length; j++)
               buffer[i * (vector_length + bank_pad) + j] = d_src(elem[0] + i, elem[1] + j);
           } else {
@@ -639,7 +639,7 @@ struct NPairKokkosTransposeHelper {
         [&] (const int j) {
 
         if (elem[1] + j < d_dst.extent(1)) {
-          if (perfect_pad[1]) {
+          if (perfect_pad[0]) {
             for (int i = 0; i < vector_length; i++)
               d_dst(elem[0] + i, elem[1] + j) = buffer[i * (vector_length + bank_pad) + j];
           } else {

@@ -521,7 +521,6 @@ double PairMesoCNT::init_one(int /* i */, int /* j */)
 void PairMesoCNT::bond_neigh()
 {
   int nlocal = atom->nlocal;
-  int nghost = atom->nghost;
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
 

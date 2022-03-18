@@ -189,10 +189,10 @@ double PairHarmonicCut::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
     cut[i][j] = mix_distance(cut[i][i], cut[j][j]);
-    cut[j][i] = cut[i][j];
     k[i][j] = mix_energy(k[i][i], k[j][j], cut[i][i], cut[j][j]);
-    k[j][i] = k[i][j];
   }
+  k[j][i] = k[i][j];
+  cut[j][i] = cut[i][j];
   return cut[i][j];
 }
 

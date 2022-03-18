@@ -351,9 +351,9 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   if (lineflag || triflag || bodyflag) extraflag = 1;
 
   if (fixflag) {
-    int ifix = modify->find_fix(fixID);
-    if (ifix < 0) error->all(FLERR,"Fix ID for dump image does not exist");
-    fixptr = modify->fix[ifix];
+    fixptr = modify->get_fix_by_id(fixID);
+    if (!fixptr) error->all(FLERR,"Fix ID {} for dump image does not exist", fixID);
+
   }
 
   // allocate image buffer now that image size is known

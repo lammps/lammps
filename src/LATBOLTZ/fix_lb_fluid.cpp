@@ -254,16 +254,14 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg], "noise") == 0) {
       noisestress = 1;
       T = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
-      seed = atoi(arg[iarg + 2]);
+      seed = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       iarg += 3;
     } else if (strcmp(arg[iarg], "stencil") == 0) {
       n_stencil = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "read_restart") == 0) {
       readrestart = 1;
-      int nlength = strlen(arg[iarg + 1]) + 16;
-      char *filename = new char[nlength];
-      strcpy(filename, arg[iarg + 1]);
+      char *filename = utils::strdup(arg[iarg + 1]);
       MPI_File_open(world, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &pFileRead);
       delete[] filename;
       iarg += 2;

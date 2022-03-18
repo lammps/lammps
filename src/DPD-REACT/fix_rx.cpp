@@ -520,9 +520,9 @@ void FixRX::initSparse()
   }
 
   if (comm->me == 0 && Verbosity > 1) {
-    for (int i = 1; i < nu_bin.size(); ++i)
-      if (nu_bin[i] > 0)
-        printf("nu_bin[%d] = %d\n", i, nu_bin[i]);
+    for (int i = 1; i < (int)nu_bin.size(); ++i)
+      if ((nu_bin[i] > 0) && screen)
+        fprintf(screen, "nu_bin[%d] = %d\n", i, nu_bin[i]);
 
     for (int i = 0; i < nreactions; ++i) {
       std::string pstr, rstr;
@@ -558,8 +558,8 @@ void FixRX::initSparse()
           pstr += atom->dvname[k];
         }
       }
-      if (comm->me == 0 && Verbosity > 1)
-        printf("rx%3d: %s %s %s\n", i, rstr.c_str(), /*reversible[i]*/ (false) ? "<=>" : "=", pstr.c_str());
+      if (comm->me == 0 && Verbosity > 1 && screen)
+        fprintf(screen,"rx%3d: %s %s %s\n", i, rstr.c_str(), /*reversible[i]*/ (false) ? "<=>" : "=", pstr.c_str());
     }
     // end for nreactions
   }

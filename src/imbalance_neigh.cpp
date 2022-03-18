@@ -46,8 +46,6 @@ int ImbalanceNeigh::options(int narg, char **arg)
 
 void ImbalanceNeigh::compute(double *weight)
 {
-  int req;
-
   if (factor == 0.0) return;
 
   // cannot use neighbor list weight with KOKKOS using GPUs

@@ -45,7 +45,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
 
@@ -127,9 +126,7 @@ void PairReaxFFOMP::init_style()
   // need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->newton = 2;
-  neighbor->requests[irequest]->ghost = 1;
+  neighbor->add_request(this, NeighConst::REQ_GHOST | NeighConst::REQ_NEWTON_OFF);
 
   cutmax = MAX3(api->control->nonb_cut, api->control->hbond_cut, api->control->bond_cut);
   if ((cutmax < 2.0*api->control->bond_cut) && (comm->me == 0))

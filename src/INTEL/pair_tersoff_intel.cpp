@@ -23,7 +23,6 @@
 #include "force.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 
 using namespace LAMMPS_NS;
@@ -407,10 +406,7 @@ void PairTersoffIntel::init_style()
 
   // need a full neighbor list
 
-  int irequest = neighbor->request(this);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->intel = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 
   fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
   if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");

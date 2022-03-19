@@ -19,24 +19,24 @@
 
 #include "pair_brownian_poly.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "domain.h"
-#include "update.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_wall.h"
+#include "force.h"
 #include "input.h"
-#include "variable.h"
-#include "random_mars.h"
 #include "math_const.h"
 #include "math_special.h"
-#include "error.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "random_mars.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -340,9 +340,7 @@ void PairBrownianPoly::init_style()
     if (radius[i] == 0.0)
       error->one(FLERR,"Pair brownian/poly requires extended particles");
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 
   // set the isotropic constants that depend on the volume fraction
   // vol_T = total volume

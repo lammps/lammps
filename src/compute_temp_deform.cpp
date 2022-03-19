@@ -63,8 +63,6 @@ ComputeTempDeform::~ComputeTempDeform()
 
 void ComputeTempDeform::init()
 {
-  int i;
-
   // check fix deform remap settings
 
   auto fixes = modify->get_fix_by_style("^deform");

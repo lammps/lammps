@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -25,36 +24,34 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "update.h"
 
-#include <cstring>
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
-#define MAXNEAR 16
-#define MAXCOMMON 8
+static constexpr int MAXNEAR = 16;
+static constexpr int MAXCOMMON = 8;
 
-enum{UNKNOWN,FCC,HCP,BCC,ICOS,OTHER};
-enum{NCOMMON,NBOND,MAXBOND,MINBOND};
+enum { UNKNOWN, FCC, HCP, BCC, ICOS, OTHER };
+enum { NCOMMON, NBOND, MAXBOND, MINBOND };
 
 /* ---------------------------------------------------------------------- */
 
 ComputeCNAAtom::ComputeCNAAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  list(nullptr), nearest(nullptr), nnearest(nullptr), pattern(nullptr)
+    Compute(lmp, narg, arg), list(nullptr), nearest(nullptr), nnearest(nullptr), pattern(nullptr)
 {
-  if (narg != 4) error->all(FLERR,"Illegal compute cna/atom command");
+  if (narg != 4) error->all(FLERR, "Illegal compute cna/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
 
-  double cutoff = utils::numeric(FLERR,arg[3],false,lmp);
-  if (cutoff < 0.0) error->all(FLERR,"Illegal compute cna/atom command");
-  cutsq = cutoff*cutoff;
+  double cutoff = utils::numeric(FLERR, arg[3], false, lmp);
+  if (cutoff < 0.0) error->all(FLERR, "Illegal compute cna/atom command");
+  cutsq = cutoff * cutoff;
 
   nmax = 0;
 }
@@ -73,31 +70,25 @@ ComputeCNAAtom::~ComputeCNAAtom()
 void ComputeCNAAtom::init()
 {
   if (force->pair == nullptr)
-    error->all(FLERR,"Compute cna/atom requires a pair style be defined");
+    error->all(FLERR, "Compute cna/atom requires a pair style be defined");
   if (sqrt(cutsq) > force->pair->cutforce)
-    error->all(FLERR,"Compute cna/atom cutoff is longer than pairwise cutoff");
+    error->all(FLERR, "Compute cna/atom cutoff is longer than pairwise cutoff");
 
   // cannot use neighbor->cutneighmax b/c neighbor has not yet been init
 
-  if (2.0*sqrt(cutsq) > force->pair->cutforce + neighbor->skin &&
-      comm->me == 0)
-    error->warning(FLERR,"Compute cna/atom cutoff may be too large to find "
+  if (2.0 * sqrt(cutsq) > force->pair->cutforce + neighbor->skin && comm->me == 0)
+    error->warning(FLERR,
+                   "Compute cna/atom cutoff may be too large to find "
                    "ghost atom neighbors");
 
   int count = 0;
   for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"cna/atom") == 0) count++;
-  if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute cna/atom defined");
+    if (strcmp(modify->compute[i]->style, "cna/atom") == 0) count++;
+  if (count > 1 && comm->me == 0) error->warning(FLERR, "More than one compute cna/atom defined");
 
   // need an occasional full neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -111,13 +102,13 @@ void ComputeCNAAtom::init_list(int /*id*/, NeighList *ptr)
 
 void ComputeCNAAtom::compute_peratom()
 {
-  int i,j,k,ii,jj,kk,m,n,inum,jnum,inear,jnear;
-  int firstflag,ncommon,nbonds,maxbonds,minbonds;
-  int nfcc,nhcp,nbcc4,nbcc6,nico,cj,ck,cl,cm;
-  int *ilist,*jlist,*numneigh,**firstneigh;
-  int cna[MAXNEAR][4],onenearest[MAXNEAR];
-  int common[MAXCOMMON],bonds[MAXCOMMON];
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
+  int i, j, k, ii, jj, kk, m, n, inum, jnum, inear, jnear;
+  int firstflag, ncommon, nbonds, maxbonds, minbonds;
+  int nfcc, nhcp, nbcc4, nbcc6, nico, cj, ck, cl, cm;
+  int *ilist, *jlist, *numneigh, **firstneigh;
+  int cna[MAXNEAR][4], onenearest[MAXNEAR];
+  int common[MAXCOMMON], bonds[MAXCOMMON];
+  double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
 
   invoked_peratom = update->ntimestep;
 
@@ -129,9 +120,9 @@ void ComputeCNAAtom::compute_peratom()
     memory->destroy(pattern);
     nmax = atom->nmax;
 
-    memory->create(nearest,nmax,MAXNEAR,"cna:nearest");
-    memory->create(nnearest,nmax,"cna:nnearest");
-    memory->create(pattern,nmax,"cna:cna_pattern");
+    memory->create(nearest, nmax, MAXNEAR, "cna:nearest");
+    memory->create(nnearest, nmax, "cna:nnearest");
+    memory->create(pattern, nmax, "cna:cna_pattern");
     vector_atom = pattern;
   }
 
@@ -170,9 +161,10 @@ void ComputeCNAAtom::compute_peratom()
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
+      rsq = delx * delx + dely * dely + delz * delz;
       if (rsq < cutsq) {
-        if (n < MAXNEAR) nearest[i][n++] = j;
+        if (n < MAXNEAR)
+          nearest[i][n++] = j;
         else {
           nerror++;
           break;
@@ -185,9 +177,9 @@ void ComputeCNAAtom::compute_peratom()
   // warning message
 
   int nerrorall;
-  MPI_Allreduce(&nerror,&nerrorall,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&nerror, &nerrorall, 1, MPI_INT, MPI_SUM, world);
   if (nerrorall && comm->me == 0)
-    error->warning(FLERR,"Too many neighbors in CNA for {} atoms",nerrorall);
+    error->warning(FLERR, "Too many neighbors in CNA for {} atoms", nerrorall);
 
   // compute CNA for each atom in group
   // only performed if # of nearest neighbors = 12 or 14 (fcc,hcp)
@@ -226,7 +218,8 @@ void ComputeCNAAtom::compute_peratom()
         for (inear = 0; inear < nnearest[i]; inear++)
           for (jnear = 0; jnear < nnearest[j]; jnear++)
             if (nearest[i][inear] == nearest[j][jnear]) {
-              if (ncommon < MAXCOMMON) common[ncommon++] = nearest[i][inear];
+              if (ncommon < MAXCOMMON)
+                common[ncommon++] = nearest[i][inear];
               else if (firstflag) {
                 nerror++;
                 firstflag = 0;
@@ -249,10 +242,12 @@ void ComputeCNAAtom::compute_peratom()
           delx = xtmp - x[k][0];
           dely = ytmp - x[k][1];
           delz = ztmp - x[k][2];
-          rsq = delx*delx + dely*dely + delz*delz;
+          rsq = delx * delx + dely * dely + delz * delz;
           if (rsq < cutsq) {
-            if (n < MAXNEAR) onenearest[n++] = k;
-            else break;
+            if (n < MAXNEAR)
+              onenearest[n++] = k;
+            else
+              break;
           }
         }
 
@@ -261,7 +256,8 @@ void ComputeCNAAtom::compute_peratom()
         for (inear = 0; inear < nnearest[i]; inear++)
           for (jnear = 0; (jnear < n) && (n < MAXNEAR); jnear++)
             if (nearest[i][inear] == onenearest[jnear]) {
-              if (ncommon < MAXCOMMON) common[ncommon++] = nearest[i][inear];
+              if (ncommon < MAXCOMMON)
+                common[ncommon++] = nearest[i][inear];
               else if (firstflag) {
                 nerror++;
                 firstflag = 0;
@@ -278,17 +274,17 @@ void ComputeCNAAtom::compute_peratom()
       for (n = 0; n < ncommon; n++) bonds[n] = 0;
 
       nbonds = 0;
-      for (jj = 0; jj < ncommon-1; jj++) {
+      for (jj = 0; jj < ncommon - 1; jj++) {
         j = common[jj];
         xtmp = x[j][0];
         ytmp = x[j][1];
         ztmp = x[j][2];
-        for (kk = jj+1; kk < ncommon; kk++) {
+        for (kk = jj + 1; kk < ncommon; kk++) {
           k = common[kk];
           delx = xtmp - x[k][0];
           dely = ytmp - x[k][1];
           delz = ztmp - x[k][2];
-          rsq = delx*delx + dely*dely + delz*delz;
+          rsq = delx * delx + dely * dely + delz * delz;
           if (rsq < cutsq) {
             nbonds++;
             bonds[jj]++;
@@ -302,8 +298,8 @@ void ComputeCNAAtom::compute_peratom()
       maxbonds = 0;
       minbonds = MAXCOMMON;
       for (n = 0; n < ncommon; n++) {
-        maxbonds = MAX(bonds[n],maxbonds);
-        minbonds = MIN(bonds[n],minbonds);
+        maxbonds = MAX(bonds[n], maxbonds);
+        minbonds = MIN(bonds[n], minbonds);
       }
       cna[m][MAXBOND] = maxbonds;
       cna[m][MINBOND] = minbonds;
@@ -320,13 +316,19 @@ void ComputeCNAAtom::compute_peratom()
         ck = cna[inear][NBOND];
         cl = cna[inear][MAXBOND];
         cm = cna[inear][MINBOND];
-        if (cj == 4 && ck == 2 && cl == 1 && cm == 1) nfcc++;
-        else if (cj == 4 && ck == 2 && cl == 2 && cm == 0) nhcp++;
-        else if (cj == 5 && ck == 5 && cl == 2 && cm == 2) nico++;
+        if (cj == 4 && ck == 2 && cl == 1 && cm == 1)
+          nfcc++;
+        else if (cj == 4 && ck == 2 && cl == 2 && cm == 0)
+          nhcp++;
+        else if (cj == 5 && ck == 5 && cl == 2 && cm == 2)
+          nico++;
       }
-      if (nfcc == 12) pattern[i] = FCC;
-      else if (nfcc == 6 && nhcp == 6) pattern[i] = HCP;
-      else if (nico == 12) pattern[i] = ICOS;
+      if (nfcc == 12)
+        pattern[i] = FCC;
+      else if (nfcc == 6 && nhcp == 6)
+        pattern[i] = HCP;
+      else if (nico == 12)
+        pattern[i] = ICOS;
 
     } else if (nnearest[i] == 14) {
       for (inear = 0; inear < 14; inear++) {
@@ -334,8 +336,10 @@ void ComputeCNAAtom::compute_peratom()
         ck = cna[inear][NBOND];
         cl = cna[inear][MAXBOND];
         cm = cna[inear][MINBOND];
-        if (cj == 4 && ck == 4 && cl == 2 && cm == 2) nbcc4++;
-        else if (cj == 6 && ck == 6 && cl == 2 && cm == 2) nbcc6++;
+        if (cj == 4 && ck == 4 && cl == 2 && cm == 2)
+          nbcc4++;
+        else if (cj == 6 && ck == 6 && cl == 2 && cm == 2)
+          nbcc6++;
       }
       if (nbcc4 == 6 && nbcc6 == 8) pattern[i] = BCC;
     }
@@ -343,9 +347,9 @@ void ComputeCNAAtom::compute_peratom()
 
   // warning message
 
-  MPI_Allreduce(&nerror,&nerrorall,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&nerror, &nerrorall, 1, MPI_INT, MPI_SUM, world);
   if (nerrorall && comm->me == 0)
-    error->warning(FLERR,"Too many common neighbors in CNA: {}x", nerrorall);
+    error->warning(FLERR, "Too many common neighbors in CNA: {}x", nerrorall);
 }
 
 /* ----------------------------------------------------------------------
@@ -354,8 +358,8 @@ void ComputeCNAAtom::compute_peratom()
 
 double ComputeCNAAtom::memory_usage()
 {
-  double bytes = (double)nmax * sizeof(int);
-  bytes += (double)nmax * MAXNEAR * sizeof(int);
-  bytes += (double)nmax * sizeof(double);
+  double bytes = (double) nmax * sizeof(int);
+  bytes += (double) nmax * MAXNEAR * sizeof(int);
+  bytes += (double) nmax * sizeof(double);
   return bytes;
 }

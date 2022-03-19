@@ -13,7 +13,6 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_snap.h"
-#include <cstring>
 
 #include "sna.h"
 #include "atom.h"
@@ -21,12 +20,13 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "force.h"
 #include "pair.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -35,7 +35,7 @@ enum{SCALAR,VECTOR,ARRAY};
 ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), snap(nullptr),
   snapall(nullptr), snap_peratom(nullptr), radelem(nullptr), wjelem(nullptr),
-  snaptr(nullptr), rinnerelem(nullptr), drinnerelem(nullptr)
+  rinnerelem(nullptr), drinnerelem(nullptr), snaptr(nullptr)
 {
 
   array_flag = 1;
@@ -215,17 +215,9 @@ void ComputeSnap::init()
 
   // need an occasional full neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"snap") == 0) count++;
-  if (count > 1 && comm->me == 0)
+  if (modify->get_compute_by_style("snap").size() > 1 && comm->me == 0)
     error->warning(FLERR,"More than one compute snap");
   snaptr->init();
 

@@ -26,7 +26,6 @@
 #include "error.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
 
@@ -226,9 +225,7 @@ void PairHDNNP::coeff(int narg, char **arg)
 
 void PairHDNNP::init_style()
 {
-  int irequest = neighbor->request((void *) this);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 
   // Return immediately if HDNNP setup is already completed.
   if (interface->isInitialized()) return;

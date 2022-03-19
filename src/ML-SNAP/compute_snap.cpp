@@ -35,7 +35,7 @@ enum{SCALAR,VECTOR,ARRAY};
 ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), snap(nullptr),
   snapall(nullptr), snap_peratom(nullptr), radelem(nullptr), wjelem(nullptr),
-  snaptr(nullptr), rinnerelem(nullptr), drinnerelem(nullptr)
+  rinnerelem(nullptr), drinnerelem(nullptr), snaptr(nullptr)
 {
 
   array_flag = 1;

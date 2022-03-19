@@ -435,7 +435,6 @@ void DumpLocal::parse_fields(int narg, char **arg)
       vtype[iarg] = Dump::INT;
 
     } else {
-      int n;
       ArgInfo argi(arg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX);
       computefixflag = 1;
       vtype[iarg] = Dump::DOUBLE;

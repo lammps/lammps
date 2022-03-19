@@ -459,6 +459,7 @@ void Finish::end(int flag)
                      time3d,fraction,flop3,flop1);
   }
 
+  nneigh = nneighfull = 0;
   if (histoflag) {
     std::string mesg = "\n";
     tmp = atom->nlocal;
@@ -479,7 +480,7 @@ void Finish::end(int flag)
       mesg += "\n";
     }
 
-    tmp = neighbor->get_nneigh_half();
+    tmp = nneigh = neighbor->get_nneigh_half();
     if (tmp < 0.0) tmp = 0.0;
     stats(1,&tmp,&ave,&max,&min,10,histo);
     if (me == 0) {
@@ -489,7 +490,7 @@ void Finish::end(int flag)
       mesg += "\n";
     }
 
-    tmp = neighbor->get_nneigh_full();
+    tmp = nneighfull = neighbor->get_nneigh_full();
     if (tmp >= 0.0) {
       stats(1,&tmp,&ave,&max,&min,10,histo);
       if (me == 0) {

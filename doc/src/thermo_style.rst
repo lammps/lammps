@@ -10,13 +10,14 @@ Syntax
 
    thermo_style style args
 
-* style = *one* or *multi* or *custom*
+* style = *one* or *multi* *yaml* or *custom*
 * args = list of arguments for a particular style
 
   .. parsed-literal::
 
        *one* args = none
        *multi* args = none
+       *yaml* args = none
        *custom* args = list of keywords
          possible keywords = step, elapsed, elaplong, dt, time,
                              cpu, tpcpu, spcpu, cpuremain, part, timeremain,
@@ -92,6 +93,8 @@ Examples
 .. code-block:: LAMMPS
 
    thermo_style multi
+   thermo_style yaml
+   thermo_style one
    thermo_style custom step temp pe etotal press vol
    thermo_style custom step temp etotal c_myTemp v_abc
    thermo_style custom step temp etotal c_myTemp[*] v_abc
@@ -99,17 +102,41 @@ Examples
 Description
 """""""""""
 
-Set the style and content for printing thermodynamic data to the
-screen and log file.
+Set the style and content for printing thermodynamic data to the screen
+and log files.
 
-Style *one* prints a one-line summary of thermodynamic info that is
-the equivalent of "thermo_style custom step temp epair emol etotal
-press".  The line contains only numeric values.
+Style *one* prints a single line of thermodynamic info that is the
+equivalent of "thermo_style custom step temp epair emol etotal press".
+The line contains only numeric values.
 
 Style *multi* prints a multiple-line listing of thermodynamic info
 that is the equivalent of "thermo_style custom etotal ke temp pe ebond
 eangle edihed eimp evdwl ecoul elong press".  The listing contains
 numeric values and a string ID for each quantity.
+
+Style *yaml* is similar to style *one* but prints the output in `YAML
+<https://yaml.org/>`_ format which can be easily read by a variety of
+script languages and data handling packages.  Since LAMMPS may print
+other output before, after, or in between thermodynamic output, the
+YAML format content needs to be separated from the rest.  All YAML
+format thermodynamic output can be matched with a regular expression
+and can thus be extracted with commands like ``egrep`` as follows:
+
+.. code-block:: sh
+
+   egrep  '^(keywords:|data:$|---$|\.\.\.$|  - \[)' log.lammps > log.yaml
+
+A typical block of YAML format output looks like this:
+
+.. code-block:: yaml
+
+   ---
+   keywords: [Step, Temp, KinEng, PotEng, E_bond, E_angle, E_dihed, E_impro, E_vdwl, E_coul, E_long, Press, Volume, ]
+   data:
+     - [0, 1.44000000000001, 2.15993250000001, -6.77336805323422, 0, 0, 0, 0, -6.77336805323422, 0, 0, -5.01970725908556, 37905.7095475006, ]
+     - [50, 0.740091517740786, 1.11010258482128, -5.73150426762886, 0, 0, 0, 0, -5.73150426762886, 0, 0, 0.335273324523691, 37905.7095475006, ]
+     - [100, 0.757453103239936, 1.13614414924569, -5.75850548601596, 0, 0, 0, 0, -5.75850548601596, 0, 0, 0.207261053624723, 37905.7095475006, ]
+   ...
 
 Style *custom* is the most general setting and allows you to specify
 which of the keywords listed above you want printed on each

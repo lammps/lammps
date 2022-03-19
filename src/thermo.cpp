@@ -52,7 +52,7 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-// customize a new keyword by adding to this list:
+// CUSTOMIZATION: add a new keyword by adding it to this list:
 
 // step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu, cpuremain,
 // part, timeremain
@@ -66,54 +66,65 @@ using namespace MathConst;
 // fmax, fnorm, nbuild, ndanger
 // cella, cellb, cellc, cellalpha, cellbeta, cellgamma
 
-// customize a new thermo style by adding a DEFINE to this list
-// also insure allocation of line string is correct in constructor
+// CUSTOMIZATION: add a new thermo style by adding a constant to the enumerator,
+// define a new string constant with the keywords and provide default formats.
 
-#define ONE "step temp epair emol etotal press"
-#define MULTI "etotal ke temp pe ebond eangle edihed eimp evdwl ecoul elong press"
+enum{ ONELINE, MULTILINE, YAMLLINE };
+// style "one"
+static constexpr char ONE[] = "step temp epair emol etotal press";
+#define FORMAT_FLOAT_ONE_DEFAULT    "%12.8g"
+#define FORMAT_INT_ONE_DEFAULT      "%10d"
+// style "multi"
+static constexpr char MULTI[] = "etotal ke temp pe ebond eangle edihed eimp evdwl ecoul elong press";
+#define FORMAT_FLOAT_MULTI_DEFAULT  "%14.4f"
+#define FORMAT_INT_MULTI_DEFAULT    "%14d"
+// style "yaml"
+static constexpr char YAML[] = "step temp ke pe ebond eangle edihed eimp evdwl ecoul elong press";
+#define FORMAT_FLOAT_YAML_DEFAULT   "%.15g"
+#define FORMAT_INT_YAML_DEFAULT     "%d"
 
-enum{ONELINE,MULTILINE};
-enum{SCALAR,VECTOR,ARRAY};
+#define FORMAT_MULTI_HEADER "------------ Step {:14} ----- CPU = {:12.7g} (sec) -------------"
 
+enum{ SCALAR, VECTOR, ARRAY };
 
+static constexpr char id_temp[] = "thermo_temp";
+static constexpr char id_press[] = "thermo_press";
+static constexpr char id_pe[] = "thermo_pe";
+
+static char fmtbuf[512];
 #define DELTA 8
 
 /* ---------------------------------------------------------------------- */
 
-Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
+Thermo::Thermo(LAMMPS *_lmp, int narg, char **arg) :
+  Pointers(_lmp), style(nullptr), vtype(nullptr), field2index(nullptr), argindex1(nullptr),
+  argindex2(nullptr), temperature(nullptr), pressure(nullptr), pe(nullptr)
 {
-  MPI_Comm_rank(world,&me);
-
   style = utils::strdup(arg[0]);
 
   // set thermo_modify defaults
 
+  lineflag = ONELINE;
   modified = 0;
   normuserflag = 0;
-  lineflag = ONELINE;
   lostflag = lostbond = Thermo::ERROR;
   lostbefore = warnbefore = 0;
   flushflag = 0;
 
   // set style and corresponding lineflag
   // custom style builds its own line of keywords, including wildcard expansion
-  // customize a new thermo style by adding to if statement
-  // allocate line string used for 3 tasks
-  //   concat of custom style args
-  //   one-time thermo output of header line
-  //   each line of numeric thermo output
-  //   256 = extra for ONE or MULTI string or multi formatting
-  //   64 = max per-arg chars in header or numeric output
+  // CUSTOMIZATION: add a new thermo style by adding it to the if statement
+  // set line string with default keywords if not custom style.
 
   if (strcmp(style,"one") == 0) {
-    line = new char[256+6*64];
-    memset(line,0,256+6*64);
-    strcpy(line,ONE);
+    line = ONE;
+    lineflag = ONELINE;
   } else if (strcmp(style,"multi") == 0) {
-    line = new char[256+12*64];
-    memset(line,0,256+12*64);
-    strcpy(line,MULTI);
+    line = MULTI;
     lineflag = MULTILINE;
+  } else if (strcmp(style,"yaml") == 0) {
+    line = YAML;
+    lineflag = YAMLLINE;
 
   } else if (strcmp(style,"custom") == 0) {
     if (narg == 1) error->all(FLERR,"Illegal thermo style custom command");
@@ -125,34 +136,22 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     int nvalues = utils::expand_args(FLERR,narg-1,&arg[1],0,earg,lmp);
     if (earg != &arg[1]) expand = 1;
 
-    line = new char[256+nvalues*64];
-    line[0] = '\0';
+    line.clear();
     for (int iarg = 0; iarg < nvalues; iarg++) {
-      strcat(line,earg[iarg]);
-      strcat(line," ");
+      line += earg[iarg];
+      line += ' ';
     }
-    line[strlen(line)-1] = '\0';
 
     // if wildcard expansion occurred, free earg memory from exapnd_args()
 
     if (expand) {
-      for (int i = 0; i < nvalues; i++) delete [] earg[i];
+      for (int i = 0; i < nvalues; i++) delete[] earg[i];
       memory->sfree(earg);
     }
 
   } else error->all(FLERR,"Illegal thermo style command");
 
-  // ptrs, flags, IDs for compute objects thermo may use or create
-
-  temperature = nullptr;
-  pressure = nullptr;
-  pe = nullptr;
-
   index_temp = index_press_scalar = index_press_vector = index_pe = -1;
-
-  id_temp = (char *) "thermo_temp";
-  id_press = (char *) "thermo_press";
-  id_pe = (char *) "thermo_pe";
 
   // count fields in line
   // allocate per-field memory
@@ -161,50 +160,20 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   nfield_initial = utils::trim_and_count_words(line);
   allocate();
   parse_fields(line);
-
-  // format strings
-
-  char *bigint_format = (char *) BIGINT_FORMAT;
-  char *fformat_multi = (char *) "---------------- Step %%8%s ----- "
-    "CPU = %%11.4f (sec) ----------------";
-
-  sprintf(format_multi,fformat_multi,&bigint_format[1]);
-  format_float_one_def = (char *) "%12.8g";
-  format_float_multi_def = (char *) "%14.4f";
-  format_int_one_def = (char *) "%8d";
-  format_int_multi_def = (char *) "%14d";
-  sprintf(format_bigint_one_def,"%%8%s",&bigint_format[1]);
-  sprintf(format_bigint_multi_def,"%%14%s",&bigint_format[1]);
-
-  format_line_user = nullptr;
-  format_float_user = nullptr;
-  format_int_user = nullptr;
-  format_bigint_user = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
 Thermo::~Thermo()
 {
-  delete [] style;
-  delete [] line;
-
+  delete[] style;
   deallocate();
-
-  // format strings
-
-  delete [] format_line_user;
-  delete [] format_float_user;
-  delete [] format_int_user;
-  delete [] format_bigint_user;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::init()
 {
-  int i,n;
-
   // set normvalue to default setting unless user has specified it
 
   if (normuserflag) normvalue = normuser;
@@ -222,52 +191,66 @@ void Thermo::init()
   // include keyword if lineflag = MULTILINE
   // add '/n' every 3 values if lineflag = MULTILINE
   // add trailing '/n' to last value
+  // add YAML list item prefix for lineflag = YAMLLINE
 
-  ValueTokenizer * format_line = nullptr;
-  if (format_line_user) {
-    format_line = new ValueTokenizer(format_line_user);
-  }
+  ValueTokenizer *format_line = nullptr;
+  if (format_line_user.size()) format_line = new ValueTokenizer(format_line_user);
 
-  const char *ptr = nullptr;
-  std::string format_line_user_def;
-  for (i = 0; i < nfield; i++) {
+  std::string format_this, format_line_user_def;
+  for (int i = 0; i < nfield; i++) {
 
-    format[i][0] = '\0';
-    if (lineflag == MULTILINE && i % 3 == 0) strcat(format[i],"\n");
+    format[i].clear();
+    format_this.clear();
+    format_line_user_def.clear();
 
-    if (format_line_user) {
-      format_line_user_def = format_line->next_string();
-    }
+    if ((lineflag == MULTILINE) && ((i % 3) == 0)) format[i] += "\n";
+    if ((lineflag == YAMLLINE) && (i == 0)) format[i] += "  - [";
+    if (format_line) format_line_user_def = format_line->next_string();
 
-    if (format_column_user[i]) ptr = format_column_user[i];
+    if (format_column_user[i].size()) format_this = format_column_user[i];
     else if (vtype[i] == FLOAT) {
-      if (format_float_user) ptr = format_float_user;
-      else if (format_line_user) ptr = format_line_user_def.c_str();
-      else if (lineflag == ONELINE) ptr = format_float_one_def;
-      else if (lineflag == MULTILINE) ptr = format_float_multi_def;
-    } else if (vtype[i] == INT) {
-      if (format_int_user) ptr = format_int_user;
-      else if (format_line_user) ptr = format_line_user_def.c_str();
-      else if (lineflag == ONELINE) ptr = format_int_one_def;
-      else if (lineflag == MULTILINE) ptr = format_int_multi_def;
-    } else if (vtype[i] == BIGINT) {
-      if (format_bigint_user) ptr = format_bigint_user;
-      else if (format_line_user) ptr = format_line_user_def.c_str();
-      else if (lineflag == ONELINE) ptr = format_bigint_one_def;
-      else if (lineflag == MULTILINE) ptr = format_bigint_multi_def;
+      if (format_float_user.size()) format_this = format_float_user;
+      else if (format_line_user_def.size()) format_this = format_line_user_def;
+      else if (lineflag == ONELINE) format_this = FORMAT_FLOAT_ONE_DEFAULT;
+      else if (lineflag == MULTILINE) format_this = FORMAT_FLOAT_MULTI_DEFAULT;
+      else if (lineflag == YAMLLINE) format_this = FORMAT_FLOAT_YAML_DEFAULT;
+    } else if ((vtype[i] == INT) || (vtype[i] == BIGINT)) {
+      if (format_int_user.size()) {
+        if (vtype[i] == INT)
+          format_this = format_int_user;
+        else
+          format_this = format_bigint_user;
+      } else if (format_line_user_def.size()) {
+        format_this = format_line_user_def;
+      } else {
+        if (lineflag == ONELINE) format_this = FORMAT_INT_ONE_DEFAULT;
+        else if (lineflag == MULTILINE) format_this = FORMAT_INT_MULTI_DEFAULT;
+        else format_this = FORMAT_INT_YAML_DEFAULT;
+        if (vtype[i] == BIGINT) {
+          // replace "d" in int format with bigint format specifier
+          auto found = format_this.find('%');
+          found = format_this.find('d', found);
+          format_this = format_this.replace(found, 1, std::string(BIGINT_FORMAT).substr(1));
+        }
+      }
     }
 
-    n = strlen(format[i]);
-    if (lineflag == ONELINE) sprintf(&format[i][n],"%s ",ptr);
-    else sprintf(&format[i][n],"%-8s = %s ",keyword[i],ptr);
+    if (lineflag == ONELINE) format[i] += format_this + " ";
+    else if (lineflag == YAMLLINE) format[i] += format_this + ", ";
+    else format[i] += fmt::format("{:<8} = {} ",keyword[i],format_this);
   }
-  strcat(format[nfield-1],"\n");
+
+  // chop off trailing blank or add closing bracket if needed and then add newline
+  if (lineflag == ONELINE) format[nfield-1].resize(format[nfield-1].size()-1);
+  else if (lineflag == MULTILINE) format[nfield-1].resize(format[nfield-1].size()-1);
+  else if (lineflag == YAMLLINE) format[nfield-1] += ']';
+  format[nfield-1] += '\n';
 
   delete format_line;
 
   // find current ptr for each Compute ID
 
-  for (i = 0; i < ncompute; i++) {
+  for (int i = 0; i < ncompute; i++) {
     computes[i] = modify->get_compute_by_id(id_compute[i]);
     if (!computes[i]) error->all(FLERR,"Could not find thermo compute with ID {}",id_compute[i]);
   }
@@ -275,7 +258,7 @@ void Thermo::init()
   // find current ptr for each Fix ID
   // check that fix frequency is acceptable with thermo output frequency
 
-  for (i = 0; i < nfix; i++) {
+  for (int i = 0; i < nfix; i++) {
     fixes[i] = modify->get_fix_by_id(id_fix[i]);
     if (!fixes[i]) error->all(FLERR,"Could not find thermo fix ID {}",id_fix[i]);
 
@@ -285,12 +268,9 @@ void Thermo::init()
 
   // find current ptr for each Variable ID
 
-  int ivariable;
-  for (i = 0; i < nvariable; i++) {
-    ivariable = input->variable->find(id_variable[i]);
-    if (ivariable < 0)
-      error->all(FLERR,"Could not find thermo variable name");
-    variables[i] = ivariable;
+  for (int i = 0; i < nvariable; i++) {
+    variables[i] = input->variable->find(id_variable[i]);
+    if (variables[i] < 0) error->all(FLERR,"Could not find thermo variable {}",id_variable[i]);
   }
 
   // set ptrs to keyword-specific Compute objects
@@ -301,16 +281,53 @@ void Thermo::init()
   if (index_pe >= 0) pe = computes[index_pe];
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   Print thermo style header text
+   if thermo style "multi":
+      nothing
+
+   if thermo style "one":
+      <keyword1> <keyword2> <keyword3> ...
+   each column head is centered with default formatting
+   width should match the width of the default format string
+
+   if thermo style "yaml":
+      ---
+      keywords: [ <keyword1>, <keyword2>, <keyword3> ...]
+      data:
+
+   ---------------------------------------------------------------------- */
 
 void Thermo::header()
 {
   if (lineflag == MULTILINE) return;
 
   std::string hdr;
-  for (int i = 0; i < nfield; i++) hdr +=  keyword[i] + std::string(" ");
+  if (lineflag == YAMLLINE) hdr = "---\nkeywords: [";
+  for (int i = 0; i < nfield; i++) {
+    if (lineflag == ONELINE) {
+      if (vtype[i] == FLOAT)
+        hdr += fmt::format("{:^12} ", keyword[i]);
+      else if ((vtype[i] == INT) || (vtype[i] == BIGINT))
+        hdr += fmt::format("{:^10} ", keyword[i]);
+    } else if (lineflag == YAMLLINE) {
+      hdr += keyword[i];
+      hdr += ", ";
+    }
+  }
+  if (lineflag == YAMLLINE)
+    hdr  += "]\ndata:";
+  else
+    hdr.resize(hdr.size()-1); // chop off trailing blank
 
-  if (me == 0) utils::logmesg(lmp,hdr+"\n");
+  if (comm->me == 0) utils::logmesg(lmp,hdr+"\n");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::footer()
+{
+  if (lineflag == YAMLLINE) utils::logmesg(lmp,"...\n");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -351,29 +368,33 @@ void Thermo::compute(int flag)
 
   // if lineflag = MULTILINE, prepend step/cpu header line
 
-  int loc = 0;
+  line.clear();
   if (lineflag == MULTILINE) {
     double cpu;
     if (flag) cpu = timer->elapsed(Timer::TOTAL);
     else cpu = 0.0;
-    loc = sprintf(&line[loc],format_multi,ntimestep,cpu);
+    line += fmt::format(FORMAT_MULTI_HEADER, ntimestep, cpu);
   }
 
   // add each thermo value to line with its specific format
 
   for (ifield = 0; ifield < nfield; ifield++) {
     (this->*vfunc[ifield])();
-    if (vtype[ifield] == FLOAT)
-      loc += sprintf(&line[loc],format[ifield],dvalue);
-    else if (vtype[ifield] == INT)
-      loc += sprintf(&line[loc],format[ifield],ivalue);
-    else if (vtype[ifield] == BIGINT)
-      loc += sprintf(&line[loc],format[ifield],bivalue);
+    if (vtype[ifield] == FLOAT) {
+      snprintf(fmtbuf, sizeof(fmtbuf), format[ifield].c_str(), dvalue);
+      line += fmtbuf;
+    } else if (vtype[ifield] == INT) {
+      snprintf(fmtbuf, sizeof(fmtbuf), format[ifield].c_str(), ivalue);
+      line += fmtbuf;
+    } else if (vtype[ifield] == BIGINT) {
+      snprintf(fmtbuf, sizeof(fmtbuf), format[ifield].c_str(), bivalue);
+      line += fmtbuf;
+    }
   }
 
   // print line to screen and logfile
 
-  if (me == 0) {
+  if (comm->me == 0) {
     utils::logmesg(lmp,line);
     if (flushflag) utils::flush_buffers(lmp);
   }
@@ -432,14 +453,12 @@ bigint Thermo::lost_check()
   // error message
 
   if (lostflag == Thermo::ERROR)
-    error->all(FLERR,"Lost atoms: original {} current {}",
-               atom->natoms,ntotal[0]);
+    error->all(FLERR,"Lost atoms: original {} current {}",atom->natoms,ntotal[0]);
 
   // warning message
 
-  if (me == 0)
-    error->warning(FLERR,"Lost atoms: original {} current {}",
-                   atom->natoms,ntotal[0]);
+  if (comm->me == 0)
+    error->warning(FLERR,"Lost atoms: original {} current {}",atom->natoms,ntotal[0]);
 
   // reset total atom count
 
@@ -498,11 +517,11 @@ void Thermo::modify_params(int narg, char **arg)
         error->all(FLERR,"Thermo style does not use press");
 
       if (index_press_scalar >= 0) {
-        delete [] id_compute[index_press_scalar];
+        delete[] id_compute[index_press_scalar];
         id_compute[index_press_scalar] = utils::strdup(arg[iarg+1]);
       }
       if (index_press_vector >= 0) {
-        delete [] id_compute[index_press_vector];
+        delete[] id_compute[index_press_vector];
         id_compute[index_press_vector] = utils::strdup(arg[iarg+1]);
       }
 
@@ -560,6 +579,7 @@ void Thermo::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal thermo_modify command");
       if (strcmp(arg[iarg+1],"one") == 0) lineflag = ONELINE;
       else if (strcmp(arg[iarg+1],"multi") == 0) lineflag = MULTILINE;
+      else if (strcmp(arg[iarg+1],"yaml") == 0) lineflag = YAMLLINE;
       else error->all(FLERR,"Illegal thermo_modify command");
       iarg += 2;
 
@@ -567,18 +587,12 @@ void Thermo::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal thermo_modify command");
 
       if (strcmp(arg[iarg+1],"none") == 0) {
-        delete [] format_line_user;
-        delete [] format_int_user;
-        delete [] format_bigint_user;
-        delete [] format_float_user;
-        format_line_user = nullptr;
-        format_int_user = nullptr;
-        format_bigint_user = nullptr;
-        format_float_user = nullptr;
-        for (int i = 0; i < nfield_initial+1; i++) {
-          delete [] format_column_user[i];
-          format_column_user[i] = nullptr;
-        }
+        format_line_user.clear();
+        format_int_user.clear();
+        format_bigint_user.clear();
+        format_float_user.clear();
+        for (int i = 0; i < nfield_initial+1; ++i)
+          format_column_user[i].clear();
         iarg += 2;
         continue;
       }
@@ -586,33 +600,22 @@ void Thermo::modify_params(int narg, char **arg)
       if (iarg+3 > narg) error->all(FLERR,"Illegal thermo_modify command");
 
       if (strcmp(arg[iarg+1],"line") == 0) {
-        delete [] format_line_user;
-        format_line_user = utils::strdup(arg[iarg+2]);
+        format_line_user = arg[iarg+2];
       } else if (strcmp(arg[iarg+1],"int") == 0) {
-        if (format_int_user) delete [] format_int_user;
-        format_int_user = utils::strdup(arg[iarg+2]);
-        if (format_bigint_user) delete [] format_bigint_user;
+        format_int_user = arg[iarg+2];
         // replace "d" in format_int_user with bigint format specifier
-        char *ptr = strchr(format_int_user,'d');
-        if (ptr == nullptr)
-          error->all(FLERR,
-                     "Thermo_modify int format does not contain d character");
-
-        *ptr = '\0';
-        std::string fnew = fmt::format("{}{}{}",format_int_user,
-                                       std::string(BIGINT_FORMAT).substr(1),
-                                       ptr+1);
-        format_bigint_user = utils::strdup(fnew);
-        *ptr = 'd';
+        auto found = format_int_user.find('%');
+        found = format_int_user.find('d', found);
+        if (found == std::string::npos)
+          error->all(FLERR,"Thermo_modify int format does not contain a d conversion character");
+        format_bigint_user = format_int_user.replace(found, 1, std::string(BIGINT_FORMAT).substr(1));
       } else if (strcmp(arg[iarg+1],"float") == 0) {
-        if (format_float_user) delete [] format_float_user;
-        format_float_user = utils::strdup(arg[iarg+2]);
+        format_float_user = arg[iarg+2];
       } else {
         int i = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
         if (i < 0 || i >= nfield_initial+1)
           error->all(FLERR,"Illegal thermo_modify command");
-        if (format_column_user[i]) delete [] format_column_user[i];
-        format_column_user[i] = utils::strdup(arg[iarg+2]);
+        format_column_user[i] = arg[iarg+2];
       }
       iarg += 3;
 
@@ -628,17 +631,19 @@ void Thermo::allocate()
 {
   // n = specified fields + Volume field (added at run time)
 
-  int n = nfield_initial + 1;
+  const int n = nfield_initial + 1;
 
-  keyword = new char*[n];
-  for (int i = 0; i < n; i++) keyword[i] = nullptr;
+  keyword.resize(n);
+  format.resize(n);
+  format_column_user.resize(n);
+  for (int i = 0; i < n; i++) {
+    keyword[i].clear();
+    format[i].clear();
+    format_column_user[i].clear();
+  }
+
   vfunc = new FnPtr[n];
   vtype = new int[n];
-
-  format = new char*[n];
-  for (int i = 0; i < n; i++) format[i] = new char[32];
-  format_column_user = new char*[n];
-  for (int i = 0; i < n; i++) format_column_user[i] = nullptr;
 
   field2index = new int[n];
   argindex1 = new int[n];
@@ -666,34 +671,25 @@ void Thermo::allocate()
 
 void Thermo::deallocate()
 {
-  int n = nfield_initial + 1;
+  delete[] vfunc;
+  delete[] vtype;
 
-  for (int i = 0; i < n; i++) delete [] keyword[i];
-  delete [] keyword;
-  delete [] vfunc;
-  delete [] vtype;
+  delete[] field2index;
+  delete[] argindex1;
+  delete[] argindex2;
 
-  for (int i = 0; i < n; i++) delete [] format[i];
-  delete [] format;
-  for (int i = 0; i < n; i++) delete [] format_column_user[i];
-  delete [] format_column_user;
+  for (int i = 0; i < ncompute; i++) delete[] id_compute[i];
+  delete[] id_compute;
+  delete[] compute_which;
+  delete[] computes;
 
-  delete [] field2index;
-  delete [] argindex1;
-  delete [] argindex2;
+  for (int i = 0; i < nfix; i++) delete[] id_fix[i];
+  delete[] id_fix;
+  delete[] fixes;
 
-  for (int i = 0; i < ncompute; i++) delete [] id_compute[i];
-  delete [] id_compute;
-  delete [] compute_which;
-  delete [] computes;
-
-  for (int i = 0; i < nfix; i++) delete [] id_fix[i];
-  delete [] id_fix;
-  delete [] fixes;
-
-  for (int i = 0; i < nvariable; i++) delete [] id_variable[i];
-  delete [] id_variable;
-  delete [] variables;
+  for (int i = 0; i < nvariable; i++) delete[] id_variable[i];
+  delete[] id_variable;
+  delete[] variables;
 }
 
 /* ----------------------------------------------------------------------
@@ -701,11 +697,11 @@ void Thermo::deallocate()
    set compute flags (temp, press, pe, etc)
 ------------------------------------------------------------------------- */
 
-void Thermo::parse_fields(char *str)
+void Thermo::parse_fields(const std::string &str)
 {
   nfield = 0;
 
-  // customize a new keyword by adding to if statement
+  // CUSTOMIZATION: add a new thermo keyword by adding it to the if statements
 
   ValueTokenizer keywords(str);
   while (keywords.has_next()) {
@@ -983,8 +979,7 @@ void Thermo::parse_fields(char *str)
 
 void Thermo::addfield(const char *key, FnPtr func, int typeflag)
 {
-  delete[] keyword[nfield];
-  keyword[nfield] = utils::strdup(key);
+  keyword[nfield] = key;
   vfunc[nfield] = func;
   vtype[nfield] = typeflag;
   nfield++;
@@ -1037,7 +1032,7 @@ int Thermo::add_variable(const char *id)
    called when a variable is evaluated by Variable class
    return value as double in answer
    return 0 if str is recognized keyword, 1 if unrecognized
-   customize a new keyword by adding to if statement
+   CUSTOMIZATION: add a new keyword by adding a suitable if statement
 ------------------------------------------------------------------------- */
 
 int Thermo::evaluate_keyword(const char *word, double *answer)
@@ -1067,15 +1062,13 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
 
   } else if (strcmp(word,"elapsed") == 0) {
     if (update->whichflag == 0)
-      error->all(FLERR,
-                 "This variable thermo keyword cannot be used between runs");
+      error->all(FLERR,"This variable thermo keyword cannot be used between runs");
     compute_elapsed();
     dvalue = bivalue;
 
   } else if (strcmp(word,"elaplong") == 0) {
     if (update->whichflag == 0)
-      error->all(FLERR,
-                 "This variable thermo keyword cannot be used between runs");
+      error->all(FLERR,"This variable thermo keyword cannot be used between runs");
     compute_elapsed_long();
     dvalue = bivalue;
 
@@ -1577,7 +1570,7 @@ void Thermo::compute_variable()
    called by compute() or evaluate_keyword()
    compute will have already been called
    set ivalue/dvalue/bivalue if value is int/double/bigint
-   customize a new keyword by adding a method
+   CUSTOMIZATION: add a new thermo keyword by adding a new method
 ------------------------------------------------------------------------- */
 
 void Thermo::compute_step()
@@ -2215,4 +2208,3 @@ void Thermo::compute_cellgamma()
     dvalue = acos(cosgamma)*180.0/MY_PI;
   }
 }
-

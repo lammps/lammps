@@ -41,7 +41,7 @@ class Thermo : protected Pointers {
   void header();
   void footer();
   void compute(int);
-  int evaluate_keyword(const char *, double *);
+  int evaluate_keyword(const std::string &, double *);
 
  private:
   int nfield, nfield_initial;
@@ -102,6 +102,11 @@ class Thermo : protected Pointers {
   int add_compute(const char *, int);
   int add_fix(const char *);
   int add_variable(const char *);
+
+  void check_temp(const std::string &);
+  void check_pe(const std::string &);
+  void check_press_scalar(const std::string &);
+  void check_press_vector(const std::string &);
 
   typedef void (Thermo::*FnPtr)();
   void addfield(const char *, FnPtr, int);

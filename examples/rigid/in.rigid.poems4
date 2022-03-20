@@ -9,22 +9,19 @@ read_data       data.rigid
 
 velocity        all create 100.0 4928459
 
-# 2 chains of connected bodies
+# 1 chain of connected bodies
 
 group           clump1 id <> 1 9
 group           clump2 id <> 9 18
 group           clump3 id <> 18 27
 group           clump4 id <> 27 36
-group           clump5 id <> 37 45
+group           clump5 id <> 36 45
 group           clump6 id <> 45 54
 group           clump7 id <> 54 63
 group           clump8 id <> 63 72
 group           clump9 id <> 72 81
 
-#fix 1 all poems group clump1 clump2 clump3 clump4
-#fix 2 all poems group clump5 clump6 clump7 clump8 clump9
-fix 1 all poems group clump1 clump2 clump3 clump4 &
-     clump5 clump6 clump7 clump8 clump9
+fix 1 all poems file connected-bodies.dat
 
 neigh_modify    exclude group clump1 clump1
 neigh_modify    exclude group clump2 clump2
@@ -38,7 +35,7 @@ neigh_modify    exclude group clump9 clump9
 
 thermo          100
 
-#dump           1 all atom 50 dump.rigid.poems2
+#dump           1 all atom 50 dump.rigid.poems
 
 #dump           2 all image 100 image.*.jpg type type &
 #               axes yes 0.8 0.02 view 60 -30

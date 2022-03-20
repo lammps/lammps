@@ -17,20 +17,22 @@
                          Evan Weinberg (NVIDIA)
 ------------------------------------------------------------------------- */
 
+#include "pair_snap_kokkos.h"
+
+#include "atom_kokkos.h"
+#include "atom_masks.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "kokkos.h"
+#include "memory_kokkos.h"
+#include "neighbor_kokkos.h"
+#include "neigh_request.h"
+#include "sna.h"
+
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "pair_snap_kokkos.h"
-#include "atom_kokkos.h"
-#include "error.h"
-#include "force.h"
-#include "atom_masks.h"
-#include "memory_kokkos.h"
-#include "neigh_request.h"
-#include "neighbor_kokkos.h"
-#include "kokkos.h"
-#include "sna.h"
-#include "comm.h"
 
 #define MAXLINE 1024
 #define MAXWORD 3
@@ -100,23 +102,14 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::init_style()
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style SNAP requires newton pair on");
 
-  // irequest = neigh request made by parent class
+  // adjust neighbor list request for KOKKOS
 
-  neighflag = lmp->kokkos->neighflag;
-  int irequest = neighbor->request(this,instance_me);
-
-  neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
-
-  if (neighflag == HALF || neighflag == HALFTHREAD) { // still need atomics, even though using a full neigh list
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->half = 0;
-  } else {
+  auto request = neighbor->find_request(this);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  if (lmp->kokkos->neighflag == FULL)
     error->all(FLERR,"Must use half neighbor list style with pair snap/kk");
-  }
 }
 
 /* ---------------------------------------------------------------------- */

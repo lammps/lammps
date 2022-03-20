@@ -25,7 +25,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "suffix.h"
 
@@ -1109,7 +1108,6 @@ void PairSWIntel::allocate()
 void PairSWIntel::init_style()
 {
   PairSW::init_style();
-  neighbor->find_request(this)->intel = 1;
 
   map[0] = map[1];
 

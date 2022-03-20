@@ -328,10 +328,9 @@ void PairTDPD::init_style()
   // using different random numbers
 
   if (force->newton_pair == 0 && comm->me == 0)
-    error->warning(FLERR,"Pair tdpd needs newton pair on "
-                   "for momentum conservation");
+    error->warning(FLERR,"Pair tdpd needs newton pair on for momentum conservation");
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

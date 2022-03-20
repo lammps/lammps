@@ -50,7 +50,6 @@ class ComputeOrientOrderAtom : public Compute {
 
   void select3(int, int, double *, int *, double **);
   void calc_boop(double **rlist, int numNeighbors, double qn[], int nlist[], int nnlist);
-  double dist(const double r[]);
 
   double polar_prefactor(int, int, double);
   double associated_legendre(int, int, double);

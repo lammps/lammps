@@ -17,20 +17,21 @@
                         Copyright (C) 2013
 ------------------------------------------------------------------------- */
 
+#include "compute_basal_atom.h"
+
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
-#include "compute_basal_atom.h"
-#include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "pair.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -70,17 +71,9 @@ void ComputeBasalAtom::init()
 {
   // need an occasional full neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
-  int count1 = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"basal/atom") == 0) count1++;
-  if (count1 > 1 && comm->me == 0)
+  if ((modify->get_compute_by_style("basal/atom").size() > 1) && (comm->me == 0))
     error->warning(FLERR,"More than one compute basal/atom");
 }
 

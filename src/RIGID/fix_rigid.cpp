@@ -2406,7 +2406,7 @@ void FixRigid::write_restart_file(const char *file)
 
   int id;
   for (int i = 0; i < nbody; i++) {
-    if (rstyle == SINGLE || rstyle == GROUP) id = i;
+    if (rstyle == SINGLE || rstyle == GROUP) id = i+1;
     else id = body2mol[i];
 
     MathExtra::col2mat(ex_space[i],ey_space[i],ez_space[i],p);

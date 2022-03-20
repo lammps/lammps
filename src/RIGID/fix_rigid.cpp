@@ -32,6 +32,7 @@
 #include "random_mars.h"
 #include "respa.h"
 #include "rigid_const.h"
+#include "tokenizer.h"
 #include "update.h"
 #include "variable.h"
 
@@ -2271,7 +2272,7 @@ void FixRigid::readfile(int which, double *vec,
                         double **array1, double **array2, double **array3,
                         imageint *ivec, int *inbody)
 {
-  int j,nchunk,id,eofflag,xbox,ybox,zbox;
+  int nchunk,id,eofflag,xbox,ybox,zbox;
   int nlines;
   FILE *fp;
   char *eof,*start,*next,*buf;
@@ -2280,24 +2281,22 @@ void FixRigid::readfile(int which, double *vec,
   if (me == 0) {
     fp = fopen(inpfile,"r");
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open fix rigid file {}: {}",
-                                   inpfile,utils::getsyserror());
+      error->one(FLERR,"Cannot open fix rigid file {}: {}", inpfile,utils::getsyserror());
     while (true) {
       eof = fgets(line,MAXLINE,fp);
       if (eof == nullptr) error->one(FLERR,"Unexpected end of fix rigid file");
       start = &line[strspn(line," \t\n\v\f\r")];
       if (*start != '\0' && *start != '#') break;
     }
-
-    sscanf(line,"%d",&nlines);
+    nlines = utils::inumeric(FLERR, utils::trim(line), true, lmp);
   }
 
   MPI_Bcast(&nlines,1,MPI_INT,0,world);
-  if (nlines == 0) error->all(FLERR,"Fix rigid file has no lines");
+
+  // empty file with 0 lines is needed to trigger initial restart file generation
+  if (nlines == 0) return; //error->all(FLERR,"Fix rigid file has no lines");
 
   char *buffer = new char[CHUNK*MAXLINE];
-  char **values = new char*[ATTRIBUTE_PERBODY];
-
   int nread = 0;
   while (nread < nlines) {
     nchunk = MIN(nlines-nread,CHUNK);
@@ -2322,58 +2321,59 @@ void FixRigid::readfile(int which, double *vec,
 
     for (int i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
+      *next = '\0';
 
-      values[0] = strtok(buf," \t\n\r\f");
-      for (j = 1; j < nwords; j++)
-        values[j] = strtok(nullptr," \t\n\r\f");
+      try {
+        ValueTokenizer values(buf);
+        id = values.next_int();
+        if (rstyle == MOLECULE) {
+          if (id <= 0 || id > maxmol)
+            throw TokenizerException("invalid rigid body ID ", std::to_string(id));
+          id = mol2body[id];
+        } else id--;
 
-      id = atoi(values[0]);
-      if (rstyle == MOLECULE) {
-        if (id <= 0 || id > maxmol)
-          error->all(FLERR,"Invalid rigid body ID in fix rigid file");
-        id = mol2body[id];
-      } else id--;
+        if (id < 0 || id >= nbody)
+          throw TokenizerException("invalid_rigid body ID ", std::to_string(id+1));
 
-      if (id < 0 || id >= nbody)
-        error->all(FLERR,"Invalid rigid body ID in fix rigid file");
-      inbody[id] = 1;
+        inbody[id] = 1;
 
-      if (which == 0) {
-        vec[id] = atof(values[1]);
-        array1[id][0] = atof(values[2]);
-        array1[id][1] = atof(values[3]);
-        array1[id][2] = atof(values[4]);
-        array2[id][0] = atof(values[11]);
-        array2[id][1] = atof(values[12]);
-        array2[id][2] = atof(values[13]);
-        array3[id][0] = atof(values[14]);
-        array3[id][1] = atof(values[15]);
-        array3[id][2] = atof(values[16]);
-        xbox = atoi(values[17]);
-        ybox = atoi(values[18]);
-        zbox = atoi(values[19]);
-        ivec[id] = ((imageint) (xbox + IMGMAX) & IMGMASK) |
-          (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
-          (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
-      } else {
-        array1[id][0] = atof(values[5]);
-        array1[id][1] = atof(values[6]);
-        array1[id][2] = atof(values[7]);
-        array1[id][3] = atof(values[10]);
-        array1[id][4] = atof(values[9]);
-        array1[id][5] = atof(values[8]);
+        if (which == 0) {
+          vec[id] = values.next_double();
+          array1[id][0] = values.next_double();
+          array1[id][1] = values.next_double();
+          array1[id][2] = values.next_double();
+          values.skip(6);
+          array2[id][0] = values.next_double();
+          array2[id][1] = values.next_double();
+          array2[id][2] = values.next_double();
+          array3[id][0] = values.next_double();
+          array3[id][1] = values.next_double();
+          array3[id][2] = values.next_double();
+          xbox = values.next_int();
+          ybox = values.next_int();
+          zbox = values.next_int();
+          ivec[id] = ((imageint) (xbox + IMGMAX) & IMGMASK) |
+            (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
+            (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
+        } else {
+          values.skip(4);
+          array1[id][0] = values.next_double();
+          array1[id][1] = values.next_double();
+          array1[id][2] = values.next_double();
+          array1[id][5] = values.next_double();
+          array1[id][4] = values.next_double();
+          array1[id][3] = values.next_double();
+        }
+      } catch (TokenizerException &e) {
+        error->all(FLERR, "Invalid fix rigid file: {}", e.what());
       }
-
       buf = next + 1;
     }
-
     nread += nchunk;
   }
 
   if (me == 0) fclose(fp);
-
-  delete [] buffer;
-  delete [] values;
+  delete[] buffer;
 }
 
 /* ----------------------------------------------------------------------
@@ -2389,11 +2389,9 @@ void FixRigid::write_restart_file(const char *file)
   auto outfile = std::string(file) + ".rigid";
   FILE *fp = fopen(outfile.c_str(),"w");
   if (fp == nullptr)
-    error->one(FLERR,"Cannot open fix rigid restart file {}: {}",
-                                 outfile,utils::getsyserror());
+    error->one(FLERR,"Cannot open fix rigid restart file {}: {}",outfile,utils::getsyserror());
 
-  fmt::print(fp,"# fix rigid mass, COM, inertia tensor info for "
-             "{} bodies on timestep {}\n\n",nbody,update->ntimestep);
+  fmt::print(fp,"# fix rigid mass, COM, inertia tensor info for {} bodies on timestep {}\n\n",nbody,update->ntimestep);
   fmt::print(fp,"{}\n",nbody);
 
   // compute I tensor against xyz axes from diagonalized I and current quat
@@ -2405,7 +2403,7 @@ void FixRigid::write_restart_file(const char *file)
 
   int id;
   for (int i = 0; i < nbody; i++) {
-    if (rstyle == SINGLE || rstyle == GROUP) id = i;
+    if (rstyle == SINGLE || rstyle == GROUP) id = i+1;
     else id = body2mol[i];
 
     MathExtra::col2mat(ex_space[i],ey_space[i],ez_space[i],p);
@@ -2416,10 +2414,8 @@ void FixRigid::write_restart_file(const char *file)
     ybox = (imagebody[i] >> IMGBITS & IMGMASK) - IMGMAX;
     zbox = (imagebody[i] >> IMG2BITS) - IMGMAX;
 
-    fprintf(fp,"%d %-1.16e %-1.16e %-1.16e %-1.16e "
-            "%-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e "
-            "%-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e "
-            "%d %d %d\n",
+    fprintf(fp,"%d %.16g %.16g %.16g %.16g %.16g %.16g %.16g %.16g %.16g %.16g "
+            "%.16g %.16g %.16g %.16g %.16g %.16g %d %d %d\n",
             id,masstotal[i],xcm[i][0],xcm[i][1],xcm[i][2],
             ispace[0][0],ispace[1][1],ispace[2][2],
             ispace[0][1],ispace[0][2],ispace[1][2],

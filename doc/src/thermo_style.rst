@@ -114,6 +114,8 @@ that is the equivalent of "thermo_style custom etotal ke temp pe ebond
 eangle edihed eimp evdwl ecoul elong press".  The listing contains
 numeric values and a string ID for each quantity.
 
+.. versionadded:: 24Mar2022
+
 Style *yaml* is similar to style *one* but prints the output in `YAML
 <https://yaml.org/>`_ format which can be easily read by a variety of
 script languages and data handling packages.  Since LAMMPS may print
@@ -126,17 +128,8 @@ and can thus be extracted with commands like ``egrep`` as follows:
 
    egrep  '^(keywords:|data:$|---$|\.\.\.$|  - \[)' log.lammps > log.yaml
 
-A typical block of YAML format output looks like this:
-
-.. code-block:: yaml
-
-   ---
-   keywords: [Step, Temp, KinEng, PotEng, E_bond, E_angle, E_dihed, E_impro, E_vdwl, E_coul, E_long, Press, Volume, ]
-   data:
-     - [0, 1.44000000000001, 2.15993250000001, -6.77336805323422, 0, 0, 0, 0, -6.77336805323422, 0, 0, -5.01970725908556, 37905.7095475006, ]
-     - [50, 0.740091517740786, 1.11010258482128, -5.73150426762886, 0, 0, 0, 0, -5.73150426762886, 0, 0, 0.335273324523691, 37905.7095475006, ]
-     - [100, 0.757453103239936, 1.13614414924569, -5.75850548601596, 0, 0, 0, 0, -5.75850548601596, 0, 0, 0.207261053624723, 37905.7095475006, ]
-   ...
+Information about processing such YAML files is in the :doc:`structured
+data output howto <Howto_structured_data>`.
 
 Style *custom* is the most general setting and allows you to specify
 which of the keywords listed above you want printed on each

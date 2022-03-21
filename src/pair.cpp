@@ -327,7 +327,7 @@ void Pair::reinit()
 
 void Pair::init_style()
 {
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

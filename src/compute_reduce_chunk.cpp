@@ -123,30 +123,24 @@ ComputeReduceChunk::ComputeReduceChunk(LAMMPS *lmp, int narg, char **arg) :
                    "Compute reduce/chunk compute array is accessed out-of-range");
 
     } else if (which[i] == ArgInfo::FIX) {
-      int ifix = modify->find_fix(ids[i]);
-      if (ifix < 0)
-        error->all(FLERR,"Fix ID for compute reduce/chunk does not exist");
-      if (!modify->fix[ifix]->peratom_flag)
-        error->all(FLERR,"Compute reduce/chunk fix does not "
-                   "calculate per-atom values");
-      if (argindex[i] == 0 &&
-          modify->fix[ifix]->size_peratom_cols != 0)
-        error->all(FLERR,"Compute reduce/chunk fix does not "
-                   "calculate a per-atom vector");
-      if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
-        error->all(FLERR,"Compute reduce/chunk fix does not "
-                   "calculate a per-atom array");
-      if (argindex[i] && argindex[i] > modify->fix[ifix]->size_peratom_cols)
-        error->all(FLERR,"Compute reduce/chunk fix array is "
-                   "accessed out-of-range");
+      auto ifix = modify->get_fix_by_id(ids[i]);
+      if (!ifix)
+        error->all(FLERR,"Fix ID {} for compute reduce/chunk does not exist", ids[i]);
+      if (!ifix->peratom_flag)
+        error->all(FLERR,"Compute reduce/chunk fix {} does not calculate per-atom values", ids[i]);
+      if ((argindex[i] == 0) && (ifix->size_peratom_cols != 0))
+        error->all(FLERR,"Compute reduce/chunk fix {} does not calculate a per-atom vector", ids[i]);
+      if (argindex[i] && (ifix->size_peratom_cols == 0))
+        error->all(FLERR,"Compute reduce/chunk fix {} does not calculate a per-atom array", ids[i]);
+      if (argindex[i] && (argindex[i] > ifix->size_peratom_cols))
+        error->all(FLERR,"Compute reduce/chunk fix {} array is accessed out-of-range", ids[i]);
 
     } else if (which[i] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for compute reduce/chunk does not exist");
       if (input->variable->atomstyle(ivariable) == 0)
-        error->all(FLERR,"Compute reduce/chunk variable is "
-                   "not atom-style variable");
+        error->all(FLERR,"Compute reduce/chunk variable is not atom-style variable");
     }
   }
 
@@ -380,8 +374,7 @@ void ComputeReduceChunk::compute_one(int m, double *vchunk, int nstride)
   } else if (which[m] == ArgInfo::FIX) {
     Fix *fix = modify->fix[vidx];
     if (update->ntimestep % fix->peratom_freq)
-      error->all(FLERR,"Fix used in compute reduce/chunk not "
-                 "computed at compatible time");
+      error->all(FLERR,"Fix used in compute reduce/chunk not computed at compatible time");
 
     if (argindex[m] == 0) {
       double *vfix = fix->vector_atom;

@@ -172,7 +172,7 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
     if (newton_pair) {
       k_rho.template modify<DeviceType>();
-      comm->reverse_comm_pair(this);
+      comm->reverse_comm(this);
       k_rho.template sync<DeviceType>();
     }
 
@@ -201,7 +201,7 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // communicate derivative of embedding function (on the device)
 
   k_fp.template modify<DeviceType>();
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
   k_fp.template sync<DeviceType>();
 
   // compute kernel C
@@ -299,27 +299,14 @@ void PairEAMFSKokkos<DeviceType>::init_style()
 
   PairEAM::init_style();
 
-  // irequest = neigh request made by parent class
+  // adjust neighbor list request for KOKKOS
 
   neighflag = lmp->kokkos->neighflag;
-  int irequest = neighbor->nrequest - 1;
-
-  neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
-
-  if (neighflag == FULL) {
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->half = 0;
-  } else if (neighflag == HALF || neighflag == HALFTHREAD) {
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 1;
-  } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with pair eam/kk/fs");
-  }
-
+  auto request = neighbor->find_request(this);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  if (neighflag == FULL) request->enable_full();
 }
 
 /* ----------------------------------------------------------------------

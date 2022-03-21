@@ -8,11 +8,20 @@ without recompiling LAMMPS.  The functionality for this and the
 
 Plugins use the operating system's capability to load dynamic shared
 object (DSO) files in a way similar shared libraries and then reference
-specific functions in those DSOs.  Any DSO file with plugins has to include
-an initialization function with a specific name, "lammpsplugin_init", that
-has to follow specific rules described below.  When loading the DSO with
-the "plugin" command, this function is looked up and called and will then
-register the contained plugin(s) with LAMMPS.
+specific functions in those DSOs.  Any DSO file with plugins has to
+include an initialization function with a specific name,
+"lammpsplugin_init", that has to follow specific rules described below.
+When loading the DSO with the "plugin" command, this function is looked
+up and called and will then register the contained plugin(s) with
+LAMMPS.
+
+When the environment variable ``LAMMPS_PLUGIN_PATH`` is set, then LAMMPS
+will search the directory (or directories) listed in this path for files
+with names that end in ``plugin.so`` (e.g. ``helloplugin.so``) and will
+try to load the contained plugins automatically at start-up.  For
+plugins that are loaded this way, the behavior of LAMMPS should be
+identical to a binary where the corresponding code was compiled in
+statically as a package.
 
 From the programmer perspective this can work because of the object
 oriented design of LAMMPS where all pair style commands are derived from
@@ -65,19 +74,18 @@ Members of ``lammpsplugin_t``
    * - handle
      - Pointer to the open DSO file handle
 
-Only one of the three alternate creator entries can be used at a time
-and which of those is determined by the style of plugin. The
-"creator.v1" element is for factory functions of supported styles
-computing forces (i.e.  command, pair, bond, angle, dihedral, or
-improper styles) and the function takes as single argument the pointer
-to the LAMMPS instance. The factory function is cast to the
-``lammpsplugin_factory1`` type before assignment.  The "creator.v2"
-element is for factory functions creating an instance of a fix, compute,
-or region style and takes three arguments: a pointer to the LAMMPS
-instance, an integer with the length of the argument list and a ``char
-**`` pointer to the list of arguments. The factory function pointer
-needs to be cast to the ``lammpsplugin_factory2`` type before
-assignment.
+Only one of the two alternate creator entries can be used at a time and
+which of those is determined by the style of plugin. The "creator.v1"
+element is for factory functions of supported styles computing forces
+(i.e. pair, bond, angle, dihedral, or improper styles) or command styles
+and the function takes as single argument the pointer to the LAMMPS
+instance. The factory function is cast to the ``lammpsplugin_factory1``
+type before assignment.  The "creator.v2" element is for factory
+functions creating an instance of a fix, compute, or region style and
+takes three arguments: a pointer to the LAMMPS instance, an integer with
+the length of the argument list and a ``char **`` pointer to the list of
+arguments. The factory function pointer needs to be cast to the
+``lammpsplugin_factory2`` type before assignment.
 
 Pair style example
 ^^^^^^^^^^^^^^^^^^
@@ -249,3 +257,8 @@ by ``#ifdef PAIR_CLASS`` is not needed, since the mapping of the class
 name to the style name is done by the plugin registration function with
 the information from the ``lammpsplugin_t`` struct.  It may be included
 in case the new code is intended to be later included in LAMMPS directly.
+
+A plugin may be registered under an existing style name.  In that case
+the plugin will override the existing code.  This can be used to modify
+the behavior of existing styles or to debug new versions of them without
+having to re-compile or re-install all of LAMMPS.

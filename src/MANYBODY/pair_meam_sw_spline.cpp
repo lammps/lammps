@@ -289,7 +289,7 @@ void PairMEAMSWSpline::compute(int eflag, int vflag)
 
   // Communicate U'(rho) values
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   int inum_half = listhalf->inum;
   int* ilist_half = listhalf->ilist;
@@ -381,8 +381,7 @@ void PairMEAMSWSpline::coeff(int narg, char **arg)
   // for now, only allow single element
 
   if (nelements > 1)
-    error->all(FLERR,
-               "Pair meam/sw/spline only supports single element potentials");
+    error->all(FLERR, "Pair meam/sw/spline only supports single element potentials");
 
   // read potential file
 
@@ -463,12 +462,8 @@ void PairMEAMSWSpline::init_style()
                 error->all(FLERR,"Pair style meam/sw/spline requires newton pair on");
 
         // Need both full and half neighbor list.
-        int irequest_full = neighbor->request(this,instance_me);
-        neighbor->requests[irequest_full]->id = 1;
-        neighbor->requests[irequest_full]->half = 0;
-        neighbor->requests[irequest_full]->full = 1;
-        int irequest_half = neighbor->request(this,instance_me);
-        neighbor->requests[irequest_half]->id = 2;
+        neighbor->add_request(this, NeighConst::REQ_FULL)->set_id(1);
+        neighbor->add_request(this)->set_id(2);
 }
 
 /* ----------------------------------------------------------------------

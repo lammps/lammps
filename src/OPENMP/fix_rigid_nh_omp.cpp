@@ -246,12 +246,11 @@ void FixRigidNHOMP::compute_forces_and_torques()
    if (rstyle == SINGLE) {
      // we have just one rigid body. use OpenMP reduction to get sum[]
      double s0=0.0,s1=0.0,s2=0.0,s3=0.0,s4=0.0,s5=0.0;
-     int i;
 
 #if defined(_OPENMP)
-#pragma omp parallel for LMP_DEFAULT_NONE private(i) reduction(+:s0,s1,s2,s3,s4,s5)
+#pragma omp parallel for LMP_DEFAULT_NONE reduction(+:s0,s1,s2,s3,s4,s5)
 #endif
-     for (i = 0; i < nlocal; i++) {
+     for (int i = 0; i < nlocal; i++) {
        const int ibody = body[i];
        if (ibody < 0) continue;
 
@@ -285,12 +284,11 @@ void FixRigidNHOMP::compute_forces_and_torques()
 
      for (int ib = 0; ib < nbody; ++ib) {
        double s0=0.0,s1=0.0,s2=0.0,s3=0.0,s4=0.0,s5=0.0;
-       int i;
 
 #if defined(_OPENMP)
-#pragma omp parallel for LMP_DEFAULT_NONE private(i) LMP_SHARED(ib) reduction(+:s0,s1,s2,s3,s4,s5)
+#pragma omp parallel for LMP_DEFAULT_NONE LMP_SHARED(ib) reduction(+:s0,s1,s2,s3,s4,s5)
 #endif
-       for (i = 0; i < nlocal; i++) {
+       for (int i = 0; i < nlocal; i++) {
          const int ibody = body[i];
          if (ibody != ib) continue;
 

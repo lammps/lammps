@@ -46,9 +46,14 @@ class ComputeSnap : public Compute {
   double *wjelem;
   int *map;    // map types to [0,nelements)
   int nelements, chemflag;
+  int switchinnerflag;
+  double *rinnerelem;
+  double *drinnerelem;
   class SNA *snaptr;
   double cutmax;
   int quadraticflag;
+  int bikflag;
+  int bik_rows;
 
   Compute *c_pe;
   Compute *c_virial;

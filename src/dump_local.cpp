@@ -197,17 +197,15 @@ void DumpLocal::init_style()
   // check that fix frequency is acceptable
 
   for (i = 0; i < ncompute; i++) {
-    int icompute = modify->find_compute(id_compute[i]);
-    if (icompute < 0) error->all(FLERR,"Could not find dump local compute ID");
-    compute[i] = modify->compute[icompute];
+    compute[i] = modify->get_compute_by_id(id_compute[i]);
+    if (!compute[i]) error->all(FLERR,"Could not find dump local compute ID {}",id_compute[i]);
   }
 
   for (i = 0; i < nfix; i++) {
-    int ifix = modify->find_fix(id_fix[i]);
-    if (ifix < 0) error->all(FLERR,"Could not find dump local fix ID");
-    fix[i] = modify->fix[ifix];
-    if (nevery % modify->fix[ifix]->local_freq)
-      error->all(FLERR,"Dump local and fix not computed at compatible times");
+    fix[i] = modify->get_fix_by_id(id_fix[i]);
+    if (!fix[i]) error->all(FLERR,"Could not find dump local fix ID {}", id_fix[i]);
+    if (nevery % fix[i]->local_freq)
+      error->all(FLERR,"Dump local and fix {} not computed at compatible times", id_fix[i]);
   }
 
   // open single file, one time only
@@ -437,11 +435,13 @@ void DumpLocal::parse_fields(int narg, char **arg)
       vtype[iarg] = Dump::INT;
 
     } else {
-      int n;
       ArgInfo argi(arg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX);
       computefixflag = 1;
       vtype[iarg] = Dump::DOUBLE;
       argindex[iarg] = argi.get_index1();
+      auto name = argi.get_name();
+      Compute *icompute = nullptr;
+      Fix *ifix = nullptr;
 
       switch (argi.get_type()) {
 
@@ -451,19 +451,18 @@ void DumpLocal::parse_fields(int narg, char **arg)
       case ArgInfo::COMPUTE:
         pack_choice[iarg] = &DumpLocal::pack_compute;
 
-        n = modify->find_compute(argi.get_name());
-        if (n < 0) error->all(FLERR,"Could not find dump local compute ID");
-        if (modify->compute[n]->local_flag == 0)
-          error->all(FLERR,"Dump local compute does not compute local info");
-        if (argi.get_dim() == 0 && modify->compute[n]->size_local_cols > 0)
-          error->all(FLERR,"Dump local compute does not calculate local vector");
-        if (argi.get_index1() > 0 && modify->compute[n]->size_local_cols == 0)
-          error->all(FLERR,"Dump local compute does not calculate local array");
-        if (argi.get_index1() > 0 &&
-            argi.get_index1() > modify->compute[n]->size_local_cols)
-          error->all(FLERR,"Dump local compute vector is accessed out-of-range");
+        icompute = modify->get_compute_by_id(name);
+        if (!icompute) error->all(FLERR,"Could not find dump local compute ID {}",name);
+        if (icompute->local_flag == 0)
+          error->all(FLERR,"Dump local compute {} does not compute local info", name);
+        if (argi.get_dim() == 0 && icompute->size_local_cols > 0)
+          error->all(FLERR,"Dump local compute {} does not calculate local vector", name);
+        if (argi.get_index1() > 0 && icompute->size_local_cols == 0)
+          error->all(FLERR,"Dump local compute {} does not calculate local array", name);
+        if (argi.get_index1() > 0 && argi.get_index1() > icompute->size_local_cols)
+          error->all(FLERR,"Dump local compute {} vector is accessed out-of-range", name);
 
-        field2index[iarg] = add_compute(argi.get_name());
+        field2index[iarg] = add_compute(name);
         break;
 
         // fix value = f_ID
@@ -472,26 +471,25 @@ void DumpLocal::parse_fields(int narg, char **arg)
       case ArgInfo::FIX:
         pack_choice[iarg] = &DumpLocal::pack_fix;
 
-        n = modify->find_fix(argi.get_name());
-        if (n < 0) error->all(FLERR,"Could not find dump local fix ID");
-        if (modify->fix[n]->local_flag == 0)
-          error->all(FLERR,"Dump local fix does not compute local info");
-        if (argi.get_dim() == 0 && modify->fix[n]->size_local_cols > 0)
-          error->all(FLERR,"Dump local fix does not compute local vector");
-        if (argi.get_index1() > 0 && modify->fix[n]->size_local_cols == 0)
-          error->all(FLERR,"Dump local fix does not compute local array");
-        if (argi.get_index1() > 0 &&
-            argi.get_index1() > modify->fix[n]->size_local_cols)
-          error->all(FLERR,"Dump local fix vector is accessed out-of-range");
+        ifix = modify->get_fix_by_id(name);
+        if (!ifix) error->all(FLERR,"Could not find dump local fix ID {}", name);
+        if (ifix->local_flag == 0)
+          error->all(FLERR,"Dump local fix {} does not compute local info", name);
+        if (argi.get_dim() == 0 && ifix->size_local_cols > 0)
+          error->all(FLERR,"Dump local fix {} does not compute local vector", name);
+        if (argi.get_index1() > 0 && ifix->size_local_cols == 0)
+          error->all(FLERR,"Dump local fix {} does not compute local array", name);
+        if (argi.get_index1() > 0 && argi.get_index1() > ifix->size_local_cols)
+          error->all(FLERR,"Dump local fix {} vector is accessed out-of-range", name);
 
-        field2index[iarg] = add_fix(argi.get_name());
+        field2index[iarg] = add_fix(name);
         break;
 
       case ArgInfo::NONE:       // fallthrough
       case ArgInfo::UNKNOWN:    // fallthrough
       default:
-         error->all(FLERR,"Invalid attribute in dump local command");
-         break;
+        error->all(FLERR,"Invalid attribute {} in dump local command",arg[iarg]);
+        break;
       }
     }
   }

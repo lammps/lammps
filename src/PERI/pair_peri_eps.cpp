@@ -193,12 +193,12 @@ void PairPeriEPS::compute(int eflag, int vflag)
   compute_dilatation(0,nlocal);
 
   // communicate dilatation (theta) of each particle
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // communicate weighted volume (wvolume) upon every reneighbor
 
   if (neighbor->ago == 0)
-    comm->forward_comm_fix(fix_peri_neigh);
+    comm->forward_comm(fix_peri_neigh);
 
   // volume-dependent part of the energy
 

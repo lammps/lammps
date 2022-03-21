@@ -174,7 +174,7 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
 
   }
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // loop over pair interaction neighbors of my atoms
 

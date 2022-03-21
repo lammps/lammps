@@ -706,7 +706,7 @@ void FixRigidSmall::setup(int vflag)
   // reverse communicate fcm, torque of all bodies
 
   commflag = FORCE_TORQUE;
-  comm->reverse_comm_fix(this,6);
+  comm->reverse_comm(this,6);
 
   // virial setup before call to set_v
 
@@ -721,7 +721,7 @@ void FixRigidSmall::setup(int vflag)
   }
 
   commflag = FINAL;
-  comm->forward_comm_fix(this,10);
+  comm->forward_comm(this,10);
 
   // set velocity/rotation of atoms in rigid bodues
 
@@ -786,7 +786,7 @@ void FixRigidSmall::initial_integrate(int vflag)
   // forward communicate updated info of all bodies
 
   commflag = INITIAL;
-  comm->forward_comm_fix(this,29);
+  comm->forward_comm(this,29);
 
   // set coords/orient and velocity/rotation of atoms in rigid bodies
 
@@ -970,7 +970,7 @@ void FixRigidSmall::compute_forces_and_torques()
   // reverse communicate fcm, torque of all bodies
 
   commflag = FORCE_TORQUE;
-  comm->reverse_comm_fix(this,6);
+  comm->reverse_comm(this,6);
 
   // include Langevin thermostat forces and torques
 
@@ -1036,7 +1036,7 @@ void FixRigidSmall::final_integrate()
   // forward communicate updated info of all bodies
 
   commflag = FINAL;
-  comm->forward_comm_fix(this,10);
+  comm->forward_comm(this,10);
 
   // set velocity/rotation of atoms in rigid bodies
   // virial is already setup from initial_integrate
@@ -1096,7 +1096,7 @@ void FixRigidSmall::pre_neighbor()
 
   nghost_body = 0;
   commflag = FULL_BODY;
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
   reset_atom2body();
   //check(4);
 
@@ -1182,7 +1182,7 @@ int FixRigidSmall::dof(int tgroup)
   }
 
   commflag = DOF;
-  comm->reverse_comm_fix(this,3);
+  comm->reverse_comm(this,3);
 
   // nall = count0 = # of point particles in each rigid body
   // mall = count1 = # of finite-size particles in each rigid body
@@ -1913,7 +1913,7 @@ void FixRigidSmall::setup_bodies_static()
 
   nghost_body = 0;
   commflag = FULL_BODY;
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
   reset_atom2body();
 
   // compute mass & center-of-mass of each rigid body
@@ -1958,7 +1958,7 @@ void FixRigidSmall::setup_bodies_static()
   // reverse communicate xcm, mass of all bodies
 
   commflag = XCM_MASS;
-  comm->reverse_comm_fix(this,8);
+  comm->reverse_comm(this,8);
 
   for (ibody = 0; ibody < nlocal_body; ibody++) {
     xcm = body[ibody].xcm;
@@ -2093,7 +2093,7 @@ void FixRigidSmall::setup_bodies_static()
   // reverse communicate inertia tensor of all bodies
 
   commflag = ITENSOR;
-  comm->reverse_comm_fix(this,6);
+  comm->reverse_comm(this,6);
 
   // overwrite Cartesian inertia tensor with file values
 
@@ -2168,7 +2168,7 @@ void FixRigidSmall::setup_bodies_static()
   // forward communicate updated info of all bodies
 
   commflag = INITIAL;
-  comm->forward_comm_fix(this,29);
+  comm->forward_comm(this,29);
 
   // displace = initial atom coords in basis of principal axes
   // set displace = 0.0 for atoms not in any rigid body
@@ -2303,7 +2303,7 @@ void FixRigidSmall::setup_bodies_static()
   // reverse communicate inertia tensor of all bodies
 
   commflag = ITENSOR;
-  comm->reverse_comm_fix(this,6);
+  comm->reverse_comm(this,6);
 
   // error check that re-computed moments of inertia match diagonalized ones
   // do not do test for bodies with params read from inpfile
@@ -2442,7 +2442,7 @@ void FixRigidSmall::setup_bodies_dynamic()
   // reverse communicate vcm, angmom of all bodies
 
   commflag = VCM_ANGMOM;
-  comm->reverse_comm_fix(this,6);
+  comm->reverse_comm(this,6);
 
   // normalize velocity of COM
 
@@ -3407,7 +3407,7 @@ void FixRigidSmall::zero_momentum()
   // forward communicate of vcm to all ghost copies
 
   commflag = FINAL;
-  comm->forward_comm_fix(this,10);
+  comm->forward_comm(this,10);
 
   // set velocity of atoms in rigid bodues
 
@@ -3433,7 +3433,7 @@ void FixRigidSmall::zero_rotation()
   // forward communicate of omega to all ghost copies
 
   commflag = FINAL;
-  comm->forward_comm_fix(this,10);
+  comm->forward_comm(this,10);
 
   // set velocity of atoms in rigid bodues
 

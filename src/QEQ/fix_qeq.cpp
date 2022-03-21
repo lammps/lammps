@@ -40,7 +40,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define MAXLINE 1024
+static constexpr double QSUMSMALL = 0.00001;
 
 namespace {
   class qeq_parser_error : public std::exception {
@@ -309,6 +309,18 @@ void FixQEq::init()
 
   if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
+
+  // compute net charge and print warning if too large
+
+  double qsum_local = 0.0, qsum = 0.0;
+  for (int i = 0; i < atom->nlocal; i++) {
+    if (atom->mask[i] & groupbit)
+      qsum_local += atom->q[i];
+  }
+  MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
+
+  if ((comm->me == 0) && (fabs(qsum) > QSUMSMALL))
+    error->warning(FLERR,"Fix {} group is not charge neutral, net charge = {:.8}", style, qsum);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -399,7 +411,7 @@ int FixQEq::CG(double *b, double *x)
 
   pack_flag = 1;
   sparse_matvec(&H, x, q);
-  comm->reverse_comm_fix(this);
+  comm->reverse_comm(this);
 
   vector_sum(r , 1.,  b, -1., q, inum);
 
@@ -414,9 +426,9 @@ int FixQEq::CG(double *b, double *x)
   sig_new = parallel_dot(r, d, inum);
 
   for (loop = 1; loop < maxiter && sqrt(sig_new)/b_norm > tolerance; ++loop) {
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
     sparse_matvec(&H, d, q);
-    comm->reverse_comm_fix(this);
+    comm->reverse_comm(this);
 
     tmp = parallel_dot(d, q, inum);
     alfa = sig_new / tmp;
@@ -507,7 +519,7 @@ void FixQEq::calculate_Q()
   }
 
   pack_flag = 4;
-  comm->forward_comm_fix(this); //Dist_vector(atom->q);
+  comm->forward_comm(this); //Dist_vector(atom->q);
 }
 
 /* ---------------------------------------------------------------------- */

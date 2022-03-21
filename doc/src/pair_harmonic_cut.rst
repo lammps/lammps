@@ -20,7 +20,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   pair_style harmonic/cut 2.5
+   pair_style harmonic/cut
    pair_coeff * * 0.2 2.0
    pair_coeff 1 1 0.5 2.5
 
@@ -58,7 +58,7 @@ coefficients can be mixed. The default mix value is *geometric*.
 See the "pair_modify" command for details.
 
 Since the potential is zero at and beyond the cutoff parameter by
-construction, there is no need to support support the :doc:`pair_modify
+construction, there is no need to support the :doc:`pair_modify
 <pair_modify>` shift or tail options for the energy and pressure of the
 pair interaction.
 

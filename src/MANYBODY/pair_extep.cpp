@@ -27,7 +27,6 @@
 #include "memory.h"
 #include "my_page.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 
 #include <cmath>
@@ -76,7 +75,7 @@ PairExTeP::~PairExTeP()
 
   memory->destroy(SR_numneigh);
   memory->sfree(SR_firstneigh);
-  delete [] ipage;
+  delete[] ipage;
   memory->destroy(Nt);
   memory->destroy(Nd);
 
@@ -473,12 +472,7 @@ void PairExTeP::init_style()
 
   // need a full neighbor list
 
-  int irequest = neighbor->request(this);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-
-  // including neighbors of ghosts
-  neighbor->requests[irequest]->ghost = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
 
   // create pages if first time or if neighbor pgsize/oneatom has changed
 
@@ -488,7 +482,7 @@ void PairExTeP::init_style()
   if (oneatom != neighbor->oneatom) create = 1;
 
   if (create) {
-    delete [] ipage;
+    delete[] ipage;
     pgsize = neighbor->pgsize;
     oneatom = neighbor->oneatom;
 
@@ -652,7 +646,7 @@ void PairExTeP::read_file(char *file)
   }
 
   // deallocate words array
-  delete [] words;
+  delete[] words;
 
   /* F_IJ (3) */
   // read the spline coefficients
@@ -742,7 +736,7 @@ void PairExTeP::read_file(char *file)
     }
   }
 
-  delete [] words;
+  delete[] words;
   /* END F_IJ (3) */
 
 }

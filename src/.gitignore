@@ -1,6 +1,7 @@
 /Makefile.package
 /Makefile.package.settings
 /MAKE/MINE
+/ADIOS/Makefile.lammps
 /Make.py.last
 /lmp_*
 
@@ -267,6 +268,8 @@
 /fix_drag.h
 /fix_numdiff.cpp
 /fix_numdiff.h
+/fix_numdiff_virial.cpp
+/fix_numdiff_virial.h
 /fix_spring_rg.cpp
 /fix_spring_rg.h
 /fix_temp_csld.cpp
@@ -491,8 +494,6 @@
 /compute_plasticity_atom.h
 /compute_pressure_bocs.cpp
 /compute_pressure_bocs.h
-/compute_pressure_cylinder.cpp
-/compute_pressure_cylinder.h
 /compute_pressure_grem.cpp
 /compute_pressure_grem.h
 /compute_ptm_atom.cpp
@@ -503,10 +504,16 @@
 /compute_smd_triangle_vertices.h
 /compute_spec_atom.cpp
 /compute_spec_atom.h
+/compute_stress_cartesian.cpp
+/compute_stress_cartesian.h
+/compute_stress_cylinder.cpp
+/compute_stress_cylinder.h
 /compute_stress_mop.cpp
 /compute_stress_mop.h
 /compute_stress_mop_profile.cpp
 /compute_stress_mop_profile.h
+/compute_stress_spherical.cpp
+/compute_stress_spherical.h
 /compute_stress_tally.cpp
 /compute_stress_tally.h
 /compute_temp_asphere.cpp
@@ -932,6 +939,8 @@
 /msm_cg.h
 /neb.cpp
 /neb.h
+/netcdf_units.cpp
+/netcdf_units.h
 /pair_adp.cpp
 /pair_adp.h
 /pair_agni.cpp
@@ -1067,6 +1076,8 @@
 /pair_hdnnp.h
 /pair_ilp_graphene_hbn.cpp
 /pair_ilp_graphene_hbn.h
+/pair_ilp_tmd.cpp
+/pair_ilp_tmd.h
 /pair_kolmogorov_crespi_full.cpp
 /pair_kolmogorov_crespi_full.h
 /pair_kolmogorov_crespi_z.cpp
@@ -1173,8 +1184,8 @@
 /pair_nm_cut_coul_cut.h
 /pair_nm_cut_coul_long.cpp
 /pair_nm_cut_coul_long.h
-/pait_nm_cut_split.cpp
-/pait_nm_cut_split.h
+/pair_nm_cut_split.cpp
+/pair_nm_cut_split.h
 /pair_oxdna_*.cpp
 /pair_oxdna_*.h
 /pair_oxdna2_*.cpp
@@ -1200,6 +1211,8 @@
 /pair_rebo.h
 /pair_resquared.cpp
 /pair_resquared.h
+/pair_saip_metal.cpp
+/pair_saip_metal.h
 /pair_sdpd_taitwater_isothermal.cpp
 /pair_sdpd_taitwater_isothermal.h
 /pair_sph_heatconduction.cpp

@@ -1,11 +1,11 @@
 # Simple rigid body system
 
 units           lj
-atom_style      atomic
+atom_style      bond
 
 pair_style      lj/cut 2.5
 
-read_data       data.rigid
+read_data       data.rigid.small
 
 velocity        all create 100.0 4928459
 
@@ -21,38 +21,7 @@ group           clump7 id <> 55 63
 group           clump8 id <> 64 72
 group           clump9 id <> 73 81
 
-fix 1 all rigid group 9 clump1 clump2 clump3 clump4 clump5 &
-                      clump6 clump7 clump8 clump9
-
-# 1 chain of connected bodies
-
-#group          clump1 id <> 1 9
-#group          clump2 id <> 9 18
-#group          clump3 id <> 18 27
-#group          clump4 id <> 27 36
-#group          clump5 id <> 36 45
-#group          clump6 id <> 45 54
-#group          clump7 id <> 54 63
-#group          clump8 id <> 63 72
-#group          clump9 id <> 72 81
-
-#fix 1 all poems group clump1 clump2 clump3 clump4 clump5 &
-#                     clump6 clump7 clump8 clump9
-
-# 2 chains of connected bodies
-
-#group          clump1 id <> 1 9
-#group          clump2 id <> 9 18
-#group          clump3 id <> 18 27
-#group          clump4 id <> 27 36
-#group          clump5 id <> 37 45
-#group          clump6 id <> 45 54
-#group          clump7 id <> 54 63
-#group          clump8 id <> 63 72
-#group          clump9 id <> 72 81
-
-#fix 1 all poems group clump1 clump2 clump3 clump4
-#fix 2 all poems group clump5 clump6 clump7 clump8 clump9
+fix 1 all rigid/small molecule
 
 neigh_modify    exclude group clump1 clump1
 neigh_modify    exclude group clump2 clump2

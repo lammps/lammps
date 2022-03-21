@@ -35,6 +35,7 @@
 #include "random_mars.h"
 #include "respa.h"
 #include "rigid_const.h"
+#include "tokenizer.h"
 #include "update.h"
 #include "variable.h"
 
@@ -116,11 +117,9 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
         int is_double,cols;
         int custom_index = atom->find_custom(arg[4]+2,is_double,cols);
         if (custom_index == -1)
-          error->all(FLERR,"Fix rigid/small custom requires "
-                     "previously defined property/atom");
+          error->all(FLERR,"Fix rigid/small custom requires previously defined property/atom");
         else if (is_double || cols)
-          error->all(FLERR,"Fix rigid/small custom requires "
-                     "integer-valued property/atom vector");
+          error->all(FLERR,"Fix rigid/small custom requires integer-valued property/atom vector");
         int minval = INT_MAX;
         int *value = atom->ivector[custom_index];
         for (i = 0; i < nlocal; i++)
@@ -136,11 +135,10 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       } else if (utils::strmatch(arg[4],"^v_")) {
         int ivariable = input->variable->find(arg[4]+2);
         if (ivariable < 0)
-          error->all(FLERR,"Variable name for fix rigid/small custom "
-                     "does not exist");
+          error->all(FLERR,"Variable {} for fix rigid/small custom does not exist", arg[4]+2);
         if (input->variable->atomstyle(ivariable) == 0)
-          error->all(FLERR,"Fix rigid/small custom variable is not "
-                     "atom-style variable");
+          error->all(FLERR,"Fix rigid/small custom variable {} is not atom-style variable",
+                     arg[4]+2);
         double *value = new double[nlocal];
         input->variable->compute_atom(ivariable,0,value,1,0);
         int minval = INT_MAX;
@@ -398,8 +396,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   if (customflag) delete[] bodyID;
 
   if (comm->me == 0)
-    utils::logmesg(lmp,"  create bodies CPU = {:.3f} seconds\n",
-                   platform::walltime()-time1);
+    utils::logmesg(lmp,"  create bodies CPU = {:.3f} seconds\n", platform::walltime()-time1);
 
   // set nlocal_body and allocate bodies I own
 
@@ -411,8 +408,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
   nmax_body = 0;
   while (nmax_body < nlocal_body) nmax_body += DELTA_BODY;
-  body = (Body *) memory->smalloc(nmax_body*sizeof(Body),
-                                  "rigid/small:body");
+  body = (Body *) memory->smalloc(nmax_body*sizeof(Body), "rigid/small:body");
 
   // set bodyown for owned atoms
 
@@ -527,26 +523,22 @@ int FixRigidSmall::setmask()
 
 void FixRigidSmall::init()
 {
-  int i;
-
   triclinic = domain->triclinic;
 
   // warn if more than one rigid fix
   // if earlyflag, warn if any post-force fixes come after a rigid fix
 
   int count = 0;
-  for (i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->rigid_flag) count++;
+  for (auto ifix : modify->get_fix_list())
+    if (ifix->rigid_flag) count++;
   if (count > 1 && me == 0) error->warning(FLERR,"More than one fix rigid");
 
   if (earlyflag) {
-    int rflag = 0;
-    for (i = 0; i < modify->nfix; i++) {
-      if (modify->fix[i]->rigid_flag) rflag = 1;
-      if (rflag && (modify->fmask[i] & POST_FORCE) &&
-          !modify->fix[i]->rigid_flag)
-        error->warning(FLERR,"Fix {} alters forces after fix rigid",
-                       modify->fix[i]->id);
+    bool rflag = false;
+    for (auto ifix : modify->get_fix_list()) {
+      if (ifix->rigid_flag) rflag = true;
+      if ((comm->me == 0) && rflag && (ifix->setmask() & POST_FORCE) && !ifix->rigid_flag)
+        error->warning(FLERR,"Fix {} alters forces after fix rigid", ifix->id);
     }
   }
 
@@ -556,36 +548,30 @@ void FixRigidSmall::init()
   //   and gravity is not applied correctly
 
   if ((inpfile || onemols) && !id_gravity) {
-    for (i = 0; i < modify->nfix; i++) {
-      if (strcmp(modify->fix[i]->style,"gravity") == 0) {
-        if (comm->me == 0)
-          error->warning(FLERR,"Gravity may not be correctly applied "
-                         "to rigid bodies if they consist of "
-                         "overlapped particles");
-        break;
-      }
-    }
+    if (modify->get_fix_by_style("^gravity").size() > 0)
+      if (comm->me == 0)
+        error->warning(FLERR,"Gravity may not be correctly applied to rigid "
+                       "bodies if they consist of overlapped particles");
   }
 
   // error if a fix changing the box comes before rigid fix
 
-  for (i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->box_change) break;
-  if (i < modify->nfix) {
-    for (int j = i+1; j < modify->nfix; j++)
-      if (utils::strmatch(modify->fix[j]->style,"^rigid"))
+  bool boxflag = false;
+  for (auto ifix : modify->get_fix_list()) {
+    if (ifix->box_change) boxflag = true;
+    if (boxflag && utils::strmatch(ifix->style,"^rigid"))
         error->all(FLERR,"Rigid fixes must come before any box changing fix");
   }
 
   // add gravity forces based on gravity vector from fix
 
   if (id_gravity) {
-    int ifix = modify->find_fix(id_gravity);
-    if (ifix < 0) error->all(FLERR,"Fix rigid/small cannot find fix gravity ID");
-    if (!utils::strmatch(modify->fix[ifix]->style,"^gravity"))
-      error->all(FLERR,"Fix rigid gravity fix ID is not a gravity fix style");
+    auto ifix = modify->get_fix_by_id(id_gravity);
+    if (!ifix) error->all(FLERR,"Fix rigid/small cannot find fix gravity ID {}", id_gravity);
+    if (!utils::strmatch(ifix->style,"^gravity"))
+      error->all(FLERR,"Fix rigid/small gravity fix ID {} is not a gravity fix style", id_gravity);
     int tmp;
-    gvec = (double *) modify->fix[ifix]->extract("gvec",tmp);
+    gvec = (double *) ifix->extract("gvec", tmp);
   }
 
   // timestep info
@@ -1995,6 +1981,11 @@ void FixRigidSmall::setup_bodies_static()
 
   int *inbody;
   if (inpfile) {
+    // must call it here so it doesn't override read in data but
+    // initialize bodies whose dynamic settings not set in inpfile
+
+    setup_bodies_dynamic();
+
     memory->create(inbody,nlocal_body,"rigid/small:inbody");
     for (ibody = 0; ibody < nlocal_body; ibody++) inbody[ibody] = 0;
     readfile(0,nullptr,inbody);
@@ -2467,8 +2458,7 @@ void FixRigidSmall::setup_bodies_dynamic()
 
 void FixRigidSmall::readfile(int which, double **array, int *inbody)
 {
-  int i,j,m,nchunk,eofflag,nlines,xbox,ybox,zbox;
-  tagint id;
+  int nchunk,eofflag,nlines,xbox,ybox,zbox;
   FILE *fp;
   char *eof,*start,*next,*buf;
   char line[MAXLINE];
@@ -2480,7 +2470,7 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
   int nlocal = atom->nlocal;
 
   std::map<tagint,int> hash;
-  for (i = 0; i < nlocal; i++)
+  for (int i = 0; i < nlocal; i++)
     if (bodyown[i] >= 0) hash[atom->molecule[i]] = bodyown[i];
 
   // open file and read header
@@ -2488,24 +2478,27 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
   if (me == 0) {
     fp = fopen(inpfile,"r");
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open fix rigid/small file {}: {}",
-                                   inpfile,utils::getsyserror());
+      error->one(FLERR,"Cannot open fix rigid/small file {}: {}", inpfile, utils::getsyserror());
     while (true) {
       eof = fgets(line,MAXLINE,fp);
-      if (eof == nullptr)
-        error->one(FLERR,"Unexpected end of fix rigid/small file");
+      if (eof == nullptr) error->one(FLERR,"Unexpected end of fix rigid/small file");
       start = &line[strspn(line," \t\n\v\f\r")];
       if (*start != '\0' && *start != '#') break;
     }
-
-    sscanf(line,"%d",&nlines);
+    nlines = utils::inumeric(FLERR, utils::trim(line), true, lmp);
+    if (which == 0)
+      utils::logmesg(lmp, "Reading rigid body data for {} bodies from file {}\n", nlines, inpfile);
+    if (nlines == 0) fclose(fp);
   }
-
   MPI_Bcast(&nlines,1,MPI_INT,0,world);
 
-  char *buffer = new char[CHUNK*MAXLINE];
-  char **values = new char*[ATTRIBUTE_PERBODY];
+  // empty file with 0 lines is needed to trigger initial restart file
+  // generation when no infile was previously used.
 
+  if (nlines == 0) return;
+  else if (nlines < 0) error->all(FLERR,"Fix rigid infile has incorrect format");
+
+  char *buffer = new char[CHUNK*MAXLINE];
   int nread = 0;
   while (nread < nlines) {
     nchunk = MIN(nlines-nread,CHUNK);
@@ -2515,7 +2508,7 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
     buf = buffer;
     next = strchr(buf,'\n');
     *next = '\0';
-    int nwords = utils::trim_and_count_words(buf);
+    int nwords = utils::count_words(utils::trim_comment(buf));
     *next = '\n';
 
     if (nwords != ATTRIBUTE_PERBODY)
@@ -2527,59 +2520,61 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
     // for which = 0, store all but inertia directly in body struct
     // for which = 1, store inertia tensor array, invert 3,4,5 values to Voigt
 
-    for (i = 0; i < nchunk; i++) {
+    for (int i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
+      *next = '\0';
 
-      values[0] = strtok(buf," \t\n\r\f");
-      for (j = 1; j < nwords; j++)
-        values[j] = strtok(nullptr," \t\n\r\f");
+      try {
+        ValueTokenizer values(buf);
+        tagint id = values.next_tagint();
 
-      id = ATOTAGINT(values[0]);
-      if (id <= 0 || id > maxmol)
-        error->all(FLERR,"Invalid rigid body ID in fix rigid/small file");
-      if (hash.find(id) == hash.end()) {
-        buf = next + 1;
-        continue;
+        if (id <= 0 || id > maxmol)
+          error->all(FLERR,"Invalid rigid body molecude ID {} in fix rigid/small file", id);
+
+        if (hash.find(id) == hash.end()) {
+          buf = next + 1;
+          continue;
+        }
+        int m = hash[id];
+        inbody[m] = 1;
+
+        if (which == 0) {
+          body[m].mass = values.next_double();
+          body[m].xcm[0] = values.next_double();
+          body[m].xcm[1] = values.next_double();
+          body[m].xcm[2] = values.next_double();
+          values.skip(6);
+          body[m].vcm[0] = values.next_double();
+          body[m].vcm[1] = values.next_double();
+          body[m].vcm[2] = values.next_double();
+          body[m].angmom[0] = values.next_double();
+          body[m].angmom[1] = values.next_double();
+          body[m].angmom[2] = values.next_double();
+          xbox = values.next_int();
+          ybox = values.next_int();
+          zbox = values.next_int();
+          body[m].image = ((imageint) (xbox + IMGMAX) & IMGMASK) |
+            (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
+            (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
+        } else {
+          values.skip(4);
+          array[m][0] = values.next_double();
+          array[m][1] = values.next_double();
+          array[m][2] = values.next_double();
+          array[m][5] = values.next_double();
+          array[m][4] = values.next_double();
+          array[m][3] = values.next_double();
+        }
+      } catch (TokenizerException &e) {
+        error->all(FLERR, "Invalid fix rigid/small infile: {}", e.what());
       }
-      m = hash[id];
-      inbody[m] = 1;
-
-      if (which == 0) {
-        body[m].mass = atof(values[1]);
-        body[m].xcm[0] = atof(values[2]);
-        body[m].xcm[1] = atof(values[3]);
-        body[m].xcm[2] = atof(values[4]);
-        body[m].vcm[0] = atof(values[11]);
-        body[m].vcm[1] = atof(values[12]);
-        body[m].vcm[2] = atof(values[13]);
-        body[m].angmom[0] = atof(values[14]);
-        body[m].angmom[1] = atof(values[15]);
-        body[m].angmom[2] = atof(values[16]);
-        xbox = atoi(values[17]);
-        ybox = atoi(values[18]);
-        zbox = atoi(values[19]);
-        body[m].image = ((imageint) (xbox + IMGMAX) & IMGMASK) |
-          (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
-          (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
-      } else {
-        array[m][0] = atof(values[5]);
-        array[m][1] = atof(values[6]);
-        array[m][2] = atof(values[7]);
-        array[m][3] = atof(values[10]);
-        array[m][4] = atof(values[9]);
-        array[m][5] = atof(values[8]);
-      }
-
       buf = next + 1;
     }
-
     nread += nchunk;
   }
 
   if (me == 0) fclose(fp);
-
   delete[] buffer;
-  delete[] values;
 }
 
 /* ----------------------------------------------------------------------

@@ -71,8 +71,8 @@ using namespace MathConst;
 enum { ONELINE, MULTILINE, YAMLLINE };
 // style "one"
 static constexpr char ONE[] = "step temp epair emol etotal press";
-#define FORMAT_FLOAT_ONE_DEFAULT "%12.8g"
-#define FORMAT_INT_ONE_DEFAULT "%10d"
+#define FORMAT_FLOAT_ONE_DEFAULT "% -12.8g"
+#define FORMAT_INT_ONE_DEFAULT "%10d "
 // style "multi"
 static constexpr char MULTI[] =
     "etotal ke temp pe ebond eangle edihed eimp evdwl ecoul elong press";
@@ -328,7 +328,7 @@ void Thermo::header()
       if (vtype[i] == FLOAT)
         hdr += fmt::format("{:^12} ", keyword[i]);
       else if ((vtype[i] == INT) || (vtype[i] == BIGINT))
-        hdr += fmt::format("{:^10} ", keyword[i]);
+        hdr += fmt::format("{:^11} ", keyword[i]);
     } else if (lineflag == YAMLLINE) {
       hdr += keyword[i];
       hdr += ", ";

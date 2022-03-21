@@ -1822,6 +1822,11 @@ void FixRigid::setup_bodies_static()
 
   int *inbody;
   if (inpfile) {
+    // must call it here so it doesn't override read in data but
+    // initialize bodies whose dynamic settings not set in inpfile
+
+    setup_bodies_dynamic();
+
     memory->create(inbody,nbody,"rigid:inbody");
     for (ibody = 0; ibody < nbody; ibody++) inbody[ibody] = 0;
     readfile(0,masstotal,xcm,vcm,angmom,imagebody,inbody);

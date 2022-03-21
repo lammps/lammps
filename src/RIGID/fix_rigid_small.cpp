@@ -1970,6 +1970,11 @@ void FixRigidSmall::setup_bodies_static()
 
   int *inbody;
   if (inpfile) {
+    // must call it here so it doesn't override read in data but
+    // initialize bodies whose dynamic settings not set in inpfile
+
+    setup_bodies_dynamic();
+
     memory->create(inbody,nlocal_body,"rigid/small:inbody");
     for (ibody = 0; ibody < nlocal_body; ibody++) inbody[ibody] = 0;
     readfile(0,nullptr,inbody);

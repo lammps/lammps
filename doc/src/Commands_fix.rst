@@ -55,6 +55,7 @@ OPT.
    * :doc:`cmap <fix_cmap>`
    * :doc:`colvars <fix_colvars>`
    * :doc:`controller <fix_controller>`
+   * :doc:`cundamp <fix_cundamp>`
    * :doc:`deform (k) <fix_deform>`
    * :doc:`deposit <fix_deposit>`
    * :doc:`dpd/energy (k) <fix_dpd_energy>`
@@ -245,6 +246,7 @@ OPT.
    * :doc:`vector <fix_vector>`
    * :doc:`viscosity <fix_viscosity>`
    * :doc:`viscous <fix_viscous>`
+   * :doc:`viscous/sphere <fix_viscous_sphere>`
    * :doc:`wall/body/polygon <fix_wall_body_polygon>`
    * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>`
    * :doc:`wall/colloid <fix_wall>`

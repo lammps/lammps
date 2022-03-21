@@ -2468,10 +2468,17 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
       if (*start != '\0' && *start != '#') break;
     }
 
-    sscanf(line,"%d",&nlines);
+    if (sscanf(line,"%d",&nlines) != 1) nlines = -1;
+    if (nlines == 0) fclose(fp);
   }
 
   MPI_Bcast(&nlines,1,MPI_INT,0,world);
+
+  // empty file with 0 lines is needed to trigger initial restart file
+  // generation when no infile was previously used.
+
+  if (nlines == 0) return;
+  else if (nlines < 0) error->all(FLERR,"Fix rigid file has incorrect format");
 
   char *buffer = new char[CHUNK*MAXLINE];
   char **values = new char*[ATTRIBUTE_PERBODY];

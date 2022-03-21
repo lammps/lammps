@@ -713,9 +713,9 @@ void FixRigid::init()
 
   bool boxflag = false;
   for (auto ifix : modify->get_fix_list()) {
-    if (ifix->box_change) boxflag = true;
     if (boxflag && utils::strmatch(ifix->style,"^rigid"))
         error->all(FLERR,"Rigid fixes must come before any box changing fix");
+    if (ifix->box_change) boxflag = true;
   }
 
   // add gravity forces based on gravity vector from fix

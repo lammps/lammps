@@ -22,7 +22,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
 
@@ -55,9 +54,9 @@ static const char cite_compute_stress_cartesian[] =
   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
 ComputeStressCartesian::ComputeStressCartesian(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), dens(NULL), pkxx(NULL), pkyy(NULL), pkzz(NULL), pcxx(NULL), pcyy(NULL),
-    pczz(NULL), tdens(NULL), tpkxx(NULL), tpkyy(NULL), tpkzz(NULL), tpcxx(NULL), tpcyy(NULL),
-    tpczz(NULL)
+    Compute(lmp, narg, arg), dens(nullptr), pkxx(nullptr), pkyy(nullptr), pkzz(nullptr),
+    pcxx(nullptr), pcyy(nullptr), pczz(nullptr), tdens(nullptr), tpkxx(nullptr), tpkyy(nullptr),
+    tpkzz(nullptr), tpcxx(nullptr), tpcyy(nullptr), tpczz(nullptr), list(nullptr)
 {
 
   if (lmp->citeme) lmp->citeme->add(cite_compute_stress_cartesian);
@@ -175,16 +174,13 @@ ComputeStressCartesian::~ComputeStressCartesian()
 
 void ComputeStressCartesian::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR, "No pair style is defined for compute stress/cartesian");
   if (force->pair->single_enable == 0)
     error->all(FLERR, "Pair style does not support compute stress/cartesian");
 
   // need an occasional half neighbor list.
-  int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -206,7 +202,7 @@ void ComputeStressCartesian::init_list(int /* id */, NeighList *ptr)
 void ComputeStressCartesian::compute_array()
 {
   int i, j, ii, jj, inum, jnum, itype, jtype;
-  int bin, bin1, bin2, bin3;
+  int bin, bin1, bin2;
   tagint itag, jtag;
   double xtmp, ytmp, ztmp, delx, dely, delz;
   double rsq, fpair, factor_coul, factor_lj;
@@ -266,7 +262,6 @@ void ComputeStressCartesian::compute_array()
   Pair *pair = force->pair;
   double **cutsq = force->pair->cutsq;
 
-  double risq, rjsq;
   double xi1, xi2, xj1, xj2;
 
   for (ii = 0; ii < inum; ii++) {
@@ -362,7 +357,7 @@ void ComputeStressCartesian::compute_pressure_1d(double fpair, double xi, double
                                                  double dely, double delz)
 {
   int bin_s, bin_e, bin_step, bin, bin_limit;
-  double xa, xb, l_sum;
+  double xa, xb;
 
   if (xi < domain->boxlo[dir1])
     xi += (domain->boxhi[dir1] - domain->boxlo[dir1]);
@@ -456,8 +451,8 @@ void ComputeStressCartesian::compute_pressure_1d(double fpair, double xi, double
   }
 }
 
-void ComputeStressCartesian::compute_pressure_2d(double fpair, double xi, double yi, double xj,
-                                                 double yj, double delx, double dely, double delz)
+void ComputeStressCartesian::compute_pressure_2d(double fpair, double xi, double yi, double /*xj*/,
+                                                 double /*yj*/, double delx, double dely, double delz)
 {
   int bin1, bin2, next_bin1, next_bin2;
   double la = 0.0, lb = 0.0, l_sum = 0.0;

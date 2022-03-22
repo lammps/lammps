@@ -312,14 +312,10 @@ void PairMEAM::init_style()
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style MEAM requires newton pair on");
 
-  // need full and half neighbor list
+  // need a full and a half neighbor list
 
-  int irequest_full = neighbor->request(this,instance_me);
-  neighbor->requests[irequest_full]->id = 1;
-  neighbor->requests[irequest_full]->half = 0;
-  neighbor->requests[irequest_full]->full = 1;
-  int irequest_half = neighbor->request(this,instance_me);
-  neighbor->requests[irequest_half]->id = 2;
+  neighbor->add_request(this, NeighConst::REQ_FULL)->set_id(1);
+  neighbor->add_request(this)->set_id(2);
 }
 
 /* ----------------------------------------------------------------------

@@ -37,12 +37,6 @@ static int warn_single = 0;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSFDipoleSF::PairLJSFDipoleSF(LAMMPS *lmp) : Pair(lmp)
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 PairLJSFDipoleSF::~PairLJSFDipoleSF()
 {
   if (allocated) {
@@ -418,7 +412,7 @@ void PairLJSFDipoleSF::init_style()
   if (!atom->q_flag || !atom->mu_flag || !atom->torque_flag)
     error->all(FLERR,"Pair dipole/sf requires atom attributes q, mu, torque");
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

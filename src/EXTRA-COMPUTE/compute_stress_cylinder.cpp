@@ -23,7 +23,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "update.h"
@@ -214,10 +213,7 @@ void ComputeStressCylinder::init()
   }
 
   // need an occasional half neighbor list
-  int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
 
   for (int zzz = 0; zzz < nzbins; zzz++) binz[zzz] = (((double) zzz) + 0.5) * bin_width + zlo;
 }

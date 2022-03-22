@@ -96,26 +96,14 @@ void FixACKS2ReaxFFKokkos<DeviceType>::init()
 
   FixACKS2ReaxFF::init();
 
+  // adjust neighbor list request for KOKKOS
+
   neighflag = lmp->kokkos->neighflag_qeq;
-  int irequest = neighbor->nrequest - 1;
-
-  neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
-
-  if (neighflag == FULL) {
-    neighbor->requests[irequest]->fix = 1;
-    neighbor->requests[irequest]->pair = 0;
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->half = 0;
-  } else { //if (neighflag == HALF || neighflag == HALFTHREAD)
-    neighbor->requests[irequest]->fix = 1;
-    neighbor->requests[irequest]->pair = 0;
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 1;
-  }
+  auto request = neighbor->find_request(this);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  if (neighflag == FULL) request->enable_full();
 
   int ntypes = atom->ntypes;
   k_params = Kokkos::DualView<params_acks2*,Kokkos::LayoutRight,DeviceType>
@@ -449,8 +437,24 @@ void FixACKS2ReaxFFKokkos<DeviceType>::allocate_matrix()
   // determine the total space for the H matrix
 
   m_cap = 0;
-  FixACKS2ReaxFFKokkosNumNeighFunctor<DeviceType> neigh_functor(this);
-  Kokkos::parallel_reduce(nn,neigh_functor,m_cap);
+
+  // limit scope of functor to allow deallocation of views
+  {
+    FixACKS2ReaxFFKokkosNumNeighFunctor<DeviceType> neigh_functor(this);
+    Kokkos::parallel_reduce(nn,neigh_functor,m_cap);
+  }
+
+  // deallocate first to reduce memory overhead
+
+  d_firstnbr = typename AT::t_int_1d();
+  d_numnbrs = typename AT::t_int_1d();
+  d_jlist = typename AT::t_int_1d();
+  d_val = typename AT::t_ffloat_1d();
+
+  d_firstnbr_X = typename AT::t_int_1d();
+  d_numnbrs_X = typename AT::t_int_1d();
+  d_jlist_X = typename AT::t_int_1d();
+  d_val_X = typename AT::t_ffloat_1d();
 
   // H matrix
 

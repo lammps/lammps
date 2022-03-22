@@ -44,6 +44,9 @@ class ComputeSNAAtom : public Compute {
   double *wjelem;
   int *map;    // map types to [0,nelements)
   int nelements, chemflag;
+  int switchinnerflag;
+  double *rinnerelem;
+  double *drinnerelem;
   class SNA *snaptr;
   double cutmax;
   int quadraticflag;

@@ -421,12 +421,12 @@ void PairLocalDensity::coeff(int narg, char **arg)
 void PairLocalDensity::init_style()
 {
   // spline rho and frho arrays
-  // request half neighbor list
 
   array2spline();
 
   // half neighbor request
-  neighbor->request(this);
+
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

@@ -120,9 +120,8 @@ void ComputeDisplaceAtom::init()
 {
   // set fix which stores original atom coords
 
-  int ifix = modify->find_fix(id_fix);
-  if (ifix < 0) error->all(FLERR,"Could not find compute displace/atom fix ID");
-  fix = (FixStore *) modify->fix[ifix];
+  fix = (FixStore *) modify->get_fix_by_id(id_fix);
+  if (!fix) error->all(FLERR,"Could not find compute displace/atom fix with ID {}", id_fix);
 
   if (refreshflag) {
     ivar = input->variable->find(rvar);

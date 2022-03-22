@@ -1194,7 +1194,10 @@ void Input::shell()
     if (narg < 2) error->all(FLERR,"Illegal shell mkdir command");
     if (me == 0) {
       for (int i = 1; i < narg; i++) {
-        if (platform::mkdir(arg[i]) < 0)
+        rv = (platform::mkdir(arg[i]) < 0) ? errno : 0;
+        MPI_Reduce(&rv,&err,1,MPI_INT,MPI_MAX,0,world);
+        errno = err;
+        if (err != 0)
           error->warning(FLERR, "Shell command 'mkdir {}' failed with error '{}'",
                          arg[i],utils::getsyserror());
       }
@@ -1202,18 +1205,30 @@ void Input::shell()
   } else if (strcmp(arg[0],"mv") == 0) {
     if (narg != 3) error->all(FLERR,"Illegal shell mv command");
     if (me == 0) {
-      if (rename(arg[1],arg[2]) < 0) {
-        error->warning(FLERR, "Shell command 'mv {} {}' failed with error '{}'",
-                       arg[1],arg[2],utils::getsyserror());
+      if (platform::path_is_directory(arg[2])) {
+        if (system(fmt::format("mv {} {}", arg[1], arg[2]).c_str()))
+          error->warning(FLERR,"Shell command 'mv {} {}' returned with non-zero status", arg[1], arg[2]);
+      } else {
+        if (rename(arg[1],arg[2]) < 0) {
+          error->warning(FLERR, "Shell command 'mv {} {}' failed with error '{}'",
+                         arg[1],arg[2],utils::getsyserror());
+        }
       }
     }
   } else if (strcmp(arg[0],"rm") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal shell rm command");
     if (me == 0) {
-      for (int i = 1; i < narg; i++) {
+      int i = 1;
+      bool warn = true;
+      if (strcmp(arg[i], "-f") == 0) {
+        warn = false;
+        ++i;
+      }
+      for (;i < narg; i++) {
         if (platform::unlink(arg[i]) < 0)
-          error->warning(FLERR, "Shell command 'rm {}' failed with error '{}'",
-                         arg[i], utils::getsyserror());
+          if (warn)
+            error->warning(FLERR, "Shell command 'rm {}' failed with error '{}'",
+                           arg[i], utils::getsyserror());
       }
     }
   } else if (strcmp(arg[0],"rmdir") == 0) {
@@ -1237,23 +1252,20 @@ void Input::shell()
         error->warning(FLERR, "Shell command 'putenv {}' failed with error '{}'",
                        arg[i], utils::getsyserror());
     }
-  // use work string to concat args back into one string separated by spaces
-  // invoke string in shell via system()
+
+  // concat arguments and invoke string in shell via system()
 
   } else {
-    int n = 0;
-    for (int i = 0; i < narg; i++) n += strlen(arg[i]) + 1;
-    if (n > maxwork) reallocate(work,maxwork,n);
+    if (me == 0) {
+      std::string cmd = arg[0];
+      for (int i = 1; i < narg; i++) {
+        cmd += " ";
+        cmd += arg[i];
+      }
 
-    strcpy(work,arg[0]);
-    for (int i = 1; i < narg; i++) {
-      strcat(work," ");
-      strcat(work,arg[i]);
+      if (system(cmd.c_str()) != 0)
+        error->warning(FLERR,"Shell command {} returned with non-zero status", cmd);
     }
-
-    if (me == 0)
-      if (system(work) != 0)
-        error->warning(FLERR,"Shell command returned with non-zero status");
   }
 }
 
@@ -1870,7 +1882,7 @@ void Input::timestep()
   if (respaflag) update->integrate->reset_dt();
 
   if (force->pair) force->pair->reset_dt();
-  for (int i = 0; i < modify->nfix; i++) modify->fix[i]->reset_dt();
+  for (auto &ifix : modify->get_fix_list()) ifix->reset_dt();
   output->reset_dt();
 }
 

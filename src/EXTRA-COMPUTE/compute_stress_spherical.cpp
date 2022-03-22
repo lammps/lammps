@@ -61,7 +61,7 @@ static const char cite_compute_stress_sphere[] =
 ComputeStressSpherical::ComputeStressSpherical(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), dens(nullptr), pkrr(nullptr), pktt(nullptr), pkpp(nullptr),
     pcrr(nullptr), pctt(nullptr), pcpp(nullptr), tdens(nullptr), tpkrr(nullptr), tpktt(nullptr),
-    tpkpp(nullptr), tpcrr(nullptr), tpctt(nullptr), tpcpp(nullptr)
+    tpkpp(nullptr), tpcrr(nullptr), tpctt(nullptr), tpcpp(nullptr), list(nullptr)
 {
 
   if (lmp->citeme) lmp->citeme->add(cite_compute_stress_sphere);
@@ -142,10 +142,7 @@ void ComputeStressSpherical::init()
   for (int bin = 0; bin < nbins; bin++)
     invV[bin] = 0.75 / (MY_PI * (cube((bin + 1) * bin_width) - cube(bin * bin_width)));
 
-  int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -189,7 +186,6 @@ void ComputeStressSpherical::compute_array()
   double r, vr, vt, vp, theta;
   double **x = atom->x;
   double **v = atom->v;
-  double *mass = atom->mass;
   tagint *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
@@ -246,10 +242,6 @@ void ComputeStressSpherical::compute_array()
 
   Pair *pair = force->pair;
   double **cutsq = force->pair->cutsq;
-
-  double risq, rjsq;
-  double dir1i, dir2i, dir3i, dir1j, dir2j, dir3j;
-  double xi, yi, zi, xj, yj, zj;
 
   double qi[3], l1, l2, l3, l4, R1, R2, Fa, Fb, l_sum;
   double rij, f, ririj, sqr, la, lb, sql0, lambda0;

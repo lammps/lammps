@@ -21,6 +21,7 @@
 
 #include <mpi.h>
 #include <exception>
+#include <deque>
 
 ////////////////////////////////////////////////////////////////////////
 // include system headers and tweak system settings
@@ -752,16 +753,31 @@ int platform::chdir(const std::string &path)
 }
 
 /* ----------------------------------------------------------------------
-   Create a directory
+   Create a directory. Create entire path if necessary.
 ------------------------------------------------------------------------- */
 
 int platform::mkdir(const std::string &path)
 {
+  std::deque<std::string> dirlist = { path };
+  std::string dirname = path_dirname(path);
+
+  while ((dirname != ".") && (dirname != "")) {
+    dirlist.push_front(dirname);
+    dirname = path_dirname(dirname);
+  }
+
+  int rv;
+  for (const auto &dir : dirlist) {
+    if (!path_is_directory(dir)) {
 #if defined(_WIN32)
-  return ::_mkdir(path.c_str());
+      rv = ::_mkdir(dir.c_str());
 #else
-  return ::mkdir(path.c_str(), S_IRWXU | S_IRGRP | S_IXGRP);
+      rv = ::mkdir(dir.c_str(), S_IRWXU | S_IRGRP | S_IXGRP);
 #endif
+      if (rv != 0) return rv;
+    }
+  }
+  return 0;
 }
 
 /* ----------------------------------------------------------------------

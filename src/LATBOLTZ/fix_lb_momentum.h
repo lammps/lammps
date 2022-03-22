@@ -35,6 +35,7 @@ class FixLbMomentum : public Fix {
   int linear;
   int xflag, yflag, zflag;
   double masstotal;
+  int count;
 
   class FixLbFluid *fix_lb_fluid;
 };

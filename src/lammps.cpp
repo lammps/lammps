@@ -824,6 +824,11 @@ void LAMMPS::create()
   timer = new Timer(this);
 
   python = new Python(this);
+
+  // auto-load plugins
+#if defined(LMP_PLUGIN)
+  plugin_auto_load(this);
+#endif
 }
 
 /* ----------------------------------------------------------------------

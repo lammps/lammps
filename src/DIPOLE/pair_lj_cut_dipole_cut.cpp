@@ -14,17 +14,17 @@
 
 #include "pair_lj_cut_dipole_cut.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
-#include "neighbor.h"
-#include "neigh_list.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 #include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -362,7 +362,7 @@ void PairLJCutDipoleCut::init_style()
   if (!atom->q_flag || !atom->mu_flag || !atom->torque_flag)
     error->all(FLERR,"Pair dipole/cut requires atom attributes q, mu, torque");
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

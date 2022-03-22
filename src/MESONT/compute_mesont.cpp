@@ -118,7 +118,7 @@ void ComputeMesoNT::compute_peratom() {
    "compute mesont is allowed only with mesont/tpm pair style");
 
   // communicate ghost energy between neighbor procs
-  if (force->newton) comm->reverse_comm_compute(this);
+  if (force->newton) comm->reverse_comm(this);
 
   // zero energy of atoms not in group
   // only do this after comm since ghost contributions must be included

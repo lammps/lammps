@@ -25,27 +25,27 @@
 
 #include "pair_smd_tlsph.h"
 
+#include "fix_smd_tlsph_reference_configuration.h"
+
+#include "atom.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "group.h"
+#include "memory.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "smd_kernels.h"
+#include "smd_material_models.h"
+#include "smd_math.h"
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
-
-#include <iostream>
 #include <Eigen/Eigen>
-#include "fix_smd_tlsph_reference_configuration.h"
-#include "atom.h"
-#include "domain.h"
-#include "group.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
-#include "comm.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
-#include "smd_material_models.h"
-#include "smd_kernels.h"
-#include "smd_math.h"
+#include <iostream>
 
 using namespace SMD_Kernels;
 using namespace Eigen;
@@ -403,7 +403,7 @@ void PairTlsph::compute(int eflag, int vflag) {
          * QUANTITIES ABOVE HAVE ONLY BEEN CALCULATED FOR NLOCAL PARTICLES.
          * NEED TO DO A FORWARD COMMUNICATION TO GHOST ATOMS NOW
          */
-        comm->forward_comm_pair(this);
+        comm->forward_comm(this);
 
         /*
          * compute forces between particles
@@ -1725,8 +1725,7 @@ void PairTlsph::init_style() {
         }
 
 // request a granular neighbor list
-        int irequest = neighbor->request(this);
-        neighbor->requests[irequest]->size = 1;
+        neighbor->add_request(this, NeighConst::REQ_SIZE);
 
 // set maxrad_dynamic and maxrad_frozen for each type
 // include future Fix pour particles as dynamic

@@ -396,7 +396,7 @@ A typical code segment would look like this:
 
 ----------
 
-.. file-reader-classes:
+.. _file-reader-classes:
 
 File reader classes
 -------------------

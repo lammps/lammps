@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class BondFENE : public Bond {
  public:
-  BondFENE(class LAMMPS *lmp) : Bond(lmp) {}
+  BondFENE(class LAMMPS *_lmp) : Bond(_lmp) {}
   ~BondFENE() override;
   void compute(int, int) override;
   void coeff(int, char **) override;

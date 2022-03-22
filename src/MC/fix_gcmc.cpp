@@ -62,7 +62,7 @@ using namespace MathConst;
 #define MAXENERGYTEST 1.0e50
 
 enum{EXCHATOM,EXCHMOL}; // exchmode
-enum{MOVEATOM,MOVEMOL}; // movemode
+enum{NONE,MOVEATOM,MOVEMOL}; // movemode
 
 /* ---------------------------------------------------------------------- */
 
@@ -235,7 +235,7 @@ void FixGCMC::options(int narg, char **arg)
   // defaults
 
   exchmode = EXCHATOM;
-  movemode = MOVEATOM;
+  movemode = NONE;
   patomtrans = 0.0;
   pmoltrans = 0.0;
   pmolrotate = 0.0;
@@ -447,27 +447,29 @@ void FixGCMC::init()
 
   // set probabilities for MC moves
 
-  if (pmctot == 0.0)
-    if (exchmode == EXCHATOM) {
-      movemode = MOVEATOM;
-      patomtrans = 1.0;
-      pmoltrans = 0.0;
-      pmolrotate = 0.0;
-    } else {
-      movemode = MOVEMOL;
-      patomtrans = 0.0;
-      pmoltrans = 0.5;
-      pmolrotate = 0.5;
-   }
-  else {
-    if (pmoltrans == 0.0 && pmolrotate == 0.0)
-      movemode = MOVEATOM;
-    else
-      movemode = MOVEMOL;
-    patomtrans /= pmctot;
-    pmoltrans /= pmctot;
-    pmolrotate /= pmctot;
-  }
+  if (nmcmoves > 0) {
+    if (pmctot == 0.0)
+      if (exchmode == EXCHATOM) {
+        movemode = MOVEATOM;
+        patomtrans = 1.0;
+        pmoltrans = 0.0;
+        pmolrotate = 0.0;
+      } else {
+        movemode = MOVEMOL;
+        patomtrans = 0.0;
+        pmoltrans = 0.5;
+        pmolrotate = 0.5;
+      }
+    else {
+      if (pmoltrans == 0.0 && pmolrotate == 0.0)
+        movemode = MOVEATOM;
+      else
+        movemode = MOVEMOL;
+      patomtrans /= pmctot;
+      pmoltrans /= pmctot;
+      pmolrotate /= pmctot;
+    }
+  } else movemode = NONE;
 
   // decide whether to switch to the full_energy option
 
@@ -681,11 +683,13 @@ void FixGCMC::init()
     }
   }
 
-  // Current implementation is broken using
-  // full_flag on molecules on more than one processor.
-  // Print error if this is the current mode
-  if (full_flag && (exchmode == EXCHMOL || movemode == MOVEMOL) && comm->nprocs > 1)
-    error->all(FLERR,"fix gcmc does currently not support full_energy option with molecules on more than 1 MPI process.");
+  // current implementation is broken using
+  // full_flag and translation/rotation of molecules
+  // on more than one processor.
+
+  if (full_flag && movemode == MOVEMOL && comm->nprocs > 1)
+    error->all(FLERR,"fix gcmc does currently not support full_energy "
+               "option with molecule MC moves on more than 1 MPI process.");
 
 }
 

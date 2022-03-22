@@ -250,9 +250,11 @@ keep the code readable to programmers that have limited C++ programming
 experience.  C++ constructs are acceptable when they help improving the
 readability and reliability of the code, e.g. when using the
 `std::string` class instead of manipulating pointers and calling the
-string functions of the C library.  In addition and number of convenient
-:doc:`utility functions and classes <Developer_utils>` for recurring
-tasks are provided.
+string functions of the C library.  In addition a collection of
+convenient :doc:`utility functions and classes <Developer_utils>` for
+recurring tasks and a collection of
+:doc:`platform neutral functions <Developer_platform>` for improved
+portability are provided.
 
 Included Fortran code has to be compatible with the Fortran 2003
 standard.  Python code must be compatible with Python 3.5.  Large parts
@@ -261,10 +263,11 @@ compatible with Python 2.7.  Compatibility with Python 2.7 is
 desirable, but compatibility with Python 3.5 is **required**.
 
 Compatibility with these older programming language standards is very
-important to maintain portability, especially with HPC cluster
-environments, which tend to be running older software stacks and LAMMPS
-users may be required to use those older tools or not have the option to
-install newer compilers.
+important to maintain portability and availability of LAMMPS on many
+platforms.  This applies especially to HPC cluster environments, which
+tend to be running older software stacks and LAMMPS users may be
+required to use those older tools for access to advanced hardware
+features or not have the option to install newer compilers or libraries.
 
 Programming conventions (varied)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

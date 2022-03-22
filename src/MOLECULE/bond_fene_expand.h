@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class BondFENEExpand : public Bond {
  public:
-  BondFENEExpand(class LAMMPS *lmp) : Bond(lmp) {}
+  BondFENEExpand(class LAMMPS *_lmp) : Bond(_lmp) {}
   ~BondFENEExpand() override;
   void compute(int, int) override;
   void coeff(int, char **) override;

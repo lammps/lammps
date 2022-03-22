@@ -18,16 +18,16 @@
 
 #include "pair_lj_charmm_coul_charmm.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -281,15 +281,14 @@ void PairLJCharmmCoulCharmm::coeff(int narg, char **arg)
 void PairLJCharmmCoulCharmm::init_style()
 {
   if (!atom->q_flag)
-    error->all(FLERR,
-               "Pair style lj/charmm/coul/charmm requires atom attribute q");
+    error->all(FLERR, "Pair style lj/charmm/coul/charmm requires atom attribute q");
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 
   // require cut_lj_inner < cut_lj, cut_coul_inner < cut_coul
 
   if (cut_lj_inner >= cut_lj || cut_coul_inner >= cut_coul)
-    error->all(FLERR,"Pair inner cutoff >= Pair outer cutoff");
+    error->all(FLERR, "Pair inner cutoff >= Pair outer cutoff");
 
   cut_lj_innersq = cut_lj_inner * cut_lj_inner;
   cut_ljsq = cut_lj * cut_lj;

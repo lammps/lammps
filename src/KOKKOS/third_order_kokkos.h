@@ -42,8 +42,8 @@ class ThirdOrderKokkos : public ThirdOrder {
   }
 
  protected:
-  void update_force();
-  void force_clear();
+  void update_force() override;
+  void force_clear() override;
   DAT::t_f_array f_merge_copy,f;
 
 

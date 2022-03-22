@@ -159,7 +159,7 @@ void Rerun::command(int narg, char **arg)
   while (true) {
     ndump++;
     rd->header(firstflag);
-    update->reset_timestep(ntimestep);
+    update->reset_timestep(ntimestep, false);
     rd->atoms();
 
     modify->init();

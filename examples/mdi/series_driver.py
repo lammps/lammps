@@ -88,7 +88,7 @@ while iarg < narg:
     rho = float(args[iarg+1])
     rhodelta = float(args[iarg+2])
     if rho-rhodelta <= 0.0: error()
-    iarg += 4
+    iarg += 3
   elif args[iarg] == "-delta":
     if iarg+2 > narg: error()
     delta = float(args[iarg+1])
@@ -213,20 +213,19 @@ for icalc in range(ncalc):
   if mode == "eval":
     pass
   elif mode == "run":
-    print("PRE MD")
     mdi.MDI_Send_command("@INIT_MD",mdicomm)
     mdi.MDI_Send_command(">NITERATE",mdicomm)
     mdi.MDI_Send(nsteps,1,mdi.MDI_INT,mdicomm)
     mdi.MDI_Send_command("@DEFAULT",mdicomm)
-    print("POST MD")
   elif mode == "min":
+    mdi.MDI_Send_command("@INIT_OPTG",mdicomm)
     mdi.MDI_Send_command(">TOLERANCE",mdicomm)
-    params = [1.0e-4,1.0e-4,1000.0,1000.0]
+    params = [1.0e-4,1.0e-4,100.0,100.0]
     mdi.MDI_Send(params,4,mdi.MDI_DOUBLE,mdicomm)
+    mdi.MDI_Send_command("@DEFAULT",mdicomm)
 
   # request potential energy
 
-  print("PRE PE")
 
   mdi.MDI_Send_command("<PE",mdicomm)
   pe = mdi.MDI_Recv(1,mdi.MDI_DOUBLE,mdicomm)

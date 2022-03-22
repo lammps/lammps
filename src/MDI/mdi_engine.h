@@ -57,7 +57,6 @@ class MDIEngine : public Command {
   class Minimize *minimizer;
   class Compute *ke,*pe,*press;
 
-
   // unit conversion factors
 
   double lmp2mdi_length,mdi2lmp_length;
@@ -99,6 +98,7 @@ class MDIEngine : public Command {
   void mdi_md();
   void mdi_md_old();
   void mdi_optg();
+  void mdi_optg_old();
 
   void evaluate();
   void create_system();

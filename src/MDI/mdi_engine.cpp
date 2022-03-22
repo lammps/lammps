@@ -285,8 +285,6 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   // confirm this command is supported at this node
   // otherwise is error
 
-  printf("MDI COMMAND %s NE %s\n",command,node_engine);
-
   int command_exists;
   if (root) {
     ierr = MDI_Check_command_exists(node_engine,command,MDI_COMM_NULL,
@@ -381,12 +379,14 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     if (mode != DEFAULT) 
       error->all(FLERR,"MDI: MDI engine is already performing a simulation");
     mode = MD;
+    strncpy(node_driver,command,MDI_COMMAND_LENGTH);
     node_match = false;
 
   } else if (strcmp(command,"@INIT_OPTG") == 0) {
     if (mode != DEFAULT) 
       error->all(FLERR,"MDI: MDI engine is already performing a simulation");
     mode = OPT;
+    strncpy(node_driver,command,MDI_COMMAND_LENGTH);
     node_match = false;
 
   } else if (strcmp(command,"@") == 0) {
@@ -395,7 +395,7 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
 
   } else if (strcmp(command,"@DEFAULT") == 0) {
     mode = DEFAULT;
-    strncpy(node_driver,"@DEFAULT",MDI_COMMAND_LENGTH);
+    strncpy(node_driver,command,MDI_COMMAND_LENGTH);
     node_match = false;
 
     // if minimization in progress, force it to quit
@@ -407,15 +407,15 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     }
 
   } else if (strcmp(command,"@COORDS") == 0) {
-    strncpy(node_driver,"@COORDS",MDI_COMMAND_LENGTH);
+    strncpy(node_driver,command,MDI_COMMAND_LENGTH);
     node_match = false;
 
   } else if (strcmp(command,"@FORCES") == 0) {
-    strncpy(node_driver,"@FORCES",MDI_COMMAND_LENGTH);
+    strncpy(node_driver,command,MDI_COMMAND_LENGTH);
     node_match = false;
 
   } else if (strcmp(command,"@ENDSTEP") == 0) {
-    strncpy(node_driver,"@ENDSTEP",MDI_COMMAND_LENGTH);
+    strncpy(node_driver,command,MDI_COMMAND_LENGTH);
     node_match = false;
 
   // exit command
@@ -531,6 +531,14 @@ void MDIEngine::mdi_commands()
   MDI_Register_node("@INIT_OPTG");
   MDI_Register_command("@INIT_OPTG", "<@");
   MDI_Register_command("@INIT_OPTG", "<NATOMS");
+  MDI_Register_command("@INIT_OPTG", ">CELL");
+  MDI_Register_command("@INIT_OPTG", ">CELL_DISPL");
+  MDI_Register_command("@INIT_OPTG", ">CHARGES");
+  MDI_Register_command("@INIT_OPTG", ">COORDS");
+  MDI_Register_command("@INIT_OPTG", ">NATOMS");
+  MDI_Register_command("@INIT_OPTG", ">TOLERANCE");
+  MDI_Register_command("@INIT_OPTG", ">TYPES");
+  MDI_Register_command("@INIT_OPTG", ">VELOCITIES");
   MDI_Register_command("@INIT_OPTG", "@");
   MDI_Register_command("@INIT_OPTG", "@DEFAULT");
   MDI_Register_command("@INIT_OPTG", "@COORDS");
@@ -595,28 +603,27 @@ void MDIEngine::mdi_commands()
 }
 
 /* ----------------------------------------------------------------------
-   run MD simulation for Niterate steps
+   run MD simulation
+   >NITERATE command sets # of timesteps
 ---------------------------------------------------------------------- */
 
 void MDIEngine::mdi_md()
 {
-  printf("MDI_MD %d %d %d\n",flag_natoms,flag_types,flag_cell);
-
   // engine is now at @INIT_MD node
-  // receive NITERATE or other commands driver wishes to send
+  // receive >NITERATE or other commands driver wishes to send
+  // @DEFAULT command from driver will trigger the simulation
+
+  niterate = 0;
 
   engine_node("@INIT_MD");
 
   if (strcmp(mdicmd,"EXIT") == 0) return;
 
-  // create and update system if requested
+  // create or update system if requested
 
   int flag_create = flag_natoms | flag_types;
   if (flag_create) create_system();
   else {
-    int flag_any = flag_cell | flag_cell_displ | flag_charges | 
-      flag_coords | flag_velocities;
-    if (!flag_any) return;
     if (flag_cell || flag_cell_displ) adjust_box();
     if (flag_charges) adjust_charges();
     if (flag_coords) adjust_coords();
@@ -718,33 +725,70 @@ void MDIEngine::mdi_md_old()
 }
 
 /* ----------------------------------------------------------------------
-   perform minimization under control of driver one iteration at a time
-   use of fix MDI/ENGINE allows MDI comm within iteration
+   perform minimization for at most Niterate steps
+   >TOLERANCE command sets tolerances
 ---------------------------------------------------------------------- */
 
 void MDIEngine::mdi_optg()
 {
-    update->etol = etol;
-    update->ftol = ftol;
-    update->nsteps = niterate;
-    update->max_eval = max_eval;
+  // engine is now at @INIT_OPTG node
+  // receive >TOLERANCE or other commands driver wishes to send
+  // @DEFAULT command from driver will trigger the minimization
 
-    update->whichflag = 2;
-    timer->init_timeout();
+  etol = ftol = 1.0e-6;
+  niterate = max_eval = 1000;
 
-    update->beginstep = update->firststep = update->ntimestep;
-    update->endstep = update->laststep = update->firststep + update->nsteps;
-    
-    lmp->init();
-    update->minimize->setup();
+  engine_node("@INIT_OPTG");
 
-    timer->init();
-    timer->barrier_start();
-    update->minimize->run(update->nsteps);
-    timer->barrier_stop();
+  if (strcmp(mdicmd,"EXIT") == 0) return;
 
-    update->minimize->cleanup();
+  // create or update system if requested
 
+  int flag_create = flag_natoms | flag_types;
+  if (flag_create) create_system();
+  else {
+    if (flag_cell || flag_cell_displ) adjust_box();
+    if (flag_charges) adjust_charges();
+    if (flag_coords) adjust_coords();
+    if (flag_velocities) adjust_velocities();
+  }
+
+  // perform the minmization
+
+  update->etol = etol;
+  update->ftol = ftol;
+  update->nsteps = niterate;
+  update->max_eval = max_eval;
+
+  update->whichflag = 2;
+  timer->init_timeout();
+
+  update->beginstep = update->firststep = update->ntimestep;
+  update->endstep = update->laststep = update->firststep + update->nsteps;
+  
+  lmp->init();
+  update->minimize->setup();
+  
+  timer->init();
+  timer->barrier_start();
+  update->minimize->run(update->nsteps);
+  timer->barrier_stop();
+  
+  update->minimize->cleanup();
+
+  // clear flags
+
+  flag_natoms = flag_types = 0;
+  flag_cell = flag_cell_displ = flag_charges = flag_coords = flag_velocities = 0;
+}
+
+/* ----------------------------------------------------------------------
+   perform minimization under control of driver one iteration at a time
+   use of fix MDI/ENGINE allows MDI comm within iteration
+---------------------------------------------------------------------- */
+
+void MDIEngine::mdi_optg_old()
+{
   // add an instance of fix MDI/ENGINE
   // delete the instance before this method returns
 
@@ -803,21 +847,11 @@ void MDIEngine::mdi_optg()
    evaluate() invoked by <ENERGY, <FORCES, <PE, <STRESS
    if flag_natoms or flag_types set, create a new system
    if any receive flags set, evaulate eng/forces/stress
-
-
-   usage modes:
-   (1) called many times by a driver for system that is continuously evolving
-   (2) called once per system by a driver that is passing in many systems
-   distinguishes between:
-     (a) first-time call
-     (b) system needs reneighboring
-     (c) system does not need reneighboring
-  for (b) and (c), timestep is advanced
 ---------------------------------------------------------------------- */
 
 void MDIEngine::evaluate()
 {
-  printf("EVALUATE\n");
+  // create or update system if requested
 
   int flag_create = flag_natoms | flag_types;
   if (flag_create) create_system();
@@ -834,8 +868,8 @@ void MDIEngine::evaluate()
   // if new system created or first-time eval:
   //   init LAMMPS and eval eng/force/virial via setup(1)
   // else:
-  //   system has been updated incrementally
-  //   advance system by single timestep
+  //   assume system has been updated incrementally
+  //   advance system by single timestep via setup(0/1)
   //   insure potential energy and virial are tallied on new step
   //   decide if new neighbor list needed
   //   eval eng/force/virial via setup_minimal(0/1)
@@ -866,7 +900,7 @@ void MDIEngine::evaluate()
     }
   }
 
-  // clear flags
+  // clear flags that trigger next eval
 
   flag_natoms = flag_types = 0;
   flag_cell = flag_cell_displ = flag_charges = flag_coords = flag_velocities = 0;
@@ -1509,7 +1543,7 @@ void MDIEngine::receive_niterate()
 void MDIEngine::receive_tolerance()
 {
   double params[4];
-  int ierr = MDI_Recv(params,4,MDI_INT,mdicomm);
+  int ierr = MDI_Recv(params,4,MDI_DOUBLE,mdicomm);
   if (ierr) error->all(FLERR,"MDI: >TOLERANCE data");
   MPI_Bcast(params,4,MPI_INT,0,world);
 

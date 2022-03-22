@@ -10,6 +10,7 @@ try:
 except OSError as e:
     if pylib.endswith(".a"):
         pylib.strip(".a") + ".so"
+        pylib = ctypes.CDLL(library)
     else:
         raise e
 if not pylib.Py_IsInitialized():

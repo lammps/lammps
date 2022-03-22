@@ -29,7 +29,6 @@
 #include "force.h"
 #include "group.h"
 #include "input.h"
-//#include "irregular.h"
 #include "integrate.h"
 #include "library.h"
 #include "memory.h"
@@ -45,8 +44,9 @@
 
 using namespace LAMMPS_NS;
 
-enum{NATIVE,REAL,METAL};       // LAMMPS units which MDI supports
-enum{DEFAULT,MD,OPT,SYS};      // top-level MDI engine mode
+enum{NATIVE,REAL,METAL};         // LAMMPS units which MDI supports
+enum{DEFAULT,MD,OPT,SYS,EVAL};   // top-level MDI engine mode
+enum{EVALPOINT,EVALMD,EVALOPT};  // EVAL mode
 
 // per-atom data which engine commands access
 
@@ -145,17 +145,25 @@ void MDIEngine::mdi_engine(int narg, char **arg)
 
   unit_conversions();
 
-  // irregular class and data structs used by MDI
+  // internal state of engine
+
+  flag_natoms = 0;
+  flag_types = flag_charges = flag_coords = flag_velocities = 0;
+  flag_cell = flag_cell_displ = 0;
+
+  sys_types = nullptr;
+  sys_coords = sys_velocities = nullptr;
+  sys_charges = nullptr;
 
   buf1 = buf1all = nullptr;
   buf3 = buf3all = nullptr;
   ibuf1 = ibuf1all = nullptr;
-  maxbuf = 0;
-
-  // internal state of engine
+  
+  maxatom = 0;
+  sys_natoms = atom->natoms;
+  reallocate();
 
   nbytes = -1;
-  need_evaluation = 1;
 
   // define MDI commands that LAMMPS engine recognizes
 
@@ -189,14 +197,6 @@ void MDIEngine::mdi_engine(int narg, char **arg)
       mdi_optg();
       if (exit_command) break;
 
-    } else if (strcmp(mdicmd,"@INIT_SYS") == 0) {
-      mdi_sys();
-      if (exit_command) break;
-
-    } else if (strcmp(mdicmd,"@EVAL") == 0) {
-      mdi_eval();
-      if (exit_command) break;
-
     } else if (exit_command) {
       break;
 
@@ -220,15 +220,9 @@ void MDIEngine::mdi_engine(int narg, char **arg)
   delete [] id_pe;
   delete [] id_press;
 
-  // delete irregular;
+  // delete buffers
 
-  memory->destroy(ibuf1);
-  memory->destroy(buf1);
-  memory->destroy(buf3);
-
-  memory->destroy(ibuf1all);
-  memory->destroy(buf1all);
-  memory->destroy(buf3all);
+  deallocate();
 }
 
 /* ----------------------------------------------------------------------
@@ -291,6 +285,8 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   // confirm this command is supported at this node
   // otherwise is error
 
+  printf("MDI COMMAND %s NE %s\n",command,node_engine);
+
   int command_exists;
   if (root) {
     ierr = MDI_Check_command_exists(node_engine,command,MDI_COMM_NULL,
@@ -320,7 +316,6 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
 
   } else if (strcmp(command,">COORDS") == 0) {
     receive_coords();
-    need_evaluation = 1;
 
   } else if (strcmp(command,">NATOMS") == 0) {
     receive_natoms();
@@ -350,17 +345,11 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     send_double3(COORD);
 
   } else if (strcmp(command,"<ENERGY") == 0) {
-    if (need_evaluation) {
-      evaluate();
-      need_evaluation = 0;
-    }
+    evaluate();
     send_total_energy();
 
   } else if (strcmp(command,"<FORCES") == 0) {
-    if (need_evaluation) {
-      evaluate();
-      need_evaluation = 0;
-    }
+    evaluate();
     send_double3(FORCE);
 
   } else if (strcmp(command,"<LABELS") == 0) {
@@ -373,17 +362,11 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     send_natoms();
 
   } else if (strcmp(command,"<PE") == 0) {
-    if (need_evaluation) {
-      evaluate();
-      need_evaluation = 0;
-    }
+    evaluate();
     send_pe();
 
   } else if (strcmp(command,"<STRESS") == 0) {
-    if (need_evaluation) {
-      evaluate();
-      need_evaluation = 0;
-    }
+    evaluate();
     send_stress();
 
   } else if (strcmp(command,"<TYPES") == 0) {
@@ -452,17 +435,6 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   // custom LAMMPS commands
   // -------------------------------------------------------
 
-  } else if (strcmp(command,"@INIT_SYS") == 0) {
-    if (mode != DEFAULT) 
-      error->all(FLERR,"MDI: MDI engine is already performing a simulation");
-    mode = SYS;
-    node_match = false;
-  } else if (strcmp(command,"@EVAL") == 0) {
-    if (mode != DEFAULT) 
-      error->all(FLERR,"MDI: MDI engine is already performing a simulation");
-    mode = EVAL;
-    node_match = false;
-
   } else if (strcmp(command,"NBYTES") == 0) {
     nbytes_command();
   } else if (strcmp(command,"COMMAND") == 0) {
@@ -470,11 +442,11 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   } else if (strcmp(command,"COMMANDS") == 0) {
     many_commands();
   } else if (strcmp(command,"INFILE") == 0) {
-    infile();w
-  } else if (strcmp(command,">STEPS") == 0) {
-    send_steps();
+    infile();
+  } else if (strcmp(command,">NITERATE") == 0) {
+    receive_niterate();
   } else if (strcmp(command,">TOLERANCE") == 0) {
-    send_tolerance();
+    receive_tolerance();
   } else if (strcmp(command,"<KE") == 0) {
     send_ke();
 
@@ -531,33 +503,22 @@ void MDIEngine::mdi_commands()
   MDI_Register_command("@DEFAULT", "COMMAND");
   MDI_Register_command("@DEFAULT", "COMMANDS");
   MDI_Register_command("@DEFAULT", "INFILE");
+  MDI_Register_command("@DEFAULT", ">TOLERANCE");
   MDI_Register_command("@DEFAULT", "<KE");
-  MDI_Register_command("@DEFAULT", "@INIT_SYS");
-
-  // custom nodes added by LAMMPS
-
-  MDI_Register_node("@INIT_SYS");
-  MDI_Register_command("@INIT_SYS", ">CELL");
-  MDI_Register_command("@INIT_SYS", ">CELL_DISPL");
-  MDI_Register_command("@INIT_SYS", ">CHARGES");
-  MDI_Register_command("@INIT_SYS", ">COORDS");
-  MDI_Register_command("@INIT_SYS", ">NATOMS");
-  MDI_Register_command("@INIT_SYS", ">TYPES");
-  MDI_Register_command("@INIT_SYS", ">VELOCITIES");
-  MDI_Register_command("@INIT_SYS", "@DEFAULT");
-  MDI_Register_command("@INIT_SYS", "EXIT");
-
-  // custom nodes added by LAMMPS
-
-  MDI_Register_node("@EVAL");
-  MDI_Register_command("@EVAL", ">STEPS");
-  MDI_Register_command("@EVAL", ">TOLERANC");
 
   // node for setting up and running a dynamics simulation
 
   MDI_Register_node("@INIT_MD");
   MDI_Register_command("@INIT_MD", "<@");
   MDI_Register_command("@INIT_MD", "<NATOMS");
+  MDI_Register_command("@INIT_MD", ">CELL");
+  MDI_Register_command("@INIT_MD", ">CELL_DISPL");
+  MDI_Register_command("@INIT_MD", ">CHARGES");
+  MDI_Register_command("@INIT_MD", ">COORDS");
+  MDI_Register_command("@INIT_MD", ">NATOMS");
+  MDI_Register_command("@INIT_MD", ">NITERATE");
+  MDI_Register_command("@INIT_MD", ">TYPES");
+  MDI_Register_command("@INIT_MD", ">VELOCITIES");
   MDI_Register_command("@INIT_MD", "@");
   MDI_Register_command("@INIT_MD", "@DEFAULT");
   MDI_Register_command("@INIT_MD", "@COORDS");
@@ -634,11 +595,65 @@ void MDIEngine::mdi_commands()
 }
 
 /* ----------------------------------------------------------------------
+   run MD simulation for Niterate steps
+---------------------------------------------------------------------- */
+
+void MDIEngine::mdi_md()
+{
+  printf("MDI_MD %d %d %d\n",flag_natoms,flag_types,flag_cell);
+
+  // engine is now at @INIT_MD node
+  // receive NITERATE or other commands driver wishes to send
+
+  engine_node("@INIT_MD");
+
+  if (strcmp(mdicmd,"EXIT") == 0) return;
+
+  // create and update system if requested
+
+  int flag_create = flag_natoms | flag_types;
+  if (flag_create) create_system();
+  else {
+    int flag_any = flag_cell | flag_cell_displ | flag_charges | 
+      flag_coords | flag_velocities;
+    if (!flag_any) return;
+    if (flag_cell || flag_cell_displ) adjust_box();
+    if (flag_charges) adjust_charges();
+    if (flag_coords) adjust_coords();
+    if (flag_velocities) adjust_velocities();
+  }
+
+  // perform the MD simulation
+
+  update->whichflag = 1;
+  timer->init_timeout();
+
+  update->nsteps = niterate;
+  update->beginstep = update->firststep = update->ntimestep;
+  update->endstep = update->laststep = update->ntimestep + update->nsteps;
+    
+  lmp->init();
+  update->integrate->setup(1);
+  
+  timer->init();
+  timer->barrier_start();
+  update->integrate->run(niterate);
+  timer->barrier_stop();
+  
+  update->integrate->cleanup();
+
+  // clear flags
+
+  flag_natoms = flag_types = 0;
+  flag_cell = flag_cell_displ = flag_charges = flag_coords = flag_velocities = 0;
+}
+
+/* ----------------------------------------------------------------------
    run MD simulation under control of driver one step at a time
    use of fix MDI/ENGINE allows MDI comm within timesteps
 ---------------------------------------------------------------------- */
 
-void MDIEngine::mdi_md()
+void MDIEngine::mdi_md_old()
 {
   // add an instance of fix MDI/ENGINE
   // delete the instance before this method returns
@@ -709,6 +724,27 @@ void MDIEngine::mdi_md()
 
 void MDIEngine::mdi_optg()
 {
+    update->etol = etol;
+    update->ftol = ftol;
+    update->nsteps = niterate;
+    update->max_eval = max_eval;
+
+    update->whichflag = 2;
+    timer->init_timeout();
+
+    update->beginstep = update->firststep = update->ntimestep;
+    update->endstep = update->laststep = update->firststep + update->nsteps;
+    
+    lmp->init();
+    update->minimize->setup();
+
+    timer->init();
+    timer->barrier_start();
+    update->minimize->run(update->nsteps);
+    timer->barrier_stop();
+
+    update->minimize->cleanup();
+
   // add an instance of fix MDI/ENGINE
   // delete the instance before this method returns
 
@@ -764,29 +800,91 @@ void MDIEngine::mdi_optg()
 }
 
 /* ----------------------------------------------------------------------
-   initialize a new simulation
+   evaluate() invoked by <ENERGY, <FORCES, <PE, <STRESS
+   if flag_natoms or flag_types set, create a new system
+   if any receive flags set, evaulate eng/forces/stress
+
+
+   usage modes:
+   (1) called many times by a driver for system that is continuously evolving
+   (2) called once per system by a driver that is passing in many systems
+   distinguishes between:
+     (a) first-time call
+     (b) system needs reneighboring
+     (c) system does not need reneighboring
+  for (b) and (c), timestep is advanced
 ---------------------------------------------------------------------- */
 
-void MDIEngine::mdi_sys()
+void MDIEngine::evaluate()
 {
-  // engine is now at @INIT_SYS node
-  // receive commands driver sends to define the system
-  // another @ command will trigger setup of the system
+  printf("EVALUATE\n");
 
-  sys_natoms_flag = sys_types_flag = sys_charges_flag = 0;
-  sys_coords_flag = sys_velocities_flag = 0;
-  sys_cell_flag = sys_cell_displ_flag = 0;
+  int flag_create = flag_natoms | flag_types;
+  if (flag_create) create_system();
+  else {
+    int flag_any = flag_cell | flag_cell_displ | flag_charges | 
+      flag_coords | flag_velocities;
+    if (!flag_any) return;
+    if (flag_cell || flag_cell_displ) adjust_box();
+    if (flag_charges) adjust_charges();
+    if (flag_coords) adjust_coords();
+    if (flag_velocities) adjust_velocities();
+  }
 
-  engine_node("@INIT_SYS");
+  // if new system created or first-time eval:
+  //   init LAMMPS and eval eng/force/virial via setup(1)
+  // else:
+  //   system has been updated incrementally
+  //   advance system by single timestep
+  //   insure potential energy and virial are tallied on new step
+  //   decide if new neighbor list needed
+  //   eval eng/force/virial via setup_minimal(0/1)
 
-  if (strcmp(mdicmd,"EXIT") == 0) return;
+  if (flag_create || neighbor->ago < 0) {
+    update->whichflag = 1;
+    lmp->init(); 
+    update->integrate->setup(1);
+    update->whichflag = 0;
 
-  // >CELL, >NATOMS, >TYPES, >COORDS commands must have been issued
+  } else {
+    update->ntimestep++;
+    pe->addstep(update->ntimestep);
+    press->addstep(update->ntimestep);
 
-  if (sys_cell_flag == 0 || sys_natoms_flag == 0)
-    error->all(FLERR,"@INIT_SYS requires >NATOMS and >CELL MDI commands");
-  if (sys_types_flag == 0 || sys_coords_flag == 0)
-    error->all(FLERR,"@INIT_SYS requires >TYPES and >COORDS MDI commands");
+    int nflag = neighbor->decide();
+    if (nflag == 0) {
+      comm->forward_comm();
+      update->integrate->setup_minimal(0);
+      modify->clearstep_compute();
+      output->thermo->compute(1);
+      modify->addstep_compute(update->ntimestep+1);
+    } else {
+      update->integrate->setup_minimal(1);
+      modify->clearstep_compute();
+      output->thermo->compute(1);
+      modify->addstep_compute(update->ntimestep+1);
+    }
+  }
+
+  // clear flags
+
+  flag_natoms = flag_types = 0;
+  flag_cell = flag_cell_displ = flag_charges = flag_coords = flag_velocities = 0;
+}
+
+/* ----------------------------------------------------------------------
+   create a new system
+---------------------------------------------------------------------- */
+
+void MDIEngine::create_system()
+{
+  // >CELL, >NATOMS, >TYPES, >COORDS commands are required
+  // >CELL_DISPL, >CHARGES, >VELOCITIES commands are optional
+
+  if (flag_cell == 0 || flag_natoms == 0 ||
+      flag_types == 0 || flag_coords == 0)
+    error->all(FLERR,
+               "@INIT_SYS requires >CELL, >NATOMS, >TYPES, >COORDS MDI commands");
 
   // clear system via delete_atoms command
 
@@ -797,7 +895,7 @@ void MDIEngine::mdi_sys()
   double boxlo[3],boxhi[3];
   double xy,yz,xz;
 
-  if (sys_cell_displ_flag) {
+  if (flag_cell_displ) {
     boxlo[0] = sys_cell_displ[0];
     boxlo[1] = sys_cell_displ[1];
     boxlo[2] = sys_cell_displ[2];
@@ -818,14 +916,14 @@ void MDIEngine::mdi_sys()
   // lib->create_atoms()
   // optionally set charges if specified by ">CHARGES"
 
-  if (sys_velocities_flag)
+  if (flag_velocities)
     int natoms = lammps_create_atoms(lmp,sys_natoms,NULL,sys_types,
                                      sys_coords,sys_velocities,NULL,1);
   else
     int natoms = lammps_create_atoms(lmp,sys_natoms,NULL,sys_types,
                                      sys_coords,NULL,NULL,1);
 
-  if (sys_charges_flag) lammps_scatter_atoms(lmp,(char *) "q",1,1,sys_charges);
+  if (flag_charges) lammps_scatter_atoms(lmp,(char *) "q",1,1,sys_charges);
 
   // new system
 
@@ -833,110 +931,100 @@ void MDIEngine::mdi_sys()
 }
 
 /* ----------------------------------------------------------------------
-   perform a single-point calc or dynamics or min
+   adjust simulation box
 ---------------------------------------------------------------------- */
 
-void MDIEngine::mdi_eval()
+void MDIEngine::adjust_box()
 {
-  // engine is now at @EVAL node
-  // receive commands driver sends to define the evaluation
-  // another @ command will trigger the calculation to be performed
+  // convert atoms to lamda coords before changing box
 
-  engine_node("@EVAL");
+  domain->x2lamda(atom->nlocal);
 
-  if (strcmp(mdicmd,"EXIT") == 0) return;
+  // if >CELL command received,
+  // convert celldata to new boxlo, boxhi, and tilt factors
 
-  if (evalmode == POINT or evalmode == MD) {
-    update->whichflag = 1;
-    timer->init_timeout();
-
-    update->nsteps = nsteps;
-    update->beginstep = update->firststep = update->ntimestep;
-    update->endstep = update->laststep = update->ntimestep + update->nsteps;
-    
-    lmp->init();
-    update->integrate->setup(1);
-
-    timer->init();
-    timer->barrier_start();
-    update->integrate->run(nsteps);
-    timer->barrier_stop();
-
-    update->integrate->cleanup();
+  if (flag_cell) {
+    domain->boxhi[0] = sys_cell[0] + domain->boxlo[0];
+    domain->boxhi[1] = sys_cell[4] + domain->boxlo[1];
+    domain->boxhi[2] = sys_cell[8] + domain->boxlo[2];
+    domain->xy = sys_cell[3];
+    domain->xz = sys_cell[6];
+    domain->yz = sys_cell[7];
   }
 
-  if (evalmode == MINIMIZE) {
-    update->etol = etol[0];
-    update->ftol = ftol[1];
-    update->nsteps = nsteps;
-    update->max_eval = max_eval;
+  // if >CELL_DISPL command received,
+  // convert cell_displ to new boxlo and boxhi
 
-    update->whichflag = 2;
-    timer->init_timeout();
-
-    update->beginstep = update->firststep = update->ntimestep;
-    update->endstep = update->laststep = update->firststep + update->nsteps;
+  if (flag_cell_displ) {
+    double old_boxlo[3];
+    old_boxlo[0] = domain->boxlo[0];
+    old_boxlo[1] = domain->boxlo[1];
+    old_boxlo[2] = domain->boxlo[2];
     
-    lmp->init();
-    update->minimize->setup();
+    domain->boxlo[0] = sys_cell_displ[0];
+    domain->boxlo[1] = sys_cell_displ[1];
+    domain->boxlo[2] = sys_cell_displ[2];
 
-    timer->init();
-    timer->barrier_start();
-    update->minimize->run(update->nsteps);
-    timer->barrier_stop();
-
-    update->minimize->cleanup();
+    domain->boxhi[0] += domain->boxlo[0] - old_boxlo[0];
+    domain->boxhi[1] += domain->boxlo[1] - old_boxlo[1];
+    domain->boxhi[2] += domain->boxlo[2] - old_boxlo[2];
   }
+
+  // reset all Domain variables that depend on box size/shape
+  // convert lamda atoms coords back to new box coords
+
+  domain->set_global_box();
+  domain->set_local_box();
+  domain->lamda2x(atom->nlocal);
 }
 
 /* ----------------------------------------------------------------------
-   evaluate() = compute forces, energy, pressure of current system
-   usage modes:
-   (1) called many times by a driver for system that is continuously evolving
-   (2) called once per system by a driver that is passing in many systems
-   distinguishes between:
-     (a) first-time call
-     (b) system needs reneighboring
-     (c) system does not need reneighboring
-  for (b) and (c), timestep is advanced
+   adjust charges, coods, velocities
 ---------------------------------------------------------------------- */
 
-void MDIEngine::evaluate()
+void MDIEngine::adjust_charges()
 {
-  // NOTE: ago is not a good test
-  //       caller should decide which verion of evaluate() is needed?
-  // currently cannot call it interspersed with "delete atoms" calls
-  //   b/c whichflag stays set
-  // separate issue, need to unset whichflag when done
+  double *q = atom->q;
+  tagint *tag = atom->tag;
+  int nlocal = atom->nlocal;
 
-  if (neighbor->ago < 0) {
+  int ilocal;
 
-    update->whichflag = 1;
-    lmp->init(); 
-    update->integrate->setup(1);
-    update->whichflag = 0;
+  for (int i = 0; i < nlocal; i++) {
+    ilocal = static_cast<int> (tag[i]) - 1;
+    q[i] = sys_charges[ilocal];
+  }
+}
 
-  } else {
+void MDIEngine::adjust_coords()
+{
+  double **x = atom->x;
+  tagint *tag = atom->tag;
+  int nlocal = atom->nlocal;
 
-    // insure potential energy and virial are tallied on this step
+  int ilocal;
 
-    update->ntimestep++;
-    pe->addstep(update->ntimestep);
-    press->addstep(update->ntimestep);
+  for (int i = 0; i < nlocal; i++) {
+    ilocal = static_cast<int> (tag[i]) - 1;
+    x[i][0] = sys_coords[3*ilocal+0];
+    x[i][1] = sys_coords[3*ilocal+1];
+    x[i][2] = sys_coords[3*ilocal+2];
+  }
+}
 
-    int nflag = neighbor->decide();
-    if (nflag == 0) {
-      comm->forward_comm();
-      update->integrate->setup_minimal(0);
-      modify->clearstep_compute();
-      output->thermo->compute(1);
-      modify->addstep_compute(update->ntimestep+1);
-    } else {
-      update->integrate->setup_minimal(1);
-      modify->clearstep_compute();
-      output->thermo->compute(1);
-      modify->addstep_compute(update->ntimestep+1);
-    }
+void MDIEngine::adjust_velocities()
+{
+  double **v = atom->v;
+  tagint *tag = atom->tag;
+  int nlocal = atom->nlocal;
+
+  int ilocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    ilocal = static_cast<int> (tag[i]) - 1;
+    v[i][0] = sys_velocities[3*ilocal+0];
+    v[i][1] = sys_velocities[3*ilocal+1];
+    v[i][2] = sys_velocities[3*ilocal+2];
   }
 }
 
@@ -948,56 +1036,15 @@ void MDIEngine::evaluate()
 
 /* ----------------------------------------------------------------------
    >CELL command
-   reset the simulation box edge vectors
-   in conjunction with >CELL_DISPL this can adjust box arbitrarily
+   reset simulation box edge vectors
+   in conjunction with >CELL_DISPL this can change box arbitrarily
+   can be done to create a new box
+   can be done incrementally during MD or OPTG
 ---------------------------------------------------------------------- */
 
 void MDIEngine::receive_cell()
 {
-  if (mode == DEFAULT) receive_cell_default();
-  else if (mode == SYS) receive_cell_sys();
-}
-
-void MDIEngine::receive_cell_default()
-{
-  double cell[9];
-
-  int ierr = MDI_Recv(cell,9,MDI_DOUBLE,mdicomm);
-  if (ierr) error->all(FLERR, "MDI: >CELL data");
-  MPI_Bcast(cell,9,MPI_DOUBLE,0,world);
-
-  for (int icell = 0; icell < 9; icell++) 
-    cell[icell] *= mdi2lmp_length;
-
-  // error check that edge vectors match LAMMPS triclinic requirement
-
-  if (cell[1] != 0.0 || cell[2] != 0.0 || cell[5] != 0.0)
-    error->all(FLERR,"MDI: Received cell edges are not LAMMPS compatible");
-
-  // convert atoms to lamda coords before changing box
-
-  domain->x2lamda(atom->nlocal);
-
-  // convert celldata to new boxlo, boxhi, and tilt factors
-
-  domain->boxhi[0] = cell[0] + domain->boxlo[0];
-  domain->boxhi[1] = cell[4] + domain->boxlo[1];
-  domain->boxhi[2] = cell[8] + domain->boxlo[2];
-
-  domain->xy = cell[3];
-  domain->xz = cell[6];
-  domain->yz = cell[7];
-
-  // reset all Domain variables that depend on box size/shape
-  // convert atoms coords back to new box coords
-
-  domain->set_global_box();
-  domain->set_local_box();
-  domain->lamda2x(atom->nlocal);
-}
-
-void MDIEngine::receive_cell_sys()
-{
+  flag_cell = 1;
   int ierr = MDI_Recv(sys_cell,9,MDI_DOUBLE,mdicomm);
   if (ierr) error->all(FLERR, "MDI: >CELL data");
   MPI_Bcast(sys_cell,9,MPI_DOUBLE,0,world);
@@ -1013,55 +1060,15 @@ void MDIEngine::receive_cell_sys()
 
 /* ----------------------------------------------------------------------
    >CELL_DISPL command
-   reset simulation box origin = lower-left corner
+   reset simulation box lower left corner
+   in conjunction with >CELL this can change box arbitrarily
+   can be done to create a new box
+   can be done incrementally during MD or OPTG
 ---------------------------------------------------------------------- */
 
 void MDIEngine::receive_cell_displ()
 {
-  if (mode == DEFAULT) receive_cell_displ_default();
-  else if (mode == SYS) receive_cell_displ_sys();
-}
-
-void MDIEngine::receive_cell_displ_default()
-{
-  double cell_displ[3];
-  int ierr = MDI_Recv(cell_displ,3,MDI_DOUBLE,mdicomm);
-  if (ierr) 
-    error->all(FLERR,"MDI: >CELL_DISPLS data");
-  MPI_Bcast(cell_displ,3,MPI_DOUBLE,0,world);
-
-  for (int icell = 0; icell < 3; icell++)
-    cell_displ[icell] *= mdi2lmp_length;
-
-  // convert atoms to lamda coords before changing box
-
-  domain->x2lamda(atom->nlocal);
-
-  // convert cell_displ to new boxlo and boxhi
-  
-  double old_boxlo[3];
-  old_boxlo[0] = domain->boxlo[0];
-  old_boxlo[1] = domain->boxlo[1];
-  old_boxlo[2] = domain->boxlo[2];
-
-  domain->boxlo[0] = cell_displ[0];
-  domain->boxlo[1] = cell_displ[1];
-  domain->boxlo[2] = cell_displ[2];
-
-  domain->boxhi[0] += domain->boxlo[0] - old_boxlo[0];
-  domain->boxhi[1] += domain->boxlo[1] - old_boxlo[1];
-  domain->boxhi[2] += domain->boxlo[2] - old_boxlo[2];
-
-  // reset all Domain variables that depend on box origin
-  // convert atoms coords back to new box coords
-
-  domain->set_global_box();
-  domain->set_local_box();
-  domain->lamda2x(atom->nlocal);
-}
-
-void MDIEngine::receive_cell_displ_sys()
-{
+  flag_cell_displ = 1;
   int ierr = MDI_Recv(sys_cell_displ,3,MDI_DOUBLE,mdicomm);
   if (ierr) error->all(FLERR,"MDI: >CELL_DISPLS data");
   MPI_Bcast(sys_cell_displ,3,MPI_DOUBLE,0,world);
@@ -1076,12 +1083,7 @@ void MDIEngine::receive_cell_displ_sys()
 
 void MDIEngine::receive_charges()
 {
-  if (mode == DEFAULT) receive_double1(CHARGE);
-  else if (mode == SYS) receive_charges_sys();
-}
-
-void MDIEngine::receive_charges_sys()
-{
+  flag_charges = 1;
   int ierr = MDI_Recv(sys_charges,sys_natoms,MDI_DOUBLE,mdicomm);
   if (ierr) error->all(FLERR,"MDI: >CHARGES data");
   MPI_Bcast(sys_charges,sys_natoms,MPI_DOUBLE,0,world);
@@ -1093,15 +1095,13 @@ void MDIEngine::receive_charges_sys()
 
 void MDIEngine::receive_coords()
 {
-  if (mode == DEFAULT) receive_double3(COORD,0);
-  else if (mode == SYS) receive_coords_sys();
-}
-
-void MDIEngine::receive_coords_sys()
-{
-  int ierr = MDI_Recv(sys_coords,3*sys_natoms,MDI_DOUBLE,mdicomm);
+  flag_coords = 1;
+  int n = 3*sys_natoms;
+  int ierr = MDI_Recv(sys_coords,n,MDI_DOUBLE,mdicomm);
   if (ierr) error->all(FLERR,"MDI: >COORDS data");
-  MPI_Bcast(sys_coords,3*sys_natoms,MPI_DOUBLE,0,world);
+  MPI_Bcast(sys_coords,n,MPI_DOUBLE,0,world);
+  for (int i = 0; i < n; i++) 
+    sys_coords[i] * mdi2lmp_length;
 }
 
 /* ----------------------------------------------------------------------
@@ -1111,26 +1111,12 @@ void MDIEngine::receive_coords_sys()
 
 void MDIEngine::receive_natoms()
 {
-  if (mode == DEFAULT) receive_natoms_default();
-  else if (mode == SYS) receive_natoms_sys();
-}
-
-void MDIEngine::receive_natoms_default()
-{
-  int natoms;
-  int ierr = MDI_Recv(&natoms,1,MDI_INT,mdicomm);
-  if (ierr) error->all(FLERR,"MDI: >NATOMS data");
-  MPI_Bcast(&natoms,1,MPI_INT,0,world);
-  if (natoms < 0) error->all(FLERR,"MDI received natoms < 0");
-  atom->natoms = natoms;
-}
-
-void MDIEngine::receive_natoms_sys()
-{
+  flag_natoms = 1;
   int ierr = MDI_Recv(&sys_natoms,1,MDI_INT,mdicomm);
   if (ierr) error->all(FLERR,"MDI: >NATOMS data");
   MPI_Bcast(&sys_natoms,1,MPI_INT,0,world);
   if (sys_natoms < 0) error->all(FLERR,"MDI received natoms < 0");
+  reallocate();
 }
 
 /* ----------------------------------------------------------------------
@@ -1139,12 +1125,7 @@ void MDIEngine::receive_natoms_sys()
 
 void MDIEngine::receive_types()
 {
-  if (mode == DEFAULT) receive_int1(TYPE);
-  else if (mode == SYS) receive_types_sys();
-}
-
-void MDIEngine::receive_types_sys()
-{
+  flag_types = 1;
   int ierr = MDI_Recv(sys_types,sys_natoms,MDI_INT,mdicomm);
   if (ierr) error->all(FLERR,"MDI: >TYPES data");
   MPI_Bcast(sys_types,sys_natoms,MPI_INT,0,world);
@@ -1156,140 +1137,13 @@ void MDIEngine::receive_types_sys()
 
 void MDIEngine::receive_velocities()
 {
-  if (mode == DEFAULT) receive_double3(VELOCITY,0);
-  else if (mode == SYS) receive_velocities_sys();
-}
-
-void MDIEngine::receive_velocities_sys()
-{
-  int ierr = MDI_Recv(sys_velocities,3*sys_natoms,MDI_DOUBLE,mdicomm);
+  flag_velocities = 1;
+  int n = 3*sys_natoms;
+  int ierr = MDI_Recv(sys_velocities,n,MDI_DOUBLE,mdicomm);
   if (ierr) error->all(FLERR,"MDI: >VELOCITIES data");
-  MPI_Bcast(sys_velocities,3*sys_natoms,MPI_DOUBLE,0,world);
-}
-
-/* ----------------------------------------------------------------------
-   receive vector of 1 double for all atoms
-   atoms are ordered by atomID, 1 to Natoms
-   assumes all atoms already exist
-   used by >CHARGES command
----------------------------------------------------------------------- */
-
-void MDIEngine::receive_double1(int which)
-{
-  reallocate();
-
-  int ierr = MDI_Recv(buf1,atom->natoms,MDI_DOUBLE,mdicomm);
-  if (ierr) error->all(FLERR,"MDI: >double1 data");
-  MPI_Bcast(buf1,atom->natoms,MPI_DOUBLE,0,world);
-
-  // extract owned atom values
-  // use atomID to index into ordered buf
-
-  tagint *tag = atom->tag;
-  int nlocal = atom->nlocal;
-
-  int ilocal;
-
-  if (which == CHARGE) {
-    double *q = atom->q;
-    for (int i = 0; i < nlocal; i++) {
-      ilocal = static_cast<int> (tag[i]) - 1;
-      q[i] = buf1[ilocal];
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
-   receive vector of 1 int for all atoms
-   atoms are ordered by atomID, 1 to Natoms
-   assumes all atoms already exist
-   used by >TYPES command
----------------------------------------------------------------------- */
-
-void MDIEngine::receive_int1(int which)
-{
-  reallocate();
-
-  int ierr = MDI_Recv(ibuf1,atom->natoms,MDI_INT,mdicomm);
-  if (ierr) error->all(FLERR,"MDI: >int1 data");
-  MPI_Bcast(ibuf1,atom->natoms,MPI_INT,0,world);
-
-  // extract owned atom values
-  // use atomID to index into ordered buf
-
-  tagint *tag = atom->tag;
-  int nlocal = atom->nlocal;
-
-  int ilocal;
-
-  if (which == TYPE) {
-    int *type = atom->type;
-    for (int i = 0; i < nlocal; i++) {
-      ilocal = static_cast<int> (tag[i]) - 1;
-      type[i] = ibuf1[ilocal];
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
-   receive vector of 3 doubles for all atoms
-   atoms are ordered by atomID, 1 to Natoms
-   assumes all atoms already exist
-   used by >COORDS, >FORCES, >VELOCITIES commands
-   for COORD, assumes atom displacement is small
----------------------------------------------------------------------- */
-
-void MDIEngine::receive_double3(int which, int addflag)
-{
-  reallocate();
-
-  int ierr = MDI_Recv(buf3,3*atom->natoms,MDI_DOUBLE,mdicomm);
-  if (ierr) error->all(FLERR,"MDI: >double3 data");
-  MPI_Bcast(buf3,3*atom->natoms,MPI_DOUBLE,0,world);
-
-  // extract owned atom values
-  // use atomID to index into ordered buf
-
-  tagint *tag = atom->tag;
-  int nlocal = atom->nlocal;
-
-  int ilocal;
-
-  if (which == COORD) {
-    double **x = atom->x;
-    for (int i = 0; i < nlocal; i++) {
-      ilocal = static_cast<int> (tag[i]) - 1;
-      x[i][0] = buf3[3*ilocal+0] * mdi2lmp_length;
-      x[i][1] = buf3[3*ilocal+1] * mdi2lmp_length;
-      x[i][2] = buf3[3*ilocal+2] * mdi2lmp_length;
-    }
-  } else if (which == FORCE) {
-    if (!addflag) {
-      double **f = atom->f;
-      for (int i = 0; i < nlocal; i++) {
-        ilocal = static_cast<int> (tag[i]) - 1;
-        f[i][0] = buf3[3*ilocal+0] * mdi2lmp_force;
-        f[i][1] = buf3[3*ilocal+1] * mdi2lmp_force;
-        f[i][2] = buf3[3*ilocal+2] * mdi2lmp_force;
-      }
-    } else {
-      double **f = atom->f;
-      for (int i = 0; i < nlocal; i++) {
-        ilocal = static_cast<int> (tag[i]) - 1;
-        f[i][0] += buf3[3*ilocal+0] * mdi2lmp_force;
-        f[i][1] += buf3[3*ilocal+1] * mdi2lmp_force;
-        f[i][2] += buf3[3*ilocal+2] * mdi2lmp_force;
-      }
-    }
-  } else if (which == VELOCITY) {
-    double **v = atom->v;
-    for (int i = 0; i < nlocal; i++) {
-      ilocal = static_cast<int> (tag[i]) - 1;
-      v[i][0] = buf3[3*ilocal+0] * mdi2lmp_velocity;
-      v[i][1] = buf3[3*ilocal+1] * mdi2lmp_velocity;
-      v[i][2] = buf3[3*ilocal+2] * mdi2lmp_velocity;
-    }
-  }
+  MPI_Bcast(sys_velocities,n,MPI_DOUBLE,0,world);
+  for (int i = 0; i < n; i++) 
+    sys_coords[i] * mdi2lmp_velocity;
 }
 
 // ----------------------------------------------------------------------
@@ -1435,7 +1289,6 @@ void MDIEngine::send_stress()
 
 void MDIEngine::send_double1(int which)
 {
-  reallocate();
   memset(buf1,0,atom->natoms*sizeof(double));
 
   // use atomID to index into ordered buf1
@@ -1482,7 +1335,6 @@ void MDIEngine::send_double1(int which)
 
 void MDIEngine::send_int1(int which)
 {
-  reallocate();
   memset(ibuf1,0,atom->natoms*sizeof(int));
 
   // use atomID to index into ordered buf1
@@ -1514,7 +1366,6 @@ void MDIEngine::send_int1(int which)
 
 void MDIEngine::send_double3(int which)
 {
-  reallocate();
   memset(buf3,0,3*atom->natoms*sizeof(double));
 
   // use atomID to index into ordered buf3
@@ -1639,6 +1490,36 @@ void MDIEngine::infile()
 }
 
 /* ----------------------------------------------------------------------
+   >STEPS command
+   send number of tiemsteps
+---------------------------------------------------------------------- */
+
+void MDIEngine::receive_niterate()
+{
+  int ierr = MDI_Recv(&niterate,1,MDI_INT,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: >NITERATE data");
+  MPI_Bcast(&niterate,1,MPI_INT,0,world);
+}
+
+/* ----------------------------------------------------------------------
+   >TOLERANCE command
+   send 2 minimization tolerance params
+---------------------------------------------------------------------- */
+
+void MDIEngine::receive_tolerance()
+{
+  double params[4];
+  int ierr = MDI_Recv(params,4,MDI_INT,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: >TOLERANCE data");
+  MPI_Bcast(params,4,MPI_INT,0,world);
+
+  etol = params[0];
+  ftol = params[1];
+  niterate = static_cast<int> (params[2]);
+  max_eval = static_cast<int> (params[3]);
+}
+
+/* ----------------------------------------------------------------------
    <KE command
    send kinetic energy
 ---------------------------------------------------------------------- */
@@ -1664,12 +1545,23 @@ void MDIEngine::send_ke()
 
 void MDIEngine::reallocate()
 {
-  if (atom->natoms <= maxbuf) return;
+  if (sys_natoms <= maxatom) return;
 
-  if (3*atom->natoms > MAXSMALLINT)
+  if (3*sys_natoms > MAXSMALLINT)
     error->all(FLERR,"Natoms too large to use with mdi engine");
 
-  maxbuf = atom->natoms;
+  maxatom = sys_natoms;
+
+  deallocate();
+  allocate();
+}
+
+void MDIEngine::deallocate()
+{
+  memory->destroy(sys_types);
+  memory->destroy(sys_coords);
+  memory->destroy(sys_velocities);
+  memory->destroy(sys_charges);
 
   memory->destroy(ibuf1);
   memory->destroy(buf1);
@@ -1678,14 +1570,22 @@ void MDIEngine::reallocate()
   memory->destroy(ibuf1all);
   memory->destroy(buf1all);
   memory->destroy(buf3all);
+}
 
-  memory->create(ibuf1,maxbuf,"mdi:ibuf1");
-  memory->create(buf1,maxbuf,"mdi:buf1");
-  memory->create(buf3,3*maxbuf,"mdi:buf3");
+void MDIEngine::allocate()
+{
+  memory->create(sys_types,maxatom,"mdi:sys_types");
+  memory->create(sys_coords,3*maxatom,"mdi:sys_coords");
+  memory->create(sys_velocities,3*maxatom,"mdi:sys_velocities");
+  memory->create(sys_charges,maxatom,"mdi:sys_charges");
 
-  memory->create(ibuf1all,maxbuf,"mdi:ibuf1all");
-  memory->create(buf1all,maxbuf,"mdi:buf1all");
-  memory->create(buf3all,3*maxbuf,"mdi:buf3all");
+  memory->create(ibuf1,maxatom,"mdi:ibuf1");
+  memory->create(buf1,maxatom,"mdi:buf1");
+  memory->create(buf3,3*maxatom,"mdi:buf3");
+
+  memory->create(ibuf1all,maxatom,"mdi:ibuf1all");
+  memory->create(buf1all,maxatom,"mdi:buf1all");
+  memory->create(buf3all,3*maxatom,"mdi:buf3all");
 }
 
 /* ----------------------------------------------------------------------

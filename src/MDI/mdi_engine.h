@@ -57,21 +57,7 @@ class MDIEngine : public Command {
   class Minimize *minimizer;
   class Compute *ke,*pe,*press;
 
-  int need_evaluation;    // 1 if system has changed, else 0
 
-  int nbytes;         // NBYTES command value used by other commands
-
-  // @INIT_SYS state
-
-  int sys_natoms_flag,sys_types_flag,sys_charges_flag;
-  int sys_coords_flag,sys_velocities_flag;
-  int sys_cell_flag,sys_cell_displ_flag;
-
-  int sys_natoms;
-  int *sys_types;
-  double *sys_charges,*sys_coords,*sys_velocities;
-  double *sys_cell,*sys_cell_displ;
-    
   // unit conversion factors
 
   double lmp2mdi_length,mdi2lmp_length;
@@ -81,9 +67,26 @@ class MDIEngine : public Command {
   double lmp2mdi_pressure,mdi2lmp_pressure;
   double lmp2mdi_virial,mdi2lmp_virial;
 
+  // system state for MDI
+
+  int flag_natoms,flag_types;
+  int flag_cell,flag_cell_displ;
+  int flag_charges,flag_coords,flag_velocities;
+
+  int sys_natoms;
+  int *sys_types;
+  double *sys_charges,*sys_coords,*sys_velocities;
+  double sys_cell[9],sys_cell_displ[3];
+    
+  int niterate;
+  int max_eval;
+  double etol,ftol;
+
+  int nbytes;         // NBYTES command value used by other commands
+
   // buffers for MDI comm
 
-  int maxbuf;
+  int maxatom;
   double *buf1,*buf1all;
   double *buf3,*buf3all;
   int *ibuf1,*ibuf1all;
@@ -91,13 +94,18 @@ class MDIEngine : public Command {
   // class methods
 
   void mdi_engine(int, char **);
-
   void mdi_commands();
+
   void mdi_md();
+  void mdi_md_old();
   void mdi_optg();
-  void mdi_sys();
 
   void evaluate();
+  void create_system();
+  void adjust_box();
+  void adjust_charges();
+  void adjust_coords();
+  void adjust_velocities();
 
   void receive_cell();
   void receive_cell_default();
@@ -123,35 +131,32 @@ class MDIEngine : public Command {
   void receive_velocities();
   void receive_velocities_sys();
 
-  void receive_double1(int);
-  void receive_int1(int);
-  void receive_double3(int, int);
+  void send_cell();
+  void send_cell_displ();
 
+  void send_total_energy();
+  void send_labels();
   void send_natoms();
-  void send_ntypes();
+
+  void send_pe();
+  void send_stress();
 
   void send_double1(int);
   void send_int1(int);
   void send_double3(int);
-  void send_labels();
-
-  void send_total_energy();
-  void send_pe();
-  void send_ke();
-
-  void send_cell();
-  void send_cell_displ();
 
   void nbytes_command();
   void single_command();
   void many_commands();
   void infile();
-  void reset_box();
-  void create_atoms(int);
-  void send_stress();
+  void receive_niterate();
+  void receive_tolerance();
+  void send_ke();
 
   void unit_conversions();
   void reallocate();
+  void deallocate();
+  void allocate();
 };
 
 }

@@ -150,10 +150,6 @@ random.seed(seed)
 
 for icalc in range(ncalc):
 
-  # define a new system
-
-  mdi.MDI_Send_command("@INIT_SYS",mdicomm)
-
   # define simulation box
 
   onerho = rho + (random.random()-0.5)*rhodelta;
@@ -211,25 +207,26 @@ for icalc in range(ncalc):
   mdi.MDI_Send(coords,3*natoms,mdi.MDI_DOUBLE,mdicomm)
   mdi.MDI_Send_command(">VELOCITIES",mdicomm)
   mdi.MDI_Send(vels,3*natoms,mdi.MDI_DOUBLE,mdicomm)
-  
+
   # eval or run or minimize
 
-  mdi.MDI_Send_command("@EVAL",mdicomm)
-
   if mode == "eval":
-    mdi.MDI_Send_command(">STEPS",mdicomm)
-    mdi.MDI_Send(0,1,mdi.MDI_INT,mdicomm)
+    pass
   elif mode == "run":
-    mdi.MDI_Send_command(">STEPS",mdicomm)
-    mdi.MDI_Send(steps,1,mdi.MDI_INT,mdicomm)
+    print("PRE MD")
+    mdi.MDI_Send_command("@INIT_MD",mdicomm)
+    mdi.MDI_Send_command(">NITERATE",mdicomm)
+    mdi.MDI_Send(nsteps,1,mdi.MDI_INT,mdicomm)
+    mdi.MDI_Send_command("@DEFAULT",mdicomm)
+    print("POST MD")
   elif mode == "min":
     mdi.MDI_Send_command(">TOLERANCE",mdicomm)
     params = [1.0e-4,1.0e-4,1000.0,1000.0]
     mdi.MDI_Send(params,4,mdi.MDI_DOUBLE,mdicomm)
 
-  mdi.MDI_Send_command("@DEFAULT",mdicomm)
-
   # request potential energy
+
+  print("PRE PE")
 
   mdi.MDI_Send_command("<PE",mdicomm)
   pe = mdi.MDI_Recv(1,mdi.MDI_DOUBLE,mdicomm)

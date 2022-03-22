@@ -13,21 +13,21 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(cundamp,FixCundamp)
+FixStyle(damping/cundall,FixDampingCundall)
 
 #else
 
-#ifndef LMP_FIX_CUNDAMP_H
-#define LMP_FIX_CUNDAMP_H
+#ifndef LMP_FIX_DAMPING_CUNDALL_H
+#define LMP_FIX_DAMPING_CUNDALL_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixCundamp : public Fix {
+class FixDampingCundall : public Fix {
  public:
-  FixCundamp(class LAMMPS *, int, char **);
-  virtual ~FixCundamp();
+  FixDampingCundall(class LAMMPS *, int, char **);
+  virtual ~FixDampingCundall();
   int setmask();
   void init();
   void setup(int);

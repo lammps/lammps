@@ -1,17 +1,17 @@
-.. index:: fix cundamp
+.. index:: fix damping/cundall
 
-fix cundamp command
-===================
+fix damping/cundall command
+===========================
 
 Syntax
 """"""
 
 .. parsed-literal::
 
-   fix ID group-ID cundamp gamma_l gamma_a keyword values ...
+   fix ID group-ID damping/cundall gamma_l gamma_a keyword values ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* cundamp = style name of this fix command
+* damping/cundall = style name of this fix command
 * gamma_l = linear damping coefficient (dimensionless)
 * gamma_a = angular damping coefficient (dimensionless)
 * zero or more keyword/value pairs may be appended
@@ -28,8 +28,8 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix 1 all cundamp 0.8 0.8
-   fix 1 all cundamp 0.8 0.5 scale 3 2.5
+   fix 1 all damping/cundall 0.8 0.8
+   fix 1 all damping/cundall 0.8 0.5 scale 3 2.5
 
 Description
 """""""""""
@@ -115,6 +115,8 @@ Default
 
 none
 
+References
+""""""""""
 
 .. _Cundall1987:
 

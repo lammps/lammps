@@ -55,7 +55,7 @@ OPT.
    * :doc:`cmap <fix_cmap>`
    * :doc:`colvars <fix_colvars>`
    * :doc:`controller <fix_controller>`
-   * :doc:`cundamp <fix_cundamp>`
+   * :doc:`damping/cundall <fix_damping_cundall>`
    * :doc:`deform (k) <fix_deform>`
    * :doc:`deposit <fix_deposit>`
    * :doc:`dpd/energy (k) <fix_dpd_energy>`

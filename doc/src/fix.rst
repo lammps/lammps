@@ -198,7 +198,7 @@ accelerated styles exist.
 * :doc:`cmap <fix_cmap>` - enables CMAP cross-terms of the CHARMM force field
 * :doc:`colvars <fix_colvars>` - interface to the collective variables "Colvars" library
 * :doc:`controller <fix_controller>` - apply control loop feedback mechanism
-* :doc:`cundamp <fix_cundamp>` - Cundall non-viscous damping for granular simulations
+* :doc:`damping/cundall <fix_damping_cundall>` - Cundall non-viscous damping for granular simulations
 * :doc:`deform <fix_deform>` - change the simulation box size/shape
 * :doc:`deposit <fix_deposit>` - add new atoms above a surface
 * :doc:`dpd/energy <fix_dpd_energy>` - constant energy dissipative particle dynamics

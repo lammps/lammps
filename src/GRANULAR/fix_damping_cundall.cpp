@@ -12,7 +12,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "fix_cundamp.h"
+#include "fix_damping_cundall.h"
 
 #include "atom.h"
 #include "error.h"
@@ -26,16 +26,16 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixCundamp::FixCundamp(LAMMPS *lmp, int narg, char **arg) :
+FixDampingCundall::FixDampingCundall(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   gamma_lin(nullptr),gamma_ang(nullptr)
 {
   dynamic_group_allow = 1;
 
   if (!atom->sphere_flag)
-    error->all(FLERR,"Fix cundamp requires atom style sphere");
+    error->all(FLERR,"Fix damping/cundall requires atom style sphere");
 
-  if (narg < 5) error->all(FLERR,"Illegal fix cundamp command");
+  if (narg < 5) error->all(FLERR,"Illegal fix damping/cundall command");
 
   double gamma_lin_one = utils::numeric(FLERR,arg[3],false,lmp);
   double gamma_ang_one = utils::numeric(FLERR,arg[4],false,lmp);
@@ -51,15 +51,15 @@ FixCundamp::FixCundamp(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 5;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"scale") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix cundamp command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix damping/cundall command");
       int itype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       double scale = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       if (itype <= 0 || itype > atom->ntypes)
-        error->all(FLERR,"Illegal fix cundamp command");
+        error->all(FLERR,"Illegal fix damping/cundall command");
       gamma_lin[itype] = gamma_lin_one * scale;
       gamma_ang[itype] = gamma_ang_one * scale;
       iarg += 3;
-    } else error->all(FLERR,"Illegal fix cundamp command");
+    } else error->all(FLERR,"Illegal fix damping/cundall command");
   }
 
   respa_level_support = 1;
@@ -68,7 +68,7 @@ FixCundamp::FixCundamp(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixCundamp::~FixCundamp()
+FixDampingCundall::~FixDampingCundall()
 {
   delete [] gamma_lin;
   delete [] gamma_ang;
@@ -76,7 +76,7 @@ FixCundamp::~FixCundamp()
 
 /* ---------------------------------------------------------------------- */
 
-int FixCundamp::setmask()
+int FixDampingCundall::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
@@ -87,7 +87,7 @@ int FixCundamp::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixCundamp::init()
+void FixDampingCundall::init()
 {
   int max_respa = 0;
 
@@ -99,7 +99,7 @@ void FixCundamp::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixCundamp::setup(int vflag)
+void FixDampingCundall::setup(int vflag)
 {
   if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
@@ -112,14 +112,14 @@ void FixCundamp::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixCundamp::min_setup(int vflag)
+void FixDampingCundall::min_setup(int vflag)
 {
   post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixCundamp::post_force(int /*vflag*/)
+void FixDampingCundall::post_force(int /*vflag*/)
 {
   // apply damping force/torque to finite-size atoms in group
   // add a fraction of the current force/torque if work is negative
@@ -165,14 +165,14 @@ void FixCundamp::post_force(int /*vflag*/)
 
 /* ---------------------------------------------------------------------- */
 
-void FixCundamp::post_force_respa(int vflag, int ilevel, int /*iloop*/)
+void FixDampingCundall::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixCundamp::min_post_force(int vflag)
+void FixDampingCundall::min_post_force(int vflag)
 {
   post_force(vflag);
 }

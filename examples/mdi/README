@@ -85,7 +85,7 @@ the info is copied here:
 #   -rho 0.75 0.1
 #     reduced density and random variation thereof, default = 0.75 0.1
 #   -delta 0.1
-#     randomly perturb atoms initially by this distance, default 0.0
+#     randomly perturb atoms initially by this distance, default 0.1
 #   -nsteps 100
 #     number of timesteps in dynamics runs, default = 100
 #   -temp 1.0
@@ -105,9 +105,9 @@ Run with TCP: 1 proc each
 
 ---
 
-Run with TCP: 1 proc + 4 procs
+Run with TCP: 2 proc + 4 procs
 
-% python3 series_driver.py -mdi "-role DRIVER -name aimd -method TCP -port 8021"
+% mpirun -np 2 python3 series_driver.py -mdi "-role DRIVER -name aimd -method TCP -port 8021"
 
 % mpirun -np 4 lmp_mpi -mdi "-role ENGINE -name LAMMPS -method TCP -port 8021 -hostname localhost" -log log.series -in in.series
 

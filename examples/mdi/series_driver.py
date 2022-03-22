@@ -55,7 +55,7 @@ mode = "eval"
 nx = ny = nz = 2
 rho = 0.75
 rhodelta = 0.1
-delta = 0.0
+delta = 0.1
 nsteps = 100
 tinitial = 1.0
 tol = 0.001

@@ -905,7 +905,8 @@ void Thermo::parse_fields(char *str)
 
       if (argi.get_type() == ArgInfo::COMPUTE) {
         auto icompute = modify->get_compute_by_id(argi.get_name());
-        if (!icompute) error->all(FLERR,"Could not find thermo custom compute ID");
+        if (!icompute)
+          error->all(FLERR,"Could not find thermo custom compute ID: {}", argi.get_name());
         if (argindex1[nfield] == 0 && icompute->scalar_flag == 0)
           error->all(FLERR,"Thermo compute does not compute scalar");
         if (argindex1[nfield] > 0 && argindex2[nfield] == 0) {
@@ -935,7 +936,7 @@ void Thermo::parse_fields(char *str)
 
       } else if (argi.get_type() == ArgInfo::FIX) {
         auto ifix = modify->get_fix_by_id(argi.get_name());
-        if (!ifix) error->all(FLERR,"Could not find thermo custom fix ID");
+        if (!ifix) error->all(FLERR,"Could not find thermo custom fix ID: {}", argi.get_name());
         if (argindex1[nfield] == 0 && ifix->scalar_flag == 0)
           error->all(FLERR,"Thermo fix does not compute scalar");
         if (argindex1[nfield] > 0 && argindex2[nfield] == 0) {
@@ -961,7 +962,7 @@ void Thermo::parse_fields(char *str)
       } else if (argi.get_type() == ArgInfo::VARIABLE) {
         int n = input->variable->find(argi.get_name());
         if (n < 0)
-          error->all(FLERR,"Could not find thermo custom variable name");
+          error->all(FLERR,"Could not find thermo custom variable name: {}", argi.get_name());
         if (argindex1[nfield] == 0 && input->variable->equalstyle(n) == 0)
           error->all(FLERR,"Thermo custom variable is not equal-style variable");
         if (argindex1[nfield] && input->variable->vectorstyle(n) == 0)

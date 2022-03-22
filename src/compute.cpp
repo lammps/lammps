@@ -140,13 +140,10 @@ void Compute::modify_params(int narg, char **arg)
 
 void Compute::adjust_dof_fix()
 {
-  Fix **fix = modify->fix;
-  int nfix = modify->nfix;
-
   fix_dof = 0;
-  for (int i = 0; i < nfix; i++)
-    if (fix[i]->dof_flag)
-      fix_dof += fix[i]->dof(igroup);
+  for (auto &ifix : modify->get_fix_list())
+    if (ifix->dof_flag)
+      fix_dof += ifix->dof(igroup);
 }
 
 /* ----------------------------------------------------------------------

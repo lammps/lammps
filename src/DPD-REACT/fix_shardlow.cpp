@@ -45,7 +45,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "npair.h"
 #include "npair_half_bin_newton_ssa.h"
@@ -134,12 +133,8 @@ int FixShardlow::setmask()
 
 void FixShardlow::init()
 {
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair   = 0;
-  neighbor->requests[irequest]->fix    = 1;
-  neighbor->requests[irequest]->ghost  = 1;
-  neighbor->requests[irequest]->ssa    = 1;
-  neighbor->requests[irequest]->newton = 1; // SSA requires newton on
+  // SSA requires newton on
+  neighbor->add_request(this, NeighConst::REQ_GHOST|NeighConst::REQ_NEWTON_ON|NeighConst::REQ_SSA);
 }
 
 /* ---------------------------------------------------------------------- */

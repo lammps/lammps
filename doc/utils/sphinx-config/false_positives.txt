@@ -42,6 +42,7 @@ advect
 advection
 advects
 affine
+Afrasiabian
 Afshar
 agilio
 Agilio
@@ -1112,6 +1113,7 @@ funcs
 functionalities
 functionals
 funroll
+Furuholt
 fx
 fy
 fz
@@ -1594,6 +1596,7 @@ Ki
 Kikugawa
 kim
 kinetostats
+Kirkwood
 kJ
 kk
 Klahn
@@ -1924,7 +1927,9 @@ Mayoral
 mbt
 MBytes
 mc
+mcmoves
 McLachlan
+mcmoves
 md
 mdf
 mdi
@@ -2225,6 +2230,7 @@ Nelement
 Nelements
 nelems
 nemd
+netapp
 netcdf
 netstat
 Nettleton
@@ -2289,6 +2295,7 @@ Nmin
 Nmols
 nn
 nnodes
+npits
 nO
 Nocedal
 nocite
@@ -3317,6 +3324,7 @@ THz
 Tigran
 Tij
 Tildesley
+timeI
 timespan
 timestamp
 timestamps
@@ -3656,6 +3664,7 @@ xcm
 Xcm
 Xcode
 xCORE
+xdmf
 Xeon
 xflag
 xhi

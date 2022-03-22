@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -22,15 +21,14 @@
 
 using namespace LAMMPS_NS;
 
-TableFileReader::TableFileReader(LAMMPS *lmp,
-                                 const std::string &filename,
-                                 const std::string &type,
+TableFileReader::TableFileReader(LAMMPS *lmp, const std::string &filename, const std::string &type,
                                  const int auto_convert) :
-  PotentialFileReader(lmp, filename, type + " table", auto_convert)
+    PotentialFileReader(lmp, filename, type + " table", auto_convert)
 {
 }
 
-char *TableFileReader::find_section_start(const std::string &keyword) {
+char *TableFileReader::find_section_start(const std::string &keyword)
+{
   char *line = nullptr;
   while ((line = reader->next_line())) {
     ValueTokenizer values(line);

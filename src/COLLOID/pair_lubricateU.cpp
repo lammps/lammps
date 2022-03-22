@@ -18,24 +18,24 @@
 
 #include "pair_lubricateU.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
 #include "domain.h"
-#include "update.h"
-#include "math_const.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_wall.h"
+#include "force.h"
 #include "input.h"
-#include "variable.h"
+#include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "update.h"
+#include "variable.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -1769,7 +1769,7 @@ void PairLubricateU::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair lubricateU requires ghost atoms store velocity");
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 
   // require that atom radii are identical within each type
   // require monodisperse system with same radii for all types

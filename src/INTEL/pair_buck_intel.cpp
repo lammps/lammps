@@ -376,12 +376,8 @@ void PairBuckIntel::init_style()
   PairBuck::init_style();
 
   // augment neighbor list request
-  auto request = neighbor->find_request(this);
-  if (force->newton_pair == 0) {
-    request->half = 0;
-    request->full = 1;
-  }
-  request->intel = 1;
+  if (force->newton_pair == 0)
+    neighbor->find_request(this)->enable_full();
 
   fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
   if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");

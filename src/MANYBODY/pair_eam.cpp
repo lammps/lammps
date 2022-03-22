@@ -425,7 +425,7 @@ void PairEAM::init_style()
   file2array();
   array2spline();
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
   embedstep = -1;
 }
 

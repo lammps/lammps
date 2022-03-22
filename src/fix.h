@@ -19,6 +19,8 @@
 namespace LAMMPS_NS {
 
 class Fix : protected Pointers {
+  friend class Neighbor;
+
  public:
   static int instance_total;    // # of Fix classes ever instantiated
 

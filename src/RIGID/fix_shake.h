@@ -108,10 +108,10 @@ class FixShake : public Fix {
   int nlist, maxlist;    // size and max-size of list
 
   // stat quantities
-  int *b_count, *b_count_all;                   // counts for each bond type
-  double *b_ave, *b_max, *b_min;                // ave/max/min dist for each bond type
-  double *b_ave_all, *b_max_all, *b_min_all;    // MPI summing arrays
-  int *a_count, *a_count_all;                   // ditto for angle types
+  int *b_count, *b_count_all, *b_atom, *b_atom_all; // counts for each bond type, atoms in bond cluster
+  double *b_ave, *b_max, *b_min;             // ave/max/min dist for each bond type
+  double *b_ave_all, *b_max_all, *b_min_all; // MPI summing arrays
+  int *a_count, *a_count_all;                // ditto for angle types
   double *a_ave, *a_max, *a_min;
   double *a_ave_all, *a_max_all, *a_min_all;
 

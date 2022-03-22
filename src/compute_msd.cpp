@@ -113,8 +113,8 @@ ComputeMSD::~ComputeMSD()
 
   if (modify->nfix) modify->delete_fix(id_fix);
 
-  delete [] id_fix;
-  delete [] vector;
+  delete[] id_fix;
+  delete[] vector;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -123,9 +123,8 @@ void ComputeMSD::init()
 {
   // set fix which stores reference atom coords
 
-  int ifix = modify->find_fix(id_fix);
-  if (ifix < 0) error->all(FLERR,"Could not find compute msd fix ID");
-  fix = (FixStore *) modify->fix[ifix];
+  fix = (FixStore *) modify->get_fix_by_id(id_fix);
+  if (!fix) error->all(FLERR,"Could not find compute msd fix with ID {}", id_fix);
 
   // nmsd = # of atoms in group
 

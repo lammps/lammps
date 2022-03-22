@@ -29,20 +29,18 @@
 
 #include "pair_smd_triangulated_surface.h"
 
-#include <cmath>
+#include "atom.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
+#include <cmath>
 #include <cstring>
 #include <Eigen/Eigen>
-#include "atom.h"
-#include "domain.h"
-#include "force.h"
-#include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
-
 
 using namespace std;
 using namespace LAMMPS_NS;
@@ -411,14 +409,7 @@ void PairTriSurf::init_style() {
         if (!atom->contact_radius_flag)
                 error->all(FLERR, "Pair style smd/smd/tri_surface requires atom style with contact_radius");
 
-        // old: half list
-        int irequest = neighbor->request(this);
-        neighbor->requests[irequest]->size = 1;
-
-        // need a full neighbor list
-//      int irequest = neighbor->request(this);
-//      neighbor->requests[irequest]->half = 0;
-//      neighbor->requests[irequest]->full = 1;
+        neighbor->add_request(this, NeighConst::REQ_SIZE);
 
         // set maxrad_dynamic and maxrad_frozen for each type
         // include future Fix pour particles as dynamic

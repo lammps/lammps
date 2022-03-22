@@ -16,23 +16,22 @@
    Contributing author: Andres Jaramillo-Botero
 ------------------------------------------------------------------------- */
 
-
-#include <cmath>
-
-#include <cstring>
 #include "pair_eff_cut.h"
 #include "pair_eff_inline.h"
-#include "atom.h"
-#include "update.h"
-#include "min.h"
-#include "domain.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
 
+#include "atom.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "min.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -889,9 +888,9 @@ void PairEffCut::init_style()
   if (flagall && !ecp_found)
     error->all(FLERR,"Need to specify ECP type on pair_style command");
 
-  // need a half neigh list and optionally a granular history neigh list
+  // need a half neigh list
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

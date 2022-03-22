@@ -18,21 +18,20 @@
 
 #include "pair_lj_expand_coul_long.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
-#include "update.h"
-#include "respa.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "respa.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -686,21 +685,14 @@ void PairLJExpandCoulLong::init_style()
 
   // request regular or rRESPA neighbor list
 
-  int irequest;
-  int respa = 0;
+  int list_style = NeighConst::REQ_DEFAULT;
 
-  if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
-    if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
-    if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
+  if (update->whichflag == 1 && utils::strmatch(update->integrate_style, "^respa")) {
+    auto respa = (Respa *) update->integrate;
+    if (respa->level_inner >= 0) list_style = NeighConst::REQ_RESPA_INOUT;
+    if (respa->level_middle >= 0) list_style = NeighConst::REQ_RESPA_ALL;
   }
-
-  irequest = neighbor->request(this,instance_me);
-
-  if (respa >= 1) {
-    neighbor->requests[irequest]->respaouter = 1;
-    neighbor->requests[irequest]->respainner = 1;
-  }
-  if (respa == 2) neighbor->requests[irequest]->respamiddle = 1;
+  neighbor->add_request(this, list_style);
 
   cut_coulsq = cut_coul * cut_coul;
 

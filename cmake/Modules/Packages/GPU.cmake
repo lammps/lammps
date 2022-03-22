@@ -30,7 +30,15 @@ file(GLOB GPU_LIB_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.cpp)
 file(MAKE_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/gpu)
 
 if(GPU_API STREQUAL "CUDA")
-  find_package(CUDA REQUIRED)
+  find_package(CUDA QUIET)
+  # augment search path for CUDA toolkit libraries to include the stub versions. Needed to find libcuda.so on machines without a CUDA driver installation
+  if(CUDA_FOUND)
+    set(CMAKE_LIBRARY_PATH "${CUDA_TOOLKIT_ROOT_DIR}/lib64/stubs;${CUDA_TOOLKIT_ROOT_DIR}/lib/stubs;${CUDA_TOOLKIT_ROOT_DIR}/lib64;${CUDA_TOOLKIT_ROOT_DIR}/lib;${CMAKE_LIBRARY_PATH}")
+    find_package(CUDA REQUIRED)
+  else()
+    message(FATAL_ERROR "CUDA Toolkit not found")
+  endif()
+
   find_program(BIN2C bin2c)
   if(NOT BIN2C)
     message(FATAL_ERROR "Could not find bin2c, use -DBIN2C=/path/to/bin2c to help cmake finding it.")

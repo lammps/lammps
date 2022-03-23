@@ -17,18 +17,20 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_gran_hertz_history.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "force.h"
+#include "comm.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_neigh_history.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "comm.h"
+#include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -76,7 +78,7 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
     for (i = 0; i < nlocal; i++)
       if (body[i] >= 0) mass_rigid[i] = mass_body[body[i]];
       else mass_rigid[i] = 0.0;
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
   }
 
   double **x = atom->x;

@@ -1,9 +1,8 @@
 ---
-lammps_version: 30 Jul 2021
+lammps_version: 17 Feb 2022
 tags: slow, unstable
-date_generated: Mon Aug 23 20:32:04 2021
+date_generated: Fri Mar 18 22:29:51 2022
 epsilon: 2e-11
-tags: unstable
 skip_tests:
 prerequisites: ! |
   pair reaxff

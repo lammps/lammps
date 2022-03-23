@@ -371,7 +371,7 @@ void FixACKS2ReaxFF::init_matvec()
   /* fill-in X matrix */
   compute_X();
   pack_flag = 4;
-  comm->reverse_comm_fix(this); //Coll_Vector(X_diag);
+  comm->reverse_comm(this); //Coll_Vector(X_diag);
 
   int ii, i;
 
@@ -405,7 +405,7 @@ void FixACKS2ReaxFF::init_matvec()
   }
 
   pack_flag = 2;
-  comm->forward_comm_fix(this); //Dist_vector(s);
+  comm->forward_comm(this); //Dist_vector(s);
   more_forward_comm(s);
 }
 
@@ -504,7 +504,7 @@ int FixACKS2ReaxFF::BiCGStab(double *b, double *x)
 
   sparse_matvec_acks2(&H, &X, x, d);
   pack_flag = 1;
-  comm->reverse_comm_fix(this); //Coll_Vector(d);
+  comm->reverse_comm(this); //Coll_Vector(d);
   more_reverse_comm(d);
 
   vector_sum(r , 1.,  b, -1., d, nn);
@@ -543,11 +543,11 @@ int FixACKS2ReaxFF::BiCGStab(double *b, double *x)
     }
 
     pack_flag = 1;
-    comm->forward_comm_fix(this); //Dist_vector(d);
+    comm->forward_comm(this); //Dist_vector(d);
     more_forward_comm(d);
     sparse_matvec_acks2(&H, &X, d, z);
     pack_flag = 2;
-    comm->reverse_comm_fix(this); //Coll_vector(z);
+    comm->reverse_comm(this); //Coll_vector(z);
     more_reverse_comm(z);
 
     tmp = parallel_dot(r_hat, z, nn);
@@ -578,11 +578,11 @@ int FixACKS2ReaxFF::BiCGStab(double *b, double *x)
     }
 
     pack_flag = 3;
-    comm->forward_comm_fix(this); //Dist_vector(q_hat);
+    comm->forward_comm(this); //Dist_vector(q_hat);
     more_forward_comm(q_hat);
     sparse_matvec_acks2(&H, &X, q_hat, y);
     pack_flag = 3;
-    comm->reverse_comm_fix(this); //Dist_vector(y);
+    comm->reverse_comm(this); //Dist_vector(y);
     more_reverse_comm(y);
 
     sigma = parallel_dot(y, q, nn);
@@ -699,7 +699,7 @@ void FixACKS2ReaxFF::calculate_Q()
   }
 
   pack_flag = 2;
-  comm->forward_comm_fix(this); //Dist_vector(s);
+  comm->forward_comm(this); //Dist_vector(s);
 
   for (int ii = 0; ii < NN; ++ii) {
     i = ilist[ii];

@@ -97,8 +97,6 @@ OPT.
    * :doc:`latte <fix_latte>`
    * :doc:`lb/fluid <fix_lb_fluid>`
    * :doc:`lb/momentum <fix_lb_momentum>`
-   * :doc:`lb/pc <fix_lb_pc>`
-   * :doc:`lb/rigid/pc/sphere <fix_lb_rigid_pc_sphere>`
    * :doc:`lb/viscous <fix_lb_viscous>`
    * :doc:`lineforce <fix_lineforce>`
    * :doc:`manifoldforce <fix_manifoldforce>`

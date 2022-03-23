@@ -138,7 +138,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
         mass_rigid[i] = mass_body[body[i]];
       else
         mass_rigid[i] = 0.0;
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
   }
 
   double **x = atom->x;
@@ -441,11 +441,10 @@ void PairGranHookeHistory::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR, "Pair granular requires ghost atoms store velocity");
 
-  // need a granular neigh list
+  // need a granular neighbor list
 
-  int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->size = 1;
-  if (history) neighbor->requests[irequest]->history = 1;
+  if (history) neighbor->add_request(this, NeighConst::REQ_SIZE|NeighConst::REQ_HISTORY);
+  else neighbor->add_request(this, NeighConst::REQ_SIZE);
 
   dt = update->dt;
 

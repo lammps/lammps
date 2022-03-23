@@ -12,55 +12,65 @@ Syntax
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * lb/fluid = style name of this fix command
-* nevery = update the lattice-Boltzmann fluid every this many timesteps
-* LBtype = 1 to use the standard finite difference LB integrator,
-  2 to use the LB integrator of :ref:`Ollila et al. <Ollila>`
+* nevery = update the lattice-Boltzmann fluid every this many timesteps (should normally be 1)
 * viscosity = the fluid viscosity (units of mass/(time\*length)).
 * density = the fluid density.
 * zero or more keyword/value pairs may be appended
-* keyword = *setArea* or *setGamma* or *scaleGamma* or *dx* or *dm* or *a0* or *noise* or *calcforce* or *trilinear* or *D3Q19* or *read_restart* or *write_restart* or *zwall_velocity* or *bodyforce* or *printfluid*
+* keyword = *dx* or *dm* or *noise* or *stencil* or *read_restart* or *write_restart* or *zwall_velocity* or *pressurebcx* or *bodyforce* or *D3Q19*  or *dumpxdmf* or *dof* or *scaleGamma* or *a0* or *npits* or *wp* or *sw*
 
   .. parsed-literal::
 
-       *setArea* values = type node_area
-           type = atom type (1-N)
-           node_area = portion of the surface area of the composite object associated with the particular atom type (used when the force coupling constant is set by default).
-       *setGamma* values = gamma
-           gamma = user set value for the force coupling constant.
-       *scaleGamma* values = type gammaFactor
-           type = atom type (1-N)
-           gammaFactor = factor to scale the *setGamma* gamma value by, for the specified atom type.
        *dx* values = dx_LB = the lattice spacing.
        *dm* values = dm_LB = the lattice-Boltzmann mass unit.
-       *a0* values = a_0_real = the square of the speed of sound in the fluid.
        *noise* values = Temperature seed
            Temperature = fluid temperature.
            seed = random number generator seed (positive integer)
-       *calcforce* values = N forcegroup-ID
-           N = output the force and torque every N timesteps
-           forcegroup-ID = ID of the particle group to calculate the force and torque of
-       *trilinear* values = none (used to switch from the default Peskin interpolation stencil to the trilinear stencil).
-       *D3Q19* values = none (used to switch from the default D3Q15, 15 velocity lattice, to the D3Q19, 19 velocity lattice).
+       *stencil* values = 2 (trilinear stencil, the default), 3 (3-point immersed boundary stencil), or 4 (4-point Keys' interpolation stencil)
        *read_restart* values = restart file = name of the restart file to use to restart a fluid run.
        *write_restart* values = N = write a restart file every N MD timesteps.
        *zwall_velocity* values = velocity_bottom velocity_top = velocities along the y-direction of the bottom and top walls (located at z=zmin and z=zmax).
+       *pressurebcx* values = pgradav = imposes a pressure jump at the (periodic) x-boundary of pgradav*Lx*1000.
        *bodyforce* values = bodyforcex bodyforcey bodyforcez = the x,y and z components of a constant body force added to the fluid.
-       *printfluid* values = N = print the fluid density and velocity at each grid point every N timesteps.
+       *D3Q19* values = none (used to switch from the default D3Q15, 15 velocity lattice, to the D3Q19, 19 velocity lattice).
+       *dumpxdmf* values = N file timeI
+           N = output the force and torque every N timesteps
+           file = output file name
+           timeI = 1 (use simulation time to index xdmf file), 0 (use output frame number to index xdmf file)
+       *dof* values = dof = specify the number of degrees of freedom for temperature calculation
+       *scaleGamma* values = type gammaFactor
+           type = atom type (1-N)
+           gammaFactor = factor to scale the *setGamma* gamma value by, for the specified atom type.
+       *a0* values = a_0_real = the square of the speed of sound in the fluid.
+       *npits* values = npits h_p l_p l_pp l_e
+           npits = number of pit regions
+           h_p = z-height of pit regions (floor to bottom of slit)
+           l_p = x-length of pit regions
+           l_pp = x-length of slit regions between consecutive pits
+           l_e = x-length of slit regions at ends
+       *wp* values = w_p = y-width of slit regions (defaults to full width if not present or if sw active)
+       *sw* values = none  (turns on y-sidewalls (in xz plane) if npits option active)
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   fix 1 all lb/fluid 1 2 1.0 1.0 setGamma 13.0 dx 4.0 dm 10.0 calcforce sphere1
-   fix 1 all lb/fluid 1 1 1.0 0.0009982071 setArea 1 1.144592082 dx 2.0 dm 0.3 trilinear noise 300.0 8979873
+   fix 1 all lb/fluid 1 1.0 0.0009982071 dx 1.2 dm 0.001
+   fix 1 all lb/fluid 1 1.0 0.0009982071 dx 1.2 dm 0.001 noise 300.0 2761
+   fix 1 all lb/fluid 1 1.0 1.0 dx 4.0 dm 10.0 dumpxdmf 500 fflow 0 pressurebcx 0.01 npits 2 20 40 5 0 wp 30
+
 
 Description
 """""""""""
 
-Implement a lattice-Boltzmann fluid on a uniform mesh covering the LAMMPS
-simulation domain.  The MD particles described by *group-ID* apply a velocity
-dependent force to the fluid.
+.. versionchanged:: 24Mar2022
+
+Implement a lattice-Boltzmann fluid on a uniform mesh covering the
+LAMMPS simulation domain.  Note that this fix was updated in 2022 and is
+not backward compatible with the previous version.  If you need the
+previous version, please download an older version of LAMMPS.  The MD
+particles described by *group-ID* apply a velocity dependent force to
+the fluid.
 
 The lattice-Boltzmann algorithm solves for the fluid motion governed by
 the Navier Stokes equations,
@@ -86,28 +96,23 @@ respectively.  Here, we have implemented
    \sigma_{\alpha \beta} = -P_{\alpha \beta} = -\rho a_0 \delta_{\alpha \beta}
 
 with :math:`a_0` set to :math:`\frac{1}{3} \frac{dx}{dt}^2` by default.
+You should not normally need to change this default.
 
 The algorithm involves tracking the time evolution of a set of partial
-distribution functions which evolve according to a velocity
-discretized version of the Boltzmann equation,
+distribution functions which evolve according to a velocity discretized
+version of the Boltzmann equation,
 
 .. math::
 
    \left(\partial_t + e_{i\alpha}\partial_{\alpha}\right)f_i = -\frac{1}{\tau}\left(f_i - f_i^{eq}\right) + W_i
 
 where the first term on the right hand side represents a single time
-relaxation towards the equilibrium distribution function, and :math:`\tau` is a
-parameter physically related to the viscosity.  On a technical note,
-we have implemented a 15 velocity model (D3Q15) as default; however,
-the user can switch to a 19 velocity model (D3Q19) through the use of
-the *D3Q19* keyword.  This fix provides the user with the choice of
-two algorithms to solve this equation, through the specification of
-the keyword *LBtype*\ .  If *LBtype* is set equal to 1, the standard
-finite difference LB integrator is used.  If *LBtype* is set equal to
-2, the algorithm of :ref:`Ollila et al. <Ollila>` is used.
-
-Physical variables are then defined in terms of moments of the distribution
-functions,
+relaxation towards the equilibrium distribution function, and
+:math:`\tau` is a parameter physically related to the viscosity.  On a
+technical note, we have implemented a 15 velocity model (D3Q15) as
+default; however, the user can switch to a 19 velocity model (D3Q19)
+through the use of the *D3Q19* keyword.  Physical variables are then
+defined in terms of moments of the distribution functions,
 
 .. math::
 
@@ -115,7 +120,7 @@ functions,
    \rho u_{\alpha} = & \displaystyle\sum\limits_{i} f_i e_{i\alpha}
 
 Full details of the lattice-Boltzmann algorithm used can be found in
-:ref:`Mackay et al. <fluid-Mackay>`.
+:ref:`Denniston et al. <fluid-Denniston>`.
 
 The fluid is coupled to the MD particles described by *group-ID* through
 a velocity dependent force.  The contribution to the fluid force on a
@@ -127,92 +132,66 @@ calculated as:
    {\bf F}_{j \alpha} = \gamma \left({\bf v}_n - {\bf u}_f \right) \zeta_{j\alpha}
 
 where :math:`\mathbf{v}_n` is the velocity of the MD particle,
-:math:`\mathbf{u}_f` is the fluid
-velocity interpolated to the particle location, and :math:`\gamma` is the force
-coupling constant.  :math:`\zeta` is a weight assigned to the grid point,
-obtained by distributing the particle to the nearest lattice sites.
-For this, the user has the choice between a trilinear stencil, which
-provides a support of 8 lattice sites, or the immersed boundary method
-Peskin stencil, which provides a support of 64 lattice sites.  While
-the Peskin stencil is seen to provide more stable results, the
-trilinear stencil may be better suited for simulation of objects close
-to walls, due to its smaller support.  Therefore, by default, the
-Peskin stencil is used; however the user may switch to the trilinear
-stencil by specifying the keyword, *trilinear*\ .
+:math:`\mathbf{u}_f` is the fluid velocity interpolated to the particle
+location, and :math:`\gamma` is the force coupling constant.  This
+force, as with most forces in LAMMPS, and hence the velocities, are
+calculated at the half-time step. :math:`\zeta` is a weight assigned to
+the grid point, obtained by distributing the particle to the nearest
+lattice sites.
 
-By default, the force coupling constant, :math:`\gamma`, is calculated
+The force coupling constant, :math:`\gamma`, is calculated
 according to
 
 .. math::
 
-   \gamma = \frac{2m_um_v}{m_u+m_v}\left(\frac{1}{\Delta t_{collision}}\right)
+   \gamma = \frac{2m_um_v}{m_u+m_v}\left(\frac{1}{\Delta t}\right)
 
 Here, :math:`m_v` is the mass of the MD particle, :math:`m_u` is a
-representative fluid mass at the particle location, and :math:`\Delta
-t_{collision}` is a collision time, chosen such that
-:math:`\frac{\tau}{\Delta t_{collision}} = 1` (see :ref:`Mackay and
-Denniston <Mackay2>` for full details).  In order to calculate :math:`m_u`,
-the fluid density is interpolated to the MD particle location, and
-multiplied by a volume, node_area * :math:`dx_{LB}`, where node_area
-represents the portion of the surface area of the composite object
-associated with a given MD particle.  By default, node_area is set
-equal to :math:`dx_{LB}^2`; however specific values for given atom types
-can be set using the *setArea* keyword.
-
-The user also has the option of specifying their own value for the
-force coupling constant, for all the MD particles associated with the
-fix, through the use of the *setGamma* keyword.  This may be useful
-when modelling porous particles.  See :ref:`Mackay et al. <fluid-Mackay>` for a
-detailed description of the method by which the user can choose an
-appropriate :math:`\gamma` value.
+representative fluid mass at the particle location, and :math:`\Delta t`
+is the time step.  The fluid mass :math:`m_u` that the MD particle
+interacts with is calculated internally.  This coupling is chosen to
+constrain the particle and associated fluid velocity to match at the end
+of the time step.  As with other constraints, such as :doc:`shake
+<fix_shake>`, this constraint can remove degrees of freedom from the
+simulation which are accounted for internally in the algorithm.
 
 .. note::
 
-   while this fix applies the force of the particles on the fluid,
-   it does not apply the force of the fluid to the particles.  When the
-   force coupling constant is set using the default method, there is only
-   one option to include this hydrodynamic force on the particles, and
-   that is through the use of the :doc:`lb/viscous <fix_lb_viscous>` fix.
-   This fix adds the hydrodynamic force to the total force acting on the
-   particles, after which any of the built-in LAMMPS integrators can be
-   used to integrate the particle motion.  However, if the user specifies
-   their own value for the force coupling constant, as mentioned in
-   :ref:`Mackay et al. <fluid-Mackay>`, the built-in LAMMPS integrators may prove to
-   be unstable.  Therefore, we have included our own integrators
-   :doc:`fix lb/rigid/pc/sphere <fix_lb_rigid_pc_sphere>`, and
-   :doc:`fix lb/pc <fix_lb_pc>`, to solve for the particle motion in these
-   cases.  These integrators should not be used with the
-   :doc:`lb/viscous <fix_lb_viscous>` fix, as they add hydrodynamic forces
-   to the particles directly.  In addition, they can not be used if the
-   force coupling constant has been set the default way.
-
-.. note::
-
-   if the force coupling constant is set using the default method,
-   and the :doc:`lb/viscous <fix_lb_viscous>` fix is NOT used to add the
+   While this fix applies the force of the particles on the fluid, it
+   does not apply the force of the fluid to the particles.  There is
+   only one option to include this hydrodynamic force on the particles,
+   and that is through the use of the :doc:`lb/viscous <fix_lb_viscous>`
+   fix.  This fix adds the hydrodynamic force to the total force acting
+   on the particles, after which any of the built-in LAMMPS integrators
+   can be used to integrate the particle motion.  If the
+   :doc:`lb/viscous <fix_lb_viscous>` fix is NOT used to add the
    hydrodynamic force to the total force acting on the particles, this
    physically corresponds to a situation in which an infinitely massive
    particle is moving through the fluid (since collisions between the
    particle and the fluid do not act to change the particle's velocity).
-   Therefore, the user should set the mass of the particle to be
-   significantly larger than the mass of the fluid at the particle
-   location, in order to approximate an infinitely massive particle (see
-   the dragforce test run for an example).
+   In this case, setting *scaleGamma* to -1 for the corresponding
+   particle type will explicitly take this limit (of infinite particle
+   mass) in computing the force coupling for the fluid force.
 
 ----------
 
-Inside the fix, parameters are scaled by the lattice-Boltzmann
+Physical parameters describing the fluid are specified through
+*viscosity* and *density*.  These parameters should all be given in
+terms of the mass, distance, and time units chosen for the main LAMMPS
+run, as they are scaled by the LB timestep, lattice spacing, and mass
+unit, inside the fix.
+
+The *dx* keyword allows the user to specify a value for the LB grid
+spacing and the *dm* keyword allows the user to specify the LB mass
+unit.  Inside the fix, parameters are scaled by the lattice-Boltzmann
 timestep, :math:`dt_{LB}`, grid spacing, :math:`dx_{LB}`, and mass unit,
 :math:`dm_{LB}`.  :math:`dt_{LB}` is set equal to
-:math:`\mathrm{nevery}\cdot dt_{MD}`, where :math:`dt_{MD}` is the MD timestep.
-By default,
-:math:`dm_{LB}` is set equal to 1.0, and :math:`dx_{LB}` is chosen so that
-:math:`\frac{\tau}{dt} = \frac{3\eta dt}{\rho dx^2}` is approximately equal to 1.
-However, the user has the option of specifying their own values for
-:math:`dm_{LB}`, and :math:`dx_{LB}`, by using
-the optional keywords *dm*, and *dx* respectively.
+:math:`\mathrm{nevery}\cdot dt_{MD}`, where :math:`dt_{MD}` is the MD
+timestep.  By default, :math:`dm_{LB}` is set equal to 1.0, and
+:math:`dx_{LB}` is chosen so that :math:`\frac{\tau}{dt} = \frac{3\eta
+dt}{\rho dx^2}` is approximately equal to 1.
 
-.. note::
+ .. note::
 
    Care must be taken when choosing both a value for :math:`dx_{LB}`,
    and a simulation domain size.  This fix uses the same subdivision of
@@ -223,74 +202,27 @@ the optional keywords *dm*, and *dx* respectively.
    with equal lengths in all dimensions, and the default value for
    :math:`dx_{LB}` is used, this will automatically be satisfied.
 
-Physical parameters describing the fluid are specified through
-*viscosity*, *density*, and *a0*\ . If the force coupling constant is
-set the default way, the surface area associated with the MD particles
-is specified using the *setArea* keyword.  If the user chooses to
-specify a value for the force coupling constant, this is set using the
-*setGamma* keyword.  These parameters should all be given in terms of
-the mass, distance, and time units chosen for the main LAMMPS run, as
-they are scaled by the LB timestep, lattice spacing, and mass unit,
-inside the fix.
-
-----------
-
-The *setArea* keyword allows the user to associate a surface area with
-a given atom type.  For example if a spherical composite object of
-radius R is represented as a spherical shell of N evenly distributed
-MD particles, all of the same type, the surface area per particle
-associated with that atom type should be set equal to :math:`\frac{4\pi R^2}{N}`.
-This keyword should only be used if the force coupling constant,
-:math:`\gamma`, is set the default way.
-
-The *setGamma* keyword allows the user to specify their own value for
-the force coupling constant, :math:`\gamma`, instead of using the default
-value.
-
-The *scaleGamma* keyword should be used in conjunction with the
-*setGamma* keyword, when the user wishes to specify different :math:`\gamma`
-values for different atom types.  This keyword allows the user to
-scale the *setGamma* :math:`\gamma` value by a factor, gammaFactor,
-for a given atom type.
-
-The *dx* keyword allows the user to specify a value for the LB grid
-spacing.
-
-The *dm* keyword allows the user to specify the LB mass unit.
-
-If the *a0* keyword is used, the value specified is used for the
-square of the speed of sound in the fluid.  If this keyword is not
-present, the speed of sound squared is set equal to
-:math:`\frac{1}{3}\left(\frac{dx_{LB}}{dt_{LB}}\right)^2`.
-Setting :math:`a0 > (\frac{dx_{LB}}{dt_{LB}})^2` is not allowed,
-as this may lead to instabilities.
-
 If the *noise* keyword is used, followed by a positive temperature
-value, and a positive integer random number seed, a thermal
-lattice-Boltzmann algorithm is used.  If *LBtype* is set equal to 1
-(i.e. the standard LB integrator is chosen), the thermal LB algorithm
-of :ref:`Adhikari et al. <Adhikari>` is used; however if *LBtype* is set
-equal to 2 both the LB integrator, and thermal LB algorithm described
-in :ref:`Ollila et al. <Ollila>` are used.
+value, and a positive integer random number seed, the thermal LB algorithm
+of :ref:`Adhikari et al. <Adhikari>` is used.
 
-If the *calcforce* keyword is used, both the fluid force and torque
-acting on the specified particle group are printed to the screen every
-N timesteps.
+If the keyword *stencil* is used, the value sets the number of
+interpolation points used in each direction.  For this, the user has the
+choice between a trilinear stencil (*stencil* 2), which provides a
+support of 8 lattice sites, or the 3-point immersed boundary method
+stencil (*stencil* 3), which provides a support of 27 lattice sites, or
+the 4-point Keys' interpolation stencil (stencil 4), which provides a
+support of 64 lattice sites.  The trilinear stencil is the default as it
+is better suited for simulation of objects close to walls or other
+objects, due to its smaller support.  The 3-point stencil provides
+smoother motion of the lattice and is suitable for particles not likely
+to be to close to walls or other objects.
 
-If the keyword *trilinear* is used, the trilinear stencil is used to
-interpolate the particle nodes onto the fluid mesh.  By default, the
-immersed boundary method, Peskin stencil is used.  Both of these
-interpolation methods are described in :ref:`Mackay et al. <fluid-Mackay>`.
-
-If the keyword *D3Q19* is used, the 19 velocity (D3Q19) lattice is
-used by the lattice-Boltzmann algorithm.  By default, the 15 velocity
-(D3Q15) lattice is used.
-
-If the keyword *write_restart* is used, followed by a positive
-integer, N, a binary restart file is printed every N LB timesteps.
-This restart file only contains information about the fluid.
-Therefore, a LAMMPS restart file should also be written in order to
-print out full details of the simulation.
+If the keyword *write_restart* is used, followed by a positive integer,
+N, a binary restart file is printed every N LB timesteps.  This restart
+file only contains information about the fluid.  Therefore, a LAMMPS
+restart file should also be written in order to print out full details
+of the simulation.
 
 .. note::
 
@@ -308,19 +240,100 @@ conditions in the z-direction.  If fixed boundary conditions are
 present in the z-direction, and this keyword is not used, the walls
 are assumed to be stationary.
 
+If the *pressurebcx* keyword is used, a pressure jump (implemented by a
+step jump in density) is imposed at the (periodic) x-boundary.  The
+value set specifies what would be the resulting equilibrium average
+pressure gradient in the x-direction if the system had a constant
+cross-section (i.e. resistance to flow).  It is converted to a pressure
+jump by multiplication by the system size in the x-direction.  As this
+value should normally be quite small, it is also assumed to be scaled
+by 1000.
+
 If the *bodyforce* keyword is used, a constant body force is added to
 the fluid, defined by it's x, y and z components.
 
-If the *printfluid* keyword is used, followed by a positive integer, N,
-the fluid densities and velocities at each lattice site are printed to the
-screen every N timesteps.
+If the keyword *D3Q19* is used, the 19 velocity (D3Q19) lattice is
+used by the lattice-Boltzmann algorithm.  By default, the 15 velocity
+(D3Q15) lattice is used.
+
+If the *dumpxdmf* keyword is used, followed by a positive integer, N,
+and a file name, the fluid densities and velocities at each lattice site
+are output to an xdmf file every N timesteps.  This is a binary file
+format that can be read by visualization packages such as `Paraview
+<https://www.paraview.org/>`_ .  The xdmf file format contains a time
+index for each frame dump and the value timeI = 1 uses simulation time
+while 0 uses the output frame number to index xdmf file.  The later can
+be useful if the :doc:`dump vtk <dump_vtk>` command is used to output
+the particle positions at the same timesteps and you want to visualize
+both the fluid and particle data together in `Paraview
+<https://www.paraview.org/>`_ .
+
+The *scaleGamma* keyword allows the user to scale the :math:`\gamma`
+value by a factor, gammaFactor, for a given atom type.  Setting
+*scaleGamma* to -1 for the corresponding particle type will explicitly
+take the limit of infinite particle mass in computing the force coupling
+for the fluid force (see note above).
+
+If the *a0* keyword is used, the value specified is used for the square
+of the speed of sound in the fluid.  If this keyword is not present, the
+speed of sound squared is set equal to
+:math:`\frac{1}{3}\left(\frac{dx_{LB}}{dt_{LB}}\right)^2`.  Setting
+:math:`a0 > (\frac{dx_{LB}}{dt_{LB}})^2` is not allowed, as this may
+lead to instabilities.  As the speed of sound should usually be much
+larger than any fluid velocity of interest, its value does not normally
+have a significant impact on the results.  As such, it is usually best
+to use the default for this option.
+
+The *npits* keyword (followed by integer arguments: npits, h_p, l_p,
+l_pp, l_e) sets the fluid domain to the pits geometry.  These arguments
+should only be used if you actually want something more complex than a
+rectangular/cubic geometry.  The npits value sets the number of pits
+regions (arranged along x).  The remaining arguments are sizes measured
+in multiples of dx_lb: h_p is the z-height of the pit regions, l_p is
+the x-length of the pit regions, l_pp is the length of the region
+between consecutive pits (referred to as a "slit" region), and l_e is
+the x-length of the slit regions at each end of the channel.  The pit
+geometry must fill the system in the x-direction but can be longer, in
+which case it is truncated (which enables asymmetric entrance/exit end
+sections).  The additional *wp* keyword allows the width (in
+y-direction) of the pit to be specified (the default is full width) and
+the *sw* keyword indicates that there should be sidewalls in the
+y-direction (default is periodic in y-direction).  These parameters are
+illustrated below::
+
+    Sideview (in xz plane) of pit geometry:
+    ______________________________________________________________________
+      slit                          slit                          slit     ^
+                                                                           |
+    <---le---><---------lp-------><---lpp---><-------lp--------><---le---> hs = (Nbz-1) - hp
+                                                                           |
+    __________                    __________                    __________ v
+              |                  |          |                  |           ^       z
+              |                  |          |                  |           |       |
+              |       pit        |          |       pit        |           hp      +-x
+              |                  |          |                  |           |
+              |__________________|          |__________________|           v
+
+    Endview (in yz plane) of pit geometry (no sw so wp is active):
+    _____________________
+                          ^
+                          |
+                          hs
+                          |
+    _____________________ v
+        |          |      ^
+        |          |      |          z
+        |<---wp--->|      hp         |
+        |          |      |          +-y
+        |__________|      v
+
 
 ----------
 
-For further details, as well as descriptions and results of several
-test runs, see :ref:`Mackay et al. <fluid-Mackay>`.  Please include a citation to
-this paper if the lb_fluid fix is used in work contributing to
-published research.
+For further details, as well as descriptions and results of several test
+runs, see :ref:`Denniston et al. <fluid-Denniston>`.  Please include a
+citation to this paper if the lb_fluid fix is used in work contributing
+to published research.
 
 ----------
 
@@ -333,68 +346,77 @@ binary restart files, if requested, independent of the main LAMMPS
 is written to the main LAMMPS :doc:`binary restart files <restart>`.
 
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this
-fix.  No global or per-atom quantities are stored by this fix for
-access by various :doc:`output commands <Howto_output>`.  No parameter
-of this fix can be used with the *start/stop* keywords of the
-:doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+fix.
+
+The fix computes a global scalar which can be accessed by various
+:doc:`output commands <Howto_output>`.  The scalar is the current
+temperature of the group of particles described by *group-ID* along with
+the fluid constrained to move with them. The temperature is computed via
+the kinetic energy of the group and fluid constrained to move with them
+and the total number of degrees of freedom (calculated internally).  If
+the particles are not integrated independently (such as via :doc:`fix
+NVE <fix_nve>`) but have additional constraints imposed on them (such as
+via integration using :doc:`fix rigid <fix_rigid>`) the degrees of
+freedom removed from these additional constraints will not be properly
+accounted for.  In this case, the user can specify the total degrees of
+freedom independently using the *dof* keyword.
+
+The fix also computes a global array of values which can be accessed by
+various :doc:`output commands <Howto_output>`.  There are 5 entries in
+the array.  The first entry is the temperature of the fluid, the second
+entry is the total mass of the fluid plus particles, the third through
+fifth entries give the x, y, and z total momentum of the fluid plus
+particles.
+
+No parameter of this fix can be used with the *start/stop* keywords of
+the :doc:`run <run>` command.  This fix is not invoked during
+:doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
 
 This fix is part of the LATBOLTZ package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 This fix can only be used with an orthogonal simulation domain.
 
-Walls have only been implemented in the z-direction.  Therefore, the
-boundary conditions, as specified via the main LAMMPS boundary command
-must be periodic for x and y, and either fixed or periodic for z.
-Shrink-wrapped boundary conditions are not permitted with this fix.
+The boundary conditions for the fluid are specified independently to the
+particles.  However, these should normally be specified consistently via
+the main LAMMPS :doc:`boundary <boundary>` command (p p p, p p f, and p
+f f are the only consistent possibilities).  Shrink-wrapped boundary
+conditions are not permitted with this fix.
 
-This fix must be used before any of :doc:`fix lb/viscous <fix_lb_viscous>`, :doc:`fix lb/momentum <fix_lb_momentum>`, :doc:`fix lb/rigid/pc/sphere <fix_lb_rigid_pc_sphere>`, and/ or :doc:`fix lb/pc <fix_lb_pc>` , as the fluid needs to be initialized before
-any of these routines try to access its properties.  In addition, in
-order for the hydrodynamic forces to be added to the particles, this
-fix must be used in conjunction with the
-:doc:`lb/viscous <fix_lb_viscous>` fix if the force coupling constant is
-set by default, or either the :doc:`lb/viscous <fix_lb_viscous>` fix or
-one of the :doc:`lb/rigid/pc/sphere <fix_lb_rigid_pc_sphere>` or
-:doc:`lb/pc <fix_lb_pc>` integrators, if the user chooses to specify
-their own value for the force coupling constant.
+This fix must be used before any of :doc:`fix lb/viscous
+<fix_lb_viscous>` and :doc:`fix lb/momentum <fix_lb_momentum>` as the
+fluid needs to be initialized before any of these routines try to access
+its properties.  In addition, in order for the hydrodynamic forces to be
+added to the particles, this fix must be used in conjunction with the
+:doc:`lb/viscous <fix_lb_viscous>` fix.
+
+This fix needs to be used in conjunction with a standard LAMMPS
+integrator such as :doc:`fix NVE <fix_nve>` or :doc:`fix rigid
+<fix_rigid>`.
 
 Related commands
 """"""""""""""""
 
-:doc:`fix lb/viscous <fix_lb_viscous>`, :doc:`fix lb/momentum <fix_lb_momentum>`, :doc:`fix lb/rigid/pc/sphere <fix_lb_rigid_pc_sphere>`, :doc:`fix lb/pc <fix_lb_pc>`
+:doc:`fix lb/viscous <fix_lb_viscous>`, :doc:`fix lb/momentum <fix_lb_momentum>`
 
 Default
 """""""
 
-By default, the force coupling constant is set according to
-
-.. math::
-
-   \gamma = \frac{2m_um_v}{m_u+m_v}\left(\frac{1}{\Delta t_{collision}}\right)
-
-and an area of :math:`dx_{LB}^2` per node, used to calculate the fluid mass at
-the particle node location, is assumed.
-
-*dx* is chosen such that :math:`\frac{\tau}{dt_{LB}} =
-\frac{3\eta dt_{LB}}{\rho dx_{LB}^2}` is approximately equal to 1.
+*dx* is chosen such that :math:`\frac{\tau}{dt_{LB}} = \frac{3\eta dt_{LB}}{\rho dx_{LB}^2}` is approximately equal to 1.
 *dm* is set equal to 1.0.
 *a0* is set equal to :math:`\frac{1}{3}\left(\frac{dx_{LB}}{dt_{LB}}\right)^2`.
-The Peskin stencil is used as the default interpolation method.
+The trilinear stencil is used as the default interpolation method.
 The D3Q15 lattice is used for the lattice-Boltzmann algorithm.
-If walls are present, they are assumed to be stationary.
 
 ----------
 
-.. _Ollila:
+.. _fluid-Denniston:
 
-**(Ollila et al.)** Ollila, S.T.T., Denniston, C., Karttunen, M., and Ala-Nissila, T., Fluctuating lattice-Boltzmann model for complex fluids, J. Chem. Phys. 134 (2011) 064902.
-
-.. _fluid-Mackay:
-
-**(Mackay et al.)** Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.
+**(Denniston et al.)** Denniston, C., Afrasiabian, N., Cole-Andre, M.G., Mackay, F. E., Ollila, S.T.T., and Whitehead, T., LAMMPS lb/fluid fix version 2: Improved Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 275 (2022) `108318 <https://doi.org/10.1016/j.cpc.2022.108318>`_ .
 
 .. _Mackay2:
 
@@ -403,3 +425,4 @@ If walls are present, they are assumed to be stationary.
 .. _Adhikari:
 
 **(Adhikari et al.)** Adhikari, R., Stratford, K.,  Cates, M. E., and Wagner, A. J., Fluctuating lattice Boltzmann, Europhys. Lett. 71 (2005) 473-479.
+

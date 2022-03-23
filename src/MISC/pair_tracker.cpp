@@ -24,7 +24,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "tokenizer.h"
 #include "utils.h"
@@ -52,12 +51,11 @@ PairTracker::PairTracker(LAMMPS *lmp) :
 
   // create dummy fix as placeholder for FixNeighHistory
   // this is so final order of Modify:fix will conform to input script
-  id_fix_dummy = utils::strdup("TRACKER_DUMMY_" + std::to_string(instance_me));
-  modify->add_fix(fmt::format("{} all DUMMY ", id_fix_dummy));
+  modify->add_fix("NEIGH_HISTORY_TRACK_DUMMY all DUMMY");
+  fix_dummy = (FixDummy *) modify->fix[modify->nfix - 1];
 
-  id_fix_history = nullptr;
   id_fix_store_local = nullptr;
-  fix_history = nullptr;  
+  fix_history = nullptr;
   fix_store_local = nullptr;
 
   output_data = nullptr;
@@ -69,8 +67,10 @@ PairTracker::PairTracker(LAMMPS *lmp) :
 
 PairTracker::~PairTracker()
 {
-  if (id_fix_dummy) modify->delete_fix(id_fix_dummy);
-  if (fix_history) modify->delete_fix(id_fix_history);
+  if (!fix_history)
+    modify->delete_fix("NEIGH_HISTORY_TRACK_DUMMY");
+  else
+    modify->delete_fix("NEIGH_HISTORY_TRACK");
   if (id_fix_store_local) modify->delete_fix(id_fix_store_local);
 
   if (allocated) {
@@ -86,8 +86,6 @@ PairTracker::~PairTracker()
 
   delete[] pack_choice;
 
-  delete[] id_fix_dummy;
-  delete[] id_fix_history;
   delete[] id_fix_store_local;
 
   memory->destroy(output_data);
@@ -361,33 +359,25 @@ void PairTracker::init_style()
   if (!atom->radius_flag && finitecutflag)
     error->all(FLERR, "Pair tracker requires atom attribute radius for finite cutoffs");
 
-  // need a history neigh list
-
-  int irequest = neighbor->request(this, instance_me);
-  if (finitecutflag) {
-    neighbor->requests[irequest]->size = 1;
-    neighbor->requests[irequest]->history = 1;
-    // history flag won't affect results, but match granular pairstyles
-    // to copy neighbor list and reduce overhead
-  }
+  int neigh_flags = NeighConst::REQ_DEFAULT;
+  // history flag won't affect results, but match granular pairstyles
+  // so neighborlist can be copied to reduce overhead
+  if (finitecutflag) neigh_flags |= NeighConst::REQ_SIZE | NeighConst::REQ_HISTORY;
+  neighbor->add_request(this, neigh_flags);
 
   // if history is stored and first init, create Fix to store history
   // it replaces FixDummy, created in the constructor
   // this is so its order in the fix list is preserved
 
-  if (id_fix_dummy) {
-    id_fix_history = utils::strdup("TRACKER_NEIGH_HIST_" + std::to_string(instance_me));
-    fix_history = (FixNeighHistory *) modify->replace_fix(id_fix_dummy,
-        fmt::format("{} all NEIGH_HISTORY {}", id_fix_history, size_history), 1);
+  if (fix_history == nullptr) {
+    modify->replace_fix("NEIGH_HISTORY_TRACK_DUMMY",
+                        fmt::format("NEIGH_HISTORY_TRACK all NEIGH_HISTORY {}", size_history), 1);
+    fix_history = (FixNeighHistory *) modify->get_fix_by_id("NEIGH_HISTORY_TRACK");
     fix_history->pair = this;
     fix_history->use_bit_flag = 0;
-
-    delete [] id_fix_dummy;
-    id_fix_dummy = nullptr;
   } else {
-    ifix = modify->find_fix(id_fix_history);
-    if (ifix < 0) error->all(FLERR, "Could not find pair fix neigh history ID");
-    fix_history = (FixNeighHistory *) modify->fix[ifix];    
+    fix_history = (FixNeighHistory *) modify->get_fix_by_id("NEIGH_HISTORY_TRACK");
+    if (!fix_history) error->all(FLERR, "Could not find pair fix neigh history ID");
   }
 
   if (finitecutflag) {

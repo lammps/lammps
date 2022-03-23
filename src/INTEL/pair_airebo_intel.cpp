@@ -26,7 +26,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "suffix.h"
 
@@ -181,16 +180,12 @@ PairAIREBOIntel::~PairAIREBOIntel()
 void PairAIREBOIntel::init_style()
 {
   PairAIREBO::init_style();
-  neighbor->find_request(this)->intel = 1;
 
   if (utils::strmatch(force->pair_style,"^hybrid"))
     error->all(FLERR, "Cannot yet use airebo/intel with hybrid.");
 
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   fix->pair_init_check();
   #ifdef _LMP_INTEL_OFFLOAD

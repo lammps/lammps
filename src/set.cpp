@@ -321,10 +321,7 @@ void Set::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"theta") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
-      else {
-        dvalue = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-        dvalue *= MY_PI/180.0;
-      }
+      else dvalue = DEG2RAD * utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (!atom->line_flag)
         error->all(FLERR,"Cannot set this attribute for this atom style");
       set(THETA);

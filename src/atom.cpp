@@ -38,10 +38,6 @@
 #include <algorithm>
 #include <cstring>
 
-#ifdef LMP_INTEL
-#include "neigh_request.h"
-#endif
-
 #ifdef LMP_GPU
 #include "fix_gpu.h"
 #include <cmath>
@@ -2181,12 +2177,7 @@ void Atom::setup_sort_bins()
   bininvz = nbinz / (bboxhi[2]-bboxlo[2]);
 
 #ifdef LMP_INTEL
-  int intel_neigh = 0;
-  if (neighbor->nrequest) {
-    if (neighbor->requests[0]->intel) intel_neigh = 1;
-  } else if (neighbor->old_nrequest)
-    if (neighbor->old_requests[0]->intel) intel_neigh = 1;
-  if (intel_neigh && userbinsize == 0.0) {
+  if (neighbor->has_intel_request() && userbinsize == 0.0) {
     if (neighbor->binsizeflag) bininv = 1.0/neighbor->binsize_user;
 
     double nx_low = neighbor->bboxlo[0];

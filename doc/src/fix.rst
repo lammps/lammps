@@ -240,8 +240,6 @@ accelerated styles exist.
 * :doc:`latte <fix_latte>` - wrapper on LATTE density-functional tight-binding code
 * :doc:`lb/fluid <fix_lb_fluid>` -
 * :doc:`lb/momentum <fix_lb_momentum>` -
-* :doc:`lb/pc <fix_lb_pc>` -
-* :doc:`lb/rigid/pc/sphere <fix_lb_rigid_pc_sphere>` -
 * :doc:`lb/viscous <fix_lb_viscous>` -
 * :doc:`lineforce <fix_lineforce>` - constrain atoms to move in a line
 * :doc:`manifoldforce <fix_manifoldforce>` - restrain atoms to a manifold during minimization

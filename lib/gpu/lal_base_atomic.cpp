@@ -21,7 +21,7 @@ namespace LAMMPS_AL {
 extern Device<PRECISION,ACC_PRECISION> global_device;
 
 template <class numtyp, class acctyp>
-BaseAtomicT::BaseAtomic() : _compiled(false), _max_bytes(0), _onetype(0) {
+BaseAtomicT::BaseAtomic() : _compiled(false), _onetype(0), _max_bytes(0) {
   device=&global_device;
   ans=new Answer<numtyp,acctyp>();
   nbor=new Neighbor();

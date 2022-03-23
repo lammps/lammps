@@ -332,7 +332,7 @@ void ComputeVoronoi::buildCells()
     input->variable->compute_atom(radvar,0,rfield,1,0);
 
     // communicate values to ghost atoms of neighboring nodes
-    comm->forward_comm_compute(this);
+    comm->forward_comm(this);
 
     // polydisperse voro++ container
     delete con_poly;

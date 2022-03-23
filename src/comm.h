@@ -80,19 +80,19 @@ class Comm : protected Pointers {
   virtual void exchange() = 0;                     // move atoms to new procs
   virtual void borders() = 0;                      // setup list of atoms to comm
 
-  // forward/reverse comm from a Pair, Fix, Compute, Dump
+  // forward/reverse comm from a Pair, Bond, Fix, Compute, Dump
 
-  virtual void forward_comm_pair(class Pair *) = 0;
-  virtual void reverse_comm_pair(class Pair *) = 0;
-  virtual void forward_comm_bond(class Bond *) = 0;
-  virtual void reverse_comm_bond(class Bond *) = 0;
-  virtual void forward_comm_fix(class Fix *, int size = 0) = 0;
-  virtual void reverse_comm_fix(class Fix *, int size = 0) = 0;
-  virtual void reverse_comm_fix_variable(class Fix *) = 0;
-  virtual void forward_comm_compute(class Compute *) = 0;
-  virtual void reverse_comm_compute(class Compute *) = 0;
-  virtual void forward_comm_dump(class Dump *) = 0;
-  virtual void reverse_comm_dump(class Dump *) = 0;
+  virtual void forward_comm(class Pair *) = 0;
+  virtual void reverse_comm(class Pair *) = 0;
+  virtual void forward_comm(class Bond *) = 0;
+  virtual void reverse_comm(class Bond *) = 0;
+  virtual void forward_comm(class Fix *, int size = 0) = 0;
+  virtual void reverse_comm(class Fix *, int size = 0) = 0;
+  virtual void reverse_comm_variable(class Fix *) = 0;
+  virtual void forward_comm(class Compute *) = 0;
+  virtual void reverse_comm(class Compute *) = 0;
+  virtual void forward_comm(class Dump *) = 0;
+  virtual void reverse_comm(class Dump *) = 0;
 
   // forward comm of an array
   // exchange of info on neigh stencil

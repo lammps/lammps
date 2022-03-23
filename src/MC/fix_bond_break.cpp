@@ -249,7 +249,7 @@ void FixBondBreak::post_integrate()
 
   // reverse comm of partner info
 
-  if (force->newton_bond) comm->reverse_comm_fix(this);
+  if (force->newton_bond) comm->reverse_comm(this);
 
   // each atom now knows its winning partner
   // for prob check, generate random value for each atom with a bond partner
@@ -261,7 +261,7 @@ void FixBondBreak::post_integrate()
   }
 
   commflag = 1;
-  comm->forward_comm_fix(this,2);
+  comm->forward_comm(this,2);
 
   // find instances of bond history to delete data
   auto histories = modify->get_fix_by_style("BOND_HISTORY");
@@ -350,7 +350,7 @@ void FixBondBreak::post_integrate()
   // 1-2 neighs already reflect broken bonds
 
   commflag = 2;
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   // create list of broken bonds that influence my owned atoms
   //   even if between owned-ghost or ghost-ghost atoms

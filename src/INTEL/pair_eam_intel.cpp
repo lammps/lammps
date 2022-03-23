@@ -416,7 +416,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
 
       if (NEWTON_PAIR) {
         if (tid == 0)
-          comm->reverse_comm_pair(this);
+          comm->reverse_comm(this);
       }
       #if defined(_OPENMP)
       #pragma omp barrier
@@ -474,7 +474,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
       #endif
 
       if (tid == 0)
-        comm->forward_comm_pair(this);
+        comm->forward_comm(this);
 
       #if defined(_OPENMP)
       #pragma omp barrier
@@ -666,19 +666,11 @@ void PairEAMIntel::eval(const int offload, const int vflag,
 void PairEAMIntel::init_style()
 {
   PairEAM::init_style();
-  auto request = neighbor->find_request(this);
+  if (force->newton_pair == 0)
+    neighbor->find_request(this)->enable_full();
 
-  if (force->newton_pair == 0) {
-    request->half = 0;
-    request->full = 1;
-  }
-  request->intel = 1;
-
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   fix->pair_init_check();
   #ifdef _LMP_INTEL_OFFLOAD

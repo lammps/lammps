@@ -101,7 +101,7 @@ void ComputeNBondAtom::compute_peratom()
 
   // communicate ghost nbond between neighbor procs
   if (force->newton)
-    comm->reverse_comm_compute(this);
+    comm->reverse_comm(this);
 
   // zero nbond of atoms not in group
   // only do this after comm since ghost contributions must be included

@@ -264,14 +264,14 @@ void DihedralOPLSIntel::eval(const int vflag,
       const flt_t sin_4phim = (flt_t)2.0 * cos_2phi * sin_2phim;
 
       flt_t p, pd;
-      p = fc.bp[type].k1*((flt_t)1.0 + c) +
-          fc.bp[type].k2*((flt_t)1.0 - cos_2phi) +
-          fc.bp[type].k3*((flt_t)1.0 + cos_3phi) +
-          fc.bp[type].k4*((flt_t)1.0 - cos_4phi) ;
-      pd = fc.bp[type].k1 -
-           (flt_t)2.0 * fc.bp[type].k2 * sin_2phim +
-           (flt_t)3.0 * fc.bp[type].k3 * sin_3phim -
-           (flt_t)4.0 * fc.bp[type].k4 * sin_4phim;
+      p = fc.fc[type].k1*((flt_t)1.0 + c) +
+          fc.fc[type].k2*((flt_t)1.0 - cos_2phi) +
+          fc.fc[type].k3*((flt_t)1.0 + cos_3phi) +
+          fc.fc[type].k4*((flt_t)1.0 - cos_4phi) ;
+      pd = fc.fc[type].k1 -
+           (flt_t)2.0 * fc.fc[type].k2 * sin_2phim +
+           (flt_t)3.0 * fc.fc[type].k3 * sin_3phim -
+           (flt_t)4.0 * fc.fc[type].k4 * sin_4phim;
 
       flt_t edihed;
       if (EFLAG) edihed = p;
@@ -379,11 +379,8 @@ void DihedralOPLSIntel::init_style()
 {
   DihedralOPLS::init_style();
 
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   #ifdef _LMP_INTEL_OFFLOAD
   _use_base = 0;
@@ -409,29 +406,28 @@ template <class flt_t, class acc_t>
 void DihedralOPLSIntel::pack_force_const(ForceConst<flt_t> &fc,
                                          IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
-  const int bp1 = atom->ndihedraltypes + 1;
-  fc.set_ntypes(bp1,memory);
+  const int dp1 = atom->ndihedraltypes + 1;
+  fc.set_ntypes(dp1,memory);
 
-  for (int i = 1; i < bp1; i++) {
-    fc.bp[i].k1 = k1[i];
-    fc.bp[i].k2 = k2[i];
-    fc.bp[i].k3 = k3[i];
-    fc.bp[i].k4 = k4[i];
+  for (int i = 1; i < dp1; i++) {
+    fc.fc[i].k1 = k1[i];
+    fc.fc[i].k2 = k2[i];
+    fc.fc[i].k3 = k3[i];
+    fc.fc[i].k4 = k4[i];
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t>
-void DihedralOPLSIntel::ForceConst<flt_t>::set_ntypes(const int nbondtypes,
+void DihedralOPLSIntel::ForceConst<flt_t>::set_ntypes(const int ndihderaltypes,
                                                           Memory *memory) {
-  if (nbondtypes != _nbondtypes) {
-    if (_nbondtypes > 0)
-      _memory->destroy(bp);
+  if (memory != nullptr) _memory = memory;
+  if (ndihderaltypes != _ndihderaltypes) {
+    _memory->destroy(fc);
 
-    if (nbondtypes > 0)
-      _memory->create(bp,nbondtypes,"dihedralcharmmintel.bp");
+    if (ndihderaltypes > 0)
+      _memory->create(fc,ndihderaltypes,"dihedralcharmmintel.fc");
   }
-  _nbondtypes = nbondtypes;
-  _memory = memory;
+  _ndihderaltypes = ndihderaltypes;
 }

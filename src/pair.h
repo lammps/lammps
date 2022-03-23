@@ -33,6 +33,7 @@ class Pair : protected Pointers {
   friend class PairHybridScaled;
   friend class ThrOMP;
   friend class Info;
+  friend class Neighbor;
 
  public:
   static int instance_total;    // # of Pair classes ever instantiated

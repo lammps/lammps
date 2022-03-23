@@ -17,21 +17,23 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_tersoff_zbl_kokkos.h"
-#include <cmath>
-#include <cstring>
-#include "kokkos.h"
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "neigh_list_kokkos.h"
-#include "update.h"
+#include "kokkos.h"
 #include "math_const.h"
 #include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
+#include "neigh_list_kokkos.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "suffix.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -99,30 +101,16 @@ void PairTersoffZBLKokkos<DeviceType>::init_style()
 {
   PairTersoffZBL::init_style();
 
-  // irequest = neigh request made by parent class
+  // adjust neighbor list request for KOKKOS
 
   neighflag = lmp->kokkos->neighflag;
-  int irequest = neighbor->nrequest - 1;
-
-  neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
-
+  auto request = neighbor->find_request(this);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->enable_full();
   if (neighflag == FULL)
     error->all(FLERR,"Cannot (yet) use full neighbor list style with tersoff/zbl/kk");
-
-  if (neighflag == FULL || neighflag == HALF || neighflag == HALFTHREAD) {
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->half = 0;
-    if (neighflag == FULL)
-      neighbor->requests[irequest]->ghost = 1;
-    else
-      neighbor->requests[irequest]->ghost = 0;
-  } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with tersoff/zbl/kk");
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1005,7 +993,9 @@ double PairTersoffZBLKokkos<DeviceType>::ters_dbij(const int &i, const int &j,
   if (tmp > paramskk(i,j,k).c1) return paramskk(i,j,k).beta * -0.5*pow(tmp,-1.5);
   if (tmp > paramskk(i,j,k).c2)
     return paramskk(i,j,k).beta * (-0.5*pow(tmp,-1.5) *
-           (1.0 - 0.5*(1.0 +  1.0/(2.0*paramskk(i,j,k).powern)) *
+           // error in negligible 2nd term fixed 2/21/2022
+           //(1.0 - 0.5*(1.0 + 1.0/(2.0*paramskk(i,j,k).powern)) *
+           (1.0 - (1.0 + 1.0/(2.0*paramskk(i,j,k).powern)) *
            pow(tmp,-paramskk(i,j,k).powern)));
   if (tmp < paramskk(i,j,k).c4) return 0.0;
   if (tmp < paramskk(i,j,k).c3)

@@ -40,6 +40,8 @@ class BondBPMRotational : public BondBPM {
  protected:
   double *Kr, *Ks, *Kt, *Kb, *gnorm, *gslide, *groll, *gtwist;
   double *Fcr, *Fcs, *Tct, *Tcb;
+  int smooth_flag;
+
   double acos_limit(double);
 
   double elastic_forces(int, int, int, double &, double, double, double,
@@ -67,7 +69,7 @@ E: Incorrect args for bond coefficients
 
 Self-explanatory.  Check the input script or data file.
 
-E: Bond bpm/rotational requires atom style sphere/bpm
+E: Bond bpm/rotational requires atom style bpm/sphere
 
 Self-explanatory.
 

@@ -13,20 +13,20 @@
 
 #ifdef ATOM_CLASS
 // clang-format off
-AtomStyle(sphere/bpm,AtomVecSphereBPM)
+AtomStyle(bpm/sphere,AtomVecBPMSphere)
 // clang-format on
 #else
 
-#ifndef LMP_ATOM_VEC_SPHERE_BPM_H
-#define LMP_ATOM_VEC_SPHERE_BPM_H
+#ifndef LMP_ATOM_VEC_BPM_SPHERE_H
+#define LMP_ATOM_VEC_BPM_SPHERE_H
 
 #include "atom_vec.h"
 
 namespace LAMMPS_NS {
 
-class AtomVecSphereBPM : public AtomVec {
+class AtomVecBPMSphere : public AtomVec {
  public:
-  AtomVecSphereBPM(class LAMMPS *);
+  AtomVecBPMSphere(class LAMMPS *);
   void process_args(int, char **) override;
   void init() override;
 

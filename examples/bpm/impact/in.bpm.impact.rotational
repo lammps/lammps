@@ -1,7 +1,7 @@
 units           lj
 dimension       3
 boundary        f f f
-atom_style      sphere/bpm
+atom_style      bpm/sphere
 special_bonds   lj 0.0 1.0 1.0 coul 0.0 1.0 1.0
 newton          on off
 comm_modify     vel yes cutoff 2.6
@@ -23,17 +23,17 @@ neighbor        1.0 bin
 pair_style      gran/hooke/history 1.0 NULL 0.5 NULL 0.1 1
 pair_coeff      1 1
 
-fix             1 all nve/sphere/bpm
+fix             1 all nve/bpm/sphere
 
-create_bonds    many plate plate 1 0.0 1.5 
+create_bonds    many plate plate 1 0.0 1.5
 create_bonds    many projectile projectile 2 0.0 1.5
 
 neighbor        0.3 bin
 special_bonds   lj 0.0 1.0 1.0 coul 1.0 1.0 1.0
 
 bond_style      bpm/rotational store/local brkbond 100 time id1 id2
-bond_coeff      1 1.0 0.2 0.02 0.02 0.05 0.01 0.01 0.01 0.1 0.02 0.002 0.002
-bond_coeff      2 1.0 0.2 0.02 0.02 0.20 0.04 0.04 0.04 0.1 0.02 0.002 0.002
+bond_coeff      1 1.0 0.2 0.02 0.02 0.05 0.01 0.01 0.01 0.1 0.2 0.002 0.002
+bond_coeff      2 1.0 0.2 0.02 0.02 0.20 0.04 0.04 0.04 0.1 0.2 0.002 0.002
 
 velocity        projectile set -0.05 0.0 0.0
 compute         nbond all nbond/atom

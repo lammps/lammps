@@ -50,6 +50,7 @@ BondBPMRotational::BondBPMRotational(LAMMPS *lmp) : BondBPM(lmp)
   groll = nullptr;
   gtwist = nullptr;
   partial_flag = 1;
+  smooth_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -531,8 +532,12 @@ void BondBPMRotational::compute(int eflag, int vflag)
 
     damping_forces(i1, i2, type, Fr, rhat, r, force1on2, torque1on2, torque2on1);
 
-    smooth = breaking*breaking;
-    smooth = 1.0 - smooth*smooth;
+    if (smooth_flag) {
+      smooth = breaking*breaking;
+      smooth = 1.0 - smooth*smooth;
+    } else {
+      smooth = 1.0;
+    }
 
     // ------------------------------------------------------//
     //  Apply forces and torques to particles
@@ -635,7 +640,7 @@ void BondBPMRotational::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   check for correct settings and create fix 
+   check for correct settings and create fix
 ------------------------------------------------------------------------- */
 
 void BondBPMRotational::init_style()
@@ -643,7 +648,7 @@ void BondBPMRotational::init_style()
   BondBPM::init_style();
 
   if (!atom->quat_flag || !atom->sphere_flag)
-    error->all(FLERR,"Bond bpm/rotational requires atom style sphere/bpm");
+    error->all(FLERR,"Bond bpm/rotational requires atom style bpm/sphere");
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Bond bpm/rotational requires ghost atoms store velocity");
 
@@ -651,7 +656,7 @@ void BondBPMRotational::init_style()
     error->warning(FLERR, "Bond style bpm/rotational not intended for 2d use");
 
   if (!id_fix_bond_history) {
-    id_fix_bond_history = utils::strdup("HISTORY_BPM_ROTATIONAL" + std::to_string(instance_me));
+    id_fix_bond_history = utils::strdup("HISTORY_BPM_ROTATIONAL");
     fix_bond_history = (FixBondHistory *) modify->replace_fix(id_fix_dummy2,
         fmt::format("{} all BOND_HISTORY 0 4", id_fix_bond_history),1);
     delete [] id_fix_dummy2;
@@ -665,8 +670,16 @@ void BondBPMRotational::settings(int narg, char **arg)
 {
   BondBPM::settings(narg, arg);
 
-  for (int iarg : leftover_iarg) {
-    error->all(FLERR, "Illegal bond_style command");
+  int iarg;
+  for (int i = 0; i < leftover_iarg.size(); i++) {
+    iarg = leftover_iarg[i];
+    if (strcmp(arg[iarg], "smooth") == 0) {
+      if (iarg+1 > narg) error->all(FLERR,"Illegal bond bpm command");
+      smooth_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      i += 1;
+    } else {
+      error->all(FLERR, "Illegal bond_style command");
+    }
   }
 }
 
@@ -782,8 +795,10 @@ double BondBPMRotational::single(int type, double rsq, int i, int j,
   damping_forces(i, j, type, Fr, rhat, r, force1on2, torque1on2, torque2on1);
   fforce += Fr;
 
-  smooth = breaking*breaking;
-  smooth = 1.0 - smooth*smooth;
-  fforce *= smooth;
+  if (smooth_flag) {
+    smooth = breaking*breaking;
+    smooth = 1.0 - smooth*smooth;
+    fforce *= smooth;
+  }
   return 0.0;
 }

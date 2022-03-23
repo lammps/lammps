@@ -1333,27 +1333,6 @@ void Input::bond_style()
   if (narg < 1) error->all(FLERR,"Illegal bond_style command");
   if (atom->avec->bonds_allow == 0)
     error->all(FLERR,"Bond_style command when no bonds allowed");
-
-  if (force->bond) {
-    std::string style = arg[0];
-    int match = 0;
-    if (style == force->bond_style) match = 1;
-    if (!match && lmp->suffix_enable) {
-      if (lmp->suffixp)
-        if (style + "/" + lmp->suffixp == force->bond_style) match = 1;
-
-      if (lmp->suffix && !lmp->suffixp)
-        if (style + "/" + lmp->suffix == force->bond_style) match = 1;
-
-      if (lmp->suffix2)
-        if (style + "/" + lmp->suffix2 == force->bond_style) match = 1;
-    }
-    if (match) {
-      force->bond->settings(narg-1,&arg[1]);
-      return;
-    }
-  }
-
   force->create_bond(arg[0],1);
   if (force->bond) force->bond->settings(narg-1,&arg[1]);
 }

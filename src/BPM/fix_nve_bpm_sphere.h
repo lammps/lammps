@@ -13,20 +13,20 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(nve/sphere/bpm,FixNVESphereBPM)
+FixStyle(nve/bpm/sphere,FixNVEBPMSphere)
 // clang-format on
 #else
 
-#ifndef LMP_FIX_NVE_SPHERE_BPM_H
-#define LMP_FIX_NVE_SPHERE_BPM_H
+#ifndef LMP_FIX_NVE_BPM_SPHERE_H
+#define LMP_FIX_NVE_BPM_SPHERE_H
 
 #include "fix_nve.h"
 
 namespace LAMMPS_NS {
 
-class FixNVESphereBPM : public FixNVE {
+class FixNVEBPMSphere : public FixNVE {
  public:
-  FixNVESphereBPM(class LAMMPS *, int, char **);
+  FixNVEBPMSphere(class LAMMPS *, int, char **);
 
   void init() override;
   void initial_integrate(int) override;
@@ -51,19 +51,19 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Fix nve/sphere/bpm disc requires 2d simulation
+E: Fix nve/bpm/sphere disc requires 2d simulation
 
 UNDOCUMENTED
 
-E: Fix nve/sphere/bpm requires atom style sphere/bpm
+E: Fix nve/bpm/sphere requires atom style bpm/sphere
 
 Self-explanatory.
 
-E: Fix nve/sphere/bpm update dipole requires atom attribute mu
+E: Fix nve/bpm/sphere update dipole requires atom attribute mu
 
 An atom style with this attribute is needed.
 
-E: Fix nve/sphere/bpm requires extended particles
+E: Fix nve/bpm/sphere requires extended particles
 
 This fix can only be used for particles of a finite size.
 

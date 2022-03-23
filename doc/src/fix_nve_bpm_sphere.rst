@@ -1,6 +1,6 @@
-.. index:: fix nve/sphere/bpm
+.. index:: fix nve/bpm/sphere
 
-fix nve/sphere/bpm command
+fix nve/bpm/sphere command
 ======================
 
 Syntax
@@ -8,10 +8,10 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID nve/sphere/bpm
+   fix ID group-ID nve/bpm/sphere
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* nve/sphere/bpm = style name of this fix command
+* nve/bpm/sphere = style name of this fix command
 * zero or more keyword/value pairs may be appended
 * keyword = *disc*
 
@@ -24,8 +24,8 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix 1 all nve/sphere/bpm
-   fix 1 all nve/sphere/bpm disc
+   fix 1 all nve/bpm/sphere
+   fix 1 all nve/bpm/sphere disc
 
 Description
 """""""""""
@@ -66,7 +66,7 @@ Restrictions
 """"""""""""
 
 This fix requires that atoms store torque, angular velocity (omega), a
-radius, and a quaternion as defined by the :doc:`atom_style sphere/bpm
+radius, and a quaternion as defined by the :doc:`atom_style bpm/sphere
 <atom_style>` command.
 
 All particles in the group must be finite-size spheres with

@@ -143,7 +143,7 @@ OPT.
    * :doc:`nve/manifold/rattle <fix_nve_manifold_rattle>`
    * :doc:`nve/noforce <fix_nve_noforce>`
    * :doc:`nve/sphere (ko) <fix_nve_sphere>`
-   * :doc:`nve/sphere/bpm <fix_nve_sphere_bpm>`
+   * :doc:`nve/bpm/sphere <fix_nve_bpm_sphere>`
    * :doc:`nve/spin <fix_nve_spin>`
    * :doc:`nve/tri <fix_nve_tri>`
    * :doc:`nvk <fix_nvk>`

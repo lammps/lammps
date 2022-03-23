@@ -10,7 +10,7 @@ Syntax
 
    bond_style bpm/spring keyword value attribute1 attribute2 ...
 
-* optional keyword = *overlay/pair* or *store/local*
+* optional keyword = *overlay/pair* or *store/local* or *smooth*
 
   .. parsed-literal::
 
@@ -26,6 +26,9 @@ Syntax
 
        *overlay/pair* value = none
           bonded particles will still interact with pair forces
+
+       *smooth* value = *yes* or *no*
+          smooths bond forces near the breaking point
 
 Examples
 """"""""
@@ -59,17 +62,11 @@ particles. The force has a magnitude of
 
 where :math:`k_r` is a stiffness, :math:`r` is the current distance
 and :math:`r_0` is the initial distance between the two particles, and
-:math:`w` is a smoothing factor.  Bonds will break at a strain of
-:math:`\epsilon_c`.  This is done by setting by setting its type to 0
-such that forces are no longer computed.  The smoothing factor
-:math:`w` is constructed such that forces smoothly go to zero,
-avoiding discontinuities, as bonds approach the critical strain
+:math:`w` is an optional smoothing factor discussed below. Bonds will
+break at a strain of :math:`\epsilon_c`.  This is done by setting by
+setting its type to 0 such that forces are no longer computed.
 
-.. math::
-
-   w = 1.0 - \left( \frac{r - r_0}{r_0 \epsilon_c} \right)^8 .
-
-Finally, an additional damping force is applied to the bonded
+An additional damping force is applied to the bonded
 particles.  This forces is proportional to the difference in the
 normal velocity of particles using a similar construction as
 dissipative particle dynamics (:ref:`(Groot) <Groot1>`):
@@ -81,6 +78,14 @@ dissipative particle dynamics (:ref:`(Groot) <Groot1>`):
 where :math:`\gamma` is the damping strength, :math:`\hat{r}` is the
 radial normal vector, and :math:`\vec{v}` is the velocity difference
 between the two particles.
+
+The smoothing factor :math:`w` can be added or removed using the
+*smooth* keyword. It is constructed such that forces smoothly go
+to zero, avoiding discontinuities, as bonds approach the critical strain
+
+.. math::
+
+   w = 1.0 - \left( \frac{r - r_0}{r_0 \epsilon_c} \right)^8 .
 
 The following coefficients must be defined for each bond type via the
 :doc:`bond_coeff <bond_coeff>` command as in the example above, or in
@@ -188,7 +193,7 @@ Related commands
 Default
 """""""
 
-none
+The option defaults are *smooth* = *yes*
 
 ----------
 

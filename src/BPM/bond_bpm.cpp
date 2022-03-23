@@ -56,11 +56,11 @@ BondBPM::BondBPM(LAMMPS *lmp) : Bond(lmp)
   // this is so final order of Modify:fix will conform to input script
   // BondHistory technically only needs this if updateflag = 1
 
-  id_fix_dummy = utils::strdup("BPM_DUMMY_" + std::to_string(instance_me));
+  id_fix_dummy = utils::strdup("BPM_DUMMY");
   modify->add_fix(fmt::format("{} all DUMMY ", id_fix_dummy));
 
-  id_fix_dummy2 = utils::strdup("BPM_DUMMY2_" + std::to_string(instance_me));
-  modify->add_fix(fmt::format("{} all DUMMY ", id_fix_dummy2));  
+  id_fix_dummy2 = utils::strdup("BPM_DUMMY2");
+  modify->add_fix(fmt::format("{} all DUMMY ", id_fix_dummy2));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -126,7 +126,7 @@ void BondBPM::init_style()
       error->all(FLERR,"Without overlay/pair, BPM bond sytles requires special Coulomb weights = 1,1,1");
 
     if (id_fix_dummy) {
-      id_fix_update = utils::strdup("BPM_UPDATE_SPECIAL_BONDS_" + std::to_string(instance_me));
+      id_fix_update = utils::strdup("BPM_UPDATE_SPECIAL_BONDS");
       fix_update_special_bonds = (FixUpdateSpecialBonds *) modify->replace_fix(id_fix_dummy,
         fmt::format("{} all UPDATE_SPECIAL_BONDS", id_fix_update),1);
       delete [] id_fix_dummy;
@@ -222,10 +222,10 @@ void BondBPM::settings(int narg, char **arg)
     // a reference state isn't well defined
     if (prop_atom_flag == 1) {
 
-      id_fix_prop_atom = utils::strdup("BPM_property_atom" + std::to_string(instance_me));
-      char *x_ref_id = utils::strdup("BPM_X_REF" + std::to_string(instance_me));
-      char *y_ref_id = utils::strdup("BPM_Y_REF" + std::to_string(instance_me));
-      char *z_ref_id = utils::strdup("BPM_Z_REF" + std::to_string(instance_me));
+      id_fix_prop_atom = utils::strdup("BPM_property_atom");
+      char *x_ref_id = utils::strdup("BPM_X_REF");
+      char *y_ref_id = utils::strdup("BPM_Y_REF");
+      char *z_ref_id = utils::strdup("BPM_Z_REF");
 
       ifix = modify->find_fix(id_fix_prop_atom);
       if (ifix < 0) {

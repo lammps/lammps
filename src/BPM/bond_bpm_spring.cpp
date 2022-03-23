@@ -36,6 +36,7 @@ BondBPMSpring::BondBPMSpring(LAMMPS *lmp) : BondBPM(lmp)
   ecrit = nullptr;
   gamma = nullptr;
   partial_flag = 1;
+  smooth_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -197,14 +198,16 @@ void BondBPMSpring::compute(int eflag, int vflag)
     delvz = v[i1][2] - v[i2][2];
     dot = delx*delvx + dely*delvy + delz*delvz;
     fbond -= gamma[type]*dot*rinv;
+    fbond *= rinv;
 
-    smooth = (r-r0)/(r0*ecrit[type]);
-    smooth *= smooth;
-    smooth *= smooth;
-    smooth *= smooth;
-    smooth = 1 - smooth;
-    
-    fbond *= rinv*smooth;
+    if (smooth_flag) {
+      smooth = (r-r0)/(r0*ecrit[type]);
+      smooth *= smooth;
+      smooth *= smooth;
+      smooth *= smooth;
+      smooth = 1 - smooth;
+      fbond *= smooth;
+    }
 
     if (newton_bond || i1 < nlocal) {
       f[i1][0] += delx*fbond;
@@ -279,12 +282,12 @@ void BondBPMSpring::init_style()
     error->all(FLERR,"Bond bpm/spring requires ghost atoms store velocity");
 
   if (!id_fix_bond_history) {
-    id_fix_bond_history = utils::strdup("HISTORY_BPM_SPRING" + std::to_string(instance_me));
+    id_fix_bond_history = utils::strdup("HISTORY_BPM_SPRING");
     fix_bond_history = (FixBondHistory *) modify->replace_fix(id_fix_dummy2,
         fmt::format("{} all BOND_HISTORY 0 1", id_fix_bond_history),1);
     delete [] id_fix_dummy2;
     id_fix_dummy2 = nullptr;
-  }         
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -293,8 +296,16 @@ void BondBPMSpring::settings(int narg, char **arg)
 {
   BondBPM::settings(narg, arg);
 
-  for (int iarg : leftover_iarg) {
-    error->all(FLERR, "Illegal bond_style command");
+  int iarg;
+  for (int i = 0; i < leftover_iarg.size(); i++) {
+    iarg = leftover_iarg[i];
+    if (strcmp(arg[iarg], "smooth") == 0) {
+      if (iarg+1 > narg) error->all(FLERR,"Illegal bond bpm command");
+      smooth_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      i += 1;
+    } else {
+      error->all(FLERR, "Illegal bond_style command");
+    }
   }
 }
 
@@ -368,13 +379,16 @@ double BondBPMSpring::single(int type, double rsq, int i, int j,
   double delvz = v[i][2] - v[j][2];
   double dot = delx*delvx + dely*delvy + delz*delvz;
   fforce -= gamma[type]*dot*rinv;
+  fforce *= rinv;
 
-  double smooth = (r-r0)/(r0*ecrit[type]);
-  smooth *= smooth;
-  smooth *= smooth;
-  smooth *= smooth;
-  smooth = 1 - smooth;
+  if (smooth_flag) {
+    double smooth = (r-r0)/(r0*ecrit[type]);
+    smooth *= smooth;
+    smooth *= smooth;
+    smooth *= smooth;
+    smooth = 1 - smooth;
+    fforce *= smooth;
+  }
 
-  fforce *= rinv*smooth;
   return 0.0;
 }

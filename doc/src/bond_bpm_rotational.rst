@@ -10,7 +10,7 @@ Syntax
 
    bond_style bpm/rotational keyword value attribute1 attribute2 ...
 
-* optional keyword = *overlay/pair* or *store/local*
+* optional keyword = *overlay/pair* or *store/local* or *smooth*
 
   .. parsed-literal::
 
@@ -26,6 +26,9 @@ Syntax
 
        *overlay/pair* value = none
           bonded particles will still interact with pair forces
+
+       *smooth* value = *yes* or *no*
+          smooths bond forces near the breaking point
 
 Examples
 """"""""
@@ -87,9 +90,10 @@ is done by setting by setting its type to 0 such that forces and
 torques are no longer computed.
 
 After computing the base magnitudes of the forces and torques, they
-are all multiplied by an extra factor :math:`w` to smoothly
+can be optionally multiplied by an extra factor :math:`w` to smoothly
 interpolate forces and torques to zero as the bond breaks. This term
-is calculated as :math:`w = (1.0 - B^4)`.
+is calculated as :math:`w = (1.0 - B^4)`. This smoothing factor can be
+added or removed using the *smooth* keyword.
 
 Finally, additional damping forces and torques are applied to the two
 particles. A force is applied proportional to the difference in the
@@ -219,17 +223,17 @@ setting
 
    special_bonds lj/coul 1 1 1
 
-The *bpm/rotational* style requires :doc:`atom style sphere/bpm <atom_style>`.
+The *bpm/rotational* style requires :doc:`atom style bpm/sphere <atom_style>`.
 
 Related commands
 """"""""""""""""
 
-:doc:`bond_coeff <bond_coeff>`, :doc:`fix nve/sphere/bpm <fix_nve_sphere_bpm>`
+:doc:`bond_coeff <bond_coeff>`, :doc:`fix nve/bpm/sphere <fix_nve_bpm_sphere>`
 
 Default
 """""""
 
-none
+The option defaults are *smooth* = *yes*
 
 ----------
 

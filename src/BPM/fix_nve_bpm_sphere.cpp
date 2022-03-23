@@ -12,7 +12,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "fix_nve_sphere_bpm.h"
+#include "fix_nve_bpm_sphere.h"
 
 #include "atom.h"
 #include "atom_vec.h"
@@ -31,10 +31,10 @@ using namespace MathExtra;
 
 /* ---------------------------------------------------------------------- */
 
-FixNVESphereBPM::FixNVESphereBPM(LAMMPS *lmp, int narg, char **arg) :
+FixNVEBPMSphere::FixNVEBPMSphere(LAMMPS *lmp, int narg, char **arg) :
   FixNVE(lmp, narg, arg)
 {
-  if (narg < 3) error->all(FLERR,"Illegal fix nve/sphere/bpm command");
+  if (narg < 3) error->all(FLERR,"Illegal fix nve/bpm/sphere command");
 
   time_integrate = 1;
 
@@ -48,10 +48,10 @@ FixNVESphereBPM::FixNVESphereBPM(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"disc")==0) {
       inertia = 0.5;
       if (domain->dimension != 2)
-        error->all(FLERR,"Fix nve/sphere/bpm disc requires 2d simulation");
+        error->all(FLERR,"Fix nve/bpm/sphere disc requires 2d simulation");
       iarg++;
     }
-    else error->all(FLERR,"Illegal fix nve/sphere/bpm command");
+    else error->all(FLERR,"Illegal fix nve/bpm/sphere command");
   }
 
   inv_inertia = 1.0/inertia;
@@ -59,12 +59,12 @@ FixNVESphereBPM::FixNVESphereBPM(LAMMPS *lmp, int narg, char **arg) :
   // error checks
 
   if (!atom->quat_flag || !atom->sphere_flag)
-    error->all(FLERR,"Fix nve/sphere/bpm requires atom style sphere/bpm");
+    error->all(FLERR,"Fix nve/bpm/sphere requires atom style bpm/sphere");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVESphereBPM::init()
+void FixNVEBPMSphere::init()
 {
   FixNVE::init();
 
@@ -78,12 +78,12 @@ void FixNVESphereBPM::init()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (radius[i] == 0.0)
-        error->one(FLERR,"Fix nve/sphere/bpm requires extended particles");
+        error->one(FLERR,"Fix nve/bpm/sphere requires extended particles");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVESphereBPM::initial_integrate(int /*vflag*/)
+void FixNVEBPMSphere::initial_integrate(int /*vflag*/)
 {
   double dtq,dtfm,dtirotate,particle_inertia;
 
@@ -128,7 +128,7 @@ void FixNVESphereBPM::initial_integrate(int /*vflag*/)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVESphereBPM::final_integrate()
+void FixNVEBPMSphere::final_integrate()
 {
   double dtfm,dtirotate,particle_inertia;
 

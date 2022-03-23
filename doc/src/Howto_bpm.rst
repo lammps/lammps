@@ -90,10 +90,10 @@ tangential forces and torques arising with the shearing, bending, and
 twisting of the bond due to rotation or displacement of particles.
 Particles are similar to those used in the :doc:`granular package
 <Howto_granular>`, :doc:`atom style sphere <atom_style>`. However,
-they must also track the current orientation of particles and
-therefore use a derived :doc:`atom style sphere/bpm <atom_style>`.
-This also requires a unique integrator :doc:`fix nve/sphere/bpm
-<fix_nve_sphere_bpm>` which numerically integrates orientation similar
+they must also track the current orientation of particles and store bonds
+and therefore use a :doc:`bpm/sphere atom style <atom_style>`.
+This also requires a unique integrator :doc:`fix nve/bpm/sphere
+<fix_nve_bpm_sphere>` which numerically integrates orientation similar
 to :doc:`fix nve/asphere <fix_nve_asphere>`.
 
 To monitor the fracture of bonds in the system, all BPM bond styles

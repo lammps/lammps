@@ -253,8 +253,8 @@
 /pair_mesont_tpm.cpp
 /pair_mesont_tpm.h
 
-/atom_vec_sphere_bpm.cpp
-/atom_vec_sphere_bpm.h
+/atom_vec_bpm_sphere.cpp
+/atom_vec_bpm_sphere.h
 /bond_bpm.cpp
 /bond_bpm.h
 /bond_bpm_rotational.cpp
@@ -263,8 +263,8 @@
 /bond_bpm_spring.h
 /compute_nbond_atom.cpp
 /compute_nbond_atom.h
-/fix_nve_sphere_bpm.cpp
-/fix_nve_sphere_bpm.h
+/fix_nve_bpm_sphere.cpp
+/fix_nve_bpm_sphere.h
 /pair_bpm_spring.cpp
 /pair_bpm_spring.h
 

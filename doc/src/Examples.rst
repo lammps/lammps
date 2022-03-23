@@ -54,7 +54,7 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | body        | body particles, 2d system                                        |
 +-------------+------------------------------------------------------------------+
-| bpm         | bonded particle models of pouring, crushing, and fracture        |
+| bpm         | BPM simulations of pouring elastic grains and plate impact       |
 +-------------+------------------------------------------------------------------+
 | cmap        | CMAP 5-body contributions to CHARMM force field                  |
 +-------------+------------------------------------------------------------------+

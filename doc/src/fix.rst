@@ -286,7 +286,7 @@ accelerated styles exist.
 * :doc:`nve/manifold/rattle <fix_nve_manifold_rattle>` -
 * :doc:`nve/noforce <fix_nve_noforce>` - NVE without forces (v only)
 * :doc:`nve/sphere <fix_nve_sphere>` - NVE for spherical particles
-* :doc:`nve/sphere/bpm <fix_nve_sphere_bpm>` - NVE for spherical particles used in the BPM package
+* :doc:`nve/bpm/sphere <fix_nve_bpm_sphere>` - NVE for spherical particles used in the BPM package
 * :doc:`nve/spin <fix_nve_spin>` - NVE for a spin or spin-lattice system
 * :doc:`nve/tri <fix_nve_tri>` - NVE for triangles
 * :doc:`nvk <fix_nvk>` - constant kinetic energy time integration

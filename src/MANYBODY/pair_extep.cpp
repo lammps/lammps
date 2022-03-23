@@ -519,13 +519,8 @@ void PairExTeP::read_file(char *file)
   // open file on proc 0
 
   if (comm->me == 0) {
-    PotentialFileReader reader(lmp, file, "ExTeP", unit_convert_flag);
+    PotentialFileReader reader(lmp, file, "ExTeP");
     char *line;
-
-    // transparently convert units for supported conversions
-
-    int unit_convert = reader.get_unit_convert();
-    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,unit_convert);
 
     while ((line = reader.next_line(17))) {
       try {
@@ -584,10 +579,6 @@ void PairExTeP::read_file(char *file)
 
         params[nparams].powermint = int(params[nparams].powerm);
 
-        if (unit_convert) {
-          params[nparams].biga *= conversion_factor;
-          params[nparams].bigb *= conversion_factor;
-        }
       } catch (TokenizerException &e) {
         error->one(FLERR, e.what());
       }

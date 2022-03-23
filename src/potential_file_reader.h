@@ -43,6 +43,7 @@ class PotentialFileReader : protected Pointers {
 
   void ignore_comments(bool value);
 
+  void rewind();
   void skip_line();
   char *next_line(int nparams = 0);
   void next_dvector(double *list, int n);

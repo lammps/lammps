@@ -79,6 +79,8 @@ reaxc_multi_body_omp.cpp
 reaxc_nonbonded_omp.cpp
 reaxc_torsion_angles_omp.cpp
 reaxc_valence_angles_omp.cpp
+fix_qeq_reax.cpp
+fix_qeq_reax.h
 fix_reaxc.cpp
 fix_reaxc.h
 fix_reaxc_bonds.cpp

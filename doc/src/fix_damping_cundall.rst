@@ -19,9 +19,10 @@ Syntax
   .. parsed-literal::
 
      keyword = *scale*
-       *scale* values = type ratio
+       *scale* values = *type ratio* or *v_name*
          type = atom type (1-N)
          ratio = factor to scale the damping coefficients by
+         v_name = reference to atom style variable *name*
 
 Examples
 """"""""
@@ -30,6 +31,7 @@ Examples
 
    fix 1 all damping/cundall 0.8 0.8
    fix 1 all damping/cundall 0.8 0.5 scale 3 2.5
+   fix a all damping/cundall 0.8 0.5 scale v_radscale
 
 Description
 """""""""""
@@ -58,9 +60,13 @@ particle. Damping is applied component-by-component in each direction
    {T_d}_k = - \gamma_a \, T_k \, \mathrm{sign}(T_k \omega_k)
 
 The larger the coefficients, the faster the kinetic energy is reduced.
+
 If the optional keyword *scale* is used, :math:`\gamma_l` and :math:`\gamma_a`
-can be scaled up or down by the specified factor for atoms of that type.
-It can be used multiple times to adjust :math:`\gamma` for several atom types.
+can be scaled up or down by the specified factor for atoms.  This factor can be
+set for different atom types and thus the *scale* keyword used multiple times
+followed by the atom type and the associated scale factor.  Alternately the
+scaling factor can be computed for each atom (e.g. based on its radius) by
+using an :doc:`atom-style variable <variable>`.
 
 .. Note::
 

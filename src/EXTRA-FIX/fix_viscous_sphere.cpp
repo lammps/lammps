@@ -14,19 +14,29 @@
 #include "fix_viscous_sphere.h"
 
 #include "atom.h"
+#include "comm.h"
 #include "error.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
 #include "respa.h"
 #include "update.h"
+#include "variable.h"
 
 #include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+// type of scaling
+
+enum { NONE, TYPE, VARIABLE };
+
 /* ---------------------------------------------------------------------- */
 
-FixViscousSphere::FixViscousSphere(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), gamma(nullptr)
+FixViscousSphere::FixViscousSphere(LAMMPS *_lmp, int narg, char **arg) :
+    Fix(_lmp, narg, arg), scalegamma(nullptr), scaleval(nullptr), scalevarid(nullptr),
+    scalestyle(NONE)
 {
   dynamic_group_allow = 1;
 
@@ -34,22 +44,41 @@ FixViscousSphere::FixViscousSphere(LAMMPS *lmp, int narg, char **arg) :
 
   if (narg < 4) error->all(FLERR, "Illegal fix viscous/sphere command");
 
-  double gamma_one = utils::numeric(FLERR, arg[3], false, lmp);
-  gamma = new double[atom->ntypes + 1];
-  for (int i = 1; i <= atom->ntypes; i++) gamma[i] = gamma_one;
+  gamma = utils::numeric(FLERR, arg[3], false, lmp);
 
   // optional args
 
   int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "scale") == 0) {
-      if (iarg + 3 > narg) error->all(FLERR, "Illegal fix viscous/sphere command");
-      int itype = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      double scale = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
-      if (itype <= 0 || itype > atom->ntypes)
-        error->all(FLERR, "Illegal fix viscous/sphere command");
-      gamma[itype] = gamma_one * scale;
-      iarg += 3;
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix viscous/sphere command");
+      if (utils::strmatch(arg[iarg + 1], "^v_")) {
+        if (scalestyle != NONE) error->all(FLERR, "Must use only one style of scaling");
+        scalevarid = utils::strdup(arg[iarg + 1] + 2);
+        int ivariable = input->variable->find(scalevarid);
+        if (ivariable < 0)
+          error->all(FLERR, "Variable name {} for fix viscous/sphere does not exist", scalevarid);
+        if (input->variable->atomstyle(ivariable) == 0)
+          error->all(FLERR, "Fix viscous/scale variable {} is not atom-style variable", scalevarid);
+        scalestyle = VARIABLE;
+        memory->destroy(scaleval);
+        memory->create(scaleval, atom->nmax, "fix_viscous/sphere:scaleval");
+        iarg += 2;
+      } else {
+        if (scalestyle == VARIABLE) error->all(FLERR, "Must use only one style of scaling");
+        if (iarg + 3 > narg) error->all(FLERR, "Illegal fix viscous/sphere command");
+        if (!scalegamma) {
+          scalegamma = new double[atom->ntypes + 1];
+          for (int i = 1; i <= atom->ntypes; i++) scalegamma[i] = 1.0;
+        }
+        int itype = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+        double scale = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+        if ((itype < 1) || (itype > atom->ntypes))
+          error->all(FLERR, "Atom type {} out of range for fix viscous/sphere command:", itype);
+        scalegamma[itype] = scale;
+        scalestyle = TYPE;
+        iarg += 3;
+      }
     } else
       error->all(FLERR, "Illegal fix viscous/sphere command");
   }
@@ -62,7 +91,9 @@ FixViscousSphere::FixViscousSphere(LAMMPS *lmp, int narg, char **arg) :
 
 FixViscousSphere::~FixViscousSphere()
 {
-  delete[] gamma;
+  memory->destroy(scaleval);
+  delete[] scalegamma;
+  delete[] scalevarid;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -85,6 +116,22 @@ void FixViscousSphere::init()
   if (utils::strmatch(update->integrate_style, "^respa")) {
     ilevel_respa = max_respa = ((Respa *) update->integrate)->nlevels - 1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level, max_respa);
+  }
+
+  bool fflag = false;
+  for (auto ifix : modify->get_fix_list()) {
+    if (fflag && (comm->me == 0) && (ifix->setmask() & POST_FORCE))
+      error->warning(FLERR, "Fix {} alters forces after fix viscous/sphere", ifix->id);
+    if (ifix == this) fflag = true;
+  }
+
+  if (scalestyle == VARIABLE) {
+    int ivariable = input->variable->find(scalevarid);
+    if (ivariable < 0)
+      error->all(FLERR, "Variable name {} for fix viscous/sphere does not exist", scalevarid);
+    if (input->variable->atomstyle(ivariable) == 0)
+      error->all(FLERR, "Fix viscous/sphere variable {} is not atom-style variable", scalevarid);
+    scalevar = ivariable;
   }
 }
 
@@ -123,10 +170,20 @@ void FixViscousSphere::post_force(int /*vflag*/)
   int nlocal = atom->nlocal;
 
   double drag;
+  if (scalestyle == VARIABLE) {
+    memory->grow(scaleval, atom->nmax, "fix_viscous/sphere:scaleval");
+    input->variable->compute_atom(scalevar, igroup, scaleval, 1, 0);
+  }
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      drag = gamma[type[i]];
+      if (scalestyle == TYPE) {
+        drag = gamma * scalegamma[type[i]];
+      } else if (scalestyle == VARIABLE) {
+        drag = gamma * scaleval[i];
+      } else {    // scalestyle == NONE
+        drag = gamma;
+      }
       torque[i][0] -= drag * omega[i][0];
       torque[i][1] -= drag * omega[i][1];
       torque[i][2] -= drag * omega[i][2];
@@ -145,4 +202,16 @@ void FixViscousSphere::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 void FixViscousSphere::min_post_force(int vflag)
 {
   post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixViscousSphere::memory_usage()
+{
+  if (scalestyle == VARIABLE)
+    return (double) sizeof(double) * atom->nmax;
+  else if (scalestyle == TYPE)
+    return (double) sizeof(double) * atom->ntypes;
+  else
+    return 0.0;
 }

@@ -18,9 +18,10 @@ Syntax
   .. parsed-literal::
 
      keyword = *scale*
-       *scale* values = type ratio
+       *scale* values = *type ratio* or *v_name*
          type = atom type (1-N)
-         ratio = factor to scale the damping coefficient by
+         ratio = factor to scale the damping coefficients by
+         v_name = reference to atom style variable *name*
 
 Examples
 """"""""
@@ -29,6 +30,7 @@ Examples
 
    fix 1 flow viscous/sphere 0.1
    fix 1 damp viscous/sphere 0.5 scale 3 2.5
+   fix 1 damp viscous/sphere 0.5 scale v_radscale
 
 Description
 """""""""""
@@ -43,9 +45,13 @@ technique.
 
 The damping torque :math:`T_i` is given by :math:`T_i = - \gamma \omega_i`.
 The larger the coefficient, the faster the rotational kinetic energy is reduced.
-If the optional keyword *scale* is used, :math:`\gamma` can be scaled up or
-down by the specified factor for atoms of that type.  It can be used
-multiple times to adjust :math:`\gamma` for several atom types.
+
+If the optional keyword *scale* is used, :math:`\gamma` can be scaled up
+or down by the specified factor for atoms.  This factor can be set for
+different atom types and thus the *scale* keyword used multiple times
+followed by the atom type and the associated scale factor.  Alternately
+the scaling factor can be computed for each atom (e.g. based on its
+radius) by using an :doc:`atom-style variable <variable>`.
 
 .. note::
 

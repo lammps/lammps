@@ -14,19 +14,29 @@
 #include "fix_damping_cundall.h"
 
 #include "atom.h"
+#include "comm.h"
 #include "error.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
 #include "respa.h"
 #include "update.h"
+#include "variable.h"
 
 #include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+// type of scaling
+
+enum { NONE, TYPE, VARIABLE };
+
 /* ---------------------------------------------------------------------- */
 
-FixDampingCundall::FixDampingCundall(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), gamma_lin(nullptr), gamma_ang(nullptr)
+FixDampingCundall::FixDampingCundall(LAMMPS *_lmp, int narg, char **arg) :
+    Fix(_lmp, narg, arg), scalegamma(nullptr), scaleval(nullptr), scalevarid(nullptr),
+    scalestyle(NONE)
 {
   dynamic_group_allow = 1;
 
@@ -34,28 +44,42 @@ FixDampingCundall::FixDampingCundall(LAMMPS *lmp, int narg, char **arg) :
 
   if (narg < 5) error->all(FLERR, "Illegal fix damping/cundall command");
 
-  double gamma_lin_one = utils::numeric(FLERR, arg[3], false, lmp);
-  double gamma_ang_one = utils::numeric(FLERR, arg[4], false, lmp);
-  gamma_lin = new double[atom->ntypes + 1];
-  gamma_ang = new double[atom->ntypes + 1];
-  for (int i = 1; i <= atom->ntypes; i++) {
-    gamma_lin[i] = gamma_lin_one;
-    gamma_ang[i] = gamma_ang_one;
-  }
+  gamma_lin = utils::numeric(FLERR, arg[3], false, lmp);
+  gamma_ang = utils::numeric(FLERR, arg[4], false, lmp);
 
   // optional args
 
   int iarg = 5;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "scale") == 0) {
-      if (iarg + 3 > narg) error->all(FLERR, "Illegal fix damping/cundall command");
-      int itype = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      double scale = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
-      if (itype <= 0 || itype > atom->ntypes)
-        error->all(FLERR, "Illegal fix damping/cundall command");
-      gamma_lin[itype] = gamma_lin_one * scale;
-      gamma_ang[itype] = gamma_ang_one * scale;
-      iarg += 3;
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix damping/cundall command");
+      if (utils::strmatch(arg[iarg + 1], "^v_")) {
+        if (scalestyle != NONE) error->all(FLERR, "Must use only one style of scaling");
+        scalevarid = utils::strdup(arg[iarg + 1] + 2);
+        int ivariable = input->variable->find(scalevarid);
+        if (ivariable < 0)
+          error->all(FLERR, "Variable name {} for fix damping/cundall does not exist", scalevarid);
+        if (input->variable->atomstyle(ivariable) == 0)
+          error->all(FLERR, "Fix viscous/scale variable {} is not atom-style variable", scalevarid);
+        scalestyle = VARIABLE;
+        memory->destroy(scaleval);
+        memory->create(scaleval, atom->nmax, "fix_damping/cundall:scaleval");
+        iarg += 2;
+      } else {
+        if (scalestyle == VARIABLE) error->all(FLERR, "Must use only one style of scaling");
+        if (iarg + 3 > narg) error->all(FLERR, "Illegal fix damping/cundall command");
+        if (!scalegamma) {
+          scalegamma = new double[atom->ntypes + 1];
+          for (int i = 1; i <= atom->ntypes; i++) scalegamma[i] = 1.0;
+        }
+        int itype = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+        double scale = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+        if ((itype < 1) || (itype > atom->ntypes))
+          error->all(FLERR, "Atom type {} out of range for fix damping/cundall command:", itype);
+        scalegamma[itype] = scale;
+        scalestyle = TYPE;
+        iarg += 3;
+      }
     } else
       error->all(FLERR, "Illegal fix damping/cundall command");
   }
@@ -68,8 +92,9 @@ FixDampingCundall::FixDampingCundall(LAMMPS *lmp, int narg, char **arg) :
 
 FixDampingCundall::~FixDampingCundall()
 {
-  delete[] gamma_lin;
-  delete[] gamma_ang;
+  memory->destroy(scaleval);
+  delete[] scalegamma;
+  delete[] scalevarid;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -92,6 +117,22 @@ void FixDampingCundall::init()
   if (utils::strmatch(update->integrate_style, "^respa")) {
     ilevel_respa = max_respa = ((Respa *) update->integrate)->nlevels - 1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level, max_respa);
+  }
+
+  bool fflag = false;
+  for (auto ifix : modify->get_fix_list()) {
+    if (fflag && (comm->me == 0) && (ifix->setmask() & POST_FORCE))
+      error->warning(FLERR, "Fix {} alters forces after fix damping/cundall", ifix->id);
+    if (ifix == this) fflag = true;
+  }
+
+  if (scalestyle == VARIABLE) {
+    int ivariable = input->variable->find(scalevarid);
+    if (ivariable < 0)
+      error->all(FLERR, "Variable name {} for fix damping/cundall does not exist", scalevarid);
+    if (input->variable->atomstyle(ivariable) == 0)
+      error->all(FLERR, "Fix damping/cundall variable {} is not atom-style variable", scalevarid);
+    scalevar = ivariable;
   }
 }
 
@@ -140,10 +181,23 @@ void FixDampingCundall::post_force(int /*vflag*/)
   int signf0, signf1, signf2;
   int signt0, signt1, signt2;
 
+  if (scalestyle == VARIABLE) {
+    memory->grow(scaleval, atom->nmax, "fix_damping/cundall:scaleval");
+    input->variable->compute_atom(scalevar, igroup, scaleval, 1, 0);
+  }
+
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      gamma_l = gamma_lin[type[i]];
-      gamma_a = gamma_ang[type[i]];
+      if (scalestyle == TYPE) {
+        gamma_l = gamma_lin * scalegamma[type[i]];
+        gamma_a = gamma_ang * scalegamma[type[i]];
+      } else if (scalestyle == VARIABLE) {
+        gamma_l = gamma_lin * scaleval[i];
+        gamma_a = gamma_ang * scaleval[i];
+      } else {    // scalestyle NONE
+        gamma_l = gamma_lin;
+        gamma_a = gamma_ang;
+      }
 
       signf0 = (f[i][0] * v[i][0] >= 0.0) ? 1.0 : -1.0;
       signf1 = (f[i][1] * v[i][1] >= 0.0) ? 1.0 : -1.0;
@@ -173,4 +227,16 @@ void FixDampingCundall::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 void FixDampingCundall::min_post_force(int vflag)
 {
   post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixDampingCundall::memory_usage()
+{
+  if (scalestyle == VARIABLE)
+    return (double) sizeof(double) * atom->nmax;
+  else if (scalestyle == TYPE)
+    return 2.0 * sizeof(double) * atom->ntypes;
+  else
+    return 0.0;
 }

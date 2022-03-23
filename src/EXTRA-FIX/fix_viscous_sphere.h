@@ -35,9 +35,12 @@ class FixViscousSphere : public Fix {
   void post_force(int);
   void post_force_respa(int, int, int);
   void min_post_force(int);
+  double memory_usage();
 
  protected:
-  double *gamma;
+  double gamma, *scalegamma, *scaleval;
+  const char *scalevarid;
+  int scalestyle, scalevar;
   int ilevel_respa;
 };
 

@@ -76,7 +76,7 @@ class MDIEngine : public Command {
   int *sys_types;
   double *sys_charges,*sys_coords,*sys_velocities;
   double sys_cell[9],sys_cell_displ[3];
-    
+
   int niterate;
   int max_eval;
   double etol,ftol;

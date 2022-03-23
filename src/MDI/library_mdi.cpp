@@ -78,7 +78,7 @@ int MDI_Plugin_init_lammps()
   bool found_filename = false;
   while (iarg < mdi_argc && !found_filename) {
 
-    if ((strcmp(mdi_argv[iarg], "-in") == 0) || 
+    if ((strcmp(mdi_argv[iarg], "-in") == 0) ||
         (strcmp(mdi_argv[iarg], "-i") == 0)) {
 
       if (iarg + 2 > mdi_argc) MPI_Abort(MPI_COMM_WORLD, 1);
@@ -88,7 +88,7 @@ int MDI_Plugin_init_lammps()
       // remove -in argument from the command list
 
       mdi_argc -= 2;
-      for (int jarg = iarg; jarg < mdi_argc; jarg++) 
+      for (int jarg = iarg; jarg < mdi_argc; jarg++)
         mdi_argv[jarg] = mdi_argv[jarg + 2];
     }
     iarg++;

@@ -41,17 +41,17 @@ FixMDIAimd::FixMDIAimd(LAMMPS *lmp, int narg, char **arg) :
 
   // check requirements for LAMMPS to work with MDI as an engine
 
-  if (atom->tag_enable == 0) 
+  if (atom->tag_enable == 0)
     error->all(FLERR, "Cannot use MDI engine without atom IDs");
 
-  if (atom->natoms && atom->tag_consecutive() == 0) 
+  if (atom->natoms && atom->tag_consecutive() == 0)
     error->all(FLERR, "MDI engine requires consecutive atom IDs");
 
   // confirm LAMMPS is being run as a driver
-  
+
   int role;
   MDI_Get_role(&role);
-  if (role != MDI_DRIVER) 
+  if (role != MDI_DRIVER)
     error->all(FLERR,"Must invoke LAMMPS as an MDI driver to use fix mdi/aimd");
 
   // storage for all atoms
@@ -328,7 +328,7 @@ void FixMDIAimd::unit_conversions()
   lmp2mdi_pressure = 1.0;
 
   if (lmpunits == REAL) {
-    lmp2mdi_pressure = (kelvin_to_hartree / force->boltz) / 
+    lmp2mdi_pressure = (kelvin_to_hartree / force->boltz) /
       (angstrom_to_bohr * angstrom_to_bohr * angstrom_to_bohr) / force->nktv2p;
     mdi2lmp_pressure = 1.0 / lmp2mdi_pressure;
   } else if (lmpunits == METAL) {

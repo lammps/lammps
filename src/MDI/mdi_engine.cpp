@@ -174,6 +174,8 @@ void MDIEngine::mdi_engine(int narg, char **arg)
   MDI_Accept_communicator(&mdicomm);
   if (mdicomm <= 0) error->all(FLERR,"Unable to connect to MDI driver");
 
+  printf("ENG post accept MDI comm\n");
+
   // endless engine loop, responding to driver commands
 
   mode = DEFAULT;
@@ -235,6 +237,8 @@ void MDIEngine::engine_node(const char *node)
 {
   int ierr;
 
+  printf("ENG ENODE %s\n",node);
+
   // do not process commands if engine and driver request are not the same
 
   strncpy(node_engine,node,MDI_COMMAND_LENGTH);
@@ -249,8 +253,12 @@ void MDIEngine::engine_node(const char *node)
     // read the next command from the driver
     // all procs call this, but only proc 0 receives the command
 
+    printf("ENG PRE-RECV %d\n",mdicomm);
+
     ierr = MDI_Recv_command(mdicmd,mdicomm);
     if (ierr) error->all(FLERR,"MDI: Unable to receive command from driver");
+
+    printf("ENG POST-RECV %s\n",mdicmd);
 
     // broadcast command to the other MPI tasks
 

@@ -54,6 +54,8 @@ command-line argument, which must be provided by the MDI driver.
 
 int MDI_Plugin_init_lammps()
 {
+  printf("LMP PLUGIN init\n");
+
   // initialize MDI
 
   int mdi_argc;
@@ -68,6 +70,8 @@ int MDI_Plugin_init_lammps()
   if (MDI_MPI_get_world_comm(&mpi_world_comm)) MPI_Abort(MPI_COMM_WORLD, 1);
 
   // find the -in argument
+
+  printf("LMP PLUGIN init %d %s %s\n",mdi_argc,mdi_argv[0],mdi_argv[1]);
 
   int iarg = 0;
   char *filename;
@@ -92,6 +96,8 @@ int MDI_Plugin_init_lammps()
   if (!found_filename) MPI_Abort(MPI_COMM_WORLD, 1);
 
   // create and run a LAMMPS instance
+
+  printf("LMP PLUGIN init %d %s %s\n",mdi_argc,mdi_argv[0],mdi_argv[1]);
 
   void *lmp = nullptr;
   if (lammps_config_has_mpi_support() > 0)

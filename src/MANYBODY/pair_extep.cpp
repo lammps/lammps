@@ -674,7 +674,7 @@ void PairExTeP::read_file(char *file)
       }
     }
   }
-  
+
   MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
   MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
 

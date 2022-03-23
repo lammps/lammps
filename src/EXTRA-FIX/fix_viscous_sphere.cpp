@@ -118,13 +118,6 @@ void FixViscousSphere::init()
     if (respa_level >= 0) ilevel_respa = MIN(respa_level, max_respa);
   }
 
-  bool fflag = false;
-  for (auto ifix : modify->get_fix_list()) {
-    if (fflag && (comm->me == 0) && (ifix->setmask() & POST_FORCE))
-      error->warning(FLERR, "Fix {} alters forces after fix viscous/sphere", ifix->id);
-    if (ifix == this) fflag = true;
-  }
-
   if (scalestyle == VARIABLE) {
     int ivariable = input->variable->find(scalevarid);
     if (ivariable < 0)

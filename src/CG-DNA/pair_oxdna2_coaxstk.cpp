@@ -18,7 +18,6 @@
 #include "pair_oxdna2_coaxstk.h"
 
 #include "atom.h"
-#include "atom_vec_ellipsoid.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
@@ -102,7 +101,7 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
 {
 
   double delf[3],delta[3],deltb[3]; // force, torque increment;
-  double evdwl,fpair,finc,tpair,factor_lj;
+  double evdwl,finc,tpair,factor_lj;
   double v1tmp[3];
   double delr_ss[3],delr_ss_norm[3],rsq_ss,r_ss,rinv_ss;
   double delr_st[3],delr_st_norm[3],rsq_st,r_st,rinv_st;
@@ -118,9 +117,9 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
   double ra_cs[3],ra_cst[3];
   double rb_cs[3],rb_cst[3];
 
-  // quaternions and Cartesian unit vectors in lab frame
-  double *qa,ax[3],ay[3],az[3];
-  double *qb,bx[3],by[3],bz[3];
+  // Cartesian unit vectors in lab frame
+  double ax[3],az[3];
+  double bx[3],bz[3];
 
   double **x = atom->x;
   double **f = atom->f;
@@ -131,10 +130,6 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
   int newton_pair = force->newton_pair;
   int *alist,*blist,*numneigh,**firstneigh;
   double *special_lj = force->special_lj;
-
-  AtomVecEllipsoid *avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
-  int *ellipsoid = atom->ellipsoid;
 
   int a,b,ia,ib,anum,bnum,atype,btype;
 
@@ -149,6 +144,11 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  // n(x/z)_xtrct = extracted local unit vectors from oxdna_excv
+  int dim;
+  nx_xtrct = (double **) force->pair->extract("nx",dim);
+  nz_xtrct = (double **) force->pair->extract("nz",dim);
+
   // loop over pair interaction neighbors of my atoms
 
   for (ia = 0; ia < anum; ia++) {
@@ -156,8 +156,9 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
     a = alist[ia];
     atype = type[a];
 
-    qa=bonus[ellipsoid[a]].quat;
-    MathExtra::q_to_exyz(qa,ax,ay,az);
+    ax[0] = nx_xtrct[a][0];
+    ax[1] = nx_xtrct[a][1];
+    ax[2] = nx_xtrct[a][2];
 
     // vector COM a - stacking site a
     ra_cst[0] = d_cst*ax[0];
@@ -180,8 +181,9 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
 
       btype = type[b];
 
-      qb=bonus[ellipsoid[b]].quat;
-      MathExtra::q_to_exyz(qb,bx,by,bz);
+      bx[0] = nx_xtrct[b][0];
+      bx[1] = nx_xtrct[b][1];
+      bx[2] = nx_xtrct[b][2];
 
       // vector COM b - stacking site b
       rb_cst[0] = d_cst*bx[0];
@@ -231,6 +233,13 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
 
       // early rejection criterium
       if (f4f6t1) {
+
+      az[0] = nz_xtrct[a][0];
+      az[1] = nz_xtrct[a][1];
+      az[2] = nz_xtrct[a][2];
+      bz[0] = nz_xtrct[b][0];
+      bz[1] = nz_xtrct[b][1];
+      bz[2] = nz_xtrct[b][2];
 
       cost4 = MathExtra::dot3(az,bz);
       if (cost4 >  1.0) cost4 =  1.0;
@@ -306,9 +315,7 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
               DF4(theta6p, a_cxst6[atype][btype], theta_cxst6_0[atype][btype], dtheta_cxst6_ast[atype][btype],
               b_cxst6[atype][btype], dtheta_cxst6_c[atype][btype])*rsint;
 
-     // force, torque and virial contribution for forces between stacking sites
-
-      fpair = 0.0;
+      // force, torque and virial contribution for forces between stacking sites
 
       delf[0] = 0.0;
       delf[1] = 0.0;
@@ -324,7 +331,6 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
 
       // radial force
       finc  = -df2 * f4f6t1 * f4t4 * f4t5 * f4t6 * rinv_st * factor_lj;
-      fpair += finc;
 
       delf[0] += delr_st[0] * finc;
       delf[1] += delr_st[1] * finc;
@@ -334,7 +340,6 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
       if (theta5 && theta5p) {
 
         finc   = -f2 * f4f6t1 * f4t4 * df4t5 * f4t6 * rinv_st * factor_lj;
-        fpair += finc;
 
         delf[0] += (delr_st_norm[0]*cost5 - az[0]) * finc;
         delf[1] += (delr_st_norm[1]*cost5 - az[1]) * finc;
@@ -346,7 +351,6 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
       if (theta6 && theta6p) {
 
         finc   = -f2 * f4f6t1* f4t4 * f4t5 * df4t6 * rinv_st * factor_lj;
-        fpair += finc;
 
         delf[0] += (delr_st_norm[0]*cost6 - bz[0]) * finc;
         delf[1] += (delr_st_norm[1]*cost6 - bz[1]) * finc;

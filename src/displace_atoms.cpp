@@ -37,13 +37,14 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::DEG2RAD;
+using MathConst::MY_2PI;
 
 enum{MOVE,RAMP,RANDOM,ROTATE};
 
 /* ---------------------------------------------------------------------- */
 
-DisplaceAtoms::DisplaceAtoms(LAMMPS *lmp) : Command(lmp)
+DisplaceAtoms::DisplaceAtoms(LAMMPS *_lmp) : Command(_lmp)
 {
   mvec = nullptr;
 }
@@ -235,7 +236,7 @@ void DisplaceAtoms::command(int narg, char **arg)
     runit[1] = axis[1]/len;
     runit[2] = axis[2]/len;
 
-    double angle = MY_PI*theta/180.0;
+    double angle = DEG2RAD*theta;
     double cosine = cos(angle);
     double sine = sin(angle);
 

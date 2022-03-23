@@ -16,7 +16,7 @@ from dump import dump
 from xyz import xyz
 
 if len(sys.argv) != 8:
-  raise StandardError, "Syntax: dump2xyz.py dumpfile Nid Ntype Nx Ny Nz xyzfile"
+  sys.exit("Syntax: dump2xyz.py dumpfile Nid Ntype Nx Ny Nz xyzfile")
 
 dumpfile = sys.argv[1]
 nid = int(sys.argv[2])

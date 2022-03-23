@@ -41,11 +41,11 @@ template<class DeviceType>
 class FixNVEKokkos : public FixNVE {
  public:
   FixNVEKokkos(class LAMMPS *, int, char **);
-  ~FixNVEKokkos() {}
+
   void cleanup_copy();
-  void init();
-  void initial_integrate(int);
-  void final_integrate();
+  void init() override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
 
   KOKKOS_INLINE_FUNCTION
   void initial_integrate_item(int) const;

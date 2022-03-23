@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class ComputeMSD : public Compute {
  public:
   ComputeMSD(class LAMMPS *, int, char **);
-  virtual ~ComputeMSD();
-  void init();
-  virtual void compute_vector();
-  void set_arrays(int);
+  ~ComputeMSD() override;
+  void init() override;
+  void compute_vector() override;
+  void set_arrays(int) override;
 
  protected:
   int comflag;     // comflag = 1 if reference moves with center of mass

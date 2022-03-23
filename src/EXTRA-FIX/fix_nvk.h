@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class FixNVK : public Fix {
  public:
   FixNVK(class LAMMPS *, int, char **);
-  virtual ~FixNVK() {}
-  int setmask();
-  virtual void init();
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
-  virtual void initial_integrate_respa(int, int, int);
-  virtual void final_integrate_respa(int, int);
-  virtual void reset_dt();
+
+  int setmask() override;
+  void init() override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  void initial_integrate_respa(int, int, int) override;
+  void final_integrate_respa(int, int) override;
+  void reset_dt() override;
 
  protected:
   double dtv, dtf;

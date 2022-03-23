@@ -40,7 +40,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::DEG2RAD;
 
 #define BIG 1.0e20
 
@@ -228,18 +228,15 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       if (utils::strmatch(arg[iarg+1],"^v_")) {
         thetastr = utils::strdup(arg[iarg+1]+2);
       } else {
-        double theta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        const double theta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         if (theta < 0.0 || theta > 180.0)
           error->all(FLERR,"Invalid dump image theta value");
-        theta *= MY_PI/180.0;
-        image->theta = theta;
+        image->theta = DEG2RAD * theta;
       }
       if (utils::strmatch(arg[iarg+2],"^v_")) {
         phistr = utils::strdup(arg[iarg+2]+2);
       } else {
-        double phi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-        phi *= MY_PI/180.0;
-        image->phi = phi;
+        image->phi = DEG2RAD * utils::numeric(FLERR,arg[iarg+2],false,lmp);
       }
       iarg += 3;
 
@@ -354,9 +351,9 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   if (lineflag || triflag || bodyflag) extraflag = 1;
 
   if (fixflag) {
-    int ifix = modify->find_fix(fixID);
-    if (ifix < 0) error->all(FLERR,"Fix ID for dump image does not exist");
-    fixptr = modify->fix[ifix];
+    fixptr = modify->get_fix_by_id(fixID);
+    if (!fixptr) error->all(FLERR,"Fix ID {} for dump image does not exist", fixID);
+
   }
 
   // allocate image buffer now that image size is known
@@ -652,18 +649,13 @@ void DumpImage::view_params()
   // view direction theta and phi
 
   if (thetastr) {
-    double theta = input->variable->compute_equal(thetavar);
+    const double theta = input->variable->compute_equal(thetavar);
     if (theta < 0.0 || theta > 180.0)
       error->all(FLERR,"Invalid dump image theta value");
-    theta *= MY_PI/180.0;
-    image->theta = theta;
+    image->theta = DEG2RAD * theta;
   }
 
-  if (phistr) {
-    double phi = input->variable->compute_equal(phivar);
-    phi *= MY_PI/180.0;
-    image->phi = phi;
-  }
+  if (phistr) image->phi = DEG2RAD * input->variable->compute_equal(phivar);
 
   // up vector
 
@@ -898,7 +890,7 @@ void DumpImage::create_image()
       }
     }
 
-    comm->forward_comm_dump(this);
+    comm->forward_comm(this);
 
     for (i = 0; i < nchoose; i++) {
       atom1 = clist[i];
@@ -1200,10 +1192,10 @@ int DumpImage::modify_param(int narg, char **arg)
     utils::bounds(FLERR,arg[1],1,atom->ntypes,nlo,nhi,error);
 
     // get list of colors
+    // assign colors in round-robin fashion to types
+
     auto colors = Tokenizer(arg[2],"/").as_vector();
     const int ncolors = colors.size();
-
-    // assign colors in round-robin fashion to types
 
     int m = 0;
     for (int i = nlo; i <= nhi; i++) {
@@ -1249,32 +1241,19 @@ int DumpImage::modify_param(int narg, char **arg)
     int nlo,nhi;
     utils::bounds(FLERR,arg[1],1,atom->nbondtypes,nlo,nhi,error);
 
-    // ptrs = list of ncount colornames separated by '/'
+    // process list of ncount colornames separated by '/'
+    // assign colors in round-robin fashion to bond types
 
-    int ncount = 1;
-    char *nextptr;
-    char *ptr = arg[2];
-    while ((nextptr = strchr(ptr,'/'))) {
-      ptr = nextptr + 1;
-      ncount++;
-    }
-    char **ptrs = new char*[ncount+1];
-    ncount = 0;
-    ptrs[ncount++] = strtok(arg[2],"/");
-    while ((ptrs[ncount++] = strtok(nullptr,"/")));
-    ncount--;
-
-    // assign each of ncount colors in round-robin fashion to types
+    auto colors = Tokenizer(arg[2],"/").as_vector();
+    const int ncolors = colors.size();
 
     int m = 0;
     for (int i = nlo; i <= nhi; i++) {
-      bcolortype[i] = image->color2rgb(ptrs[m%ncount]);
+      bcolortype[i] = image->color2rgb(colors[m%ncolors].c_str());
       if (bcolortype[i] == nullptr)
         error->all(FLERR,"Invalid color in dump_modify command");
       m++;
     }
-
-    delete [] ptrs;
     return 3;
   }
 

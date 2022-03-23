@@ -34,10 +34,9 @@ class FixEventHyper : public FixEvent {
   int ncoincident;          // # of simultaneous events on different replicas
 
   FixEventHyper(class LAMMPS *, int, char **);
-  ~FixEventHyper() {}
 
-  void write_restart(FILE *);
-  void restart(char *);
+  void write_restart(FILE *) override;
+  void restart(char *) override;
 
   // methods specific to FixEventHyper, invoked by hyper
 

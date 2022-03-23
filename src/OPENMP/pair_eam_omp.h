@@ -34,8 +34,8 @@ class PairEAMOMP : public PairEAM, public ThrOMP {
  public:
   PairEAMOMP(class LAMMPS *);
 
-  virtual void compute(int, int);
-  virtual double memory_usage();
+  void compute(int, int) override;
+  double memory_usage() override;
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>

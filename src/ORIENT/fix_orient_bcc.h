@@ -44,17 +44,17 @@ class FixOrientBCC : public Fix {
   };
 
   FixOrientBCC(class LAMMPS *, int, char **);
-  ~FixOrientBCC();
-  int setmask();
-  void init();
-  void init_list(int, class NeighList *);
-  void setup(int);
-  void post_force(int);
-  void post_force_respa(int, int, int);
-  double compute_scalar();
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  double memory_usage();
+  ~FixOrientBCC() override;
+  int setmask() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  double compute_scalar() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  double memory_usage() override;
 
  private:
   int me;
@@ -69,9 +69,9 @@ class FixOrientBCC : public Fix {
   char *xifilename, *chifilename;    // file names for 2 crystal orientations
 
   bool use_xismooth;
-  double Rxi[8][3], Rchi[8][3], half_xi_chi_vec[2][4][3];
+  static constexpr int half_bcc_nn = 4;
+  double Rxi[half_bcc_nn][3] = {}, Rchi[half_bcc_nn][3] = {}, half_xi_chi_vec[2][half_bcc_nn][3] = {};
   double xiid, xi0, xi1, xicutoffsq, cutsq, added_energy;
-  int half_bcc_nn;
 
   int nmax;          // expose 2 per-atom quantities
   double **order;    // order param and normalized order param

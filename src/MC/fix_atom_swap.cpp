@@ -378,7 +378,7 @@ int FixAtomSwap::attempt_semi_grand()
     if (modify->n_pre_neighbor) modify->pre_neighbor();
     neighbor->build(1);
   } else {
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
   }
 
   // post-swap energy
@@ -464,7 +464,7 @@ int FixAtomSwap::attempt_swap()
     if (modify->n_pre_neighbor) modify->pre_neighbor();
     neighbor->build(1);
   } else {
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
   }
 
   // post-swap energy

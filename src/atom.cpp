@@ -30,6 +30,7 @@
 #include "modify.h"
 #include "molecule.h"
 #include "neighbor.h"
+#include "tokenizer.h"
 #include "update.h"
 #include "variable.h"
 
@@ -37,10 +38,6 @@
 
 #include <algorithm>
 #include <cstring>
-
-#ifdef LMP_INTEL
-#include "neigh_request.h"
-#endif
 
 #ifdef LMP_GPU
 #include "fix_gpu.h"
@@ -54,6 +51,15 @@ using namespace MathConst;
 #define DELTA_PERATOM 64
 #define EPSILON 1.0e-6
 #define MAXLINE 256
+
+/* ----------------------------------------------------------------------
+   one instance per AtomVec style in style_atom.h
+------------------------------------------------------------------------- */
+
+template <typename T> static AtomVec *avec_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -755,16 +761,6 @@ AtomVec *Atom::new_avec(const std::string &style, int trysuffix, int &sflag)
   return nullptr;
 }
 
-/* ----------------------------------------------------------------------
-   one instance per AtomVec style in style_atom.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-AtomVec *Atom::avec_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
-}
-
 /* ---------------------------------------------------------------------- */
 
 void Atom::init()
@@ -898,10 +894,10 @@ void Atom::tag_check()
   MPI_Allreduce(&min,&minall,1,MPI_LMP_TAGINT,MPI_MIN,world);
   MPI_Allreduce(&max,&maxall,1,MPI_LMP_TAGINT,MPI_MAX,world);
 
-  if (minall < 0) error->all(FLERR,"One or more Atom IDs is negative");
-  if (maxall >= MAXTAGINT) error->all(FLERR,"One or more atom IDs is too big");
+  if (minall < 0) error->all(FLERR,"One or more Atom IDs are negative");
+  if (maxall >= MAXTAGINT) error->all(FLERR,"One or more atom IDs are too big");
   if (maxall > 0 && minall == 0)
-    error->all(FLERR,"One or more atom IDs is zero");
+    error->all(FLERR,"One or more atom IDs are zero");
   if (maxall > 0 && tag_enable == 0)
     error->all(FLERR,"Non-zero atom IDs with atom_modify id = no");
   if (maxall == 0 && natoms && tag_enable)
@@ -1065,13 +1061,14 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
                       int type_offset, int shiftflag, double *shift,
                       int labelflag, int *ilabel)
 {
-  int m,xptr,iptr;
+  int xptr,iptr;
   imageint imagedata;
   double xdata[3],lamda[3];
   double *coord;
   char *next;
   std::string typestr;
 
+  // use the first line to detect and validate the number of words/tokens per line
   next = strchr(buf,'\n');
   *next = '\0';
   int nwords = utils::trim_and_count_words(buf);
@@ -1079,8 +1076,6 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 
   if (nwords != avec->size_data_atom && nwords != avec->size_data_atom + 3)
     error->all(FLERR,"Incorrect atom format in data file");
-
-  char **values = new char*[nwords];
 
   // set bounds for my proc
   // if periodic and I am lo/hi proc, adjust bounds by EPSILON
@@ -1152,15 +1147,10 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
-
-    for (m = 0; m < nwords; m++) {
-      buf += strspn(buf," \t\n\r\f");
-      buf[strcspn(buf," \t\n\r\f")] = '\0';
-      if (strlen(buf) == 0)
-        error->all(FLERR,"Incorrect atom format in data file");
-      values[m] = buf;
-      buf += strlen(buf)+1;
-    }
+    *next = '\0';
+    auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
+    if ((int)values.size() != nwords)
+      error->all(FLERR, "Incorrect atom format in data file: {}", utils::trim(buf));
 
     int imx = 0, imy = 0, imz = 0;
     if (imageflag) {
@@ -1213,7 +1203,6 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 
     buf = next + 1;
   }
-  delete [] values;
 }
 
 /* ----------------------------------------------------------------------
@@ -1224,8 +1213,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 
 void Atom::data_vels(int n, char *buf, tagint id_offset)
 {
-  int j,m;
-  tagint tagdata;
+  int m;
   char *next;
 
   next = strchr(buf,'\n');
@@ -1236,31 +1224,24 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
   if (nwords != avec->size_data_vel)
     error->all(FLERR,"Incorrect velocity format in data file");
 
-  char **values = new char*[nwords];
-
   // loop over lines of atom velocities
   // tokenize the line into values
   // if I own atom tag, unpack its values
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
+    *next = '\0';
+    auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
+    if ((int)values.size() != nwords)
+      error->all(FLERR, "Incorrect atom format in data file: {}", utils::trim(buf));
 
-    for (j = 0; j < nwords; j++) {
-      buf += strspn(buf," \t\n\r\f");
-      buf[strcspn(buf," \t\n\r\f")] = '\0';
-      values[j] = buf;
-      buf += strlen(buf)+1;
-    }
-
-    tagdata = ATOTAGINT(values[0]) + id_offset;
+    tagint tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
     if (tagdata <= 0 || tagdata > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Velocities section of data file");
-    if ((m = map(tagdata)) >= 0) avec->data_vel(m,&values[1]);
+    if ((m = map(tagdata)) >= 0) avec->data_vel(m,values);
 
     buf = next + 1;
   }
-
-  delete [] values;
 }
 
 /* ----------------------------------------------------------------------
@@ -1273,40 +1254,45 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
 void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
                       int type_offset, int labelflag, int *ilabel)
 {
-  int m,tmp,itype,rv;
+  int m,itype;
   tagint atom1,atom2;
   char *next;
-  char typechar[MAXLINE];
   std::string typestr;
   int newton_bond = force->newton_bond;
+  auto location = "Bonds section of data file";
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    rv = sscanf(buf,"%d %s " TAGINT_FORMAT " " TAGINT_FORMAT,
-                &tmp,typechar,&atom1,&atom2);
-    if (rv != 4)
-      error->one(FLERR,"Incorrect format of Bonds section in data file");
+    try {
+      ValueTokenizer values(utils::trim_comment(buf));
+      values.next_int();
+      typestr = values.next_string();
+      atom1 = values.next_tagint();
+      atom2 = values.next_tagint();
+      if (values.has_next()) throw TokenizerException("Too many tokens","");
+    } catch (TokenizerException &e) {
+      error->one(FLERR,"{} in {}: {}", e.what(), location, utils::trim(buf));
+    }
     if (id_offset) {
       atom1 += id_offset;
       atom2 += id_offset;
     }
-    typestr = typechar;
     if (!isdigit(typestr[0])) {
       if (!atom->labelmapflag) error->one(FLERR,"Invalid Bonds section in data file");
       itype = find_label(typestr,Atom::BOND);
       if (itype == -1) error->one(FLERR,"Invalid Bonds section in data file");
     } else {
-      itype = utils::inumeric(FLERR,typechar,true,lmp);
+      itype = utils::inumeric(FLERR,typestr,true,lmp);
       if (labelflag) itype = ilabel[itype-1];
     }
     itype += type_offset;
 
     if ((atom1 <= 0) || (atom1 > map_tag_max) ||
         (atom2 <= 0) || (atom2 > map_tag_max) || (atom1 == atom2))
-      error->one(FLERR,"Invalid atom ID in Bonds section of data file");
+      error->one(FLERR,"Invalid atom ID in {}: {}", location, utils::trim(buf));
     if (itype <= 0 || itype > nbondtypes)
-      error->one(FLERR,"Invalid bond type in Bonds section of data file");
+      error->one(FLERR,"Invalid bond type in {}: {}", location, utils::trim(buf));
     if ((m = map(atom1)) >= 0) {
       if (count) count[m]++;
       else {
@@ -1341,32 +1327,38 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
 void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
                        int type_offset, int labelflag, int *ilabel)
 {
-  int m,tmp,itype,rv;
+  int m,itype;
   tagint atom1,atom2,atom3;
   char *next;
-  char typechar[MAXLINE];
   std::string typestr;
   int newton_bond = force->newton_bond;
+  auto location = "Angles section of data file";
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    rv = sscanf(buf,"%d %s " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
-                &tmp,typechar,&atom1,&atom2,&atom3);
-    if (rv != 5)
-      error->one(FLERR,"Incorrect format of Angles section in data file");
+    try {
+      ValueTokenizer values(utils::trim_comment(buf));
+      values.next_int();
+      typestr = values.next_string();
+      atom1 = values.next_tagint();
+      atom2 = values.next_tagint();
+      atom3 = values.next_tagint();
+      if (values.has_next()) throw TokenizerException("Too many tokens","");
+    } catch (TokenizerException &e) {
+      error->one(FLERR,"{} in {}: {}", e.what(), location, utils::trim(buf));
+    }
     if (id_offset) {
       atom1 += id_offset;
       atom2 += id_offset;
       atom3 += id_offset;
     }
-    typestr = typechar;
     if (!isdigit(typestr[0])) {
       if (!atom->labelmapflag) error->one(FLERR,"Invalid Angles section in data file");
       itype = find_label(typestr,Atom::ANGLE);
       if (itype == -1) error->one(FLERR,"Invalid Angles section in data file");
     } else {
-      itype = utils::inumeric(FLERR,typechar,true,lmp);
+      itype = utils::inumeric(FLERR,typestr,true,lmp);
       if (labelflag) itype = ilabel[itype-1];
     }
     itype += type_offset;
@@ -1375,9 +1367,9 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
         (atom2 <= 0) || (atom2 > map_tag_max) ||
         (atom3 <= 0) || (atom3 > map_tag_max) ||
         (atom1 == atom2) || (atom1 == atom3) || (atom2 == atom3))
-      error->one(FLERR,"Invalid atom ID in Angles section of data file");
+      error->one(FLERR,"Invalid atom ID in {}: {}", location, utils::trim(buf));
     if (itype <= 0 || itype > nangletypes)
-      error->one(FLERR,"Invalid angle type in Angles section of data file");
+      error->one(FLERR,"Invalid angle type in {}: {}", location, utils::trim(buf));
     if ((m = map(atom2)) >= 0) {
       if (count) count[m]++;
       else {
@@ -1424,34 +1416,40 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
 void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
                           int type_offset, int labelflag, int *ilabel)
 {
-  int m,tmp,itype,rv;
+  int m,itype;
   tagint atom1,atom2,atom3,atom4;
   char *next;
-  char typechar[MAXLINE];
   std::string typestr;
   int newton_bond = force->newton_bond;
+  auto location = "Dihedrals section of data file";
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    rv = sscanf(buf,"%d %s " TAGINT_FORMAT " " TAGINT_FORMAT
-                " " TAGINT_FORMAT " " TAGINT_FORMAT,
-                &tmp,typechar,&atom1,&atom2,&atom3,&atom4);
-    if (rv != 6)
-      error->one(FLERR,"Incorrect format of Dihedrals section in data file");
+    try {
+      ValueTokenizer values(utils::trim_comment(buf));
+      values.next_int();
+      typestr = values.next_string();
+      atom1 = values.next_tagint();
+      atom2 = values.next_tagint();
+      atom3 = values.next_tagint();
+      atom4 = values.next_tagint();
+      if (values.has_next()) throw TokenizerException("Too many tokens","");
+    } catch (TokenizerException &e) {
+      error->one(FLERR,"{} in {}: {}", e.what(), location, utils::trim(buf));
+    }
     if (id_offset) {
       atom1 += id_offset;
       atom2 += id_offset;
       atom3 += id_offset;
       atom4 += id_offset;
     }
-    typestr = typechar;
     if (!isdigit(typestr[0])) {
       if (!atom->labelmapflag) error->one(FLERR,"Invalid Dihedrals section in data file");
       itype = find_label(typestr,Atom::DIHEDRAL);
       if (itype == -1) error->one(FLERR,"Invalid Dihedrals section in data file");
     } else {
-      itype = utils::inumeric(FLERR,typechar,true,lmp);
+      itype = utils::inumeric(FLERR,typestr,true,lmp);
       if (labelflag) itype = ilabel[itype-1];
     }
     itype += type_offset;
@@ -1462,10 +1460,9 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
         (atom4 <= 0) || (atom4 > map_tag_max) ||
         (atom1 == atom2) || (atom1 == atom3) || (atom1 == atom4) ||
         (atom2 == atom3) || (atom2 == atom4) || (atom3 == atom4))
-      error->one(FLERR,"Invalid atom ID in Dihedrals section of data file");
+      error->one(FLERR, "Invalid atom ID in {}: {}", location, utils::trim(buf));
     if (itype <= 0 || itype > ndihedraltypes)
-      error->one(FLERR,
-                 "Invalid dihedral type in Dihedrals section of data file");
+      error->one(FLERR, "Invalid dihedral type in {}: {}", location, utils::trim(buf));
     if ((m = map(atom2)) >= 0) {
       if (count) count[m]++;
       else {
@@ -1526,34 +1523,40 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
 void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
                           int type_offset, int labelflag, int *ilabel)
 {
-  int m,tmp,itype,rv;
+  int m,itype;
   tagint atom1,atom2,atom3,atom4;
   char *next;
-  char typechar[MAXLINE];
   std::string typestr;
   int newton_bond = force->newton_bond;
+  auto location = "Impropers section of data file";
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    rv = sscanf(buf,"%d %s "
-                TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
-                &tmp,typechar,&atom1,&atom2,&atom3,&atom4);
-    if (rv != 6)
-      error->one(FLERR,"Incorrect format of Impropers section in data file");
+    try {
+      ValueTokenizer values(utils::trim_comment(buf));
+      values.next_int();
+      typestr = values.next_string();
+      atom1 = values.next_tagint();
+      atom2 = values.next_tagint();
+      atom3 = values.next_tagint();
+      atom4 = values.next_tagint();
+      if (values.has_next()) throw TokenizerException("Too many tokens","");
+    } catch (TokenizerException &e) {
+      error->one(FLERR,"{} in {}: {}", e.what(), location, utils::trim(buf));
+    }
     if (id_offset) {
       atom1 += id_offset;
       atom2 += id_offset;
       atom3 += id_offset;
       atom4 += id_offset;
     }
-    typestr = typechar;
     if (!isdigit(typestr[0])) {
       if (!atom->labelmapflag) error->one(FLERR,"Invalid Impropers section in data file");
       itype = find_label(typestr,Atom::IMPROPER);
       if (itype == -1) error->one(FLERR,"Invalid Impropers section in data file");
     } else {
-      itype = utils::inumeric(FLERR,typechar,true,lmp);
+      itype = utils::inumeric(FLERR,typestr,true,lmp);
       if (labelflag) itype = ilabel[itype-1];
     }
     itype += type_offset;
@@ -1564,10 +1567,9 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
         (atom4 <= 0) || (atom4 > map_tag_max) ||
         (atom1 == atom2) || (atom1 == atom3) || (atom1 == atom4) ||
         (atom2 == atom3) || (atom2 == atom4) || (atom3 == atom4))
-      error->one(FLERR,"Invalid atom ID in Impropers section of data file");
+      error->one(FLERR, "Invalid atom ID in {}: {}", location, utils::trim(buf));
     if (itype <= 0 || itype > nimpropertypes)
-      error->one(FLERR,
-                 "Invalid improper type in Impropers section of data file");
+      error->one(FLERR, "Invalid improper type in {}: {}", location, utils::trim(buf));
     if ((m = map(atom2)) >= 0) {
       if (count) count[m]++;
       else {
@@ -1626,7 +1628,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
 
 void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
 {
-  int j,m,tagdata;
+  int m;
   char *next;
 
   next = strchr(buf,'\n');
@@ -1637,35 +1639,28 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
   if (nwords != avec_bonus->size_data_bonus)
     error->all(FLERR,"Incorrect bonus data format in data file");
 
-  char **values = new char*[nwords];
-
   // loop over lines of bonus atom data
   // tokenize the line into values
   // if I own atom tag, unpack its values
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
+    *next = '\0';
+    auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
+    if ((int)values.size() != nwords)
+      error->all(FLERR, "Incorrect atom format in data file: {}", utils::trim(buf));
 
-    for (j = 0; j < nwords; j++) {
-      buf += strspn(buf," \t\n\r\f");
-      buf[strcspn(buf," \t\n\r\f")] = '\0';
-      values[j] = buf;
-      buf += strlen(buf)+1;
-    }
-
-    tagdata = ATOTAGINT(values[0]) + id_offset;
+    tagint tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
     if (tagdata <= 0 || tagdata > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Bonus section of data file");
 
     // ok to call child's data_atom_bonus() method thru parent avec_bonus,
     // since data_bonus() was called with child ptr, and method is virtual
 
-    if ((m = map(tagdata)) >= 0) avec_bonus->data_atom_bonus(m,&values[1]);
+    if ((m = map(tagdata)) >= 0) avec_bonus->data_atom_bonus(m,values);
 
     buf = next + 1;
   }
-
-  delete [] values;
 }
 
 /* ----------------------------------------------------------------------
@@ -1677,12 +1672,8 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
 
 void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
 {
-  int j,m,nvalues,tagdata,ninteger,ndouble;
-
-  int maxint = 0;
-  int maxdouble = 0;
-  int *ivalues = nullptr;
-  double *dvalues = nullptr;
+  std::vector<int> ivalues;
+  std::vector<double> dvalues;
 
   if (!unique_tags) unique_tags = new std::set<tagint>;
 
@@ -1691,69 +1682,51 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
   // else skip values
 
   for (int i = 0; i < n; i++) {
-    buf += strspn(buf," \t\n\r\f");
-    buf[strcspn(buf," \t\n\r\f")] = '\0';
-    tagdata = utils::tnumeric(FLERR,buf,false,lmp) + id_offset;
-    buf += strlen(buf)+1;
+    char *next = strchr(buf,'\n');
+    *next = '\0';
 
-    if (tagdata <= 0 || tagdata > map_tag_max)
-      error->one(FLERR,"Invalid atom ID in Bodies section of data file");
+    auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
+    tagint tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
+    int ninteger = utils::inumeric(FLERR,values[1],false,lmp);
+    int ndouble = utils::inumeric(FLERR,values[2],false,lmp);
 
     if (unique_tags->find(tagdata) == unique_tags->end())
       unique_tags->insert(tagdata);
     else
       error->one(FLERR,"Duplicate atom ID in Bodies section of data file");
 
-    buf += strspn(buf," \t\n\r\f");
-    buf[strcspn(buf," \t\n\r\f")] = '\0';
-    ninteger = utils::inumeric(FLERR,buf,false,lmp);
-    buf += strlen(buf)+1;
+    buf = next + 1;
+    int m = map(tagdata);
+    if (m >= 0) {
+      ivalues.resize(ninteger);
+      dvalues.resize(ndouble);
 
-    buf += strspn(buf," \t\n\r\f");
-    buf[strcspn(buf," \t\n\r\f")] = '\0';
-    ndouble = utils::inumeric(FLERR,buf,false,lmp);
-    buf += strlen(buf)+1;
-
-    if ((m = map(tagdata)) >= 0) {
-      if (ninteger > maxint) {
-        delete [] ivalues;
-        maxint = ninteger;
-        ivalues = new int[maxint];
-      }
-      if (ndouble > maxdouble) {
-        delete [] dvalues;
-        maxdouble = ndouble;
-        dvalues = new double[maxdouble];
-      }
-
-      for (j = 0; j < ninteger; j++) {
+      for (int j = 0; j < ninteger; j++) {
         buf += strspn(buf," \t\n\r\f");
         buf[strcspn(buf," \t\n\r\f")] = '\0';
         ivalues[j] = utils::inumeric(FLERR,buf,false,lmp);
         buf += strlen(buf)+1;
       }
 
-      for (j = 0; j < ndouble; j++) {
+      for (int j = 0; j < ndouble; j++) {
         buf += strspn(buf," \t\n\r\f");
         buf[strcspn(buf," \t\n\r\f")] = '\0';
         dvalues[j] = utils::numeric(FLERR,buf,false,lmp);
         buf += strlen(buf)+1;
       }
 
-      avec_body->data_body(m,ninteger,ndouble,ivalues,dvalues);
+      avec_body->data_body(m,ninteger,ndouble,ivalues.data(),dvalues.data());
 
     } else {
-      nvalues = ninteger + ndouble;    // number of values to skip
-      for (j = 0; j < nvalues; j++) {
+      int nvalues = ninteger + ndouble;    // number of values to skip
+      for (int j = 0; j < nvalues; j++) {
         buf += strspn(buf," \t\n\r\f");
         buf[strcspn(buf," \t\n\r\f")] = '\0';
         buf += strlen(buf)+1;
       }
     }
+    buf += strspn(buf," \t\n\r\f");
   }
-
-  delete [] ivalues;
-  delete [] dvalues;
 }
 
 /* ----------------------------------------------------------------------
@@ -1809,18 +1782,22 @@ void Atom::set_mass(const char *file, int line, const char *str, int type_offset
 
   int itype;
   double mass_one;
-  int n = sscanf(str,"%d %lg",&itype,&mass_one);
-  if (n != 2) error->all(file,line,"Invalid mass line in data file");
-  if (labelflag) itype = ilabel[itype-1];
-  itype += type_offset;
+  try {
+    ValueTokenizer values(utils::trim_comment(str));
+    itype = values.next_int();
+    if (labelflag) itype = ilabel[itype-1];
+    itype += type_offset;
+    mass_one = values.next_double();
+    if (values.has_next()) throw TokenizerException("Too many tokens", "");
 
-  if (itype < 1 || itype > ntypes)
-    error->all(file,line,"Invalid type for mass set");
+    if (itype < 1 || itype > ntypes) throw TokenizerException("Invalid atom type", "");
+    if (mass_one <= 0.0) throw TokenizerException("Invalid mass value", "");
+  } catch (TokenizerException &e) {
+    error->all(file,line,"{} in Masses section of data file: {}", e.what(), utils::trim(str));
+  }
 
   mass[itype] = mass_one;
   mass_setflag[itype] = 1;
-
-  if (mass[itype] <= 0.0) error->all(file,line,"Invalid mass value");
 }
 
 /* ----------------------------------------------------------------------
@@ -2320,12 +2297,7 @@ void Atom::setup_sort_bins()
   bininvz = nbinz / (bboxhi[2]-bboxlo[2]);
 
 #ifdef LMP_INTEL
-  int intel_neigh = 0;
-  if (neighbor->nrequest) {
-    if (neighbor->requests[0]->intel) intel_neigh = 1;
-  } else if (neighbor->old_nrequest)
-    if (neighbor->old_requests[0]->intel) intel_neigh = 1;
-  if (intel_neigh && userbinsize == 0.0) {
+  if (neighbor->has_intel_request() && userbinsize == 0.0) {
     if (neighbor->binsizeflag) bininv = 1.0/neighbor->binsize_user;
 
     double nx_low = neighbor->bboxlo[0];

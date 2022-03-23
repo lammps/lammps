@@ -444,8 +444,15 @@ doc page for more info.
 Do not set "neigh_modify once yes" or else this fix will never be
 called.  Reneighboring is required.
 
+Only usable for 3D simulations.
+
 Can be run in parallel, but aspects of the GCMC part will not scale
-well in parallel. Only usable for 3D simulations.
+well in parallel. Currently, molecule translations and rotations
+are not supported with more than one MPI process.
+It is still possible to do parallel molecule exchange without
+translation and rotation moves by setting MC moves to zero
+and/or by using the *mcmoves* keyword with *Pmoltrans* = *Pmolrotate* = 0 .
+
 
 When using fix gcmc in combination with fix shake or fix rigid,
 only GCMC exchange moves are supported, so the argument

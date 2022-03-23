@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class PairTableRX : public PairTable {
  public:
   PairTableRX(class LAMMPS *);
-  virtual ~PairTableRX();
+  ~PairTableRX() override;
 
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  virtual double single(int, int, int, int, double, double, double, double &);
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double single(int, int, int, int, double, double, double, double &) override;
 
  protected:
   int nspecies;

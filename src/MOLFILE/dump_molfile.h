@@ -29,8 +29,8 @@ namespace LAMMPS_NS {
 class DumpMolfile : public Dump {
  public:
   DumpMolfile(LAMMPS *, int, char **);
-  virtual ~DumpMolfile();
-  virtual void write();
+  ~DumpMolfile() override;
+  void write() override;
 
  protected:
   class MolfileInterface *mf;    //< handles low-level I/O
@@ -46,13 +46,13 @@ class DumpMolfile : public Dump {
   int topology_flag;    // 1 if writing topology data, 0 if not
   float cell[6];        // cell parameters: A, B, C, alpha, beta, gamma
 
-  virtual void init_style();
-  virtual int modify_param(int, char **);
-  virtual void write_header(bigint){};
-  virtual void pack(tagint *);
-  virtual void write_data(int, double *);
-  virtual double memory_usage();
-  virtual void openfile();
+  void init_style() override;
+  int modify_param(int, char **) override;
+  void write_header(bigint) override{};
+  void pack(tagint *) override;
+  void write_data(int, double *) override;
+  double memory_usage() override;
+  void openfile() override;
 };
 
 }    // namespace LAMMPS_NS

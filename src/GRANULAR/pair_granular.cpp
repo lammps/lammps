@@ -209,7 +209,7 @@ void PairGranular::compute(int eflag, int vflag)
     for (i = 0; i < nlocal; i++)
       if (body[i] >= 0) mass_rigid[i] = mass_body[body[i]];
       else mass_rigid[i] = 0.0;
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
   }
 
   double **x = atom->x;
@@ -1110,9 +1110,8 @@ void PairGranular::init_style()
         break;
       }
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->size = 1;
-  if (use_history) neighbor->requests[irequest]->history = 1;
+  if (use_history) neighbor->add_request(this, NeighConst::REQ_SIZE|NeighConst::REQ_HISTORY);
+  else neighbor->add_request(this, NeighConst::REQ_SIZE);
 
   dt = update->dt;
 

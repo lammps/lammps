@@ -59,6 +59,7 @@ From: nvidia/cuda:11.4.2-devel-ubuntu18.04
         python3-pkg-resources \
         python3-setuptools \
         python3-virtualenv \
+        python3-venv \
         rsync \
         ssh \
         vim-nox \

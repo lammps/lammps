@@ -134,7 +134,7 @@ void FixQEQCombOMP::post_force(int /* vflag */)
         q[i]  += q1[i];
       }
     }
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
 
     if (comb) enegtot = comb->yasu_char(qf,igroup);
     enegtot /= ngroup;

@@ -40,7 +40,9 @@
 #endif
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::DEG2RAD;
+using MathConst::MY_PI;
+using MathConst::MY_PI4;
 
 #define NCOLORS 140
 #define NELEMENTS 109
@@ -61,8 +63,8 @@ Image::Image(LAMMPS *lmp, int nmap_caller) : Pointers(lmp)
   // defaults for 3d viz
 
   width = height = 512;
-  theta = 60.0 * MY_PI/180.0;
-  phi = 30.0 * MY_PI/180.0;
+  theta = 60.0 * DEG2RAD;
+  phi = 30.0 * DEG2RAD;
   zoom = 1.0;
   persp = 0.0;
   shiny = 1.0;

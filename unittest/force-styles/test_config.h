@@ -16,6 +16,7 @@
 
 #include <set>
 #include <string>
+#include <sstream>
 #include <utility>
 #include <vector>
 
@@ -37,6 +38,7 @@ public:
     std::vector<std::pair<std::string, std::string>> prerequisites;
     std::vector<std::string> pre_commands;
     std::vector<std::string> post_commands;
+    std::vector<std::string> tags;
     std::string input_file;
     std::string pair_style;
     std::string bond_style;
@@ -95,6 +97,19 @@ public:
         global_vector.clear();
     }
     virtual ~TestConfig(){};
+
+    std::string tags_line() const
+    {
+      if(tags.size() > 0) {
+          std::stringstream line;
+          line << tags[0];
+          for(size_t i = 1; i < tags.size(); i++) {
+            line << ", " << tags[i];
+          }
+          return line.str();
+      }
+      return "generated";
+    }
 
 private:
     TestConfig(const TestConfig &){};

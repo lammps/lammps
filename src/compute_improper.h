@@ -27,9 +27,9 @@ namespace LAMMPS_NS {
 class ComputeImproper : public Compute {
  public:
   ComputeImproper(class LAMMPS *, int, char **);
-  ~ComputeImproper();
-  void init();
-  void compute_vector();
+  ~ComputeImproper() override;
+  void init() override;
+  void compute_vector() override;
 
  private:
   int nsub;

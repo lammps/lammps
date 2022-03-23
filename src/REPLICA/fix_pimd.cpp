@@ -502,7 +502,7 @@ void FixPIMD::nmpimd_init()
 void FixPIMD::nmpimd_fill(double **ptr)
 {
   comm_ptr = ptr;
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 }
 
 /* ---------------------------------------------------------------------- */

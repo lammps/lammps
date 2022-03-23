@@ -31,16 +31,16 @@ class AngleHybrid : public Angle {
   char **keywords;    // keyword for each Angle style
 
   AngleHybrid(class LAMMPS *);
-  ~AngleHybrid();
-  void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double equilibrium_angle(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  double single(int, int, int, int);
-  double memory_usage();
+  ~AngleHybrid() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double equilibrium_angle(int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  double single(int, int, int, int) override;
+  double memory_usage() override;
 
  private:
   int *map;    // which style each angle type points to

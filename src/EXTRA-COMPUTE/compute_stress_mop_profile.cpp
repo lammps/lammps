@@ -18,19 +18,18 @@
 
 #include "compute_stress_mop_profile.h"
 
-#include <cmath>
-#include <cstring>
-
 #include "atom.h"
 #include "update.h"
 #include "domain.h"
 #include "neighbor.h"
 #include "force.h"
 #include "pair.h"
-#include "neigh_request.h"
 #include "neigh_list.h"
 #include "error.h"
 #include "memory.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -200,10 +199,7 @@ void ComputeStressMopProfile::init()
 
   // need an occasional half neighbor list
 
-  int irequest = neighbor->request((void *) this);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
 }
 
 /* ---------------------------------------------------------------------- */

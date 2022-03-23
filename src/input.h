@@ -33,7 +33,7 @@ class Input : protected Pointers {
   class Variable *variable;    // defined variables
 
   Input(class LAMMPS *, int, char **);
-  ~Input();
+  ~Input() override;
   void file();                       // process all input
   void file(const char *);           // process an input script
   char *one(const std::string &);    // process a single command
@@ -64,9 +64,6 @@ class Input : protected Pointers {
   typedef Command *(*CommandCreator)(LAMMPS *);
   typedef std::map<std::string, CommandCreator> CommandCreatorMap;
   CommandCreatorMap *command_map;
-
- protected:
-  template <typename T> static Command *command_creator(LAMMPS *);
 
  private:
   void parse();                            // parse an input text line

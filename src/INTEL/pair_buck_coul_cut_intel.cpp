@@ -409,18 +409,11 @@ void PairBuckCoulCutIntel::eval(const int offload, const int vflag,
 void PairBuckCoulCutIntel::init_style()
 {
   PairBuckCoulCut::init_style();
-  auto request = neighbor->find_request(this);
-  if (force->newton_pair == 0) {
-    request->half = 0;
-    request->full = 1;
-  }
-  request->intel = 1;
+  if (force->newton_pair == 0)
+    neighbor->find_request(this)->enable_full();
 
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   fix->pair_init_check();
   #ifdef _LMP_INTEL_OFFLOAD

@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class FixNVEAsphereNoforce : public FixNVENoforce {
  public:
   FixNVEAsphereNoforce(class LAMMPS *, int, char **);
-  void initial_integrate(int);
-  void init();
+  void initial_integrate(int) override;
+  void init() override;
 
  private:
   double dtq;

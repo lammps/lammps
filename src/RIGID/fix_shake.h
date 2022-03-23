@@ -30,33 +30,33 @@ class FixShake : public Fix {
 
  public:
   FixShake(class LAMMPS *, int, char **);
-  virtual ~FixShake();
-  virtual int setmask();
-  virtual void init();
-  void setup(int);
-  virtual void pre_neighbor();
-  virtual void post_force(int);
-  virtual void post_force_respa(int, int, int);
+  ~FixShake() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void pre_neighbor() override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
 
-  virtual double memory_usage();
-  virtual void grow_arrays(int);
-  virtual void copy_arrays(int, int, int);
-  virtual void set_arrays(int);
-  virtual void update_arrays(int, int);
-  virtual void set_molecule(int, tagint, int, double *, double *, double *);
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
+  void update_arrays(int, int) override;
+  void set_molecule(int, tagint, int, double *, double *, double *) override;
 
-  virtual int pack_exchange(int, double *);
-  virtual int unpack_exchange(int, double *);
-  virtual int pack_forward_comm(int, int *, double *, int, int *);
-  virtual void unpack_forward_comm(int, int, double *);
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
   virtual void shake_end_of_step(int vflag);
   virtual void correct_coordinates(int vflag);
   virtual void correct_velocities();
 
-  virtual int dof(int);
-  virtual void reset_dt();
-  void *extract(const char *, int &);
+  int dof(int) override;
+  void reset_dt() override;
+  void *extract(const char *, int &) override;
 
  protected:
   int vflag_post_force;    // store the vflag of last post_force call
@@ -108,10 +108,10 @@ class FixShake : public Fix {
   int nlist, maxlist;    // size and max-size of list
 
   // stat quantities
-  int *b_count, *b_count_all;                   // counts for each bond type
-  double *b_ave, *b_max, *b_min;                // ave/max/min dist for each bond type
-  double *b_ave_all, *b_max_all, *b_min_all;    // MPI summing arrays
-  int *a_count, *a_count_all;                   // ditto for angle types
+  int *b_count, *b_count_all, *b_atom, *b_atom_all; // counts for each bond type, atoms in bond cluster
+  double *b_ave, *b_max, *b_min;             // ave/max/min dist for each bond type
+  double *b_ave_all, *b_max_all, *b_min_all; // MPI summing arrays
+  int *a_count, *a_count_all;                // ditto for angle types
   double *a_ave, *a_max, *a_min;
   double *a_ave_all, *a_max_all, *a_min_all;
 

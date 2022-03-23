@@ -67,6 +67,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   finitecutflag = 0;
   ghostneigh = 0;
   unit_convert_flag = utils::NOCONVERT;
+  did_mix = false;
 
   nextra = 0;
   pvector = nullptr;
@@ -325,7 +326,7 @@ void Pair::reinit()
 
 void Pair::init_style()
 {
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

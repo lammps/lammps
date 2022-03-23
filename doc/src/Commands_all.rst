@@ -47,7 +47,7 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`displace_atoms <displace_atoms>`
    * :doc:`dump <dump>`
    * :doc:`dump_modify <dump_modify>`
-   * :doc:`dynamical_matrix <dynamical_matrix>`
+   * :doc:`dynamical_matrix (k) <dynamical_matrix>`
    * :doc:`echo <echo>`
    * :doc:`fix <fix>`
    * :doc:`fix_modify <fix_modify>`
@@ -118,7 +118,7 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`thermo <thermo>`
    * :doc:`thermo_modify <thermo_modify>`
    * :doc:`thermo_style <thermo_style>`
-   * :doc:`third_order <third_order>`
+   * :doc:`third_order (k) <third_order>`
    * :doc:`timer <timer>`
    * :doc:`timestep <timestep>`
    * :doc:`uncompute <uncompute>`

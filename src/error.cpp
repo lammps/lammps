@@ -196,7 +196,7 @@ void Error::one(const std::string &file, int line, const std::string &str)
   MPI_Comm_rank(world,&me);
 
   if (input && input->line) lastcmd = input->line;
-  std::string mesg = fmt::format("ERROR on proc {}: {} ({}:{})\n",
+  std::string mesg = fmt::format("ERROR on proc {}: {} ({}:{})\nLast command: {}\n",
                                  me,str,truncpath(file),line,lastcmd);
   utils::logmesg(lmp,mesg);
 
@@ -213,8 +213,7 @@ void Error::one(const std::string &file, int line, const std::string &str)
 
   throw LAMMPSAbortException(mesg, world);
 #else
-  if (screen) fflush(screen);
-  if (logfile) fflush(logfile);
+  utils::flush_buffers(lmp);
   KokkosLMP::finalize();
   MPI_Abort(world,1);
   exit(1); // to trick "smart" compilers into believing this does not return

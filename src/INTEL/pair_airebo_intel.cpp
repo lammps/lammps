@@ -26,7 +26,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "suffix.h"
 
@@ -181,16 +180,12 @@ PairAIREBOIntel::~PairAIREBOIntel()
 void PairAIREBOIntel::init_style()
 {
   PairAIREBO::init_style();
-  neighbor->find_request(this)->intel = 1;
 
   if (utils::strmatch(force->pair_style,"^hybrid"))
     error->all(FLERR, "Cannot yet use airebo/intel with hybrid.");
 
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   fix->pair_init_check();
   #ifdef _LMP_INTEL_OFFLOAD
@@ -242,17 +237,17 @@ PairAIREBOIntelParam<flt_t,acc_t> PairAIREBOIntel::get_param()
   PairAIREBOIntelParam<flt_t,acc_t> fc;
 
 #define A(a)                                                           \
-  for (int i = 0; i < sizeof(this->a)/sizeof(double); i++) {           \
+  for (size_t i = 0; i < sizeof(this->a)/sizeof(double); i++) {        \
     reinterpret_cast<flt_t*>(&fc.a)[i] =                               \
       reinterpret_cast<double*>(&this->a)[i];                          \
   }
 #define A0(a)                                                           \
-  for (int i = 0; i < sizeof(fc.a)/sizeof(flt_t); i++) {                \
+  for (size_t i = 0; i < sizeof(fc.a)/sizeof(flt_t); i++) {             \
     reinterpret_cast<flt_t*>(&fc.a)[i] =                                \
       reinterpret_cast<double*>(this->a[0])[i];                         \
   }
 #define B(a)                                                            \
-  for (int i = 0; i < sizeof(this->a)/sizeof(double); i++) {            \
+  for (size_t i = 0; i < sizeof(this->a)/sizeof(double); i++) {         \
     reinterpret_cast<acc_t*>(&fc.a)[i] =                                \
       reinterpret_cast<double*>(&this->a)[i];                           \
   }

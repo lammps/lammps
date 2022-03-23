@@ -21,7 +21,8 @@ YAML
    print """---
    timestep: $(step)
    pe: $(pe)
-   ke: $(ke)""" file current_state.yaml screen no
+   ke: $(ke)
+   ...""" file current_state.yaml screen no
 
 .. code-block:: yaml
    :caption: current_state.yaml
@@ -51,6 +52,58 @@ JSON
      "ke": 2.4962152903997174569
    }
 
+YAML format thermo_style output
+===============================
+
+.. versionadded:: 24Mar2022
+
+LAMMPS supports the thermo style "yaml" and for "custom" style
+thermodynamic output the format can be changed to YAML with
+:doc:`thermo_modify line yaml <thermo_modify>`.  This will produce a
+block of output in a compact YAML format - one "document" per run - of
+the following style:
+
+.. code-block:: yaml
+
+   ---
+   keywords: [Step, Temp, E_pair, E_mol, TotEng, Press, ]
+   data:
+     - [100, 0.757453103239935, -5.7585054860159, 0, -4.62236133677021, 0.207261053624721, ]
+     - [110, 0.759322359337036, -5.7614668389562, 0, -4.62251889318624, 0.194314975399602, ]
+     - [120, 0.759372342462676, -5.76149365656489, 0, -4.62247073844943, 0.191600048851267, ]
+     - [130, 0.756833027516501, -5.75777334823494, 0, -4.62255928350835, 0.208792327853067, ]
+   ...
+
+This data can be extracted and parsed from a log file using python with:
+
+.. code-block:: python
+
+   import re, yaml
+
+   docs = ""
+   with open("log.lammps") as f:
+       for line in f:
+           m = re.search(r"^(keywords:.*$|data:$|---$|\.\.\.$|  - \[.*\]$)", line)
+           if m: docs += m.group(0) + '\n'
+
+   thermo = list(yaml.load_all(docs, Loader=yaml.SafeLoader))
+
+   print("Number of runs: ", len(thermo))
+   print(thermo[1]['keywords'][4], ' = ', thermo[1]['data'][2][4])
+
+After loading the YAML data, `thermo` is a list containing a dictionary
+for each "run" where the tag "keywords" maps to the list of thermo
+header strings and the tag "data" has a list of lists where the outer
+list represents the lines of output and the inner list the values of the
+columns matching the header keywords for that step.  The second print()
+command for example will print the header string for the fifth keyword
+of the second run and the corresponding value for the third output line
+of that run:
+
+.. parsed-literal::
+
+   Number of runs:  2
+   TotEng  =  -4.62140097780047
 
 Writing continuous data during a simulation
 ===========================================

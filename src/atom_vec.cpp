@@ -1704,11 +1704,22 @@ void AtomVec::create_atom(int itype, double *coord)
 }
 
 /* ----------------------------------------------------------------------
+   version of data_atom without extract option
+   temporary fix for Kokkos compilation
+------------------------------------------------------------------------- */
+
+void AtomVec::data_atom(double *coord, imageint imagetmp, const std::vector<std::string> &values)
+{
+  std::string strtmp;
+  data_atom(coord, imagetmp, values, strtmp);
+}
+
+/* ----------------------------------------------------------------------
    unpack one line from Atoms section of data file
    initialize other peratom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVec::data_atom(double *coord, imageint imagetmp, char **values, std::string &extract)
+void AtomVec::data_atom(double *coord, imageint imagetmp, const std::vector<std::string> &values, std::string &extract)
 {
   int m,n,datatype,cols;
   void *pdata;
@@ -1898,18 +1909,18 @@ void AtomVec::write_data(FILE *fp, int n, double **buf)
    unpack one line from Velocities section of data file
 ------------------------------------------------------------------------- */
 
-void AtomVec::data_vel(int ilocal, char **values)
+void AtomVec::data_vel(int ilocal, const std::vector<std::string> &values)
 {
   int m,n,datatype,cols;
   void *pdata;
 
   double **v = atom->v;
-  v[ilocal][0] = utils::numeric(FLERR,values[0],true,lmp);
-  v[ilocal][1] = utils::numeric(FLERR,values[1],true,lmp);
-  v[ilocal][2] = utils::numeric(FLERR,values[2],true,lmp);
+  int ivalue = 1;
+  v[ilocal][0] = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  v[ilocal][1] = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  v[ilocal][2] = utils::numeric(FLERR,values[ivalue++],true,lmp);
 
   if (ndata_vel > 2) {
-    int ivalue = 3;
     for (n = 2; n < ndata_vel; n++) {
       pdata = mdata_vel.pdata[n];
       datatype = mdata_vel.datatype[n];

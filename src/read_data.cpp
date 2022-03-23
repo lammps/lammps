@@ -36,11 +36,11 @@
 #include "molecule.h"
 #include "pair.h"
 #include "special.h"
+#include "tokenizer.h"
 #include "update.h"
 
 #include <cctype>
 #include <cstring>
-#include <string>
 #include <unordered_set>
 
 using namespace LAMMPS_NS;
@@ -968,23 +968,28 @@ void ReadData::command(int narg, char **arg)
   // restore old styles, when reading with nocoeff flag given
 
   if (coeffflag == 0) {
-    if (force->pair) delete force->pair;
+    delete force->pair;
+    delete[] force->pair_style;
     force->pair = saved_pair;
     force->pair_style = saved_pair_style;
 
-    if (force->bond) delete force->bond;
+    delete force->bond;
+    delete[] force->bond_style;
     force->bond = saved_bond;
     force->bond_style = saved_bond_style;
 
-    if (force->angle) delete force->angle;
+    delete force->angle;
+    delete[] force->angle_style;
     force->angle = saved_angle;
     force->angle_style = saved_angle_style;
 
-    if (force->dihedral) delete force->dihedral;
+    delete force->dihedral;
+    delete[] force->dihedral_style;
     force->dihedral = saved_dihedral;
     force->dihedral_style = saved_dihedral_style;
 
-    if (force->improper) delete force->improper;
+    delete force->improper;
+    delete[] force->improper_style;
     force->improper = saved_improper;
     force->improper_style = saved_improper_style;
 
@@ -1154,37 +1159,32 @@ void ReadData::header(int firstpass)
     } else if (utils::strmatch(line,"^\\s*\\d+\\s+atom\\s+types\\s")) {
       rv = sscanf(line,"%d",&ntypes);
       if (rv != 1)
-        error->all(FLERR,"Could not parse 'atom types' line "
-                   "in data file header");
+        error->all(FLERR,"Could not parse 'atom types' line in data file header");
       if (addflag == NONE) atom->ntypes = ntypes + extra_atom_types;
 
     } else if (utils::strmatch(line,"\\s*\\d+\\s+bond\\s+types\\s")) {
       rv = sscanf(line,"%d",&nbondtypes);
       if (rv != 1)
-        error->all(FLERR,"Could not parse 'bond types' line "
-                   "in data file header");
+        error->all(FLERR,"Could not parse 'bond types' line in data file header");
       if (addflag == NONE) atom->nbondtypes = nbondtypes + extra_bond_types;
 
     } else if (utils::strmatch(line,"^\\s*\\d+\\s+angle\\s+types\\s")) {
       rv = sscanf(line,"%d",&nangletypes);
       if (rv != 1)
-        error->all(FLERR,"Could not parse 'angle types' line "
-                   "in data file header");
+        error->all(FLERR,"Could not parse 'angle types' line in data file header");
       if (addflag == NONE) atom->nangletypes = nangletypes + extra_angle_types;
 
     } else if (utils::strmatch(line,"^\\s*\\d+\\s+dihedral\\s+types\\s")) {
       rv = sscanf(line,"%d",&ndihedraltypes);
       if (rv != 1)
-        error->all(FLERR,"Could not parse 'dihedral types' line "
-                   "in data file header");
+        error->all(FLERR,"Could not parse 'dihedral types' line in data file header");
       if (addflag == NONE)
         atom->ndihedraltypes = ndihedraltypes + extra_dihedral_types;
 
     } else if (utils::strmatch(line,"^\\s*\\d+\\s+improper\\s+types\\s")) {
       rv = sscanf(line,"%d",&nimpropertypes);
       if (rv != 1)
-        error->all(FLERR,"Could not parse 'improper types' line "
-                   "in data file header");
+        error->all(FLERR,"Could not parse 'improper types' line in data file header");
       if (addflag == NONE)
         atom->nimpropertypes = nimpropertypes + extra_improper_types;
 
@@ -1744,12 +1744,12 @@ void ReadData::bonus(bigint nbonus, AtomVec *ptr, const char *type)
    read all body data
    variable amount of info per body, described by ninteger and ndouble
    to find atoms, must build atom map if not a molecular system
-   if not firstpass, just read past data, but no processing of data
+   if not firstpass, just read past body data and only process body header
 ------------------------------------------------------------------------- */
 
 void ReadData::bodies(int firstpass, AtomVec *ptr)
 {
-  int m,nchunk,nline,nmax,ninteger,ndouble,nword,ncount,onebody,tmp,rv;
+  int m,nchunk,nline,nmax,ninteger,ndouble,nword,ncount,onebody;
   char *eof;
 
   int mapflag = 0;
@@ -1763,11 +1763,11 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
   // nchunk = actual # read
 
   bigint nread = 0;
-  bigint natoms = nbodies;
+  bigint nblocks = nbodies;
 
-  while (nread < natoms) {
-    if (natoms-nread > CHUNK) nmax = CHUNK;
-    else nmax = natoms-nread;
+  while (nread < nblocks) {
+    if (nblocks-nread > CHUNK) nmax = CHUNK;
+    else nmax = nblocks-nread;
 
     if (me == 0) {
       nchunk = 0;
@@ -1776,11 +1776,25 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
 
       while (nchunk < nmax && nline <= CHUNK-MAXBODY) {
         eof = utils::fgets_trunc(&buffer[m],MAXLINE,fp);
+        const char *buf = &buffer[m];
         if (eof == nullptr) error->one(FLERR,"Unexpected end of data file");
-        rv = sscanf(&buffer[m],"%d %d %d",&tmp,&ninteger,&ndouble);
-        if (rv != 3)
-          error->one(FLERR,"Incorrect format in Bodies section of data file");
-        m += strlen(&buffer[m]);
+        try {
+          auto values = ValueTokenizer(utils::trim_comment(buf));
+          tagint tagdata = values.next_tagint() + id_offset;
+          ninteger = values.next_int();
+          ndouble = values.next_double();
+          if (tagdata <= 0 || tagdata > atom->map_tag_max)
+            throw TokenizerException("Invalid atom ID in body header", utils::trim(buf));
+          if (ninteger < 0)
+            throw TokenizerException("Invalid number of integers", utils::trim(buf));
+          if (ndouble < 0)
+            throw TokenizerException("Invalid number of doubles", utils::trim(buf));
+          if (values.has_next())
+            throw TokenizerException("Too many tokens in body header", utils::trim(buf));
+        } catch (TokenizerException &e) {
+          error->one(FLERR,std::string(e.what()) + " while reading Bodies section of data file");
+        }
+        m += strlen(buf);
 
         // read lines one at a time into buffer and count words
         // count to ninteger and ndouble until have enough lines
@@ -1840,7 +1854,7 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
   }
 
   if (me == 0 && firstpass)
-    utils::logmesg(lmp,"  {} bodies\n",natoms);
+    utils::logmesg(lmp,"  {} bodies\n",nblocks);
 }
 
 /* ---------------------------------------------------------------------- */

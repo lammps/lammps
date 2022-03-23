@@ -1,0 +1,182 @@
+#===========================================================================#
+# Immersed Boundary Wall                                                    #
+#                                                                           #
+# Run consists of a 32-bead coarse-grained polymer                     	    #
+# translocating through a solid-state atomistic wall                        #
+# under pressure-driven lattice-Boltzmann fluid flow                        #
+#                                                                           #
+# To run this example, LAMMPS needs to be compiled with a the following     #
+# packages: MOLECULE, RIGID, LATBOLTZ, USER-VTK                             #
+#                                                                           #
+#To run this example on N cores, use command:                               # 
+# mpirun -n N /LAMMPS/EXE/FILE -in in.polymer > output.out                  #
+#                                                                           #
+# If uncommented:                                                           #
+# Sample output for polymer from this run can be found in the file:         # 
+#   'translocationdump.lammpstrj'                                           #
+# and viewed using, the VMD software.                                       #
+# OR                                                                        #
+#    'dump.translocation.vtk'                                               #
+# and viewed using the Paraview software.                                   #
+#                                                                           #
+# Sample output for the wall from this run can be found in the file:        #
+#   'walldump.xyz'                                                          #
+# and can be viewed using the VMD or Paraview Software.                     #
+#===========================================================================#
+
+units		nano
+dimension	3
+boundary	p p p
+atom_style	hybrid molecular
+special_bonds	fene
+read_data	data.translocation
+
+#---------------------------------------------------------------------------
+#Creating a atomistic wall on an FCC lattice and removing the block from the
+#middle to create the nanopore
+#---------------------------------------------------------------------------
+lattice fcc 1.0
+region wall block 28 38 0 32 0 32
+create_atoms 3 region wall
+
+region hole block 28 38 14 18 14 18
+delete_atoms region hole compress no
+
+#----------------------------------------------------------------------------
+# Need a neighbor bin size smaller than the lattice-Boltzmann grid spacing   
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid. 
+# The communcation cutoff is set to 2.5 dx to ensure that all particles in the
+#   processor ghost fluid region (of width 2dx) are known to local processor.
+#---------------------------------------------------------------------------- 
+neighbor 0.5 bin
+neigh_modify delay 0 every 1 check yes
+neigh_modify exclude type 2 2
+neigh_modify exclude type 2 1
+neigh_modify exclude type 2 3
+neigh_modify exclude type 3 3
+comm_modify cutoff 2.5        
+
+#----------------------------------------------------------------------------
+# Implement a hard-sphere interaction between the particles at the center of 
+# each monomer with each other and the wall atoms
+# (use a truncated and shifted Lennard-Jones potential).
+#----------------------------------------------------------------------------
+bond_style	fene
+bond_coeff	1 60.0 2.25 4.14195 1.5
+pair_style	lj/cut 1.68369
+pair_coeff	* * 0 1.5
+pair_coeff	1 1 4.14195 1.5 1.68369
+pair_coeff	1 3 4.14195 1.5 1.68369
+
+#-----------------------------------------------------------------------------
+# The mass is set 4/3 PI r^3 fluid_density/31 , where r=0.617, 31 is number of
+# nodes in a single monomer. The mass of wall atoms is chosen heavy as they
+# are fixed.
+# ----------------------------------------------------------------------------
+mass * 0.00000318
+
+#-----------------------------------------------------------------------------
+timestep 0.00005
+
+#----------------------------------------------------------------------------
+# ForceAtoms are the particles at the center of each monomer which  
+#   do not interact with the fluid, but are used to implement the hard-sphere
+#   interactions.       
+# FluidAtoms are the particles representing the surface of the monomer
+# which do interact with the fluid. The nanopore particles are also included
+# in this group as they interact with the fluid.
+# Polymer is the entire set of monomers of the composite polymer chain. 
+# WallAtoms are the particles of the nanopore.
+#----------------------------------------------------------------------------
+group ForceAtoms type 1
+group FluidAtoms type 2 3
+group Polymer    type 1 2
+group WallAtoms  type 3
+
+#---------------------------------------------------------------------------
+# Create a lattice-Boltzmann fluid covering the simulation domain.
+# This fluid feels a force due to the particles specified through FluidAtoms 
+#   (however, this fix does not explicity apply a force back on to these 
+#    particles. This is accomplished through the use of the lb/viscous fix).
+# We set fluid viscosity = 0.1 and fluid density = 0.00009982071 which 
+#   means the kinematic viscosity is idential to that of water but the 
+#   dynamic viscosity is a factor of 10 less than that of water which 
+#   increases the diffusive dynamics by a corresponding factor of 10.
+#   lattice spacing dx=1.0, and mass unit, dm=0.00009982071 (makes density 1)
+# Use a thermal lattice-Boltzmann fluid (temperature 300K, random number 
+#   seed=5252).  This enables the particles to undergo Brownian motion in 
+#   the fluid.
+# In this case we use the scaleGamma argument to set the mass of the WallAtoms
+#   to infinity.
+# The commented out line can be substituted to look at the flow without noise
+#   which should be similar to the average flow field in the case with noise.
+#----------------------------------------------------------------------------
+fix 1 FluidAtoms lb/fluid 1 0.1 0.00009982071 dx 1.0 scaleGamma 3 -1 stencil 2 pressurebcx 1200 noise 300.0 5252
+#fix 1 FluidAtoms lb/fluid 1 0.1 0.00009982071 dx 1.0 scaleGamma 3 -1 stencil 2 pressurebcx 1200 dumpxdmf 1000 flow 0
+
+#----------------------------------------------------------------------------
+# Apply the force from the fluid to the particles, and integrate their 
+#   motion, constraining each monomer to move and rotate as a single rigid 
+#   spherical object.  
+# Since both the ForceAtoms (central atoms), and the FluidAtoms (spherical
+#   shell) should move and rotate together, this fix is applied to all Polymer
+#   of atoms in the system.
+# The wall atoms are frozen in space and all the calculated forces on the atoms
+#   are set to zero at each timestep. 
+#----------------------------------------------------------------------------#
+fix 2 FluidAtoms lb/viscous
+fix 3 Polymer rigid/small molecule
+fix freeze WallAtoms setforce 0 0 0
+
+#----------------------------------------------------------------------------
+# Write position and velocity coordinates into a file every 2000 time steps.
+#----------------------------------------------------------------------------
+#variable x1 equal x[1]
+#variable y1 equal y[1]
+#variable z1 equal z[1]
+#variable vx1 equal vx[1]
+#variable vy1 equal vy[1]
+#variable vz1 equal vz[1]
+#variable x2 equal x[249]
+#variable y2 equal y[249]
+#variable z2 equal z[249]
+#variable vx2 equal vx[249]
+#variable vy2 equal vy[249]
+#variable vz2 equal vz[249]
+#variable x3 equal x[497]
+#variable y3 equal y[497]
+#variable z3 equal z[497]
+#variable vx3 equal vx[497]
+#variable vy3 equal vy[497]
+#variable vz3 equal vz[497]
+#variable x4 equal x[745]
+#variable y4 equal y[745]
+#variable z4 equal z[745]
+#variable vx4 equal vx[745]
+#variable vy4 equal vy[745]
+#variable vz4 equal vz[745]
+
+#thermo_style custom v_x1 v_y1 v_z1 v_vx1 v_vy1 v_vz1 v_x2 v_y2 v_z2 v_vx2 v_vy2 v_vz2 v_x3 v_y3 v_z3 v_vx3 v_vy3 v_vz3 v_x4 v_y4 v_z4 v_x4 v_y4 v_z4
+#thermo       10
+
+#---------------------------------------------------------------------------------
+# Write coordinates of the centre of mass and radius of gyration tensor components
+#---------------------------------------------------------------------------------
+compute centre ForceAtoms com
+compute rg ForceAtoms gyration
+thermo_style custom c_rg c_rg[1] c_rg[2] c_rg[3] c_rg[4] c_rg[5] c_rg[6] c_centre[1] c_centre[2] c_centre[3]
+thermo  1000
+
+#--------------------------------------------------------------------------------
+# Define number of steps variable. Write dump files for the polymer in both LAMMPS
+# trajectory and vtk format (commented out here). Write xyz dump file
+#--------------------------------------------------------------------------------
+variable numofsteps equal 400001
+#dump  1 ForceAtoms custom 500 translocationdump.lammpstrj id xu yu zu vx vy vz
+#dump 2 ForceAtoms vtk 1000 dump*.translocation.vtk id xu yu zu vx vy vz
+#dump 4 WallAtoms xyz $(v_numofsteps-1) walldump.xyz
+
+#restart 50000 4nmrestart.*
+
+run ${numofsteps}     # For 250001 steps without noise, 16 minutes on AMD Ryzen Threadripper 1950X 16-Core, 41 mintues on Intel(R) Core(TM) i7-10510U CPU @ 1.80GHz 4-core

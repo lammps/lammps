@@ -9,7 +9,7 @@ gives links to documentation, example scripts, and pictures/movies (if
 available) that illustrate use of the package.
 
 The majority of packages can be included in a LAMMPS build with a
-single setting (``-D PGK_<NAME>=on`` for CMake) or command
+single setting (``-D PKG_<NAME>=on`` for CMake) or command
 (``make yes-<name>`` for make).  See the :doc:`Build package <Build_package>`
 page for more info.  A few packages may require additional steps;
 this is indicated in the descriptions below.  The :doc:`Build extras <Build_extras>`
@@ -1880,6 +1880,12 @@ MPIIO library.  It adds :doc:`dump styles <dump>` with a "mpiio" in
 their style name.  Restart files with an ".mpiio" suffix are also
 written and read in parallel.
 
+.. warning::
+
+   The MPIIO package is currently unmaintained and has become
+   unreliable. Use with caution.
+
+
 **Install:**
 
 The MPIIO package requires that LAMMPS is build in :ref:`MPI parallel mode <serial>`.
@@ -2147,6 +2153,11 @@ PLUGIN package
 A :doc:`plugin <plugin>` command that can load and unload several
 kind of styles in LAMMPS from shared object files at runtime without
 having to recompile and relink LAMMPS.
+
+When the environment variable ``LAMMPS_PLUGIN_PATH`` is set, then LAMMPS
+will search the directory (or directories) listed in this path for files
+with names that end in ``plugin.so`` (e.g. ``helloplugin.so``) and will
+try to load the contained plugins automatically at start-up.
 
 **Authors:** Axel Kohlmeyer (Temple U)
 

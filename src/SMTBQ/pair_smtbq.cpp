@@ -50,7 +50,6 @@
 #include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
 
@@ -286,9 +285,7 @@ void PairSMTBQ::init_style()
 
   // need a full neighbor list
 
-  int irequest = neighbor->request(this);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 
   pgsize = neighbor->pgsize;
   oneatom = neighbor->oneatom;
@@ -3397,7 +3394,7 @@ void PairSMTBQ::forward(double *tab)
 
   for (i=0; i<nlocal+nghost; i++) tab_comm[i] = tab[i];
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   for (i=0; i<nlocal+nghost; i++) tab[i] = tab_comm[i];
 }
@@ -3412,7 +3409,7 @@ void PairSMTBQ::reverse(double *tab)
 
   for (i=0; i<nlocal+nghost; i++)  tab_comm[i] = tab[i];
 
-  comm->reverse_comm_pair(this);
+  comm->reverse_comm(this);
 
   for (i=0; i<nlocal+nghost; i++)  tab[i] = tab_comm[i];
 }
@@ -3427,7 +3424,7 @@ void PairSMTBQ::forward_int(int *tab)
 
   for (i=0; i<nlocal+nghost; i++) { tab_comm[i] = static_cast<double>(tab[i]);}
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   for (i=0; i<nlocal+nghost; i++) {
     if (fabs(tab_comm[i]) > 0.1) tab[i] = int(tab_comm[i]) ; }
@@ -3443,7 +3440,7 @@ void PairSMTBQ::reverse_int(int *tab)
 
   for (i=0; i<nlocal+nghost; i++) { tab_comm[i] = static_cast<double>(tab[i]);}
 
-  comm->reverse_comm_pair(this);
+  comm->reverse_comm(this);
 
   for (i=0; i<nlocal+nghost; i++) {
     if (fabs(tab_comm[i]) > 0.1) tab[i] = int(tab_comm[i]); }

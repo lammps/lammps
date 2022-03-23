@@ -1941,6 +1941,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Compute ID for fix numdiff does not exist*
    Self-explanatory.
 
+*Compute ID for fix numdiff/virial does not exist*
+   Self-explanatory.
+
 *Compute ID for fix store/state does not exist*
    Self-explanatory.
 
@@ -3795,6 +3798,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Fix numdiff requires consecutive atom IDs*
    Self-explanatory. Efficient loop over all atoms for numerical
    difference requires consecutive atom IDs.
+
+*Fix numdiff/virial must use group all*
+   Virial contributions computed by this fix are
+   computed on all atoms.
 
 *Fix nve/asphere requires extended particles*
    This fix can only be used for particles with a shape setting.
@@ -7799,9 +7806,6 @@ keyword to allow for additional bonds to be formed
 *Too many atoms for dump xtc*
    The system size must fit in a 32-bit integer to use this dump
    style.
-
-*Too many atoms to dump sort*
-   Cannot sort when running with more than 2\^31 atoms.
 
 *Too many elements extracted from MEAM library.*
    Increase 'maxelt' in meam.h and recompile.

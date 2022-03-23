@@ -68,7 +68,7 @@ class AtomVec : protected Pointers {
   // methods
 
   AtomVec(class LAMMPS *);
-  virtual ~AtomVec();
+  ~AtomVec() override;
 
   void store_args(int, char **);
   virtual void process_args(int, char **);
@@ -124,9 +124,10 @@ class AtomVec : protected Pointers {
   virtual void create_atom(int, double *);
   virtual void create_atom_post(int) {}
 
-  virtual void data_atom(double *, imageint, char **, std::string &);
+  virtual void data_atom(double *, imageint, const std::vector<std::string> &);
+  virtual void data_atom(double *, imageint, const std::vector<std::string> &, std::string &);
   virtual void data_atom_post(int) {}
-  virtual void data_atom_bonus(int, char **) {}
+  virtual void data_atom_bonus(int, const std::vector<std::string> &) {}
   virtual void data_body(int, int, int, int *, double *) {}
 
   virtual void data_bonds_post(int, int, tagint, tagint, tagint) {}
@@ -136,7 +137,7 @@ class AtomVec : protected Pointers {
   virtual void pack_data_pre(int) {}
   virtual void pack_data_post(int) {}
 
-  virtual void data_vel(int, char **);
+  virtual void data_vel(int, const std::vector<std::string> &);
   virtual void pack_vel(double **);
   virtual void write_vel(FILE *, int, double **);
 
@@ -166,8 +167,8 @@ class AtomVec : protected Pointers {
   virtual int unpack_reverse_hybrid(int, int *, double *) { return 0; }
   virtual int pack_border_hybrid(int, int *, double *) { return 0; }
   virtual int unpack_border_hybrid(int, int, double *) { return 0; }
-  virtual int data_atom_hybrid(int, char **) { return 0; }
-  virtual int data_vel_hybrid(int, char **) { return 0; }
+  virtual int data_atom_hybrid(int, const std::vector<std::string> &, int) { return 0; }
+  virtual int data_vel_hybrid(int, const std::vector<std::string> &, int) { return 0; }
   virtual int pack_data_hybrid(int, double *) { return 0; }
   virtual int write_data_hybrid(FILE *, double *) { return 0; }
   virtual int pack_vel_hybrid(int, double *) { return 0; }

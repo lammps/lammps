@@ -69,8 +69,8 @@ ComputeMSDChunk::~ComputeMSDChunk()
 
   if (modify->nfix) modify->delete_fix(id_fix);
 
-  delete [] id_fix;
-  delete [] idchunk;
+  delete[] id_fix;
+  delete[] idchunk;
   memory->destroy(massproc);
   memory->destroy(masstotal);
   memory->destroy(com);
@@ -93,9 +93,8 @@ void ComputeMSDChunk::init()
   // if firstflag, will be created in setup()
 
   if (!firstflag) {
-    int ifix = modify->find_fix(id_fix);
-    if (ifix < 0) error->all(FLERR,"Could not find compute msd/chunk fix ID");
-    fix = (FixStore *) modify->fix[ifix];
+    fix = (FixStore *) modify->get_fix_by_id(id_fix);
+    if (!fix) error->all(FLERR,"Could not find compute msd/chunk fix with ID {}", id_fix);
   }
 }
 

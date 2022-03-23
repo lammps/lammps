@@ -275,7 +275,7 @@ void PairMEAMSpline::compute(int eflag, int vflag)
 
   // Communicate U'(rho) values
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // Compute two-body pair interactions
   for (int ii = 0; ii < listhalf->inum; ii++) {
@@ -579,15 +579,8 @@ void PairMEAMSpline::init_style()
     error->all(FLERR,"Pair style meam/spline requires newton pair on");
 
   // Need both full and half neighbor list.
-  int irequest_full = neighbor->request(this,instance_me);
-  neighbor->requests[irequest_full]->id = 1;
-  neighbor->requests[irequest_full]->half = 0;
-  neighbor->requests[irequest_full]->full = 1;
-  int irequest_half = neighbor->request(this,instance_me);
-  neighbor->requests[irequest_half]->id = 2;
-  // neighbor->requests[irequest_half]->half = 1;
-  // neighbor->requests[irequest_half]->halffull = 1;
-  // neighbor->requests[irequest_half]->halffulllist = irequest_full;
+  neighbor->add_request(this, NeighConst::REQ_FULL)->set_id(1);
+  neighbor->add_request(this)->set_id(2);
 }
 
 /* ----------------------------------------------------------------------

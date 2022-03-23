@@ -40,27 +40,27 @@ template <class flt_t, class acc_t> class IntelBuffers;
 class FixIntel : public Fix {
  public:
   FixIntel(class LAMMPS *, int, char **);
-  virtual ~FixIntel();
-  virtual int setmask();
-  virtual void init();
-  virtual void setup(int);
-  inline void min_setup(int in) { setup(in); }
-  void setup_pre_reverse(int eflag = 0, int vflag = 0);
+  ~FixIntel() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  inline void min_setup(int in) override { setup(in); }
+  void setup_pre_reverse(int eflag = 0, int vflag = 0) override;
 
   bool pair_hybrid_check();
   void pair_init_check(const bool cdmessage = false);
   void bond_init_check();
   void kspace_init_check();
 
-  void pre_reverse(int eflag = 0, int vflag = 0);
-  inline void min_pre_reverse(int eflag = 0, int vflag = 0) { pre_reverse(eflag, vflag); }
+  void pre_reverse(int eflag = 0, int vflag = 0) override;
+  inline void min_pre_reverse(int eflag = 0, int vflag = 0) override { pre_reverse(eflag, vflag); }
 
-  void post_run() { _print_pkg_info = 1; }
+  void post_run() override { _print_pkg_info = 1; }
 
   // Get all forces, calculation results from coprocesser
   void sync_coprocessor();
 
-  double memory_usage();
+  double memory_usage() override;
 
   typedef struct {
     double x, y, z;

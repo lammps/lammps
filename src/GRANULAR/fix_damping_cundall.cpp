@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -27,20 +26,18 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixDampingCundall::FixDampingCundall(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  gamma_lin(nullptr),gamma_ang(nullptr)
+    Fix(lmp, narg, arg), gamma_lin(nullptr), gamma_ang(nullptr)
 {
   dynamic_group_allow = 1;
 
-  if (!atom->sphere_flag)
-    error->all(FLERR,"Fix damping/cundall requires atom style sphere");
+  if (!atom->sphere_flag) error->all(FLERR, "Fix damping/cundall requires atom style sphere");
 
-  if (narg < 5) error->all(FLERR,"Illegal fix damping/cundall command");
+  if (narg < 5) error->all(FLERR, "Illegal fix damping/cundall command");
 
-  double gamma_lin_one = utils::numeric(FLERR,arg[3],false,lmp);
-  double gamma_ang_one = utils::numeric(FLERR,arg[4],false,lmp);
-  gamma_lin = new double[atom->ntypes+1];
-  gamma_ang = new double[atom->ntypes+1];
+  double gamma_lin_one = utils::numeric(FLERR, arg[3], false, lmp);
+  double gamma_ang_one = utils::numeric(FLERR, arg[4], false, lmp);
+  gamma_lin = new double[atom->ntypes + 1];
+  gamma_ang = new double[atom->ntypes + 1];
   for (int i = 1; i <= atom->ntypes; i++) {
     gamma_lin[i] = gamma_lin_one;
     gamma_ang[i] = gamma_ang_one;
@@ -50,16 +47,17 @@ FixDampingCundall::FixDampingCundall(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 5;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"scale") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix damping/cundall command");
-      int itype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      double scale = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+    if (strcmp(arg[iarg], "scale") == 0) {
+      if (iarg + 3 > narg) error->all(FLERR, "Illegal fix damping/cundall command");
+      int itype = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      double scale = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       if (itype <= 0 || itype > atom->ntypes)
-        error->all(FLERR,"Illegal fix damping/cundall command");
+        error->all(FLERR, "Illegal fix damping/cundall command");
       gamma_lin[itype] = gamma_lin_one * scale;
       gamma_ang[itype] = gamma_ang_one * scale;
       iarg += 3;
-    } else error->all(FLERR,"Illegal fix damping/cundall command");
+    } else
+      error->all(FLERR, "Illegal fix damping/cundall command");
   }
 
   respa_level_support = 1;
@@ -70,8 +68,8 @@ FixDampingCundall::FixDampingCundall(LAMMPS *lmp, int narg, char **arg) :
 
 FixDampingCundall::~FixDampingCundall()
 {
-  delete [] gamma_lin;
-  delete [] gamma_ang;
+  delete[] gamma_lin;
+  delete[] gamma_ang;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -91,9 +89,9 @@ void FixDampingCundall::init()
 {
   int max_respa = 0;
 
-  if (utils::strmatch(update->integrate_style,"^respa")) {
-    ilevel_respa = max_respa = ((Respa *) update->integrate)->nlevels-1;
-    if (respa_level >= 0) ilevel_respa = MIN(respa_level,max_respa);
+  if (utils::strmatch(update->integrate_style, "^respa")) {
+    ilevel_respa = max_respa = ((Respa *) update->integrate)->nlevels - 1;
+    if (respa_level >= 0) ilevel_respa = MIN(respa_level, max_respa);
   }
 }
 
@@ -101,11 +99,11 @@ void FixDampingCundall::init()
 
 void FixDampingCundall::setup(int vflag)
 {
-  if (utils::strmatch(update->integrate_style,"^verlet"))
+  if (utils::strmatch(update->integrate_style, "^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
-    post_force_respa(vflag,ilevel_respa,0);
+    post_force_respa(vflag, ilevel_respa, 0);
     ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
   }
 }
@@ -138,28 +136,28 @@ void FixDampingCundall::post_force(int /*vflag*/)
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
-  double gamma_l,gamma_a;
-  int signf0,signf1,signf2;
-  int signt0,signt1,signt2;
+  double gamma_l, gamma_a;
+  int signf0, signf1, signf2;
+  int signt0, signt1, signt2;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       gamma_l = gamma_lin[type[i]];
       gamma_a = gamma_ang[type[i]];
 
-      signf0 = (f[i][0]*v[i][0] >= 0.0) ? 1.0 : -1.0;
-      signf1 = (f[i][1]*v[i][1] >= 0.0) ? 1.0 : -1.0;
-      signf2 = (f[i][2]*v[i][2] >= 0.0) ? 1.0 : -1.0;
-      f[i][0] *= 1.0 - gamma_l*signf0;
-      f[i][1] *= 1.0 - gamma_l*signf1;
-      f[i][2] *= 1.0 - gamma_l*signf2;
+      signf0 = (f[i][0] * v[i][0] >= 0.0) ? 1.0 : -1.0;
+      signf1 = (f[i][1] * v[i][1] >= 0.0) ? 1.0 : -1.0;
+      signf2 = (f[i][2] * v[i][2] >= 0.0) ? 1.0 : -1.0;
+      f[i][0] *= 1.0 - gamma_l * signf0;
+      f[i][1] *= 1.0 - gamma_l * signf1;
+      f[i][2] *= 1.0 - gamma_l * signf2;
 
-      signt0 = (torque[i][0]*omega[i][0] >= 0.0) ? 1.0 : -1.0;
-      signt1 = (torque[i][1]*omega[i][1] >= 0.0) ? 1.0 : -1.0;
-      signt2 = (torque[i][2]*omega[i][2] >= 0.0) ? 1.0 : -1.0;
-      torque[i][0] *= 1.0 - gamma_a*signt0;
-      torque[i][1] *= 1.0 - gamma_a*signt1;
-      torque[i][2] *= 1.0 - gamma_a*signt2;
+      signt0 = (torque[i][0] * omega[i][0] >= 0.0) ? 1.0 : -1.0;
+      signt1 = (torque[i][1] * omega[i][1] >= 0.0) ? 1.0 : -1.0;
+      signt2 = (torque[i][2] * omega[i][2] >= 0.0) ? 1.0 : -1.0;
+      torque[i][0] *= 1.0 - gamma_a * signt0;
+      torque[i][1] *= 1.0 - gamma_a * signt1;
+      torque[i][2] *= 1.0 - gamma_a * signt2;
     }
 }
 

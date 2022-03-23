@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(viscous/sphere,FixViscousSphere)
-
+// clang-format off
+FixStyle(viscous/sphere,FixViscousSphere);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_VISCOUS_SPHERE_H
@@ -41,7 +41,7 @@ class FixViscousSphere : public Fix {
   int ilevel_respa;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

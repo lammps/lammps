@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(damping/cundall,FixDampingCundall)
-
+// clang-format off
+FixStyle(damping/cundall,FixDampingCundall);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_DAMPING_CUNDALL_H
@@ -37,11 +37,11 @@ class FixDampingCundall : public Fix {
   void min_post_force(int);
 
  protected:
-  double *gamma_lin,*gamma_ang;
+  double *gamma_lin, *gamma_ang;
   int ilevel_respa;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

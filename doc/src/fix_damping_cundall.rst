@@ -130,5 +130,5 @@ Mechanics, Ch. 4, pp. 129-163. E. T. Brown, ed. London: Allen & Unwin., 1987.
 
 .. _YadeDEM:
 
-**(Yade-DEM)** V. Šmilauer et al. (2021), Yade Documentation 3rd ed.
-The Yade Project. DOI:10.5281/zenodo.5705394 (http://yade-dem.org/doc/)
+**(Yade-DEM)** V. Smilauer et al. (2021), Yade Documentation 3rd ed.
+The Yade Project. DOI:10.5281/zenodo.5705394 (https://yade-dem.org/doc/)

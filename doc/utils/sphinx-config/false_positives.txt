@@ -572,6 +572,8 @@ cuFFT
 CuH
 Cui
 Cummins
+Cundall
+cundall
 Curk
 Cusentino
 customIDs
@@ -654,6 +656,7 @@ delocalized
 Delong
 delr
 deltaHf
+dem
 Dendrimer
 dendritic
 Denniston
@@ -3091,6 +3094,7 @@ smallsmall
 smd
 SMD
 smi
+Smilauer
 Smirichinski
 Smit
 smtbq
@@ -3475,6 +3479,7 @@ unsplit
 unstrained
 untar
 untilted
+Unwin
 uparrow
 upenn
 upto
@@ -3694,6 +3699,8 @@ xy
 xyz
 xz
 xzhou
+Yade
+yade
 yaff
 YAFF
 Yamada
@@ -3739,6 +3746,7 @@ zcm
 zeeman
 Zeeman
 Zemer
+zenodo
 Zepeda
 zflag
 Zhang

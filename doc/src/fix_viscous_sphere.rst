@@ -94,7 +94,7 @@ be point particles.
 Related commands
 """"""""""""""""
 
-:doc:`fix viscous <fix_viscous>`
+:doc:`fix viscous <fix_viscous>`, :doc:`fix damping/cundall <fix_damping_cundall>`
 
 Default
 """""""

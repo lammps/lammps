@@ -108,7 +108,7 @@ This fix requires that atoms store torque and a radius as defined by the
 Related commands
 """"""""""""""""
 
-none
+:doc:`fix viscous <fix_viscous>`, :doc:`fix viscous/sphere <fix_viscous_sphere>`
 
 Default
 """""""

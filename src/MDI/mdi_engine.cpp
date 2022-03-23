@@ -30,6 +30,7 @@
 #include "group.h"
 #include "input.h"
 #include "integrate.h"
+#include "irregular.h"
 #include "library.h"
 #include "memory.h"
 #include "min.h"
@@ -54,7 +55,7 @@ enum{TYPE,CHARGE,MASS,COORD,VELOCITY,FORCE};
 
 /* ----------------------------------------------------------------------
    mdi command: engine
-   NOTE: may later have other MDI command variants?
+   may later have other MDI command variants
 ---------------------------------------------------------------------- */
 
 void MDIEngine::command(int narg, char **arg)
@@ -75,20 +76,8 @@ void MDIEngine::command(int narg, char **arg)
 ---------------------------------------------------------------------- */
 
 void MDIEngine::mdi_engine(int narg, char **arg)
-{
-  // process args
-
-  enable_fix = 0;
-
-  int iarg = 0;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"nodes") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal mdi engine command");
-      if (strcmp(arg[iarg+1],"yes") == 0) enable_fix = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) enable_fix = 0;
-      iarg += 2;
-    } else error->all(FLERR,"Illegal mdi engine command");
-  }
+{ 
+  if (narg) error->all(FLERR,"Illegal mdi engine command");
 
   // check requirements for LAMMPS to work with MDI as an engine
 
@@ -136,6 +125,10 @@ void MDIEngine::mdi_engine(int narg, char **arg)
   ke = modify->compute[icompute_ke];
   pe = modify->compute[icompute_pe];
   press = modify->compute[icompute_press];
+
+  // irregular class used if >COORDS change dramatically
+
+  irregular = new Irregular(lmp);
 
   // set unit conversion factors
 
@@ -221,6 +214,8 @@ void MDIEngine::mdi_engine(int narg, char **arg)
   delete [] id_ke;
   delete [] id_pe;
   delete [] id_press;
+
+  delete irregular;
 
   // delete buffers
 
@@ -557,57 +552,51 @@ void MDIEngine::mdi_commands()
   // node at POST_INTEGRATE location in timestep
   // only if fix MDI/ENGINE is instantiated
 
-  if (enable_fix) {
-    MDI_Register_node("@COORDS");
-    MDI_Register_command("@COORDS", "<@");
-    MDI_Register_command("@COORDS", "<COORDS");
-    MDI_Register_command("@COORDS", ">COORDS");
-    MDI_Register_command("@COORDS", "@");
-    MDI_Register_command("@COORDS", "@DEFAULT");
-    MDI_Register_command("@COORDS", "@COORDS");
-    MDI_Register_command("@COORDS", "@FORCES");
-    MDI_Register_command("@COORDS", "@ENDSTEP");
-    MDI_Register_command("@COORDS", "EXIT");
-  }
+  MDI_Register_node("@COORDS");
+  MDI_Register_command("@COORDS", "<@");
+  MDI_Register_command("@COORDS", "<COORDS");
+  MDI_Register_command("@COORDS", ">COORDS");
+  MDI_Register_command("@COORDS", "@");
+  MDI_Register_command("@COORDS", "@DEFAULT");
+  MDI_Register_command("@COORDS", "@COORDS");
+  MDI_Register_command("@COORDS", "@FORCES");
+  MDI_Register_command("@COORDS", "@ENDSTEP");
+  MDI_Register_command("@COORDS", "EXIT");
 
   // node at POST_FORCE location in timestep
   // only if fix MDI/ENGINE is instantiated
 
-  if (enable_fix) {
-    MDI_Register_node("@FORCES");
-    MDI_Register_command("@FORCES", "<@"); 
-    MDI_Register_command("@FORCES", "<ENERGY");
-    MDI_Register_command("@FORCES", "<FORCES");
-    MDI_Register_command("@FORCES", "<PE");
-    MDI_Register_command("@FORCES", "<STRESS");
-    MDI_Register_callback("@FORCES", ">FORCES");
-    MDI_Register_callback("@FORCES", ">+FORCES");
-    MDI_Register_command("@FORCES", "<KE");
-    MDI_Register_command("@FORCES", "@");
-    MDI_Register_command("@FORCES", "@DEFAULT");
-    MDI_Register_command("@FORCES", "@COORDS");
-    MDI_Register_command("@FORCES", "@FORCES");
-    MDI_Register_command("@FORCES", "@ENDSTEP");
-    MDI_Register_command("@FORCES", "EXIT");
-  }
+  MDI_Register_node("@FORCES");
+  MDI_Register_command("@FORCES", "<@"); 
+  MDI_Register_command("@FORCES", "<ENERGY");
+  MDI_Register_command("@FORCES", "<FORCES");
+  MDI_Register_command("@FORCES", "<PE");
+  MDI_Register_command("@FORCES", "<STRESS");
+  MDI_Register_callback("@FORCES", ">FORCES");
+  MDI_Register_callback("@FORCES", ">+FORCES");
+  MDI_Register_command("@FORCES", "<KE");
+  MDI_Register_command("@FORCES", "@");
+  MDI_Register_command("@FORCES", "@DEFAULT");
+  MDI_Register_command("@FORCES", "@COORDS");
+  MDI_Register_command("@FORCES", "@FORCES");
+  MDI_Register_command("@FORCES", "@ENDSTEP");
+  MDI_Register_command("@FORCES", "EXIT");
 
   // node at END_OF_STEP location in timestep
   // only if fix MDI/ENGINE is instantiated
 
-  if (enable_fix) {
-    MDI_Register_node("@ENDSTEP");
-    MDI_Register_command("@ENDSTEP", "<@");
-    MDI_Register_command("@FORCES", "<ENERGY");
-    MDI_Register_command("@FORCES", "<FORCES");
-    MDI_Register_command("@FORCES", "<PE");
-    MDI_Register_command("@FORCES", "<STRESS");
-    MDI_Register_command("@ENDSTEP", "@");
-    MDI_Register_command("@ENDSTEP", "@DEFAULT");
-    MDI_Register_command("@ENDSTEP", "@COORDS");
-    MDI_Register_command("@ENDSTEP", "@FORCES");
-    MDI_Register_command("@ENDSTEP", "@ENDSTEP");
-    MDI_Register_command("@ENDSTEP", "EXIT");
-  }
+  MDI_Register_node("@ENDSTEP");
+  MDI_Register_command("@ENDSTEP", "<@");
+  MDI_Register_command("@FORCES", "<ENERGY");
+  MDI_Register_command("@FORCES", "<FORCES");
+  MDI_Register_command("@FORCES", "<PE");
+  MDI_Register_command("@FORCES", "<STRESS");
+  MDI_Register_command("@ENDSTEP", "@");
+  MDI_Register_command("@ENDSTEP", "@DEFAULT");
+  MDI_Register_command("@ENDSTEP", "@COORDS");
+  MDI_Register_command("@ENDSTEP", "@FORCES");
+  MDI_Register_command("@ENDSTEP", "@ENDSTEP");
+  MDI_Register_command("@ENDSTEP", "EXIT");
 }
 
 /* ----------------------------------------------------------------------
@@ -619,7 +608,7 @@ void MDIEngine::mdi_md()
 {
   // engine is now at @INIT_MD node
   // receive >NITERATE or other commands driver wishes to send
-  // @DEFAULT command from driver will trigger the simulation
+  // @RUN_MD or @DEFAULT command from driver will trigger the simulation
 
   niterate = 0;
 
@@ -628,6 +617,7 @@ void MDIEngine::mdi_md()
   if (strcmp(mdicmd,"EXIT") == 0) return;
 
   // create or update system if requested
+  // assume only incremental changes in atom coords
 
   int flag_create = flag_natoms | flag_types;
   if (flag_create) create_system();
@@ -657,6 +647,8 @@ void MDIEngine::mdi_md()
   
   update->integrate->cleanup();
 
+  engine_node("@RUN_MD");
+
   // clear flags
 
   flag_natoms = flag_types = 0;
@@ -673,11 +665,9 @@ void MDIEngine::mdi_md_old()
   // add an instance of fix MDI/ENGINE
   // delete the instance before this method returns
 
-  if (!enable_fix) 
-    error->all(FLERR,"MDI engine command did not enable @INIT_MD support");
-
   modify->add_fix("MDI_ENGINE_INTERNAL all MDI/ENGINE");
-  mdi_fix = (FixMDIEngine *) modify->get_fix_by_id("MDI_ENGINE_INTERNAL");
+  FixMDIEngine *mdi_fix = 
+    (FixMDIEngine *) modify->get_fix_by_id("MDI_ENGINE_INTERNAL");
   mdi_fix->mdi_engine = this;
 
   // initialize a new MD simulation
@@ -800,11 +790,9 @@ void MDIEngine::mdi_optg_old()
   // add an instance of fix MDI/ENGINE
   // delete the instance before this method returns
 
-  if (!enable_fix) 
-    error->all(FLERR,"MDI engine command did not enable @INIT_OPTG support");
-
   modify->add_fix("MDI_ENGINE_INTERNAL all MDI/ENGINE");
-  mdi_fix = (FixMDIEngine *) modify->get_fix_by_id("MDI_ENGINE_INTERNAL");
+  FixMDIEngine *mdi_fix = 
+    (FixMDIEngine *) modify->get_fix_by_id("MDI_ENGINE_INTERNAL");
   mdi_fix->mdi_engine = this;
 
   // set tolerances to epsilon and iteration limits huge
@@ -876,11 +864,19 @@ void MDIEngine::evaluate()
   // if new system created or first-time eval:
   //   init LAMMPS and eval eng/force/virial via setup(1)
   // else:
-  //   assume system has been updated incrementally
-  //   advance system by single timestep via setup(0/1)
+  //   atom coords may or may not be updated incrementally
+  //     incremental: timstepping an MD simulation
+  //     non-incremental: e.g. processing snapshots from a dump file
+  //   advance system by single step
   //   insure potential energy and virial are tallied on new step
-  //   decide if new neighbor list needed
-  //   eval eng/force/virial via setup_minimal(0/1)
+  //   check if reneighboing needed
+  //   if no, just invoke setup_minimal(0)
+  //   if yes, do an irregular->migrate_check() and migrate_atoms() if needed
+  //     this can only be done if comm->style is not tiled
+  //     also requires atoms be in box and lamda coords (for triclinic)
+  //   finally invoke setup_minimal(1) to trigger exchange() & reneigh()
+  // NOTE: what this logic still lacks is invoking migrate_atoms()
+  //       if necessary for comm->style tiled, not easy to detect
 
   if (flag_create || neighbor->ago < 0) {
     update->whichflag = 1;
@@ -894,18 +890,28 @@ void MDIEngine::evaluate()
     press->addstep(update->ntimestep);
 
     int nflag = neighbor->decide();
+
     if (nflag == 0) {
       comm->forward_comm();
       update->integrate->setup_minimal(0);
       modify->clearstep_compute();
       output->thermo->compute(1);
-      modify->addstep_compute(update->ntimestep+1);
+
     } else {
+      if (!comm->style) {
+        if (domain->triclinic) domain->x2lamda(atom->nlocal);
+        domain->pbc();
+        domain->reset_box();
+        if (irregular->migrate_check()) irregular->migrate_atoms();
+        if (domain->triclinic) domain->lamda2x(atom->nlocal);
+      }
+
       update->integrate->setup_minimal(1);
       modify->clearstep_compute();
       output->thermo->compute(1);
-      modify->addstep_compute(update->ntimestep+1);
     }
+
+    modify->addstep_compute(update->ntimestep+1);
   }
 
   // clear flags that trigger next eval
@@ -916,23 +922,24 @@ void MDIEngine::evaluate()
 
 /* ----------------------------------------------------------------------
    create a new system
+   >CELL, >NATOMS, >TYPES, >COORDS commands are required
+   >CELL_DISPL, >CHARGES, >VELOCITIES commands are optional
 ---------------------------------------------------------------------- */
 
 void MDIEngine::create_system()
 {
-  // >CELL, >NATOMS, >TYPES, >COORDS commands are required
-  // >CELL_DISPL, >CHARGES, >VELOCITIES commands are optional
+  // check requirements
 
   if (flag_cell == 0 || flag_natoms == 0 ||
       flag_types == 0 || flag_coords == 0)
     error->all(FLERR,
                "@INIT_SYS requires >CELL, >NATOMS, >TYPES, >COORDS MDI commands");
 
-  // clear system via delete_atoms command
+  // remove all existing atoms via delete_atoms command
 
   lmp->input->one("delete_atoms group all");
 
-  // lib->reset_box()
+  // invoke lib->reset_box()
 
   double boxlo[3],boxhi[3];
   double xy,yz,xz;
@@ -955,7 +962,7 @@ void MDIEngine::create_system()
 
   lammps_reset_box(lmp,boxlo,boxhi,xy,yz,xz);
 
-  // lib->create_atoms()
+  // invoke lib->create_atoms()
   // optionally set charges if specified by ">CHARGES"
 
   if (flag_velocities)
@@ -1013,7 +1020,7 @@ void MDIEngine::adjust_box()
   }
 
   // reset all Domain variables that depend on box size/shape
-  // convert lamda atoms coords back to new box coords
+  // convert atoms from lamda coords back to new box coords
 
   domain->set_global_box();
   domain->set_local_box();
@@ -1021,7 +1028,7 @@ void MDIEngine::adjust_box()
 }
 
 /* ----------------------------------------------------------------------
-   adjust charges, coods, velocities
+   overwrite charges
 ---------------------------------------------------------------------- */
 
 void MDIEngine::adjust_charges()
@@ -1038,6 +1045,10 @@ void MDIEngine::adjust_charges()
   }
 }
 
+/* ----------------------------------------------------------------------
+   overwrite coords
+---------------------------------------------------------------------- */
+
 void MDIEngine::adjust_coords()
 {
   double **x = atom->x;
@@ -1053,6 +1064,10 @@ void MDIEngine::adjust_coords()
     x[i][2] = sys_coords[3*ilocal+2];
   }
 }
+
+/* ----------------------------------------------------------------------
+   overwrite velocities
+---------------------------------------------------------------------- */
 
 void MDIEngine::adjust_velocities()
 {
@@ -1071,8 +1086,8 @@ void MDIEngine::adjust_velocities()
 }
 
 // ----------------------------------------------------------------------
-// ----------------------------------------------------------------------
-// responses to ">" MDI driver commands that send data
+// ----------------------------------------------------------------------/
+// MDI ">" driver commands that send data
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
 
@@ -1190,7 +1205,7 @@ void MDIEngine::receive_velocities()
 
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
-// responses to "<" MDI driver commands that request data
+// MDI "<" driver commands that request data
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
 
@@ -1258,7 +1273,7 @@ void MDIEngine::send_total_energy()
 
 /* ----------------------------------------------------------------------
    <LABELS command
-   convert atom type to string for each atom
+   convert numeric atom type to string for each atom
    atoms are ordered by atomID, 1 to Natoms
 ---------------------------------------------------------------------- */
 
@@ -1267,12 +1282,29 @@ void MDIEngine::send_labels()
   char *labels = new char[atom->natoms * MDI_LABEL_LENGTH];
   memset(labels,' ',atom->natoms * MDI_LABEL_LENGTH);
 
-  // NOTE: this loop will not work in parallel
+  memset(ibuf1,0,atom->natoms*sizeof(int));
 
-  for (int iatom = 0; iatom < atom->natoms; iatom++) {
-    std::string label = std::to_string(atom->type[iatom]);
-    int label_len = std::min(int(label.length()), MDI_LABEL_LENGTH);
-    strncpy(&labels[iatom * MDI_LABEL_LENGTH], label.c_str(), label_len);
+  // use atomID to index into ordered ibuf1
+
+  tagint *tag = atom->tag; 
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+
+  int ilocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    ilocal = static_cast<int> (tag[i]) - 1;
+    ibuf1[ilocal] = type[i];
+  }
+
+  MPI_Reduce(ibuf1,ibuf1all,atom->natoms,MPI_INT,MPI_SUM,0,world);
+
+  if (comm->me == 0) {
+    for (int iatom = 0; iatom < atom->natoms; iatom++) {
+      std::string label = std::to_string(ibuf1all[iatom]);
+      int label_len = std::min(int(label.length()), MDI_LABEL_LENGTH);
+      strncpy(&labels[iatom * MDI_LABEL_LENGTH], label.c_str(), label_len);
+    }
   }
 
   int ierr = MDI_Send(labels,atom->natoms*MDI_LABEL_LENGTH,MDI_CHAR,mdicomm);
@@ -1379,7 +1411,7 @@ void MDIEngine::send_int1(int which)
 {
   memset(ibuf1,0,atom->natoms*sizeof(int));
 
-  // use atomID to index into ordered buf1
+  // use atomID to index into ordered ibuf1
 
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;

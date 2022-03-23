@@ -38,8 +38,6 @@ class MDIEngine : public Command {
   int lmpunits;      // REAL or METAL or NATIVE
   int root;          // 1 for proc 0, otherwise 0
 
-  int enable_fix;    // 1 if mdi engine command asked for node support
-
   // state of MDI engine
 
   int mode;              // which mode engine is in (DEFAULT,MD,OPTG,etc)
@@ -50,12 +48,10 @@ class MDIEngine : public Command {
   bool exit_command;     // true if EXIT command received from driver
 
   MDI_Comm mdicomm;
-  class FixMDIEngine *mdi_fix;
 
   char *id_ke,*id_pe,*id_press;
-  class Irregular *irregular;
-  class Minimize *minimizer;
   class Compute *ke,*pe,*press;
+  class Irregular *irregular;
 
   // unit conversion factors
 

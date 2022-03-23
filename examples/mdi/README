@@ -40,7 +40,7 @@ Run the entire calculation with a single instance of LAMMPS by itself
 
 Run with TCP: 1 proc each
 
-% lmp_mpi -mdi "-name driver -role DRIVER -method TCP -port 8021" -log log.aimd.driver -in in.aimd.driver
+% lmp_mpi -mdi "-name aimd -role DRIVER -method TCP -port 8021" -log log.aimd.driver -in in.aimd.driver
 
 % lmp_mpi -mdi "-name LAMMPS -role ENGINE -method TCP -port 8021 -hostname localhost" -log log.aimd.engine -in in.aimd.engine
 
@@ -48,7 +48,7 @@ Run with TCP: 1 proc each
 
 Run with TCP: 3 procs + 4 procs
 
-% mpirun -np 3 lmp_mpi -mdi "-name driver -role DRIVER -method TCP -port 8021" -log log.aimd.driver -in in.aimd.driver
+% mpirun -np 3 lmp_mpi -mdi "-name aimd -role DRIVER -method TCP -port 8021" -log log.aimd.driver -in in.aimd.driver
 
 % mpirun -np 4 lmp_mpi -mdi "-name LAMMPS -role ENGINE -method TCP -port 8021 -hostname localhost" -log log.aimd.engine -in in.aimd.engine
 
@@ -56,24 +56,26 @@ Run with TCP: 3 procs + 4 procs
 
 Run with MPI: 1 proc each
 
-% mpirun -np 1 lmp_mpi -mdi "-name driver -role DRIVER -method MPI" -log log.aimd.driver -in in.aimd.driver : -np 1 lmp_mpi -mdi "-name LAMMPS -role ENGINE -method MPI" -log log.aimd.engine -in in.aimd.engine
+% mpirun -np 1 lmp_mpi -mdi "-name aimd -role DRIVER -method MPI" -log log.aimd.driver -in in.aimd.driver : -np 1 lmp_mpi -mdi "-name LAMMPS -role ENGINE -method MPI" -log log.aimd.engine -in in.aimd.engine
 
 ---
 
 Run with MPI: 3 procs + 4 procs
 
-% mpirun -np 3 lmp_mpi -mdi "-name driver -role DRIVER -method MPI" -log log.aimd.driver -in in.aimd.driver : -np 4 lmp_mpi -mdi "-name LAMMPS -role ENGINE -method MPI" -log log.aimd.engine -in in.aimd.engine
+% mpirun -np 3 lmp_mpi -mdi "-name aimd -role DRIVER -method MPI" -log log.aimd.driver -in in.aimd.driver : -np 4 lmp_mpi -mdi "-name LAMMPS -role ENGINE -method MPI" -log log.aimd.engine -in in.aimd.engine
 
 -------------------------------------------------
 -------------------------------------------------
 
-* Example #2 = Use a Python driver code to run a series of independent 
+* Example #2 = Use a Python driver code to run a sequence of independent 
   LAMMPS calculations
 
-Note that the series_driver.py code allows for optional arguments in
-addition to -mdi (required).  The example run commands below just
-using the default values.  The options are explained the top of the file;
-the info is copied here:
+Note that the sequence_driver.py code allows for optional switches in
+addition to -mdi (required) and the -plugin and -plugin_args swithces
+which are used to link to an engine as a plugin library.  The example
+run commands below just usu the default values fo rhte optional
+switches.  They are also explained the top of the file; the info is
+copied here:
 
 #   -n 10
 #     number of calculations to perform, default = 1
@@ -99,35 +101,41 @@ the info is copied here:
 
 Run with TCP: 1 proc each
 
-% python3 series_driver.py -mdi "-role DRIVER -name series -method TCP -port 8021"
+% python3 sequence_driver.py -mdi "-role DRIVER -name sequence -method TCP -port 8021"
 
-% lmp_mpi -mdi "-role ENGINE -name LAMMPS -method TCP -port 8021 -hostname localhost" -log log.series -in in.series
+% lmp_mpi -mdi "-role ENGINE -name LAMMPS -method TCP -port 8021 -hostname localhost" -log log.sequence -in in.sequence
 
 ---
 
 Run with TCP: 2 proc + 4 procs
 
-% mpirun -np 2 python3 series_driver.py -mdi "-role DRIVER -name series -method TCP -port 8021"
+% mpirun -np 2 python3 sequence_driver.py -mdi "-role DRIVER -name sequence -method TCP -port 8021"
 
-% mpirun -np 4 lmp_mpi -mdi "-role ENGINE -name LAMMPS -method TCP -port 8021 -hostname localhost" -log log.series -in in.series
+% mpirun -np 4 lmp_mpi -mdi "-role ENGINE -name LAMMPS -method TCP -port 8021 -hostname localhost" -log log.sequence -in in.sequence
 
 ---
 
 Run with MPI: 1 proc each
 
-% mpirun -np 1 python3 series_driver.py -mdi "-role DRIVER -name series -method MPI" : -np 1 lmp_mpi -mdi "-role ENGINE -name LAMMPS -method MPI" -log log.series -in in.series
+% mpirun -np 1 python3 sequence_driver.py -mdi "-role DRIVER -name sequence -method MPI" : -np 1 lmp_mpi -mdi "-role ENGINE -name LAMMPS -method MPI" -log log.sequence -in in.sequence
 
 ---
 
 Run with MPI: 2 procs + 3 procs
 
-% mpirun -np 2 python3 series_driver.py -mdi "-role DRIVER -name series -method MPI" : -np 3 lmp_mpi -mdi "-role ENGINE -name LAMMPS -method MPI" -log log.series -in in.series
+% mpirun -np 2 python3 sequence_driver.py -mdi "-role DRIVER -name sequence -method MPI" : -np 3 lmp_mpi -mdi "-role ENGINE -name LAMMPS -method MPI" -log log.sequence -in in.sequence
 
 ---
 
 Run in plugin mode: 1 proc
 
-% python3 series_driver.py -plugin lammps -mdi "-role DRIVER -name series -method LINK -plugin_path /home/sjplimp/lammps/git/src" -plugin_args "-log log.series -in in.series"
+% python3 sequence_driver.py -plugin lammps -mdi "-role DRIVER -name sequence -method LINK -plugin_path /home/sjplimp/lammps/git/src" -plugin_args "-log log.sequence -in in.sequence"
 
+DEBUG:
+mpiexec -n 1 python3 plugin_driver.py --plugin_name "lammps" --mdi "-role DRIVER -name driver -method LINK -plugin_path /home/sjplimp/lammps/git/src" --plugin_command_line "-in in.sequence -log log.sequence"
 
-mpiexec -n 1 python3 plugin_driver.py --plugin_name "lammps" --mdi "-role DRIVER -name driver -method LINK -plugin_path /home/sjplimp/lammps/git/src" --plugin_command_line "foo -in in.series"
+---
+
+Run in plugin mode: 3 procs
+
+% mpirun -np 3 python3 sequence_driver.py -plugin lammps -mdi "-role DRIVER -name sequence -method LINK -plugin_path /home/sjplimp/lammps/git/src" -plugin_args "-log log.sequence -in in.sequence"

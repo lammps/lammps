@@ -54,8 +54,6 @@ command-line argument, which must be provided by the MDI driver.
 
 int MDI_Plugin_init_lammps()
 {
-  printf("LMP PLUGIN init\n");
-
   // initialize MDI
 
   int mdi_argc;
@@ -70,8 +68,6 @@ int MDI_Plugin_init_lammps()
   if (MDI_MPI_get_world_comm(&mpi_world_comm)) MPI_Abort(MPI_COMM_WORLD, 1);
 
   // find the -in argument
-
-  printf("LMP PLUGIN init %d %s %s\n",mdi_argc,mdi_argv[0],mdi_argv[1]);
 
   int iarg = 0;
   char *filename;
@@ -96,14 +92,14 @@ int MDI_Plugin_init_lammps()
   if (!found_filename) MPI_Abort(MPI_COMM_WORLD, 1);
 
   // create and run a LAMMPS instance
-
-  printf("LMP PLUGIN init %d %s %s\n",mdi_argc,mdi_argv[0],mdi_argv[1]);
+  // lammps_open() expects a first arg (not used) which is executable name
+  // same as if called from main.cpp
 
   void *lmp = nullptr;
   if (lammps_config_has_mpi_support() > 0)
-    lmp = lammps_open(mdi_argc, mdi_argv, mpi_world_comm, nullptr);
+    lmp = lammps_open(mdi_argc+1, &mdi_argv[-1], mpi_world_comm, nullptr);
   else
-    lmp = lammps_open_no_mpi(mdi_argc, mdi_argv, nullptr);
+    lmp = lammps_open_no_mpi(mdi_argc+1, &mdi_argv[-1], nullptr);
 
   // process the specified input script
   // must contain "mdi engine" command
@@ -135,9 +131,6 @@ The function executes a single command from an external MDI driver.
 
 int lammps_execute_mdi_command(const char *command, MDI_Comm comm, void *class_obj)
 {
-  //FixMDIEngineOld *mdi_fix = (FixMDIEngineOld *) class_obj;
-  //return mdi_fix->execute_command(command, comm);
-
   MDIEngine *mdi_engine = (MDIEngine *) class_obj;
   return mdi_engine->execute_command(command,comm);
 }

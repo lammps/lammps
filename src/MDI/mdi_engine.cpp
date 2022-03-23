@@ -1532,8 +1532,8 @@ void MDIEngine::infile()
 }
 
 /* ----------------------------------------------------------------------
-   >STEPS command
-   send number of tiemsteps
+   >NITERATE command
+   receive number of iterations for timestepping
 ---------------------------------------------------------------------- */
 
 void MDIEngine::receive_niterate()
@@ -1545,7 +1545,7 @@ void MDIEngine::receive_niterate()
 
 /* ----------------------------------------------------------------------
    >TOLERANCE command
-   send 2 minimization tolerance params
+   receive 4 minimization tolerance params
 ---------------------------------------------------------------------- */
 
 void MDIEngine::receive_tolerance()

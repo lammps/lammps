@@ -14,9 +14,6 @@
 
 #include "fix_hyper_local.h"
 
-#include <cmath>
-#include <cstring>
-
 #include "atom.h"
 #include "update.h"
 #include "group.h"
@@ -31,6 +28,9 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -310,15 +310,9 @@ void FixHyperLocal::init()
   // NOTE: what if pair style list cutoff > Dcut
   //   or what if neigh skin is huge?
 
-  int irequest_full = neighbor->request(this,instance_me);
-  neighbor->requests[irequest_full]->id = 1;
-  neighbor->requests[irequest_full]->pair = 0;
-  neighbor->requests[irequest_full]->fix = 1;
-  neighbor->requests[irequest_full]->half = 0;
-  neighbor->requests[irequest_full]->full = 1;
-  neighbor->requests[irequest_full]->cut = 1;
-  neighbor->requests[irequest_full]->cutoff = dcut;
-  neighbor->requests[irequest_full]->occasional = 1;
+  auto req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
+  req->set_id(1);
+  req->set_cutoff(dcut);
 
   // also need occasional half neighbor list derived from pair style
   // used for building local bond list
@@ -326,11 +320,8 @@ void FixHyperLocal::init()
   // this list will also be built (or derived/copied)
   //   every time build_bond() is called
 
-  int irequest_half = neighbor->request(this,instance_me);
-  neighbor->requests[irequest_half]->id = 2;
-  neighbor->requests[irequest_half]->pair = 0;
-  neighbor->requests[irequest_half]->fix = 1;
-  neighbor->requests[irequest_half]->occasional = 1;
+  req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
+  req->set_id(2);
 
   // extra timing output
 

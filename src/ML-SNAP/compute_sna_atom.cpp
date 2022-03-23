@@ -13,7 +13,6 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_sna_atom.h"
-#include <cstring>
 
 #include "sna.h"
 #include "atom.h"
@@ -21,23 +20,23 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "force.h"
 #include "pair.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), sna(nullptr),
-  radelem(nullptr), wjelem(nullptr)
+  radelem(nullptr), wjelem(nullptr), rinnerelem(nullptr), drinnerelem(nullptr)
+
 {
   double rmin0, rfac0;
   int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
-  radelem = nullptr;
-  wjelem = nullptr;
 
   int ntypes = atom->ntypes;
   int nargmin = 6+2*ntypes;
@@ -54,6 +53,7 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
   chemflag = 0;
   bnormflag = 0;
   wselfallflag = 0;
+  switchinnerflag = 0;
   nelements = 1;
 
   // offset by 1 to match up with types
@@ -133,12 +133,26 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute sna/atom command");
       wselfallflag = atoi(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"switchinnerflag") == 0) {
+      if (iarg+1+2*ntypes > narg)
+        error->all(FLERR,"Illegal compute sna/atom command");
+      switchinnerflag = 1;
+      iarg++;
+      memory->create(rinnerelem,ntypes+1,"sna/atom:rinnerelem");
+      memory->create(drinnerelem,ntypes+1,"sna/atom:drinnerelem");
+      for (int i = 0; i < ntypes; i++)
+       rinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+      iarg += ntypes;
+      for (int i = 0; i < ntypes; i++)
+       drinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+      iarg += ntypes;
     } else error->all(FLERR,"Illegal compute sna/atom command");
   }
 
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
-                   chemflag, bnormflag, wselfallflag, nelements);
+                   chemflag, bnormflag, wselfallflag,
+                   nelements, switchinnerflag);
 
   ncoeff = snaptr->ncoeff;
   size_peratom_cols = ncoeff;
@@ -158,6 +172,13 @@ ComputeSNAAtom::~ComputeSNAAtom()
   memory->destroy(wjelem);
   memory->destroy(cutsq);
   delete snaptr;
+
+  if (chemflag) memory->destroy(map);
+
+  if (switchinnerflag) {
+    memory->destroy(rinnerelem);
+    memory->destroy(drinnerelem);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -172,17 +193,9 @@ void ComputeSNAAtom::init()
 
   // need an occasional full neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"sna/atom") == 0) count++;
-  if (count > 1 && comm->me == 0)
+  if (modify->get_compute_by_style("sna/atom").size() > 1 && comm->me == 0)
     error->warning(FLERR,"More than one compute sna/atom");
   snaptr->init();
 }
@@ -268,7 +281,11 @@ void ComputeSNAAtom::compute_peratom()
           snaptr->inside[ninside] = j;
           snaptr->wj[ninside] = wjelem[jtype];
           snaptr->rcutij[ninside] = (radi+radelem[jtype])*rcutfac;
-          snaptr->element[ninside] = jelem; // element index for multi-element snap
+          if (switchinnerflag) {
+            snaptr->rinnerij[ninside] = 0.5*(rinnerelem[itype]+rinnerelem[jtype]);
+            snaptr->drinnerij[ninside] = 0.5*(drinnerelem[itype]+drinnerelem[jtype]);
+          }
+          if (chemflag) snaptr->element[ninside] = jelem;
           ninside++;
         }
       }

@@ -37,6 +37,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using MathConst::MY_PI;
 
 enum{NONE,RLINEAR,RSQ};
 
@@ -104,7 +105,6 @@ void PairMultiLucy::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
-  double pi = MathConst::MY_PI;
   double A_i;
   double A_j;
   double fraction_i,fraction_j;
@@ -198,7 +198,7 @@ void PairMultiLucy::compute(int eflag, int vflag)
       evdwl = tb->e[itable] + fraction_i*tb->de[itable];
     } else error->one(FLERR,"Only LOOKUP and LINEAR table styles have been implemented for pair multi/lucy");
 
-    evdwl *=(pi*cutsq[itype][itype]*cutsq[itype][itype])/84.0;
+    evdwl *=(MY_PI*cutsq[itype][itype]*cutsq[itype][itype])/84.0;
 
     if (evflag) ev_tally(0,0,nlocal,newton_pair,
                          evdwl,0.0,0.0,0.0,0.0,0.0);
@@ -733,7 +733,6 @@ void PairMultiLucy::computeLocalDensity()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  double pi = MathConst::MY_PI;
   double *rho = atom->rho;
 
  // zero out density
@@ -766,7 +765,7 @@ void PairMultiLucy::computeLocalDensity()
 
       if (rsq < cutsq[itype][jtype]) {
         double rcut = sqrt(cutsq[itype][jtype]);
-        factor= (84.0/(5.0*pi*rcut*rcut*rcut))*(1.0+3.0*sqrt(rsq)/(2.0*rcut))*(1.0-sqrt(rsq)/rcut)*(1.0-sqrt(rsq)/rcut)*(1.0-sqrt(rsq)/rcut)*(1.0-sqrt(rsq)/rcut);
+        factor= (84.0/(5.0*MY_PI*rcut*rcut*rcut))*(1.0+3.0*sqrt(rsq)/(2.0*rcut))*(1.0-sqrt(rsq)/rcut)*(1.0-sqrt(rsq)/rcut)*(1.0-sqrt(rsq)/rcut)*(1.0-sqrt(rsq)/rcut);
         rho[i] += factor;
         if (newton_pair || j < nlocal) {
           rho[j] += factor;

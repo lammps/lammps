@@ -43,6 +43,13 @@ FixDeprecated::FixDeprecated(LAMMPS *lmp, int narg, char **arg) :
                      "ave/spatial keywords & options for binning are part of "
                      "compute chunk/atom:\n  dim, origin, delta, region, "
                      "bound, discard, units\n\n");
+  } else if (my_style == "lb/pc") {
+    utils::logmesg(lmp,"\nFix style 'lb/pc' has been removed from the LATBOLTZ"
+                     " package; 'fix nve' can be used in its place.\n\n");
+  }
+  else if (my_style == "lb/rigid/pc/sphere") {
+    utils::logmesg(lmp,"\nFix style 'lb/rigid/pc/sphere' has been removed from"
+                   " the LATBOLTZ package; 'fix rigid' can be used in its place.\n\n");
   }
   error->all(FLERR,"This fix style is no longer available");
 }

@@ -124,16 +124,10 @@ void ThirdOrder::command(int narg, char **arg)
 
   // request a full neighbor list for use by this command
 
-  int irequest = neighbor->request(this);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->command = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
-  neighbor->requests[irequest]->command_style = "third_order";
+  neighbor->add_request(this, "third_order", NeighConst::REQ_FULL);
 
   lmp->init();
-  list = neighbor->lists[irequest];
+  list = neighbor->find_list(this);
 
   // orthogonal vs triclinic simulation box
 

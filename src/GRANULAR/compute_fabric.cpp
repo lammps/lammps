@@ -89,8 +89,8 @@ ComputeFabric::ComputeFabric(LAMMPS *lmp, int narg, char **arg) :
         }
       }
 
-      std::vector<std::string> iwords = Tokenizer(arg[iarg+1], ",").as_vector();
-      std::vector<std::string> jwords = Tokenizer(arg[iarg+2], ",").as_vector();
+      std::vector<std::string> iwords = Tokenizer(arg[iarg + 1], ",").as_vector();
+      std::vector<std::string> jwords = Tokenizer(arg[iarg + 2], ",").as_vector();
       for (const auto &ifield : iwords) {
         utils::bounds(FLERR, ifield, 1, ntypes, inlo, inhi, error);
 
@@ -152,12 +152,11 @@ void ComputeFabric::init()
   // set size to same value as request made by force->pair
   // this should enable it to always be a copy list (e.g. for granular pstyle)
 
-  int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->occasional = 1;
-  NeighRequest *pairrequest = neighbor->find_request((void *) force->pair);
-  if (pairrequest) neighbor->requests[irequest]->size = pairrequest->size;
+  auto pairrequest = neighbor->find_request(force->pair);
+  if (pairrequest && pairrequest->get_size())
+    neighbor->add_request(this, NeighConst::REQ_SIZE | NeighConst::REQ_OCCASIONAL);
+  else
+    neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
 }
 
 /* ---------------------------------------------------------------------- */

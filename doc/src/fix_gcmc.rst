@@ -451,7 +451,7 @@ well in parallel. Currently, molecule translations and rotations
 are not supported with more than one MPI process.
 It is still possible to do parallel molecule exchange without
 translation and rotation moves by setting MC moves to zero
-and/or by using mcmoves keyword with *Pmoltrans*=*Pmolrotate*=0.
+and/or by using the *mcmoves* keyword with *Pmoltrans* = *Pmolrotate* = 0 .
 
 
 When using fix gcmc in combination with fix shake or fix rigid,

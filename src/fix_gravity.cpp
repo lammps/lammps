@@ -29,14 +29,14 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-using namespace MathConst;
+using MathConst::DEG2RAD;
 
 enum{CHUTE,SPHERICAL,VECTOR};
 
 /* ---------------------------------------------------------------------- */
 
-FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
+FixGravity::FixGravity(LAMMPS *_lmp, int narg, char **arg) :
+  Fix(_lmp, narg, arg),
   mstr(nullptr), vstr(nullptr), pstr(nullptr), tstr(nullptr),
   xstr(nullptr), ystr(nullptr), zstr(nullptr)
 {
@@ -135,7 +135,6 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
 
   // initializations
 
-  degree2rad = MY_PI/180.0;
   time_origin = update->ntimestep;
 
   eflag = 0;
@@ -328,12 +327,12 @@ void FixGravity::set_acceleration()
       theta = 180.0 - vert;
     }
     if (domain->dimension == 3) {
-      xgrav = sin(degree2rad * theta) * cos(degree2rad * phi);
-      ygrav = sin(degree2rad * theta) * sin(degree2rad * phi);
-      zgrav = cos(degree2rad * theta);
+      xgrav = sin(DEG2RAD * theta) * cos(DEG2RAD * phi);
+      ygrav = sin(DEG2RAD * theta) * sin(DEG2RAD * phi);
+      zgrav = cos(DEG2RAD * theta);
     } else {
-      xgrav = sin(degree2rad * theta);
-      ygrav = cos(degree2rad * theta);
+      xgrav = sin(DEG2RAD * theta);
+      ygrav = cos(DEG2RAD * theta);
       zgrav = 0.0;
     }
   } else if (style == VECTOR) {

@@ -14,21 +14,21 @@
 
 #include "fix_bond_create.h"
 
-#include <cstring>
-#include "update.h"
-#include "respa.h"
 #include "atom.h"
-#include "force.h"
-#include "modify.h"
-#include "pair.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "random_mars.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
 #include "math_const.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "random_mars.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -283,11 +283,7 @@ void FixBondCreate::init()
   }
 
   // need a half neighbor list, built every Nevery steps
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
 
   lastcheck = -1;
 }

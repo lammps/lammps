@@ -1110,9 +1110,8 @@ void PairGranular::init_style()
         break;
       }
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->size = 1;
-  if (use_history) neighbor->requests[irequest]->history = 1;
+  if (use_history) neighbor->add_request(this, NeighConst::REQ_SIZE|NeighConst::REQ_HISTORY);
+  else neighbor->add_request(this, NeighConst::REQ_SIZE);
 
   dt = update->dt;
 

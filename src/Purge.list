@@ -51,6 +51,9 @@ lmpinstalledpkgs.h
 lmpgitversion.h
 mliap_model_python_couple.cpp
 mliap_model_python_couple.h
+# removed on 8 March 2022
+fix_peri_neigh_omp.cpp
+fix_peri_neigh_omp.h
 # renamed on 7 March 2022
 compute_pressure_cylinder.cpp
 compute_pressure_cylinder.h
@@ -76,6 +79,8 @@ reaxc_multi_body_omp.cpp
 reaxc_nonbonded_omp.cpp
 reaxc_torsion_angles_omp.cpp
 reaxc_valence_angles_omp.cpp
+fix_qeq_reax.cpp
+fix_qeq_reax.h
 fix_reaxc.cpp
 fix_reaxc.h
 fix_reaxc_bonds.cpp

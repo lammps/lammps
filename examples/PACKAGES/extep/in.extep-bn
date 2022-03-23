@@ -15,7 +15,7 @@ neigh_modify    check yes
 
 # Potential
 pair_style      extep
-pair_coeff      * * ../../../../potentials/BN.extep B N
+pair_coeff      * * BN.extep B N
 
 # Output 
 thermo          10

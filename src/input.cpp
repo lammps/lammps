@@ -1201,7 +1201,7 @@ void Input::shell()
 
   } else if (strcmp(arg[0],"mkdir") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal shell mkdir command");
-    if (me == 0)
+    if (me == 0) {
       for (int i = 1; i < narg; i++) {
 #if defined(_WIN32)
         rv = _mkdir(arg[i]);
@@ -1214,20 +1214,22 @@ void Input::shell()
           delete[] message;
         }
       }
+    }
 
   } else if (strcmp(arg[0],"mv") == 0) {
     if (narg != 3) error->all(FLERR,"Illegal shell mv command");
-    rv = (rename(arg[1],arg[2]) < 0) ? errno : 0;
-    MPI_Reduce(&rv,&err,1,MPI_INT,MPI_MAX,0,world);
-    if (me == 0 && err != 0) {
-      char *message = shell_failed_message("mv",err);
-      error->warning(FLERR,message);
-      delete[] message;
+    if (me == 0) {
+      rv = (rename(arg[1],arg[2]) < 0) ? errno : 0;
+      if (rv != 0) {
+        char *message = shell_failed_message("mv",err);
+        error->warning(FLERR,message);
+        delete[] message;
+      }
     }
 
   } else if (strcmp(arg[0],"rm") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal shell rm command");
-    if (me == 0)
+    if (me == 0) {
       for (int i = 1; i < narg; i++) {
         if (unlink(arg[i]) < 0) {
           char *message = shell_failed_message("rm",errno);
@@ -1235,10 +1237,11 @@ void Input::shell()
           delete[] message;
         }
       }
+    }
 
   } else if (strcmp(arg[0],"rmdir") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal shell rmdir command");
-    if (me == 0)
+    if (me == 0) {
       for (int i = 1; i < narg; i++) {
         if (rmdir(arg[i]) < 0) {
           char *message = shell_failed_message("rmdir",errno);
@@ -1246,6 +1249,7 @@ void Input::shell()
           delete[] message;
         }
       }
+    }
 
   } else if (strcmp(arg[0],"putenv") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal shell putenv command");

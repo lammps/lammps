@@ -31,6 +31,7 @@
 #include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -44,6 +45,7 @@ template<class DeviceType>
 PairTersoffZBLKokkos<DeviceType>::PairTersoffZBLKokkos(LAMMPS *lmp) : PairTersoffZBL(lmp)
 {
   respa_enable = 0;
+  suffix_flag |= Suffix::KOKKOS;
 
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
@@ -185,7 +187,7 @@ void PairTersoffZBLKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
     d_eatom = k_eatom.view<DeviceType>();
   }
-  if (vflag_atom) {
+  if (vflag_either) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
     d_vatom = k_vatom.view<DeviceType>();
@@ -285,7 +287,7 @@ void PairTersoffZBLKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     k_eatom.template sync<LMPHostType>();
   }
 
-  if (vflag_atom) {
+  if (vflag_either) {
     if (need_dup)
       Kokkos::Experimental::contribute(d_vatom, dup_vatom);
     k_vatom.template modify<DeviceType>();
@@ -524,7 +526,7 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLComputeHalf<N
       a_f(k,1) += fk[1];
       a_f(k,2) += fk[2];
 
-      if (vflag_atom) {
+      if (vflag_either) {
         F_FLOAT delrij[3], delrik[3];
         delrij[0] = -delx1; delrij[1] = -dely1; delrij[2] = -delz1;
         delrik[0] = -delx2; delrik[1] = -dely2; delrik[2] = -delz2;
@@ -713,7 +715,7 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLComputeFullA<
       f_y += fi[1];
       f_z += fi[2];
 
-      if (vflag_atom) {
+      if (vflag_either) {
         F_FLOAT delrij[3], delrik[3];
         delrij[0] = -delx1; delrij[1] = -dely1; delrij[2] = -delz1;
         delrik[0] = -delx2; delrik[1] = -dely2; delrik[2] = -delz2;
@@ -838,7 +840,7 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLComputeFullB<
       f_y += fj[1];
       f_z += fj[2];
 
-      if (vflag_atom) {
+      if (vflag_either) {
         F_FLOAT delrji[3], delrjk[3];
         delrji[0] = -delx1; delrji[1] = -dely1; delrji[2] = -delz1;
         delrjk[0] = -delx2; delrjk[1] = -dely2; delrjk[2] = -delz2;
@@ -1003,7 +1005,9 @@ double PairTersoffZBLKokkos<DeviceType>::ters_dbij(const int &i, const int &j,
   if (tmp > paramskk(i,j,k).c1) return paramskk(i,j,k).beta * -0.5*pow(tmp,-1.5);
   if (tmp > paramskk(i,j,k).c2)
     return paramskk(i,j,k).beta * (-0.5*pow(tmp,-1.5) *
-           (1.0 - 0.5*(1.0 +  1.0/(2.0*paramskk(i,j,k).powern)) *
+           // error in negligible 2nd term fixed 2/21/2022
+           //(1.0 - 0.5*(1.0 + 1.0/(2.0*paramskk(i,j,k).powern)) *
+           (1.0 - (1.0 + 1.0/(2.0*paramskk(i,j,k).powern)) *
            pow(tmp,-paramskk(i,j,k).powern)));
   if (tmp < paramskk(i,j,k).c4) return 0.0;
   if (tmp < paramskk(i,j,k).c3)
@@ -1313,12 +1317,12 @@ void PairTersoffZBLKokkos<DeviceType>::v_tally3(EV_FLOAT &ev, const int &i, cons
 
   F_FLOAT v[6];
 
-  v[0] = THIRD * (drij[0]*fj[0] + drik[0]*fk[0]);
-  v[1] = THIRD * (drij[1]*fj[1] + drik[1]*fk[1]);
-  v[2] = THIRD * (drij[2]*fj[2] + drik[2]*fk[2]);
-  v[3] = THIRD * (drij[0]*fj[1] + drik[0]*fk[1]);
-  v[4] = THIRD * (drij[0]*fj[2] + drik[0]*fk[2]);
-  v[5] = THIRD * (drij[1]*fj[2] + drik[1]*fk[2]);
+  v[0] = (drij[0]*fj[0] + drik[0]*fk[0]);
+  v[1] = (drij[1]*fj[1] + drik[1]*fk[1]);
+  v[2] = (drij[2]*fj[2] + drik[2]*fk[2]);
+  v[3] = (drij[0]*fj[1] + drik[0]*fk[1]);
+  v[4] = (drij[0]*fj[2] + drik[0]*fk[2]);
+  v[5] = (drij[1]*fj[2] + drik[1]*fk[2]);
 
   if (vflag_global) {
     ev.v[0] += v[0];
@@ -1330,6 +1334,13 @@ void PairTersoffZBLKokkos<DeviceType>::v_tally3(EV_FLOAT &ev, const int &i, cons
   }
 
   if (vflag_atom) {
+    v[0] *= THIRD;
+    v[1] *= THIRD;
+    v[2] *= THIRD;
+    v[3] *= THIRD;
+    v[4] *= THIRD;
+    v[5] *= THIRD;
+
     a_vatom(i,0) += v[0]; a_vatom(i,1) += v[1]; a_vatom(i,2) += v[2];
     a_vatom(i,3) += v[3]; a_vatom(i,4) += v[4]; a_vatom(i,5) += v[5];
     if (NEIGHFLAG != FULL) {

@@ -3,8 +3,8 @@ AMOEBA and HIPPO force fields
 
 The AMOEBA and HIPPO polarizable force fields were developed by Jay
 Ponder's group at U Washington at St Louis.  Their implementation in
-LAMMPS was done using code provided by the Ponder group from their
-`Tinker MD code <https://dasher.wustl.edu/tinker/>`_ written in F90.
+LAMMPS was done using F90 code provided by the Ponder group from their
+`Tinker MD code <https://dasher.wustl.edu/tinker/>`_
 
 NOTE: what version of AMOEBA and HIPPO does LAMMPS implement?
 
@@ -12,13 +12,13 @@ These force fields can be used when polarization effects are desired
 in simulations of water, organic molecules, and biomolecules including
 proteins, provided that parameterizations (force field files) are
 available for the systems you are interested in.  Files in the LAMMPS
-potentials with a "amoeba" or "hippo" suffix can be used.  The Tinker
-distribution and website may have other such files.
+potentials directory with a "amoeba" or "hippo" suffix can be used.
+The Tinker distribution and website may have other force field files.
 
 Note that currently, HIPPO can only be used for water systems, but
 HIPPO files for a variety of small organic and biomolecules are in
-preparation by the Ponder group.  They will be included in the LAMMPS
-distribution when available.
+preparation by the Ponder group.  Those force field files will be
+included in the LAMMPS distribution when available.
 
 The :doc:`pair_style amoeba <pair_amoeba>` doc page gives a brief
 description of the AMOEBA and HIPPO force fields.  Further details for
@@ -28,26 +28,50 @@ AMOEBA are in these papers: :ref:`(Ren) <amoeba-Ren>`, :ref:`(Shi)
 
 ----------
 
-To use the AMOEBA force field in LAMMPS you should use these commands
-appropriately in your input script.  The only change needed for a
-HIPPO simulation is for the pair_style and pair_coeff commands.
-See examples/amoeba for example input scripts.
+To use the AMOEBA force field in LAMMPS you should use command like
+these appropriately in your input script.  The only change needed for
+a HIPPO simulation is for the pair_style and pair_coeff commands.  See
+examples/amoeba for example input scripts for both AMOEBA and HIPPO.
 
 .. code-block:: LAMMPS
 
-   units real                         # required
-   atom_style hybrid full amoeba
-   bond_style amoeba
-   angle_style amoeba
-   dihedral_style amoeba
-   fix amtype all property/atom i_amtype ghost yes    # fix ID matches read_data command
-   fix amoeba1 all property/atom &                    # fix ID (amoeba12) does not matter
-       i_amgroup i_ired i_xaxis i_yaxis i_zaxis d_pval ghost yes
-   fix amoeba2 all property/atom i_polaxe             
-   read_data filename fix amtype NULL "Tinker Types"  # fix ID matches fix command
-   pair_coeff * * ../potentials/protein.prm.amoeba ../potentials/protein.key.amoeba  # for AMOEBA
-   pair_coeff * * ../potentials/water.prm.hippo ../potentials/water.key.hippo  # for HIPPO
-   special_bonds lj/coul 0.5 0.5 0.5 one/five yes
+   units              real                           # required
+   atom_style         amoeba
+   bond_style         class2                         # CLASS2 package
+   angle_style        amoeba
+   dihedral_style     fourier                        # EXTRA-MOLECULE package
+   improper_style     amoeba
+                                                     # required per-atom data
+   fix                amtype all property/atom i_amtype ghost yes
+   fix                extra all property/atom &                      
+                      i_amgroup i_ired i_xaxis i_yaxis i_zaxis d_pval ghost yes
+   fix                polaxe all property/atom i_polaxe
+
+   fix                pit all amoeba/pitorsion       # PiTorsion terms in FF
+   fix_modify         pit energy yes
+                                                     # Bitorsion terms in FF
+   fix                bit all amoeba/bitorsion bitorsion.ubiquitin.data  
+   fix_modify         bit energy yes
+
+   read_data          data.ubiquitin fix amtype NULL "Tinker Types" &
+                      fix pit "pitorsion types" "PiTorsion Coeffs" &
+                      fix pit pitorsions PiTorsions &
+                      fix bit bitorsions BiTorsions
+
+   pair_style         amoeba                          # AMOEBA FF
+   pair_coeff         * * amoeba_ubiquitin.prm amoeba_ubiquitin.key
+
+   pair_style         hippo                           # HIPPO FF
+   pair_coeff         * * hippo_water.prm hippo_water.key
+
+   special_bonds      lj/coul 0.5 0.5 0.5 one/five yes     # 1-5 neighbors
+
+
+NOTE: that some options not needed for simpler systems
+
+NOTE: tinker2lmp.py tool
+
+NOTE: are some commands not needed if system is simple and not ubi2 ?
 
 Both AMOEBA and HIPPO use amoeba for bond/angle/dihedral styles,
 assuming the molecular system has bonds, angles, or dihedrals.  These

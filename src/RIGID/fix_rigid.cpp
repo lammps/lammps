@@ -1822,6 +1822,11 @@ void FixRigid::setup_bodies_static()
 
   int *inbody;
   if (inpfile) {
+    // must call it here so it doesn't override read in data but
+    // initialize bodies whose dynamic settings not set in inpfile
+
+    setup_bodies_dynamic();
+
     memory->create(inbody,nbody,"rigid:inbody");
     for (ibody = 0; ibody < nbody; ibody++) inbody[ibody] = 0;
     readfile(0,masstotal,xcm,vcm,angmom,imagebody,inbody);
@@ -2290,11 +2295,17 @@ void FixRigid::readfile(int which, double *vec,
       if (*start != '\0' && *start != '#') break;
     }
 
-    sscanf(line,"%d",&nlines);
+    if (sscanf(line,"%d",&nlines) != 1) nlines = -1;
+    if (nlines == 0) fclose(fp);
   }
 
   MPI_Bcast(&nlines,1,MPI_INT,0,world);
-  if (nlines == 0) error->all(FLERR,"Fix rigid file has no lines");
+
+  // empty file with 0 lines is needed to trigger initial restart file
+  // generation when no infile was previously used.
+
+  if (nlines == 0) return;
+  else if (nlines < 0) error->all(FLERR,"Fix rigid file has incorrect format");
 
   char *buffer = new char[CHUNK*MAXLINE];
   char **values = new char*[ATTRIBUTE_PERBODY];
@@ -2406,7 +2417,7 @@ void FixRigid::write_restart_file(const char *file)
 
   int id;
   for (int i = 0; i < nbody; i++) {
-    if (rstyle == SINGLE || rstyle == GROUP) id = i;
+    if (rstyle == SINGLE || rstyle == GROUP) id = i+1;
     else id = body2mol[i];
 
     MathExtra::col2mat(ex_space[i],ey_space[i],ez_space[i],p);

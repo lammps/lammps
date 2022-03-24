@@ -60,15 +60,15 @@ class DihedralFourierIntel : public DihedralFourier {
       int multiplicity;
     } fc_packed1;
 
-    fc_packed1 **bp;
+    fc_packed1 **fc;
 
-    ForceConst() : _nbondtypes(0) {}
+    ForceConst() : fc(nullptr), _ndihedraltypes(0) {}
     ~ForceConst() { set_ntypes(0, nullptr, nullptr, nullptr); }
 
-    void set_ntypes(const int nbondtypes, int *setflag, int *nterms, Memory *memory);
+    void set_ntypes(const int ndihedraltypes, int *setflag, int *nterms, Memory *memory);
 
    private:
-    int _nbondtypes, _maxnterms;
+    int _ndihedraltypes, _maxnterms;
     Memory *_memory;
   };
   ForceConst<float> force_const_single;

@@ -263,7 +263,7 @@ struct PairComputeFunctor  {
   // Loop over neighbors of one atom without coulomb interaction
   // This function is called in parallel
   KOKKOS_FUNCTION
-  void compute_item_team(Kokkos::TeamPolicy<>::member_type team,
+  void compute_item_team(typename Kokkos::TeamPolicy<device_type>::member_type team,
                          const NeighListKokkos<device_type> &list, const NoCoulTag&) const {
 
     const int inum = team.league_size();
@@ -319,7 +319,7 @@ struct PairComputeFunctor  {
   // Loop over neighbors of one atom with coulomb interaction
   // This function is called in parallel
   KOKKOS_FUNCTION
-  void compute_item_team(Kokkos::TeamPolicy<>::member_type team,
+  void compute_item_team(typename Kokkos::TeamPolicy<device_type>::member_type team,
                          const NeighListKokkos<device_type> &list, const CoulTag& ) const {
 
     const int inum = team.league_size();
@@ -380,7 +380,7 @@ struct PairComputeFunctor  {
   // Loop over neighbors of one atom without coulomb interaction
   // This function is called in parallel
   KOKKOS_FUNCTION
-  EV_FLOAT compute_item_team_ev(Kokkos::TeamPolicy<>::member_type team,
+  EV_FLOAT compute_item_team_ev(typename Kokkos::TeamPolicy<device_type>::member_type team,
                                 const NeighListKokkos<device_type> &list, const NoCoulTag&) const {
 
     EV_FLOAT ev;
@@ -475,7 +475,7 @@ struct PairComputeFunctor  {
   // Loop over neighbors of one atom with coulomb interaction
   // This function is called in parallel
   KOKKOS_FUNCTION
-  EV_FLOAT compute_item_team_ev(Kokkos::TeamPolicy<>::member_type team,
+  EV_FLOAT compute_item_team_ev(typename Kokkos::TeamPolicy<device_type>::member_type team,
                                 const NeighListKokkos<device_type> &list, const CoulTag& ) const {
 
     EV_FLOAT ev;
@@ -684,12 +684,12 @@ struct PairComputeFunctor  {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const typename Kokkos::TeamPolicy<>::member_type& team) const {
+  void operator()(const typename Kokkos::TeamPolicy<device_type>::member_type& team) const {
     compute_item_team(team,list,typename DoCoul<PairStyle::COUL_FLAG>::type());
   }
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const typename Kokkos::TeamPolicy<>::member_type& team, value_type &energy_virial) const {
+  void operator()(const typename Kokkos::TeamPolicy<device_type>::member_type& team, value_type &energy_virial) const {
     energy_virial += compute_item_team_ev(team,list,typename DoCoul<PairStyle::COUL_FLAG>::type());
   }
 };
@@ -711,7 +711,7 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename std::enable_if<!((NE
   return ev;
 }
 
-template<class FunctorStyle>
+template<class DeviceType, class FunctorStyle>
 int GetTeamSize(FunctorStyle& KOKKOS_GPU_ARG(functor), int KOKKOS_GPU_ARG(inum),
                 int KOKKOS_GPU_ARG(reduce_flag), int team_size, int KOKKOS_GPU_ARG(vector_length)) {
 
@@ -719,9 +719,9 @@ int GetTeamSize(FunctorStyle& KOKKOS_GPU_ARG(functor), int KOKKOS_GPU_ARG(inum),
     int team_size_max;
 
     if (reduce_flag)
-      team_size_max = Kokkos::TeamPolicy<>(inum,Kokkos::AUTO).team_size_max(functor,Kokkos::ParallelReduceTag());
+      team_size_max = Kokkos::TeamPolicy<DeviceType>(inum,Kokkos::AUTO).team_size_max(functor,Kokkos::ParallelReduceTag());
     else
-      team_size_max = Kokkos::TeamPolicy<>(inum,Kokkos::AUTO).team_size_max(functor,Kokkos::ParallelForTag());
+      team_size_max = Kokkos::TeamPolicy<DeviceType>(inum,Kokkos::AUTO).team_size_max(functor,Kokkos::ParallelForTag());
 
     if (team_size*vector_length > team_size_max)
       team_size = team_size_max/vector_length;
@@ -746,14 +746,14 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename std::enable_if<(NEIG
 
     if (fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {
       PairComputeFunctor<PairStyle,NEIGHFLAG,false,Specialisation > ff(fpair,list);
-      atoms_per_team = GetTeamSize(ff, list->inum, (fpair->eflag || fpair->vflag), atoms_per_team, vector_length);
-      Kokkos::TeamPolicy<Kokkos::IndexType<int> > policy(list->inum,atoms_per_team,vector_length);
+      atoms_per_team = GetTeamSize<typename PairStyle::device_type>(ff, list->inum, (fpair->eflag || fpair->vflag), atoms_per_team, vector_length);
+      Kokkos::TeamPolicy<typename PairStyle::device_type,Kokkos::IndexType<int> > policy(list->inum,atoms_per_team,vector_length);
       if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(policy,ff,ev);
       else                              Kokkos::parallel_for(policy,ff);
     } else {
       PairComputeFunctor<PairStyle,NEIGHFLAG,true,Specialisation > ff(fpair,list);
-      atoms_per_team = GetTeamSize(ff, list->inum, (fpair->eflag || fpair->vflag), atoms_per_team, vector_length);
-      Kokkos::TeamPolicy<Kokkos::IndexType<int> > policy(list->inum,atoms_per_team,vector_length);
+      atoms_per_team = GetTeamSize<typename PairStyle::device_type>(ff, list->inum, (fpair->eflag || fpair->vflag), atoms_per_team, vector_length);
+      Kokkos::TeamPolicy<typename PairStyle::device_type,Kokkos::IndexType<int> > policy(list->inum,atoms_per_team,vector_length);
       if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(policy,ff,ev);
       else                              Kokkos::parallel_for(policy,ff);
     }

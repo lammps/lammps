@@ -456,7 +456,7 @@ void FixIntel::pair_init_check(const bool cdmessage)
   #endif
 
   int need_tag = 0;
-  if (atom->molecular != Atom::ATOMIC) need_tag = 1;
+  if (atom->molecular != Atom::ATOMIC || three_body_neighbor()) need_tag = 1;
 
   // Clear buffers used for pair style
   char kmode[80];

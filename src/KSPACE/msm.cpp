@@ -67,33 +67,7 @@ MSM::MSM(LAMMPS *lmp)
   factors[0] = 2;
 
   MPI_Comm_rank(world,&me);
-
-  phi1d = dphi1d = nullptr;
-
   nmax = 0;
-  part2grid = nullptr;
-
-  g_direct = nullptr;
-  g_direct_top = nullptr;
-
-  v0_direct = v1_direct = v2_direct = nullptr;
-  v3_direct = v4_direct = v5_direct = nullptr;
-
-  v0_direct_top = v1_direct_top = v2_direct_top = nullptr;
-  v3_direct_top = v4_direct_top = v5_direct_top = nullptr;
-
-  ngrid = nullptr;
-
-  alpha = betax = betay = betaz = nullptr;
-  nx_msm = ny_msm = nz_msm = nullptr;
-  nxlo_in = nylo_in = nzlo_in = nullptr;
-  nxhi_in = nyhi_in = nzhi_in = nullptr;
-  nxlo_out = nylo_out = nzlo_out = nullptr;
-  nxhi_out = nyhi_out = nzhi_out = nullptr;
-  delxinv = delyinv = delzinv = nullptr;
-  qgrid = nullptr;
-  egrid = nullptr;
-  v0grid = v1grid = v2grid = v3grid = v4grid = v5grid = nullptr;
 
   peratom_allocate_flag = 0;
   scalar_pressure_flag = 1;
@@ -311,6 +285,11 @@ double MSM::estimate_total_error()
 
 void MSM::setup()
 {
+  // change_box may trigger MSM::setup() before MSM::init() was called
+  // error out and request full initialization.
+
+  if (!delxinv) error->all(FLERR, "MSM must be fully initialized for this operation");
+
   double *prd;
   double a = cutoff;
 
@@ -626,15 +605,19 @@ void MSM::allocate()
 
   gcall->setup(ngcall_buf1,ngcall_buf2);
   npergrid = 1;
+  memory->destroy(gcall_buf1);
+  memory->destroy(gcall_buf2);
   memory->create(gcall_buf1,npergrid*ngcall_buf1,"msm:gcall_buf1");
   memory->create(gcall_buf2,npergrid*ngcall_buf2,"msm:gcall_buf2");
 
   // allocate memory for each grid level
 
   for (int n=0; n<levels; n++) {
+    memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
     memory->create3d_offset(qgrid[n],nzlo_out[n],nzhi_out[n],
             nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:qgrid");
 
+    memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
     memory->create3d_offset(egrid[n],nzlo_out[n],nzhi_out[n],
             nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:egrid");
 
@@ -654,6 +637,8 @@ void MSM::allocate()
 
       gc[n]->setup(ngc_buf1[n],ngc_buf2[n]);
       npergrid = 1;
+      memory->destroy(gc_buf1[n]);
+      memory->destroy(gc_buf2[n]);
       memory->create(gc_buf1[n],npergrid*ngc_buf1[n],"msm:gc_buf1");
       memory->create(gc_buf2[n],npergrid*ngc_buf2[n],"msm:gc_buf2");
     } else {
@@ -835,11 +820,8 @@ void MSM::deallocate_levels()
 {
   if (world_levels) {
     for (int n=0; n < levels; ++n) {
-      if (qgrid[n])
-        memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
-
-      if (egrid[n])
-        memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
+      memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
+      memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
 
       if (gc) {
         if (gc[n]) {
@@ -1106,6 +1088,8 @@ void MSM::set_grid_global()
     h_z = 1.0/tmp[2];
   }
 
+  deallocate_levels();
+
   // find maximum number of levels
 
   levels = MAX(xlevels,ylevels);
@@ -1127,7 +1111,6 @@ void MSM::set_grid_global()
 
   if (!domain->nonperiodic) levels -= 1;
 
-  deallocate_levels();
   allocate_levels();
 
   // find number of grid levels in each direction
@@ -1154,33 +1137,19 @@ void MSM::set_grid_global()
     error->all(FLERR,"MSM grid is too large");
 
   // compute number of extra grid points needed for non-periodic boundary conditions
+  // need to always do this, so we can handle the case of switching from periodic
+  // to non-periodic.
 
-  if (domain->nonperiodic) {
-    alpha[0] = -(order/2 - 1);
-    betax[0] = nx_msm[0] + (order/2 - 1);
-    betay[0] = ny_msm[0] + (order/2 - 1);
-    betaz[0] = nz_msm[0] + (order/2 - 1);
-    for (int n = 1; n < levels; n++) {
-      alpha[n] = -((-alpha[n-1]+1)/2) - (order/2 - 1);
-      betax[n] = ((betax[n-1]+1)/2) + (order/2 - 1);
-      betay[n] = ((betay[n-1]+1)/2) + (order/2 - 1);
-      betaz[n] = ((betaz[n-1]+1)/2) + (order/2 - 1);
-    }
+  alpha[0] = -(order/2 - 1);
+  betax[0] = nx_msm[0] + (order/2 - 1);
+  betay[0] = ny_msm[0] + (order/2 - 1);
+  betaz[0] = nz_msm[0] + (order/2 - 1);
+  for (int n = 1; n < levels; n++) {
+    alpha[n] = -((-alpha[n-1]+1)/2) - (order/2 - 1);
+    betax[n] = ((betax[n-1]+1)/2) + (order/2 - 1);
+    betay[n] = ((betay[n-1]+1)/2) + (order/2 - 1);
+    betaz[n] = ((betaz[n-1]+1)/2) + (order/2 - 1);
   }
-
-  if (domain->nonperiodic) {
-    alpha[0] = -(order/2 - 1);
-    betax[0] = nx_msm[0] + (order/2 - 1);
-    betay[0] = ny_msm[0] + (order/2 - 1);
-    betaz[0] = nz_msm[0] + (order/2 - 1);
-    for (int n = 1; n < levels; n++) {
-      alpha[n] = -((-alpha[n-1]+1)/2) - (order/2 - 1);
-      betax[n] = ((betax[n-1]+1)/2) + (order/2 - 1);
-      betay[n] = ((betay[n-1]+1)/2) + (order/2 - 1);
-      betaz[n] = ((betaz[n-1]+1)/2) + (order/2 - 1);
-    }
-  }
-
 }
 
 /* ----------------------------------------------------------------------

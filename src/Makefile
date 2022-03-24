@@ -182,7 +182,6 @@ PACKMOST = \
 	orient \
 	peri \
 	plugin \
-	poems \
 	qeq \
 	reaction \
 	reaxff \
@@ -438,7 +437,7 @@ clean:
 
 clean-all:
 	rm -rf Obj_*
-	rm style_*.h packages_*.h lmpgitversion.h lmpinstalledpkgs.h
+	rm -f style_*.h packages_*.h lmpgitversion.h lmpinstalledpkgs.h
 
 clean-%:
 	@if [ $@ = "clean-serial" ]; \

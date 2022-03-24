@@ -64,16 +64,16 @@ class DihedralCharmmIntel : public DihedralCharmm {
     } fc_packed3;
 
     fc_packed1 **ljp;
-    fc_packed3 *bp;
+    fc_packed3 *fc;
     flt_t *weight;
 
-    ForceConst() : _npairtypes(0), _nbondtypes(0) {}
+    ForceConst() : ljp(nullptr), fc(nullptr), _npairtypes(0), _ndihderaltypes(0) {}
     ~ForceConst() { set_ntypes(0, 0, nullptr); }
 
-    void set_ntypes(const int npairtypes, const int nbondtypes, Memory *memory);
+    void set_ntypes(const int npairtypes, const int ndihderaltypes, Memory *memory);
 
    private:
-    int _npairtypes, _nbondtypes;
+    int _npairtypes, _ndihderaltypes;
     Memory *_memory;
   };
   ForceConst<float> force_const_single;

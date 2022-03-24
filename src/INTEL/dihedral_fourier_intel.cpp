@@ -225,10 +225,10 @@ void DihedralFourierIntel::eval(const int vflag,
       if (EFLAG) deng = (flt_t)0.0;
 
       for (int j = 0; j < nterms[type]; j++) {
-        const flt_t tcos_shift = fc.bp[j][type].cos_shift;
-        const flt_t tsin_shift = fc.bp[j][type].sin_shift;
-        const flt_t tk = fc.bp[j][type].k;
-        const int m = fc.bp[j][type].multiplicity;
+        const flt_t tcos_shift = fc.fc[j][type].cos_shift;
+        const flt_t tsin_shift = fc.fc[j][type].sin_shift;
+        const flt_t tk = fc.fc[j][type].k;
+        const int m = fc.fc[j][type].multiplicity;
 
         flt_t p = (flt_t)1.0;
         flt_t ddf1, df1;
@@ -394,16 +394,16 @@ template <class flt_t, class acc_t>
 void DihedralFourierIntel::pack_force_const(ForceConst<flt_t> &fc,
                                             IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
-  const int bp1 = atom->ndihedraltypes + 1;
-  fc.set_ntypes(bp1, setflag, nterms, memory);
+  const int dp1 = atom->ndihedraltypes + 1;
+  fc.set_ntypes(dp1, setflag, nterms, memory);
 
-  for (int i = 1; i < bp1; i++) {
+  for (int i = 1; i < dp1; i++) {
     if (setflag[i]) {
       for (int j = 0; j < nterms[i]; j++) {
-        fc.bp[j][i].cos_shift = cos_shift[i][j];
-        fc.bp[j][i].sin_shift = sin_shift[i][j];
-        fc.bp[j][i].k = k[i][j];
-        fc.bp[j][i].multiplicity = multiplicity[i][j];
+        fc.fc[j][i].cos_shift = cos_shift[i][j];
+        fc.fc[j][i].sin_shift = sin_shift[i][j];
+        fc.fc[j][i].k = k[i][j];
+        fc.fc[j][i].multiplicity = multiplicity[i][j];
       }
     }
   }
@@ -412,22 +412,20 @@ void DihedralFourierIntel::pack_force_const(ForceConst<flt_t> &fc,
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t>
-void DihedralFourierIntel::ForceConst<flt_t>::set_ntypes(const int nbondtypes,
+void DihedralFourierIntel::ForceConst<flt_t>::set_ntypes(const int ndihedraltypes,
                                                          int *setflag,
                                                          int *nterms,
                                                          Memory *memory) {
-  if (nbondtypes != _nbondtypes) {
-    if (_nbondtypes > 0)
-      _memory->destroy(bp);
+  if (memory != nullptr) _memory = memory;
+  if (ndihedraltypes != _ndihedraltypes) {
+    _memory->destroy(fc);
 
-    if (nbondtypes > 0) {
+    if (ndihedraltypes > 0) {
       _maxnterms = 1;
-      for (int i = 1; i <= nbondtypes; i++)
+      for (int i = 1; i < ndihedraltypes; i++)
         if (setflag[i]) _maxnterms = MAX(_maxnterms, nterms[i]);
-
-      _memory->create(bp, _maxnterms, nbondtypes, "dihedralfourierintel.bp");
+      _memory->create(fc, _maxnterms, ndihedraltypes, "dihedralfourierintel.fc");
     }
   }
-  _nbondtypes = nbondtypes;
-  _memory = memory;
+  _ndihedraltypes = ndihedraltypes;
 }

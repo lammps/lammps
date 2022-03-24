@@ -195,7 +195,6 @@ struct LR_lookup_table;    // forward declaration
 struct reax_system {
   reax_interaction reax_param;
 
-  rc_bigint bigN;
   int n, N, numH;
   int local_cap, total_cap, Hcap;
   int wsize, my_rank, num_nbrs;

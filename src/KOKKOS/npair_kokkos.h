@@ -304,7 +304,7 @@ class NeighborKokkosExecute
 
   template<int HalfNeigh>
   KOKKOS_FUNCTION
-  void build_Item_Ghost(const int &i) const;
+  void build_ItemGhost(const int &i) const;
 
   template<int HalfNeigh, int Newton, int Tri>
   KOKKOS_FUNCTION
@@ -314,6 +314,11 @@ class NeighborKokkosExecute
   template<int HalfNeigh, int Newton, int Tri>
   LAMMPS_DEVICE_FUNCTION inline
   void build_ItemGPU(typename Kokkos::TeamPolicy<DeviceType>::member_type dev,
+                     size_t sharedsize) const;
+
+  template<int HalfNeigh>
+  LAMMPS_DEVICE_FUNCTION inline
+  void build_ItemGhostGPU(typename Kokkos::TeamPolicy<DeviceType>::member_type dev,
                      size_t sharedsize) const;
 
   template<int HalfNeigh, int Newton, int Tri>
@@ -422,13 +427,43 @@ struct NPairKokkosBuildFunctorGhost {
   typedef DeviceType device_type;
 
   const NeighborKokkosExecute<DeviceType> c;
+  size_t sharedsize;
 
-  NPairKokkosBuildFunctorGhost(const NeighborKokkosExecute<DeviceType> &_c):c(_c) {}
+  NPairKokkosBuildFunctorGhost(const NeighborKokkosExecute<DeviceType> &_c,
+                             size_t _sharedsize):c(_c),
+                             sharedsize(_sharedsize) {}
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i) const {
-    c.template build_Item_Ghost<HALF_NEIGH>(i);
+    c.template build_ItemGhost<HALF_NEIGH>(i);
   }
+
+#ifdef LMP_KOKKOS_GPU
+  LAMMPS_DEVICE_FUNCTION inline
+  void operator() (typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const {
+    c.template build_ItemGhostGPU<HALF_NEIGH>(dev, sharedsize);
+  }
+  size_t team_shmem_size(const int team_size) const { (void) team_size; return sharedsize; }
+#endif
+};
+
+template<int HALF_NEIGH>
+struct NPairKokkosBuildFunctorGhost<LMPHostType,HALF_NEIGH> {
+  typedef LMPHostType device_type;
+
+  const NeighborKokkosExecute<LMPHostType> c;
+  size_t sharedsize;
+
+  NPairKokkosBuildFunctorGhost(const NeighborKokkosExecute<LMPHostType> &_c,
+                             size_t _sharedsize):c(_c),
+                             sharedsize(_sharedsize) {}
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (const int & i) const {
+    c.template build_ItemGhost<HALF_NEIGH>(i);
+  }
+
+  void operator() (typename Kokkos::TeamPolicy<LMPHostType>::member_type /*dev*/) const {} // Should error out
 };
 
 template <class DeviceType, int HALF_NEIGH, int GHOST_NEWTON, int TRI>

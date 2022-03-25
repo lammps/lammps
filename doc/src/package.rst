@@ -466,12 +466,15 @@ potentials support this keyword yet, and only thread over atoms. Many
 simple pairwise potentials such as Lennard-Jones do support threading
 over both atoms and neighbors.
 
-If the *neigh/transpose* keyword is set to *off*, then the KOKKOS package
-will use the same memory layout for building the neigh list on GPUs as
-used for the pair style. When this keyword is set to *on* it will use a
-different (transposed) memory layout to build the neigh list on GPUs.
-This can be faster in some cases (e.g. ReaxFF HNS benchmark) but slower
-in others (e.g. Lennard Jones benchmark).
+If the *neigh/transpose* keyword is set to *off*, then the KOKKOS
+package will use the same memory layout for building the neigh list on
+GPUs as used for the pair style. When this keyword is set to *on* it
+will use a different (transposed) memory layout to build the neigh
+list on GPUs. This can be faster in some cases (e.g. ReaxFF HNS
+benchmark) but slower in others (e.g. Lennard Jones benchmark). The
+copy between different memory layouts is done out of place and
+therefore doubles the memory overhead of the neigh list, which can be
+signicant.
 
 The *newton* keyword sets the Newton flags for pairwise and bonded
 interactions to *off* or *on*, the same as the :doc:`newton <newton>`

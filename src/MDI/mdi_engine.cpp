@@ -50,7 +50,7 @@ enum{DEFAULT,MD,OPT};            // top-level MDI engine modes
 
 // per-atom data which engine commands access
 
-enum{TYPE,CHARGE,MASS,COORD,VELOCITY,FORCE};  
+enum{TYPE,CHARGE,MASS,COORD,VELOCITY,FORCE};
 
 /* ----------------------------------------------------------------------
    mdi command: engine
@@ -80,17 +80,17 @@ void MDIEngine::mdi_engine(int narg, char **arg)
 
   // check requirements for LAMMPS to work with MDI as an engine
 
-  if (atom->tag_enable == 0) 
+  if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use MDI engine without atom IDs");
 
-  if (atom->natoms && atom->tag_consecutive() == 0) 
+  if (atom->natoms && atom->tag_consecutive() == 0)
     error->all(FLERR,"MDI engine requires consecutive atom IDs");
 
   // confirm LAMMPS is being run as an engine
-  
+
   int role;
   MDI_Get_role(&role);
-  if (role != MDI_ENGINE) 
+  if (role != MDI_ENGINE)
     error->all(FLERR,"Must invoke LAMMPS as an MDI engine to use mdi engine");
 
   // root = 1 for proc 0, otherwise 0
@@ -107,7 +107,7 @@ void MDIEngine::mdi_engine(int narg, char **arg)
 
   // create computes for KE. PE, pressure
   // pressure compute only calculates virial, no kinetic term
- 
+
   id_ke = utils::strdup(std::string("MDI_ENGINE") + "_ke");
   modify->add_compute(fmt::format("{} all ke", id_ke));
 
@@ -153,7 +153,7 @@ void MDIEngine::mdi_engine(int narg, char **arg)
   buf1 = buf1all = nullptr;
   buf3 = buf3all = nullptr;
   ibuf1 = ibuf1all = nullptr;
-  
+
   maxatom = 0;
   sys_natoms = atom->natoms;
   reallocate();
@@ -165,7 +165,7 @@ void MDIEngine::mdi_engine(int narg, char **arg)
   mdi_commands();
 
   // one-time operation to establish a connection with the driver
-  
+
   MDI_Accept_communicator(&mdicomm);
   if (mdicomm <= 0) error->all(FLERR,"Unable to connect to MDI driver");
 
@@ -202,7 +202,7 @@ void MDIEngine::mdi_engine(int narg, char **arg)
   }
 
   // clean up
-  
+
   delete [] mdicmd;
   delete [] node_engine;
   delete [] node_driver;
@@ -285,8 +285,8 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   if (root) {
     ierr = MDI_Check_command_exists(node_engine,command,MDI_COMM_NULL,
                                     &command_exists);
-    if (ierr) 
-      error->one(FLERR, 
+    if (ierr)
+      error->one(FLERR,
                  "MDI: Unable to check whether current command is supported");
   }
 
@@ -376,14 +376,14 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   // MDI node commands
 
   } else if (strcmp(command,"@INIT_MD") == 0) {
-    if (mode != DEFAULT) 
+    if (mode != DEFAULT)
       error->all(FLERR,"MDI: MDI engine is already performing a simulation");
     mode = MD;
     strncpy(node_driver,command,MDI_COMMAND_LENGTH);
     node_match = false;
 
   } else if (strcmp(command,"@INIT_OPTG") == 0) {
-    if (mode != DEFAULT) 
+    if (mode != DEFAULT)
       error->all(FLERR,"MDI: MDI engine is already performing a simulation");
     mode = OPT;
     strncpy(node_driver,command,MDI_COMMAND_LENGTH);
@@ -584,6 +584,7 @@ void MDIEngine::mdi_md()
     if (flag_velocities) adjust_velocities();
   }
 
+<<<<<<< HEAD
   // engine is now at @INIT_MD node
   // receive >NITERATE command if driver sends, else niterate = -1
   // any @ command from driver will start the simulation
@@ -785,7 +786,7 @@ void MDIEngine::evaluate()
 
   if (flag_create || neighbor->ago < 0) {
     update->whichflag = 1;
-    lmp->init(); 
+    lmp->init();
     update->integrate->setup(1);
     update->whichflag = 0;
 
@@ -861,7 +862,7 @@ void MDIEngine::create_system()
   boxhi[0] = boxlo[0] + sys_cell[0];
   boxhi[1] = boxlo[1] + sys_cell[4];
   boxhi[2] = boxlo[2] + sys_cell[8];
-  
+
   xy = sys_cell[3];
   yz = sys_cell[7];
   xz = sys_cell[6];
@@ -915,7 +916,7 @@ void MDIEngine::adjust_box()
     old_boxlo[0] = domain->boxlo[0];
     old_boxlo[1] = domain->boxlo[1];
     old_boxlo[2] = domain->boxlo[2];
-    
+
     domain->boxlo[0] = sys_cell_displ[0];
     domain->boxlo[1] = sys_cell_displ[1];
     domain->boxlo[2] = sys_cell_displ[2];
@@ -1012,7 +1013,7 @@ void MDIEngine::receive_cell()
   if (ierr) error->all(FLERR, "MDI: >CELL data");
   MPI_Bcast(sys_cell,9,MPI_DOUBLE,0,world);
 
-  for (int icell = 0; icell < 9; icell++) 
+  for (int icell = 0; icell < 9; icell++)
     sys_cell[icell] *= mdi2lmp_length;
 
   // error check that edge vectors match LAMMPS triclinic requirement
@@ -1063,7 +1064,7 @@ void MDIEngine::receive_coords()
   int ierr = MDI_Recv(sys_coords,n,MDI_DOUBLE,mdicomm);
   if (ierr) error->all(FLERR,"MDI: >COORDS data");
   MPI_Bcast(sys_coords,n,MPI_DOUBLE,0,world);
-  for (int i = 0; i < n; i++) 
+  for (int i = 0; i < n; i++)
     sys_coords[i] * mdi2lmp_length;
 }
 
@@ -1105,7 +1106,7 @@ void MDIEngine::receive_velocities()
   int ierr = MDI_Recv(sys_velocities,n,MDI_DOUBLE,mdicomm);
   if (ierr) error->all(FLERR,"MDI: >VELOCITIES data");
   MPI_Bcast(sys_velocities,n,MPI_DOUBLE,0,world);
-  for (int i = 0; i < n; i++) 
+  for (int i = 0; i < n; i++)
     sys_coords[i] * mdi2lmp_velocity;
 }
 
@@ -1165,7 +1166,7 @@ void MDIEngine::send_cell()
   celldata[7] = domain->yz;
   celldata[8] = domain->boxhi[2] - domain->boxlo[2];
 
-  for (int icell = 0; icell < 9; icell++) 
+  for (int icell = 0; icell < 9; icell++)
     celldata[icell] *= lmp2mdi_length;
 
   int ierr = MDI_Send(celldata,9,MDI_DOUBLE,mdicomm);
@@ -1473,9 +1474,9 @@ void MDIEngine::many_commands()
   if (ierr) error->all(FLERR,"MDI: COMMANDS data");
   MPI_Bcast(cmds,nbytes+1,MPI_CHAR,0,world);
   cmds[nbytes] = '\0';
-  
+
   lammps_commands_string(lmp,cmds);
-  
+
   delete [] cmds;
 }
 
@@ -1654,7 +1655,7 @@ void MDIEngine::unit_conversions()
   lmp2mdi_pressure = 1.0;
 
   if (lmpunits == REAL) {
-    lmp2mdi_pressure = (kelvin_to_hartree / force->boltz) / 
+    lmp2mdi_pressure = (kelvin_to_hartree / force->boltz) /
       (angstrom_to_bohr * angstrom_to_bohr * angstrom_to_bohr) / force->nktv2p;
     mdi2lmp_pressure = 1.0 / lmp2mdi_pressure;
   } else if (lmpunits == METAL) {

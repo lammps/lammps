@@ -53,7 +53,6 @@ class FixPOEMS : public Fix {
   void reset_dt() override;
 
  private:
-  int me;
   double dtv, dtf, dthalf;
   double *step_respa;
   int nlevels_respa;
@@ -101,8 +100,7 @@ class FixPOEMS : public Fix {
   // internal class functions
 
   void compute_forces_and_torques();
-  void readfile(char *);
-  int readline(FILE *, char **, int *);
+  void readfile(const char *);
   void jointbuild();
   void sortlist(int, tagint **);
   int loopcheck(int, int, tagint **);

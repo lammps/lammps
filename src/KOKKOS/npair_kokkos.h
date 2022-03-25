@@ -447,6 +447,25 @@ struct NPairKokkosBuildFunctorGhost {
 #endif
 };
 
+template<int HALF_NEIGH>
+struct NPairKokkosBuildFunctorGhost<LMPHostType,HALF_NEIGH> {
+  typedef LMPHostType device_type;
+
+  const NeighborKokkosExecute<LMPHostType> c;
+  size_t sharedsize;
+
+  NPairKokkosBuildFunctorGhost(const NeighborKokkosExecute<LMPHostType> &_c,
+                             size_t _sharedsize):c(_c),
+                             sharedsize(_sharedsize) {}
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (const int & i) const {
+    c.template build_ItemGhost<HALF_NEIGH>(i);
+  }
+
+  void operator() (typename Kokkos::TeamPolicy<LMPHostType>::member_type /*dev*/) const {} // Should error out
+};
+
 template <class DeviceType, int HALF_NEIGH, int GHOST_NEWTON, int TRI>
 struct NPairKokkosBuildFunctorSize {
   typedef DeviceType device_type;

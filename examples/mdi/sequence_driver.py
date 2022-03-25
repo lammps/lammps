@@ -1,5 +1,6 @@
 # MDI driver to perform a series of independent calculations
-# using LAMMPS as a standalone engine
+# using LAMMPS (or a QM code with MDI support) as an MDI engine,
+# the engine can be either a standalone code or a plugin library
 
 # Syntax: python3 series_driver.py switch arg switch arg ...
 #   possible switches:

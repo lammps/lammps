@@ -10,13 +10,14 @@ Syntax
 
    thermo_style style args
 
-* style = *one* or *multi* or *custom*
+* style = *one* or *multi* *yaml* or *custom*
 * args = list of arguments for a particular style
 
   .. parsed-literal::
 
        *one* args = none
        *multi* args = none
+       *yaml* args = none
        *custom* args = list of keywords
          possible keywords = step, elapsed, elaplong, dt, time,
                              cpu, tpcpu, spcpu, cpuremain, part, timeremain,
@@ -92,6 +93,8 @@ Examples
 .. code-block:: LAMMPS
 
    thermo_style multi
+   thermo_style yaml
+   thermo_style one
    thermo_style custom step temp pe etotal press vol
    thermo_style custom step temp etotal c_myTemp v_abc
    thermo_style custom step temp etotal c_myTemp[*] v_abc
@@ -99,17 +102,34 @@ Examples
 Description
 """""""""""
 
-Set the style and content for printing thermodynamic data to the
-screen and log file.
+Set the style and content for printing thermodynamic data to the screen
+and log files.
 
-Style *one* prints a one-line summary of thermodynamic info that is
-the equivalent of "thermo_style custom step temp epair emol etotal
-press".  The line contains only numeric values.
+Style *one* prints a single line of thermodynamic info that is the
+equivalent of "thermo_style custom step temp epair emol etotal press".
+The line contains only numeric values.
 
 Style *multi* prints a multiple-line listing of thermodynamic info
 that is the equivalent of "thermo_style custom etotal ke temp pe ebond
 eangle edihed eimp evdwl ecoul elong press".  The listing contains
 numeric values and a string ID for each quantity.
+
+.. versionadded:: 24Mar2022
+
+Style *yaml* is similar to style *one* but prints the output in `YAML
+<https://yaml.org/>`_ format which can be easily read by a variety of
+script languages and data handling packages.  Since LAMMPS may print
+other output before, after, or in between thermodynamic output, the
+YAML format content needs to be separated from the rest.  All YAML
+format thermodynamic output can be matched with a regular expression
+and can thus be extracted with commands like ``egrep`` as follows:
+
+.. code-block:: sh
+
+   egrep  '^(keywords:|data:$|---$|\.\.\.$|  - \[)' log.lammps > log.yaml
+
+Information about processing such YAML files is in the :doc:`structured
+data output howto <Howto_structured_data>`.
 
 Style *custom* is the most general setting and allows you to specify
 which of the keywords listed above you want printed on each

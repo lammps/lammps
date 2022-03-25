@@ -639,6 +639,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
       other_x[MY_II + 3 * atoms_per_bin] = itype;
     }
     other_id[MY_II] = i;
+
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
     int test = (__syncthreads_count(i >= 0 && i < nlocal) == 0);
     if (test) return;
@@ -962,7 +963,9 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGhostGPU(typename Kokkos::Team
     X_FLOAT ytmp;
     X_FLOAT ztmp;
     int itype;
-    const AtomNeighbors neighbors_i = neigh_list.get_neighbors((i >= 0 && i < nall)?i:0);
+    const int index = (i >= 0 && i < nall) ? i : 0;
+    const AtomNeighbors neighbors_i = neigh_transpose ?
+    neigh_list.get_neighbors_transpose(index) : neigh_list.get_neighbors(index);
 
     if (i >= 0) {
       xtmp = x(i, 0);

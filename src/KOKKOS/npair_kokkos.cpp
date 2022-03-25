@@ -726,7 +726,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
         other_x[MY_II + atoms_per_bin] = x(j, 1);
         other_x[MY_II + 2 * atoms_per_bin] = x(j, 2);
         other_x[MY_II + 3 * atoms_per_bin] = type(j);
-       }
+      }
 
       other_id[MY_II] = j;
 
@@ -1011,7 +1011,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGhostGPU(typename Kokkos::Team
         other_x[MY_II + atoms_per_bin] = x(j, 1);
         other_x[MY_II + 2 * atoms_per_bin] = x(j, 2);
         other_x[MY_II + 3 * atoms_per_bin] = type(j);
-       }
+      }
 
       other_id[MY_II] = j;
 
@@ -1085,7 +1085,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGhostGPU(typename Kokkos::Team
         other_x[MY_II + atoms_per_bin] = x(j, 1);
         other_x[MY_II + 2 * atoms_per_bin] = x(j, 2);
         other_x[MY_II + 3 * atoms_per_bin] = type(j);
-       }
+      }
 
       other_id[MY_II] = j;
 

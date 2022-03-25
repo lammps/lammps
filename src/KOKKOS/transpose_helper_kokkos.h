@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Evan Weinberg (NVIDIA)
+   Contributing author: Evan Weinberg (NVIDIA)
 ------------------------------------------------------------------------- */
 
 #include "kokkos_type.h"
@@ -159,9 +159,8 @@ struct TransposeHelperKokkos {
       });
     }
 
-    // No need for an extra sync b/c, as confirmed by asking on the Kokkos Slack, there
-    // is an implicit sync at the end of a ThreadVectorRange as per the Kokkos
-    // programming model.
+    // No need for an extra sync b/c there is an implicit sync at the end
+    // of a ThreadVectorRange as per the Kokkos programming model
 
     // save phase
     if (src_is_layout_right) {

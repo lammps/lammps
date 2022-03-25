@@ -21,6 +21,8 @@
 #include "nbin_kokkos.h"
 #include "nstencil.h"
 #include "force.h"
+#include "kokkos.h"
+#include "transpose_helper_kokkos.h"
 
 namespace LAMMPS_NS {
 
@@ -158,7 +160,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
          mbins,nstencil,
          k_stencil.view<DeviceType>(),
          k_stencilxyz.view<DeviceType>(),
-         nlocal,
+         nlocal,nall,lmp->kokkos->neigh_transpose,
          atomKK->k_x.view<DeviceType>(),
          atomKK->k_radius.view<DeviceType>(),
          atomKK->k_type.view<DeviceType>(),
@@ -324,10 +326,15 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
       data.neigh_list.d_neighbors = typename AT::t_neighbors_2d();
       list->d_neighbors = typename AT::t_neighbors_2d();
       list->d_neighbors = typename AT::t_neighbors_2d(Kokkos::NoInit("neighlist:neighbors"), maxatoms, list->maxneighs);
-      list->d_neighbors_build = typename AT::t_neighbors_2d_lr(Kokkos::NoInit("neighbors"), list->d_neighbors_build.extent(0), list->maxneighs);
       data.neigh_list.d_neighbors = list->d_neighbors;
-      data.neigh_list.d_neighbors_build = list->d_neighbors_build;
       data.neigh_list.maxneighs = list->maxneighs;
+
+      if (lmp->kokkos->neigh_transpose) {
+        data.neigh_list.d_neighbors_transpose = typename AT::t_neighbors_2d_lr();
+        list->d_neighbors_transpose = typename AT::t_neighbors_2d_lr();
+        list->d_neighbors_transpose = typename AT::t_neighbors_2d_lr(Kokkos::NoInit("neighlist:neighbors"), maxatoms, list->maxneighs);
+        data.neigh_list.d_neighbors_transpose = list->d_neighbors_transpose;
+      }
     }
   }
 
@@ -341,11 +348,9 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
 
   list->k_ilist.template modify<DeviceType>();
 
-  //Kokkos::deep_copy(list->d_neighbors,list->d_neighbors_build);
-  {
-    // Perform an optimized transpose
-    NPairKokkosTransposeHelper<DeviceType, typename AT::t_neighbors_2d, typename AT::t_neighbors_2d_lr>(list->d_neighbors, list->d_neighbors_build);
-  }
+  if (lmp->kokkos->neigh_transpose)
+    TransposeHelperKokkos<DeviceType, typename AT::t_neighbors_2d,
+      typename AT::t_neighbors_2d_lr>(list->d_neighbors, list->d_neighbors_transpose);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -424,7 +429,8 @@ void NeighborKokkosExecute<DeviceType>::
   else moltemplate = 0;
   // get subview of neighbors of i
 
-  const AtomNeighbors neighbors_i = neigh_list.get_neighbors_build(i);
+  const AtomNeighbors neighbors_i = neigh_transpose ?
+    neigh_list.get_neighbors_transpose(i) : neigh_list.get_neighbors(i);
   const X_FLOAT xtmp = x(i, 0);
   const X_FLOAT ytmp = x(i, 1);
   const X_FLOAT ztmp = x(i, 2);
@@ -604,7 +610,9 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
   X_FLOAT ytmp;
   X_FLOAT ztmp;
   int itype;
-  const AtomNeighbors neighbors_i = neigh_list.get_neighbors_build((i>=0&&i<nlocal)?i:0);
+  const int index = (i >= 0 && i < nlocal) ? i : 0;
+  const AtomNeighbors neighbors_i = neigh_transpose ?
+    neigh_list.get_neighbors_transpose(index) : neigh_list.get_neighbors(index);
 
   if (i >= 0) {
     xtmp = x(i, 0);
@@ -797,7 +805,8 @@ void NeighborKokkosExecute<DeviceType>::
   else moltemplate = 0;
   // get subview of neighbors of i
 
-  const AtomNeighbors neighbors_i = neigh_list.get_neighbors_build(i);
+  const AtomNeighbors neighbors_i = neigh_transpose ?
+    neigh_list.get_neighbors_transpose(i) : neigh_list.get_neighbors(i);
   const X_FLOAT xtmp = x(i, 0);
   const X_FLOAT ytmp = x(i, 1);
   const X_FLOAT ztmp = x(i, 2);
@@ -917,7 +926,8 @@ void NeighborKokkosExecute<DeviceType>::
 
   // get subview of neighbors of i
 
-  const AtomNeighbors neighbors_i = neigh_list.get_neighbors_build(i);
+  const AtomNeighbors neighbors_i = neigh_transpose ?
+    neigh_list.get_neighbors_transpose(i) : neigh_list.get_neighbors(i);
   const X_FLOAT xtmp = x(i, 0);
   const X_FLOAT ytmp = x(i, 1);
   const X_FLOAT ztmp = x(i, 2);
@@ -1052,7 +1062,9 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
     X_FLOAT ztmp;
     X_FLOAT radi;
     int itype;
-    const AtomNeighbors neighbors_i = neigh_list.get_neighbors_build((i>=0&&i<nlocal)?i:0);
+    const int index = (i >= 0 && i < nlocal) ? i : 0;
+    const AtomNeighbors neighbors_i = neigh_transpose ?
+    neigh_list.get_neighbors_transpose(index) : neigh_list.get_neighbors(index);
     const int mask_history = 3 << SBBITS;
 
     if (i >= 0) {

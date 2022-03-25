@@ -207,7 +207,6 @@ void FixMDIAimd::post_force(int vflag)
   }
 
   // optionally request potential energy from MDI engine
-  // divide by nprocs so each proc stores a portion
 
   if (eflag_global) {
     ierr = MDI_Send_command("<PE",mdicomm);
@@ -215,7 +214,7 @@ void FixMDIAimd::post_force(int vflag)
     ierr = MDI_Recv(&engine_energy,1,MDI_DOUBLE,mdicomm);
     if (ierr) error->all(FLERR,"MDI: <PE data");
     MPI_Bcast(&engine_energy,1,MPI_DOUBLE,0,world);
-    engine_energy *= mdi2lmp_energy / nprocs;
+    engine_energy *= mdi2lmp_energy;
   }
 
   // optionally request pressure tensor from MDI engine, convert to virial

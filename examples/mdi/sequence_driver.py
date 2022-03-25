@@ -21,7 +21,7 @@
 #     style of calculations: single snapshot evals, dynamics, minimization
 #     default = eval
 #   -size Nx Ny Nz
-#     cubic lattice, default = 2 2 2
+#     cubic lattice, default = 4 4 4
 #   -rho 0.75 0.1
 #     reduced density and random variation thereof, default = 0.75 0.1
 #   -delta 0.1
@@ -52,8 +52,6 @@ def error(txt=None):
 
 def perform_tasks(world,mdicomm,dummy):
 
-  print("PT start",world,mdicomm,dummy)
-  
   me = world.Get_rank()
   nprocs = world.Get_size()
 
@@ -88,10 +86,8 @@ def perform_tasks(world,mdicomm,dummy):
     # send simulation box to engine
 
     vec = [xhi-xlo,0.0,0.0] + [0.0,yhi-ylo,0.0] + [0.0,0.0,zhi-zlo]
-    print("PRE-CELL",mdicomm)
     mdi.MDI_Send_command(">CELL",mdicomm)
     mdi.MDI_Send(vec,9,mdi.MDI_DOUBLE,mdicomm)
-    print("POST-CELL")
   
     # create atoms on perfect lattice
 
@@ -147,16 +143,13 @@ def perform_tasks(world,mdicomm,dummy):
     elif mode == "min":
       mdi.MDI_Send_command("@INIT_OPTG",mdicomm)
       mdi.MDI_Send_command(">TOLERANCE",mdicomm)
-      params = [1.0e-4,1.0e-4,100.0,100.0]
+      params = [tol,tol,1000.0,1000.0]
       mdi.MDI_Send(params,4,mdi.MDI_DOUBLE,mdicomm)
       mdi.MDI_Send_command("@DEFAULT",mdicomm)
 
     # request potential energy
 
-    print("PRE-PE")
-
     mdi.MDI_Send_command("<PE",mdicomm)
-    print("POST-PE")
     pe = mdi.MDI_Recv(1,mdi.MDI_DOUBLE,mdicomm)
     pe = world.bcast(pe,root=0)
 
@@ -199,7 +192,7 @@ def perform_tasks(world,mdicomm,dummy):
     
   mdi.MDI_Send_command("EXIT",mdicomm)
   
-  # return needed for plugin callback mode
+  # return needed for plugin mode
     
   return 0
 
@@ -218,7 +211,7 @@ plugin_args = ""
 
 ncalc = 1
 mode = "eval"
-nx = ny = nz = 2
+nx = ny = nz = 4
 rho = 0.75
 rhodelta = 0.1
 delta = 0.1
@@ -312,11 +305,9 @@ if not plugin:
 # launch plugin
 # MDI will call back to perform_tasks()
 
-print("PRE PLUGIN");
-
 if plugin:
+  error("Cannot yet run in plugin mode")
   mdi.MDI_Init(mdiarg)
   world = MPI.COMM_WORLD
   plugin_args += " -mdi \"-role ENGINE -name lammps -method LINK\""
-  print("PRE LAUNCH",plugin_args)
   mdi.MDI_Launch_plugin(plugin,plugin_args,world,perform_tasks,None)

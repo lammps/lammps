@@ -21,8 +21,8 @@ The example run commands below have variants for these options.
 -------------------------------------------------
 -------------------------------------------------
 
-* Example #1 = AIMD with LAMMPS as both a driver and engine
-  As an engine, LAMMPS is acting as a surrogate for a quantum code.
+* Example #1 = run AIMD with 2 instances of LAMMPS as driver and engine
+               as an engine, LAMMPS is a surrogate for a quantum code
 
 Note that the 2 input scripts in.aimd.alone and in.aimd.driver
 have an option for running in NVE vs NPT mode.  Comment in/out
@@ -32,9 +32,12 @@ changed in the 3rd input script in.aimd.engine.
 ---
 
 Run the entire calculation with a single instance of LAMMPS by itself
-  results should be identical to running in driver/engine mode
+  results should be identical to running this example with MDI
 
 % lmp_mpi < in.aimd.alone
+
+With MDI, the thermo output of the driver should match the thermo
+output of the in.aimd.alone script.
 
 ---
 
@@ -67,14 +70,14 @@ Run with MPI: 3 procs + 4 procs
 -------------------------------------------------
 -------------------------------------------------
 
-* Example #2 = Use a Python driver code to run a sequence of independent 
-  LAMMPS calculations
+* Example #2 = Python driver runs sequence of unrelated LAMMPS calculations
+               calcs can be single-point, MD runs, or minimizations
 
-Note that the sequence_driver.py code allows for optional switches in
-addition to -mdi (required) and the -plugin and -plugin_args swithces
-which are used to link to an engine as a plugin library.  The example
-run commands below just usu the default values fo rhte optional
-switches.  They are also explained the top of the file; the info is
+The sequence_driver.py code allows for optional switches in addition
+to -mdi (required) and the -plugin and -plugin_args switches which are
+used to link to an engine as a plugin library.  The example run
+commands below just use the default values of the optional switches.
+The switches are also explained the top of the file; the info is
 copied here:
 
 #   -n 10
@@ -139,3 +142,62 @@ mpiexec -n 1 python3 plugin_driver.py --plugin_name "lammps" --mdi "-role DRIVER
 Run in plugin mode: 3 procs
 
 % mpirun -np 3 python3 sequence_driver.py -plugin lammps -mdi "-role DRIVER -name sequence -method LINK -plugin_path /home/sjplimp/lammps/git/src" -plugin_args "-log log.sequence -in in.sequence"
+
+-------------------------------------------------
+-------------------------------------------------
+
+* Example #3 = run AIMD with Python driver code and 2 LAMMPS instances
+               first LAMMPS instance is MM = performs MD timesteps
+               second LAMMPS instance is surrogate QM = computes forces
+
+The aimd_driver.py code allows for an optional switch in addition to
+-mdi (required) and the -plugin and -plugin_args swiches which are
+used to link to the 2 engines as a plugin libraries.  The example run
+commands below use the default values of the optional switch.  The
+switches are also explained the top of the file; the info is copied
+here:
+
+#   -nsteps 5
+#     number of timesteps in dynamics runs, default = 5
+
+---
+
+Run the entire calculation with a single instance of LAMMPS by itself
+  results should be identical to running this example with MDI
+
+% lmp_mpi < in.aimd.alone
+
+With MDI, the driver prints the QM and Total energies.  These should
+match the PotEng and TotEng output of the in.aimd.alone script.
+
+---
+
+Run with TCP: 1 proc each
+
+% python3 aimd_driver.py -mdi "-role DRIVER -name aimd -method TCP -port 8021"
+
+% lmp_mpi -mdi "-role ENGINE -name MM -method TCP -port 8021 -hostname localhost" -log log.aimd.mm -in in.aimd.mm
+
+% lmp_mpi -mdi "-role ENGINE -name QM -method TCP -port 8021 -hostname localhost" -log log.aimd.qm -in in.aimd.qm
+
+---
+
+Run with TCP: 2 procs + 2 procs + 3 procs
+
+% mpirun -np 2 python3 aimd_driver.py -mdi "-role DRIVER -name aimd -method TCP -port 8021"
+
+% mpirun -np 2 lmp_mpi -mdi "-role ENGINE -name MM -method TCP -port 8021 -hostname localhost" -log log.aimd.mm -in in.aimd.mm
+
+% mpirun -np 3 lmp_mpi -mdi "-role ENGINE -name QM -method TCP -port 8021 -hostname localhost" -log log.aimd.qm -in in.aimd.qm
+
+---
+
+Run with MPI: 1 proc each
+
+% mpirun -np 1 python3 aimd_driver.py -mdi "-role DRIVER -name aimd -method MPI" : -np 1 lmp_mpi -mdi "-role ENGINE -name MM -method MPI" -log log.aimd.mm -in in.aimd.mm : -np 1 lmp_mpi -mdi "-role ENGINE -name QM -method MPI" -log log.aimd.qm -in in.aimd.qm
+
+---
+
+Run with MPI: 2 procs + 2 procs + 3 procs
+
+% mpirun -np 2 python3 aimd_driver.py -mdi "-role DRIVER -name aimd -method MPI" : -np 2 lmp_mpi -mdi "-role ENGINE -name MM -method MPI" -log log.aimd.mm -in in.aimd.mm : -np 3 lmp_mpi -mdi "-role ENGINE -name QM -method MPI" -log log.aimd.qm -in in.aimd.qm

@@ -46,8 +46,7 @@
 using namespace LAMMPS_NS;
 
 enum{NATIVE,REAL,METAL};         // LAMMPS units which MDI supports
-enum{DEFAULT,MD,OPT,SYS,EVAL};   // top-level MDI engine mode
-enum{EVALPOINT,EVALMD,EVALOPT};  // EVAL mode
+enum{DEFAULT,MD,OPT};            // top-level MDI engine modes
 
 // per-atom data which engine commands access
 
@@ -126,6 +125,9 @@ void MDIEngine::mdi_engine(int narg, char **arg)
   pe = modify->compute[icompute_pe];
   press = modify->compute[icompute_press];
 
+  //pe = modify->get_compute_by_id("thermo_pe");
+  //press = modify->get_compute_by_id("thermo_press");
+
   // irregular class used if >COORDS change dramatically
 
   irregular = new Irregular(lmp);
@@ -167,8 +169,6 @@ void MDIEngine::mdi_engine(int narg, char **arg)
   MDI_Accept_communicator(&mdicomm);
   if (mdicomm <= 0) error->all(FLERR,"Unable to connect to MDI driver");
 
-  printf("ENG post accept MDI comm\n");
-
   // endless engine loop, responding to driver commands
 
   mode = DEFAULT;
@@ -178,7 +178,7 @@ void MDIEngine::mdi_engine(int narg, char **arg)
   while (1) {
 
     // top-level mdi engine only recognizes three nodes
-    // DEFAULT, INIT_MD, INIT_OPTG, INIT_SYS, EVAL
+    // DEFAULT, INIT_MD, INIT_OPTG
 
     engine_node("@DEFAULT");
 
@@ -207,7 +207,6 @@ void MDIEngine::mdi_engine(int narg, char **arg)
   delete [] node_engine;
   delete [] node_driver;
 
-  modify->delete_compute(id_ke);
   modify->delete_compute(id_pe);
   modify->delete_compute(id_press);
 
@@ -232,8 +231,6 @@ void MDIEngine::engine_node(const char *node)
 {
   int ierr;
 
-  printf("ENG ENODE %s\n",node);
-
   // do not process commands if engine and driver request are not the same
 
   strncpy(node_engine,node,MDI_COMMAND_LENGTH);
@@ -248,12 +245,8 @@ void MDIEngine::engine_node(const char *node)
     // read the next command from the driver
     // all procs call this, but only proc 0 receives the command
 
-    printf("ENG PRE-RECV %d\n",mdicomm);
-
     ierr = MDI_Recv_command(mdicmd,mdicomm);
     if (ierr) error->all(FLERR,"MDI: Unable to receive command from driver");
-
-    printf("ENG POST-RECV %s\n",mdicmd);
 
     // broadcast command to the other MPI tasks
 
@@ -299,7 +292,8 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
 
   MPI_Bcast(&command_exists,1,MPI_INT,0,world);
   if (!command_exists)
-    error->all(FLERR,"MDI: Received a command unsupported by engine node");
+    error->all(FLERR,"MDI: Received command {} unsupported by engine node {}",
+               command,node_engine);
 
   // ---------------------------------------
   // respond to MDI standard commands
@@ -317,6 +311,9 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
 
   } else if (strcmp(command,">COORDS") == 0) {
     receive_coords();
+
+  } else if (strcmp(command,">FORCES") == 0) {
+    receive_double3(FORCE);
 
   } else if (strcmp(command,">NATOMS") == 0) {
     receive_natoms();
@@ -346,11 +343,11 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     send_double3(COORD);
 
   } else if (strcmp(command,"<ENERGY") == 0) {
-    evaluate();
+    if (strcmp(node_engine,"@DEFAULT") == 0) evaluate();
     send_total_energy();
 
   } else if (strcmp(command,"<FORCES") == 0) {
-    evaluate();
+    if (strcmp(node_engine,"@DEFAULT") == 0) evaluate();
     send_double3(FORCE);
 
   } else if (strcmp(command,"<LABELS") == 0) {
@@ -363,11 +360,11 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     send_natoms();
 
   } else if (strcmp(command,"<PE") == 0) {
-    evaluate();
+    if (strcmp(node_engine,"@DEFAULT") == 0) evaluate();
     send_pe();
 
   } else if (strcmp(command,"<STRESS") == 0) {
-    evaluate();
+    if (strcmp(node_engine,"@DEFAULT") == 0) evaluate();
     send_stress();
 
   } else if (strcmp(command,"<TYPES") == 0) {
@@ -401,14 +398,6 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     strncpy(node_driver,command,MDI_COMMAND_LENGTH);
     node_match = false;
 
-    // if minimization in progress, force it to quit
-
-    if (mode == OPT) {
-      update->etol = std::numeric_limits<double>::max();
-      update->ftol = std::numeric_limits<double>::max();
-      update->max_eval = 0;
-    }
-
   } else if (strcmp(command,"@COORDS") == 0) {
     strncpy(node_driver,command,MDI_COMMAND_LENGTH);
     node_match = false;
@@ -425,14 +414,6 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
 
   } else if (strcmp(command,"EXIT") == 0) {
     exit_command = true;
-
-    // if minimization in progress, force it to quit
-
-    if (mode == OPT) {
-      update->etol = std::numeric_limits<double>::max();
-      update->ftol = std::numeric_limits<double>::max();
-      update->max_eval = 0;
-    }
 
   // -------------------------------------------------------
   // custom LAMMPS commands
@@ -458,7 +439,7 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   // -------------------------------------------------------
 
   } else {
-    error->all(FLERR,"MDI: Unknown command received from driver");
+    error->all(FLERR,"MDI: Unknown command {} received from driver",command);
   }
 
   return 0;
@@ -506,22 +487,13 @@ void MDIEngine::mdi_commands()
   MDI_Register_command("@DEFAULT", "COMMAND");
   MDI_Register_command("@DEFAULT", "COMMANDS");
   MDI_Register_command("@DEFAULT", "INFILE");
-  MDI_Register_command("@DEFAULT", ">TOLERANCE");
   MDI_Register_command("@DEFAULT", "<KE");
 
   // node for setting up and running a dynamics simulation
 
   MDI_Register_node("@INIT_MD");
   MDI_Register_command("@INIT_MD", "<@");
-  MDI_Register_command("@INIT_MD", "<NATOMS");
-  MDI_Register_command("@INIT_MD", ">CELL");
-  MDI_Register_command("@INIT_MD", ">CELL_DISPL");
-  MDI_Register_command("@INIT_MD", ">CHARGES");
-  MDI_Register_command("@INIT_MD", ">COORDS");
-  MDI_Register_command("@INIT_MD", ">NATOMS");
   MDI_Register_command("@INIT_MD", ">NITERATE");
-  MDI_Register_command("@INIT_MD", ">TYPES");
-  MDI_Register_command("@INIT_MD", ">VELOCITIES");
   MDI_Register_command("@INIT_MD", "@");
   MDI_Register_command("@INIT_MD", "@DEFAULT");
   MDI_Register_command("@INIT_MD", "@COORDS");
@@ -533,24 +505,15 @@ void MDIEngine::mdi_commands()
 
   MDI_Register_node("@INIT_OPTG");
   MDI_Register_command("@INIT_OPTG", "<@");
-  MDI_Register_command("@INIT_OPTG", "<NATOMS");
-  MDI_Register_command("@INIT_OPTG", ">CELL");
-  MDI_Register_command("@INIT_OPTG", ">CELL_DISPL");
-  MDI_Register_command("@INIT_OPTG", ">CHARGES");
-  MDI_Register_command("@INIT_OPTG", ">COORDS");
-  MDI_Register_command("@INIT_OPTG", ">NATOMS");
   MDI_Register_command("@INIT_OPTG", ">TOLERANCE");
-  MDI_Register_command("@INIT_OPTG", ">TYPES");
-  MDI_Register_command("@INIT_OPTG", ">VELOCITIES");
   MDI_Register_command("@INIT_OPTG", "@");
   MDI_Register_command("@INIT_OPTG", "@DEFAULT");
   MDI_Register_command("@INIT_OPTG", "@COORDS");
   MDI_Register_command("@INIT_OPTG", "@FORCES");
-  MDI_Register_command("@INIT_OPTG", "@ENDSTEP");
   MDI_Register_command("@INIT_OPTG", "EXIT");
 
   // node at POST_INTEGRATE location in timestep
-  // only if fix MDI/ENGINE is instantiated
+  // only used if fix MDI/ENGINE is instantiated
 
   MDI_Register_node("@COORDS");
   MDI_Register_command("@COORDS", "<@");
@@ -564,17 +527,19 @@ void MDIEngine::mdi_commands()
   MDI_Register_command("@COORDS", "EXIT");
 
   // node at POST_FORCE location in timestep
-  // only if fix MDI/ENGINE is instantiated
+  // only used if fix MDI/ENGINE is instantiated
 
   MDI_Register_node("@FORCES");
-  MDI_Register_command("@FORCES", "<@"); 
-  MDI_Register_command("@FORCES", "<ENERGY");
-  MDI_Register_command("@FORCES", "<FORCES");
-  MDI_Register_command("@FORCES", "<PE");
-  MDI_Register_command("@FORCES", "<STRESS");
   MDI_Register_callback("@FORCES", ">FORCES");
   MDI_Register_callback("@FORCES", ">+FORCES");
+  MDI_Register_command("@FORCES", "<@"); 
+  MDI_Register_command("@FORCES", "<COORDS");
+  MDI_Register_command("@FORCES", "<ENERGY");
+  MDI_Register_command("@FORCES", "<FORCES");
   MDI_Register_command("@FORCES", "<KE");
+  MDI_Register_command("@FORCES", "<PE");
+  MDI_Register_command("@FORCES", "<STRESS");
+  MDI_Register_command("@FORCES", ">FORCES");
   MDI_Register_command("@FORCES", "@");
   MDI_Register_command("@FORCES", "@DEFAULT");
   MDI_Register_command("@FORCES", "@COORDS");
@@ -583,14 +548,15 @@ void MDIEngine::mdi_commands()
   MDI_Register_command("@FORCES", "EXIT");
 
   // node at END_OF_STEP location in timestep
-  // only if fix MDI/ENGINE is instantiated
+  // only used if fix MDI/ENGINE is instantiated
 
   MDI_Register_node("@ENDSTEP");
   MDI_Register_command("@ENDSTEP", "<@");
-  MDI_Register_command("@FORCES", "<ENERGY");
-  MDI_Register_command("@FORCES", "<FORCES");
-  MDI_Register_command("@FORCES", "<PE");
-  MDI_Register_command("@FORCES", "<STRESS");
+  MDI_Register_command("@ENDSTEP", "<ENERGY");
+  MDI_Register_command("@ENDSTEP", "<FORCES");
+  MDI_Register_command("@ENDSTEP", "<KE");
+  MDI_Register_command("@ENDSTEP", "<PE");
+  MDI_Register_command("@ENDSTEP", "<STRESS");
   MDI_Register_command("@ENDSTEP", "@");
   MDI_Register_command("@ENDSTEP", "@DEFAULT");
   MDI_Register_command("@ENDSTEP", "@COORDS");
@@ -601,23 +567,13 @@ void MDIEngine::mdi_commands()
 
 /* ----------------------------------------------------------------------
    run MD simulation
-   >NITERATE command sets # of timesteps
+   either for NITERATE steps or one step at a time
+   latter is controlled by driver
 ---------------------------------------------------------------------- */
 
 void MDIEngine::mdi_md()
 {
-  // engine is now at @INIT_MD node
-  // receive >NITERATE or other commands driver wishes to send
-  // @RUN_MD or @DEFAULT command from driver will trigger the simulation
-
-  niterate = 0;
-
-  engine_node("@INIT_MD");
-
-  if (strcmp(mdicmd,"EXIT") == 0) return;
-
-  // create or update system if requested
-  // assume only incremental changes in atom coords
+  // create or update system if requested prior to @INIT_MD
 
   int flag_create = flag_natoms | flag_types;
   if (flag_create) create_system();
@@ -628,40 +584,15 @@ void MDIEngine::mdi_md()
     if (flag_velocities) adjust_velocities();
   }
 
-  // perform the MD simulation
+  // engine is now at @INIT_MD node
+  // receive >NITERATE command if driver sends, else niterate = -1
+  // any @ command from driver will start the simulation
 
-  update->whichflag = 1;
-  timer->init_timeout();
+  niterate = -1;
 
-  update->nsteps = niterate;
-  update->beginstep = update->firststep = update->ntimestep;
-  update->endstep = update->laststep = update->ntimestep + update->nsteps;
-    
-  lmp->init();
-  update->integrate->setup(1);
-  
-  timer->init();
-  timer->barrier_start();
-  update->integrate->run(niterate);
-  timer->barrier_stop();
-  
-  update->integrate->cleanup();
+  engine_node("@INIT_MD");
+  if (strcmp(mdicmd,"EXIT") == 0) return;
 
-  engine_node("@RUN_MD");
-
-  // clear flags
-
-  flag_natoms = flag_types = 0;
-  flag_cell = flag_cell_displ = flag_charges = flag_coords = flag_velocities = 0;
-}
-
-/* ----------------------------------------------------------------------
-   run MD simulation under control of driver one step at a time
-   use of fix MDI/ENGINE allows MDI comm within timesteps
----------------------------------------------------------------------- */
-
-void MDIEngine::mdi_md_old()
-{
   // add an instance of fix MDI/ENGINE
   // delete the instance before this method returns
 
@@ -670,77 +601,65 @@ void MDIEngine::mdi_md_old()
     (FixMDIEngine *) modify->get_fix_by_id("MDI_ENGINE_INTERNAL");
   mdi_fix->mdi_engine = this;
 
-  // initialize a new MD simulation
+  // initialize LAMMPS and setup() the simulation
+  // set nsteps to niterate if >= 0, else set to 1
 
   update->whichflag = 1;
   timer->init_timeout();
-  update->nsteps = 1;
-  update->ntimestep = 0;
-  update->firststep = update->ntimestep;
-  update->laststep = update->ntimestep + update->nsteps;
-  update->beginstep = update->firststep;
-  update->endstep = update->laststep;
+  
+  update->nsteps = (niterate >= 0) ? niterate : 1;
+  update->beginstep = update->firststep = update->ntimestep;
+  update->endstep = update->laststep = update->ntimestep + update->nsteps;
 
   lmp->init();
-
-  // engine is now at @INIT_MD node
-  // receive any commands driver wishes to send
-
-  engine_node("@INIT_MD");
-
-  if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) {
-    modify->delete_fix("MDI_ENGINE_INTERNAL");
-    return;
-  }
-
-  // setup the MD simulation
-
   update->integrate->setup(1);
 
-  // run MD one step at a time until driver sends @DEFAULT or EXIT
-  // driver can communicate with LAMMPS within each timestep 
-  // by sending a node command which matches a method in FixMDIEngine
+  timer->init();
+  timer->barrier_start();
 
-  while (true) {
-    update->whichflag = 1;
-    timer->init_timeout();
-    update->nsteps += 1;
-    update->laststep += 1;
-    update->endstep = update->laststep;
-    output->next = update->ntimestep + 1;
+  // if niterate >= 0, run for niterate steps
+  // else if niterate < 0:
+  //   run one step at a time forever
+  //   driver triggers exit with @ command other than @COORDS,@FORCES,@ENDSTEP
 
-    // single MD timestep
+  if (niterate >= 0) {
+    update->integrate->run(niterate);
 
-    update->integrate->run(1);
+  } else {
 
-    // driver triggers end of MD loop by sending @DEFAULT or EXIT
+    while (true) {
+      update->nsteps += 1;
+      update->laststep += 1;
+      update->endstep = update->laststep;
+      output->next = update->ntimestep + 1;
 
-    if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) {
-      modify->delete_fix("MDI_ENGINE_INTERNAL");
-      return;
+      update->integrate->run(1);
+      
+      if (strcmp(mdicmd,"@COORDS") != 0 &&
+          strcmp(mdicmd,"@FORCES") != 0 &&
+          strcmp(mdicmd,"@ENDSTEP") != 0) break;
     }
   }
+
+  timer->barrier_stop();
+  update->integrate->cleanup();
+  modify->delete_fix("MDI_ENGINE_INTERNAL");
+
+  // clear flags
+
+  flag_natoms = flag_types = 0;
+  flag_cell = flag_cell_displ = flag_charges = flag_coords = flag_velocities = 0;
 }
 
 /* ----------------------------------------------------------------------
-   perform minimization for at most Niterate steps
-   >TOLERANCE command sets tolerances
+   perform minimization
+   either to convergence using >TOLERANCE settings or one iteration at a time
+   latter is controlled by driver
 ---------------------------------------------------------------------- */
 
 void MDIEngine::mdi_optg()
 {
-  // engine is now at @INIT_OPTG node
-  // receive >TOLERANCE or other commands driver wishes to send
-  // @DEFAULT command from driver will trigger the minimization
-
-  etol = ftol = 1.0e-6;
-  niterate = max_eval = 1000;
-
-  engine_node("@INIT_OPTG");
-
-  if (strcmp(mdicmd,"EXIT") == 0) return;
-
-  // create or update system if requested
+  // create or update system if requested prior to @INIT_OPTG
 
   int flag_create = flag_natoms | flag_types;
   if (flag_create) create_system();
@@ -751,42 +670,16 @@ void MDIEngine::mdi_optg()
     if (flag_velocities) adjust_velocities();
   }
 
-  // perform the minmization
+  // engine is now at @INIT_OPTG node
+  // receive >TOLERANCE if driver sends
 
-  update->etol = etol;
-  update->ftol = ftol;
-  update->nsteps = niterate;
-  update->max_eval = max_eval;
+  etol = ftol = 1.0e-6;
+  niterate = -1;
+  max_eval = std::numeric_limits<int>::max();
 
-  update->whichflag = 2;
-  timer->init_timeout();
+  engine_node("@INIT_OPTG");
+  if (strcmp(mdicmd,"EXIT") == 0) return;
 
-  update->beginstep = update->firststep = update->ntimestep;
-  update->endstep = update->laststep = update->firststep + update->nsteps;
-  
-  lmp->init();
-  update->minimize->setup();
-  
-  timer->init();
-  timer->barrier_start();
-  update->minimize->run(update->nsteps);
-  timer->barrier_stop();
-  
-  update->minimize->cleanup();
-
-  // clear flags
-
-  flag_natoms = flag_types = 0;
-  flag_cell = flag_cell_displ = flag_charges = flag_coords = flag_velocities = 0;
-}
-
-/* ----------------------------------------------------------------------
-   perform minimization under control of driver one iteration at a time
-   use of fix MDI/ENGINE allows MDI comm within iteration
----------------------------------------------------------------------- */
-
-void MDIEngine::mdi_optg_old()
-{
   // add an instance of fix MDI/ENGINE
   // delete the instance before this method returns
 
@@ -795,48 +688,60 @@ void MDIEngine::mdi_optg_old()
     (FixMDIEngine *) modify->get_fix_by_id("MDI_ENGINE_INTERNAL");
   mdi_fix->mdi_engine = this;
 
-  // set tolerances to epsilon and iteration limits huge
-  // allows MDI driver to force an exit
-
-  update->etol = std::numeric_limits<double>::min();
-  update->ftol = std::numeric_limits<double>::min();
-  update->nsteps = std::numeric_limits<int>::max();
-  update->max_eval = std::numeric_limits<int>::max();
+  // initialize LAMMPS and setup() the simulation
+  // set nsteps to niterate if >= 0 via >TOLERANCE, else set to huge value
 
   update->whichflag = 2;
+  timer->init_timeout();
+
+  update->nsteps = (niterate >= 0) ? niterate : max_eval;
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + update->nsteps;
 
+  update->etol = etol;
+  update->ftol = ftol;
+  update->max_eval = max_eval;
+
   lmp->init();
-
-  // engine is now at @INIT_OPTG node
-  // receive any commands driver wishes to send
-
-  engine_node("@INIT_OPTG");
-
-  if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) {
-    modify->delete_fix("MDI_ENGINE_INTERNAL");
-    return;
-  }
-
-  // setup the minimization
-
   update->minimize->setup();
 
-  if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) return;
+  timer->init();
+  timer->barrier_start();
 
-  // start minimization
-  // when the driver sends @DEFAULT or EXIT minimizer tolerances are 
-  // set to large values to force it to exit
+  // if niterate >= 0, minimize for at most niterate iterations
+  // else if niterate < 0:
+  //   run one iteration at a time forever
+  //   driver triggers exit with @ command other than @COORDS,@FORCES
+  //   two issues with running in this mode:
+  //     @COORDS and @FORCES are not triggered per min iteration
+  //        but also for line search evals
+  //     if driver triggers exit on step that is not multiple of thermo output
+  //        then energy/virial not computed, and <PE, <STRESS will fail
 
-  update->minimize->iterate(update->nsteps);
+  if (niterate >= 0) {
+    update->minimize->run(niterate);
 
-  // return if driver sends @DEFAULT or EXIT
+  } else {
+    niterate = std::numeric_limits<int>::max();
+    update->etol = 0.0;
+    update->ftol = 0.0;
 
-  if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) {
-    modify->delete_fix("MDI_ENGINE_INTERNAL");
-    return;
+    while (1) {
+      update->minimize->run(1);
+
+      if (strcmp(mdicmd,"@COORDS") != 0 &&
+          strcmp(mdicmd,"@FORCES") != 0) break;
+    }
   }
+
+  timer->barrier_stop();
+  update->minimize->cleanup();
+  modify->delete_fix("MDI_ENGINE_INTERNAL");
+
+  // clear flags
+
+  flag_natoms = flag_types = 0;
+  flag_cell = flag_cell_displ = flag_charges = flag_coords = flag_velocities = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -847,14 +752,14 @@ void MDIEngine::mdi_optg_old()
 
 void MDIEngine::evaluate()
 {
-  // create or update system if requested
-
   int flag_create = flag_natoms | flag_types;
+  int flag_other = flag_cell | flag_cell_displ | flag_charges | 
+    flag_coords | flag_velocities;
+
+  // create or update system if requested
+  
   if (flag_create) create_system();
-  else {
-    int flag_any = flag_cell | flag_cell_displ | flag_charges | 
-      flag_coords | flag_velocities;
-    if (!flag_any) return;
+  else if (flag_other) {
     if (flag_cell || flag_cell_displ) adjust_box();
     if (flag_charges) adjust_charges();
     if (flag_coords) adjust_coords();
@@ -875,8 +780,8 @@ void MDIEngine::evaluate()
   //     this can only be done if comm->style is not tiled
   //     also requires atoms be in box and lamda coords (for triclinic)
   //   finally invoke setup_minimal(1) to trigger exchange() & reneigh()
-  // NOTE: what this logic still lacks is invoking migrate_atoms()
-  //       if necessary for comm->style tiled, not easy to detect
+  // NOTE: what this logic still lacks for comm->style tiled,
+  //       is when to invoke migrate_atoms() if necessary, not easy to detect
 
   if (flag_create || neighbor->ago < 0) {
     update->whichflag = 1;
@@ -884,7 +789,7 @@ void MDIEngine::evaluate()
     update->integrate->setup(1);
     update->whichflag = 0;
 
-  } else {
+  } else if (flag_other) {
     update->ntimestep++;
     pe->addstep(update->ntimestep);
     press->addstep(update->ntimestep);
@@ -933,7 +838,8 @@ void MDIEngine::create_system()
   if (flag_cell == 0 || flag_natoms == 0 ||
       flag_types == 0 || flag_coords == 0)
     error->all(FLERR,
-               "@INIT_SYS requires >CELL, >NATOMS, >TYPES, >COORDS MDI commands");
+               "MDI create_system requires >CELL, >NATOMS, >TYPES, >COORDS "
+               "MDI commands");
 
   // remove all existing atoms via delete_atoms command
 
@@ -1201,6 +1107,37 @@ void MDIEngine::receive_velocities()
   MPI_Bcast(sys_velocities,n,MPI_DOUBLE,0,world);
   for (int i = 0; i < n; i++) 
     sys_coords[i] * mdi2lmp_velocity;
+}
+
+/* ----------------------------------------------------------------------
+   >FORCES command
+   receive vector of 3 doubles for all atoms
+   atoms are ordered by atomID, 1 to Natoms
+---------------------------------------------------------------------- */
+
+void MDIEngine::receive_double3(int which)
+{
+  int n = 3*atom->natoms;
+  int ierr = MDI_Recv(buf3,n,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: <double3 data");
+  MPI_Bcast(buf3,n,MPI_DOUBLE,0,world);
+
+  // use atomID to index into ordered buf3
+
+  tagint *tag = atom->tag;
+  int nlocal = atom->nlocal;
+
+  int ilocal;
+
+  if (which == FORCE) {
+    double **f = atom->f;
+    for (int i = 0; i < nlocal; i++) {
+      ilocal = static_cast<int> (tag[i]) - 1;
+      f[i][0] = buf3[3*ilocal+0] * mdi2lmp_force;
+      f[i][1] = buf3[3*ilocal+1] * mdi2lmp_force;
+      f[i][2] = buf3[3*ilocal+2] * mdi2lmp_force;
+    }
+  }
 }
 
 // ----------------------------------------------------------------------

@@ -50,6 +50,11 @@ FixBondHistory::FixBondHistory(LAMMPS *lmp, int narg, char **arg) :
   restart_global = 1;
   create_attribute = 1;
 
+  // Flag whether bond arrays are updated such that data may need to be
+  // copied to atom arrays before exchanging atoms
+  // Prevents sequential calls to pre_exchange() without post_neighbor()
+  updated_bond_flag = 0;
+
   bondstore = nullptr;
   maxbond = 0;
   allocate();
@@ -105,8 +110,15 @@ void FixBondHistory::update_atom_value(int i, int m, int idata, double value)
 
 double FixBondHistory::get_atom_value(int i, int m, int idata)
 {
-   if (idata >= ndata || m > nbond) error->all(FLERR, "Index exceeded in fix bond history");
-   return atom->darray[index][i][m*ndata+idata];
+  if (idata >= ndata || m > nbond) error->all(FLERR, "Index exceeded in fix bond history");
+  return atom->darray[index][i][m*ndata+idata];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixBondHistory::setup_pre_exchange()
+{
+  pre_exchange();
 }
 
 /* ----------------------------------------------------------------------
@@ -119,7 +131,7 @@ void FixBondHistory::pre_exchange()
 {
   if (!update_flag) return;
   if (!stored_flag) return;
-  if (!bondstore) return;
+  if (!updated_bond_flag) return;
 
   int i1, i2, n, m, idata;
   int **bondlist = neighbor->bondlist;
@@ -160,6 +172,8 @@ void FixBondHistory::pre_exchange()
       }
     }
   }
+
+  updated_bond_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -181,7 +195,7 @@ void FixBondHistory::setup_post_neighbor()
     maxbond += DELTA;
     memory->grow(bondstore,maxbond,ndata,"fix_bond_store:bondstore");
   }
-  
+
   pre_exchange();
   post_neighbor();
 }
@@ -238,6 +252,8 @@ void FixBondHistory::post_neighbor()
       }
     }
   }
+
+  updated_bond_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

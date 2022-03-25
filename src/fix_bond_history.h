@@ -36,6 +36,7 @@ class FixBondHistory : public Fix {
   int setmask() override;
   void post_constructor() override;
   void setup_post_neighbor() override;
+  void setup_pre_exchange() override;
   void post_neighbor() override;
   void pre_exchange() override;
   double memory_usage() override;
@@ -65,7 +66,8 @@ class FixBondHistory : public Fix {
 
   void allocate();
 
-  int update_flag;
+  int update_flag;            //Flag whether history values can evolve
+  int updated_bond_flag;
   int nbond, maxbond, ndata;
   int index;
   char *id_fix;

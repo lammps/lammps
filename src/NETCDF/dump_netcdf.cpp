@@ -335,7 +335,7 @@ void DumpNetCDF::openfile()
       if (thermo) {
         Thermo *th = output->thermo;
         for (int i = 0; i < th->nfield; i++) {
-          NCERRX( nc_inq_varid(ncid, th->keyword[i], &thermovar[i]), th->keyword[i] );
+          NCERRX( nc_inq_varid(ncid, th->keyword[i].c_str(), &thermovar[i]), th->keyword[i].c_str() );
         }
       }
 
@@ -448,18 +448,18 @@ void DumpNetCDF::openfile()
         Thermo *th = output->thermo;
         for (int i = 0; i < th->nfield; i++) {
           if (th->vtype[i] == Thermo::FLOAT) {
-            NCERRX( nc_def_var(ncid, th->keyword[i], type_nc_real, 1, dims,
-                               &thermovar[i]), th->keyword[i] );
+            NCERRX( nc_def_var(ncid, th->keyword[i].c_str(), type_nc_real, 1, dims,
+                               &thermovar[i]), th->keyword[i].c_str() );
           } else if (th->vtype[i] == Thermo::INT) {
-            NCERRX( nc_def_var(ncid, th->keyword[i], NC_INT, 1, dims,
-                               &thermovar[i]), th->keyword[i] );
+            NCERRX( nc_def_var(ncid, th->keyword[i].c_str(), NC_INT, 1, dims,
+                               &thermovar[i]), th->keyword[i].c_str() );
           } else if (th->vtype[i] == Thermo::BIGINT) {
 #if defined(LAMMPS_SMALLBIG) || defined(LAMMPS_BIGBIG)
-            NCERRX( nc_def_var(ncid, th->keyword[i], NC_INT64, 1, dims,
-                               &thermovar[i]), th->keyword[i] );
+            NCERRX( nc_def_var(ncid, th->keyword[i].c_str(), NC_INT64, 1, dims,
+                               &thermovar[i]), th->keyword[i].c_str() );
 #else
-            NCERRX( nc_def_var(ncid, th->keyword[i], NC_LONG, 1, dims,
-                               &thermovar[i]), th->keyword[i] );
+            NCERRX( nc_def_var(ncid, th->keyword[i].c_str(), NC_LONG, 1, dims,
+                               &thermovar[i]), th->keyword[i].c_str() );
 #endif
           }
         }
@@ -625,13 +625,13 @@ void DumpNetCDF::write()
         if (th->vtype[i] == Thermo::FLOAT) {
           NCERRX( nc_put_var1_double(ncid, thermovar[i], start,
                                      &th->dvalue),
-                  th->keyword[i] );
+                  th->keyword[i].c_str() );
         } else if (th->vtype[i] == Thermo::INT) {
           NCERRX( nc_put_var1_int(ncid, thermovar[i], start, &th->ivalue),
-                  th->keyword[i] );
+                  th->keyword[i].c_str() );
         } else if (th->vtype[i] == Thermo::BIGINT) {
           NCERRX( nc_put_var1_bigint(ncid, thermovar[i], start, &th->bivalue),
-                  th->keyword[i] );
+                  th->keyword[i].c_str() );
         }
       }
     }

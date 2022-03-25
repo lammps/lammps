@@ -71,8 +71,6 @@ class FixOMP : public Fix {
   bool _reduced;                // whether forces have been reduced for this step
   bool _pair_compute_flag;      // whether pair_compute is called
   bool _kspace_compute_flag;    // whether kspace_compute is called
-
-  void set_neighbor_omp();
 };
 
 }    // namespace LAMMPS_NS

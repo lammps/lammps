@@ -27,7 +27,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "update.h"
@@ -110,8 +109,7 @@ ComputeEntropyAtom::~ComputeEntropyAtom()
 void ComputeEntropyAtom::init()
 {
   if (force->pair == nullptr)
-    error->all(FLERR,"Compute entropy/atom requires a pair style be"
-               " defined");
+    error->all(FLERR,"Compute entropy/atom requires a pair style be defined");
 
   if ((cutoff+cutoff2) > (force->pair->cutforce  + neighbor->skin))
     {
@@ -126,23 +124,16 @@ void ComputeEntropyAtom::init()
   if (count > 1 && comm->me == 0)
     error->warning(FLERR,"More than one compute entropy/atom");
 
-  // Request neighbor list
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  // Request a full neighbor list
+  int list_flags = NeighConst::REQ_FULL;
   if (avg_flag) {
-    // need a full neighbor list with neighbors of the ghost atoms
-    neighbor->requests[irequest]->occasional = 0;
-    neighbor->requests[irequest]->ghost = 1;
+    // need neighbors of the ghost atoms
+    list_flags |= NeighConst::REQ_GHOST;
   } else {
-    // need a regular full neighbor list
-    // can build it occasionally
-    neighbor->requests[irequest]->occasional = 1;
-    neighbor->requests[irequest]->ghost = 0;
+    // may build it occasionally
+    list_flags |= NeighConst::REQ_OCCASIONAL;
   }
-
+  neighbor->add_request(this, list_flags);
 }
 
 /* ---------------------------------------------------------------------- */

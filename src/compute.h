@@ -19,6 +19,8 @@
 namespace LAMMPS_NS {
 
 class Compute : protected Pointers {
+  friend class Neighbor;
+
  public:
   // clang-format off
   enum {

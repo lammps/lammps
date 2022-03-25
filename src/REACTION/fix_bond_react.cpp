@@ -802,10 +802,7 @@ void FixBondReact::init()
   }
 
   // need a half neighbor list, built every Nevery steps
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
 
   lastcheck = -1;
 }

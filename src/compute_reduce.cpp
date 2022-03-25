@@ -218,34 +218,26 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
                         "Compute reduce compute calculates global values");
 
     } else if (which[i] == ArgInfo::FIX) {
-      int ifix = modify->find_fix(ids[i]);
-      if (ifix < 0)
-        error->all(FLERR,"Fix ID for compute reduce does not exist");
-      if (modify->fix[ifix]->peratom_flag) {
+      auto ifix = modify->get_fix_by_id(ids[i]);
+      if (!ifix)
+        error->all(FLERR,"Fix ID {} for compute reduce does not exist", ids[i]);
+      if (ifix->peratom_flag) {
         flavor[i] = PERATOM;
-        if (argindex[i] == 0 &&
-            modify->fix[ifix]->size_peratom_cols != 0)
-          error->all(FLERR,"Compute reduce fix does not "
-                     "calculate a per-atom vector");
-        if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
-          error->all(FLERR,"Compute reduce fix does not "
-                     "calculate a per-atom array");
-        if (argindex[i] &&
-            argindex[i] > modify->fix[ifix]->size_peratom_cols)
-          error->all(FLERR,"Compute reduce fix array is accessed out-of-range");
-      } else if (modify->fix[ifix]->local_flag) {
+        if (argindex[i] == 0 && (ifix->size_peratom_cols != 0))
+          error->all(FLERR,"Compute reduce fix {} does not calculate a per-atom vector", ids[i]);
+        if (argindex[i] && (ifix->size_peratom_cols == 0))
+          error->all(FLERR,"Compute reduce fix {} does not calculate a per-atom array", ids[i]);
+        if (argindex[i] && (argindex[i] > ifix->size_peratom_cols))
+          error->all(FLERR,"Compute reduce fix {} array is accessed out-of-range", ids[i]);
+      } else if (ifix->local_flag) {
         flavor[i] = LOCAL;
-        if (argindex[i] == 0 &&
-            modify->fix[ifix]->size_local_cols != 0)
-          error->all(FLERR,"Compute reduce fix does not "
-                     "calculate a local vector");
-        if (argindex[i] && modify->fix[ifix]->size_local_cols == 0)
-          error->all(FLERR,"Compute reduce fix does not "
-                     "calculate a local array");
-        if (argindex[i] &&
-            argindex[i] > modify->fix[ifix]->size_local_cols)
-          error->all(FLERR,"Compute reduce fix array is accessed out-of-range");
-      } else error->all(FLERR,"Compute reduce fix calculates global values");
+        if (argindex[i] == 0 && (ifix->size_local_cols != 0))
+          error->all(FLERR,"Compute reduce fix {} does not calculate a local vector", ids[i]);
+        if (argindex[i] && (ifix->size_local_cols == 0))
+          error->all(FLERR,"Compute reduce fix {} does not calculate a local array", ids[i]);
+        if (argindex[i] && (argindex[i] > ifix->size_local_cols))
+          error->all(FLERR,"Compute reduce fix {} array is accessed out-of-range", ids[i]);
+      } else error->all(FLERR,"Compute reduce fix {} calculates global values", ids[i]);
 
     } else if (which[i] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[i]);

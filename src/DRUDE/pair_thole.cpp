@@ -14,20 +14,20 @@
 
 #include "pair_thole.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
-
 #include "fix.h"
 #include "fix_drude.h"
-#include "domain.h"
+#include "force.h"
+#include "memory.h"
 #include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -260,7 +260,7 @@ void PairThole::init_style()
   if (ifix == modify->nfix) error->all(FLERR, "Pair thole requires fix drude");
   fix_drude = (FixDrude *) modify->fix[ifix];
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

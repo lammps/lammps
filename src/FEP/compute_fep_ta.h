@@ -12,40 +12,43 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Agilio Padua (ENS de Lyon & CNRS)
+   Contributing author: Shifeng Ke (Zhejiang University)
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(fep,ComputeFEP);
+ComputeStyle(fep/ta,ComputeFEPTA);
 // clang-format on
 #else
 
-#ifndef COMPUTE_FEP_H
-#define COMPUTE_FEP_H
+#ifndef COMPUTE_FEP_TA_H
+#define COMPUTE_FEP_TA_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputeFEP : public Compute {
+class ComputeFEPTA : public Compute {
  public:
-  ComputeFEP(class LAMMPS *, int, char **);
-  ~ComputeFEP() override;
+  ComputeFEPTA(class LAMMPS *, int, char **); // compute ID groupID fep/ta temp xy/xz/yz scale_factor
+  ~ComputeFEPTA() override;
   void init() override;
   void compute_vector() override;
 
  private:
-  int npert;
   int pairflag;
-  int chgflag;
-  int tailflag, volumeflag;
+  int tailflag;
   int fepinitflag;
   int eflag, vflag;
   double temp_fep;
+  double scale_factor;
+  int tan_axis1, tan_axis2, norm_axis;
+
+  double boxlo_orig[3], boxhi_orig[3];
+  double area_orig;
 
   int nmax;
-  double *q_orig;
+  double **x_orig;
   double **f_orig;
   double eng_vdwl_orig, eng_coul_orig;
   double pvirial_orig[6];
@@ -56,26 +59,14 @@ class ComputeFEP : public Compute {
 
   class Fix *fixgpu;
 
-  struct Perturb {
-    int which, ivar;
-    char *var;
-    char *pstyle, *pparam;
-    int ilo, ihi, jlo, jhi;
-    int pdim;
-    double **array, **array_orig;
-    int aparam;
-  };
-
-  Perturb *perturb;
-
   double compute_epair();
-  void perturb_params();
-  void backup_params();
-  void restore_params();
+  void change_box();
+  void backup_box();
+  void restore_box();
   void allocate_storage();
   void deallocate_storage();
-  void backup_qfev();
-  void restore_qfev();
+  void backup_xfev();
+  void restore_xfev();
 };
 
 }    // namespace LAMMPS_NS
@@ -90,18 +81,6 @@ E: Illegal ... command
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
-
-E: Variable name for compute fep does not exist
-
-Self-explanatory.
-
-E: Variable for compute fep is invalid style
-
-Self-explanatory.
-
-E: Compute fep pair style does not exist
-
-Self-explanatory.
 
 E: Energy was not tallied on needed timestep
 

@@ -1064,7 +1064,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGhostGPU(typename Kokkos::Team
     }
 
     int binxyz[3];
-    const int ibin = coord2bin(xtmp, ytmp, ztmp, binxyz);
+    coord2bin(xtmp, ytmp, ztmp, binxyz);
     const int xbin = binxyz[0];
     const int ybin = binxyz[1];
     const int zbin = binxyz[2];
@@ -1072,9 +1072,10 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGhostGPU(typename Kokkos::Team
       const int xbin2 = xbin + stencilxyz(k,0);
       const int ybin2 = ybin + stencilxyz(k,1);
       const int zbin2 = zbin + stencilxyz(k,2);
+      int active = 1;
       if (xbin2 < 0 || xbin2 >= mbinx ||
           ybin2 < 0 || ybin2 >= mbiny ||
-          zbin2 < 0 || zbin2 >= mbinz) continue;
+          zbin2 < 0 || zbin2 >= mbinz) active = 0;
       const int jbin = ibin + stencil[k];
       int bincount_current = c_bincount[jbin];
       int j = MY_II < bincount_current ? c_bins(jbin, MY_II) : -1;
@@ -1090,7 +1091,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGhostGPU(typename Kokkos::Team
 
       dev.team_barrier();
 
-      if (i >= nlocal && i < nall) {
+      if (active && i >= nlocal && i < nall) {
         #pragma unroll 8
         for (int m = 0; m < bincount_current; m++) {
           const int j = other_id[m];

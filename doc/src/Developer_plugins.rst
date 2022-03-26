@@ -68,7 +68,7 @@ Members of ``lammpsplugin_t``
    * - author
      - String with the name and email of the author
    * - creator.v1
-     - Pointer to factory function for pair, bond, angle, dihedral, improper or command styles
+     - Pointer to factory function for pair, bond, angle, dihedral, improper, command or kspace styles
    * - creator.v2
      - Pointer to factory function for compute, fix, or region styles
    * - handle

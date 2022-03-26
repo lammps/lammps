@@ -36,7 +36,6 @@ class ComputeFEPTA : public Compute {
   void compute_vector() override;
 
  private:
-  int pairflag;
   int tailflag;
   int fepinitflag;
   int eflag, vflag;

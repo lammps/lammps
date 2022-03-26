@@ -119,8 +119,6 @@ void ComputeFEPTA::init()
 
   // setup and error checks
 
-  pairflag = 0;
-
   if (tailflag) {
     if (force->pair->tail_flag == 0)
       error->all(FLERR,"Compute fep/ta tail when pair style does not "

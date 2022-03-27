@@ -59,7 +59,7 @@ class ComputeFEPTA : public Compute {
 
   class Fix *fixgpu;
 
-  double compute_epair();
+  double compute_pe();
   void change_box();
   void backup_box();
   void restore_box();

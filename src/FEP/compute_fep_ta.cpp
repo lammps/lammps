@@ -52,7 +52,7 @@ ComputeFEPTA::ComputeFEPTA(LAMMPS *lmp, int narg, char **arg) :
 
   scalar_flag = 0;
   vector_flag = 1;
-  size_vector = 2;
+  size_vector = 3;
   extvector = 0;
 
   vector = new double[size_vector];
@@ -90,7 +90,7 @@ ComputeFEPTA::ComputeFEPTA(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal optional keyword in compute fep/ta");
   }
 
-  // allocate space for position, charge, force, energy, virial arrays
+  // allocate space for position, force, energy, virial arrays
 
   x_orig = nullptr;
   f_orig = nullptr;
@@ -171,7 +171,7 @@ void ComputeFEPTA::compute_vector()
   backup_xfev();   // backup position, force, energy, virial array values
   backup_box(); // backup box size
 
-  pe0 = compute_epair();
+  pe0 = compute_pe();
 
   change_box();
   comm->forward_comm();
@@ -200,7 +200,7 @@ void ComputeFEPTA::compute_vector()
   // otherwise the force compute on the GPU in the next step would be incorrect
   if (fixgpu) fixgpu->post_force(vflag);
 
-  pe1 = compute_epair();
+  pe1 = compute_pe();
 
   restore_xfev();   // restore position, force, energy, virial array values
   restore_box(); // restore box size
@@ -208,16 +208,17 @@ void ComputeFEPTA::compute_vector()
 
   vector[0] = pe1-pe0;
   vector[1] = exp(-(pe1-pe0)/(force->boltz*temp_fep));
+  vector[2] = area_orig*(scale_factor-1.0);
 }
 
 
 /* ----------------------------------------------------------------------
-   obtain pair energy from lammps accumulators
+   obtain potential energy from lammps accumulators
 ------------------------------------------------------------------------- */
 
-double ComputeFEPTA::compute_epair()
+double ComputeFEPTA::compute_pe()
 {
-  double eng, eng_pair;
+  double eng, eng_potential;
 
   eng = 0.0;
   if (force->pair)
@@ -230,16 +231,16 @@ double ComputeFEPTA::compute_epair()
     if (force->improper) eng += force->improper->energy;
   }
 
-  MPI_Allreduce(&eng,&eng_pair,1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&eng,&eng_potential,1,MPI_DOUBLE,MPI_SUM,world);
 
   if (tailflag) {
     double volume = domain->xprd * domain->yprd * domain->zprd;
-    eng_pair += force->pair->etail / volume;
+    eng_potential += force->pair->etail / volume;
   }
 
-  if (force->kspace) eng_pair += force->kspace->energy;
+  if (force->kspace) eng_potential += force->kspace->energy;
 
-  return eng_pair;
+  return eng_potential;
 }
 
 

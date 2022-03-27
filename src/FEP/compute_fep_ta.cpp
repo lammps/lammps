@@ -174,7 +174,6 @@ void ComputeFEPTA::compute_vector()
   pe0 = compute_pe();
 
   change_box();
-  comm->forward_comm();
 
   timer->stamp();
   if (force->pair && force->pair->compute_flag) {
@@ -204,7 +203,6 @@ void ComputeFEPTA::compute_vector()
 
   restore_xfev();   // restore position, force, energy, virial array values
   restore_box(); // restore box size
-  comm->forward_comm();
 
   vector[0] = pe1-pe0;
   vector[1] = exp(-(pe1-pe0)/(force->boltz*temp_fep));
@@ -252,8 +250,9 @@ void ComputeFEPTA::change_box()
 {
   int i;
   double **x = atom->x;
-  int nlocal = atom->nlocal;
-  for (i = 0; i < nlocal; i++)
+  int natom = atom->nlocal + atom->nghost;
+
+  for (i = 0; i < natom; i++)
     domain->x2lamda(x[i],x[i]);
 
   domain->boxhi[tan_axis1] *= sqrt(scale_factor);
@@ -267,7 +266,7 @@ void ComputeFEPTA::change_box()
   domain->set_local_box();
 
   // remap atom position
-  for (i = 0; i < nlocal; i++)
+  for (i = 0; i < natom; i++)
     domain->lamda2x(x[i],x[i]);
 
   if (force->kspace) force->kspace->setup();
@@ -350,10 +349,7 @@ void ComputeFEPTA::backup_xfev()
 {
   int i;
 
-  int nall = atom->nlocal + atom->nghost;
-  int natom = atom->nlocal;
-  if (force->newton || force->kspace->tip4pflag)
-      natom += atom->nghost;
+  int natom = atom->nlocal + atom->nghost;
 
   double **x = atom->x;
   for (i = 0; i < natom; i++) {
@@ -437,10 +433,7 @@ void ComputeFEPTA::restore_xfev()
 {
   int i;
 
-  int nall = atom->nlocal + atom->nghost;
-  int natom = atom->nlocal;
-  if (force->newton || force->kspace->tip4pflag)
-      natom += atom->nghost;
+  int natom = atom->nlocal + atom->nghost;
 
   double **x = atom->x;
   for (i = 0; i < natom; i++) {

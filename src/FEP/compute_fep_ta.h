@@ -50,6 +50,7 @@ class ComputeFEPTA : public Compute {
   double **x_orig;
   double **f_orig;
   double eng_vdwl_orig, eng_coul_orig;
+  double eng_bond_orig, eng_angle_orig, eng_dihedral_orig, eng_improper_orig;
   double pvirial_orig[6];
   double *peatom_orig, **pvatom_orig;
   double energy_orig;

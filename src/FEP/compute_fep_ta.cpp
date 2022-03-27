@@ -18,12 +18,16 @@
 
 #include "compute_fep_ta.h"
 
+#include "angle.h"
 #include "atom.h"
+#include "bond.h"
 #include "comm.h"
+#include "dihedral.h"
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
 #include "force.h"
+#include "improper.h"
 #include "kspace.h"
 #include "memory.h"
 #include "modify.h"
@@ -140,7 +144,7 @@ void ComputeFEPTA::init()
     if (logfile) {
       fprintf(logfile, "FEP/TA settings ...\n");
       fprintf(logfile, "  temperature = %f\n", temp_fep);
-      fprintf(screen, "  scale factor = %f\n", scale_factor);
+      fprintf(logfile, "  scale factor = %f\n", scale_factor);
       fprintf(logfile, "  tail %s\n", (tailflag ? "yes":"no"));
     }
   }
@@ -167,28 +171,25 @@ void ComputeFEPTA::compute_vector()
   backup_xfev();   // backup position, force, energy, virial array values
   backup_box(); // backup box size
 
-  timer->stamp();
-  if (force->pair && force->pair->compute_flag) {
-    force->pair->compute(eflag,vflag);
-    timer->stamp(Timer::PAIR);
-  }
-  if (force->kspace && force->kspace->compute_flag) {
-    force->kspace->compute(eflag,vflag);
-    timer->stamp(Timer::KSPACE);
-  }
-
-  // accumulate force/energy/virial from /gpu pair styles
-  if (fixgpu) fixgpu->post_force(vflag);
-
   pe0 = compute_epair();
 
   change_box();
+  comm->forward_comm();
 
   timer->stamp();
   if (force->pair && force->pair->compute_flag) {
     force->pair->compute(eflag,vflag);
     timer->stamp(Timer::PAIR);
   }
+
+  if (atom->molecular != Atom::ATOMIC) {
+    if (force->bond) force->bond->compute(eflag,vflag);
+    if (force->angle) force->angle->compute(eflag,vflag);
+    if (force->dihedral) force->dihedral->compute(eflag,vflag);
+    if (force->improper) force->improper->compute(eflag,vflag);
+    timer->stamp(Timer::BOND);
+  }
+
   if (force->kspace && force->kspace->compute_flag) {
     force->kspace->compute(eflag,vflag);
     timer->stamp(Timer::KSPACE);
@@ -203,6 +204,7 @@ void ComputeFEPTA::compute_vector()
 
   restore_xfev();   // restore position, force, energy, virial array values
   restore_box(); // restore box size
+  comm->forward_comm();
 
   vector[0] = pe1-pe0;
   vector[1] = exp(-(pe1-pe0)/(force->boltz*temp_fep));
@@ -220,6 +222,14 @@ double ComputeFEPTA::compute_epair()
   eng = 0.0;
   if (force->pair)
     eng = force->pair->eng_vdwl + force->pair->eng_coul;
+
+  if (atom->molecular != Atom::ATOMIC) {
+    if (force->bond) eng += force->bond->energy;
+    if (force->angle) eng += force->angle->energy;
+    if (force->dihedral) eng += force->dihedral->energy;
+    if (force->improper) eng += force->improper->energy;
+  }
+
   MPI_Allreduce(&eng,&eng_pair,1,MPI_DOUBLE,MPI_SUM,world);
 
   if (tailflag) {
@@ -239,9 +249,6 @@ double ComputeFEPTA::compute_epair()
 
 void ComputeFEPTA::change_box()
 {
-  // insure atoms are in current box
-  domain->pbc();
-
   int i;
   double **x = atom->x;
   int nlocal = atom->nlocal;
@@ -261,12 +268,6 @@ void ComputeFEPTA::change_box()
   // remap atom position
   for (i = 0; i < nlocal; i++)
     domain->lamda2x(x[i],x[i]);
-
-  comm->setup();
-  neighbor->setup_bins();
-  if (modify->n_pre_neighbor) modify->setup_pre_neighbor();
-  neighbor->build(1);
-  if (modify->n_post_neighbor) modify->setup_post_neighbor();
 
   if (force->kspace) force->kspace->setup();
 }
@@ -300,12 +301,6 @@ void ComputeFEPTA::restore_box()
   
   domain->set_global_box();
   domain->set_local_box();
-
-  comm->setup();
-  neighbor->setup_bins();
-  if (modify->n_pre_neighbor) modify->setup_pre_neighbor();
-  neighbor->build(1);
-  if (modify->n_post_neighbor) modify->setup_post_neighbor();
 
   if (force->kspace) force->kspace->setup();
 }
@@ -375,6 +370,13 @@ void ComputeFEPTA::backup_xfev()
 
   eng_vdwl_orig = force->pair->eng_vdwl;
   eng_coul_orig = force->pair->eng_coul;
+
+  if (atom->molecular != Atom::ATOMIC) {
+    if (force->bond)  eng_bond_orig = force->bond->energy;
+    if (force->angle)  eng_angle_orig = force->angle->energy;
+    if (force->dihedral)  eng_dihedral_orig = force->dihedral->energy;
+    if (force->improper)  eng_improper_orig = force->improper->energy;
+  }
 
   pvirial_orig[0] = force->pair->virial[0];
   pvirial_orig[1] = force->pair->virial[1];
@@ -455,6 +457,13 @@ void ComputeFEPTA::restore_xfev()
 
   force->pair->eng_vdwl = eng_vdwl_orig;
   force->pair->eng_coul = eng_coul_orig;
+
+  if (atom->molecular != Atom::ATOMIC) {
+    if (force->bond) force->bond->energy = eng_bond_orig;
+    if (force->angle) force->angle->energy = eng_angle_orig;
+    if (force->dihedral) force->dihedral->energy = eng_dihedral_orig;
+    if (force->improper) force->improper->energy = eng_improper_orig;
+  }
 
   force->pair->virial[0] = pvirial_orig[0];
   force->pair->virial[1] = pvirial_orig[1];

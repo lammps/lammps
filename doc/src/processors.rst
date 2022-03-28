@@ -77,7 +77,9 @@ particular dimension over the course of the simulation.
 
 The product of Px, Py, Pz must equal P, the total # of processors
 LAMMPS is running on.  For a :doc:`2d simulation <dimension>`, Pz must
-equal 1.
+equal 1. As an exception, if LAMMPS is running on one processor,
+this command will be ignored, although a warning will be printed to the
+log file.
 
 Note that if you run on a prime number of processors P, then a grid
 such as 1 x P x 1 will be required, which may incur extra
@@ -342,6 +344,9 @@ This command cannot be used after the simulation box is defined by a
 :doc:`read_data <read_data>` or :doc:`create_box <create_box>` command.
 It can be used before a restart file is read to change the 3d
 processor grid from what is specified in the restart file.
+
+This command will be ignored if LAMMPS is running on a single processor.
+A warning will be printed to the log file when this occurs.
 
 The *grid numa* keyword only currently works with the *map cart*
 option.

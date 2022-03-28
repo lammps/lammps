@@ -17,7 +17,7 @@ Syntax
 
      *load* file = load plugin(s) from shared object in *file*
      *unload* style name = unload plugin *name* of style *style*
-         *style* = *pair* or *bond* or *angle* or *dihedral* or *improper* or *compute* or *fix* or *region* or *command*
+         *style* = *pair* or *bond* or *angle* or *dihedral* or *improper* or *compute* or *fix* or *region* or *command* or *kspace*
      *list* = print a list of currently loaded plugins
      *clear* = unload all currently loaded plugins
 

@@ -307,15 +307,14 @@ void PairKIM::settings(int narg, char **arg)
   ++settings_call_count;
   init_style_call_count = 0;
 
-  if (narg != 1) {
-    const std::string arg_str(arg[0]);
-    if ((narg > 0) &&
-        ((arg_str == "KIMvirial") || (arg_str == "LAMMPSvirial"))) {
-      error->all(FLERR,"'KIMvirial' or 'LAMMPSvirial' not supported "
-                       "with kim-api");
+  // arg[0] is the KIM Model name
+  if (narg == 0) error->all(FLERR,"Illegal pair_style command");
+  if (narg > 1) {
+    const std::string arg_str(arg[1]);
+    if ((arg_str == "KIMvirial") || (arg_str == "LAMMPSvirial")) {
+      error->all(FLERR,"'KIMvirial' or 'LAMMPSvirial' not supported with kim-api");
     } else error->all(FLERR,"Illegal pair_style command");
   }
-  // arg[0] is the KIM Model name
 
   lmps_using_molecular = (atom->molecular > 0);
 

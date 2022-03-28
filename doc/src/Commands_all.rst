@@ -67,7 +67,7 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`lattice <lattice>`
    * :doc:`log <log>`
    * :doc:`mass <mass>`
-   * :doc:`mdi/engine <mdi_engine>`
+   * :doc:`mdi <mdi_engine>`
    * :doc:`message <message>`
    * :doc:`minimize <minimize>`
    * :doc:`min_modify <min_modify>`

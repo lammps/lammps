@@ -1,6 +1,11 @@
 Using LAMMPS in client/server mode
 ==================================
 
+.. note::
+
+  As of March 2022, this Howto page will soon be deprecated in favor
+  of the :doc:`Howto mdi <Howto_mdi>` doc page.
+
 Client/server coupling of two codes is where one code is the "client"
 and sends request messages to a "server" code.  The server responds to
 each request with a reply message.  This enables the two codes to work

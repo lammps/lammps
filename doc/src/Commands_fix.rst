@@ -100,7 +100,7 @@ OPT.
    * :doc:`lb/viscous <fix_lb_viscous>`
    * :doc:`lineforce <fix_lineforce>`
    * :doc:`manifoldforce <fix_manifoldforce>`
-   * :doc:`mdi/engine <fix_mdi_engine>`
+   * :doc:`mdi/aimd <fix_mdi_aimd>`
    * :doc:`meso/move <fix_meso_move>`
    * :doc:`mol/swap <fix_mol_swap>`
    * :doc:`momentum (k) <fix_momentum>`

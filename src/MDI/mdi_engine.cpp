@@ -584,7 +584,6 @@ void MDIEngine::mdi_md()
     if (flag_velocities) adjust_velocities();
   }
 
-<<<<<<< HEAD
   // engine is now at @INIT_MD node
   // receive >NITERATE command if driver sends, else niterate = -1
   // any @ command from driver will start the simulation

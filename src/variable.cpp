@@ -24,6 +24,7 @@
 #include "group.h"
 #include "info.h"
 #include "input.h"
+#include "library.h"
 #include "lmppython.h"
 #include "math_const.h"
 #include "memory.h"
@@ -63,7 +64,7 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
      SQRT,EXP,LN,LOG,ABS,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
      RANDOM,NORMAL,CEIL,FLOOR,ROUND,RAMP,STAGGER,LOGFREQ,LOGFREQ2,
      LOGFREQ3,STRIDE,STRIDE2,VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,
-     GRMASK,IS_ACTIVE,IS_DEFINED,IS_AVAILABLE,IS_FILE,
+     GRMASK,IS_ACTIVE,IS_DEFINED,IS_AVAILABLE,IS_FILE,EXTRACT_SETTING,
      VALUE,ATOMARRAY,TYPEARRAY,INTARRAY,BIGINTARRAY,VECTORARRAY};
 
 // customize by adding a special function
@@ -3899,12 +3900,11 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
 
   // word not a match to any special function
 
-  if (strcmp(word,"sum") && strcmp(word,"min") && strcmp(word,"max") &&
-      strcmp(word,"ave") && strcmp(word,"trap") && strcmp(word,"slope") &&
-      strcmp(word,"gmask") && strcmp(word,"rmask") &&
-      strcmp(word,"grmask") && strcmp(word,"next") &&
-      strcmp(word,"is_active") && strcmp(word,"is_defined") &&
-      strcmp(word,"is_available") && strcmp(word,"is_file"))
+  if (strcmp(word,"sum") && strcmp(word,"min") && strcmp(word,"max") && strcmp(word,"ave") &&
+      strcmp(word,"trap") && strcmp(word,"slope") && strcmp(word,"gmask") && strcmp(word,"rmask") &&
+      strcmp(word,"grmask") && strcmp(word,"next") && strcmp(word,"is_active") &&
+      strcmp(word,"is_defined") && strcmp(word,"is_available") && strcmp(word,"is_file") &&
+      strcmp(word,"extract_setting"))
     return 0;
 
   // parse contents for comma-separated args
@@ -4292,6 +4292,20 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
     FILE *fp = fopen(args[0],"r");
     value = (fp == nullptr) ? 0.0 : 1.0;
     if (fp) fclose(fp);
+
+    // save value in tree or on argstack
+
+    if (tree) {
+      Tree *newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = value;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = value;
+
+  } else if (strcmp(word,"extract_setting") == 0) {
+    if (narg != 1) print_var_error(FLERR,"Invalid extract_setting() function in variable formula",ivar);
+
+    value = lammps_extract_setting(lmp, args[0]);
 
     // save value in tree or on argstack
 

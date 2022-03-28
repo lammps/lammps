@@ -1004,7 +1004,24 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGhostGPU(typename Kokkos::Team
     // skip i = j
     // no molecular test when i = ghost atom
 
+    int ghost = (i >= nlocal && i < nall);
+    int binxyz[3];
+    if (ghost)
+      coord2bin(xtmp, ytmp, ztmp, binxyz);
+    const int xbin = binxyz[0];
+    const int ybin = binxyz[1];
+    const int zbin = binxyz[2];
     for (int k = 0; k < nstencil; k++) {
+      int active = 1;
+      if (ghost) {
+        const int xbin2 = xbin + stencilxyz(k,0);
+        const int ybin2 = ybin + stencilxyz(k,1);
+        const int zbin2 = zbin + stencilxyz(k,2);
+        if (xbin2 < 0 || xbin2 >= mbinx ||
+            ybin2 < 0 || ybin2 >= mbiny ||
+            zbin2 < 0 || zbin2 >= mbinz) active = 0;
+      }
+
       const int jbin = ibin + stencil[k];
       bincount_current = c_bincount[jbin];
       int j = MY_II < bincount_current ? c_bins(jbin, MY_II) : -1;
@@ -1020,8 +1037,8 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGhostGPU(typename Kokkos::Team
 
       dev.team_barrier();
 
-      if (i >= 0 && i < nlocal) {
-        #pragma unroll 8
+      if (active && i >= 0 && i < nall) {
+        #pragma unroll 4
         for (int m = 0; m < bincount_current; m++) {
           const int j = other_id[m];
 
@@ -1037,7 +1054,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGhostGPU(typename Kokkos::Team
           const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
           if (rsq <= cutneighsq(itype,jtype)) {
-            if (molecular != Atom::ATOMIC) {
+            if (molecular != Atom::ATOMIC && !ghost) {
               if (!moltemplate)
                 which = NeighborKokkosExecute<DeviceType>::find_special(i,j);
               /* else if (imol >= 0) */
@@ -1060,59 +1077,6 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGhostGPU(typename Kokkos::Team
               if (n < neigh_list.maxneighs) neighbors_i(n++) = j;
               else n++;
             }
-          }
-        }
-      }
-      dev.team_barrier();
-    }
-
-    int binxyz[3];
-    coord2bin(xtmp, ytmp, ztmp, binxyz);
-    const int xbin = binxyz[0];
-    const int ybin = binxyz[1];
-    const int zbin = binxyz[2];
-    for (int k = 0; k < nstencil; k++) {
-      const int xbin2 = xbin + stencilxyz(k,0);
-      const int ybin2 = ybin + stencilxyz(k,1);
-      const int zbin2 = zbin + stencilxyz(k,2);
-      int active = 1;
-      if (xbin2 < 0 || xbin2 >= mbinx ||
-          ybin2 < 0 || ybin2 >= mbiny ||
-          zbin2 < 0 || zbin2 >= mbinz) active = 0;
-      const int jbin = ibin + stencil[k];
-      int bincount_current = c_bincount[jbin];
-      int j = MY_II < bincount_current ? c_bins(jbin, MY_II) : -1;
-
-      if (j >= 0) {
-        other_x[MY_II] = x(j, 0);
-        other_x[MY_II + atoms_per_bin] = x(j, 1);
-        other_x[MY_II + 2 * atoms_per_bin] = x(j, 2);
-        other_x[MY_II + 3 * atoms_per_bin] = type(j);
-      }
-
-      other_id[MY_II] = j;
-
-      dev.team_barrier();
-
-      if (active && i >= nlocal && i < nall) {
-        #pragma unroll 8
-        for (int m = 0; m < bincount_current; m++) {
-          const int j = other_id[m];
-
-          if (HalfNeigh && j <= i) continue;
-          else if (j == i) continue;
-
-          const int jtype = other_x[m + 3 * atoms_per_bin];
-          if (exclude && exclusion(i,j,itype,jtype)) continue;
-
-          const X_FLOAT delx = xtmp - other_x[m];
-          const X_FLOAT dely = ytmp - other_x[m + atoms_per_bin];
-          const X_FLOAT delz = ztmp - other_x[m + 2 * atoms_per_bin];
-          const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-
-          if (rsq <= cutneighsq(itype,jtype)) {
-            if (n < neigh_list.maxneighs) neighbors_i(n++) = j;
-            else n++;
           }
         }
       }

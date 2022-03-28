@@ -63,6 +63,7 @@ Force fields howto
    :maxdepth: 1
 
    Howto_bioFF
+   Howto_amoeba
    Howto_tip3p
    Howto_tip4p
    Howto_spc

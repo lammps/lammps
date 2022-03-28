@@ -374,7 +374,7 @@ void FixAmoebaBiTorsion::post_force(int vflag)
   // NOTE: extra until figure everything out
 
   int k,btype;
-  double radian;
+  double radian;   // radians -> degrees = 57+
   double engfraction;
   int nlist,list[6];
   double v[6];

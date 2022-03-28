@@ -1739,7 +1739,9 @@ void Input::processors()
 {
   if (domain->box_exist)
     error->all(FLERR,"Processors command after simulation box is defined");
-  comm->set_processors(narg,arg);
+  if (comm->nprocs == 1)
+    error->warning(FLERR,"Processors command ignored on single MPI process");
+  else comm->set_processors(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

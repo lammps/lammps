@@ -42,12 +42,18 @@ struct TransposeHelperKokkos {
 
   using t_view_value = typename t_view_dst::value_type;
 
-  // 32x32 tiles, will update so each thread does multiple loads
+
+  // set tile size, will update so each thread does multiple loads
+#ifdef KOKKOS_ENABLE_HIP
+  static constexpr int tile_size = 16;
+  static constexpr int threads_per_team = 8;
+#else
   static constexpr int tile_size = 32;
+  static constexpr int threads_per_team = 4;
+#endif
   static constexpr int bank_pad = 1;
   static constexpr int elem_size = sizeof(t_view_value);
 
-  static constexpr int threads_per_team = 4;
 
   t_view_dst d_dst;
   t_view_src d_src;

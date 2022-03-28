@@ -123,6 +123,10 @@ void ComputeFEPTA::init()
 
   // setup and error checks
 
+  if (domain->dimension == 2) {
+    error->all(FLERR,"Cannot compute fep/ta in 2d simulation");
+  }
+
   if (tailflag) {
     if (force->pair->tail_flag == 0)
       error->all(FLERR,"Compute fep/ta tail when pair style does not "

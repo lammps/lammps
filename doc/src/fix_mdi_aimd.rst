@@ -39,7 +39,7 @@ driver or engine.
 The examples/mdi directory contains input scripts perfoming AIMD in
 this manner with LAMMPS acting as both a driver and an engine
 (surrogate for a QM code).  The examples/README file explains how to
-launch both client and server codes so that they communicate using the
+launch both driver and engine codes so that they communicate using the
 MDI library via either MPI or sockets.  Any QM code that supports MDI
 could be used in place of LAMMPS acting as a QM surrogate.  See the
 :doc:`Howto mdi <Howto_mdi>` page for a current list (March 2022) of

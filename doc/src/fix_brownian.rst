@@ -80,7 +80,7 @@ only depends on orientation and so the noise is still additive).
 The rotational motion for the spherical and ellipsoidal particles is not
 as simple an expression, but is chosen to replicate the Boltzmann
 distribution for the case of conservative torques (see :ref:`(Ilie)
-<Ilie1>` or :ref:`(Delong) <Delong1>`). 
+<Ilie1>` or :ref:`(Delong) <Delong1>`).
 
 For the style *brownian*, only the positions of the particles are
 updated. This is therefore suitable for point particle simulations.
@@ -96,11 +96,11 @@ updated. This style therefore requires the hybrid atom style
    \mathbf{\mu}(t+dt) = \frac{\mathbf{\mu}(t) + \mathbf{\omega} \times \mathbf{\mu}dt
    }{|\mathbf{\mu}(t) + \mathbf{\omega} \times \mathbf{\mu}|}
 
-which correctly reproduces a Boltzmann distribution of orientations and rotational diffusion
-moments (see :ref:`(Ilie) <Ilie1>`) when
+which correctly reproduces a Boltzmann distribution of orientations and
+rotational diffusion moments (see :ref:`(Ilie) <Ilie1>`) when
 
 .. math::
-   
+
    \mathbf{\omega} = \frac{\mathbf{T}}{\gamma_r} + \sqrt{\frac{2 k_B T_{rot}}{\gamma_r}\frac{d\mathbf{W}}{dt},
 
 with :math:`d\mathbf{W}` being a random number with zero mean and variance :math:`dt`
@@ -109,13 +109,14 @@ and :math:`T_{rot}` is *rotation_temp*.
 For the style *brownian/asphere*, the center of mass positions and the
 quaternions of ellipsoidal particles are updated. This fix style is
 suitable for equations of motion where the rotational and translational
-friction tensors can be diagonalized in a certain (body) reference frame. In this case,
-the rotational equation of motion is updated via the quaternion
+friction tensors can be diagonalized in a certain (body) reference
+frame. In this case, the rotational equation of motion is updated via
+the quaternion
 
 .. math::
-   
+
    \mathbf{q}(t+dt) = \frac{\mathbf{q}(t) + d\mathbf{q}}{|\mathbf{q}(t) + d\mathbf{q}|}
-   
+
 which correctly reproduces a Boltzmann distribution of orientations and rotational
 diffusion moments (see :ref:`(Ilie) <Ilie1>`) when the quaternion step given by
 
@@ -134,14 +135,16 @@ See :ref:`(Delong) <Delong1>` for more details of a similar algorithm.
 .. note::
 
    This integrator does not by default assume a relationship between the
-   rotational and translational friction tensors, though such a relationship
-   should exist in the case of no-slip boundary conditions between the particles and
-   the surrounding (implicit) solvent. E.g. in the case of spherical particles,
-   the condition :math:`\gamma_t=3\gamma_r/\sigma^2` must be explicitly
-   accounted for by setting *gamma_t* to 3x and *gamma_r* to x (where
-   :math:`\sigma` is the spherical diameter). A similar (though more complex)
-   relationship holds for ellipsoids and rod-like particles. The translational diffusion
-   and rotational diffusion are given by *temp/gamma_t* and *rotation_temp/gamma_r*.
+   rotational and translational friction tensors, though such a
+   relationship should exist in the case of no-slip boundary conditions
+   between the particles and the surrounding (implicit) solvent. E.g. in
+   the case of spherical particles, the condition
+   :math:`\gamma_t=3\gamma_r/\sigma^2` must be explicitly accounted for
+   by setting *gamma_t* to 3x and *gamma_r* to x (where :math:`\sigma`
+   is the spherical diameter). A similar (though more complex)
+   relationship holds for ellipsoids and rod-like particles. The
+   translational diffusion and rotational diffusion are given by
+   *temp/gamma_t* and *rotation_temp/gamma_r*.
 
 ---------
 
@@ -149,10 +152,10 @@ See :ref:`(Delong) <Delong1>` for more details of a similar algorithm.
 
    Temperature computation using the :doc:`compute temp <compute_temp>`
    will not correctly compute temperature of these overdamped dynamics
-   since we are explicitly neglecting inertial effects.
-   Furthermore, this time integrator does not add the stochastic terms or
-   viscous terms to the force and/or torques.  Rather, they are just added
-   in to the equations of motion to update the degrees of freedom.
+   since we are explicitly neglecting inertial effects.  Furthermore,
+   this time integrator does not add the stochastic terms or viscous
+   terms to the force and/or torques.  Rather, they are just added in to
+   the equations of motion to update the degrees of freedom.
 
 ---------
 
@@ -181,21 +184,21 @@ The units of *gamma_r* are mass*length**2/time.
 The *gamma_r_eigen*, and *gamma_t_eigen* keywords are the eigenvalues of
 the rotational and viscous damping tensors (having the same units as
 their isotropic counterparts). Required for (and only compatible with)
-*brownian/asphere*. For a 2D system, the first two values of *gamma_r_eigen*
-must be inf (only rotation in xy plane), and the third value of *gamma_t_eigen*
-must be inf (only diffusion in xy plane).
+*brownian/asphere*. For a 2D system, the first two values of
+*gamma_r_eigen* must be inf (only rotation in xy plane), and the third
+value of *gamma_t_eigen* must be inf (only diffusion in xy plane).
 
 If the *dipole* keyword is used, then the dipole moments of the particles
 are updated as described above. Only compatible with *brownian/asphere*
 (as *brownian/sphere* updates dipoles automatically).
 
-If the *rotation_temp* keyword is used, then the rotational diffusion will be
-occur at this prescribed temperature instead of *temp*. Only compatible with
-*brownian/sphere* and *brownian/asphere*.
+If the *rotation_temp* keyword is used, then the rotational diffusion
+will be occur at this prescribed temperature instead of *temp*. Only
+compatible with *brownian/sphere* and *brownian/asphere*.
 
-If the *planar_rotation* keyword is used, then rotation is constrained to the
-xy plane in a 3D simulation. Only compatible with *brownian/sphere* and
-*brownian/asphere* in 3D.
+If the *planar_rotation* keyword is used, then rotation is constrained
+to the xy plane in a 3D simulation. Only compatible with
+*brownian/sphere* and *brownian/asphere* in 3D.
 
 ----------
 
@@ -209,9 +212,9 @@ xy plane in a 3D simulation. Only compatible with *brownian/sphere* and
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.
-No global or per-atom quantities are stored
-by this fix for access by various :doc:`output commands <Howto_output>`.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.  No global or per-atom quantities are stored by this fix for
+access by various :doc:`output commands <Howto_output>`.
 
 
 No parameter of this fix can be used with the *start/stop* keywords of
@@ -221,16 +224,17 @@ the :doc:`run <run>` command.  This fix is not invoked during
 Restrictions
 """"""""""""
 
-The style *brownian/sphere* fix requires that atoms store torque and angular velocity (omega)
-as defined by the :doc:`atom_style sphere <atom_style>` command.
-The style *brownian/asphere* fix requires that atoms store torque and quaternions
-as defined by the :doc:`atom_style ellipsoid <atom_style>` command.
-If the *dipole* keyword is used, they must also store a dipole moment
-as defined by the :doc:`atom_style dipole <atom_style>` command.
+The style *brownian/sphere* fix requires that atoms store torque and
+angular velocity (omega) as defined by the :doc:`atom_style sphere
+<atom_style>` command.  The style *brownian/asphere* fix requires that
+atoms store torque and quaternions as defined by the :doc:`atom_style
+ellipsoid <atom_style>` command.  If the *dipole* keyword is used, they
+must also store a dipole moment as defined by the :doc:`atom_style
+dipole <atom_style>` command.
 
-This fix is part of the BROWNIAN package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>`
-doc page for more info.
+This fix is part of the BROWNIAN package.  It is only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package
+<Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""
@@ -241,8 +245,8 @@ Related commands
 Default
 """""""
 
-The default for *rng* is *uniform*. The default for the rotational and translational friction
-tensors are the identity tensor.
+The default for *rng* is *uniform*. The default for the rotational and
+translational friction tensors are the identity tensor.
 
 ----------
 

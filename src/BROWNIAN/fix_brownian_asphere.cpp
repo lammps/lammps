@@ -21,6 +21,7 @@
 
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "math_extra.h"
@@ -43,13 +44,12 @@ FixBrownianAsphere::FixBrownianAsphere(LAMMPS *lmp, int narg, char **arg) :
   if (dipole_flag && !atom->mu_flag)
     error->all(FLERR, "Fix brownian/asphere dipole requires atom attribute mu");
 
-  if(!atom->ellipsoid_flag)
+  if (!atom->ellipsoid_flag)
     error->all(FLERR, "Fix brownian/asphere requires atom style ellipsoid");
 
-  if (planar_rot_flag) {
-    error->warning(FLERR,"Ignoring first two entries of gamma_r_eigen since rotation is planar.");
-  }    
-
+  if (planar_rot_flag && (comm->me == 0)) {
+    error->warning(FLERR, "Ignoring first two entries of gamma_r_eigen since rotation is planar.");
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -94,9 +94,8 @@ void FixBrownianAsphere::init()
 
   FixBrownianBase::init();
 
-  g4 = g2*sqrt(rot_temp);
+  g4 = g2 * sqrt(rot_temp);
   g2 *= sqrt(temp);
-  
 }
 
 /* ---------------------------------------------------------------------- */

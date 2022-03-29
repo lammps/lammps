@@ -42,8 +42,6 @@ FixBrownianSphere::FixBrownianSphere(LAMMPS *lmp, int narg, char **arg) :
   if (!gamma_t_flag || !gamma_r_flag) { error->all(FLERR, "Illegal fix brownian command."); }
   if (!atom->mu_flag) error->all(FLERR, "Fix brownian/sphere requires atom attribute mu");
   if (!atom->sphere_flag) error->all(FLERR, "Fix brownian/sphere requires atom style sphere");
-
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -53,9 +51,9 @@ void FixBrownianSphere::init()
   FixBrownianBase::init();
 
   g3 = g1 / gamma_r;
-  g4 = g2 * sqrt(rot_temp/gamma_r);
+  g4 = g2 * sqrt(rot_temp / gamma_r);
   g1 /= gamma_t;
-  g2 *= sqrt(temp/gamma_t);
+  g2 *= sqrt(temp / gamma_t);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,11 +78,11 @@ void FixBrownianSphere::initial_integrate(int /*vflag */)
     }
   } else {
     if (!noise_flag) {
-      initial_integrate_templated<0, 0, 0,0>();
+      initial_integrate_templated<0, 0, 0, 0>();
     } else if (gaussian_noise_flag) {
-      initial_integrate_templated<0, 1, 0,0>();
+      initial_integrate_templated<0, 1, 0, 0>();
     } else {
-      initial_integrate_templated<1, 0, 0,0>();
+      initial_integrate_templated<1, 0, 0, 0>();
     }
   }
   return;
@@ -132,17 +130,17 @@ void FixBrownianSphere::initial_integrate_templated()
         if (Tp_UNIFORM) {
           dx = dt * (g1 * f[i][0] + g2 * (rng->uniform() - 0.5));
           dy = dt * (g1 * f[i][1] + g2 * (rng->uniform() - 0.5));
-	  dz = dt * (g1 * f[i][2] + g2 * (rng->uniform() - 0.5));
+          dz = dt * (g1 * f[i][2] + g2 * (rng->uniform() - 0.5));
           wz = (rng->uniform() - 0.5) * g4;
         } else if (Tp_GAUSS) {
           dx = dt * (g1 * f[i][0] + g2 * rng->gaussian());
           dy = dt * (g1 * f[i][1] + g2 * rng->gaussian());
-	  dz = dt * (g1 * f[i][2] + g2 * rng->gaussian());
+          dz = dt * (g1 * f[i][2] + g2 * rng->gaussian());
           wz = rng->gaussian() * g4;
         } else {
           dx = dt * g1 * f[i][0];
           dy = dt * g1 * f[i][1];
-	  dz = dt * g1 * f[i][2];
+          dz = dt * g1 * f[i][2];
           wz = 0;
         }
       } else {
@@ -180,7 +178,6 @@ void FixBrownianSphere::initial_integrate_templated()
       wx += g3 * torque[i][0];
       wy += g3 * torque[i][1];
       wz += g3 * torque[i][2];
-
 
       // store length of dipole as we need to convert it to a unit vector and
       // then back again

@@ -168,16 +168,15 @@ FixBrownianBase::FixBrownianBase(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, n
 
       planar_rot_flag = 1;
       if (domain->dimension == 2)
-	error->all(FLERR, "Do not explicitly set planar_rotation for 2D simulation");
+        error->all(FLERR, "The planar_rotation keyword is not allowed for 2D simulations");
       iarg = iarg + 1;
 
     } else {
       error->all(FLERR, "Illegal fix brownian command.");
     }
   }
-  if (!rot_temp_flag) {
-    rot_temp = temp;
-  }
+  if (!rot_temp_flag) rot_temp = temp;
+
   // initialize Marsaglia RNG with processor-unique seed
   rng = new RanMars(lmp, seed + comm->me);
 }

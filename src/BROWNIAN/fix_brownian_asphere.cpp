@@ -45,6 +45,11 @@ FixBrownianAsphere::FixBrownianAsphere(LAMMPS *lmp, int narg, char **arg) :
 
   if(!atom->ellipsoid_flag)
     error->all(FLERR, "Fix brownian/asphere requires atom style ellipsoid");
+
+  if (planar_rot_flag) {
+    error->warning(FLERR,"Ignoring first two entries of gamma_r_eigen since rotation is planar.");
+  }    
+
 }
 
 /* ---------------------------------------------------------------------- */

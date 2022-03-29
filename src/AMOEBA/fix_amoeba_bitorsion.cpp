@@ -37,45 +37,6 @@ using namespace MathConst;
 #define LB_FACTOR 1.5
 #define MAXLINE 1024
 
-// NOTE: extra until figure things out
-
-int tnx(int k) {
-  return 0;
-}
-int tny(int k) {
-  return 0;
-}
-int ttx(int i, int j) {
-  return 0;
-}
-int tty(int i, int j) {
-  return 0;
-}
-int ttxy(int i,int j) {
-  return 0;
-}
-double tbf(int i,int j) {
-  return 0.0;
-}
-double tbx(int i,int j) {
-  return 0.0;
-}
-double tby(int i,int j) {
-  return 0.0;
-}
-double tbxy(int i,int j) {
-  return 0.0;
-}
-
-void chkttor(int ib, int ic, int id, int sign, double value1, double value2) {
-}
-
-void bcuint1(double *ftt, double *ft1, double *ft2, double *ft12,
-             double x1l, double x1u, double y1l, double y1u, 
-             double value1, double value2, 
-             double e, double dedang1, double dedang2) {
-}
-
 /* ---------------------------------------------------------------------- */
 
 FixAmoebaBiTorsion::FixAmoebaBiTorsion(LAMMPS *lmp, int narg, char **arg) :
@@ -108,6 +69,7 @@ FixAmoebaBiTorsion::FixAmoebaBiTorsion(LAMMPS *lmp, int narg, char **arg) :
   // read and setup BiTorsion grid data
 
   read_grid_data(arg[3]);
+  create_splines();
 
   // perform initial allocation of atom-based arrays
 
@@ -164,9 +126,20 @@ FixAmoebaBiTorsion::~FixAmoebaBiTorsion()
 
   delete [] nxgrid;
   delete [] nygrid;
-  for (int itype = 1; itype <= ntypes; itype++)
-    memory->destroy(btgrid[itype]);
-  delete [] btgrid;
+  for (int itype = 1; itype <= nbitypes; itype++) {
+    memory->destroy(ttx[itype]);
+    memory->destroy(tty[itype]);
+    memory->destroy(tbf[itype]);
+    memory->destroy(tbx[itype]);
+    memory->destroy(tby[itype]);
+    memory->destroy(tbxy[itype]);
+  }
+  delete [] ttx;
+  delete [] tty;
+  delete [] tbf;
+  delete [] tbx;
+  delete [] tby;
+  delete [] tbxy;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -324,8 +297,8 @@ void FixAmoebaBiTorsion::post_force(int vflag)
 {
   if (disable) return;
 
-  int ia,ib,ic,id,ie;
-  int nlo,nhi,nt;
+  int ia,ib,ic,id,ie,btype;
+  int nx,ny,nlo,nhi,nt;
   int xlo,ylo;
   int pos1,pos2;
   double e,fgrp,sign;
@@ -371,15 +344,11 @@ void FixAmoebaBiTorsion::post_force(int vflag)
   double ftt[4],ft12[4];
   double ft1[4],ft2[4];
 
-  // NOTE: extra until figure everything out
-
-  int k,btype;
-  double radian;   // radians -> degrees = 57+
   double engfraction;
   int nlist,list[6];
   double v[6];
 
-  // END of NOTE
+  double radian2degree = 180.0 / MY_PI;
 
   ebitorsion = 0.0;
   int eflag = eflag_caller;
@@ -396,9 +365,6 @@ void FixAmoebaBiTorsion::post_force(int vflag)
     ic = bitorsion_list[n][2];
     id = bitorsion_list[n][3];
     ie = bitorsion_list[n][4];
-
-    // NOTE: is a btype ever used, i.e. as index into spline tables?
-
     btype = bitorsion_list[n][5];
 
     xia = x[ia][0];
@@ -451,84 +417,92 @@ void FixAmoebaBiTorsion::post_force(int vflag)
     rcb = sqrt(xcb*xcb + ycb*ycb + zcb*zcb);
     cosine1 = (xt*xu + yt*yu + zt*zu) / rtru;
     cosine1 = MIN(1.0,MAX(-1.0,cosine1));
-    angle1 = radian * acos(cosine1);
+    angle1 = radian2degree * acos(cosine1);
     sign = xba*xu + yba*yu + zba*zu;
-    if (sign < 0.0)  angle1 = -angle1;
+    if (sign < 0.0) angle1 = -angle1;
     value1 = angle1;
 
     rdc = sqrt(xdc*xdc + ydc*ydc + zdc*zdc);
     cosine2 = (xu*xv + yu*yv + zu*zv) / rurv;
     cosine2 = MIN(1.0,MAX(-1.0,cosine2));
-    angle2 = radian * acos(cosine2);
+    angle2 = radian2degree * acos(cosine2);
     sign = xcb*xv + ycb*yv + zcb*zv;
-    if (sign < 0.0)  angle2 = -angle2;
+    if (sign < 0.0) angle2 = -angle2;
     value2 = angle2;
 
     // check for inverted chirality at the central atom
+    // inputs = ib,ic,id
+    // outputs = sign,value1,value2
 
     chkttor(ib,ic,id,sign,value1,value2);
 
-    // use bicubic interpolation to compute spline values
-    // NOTE: need to worry about C vs Fortran indexing
-    //       both here and in the methods called
-    // NOTE: make sure pos1 and pos2 are ints
+    // 2 binary searches to find location of angles 1,2 in grid
+    // ttx,tty are 0-indexed here, 1-indexed in Tinker
+    // xlo,ylo = final location, each one less than in Tinker
 
-    nlo = 1;
-    nhi = tnx(k);
+    nx = nxgrid[btype];
+    ny = nygrid[btype];
+
+    nlo = 0;
+    nhi = nx-1;
     while (nhi-nlo > 1) {
       nt = (nhi+nlo) / 2;
-      if (ttx(nt,k) > value1) nhi = nt;
+      if (ttx[btype][nt] > value1) nhi = nt;
       else nlo = nt;
     }
-
     xlo = nlo;
-    nlo = 1;
-    nhi = tny(k);
+
+    nlo = 0;
+    nhi = ny-1;
     while (nhi-nlo > 1) {
       nt = (nhi + nlo)/2;
-      if (tty(nt,k) > value2) nhi = nt;
+      if (tty[btype][nt] > value2) nhi = nt;
       else nlo = nt;
     }
-       
     ylo = nlo;
-    x1l = ttx(xlo,k);
-    x1u = ttx(xlo+1,k);
-    y1l = tty(ylo,k);
-    y1u = tty(ylo+1,k);
-    pos2 = ylo*tnx(k) + xlo;
-    pos1 = pos2 - tnx(k);
 
-    ftt[0] = tbf(pos1,k);
-    ftt[1] = tbf(pos1+1,k);
-    ftt[2] = tbf(pos2+1,k);
-    ftt[3] = tbf(pos2,k);
+    // fill ftt,ft1,ft2,ft12 vecs with spline coeffs near xlo,ylo grid pt
+    // ttx,tty,tbf,tbx,tby,tbxy are 0-indexed here, 1-indexed in Tinker
+    // xlo,ylo,pos1,pos2 are all one less than in Tinker
 
-    ft1[0] = tbx(pos1,k);
-    ft1[1] = tbx(pos1+1,k);
-    ft1[2] = tbx(pos2+1,k);
-    ft1[3] = tbx(pos2,k);
+    x1l = ttx[btype][xlo];
+    x1u = ttx[btype][xlo+1];
+    y1l = tty[btype][ylo];
+    y1u = tty[btype][ylo+1];
 
-    ft2[0] = tby(pos1,k);
-    ft2[1] = tby(pos1+1,k);
-    ft2[2] = tby(pos2+1,k);
-    ft2[3] = tby(pos2,k);
+    pos2 = ylo*nx + xlo;
+    pos1 = pos2 - nx;
 
-    ft12[0] = tbxy(pos1,k);
-    ft12[1] = tbxy(pos1+1,k);
-    ft12[2] = tbxy(pos2+1,k);
-    ft12[3] = tbxy(pos2,k);
+    ftt[0] = tbf[btype][pos1];
+    ftt[1] = tbf[btype][pos1+1];
+    ftt[2] = tbf[btype][pos2+1];
+    ftt[3] = tbf[btype][pos2];
+
+    ft1[0] = tbx[btype][pos1];
+    ft1[1] = tbx[btype][pos1+1];
+    ft1[2] = tbx[btype][pos2+1];
+    ft1[3] = tbx[btype][pos2];
+
+    ft2[0] = tby[btype][pos1];
+    ft2[1] = tby[btype][pos1+1];
+    ft2[2] = tby[btype][pos2+1];
+    ft2[3] = tby[btype][pos2];
+
+    ft12[0] = tbxy[btype][pos1];
+    ft12[1] = tbxy[btype][pos1+1];
+    ft12[2] = tbxy[btype][pos2+1];
+    ft12[3] = tbxy[btype][pos2];
+
+    // bicuint1() uses bicubic interpolation to compute interpolated values
+    // outputs = e,dedang1,dedang2
 
     bcuint1(ftt,ft1,ft2,ft12,x1l,x1u,y1l,y1u,value1,value2,
             e,dedang1,dedang2);
 
-    // NOTE: remove ttorunit if 1.0 ?
-    // NOTE: what are radian units ?
-    // NOTE: value of sign is set twice above ??
-
     double ttorunit = 1.0;
     e *= ttorunit;
-    dedang1 = sign * ttorunit * radian * dedang1;
-    dedang2 = sign * ttorunit * radian * dedang2;
+    dedang1 = sign * ttorunit * radian2degree * dedang1;
+    dedang2 = sign * ttorunit * radian2degree * dedang2;
 
     // fraction of energy for each atom
 
@@ -680,7 +654,7 @@ void FixAmoebaBiTorsion::min_post_force(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   energy of BiTorision term
+   energy of BiTorsion term
 ------------------------------------------------------------------------- */
 
 double FixAmoebaBiTorsion::compute_scalar()
@@ -692,9 +666,23 @@ double FixAmoebaBiTorsion::compute_scalar()
 
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
-// methods to read BiTorsion grid file, perform interpolation
+// methods to read BiTorsion grid file, spline grids, perform interpolation
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
+
+/* ----------------------------------------------------------------------
+   read grid data from bitorsion_file produced by tinker2lmp.py
+   one entry for each biotorsion type
+   when complete:
+     nbitypes = # of bitorsion types
+     nxgrid,nygrid = x,y dimensions of grid for each type
+     ttx,tty = vectors of x,y angles for each type
+               length = nx or ny, 0-indexed
+     tbf = vector of 2d grid values for each type
+           length = nx*ny, 0-indexed, x varies fastest
+     ttx,tty,tbf are similar to Tinker data structs
+     here they are 0-indexed, in Tinker they are 1-indexed
+------------------------------------------------------------------------- */
 
 void FixAmoebaBiTorsion::read_grid_data(char *bitorsion_file)
 {
@@ -714,22 +702,27 @@ void FixAmoebaBiTorsion::read_grid_data(char *bitorsion_file)
     if (eof == nullptr) 
       error->one(FLERR,"Unexpected end of fix amoeba/bitorsion file");
 
-    sscanf(line,"%d",&ntypes);
+    sscanf(line,"%d",&nbitypes);
   }
 
-  MPI_Bcast(&ntypes,1,MPI_INT,0,world);
-  if (ntypes == 0) error->all(FLERR,"Fix amoeba/bitorsion file has no types");
+  MPI_Bcast(&nbitypes,1,MPI_INT,0,world);
+  if (nbitypes == 0) error->all(FLERR,"Fix amoeba/bitorsion file has no types");
 
-  btgrid = new double***[ntypes+1];
-  nxgrid = new int[ntypes+1];
-  nygrid = new int[ntypes+1];
+  // allocate data structs
+  // type index ranges from 1 to Nbitypes, so allocate one larger
+
+  nxgrid = new int[nbitypes+1];
+  nygrid = new int[nbitypes+1];
+  ttx = new double*[nbitypes+1];
+  tty = new double*[nbitypes+1];
+  tbf = new double*[nbitypes+1];
 
   // read one array for each BiTorsion type from file
 
   int tmp,nx,ny;
   double xgrid,ygrid,value;
 
-  for (int itype = 1; itype <= ntypes; itype++) {
+  for (int itype = 1; itype <= nbitypes; itype++) {
     if (me == 0) {
       eof = fgets(line,MAXLINE,fp);
       eof = fgets(line,MAXLINE,fp);
@@ -743,7 +736,9 @@ void FixAmoebaBiTorsion::read_grid_data(char *bitorsion_file)
     nxgrid[itype] = nx;
     nygrid[itype] = ny;
 
-    memory->create(btgrid[itype],nx,ny,3,"bitorsion:btgrid");
+    memory->create(ttx[itype],nx,"bitorsion:ttx");
+    memory->create(tty[itype],ny,"bitorsion:tty");
+    memory->create(tbf[itype],nx*ny,"bitorsion:tbf");
 
     // NOTE: should read this chunk of lines with utils in single read
 
@@ -754,17 +749,264 @@ void FixAmoebaBiTorsion::read_grid_data(char *bitorsion_file)
           if (eof == nullptr) 
             error->one(FLERR,"Unexpected end of fix amoeba/bitorsion file");
           sscanf(line,"%lg %lg %lg",&xgrid,&ygrid,&value);
-          btgrid[itype][ix][iy][0] = xgrid;
-          btgrid[itype][ix][iy][1] = ygrid;
-          btgrid[itype][ix][iy][2] = value;
+          if (iy == 0) ttx[itype][ix] = xgrid;
+          if (ix == 0) tty[itype][iy] = ygrid;
+          tbf[itype][iy*nx+ix] = value;
         }
       }
     }
 
-    MPI_Bcast(&btgrid[itype][0][0][0],nx*ny*3,MPI_DOUBLE,0,world);
+    MPI_Bcast(ttx[itype],nx,MPI_DOUBLE,0,world);
+    MPI_Bcast(tty[itype],ny,MPI_DOUBLE,0,world);
+    MPI_Bcast(tbf[itype],nx*ny,MPI_DOUBLE,0,world);
   }
 
   if (me == 0) fclose(fp);
+}
+
+/* ----------------------------------------------------------------------
+   create spline data structs for each bitorsion type
+   based on Tinker ktortor.f
+   when complete:
+     tbx,tby = spline coeffs
+     tbxy = vector of 2d grid values for each type, x varies fastest
+     tbx,tby,tbxy are similar to Tinker data structs
+     here they are 0-indexed, in Tinker they are 1-indexed
+------------------------------------------------------------------------- */
+
+void FixAmoebaBiTorsion::create_splines()
+{
+  int i,j,nx,ny;
+
+  // allocate work vectors for cspline() and nspline() methods
+  // all are 0-indexed here and in Tinker
+  // tmp1,tmp2 = (x,y) inputs to spline methods
+  // bs = retained output from spline methods
+  // cs,ds,tmp3-7 = additional outputs from spline methods, not retained
+  // allocate to max length of any grid dimension for all types
+
+  double *bs,*cs,*ds;
+  double *tmp1,*tmp2;
+  double *tmp3,*tmp4,*tmp5,*tmp6,*tmp7;
+
+  int maxdim = 0;
+  for (int itype = 1; itype <= nbitypes; itype++) {
+    maxdim = MAX(maxdim,nxgrid[itype]);
+    maxdim = MAX(maxdim,nygrid[itype]);
+  }
+
+  memory->create(bs,maxdim,"bitorsion:bs");
+  memory->create(cs,maxdim,"bitorsion:cs");
+  memory->create(ds,maxdim,"bitorsion:ds");
+  memory->create(tmp1,maxdim,"bitorsion:tmp1");
+  memory->create(tmp2,maxdim,"bitorsion:tmp2");
+  memory->create(tmp3,maxdim,"bitorsion:tmp3");
+  memory->create(tmp4,maxdim,"bitorsion:tmp4");
+  memory->create(tmp5,maxdim,"bitorsion:tmp5");
+  memory->create(tmp6,maxdim,"bitorsion:tmp6");
+  memory->create(tmp7,maxdim,"bitorsion:tmp7");
+
+  // allocate data structs
+  // type index ranges from 1 to Nbitypes, so allocate one larger
+
+  tbx = new double*[nbitypes+1];
+  tby = new double*[nbitypes+1];
+  tbxy = new double*[nbitypes+1];
+
+  for (int itype = 1; itype <= nbitypes; itype++) {
+
+    nx = nxgrid[itype];
+    ny = nygrid[itype];
+
+    // cyclic = 1 if angle range is -180.0 to 180.0 in both dims
+    // error if cyclic and x,y pairs of edges of 2d array values do not match
+    // equality comparisons are within eps
+    
+    int cyclic = 1;
+    double eps = 1.0e-6;
+
+    if (fabs(fabs(ttx[itype][0]-ttx[itype][nx-1]) - 360.0) > eps) cyclic = 0;
+    if (fabs(fabs(tty[itype][0]-tty[itype][ny-1]) - 360.0) > eps) cyclic = 0;
+
+    if (cyclic) {
+      // do error check on matching edge values
+    }
+
+    // allocate nx*ny vectors for itype
+
+    memory->create(tbx[itype],nx*ny,"bitorsion:tbx");
+    memory->create(tby[itype],nx*ny,"bitorsion:tby");
+    memory->create(tbxy[itype],nx*ny,"bitorsion:tbxy");
+
+    // spline fit of derivatives about 1st torsion
+
+    for (int i = 0; i < nx; i++) 
+      tmp1[i] = ttx[itype][i];
+
+    for (int j = 0; j < ny; j++) {
+      for (int i = 0; i < nx; i++) 
+        tmp2[i] = tbf[itype][j*nx+i];
+
+      if (cyclic) 
+        cspline(nx-1,tmp1,tmp2,bs,cs,ds,tmp3,tmp4,tmp5,tmp6,tmp7);
+      else 
+        nspline(nx-1,tmp1,tmp2,bs,cs,tmp3,tmp4,tmp5,tmp6,tmp7);
+
+      for (int i = 0; i < nx; i++) 
+        tbx[itype][j*nx+i] = bs[i];
+    }
+
+    // spline fit of derivatives about 2nd torsion
+
+    for (int j = 0; j < ny; j++)
+      tmp1[j] = ttx[itype][j];
+
+    for (int i = 0; i < nx; i++) {
+      for (int j = 0; j < ny; j++)
+        tmp2[j] = tbf[itype][j*nx+i];
+
+      if (cyclic) 
+        cspline(ny-1,tmp1,tmp2,bs,cs,ds,tmp3,tmp4,tmp5,tmp6,tmp7);
+      else 
+        nspline(ny-1,tmp1,tmp2,bs,cs,tmp3,tmp4,tmp5,tmp6,tmp7);
+
+      for (int j = 0; i < ny; j++) 
+        tby[itype][j*nx+i] = bs[j];
+    }
+
+    // spline fit of cross derivatives about both torsions
+
+    for (int j = 0; j < ny; j++)
+      tmp1[j] = ttx[itype][j];
+
+    for (int i = 0; i < nx; i++) {
+      for (int j = 0; j < ny; j++)
+        tmp2[j] = tbx[itype][j*nx+i];
+
+      if (cyclic) 
+        cspline(ny-1,tmp1,tmp2,bs,cs,ds,tmp3,tmp4,tmp5,tmp6,tmp7);
+      else 
+        nspline(ny-1,tmp1,tmp2,bs,cs,tmp3,tmp4,tmp5,tmp6,tmp7);
+
+      for (int j = 0; i < ny; j++) 
+        tbxy[itype][j*nx+i] = bs[j];
+    }
+  }
+
+  // free work vectors local to this method
+
+  memory->destroy(bs);
+  memory->destroy(cs);
+  memory->destroy(ds);
+  memory->destroy(tmp1);
+  memory->destroy(tmp2);
+  memory->destroy(tmp3);
+  memory->destroy(tmp4);
+  memory->destroy(tmp5);
+  memory->destroy(tmp6);
+  memory->destroy(tmp7);
+}
+
+/* ----------------------------------------------------------------------
+------------------------------------------------------------------------- */
+
+void FixAmoebaBiTorsion::cspline(int n, double *xn, double *fn, 
+                                 double *b, double *c, double *d,
+                                 double *h, double *du, double *dm, 
+                                 double *rc, double *rs)
+{
+}
+
+/* ----------------------------------------------------------------------
+   Tinker method
+   nspline() computes coefficients for an nonperiodic cubic spline
+     with natural boundary conditions where the first and last second
+     derivatives are already known
+   all vectors are of length n+1 and are indexed from 0 to n inclusive
+   n,x0,y0 are inputs
+   rest of args are outputs
+------------------------------------------------------------------------- */
+
+void FixAmoebaBiTorsion::nspline(int n, double *x0, double *y0, 
+                                 double *s1, double *s2,
+                                 double *h, double *g, double *dy, 
+                                 double *dla, double *dmu)
+{
+  int i;
+  double t;
+
+  // set first and last second deriviatives to zero
+
+  double y21 = 0.0;
+  double y2n = 0.0;
+
+  // find the intervals to be used
+
+  for (i = 0; i <= n-1; i++) {
+    h[i] = x0[i+1] - x0[i];
+    dy[i] = (y0[i+1]-y0[i]) / h[i];
+  }
+
+  // calculate the spline coeffcients
+
+  for (i = 1; i <= n-1; i++) {
+    dla[i] = h[i] / (h[i]+h[i-1]);
+    dmu[i] = 1.0 - dla[i];
+    g[i] = 3.0 * (dla[i]*dy[i-1]+dmu[i]*dy[i]);
+  }
+
+  // set the initial value via natural boundary condition
+  
+  dla[n] = 1.0;
+  dla[0] = 0.0;
+  dmu[n] = 0.0;
+  dmu[0] = 1.0;
+  g[0] = 3.0*dy[0] - 0.5*h[0]*y21;
+  g[n] = 3.0*dy[n-1] + 0.5*h[n-1]*y2n;
+
+  // solve the triagonal system of linear equations
+
+  dmu[0] = 0.5 * dmu[0];
+  g[0] = 0.5 * g[0];
+
+  for (i = 1; i <= n; i++) {
+    t = 2.0 - dmu[i-1]*dla[i];
+    dmu[i] = dmu[i] / t;
+    g[i] = (g[i]-g[i-1]*dla[i]) / t;
+  }
+  for (i = n-1; i >= 0; i--)
+    g[i] = g[i] - dmu[i]*g[i+1];
+
+  // get the first derivative at each grid point
+
+  for (i = 0; i <= n; i++)
+    s1[i] = g[i];
+
+  // get the second derivative at each grid point
+
+  s2[0] = y21;
+  s2[n] = y2n;
+  for (i = 1; i <= n-1; i++)
+    s2[i] = 6.0*(y0[i+1]-y0[i])/(h[i]*h[i]) - 4.0*s1[i]/h[i] - 2.0*s1[i+1]/h[i];
+}
+
+/* ----------------------------------------------------------------------
+------------------------------------------------------------------------- */
+
+void FixAmoebaBiTorsion::chkttor(int ib, int ic, int id, 
+                                 double &sign, double &value1, double &value2)
+{
+}
+
+/* ----------------------------------------------------------------------
+------------------------------------------------------------------------- */
+
+void FixAmoebaBiTorsion::bcuint1(double *ftt, double *ft1, 
+                                 double *ft2, double *ft12,
+                                 double x1l, double x1u, double y1l, double y1u, 
+                                 double value1, double value2, 
+                                 double &e, double &dedang1, double &dedang2)
+{
 }
 
 // ----------------------------------------------------------------------

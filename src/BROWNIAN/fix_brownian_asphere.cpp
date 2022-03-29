@@ -85,6 +85,10 @@ void FixBrownianAsphere::init()
   }
 
   FixBrownianBase::init();
+
+  g4 = g2*sqrt(rot_temp);
+  g2 *= sqrt(temp);
+  
 }
 
 /* ---------------------------------------------------------------------- */
@@ -94,37 +98,55 @@ void FixBrownianAsphere::initial_integrate(int /*vflag */)
   if (domain->dimension == 2) {
     if (dipole_flag) {
       if (!noise_flag) {
-        initial_integrate_templated<0, 0, 1, 1>();
+        initial_integrate_templated<0, 0, 1, 1, 0>();
       } else if (gaussian_noise_flag) {
-        initial_integrate_templated<0, 1, 1, 1>();
+        initial_integrate_templated<0, 1, 1, 1, 0>();
       } else {
-        initial_integrate_templated<1, 0, 1, 1>();
+        initial_integrate_templated<1, 0, 1, 1, 0>();
       }
     } else {
       if (!noise_flag) {
-        initial_integrate_templated<0, 0, 0, 1>();
+        initial_integrate_templated<0, 0, 0, 1, 0>();
       } else if (gaussian_noise_flag) {
-        initial_integrate_templated<0, 1, 0, 1>();
+        initial_integrate_templated<0, 1, 0, 1, 0>();
       } else {
-        initial_integrate_templated<1, 0, 0, 1>();
+        initial_integrate_templated<1, 0, 0, 1, 0>();
+      }
+    }
+  } else if (planar_rot_flag) {
+    if (dipole_flag) {
+      if (!noise_flag) {
+        initial_integrate_templated<0, 0, 1, 0, 1>();
+      } else if (gaussian_noise_flag) {
+        initial_integrate_templated<0, 1, 1, 0, 1>();
+      } else {
+        initial_integrate_templated<1, 0, 1, 0, 1>();
+      }
+    } else {
+      if (!noise_flag) {
+        initial_integrate_templated<0, 0, 0, 0, 1>();
+      } else if (gaussian_noise_flag) {
+        initial_integrate_templated<0, 1, 0, 0, 1>();
+      } else {
+        initial_integrate_templated<1, 0, 0, 0, 1>();
       }
     }
   } else {
     if (dipole_flag) {
       if (!noise_flag) {
-        initial_integrate_templated<0, 0, 1, 0>();
+        initial_integrate_templated<0, 0, 1, 0, 0>();
       } else if (gaussian_noise_flag) {
-        initial_integrate_templated<0, 1, 1, 0>();
+        initial_integrate_templated<0, 1, 1, 0, 0>();
       } else {
-        initial_integrate_templated<1, 0, 1, 0>();
+        initial_integrate_templated<1, 0, 1, 0, 0>();
       }
     } else {
       if (!noise_flag) {
-        initial_integrate_templated<0, 0, 0, 0>();
+        initial_integrate_templated<0, 0, 0, 0, 0>();
       } else if (gaussian_noise_flag) {
-        initial_integrate_templated<0, 1, 0, 0>();
+        initial_integrate_templated<0, 1, 0, 0, 0>();
       } else {
-        initial_integrate_templated<1, 0, 0, 0>();
+        initial_integrate_templated<1, 0, 0, 0, 0>();
       }
     }
   }
@@ -133,7 +155,7 @@ void FixBrownianAsphere::initial_integrate(int /*vflag */)
 
 /* ---------------------------------------------------------------------- */
 
-template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_DIPOLE, int Tp_2D>
+template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_DIPOLE, int Tp_2D, int Tp_2Drot>
 void FixBrownianAsphere::initial_integrate_templated()
 {
   double **x = atom->x;
@@ -172,21 +194,30 @@ void FixBrownianAsphere::initial_integrate_templated()
       if (Tp_2D) {
         tmp[0] = tmp[1] = 0.0;
         if (Tp_UNIFORM) {
-          tmp[2] = g1 * tmp[2] * gamma_r_inv[2] + gamma_r_invsqrt[2] * (rng->uniform() - 0.5) * g2;
+          tmp[2] = g1 * tmp[2] * gamma_r_inv[2] + gamma_r_invsqrt[2] * (rng->uniform() - 0.5) * g4;
         } else if (Tp_GAUSS) {
-          tmp[2] = g1 * tmp[2] * gamma_r_inv[2] + gamma_r_invsqrt[2] * rng->gaussian() * g2;
+          tmp[2] = g1 * tmp[2] * gamma_r_inv[2] + gamma_r_invsqrt[2] * rng->gaussian() * g4;
+        } else {
+          tmp[2] = g1 * tmp[2] * gamma_r_inv[2];
+        }
+      } else if (Tp_2Drot) {
+        tmp[0] = tmp[1] = 0.0;
+        if (Tp_UNIFORM) {
+          tmp[2] = g1 * tmp[2] * gamma_r_inv[2] + gamma_r_invsqrt[2] * (rng->uniform() - 0.5) * g4;
+        } else if (Tp_GAUSS) {
+          tmp[2] = g1 * tmp[2] * gamma_r_inv[2] + gamma_r_invsqrt[2] * rng->gaussian() * g4;
         } else {
           tmp[2] = g1 * tmp[2] * gamma_r_inv[2];
         }
       } else {
         if (Tp_UNIFORM) {
-          tmp[0] = g1 * tmp[0] * gamma_r_inv[0] + gamma_r_invsqrt[0] * (rng->uniform() - 0.5) * g2;
-          tmp[1] = g1 * tmp[1] * gamma_r_inv[1] + gamma_r_invsqrt[1] * (rng->uniform() - 0.5) * g2;
-          tmp[2] = g1 * tmp[2] * gamma_r_inv[2] + gamma_r_invsqrt[2] * (rng->uniform() - 0.5) * g2;
+          tmp[0] = g1 * tmp[0] * gamma_r_inv[0] + gamma_r_invsqrt[0] * (rng->uniform() - 0.5) * g4;
+          tmp[1] = g1 * tmp[1] * gamma_r_inv[1] + gamma_r_invsqrt[1] * (rng->uniform() - 0.5) * g4;
+          tmp[2] = g1 * tmp[2] * gamma_r_inv[2] + gamma_r_invsqrt[2] * (rng->uniform() - 0.5) * g4;
         } else if (Tp_GAUSS) {
-          tmp[0] = g1 * tmp[0] * gamma_r_inv[0] + gamma_r_invsqrt[0] * rng->gaussian() * g2;
-          tmp[1] = g1 * tmp[1] * gamma_r_inv[1] + gamma_r_invsqrt[1] * rng->gaussian() * g2;
-          tmp[2] = g1 * tmp[2] * gamma_r_inv[2] + gamma_r_invsqrt[2] * rng->gaussian() * g2;
+          tmp[0] = g1 * tmp[0] * gamma_r_inv[0] + gamma_r_invsqrt[0] * rng->gaussian() * g4;
+          tmp[1] = g1 * tmp[1] * gamma_r_inv[1] + gamma_r_invsqrt[1] * rng->gaussian() * g4;
+          tmp[2] = g1 * tmp[2] * gamma_r_inv[2] + gamma_r_invsqrt[2] * rng->gaussian() * g4;
         } else {
           tmp[0] = g1 * tmp[0] * gamma_r_inv[0];
           tmp[1] = g1 * tmp[1] * gamma_r_inv[1];

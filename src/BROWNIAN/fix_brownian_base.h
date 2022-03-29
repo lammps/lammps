@@ -33,7 +33,9 @@ class FixBrownianBase : public Fix {
   int gamma_r_flag;          // 0/1 if isotropic rotational damping is unset/set
   int gamma_t_eigen_flag;    // 0/1 if anisotropic translational damping is unset/set
   int gamma_r_eigen_flag;    // 0/1 if anisotropic rotational damping is unset/set
-
+  int rot_temp_flag;         // 0/1 if rotational temperature is unset/set
+  int planar_rot_flag;       // 0/1 if rotation is constrained to 2D (xy) plane
+  
   double gamma_t, gamma_r;    // translational and rotational (isotropic) damping params
   double *gamma_t_inv;        // anisotropic damping parameter eigenvalues
   double *gamma_r_inv;
@@ -47,6 +49,7 @@ class FixBrownianBase : public Fix {
   int gaussian_noise_flag;    // 0/1 for uniform/gaussian noise
 
   double temp;      // temperature
+  double rot_temp;      // temperature
   double g1, g2;    // prefactors in time stepping
 
   class RanMars *rng;
@@ -84,5 +87,14 @@ Self-explanatory.
 E: Fix brownian gamma_r must be > 0.
 
 Self-explanatory.
+
+E: Fix brownian rotation_temp must be > 0.
+
+Self-explanatory.
+
+E: Do not explicitly set planar_rotation for 2D simulation
+
+Self-explanatory.
+
 
 */

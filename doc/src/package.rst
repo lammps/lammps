@@ -81,6 +81,9 @@ Syntax
            *neigh/thread* value = *off* or *on*
              off = thread only over atoms
              on = thread over both atoms and neighbors
+           *neigh/transpose* value = *off* or *on*
+             off = use same memory layout for GPU neigh list build as pair style
+             on = use transposed memory layout for GPU neigh list build
            *newton* = *off* or *on*
              off = set Newton pairwise and bonded flags off
              on = set Newton pairwise and bonded flags on
@@ -463,6 +466,16 @@ potentials support this keyword yet, and only thread over atoms. Many
 simple pairwise potentials such as Lennard-Jones do support threading
 over both atoms and neighbors.
 
+If the *neigh/transpose* keyword is set to *off*, then the KOKKOS
+package will use the same memory layout for building the neigh list on
+GPUs as used for the pair style. When this keyword is set to *on* it
+will use a different (transposed) memory layout to build the neigh
+list on GPUs. This can be faster in some cases (e.g. ReaxFF HNS
+benchmark) but slower in others (e.g. Lennard Jones benchmark). The
+copy between different memory layouts is done out of place and
+therefore doubles the memory overhead of the neigh list, which can be
+signicant.
+
 The *newton* keyword sets the Newton flags for pairwise and bonded
 interactions to *off* or *on*, the same as the :doc:`newton <newton>`
 command allows. The default for GPUs is *off* because this will almost
@@ -681,15 +694,16 @@ script or via the "-pk intel" :doc:`command-line switch <Run_options>`.
 
 For the KOKKOS package, the option defaults for GPUs are neigh = full,
 neigh/qeq = full, newton = off, binsize for GPUs = 2x LAMMPS default
-value, comm = device, gpu/aware = on. When LAMMPS can safely detect
-that GPU-aware MPI is not available, the default value of gpu/aware
-becomes "off". For CPUs or Xeon Phis, the option defaults are neigh =
-half, neigh/qeq = half, newton = on, binsize = 0.0, and comm = no. The
-option neigh/thread = on when there are 16K atoms or less on an MPI
-rank, otherwise it is "off". These settings are made automatically by
-the required "-k on" :doc:`command-line switch <Run_options>`. You can
-change them by using the package kokkos command in your input script or
-via the :doc:`-pk kokkos command-line switch <Run_options>`.
+value, comm = device, neigh/transpose = off, gpu/aware = on. When
+LAMMPS can safely detect that GPU-aware MPI is not available, the
+default value of gpu/aware becomes "off". For CPUs or Xeon Phis, the
+option defaults are neigh = half, neigh/qeq = half, newton = on,
+binsize = 0.0, and comm = no.  The option neigh/thread = on when there
+are 16K atoms or less on an MPI rank, otherwise it is "off". These
+settings are made automatically by the required "-k on"
+:doc:`command-line switch <Run_options>`. You can change them by using
+the package kokkos command in your input script or via the :doc:`-pk
+kokkos command-line switch <Run_options>`.
 
 For the OMP package, the default is Nthreads = 0 and the option
 defaults are neigh = yes.  These settings are made automatically if

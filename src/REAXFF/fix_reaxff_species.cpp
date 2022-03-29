@@ -644,29 +644,15 @@ void FixReaxFFSpecies::WriteFormulas(int Nmole, int Nspec)
 
 void FixReaxFFSpecies::OpenPos()
 {
-  char *filecurrent;
-  bigint ntimestep = update->ntimestep;
-
-  filecurrent = (char*) malloc((strlen(filepos)+16)*sizeof(char));
-  char *ptr = strchr(filepos,'*');
-  *ptr = '\0';
-  if (padflag == 0)
-    sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",filepos,ntimestep,ptr+1);
-  else {
-    char bif[8],pad[16];
-    strcpy(bif,BIGINT_FORMAT);
-    sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
-    sprintf(filecurrent,pad,filepos,ntimestep,ptr+1);
-  }
-  *ptr = '*';
-
   if (me == 0) {
-    pos = fopen(filecurrent, "w");
-    if (pos == nullptr) error->one(FLERR,"Cannot open fix reaxff/species position file");
-  } else pos = nullptr;
+    auto filecurrent = utils::star_subst(filepos, update->ntimestep, padflag);
+    pos = fopen(filecurrent.c_str(), "w");
+    if (pos == nullptr)
+      error->one(FLERR, "Cannot open fix reaxff/species position file {}: {}", filecurrent,
+                 utils::getsyserror());
+  } else
+    pos = nullptr;
   multipos_opened = 1;
-
-  free(filecurrent);
 }
 
 /* ---------------------------------------------------------------------- */

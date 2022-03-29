@@ -81,44 +81,18 @@ DumpAtomADIOS::~DumpAtomADIOS()
 
 void DumpAtomADIOS::openfile()
 {
-    if (multifile) {
-        // if one file per timestep, replace '*' with current timestep
-        char *filestar = strdup(filename);
-        char *filecurrent = new char[strlen(filestar) + 16];
-        char *ptr = strchr(filestar, '*');
-        *ptr = '\0';
-        if (padflag == 0)
-            snprintf(filecurrent, sizeof(filecurrent), "%s" BIGINT_FORMAT "%s",
-                     filestar, update->ntimestep, ptr + 1);
-        else {
-            char bif[8], pad[16];
-            strcpy(bif, BIGINT_FORMAT);
-            snprintf(pad, sizeof(pad), "%%s%%0%d%s%%s", padflag, &bif[1]);
-            snprintf(filecurrent, sizeof(filecurrent), pad, filestar,
-                     update->ntimestep, ptr + 1);
-        }
-        internal->fh =
-            internal->io.Open(filecurrent, adios2::Mode::Write, world);
-        if (!internal->fh) {
-            char str[128];
-            snprintf(str, sizeof(str), "Cannot open dump file %s", filecurrent);
-            error->one(FLERR, str);
-        }
-        free(filestar);
-        delete[] filecurrent;
-    } else {
-        if (!singlefile_opened) {
-            internal->fh =
-                internal->io.Open(filename, adios2::Mode::Write, world);
-            if (!internal->fh) {
-                char str[128];
-                snprintf(str, sizeof(str), "Cannot open dump file %s",
-                         filename);
-                error->one(FLERR, str);
-            }
-            singlefile_opened = 1;
-        }
+  if (multifile) {
+    // if one file per timestep, replace '*' with current timestep
+    auto filecurrent = utils::star_subst(filename, update->ntimestep, padflag);
+    internal->fh = internal->io.Open(filecurrent, adios2::Mode::Write, world);
+    if (!internal->fh) error->one(FLERR, "Cannot open dump file {}", filecurrent);
+  } else {
+    if (!singlefile_opened) {
+      internal->fh = internal->io.Open(filename, adios2::Mode::Write, world);
+      if (!internal->fh) error->one(FLERR, "Cannot open dump file {}", filename);
+      singlefile_opened = 1;
     }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

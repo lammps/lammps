@@ -36,7 +36,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MAX_TEXT_HEADER_SIZE 4096
 #define DUMP_BUF_CHUNK_SIZE 16384
 #define DUMP_BUF_INCREMENT_SIZE 4096
 
@@ -71,7 +70,7 @@ DumpCustomMPIIO::~DumpCustomMPIIO()
 
 void DumpCustomMPIIO::openfile()
 {
-  if (singlefile_opened) {    // single file already opened, so just return after resetting filesize
+  if (singlefile_opened) { // single file already opened, so just return after resetting filesize
     mpifo = currentFileSize;
     MPI_File_set_size(mpifh, mpifo + headerSize + sumFileSize);
     currentFileSize = mpifo + headerSize + sumFileSize;
@@ -84,19 +83,7 @@ void DumpCustomMPIIO::openfile()
   filecurrent = filename;
 
   if (multifile) {
-    char *filestar = filecurrent;
-    filecurrent = new char[strlen(filestar) + 16];
-    char *ptr = strchr(filestar, '*');
-    *ptr = '\0';
-    if (padflag == 0) {
-      sprintf(filecurrent, "%s" BIGINT_FORMAT "%s", filestar, update->ntimestep, ptr + 1);
-    } else {
-      char bif[8], pad[16];
-      strcpy(bif, BIGINT_FORMAT);
-      sprintf(pad, "%%s%%0%d%s%%s", padflag, &bif[1]);
-      sprintf(filecurrent, pad, filestar, update->ntimestep, ptr + 1);
-    }
-    *ptr = '*';
+    filecurrent = utils::strdup(utils::star_subst(filecurrent, update->ntimestep, padflag));
     if (maxfiles > 0) {
       if (numfiles < maxfiles) {
         nameslist[numfiles] = new char[strlen(filecurrent) + 1];

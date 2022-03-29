@@ -69,19 +69,7 @@ void DumpAtomMPIIO::openfile()
   filecurrent = filename;
 
   if (multifile) {
-    char *filestar = filecurrent;
-    filecurrent = new char[strlen(filestar) + 16];
-    char *ptr = strchr(filestar, '*');
-    *ptr = '\0';
-    if (padflag == 0) {
-      sprintf(filecurrent, "%s" BIGINT_FORMAT "%s", filestar, update->ntimestep, ptr + 1);
-    } else {
-      char bif[8], pad[16];
-      strcpy(bif, BIGINT_FORMAT);
-      sprintf(pad, "%%s%%0%d%s%%s", padflag, &bif[1]);
-      sprintf(filecurrent, pad, filestar, update->ntimestep, ptr + 1);
-    }
-    *ptr = '*';
+    filecurrent = utils::strdup(utils::star_subst(filecurrent, update->ntimestep, padflag));
     if (maxfiles > 0) {
       if (numfiles < maxfiles) {
         nameslist[numfiles] = new char[strlen(filecurrent) + 1];
@@ -98,8 +86,8 @@ void DumpAtomMPIIO::openfile()
   }
 
   if (append_flag) {    // append open
-    int err = MPI_File_open(world, filecurrent, MPI_MODE_CREATE | MPI_MODE_APPEND | MPI_MODE_WRONLY,
-                            MPI_INFO_NULL, &mpifh);
+    int err = MPI_File_open(world, filecurrent, MPI_MODE_CREATE | MPI_MODE_APPEND |
+                            MPI_MODE_WRONLY, MPI_INFO_NULL, &mpifh);
     if (err != MPI_SUCCESS)
       error->one(FLERR, "Cannot open dump file {}: {}", filecurrent, utils::getsyserror());
 
@@ -112,8 +100,8 @@ void DumpAtomMPIIO::openfile()
 
   } else {    // replace open
 
-    int err =
-        MPI_File_open(world, filecurrent, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &mpifh);
+    int err = MPI_File_open(world, filecurrent, MPI_MODE_CREATE | MPI_MODE_WRONLY,
+                            MPI_INFO_NULL, &mpifh);
     if (err != MPI_SUCCESS)
       error->one(FLERR, "Cannot open dump file {}: {}", filecurrent, utils::getsyserror());
 

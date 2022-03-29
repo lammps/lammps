@@ -66,8 +66,8 @@ struct TestAsyncLauncher {
 
 TEST(hip, async_launcher) {
   size_t *flag;
-  HIP_SAFE_CALL(hipMalloc(&flag, sizeof(size_t)));
-  HIP_SAFE_CALL(hipMemset(flag, 0, sizeof(size_t)));
+  KOKKOS_IMPL_HIP_SAFE_CALL(hipMalloc(&flag, sizeof(size_t)));
+  KOKKOS_IMPL_HIP_SAFE_CALL(hipMemset(flag, 0, sizeof(size_t)));
   // launch # of cycles * 1000 kernels w/ distinct values
   auto space        = Kokkos::Experimental::HIP();
   auto instance     = space.impl_internal_space_instance();
@@ -80,10 +80,10 @@ TEST(hip, async_launcher) {
   // the sum below should fail
   instance->fence();
   size_t h_flag;
-  HIP_SAFE_CALL(
+  KOKKOS_IMPL_HIP_SAFE_CALL(
       hipMemcpy(&h_flag, flag, sizeof(size_t), hipMemcpyHostToDevice));
   ASSERT_EQ(h_flag, (nkernels * (nkernels - 1)) / 2);
-  HIP_SAFE_CALL(hipFree(flag));
+  KOKKOS_IMPL_HIP_SAFE_CALL(hipFree(flag));
 }
 
 }  // namespace Test

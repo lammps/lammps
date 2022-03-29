@@ -79,26 +79,26 @@ bool Fingerprint_bondscreenedspin::parse_values(std::string constant,std::vector
   int nwords,l;
   nwords=line1.size();
   if (constant.compare("re")==0) {
-    re = strtod(line1[0].c_str(),NULL);
+    re = strtod(line1[0].c_str(),nullptr);
   }
   else if (constant.compare("rc")==0) {
-    rc = strtod(line1[0].c_str(),NULL);
+    rc = strtod(line1[0].c_str(),nullptr);
   }
   else if (constant.compare("alphak")==0) {
     delete[] alpha_k;
     alpha_k = new double[nwords];
     for (l=0;l<nwords;l++) {
-      alpha_k[l]=strtod(line1[l].c_str(),NULL);
+      alpha_k[l]=strtod(line1[l].c_str(),nullptr);
     }
   }
   else if (constant.compare("dr")==0) {
-    dr = strtod(line1[0].c_str(),NULL);
+    dr = strtod(line1[0].c_str(),nullptr);
   }
   else if (constant.compare("k")==0) {
-    kmax = strtol(line1[0].c_str(),NULL,10);
+    kmax = strtol(line1[0].c_str(),nullptr,10);
   }
   else if (constant.compare("m")==0) {
-    mlength = strtol(line1[0].c_str(),NULL,10);
+    mlength = strtol(line1[0].c_str(),nullptr,10);
   }
   else pair->errorf(FLERR,"Undefined value for bond power");
   if (re!=0.0 && rc!=0.0 && alpha_k[0]!=-1 && dr!=0.0 && mlength!=0 && kmax!=0)return true;

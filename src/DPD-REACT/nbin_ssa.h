@@ -41,12 +41,11 @@ class NBinSSA : public NBinStandard {
   int lbinzhi;    // highest local bin z-dim coordinate
 
   NBinSSA(class LAMMPS *);
-  ~NBinSSA();
 
-  void bin_atoms_setup(int);
-  void bin_atoms();
+  void bin_atoms_setup(int) override;
+  void bin_atoms() override;
 
-  double memory_usage();
+  double memory_usage() override;
 
   inline int coord2bin(const double &x, const double &y, const double &z, int &ixo, int &iyo,
                        int &izo) const

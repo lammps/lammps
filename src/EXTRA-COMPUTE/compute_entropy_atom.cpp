@@ -17,21 +17,22 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_entropy_atom.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "pair.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
-#include "domain.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -44,8 +45,7 @@ ComputeEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
   pair_entropy(nullptr), pair_entropy_avg(nullptr)
 {
   if (narg < 5 || narg > 10)
-    error->all(FLERR,"Illegal compute entropy/atom command; wrong number"
-               " of arguments");
+    error->all(FLERR,"Illegal compute entropy/atom command; wrong number of arguments");
 
   // Arguments are: sigma cutoff avg yes/no cutoff2 local yes/no
   //   sigma is the gaussian width
@@ -57,11 +57,9 @@ ComputeEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
   //     the g(r)
 
   sigma = utils::numeric(FLERR,arg[3],false,lmp);
-  if (sigma <= 0.0) error->all(FLERR,"Illegal compute entropy/atom"
-                              " command; sigma must be positive");
+  if (sigma <= 0.0) error->all(FLERR,"Illegal compute entropy/atom command; sigma must be positive");
   cutoff = utils::numeric(FLERR,arg[4],false,lmp);
-  if (cutoff <= 0.0) error->all(FLERR,"Illegal compute entropy/atom"
-                               " command; cutoff must be positive");
+  if (cutoff <= 0.0) error->all(FLERR,"Illegal compute entropy/atom command; cutoff must be positive");
 
   cutoff2 = 0.;
   avg_flag = 0;
@@ -71,26 +69,17 @@ ComputeEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 5;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"avg") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute entropy/atom;"
-                   " missing arguments after avg");
-      if (strcmp(arg[iarg+1],"yes") == 0) avg_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) avg_flag = 0;
-      else error->all(FLERR,"Illegal compute entropy/atom;"
-                      " argument after avg should be yes or no");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal compute entropy/atom command");
+      avg_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       cutoff2 = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      if (cutoff2 < 0.0) error->all(FLERR,"Illegal compute entropy/atom"
-                                    " command; negative cutoff2");
+      if (cutoff2 < 0.0) error->all(FLERR,"Illegal compute entropy/atom command; negative cutoff2");
       cutsq2 = cutoff2*cutoff2;
       iarg += 3;
     } else if (strcmp(arg[iarg],"local") == 0) {
-      if (strcmp(arg[iarg+1],"yes") == 0) local_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) local_flag = 0;
-      else error->all(FLERR,"Illegal compute entropy/atom;"
-                      " argument after local should be yes or no");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute entropy/atom command");
+      local_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
-    } else error->all(FLERR,"Illegal compute entropy/atom; argument after"
-                      " sigma and cutoff should be avg or local");
+    } else error->all(FLERR,"Illegal compute entropy/atom command");
   }
 
 
@@ -120,8 +109,7 @@ ComputeEntropyAtom::~ComputeEntropyAtom()
 void ComputeEntropyAtom::init()
 {
   if (force->pair == nullptr)
-    error->all(FLERR,"Compute entropy/atom requires a pair style be"
-               " defined");
+    error->all(FLERR,"Compute entropy/atom requires a pair style be defined");
 
   if ((cutoff+cutoff2) > (force->pair->cutforce  + neighbor->skin))
     {
@@ -136,23 +124,16 @@ void ComputeEntropyAtom::init()
   if (count > 1 && comm->me == 0)
     error->warning(FLERR,"More than one compute entropy/atom");
 
-  // Request neighbor list
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  // Request a full neighbor list
+  int list_flags = NeighConst::REQ_FULL;
   if (avg_flag) {
-    // need a full neighbor list with neighbors of the ghost atoms
-    neighbor->requests[irequest]->occasional = 0;
-    neighbor->requests[irequest]->ghost = 1;
+    // need neighbors of the ghost atoms
+    list_flags |= NeighConst::REQ_GHOST;
   } else {
-    // need a regular full neighbor list
-    // can build it occasionally
-    neighbor->requests[irequest]->occasional = 1;
-    neighbor->requests[irequest]->ghost = 0;
+    // may build it occasionally
+    list_flags |= NeighConst::REQ_OCCASIONAL;
   }
-
+  neighbor->add_request(this, list_flags);
 }
 
 /* ---------------------------------------------------------------------- */

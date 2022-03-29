@@ -93,10 +93,6 @@ FixPolarizeBEMICC::FixPolarizeBEMICC(LAMMPS *lmp, int narg, char **arg) : Fix(lm
 
 /* ---------------------------------------------------------------------- */
 
-FixPolarizeBEMICC::~FixPolarizeBEMICC() {}
-
-/* ---------------------------------------------------------------------- */
-
 int FixPolarizeBEMICC::setmask()
 {
   int mask = 0;
@@ -255,7 +251,7 @@ void FixPolarizeBEMICC::compute_induced_charges()
     q[i] = q_free + q_bound;
   }
 
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   // iterate
 
@@ -313,7 +309,7 @@ void FixPolarizeBEMICC::compute_induced_charges()
 #endif
     }
 
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
 
     MPI_Allreduce(&tol, &rho, 1, MPI_DOUBLE, MPI_MAX, world);
 #ifdef _POLARIZE_DEBUG
@@ -355,12 +351,7 @@ int FixPolarizeBEMICC::modify_param(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg], "kspace") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix_modify command");
-      if (strcmp(arg[iarg + 1], "yes") == 0)
-        kspaceflag = 1;
-      else if (strcmp(arg[iarg + 1], "no") == 0)
-        kspaceflag = 0;
-      else
-        error->all(FLERR, "Illegal fix_modify command for fix polarize");
+      kspaceflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "dielectrics") == 0) {
       if (iarg + 6 > narg) error->all(FLERR, "Illegal fix_modify command");

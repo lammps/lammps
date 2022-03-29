@@ -254,14 +254,15 @@ for command_type, entries in index.items():
 
 print("Total number of style index entries:", total_index)
 
-skip_fix = ('python', 'NEIGH_HISTORY/omp','qeq/reax','reax/c/bonds','reax/c/species')
+skip_fix = ('python', 'NEIGH_HISTORY/omp','acks2/reax','qeq/reax','reax/c/bonds','reax/c/species')
 skip_pair = ('meam/c','lj/sf','reax/c')
+skip_compute = ('pressure/cylinder')
 
 counter = 0
 
-counter += check_style('Commands_all.rst', doc_dir, ":doc:`(.+) <.+>`",command,'Command',suffix=False)
-counter += check_style('Commands_compute.rst', doc_dir, ":doc:`(.+) <compute.+>`",compute,'Compute',suffix=True)
-counter += check_style('compute.rst', doc_dir, ":doc:`(.+) <compute.+>` -",compute,'Compute',suffix=False)
+counter += check_style('Commands_all.rst', doc_dir, ":doc:`(.+) <.+>`",command,'Command',suffix=True)
+counter += check_style('Commands_compute.rst', doc_dir, ":doc:`(.+) <compute.+>`",compute,'Compute',skip=skip_compute,suffix=True)
+counter += check_style('compute.rst', doc_dir, ":doc:`(.+) <compute.+>` -",compute,'Compute',skip=skip_compute,suffix=False)
 counter += check_style('Commands_fix.rst', doc_dir, ":doc:`(.+) <fix.+>`",fix,'Fix',skip=skip_fix,suffix=True)
 counter += check_style('fix.rst', doc_dir, ":doc:`(.+) <fix.+>` -",fix,'Fix',skip=skip_fix,suffix=False)
 counter += check_style('Commands_pair.rst', doc_dir, ":doc:`(.+) <pair.+>`",pair,'Pair',skip=skip_pair,suffix=True)
@@ -281,8 +282,8 @@ if counter:
 
 counter = 0
 
-counter += check_style_index("compute", compute, index["compute"])
-counter += check_style_index("fix", fix, index["fix"], skip=['python','qeq/reax','reax/c/bonds','reax/c/species'])
+counter += check_style_index("compute", compute, index["compute"], skip=['pressure/cylinder'])
+counter += check_style_index("fix", fix, index["fix"], skip=['python','acks2/reax','qeq/reax','reax/c/bonds','reax/c/species'])
 counter += check_style_index("angle_style", angle, index["angle_style"])
 counter += check_style_index("bond_style", bond, index["bond_style"])
 counter += check_style_index("dihedral_style", dihedral, index["dihedral_style"])

@@ -38,15 +38,15 @@ namespace LAMMPS_NS {
 class FixSMDTlsphDtReset : public Fix {
  public:
   FixSMDTlsphDtReset(class LAMMPS *, int, char **);
-  ~FixSMDTlsphDtReset() {}
-  int setmask();
-  void init();
-  void setup(int);
-  void initial_integrate(int);
-  void end_of_step();
-  double compute_scalar();
-  void write_restart(FILE *);
-  void restart(char *);
+
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void initial_integrate(int) override;
+  void end_of_step() override;
+  double compute_scalar() override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
 
  private:
   double safety_factor;

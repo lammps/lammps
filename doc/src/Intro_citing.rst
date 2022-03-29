@@ -16,7 +16,7 @@ source code design, the program structure, the spatial decomposition
 approach, the neighbor finding, basic communications algorithms, and how
 users and developers have contributed to LAMMPS is:
 
-  `LAMMPS - A flexible simulation tool for particle-based materials modeling at the atomic, meso, and continuum scales, Comp. Phys. Comm. (accepted 09/2021), DOI:10.1016/j.cpc.2021.108171 <https://doi.org/10.1016/j.cpc.2021.108171>`_
+  `LAMMPS - A flexible simulation tool for particle-based materials modeling at the atomic, meso, and continuum scales, Comp. Phys. Comm. 271, 108171 (2022) <https://doi.org/10.1016/j.cpc.2021.108171>`_
 
 So a project using LAMMPS or a derivative application that uses LAMMPS
 as a simulation engine should cite this paper.  The paper is expected to

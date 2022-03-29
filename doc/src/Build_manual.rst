@@ -33,12 +33,15 @@ various tools and files.  Some of them have to be installed (see below).  For
 the rest the build process will attempt to download and install them into
 a python virtual environment and local folders.
 
-A current version of the manual (latest patch release, aka unstable
-branch) is is available online at:
-`https://docs.lammps.org/Manual.html <https://docs.lammps.org/Manual.html>`_.
-A version of the manual corresponding to the ongoing development (aka master branch)
-is available online at: `https://docs.lammps.org/latest/
-<https://docs.lammps.org/latest/>`_
+A current version of the manual (latest patch release, that is the state
+of the *release* branch) is is available online at:
+`https://docs.lammps.org/ <https://docs.lammps.org/>`_.
+A version of the manual corresponding to the ongoing development (that is
+the state of the *develop* branch) is available online at:
+`https://docs.lammps.org/latest/ <https://docs.lammps.org/latest/>`_
+A version of the manual corresponding to the latest stable LAMMPS release
+(that is the state of the *stable* branch) is available online at:
+`https://docs.lammps.org/stable/ <https://docs.lammps.org/stable/>`_
 
 Build using GNU make
 --------------------

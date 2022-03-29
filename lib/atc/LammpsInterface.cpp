@@ -103,7 +103,7 @@ LammpsInterface::LammpsInterface()
 
 MPI_Comm LammpsInterface::world() const { return lammps_->world; }
 void LammpsInterface::set_fix_pointer(LAMMPS_NS::Fix * thisFix) { fixPointer_ = thisFix; }
-void LammpsInterface::forward_comm_fix() const { lammps_->comm->forward_comm_fix(fixPointer_); }
+void LammpsInterface::forward_comm_fix() const { lammps_->comm->forward_comm(fixPointer_); }
 void LammpsInterface::comm_borders() const { lammps_->comm->borders(); }
 
 #ifndef ISOLATE_FE

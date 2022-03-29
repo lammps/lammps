@@ -21,7 +21,6 @@ FixStyle(ttm/mod,FixTTMMod);
 #define LMP_FIX_TTM_MOD_H
 
 #include "fix.h"
-#include <exception>
 
 namespace LAMMPS_NS {
 
@@ -33,25 +32,25 @@ struct el_heat_capacity_thermal_conductivity {
 class FixTTMMod : public Fix {
  public:
   FixTTMMod(class LAMMPS *, int, char **);
-  ~FixTTMMod();
-  int setmask();
-  void init();
-  void setup(int);
-  void post_force(int);
-  void post_force_respa(int, int, int);
+  ~FixTTMMod() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
   void post_force_setup(int);
   void post_force_respa_setup(int, int, int);
-  void end_of_step();
-  void reset_dt();
-  void write_restart(FILE *);
-  void restart(char *);
-  int pack_restart(int, double *);
-  void unpack_restart(int, int);
-  int size_restart(int);
-  int maxsize_restart();
-  double memory_usage();
-  void grow_arrays(int);
-  double compute_vector(int);
+  void end_of_step() override;
+  void reset_dt() override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
+  int pack_restart(int, double *) override;
+  void unpack_restart(int, int) override;
+  int size_restart(int) override;
+  int maxsize_restart() override;
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  double compute_vector(int) override;
 
  private:
   int nlevels_respa;
@@ -87,14 +86,6 @@ class FixTTMMod : public Fix {
   void read_parameters(const std::string &);
   void read_electron_temperatures(const std::string &);
   void write_electron_temperatures(const std::string &);
-
-  class parser_error : public std::exception {
-    std::string message;
-
-   public:
-    parser_error(const std::string &mesg) { message = mesg; }
-    const char *what() const noexcept { return message.c_str(); }
-  };
 };
 
 }    // namespace LAMMPS_NS

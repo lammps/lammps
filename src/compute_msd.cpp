@@ -49,15 +49,11 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"com") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute msd command");
-      if (strcmp(arg[iarg+1],"no") == 0) comflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) comflag = 1;
-      else error->all(FLERR,"Illegal compute msd command");
+      comflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"average") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute msd command");
-      if (strcmp(arg[iarg+1],"no") == 0) avflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) avflag = 1;
-      else error->all(FLERR,"Illegal compute msd command");
+      avflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal compute msd command");
   }
@@ -117,8 +113,8 @@ ComputeMSD::~ComputeMSD()
 
   if (modify->nfix) modify->delete_fix(id_fix);
 
-  delete [] id_fix;
-  delete [] vector;
+  delete[] id_fix;
+  delete[] vector;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -127,9 +123,8 @@ void ComputeMSD::init()
 {
   // set fix which stores reference atom coords
 
-  int ifix = modify->find_fix(id_fix);
-  if (ifix < 0) error->all(FLERR,"Could not find compute msd fix ID");
-  fix = (FixStore *) modify->fix[ifix];
+  fix = (FixStore *) modify->get_fix_by_id(id_fix);
+  if (!fix) error->all(FLERR,"Could not find compute msd fix with ID {}", id_fix);
 
   // nmsd = # of atoms in group
 

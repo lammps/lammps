@@ -35,7 +35,8 @@ int Fix::instance_total = 0;
 Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   Pointers(lmp),
   id(nullptr), style(nullptr), extlist(nullptr), vector_atom(nullptr), array_atom(nullptr),
-  vector_local(nullptr), array_local(nullptr), eatom(nullptr), vatom(nullptr)
+  vector_local(nullptr), array_local(nullptr), eatom(nullptr), vatom(nullptr),
+  cvatom(nullptr)
 {
   instance_me = instance_total++;
 
@@ -97,8 +98,8 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   // set vflag_atom = 0 b/c some fixes grow vatom in grow_arrays()
   //   which may occur outside of timestepping
 
-  maxeatom = maxvatom = 0;
-  vflag_atom = 0;
+  maxeatom = maxvatom = maxcvatom = 0;
+  vflag_atom = cvflag_atom = 0;
   centroidstressflag = CENTROID_SAME;
 
   // KOKKOS per-fix data masks
@@ -122,6 +123,7 @@ Fix::~Fix()
   delete [] style;
   memory->destroy(eatom);
   memory->destroy(vatom);
+  memory->destroy(cvatom);
 }
 
 /* ----------------------------------------------------------------------
@@ -137,27 +139,19 @@ void Fix::modify_params(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"dynamic/dof") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
-      if (strcmp(arg[iarg+1],"no") == 0) dynamic = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) dynamic = 1;
-      else error->all(FLERR,"Illegal fix_modify command");
+      dynamic = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"energy") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
-      if (strcmp(arg[iarg+1],"no") == 0) thermo_energy = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) {
-        if (energy_global_flag == 0 && energy_peratom_flag == 0)
+      thermo_energy = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      if (thermo_energy && !energy_global_flag && !energy_peratom_flag)
           error->all(FLERR,"Illegal fix_modify command");
-        thermo_energy = 1;
-      } else error->all(FLERR,"Illegal fix_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"virial") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
-      if (strcmp(arg[iarg+1],"no") == 0) thermo_virial = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) {
-        if (virial_global_flag == 0 && virial_peratom_flag == 0)
-          error->all(FLERR,"Illegal fix_modify command");
-        thermo_virial = 1;
-      } else error->all(FLERR,"Illegal fix_modify command");
+      thermo_virial = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      if (thermo_virial && !virial_global_flag && !virial_peratom_flag)
+        error->all(FLERR,"Illegal fix_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"respa") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
@@ -205,7 +199,13 @@ void Fix::ev_setup(int eflag, int vflag)
   else {
     vflag_either = vflag;
     vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
-    vflag_atom = vflag & (VIRIAL_ATOM | VIRIAL_CENTROID);
+    if (centroidstressflag != CENTROID_AVAIL) {
+      vflag_atom = vflag & (VIRIAL_ATOM | VIRIAL_CENTROID);
+      cvflag_atom = 0;
+    } else {
+      vflag_atom = vflag & VIRIAL_ATOM;
+      cvflag_atom = vflag & VIRIAL_CENTROID;
+    }
   }
 
   // reallocate per-atom arrays if necessary
@@ -219,6 +219,11 @@ void Fix::ev_setup(int eflag, int vflag)
     maxvatom = atom->nmax;
     memory->destroy(vatom);
     memory->create(vatom,maxvatom,6,"fix:vatom");
+  }
+  if (cvflag_atom && atom->nlocal > maxcvatom) {
+    maxcvatom = atom->nmax;
+    memory->destroy(cvatom);
+    memory->create(cvatom,maxcvatom,9,"fix:cvatom");
   }
 
   // zero accumulators
@@ -241,6 +246,20 @@ void Fix::ev_setup(int eflag, int vflag)
       vatom[i][5] = 0.0;
     }
   }
+  if (cvflag_atom) {
+    n = atom->nlocal;
+    for (i = 0; i < n; i++) {
+      cvatom[i][0] = 0.0;
+      cvatom[i][1] = 0.0;
+      cvatom[i][2] = 0.0;
+      cvatom[i][3] = 0.0;
+      cvatom[i][4] = 0.0;
+      cvatom[i][5] = 0.0;
+      cvatom[i][6] = 0.0;
+      cvatom[i][7] = 0.0;
+      cvatom[i][8] = 0.0;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -256,7 +275,13 @@ void Fix::v_setup(int vflag)
 
   evflag = 1;
   vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
-  vflag_atom = vflag & (VIRIAL_ATOM | VIRIAL_CENTROID);
+  if (centroidstressflag != CENTROID_AVAIL) {
+    vflag_atom = vflag & (VIRIAL_ATOM | VIRIAL_CENTROID);
+    cvflag_atom = 0;
+  } else {
+    vflag_atom = vflag & VIRIAL_ATOM;
+    cvflag_atom = vflag & VIRIAL_CENTROID;
+  }
 
   // reallocate per-atom array if necessary
 
@@ -264,6 +289,11 @@ void Fix::v_setup(int vflag)
     maxvatom = atom->nmax;
     memory->destroy(vatom);
     memory->create(vatom,maxvatom,6,"fix:vatom");
+  }
+  if (cvflag_atom && atom->nlocal > maxcvatom) {
+    maxcvatom = atom->nmax;
+    memory->destroy(cvatom);
+    memory->create(cvatom,maxcvatom,9,"fix:cvatom");
   }
 
   // zero accumulators
@@ -278,6 +308,20 @@ void Fix::v_setup(int vflag)
       vatom[i][3] = 0.0;
       vatom[i][4] = 0.0;
       vatom[i][5] = 0.0;
+    }
+  }
+  if (cvflag_atom) {
+    n = atom->nlocal;
+    for (i = 0; i < n; i++) {
+      cvatom[i][0] = 0.0;
+      cvatom[i][1] = 0.0;
+      cvatom[i][2] = 0.0;
+      cvatom[i][3] = 0.0;
+      cvatom[i][4] = 0.0;
+      cvatom[i][5] = 0.0;
+      cvatom[i][6] = 0.0;
+      cvatom[i][7] = 0.0;
+      cvatom[i][8] = 0.0;
     }
   }
 }
@@ -342,6 +386,110 @@ void Fix::v_tally(int n, int *list, double total, double *v)
       vatom[m][3] += fraction*v[3];
       vatom[m][4] += fraction*v[4];
       vatom[m][5] += fraction*v[5];
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   tally virial into global and per-atom accumulators
+   n = # of local owned atoms involved, with local indices in list
+   vtot = total virial for the interaction involving total atoms
+   rlist = list of positional vectors
+   flist = list of force vectors
+   center = centroid coordinate
+   increment global virial by n/total fraction
+   increment per-atom virial of each atom in list by 1/total fraction
+   add centroid form atomic virial contribution for each atom if available
+   this method can be used when fix computes forces in post_force()
+   and only total forces on each atom in group are easily available
+     e.g. fix rigid/small: compute virial only on owned atoms
+       whether newton_bond is on or off
+     other procs will tally left-over fractions for atoms they own
+------------------------------------------------------------------------- */
+
+void Fix::v_tally(int n, int *list, double total, double *vtot,
+    double rlist[][3], double flist[][3], double center[])
+{
+
+  v_tally(n, list, total, vtot);
+
+  if (cvflag_atom) {
+    for (int i = 0; i< n; i++) {
+      const double ri0[3] = {
+        rlist[i][0]-center[0],
+        rlist[i][1]-center[1],
+        rlist[i][2]-center[2],
+      };
+      cvatom[list[i]][0] += ri0[0]*flist[i][0];
+      cvatom[list[i]][1] += ri0[1]*flist[i][1];
+      cvatom[list[i]][2] += ri0[2]*flist[i][2];
+      cvatom[list[i]][3] += ri0[0]*flist[i][1];
+      cvatom[list[i]][4] += ri0[0]*flist[i][2];
+      cvatom[list[i]][5] += ri0[1]*flist[i][2];
+      cvatom[list[i]][6] += ri0[1]*flist[i][0];
+      cvatom[list[i]][7] += ri0[2]*flist[i][0];
+      cvatom[list[i]][8] += ri0[2]*flist[i][1];
+    }
+  }
+
+}
+
+/* ----------------------------------------------------------------------
+   tally virial into global and per-atom accumulators
+   n = # of local owned atoms involved, with local indices in list
+   vtot = total virial for the interaction involving total atoms
+   npair = # of atom pairs with forces beween them
+   pairlist = indice list of pairs
+   fpairlist = forces between pairs
+   dellist = displacement vectors between pairs
+   increment global virial by n/total fraction
+   increment per-atom virial of each atom in list by 1/total fraction
+   add centroid form atomic virial contribution for each atom if available
+   this method can be used when fix computes forces in post_force()
+     e.g. fix shake, fix rigid: compute virial only on owned atoms
+       whether newton_bond is on or off
+     other procs will tally left-over fractions for atoms they own
+------------------------------------------------------------------------- */
+
+void Fix::v_tally(int n, int *list, double total, double *vtot, int nlocal,
+    int npair, int pairlist[][2], double *fpairlist, double dellist[][3])
+{
+
+  v_tally(n, list, total, vtot);
+
+  if (cvflag_atom) {
+    double v[6];
+    for (int i = 0; i < npair; i++) {
+      v[0] = 0.5*dellist[i][0]*dellist[i][0]*fpairlist[i];
+      v[1] = 0.5*dellist[i][1]*dellist[i][1]*fpairlist[i];
+      v[2] = 0.5*dellist[i][2]*dellist[i][2]*fpairlist[i];
+      v[3] = 0.5*dellist[i][0]*dellist[i][1]*fpairlist[i];
+      v[4] = 0.5*dellist[i][0]*dellist[i][2]*fpairlist[i];
+      v[5] = 0.5*dellist[i][1]*dellist[i][2]*fpairlist[i];
+      const int i0 = pairlist[i][0];
+      const int i1 = pairlist[i][1];
+      if (i0 < nlocal) {
+        cvatom[i0][0] += v[0];
+        cvatom[i0][1] += v[1];
+        cvatom[i0][2] += v[2];
+        cvatom[i0][3] += v[3];
+        cvatom[i0][4] += v[4];
+        cvatom[i0][5] += v[5];
+        cvatom[i0][6] += v[3];
+        cvatom[i0][7] += v[4];
+        cvatom[i0][8] += v[5];
+      }
+      if (i1 < nlocal) {
+        cvatom[i1][0] += v[0];
+        cvatom[i1][1] += v[1];
+        cvatom[i1][2] += v[2];
+        cvatom[i1][3] += v[3];
+        cvatom[i1][4] += v[4];
+        cvatom[i1][5] += v[5];
+        cvatom[i1][6] += v[3];
+        cvatom[i1][7] += v[4];
+        cvatom[i1][8] += v[5];
+      }
     }
   }
 }

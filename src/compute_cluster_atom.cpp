@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -22,7 +21,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "update.h"
@@ -32,18 +30,17 @@
 
 using namespace LAMMPS_NS;
 
-enum{CLUSTER,MASK,COORDS};
+enum { CLUSTER, MASK, COORDS };
 
 /* ---------------------------------------------------------------------- */
 
 ComputeClusterAtom::ComputeClusterAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  clusterID(nullptr)
+    Compute(lmp, narg, arg), clusterID(nullptr)
 {
-  if (narg != 4) error->all(FLERR,"Illegal compute cluster/atom command");
+  if (narg != 4) error->all(FLERR, "Illegal compute cluster/atom command");
 
-  double cutoff = utils::numeric(FLERR,arg[3],false,lmp);
-  cutsq = cutoff*cutoff;
+  double cutoff = utils::numeric(FLERR, arg[3], false, lmp);
+  cutsq = cutoff * cutoff;
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -64,28 +61,21 @@ ComputeClusterAtom::~ComputeClusterAtom()
 void ComputeClusterAtom::init()
 {
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Cannot use compute cluster/atom unless atoms have IDs");
+    error->all(FLERR, "Cannot use compute cluster/atom unless atoms have IDs");
   if (force->pair == nullptr)
-    error->all(FLERR,"Compute cluster/atom requires a pair style to be defined");
+    error->all(FLERR, "Compute cluster/atom requires a pair style to be defined");
   if (sqrt(cutsq) > force->pair->cutforce)
-    error->all(FLERR,
-               "Compute cluster/atom cutoff is longer than pairwise cutoff");
+    error->all(FLERR, "Compute cluster/atom cutoff is longer than pairwise cutoff");
 
   // need an occasional full neighbor list
   // full required so that pair of atoms on 2 procs both set their clusterID
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
   int count = 0;
   for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"cluster/atom") == 0) count++;
-  if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute cluster/atom");
+    if (strcmp(modify->compute[i]->style, "cluster/atom") == 0) count++;
+  if (count > 1 && comm->me == 0) error->warning(FLERR, "More than one compute cluster/atom");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -99,9 +89,9 @@ void ComputeClusterAtom::init_list(int /*id*/, NeighList *ptr)
 
 void ComputeClusterAtom::compute_peratom()
 {
-  int i,j,ii,jj,inum,jnum;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i, j, ii, jj, inum, jnum;
+  double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
+  int *ilist, *jlist, *numneigh, **firstneigh;
 
   invoked_peratom = update->ntimestep;
 
@@ -110,15 +100,17 @@ void ComputeClusterAtom::compute_peratom()
   if (atom->nmax > nmax) {
     memory->destroy(clusterID);
     nmax = atom->nmax;
-    memory->create(clusterID,nmax,"cluster/atom:clusterID");
+    memory->create(clusterID, nmax, "cluster/atom:clusterID");
     vector_atom = clusterID;
   }
 
   // invoke full neighbor list (will copy or build if necessary)
   // on the first step of a run, set preflag to one in neighbor->build_one(...)
 
-  if (update->firststep == update->ntimestep) neighbor->build_one(list,1);
-  else neighbor->build_one(list);
+  if (update->firststep == update->ntimestep)
+    neighbor->build_one(list, 1);
+  else
+    neighbor->build_one(list);
 
   inum = list->inum;
   ilist = list->ilist;
@@ -131,14 +123,14 @@ void ComputeClusterAtom::compute_peratom()
 
   if (update->post_integrate) {
     commflag = COORDS;
-    comm->forward_comm_compute(this);
+    comm->forward_comm(this);
   }
 
   // if group is dynamic, insure ghost atom masks are current
 
   if (group->dynamic[igroup]) {
     commflag = MASK;
-    comm->forward_comm_compute(this);
+    comm->forward_comm(this);
   }
 
   // every atom starts in its own cluster, with clusterID = atomID
@@ -148,8 +140,10 @@ void ComputeClusterAtom::compute_peratom()
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit) clusterID[i] = tag[i];
-    else clusterID[i] = 0;
+    if (mask[i] & groupbit)
+      clusterID[i] = tag[i];
+    else
+      clusterID[i] = 0;
   }
 
   // loop until no more changes on any proc:
@@ -162,13 +156,13 @@ void ComputeClusterAtom::compute_peratom()
   commflag = CLUSTER;
   double **x = atom->x;
 
-  int change,done,anychange;
+  int change, done, anychange;
 
-  while (1) {
-    comm->forward_comm_compute(this);
+  while (true) {
+    comm->forward_comm(this);
 
     change = 0;
-    while (1) {
+    while (true) {
       done = 1;
       for (ii = 0; ii < inum; ii++) {
         i = ilist[ii];
@@ -189,9 +183,9 @@ void ComputeClusterAtom::compute_peratom()
           delx = xtmp - x[j][0];
           dely = ytmp - x[j][1];
           delz = ztmp - x[j][2];
-          rsq = delx*delx + dely*dely + delz*delz;
+          rsq = delx * delx + dely * dely + delz * delz;
           if (rsq < cutsq) {
-            clusterID[i] = clusterID[j] = MIN(clusterID[i],clusterID[j]);
+            clusterID[i] = clusterID[j] = MIN(clusterID[i], clusterID[j]);
             done = 0;
           }
         }
@@ -202,17 +196,17 @@ void ComputeClusterAtom::compute_peratom()
 
     // stop if all procs are done
 
-    MPI_Allreduce(&change,&anychange,1,MPI_INT,MPI_MAX,world);
+    MPI_Allreduce(&change, &anychange, 1, MPI_INT, MPI_MAX, world);
     if (!anychange) break;
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-int ComputeClusterAtom::pack_forward_comm(int n, int *list, double *buf,
-                                          int /*pbc_flag*/, int * /*pbc*/)
+int ComputeClusterAtom::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/,
+                                          int * /*pbc*/)
 {
-  int i,j,m;
+  int i, j, m;
 
   m = 0;
   if (commflag == CLUSTER) {
@@ -243,7 +237,7 @@ int ComputeClusterAtom::pack_forward_comm(int n, int *list, double *buf,
 
 void ComputeClusterAtom::unpack_forward_comm(int n, int first, double *buf)
 {
-  int i,m,last;
+  int i, m, last;
 
   m = 0;
   last = first + n;
@@ -268,6 +262,6 @@ void ComputeClusterAtom::unpack_forward_comm(int n, int first, double *buf)
 
 double ComputeClusterAtom::memory_usage()
 {
-  double bytes = (double)nmax * sizeof(double);
+  double bytes = (double) nmax * sizeof(double);
   return bytes;
 }

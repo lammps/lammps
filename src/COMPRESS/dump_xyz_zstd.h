@@ -34,17 +34,16 @@ namespace LAMMPS_NS {
 class DumpXYZZstd : public DumpXYZ {
  public:
   DumpXYZZstd(class LAMMPS *, int, char **);
-  virtual ~DumpXYZZstd();
 
  protected:
   ZstdFileWriter writer;
 
-  virtual void openfile();
-  virtual void write_header(bigint);
-  virtual void write_data(int, double *);
-  virtual void write();
+  void openfile() override;
+  void write_header(bigint) override;
+  void write_data(int, double *) override;
+  void write() override;
 
-  virtual int modify_param(int, char **);
+  int modify_param(int, char **) override;
 };
 
 }    // namespace LAMMPS_NS

@@ -19,6 +19,8 @@
 namespace LAMMPS_NS {
 
 class Compute : protected Pointers {
+  friend class Neighbor;
+
  public:
   // clang-format off
   enum {
@@ -104,7 +106,7 @@ class Compute : protected Pointers {
   int copymode, kokkosable;
 
   Compute(class LAMMPS *, int, char **);
-  virtual ~Compute();
+  ~Compute() override;
   void modify_params(int, char **);
   void reset_extra_dof();
 

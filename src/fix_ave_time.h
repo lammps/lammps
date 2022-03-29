@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class FixAveTime : public Fix {
  public:
   FixAveTime(class LAMMPS *, int, char **);
-  ~FixAveTime();
-  int setmask();
-  void init();
-  void setup(int);
-  void end_of_step();
-  double compute_scalar();
-  double compute_vector(int);
-  double compute_array(int, int);
+  ~FixAveTime() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void end_of_step() override;
+  double compute_scalar() override;
+  double compute_vector(int) override;
+  double compute_array(int, int) override;
 
  private:
   int me, nvalues;
@@ -54,7 +54,7 @@ class FixAveTime : public Fix {
   int *offlist;
   char *format, *format_user;
   char *title1, *title2, *title3;
-  long filepos;
+  bigint filepos;
 
   int norm, iwindow, window_limit;
   double *vector;

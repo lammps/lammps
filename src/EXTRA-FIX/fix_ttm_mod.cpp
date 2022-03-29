@@ -31,11 +31,11 @@
 #include "random_mars.h"
 #include "respa.h"
 #include "potential_file_reader.h"
-#include "tokenizer.h"
 #include "update.h"
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -584,10 +584,10 @@ void FixTTMMod::read_electron_temperatures(const std::string &filename)
         // check correctness of input data
 
         if ((ix < 0) || (ix >= nxgrid) || (iy < 0) || (iy >= nygrid) || (iz < 0) || (iz >= nzgrid))
-          throw parser_error("Fix ttm invalid grid index in fix ttm/mod grid file");
+          throw TokenizerException("Fix ttm invalid grid index in fix ttm/mod grid file","");
 
         if (T_tmp < 0.0)
-          throw parser_error("Fix ttm electron temperatures must be > 0.0");
+          throw TokenizerException("Fix ttm electron temperatures must be > 0.0","");
 
         T_electron[iz][iy][ix] = T_tmp;
         T_initial_set[iz][iy][ix] = 1;

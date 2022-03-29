@@ -31,7 +31,6 @@
 #include "memory.h"
 #include "my_page.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "potential_file_reader.h"
 #include "text_file_reader.h"
@@ -237,10 +236,7 @@ void PairAIREBO::init_style()
 
   // need a full neighbor list, including neighbors of ghosts
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->ghost = 1;
+  neighbor->add_request(this,NeighConst::REQ_FULL|NeighConst::REQ_GHOST);
 
   // local REBO neighbor list
   // create pages if first time or if neighbor pgsize/oneatom has changed
@@ -3485,8 +3481,8 @@ void PairAIREBO::read_file(char *filename)
       // global parameters
       current_section = "global parameters";
 
-      for (int i = 0; i < (int)params.size(); i++) {
-        *params[i] = reader.next_double();
+      for (auto & param : params) {
+        *param = reader.next_double();
       }
 
 

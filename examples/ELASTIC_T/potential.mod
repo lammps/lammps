@@ -1,6 +1,8 @@
 # NOTE: This script can be modified for different pair styles 
 # See in.elastic for more info.
 
+# we must undefine any fix ave/* fix before using reset_timestep
+if "$(is_defined(fix,avp)" then "unfix avp"
 reset_timestep 0
 
 # Choose potential

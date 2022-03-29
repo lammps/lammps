@@ -34,18 +34,18 @@ class ReadADIOSInternal;
 class ReaderADIOS : public Reader {
  public:
   ReaderADIOS(class LAMMPS *);
-  virtual ~ReaderADIOS();
+  ~ReaderADIOS() override;
 
-  virtual void settings(int, char **);
+  void settings(int, char **) override;
 
-  virtual int read_time(bigint &);
-  virtual void skip();
-  virtual bigint read_header(double[3][3], int &, int &, int, int, int *, char **, int, int, int &,
-                             int &, int &, int &);
-  virtual void read_atoms(int, int, double **);
+  int read_time(bigint &) override;
+  void skip() override;
+  bigint read_header(double[3][3], int &, int &, int, int, int *, char **, int, int, int &,
+                     int &, int &, int &) override;
+  void read_atoms(int, int, double **) override;
 
-  virtual void open_file(const char *);
-  virtual void close_file();
+  void open_file(const char *) override;
+  void close_file() override;
 
  private:
   int *fieldindex;         // mapping of input fields to dump

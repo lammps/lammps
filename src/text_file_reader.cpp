@@ -22,6 +22,7 @@
 #include "utils.h"
 
 #include <cstring>
+#include <utility>
 
 using namespace LAMMPS_NS;
 
@@ -68,8 +69,8 @@ This function is useful in combination with :cpp:func:`utils::open_potential`.
  * \param  fp        File descriptor of the already opened file
  * \param  filetype  Description of file type for error messages */
 
-TextFileReader::TextFileReader(FILE *fp, const std::string &filetype) :
-    filetype(filetype), closefp(false), fp(fp), ignore_comments(true)
+TextFileReader::TextFileReader(FILE *fp, std::string filetype) :
+    filetype(std::move(filetype)), closefp(false), fp(fp), ignore_comments(true)
 {
   if (fp == nullptr) throw FileReaderException("Invalid file descriptor");
 }
@@ -79,6 +80,13 @@ TextFileReader::TextFileReader(FILE *fp, const std::string &filetype) :
 TextFileReader::~TextFileReader()
 {
   if (closefp) fclose(fp);
+}
+
+/** Reset file to the beginning */
+
+void TextFileReader::rewind()
+{
+  ::rewind(fp);
 }
 
 /** Read the next line and ignore it */

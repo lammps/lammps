@@ -324,11 +324,6 @@ class TaskQueueSpecializationConstrained<
                 // count of 0 also. Otherwise, returns a task from another queue
                 // or `end` if one couldn't be popped
                 task = team_queue.attempt_to_steal_task();
-#if 0
-                if(task != no_more_tasks_sentinel && task != end) {
-                  std::printf("task stolen on rank %d\n", team_exec.league_rank());
-                }
-#endif
               }
 
               // If still tasks are still executing

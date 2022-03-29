@@ -45,7 +45,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "npair.h"
 #include "npair_half_bin_newton_ssa.h"
@@ -134,12 +133,8 @@ int FixShardlow::setmask()
 
 void FixShardlow::init()
 {
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair   = 0;
-  neighbor->requests[irequest]->fix    = 1;
-  neighbor->requests[irequest]->ghost  = 1;
-  neighbor->requests[irequest]->ssa    = 1;
-  neighbor->requests[irequest]->newton = 1; // SSA requires newton on
+  // SSA requires newton on
+  neighbor->add_request(this, NeighConst::REQ_GHOST|NeighConst::REQ_NEWTON_ON|NeighConst::REQ_SSA);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -549,12 +544,9 @@ void FixShardlow::initial_integrate(int /*vflag*/)
     error->all(FLERR,"Fix shardlow does not yet support triclinic geometries");
 
   if (rcut >= bbx || rcut >= bby || rcut>= bbz )
-  {
-    char fmt[] = {"Shardlow algorithm requires sub-domain length > 2*(rcut+skin). Either reduce the number of processors requested, or change the cutoff/skin: rcut= %e bbx= %e bby= %e bbz= %e\n"};
-    char *msg = (char *) malloc(sizeof(fmt) + 4*15);
-    sprintf(msg, fmt, rcut, bbx, bby, bbz);
-    error->one(FLERR, msg);
-  }
+    error->one(FLERR,"Shardlow algorithm requires sub-domain length > 2*(rcut+skin). "
+                    "Either reduce the number of processors requested, or change the cutoff/skin: "
+                    "rcut= {} bbx= {} bby= {} bbz= {}\n", rcut, bbx, bby, bbz);
 
   NPairHalfBinNewtonSSA *np_ssa = dynamic_cast<NPairHalfBinNewtonSSA*>(list->np);
   if (!np_ssa) error->one(FLERR, "NPair wasn't a NPairHalfBinNewtonSSA object");
@@ -610,7 +602,7 @@ void FixShardlow::initial_integrate(int /*vflag*/)
     int workItemCt = ssa_gphaseLen[workPhase];
 
     // Communicate the updated velocities to all nodes
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
 
     if (useDPDE) {
       // Zero out the ghosts' uCond & uMech to be used as delta accumulators
@@ -626,7 +618,7 @@ void FixShardlow::initial_integrate(int /*vflag*/)
     }
 
     // Communicate the ghost deltas to the atom owners
-    comm->reverse_comm_fix(this);
+    comm->reverse_comm(this);
 
   }  //End Loop over all directions For airnum = Top, Top-Right, Right, Bottom-Right, Back
 

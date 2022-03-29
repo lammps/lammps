@@ -82,20 +82,20 @@ struct MyComplex {
 template <class ExecSpace>
 struct TestMDRangeReduce {
   // 1D  View of double
-  using View_1D = typename Kokkos::View<value_type*, ExecSpace>;
+  using View_1D = Kokkos::View<value_type*, ExecSpace>;
 
   // 2D  View of double
-  using View_2D = typename Kokkos::View<value_type**, ExecSpace>;
+  using View_2D = Kokkos::View<value_type**, ExecSpace>;
 
   // Index Type for the iterator
   using int_index = Kokkos::IndexType<int>;
 
   // An MDRangePolicy for 2 nested loops
-  using MDPolicyType_2D = typename Kokkos::Experimental::MDRangePolicy<
-      ExecSpace, Kokkos::Experimental::Rank<2>, int_index>;
+  using MDPolicyType_2D =
+      Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>, int_index>;
 
   //  1D - complex View
-  using Complex_View_1D = typename Kokkos::View<MyComplex*, ExecSpace>;
+  using Complex_View_1D = Kokkos::View<MyComplex*, ExecSpace>;
 
   // Reduction when ExecPolicy = MDRangePolicy and ReducerArgument =
   // scalar/1-element view
@@ -176,7 +176,11 @@ struct TestMDRangeReduce {
 TEST(TEST_CATEGORY, incr_14_MDrangeReduce) {
   TestMDRangeReduce<TEST_EXECSPACE> test;
   test.reduce_MDRange();
+// FIXME_OPENMPTARGET: custom reductions are not yet supported in the
+// OpenMPTarget backend.
+#if !defined(KOKKOS_ENABLE_OPENMPTARGET)
   test.reduce_custom();
+#endif
 }
 
 }  // namespace Test

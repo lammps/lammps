@@ -27,6 +27,7 @@
 #include "output.h"
 #include "thermo.h"
 #include "timer.h"
+#include "tokenizer.h"
 #include "universe.h"
 #include "update.h"
 
@@ -94,7 +95,10 @@ NEB::~NEB()
   MPI_Comm_free(&roots);
   memory->destroy(all);
   delete[] rdist;
-  if (fp) fclose(fp);
+  if (fp) {
+    if (compressed) platform::pclose(fp);
+    else fclose(fp);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -170,12 +174,11 @@ void NEB::run()
   else color = 1;
   MPI_Comm_split(uworld,color,0,&roots);
 
-  int ineb;
-  for (ineb = 0; ineb < modify->nfix; ineb++)
-    if (strcmp(modify->fix[ineb]->style,"neb") == 0) break;
-  if (ineb == modify->nfix) error->all(FLERR,"NEB requires use of fix neb");
+  auto fixes = modify->get_fix_by_style("^neb$");
+  if (fixes.size() != 1)
+    error->all(FLERR,"NEB requires use of exactly one fix neb instance");
 
-  fneb = (FixNEB *) modify->fix[ineb];
+  fneb = (FixNEB *) fixes[0];
   if (verbose) numall =7;
   else  numall = 4;
   memory->create(all,nreplica,numall,"neb:all");
@@ -373,11 +376,11 @@ void NEB::run()
 
 void NEB::readfile(char *file, int flag)
 {
-  int i,j,m,nchunk,eofflag,nlines;
+  int i,nchunk,eofflag,nlines;
   tagint tag;
   char *eof,*start,*next,*buf;
   char line[MAXLINE];
-  double xx,yy,zz,delx,dely,delz;
+  double delx,dely,delz;
 
   if (me_universe == 0 && universe->uscreen)
     fprintf(universe->uscreen,"Reading NEB coordinate file(s) ...\n");
@@ -389,7 +392,7 @@ void NEB::readfile(char *file, int flag)
   if (flag == 0) {
     if (me_universe == 0) {
       open(file);
-      while (1) {
+      while (true) {
         eof = fgets(line,MAXLINE,fp);
         if (eof == nullptr) error->one(FLERR,"Unexpected end of NEB file");
         start = &line[strspn(line," \t\n\v\f\r")];
@@ -405,7 +408,7 @@ void NEB::readfile(char *file, int flag)
     if (me == 0) {
       if (ireplica) {
         open(file);
-        while (1) {
+        while (true) {
           eof = fgets(line,MAXLINE,fp);
           if (eof == nullptr) error->one(FLERR,"Unexpected end of NEB file");
           start = &line[strspn(line," \t\n\v\f\r")];
@@ -421,10 +424,7 @@ void NEB::readfile(char *file, int flag)
   }
 
   char *buffer = new char[CHUNK*MAXLINE];
-  char **values = new char*[ATTRIBUTE_PERLINE];
-
   double fraction = ireplica/(nreplica-1.0);
-
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
@@ -432,9 +432,7 @@ void NEB::readfile(char *file, int flag)
   // two versions of read_lines_from_file() for world vs universe bcast
   // count # of atom coords changed so can check for invalid atom IDs in file
 
-  int ncount = 0;
-
-  int nread = 0;
+  int ncount = 0, nread = 0;
   while (nread < nlines) {
     nchunk = MIN(nlines-nread,CHUNK);
     if (flag == 0)
@@ -458,49 +456,47 @@ void NEB::readfile(char *file, int flag)
 
     for (i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
+      *next = '\0';
 
-      values[0] = strtok(buf," \t\n\r\f");
-      for (j = 1; j < nwords; j++)
-        values[j] = strtok(nullptr," \t\n\r\f");
+      try {
+        ValueTokenizer values(buf," \t\n\r\f");
 
-      // adjust atom coord based on replica fraction
-      // for flag = 0, interpolate for intermediate and final replicas
-      // for flag = 1, replace existing coord with new coord
-      // ignore image flags of replica x
-      // displacement from first replica is via minimum image convention
-      // if x of some replica is across periodic boundary:
-      //   new x may be outside box
-      //   will be remapped back into box when simulation starts
-      //   its image flags will then be adjusted
+        // adjust atom coord based on replica fraction
+        // for flag = 0, interpolate for intermediate and final replicas
+        // for flag = 1, replace existing coord with new coord
+        // ignore image flags of replica x
+        // displacement from first replica is via minimum image convention
+        // if x of some replica is across periodic boundary:
+        //   new x may be outside box
+        //   will be remapped back into box when simulation starts
+        //   its image flags will then be adjusted
 
-      tag = ATOTAGINT(values[0]);
-      m = atom->map(tag);
-      if (m >= 0 && m < nlocal) {
-        ncount++;
-        xx = atof(values[1]);
-        yy = atof(values[2]);
-        zz = atof(values[3]);
+        tag = values.next_tagint();
+        int m = atom->map(tag);
+        if (m >= 0 && m < nlocal) {
+          ncount++;
 
-        delx = xx - x[m][0];
-        dely = yy - x[m][1];
-        delz = zz - x[m][2];
+          delx = values.next_double() - x[m][0];
+          dely = values.next_double() - x[m][1];
+          delz = values.next_double() - x[m][2];
 
-        domain->minimum_image(delx,dely,delz);
+          domain->minimum_image(delx,dely,delz);
 
-        if (flag == 0) {
-          x[m][0] += fraction*delx;
-          x[m][1] += fraction*dely;
-          x[m][2] += fraction*delz;
-        } else {
-          x[m][0] += delx;
-          x[m][1] += dely;
-          x[m][2] += delz;
+          if (flag == 0) {
+            x[m][0] += fraction*delx;
+            x[m][1] += fraction*dely;
+            x[m][2] += fraction*delz;
+          } else {
+            x[m][0] += delx;
+            x[m][1] += dely;
+            x[m][2] += delz;
+          }
         }
+      } catch (std::exception &e) {
+        error->universe_one(FLERR,"Incorrectly formatted NEB file: " + std::string(e.what()));
       }
-
       buf = next + 1;
     }
-
     nread += nchunk;
   }
 
@@ -519,18 +515,16 @@ void NEB::readfile(char *file, int flag)
   }
 
   // clean up
-
-  delete [] buffer;
-  delete [] values;
+  delete[] buffer;
 
   if (flag == 0) {
     if (me_universe == 0) {
-      if (compressed) pclose(fp);
+      if (compressed) platform::pclose(fp);
       else fclose(fp);
     }
   } else {
     if (me == 0 && ireplica) {
-      if (compressed) pclose(fp);
+      if (compressed) platform::pclose(fp);
       else fclose(fp);
     }
   }
@@ -539,28 +533,17 @@ void NEB::readfile(char *file, int flag)
 
 /* ----------------------------------------------------------------------
    universe proc 0 opens NEB data file
-   test if gzipped
+   test if compressed
 ------------------------------------------------------------------------- */
 
 void NEB::open(char *file)
 {
   compressed = 0;
-  char *suffix = file + strlen(file) - 3;
-  if (suffix > file && strcmp(suffix,".gz") == 0) compressed = 1;
-  if (!compressed) fp = fopen(file,"r");
-  else {
-#ifdef LAMMPS_GZIP
-    auto gunzip = std::string("gzip -c -d ") + file;
-#ifdef _WIN32
-    fp = _popen(gunzip.c_str(),"rb");
-#else
-    fp = popen(gunzip.c_str(),"r");
-#endif
-
-#else
-    error->one(FLERR,"Cannot open gzipped file");
-#endif
-  }
+  if (platform::has_compress_extension(file)) {
+    compressed = 1;
+    fp = platform::compressed_read(file);
+    if (!fp) error->one(FLERR,"Cannot open compressed file");
+  } else fp = fopen(file,"r");
 
   if (fp == nullptr)
     error->one(FLERR,"Cannot open file {}: {}",file,utils::getsyserror());

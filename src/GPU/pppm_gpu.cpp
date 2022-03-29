@@ -245,7 +245,7 @@ void PPPMGPU::compute(int eflag, int vflag)
 
   if (triclinic) make_rho();
 
-  double t3 = MPI_Wtime();
+  double t3 = platform::walltime();
 
   // all procs communicate density values from their ghost cells
   //   to fully sum contribution in their 3d bricks
@@ -288,7 +288,7 @@ void PPPMGPU::compute(int eflag, int vflag)
                        FORWARD_IK_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   }
 
-  poisson_time += MPI_Wtime()-t3;
+  poisson_time += platform::walltime()-t3;
 
   // calculate the force on my particles
 

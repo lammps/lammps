@@ -388,7 +388,7 @@ char *FixMDIEngine::engine_mode(const char *node)
 
   // respond to commands from the driver
 
-  while (not exit_flag and not local_exit_flag) {
+  while (!exit_flag && !local_exit_flag) {
 
     // read the next command from the driver
     // all procs call this, but only proc 0 receives the command

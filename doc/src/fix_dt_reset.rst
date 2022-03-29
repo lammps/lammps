@@ -78,13 +78,20 @@ outer loop (largest) timestep, which is the same timestep that the
 
 Note that the cumulative simulation time (in time units), which
 accounts for changes in the timestep size as a simulation proceeds,
-can be accessed by the :doc:`thermo_style time <thermo_style>` keyword.
+can be accessed by the :doc:`thermo_style time <thermo_style>`
+keyword.
+
+Also note that the :doc:`dump_modify every/time <dump_modify>` option
+allows dump files to be written at intervals specified by simulation
+time, rather than by timesteps.  Simulation time is in time units;
+see the :doc:`units <units>` doc page for details.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
-are relevant to this fix.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.  None of the :doc:`fix_modify <fix_modify>` options are
+relevant to this fix.
 
 This fix computes a global scalar which can be accessed by various
 :doc:`output commands <Howto_output>`.  The scalar stores the last
@@ -93,7 +100,8 @@ timestep on which the timestep was reset to a new value.
 The scalar value calculated by this fix is "intensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+the :doc:`run <run>` command.  This fix is not invoked during
+:doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
@@ -102,7 +110,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`timestep <timestep>`
+:doc:`timestep <timestep>`, :doc:`dump_modify every/time <dump_modify>`
 
 Default
 """""""

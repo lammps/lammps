@@ -166,6 +166,7 @@ page are followed by one or more of (g,i,k,o,t) to indicate which
 accelerated styles exist.
 
 * :doc:`accelerate/cos <fix_accelerate_cos>` - apply cosine-shaped acceleration to atoms
+* :doc:`acks2/reaxff <fix_acks2_reaxff>` - apply ACKS2 charge equilibration
 * :doc:`adapt <fix_adapt>` - change a simulation parameter over time
 * :doc:`adapt/fep <fix_adapt_fep>` - enhanced version of fix adapt
 * :doc:`addforce <fix_addforce>` - add a force to each atom
@@ -197,6 +198,7 @@ accelerated styles exist.
 * :doc:`cmap <fix_cmap>` - enables CMAP cross-terms of the CHARMM force field
 * :doc:`colvars <fix_colvars>` - interface to the collective variables "Colvars" library
 * :doc:`controller <fix_controller>` - apply control loop feedback mechanism
+* :doc:`damping/cundall <fix_damping_cundall>` - Cundall non-viscous damping for granular simulations
 * :doc:`deform <fix_deform>` - change the simulation box size/shape
 * :doc:`deposit <fix_deposit>` - add new atoms above a surface
 * :doc:`dpd/energy <fix_dpd_energy>` - constant energy dissipative particle dynamics
@@ -239,13 +241,12 @@ accelerated styles exist.
 * :doc:`latte <fix_latte>` - wrapper on LATTE density-functional tight-binding code
 * :doc:`lb/fluid <fix_lb_fluid>` -
 * :doc:`lb/momentum <fix_lb_momentum>` -
-* :doc:`lb/pc <fix_lb_pc>` -
-* :doc:`lb/rigid/pc/sphere <fix_lb_rigid_pc_sphere>` -
 * :doc:`lb/viscous <fix_lb_viscous>` -
 * :doc:`lineforce <fix_lineforce>` - constrain atoms to move in a line
 * :doc:`manifoldforce <fix_manifoldforce>` - restrain atoms to a manifold during minimization
 * :doc:`mdi/engine <fix_mdi_engine>` - connect LAMMPS to external programs via the MolSSI Driver Interface (MDI)
 * :doc:`meso/move <fix_meso_move>` - move mesoscopic SPH/SDPD particles in a prescribed fashion
+* :doc:`mol/swap <fix_mol_swap>` - Monte Carlo atom type swapping with a molecule
 * :doc:`momentum <fix_momentum>` - zero the linear and/or angular momentum of a group of atoms
 * :doc:`momentum/chunk <fix_momentum>` - zero the linear and/or angular momentum of a chunk of atoms
 * :doc:`move <fix_move>` - move atoms in a prescribed fashion
@@ -269,7 +270,8 @@ accelerated styles exist.
 * :doc:`npt/eff <fix_nh_eff>` - NPT for  nuclei and electrons in the electron force field model
 * :doc:`npt/sphere <fix_npt_sphere>` - NPT for spherical particles
 * :doc:`npt/uef <fix_nh_uef>` - NPT style time integration with diagonal flow
-* :doc:`numdiff <fix_numdiff>` - compute derivatives of per-atom data from finite differences
+* :doc:`numdiff <fix_numdiff>` - numerically approximate atomic forces using finite energy differences
+* :doc:`numdiff/virial <fix_numdiff_virial>` - numerically approximate virial stress tensor using finite energy differences
 * :doc:`nve <fix_nve>` - constant NVE time integration
 * :doc:`nve/asphere <fix_nve_asphere>` - NVE for aspherical particles
 * :doc:`nve/asphere/noforce <fix_nve_asphere_noforce>` - NVE for aspherical particles without forces
@@ -385,6 +387,7 @@ accelerated styles exist.
 * :doc:`vector <fix_vector>` - accumulate a global vector every N timesteps
 * :doc:`viscosity <fix_viscosity>` - Muller-Plathe momentum exchange for viscosity calculation
 * :doc:`viscous <fix_viscous>` - viscous damping for granular simulations
+* :doc:`viscous/sphere <fix_viscous_sphere>` - viscous damping on angular velocity for granular simulations
 * :doc:`wall/body/polygon <fix_wall_body_polygon>` -
 * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>` -
 * :doc:`wall/colloid <fix_wall>` - Lennard-Jones wall interacting with finite-size particles

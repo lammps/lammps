@@ -138,7 +138,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
         mass_rigid[i] = mass_body[body[i]];
       else
         mass_rigid[i] = 0.0;
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
   }
 
   double **x = atom->x;
@@ -264,11 +264,12 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
         }
         shrmag = sqrt(shear[0] * shear[0] + shear[1] * shear[1] + shear[2] * shear[2]);
 
-        // rotate shear displacements
-
-        rsht = shear[0] * delx + shear[1] * dely + shear[2] * delz;
-        rsht *= rsqinv;
         if (shearupdate) {
+
+          // rotate shear displacements
+
+          rsht = shear[0] * delx + shear[1] * dely + shear[2] * delz;
+          rsht *= rsqinv;
           shear[0] -= rsht * delx;
           shear[1] -= rsht * dely;
           shear[2] -= rsht * delz;
@@ -430,11 +431,10 @@ void PairGranHookeHistory::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR, "Pair granular requires ghost atoms store velocity");
 
-  // need a granular neigh list
+  // need a granular neighbor list
 
-  int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->size = 1;
-  if (history) neighbor->requests[irequest]->history = 1;
+  if (history) neighbor->add_request(this, NeighConst::REQ_SIZE|NeighConst::REQ_HISTORY);
+  else neighbor->add_request(this, NeighConst::REQ_SIZE);
 
   dt = update->dt;
 
@@ -451,24 +451,29 @@ void PairGranHookeHistory::init_style()
 
   // check for FixFreeze and set freeze_group_bit
 
-  int ifreeze = modify->find_fix_by_style("^freeze");
-  if (ifreeze < 0)
+  auto fixlist = modify->get_fix_by_style("^freeze");
+  if (fixlist.size() == 0)
     freeze_group_bit = 0;
+  else if (fixlist.size() > 1)
+    error->all(FLERR, "Only one fix freeze command at a time allowed");
   else
-    freeze_group_bit = modify->fix[ifreeze]->groupbit;
+    freeze_group_bit = fixlist.front()->groupbit;
 
   // check for FixRigid so can extract rigid body masses
-  // FIXME: this only catches the first rigid fix, there may be multiple.
 
   fix_rigid = nullptr;
-  for (i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->rigid_flag) break;
-  if (i < modify->nfix) fix_rigid = modify->fix[i];
+  for (const auto &ifix : modify->get_fix_list()) {
+    if (ifix->rigid_flag) {
+      if (fix_rigid)
+        error->all(FLERR, "Only one fix rigid command at a time allowed");
+      else fix_rigid = ifix;
+    }
+  }
 
   // check for FixPour and FixDeposit so can extract particle radii
 
-  int ipour = modify->find_fix_by_style("^pour");
-  int idep = modify->find_fix_by_style("^deposit");
+  auto pours = modify->get_fix_by_style("^pour");
+  auto deps = modify->get_fix_by_style("^deposit");
 
   // set maxrad_dynamic and maxrad_frozen for each type
   // include future FixPour and FixDeposit particles as dynamic
@@ -476,13 +481,15 @@ void PairGranHookeHistory::init_style()
   int itype;
   for (i = 1; i <= atom->ntypes; i++) {
     onerad_dynamic[i] = onerad_frozen[i] = 0.0;
-    if (ipour >= 0) {
+    for (auto &ipour : pours) {
       itype = i;
-      onerad_dynamic[i] = *((double *) modify->fix[ipour]->extract("radius", itype));
+      double maxrad = *((double *) ipour->extract("radius", itype));
+      if (maxrad > 0.0) onerad_dynamic[i] = maxrad;
     }
-    if (idep >= 0) {
+    for (auto &idep : deps) {
       itype = i;
-      onerad_dynamic[i] = *((double *) modify->fix[idep]->extract("radius", itype));
+      double maxrad = *((double *) idep->extract("radius", itype));
+      if (maxrad > 0.0) onerad_dynamic[i] = maxrad;
     }
   }
 
@@ -491,11 +498,12 @@ void PairGranHookeHistory::init_style()
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
-  for (i = 0; i < nlocal; i++)
+  for (i = 0; i < nlocal; i++) {
     if (mask[i] & freeze_group_bit)
       onerad_frozen[type[i]] = MAX(onerad_frozen[type[i]], radius[i]);
     else
       onerad_dynamic[type[i]] = MAX(onerad_dynamic[type[i]], radius[i]);
+  }
 
   MPI_Allreduce(&onerad_dynamic[1], &maxrad_dynamic[1], atom->ntypes, MPI_DOUBLE, MPI_MAX, world);
   MPI_Allreduce(&onerad_frozen[1], &maxrad_frozen[1], atom->ntypes, MPI_DOUBLE, MPI_MAX, world);
@@ -503,9 +511,8 @@ void PairGranHookeHistory::init_style()
   // set fix which stores history info
 
   if (history) {
-    int ifix = modify->find_fix("NEIGH_HISTORY_HH" + std::to_string(instance_me));
-    if (ifix < 0) error->all(FLERR, "Could not find pair fix neigh history ID");
-    fix_history = (FixNeighHistory *) modify->fix[ifix];
+    fix_history = (FixNeighHistory *) modify->get_fix_by_id("NEIGH_HISTORY_HH" + std::to_string(instance_me));
+    if (!fix_history) error->all(FLERR,"Could not find pair fix neigh history ID");
   }
 }
 
@@ -609,7 +616,7 @@ double PairGranHookeHistory::single(int i, int j, int /*itype*/, int /*jtype*/, 
   double r, rinv, rsqinv, delx, dely, delz;
   double vr1, vr2, vr3, vnnr, vn1, vn2, vn3, vt1, vt2, vt3, wr1, wr2, wr3;
   double mi, mj, meff, damp, ccel;
-  double vtr1, vtr2, vtr3, vrel, shrmag, rsht;
+  double vtr1, vtr2, vtr3, vrel, shrmag;
   double fs1, fs2, fs3, fs, fn;
 
   double *radius = atom->radius;
@@ -710,11 +717,6 @@ double PairGranHookeHistory::single(int i, int j, int /*itype*/, int /*jtype*/, 
 
   double *shear = &allshear[3 * neighprev];
   shrmag = sqrt(shear[0] * shear[0] + shear[1] * shear[1] + shear[2] * shear[2]);
-
-  // rotate shear displacements
-
-  rsht = shear[0] * delx + shear[1] * dely + shear[2] * delz;
-  rsht *= rsqinv;
 
   // tangential forces = shear + tangential velocity damping
 

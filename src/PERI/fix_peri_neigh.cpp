@@ -18,7 +18,6 @@
 
 #include "fix_peri_neigh.h"
 
-#include <cmath>
 #include "pair_peri_lps.h"
 #include "pair_peri_ves.h"
 #include "pair_peri_eps.h"
@@ -33,6 +32,9 @@
 #include "lattice.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -68,6 +70,7 @@ FixPeriNeigh::FixPeriNeigh(LAMMPS *lmp,int narg, char **arg) :
   wvolume = nullptr;
 
   grow_arrays(atom->nmax);
+  memset(wvolume,0,atom->nmax*sizeof(double));
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
 
@@ -119,12 +122,7 @@ void FixPeriNeigh::init()
 
   // need a full neighbor list once
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix  = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this,NeighConst::REQ_FULL|NeighConst::REQ_OCCASIONAL);
 
   // compute PD scale factor, stored in Atom class, used by DumpCFG
 
@@ -369,7 +367,7 @@ void FixPeriNeigh::setup(int /*vflag*/)
 
   // communicate wvolume to ghosts
 
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   // bond statistics
 

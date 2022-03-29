@@ -79,7 +79,7 @@ int main(int argc, char **argv)
     KokkosLMP::finalize();
     Python::finalize();
     MPI_Abort(ae.universe, 1);
-  } catch (LAMMPSException &e) {
+  } catch (LAMMPSException &) {
     KokkosLMP::finalize();
     Python::finalize();
     MPI_Barrier(lammps_comm);

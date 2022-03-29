@@ -27,17 +27,17 @@ namespace LAMMPS_NS {
 class FixAveAtom : public Fix {
  public:
   FixAveAtom(class LAMMPS *, int, char **);
-  ~FixAveAtom();
-  int setmask();
-  void init();
-  void setup(int);
-  void end_of_step();
+  ~FixAveAtom() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void end_of_step() override;
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
 
  private:
   int nvalues;

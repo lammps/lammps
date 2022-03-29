@@ -148,7 +148,7 @@ PairKIM::PairKIM(LAMMPS *lmp) :
 PairKIM::~PairKIM()
 {
   // clean up kim_modelname
-  if (kim_modelname != 0) delete [] kim_modelname;
+  if (kim_modelname != nullptr) delete [] kim_modelname;
 
   // clean up lammps atom species number to unique particle names mapping
   if (lmps_unique_elements)
@@ -169,7 +169,7 @@ PairKIM::~PairKIM()
   // clean up lmps_stripped_neigh_ptr
   if (lmps_stripped_neigh_ptr) {
     delete [] lmps_stripped_neigh_ptr;
-    lmps_stripped_neigh_ptr = 0;
+    lmps_stripped_neigh_ptr = nullptr;
   }
 
   // clean up allocated memory for standard Pair class usage
@@ -184,7 +184,7 @@ PairKIM::~PairKIM()
   // clean up neighborlist pointers
   if (neighborLists) {
     delete [] neighborLists;
-    neighborLists = 0;
+    neighborLists = nullptr;
   }
 
   // clean up KIM interface (if necessary)
@@ -259,7 +259,7 @@ void PairKIM::compute(int eflag, int vflag)
 
   // if newton is off, perform reverse comm
   if (!lmps_using_newton) {
-    comm->reverse_comm_pair(this);
+    comm->reverse_comm(this);
   }
 
   if ((vflag_atom != 0) &&
@@ -330,9 +330,9 @@ void PairKIM::settings(int narg, char **arg)
   set_lmps_flags();
 
   // set KIM Model name
-  if (kim_modelname != 0) {
+  if (kim_modelname != nullptr) {
     delete [] kim_modelname;
-    kim_modelname = 0;
+    kim_modelname = nullptr;
   }
   kim_modelname = utils::strdup(arg[0]);
 
@@ -385,7 +385,7 @@ void PairKIM::coeff(int narg, char **arg)
     delete [] lmps_unique_elements;
   }
   lmps_unique_elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) lmps_unique_elements[i] = 0;
+  for (i = 0; i < atom->ntypes; i++) lmps_unique_elements[i] = nullptr;
 
   // Assume all species arguments are valid
   // errors will be detected by below
@@ -600,25 +600,16 @@ void PairKIM::init_style()
 
   // request full neighbor
   for (int i = 0; i < kim_number_of_neighbor_lists; ++i) {
-    int irequest = neighbor->request(this,instance_me);
-    neighbor->requests[irequest]->id = i;
-    neighbor->requests[irequest]->half = 0;
-    neighbor->requests[irequest]->full = 1;
-
-    if (modelWillNotRequestNeighborsOfNoncontributingParticles[i])
-      neighbor->requests[irequest]->ghost = 0;
-    else
-      neighbor->requests[irequest]->ghost = 1;
-
-    // always want all owned/ghost pairs
-    neighbor->requests[irequest]->newton = 2;
+    int neighflags = NeighConst::REQ_FULL | NeighConst::REQ_NEWTON_OFF;
+    if (!modelWillNotRequestNeighborsOfNoncontributingParticles[i])
+      neighflags |= NeighConst::REQ_GHOST;
+    auto req = neighbor->add_request(this, neighflags);
+    req->set_id(i);
 
     // set cutoff
-    neighbor->requests[irequest]->cut = 1;
     if (kim_cutoff_values[i] <= neighbor->skin)
       error->all(FLERR,"Illegal neighbor request (force cutoff <= skin)");
-    neighbor->requests[irequest]->cutoff
-      = kim_cutoff_values[i] + neighbor->skin;
+    req->set_cutoff(kim_cutoff_values[i] + neighbor->skin);
   }
   // increment instance_me in case of need to change the neighbor list
   // request settings

@@ -293,7 +293,7 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
   char line[MAXLINE], *ptr;
   int n, eof = 0;
 
-  while (1) {
+  while (true) {
     if (comm->me == 0) {
       ptr = fgets(line, MAXLINE,fp);
       if (ptr == nullptr) {

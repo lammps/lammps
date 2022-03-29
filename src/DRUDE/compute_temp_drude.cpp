@@ -89,9 +89,7 @@ void ComputeTempDrude::dof_compute()
   int dim = domain->dimension;
   int *drudetype = fix_drude->drudetype;
 
-  fix_dof = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    fix_dof += modify->fix[i]->dof(igroup);
+  adjust_dof_fix();
 
   bigint dof_core_loc = 0, dof_drude_loc = 0;
   for (int i = 0; i < nlocal; i++) {

@@ -142,12 +142,7 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg], "overlap") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
-      if (strcmp(arg[iarg + 1], "yes") == 0)
-        overlap = 1;
-      else if (strcmp(arg[iarg + 1], "no") == 0)
-        overlap = 0;
-      else
-        error->all(FLERR, "Illegal fix srd command");
+      overlap = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "inside") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
@@ -162,12 +157,7 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg], "exact") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
-      if (strcmp(arg[iarg + 1], "yes") == 0)
-        exactflag = 1;
-      else if (strcmp(arg[iarg + 1], "no") == 0)
-        exactflag = 0;
-      else
-        error->all(FLERR, "Illegal fix srd command");
+      exactflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "radius") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
@@ -206,12 +196,7 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) :
       iarg += 3;
     } else if (strcmp(arg[iarg], "tstat") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
-      if (strcmp(arg[iarg + 1], "no") == 0)
-        tstat = 0;
-      else if (strcmp(arg[iarg + 1], "yes") == 0)
-        tstat = 1;
-      else
-        error->all(FLERR, "Illegal fix srd command");
+      tstat = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "rescale") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
@@ -790,7 +775,7 @@ void FixSRD::post_force(int /*vflag*/)
   if (bigexist) {
     flocal = f;
     tlocal = torque;
-    comm->reverse_comm_fix(this);
+    comm->reverse_comm(this);
   }
 
   // if any SRD particle has moved too far, trigger reneigh on next step
@@ -1448,7 +1433,7 @@ void FixSRD::collisions_multi()
     jlast = -1;
     dt = dt_big;
 
-    while (1) {
+    while (true) {
       nbig = nbinbig[ibin];
       if (ibounce == 0) ncheck += nbig;
 
@@ -2278,7 +2263,7 @@ void FixSRD::slip(double *vs, double *vb, double *xb, Big *big, double *xsurf, d
   double tangent[3], vsurf[3];
   double *omega = big->omega;
 
-  while (1) {
+  while (true) {
     r1 = sigma * random->gaussian();
     r2 = sigma * random->gaussian();
     vnmag = sqrt(r1 * r1 + r2 * r2);
@@ -2334,7 +2319,7 @@ void FixSRD::slip_wall(double *vs, int iwall, double *norm, double *vsnew)
   tangent2[1] = norm[2] * tangent1[0] - norm[0] * tangent1[2];
   tangent2[2] = norm[0] * tangent1[1] - norm[1] * tangent1[0];
 
-  while (1) {
+  while (true) {
     r1 = sigma * random->gaussian();
     r2 = sigma * random->gaussian();
     vnmag = sqrt(r1 * r1 + r2 * r2);
@@ -2385,7 +2370,7 @@ void FixSRD::noslip(double *vs, double *vb, double *xb, Big *big, int iwall, dou
   tangent2[1] = norm[2] * tangent1[0] - norm[0] * tangent1[2];
   tangent2[2] = norm[0] * tangent1[1] - norm[1] * tangent1[0];
 
-  while (1) {
+  while (true) {
     r1 = sigma * random->gaussian();
     r2 = sigma * random->gaussian();
     vnmag = sqrt(r1 * r1 + r2 * r2);

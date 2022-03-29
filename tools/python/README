@@ -6,14 +6,14 @@ functionality that could be added, built on the Pizza.py modules (as
 explained below), send email to Steve Plimpton (sjplimp at
 sandia.gov).
 
-log2txt.py	convert thermo info in a LAMMPS log file to columns of numbers
-logplot.py	plot 2 columns of thermo info from a LAMMPS log file
-dumpsort.py	sort the snapshots of atoms in a LAMMPS dump file by atom ID
-dump2cfg.py	convert a native LAMMPS dump file to CFG format
-dump2xyz.py	convert a native LAMMPS dump file to XYZ format
-dump2pdb.py	convert a native LAMMPS dump file to PDB format
-neb_combine.py	combine multiple NEB dump files into one time series
-neb_final.py	combine multiple NEB final states into one sequence of states
+log2txt.py      convert thermo info in a LAMMPS log file to columns of numbers
+logplot.py      plot 2 columns of thermo info from a LAMMPS log file
+dumpsort.py     sort the snapshots of atoms in a LAMMPS dump file by atom ID
+dump2cfg.py     convert a native LAMMPS dump file to CFG format
+dump2xyz.py     convert a native LAMMPS dump file to XYZ format
+dump2pdb.py     convert a native LAMMPS dump file to PDB format
+neb_combine.py  combine multiple NEB dump files into one time series
+neb_final.py    combine multiple NEB final states into one sequence of states
 
 See the top of each script file for syntax, or just run it with no
 arguments to get a syntax message.
@@ -68,7 +68,7 @@ directory where your data files are.
 The latter requires 2 things:
 
 1) that the script be made "executable", e.g. type "chmod +x log2txt.py"
-2) that the 1st line of the script is the path of the Python installed 
+2) that the 1st line of the script is the path of the Python installed
    on your box, e.g. /usr/local/bin/python
 
 IMPORTANT NOTE: If you run the logplot.py script using the 1st method

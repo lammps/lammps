@@ -13,14 +13,12 @@
 
 #include "lmptype.h"
 #include "pointers.h"
-#include "utils.h"
 #include "tokenizer.h"
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 #include <cerrno>
-#include <cstdio>
 #include <string>
 #include <vector>
 
@@ -64,6 +62,14 @@ TEST(Utils, trim)
 
     trimmed = utils::trim("  \t\n   ");
     ASSERT_THAT(trimmed, StrEq(""));
+}
+
+TEST(Utils, casemod)
+{
+    ASSERT_THAT(utils::lowercase("Gba35%*zAKgRvr"), StrEq("gba35%*zakgrvr"));
+    ASSERT_THAT(utils::lowercase("A BC DEFG"), StrEq("a bc defg"));
+    ASSERT_THAT(utils::uppercase("Gba35%*zAKgRvr"), StrEq("GBA35%*ZAKGRVR"));
+    ASSERT_THAT(utils::uppercase("a bc defg"), StrEq("A BC DEFG"));
 }
 
 TEST(Utils, trim_comment)
@@ -721,54 +727,6 @@ TEST(Utils, boundsbig_case3)
     ASSERT_EQ(nhi, -1);
 }
 
-TEST(Utils, guesspath)
-{
-    char buf[256];
-    FILE *fp = fopen("test_guesspath.txt", "w");
-#if defined(__linux__) || defined(__APPLE__) || defined(_WIN32)
-    const char *path = utils::guesspath(buf, sizeof(buf), fp);
-    ASSERT_THAT(path, EndsWith("test_guesspath.txt"));
-#else
-    const char *path = utils::guesspath(buf, sizeof(buf), fp);
-    ASSERT_THAT(path, EndsWith("(unknown)"));
-#endif
-    fclose(fp);
-}
-
-TEST(Utils, path_join)
-{
-#if defined(_WIN32)
-    ASSERT_THAT(utils::path_join("c:\\parent\\folder", "filename"),
-                Eq("c:\\parent\\folder\\filename"));
-#else
-    ASSERT_THAT(utils::path_join("/parent/folder", "filename"), Eq("/parent/folder/filename"));
-#endif
-}
-
-TEST(Utils, path_basename)
-{
-#if defined(_WIN32)
-    ASSERT_THAT(utils::path_basename("c:\\parent\\folder\\filename"), Eq("filename"));
-    ASSERT_THAT(utils::path_basename("folder\\"), Eq(""));
-    ASSERT_THAT(utils::path_basename("c:/parent/folder/filename"), Eq("filename"));
-#else
-    ASSERT_THAT(utils::path_basename("/parent/folder/filename"), Eq("filename"));
-    ASSERT_THAT(utils::path_basename("/parent/folder/"), Eq(""));
-#endif
-}
-
-TEST(Utils, path_dirname)
-{
-#if defined(_WIN32)
-    ASSERT_THAT(utils::path_dirname("c:/parent/folder/filename"), Eq("c:/parent/folder"));
-    ASSERT_THAT(utils::path_dirname("c:\\parent\\folder\\filename"), Eq("c:\\parent\\folder"));
-    ASSERT_THAT(utils::path_dirname("c:filename"), Eq("."));
-#else
-    ASSERT_THAT(utils::path_dirname("/parent/folder/filename"), Eq("/parent/folder"));
-#endif
-    ASSERT_THAT(utils::path_dirname("filename"), Eq("."));
-}
-
 TEST(Utils, getsyserror)
 {
 #if defined(__linux__)
@@ -792,16 +750,16 @@ TEST(Utils, potential_file)
     fputs("# CONTRIBUTOR: Pippo\n", fp);
     fclose(fp);
 
-    ASSERT_TRUE(utils::file_is_readable("ctest1.txt"));
-    ASSERT_TRUE(utils::file_is_readable("ctest2.txt"));
-    ASSERT_FALSE(utils::file_is_readable("no_such_file.txt"));
+    ASSERT_TRUE(platform::file_is_readable("ctest1.txt"));
+    ASSERT_TRUE(platform::file_is_readable("ctest2.txt"));
+    ASSERT_FALSE(platform::file_is_readable("no_such_file.txt"));
 
     ASSERT_THAT(utils::get_potential_file_path("ctest1.txt"), Eq("ctest1.txt"));
     ASSERT_THAT(utils::get_potential_file_path("no_such_file.txt"), Eq(""));
 
     const char *folder = getenv("LAMMPS_POTENTIALS");
     if (folder != nullptr) {
-        std::string path = utils::path_join(folder, "Cu_u3.eam");
+        std::string path = platform::path_join(folder, "Cu_u3.eam");
         EXPECT_THAT(utils::get_potential_file_path("Cu_u3.eam"), Eq(path));
         EXPECT_THAT(utils::get_potential_units(path, "EAM"), Eq("metal"));
     }
@@ -880,15 +838,15 @@ TEST(Utils, date2num)
 
 TEST(Utils, current_date)
 {
-    auto vals = ValueTokenizer(utils::current_date(),"-");
-    int year = vals.next_int();
+    auto vals = ValueTokenizer(utils::current_date(), "-");
+    int year  = vals.next_int();
     int month = vals.next_int();
-    int day = vals.next_int();
-    ASSERT_GT(year,2020);
-    ASSERT_GE(month,1);
-    ASSERT_GE(day,1);
-    ASSERT_LE(month,12);
-    ASSERT_LE(day,31);
+    int day   = vals.next_int();
+    ASSERT_GT(year, 2020);
+    ASSERT_GE(month, 1);
+    ASSERT_GE(day, 1);
+    ASSERT_LE(month, 12);
+    ASSERT_LE(day, 31);
 }
 
 TEST(Utils, binary_search)

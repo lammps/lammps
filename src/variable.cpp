@@ -39,7 +39,6 @@
 #include <cctype>
 #include <cmath>
 #include <cstring>
-#include <unistd.h>
 #include <unordered_map>
 
 using namespace LAMMPS_NS;
@@ -692,11 +691,11 @@ int Variable::next(int narg, char **arg)
       int seed = 12345 + universe->me + which[find(arg[0])];
       if (!random) random = new RanMars(lmp,seed);
       int delay = (int) (1000000*random->uniform());
-      usleep(delay);
-      while (1) {
+      platform::usleep(delay);
+      while (true) {
         if (!rename("tmp.lammps.variable","tmp.lammps.variable.lock")) break;
         delay = (int) (1000000*random->uniform());
-        usleep(delay);
+        platform::usleep(delay);
       }
 
       // if the file cannot be found, we may have a race with some
@@ -719,7 +718,7 @@ int Variable::next(int narg, char **arg)
            break;
         }
         delay = (int) (1000000*random->uniform());
-        usleep(delay);
+        platform::usleep(delay);
       }
       delete random;
       random = nullptr;
@@ -964,8 +963,7 @@ double Variable::compute_equal(int ivar)
   else if (style[ivar] == PYTHON) {
     int ifunc = python->find(data[ivar][0]);
     if (ifunc < 0)
-      print_var_error(FLERR,fmt::format("cannot find python function {}",
-                                        data[ivar][0]),ivar);
+      print_var_error(FLERR,fmt::format("cannot find python function {}",data[ivar][0]),ivar);
     python->invoke_function(ifunc,data[ivar][1]);
     value = atof(data[ivar][1]);
   }
@@ -1235,7 +1233,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
   if (str == nullptr)
     print_var_error(FLERR,"Invalid syntax in variable formula",ivar);
 
-  while (1) {
+  while (true) {
     onechar = str[i];
 
     // whitespace: just skip
@@ -1325,10 +1323,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
       // compute
       // ----------------
 
-      if (strncmp(word,"c_",2) == 0 || strncmp(word,"C_",2) == 0) {
+      if (utils::strmatch(word,"^[Cc]_")) {
         if (domain->box_exist == 0)
-          print_var_error(FLERR,"Variable evaluation before "
-                          "simulation box is defined",ivar);
+          print_var_error(FLERR,"Variable evaluation before simulation box is defined",ivar);
 
         // uppercase used to force access of
         // global vector vs global scalar, and global array vs global vector
@@ -1336,14 +1333,10 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         int lowercase = 1;
         if (word[0] == 'C') lowercase = 0;
 
-        int icompute = modify->find_compute(word+2);
-        if (icompute < 0) {
-          std::string mesg = "Invalid compute ID '";
-          mesg += (word+2);
-          mesg += "' in variable formula";
-          print_var_error(FLERR,mesg,ivar);
-        }
-        Compute *compute = modify->compute[icompute];
+        Compute *compute = modify->get_compute_by_id(word+2);
+        if (!compute)
+          print_var_error(FLERR,fmt::format("Invalid compute ID '{}' in variable formula", word+2),ivar);
+
 
         // parse zero or one or two trailing brackets
         // point i beyond last bracket
@@ -1372,8 +1365,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
           if (update->whichflag == 0) {
             if (compute->invoked_scalar != update->ntimestep)
-              print_var_error(FLERR,"Compute used in variable between "
-                              "runs is not current",ivar);
+              print_var_error(FLERR,"Compute used in variable between runs is not current",ivar);
           } else if (!(compute->invoked_flag & Compute::INVOKED_SCALAR)) {
             compute->compute_scalar();
             compute->invoked_flag |= Compute::INVOKED_SCALAR;
@@ -1393,12 +1385,10 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
           if (index1 > compute->size_vector &&
               compute->size_vector_variable == 0)
-            print_var_error(FLERR,"Variable formula compute vector "
-                            "is accessed out-of-range",ivar,0);
+            print_var_error(FLERR,"Variable formula compute vector is accessed out-of-range",ivar,0);
           if (update->whichflag == 0) {
             if (compute->invoked_vector != update->ntimestep)
-              print_var_error(FLERR,"Compute used in variable between runs "
-                              "is not current",ivar);
+              print_var_error(FLERR,"Compute used in variable between runs is not current",ivar);
           } else if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
             compute->compute_vector();
             compute->invoked_flag |= Compute::INVOKED_VECTOR;
@@ -1420,15 +1410,12 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
           if (index1 > compute->size_array_rows &&
               compute->size_array_rows_variable == 0)
-            print_var_error(FLERR,"Variable formula compute array "
-                            "is accessed out-of-range",ivar,0);
+            print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
           if (index2 > compute->size_array_cols)
-            print_var_error(FLERR,"Variable formula compute array "
-                            "is accessed out-of-range",ivar,0);
+            print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
           if (update->whichflag == 0) {
             if (compute->invoked_array != update->ntimestep)
-              print_var_error(FLERR,"Compute used in variable between runs "
-                              "is not current",ivar);
+              print_var_error(FLERR,"Compute used in variable between runs is not current",ivar);
           } else if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
             compute->compute_array();
             compute->invoked_flag |= Compute::INVOKED_ARRAY;
@@ -1449,18 +1436,14 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         } else if (nbracket == 0 && compute->vector_flag) {
 
           if (tree == nullptr)
-            print_var_error(FLERR,"Compute global vector in "
-                            "equal-style variable formula",ivar);
+            print_var_error(FLERR,"Compute global vector in equal-style variable formula",ivar);
           if (treetype == ATOM)
-            print_var_error(FLERR,"Compute global vector in "
-                            "atom-style variable formula",ivar);
+            print_var_error(FLERR,"Compute global vector in atom-style variable formula",ivar);
           if (compute->size_vector == 0)
-            print_var_error(FLERR,"Variable formula compute "
-                            "vector is zero length",ivar);
+            print_var_error(FLERR,"Variable formula compute vector is zero length",ivar);
           if (update->whichflag == 0) {
             if (compute->invoked_vector != update->ntimestep)
-              print_var_error(FLERR,"Compute used in variable between "
-                              "runs is not current",ivar);
+              print_var_error(FLERR,"Compute used in variable between runs is not current",ivar);
           } else if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
             compute->compute_vector();
             compute->invoked_flag |= Compute::INVOKED_VECTOR;
@@ -1478,18 +1461,14 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         } else if (nbracket == 1 && compute->array_flag) {
 
           if (tree == nullptr)
-            print_var_error(FLERR,"Compute global vector in "
-                            "equal-style variable formula",ivar);
+            print_var_error(FLERR,"Compute global vector in equal-style variable formula",ivar);
           if (treetype == ATOM)
-            print_var_error(FLERR,"Compute global vector in "
-                            "atom-style variable formula",ivar);
+            print_var_error(FLERR,"Compute global vector in atom-style variable formula",ivar);
           if (compute->size_array_rows == 0)
-            print_var_error(FLERR,"Variable formula compute array "
-                            "is zero length",ivar);
+            print_var_error(FLERR,"Variable formula compute array is zero length",ivar);
           if (update->whichflag == 0) {
             if (compute->invoked_array != update->ntimestep)
-              print_var_error(FLERR,"Compute used in variable between "
-                              "runs is not current",ivar);
+              print_var_error(FLERR,"Compute used in variable between runs is not current",ivar);
           } else if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
             compute->compute_array();
             compute->invoked_flag |= Compute::INVOKED_ARRAY;
@@ -1509,8 +1488,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
           if (update->whichflag == 0) {
             if (compute->invoked_peratom != update->ntimestep)
-              print_var_error(FLERR,"Compute used in variable "
-                              "between runs is not current",ivar);
+              print_var_error(FLERR,"Compute used in variable between runs is not current",ivar);
           } else if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
             compute->compute_peratom();
             compute->invoked_flag |= Compute::INVOKED_PERATOM;
@@ -1551,15 +1529,12 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
                    compute->size_peratom_cols == 0) {
 
           if (tree == nullptr)
-            print_var_error(FLERR,"Per-atom compute in "
-                            "equal-style variable formula",ivar);
+            print_var_error(FLERR,"Per-atom compute in equal-style variable formula",ivar);
           if (treetype == VECTOR)
-            print_var_error(FLERR,"Per-atom compute in "
-                            "vector-style variable formula",ivar);
+            print_var_error(FLERR,"Per-atom compute in vector-style variable formula",ivar);
           if (update->whichflag == 0) {
             if (compute->invoked_peratom != update->ntimestep)
-              print_var_error(FLERR,"Compute used in variable "
-                              "between runs is not current",ivar);
+              print_var_error(FLERR,"Compute used in variable between runs is not current",ivar);
           } else if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
             compute->compute_peratom();
             compute->invoked_flag |= Compute::INVOKED_PERATOM;
@@ -1577,18 +1552,14 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
                    compute->size_peratom_cols > 0) {
 
           if (tree == nullptr)
-            print_var_error(FLERR,"Per-atom compute in "
-                            "equal-style variable formula",ivar);
+            print_var_error(FLERR,"Per-atom compute in equal-style variable formula",ivar);
           if (treetype == VECTOR)
-            print_var_error(FLERR,"Per-atom compute in "
-                            "vector-style variable formula",ivar);
+            print_var_error(FLERR,"Per-atom compute in vector-style variable formula",ivar);
           if (index1 > compute->size_peratom_cols)
-            print_var_error(FLERR,"Variable formula compute array "
-                            "is accessed out-of-range",ivar,0);
+            print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
           if (update->whichflag == 0) {
             if (compute->invoked_peratom != update->ntimestep)
-              print_var_error(FLERR,"Compute used in variable "
-                              "between runs is not current",ivar);
+              print_var_error(FLERR,"Compute used in variable between runs is not current",ivar);
           } else if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
             compute->compute_peratom();
             compute->invoked_flag |= Compute::INVOKED_PERATOM;
@@ -1603,17 +1574,15 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
         } else if (nbracket == 1 && compute->local_flag) {
           print_var_error(FLERR,"Cannot access local data via indexing",ivar);
-        } else print_var_error(FLERR,
-                               "Mismatched compute in variable formula",ivar);
+        } else print_var_error(FLERR,"Mismatched compute in variable formula",ivar);
 
       // ----------------
       // fix
       // ----------------
 
-      } else if (strncmp(word,"f_",2) == 0 || strncmp(word,"F_",2) == 0) {
+      } else if (utils::strmatch(word,"^[fF]_")) {
         if (domain->box_exist == 0)
-          print_var_error(FLERR,"Variable evaluation before "
-                          "simulation box is defined",ivar);
+          print_var_error(FLERR,"Variable evaluation before simulation box is defined",ivar);
 
         // uppercase used to force access of
         // global vector vs global scalar, and global array vs global vector
@@ -1621,11 +1590,10 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         int lowercase = 1;
         if (word[0] == 'F') lowercase = 0;
 
-        int ifix = modify->find_fix(word+2);
-        if (ifix < 0)
-          print_var_error(FLERR,fmt::format("Invalid fix ID '{}' in variable"
-                                            " formula",word+2),ivar);
-        Fix *fix = modify->fix[ifix];
+        Fix *fix = modify->get_fix_by_id(word+2);
+        if (!fix)
+          print_var_error(FLERR,fmt::format("Invalid fix ID '{}' in variable formula",word+2),ivar);
+
 
         // parse zero or one or two trailing brackets
         // point i beyond last bracket
@@ -3215,7 +3183,7 @@ int Variable::find_matching_paren(char *str, int i, char *&contents, int ivar)
 
   int istart = i;
   int ilevel = 0;
-  while (1) {
+  while (true) {
     i++;
     if (!str[i]) break;
     if (str[i] == '(') ilevel++;
@@ -4058,19 +4026,17 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         *ptr1 = '\0';
       } else index = 0;
 
-      int icompute = modify->find_compute(&args[0][2]);
-      if (icompute < 0) {
+      compute = modify->get_compute_by_id(&args[0][2]);
+      if (!compute) {
         std::string mesg = "Invalid compute ID '";
         mesg += (args[0]+2);
         mesg += "' in variable formula";
         print_var_error(FLERR,mesg,ivar);
       }
-      compute = modify->compute[icompute];
       if (index == 0 && compute->vector_flag) {
         if (update->whichflag == 0) {
           if (compute->invoked_vector != update->ntimestep)
-            print_var_error(FLERR,"Compute used in variable between runs "
-                            "is not current",ivar);
+            print_var_error(FLERR,"Compute used in variable between runs is not current",ivar);
         } else if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
           compute->compute_vector();
           compute->invoked_flag |= Compute::INVOKED_VECTOR;
@@ -4079,12 +4045,10 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         nstride = 1;
       } else if (index && compute->array_flag) {
         if (index > compute->size_array_cols)
-          print_var_error(FLERR,"Variable formula compute array "
-                          "is accessed out-of-range",ivar,0);
+          print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
         if (update->whichflag == 0) {
           if (compute->invoked_array != update->ntimestep)
-            print_var_error(FLERR,"Compute used in variable between runs "
-                            "is not current",ivar);
+            print_var_error(FLERR,"Compute used in variable between runs is not current",ivar);
         } else if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
           compute->compute_array();
           compute->invoked_flag |= Compute::INVOKED_ARRAY;
@@ -4103,14 +4067,13 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         *ptr1 = '\0';
       } else index = 0;
 
-      int ifix = modify->find_fix(&args[0][2]);
-      if (ifix < 0) {
+      fix = modify->get_fix_by_id(&args[0][2]);
+      if (!fix) {
         std::string mesg = "Invalid fix ID '";
         mesg += (args[0]+2);
         mesg += "' in variable formula";
         print_var_error(FLERR,mesg,ivar);
       }
-      fix = modify->fix[ifix];
       if (index == 0 && fix->vector_flag) {
         if (update->whichflag > 0 && update->ntimestep % fix->global_freq) {
           std::string mesg = "Fix with ID '";
@@ -4723,7 +4686,7 @@ double Variable::evaluate_boolean(char *str)
   int i = 0;
   int expect = ARG;
 
-  while (1) {
+  while (true) {
     onechar = str[i];
 
     // whitespace: just skip
@@ -5017,7 +4980,7 @@ int VarReader::read_scalar(char *str)
   // read one string from file
 
   if (me == 0) {
-    while (1) {
+    while (true) {
       ptr = fgets(str,MAXLINE,fp);
       if (!ptr) { n=0; break; }             // end of file
       ptr[strcspn(ptr,"#")] = '\0';         // strip comment
@@ -5060,7 +5023,7 @@ int VarReader::read_peratom()
 
   char str[MAXLINE];
   if (me == 0) {
-    while (1) {
+    while (true) {
       ptr = fgets(str,MAXLINE,fp);
       if (!ptr) { n=0; break; }             // end of file
       ptr[strcspn(ptr,"#")] = '\0';         // strip comment

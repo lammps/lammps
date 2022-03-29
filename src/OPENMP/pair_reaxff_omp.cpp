@@ -45,7 +45,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
 
@@ -101,17 +100,22 @@ PairReaxFFOMP::~PairReaxFFOMP()
 
 void PairReaxFFOMP::init_style()
 {
-  if (!atom->q_flag)
-    error->all(FLERR,"Pair style reaxff/omp requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR,"Pair style reaxff/omp requires atom attribute q");
 
-  bool have_qeq = ((modify->find_fix_by_style("^qeq/reax") != -1)
-                   || (modify->find_fix_by_style("^qeq/shielded") != -1));
-  if (!have_qeq && qeqflag == 1)
-    error->all(FLERR,"Pair reaxff/omp requires use of fix qeq/reaxff or qeq/shielded");
+  auto acks2_fixes = modify->get_fix_by_style("^acks2/reax");
+  int have_qeq = modify->get_fix_by_style("^qeq/reax").size()
+    + modify->get_fix_by_style("^qeq/shielded").size() + acks2_fixes.size();
+
+  if (qeqflag && (have_qeq != 1))
+    error->all(FLERR,"Pair style reaxff/omp requires use of exactly one of the "
+               "fix qeq/reaxff or fix qeq/shielded or fix acks2/reaxff commands");
+
+  api->system->acks2_flag = acks2_fixes.size();
+  if (api->system->acks2_flag)
+    error->all(FLERR,"Cannot (yet) use ACKS2 with OPENMP ReaxFF");
 
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
-  api->system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
   api->system->wsize = comm->nprocs;
 
   if (atom->tag_enable == 0)
@@ -119,17 +123,10 @@ void PairReaxFFOMP::init_style()
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style reaxff/omp requires newton pair on");
 
-  // because system->bigN is an int, we cannot have more atoms than MAXSMALLINT
-
-  if (atom->natoms > MAXSMALLINT)
-    error->all(FLERR,"Too many atoms for pair style reaxff/omp");
-
   // need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->newton = 2;
-  neighbor->requests[irequest]->ghost = 1;
+  neighbor->add_request(this, NeighConst::REQ_GHOST | NeighConst::REQ_NEWTON_OFF);
 
   cutmax = MAX3(api->control->nonb_cut, api->control->hbond_cut, api->control->bond_cut);
   if ((cutmax < 2.0*api->control->bond_cut) && (comm->me == 0))
@@ -153,7 +150,6 @@ void PairReaxFFOMP::setup()
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
   oldN = api->system->N;
-  api->system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
 
   if (api->system->N > nmax) {
     memory->destroy(num_nbrs_offset);
@@ -220,21 +216,18 @@ void PairReaxFFOMP::setup()
 
 void PairReaxFFOMP::compute(int eflag, int vflag)
 {
-  double evdwl,ecoul;
 
   // communicate num_bonds once every reneighboring
   // 2 num arrays stored by fix, grab ptr to them
 
-  if (neighbor->ago == 0) comm->forward_comm_fix(fix_reaxff);
+  if (neighbor->ago == 0) comm->forward_comm(fix_reaxff);
   int *num_bonds = fix_reaxff->num_bonds;
   int *num_hbonds = fix_reaxff->num_hbonds;
 
-  evdwl = ecoul = 0.0;
   ev_init(eflag,vflag);
 
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
-  api->system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
   const int nall = api->system->N;
 
 #if defined(_OPENMP)
@@ -298,20 +291,6 @@ void PairReaxFFOMP::compute(int eflag, int vflag)
   // energies and pressure
 
   if (eflag_global) {
-    evdwl += api->data->my_en.e_bond;
-    evdwl += api->data->my_en.e_ov;
-    evdwl += api->data->my_en.e_un;
-    evdwl += api->data->my_en.e_lp;
-    evdwl += api->data->my_en.e_ang;
-    evdwl += api->data->my_en.e_pen;
-    evdwl += api->data->my_en.e_coa;
-    evdwl += api->data->my_en.e_hb;
-    evdwl += api->data->my_en.e_tor;
-    evdwl += api->data->my_en.e_con;
-    evdwl += api->data->my_en.e_vdW;
-
-    ecoul += api->data->my_en.e_ele;
-    ecoul += api->data->my_en.e_pol;
 
     // Store the different parts of the energy
     // in a list for output by compute pair command
@@ -420,8 +399,7 @@ int PairReaxFFOMP::estimate_reax_lists()
 
 int PairReaxFFOMP::write_reax_lists()
 {
-  int itr_i, itr_j, i, j, num_mynbrs;
-  int *jlist;
+  int num_mynbrs;
   double d_sqr, dist, cutoff_sqr;
   rvec dvec;
 
@@ -443,19 +421,19 @@ int PairReaxFFOMP::write_reax_lists()
 
   num_nbrs = 0;
 
-  for (itr_i = 0; itr_i < numall; ++itr_i) {
-    i = ilist[itr_i];
+  for (int itr_i = 0; itr_i < numall; ++itr_i) {
+    int i = ilist[itr_i];
     num_nbrs_offset[i] = num_nbrs;
     num_nbrs += numneigh[i];
   }
 
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(dynamic,50) default(shared)           \
-  private(itr_i, itr_j, i, j, jlist, cutoff_sqr, num_mynbrs, d_sqr, dvec, dist)
+  private(cutoff_sqr, num_mynbrs, d_sqr, dvec, dist)
 #endif
-  for (itr_i = 0; itr_i < numall; ++itr_i) {
-    i = ilist[itr_i];
-    jlist = firstneigh[i];
+  for (int itr_i = 0; itr_i < numall; ++itr_i) {
+    int i = ilist[itr_i];
+    auto jlist = firstneigh[i];
     Set_Start_Index(i, num_nbrs_offset[i], far_nbrs);
 
     if (i < inum)
@@ -465,8 +443,8 @@ int PairReaxFFOMP::write_reax_lists()
 
     num_mynbrs = 0;
 
-    for (itr_j = 0; itr_j < numneigh[i]; ++itr_j) {
-      j = jlist[itr_j];
+    for (int itr_j = 0; itr_j < numneigh[i]; ++itr_j) {
+      int j = jlist[itr_j];
       j &= NEIGHMASK;
       get_distance(x[j], x[i], &d_sqr, &dvec);
 

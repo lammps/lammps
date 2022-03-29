@@ -69,9 +69,7 @@ void ResetIDs::command(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"sort") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal reset_atom_ids command");
-      if (strcmp(arg[iarg+1],"yes") == 0) sortflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) sortflag = 0;
-      else error->all(FLERR,"Illegal reset_atom_ids command");
+      sortflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal reset_atom_ids command");
   }

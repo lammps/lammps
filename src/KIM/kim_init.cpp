@@ -251,17 +251,15 @@ void KimInit::determine_model_type_and_units(char *model_name, char *user_units,
       return;
     } else if (unit_conversion_mode) {
       KIM_Model_Destroy(&pkim);
-      int const num_systems = 5;
-      char const *const systems[num_systems] = {"metal", "real", "si", "cgs", "electron"};
-      for (int i = 0; i < num_systems; ++i) {
-        get_kim_unit_names(systems[i], lengthUnit, energyUnit, chargeUnit, temperatureUnit,
-                           timeUnit, error);
+      const char * unit_systems[] = {"metal", "real", "si", "cgs", "electron"};
+      for (auto units : unit_systems) {
+        get_kim_unit_names(units, lengthUnit, energyUnit, chargeUnit, temperatureUnit, timeUnit, error);
         kim_error = KIM_Model_Create(KIM_NUMBERING_zeroBased, lengthUnit, energyUnit, chargeUnit,
                                      temperatureUnit, timeUnit, model_name, &units_accepted, &pkim);
         if (units_accepted) {
           logID = fmt::format("{}_Model", comm->me);
           KIM_Model_SetLogID(pkim, logID.c_str());
-          *model_units = utils::strdup(systems[i]);
+          *model_units = utils::strdup(units);
           return;
         }
         KIM_Model_Destroy(&pkim);

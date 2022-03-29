@@ -970,7 +970,8 @@ void AtomVecHybridKokkos::create_atom(int itype, double *coord)
    grow() occurs here so arrays for all sub-styles are grown
 ------------------------------------------------------------------------- */
 
-void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp, char **values)
+void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp,
+                                    const std::vector<std::string> &values)
 {
   atomKK->sync(Host,X_MASK|TAG_MASK|TYPE_MASK|IMAGE_MASK|MASK_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
 
@@ -1009,7 +1010,7 @@ void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp, char **val
 
   int m = 5;
   for (int k = 0; k < nstyles; k++)
-    m += styles[k]->data_atom_hybrid(nlocal,&values[m]);
+    m += styles[k]->data_atom_hybrid(nlocal,values,m);
 
   atom->nlocal++;
 }
@@ -1018,21 +1019,21 @@ void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp, char **val
    unpack one line from Velocities section of data file
 ------------------------------------------------------------------------- */
 
-void AtomVecHybridKokkos::data_vel(int m, char **values)
+void AtomVecHybridKokkos::data_vel(int m, const std::vector<std::string> &values)
 {
   atomKK->sync(Host,V_MASK);
 
-  h_v(m,0) = utils::numeric(FLERR,values[0],true,lmp);
-  h_v(m,1) = utils::numeric(FLERR,values[1],true,lmp);
-  h_v(m,2) = utils::numeric(FLERR,values[2],true,lmp);
+  int ivalue = 1;
+  h_v(m,0) = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  h_v(m,1) = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  h_v(m,2) = utils::numeric(FLERR,values[ivalue++],true,lmp);
 
   atomKK->modified(Host,V_MASK);
 
   // each sub-style parses sub-style specific values
 
-  int n = 3;
   for (int k = 0; k < nstyles; k++)
-    n += styles[k]->data_vel_hybrid(m,&values[n]);
+    ivalue += styles[k]->data_vel_hybrid(m,values,ivalue);
 }
 
 /* ----------------------------------------------------------------------

@@ -322,7 +322,7 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
     if (induced_charge_idx[i] >= 0) q[i] = 0;
   }
 
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   // note here q[i] are the bound charges including area
   // so that kspace solver can be used directly with the charge values
@@ -394,7 +394,7 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
     }
   }
 
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   if (first) first = 0;
 }
@@ -602,7 +602,7 @@ void FixPolarizeBEMGMRES::apply_operator(double *w, double *Aw, int /*n*/)
     }
   }
 
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   // compute the electrical field due to w*area: y = A (w*area)
 
@@ -672,7 +672,7 @@ void FixPolarizeBEMGMRES::update_residual(double *w, double *r, int /*n*/)
     }
   }
 
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   force_clear();
   force->pair->compute(eflag, vflag);
@@ -796,12 +796,7 @@ int FixPolarizeBEMGMRES::modify_param(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg], "kspace") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix_modify command");
-      if (strcmp(arg[iarg + 1], "yes") == 0)
-        kspaceflag = 1;
-      else if (strcmp(arg[iarg + 1], "no") == 0)
-        kspaceflag = 0;
-      else
-        error->all(FLERR, "Illegal fix_modify command for fix polarize");
+      kspaceflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "dielectrics") == 0) {
       if (iarg + 6 > narg) error->all(FLERR, "Illegal fix_modify command");

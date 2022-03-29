@@ -225,7 +225,7 @@ void PairEAMOpt::eval()
 
   // communicate and sum densities
 
-  if (NEWTON_PAIR) comm->reverse_comm_pair(this);
+  if (NEWTON_PAIR) comm->reverse_comm(this);
 
   // fp = derivative of embedding energy at each atom
   // phi = embedding energy at each atom
@@ -252,7 +252,7 @@ void PairEAMOpt::eval()
 
   // communicate derivative of embedding function
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
   embedstep = update->ntimestep;
 
   // compute forces on each atom
@@ -349,8 +349,8 @@ void PairEAMOpt::eval()
     ff[i].z += tmpfz;
   }
 
-  free(fast_alpha); fast_alpha = 0;
-  free(fast_gamma); fast_gamma = 0;
+  free(fast_alpha); fast_alpha = nullptr;
+  free(fast_gamma); fast_gamma = nullptr;
 
   if (vflag_fdotr) virial_fdotr_compute();
 }

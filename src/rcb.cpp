@@ -285,7 +285,7 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
       first_iteration = 1;
       indexlo = indexhi = 0;
 
-      while (1) {
+      while (true) {
 
         // choose bisector value
         // use old value on 1st iteration if old cut dimension is the same
@@ -814,7 +814,7 @@ void RCB::compute_old(int dimension, int n, double **x, double *wt,
     first_iteration = 1;
     indexlo = indexhi = 0;
 
-    while (1) {
+    while (true) {
 
       // choose bisector value
       // use old value on 1st iteration if old cut dimension is the same

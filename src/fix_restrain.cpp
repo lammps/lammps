@@ -33,7 +33,7 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-using namespace MathConst;
+using MathConst::DEG2RAD;
 
 enum{BOND,LBOUND,ANGLE,DIHEDRAL};
 
@@ -119,8 +119,7 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
       ids[nrestrain][2] = utils::tnumeric(FLERR,arg[iarg+3],false,lmp);
       kstart[nrestrain] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
       kstop[nrestrain] = utils::numeric(FLERR,arg[iarg+5],false,lmp);
-      target[nrestrain] = utils::numeric(FLERR,arg[iarg+6],false,lmp);
-      target[nrestrain] *= MY_PI / 180.0;
+      target[nrestrain] = DEG2RAD * utils::numeric(FLERR,arg[iarg+6],false,lmp);
       iarg += 7;
     } else if (strcmp(arg[iarg],"dihedral") == 0) {
       if (iarg+8 > narg) error->all(FLERR,"Illegal fix restrain command");
@@ -132,8 +131,7 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
       ids[nrestrain][3] = utils::tnumeric(FLERR,arg[iarg+4],false,lmp);
       kstart[nrestrain] = utils::numeric(FLERR,arg[iarg+5],false,lmp);
       kstop[nrestrain] = utils::numeric(FLERR,arg[iarg+6],false,lmp);
-      target[nrestrain] = utils::numeric(FLERR,arg[iarg+7],false,lmp);
-      target[nrestrain] *= MY_PI / 180.0;
+      target[nrestrain] = DEG2RAD * utils::numeric(FLERR,arg[iarg+7],false,lmp);
       cos_target[nrestrain] = cos(target[nrestrain]);
       sin_target[nrestrain] = sin(target[nrestrain]);
       iarg += 8;

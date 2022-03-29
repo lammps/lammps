@@ -31,7 +31,6 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "potential_file_reader.h"
-#include "tokenizer.h"
 
 #include <cmath>
 #include <cstring>
@@ -59,6 +58,7 @@ PairDRIP::PairDRIP(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   restartinfo = 0;
+  one_coeff = 1;
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
@@ -92,10 +92,7 @@ void PairDRIP::init_style()
   if (!atom->molecule_flag) error->all(FLERR, "Pair style drip requires atom attribute molecule");
 
   // need a full neighbor list, including neighbors of ghosts
-  int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->ghost = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
 }
 
 /* ----------------------------------------------------------------------
@@ -241,16 +238,16 @@ void PairDRIP::read_file(char *filename)
 
       nparams++;
     }
-
-    MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
-    MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
-
-    if (comm->me != 0) {
-      params = (Param *) memory->srealloc(params, maxparam * sizeof(Param), "pair:params");
-    }
-
-    MPI_Bcast(params, maxparam * sizeof(Param), MPI_BYTE, 0, world);
   }
+
+  MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
+  MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
+
+  if (comm->me != 0) {
+    params = (Param *) memory->srealloc(params, maxparam * sizeof(Param), "pair:params");
+  }
+
+  MPI_Bcast(params, maxparam * sizeof(Param), MPI_BYTE, 0, world);
 
   memory->destroy(elem2param);
   memory->create(elem2param, nelements, nelements, "pair:elem2param");
@@ -259,7 +256,7 @@ void PairDRIP::read_file(char *filename)
       int n = -1;
       for (int m = 0; m < nparams; m++) {
         if (i == params[m].ielement && j == params[m].jelement) {
-          if (n >= 0) error->all(FLERR, "Potential file has duplicate entry");
+          if (n >= 0) error->all(FLERR, "DRIP potential file has duplicate entry");
           n = m;
         }
       }

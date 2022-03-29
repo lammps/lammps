@@ -47,7 +47,7 @@
 #include <cstdlib>
 
 #include <Kokkos_Core.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 
 using exec_space = Kokkos::DefaultExecutionSpace;
 
@@ -401,7 +401,7 @@ template <class T>
 void Loop(int loop, int test, const char* type_name) {
   LoopVariant<T>(loop, test);
 
-  Kokkos::Impl::Timer timer;
+  Kokkos::Timer timer;
   T res       = LoopVariant<T>(loop, test);
   double time = timer.seconds();
 

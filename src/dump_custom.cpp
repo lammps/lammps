@@ -131,7 +131,7 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   if (ioptional < nfield &&
       strcmp(style,"image") != 0 && strcmp(style,"movie") != 0)
-    error->all(FLERR,"Invalid attribute in dump custom command");
+    error->all(FLERR,"Invalid attribute {} in dump {} command",earg[ioptional],style);
 
   // noptional = # of optional args
   // reset nfield to subtract off optional args
@@ -238,9 +238,8 @@ DumpCustom::~DumpCustom()
 
   for (int i = 0; i < ncustom; i++) delete[] id_custom[i];
   memory->sfree(id_custom);
-  delete [] custom;
-  delete [] custom_flag;
-
+  memory->sfree(custom);
+  memory->sfree(custom_flag);
   memory->destroy(choose);
   memory->destroy(dchoose);
   memory->destroy(clist);
@@ -323,23 +322,21 @@ void DumpCustom::init_style()
   // check that fix frequency is acceptable
 
   for (i = 0; i < ncompute; i++) {
-    int icompute = modify->find_compute(id_compute[i]);
-    if (icompute < 0) error->all(FLERR,"Could not find dump custom compute ID");
-    compute[i] = modify->compute[icompute];
+    compute[i] = modify->get_compute_by_id(id_compute[i]);
+    if (!compute[i]) error->all(FLERR,"Could not find dump custom compute ID {}",id_compute[i]);
   }
 
   for (i = 0; i < nfix; i++) {
-    int ifix = modify->find_fix(id_fix[i]);
-    if (ifix < 0) error->all(FLERR,"Could not find dump custom fix ID");
-    fix[i] = modify->fix[ifix];
-    if (nevery % modify->fix[ifix]->peratom_freq)
+    fix[i] = modify->get_fix_by_id(id_fix[i]);
+    if (!fix[i]) error->all(FLERR,"Could not find dump custom fix ID {}", id_fix[i]);
+    if (nevery % fix[i]->peratom_freq)
       error->all(FLERR,"Dump custom and fix not computed at compatible times");
   }
 
   for (i = 0; i < nvariable; i++) {
     int ivariable = input->variable->find(id_variable[i]);
     if (ivariable < 0)
-      error->all(FLERR,"Could not find dump custom variable name");
+      error->all(FLERR,"Could not find dump custom variable name {}", id_variable[i]);
     variable[i] = ivariable;
   }
 
@@ -909,32 +906,27 @@ int DumpCustom::count()
 
       } else if (thresh_array[ithresh] == Q) {
         if (!atom->q_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
+          error->all(FLERR,"Threshold for an atom property that isn't allocated");
         ptr = atom->q;
         nstride = 1;
       } else if (thresh_array[ithresh] == MUX) {
         if (!atom->mu_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
+          error->all(FLERR,"Threshold for an atom property that isn't allocated");
         ptr = &atom->mu[0][0];
         nstride = 4;
       } else if (thresh_array[ithresh] == MUY) {
         if (!atom->mu_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
+          error->all(FLERR,"Threshold for an atom property that isn't allocated");
         ptr = &atom->mu[0][1];
         nstride = 4;
       } else if (thresh_array[ithresh] == MUZ) {
         if (!atom->mu_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
+          error->all(FLERR,"Threshold for an atom property that isn't allocated");
         ptr = &atom->mu[0][2];
         nstride = 4;
       } else if (thresh_array[ithresh] == MU) {
         if (!atom->mu_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
+          error->all(FLERR,"Threshold for an atom property that isn't allocated");
         ptr = &atom->mu[0][3];
         nstride = 4;
 
@@ -1452,10 +1444,12 @@ int DumpCustom::parse_fields(int narg, char **arg)
 
     } else {
       int n,flag,cols;
-      ArgInfo argi(arg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE
-                   |ArgInfo::DNAME|ArgInfo::INAME);
+      ArgInfo argi(arg[iarg], ArgInfo::COMPUTE | ArgInfo::FIX | ArgInfo::VARIABLE |
+                   ArgInfo::DNAME | ArgInfo::INAME);
       argindex[iarg] = argi.get_index1();
       auto name = argi.get_name();
+      Compute *icompute = nullptr;
+      Fix *ifix = nullptr;
 
       switch (argi.get_type()) {
 
@@ -1470,16 +1464,15 @@ int DumpCustom::parse_fields(int narg, char **arg)
         pack_choice[iarg] = &DumpCustom::pack_compute;
         vtype[iarg] = Dump::DOUBLE;
 
-        n = modify->find_compute(name);
-        if (n < 0) error->all(FLERR,"Could not find dump custom compute ID: {}",name);
-        if (modify->compute[n]->peratom_flag == 0)
+        icompute = modify->get_compute_by_id(name);
+        if (!icompute) error->all(FLERR,"Could not find dump custom compute ID: {}",name);
+        if (icompute->peratom_flag == 0)
           error->all(FLERR,"Dump custom compute {} does not compute per-atom info",name);
-        if (argi.get_dim() == 0 && modify->compute[n]->size_peratom_cols > 0)
+        if (argi.get_dim() == 0 && icompute->size_peratom_cols > 0)
           error->all(FLERR,"Dump custom compute {} does not calculate per-atom vector",name);
-        if (argi.get_dim() > 0 && modify->compute[n]->size_peratom_cols == 0)
+        if (argi.get_dim() > 0 && icompute->size_peratom_cols == 0)
           error->all(FLERR,"Dump custom compute {} does not calculate per-atom array",name);
-        if (argi.get_dim() > 0 &&
-            argi.get_index1() > modify->compute[n]->size_peratom_cols)
+        if (argi.get_dim() > 0 && argi.get_index1() > icompute->size_peratom_cols)
           error->all(FLERR,"Dump custom compute {} vector is accessed out-of-range",name);
 
         field2index[iarg] = add_compute(name);
@@ -1492,16 +1485,15 @@ int DumpCustom::parse_fields(int narg, char **arg)
         pack_choice[iarg] = &DumpCustom::pack_fix;
         vtype[iarg] = Dump::DOUBLE;
 
-        n = modify->find_fix(name);
-        if (n < 0) error->all(FLERR,"Could not find dump custom fix ID: {}",name);
-        if (modify->fix[n]->peratom_flag == 0)
+        ifix = modify->get_fix_by_id(name);
+        if (!ifix) error->all(FLERR,"Could not find dump custom fix ID: {}",name);
+        if (ifix->peratom_flag == 0)
           error->all(FLERR,"Dump custom fix {} does not compute per-atom info",name);
-        if (argi.get_dim() == 0 && modify->fix[n]->size_peratom_cols > 0)
+        if (argi.get_dim() == 0 && ifix->size_peratom_cols > 0)
           error->all(FLERR,"Dump custom fix {} does not compute per-atom vector",name);
-        if (argi.get_dim() > 0 && modify->fix[n]->size_peratom_cols == 0)
+        if (argi.get_dim() > 0 && ifix->size_peratom_cols == 0)
           error->all(FLERR,"Dump custom fix {} does not compute per-atom array",name);
-        if (argi.get_dim() > 0 &&
-            argi.get_index1() > modify->fix[n]->size_peratom_cols)
+        if (argi.get_dim() > 0 && argi.get_index1() > ifix->size_peratom_cols)
           error->all(FLERR,"Dump custom fix {} vector is accessed out-of-range",name);
 
         field2index[iarg] = add_fix(name);
@@ -1521,7 +1513,7 @@ int DumpCustom::parse_fields(int narg, char **arg)
         field2index[iarg] = add_variable(name);
         break;
 
-      // custom per-atom floating point vector or array
+      // custom per-atom floating point vector or array = d_ID d2_ID
 
       case ArgInfo::DNAME:
         pack_choice[iarg] = &DumpCustom::pack_custom;
@@ -1533,18 +1525,18 @@ int DumpCustom::parse_fields(int narg, char **arg)
           error->all(FLERR,"Could not find custom per-atom property ID: {}", name);
         if (argindex[iarg] == 0) {
           if (!flag || cols)
-            error->all(FLERR,"Property double vector for dump custom does not exist");
+            error->all(FLERR,"Property double vector {} for dump custom does not exist",name);
         } else {
           if (!flag || !cols)
-            error->all(FLERR,"Property double array for dump custom does not exist");
+            error->all(FLERR,"Property double array {} for dump custom does not exist",name);
           if (argindex[iarg] > atom->dcols[n])
-            error->all(FLERR,"Dump custom property array is accessed out-of-range");
+            error->all(FLERR,"Dump custom property array {} is accessed out-of-range",name);
         }
 
         field2index[iarg] = add_custom(name,1);
         break;
 
-      // custom per-atom integer vector or array
+      // custom per-atom integer vector or array = i_ID or i2_ID
 
       case ArgInfo::INAME:
         pack_choice[iarg] = &DumpCustom::pack_custom;
@@ -1556,15 +1548,12 @@ int DumpCustom::parse_fields(int narg, char **arg)
           error->all(FLERR,"Could not find custom per-atom property ID: {}", name);
         if (argindex[iarg] == 0) {
           if (flag || cols)
-            error->all(FLERR,
-                       "Property integer vector for dump custom does not exist");
+            error->all(FLERR,"Property integer vector {} for dump custom does not exist",name);
         } else {
           if (flag || !cols)
-            error->all(FLERR,
-                       "Property integer array for dump custom does not exist");
+            error->all(FLERR,"Property integer array {} for dump custom does not exist",name);
           if (argindex[iarg] > atom->icols[n])
-            error->all(FLERR,
-                       "Dump custom property array is accessed out-of-range");
+            error->all(FLERR,"Dump custom property array {} is accessed out-of-range",name);
         }
 
         field2index[iarg] = add_custom(name,0);
@@ -1574,6 +1563,7 @@ int DumpCustom::parse_fields(int narg, char **arg)
 
       default:
         return iarg;
+        break;
       }
     }
   }
@@ -1667,13 +1657,9 @@ int DumpCustom::add_custom(const char *id, int flag)
     if (strcmp(id,id_custom[icustom]) == 0) break;
   if (icustom < ncustom) return icustom;
 
-  id_custom = (char **)
-    memory->srealloc(id_custom,(ncustom+1)*sizeof(char *),"dump:id_custom");
-
-  delete [] custom;
-  custom = new int[ncustom+1];
-  delete [] custom_flag;
-  custom_flag = new int[ncustom+1];
+  id_custom = (char **) memory->srealloc(id_custom,(ncustom+1)*sizeof(char *),"dump:id_custom");
+  custom = (int *) memory->srealloc(custom,(ncustom+1)*sizeof(int),"dump:custom");
+  custom_flag = (int *) memory->srealloc(custom_flag,(ncustom+1)*sizeof(int),"dump:custom_flag");
 
   id_custom[ncustom] = utils::strdup(id);
   custom_flag[ncustom] = flag;
@@ -1890,10 +1876,12 @@ int DumpCustom::modify_param(int narg, char **arg)
       memory->grow(argindex,nfield+nthresh+1,"dump:argindex");
 
       int n,flag,cols;
-      ArgInfo argi(arg[1],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE
-                   |ArgInfo::DNAME|ArgInfo::INAME);
+      ArgInfo argi(arg[1], ArgInfo::COMPUTE | ArgInfo::FIX | ArgInfo::VARIABLE |
+                   ArgInfo::DNAME | ArgInfo::INAME);
       argindex[nfield+nthresh] = argi.get_index1();
       auto name = argi.get_name();
+      Compute *icompute = nullptr;
+      Fix *ifix = nullptr;
 
       switch (argi.get_type()) {
 
@@ -1906,17 +1894,16 @@ int DumpCustom::modify_param(int narg, char **arg)
 
       case ArgInfo::COMPUTE:
         thresh_array[nthresh] = COMPUTE;
-        n = modify->find_compute(name);
-        if (n < 0) error->all(FLERR,"Could not find dump modify compute ID: {}",name);
 
-        if (modify->compute[n]->peratom_flag == 0)
+        icompute = modify->get_compute_by_id(name);
+        if (!icompute) error->all(FLERR,"Could not find dump modify compute ID {}",name);
+        if (icompute->peratom_flag == 0)
           error->all(FLERR,"Dump modify compute ID {} does not compute per-atom info",name);
-        if (argi.get_dim() == 0 && modify->compute[n]->size_peratom_cols > 0)
+        if (argi.get_dim() == 0 && icompute->size_peratom_cols > 0)
           error->all(FLERR,"Dump modify compute ID {} does not compute per-atom vector",name);
-        if (argi.get_index1() > 0 && modify->compute[n]->size_peratom_cols == 0)
+        if (argi.get_index1() > 0 && icompute->size_peratom_cols == 0)
           error->all(FLERR,"Dump modify compute ID {} does not compute per-atom array",name);
-        if (argi.get_index1() > 0 &&
-            argi.get_index1() > modify->compute[n]->size_peratom_cols)
+        if (argi.get_index1() > 0 && argi.get_index1() > icompute->size_peratom_cols)
           error->all(FLERR,"Dump modify compute ID {} vector is not large enough",name);
 
         field2index[nfield+nthresh] = add_compute(name);
@@ -1927,16 +1914,17 @@ int DumpCustom::modify_param(int narg, char **arg)
 
       case ArgInfo::FIX:
         thresh_array[nthresh] = FIX;
-        n = modify->find_fix(name);
-        if (n < 0) error->all(FLERR,"Could not find dump modify fix ID: {}",name);
 
-        if (modify->fix[n]->peratom_flag == 0)
+        ifix = modify->get_fix_by_id(name);
+        if (!ifix) error->all(FLERR,"Could not find dump modify fix ID: {}",name);
+
+        if (ifix->peratom_flag == 0)
           error->all(FLERR,"Dump modify fix ID {} does not compute per-atom info",name);
-        if (argi.get_dim() == 0 && modify->fix[n]->size_peratom_cols > 0)
+        if (argi.get_dim() == 0 && ifix->size_peratom_cols > 0)
           error->all(FLERR,"Dump modify fix ID {} does not compute per-atom vector",name);
-        if (argi.get_index1() > 0 && modify->fix[n]->size_peratom_cols == 0)
+        if (argi.get_index1() > 0 && ifix->size_peratom_cols == 0)
           error->all(FLERR,"Dump modify fix ID {} does not compute per-atom array",name);
-        if (argi.get_index1() > 0 && argi.get_index1() > modify->fix[n]->size_peratom_cols)
+        if (argi.get_index1() > 0 && argi.get_index1() > ifix->size_peratom_cols)
           error->all(FLERR,"Dump modify fix ID {} vector is not large enough",name);
 
         field2index[nfield+nthresh] = add_fix(name);
@@ -1962,21 +1950,18 @@ int DumpCustom::modify_param(int narg, char **arg)
         if (n < 0)
           error->all(FLERR,"Could not find custom per-atom property ID: {}", name);
         if (argindex[nfield+nthresh] == 0) {
-          if (flag || cols)
-            error->all(FLERR,
-                       "Property double vector for dump custom does not exist");
+          if (!flag || cols)
+            error->all(FLERR,"Property double vector for dump custom does not exist");
           thresh_array[nthresh] = DVEC;
         } else {
-          if (flag || !cols)
-            error->all(FLERR,
-                       "Property double array for dump custom does not exist");
+          if (!flag || !cols)
+            error->all(FLERR,"Property double array for dump custom does not exist");
           if (argindex[nfield+nthresh] > atom->dcols[n])
-            error->all(FLERR,
-                       "Dump custom property array is accessed out-of-range");
+            error->all(FLERR,"Dump custom property array is accessed out-of-range");
           thresh_array[nthresh] = DARRAY;
         }
 
-        field2index[nfield+nthresh] = add_custom(name,0);
+        field2index[nfield+nthresh] = add_custom(name,thresh_array[nthresh]);
         break;
 
       // custom per atom integer vector or array
@@ -1988,20 +1973,17 @@ int DumpCustom::modify_param(int narg, char **arg)
           error->all(FLERR,"Could not find custom per-atom property ID: {}", name);
         if (argindex[nfield+nthresh] == 0) {
           if (flag || cols)
-            error->all(FLERR,
-                       "Property integer vector for dump custom does not exist");
+            error->all(FLERR,"Property integer vector for dump custom does not exist");
           thresh_array[nthresh] = IVEC;
         } else {
           if (flag || !cols)
-            error->all(FLERR,
-                       "Property integer array for dump custom does not exist");
+            error->all(FLERR,"Property integer array for dump custom does not exist");
           if (argindex[nfield+nthresh] > atom->icols[n])
-            error->all(FLERR,
-                       "Dump custom property array is accessed out-of-range");
+            error->all(FLERR,"Dump custom property array is accessed out-of-range");
           thresh_array[nthresh] = IARRAY;
         }
 
-        field2index[nfield+nthresh] = add_custom(name,0);
+        field2index[nfield+nthresh] = add_custom(name,thresh_array[nthresh]);
         break;
 
       // no match

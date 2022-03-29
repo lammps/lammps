@@ -38,19 +38,19 @@ namespace LAMMPS_NS {
 class PairMEAMSWSpline : public Pair {
  public:
   PairMEAMSWSpline(class LAMMPS *);
-  virtual ~PairMEAMSWSpline();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  void init_list(int, class NeighList *);
-  double init_one(int, int);
+  ~PairMEAMSWSpline() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  void init_list(int, class NeighList *) override;
+  double init_one(int, int) override;
 
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  double memory_usage();
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
 
  protected:
   class SplineFunction {
@@ -97,10 +97,10 @@ class PairMEAMSWSpline : public Pair {
     int numKnots() const { return N; }
 
     /// Parses the spline knots from a text file.
-    void parse(FILE *fp, Error *error);
+    void parse(class PotentialFileReader &reader);
 
     /// Calculates the second derivatives of the cubic spline.
-    void prepareSpline(Error *error);
+    void prepareSpline();
 
     /// Evaluates the spline function at position x.
     inline double eval(double x) const

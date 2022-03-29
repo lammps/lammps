@@ -57,6 +57,8 @@ TEST(TEST_CATEGORY, atomic_operations_float) {
                  float, TEST_EXECSPACE>(start, end - i, 3)));
     ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestNonIntegralType<
                  float, TEST_EXECSPACE>(start, end - i, 4)));
+    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestNonIntegralType<
+                 float, TEST_EXECSPACE>(start, end - i, 5)));
   }
 }
 }  // namespace Test

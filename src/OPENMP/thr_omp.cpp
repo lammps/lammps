@@ -53,13 +53,6 @@ ThrOMP::ThrOMP(LAMMPS *ptr, int style)
   fix = static_cast<FixOMP *>(lmp->modify->fix[ifix]);
 }
 
-/* ---------------------------------------------------------------------- */
-
-ThrOMP::~ThrOMP()
-{
-  // nothing to do?
-}
-
 /* ----------------------------------------------------------------------
    Hook up per thread per atom arrays into the tally infrastructure
    ---------------------------------------------------------------------- */

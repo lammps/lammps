@@ -26,7 +26,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "random_mars.h"
@@ -39,7 +38,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_fix_bond_swap[] =
-  "neighbor multi command:\n\n"
+  "fix bond/swap command:\n\n"
   "@Article{Auhl03,\n"
   " author = {R. Auhl, R. Everaers, G. S. Grest, K. Kremer, S. J. Plimpton},\n"
   " title = {Equilibration of long chain polymer melts in computer simulations},\n"
@@ -160,10 +159,7 @@ void FixBondSwap::init()
 
   // need a half neighbor list, built every Nevery steps
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
 
   // zero out stats
 

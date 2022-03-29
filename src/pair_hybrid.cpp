@@ -50,20 +50,20 @@ PairHybrid::~PairHybrid()
   if (nstyles > 0) {
     for (int m = 0; m < nstyles; m++) {
       delete styles[m];
-      delete [] keywords[m];
-      if (special_lj[m])   delete [] special_lj[m];
-      if (special_coul[m]) delete [] special_coul[m];
+      delete[] keywords[m];
+      if (special_lj[m])   delete[] special_lj[m];
+      if (special_coul[m]) delete[] special_coul[m];
     }
   }
-  delete [] styles;
-  delete [] keywords;
-  delete [] multiple;
+  delete[] styles;
+  delete[] keywords;
+  delete[] multiple;
 
-  delete [] special_lj;
-  delete [] special_coul;
-  delete [] compute_tally;
+  delete[] special_lj;
+  delete[] special_coul;
+  delete[] compute_tally;
 
-  delete [] svector;
+  delete[] svector;
 
   if (allocated) {
     memory->destroy(setflag);
@@ -187,7 +187,7 @@ void PairHybrid::compute(int eflag, int vflag)
 
   }
 
-  delete [] saved_special;
+  delete[] saved_special;
 
   if (vflag_fdotr) virial_fdotr_compute();
 }
@@ -274,9 +274,9 @@ void PairHybrid::settings(int narg, char **arg)
   if (nstyles > 0) {
     for (int m = 0; m < nstyles; m++) {
       delete styles[m];
-      delete [] keywords[m];
-      if (special_lj[m])   delete [] special_lj[m];
-      if (special_coul[m]) delete [] special_coul[m];
+      delete[] keywords[m];
+      if (special_lj[m])   delete[] special_lj[m];
+      if (special_coul[m]) delete[] special_coul[m];
     }
     delete[] styles;
     delete[] keywords;
@@ -297,8 +297,8 @@ void PairHybrid::settings(int narg, char **arg)
 
   // allocate list of sub-styles as big as possibly needed if no extra args
 
-  styles = new Pair*[narg];
-  keywords = new char*[narg];
+  styles = new Pair *[narg];
+  keywords = new char *[narg];
   multiple = new int[narg];
 
   special_lj = new double*[narg];
@@ -322,7 +322,7 @@ void PairHybrid::settings(int narg, char **arg)
       error->all(FLERR,"Pair style hybrid cannot have none as an argument");
 
     styles[nstyles] = force->new_pair(arg[iarg],1,dummy);
-    force->store_style(keywords[nstyles],arg[iarg],0);
+    keywords[nstyles] = force->store_style(arg[iarg],0);
     special_lj[nstyles] = special_coul[nstyles] = nullptr;
     compute_tally[nstyles] = 1;
 
@@ -454,7 +454,7 @@ void PairHybrid::init_svector()
     single_extra = MAX(single_extra,styles[m]->single_extra);
 
   if (single_extra) {
-    delete [] svector;
+    delete[] svector;
     svector = new double[single_extra];
   }
 }
@@ -610,13 +610,12 @@ void PairHybrid::init_style()
   // create skip lists inside each pair neigh request
   // any kind of list can have its skip flag set in this loop
 
-  for (i = 0; i < neighbor->nrequest; i++) {
-    if (!neighbor->requests[i]->pair) continue;
+  for (auto &request : neighbor->get_pair_requests()) {
 
     // istyle = associated sub-style for the request
 
     for (istyle = 0; istyle < nstyles; istyle++)
-      if (styles[istyle] == neighbor->requests[i]->requestor) break;
+      if (styles[istyle] == request->get_requestor()) break;
 
     // allocate iskip and ijskip
     // initialize so as to skip all pair types
@@ -663,11 +662,9 @@ void PairHybrid::init_style()
         if (ijskip[itype][jtype] == 1) skip = 1;
 
     if (skip) {
-      neighbor->requests[i]->skip = 1;
-      neighbor->requests[i]->iskip = iskip;
-      neighbor->requests[i]->ijskip = ijskip;
+      request->set_skip(iskip, ijskip);
     } else {
-      delete [] iskip;
+      delete[] iskip;
       memory->destroy(ijskip);
     }
   }
@@ -706,11 +703,10 @@ double PairHybrid::init_one(int i, int j)
   for (int k = 0; k < nmap[i][j]; k++) {
     map[j][i][k] = map[i][j][k];
     double cut = styles[map[i][j][k]]->init_one(i,j);
-    styles[map[i][j][k]]->cutsq[i][j] =
-      styles[map[i][j][k]]->cutsq[j][i] = cut*cut;
+    if (styles[map[i][j][k]]->did_mix) did_mix = true;
+    styles[map[i][j][k]]->cutsq[i][j] = styles[map[i][j][k]]->cutsq[j][i] = cut*cut;
     if (styles[map[i][j][k]]->ghostneigh)
-      cutghost[i][j] = cutghost[j][i] =
-        MAX(cutghost[i][j],styles[map[i][j][k]]->cutghost[i][j]);
+      cutghost[i][j] = cutghost[j][i] = MAX(cutghost[i][j],styles[map[i][j][k]]->cutghost[i][j]);
     if (tail_flag) {
       etail_ij += styles[map[i][j][k]]->etail_ij;
       ptail_ij += styles[map[i][j][k]]->ptail_ij;
@@ -921,8 +917,7 @@ void PairHybrid::modify_params(int narg, char **arg)
 again:
 
     if (iarg < narg && strcmp(arg[iarg],"special") == 0) {
-      if (narg < iarg+5)
-        error->all(FLERR,"Illegal pair_modify special command");
+      if (narg < iarg+5) error->all(FLERR,"Illegal pair_modify special command");
       modify_special(m,narg-iarg,&arg[iarg+1]);
       iarg += 5;
       goto again;
@@ -932,13 +927,8 @@ again:
     // set flag to register TALLY computes accordingly
 
     if (iarg < narg && strcmp(arg[iarg],"compute/tally") == 0) {
-      if (narg < iarg+2)
-        error->all(FLERR,"Illegal pair_modify compute/tally command");
-      if (strcmp(arg[iarg+1],"yes") == 0) {
-        compute_tally[m] = 1;
-      } else if (strcmp(arg[iarg+1],"no") == 0) {
-        compute_tally[m] = 0;
-      } else error->all(FLERR,"Illegal pair_modify compute/tally command");
+      if (narg < iarg+2) error->all(FLERR,"Illegal pair_modify compute/tally command");
+      compute_tally[m] = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
       goto again;
     }

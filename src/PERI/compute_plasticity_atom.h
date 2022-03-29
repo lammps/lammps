@@ -27,15 +27,15 @@ namespace LAMMPS_NS {
 class ComputePlasticityAtom : public Compute {
  public:
   ComputePlasticityAtom(class LAMMPS *, int, char **);
-  ~ComputePlasticityAtom();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  ~ComputePlasticityAtom() override;
+  void init() override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nmax;
   double *plasticity;
-  int ifix_peri;
+  class FixPeriNeigh *fix_peri_neigh;
 };
 
 }    // namespace LAMMPS_NS

@@ -27,7 +27,6 @@ namespace LAMMPS_NS {
 class FixNVT : public FixNH {
  public:
   FixNVT(class LAMMPS *, int, char **);
-  ~FixNVT() {}
 };
 
 }    // namespace LAMMPS_NS

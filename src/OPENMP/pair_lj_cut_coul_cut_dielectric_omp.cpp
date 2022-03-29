@@ -41,10 +41,6 @@ PairLJCutCoulCutDielectricOMP::PairLJCutCoulCutDielectricOMP(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulCutDielectricOMP::~PairLJCutCoulCutDielectricOMP() {}
-
-/* ---------------------------------------------------------------------- */
-
 void PairLJCutCoulCutDielectricOMP::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);

@@ -29,7 +29,7 @@ class Vect6 : public VirtualColMatrix  {
   double elements[6];
 public:
   Vect6();
-  ~Vect6();
+  ~Vect6() = default;
   Vect6(const Vect6& A);  // copy constructor
   Vect6(const VirtualMatrix& A);  // copy constructor
 

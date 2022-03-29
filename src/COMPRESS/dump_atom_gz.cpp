@@ -27,13 +27,9 @@ DumpAtomGZ::DumpAtomGZ(LAMMPS *lmp, int narg, char **arg) : DumpAtom(lmp, narg, 
   if (!compressed) error->all(FLERR, "Dump atom/gz only writes compressed files");
 }
 
-/* ---------------------------------------------------------------------- */
-
-DumpAtomGZ::~DumpAtomGZ() {}
-
 /* ----------------------------------------------------------------------
    generic opening of a dump file
-   ASCII or binary or gzipped
+   ASCII or binary or compressed
    some derived classes override this function
 ------------------------------------------------------------------------- */
 

@@ -124,18 +124,12 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"tail") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal optional keyword "
-                                    "in compute fep");
-      if (strcmp(arg[iarg+1],"no") == 0) tailflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) tailflag = 1;
-      else error->all(FLERR,"Illegal optional keyword in compute fep");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal optional keyword in compute fep");
+      tailflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"volume") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal optional keyword "
-                                    "in compute fep");
-      if (strcmp(arg[iarg+1],"no") == 0) volumeflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) volumeflag = 1;
-      else error->all(FLERR,"Illegal optional keyword in compute fep");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal optional keyword in compute fep");
+      volumeflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else
       error->all(FLERR,"Illegal optional keyword in compute fep");

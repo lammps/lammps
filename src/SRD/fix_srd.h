@@ -27,17 +27,17 @@ namespace LAMMPS_NS {
 class FixSRD : public Fix {
  public:
   FixSRD(class LAMMPS *, int, char **);
-  ~FixSRD();
-  int setmask();
-  void init();
-  void setup(int);
-  void pre_neighbor();
-  void post_force(int);
-  double compute_vector(int);
+  ~FixSRD() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void pre_neighbor() override;
+  void post_force(int) override;
+  double compute_vector(int) override;
 
-  double memory_usage();
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
+  double memory_usage() override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
 
  private:
   int me, nprocs;

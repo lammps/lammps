@@ -198,7 +198,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
   // Find deviceID with most CUs (priority given to the accelerator type)
   if (_first_device < 0) {
     int best_device = 0;
-    int best_cus = gpu->cus(0);
+    unsigned best_cus = gpu->cus(0);
     bool type_match = (gpu->device_type(0) == type);
     for (int i = 1; i < gpu->num_devices(); i++) {
       if (type_match==true && gpu->device_type(i)!=type)
@@ -1039,10 +1039,18 @@ Device<PRECISION,ACC_PRECISION> global_device;
 
 using namespace LAMMPS_AL;
 
-bool lmp_has_gpu_device()
+// check if a suitable GPU is present.
+// for mixed and double precision GPU library compilation
+// also the GPU needs to support double precision.
+bool lmp_has_compatible_gpu_device()
 {
   UCL_Device gpu;
-  return (gpu.num_platforms() > 0);
+  bool compatible_gpu = gpu.num_platforms() > 0;
+  #if defined(_SINGLE_DOUBLE) || defined(_DOUBLE_DOUBLE)
+  if (compatible_gpu && !gpu.double_precision(0))
+    compatible_gpu = false;
+  #endif
+  return compatible_gpu;
 }
 
 std::string lmp_gpu_device_info()

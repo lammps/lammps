@@ -82,7 +82,9 @@ the driver for LAMMPS to send it information.  Command that start with
    * - <ENERGY
      - Request total energy (potential + kinetic) of the system (1 value)
    * - >FORCES or <FORCES
-     - Sends/request forces on each atom (3N values)
+     - Send/request forces on each atom (3N values)
+   * - >+FORCES
+     - Send forces to add to each atom (3N values)
    * - <LABELS
      - Request string label of each atom (N values)
    * - <MASSES
@@ -198,9 +200,6 @@ While LAMMPS is at its @FORCES node, the following standard MDI
 commands are supported, as documented above: <COORDS, <ENERGY, >FORCES
 or >+FORCES or <FORCES, <KE, <PE, <STRESS, @COORDS, @FORCES, @ENDSTEP,
 @DEFAULT, EXIT.
-
-The >+FORCES command sends per-atom forces from the driver to LAMMPS
-which it adds to current forces (instead of replacing them).
 
 While LAMMPS is at its @ENDSTEP node, the following standard MDI
 commands are supported, as documented above: <ENERGY, <FORCES, <KE,

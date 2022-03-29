@@ -50,7 +50,7 @@ enum{DEFAULT,MD,OPT};            // top-level MDI engine modes
 
 // per-atom data which engine commands access
 
-enum{TYPE,CHARGE,MASS,COORD,VELOCITY,FORCE};
+enum{TYPE,CHARGE,MASS,COORD,VELOCITY,FORCE,ADDFORCE};
 
 /* ----------------------------------------------------------------------
    mdi command: engine
@@ -315,6 +315,9 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   } else if (strcmp(command,">FORCES") == 0) {
     receive_double3(FORCE);
 
+  } else if (strcmp(command,">+FORCES") == 0) {
+    receive_double3(ADDFORCE);
+
   } else if (strcmp(command,">NATOMS") == 0) {
     receive_natoms();
 
@@ -456,113 +459,114 @@ void MDIEngine::mdi_commands()
   // default node, MDI standard commands
 
   MDI_Register_node("@DEFAULT");
-  MDI_Register_command("@DEFAULT", "<@");
-  MDI_Register_command("@DEFAULT", "<CELL");
-  MDI_Register_command("@DEFAULT", "<CELL_DISPL");
-  MDI_Register_command("@DEFAULT", "<CHARGES");
-  MDI_Register_command("@DEFAULT", "<COORDS");
-  MDI_Register_command("@DEFAULT", "<ENERGY");
-  MDI_Register_command("@DEFAULT", "<FORCES");
-  MDI_Register_command("@DEFAULT", "<LABELS");
-  MDI_Register_command("@DEFAULT", "<MASSES");
-  MDI_Register_command("@DEFAULT", "<NATOMS");
-  MDI_Register_command("@DEFAULT", "<PE");
-  MDI_Register_command("@DEFAULT", "<STRESS");
-  MDI_Register_command("@DEFAULT", "<TYPES");
-  MDI_Register_command("@DEFAULT", "<VELOCITIES");
-  MDI_Register_command("@DEFAULT", ">CELL");
-  MDI_Register_command("@DEFAULT", ">CELL_DISPL");
-  MDI_Register_command("@DEFAULT", ">CHARGES");
-  MDI_Register_command("@DEFAULT", ">COORDS");
-  MDI_Register_command("@DEFAULT", ">NATOMS");
-  MDI_Register_command("@DEFAULT", ">TYPES");
-  MDI_Register_command("@DEFAULT", ">VELOCITIES");
-  MDI_Register_command("@DEFAULT", "@INIT_MD");
-  MDI_Register_command("@DEFAULT", "@INIT_OPTG");
-  MDI_Register_command("@DEFAULT", "EXIT");
+  MDI_Register_command("@DEFAULT","<@");
+  MDI_Register_command("@DEFAULT","<CELL");
+  MDI_Register_command("@DEFAULT","<CELL_DISPL");
+  MDI_Register_command("@DEFAULT","<CHARGES");
+  MDI_Register_command("@DEFAULT","<COORDS");
+  MDI_Register_command("@DEFAULT","<ENERGY");
+  MDI_Register_command("@DEFAULT","<FORCES");
+  MDI_Register_command("@DEFAULT","<LABELS");
+  MDI_Register_command("@DEFAULT","<MASSES");
+  MDI_Register_command("@DEFAULT","<NATOMS");
+  MDI_Register_command("@DEFAULT","<PE");
+  MDI_Register_command("@DEFAULT","<STRESS");
+  MDI_Register_command("@DEFAULT","<TYPES");
+  MDI_Register_command("@DEFAULT","<VELOCITIES");
+  MDI_Register_command("@DEFAULT",">CELL");
+  MDI_Register_command("@DEFAULT",">CELL_DISPL");
+  MDI_Register_command("@DEFAULT",">CHARGES");
+  MDI_Register_command("@DEFAULT",">COORDS");
+  MDI_Register_command("@DEFAULT",">NATOMS");
+  MDI_Register_command("@DEFAULT",">TYPES");
+  MDI_Register_command("@DEFAULT",">VELOCITIES");
+  MDI_Register_command("@DEFAULT","@INIT_MD");
+  MDI_Register_command("@DEFAULT","@INIT_OPTG");
+  MDI_Register_command("@DEFAULT","EXIT");
 
   // default node, custom commands added by LAMMPS
 
-  MDI_Register_command("@DEFAULT", "NBYTES");
-  MDI_Register_command("@DEFAULT", "COMMAND");
-  MDI_Register_command("@DEFAULT", "COMMANDS");
-  MDI_Register_command("@DEFAULT", "INFILE");
-  MDI_Register_command("@DEFAULT", "<KE");
+  MDI_Register_command("@DEFAULT","NBYTES");
+  MDI_Register_command("@DEFAULT","COMMAND");
+  MDI_Register_command("@DEFAULT","COMMANDS");
+  MDI_Register_command("@DEFAULT","INFILE");
+  MDI_Register_command("@DEFAULT","<KE");
 
   // node for setting up and running a dynamics simulation
 
   MDI_Register_node("@INIT_MD");
-  MDI_Register_command("@INIT_MD", "<@");
-  MDI_Register_command("@INIT_MD", ">NITERATE");
-  MDI_Register_command("@INIT_MD", "@");
-  MDI_Register_command("@INIT_MD", "@DEFAULT");
-  MDI_Register_command("@INIT_MD", "@COORDS");
-  MDI_Register_command("@INIT_MD", "@FORCES");
-  MDI_Register_command("@INIT_MD", "@ENDSTEP");
-  MDI_Register_command("@INIT_MD", "EXIT");
+  MDI_Register_command("@INIT_MD","<@");
+  MDI_Register_command("@INIT_MD",">NITERATE");
+  MDI_Register_command("@INIT_MD","@");
+  MDI_Register_command("@INIT_MD","@DEFAULT");
+  MDI_Register_command("@INIT_MD","@COORDS");
+  MDI_Register_command("@INIT_MD","@FORCES");
+  MDI_Register_command("@INIT_MD","@ENDSTEP");
+  MDI_Register_command("@INIT_MD","EXIT");
 
   // node for setting up and running a minimization
 
   MDI_Register_node("@INIT_OPTG");
-  MDI_Register_command("@INIT_OPTG", "<@");
-  MDI_Register_command("@INIT_OPTG", ">TOLERANCE");
-  MDI_Register_command("@INIT_OPTG", "@");
-  MDI_Register_command("@INIT_OPTG", "@DEFAULT");
-  MDI_Register_command("@INIT_OPTG", "@COORDS");
-  MDI_Register_command("@INIT_OPTG", "@FORCES");
-  MDI_Register_command("@INIT_OPTG", "EXIT");
+  MDI_Register_command("@INIT_OPTG","<@");
+  MDI_Register_command("@INIT_OPTG",">TOLERANCE");
+  MDI_Register_command("@INIT_OPTG","@");
+  MDI_Register_command("@INIT_OPTG","@DEFAULT");
+  MDI_Register_command("@INIT_OPTG","@COORDS");
+  MDI_Register_command("@INIT_OPTG","@FORCES");
+  MDI_Register_command("@INIT_OPTG","EXIT");
 
   // node at POST_INTEGRATE location in timestep
   // only used if fix MDI/ENGINE is instantiated
 
   MDI_Register_node("@COORDS");
-  MDI_Register_command("@COORDS", "<@");
-  MDI_Register_command("@COORDS", "<COORDS");
-  MDI_Register_command("@COORDS", ">COORDS");
-  MDI_Register_command("@COORDS", "@");
-  MDI_Register_command("@COORDS", "@DEFAULT");
-  MDI_Register_command("@COORDS", "@COORDS");
-  MDI_Register_command("@COORDS", "@FORCES");
-  MDI_Register_command("@COORDS", "@ENDSTEP");
-  MDI_Register_command("@COORDS", "EXIT");
+  MDI_Register_command("@COORDS","<@");
+  MDI_Register_command("@COORDS","<COORDS");
+  MDI_Register_command("@COORDS",">COORDS");
+  MDI_Register_command("@COORDS","@");
+  MDI_Register_command("@COORDS","@DEFAULT");
+  MDI_Register_command("@COORDS","@COORDS");
+  MDI_Register_command("@COORDS","@FORCES");
+  MDI_Register_command("@COORDS","@ENDSTEP");
+  MDI_Register_command("@COORDS","EXIT");
 
   // node at POST_FORCE location in timestep
   // only used if fix MDI/ENGINE is instantiated
 
   MDI_Register_node("@FORCES");
-  MDI_Register_callback("@FORCES", ">FORCES");
-  MDI_Register_callback("@FORCES", ">+FORCES");
-  MDI_Register_command("@FORCES", "<@"); 
-  MDI_Register_command("@FORCES", "<COORDS");
-  MDI_Register_command("@FORCES", "<ENERGY");
-  MDI_Register_command("@FORCES", "<FORCES");
-  MDI_Register_command("@FORCES", "<KE");
-  MDI_Register_command("@FORCES", "<PE");
-  MDI_Register_command("@FORCES", "<STRESS");
-  MDI_Register_command("@FORCES", ">FORCES");
-  MDI_Register_command("@FORCES", "@");
-  MDI_Register_command("@FORCES", "@DEFAULT");
-  MDI_Register_command("@FORCES", "@COORDS");
-  MDI_Register_command("@FORCES", "@FORCES");
-  MDI_Register_command("@FORCES", "@ENDSTEP");
-  MDI_Register_command("@FORCES", "EXIT");
+  MDI_Register_callback("@FORCES",">FORCES");
+  MDI_Register_callback("@FORCES",">+FORCES");
+  MDI_Register_command("@FORCES","<@"); 
+  MDI_Register_command("@FORCES","<COORDS");
+  MDI_Register_command("@FORCES","<ENERGY");
+  MDI_Register_command("@FORCES","<FORCES");
+  MDI_Register_command("@FORCES","<KE");
+  MDI_Register_command("@FORCES","<PE");
+  MDI_Register_command("@FORCES","<STRESS");
+  MDI_Register_command("@FORCES",">FORCES");
+  MDI_Register_command("@FORCES",">+FORCES");
+  MDI_Register_command("@FORCES","@");
+  MDI_Register_command("@FORCES","@DEFAULT");
+  MDI_Register_command("@FORCES","@COORDS");
+  MDI_Register_command("@FORCES","@FORCES");
+  MDI_Register_command("@FORCES","@ENDSTEP");
+  MDI_Register_command("@FORCES","EXIT");
 
   // node at END_OF_STEP location in timestep
   // only used if fix MDI/ENGINE is instantiated
 
   MDI_Register_node("@ENDSTEP");
-  MDI_Register_command("@ENDSTEP", "<@");
-  MDI_Register_command("@ENDSTEP", "<ENERGY");
-  MDI_Register_command("@ENDSTEP", "<FORCES");
-  MDI_Register_command("@ENDSTEP", "<KE");
-  MDI_Register_command("@ENDSTEP", "<PE");
-  MDI_Register_command("@ENDSTEP", "<STRESS");
-  MDI_Register_command("@ENDSTEP", "@");
-  MDI_Register_command("@ENDSTEP", "@DEFAULT");
-  MDI_Register_command("@ENDSTEP", "@COORDS");
-  MDI_Register_command("@ENDSTEP", "@FORCES");
-  MDI_Register_command("@ENDSTEP", "@ENDSTEP");
-  MDI_Register_command("@ENDSTEP", "EXIT");
+  MDI_Register_command("@ENDSTEP","<@");
+  MDI_Register_command("@ENDSTEP","<ENERGY");
+  MDI_Register_command("@ENDSTEP","<FORCES");
+  MDI_Register_command("@ENDSTEP","<KE");
+  MDI_Register_command("@ENDSTEP","<PE");
+  MDI_Register_command("@ENDSTEP","<STRESS");
+  MDI_Register_command("@ENDSTEP","@");
+  MDI_Register_command("@ENDSTEP","@DEFAULT");
+  MDI_Register_command("@ENDSTEP","@COORDS");
+  MDI_Register_command("@ENDSTEP","@FORCES");
+  MDI_Register_command("@ENDSTEP","@ENDSTEP");
+  MDI_Register_command("@ENDSTEP","EXIT");
 }
 
 /* ----------------------------------------------------------------------
@@ -1136,6 +1140,14 @@ void MDIEngine::receive_double3(int which)
       f[i][0] = buf3[3*ilocal+0] * mdi2lmp_force;
       f[i][1] = buf3[3*ilocal+1] * mdi2lmp_force;
       f[i][2] = buf3[3*ilocal+2] * mdi2lmp_force;
+    }
+  } else if (which == ADDFORCE) {
+    double **f = atom->f;
+    for (int i = 0; i < nlocal; i++) {
+      ilocal = static_cast<int> (tag[i]) - 1;
+      f[i][0] += buf3[3*ilocal+0] * mdi2lmp_force;
+      f[i][1] += buf3[3*ilocal+1] * mdi2lmp_force;
+      f[i][2] += buf3[3*ilocal+2] * mdi2lmp_force;
     }
   }
 }

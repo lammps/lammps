@@ -40,11 +40,10 @@ Syntax
         *gamma_t_eigen* values = *gt1* and *gt2* and *gt3* for *brownian/asphere*
          *gt1*, *gt2*, and *gt3* = diagonal entries of body frame translational friction tensor
         *gamma_t* values = *gt* for *brownian* and *brownian/sphere*
-         *gt* = magnitude of the (isotropic) translational friction tensor
-	*rotation_temp* values = *T* for *brownian/sphere* and *brownian/asphere*
-	 *T* = rotation temperature, which can be different then *temp* when out of equilibrium
-	*planar_rotation* values = None (constrains rotational diffusion to be in xy plane if in 3D)
-
+        *gt* = magnitude of the (isotropic) translational friction tensor
+        *rotation_temp* values = *T* for *brownian/sphere* and *brownian/asphere*
+        *T* = rotation temperature, which can be different then *temp* when out of equilibrium
+        *planar_rotation* values = None (constrains rotational diffusion to be in xy plane if in 3D)
 
 Examples
 """"""""
@@ -101,7 +100,7 @@ rotational diffusion moments (see :ref:`(Ilie) <Ilie1>`) when
 
 .. math::
 
-   \mathbf{\omega} = \frac{\mathbf{T}}{\gamma_r} + \sqrt{\frac{2 k_B T_{rot}}{\gamma_r}\frac{d\mathbf{W}}{dt},
+   \mathbf{\omega} = \frac{\mathbf{T}}{\gamma_r} + \sqrt{\frac{2 k_B T_{rot}}{\gamma_r}\frac{d\mathbf{W}}{dt}},
 
 with :math:`d\mathbf{W}` being a random number with zero mean and variance :math:`dt`
 and :math:`T_{rot}` is *rotation_temp*.

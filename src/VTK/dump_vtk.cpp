@@ -96,8 +96,8 @@ enum{VTK,VTP,VTU,PVTP,PVTU}; // file formats
 #define ONEFIELD 32
 #define DELTA 1048576
 
-#if (VTK_MAJOR_VERSION < 5) || (VTK_MAJOR_VERSION > 8)
-#error This code has only been tested with VTK 5, 6, 7, and 8
+#if (VTK_MAJOR_VERSION < 5) || (VTK_MAJOR_VERSION > 9)
+#error This code has only been tested with VTK 5, 6, 7, 8, and 9
 #elif VTK_MAJOR_VERSION > 6
 #define InsertNextTupleValue InsertNextTypedTuple
 #endif
@@ -1009,13 +1009,13 @@ void DumpVTK::write_data(int n, double *mybuf)
 /* ---------------------------------------------------------------------- */
 
 void DumpVTK::setFileCurrent() {
-  delete [] filecurrent;
+  delete[] filecurrent;
   filecurrent = nullptr;
 
   char *filestar = filename;
   if (multiproc) {
     if (multiproc > 1) { // if dump_modify fileper or nfile was used
-      delete [] multiname_ex;
+      delete[] multiname_ex;
       multiname_ex = nullptr;
       char *ptr = strchr(filename,'%');
       if (ptr) {
@@ -1034,26 +1034,13 @@ void DumpVTK::setFileCurrent() {
   }
 
   if (multifile == 0) {
-    filecurrent = new char[strlen(filestar) + 1];
-    strcpy(filecurrent, filestar);
+    filecurrent = utils::strdup(filestar);
   } else {
-    filecurrent = new char[strlen(filestar) + 16];
-    char *ptr = strchr(filestar,'*');
-    *ptr = '\0';
-    if (padflag == 0) {
-      sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
-              filestar,update->ntimestep,ptr+1);
-    } else {
-      char bif[8],pad[16];
-      strcpy(bif,BIGINT_FORMAT);
-      sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
-      sprintf(filecurrent,pad,filestar,update->ntimestep,ptr+1);
-    }
-    *ptr = '*';
+    filecurrent = utils::strdup(utils::star_subst(filestar, update->ntimestep, padflag));
   }
 
   // filename of domain box data file
-  delete [] domainfilecurrent;
+  delete[] domainfilecurrent;
   domainfilecurrent = nullptr;
   if (multiproc) {
     // remove '%' character
@@ -1074,21 +1061,9 @@ void DumpVTK::setFileCurrent() {
       domainfilecurrent = new char[strlen(filestar) + 1];
       strcpy(domainfilecurrent, filestar);
     } else {
-      domainfilecurrent = new char[strlen(filestar) + 16];
-      char *ptr = strchr(filestar,'*');
-      *ptr = '\0';
-      if (padflag == 0) {
-        sprintf(domainfilecurrent,"%s" BIGINT_FORMAT "%s",
-                filestar,update->ntimestep,ptr+1);
-      } else {
-        char bif[8],pad[16];
-        strcpy(bif,BIGINT_FORMAT);
-        sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
-        sprintf(domainfilecurrent,pad,filestar,update->ntimestep,ptr+1);
-      }
-      *ptr = '*';
+      domainfilecurrent = utils::strdup(utils::star_subst(filestar, update->ntimestep, padflag));
     }
-    delete [] filestar;
+    delete[] filestar;
     filestar = nullptr;
   } else {
     domainfilecurrent = new char[strlen(filecurrent) + 16];
@@ -1100,7 +1075,7 @@ void DumpVTK::setFileCurrent() {
 
   // filename of parallel file
   if (multiproc && me == 0) {
-    delete [] parallelfilecurrent;
+    delete[] parallelfilecurrent;
     parallelfilecurrent = nullptr;
 
     // remove '%' character and add 'p' to file extension
@@ -1119,24 +1094,11 @@ void DumpVTK::setFileCurrent() {
     *ptr++= 0;
 
     if (multifile == 0) {
-      parallelfilecurrent = new char[strlen(filestar) + 1];
-      strcpy(parallelfilecurrent, filestar);
+      parallelfilecurrent = utils::strdup(filestar);
     } else {
-      parallelfilecurrent = new char[strlen(filestar) + 16];
-      char *ptr = strchr(filestar,'*');
-      *ptr = '\0';
-      if (padflag == 0) {
-        sprintf(parallelfilecurrent,"%s" BIGINT_FORMAT "%s",
-                filestar,update->ntimestep,ptr+1);
-      } else {
-        char bif[8],pad[16];
-        strcpy(bif,BIGINT_FORMAT);
-        sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
-        sprintf(parallelfilecurrent,pad,filestar,update->ntimestep,ptr+1);
-      }
-      *ptr = '*';
+      parallelfilecurrent = utils::strdup(utils::star_subst(filestar, update->ntimestep, padflag));
     }
-    delete [] filestar;
+    delete[] filestar;
     filestar = nullptr;
   }
 }

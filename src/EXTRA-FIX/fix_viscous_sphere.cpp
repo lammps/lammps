@@ -36,7 +36,7 @@ enum { NONE, TYPE, VARIABLE };
 
 FixViscousSphere::FixViscousSphere(LAMMPS *_lmp, int narg, char **arg) :
     Fix(_lmp, narg, arg), scalegamma(nullptr), scaleval(nullptr), scalevarid(nullptr),
-    scalestyle(NONE)
+    scalestyle(NONE), scalevar(-1)
 {
   dynamic_group_allow = 1;
 

@@ -101,15 +101,22 @@ class FixAmoebaBiTorsion : public Fix {
 
   void read_grid_data(char *);
   void create_splines();
-  void cspline(int, double *, double *, double *, double *, double *,
-               double *, double *, double *, double *, double *);
   void nspline(int, double *, double *, double *, double *,
                double *, double *, double *, double *, double *);
+  void cspline(int, double *, double *, double *, double *, double *,
+               double *, double *, double *, double *, double *);
+  void cytsy(int, double *, double *, double *, double *, double *, int &);
+  void cytsyp(int, double *, double *, double *, int &);
+  void cytsys(int, double *, double *, double *, double *, double *);
+
   void chkttor(int, int, int, double &, double &, double &);
   void bcuint1(double *, double *, double *, double *,
                double, double, double, double, double, double, 
                double &, double &, double &);
+  void bcucof(double *, double *, double *, double *, double, double, 
+              double [][4]);
 };
+
 }    // namespace LAMMPS_NS
 
 #endif

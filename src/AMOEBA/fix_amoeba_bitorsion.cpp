@@ -37,6 +37,27 @@ using namespace MathConst;
 #define LB_FACTOR 1.5
 #define MAXLINE 1024
 
+// spline weighting factors
+
+static constexpr double WT[16][16] = {
+{ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+{-3.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0,-2.0, 0.0, 0.0,-1.0, 0.0, 0.0, 0.0, 0.0},
+{ 2.0, 0.0, 0.0,-2.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0},
+{ 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0},
+{ 0.0, 0.0, 0.0, 0.0,-3.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0,-2.0, 0.0, 0.0,-1.0},
+{ 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0,-2.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0},
+{-3.0, 3.0, 0.0, 0.0,-2.0,-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,-3.0, 3.0, 0.0, 0.0,-2.0,-1.0, 0.0, 0.0},
+{ 9.0,-9.0, 9.0,-9.0, 6.0, 3.0,-3.0,-6.0, 6.0,-6.0,-3.0, 3.0, 4.0, 2.0, 1.0, 2.0},
+{-6.0, 6.0,-6.0, 6.0,-4.0,-2.0, 2.0, 4.0,-3.0, 3.0, 3.0,-3.0,-2.0,-1.0,-1.0,-2.0},
+{ 2.0,-2.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0,-2.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0},
+{-6.0, 6.0,-6.0, 6.0,-3.0,-3.0, 3.0, 3.0,-4.0, 4.0, 2.0,-2.0,-2.0,-2.0,-1.0,-1.0},
+{ 4.0,-4.0, 4.0,-4.0, 2.0, 2.0,-2.0,-2.0, 2.0,-2.0,-2.0, 2.0, 1.0, 1.0, 1.0, 1.0}
+};
+
 /* ---------------------------------------------------------------------- */
 
 FixAmoebaBiTorsion::FixAmoebaBiTorsion(LAMMPS *lmp, int narg, char **arg) :
@@ -499,10 +520,12 @@ void FixAmoebaBiTorsion::post_force(int vflag)
     bcuint1(ftt,ft1,ft2,ft12,x1l,x1u,y1l,y1u,value1,value2,
             e,dedang1,dedang2);
 
-    double ttorunit = 1.0;
-    e *= ttorunit;
-    dedang1 = sign * ttorunit * radian2degree * dedang1;
-    dedang2 = sign * ttorunit * radian2degree * dedang2;
+    printf("BiTorsion %d %d %d %d %d: angle12 %g %g: eng %g\n",
+           atom->tag[ia],atom->tag[ib],atom->tag[ic],atom->tag[id],atom->tag[ie],
+           angle1,angle2,e);
+
+    dedang1 = sign * radian2degree * dedang1;
+    dedang2 = sign * radian2degree * dedang2;
 
     // fraction of energy for each atom
 
@@ -870,7 +893,7 @@ void FixAmoebaBiTorsion::create_splines()
       else 
         nspline(ny-1,tmp1,tmp2,bs,cs,tmp3,tmp4,tmp5,tmp6,tmp7);
 
-      for (int j = 0; i < ny; j++) 
+      for (int j = 0; j < ny; j++)
         tby[itype][j*nx+i] = bs[j];
     }
 
@@ -888,7 +911,7 @@ void FixAmoebaBiTorsion::create_splines()
       else 
         nspline(ny-1,tmp1,tmp2,bs,cs,tmp3,tmp4,tmp5,tmp6,tmp7);
 
-      for (int j = 0; i < ny; j++) 
+      for (int j = 0; j < ny; j++) 
         tbxy[itype][j*nx+i] = bs[j];
     }
   }
@@ -908,18 +931,8 @@ void FixAmoebaBiTorsion::create_splines()
 }
 
 /* ----------------------------------------------------------------------
-------------------------------------------------------------------------- */
-
-void FixAmoebaBiTorsion::cspline(int n, double *xn, double *fn, 
-                                 double *b, double *c, double *d,
-                                 double *h, double *du, double *dm, 
-                                 double *rc, double *rs)
-{
-}
-
-/* ----------------------------------------------------------------------
-   Tinker method
-   nspline() computes coefficients for an nonperiodic cubic spline
+   Tinker method nspline()
+   computes coefficients for an nonperiodic cubic spline
      with natural boundary conditions where the first and last second
      derivatives are already known
    all vectors are of length n+1 and are indexed from 0 to n inclusive
@@ -991,6 +1004,220 @@ void FixAmoebaBiTorsion::nspline(int n, double *x0, double *y0,
 }
 
 /* ----------------------------------------------------------------------
+   Tinker method cspline()
+   computes coefficients for an periodic interpolating cubic spline
+   all vectors are of length n+1 and are indexed from 0 to n inclusive
+   n,xn,fn are inputs
+   rest of args are outputs
+------------------------------------------------------------------------- */
+
+void FixAmoebaBiTorsion::cspline(int n, double *xn, double *fn, 
+                                 double *b, double *c, double *d,
+                                 double *h, double *du, double *dm, 
+                                 double *rc, double *rs)
+{
+  int i;
+  double temp1,temp2;
+
+  double average = 0.5 * (fn[0] + fn[n]);
+  fn[0] = average;
+  fn[n] = average;
+
+  // get auxiliary variables and matrix elements on first call
+
+  for (i = 0; i < n; i++) 
+    h[i] = xn[i+1] - xn[i];
+  h[n] = h[0];
+
+  for (i = 1; i < n; i++)
+    du[i] = h[i];
+  du[n] = h[0];
+
+  for (i = 1; i <= n; i++)
+    dm[i] = 2.0 * (h[i-1]+h[i]);
+
+  // compute the right hand side
+
+  temp1 = (fn[1]-fn[0]) / h[0];
+  for (i = 1; i < n; i++) {
+    temp2 = (fn[i+1]-fn[i]) / h[i];
+    rs[i]  = 3.0 * (temp2-temp1);
+    temp1 = temp2;
+  }
+  rs[n] = 3.0 * ((fn[1]-fn[0])/h[0]-temp1);
+
+  // solve the linear system with factorization
+
+  int iflag;
+  cytsy(n,dm,du,rc,rs,c,iflag);
+  if (iflag != 1) return;
+
+  // compute remaining spline coefficients
+
+  c[0] = c[n];
+  for (i = 0; i < n; i++) {
+    b[i] = (fn[i+1]-fn[i])/h[i] - h[i]/3.0*(c[i+1]+2.0*c[i]);
+    d[i] = (c[i+1]-c[i]) / (3.0*h[i]);
+  }
+  b[n] = (fn[1]-fn[n])/h[n] - h[n]/3.0*(c[1]+2.0*c[n]);
+}
+
+/* ----------------------------------------------------------------------
+   Tinker method cytsy()
+   solve cyclic tridiagonal system
+   all vectors are of length n+1 and are indexed from 0 to n inclusive
+   n,dm,du are inputs
+   du,cr,rs,x,iflag are outputs
+------------------------------------------------------------------------- */
+
+void FixAmoebaBiTorsion::cytsy(int n, double *dm, double *du, 
+                               double *cr, double *rs, double *x, int &iflag)
+{
+  iflag = -2;
+  if (n < 3) return;
+  cytsyp(n,dm,du,cr,iflag);
+
+  // update and back substitute as necessary
+
+  if (iflag == 1) cytsys(n,dm,du,cr,rs,x);
+}
+
+/* ----------------------------------------------------------------------
+   Tinker method ctsys()
+   tridiagonal Cholesky factorization
+   all vectors are of length n+1 and are indexed from 0 to n inclusive
+   n,dm,du are inputs
+   du,cr,iflag are outputs
+------------------------------------------------------------------------- */
+
+void FixAmoebaBiTorsion::cytsyp(int n, double *dm, double *du, 
+                                double *cr, int &iflag)
+{
+  int i;
+  double temp1,temp2;
+
+  // set error bound and test for condition n greater than 2
+  
+  double eps = 1.0e-8;
+
+  iflag = -2;
+  if (n < 3) return;
+
+  // checking to see if matrix is positive definite
+
+  double row = fabs(dm[1]) + fabs(du[1]) + fabs(du[n]);
+
+  if (row == 0.0) {
+    iflag = 0;
+    return;
+  }
+
+  double d = 1.0 / row;
+
+  if (dm[1] < 0.0) {
+    iflag = -1;
+    return;
+  } else if (fabs(dm[1])*d <= eps) {
+    iflag = 0;
+    return;
+  }
+
+  // factoring a while checking for a positive definite and 
+  //   strong nonsingular matrix a
+
+  temp1 = du[1];
+  du[1] = du[1] / dm[1];
+  cr[1] = du[n] / dm[1];
+
+  for (i = 2; i < n; i++) {
+    row = fabs(dm[i]) + fabs(du[i]) + fabs(temp1);
+    if (row == 0.0) {
+      iflag = 0;
+      return;
+    }
+    d = 1.0 / row;
+    dm[i] = dm[i] - temp1*du[i-1];
+    if (dm[i] < 0.0) {
+      iflag = -1;
+      return;
+    } else if (abs(dm[i])*d <= eps) {
+      iflag = 0;
+      return;
+    }
+    if (i < n-1) {
+      cr[i] = -temp1 * cr[i-1] / dm[i];
+      temp1 = du[i];
+      du[i] = du[i] / dm[i];
+    } else {
+      temp2 = du[i];
+      du[i] = (du[i] - temp1*cr[i-1]) / dm[i];
+    }
+  }
+
+  row = fabs(du[n]) + fabs(dm[n]) + fabs(temp2);
+  if (row == 0.0) {
+    iflag = 0;
+    return;
+  }
+
+  d = 1.0 / row;
+  dm[n] = dm[n] - dm[n-1]*du[n-1]*du[n-1];
+  temp1 = 0.0;
+
+  for (i = 1; i < n-1; i++) 
+    temp1 += dm[i]*cr[i]*cr[i];
+
+  dm[n] = dm[n] - temp1;
+
+  if (dm[n] < 0.0) {
+    iflag = -1;
+    return;
+  } else if (fabs(dm[n])*d <= eps) {
+    iflag = 0;
+    return;
+  }
+
+  iflag = 1;
+}
+
+/* ----------------------------------------------------------------------
+   Tinker method cytsys()
+   tridiagonal solution from factors
+   all vectors are of length n+1 and are indexed from 0 to n inclusive
+   n,dm,du,cr are inputs
+   rs,x are outputs
+------------------------------------------------------------------------- */
+
+void FixAmoebaBiTorsion::cytsys(int n, double *dm, double *du, 
+                                double *cr, double *rs, double *x)
+{
+  int i;
+
+  // updating phase
+
+  double temp = rs[1];
+  rs[1] = temp / dm[1];
+  double sum = cr[1] * temp;
+
+  for (i = 2; i < n; i++) {
+    temp = rs[i] - du[i-1]*temp;
+    rs[i] = temp / dm[i];
+    if (i != n-1)  sum += cr[i]*temp;
+  }
+
+  temp = rs[n] - du[n-1]*temp;
+  temp = temp - sum;
+  rs[n] = temp / dm[n];
+
+  // back substitution phase
+
+  x[n] = rs[n];
+  x[n-1] = rs[n-1] - du[n-1]*x[n];
+  for (i = n-2; i > 0; i--)
+    x[i] = rs[i] - du[i]*x[i+1] - cr[i]*x[n];
+}
+
+/* ----------------------------------------------------------------------
 ------------------------------------------------------------------------- */
 
 void FixAmoebaBiTorsion::chkttor(int ib, int ic, int id, 
@@ -999,14 +1226,80 @@ void FixAmoebaBiTorsion::chkttor(int ib, int ic, int id,
 }
 
 /* ----------------------------------------------------------------------
+   perform bicubic spline interpolation
+   based on Tinker bcuint1.f
+   input = all args except last 3
+   output = ansy,ansy1,ansy2
 ------------------------------------------------------------------------- */
 
-void FixAmoebaBiTorsion::bcuint1(double *ftt, double *ft1, 
-                                 double *ft2, double *ft12,
-                                 double x1l, double x1u, double y1l, double y1u, 
-                                 double value1, double value2, 
-                                 double &e, double &dedang1, double &dedang2)
+void FixAmoebaBiTorsion::bcuint1(double *y, double *y1, 
+                                 double *y2, double *y12,
+                                 double x1l, double x1u, double x2l, double x2u, 
+                                 double x1, double x2, 
+                                 double &ansy, double &ansy1, double &ansy2)
 {
+  double c[4][4];
+
+  // get coefficients, then perform bicubic interpolation
+
+  bcucof(y,y1,y2,y12,x1u-x1l,x2u-x2l,c);
+
+  double t = (x1-x1l) / (x1u-x1l);
+  double u = (x2-x2l) / (x2u-x2l);
+
+  ansy = ansy1 = ansy2 = 0.0;
+
+  for (int i = 4; i >= 1; i--) {
+    ansy = t*ansy + ((c[i][3]*u+c[i][2])*u+c[i][1])*u + c[i][0];
+    ansy1 = u*ansy1 + (3.0*c[3][i]*t+2.0*c[2][i])*t + c[1][i];
+    ansy2 = t*ansy2 + (3.0*c[i][3]*u+2.0*c[i][2])*u + c[i][1];
+  }
+
+  ansy1 /= x1u-x1l;
+  ansy2 /= x2u-x2l;
+}
+
+/* ----------------------------------------------------------------------
+   compute bicubic spline coeffs
+   based on Tinker bcucof.f
+   input = all args except c
+   output = c
+------------------------------------------------------------------------- */
+
+void FixAmoebaBiTorsion::bcucof(double *y, double *y1, double *y2, double *y12,
+                                double d1, double d2, double c[4][4])
+{
+  int i,j,k;
+  double xx;
+  double x[16],cl[16];
+
+  // pack a temporary vector of corner values
+
+  double d1d2 = d1 * d2;
+  for (i = 0; i < 4; i++) {
+    x[i] = y[i];
+    x[i+4] = y1[i] * d1;
+    x[i+8] = y2[i] * d2;
+    x[i+12] = y12[i] * d1d2;
+  }
+
+  // matrix multiply by the stored weight table
+
+  for (i = 0; i < 16; i++) {
+    xx = 0.0;
+    for (k = 0; k < 16; k++)
+      xx += WT[i][k]*x[k];
+    cl[i] = xx;
+  }
+
+  // unpack the result into the coefficient table
+
+  j = 0;
+  for (i = 0; i < 4; i++) {
+    for (k = 0; k < 4; k++) {
+      c[i][k] = cl[j++];
+    }
+  }
 }
 
 // ----------------------------------------------------------------------
@@ -1416,7 +1709,7 @@ double FixAmoebaBiTorsion::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = (double)nmax * sizeof(int);              // num_bitorsion
-  bytes += (double)nmax*BITORSIONMAX * sizeof(int);      // bitorsion_type
+  bytes += (double)nmax*BITORSIONMAX * sizeof(int);       // bitorsion_type
   bytes += (double)5*nmax*BITORSIONMAX * sizeof(int);     // bitorsion_atom 12345
   bytes += (double)6*max_bitorsion_list * sizeof(int);    // bitorsion_list
   return bytes;

@@ -634,7 +634,7 @@ void FixReaxFFSpecies::WriteFormulas(int Nmole, int Nspec)
   }
   fputs("\n", fp);
 
-  fmt::print(fp, "{} {:11} {11}\t", ntimestep, Nmole, Nspec);
+  fmt::print(fp, "{} {:11} {:11}\t", ntimestep, Nmole, Nspec);
 
   for (i = 0; i < Nmoltype; i++) fprintf(fp, " %d\t", NMol[i]);
   fprintf(fp, "\n");

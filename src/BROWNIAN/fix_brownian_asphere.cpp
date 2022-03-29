@@ -42,6 +42,9 @@ FixBrownianAsphere::FixBrownianAsphere(LAMMPS *lmp, int narg, char **arg) :
 
   if (dipole_flag && !atom->mu_flag)
     error->all(FLERR, "Fix brownian/asphere dipole requires atom attribute mu");
+
+  if(!atom->ellipsoid_flag)
+    error->all(FLERR, "Fix brownian/asphere requires atom style ellipsoid");
 }
 
 /* ---------------------------------------------------------------------- */

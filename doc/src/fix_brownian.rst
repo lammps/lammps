@@ -23,7 +23,7 @@ Syntax
 * temp = temperature
 * seed = random number generator seed
 * one or more keyword/value pairs may be appended
-* keyword = *rng* or *dipole* or *gamma_r_eigen* or *gamma_t_eigen* or *gamma_r* or *gamma_t*
+* keyword = *rng* or *dipole* or *gamma_r_eigen* or *gamma_t_eigen* or *gamma_r* or *gamma_t* or *rotation_temp* or *planar_rotation*
 
   .. parsed-literal::
 
@@ -41,6 +41,9 @@ Syntax
          *gt1*, *gt2*, and *gt3* = diagonal entries of body frame translational friction tensor
         *gamma_t* values = *gt* for *brownian* and *brownian/sphere*
          *gt* = magnitude of the (isotropic) translational friction tensor
+	*rotation_temp* values = *T* for *brownian/sphere* and *brownian/asphere*
+	 *T* = rotation temperature, which can be different then *temp* when out of equilibrium
+	*planar_rotation* values = None (constrains rotational diffusion to be in xy plane if in 3D)
 
 
 Examples
@@ -77,7 +80,7 @@ only depends on orientation and so the noise is still additive).
 The rotational motion for the spherical and ellipsoidal particles is not
 as simple an expression, but is chosen to replicate the Boltzmann
 distribution for the case of conservative torques (see :ref:`(Ilie)
-<Ilie1>` or :ref:`(Delong) <Delong1>`).
+<Ilie1>` or :ref:`(Delong) <Delong1>`). 
 
 For the style *brownian*, only the positions of the particles are
 updated. This is therefore suitable for point particle simulations.
@@ -86,12 +89,44 @@ For the style *brownian/sphere*, the positions of the particles are
 updated, and a dipole slaved to the spherical orientation is also
 updated. This style therefore requires the hybrid atom style
 :doc:`atom_style dipole <atom_style>` and :doc:`atom_style sphere
-<atom_style>`.
+<atom_style>`. The equation of motion for the dipole is
+
+.. math::
+
+   \mathbf{\mu}(t+dt) = \frac{\mathbf{\mu}(t) + \mathbf{\omega} \times \mathbf{\mu}dt
+   }{|\mathbf{\mu}(t) + \mathbf{\omega} \times \mathbf{\mu}|}
+
+which correctly reproduces a Boltzmann distribution of orientations and rotational diffusion
+moments (see :ref:`(Ilie) <Ilie1>`) when
+
+.. math::
+   
+   \mathbf{\omega} = \frac{\mathbf{T}}{\gamma_r} + \sqrt{\frac{2 k_B T_{rot}}{\gamma_r}\frac{d\mathbf{W}}{dt},
+
+with :math:`d\mathbf{W}` being a random number with zero mean and variance :math:`dt`
+and :math:`T_{rot}` is *rotation_temp*.
 
 For the style *brownian/asphere*, the center of mass positions and the
 quaternions of ellipsoidal particles are updated. This fix style is
 suitable for equations of motion where the rotational and translational
-friction tensors can be diagonalized in a certain (body) reference frame.
+friction tensors can be diagonalized in a certain (body) reference frame. In this case,
+the rotational equation of motion is updated via the quaternion
+
+.. math::
+   
+   \mathbf{q}(t+dt) = \frac{\mathbf{q}(t) + d\mathbf{q}}{|\mathbf{q}(t) + d\mathbf{q}|}
+   
+which correctly reproduces a Boltzmann distribution of orientations and rotational
+diffusion moments (see :ref:`(Ilie) <Ilie1>`) when the quaternion step given by
+
+.. math::
+
+   d\mathbf{q} = \mathbf{\Psi}\mathbf{\omega}dt
+
+where :math:`\mathbf{Psi}` has rows :math:`(-q_1,-q_2,-q_3)`, :math:`(q_0,-q_3,q_2)`,
+:math:`(q_3,q_0,-q_1)`, and :math:`(-q_2,q_1,q_0)`. :math:`\mathbf{\omega}` is
+evaluated in the body frame of reference where the friction tensor is diagonal.
+See :ref:`(Delong) <Delong1>` for more details of a similar algorithm.
 
 
 ---------
@@ -105,7 +140,8 @@ friction tensors can be diagonalized in a certain (body) reference frame.
    the condition :math:`\gamma_t=3\gamma_r/\sigma^2` must be explicitly
    accounted for by setting *gamma_t* to 3x and *gamma_r* to x (where
    :math:`\sigma` is the spherical diameter). A similar (though more complex)
-   relationship holds for ellipsoids and rod-like particles.
+   relationship holds for ellipsoids and rod-like particles. The translational diffusion
+   and rotational diffusion are given by *temp/gamma_t* and *rotation_temp/gamma_r*.
 
 ---------
 
@@ -152,6 +188,14 @@ must be inf (only diffusion in xy plane).
 If the *dipole* keyword is used, then the dipole moments of the particles
 are updated as described above. Only compatible with *brownian/asphere*
 (as *brownian/sphere* updates dipoles automatically).
+
+If the *rotation_temp* keyword is used, then the rotational diffusion will be
+occur at this prescribed temperature instead of *temp*. Only compatible with
+*brownian/sphere* and *brownian/asphere*.
+
+If the *planar_rotation* keyword is used, then rotation is constrained to the
+xy plane in a 3D simulation. Only compatible with *brownian/sphere* and
+*brownian/asphere* in 3D.
 
 ----------
 

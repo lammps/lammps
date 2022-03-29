@@ -165,6 +165,30 @@ void ComputeFEPTA::compute_vector()
   backup_xfev();    // backup position, force, energy, virial array values
   backup_box();     // backup box size
 
+  timer->stamp();
+  if (force->pair && force->pair->compute_flag) {
+    force->pair->compute(eflag, vflag);
+    timer->stamp(Timer::PAIR);
+  }
+
+  if (atom->molecular != Atom::ATOMIC) {
+    if (force->bond) force->bond->compute(eflag, vflag);
+    if (force->angle) force->angle->compute(eflag, vflag);
+    if (force->dihedral) force->dihedral->compute(eflag, vflag);
+    if (force->improper) force->improper->compute(eflag, vflag);
+    timer->stamp(Timer::BOND);
+  }
+
+  if (force->kspace && force->kspace->compute_flag) {
+    force->kspace->compute(eflag, vflag);
+    timer->stamp(Timer::KSPACE);
+  }
+
+  // accumulate force/energy/virial from /gpu pair styles
+  // this is required as to empty the answer queue,
+  // otherwise the force compute on the GPU in the next step would be incorrect
+  if (fixgpu) fixgpu->post_force(vflag);
+
   pe0 = compute_pe();
 
   change_box();

@@ -364,18 +364,10 @@ void TAD::command(int narg, char **arg)
   neighbor->ndanger = ndanger;
 
   if (me_universe == 0) {
-    if (universe->uscreen)
-      fprintf(universe->uscreen,
-              "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT
-              " atoms\n",
-              timer->get_wall(Timer::TOTAL),nprocs_universe,
-              nsteps,atom->natoms);
-    if (universe->ulogfile)
-      fprintf(universe->ulogfile,
-              "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT
-              " atoms\n",
-              timer->get_wall(Timer::TOTAL),nprocs_universe,
-              nsteps,atom->natoms);
+    auto mesg = fmt::format("Loop time of {} on {} procs for {} steps with {} atoms\n",
+                            timer->get_wall(Timer::TOTAL), nprocs_universe, nsteps,atom->natoms);
+    if (universe->uscreen) fmt::print(universe->uscreen, mesg);
+    if (universe->ulogfile) fmt::print(universe->ulogfile, mesg);
   }
 
   if ((me_universe == 0) && ulogfile_neb) fclose(ulogfile_neb);
@@ -507,24 +499,13 @@ void TAD::log_event(int ievent)
   timer->set_wall(Timer::TOTAL, time_start);
   if (universe->me == 0) {
     double tfrac = 0.0;
-    if (universe->uscreen)
-      fprintf(universe->uscreen,
-              BIGINT_FORMAT " %.3f %d %d %s %.3f %.3f %.3f %.3f\n",
-              fix_event->event_timestep,
-              timer->elapsed(Timer::TOTAL),
-              fix_event->event_number,ievent,
-              "E ",
-              fix_event->ebarrier,tfrac,
-              fix_event->tlo,deltfirst);
-    if (universe->ulogfile)
-      fprintf(universe->ulogfile,
-              BIGINT_FORMAT " %.3f %d %d %s %.3f %.3f %.3f %.3f\n",
-              fix_event->event_timestep,
-              timer->elapsed(Timer::TOTAL),
-              fix_event->event_number,ievent,
-              "E ",
-              fix_event->ebarrier,tfrac,
-              fix_event->tlo,deltfirst);
+    auto mesg = fmt::format("{} {:.3f} {} {} {} {:.3f} {:.3f} {:.3f} {:.3f}\n",
+                            fix_event->event_timestep, timer->elapsed(Timer::TOTAL),
+                            fix_event->event_number, ievent, "E ", fix_event->ebarrier,
+                            tfrac, fix_event->tlo, deltfirst);
+
+    if (universe->uscreen) fmt::print(universe->uscreen, mesg);
+    if (universe->ulogfile) fmt::print(universe->ulogfile, mesg);
   }
 
   // dump snapshot of quenched coords
@@ -909,26 +890,14 @@ void TAD::compute_tlo(int ievent)
   if (universe->me == 0) {
     double tfrac = 0.0;
     if (ievent > 0) tfrac = delthi/deltstop;
+    auto mesg = fmt::format("{} {:.3f} {} {} {} {:.3f} {:.3f} {:.3f} {:.3f}\n",
+                            fix_event_list[ievent]->event_timestep, timer->elapsed(Timer::TOTAL),
+                            fix_event->event_number, ievent, statstr, ebarrier, tfrac,
+                            fix_event->tlo, deltlo);
 
-    if (universe->uscreen)
-      fprintf(universe->uscreen,
-              BIGINT_FORMAT " %.3f %d %d %s %.3f %.3f %.3f %.3f\n",
-              fix_event_list[ievent]->event_timestep,
-              timer->elapsed(Timer::TOTAL),
-              fix_event->event_number,
-              ievent,statstr,ebarrier,tfrac,
-              fix_event->tlo,deltlo);
-
-    if (universe->ulogfile)
-      fprintf(universe->ulogfile,
-              BIGINT_FORMAT " %.3f %d %d %s %.3f %.3f %.3f %.3f\n",
-              fix_event_list[ievent]->event_timestep,
-              timer->elapsed(Timer::TOTAL),
-              fix_event->event_number,
-              ievent,statstr,ebarrier,tfrac,
-              fix_event->tlo,deltlo);
+    if (universe->uscreen) fmt::print(universe->uscreen, mesg);
+    if (universe->ulogfile) fmt::print(universe->ulogfile, mesg);
   }
-
 }
 
 /* ----------------------------------------------------------------------

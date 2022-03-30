@@ -625,56 +625,29 @@ void NEB::print_status()
   }
 
   if (me_universe == 0) {
-    const double todeg=180.0/MY_PI;
-    FILE *uscreen = universe->uscreen;
-    FILE *ulogfile = universe->ulogfile;
-    if (uscreen) {
-      fprintf(uscreen,BIGINT_FORMAT " %12.8g %12.8g ",
-              update->ntimestep,fmaxreplica,fmaxatom);
-      fprintf(uscreen,"%12.8g %12.8g %12.8g ",
-              gradvnorm0,gradvnorm1,gradvnormc);
-      fprintf(uscreen,"%12.8g %12.8g %12.8g ",ebf,ebr,endpt);
-      for (int i = 0; i < nreplica; i++)
-        fprintf(uscreen,"%12.8g %12.8g ",rdist[i],all[i][0]);
-      if (verbose) {
-        fprintf(uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
-                NAN,180-acos(all[0][5])*todeg,180-acos(all[0][6])*todeg,
-                all[0][3],freplica[0],fmaxatomInRepl[0]);
-        for (int i = 1; i < nreplica-1; i++)
-          fprintf(uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
-                  180-acos(all[i][4])*todeg,180-acos(all[i][5])*todeg,
-                  180-acos(all[i][6])*todeg,all[i][3],freplica[i],
-                  fmaxatomInRepl[i]);
-        fprintf(uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
-                NAN,180-acos(all[nreplica-1][5])*todeg,NAN,all[nreplica-1][3],
-                freplica[nreplica-1],fmaxatomInRepl[nreplica-1]);
-      }
-      fprintf(uscreen,"\n");
+    constexpr double todeg=180.0/MY_PI;
+    std::string mesg = fmt::format("{} {:12.8g} {:12.8g} ",update->ntimestep,fmaxreplica,fmaxatom);
+    mesg += fmt::format("{:12.8g} {:12.8g} {:12.8g} ",gradvnorm0,gradvnorm1,gradvnormc);
+    mesg += fmt::format("{:12.8g} {:12.8g} {:12.8g} ",ebf,ebr,endpt);
+    for (int i = 0; i < nreplica; i++) mesg += fmt::format("{:12.8g} {:12.8g} ",rdist[i],all[i][0]);
+    if (verbose) {
+      mesg += fmt::format("{:12.5g} {:12.5g} {:12.5g} {:12.5g} {:12.5g} {:12.5g}",
+                          NAN,180-acos(all[0][5])*todeg,180-acos(all[0][6])*todeg,
+                          all[0][3],freplica[0],fmaxatomInRepl[0]);
+      for (int i = 1; i < nreplica-1; i++)
+        mesg += fmt::format("{:12.5g} {:12.5g} {:12.5g} {:12.5g} {:12.5g} {:12.5g}",
+                            180-acos(all[i][4])*todeg,180-acos(all[i][5])*todeg,
+                            180-acos(all[i][6])*todeg,all[i][3],freplica[i],fmaxatomInRepl[i]);
+      mesg += fmt::format("{:12.5g} {:12.5g} {:12.5g} {:12.5g} {:12.5g} {:12.5g}",
+                          NAN,180-acos(all[nreplica-1][5])*todeg,NAN,all[nreplica-1][3],
+                          freplica[nreplica-1],fmaxatomInRepl[nreplica-1]);
     }
+    mesg += "\n";
 
-    if (ulogfile) {
-      fprintf(ulogfile,BIGINT_FORMAT " %12.8g %12.8g ",
-              update->ntimestep,fmaxreplica,fmaxatom);
-      fprintf(ulogfile,"%12.8g %12.8g %12.8g ",
-              gradvnorm0,gradvnorm1,gradvnormc);
-      fprintf(ulogfile,"%12.8g %12.8g %12.8g ",ebf,ebr,endpt);
-      for (int i = 0; i < nreplica; i++)
-        fprintf(ulogfile,"%12.8g %12.8g ",rdist[i],all[i][0]);
-      if (verbose) {
-        fprintf(ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
-                NAN,180-acos(all[0][5])*todeg,180-acos(all[0][6])*todeg,
-                all[0][3],freplica[0],fmaxatomInRepl[0]);
-        for (int i = 1; i < nreplica-1; i++)
-          fprintf(ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
-                  180-acos(all[i][4])*todeg,180-acos(all[i][5])*todeg,
-                  180-acos(all[i][6])*todeg,all[i][3],freplica[i],
-                  fmaxatomInRepl[i]);
-        fprintf(ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
-                NAN,180-acos(all[nreplica-1][5])*todeg,NAN,all[nreplica-1][3],
-                freplica[nreplica-1],fmaxatomInRepl[nreplica-1]);
-      }
-      fprintf(ulogfile,"\n");
-      fflush(ulogfile);
+    if (universe->uscreen) fputs(mesg.c_str(), universe->uscreen);
+    if (universe->ulogfile) {
+      fputs(mesg.c_str(), universe->ulogfile);
+      fflush(universe->ulogfile);
     }
   }
 }

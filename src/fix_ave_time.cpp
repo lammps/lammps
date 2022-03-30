@@ -669,11 +669,10 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
   if (fp && me == 0) {
     clearerr(fp);
     if (overwrite) platform::fseek(fp,filepos);
-    fprintf(fp,BIGINT_FORMAT,ntimestep);
+    fmt::print(fp,"{}",ntimestep);
     for (i = 0; i < nvalues; i++) fprintf(fp,format,vector_total[i]/norm);
     fprintf(fp,"\n");
-    if (ferror(fp))
-      error->one(FLERR,"Error writing out time averaged data");
+    if (ferror(fp)) error->one(FLERR,"Error writing out time averaged data");
 
     fflush(fp);
 
@@ -881,7 +880,7 @@ void FixAveTime::invoke_vector(bigint ntimestep)
 
   if (fp && me == 0) {
     if (overwrite) platform::fseek(fp,filepos);
-    fprintf(fp,BIGINT_FORMAT " %d\n",ntimestep,nrows);
+    fmt::print(fp,"{} {}\n",ntimestep,nrows);
     for (i = 0; i < nrows; i++) {
       fprintf(fp,"%d",i+1);
       for (j = 0; j < nvalues; j++) fprintf(fp,format,array_total[i][j]/norm);

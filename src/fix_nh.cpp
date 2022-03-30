@@ -93,8 +93,6 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
 
   tcomputeflag = 0;
   pcomputeflag = 0;
-  id_temp = nullptr;
-  id_press = nullptr;
 
   // turn on tilt factor scaling, whenever applicable
 

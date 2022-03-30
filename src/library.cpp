@@ -405,7 +405,7 @@ after calling Py_Finalize().
 This function can be called to explicitly clear the Python
 environment in case it is safe to do so.
 
-.. versionadded:: TBD
+.. versionadded:: 20Sep2021
 
 *See also*
    :cpp:func:`lammps_mpi_finalize`, :cpp:func:`lammps_kokkos_finalize`

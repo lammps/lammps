@@ -36,6 +36,7 @@
 #include "group.h"
 #include "memory.h"
 #include "modify.h"
+#include "tokenizer.h"
 #include "update.h"
 
 #include <cmath>
@@ -125,7 +126,8 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   surf2tag.clear();
 
   // get the mapping between lattice indices and atom IDs
-  readmap(); delete []mapfile;
+  readmap();
+  delete[] mapfile;
   if (nucell == 1) nasr = MIN(1,nasr);
 
   // get the mass matrix for dynamic matrix
@@ -556,15 +558,21 @@ void FixPhonon::readmap()
   char line[MAXLINE];
   FILE *fp = fopen(mapfile, "r");
   if (fp == nullptr)
-    error->all(FLERR,"Cannot open input map file {}: {}",
-                                 mapfile, utils::getsyserror());
+    error->all(FLERR,"Cannot open input map file {}: {}", mapfile, utils::getsyserror());
 
   if (fgets(line,MAXLINE,fp) == nullptr)
     error->all(FLERR,"Error while reading header of mapping file!");
-  nx     = utils::inumeric(FLERR, strtok(line, " \n\t\r\f"),false,lmp);
-  ny     = utils::inumeric(FLERR, strtok(nullptr, " \n\t\r\f"),false,lmp);
-  nz     = utils::inumeric(FLERR, strtok(nullptr, " \n\t\r\f"),false,lmp);
-  nucell = utils::inumeric(FLERR, strtok(nullptr, " \n\t\r\f"),false,lmp);
+  try {
+    ValueTokenizer values(line);
+
+    nx = values.next_int();
+    ny = values.next_int();
+    nz = values.next_int();
+    nucell = values.next_int();
+  } catch (TokenizerException &e) {
+    error->all(FLERR, "Incorrect header format: {}", e.what());
+  }
+
   ntotal = nx*ny*nz;
   if (ntotal*nucell != ngroup)
     error->all(FLERR,"FFT mesh and number of atoms in group mismatch!");
@@ -573,24 +581,29 @@ void FixPhonon::readmap()
   if (fgets(line,MAXLINE,fp) == nullptr)
     error->all(FLERR,"Error while reading comment of mapping file!");
 
-  int ix, iy, iz, iu;
-  // the remaining lines carry the mapping info
-  for (int i = 0; i < ngroup; ++i) {
-    if (fgets(line,MAXLINE,fp) == nullptr) {info = 1; break;}
-    ix   = utils::inumeric(FLERR, strtok(line, " \n\t\r\f"),false,lmp);
-    iy   = utils::inumeric(FLERR, strtok(nullptr, " \n\t\r\f"),false,lmp);
-    iz   = utils::inumeric(FLERR, strtok(nullptr, " \n\t\r\f"),false,lmp);
-    iu   = utils::inumeric(FLERR, strtok(nullptr, " \n\t\r\f"),false,lmp);
-    itag = utils::inumeric(FLERR, strtok(nullptr, " \n\t\r\f"),false,lmp);
+  try {
+    int ix, iy, iz, iu;
+    // the remaining lines carry the mapping info
+    for (int i = 0; i < ngroup; ++i) {
+      if (fgets(line,MAXLINE,fp) == nullptr) {info = 1; break;}
+      ValueTokenizer values(line);
+      ix   = values.next_int();
+      iy   = values.next_int();
+      iz   = values.next_int();
+      iu   = values.next_int();
+      itag   = values.next_tagint();
 
-    // check if index is in correct range
-    if (ix < 0 || ix >= nx || iy < 0 || iy >= ny ||
-        iz < 0 || iz >= nz || iu < 0 || iu >= nucell) {info = 2; break;}
-    // 1 <= itag <= natoms
-    if (itag < 1 || itag > static_cast<tagint>(atom->natoms)) {info = 3; break;}
-    idx = ((ix*ny+iy)*nz+iz)*nucell + iu;
-    tag2surf[itag] = idx;
-    surf2tag[idx]  = itag;
+      // check if index is in correct range
+      if (ix < 0 || ix >= nx || iy < 0 || iy >= ny ||
+          iz < 0 || iz >= nz || iu < 0 || iu >= nucell) {info = 2; break;}
+      // 1 <= itag <= natoms
+      if (itag < 1 || itag > atom->map_tag_max) {info = 3; break;}
+      idx = ((ix*ny+iy)*nz+iz)*nucell + iu;
+      tag2surf[itag] = idx;
+      surf2tag[idx]  = itag;
+    }
+  } catch (TokenizerException &e) {
+    error->all(FLERR, "Incorrect map file format: {}", e.what());
   }
   fclose(fp);
 

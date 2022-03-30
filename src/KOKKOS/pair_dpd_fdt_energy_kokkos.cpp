@@ -115,9 +115,8 @@ void PairDPDfdtEnergyKokkos<LMPDeviceSpace>::init_style()
 
   neighflag = lmp->kokkos->neighflag;
   auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(0);
+  request->set_kokkos_device(1);
   if (neighflag == FULL) request->enable_full();
 
 #ifdef DPD_USE_RAN_MARS

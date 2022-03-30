@@ -379,6 +379,8 @@ void FixAmoebaBiTorsion::post_force(int vflag)
   double **f = atom->f;
   int nlocal = atom->nlocal;
 
+  //printf("Nbitorsions %d\n",nbitorsion_list);
+
   for (int n = 0; n < nbitorsion_list; n++) {
 
     ia = bitorsion_list[n][0];
@@ -467,31 +469,21 @@ void FixAmoebaBiTorsion::post_force(int vflag)
     nlo = 0;
     nhi = nx-1;
 
-    if (n == 0) printf("Starting Ang1 search: nlo %d nhi %d\n",nlo,nhi);
     while (nhi-nlo > 1) {
       nt = (nhi+nlo) / 2;
       if (ttx[btype][nt] > value1) nhi = nt;
       else nlo = nt;
-      if (n == 0) 
-        printf("  iteration on Ang1: nlo %d nhi %d ttx[nt] %g val1 %g\n",
-               nlo,nhi,ttx[btype][nt],value1);
     }
     xlo = nlo;
-    if (n == 0) printf("End of Ang1 search: xlo %d\n",xlo);
 
     nlo = 0;
     nhi = ny-1;
-    if (n == 0) printf("Starting Ang2 search: nlo %d nhi %d\n",nlo,nhi);
     while (nhi-nlo > 1) {
       nt = (nhi + nlo)/2;
       if (tty[btype][nt] > value2) nhi = nt;
       else nlo = nt;
-      if (n == 0) 
-        printf("  iteration on Ang2: nlo %d nhi %d tty[nt] %g val2 %g\n",
-               nlo,nhi,tty[btype][nt],value2);
     }
     ylo = nlo;
-    if (n == 0) printf("End of Ang2 search: xlo %d\n",ylo);
 
     // fill ftt,ft1,ft2,ft12 vecs with spline coeffs near xlo,ylo grid pt
     // ttx,tty,tbf,tbx,tby,tbxy are 0-indexed here, 1-indexed in Tinker
@@ -536,25 +528,15 @@ void FixAmoebaBiTorsion::post_force(int vflag)
 
     // DEBUG
 
-    if (n == 0) {
-      printf("BiTorsion: %d %d %d %d %d: type %d\n",
-             atom->tag[ia],
-             atom->tag[ib],
-             atom->tag[ic],
-             atom->tag[id],
-             atom->tag[ie],
-             btype);
-
-      printf("  nx/ny %d %d\n",nx,ny);
-      printf("  xlo/ylo %d %d pos1/2 %d %d\n",xlo+1,ylo+1,pos1+1,pos2+1);
-      printf("  x1l/x1u %g %g y1l/y1u %g %g\n",x1l,x1u,y1l,y1u);
-      printf("  ftt 0123: %g %g %g %g\n",ftt[0],ftt[1],ftt[2],ftt[3]);
-      printf("  ft1 0123: %g %g %g %g\n",ft1[0],ft1[1],ft1[2],ft1[3]);
-      printf("  ft2 0123: %g %g %g %g\n",ft2[0],ft2[1],ft2[2],ft2[3]);
-      printf("  ft12 0123: %g %g %g %g\n",ft12[0],ft12[1],ft12[2],ft12[3]);
-      printf("  value1/2: %g %g eng %g\n",value1,value2,e);
-      printf("  dedang1/2: %g %g\n",dedang1,dedang2);
-    }
+    /*
+    printf("BiTorsion: %d %d %d %d %d: angle12 %g %g: eng %g\n",
+           atom->tag[ia],
+           atom->tag[ib],
+           atom->tag[ic],
+           atom->tag[id],
+           atom->tag[ie],
+           angle1,angle2,e);
+    */
 
     // fraction of energy for each atom
 
@@ -1278,7 +1260,7 @@ void FixAmoebaBiTorsion::bcuint1(double *y, double *y1,
 
   ansy = ansy1 = ansy2 = 0.0;
 
-  for (int i = 4; i >= 1; i--) {
+  for (int i = 3; i >= 0; i--) {
     ansy = t*ansy + ((c[i][3]*u+c[i][2])*u+c[i][1])*u + c[i][0];
     ansy1 = u*ansy1 + (3.0*c[3][i]*t+2.0*c[2][i])*t + c[1][i];
     ansy2 = t*ansy2 + (3.0*c[i][3]*u+2.0*c[i][2])*u + c[i][1];

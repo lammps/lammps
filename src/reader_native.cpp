@@ -101,9 +101,7 @@ int ReaderNative::read_time(bigint &ntimestep)
       error->one(FLERR,"Dump file is incorrectly formatted");
 
     read_lines(1);
-    int rv = sscanf(line,BIGINT_FORMAT,&ntimestep);
-    if (rv != 1)
-      error->one(FLERR,"Dump file is incorrectly formatted");
+    ntimestep = utils::bnumeric(FLERR, utils::trim(line), true, lmp);
   }
   return 0;
 }
@@ -140,10 +138,8 @@ void ReaderNative::skip()
 
   } else {
     read_lines(2);
-    bigint natoms;
-    int rv = sscanf(line,BIGINT_FORMAT,&natoms);
-    if (rv != 1) error->one(FLERR,"Dump file is incorrectly formatted");
-
+    // parse natoms value so we error out on incorrectly formatted dumps
+    utils::bnumeric(FLERR, utils::trim(line), true, lmp);
     read_lines(5);
 
     // invoke read_lines() in chunks no larger than MAXSMALLINT

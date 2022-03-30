@@ -325,7 +325,8 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     receive_types();
 
   } else if (strcmp(command,">VELOCITIES") == 0) {
-    receive_velocities();
+    if (strcmp(node_engine,"@DEFAULT") == 0) receive_velocities();
+    else receive_double3(VELOCITY);
 
   // -----------------------------------------------
 
@@ -521,7 +522,9 @@ void MDIEngine::mdi_commands()
   MDI_Register_node("@COORDS");
   MDI_Register_command("@COORDS","<@");
   MDI_Register_command("@COORDS","<COORDS");
+  MDI_Register_command("@COORDS","<VELOCITIES");
   MDI_Register_command("@COORDS",">COORDS");
+  MDI_Register_command("@COORDS",">VELOCITIES");
   MDI_Register_command("@COORDS","@");
   MDI_Register_command("@COORDS","@DEFAULT");
   MDI_Register_command("@COORDS","@COORDS");
@@ -542,8 +545,10 @@ void MDIEngine::mdi_commands()
   MDI_Register_command("@FORCES","<KE");
   MDI_Register_command("@FORCES","<PE");
   MDI_Register_command("@FORCES","<STRESS");
+  MDI_Register_command("@FORCES","<VELOCITIES");
   MDI_Register_command("@FORCES",">FORCES");
   MDI_Register_command("@FORCES",">+FORCES");
+  MDI_Register_command("@FORCES",">VELOCITIES");
   MDI_Register_command("@FORCES","@");
   MDI_Register_command("@FORCES","@DEFAULT");
   MDI_Register_command("@FORCES","@COORDS");
@@ -1148,6 +1153,14 @@ void MDIEngine::receive_double3(int which)
       f[i][0] += buf3[3*ilocal+0] * mdi2lmp_force;
       f[i][1] += buf3[3*ilocal+1] * mdi2lmp_force;
       f[i][2] += buf3[3*ilocal+2] * mdi2lmp_force;
+    }
+  } else if (which == VELOCITY) {
+    double **v = atom->v;
+    for (int i = 0; i < nlocal; i++) {
+      ilocal = static_cast<int> (tag[i]) - 1;
+      v[i][0] = buf3[3*ilocal+0] * mdi2lmp_velocity;
+      v[i][1] = buf3[3*ilocal+1] * mdi2lmp_velocity;
+      v[i][2] = buf3[3*ilocal+2] * mdi2lmp_velocity;
     }
   }
 }

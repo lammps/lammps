@@ -1128,8 +1128,8 @@ void ReadData::header(int firstpass)
     } else if (utils::strmatch(line,"^\\s*\\f+\\s+\\f+\\s+\\f+\\s+xy\\s+xz\\s+yz\\s")) {
       triclinic = 1;
       xy = utils::numeric(FLERR, words[0], false, lmp);
-      xz = utils::numeric(FLERR, words[0], false, lmp);
-      yz = utils::numeric(FLERR, words[0], false, lmp);
+      xz = utils::numeric(FLERR, words[1], false, lmp);
+      yz = utils::numeric(FLERR, words[2], false, lmp);
 
     } else break;
   }

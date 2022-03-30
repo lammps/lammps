@@ -293,7 +293,7 @@ void DumpLocal::write_header(bigint ndump)
                  "{:>1.16e} {:>1.16e}\n",
                  boundstr,boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi);
     }
-    
+
     fmt::print(fp,"ITEM: {} {}\n", label, columns);
   }
 }

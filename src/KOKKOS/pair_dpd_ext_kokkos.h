@@ -44,15 +44,15 @@ class PairDPDExtKokkos : public PairDPDExt {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT value_type;
-  
+
   PairDPDExtKokkos(class LAMMPS*);
   ~PairDPDExtKokkos() override;
 
-  virtual void allocate();
+  void allocate() override;
 
-  virtual void init_style();
-  virtual double init_one(int i, int j);
-  virtual void compute(int, int);
+  void init_style() override;
+  double init_one(int i, int j) override;
+  void compute(int, int) override;
 
   struct params_dpd {
     KOKKOS_INLINE_FUNCTION
@@ -64,7 +64,7 @@ class PairDPDExtKokkos : public PairDPDExt {
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
   struct TagDPDExtKokkos{};
-  
+
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
   void operator () (TagDPDExtKokkos<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &i) const;
@@ -78,7 +78,7 @@ class PairDPDExtKokkos : public PairDPDExt {
   void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
       const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
                   const F_FLOAT &dely, const F_FLOAT &delz) const;
-protected:
+ private:
 
   double special_lj[4];
   int eflag,vflag;
@@ -103,7 +103,7 @@ protected:
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread d_numneigh;
-  
+
   typename AT::tdual_ffloat_2d k_cutsq;
   typename AT::t_ffloat_2d d_cutsq;
 
@@ -115,7 +115,7 @@ protected:
   DAT::tdual_virial_array k_vatom;
   typename AT::t_efloat_1d d_eatom;
   typename AT::t_virial_array d_vatom;
-  
+
   KOKKOS_INLINE_FUNCTION
   int sbmask(const int& j) const;
   friend void pair_virial_fdotr_compute<PairDPDExtKokkos>(PairDPDExtKokkos*);

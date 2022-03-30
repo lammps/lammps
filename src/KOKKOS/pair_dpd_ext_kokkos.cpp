@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Stan Moore (Sandia)
+   Contributing author: Matt Bettencourt (NVIDIA)
 ------------------------------------------------------------------------- */
 
 #include "pair_dpd_ext_kokkos.h"
@@ -35,7 +35,7 @@
 
 #include <cmath>
 
-namespace LAMMPS_NS {
+using namespace LAMMPS_NS;
 
 #define EPSILON 1.0e-10
 
@@ -48,7 +48,6 @@ PairDPDExtKokkos<DeviceType>::PairDPDExtKokkos(class LAMMPS *lmp) :
 #else
   rand_pool()
 #endif
-
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
@@ -56,14 +55,13 @@ PairDPDExtKokkos<DeviceType>::PairDPDExtKokkos(class LAMMPS *lmp) :
 
   datamask_read = X_MASK | V_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-
 }
 
 /* ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 PairDPDExtKokkos<DeviceType>::~PairDPDExtKokkos() {
   if (copymode) return;
-
 
 #ifdef DPD_USE_RAN_MARS
   rand_pool.destroy();
@@ -73,11 +71,10 @@ PairDPDExtKokkos<DeviceType>::~PairDPDExtKokkos() {
   memoryKK->destroy_kokkos(k_vatom,vatom);
 
   memoryKK->destroy_kokkos(k_cutsq,cutsq);
-
 }
 
 /* ---------------------------------------------------------------------- */
-  
+
 template<class DeviceType>
 void PairDPDExtKokkos<DeviceType>::init_style()
 {
@@ -97,23 +94,23 @@ void PairDPDExtKokkos<DeviceType>::init_style()
   if (force->newton_pair == 0 || neighflag == FULL )
     error->all(FLERR,"Must use half neighbor list style and newton on with pair dpd/ext/kk");
 
-
   auto request = neighbor->find_request(this);
   request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
                            !std::is_same<DeviceType,LMPDeviceType>::value);
   request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
 
-  if (neighflag == FULL) 
+  if (neighflag == FULL)
     request->enable_full();
 }
+
 /* ---------------------------------------------------------------------- */
-  
+
 template<class DeviceType>
 void PairDPDExtKokkos<DeviceType>::compute(int eflagin, int vflagin)
 {
-  eflag=eflagin;vflag=vflagin;
+  eflag = eflagin; vflag = vflagin;
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
-  
+
   ev_init(eflag,vflag);
 
   if (eflag_atom) {
@@ -128,9 +125,7 @@ void PairDPDExtKokkos<DeviceType>::compute(int eflagin, int vflagin)
   }
 
   atomKK->sync(execution_space,X_MASK | V_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK);
-  if (evflag) atomKK->modified(execution_space,F_MASK | ENERGY_MASK | VIRIAL_MASK);
-  else atomKK->modified(execution_space,F_MASK);
-  
+
   x = atomKK->k_x.view<DeviceType>();
   v = atomKK->k_v.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
@@ -152,9 +147,10 @@ void PairDPDExtKokkos<DeviceType>::compute(int eflagin, int vflagin)
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
+
   // loop over neighbors of my atoms
 
-  int inum=list->inum;
+  int inum = list->inum;
   EV_FLOAT ev;
   copymode = 1;
   if (neighflag == HALF) {
@@ -204,9 +200,13 @@ void PairDPDExtKokkos<DeviceType>::compute(int eflagin, int vflagin)
     k_vatom.template modify<DeviceType>();
     k_vatom.template sync<LMPHostType>();
   }
-  
+
   copymode = 0;
+
+  if (evflag) atomKK->modified(execution_space,F_MASK | ENERGY_MASK | VIRIAL_MASK);
+  else atomKK->modified(execution_space,F_MASK);
 }
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -223,13 +223,12 @@ void PairDPDExtKokkos<DeviceType>::operator() (TagDPDExtKokkos<NEIGHFLAG,NEWTON_
 
   Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
 
-  
   int i,j,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,fpairx,fpairy,fpairz,fpair;
   double vxtmp,vytmp,vztmp,delvx,delvy,delvz;
   double rsq,r,rinv,dot,wd,wdPar,wdPerp,randnum,randnumx,randnumy,randnumz,factor_dpd;
-  double fx=0,fy=0,fz=0;
-  double evdwl=0;
+  double fx = 0,fy = 0,fz = 0;
+  double evdwl = 0;
   i = d_ilist[ii];
   xtmp = x(i,0);
   ytmp = x(i,1);
@@ -239,7 +238,6 @@ void PairDPDExtKokkos<DeviceType>::operator() (TagDPDExtKokkos<NEIGHFLAG,NEWTON_
   vztmp = v(i,2);
   itype = type(i);
   jnum = d_numneigh[i];
-//  printf("JNUM %d\n",jnum);
   rand_type rand_gen = rand_pool.get_state();
   for (jj = 0; jj < jnum; jj++) {
     double P[3][3];
@@ -342,7 +340,7 @@ void PairDPDExtKokkos<DeviceType>::operator() (TagDPDExtKokkos<NEIGHFLAG,NEWTON_
   rand_pool.free_state(rand_gen);
 }
 
-
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR>
@@ -354,19 +352,18 @@ void PairDPDExtKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const in
   const int EFLAG = eflag;
   const int VFLAG = vflag_either;
 
-
   // The eatom and vatom arrays are atomic for Half/Thread neighbor style
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = k_eatom.view<DeviceType>();
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
+  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_eatom = k_eatom.view<DeviceType>();
+  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_vatom = k_vatom.view<DeviceType>();
 
   if (EFLAG) {
     if (eflag_atom) {
       const E_FLOAT epairhalf = 0.5 * epair;
       if (NEIGHFLAG!=FULL) {
-        if (NEWTON_PAIR || i < nlocal) v_eatom[i] += epairhalf;
-        if (NEWTON_PAIR || j < nlocal) v_eatom[j] += epairhalf;
+        if (NEWTON_PAIR || i < nlocal) a_eatom[i] += epairhalf;
+        if (NEWTON_PAIR || j < nlocal) a_eatom[j] += epairhalf;
       } else {
-        v_eatom[i] += epairhalf;
+        a_eatom[i] += epairhalf;
       }
     }
   }
@@ -410,39 +407,38 @@ void PairDPDExtKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const in
     if (vflag_atom) {
       if (NEIGHFLAG!=FULL) {
         if (NEWTON_PAIR || i < nlocal) {
-          v_vatom(i,0) += 0.5*v0;
-          v_vatom(i,1) += 0.5*v1;
-          v_vatom(i,2) += 0.5*v2;
-          v_vatom(i,3) += 0.5*v3;
-          v_vatom(i,4) += 0.5*v4;
-          v_vatom(i,5) += 0.5*v5;
+          a_vatom(i,0) += 0.5*v0;
+          a_vatom(i,1) += 0.5*v1;
+          a_vatom(i,2) += 0.5*v2;
+          a_vatom(i,3) += 0.5*v3;
+          a_vatom(i,4) += 0.5*v4;
+          a_vatom(i,5) += 0.5*v5;
         }
         if (NEWTON_PAIR || j < nlocal) {
-        v_vatom(j,0) += 0.5*v0;
-        v_vatom(j,1) += 0.5*v1;
-        v_vatom(j,2) += 0.5*v2;
-        v_vatom(j,3) += 0.5*v3;
-        v_vatom(j,4) += 0.5*v4;
-        v_vatom(j,5) += 0.5*v5;
+        a_vatom(j,0) += 0.5*v0;
+        a_vatom(j,1) += 0.5*v1;
+        a_vatom(j,2) += 0.5*v2;
+        a_vatom(j,3) += 0.5*v3;
+        a_vatom(j,4) += 0.5*v4;
+        a_vatom(j,5) += 0.5*v5;
         }
       } else {
-        v_vatom(i,0) += 0.5*v0;
-        v_vatom(i,1) += 0.5*v1;
-        v_vatom(i,2) += 0.5*v2;
-        v_vatom(i,3) += 0.5*v3;
-        v_vatom(i,4) += 0.5*v4;
-        v_vatom(i,5) += 0.5*v5;
+        a_vatom(i,0) += 0.5*v0;
+        a_vatom(i,1) += 0.5*v1;
+        a_vatom(i,2) += 0.5*v2;
+        a_vatom(i,3) += 0.5*v3;
+        a_vatom(i,4) += 0.5*v4;
+        a_vatom(i,5) += 0.5*v5;
       }
     }
-
   }
 }
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void PairDPDExtKokkos<DeviceType>::allocate()
 {
-
   PairDPDExt::allocate();
   int n = atom->ntypes;
 
@@ -452,8 +448,10 @@ void PairDPDExtKokkos<DeviceType>::allocate()
 
   k_params = Kokkos::DualView<params_dpd**,Kokkos::LayoutRight,DeviceType>("PairDPDExt::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
-
 }
+
+/* ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 int PairDPDExtKokkos<DeviceType>::sbmask(const int& j) const {
@@ -487,7 +485,6 @@ double PairDPDExtKokkos<DeviceType>::init_one(int i, int j)
 
   return cutone;
 }
-}//namespace
 
 namespace LAMMPS_NS {
 template class PairDPDExtKokkos<LMPDeviceType>;

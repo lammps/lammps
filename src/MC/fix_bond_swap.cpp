@@ -330,7 +330,7 @@ void FixBondSwap::post_integrate()
       //   already know i != inext, j != jnext
       // all 4 old and new bonds must have length < cutoff
 
-      printf("SWAP candidate jtag\n",atom->tag[j]);
+      printf("  SWAP candidate jtag %d\n",atom->tag[j]);
 
       for (ibond = 0; ibond < num_bond[i]; ibond++) {
         inext = atom->map(bond_atom[i][ibond]);
@@ -350,6 +350,9 @@ void FixBondSwap::post_integrate()
           if (dist_rsq(j,jnext) >= cutsq) continue;
           if (dist_rsq(i,jnext) >= cutsq) continue;
           if (dist_rsq(j,inext) >= cutsq) continue;
+
+          printf("    BOND jtag %d ibondtag %d jbondtag %d\n",
+                 atom->tag[j],atom->tag[inext],atom->tag[jnext]);
 
           // if angles are enabled:
           // find other atoms i,inext,j,jnext are in angles with
@@ -468,6 +471,10 @@ void FixBondSwap::post_integrate()
             factor = exp(-delta/force->boltz/t_current);
             if (random->uniform() < factor) accept = 1;
           }
+
+          printf("    MC result jtag %d delta %g accept %d\n",
+                 atom->tag[j],delta,accept);
+
           goto done;
         }
       }

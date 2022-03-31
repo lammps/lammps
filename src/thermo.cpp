@@ -252,8 +252,12 @@ void Thermo::init()
       format[i] += format_this + " ";
     else if (lineflag == YAMLLINE)
       format[i] += format_this + ", ";
-    else
-      format[i] += fmt::format("{:<8} = {} ", keyword[i], format_this);
+    else {
+      if (keyword_user[i].size())
+        format[i] += fmt::format("{:<8} = {} ", keyword_user[i], format_this);
+      else
+        format[i] += fmt::format("{:<8} = {} ", keyword[i], format_this);
+    }
   }
 
   // chop off trailing blank or add closing bracket if needed and then add newline
@@ -324,11 +328,13 @@ void Thermo::header()
   std::string hdr;
   if (lineflag == YAMLLINE) hdr = "---\nkeywords: [";
   for (int i = 0; i < nfield; i++) {
+    auto head = keyword[i];
+    if (keyword_user[i].size()) head = keyword_user[i];
     if (lineflag == ONELINE) {
       if (vtype[i] == FLOAT)
-        hdr += fmt::format("{:^14} ", keyword[i]);
+        hdr += fmt::format("{:^14} ", head);
       else if ((vtype[i] == INT) || (vtype[i] == BIGINT))
-        hdr += fmt::format("{:^11} ", keyword[i]);
+        hdr += fmt::format("{:^11} ", head);
     } else if (lineflag == YAMLLINE) {
       hdr += keyword[i];
       hdr += ", ";
@@ -622,6 +628,30 @@ void Thermo::modify_params(int narg, char **arg)
         error->all(FLERR, "Illegal thermo_modify command");
       iarg += 2;
 
+    } else if (strcmp(arg[iarg], "header") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      if (strcmp(arg[iarg + 1], "default") == 0) {
+        for (int i=0; i < nfield_initial + 1; ++i)
+          keyword_user[i].clear();
+        iarg += 2;
+      } else {
+        if (iarg + 3 > narg) error->all(FLERR, "Illegal thermo_modify command");
+        int icol = -1;
+        if (utils::is_integer(arg[iarg + 1])) {
+          icol = utils::inumeric(FLERR,arg[iarg + 1],false,lmp);
+          if (icol < 0) icol = nfield_initial + icol + 1;
+          icol--;
+        } else {
+          try {
+            icol = key2col.at(arg[iarg + 1]);
+          } catch (std::out_of_range &) {
+            icol = -1;
+          }
+        }
+        if ((icol < 0) || (icol >= nfield_initial)) error->all(FLERR, "Illegal thermo_modify command");
+        keyword_user[icol] = arg[iarg+2];
+        iarg += 3;
+      }
     } else if (strcmp(arg[iarg], "format") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
 
@@ -646,14 +676,24 @@ void Thermo::modify_params(int narg, char **arg)
         found = format_int_user.find('d', found);
         if (found == std::string::npos)
           error->all(FLERR, "Thermo_modify int format does not contain a d conversion character");
-        format_bigint_user =
-            format_int_user.replace(found, 1, std::string(BIGINT_FORMAT).substr(1));
+        format_bigint_user = format_int_user.replace(found, 1, std::string(BIGINT_FORMAT).substr(1));
       } else if (strcmp(arg[iarg + 1], "float") == 0) {
         format_float_user = arg[iarg + 2];
       } else {
-        int i = utils::inumeric(FLERR, arg[iarg + 1], false, lmp) - 1;
-        if (i < 0 || i >= nfield_initial + 1) error->all(FLERR, "Illegal thermo_modify command");
-        format_column_user[i] = arg[iarg + 2];
+        int icol = -1;
+        if (utils::is_integer(arg[iarg + 1])) {
+          icol = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+          if (icol < 0) icol = nfield_initial + icol + 1;
+          icol--;
+        } else {
+          try {
+            icol = key2col.at(arg[iarg + 1]);
+          } catch (std::out_of_range &) {
+            icol = -1;
+          }
+        }
+        if (icol < 0 || icol >= nfield_initial + 1) error->all(FLERR, "Illegal thermo_modify command");
+        format_column_user[icol] = arg[iarg + 2];
       }
       iarg += 3;
 
@@ -675,10 +715,12 @@ void Thermo::allocate()
   keyword.resize(n);
   format.resize(n);
   format_column_user.resize(n);
+  keyword_user.resize(n);
   for (int i = 0; i < n; i++) {
     keyword[i].clear();
     format[i].clear();
     format_column_user[i].clear();
+    keyword_user[i].clear();
   }
 
   vfunc = new FnPtr[n];
@@ -702,6 +744,12 @@ void Thermo::allocate()
   nvariable = 0;
   id_variable = new char *[n];
   variables = new int[n];
+
+  int i = 0;
+  key2col.clear();
+  for (auto item : utils::split_words(line)) {
+    key2col[item] = i++;
+  }
 }
 
 /* ----------------------------------------------------------------------

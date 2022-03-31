@@ -15,6 +15,7 @@
 #define LMP_THERMO_H
 
 #include "pointers.h"
+#include <map>
 
 namespace LAMMPS_NS {
 
@@ -47,8 +48,9 @@ class Thermo : protected Pointers {
   int nfield, nfield_initial;
   int *vtype;
   std::string line;
-  std::vector<std::string> keyword, format, format_column_user;
+  std::vector<std::string> keyword, format, format_column_user, keyword_user;
   std::string format_line_user, format_float_user, format_int_user, format_bigint_user;
+  std::map<std::string, int> key2col;
 
   int normvalue;       // use this for normflag unless natoms = 0
   int normuserflag;    // 0 if user has not set, 1 if has

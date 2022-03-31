@@ -100,12 +100,11 @@ void DumpXYZMPIIO::openfile()
   if (append_flag) { // append open
     int err = MPI_File_open( world, filecurrent, MPI_MODE_CREATE | MPI_MODE_APPEND |
                              MPI_MODE_WRONLY  , MPI_INFO_NULL, &mpifh);
-    if (err != MPI_SUCCESS) error->one(FLERR, "Cannot open dump file {}",filecurrent);
+    if (err != MPI_SUCCESS) error->one(FLERR, "Cannot open dump file {}", filecurrent);
 
     int myrank;
     MPI_Comm_rank(world,&myrank);
-    if (myrank == 0)
-      MPI_File_get_size(mpifh,&mpifo);
+    if (myrank == 0) MPI_File_get_size(mpifh,&mpifo);
     MPI_Bcast(&mpifo, 1, MPI_LMP_BIGINT, 0, world);
     MPI_File_set_size(mpifh,mpifo+headerSize+sumFileSize);
     currentFileSize = mpifo+headerSize+sumFileSize;
@@ -238,19 +237,16 @@ void DumpXYZMPIIO::init_style()
 
 void DumpXYZMPIIO::write_header(bigint n)
 {
+  auto header = fmt::format("{}\n Atoms. Timestep: {}", n, update->ntimestep);
+  if (time_flag) header += fmt::format(" Time: {:.6f}", compute_time());
+  header += "\n";
+
   if (performEstimate) {
-
-    headerBuffer = (char *) malloc(MAX_TEXT_HEADER_SIZE);
-
-    headerSize = 0;
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),BIGINT_FORMAT "\n",n);
-    headerSize += sprintf(&((char*)headerBuffer)[headerSize],"Atoms. Timestep: " BIGINT_FORMAT "\n",update->ntimestep);
+    headerSize = header.size();
   } else { // write data
-
     if (me == 0)
-      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_CHAR,MPI_STATUS_IGNORE);
-    mpifo += headerSize;
-    free(headerBuffer);
+      MPI_File_write_at(mpifh,mpifo,header.c_str(),header.size(),MPI_CHAR,MPI_STATUS_IGNORE);
+    mpifo += header.size();
   }
 }
 

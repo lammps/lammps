@@ -76,6 +76,8 @@ example, the computed values can be averaged using :doc:`fix ave/time
 Restrictions
 """"""""""""
 
+Constraints, like fix shake, may lead to incorrect values for energy difference.
+
 This compute is distributed as the FEP package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.

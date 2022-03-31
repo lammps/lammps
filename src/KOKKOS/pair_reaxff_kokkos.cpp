@@ -950,8 +950,7 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_count_angular_torsion.template modify<LMPHostType>();
   k_count_angular_torsion.template sync<DeviceType>();
 
-  // separate kernels for counting of Angular, Torsion
-  // may make a difference for occupancy/cache thrashing
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxCountAngularTorsion<false> >(0,inum),*this);
 
   k_count_angular_torsion.template modify<DeviceType>();
   k_count_angular_torsion.template sync<LMPHostType>();

@@ -295,7 +295,7 @@ void DumpCFGMPIIO::write_header(bigint n)
     headerSize = header.size();
   } else { // write data
     if (me == 0)
-      MPI_File_write_at(mpifh,mpifo,header.c_str(),header.size(),MPI_CHAR,MPI_STATUS_IGNORE);
+      MPI_File_write_at(mpifh,mpifo,(void *)header.c_str(),header.size(),MPI_CHAR,MPI_STATUS_IGNORE);
     mpifo += header.size();
   }
 }

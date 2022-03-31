@@ -77,13 +77,11 @@ PairReaxFFKokkos<DeviceType>::PairReaxFFKokkos(LAMMPS *lmp) : PairReaxFF(lmp)
   k_error_flag = DAT::tdual_int_scalar("pair:error_flag");
   k_nbuf_local = DAT::tdual_int_scalar("pair:nbuf_local");
 
-#ifdef OPT_ANGULAR_TORSION
   d_torsion_pack = t_reax_int4_2d("reaxff:torsion_pack",1,2);
   d_angular_pack = t_reax_int4_2d("reaxff:angular_pack",1,2);
 
   k_count_angular_torsion = DAT::tdual_int_1d("PairReaxFF::count_angular_torsion",2);
   d_count_angular_torsion = k_count_angular_torsion.template view<DeviceType>();
-#endif
 
   if (execution_space == Host) list_blocking_flag = 1;
 }
@@ -943,8 +941,6 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   pvector[3] = 0.0;
   ev_all.evdwl += ev.ereax[0] + ev.ereax[1] + ev.ereax[2];
 
-#ifdef OPT_ANGULAR_TORSION
-
   int count_angular = 0;
   int count_torsion = 0;
 
@@ -956,12 +952,6 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // separate kernels for counting of Angular, Torsion
   // may make a difference for occupancy/cache thrashing
-#ifdef OPT_SPLIT_COUNT_ANGULAR_TORSION
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxCountAngular<false> >(0,inum),*this);
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxCountTorsion<false> >(0,inum),*this);
-#else
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxCountAngularTorsion<false> >(0,inum),*this);
-#endif
 
   k_count_angular_torsion.template modify<DeviceType>();
   k_count_angular_torsion.template sync<LMPHostType>();
@@ -981,12 +971,7 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_count_angular_torsion.template modify<LMPHostType>();
   k_count_angular_torsion.template sync<DeviceType>();
 
-#ifdef OPT_SPLIT_COUNT_ANGULAR_TORSION
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxCountAngular<true> >(0,inum),*this);
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxCountTorsion<true> >(0,inum),*this);
-#else
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxCountAngularTorsion<true> >(0,inum),*this);
-#endif
 
   // no need to re-sync count_angular, count_torsion
 
@@ -1026,70 +1011,6 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   pvector[8] = ev.ereax[6];
   pvector[9] = ev.ereax[7];
   ev_all.evdwl += ev.ereax[6] + ev.ereax[7];
-
-#else
-
-
-  // Angular
-  if (neighflag == HALF) {
-    if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeAngular<HALF,1>>(0,inum),*this,ev);
-    else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeAngular<HALF,0>>(0,inum),*this);
-    ev_all += ev;
-  } else { //if (neighflag == HALFTHREAD) {
-    if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeAngular<HALFTHREAD,1>>(0,inum),*this,ev);
-    else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeAngular<HALFTHREAD,0>>(0,inum),*this);
-    ev_all += ev;
-  }
-  pvector[4] = ev.ereax[3];
-  pvector[5] = ev.ereax[4];
-  pvector[6] = ev.ereax[5];
-  ev_all.evdwl += ev.ereax[3] + ev.ereax[4] + ev.ereax[5];
-
-  if (inum > counters.extent(0)) {
-    // HIP backend note: use the "hipHostMallocNonCoherent" flag if/when
-    //  it is exposed in Kokkos for HIP pinned memory allocations
-    counters = t_hostpinned_int_1d("ReaxFF::counters", inum);
-    counters_jj_min = t_hostpinned_int_1d("ReaxFF::counters_jj_min", inum);
-    counters_jj_max = t_hostpinned_int_1d("ReaxFF::counters_jj_max", inum);
-    counters_kk_min = t_hostpinned_int_1d("ReaxFF::counters_kk_min", inum);
-    counters_kk_max = t_hostpinned_int_1d("ReaxFF::counters_kk_max", inum);
-  }
-
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionPreview>(0,inum),*this);
-  Kokkos::fence();
-
-  // Compress the counters list ; could be accomplished on device with parallel scan
-  int nnz = 0;
-  for (int i = 0; i < inum; ++i) {
-    if (counters[i] > 0) {
-      counters[nnz] = i;
-      nnz++;
-    }
-  }
-
-  if (neighflag == HALF) {
-    if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsion<HALF,1>>(0,nnz),*this,ev);
-    else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsion<HALF,0>>(0,nnz),*this);
-    ev_all += ev;
-  } else {
-    if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsion<HALFTHREAD,1>>(0,nnz),*this,ev);
-    else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsion<HALFTHREAD,0>>(0,nnz),*this);
-    ev_all += ev;
-  }
-
-  pvector[8] = ev.ereax[6];
-  pvector[9] = ev.ereax[7];
-  ev_all.evdwl += ev.ereax[6] + ev.ereax[7];
-
-#endif
 
   // Hydrogen Bond
   if (cut_hbsq > 0.0) {
@@ -1611,18 +1532,8 @@ void PairReaxFFKokkos<DeviceType>::allocate_array()
   d_BO_pi = typename AT::t_ffloat_2d_dl("reaxff/kk:BO_pi",nmax,maxbo);
   d_BO_pi2 = typename AT::t_ffloat_2d_dl("reaxff/kk:BO_pi2",nmax,maxbo);
 
-#ifdef OPT_REDUCE_DXDYDZ
   d_dln_BOp_pi = typename AT::t_ffloat_2d_dl("reaxff/kk:d_dln_BOp_pi",nmax,maxbo);
   d_dln_BOp_pi2 = typename AT::t_ffloat_2d_dl("reaxff/kk:d_dln_BOp_pi2",nmax,maxbo);
-#else
-  d_dln_BOp_pix = typename AT::t_ffloat_2d_dl("reaxff/kk:d_dln_BOp_pix",nmax,maxbo);
-  d_dln_BOp_piy = typename AT::t_ffloat_2d_dl("reaxff/kk:d_dln_BOp_piy",nmax,maxbo);
-  d_dln_BOp_piz = typename AT::t_ffloat_2d_dl("reaxff/kk:d_dln_BOp_piz",nmax,maxbo);
-
-  d_dln_BOp_pi2x = typename AT::t_ffloat_2d_dl("reaxff/kk:d_dln_BOp_pi2x",nmax,maxbo);
-  d_dln_BOp_pi2y = typename AT::t_ffloat_2d_dl("reaxff/kk:d_dln_BOp_pi2y",nmax,maxbo);
-  d_dln_BOp_pi2z = typename AT::t_ffloat_2d_dl("reaxff/kk:d_dln_BOp_pi2z",nmax,maxbo);
-#endif
 
   d_C1dbo = typename AT::t_ffloat_2d_dl("reaxff/kk:d_C1dbo",nmax,maxbo);
   d_C2dbo = typename AT::t_ffloat_2d_dl("reaxff/kk:d_C2dbo",nmax,maxbo);
@@ -1638,13 +1549,7 @@ void PairReaxFFKokkos<DeviceType>::allocate_array()
   d_C3dbopi2 = typename AT::t_ffloat_2d_dl("reaxff/kk:d_C3dbopi2",nmax,maxbo);
   d_C4dbopi2 = typename AT::t_ffloat_2d_dl("reaxff/kk:d_C4dbopi2",nmax,maxbo);
 
-#ifdef OPT_REDUCE_DXDYDZ
   d_dBOp = typename AT::t_ffloat_2d_dl("reaxff/kk:dBOp",nmax,maxbo);
-#else
-  d_dBOpx = typename AT::t_ffloat_2d_dl("reaxff/kk:dBOpx",nmax,maxbo);
-  d_dBOpy = typename AT::t_ffloat_2d_dl("reaxff/kk:dBOpy",nmax,maxbo);
-  d_dBOpz = typename AT::t_ffloat_2d_dl("reaxff/kk:dBOpz",nmax,maxbo);
-#endif
 
   d_dDeltap_self = typename AT::t_ffloat_2d_dl("reaxff/kk:dDeltap_self",nmax,3);
   d_Deltap_boc = typename AT::t_ffloat_1d("reaxff/kk:Deltap_boc",nmax);
@@ -1668,10 +1573,8 @@ void PairReaxFFKokkos<DeviceType>::allocate_array()
   d_neighid = typename AT::t_tagint_2d("reaxff/kk:neighid",nmax,maxbo);
   d_numneigh_bonds = typename AT::t_int_1d("reaxff/kk:numneigh_bonds",nmax);
 
-#ifdef OPT_ANGULAR_TORSION
   // ComputeAngular intermediates
   d_angular_intermediates = typename AT::t_ffloat_2d("reaxff/kk:angular_intermediates",nmax,4);
-#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1693,18 +1596,8 @@ void PairReaxFFKokkos<DeviceType>::deallocate_array()
   d_BO_pi = typename AT::t_ffloat_2d_dl();
   d_BO_pi2 = typename AT::t_ffloat_2d_dl();
 
-#ifdef OPT_REDUCE_DXDYDZ
   d_dln_BOp_pi = typename AT::t_ffloat_2d_dl();
   d_dln_BOp_pi2 = typename AT::t_ffloat_2d_dl();
-#else
-  d_dln_BOp_pix = typename AT::t_ffloat_2d_dl();
-  d_dln_BOp_piy = typename AT::t_ffloat_2d_dl();
-  d_dln_BOp_piz = typename AT::t_ffloat_2d_dl();
-
-  d_dln_BOp_pi2x = typename AT::t_ffloat_2d_dl();
-  d_dln_BOp_pi2y = typename AT::t_ffloat_2d_dl();
-  d_dln_BOp_pi2z = typename AT::t_ffloat_2d_dl();
-#endif
 
   d_C1dbo = typename AT::t_ffloat_2d_dl();
   d_C2dbo = typename AT::t_ffloat_2d_dl();
@@ -1720,13 +1613,7 @@ void PairReaxFFKokkos<DeviceType>::deallocate_array()
   d_C3dbopi2 = typename AT::t_ffloat_2d_dl();
   d_C4dbopi2 = typename AT::t_ffloat_2d_dl();
 
-#ifdef OPT_REDUCE_DXDYDZ
   d_dBOp = typename AT::t_ffloat_2d_dl();
-#else
-  d_dBOpx = typename AT::t_ffloat_2d_dl();
-  d_dBOpy = typename AT::t_ffloat_2d_dl();
-  d_dBOpz = typename AT::t_ffloat_2d_dl();
-#endif
 
   d_dDeltap_self = typename AT::t_ffloat_2d_dl();
   d_Deltap_boc = typename AT::t_ffloat_1d();
@@ -1750,10 +1637,8 @@ void PairReaxFFKokkos<DeviceType>::deallocate_array()
   d_neighid = typename AT::t_tagint_2d();
   d_numneigh_bonds = typename AT::t_int_1d();
 
-#ifdef OPT_ANGULAR_TORSION
   // ComputeAngular intermediates
   d_angular_intermediates = typename AT::t_ffloat_2d();
-#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1791,9 +1676,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
   const int jnum = d_numneigh[i];
 
   F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3], dBOp_i[3];
-#ifndef OPT_REDUCE_DXDYDZ
   F_FLOAT dln_BOp_pi_i[3], dln_BOp_pi2_i[3];
-#endif
   F_FLOAT dDeltap_self_i[3] = {0.0,0.0,0.0};
   F_FLOAT total_bo_i = 0.0;
 
@@ -1878,13 +1761,11 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
 
         // from BondOrder1
 
-#ifndef OPT_REDUCE_DXDYDZ
         d_BO(i,jj_index) = BO;
         d_BO_s(i,jj_index) = BO_s;
 
         d_BO(j,ii_index) = BO;
         d_BO_s(j,ii_index) = BO_s;
-#endif
 
         d_BO_pi(j,ii_index) = BO_pi;
         d_BO_pi2(j,ii_index) = BO_pi2;
@@ -1903,7 +1784,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
         for (int d = 0; d < 3; d++) dDeltap_self_i[d] += dBOp_i[d];
         for (int d = 0; d < 3; d++) a_dDeltap_self(j,d) += -dBOp_i[d];
 
-#ifdef OPT_REDUCE_DXDYDZ
         d_dln_BOp_pi(i,jj_index) = -(BO_pi*Cln_BOp_pi);
         d_dln_BOp_pi(j,ii_index) = -(BO_pi*Cln_BOp_pi);
 
@@ -1912,51 +1792,12 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
 
         d_dBOp(i,jj_index) = -(BO_s*Cln_BOp_s+BO_pi*Cln_BOp_pi+BO_pi2*Cln_BOp_pi2);
         d_dBOp(j,ii_index) = -(BO_s*Cln_BOp_s+BO_pi*Cln_BOp_pi+BO_pi2*Cln_BOp_pi2);
-#else
-        for (int d = 0; d < 3; d++) dln_BOp_pi_i[d] = -(BO_pi*Cln_BOp_pi)*delij[d];
-        for (int d = 0; d < 3; d++) dln_BOp_pi2_i[d] = -(BO_pi2*Cln_BOp_pi2)*delij[d];
-
-        d_dln_BOp_pix(i,jj_index) = dln_BOp_pi_i[0];
-        d_dln_BOp_piy(i,jj_index) = dln_BOp_pi_i[1];
-        d_dln_BOp_piz(i,jj_index) = dln_BOp_pi_i[2];
-
-        d_dln_BOp_pix(j,ii_index) = -dln_BOp_pi_i[0];
-        d_dln_BOp_piy(j,ii_index) = -dln_BOp_pi_i[1];
-        d_dln_BOp_piz(j,ii_index) = -dln_BOp_pi_i[2];
-
-        d_dln_BOp_pi2x(i,jj_index) = dln_BOp_pi2_i[0];
-        d_dln_BOp_pi2y(i,jj_index) = dln_BOp_pi2_i[1];
-        d_dln_BOp_pi2z(i,jj_index) = dln_BOp_pi2_i[2];
-
-        d_dln_BOp_pi2x(j,ii_index) = -dln_BOp_pi2_i[0];
-        d_dln_BOp_pi2y(j,ii_index) = -dln_BOp_pi2_i[1];
-        d_dln_BOp_pi2z(j,ii_index) = -dln_BOp_pi2_i[2];
-
-        d_dBOpx(i,jj_index) = dBOp_i[0];
-        d_dBOpy(i,jj_index) = dBOp_i[1];
-        d_dBOpz(i,jj_index) = dBOp_i[2];
-
-        d_dBOpx(j,ii_index) = -dBOp_i[0];
-        d_dBOpy(j,ii_index) = -dBOp_i[1];
-        d_dBOpz(j,ii_index) = -dBOp_i[2];
-#endif
-
-#ifdef OPT_REDUCE_DXDYDZ
         d_BO(i,jj_index) = BO - bo_cut;
         d_BO(j,ii_index) = BO - bo_cut;
         d_BO_s(i,jj_index) = BO_s - bo_cut;
         d_BO_s(j,ii_index) = BO_s - bo_cut;
         total_bo_i += (BO - bo_cut);
         a_total_bo[j] += (BO - bo_cut);
-#else
-
-        d_BO(i,jj_index) -= bo_cut;
-        d_BO(j,ii_index) -= bo_cut;
-        d_BO_s(i,jj_index) -= bo_cut;
-        d_BO_s(j,ii_index) -= bo_cut;
-        total_bo_i += d_BO(i,jj_index);
-        a_total_bo[j] += d_BO(j,ii_index);
-#endif
       }
     }
   }
@@ -2227,9 +2068,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsFull, const i
   const int itype = type(i);
 
   F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3], dBOp_i[3];
-#ifndef OPT_REDUCE_DXDYDZ
   F_FLOAT dln_BOp_pi_i[3], dln_BOp_pi2_i[3];
-#endif
   F_FLOAT dDeltap_self_i[3] = {0.0,0.0,0.0};
   F_FLOAT total_bo_i = 0.0;
 
@@ -2260,10 +2099,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsFull, const i
 
     // from BondOrder1
 
-#ifndef OPT_REDUCE_DXDYDZ
     d_BO(i,j_index) = BO;
     d_BO_s(i,j_index) = BO_s;
-#endif
     d_BO_pi(i,j_index) = BO_pi;
     d_BO_pi2(i,j_index) = BO_pi2;
 
@@ -2277,40 +2114,14 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsFull, const i
     for (int d = 0; d < 3; d++) dBOp_i[d] = -(BO_s*Cln_BOp_s+BO_pi*Cln_BOp_pi+BO_pi2*Cln_BOp_pi2)*delij[d];
     for (int d = 0; d < 3; d++) dDeltap_self_i[d] += dBOp_i[d];
 
-#ifdef OPT_REDUCE_DXDYDZ
 
     d_dln_BOp_pi(i,j_index) = -(BO_pi*Cln_BOp_pi);
     d_dln_BOp_pi2(i,j_index) = -(BO_pi2*Cln_BOp_pi2);
     d_dBOp(i,j_index) = -(BO_s*Cln_BOp_s+BO_pi*Cln_BOp_pi+BO_pi2*Cln_BOp_pi2);
 
-#else
-
-    for (int d = 0; d < 3; d++) dln_BOp_pi_i[d] = -(BO_pi*Cln_BOp_pi)*delij[d];
-    for (int d = 0; d < 3; d++) dln_BOp_pi2_i[d] = -(BO_pi2*Cln_BOp_pi2)*delij[d];
-
-    d_dln_BOp_pix(i,j_index) = dln_BOp_pi_i[0];
-    d_dln_BOp_piy(i,j_index) = dln_BOp_pi_i[1];
-    d_dln_BOp_piz(i,j_index) = dln_BOp_pi_i[2];
-
-    d_dln_BOp_pi2x(i,j_index) = dln_BOp_pi2_i[0];
-    d_dln_BOp_pi2y(i,j_index) = dln_BOp_pi2_i[1];
-    d_dln_BOp_pi2z(i,j_index) = dln_BOp_pi2_i[2];
-
-    d_dBOpx(i,j_index) = dBOp_i[0];
-    d_dBOpy(i,j_index) = dBOp_i[1];
-    d_dBOpz(i,j_index) = dBOp_i[2];
-
-#endif
-
-#ifdef OPT_REDUCE_DXDYDZ
     d_BO(i,j_index) = BO - bo_cut;
     d_BO_s(i,j_index) = BO_s - bo_cut;
     total_bo_i += (BO - bo_cut);
-#else
-    d_BO(i,j_index) -= bo_cut;
-    d_BO_s(i,j_index) -= bo_cut;
-    total_bo_i += d_BO(i,j_index);
-#endif
   }
 
   for (int d = 0; d < 3; d++)
@@ -2718,78 +2529,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
 }
 
 
-#ifdef OPT_ANGULAR_TORSION
-
-#ifdef OPT_SPLIT_COUNT_ANGULAR_TORSION
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-template<bool POPULATE>
-KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxCountAngular<POPULATE>, const int &ii) const {
-
-  // in reaxff_torsion_angles: j = i, k = j, i = k;
-
-  const int i = d_ilist[ii];
-  const int itype = type(i);
-
-  const int j_start = d_bo_first[i];
-  const int j_end = j_start + d_bo_num[i];
-
-  if (POPULATE) {
-    // Computes and stores SBO2, CSBO2, dSBO1, dSBO2
-    compute_angular_sbo(i, itype, j_start, j_end);
-  }
-
-  // Angular
-
-  // Count buffer size for `i`
-  int location_angular = 0; // dummy declaration
-  int count_angular = preprocess_angular<false>(i, itype, j_start, j_end, location_angular);
-  location_angular = Kokkos::atomic_fetch_add(&d_count_angular_torsion(0), count_angular);
-
-  if (POPULATE) {
-    // Fill buffer for `i`
-    preprocess_angular<true>(i, itype, j_start, j_end, location_angular);
-  }
-
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-template<bool POPULATE>
-KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxCountTorsion<POPULATE>, const int &ii) const {
-
-  // in reaxff_torsion_angles: j = i, k = j, i = k;
-
-  const int i = d_ilist[ii];
-  const int itype = type(i);
-  const int j_start = d_bo_first[i];
-  const int j_end = j_start + d_bo_num[i];
-
-  const tagint itag = tag(i);
-  const X_FLOAT xtmp = x(i,0);
-  const X_FLOAT ytmp = x(i,1);
-  const X_FLOAT ztmp = x(i,2);
-
-  // Count buffer size for `i`
-  int location_torsion = 0; // dummy declaration
-  int count_torsion = preprocess_torsion<false>(i, itype, itag, xtmp, ytmp, ztmp, j_start, j_end, location_torsion);
-  location_torsion = Kokkos::atomic_fetch_add(&d_count_angular_torsion(1), count_torsion);
-
-  if (POPULATE) {
-    // Fill buffer for `i`
-    preprocess_torsion<true>(i, itype, itag, xtmp, ytmp, ztmp, j_start, j_end, location_torsion);
-  }
-
-}
-
-#else
-
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -2838,8 +2577,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxCountAngularTorsion<POP
   }
 
 }
-
-#endif
 
 /* ---------------------------------------------------------------------- */
 
@@ -3664,839 +3401,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
 
 }
 
-#else
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-template<int NEIGHFLAG, int EVFLAG>
-KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngular<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
-
-  const auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
-  const auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
-
-  const auto v_CdDelta = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
-  const auto a_CdDelta = v_CdDelta.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-
-  const int i = d_ilist[ii];
-  const int itype = type(i);
-  const X_FLOAT xtmp = x(i,0);
-  const X_FLOAT ytmp = x(i,1);
-  const X_FLOAT ztmp = x(i,2);
-
-  F_FLOAT temp, temp_bo_jt, pBOjt7;
-  F_FLOAT p_val1, p_val2, p_val3, p_val4, p_val5;
-  F_FLOAT p_val6, p_val7, p_val8, p_val9, p_val10;
-  F_FLOAT p_pen1, p_pen2, p_pen3, p_pen4;
-  F_FLOAT p_coa1, p_coa2, p_coa3, p_coa4;
-  F_FLOAT trm8, expval6, expval7, expval2theta, expval12theta, exp3ij, exp3jk;
-  F_FLOAT exp_pen2ij, exp_pen2jk, exp_pen3, exp_pen4, trm_pen34, exp_coa2;
-  F_FLOAT dSBO1, dSBO2, SBO, SBO2, CSBO2, SBOp, prod_SBO, vlpadj;
-  F_FLOAT CEval1, CEval2, CEval3, CEval4, CEval5, CEval6, CEval7, CEval8;
-  F_FLOAT CEpen1, CEpen2, CEpen3;
-  F_FLOAT e_ang, e_coa, e_pen;
-  F_FLOAT CEcoa1, CEcoa2, CEcoa3, CEcoa4, CEcoa5;
-  F_FLOAT Cf7ij, Cf7jk, Cf8j, Cf9j;
-  F_FLOAT f7_ij, f7_jk, f8_Dj, f9_Dj;
-  F_FLOAT Ctheta_0, theta_0, theta_00, theta, cos_theta, sin_theta;
-  F_FLOAT BOA_ij, BOA_ik, rij, bo_ij, bo_ik;
-  F_FLOAT dcos_theta_di[3], dcos_theta_dj[3], dcos_theta_dk[3];
-  F_FLOAT eng_tmp, fi_tmp[3], fj_tmp[3], fk_tmp[3];
-  F_FLOAT delij[3], delik[3], delji[3], delki[3];
-
-  p_val6 = gp[14];
-  p_val8 = gp[33];
-  p_val9 = gp[16];
-  p_val10 = gp[17];
-
-  p_pen2 = gp[19];
-  p_pen3 = gp[20];
-  p_pen4 = gp[21];
-
-  p_coa2 = gp[2];
-  p_coa3 = gp[38];
-  p_coa4 = gp[30];
-
-  p_val3 = paramssing(itype).p_val3;
-  p_val5 = paramssing(itype).p_val5;
-
-  const int j_start = d_bo_first[i];
-  const int j_end = j_start + d_bo_num[i];
-
-  const F_FLOAT Delta_val = d_total_bo[i] - paramssing(itype).valency_val;
-
-  SBOp = 0.0, prod_SBO = 1.0;
-
-  for (int jj = j_start; jj < j_end; jj++) {
-    int j = d_bo_list[jj];
-    j &= NEIGHMASK;
-    const int j_index = jj - j_start;
-    bo_ij = d_BO(i,j_index);
-
-    SBOp += (d_BO_pi(i,j_index) + d_BO_pi2(i,j_index));
-    temp = SQR(bo_ij);
-    temp *= temp;
-    temp *= temp;
-    prod_SBO *= exp(-temp);
-  }
-
-  const F_FLOAT Delta_e = d_total_bo[i] - paramssing(itype).valency_e;
-  const F_FLOAT vlpex = Delta_e - 2.0 * (int)(Delta_e/2.0);
-  const F_FLOAT explp1 = exp(-gp[15] * SQR(2.0 + vlpex));
-  const F_FLOAT nlp = explp1 - (int)(Delta_e / 2.0);
-  if (vlpex >= 0.0) {
-    vlpadj = 0.0;
-    dSBO2 = prod_SBO - 1.0;
-  } else {
-    vlpadj = nlp;
-    dSBO2 = (prod_SBO - 1.0) * (1.0 - p_val8 * d_dDelta_lp[i]);
-  }
-
-  SBO = SBOp + (1.0 - prod_SBO) * (-d_Delta_boc[i] - p_val8 * vlpadj);
-  dSBO1 = -8.0 * prod_SBO * (d_Delta_boc[i] + p_val8 * vlpadj);
-
-  if (SBO <= 0.0) {
-    SBO2 = 0.0;
-    CSBO2 = 0.0;
-  } else if (SBO > 0.0 && SBO <= 1.0) {
-    CSBO2 = pow(SBO, p_val9 - 1.0);
-    SBO2 = CSBO2*SBO;
-    CSBO2 = p_val9 * CSBO2;
-  } else if (SBO > 1.0 && SBO < 2.0) {
-    CSBO2 = pow(2.0 - SBO, p_val9 - 1.0);
-    SBO2 = 2.0 - CSBO2*(2.0 - SBO);
-    CSBO2 = p_val9 * CSBO2;
-  } else {
-    SBO2 = 2.0;
-    CSBO2 = 0.0;
-  }
-  expval6 = exp(p_val6 * d_Delta_boc[i]);
-
-  F_FLOAT CdDelta_i = 0.0;
-  F_FLOAT fitmp[3],fjtmp[3];
-  for (int j = 0; j < 3; j++) fitmp[j] = 0.0;
-
-  for (int jj = j_start; jj < j_end; jj++) {
-    int j = d_bo_list[jj];
-    j &= NEIGHMASK;
-    const int j_index = jj - j_start;
-    delij[0] = x(j,0) - xtmp;
-    delij[1] = x(j,1) - ytmp;
-    delij[2] = x(j,2) - ztmp;
-    const F_FLOAT rsqij = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
-    rij = sqrt(rsqij);
-    bo_ij = d_BO(i,j_index);
-    const int i_index = maxbo+j_index;
-
-    BOA_ij = bo_ij - thb_cut;
-    if (BOA_ij <= 0.0) continue;
-    if (i >= nlocal && j >= nlocal) continue;
-
-    const int jtype = type(j);
-
-    F_FLOAT CdDelta_j = 0.0;
-    for (int k = 0; k < 3; k++) fjtmp[k] = 0.0;
-
-    for (int kk = jj+1; kk < j_end; kk++) {
-    //for (int kk = j_start; kk < j_end; kk++) {
-      int k = d_bo_list[kk];
-      k &= NEIGHMASK;
-      if (k == j) continue;
-
-      const int k_index = kk - j_start;
-      delik[0] = x(k,0) - xtmp;
-      delik[1] = x(k,1) - ytmp;
-      delik[2] = x(k,2) - ztmp;
-      const F_FLOAT rsqik = delik[0]*delik[0] + delik[1]*delik[1] + delik[2]*delik[2];
-      const F_FLOAT rik = sqrt(rsqik);
-      bo_ik = d_BO(i,k_index);
-      BOA_ik   = bo_ik - thb_cut;
-
-      if (BOA_ik <= 0.0 || bo_ij <= thb_cut || bo_ik <= thb_cut || bo_ij * bo_ik <= thb_cutsq) continue;
-
-      const int ktype = type(k);
-
-      // theta and derivatives
-
-      cos_theta = (delij[0]*delik[0]+delij[1]*delik[1]+delij[2]*delik[2])/(rij*rik);
-      if (cos_theta > 1.0) cos_theta  = 1.0;
-      if (cos_theta < -1.0) cos_theta  = -1.0;
-      theta = acos(cos_theta);
-
-      const F_FLOAT inv_dists = 1.0 / (rij * rik);
-      const F_FLOAT Cdot_inv3 = cos_theta * inv_dists * inv_dists;
-
-      for (int t = 0; t < 3; t++) {
-        dcos_theta_di[t] = -(delik[t] + delij[t]) * inv_dists + Cdot_inv3 * (rsqik * delij[t] + rsqij * delik[t]);
-        dcos_theta_dj[t] = delik[t] * inv_dists - Cdot_inv3 * rsqik * delij[t];
-        dcos_theta_dk[t] = delij[t] * inv_dists - Cdot_inv3 * rsqij * delik[t];
-      }
-
-      sin_theta = sin(theta);
-      if (sin_theta < 1.0e-5) sin_theta = 1.0e-5;
-      p_val1 = paramsthbp(jtype,itype,ktype).p_val1;
-
-      if (fabs(p_val1) <= 0.001) continue;
-
-      // ANGLE ENERGY
-
-      p_val1 = paramsthbp(jtype,itype,ktype).p_val1;
-      p_val2 = paramsthbp(jtype,itype,ktype).p_val2;
-      p_val4 = paramsthbp(jtype,itype,ktype).p_val4;
-      p_val7 = paramsthbp(jtype,itype,ktype).p_val7;
-      theta_00 = paramsthbp(jtype,itype,ktype).theta_00;
-
-      F_FLOAT tmp_var;
-      tmp_var = pow(BOA_ij, p_val4 - 1.0);
-      exp3ij = exp(-p_val3 * tmp_var * BOA_ij);
-      f7_ij = 1.0 - exp3ij;
-      Cf7ij = p_val3 * p_val4 * tmp_var * exp3ij;
-
-      tmp_var =  pow(BOA_ik, p_val4 - 1.0);
-      exp3jk = exp(-p_val3 * tmp_var * BOA_ik);
-      f7_jk = 1.0 - exp3jk;
-      Cf7jk = p_val3 * p_val4 * tmp_var * exp3jk;
-      expval7 = exp(-p_val7 * d_Delta_boc[i]);
-      trm8 = 1.0 + expval6 + expval7;
-      f8_Dj = p_val5 - ((p_val5 - 1.0) * (2.0 + expval6) / trm8);
-      Cf8j = ((1.0 - p_val5) / (trm8*trm8)) *
-       (p_val6 * expval6 * trm8 - (2.0 + expval6) * (p_val6*expval6 - p_val7*expval7));
-      theta_0 = 180.0 - theta_00 * (1.0 - exp(-p_val10 * (2.0 - SBO2)));
-      theta_0 = theta_0*constPI/180.0;
-
-      expval2theta  = exp(-p_val2 * (theta_0-theta)*(theta_0-theta));
-      if (p_val1 >= 0)
-        expval12theta = p_val1 * (1.0 - expval2theta);
-      else // To avoid linear Me-H-Me angles (6/6/06)
-        expval12theta = p_val1 * -expval2theta;
-
-      CEval1 = Cf7ij * f7_jk * f8_Dj * expval12theta;
-      CEval2 = Cf7jk * f7_ij * f8_Dj * expval12theta;
-      CEval3 = Cf8j  * f7_ij * f7_jk * expval12theta;
-      CEval4 = -2.0 * p_val1 * p_val2 * f7_ij * f7_jk * f8_Dj * expval2theta * (theta_0 - theta);
-      Ctheta_0 = p_val10 * theta_00*constPI/180.0 * exp(-p_val10 * (2.0 - SBO2));
-      CEval5 = -CEval4 * Ctheta_0 * CSBO2;
-      CEval6 = CEval5 * dSBO1;
-      CEval7 = CEval5 * dSBO2;
-      CEval8 = -CEval4 / sin_theta;
-
-      e_ang = f7_ij * f7_jk * f8_Dj * expval12theta;
-      if (EVFLAG && eflag_global) ev.ereax[3] += e_ang;
-
-      // Penalty energy
-
-      p_pen1 = paramsthbp(jtype,itype,ktype).p_pen1;
-
-      exp_pen2ij = exp(-p_pen2 * (BOA_ij - 2.0)*(BOA_ij - 2.0));
-      exp_pen2jk = exp(-p_pen2 * (BOA_ik - 2.0)*(BOA_ik - 2.0));
-      exp_pen3 = exp(-p_pen3 * d_Delta[i]);
-      exp_pen4 = exp(p_pen4 * d_Delta[i]);
-      trm_pen34 = 1.0 + exp_pen3 + exp_pen4;
-      f9_Dj = (2.0 + exp_pen3) / trm_pen34;
-      Cf9j = (-p_pen3 * exp_pen3 * trm_pen34 - (2.0 + exp_pen3) *
-       (-p_pen3 * exp_pen3 + p_pen4 * exp_pen4))/(trm_pen34*trm_pen34);
-
-      e_pen = p_pen1 * f9_Dj * exp_pen2ij * exp_pen2jk;
-      if (EVFLAG && eflag_global) ev.ereax[4] += e_pen;
-
-      CEpen1 = e_pen * Cf9j / f9_Dj;
-      temp   = -2.0 * p_pen2 * e_pen;
-      CEpen2 = temp * (BOA_ij - 2.0);
-      CEpen3 = temp * (BOA_ik - 2.0);
-
-      // ConjAngle energy
-
-      p_coa1 = paramsthbp(jtype,itype,ktype).p_coa1;
-      exp_coa2 = exp(p_coa2 * Delta_val);
-      e_coa = p_coa1 / (1. + exp_coa2) *
-              exp(-p_coa3 * SQR(d_total_bo[j]-BOA_ij)) *
-              exp(-p_coa3 * SQR(d_total_bo[k]-BOA_ik)) *
-              exp(-p_coa4 * SQR(BOA_ij - 1.5)) *
-              exp(-p_coa4 * SQR(BOA_ik - 1.5));
-
-      CEcoa1 = -2 * p_coa4 * (BOA_ij - 1.5) * e_coa;
-      CEcoa2 = -2 * p_coa4 * (BOA_ik - 1.5) * e_coa;
-      CEcoa3 = -p_coa2 * exp_coa2 * e_coa / (1 + exp_coa2);
-      CEcoa4 = -2 * p_coa3 * (d_total_bo[j]-BOA_ij) * e_coa;
-      CEcoa5 = -2 * p_coa3 * (d_total_bo[k]-BOA_ik) * e_coa;
-
-      if (EVFLAG && eflag_global) ev.ereax[5] += e_coa;
-
-      // Forces
-
-      a_Cdbo(i,j_index) += (CEval1 + CEpen2 + (CEcoa1 - CEcoa4));
-      a_Cdbo(j,i_index) += (CEval1 + CEpen2 + (CEcoa1 - CEcoa4));
-      a_Cdbo(i,k_index) += (CEval2 + CEpen3 + (CEcoa2 - CEcoa5));
-      a_Cdbo(k,i_index) += (CEval2 + CEpen3 + (CEcoa2 - CEcoa5));
-
-      CdDelta_i += ((CEval3 + CEval7) + CEpen1 + CEcoa3);
-      CdDelta_j += CEcoa4;
-      a_CdDelta[k] += CEcoa5;
-
-      for (int ll = j_start; ll < j_end; ll++) {
-        int l = d_bo_list[ll];
-        l &= NEIGHMASK;
-        const int l_index = ll - j_start;
-
-        temp_bo_jt = d_BO(i,l_index);
-        temp = temp_bo_jt * temp_bo_jt * temp_bo_jt;
-        pBOjt7 = temp * temp * temp_bo_jt;
-
-        a_Cdbo(i,l_index) += (CEval6 * pBOjt7);
-        d_Cdbopi(i,l_index) += CEval5;
-        d_Cdbopi2(i,l_index) += CEval5;
-      }
-
-      for (int d = 0; d < 3; d++) fi_tmp[d] = CEval8 * dcos_theta_di[d];
-      for (int d = 0; d < 3; d++) fj_tmp[d] = CEval8 * dcos_theta_dj[d];
-      for (int d = 0; d < 3; d++) fk_tmp[d] = CEval8 * dcos_theta_dk[d];
-      for (int d = 0; d < 3; d++) fitmp[d] -= fi_tmp[d];
-      for (int d = 0; d < 3; d++) fjtmp[d] -= fj_tmp[d];
-      for (int d = 0; d < 3; d++) a_f(k,d) -= fk_tmp[d];
-
-      // energy/virial tally
-      if (EVFLAG) {
-        eng_tmp = e_ang + e_pen + e_coa;
-        //if (eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,eng_tmp,0.0,0.0,0.0,0.0);
-        for (int d = 0; d < 3; d++) delki[d] = -1.0 * delik[d];
-        for (int d = 0; d < 3; d++) delji[d] = -1.0 * delij[d];
-        if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,j,eng_tmp);
-        if (vflag_either) this->template v_tally3<NEIGHFLAG>(ev,i,j,k,fj_tmp,fk_tmp,delji,delki);
-      }
-
-    }
-    a_CdDelta[j] += CdDelta_j;
-    for (int d = 0; d < 3; d++) a_f(j,d) += fjtmp[d];
-  }
-  a_CdDelta[i] += CdDelta_i;
-  for (int d = 0; d < 3; d++) a_f(i,d) += fitmp[d];
-}
-
-template<class DeviceType>
-template<int NEIGHFLAG, int EVFLAG>
-KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngular<NEIGHFLAG,EVFLAG>, const int &ii) const {
-  EV_FLOAT_REAX ev;
-  this->template operator()<NEIGHFLAG,EVFLAG>(TagPairReaxComputeAngular<NEIGHFLAG,EVFLAG>(), ii, ev);
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreview, const int &ii) const {
-
-  F_FLOAT  bo_ij, bo_ik;
-  int counter = 0;
-
-  const int i = d_ilist[ii];
-  const int itype = type(i);
-  const tagint itag = tag(i);
-  const X_FLOAT xtmp = x(i,0);
-  const X_FLOAT ytmp = x(i,1);
-  const X_FLOAT ztmp = x(i,2);
-
-  const int j_start = d_bo_first[i];
-  const int j_end = j_start + d_bo_num[i];
-
-  int jj_min =  j_end+1;
-  int jj_max =  j_start-1;
-  int kk_min =  j_end+1;
-  int kk_max =  j_start-1;
-
-  for (int jj = j_start; jj < j_end; jj++) {
-
-   // j_counter1++;
-
-    int j = d_bo_list[jj];
-    j &= NEIGHMASK;
-    const tagint jtag = tag(j);
-    const int j_index = jj - j_start;
-
-    // skip half of the interactions
-    if (itag > jtag) {
-      if ((itag+jtag) % 2 == 0) continue;
-    } else if (itag < jtag) {
-      if ((itag+jtag) % 2 == 1) continue;
-    } else {
-      if (x(j,2)  < ztmp) continue;
-      if (x(j,2) == ztmp && x(j,1)  < ytmp) continue;
-      if (x(j,2) == ztmp && x(j,1) == ytmp && x(j,0) < xtmp) continue;
-    }
-
-    bo_ij = d_BO(i,j_index);
-    if (bo_ij < thb_cut) continue;
-
-    const int l_start = d_bo_first[j];
-    const int l_end = l_start + d_bo_num[j];
-
-    for (int kk = j_start; kk < j_end; kk++) {
-      int k = d_bo_list[kk];
-      k &= NEIGHMASK;
-      if (k == j) continue;
-      const int k_index = kk - j_start;
-      bo_ik = d_BO(i,k_index);
-      if (bo_ik < thb_cut) continue;
-
-      counter++;
-      jj_min = jj < jj_min ? jj : jj_min;
-      jj_max = jj >= jj_max ? (jj+1) : jj_max;
-      kk_min = kk < kk_min ? kk : kk_min;
-      kk_max = kk >= kk_max ? (kk+1) : kk_max;
-    }
-
-  }
-  counters[ii] = counter;
-  if (counter > 0) {
-    counters_jj_min[ii] = jj_min;
-    counters_jj_max[ii] = jj_max;
-    counters_kk_min[ii] = kk_min;
-    counters_kk_max[ii] = kk_max;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-template<int NEIGHFLAG, int EVFLAG>
-KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsion<NEIGHFLAG,EVFLAG>,  const int &iii, EV_FLOAT_REAX& ev) const {
-
-  constexpr int blocksize = PairReaxFFKokkos<DeviceType>::compute_torsion_blocksize;
-
-  const int ii = counters[iii];
-
-  const auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
-  const auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-
-  const auto v_CdDelta = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
-  const auto a_CdDelta = v_CdDelta.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbo = d_Cdbo;
-  //auto a_Cdbo = dup_Cdbo.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-
-  // in reaxff_torsion_angles: j = i, k = j, i = k;
-
-  F_FLOAT Delta_i, Delta_j, bo_ij, bo_ik, bo_jl, BOA_ij, BOA_ik, BOA_jl;
-  F_FLOAT p_tor1, p_cot1, V1, V2, V3;
-  F_FLOAT exp_tor2_ij, exp_tor2_ik, exp_tor2_jl, exp_tor1, exp_tor3_DiDj, exp_tor4_DiDj, exp_tor34_inv;
-  F_FLOAT exp_cot2_ij, exp_cot2_ik, exp_cot2_jl, fn10, f11_DiDj, dfn11, fn12;
-  F_FLOAT theta_ijk, theta_jil, sin_ijk, sin_jil, cos_ijk, cos_jil, tan_ijk_i, tan_jil_i;
-  F_FLOAT cos_omega, cos2omega, cos3omega;
-  F_FLOAT CV, cmn, CEtors1, CEtors2, CEtors3, CEtors4;
-  F_FLOAT CEtors5, CEtors6, CEtors7, CEtors8, CEtors9;
-  F_FLOAT Cconj, CEconj1, CEconj2, CEconj3, CEconj4, CEconj5, CEconj6;
-  F_FLOAT e_tor, e_con, eng_tmp;
-
-  F_FLOAT delij[3], delik[3], deljl[3], dellk[3], delil[3], delkl[3];
-  F_FLOAT fi_tmp[3], fj_tmp[3], fk_tmp[3], fl_tmp[3];
-  F_FLOAT dcos_omega_di[3], dcos_omega_dj[3], dcos_omega_dk[3], dcos_omega_dl[3];
-  F_FLOAT dcos_ijk_di[3], dcos_ijk_dj[3], dcos_ijk_dk[3], dcos_jil_di[3], dcos_jil_dj[3], dcos_jil_dk[3];
-
-  F_FLOAT p_tor2 = gp[23];
-  F_FLOAT p_tor3 = gp[24];
-  F_FLOAT p_tor4 = gp[25];
-  F_FLOAT p_cot2 = gp[27];
-
-  const int i = d_ilist[ii];
-  const int jj_start = counters_jj_min[ii];
-  const int jj_stop = counters_jj_max[ii];
-  const int kk_start = counters_kk_min[ii];
-  const int kk_stop = counters_kk_max[ii];
-
-  const int itype = type(i);
-  const tagint itag = tag(i);
-  const X_FLOAT xtmp = x(i,0);
-  const X_FLOAT ytmp = x(i,1);
-  const X_FLOAT ztmp = x(i,2);
-  Delta_i = d_Delta_boc[i];
-
-  const int j_start = d_bo_first[i];
-  const int j_end = j_start + d_bo_num[i];
-
-  F_FLOAT fitmp[3], fjtmp[3], fktmp[3];
-  for(int j = 0; j < 3; j++) fitmp[j] = 0.0;
-  F_FLOAT CdDelta_i = 0.0;
-
-  int nnz_jj;
-  blocking_t selected_jj[blocksize];
-  int jj_current = jj_start;
-
-  while (jj_current < jj_stop) {
-
-    nnz_jj=0;
-    while (nnz_jj < blocksize) {
-      int jj = jj_current;
-      int j = d_bo_list[jj];
-      j &= NEIGHMASK;
-      const tagint jtag = tag(j);
-      const int j_index = jj - j_start;
-      bool continue_flag = false;
-
-      // skip half of the interactions
-      if (itag > jtag) {
-        if ((itag+jtag) % 2 == 0) continue_flag = true;
-      } else if (itag < jtag) {
-        if ((itag+jtag) % 2 == 1) continue_flag = true;
-      } else {
-        if (x(j,2)  < ztmp) continue_flag = true;
-        else if (x(j,2) == ztmp && x(j,1)  < ytmp) continue_flag = true;
-        else if (x(j,2) == ztmp && x(j,1) == ytmp && x(j,0) < xtmp) continue_flag = true;
-      }
-
-      bo_ij = d_BO(i,j_index);
-      if (bo_ij < thb_cut) continue_flag = true;
-
-      if (!continue_flag) {
-         selected_jj[nnz_jj] = jj_current-jj_start;
-         nnz_jj++;
-      }
-      jj_current++;
-      if (jj_current == jj_stop) break;
-    }
-
-    for (int jj_inner = 0; jj_inner < nnz_jj; jj_inner++) {
-      const int jj = jj_start + selected_jj[jj_inner];
-      int j = d_bo_list[jj];
-      j &= NEIGHMASK;
-      const tagint jtag = tag(j);
-      const int jtype = type(j);
-      const int j_index = jj - j_start;
-      bo_ij = d_BO(i,j_index);
-
-
-      delij[0] = x(j,0) - xtmp;
-      delij[1] = x(j,1) - ytmp;
-      delij[2] = x(j,2) - ztmp;
-      const F_FLOAT rsqij = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
-      const F_FLOAT rij = sqrt(rsqij);
-
-      BOA_ij = bo_ij - thb_cut;
-      Delta_j = d_Delta_boc[j];
-      exp_tor2_ij = exp(-p_tor2 * BOA_ij);
-      exp_cot2_ij = exp(-p_cot2 * SQR(BOA_ij - 1.5));
-      exp_tor3_DiDj = exp(-p_tor3 * (Delta_i + Delta_j));
-      exp_tor4_DiDj = exp(p_tor4  * (Delta_i + Delta_j));
-      exp_tor34_inv = 1.0 / (1.0 + exp_tor3_DiDj + exp_tor4_DiDj);
-      f11_DiDj = (2.0 + exp_tor3_DiDj) * exp_tor34_inv;
-
-      const int l_start = d_bo_first[j];
-      const int l_end = l_start + d_bo_num[j];
-
-      for(int k = 0; k < 3; k++) fjtmp[k] = 0.0;
-      F_FLOAT CdDelta_j = 0.0;
-
-      int nnz_kk;
-      int selected_kk[blocksize];
-      int kk_current = kk_start;
-
-      while (kk_current < kk_stop) {
-        nnz_kk=0;
-        while (nnz_kk < blocksize) {
-          int kk = kk_current;
-          int k = d_bo_list[kk];
-          k &= NEIGHMASK;
-          bool continue_flag = false;
-
-          if (k == j)
-            continue_flag = true;
-          else{
-            const int k_index = kk - j_start;
-            bo_ik = d_BO(i,k_index);
-            if (bo_ik < thb_cut) continue_flag = true;
-          }
-
-          if (!continue_flag) {
-            selected_kk[nnz_kk] = kk_current-kk_start;
-            nnz_kk++;
-          }
-          kk_current++;
-          if (kk_current == kk_stop) break;
-        }
-
-        for (int kk_inner = 0; kk_inner < nnz_kk; kk_inner++) {
-          const int kk = kk_start + selected_kk[kk_inner];
-          int k = d_bo_list[kk];
-          k &= NEIGHMASK;
-          const int ktype = type(k);
-          const int k_index = kk - j_start;
-          bo_ik = d_BO(i,k_index);
-
-          BOA_ik = bo_ik - thb_cut;
-          for (int d = 0; d < 3; d ++) delik[d] = x(k,d) - x(i,d);
-          const F_FLOAT rsqik = delik[0]*delik[0] + delik[1]*delik[1] + delik[2]*delik[2];
-          const F_FLOAT rik = sqrt(rsqik);
-
-          cos_ijk = (delij[0]*delik[0]+delij[1]*delik[1]+delij[2]*delik[2])/(rij*rik);
-          if (cos_ijk > 1.0) cos_ijk  = 1.0;
-          else if (cos_ijk < -1.0) cos_ijk  = -1.0;
-          theta_ijk = acos(cos_ijk);
-
-          // dcos_ijk
-          const F_FLOAT inv_dists = 1.0 / (rij * rik);
-          const F_FLOAT cos_ijk_tmp = cos_ijk *inv_dists * inv_dists;
-
-          for(int d = 0; d < 3; d++) {
-            dcos_ijk_di[d] = -(delik[d] + delij[d]) * inv_dists + cos_ijk_tmp * (rsqik * delij[d] + rsqij * delik[d]);
-            dcos_ijk_dj[d] = delik[d] * inv_dists - cos_ijk_tmp * rsqik * delij[d];
-            dcos_ijk_dk[d] = delij[d] * inv_dists - cos_ijk_tmp * rsqij * delik[d];
-          }
-
-          sin_ijk = sin(theta_ijk);
-          if (sin_ijk >= 0 && sin_ijk <= 1e-10)
-            tan_ijk_i = cos_ijk / 1e-10;
-          else if (sin_ijk <= 0 && sin_ijk >= -1e-10)
-            tan_ijk_i = -cos_ijk / 1e-10;
-          else tan_ijk_i = cos_ijk / sin_ijk;
-
-          exp_tor2_ik = exp(-p_tor2 * BOA_ik);
-          exp_cot2_ik = exp(-p_cot2 * SQR(BOA_ik -1.5));
-
-          for(int l = 0; l < 3; l++) fktmp[l] = 0.0;
-
-          for (int ll = l_start; ll < l_end; ll++) {
-            int l = d_bo_list[ll];
-            l &= NEIGHMASK;
-            if (l == i) continue;
-            const int ltype = type(l);
-            const int l_index = ll - l_start;
-
-            bo_jl = d_BO(j,l_index);
-            if (l == k || bo_jl < thb_cut || bo_ij*bo_ik*bo_jl < thb_cut) continue;
-
-            for (int d = 0; d < 3; d ++) deljl[d] = x(l,d) - x(j,d);
-            const F_FLOAT rsqjl = deljl[0]*deljl[0] + deljl[1]*deljl[1] + deljl[2]*deljl[2];
-            const F_FLOAT rjl = sqrt(rsqjl);
-            BOA_jl = bo_jl - thb_cut;
-
-            cos_jil = -(delij[0]*deljl[0]+delij[1]*deljl[1]+delij[2]*deljl[2])/(rij*rjl);
-            if (cos_jil > 1.0) cos_jil  = 1.0;
-            else if (cos_jil < -1.0) cos_jil  = -1.0;
-            theta_jil = acos(cos_jil);
-
-            // dcos_jil
-            const F_FLOAT inv_distjl = 1.0 / (rij * rjl);
-            const F_FLOAT cos_jil_tmp = cos_jil / ((rij*rjl)*(rij*rjl));
-
-            for(int d = 0; d < 3; d++) {
-              dcos_jil_di[d] = deljl[d] * inv_distjl - cos_jil_tmp * rsqjl * -delij[d];
-              dcos_jil_dj[d] = (-deljl[d] + delij[d]) * inv_distjl - cos_jil_tmp * (rsqjl * delij[d] + rsqij * -deljl[d]);
-              dcos_jil_dk[d] = -delij[d] * inv_distjl - cos_jil_tmp * rsqij * deljl[d];
-            }
-
-            sin_jil = sin(theta_jil);
-            if (sin_jil >= 0 && sin_jil <= 1e-10)
-              tan_jil_i = cos_jil / 1e-10;
-            else if (sin_jil <= 0 && sin_jil >= -1e-10)
-              tan_jil_i = -cos_jil / 1e-10;
-            else tan_jil_i = cos_jil / sin_jil;
-
-            for (int d = 0; d < 3; d ++) dellk[d] = x(k,d) - x(l,d);
-            const F_FLOAT rsqlk = dellk[0]*dellk[0] + dellk[1]*dellk[1] + dellk[2]*dellk[2];
-            const F_FLOAT rlk = sqrt(rsqlk);
-
-            F_FLOAT unnorm_cos_omega, unnorm_sin_omega, omega;
-            F_FLOAT htra, htrb, htrc, hthd, hthe, hnra, hnrc, hnhd, hnhe;
-            F_FLOAT arg, poem, tel;
-            F_FLOAT cross_ij_jl[3];
-
-            // omega
-
-            F_FLOAT dot_ij_jk = -(delij[0]*delik[0]+delij[1]*delik[1]+delij[2]*delik[2]);
-            F_FLOAT dot_ij_lj = delij[0]*deljl[0]+delij[1]*deljl[1]+delij[2]*deljl[2];
-            F_FLOAT dot_ik_jl = delik[0]*deljl[0]+delik[1]*deljl[1]+delik[2]*deljl[2];
-            unnorm_cos_omega = dot_ij_jk * dot_ij_lj + rsqij * dot_ik_jl;
-
-            cross_ij_jl[0] = delij[1]*deljl[2] - delij[2]*deljl[1];
-            cross_ij_jl[1] = delij[2]*deljl[0] - delij[0]*deljl[2];
-            cross_ij_jl[2] = delij[0]*deljl[1] - delij[1]*deljl[0];
-
-            unnorm_sin_omega = -rij*(delik[0]*cross_ij_jl[0]+delik[1]*cross_ij_jl[1]+delik[2]*cross_ij_jl[2]);
-            omega = atan2(unnorm_sin_omega, unnorm_cos_omega);
-
-            htra = rik + cos_ijk * (rjl * cos_jil - rij);
-            htrb = rij - rik * cos_ijk - rjl * cos_jil;
-            htrc = rjl + cos_jil * (rik * cos_ijk - rij);
-            hthd = rik * sin_ijk * (rij - rjl * cos_jil);
-            hthe = rjl * sin_jil * (rij - rik * cos_ijk);
-            hnra = rjl * sin_ijk * sin_jil;
-            hnrc = rik * sin_ijk * sin_jil;
-            hnhd = rik * rjl * cos_ijk * sin_jil;
-            hnhe = rik * rjl * sin_ijk * cos_jil;
-
-            poem = 2.0 * rik * rjl * sin_ijk * sin_jil;
-            if (poem < 1e-20) poem = 1e-20;
-
-            tel = SQR(rik) + SQR(rij) + SQR(rjl) - SQR(rlk) -
-                  2.0 * (rik * rij * cos_ijk - rik * rjl * cos_ijk * cos_jil + rij * rjl * cos_jil);
-
-            arg = tel / poem;
-            if (arg >  1.0) arg =  1.0;
-            else if (arg < -1.0) arg = -1.0;
-
-            F_FLOAT sin_ijk_rnd = sin_ijk;
-            F_FLOAT sin_jil_rnd = sin_jil;
-
-            if (sin_ijk >= 0 && sin_ijk <= 1e-10) sin_ijk_rnd = 1e-10;
-            else if (sin_ijk <= 0 && sin_ijk >= -1e-10) sin_ijk_rnd = -1e-10;
-            if (sin_jil >= 0 && sin_jil <= 1e-10) sin_jil_rnd = 1e-10;
-            else if (sin_jil <= 0 && sin_jil >= -1e-10) sin_jil_rnd = -1e-10;
-
-            // dcos_omega_di
-            for (int d = 0; d < 3; d++) dcos_omega_dk[d] = ((htra-arg*hnra)/rik) * delik[d] - dellk[d];
-            for (int d = 0; d < 3; d++) dcos_omega_dk[d] += (hthd-arg*hnhd)/sin_ijk_rnd * -dcos_ijk_dk[d];
-            for (int d = 0; d < 3; d++) dcos_omega_dk[d] *= 2.0/poem;
-
-            // dcos_omega_dj
-            for (int d = 0; d < 3; d++) dcos_omega_di[d] = -((htra-arg*hnra)/rik) * delik[d] - htrb/rij * delij[d];
-            for (int d = 0; d < 3; d++) dcos_omega_di[d] += -(hthd-arg*hnhd)/sin_ijk_rnd * dcos_ijk_di[d];
-            for (int d = 0; d < 3; d++) dcos_omega_di[d] += -(hthe-arg*hnhe)/sin_jil_rnd * dcos_jil_di[d];
-            for (int d = 0; d < 3; d++) dcos_omega_di[d] *= 2.0/poem;
-
-            // dcos_omega_dk
-            for (int d = 0; d < 3; d++) dcos_omega_dj[d] = -((htrc-arg*hnrc)/rjl) * deljl[d] + htrb/rij * delij[d];
-            for (int d = 0; d < 3; d++) dcos_omega_dj[d] += -(hthd-arg*hnhd)/sin_ijk_rnd * dcos_ijk_dj[d];
-            for (int d = 0; d < 3; d++) dcos_omega_dj[d] += -(hthe-arg*hnhe)/sin_jil_rnd * dcos_jil_dj[d];
-            for (int d = 0; d < 3; d++) dcos_omega_dj[d] *= 2.0/poem;
-
-            // dcos_omega_dl
-            for (int d = 0; d < 3; d++) dcos_omega_dl[d] = ((htrc-arg*hnrc)/rjl) * deljl[d] + dellk[d];
-            for (int d = 0; d < 3; d++) dcos_omega_dl[d] += (hthe-arg*hnhe)/sin_jil_rnd * -dcos_jil_dk[d];
-            for (int d = 0; d < 3; d++) dcos_omega_dl[d] *= 2.0/poem;
-
-            cos_omega = cos(omega);
-            cos2omega = cos(2. * omega);
-            cos3omega = cos(3. * omega);
-
-            // torsion energy
-
-            p_tor1 = paramsfbp(ktype,itype,jtype,ltype).p_tor1;
-            p_cot1 = paramsfbp(ktype,itype,jtype,ltype).p_cot1;
-            V1 = paramsfbp(ktype,itype,jtype,ltype).V1;
-            V2 = paramsfbp(ktype,itype,jtype,ltype).V2;
-            V3 = paramsfbp(ktype,itype,jtype,ltype).V3;
-
-            exp_tor1 = exp(p_tor1 * SQR(2.0 - d_BO_pi(i,j_index) - f11_DiDj));
-            exp_tor2_jl = exp(-p_tor2 * BOA_jl);
-            exp_cot2_jl = exp(-p_cot2 * SQR(BOA_jl - 1.5));
-            fn10 = (1.0 - exp_tor2_ik) * (1.0 - exp_tor2_ij) * (1.0 - exp_tor2_jl);
-
-            CV = 0.5 * (V1 * (1.0 + cos_omega) + V2 * exp_tor1 * (1.0 - cos2omega) + V3 * (1.0 + cos3omega));
-
-            e_tor = fn10 * sin_ijk * sin_jil * CV;
-            if (EVFLAG && eflag_global) ev.ereax[6] += e_tor;
-
-            dfn11 = (-p_tor3 * exp_tor3_DiDj + (p_tor3 * exp_tor3_DiDj - p_tor4 * exp_tor4_DiDj) *
-                    (2.0 + exp_tor3_DiDj) * exp_tor34_inv) * exp_tor34_inv;
-
-            CEtors1 = sin_ijk * sin_jil * CV;
-
-            CEtors2 = -fn10 * 2.0 * p_tor1 * V2 * exp_tor1 * (2.0 - d_BO_pi(i,j_index) - f11_DiDj) *
-                      (1.0 - SQR(cos_omega)) * sin_ijk * sin_jil;
-            CEtors3 = CEtors2 * dfn11;
-
-            CEtors4 = CEtors1 * p_tor2 * exp_tor2_ik * (1.0 - exp_tor2_ij) * (1.0 - exp_tor2_jl);
-            CEtors5 = CEtors1 * p_tor2 * (1.0 - exp_tor2_ik) * exp_tor2_ij * (1.0 - exp_tor2_jl);
-            CEtors6 = CEtors1 * p_tor2 * (1.0 - exp_tor2_ik) * (1.0 - exp_tor2_ij) * exp_tor2_jl;
-
-            cmn = -fn10 * CV;
-            CEtors7 = cmn * sin_jil * tan_ijk_i;
-            CEtors8 = cmn * sin_ijk * tan_jil_i;
-
-            CEtors9 = fn10 * sin_ijk * sin_jil *
-              (0.5 * V1 - 2.0 * V2 * exp_tor1 * cos_omega + 1.5 * V3 * (cos2omega + 2.0 * SQR(cos_omega)));
-
-            // 4-body conjugation energy
-
-            fn12 = exp_cot2_ik * exp_cot2_ij * exp_cot2_jl;
-            e_con = p_cot1 * fn12 * (1.0 + (SQR(cos_omega) - 1.0) * sin_ijk * sin_jil);
-            if (EVFLAG && eflag_global) ev.ereax[7] += e_con;
-
-            Cconj = -2.0 * fn12 * p_cot1 * p_cot2 * (1.0 + (SQR(cos_omega) - 1.0) * sin_ijk * sin_jil);
-
-            CEconj1 = Cconj * (BOA_ik - 1.5e0);
-            CEconj2 = Cconj * (BOA_ij - 1.5e0);
-            CEconj3 = Cconj * (BOA_jl - 1.5e0);
-
-            CEconj4 = -p_cot1 * fn12 * (SQR(cos_omega) - 1.0) * sin_jil * tan_ijk_i;
-            CEconj5 = -p_cot1 * fn12 * (SQR(cos_omega) - 1.0) * sin_ijk * tan_jil_i;
-            CEconj6 = 2.0 * p_cot1 * fn12 * cos_omega * sin_ijk * sin_jil;
-
-            // forces
-
-            // contribution to bond order
-
-            d_Cdbopi(i,j_index) += CEtors2;
-            CdDelta_i += CEtors3;
-            CdDelta_j += CEtors3;
-
-            a_Cdbo(i,k_index) += CEtors4 + CEconj1;
-            a_Cdbo(i,j_index) += CEtors5 + CEconj2;
-            a_Cdbo(j,l_index) += CEtors6 + CEconj3; // trouble
-
-            // dcos_theta_ijk
-            const F_FLOAT coeff74 = CEtors7 + CEconj4;
-            for (int d = 0; d < 3; d++) fi_tmp[d] = (coeff74) * dcos_ijk_di[d];
-            for (int d = 0; d < 3; d++) fj_tmp[d] = (coeff74) * dcos_ijk_dj[d];
-            for (int d = 0; d < 3; d++) fk_tmp[d] = (coeff74) * dcos_ijk_dk[d];
-
-            const F_FLOAT coeff85 = CEtors8 + CEconj5;
-            // dcos_theta_jil
-            for (int d = 0; d < 3; d++) fi_tmp[d] += (coeff85) * dcos_jil_di[d];
-            for (int d = 0; d < 3; d++) fj_tmp[d] += (coeff85) * dcos_jil_dj[d];
-            for (int d = 0; d < 3; d++) fl_tmp[d] =  (coeff85) * dcos_jil_dk[d];
-
-            // dcos_omega
-            const F_FLOAT coeff96 = CEtors9 + CEconj6;
-            for (int d = 0; d < 3; d++) fi_tmp[d] += (coeff96) * dcos_omega_di[d];
-            for (int d = 0; d < 3; d++) fj_tmp[d] += (coeff96) * dcos_omega_dj[d];
-            for (int d = 0; d < 3; d++) fk_tmp[d] += (coeff96) * dcos_omega_dk[d];
-            for (int d = 0; d < 3; d++) fl_tmp[d] += (coeff96) * dcos_omega_dl[d];
-
-            // total forces
-
-            for (int d = 0; d < 3; d++) fitmp[d] -= fi_tmp[d];
-            for (int d = 0; d < 3; d++) fjtmp[d] -= fj_tmp[d];
-            for (int d = 0; d < 3; d++) fktmp[d] -= fk_tmp[d];
-            for (int d = 0; d < 3; d++) a_f(l,d) -= fl_tmp[d];
-
-            // per-atom energy/virial tally
-
-            if (EVFLAG) {
-              eng_tmp = e_tor + e_con;
-              //if (eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,eng_tmp,0.0,0.0,0.0,0.0);
-              if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,j,eng_tmp);
-              if (vflag_either) {
-                  for (int d = 0; d < 3; d ++) delil[d] = x(l,d) - x(i,d);
-                  for (int d = 0; d < 3; d ++) delkl[d] = x(l,d) - x(k,d);
-                  this->template v_tally4<NEIGHFLAG>(ev,k,i,j,l,fk_tmp,fi_tmp,fj_tmp,delkl,delil,deljl);
-              }
-            }
-          }
-
-          for (int d = 0; d < 3; d++) a_f(k,d) += fktmp[d];
-        }
-      }
-      a_CdDelta[j] += CdDelta_j;
-      for (int d = 0; d < 3; d++) a_f(j,d) += fjtmp[d];
-    }
-  }
-  a_CdDelta[i] += CdDelta_i;
-  for (int d = 0; d < 3; d++) a_f(i,d) += fitmp[d];
-}
-
-template<class DeviceType>
-template<int NEIGHFLAG, int EVFLAG>
-KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsion<NEIGHFLAG,EVFLAG>, const int &ii) const {
-
-  EV_FLOAT_REAX ev;
-  this->template operator()<NEIGHFLAG,EVFLAG>(TagPairReaxComputeTorsion<NEIGHFLAG,EVFLAG>(), ii, ev);
-}
-
-#endif
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -4898,7 +3802,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond2<NEIGHFLAG,
 
     F_FLOAT temp[3];
 
-#ifdef OPT_REDUCE_DXDYDZ
     F_FLOAT d_dln_BOp_pi_local = d_dln_BOp_pi(i,j_index);
     for (int d = 0; d < 3; d++) dln_BOp_pi[d] = d_dln_BOp_pi_local * delij[d];
 
@@ -4908,20 +3811,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond2<NEIGHFLAG,
     F_FLOAT d_dBOp_local = d_dBOp(i,j_index);
     for (int d = 0; d < 3; d++) dBOp_i[d] = d_dBOp_local * delij[d];
     
-#else
-    dln_BOp_pi[0] = d_dln_BOp_pix(i,j_index);
-    dln_BOp_pi[1] = d_dln_BOp_piy(i,j_index);
-    dln_BOp_pi[2] = d_dln_BOp_piz(i,j_index);
-
-    dln_BOp_pi2[0] = d_dln_BOp_pi2x(i,j_index);
-    dln_BOp_pi2[1] = d_dln_BOp_pi2y(i,j_index);
-    dln_BOp_pi2[2] = d_dln_BOp_pi2z(i,j_index);
-
-    dBOp_i[0] = d_dBOpx(i,j_index);
-    dBOp_i[1] = d_dBOpy(i,j_index);
-    dBOp_i[2] = d_dBOpz(i,j_index);
-#endif
-
     // forces on i
     for (int d = 0; d < 3; d++) temp[d] =  coef_C1dbo * dBOp_i[d];
     for (int d = 0; d < 3; d++) temp[d] += coef_C2dbo * d_dDeltap_self(i,d);
@@ -4967,18 +3856,12 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond2<NEIGHFLAG,
       k &= NEIGHMASK;
       const int k_index = kk - j_start;
 
-#ifdef OPT_REDUCE_DXDYDZ
       delik[0] = x(k,0) - xtmp;
       delik[1] = x(k,1) - ytmp;
       delik[2] = x(k,2) - ztmp;
 
       d_dBOp_local = d_dBOp(i,k_index);
       for (int d = 0; d < 3; d++) dBOp_k[d] = d_dBOp_local * delik[d];
-#else
-      dBOp_k[0] = d_dBOpx(i,k_index);
-      dBOp_k[1] = d_dBOpy(i,k_index);
-      dBOp_k[2] = d_dBOpz(i,k_index);
-#endif
 
       const F_FLOAT coef_all = -coef_C2dbo - coef_C2dDelta - coef_C3dbopi - coef_C3dbopi2;
       for (int d = 0; d < 3; d++) temp[d] = coef_all * dBOp_k[d];
@@ -4988,11 +3871,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond2<NEIGHFLAG,
       a_f(k,2) -= temp[2];
 
       if (VFLAG && vflag_either) {
-#ifndef OPT_REDUCE_DXDYDZ
         delik[0] = x(k,0) - xtmp;
         delik[1] = x(k,1) - ytmp;
         delik[2] = x(k,2) - ztmp;
-#endif
         for (int d = 0; d < 3; d++) tmpvec[d] = x(j,d) - x(k,d) - delik[d];
         this->template v_tally<NEIGHFLAG>(ev,k,temp,tmpvec);
       }
@@ -5005,16 +3886,10 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond2<NEIGHFLAG,
       k &= NEIGHMASK;
       const int k_index = kk - k_start;
 
-#ifdef OPT_REDUCE_DXDYDZ
       for (int d = 0; d < 3; d++) deljk[d] = x(k,d) - x(j,d);
 
       d_dBOp_local = d_dBOp(j,k_index);
       for (int d = 0; d < 3; d++) dBOp_k[d] = d_dBOp_local * deljk[d];
-#else
-      dBOp_k[0] = d_dBOpx(j,k_index);
-      dBOp_k[1] = d_dBOpy(j,k_index);
-      dBOp_k[2] = d_dBOpz(j,k_index);
-#endif
       const F_FLOAT coef_all = -coef_C3dbo - coef_C3dDelta - coef_C4dbopi - coef_C4dbopi2;
       for (int d = 0; d < 3; d++) temp[d] = coef_all * dBOp_k[d];
 
@@ -5023,9 +3898,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond2<NEIGHFLAG,
       a_f(k,2) -= temp[2];
 
       if (VFLAG && vflag_either) {
-#ifndef OPT_REDUCE_DXDYDZ
         for (int d = 0; d < 3; d++) deljk[d] = x(k,d) - x(j,d);
-#endif
         for (int d = 0; d < 3; d++) tmpvec[d] = x(i,d) - x(k,d) - deljk[d];
         this->template v_tally<NEIGHFLAG>(ev,k,temp,tmpvec);
       }

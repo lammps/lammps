@@ -90,35 +90,13 @@ struct TagPairReaxComputeMulti1{};
 template<int NEIGHFLAG, int EFLAG>
 struct TagPairReaxComputeMulti2{};
 
-#ifdef OPT_ANGULAR_TORSION
-
-#ifdef OPT_SPLIT_COUNT_ANGULAR_TORSION
-template<bool POPULATE>
-struct TagPairReaxCountAngular{};
-
-template<bool POPULATE>
-struct TagPairReaxCountTorsion{};
-#else
 template<bool POPULATE>
 struct TagPairReaxCountAngularTorsion{};
-#endif
 template<int NEIGHFLAG, int EVFLAG>
 struct TagPairReaxComputeAngularPreprocessed{};
 
 template<int NEIGHFLAG, int EVFLAG>
 struct TagPairReaxComputeTorsionPreprocessed{};
-
-#else
-
-template<int NEIGHFLAG, int EVFLAG>
-struct TagPairReaxComputeAngular{};
-
-struct TagPairReaxComputeTorsionPreview{};
-
-template<int NEIGHFLAG, int EVFLAG>
-struct TagPairReaxComputeTorsion{};
-
-#endif
 
 template<int NEIGHFLAG, int EVFLAG>
 struct TagPairReaxComputeHydrogen{};
@@ -263,21 +241,9 @@ class PairReaxFFKokkos : public PairReaxFF {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputeMulti2<NEIGHFLAG,EFLAG>, const int&) const;
 
-#ifdef OPT_ANGULAR_TORSION
-
-#ifdef OPT_SPLIT_COUNT_ANGULAR_TORSION
-  template<bool POPULATE>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxCountAngular<POPULATE>, const int&) const;
-
-  template<bool POPULATE>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxCountTorsion<POPULATE>, const int&) const;
-#else
   template<bool POPULATE>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxCountAngularTorsion<POPULATE>, const int&) const;
-#endif
 
   // Abstraction for computing SBSO2, CSBO2, dSBO1, dsBO2
   KOKKOS_INLINE_FUNCTION
@@ -308,28 +274,6 @@ class PairReaxFFKokkos : public PairReaxFF {
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputeTorsionPreprocessed<NEIGHFLAG,EVFLAG>, const int&) const;
-
-#else
-  template<int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxComputeAngular<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
-
-  template<int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxComputeAngular<NEIGHFLAG,EVFLAG>, const int&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxComputeTorsionPreview, const int&) const;
-
-  template<int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxComputeTorsion<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
-
-  template<int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxComputeTorsion<NEIGHFLAG,EVFLAG>, const int&) const;
-
-#endif
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -486,12 +430,7 @@ class PairReaxFFKokkos : public PairReaxFF {
   typename AT::t_float_1d d_bo_rij, d_hb_rsq, d_Deltap, d_Deltap_boc, d_total_bo, d_s;
   typename AT::t_float_1d d_Delta, d_Delta_boc, d_Delta_lp, d_dDelta_lp, d_Delta_lp_temp, d_CdDelta;
   typename AT::t_ffloat_2d_dl d_BO, d_BO_s, d_BO_pi, d_BO_pi2;
-#ifdef OPT_REDUCE_DXDYDZ
   typename AT::t_ffloat_2d_dl d_dln_BOp_pi, d_dln_BOp_pi2;
-#else
-  typename AT::t_ffloat_2d_dl d_dln_BOp_pix, d_dln_BOp_piy, d_dln_BOp_piz;
-  typename AT::t_ffloat_2d_dl d_dln_BOp_pi2x, d_dln_BOp_pi2y, d_dln_BOp_pi2z;
-#endif
   typename AT::t_ffloat_2d_dl d_C1dbo, d_C2dbo, d_C3dbo;
   typename AT::t_ffloat_2d_dl d_C1dbopi, d_C2dbopi, d_C3dbopi, d_C4dbopi;
   typename AT::t_ffloat_2d_dl d_C1dbopi2, d_C2dbopi2, d_C3dbopi2, d_C4dbopi2;
@@ -541,11 +480,7 @@ class PairReaxFFKokkos : public PairReaxFF {
   typename AT::t_int_scalar d_resize_bo, d_resize_hb;
 
   typename AT::t_ffloat_2d_dl d_sum_ovun;
-#ifdef OPT_REDUCE_DXDYDZ
   typename AT::t_ffloat_2d_dl d_dBOp;
-#else
-  typename AT::t_ffloat_2d_dl d_dBOpx, d_dBOpy, d_dBOpz;
-#endif
 
   int neighflag, newton_pair, maxnumneigh, maxhb, maxbo;
   int nlocal,nn,NN,eflag,vflag,acks2_flag;
@@ -578,8 +513,6 @@ class PairReaxFFKokkos : public PairReaxFF {
   typename AT::t_ffloat_1d d_buf;
   DAT::tdual_int_scalar k_nbuf_local;
 
-#ifdef OPT_ANGULAR_TORSION
-
   typedef Kokkos::View<reax_int4**, LMPDeviceType::array_layout, DeviceType> t_reax_int4_2d;
 
   t_reax_int4_2d d_angular_pack, d_torsion_pack;
@@ -589,18 +522,6 @@ class PairReaxFFKokkos : public PairReaxFF {
   typename AT::tdual_int_1d k_count_angular_torsion;
   typename AT::t_int_1d d_count_angular_torsion;
 
-#else
-
-  // for fast ComputeTorsion preprocessor kernel
-  typedef Kokkos::View<int*, LMPPinnedHostType> t_hostpinned_int_1d;
-
-  int inum_store;
-  t_hostpinned_int_1d counters;
-  t_hostpinned_int_1d counters_jj_min;
-  t_hostpinned_int_1d counters_jj_max;
-  t_hostpinned_int_1d counters_kk_min;
-  t_hostpinned_int_1d counters_kk_max;
-#endif
 };
 
 template <class DeviceType>

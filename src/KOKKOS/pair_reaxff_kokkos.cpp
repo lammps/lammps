@@ -13,7 +13,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ray Shan (SNL), Stan Moore (SNL)
+   Contributing authors: Ray Shan (SNL), Stan Moore (SNL),
+     Evan Weinberg (NVIDIA)
 
    Nicholas Curtis (AMD), Leopold Grinberd (AMD), and Gina Sitaraman (AMD):
      - Reduced math overhead: enabled specialized calls (e.g., cbrt for a

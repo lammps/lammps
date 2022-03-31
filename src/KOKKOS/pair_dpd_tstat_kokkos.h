@@ -13,16 +13,16 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(dpd/kk,PairDPDKokkos<LMPDeviceType>);
-PairStyle(dpd/kk/device,PairDPDKokkos<LMPDeviceType>);
-PairStyle(dpd/kk/host,PairDPDKokkos<LMPHostType>);
+PairStyle(dpd/tstat/kk,PairDPDTstatKokkos<LMPDeviceType>);
+PairStyle(dpd/tstat/kk/device,PairDPDTstatKokkos<LMPDeviceType>);
+PairStyle(dpd/tstat/kk/host,PairDPDTstatKokkos<LMPHostType>);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_DPD_KOKKOS_H
-#define LMP_PAIR_DPD_KOKKOS_H
+#ifndef LMP_PAIR_DPD_TSTAT_KOKKOS_H
+#define LMP_PAIR_DPD_TSTAT_KOKKOS_H
 
-#include "pair_dpd.h"
+#include "pair_dpd_tstat.h"
 #include "pair_kokkos.h"
 #include "kokkos_type.h"
 
@@ -39,14 +39,14 @@ PairStyle(dpd/kk/host,PairDPDKokkos<LMPHostType>);
 namespace LAMMPS_NS {
 
 template<class DeviceType>
-class PairDPDKokkos : public PairDPD {
+class PairDPDTstatKokkos : public PairDPDTstat {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT value_type;
 
-  PairDPDKokkos(class LAMMPS*);
-  ~PairDPDKokkos() override;
+  PairDPDTstatKokkos(class LAMMPS*);
+  ~PairDPDTstatKokkos() override;
 
   void allocate() override;
 
@@ -63,15 +63,15 @@ class PairDPDKokkos : public PairDPD {
   };
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
-  struct TagDPDKokkos{};
+  struct TagDPDTstatKokkos{};
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator () (TagDPDKokkos<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &i) const;
+  void operator () (TagDPDTstatKokkos<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &i) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator () (TagDPDKokkos<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &i, EV_FLOAT&) const;
+  void operator () (TagDPDTstatKokkos<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &i, EV_FLOAT&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
@@ -118,7 +118,7 @@ class PairDPDKokkos : public PairDPD {
 
   KOKKOS_FUNCTION
   int sbmask(const int& j) const;
-  friend void pair_virial_fdotr_compute<PairDPDKokkos>(PairDPDKokkos*);
+  friend void pair_virial_fdotr_compute<PairDPDTstatKokkos>(PairDPDTstatKokkos*);
 
 };
 }

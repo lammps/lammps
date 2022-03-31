@@ -958,12 +958,10 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   count_angular = h_count_angular_torsion(0);
   count_torsion = h_count_angular_torsion(1);
 
-  if (count_angular > d_angular_pack.extent(0)) {
+  if (count_angular > d_angular_pack.extent(0))
     d_angular_pack = t_reax_int4_2d("reaxff:angular_pack",(int)(count_angular * 1.1),2);
-  }
-  if (count_torsion > d_torsion_pack.extent(0)) {
+  if (count_torsion > d_torsion_pack.extent(0))
     d_torsion_pack = t_reax_int4_2d("reaxff:torsion_pack",(int)(count_torsion * 1.1),2);
-  }
 
   // need to zero to re-count
   h_count_angular_torsion(0) = 0;
@@ -971,22 +969,22 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_count_angular_torsion.template modify<LMPHostType>();
   k_count_angular_torsion.template sync<DeviceType>();
 
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxCountAngularTorsion<true> >(0,inum),*this);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxCountAngularTorsion<true>>(0,inum),*this);
 
   // no need to re-sync count_angular, count_torsion
 
   // Angular
   if (neighflag == HALF) {
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeAngularPreprocessed<HALF,1> >(0,count_angular),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeAngularPreprocessed<HALF,1>>(0,count_angular),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeAngularPreprocessed<HALF,0> >(0,count_angular),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeAngularPreprocessed<HALF,0>>(0,count_angular),*this);
     ev_all += ev;
   } else { //if (neighflag == HALFTHREAD) {
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeAngularPreprocessed<HALFTHREAD,1> >(0,count_angular),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeAngularPreprocessed<HALFTHREAD,1>>(0,count_angular),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeAngularPreprocessed<HALFTHREAD,0> >(0,count_angular),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeAngularPreprocessed<HALFTHREAD,0>>(0,count_angular),*this);
     ev_all += ev;
   }
   pvector[4] = ev.ereax[3];
@@ -997,15 +995,15 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // Torsion
   if (neighflag == HALF) {
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionPreprocessed<HALF,1> >(0,count_torsion),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionPreprocessed<HALF,1>>(0,count_torsion),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionPreprocessed<HALF,0> >(0,count_torsion),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionPreprocessed<HALF,0>>(0,count_torsion),*this);
     ev_all += ev;
   } else { //if (neighflag == HALFTHREAD) {
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionPreprocessed<HALFTHREAD,1> >(0,count_torsion),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionPreprocessed<HALFTHREAD,1>>(0,count_torsion),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionPreprocessed<HALFTHREAD,0> >(0,count_torsion),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionPreprocessed<HALFTHREAD,0>>(0,count_torsion),*this);
     ev_all += ev;
   }
   pvector[8] = ev.ereax[6];
@@ -1676,7 +1674,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
   const int jnum = d_numneigh[i];
 
   F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3], dBOp_i[3];
-  F_FLOAT dln_BOp_pi_i[3], dln_BOp_pi2_i[3];
   F_FLOAT dDeltap_self_i[3] = {0.0,0.0,0.0};
   F_FLOAT total_bo_i = 0.0;
 
@@ -2068,7 +2065,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsFull, const i
   const int itype = type(i);
 
   F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3], dBOp_i[3];
-  F_FLOAT dln_BOp_pi_i[3], dln_BOp_pi2_i[3];
   F_FLOAT dDeltap_self_i[3] = {0.0,0.0,0.0};
   F_FLOAT total_bo_i = 0.0;
 
@@ -2528,7 +2524,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
   this->template operator()<NEIGHFLAG,EFLAG>(TagPairReaxComputeMulti2<NEIGHFLAG,EFLAG>(), ii, ev);
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -2638,10 +2633,10 @@ void PairReaxFFKokkos<DeviceType>::compute_angular_sbo(int i, int itype, int j_s
     CSBO2 = 0.0;
   }
 
-  d_angular_intermediates(i, 0) = SBO2;
-  d_angular_intermediates(i, 1) = CSBO2;
-  d_angular_intermediates(i, 2) = dSBO1;
-  d_angular_intermediates(i, 3) = dSBO2;
+  d_angular_intermediates(i,0) = SBO2;
+  d_angular_intermediates(i,1) = CSBO2;
+  d_angular_intermediates(i,2) = dSBO1;
+  d_angular_intermediates(i,3) = dSBO2;
 
 }
 
@@ -2705,7 +2700,6 @@ int PairReaxFFKokkos<DeviceType>::preprocess_angular(int i, int itype, int j_sta
         count_angular++;
       }
     }
-
   }
 
   return count_angular;
@@ -2756,7 +2750,6 @@ int PairReaxFFKokkos<DeviceType>::preprocess_torsion(int i, int itype, int itag,
       const F_FLOAT bo_ik = d_BO(i,k_index);
       if (bo_ik < thb_cut) continue;
 
-
       for (int ll = l_start; ll < l_end; ll++) {
         int l = d_bo_list[ll];
         l &= NEIGHMASK;
@@ -2785,7 +2778,6 @@ int PairReaxFFKokkos<DeviceType>::preprocess_torsion(int i, int itype, int itag,
         } else {
           count_torsion++;
         }
-
       }
     }
   }
@@ -2802,9 +2794,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
 
   auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
-  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
-  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbopi = d_Cdbopi;
-  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbopi2 = d_Cdbopi2;
+  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbo = d_Cdbo;
+  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi = d_Cdbopi;
+  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi2 = d_Cdbopi2;
 
   auto v_CdDelta = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
   auto a_CdDelta = v_CdDelta.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
@@ -3045,7 +3037,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
   for (int d = 0; d < 3; d++) a_f(i,d) += fitmp[d];
 }
 
-
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
@@ -3067,8 +3058,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
 
   auto v_CdDelta = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
   auto a_CdDelta = v_CdDelta.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
-  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
-  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbopi = d_Cdbopi;
+  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbo = d_Cdbo;
+  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi = d_Cdbopi;
   //auto a_Cdbo = dup_Cdbo.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   // in reaxff_torsion_angles: j = i, k = j, i = k;
@@ -3558,9 +3549,9 @@ template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxUpdateBond<NEIGHFLAG>, const int &ii) const {
 
-  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbo = d_Cdbo;
-  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbopi = d_Cdbopi;
-  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_Cdbopi2 = d_Cdbopi2;
+  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbo = d_Cdbo;
+  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi = d_Cdbopi;
+  Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi2 = d_Cdbopi2;
   //auto a_Cdbo = dup_Cdbo.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
   //auto a_Cdbopi = dup_Cdbopi.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
   //auto a_Cdbopi2 = dup_Cdbopi2.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();

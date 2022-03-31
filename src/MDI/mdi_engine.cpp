@@ -534,6 +534,8 @@ void MDIEngine::mdi_commands()
 
   // node at POST_FORCE location in timestep
   // only used if fix MDI/ENGINE is instantiated
+  // two register callbacks allow LAMMPS to interact more easily 
+  //   with drivers which don't know LAMMPS control flow
 
   MDI_Register_node("@FORCES");
   MDI_Register_callback("@FORCES",">FORCES");

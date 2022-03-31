@@ -69,8 +69,8 @@ FixMDIAimd::FixMDIAimd(LAMMPS *lmp, int narg, char **arg) :
 
   // connect to MDI engine
 
-  MDI_Accept_communicator(&mdicomm);
-  if (mdicomm <= 0) error->all(FLERR, "Unable to connect to MDI engine");
+  // MDI_Accept_communicator(&mdicomm);
+  // if (mdicomm <= 0) error->all(FLERR, "Unable to connect to MDI engine");
 
   nprocs = comm->nprocs;
 }
@@ -81,8 +81,8 @@ FixMDIAimd::~FixMDIAimd()
 {
   // send exit command to engine
 
-  int ierr = MDI_Send_command("EXIT",mdicomm);
-  if (ierr) error->all(FLERR,"MDI: EXIT command");
+  //int ierr = MDI_Send_command("EXIT",mdicomm);
+  //if (ierr) error->all(FLERR,"MDI: EXIT command");
 
   // clean up
 

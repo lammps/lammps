@@ -27,6 +27,10 @@ namespace LAMMPS_NS {
 
 class FixMDIAimd : public Fix {
  public:
+  // MDI communicator, public so that LAMMPS can work with a plugin
+
+  MDI_Comm mdicomm;
+
   FixMDIAimd(class LAMMPS *, int, char **);
   ~FixMDIAimd();
   int setmask();
@@ -43,10 +47,6 @@ class FixMDIAimd : public Fix {
   int eflag_caller;
   double engine_energy;
   int lmpunits;
-
-  // MDI communicator
-
-  MDI_Comm mdicomm;
 
   // unit conversion factors
 

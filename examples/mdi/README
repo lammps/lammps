@@ -67,6 +67,18 @@ Run with MPI: 3 procs + 4 procs
 
 % mpirun -np 3 lmp_mpi -mdi "-name aimd -role DRIVER -method MPI" -log log.aimd.driver -in in.aimd.driver : -np 4 lmp_mpi -mdi "-name LAMMPS -role ENGINE -method MPI" -log log.aimd.engine -in in.aimd.engine
 
+---
+
+Run in plugin mode: 1 proc
+
+% lmp_mpi -mdi "-name aimd -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/src" -log log.aimd.driver.plugin -in in.aimd.driver.plugin
+
+---
+
+Run in plugin mode: 3 procs
+
+% mpirun -np 3 lmp_mpi -mdi "-name aimd -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/src" -log log.aimd.driver.plugin -in in.aimd.driver.plugin
+
 -------------------------------------------------
 -------------------------------------------------
 

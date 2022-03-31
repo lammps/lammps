@@ -32,6 +32,7 @@
 #include "integrate.h"
 #include "irregular.h"
 #include "library.h"
+#include "library_mdi.h"
 #include "memory.h"
 #include "min.h"
 #include "modify.h"
@@ -163,6 +164,11 @@ void MDIEngine::mdi_engine(int narg, char **arg)
   // define MDI commands that LAMMPS engine recognizes
 
   mdi_commands();
+
+  // register the execute_command function with MDI
+  // only used when engine runs in plugin mode
+
+  MDI_Set_execute_command_func(lammps_execute_mdi_command,this);
 
   // one-time operation to establish a connection with the driver
 

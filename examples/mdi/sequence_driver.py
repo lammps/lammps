@@ -307,7 +307,7 @@ if not plugin:
 # MDI will call back to perform_tasks()
 
 if plugin:
-  error("Cannot yet run in plugin mode")
+  #error("Cannot yet run in plugin mode")
   mdi.MDI_Init(mdiarg)
   world = MPI.COMM_WORLD
   plugin_args += " -mdi \"-role ENGINE -name lammps -method LINK\""

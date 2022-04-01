@@ -631,8 +631,7 @@ void Thermo::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg], "colname") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
       if (strcmp(arg[iarg + 1], "default") == 0) {
-        for (int i=0; i < nfield_initial + 1; ++i)
-          keyword_user[i].clear();
+        for (auto item : keyword_user) item.clear();
         iarg += 2;
       } else {
         if (iarg + 3 > narg) error->all(FLERR, "Illegal thermo_modify command");
@@ -660,7 +659,7 @@ void Thermo::modify_params(int narg, char **arg)
         format_int_user.clear();
         format_bigint_user.clear();
         format_float_user.clear();
-        for (int i = 0; i < nfield_initial + 1; ++i) format_column_user[i].clear();
+        for (auto item : format_column_user) item.clear();
         iarg += 2;
         continue;
       }

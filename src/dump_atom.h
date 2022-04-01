@@ -36,7 +36,7 @@ class DumpAtom : public Dump {
   int scale_flag;    // 1 if atom coords are scaled, 0 if no
   int image_flag;    // 1 if append box count to atom coords, 0 if no
 
-  char *columns;    // column labels
+  std::string columns;    // column labels
 
   void init_style() override;
   int modify_param(int, char **) override;

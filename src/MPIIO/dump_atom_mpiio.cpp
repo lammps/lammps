@@ -234,14 +234,25 @@ void DumpAtomMPIIO::init_style()
 
   // setup column string
 
+  std::string default_columns;
+
   if (scale_flag == 0 && image_flag == 0)
-    columns = (char *) "id type x y z";
+    default_columns = "id type x y z";
   else if (scale_flag == 0 && image_flag == 1)
-    columns = (char *) "id type x y z ix iy iz";
+    default_columns = "id type x y z ix iy iz";
   else if (scale_flag == 1 && image_flag == 0)
-    columns = (char *) "id type xs ys zs";
+    default_columns = "id type xs ys zs";
   else if (scale_flag == 1 && image_flag == 1)
-    columns = (char *) "id type xs ys zs ix iy iz";
+    default_columns = "id type xs ys zs ix iy iz";
+
+  int icol = 0;
+  columns.clear();
+  for (auto item : utils::split_words(default_columns)) {
+    if (columns.size()) columns += " ";
+    if (keyword_user[icol].size()) columns += keyword_user[icol];
+    else columns += item;
+    ++icol;
+  }
 
   // setup function ptrs
 

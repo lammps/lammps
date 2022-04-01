@@ -275,7 +275,7 @@ void DumpCustom::init_style()
     ++icol;
   }
   columns = utils::strdup(combined);
-  
+
   // format = copy of default or user-specified line format
 
   delete[] format;

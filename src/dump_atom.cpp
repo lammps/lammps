@@ -66,6 +66,7 @@ void DumpAtom::init_style()
   domain->boundary_string(boundstr);
 
   // setup column string
+
   std::string default_columns;
 
   if (scale_flag == 0 && image_flag == 0)

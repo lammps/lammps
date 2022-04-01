@@ -628,7 +628,7 @@ void Thermo::modify_params(int narg, char **arg)
         error->all(FLERR, "Illegal thermo_modify command");
       iarg += 2;
 
-    } else if (strcmp(arg[iarg], "header") == 0) {
+    } else if (strcmp(arg[iarg], "colname") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
       if (strcmp(arg[iarg + 1], "default") == 0) {
         for (int i=0; i < nfield_initial + 1; ++i)

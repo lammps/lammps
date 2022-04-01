@@ -56,10 +56,10 @@ class PairDPDTstatKokkos : public PairDPDTstat {
 
   struct params_dpd {
     KOKKOS_INLINE_FUNCTION
-    params_dpd() {cut=a0=gamma=sigma=0;}
+    params_dpd() {cut=gamma=sigma=0;}
     KOKKOS_INLINE_FUNCTION
-    params_dpd(int /*i*/) {cut=a0=gamma=sigma=0;}
-    F_FLOAT cutsq,cut,a0,gamma,sigma;
+    params_dpd(int /*i*/) {cut=gamma=sigma=0;}
+    F_FLOAT cutsq,cut,gamma,sigma;
   };
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
@@ -79,7 +79,6 @@ class PairDPDTstatKokkos : public PairDPDTstat {
       const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
                   const F_FLOAT &dely, const F_FLOAT &delz) const;
  protected:
-
   double special_lj[4];
   int eflag,vflag;
   int neighflag, nlocal,newton_pair;

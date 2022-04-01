@@ -430,7 +430,6 @@ double PairDPDTstatKokkos<DeviceType>::init_one(int i, int j)
   double cutone = PairDPD::init_one(i,j);
 
   k_params.h_view(i,j).cut = cut[i][j];
-  k_params.h_view(i,j).a0 = a0[i][j];
   k_params.h_view(i,j).gamma = gamma[i][j];
   k_params.h_view(i,j).sigma = sigma[i][j];
   k_params.h_view(j,i) = k_params.h_view(i,j);

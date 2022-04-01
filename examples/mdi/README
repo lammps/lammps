@@ -2,32 +2,47 @@ These are examples that work the MDI package in LAMMPS which uses the
 MolSSI MDI library for coupling codes together and communicating
 between them with MDI messages.
 
-To use the serial_drive.py example you will need Python 3 with Numpy
-and mpi4py available in your Python.  Make sure LAMMPS and Python are
-using same the same version of MPI.
-
 In MDI lingo, one code is the driver and another code is the engine.
 The 2 codes can be written in any language; C++ (LAMMPS) and Python
-are illustrated here.  The 2 codes can be run on different numbers of
-processors.  
-
-The 2 codes can communicate either via TCP (sockets) or via MPI.  For
-the TCP case, the driver and engine need to be launched separately,
+are illustrated here.  The 2 codes can each be stand-alone codes, in
+which case they can be run on different numbers of processors.  The 2
+codes can communicate either via TCP (sockets) or via MPI.  For the
+TCP case, the driver and engine need to be launched separately,
 e.g. in 2 windows on your desktop machine.  For the MPI case, a single
 mpirun command launches both codes.
 
-The example run commands below have variants for these options.
+Alternatively the engine code can be a plugin library which the driver
+code loads, in which case the driver and engine run on the same
+processors.
+
+LAMMPS supports operating in all these modes.  It can be an engine
+operating either as a stand-alone code or as a plugin.  It can also be
+a driver and couple to an engine that is either a stand-alone code or
+a plugin.  Examples for all these use cases are in this directory.
+The example run commands below illustrate all the variants.
+
+To use LAMMPS as a plugin engine, you must build it as a shared library.
+Something like this:
+
+cd src
+make yes-mdi
+make mode=shlib mpi
+
+To use the serial_driver.py example you will need Python 3 with Numpy
+and mpi4py available in your Python.  Make sure LAMMPS and Python are
+using same the same version of MPI.
 
 -------------------------------------------------
 -------------------------------------------------
 
-* Example #1 = run AIMD with 2 instances of LAMMPS as driver and engine
-               as an engine, LAMMPS is a surrogate for a quantum code
+* Example #1 = run ab inito MD (AIMD)
+  2 instances of LAMMPS operate as a driver and engine
+  as an engine, LAMMPS is a surrogate for a quantum code
 
 Note that the 2 input scripts in.aimd.alone and in.aimd.driver
 have an option for running in NVE vs NPT mode.  Comment in/out
 the appropriate line to change modes.  Nothing needs to be
-changed in the 3rd input script in.aimd.engine.
+changed in the in.aimd.engine or in.aimd.engine.plugin scripts.
 
 ---
 
@@ -83,13 +98,13 @@ Run in plugin mode: 3 procs
 -------------------------------------------------
 
 * Example #2 = Python driver runs sequence of unrelated LAMMPS calculations
-               calcs can be single-point, MD runs, or minimizations
+  Each calculation can be a single-point evaluation, an MD run, or a minimization.
 
 The sequence_driver.py code allows for optional switches in addition
 to -mdi (required) and the -plugin and -plugin_args switches which are
 used to link to an engine as a plugin library.  The example run
 commands below just use the default values of the optional switches.
-The switches are also explained the top of the file; the info is
+The switches are also explained at the top of the file; the info is
 copied here:
 
 #   -n 10
@@ -163,7 +178,7 @@ The aimd_driver.py code allows for an optional switch in addition to
 -mdi (required) and the -plugin and -plugin_args swiches which are
 used to link to the 2 engines as a plugin libraries.  The example run
 commands below use the default values of the optional switch.  The
-switches are also explained the top of the file; the info is copied
+switch is also explained the top of the file; the info is copied
 here:
 
 #   -nsteps 5

@@ -31,7 +31,7 @@ class MDIPlugin : public Command {
   void command(int, char **) override;
 
  private:
-  char *plugin_command;
+  char *lammps_command;
   class Fix *fixptr;
 
   static int plugin_wrapper(void *, MDI_Comm, void *);

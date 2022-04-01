@@ -44,6 +44,8 @@ class FixMDIAimd : public Fix {
 
  private:
   int nprocs;
+  int plugin;
+
   int eflag_caller;
   double engine_energy;
   int lmpunits;
@@ -65,7 +67,6 @@ class FixMDIAimd : public Fix {
 
   void reallocate();
   void unit_conversions();
-
 };
 
 }

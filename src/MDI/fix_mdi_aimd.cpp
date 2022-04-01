@@ -30,7 +30,7 @@ enum{NATIVE,REAL,METAL};   // LAMMPS units which MDI supports
 FixMDIAimd::FixMDIAimd(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR, "Illegal fix mdi/aimd command");
+  if (narg > 4) error->all(FLERR, "Illegal fix mdi/aimd command");
 
   scalar_flag = 1;
   global_freq = 1;
@@ -38,6 +38,14 @@ FixMDIAimd::FixMDIAimd(LAMMPS *lmp, int narg, char **arg) :
   energy_global_flag = 1;
   virial_global_flag = 1;
   thermo_energy = thermo_virial = 1;
+
+  // check for plugin arg
+
+  plugin = 0;
+  if (narg == 4) {
+    if (strcmp(arg[3],"plugin") == 0) plugin = 1;
+    else error->all(FLERR, "Illegal fix mdi/aimd command");
+  }
 
   // check requirements for LAMMPS to work with MDI as an engine
 
@@ -67,10 +75,12 @@ FixMDIAimd::FixMDIAimd(LAMMPS *lmp, int narg, char **arg) :
 
   unit_conversions();
 
-  // connect to MDI engine
+  // connect to MDI engine, only if engine is stand-alone code
 
-  // MDI_Accept_communicator(&mdicomm);
-  // if (mdicomm <= 0) error->all(FLERR, "Unable to connect to MDI engine");
+  if (!plugin) {
+    MDI_Accept_communicator(&mdicomm);
+    if (mdicomm <= 0) error->all(FLERR, "Unable to connect to MDI engine");
+  }
 
   nprocs = comm->nprocs;
 }
@@ -79,10 +89,12 @@ FixMDIAimd::FixMDIAimd(LAMMPS *lmp, int narg, char **arg) :
 
 FixMDIAimd::~FixMDIAimd()
 {
-  // send exit command to engine
+  // send exit command to engine, only if engine is stand-alone code
 
-  //int ierr = MDI_Send_command("EXIT",mdicomm);
-  //if (ierr) error->all(FLERR,"MDI: EXIT command");
+  if (!plugin) {
+    int ierr = MDI_Send_command("EXIT",mdicomm);
+    if (ierr) error->all(FLERR,"MDI: EXIT command");
+  }
 
   // clean up
 

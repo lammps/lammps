@@ -157,15 +157,15 @@ The *colname* keyword can be used to change the default header keyword
 for a column or field of thermodynamic output.  The setting for *ID
 string* replaces the default text with the provided string.  *ID* can be
 a positive integer when it represents the column number counting from
-the left, a negative integer when then it represents the column number
-from the right (i.e. -1 is the last column/keyword), or a thermo keyword
-(or compute, fix, property, or variable reference) and then it replaces
-the string for that specific thermo keyword.
+the left, a negative integer when it represents the column number from
+the right (i.e. -1 is the last column/keyword), or a thermo keyword (or
+compute, fix, property, or variable reference) and then it replaces the
+string for that specific thermo keyword.
 
 The *colname* keyword can be used multiple times. If multiple *colname*
-settings refer to the same keyword, the last setting has precedence.
-the default setting is used.  A setting of *default* clears all previous
-settings, reverting all values to their default format.
+settings refer to the same keyword, the last setting has precedence.  A
+setting of *default* clears all previous settings, reverting all values
+to their default values.
 
 The *format* keyword can be used to change the default numeric format of
 any of quantities the :doc:`thermo_style <thermo_style>` command

@@ -234,6 +234,8 @@ action pair_dpd_kokkos.h pair_dpd.h
 action pair_dpd_kokkos.cpp pair_dpd.cpp
 action pair_dpd_ext_kokkos.cpp pair_dpd_ext.cpp
 action pair_dpd_ext_kokkos.h pair_dpd_ext.h
+action pair_dpd_ext_tstat_kokkos.h pair_dpd_ext_tstat.h
+action pair_dpd_ext_tstat_kokkos.cpp pair_dpd_ext_tstat.cpp
 action pair_dpd_tstat_kokkos.h pair_dpd_tstat.h
 action pair_dpd_tstat_kokkos.cpp pair_dpd_tstat.cpp
 action pair_dpd_fdt_energy_kokkos.cpp pair_dpd_fdt_energy.cpp

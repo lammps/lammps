@@ -121,10 +121,8 @@ void PairDPDExtTstatKokkos<DeviceType>::compute(int eflagin, int vflagin)
     double boltz = force->boltz;
     for (int i = 1; i <= atom->ntypes; i++)
       for (int j = i; j <= atom->ntypes; j++) {
-        std::cout << k_params.h_view(j,i).sigma <<" ";
-        k_params.h_view(j,i).sigma = k_params.h_view(j,i).sigma =
+        k_params.h_view(i,j).sigma = k_params.h_view(j,i).sigma =
           sqrt(2.0*boltz*temperature*gamma[i][j]);
-        std::cout << k_params.h_view(j,i).sigma <<"\n";
       }
   }
   k_params.template modify<LMPHostType>();
@@ -383,21 +381,19 @@ void PairDPDExtTstatKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, con
 
     if (vflag_global) {
       if (NEIGHFLAG!=FULL) {
-        if (NEWTON_PAIR || i < nlocal) {
-          ev.v[0] += 0.5*v0;
-          ev.v[1] += 0.5*v1;
-          ev.v[2] += 0.5*v2;
-          ev.v[3] += 0.5*v3;
-          ev.v[4] += 0.5*v4;
-          ev.v[5] += 0.5*v5;
-        }
-        if (NEWTON_PAIR || j < nlocal) {
         ev.v[0] += 0.5*v0;
         ev.v[1] += 0.5*v1;
         ev.v[2] += 0.5*v2;
         ev.v[3] += 0.5*v3;
         ev.v[4] += 0.5*v4;
         ev.v[5] += 0.5*v5;
+        if (NEWTON_PAIR || j < nlocal) {
+          ev.v[0] += 0.5*v0;
+          ev.v[1] += 0.5*v1;
+          ev.v[2] += 0.5*v2;
+          ev.v[3] += 0.5*v3;
+          ev.v[4] += 0.5*v4;
+          ev.v[5] += 0.5*v5;
         }
       } else {
         ev.v[0] += 0.5*v0;

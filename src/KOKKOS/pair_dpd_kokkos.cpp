@@ -339,21 +339,19 @@ void PairDPDKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &
 
     if (vflag_global) {
       if (NEIGHFLAG!=FULL) {
-        if (NEWTON_PAIR || i < nlocal) {
-          ev.v[0] += 0.5*v0;
-          ev.v[1] += 0.5*v1;
-          ev.v[2] += 0.5*v2;
-          ev.v[3] += 0.5*v3;
-          ev.v[4] += 0.5*v4;
-          ev.v[5] += 0.5*v5;
-        }
-        if (NEWTON_PAIR || j < nlocal) {
         ev.v[0] += 0.5*v0;
         ev.v[1] += 0.5*v1;
         ev.v[2] += 0.5*v2;
         ev.v[3] += 0.5*v3;
         ev.v[4] += 0.5*v4;
         ev.v[5] += 0.5*v5;
+        if (NEWTON_PAIR || j < nlocal) {
+          ev.v[0] += 0.5*v0;
+          ev.v[1] += 0.5*v1;
+          ev.v[2] += 0.5*v2;
+          ev.v[3] += 0.5*v3;
+          ev.v[4] += 0.5*v4;
+          ev.v[5] += 0.5*v5;
         }
       } else {
         ev.v[0] += 0.5*v0;

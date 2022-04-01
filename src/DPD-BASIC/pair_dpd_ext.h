@@ -28,11 +28,11 @@ class PairDPDExt : public Pair {
  public:
   PairDPDExt(class LAMMPS *);
   ~PairDPDExt() override;
-  virtual void compute(int, int) override;
+  void compute(int, int) override;
   void settings(int, char **) override;
   void coeff(int, char **) override;
-  virtual void init_style() override;
-  virtual double init_one(int, int) override;
+  void init_style() override;
+  double init_one(int, int) override;
   void write_restart(FILE *) override;
   void read_restart(FILE *) override;
   void write_restart_settings(FILE *) override;

@@ -58,6 +58,9 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal compute msd command");
   }
 
+  if (group->dynamic[igroup])
+    error->all(FLERR, "Compute {} is not compatible with dynamic groups", style);
+
   // create a new fix STORE style for reference positions
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
 

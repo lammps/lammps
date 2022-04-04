@@ -871,7 +871,8 @@ void FixQEqReaxFFKokkos<DeviceType>::sparse_matvec_kokkos(typename AT::t_ffloat2
   }
 
   if (neighflag != FULL) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqZeroQGhosts>(atom->nlocal,atom->nghost),*this);
+    int nall = nlocal + atomKK->nghost;
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqZeroQGhosts>(atom->nlocal,nall),*this);
 
     if (need_dup)
       dup_o.reset_except(d_o);

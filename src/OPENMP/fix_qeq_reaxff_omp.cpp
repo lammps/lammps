@@ -254,8 +254,6 @@ void FixQEqReaxFFOMP::pre_force(int /* vflag */)
 {
   if (update->ntimestep % nevery) return;
 
-  int n = atom->nlocal;
-
   if (reaxff) {
     nn = reaxff->list->inum;
     ilist = reaxff->list->ilist;
@@ -272,7 +270,7 @@ void FixQEqReaxFFOMP::pre_force(int /* vflag */)
   // need to be atom->nmax in length
 
   if (atom->nmax > nmax) reallocate_storage();
-  if (n > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE)
+  if (atom->nlocal > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE)
     reallocate_matrix();
 
   if (efield) get_chi_field();
@@ -486,6 +484,9 @@ void FixQEqReaxFFOMP::sparse_matvec(sparse_matrix *A, double *x, double *b)
     int i, j, itr_j;
     int ii;
     int nthreads = comm->nthreads;
+    int nlocal = atom->nlocal;
+    int nall = atom->nlocal + atom->nghost;
+
 #if defined(_OPENMP)
     int tid = omp_get_thread_num();
 #else
@@ -503,14 +504,14 @@ void FixQEqReaxFFOMP::sparse_matvec(sparse_matrix *A, double *x, double *b)
 #if defined(_OPENMP)
 #pragma omp for schedule(dynamic,50)
 #endif
-    for (i = atom->nlocal; i < atom->nghost; ++i) {
+    for (i = nlocal; i < nall; ++i) {
       if (atom->mask[i] & groupbit) b[i] = 0;
     }
 
 #if defined(_OPENMP)
 #pragma omp for schedule(dynamic,50)
 #endif
-    for (i = 0; i < atom->nghost; ++i)
+    for (i = 0; i < nall; ++i)
       for (int t=0; t<nthreads; t++) b_temp[t][i] = 0.0;
 
     // Wait for b accumulated and b_temp zeroed.
@@ -535,7 +536,7 @@ void FixQEqReaxFFOMP::sparse_matvec(sparse_matrix *A, double *x, double *b)
 #pragma omp barrier
 #pragma omp for schedule(dynamic,50)
 #endif
-    for (i = 0; i < atom->nghost; ++i)
+    for (i = 0; i < nall; ++i)
       for (int t = 0; t < nthreads; ++t) b[i] += b_temp[t][i];
 
   } //end omp parallel
@@ -835,7 +836,7 @@ void FixQEqReaxFFOMP::dual_sparse_matvec(sparse_matrix *A, double *x1, double *x
 #if defined(_OPENMP)
 #pragma omp for schedule(dynamic,50)
 #endif
-    for (i = atom->nlocal; i < atom->nghost; ++i) {
+    for (i = nlocal; i < nall; ++i) {
       if (atom->mask[i] & groupbit) {
         indxI = 2 * i;
         b[indxI]   = 0;
@@ -846,7 +847,7 @@ void FixQEqReaxFFOMP::dual_sparse_matvec(sparse_matrix *A, double *x1, double *x
 #if defined(_OPENMP)
 #pragma omp for schedule(dynamic,50)
 #endif
-    for (i = 0; i < atom->nghost; ++i) {
+    for (i = 0; i < nall; ++i) {
       indxI = 2 * i;
       for (int t=0; t<nthreads; t++) {
         b_temp[t][indxI] = 0.0;
@@ -880,7 +881,7 @@ void FixQEqReaxFFOMP::dual_sparse_matvec(sparse_matrix *A, double *x1, double *x
 #pragma omp barrier
 #pragma omp for schedule(dynamic,50)
 #endif
-    for (i = 0; i < atom->nghost; ++i) {
+    for (i = 0; i < nall; ++i) {
       indxI = 2 * i;
       for (int t = 0; t < nthreads; ++t) {
         b[indxI] += b_temp[t][indxI];
@@ -925,7 +926,7 @@ void FixQEqReaxFFOMP::dual_sparse_matvec(sparse_matrix *A, double *x, double *b)
 #if defined(_OPENMP)
 #pragma omp for schedule(dynamic,50)
 #endif
-    for (i = atom->nlocal; i < atom->nghost; ++i) {
+    for (i = nlocal; i < nall; ++i) {
       if (atom->mask[i] & groupbit) {
         indxI = 2 * i;
         b[indxI]   = 0;
@@ -936,7 +937,7 @@ void FixQEqReaxFFOMP::dual_sparse_matvec(sparse_matrix *A, double *x, double *b)
 #if defined(_OPENMP)
 #pragma omp for schedule(dynamic,50)
 #endif
-    for (i = 0; i < atom->nghost; ++i) {
+    for (i = 0; i < nall; ++i) {
       indxI = 2 * i;
       for (int t=0; t<nthreads; t++) {
         b_temp[t][indxI] = 0.0;
@@ -970,7 +971,7 @@ void FixQEqReaxFFOMP::dual_sparse_matvec(sparse_matrix *A, double *x, double *b)
 #pragma omp barrier
 #pragma omp for schedule(dynamic,50)
 #endif
-    for (i = 0; i < atom->nghost; ++i) {
+    for (i = 0; i < nall; ++i) {
       indxI = 2 * i;
       for (int t = 0; t < nthreads; ++t) {
         b[indxI] += b_temp[t][indxI];

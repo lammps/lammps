@@ -624,7 +624,7 @@ void FixACKS2ReaxFF::sparse_matvec_acks2(sparse_matrix *H, sparse_matrix *X, dou
     }
   }
 
-  for (i = atom->nlocal; i < atom->nghost; ++i) {
+  for (i = atom->nlocal; i < NN; ++i) {
     if (atom->mask[i] & groupbit) {
       b[i] = 0;
       b[NN + i] = 0;

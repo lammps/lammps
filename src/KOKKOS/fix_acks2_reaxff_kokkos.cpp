@@ -205,7 +205,6 @@ void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int vflag)
   type = atomKK->k_type.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();
   nlocal = atomKK->nlocal;
-  nall = atom->nlocal + atom->nghost;
   newton_pair = force->newton_pair;
 
   k_params.template sync<DeviceType>();

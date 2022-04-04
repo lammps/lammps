@@ -786,7 +786,8 @@ void FixQEqReaxFF::sparse_matvec(sparse_matrix *A, double *x, double *b)
       b[i] = eta[atom->type[i]] * x[i];
   }
 
-  for (i = atom->nlocal; i < atom->nghost; ++i)
+  int nall = atom->nlocal + atom->nghost;
+  for (i = atom->nlocal; i < nall; ++i)
       b[i] = 0;
 
   for (ii = 0; ii < nn; ++ii) {

@@ -195,7 +195,7 @@ class PairReaxFFKokkos : public PairReaxFF {
   // Isolated function that computes bond order parameters
   // Returns BO_s, BO_pi, BO_pi2, C12, C34, C56 by reference
   KOKKOS_INLINE_FUNCTION
-  void compute_bo(F_FLOAT, int, int, F_FLOAT, F_FLOAT, F_FLOAT, 
+  void compute_bo(F_FLOAT, int, int, F_FLOAT, F_FLOAT, F_FLOAT,
     F_FLOAT&, F_FLOAT&, F_FLOAT&, F_FLOAT&, F_FLOAT&, F_FLOAT&) const;
 
   KOKKOS_INLINE_FUNCTION

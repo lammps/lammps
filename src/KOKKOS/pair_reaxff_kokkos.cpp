@@ -2692,7 +2692,7 @@ int PairReaxFFKokkos<DeviceType>::preprocess_angular(int i, int itype, int j_sta
         pack.i0 = i_index;
         pack.i1 = j_index;
         pack.i2 = k_index;
-        pack.i3 = j_end; 
+        pack.i3 = j_end;
         d_angular_pack(location_angular, 1) = pack;
 
         location_angular++;
@@ -3380,7 +3380,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
           }
         }
 
-    
+
 }
 
 template<class DeviceType>
@@ -3801,7 +3801,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond2<NEIGHFLAG,
 
     F_FLOAT d_dBOp_local = d_dBOp(i,j_index);
     for (int d = 0; d < 3; d++) dBOp_i[d] = d_dBOp_local * delij[d];
-    
+
     // forces on i
     for (int d = 0; d < 3; d++) temp[d] =  coef_C1dbo * dBOp_i[d];
     for (int d = 0; d < 3; d++) temp[d] += coef_C2dbo * d_dDeltap_self(i,d);

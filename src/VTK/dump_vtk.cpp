@@ -1916,7 +1916,12 @@ void DumpVTK::identify_vectors()
        name.count(vector3_starts[v3s]+2) )
     {
       std::string vectorName = name[vector3_starts[v3s]];
-      vectorName.erase(vectorName.find_first_of('x'));
+      std::string::size_type erase_start = vectorName.find_first_of('x');
+      if (erase_start == 0) {
+	vectorName.erase(0,1);
+      } else {
+	vectorName.erase(erase_start);
+      }
       name[vector3_starts[v3s]] = vectorName;
       vector_set.insert(vector3_starts[v3s]);
     }

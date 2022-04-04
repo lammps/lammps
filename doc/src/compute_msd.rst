@@ -75,10 +75,11 @@ solids undergoing thermal motion.
 .. note::
 
    Initial coordinates are stored in "unwrapped" form, by using the
-   image flags associated with each atom.  See the :doc:`dump custom <dump>` command for a discussion of "unwrapped" coordinates.
-   See the Atoms section of the :doc:`read_data <read_data>` command for a
-   discussion of image flags and how they are set for each atom.  You can
-   reset the image flags (e.g. to 0) before invoking this compute by
+   image flags associated with each atom.  See the :doc:`dump custom
+   <dump>` command for a discussion of "unwrapped" coordinates.  See the
+   Atoms section of the :doc:`read_data <read_data>` command for a
+   discussion of image flags and how they are set for each atom.  You
+   can reset the image flags (e.g. to 0) before invoking this compute by
    using the :doc:`set image <set>` command.
 
 .. note::
@@ -108,7 +109,8 @@ distance\^2 :doc:`units <units>`.
 
 Restrictions
 """"""""""""
- none
+
+Compute *msd* cannot be used with a dynamic group.
 
 Related commands
 """"""""""""""""

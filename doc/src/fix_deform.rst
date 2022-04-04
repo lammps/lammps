@@ -70,7 +70,7 @@ Syntax
 
        *remap* value = *x* or *v* or *none*
          x = remap coords of atoms in group into deforming box
-         v = remap velocities of all atoms when they cross periodic boundaries
+         v = remap velocities of atoms in group when they cross periodic boundaries
          none = no remapping of x or v
        *flip* value = *yes* or *no*
          allow or disallow box flips when it becomes highly skewed

@@ -390,7 +390,7 @@ column/keyword), or a thermo keyword (or compute, fix, property, or
 variable reference) and then it replaces the string for that specific
 keyword. For *atom* dump styles only the keywords "id", "type", "x",
 "y", "z", "ix", "iy", "iz" can be accessed via string regardless of
-whether scaled or unwrapped coodinates were enabled or disabled, and
+whether scaled or unwrapped coordinates were enabled or disabled, and
 it always assumes 8 columns for indexing regardless of whether image
 flags are enabled or not.  For dump style *cfg* only the "auxiliary"
 keywords (6th or later keyword) may be changed and the column indexing

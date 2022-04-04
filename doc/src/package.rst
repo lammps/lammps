@@ -474,7 +474,7 @@ list on GPUs. This can be faster in some cases (e.g. ReaxFF HNS
 benchmark) but slower in others (e.g. Lennard Jones benchmark). The
 copy between different memory layouts is done out of place and
 therefore doubles the memory overhead of the neigh list, which can be
-signicant.
+significant.
 
 The *newton* keyword sets the Newton flags for pairwise and bonded
 interactions to *off* or *on*, the same as the :doc:`newton <newton>`

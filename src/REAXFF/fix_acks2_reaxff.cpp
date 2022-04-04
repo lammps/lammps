@@ -306,7 +306,7 @@ void FixACKS2ReaxFF::init_storage()
 {
   if (efield) get_chi_field();
 
-  for (int ii = 0; ii < nn; ii++) {
+  for (int ii = 0; ii < NN; ii++) {
     int i = ilist[ii];
     if (atom->mask[i] & groupbit) {
       b_s[i] = -chi[atom->type[i]];
@@ -673,19 +673,24 @@ void FixACKS2ReaxFF::calculate_Q()
 {
   int i, k;
 
-  for (int ii = 0; ii < nn; ++ii) {
-    i = ilist[ii];
+  pack_flag = 2;
+  comm->forward_comm(this); //Dist_vector(s);
+
+  for (int i = 0; i < NN; ++i) {
     if (atom->mask[i] & groupbit) {
 
       atom->q[i] = s[i];
 
-      /* backup s */
-      for (k = nprev-1; k > 0; --k) {
-        s_hist[i][k] = s_hist[i][k-1];
-        s_hist_X[i][k] = s_hist_X[i][k-1];
+      if (i < atom->nlocal) {
+
+        /* backup s */
+        for (k = nprev-1; k > 0; --k) {
+          s_hist[i][k] = s_hist[i][k-1];
+          s_hist_X[i][k] = s_hist_X[i][k-1];
+        }
+        s_hist[i][0] = s[i];
+        s_hist_X[i][0] = s[NN+i];
       }
-      s_hist[i][0] = s[i];
-      s_hist_X[i][0] = s[NN+i];
     }
   }
   // last two rows
@@ -696,9 +701,6 @@ void FixACKS2ReaxFF::calculate_Q()
       s_hist_last[i][0] = s[2*NN+i];
     }
   }
-
- pack_flag = 4;
- comm->forward_comm(this); //Dist_vector(q);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -725,11 +727,6 @@ int FixACKS2ReaxFF::pack_forward_comm(int n, int *list, double *buf,
       int j = list[i];
       buf[m++] = q_hat[j];
       buf[m++] = q_hat[NN+j];
-    }
-  }  else if (pack_flag == 4) {
-    for(int i = 0; i < n; i++) {
-      int j = list[i];
-      buf[m++] = atom->q[j];
     }
   }
   return m;
@@ -758,10 +755,6 @@ void FixACKS2ReaxFF::unpack_forward_comm(int n, int first, double *buf)
     for(i = first; i < last; i++) {
       q_hat[i] = buf[m++];
       q_hat[NN+i] = buf[m++];
-    }
-  } else if (pack_flag == 4) {
-    for(i = first; i < last; i++) {
-      atom->q[i] = buf[m++];
     }
   }
 }

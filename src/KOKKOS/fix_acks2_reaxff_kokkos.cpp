@@ -1376,16 +1376,15 @@ int FixACKS2ReaxFFKokkos<DeviceType>::bicgstab_solve()
 template<class DeviceType>
 void FixACKS2ReaxFFKokkos<DeviceType>::calculate_Q()
 {
-
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagACKS2CalculateQ>(0,nn),*this);
-
-  pack_flag = 4;
-  //comm->forward_comm( this ); //Dist_vector( q );
-  atomKK->k_q.modify<DeviceType>();
-  atomKK->k_q.sync<LMPHostType>();
+  pack_flag = 2;
+  //comm->forward_comm( this ); //Dist_vector( s );
+  k_s.modify<DeviceType>();
+  k_s.sync<LMPHostType>();
   comm->forward_comm(this);
-  atomKK->k_q.modify<LMPHostType>();
-  atomKK->k_q.sync<DeviceType>();
+  k_s.modify<LMPHostType>();
+  k_s.sync<DeviceType>();
+
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagACKS2CalculateQ>(0,NN),*this);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1818,24 +1817,25 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Norm3, const int &ii,
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2CalculateQ, const int &ii) const
+void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2CalculateQ, const int &i) const
 {
-  const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
 
     q(i) = d_s(i);
 
-    /* backup s */
-    for (int k = nprev-1; k > 0; --k) {
-      d_s_hist(i,k) = d_s_hist(i,k-1);
-      d_s_hist_X(i,k) = d_s_hist_X(i,k-1);
+    if (i < nlocal) {
+      /* backup s */
+      for (int k = nprev-1; k > 0; --k) {
+        d_s_hist(i,k) = d_s_hist(i,k-1);
+        d_s_hist_X(i,k) = d_s_hist_X(i,k-1);
+      }
+      d_s_hist(i,0) = d_s[i];
+      d_s_hist_X(i,0) = d_s[NN+i];
     }
-    d_s_hist(i,0) = d_s[i];
-    d_s_hist_X(i,0) = d_s[NN+i];
   }
 
   // last two rows
-  if (last_rows_flag && ii == 0) {
+  if (last_rows_flag && i == 0) {
     for (int i = 0; i < 2; ++i) {
       for (int k = nprev-1; k > 0; --k)
         d_s_hist_last(i,k) = d_s_hist_last(i,k-1);

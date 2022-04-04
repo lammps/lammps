@@ -483,10 +483,10 @@ void FixQEqReaxFFOMP::sparse_matvec(sparse_matrix *A, double *x, double *b)
   {
     int i, j, itr_j;
     int ii;
-    int nthreads = comm->nthreads;
     int nlocal = atom->nlocal;
     int nall = atom->nlocal + atom->nghost;
 
+    int nthreads = comm->nthreads;
 #if defined(_OPENMP)
     int tid = omp_get_thread_num();
 #else
@@ -813,6 +813,8 @@ void FixQEqReaxFFOMP::dual_sparse_matvec(sparse_matrix *A, double *x1, double *x
     int i, j, itr_j;
     int ii;
     int indxI, indxJ;
+    int nlocal = atom->nlocal;
+    int nall = atom->nlocal + atom->nghost;
 
     int nthreads = comm->nthreads;
 #if defined(_OPENMP)
@@ -903,6 +905,8 @@ void FixQEqReaxFFOMP::dual_sparse_matvec(sparse_matrix *A, double *x, double *b)
     int i, j, itr_j;
     int ii;
     int indxI, indxJ;
+    int nlocal = atom->nlocal;
+    int nall = atom->nlocal + atom->nghost;
 
     int nthreads = comm->nthreads;
 #if defined(_OPENMP)

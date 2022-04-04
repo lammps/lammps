@@ -1918,9 +1918,9 @@ void DumpVTK::identify_vectors()
       std::string vectorName = name[vector3_starts[v3s]];
       std::string::size_type erase_start = vectorName.find_first_of('x');
       if (erase_start == 0) {
-	vectorName.erase(0,1);
+        vectorName.erase(0,1);
       } else {
-	vectorName.erase(erase_start);
+        vectorName.erase(erase_start);
       }
       name[vector3_starts[v3s]] = vectorName;
       vector_set.insert(vector3_starts[v3s]);

@@ -568,15 +568,15 @@ void PairAmoeba::settings(int narg, char **arg)
     else if (strcmp(arg[iarg],"disp") == 0) 
       disp_rspace_flag = disp_kspace_flag = newvalue;
     else if (strcmp(arg[iarg],"disp/rspace") == 0) disp_rspace_flag = newvalue;
-    else if (strcmp(arg[iarg],"disp/kspace") == 0) disp_rspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"disp/kspace") == 0) disp_kspace_flag = newvalue;
     else if (strcmp(arg[iarg],"polar") == 0) 
       polar_rspace_flag = polar_kspace_flag = newvalue;
     else if (strcmp(arg[iarg],"polar/rspace") == 0) polar_rspace_flag = newvalue;
-    else if (strcmp(arg[iarg],"polar/kspace") == 0) polar_rspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"polar/kspace") == 0) polar_kspace_flag = newvalue;
     else if (strcmp(arg[iarg],"mpole") == 0) 
       mpole_rspace_flag = mpole_kspace_flag = newvalue;
     else if (strcmp(arg[iarg],"mpole/rspace") == 0) mpole_rspace_flag = newvalue;
-    else if (strcmp(arg[iarg],"mpole/kspace") == 0) mpole_rspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"mpole/kspace") == 0) mpole_kspace_flag = newvalue;
     else if (strcmp(arg[iarg],"bond") == 0) bond_flag = newvalue;
     else if (strcmp(arg[iarg],"angle") == 0) angle_flag = newvalue;
     else if (strcmp(arg[iarg],"dihedral") == 0) dihedral_flag = newvalue;

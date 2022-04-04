@@ -186,12 +186,16 @@ void MDIEngine::mdi_engine(int narg, char **arg)
     // top-level mdi engine only recognizes three nodes
     // DEFAULT, INIT_MD, INIT_OPTG
 
+    printf("MAIN LOOP pre engine_node DEF\n");
     engine_node("@DEFAULT");
+    printf("MAIN LOOP post engine_node DEF\n");
 
     // MDI commands for dynamics or minimization
 
     if (strcmp(mdicmd,"@INIT_MD") == 0) {
+      printf("MAIN LOOP pre mdi_md\n");
       mdi_md();
+      printf("MAIN LOOP post mdi_md\n");
       if (exit_command) break;
 
     } else if (strcmp(mdicmd,"@INIT_OPTG") == 0) {
@@ -251,12 +255,16 @@ void MDIEngine::engine_node(const char *node)
     // read the next command from the driver
     // all procs call this, but only proc 0 receives the command
 
+    printf("PRE MDI RECV_command: node eng/drv: %s/%s\n",node_engine,node_driver);
+
     ierr = MDI_Recv_command(mdicmd,mdicomm);
     if (ierr) error->all(FLERR,"MDI: Unable to receive command from driver");
 
     // broadcast command to the other MPI tasks
 
     MPI_Bcast(mdicmd,MDI_COMMAND_LENGTH,MPI_CHAR,0,world);
+
+    printf("POST MDI RECV_command: node eng/drv: %s/%s\n",mdicmd);
 
     // execute the command
 
@@ -305,6 +313,8 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   // respond to MDI standard commands
   // receives first, sends second, node commands third
   // ---------------------------------------
+
+  printf("ABOUT to process command %s\n",command);
 
   if (strcmp(command,">CELL") == 0) {
     receive_cell();
@@ -607,7 +617,9 @@ void MDIEngine::mdi_md()
 
   niterate = -1;
 
+  printf("PRE @INIT_MD\n");
   engine_node("@INIT_MD");
+  printf("POST @INIT_MD %s\n",mdicmd);
   if (strcmp(mdicmd,"EXIT") == 0) return;
 
   // add an instance of fix MDI/ENGINE

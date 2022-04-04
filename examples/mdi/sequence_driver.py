@@ -137,9 +137,13 @@ def perform_tasks(world,mdicomm,dummy):
     if mode == "eval":
       pass
     elif mode == "run":
+      print("SENDING INIT_MD")
       mdi.MDI_Send_command("@INIT_MD",mdicomm)
+      print("SENDING NITERATE")
       mdi.MDI_Send_command(">NITERATE",mdicomm)
+      print("SENDING NITERATE data nsteps")
       mdi.MDI_Send(nsteps,1,mdi.MDI_INT,mdicomm)
+      print("SENDING DEFAULT")
       mdi.MDI_Send_command("@DEFAULT",mdicomm)
     elif mode == "min":
       mdi.MDI_Send_command("@INIT_OPTG",mdicomm)

@@ -172,9 +172,6 @@ void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
   lammps_mpi_init();
   if (ptr) ptr_argument_warning();
 
-  printf("LAMMPS instantiate argc %d argv[1] %s argv[2] %s\n",
-         argc,argv[1],argv[2]);
-
 #ifdef LAMMPS_EXCEPTIONS
   try
   {
@@ -186,9 +183,7 @@ void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
     if (ptr) *ptr = nullptr;
   }
 #else
-  printf("PRE-INSTANTIATE\n");
   lmp = new LAMMPS(argc, argv, comm);
-  printf("POST-INSTANTIATE %p\n",lmp);
   if (ptr) *ptr = (void *) lmp;
 #endif
   return (void *) lmp;

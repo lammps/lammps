@@ -715,7 +715,7 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   newton_pair = force->newton_pair;
 
   nn = list->inum;
-  NN = list->inum + list->gnum;
+  NN = atom->nlocal + atom->nghost;
 
   const int inum = list->inum;
   const int ignum = inum + list->gnum;

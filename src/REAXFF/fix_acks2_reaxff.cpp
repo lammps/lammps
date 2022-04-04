@@ -306,7 +306,7 @@ void FixACKS2ReaxFF::init_storage()
 {
   if (efield) get_chi_field();
 
-  for (int ii = 0; ii < NN; ii++) {
+  for (int ii = 0; ii < nn; ii++) {
     int i = ilist[ii];
     if (atom->mask[i] & groupbit) {
       b_s[i] = -chi[atom->type[i]];
@@ -329,17 +329,15 @@ void FixACKS2ReaxFF::pre_force(int /*vflag*/)
 {
   if (update->ntimestep % nevery) return;
 
-  int n = atom->nlocal;
+  NN = atom->nlocal + atom->nghost;
 
   if (reaxff) {
     nn = reaxff->list->inum;
-    NN = reaxff->list->inum + reaxff->list->gnum;
     ilist = reaxff->list->ilist;
     numneigh = reaxff->list->numneigh;
     firstneigh = reaxff->list->firstneigh;
   } else {
     nn = list->inum;
-    NN = list->inum + list->gnum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
@@ -349,7 +347,7 @@ void FixACKS2ReaxFF::pre_force(int /*vflag*/)
   // need to be atom->nmax in length
 
   if (atom->nmax > nmax) reallocate_storage();
-  if (n > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE)
+  if (atom->nlocal > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE)
     reallocate_matrix();
 
   if (efield) get_chi_field();
@@ -626,8 +624,7 @@ void FixACKS2ReaxFF::sparse_matvec_acks2(sparse_matrix *H, sparse_matrix *X, dou
     }
   }
 
-  for (ii = nn; ii < NN; ++ii) {
-    i = ilist[ii];
+  for (i = atom->nlocal; i < atom->nghost; ++i) {
     if (atom->mask[i] & groupbit) {
       b[i] = 0;
       b[NN + i] = 0;
@@ -680,6 +677,8 @@ void FixACKS2ReaxFF::calculate_Q()
     i = ilist[ii];
     if (atom->mask[i] & groupbit) {
 
+      atom->q[i] = s[i];
+
       /* backup s */
       for (k = nprev-1; k > 0; --k) {
         s_hist[i][k] = s_hist[i][k-1];
@@ -698,14 +697,8 @@ void FixACKS2ReaxFF::calculate_Q()
     }
   }
 
-  pack_flag = 2;
-  comm->forward_comm(this); //Dist_vector(s);
-
-  for (int ii = 0; ii < NN; ++ii) {
-    i = ilist[ii];
-    if (atom->mask[i] & groupbit)
-      atom->q[i] = s[i];
-  }
+ pack_flag = 4;
+ comm->forward_comm(this); //Dist_vector(q);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -732,6 +725,11 @@ int FixACKS2ReaxFF::pack_forward_comm(int n, int *list, double *buf,
       int j = list[i];
       buf[m++] = q_hat[j];
       buf[m++] = q_hat[NN+j];
+    }
+  }  else if (pack_flag == 4) {
+    for(int i = 0; i < n; i++) {
+      int j = list[i];
+      buf[m++] = atom->q[j];
     }
   }
   return m;
@@ -760,6 +758,10 @@ void FixACKS2ReaxFF::unpack_forward_comm(int n, int first, double *buf)
     for(i = first; i < last; i++) {
       q_hat[i] = buf[m++];
       q_hat[NN+i] = buf[m++];
+    }
+  } else if (pack_flag == 4) {
+    for(i = first; i < last; i++) {
+      atom->q[i] = buf[m++];
     }
   }
 }

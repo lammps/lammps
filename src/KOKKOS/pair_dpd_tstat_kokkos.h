@@ -78,7 +78,7 @@ class PairDPDTstatKokkos : public PairDPDTstat {
   void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
       const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
                   const F_FLOAT &dely, const F_FLOAT &delz) const;
- protected:
+ private:
   double special_lj[4];
   int eflag,vflag;
   int neighflag, nlocal,newton_pair;

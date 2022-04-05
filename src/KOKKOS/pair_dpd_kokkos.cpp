@@ -216,6 +216,7 @@ void PairDPDKokkos<DeviceType>::operator() (TagDPDKokkos<NEIGHFLAG,NEWTON_PAIR,E
   EV_FLOAT ev;
   this->template operator()<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(TagDPDKokkos<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), ii, ev);
 }
+
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
@@ -271,7 +272,7 @@ void PairDPDKokkos<DeviceType>::operator() (TagDPDKokkos<NEIGHFLAG,NEWTON_PAIR,E
       // random force - parallel
       fpair += params(itype,jtype).sigma*wd*randnum*dtinvsqrt;
       fpair *= factor_dpd*rinv;
-      
+
       fx += fpair*delx;
       fy += fpair*dely;
       fz += fpair*delz;

@@ -281,7 +281,7 @@ void PairDPDTstatKokkos<DeviceType>::operator() (TagDPDTstatKokkos<NEIGHFLAG,NEW
       // random force - parallel
       fpair += params(itype,jtype).sigma*wd*randnum*dtinvsqrt;
       fpair *= factor_dpd*rinv;
-      
+
       fx += fpair*delx;
       fy += fpair*dely;
       fz += fpair*delz;

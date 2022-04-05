@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -25,7 +25,7 @@ namespace LAMMPS_NS {
 class ElectrodeAccelInterface : protected Pointers {
  public:
   ElectrodeAccelInterface(class LAMMPS *lmp) : Pointers(lmp) {}
-  virtual ~ElectrodeAccelInterface();
+  virtual ~ElectrodeAccelInterface() {}
   virtual void intel_find_fix() {}
   virtual void intel_pack_buffers() {}
 };

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,7 +18,7 @@
 #ifdef KSPACE_CLASS
 
 // clang-format off
-KSpaceStyle(ewald/electrode, EwaldElectrode)
+KSpaceStyle(ewald/electrode, EwaldElectrode);
 // clang-format on
 
 #else
@@ -28,7 +28,6 @@ KSpaceStyle(ewald/electrode, EwaldElectrode)
 
 #include "electrode_kspace.h"
 #include "ewald.h"
-#include <algorithm>
 
 namespace LAMMPS_NS {
 
@@ -63,7 +62,7 @@ class EwaldElectrode : public Ewald, public ElectrodeKSpace {
 #endif
 #endif
 
-    /* ERROR/WARNING messages:
+/* ERROR/WARNING messages:
 
     E: Illegal ... command
 

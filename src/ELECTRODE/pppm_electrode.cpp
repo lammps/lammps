@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,13 +17,10 @@
 
 #include "pppm_electrode.h"
 
-#include <cmath>
-#include <cstring>
-#include <iostream>
-
 #include "angle.h"
 #include "atom.h"
 #include "bond.h"
+#include "boundary_correction.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -40,10 +37,13 @@
 #include "update.h"
 #include "wire_dipole.h"
 
+#include <algorithm>
+#include <cmath>
+#include <cstring>
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
-using namespace std;
 
 #define MAXORDER 7
 #define OFFSET 16384
@@ -666,7 +666,7 @@ void PPPMElectrode::compute_matrix(bigint *imat, double **matrix)
   compute(1, 0);
 
   // fft green's function k -> r
-  vector<double> greens_real(nz_pppm * ny_pppm * nx_pppm, 0.);
+  std::vector<double> greens_real(nz_pppm * ny_pppm * nx_pppm, 0.);
   for (int i = 0, n = 0; i < nfft; i++) {
     work2[n++] = greensfn[i];
     work2[n++] = ZEROF;
@@ -705,7 +705,7 @@ void PPPMElectrode::compute_matrix(bigint *imat, double **matrix)
 
 /* ----------------------------------------------------------------------*/
 
-void PPPMElectrode::one_step_multiplication(bigint *imat, vector<double> greens_real,
+void PPPMElectrode::one_step_multiplication(bigint *imat, const std::vector<double> &greens_real,
                                             double **x_ele, double **matrix, int const nmat)
 {
   // map green's function in real space from mesh to particle positions
@@ -718,8 +718,8 @@ void PPPMElectrode::one_step_multiplication(bigint *imat, vector<double> greens_
   double step1_time = MPI_Wtime();
 
   // precalculate rho_1d for local electrode
-  vector<vector<vector<double>>> rho1d_j(nlocal,
-                                         vector<vector<double>>(3, vector<double>(order, 0)));
+  std::vector<std::vector<std::vector<double>>> rho1d_j(
+      nlocal, std::vector<std::vector<double>>(3, std::vector<double>(order, 0)));
   for (int j = 0; j < nlocal; j++) {
     int jpos = imat[j];
     if (jpos < 0) continue;
@@ -795,7 +795,7 @@ void PPPMElectrode::one_step_multiplication(bigint *imat, vector<double> greens_
 
 /* ----------------------------------------------------------------------*/
 
-void PPPMElectrode::two_step_multiplication(bigint *imat, vector<double> greens_real,
+void PPPMElectrode::two_step_multiplication(bigint *imat, const std::vector<double> &greens_real,
                                             double **x_ele, double **matrix, int const nmat)
 {
   // map green's function in real space from mesh to particle positions
@@ -808,7 +808,7 @@ void PPPMElectrode::two_step_multiplication(bigint *imat, vector<double> greens_
   int ny_ele = nyhi_out - nylo_out + 1;    // ny_pppm + order + 1;
   int nz_ele = nzhi_out - nzlo_out + 1;    // nz_pppm + order + 1;
   int nxyz = nx_ele * ny_ele * nz_ele;
-  vector<vector<double>> gw(nmat, vector<double>(nxyz, 0.));
+  std::vector<std::vector<double>> gw(nmat, std::vector<double>(nxyz, 0.));
 
   // loops over weights of electrode atoms and weights of complete grid
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
@@ -971,7 +971,7 @@ void PPPMElectrode::allocate_peratom()
   peratom_allocate_flag = 1;
 
   memory->create3d_offset(v0_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,
-                            "pppm:v0_brick");
+                          "pppm:v0_brick");
   memory->create3d_offset(v1_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,
                           "pppm:v1_brick");
   memory->create3d_offset(v2_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,

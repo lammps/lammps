@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -43,7 +43,7 @@ class BoundaryCorrection : protected Pointers {
 
   std::vector<bigint> gather_jmat(bigint *);
   std::vector<int> gather_recvcounts(int);
-  std::vector<int> gather_displs(std::vector<int>);
+  std::vector<int> gather_displs(const std::vector<int> &);
 };
 }    // namespace LAMMPS_NS
 #endif

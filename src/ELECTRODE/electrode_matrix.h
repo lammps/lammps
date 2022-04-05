@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,10 +15,9 @@
    Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meißner (TUHH)
 ------------------------------------------------------------------------- */
 
-#include <map>
-
-#include "electrode_kspace.h"
 #include "pointers.h"
+
+#include <map>
 
 namespace LAMMPS_NS {
 
@@ -26,8 +25,8 @@ class ElectrodeMatrix : protected Pointers {
  public:
   ElectrodeMatrix(class LAMMPS *, int, double);
   ~ElectrodeMatrix() {}
-  void setup(std::map<tagint, int>, class Pair *, class NeighList *);
-  void setup_tf(std::map<int, double>);
+  void setup(const std::map<tagint, int> &, class Pair *, class NeighList *);
+  void setup_tf(const std::map<int, double> &);
   void compute_array(double **);
   int igroup;
 

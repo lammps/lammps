@@ -14,33 +14,54 @@ export LC_ALL
 # arg1 = file, arg2 = file it depends on
 
 action () {
-  if (test $mode = 0) then
-    rm -f ../$1
-  elif (! cmp -s $1 ../$1) then
-    if (test -z "$2" || test -e ../$2) then
-      cp $1 ..
-      if (test $mode = 2) then
-        echo "  updating src/$1"
-      fi
+    if (test $mode = 0) then
+        rm -f ../$1
+    elif (! cmp -s $1 ../$1) then
+        if (test -z "$2" || test -e ../$2) then
+            cp $1 ..
+            if (test $mode = 2) then
+                echo "  updating src/$1"
+            fi
+        fi
+    elif (test -n "$2") then
+        if (test ! -e ../$2) then
+            rm -f ../$1
+        fi
     fi
-  elif (test -n "$2") then
-    if (test ! -e ../$2) then
-      rm -f ../$1
-    fi
-  fi
 }
 
 # all package files with no dependencies
 
 for file in *.cpp *.h; do
-  test -f ${file} && action $file
+    test -f ${file} && action $file
 done
 
 if (test $1 = 1) then
+    if (test ! -e ../pppm.cpp) then
+        echo "Must install KSPACE package with ELECTRODE"
+        exit 1
+    fi
+    if (test -e ../Makefile.package) then
+        sed -i -e 's/[^ \t]*electrode[^ \t]* //g' ../Makefile.package
+        sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/electrode |' ../Makefile.package
+        sed -i -e 's|^PKG_LIB =[ \t]*|&-lelectrode |' ../Makefile.package
+        sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(electrode_SYSPATH) |' ../Makefile.package
+        sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(electrode_SYSLIB) |' ../Makefile.package
+    fi
+    if (test -e ../Makefile.package.settings) then
+        sed -i -e '/^include.*electrode.*$/d' ../Makefile.package.settings
+        # multiline form needed for BSD sed on Macs
+        sed -i -e '4 i \
+            include ..\/..\/lib\/electrode\/Makefile.lammps
+                    ' ../Makefile.package.settings
+    fi
 
-  if (test -e ../Makefile.package) then
-    sed -i -e 's/[^ \t]*conp[^ \t]* //g' ../Makefile.package
-    sed -i -e 's|^PKG_LIB =[ \t]*|&-llinalg -L../../lib/linalg$(LIBOBJDIR) -lgfortran |' ../Makefile.package
-  fi
+elif (test $1 = 0) then
+    if (test -e ../Makefile.package) then
+        sed -i -e 's/[^ \t]*electrode[^ \t]* //g' ../Makefile.package
+    fi
+    if (test -e ../Makefile.package.settings) then
+        sed -i -e '/^include.*electrode.*$/d' ../Makefile.package.settings
+    fi
 fi
 

@@ -8,20 +8,17 @@
 fix electrode/conp command
 ==========================
 
+Accelerator Variant: *electrode/conp/intel*
+
 fix electrode/conq command
 ==========================
+
+Accelerator Variant: *electrode/conq/intel*
 
 fix electrode/thermo command
 ============================
 
-fix electrode/conp/intel command
-================================
-
-fix electrode/conq/intel command
-================================
-
-fix electrode/thermo/intel command
-==================================
+Accelerator Variant: *electrode/thermo/intel*
 
 Syntax
 """"""
@@ -96,7 +93,7 @@ interactions.  The Kspace styles *ewald/electrode*, *pppm/electrode* and
 
 For systems with non-periodic boundaries in one or two directions dipole
 corrections are available with the :doc:`kspace_modify <kspace_modify>`.  For
-ewald/electrode a two-dimensional Ewald summation :ref:`(Hu) <Hu>` can be used 
+ewald/electrode a two-dimensional Ewald summation :ref:`(Hu) <Hu>` can be used
 by setting "slab ew2d":
 
 .. code-block:: LAMMPS
@@ -115,7 +112,7 @@ moderate mesh size but requires more memory.
    kspace_modify amat onestep/twostep
 
 
-The *fix_modify tf* option allows to specify Thomas-Fermi parameters (:ref:`Scalfi <Scalfi>`) for each atom type. 
+The *fix_modify tf* option allows to specify Thomas-Fermi parameters (:ref:`Scalfi <Scalfi>`) for each atom type.
 
 .. code-block:: LAMMPS
 
@@ -131,6 +128,10 @@ If this option is used parameters must be set for all atom types of the electrod
 The parallelization for the fix works best if electrode atoms are evenly
 distributed across processors. For a system with two electrodes at the bottom
 and top of the cell this can be achieved with *processors * * 2*.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

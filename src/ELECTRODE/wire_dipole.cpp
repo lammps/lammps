@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -24,7 +24,6 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace std;
 
 /* ----------------------------------------------------------------------
    Wire-geometry correction term to dampen inter-wire interactions between
@@ -125,8 +124,8 @@ void WireDipole::matrix_corr(bigint *imat, double **matrix)
   MPI_Allreduce(&ngrouplocal, &ngroup, 1, MPI_INT, MPI_SUM, world);
 
   // gather non-periodic positions of groups
-  vector<double> xprd_local = vector<double>(ngrouplocal);
-  vector<double> yprd_local = vector<double>(ngrouplocal);
+  std::vector<double> xprd_local = std::vector<double>(ngrouplocal);
+  std::vector<double> yprd_local = std::vector<double>(ngrouplocal);
   for (int i = 0, n = 0; i < nlocal; i++) {
     if (imat[i] < 0) continue;
     xprd_local[n] = x[i][0];
@@ -135,16 +134,16 @@ void WireDipole::matrix_corr(bigint *imat, double **matrix)
   }
 
   // gather subsets nprd positions
-  vector<int> recvcounts = gather_recvcounts(ngrouplocal);
-  vector<int> displs = gather_displs(recvcounts);
-  vector<double> xprd_all = vector<double>(ngroup);
-  vector<double> yprd_all = vector<double>(ngroup);
+  std::vector<int> recvcounts = gather_recvcounts(ngrouplocal);
+  std::vector<int> displs = gather_displs(recvcounts);
+  std::vector<double> xprd_all = std::vector<double>(ngroup);
+  std::vector<double> yprd_all = std::vector<double>(ngroup);
   MPI_Allgatherv(&xprd_local.front(), ngrouplocal, MPI_DOUBLE, &xprd_all.front(),
                  &recvcounts.front(), &displs.front(), MPI_DOUBLE, world);
   MPI_Allgatherv(&yprd_local.front(), ngrouplocal, MPI_DOUBLE, &yprd_all.front(),
                  &recvcounts.front(), &displs.front(), MPI_DOUBLE, world);
 
-  vector<bigint> jmat = gather_jmat(imat);
+  std::vector<bigint> jmat = gather_jmat(imat);
   const double prefac = MY_2PI / volume;
   for (int i = 0; i < nlocal; i++) {
     if (imat[i] < 0) continue;

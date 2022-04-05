@@ -56,7 +56,7 @@ Syntax
        *splittol* value = tol
          tol = relative size of two eigenvalues (see discussion below)
        *wire* value = volfactor (available with ELECTRODE package)
-         volfactor = ratio of the total extended dimension used in the 1d 
+         volfactor = ratio of the total extended dimension used in the 1d
            approximation compared with the dimension of the simulation domain
 
 Examples

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,7 +18,7 @@
 #ifdef KSPACE_CLASS
 
 // clang-format off
-KSpaceStyle(pppm/electrode, PPPMElectrode)
+KSpaceStyle(pppm/electrode, PPPMElectrode);
 // clang-format on
 
 #else
@@ -26,10 +26,8 @@ KSpaceStyle(pppm/electrode, PPPMElectrode)
 #ifndef LMP_PPPM_ELECTRODE_H
 #define LMP_PPPM_ELECTRODE_H
 
-#include "boundary_correction.h"
 #include "electrode_kspace.h"
 #include "pppm.h"
-#include <algorithm>
 
 #if defined(FFT_FFTW3)
 #define LMP_FFT_LIB "FFTW3"
@@ -117,8 +115,10 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
   void start_compute();
   void make_rho_in_brick(bigint *, FFT_SCALAR ***, bool);
   void project_psi(bigint *, double *vec);
-  void one_step_multiplication(bigint *, std::vector<double>, double **, double **, int const);
-  void two_step_multiplication(bigint *, std::vector<double>, double **, double **, int const);
+  void one_step_multiplication(bigint *, const std::vector<double> &, double **, double **,
+                               int const);
+  void two_step_multiplication(bigint *, const std::vector<double> &, double **, double **,
+                               int const);
   bool compute_vector_called;
   bigint *imat_cached;
 };
@@ -128,7 +128,7 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
 #endif
 #endif
 
-    /* ERROR/WARNING messages:
+/* ERROR/WARNING messages:
 
     E: Illegal ... command
 

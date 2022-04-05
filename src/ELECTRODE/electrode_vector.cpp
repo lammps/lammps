@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,6 +19,7 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "electrode_kspace.h"
 #include "error.h"
 #include "force.h"
 #include "group.h"
@@ -72,7 +73,7 @@ ElectrodeVector::~ElectrodeVector()
 
 /* ---------------------------------------------------------------------- */
 
-void ElectrodeVector::setup(std::map<tagint, int> tag_ids, class Pair *fix_pair,
+void ElectrodeVector::setup(const std::map<tagint, int> &tag_ids, class Pair *fix_pair,
                             class NeighList *fix_neighlist)
 {
   pair = fix_pair;

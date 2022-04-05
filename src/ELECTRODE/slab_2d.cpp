@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -25,7 +25,6 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace std;
 
 /* ----------------------------------------------------------------------
    Slab-geometry correction term (k=0) of EW2D. See Hu, JCTC 10:12 (2014)
@@ -42,12 +41,12 @@ void Slab2d::compute_corr(double /*qsum*/, int eflag_atom, int eflag_global, dou
   int nlocal = atom->nlocal;
   bigint natoms = atom->natoms;
 
-  vector<double> z = vector<double>(nlocal);
+  std::vector<double> z = std::vector<double>(nlocal);
   for (int i = 0; i < nlocal; i++) z[i] = x[i][2];
-  vector<double> z_all = vector<double>(natoms);
-  vector<double> q_all = vector<double>(natoms);
-  vector<int> recvcounts = gather_recvcounts(nlocal);
-  vector<int> displs = gather_displs(recvcounts);
+  std::vector<double> z_all = std::vector<double>(natoms);
+  std::vector<double> q_all = std::vector<double>(natoms);
+  std::vector<int> recvcounts = gather_recvcounts(nlocal);
+  std::vector<int> displs = gather_displs(recvcounts);
   MPI_Allgatherv(q, nlocal, MPI_DOUBLE, &q_all.front(), &recvcounts.front(), &displs.front(),
                  MPI_DOUBLE, world);
   MPI_Allgatherv(&z.front(), nlocal, MPI_DOUBLE, &z_all.front(), &recvcounts.front(),
@@ -85,8 +84,8 @@ void Slab2d::vector_corr(bigint *imat, double *vec)
   int const nlocal = atom->nlocal;
   double **x = atom->x;
   double *q = atom->q;
-  vector<double> z_local;    // z coordinates of electrolyte atoms
-  vector<double> q_local;    // charges of electrolyte atoms
+  std::vector<double> z_local;    // z coordinates of electrolyte atoms
+  std::vector<double> q_local;    // charges of electrolyte atoms
   for (int i = 0; i < nlocal; i++) {
     if (imat[i] < 0) {
       z_local.push_back(x[i][2]);
@@ -97,10 +96,10 @@ void Slab2d::vector_corr(bigint *imat, double *vec)
   int n_electrolyte_local = z_local.size();
   int n_electrolyte;
   MPI_Allreduce(&n_electrolyte_local, &n_electrolyte, 1, MPI_INT, MPI_SUM, world);
-  vector<double> z_all = vector<double>(n_electrolyte);
-  vector<double> q_all = vector<double>(n_electrolyte);
-  vector<int> recvcounts = gather_recvcounts(n_electrolyte_local);
-  vector<int> displs = gather_displs(recvcounts);
+  std::vector<double> z_all = std::vector<double>(n_electrolyte);
+  std::vector<double> q_all = std::vector<double>(n_electrolyte);
+  std::vector<int> recvcounts = gather_recvcounts(n_electrolyte_local);
+  std::vector<int> displs = gather_displs(recvcounts);
   MPI_Allgatherv(&z_local.front(), n_electrolyte_local, MPI_DOUBLE, &z_all.front(),
                  &recvcounts.front(), &displs.front(), MPI_DOUBLE, world);
   MPI_Allgatherv(&q_local.front(), n_electrolyte_local, MPI_DOUBLE, &q_all.front(),
@@ -133,23 +132,23 @@ void Slab2d::matrix_corr(bigint *imat, double **matrix)
   MPI_Allreduce(&ngrouplocal, &ngroup, 1, MPI_INT, MPI_SUM, world);
 
   // gather non-periodic positions of groups
-  vector<double> nprd_local = vector<double>(ngrouplocal);
+  std::vector<double> nprd_local = std::vector<double>(ngrouplocal);
   for (int i = 0, n = 0; i < nlocal; i++) {
     if (imat[i] < 0) continue;
     nprd_local[n++] = x[i][2];
   }
 
   // gather subsets nprd positions
-  vector<int> recvcounts = gather_recvcounts(ngrouplocal);
-  vector<int> displs = gather_displs(recvcounts);
-  vector<double> nprd_all = vector<double>(ngroup);
+  std::vector<int> recvcounts = gather_recvcounts(ngrouplocal);
+  std::vector<int> displs = gather_displs(recvcounts);
+  std::vector<double> nprd_all = std::vector<double>(ngroup);
   MPI_Allgatherv(&nprd_local.front(), ngrouplocal, MPI_DOUBLE, &nprd_all.front(),
                  &recvcounts.front(), &displs.front(), MPI_DOUBLE, world);
 
   const double g_ewald_inv = 1.0 / g_ewald;
   const double g_ewald_sq = g_ewald * g_ewald;
   const double prefac = 2.0 * MY_PIS / area;
-  vector<bigint> jmat = gather_jmat(imat);
+  std::vector<bigint> jmat = gather_jmat(imat);
   for (int i = 0; i < nlocal; i++) {
     if (imat[i] < 0) continue;
     for (bigint j = 0; j < ngroup; j++) {

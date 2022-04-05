@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,14 +17,11 @@
 
 #include "boundary_correction.h"
 
-#include <iostream>
-
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 
 using namespace LAMMPS_NS;
-using namespace std;
 
 // use EW3DC slab correction
 //
@@ -52,24 +49,24 @@ void BoundaryCorrection::setup(double x, double y, double z, double g)
   g_ewald = g;
 }
 
-vector<int> BoundaryCorrection::gather_recvcounts(int n)
+std::vector<int> BoundaryCorrection::gather_recvcounts(int n)
 {
   int const nprocs = comm->nprocs;
-  vector<int> recvcounts = vector<int>(nprocs);
+  std::vector<int> recvcounts = std::vector<int>(nprocs);
   MPI_Allgather(&n, 1, MPI_INT, &recvcounts.front(), 1, MPI_INT, world);
   return recvcounts;
 }
 
-vector<int> BoundaryCorrection::gather_displs(vector<int> recvcounts)
+std::vector<int> BoundaryCorrection::gather_displs(const std::vector<int> &recvcounts)
 {
   int const nprocs = comm->nprocs;
-  vector<int> displs = vector<int>(nprocs);
+  std::vector<int> displs = std::vector<int>(nprocs);
   displs[0] = 0;
   for (int i = 1; i < nprocs; i++) displs[i] = displs[i - 1] + recvcounts[i - 1];
   return displs;
 }
 
-vector<bigint> BoundaryCorrection::gather_jmat(bigint *imat)
+std::vector<bigint> BoundaryCorrection::gather_jmat(bigint *imat)
 {
   int nlocal = atom->nlocal;
   bigint ngroup = 0;
@@ -78,16 +75,16 @@ vector<bigint> BoundaryCorrection::gather_jmat(bigint *imat)
     if (imat[i] > -1) ngrouplocal++;
   MPI_Allreduce(&ngrouplocal, &ngroup, 1, MPI_INT, MPI_SUM, world);
 
-  vector<bigint> jmat_local = vector<bigint>(ngrouplocal);
+  std::vector<bigint> jmat_local = std::vector<bigint>(ngrouplocal);
   for (int i = 0, n = 0; i < nlocal; i++) {
     if (imat[i] < 0) continue;
     jmat_local[n++] = imat[i];
   }
 
   // gather global matrix indexing
-  vector<bigint> jmat = vector<bigint>(ngroup);
-  vector<int> recvcounts = gather_recvcounts(ngrouplocal);
-  vector<int> displs = gather_displs(recvcounts);
+  std::vector<bigint> jmat = std::vector<bigint>(ngroup);
+  std::vector<int> recvcounts = gather_recvcounts(ngrouplocal);
+  std::vector<int> displs = gather_displs(recvcounts);
   MPI_Allgatherv(&jmat_local.front(), ngrouplocal, MPI_LMP_BIGINT, &jmat.front(),
                  &recvcounts.front(), &displs.front(), MPI_LMP_BIGINT, world);
   return jmat;

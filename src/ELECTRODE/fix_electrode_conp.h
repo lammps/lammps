@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,7 +18,7 @@
 #ifdef FIX_CLASS
 
 // clang-format off
-FixStyle(electrode/conp, FixElectrodeConp)
+FixStyle(electrode/conp, FixElectrodeConp);
 // clang-format on
 
 #else
@@ -26,11 +26,11 @@ FixStyle(electrode/conp, FixElectrodeConp)
 #ifndef LMP_FIX_ELECTRODE_CONP_H
 #define LMP_FIX_ELECTRODE_CONP_H
 
-#include <algorithm>
-#include <map>
-
 #include "electrode_accel_interface.h"
 #include "fix.h"
+
+#include <algorithm>
+#include <map>
 
 namespace LAMMPS_NS {
 
@@ -90,7 +90,7 @@ class FixElectrodeConp : public Fix {
   void symmetrize();
   double gausscorr(int, bool);
   void update_charges();
-  double potential_energy(int, std::vector<int>);
+  double potential_energy(int, const std::vector<int> &);
   double self_energy(int);
   std::vector<int> local_to_matrix();
   void write_to_file(FILE *, std::vector<tagint>, std::vector<std::vector<double>>);

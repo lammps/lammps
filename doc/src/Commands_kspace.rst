@@ -42,6 +42,5 @@ OPT.
    * :doc:`pppm/stagger <kspace_style>`
    * :doc:`pppm/tip4p (o) <kspace_style>`
    * :doc:`pppm/dielectric <kspace_style>`
-   * :doc:`pppm/electrode <kspace_style>`
    * :doc:`pppm/electrode (i) <kspace_style>`
    * :doc:`scafacos <kspace_style>`

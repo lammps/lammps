@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -24,7 +24,6 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace std;
 
 #define SMALL 0.00001
 
@@ -114,20 +113,20 @@ void SlabDipole::matrix_corr(bigint *imat, double **matrix)
   bigint ngroup = 0;
   MPI_Allreduce(&ngrouplocal, &ngroup, 1, MPI_INT, MPI_SUM, world);
 
-  vector<double> nprd_local = vector<double>(ngrouplocal);
+  std::vector<double> nprd_local = std::vector<double>(ngrouplocal);
   for (int i = 0, n = 0; i < nlocal; i++) {
     if (imat[i] < 0) continue;
     nprd_local[n++] = x[i][2];
   }
 
   // gather subsets nprd positions
-  vector<int> recvcounts = gather_recvcounts(ngrouplocal);
-  vector<int> displs = gather_displs(recvcounts);
-  vector<double> nprd_all = vector<double>(ngroup);
+  std::vector<int> recvcounts = gather_recvcounts(ngrouplocal);
+  std::vector<int> displs = gather_displs(recvcounts);
+  std::vector<double> nprd_all = std::vector<double>(ngroup);
   MPI_Allgatherv(&nprd_local.front(), ngrouplocal, MPI_DOUBLE, &nprd_all.front(),
                  &recvcounts.front(), &displs.front(), MPI_DOUBLE, world);
 
-  vector<bigint> jmat = gather_jmat(imat);
+  std::vector<bigint> jmat = gather_jmat(imat);
   const double prefac = MY_4PI / volume;
   for (int i = 0; i < nlocal; i++) {
     if (imat[i] < 0) continue;

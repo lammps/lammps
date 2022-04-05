@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,9 +17,6 @@
 
 #include "ewald_electrode.h"
 
-#include <cmath>
-#include <iostream>
-
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
@@ -33,9 +30,11 @@
 #include "update.h"
 #include "wire_dipole.h"
 
+#include <algorithm>
+#include <cmath>
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace std;
 
 #define SMALL 0.00001
 
@@ -59,7 +58,7 @@ EwaldElectrode::~EwaldElectrode()
 
 void EwaldElectrode::init()
 {
-  if (comm->me == 0) utils::logmesg(lmp, "Ewald initialization ...\n");
+  if (comm->me == 0) utils::logmesg(lmp, "Ewald/electrode initialization ...\n");
 
   // error check
   if (domain->triclinic) error->all(FLERR, "Cannot (yet) use Ewald with triclinic box ");

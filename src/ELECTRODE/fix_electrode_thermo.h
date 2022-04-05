@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,7 +18,7 @@
 #ifdef FIX_CLASS
 
 // clang-format off
-FixStyle(electrode/thermo, FixElectrodeThermo)
+FixStyle(electrode/thermo, FixElectrodeThermo);
 // clang-format on
 
 #else
@@ -26,7 +26,6 @@ FixStyle(electrode/thermo, FixElectrodeThermo)
 #ifndef LMP_FIX_ELECTRODE_THERMO_H
 #define LMP_FIX_ELECTRODE_THERMO_H
 
-#include "fix.h"
 #include "fix_electrode_conp.h"
 
 namespace LAMMPS_NS {

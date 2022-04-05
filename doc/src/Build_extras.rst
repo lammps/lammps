@@ -1291,7 +1291,7 @@ be built for the most part with all major versions of the C++ language.
 
 .. _electrode:
 
-ELECTRODE package 
+ELECTRODE package
 -----------------
 
 This package depends on the KSPACE package.

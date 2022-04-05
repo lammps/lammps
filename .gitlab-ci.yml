@@ -7,8 +7,12 @@ unit-tests:
   script:
     - echo "Installing dependencies"
     - apt-get update
-    - apt-get install -y cmake make gcc g++ gfortran python3 python3-numpy libblas-dev liblapack-dev
+    - apt-get install -y cmake make gcc g++ gfortran python3 python3-numpy python3-yaml libblas-dev liblapack-dev
     - base_dir=$PWD
+    - echo "Checking code style"
+    - python3 ./tools/coding_standard/homepage.py .
+    - python3 ./tools/coding_standard/whitespace.py .
+    - python3 ./tools/coding_standard/permissions.py .
     - echo "Building lammps in directory $base_dir"
     - mkdir build && cd build
     - cmake ../cmake
@@ -26,13 +30,13 @@ unit-tests:
     - adduser tester
     - chown -R tester $base_dir
     - runuser -u tester ctest
-    - echo "running tests in examples/electrode subdirectory of $base_dir"
+    - echo "running tests in examples/PACKAGES/electrode subdirectory of $base_dir"
     - lmpbin=$base_dir/build/lmp
-    - cd $base_dir/examples/electrode/check_amat/
+    - cd $base_dir/examples/PACKAGES/electrode/check_amat/
     - bash check.sh $lmpbin
-    - cd $base_dir/examples/electrode/check_etypes/
+    - cd $base_dir/examples/PACKAGES/electrode/check_etypes/
     - bash check.sh $lmpbin
-    - cd $base_dir/examples/electrode/check_ffield/
+    - cd $base_dir/examples/PACKAGES/electrode/check_ffield/
     - bash check.sh $lmpbin
-    - cd $base_dir/examples/electrode/check_intel/
+    - cd $base_dir/examples/PACKAGES/electrode/check_intel/
     - bash check.sh $lmpbin

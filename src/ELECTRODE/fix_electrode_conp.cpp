@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,11 +16,6 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_electrode_conp.h"
-
-#include <cassert>
-#include <fstream>
-#include <numeric>
-#include <sstream>
 
 #include "atom.h"
 #include "comm.h"
@@ -42,6 +37,11 @@
 #include "pair.h"
 #include "pointers.h"
 #include "variable.h"
+
+#include <cassert>
+#include <fstream>
+#include <numeric>
+#include <sstream>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -899,7 +899,7 @@ double FixElectrodeConp::compute_vector(int i)
 
 /* ---------------------------------------------------------------------- */
 
-double FixElectrodeConp::potential_energy(int eflag, std::vector<int> mpos)
+double FixElectrodeConp::potential_energy(int eflag, const std::vector<int> &mpos)
 {
   // corrections to energy due to potential psi
   double const qqrd2e = force->qqrd2e;

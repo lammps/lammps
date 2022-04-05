@@ -203,7 +203,8 @@ void FixACKS2ReaxFF::pertype_parameters(char *arg)
 void FixACKS2ReaxFF::allocate_storage()
 {
   nmax = atom->nmax;
-  int size = nmax*2 + 2;
+  NN = atom->nlocal + atom->nghost;
+  const int size = nmax*2 + 2;
 
   // 0 to nn-1: owned atoms related to H matrix
   // nn to NN-1: ghost atoms related to H matrix
@@ -671,8 +672,6 @@ void FixACKS2ReaxFF::sparse_matvec_acks2(sparse_matrix *H, sparse_matrix *X, dou
 
 void FixACKS2ReaxFF::calculate_Q()
 {
-  int i, k;
-
   pack_flag = 2;
   comm->forward_comm(this); //Dist_vector(s);
 
@@ -684,7 +683,7 @@ void FixACKS2ReaxFF::calculate_Q()
       if (i < atom->nlocal) {
 
         /* backup s */
-        for (k = nprev-1; k > 0; --k) {
+        for (int k = nprev-1; k > 0; --k) {
           s_hist[i][k] = s_hist[i][k-1];
           s_hist_X[i][k] = s_hist_X[i][k-1];
         }
@@ -696,7 +695,7 @@ void FixACKS2ReaxFF::calculate_Q()
   // last two rows
   if (last_rows_flag) {
     for (int i = 0; i < 2; ++i) {
-      for (k = nprev-1; k > 0; --k)
+      for (int k = nprev-1; k > 0; --k)
         s_hist_last[i][k] = s_hist_last[i][k-1];
       s_hist_last[i][0] = s[2*NN+i];
     }

@@ -162,6 +162,17 @@ void PairDPDExtTstatKokkos<DeviceType>::compute(int eflagin, int vflagin)
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
 
+  need_dup = lmp->kokkos->need_dup<DeviceType>();
+  if (need_dup) {
+    dup_f     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(f);
+    dup_eatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_eatom);
+    dup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_vatom);
+  } else {
+    ndup_f     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(f);
+    ndup_eatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_eatom);
+    ndup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_vatom);
+  }
+
   // loop over neighbors of my atoms
 
   int inum = list->inum;
@@ -193,6 +204,9 @@ void PairDPDExtTstatKokkos<DeviceType>::compute(int eflagin, int vflagin)
     }
   }
 
+  if (need_dup)
+    Kokkos::Experimental::contribute(f, dup_f);
+
   if (eflag_global) eng_vdwl += ev.evdwl;
   if (vflag_global) {
     virial[0] += ev.v[0];
@@ -206,11 +220,15 @@ void PairDPDExtTstatKokkos<DeviceType>::compute(int eflagin, int vflagin)
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
   if (eflag_atom) {
+    if (need_dup)
+      Kokkos::Experimental::contribute(d_eatom, dup_eatom);
     k_eatom.template modify<DeviceType>();
     k_eatom.template sync<LMPHostType>();
   }
 
   if (vflag_atom) {
+    if (need_dup)
+      Kokkos::Experimental::contribute(d_vatom, dup_vatom);
     k_vatom.template modify<DeviceType>();
     k_vatom.template sync<LMPHostType>();
   }
@@ -219,6 +237,13 @@ void PairDPDExtTstatKokkos<DeviceType>::compute(int eflagin, int vflagin)
 
   if (evflag) atomKK->modified(execution_space,F_MASK | ENERGY_MASK | VIRIAL_MASK);
   else atomKK->modified(execution_space,F_MASK);
+
+  // free duplicated memory
+  if (need_dup) {
+    dup_f     = decltype(dup_f)();
+    dup_eatom = decltype(dup_eatom)();
+    dup_vatom = decltype(dup_vatom)();
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -234,8 +259,11 @@ template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairDPDExtTstatKokkos<DeviceType>::operator() (TagDPDExtTstatKokkos<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT &ev) const {
+  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
+
 
   int i,j,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,fpairx,fpairy,fpairz,fpair;
@@ -355,9 +383,13 @@ void PairDPDExtTstatKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, con
   const int EFLAG = eflag;
   const int VFLAG = vflag_either;
 
-  // The eatom and vatom arrays are atomic for Half/Thread neighbor style
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_eatom = k_eatom.view<DeviceType>();
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_vatom = k_vatom.view<DeviceType>();
+  // The eatom and vatom arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
+
+  auto v_eatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
+  auto a_eatom = v_eatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
+
+  auto v_vatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
+  auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   if (EFLAG) {
     if (eflag_atom) {

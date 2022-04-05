@@ -81,8 +81,25 @@ class PairDPDExtKokkos : public PairDPDExt {
  private:
   double special_lj[4];
   int eflag,vflag;
-  int neighflag, nlocal,newton_pair;
+  int neighflag,nlocal,newton_pair;
   double dtinvsqrt;
+
+  int need_dup;
+
+  using KKDeviceType = typename KKDevice<DeviceType>::value;
+
+  template<typename DataType, typename Layout>
+  using DupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterDuplicated>;
+
+  template<typename DataType, typename Layout>
+  using NonDupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterNonDuplicated>;
+
+  DupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> dup_f;
+  DupScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout> dup_eatom;
+  DupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> dup_vatom;
+  NonDupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> ndup_f;
+  NonDupScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout> ndup_eatom;
+  NonDupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> ndup_vatom;
 
 #ifdef DPD_USE_RAN_MARS
   RandPoolWrap rand_pool;

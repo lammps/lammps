@@ -638,13 +638,14 @@ This list was last updated for version 3.5.0 of the Kokkos library.
 
          -D CMAKE_CXX_COMPILER=${HOME}/lammps/lib/kokkos/bin/nvcc_wrapper
 
-      To simplify compilation, three preset files are included in the
+      To simplify compilation, four preset files are included in the
       ``cmake/presets`` folder, ``kokkos-serial.cmake``,
-      ``kokkos-openmp.cmake``, and ``kokkos-cuda.cmake``. They will
-      enable the KOKKOS package and enable some hardware choice.  So to
-      compile with OpenMP host parallelization, CUDA device
-      parallelization (for GPUs with CC 5.0 and up) with some common
-      packages enabled, you can do the following:
+      ``kokkos-openmp.cmake``, ``kokkos-cuda.cmake``, and
+      ``kokkos-sycl.cmake``.  They will enable the KOKKOS package and
+      enable some hardware choice.  So to compile with OpenMP host
+      parallelization, CUDA device parallelization (for GPUs with CC 5.0
+      and up) with some common packages enabled, you can do the
+      following:
 
       .. code-block:: bash
 

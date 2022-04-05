@@ -90,13 +90,13 @@ struct TagPairReaxComputeMulti1{};
 template<int NEIGHFLAG, int EFLAG>
 struct TagPairReaxComputeMulti2{};
 
+template<bool POPULATE>
+struct TagPairReaxCountAngularTorsion{};
 template<int NEIGHFLAG, int EVFLAG>
-struct TagPairReaxComputeAngular{};
-
-struct TagPairReaxComputeTorsionPreview{};
+struct TagPairReaxComputeAngularPreprocessed{};
 
 template<int NEIGHFLAG, int EVFLAG>
-struct TagPairReaxComputeTorsion{};
+struct TagPairReaxComputeTorsionPreprocessed{};
 
 template<int NEIGHFLAG, int EVFLAG>
 struct TagPairReaxComputeHydrogen{};
@@ -120,7 +120,7 @@ class PairReaxFFKokkos : public PairReaxFF {
   // "Blocking" factors to reduce thread divergence within some kernels
   using blocking_t = unsigned short int;
 
-  // "PairReaxFFComputeTorsionBlocking"
+  // "PairReaxFFComputeTorsion"
   static constexpr int compute_torsion_blocksize = 8;
 
   // "PairReaxBuildListsHalfBlocking"
@@ -176,8 +176,27 @@ class PairReaxFFKokkos : public PairReaxFF {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxBuildListsHalfPreview<NEIGHFLAG>, const int&) const;
 
+  // Isolated function that builds the hbond list, reused across
+  // TagPairReaxBuildListsHalfBlocking, HalfBlockingPreview, HalfPreview
+  template<int NEIGHFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void build_hb_list(F_FLOAT, int, int, int, int, int) const;
+
+  // Isolated function that builds the bond order list, reused across
+  // TagPairReaxBuildListsHalfBlocking, HalfBlockingPreview, HalfPreview
+  // Returns if we need to populate d_d* functions or not
+  template<int NEIGHFLAG>
+  KOKKOS_INLINE_FUNCTION
+  bool build_bo_list(int, int, int, int, int, int&, int&) const;
+
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxBuildListsFull, const int&) const;
+
+  // Isolated function that computes bond order parameters
+  // Returns BO_s, BO_pi, BO_pi2, C12, C34, C56 by reference
+  KOKKOS_INLINE_FUNCTION
+  void compute_bo(F_FLOAT, int, int, F_FLOAT, F_FLOAT, F_FLOAT,
+    F_FLOAT&, F_FLOAT&, F_FLOAT&, F_FLOAT&, F_FLOAT&, F_FLOAT&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxZero, const int&) const;
@@ -222,24 +241,39 @@ class PairReaxFFKokkos : public PairReaxFF {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputeMulti2<NEIGHFLAG,EFLAG>, const int&) const;
 
-  template<int NEIGHFLAG, int EVFLAG>
+  template<bool POPULATE>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxComputeAngular<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(TagPairReaxCountAngularTorsion<POPULATE>, const int&) const;
+
+  // Abstraction for computing SBSO2, CSBO2, dSBO1, dsBO2
+  KOKKOS_INLINE_FUNCTION
+  void compute_angular_sbo(int, int, int, int) const;
+
+  // Abstraction for counting and populating angular intermediates
+  template<bool POPULATE>
+  KOKKOS_INLINE_FUNCTION
+  int preprocess_angular(int, int, int, int, int) const;
+
+  // Abstraction for counting and populating torsion intermediated
+  template<bool POPULATE>
+  KOKKOS_INLINE_FUNCTION
+  int preprocess_torsion(int, int, int, F_FLOAT, F_FLOAT, F_FLOAT, int, int, int) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxComputeAngular<NEIGHFLAG,EVFLAG>, const int&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxComputeTorsionPreview, const int&) const;
+  void operator()(TagPairReaxComputeAngularPreprocessed<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxComputeTorsion<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(TagPairReaxComputeAngularPreprocessed<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxComputeTorsion<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(TagPairReaxComputeTorsionPreprocessed<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+
+  template<int NEIGHFLAG, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairReaxComputeTorsionPreprocessed<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -395,9 +429,8 @@ class PairReaxFFKokkos : public PairReaxFF {
 
   typename AT::t_float_1d d_bo_rij, d_hb_rsq, d_Deltap, d_Deltap_boc, d_total_bo, d_s;
   typename AT::t_float_1d d_Delta, d_Delta_boc, d_Delta_lp, d_dDelta_lp, d_Delta_lp_temp, d_CdDelta;
-  typename AT::t_ffloat_2d_dl d_BO, d_BO_s, d_BO_pi, d_BO_pi2, d_dBOp;
-  typename AT::t_ffloat_2d_dl d_dln_BOp_pix, d_dln_BOp_piy, d_dln_BOp_piz;
-  typename AT::t_ffloat_2d_dl d_dln_BOp_pi2x, d_dln_BOp_pi2y, d_dln_BOp_pi2z;
+  typename AT::t_ffloat_2d_dl d_BO, d_BO_s, d_BO_pi, d_BO_pi2;
+  typename AT::t_ffloat_2d_dl d_dln_BOp_pi, d_dln_BOp_pi2;
   typename AT::t_ffloat_2d_dl d_C1dbo, d_C2dbo, d_C3dbo;
   typename AT::t_ffloat_2d_dl d_C1dbopi, d_C2dbopi, d_C3dbopi, d_C4dbopi;
   typename AT::t_ffloat_2d_dl d_C1dbopi2, d_C2dbopi2, d_C3dbopi2, d_C4dbopi2;
@@ -447,7 +480,7 @@ class PairReaxFFKokkos : public PairReaxFF {
   typename AT::t_int_scalar d_resize_bo, d_resize_hb;
 
   typename AT::t_ffloat_2d_dl d_sum_ovun;
-  typename AT::t_ffloat_2d_dl d_dBOpx, d_dBOpy, d_dBOpz;
+  typename AT::t_ffloat_2d_dl d_dBOp;
 
   int neighflag, newton_pair, maxnumneigh, maxhb, maxbo;
   int nlocal,nn,NN,eflag,vflag,acks2_flag;
@@ -480,15 +513,15 @@ class PairReaxFFKokkos : public PairReaxFF {
   typename AT::t_ffloat_1d d_buf;
   DAT::tdual_int_scalar k_nbuf_local;
 
-  // for fast ComputeTorsion preprocessor kernel
-  typedef Kokkos::View<int*, LMPPinnedHostType> t_hostpinned_int_1d;
+  typedef Kokkos::View<reax_int4**, LMPDeviceType::array_layout, DeviceType> t_reax_int4_2d;
 
-  int inum_store;
-  t_hostpinned_int_1d counters;
-  t_hostpinned_int_1d counters_jj_min;
-  t_hostpinned_int_1d counters_jj_max;
-  t_hostpinned_int_1d counters_kk_min;
-  t_hostpinned_int_1d counters_kk_max;
+  t_reax_int4_2d d_angular_pack, d_torsion_pack;
+
+  typename AT::t_ffloat_2d d_angular_intermediates;
+
+  typename AT::tdual_int_1d k_count_angular_torsion;
+  typename AT::t_int_1d d_count_angular_torsion;
+
 };
 
 template <class DeviceType>

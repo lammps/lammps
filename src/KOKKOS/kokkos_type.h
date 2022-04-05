@@ -1214,6 +1214,12 @@ struct params_lj_coul {
   F_FLOAT cut_ljsq,cut_coulsq,lj1,lj2,lj3,lj4,offset;
 };
 
+// ReaxFF
+
+struct alignas(4 * sizeof(int)) reax_int4 {
+  int i0, i1, i2, i3;
+};
+
 // Pair SNAP
 
 #define SNAP_KOKKOS_REAL double

@@ -715,7 +715,7 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   newton_pair = force->newton_pair;
 
   nn = list->inum;
-  NN = list->inum + list->gnum;
+  NN = atom->nlocal + atom->nghost;
 
   const int inum = list->inum;
   const int ignum = inum + list->gnum;
@@ -958,9 +958,9 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   count_angular = h_count_angular_torsion(0);
   count_torsion = h_count_angular_torsion(1);
 
-  if (count_angular > d_angular_pack.extent(0))
+  if (count_angular > (int)d_angular_pack.extent(0))
     d_angular_pack = t_reax_int4_2d("reaxff:angular_pack",(int)(count_angular * 1.1),2);
-  if (count_torsion > d_torsion_pack.extent(0))
+  if (count_torsion > (int)d_torsion_pack.extent(0))
     d_torsion_pack = t_reax_int4_2d("reaxff:torsion_pack",(int)(count_torsion * 1.1),2);
 
   // need to zero to re-count
@@ -2584,8 +2584,6 @@ void PairReaxFFKokkos<DeviceType>::compute_angular_sbo(int i, int itype, int j_s
   const F_FLOAT p_val8 = gp[33];
   const F_FLOAT p_val9 = gp[16];
 
-  const F_FLOAT Delta_val = d_total_bo[i] - paramssing(itype).valency_val;
-
   F_FLOAT SBOp = 0.0;
   F_FLOAT prod_SBO = 1.0;
 
@@ -2710,7 +2708,7 @@ int PairReaxFFKokkos<DeviceType>::preprocess_angular(int i, int itype, int j_sta
 template<class DeviceType>
 template<bool POPULATE>
 KOKKOS_INLINE_FUNCTION
-int PairReaxFFKokkos<DeviceType>::preprocess_torsion(int i, int itype, int itag,
+int PairReaxFFKokkos<DeviceType>::preprocess_torsion(int i, int /*itype*/, int itag,
   F_FLOAT xtmp, F_FLOAT ytmp, F_FLOAT ztmp, int j_start, int j_end, int location_torsion) const {
 
   // in reaxff_torsion_angles: j = i, k = j, i = k;
@@ -2721,7 +2719,6 @@ int PairReaxFFKokkos<DeviceType>::preprocess_torsion(int i, int itype, int itag,
     int j = d_bo_list[jj];
     j &= NEIGHMASK;
     const tagint jtag = tag(j);
-    const int jtype = type(j);
     const int j_index = jj - j_start;
 
     // skip half of the interactions

@@ -137,20 +137,14 @@ def perform_tasks(world,mdicomm,dummy):
     if mode == "eval":
       pass
     elif mode == "run":
-      print("SENDING INIT_MD")
-      mdi.MDI_Send_command("@INIT_MD",mdicomm)
-      print("SENDING NITERATE")
-      mdi.MDI_Send_command(">NITERATE",mdicomm)
-      print("SENDING NITERATE data nsteps")
+      mdi.MDI_Send_command(">NSTEPS",mdicomm)
       mdi.MDI_Send(nsteps,1,mdi.MDI_INT,mdicomm)
-      print("SENDING DEFAULT")
-      mdi.MDI_Send_command("@DEFAULT",mdicomm)
+      mdi.MDI_Send_command("MD",mdicomm)
     elif mode == "min":
-      mdi.MDI_Send_command("@INIT_OPTG",mdicomm)
       mdi.MDI_Send_command(">TOLERANCE",mdicomm)
       params = [tol,tol,1000.0,1000.0]
       mdi.MDI_Send(params,4,mdi.MDI_DOUBLE,mdicomm)
-      mdi.MDI_Send_command("@DEFAULT",mdicomm)
+      mdi.MDI_Send_command("OPTG",mdicomm)
 
     # request potential energy
 
@@ -311,7 +305,6 @@ if not plugin:
 # MDI will call back to perform_tasks()
 
 if plugin:
-  #error("Cannot yet run in plugin mode")
   mdi.MDI_Init(mdiarg)
   world = MPI.COMM_WORLD
   plugin_args += " -mdi \"-role ENGINE -name lammps -method LINK\""

@@ -11,25 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef COMMAND_CLASS
-// clang-format off
-CommandStyle(mdi,MDIEngine);
-// clang-format on
-#else
-
 #ifndef LMP_MDI_ENGINE_H
 #define LMP_MDI_ENGINE_H
 
-#include "command.h"
+#include "pointers.h"
 #include "mdi.h"
 
 namespace LAMMPS_NS {
 
-class MDIEngine : public Command {
+class MDIEngine : protected Pointers {
  public:
-  MDIEngine(LAMMPS *lmp) : Command(lmp) {}
-
-  void command(int, char **) override;
+  MDIEngine(class LAMMPS *, int, char **);
 
   int execute_command(const char *command, MDI_Comm mdicomm);
   void engine_node(const char *node);
@@ -70,11 +62,13 @@ class MDIEngine : public Command {
   double *sys_charges,*sys_coords,*sys_velocities;
   double sys_cell[9],sys_cell_displ[3];
     
-  int niterate;       // settings for MD and OPTG
-  int max_eval;
-  double etol,ftol;
+  int nsteps;              // timesteps for MD
+  double etol,ftol;        // 4 minimization params for OPTG
+  int niterate,max_eval;
 
   int nbytes;         // NBYTES command value used for length by other commands
+
+  int actionflag;     // 1 if MD or OPTG just completed, else 0
 
   // buffers for MDI comm
 
@@ -97,7 +91,9 @@ class MDIEngine : public Command {
   void mdi_commands();
 
   void mdi_md();
+  void md();
   void mdi_optg();
+  void optg();
 
   void evaluate();
   void create_system();
@@ -111,6 +107,8 @@ class MDIEngine : public Command {
   void receive_charges();
   void receive_coords();
   void receive_natoms();
+  void receive_nsteps();
+  void receive_tolerance();
   void receive_types();
   void receive_velocities();
 
@@ -132,8 +130,6 @@ class MDIEngine : public Command {
   void single_command();
   void many_commands();
   void infile();
-  void receive_niterate();
-  void receive_tolerance();
   void send_ke();
 
   void unit_conversions();
@@ -144,7 +140,6 @@ class MDIEngine : public Command {
 
 }
 
-#endif
 #endif
 
 /* ERROR/WARNING messages:

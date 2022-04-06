@@ -11,27 +11,30 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_MDI_PLUGIN_H
-#define LMP_MDI_PLUGIN_H
+#ifdef COMMAND_CLASS
+// clang-format off
+CommandStyle(mdi,MDICommand);
+// clang-format on
+#else
 
-#include "pointers.h"
+#ifndef LMP_MDI_COMMAND_H
+#define LMP_MDI_COMMAND_H
+
+#include "command.h"
 #include "mdi.h"
 
 namespace LAMMPS_NS {
 
-class MDIPlugin : protected Pointers {
+class MDICommand : public Command {
  public:
-  MDIPlugin(class LAMMPS *, int, char **);
+  MDICommand(LAMMPS *lmp) : Command(lmp) {}
 
- private:
-  char *lammps_command;
-  class Fix *fixptr;
-
-  static int plugin_wrapper(void *, MDI_Comm, void *);
+  void command(int, char **) override;
 };
 
 }
 
+#endif
 #endif
 
 /* ERROR/WARNING messages:

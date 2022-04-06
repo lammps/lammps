@@ -29,6 +29,6 @@ fix_modify      2 energy yes virial yes
 thermo_style    custom step temp pe etotal press vol
 thermo          1
 
-mdi/plugin      lammps mdi "-role ENGINE -name lammps -method LINK" &
+mdi             plugin lammps mdi "-role ENGINE -name lammps -method LINK" &
                 infile in.aimd.engine extra "-log log.aimd.engine.plugin" &
                 command "run 5"

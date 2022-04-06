@@ -381,9 +381,9 @@ performed with dump style *xtc*\ .
 ----------
 
 The *colname* keyword can be used to change the default header keyword
-for dump styles: *atom*, *custom*, and *cfg* and their compressed and
-MPIIO variants.  The setting for *ID string* replaces the default text
-with the provided string.  *ID* can be a positive integer when it
+for dump styles: *atom*, *custom*, and *cfg* and their compressed, ADIOS,
+and MPIIO variants.  The setting for *ID string* replaces the default
+text with the provided string.  *ID* can be a positive integer when it
 represents the column number counting from the left, a negative integer
 when it represents the column number from the right (i.e. -1 is the last
 column/keyword), or a thermo keyword (or compute, fix, property, or

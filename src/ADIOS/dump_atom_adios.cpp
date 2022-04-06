@@ -238,6 +238,9 @@ void DumpAtomADIOS::init_style()
     columnNames = {"id", "type", "xs", "ys", "zs", "ix", "iy", "iz"};
   }
 
+  for (int icol = 0; icol < (int)columnNames.size(); ++icol)
+    if (keyword_user[icol].size()) columnNames[icol] = keyword_user[icol];
+
   // setup function ptrs
 
   if (scale_flag == 1 && image_flag == 0 && domain->triclinic == 0)

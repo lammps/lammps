@@ -320,7 +320,7 @@ void PairDPDKokkos<DeviceType>::operator() (TagDPDKokkos<NEIGHFLAG,NEWTON_PAIR,E
           ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
       }
       if (EVFLAG)
-	this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
+        this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
     }
   }
   a_f(i,0) += fx;

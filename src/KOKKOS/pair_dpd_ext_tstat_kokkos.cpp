@@ -362,7 +362,7 @@ void PairDPDExtTstatKokkos<DeviceType>::operator() (TagDPDExtTstatKokkos<NEIGHFL
       }
 
       if (EVFLAG)
-	this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,0.0,fpair,delx,dely,delz);
+        this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,0.0,fpair,delx,dely,delz);
     }
   }
   a_f(i,0) += fx;

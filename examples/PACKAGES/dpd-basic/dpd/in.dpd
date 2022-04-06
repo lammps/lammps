@@ -4,9 +4,9 @@ variable T    equal 1.0
 variable rc   equal 1.0
 variable rcD  equal 1.2
 
-units            lj
+units        lj
 boundary     p p p
-atom_style       atomic
+atom_style   atomic
 dimension    3
 newton       on
 comm_modify  vel yes
@@ -16,17 +16,18 @@ variable     L equal 5.0
 lattice      fcc 3.0
 region       simBox block 0 ${L} 0 ${L} 0 ${L}
 create_box   2 simBox
+#create_atoms 1 region simBox
 create_atoms 1 random 100 12456 simBox
 create_atoms 2 random 100 13245 simBox
 mass         1 1.0
 mass         2 2.0
 ###
 
-pair_style       dpd/ext ${T} ${rc} 3854262
+pair_style       dpd ${T} ${rc} 3854262
 
-pair_coeff   1 1 25.0 4.5 4.53 0.5 0.53   1.2 #${rcD}
-pair_coeff   1 2 25.1 4.51 4.54 0.51 0.54 1.21 #${rcD}
-pair_coeff   2 2 25.2 4.52 4.55 0.52 0.55 1.22 #${rcD}
+pair_coeff   1 1 25.0 4.5  1.2
+pair_coeff   1 2 25.1 4.51 1.21
+pair_coeff   2 2 25.2 4.52 1.22
 
 timestep     0.01
 run_style    verlet

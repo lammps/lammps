@@ -628,7 +628,6 @@ void MDIEngine::mdi_md()
   update->endstep = update->laststep = update->ntimestep + update->nsteps;
 
   lmp->init();
-  update->integrate->setup(1);
 
   // engine is now at @INIT_MD node
   // any @ command from driver will start the simulation
@@ -638,6 +637,8 @@ void MDIEngine::mdi_md()
 
   // run one step at a time forever
   // driver triggers exit with @ command other than @COORDS,@FORCES,@ENDSTEP
+
+  update->integrate->setup(1);
 
   timer->init();
   timer->barrier_start();
@@ -752,7 +753,6 @@ void MDIEngine::mdi_optg()
   update->max_eval = std::numeric_limits<int>::max();
 
   lmp->init();
-  update->minimize->setup();
 
   // engine is now at @INIT_OPTG node
   // any @ command from driver will start the minimization
@@ -767,6 +767,8 @@ void MDIEngine::mdi_optg()
   //      but also for line search eng/force evals
   //   if driver triggers exit on step that is not multiple of thermo output
   //      then energy/virial not computed, and <PE, <STRESS will fail
+
+  update->minimize->setup();
 
   timer->init();
   timer->barrier_start();

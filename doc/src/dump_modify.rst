@@ -29,7 +29,7 @@ Syntax
        *colname* values =  ID string, or *default*
          string = new column header name
          ID = integer from 1 to N, or integer from -1 to -N, where N = # of quantities being output
-              *or* a thermo keyword or reference to compute, fix, property or variable.
+              *or* a custom dump keyword or reference to compute, fix, property or variable.
        *delay* arg = Dstep
          Dstep = delay output until this timestep
        *element* args = E1 E2 ... EN, where N = # of atom types
@@ -47,7 +47,7 @@ Syntax
        *format* args = *line* string, *int* string, *float* string, ID string, or *none*
          string = C-style format string
          ID = integer from 1 to N, or integer from -1 to -N, where N = # of quantities being output
-              *or* a thermo keyword or reference to compute, fix, property or variable.
+              *or* a custom dump keyword or reference to compute, fix, property or variable.
        *header* arg = *yes* or *no*
          *yes* to write the header
          *no* to not write the header
@@ -386,7 +386,7 @@ and MPIIO variants.  The setting for *ID string* replaces the default
 text with the provided string.  *ID* can be a positive integer when it
 represents the column number counting from the left, a negative integer
 when it represents the column number from the right (i.e. -1 is the last
-column/keyword), or a thermo keyword (or compute, fix, property, or
+column/keyword), or a custom dump keyword (or compute, fix, property, or
 variable reference) and then it replaces the string for that specific
 keyword. For *atom* dump styles only the keywords "id", "type", "x",
 "y", "z", "ix", "iy", "iz" can be accessed via string regardless of

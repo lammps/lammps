@@ -79,6 +79,10 @@ This data can be extracted and parsed from a log file using python with:
 .. code-block:: python
 
    import re, yaml
+   try:
+       from yaml import CSafeLoader as Loader, CSafeDumper as Dumper
+   except ImportError:
+       from yaml import SafeLoader, SafeDumper
 
    docs = ""
    with open("log.lammps") as f:
@@ -86,7 +90,7 @@ This data can be extracted and parsed from a log file using python with:
            m = re.search(r"^(keywords:.*$|data:$|---$|\.\.\.$|  - \[.*\]$)", line)
            if m: docs += m.group(0) + '\n'
 
-   thermo = list(yaml.load_all(docs, Loader=yaml.SafeLoader))
+   thermo = list(yaml.load_all(docs, Loader=Loader))
 
    print("Number of runs: ", len(thermo))
    print(thermo[1]['keywords'][4], ' = ', thermo[1]['data'][2][4])

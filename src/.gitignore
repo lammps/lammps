@@ -600,6 +600,8 @@
 /dump_xyz_mpiio.h
 /dump_xyz_zstd.cpp
 /dump_xyz_zstd.h
+/dump_yaml.cpp
+/dump_yaml.h
 /dynamical_matrix.cpp
 /dynamical_matrix.h
 /ewald.cpp

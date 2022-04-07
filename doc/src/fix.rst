@@ -194,7 +194,6 @@ accelerated styles exist.
 * :doc:`bond/swap <fix_bond_swap>` - Monte Carlo bond swapping
 * :doc:`box/relax <fix_box_relax>` - relax box size during energy minimization
 * :doc:`charge/regulation <fix_charge_regulation>` - Monte Carlo sampling of charge regulation
-* :doc:`client/md <fix_client_md>` - MD client for client/server simulations
 * :doc:`cmap <fix_cmap>` - enables CMAP cross-terms of the CHARMM force field
 * :doc:`colvars <fix_colvars>` - interface to the collective variables "Colvars" library
 * :doc:`controller <fix_controller>` - apply control loop feedback mechanism

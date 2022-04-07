@@ -35,8 +35,6 @@ kokkos        Kokkos package for GPU and many-core acceleration
                 from Kokkos development team (Sandia)
 linalg        set of BLAS and LAPACK routines needed by ATC package
                 from Axel Kohlmeyer (Temple U)
-message       client/server communication library via MPI, sockets, files
-                from Steve Plimpton (Sandia)
 molfile       hooks to VMD molfile plugins, used by the MOLFILE package
                 from Axel Kohlmeyer (Temple U) and the VMD development team
 mscg          hooks to the MSCG library, used by fix_mscg command

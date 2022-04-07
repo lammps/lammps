@@ -7,6 +7,7 @@ EXAMPLES_DIR=os.path.abspath(os.path.join(__file__, '..', '..', '..', 'examples'
 DEFAULT_STYLE_EXAMPLE_LOG="melt/log.8Apr21.melt.g++.1"
 MULTI_STYLE_EXAMPLE_LOG="peptide/log.27Nov18.peptide.g++.1"
 AVG_CHUNK_FILE="VISCOSITY/profile.13Oct16.nemd.2d.g++.1"
+YAML_STYLE_EXAMPLE_LOG="yaml/log.7Apr22.yaml.g++.1"
 
 class Logfiles(unittest.TestCase):
     def testLogFileNotFound(self):
@@ -57,6 +58,27 @@ class Logfiles(unittest.TestCase):
             self.assertEqual(len(run0[k]), 7)
 
         self.assertEqual(run0["Step"], list(range(0,350, 50)))
+
+    def testYamlLogFile(self):
+        log = LogFile(os.path.join(EXAMPLES_DIR, YAML_STYLE_EXAMPLE_LOG))
+        self.assertEqual(len(log.runs), 2)
+        run = log.runs[0]
+        self.assertEqual(len(run.keys()), 12)
+        self.assertIn("Step", run)
+        self.assertIn("Temp", run)
+        self.assertIn("E_vdwl", run)
+        self.assertIn("E_coul", run)
+        self.assertIn("E_bond", run)
+        self.assertIn("E_angle", run)
+        self.assertIn("Press", run)
+        self.assertEqual(len(run["Step"]), 11)
+        self.assertEqual(len(run["Temp"]), 11)
+        self.assertEqual(len(run["E_vdwl"]), 11)
+        self.assertEqual(len(run["E_coul"]), 11)
+        self.assertEqual(len(run["E_bond"]), 11)
+        self.assertEqual(len(run["E_angle"]), 11)
+        self.assertEqual(len(run["Press"]), 11)
+        self.assertEqual(log.runs[0]["Step"], [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
 
 
 class AvgChunkFiles(unittest.TestCase):

@@ -59,7 +59,7 @@ class PairDPDExtTstatKokkos : public PairDPDExtTstat {
     params_dpd() {cut=ws=wsT=gamma=sigma=gammaT=sigmaT=0;}
     KOKKOS_INLINE_FUNCTION
     params_dpd(int /*i*/) {cut=ws=wsT=gamma=sigma=gammaT=sigmaT=0;}
-    F_FLOAT cutsq,cut,ws,wsT,gamma,sigma,gammaT,sigmaT;
+    F_FLOAT cut,ws,wsT,gamma,sigma,gammaT,sigmaT;
   };
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>

@@ -111,7 +111,7 @@ void PairDPDExtKokkos<DeviceType>::compute(int eflagin, int vflagin)
   eflag = eflagin; vflag = vflagin;
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
-  ev_init(eflag,vflag);
+  ev_init(eflag,vflag,0);
 
   if (eflag_atom) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
@@ -307,6 +307,7 @@ void PairDPDExtKokkos<DeviceType>::operator() (TagDPDExtKokkos<NEIGHFLAG,NEWTON_
       randnumx = rand_gen.normal();
       randnumy = rand_gen.normal();
       randnumz = rand_gen.normal();
+
       // conservative force
       fpair = params(itype,jtype).a0*wd;
 

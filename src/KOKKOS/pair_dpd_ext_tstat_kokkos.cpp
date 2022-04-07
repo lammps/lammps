@@ -111,7 +111,7 @@ void PairDPDExtTstatKokkos<DeviceType>::compute(int eflagin, int vflagin)
   eflag = eflagin; vflag = vflagin;
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
-  ev_init(eflag,vflag);
+  ev_init(eflag,vflag,0);
 
   // adjust sigma if target T is changing
   if (t_start != t_stop) {
@@ -317,10 +317,10 @@ void PairDPDExtTstatKokkos<DeviceType>::operator() (TagDPDExtTstatKokkos<NEIGHFL
       wdPar = pow(wd,params(itype,jtype).ws);
       wdPerp = pow(wd,params(itype,jtype).wsT);
 
-      randnum  = 0.1;//rand_gen.normal();
-      randnumx = 0.1;//rand_gen.normal();
-      randnumy = 0.1;//rand_gen.normal();
-      randnumz = 0.1;//rand_gen.normal();
+      randnum  = rand_gen.normal();
+      randnumx = rand_gen.normal();
+      randnumy = rand_gen.normal();
+      randnumz = rand_gen.normal();
 
       // drag force - parallel
       fpair = -params(itype,jtype).gamma*wdPar*wdPar*dot*rinv;

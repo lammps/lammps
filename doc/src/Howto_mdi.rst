@@ -3,7 +3,7 @@ Using LAMMPS with the MDI library for code coupling
 
 .. note::
 
-  As of March 2022, this Howto page will soon replace the :doc:`Howto
+  As of April 2022, this Howto page will soon replace the :doc:`Howto
   client/server <Howto_client_server>` doc page.
 
 Client/server coupling of two (or more) codes is where one code is the
@@ -36,8 +36,8 @@ of one or more engine codes.  Driver and engine codes can be written in
 any language: C, C++, Fortran, Python, etc.
 
 In addition to allowing driver and engine(s) to run as stand-alone
-executables, MDI also enables a server code to be a "plugin" to the
-client code.  In this scenario, server code(s) are compiled as shared
+executables, MDI also enables an engine to be a *plugin* to the client
+code.  In this scenario, server code(s) are compiled as shared
 libraries, and one (or more) instances of the server are instantiated
 by the driver code.  If the driver code runs in parallel, it can split
 its MPI communicator into multiple sub-communicators, and launch each
@@ -46,7 +46,8 @@ within that sub-communicator exchange messages with the corresponding
 engine instance, and can also send MPI messages to other processors in
 the driver.  The driver code can also destroy engine instances and
 re-instantiate them.  LAMMPS can operate as either a stand-alone or
-plugin MDI engine.
+plugin MDI engine.  When it operates as a driver, if can use either
+stand-alone or plugin MDI engines.
 
 The way in which an MDI driver communicates with an MDI engine is by
 making MDI_Send() and MDI_Recv() calls, which are conceptually similar
@@ -58,39 +59,45 @@ engine via MPI calls or sockets.  This a run-time choice by the user.
 
 ----------
 
-The :ref:`MDI <PKG-MDI>` package provides a :doc:`mdi/engine
-<mdi_engine>` command which enables LAMMPS to operate as an MDI
-engine.  Its doc page explains the variety of standard and custom MDI
-commands which the LAMMPS engine recognizes and can respond to.
+The :ref:`MDI <PKG-MDI>` package provides a :doc:`mdi engine <mdi>`
+command which enables LAMMPS to operate as an MDI engine.  Its doc
+page explains the variety of standard and custom MDI commands which
+the LAMMPS engine recognizes and can respond to.
 
-The :ref:`MDI <PKG-MDI>` package also has a `fix mdi/aimd
-<fix_mdi_aimd>` command in which LAMMPS operates as an MDI driver to
-peform *ab initio* MD simulations in conjunction with a quantum
-mechanics code.  It's post_force() method illustrates how a driver
-issues MDI commands to another code.
+The package also provides a :doc:`mdi plugin <mdi>` command which
+enables LAMMPS to operate as an MDI driver and load an MDI engine as a
+plugin library.
+
+The package also has a `fix mdi/aimd <fix_mdi_aimd>` command in which
+LAMMPS operates as an MDI driver to peform *ab initio* MD simulations
+in conjunction with a quantum mechanics code.  Its post_force() method
+illustrates how a driver issues MDI commands to another code.  This
+command can be used to couple to an MDI engine which is either a
+stand-alone code or a plugin library.
 
 ----------
 
 The examples/mdi directory contains Python scripts and LAMMPS input
-script which use LAMMPS as either an MDI driver or engine.  Three
-example use cases are provided:
+script which use LAMMPS as either an MDI driver or engine or both.
+Three example use cases are provided:
 
-* Run ab intitio MD (AIMD) with 2 instances of LAMMPS as driver and
-  engine.  As an engine, LAMMPS is a surrogate for a quantum code.
+* Run ab intitio MD (AIMD) using 2 instances of LAMMPS, one as driver
+  and one as an engine.  As an engine, LAMMPS is a surrogate for a
+  quantum code.
 
-* A python driver invokes a sequence of unrelated LAMMPS calculations.
-  Calculations can be single-point energy/force evaluations, full MD
-  runs, or full minimizations.
+* A Python script driver invokes a sequence of unrelated LAMMPS
+  calculations.  Calculations can be single-point energy/force
+  evaluations, MD runs, or energy minimizations.
 
 * Run AIMD with a Python driver code and 2 LAMMPS instances as
-  engines.  The first LAMMPS instance performs MD timesteps.  The
+  engines.  The first LAMMPS instance performs MD timestepping.  The
   second LAMMPS instance acts as a surrogate QM code to compute
-  forces.  The aimd_driver.py code allows for the two engines
-  to be used in either stand-alone or plugin mode.
+  forces.
 
 Note that in any of these example where LAMMPS is used as an engine,
 an actual QM code (which supports MDI) could be used in its place,
-without modifying any of the other scripts or code.
+without modifying other code or scripts, except to specify the name of
+the QM code.
 
 The examples/mdi/README file explains how to launch both driver and
 engine codes so that they communicate using the MDI library via either

@@ -8,10 +8,11 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID mdi/aimd
+   fix ID group-ID mdi/aimd keyword
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * mdi/aimd = style name of this fix command
+* optional keyword = *plugin*
 
 Examples
 """"""""
@@ -19,6 +20,7 @@ Examples
 .. code-block:: LAMMPS
 
    fix 1 all mdi/aimd
+   fix 1 all mdi/aimd plugin
 
 Description
 """""""""""
@@ -31,19 +33,33 @@ More specifically, this command causes LAMMPS to begin using the `MDI
 Library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_
 to run as an MDI driver (client), whicn sends MDI commands to an
 external MDI engine code (server) which in the case of AIMD is a
-quantum mechanics (QM) code, or could be LAMMPS itself, asking as a
+quantum mechanics (QM) code, or could be LAMMPS itself, actings as a
 surrogate for a QM code.  See the :doc:`Howto mdi <Howto_mdi>` page
 for more information about how LAMMPS can operate as either an MDI
 driver or engine.
 
 The examples/mdi directory contains input scripts perfoming AIMD in
 this manner with LAMMPS acting as both a driver and an engine
-(surrogate for a QM code).  The examples/README file explains how to
-launch both driver and engine codes so that they communicate using the
-MDI library via either MPI or sockets.  Any QM code that supports MDI
-could be used in place of LAMMPS acting as a QM surrogate.  See the
-:doc:`Howto mdi <Howto_mdi>` page for a current list (March 2022) of
-such QM codes.
+(surrogate for a QM code).  The examples/mdi/README file explains how
+to launch both driver and engine codes so that they communicate using
+the MDI library via either MPI or sockets.  Any QM code that supports
+MDI could be used in place of LAMMPS acting as a QM surrogate.  See
+the :doc:`Howto mdi <Howto_mdi>` page for a current list (March 2022)
+of such QM codes.
+
+The engine code can run either as a stand-alone code, launched at the
+same time as LAMMPS, or as a plugin library.  See the :doc:`mdi plugin
+<mdi>` command for how to trigger LAMMPS to load the plugin library.
+Again, the examples/mdi/README file explains how to launch both driver
+and engine codes so that engine is used in plugin mode.
+
+To use this fix with a plugin engine, you must specify the
+*plugin* keyword as the last argument, as illustrated above.
+
+.. note::
+
+   As of April 2022, the *plugin* keyword is needed.  In a future
+   version of the MDI library it will no longer be necessary.
 
 ----------
 

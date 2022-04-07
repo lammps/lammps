@@ -693,7 +693,8 @@ void FixRigid::init()
     for (auto ifix : modify->get_fix_list()) {
       if (ifix->rigid_flag) rflag = true;
       if ((comm->me == 0) && rflag && (ifix->setmask() & POST_FORCE) && !ifix->rigid_flag)
-        error->warning(FLERR,"Fix {} alters forces after fix rigid", ifix->id);
+        error->warning(FLERR,"Fix {} with ID {} alters forces after fix rigid",
+                       ifix->style, ifix->id);
     }
   }
 

@@ -249,11 +249,11 @@ void Modify::init()
 
   for (i = 0; i < nfix; i++)
     if (!fix[i]->dynamic_group_allow && group->dynamic[fix[i]->igroup])
-      error->all(FLERR, "Fix {} does not allow use with a dynamic group", fix[i]->id);
+      error->all(FLERR, "Fix {} does not allow use with a dynamic group", fix[i]->style);
 
   for (i = 0; i < ncompute; i++)
     if (!compute[i]->dynamic_group_allow && group->dynamic[compute[i]->igroup])
-      error->all(FLERR, "Compute {} does not allow use with a dynamic group", compute[i]->id);
+      error->all(FLERR, "Compute {} does not allow use with a dynamic group", compute[i]->style);
 
   // warn if any particle is time integrated more than once
 

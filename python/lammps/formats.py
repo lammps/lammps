@@ -46,14 +46,15 @@ class LogFile:
         for line in f:
             if "ERROR" in line or "exited on signal" in line:
                 self.errors.append(line)
-            elif line.startswith('Step '):
+
+            elif re.match(r'^ *Step ', line):
                 in_thermo = True
                 in_data_section = True
                 keys = line.split()
                 current_run = {}
                 for k in keys:
                     current_run[k] = []
-            elif line.startswith('---------------- Step'):
+            elif re.match(r'^------* Step ', line):
                 if not in_thermo:
                    current_run = {'Step': [], 'CPU': []}
                 in_thermo = True

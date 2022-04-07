@@ -122,7 +122,7 @@ try:
     if 'LAMMPS_MACHINE_NAME' in os.environ:
         machine=os.environ['LAMMPS_MACHINE_NAME']
     lmp=lammps(name=machine)
-    has_dump_yaml = lmp.has_style("atom","full") && lmp.has_style("dump", "yaml")
+    has_dump_yaml = lmp.has_style("atom","full") and lmp.has_style("dump", "yaml")
     lmp.close()
 except:
     pass

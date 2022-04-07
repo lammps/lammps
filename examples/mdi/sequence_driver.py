@@ -16,11 +16,11 @@
 #   -plugin_args arglist
 #     args to add when launching plugin library, only when using plugin mode
 #     enclose arglist in quotes if multiple words
-#   -n 10
-#     number of calculations to perform, default = 1
+#   -n 3
+#     number of calculations to perform, default = 3
 #   -mode eval/run/min
 #     style of calculations: single snapshot evals, dynamics, minimization
-#     default = eval
+#     default = run
 #   -size Nx Ny Nz
 #     cubic lattice, default = 4 4 4
 #   -rho 0.75 0.1
@@ -208,8 +208,8 @@ mdiarg = ""
 plugin = ""
 plugin_args = ""
 
-ncalc = 1
-mode = "eval"
+ncalc = 3
+mode = "run"
 nx = ny = nz = 4
 rho = 0.75
 rhodelta = 0.1

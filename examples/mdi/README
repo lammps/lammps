@@ -108,11 +108,11 @@ commands below just use the default values of the optional switches.
 The switches are also explained at the top of the file; the info is
 copied here:
 
-#   -n 10
-#     number of calculations to perform, default = 1
+#   -n 3
+#     number of calculations to perform, default = 3
 #   -mode eval/run/min
 #     style of calculations: single snapshot evals, dynamics, minimization
-#     default = eval
+#     default = run
 #   -size Nx Ny Nz
 #     cubic lattice, default = 2 2 2
 #   -rho 0.75 0.1
@@ -152,9 +152,9 @@ Run with MPI: 1 proc each
 
 ---
 
-Run with MPI: 2 procs + 3 procs
+Run with MPI: 2 procs + 4 procs
 
-% mpirun -np 2 python3 sequence_driver.py -mdi "-role DRIVER -name sequence -method MPI" : -np 3 lmp_mpi -mdi "-role ENGINE -name LAMMPS -method MPI" -log log.sequence -in in.sequence
+% mpirun -np 2 python3 sequence_driver.py -mdi "-role DRIVER -name sequence -method MPI" : -np 4 lmp_mpi -mdi "-role ENGINE -name LAMMPS -method MPI" -log log.sequence -in in.sequence
 
 ---
 

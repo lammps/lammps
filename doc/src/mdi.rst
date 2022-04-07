@@ -8,10 +8,19 @@ Syntax
 
 .. parsed-literal::
 
-   mdi engine
+   mdi mode args
 
-* engine = start operating as an MDI engine
+* mode = *engine* or *plugin*
 
+  .. parsed-literal::
+
+       *engine* args = none
+       *plugin* args = keyword value keyword value ...
+         keywords = *mdi* or *infile* or *extra* or *command*
+           *mdi* value = args passed to MDI for driver to operate with plugins
+           *infile* value = filename the engine will read at start-up
+           *extra* value = aditional command-line args to pass to engine library when loaded
+           *command value = a LAMMPS input script command to execute
 
 Examples
 """"""""
@@ -19,19 +28,33 @@ Examples
 .. code-block:: LAMMPS
 
    mdi engine
+   mdi plugin lammps mdi "-role ENGINE -name lammps -method LINK" &
+              infile in.aimd.engine extra "-log log.aimd.engine.plugin" &
+              command "run 5"
 
 Description
 """""""""""
 
-This command enables LAMMPS act as a server with another client code
-to effectively couple the two codes together in client/server mode.
+This command implements two high-level operations within LAMMPS to use
+the `MDI Library
+<https://molssi-mdi.github.io/MDI_Library/html/index.html>` for
+coupling to another code.
 
-More specifically, this command causes LAMMPS to begin using the `MDI
-Library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_
-to run as an MDI engine (server), responding to MDI commands issued by
-an external MDI driver code (client).  See the :doc:`Howto mdi
-<Howto_mdi>` page for more information about how LAMMPS can operate as
-either an MDI driver or engine.
+The *engine* mode enables LAMMPS to act as a server, responding to
+requests from another client code to effectively couple the two codes
+together in client/server mode.  In MDI lingo this means LAMMPS
+operates as an MDI engine.
+
+The *plugin* mode enables LAMMPS to act as a client, and load the
+server code as a library plugin.  In MDI lingo this means LAMMPS
+operates as an MDI driver, and the server is an MDI engine.  In this
+case the MDI engine is a library plugin.  It can also be a stand-alone
+code, lauched separately from LAMMPS.  
+
+See the Howto MDI doc page for a discussion of all the different ways
+2 or more codes can interact via MDI.  The examples/mdi/README file
+has example use cases and launch commands for using LAMMPS as both a
+driver and engine in all these different ways.
 
 The examples/mdi directory contains input scripts for LAMMPS acting as
 an MDI engine to operate as a surrogate quantum mechanics (QM) code
@@ -44,26 +67,30 @@ communicate using the MDI library via either MPI or sockets.
 
 ----------
 
-The mdi engine command should typically be used in an input script
+The *mdi engine* command should typically be used in an input script
 after LAMMPS has setup the system it is going to model in
 collaboration with the driver code.  Depending on how the driver code
 tells the LAMMPS engine to exit, other commands can be executed after
-this command, but typically it should be used at the end of the LAMMPS
-input script.
+this command, but typically it should it is used at the end of a
+LAMMPS input script.
 
-To act as a MD-based MDI engine, this is the list of standard MDI
-commands issued by a driver code which LAMMPS currently recognizes.
-Using standard commands defined by the MDI library means that a driver
-code can work interchangeably with LAMMPS or other MD codes which
-support the MDI standard.  See more details about these commands in
-the `MDI library documentation
+
+
+To act as an MDI engine operating as an MD code (or surrogate QM
+code), this is the list of standard MDI commands issued by a driver
+code which LAMMPS currently recognizes.  Using standard commands
+defined by the MDI library means that a driver code can work
+interchangeably with LAMMPS or other MD codes which support the MDI
+standard.  See more details about these commands in the `MDI library
+documentation
 <https://molssi-mdi.github.io/MDI_Library/html/mdi_standard.html>`_
 
 These commands are valid at the @DEFAULT node defined by MDI.
 Commands that start with ">" mean the driver is sending information to
 the engine (LAMMMPS).  Commands that start with "<" are requests by
-the driver for LAMMPS to send it information.  Command that start with
-"@" are MDI "node" commands, which are described further below.
+the driver for LAMMPS to send it information.  Commands that start
+with a letter perform actions.  Commands that start with "@" are MDI
+"node" commands, which are described further below.
 
 .. list-table::
    :widths: 20 80
@@ -89,18 +116,26 @@ the driver for LAMMPS to send it information.  Command that start with
      - Request string label of each atom (N values)
    * - <MASSES
      - Request mass of each atom (N values)
+   * - MD
+       Perform an MD simulation for N timestpes (most recent >NSTEPS value)
+   * - OPTG
+       Perform an energy minimization to convergence (most recent >TOLERANCE values)
    * - >NATOMS or <NATOMS
      - Sends/request number of atoms in the system (1 value)
+   * - >NSTEPS
+     - Send number of timesteps for next MD dynamics run via MD command
    * - <PE
      - Request potential energy of the system (1 value)
    * - <STRESS
      - Request stress tensor (virial) of the system (6 values)
+   * - >TOLERANCE
+     - Send 4 tolerance parameters for next MD minimization via OPTG command
    * - >TYPES or <TYPES
      - Send/request the numeric type of each atom (N values)
    * - >VELOCITIES or <VELOCITIES
      - Send/request the velocity of each atom (3N values)
    * - @INIT_MD or @INIT_OPTG
-     - Driver tells LAMMPS to start dynamics or minimization (see below)
+     - Driver tells LAMMPS to start single-step dynamics or minimization (see below)
    * - EXIT
      - Driver tells LAMMPS to exit engine mode
 
@@ -120,6 +155,19 @@ the driver for LAMMPS to send it information.  Command that start with
    or >TYPES commands have been sent (since the previous >COORDS
    command), then LAMMPS assumes the system is new and re-initializes
    an entirely new simulation.
+
+The MD and OPTG commands perform an entire MD simulation or energy
+minimization (to convergence) with no communication with the driver
+until the simulation is complete.  By contrast, the @INIT_MD and
+@INIT_OPTG commands allow the driver to communicate with the engine at
+each timestep of a dynamics run or iteration of a minimization; see
+more info below.
+
+The MD command performa a simulation using the most recent >NSTEPS
+value.  The OPTG command performs a minimization using the 4
+convergence paremeters from the most recent >TOLERANCE command.  The 4
+parameters sent are those used by the :doc:`minimize <minimize>`
+command in LAMMPS: etol, ftol, maxiter, and maxeval.
 
 The mdi engine command also implements the following custom MDI
 commands which are LAMMPS-specific.  These commands are also valid at
@@ -143,24 +191,20 @@ sufficient to support what a user-written driver code needs.  Code to
 support new commands can be added to the MDI package within LAMMPS,
 specifically to the src/MDI/mdi_engine.cpp file.
 
-MDI also defines a standard mechanism for the driver to request that an
-MD engine (LAMMPS) perform a dynamics simulation or an energy
-minimization.  This can be done one step (or iteration for
-minimization) at a time, where the driver can (optionally) communicate
-with LAMMPS at intermediate points of the timestep or iteration by
-issuing MDI node commands which start with "@".  LAMMPS also adds 2
-custom MDI commands to allow the driver to tell LAMMPS to perform an
-entire N-step MD run or an entire minimization to convergence without
-intermediate communication from the driver.
+MDI also defines a standard mechanism for the driver to request that
+an MD engine (LAMMPS) perform a dynamics simulation one step at a time
+or an energy minimization one iteration at a time.  This is so that
+the driver can (optionally) communicate with LAMMPS at intermediate
+points of the timestep or iteration by issuing MDI node commands which
+start with "@".
 
-To tell LAMMPS to run dynamics, the driver sends as @INIT_MD command
-followed by the these commands.  The >NITERATE command is a custom
-command added by LAMMPS:
+To tell LAMMPS to run dynamics in single-step mode, the driver sends
+as @INIT_MD command followed by the these commands.  The driver
+can interact with LAMMPS at 3 node locations within each
+timestep: @COORDS, @FORCES, @ENDSTEP:
 
    * - Command name
      - Action
-   * - >NITERATE
-     - Send # of timesteps for the MD simulation (1 value)
    * - @COORDS
      - Proceed to next @COORDS node = post-integrate location in LAMMPS timestep
    * - @FORCES
@@ -172,14 +216,12 @@ command added by LAMMPS:
    * - EXIT
      - Driver tells LAMMPS to exit the MD simulation and engine mode
 
-To tell LAMMPS to run an energy minimization, the driver sends as
-@INIT_OPTG command followed by these commands.  The >TOLERANCE command
-is a custom command added by LAMMPS:
+To tell LAMMPS to run an energy minimization in single-iteration mode.
+The driver can interact with LAMMPS at 2 node locations within each
+iteration of the minimizer: @COORDS, @FORCES:
 
    * - Command name
      - Action
-   * - >TOLERANCE
-     - Send tolerance parameters for the minimization (4 values)
    * - @COORDS
      - Proceed to next @COORDS node = min-pre-force location in LAMMPS min iteration
    * - @FORCES
@@ -188,9 +230,6 @@ is a custom command added by LAMMPS:
      - Exit minimization, return to @DEFAULT node
    * - EXIT
      - Driver tells LAMMPS to exit the minimization and engine mode
-
-The 4 tolerance parameters are those used by the :doc:`minimize
-<minimize>` command in LAMMPS: etol, ftol, maxiter, and maxeval.
 
 While LAMMPS is at its @COORDS node, the following standard MDI
 commands are supported, as documented above: >COORDS or <COORDS,
@@ -204,6 +243,13 @@ or >+FORCES or <FORCES, <KE, <PE, <STRESS, @COORDS, @FORCES, @ENDSTEP,
 While LAMMPS is at its @ENDSTEP node, the following standard MDI
 commands are supported, as documented above: <ENERGY, <FORCES, <KE,
 <PE, <STRESS, @COORDS, @FORCES, @ENDSTEP, @DEFAULT, EXIT.
+
+----------
+
+The *mdi plugin* command should also typically be used at the end of
+an input script after LAMMPS has setup the system it is going to model
+in collaboration with the engine code.
+
 
 
 Restrictions

@@ -15,14 +15,15 @@ Alternatively the engine code can be a plugin library which the driver
 code loads, in which case the driver and engine run on the same
 processors.
 
-LAMMPS supports operating in all these modes.  It can be an engine
+LAMMPS supports operating in all these MDI modes.  It can be an engine
 operating either as a stand-alone code or as a plugin.  It can also be
 a driver and couple to an engine that is either a stand-alone code or
 a plugin.  Examples for all these use cases are in this directory.
-The example run commands below illustrate all the variants.
+The example commands below illustrate how to run all the variants.
 
 To use LAMMPS as a plugin engine, you must build it as a shared library.
-Something like this:
+Something like this, which also builds the normal LAMMPS executable
+lmp_mpi:
 
 cd src
 make yes-mdi
@@ -36,8 +37,8 @@ using same the same version of MPI.
 -------------------------------------------------
 
 * Example #1 = run ab inito MD (AIMD)
-  2 instances of LAMMPS operate as a driver and engine
-  as an engine, LAMMPS is a surrogate for a quantum code
+  Two instances of LAMMPS operate as a driver and engine
+  As an engine, LAMMPS is a surrogate for a quantum code
 
 Note that the 2 input scripts in.aimd.alone and in.aimd.driver
 have an option for running in NVE vs NPT mode.  Comment in/out
@@ -97,8 +98,8 @@ Run in plugin mode: 3 procs
 -------------------------------------------------
 -------------------------------------------------
 
-* Example #2 = Python driver runs sequence of unrelated LAMMPS calculations
-  Each calculation can be a single-point evaluation, an MD run, or a minimization.
+* Example #2 = Python driver runs a sequence of unrelated LAMMPS calculations
+  Each calculation can be a single-point evaluation, MD run, or minimization
 
 The sequence_driver.py code allows for optional switches in addition
 to -mdi (required) and the -plugin and -plugin_args switches which are
@@ -170,9 +171,9 @@ Run in plugin mode: 3 procs
 -------------------------------------------------
 -------------------------------------------------
 
-* Example #3 = run AIMD with Python driver code and 2 LAMMPS instances
-               first LAMMPS instance is MM = performs MD timesteps
-               second LAMMPS instance is surrogate QM = computes forces
+* Example #3 = run AIMD with Python driver code and 2 LAMMPS instances as engines
+  First LAMMPS instance performs the MD timestepping
+  Second LAMMPS instance is surrogate QM = computes forces
 
 The aimd_driver.py code allows for an optional switch in addition to
 -mdi (required) and the -plugin and -plugin_args swiches which are

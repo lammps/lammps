@@ -132,7 +132,7 @@ class PairDPDTstatKokkos : public PairDPDTstat {
   typename AT::t_efloat_1d d_eatom;
   typename AT::t_virial_array d_vatom;
 
-  KOKKOS_FUNCTION
+  KOKKOS_INLINE_FUNCTION
   int sbmask(const int& j) const;
   friend void pair_virial_fdotr_compute<PairDPDTstatKokkos>(PairDPDTstatKokkos*);
 

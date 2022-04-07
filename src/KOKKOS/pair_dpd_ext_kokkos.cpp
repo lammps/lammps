@@ -241,6 +241,7 @@ void PairDPDExtKokkos<DeviceType>::operator() (TagDPDExtKokkos<NEIGHFLAG,NEWTON_
   EV_FLOAT ev;
   this->template operator()<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(TagDPDExtKokkos<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), ii, ev);
 }
+
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 KOKKOS_INLINE_FUNCTION

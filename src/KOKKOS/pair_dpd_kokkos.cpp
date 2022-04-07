@@ -91,16 +91,13 @@ void PairDPDKokkos<DeviceType>::init_style()
 
   neighflag = lmp->kokkos->neighflag;
 
-  if (force->newton_pair == 0 || neighflag == FULL )
+  if (force->newton_pair == 0 || neighflag == FULL)
     error->all(FLERR,"Must use half neighbor list style and newton on with pair dpd/kk");
 
   auto request = neighbor->find_request(this);
   request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
                            !std::is_same<DeviceType,LMPDeviceType>::value);
   request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
-
-  if (neighflag == FULL)
-    request->enable_full();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -109,7 +106,6 @@ template<class DeviceType>
 void PairDPDKokkos<DeviceType>::compute(int eflagin, int vflagin)
 {
   eflag = eflagin; vflag = vflagin;
-  if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
   ev_init(eflag,vflag,0);
 
@@ -140,7 +136,6 @@ void PairDPDKokkos<DeviceType>::compute(int eflagin, int vflagin)
   special_lj[3] = force->special_lj[3];
 
   nlocal = atom->nlocal;
-  newton_pair = force->newton_pair;
   dtinvsqrt = 1.0/sqrt(update->dt);
 
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
@@ -165,29 +160,11 @@ void PairDPDKokkos<DeviceType>::compute(int eflagin, int vflagin)
   EV_FLOAT ev;
   copymode = 1;
   if (neighflag == HALF) {
-    if (newton_pair) {
-      if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagDPDKokkos<HALF,1,1> >(0,inum),*this,ev);
-      else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagDPDKokkos<HALF,1,0> >(0,inum),*this);
-    } else {
-      if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagDPDKokkos<HALF,0,1> >(0,inum),*this,ev);
-      else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagDPDKokkos<HALF,0,0> >(0,inum),*this);
-    }
+    if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagDPDKokkos<HALF,1> >(0,inum),*this,ev);
+    else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagDPDKokkos<HALF,0> >(0,inum),*this);
   } else if (neighflag == HALFTHREAD) {
-    if (newton_pair) {
-      if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagDPDKokkos<HALFTHREAD,1,1> >(0,inum),*this,ev);
-      else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagDPDKokkos<HALFTHREAD,1,0> >(0,inum),*this);
-    } else {
-      if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagDPDKokkos<HALFTHREAD,0,1> >(0,inum),*this,ev);
-      else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagDPDKokkos<HALFTHREAD,0,0> >(0,inum),*this);
-    }
-  } else if (neighflag == FULL) {
-    if (newton_pair) {
-      if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagDPDKokkos<FULL,1,1> >(0,inum),*this,ev);
-      else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagDPDKokkos<FULL,1,0> >(0,inum),*this);
-    } else {
-      if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagDPDKokkos<FULL,0,1> >(0,inum),*this,ev);
-      else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagDPDKokkos<FULL,0,0> >(0,inum),*this);
-    }
+    if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagDPDKokkos<HALFTHREAD,1> >(0,inum),*this,ev);
+    else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagDPDKokkos<HALFTHREAD,0> >(0,inum),*this);
   }
 
   if (need_dup)
@@ -235,17 +212,17 @@ void PairDPDKokkos<DeviceType>::compute(int eflagin, int vflagin)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairDPDKokkos<DeviceType>::operator() (TagDPDKokkos<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii) const {
+void PairDPDKokkos<DeviceType>::operator() (TagDPDKokkos<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT ev;
-  this->template operator()<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(TagDPDKokkos<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), ii, ev);
+  this->template operator()<NEIGHFLAG,EVFLAG>(TagDPDKokkos<NEIGHFLAG,EVFLAG>(), ii, ev);
 }
 
 template<class DeviceType>
-template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairDPDKokkos<DeviceType>::operator() (TagDPDKokkos<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT &ev) const {
+void PairDPDKokkos<DeviceType>::operator() (TagDPDKokkos<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT &ev) const {
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
@@ -305,23 +282,20 @@ void PairDPDKokkos<DeviceType>::operator() (TagDPDKokkos<NEIGHFLAG,NEWTON_PAIR,E
       fy += fpair*dely;
       fz += fpair*delz;
 
-      if ((neighflag==HALF || neighflag==HALFTHREAD) && (NEWTON_PAIR || j < nlocal) ) {
-        a_f(j,0) -= fpair*delx;
-        a_f(j,1) -= fpair*dely;
-        a_f(j,2) -= fpair*delz;
-      }
+      a_f(j,0) -= fpair*delx;
+      a_f(j,1) -= fpair*dely;
+      a_f(j,2) -= fpair*delz;
 
-      if (eflag) {
+      if (EVFLAG && eflag_global) {
         // unshifted eng of conservative term:
         // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/cut[itype][jtype]);
         // eng shifted to 0.0 at cutoff
         evdwl = 0.5*params(itype,jtype).a0*params(itype,jtype).cut* wd*wd;
         evdwl *= factor_dpd;
-        if (EVFLAG)
-          ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
+        ev.evdwl += evdwl;
       }
-      if (EVFLAG)
-        this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
+      if (EVFLAG && (eflag_atom || vflag_either))
+        this->template ev_tally<NEIGHFLAG>(ev,i,j,evdwl,fpair,delx,dely,delz);
     }
   }
   a_f(i,0) += fx;
@@ -333,15 +307,12 @@ void PairDPDKokkos<DeviceType>::operator() (TagDPDKokkos<NEIGHFLAG,NEWTON_PAIR,E
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-template<int NEIGHFLAG, int NEWTON_PAIR>
+template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairDPDKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
       const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
                 const F_FLOAT &dely, const F_FLOAT &delz) const
 {
-  const int EFLAG = eflag;
-  const int VFLAG = vflag_either;
-
   // The eatom and vatom arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
   auto v_eatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
@@ -350,19 +321,13 @@ void PairDPDKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &
   auto v_vatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
   auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
-  if (EFLAG) {
-    if (eflag_atom) {
-      const E_FLOAT epairhalf = 0.5 * epair;
-      if (NEIGHFLAG!=FULL) {
-        if (NEWTON_PAIR || i < nlocal) a_eatom[i] += epairhalf;
-        if (NEWTON_PAIR || j < nlocal) a_eatom[j] += epairhalf;
-      } else {
-        a_eatom[i] += epairhalf;
-      }
-    }
+  if (eflag_atom) {
+    const E_FLOAT epairhalf = 0.5 * epair;
+    a_eatom[i] += epairhalf;
+    a_eatom[j] += epairhalf;
   }
 
-  if (VFLAG) {
+  if (vflag_either) {
     const E_FLOAT v0 = delx*delx*fpair;
     const E_FLOAT v1 = dely*dely*fpair;
     const E_FLOAT v2 = delz*delz*fpair;
@@ -371,57 +336,27 @@ void PairDPDKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &
     const E_FLOAT v5 = dely*delz*fpair;
 
     if (vflag_global) {
-      if (NEIGHFLAG!=FULL) {
-        ev.v[0] += 0.5*v0;
-        ev.v[1] += 0.5*v1;
-        ev.v[2] += 0.5*v2;
-        ev.v[3] += 0.5*v3;
-        ev.v[4] += 0.5*v4;
-        ev.v[5] += 0.5*v5;
-        if (NEWTON_PAIR || j < nlocal) {
-          ev.v[0] += 0.5*v0;
-          ev.v[1] += 0.5*v1;
-          ev.v[2] += 0.5*v2;
-          ev.v[3] += 0.5*v3;
-          ev.v[4] += 0.5*v4;
-          ev.v[5] += 0.5*v5;
-        }
-      } else {
-        ev.v[0] += 0.5*v0;
-        ev.v[1] += 0.5*v1;
-        ev.v[2] += 0.5*v2;
-        ev.v[3] += 0.5*v3;
-        ev.v[4] += 0.5*v4;
-        ev.v[5] += 0.5*v5;
-      }
+      ev.v[0] += v0;
+      ev.v[1] += v1;
+      ev.v[2] += v2;
+      ev.v[3] += v3;
+      ev.v[4] += v4;
+      ev.v[5] += v5;
     }
 
     if (vflag_atom) {
-      if (NEIGHFLAG!=FULL) {
-        if (NEWTON_PAIR || i < nlocal) {
-          a_vatom(i,0) += 0.5*v0;
-          a_vatom(i,1) += 0.5*v1;
-          a_vatom(i,2) += 0.5*v2;
-          a_vatom(i,3) += 0.5*v3;
-          a_vatom(i,4) += 0.5*v4;
-          a_vatom(i,5) += 0.5*v5;
-        }
-        if (NEWTON_PAIR || j < nlocal) {
-        a_vatom(j,0) += 0.5*v0;
-        a_vatom(j,1) += 0.5*v1;
-        a_vatom(j,2) += 0.5*v2;
-        a_vatom(j,3) += 0.5*v3;
-        a_vatom(j,4) += 0.5*v4;
-        a_vatom(j,5) += 0.5*v5;
-        }
-      } else {
-        a_vatom(i,0) += 0.5*v0;
-        a_vatom(i,1) += 0.5*v1;
-        a_vatom(i,2) += 0.5*v2;
-        a_vatom(i,3) += 0.5*v3;
-        a_vatom(i,4) += 0.5*v4;
-        a_vatom(i,5) += 0.5*v5;
-      }
+      a_vatom(i,0) += 0.5*v0;
+      a_vatom(i,1) += 0.5*v1;
+      a_vatom(i,2) += 0.5*v2;
+      a_vatom(i,3) += 0.5*v3;
+      a_vatom(i,4) += 0.5*v4;
+      a_vatom(i,5) += 0.5*v5;
+      a_vatom(j,0) += 0.5*v0;
+      a_vatom(j,1) += 0.5*v1;
+      a_vatom(j,2) += 0.5*v2;
+      a_vatom(j,3) += 0.5*v3;
+      a_vatom(j,4) += 0.5*v4;
+      a_vatom(j,5) += 0.5*v5;
     }
   }
 }

@@ -62,18 +62,18 @@ class PairDPDKokkos : public PairDPD {
     F_FLOAT cut,a0,gamma,sigma;
   };
 
-  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  template<int NEIGHFLAG, int EVFLAG>
   struct TagDPDKokkos{};
 
-  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator () (TagDPDKokkos<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &i) const;
+  void operator () (TagDPDKokkos<NEIGHFLAG,EVFLAG>, const int &i) const;
 
-  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator () (TagDPDKokkos<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &i, EV_FLOAT&) const;
+  void operator () (TagDPDKokkos<NEIGHFLAG,EVFLAG>, const int &i, EV_FLOAT&) const;
 
-  template<int NEIGHFLAG, int NEWTON_PAIR>
+  template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
       const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
@@ -81,7 +81,7 @@ class PairDPDKokkos : public PairDPD {
  private:
   double special_lj[4];
   int eflag,vflag;
-  int neighflag,nlocal,newton_pair;
+  int neighflag,nlocal;
   double dtinvsqrt;
 
   int need_dup;

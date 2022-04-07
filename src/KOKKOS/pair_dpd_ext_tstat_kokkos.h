@@ -62,26 +62,26 @@ class PairDPDExtTstatKokkos : public PairDPDExtTstat {
     F_FLOAT cut,ws,wsT,gamma,sigma,gammaT,sigmaT;
   };
 
-  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  template<int NEIGHFLAG, int VFLAG>
   struct TagDPDExtTstatKokkos{};
 
-  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  template<int NEIGHFLAG, int VFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator () (TagDPDExtTstatKokkos<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &i) const;
+  void operator () (TagDPDExtTstatKokkos<NEIGHFLAG,VFLAG>, const int &i) const;
 
-  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  template<int NEIGHFLAG, int VFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator () (TagDPDExtTstatKokkos<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &i, EV_FLOAT&) const;
+  void operator () (TagDPDExtTstatKokkos<NEIGHFLAG,VFLAG>, const int &i, EV_FLOAT&) const;
 
-  template<int NEIGHFLAG, int NEWTON_PAIR>
+  template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
-                  const F_FLOAT &dely, const F_FLOAT &delz) const;
+  void v_tally_xyz(EV_FLOAT &ev, const int &i, const int &j,
+      const F_FLOAT &fx,const F_FLOAT &fy, const F_FLOAT &fz,
+      const F_FLOAT &delx,const F_FLOAT &dely, const F_FLOAT &delz) const;
  private:
   double special_lj[4];
   int eflag,vflag;
-  int neighflag,nlocal,newton_pair;
+  int neighflag,nlocal;
   double dtinvsqrt;
 
   int need_dup;

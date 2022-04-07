@@ -62,26 +62,26 @@ class PairDPDTstatKokkos : public PairDPDTstat {
     F_FLOAT cut,gamma,sigma;
   };
 
-  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  template<int NEIGHFLAG, int VFLAG>
   struct TagDPDTstatKokkos{};
 
-  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  template<int NEIGHFLAG, int VFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator () (TagDPDTstatKokkos<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &i) const;
+  void operator () (TagDPDTstatKokkos<NEIGHFLAG,VFLAG>, const int &i) const;
 
-  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  template<int NEIGHFLAG, int VFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator () (TagDPDTstatKokkos<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &i, EV_FLOAT&) const;
+  void operator () (TagDPDTstatKokkos<NEIGHFLAG,VFLAG>, const int &i, EV_FLOAT&) const;
 
-  template<int NEIGHFLAG, int NEWTON_PAIR>
+  template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
+  void v_tally(EV_FLOAT &ev, const int &i, const int &j,
+      const F_FLOAT &fpair, const F_FLOAT &delx,
                   const F_FLOAT &dely, const F_FLOAT &delz) const;
  private:
   double special_lj[4];
   int eflag,vflag;
-  int neighflag,nlocal,newton_pair;
+  int neighflag,nlocal;
   double dtinvsqrt;
 
   int need_dup;
@@ -95,10 +95,8 @@ class PairDPDTstatKokkos : public PairDPDTstat {
   using NonDupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterNonDuplicated>;
 
   DupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> dup_f;
-  DupScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout> dup_eatom;
   DupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> dup_vatom;
   NonDupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> ndup_f;
-  NonDupScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout> ndup_eatom;
   NonDupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> ndup_vatom;
 
 #ifdef DPD_USE_RAN_MARS
@@ -127,9 +125,7 @@ class PairDPDTstatKokkos : public PairDPDTstat {
   typename Kokkos::DualView<params_dpd**,
     Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
 
-  DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;
-  typename AT::t_efloat_1d d_eatom;
   typename AT::t_virial_array d_vatom;
 
   KOKKOS_INLINE_FUNCTION

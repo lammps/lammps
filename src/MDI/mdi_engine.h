@@ -61,7 +61,7 @@ class MDIEngine : protected Pointers {
   int *sys_types;
   double *sys_charges,*sys_coords,*sys_velocities;
   double sys_cell[9],sys_cell_displ[3];
-    
+
   int nsteps;              // timesteps for MD
   double etol,ftol;        // 4 minimization params for OPTG
   int niterate,max_eval;
@@ -82,7 +82,7 @@ class MDIEngine : protected Pointers {
   char *id_ke,*id_pe,*id_press;    // computes invoked by MDI
   class Compute *ke,*pe,*press;
 
-  class Irregular *irregular;      // irregular comm if new COORDS 
+  class Irregular *irregular;      // irregular comm if new COORDS
                                    // are highly displaced
 
   // class methods

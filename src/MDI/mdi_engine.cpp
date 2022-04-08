@@ -551,13 +551,13 @@ void MDIEngine::mdi_commands()
 
   // node at POST_FORCE location in timestep
   // only used if fix MDI/ENGINE is instantiated
-  // two register callbacks allow LAMMPS to interact more easily 
+  // two register callbacks allow LAMMPS to interact more easily
   //   with drivers which don't know LAMMPS control flow
 
   MDI_Register_node("@FORCES");
   MDI_Register_callback("@FORCES",">FORCES");
   MDI_Register_callback("@FORCES",">+FORCES");
-  MDI_Register_command("@FORCES","<@"); 
+  MDI_Register_command("@FORCES","<@");
   MDI_Register_command("@FORCES","<COORDS");
   MDI_Register_command("@FORCES","<ENERGY");
   MDI_Register_command("@FORCES","<FORCES");
@@ -614,7 +614,7 @@ void MDIEngine::mdi_md()
   // delete the instance before this method returns
 
   modify->add_fix("MDI_ENGINE_INTERNAL all MDI/ENGINE");
-  FixMDIEngine *mdi_fix = 
+  FixMDIEngine *mdi_fix =
     (FixMDIEngine *) modify->get_fix_by_id("MDI_ENGINE_INTERNAL");
   mdi_fix->mdi_engine = this;
 
@@ -622,7 +622,7 @@ void MDIEngine::mdi_md()
 
   update->whichflag = 1;
   timer->init_timeout();
-  
+
   update->nsteps = 1;
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->ntimestep + update->nsteps;
@@ -648,9 +648,9 @@ void MDIEngine::mdi_md()
     update->laststep += 1;
     update->endstep = update->laststep;
     output->next = update->ntimestep + 1;
-    
+
     update->integrate->run(1);
-    
+
     if (strcmp(mdicmd,"@COORDS") != 0 &&
         strcmp(mdicmd,"@FORCES") != 0 &&
         strcmp(mdicmd,"@ENDSTEP") != 0) break;
@@ -690,7 +690,7 @@ void MDIEngine::md()
 
   update->whichflag = 1;
   timer->init_timeout();
-  
+
   update->nsteps = nsteps;
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->ntimestep + update->nsteps;
@@ -735,7 +735,7 @@ void MDIEngine::mdi_optg()
   // delete the instance before this method returns
 
   modify->add_fix("MDI_ENGINE_INTERNAL all MDI/ENGINE");
-  FixMDIEngine *mdi_fix = 
+  FixMDIEngine *mdi_fix =
     (FixMDIEngine *) modify->get_fix_by_id("MDI_ENGINE_INTERNAL");
   mdi_fix->mdi_engine = this;
 
@@ -851,11 +851,11 @@ void MDIEngine::optg()
 void MDIEngine::evaluate()
 {
   int flag_create = flag_natoms | flag_types;
-  int flag_other = flag_cell | flag_cell_displ | flag_charges | 
+  int flag_other = flag_cell | flag_cell_displ | flag_charges |
     flag_coords | flag_velocities;
 
   // create or update system if requested
-  
+
   if (flag_create) create_system();
   else if (flag_other) {
     if (flag_cell || flag_cell_displ) adjust_box();
@@ -1215,7 +1215,7 @@ void MDIEngine::receive_tolerance()
   niterate = static_cast<int> (params[2]);
   max_eval = static_cast<int> (params[3]);
 
-  if (etol < 0.0 || ftol < 0.0 || niterate < 0 || max_eval < 0) 
+  if (etol < 0.0 || ftol < 0.0 || niterate < 0 || max_eval < 0)
     error->all(FLERR,"MDI received invalid toleranace parameters");
 }
 
@@ -1378,7 +1378,7 @@ void MDIEngine::send_labels()
 
   // use atomID to index into ordered ibuf1
 
-  tagint *tag = atom->tag; 
+  tagint *tag = atom->tag;
   int *type = atom->type;
   int nlocal = atom->nlocal;
 

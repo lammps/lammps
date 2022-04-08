@@ -73,7 +73,7 @@ MDIPlugin::MDIPlugin(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // error checks
 
-  if (!mdi_arg || !infile_arg || !lammps_command) 
+  if (!mdi_arg || !infile_arg || !lammps_command)
     error->all(FLERR,"MDI plugin must specify mdi, infile, command keywords");
 
   // build full plugin_args string for args to plugin library
@@ -110,14 +110,14 @@ MDIPlugin::MDIPlugin(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
      with the plugin
 ---------------------------------------------------------------------- */
 
-int MDIPlugin::plugin_wrapper(void *pmpicomm, MDI_Comm mdicomm, 
+int MDIPlugin::plugin_wrapper(void *pmpicomm, MDI_Comm mdicomm,
                               void *vptr)
 {
   MPI_Comm mpicomm = *(MPI_Comm *) pmpicomm;
   MDIPlugin *ptr = (MDIPlugin *) vptr;
   LAMMPS *lammps = ptr->lmp;
   char *lammps_command = ptr->lammps_command;
- 
+
   // set FixMDIAimd mdicomm to driver's mdicomm passed to this callback
 
   FixMDIAimd *aimdptr = (FixMDIAimd *) (ptr->fixptr);

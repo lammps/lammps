@@ -51,7 +51,7 @@ code, launched separately from LAMMPS, in which case the mdi plugin
 command is not used.
 
 See the Howto MDI doc page for a discussion of all the different ways
-2 or more codes can interact via MDI.  
+2 or more codes can interact via MDI.
 
 The examples/mdi directory has examples which use LAMMPS in 4
 different modes: as a driver using an engine as either a stand-alone
@@ -241,7 +241,7 @@ commands are supported, as documented above: <ENERGY, <FORCES, <KE,
 The *mdi plugin* command is used to make LAMMPS operate as an MDI
 driver which loads an MDI engine as a plugin library.  It is typically
 used in an input script after LAMMPS has setup the system it is going
-to model consistent with the engine code.  
+to model consistent with the engine code.
 
 The *name* argument specifies which plugin library to load.  A name
 like "lammps" is converted to a filename liblammps.so.  The path for

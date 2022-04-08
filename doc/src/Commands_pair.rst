@@ -88,12 +88,12 @@ OPT.
    * :doc:`coul/tt <pair_coul_tt>`
    * :doc:`coul/wolf (ko) <pair_coul>`
    * :doc:`coul/wolf/cs <pair_cs>`
-   * :doc:`dpd (gio) <pair_dpd>`
+   * :doc:`dpd (giko) <pair_dpd>`
    * :doc:`dpd/fdt <pair_dpd_fdt>`
-   * :doc:`dpd/ext <pair_dpd_ext>`
-   * :doc:`dpd/ext/tstat <pair_dpd_ext>`
+   * :doc:`dpd/ext (k) <pair_dpd_ext>`
+   * :doc:`dpd/ext/tstat (k) <pair_dpd_ext>`
    * :doc:`dpd/fdt/energy (k) <pair_dpd_fdt>`
-   * :doc:`dpd/tstat (go) <pair_dpd>`
+   * :doc:`dpd/tstat (gko) <pair_dpd>`
    * :doc:`dsmc <pair_dsmc>`
    * :doc:`e3b <pair_e3b>`
    * :doc:`drip <pair_drip>`

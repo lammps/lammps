@@ -460,6 +460,8 @@
 /compute_fabric.h
 /compute_fep.cpp
 /compute_fep.h
+/compute_fep_ta.cpp
+/compute_fep_ta.h
 /compute_force_tally.cpp
 /compute_force_tally.h
 /compute_gyration_shape.cpp

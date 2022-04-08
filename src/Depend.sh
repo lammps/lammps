@@ -73,6 +73,7 @@ fi
 
 if (test $1 = "DPD-BASIC") then
   depend GPU
+  depend KOKKOS
   depend OPENMP
   depend INTEL
 fi

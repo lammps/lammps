@@ -82,7 +82,7 @@ This data can be extracted and parsed from a log file using python with:
    try:
        from yaml import CSafeLoader as Loader, CSafeDumper as Dumper
    except ImportError:
-       from yaml import SafeLoader, SafeDumper
+       from yaml import SafeLoader as Loader, SafeDumper as Dumper
 
    docs = ""
    with open("log.lammps") as f:

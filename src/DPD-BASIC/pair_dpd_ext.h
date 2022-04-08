@@ -45,12 +45,12 @@ class PairDPDExt : public Pair {
   double cut_global, temperature;
   int seed;
   double **cut;
-  double **a0, **gamma, **gammaII, **gammaT;
+  double **a0, **gamma, **gammaT;
   double **sigma, **sigmaT;
   double **ws, **wsT;
   class RanMars *random;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

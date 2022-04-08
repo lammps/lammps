@@ -1225,7 +1225,7 @@ void PairMesoCNT::spline_coeff(double **data, double ****coeff, double dx, doubl
    cubic spline evaluation
 ------------------------------------------------------------------------- */
 
-double PairMesoCNT::spline(double x, double xstart, double dx, double **coeff, int coeff_size)
+inline double PairMesoCNT::spline(double x, double xstart, double dx, double **coeff, int coeff_size)
 {
   int i = ceil((x - xstart) / dx);
 
@@ -1253,7 +1253,7 @@ double PairMesoCNT::spline(double x, double xstart, double dx, double **coeff, i
    cubic spline derivative
 ------------------------------------------------------------------------- */
 
-double PairMesoCNT::dspline(double x, double xstart, double dx, double **coeff, int coeff_size)
+inline double PairMesoCNT::dspline(double x, double xstart, double dx, double **coeff, int coeff_size)
 {
   int i = ceil((x - xstart) / dx);
 
@@ -1281,7 +1281,7 @@ double PairMesoCNT::dspline(double x, double xstart, double dx, double **coeff, 
    bicubic spline evaluation
 ------------------------------------------------------------------------- */
 
-double PairMesoCNT::spline(double x, double y, double xstart, double ystart, double dx, double dy,
+inline double PairMesoCNT::spline(double x, double y, double xstart, double ystart, double dx, double dy,
                            double ****coeff, int coeff_size)
 {
   int i = ceil((x - xstart) / dx);
@@ -1328,7 +1328,7 @@ double PairMesoCNT::spline(double x, double y, double xstart, double ystart, dou
    bicubic spline partial x derivative
 ------------------------------------------------------------------------- */
 
-double PairMesoCNT::dxspline(double x, double y, double xstart, double ystart, double dx, double dy,
+inline double PairMesoCNT::dxspline(double x, double y, double xstart, double ystart, double dx, double dy,
                              double ****coeff, int coeff_size)
 {
   int i = ceil((x - xstart) / dx);
@@ -1373,7 +1373,7 @@ double PairMesoCNT::dxspline(double x, double y, double xstart, double ystart, d
    bicubic spline partial y derivative
 ------------------------------------------------------------------------- */
 
-double PairMesoCNT::dyspline(double x, double y, double xstart, double ystart, double dx, double dy,
+inline double PairMesoCNT::dyspline(double x, double y, double xstart, double ystart, double dx, double dy,
                              double ****coeff, int coeff_size)
 {
   int i = ceil((x - xstart) / dx);
@@ -1513,7 +1513,7 @@ void PairMesoCNT::geometry(const double *r1, const double *r2, const double *p1,
    weight for substitute CNT chain
 ------------------------------------------------------------------------- */
 
-void PairMesoCNT::weight(const double *r1, const double *r2, const double *p1, const double *p2,
+inline void PairMesoCNT::weight(const double *r1, const double *r2, const double *p1, const double *p2,
                          double &w, double *dr1_w, double *dr2_w, double *dp1_w, double *dp2_w)
 {
   double dr, dp, rhoc, rhomin, rho, frac, arg, factor;

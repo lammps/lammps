@@ -73,21 +73,22 @@ class PairMesoCNT : public Pair {
   void spline_coeff(double *, double **, double, int);
   void spline_coeff(double **, double ****, double, double, int);
 
-  double spline(double, double, double, double **, int);
-  double dspline(double, double, double, double **, int);
-  double spline(double, double, double, double, double, double, double ****, int);
-  double dxspline(double, double, double, double, double, double, double ****, int);
-  double dyspline(double, double, double, double, double, double, double ****, int);
-
   void geometry(const double *, const double *, const double *, const double *, const double *,
                 double *, double *, double *, double **);
-  void weight(const double *, const double *, const double *, const double *, double &, double *,
-              double *, double *, double *);
 
   void finf(const double *, double &, double **);
   void fsemi(const double *, double &, double &, double **);
 
   // inlined functions for efficiency
+  
+  inline void weight(const double *, const double *, const double *, const double *, double &, double *,
+              double *, double *, double *);
+  
+  inline double spline(double, double, double, double **, int);
+  inline double dspline(double, double, double, double **, int);
+  inline double spline(double, double, double, double, double, double, double ****, int);
+  inline double dxspline(double, double, double, double, double, double, double ****, int);
+  inline double dyspline(double, double, double, double, double, double, double ****, int);
 
   inline double heaviside(double x)
   {

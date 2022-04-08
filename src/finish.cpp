@@ -345,6 +345,14 @@ void Finish::end(int flag)
                 nthreads,me,time_loop,screen,logfile);
     mpi_timings("Modify",timer,Timer::MODIFY,world,nprocs,
                 nthreads,me,time_loop,screen,logfile);
+    mpi_timings("Initial",timer,Timer::INITIAL_INTEGRATE,world,nprocs,
+                nthreads,me,time_loop,screen,logfile);
+    mpi_timings("PostFor",timer,Timer::POST_FORCE,world,nprocs,
+                nthreads,me,time_loop,screen,logfile);
+    mpi_timings("Final",timer,Timer::FINAL_INTEGRATE,world,nprocs,
+                nthreads,me,time_loop,screen,logfile);
+    mpi_timings("EndOS",timer,Timer::END_OF_STEP,world,nprocs,
+                nthreads,me,time_loop,screen,logfile);
     if (timer->has_sync())
       mpi_timings("Sync",timer,Timer::SYNC,world,nprocs,
                   nthreads,me,time_loop,screen,logfile);

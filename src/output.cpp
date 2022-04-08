@@ -192,7 +192,7 @@ void Output::setup(int memflag)
   // decide whether to write snapshot and/or calculate next step for dump
 
   if (ndump && update->restrict_output == 0) {
-    next_time_dump_any = MAXBIGINT;
+    next_dump_any = next_time_dump_any = MAXBIGINT;
 
     for (int idump = 0; idump < ndump; idump++) {
 
@@ -256,8 +256,7 @@ void Output::setup(int memflag)
 
       if (mode_dump[idump] && (dump[idump]->clearstep || var_dump[idump]))
         next_time_dump_any = MIN(next_time_dump_any,next_dump[idump]);
-      if (idump) next_dump_any = MIN(next_dump_any,next_dump[idump]);
-      else next_dump_any = next_dump[0];
+      next_dump_any = MIN(next_dump_any,next_dump[idump]);
     }
 
   // if no dumps, set next_dump_any to last+1 so will not influence next
@@ -356,9 +355,9 @@ void Output::setup(int memflag)
    //     what other command may have added it
 
    if (next_dump_any == ntimestep) {
+     next_dump_any = next_time_dump_any = MAXBIGINT;
 
      for (int idump = 0; idump < ndump; idump++) {
-       next_time_dump_any = MAXBIGINT;
 
        if (next_dump[idump] == ntimestep) {
          if (last_dump[idump] == ntimestep) continue;
@@ -381,8 +380,7 @@ void Output::setup(int memflag)
 
        if (mode_dump[idump] && (dump[idump]->clearstep || var_dump[idump]))
          next_time_dump_any = MIN(next_time_dump_any,next_dump[idump]);
-       if (idump) next_dump_any = MIN(next_dump_any,next_dump[idump]);
-       else next_dump_any = next_dump[0];
+       next_dump_any = MIN(next_dump_any,next_dump[idump]);
      }
    }
 

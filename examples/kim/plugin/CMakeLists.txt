@@ -59,18 +59,9 @@ target_link_libraries(kimplugin PRIVATE lammps)
 target_include_directories(kimplugin PRIVATE ${LAMMPS_SOURCE_DIR}/KIM)
 set_target_properties(kimplugin PROPERTIES PREFIX "" SUFFIX ".so")
 
-set(KIM-API_MIN_VERSION 2.1.3)
 find_package(PkgConfig REQUIRED)
-if(KIM-API_FOUND AND KIM-API_VERSION VERSION_GREATER_EQUAL 2.2.0)
-  # For kim-api >= 2.2.0
-  find_package(KIM-API 2.2.0 CONFIG REQUIRED)
-  target_link_libraries(kimplugin PRIVATE KIM-API::kim-api)
-else()
-  # For kim-api 2.1.3 (consistent with previous version of this file)
-  find_package(PkgConfig REQUIRED)
-  pkg_check_modules(KIM-API REQUIRED IMPORTED_TARGET libkim-api>=${KIM-API_MIN_VERSION})
-  target_link_libraries(kimplugin PRIVATE PkgConfig::KIM-API)
-endif()
+find_package(KIM-API 2.2.0 CONFIG REQUIRED)
+target_link_libraries(kimplugin PRIVATE KIM-API::kim-api)
 
 ##########################
 # need libcurl

@@ -212,8 +212,8 @@ FixDPPimd::FixDPPimd(LAMMPS *lmp, int narg, char **arg) :
 
     else if(strcmp(arg[i], "fixcom")==0)
     {
-      if(strcmp(arg[i+1], "no")==0) removecomflag = 1;
-      else if(strcmp(arg[i+1], "yes")==0) removecomflag = 0;
+      if(strcmp(arg[i+1], "yes")==0) removecomflag = 1;
+      else if(strcmp(arg[i+1], "no")==0) removecomflag = 0;
     }
 
     else if(strcmp(arg[i], "map")==0)
@@ -438,16 +438,18 @@ void FixDPPimd::init()
   /* The current solution, using LAMMPS internal real units */
 
   const double Boltzmann = force->boltz;
-  const double Plank     = force->hplanck;
+  const double Planck     = force->hplanck;
 
   // double hbar   = Plank / ( 2.0 * MY_PI );
-  hbar = force->hplanck;
+  // hbar = force->hplanck;
+  hbar = Planck / 2.0 / MY_PI;
   kBT = Boltzmann * temp;
   beta   = 1.0 / kBT;
   double _fbond = 1.0 * np*np / (beta*beta*hbar*hbar) ;
 
   omega_np = np / (hbar * beta) * sqrt(force->mvv2e);
   fbond = _fbond * force->mvv2e;
+  printf("fbond = %.16e\n", fbond);
 
   beta_np = 1.0 / force->boltz / Lan_temp / np;
 
@@ -1261,6 +1263,7 @@ void FixDPPimd::Langevin_init()
   _omega_k = new double[np];
   Lan_c = new double[np];
   Lan_s = new double[np];
+  printf("w_np = %.6f\n", _omega_np);
   if(fmmode==physical){
     for (int i=0; i<np; i++)
     {
@@ -1268,6 +1271,7 @@ void FixDPPimd::Langevin_init()
       Lan_c[i] = cos(sqrt(lam[i])*_omega_np_dt_half);
       Lan_s[i] = sin(sqrt(lam[i])*_omega_np_dt_half);
       // printf("i=%d w=%.8e\nc=%.8e\ns=%.8e\n", i, _omega_k[i], Lan_c[i], Lan_s[i]);
+      printf("mode[%d]: lam = %.6f w_k = %.6f c_k = %.6f s_k = %.6f\n", i, lam[i], _omega_k[i], Lan_c[i], Lan_s[i]);
     }
   }
   else if(fmmode==normal){
@@ -2610,8 +2614,11 @@ void FixDPPimd::compute_spring_energy()
   total_spring_energy /= np;
 */
   // printf("iworld = %d, step = %d, fbond = %.30e\n", universe->iworld, update->ntimestep, fbond);
+  // printf("i=%d %.6f %.6f %.6f\n", 0, x[0][0], x[0][1], x[0][2]);
   for(int i=0; i<nlocal; i++)
   {
+    // double se_i = 0.5 * _mass[type[i]] * fbond * lam[universe->iworld] * (x[i][0]*x[i][0] + x[i][1]*x[i][1] + x[i][2]*x[i][2]);
+    // if(universe->iworld==1) printf("i = %d se = %.16e\n", i, se_i);
     spring_energy += 0.5 * _mass[type[i]] * fbond * lam[universe->iworld] * (x[i][0]*x[i][0] + x[i][1]*x[i][1] + x[i][2]*x[i][2]); 
   }
   MPI_Barrier(universe->uworld);

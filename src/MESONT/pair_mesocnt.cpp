@@ -42,6 +42,7 @@ using namespace MathExtra;
 #define SMALL 1.0e-6
 #define SWITCH 1.0e-6
 #define QUADRATURE 100
+#define RHOMIN 10.0
 
 /* ---------------------------------------------------------------------- */
 
@@ -1515,7 +1516,7 @@ void PairMesoCNT::weight(const double *r1, const double *r2, const double *p1, c
   dr = sqrt(0.25 * distsq3(r1, r2) + rsq);
   dp = sqrt(0.25 * distsq3(p1, p2) + rsq);
   rhoc = dr + dp + rc;
-  rhomin = 20.0 * ang;
+  rhomin = RHOMIN * ang;
   rho = sqrt(distsq3(r, p));
 
   frac = 1.0 / (rhoc - rhomin);

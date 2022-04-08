@@ -250,11 +250,11 @@ void Verlet::run(int n)
 
     // initial time integration
 
-    timer->stamp();
+    // timer->stamp();
     modify->initial_integrate(vflag);
-    timer->stamp(Timer::INITIAL_INTEGRATE);
+    // timer->stamp(Timer::INITIAL_INTEGRATE);
     if (n_post_integrate) modify->post_integrate();
-    timer->stamp(Timer::MODIFY);
+    // timer->stamp(Timer::MODIFY);
 
     // regular communication vs neighbor list rebuild
 
@@ -342,12 +342,13 @@ void Verlet::run(int n)
     // force modifications, final time integration, diagnostics
 
     if (n_post_force) modify->post_force(vflag);
-    timer->stamp(Timer::POST_FORCE);
+    // timer->stamp(Timer::POST_FORCE);
+    timer->stamp();
     modify->final_integrate();
-    timer->stamp(Timer::FINAL_INTEGRATE);
+    // timer->stamp(Timer::FINAL_INTEGRATE);
     if (n_end_of_step) {
       modify->end_of_step();
-      timer->stamp(Timer::END_OF_STEP);
+      // timer->stamp(Timer::END_OF_STEP);
     }
     timer->stamp(Timer::MODIFY);
 

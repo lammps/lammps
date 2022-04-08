@@ -345,13 +345,13 @@ void Finish::end(int flag)
                 nthreads,me,time_loop,screen,logfile);
     mpi_timings("Modify",timer,Timer::MODIFY,world,nprocs,
                 nthreads,me,time_loop,screen,logfile);
-    mpi_timings("Initial",timer,Timer::INITIAL_INTEGRATE,world,nprocs,
+    mpi_timings("Unmap",timer,Timer::UNMAP,world,nprocs,
                 nthreads,me,time_loop,screen,logfile);
-    mpi_timings("PostFor",timer,Timer::POST_FORCE,world,nprocs,
+    mpi_timings("Nmtrans",timer,Timer::NM_TRANS,world,nprocs,
                 nthreads,me,time_loop,screen,logfile);
-    mpi_timings("Final",timer,Timer::FINAL_INTEGRATE,world,nprocs,
+    mpi_timings("Unwrap",timer,Timer::UPDATE_X_UNWRAP,world,nprocs,
                 nthreads,me,time_loop,screen,logfile);
-    mpi_timings("EndOS",timer,Timer::END_OF_STEP,world,nprocs,
+    mpi_timings("Xc",timer,Timer::COMPUTE_XC,world,nprocs,
                 nthreads,me,time_loop,screen,logfile);
     if (timer->has_sync())
       mpi_timings("Sync",timer,Timer::SYNC,world,nprocs,

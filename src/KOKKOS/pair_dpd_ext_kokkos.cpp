@@ -370,25 +370,20 @@ void PairDPDExtKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, const int &i, cons
   }
 
   if (vflag_either) {
-    const E_FLOAT v0 = delx*delx*fx;
-    const E_FLOAT v1 = dely*dely*fy;
-    const E_FLOAT v2 = delz*delz*fz;
-    const E_FLOAT v3 = delx*dely*fy;
-    const E_FLOAT v4 = delx*delz*fz;
-    const E_FLOAT v5 = dely*delz*fz;
+    const E_FLOAT v0 = delx*fx;
+    const E_FLOAT v1 = dely*fy;
+    const E_FLOAT v2 = delz*fz;
+    const E_FLOAT v3 = delx*fy;
+    const E_FLOAT v4 = delx*fz;
+    const E_FLOAT v5 = dely*fz;
 
     if (vflag_global) {
-      ev.v[0] += 0.5*v0;
-      ev.v[1] += 0.5*v1;
-      ev.v[2] += 0.5*v2;
-      ev.v[3] += 0.5*v3;
-      ev.v[4] += 0.5*v4;
-      ev.v[5] += 0.5*v5;
-      ev.v[1] += 0.5*v1;
-      ev.v[2] += 0.5*v2;
-      ev.v[3] += 0.5*v3;
-      ev.v[4] += 0.5*v4;
-      ev.v[5] += 0.5*v5;
+      ev.v[0] += v0;
+      ev.v[1] += v1;
+      ev.v[2] += v2;
+      ev.v[3] += v3;
+      ev.v[4] += v4;
+      ev.v[5] += v5;
     }
 
     if (vflag_atom) {

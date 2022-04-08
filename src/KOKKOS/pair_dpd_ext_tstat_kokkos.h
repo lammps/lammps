@@ -95,10 +95,8 @@ class PairDPDExtTstatKokkos : public PairDPDExtTstat {
   using NonDupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterNonDuplicated>;
 
   DupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> dup_f;
-  DupScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout> dup_eatom;
   DupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> dup_vatom;
   NonDupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> ndup_f;
-  NonDupScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout> ndup_eatom;
   NonDupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> ndup_vatom;
 
 #ifdef DPD_USE_RAN_MARS
@@ -127,9 +125,7 @@ class PairDPDExtTstatKokkos : public PairDPDExtTstat {
   typename Kokkos::DualView<params_dpd**,
     Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
 
-  DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;
-  typename AT::t_efloat_1d d_eatom;
   typename AT::t_virial_array d_vatom;
 
   KOKKOS_INLINE_FUNCTION

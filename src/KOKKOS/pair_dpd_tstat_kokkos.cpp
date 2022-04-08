@@ -115,11 +115,19 @@ void PairDPDTstatKokkos<DeviceType>::compute(int eflagin, int vflagin)
     temperature = t_start + delta * (t_stop-t_start);
     double boltz = force->boltz;
     for (int i = 1; i <= atom->ntypes; i++)
-      for (int j = i; j <= atom->ntypes; j++)
+      for (int j = i; j <= atom->ntypes; j++) {
         k_params.h_view(i,j).sigma = k_params.h_view(j,i).sigma =
           sqrt(2.0*boltz*temperature*gamma[i][j]);
+      }
   }
   k_params.template modify<LMPHostType>();
+
+  if (eflag_atom) {
+    maxeatom = atom->nmax;
+    memory->destroy(eatom);
+    memory->create(eatom,maxeatom,"pair:eatom");
+    memset(&eatom[0], 0, maxeatom * sizeof(double));
+  }
 
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
@@ -230,6 +238,7 @@ void PairDPDTstatKokkos<DeviceType>::operator() (TagDPDTstatKokkos<NEIGHFLAG,VFL
   double vxtmp,vytmp,vztmp,delvx,delvy,delvz;
   double rsq,r,rinv,dot,wd,randnum,factor_dpd;
   double fx = 0,fy = 0,fz = 0;
+
   i = d_ilist[ii];
   xtmp = x(i,0);
   ytmp = x(i,1);
@@ -311,17 +320,12 @@ void PairDPDTstatKokkos<DeviceType>::v_tally(EV_FLOAT &ev, const int &i, const i
     const E_FLOAT v5 = dely*delz*fpair;
 
   if (vflag_global) {
-    ev.v[0] += 0.5*v0;
-    ev.v[1] += 0.5*v1;
-    ev.v[2] += 0.5*v2;
-    ev.v[3] += 0.5*v3;
-    ev.v[4] += 0.5*v4;
-    ev.v[0] += 0.5*v0;
-    ev.v[1] += 0.5*v1;
-    ev.v[2] += 0.5*v2;
-    ev.v[3] += 0.5*v3;
-    ev.v[4] += 0.5*v4;
-    ev.v[5] += 0.5*v5;
+    ev.v[0] += v0;
+    ev.v[1] += v1;
+    ev.v[2] += v2;
+    ev.v[3] += v3;
+    ev.v[4] += v4;
+    ev.v[5] += v5;
   }
 
   if (vflag_atom) {

@@ -67,7 +67,6 @@ PairDPDExtTstatKokkos<DeviceType>::~PairDPDExtTstatKokkos() {
   rand_pool.destroy();
 #endif
 
-  memoryKK->destroy_kokkos(k_eatom,eatom);
   memoryKK->destroy_kokkos(k_vatom,vatom);
 
   memoryKK->destroy_kokkos(k_cutsq,cutsq);
@@ -124,10 +123,12 @@ void PairDPDExtTstatKokkos<DeviceType>::compute(int eflagin, int vflagin)
   k_params.template modify<LMPHostType>();
 
   if (eflag_atom) {
-    memoryKK->destroy_kokkos(k_eatom,eatom);
-    memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
-    d_eatom = k_eatom.template view<DeviceType>();
+    maxeatom = atom->nmax;
+    memory->destroy(eatom);
+    memory->create(eatom,maxeatom,"pair:eatom");
+    memset(&eatom[0], 0, maxeatom * sizeof(double));
   }
+
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
@@ -160,11 +161,9 @@ void PairDPDExtTstatKokkos<DeviceType>::compute(int eflagin, int vflagin)
   need_dup = lmp->kokkos->need_dup<DeviceType>();
   if (need_dup) {
     dup_f     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(f);
-    dup_eatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_eatom);
     dup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_vatom);
   } else {
     ndup_f     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(f);
-    ndup_eatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_eatom);
     ndup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_vatom);
   }
 
@@ -184,7 +183,6 @@ void PairDPDExtTstatKokkos<DeviceType>::compute(int eflagin, int vflagin)
   if (need_dup)
     Kokkos::Experimental::contribute(f, dup_f);
 
-  if (eflag_global) eng_vdwl += ev.evdwl;
   if (vflag_global) {
     virial[0] += ev.v[0];
     virial[1] += ev.v[1];
@@ -195,13 +193,6 @@ void PairDPDExtTstatKokkos<DeviceType>::compute(int eflagin, int vflagin)
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
-
-  if (eflag_atom) {
-    if (need_dup)
-      Kokkos::Experimental::contribute(d_eatom, dup_eatom);
-    k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
-  }
 
   if (vflag_atom) {
     if (need_dup)
@@ -218,7 +209,6 @@ void PairDPDExtTstatKokkos<DeviceType>::compute(int eflagin, int vflagin)
   // free duplicated memory
   if (need_dup) {
     dup_f     = decltype(dup_f)();
-    dup_eatom = decltype(dup_eatom)();
     dup_vatom = decltype(dup_vatom)();
   }
 }
@@ -237,6 +227,7 @@ template<class DeviceType>
 template<int NEIGHFLAG, int VFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairDPDExtTstatKokkos<DeviceType>::operator() (TagDPDExtTstatKokkos<NEIGHFLAG,VFLAG>, const int &ii, EV_FLOAT &ev) const {
+
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
@@ -362,25 +353,20 @@ void PairDPDExtTstatKokkos<DeviceType>::v_tally_xyz(EV_FLOAT &ev, const int &i, 
   auto v_vatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
   auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
-  const E_FLOAT v0 = delx*delx*fx;
-  const E_FLOAT v1 = dely*dely*fy;
-  const E_FLOAT v2 = delz*delz*fz;
-  const E_FLOAT v3 = delx*dely*fy;
-  const E_FLOAT v4 = delx*delz*fz;
-  const E_FLOAT v5 = dely*delz*fz;
+  const E_FLOAT v0 = delx*fx;
+  const E_FLOAT v1 = dely*fy;
+  const E_FLOAT v2 = delz*fz;
+  const E_FLOAT v3 = delx*fy;
+  const E_FLOAT v4 = delx*fz;
+  const E_FLOAT v5 = dely*fz;
 
   if (vflag_global) {
-    ev.v[0] += 0.5*v0;
-    ev.v[1] += 0.5*v1;
-    ev.v[2] += 0.5*v2;
-    ev.v[3] += 0.5*v3;
-    ev.v[4] += 0.5*v4;
-    ev.v[5] += 0.5*v5;
-    ev.v[1] += 0.5*v1;
-    ev.v[2] += 0.5*v2;
-    ev.v[3] += 0.5*v3;
-    ev.v[4] += 0.5*v4;
-    ev.v[5] += 0.5*v5;
+    ev.v[0] += v0;
+    ev.v[1] += v1;
+    ev.v[2] += v2;
+    ev.v[3] += v3;
+    ev.v[4] += v4;
+    ev.v[5] += v5;
   }
 
   if (vflag_atom) {

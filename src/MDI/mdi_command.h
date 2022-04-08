@@ -32,7 +32,7 @@ class MDICommand : public Command {
   void command(int, char **) override;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

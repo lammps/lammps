@@ -16,18 +16,19 @@
    MolSSI Driver Interface (MDI) support for LAMMPS
 ------------------------------------------------------------------------- */
 
-#include "error.h"
 #include "fix_mdi_engine.h"
-#include "mdi_engine.h"
+
+#include "error.h"
 #include "update.h"
+
+#include "mdi_engine.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixMDIEngine::FixMDIEngine(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg)
+FixMDIEngine::FixMDIEngine(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
   if (narg != 3) error->all(FLERR, "Illegal fix mdi/engine command");
 }

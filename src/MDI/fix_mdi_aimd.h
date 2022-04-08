@@ -52,16 +52,16 @@ class FixMDIAimd : public Fix {
 
   // unit conversion factors
 
-  double lmp2mdi_length,mdi2lmp_length;
-  double lmp2mdi_energy,mdi2lmp_energy;
-  double lmp2mdi_force,mdi2lmp_force;
-  double lmp2mdi_pressure,mdi2lmp_pressure;
-  double lmp2mdi_velocity,mdi2lmp_velocity;
+  double lmp2mdi_length, mdi2lmp_length;
+  double lmp2mdi_energy, mdi2lmp_energy;
+  double lmp2mdi_force, mdi2lmp_force;
+  double lmp2mdi_pressure, mdi2lmp_pressure;
+  double lmp2mdi_velocity, mdi2lmp_velocity;
 
   // buffers for MDI comm
 
   int maxbuf;
-  double *buf3,*buf3all;
+  double *buf3, *buf3all;
 
   // methods
 
@@ -69,7 +69,7 @@ class FixMDIAimd : public Fix {
   void unit_conversions();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

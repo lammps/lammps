@@ -18,11 +18,12 @@
 
 #include "mdi_plugin.h"
 
-#include <cstring>
 #include "error.h"
 #include "fix_mdi_aimd.h"
 #include "input.h"
 #include "modify.h"
+
+#include <cstring>
 
 #include <mdi.h>
 
@@ -39,7 +40,7 @@ using namespace LAMMPS_NS;
 
 MDIPlugin::MDIPlugin(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 {
-  if (narg < 1) error->all(FLERR,"Illegal mdi plugin command");
+  if (narg < 1) error->all(FLERR, "Illegal mdi plugin command");
 
   char *plugin_name = arg[0];
 
@@ -50,44 +51,45 @@ MDIPlugin::MDIPlugin(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   int iarg = 1;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"mdi") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal mdi plugin command");
-      mdi_arg = arg[iarg+1];
+    if (strcmp(arg[iarg], "mdi") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal mdi plugin command");
+      mdi_arg = arg[iarg + 1];
       iarg += 2;
-    } else if (strcmp(arg[iarg],"infile") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal mdi plugin command");
-      infile_arg = arg[iarg+1];
+    } else if (strcmp(arg[iarg], "infile") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal mdi plugin command");
+      infile_arg = arg[iarg + 1];
       iarg += 2;
-    } else if (strcmp(arg[iarg],"extra") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal mdi plugin command");
-      extra_arg = arg[iarg+1];
+    } else if (strcmp(arg[iarg], "extra") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal mdi plugin command");
+      extra_arg = arg[iarg + 1];
       iarg += 2;
-    } else if (strcmp(arg[iarg],"command") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal mdi plugin command");
-      int n = strlen(arg[iarg+1]) + 1;
+    } else if (strcmp(arg[iarg], "command") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal mdi plugin command");
+      int n = strlen(arg[iarg + 1]) + 1;
       lammps_command = new char[n];
-      strcpy(lammps_command,arg[iarg+1]);
+      strcpy(lammps_command, arg[iarg + 1]);
       iarg += 2;
-    } else error->all(FLERR,"Illegal mdi plugin command");
+    } else
+      error->all(FLERR, "Illegal mdi plugin command");
   }
 
   // error checks
 
   if (!mdi_arg || !infile_arg || !lammps_command)
-    error->all(FLERR,"MDI plugin must specify mdi, infile, command keywords");
+    error->all(FLERR, "MDI plugin must specify mdi, infile, command keywords");
 
   // build full plugin_args string for args to plugin library
 
   int n = strlen(mdi_arg) + strlen(infile_arg) + strlen(extra_arg) + 16;
   char *plugin_args = new char[n];
   plugin_args[0] = 0;
-  strcat(plugin_args,"-mdi \"");
-  strcat(plugin_args,mdi_arg);
-  strcat(plugin_args,"\" -in ");
-  strcat(plugin_args,infile_arg);
+  strcat(plugin_args, "-mdi \"");
+  strcat(plugin_args, mdi_arg);
+  strcat(plugin_args, "\" -in ");
+  strcat(plugin_args, infile_arg);
   if (extra_arg) {
-    strcat(plugin_args," ");
-    strcat(plugin_args,extra_arg);
+    strcat(plugin_args, " ");
+    strcat(plugin_args, extra_arg);
   }
 
   // find FixMDIAimd instance so can reset its mdicomm
@@ -99,9 +101,9 @@ MDIPlugin::MDIPlugin(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // path for lib was specified in -mdi command-line arg when LAMMPS started
   // this calls back to plugin_wrapper, which must issue MDI EXIT at end
 
-  MDI_Launch_plugin(plugin_name,plugin_args,&world,plugin_wrapper,(void *)this);
+  MDI_Launch_plugin(plugin_name, plugin_args, &world, plugin_wrapper, (void *) this);
 
-  delete [] plugin_args;
+  delete[] plugin_args;
 }
 
 /* ----------------------------------------------------------------------
@@ -110,8 +112,7 @@ MDIPlugin::MDIPlugin(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
      with the plugin
 ---------------------------------------------------------------------- */
 
-int MDIPlugin::plugin_wrapper(void *pmpicomm, MDI_Comm mdicomm,
-                              void *vptr)
+int MDIPlugin::plugin_wrapper(void *pmpicomm, MDI_Comm mdicomm, void *vptr)
 {
   MPI_Comm mpicomm = *(MPI_Comm *) pmpicomm;
   MDIPlugin *ptr = (MDIPlugin *) vptr;
@@ -127,11 +128,11 @@ int MDIPlugin::plugin_wrapper(void *pmpicomm, MDI_Comm mdicomm,
   // that operation will issue MDI commands to the plugin engine
 
   lammps->input->one(lammps_command);
-  delete [] lammps_command;
+  delete[] lammps_command;
 
   // send MDI exit to plugin, which unloads the plugin
 
-  MDI_Send_command("EXIT",mdicomm);
+  MDI_Send_command("EXIT", mdicomm);
 
   return 0;
 }

@@ -13,10 +13,11 @@
 
 #include "mdi_command.h"
 
-#include <cstring>
+#include "error.h"
 #include "mdi_engine.h"
 #include "mdi_plugin.h"
-#include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -26,11 +27,12 @@ using namespace LAMMPS_NS;
 
 void MDICommand::command(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal mdi command");
+  if (narg < 1) error->all(FLERR, "Illegal mdi command");
 
-  if (strcmp(arg[0],"engine") == 0) {
-    MDIEngine(lmp,narg-1,&arg[1]);
-  } else if (strcmp(arg[0],"plugin") == 0) {
-    MDIPlugin(lmp,narg-1,&arg[1]);
-  } else error->all(FLERR,"Illegal mdi command");
+  if (strcmp(arg[0], "engine") == 0) {
+    MDIEngine(lmp, narg - 1, &arg[1]);
+  } else if (strcmp(arg[0], "plugin") == 0) {
+    MDIPlugin(lmp, narg - 1, &arg[1]);
+  } else
+    error->all(FLERR, "Illegal mdi command");
 }

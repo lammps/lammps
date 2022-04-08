@@ -74,8 +74,7 @@ int MDI_Plugin_init_lammps()
   bool found_filename = false;
   while (iarg < mdi_argc && !found_filename) {
 
-    if ((strcmp(mdi_argv[iarg], "-in") == 0) ||
-        (strcmp(mdi_argv[iarg], "-i") == 0)) {
+    if ((strcmp(mdi_argv[iarg], "-in") == 0) || (strcmp(mdi_argv[iarg], "-i") == 0)) {
 
       if (iarg + 2 > mdi_argc) MPI_Abort(MPI_COMM_WORLD, 1);
       filename = mdi_argv[iarg + 1];
@@ -84,8 +83,7 @@ int MDI_Plugin_init_lammps()
       // remove -in argument from the command list
 
       mdi_argc -= 2;
-      for (int jarg = iarg; jarg < mdi_argc; jarg++)
-        mdi_argv[jarg] = mdi_argv[jarg + 2];
+      for (int jarg = iarg; jarg < mdi_argc; jarg++) mdi_argv[jarg] = mdi_argv[jarg + 2];
     }
     iarg++;
   }
@@ -97,9 +95,9 @@ int MDI_Plugin_init_lammps()
 
   void *lmp = nullptr;
   if (lammps_config_has_mpi_support() > 0)
-    lmp = lammps_open(mdi_argc+1, &mdi_argv[-1], mpi_world_comm, nullptr);
+    lmp = lammps_open(mdi_argc + 1, &mdi_argv[-1], mpi_world_comm, nullptr);
   else
-    lmp = lammps_open_no_mpi(mdi_argc+1, &mdi_argv[-1], nullptr);
+    lmp = lammps_open_no_mpi(mdi_argc + 1, &mdi_argv[-1], nullptr);
 
   // process the specified input script
   // must contain "mdi engine" command
@@ -132,5 +130,5 @@ The function executes a single command from an external MDI driver.
 int lammps_execute_mdi_command(const char *command, MDI_Comm comm, void *class_obj)
 {
   MDIEngine *mdi_engine = (MDIEngine *) class_obj;
-  return mdi_engine->execute_command(command,comm);
+  return mdi_engine->execute_command(command, comm);
 }

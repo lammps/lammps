@@ -14,8 +14,8 @@
 #ifndef LMP_MDI_PLUGIN_H
 #define LMP_MDI_PLUGIN_H
 
-#include "pointers.h"
 #include "mdi.h"
+#include "pointers.h"
 
 namespace LAMMPS_NS {
 
@@ -30,7 +30,7 @@ class MDIPlugin : protected Pointers {
   static int plugin_wrapper(void *, MDI_Comm, void *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

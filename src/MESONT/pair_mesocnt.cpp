@@ -69,6 +69,8 @@ PairMesoCNT::~PairMesoCNT()
     memory->destroy(cutsq);
     memory->destroy(setflag);
 
+    memory->destroy(end_types);
+
     memory->destroy(uinf_coeff);
     memory->destroy(gamma_coeff);
     memory->destroy(phi_coeff);
@@ -397,6 +399,8 @@ void PairMesoCNT::allocate()
   for (int i = 1; i <= ntypes; i++)
     for (int j = i; j <= ntypes; j++) setflag[i][j] = 0;
 
+  memory->create(end_types, nend_types, "pair:end_types");
+
   memory->create(uinf_coeff, uinf_points, 4, "pair:uinf_coeff");
   memory->create(gamma_coeff, gamma_points, 4, "pair:gamma_coeff");
   memory->create(phi_coeff, phi_points, phi_points, 4, 4, "pair:phi_coeff");
@@ -435,9 +439,16 @@ void PairMesoCNT::settings(int narg, char ** /* arg */)
 
 void PairMesoCNT::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (narg < 4) error->all(FLERR, "Incorrect args for pair coefficients");
   read_file(arg[2]);
+
+  nend_types = narg - 3;
+
   if (!allocated) allocate();
+
+  // end atom types
+  for (int i = 3; i < narg; i++)
+    end_types[i - 3] = utils::inumeric(FLERR, arg[i], false, lmp);
 
   // units, eV to energy unit conversion
   ang = force->angstrom;
@@ -771,21 +782,10 @@ void PairMesoCNT::chain_split(int *redlist, int numred, int *nchain, int **chain
   for (int j = 0; j < cid; j++) {
     int cstart = chain[j][0];
     int cend = chain[j][nchain[j] - 1];
-    tagint tagstart = tag[cstart];
-    tagint tagend = tag[cend];
-    end[j] = 0;
-    if (tagstart == 1) {
-      end[j] = 1;
-    } else {
-      int idprev = atom->map(tagstart - 1);
-      if (mol[cstart] != mol[idprev]) end[j] = 1;
-    }
-    if (tagend == atom->natoms) {
-      end[j] = 2;
-    } else {
-      int idnext = atom->map(tagend + 1);
-      if (mol[cend] != mol[idnext]) end[j] = 2;
-    }
+
+    if (match_end(atom->type[cstart])) end[j] = 1;
+    else if (match_end(atom->type[cend])) end[j] = 2;
+    else end[j] = 0;
   }
 }
 
@@ -809,6 +809,18 @@ void PairMesoCNT::sort(int *list, int size)
       temp2 = list[j];
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   insertion sort list according to corresponding atom ID
+------------------------------------------------------------------------- */
+
+bool PairMesoCNT::match_end(int type)
+{
+  for (int i = 0; i < nend_types; i++)
+    if (type == end_types[i]) return true;
+
+  return false;
 }
 
 /* ----------------------------------------------------------------------

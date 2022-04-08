@@ -33,8 +33,9 @@ class PairMesoCNT : public Pair {
   double init_one(int, int) override;
 
  protected:
+  int nend_types;
   int uinf_points, gamma_points, phi_points, usemi_points;
-  int *reduced_nlist, *numchainlist;
+  int *end_types, *reduced_nlist, *numchainlist;
   int **reduced_neighlist, **nchainlist, **endlist;
   int ***chainlist;
 
@@ -55,6 +56,8 @@ class PairMesoCNT : public Pair {
   double **flocal, **fglobal, **basis;
 
   int count_chains(int *, int);
+
+  bool match_end(int);
 
   void allocate();
   void bond_neigh();

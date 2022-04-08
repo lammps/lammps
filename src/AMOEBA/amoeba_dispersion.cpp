@@ -203,12 +203,12 @@ void PairAmoeba::dispersion_real()
       dedx = de * xr;
       dedy = de * yr;
       dedz = de * zr;
-      f[i][0] += dedx;
-      f[i][1] += dedy;
-      f[i][2] += dedz;
-      f[j][0] -= dedx;
-      f[j][1] -= dedy;
-      f[j][2] -= dedz;
+      f[i][0] -= dedx;
+      f[i][1] -= dedy;
+      f[i][2] -= dedz;
+      f[j][0] += dedx;
+      f[j][1] += dedy;
+      f[j][2] += dedz;
 
       // increment the internal virial tensor components
 
@@ -407,9 +407,9 @@ void PairAmoeba::dispersion_kspace()
     }
 
     fi = csix[iclass];
-    f[m][0] += fi * (recip[0][0]*de1 + recip[0][1]*de2 + recip[0][2]*de3);
-    f[m][1] += fi * (recip[1][0]*de1 + recip[1][1]*de2 + recip[1][2]*de3);
-    f[m][2] += fi * (recip[2][0]*de1 + recip[2][1]*de2 + recip[2][2]*de3);
+    f[m][0] -= fi * (recip[0][0]*de1 + recip[0][1]*de2 + recip[0][2]*de3);
+    f[m][1] -= fi * (recip[1][0]*de1 + recip[1][1]*de2 + recip[1][2]*de3);
+    f[m][2] -= fi * (recip[2][0]*de1 + recip[2][1]*de2 + recip[2][2]*de3);
   }
 
   // account for the energy and virial correction terms

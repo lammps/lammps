@@ -605,37 +605,37 @@ void FixAmoebaBiTorsion::post_force(int vflag)
 
     if (ia < nlocal) {
       ebitorsion += engfraction;
-      f[ia][0] += dedxia;
-      f[ia][1] += dedyia;
-      f[ia][2] += dedzia;
+      f[ia][0] -= dedxia;
+      f[ia][1] -= dedyia;
+      f[ia][2] -= dedzia;
     }
 
     if (ib < nlocal) {
       ebitorsion += engfraction;
-      f[ib][0] += dedxib + dedxib2;
-      f[ib][1] += dedyib + dedyib2;
-      f[ib][2] += dedzib + dedzib2;
+      f[ib][0] -= dedxib + dedxib2;
+      f[ib][1] -= dedyib + dedyib2;
+      f[ib][2] -= dedzib + dedzib2;
     }
 
     if (ic < nlocal) {
       ebitorsion += engfraction;
-      f[ic][0] += dedxic + dedxic2;
-      f[ic][1] += dedyic + dedyic2;
-      f[ic][2] += dedzic + dedzic2;
+      f[ic][0] -= dedxic + dedxic2;
+      f[ic][1] -= dedyic + dedyic2;
+      f[ic][2] -= dedzic + dedzic2;
     }
 
     if (id < nlocal) {
       ebitorsion += engfraction;
-      f[id][0] += dedxid + dedxid2;
-      f[id][1] += dedyid + dedyid2;
-      f[id][2] += dedzid + dedzid2;
+      f[id][0] -= dedxid + dedxid2;
+      f[id][1] -= dedyid + dedyid2;
+      f[id][2] -= dedzid + dedzid2;
     }
 
     if (ie < nlocal) {
       ebitorsion += engfraction;
-      f[ie][0] += dedxie2;
-      f[ie][1] += dedyie2;
-      f[ie][2] += dedzie2;
+      f[ie][0] -= dedxie2;
+      f[ie][1] -= dedyie2;
+      f[ie][2] -= dedzie2;
     }
 
     // increment the internal virial tensor components

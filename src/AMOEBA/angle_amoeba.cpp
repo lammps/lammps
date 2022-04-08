@@ -393,27 +393,27 @@ void AngleAmoeba::tinker_anglep(int i1, int i2, int i3, int type, int eflag)
   // apply force to each of 4 atoms
 
   if (newton_bond || i1 < nlocal) {
-    f[i1][0] += f1[0];
-    f[i1][1] += f1[1];
-    f[i1][2] += f1[2];
+    f[i1][0] -= f1[0];
+    f[i1][1] -= f1[1];
+    f[i1][2] -= f1[2];
   }
 
   if (newton_bond || i2 < nlocal) {
-    f[i2][0] += f2[0];
-    f[i2][1] += f2[1];
-    f[i2][2] += f2[2];
+    f[i2][0] -= f2[0];
+    f[i2][1] -= f2[1];
+    f[i2][2] -= f2[2];
   }
 
   if (newton_bond || i3 < nlocal) {
-    f[i3][0] += f3[0];
-    f[i3][1] += f3[1];
-    f[i3][2] += f3[2];
+    f[i3][0] -= f3[0];
+    f[i3][1] -= f3[1];
+    f[i3][2] -= f3[2];
   }
 
   if (newton_bond || i4 < nlocal) {
-    f[i4][0] += f4[0];
-    f[i4][1] += f4[1];
-    f[i4][2] += f4[2];
+    f[i4][0] -= f4[0];
+    f[i4][1] -= f4[1];
+    f[i4][2] -= f4[2];
   }
 
   if (evflag) ev_tally4(i1,i2,i3,14,nlocal,newton_bond,eangle,f1,f2,f3,f4);

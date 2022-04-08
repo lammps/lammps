@@ -509,18 +509,18 @@ void PairAmoeba::multipole_real()
 
       // increment force-based gradient and torque on first site
 
-      f[i][0] += frcx;
-      f[i][1] += frcy;
-      f[i][2] += frcz;
+      f[i][0] -= frcx;
+      f[i][1] -= frcy;
+      f[i][2] -= frcz;
       tq[i][0] += ttmi[0];
       tq[i][1] += ttmi[1];
       tq[i][2] += ttmi[2];
 
       // increment force-based gradient and torque on second site
 
-      f[j][0] -= frcx;
-      f[j][1] -= frcy;
-      f[j][2] -= frcz;
+      f[j][0] += frcx;
+      f[j][1] += frcy;
+      f[j][2] += frcz;
       tq[j][0] += ttmk[0];
       tq[j][1] += ttmk[1];
       tq[j][2] += ttmk[2];
@@ -807,12 +807,11 @@ void PairAmoeba::multipole_kspace()
     h1 = recip[0][0]*f1 + recip[0][1]*f2 + recip[0][2]*f3;  // matvec?
     h2 = recip[1][0]*f1 + recip[1][1]*f2 + recip[1][2]*f3;
     h3 = recip[2][0]*f1 + recip[2][1]*f2 + recip[2][2]*f3;
-    f[i][0] += h1;
-    f[i][1] += h2;
-    f[i][2] += h3;
+    f[i][0] -= h1;
+    f[i][1] -= h2;
+    f[i][2] -= h3;
   }
   empole += 0.5*e;
-  //printf("mpole_force %g %g %g \n", f[0][0], f[0][1], f[0][2]);
   
   // augment the permanent multipole virial contributions
 

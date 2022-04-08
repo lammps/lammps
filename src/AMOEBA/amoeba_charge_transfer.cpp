@@ -139,12 +139,12 @@ void PairAmoeba::charge_transfer()
 
       // increment the total charge transfer energy and derivatives
 
-      f[i][0] -= frcx;
-      f[i][1] -= frcy;
-      f[i][2] -= frcz;
-      f[j][0] += frcx;
-      f[j][1] += frcy;
-      f[j][2] += frcz;
+      f[i][0] += frcx;
+      f[i][1] += frcy;
+      f[i][2] += frcz;
+      f[j][0] -= frcx;
+      f[j][1] -= frcy;
+      f[j][2] -= frcz;
 
       // increment the internal virial tensor components
 

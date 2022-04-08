@@ -107,8 +107,8 @@ void PairMesoCNT::compute(int eflag, int vflag)
   double fend, lp, scale, sumw, sumw_inv;
   double evdwl, evdwl_chain;
   double *r1, *r2, *q1, *q2, *qe;
-  double ftotal[3], ftorque[3], torque[3], delr1[3], delr2[3];
-  double t1[3], t2[3];
+  double ftotal[3], ftorque[3], torque[3], delr1[3], delr2[3], delqe[3];
+  double t1[3], t2[3], t3[3];
   double dr1_sumw[3], dr2_sumw[3];
   double dr1_w[3], dr2_w[3], dq1_w[3], dq2_w[3];
   double fgrad_r1_p1[3], fgrad_r1_p2[3], fgrad_r2_p1[3], fgrad_r2_p2[3];
@@ -279,6 +279,15 @@ void PairMesoCNT::compute(int eflag, int vflag)
       cross3(delr1, fglobal[0], t1);
       cross3(delr2, fglobal[1], t2);
       add3(t1, t2, torque);
+
+      // additional torque contribution from chain end
+
+      if (endflag) {
+        sub3(qe, p, delqe);
+	cross3(delqe, m, t3);
+	scale3(fend, t3);
+	add3(t3, torque, torque);
+      }
 
       cross3(torque, m, ftorque);
       lp = param[5] - param[4];

@@ -1789,6 +1789,7 @@ Liu
 Livermore
 lj
 llammps
+lld
 LLVM
 lm
 lmp

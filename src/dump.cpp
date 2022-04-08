@@ -150,19 +150,19 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
 
 Dump::~Dump()
 {
-  delete [] id;
-  delete [] style;
-  delete [] filename;
-  delete [] multiname;
+  delete[] id;
+  delete[] style;
+  delete[] filename;
+  delete[] multiname;
 
-  delete [] format;
-  delete [] format_default;
-  delete [] format_line_user;
-  delete [] format_float_user;
-  delete [] format_int_user;
-  delete [] format_bigint_user;
+  delete[] format;
+  delete[] format_default;
+  delete[] format_line_user;
+  delete[] format_float_user;
+  delete[] format_int_user;
+  delete[] format_bigint_user;
 
-  delete [] refresh;
+  delete[] refresh;
 
   // format_column_user is deallocated by child classes that use it
 
@@ -1019,7 +1019,7 @@ void Dump::balance()
   memory->destroy(tmp);
   memory->destroy(proc_offsets);
   memory->destroy(proc_new_offsets);
-  delete [] request;
+  delete[] request;
 }
 
 /* ----------------------------------------------------------------------
@@ -1059,7 +1059,7 @@ void Dump::modify_params(int narg, char **arg)
         if (strcmp(id,output->dump[idump]->id) == 0) break;
       int n;
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
-        delete [] output->var_dump[idump];
+        delete[] output->var_dump[idump];
         output->var_dump[idump] = utils::strdup(&arg[iarg+1][2]);
         n = 0;
       } else {
@@ -1077,7 +1077,7 @@ void Dump::modify_params(int narg, char **arg)
         if (strcmp(id,output->dump[idump]->id) == 0) break;
       double delta;
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
-        delete [] output->var_dump[idump];
+        delete[] output->var_dump[idump];
         output->var_dump[idump] = utils::strdup(&arg[iarg+1][2]);
         delta = 0.0;
       } else {
@@ -1107,7 +1107,7 @@ void Dump::modify_params(int narg, char **arg)
       MPI_Comm_free(&clustercomm);
       MPI_Comm_split(world,icluster,0,&clustercomm);
 
-      delete [] multiname;
+      delete[] multiname;
       char *ptr = strchr(filename,'%');
       *ptr = '\0';
       multiname = utils::strdup(fmt::format("{}{}{}", filename, icluster, ptr+1));
@@ -1124,14 +1124,38 @@ void Dump::modify_params(int narg, char **arg)
       flush_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"colname") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (strcmp(arg[iarg+1],"default") == 0) {
+        for (auto item : keyword_user) item.clear();
+        iarg += 2;
+      } else {
+        if (iarg+3 > narg) error->all(FLERR,"Illegal dump_modify command");
+        int icol = -1;
+        if (utils::is_integer(arg[iarg + 1])) {
+          icol = utils::inumeric(FLERR,arg[iarg + 1],false,lmp);
+          if (icol < 0) icol = keyword_user.size() + icol + 1;
+          icol--;
+        } else {
+          try {
+            icol = key2col.at(arg[iarg + 1]);
+          } catch (std::out_of_range &) {
+            icol = -1;
+          }
+        }
+        if ((icol < 0) || (icol >= (int)keyword_user.size()))
+          error->all(FLERR, "Illegal thermo_modify command");
+        keyword_user[icol] = arg[iarg+2];
+        iarg += 3;
+      }
     } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
 
       if (strcmp(arg[iarg+1],"none") == 0) {
-        delete [] format_line_user;
-        delete [] format_int_user;
-        delete [] format_bigint_user;
-        delete [] format_float_user;
+        delete[] format_line_user;
+        delete[] format_int_user;
+        delete[] format_bigint_user;
+        delete[] format_float_user;
         format_line_user = nullptr;
         format_int_user = nullptr;
         format_bigint_user = nullptr;
@@ -1146,7 +1170,7 @@ void Dump::modify_params(int narg, char **arg)
       if (iarg+3 > narg) error->all(FLERR,"Illegal dump_modify command");
 
       if (strcmp(arg[iarg+1],"line") == 0) {
-        delete [] format_line_user;
+        delete[] format_line_user;
         format_line_user = utils::strdup(arg[iarg+2]);
         iarg += 3;
       } else {   // pass other format options to child classes
@@ -1204,7 +1228,7 @@ void Dump::modify_params(int narg, char **arg)
       MPI_Comm_free(&clustercomm);
       MPI_Comm_split(world,icluster,0,&clustercomm);
 
-      delete [] multiname;
+      delete[] multiname;
       char *ptr = strchr(filename,'%');
       *ptr = '\0';
       multiname = utils::strdup(fmt::format("{}{}{}", filename, icluster, ptr+1));

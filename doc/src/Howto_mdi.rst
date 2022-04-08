@@ -1,11 +1,6 @@
 Using LAMMPS with the MDI library for code coupling
 ===================================================
 
-.. note::
-
-  As of April 2022, this Howto page will soon replace the :doc:`Howto
-  client/server <Howto_client_server>` doc page.
-
 Client/server coupling of two (or more) codes is where one code is the
 "client" and sends request messages (data) to one (or more) "server"
 code(s).  A server responds to each request with a reply message
@@ -69,7 +64,7 @@ enables LAMMPS to operate as an MDI driver and load an MDI engine as a
 plugin library.
 
 The package also has a `fix mdi/aimd <fix_mdi_aimd>` command in which
-LAMMPS operates as an MDI driver to peform *ab initio* MD simulations
+LAMMPS operates as an MDI driver to perform *ab initio* MD simulations
 in conjunction with a quantum mechanics code.  Its post_force() method
 illustrates how a driver issues MDI commands to another code.  This
 command can be used to couple to an MDI engine which is either a
@@ -81,7 +76,7 @@ The examples/mdi directory contains Python scripts and LAMMPS input
 script which use LAMMPS as either an MDI driver or engine or both.
 Three example use cases are provided:
 
-* Run ab intitio MD (AIMD) using 2 instances of LAMMPS, one as driver
+* Run ab initio MD (AIMD) using 2 instances of LAMMPS, one as driver
   and one as an engine.  As an engine, LAMMPS is a surrogate for a
   quantum code.
 
@@ -115,7 +110,7 @@ itself.  The list of QCEngine-supported and i-PI-supported quantum
 codes is on the `MDI webpage
 <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
 
-Here is how to build QE as a stand-alond ``pw.x`` file which can be
+Here is how to build QE as a stand-alone ``pw.x`` file which can be
 used in stand-alone mode:
 
 .. code-block:: bash

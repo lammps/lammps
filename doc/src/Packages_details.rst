@@ -1412,7 +1412,7 @@ This package has :ref:`specific installation instructions <message>` on the :doc
 * src/MDI/README
 * lib/mdi/README
 * :doc:`Howto MDI <Howto_mdi>`
-* :doc:`mdi/engine <mdi_engine>`
+* :doc:`mdi <mdi>`
 * :doc:`fix mdi/aimd <fix_mdi_aimd>`
 * examples/PACKAGES/mdi
 

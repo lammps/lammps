@@ -31,14 +31,14 @@ simulations.
 
 More specifically, this command causes LAMMPS to begin using the `MDI
 Library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_
-to run as an MDI driver (client), whicn sends MDI commands to an
+to run as an MDI driver (client), which sends MDI commands to an
 external MDI engine code (server) which in the case of AIMD is a
-quantum mechanics (QM) code, or could be LAMMPS itself, actings as a
+quantum mechanics (QM) code, or could be LAMMPS itself, acting as a
 surrogate for a QM code.  See the :doc:`Howto mdi <Howto_mdi>` page
 for more information about how LAMMPS can operate as either an MDI
 driver or engine.
 
-The examples/mdi directory contains input scripts perfoming AIMD in
+The examples/mdi directory contains input scripts performing AIMD in
 this manner with LAMMPS acting as both a driver and an engine
 (surrogate for a QM code).  The examples/mdi/README file explains how
 to launch both driver and engine codes so that they communicate using
@@ -70,7 +70,7 @@ input scripts.  LAMMPS then begins its timestepping.
 
 At the point in each timestep when LAMMPS needs the force on each
 atom, it communicates with the engine code.  It sends the current
-simulation box size and shape (if they change dynamicaly, e.g. during
+simulation box size and shape (if they change dynamically, e.g. during
 an NPT simulation), and the current atom coordinates.  The engine code
 computes quantum forces on each atom and returns them to LAMMPS.  If
 LAMMPS also needs the system energy and/or virial, it requests those

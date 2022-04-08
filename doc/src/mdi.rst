@@ -14,14 +14,15 @@ Syntax
 
   .. parsed-literal::
 
-       *engine* args = none
-       *plugin* args = name keyword value keyword value ...
-         name = name of plugin library, e.g. lammps means a liblammps.so library will be loaded
-         keywords = *mdi* or *infile* or *extra* or *command*
-           *mdi* value = args passed to MDI for driver to operate with plugins
-           *infile* value = filename the engine will read at start-up
-           *extra* value = aditional command-line args to pass to engine library when loaded
-           *command value = a LAMMPS input script command to execute
+     *engine* args = none
+     *plugin* args = name keyword value keyword value
+       name = name of plugin library, e.g. lammps means a liblammps.so library will be loaded
+       keywords = *mdi* or *infile* or *extra* or *command*
+         *mdi* value = args passed to MDI for driver to operate with plugins
+         *infile* value = filename the engine will read at start-up
+         *extra* value = aditional command-line args to pass to engine library when loaded
+         *command* value = a LAMMPS input script command to execute
+
 
 Examples
 """"""""
@@ -110,9 +111,9 @@ commands, which are described further below.
    * - <MASSES
      - Request mass of each atom (N values)
    * - MD
-       Perform an MD simulation for N timestpes (most recent >NSTEPS value)
+     - Perform an MD simulation for N timesteps (most recent >NSTEPS value)
    * - OPTG
-       Perform an energy minimization to convergence (most recent >TOLERANCE values)
+     - Perform an energy minimization to convergence (most recent >TOLERANCE values)
    * - >NATOMS or <NATOMS
      - Sends/request number of atoms in the system (1 value)
    * - >NSTEPS
@@ -157,7 +158,7 @@ more info below.
 
 The MD command performs a simulation using the most recent >NSTEPS
 value.  The OPTG command performs a minimization using the 4
-convergence paremeters from the most recent >TOLERANCE command.  The 4
+convergence parameters from the most recent >TOLERANCE command.  The 4
 parameters sent are those used by the :doc:`minimize <minimize>`
 command in LAMMPS: etol, ftol, maxiter, and maxeval.
 

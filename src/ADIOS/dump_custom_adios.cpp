@@ -214,6 +214,19 @@ void DumpCustomADIOS::write()
 
 void DumpCustomADIOS::init_style()
 {
+  // assemble column string from defaults and user values
+
+  delete[] columns;
+  std::string combined;
+  int icol = 0;
+  for (auto item : utils::split_words(columns_default)) {
+    if (combined.size()) combined += " ";
+    if (keyword_user[icol].size()) combined += keyword_user[icol];
+    else combined += item;
+    ++icol;
+  }
+  columns = utils::strdup(combined);
+
   // setup boundary string
 
   domain->boundary_string(boundstr);

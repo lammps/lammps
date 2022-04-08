@@ -53,26 +53,26 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(earg[2],"xs") == 0) {
     if (strcmp(earg[3],"ysu") == 0 || strcmp(earg[4],"zsu") == 0)
-      error->all(FLERR,
-                 "Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
+      error->all(FLERR,"Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
     unwrapflag = 0;
   } else {
     if (strcmp(earg[3],"ys") == 0 || strcmp(earg[4],"zs") == 0)
-      error->all(FLERR,
-                 "Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
+      error->all(FLERR,"Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
     unwrapflag = 1;
   }
 
   // setup auxiliary property name strings
   // convert 'X_ID[m]' (X=c,f,v) to 'X_ID_m'
 
-  if (nfield > 5) auxname = new char*[nfield];
+  if (nfield > 5) auxname = new char*[nfield-5];
   else auxname = nullptr;
 
   int i = 0;
+  key2col.clear();
+  keyword_user.resize(nfield-5);
   for (int iarg = 5; iarg < nfield; iarg++, i++) {
-    ArgInfo argi(earg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE
-                 |ArgInfo::DNAME|ArgInfo::INAME);
+    ArgInfo argi(earg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE|
+                 ArgInfo::DNAME|ArgInfo::INAME);
 
     if (argi.get_dim() == 1) {
       std::string newarg = fmt::format("{}_{}_{}", earg[iarg][0], argi.get_name(), argi.get_index1());
@@ -80,6 +80,8 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
     } else {
       auxname[i] = utils::strdup(earg[iarg]);
     }
+    key2col[earg[iarg]] = i;
+    keyword_user[i].clear();
   }
 }
 
@@ -88,8 +90,8 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
 DumpCFG::~DumpCFG()
 {
   if (auxname) {
-    for (int i = 0; i < nfield-5; i++) delete [] auxname[i];
-    delete [] auxname;
+    for (int i = 0; i < nfield-5; i++) delete[] auxname[i];
+    delete[] auxname;
   }
 }
 
@@ -137,7 +139,10 @@ void DumpCFG::write_header(bigint n)
   header += fmt::format(".NO_VELOCITY.\n");
   header += fmt::format("entry_count = {}\n",nfield-2);
   for (int i = 0; i < nfield-5; i++)
-    header += fmt::format("auxiliary[{}] = {}\n",i,auxname[i]);
+    if (keyword_user[i].size())
+      header += fmt::format("auxiliary[{}] = {}\n",i,keyword_user[i]);
+    else
+      header += fmt::format("auxiliary[{}] = {}\n",i,auxname[i]);
   fmt::print(fp, header);
 }
 

@@ -55,14 +55,11 @@ enum{LT,LE,GT,GE,EQ,NEQ,XOR};
 DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   Dump(lmp, narg, arg),
   idregion(nullptr), thresh_array(nullptr), thresh_op(nullptr), thresh_value(nullptr),
-  thresh_last(nullptr), thresh_fix(nullptr),
-  thresh_fixID(nullptr), thresh_first(nullptr),
-  earg(nullptr), vtype(nullptr), vformat(nullptr), columns(nullptr), choose(nullptr),
-  dchoose(nullptr), clist(nullptr), field2index(nullptr),
-  argindex(nullptr), id_compute(nullptr),
-  compute(nullptr), id_fix(nullptr), fix(nullptr),
-  id_variable(nullptr), variable(nullptr),
-  vbuf(nullptr), id_custom(nullptr), custom(nullptr), custom_flag(nullptr),
+  thresh_last(nullptr), thresh_fix(nullptr), thresh_fixID(nullptr), thresh_first(nullptr),
+  earg(nullptr), vtype(nullptr), vformat(nullptr), columns(nullptr), columns_default(nullptr),
+  choose(nullptr), dchoose(nullptr), clist(nullptr), field2index(nullptr), argindex(nullptr),
+  id_compute(nullptr), compute(nullptr), id_fix(nullptr), fix(nullptr), id_variable(nullptr),
+  variable(nullptr), vbuf(nullptr), id_custom(nullptr), custom(nullptr), custom_flag(nullptr),
   typenames(nullptr), pack_choice(nullptr)
 {
   if (narg == 5) error->all(FLERR,"No dump custom arguments specified");
@@ -180,13 +177,14 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   // setup column string
 
   cols.clear();
+  keyword_user.resize(nfield);
   for (int iarg = 0; iarg < nfield; iarg++) {
+    key2col[earg[iarg]] = iarg;
+    keyword_user[iarg].clear();
+    if (cols.size()) cols += " ";
     cols += earg[iarg];
-    cols += " ";
   }
-  // remove trailing blank and copy
-  cols.resize(cols.size()-1);
-  columns = utils::strdup(cols);
+  columns_default = utils::strdup(cols);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -257,6 +255,7 @@ DumpCustom::~DumpCustom()
     delete[] format_column_user;
   }
 
+  delete[] columns_default;
   delete[] columns;
 }
 
@@ -264,6 +263,19 @@ DumpCustom::~DumpCustom()
 
 void DumpCustom::init_style()
 {
+  // assemble ITEMS: column string from defaults and user values
+
+  delete[] columns;
+  std::string combined;
+  int icol = 0;
+  for (auto item : utils::split_words(columns_default)) {
+    if (combined.size()) combined += " ";
+    if (keyword_user[icol].size()) combined += keyword_user[icol];
+    else combined += item;
+    ++icol;
+  }
+  columns = utils::strdup(combined);
+
   // format = copy of default or user-specified line format
 
   delete[] format;

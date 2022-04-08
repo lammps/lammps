@@ -60,7 +60,6 @@ Commands
    log
    mass
    mdi_engine
-   message
    min_modify
    min_spin
    min_style

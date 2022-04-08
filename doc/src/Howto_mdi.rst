@@ -1,11 +1,6 @@
 Using LAMMPS with the MDI library for code coupling
 ===================================================
 
-.. note::
-
-  This Howto page will eventually replace the
-  :doc:`Howto client/server <Howto_client_server>` doc page.
-
 Client/server coupling of two codes is where one code is the "client"
 and sends request messages (data) to a "server" code.  The server
 responds to each request with a reply message.  This enables the two

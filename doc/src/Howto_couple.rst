@@ -59,5 +59,4 @@ context of your application.
 .. spacer
 
 4. Couple LAMMPS with another code in a client/server mode.  This is
-   described on the :doc:`Howto client/server <Howto_client_server>` doc
-   page.
+   described on the :doc:`Howto MDI library coupling <Howto_mdi>` page.

@@ -23,3 +23,5 @@ to the final states.
 
 * `quicktests` -- very short runs with charged Lennard-Jones atoms to test
   *compute fep*, *fix adapt/fep* and *pair lj/cut/coul/long/soft*.
+
+* `ta` -- surface tension of SPCE water without constraints. Test-area method.

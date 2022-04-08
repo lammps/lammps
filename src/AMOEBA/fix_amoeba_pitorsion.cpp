@@ -151,9 +151,11 @@ void FixAmoebaPiTorsion::init()
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
 
-  // check if PairAmoeba disabled pitorsion terms
+  // check if PairAmoeba or PairHippo disabled pitorsion terms
 
-  Pair *pair = force->pair_match("amoeba",1,0);
+  Pair *pair = NULL;
+  pair = force->pair_match("amoeba",1,0);
+  if (!pair) pair = force->pair_match("hippo",1,0);
 
   if (!pair) disable = 0;
   else {

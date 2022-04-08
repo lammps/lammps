@@ -860,12 +860,13 @@ for i,one in enumerate(alist):
     # IMPORTANT subtlety
     # flip order of 3 atoms in alist if the angle
     #   matches Angle Bending section of PRM file in reverse order
+    #   no need to flip if c1 = c3
     # necessary b/c BondAngle coeffs will be generated with r1,r2 params
     #   from Bond Stretching section of PRM file
     # since in general r1 != r2, the LAMMPS AngleAmoeba class requires
     #   the 3 atoms in the angle be in the order that matches r1 and r2
     
-    if (c3,c2,c1) in adict:
+    if c1 != c3 and (c3,c2,c1) in adict:
       m,params = adict[(c3,c2,c1)]
       alist[i] = (atom3,atom2,atom1)
       

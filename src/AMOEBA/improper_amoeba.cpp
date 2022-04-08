@@ -276,21 +276,24 @@ void ImproperAmoeba::coeff(int narg, char **arg)
 
 void ImproperAmoeba::init_style()
 {
-  Pair *pair = force->pair_match("amoeba",1,0);
+  // check if PairAmoeba disabled improper terms
+
+  Pair *pair = NULL;
+  pair = force->pair_match("amoeba",1,0);
   if (!pair) pair = force->pair_match("hippo",1,0);
-  if (!pair) error->all(FLERR,"Improper amoeba could not find pair amoega");
-  
+  if (!pair) error->all(FLERR,"Improper amoeba could not find pair amoeba/hippo");
+
+  int tmp;
+  int flag = *((int *) pair->extract("improper_flag",tmp));
+  disable = flag ? 0 : 1;
+
+  // also extract opbend params
+
   int dim;
   opbend_cubic = *(double *) pair->extract("opbend_cubic",dim);
   opbend_quartic = *(double *) pair->extract("opbend_quartic",dim);
   opbend_pentic = *(double *) pair->extract("opbend_pentic",dim);
   opbend_sextic = *(double *) pair->extract("opbend_sextic",dim);
-
-  // check if PairAmoeba disabled improper terms
-
-  int tmp;
-  int flag = *((int *) pair->extract("improper_flag",tmp));
-  disable = flag ? 0 : 1;
 }
 
 /* ----------------------------------------------------------------------

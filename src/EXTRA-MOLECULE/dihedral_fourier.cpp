@@ -333,9 +333,11 @@ void DihedralFourier::coeff(int narg, char **arg)
 
 void DihedralFourier::init_style()
 {
-  // check if PairAmoeba disabled dihedral terms
+  // check if PairAmoeba or PairHippo disabled dihedral terms
 
-  Pair *pair = force->pair_match("amoeba",1,0);
+  Pair *pair = NULL;
+  pair = force->pair_match("amoeba",1,0);
+  if (!pair) pair = force->pair_match("hippo",1,0);
 
   if (!pair) disable = 0;
   else {

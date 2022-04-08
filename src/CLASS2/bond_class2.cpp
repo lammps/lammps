@@ -161,9 +161,11 @@ void BondClass2::coeff(int narg, char **arg)
 
 void BondClass2::init_style()
 {
-  // check if PairAmoeba disabled bond terms
+  // check if PairAmoeba or PairHippo disabled bond terms
 
-  Pair *pair = force->pair_match("amoeba",1,0);
+  Pair *pair = NULL;
+  pair = force->pair_match("amoeba",1,0);
+  if (!pair) pair = force->pair_match("hippo",1,0);
 
   if (!pair) disable = 0;
   else {

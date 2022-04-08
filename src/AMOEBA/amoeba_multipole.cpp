@@ -812,6 +812,7 @@ void PairAmoeba::multipole_kspace()
     f[i][2] -= h3;
   }
   empole += 0.5*e;
+  //printf("mpole_force %g %g %g \n", f[0][0], f[0][1], f[0][2]);
   
   // augment the permanent multipole virial contributions
 

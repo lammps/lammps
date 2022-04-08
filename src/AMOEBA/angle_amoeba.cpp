@@ -697,9 +697,11 @@ void AngleAmoeba::coeff(int narg, char **arg)
 
 void AngleAmoeba::init_style()
 {
-  // check if PairAmoeba disabled angle or Urey-Bradley terms
+  // check if PairAmoeba or PairHippo disabled angle or Urey-Bradley terms
 
-  Pair *pair = force->pair_match("amoeba",1,0);
+  Pair *pair = NULL;
+  pair = force->pair_match("amoeba",1,0);
+  if (!pair) pair = force->pair_match("hippo",1,0);
 
   if (!pair) enable_angle = enable_urey = 1;
   else {

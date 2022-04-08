@@ -67,8 +67,7 @@ class PairMesoCNT : public Pair {
   void sort(int *, int);
   void read_file(const char *);
   void read_data(PotentialFileReader &, double *, double &, double &, int);
-  void read_data(PotentialFileReader &, double **, double &, double &, double &, double &,
-                 int);
+  void read_data(PotentialFileReader &, double **, double &, double &, double &, double &, int);
 
   void spline_coeff(double *, double **, double, int);
   void spline_coeff(double **, double ****, double, double, int);
@@ -79,11 +78,13 @@ class PairMesoCNT : public Pair {
   void finf(const double *, double &, double **);
   void fsemi(const double *, double &, double &, double **);
 
+  void mesolj();
+
   // inlined functions for efficiency
-  
-  inline void weight(const double *, const double *, const double *, const double *, double &, double *,
-              double *, double *, double *);
-  
+
+  inline void weight(const double *, const double *, const double *, const double *, double &,
+                     double *, double *, double *, double *);
+
   inline double spline(double, double, double, double **, int);
   inline double dspline(double, double, double, double **, int);
   inline double spline(double, double, double, double, double, double, double ****, int);

@@ -59,7 +59,6 @@ target_link_libraries(kimplugin PRIVATE lammps)
 target_include_directories(kimplugin PRIVATE ${LAMMPS_SOURCE_DIR}/KIM)
 set_target_properties(kimplugin PROPERTIES PREFIX "" SUFFIX ".so")
 
-find_package(PkgConfig REQUIRED)
 find_package(KIM-API 2.2.0 CONFIG REQUIRED)
 target_link_libraries(kimplugin PRIVATE KIM-API::kim-api)
 

@@ -1157,7 +1157,7 @@ void FixElectrodeConp::request_etypes_neighlists()
 
   if (!(read_inv || read_mat)) {
     auto matReq = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
-    matReq->set_skip(iskip_mat,ijskip_mat);
+    matReq->set_skip(iskip_mat, ijskip_mat);
     if (intelflag) matReq->enable_intel();
   } else {
     delete[] iskip_mat;
@@ -1165,6 +1165,6 @@ void FixElectrodeConp::request_etypes_neighlists()
   }
 
   auto vecReq = neighbor->add_request(this);
-  vecReq->set_skip(iskip_vec,ijskip_vec);
+  vecReq->set_skip(iskip_vec, ijskip_vec);
   if (intelflag) vecReq->enable_intel();
 }

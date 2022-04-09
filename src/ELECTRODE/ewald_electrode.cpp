@@ -1153,4 +1153,3 @@ void EwaldElectrode::update_eikr(bool enforce_update)
     eik_dot_r();
   }
 }
-

@@ -204,4 +204,3 @@ double ElectrodeVector::calc_erfc(double x)
   double t = 1.0 / (1.0 + EWALD_P * x);
   return t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
 }
-

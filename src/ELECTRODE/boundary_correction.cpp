@@ -89,4 +89,3 @@ std::vector<bigint> BoundaryCorrection::gather_jmat(bigint *imat)
                  &recvcounts.front(), &displs.front(), MPI_LMP_BIGINT, world);
   return jmat;
 }
-

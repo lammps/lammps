@@ -57,4 +57,3 @@ class ElectrodeVector : protected Pointers {
 };
 
 }    // namespace LAMMPS_NS
-

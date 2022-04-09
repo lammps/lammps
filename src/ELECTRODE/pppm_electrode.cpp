@@ -1682,4 +1682,3 @@ void PPPMElectrode::compute_vector_corr(bigint *imat, double *vec)
 {
   boundcorr->vector_corr(imat, vec);
 }
-

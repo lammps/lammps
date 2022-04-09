@@ -1418,6 +1418,7 @@ initializations
 InitiatorIDs
 initio
 InP
+inq
 inregion
 instantiation
 Institut
@@ -1740,6 +1741,7 @@ libdl
 libfftw
 libgcc
 libgpu
+libinqmdi
 libjpeg
 libkim
 liblammps
@@ -1754,6 +1756,7 @@ libplumed
 libplumedKernel
 libpng
 libpoems
+libqemdi
 libqmmm
 librar
 libreax
@@ -2208,6 +2211,7 @@ Nbondtypes
 nBOt
 nbrhood
 Nbtypes
+Nbytes
 nc
 Nc
 nchunk
@@ -3652,6 +3656,7 @@ Wittmaack
 wn
 Wolde
 workflow
+workflows
 Worley
 Wriggers
 Wuppertal

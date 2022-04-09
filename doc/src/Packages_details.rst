@@ -1396,17 +1396,24 @@ MDI package
 
 **Contents:**
 
-A LAMMPS command and fix to allow client-server coupling of LAMMPS to
-other atomic or molecular simulation codes via the `MolSSI Driver Interface
+A LAMMPS command and fixes to allow client-server coupling of LAMMPS
+to other atomic or molecular simulation codes or materials modeling
+workflows via the `MolSSI Driver Interface
 (MDI) library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
 
 **Author:** Taylor Barnes - MolSSI, taylor.a.barnes at gmail.com
 
+**Install:**
+
+This package has :ref:`specific installation instructions <message>` on the :doc:`Build extras <Build_extras>` page.
+
 **Supporting info:**
 
 * src/MDI/README
-* :doc:`mdi/engine <mdi_engine>`
-* :doc:`fix mdi/engine <fix_mdi_engine>`
+* lib/mdi/README
+* :doc:`Howto MDI <Howto_mdi>`
+* :doc:`mdi <mdi>`
+* :doc:`fix mdi/aimd <fix_mdi_aimd>`
 * examples/PACKAGES/mdi
 
 ----------

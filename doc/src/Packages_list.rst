@@ -244,7 +244,7 @@ whether an extra library is needed to build and use the package:
      - n/a
      - no
    * - :ref:`MDI <PKG-MDI>`
-     - client-server coupling
+     - client-server code coupling
      - :doc:`MDI Howto <Howto_mdi>`
      - PACKAGES/mdi
      - ext

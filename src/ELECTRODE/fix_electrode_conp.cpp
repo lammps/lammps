@@ -75,6 +75,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
   top_group = 0;
   intelflag = false;
   tfflag = false;
+  timer_flag = false;
 
   update_time = 0;
   mult_time = 0;
@@ -284,6 +285,12 @@ int FixElectrodeConp::modify_param(int narg, char **arg)
     if (entry != end(tf_types)) tf_types.erase(entry);
     tf_types.insert(std::pair<int, double>(type, MY_4PI * len * len / voronoi));
     return 4;
+
+  } else if (strcmp(arg[0], "timer") == 0) {
+    if (narg < 2)
+      error->all(FLERR, fmt::format("Incorrect number of arguments for fix_modify timer"));
+    timer_flag = utils::logical(FLERR, arg[1], false, lmp);
+    return 2;
 
   } else if (strcmp(arg[0], "set") == 0) {
     if (strcmp(arg[1], "v") == 0 || strcmp(arg[1], "qsb") == 0) {
@@ -518,7 +525,7 @@ void FixElectrodeConp::setup_post_neighbor()
   }
   compute_macro_matrices();
   MPI_Barrier(world);
-  if (comm->me == 0)
+  if (timer_flag && (comm->me == 0))
     utils::logmesg(lmp,
                    fmt::format("SD-vector and macro matrices time: {}\n", MPI_Wtime() - start));
 
@@ -565,7 +572,7 @@ void FixElectrodeConp::invert()
   dgetri_(&n, &capacitance[0][0], &lda, &ipiv.front(), &work.front(), &lwork, &info_ri);
   if (info_rf != 0 || info_ri != 0) error->all(FLERR, "CONP matrix inversion failed!");
   MPI_Barrier(world);
-  if (comm->me == 0)
+  if (timer_flag && (comm->me == 0))
     utils::logmesg(lmp, fmt::format("Invert time: {}\n", MPI_Wtime() - invert_time));
 }
 
@@ -1030,13 +1037,17 @@ double FixElectrodeConp::gausscorr(int eflag, bool fflag)
 
 FixElectrodeConp::~FixElectrodeConp()
 {
-  if (comm->me == 0) {
+  if (timer_flag && (comm->me == 0)) {
     utils::logmesg(lmp, fmt::format("Multiplication time: {}\n", mult_time));
     utils::logmesg(lmp, fmt::format("Update time: {}\n", update_time));
   }
   if (!(read_mat || read_inv)) delete array_compute;
   delete ele_vector;
   memory->destroy(capacitance);
+  delete accel_interface;
+  if (f_inv) fclose(f_inv);
+  if (f_mat) fclose(f_mat);
+  if (f_vec) fclose(f_vec);
 }
 
 /* ---------------------------------------------------------------------- */

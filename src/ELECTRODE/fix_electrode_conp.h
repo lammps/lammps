@@ -110,6 +110,7 @@ class FixElectrodeConp : public Fix {
   int get_top_group();    // used by ffield
   int top_group;          // used by ffield
   bool tfflag;
+  bool timer_flag;
   std::map<int, double> tf_types;
 };
 

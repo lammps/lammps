@@ -1083,20 +1083,21 @@ void FixElectrodeConp::read_from_file(std::string input_file, double **array,
     std::vector<tagint> tags;
     try {
       TextFileReader reader(input_file, filetype);
+      reader.set_bufsize(ngroup * 20 + 4);
 
       // get line with tags
       auto values = reader.next_values(ngroup);
-      while (values.has_next()) tags.push_back(values.next_tagint());
+      for (int i = 0; i < ngroup; ++i) tags.push_back(values.next_tagint());
 
       std::vector<double> a_line;
       for (int i = 0; i < ngroup; ++i) {
         a_line.clear();
         values = reader.next_values(ngroup);
-        while (values.has_next()) a_line.push_back(values.next_double());
+        for (int j = 0; j < ngroup; ++j) a_line.push_back(values.next_double());
         matrix.push_back(a_line);
       }
     } catch (std::exception &e) {
-      error->one(FLERR, "Error reading {} file: {}", filetype, e.what());
+      error->one(FLERR, "Error parsing {} file: {}", filetype, e.what());
     }
 
     std::vector<tagint> idx;

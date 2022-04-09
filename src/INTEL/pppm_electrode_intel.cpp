@@ -404,13 +404,10 @@ void PPPMElectrodeIntel::project_psi(IntelBuffers<flt_t, acc_t> *buffers, bigint
     const flt_t xi = delxinv;
     const flt_t yi = delyinv;
     const flt_t zi = delzinv;
-    const flt_t fdelvolinv = delvolinv;
     const flt_t fshiftone = shiftone;
 
     int ifrom, ito, tid;
     IP_PRE_omp_range_id(ifrom, ito, tid, nlocal, nthr);
-
-    _alignvar(flt_t rho[3][INTEL_P3M_ALIGNED_MAXORDER], 64) = {0};
 
     for (int i = ifrom; i < ito; i++) {
       int ipos = imat[i];
@@ -883,7 +880,7 @@ void PPPMElectrodeIntel::make_rho_in_brick(IntelBuffers<flt_t, acc_t> *buffers, 
     nthr = comm->nthreads;
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(nthr, nlocal, global_density, imat) if (!_use_lrt)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(nthr, nlocal, global_density, imat, processing_electrode_particles) if (!_use_lrt)
 #endif
   {
     const int nix = nxhi_out - nxlo_out + 1;
@@ -895,7 +892,6 @@ void PPPMElectrodeIntel::make_rho_in_brick(IntelBuffers<flt_t, acc_t> *buffers, 
     const flt_t xi = delxinv;
     const flt_t yi = delyinv;
     const flt_t zi = delzinv;
-    const flt_t fshift = shift;
     const flt_t fshiftone = shiftone;
     const flt_t fdelvolinv = delvolinv;
 

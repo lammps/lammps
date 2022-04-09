@@ -97,17 +97,13 @@ MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char ** /*arg*/) : Pointers(_lmp)
   // pressure compute only calculates virial, no kinetic term
 
   id_ke = utils::strdup(std::string("MDI_ENGINE") + "_ke");
-  modify->add_compute(fmt::format("{} all ke", id_ke));
+  ke = modify->add_compute(fmt::format("{} all ke", id_ke));
 
   id_pe = utils::strdup(std::string("MDI_ENGINE") + "_pe");
-  modify->add_compute(fmt::format("{} all pe", id_pe));
+  pe = modify->add_compute(fmt::format("{} all pe", id_pe));
 
   id_press = utils::strdup(std::string("MDI_ENGINE") + "_press");
-  modify->add_compute(fmt::format("{} all pressure NULL virial", id_press));
-
-  ke = modify->get_compute_by_id(id_ke);
-  pe = modify->get_compute_by_id(id_pe);
-  press = modify->get_compute_by_id(id_press);
+  press = modify->add_compute(fmt::format("{} all pressure NULL virial", id_press));
 
   // irregular class used if >COORDS change dramatically
 

@@ -20,10 +20,6 @@
 
 #include "pppm_electrode_intel.h"
 
-#include <cmath>
-#include <cstring>
-#include <iostream>
-
 #include "angle.h"
 #include "atom.h"
 #include "bond.h"
@@ -44,6 +40,9 @@
 #include "slab_dipole.h"
 #include "update.h"
 #include "wire_dipole.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace std;
@@ -394,7 +393,7 @@ void PPPMElectrodeIntel::project_psi(IntelBuffers<flt_t, acc_t> *buffers, bigint
     nthr = comm->nthreads;
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE shared(nlocal, nthr, imat, vec) if (!_use_lrt)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(nlocal, nthr, imat, vec) if (!_use_lrt)
 #endif
   {
     const flt_t scaleinv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
@@ -884,7 +883,7 @@ void PPPMElectrodeIntel::make_rho_in_brick(IntelBuffers<flt_t, acc_t> *buffers, 
     nthr = comm->nthreads;
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE shared(nthr, nlocal, global_density, imat) if (!_use_lrt)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(nthr, nlocal, global_density, imat) if (!_use_lrt)
 #endif
   {
     const int nix = nxhi_out - nxlo_out + 1;
@@ -986,7 +985,7 @@ void PPPMElectrodeIntel::make_rho_in_brick(IntelBuffers<flt_t, acc_t> *buffers, 
   // reduce all the perthread_densities into global_density
   if (nthr > 1) {
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE shared(nthr, global_density) if (!_use_lrt)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(nthr, global_density) if (!_use_lrt)
 #endif
     {
       int ifrom, ito, tid;

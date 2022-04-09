@@ -105,16 +105,9 @@ MDIEngine::MDIEngine(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   id_press = utils::strdup(std::string("MDI_ENGINE") + "_press");
   modify->add_compute(fmt::format("{} all pressure NULL virial", id_press));
 
-  int icompute_ke = modify->find_compute(id_ke);
-  int icompute_pe = modify->find_compute(id_pe);
-  int icompute_press = modify->find_compute(id_press);
-
-  ke = modify->compute[icompute_ke];
-  pe = modify->compute[icompute_pe];
-  press = modify->compute[icompute_press];
-
-  //pe = modify->get_compute_by_id("thermo_pe");
-  //press = modify->get_compute_by_id("thermo_press");
+  ke = modify->get_compute_by_id(id_ke);
+  pe = modify->get_compute_by_id(id_pe);
+  press = modify->get_compute_by_id(id_press);
 
   // irregular class used if >COORDS change dramatically
 

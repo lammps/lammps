@@ -115,8 +115,6 @@ ComputeFEPTA::~ComputeFEPTA()
 
 void ComputeFEPTA::init()
 {
-  int i, j;
-
   if (!fepinitflag)    // avoid init to run entirely when called by write_data
     fepinitflag = 1;
   else

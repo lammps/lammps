@@ -240,10 +240,10 @@ void FixReaxFFBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
 {
   int i, j, k, itype;
   int inode, nlocal_tmp, numbonds;
-  tagint itag,jtag;
+  tagint itag;
   int nlocal = atom->nlocal;
   bigint ntimestep = update->ntimestep;
-  double sbotmp, nlptmp, avqtmp, abotmp;
+  double sbotmp, nlptmp, avqtmp;
 
   double cutof3 = reaxff->api->control->bg_cut;
   MPI_Request irequest, irequest2;

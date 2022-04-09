@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -38,18 +38,18 @@ class FixElectrodeConp : public Fix {
  public:
   FixElectrodeConp(class LAMMPS *, int, char **);
   ~FixElectrodeConp();
-  int setmask();
-  void setup_post_neighbor();
-  void setup_pre_reverse(int, int);
-  void pre_force(int);
-  void pre_reverse(int, int);
-  double compute_scalar();
-  double compute_vector(int);
-  int modify_param(int, char **);
+  int setmask() override;
+  void setup_post_neighbor() override;
+  void setup_pre_reverse(int, int) override;
+  void pre_force(int) override;
+  void pre_reverse(int, int) override;
+  double compute_scalar() override;
+  double compute_vector(int) override;
+  int modify_param(int, char **) override;
   int modify_param(const std::string &);
-  void init();
-  void init_list(int, NeighList *);
-  void post_constructor();    // used by ffield to set up fix efield
+  void init() override;
+  void init_list(int, NeighList *) override;
+  void post_constructor() override;    // used by ffield to set up fix efield
 
  protected:
   virtual void update_psi();

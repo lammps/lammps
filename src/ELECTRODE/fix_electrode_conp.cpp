@@ -253,8 +253,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
 int FixElectrodeConp::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0], "tf") == 0) {
-    if (narg != 4)
-      error->all(FLERR, fmt::format("Incorrect number of arguments for fix_modify tf"));
+    if (narg < 4) error->all(FLERR, fmt::format("Incorrect number of arguments for fix_modify tf"));
     tfflag = true;
     // read atom type, Thomas-Fermi length, and voronoi volume (reciprocal
     // number density)
@@ -1019,7 +1018,7 @@ double FixElectrodeConp::gausscorr(int eflag, bool fflag)
         }
 
         double ecoul = 0.;
-        if (eflag) { ecoul = -prefactor * erfc_etar; }
+        if (eflag) ecoul = -prefactor * erfc_etar;
 
         if (evflag) {
           force->pair->ev_tally(i, j, nlocal, newton_pair, 0., ecoul, fpair, delx, dely, delz);

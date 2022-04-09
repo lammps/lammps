@@ -393,7 +393,7 @@ void PPPMElectrodeIntel::project_psi(IntelBuffers<flt_t, acc_t> *buffers, bigint
     nthr = comm->nthreads;
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(nlocal, nthr, imat, vec) if (!_use_lrt)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(nthr, imat, vec) if (!_use_lrt)
 #endif
   {
     const flt_t scaleinv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);

@@ -238,8 +238,7 @@ void ComputeFEP::init()
 
   // detect if package gpu is present
 
-  int ifixgpu = modify->find_fix("package_gpu");
-  if (ifixgpu >= 0) fixgpu = modify->fix[ifixgpu];
+  fixgpu = modify->get_fix_by_id("package_gpu");
 
   if (comm->me == 0) {
     auto mesg = fmt::format("FEP settings ...\n  temperature = {:f}\n", temp_fep);

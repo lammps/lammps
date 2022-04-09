@@ -158,7 +158,7 @@ void FixPrint::end_of_step()
 
   modify->clearstep_compute();
 
-  strcpy(copy,text);
+  strncpy(copy,text,maxcopy);
   input->substitute(copy,work,maxcopy,maxwork,0);
 
   if (var_print) {

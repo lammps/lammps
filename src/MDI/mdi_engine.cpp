@@ -63,7 +63,7 @@ enum { TYPE, CHARGE, MASS, COORD, VELOCITY, FORCE, ADDFORCE };
    when EXIT command is received, mdi engine command exits
 ---------------------------------------------------------------------- */
 
-MDIEngine::MDIEngine(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
+MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char ** /*arg*/) : Pointers(_lmp)
 {
   if (narg) error->all(FLERR, "Illegal mdi engine command");
 
@@ -278,12 +278,12 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   int command_exists;
   if (root) {
     ierr = MDI_Check_command_exists(node_engine, command, MDI_COMM_NULL, &command_exists);
-    if (ierr) error->one(FLERR, "MDI: Unable to check whether current command is supported");
+    if (ierr) error->one(FLERR, "MDI: Cannot confirm that command '{}' is supported", command);
   }
 
   MPI_Bcast(&command_exists, 1, MPI_INT, 0, world);
   if (!command_exists)
-    error->all(FLERR, "MDI: Received command {} unsupported by engine node {}", command,
+    error->all(FLERR, "MDI: Received command '{}' unsupported by engine node {}", command,
                node_engine);
 
   // ---------------------------------------
@@ -960,10 +960,9 @@ void MDIEngine::create_system()
   // optionally set charges if specified by ">CHARGES"
 
   if (flag_velocities)
-    int natoms =
-        lammps_create_atoms(lmp, sys_natoms, NULL, sys_types, sys_coords, sys_velocities, NULL, 1);
+    lammps_create_atoms(lmp, sys_natoms, NULL, sys_types, sys_coords, sys_velocities, NULL, 1);
   else
-    int natoms = lammps_create_atoms(lmp, sys_natoms, NULL, sys_types, sys_coords, NULL, NULL, 1);
+    lammps_create_atoms(lmp, sys_natoms, NULL, sys_types, sys_coords, NULL, NULL, 1);
 
   if (flag_charges) lammps_scatter_atoms(lmp, (char *) "q", 1, 1, sys_charges);
 
@@ -1628,7 +1627,7 @@ void MDIEngine::infile()
 
   char *infile = new char[nbytes + 1];
   int ierr = MDI_Recv(infile, nbytes + 1, MDI_CHAR, mdicomm);
-  if (ierr) error->all(FLERR, "MDI: INFILE data");
+  if (ierr) error->all(FLERR, "MDI: INFILE data for {}", infile);
   MPI_Bcast(infile, nbytes + 1, MPI_CHAR, 0, world);
   infile[nbytes] = '\0';
 

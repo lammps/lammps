@@ -38,7 +38,7 @@ using namespace LAMMPS_NS;
      this class is destroyed
 ---------------------------------------------------------------------- */
 
-MDIPlugin::MDIPlugin(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
+MDIPlugin::MDIPlugin(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
 {
   if (narg < 1) error->all(FLERR, "Illegal mdi plugin command");
 
@@ -112,9 +112,8 @@ MDIPlugin::MDIPlugin(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
      with the plugin
 ---------------------------------------------------------------------- */
 
-int MDIPlugin::plugin_wrapper(void *pmpicomm, MDI_Comm mdicomm, void *vptr)
+int MDIPlugin::plugin_wrapper(void * /*pmpicomm*/, MDI_Comm mdicomm, void *vptr)
 {
-  MPI_Comm mpicomm = *(MPI_Comm *) pmpicomm;
   MDIPlugin *ptr = (MDIPlugin *) vptr;
   LAMMPS *lammps = ptr->lmp;
   char *lammps_command = ptr->lammps_command;

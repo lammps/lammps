@@ -349,7 +349,11 @@ void Finish::end(int flag)
                 nthreads,me,time_loop,screen,logfile);
     mpi_timings("Nmtrans",timer,Timer::NM_TRANS,world,nprocs,
                 nthreads,me,time_loop,screen,logfile);
+    mpi_timings("Nmcomm",timer,Timer::NM_COMM,world,nprocs,
+                nthreads,me,time_loop,screen,logfile);
     mpi_timings("Unwrap",timer,Timer::UPDATE_X_UNWRAP,world,nprocs,
+                nthreads,me,time_loop,screen,logfile);
+    mpi_timings("XcComm",timer,Timer::XC_COMM,world,nprocs,
                 nthreads,me,time_loop,screen,logfile);
     mpi_timings("Xc",timer,Timer::COMPUTE_XC,world,nprocs,
                 nthreads,me,time_loop,screen,logfile);

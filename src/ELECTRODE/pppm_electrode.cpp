@@ -227,9 +227,7 @@ void PPPMElectrode::init()
 
   if (order < minorder) error->all(FLERR, "PPPM/electrode order < minimum allowed order");
   if (!overlap_allowed && !gctmp->ghost_adjacent())
-    error->all(FLERR,
-               "PPPM/electrode grid stencil extends "
-               "beyond nearest neighbor processor");
+    error->all(FLERR, "PPPM/electrode grid stencil extends beyond nearest neighbor processor");
   if (gctmp) delete gctmp;
 
   // adjust g_ewald

@@ -16,11 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
 // clang-format off
 KSpaceStyle(pppm/electrode, PPPMElectrode);
 // clang-format on
-
 #else
 
 #ifndef LMP_PPPM_ELECTRODE_H

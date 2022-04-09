@@ -61,23 +61,23 @@ void EwaldElectrode::init()
   if (comm->me == 0) utils::logmesg(lmp, "Ewald/electrode initialization ...\n");
 
   // error check
-  if (domain->triclinic) error->all(FLERR, "Cannot (yet) use Ewald with triclinic box ");
+  if (domain->triclinic) error->all(FLERR, "Cannot (yet) use ewald/electrode with triclinic box ");
   // triclinic_check();
-  if (domain->dimension == 2) error->all(FLERR, "Cannot use Ewald with 2d simulation");
+  if (domain->dimension == 2) error->all(FLERR, "Cannot use ewald/electrode with 2d simulation");
 
-  if (!atom->q_flag) error->all(FLERR, "KSpace style requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR, "KSpace style ewald/electrode requires atom attribute q");
 
   if (slabflag == 0 && wireflag == 0 && domain->nonperiodic > 0)
-    error->all(FLERR, "Cannot use non-periodic boundaries with Ewald");
+    error->all(FLERR, "Cannot use non-periodic boundaries with ewald/electrode");
   if (slabflag) {
     if (wireflag) error->all(FLERR, "Cannot use slab and wire corrections together");
     if (domain->xperiodic != 1 || domain->yperiodic != 1 || domain->boundary[2][0] != 1 ||
         domain->boundary[2][1] != 1)
-      error->all(FLERR, "Incorrect boundaries with slab Ewald");
+      error->all(FLERR, "Incorrect boundaries with slab ewald/electrod");
   } else if (wireflag) {
     if (domain->zperiodic != 1 || domain->boundary[0][0] != 1 || domain->boundary[0][1] != 1 ||
         domain->boundary[1][0] != 1 || domain->boundary[1][1] != 1)
-      error->all(FLERR, "Incorrect boundaries with wire Ewald");
+      error->all(FLERR, "Incorrect boundaries with wire ewald/electrode");
   }
 
   int *per = domain->periodicity;
@@ -881,7 +881,7 @@ void EwaldElectrode::coeffs()
 
 void EwaldElectrode::compute_group_group(int /*groupbit_A*/, int /*groupbit_B*/, int /*AA_flag*/)
 {
-  error->all(FLERR, "Cannot (yet) use K-space ewald/electrode with compute group/group");
+  error->all(FLERR, "Cannot (yet) use ewald/electrode style with compute group/group");
 }
 
 /* ----------------------------------------------------------------------
@@ -1102,8 +1102,6 @@ void EwaldElectrode::compute_matrix(bigint *imat, double **matrix)
       matrix[imat[i]][jmat[j]] += aij;
       if (imat[i] != jmat[j]) matrix[jmat[j]][imat[i]] += aij;
     }
-
-    if ((i + 1) % 500 == 0) printf("(%d/%d) on %d\n", i + 1, nlocal, comm->me);
   }
 
   memory->destroy(jmat);

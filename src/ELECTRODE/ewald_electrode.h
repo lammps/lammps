@@ -16,11 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
 // clang-format off
 KSpaceStyle(ewald/electrode, EwaldElectrode);
 // clang-format on
-
 #else
 
 #ifndef LMP_EWALD_ELECTRODE_H

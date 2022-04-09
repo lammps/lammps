@@ -485,7 +485,7 @@ CPUs a value of *on* is the default since it can often be faster, just
 as it is for non-accelerated pair styles
 
 The *binsize* keyword sets the size of bins used to bin atoms during
- neighbor list builds. The same value can be set by the
+neighbor list builds. The same value can be set by the
 :doc:`neigh_modify binsize <neigh_modify>` command. Making it an option
 in the package kokkos command allows it to be set from the command line.
 The default value for CPUs is 0.0, which means the LAMMPS default will be

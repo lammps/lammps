@@ -59,7 +59,7 @@ Commands
    lattice
    log
    mass
-   mdi_engine
+   mdi
    min_modify
    min_spin
    min_style

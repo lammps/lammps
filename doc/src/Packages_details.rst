@@ -1404,7 +1404,8 @@ workflows via the `MolSSI Driver Interface
 
 **Install:**
 
-This package has :ref:`specific installation instructions <message>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <mdi>` on
+the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 

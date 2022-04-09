@@ -1,20 +1,22 @@
 .. index:: pair_style dpd
 .. index:: pair_style dpd/gpu
 .. index:: pair_style dpd/intel
+.. index:: pair_style dpd/kk
 .. index:: pair_style dpd/omp
 .. index:: pair_style dpd/tstat
 .. index:: pair_style dpd/tstat/gpu
+.. index:: pair_style dpd/tstat/kk
 .. index:: pair_style dpd/tstat/omp
 
 pair_style dpd command
 ======================
 
-Accelerator Variants: *dpd/gpu*, *dpd/intel*, *dpd/omp*
+Accelerator Variants: *dpd/gpu*, *dpd/intel*, *dpd/kk*, *dpd/omp*
 
 pair_style dpd/tstat command
 ============================
 
-Accelerator Variants: *dpd/tstat/gpu*, *dpd/tstat/omp*
+Accelerator Variants: *dpd/tstat/gpu*, *dpd/tstat/kk*, *dpd/tstat/omp*
 
 Syntax
 """"""

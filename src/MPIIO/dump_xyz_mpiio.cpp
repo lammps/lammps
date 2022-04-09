@@ -38,17 +38,6 @@ using namespace LAMMPS_NS;
 #define DUMP_BUF_CHUNK_SIZE 16384
 #define DUMP_BUF_INCREMENT_SIZE 4096
 
-enum{ID,MOL,TYPE,ELEMENT,MASS,
-     X,Y,Z,XS,YS,ZS,XSTRI,YSTRI,ZSTRI,XU,YU,ZU,XUTRI,YUTRI,ZUTRI,
-     XSU,YSU,ZSU,XSUTRI,YSUTRI,ZSUTRI,
-     IX,IY,IZ,
-     VX,VY,VZ,FX,FY,FZ,
-     Q,MUX,MUY,MUZ,MU,RADIUS,DIAMETER,
-     OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
-     TQX,TQY,TQZ,SPIN,ERADIUS,ERVEL,ERFORCE,
-     COMPUTE,FIX,VARIABLE};
-enum{LT,LE,GT,GE,EQ,NEQ};
-
 /* ---------------------------------------------------------------------- */
 
 DumpXYZMPIIO::DumpXYZMPIIO(LAMMPS *lmp, int narg, char **arg) :
@@ -100,12 +89,11 @@ void DumpXYZMPIIO::openfile()
   if (append_flag) { // append open
     int err = MPI_File_open( world, filecurrent, MPI_MODE_CREATE | MPI_MODE_APPEND |
                              MPI_MODE_WRONLY  , MPI_INFO_NULL, &mpifh);
-    if (err != MPI_SUCCESS) error->one(FLERR, "Cannot open dump file {}",filecurrent);
+    if (err != MPI_SUCCESS) error->one(FLERR, "Cannot open dump file {}", filecurrent);
 
     int myrank;
     MPI_Comm_rank(world,&myrank);
-    if (myrank == 0)
-      MPI_File_get_size(mpifh,&mpifo);
+    if (myrank == 0) MPI_File_get_size(mpifh,&mpifo);
     MPI_Bcast(&mpifo, 1, MPI_LMP_BIGINT, 0, world);
     MPI_File_set_size(mpifh,mpifo+headerSize+sumFileSize);
     currentFileSize = mpifo+headerSize+sumFileSize;
@@ -238,19 +226,16 @@ void DumpXYZMPIIO::init_style()
 
 void DumpXYZMPIIO::write_header(bigint n)
 {
+  auto header = fmt::format("{}\n Atoms. Timestep: {}", n, update->ntimestep);
+  if (time_flag) header += fmt::format(" Time: {:.6f}", compute_time());
+  header += "\n";
+
   if (performEstimate) {
-
-    headerBuffer = (char *) malloc(MAX_TEXT_HEADER_SIZE);
-
-    headerSize = 0;
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),BIGINT_FORMAT "\n",n);
-    headerSize += sprintf(&((char*)headerBuffer)[headerSize],"Atoms. Timestep: " BIGINT_FORMAT "\n",update->ntimestep);
+    headerSize = header.size();
   } else { // write data
-
     if (me == 0)
-      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_CHAR,MPI_STATUS_IGNORE);
-    mpifo += headerSize;
-    free(headerBuffer);
+      MPI_File_write_at(mpifh,mpifo,(void *)header.c_str(),header.size(),MPI_CHAR,MPI_STATUS_IGNORE);
+    mpifo += header.size();
   }
 }
 

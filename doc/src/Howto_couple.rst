@@ -12,16 +12,16 @@ LAMMPS can be coupled to other codes in at least 4 ways.  Each has
 advantages and disadvantages, which you will have to think about in the
 context of your application.
 
-1. Define a new :doc:`fix <fix>` command that calls the other code.  In
-   this scenario, LAMMPS is the driver code.  During timestepping,
+1. Define a new :doc:`fix <fix>` command that calls the other code.
+   In this scenario, LAMMPS is the driver code.  During timestepping,
    the fix is invoked, and can make library calls to the other code,
-   which has been linked to LAMMPS as a library.  This is the way how the
+   which has been linked to LAMMPS as a library.  This is the way the
    :ref:`LATTE <PKG-LATTE>` package, which performs density-functional
-   tight-binding calculations using the `LATTE software <https://github.com/lanl/LATTE>`_
-   to compute forces, is hooked to LAMMPS.
-   See the :doc:`fix latte <fix_latte>` command for more details.
-   Also see the :doc:`Modify <Modify>` doc pages for info on how to
-   add a new fix to LAMMPS.
+   tight-binding calculations using the `LATTE software
+   <https://github.com/lanl/LATTE>`_ to compute forces, is hooked to
+   LAMMPS.  See the :doc:`fix latte <fix_latte>` command for more
+   details.  Also see the :doc:`Modify <Modify>` doc pages for info on
+   how to add a new fix to LAMMPS.
 
 .. spacer
 
@@ -58,5 +58,12 @@ context of your application.
 
 .. spacer
 
-4. Couple LAMMPS with another code in a client/server mode.  This is
-   described on the :doc:`Howto MDI library coupling <Howto_mdi>` page.
+4. Couple LAMMPS with another code in a client/server fashion, using
+   using the `MDI Library
+   <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_
+   developed by the `Molecular Sciences Software Institute (MolSSI)
+   <https://molssi.org>`_ to run LAMMPS as either an MDI driver
+   (client) or an MDI engine (server).  The MDI driver issues commands
+   to the MDI server to exchange data between them.  See the
+   :doc:`Howto mdi <Howto_mdi>` page for more information about how
+   LAMMPS can operate in either of these modes.

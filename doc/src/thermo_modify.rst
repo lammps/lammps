@@ -21,9 +21,14 @@ Syntax
        *norm* value = *yes* or *no*
        *flush* value = *yes* or *no*
        *line* value = *one* or *multi* or *yaml*
-       *format* values = *line* string, *int* string, *float* string, M string, or *none*
+       *colname* values =  ID string, or *default*
+         string = new column header name
+         ID = integer from 1 to N, or integer from -1 to -N, where N = # of quantities being output
+              *or* a thermo keyword or reference to compute, fix, property or variable.
+       *format* values = *line* string, *int* string, *float* string, ID string, or *none*
          string = C-style format string
-         M = integer from 1 to N, where N = # of quantities being output
+         ID = integer from 1 to N, or integer from -1 to -N, where N = # of quantities being output
+              *or* a thermo keyword or reference to compute, fix, property or variable.
        *temp* value = compute ID that calculates a temperature
        *press* value = compute ID that calculates a pressure
 
@@ -36,7 +41,8 @@ Examples
    thermo_modify temp myTemp format 3 %15.8g
    thermo_modify temp myTemp format line "%ld %g %g %15.8g"
    thermo_modify line multi format float %g
-   themos_modify line yaml format none
+   thermo_modify line yaml format none
+   thermo_modify colname 1 Timestep colname -2 Pressure colname f_1[1] AvgDensity
 
 Description
 """""""""""
@@ -147,6 +153,20 @@ containing the timestep and CPU time ("multi"), or in a YAML format
 block ("yaml").  This modify option overrides the *one*, *multi*, or
 *yaml* thermo_style settings.
 
+The *colname* keyword can be used to change the default header keyword
+for a column or field of thermodynamic output.  The setting for *ID
+string* replaces the default text with the provided string.  *ID* can be
+a positive integer when it represents the column number counting from
+the left, a negative integer when it represents the column number from
+the right (i.e. -1 is the last column/keyword), or a thermo keyword (or
+compute, fix, property, or variable reference) and then it replaces the
+string for that specific thermo keyword.
+
+The *colname* keyword can be used multiple times. If multiple *colname*
+settings refer to the same keyword, the last setting has precedence.  A
+setting of *default* clears all previous settings, reverting all values
+to their default values.
+
 The *format* keyword can be used to change the default numeric format of
 any of quantities the :doc:`thermo_style <thermo_style>` command
 outputs.  All the specified format strings are C-style formats, e.g. as
@@ -155,12 +175,16 @@ argument which is the format string for the entire line of thermo
 output, with N fields, which you must enclose in quotes if it is more
 than one field.  The *int* and *float* keywords take a single format
 argument and are applied to all integer or floating-point quantities
-output.  The setting for *M string* also takes a single format argument
-which is used for the Mth value output in each line, e.g. the fifth
-column is output in high precision for "format 5 %20.15g".
+output.  The setting for *ID string* also takes a single format argument
+which is used for the indexed value in each line.  The interpretation is
+the same as for *colname*, i.e. a positive integer is the n-th value
+corresponding to the n-th thermo keyword, a negative integer is counting
+backwards, and a string matches the entry with the thermo keyword.,
+e.g. the fifth column is output in high precision for "format 5 %20.15g"
+and the pair energy for "format epair %20.15g".
 
 The *format* keyword can be used multiple times.  The precedence is
-that for each value in a line of output, the *M* format (if specified)
+that for each value in a line of output, the *ID* format (if specified)
 is used, else the *int* or *float* setting (if specified) is used,
 else the *line* setting (if specified) for that value is used, else
 the default setting is used.  A setting of *none* clears all previous
@@ -173,9 +197,10 @@ settings, reverting all values to their default format.
    When specifying the *format int* option you can use a "%d"-style
    format identifier in the format string and LAMMPS will convert this
    to the corresponding 8-byte form when it is applied to those
-   keywords.  However, when specifying the *line* option or *format M
+   keywords.  However, when specifying the *line* option or *format ID
    string* option for *step* and *natoms*, you should specify a format
-   string appropriate for an 8-byte signed integer, e.g. one with "%ld".
+   string appropriate for an 8-byte signed integer, e.g. one with "%ld"
+   or "%lld" depending on the platform.
 
 The *temp* keyword is used to determine how thermodynamic temperature is
 calculated, which is used by all thermo quantities that require a

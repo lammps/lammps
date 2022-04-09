@@ -86,7 +86,7 @@ void DumpCFGUef::write_header(bigint n)
   if (atom->peri_flag) scale = atom->pdscale;
   else if (unwrapflag == 1) scale = UNWRAPEXPAND;
 
-  fprintf(fp,"Number of particles = " BIGINT_FORMAT "\n",n);
+  fmt::print(fp,"Number of particles = {}\n",n);
   fprintf(fp,"A = %g Angstrom (basic length-scale)\n",scale);
   // in box[][] columns are cell edges
   // in H0, rows are cell edges

@@ -94,6 +94,8 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | latte       | examples for using fix latte for DFTB via the LATTE library      |
 +-------------+------------------------------------------------------------------+
+| mdi         | use of the MDI package and MolSSI MDI code coupling library      |
++-------------+------------------------------------------------------------------+
 | meam        | MEAM test for SiC and shear (same as shear examples)             |
 +-------------+------------------------------------------------------------------+
 | melt        | rapid melt of 3d LJ system                                       |

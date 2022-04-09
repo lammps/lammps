@@ -202,6 +202,7 @@ MDIEngine::MDIEngine(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   delete[] node_engine;
   delete[] node_driver;
 
+  modify->delete_compute(id_ke);
   modify->delete_compute(id_pe);
   modify->delete_compute(id_press);
 
@@ -1151,7 +1152,7 @@ void MDIEngine::receive_coords()
   int ierr = MDI_Recv(sys_coords, n, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: >COORDS data");
   MPI_Bcast(sys_coords, n, MPI_DOUBLE, 0, world);
-  for (int i = 0; i < n; i++) sys_coords[i] * mdi2lmp_length;
+  for (int i = 0; i < n; i++) sys_coords[i] *= mdi2lmp_length;
 }
 
 /* ----------------------------------------------------------------------
@@ -1229,7 +1230,7 @@ void MDIEngine::receive_velocities()
   int ierr = MDI_Recv(sys_velocities, n, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: >VELOCITIES data");
   MPI_Bcast(sys_velocities, n, MPI_DOUBLE, 0, world);
-  for (int i = 0; i < n; i++) sys_coords[i] * mdi2lmp_velocity;
+  for (int i = 0; i < n; i++) sys_coords[i] *= mdi2lmp_velocity;
 }
 
 /* ----------------------------------------------------------------------

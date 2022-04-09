@@ -212,20 +212,10 @@ void DumpAtomMPIIO::init_style()
 
   delete[] format;
   if (format_line_user) {
-    int n = strlen(format_line_user) + 2;
-    format = new char[n];
-    strcpy(format, format_line_user);
-    strcat(format, "\n");
+    format = utils::strdup(std::string(format_line_user) + "\n");
   } else {
-    char *str;
-    if (image_flag == 0)
-      str = (char *) TAGINT_FORMAT " %d %g %g %g";
-    else
-      str = (char *) TAGINT_FORMAT " %d %g %g %g %d %d %d";
-    int n = strlen(str) + 2;
-    format = new char[n];
-    strcpy(format, str);
-    strcat(format, "\n");
+    if (image_flag == 0) format = utils::strdup(TAGINT_FORMAT " %d %g %g %g\n");
+    else format = utils::strdup(TAGINT_FORMAT " %d %g %g %g %d %d %d\n");
   }
 
   // setup boundary string

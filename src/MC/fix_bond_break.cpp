@@ -14,16 +14,17 @@
 
 #include "fix_bond_break.h"
 
-#include <cstring>
-#include "update.h"
-#include "respa.h"
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
 #include "neighbor.h"
 #include "random_mars.h"
-#include "memory.h"
-#include "error.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -157,15 +158,11 @@ void FixBondBreak::init()
   else improperflag = 0;
 
   if (force->improper) {
-    if (force->improper_match("class2") || force->improper_match("ring"))
-      error->all(FLERR,"Cannot yet use fix bond/break with this "
-                 "improper style");
+    if (force->improper_match("^class2") || force->improper_match("^ring"))
+      error->all(FLERR,"Cannot yet use fix bond/break with this improper style");
   }
 
   lastcheck = -1;
-
-  // DEBUG
-  //print_bb();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -788,50 +785,6 @@ void FixBondBreak::unpack_reverse_comm(int n, int *list, double *buf)
       distsq[j] = buf[m++];
     } else m += 2;
   }
-}
-
-
-/* ---------------------------------------------------------------------- */
-
-void FixBondBreak::print_bb()
-{
-  for (int i = 0; i < atom->nlocal; i++) {
-    printf("TAG " TAGINT_FORMAT ": %d nbonds: ",atom->tag[i],atom->num_bond[i]);
-    for (int j = 0; j < atom->num_bond[i]; j++) {
-      printf(" " TAGINT_FORMAT, atom->bond_atom[i][j]);
-    }
-    printf("\n");
-    printf("TAG " TAGINT_FORMAT ": %d nangles: ",atom->tag[i],atom->num_angle[i]);
-    for (int j = 0; j < atom->num_angle[i]; j++) {
-      printf(" " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT ",",
-             atom->angle_atom1[i][j],atom->angle_atom2[i][j],
-             atom->angle_atom3[i][j]);
-    }
-    printf("\n");
-    printf("TAG " TAGINT_FORMAT ": %d ndihedrals: ",atom->tag[i],atom->num_dihedral[i]);
-    for (int j = 0; j < atom->num_dihedral[i]; j++) {
-      printf(" " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT ",",
-             atom->dihedral_atom1[i][j],atom->dihedral_atom2[i][j],
-             atom->dihedral_atom3[i][j],atom->dihedral_atom4[i][j]);
-    }
-    printf("\n");
-    printf("TAG " TAGINT_FORMAT ": %d %d %d nspecial: ",atom->tag[i],
-           atom->nspecial[i][0],atom->nspecial[i][1],atom->nspecial[i][2]);
-    for (int j = 0; j < atom->nspecial[i][2]; j++) {
-      printf(" " TAGINT_FORMAT, atom->special[i][j]);
-    }
-    printf("\n");
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixBondBreak::print_copy(const char *str, tagint m,
-                              int n1, int n2, int n3, int *v)
-{
-  printf("%s " TAGINT_FORMAT ": %d %d %d nspecial: ",str,m,n1,n2,n3);
-  for (int j = 0; j < n3; j++) printf(" %d",v[j]);
-  printf("\n");
 }
 
 /* ---------------------------------------------------------------------- */

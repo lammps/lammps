@@ -154,7 +154,7 @@ of the electronic specific heat, but ignored temperature dependencies
 of any of the other parameters.  See more discussion below for fix
 ttm/mod.
 
-..note::
+.. note::
 
   These fixes do not perform time integration of the atoms in the fix
   group, they only rescale their velocities.  Thus a time integration
@@ -164,7 +164,7 @@ ttm/mod.
   fix, e.g. :doc:`fix nvt <fix_nh>` or :doc:`fix langevin
   <fix_langevin>`.
 
-..note::
+.. note::
 
   These fixes require use of an orthogonal 3d simulation box with
   periodic boundary conditions in all dimensions.  They also require
@@ -305,8 +305,8 @@ is calculated as
 where lambda is the electron mean free path (see :ref:`(Norman) <Norman>`,
 :ref:`(Pisarev) <Pisarev>`)
 
-The fix ttm/mod parameter file *init_file* has the following syntax/
-Every line with the odd number is considered as a comment and
+The fix ttm/mod parameter file *init_file* has the following syntax.
+Every line with an odd number is considered as a comment and
 ignored. The lines with the even numbers are treated as follows:
 
 .. parsed-literal::

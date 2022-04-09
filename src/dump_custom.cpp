@@ -519,19 +519,21 @@ void DumpCustom::header_item(bigint ndump)
 {
   if (unit_flag && !unit_count) {
     ++unit_count;
-    fprintf(fp,"ITEM: UNITS\n%s\n",update->unit_style);
+    fmt::print(fp,"ITEM: UNITS\n{}\n",update->unit_style);
   }
-  if (time_flag) fprintf(fp,"ITEM: TIME\n%.16g\n",compute_time());
+  if (time_flag) fmt::print(fp,"ITEM: TIME\n{:.16}\n",compute_time());
 
-  fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
-  fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
-  fprintf(fp,BIGINT_FORMAT "\n",ndump);
-  fprintf(fp,"ITEM: BOX BOUNDS %s\n",boundstr);
-  fprintf(fp,"%-1.16e %-1.16e\n",boxxlo,boxxhi);
-  fprintf(fp,"%-1.16e %-1.16e\n",boxylo,boxyhi);
-  fprintf(fp,"%-1.16e %-1.16e\n",boxzlo,boxzhi);
-  fprintf(fp,"ITEM: ATOMS %s\n",columns);
+  fmt::print(fp,"ITEM: TIMESTEP\n{}\n"
+             "ITEM: NUMBER OF ATOMS\n{}\n",
+             update->ntimestep, ndump);
+
+  fmt::print(fp,"ITEM: BOX BOUNDS {}\n"
+             "{:>1.16e} {:>1.16e}\n"
+             "{:>1.16e} {:>1.16e}\n"
+             "{:>1.16e} {:>1.16e}\n",
+             boundstr,boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi);
+
+  fmt::print(fp,"ITEM: ATOMS {}\n",columns);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -540,19 +542,21 @@ void DumpCustom::header_item_triclinic(bigint ndump)
 {
   if (unit_flag && !unit_count) {
     ++unit_count;
-    fprintf(fp,"ITEM: UNITS\n%s\n",update->unit_style);
+    fmt::print(fp,"ITEM: UNITS\n{}\n",update->unit_style);
   }
-  if (time_flag) fprintf(fp,"ITEM: TIME\n%.16g\n",compute_time());
+  if (time_flag) fmt::print(fp,"ITEM: TIME\n{:.16}\n",compute_time());
 
-  fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
-  fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
-  fprintf(fp,BIGINT_FORMAT "\n",ndump);
-  fprintf(fp,"ITEM: BOX BOUNDS xy xz yz %s\n",boundstr);
-  fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxxlo,boxxhi,boxxy);
-  fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxylo,boxyhi,boxxz);
-  fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxzlo,boxzhi,boxyz);
-  fprintf(fp,"ITEM: ATOMS %s\n",columns);
+  fmt::print(fp,"ITEM: TIMESTEP\n{}\n"
+             "ITEM: NUMBER OF ATOMS\n{}\n",
+             update->ntimestep, ndump);
+
+  fmt::print(fp,"ITEM: BOX BOUNDS xy xz yz {}\n"
+             "{:>1.16e} {:>1.16e} {:>1.16e}\n"
+             "{:>1.16e} {:>1.16e} {:>1.16e}\n"
+             "{:>1.16e} {:>1.16e} {:>1.16e}\n",
+             boundstr,boxxlo,boxxhi,boxxy,boxylo,boxyhi,boxxz,boxzlo,boxzhi,boxyz);
+
+  fmt::print(fp,"ITEM: ATOMS {}\n",columns);
 }
 
 /* ---------------------------------------------------------------------- */

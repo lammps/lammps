@@ -19,6 +19,7 @@ FixStyle(ave/spatial,FixDeprecated);
 FixStyle(ave/spatial/sphere,FixDeprecated);
 FixStyle(lb/pc,FixDeprecated);
 FixStyle(lb/rigid/pc/sphere,FixDeprecated);
+FixStyle(client/md,FixDeprecated);
 // clang-format on
 #else
 

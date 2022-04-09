@@ -100,8 +100,6 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | melt        | rapid melt of 3d LJ system                                       |
 +-------------+------------------------------------------------------------------+
-| message     | demos for LAMMPS client/server coupling with the MESSAGE package |
-+-------------+------------------------------------------------------------------+
 | micelle     | self-assembly of small lipid-like molecules into 2d bilayers     |
 +-------------+------------------------------------------------------------------+
 | min         | energy minimization of 2d LJ melt                                |

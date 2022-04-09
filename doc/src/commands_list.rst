@@ -60,7 +60,6 @@ Commands
    log
    mass
    mdi
-   message
    min_modify
    min_spin
    min_style
@@ -96,9 +95,6 @@ Commands
    restart
    run
    run_style
-   server
-   server_mc
-   server_md
    set
    shell
    special_bonds

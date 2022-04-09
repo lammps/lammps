@@ -68,7 +68,6 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`log <log>`
    * :doc:`mass <mass>`
    * :doc:`mdi <mdi>`
-   * :doc:`message <message>`
    * :doc:`minimize <minimize>`
    * :doc:`min_modify <min_modify>`
    * :doc:`min_style <min_style>`
@@ -105,7 +104,6 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`restart <restart>`
    * :doc:`run <run>`
    * :doc:`run_style <run_style>`
-   * :doc:`server <server>`
    * :doc:`set <set>`
    * :doc:`shell <shell>`
    * :doc:`special_bonds <special_bonds>`

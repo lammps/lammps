@@ -137,6 +137,7 @@ class NeighRequest : protected Pointers {
   void set_skip(int *, int **);
   void enable_full();
   void enable_ghost();
+  void enable_intel();
 
   int get_size() const { return size; }
   void *get_requestor() const { return requestor; }

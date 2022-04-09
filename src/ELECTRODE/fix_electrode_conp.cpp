@@ -376,10 +376,8 @@ void FixElectrodeConp::init()
   if (etypes_neighlists)
     request_etypes_neighlists();
   else {
-    int irequest = neighbor->request(this, instance_me);
-    neighbor->requests[irequest]->pair = 0;
-    neighbor->requests[irequest]->fix = 1;
-    if (intelflag) neighbor->requests[irequest]->intel = 1;
+    auto Req = neighbor->add_request(this);
+    if (intelflag) Req->enable_intel();
   }
 }
 
@@ -1158,30 +1156,15 @@ void FixElectrodeConp::request_etypes_neighlists()
   }
 
   if (!(read_inv || read_mat)) {
-    mat_request = neighbor->request(this, instance_me);
-    NeighRequest *matRq = neighbor->requests[mat_request];
-    matRq->pair = 0;
-    matRq->fix = 1;
-    matRq->half = 1;
-    matRq->full = 0;
-    matRq->occasional = 1;
-    matRq->skip = 1;
-    matRq->iskip = iskip_mat;
-    matRq->ijskip = ijskip_mat;
-    if (intelflag) matRq->intel = 1;
+    auto matReq = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
+    matReq->set_skip(iskip_mat,ijskip_mat);
+    if (intelflag) matReq->enable_intel();
   } else {
     delete[] iskip_mat;
     memory->destroy(ijskip_mat);
   }
 
-  vec_request = neighbor->request(this, instance_me);
-  NeighRequest *vecRq = neighbor->requests[vec_request];
-  vecRq->pair = 0;
-  vecRq->fix = 1;
-  vecRq->half = 1;
-  vecRq->full = 0;
-  vecRq->skip = 1;
-  vecRq->iskip = iskip_vec;
-  vecRq->ijskip = ijskip_vec;
-  if (intelflag) vecRq->intel = 1;
+  auto vecReq = neighbor->add_request(this);
+  vecReq->set_skip(iskip_vec,ijskip_vec);
+  if (intelflag) vecReq->enable_intel();
 }

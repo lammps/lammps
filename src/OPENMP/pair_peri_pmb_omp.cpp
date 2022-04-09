@@ -22,7 +22,6 @@
 #include "force.h"
 #include "lattice.h"
 #include "memory.h"
-#include "modify.h"
 #include "neigh_list.h"
 #include "suffix.h"
 

@@ -24,7 +24,6 @@
 #include "force.h"
 #include "kspace.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
 
@@ -66,16 +65,11 @@ void FixQEqDynamic::init()
 {
   FixQEq::init();
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix  = 1;
-  neighbor->requests[irequest]->half = 1;
-  neighbor->requests[irequest]->full = 0;
+  neighbor->add_request(this);
 
   if (tolerance < 1e-4)
     if (comm->me == 0)
-      error->warning(FLERR,"Fix qeq/dynamic tolerance may be too small"
-                    " for damped dynamics");
+      error->warning(FLERR,"Fix qeq/dynamic tolerance may be too small for damped dynamics");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -118,7 +112,7 @@ void FixQEqDynamic::pre_force(int /*vflag*/)
     }
 
     pack_flag = 1;
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
 
     enegtot = compute_eneg();
     enegtot /= ngroup;
@@ -184,7 +178,7 @@ double FixQEqDynamic::compute_eneg()
 
   // communicating charge force to all nodes, first forward then reverse
   pack_flag = 2;
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -217,7 +211,7 @@ double FixQEqDynamic::compute_eneg()
   }
 
   pack_flag = 2;
-  comm->reverse_comm_fix(this);
+  comm->reverse_comm(this);
 
   // sum charge force on each node and return it
 

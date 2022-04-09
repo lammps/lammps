@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class ComputeSNAVAtom : public Compute {
  public:
   ComputeSNAVAtom(class LAMMPS *, int, char **);
-  ~ComputeSNAVAtom();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_peratom();
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  double memory_usage();
+  ~ComputeSNAVAtom() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_peratom() override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
 
  private:
   int nmax;
@@ -46,6 +46,9 @@ class ComputeSNAVAtom : public Compute {
   double *wjelem;
   int *map;    // map types to [0,nelements)
   int nelements, chemflag;
+  int switchinnerflag;
+  double *rinnerelem;
+  double *drinnerelem;
   class SNA *snaptr;
   int quadraticflag;
 };

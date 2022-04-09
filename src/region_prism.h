@@ -29,10 +29,10 @@ class RegPrism : public Region {
 
  public:
   RegPrism(class LAMMPS *, int, char **);
-  ~RegPrism();
-  int inside(double, double, double);
-  int surface_interior(double *, double);
-  int surface_exterior(double *, double);
+  ~RegPrism() override;
+  int inside(double, double, double) override;
+  int surface_interior(double *, double) override;
+  int surface_exterior(double *, double) override;
 
  private:
   double xlo, xhi, ylo, yhi, zlo, zhi;

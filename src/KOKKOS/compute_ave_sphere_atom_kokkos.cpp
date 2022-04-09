@@ -64,17 +64,12 @@ void ComputeAveSphereAtomKokkos<DeviceType>::init()
 {
   ComputeAveSphereAtom::init();
 
-  // need an occasional full neighbor list
+  // adjust neighbor list request for KOKKOS
 
-  // irequest = neigh request made by parent class
-
-  int irequest = neighbor->nrequest - 1;
-
-  neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
+  auto request = neighbor->find_request(this);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -97,7 +92,7 @@ void ComputeAveSphereAtomKokkos<DeviceType>::compute_peratom()
   // need velocities of ghost atoms
 
   atomKK->sync(Host,V_MASK);
-  comm->forward_comm_compute(this);
+  comm->forward_comm(this);
   atomKK->modified(Host,V_MASK);
 
   // invoke full neighbor list (will copy or build if necessary)

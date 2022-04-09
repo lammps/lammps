@@ -26,9 +26,7 @@
 #include "force.h"
 #include "lattice.h"
 #include "memory.h"
-#include "modify.h"
 #include "neigh_list.h"
-#include "neighbor.h"
 
 #include <cfloat>
 #include <cmath>

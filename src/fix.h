@@ -19,6 +19,8 @@
 namespace LAMMPS_NS {
 
 class Fix : protected Pointers {
+  friend class Neighbor;
+
  public:
   static int instance_total;    // # of Fix classes ever instantiated
 
@@ -130,7 +132,7 @@ class Fix : protected Pointers {
   unsigned int datamask_read, datamask_modify;
 
   Fix(class LAMMPS *, int, char **);
-  virtual ~Fix();
+  ~Fix() override;
   void modify_params(int, char **);
 
   virtual int setmask() = 0;

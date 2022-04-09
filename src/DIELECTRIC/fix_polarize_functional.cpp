@@ -40,7 +40,6 @@
 #include "memory.h"
 #include "msm_dielectric.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair_coul_cut_dielectric.h"
 #include "pair_coul_long_dielectric.h"
@@ -265,12 +264,7 @@ void FixPolarizeFunctional::init()
   // need a full neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
 
-  int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 0;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
   if (force->kspace)
     g_ewald = force->kspace->g_ewald;
@@ -412,7 +406,7 @@ void FixPolarizeFunctional::charge_rescaled(int scaled2real)
       if (induced_charge_idx[i] < 0) q[i] = q_real[i] / epsilon[i];
   }
 
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 }
 
 /* ---------------------------------------------------------------------- */

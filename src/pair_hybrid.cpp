@@ -610,13 +610,12 @@ void PairHybrid::init_style()
   // create skip lists inside each pair neigh request
   // any kind of list can have its skip flag set in this loop
 
-  for (i = 0; i < neighbor->nrequest; i++) {
-    if (!neighbor->requests[i]->pair) continue;
+  for (auto &request : neighbor->get_pair_requests()) {
 
     // istyle = associated sub-style for the request
 
     for (istyle = 0; istyle < nstyles; istyle++)
-      if (styles[istyle] == neighbor->requests[i]->requestor) break;
+      if (styles[istyle] == request->get_requestor()) break;
 
     // allocate iskip and ijskip
     // initialize so as to skip all pair types
@@ -663,9 +662,7 @@ void PairHybrid::init_style()
         if (ijskip[itype][jtype] == 1) skip = 1;
 
     if (skip) {
-      neighbor->requests[i]->skip = 1;
-      neighbor->requests[i]->iskip = iskip;
-      neighbor->requests[i]->ijskip = ijskip;
+      request->set_skip(iskip, ijskip);
     } else {
       delete[] iskip;
       memory->destroy(ijskip);

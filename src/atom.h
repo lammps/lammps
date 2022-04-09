@@ -284,7 +284,7 @@ class Atom : protected Pointers {
   // functions
 
   Atom(class LAMMPS *);
-  virtual ~Atom();
+  ~Atom() override;
 
   void settings(class Atom *);
   void peratom_create();
@@ -416,9 +416,6 @@ class Atom : protected Pointers {
   void set_atomflag_defaults();
   void setup_sort_bins();
   int next_prime(int);
-
- private:
-  template <typename T> static AtomVec *avec_creator(LAMMPS *);
 };
 
 }    // namespace LAMMPS_NS

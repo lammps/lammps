@@ -21,8 +21,7 @@ namespace LAMMPS_NS {
 class NStencilSSA : public NStencil {
  public:
   NStencilSSA(class LAMMPS *lmp) : NStencil(lmp) { xyzflag = 1; }
-  ~NStencilSSA() {}
-  virtual void create() = 0;
+  void create() override = 0;
 
   // first stencil index for each subphase, with last index at end
   int nstencil_ssa[5];

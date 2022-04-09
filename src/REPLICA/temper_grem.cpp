@@ -374,17 +374,15 @@ void TemperGrem::command(int narg, char **arg)
 
 void TemperGrem::print_status()
 {
-  if (universe->uscreen) {
-    fprintf(universe->uscreen,BIGINT_FORMAT,update->ntimestep);
-    for (int i = 0; i < nworlds; i++)
-      fprintf(universe->uscreen," %d",world2lambda[i]);
-    fprintf(universe->uscreen,"\n");
-  }
+  std::string status = std::to_string(update->ntimestep);
+  for (int i = 0; i < nworlds; i++)
+    status += " " + std::to_string(world2lambda[i]);
+
+  status += "\n";
+
+  if (universe->uscreen) fputs(status.c_str(), universe->uscreen);
   if (universe->ulogfile) {
-    fprintf(universe->ulogfile,BIGINT_FORMAT,update->ntimestep);
-    for (int i = 0; i < nworlds; i++)
-      fprintf(universe->ulogfile," %d",world2lambda[i]);
-    fprintf(universe->ulogfile,"\n");
+    fputs(status.c_str(), universe->ulogfile);
     fflush(universe->ulogfile);
   }
 }

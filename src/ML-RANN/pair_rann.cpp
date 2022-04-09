@@ -38,7 +38,6 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 #include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "tokenizer.h"
 #include "update.h"
 
@@ -1253,10 +1252,7 @@ void PairRANN::init_list(int /*which*/, NeighList *ptr)
 
 void PairRANN::init_style()
 {
-    int irequest_full = neighbor->request(this,instance_me);
-    neighbor->requests[irequest_full]->id = 1;
-    neighbor->requests[irequest_full]->half = 0;
-    neighbor->requests[irequest_full]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 }
 
 
@@ -1274,34 +1270,34 @@ void PairRANN::errorf(const char *file, int line, const char * message) {
 }
 
 int PairRANN::factorial(int n) {
-        return round(MathSpecial::factorial(n));
+  return round(MathSpecial::factorial(n));
 }
 
 RANN::Fingerprint *PairRANN::create_fingerprint(const char *style)
 {
   if (strcmp(style,"radial")==0) {
-          return new RANN::Fingerprint_radial(this);
+    return new RANN::Fingerprint_radial(this);
   }
   else if (strcmp(style,"radialscreened")==0) {
-          return new RANN::Fingerprint_radialscreened(this);
+    return new RANN::Fingerprint_radialscreened(this);
   }
   else if (strcmp(style,"radialscreenedspin")==0) {
-          return new RANN::Fingerprint_radialscreenedspin(this);
+    return new RANN::Fingerprint_radialscreenedspin(this);
   }
   else if (strcmp(style,"radialspin")==0) {
-          return new RANN::Fingerprint_radialspin(this);
+    return new RANN::Fingerprint_radialspin(this);
   }
   else if (strcmp(style,"bond")==0) {
-          return new RANN::Fingerprint_bond(this);
+    return new RANN::Fingerprint_bond(this);
   }
   else if (strcmp(style,"bondscreened")==0) {
-          return new RANN::Fingerprint_bondscreened(this);
+    return new RANN::Fingerprint_bondscreened(this);
   }
   else if (strcmp(style,"bondscreenedspin")==0) {
-          return new RANN::Fingerprint_bondscreenedspin(this);
+    return new RANN::Fingerprint_bondscreenedspin(this);
   }
   else if (strcmp(style,"bondspin")==0) {
-          return new RANN::Fingerprint_bondspin(this);
+    return new RANN::Fingerprint_bondspin(this);
   }
   error->one(FLERR,"Unknown fingerprint style {}",style);
   return nullptr;
@@ -1311,10 +1307,10 @@ RANN::Fingerprint *PairRANN::create_fingerprint(const char *style)
 RANN::Activation *PairRANN::create_activation(const char *style)
 {
   if (strcmp(style,"linear")==0) {
-          return new RANN::Activation_linear(this);
+    return new RANN::Activation_linear(this);
   }
   else if (strcmp(style,"sigI")==0) {
-          return new RANN::Activation_sigI(this);
+    return new RANN::Activation_sigI(this);
   }
   error->one(FLERR,"Unknown activation style {}",style);
   return nullptr;

@@ -38,6 +38,7 @@ class TextFileReader {
 
   ~TextFileReader();
 
+  void rewind();
   void skip_line();
   char *next_line(int nparams = 0);
 
@@ -52,9 +53,7 @@ class FileReaderException : public std::exception {
  public:
   FileReaderException(const std::string &msg) : message(msg) {}
 
-  ~FileReaderException() noexcept {}
-
-  virtual const char *what() const noexcept { return message.c_str(); }
+  const char *what() const noexcept override { return message.c_str(); }
 };
 
 class EOFException : public FileReaderException {

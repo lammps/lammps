@@ -88,12 +88,12 @@ OPT.
    * :doc:`coul/tt <pair_coul_tt>`
    * :doc:`coul/wolf (ko) <pair_coul>`
    * :doc:`coul/wolf/cs <pair_cs>`
-   * :doc:`dpd (gio) <pair_dpd>`
+   * :doc:`dpd (giko) <pair_dpd>`
    * :doc:`dpd/fdt <pair_dpd_fdt>`
-   * :doc:`dpd/ext <pair_dpd_ext>`
-   * :doc:`dpd/ext/tstat <pair_dpd_ext>`
+   * :doc:`dpd/ext (k) <pair_dpd_ext>`
+   * :doc:`dpd/ext/tstat (k) <pair_dpd_ext>`
    * :doc:`dpd/fdt/energy (k) <pair_dpd_fdt>`
-   * :doc:`dpd/tstat (go) <pair_dpd>`
+   * :doc:`dpd/tstat (gko) <pair_dpd>`
    * :doc:`dsmc <pair_dsmc>`
    * :doc:`e3b <pair_e3b>`
    * :doc:`drip <pair_drip>`
@@ -124,6 +124,7 @@ OPT.
    * :doc:`hbond/dreiding/morse (o) <pair_hbond_dreiding>`
    * :doc:`hdnnp <pair_hdnnp>`
    * :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>`
+   * :doc:`ilp/tmd <pair_ilp_tmd>`
    * :doc:`kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`
    * :doc:`kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`
    * :doc:`lcbop <pair_lcbop>`
@@ -241,6 +242,7 @@ OPT.
    * :doc:`reaxff (ko) <pair_reaxff>`
    * :doc:`rebo (io) <pair_airebo>`
    * :doc:`resquared (go) <pair_resquared>`
+   * :doc:`saip/metal <pair_saip_metal>`
    * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`
    * :doc:`smd/hertz <pair_smd_hertz>`
    * :doc:`smd/tlsph <pair_smd_tlsph>`

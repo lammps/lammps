@@ -62,7 +62,6 @@ https://doi.org/10.1103/PhysRevE.92.043303
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "update.h"
@@ -178,10 +177,7 @@ void ComputeHMA::init() {
       error->all(FLERR,"Pair style does not support compute hma cv");
   }
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
 }
 
 void ComputeHMA::init_list(int /* id */, NeighList *ptr)
@@ -286,7 +282,7 @@ void ComputeHMA::compute_vector()
 
   double phiSum = 0.0;
   if (computeCv>-1) {
-    comm->forward_comm_compute(this);
+    comm->forward_comm(this);
     double** cutsq = force->pair->cutsq;
     if (force->pair) {
       double **x = atom->x;

@@ -29,43 +29,43 @@ class FixRigidSmall : public Fix {
 
  public:
   FixRigidSmall(class LAMMPS *, int, char **);
-  virtual ~FixRigidSmall();
-  virtual int setmask();
-  virtual void init();
-  virtual void setup(int);
-  virtual void initial_integrate(int);
-  void post_force(int);
-  virtual void final_integrate();
-  void initial_integrate_respa(int, int, int);
-  void final_integrate_respa(int, int);
-  void write_restart_file(const char *);
+  ~FixRigidSmall() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void initial_integrate(int) override;
+  void post_force(int) override;
+  void final_integrate() override;
+  void initial_integrate_respa(int, int, int) override;
+  void final_integrate_respa(int, int) override;
+  void write_restart_file(const char *) override;
 
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  void set_arrays(int);
-  virtual void set_molecule(int, tagint, int, double *, double *, double *);
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
+  void set_molecule(int, tagint, int, double *, double *, double *) override;
 
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
 
-  void setup_pre_neighbor();
-  void pre_neighbor();
-  int dof(int);
-  void deform(int);
-  void enforce2d();
-  void reset_dt();
-  void zero_momentum();
-  void zero_rotation();
-  int modify_param(int, char **);
-  void *extract(const char *, int &);
+  void setup_pre_neighbor() override;
+  void pre_neighbor() override;
+  int dof(int) override;
+  void deform(int) override;
+  void enforce2d() override;
+  void reset_dt() override;
+  void zero_momentum() override;
+  void zero_rotation() override;
+  int modify_param(int, char **) override;
+  void *extract(const char *, int &) override;
   double extract_ke();
   double extract_erotational();
-  double compute_scalar();
-  double memory_usage();
+  double compute_scalar() override;
+  double memory_usage() override;
 
  protected:
   int me, nprocs;

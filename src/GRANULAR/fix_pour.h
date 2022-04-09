@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class FixPour : public Fix {
  public:
   FixPour(class LAMMPS *, int, char **);
-  ~FixPour();
-  int setmask();
-  void init();
-  void setup_pre_exchange();
-  void pre_exchange();
-  void reset_dt();
-  void *extract(const char *, int &);
+  ~FixPour() override;
+  int setmask() override;
+  void init() override;
+  void setup_pre_exchange() override;
+  void pre_exchange() override;
+  void reset_dt() override;
+  void *extract(const char *, int &) override;
 
  private:
   int ninsert, ntype, seed;

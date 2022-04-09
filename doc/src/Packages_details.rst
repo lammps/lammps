@@ -9,7 +9,7 @@ gives links to documentation, example scripts, and pictures/movies (if
 available) that illustrate use of the package.
 
 The majority of packages can be included in a LAMMPS build with a
-single setting (``-D PGK_<NAME>=on`` for CMake) or command
+single setting (``-D PKG_<NAME>=on`` for CMake) or command
 (``make yes-<name>`` for make).  See the :doc:`Build package <Build_package>`
 page for more info.  A few packages may require additional steps;
 this is indicated in the descriptions below.  The :doc:`Build extras <Build_extras>`
@@ -73,7 +73,6 @@ page gives those details.
    * :ref:`MDI <PKG-MDI>`
    * :ref:`MEAM <PKG-MEAM>`
    * :ref:`MESONT <PKG-MESONT>`
-   * :ref:`MESSAGE <PKG-MESSAGE>`
    * :ref:`MGPT <PKG-MGPT>`
    * :ref:`MISC <PKG-MISC>`
    * :ref:`ML-HDNNP <PKG-ML-HDNNP>`
@@ -1422,17 +1421,25 @@ MDI package
 
 **Contents:**
 
-A LAMMPS command and fix to allow client-server coupling of LAMMPS to
-other atomic or molecular simulation codes via the `MolSSI Driver Interface
+A LAMMPS command and fixes to allow client-server coupling of LAMMPS
+to other atomic or molecular simulation codes or materials modeling
+workflows via the `MolSSI Driver Interface
 (MDI) library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
 
 **Author:** Taylor Barnes - MolSSI, taylor.a.barnes at gmail.com
 
+**Install:**
+
+This package has :ref:`specific installation instructions <mdi>` on
+the :doc:`Build extras <Build_extras>` page.
+
 **Supporting info:**
 
 * src/MDI/README
-* :doc:`mdi/engine <mdi_engine>`
-* :doc:`fix mdi/engine <fix_mdi_engine>`
+* lib/mdi/README
+* :doc:`Howto MDI <Howto_mdi>`
+* :doc:`mdi <mdi>`
+* :doc:`fix mdi/aimd <fix_mdi_aimd>`
 * examples/PACKAGES/mdi
 
 ----------
@@ -1506,32 +1513,6 @@ Philipp Kloza (U Cambridge)
 * :doc:`pair_style mesocnt <pair_mesocnt>`
 * examples/PACKAGES/mesont
 * tools/mesont
-
-----------
-
-.. _PKG-MESSAGE:
-
-MESSAGE package
----------------
-
-**Contents:**
-
-Commands to use LAMMPS as either a client or server and couple it to
-another application.
-
-**Install:**
-
-This package has :ref:`specific installation instructions <message>` on the :doc:`Build extras <Build_extras>` page.
-
-**Supporting info:**
-
-* src/MESSAGE: filenames -> commands
-* lib/message/README
-* :doc:`message <message>`
-* :doc:`fix client/md <fix_client_md>`
-* :doc:`server md <server_md>`
-* :doc:`server mc <server_mc>`
-* examples/message
 
 ----------
 
@@ -2179,6 +2160,11 @@ PLUGIN package
 A :doc:`plugin <plugin>` command that can load and unload several
 kind of styles in LAMMPS from shared object files at runtime without
 having to recompile and relink LAMMPS.
+
+When the environment variable ``LAMMPS_PLUGIN_PATH`` is set, then LAMMPS
+will search the directory (or directories) listed in this path for files
+with names that end in ``plugin.so`` (e.g. ``helloplugin.so``) and will
+try to load the contained plugins automatically at start-up.
 
 **Authors:** Axel Kohlmeyer (Temple U)
 

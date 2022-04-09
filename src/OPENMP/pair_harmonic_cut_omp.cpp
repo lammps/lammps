@@ -20,6 +20,8 @@
 #include "neigh_list.h"
 #include "suffix.h"
 
+#include <cmath>
+
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
 
@@ -119,8 +121,8 @@ void PairHarmonicCutOMP::eval(int iifrom, int iito, ThrData *const thr)
       if (rsq < cutsqi[jtype]) {
         const double r = sqrt(rsq);
         const double delta = cut[itype][jtype] - r;
-        const double philj = factor_lj * delta * k[itype][jtype];
-        const double fpair = delta * philj / r;
+        const double prefactor = factor_lj * delta * k[itype][jtype];
+        const double fpair = 2.0 * prefactor / r;
 
         fxtmp += delx * fpair;
         fytmp += dely * fpair;
@@ -131,8 +133,10 @@ void PairHarmonicCutOMP::eval(int iifrom, int iito, ThrData *const thr)
           f[j].z -= delz * fpair;
         }
 
-        if (EVFLAG)
+        if (EVFLAG) {
+          const double philj = prefactor * delta;
           ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, philj, 0.0, fpair, delx, dely, delz, thr);
+        }
       }
     }
     f[i].x += fxtmp;

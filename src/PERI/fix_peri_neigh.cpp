@@ -122,12 +122,7 @@ void FixPeriNeigh::init()
 
   // need a full neighbor list once
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix  = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this,NeighConst::REQ_FULL|NeighConst::REQ_OCCASIONAL);
 
   // compute PD scale factor, stored in Atom class, used by DumpCFG
 
@@ -372,7 +367,7 @@ void FixPeriNeigh::setup(int /*vflag*/)
 
   // communicate wvolume to ghosts
 
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   // bond statistics
 

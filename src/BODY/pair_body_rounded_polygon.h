@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class PairBodyRoundedPolygon : public Pair {
  public:
   PairBodyRoundedPolygon(class LAMMPS *);
-  ~PairBodyRoundedPolygon();
-  void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
+  ~PairBodyRoundedPolygon() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   struct Contact {
     int ibody, jbody;     // body (i.e. atom) indices (not tags)

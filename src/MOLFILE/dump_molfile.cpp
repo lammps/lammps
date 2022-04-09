@@ -274,29 +274,12 @@ void DumpMolfile::openfile()
 
     // if one file per timestep, replace '*' with current timestep
 
-    char *filecurrent = new char[strlen(filename) + 16];
-    if (multifile == 0) {
-      strcpy(filecurrent,filename);
-    } else {
-      char *ptr = strchr(filename,'*');
-      char *p1 = filename;
-      char *p2 = filecurrent;
-      while (p1 != ptr)
-        *p2++ = *p1++;
+    std::string filecurrent = filename;
+    if (multifile == 1)
+      filecurrent = utils::star_subst(filename, update->ntimestep, padflag);
 
-      if (padflag == 0) {
-        sprintf(p2,BIGINT_FORMAT "%s",update->ntimestep,ptr+1);
-      } else {
-        char bif[8],pad[16];
-        strcpy(bif,BIGINT_FORMAT);
-        sprintf(pad,"%%0%d%s%%s",padflag,&bif[1]);
-        sprintf(p2,pad,update->ntimestep,ptr+1);
-      }
-    }
-
-    if (mf->open(filecurrent,&natoms))
-      error->one(FLERR,"Cannot open dump file");
-    delete[] filecurrent;
+    if (mf->open(filecurrent.c_str(), &natoms))
+      error->one(FLERR,"Cannot open dump file {}: {}", filecurrent, utils::getsyserror());
   }
 }
 

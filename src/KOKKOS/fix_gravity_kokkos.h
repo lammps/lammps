@@ -35,8 +35,8 @@ template<class DeviceType>
 class FixGravityKokkos : public FixGravity {
   public:
     FixGravityKokkos(class LAMMPS *, int, char **);
-    virtual ~FixGravityKokkos() {}
-    void post_force(int);
+
+    void post_force(int) override;
 
     KOKKOS_INLINE_FUNCTION
     void operator()(TagFixGravityRMass, const int, double &) const;

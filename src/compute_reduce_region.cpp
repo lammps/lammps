@@ -151,8 +151,7 @@ double ComputeReduceRegion::compute_one(int m, int flag)
 
   } else if (which[m] == ArgInfo::FIX) {
     if (update->ntimestep % modify->fix[n]->peratom_freq)
-      error->all(FLERR,"Fix used in compute reduce not computed at "
-                 "compatible time");
+      error->all(FLERR,"Fix used in compute reduce not computed at compatible time");
     Fix *fix = modify->fix[n];
 
     if (flavor[m] == PERATOM) {

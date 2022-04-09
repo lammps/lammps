@@ -25,7 +25,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair_dpd_fdt_energy.h"
 #include "update.h"
@@ -521,9 +520,9 @@ void FixRX::initSparse()
   }
 
   if (comm->me == 0 && Verbosity > 1) {
-    for (int i = 1; i < nu_bin.size(); ++i)
-      if (nu_bin[i] > 0)
-        printf("nu_bin[%d] = %d\n", i, nu_bin[i]);
+    for (int i = 1; i < (int)nu_bin.size(); ++i)
+      if ((nu_bin[i] > 0) && screen)
+        fprintf(screen, "nu_bin[%d] = %d\n", i, nu_bin[i]);
 
     for (int i = 0; i < nreactions; ++i) {
       std::string pstr, rstr;
@@ -559,8 +558,8 @@ void FixRX::initSparse()
           pstr += atom->dvname[k];
         }
       }
-      if (comm->me == 0 && Verbosity > 1)
-        printf("rx%3d: %s %s %s\n", i, rstr.c_str(), /*reversible[i]*/ (false) ? "<=>" : "=", pstr.c_str());
+      if (comm->me == 0 && Verbosity > 1 && screen)
+        fprintf(screen,"rx%3d: %s %s %s\n", i, rstr.c_str(), /*reversible[i]*/ (false) ? "<=>" : "=", pstr.c_str());
     }
     // end for nreactions
   }
@@ -595,9 +594,7 @@ void FixRX::init()
   // need a half neighbor list
   // built whenever re-neighboring occurs
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
+  neighbor->add_request(this);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -657,7 +654,7 @@ void FixRX::setup_pre_force(int /*vflag*/)
       }
 
     // Communicate the updated momenta and velocities to all nodes
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
     if (localTempFlag) delete [] dpdThetaLocal;
 
     delete [] userData.kFor;
@@ -689,20 +686,14 @@ void FixRX::pre_force(int /*vflag*/)
 
   // Zero the counters for the ODE solvers.
   int nSteps = 0;
-  int nIters = 0;
   int nFuncs = 0;
   int nFails = 0;
 
-  if (odeIntegrationFlag == ODE_LAMMPS_RKF45 && diagnosticFrequency == 1)
-  {
+  if (odeIntegrationFlag == ODE_LAMMPS_RKF45 && diagnosticFrequency == 1) {
     memory->create( diagnosticCounterPerODE[StepSum], nlocal, "FixRX::diagnosticCounterPerODE");
     memory->create( diagnosticCounterPerODE[FuncSum], nlocal, "FixRX::diagnosticCounterPerODE");
   }
 
-#if 0
-  #pragma omp parallel \
-     reduction(+: nSteps, nIters, nFuncs, nFails )
-#endif
   {
     double *rwork = new double[8*nspecies];
 
@@ -712,11 +703,8 @@ void FixRX::pre_force(int /*vflag*/)
 
     int ode_counter[4] = { 0 };
 
-    //#pragma omp for schedule(runtime)
-    for (int i = 0; i < nlocal; i++)
-    {
-      if (mask[i] & groupbit)
-      {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
         double theta;
         if (localTempFlag)
           theta = dpdThetaLocal[i];
@@ -735,7 +723,6 @@ void FixRX::pre_force(int /*vflag*/)
     }
 
     nSteps += ode_counter[0];
-    nIters += ode_counter[1];
     nFuncs += ode_counter[2];
     nFails += ode_counter[3];
 
@@ -748,7 +735,7 @@ void FixRX::pre_force(int /*vflag*/)
   TimerType timer_ODE = getTimeStamp();
 
   // Communicate the updated momenta and velocities to all nodes
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
   if (localTempFlag) delete [] dpdThetaLocal;
 
   //TimerType timer_stop = getTimeStamp();
@@ -1778,7 +1765,7 @@ void FixRX::computeLocalTemperature()
       }
     }
   }
-  if (newton_pair) comm->reverse_comm_fix(this);
+  if (newton_pair) comm->reverse_comm(this);
 
   // self-interaction for local temperature
   for (i = 0; i < nlocal; i++) {

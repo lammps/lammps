@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class ComputeGroupGroup : public Compute {
  public:
   ComputeGroupGroup(class LAMMPS *, int, char **);
-  ~ComputeGroupGroup();
-  void init();
-  void init_list(int, class NeighList *);
-  double compute_scalar();
-  void compute_vector();
+  ~ComputeGroupGroup() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  double compute_scalar() override;
+  void compute_vector() override;
 
  private:
   char *group2;

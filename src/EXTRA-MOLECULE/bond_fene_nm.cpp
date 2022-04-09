@@ -17,7 +17,6 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "math_const.h"
 #include "memory.h"
 #include "neighbor.h"
 #include "update.h"
@@ -47,10 +46,10 @@ void BondFENENM::compute(int eflag, int vflag)
 {
   int i1, i2, n, type;
   double delx, dely, delz, ebond, fbond;
-  double rsq, r0sq, rlogarg, sr6;
+  double rsq, r0sq, rlogarg;
   double r;
 
-  ebond = sr6 = 0.0;
+  ebond = 0.0;
   ev_init(eflag, vflag);
 
   double **x = atom->x;

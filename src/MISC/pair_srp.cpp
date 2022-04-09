@@ -471,16 +471,13 @@ void PairSRP::init_style()
   // bond particles do not belong to group all
   // but thermo normalization is by nall
   // therefore should turn off normalization
-  int me;
-  MPI_Comm_rank(world,&me);
   char *arg1[2];
   arg1[0] = (char *) "norm";
   arg1[1] = (char *) "no";
   output->thermo->modify_params(2, arg1);
-  if (me == 0)
-    error->message(FLERR,"Thermo normalization turned off by pair srp");
+  if (comm->me == 0) error->message(FLERR,"Thermo normalization turned off by pair srp");
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

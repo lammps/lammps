@@ -292,7 +292,7 @@ void PairDPDfdtEnergy::compute(int eflag, int vflag)
       }
     }
     // Communicate the ghost delta energies to the locally owned atoms
-    comm->reverse_comm_pair(this);
+    comm->reverse_comm(this);
   }
   if (vflag_fdotr) virial_fdotr_compute();
 
@@ -407,7 +407,7 @@ void PairDPDfdtEnergy::init_style()
     error->all(FLERR,"Pair dpd/fdt/energy requires ghost atoms store velocity");
 
   splitFDT_flag = false;
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
   for (int i = 0; i < modify->nfix; i++)
     if (utils::strmatch(modify->fix[i]->style,"^shardlow")) {
       splitFDT_flag = true;

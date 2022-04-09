@@ -67,20 +67,34 @@ If the pair_style command has a cutoff argument, it sets global
 cutoffs for all pairs of atom types.  The distance(s) can be smaller
 or larger than the dimensions of the simulation box.
 
-Typically, the global cutoff value can be overridden for a specific
-pair of atom types by the :doc:`pair_coeff <pair_coeff>` command.  The
-pair style settings (including global cutoffs) can be changed by a
-subsequent pair_style command using the same style.  This will reset
-the cutoffs for all atom type pairs, including those previously set
-explicitly by a :doc:`pair_coeff <pair_coeff>` command.  The exceptions
-to this are that pair_style *table* and *hybrid* settings cannot be
-reset.  A new pair_style command for these styles will wipe out all
-previously specified pair_coeff values.
+In many cases, the global cutoff value can be overridden for a
+specific pair of atom types by the :doc:`pair_coeff <pair_coeff>`
+command.
+
+If a new pair_style command is specified with a new style, all
+previous :doc:`pair_coeff <pair_coeff>` and :doc:`pair_modify
+<pair_modify>` command settings are erased; those commands must be
+re-specified if necessary.
+
+If a new pair_style command is specified with the same style, then
+only the global settings in that command are reset.  Any previous
+doc:`pair_coeff <pair_coeff>` and :doc:`pair_modify <pair_modify>`
+command settings are preserved.  The only exception is that if the
+global cutoff in the pair_style command is changed, it will override
+the corresponding cutoff in any of the previous doc:`pair_modify
+<pair_coeff>` commands.
+
+Two pair styles which do not follow this rule are the pair_style
+*table* and *hybrid* commands.  A new pair_style command for these
+styles will wipe out all previously specified doc:`pair_coeff
+<pair_coeff>` and :doc:`pair_modify <pair_modify>` settings, including
+for the sub-styles of the *hybrid* command.
 
 ----------
 
 Here is an alphabetic list of pair styles defined in LAMMPS.  They are
-also listed in more compact form on the :doc:`Commands pair <Commands_pair>` doc page.
+also listed in more compact form on the :doc:`Commands pair
+<Commands_pair>` doc page.
 
 Click on the style to display the formula it computes, any additional
 arguments specified in the pair_style command, and coefficients
@@ -188,6 +202,7 @@ accelerated styles exist.
 * :doc:`hbond/dreiding/morse <pair_hbond_dreiding>` - DREIDING hydrogen bonding Morse potential
 * :doc:`hdnnp <pair_hdnnp>` - High-dimensional neural network potential
 * :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>` - registry-dependent interlayer potential (ILP)
+* :doc:`ilp/tmd <pair_ilp_tmd>` - interlayer potential (ILP) potential for transition metal dichalcogenides (TMD)
 * :doc:`kim <pair_kim>` - interface to potentials provided by KIM project
 * :doc:`kolmogorov/crespi/full <pair_kolmogorov_crespi_full>` - Kolmogorov-Crespi (KC) potential with no simplifications
 * :doc:`kolmogorov/crespi/z <pair_kolmogorov_crespi_z>` - Kolmogorov-Crespi (KC) potential with normals along z-axis
@@ -305,6 +320,7 @@ accelerated styles exist.
 * :doc:`reaxff <pair_reaxff>` - ReaxFF potential
 * :doc:`rebo <pair_airebo>` - second generation REBO potential of Brenner
 * :doc:`resquared <pair_resquared>` - Everaers RE-Squared ellipsoidal potential
+* :doc:`saip/metal <pair_saip_metal>` - interlayer potential for hetero-junctions formed with hexagonal 2D materials and metal surfaces
 * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>` - smoothed dissipative particle dynamics for water at isothermal conditions
 * :doc:`smd/hertz <pair_smd_hertz>` -
 * :doc:`smd/tlsph <pair_smd_tlsph>` -

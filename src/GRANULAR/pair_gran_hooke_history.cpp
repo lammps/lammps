@@ -138,7 +138,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
         mass_rigid[i] = mass_body[body[i]];
       else
         mass_rigid[i] = 0.0;
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
   }
 
   double **x = atom->x;
@@ -264,11 +264,12 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
         }
         shrmag = sqrt(shear[0] * shear[0] + shear[1] * shear[1] + shear[2] * shear[2]);
 
-        // rotate shear displacements
-
-        rsht = shear[0] * delx + shear[1] * dely + shear[2] * delz;
-        rsht *= rsqinv;
         if (shearupdate) {
+
+          // rotate shear displacements
+
+          rsht = shear[0] * delx + shear[1] * dely + shear[2] * delz;
+          rsht *= rsqinv;
           shear[0] -= rsht * delx;
           shear[1] -= rsht * dely;
           shear[2] -= rsht * delz;
@@ -430,11 +431,10 @@ void PairGranHookeHistory::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR, "Pair granular requires ghost atoms store velocity");
 
-  // need a granular neigh list
+  // need a granular neighbor list
 
-  int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->size = 1;
-  if (history) neighbor->requests[irequest]->history = 1;
+  if (history) neighbor->add_request(this, NeighConst::REQ_SIZE|NeighConst::REQ_HISTORY);
+  else neighbor->add_request(this, NeighConst::REQ_SIZE);
 
   dt = update->dt;
 
@@ -616,7 +616,7 @@ double PairGranHookeHistory::single(int i, int j, int /*itype*/, int /*jtype*/, 
   double r, rinv, rsqinv, delx, dely, delz;
   double vr1, vr2, vr3, vnnr, vn1, vn2, vn3, vt1, vt2, vt3, wr1, wr2, wr3;
   double mi, mj, meff, damp, ccel;
-  double vtr1, vtr2, vtr3, vrel, shrmag, rsht;
+  double vtr1, vtr2, vtr3, vrel, shrmag;
   double fs1, fs2, fs3, fs, fn;
 
   double *radius = atom->radius;
@@ -717,11 +717,6 @@ double PairGranHookeHistory::single(int i, int j, int /*itype*/, int /*jtype*/, 
 
   double *shear = &allshear[3 * neighprev];
   shrmag = sqrt(shear[0] * shear[0] + shear[1] * shear[1] + shear[2] * shear[2]);
-
-  // rotate shear displacements
-
-  rsht = shear[0] * delx + shear[1] * dely + shear[2] * delz;
-  rsht *= rsqinv;
 
   // tangential forces = shear + tangential velocity damping
 

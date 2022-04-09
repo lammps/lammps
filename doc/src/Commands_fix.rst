@@ -51,10 +51,10 @@ OPT.
    * :doc:`bond/swap <fix_bond_swap>`
    * :doc:`box/relax <fix_box_relax>`
    * :doc:`charge/regulation <fix_charge_regulation>`
-   * :doc:`client/md <fix_client_md>`
    * :doc:`cmap <fix_cmap>`
    * :doc:`colvars <fix_colvars>`
    * :doc:`controller <fix_controller>`
+   * :doc:`damping/cundall <fix_damping_cundall>`
    * :doc:`deform (k) <fix_deform>`
    * :doc:`deposit <fix_deposit>`
    * :doc:`dpd/energy (k) <fix_dpd_energy>`
@@ -100,12 +100,10 @@ OPT.
    * :doc:`latte <fix_latte>`
    * :doc:`lb/fluid <fix_lb_fluid>`
    * :doc:`lb/momentum <fix_lb_momentum>`
-   * :doc:`lb/pc <fix_lb_pc>`
-   * :doc:`lb/rigid/pc/sphere <fix_lb_rigid_pc_sphere>`
    * :doc:`lb/viscous <fix_lb_viscous>`
    * :doc:`lineforce <fix_lineforce>`
    * :doc:`manifoldforce <fix_manifoldforce>`
-   * :doc:`mdi/engine <fix_mdi_engine>`
+   * :doc:`mdi/aimd <fix_mdi_aimd>`
    * :doc:`meso/move <fix_meso_move>`
    * :doc:`mol/swap <fix_mol_swap>`
    * :doc:`momentum (k) <fix_momentum>`
@@ -132,6 +130,7 @@ OPT.
    * :doc:`npt/sphere (o) <fix_npt_sphere>`
    * :doc:`npt/uef <fix_nh_uef>`
    * :doc:`numdiff <fix_numdiff>`
+   * :doc:`numdiff/virial <fix_numdiff_virial>`
    * :doc:`nve (giko) <fix_nve>`
    * :doc:`nve/asphere (gi) <fix_nve_asphere>`
    * :doc:`nve/asphere/noforce <fix_nve_asphere_noforce>`
@@ -247,6 +246,7 @@ OPT.
    * :doc:`vector <fix_vector>`
    * :doc:`viscosity <fix_viscosity>`
    * :doc:`viscous <fix_viscous>`
+   * :doc:`viscous/sphere <fix_viscous_sphere>`
    * :doc:`wall/body/polygon <fix_wall_body_polygon>`
    * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>`
    * :doc:`wall/colloid <fix_wall>`

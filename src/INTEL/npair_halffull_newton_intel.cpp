@@ -30,11 +30,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 NPairHalffullNewtonIntel::NPairHalffullNewtonIntel(LAMMPS *lmp) : NPair(lmp) {
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  _fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  _fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!_fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 }
 
 /* ----------------------------------------------------------------------

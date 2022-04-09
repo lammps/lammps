@@ -28,8 +28,8 @@ namespace LAMMPS_NS {
 class PairLJCutCoulCutDielectricOMP : public PairLJCutCoulCutDielectric, public ThrOMP {
  public:
   PairLJCutCoulCutDielectricOMP(class LAMMPS *);
-  virtual ~PairLJCutCoulCutDielectricOMP() = default;
-  virtual void compute(int, int);
+  ~PairLJCutCoulCutDielectricOMP() override = default;
+  void compute(int, int) override;
 
  protected:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>

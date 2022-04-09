@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class ComputeAveSphereAtom : public Compute {
  public:
   ComputeAveSphereAtom(class LAMMPS *, int, char **);
-  virtual ~ComputeAveSphereAtom();
-  virtual void init();
-  void init_list(int, class NeighList *);
-  virtual void compute_peratom();
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  double memory_usage();
+  ~ComputeAveSphereAtom() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_peratom() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  double memory_usage() override;
 
  protected:
   int nmax;

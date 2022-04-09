@@ -78,6 +78,10 @@ if (test $1 = "DPD-BASIC") then
   depend INTEL
 fi
 
+if (test $1 = "ELECTRODE") then
+  depend INTEL
+fi
+
 if (test $1 = "EXTRA-COMPUTE") then
   depend KOKKOS
 fi

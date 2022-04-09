@@ -32,6 +32,6 @@ class ElectrodeAccelIntel : public ElectrodeAccelInterface {
   void intel_pack_buffers_prec(IntelBuffers<flt_t, acc_t> *buffers);
 };
 
-}  // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS
 
 #endif

@@ -20,18 +20,17 @@
 
 using namespace LAMMPS_NS;
 
-ElectrodeAccelIntel::ElectrodeAccelIntel(class LAMMPS *lmp)
-    : ElectrodeAccelInterface(lmp) {}
+ElectrodeAccelIntel::ElectrodeAccelIntel(class LAMMPS *lmp) : ElectrodeAccelInterface(lmp) {}
 
-void ElectrodeAccelIntel::intel_find_fix() {
+void ElectrodeAccelIntel::intel_find_fix()
+{
   int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
+  if (ifix < 0) error->all(FLERR, "The 'package intel' command is required for /intel styles");
   fix = static_cast<FixIntel *>(modify->fix[ifix]);
 }
 
-void ElectrodeAccelIntel::intel_pack_buffers() {
+void ElectrodeAccelIntel::intel_pack_buffers()
+{
   switch (fix->precision()) {
     case FixIntel::PREC_MODE_MIXED:
       intel_pack_buffers_prec<float, double>(fix->get_mixed_buffers());
@@ -39,14 +38,14 @@ void ElectrodeAccelIntel::intel_pack_buffers() {
     case FixIntel::PREC_MODE_DOUBLE:
       intel_pack_buffers_prec<double, double>(fix->get_double_buffers());
       break;
-    default:  // FixIntel::PREC_MODE_SINGLE
+    default:    // FixIntel::PREC_MODE_SINGLE
       intel_pack_buffers_prec<float, float>(fix->get_single_buffers());
   }
 }
 
 template <class flt_t, class acc_t>
-void ElectrodeAccelIntel::intel_pack_buffers_prec(
-    IntelBuffers<flt_t, acc_t> *buffers) {
+void ElectrodeAccelIntel::intel_pack_buffers_prec(IntelBuffers<flt_t, acc_t> *buffers)
+{
   fix->start_watch(TIME_PACK);
   int packthreads;
   if (comm->nthreads > INTEL_HTHREADS)
@@ -58,10 +57,9 @@ void ElectrodeAccelIntel::intel_pack_buffers_prec(
 #endif
   {
     int ifrom, ito, tid;
-    IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal + atom->nghost,
-                              packthreads, sizeof(ATOM_T));
+    IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal + atom->nghost, packthreads,
+                              sizeof(ATOM_T));
     buffers->thr_pack(ifrom, ito, 0);
   }
   fix->stop_watch(TIME_PACK);
 }
-

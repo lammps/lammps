@@ -26,22 +26,22 @@ FixStyle(electrode/conq/intel, FixElectrodeConqIntel)
 #ifndef LMP_FIX_ELECTRODE_CONQ_INTEL_H
 #define LMP_FIX_ELECTRODE_CONQ_INTEL_H
 
-#include "fix_electrode_conq.h"
 #include "electrode_accel_intel.h"
+#include "fix_electrode_conq.h"
 
 namespace LAMMPS_NS {
 
 class FixElectrodeConqIntel : public FixElectrodeConq {
  public:
-  FixElectrodeConqIntel(class LAMMPS *lmp, int narg, char **arg)
-      : FixElectrodeConq(lmp, narg, arg) {
+  FixElectrodeConqIntel(class LAMMPS *lmp, int narg, char **arg) : FixElectrodeConq(lmp, narg, arg)
+  {
     intelflag = true;
     delete accel_interface;
     accel_interface = new ElectrodeAccelIntel(lmp);
   }
 };
 
-}  // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -29,12 +29,12 @@ KSpaceStyle(pppm/electrode/intel,PPPMElectrodeIntel)
 #ifndef LMP_PPPM_ELECTRODE_INTEL_H
 #define LMP_PPPM_ELECTRODE_INTEL_H
 
-#include "pppm.h"
-#include "fix_intel.h"
-#include <algorithm>
-#include "electrode_kspace.h"
 #include "boundary_correction.h"
+#include "electrode_kspace.h"
+#include "fix_intel.h"
+#include "pppm.h"
 #include "pppm_intel.h"
+#include <algorithm>
 
 namespace LAMMPS_NS {
 
@@ -97,4 +97,3 @@ class PPPMElectrodeIntel : public PPPMIntel, public ElectrodeKSpace {
 
 #endif
 #endif
-

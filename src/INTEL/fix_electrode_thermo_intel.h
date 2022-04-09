@@ -26,22 +26,23 @@ FixStyle(electrode/thermo/intel, FixElectrodeThermoIntel)
 #ifndef LMP_FIX_ELECTRODE_THERMO_INTEL_H
 #define LMP_FIX_ELECTRODE_THERMO_INTEL_H
 
-#include "fix_electrode_thermo.h"
 #include "electrode_accel_intel.h"
+#include "fix_electrode_thermo.h"
 
 namespace LAMMPS_NS {
 
 class FixElectrodeThermoIntel : public FixElectrodeThermo {
  public:
-  FixElectrodeThermoIntel(class LAMMPS *lmp, int narg, char **arg)
-      : FixElectrodeThermo(lmp, narg, arg) {
+  FixElectrodeThermoIntel(class LAMMPS *lmp, int narg, char **arg) :
+      FixElectrodeThermo(lmp, narg, arg)
+  {
     intelflag = true;
     delete accel_interface;
     accel_interface = new ElectrodeAccelIntel(lmp);
   }
 };
 
-}  // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -36,12 +36,11 @@
 #include "neighbor.h"
 #include "pair.h"
 #include "pointers.h"
+#include "text_file_reader.h"
 #include "variable.h"
 
 #include <cassert>
-#include <fstream>
 #include <numeric>
-#include <sstream>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -502,11 +501,11 @@ void FixElectrodeConp::setup_post_neighbor()
   // capacitance matrix
   memory->create(capacitance, ngroup, ngroup, "fix_electrode:capacitance");
   if (read_inv) {
-    read_from_file(input_file_inv, capacitance);
+    read_from_file(input_file_inv, capacitance, "capacitance");
   } else {
     // temporarily hold elastance in "capacitance"
     if (read_mat)
-      read_from_file(input_file_mat, capacitance);
+      read_from_file(input_file_mat, capacitance, "elastance");
     else
       array_compute->compute_array(capacitance);
     if (f_mat && !(read_inv))
@@ -1064,62 +1063,46 @@ int FixElectrodeConp::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixElectrodeConp::write_to_file(FILE *file, std::vector<tagint> tags,
-                                     std::vector<std::vector<double>> mat)
+void FixElectrodeConp::write_to_file(FILE *file, const std::vector<tagint> &tags,
+                                     const std::vector<std::vector<double>> &mat)
 {
-  for (tagint t : tags) fprintf(file, "%20d", t);
-  fprintf(file, "\n");
-  for (std::vector<double> vec : mat) {
-    for (double x : vec) fprintf(file, "%20.11e", x);
-    fprintf(file, "\n");
+  for (const auto &t : tags) fmt::print(file, "{:20}", t);
+  fputs("\n", file);
+  for (const auto &vec : mat) {
+    for (const auto &x : vec) fmt::print(file, "{:20.11e}", x);
+    fputs("\n", file);
   }
 }
 
 /*----------------------------------------------------------------------- */
 
-void FixElectrodeConp::read_from_file(std::string input_file, double **array)
+void FixElectrodeConp::read_from_file(std::string input_file, double **array,
+                                      const std::string &filetype)
 {
   if (comm->me == 0) {
-    bool got_tags = false;
     std::vector<std::vector<double>> matrix;
     std::vector<tagint> tags;
-    std::ifstream input(input_file);
-    if (!input.is_open()) error->all(FLERR, fmt::format("Cannot open {} for reading", input_file));
-    for (std::string line; getline(input, line);) {
-      if (line.compare(0, 1, "#") == 0) continue;
-      std::istringstream stream(line);
-      std::string word;
-      if (!got_tags) {
-        while (std::getline(stream, word, ' ')) {
-          if (word == "") continue;
-          tags.push_back(stoi(word));
-        }
-        got_tags = true;
-        if ((bigint) tags.size() != ngroup)
-          error->all(FLERR,
-                     fmt::format("Number of read tags {} not equal to group members {}",
-                                 tags.size(), ngroup));
-      } else {
-        std::vector<double> a_line;
-        while (std::getline(stream, word, ' ')) {
-          if (word == "") continue;
-          a_line.push_back(stof(word));
-        }
-        if ((bigint) a_line.size() != ngroup)
-          error->all(FLERR,
-                     fmt::format("Number of read entries {} not equal to group members {}",
-                                 a_line.size(), ngroup));
+    try {
+      TextFileReader reader(input_file, filetype);
+
+      // get line with tags
+      auto values = reader.next_values(ngroup);
+      while (values.has_next()) tags.push_back(values.next_tagint());
+
+      std::vector<double> a_line;
+      for (int i = 0; i < ngroup; ++i) {
+        a_line.clear();
+        values = reader.next_values(ngroup);
+        while (values.has_next()) a_line.push_back(values.next_double());
         matrix.push_back(a_line);
       }
+    } catch (std::exception &e) {
+      error->one(FLERR, "Error reading {} file: {}", filetype, e.what());
     }
-    if ((bigint) matrix.size() != ngroup)
-      error->all(FLERR,
-                 fmt::format("Number of lines {} read not equal to group members {}", matrix.size(),
-                             ngroup));
 
     std::vector<tagint> idx;
-    for (tagint t : taglist) {
-      for (size_t i = 0; i < tags.size(); i++) {
+    for (const auto &t : taglist) {
+      for (std::size_t i = 0; i < tags.size(); i++) {
         if (t == tags[i]) {
           idx.push_back(i);
           break;

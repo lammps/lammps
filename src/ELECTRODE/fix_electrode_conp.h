@@ -93,8 +93,8 @@ class FixElectrodeConp : public Fix {
   double potential_energy(int, const std::vector<int> &);
   double self_energy(int);
   std::vector<int> local_to_matrix();
-  void write_to_file(FILE *, std::vector<tagint>, std::vector<std::vector<double>>);
-  void read_from_file(std::string input_file, double **);
+  void write_to_file(FILE *, const std::vector<tagint> &, const std::vector<std::vector<double>> &);
+  void read_from_file(std::string input_file, double **, const std::string &);
   void compute_sd_vectors();
   void compute_sd_vectors_ffield();
   std::vector<int> setvars_types, setvars_groups, setvars_vars;

@@ -123,7 +123,7 @@ If this option is used parameters must be set for all atom types of the electrod
 
 .. warning::
 
-   Atom positions of electrode particles have to be fixed at all times.
+   Positions of electrode particles have to be immobilized at all times.
 
 The parallelization for the fix works best if electrode atoms are evenly
 distributed across processors. For a system with two electrodes at the bottom
@@ -137,7 +137,7 @@ and top of the cell this can be achieved with *processors * * 2*.
 
 .. _Siepmann:
 
-**(Siepmann)** Siepmann and Strik, J. Chem. Phys. 102, 511 (1995).
+**(Siepmann)** Siepmann and Sprik, J. Chem. Phys. 102, 511 (1995).
 
 .. _Reed3:
 

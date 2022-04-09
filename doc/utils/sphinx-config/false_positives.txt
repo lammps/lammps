@@ -48,6 +48,7 @@ agilio
 Agilio
 agni
 Agnolin
+Ahrens
 Ai
 Aidan
 aij
@@ -508,6 +509,8 @@ configfile
 configurational
 conformational
 Connor
+conp
+conq
 ConstMatrix
 Contrib
 cooperativity
@@ -646,6 +649,7 @@ deepskyblue
 defgrad
 defn
 deformable
+Deissenbeck
 del
 delaystep
 deleteIDs
@@ -861,6 +865,7 @@ Eisenforschung
 Ejtehadi
 El
 elaplong
+elastance
 Electroneg
 electronegative
 electronegativity
@@ -973,6 +978,7 @@ evector
 Everaers
 Evgeny
 evirials
+ew
 ewald
 Ewald
 excitations
@@ -1480,6 +1486,7 @@ iva
 Ivanov
 Ivector
 Iw
+Iwers
 iwyu
 ixcm
 ixx
@@ -1963,6 +1970,7 @@ mediumvioletred
 Mees
 Mehl
 Mei
+Meissner
 Melchor
 Meloni
 Melrose
@@ -2644,6 +2652,7 @@ postfixed
 postfixes
 Postma
 Potapkin
+potentiostat
 potin
 Pourtois
 powderblue
@@ -2991,6 +3000,7 @@ Scalable
 scalexy
 scalexz
 scaleyz
+Scalfi
 Schaik
 Schilfgarde
 Schimansky
@@ -3138,6 +3148,7 @@ SPH
 Spickermann
 splined
 spparks
+Sprik
 Springer
 springgreen
 spx

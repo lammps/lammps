@@ -24,7 +24,6 @@ namespace LAMMPS_NS {
 class ElectrodeMatrix : protected Pointers {
  public:
   ElectrodeMatrix(class LAMMPS *, int, double);
-  ~ElectrodeMatrix() {}
   void setup(const std::map<tagint, int> &, class Pair *, class NeighList *);
   void setup_tf(const std::map<int, double> &);
   void compute_array(double **);

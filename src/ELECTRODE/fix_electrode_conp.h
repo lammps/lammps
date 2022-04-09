@@ -37,7 +37,7 @@ namespace LAMMPS_NS {
 class FixElectrodeConp : public Fix {
  public:
   FixElectrodeConp(class LAMMPS *, int, char **);
-  ~FixElectrodeConp();
+  ~FixElectrodeConp() override;
   int setmask() override;
   void setup_post_neighbor() override;
   void setup_pre_reverse(int, int) override;

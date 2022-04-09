@@ -24,7 +24,7 @@ namespace LAMMPS_NS {
 class ElectrodeVector : protected Pointers {
  public:
   ElectrodeVector(class LAMMPS *, int, double);
-  ~ElectrodeVector();
+  ~ElectrodeVector() override;
   void setup(const std::map<tagint, int> &, class Pair *, class NeighList *);
   void compute_vector();
   double *vector;

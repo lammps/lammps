@@ -25,7 +25,6 @@ namespace LAMMPS_NS {
 class ElectrodeAccelInterface : protected Pointers {
  public:
   ElectrodeAccelInterface(class LAMMPS *lmp) : Pointers(lmp) {}
-  virtual ~ElectrodeAccelInterface() {}
   virtual void intel_find_fix() {}
   virtual void intel_pack_buffers() {}
 };

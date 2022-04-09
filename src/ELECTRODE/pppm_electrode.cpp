@@ -1040,7 +1040,7 @@ void PPPMElectrode::set_grid_global()
     if (differentiation_flag == 1 || stagger_flag) {
       h = h_x = h_y = h_z = 4.0 / g_ewald;
       int count = 0;
-      while (1) {
+      while (true) {
         // set grid dimensions
 
         nx_pppm = static_cast<int>(xprd_wire / h_x);

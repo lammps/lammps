@@ -32,11 +32,11 @@ namespace LAMMPS_NS {
 class EwaldElectrode : public Ewald, public ElectrodeKSpace {
  public:
   EwaldElectrode(class LAMMPS *);
-  virtual ~EwaldElectrode();
-  void init();
-  void setup();
-  virtual void compute(int, int);
-  void compute_group_group(int, int, int);
+  ~EwaldElectrode() override;
+  void init() override;
+  void setup() override;
+  void compute(int, int) override;
+  void compute_group_group(int, int, int) override;
 
   // k-space part of coulomb matrix computation
   void compute_vector(bigint *, double *);
@@ -47,8 +47,8 @@ class EwaldElectrode : public Ewald, public ElectrodeKSpace {
  protected:
   class BoundaryCorrection *boundcorr;
   double area;
-  void coeffs();
-  virtual void eik_dot_r();
+  void coeffs() override;
+  void eik_dot_r() override;
 
  private:
   int eikr_step;

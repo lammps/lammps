@@ -33,8 +33,7 @@ namespace LAMMPS_NS {
 class FixElectrodeConq : public FixElectrodeConp {
  public:
   FixElectrodeConq(class LAMMPS *, int, char **);
-  ~FixElectrodeConq() {}
-  void update_psi();
+  void update_psi() override;
 
  private:
   std::vector<double> group_q;

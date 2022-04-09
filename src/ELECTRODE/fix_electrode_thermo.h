@@ -33,9 +33,8 @@ namespace LAMMPS_NS {
 class FixElectrodeThermo : public FixElectrodeConp {
  public:
   FixElectrodeThermo(class LAMMPS *, int, char **);
-  ~FixElectrodeThermo() {}
-  void update_psi();
-  void pre_update();
+  void update_psi() override;
+  void pre_update() override;
 
  protected:
  private:

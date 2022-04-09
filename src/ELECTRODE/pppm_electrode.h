@@ -53,18 +53,18 @@ namespace LAMMPS_NS {
 class PPPMElectrode : public PPPM, public ElectrodeKSpace {
  public:
   PPPMElectrode(class LAMMPS *);
-  virtual ~PPPMElectrode();
-  virtual void init();
-  virtual void setup();
-  virtual void setup_grid();
-  virtual void compute(int, int);
+  ~PPPMElectrode() override;
+  void init() override;
+  void setup() override;
+  void setup_grid() override;
+  void compute(int, int) override;
 
   void compute_vector(bigint *, double *);
   void compute_vector_corr(bigint *, double *);
   void compute_matrix(bigint *, double **);
   void compute_matrix_corr(bigint *, double **);
 
-  virtual void compute_group_group(int, int, int);
+  void compute_group_group(int, int, int) override;
 
  protected:
   FFT_SCALAR ***electrolyte_density_brick;
@@ -74,14 +74,14 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
   virtual void set_grid_global();
   void set_grid_local();
 
-  virtual void allocate();
-  virtual void deallocate();
-  virtual void allocate_peratom();
+  void allocate() override;
+  void deallocate() override;
+  void allocate_peratom() override;
   double compute_df_kspace();
   // double estimate_ik_error(double, double, bigint);
-  virtual double compute_qopt();
-  virtual void compute_gf_ik();
-  virtual void compute_gf_ad();
+  double compute_qopt() override;
+  void compute_gf_ik() override;
+  void compute_gf_ad() override;
 
   /* ----------------------------------------------------------------------
      denominator for Hockney-Eastwood Green's function

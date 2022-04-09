@@ -712,8 +712,8 @@ run, this option is ignored since the output is already balanced.
 
 ----------
 
-The *thermo* keyword only applies the dump *netcdf* style.  It
-triggers writing of :doc:`thermo <thermo>` information to the dump file
+The *thermo* keyword only applies the dump styles *netcdf* and *yaml*.
+It triggers writing of :doc:`thermo <thermo>` information to the dump file
 alongside per-atom data.  The values included in the dump file are
 identical to the values specified by :doc:`thermo_style <thermo_style>`.
 

@@ -23,6 +23,7 @@ class Thermo : protected Pointers {
   friend class MinCG;              // accesses compute_pe
   friend class DumpNetCDF;         // accesses thermo properties
   friend class DumpNetCDFMPIIO;    // accesses thermo properties
+  friend class DumpYAML;           // accesses thermo properties
 
  public:
   char *style;

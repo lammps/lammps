@@ -21,7 +21,7 @@ import re, yaml
 try:
   from yaml import CSafeLoader as Loader, CSafeDumper as Dumper
 except ImportError:
-    from yaml import SafeLoader as Loader, SafeDumper as Dumper
+  from yaml import SafeLoader as Loader, SafeDumper as Dumper
 
 class LogFile:
   """Reads LAMMPS log files and extracts the thermo information

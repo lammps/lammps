@@ -161,6 +161,7 @@ PACKMOST = \
 	dpd-react \
 	dpd-smooth \
 	drude \
+	electrode \
 	eff \
 	extra-compute \
 	extra-dump \
@@ -233,7 +234,7 @@ PACKLIB = \
 
 PACKSYS = compress latboltz mpiio python
 
-PACKINT = atc awpmd colvars gpu kokkos mesont poems
+PACKINT = atc awpmd colvars electrode gpu kokkos mesont poems
 
 PACKEXT = \
 	adios \

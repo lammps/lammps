@@ -319,8 +319,7 @@ void PPPM::init()
 
   if (order < minorder) error->all(FLERR,"PPPM order < minimum allowed order");
   if (!overlap_allowed && !gctmp->ghost_adjacent())
-    error->all(FLERR,"PPPM grid stencil extends "
-               "beyond nearest neighbor processor");
+    error->all(FLERR,"PPPM grid stencil extends beyond nearest neighbor processor");
   if (gctmp) delete gctmp;
 
   // adjust g_ewald
@@ -569,8 +568,7 @@ void PPPM::setup_grid()
   allocate();
 
   if (!overlap_allowed && !gc->ghost_adjacent())
-    error->all(FLERR,"PPPM grid stencil extends "
-               "beyond nearest neighbor processor");
+    error->all(FLERR,"PPPM grid stencil extends beyond nearest neighbor processor");
 
   // pre-compute Green's function denomiator expansion
   // pre-compute 1d charge distribution coefficients

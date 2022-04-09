@@ -216,8 +216,7 @@ void PPPMDipole::init()
 
   if (order < minorder) error->all(FLERR,"PPPMDipole order < minimum allowed order");
   if (!overlap_allowed && !gctmp->ghost_adjacent())
-    error->all(FLERR,"PPPMDipole grid stencil extends "
-               "beyond nearest neighbor processor");
+    error->all(FLERR,"PPPMDipole grid stencil extends beyond nearest neighbor processor");
   if (gctmp) delete gctmp;
 
   // adjust g_ewald
@@ -375,8 +374,7 @@ void PPPMDipole::setup_grid()
   allocate();
 
   if (!overlap_allowed && !gc_dipole->ghost_adjacent())
-    error->all(FLERR,"PPPMDipole grid stencil extends "
-               "beyond nearest neighbor processor");
+    error->all(FLERR,"PPPMDipole grid stencil extends beyond nearest neighbor processor");
 
   // pre-compute Green's function denomiator expansion
   // pre-compute 1d charge distribution coefficients

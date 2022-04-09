@@ -456,8 +456,7 @@ void PPPMDisp::init()
     if (order < minorder)
       error->all(FLERR,"Coulomb PPPMDisp order has been reduced below minorder");
     if (!overlap_allowed && !gctmp->ghost_adjacent())
-      error->all(FLERR,"PPPMDisp grid stencil extends "
-                 "beyond nearest neighbor processor");
+      error->all(FLERR,"PPPMDisp grid stencil extends beyond nearest neighbor processor");
     if (gctmp) delete gctmp;
 
     // adjust g_ewald
@@ -538,8 +537,7 @@ void PPPMDisp::init()
       error->all(FLERR,"Dispersion PPPMDisp order has been "
                  "reduced below minorder");
     if (!overlap_allowed && !gctmp->ghost_adjacent())
-      error->all(FLERR,"Dispersion PPPMDisp grid stencil extends "
-                 "beyond nearest neighbor processor");
+      error->all(FLERR,"Dispersion PPPMDisp grid stencil extends beyond nearest neighbor proc");
     if (gctmp) delete gctmp;
 
     // adjust g_ewald_6
@@ -837,13 +835,11 @@ void PPPMDisp::setup_grid()
 
   if (function[0]) {
     if (!overlap_allowed && !gc->ghost_adjacent())
-      error->all(FLERR,"PPPMDisp grid stencil extends "
-                 "beyond nearest neighbor processor");
+      error->all(FLERR,"PPPMDisp grid stencil extends beyond nearest neighbor processor");
   }
   if (function[1] + function[2] + function[3]) {
     if (!overlap_allowed && !gc6->ghost_adjacent())
-      error->all(FLERR,"Dispersion PPPMDisp grid stencil extends "
-                 "beyond nearest neighbor processor");
+      error->all(FLERR,"Dispersion PPPMDisp grid stencil extends beyond nearest neighbor proc");
   }
 
   // pre-compute Green's function denomiator expansion

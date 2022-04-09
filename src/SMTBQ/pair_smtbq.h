@@ -149,8 +149,6 @@ class PairSMTBQ : public Pair {
   void forward_int(int *);
   void reverse_int(int *);
 
-  int Tokenize(char *, char ***);
-
   template <class T> const T &min(const T &a, const T &b)
   {
     return !(b < a) ? a : b;    // or: return !comp(b,a)?a:b; for the comp version

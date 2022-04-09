@@ -119,6 +119,7 @@ ttm:      two-temeperature model examples
 vashishta: models using the Vashishta potential
 voronoi:  Voronoi tesselation via compute voronoi/atom command
 wall:     use of reflective walls with different stochastic models
+yaml:     demonstrates use of yaml thermo and dump styles
 
 Here is how you might run and visualize one of the sample problems:
 

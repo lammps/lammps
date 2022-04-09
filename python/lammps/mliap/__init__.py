@@ -5,7 +5,14 @@
 import sysconfig
 import ctypes
 library = sysconfig.get_config_vars('INSTSONAME')[0]
-pylib = ctypes.CDLL(library)
+try:
+    pylib = ctypes.CDLL(library)
+except OSError as e:
+    if pylib.endswith(".a"):
+        pylib.strip(".a") + ".so"
+        pylib = ctypes.CDLL(library)
+    else:
+        raise e
 if not pylib.Py_IsInitialized():
     raise RuntimeError("This interpreter is not compatible with python-based mliap for LAMMPS.")
 del sysconfig, ctypes, library, pylib

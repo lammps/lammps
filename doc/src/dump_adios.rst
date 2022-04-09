@@ -35,12 +35,20 @@ Examples
 Description
 """""""""""
 
-Dump a snapshot of atom coordinates every N timesteps in the
-`ADIOS <adios_>`_ based "BP" file format, or using different I/O solutions in ADIOS,
-to a stream that can be read on-line by another program.
+Dump a snapshot of atom coordinates every N timesteps in the `ADIOS
+<adios_>`_ based "BP" file format, or using different I/O solutions in
+ADIOS, to a stream that can be read on-line by another program.
 ADIOS-BP files are binary, portable and self-describing.
 
 .. _adios: https://github.com/ornladios/ADIOS2
+
+.. note::
+
+   To be able to use ADIOS, a file ``adios2_config.xml`` with specific
+   configuration settings is expected in the current working directory.
+   If the file is not present, LAMMPS will try to create a minimal
+   default file.  Please refer to the ADIOS documentation for details on
+   how to adjust this file for optimal performance and desired features.
 
 **Use from write_dump:**
 

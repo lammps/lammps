@@ -82,6 +82,13 @@ TextFileReader::~TextFileReader()
   if (closefp) fclose(fp);
 }
 
+/** Reset file to the beginning */
+
+void TextFileReader::rewind()
+{
+  ::rewind(fp);
+}
+
 /** Read the next line and ignore it */
 
 void TextFileReader::skip_line()

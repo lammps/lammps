@@ -208,7 +208,8 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`erotate/sphere/atom <compute_erotate_sphere_atom>` - rotational energy for each spherical particle
 * :doc:`event/displace <compute_event_displace>` - detect event on atom displacement
 * :doc:`fabric <compute_fabric>` - calculates fabric tensors from pair interactions
-* :doc:`fep <compute_fep>` -
+* :doc:`fep <compute_fep>` - compute free energies for alchemical transformation from perturbation theory
+* :doc:`fep/ta <compute_fep_ta>` - compute free energies for a test area perturbation
 * :doc:`force/tally <compute_tally>` - force between two groups of atoms via the tally callback mechanism
 * :doc:`fragment/atom <compute_cluster_atom>` - fragment ID for each atom
 * :doc:`global/atom <compute_global_atom>` -

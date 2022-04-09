@@ -179,7 +179,7 @@ void ElectrodeVector::update_mpos()
   MPI_Barrier(world);
   double alloc_start = MPI_Wtime();
   int const nall = atom->nlocal + atom->nghost;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *mask = atom->mask;
   mpos = std::vector<bigint>(nall, -1);
 

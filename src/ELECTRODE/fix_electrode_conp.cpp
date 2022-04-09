@@ -652,7 +652,7 @@ void FixElectrodeConp::create_taglist()
 std::vector<int> FixElectrodeConp::local_to_matrix()
 {
   int const nall = atom->nlocal + atom->nghost;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *mask = atom->mask;
   std::vector<int> mpos(nall, -1);
   for (int i = 0; i < nall; i++) {

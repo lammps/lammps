@@ -210,7 +210,7 @@ void ElectrodeMatrix::tf_contribution(double **array)
 void ElectrodeMatrix::update_mpos()
 {
   int const nall = atom->nlocal + atom->nghost;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *mask = atom->mask;
   mpos = std::vector<bigint>(nall, -1);
 

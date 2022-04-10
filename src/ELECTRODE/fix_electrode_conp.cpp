@@ -390,12 +390,12 @@ void FixElectrodeConp::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixElectrodeConp::init_list(int /* id */, NeighList *ptr)
+void FixElectrodeConp::init_list(int id, NeighList *ptr)
 {
   if (etypes_neighlists) {
-    if (ptr->index == mat_request)
+    if (id == 1)
       mat_neighlist = ptr;
-    else if (ptr->index == vec_request)
+    else if (id == 2)
       vec_neighlist = ptr;
   } else
     mat_neighlist = vec_neighlist = ptr;
@@ -1154,6 +1154,7 @@ void FixElectrodeConp::request_etypes_neighlists()
   if (!(read_inv || read_mat)) {
     auto matReq = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
     matReq->set_skip(iskip_mat, ijskip_mat);
+    matReq->set_id(1);
     if (intelflag) matReq->enable_intel();
   } else {
     delete[] iskip_mat;
@@ -1162,5 +1163,6 @@ void FixElectrodeConp::request_etypes_neighlists()
 
   auto vecReq = neighbor->add_request(this);
   vecReq->set_skip(iskip_vec, ijskip_vec);
+  vecReq->set_id(2);
   if (intelflag) vecReq->enable_intel();
 }

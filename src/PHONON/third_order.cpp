@@ -164,8 +164,8 @@ void ThirdOrder::command(int narg, char **arg)
   folded = 0;
 
   // set Neigborlist attributes to NULL
-  ijnum = NULL;
-  neighbortags = NULL;
+  ijnum = nullptr;
+  neighbortags = nullptr;
 
   // read options from end of input line
   if (style == REGULAR) options(narg-3,&arg[3]);

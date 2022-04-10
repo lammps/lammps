@@ -44,7 +44,7 @@ using namespace LAMMPS_NS;
 PairEAMIntel::PairEAMIntel(LAMMPS *lmp) : PairEAM(lmp)
 {
   suffix_flag |= Suffix::INTEL;
-  fp_float = 0;
+  fp_float = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -656,7 +656,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
   if (EFLAG || vflag)
     fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
   else
-    fix->add_result_array(f_start, 0, offload);
+    fix->add_result_array(f_start, nullptr, offload);
 }
 
 /* ----------------------------------------------------------------------

@@ -168,7 +168,7 @@ MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char ** /*arg*/) : Pointers(_lmp)
   node_match = true;
   exit_command = false;
 
-  while (1) {
+  while (true) {
 
     // top-level mdi engine only recognizes three nodes
     // DEFAULT, INIT_MD, INIT_OPTG
@@ -760,7 +760,7 @@ void MDIEngine::mdi_optg()
   timer->init();
   timer->barrier_start();
 
-  while (1) {
+  while (true) {
     update->minimize->run(1);
 
     if (strcmp(mdicmd, "@COORDS") != 0 && strcmp(mdicmd, "@FORCES") != 0) break;
@@ -956,9 +956,9 @@ void MDIEngine::create_system()
   // optionally set charges if specified by ">CHARGES"
 
   if (flag_velocities)
-    lammps_create_atoms(lmp, sys_natoms, NULL, sys_types, sys_coords, sys_velocities, NULL, 1);
+    lammps_create_atoms(lmp, sys_natoms, nullptr, sys_types, sys_coords, sys_velocities, nullptr, 1);
   else
-    lammps_create_atoms(lmp, sys_natoms, NULL, sys_types, sys_coords, NULL, NULL, 1);
+    lammps_create_atoms(lmp, sys_natoms, nullptr, sys_types, sys_coords, nullptr, nullptr, 1);
 
   if (flag_charges) lammps_scatter_atoms(lmp, (char *) "q", 1, 1, sys_charges);
 

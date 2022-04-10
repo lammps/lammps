@@ -881,7 +881,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
   if (EFLAG || vflag)
     fix->add_result_array(f_start, ev_global, offload, eatom, 0, 2);
   else
-    fix->add_result_array(f_start, 0, offload, 0, 0, 2);
+    fix->add_result_array(f_start, nullptr, offload, 0, 0, 2);
 }
 
 /* ---------------------------------------------------------------------- */

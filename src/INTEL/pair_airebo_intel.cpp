@@ -570,7 +570,7 @@ void PairAIREBOIntel::eval(
   if (EVFLAG)
     fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
   else
-    fix->add_result_array(f_start, 0, offload);
+    fix->add_result_array(f_start, nullptr, offload);
 }
 
 /* ---------------------------------------------------------------------- */

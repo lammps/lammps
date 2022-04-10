@@ -39,10 +39,10 @@ class EwaldElectrode : public Ewald, public ElectrodeKSpace {
   void compute_group_group(int, int, int) override;
 
   // k-space part of coulomb matrix computation
-  void compute_vector(bigint *, double *);
-  void compute_vector_corr(bigint *, double *);
-  void compute_matrix(bigint *, double **);
-  void compute_matrix_corr(bigint *, double **);
+  void compute_vector(bigint *, double *) override;
+  void compute_vector_corr(bigint *, double *) override;
+  void compute_matrix(bigint *, double **) override;
+  void compute_matrix_corr(bigint *, double **) override;
 
  protected:
   class BoundaryCorrection *boundcorr;

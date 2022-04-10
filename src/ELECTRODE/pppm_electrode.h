@@ -59,10 +59,10 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
   void setup_grid() override;
   void compute(int, int) override;
 
-  void compute_vector(bigint *, double *);
-  void compute_vector_corr(bigint *, double *);
-  void compute_matrix(bigint *, double **);
-  void compute_matrix_corr(bigint *, double **);
+  void compute_vector(bigint *, double *) override;
+  void compute_vector_corr(bigint *, double *) override;
+  void compute_matrix(bigint *, double **) override;
+  void compute_matrix_corr(bigint *, double **) override;
 
   void compute_group_group(int, int, int) override;
 
@@ -71,14 +71,13 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
   FFT_SCALAR *electrolyte_density_fft;
   class BoundaryCorrection *boundcorr;
 
-  virtual void set_grid_global();
-  void set_grid_local();
+  void set_grid_global() override;
+  void set_grid_local() override;
 
   void allocate() override;
   void deallocate() override;
   void allocate_peratom() override;
-  double compute_df_kspace();
-  // double estimate_ik_error(double, double, bigint);
+  double compute_df_kspace() override;
   double compute_qopt() override;
   void compute_gf_ik() override;
   void compute_gf_ad() override;

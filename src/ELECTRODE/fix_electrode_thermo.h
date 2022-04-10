@@ -38,7 +38,7 @@ class FixElectrodeThermo : public FixElectrodeConp {
 
  protected:
  private:
-  void compute_macro_matrices();
+  void compute_macro_matrices() override;
   class RanMars *thermo_random;
   double delta_psi_0;
   double group_q_old[2];

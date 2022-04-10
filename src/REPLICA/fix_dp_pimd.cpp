@@ -238,22 +238,22 @@ FixDPPimd::FixDPPimd(LAMMPS *lmp, int narg, char **arg) :
   
   /* Initiation */
 
-  max_nsend = 0;
-  tag_send = nullptr;
-  buf_send = nullptr;
+  // max_nsend = 0;
+  // tag_send = nullptr;
+  // buf_send = nullptr;
 
-  max_nlocal = 0;
-  buf_recv = nullptr;
+  // max_nlocal = 0;
+  // buf_recv = nullptr;
   buf_beads = nullptr;
 
-  coords_send = coords_recv = nullptr;
-  forces_send = forces_recv = nullptr;
-  nsend = nrecv = 0;
-  tags_send = nullptr;
-  coords = nullptr;
-  forces = nullptr;
-  size_plan = 0;
-  plan_send = plan_recv = nullptr;
+  // coords_send = coords_recv = nullptr;
+  // forces_send = forces_recv = nullptr;
+  // nsend = nrecv = 0;
+  // tags_send = nullptr;
+  // coords = nullptr;
+  // forces = nullptr;
+  // size_plan = 0;
+  // plan_send = plan_recv = nullptr;
 
   xc = fc = nullptr;
   xf = 0.0;
@@ -2023,20 +2023,48 @@ void FixDPPimd::nmpimd_fill(double **ptr)
 
 /* ---------------------------------------------------------------------- */
 
-void FixDPPimd::nmpimd_transform(double** src, double** des, double *vector)
+void FixDPPimd::nmpimd_transform(double* src, double** des, double *vector)
 {
-  int n = atom->nlocal;
+  // printf("start of nmpimd_transform\n"); 
+  int nlocal = atom->nlocal;
+  int natoms = atom->natoms;
   int m = 0;
 
   //fprintf(stdout, "starting, src=%.6f %.6f, des=%.6f %.6f, vec=%.6f %.6f\n", src[0][0], src[1][0], des[0][0], des[1][0], vector[0], vector[1]);
 
-  for(int i=0; i<n; i++) for(int d=0; d<3; d++)
-  {
-    des[i][d] = 0.0;
-    for(int j=0; j<np; j++) { des[i][d] += (src[j][m] * vector[j]); }
-    m++;
+  // printf("start transform, me = %d buf_beads:\n", universe->me);
+  // for(int i=0; i<np; i++){
+  //   for(int j=0; j<12; j++){
+  //     printf("%.4f ", buf_beads[i*natoms*3+j]);
+  //   }
+  //   printf("\n");
+  // }
+
+  for(int i=0; i<nlocal; i++) {
+    for(int d=0; d<3; d++) {
+      sorted[3*i+d] = 0.0;
+      for(int j=0; j<np; j++) { 
+        sorted[3*i+d] += (src[j*natoms*3+m] * vector[j]); 
+        // m++;
+      }
+      m++;
+    }
+  }
+
+  // printf("in transform, me = %d sorted:\n", universe->me);
+  // for(int j=0; j<12; j++){
+  //   printf("%.4f ", sorted[j]);
+  // }
+  // printf("\n");
+
+  for(int i=0; i<nlocal; i++) {
+    int tag_tmp = atom->tag[i];
+    des[i][0] = sorted[3*(tag_tmp-1)+0];
+    des[i][1] = sorted[3*(tag_tmp-1)+1];
+    des[i][2] = sorted[3*(tag_tmp-1)+2];
   }
   //fprintf(stdout, "ending, src=%.6f %.6f, des=%.6f %.6f, vec=%.6f %.6f\n", src[0][0], src[1][0], des[0][0], des[1][0], vector[0], vector[1]);
+  // printf("end of nmpimd_transform\n"); 
 }
 
 /* ----------------------------------------------------------------------
@@ -2045,248 +2073,48 @@ void FixDPPimd::nmpimd_transform(double** src, double** des, double *vector)
 
 void FixDPPimd::comm_init()
 {
-  if(size_plan)
-  {
-    delete [] plan_send;
-    delete [] plan_recv;
-  }
-
-  /*
-  if(method == PIMD)
-  {
-    size_plan = 2;
-    plan_send = new int [2];
-    plan_recv = new int [2];
-    mode_index = new int [2];
-
-    int rank_last = universe->me - comm->nprocs;
-    int rank_next = universe->me + comm->nprocs;
-    if(rank_last<0) rank_last += universe->nprocs;
-    if(rank_next>=universe->nprocs) rank_next -= universe->nprocs;
-
-    plan_send[0] = rank_next; plan_send[1] = rank_last;
-    plan_recv[0] = rank_last; plan_recv[1] = rank_next;
-
-    mode_index[0] = 0; mode_index[1] = 1;
-    x_last = 1; x_next = 0;
-  }
-  else
-  {    
-    */
-    int ncomms = comm->nprocs;
-    size_plan = universe->nprocs - ncomms;
-    plan_send = new int [size_plan];
-    plan_recv = new int [size_plan];
-    mode_index = new int [size_plan];
-
-    for(int i=0; i<np-1; i++)
-    {
-      int i_send = (universe->iworld + i + 1) % np;
-      int i_recv = (universe->iworld - i - 1 + np) % np;
-      for(int j=0; j<ncomms; j++)
-      {
-        plan_send[i*ncomms+j] = i_send*ncomms + (comm->me+j)%ncomms;
-        plan_recv[i*ncomms+j] = i_recv*ncomms + (comm->me-j+ncomms)%ncomms;
-        mode_index[i*ncomms+j] = i_send;
-      }
-      // plan_send[i] = universe->me + comm->nprocs * (i+1);
-      // if(plan_send[i]>=universe->nprocs) plan_send[i] -= universe->nprocs;
-
-      // plan_recv[i] = universe->me - comm->nprocs * (i+1);
-      // if(plan_recv[i]<0) plan_recv[i] += universe->nprocs;
-
-    }
-    // printf("me = %d\n", universe->me);
-    // for(int i=0; i<size_plan; i++) printf("%d %d\n", plan_send[i], plan_recv[i]);
-    // printf("\n");
-
-    // x_next = (universe->iworld+1+universe->nworlds)%(universe->nworlds);
-    // x_last = (universe->iworld-1+universe->nworlds)%(universe->nworlds);
+  int natoms = atom->natoms;
+  sorted = new double[natoms*3];
+  buf_beads = new double[np*natoms*3];
+  // for (int i=0; i<np; i++) buf_beads[i] = new double[natoms*3];
+  // for (int i=0; i<np; i++) {
+    // for (int j=0; j<natoms; j++) {
+      // buf_beads[i][3*j+0] = buf_beads[i][3*j+1] = buf_beads[i][3*j+2] = 0.0;
+    // }
   // }
-
-  if(buf_beads)
-  {
-    for(int i=0; i<np; i++) if(buf_beads[i]) delete [] buf_beads[i];
-    delete [] buf_beads;
-  }
-
-  buf_beads = new double* [np];
-  for(int i=0; i<np; i++) buf_beads[i] = nullptr;
-  
-  if(coords)
-  {
-    for(int i=0; i<np; i++) if(coords[i]) delete [] coords[i];
-    delete [] coords;
-  }
-
-  if(forces)
-  {
-    for(int i=0; i<np; i++) if(forces[i]) delete [] forces[i];
-    delete [] forces;
-  }
-  
-  coords = new double* [np];
-  for(int i=0; i<np; i++) coords[i] = nullptr;
-
-  forces = new double* [np];
-  for(int i=0; i<np; i++) forces[i] = nullptr;
-  
-  if(x_scaled)
-  {
-    for(int i=0; i<np; i++) if(x_scaled[i]) delete [] x_scaled[i];
-    delete [] x_scaled;
-  }
-
-  x_scaled = new double* [np];
-  for(int i=0; i<np; i++) x_scaled[i] = nullptr;
-
-  printf("trying to allocate!\n");
-  int nlocal = atom->nlocal;
-  max_nlocal = nlocal+300;
-  max_nsend = nlocal+300;
-  int size = sizeof(double) * max_nlocal * 3;
-
-  buf_beads = new double*[np];
-  for(int i=0; i<np; i++)
-  {
-    buf_beads[i] = (double*) memory->smalloc(size, "FixDPPimd:buf_beads[i]");
-    // buf_beads[i] = new double[max_nlocal];
-  }
-
-  buf_send = (double*) memory->smalloc(sizeof(double)*max_nlocal*3, "FixDPPimd:buf_send");
-  buf_recv = (double*) memory->smalloc(sizeof(double)*max_nlocal*3, "FixDPPimd:buf_recv");
-
-  tag_search = (tagint*) memory->smalloc(sizeof(tagint)*max_nsend, "FixDPPimd:tag_search");
-  tag_send = (tagint*) memory->smalloc(sizeof(tagint)*max_nsend, "FixDPPimd:tag_send");    
-  tag_recv = (tagint*) memory->smalloc(sizeof(tagint)*max_nsend, "FixDPPimd:tag_recv");    
-
-  printf("me = %d, comm allocated!\n", universe->me);
-
+  // printf("end of comm_init\n");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixDPPimd::comm_exec(double **ptr)
 {
-  // printf("me = %d, start comm_exec, m = %.4e\n", universe->me, mass[1]);
-  // printf("me = %d, start comm_exec\n", universe->me);
+  // printf("start of comm_exec\n");
+  MPI_Barrier(universe->uworld);
   int nlocal = atom->nlocal;
-
-  if(nlocal > max_nlocal)
-  {
-    max_nlocal = nlocal+200;
-    int size = sizeof(double) * max_nlocal * 3;
-
-    // printf("let's print buf_beads!\n");
-    for(int i=0; i<np; i++)
-    // {
-    //   for(int j=0; j<nlocal; j++)
-    //   {
-    //     printf("%.4e %.4e %.4e\n", buf_beads[i][3*j], buf_beads[i][3*j+1], buf_beads[i][3*j+2]);
-    //   }
-    // }
-    buf_beads[i] = (double*) memory->srealloc(buf_beads[i], size, "FixDPPimd:buf_beads[i]");
+  int natoms = atom->natoms;
+  for (int i=0; i<nlocal; i++) {
+    memcpy(&(sorted[3*i]), &(ptr[atom->map(i+1)][0]), sizeof(double)*3);
   }
-
-  // printf("copying! m = %.4e\n", mass[1]);
-  // copy the local positions
-  memcpy(&(buf_beads[universe->iworld][0]), &(ptr[0][0]), sizeof(double)*nlocal*3);
-  // printf("copyed! m = %.4e\n", mass[1]);
-
-  // printf("me = %d, going over comm plans\n", universe->me);
-  // go over comm plans
-  for(int iplan = 0; iplan<size_plan; iplan++)
-  {
-    // printf("me = %d, iplan = %d\n", universe->me, iplan);
-    if(iplan % comm->nprocs == 0)  nfound = 0;
-    // sendrecv nlocal
-    nsend = 0;
-    // printf("me = %d, iplan = %d, plan_send = %d, plan_recv = %d\n", universe->me, iplan, plan_send[iplan], plan_recv[iplan]);
-    MPI_Sendrecv( &(nlocal), 1, MPI_INT, plan_send[iplan], 0,
-                  &(nsearch),  1, MPI_INT, plan_recv[iplan], 0, universe->uworld, MPI_STATUS_IGNORE);
-
-    // printf("me = %d, iplan = %d, n sent\n", universe->me, iplan);
-
-    // allocate arrays
-    if(nsearch > max_nsend)
-    {
-      printf("nsearch = %d\n", nsearch);
-      max_nsend = nsearch+200;
-      tag_search = (tagint*) memory->srealloc(tag_search, sizeof(tagint)*max_nsend, "FixDPPimd:tag_search");
-      tag_send = (tagint*) memory->srealloc(tag_send, sizeof(tagint)*max_nsend, "FixDPPimd:tag_send");    
-      buf_send = (double*) memory->srealloc(buf_send, sizeof(double)*max_nsend*3, "FixDPPimd:buf_send");
-      printf("me = %d, allocated!\n", universe->me);
-    }
-
-    // send the tags of the atoms to search
-    MPI_Sendrecv(
-      atom->tag, nlocal, MPI_LMP_TAGINT, plan_send[iplan], 0, tag_search,  nsearch,  MPI_LMP_TAGINT, plan_recv[iplan], 0, universe->uworld, MPI_STATUS_IGNORE
-                  );
-
-    // printf("me = %d, tags sent\n", universe->me);
-
-    // wrap positions
-    // double *wrap_ptr = buf_send;
-    int ncpy = sizeof(double)*3;
-    for(int i=0; i<nsearch; i++)
-    {
-      int index = atom->map(tag_search[i]);
-      if(index >= 0 && index < nlocal){
-        memcpy(&(tag_send[nsend]), &(atom->tag[index]), sizeof(tagint));
-        memcpy(&(buf_send[3*nsend]), &(ptr[index][0]), ncpy);
-        nsend += 1;
-      }
-    }
-    nfound += nsend;
-
-    // snedrecv nsend
-    MPI_Sendrecv(
-      &(nsend), 1, MPI_LMP_TAGINT, plan_recv[iplan], 0, 
-      &(nrecv), 1, MPI_LMP_TAGINT, plan_send[iplan], 0, 
-      universe->uworld, MPI_STATUS_IGNORE
-    );
-
-    // printf("me = %d, iplan = %d, nsend = %d, nrecv = %d\n", universe->me, iplan, nsend, nrecv);
-
-    // allocate tag_recv and buf_recv
-    if(nrecv > nlocal)
-    {
-      printf("me = %d, need to reallocated rev!\n", universe->me);
-      int max_nrecv = nrecv + 200;
-    tag_recv = (tagint*) memory->srealloc(tag_recv, sizeof(tagint)*max_nrecv, "FixDPPimd:tag_recv");
-    buf_recv = (double*) memory->srealloc(buf_recv, sizeof(double)*max_nrecv*3, "FixDPPimd:buf_recv");
-    }
-
-    // sendrecv the tags of the found atoms
-    MPI_Sendrecv(
-      &(tag_send[0]), nsend, MPI_LMP_TAGINT, plan_recv[iplan], 0, 
-      &(tag_recv[0]), nrecv, MPI_LMP_TAGINT, plan_send[iplan], 0, 
-      MPI_COMM_WORLD, MPI_STATUS_IGNORE
-    );
-
-    // sendrecv the positions of the found atoms
-    MPI_Sendrecv(
-      &(buf_send[0]), nsend*3,  MPI_DOUBLE, plan_recv[iplan], 0, 
-      &(buf_recv[0]), nrecv*3, MPI_DOUBLE, plan_send[iplan], 0, universe->uworld, MPI_STATUS_IGNORE);
-
-    // printf("buf_recv: %.3f %.3f %.3f\n", buf_recv[0], buf_recv[1], buf_recv[2]);
-
-    // copy x
-    for(int i=0; i<nrecv; i++)
-    {
-      int index = atom->map(tag_recv[i]);
-      memcpy(&(buf_beads[mode_index[iplan]][index*3]), &(buf_recv[i*3]), sizeof(double)*3);
-    }
-
-    // if((iplan+1)%comm->nprocs == 0) printf("nfound = %d\n", nfound);
-    // printf("me = %d, tag = %d\n", universe->me, atom->tag[0]);
-    // for(int i=0; i<np; i++){
-      // printf("%.4e  ", buf_beads[i][0]);
-    // }
-    // printf("\n");
-  }
-
-  // printf("me = %d, success comm_exec, m = %.4e\n", universe->me, mass[1]);
+  // printf("me = %d %.10e\n", universe->me, ptr[atom->map(1)][0]);
+  // printf("me = %d sroted[0]: %.10e\n", universe->me, sorted[0]);
+  // printf("me = %d sroted[0:12]:\n", universe->me);
+  // for(int i=0; i<12; i++) printf("%.4f ", sorted[i]);
+  // printf("\n");
+  MPI_Allgather(&sorted[0], natoms*3, MPI_DOUBLE, &buf_beads[0], natoms*3, MPI_DOUBLE, universe->uworld);
+  // int MPI_Allgather(const void *sendbuf, int  sendcount,
+  //    MPI_Datatype sendtype, void *recvbuf, int recvcount,
+  //    MPI_Datatype recvtype, MPI_Comm comm)
+  // printf("end of comm_exec\n");
+  // printf("me = %d buf_beads:\n", universe->me);
+  // for(int i=0; i<np; i++){
+  //   for(int j=0; j<12; j++){
+  //     printf("%.4f ", buf_beads[i*natoms*3+j]);
+  //   }
+  //   printf("\n");
+  // }
+  // printf("%.10e\n%.10e\n", buf_beads[0][0], buf_beads[1][0]);
+  // printf("%.10e\n", buf_beads[0][0]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2295,6 +2123,7 @@ void FixDPPimd::comm_exec(double **ptr)
 void FixDPPimd::compute_xc()
 {
   timer->stamp();
+  int natoms = atom->natoms;
   comm_exec(atom->x);
   MPI_Barrier(universe->uworld);
   timer->stamp(Timer::XC_COMM);
@@ -2305,9 +2134,9 @@ void FixDPPimd::compute_xc()
     xc[3*i] = xc[3*i+1] = xc[3*i+2] = 0.0;
     for(int j=0; j<np; j++)
     {
-      xc[3*i] += buf_beads[j][3*i];
-      xc[3*i+1] += buf_beads[j][3*i+1];
-      xc[3*i+2] += buf_beads[j][3*i+2];
+      xc[3*i] += buf_beads[j*natoms*3+3*i+0];
+      xc[3*i+1] += buf_beads[j*natoms*3+3*i+1];
+      xc[3*i+2] += buf_beads[j*natoms*3+3*i+2];
     }
     xc[3*i] /= np;
     xc[3*i+1] /= np;
@@ -2318,24 +2147,24 @@ void FixDPPimd::compute_xc()
 
 /* ---------------------------------------------------------------------- */
 
-void FixDPPimd::compute_fc()
-{
-  int nlocal = atom->nlocal;
-  fc = (double*) memory->srealloc(fc, sizeof(double) * nlocal * 3, "FixDPPimd:fc");
-  for(int i=0; i<nlocal; i++)
-  {
-    fc[3*i] = fc[3*i+1] = fc[3*i+2] = 0.0;
-    for(int j=0; j<np; j++)
-    {
-      fc[3*i] += forces[j][3*i];
-      fc[3*i+1] += forces[j][3*i+1];
-      fc[3*i+2] += forces[j][3*i+2];
-    }
-    // fc[3*i] /= np;
-    // fc[3*i+1] /= np;
-    // fc[3*i+2] /= np;
-  } 
-}
+// void FixDPPimd::compute_fc()
+// {
+//   int nlocal = atom->nlocal;
+//   fc = (double*) memory->srealloc(fc, sizeof(double) * nlocal * 3, "FixDPPimd:fc");
+//   for(int i=0; i<nlocal; i++)
+//   {
+//     fc[3*i] = fc[3*i+1] = fc[3*i+2] = 0.0;
+//     for(int j=0; j<np; j++)
+//     {
+//       fc[3*i] += forces[j][3*i];
+//       fc[3*i+1] += forces[j][3*i+1];
+//       fc[3*i+2] += forces[j][3*i+2];
+//     }
+//     // fc[3*i] /= np;
+//     // fc[3*i+1] /= np;
+//     // fc[3*i+2] /= np;
+//   } 
+// }
 
 /* ---------------------------------------------------------------------- */
 
@@ -2464,23 +2293,23 @@ void FixDPPimd::compute_vir()
 
 /* ---------------------------------------------------------------------- */
 
-void FixDPPimd::compute_xscaled()
-{
-  int nlocal = atom->nlocal;
-  for(int i=0; i<np; i++)
-  {
-    x_scaled[i] = (double*) memory->srealloc(x_scaled[i], sizeof(double) * nlocal * 3, "FixDPPimd:x_scaled[i]");
-  }
-  for(int i=0; i<np; i++)
-  {
-    for(int j=0; j<nlocal; j++)
-    {
-    x_scaled[i][3*j] = lambda * coords[i][3*j] + (1.0 - lambda) * xc[3*j];
-    x_scaled[i][3*j+1] = lambda * coords[i][3*j+1] + (1.0 - lambda) * xc[3*j+1];
-    x_scaled[i][3*j+2] = lambda * coords[i][3*j+2] + (1.0 - lambda) * xc[3*j+2];
-    }
-  }
-}
+// void FixDPPimd::compute_xscaled()
+// {
+//   int nlocal = atom->nlocal;
+//   for(int i=0; i<np; i++)
+//   {
+//     x_scaled[i] = (double*) memory->srealloc(x_scaled[i], sizeof(double) * nlocal * 3, "FixDPPimd:x_scaled[i]");
+//   }
+//   for(int i=0; i<np; i++)
+//   {
+//     for(int j=0; j<nlocal; j++)
+//     {
+//     x_scaled[i][3*j] = lambda * coords[i][3*j] + (1.0 - lambda) * xc[3*j];
+//     x_scaled[i][3*j+1] = lambda * coords[i][3*j+1] + (1.0 - lambda) * xc[3*j+1];
+//     x_scaled[i][3*j+2] = lambda * coords[i][3*j+2] + (1.0 - lambda) * xc[3*j+2];
+//     }
+//   }
+// }
 
 /* ---------------------------------------------------------------------- */
 /* ----------------------------------------------------------------------

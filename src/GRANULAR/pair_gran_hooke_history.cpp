@@ -67,8 +67,8 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   // this is so final order of Modify:fix will conform to input script
 
   fix_history = nullptr;
-  fix_dummy = (FixDummy *) modify->add_fix("NEIGH_HISTORY_HH_DUMMY" + std::to_string(instance_me) +
-                                           " all DUMMY");
+  fix_dummy = dynamic_cast<FixDummy *>( modify->add_fix("NEIGH_HISTORY_HH_DUMMY" + std::to_string(instance_me) +
+                                           " all DUMMY"));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -444,8 +444,8 @@ void PairGranHookeHistory::init_style()
 
   if (history && (fix_history == nullptr)) {
     auto cmd = fmt::format("NEIGH_HISTORY_HH{} all NEIGH_HISTORY {}", instance_me, size_history);
-    fix_history = (FixNeighHistory *) modify->replace_fix(
-        "NEIGH_HISTORY_HH_DUMMY" + std::to_string(instance_me), cmd, 1);
+    fix_history = dynamic_cast<FixNeighHistory *>( modify->replace_fix(
+        "NEIGH_HISTORY_HH_DUMMY" + std::to_string(instance_me), cmd, 1));
     fix_history->pair = this;
   }
 
@@ -511,7 +511,7 @@ void PairGranHookeHistory::init_style()
   // set fix which stores history info
 
   if (history) {
-    fix_history = (FixNeighHistory *) modify->get_fix_by_id("NEIGH_HISTORY_HH" + std::to_string(instance_me));
+    fix_history = dynamic_cast<FixNeighHistory *>( modify->get_fix_by_id("NEIGH_HISTORY_HH" + std::to_string(instance_me)));
     if (!fix_history) error->all(FLERR,"Could not find pair fix neigh history ID");
   }
 }

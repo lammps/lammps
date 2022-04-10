@@ -414,7 +414,7 @@ void Info::command(int narg, char **arg)
                atom->natoms, atom->ntypes, force->pair_style);
 
     if (force->pair && utils::strmatch(force->pair_style,"^hybrid")) {
-      PairHybrid *hybrid = (PairHybrid *)force->pair;
+      auto hybrid = dynamic_cast<PairHybrid *>(force->pair);
       fmt::print(out,"Hybrid sub-styles:");
       for (int i=0; i < hybrid->nstyles; ++i)
         fmt::print(out," {}", hybrid->keywords[i]);

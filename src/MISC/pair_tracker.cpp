@@ -51,7 +51,7 @@ PairTracker::PairTracker(LAMMPS *lmp) : Pair(lmp)
 
   fix_history = nullptr;
   modify->add_fix("NEIGH_HISTORY_TRACK_DUMMY all DUMMY");
-  fix_dummy = (FixDummy *) modify->fix[modify->nfix - 1];
+  fix_dummy = dynamic_cast<FixDummy *>( modify->fix[modify->nfix - 1]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -283,11 +283,11 @@ void PairTracker::init_style()
   if (fix_history == nullptr) {
     modify->replace_fix("NEIGH_HISTORY_TRACK_DUMMY",
                         fmt::format("NEIGH_HISTORY_TRACK all NEIGH_HISTORY {}", size_history), 1);
-    fix_history = (FixNeighHistory *) modify->get_fix_by_id("NEIGH_HISTORY_TRACK");
+    fix_history = dynamic_cast<FixNeighHistory *>( modify->get_fix_by_id("NEIGH_HISTORY_TRACK"));
     fix_history->pair = this;
     fix_history->use_bit_flag = 0;
   } else {
-    fix_history = (FixNeighHistory *) modify->get_fix_by_id("NEIGH_HISTORY_TRACK");
+    fix_history = dynamic_cast<FixNeighHistory *>( modify->get_fix_by_id("NEIGH_HISTORY_TRACK"));
     if (!fix_history) error->all(FLERR, "Could not find pair fix neigh history ID");
   }
 
@@ -342,7 +342,7 @@ void PairTracker::init_style()
   auto trackfixes = modify->get_fix_by_style("pair/tracker");
   if (trackfixes.size() != 1)
     error->all(FLERR, "Must use exactly one fix pair/tracker command with pair style tracker");
-  fix_pair_tracker = (FixPairTracker *) trackfixes.front();
+  fix_pair_tracker = dynamic_cast<FixPairTracker *>( trackfixes.front());
 }
 
 /* ----------------------------------------------------------------------

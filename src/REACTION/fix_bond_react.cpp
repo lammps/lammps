@@ -792,7 +792,7 @@ void FixBondReact::init()
 {
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
 
   // check cutoff for iatomtype,jatomtype
   for (int i = 0; i < nreacts; i++) {

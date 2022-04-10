@@ -263,11 +263,10 @@ void DisplaceAtoms::command(int narg, char **arg)
 
     // AtomVec pointers to retrieve per-atom storage of extra quantities
 
-    AtomVecEllipsoid *avec_ellipsoid =
-      (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-    AtomVecLine *avec_line = (AtomVecLine *) atom->style_match("line");
-    AtomVecTri *avec_tri = (AtomVecTri *) atom->style_match("tri");
-    AtomVecBody *avec_body = (AtomVecBody *) atom->style_match("body");
+    auto avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
+    auto avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
+    auto avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
+    auto avec_body = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
 
     double **x = atom->x;
     int *ellipsoid = atom->ellipsoid;

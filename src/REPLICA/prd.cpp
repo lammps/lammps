@@ -167,7 +167,7 @@ void PRD::command(int narg, char **arg)
 
   // create FixEventPRD class to store event and pre-quench states
 
-  fix_event = (FixEventPRD *) modify->add_fix("prd_event all EVENT/PRD");
+  fix_event = dynamic_cast<FixEventPRD *>( modify->add_fix("prd_event all EVENT/PRD"));
 
   // create Finish for timing output
 

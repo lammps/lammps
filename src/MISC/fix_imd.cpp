@@ -595,7 +595,7 @@ int FixIMD::setmask()
 void FixIMD::init()
 {
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
 
   return;
 }

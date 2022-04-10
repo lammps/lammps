@@ -213,7 +213,7 @@ void ComputeFEP::init()
 
       if ((strcmp(force->pair_style, "hybrid") == 0 ||
            strcmp(force->pair_style, "hybrid/overlay") == 0)) {
-        PairHybrid *pair = (PairHybrid *) force->pair;
+        auto pair = dynamic_cast<PairHybrid *>( force->pair);
         for (i = pert->ilo; i <= pert->ihi; i++)
           for (j = MAX(pert->jlo, i); j <= pert->jhi; j++)
             if (!pair->check_ijtype(i, j, pert->pstyle))

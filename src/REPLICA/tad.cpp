@@ -131,11 +131,11 @@ void TAD::command(int narg, char **arg)
 
   // create FixEventTAD object to store last event
 
-  fix_event = (FixEventTAD *) modify->add_fix("tad_event all EVENT/TAD");
+  fix_event = dynamic_cast<FixEventTAD *>( modify->add_fix("tad_event all EVENT/TAD"));
 
   // create FixStore object to store revert state
 
-  fix_revert = (FixStore *) modify->add_fix("tad_revert all STORE peratom 0 7");
+  fix_revert = dynamic_cast<FixStore *>( modify->add_fix("tad_revert all STORE peratom 0 7"));
 
   // create Finish for timing output
 
@@ -844,7 +844,7 @@ void TAD::add_event()
 
   int ievent = n_event_list++;
   fix_event_list[ievent]
-    = (FixEventTAD *) modify->add_fix(fmt::format("tad_event_{} all EVENT/TAD", ievent));
+    = dynamic_cast<FixEventTAD *>( modify->add_fix(fmt::format("tad_event_{} all EVENT/TAD", ievent)));
 
   // store quenched state for new event
 

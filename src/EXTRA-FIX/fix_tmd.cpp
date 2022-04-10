@@ -167,7 +167,7 @@ void FixTMD::init()
   dtv = update->dt;
   dtf = update->dt * force->ftm2v;
   if (utils::strmatch(update->integrate_style,"^respa"))
-    step_respa = ((Respa *) update->integrate)->step;
+    step_respa = (dynamic_cast<Respa *>( update->integrate))->step;
 }
 
 /* ---------------------------------------------------------------------- */

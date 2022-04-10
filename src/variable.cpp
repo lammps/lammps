@@ -4856,7 +4856,7 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
       error->all(FLERR,"Cannot use atomfile-style variable unless an atom map exists");
 
     id_fix = utils::strdup(std::string(name) + "_VARIABLE_STORE");
-    fixstore = (FixStore *) modify->add_fix(std::string(id_fix) + " all STORE peratom 0 1");
+    fixstore = dynamic_cast<FixStore *>( modify->add_fix(std::string(id_fix) + " all STORE peratom 0 1"));
     buffer = new char[CHUNK*MAXLINE];
   }
 }

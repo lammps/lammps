@@ -152,13 +152,13 @@ void ResetMolIDs::create_computes(char *fixid, char *groupid)
 
   idfrag = fmt::format("{}_reset_mol_ids_FRAGMENT_ATOM",fixid);
   auto use_single = singleflag ? "yes" : "no";
-  cfa = (ComputeFragmentAtom *)
-    modify->add_compute(fmt::format("{} {} fragment/atom single {}",idfrag,groupid,use_single));
+  cfa = dynamic_cast<ComputeFragmentAtom *>(
+    modify->add_compute(fmt::format("{} {} fragment/atom single {}",idfrag,groupid,use_single)));
 
   idchunk = fmt::format("{}_reset_mol_ids_CHUNK_ATOM",fixid);
   if (compressflag)
-    cca = (ComputeChunkAtom *)
-      modify->add_compute(fmt::format("{} {} chunk/atom molecule compress yes",idchunk,groupid));
+    cca = dynamic_cast<ComputeChunkAtom *>(
+      modify->add_compute(fmt::format("{} {} chunk/atom molecule compress yes",idchunk,groupid)));
 }
 
 /* ----------------------------------------------------------------------

@@ -82,7 +82,7 @@ void TemperGrem::command(int narg, char **arg)
     if (strcmp(arg[3],modify->fix[whichfix]->id) == 0) break;
   if (whichfix == modify->nfix)
     error->universe_all(FLERR,"Tempering fix ID is not defined");
-  fix_grem = (FixGrem*)(modify->fix[whichfix]);
+  fix_grem = dynamic_cast<FixGrem*>(modify->fix[whichfix]);
 
   // Check input values lambdas should be equal, assign other gREM values
   if (lambda != fix_grem->lambda)

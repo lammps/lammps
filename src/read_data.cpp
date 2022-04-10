@@ -99,11 +99,11 @@ ReadData::ReadData(LAMMPS *lmp) : Command(lmp)
   // pointers to atom styles that store bonus info
 
   nellipsoids = 0;
-  avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
   nlines = 0;
-  avec_line = (AtomVecLine *) atom->style_match("line");
+  avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
   ntris = 0;
-  avec_tri = (AtomVecTri *) atom->style_match("tri");
+  avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
   nbodies = 0;
   avec_body = (AtomVecBody *) atom->style_match("body");
 }

@@ -375,7 +375,7 @@ void FixIntel::setup_pre_reverse(int eflag, int vflag)
 
 bool FixIntel::pair_hybrid_check()
 {
-  PairHybrid *ph = (PairHybrid *)force->pair;
+  auto ph = dynamic_cast<PairHybrid *>(force->pair);
   bool has_intel = false;
   int nstyles = ph->nstyles;
 

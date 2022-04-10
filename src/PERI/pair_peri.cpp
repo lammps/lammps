@@ -130,7 +130,7 @@ void PairPeri::init_style()
   // if first init, create Fix needed for storing fixed neighbors
 
   if (!fix_peri_neigh)
-    fix_peri_neigh = (FixPeriNeigh *) modify->add_fix("PERI_NEIGH all PERI_NEIGH");
+    fix_peri_neigh = dynamic_cast<FixPeriNeigh *>( modify->add_fix("PERI_NEIGH all PERI_NEIGH"));
 
   neighbor->add_request(this);
 }

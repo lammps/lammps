@@ -43,7 +43,7 @@ FixNHAsphereOMP::FixNHAsphereOMP(LAMMPS *lmp, int narg, char **arg) :
 
 void FixNHAsphereOMP::init()
 {
-  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  avec = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
   if (!avec)
     error->all(FLERR,"Compute nvt/nph/npt asphere requires atom style ellipsoid");
 

@@ -90,8 +90,8 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
   // our new fix's group = same as compute group
 
   id_fix = utils::strdup(std::string(id)+"_COMPUTE_STORE");
-  fix = (FixStore *)modify->add_fix(fmt::format("{} {} STORE peratom 1 3",
-                                                id_fix, group->names[igroup]));
+  fix = dynamic_cast<FixStore *>(modify->add_fix(fmt::format("{} {} STORE peratom 1 3",
+                                                id_fix, group->names[igroup])));
 
   // calculate xu,yu,zu for fix store array
   // skip if reset from restart file

@@ -279,7 +279,7 @@ void FixFilterCorotate::init()
   // set ptrs to rRESPA variables
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
   }
   else error->all(FLERR,"Fix filter/corotate requires rRESPA!");
 
@@ -656,9 +656,9 @@ void FixFilterCorotate::pre_neighbor()
 
 void FixFilterCorotate::setup(int vflag)
 {
-  ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
+  (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(nlevels_respa-1);
   post_force_respa(vflag,nlevels_respa-1,0);
-  ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+  (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(nlevels_respa-1);
 }
 
 void FixFilterCorotate::setup_pre_force_respa(int vflag,int ilevel) {

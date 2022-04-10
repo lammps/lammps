@@ -316,7 +316,7 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
   modify->add_fix("KIM_MODEL_STORE all STORE/KIM");
   ifix = modify->find_fix("KIM_MODEL_STORE");
 
-  FixStoreKIM *fix_store = (FixStoreKIM *) modify->fix[ifix];
+  auto fix_store = dynamic_cast<FixStoreKIM *>( modify->fix[ifix]);
   fix_store->setptr("model_name", (void *) model_name);
   fix_store->setptr("user_units", (void *) user_units);
   fix_store->setptr("model_units", (void *) model_units);

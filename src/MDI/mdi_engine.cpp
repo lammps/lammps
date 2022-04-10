@@ -601,7 +601,7 @@ void MDIEngine::mdi_md()
   // delete the instance before this method returns
 
   modify->add_fix("MDI_ENGINE_INTERNAL all MDI/ENGINE");
-  FixMDIEngine *mdi_fix = (FixMDIEngine *) modify->get_fix_by_id("MDI_ENGINE_INTERNAL");
+  FixMDIEngine *mdi_fix = dynamic_cast<FixMDIEngine *>( modify->get_fix_by_id("MDI_ENGINE_INTERNAL"));
   mdi_fix->mdi_engine = this;
 
   // initialize LAMMPS and setup() the simulation
@@ -723,7 +723,7 @@ void MDIEngine::mdi_optg()
   // delete the instance before this method returns
 
   modify->add_fix("MDI_ENGINE_INTERNAL all MDI/ENGINE");
-  FixMDIEngine *mdi_fix = (FixMDIEngine *) modify->get_fix_by_id("MDI_ENGINE_INTERNAL");
+  FixMDIEngine *mdi_fix = dynamic_cast<FixMDIEngine *>( modify->get_fix_by_id("MDI_ENGINE_INTERNAL"));
   mdi_fix->mdi_engine = this;
 
   // initialize LAMMPS and setup() the simulation

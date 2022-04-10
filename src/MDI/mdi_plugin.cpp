@@ -120,7 +120,7 @@ int MDIPlugin::plugin_wrapper(void * /*pmpicomm*/, MDI_Comm mdicomm, void *vptr)
 
   // set FixMDIAimd mdicomm to driver's mdicomm passed to this callback
 
-  FixMDIAimd *aimdptr = (FixMDIAimd *) (ptr->fixptr);
+  auto aimdptr = dynamic_cast<FixMDIAimd *> (ptr->fixptr);
   aimdptr->mdicomm = mdicomm;
 
   // invoke the specified LAMMPS command

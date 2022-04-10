@@ -132,11 +132,11 @@ void DeleteAtoms::command(int narg, char **arg)
 
   // reset bonus data counts
 
-  AtomVecEllipsoid *avec_ellipsoid =
-    (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  AtomVecLine *avec_line = (AtomVecLine *) atom->style_match("line");
-  AtomVecTri *avec_tri = (AtomVecTri *) atom->style_match("tri");
-  AtomVecBody *avec_body = (AtomVecBody *) atom->style_match("body");
+  auto avec_ellipsoid =
+    dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
+  auto avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
+  auto avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
+  auto avec_body = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
   bigint nlocal_bonus;
 
   if (atom->nellipsoids > 0) {

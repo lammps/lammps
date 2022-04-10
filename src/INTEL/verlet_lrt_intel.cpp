@@ -81,7 +81,7 @@ void VerletLRTIntel::init()
 
 void VerletLRTIntel::setup(int flag)
 {
-  if (_intel_kspace == 0) {
+  if (_intel_kspace == nullptr) {
     Verlet::setup(flag);
     return;
   }
@@ -202,7 +202,7 @@ void VerletLRTIntel::setup(int flag)
 
 void VerletLRTIntel::run(int n)
 {
-  if (_intel_kspace == 0) {
+  if (_intel_kspace == nullptr) {
     Verlet::run(n);
     return;
   }

@@ -36,7 +36,7 @@ NPairSkipIntel::NPairSkipIntel(LAMMPS *lmp) : NPair(lmp) {
   if (!_fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
   _inum_starts = new int[comm->nthreads];
   _inum_counts = new int[comm->nthreads];
-  _full_props = 0;
+  _full_props = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -203,11 +203,11 @@ void NPairSkipIntel::build(NeighList *list)
   if (_fix->three_body_neighbor()==0 ||
       _full_props[list->listskip->index] == 0) {
     if (_fix->precision() == FixIntel::PREC_MODE_MIXED)
-      build_t<float,0>(list, 0, 0, 0);
+      build_t<float,0>(list, nullptr, nullptr, nullptr);
     else if (_fix->precision() == FixIntel::PREC_MODE_DOUBLE)
-      build_t<double,0>(list, 0, 0, 0);
+      build_t<double,0>(list, nullptr, nullptr, nullptr);
     else
-      build_t<float,0>(list, 0, 0, 0);
+      build_t<float,0>(list, nullptr, nullptr, nullptr);
   } else {
     int *nhalf, *cnumneigh, *nhalf_skip, *u;
     if (_fix->precision() == FixIntel::PREC_MODE_MIXED) {

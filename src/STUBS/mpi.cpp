@@ -183,7 +183,7 @@ double MPI_Wtime()
   double time;
   struct timeval tv;
 
-  gettimeofday(&tv, NULL);
+  gettimeofday(&tv, nullptr);
   time = 1.0 * tv.tv_sec + 1.0e-6 * tv.tv_usec;
   return time;
 #endif
@@ -223,7 +223,7 @@ static int stubtypesize(MPI_Datatype datatype)
 
 int MPI_Type_size(MPI_Datatype datatype, int *size)
 {
-  if (size == NULL) return MPI_ERR_ARG;
+  if (size == nullptr) return MPI_ERR_ARG;
 
   *size = stubtypesize(datatype);
   return 0;

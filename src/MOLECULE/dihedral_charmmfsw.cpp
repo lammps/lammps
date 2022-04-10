@@ -405,9 +405,9 @@ void DihedralCharmmfsw::init_style()
 
   int itmp;
   int *p_dihedflag = (int *) force->pair->extract("dihedflag", itmp);
-  double *p_cutljinner = (double *) force->pair->extract("cut_lj_inner", itmp);
-  double *p_cutlj = (double *) force->pair->extract("cut_lj", itmp);
-  double *p_cutcoul = (double *) force->pair->extract("cut_coul", itmp);
+  auto p_cutljinner = (double *) force->pair->extract("cut_lj_inner", itmp);
+  auto p_cutlj = (double *) force->pair->extract("cut_lj", itmp);
+  auto p_cutcoul = (double *) force->pair->extract("cut_coul", itmp);
 
   if (p_cutcoul == nullptr || p_cutljinner == nullptr || p_cutlj == nullptr ||
       p_dihedflag == nullptr)

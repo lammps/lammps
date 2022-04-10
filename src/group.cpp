@@ -675,8 +675,8 @@ void Group::add_molecules(int /*igroup*/, int bit)
 
 void Group::molring(int n, char *cbuf, void *ptr)
 {
-  Group *gptr = (Group *) ptr;
-  tagint *list = (tagint *) cbuf;
+  auto gptr = (Group *) ptr;
+  auto list = (tagint *) cbuf;
   std::map<tagint,int> *hash = gptr->hash;
   int nlocal = gptr->atom->nlocal;
   tagint *molecule = gptr->atom->molecule;

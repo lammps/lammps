@@ -262,7 +262,7 @@ void FixSpringChunk::write_restart(FILE *fp)
 
 void FixSpringChunk::restart(char *buf)
 {
-  double *list = (double *) buf;
+  auto list = (double *) buf;
   int n = list[0];
 
   memory->destroy(com0);

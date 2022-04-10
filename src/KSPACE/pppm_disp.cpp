@@ -366,7 +366,7 @@ void PPPMDisp::init()
 
   if (tip4pflag) {
     int itmp;
-    double *p_qdist = (double *) force->pair->extract("qdist",itmp);
+    auto p_qdist = (double *) force->pair->extract("qdist",itmp);
     int *p_typeO = (int *) force->pair->extract("typeO",itmp);
     int *p_typeH = (int *) force->pair->extract("typeH",itmp);
     int *p_typeA = (int *) force->pair->extract("typeA",itmp);
@@ -1297,7 +1297,7 @@ void PPPMDisp::init_coeffs()
     double **Q=nullptr;
     if (n > 1) {
       // get dispersion coefficients
-      double **b = (double **) force->pair->extract("B",tmp);
+      auto b = (double **) force->pair->extract("B",tmp);
       memory->create(A,n,n,"pppm/disp:A");
       memory->create(Q,n,n,"pppm/disp:Q");
       // fill coefficients to matrix a
@@ -1409,15 +1409,15 @@ void PPPMDisp::init_coeffs()
   }
 
   if (function[1]) {                                    // geometric 1/r^6
-    double **b = (double **) force->pair->extract("B",tmp);
+    auto b = (double **) force->pair->extract("B",tmp);
     B = new double[n+1];
     B[0] = 0.0;
     for (int i=1; i<=n; ++i) B[i] = sqrt(fabs(b[i][i]));
   }
 
   if (function[2]) {                                    // arithmetic 1/r^6
-    double **epsilon = (double **) force->pair->extract("epsilon",tmp);
-    double **sigma = (double **) force->pair->extract("sigma",tmp);
+    auto epsilon = (double **) force->pair->extract("epsilon",tmp);
+    auto sigma = (double **) force->pair->extract("sigma",tmp);
     if (!(epsilon&&sigma))
       error->all(FLERR,"Epsilon or sigma reference not set by pair style for PPPMDisp");
     double eps_i,sigma_i,sigma_n;
@@ -6816,7 +6816,7 @@ void PPPMDisp::fieldforce_none_peratom()
 
 void PPPMDisp::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -7329,7 +7329,7 @@ void PPPMDisp::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMDisp::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -7842,7 +7842,7 @@ void PPPMDisp::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMDisp::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -7897,7 +7897,7 @@ void PPPMDisp::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMDisp::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 

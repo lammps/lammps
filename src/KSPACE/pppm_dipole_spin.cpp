@@ -138,7 +138,7 @@ void PPPMDipoleSpin::init()
   pair_check();
 
   int itmp = 0;
-  double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   // check the correct extract here
   if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");

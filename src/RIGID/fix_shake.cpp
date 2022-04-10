@@ -1035,8 +1035,7 @@ void FixShake::atom_owners()
 
   int *proclist;
   memory->create(proclist,nlocal,"shake:proclist");
-  IDRvous *idbuf = (IDRvous *)
-    memory->smalloc((bigint) nlocal*sizeof(IDRvous),"shake:idbuf");
+  auto idbuf = (IDRvous *) memory->smalloc((bigint) nlocal*sizeof(IDRvous),"shake:idbuf");
 
   // setup input buf to rendezvous comm
   // input datums = pairs of bonded atoms
@@ -1085,8 +1084,7 @@ void FixShake::partner_info(int *npartner, tagint **partner_tag,
 
   int *proclist;
   memory->create(proclist,nsend,"special:proclist");
-  PartnerInfo *inbuf = (PartnerInfo *)
-    memory->smalloc((bigint) nsend*sizeof(PartnerInfo),"special:inbuf");
+  auto inbuf = (PartnerInfo *) memory->smalloc((bigint) nsend*sizeof(PartnerInfo),"special:inbuf");
 
   // set values in 4 partner arrays for all partner atoms I own
   // also setup input buf to rendezvous comm
@@ -1164,7 +1162,7 @@ void FixShake::partner_info(int *npartner, tagint **partner_tag,
                                  rendezvous_partners_info,
                                  0,buf,sizeof(PartnerInfo),
                                  (void *) this);
-  PartnerInfo *outbuf = (PartnerInfo *) buf;
+  auto outbuf = (PartnerInfo *) buf;
 
   memory->destroy(proclist);
   memory->sfree(inbuf);
@@ -1214,8 +1212,7 @@ void FixShake::nshake_info(int *npartner, tagint **partner_tag,
 
   int *proclist;
   memory->create(proclist,nsend,"special:proclist");
-  NShakeInfo *inbuf = (NShakeInfo *)
-    memory->smalloc((bigint) nsend*sizeof(NShakeInfo),"special:inbuf");
+  auto inbuf = (NShakeInfo *) memory->smalloc((bigint) nsend*sizeof(NShakeInfo),"special:inbuf");
 
   // set partner_nshake for all partner atoms I own
   // also setup input buf to rendezvous comm
@@ -1252,7 +1249,7 @@ void FixShake::nshake_info(int *npartner, tagint **partner_tag,
                                  0,proclist,
                                  rendezvous_nshake,0,buf,sizeof(NShakeInfo),
                                  (void *) this);
-  NShakeInfo *outbuf = (NShakeInfo *) buf;
+  auto outbuf = (NShakeInfo *) buf;
 
   memory->destroy(proclist);
   memory->sfree(inbuf);
@@ -1293,8 +1290,7 @@ void FixShake::shake_info(int *npartner, tagint **partner_tag,
 
   int *proclist;
   memory->create(proclist,nsend,"special:proclist");
-  ShakeInfo *inbuf = (ShakeInfo *)
-    memory->smalloc((bigint) nsend*sizeof(ShakeInfo),"special:inbuf");
+  auto inbuf = (ShakeInfo *) memory->smalloc((bigint) nsend*sizeof(ShakeInfo),"special:inbuf");
 
   // set 3 shake arrays for all partner atoms I own
   // also setup input buf to rendezvous comm
@@ -1345,7 +1341,7 @@ void FixShake::shake_info(int *npartner, tagint **partner_tag,
                                  0,proclist,
                                  rendezvous_shake,0,buf,sizeof(ShakeInfo),
                                  (void *) this);
-  ShakeInfo *outbuf = (ShakeInfo *) buf;
+  auto outbuf = (ShakeInfo *) buf;
 
   memory->destroy(proclist);
   memory->sfree(inbuf);
@@ -1377,7 +1373,7 @@ int FixShake::rendezvous_ids(int n, char *inbuf,
                              int &flag, int *& /*proclist*/, char *& /*outbuf*/,
                              void *ptr)
 {
-  FixShake *fsptr = (FixShake *) ptr;
+  auto fsptr = (FixShake *) ptr;
   Memory *memory = fsptr->memory;
 
   tagint *atomIDs;
@@ -1386,7 +1382,7 @@ int FixShake::rendezvous_ids(int n, char *inbuf,
   memory->create(atomIDs,n,"special:atomIDs");
   memory->create(procowner,n,"special:procowner");
 
-  IDRvous *in = (IDRvous *) inbuf;
+  auto in = (IDRvous *) inbuf;
 
   for (int i = 0; i < n; i++) {
     atomIDs[i] = in[i].atomID;
@@ -1417,7 +1413,7 @@ int FixShake::rendezvous_partners_info(int n, char *inbuf,
 {
   int i,m;
 
-  FixShake *fsptr = (FixShake *) ptr;
+  auto fsptr = (FixShake *) ptr;
   Atom *atom = fsptr->atom;
   Memory *memory = fsptr->memory;
 
@@ -1437,7 +1433,7 @@ int FixShake::rendezvous_partners_info(int n, char *inbuf,
   // proclist = owner of atomID in caller decomposition
   // outbuf = info about owned atomID = 4 values
 
-  PartnerInfo *in = (PartnerInfo *) inbuf;
+  auto in = (PartnerInfo *) inbuf;
   int *procowner = fsptr->procowner;
   memory->create(proclist,n,"shake:proclist");
 
@@ -1472,7 +1468,7 @@ int FixShake::rendezvous_nshake(int n, char *inbuf,
 {
   int i,m;
 
-  FixShake *fsptr = (FixShake *) ptr;
+  auto fsptr = (FixShake *) ptr;
   Atom *atom = fsptr->atom;
   Memory *memory = fsptr->memory;
 
@@ -1492,7 +1488,7 @@ int FixShake::rendezvous_nshake(int n, char *inbuf,
   // proclist = owner of atomID in caller decomposition
   // outbuf = info about owned atomID
 
-  NShakeInfo *in = (NShakeInfo *) inbuf;
+  auto in = (NShakeInfo *) inbuf;
   int *procowner = fsptr->procowner;
   memory->create(proclist,n,"shake:proclist");
 
@@ -1526,7 +1522,7 @@ int FixShake::rendezvous_shake(int n, char *inbuf,
 {
   int i,m;
 
-  FixShake *fsptr = (FixShake *) ptr;
+  auto fsptr = (FixShake *) ptr;
   Atom *atom = fsptr->atom;
   Memory *memory = fsptr->memory;
 
@@ -1546,7 +1542,7 @@ int FixShake::rendezvous_shake(int n, char *inbuf,
   // proclist = owner of atomID in caller decomposition
   // outbuf = info about owned atomID
 
-  ShakeInfo *in = (ShakeInfo *) inbuf;
+  auto in = (ShakeInfo *) inbuf;
   int *procowner = fsptr->procowner;
   memory->create(proclist,n,"shake:proclist");
 
@@ -2564,8 +2560,7 @@ void FixShake::stats()
 
   if (me == 0) {
     const int width = log10((MAX(MAX(1,nb),na)))+2;
-    auto mesg = fmt::format("SHAKE stats (type/ave/delta/count) on step {}\n",
-                            update->ntimestep);
+    auto mesg = fmt::format("SHAKE stats (type/ave/delta/count) on step {}\n", update->ntimestep);
     for (i = 1; i < nb; i++) {
       const auto bcnt = b_count_all[i];
       if (bcnt)

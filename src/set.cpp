@@ -1064,8 +1064,8 @@ void Set::setrandom(int keyword)
   double **x = atom->x;
   int seed = ivalue;
 
-  RanPark *ranpark = new RanPark(lmp,1);
-  RanMars *ranmars = new RanMars(lmp,seed + comm->me);
+  auto ranpark = new RanPark(lmp,1);
+  auto ranmars = new RanMars(lmp,seed + comm->me);
 
   // set approx fraction of atom types to newtype
 

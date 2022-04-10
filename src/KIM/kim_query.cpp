@@ -277,7 +277,7 @@ namespace {
 // copy data to the user provided data structure, optionally in increments
 size_t write_callback(void *data, size_t size, size_t nmemb, void *userp)
 {
-  WriteBuf *buf = (WriteBuf *) userp;
+  auto buf = (WriteBuf *) userp;
 
   // copy chunks into the buffer for as long as there is space left
   if (buf->sizeleft) {

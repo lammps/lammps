@@ -700,7 +700,7 @@ void FixAdapt::write_restart(FILE *fp)
 
 void FixAdapt::restart(char *buf)
 {
-  double *dbuf = (double *) buf;
+  auto dbuf = (double *) buf;
 
   previous_diam_scale = dbuf[0];
   previous_chg_scale = dbuf[1];

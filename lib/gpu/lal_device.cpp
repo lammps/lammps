@@ -101,7 +101,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
   // Get the names of all nodes
   int name_length;
   char node_name[MPI_MAX_PROCESSOR_NAME];
-  char *node_names = new char[MPI_MAX_PROCESSOR_NAME*_world_size];
+  auto node_names = new char[MPI_MAX_PROCESSOR_NAME*_world_size];
   MPI_Get_processor_name(node_name,&name_length);
   MPI_Allgather(&node_name,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,&node_names[0],
                 MPI_MAX_PROCESSOR_NAME,MPI_CHAR,_comm_world);

@@ -388,7 +388,7 @@ void VerletLRTIntel::run(int n)
 ------------------------------------------------------------------------- */
 void * VerletLRTIntel::k_launch_loop(void *context)
 {
-  VerletLRTIntel * const c = (VerletLRTIntel *)context;
+  auto  const c = (VerletLRTIntel *)context;
 
   if (c->kspace_compute_flag)
     c->_intel_kspace->compute_first(c->eflag, c->vflag);

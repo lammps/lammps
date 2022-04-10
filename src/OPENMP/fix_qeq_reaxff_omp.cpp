@@ -118,7 +118,7 @@ void FixQEqReaxFFOMP::init()
     memory->create(aspc_b, aspc_order_max+2, "qeq/reaxff/aspc_b");
 
     // Calculate damping factor
-    double o = double(aspc_order);
+    auto  o = double(aspc_order);
     aspc_omega = (o+2.0) / (2*o+3.0);
 
     // Calculate B coefficients

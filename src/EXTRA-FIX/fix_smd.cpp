@@ -451,7 +451,7 @@ void FixSMD::write_restart(FILE *fp)
 
 void FixSMD::restart(char *buf)
 {
-  double *list = (double *)buf;
+  auto list = (double *)buf;
   r_old = list[0];
   xn=list[1];
   yn=list[2];

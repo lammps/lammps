@@ -564,7 +564,7 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
 #endif
   }
 
-  const numtyp cutoff_cast=static_cast<numtyp>(_cutoff);
+  const auto cutoff_cast=static_cast<numtyp>(_cutoff);
 
   if (_maxspecial>0) {
     time_nbor.start();
@@ -741,12 +741,12 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
   // If binning on GPU, do this now
   if (_gpu_nbor==1) {
     mn = _max_nbors;
-    const numtyp i_cell_size=static_cast<numtyp>(1.0/_cell_size);
+    const auto i_cell_size=static_cast<numtyp>(1.0/_cell_size);
     const int neigh_block=_block_cell_id;
     const int GX=(int)ceil((double)nall/neigh_block);
-    const numtyp sublo0=static_cast<numtyp>(sublo[0]);
-    const numtyp sublo1=static_cast<numtyp>(sublo[1]);
-    const numtyp sublo2=static_cast<numtyp>(sublo[2]);
+    const auto sublo0=static_cast<numtyp>(sublo[0]);
+    const auto sublo1=static_cast<numtyp>(sublo[1]);
+    const auto sublo2=static_cast<numtyp>(sublo[2]);
     _shared->k_cell_id.set_size(GX,neigh_block);
     _shared->k_cell_id.run(&atom.x, &atom.dev_cell_id,
                            &atom.dev_particle_id, &sublo0, &sublo1,

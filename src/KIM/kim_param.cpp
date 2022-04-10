@@ -163,7 +163,7 @@ void KimParam::command(int narg, char **arg)
 
   int const ifix = modify->find_fix("KIM_MODEL_STORE");
   if (ifix >= 0) {
-    FixStoreKIM *fix_store = reinterpret_cast<FixStoreKIM *>(modify->fix[ifix]);
+    auto fix_store = reinterpret_cast<FixStoreKIM *>(modify->fix[ifix]);
 
     KIM_SimulatorModel *simulatorModel =
         reinterpret_cast<KIM_SimulatorModel *>(
@@ -185,7 +185,7 @@ void KimParam::command(int narg, char **arg)
   if (isPairStyleAssigned) {
     Pair *pair = force->pair_match("kim", 1, 0);
     if (pair) {
-      PairKIM *pairKIM = reinterpret_cast<PairKIM *>(pair);
+      auto pairKIM = reinterpret_cast<PairKIM *>(pair);
 
       pkim = pairKIM->get_kim_model();
       if (!pkim)

@@ -236,13 +236,13 @@ int PairEAMGPU::pack_forward_comm(int n, int *list, double *buf, int /* pbc_flag
   m = 0;
 
   if (fp_single) {
-    float *fp_ptr = (float *) fp_pinned;
+    auto fp_ptr = (float *) fp_pinned;
     for (i = 0; i < n; i++) {
       j = list[i];
       buf[m++] = static_cast<double>(fp_ptr[j]);
     }
   } else {
-    double *fp_ptr = (double *) fp_pinned;
+    auto fp_ptr = (double *) fp_pinned;
     for (i = 0; i < n; i++) {
       j = list[i];
       buf[m++] = fp_ptr[j];
@@ -261,10 +261,10 @@ void PairEAMGPU::unpack_forward_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
   if (fp_single) {
-    float *fp_ptr = (float *) fp_pinned;
+    auto fp_ptr = (float *) fp_pinned;
     for (i = first; i < last; i++) fp_ptr[i] = buf[m++];
   } else {
-    double *fp_ptr = (double *) fp_pinned;
+    auto fp_ptr = (double *) fp_pinned;
     for (i = first; i < last; i++) fp_ptr[i] = buf[m++];
   }
 }

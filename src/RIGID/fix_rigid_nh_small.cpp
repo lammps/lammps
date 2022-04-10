@@ -1272,7 +1272,7 @@ void FixRigidNHSmall::write_restart(FILE *fp)
 void FixRigidNHSmall::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
   int flag = static_cast<int> (list[n++]);
 
   if (flag) {

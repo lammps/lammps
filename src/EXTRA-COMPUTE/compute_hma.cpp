@@ -190,7 +190,7 @@ void ComputeHMA::setup()
   int dummy=0;
   int ifix = modify->find_fix(id_temp);
   if (ifix < 0) error->all(FLERR,"Could not find compute hma temperature ID");
-  double * temperat = (double *) modify->fix[ifix]->extract("t_target",dummy);
+  auto  temperat = (double *) modify->fix[ifix]->extract("t_target",dummy);
   if (temperat==nullptr) error->all(FLERR,"Could not find compute hma temperature ID");
   finaltemp = * temperat;
 
@@ -198,7 +198,7 @@ void ComputeHMA::setup()
 
   int ifix2 = modify->find_fix(id_fix);
   if (ifix2 < 0) error->all(FLERR,"Could not find hma store fix ID");
-  fix = (FixStore *) modify->fix[ifix2];
+  fix = dynamic_cast<FixStore *>( modify->fix[ifix2]);
 }
 
 /* ---------------------------------------------------------------------- */

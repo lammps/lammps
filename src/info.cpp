@@ -1053,7 +1053,7 @@ static void print_columns(FILE *fp, std::map<std::string, ValueType> *styles)
 
   // std::map keys are already sorted
   int pos = 80;
-  for (typename std::map<std::string, ValueType>::iterator it = styles->begin(); it != styles->end(); ++it) {
+  for (auto it = styles->begin(); it != styles->end(); ++it) {
     const std::string &style_name = it->first;
 
     // skip "internal" styles

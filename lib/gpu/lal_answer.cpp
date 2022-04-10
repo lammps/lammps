@@ -305,8 +305,8 @@ void AnswerT::get_answers(double **f, double **tor) {
   if (_ilist==nullptr) {
     typedef struct { double x,y,z; } vec3d;
     typedef struct { acctyp x,y,z,w; } vec4d_t;
-    vec3d *fp=reinterpret_cast<vec3d*>(&(f[0][0]));
-    vec4d_t *forcep=reinterpret_cast<vec4d_t*>(&(force[0]));
+    auto fp=reinterpret_cast<vec3d*>(&(f[0][0]));
+    auto forcep=reinterpret_cast<vec4d_t*>(&(force[0]));
 
     #if (LAL_USE_OMP == 1)
     #pragma omp parallel
@@ -329,8 +329,8 @@ void AnswerT::get_answers(double **f, double **tor) {
         fp[i].z+=forcep[i].z;
       }
       if (_rot) {
-        vec3d *torp=reinterpret_cast<vec3d*>(&(tor[0][0]));
-        vec4d_t *torquep=reinterpret_cast<vec4d_t*>(&(force[_inum*4]));
+        auto torp=reinterpret_cast<vec3d*>(&(tor[0][0]));
+        auto torquep=reinterpret_cast<vec4d_t*>(&(force[_inum*4]));
         for (int i=ifrom; i<ito; i++) {
           torp[i].x+=torquep[i].x;
           torp[i].y+=torquep[i].y;

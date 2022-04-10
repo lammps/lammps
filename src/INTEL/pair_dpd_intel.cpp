@@ -179,12 +179,12 @@ void PairDPDIntel::eval(const int offload, const int vflag,
 
   ATOM_T * _noalias const x = buffers->get_x(offload);
   typedef struct { double x, y, z; } lmp_vt;
-  lmp_vt *v = (lmp_vt *)atom->v[0];
+  auto *v = (lmp_vt *)atom->v[0];
   const flt_t dtinvsqrt = 1.0/sqrt(update->dt);
 
   const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
-  const int ** _noalias const firstneigh = (const int **)list->firstneigh;
+  const int ** _noalias const firstneigh = (const int **)list->firstneigh;  // NOLINT
   const FC_PACKED1_T * _noalias const param = fc.param[0];
   const flt_t * _noalias const special_lj = fc.special_lj;
   int * _noalias const rngi_thread = fc.rngi;

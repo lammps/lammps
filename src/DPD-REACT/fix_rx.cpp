@@ -233,7 +233,7 @@ void FixRX::post_constructor()
   int nUniqueSpecies = 0;
   bool match;
 
-  char **tmpspecies = new char*[maxspecies];
+  auto tmpspecies = new char*[maxspecies];
   for (int jj=0; jj < maxspecies; jj++)
     tmpspecies[jj] = nullptr;
 
@@ -625,7 +625,7 @@ void FixRX::setup_pre_force(int /*vflag*/)
     userData.kFor = new double[nreactions];
     userData.rxnRateLaw = new double[nreactions];
 
-    double *rwork = new double[8*nspecies];
+    auto rwork = new double[8*nspecies];
 
     if (localTempFlag) {
       int count = nlocal + (newton_pair ? nghost : 0);
@@ -695,7 +695,7 @@ void FixRX::pre_force(int /*vflag*/)
   }
 
   {
-    double *rwork = new double[8*nspecies];
+    auto rwork = new double[8*nspecies];
 
     UserRHSData userData;
     userData.kFor = new double[nreactions];
@@ -1575,7 +1575,7 @@ int FixRX::rhs(double t, const double *y, double *dydt, void *params)
 
 int FixRX::rhs_dense(double /*t*/, const double *y, double *dydt, void *params)
 {
-  UserRHSData *userData = (UserRHSData *) params;
+  auto userData = (UserRHSData *) params;
 
   double *rxnRateLaw = userData->rxnRateLaw;
   double *kFor       = userData->kFor;
@@ -1609,7 +1609,7 @@ int FixRX::rhs_dense(double /*t*/, const double *y, double *dydt, void *params)
 
 int FixRX::rhs_sparse(double /*t*/, const double *y, double *dydt, void *v_params) const
 {
-   UserRHSData *userData = (UserRHSData *) v_params;
+   auto userData = (UserRHSData *) v_params;
 
    const double VDPD = domain->xprd * domain->yprd * domain->zprd / atom->natoms;
 

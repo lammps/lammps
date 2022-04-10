@@ -153,7 +153,7 @@ int ComputeBodyLocal::compute_body(int flag)
   // perform computation and fill output vector/array
 
   int m,n,ibonus;
-  double *values = new double[bptr->noutcol()];
+  auto values = new double[bptr->noutcol()];
 
   double **x = atom->x;
   tagint *tag = atom->tag;

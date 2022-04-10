@@ -156,7 +156,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
           error->all(FLERR,"Variable {} for fix rigid/small custom does not exist", arg[4]+2);
         if (input->variable->atomstyle(ivariable) == 0)
           error->all(FLERR,"Fix rigid custom variable {} is not atom-style variable", arg[4]+2);
-        double *value = new double[nlocal];
+        auto value = new double[nlocal];
         input->variable->compute_atom(ivariable,0,value,1,0);
         int minval = INT_MAX;
         for (i = 0; i < nlocal; i++)
@@ -2288,7 +2288,7 @@ void FixRigid::readfile(int which, double *vec, double **array1, double **array2
   if (nlines == 0) return;
   else if (nlines < 0) error->all(FLERR,"Fix rigid infile has incorrect format");
 
-  char *buffer = new char[CHUNK*MAXLINE];
+  auto buffer = new char[CHUNK*MAXLINE];
   int nread = 0;
   while (nread < nlines) {
     nchunk = MIN(nlines-nread,CHUNK);

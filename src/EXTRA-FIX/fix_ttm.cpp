@@ -597,7 +597,7 @@ void FixTTM::write_restart(FILE *fp)
 void FixTTM::restart(char *buf)
 {
   int n = 0;
-  double *rlist = (double *) buf;
+  auto rlist = (double *) buf;
 
   // check that restart grid size is same as current grid size
 

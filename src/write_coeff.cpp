@@ -100,7 +100,7 @@ void WriteCoeff::command(int narg, char **arg)
           coeff_mode = CLASS2_MODE;
       }
 
-      const char *section = (const char *) "";
+      const char * section = (const char *) ""; // NOLINT
       fputs(str, two);                                     // style
       utils::sfgets(FLERR, str, 256, one, file, error);    // coeff
       int n = strlen(str);

@@ -100,7 +100,7 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   boxhi_lamda[0] = boxhi_lamda[1] = boxhi_lamda[2] = 1.0;
 
   lattice = nullptr;
-  char **args = new char*[2];
+  auto args = new char*[2];
   args[0] = (char *) "none";
   args[1] = (char *) "1.0";
   set_lattice(2,args);

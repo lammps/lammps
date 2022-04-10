@@ -103,7 +103,7 @@ void TemperGrem::command(int narg, char **arg)
   int pressflag = fix_grem->pressflag;
   // fix_grem does all the checking...
   if (pressflag) {
-    double *p_start = (double *) nh->extract("p_start",ifix);
+    auto p_start = (double *) nh->extract("p_start",ifix);
     pressref = p_start[0];
   }
 

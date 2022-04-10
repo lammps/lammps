@@ -76,13 +76,12 @@ void NPairSkipIntel::build_t(NeighList *list, int *numhalf, int *cnumneigh,
   const int * _noalias const type = atom->type;
   int * _noalias const ilist = list->ilist;
   int * _noalias const numneigh = list->numneigh;
-  int ** _noalias const firstneigh = (int ** const)list->firstneigh;
+  int ** _noalias const firstneigh = (int ** const)list->firstneigh;  // NOLINT
   const int * _noalias const ilist_skip = list->listskip->ilist;
   const int * _noalias const numneigh_skip = list->listskip->numneigh;
-  const int ** _noalias const firstneigh_skip =
-    (const int ** const)list->listskip->firstneigh;
+  const int ** _noalias const firstneigh_skip = (const int ** const)list->listskip->firstneigh;  // NOLINT
   const int * _noalias const iskip = list->iskip;
-  const int ** _noalias const ijskip = (const int ** const)list->ijskip;
+  const int **  _noalias const ijskip = (const int ** const)list->ijskip;  // NOLINT
 
   int num_skip = list->listskip->inum;
   if (list->ghost) num_skip += list->listskip->gnum;

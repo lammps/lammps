@@ -815,7 +815,7 @@ void FixMSST::write_restart(FILE *fp)
 void FixMSST::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
   omega[direction] = list[n++];
   e0 = list[n++];
   v0 = list[n++];

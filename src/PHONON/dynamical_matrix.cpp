@@ -269,11 +269,11 @@ void DynamicalMatrix::calculateMatrix()
   double *m = atom->mass;
   double **f = atom->f;
 
-  double **dynmat = new double*[3];
+  auto dynmat = new double*[3];
   for (int i=0; i<3; i++)
     dynmat[i] = new double[dynlenb];
 
-  double **fdynmat = new double*[3];
+  auto fdynmat = new double*[3];
   for (int i=0; i<3; i++)
     fdynmat[i] = new double[dynlenb];
 
@@ -575,7 +575,7 @@ void DynamicalMatrix::create_groupmap()
   bigint natoms = atom->natoms;
   int *recv = new int[comm->nprocs];
   int *displs = new int[comm->nprocs];
-  bigint *temp_groupmap = new bigint[natoms];
+  auto temp_groupmap = new bigint[natoms];
 
   //find number of local atoms in the group (final_gid)
   for (bigint i=1; i<=natoms; i++) {
@@ -584,7 +584,7 @@ void DynamicalMatrix::create_groupmap()
       gid += 1; // gid at the end of loop is final_Gid
   }
   //create an array of length final_gid
-  bigint *sub_groupmap = new bigint[gid];
+  auto sub_groupmap = new bigint[gid];
 
   gid = 0;
   //create a map between global atom id and group atom id for each proc

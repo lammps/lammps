@@ -177,7 +177,7 @@ void DisplaceAtoms::command(int narg, char **arg)
   // makes atom result independent of what proc owns it via random->reset()
 
   if (style == RANDOM) {
-    RanPark *random = new RanPark(lmp,1);
+    auto random = new RanPark(lmp,1);
 
     double dx = xscale*utils::numeric(FLERR,arg[2],false,lmp);
     double dy = yscale*utils::numeric(FLERR,arg[3],false,lmp);
@@ -345,7 +345,7 @@ void DisplaceAtoms::command(int narg, char **arg)
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->reset_box();
-  Irregular *irregular = new Irregular(lmp);
+  auto irregular = new Irregular(lmp);
   irregular->migrate_atoms(1);
   delete irregular;
   if (domain->triclinic) domain->lamda2x(atom->nlocal);

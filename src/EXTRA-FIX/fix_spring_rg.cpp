@@ -175,7 +175,7 @@ void FixSpringRG::write_restart(FILE *fp)
 void FixSpringRG::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
 
   rg0 = list[n++];
   rg0_flag = 0;

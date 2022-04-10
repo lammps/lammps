@@ -1088,7 +1088,7 @@ void FixQEqReaxFF::get_chi_field()
   memset(&chi_field[0],0,atom->nmax*sizeof(double));
   if (!efield) return;
 
-  const double * const *x = (const double * const *)atom->x;
+  const auto x = (const double * const *)atom->x;
   const int *mask = atom->mask;
   const imageint *image = atom->image;
   const int nlocal = atom->nlocal;

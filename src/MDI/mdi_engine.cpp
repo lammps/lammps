@@ -1349,7 +1349,7 @@ void MDIEngine::send_total_energy()
 
 void MDIEngine::send_labels()
 {
-  char *labels = new char[atom->natoms * MDI_LABEL_LENGTH];
+  auto labels = new char[atom->natoms * MDI_LABEL_LENGTH];
   memset(labels, ' ', atom->natoms * MDI_LABEL_LENGTH);
 
   memset(ibuf1, 0, atom->natoms * sizeof(int));
@@ -1579,7 +1579,7 @@ void MDIEngine::single_command()
 {
   if (nbytes < 0) error->all(FLERR, "MDI: COMMAND nbytes has not been set");
 
-  char *cmd = new char[nbytes + 1];
+  auto cmd = new char[nbytes + 1];
   int ierr = MDI_Recv(cmd, nbytes + 1, MDI_CHAR, mdicomm);
   if (ierr) error->all(FLERR, "MDI: COMMAND data");
   MPI_Bcast(cmd, nbytes + 1, MPI_CHAR, 0, world);
@@ -1600,7 +1600,7 @@ void MDIEngine::many_commands()
 {
   if (nbytes < 0) error->all(FLERR, "MDI: COMMANDS nbytes has not been set");
 
-  char *cmds = new char[nbytes + 1];
+  auto cmds = new char[nbytes + 1];
   int ierr = MDI_Recv(cmds, nbytes + 1, MDI_CHAR, mdicomm);
   if (ierr) error->all(FLERR, "MDI: COMMANDS data");
   MPI_Bcast(cmds, nbytes + 1, MPI_CHAR, 0, world);
@@ -1621,7 +1621,7 @@ void MDIEngine::infile()
 {
   if (nbytes < 0) error->all(FLERR, "MDI: INFILE nbytes has not been set");
 
-  char *infile = new char[nbytes + 1];
+  auto infile = new char[nbytes + 1];
   int ierr = MDI_Recv(infile, nbytes + 1, MDI_CHAR, mdicomm);
   if (ierr) error->all(FLERR, "MDI: INFILE data for {}", infile);
   MPI_Bcast(infile, nbytes + 1, MPI_CHAR, 0, world);

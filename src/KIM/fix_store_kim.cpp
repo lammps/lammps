@@ -83,25 +83,25 @@ FixStoreKIM::~FixStoreKIM()
   // free associated storage
 
   if (simulator_model) {
-    KIM_SimulatorModel *sm = (KIM_SimulatorModel *)simulator_model;
+    auto sm = (KIM_SimulatorModel *)simulator_model;
     KIM_SimulatorModel_Destroy(&sm);
     simulator_model = nullptr;
   }
 
   if (model_name) {
-    char *mn = (char *)model_name;
+    auto mn = (char *)model_name;
     delete[] mn;
     model_name = nullptr;
   }
 
   if (model_units) {
-    char *mu = (char *)model_units;
+    auto mu = (char *)model_units;
     delete[] mu;
     model_units = nullptr;
   }
 
   if (user_units) {
-    char *uu = (char *)user_units;
+    auto uu = (char *)user_units;
     delete[] uu;
     user_units = nullptr;
   }
@@ -121,25 +121,25 @@ void FixStoreKIM::setptr(const std::string &name, void *ptr)
 {
   if (name == "simulator_model") {
     if (simulator_model) {
-      KIM_SimulatorModel *sm = (KIM_SimulatorModel *)simulator_model;
+      auto sm = (KIM_SimulatorModel *)simulator_model;
       KIM_SimulatorModel_Destroy(&sm);
     }
     simulator_model = ptr;
   } else if (name == "model_name") {
     if (model_name) {
-      char *mn = (char *)model_name;
+      auto mn = (char *)model_name;
       delete[] mn;
     }
     model_name = ptr;
   } else if (name == "model_units") {
     if (model_units) {
-      char *mu = (char *)model_units;
+      auto mu = (char *)model_units;
       delete[] mu;
     }
     model_units = ptr;
   } else if (name == "user_units") {
     if (user_units) {
-      char *uu = (char *)user_units;
+      auto uu = (char *)user_units;
       delete[] uu;
     }
     user_units = ptr;

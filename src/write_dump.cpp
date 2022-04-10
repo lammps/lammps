@@ -47,7 +47,7 @@ void WriteDump::command(int narg, char **arg)
 
   Dump *dump = nullptr;
 
-  char **dumpargs = new char*[modindex+2];
+  auto dumpargs = new char*[modindex+2];
   dumpargs[0] = (char *) "WRITE_DUMP"; // dump id
   dumpargs[1] = arg[0];                // group
   dumpargs[2] = arg[1];                // dump style

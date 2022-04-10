@@ -76,7 +76,7 @@ void FixNHIntel::remap()
   double oldlo,oldhi;
   double expfac;
 
-  dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const x = (dbl3_t *) atom->x[0];
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   double *h = domain->h;
@@ -416,7 +416,7 @@ void FixNHIntel::nh_v_press()
     return;
   }
 
-  dbl3_t * _noalias const v = (dbl3_t *)atom->v[0];
+  auto * _noalias const v = (dbl3_t *)atom->v[0];
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;

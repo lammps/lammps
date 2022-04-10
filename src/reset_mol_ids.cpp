@@ -231,7 +231,7 @@ void ResetMolIDs::reset()
 
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        tagint newid =  static_cast<tagint>(chunkIDs[i]);
+        auto  newid =  static_cast<tagint>(chunkIDs[i]);
         if (singleexist) {
           if (newid == 1) newid = 0;
           else newid += offset - 1;

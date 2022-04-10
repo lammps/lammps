@@ -744,7 +744,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
 
 char *utils::strdup(const std::string &text)
 {
-  char *tmp = new char[text.size() + 1];
+  auto tmp = new char[text.size() + 1];
   strcpy(tmp, text.c_str());    // NOLINT
   return tmp;
 }
@@ -814,7 +814,7 @@ std::string utils::star_subst(const std::string &name, bigint step, int pad)
 
 std::string utils::utf8_subst(const std::string &line)
 {
-  const unsigned char *const in = (const unsigned char *) line.c_str();
+  const auto *const in = (const unsigned char *) line.c_str();
   const int len = line.size();
   std::string out;
 

@@ -577,7 +577,7 @@ void FixWallGran::post_force(int /*vflag*/)
   if (neighbor->ago == 0 && fix_rigid) {
     int tmp;
     int *body = (int *) fix_rigid->extract("body",tmp);
-    double *mass_body = (double *) fix_rigid->extract("masstotal",tmp);
+    auto mass_body = (double *) fix_rigid->extract("masstotal",tmp);
     if (atom->nmax > nmax) {
       memory->destroy(mass_rigid);
       nmax = atom->nmax;

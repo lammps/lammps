@@ -1452,7 +1452,7 @@ int FixBocs::pack_restart_data(double *list)
 void FixBocs::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
   int flag = static_cast<int> (list[n++]);
   if (flag) {
     int m = static_cast<int> (list[n++]);

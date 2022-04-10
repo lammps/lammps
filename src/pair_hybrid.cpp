@@ -1013,7 +1013,7 @@ void PairHybrid::set_special(int m)
 
 double * PairHybrid::save_special()
 {
-  double *saved = new double[8];
+  auto saved = new double[8];
 
   for (int i = 0; i < 4; ++i) {
     saved[i] = force->special_lj[i];
@@ -1054,7 +1054,7 @@ void *PairHybrid::extract(const char *str, int &dim)
       if (couldim != -1 && dim != couldim)
         error->all(FLERR,
                    "Coulomb styles of pair hybrid sub-styles do not match");
-      double *p_newvalue = (double *) ptr;
+      auto p_newvalue = (double *) ptr;
       double newvalue = *p_newvalue;
       if (cutptr && (newvalue != cutvalue))
         error->all(FLERR,

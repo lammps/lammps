@@ -428,7 +428,7 @@ void DeleteAtoms::delete_porosity(int narg, char **arg)
   int seed = utils::inumeric(FLERR,arg[4],false,lmp);
   options(narg-5,&arg[5]);
 
-  RanMars *random = new RanMars(lmp,seed + comm->me);
+  auto random = new RanMars(lmp,seed + comm->me);
 
   // allocate and initialize deletion list
 
@@ -594,8 +594,8 @@ void DeleteAtoms::recount_topology()
 
 void DeleteAtoms::bondring(int nbuf, char *cbuf, void *ptr)
 {
-  DeleteAtoms *daptr = (DeleteAtoms *) ptr;
-  tagint *list = (tagint *) cbuf;
+  auto daptr = (DeleteAtoms *) ptr;
+  auto list = (tagint *) cbuf;
   std::map<tagint,int> *hash = daptr->hash;
 
   int *num_bond = daptr->atom->num_bond;
@@ -711,8 +711,8 @@ void DeleteAtoms::bondring(int nbuf, char *cbuf, void *ptr)
 
 void DeleteAtoms::molring(int n, char *cbuf, void *ptr)
 {
-  DeleteAtoms *daptr = (DeleteAtoms *)ptr;
-  tagint *list = (tagint *) cbuf;
+  auto daptr = (DeleteAtoms *)ptr;
+  auto list = (tagint *) cbuf;
   int *dlist = daptr->dlist;
   std::map<tagint,int> *hash = daptr->hash;
   int nlocal = daptr->atom->nlocal;

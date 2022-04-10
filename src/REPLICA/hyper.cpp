@@ -60,10 +60,10 @@ void Hyper::command(int narg, char **arg)
   int nsteps = utils::inumeric(FLERR,arg[0],false,lmp);
   t_event = utils::inumeric(FLERR,arg[1],false,lmp);
 
-  char *id_fix = new char[strlen(arg[2])+1];
+  auto id_fix = new char[strlen(arg[2])+1];
   strcpy(id_fix,arg[2]);
 
-  char *id_compute = new char[strlen(arg[3])+1];
+  auto id_compute = new char[strlen(arg[3])+1];
   strcpy(id_compute,arg[3]);
 
   options(narg-4,&arg[4]);

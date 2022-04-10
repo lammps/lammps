@@ -303,7 +303,7 @@ void IntelBuffers<flt_t, acc_t>::grow_data3(NeighList *list, int *&numneighhalf,
   if (list_num == _n_list_ptrs) {
     if (_n_list_ptrs == _max_list_ptrs) {
       _max_list_ptrs *= 2;
-      IntelNeighListPtrs *new_list = new IntelNeighListPtrs[_max_list_ptrs];
+      auto new_list = new IntelNeighListPtrs[_max_list_ptrs];
       for (int i = 0; i < _n_list_ptrs; i++) new_list[i] = _neigh_list_ptrs[i];
       delete []_neigh_list_ptrs;
       _neigh_list_ptrs = new_list;

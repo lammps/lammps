@@ -67,7 +67,7 @@ void PairHybridScaled::compute(int eflag, int vflag)
 
   const int nvars = scalevars.size();
   if (nvars > 0) {
-    double *vals = new double[nvars];
+    auto vals = new double[nvars];
     for (int k = 0; k < nvars; ++k) {
       int m = input->variable->find(scalevars[k].c_str());
       if (m < 0)
@@ -385,7 +385,7 @@ double PairHybridScaled::single(int i, int j, int itype, int jtype, double rsq, 
 
   const int nvars = scalevars.size();
   if (nvars > 0) {
-    double *vals = new double[nvars];
+    auto vals = new double[nvars];
     for (int k = 0; k < nvars; ++k) {
       int m = input->variable->find(scalevars[k].c_str());
       if (m < 0)

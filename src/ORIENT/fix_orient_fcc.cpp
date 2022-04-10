@@ -564,8 +564,8 @@ void FixOrientFCC::find_best_ref(double *displs, int which_crystal,
 
 int FixOrientFCC::compare(const void *pi, const void *pj)
 {
-  FixOrientFCC::Sort *ineigh = (FixOrientFCC::Sort *) pi;
-  FixOrientFCC::Sort *jneigh = (FixOrientFCC::Sort *) pj;
+  auto ineigh = (FixOrientFCC::Sort *) pi;
+  auto jneigh = (FixOrientFCC::Sort *) pj;
 
   if (ineigh->rsq < jneigh->rsq) return -1;
   else if (ineigh->rsq > jneigh->rsq) return 1;

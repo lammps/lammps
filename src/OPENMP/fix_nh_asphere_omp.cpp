@@ -68,10 +68,10 @@ void FixNHAsphereOMP::init()
 
 void FixNHAsphereOMP::nve_v()
 {
-  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
-  dbl3_t * _noalias const angmom = (dbl3_t *) atom->angmom[0];
-  const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
-  const dbl3_t * _noalias const torque = (dbl3_t *) atom->torque[0];
+  auto * _noalias const v = (dbl3_t *) atom->v[0];
+  auto * _noalias const angmom = (dbl3_t *) atom->angmom[0];
+  const auto * _noalias const f = (dbl3_t *) atom->f[0];
+  const auto * _noalias const torque = (dbl3_t *) atom->torque[0];
   const double * _noalias const rmass = atom->rmass;
   const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
@@ -101,9 +101,9 @@ void FixNHAsphereOMP::nve_v()
 
 void FixNHAsphereOMP::nve_x()
 {
-  dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  const dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
-  dbl3_t * _noalias const angmom = (dbl3_t *) atom->angmom[0];
+  auto * _noalias const x = (dbl3_t *) atom->x[0];
+  const auto * _noalias const v = (dbl3_t *) atom->v[0];
+  auto * _noalias const angmom = (dbl3_t *) atom->angmom[0];
   const double * _noalias const rmass = atom->rmass;
   const int * _noalias const mask = atom->mask;
   AtomVecEllipsoid::Bonus * _noalias const bonus = avec->bonus;
@@ -154,8 +154,8 @@ void FixNHAsphereOMP::nve_x()
 
 void FixNHAsphereOMP::nh_v_temp()
 {
-  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
-  dbl3_t * _noalias const angmom = (dbl3_t *) atom->angmom[0];
+  auto * _noalias const v = (dbl3_t *) atom->v[0];
+  auto * _noalias const angmom = (dbl3_t *) atom->angmom[0];
   const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
 

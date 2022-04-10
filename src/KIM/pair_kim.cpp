@@ -774,8 +774,7 @@ int PairKIM::get_neigh(void const * const dataObject,
                        int * const numberOfNeighbors,
                        int const ** const neighborsOfParticle)
 {
-  PairKIM const * const Model
-    = reinterpret_cast<PairKIM const *>(dataObject);
+  auto  const Model = reinterpret_cast<PairKIM const *>(dataObject);
 
   if (numberOfNeighborLists != Model->kim_number_of_neighbor_lists)
     return true;

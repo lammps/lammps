@@ -732,7 +732,7 @@ void FixTGNHDrude::setup_mol_mass_dof() {
   memory->create(v_mol_tmp, n_mol + 1, 3, "fix_tgnh_drude::v_mol_tmp");
   memory->create(mass_mol, n_mol + 1, "fix_tgnh_drude::mass_mol");
 
-  double *mass_tmp = new double[n_mol + 1];
+  auto mass_tmp = new double[n_mol + 1];
   memset(mass_tmp, 0, sizeof(double) * (n_mol + 1));
   for (int i = 0; i < atom->nlocal; i++) {
     id_mol = molecule[i];
@@ -1364,7 +1364,7 @@ int FixTGNHDrude::pack_restart_data(double *list)
 void FixTGNHDrude::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
   int flag = static_cast<int> (list[n++]);
   if (flag) {
     int m = static_cast<int> (list[n++]);

@@ -891,7 +891,7 @@ void Input::ifthenelse()
     int ncommands = last-first + 1;
     if (ncommands <= 0) error->all(FLERR,"Illegal if command");
 
-    char **commands = new char*[ncommands];
+    auto commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
       n = strlen(arg[i]) + 1;
@@ -944,7 +944,7 @@ void Input::ifthenelse()
     int ncommands = last-first + 1;
     if (ncommands <= 0) error->all(FLERR,"Illegal if command");
 
-    char **commands = new char*[ncommands];
+    auto commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
       n = strlen(arg[i]) + 1;

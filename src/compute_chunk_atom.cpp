@@ -1084,8 +1084,8 @@ void ComputeChunkAtom::compress_chunk_ids()
 
 void ComputeChunkAtom::idring(int n, char *cbuf, void *ptr)
 {
-  ComputeChunkAtom *cptr = (ComputeChunkAtom *)ptr;
-  tagint *list = (tagint *) cbuf;
+  auto cptr = (ComputeChunkAtom *)ptr;
+  auto list = (tagint *) cbuf;
   std::map<tagint,int> *hash = cptr->hash;
   for (int i = 0; i < n; i++) (*hash)[list[i]] = 0;
 }

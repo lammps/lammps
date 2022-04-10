@@ -3938,7 +3938,7 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
   double tmp[MAXCONARGS];
   char **strargs,*ptr,*lptr;
   memory->create(strargs,MAXCONARGS,MAXLINE,"bond/react:strargs");
-  char *constraint_type = new char[MAXLINE];
+  auto constraint_type = new char[MAXLINE];
   strcpy(constraintstr[myrxn],"("); // string for boolean constraint logic
   for (int i = 0; i < nconstraints[myrxn]; i++) {
     readline(line);

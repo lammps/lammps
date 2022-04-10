@@ -62,9 +62,11 @@ enum {
 
 //     0        1      2              3    4
 // fix fxupdate group1 electrode/conp pot1 eta couple group2 pot2
-FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), f_inv(nullptr), f_mat(nullptr), f_vec(nullptr), array_compute(nullptr),
+    ele_vector(nullptr), capacitance(nullptr), pair(nullptr), mat_neighlist(nullptr),
+    vec_neighlist(nullptr)
 {
-  f_inv = f_mat = f_vec = nullptr;
   read_inv = read_mat = false;
   symm = false;
   ffield = false;

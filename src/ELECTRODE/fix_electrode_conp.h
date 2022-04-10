@@ -74,7 +74,7 @@ class FixElectrodeConp : public Fix {
   ElectrodeAccelInterface *accel_interface;    // used by /intel
 
  private:
-  FILE *f_inv, *f_vec, *f_mat;    // files for capacitance, eleastance and vector
+  FILE *f_inv, *f_mat, *f_vec;    // files for capacitance, eleastance and vector
   std::string input_file_inv, input_file_mat;
   class ElectrodeMatrix *array_compute;
   class ElectrodeVector *ele_vector;

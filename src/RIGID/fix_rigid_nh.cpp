@@ -172,7 +172,7 @@ FixRigidNH::~FixRigidNH()
     deallocate_order();
   }
 
-  if (rfix) delete [] rfix;
+  delete[] rfix;
 
   if (tcomputeflag) modify->delete_compute(id_temp);
   delete [] id_temp;
@@ -303,7 +303,7 @@ void FixRigidNH::init()
     // rfix[] = indices to each fix rigid
     // this will include self
 
-    if (rfix) delete [] rfix;
+    delete[] rfix;
     nrigidfix = 0;
     rfix = nullptr;
 

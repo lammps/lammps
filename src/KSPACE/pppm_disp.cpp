@@ -1375,7 +1375,7 @@ void PPPMDisp::init_coeffs()
     // check if the function should preferably be [1] or [2] or [3]
 
     if (nsplit == 1) {
-      if (B) delete [] B;
+      delete[] B;
       function[3] = 0;
       function[2] = 0;
       function[1] = 1;
@@ -1388,12 +1388,12 @@ void PPPMDisp::init_coeffs()
         utils::logmesg(lmp,"  Using {} instead of 7 structure factors\n",nsplit);
       //function[3] = 1;
       //function[2] = 0;
-      if (B) delete [] B;   // remove this when un-comment previous 2 lines
+      delete[] B;   // remove this when un-comment previous 2 lines
    }
 
     if (function[2] && (nsplit > 6)) {
       if (me == 0) utils::logmesg(lmp,"  Using 7 structure factors\n");
-      if (B) delete [] B;
+      delete[] B;
     }
 
     if (function[3]) {

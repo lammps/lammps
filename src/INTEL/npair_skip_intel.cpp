@@ -44,7 +44,7 @@ NPairSkipIntel::NPairSkipIntel(LAMMPS *lmp) : NPair(lmp) {
 NPairSkipIntel::~NPairSkipIntel() {
   delete []_inum_starts;
   delete []_inum_counts;
-  if (_full_props) delete []_full_props;
+  delete[] _full_props;
 }
 
 /* ---------------------------------------------------------------------- */

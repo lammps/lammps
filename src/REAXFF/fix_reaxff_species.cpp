@@ -232,7 +232,7 @@ FixReaxFFSpecies::~FixReaxFFSpecies()
   memory->destroy(MolType);
   memory->destroy(MolName);
 
-  if (filepos) delete[] filepos;
+  delete[] filepos;
 
   if (me == 0) {
     if (compressed)

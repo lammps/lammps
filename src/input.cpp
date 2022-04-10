@@ -168,7 +168,7 @@ Input::~Input()
   memory->sfree(line);
   memory->sfree(copy);
   memory->sfree(work);
-  if (labelstr) delete[] labelstr;
+  delete[] labelstr;
   memory->sfree(arg);
   delete[] infiles;
   delete variable;
@@ -1026,7 +1026,7 @@ void Input::jump()
 
   if (narg == 2) {
     label_active = 1;
-    if (labelstr) delete[] labelstr;
+    delete[] labelstr;
     labelstr = utils::strdup(arg[1]);
   }
 }

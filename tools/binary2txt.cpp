@@ -226,7 +226,7 @@ int main(int narg, char **arg)
         // extend buffer to fit chunk size
 
         if (n > maxbuf) {
-          if (buf) delete[] buf;
+          delete[] buf;
           buf = new double[n];
           maxbuf = n;
         }
@@ -260,6 +260,6 @@ int main(int narg, char **arg)
     unit_style = nullptr;
   }
 
-  if (buf) delete[] buf;
+  delete[] buf;
   return 0;
 }

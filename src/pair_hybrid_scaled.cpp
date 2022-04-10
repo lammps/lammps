@@ -250,8 +250,8 @@ void PairHybridScaled::settings(int narg, char **arg)
     for (int m = 0; m < nstyles; m++) {
       delete styles[m];
       delete[] keywords[m];
-      if (special_lj[m]) delete[] special_lj[m];
-      if (special_coul[m]) delete[] special_coul[m];
+      delete[] special_lj[m];
+      delete[] special_coul[m];
     }
     delete[] styles;
     delete[] keywords;

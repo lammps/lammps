@@ -223,7 +223,7 @@ void Force::create_pair(const std::string &style, int trysuffix)
 {
   delete[] pair_style;
   if (pair) delete pair;
-  if (pair_restart) delete[] pair_restart;
+  delete[] pair_restart;
   pair_style = nullptr;
   pair = nullptr;
   pair_restart = nullptr;

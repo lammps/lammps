@@ -43,7 +43,7 @@ FixDrudeTransform<inverse>::FixDrudeTransform(LAMMPS *lmp, int narg, char **arg)
 template <bool inverse>
 FixDrudeTransform<inverse>::~FixDrudeTransform()
 {
-  if (mcoeff) delete [] mcoeff;
+  delete[] mcoeff;
 }
 
 /* ---------------------------------------------------------------------- */

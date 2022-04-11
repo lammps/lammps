@@ -94,10 +94,10 @@ void VerletLRTIntel::setup(int flag)
   }
   #endif
 
-  if (comm->me == 0 && screen) {
+  if (comm->me == 0) {
     fprintf(screen,"Setting up VerletLRTIntel run ...\n");
     fprintf(screen,"  Unit style    : %s\n", update->unit_style);
-    fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n", update->ntimestep);
+    fmt::print(screen,"  Current step  : {}\n", update->ntimestep);
     fprintf(screen,"  Time step     : %g\n", update->dt);
     timer->print_timeout(screen);
   }
@@ -109,11 +109,8 @@ void VerletLRTIntel::setup(int flag)
     sched_getaffinity(0, sizeof(cpuset), &cpuset);
     int my_cpu_count = CPU_COUNT(&cpuset);
     if (my_cpu_count < comm->nthreads + 1) {
-      char str[128];
-      sprintf(str,"Using %d threads per MPI rank, but only %d core(s)"
-                  " allocated for each MPI rank",
-              comm->nthreads + 1, my_cpu_count);
-      error->warning(FLERR, str);
+      error->warning(FLERR, "Using {} threads per MPI rank, but only {} core(s) allocated "
+                     "for each MPI rank", comm->nthreads + 1, my_cpu_count);
     }
   }
   #endif

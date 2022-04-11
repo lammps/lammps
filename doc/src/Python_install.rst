@@ -187,7 +187,7 @@ folder that the dynamic loader searches or inside of the installed
       folders are searched by default by Python or the LAMMPS Python
       package.
 
-      .. versionchanged:: TBD
+      .. versionchanged:: 24Mar2022
 
       .. note::
 

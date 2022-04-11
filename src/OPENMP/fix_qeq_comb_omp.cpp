@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -36,45 +35,41 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixQEQCombOMP::FixQEQCombOMP(LAMMPS *lmp, int narg, char **arg) :
-  FixQEQComb(lmp, narg, arg)
+FixQEQCombOMP::FixQEQCombOMP(LAMMPS *lmp, int narg, char **arg) : FixQEQComb(lmp, narg, arg)
 {
-  if (narg < 5) error->all(FLERR,"Illegal fix qeq/comb/omp command");
+  if (narg < 5) error->all(FLERR, "Illegal fix qeq/comb/omp command");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixQEQCombOMP::init()
 {
-  if (!atom->q_flag)
-    error->all(FLERR,"Fix qeq/comb/omp requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR, "Fix qeq/comb/omp requires atom attribute q");
 
-  if (nullptr != force->pair_match("comb3",0))
-    error->all(FLERR,"No support for comb3 currently available in OPENMP");
+  if (nullptr != force->pair_match("comb3", 0))
+    error->all(FLERR, "No support for comb3 currently available in OPENMP");
 
-  comb = (PairComb *) force->pair_match("comb/omp",1);
+  comb = (PairComb *) force->pair_match("comb/omp", 1);
+  if (comb == nullptr) comb = (PairComb *) force->pair_match("comb", 1);
   if (comb == nullptr)
-    comb = (PairComb *) force->pair_match("comb",1);
-  if (comb == nullptr)
-    error->all(FLERR,"Must use pair_style comb or "
-               "comb/omp with fix qeq/comb/omp");
+    error->all(FLERR, "Must use pair_style comb or comb/omp with fix qeq/comb/omp");
 
-  if (utils::strmatch(update->integrate_style,"^respa")) {
-    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
-    if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
+  if (utils::strmatch(update->integrate_style, "^respa")) {
+    ilevel_respa = ((Respa *) update->integrate)->nlevels - 1;
+    if (respa_level >= 0) ilevel_respa = MIN(respa_level, ilevel_respa);
   }
 
   ngroup = group->count(igroup);
-  if (ngroup == 0) error->all(FLERR,"Fix qeq/comb group has no atoms");
+  if (ngroup == 0) error->all(FLERR, "Fix qeq/comb group has no atoms");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixQEQCombOMP::post_force(int /* vflag */)
 {
-  int i,ii,iloop,loopmax,inum,*ilist;
-  double heatpq,qmass,dtq,dtq2;
-  double enegchkall,enegmaxall;
+  int i, ii, iloop, loopmax, inum, *ilist;
+  double heatpq, qmass, dtq, dtq2;
+  double enegchkall, enegmaxall;
 
   if (update->ntimestep % nevery) return;
 
@@ -88,28 +83,28 @@ void FixQEQCombOMP::post_force(int /* vflag */)
     memory->destroy(q1);
     memory->destroy(q2);
     nmax = atom->nmax;
-    memory->create(qf,nmax,"qeq:qf");
-    memory->create(q1,nmax,"qeq:q1");
-    memory->create(q2,nmax,"qeq:q2");
+    memory->create(qf, nmax, "qeq:qf");
+    memory->create(q1, nmax, "qeq:q1");
+    memory->create(q2, nmax, "qeq:q2");
     vector_atom = qf;
   }
 
   // more loops for first-time charge equilibrium
 
   iloop = 0;
-  if (firstflag) loopmax = 500;
-  else loopmax = 200;
+  if (firstflag)
+    loopmax = 500;
+  else
+    loopmax = 200;
 
   // charge-equilibration loop
 
-  if (me == 0 && fp)
-    fprintf(fp,"Charge equilibration on step " BIGINT_FORMAT "\n",
-            update->ntimestep);
+  if (me == 0 && fp) fmt::print(fp, "Charge equilibration on step {}\n", update->ntimestep);
 
   heatpq = 0.05;
-  qmass  = 0.016;
-  dtq    = 0.01;
-  dtq2   = 0.5*dtq*dtq/qmass;
+  qmass = 0.016;
+  dtq = 0.01;
+  dtq2 = 0.5 * dtq * dtq / qmass;
 
   double enegchk = 0.0;
   double enegtot = 0.0;
@@ -126,54 +121,51 @@ void FixQEQCombOMP::post_force(int /* vflag */)
     q1[i] = q2[i] = qf[i] = 0.0;
   }
 
-  for (iloop = 0; iloop < loopmax; iloop ++) {
+  for (iloop = 0; iloop < loopmax; iloop++) {
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
       if (mask[i] & groupbit) {
-        q1[i] += qf[i]*dtq2 - heatpq*q1[i];
-        q[i]  += q1[i];
+        q1[i] += qf[i] * dtq2 - heatpq * q1[i];
+        q[i] += q1[i];
       }
     }
     comm->forward_comm(this);
 
-    if (comb) enegtot = comb->yasu_char(qf,igroup);
+    if (comb) enegtot = comb->yasu_char(qf, igroup);
     enegtot /= ngroup;
     enegchk = enegmax = 0.0;
 
-    for (ii = 0; ii < inum ; ii++) {
+    for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
       if (mask[i] & groupbit) {
-        q2[i] = enegtot-qf[i];
-        enegmax = MAX(enegmax,fabs(q2[i]));
+        q2[i] = enegtot - qf[i];
+        enegmax = MAX(enegmax, fabs(q2[i]));
         enegchk += fabs(q2[i]);
         qf[i] = q2[i];
       }
     }
 
-    MPI_Allreduce(&enegchk,&enegchkall,1,MPI_DOUBLE,MPI_SUM,world);
-    enegchk = enegchkall/ngroup;
-    MPI_Allreduce(&enegmax,&enegmaxall,1,MPI_DOUBLE,MPI_MAX,world);
+    MPI_Allreduce(&enegchk, &enegchkall, 1, MPI_DOUBLE, MPI_SUM, world);
+    enegchk = enegchkall / ngroup;
+    MPI_Allreduce(&enegmax, &enegmaxall, 1, MPI_DOUBLE, MPI_MAX, world);
     enegmax = enegmaxall;
 
-    if (enegchk <= precision && enegmax <= 100.0*precision) break;
+    if (enegchk <= precision && enegmax <= 100.0 * precision) break;
 
     if (me == 0 && fp)
-      fprintf(fp,"  iteration: %d, enegtot %.6g, "
-              "enegmax %.6g, fq deviation: %.6g\n",
-              iloop,enegtot,enegmax,enegchk);
+      fprintf(fp, "  iteration: %d, enegtot %.6g, enegmax %.6g, fq deviation: %.6g\n", iloop,
+              enegtot, enegmax, enegchk);
 
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
-      if (mask[i] & groupbit)
-        q1[i] += qf[i]*dtq2 - heatpq*q1[i];
+      if (mask[i] & groupbit) q1[i] += qf[i] * dtq2 - heatpq * q1[i];
     }
   }
 
   if (me == 0 && fp) {
     if (iloop == loopmax)
-      fprintf(fp,"Charges did not converge in %d iterations\n",iloop);
+      fprintf(fp, "Charges did not converge in %d iterations\n", iloop);
     else
-      fprintf(fp,"Charges converged in %d iterations to %.10f tolerance\n",
-              iloop,enegchk);
+      fprintf(fp, "Charges converged in %d iterations to %.10f tolerance\n", iloop, enegchk);
   }
 }

@@ -38,6 +38,7 @@ class TextFileReader {
 
   ~TextFileReader();
 
+  void rewind();
   void skip_line();
   char *next_line(int nparams = 0);
 

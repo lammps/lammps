@@ -19,24 +19,24 @@
 
 #include "fix_filter_corotate.h"
 
+#include "angle.h"
+#include "atom.h"
+#include "atom_vec.h"
+#include "bond.h"
+#include "citeme.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "memory.h"
+#include "modify.h"
+#include "respa.h"
+#include "update.h"
+
 #include <cctype>
 #include <cmath>
 #include <cstring>
-
-#include "atom.h"
-#include "atom_vec.h"
-#include "comm.h"
-#include "domain.h"
-#include "angle.h"
-#include "bond.h"
-#include "math_const.h"
-#include "update.h"
-#include "modify.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
-#include "respa.h"
-#include "citeme.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -359,64 +359,42 @@ void FixFilterCorotate::pre_neighbor()
       if (shake_flag[i] == 2) {
         atom1 = atom->map(shake_atom[i][0]);
         atom2 = atom->map(shake_atom[i][1]);
-        if (atom1 == -1 || atom2 == -1) {
-          char str[128];
-          sprintf(str,"Cluster atoms " TAGINT_FORMAT " " TAGINT_FORMAT
-          " missing on proc %d at step " BIGINT_FORMAT,
-          shake_atom[i][0],shake_atom[i][1],me,update->ntimestep);
-          error->one(FLERR,str);
-        }
+        if (atom1 == -1 || atom2 == -1)
+          error->one(FLERR,"Cluster atoms {} {} missing on proc {} at step {}",
+                     shake_atom[i][0],shake_atom[i][1],me,update->ntimestep);
         if (i <= atom1 && i <= atom2) list[nlist++] = i;
+
       } else if (shake_flag[i]  == 1 || shake_flag[i]  == 3) {
         atom1 = atom->map(shake_atom[i][0]);
         atom2 = atom->map(shake_atom[i][1]);
         atom3 = atom->map(shake_atom[i][2]);
-        if (atom1 == -1 || atom2 == -1 || atom3 == -1) {
-          char str[128];
-          sprintf(str,"Cluster atoms "
-          TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT
-          " missing on proc %d at step " BIGINT_FORMAT,
-          shake_atom[i][0],shake_atom[i][1],shake_atom[i][2],
-          me,update->ntimestep);
-          error->one(FLERR,str);
-        }
+        if (atom1 == -1 || atom2 == -1 || atom3 == -1)
+          error->one(FLERR,"Cluster atoms {} {} {} missing on proc {} at step {}",
+                     shake_atom[i][0],shake_atom[i][1],shake_atom[i][2],me,update->ntimestep);
         if (i <= atom1 && i <= atom2 && i <= atom3) list[nlist++] = i;
+
       } else if (shake_flag[i]  == 4) {
         atom1 = atom->map(shake_atom[i][0]);
         atom2 = atom->map(shake_atom[i][1]);
         atom3 = atom->map(shake_atom[i][2]);
         atom4 = atom->map(shake_atom[i][3]);
-        if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
-          char str[128];
-          sprintf(str,"Cluster atoms "
-          TAGINT_FORMAT " " TAGINT_FORMAT " "
-          TAGINT_FORMAT " " TAGINT_FORMAT
-          " missing on proc %d at step " BIGINT_FORMAT,
-          shake_atom[i][0],shake_atom[i][1],
-          shake_atom[i][2],shake_atom[i][3],
-          me,update->ntimestep);
-          error->one(FLERR,str);
-        }
+        if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1)
+          error->one(FLERR,"Cluster atoms {} {} {} {} missing on proc {} at step {}",
+                     shake_atom[i][0],shake_atom[i][1],shake_atom[i][2],shake_atom[i][3],
+                     me,update->ntimestep);
         if (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)
           list[nlist++] = i;
+
       } else if (shake_flag[i]  == 5) {
         atom1 = atom->map(shake_atom[i][0]);
         atom2 = atom->map(shake_atom[i][1]);
         atom3 = atom->map(shake_atom[i][2]);
         atom4 = atom->map(shake_atom[i][3]);
         atom5 = atom->map(shake_atom[i][4]);
-        if (atom1 == -1 || atom2 == -1 || atom3 == -1 ||
-          atom4 == -1 || atom5 == -1) {
-          char str[128];
-          sprintf(str,"Cluster atoms "
-          TAGINT_FORMAT " " TAGINT_FORMAT " "
-          TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT
-          " missing on proc %d at step " BIGINT_FORMAT,
-          shake_atom[i][0],shake_atom[i][1],
-          shake_atom[i][2],shake_atom[i][3],shake_atom[i][4],
-          me,update->ntimestep);
-          error->one(FLERR,str);
-        }
+        if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1 || atom5 == -1)
+          error->one(FLERR,"Cluster atoms {} {} {} {} {} missing on proc {} at step {}",
+                     shake_atom[i][0],shake_atom[i][1], shake_atom[i][2],shake_atom[i][3],
+                     shake_atom[i][4],me,update->ntimestep);
         if (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4 && i <= atom5)
           list[nlist++] = i;
       }
@@ -432,244 +410,244 @@ void FixFilterCorotate::pre_neighbor()
   int *type = atom->type;
 
   for (int i=0; i<nlist; i++)
-  {
-    m = list[i];
-    N = shake_flag[m];
-
-    //switch cluster type 3 to angle cluster:
-    if (N == 3)
     {
-      //make it an angle cluster:
-      if (shake_type[m][2] == 0)
-        shake_type[m][2] = angletype_findset(atom->map(shake_atom[m][0]),
-                                          shake_atom[m][1],shake_atom[m][2],0);
+      m = list[i];
+      N = shake_flag[m];
+
+      //switch cluster type 3 to angle cluster:
+      if (N == 3)
+        {
+          //make it an angle cluster:
+          if (shake_type[m][2] == 0)
+            shake_type[m][2] = angletype_findset(atom->map(shake_atom[m][0]),
+                                                 shake_atom[m][1],shake_atom[m][2],0);
+        }
+
+      if (N == 1) N = 3;  //angle cluster
+
+      if (N == 2)    //cluster of size 2:
+        {
+          atom1 = atom->map(shake_atom[m][0]);
+          atom2 = atom->map(shake_atom[m][1]);
+
+          r0 = bond_distance[shake_type[m][0]];
+
+          m1 = mass[type[atom1]];
+          m2 = mass[type[atom2]];
+          m_all = m1 + m2;
+
+          double a1 = -m2/(m1+m2)*r0;
+          double a2 =  m1/(m1+m2)*r0;
+
+          clist_q0[i][0] = a1;
+          clist_q0[i][1] = 0;
+          clist_q0[i][2] = 0;
+
+          clist_q0[i][3] = a2;
+          clist_q0[i][4] = 0;
+          clist_q0[i][5] = 0;
+
+          clist_nselect1[i] = 1;
+          clist_select1[i][0] = 1;
+
+          clist_nselect2[i] = 0;
+          clist_select2[i][0] = 0;
+        } else if (N == 3)  //angle cluster
+        {
+          oxy = atom->map(shake_atom[m][0]);
+          atom1 = atom->map(shake_atom[m][1]);
+          atom2 = atom->map(shake_atom[m][2]);
+
+          r0 = bond_distance[shake_type[m][0]];
+          r1 = bond_distance[shake_type[m][1]];
+
+
+          theta0 = angle_distance[shake_type[m][2]];
+
+          m1 = mass[type[oxy]];
+          m2 = mass[type[atom1]];
+          m3 = mass[type[atom2]];
+          m_all = m1 + m2 + m3;
+
+          double alpha1 = 0.5*(MY_PI - theta0);
+
+          double xcenter =  m2/m_all*r0*sin(alpha1) + m3/m_all*r1*sin(alpha1);
+          double ycenter =  -m2/m_all*r0*cos(alpha1)+ m3/m_all*r1*cos(alpha1);
+
+          double q1 = -xcenter;
+          double q2 = -ycenter;
+
+          double q4 = r0*sin(alpha1)-xcenter;
+          double q5 = r0*cos(alpha1)-ycenter;
+
+          double q7 = r1*sin(alpha1)-xcenter;
+          double q8 = -r1*cos(alpha1)-ycenter;
+
+          clist_q0[i][0] = q1;
+          clist_q0[i][1] = q2;
+          clist_q0[i][2] = 0;
+
+          clist_q0[i][3] = q4;
+          clist_q0[i][4] = q5;
+          clist_q0[i][5] = 0;
+
+          clist_q0[i][6] = q7;
+          clist_q0[i][7] = q8;
+          clist_q0[i][8] = 0;
+
+          clist_nselect1[i] = 2;
+          clist_select1[i][0] = 1; clist_select1[i][1] = 2;
+          clist_nselect2[i] = 1;
+          clist_select2[i][0] = 1;
+        }  else if (N == 4)
+        {
+          oxy = atom->map(shake_atom[m][0]);
+          atom1 = atom->map(shake_atom[m][1]);
+          atom2 = atom->map(shake_atom[m][2]);
+          atom3 = atom->map(shake_atom[m][3]);
+
+          r0 = bond_distance[shake_type[m][0]];
+          r1 = bond_distance[shake_type[m][1]];
+          r2 = bond_distance[shake_type[m][2]];
+
+          m1 = atom->mass[atom->type[oxy]];
+          m2 = atom->mass[atom->type[atom1]];
+          m3 = atom->mass[atom->type[atom2]];
+          m4 = atom->mass[atom->type[atom3]];
+          m_all = m1 + m2 + m3 + m4;
+
+          //how to get these angles?
+          double alpha1 = MY_PI/2.57; //roughly 70 degrees
+          double alpha2 = MY_PI/3;
+          //ENSURE ycenter,zcenter = 0!
+          //approximate xcenter, if r0 !=r1 != r2, exact if r0 = r1 = r2
+          double xcenter =  (m2*r0+m3*r1+m4*r2)/m_all*cos(alpha1);
+
+          clist_q0[i][0] = -xcenter;
+          clist_q0[i][1] = 0.0;
+          clist_q0[i][2] = 0.0;
+          clist_q0[i][3] = r0*cos(alpha1)-xcenter;
+          clist_q0[i][4] = -r0*sin(alpha1);
+          clist_q0[i][5] = 0.0;
+          clist_q0[i][6] = r1*cos(alpha1)-xcenter;
+          clist_q0[i][7] = r1*sin(alpha1)*cos(alpha2);
+          clist_q0[i][8] = -r1*sin(alpha1)*sin(alpha2);
+          clist_q0[i][9]  = r2*cos(alpha1)-xcenter;
+          clist_q0[i][10] = r2*sin(alpha1)*cos(alpha2);
+          clist_q0[i][11] = r2*sin(alpha1)*sin(alpha2);
+
+          clist_nselect1[i] = 3;
+          clist_nselect2[i] = 2;
+
+          clist_select1[i][0] = 1;clist_select1[i][1] = 2;clist_select1[i][2] = 3;
+          clist_select2[i][0] = 2;clist_select2[i][1] = 3;
+
+          //signum ensures correct ordering of three satellites
+          //signum = sign(cross(x2-x1,x3-x1))T*(x1-x0))
+          double del1[3], del2[3], del3[3];
+          del1[0] = x[atom1][0]-x[oxy][0];
+          del1[1] = x[atom1][1]-x[oxy][1];
+          del1[2] = x[atom1][2]-x[oxy][2];
+          domain->minimum_image(del1);
+
+          del2[0] = x[atom2][0]-x[atom1][0];
+          del2[1] = x[atom2][1]-x[atom1][1];
+          del2[2] = x[atom2][2]-x[atom1][2];
+          domain->minimum_image(del2);
+
+          del3[0] = x[atom3][0]-x[atom1][0];
+          del3[1] = x[atom3][1]-x[atom1][1];
+          del3[2] = x[atom3][2]-x[atom1][2];
+          domain->minimum_image(del3);
+
+          double a = (del2[1])*(del3[2]) - (del2[2])*(del3[1]);
+          double b = (del2[2])*(del3[0]) - (del2[0])*(del3[2]);
+          double c = (del2[0])*(del3[1]) - (del2[1])*(del3[0]);
+          int signum = sgn(a*(del1[0]) + b*(del1[1]) + c*(del1[2]));
+
+          if (abs(signum) != 1)
+            error->all(FLERR,"Wrong orientation in cluster of size 4"
+                       "in fix filter/corotate!");
+          clist_q0[i][8] *= signum;
+          clist_q0[i][11] *= signum;
+
+        } else if (N == 5) {
+        oxy = atom->map(shake_atom[m][0]);
+        atom1 = atom->map(shake_atom[m][1]);
+        atom2 = atom->map(shake_atom[m][2]);
+        atom3 = atom->map(shake_atom[m][3]);
+        int c1 = atom->map(shake_atom[m][4]);
+
+        r1 = bond_distance[shake_type[m][3]];
+        r0 = bond_distance[shake_type[m][0]];
+        theta0 = angle_distance[shake_type[m][2]];
+
+        m1 = atom->mass[atom->type[oxy]];
+        m2 = atom->mass[atom->type[atom1]];
+        m3 = atom->mass[atom->type[atom2]];
+        m4 = atom->mass[atom->type[atom3]];
+        m5 = atom->mass[atom->type[c1]];
+        m_all = m1 + m2 + m3 + m4 + m5;
+
+        double alpha1 = MY_PI/2.57; //roughly 70 degrees
+        double alpha2 = MY_PI/3;
+        //ENSURE ycenter,zcenter = 0!
+        double xcenter =  -(m2+m3+m4)/m_all*r0*cos(alpha1) +r1*m5/m_all;
+
+        clist_q0[i][0] = -xcenter;
+        clist_q0[i][1] = 0.0;
+        clist_q0[i][2] = 0.0;
+        clist_q0[i][3] = -r0*cos(alpha1)-xcenter;
+        clist_q0[i][4] = -r0*sin(alpha1);
+        clist_q0[i][5] = 0.0;
+        clist_q0[i][6] = -r0*cos(alpha1)-xcenter;
+        clist_q0[i][7] = r0*sin(alpha1)*cos(alpha2);
+        clist_q0[i][8] = r0*sin(alpha1)*sin(alpha2);
+        clist_q0[i][9]  = -r0*cos(alpha1)-xcenter;
+        clist_q0[i][10] = r0*sin(alpha1)*cos(alpha2);
+        clist_q0[i][11] = -r0*sin(alpha1)*sin(alpha2);
+        clist_q0[i][12] = r1-xcenter;
+        clist_q0[i][13] = 0.0;
+        clist_q0[i][14] = 0.0;
+        clist_nselect1[i] = 1;
+        clist_nselect2[i] = 2;
+
+        clist_select1[i][0] = 4;
+        clist_select2[i][0] = 2;clist_select2[i][1] = 3;
+
+        //signum ensures correct ordering of three satellites
+        //signum = sign(cross(x2-x1,x3-x1))T*(x1-x0))
+        double del1[3], del2[3], del3[3];
+        del1[0] = x[atom1][0]-x[oxy][0];
+        del1[1] = x[atom1][1]-x[oxy][1];
+        del1[2] = x[atom1][2]-x[oxy][2];
+        domain->minimum_image(del1);
+
+        del2[0] = x[atom2][0]-x[atom1][0];
+        del2[1] = x[atom2][1]-x[atom1][1];
+        del2[2] = x[atom2][2]-x[atom1][2];
+        domain->minimum_image(del2);
+
+        del3[0] = x[atom3][0]-x[atom1][0];
+        del3[1] = x[atom3][1]-x[atom1][1];
+        del3[2] = x[atom3][2]-x[atom1][2];
+        domain->minimum_image(del3);
+
+        double a = (del2[1])*(del3[2]) - (del2[2])*(del3[1]);
+        double b = (del2[2])*(del3[0]) - (del2[0])*(del3[2]);
+        double c = (del2[0])*(del3[1]) - (del2[1])*(del3[0]);
+        int signum = sgn(a*(del1[0]) + b*(del1[1]) + c*(del1[2]));
+
+        if (abs(signum)!= 1)
+          error->all(FLERR,"Wrong orientation in cluster of size 5"
+                     "in fix filter/corotate!");
+        clist_q0[i][8] *= signum;
+        clist_q0[i][11] *= signum;
+      } else {
+        error->all(FLERR,"Fix filter/corotate cluster with size > 5"
+                   "not yet configured...");
+      }
     }
-
-    if (N == 1) N = 3;  //angle cluster
-
-    if (N == 2)    //cluster of size 2:
-    {
-      atom1 = atom->map(shake_atom[m][0]);
-      atom2 = atom->map(shake_atom[m][1]);
-
-      r0 = bond_distance[shake_type[m][0]];
-
-      m1 = mass[type[atom1]];
-      m2 = mass[type[atom2]];
-      m_all = m1 + m2;
-
-      double a1 = -m2/(m1+m2)*r0;
-      double a2 =  m1/(m1+m2)*r0;
-
-      clist_q0[i][0] = a1;
-      clist_q0[i][1] = 0;
-      clist_q0[i][2] = 0;
-
-      clist_q0[i][3] = a2;
-      clist_q0[i][4] = 0;
-      clist_q0[i][5] = 0;
-
-      clist_nselect1[i] = 1;
-      clist_select1[i][0] = 1;
-
-      clist_nselect2[i] = 0;
-      clist_select2[i][0] = 0;
-    } else if (N == 3)  //angle cluster
-    {
-      oxy = atom->map(shake_atom[m][0]);
-      atom1 = atom->map(shake_atom[m][1]);
-      atom2 = atom->map(shake_atom[m][2]);
-
-      r0 = bond_distance[shake_type[m][0]];
-      r1 = bond_distance[shake_type[m][1]];
-
-
-      theta0 = angle_distance[shake_type[m][2]];
-
-      m1 = mass[type[oxy]];
-      m2 = mass[type[atom1]];
-      m3 = mass[type[atom2]];
-      m_all = m1 + m2 + m3;
-
-      double alpha1 = 0.5*(MY_PI - theta0);
-
-      double xcenter =  m2/m_all*r0*sin(alpha1) + m3/m_all*r1*sin(alpha1);
-      double ycenter =  -m2/m_all*r0*cos(alpha1)+ m3/m_all*r1*cos(alpha1);
-
-      double q1 = -xcenter;
-      double q2 = -ycenter;
-
-      double q4 = r0*sin(alpha1)-xcenter;
-      double q5 = r0*cos(alpha1)-ycenter;
-
-      double q7 = r1*sin(alpha1)-xcenter;
-      double q8 = -r1*cos(alpha1)-ycenter;
-
-      clist_q0[i][0] = q1;
-      clist_q0[i][1] = q2;
-      clist_q0[i][2] = 0;
-
-      clist_q0[i][3] = q4;
-      clist_q0[i][4] = q5;
-      clist_q0[i][5] = 0;
-
-      clist_q0[i][6] = q7;
-      clist_q0[i][7] = q8;
-      clist_q0[i][8] = 0;
-
-      clist_nselect1[i] = 2;
-      clist_select1[i][0] = 1; clist_select1[i][1] = 2;
-      clist_nselect2[i] = 1;
-      clist_select2[i][0] = 1;
-    }  else if (N == 4)
-    {
-      oxy = atom->map(shake_atom[m][0]);
-      atom1 = atom->map(shake_atom[m][1]);
-      atom2 = atom->map(shake_atom[m][2]);
-      atom3 = atom->map(shake_atom[m][3]);
-
-      r0 = bond_distance[shake_type[m][0]];
-      r1 = bond_distance[shake_type[m][1]];
-      r2 = bond_distance[shake_type[m][2]];
-
-      m1 = atom->mass[atom->type[oxy]];
-      m2 = atom->mass[atom->type[atom1]];
-      m3 = atom->mass[atom->type[atom2]];
-      m4 = atom->mass[atom->type[atom3]];
-      m_all = m1 + m2 + m3 + m4;
-
-      //how to get these angles?
-      double alpha1 = MY_PI/2.57; //roughly 70 degrees
-      double alpha2 = MY_PI/3;
-      //ENSURE ycenter,zcenter = 0!
-      //approximate xcenter, if r0 !=r1 != r2, exact if r0 = r1 = r2
-      double xcenter =  (m2*r0+m3*r1+m4*r2)/m_all*cos(alpha1);
-
-      clist_q0[i][0] = -xcenter;
-      clist_q0[i][1] = 0.0;
-      clist_q0[i][2] = 0.0;
-      clist_q0[i][3] = r0*cos(alpha1)-xcenter;
-      clist_q0[i][4] = -r0*sin(alpha1);
-      clist_q0[i][5] = 0.0;
-      clist_q0[i][6] = r1*cos(alpha1)-xcenter;
-      clist_q0[i][7] = r1*sin(alpha1)*cos(alpha2);
-      clist_q0[i][8] = -r1*sin(alpha1)*sin(alpha2);
-      clist_q0[i][9]  = r2*cos(alpha1)-xcenter;
-      clist_q0[i][10] = r2*sin(alpha1)*cos(alpha2);
-      clist_q0[i][11] = r2*sin(alpha1)*sin(alpha2);
-
-      clist_nselect1[i] = 3;
-      clist_nselect2[i] = 2;
-
-      clist_select1[i][0] = 1;clist_select1[i][1] = 2;clist_select1[i][2] = 3;
-      clist_select2[i][0] = 2;clist_select2[i][1] = 3;
-
-      //signum ensures correct ordering of three satellites
-      //signum = sign(cross(x2-x1,x3-x1))T*(x1-x0))
-      double del1[3], del2[3], del3[3];
-      del1[0] = x[atom1][0]-x[oxy][0];
-      del1[1] = x[atom1][1]-x[oxy][1];
-      del1[2] = x[atom1][2]-x[oxy][2];
-      domain->minimum_image(del1);
-
-      del2[0] = x[atom2][0]-x[atom1][0];
-      del2[1] = x[atom2][1]-x[atom1][1];
-      del2[2] = x[atom2][2]-x[atom1][2];
-      domain->minimum_image(del2);
-
-      del3[0] = x[atom3][0]-x[atom1][0];
-      del3[1] = x[atom3][1]-x[atom1][1];
-      del3[2] = x[atom3][2]-x[atom1][2];
-      domain->minimum_image(del3);
-
-      double a = (del2[1])*(del3[2]) - (del2[2])*(del3[1]);
-      double b = (del2[2])*(del3[0]) - (del2[0])*(del3[2]);
-      double c = (del2[0])*(del3[1]) - (del2[1])*(del3[0]);
-      int signum = sgn(a*(del1[0]) + b*(del1[1]) + c*(del1[2]));
-
-      if (abs(signum) != 1)
-        error->all(FLERR,"Wrong orientation in cluster of size 4"
-          "in fix filter/corotate!");
-      clist_q0[i][8] *= signum;
-      clist_q0[i][11] *= signum;
-
-    } else if (N == 5) {
-      oxy = atom->map(shake_atom[m][0]);
-      atom1 = atom->map(shake_atom[m][1]);
-      atom2 = atom->map(shake_atom[m][2]);
-      atom3 = atom->map(shake_atom[m][3]);
-      int c1 = atom->map(shake_atom[m][4]);
-
-      r1 = bond_distance[shake_type[m][3]];
-      r0 = bond_distance[shake_type[m][0]];
-      theta0 = angle_distance[shake_type[m][2]];
-
-      m1 = atom->mass[atom->type[oxy]];
-      m2 = atom->mass[atom->type[atom1]];
-      m3 = atom->mass[atom->type[atom2]];
-      m4 = atom->mass[atom->type[atom3]];
-      m5 = atom->mass[atom->type[c1]];
-      m_all = m1 + m2 + m3 + m4 + m5;
-
-      double alpha1 = MY_PI/2.57; //roughly 70 degrees
-      double alpha2 = MY_PI/3;
-      //ENSURE ycenter,zcenter = 0!
-      double xcenter =  -(m2+m3+m4)/m_all*r0*cos(alpha1) +r1*m5/m_all;
-
-      clist_q0[i][0] = -xcenter;
-      clist_q0[i][1] = 0.0;
-      clist_q0[i][2] = 0.0;
-      clist_q0[i][3] = -r0*cos(alpha1)-xcenter;
-      clist_q0[i][4] = -r0*sin(alpha1);
-      clist_q0[i][5] = 0.0;
-      clist_q0[i][6] = -r0*cos(alpha1)-xcenter;
-      clist_q0[i][7] = r0*sin(alpha1)*cos(alpha2);
-      clist_q0[i][8] = r0*sin(alpha1)*sin(alpha2);
-      clist_q0[i][9]  = -r0*cos(alpha1)-xcenter;
-      clist_q0[i][10] = r0*sin(alpha1)*cos(alpha2);
-      clist_q0[i][11] = -r0*sin(alpha1)*sin(alpha2);
-      clist_q0[i][12] = r1-xcenter;
-      clist_q0[i][13] = 0.0;
-      clist_q0[i][14] = 0.0;
-      clist_nselect1[i] = 1;
-      clist_nselect2[i] = 2;
-
-      clist_select1[i][0] = 4;
-      clist_select2[i][0] = 2;clist_select2[i][1] = 3;
-
-      //signum ensures correct ordering of three satellites
-      //signum = sign(cross(x2-x1,x3-x1))T*(x1-x0))
-      double del1[3], del2[3], del3[3];
-      del1[0] = x[atom1][0]-x[oxy][0];
-      del1[1] = x[atom1][1]-x[oxy][1];
-      del1[2] = x[atom1][2]-x[oxy][2];
-      domain->minimum_image(del1);
-
-      del2[0] = x[atom2][0]-x[atom1][0];
-      del2[1] = x[atom2][1]-x[atom1][1];
-      del2[2] = x[atom2][2]-x[atom1][2];
-      domain->minimum_image(del2);
-
-      del3[0] = x[atom3][0]-x[atom1][0];
-      del3[1] = x[atom3][1]-x[atom1][1];
-      del3[2] = x[atom3][2]-x[atom1][2];
-      domain->minimum_image(del3);
-
-      double a = (del2[1])*(del3[2]) - (del2[2])*(del3[1]);
-      double b = (del2[2])*(del3[0]) - (del2[0])*(del3[2]);
-      double c = (del2[0])*(del3[1]) - (del2[1])*(del3[0]);
-      int signum = sgn(a*(del1[0]) + b*(del1[1]) + c*(del1[2]));
-
-      if (abs(signum)!= 1)
-        error->all(FLERR,"Wrong orientation in cluster of size 5"
-          "in fix filter/corotate!");
-      clist_q0[i][8] *= signum;
-      clist_q0[i][11] *= signum;
-    } else {
-      error->all(FLERR,"Fix filter/corotate cluster with size > 5"
-        "not yet configured...");
-    }
-  }
 }
 
 /* ----------------------------------------------------------------------

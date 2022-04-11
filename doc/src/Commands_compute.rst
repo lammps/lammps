@@ -63,6 +63,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`event/displace <compute_event_displace>`
    * :doc:`fabric <compute_fabric>`
    * :doc:`fep <compute_fep>`
+   * :doc:`fep/ta <compute_fep_ta>`
    * :doc:`force/tally <compute_tally>`
    * :doc:`fragment/atom <compute_cluster_atom>`
    * :doc:`global/atom <compute_global_atom>`

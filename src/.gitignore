@@ -462,6 +462,8 @@
 /compute_fabric.h
 /compute_fep.cpp
 /compute_fep.h
+/compute_fep_ta.cpp
+/compute_fep_ta.h
 /compute_force_tally.cpp
 /compute_force_tally.h
 /compute_gyration_shape.cpp
@@ -602,6 +604,8 @@
 /dump_xyz_mpiio.h
 /dump_xyz_zstd.cpp
 /dump_xyz_zstd.h
+/dump_yaml.cpp
+/dump_yaml.h
 /dynamical_matrix.cpp
 /dynamical_matrix.h
 /ewald.cpp

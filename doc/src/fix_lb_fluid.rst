@@ -8,7 +8,7 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID lb/fluid nevery LBtype viscosity density keyword values ...
+   fix ID group-ID lb/fluid nevery viscosity density keyword values ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * lb/fluid = style name of this fix command
@@ -63,8 +63,10 @@ Examples
 Description
 """""""""""
 
+.. versionchanged:: 24Mar2022
+
 Implement a lattice-Boltzmann fluid on a uniform mesh covering the
-LAMMPS simulation domain.  Note that this fix was updated in 2021 and is
+LAMMPS simulation domain.  Note that this fix was updated in 2022 and is
 not backward compatible with the previous version.  If you need the
 previous version, please download an older version of LAMMPS.  The MD
 particles described by *group-ID* apply a velocity dependent force to

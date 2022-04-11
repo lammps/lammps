@@ -208,7 +208,6 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
   nn = list->inum;
-  NN = list->inum + list->gnum;
 
   copymode = 1;
 
@@ -375,7 +374,7 @@ void FixQEqReaxFFKokkos<DeviceType>::allocate_array()
 
   if (efield) get_chi_field();
 
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqZero>(0,NN),*this);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqZero>(0,nn),*this);
 
 }
 /* ---------------------------------------------------------------------- */
@@ -872,7 +871,8 @@ void FixQEqReaxFFKokkos<DeviceType>::sparse_matvec_kokkos(typename AT::t_ffloat2
   }
 
   if (neighflag != FULL) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqZeroQGhosts>(nn,NN),*this);
+    int nall = nlocal + atomKK->nghost;
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqZeroQGhosts>(atom->nlocal,nall),*this);
 
     if (need_dup)
       dup_o.reset_except(d_o);

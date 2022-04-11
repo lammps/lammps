@@ -20,6 +20,8 @@ CommandStyle(kim_interactions,Deprecated);
 CommandStyle(kim_param,Deprecated);
 CommandStyle(kim_property,Deprecated);
 CommandStyle(kim_query,Deprecated);
+CommandStyle(message,Deprecated);
+CommandStyle(server,Deprecated);
 // clang-format on
 #else
 

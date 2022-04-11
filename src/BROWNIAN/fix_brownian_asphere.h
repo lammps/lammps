@@ -35,8 +35,9 @@ class FixBrownianAsphere : public FixBrownianBase {
   class AtomVecEllipsoid *avec;
 
  private:
-  template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_DIPOLE, int Tp_2D>
+  template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_DIPOLE, int Tp_2D, int Tp_2Drot>
   void initial_integrate_templated();
+  double g4;
 };
 }    // namespace LAMMPS_NS
 #endif

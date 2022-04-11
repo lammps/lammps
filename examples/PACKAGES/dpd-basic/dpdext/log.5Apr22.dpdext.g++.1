@@ -1,0 +1,153 @@
+LAMMPS (24 Mar 2022)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# DPD Fluid
+
+variable T    equal 1.0
+variable rc   equal 1.0
+variable rcD  equal 1.2
+
+units            lj
+boundary     p p p
+atom_style       atomic
+dimension    3
+newton       on
+comm_modify  vel yes
+
+### create box and configuration
+variable     L equal 5.0
+lattice      fcc 3.0
+Lattice spacing in x,y,z = 1.1006424 1.1006424 1.1006424
+region       simBox block 0 ${L} 0 ${L} 0 ${L}
+region       simBox block 0 5 0 ${L} 0 ${L}
+region       simBox block 0 5 0 5 0 ${L}
+region       simBox block 0 5 0 5 0 5
+create_box   2 simBox
+Created orthogonal box = (0 0 0) to (5.5032121 5.5032121 5.5032121)
+  1 by 1 by 1 MPI processor grid
+create_atoms 1 random 100 12456 simBox
+Created 100 atoms
+  using lattice units in orthogonal box = (0 0 0) to (5.5032121 5.5032121 5.5032121)
+  create_atoms CPU = 0.000 seconds
+create_atoms 2 random 100 13245 simBox
+Created 100 atoms
+  using lattice units in orthogonal box = (0 0 0) to (5.5032121 5.5032121 5.5032121)
+  create_atoms CPU = 0.000 seconds
+mass         1 1.0
+mass         2 2.0
+###
+
+pair_style       dpd/ext ${T} ${rc} 3854262
+pair_style       dpd/ext 1 ${rc} 3854262
+pair_style       dpd/ext 1 1 3854262
+
+pair_coeff   1 1 25.0 4.5 4.53 0.5 0.53   1.2 #${rcD}
+pair_coeff   1 2 25.1 4.51 4.54 0.51 0.54 1.21 #${rcD}
+pair_coeff   2 2 25.2 4.52 4.55 0.52 0.55 1.22 #${rcD}
+
+timestep     0.01
+run_style    verlet
+
+velocity all create ${T} 68768932
+velocity all create 1 68768932
+
+thermo_style custom step time temp press
+thermo       100
+
+fix 1 all    nve
+
+run          5000
+  generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.52
+  ghost atom cutoff = 1.52
+  binsize = 0.76, bins = 8 8 8
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair dpd/ext, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.083 | 3.083 | 3.083 Mbytes
+   Step          Time           Temp          Press     
+         0   0              1              10.864186    
+       100   1              1.1314376      7.1955963    
+       200   2              1.0058948      8.4574538    
+       300   3              0.93292241     7.7033353    
+       400   4              0.93599378     7.9649888    
+       500   5              1.0390423      7.9498546    
+       600   6              1.0750333      7.3594973    
+       700   7              1.119325       7.1843859    
+       800   8              0.96727219     6.8327896    
+       900   9              0.98826001     8.1974994    
+      1000   10             1.105819       7.8830702    
+      1100   11             0.99559202     7.8295372    
+      1200   12             0.9210428      8.2045593    
+      1300   13             0.96628584     8.6531905    
+      1400   14             1.1808689      7.7659964    
+      1500   15             0.96208743     7.9977415    
+      1600   16             1.0080123      7.6254557    
+      1700   17             0.96910957     8.3643075    
+      1800   18             1.0562621      7.5966268    
+      1900   19             0.93109173     7.7944606    
+      2000   20             1.1126085      9.3753501    
+      2100   21             1.1328553      7.6293793    
+      2200   22             0.8964042      7.5985061    
+      2300   23             1.0043044      8.0016943    
+      2400   24             1.0319521      8.1249684    
+      2500   25             0.95913468     7.2383318    
+      2600   26             0.99480311     7.6491295    
+      2700   27             0.9735191      7.5004628    
+      2800   28             0.96145308     8.222045     
+      2900   29             1.0131071      6.6390842    
+      3000   30             0.99463836     7.0147693    
+      3100   31             0.96803993     8.2738796    
+      3200   32             0.94066026     9.476403     
+      3300   33             0.97401823     6.409563     
+      3400   34             1.0548493      7.7301555    
+      3500   35             0.98567796     8.2949868    
+      3600   36             0.86621746     7.4759028    
+      3700   37             0.94934175     8.1189998    
+      3800   38             0.9626774      7.7986715    
+      3900   39             0.95728518     6.8669836    
+      4000   40             1.0866412      7.41281      
+      4100   41             0.98873564     6.4612262    
+      4200   42             0.9109925      7.1806331    
+      4300   43             1.0344723      8.4617679    
+      4400   44             0.98920584     7.3622901    
+      4500   45             0.99386139     6.8002442    
+      4600   46             1.0947487      6.8868352    
+      4700   47             0.98789482     7.8428621    
+      4800   48             1.0035907      8.3878628    
+      4900   49             1.0336467      8.1592349    
+      5000   50             1.0870964      8.217988     
+Loop time of 0.907286 on 1 procs for 5000 steps with 200 atoms
+
+Performance: 4761453.941 tau/day, 5510.942 timesteps/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.79672    | 0.79672    | 0.79672    |   0.0 | 87.81
+Neigh   | 0.066416   | 0.066416   | 0.066416   |   0.0 |  7.32
+Comm    | 0.029801   | 0.029801   | 0.029801   |   0.0 |  3.28
+Output  | 0.0010415  | 0.0010415  | 0.0010415  |   0.0 |  0.11
+Modify  | 0.0078915  | 0.0078915  | 0.0078915  |   0.0 |  0.87
+Other   |            | 0.005414   |            |       |  0.60
+
+Nlocal:            200 ave         200 max         200 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:            563 ave         563 max         563 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           1624 ave        1624 max        1624 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1624
+Ave neighs/atom = 8.12
+Neighbor list builds = 500
+Dangerous builds = 500
+
+Total wall time: 0:00:00

@@ -69,19 +69,7 @@ void DumpAtomMPIIO::openfile()
   filecurrent = filename;
 
   if (multifile) {
-    char *filestar = filecurrent;
-    filecurrent = new char[strlen(filestar) + 16];
-    char *ptr = strchr(filestar, '*');
-    *ptr = '\0';
-    if (padflag == 0) {
-      sprintf(filecurrent, "%s" BIGINT_FORMAT "%s", filestar, update->ntimestep, ptr + 1);
-    } else {
-      char bif[8], pad[16];
-      strcpy(bif, BIGINT_FORMAT);
-      sprintf(pad, "%%s%%0%d%s%%s", padflag, &bif[1]);
-      sprintf(filecurrent, pad, filestar, update->ntimestep, ptr + 1);
-    }
-    *ptr = '*';
+    filecurrent = utils::strdup(utils::star_subst(filecurrent, update->ntimestep, padflag));
     if (maxfiles > 0) {
       if (numfiles < maxfiles) {
         nameslist[numfiles] = new char[strlen(filecurrent) + 1];
@@ -98,8 +86,8 @@ void DumpAtomMPIIO::openfile()
   }
 
   if (append_flag) {    // append open
-    int err = MPI_File_open(world, filecurrent, MPI_MODE_CREATE | MPI_MODE_APPEND | MPI_MODE_WRONLY,
-                            MPI_INFO_NULL, &mpifh);
+    int err = MPI_File_open(world, filecurrent, MPI_MODE_CREATE | MPI_MODE_APPEND |
+                            MPI_MODE_WRONLY, MPI_INFO_NULL, &mpifh);
     if (err != MPI_SUCCESS)
       error->one(FLERR, "Cannot open dump file {}: {}", filecurrent, utils::getsyserror());
 
@@ -112,8 +100,8 @@ void DumpAtomMPIIO::openfile()
 
   } else {    // replace open
 
-    int err =
-        MPI_File_open(world, filecurrent, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &mpifh);
+    int err = MPI_File_open(world, filecurrent, MPI_MODE_CREATE | MPI_MODE_WRONLY,
+                            MPI_INFO_NULL, &mpifh);
     if (err != MPI_SUCCESS)
       error->one(FLERR, "Cannot open dump file {}: {}", filecurrent, utils::getsyserror());
 
@@ -224,20 +212,10 @@ void DumpAtomMPIIO::init_style()
 
   delete[] format;
   if (format_line_user) {
-    int n = strlen(format_line_user) + 2;
-    format = new char[n];
-    strcpy(format, format_line_user);
-    strcat(format, "\n");
+    format = utils::strdup(std::string(format_line_user) + "\n");
   } else {
-    char *str;
-    if (image_flag == 0)
-      str = (char *) TAGINT_FORMAT " %d %g %g %g";
-    else
-      str = (char *) TAGINT_FORMAT " %d %g %g %g %d %d %d";
-    int n = strlen(str) + 2;
-    format = new char[n];
-    strcpy(format, str);
-    strcat(format, "\n");
+    if (image_flag == 0) format = utils::strdup(TAGINT_FORMAT " %d %g %g %g\n");
+    else format = utils::strdup(TAGINT_FORMAT " %d %g %g %g %d %d %d\n");
   }
 
   // setup boundary string
@@ -246,14 +224,25 @@ void DumpAtomMPIIO::init_style()
 
   // setup column string
 
+  std::string default_columns;
+
   if (scale_flag == 0 && image_flag == 0)
-    columns = (char *) "id type x y z";
+    default_columns = "id type x y z";
   else if (scale_flag == 0 && image_flag == 1)
-    columns = (char *) "id type x y z ix iy iz";
+    default_columns = "id type x y z ix iy iz";
   else if (scale_flag == 1 && image_flag == 0)
-    columns = (char *) "id type xs ys zs";
+    default_columns = "id type xs ys zs";
   else if (scale_flag == 1 && image_flag == 1)
-    columns = (char *) "id type xs ys zs ix iy iz";
+    default_columns = "id type xs ys zs ix iy iz";
+
+  int icol = 0;
+  columns.clear();
+  for (auto item : utils::split_words(default_columns)) {
+    if (columns.size()) columns += " ";
+    if (keyword_user[icol].size()) columns += keyword_user[icol];
+    else columns += item;
+    ++icol;
+  }
 
   // setup function ptrs
 

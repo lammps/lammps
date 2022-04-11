@@ -42,15 +42,9 @@ if(DOWNLOAD_N2P2)
   if(NOT BUILD_MPI)
     set(N2P2_PROJECT_OPTIONS "-DN2P2_NO_MPI")
   else()
-    # get path to MPI include directory when cross-compiling to windows
-    if((CMAKE_SYSTEM_NAME STREQUAL Windows) AND CMAKE_CROSSCOMPILING)
-      get_target_property(N2P2_MPI_INCLUDE MPI::MPI_CXX INTERFACE_INCLUDE_DIRECTORIES)
-      set(N2P2_PROJECT_OPTIONS "-I${N2P2_MPI_INCLUDE}")
-    endif()
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-      get_target_property(N2P2_MPI_INCLUDE MPI::MPI_CXX INTERFACE_INCLUDE_DIRECTORIES)
-      set(N2P2_PROJECT_OPTIONS "-I${N2P2_MPI_INCLUDE}")
-    endif()
+    # get path to MPI include directory
+    get_target_property(N2P2_MPI_INCLUDE MPI::MPI_CXX INTERFACE_INCLUDE_DIRECTORIES)
+    set(N2P2_PROJECT_OPTIONS "-I${N2P2_MPI_INCLUDE}")
   endif()
 
   # prefer GNU make, if available. N2P2 lib seems to need it.

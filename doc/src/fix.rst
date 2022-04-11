@@ -194,10 +194,10 @@ accelerated styles exist.
 * :doc:`bond/swap <fix_bond_swap>` - Monte Carlo bond swapping
 * :doc:`box/relax <fix_box_relax>` - relax box size during energy minimization
 * :doc:`charge/regulation <fix_charge_regulation>` - Monte Carlo sampling of charge regulation
-* :doc:`client/md <fix_client_md>` - MD client for client/server simulations
 * :doc:`cmap <fix_cmap>` - enables CMAP cross-terms of the CHARMM force field
 * :doc:`colvars <fix_colvars>` - interface to the collective variables "Colvars" library
 * :doc:`controller <fix_controller>` - apply control loop feedback mechanism
+* :doc:`damping/cundall <fix_damping_cundall>` - Cundall non-viscous damping for granular simulations
 * :doc:`deform <fix_deform>` - change the simulation box size/shape
 * :doc:`deposit <fix_deposit>` - add new atoms above a surface
 * :doc:`dpd/energy <fix_dpd_energy>` - constant energy dissipative particle dynamics
@@ -243,7 +243,7 @@ accelerated styles exist.
 * :doc:`lb/viscous <fix_lb_viscous>` -
 * :doc:`lineforce <fix_lineforce>` - constrain atoms to move in a line
 * :doc:`manifoldforce <fix_manifoldforce>` - restrain atoms to a manifold during minimization
-* :doc:`mdi/engine <fix_mdi_engine>` - connect LAMMPS to external programs via the MolSSI Driver Interface (MDI)
+* :doc:`mdi/aimd <fix_mdi_aimd>` - LAMMPS operates as driver for ab initio MD (AIMD) via the MolSSI Driver Interface (MDI)
 * :doc:`meso/move <fix_meso_move>` - move mesoscopic SPH/SDPD particles in a prescribed fashion
 * :doc:`mol/swap <fix_mol_swap>` - Monte Carlo atom type swapping with a molecule
 * :doc:`momentum <fix_momentum>` - zero the linear and/or angular momentum of a group of atoms
@@ -386,6 +386,7 @@ accelerated styles exist.
 * :doc:`vector <fix_vector>` - accumulate a global vector every N timesteps
 * :doc:`viscosity <fix_viscosity>` - Muller-Plathe momentum exchange for viscosity calculation
 * :doc:`viscous <fix_viscous>` - viscous damping for granular simulations
+* :doc:`viscous/sphere <fix_viscous_sphere>` - viscous damping on angular velocity for granular simulations
 * :doc:`wall/body/polygon <fix_wall_body_polygon>` -
 * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>` -
 * :doc:`wall/colloid <fix_wall>` - Lennard-Jones wall interacting with finite-size particles

@@ -49,7 +49,7 @@ class PairDPD : public Pair {
   double **sigma;
   class RanMars *random;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

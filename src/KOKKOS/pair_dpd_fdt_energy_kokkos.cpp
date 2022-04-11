@@ -115,9 +115,8 @@ void PairDPDfdtEnergyKokkos<LMPDeviceSpace>::init_style()
 
   neighflag = lmp->kokkos->neighflag;
   auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(0);
+  request->set_kokkos_device(1);
   if (neighflag == FULL) request->enable_full();
 
 #ifdef DPD_USE_RAN_MARS
@@ -730,21 +729,19 @@ void PairDPDfdtEnergyKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, co
 
     if (vflag_atom) {
       if (NEIGHFLAG!=FULL) {
-        if (NEWTON_PAIR || i < nlocal) {
-          v_vatom(i,0) += 0.5*v0;
-          v_vatom(i,1) += 0.5*v1;
-          v_vatom(i,2) += 0.5*v2;
-          v_vatom(i,3) += 0.5*v3;
-          v_vatom(i,4) += 0.5*v4;
-          v_vatom(i,5) += 0.5*v5;
-        }
+        v_vatom(i,0) += 0.5*v0;
+        v_vatom(i,1) += 0.5*v1;
+        v_vatom(i,2) += 0.5*v2;
+        v_vatom(i,3) += 0.5*v3;
+        v_vatom(i,4) += 0.5*v4;
+        v_vatom(i,5) += 0.5*v5;
         if (NEWTON_PAIR || j < nlocal) {
-        v_vatom(j,0) += 0.5*v0;
-        v_vatom(j,1) += 0.5*v1;
-        v_vatom(j,2) += 0.5*v2;
-        v_vatom(j,3) += 0.5*v3;
-        v_vatom(j,4) += 0.5*v4;
-        v_vatom(j,5) += 0.5*v5;
+          v_vatom(j,0) += 0.5*v0;
+          v_vatom(j,1) += 0.5*v1;
+          v_vatom(j,2) += 0.5*v2;
+          v_vatom(j,3) += 0.5*v3;
+          v_vatom(j,4) += 0.5*v4;
+          v_vatom(j,5) += 0.5*v5;
         }
       } else {
         v_vatom(i,0) += 0.5*v0;

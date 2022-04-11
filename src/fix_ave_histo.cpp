@@ -815,7 +815,7 @@ void FixAveHisto::end_of_step()
   if (fp && me == 0) {
     clearerr(fp);
     if (overwrite) platform::fseek(fp,filepos);
-    fprintf(fp,BIGINT_FORMAT " %d %g %g %g %g\n",ntimestep,nbins,
+    fmt::print(fp,"{} {} {} {} {} {}\n",ntimestep,nbins,
             stats_total[0],stats_total[1],stats_total[2],stats_total[3]);
     if (stats_total[0] != 0.0)
       for (i = 0; i < nbins; i++)

@@ -238,6 +238,14 @@ void ComputeGridLocal::assign_coords()
 	alocal[igrid][2] = iz;
 	double xgrid[3];
 	grid2x(ix, iy, iz, xgrid);
+
+	// ensure gridpoint is not strictly outside subdomain
+	
+	if (xgrid[0] < sublo[0] && xgrid[0] > subhi[0] &&
+	    xgrid[1] < sublo[1] && xgrid[1] > subhi[1] &&
+	    xgrid[2] < sublo[2] && xgrid[2] > subhi[2])
+	  error->all(FLERR,"Invalid gridpoint position in compute grid/local");
+	
 	alocal[igrid][3] = xgrid[0];
 	alocal[igrid][4] = xgrid[1];
 	alocal[igrid][5] = xgrid[2];

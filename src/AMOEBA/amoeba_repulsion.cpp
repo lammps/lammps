@@ -334,22 +334,20 @@ void PairAmoeba::repulsion()
 
       erepulse += e;
 
-      //fprintf(fp,"REPUL %d %d %15.12g %15.12g\n",atom->tag[i],atom->tag[j],r,e);
-      
       // increment force-based gradient and torque on atom I
 
-      f[i][0] += frcx;
-      f[i][1] += frcy;
-      f[i][2] += frcz;
+      f[i][0] -= frcx;
+      f[i][1] -= frcy;
+      f[i][2] -= frcz;
       tq[i][0] += ttri[0];
       tq[i][1] += ttri[1];
       tq[i][2] += ttri[2];
 
       // increment force-based gradient and torque on atom J
 
-      f[j][0] -= frcx;
-      f[j][1] -= frcy;
-      f[j][2] -= frcz;
+      f[j][0] += frcx;
+      f[j][1] += frcy;
+      f[j][2] += frcz;
       tq[j][0] += ttrk[0];
       tq[j][1] += ttrk[1];
       tq[j][2] += ttrk[2];

@@ -30,9 +30,11 @@ enum{NOFRAME,ZONLY,ZTHENX,BISECTOR,ZBISECT,THREEFOLD};
 
 /* ----------------------------------------------------------------------
    kmpole performs one-time assignment of
-   xaxis,yaxis,zaxis multipole neighbors to each owned atom
-   sets polaxe and pole[13] multipole for each owned atom
-   NOTE: doesn't always do this identically to Tinker b/c atom order matters
+     xaxis,yaxis,zaxis multipole neighbors to each owned atom
+     any of the values can be 0 if not used
+     yaxis can later be negative due to chkpole()
+   also sets polaxe and pole[13] multipole for each owned atom
+   NOTE: may not always do this identically to Tinker b/c atom order matters
 ------------------------------------------------------------------------- */
 
 void PairAmoeba::kmpole()
@@ -65,14 +67,13 @@ void PairAmoeba::kmpole()
   for (i = 0; i < nlocal; i++) {
     itype = amtype[i];
     nframe = nmultiframe[itype];
+
+    // flag is used to prevent matching multiple times
+    // only first match is used
+
     flag = 0;
 
-    // DEBUG START
-    // create a sorted version of bond/angle neighs in special[][]
-
-    //printf("BTAGS %d:",atom->tag[i]);
-    //for (j = 0; j < nspecial[i][0]; j++) printf(" %d",special[i][j]);
-    //printf("\n");
+    // create a sorted version of bond/angle neighs from special[][]
 
     for (j = 0; j < nspecial[i][0]; j++)
       bondneigh[j] = special[i][j];
@@ -88,14 +89,6 @@ void PairAmoeba::kmpole()
       }
     }
 
-    //printf("     %d:",atom->tag[i]);
-    //for (j = 0; j < nspecial[i][0]; j++) printf(" %d",bondneigh[j]);
-    //printf("\n");
-
-    //printf("ATAGS %d:",atom->tag[i]);
-    //for (j = nspecial[i][0]; j < nspecial[i][1]; j++) printf(" %d",special[i][j]);
-    //printf("\n");
-
     for (j = nspecial[i][0]; j < nspecial[i][1]; j++)
       angleneigh[j] = special[i][j];
     for (m = nspecial[i][0]; m < nspecial[i][1]; m++) {
@@ -110,12 +103,6 @@ void PairAmoeba::kmpole()
       }
     }
 
-    //printf("     %d:",atom->tag[i]);
-    //for (j = nspecial[i][0]; j < nspecial[i][1]; j++) printf(" %d",angleneigh[j]);
-    //printf("\n");
-
-    // DEBUG STOP
-
     // assign xyz axis and fpole via only 1-2 connected atoms
 
     for (iframe = 0; iframe < nframe; iframe++) {
@@ -123,7 +110,6 @@ void PairAmoeba::kmpole()
       ytype = ypole[itype][iframe];
       ztype = zpole[itype][iframe];
       for (j12 = 0; j12 < nspecial[i][0]; j12++) {
-	//jneigh = special[i][j12];
         jneigh = bondneigh[j12];
 	j = atom->map(jneigh);
 	if (j < 0) 
@@ -132,15 +118,13 @@ void PairAmoeba::kmpole()
 	if (jtype == ztype) {
 	  for (k12 = 0; k12 < nspecial[i][0]; k12++) {
 	    if (k12 == j12) continue;
-	    //kneigh = special[i][k12];
             kneigh = bondneigh[k12];
 	    k = atom->map(kneigh);
 	    if (k < 0) 
               error->one(FLERR,"AMOEBA kmpole() could not find bond partner");
 	    ktype = amtype[k];
 	    if (ktype == xtype) {
-	      if (ytype == 0 && !flag) {  // only match first time
-		//if (ytype == 0) {
+	      if (ytype == 0 && !flag) {
 		flag = 1;
 		zaxis[i] = jneigh;
 		xaxis[i] = kneigh;
@@ -148,22 +132,15 @@ void PairAmoeba::kmpole()
 		polaxe[i] = mpaxis[itype][iframe];
 		for (j = 0; j < 13; j++)
 		  pole[i][j] = fpole[itype][iframe][j];
-		//if (nframe > 1)
-		//printf("KMPOLEA: id %d itype %d iframe %d nframe %d "
-		//	 "xyzaxis %d %d %d\n",
-		//	 atom->tag[i],itype,iframe+1,nframe,
-		//	 xaxis[i],yaxis[i],zaxis[i]);
 	      } else {
 		for (m12 = 0; m12 < nspecial[i][0]; m12++) {
 		  if (m12 == j12 || m12 == k12) continue;
-		  //mneigh = special[i][m12];
                   mneigh = bondneigh[m12];
 		  m = atom->map(mneigh);
 		  if (m < 0)
 		    error->one(FLERR,"AMOEBA kmpole() could not find bond partner");
 		  mtype = amtype[m];
 		  if (mtype == ytype && !flag) {
-		    //if (mtype == ytype) {
 		    flag = 1;
 		    zaxis[i] = jneigh;
 		    xaxis[i] = kneigh;
@@ -171,11 +148,6 @@ void PairAmoeba::kmpole()
 		    polaxe[i] = mpaxis[itype][iframe];
 		    for (j = 0; j < 13; j++)
 		      pole[i][j] = fpole[itype][iframe][j];
-		    //if (nframe > 1)
-		    //printf("KMPOLEB: id %d itype %d iframe %d nframe %d "
-		    //	     "xyzaxis %d %d %d\n",
-		    //	     atom->tag[i],itype,iframe+1,nframe,
-		    //	     xaxis[i],yaxis[i],zaxis[i]);
 		  }
 		}
 	      }
@@ -185,9 +157,6 @@ void PairAmoeba::kmpole()
       }
     }
 
-    //if (atom->tag[i] == 68) printf("FLAG 68 %d: %d %d %d\n",
-    //				   flag,xaxis[i],yaxis[i],zaxis[i]);
-    
     if (flag) continue;
 
     // assign xyz axis via 1-2 and 1-3 connected atoms
@@ -197,14 +166,12 @@ void PairAmoeba::kmpole()
       ytype = ypole[itype][iframe];
       ztype = zpole[itype][iframe];
       for (j12 = 0; j12 < nspecial[i][0]; j12++) {
-	//jneigh = special[i][j12];
         jneigh = bondneigh[j12];
 	j = atom->map(jneigh);
 	if (j < 0) error->one(FLERR,"AMOEBA kmpole() could not find bond partner");
 	jtype = amtype[j];
 	if (jtype == ztype) {
 	  for (k13 = nspecial[i][0]; k13 < nspecial[i][1]; k13++) {
-	    //kneigh = special[i][k13];
             kneigh = angleneigh[k13];
 	    k = atom->map(kneigh);
 	    if (k < 0) error->one(FLERR,"AMOEBA kmpole() could not find bond partner");
@@ -216,7 +183,6 @@ void PairAmoeba::kmpole()
 	    
 	    if (ktype == xtype) {
 	      if (ytype == 0 && !flag) {
-		//if (ytype == 0) {
 		flag = 1;
 		zaxis[i] = jneigh;
 		xaxis[i] = kneigh;
@@ -224,15 +190,9 @@ void PairAmoeba::kmpole()
 		polaxe[i] = mpaxis[itype][iframe];
 		for (j = 0; j < 13; j++)
 		  pole[i][j] = fpole[itype][iframe][j];
-		//if (nframe > 1)
-		// printf("KMPOLEC: id %d itype %d iframe %d nframe %d "
-		//	 "xyzaxis %d %d %d\n",
-		//	 atom->tag[i],itype,iframe+1,nframe,
-		//	 xaxis[i],yaxis[i],zaxis[i]);
 	      } else {
 		for (m13 = nspecial[i][0]; m13 < nspecial[i][1]; m13++) {
 		  if (m13 == k13) continue;
-		  //mneigh = special[i][m13];
                   mneigh = angleneigh[m13];
 		  m = atom->map(mneigh);
 		  if (m < 0)
@@ -243,7 +203,6 @@ void PairAmoeba::kmpole()
 		    if (special[m][m12] == jneigh) path = true;
 		  if (!path) continue;
 		  if (mtype == ytype && !flag) {
-		    //if (mtype == ytype) {
 		    flag = 1;
 		    zaxis[i] = jneigh;
 		    xaxis[i] = kneigh;
@@ -251,11 +210,6 @@ void PairAmoeba::kmpole()
 		    polaxe[i] = mpaxis[itype][iframe];
 		    for (j = 0; j < 13; j++)
 		      pole[i][j] = fpole[itype][iframe][j];
-		    //if (nframe > 1)
-		    //printf("KMPOLED: id %d itype %d iframe %d nframe %d "
-		    //	     "xyzaxis %d %d %d\n",
-		    //	     atom->tag[i],itype,iframe+1,nframe,
-		    //	     xaxis[i],yaxis[i],zaxis[i]);
 		  }
 		}
 	      }
@@ -274,25 +228,18 @@ void PairAmoeba::kmpole()
       ytype = ypole[itype][iframe];
       ztype = zpole[itype][iframe];
       for (j12 = 0; j12 < nspecial[i][0]; j12++) {
-	//jneigh = special[i][j12];
         jneigh = bondneigh[j12];
 	j = atom->map(jneigh);
 	if (j < 0) error->one(FLERR,"AMOEBA kmpole() could not find bond partner");
 	jtype = amtype[j];
 	if (jtype == ztype) {
 	  if (xtype == 0 && !flag) {
-	    //if (xtype == 0) {
 	    flag = 1;
 	    zaxis[i] = jtype;
 	    xaxis[i] = yaxis[i] = 0;
 	    polaxe[i] = mpaxis[itype][iframe];
 	    for (j = 0; j < 13; j++)
 	      pole[i][j] = fpole[itype][iframe][j];
-	    //if (nframe > 1)
-	    //printf("KMPOLEE: id %d itype %d iframe %d nframe %d "
-	    //	     "xyzaxis %d %d %d\n",
-	    //	     atom->tag[i],itype,iframe+1,nframe,
-	    //	     xaxis[i],yaxis[i],zaxis[i]);
 	  }
 	}
       }
@@ -307,17 +254,11 @@ void PairAmoeba::kmpole()
       ytype = ypole[itype][iframe];
       ztype = zpole[itype][iframe];
       if (ztype == 0 && !flag) {
-	//if (ztype == 0) {
 	flag = 1;
 	zaxis[i] = xaxis[i] = yaxis[i] = 0;
 	polaxe[i] = mpaxis[itype][iframe];
 	for (j = 0; j < 13; j++)
 	  pole[i][j] = fpole[itype][iframe][j];
-	//if (nframe > 1)
-	//printf("KMPOLEF: id %d itype %d iframe %d nframe %d "
-	//	 "xyzaxis %d %d %d\n",
-	//	 atom->tag[i],itype,iframe+1,nframe,
-	//	 xaxis[i],yaxis[i],zaxis[i]);
       }
     }
 
@@ -328,19 +269,6 @@ void PairAmoeba::kmpole()
     nmissing++;
   }
 
-  // DEBUG
-
-  /*
-  for (i = 0; i < nlocal; i++)
-    if (atom->tag[i] == 68)
-    printf("KMPOLE %d %d: %g %g %g %g: %g %g %g %g: %g %g %g %g: %g\n",
-	   i,atom->tag[i],
-	   pole[i][0],pole[i][1],pole[i][2],pole[i][3],
-	   pole[i][4],pole[i][5],pole[i][6],pole[i][7],
-	   pole[i][8],pole[i][9],pole[i][10],pole[i][11],
-	   pole[i][12]);
-  */
-  
   // error check on missing settings
 
   int nmissing_all;
@@ -412,18 +340,6 @@ void PairAmoeba::chkpole(int i)
     pole[i][9] = -pole[i][9];
     pole[i][11] = -pole[i][11];
   }
-
-  // DEBUG
-
-  /*
-  if (atom->tag[i] == 68)
-  printf("CHKPOLE %d %d: %g %g %g %g: %g %g %g %g: %g %g %g %g: %g\n",
-	 i,atom->tag[i],
-	 pole[i][0],pole[i][1],pole[i][2],pole[i][3],
-	 pole[i][4],pole[i][5],pole[i][6],pole[i][7],
-	 pole[i][8],pole[i][9],pole[i][10],pole[i][11],
-	 pole[i][12]);
-  */
 }
 
 /* ----------------------------------------------------------------------
@@ -634,17 +550,6 @@ void PairAmoeba::rotmat(int i)
   rotate[1][0] = rotate[0][2]*rotate[2][1] - rotate[0][1]*rotate[2][2];
   rotate[1][1] = rotate[0][0]*rotate[2][2] - rotate[0][2]*rotate[2][0];
   rotate[1][2] = rotate[0][1]*rotate[2][0] - rotate[0][0]*rotate[2][1];
-
-  // DEBUG
-
-  /*
-  if (atom->tag[i] == 68)
-  printf("ROTMAT %d %d: %d: %d %d %d: %d %d %d: %g %g %g: %g %g %g: %g %g %g\n",
-	 i,atom->tag[i],polaxe[i],ix,iy,iz,atom->tag[ix],atom->tag[iy],atom->tag[iz],
-	 rotate[0][0],rotate[0][1],rotate[0][2],
-	 rotate[1][0],rotate[1][1],rotate[1][2],
-	 rotate[2][0],rotate[2][1],rotate[2][2]);
-  */
 }
 
 /* ----------------------------------------------------------------------
@@ -762,10 +667,6 @@ void PairAmoeba::add_onefive_neighbors()
       j &= NEIGHMASK;
       jtag = tag[j];
 
-      //if (atom->tag[i] == 1 && which)
-      // 	printf("ONEFIVE tags %d %d ij %d %d which %d jlist %d\n",
-      // 	       atom->tag[i],atom->tag[j],i,j,which,jlist[jj]);
-      
       if (!which) {
 	for (k = 0; k < n15; k++) {
 	  if (list15[k] == jtag) {
@@ -777,10 +678,6 @@ void PairAmoeba::add_onefive_neighbors()
 
       if (which) jlist[jj] = j ^ (which << SBBITS15);
       int newwhich = sbmask15(jlist[jj]);
-      
-      //if (atom->tag[i] == 1 && which)
-      // 	printf("  AFTER tags %d %d ij %d %d which %d jlist %d newwhich %d\n",
-      //	       atom->tag[i],atom->tag[j],i,j,which,jlist[jj],newwhich);
     }
   }
 }
@@ -825,41 +722,49 @@ void PairAmoeba::find_hydrogen_neighbors()
 
 void PairAmoeba::find_multipole_neighbors()
 {
-  int index;
+  int index,ypos;
 
   // grab current pts for xaxis,yaxis,zaxis
   // xyz axis[i] = atom IDs that atom I uses for its multipole orientation
+  // can be zero if not used, in which case set local index to self
+  // yaxis can be negative, in which case use absolute value
 
   xaxis = atom->ivector[index_xaxis];
-  yaxis = atom->ivector[index_xaxis];
+  yaxis = atom->ivector[index_yaxis];
   zaxis = atom->ivector[index_zaxis];
 
   int nlocal = atom->nlocal;
   int nmissing = 0;
 
-  // NOTE: are some of xyz axis not atom IDs, e.g. if has no bonds
-
   for (int i = 0; i < nlocal; i++) {
-    index = atom->map(xaxis[i]);
-    if (index == -1) nmissing++;
-    else {
-      index = domain->closest_image(i,index);
-      xaxis2local[i] = index;
-    }
+    if (xaxis[i]) {
+      index = atom->map(xaxis[i]);
+      if (index == -1) nmissing++;
+      else {
+        index = domain->closest_image(i,index);
+        xaxis2local[i] = index;
+      }
+    } else xaxis2local[i] = i;
 
-    index = atom->map(yaxis[i]);
-    if (index == -1) nmissing++;
-    else {
-      index = domain->closest_image(i,index);
-      yaxis2local[i] = index;
-    }
+    if (yaxis[i]) {
+      if (yaxis[i] > 0) ypos = yaxis[i];
+      else ypos = -yaxis[i];
+      index = atom->map(ypos);
+      if (index == -1) nmissing++;
+      else {
+        index = domain->closest_image(i,index);
+        yaxis2local[i] = index;
+      }
+    } else yaxis2local[i] = i;
 
-    index = atom->map(zaxis[i]);
-    if (index == -1) nmissing++;
-    else {
-      index = domain->closest_image(i,index);
-      zaxis2local[i] = index;
-    }
+    if (zaxis[i]) {
+      index = atom->map(zaxis[i]);
+      if (index == -1) nmissing++;
+      else {
+        index = domain->closest_image(i,index);
+        zaxis2local[i] = index;
+      }
+    } else zaxis2local[i] = i;
   }
 
   // error check on missing neighbors

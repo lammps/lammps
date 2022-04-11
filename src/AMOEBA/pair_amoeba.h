@@ -245,7 +245,6 @@ class PairAmoeba : public Pair {
   // peratom values computed each step
   // none of them persist with atoms
   // some of them need communication to ghosts
-  // NOTE: allocated to nlocal or nmax?
   
   double **rpole;  // multipole, comm to ghosts
 

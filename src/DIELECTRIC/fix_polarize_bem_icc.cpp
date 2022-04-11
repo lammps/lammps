@@ -155,6 +155,8 @@ void FixPolarizeBEMICC::setup(int /*vflag*/)
     efield_pair = ((PairLJCutCoulCutDielectric *) force->pair)->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric/omp") == 0)
     efield_pair = ((PairLJCutCoulCutDielectric *) force->pair)->efield;
+  else if (strcmp(force->pair_style,"lj/cut/coul/debye/dielectric") == 0)
+    efield_pair = ((PairLJCutCoulDebyeDielectric *)force->pair)->efield;
   else if (strcmp(force->pair_style, "coul/long/dielectric") == 0)
     efield_pair = ((PairCoulLongDielectric *) force->pair)->efield;
   else if (strcmp(force->pair_style, "coul/cut/dielectric") == 0)
@@ -181,6 +183,15 @@ void FixPolarizeBEMICC::setup(int /*vflag*/)
       kspaceflag = 0;
     }
   }
+
+  // NOTE: qqrd2e = e^2/(4 pi e0) in kcal/mol
+  // converting epsilon0 [efield] from (F/m)(kcal/mol/e/A) into e/A^2
+  // epsilon0e2q = epsilon0 * (4184/6.023e+23) * (1/1.6e-19)^2 / (1e+10) / 332.06
+  //             = 0.000240258
+
+  epsilon0e2q = 1.0;
+  if (strcmp(update->unit_style,"real") == 0)
+    epsilon0e2q = 0.0795776 / force->qqrd2e;
 
   compute_induced_charges();
 }
@@ -212,7 +223,6 @@ void FixPolarizeBEMICC::compute_induced_charges()
   double *epsilon = atom->epsilon;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  double epsilon0 = force->dielectric;
   int eflag = 1;
   int vflag = 0;
   int itr;
@@ -244,10 +254,11 @@ void FixPolarizeBEMICC::compute_induced_charges()
     }
 
     // divide (Ex,Ey,Ez) by epsilon[i] here
-    double dot = (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) / (2 * MY_PI) / epsilon[i];
+    double ndotE = epsilon0e2q * (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) /
+      epsilon[i] / (2 * MY_PI);
     double q_free = q_real[i];
     double q_bound = 0;
-    q_bound = (1.0 / em[i] - 1) * q_free - epsilon0 * (ed[i] / (2 * em[i])) * dot * area[i];
+    q_bound = (1.0 / em[i] - 1) * q_free - (ed[i] / (2 * em[i])) * ndotE * area[i];
     q[i] = q_free + q_bound;
   }
 
@@ -281,10 +292,11 @@ void FixPolarizeBEMICC::compute_induced_charges()
       // note the area[i] is included here to ensure correct charge unit
       // for direct use in force/efield compute
 
-      double dot = (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) / (4 * MY_PI) / epsilon[i];
+      double ndotE = epsilon0e2q * (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) /
+        (4 * MY_PI) / epsilon[i];
       double q_bound = q[i] - q_free;
       q_bound = (1 - omega) * q_bound +
-          omega * ((1.0 / em[i] - 1) * q_free - epsilon0 * (ed[i] / em[i]) * dot * area[i]);
+          omega * ((1.0 / em[i] - 1) * q_free - (ed[i] / em[i]) * ndotE * area[i]);
       q[i] = q_free + q_bound;
 
       // Eq. (11) in Tyagi et al., with f from Eq. (6)

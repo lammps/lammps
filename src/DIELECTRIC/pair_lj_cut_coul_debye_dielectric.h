@@ -40,7 +40,7 @@ class PairLJCutCoulDebyeDielectric : public PairLJCutCoulDebye {
   int nmax;
 };
 
-}    // namespace LAMMPS_NS
+}
 
 #endif
 #endif

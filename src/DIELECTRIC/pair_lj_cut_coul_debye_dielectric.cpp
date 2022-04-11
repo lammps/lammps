@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://www.lammps.org/ Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -55,7 +55,7 @@ PairLJCutCoulDebyeDielectric::~PairLJCutCoulDebyeDielectric()
 void PairLJCutCoulDebyeDielectric::compute(int eflag, int vflag)
 {
   int i, j, ii, jj, inum, jnum, itype, jtype;
-  double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul;
+  double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul, fpair;
   double fpair_i, fpair_j;
   double rsq, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj, efield_i, epot_i;
   double r, rinv, screening;
@@ -65,8 +65,8 @@ void PairLJCutCoulDebyeDielectric::compute(int eflag, int vflag)
     memory->destroy(efield);
     memory->destroy(epot);
     nmax = atom->nmax;
-    memory->create(efield, nmax, 3, "pair:efield");
-    memory->create(epot, nmax, "pair:epot");
+    memory->create(efield,nmax,3,"pair:efield");
+    memory->create(epot,nmax,"pair:epot");
   }
 
   evdwl = ecoul = 0.0;
@@ -75,10 +75,10 @@ void PairLJCutCoulDebyeDielectric::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
-  double *eps = avec->epsilon;
-  double **norm = avec->mu;
-  double *curvature = avec->curvature;
-  double *area = avec->area;
+  double *eps = atom->epsilon;
+  double **norm = atom->mu;
+  double *curvature = atom->curvature;
+  double *area = atom->area;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
@@ -139,14 +139,12 @@ void PairLJCutCoulDebyeDielectric::compute(int eflag, int vflag)
           efield_i = qqrd2e * q[j] * screening * (kappa + rinv);
           forcecoul = qtmp * efield_i;
           epot_i = efield_i;
-        } else
-          efield_i = forcecoul = 0.0;
+        } else efield_i = forcecoul = 0.0;
 
         if (rsq < cut_ljsq[itype][jtype]) {
           r6inv = r2inv * r2inv * r2inv;
           forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
-        } else
-          forcelj = 0.0;
+        } else forcelj = 0.0;
 
         fpair_i = (factor_coul * etmp * forcecoul + factor_lj * forcelj) * r2inv;
         f[i][0] += delx * fpair_i;
@@ -207,7 +205,7 @@ double PairLJCutCoulDebyeDielectric::single(int i, int j, int itype, int jtype, 
 {
   double r2inv, r6inv, forcecoul, forcelj, phicoul, ei, ej, philj;
   double r, rinv, screening;
-  double *eps = avec->epsilon;
+  double *eps = atom->epsilon;
 
   r2inv = 1.0 / rsq;
   if (rsq < cut_coulsq[itype][jtype]) {

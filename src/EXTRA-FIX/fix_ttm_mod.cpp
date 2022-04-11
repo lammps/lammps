@@ -271,7 +271,7 @@ void FixTTMMod::init()
         net_energy_transfer_all[ix][iy][iz] = 0;
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -281,9 +281,9 @@ void FixTTMMod::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet")) {
     post_force_setup(vflag);
   } else {
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(nlevels_respa-1);
     post_force_respa_setup(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(nlevels_respa-1);
   }
 }
 
@@ -789,9 +789,9 @@ void FixTTMMod::end_of_step()
             if (left_x == -1) left_x = nxgrid - 1;
             if (left_y == -1) left_y = nygrid - 1;
             if (left_z == -1) left_z = nzgrid - 1;
-            double skin_layer_d = double(skin_layer);
-            double ix_d = double(ix);
-            double surface_d = double(t_surface_l);
+            auto  skin_layer_d = double(skin_layer);
+            auto  ix_d = double(ix);
+            auto  surface_d = double(t_surface_l);
             mult_factor = 0.0;
             if (duration < width) {
               if (ix >= t_surface_l) mult_factor = (intensity/(dx*skin_layer_d))*exp((-1.0)*(ix_d - surface_d)/skin_layer_d);
@@ -937,7 +937,7 @@ void FixTTMMod::write_restart(FILE *fp)
 void FixTTMMod::restart(char *buf)
 {
   int n = 0;
-  double *rlist = (double *) buf;
+  auto rlist = (double *) buf;
 
   // check that restart grid size is same as current grid size
 

@@ -30,6 +30,8 @@ using namespace LAMMPS_NS;
 
 enum { REGULAR_MODE, CLASS2_MODE };
 
+static constexpr int BUF_SIZE = 256;
+
 /* ----------------------------------------------------------------------
    called as write_coeff command in input script
 ------------------------------------------------------------------------- */
@@ -47,7 +49,7 @@ void WriteCoeff::command(int narg, char **arg)
   lmp->init();
 
   if (comm->me == 0) {
-    char str[256], coeff[256];
+    char str[BUF_SIZE], coeff[BUF_SIZE];
     FILE *one = fopen(file, "wb+");
 
     if (one == nullptr)
@@ -88,7 +90,7 @@ void WriteCoeff::command(int narg, char **arg)
 
     while (true) {
       int coeff_mode = REGULAR_MODE;
-      if (fgets(str, 256, one) == nullptr) break;
+      if (fgets(str, BUF_SIZE, one) == nullptr) break;
 
       // some coeffs need special treatment
       if (strstr(str, "class2") != nullptr) {
@@ -100,20 +102,20 @@ void WriteCoeff::command(int narg, char **arg)
           coeff_mode = CLASS2_MODE;
       }
 
-      const char *section = (const char *) "";
+      const char * section = (const char *) ""; // NOLINT
       fputs(str, two);                                     // style
-      utils::sfgets(FLERR, str, 256, one, file, error);    // coeff
+      utils::sfgets(FLERR, str, BUF_SIZE, one, file, error);    // coeff
       int n = strlen(str);
-      strcpy(coeff, str);
+      strncpy(coeff, str, BUF_SIZE);
       coeff[n - 1] = '\0';
-      utils::sfgets(FLERR, str, 256, one, file, error);
+      utils::sfgets(FLERR, str, BUF_SIZE, one, file, error);
 
       while (strcmp(str, "end\n") != 0) {
 
         if (coeff_mode == REGULAR_MODE) {
 
           fprintf(two, "%s %s", coeff, str);
-          utils::sfgets(FLERR, str, 256, one, file, error);
+          utils::sfgets(FLERR, str, BUF_SIZE, one, file, error);
 
         } else if (coeff_mode == CLASS2_MODE) {
 
@@ -125,7 +127,7 @@ void WriteCoeff::command(int narg, char **arg)
             // all but the the last section end with an empty line.
             // skip it and read and parse the next section title
 
-            utils::sfgets(FLERR, str, 256, one, file, error);
+            utils::sfgets(FLERR, str, BUF_SIZE, one, file, error);
 
             if (strcmp(str, "BondBond Coeffs\n") == 0)
               section = (const char *) "bb";
@@ -145,8 +147,8 @@ void WriteCoeff::command(int narg, char **arg)
               section = (const char *) "aa";
 
             // gobble up one more empty line
-            utils::sfgets(FLERR, str, 256, one, file, error);
-            utils::sfgets(FLERR, str, 256, one, file, error);
+            utils::sfgets(FLERR, str, BUF_SIZE, one, file, error);
+            utils::sfgets(FLERR, str, BUF_SIZE, one, file, error);
           }
 
           // parse type number and skip over it
@@ -156,7 +158,7 @@ void WriteCoeff::command(int narg, char **arg)
           while ((*p != '\0') && isdigit(*p)) ++p;
 
           fprintf(two, "%s %d %s %s", coeff, type, section, p);
-          utils::sfgets(FLERR, str, 256, one, file, error);
+          utils::sfgets(FLERR, str, BUF_SIZE, one, file, error);
         }
       }
       fputc('\n', two);

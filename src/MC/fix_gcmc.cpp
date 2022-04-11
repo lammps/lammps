@@ -1324,7 +1324,7 @@ void FixGCMC::attempt_molecule_insertion()
   MathExtra::quat_to_mat(quat,rotmat);
 
   double insertion_energy = 0.0;
-  bool *procflag = new bool[natoms_per_molecule];
+  auto procflag = new bool[natoms_per_molecule];
 
   for (int i = 0; i < natoms_per_molecule; i++) {
     MathExtra::matvec(rotmat,onemols[imol]->x[i],molcoords[i]);
@@ -2416,9 +2416,9 @@ void FixGCMC::update_gas_atoms_list()
       for (int i = 0; i < nlocal; i++) maxmol = MAX(maxmol,molecule[i]);
       tagint maxmol_all;
       MPI_Allreduce(&maxmol,&maxmol_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
-      double *comx = new double[maxmol_all];
-      double *comy = new double[maxmol_all];
-      double *comz = new double[maxmol_all];
+      auto comx = new double[maxmol_all];
+      auto comy = new double[maxmol_all];
+      auto comz = new double[maxmol_all];
       for (int imolecule = 0; imolecule < maxmol_all; imolecule++) {
         for (int i = 0; i < nlocal; i++) {
           if (molecule[i] == imolecule) {
@@ -2538,7 +2538,7 @@ void FixGCMC::write_restart(FILE *fp)
 void FixGCMC::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
 
   seed = static_cast<int> (list[n++]);
   random_equal->reset(seed);

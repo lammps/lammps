@@ -30,7 +30,7 @@ FixNVEBody::FixNVEBody(LAMMPS *lmp, int narg, char **arg) :
 
 void FixNVEBody::init()
 {
-  avec = (AtomVecBody *) atom->style_match("body");
+  avec = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
   if (!avec) error->all(FLERR,"Fix nve/body requires atom style body");
 
   // check that all particles are bodies

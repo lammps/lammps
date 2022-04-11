@@ -574,7 +574,7 @@ void AngleTable::spline(double *x, double *y, int n, double yp1, double ypn, dou
 {
   int i, k;
   double p, qn, sig, un;
-  double *u = new double[n];
+  auto u = new double[n];
 
   if (yp1 > 0.99e300)
     y2[0] = u[0] = 0.0;

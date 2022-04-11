@@ -414,7 +414,7 @@ void Info::command(int narg, char **arg)
                atom->natoms, atom->ntypes, force->pair_style);
 
     if (force->pair && utils::strmatch(force->pair_style,"^hybrid")) {
-      PairHybrid *hybrid = (PairHybrid *)force->pair;
+      auto hybrid = dynamic_cast<PairHybrid *>(force->pair);
       fmt::print(out,"Hybrid sub-styles:");
       for (int i=0; i < hybrid->nstyles; ++i)
         fmt::print(out," {}", hybrid->keywords[i]);
@@ -785,13 +785,13 @@ bool Info::is_active(const char *category, const char *name)
 
   if (strcmp(category,"package") == 0) {
     if (strcmp(name,"gpu") == 0) {
-      return (modify->get_fix_by_id("package_gpu")) ? true : false;
+      return modify->get_fix_by_id("package_gpu") != nullptr;
     } else if (strcmp(name,"intel") == 0) {
-      return (modify->get_fix_by_id("package_intel")) ? true : false;
+      return modify->get_fix_by_id("package_intel") != nullptr;
     } else if (strcmp(name,"kokkos") == 0) {
-      return (lmp->kokkos && lmp->kokkos->kokkos_exists) ? true : false;
+      return lmp->kokkos && lmp->kokkos->kokkos_exists;
     } else if (strcmp(name,"omp") == 0) {
-      return (modify->get_fix_by_id("package_omp")) ? true : false;
+      return modify->get_fix_by_id("package_omp") != nullptr;
     } else error->all(FLERR,"Unknown name for info package category: {}", name);
 
   } else if (strcmp(category,"newton") == 0) {
@@ -1053,7 +1053,7 @@ static void print_columns(FILE *fp, std::map<std::string, ValueType> *styles)
 
   // std::map keys are already sorted
   int pos = 80;
-  for (typename std::map<std::string, ValueType>::iterator it = styles->begin(); it != styles->end(); ++it) {
+  for (auto it = styles->begin(); it != styles->end(); ++it) {
     const std::string &style_name = it->first;
 
     // skip "internal" styles

@@ -213,7 +213,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   char *ptr;
 
   for (int idup = 0; idup < ndupfield; idup++) {
-    char *dup = (char *) dupfield[idup];
+    auto dup = (char *) dupfield[idup];
     ptr = strstr(concat_grow,dup);
     if ((ptr && strstr(ptr+1,dup)) && (comm->me == 0))
       error->warning(FLERR,fmt::format("Per-atom {} is used in multiple sub-"

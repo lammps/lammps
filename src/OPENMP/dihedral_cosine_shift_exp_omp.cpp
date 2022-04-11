@@ -95,8 +95,8 @@ void DihedralCosineShiftExpOMP::eval(int nfrom, int nto, ThrData * const thr)
 
   edihedral = 0.0;
 
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const auto * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const int5_t * _noalias const dihedrallist = (int5_t *) neighbor->dihedrallist[0];
   const int nlocal = atom->nlocal;
 

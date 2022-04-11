@@ -341,7 +341,7 @@ void Finish::end(int flag)
   }
 
 #ifdef LMP_OPENMP
-  FixOMP *fixomp = (FixOMP *) modify->get_fix_by_id("package_omp");
+  FixOMP *fixomp = dynamic_cast<FixOMP *>( modify->get_fix_by_id("package_omp"));
 
   // print thread breakdown only with full timer detail
 

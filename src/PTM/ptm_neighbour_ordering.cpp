@@ -179,7 +179,7 @@ static int _calculate_neighbour_ordering(void* _voronoi_handle, int num_points, 
 {
         assert(num_points <= PTM_MAX_INPUT_POINTS);
 
-        ptm_voro::voronoicell_neighbor* voronoi_handle = (ptm_voro::voronoicell_neighbor*)_voronoi_handle;
+        auto  voronoi_handle = (ptm_voro::voronoicell_neighbor*)_voronoi_handle;
 
         double max_norm = 0;
         double points[PTM_MAX_INPUT_POINTS][3];
@@ -277,13 +277,13 @@ static int find_diamond_neighbours(void* _voronoi_handle, int num_points, double
 
 void* voronoi_initialize_local()
 {
-        ptm_voro::voronoicell_neighbor* ptr = new ptm_voro::voronoicell_neighbor;
+        auto  ptr = new ptm_voro::voronoicell_neighbor;
         return (void*)ptr;
 }
 
 void voronoi_uninitialize_local(void* _ptr)
 {
-        ptm_voro::voronoicell_neighbor* ptr = (ptm_voro::voronoicell_neighbor*)_ptr;
+        auto  ptr = (ptm_voro::voronoicell_neighbor*)_ptr;
         delete ptr;
 }
 

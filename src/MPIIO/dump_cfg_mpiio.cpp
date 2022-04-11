@@ -271,41 +271,32 @@ void DumpCFGMPIIO::write_header(bigint n)
   // for unwrapped coords, set to UNWRAPEXPAND (10.0)
   //   so molecules are not split across periodic box boundaries
 
+  double scale = 1.0;
+  if (atom->peri_flag) scale = atom->pdscale;
+  else if (unwrapflag == 1) scale = UNWRAPEXPAND;
+
+  auto header = fmt::format("Number of particles = {}\n",n);
+  header += fmt::format("A = {} Angstrom (basic length-scale)\n",scale);
+  header += fmt::format("H0(1,1) = {} A\n",domain->xprd);
+  header += fmt::format("H0(1,2) = 0 A\n");
+  header += fmt::format("H0(1,3) = 0 A\n");
+  header += fmt::format("H0(2,1) = {} A\n",domain->xy);
+  header += fmt::format("H0(2,2) = {} A\n",domain->yprd);
+  header += fmt::format("H0(2,3) = 0 A\n");
+  header += fmt::format("H0(3,1) = {} A\n",domain->xz);
+  header += fmt::format("H0(3,2) = {} A\n",domain->yz);
+  header += fmt::format("H0(3,3) = {} A\n",domain->zprd);
+  header += fmt::format(".NO_VELOCITY.\n");
+  header += fmt::format("entry_count = {}\n",nfield-2);
+  for (int i = 0; i < nfield-5; i++)
+    header += fmt::format("auxiliary[{}] = {}\n",i,auxname[i]);
+
   if (performEstimate) {
-
-    headerBuffer = (char *) malloc(MAX_TEXT_HEADER_SIZE);
-
-    headerSize = 0;
-
-    double scale = 1.0;
-    if (atom->peri_flag) scale = atom->pdscale;
-    else if (unwrapflag == 1) scale = UNWRAPEXPAND;
-
-    char str[64];
-
-    sprintf(str,"Number of particles = %s\n",BIGINT_FORMAT);
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),str,n);
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"A = %g Angstrom (basic length-scale)\n",scale);
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"H0(1,1) = %g A\n",domain->xprd);
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"H0(1,2) = 0 A \n");
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"H0(1,3) = 0 A \n");
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"H0(2,1) = %g A \n",domain->xy);
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"H0(2,2) = %g A\n",domain->yprd);
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"H0(2,3) = 0 A \n");
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"H0(3,1) = %g A \n",domain->xz);
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"H0(3,2) = %g A \n",domain->yz);
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"H0(3,3) = %g A\n",domain->zprd);
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),".NO_VELOCITY.\n");
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"entry_count = %d\n",nfield-2);
-    for (int i = 0; i < nfield-5; i++)
-      headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"auxiliary[%d] = %s\n",i,auxname[i]);
-  }
-  else { // write data
-
+    headerSize = header.size();
+  } else { // write data
     if (me == 0)
-      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_CHAR,MPI_STATUS_IGNORE);
-    mpifo += headerSize;
-    free(headerBuffer);
+      MPI_File_write_at(mpifh,mpifo,(void *)header.c_str(),header.size(),MPI_CHAR,MPI_STATUS_IGNORE);
+    mpifo += header.size();
   }
 }
 

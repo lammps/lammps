@@ -72,7 +72,6 @@ page gives those details.
    * :ref:`MDI <PKG-MDI>`
    * :ref:`MEAM <PKG-MEAM>`
    * :ref:`MESONT <PKG-MESONT>`
-   * :ref:`MESSAGE <PKG-MESSAGE>`
    * :ref:`MGPT <PKG-MGPT>`
    * :ref:`MISC <PKG-MISC>`
    * :ref:`ML-HDNNP <PKG-ML-HDNNP>`
@@ -1396,17 +1395,25 @@ MDI package
 
 **Contents:**
 
-A LAMMPS command and fix to allow client-server coupling of LAMMPS to
-other atomic or molecular simulation codes via the `MolSSI Driver Interface
+A LAMMPS command and fixes to allow client-server coupling of LAMMPS
+to other atomic or molecular simulation codes or materials modeling
+workflows via the `MolSSI Driver Interface
 (MDI) library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
 
 **Author:** Taylor Barnes - MolSSI, taylor.a.barnes at gmail.com
 
+**Install:**
+
+This package has :ref:`specific installation instructions <mdi>` on
+the :doc:`Build extras <Build_extras>` page.
+
 **Supporting info:**
 
 * src/MDI/README
-* :doc:`mdi/engine <mdi_engine>`
-* :doc:`fix mdi/engine <fix_mdi_engine>`
+* lib/mdi/README
+* :doc:`Howto MDI <Howto_mdi>`
+* :doc:`mdi <mdi>`
+* :doc:`fix mdi/aimd <fix_mdi_aimd>`
 * examples/PACKAGES/mdi
 
 ----------
@@ -1480,32 +1487,6 @@ Philipp Kloza (U Cambridge)
 * :doc:`pair_style mesocnt <pair_mesocnt>`
 * examples/PACKAGES/mesont
 * tools/mesont
-
-----------
-
-.. _PKG-MESSAGE:
-
-MESSAGE package
----------------
-
-**Contents:**
-
-Commands to use LAMMPS as either a client or server and couple it to
-another application.
-
-**Install:**
-
-This package has :ref:`specific installation instructions <message>` on the :doc:`Build extras <Build_extras>` page.
-
-**Supporting info:**
-
-* src/MESSAGE: filenames -> commands
-* lib/message/README
-* :doc:`message <message>`
-* :doc:`fix client/md <fix_client_md>`
-* :doc:`server md <server_md>`
-* :doc:`server mc <server_mc>`
-* examples/message
 
 ----------
 

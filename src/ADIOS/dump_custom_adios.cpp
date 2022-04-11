@@ -146,10 +146,10 @@ void DumpCustomADIOS::write()
 
   // Now we know the global size and the local subset size and offset
   // of the atoms table
-  size_t nAtomsGlobal = static_cast<size_t>(ntotal);
-  size_t startRow = static_cast<size_t>(atomOffset);
-  size_t nAtomsLocal = static_cast<size_t>(nme);
-  size_t nColumns = static_cast<size_t>(size_one);
+  auto  nAtomsGlobal = static_cast<size_t>(ntotal);
+  auto  startRow = static_cast<size_t>(atomOffset);
+  auto  nAtomsLocal = static_cast<size_t>(nme);
+  auto  nColumns = static_cast<size_t>(size_one);
   internal->varAtoms.SetShape({nAtomsGlobal, nColumns});
   internal->varAtoms.SetSelection({{startRow, 0}, {nAtomsLocal, nColumns}});
 
@@ -214,6 +214,19 @@ void DumpCustomADIOS::write()
 
 void DumpCustomADIOS::init_style()
 {
+  // assemble column string from defaults and user values
+
+  delete[] columns;
+  std::string combined;
+  int icol = 0;
+  for (auto item : utils::split_words(columns_default)) {
+    if (combined.size()) combined += " ";
+    if (keyword_user[icol].size()) combined += keyword_user[icol];
+    else combined += item;
+    ++icol;
+  }
+  columns = utils::strdup(combined);
+
   // setup boundary string
 
   domain->boundary_string(boundstr);
@@ -303,7 +316,7 @@ void DumpCustomADIOS::init_style()
   int *boundaryptr = reinterpret_cast<int *>(domain->boundary);
   internal->io.DefineAttribute<int>("boundary", boundaryptr, 6);
 
-  size_t nColumns = static_cast<size_t>(size_one);
+  auto  nColumns = static_cast<size_t>(size_one);
   internal->io.DefineAttribute<std::string>("columns", internal->columnNames.data(), nColumns);
   internal->io.DefineAttribute<std::string>("columnstr", columns);
   internal->io.DefineAttribute<std::string>("boundarystr", boundstr);

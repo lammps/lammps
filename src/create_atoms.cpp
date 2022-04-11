@@ -553,7 +553,7 @@ void CreateAtoms::command(int narg, char **arg)
 
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->reset_box();
-    Irregular *irregular = new Irregular(lmp);
+    auto irregular = new Irregular(lmp);
     irregular->migrate_atoms(1);
     delete irregular;
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
@@ -654,7 +654,7 @@ void CreateAtoms::add_random()
   // warm up the generator 30x to avoid correlations in first-particle
   // positions if runs are repeated with consecutive seeds
 
-  RanPark *random = new RanPark(lmp,seed);
+  auto random = new RanPark(lmp,seed);
   for (int ii=0; ii < 30; ii++) random->uniform();
 
   // bounding box for atom creation

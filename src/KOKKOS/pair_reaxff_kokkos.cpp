@@ -694,7 +694,7 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   eflag = eflag_in;
   vflag = vflag_in;
 
-  ev_init(eflag,vflag);
+  ev_init(eflag,vflag,0);
 
   atomKK->sync(execution_space,datamask_read);
   k_params_sing.template sync<DeviceType>();

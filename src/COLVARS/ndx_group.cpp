@@ -121,7 +121,7 @@ void Ndx2Group::command(int narg, char **arg)
 
     } else {
 
-      while (1) {
+      while (true) {
         MPI_Bcast(&len,1,MPI_INT,0,world);
         if (len < 0) break;
         if (len > 1) {

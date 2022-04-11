@@ -741,7 +741,7 @@ void PairLJCharmmfswCoulLong::init_style()
   int list_style = NeighConst::REQ_DEFAULT;
 
   if (update->whichflag == 1 && utils::strmatch(update->integrate_style, "^respa")) {
-    auto respa = (Respa *) update->integrate;
+    auto respa = dynamic_cast<Respa *>( update->integrate);
     if (respa->level_inner >= 0) list_style = NeighConst::REQ_RESPA_INOUT;
     if (respa->level_middle >= 0) list_style = NeighConst::REQ_RESPA_ALL;
   }
@@ -775,8 +775,8 @@ void PairLJCharmmfswCoulLong::init_style()
   // set & error check interior rRESPA cutoffs
 
   if (utils::strmatch(update->integrate_style,"^respa") &&
-      ((Respa *) update->integrate)->level_inner >= 0) {
-    cut_respa = ((Respa *) update->integrate)->cutoff;
+      (dynamic_cast<Respa *>( update->integrate))->level_inner >= 0) {
+    cut_respa = (dynamic_cast<Respa *>( update->integrate))->cutoff;
     if (MIN(cut_lj,cut_coul) < cut_respa[3])
       error->all(FLERR,"Pair cutoff < Respa interior cutoff");
     if (cut_lj_inner < cut_respa[1])

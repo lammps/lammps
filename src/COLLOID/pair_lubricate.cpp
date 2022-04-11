@@ -563,7 +563,7 @@ void PairLubricate::init_style()
   for (int i = 0; i < modify->nfix; i++) {
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       shearing = flagdeform = 1;
-      if (((FixDeform *) modify->fix[i])->remapflag != Domain::V_REMAP)
+      if ((dynamic_cast<FixDeform *>( modify->fix[i]))->remapflag != Domain::V_REMAP)
         error->all(FLERR,"Using pair lubricate with inconsistent "
                    "fix deform remap option");
     }
@@ -572,7 +572,7 @@ void PairLubricate::init_style()
         error->all(FLERR,
                    "Cannot use multiple fix wall commands with pair lubricate");
       flagwall = 1; // Walls exist
-      wallfix = (FixWall *) modify->fix[i];
+      wallfix = dynamic_cast<FixWall *>( modify->fix[i]);
       if (wallfix->xflag) flagwall = 2; // Moving walls exist
     }
   }

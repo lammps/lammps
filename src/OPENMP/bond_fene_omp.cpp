@@ -88,8 +88,8 @@ void BondFENEOMP::eval(int nfrom, int nto, ThrData * const thr)
   double delx,dely,delz,ebond,fbond;
   double rsq,r0sq,rlogarg,sr2,sr6;
 
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const auto * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const int3_t * _noalias const bondlist = (int3_t *) neighbor->bondlist[0];
   const int nlocal = atom->nlocal;
   const int tid = thr->get_tid();

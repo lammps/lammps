@@ -95,10 +95,7 @@ struct cmp_x{
       else if (d>tol)
         return false;
       d=xx[left.second][2]-xx[right.second][2];
-      if (d<-tol)
-        return true;
-      else
-        return false;
+      return d < -tol;
     }
     else
       return left.first<right.first;

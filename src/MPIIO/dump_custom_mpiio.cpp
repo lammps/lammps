@@ -39,17 +39,6 @@ using namespace LAMMPS_NS;
 #define DUMP_BUF_CHUNK_SIZE 16384
 #define DUMP_BUF_INCREMENT_SIZE 4096
 
-// clang-format off
-enum{ ID, MOL, TYPE, ELEMENT, MASS,
-  X, Y, Z, XS, YS, ZS, XSTRI, YSTRI, ZSTRI, XU, YU, ZU, XUTRI, YUTRI, ZUTRI,
-  XSU, YSU, ZSU, XSUTRI, YSUTRI, ZSUTRI,
-  IX, IY, IZ, VX, VY, VZ, FX, FY, FZ,
-  Q, MUX, MUY, MUZ, MU, RADIUS, DIAMETER,
-  OMEGAX, OMEGAY, OMEGAZ, ANGMOMX, ANGMOMY, ANGMOMZ,
-  TQX, TQY, TQZ, SPIN, ERADIUS, ERVEL, ERFORCE,
-  COMPUTE, FIX, VARIABLE };
-enum{ LT, LE, GT, GE, EQ, NEQ };
-// clang-format on
 /* ---------------------------------------------------------------------- */
 
 DumpCustomMPIIO::DumpCustomMPIIO(LAMMPS *lmp, int narg, char **arg)
@@ -216,6 +205,19 @@ void DumpCustomMPIIO::write()
 
 void DumpCustomMPIIO::init_style()
 {
+  // assemble ITEMS: column string from defaults and user values
+
+  delete[] columns;
+  std::string combined;
+  int icol = 0;
+  for (auto item : utils::split_words(columns_default)) {
+    if (combined.size()) combined += " ";
+    if (keyword_user[icol].size()) combined += keyword_user[icol];
+    else combined += item;
+    ++icol;
+  }
+  columns = utils::strdup(combined);
+
   // format = copy of default or user-specified line format
 
   delete[] format;

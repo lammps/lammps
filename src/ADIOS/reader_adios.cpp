@@ -450,7 +450,7 @@ void ReaderADIOS::read_atoms(int n, int nfield, double **fields)
 
 int ReaderADIOS::find_label(const std::string &label, const std::map<std::string, int> &labels)
 {
-  std::map<std::string, int>::const_iterator it = labels.find(label);
+  auto it = labels.find(label);
   if (it != labels.end()) { return it->second; }
   return -1;
 }

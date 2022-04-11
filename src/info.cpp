@@ -785,13 +785,13 @@ bool Info::is_active(const char *category, const char *name)
 
   if (strcmp(category,"package") == 0) {
     if (strcmp(name,"gpu") == 0) {
-      return (modify->get_fix_by_id("package_gpu")) ? true : false;
+      return modify->get_fix_by_id("package_gpu") != nullptr;
     } else if (strcmp(name,"intel") == 0) {
-      return (modify->get_fix_by_id("package_intel")) ? true : false;
+      return modify->get_fix_by_id("package_intel") != nullptr;
     } else if (strcmp(name,"kokkos") == 0) {
-      return (lmp->kokkos && lmp->kokkos->kokkos_exists) ? true : false;
+      return lmp->kokkos && lmp->kokkos->kokkos_exists;
     } else if (strcmp(name,"omp") == 0) {
-      return (modify->get_fix_by_id("package_omp")) ? true : false;
+      return modify->get_fix_by_id("package_omp") != nullptr;
     } else error->all(FLERR,"Unknown name for info package category: {}", name);
 
   } else if (strcmp(category,"newton") == 0) {

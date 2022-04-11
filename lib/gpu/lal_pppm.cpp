@@ -303,7 +303,7 @@ int PPPMT::spread(const int ago, const int nlocal, const int nall,
                            double *host_q, double *boxlo,
                            const double delxinv, const double delyinv,
                            const double delzinv) {
-  if (_precompute_done==false) {
+  if (!_precompute_done) {
     atom->acc_timers();
     _precompute(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo,delxinv,
                 delyinv,delzinv);
@@ -359,7 +359,7 @@ void PPPMT::interp(const grdtyp qqrd2e_scale) {
   time_interp.stop();
 
   ans->copy_answers(false,false,false,false,0);
-  if (_kspace_split==false)
+  if (!_kspace_split)
     device->add_ans_object(ans);
 }
 

@@ -201,9 +201,9 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
     unsigned best_cus = gpu->cus(0);
     bool type_match = (gpu->device_type(0) == type);
     for (int i = 1; i < gpu->num_devices(); i++) {
-      if (type_match==true && gpu->device_type(i)!=type)
+      if (type_match && gpu->device_type(i)!=type)
         continue;
-      if (type_match == false && gpu->device_type(i) == type) {
+      if (type_match && gpu->device_type(i) == type) {
         type_match = true;
         best_cus = gpu->cus(i);
         best_device = i;
@@ -280,7 +280,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
   MPI_Comm_rank(_comm_gpu,&_gpu_rank);
 
   #if !defined(CUDA_PROXY) && !defined(CUDA_MPS_SUPPORT)
-  if (_procs_per_gpu>1 && gpu->sharing_supported(my_gpu)==false)
+  if (_procs_per_gpu>1 && !gpu->sharing_supported(my_gpu))
     return -7;
   #endif
 
@@ -400,7 +400,7 @@ int DeviceT::set_ocl_params(std::string s_config, const std::string &extra_args)
   _ocl_compile_string += " -DCONFIG_ID="+params[0]+
                          " -DSIMD_SIZE="+params[1]+
                          " -DMEM_THREADS="+params[2];
-  if (gpu->has_shuffle_support()==false)
+  if (!gpu->has_shuffle_support())
     _ocl_compile_string+=" -DSHUFFLE_AVAIL=0";
   else
     _ocl_compile_string+=" -DSHUFFLE_AVAIL="+params[3];
@@ -443,7 +443,7 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
                   const bool vel) {
   if (!_device_init)
     return -1;
-  if (sizeof(acctyp)==sizeof(double) && gpu->double_precision()==false)
+  if (sizeof(acctyp)==sizeof(double) && !gpu->double_precision())
     return -5;
 
   // Counts of data transfers for timing overhead estimates
@@ -480,11 +480,11 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
     if (vel)
       _data_in_estimate++;
   } else {
-    if (atom.charge()==false && charge)
+    if (!atom.charge() && charge)
       _data_in_estimate++;
-    if (atom.quaternion()==false && rot)
+    if (!atom.quaternion() && rot)
       _data_in_estimate++;
-    if (atom.velocity()==false && vel)
+    if (!atom.velocity() && vel)
       _data_in_estimate++;
     if (!atom.add_fields(charge,rot,gpu_nbor,gpu_nbor>0 && maxspecial,vel))
       return -3;
@@ -502,7 +502,7 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const int nlocal,
                          const int nall) {
   if (!_device_init)
     return -1;
-  if (sizeof(acctyp)==sizeof(double) && gpu->double_precision()==false)
+  if (sizeof(acctyp)==sizeof(double) && !gpu->double_precision())
     return -5;
 
   if (_init_count==0) {

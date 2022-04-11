@@ -1057,19 +1057,16 @@ int PairKIM::check_for_routine_compatibility()
         pkim, modelRoutineName, &present, &required);
     if (error) return true;
 
-    if ((present == true) && (required == true)) {
-      if (!(KIM_ModelRoutineName_Equal(modelRoutineName,
-                                       KIM_MODEL_ROUTINE_NAME_Create)
-            || KIM_ModelRoutineName_Equal(
-                   modelRoutineName,
-                   KIM_MODEL_ROUTINE_NAME_ComputeArgumentsCreate)
+    if (present && required) {
+      if (!(KIM_ModelRoutineName_Equal(modelRoutineName, KIM_MODEL_ROUTINE_NAME_Create)
+            || KIM_ModelRoutineName_Equal(modelRoutineName,
+                                          KIM_MODEL_ROUTINE_NAME_ComputeArgumentsCreate)
             || KIM_ModelRoutineName_Equal(modelRoutineName,
                                           KIM_MODEL_ROUTINE_NAME_Compute)
             || KIM_ModelRoutineName_Equal(modelRoutineName,
                                           KIM_MODEL_ROUTINE_NAME_Refresh)
-            || KIM_ModelRoutineName_Equal(
-                   modelRoutineName,
-                   KIM_MODEL_ROUTINE_NAME_ComputeArgumentsDestroy)
+            || KIM_ModelRoutineName_Equal(modelRoutineName,
+                                          KIM_MODEL_ROUTINE_NAME_ComputeArgumentsDestroy)
             || KIM_ModelRoutineName_Equal(modelRoutineName,
                                           KIM_MODEL_ROUTINE_NAME_Destroy))) {
         return true;

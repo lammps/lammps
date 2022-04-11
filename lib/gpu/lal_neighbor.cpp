@@ -113,7 +113,7 @@ bool Neighbor::init(NeighborShared *shared, const int inum,
   if (!success)
     return false;
 
-  if (_use_packing==false) {
+  if (!_use_packing) {
     #ifndef LAL_USE_OLD_NEIGHBOR
       _shared->compile_kernels(devi, gpu_nbor, compile_flags+
         " -DMAX_SUBGROUPS_PER_BLOCK="+toa(_block_nbor_build/_simd_size));
@@ -153,7 +153,7 @@ void Neighbor::alloc(bool &success) {
   int nt=_max_atoms+_max_host;
   if (_max_nbors)
     _max_nbors = ((_max_nbors-1)/_threads_per_atom+1)*_threads_per_atom;
-  if (_use_packing==false || _gpu_nbor>0) {
+  if (!_use_packing || _gpu_nbor>0) {
     if (_max_nbors)
       success=success &&
         (dev_nbor.alloc((_max_nbors+2)*_max_atoms,*dev)==UCL_SUCCESS);
@@ -166,7 +166,7 @@ void Neighbor::alloc(bool &success) {
 
   _c_bytes=dev_nbor.row_bytes();
   if (_alloc_packed) {
-    if (_use_packing==false) {
+    if (!_use_packing) {
       dev_packed_begin.clear();
       success=success && (dev_packed_begin.alloc(_max_atoms,*dev,
          _packed_permissions)==UCL_SUCCESS);
@@ -373,7 +373,7 @@ void Neighbor::get_host(const int inum, int *ilist, int *numj,
 
   time_nbor.stop();
 
-  if (_use_packing==false) {
+  if (!_use_packing) {
     time_kernel.start();
     int GX=static_cast<int>(ceil(static_cast<double>(inum)*_threads_per_atom/
                                  block_size));
@@ -450,7 +450,7 @@ void Neighbor::get_host3(const int inum, const int nlist, int *ilist, int *numj,
   }
   time_nbor.stop();
 
-  if (_use_packing==false) {
+  if (!_use_packing) {
     time_kernel.start();
     int GX=static_cast<int>(ceil(static_cast<double>(inum)*_threads_per_atom/
                                  block_size));

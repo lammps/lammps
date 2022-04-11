@@ -94,13 +94,13 @@ bool AnswerT::init(const int inum, const bool charge, const bool rot,
 template <class numtyp, class acctyp>
 bool AnswerT::add_fields(const bool charge, const bool rot) {
   bool realloc=false;
-  if (charge && _charge==false) {
+  if (charge && !_charge) {
     _charge=true;
     _e_fields++;
     _ev_fields++;
     realloc=true;
   }
-  if (rot && _rot==false) {
+  if (rot && !_rot) {
     _rot=true;
     realloc=true;
   }
@@ -163,10 +163,8 @@ void AnswerT::copy_answers(const bool eflag, const bool vflag,
   #endif
 
   int csize=_ev_fields;
-  if (!eflag)
-    csize-=_e_fields;
-  if (!vflag)
-    csize-=6;
+  if (!eflag) csize-=_e_fields;
+  if (!vflag) csize-=6;
 
   if (csize>0)
     engv.update_host(_ev_stride*csize,true);
@@ -192,8 +190,7 @@ void AnswerT::copy_answers(const bool eflag, const bool vflag,
 template <class numtyp, class acctyp>
 double AnswerT::energy_virial(double *eatom, double **vatom,
                                   double *virial) {
-  if (_eflag==false && _vflag==false)
-    return 0.0;
+  if (!_eflag && !_vflag) return 0.0;
 
   double evdwl=0.0;
   int vstart=0;
@@ -241,11 +238,9 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
 template <class numtyp, class acctyp>
 double AnswerT::energy_virial(double *eatom, double **vatom,
                               double *virial, double &ecoul) {
-  if (_eflag==false && _vflag==false)
-    return 0.0;
+  if (!_eflag && !_vflag) return 0.0;
 
-  if (_charge==false)
-    return energy_virial(eatom,vatom,virial);
+  if (!_charge) return energy_virial(eatom,vatom,virial);
 
   double evdwl=0.0;
   int vstart=0, iend=_ev_stride;

@@ -233,7 +233,7 @@ void ReadDump::setup_reader(int narg, char **arg)
   // create Nreader reader classes per reader
   // match readerstyle to options in style_reader.h
 
-  if (false) {
+  if (false) {     // NOLINT
     return;        // dummy line to enable else-if macro expansion
 
 #define READER_CLASS

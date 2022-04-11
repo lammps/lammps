@@ -181,20 +181,17 @@ void KimParam::command(int narg, char **arg)
 
   std::string atom_type_list;
 
-  bool isPairStyleAssigned = force->pair ? true : false;
-  if (isPairStyleAssigned) {
+  if (force->pair) {
     Pair *pair = force->pair_match("kim", 1, 0);
     if (pair) {
       auto pairKIM = reinterpret_cast<PairKIM *>(pair);
 
       pkim = pairKIM->get_kim_model();
-      if (!pkim)
-        error->all(FLERR, "Unable to get the KIM Portable Model");
+      if (!pkim) error->all(FLERR, "Unable to get the KIM Portable Model");
 
       if (kim_param_get_set == "set") {
         atom_type_list = pairKIM->get_atom_type_list();
-        if (atom_type_list.empty())
-          error->all(FLERR, "The requested atom type list is empty");
+        if (atom_type_list.empty()) error->all(FLERR, "The requested atom type list is empty");
       }
     } else
       error->all(FLERR, "Pair style is defined, but there is "

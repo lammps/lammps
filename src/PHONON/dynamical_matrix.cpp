@@ -427,8 +427,7 @@ void DynamicalMatrix::displace_atom(int local_idx, int direction, int magnitude)
 void DynamicalMatrix::update_force()
 {
   neighbor->ago = 0;
-  if ((modify->get_fix_by_id("package_intel")) ? true : false)
-    neighbor->decide();
+  if (modify->get_fix_by_id("package_intel")) neighbor->decide();
   force_clear();
   int n_pre_force = modify->n_pre_force;
   int n_pre_reverse = modify->n_pre_reverse;

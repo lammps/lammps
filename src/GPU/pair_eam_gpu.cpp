@@ -209,7 +209,7 @@ double PairEAMGPU::single(int i, int j, int itype, int jtype, double rsq, double
   z2 = ((coeff[3] * p + coeff[4]) * p + coeff[5]) * p + coeff[6];
 
   double fp_i, fp_j;
-  if (fp_single == false) {
+  if (!fp_single) {
     fp_i = ((double *) fp_pinned)[i];
     fp_j = ((double *) fp_pinned)[j];
   } else {

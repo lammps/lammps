@@ -88,11 +88,6 @@ class FixBondCreate : public Fix {
   int dedup(int, int, tagint *);
 
   virtual int constrain(int, int, double, double) { return 1; }
-
-  // DEBUG
-
-  void print_bb();
-  void print_copy(const char *, tagint, int, int, int, int *);
 };
 
 }    // namespace LAMMPS_NS

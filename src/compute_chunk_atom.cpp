@@ -545,8 +545,8 @@ void ComputeChunkAtom::init()
 
   if ((idsflag == ONCE || lockcount) && !fixstore) {
     id_fix = utils::strdup(id + std::string("_COMPUTE_STORE"));
-    fixstore = (FixStore *) modify->add_fix(fmt::format("{} {} STORE peratom 1 1",
-                                                        id_fix, group->names[igroup]));
+    fixstore = dynamic_cast<FixStore *>( modify->add_fix(fmt::format("{} {} STORE peratom 1 1",
+                                                        id_fix, group->names[igroup])));
   }
 
   if ((idsflag != ONCE && !lockcount) && fixstore) {
@@ -1084,8 +1084,8 @@ void ComputeChunkAtom::compress_chunk_ids()
 
 void ComputeChunkAtom::idring(int n, char *cbuf, void *ptr)
 {
-  ComputeChunkAtom *cptr = (ComputeChunkAtom *)ptr;
-  tagint *list = (tagint *) cbuf;
+  auto cptr = (ComputeChunkAtom *)ptr;
+  auto list = (tagint *) cbuf;
   std::map<tagint,int> *hash = cptr->hash;
   for (int i = 0; i < n; i++) (*hash)[list[i]] = 0;
 }

@@ -100,7 +100,7 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   boxhi_lamda[0] = boxhi_lamda[1] = boxhi_lamda[2] = 1.0;
 
   lattice = nullptr;
-  char **args = new char*[2];
+  auto args = new char*[2];
   args[0] = (char *) "none";
   args[1] = (char *) "1.0";
   set_lattice(2,args);
@@ -186,7 +186,7 @@ void Domain::init()
   for (const auto &fix : fixes)
     if (utils::strmatch(fix->style,"^deform")) {
       deform_flag = 1;
-      if (((FixDeform *) fix)->remapflag == Domain::V_REMAP) {
+      if ((dynamic_cast<FixDeform *>( fix))->remapflag == Domain::V_REMAP) {
         deform_vremap = 1;
         deform_groupbit = fix->groupbit;
       }

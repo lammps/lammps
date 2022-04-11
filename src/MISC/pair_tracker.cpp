@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairTracker::PairTracker(LAMMPS *lmp) :
-    Pair(lmp), pack_choice(nullptr)
+    Pair(lmp), pack_choice(nullptr), id_fix_store_local(nullptr), output_data(nullptr), type_filter(nullptr), fix_history(nullptr),  fix_store_local(nullptr)
 {
   single_enable = 1;
   no_virial_fdotr_compute = 1;
@@ -51,16 +51,7 @@ PairTracker::PairTracker(LAMMPS *lmp) :
 
   // create dummy fix as placeholder for FixNeighHistory
   // this is so final order of Modify:fix will conform to input script
-  modify->add_fix("NEIGH_HISTORY_TRACK_DUMMY all DUMMY");
-  fix_dummy = (FixDummy *) modify->fix[modify->nfix - 1];
-
-  id_fix_store_local = nullptr;
-  fix_history = nullptr;
-  fix_store_local = nullptr;
-
-  output_data = nullptr;
-  pack_choice = nullptr;
-  type_filter = nullptr;
+  fix_dummy = dynamic_cast<FixDummy *>(modify->add_fix("NEIGH_HISTORY_TRACK_DUMMY all DUMMY"));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -85,7 +76,6 @@ PairTracker::~PairTracker()
   }
 
   delete[] pack_choice;
-
   delete[] id_fix_store_local;
 
   memory->destroy(output_data);
@@ -372,11 +362,11 @@ void PairTracker::init_style()
   if (fix_history == nullptr) {
     modify->replace_fix("NEIGH_HISTORY_TRACK_DUMMY",
                         fmt::format("NEIGH_HISTORY_TRACK all NEIGH_HISTORY {}", size_history), 1);
-    fix_history = (FixNeighHistory *) modify->get_fix_by_id("NEIGH_HISTORY_TRACK");
+    fix_history = dynamic_cast<FixNeighHistory *>( modify->get_fix_by_id("NEIGH_HISTORY_TRACK"));
     fix_history->pair = this;
     fix_history->use_bit_flag = 0;
   } else {
-    fix_history = (FixNeighHistory *) modify->get_fix_by_id("NEIGH_HISTORY_TRACK");
+    fix_history = dynamic_cast<FixNeighHistory *>( modify->get_fix_by_id("NEIGH_HISTORY_TRACK"));
     if (!fix_history) error->all(FLERR, "Could not find pair fix neigh history ID");
   }
 

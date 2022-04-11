@@ -94,7 +94,6 @@ PACKAGE = \
 	mdi \
 	meam \
 	mesont \
-	message \
 	mgpt \
 	misc \
 	ml-hdnnp \
@@ -209,7 +208,6 @@ PACKLIB = \
 	kim \
 	kokkos \
 	latte \
-	message \
 	mpiio \
 	mscg \
 	poems \
@@ -236,7 +234,7 @@ PACKLIB = \
 
 PACKSYS = compress latboltz mpiio python
 
-PACKINT = atc awpmd colvars gpu kokkos mesont message poems
+PACKINT = atc awpmd colvars gpu kokkos mesont poems
 
 PACKEXT = \
 	adios \

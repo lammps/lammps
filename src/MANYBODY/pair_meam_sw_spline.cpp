@@ -19,11 +19,6 @@
    see LLNL copyright notice at bottom of file
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
- * File history of changes:
- * 01-Aug-12 - RER: First code version.
-------------------------------------------------------------------------- */
-
 #include "pair_meam_sw_spline.h"
 
 #include "atom.h"
@@ -34,6 +29,7 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
+#include "potential_file_reader.h"
 
 #include <cmath>
 #include <cstring>
@@ -51,7 +47,6 @@ PairMEAMSWSpline::PairMEAMSWSpline(LAMMPS *lmp) : Pair(lmp)
   centroidstressflag = CENTROID_NOTAVAIL;
 
   Uprime_values = nullptr;
-  //ESWprime_values = nullptr;
   nmax = 0;
   maxNeighbors = 0;
   twoBodyInfo = nullptr;
@@ -66,7 +61,6 @@ PairMEAMSWSpline::~PairMEAMSWSpline()
 {
   delete[] twoBodyInfo;
   memory->destroy(Uprime_values);
-  //memory->destroy(ESWprime_values);
 
   if (allocated) {
     memory->destroy(setflag);
@@ -86,10 +80,8 @@ void PairMEAMSWSpline::compute(int eflag, int vflag)
 
   if (atom->nmax > nmax) {
     memory->destroy(Uprime_values);
-    //memory->destroy(ESWprime_values);
     nmax = atom->nmax;
     memory->create(Uprime_values,nmax,"pair:Uprime");
-    //memory->create(ESWprime_values,nmax,"pair:ESWprime");
   }
 
   double** const x = atom->x;
@@ -178,9 +170,7 @@ void PairMEAMSWSpline::compute(int eflag, int vflag)
     double Uprime_i;
     double embeddingEnergy = U.eval(rho_value, Uprime_i) - zero_atom_energy;
     double SWEnergy = rhoSW_value;
-    double ESWprime_i = 1.0;
     Uprime_values[i] = Uprime_i;
-    // ESWprime_values[i] = ESWprime_i;
     if (eflag) {
       if (eflag_global) eng_vdwl += embeddingEnergy + SWEnergy;
       if (eflag_atom) eatom[i] += embeddingEnergy + SWEnergy;
@@ -220,11 +210,11 @@ void PairMEAMSWSpline::compute(int eflag, int vflag)
 
         double fij = -Uprime_i * g_value * f_rik * f_rij_prime;
         double fik = -Uprime_i * g_value * f_rij * f_rik_prime;
-        double Fij = -ESWprime_i * G_value * F_rik * F_rij_prime;
-        double Fik = -ESWprime_i * G_value * F_rij * F_rik_prime;
+        double Fij = -G_value * F_rik * F_rij_prime;
+        double Fik = -G_value * F_rij * F_rik_prime;
 
         double prefactor = Uprime_i * f_rij * f_rik * g_prime;
-        double prefactor2 = ESWprime_i * F_rij * F_rik * G_prime;
+        double prefactor2 = F_rij * F_rik * G_prime;
         double prefactor_ij = prefactor / rij;
         double prefactor_ik = prefactor / rik;
         fij += prefactor_ij * cos_theta;
@@ -356,7 +346,9 @@ void PairMEAMSWSpline::allocate()
   memory->create(setflag,n+1,n+1,"pair:setflag");
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
+  delete[] map;
   map = new int[n+1];
+  for (int i=0; i <= n; ++i) map[i] = -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -397,24 +389,23 @@ void PairMEAMSWSpline::coeff(int narg, char **arg)
 void PairMEAMSWSpline::read_file(const char* filename)
 {
   if (comm->me == 0) {
-    FILE *fp = utils::open_potential(filename,lmp,nullptr);
-    if (fp == nullptr)
-      error->one(FLERR,"Cannot open spline MEAM potential file {}: {}", filename,utils::getsyserror());
+    PotentialFileReader reader(lmp, filename, "meam/sw/spline");
 
-    // Skip first line of file.
-    char line[MAXLINE];
-    utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
+    try {
+      // Skip first line of file.
+      reader.skip_line();
 
-    // Parse spline functions.
-    phi.parse(fp, error);
-    F.parse(fp, error);
-    G.parse(fp, error);
-    rho.parse(fp, error);
-    U.parse(fp, error);
-    f.parse(fp, error);
-    g.parse(fp, error);
-
-    fclose(fp);
+      // Parse spline functions.
+      phi.parse(reader);
+      F.parse(reader);
+      G.parse(reader);
+      rho.parse(reader);
+      U.parse(reader);
+      f.parse(reader);
+      g.parse(reader);
+    } catch (std::exception &e) {
+      error->one(FLERR, "Error reading meam/sw/spline potential file: {}", e.what());
+    }
   }
 
   // Transfer spline functions from master processor to all other processors.
@@ -443,14 +434,6 @@ void PairMEAMSWSpline::read_file(const char* filename)
       cutsq[i][j] = cutoff;
     }
   }
-
-  // phi.writeGnuplot("phi.gp", "Phi(r)");
-  // rho.writeGnuplot("rho.gp", "Rho(r)");
-  // f.writeGnuplot("f.gp", "f(r)");
-  // U.writeGnuplot("U.gp", "U(rho)");
-  // g.writeGnuplot("g.gp", "g(x)");
-  // F.writeGnuplot("F.gp", "F(r)");
-  // G.writeGnuplot("G.gp", "G(x)");
 }
 
 /* ----------------------------------------------------------------------
@@ -458,12 +441,12 @@ void PairMEAMSWSpline::read_file(const char* filename)
 ------------------------------------------------------------------------- */
 void PairMEAMSWSpline::init_style()
 {
-        if (force->newton_pair == 0)
-                error->all(FLERR,"Pair style meam/sw/spline requires newton pair on");
+  if (force->newton_pair == 0)
+    error->all(FLERR,"Pair style meam/sw/spline requires newton pair on");
 
-        // Need both full and half neighbor list.
-        neighbor->add_request(this, NeighConst::REQ_FULL)->set_id(1);
-        neighbor->add_request(this)->set_id(2);
+  // Need both full and half neighbor list.
+  neighbor->add_request(this, NeighConst::REQ_FULL)->set_id(1);
+  neighbor->add_request(this)->set_id(2);
 }
 
 /* ----------------------------------------------------------------------
@@ -472,8 +455,8 @@ void PairMEAMSWSpline::init_style()
 ------------------------------------------------------------------------- */
 void PairMEAMSWSpline::init_list(int id, NeighList *ptr)
 {
-        if (id == 1) listfull = ptr;
-        else if (id == 2) listhalf = ptr;
+  if (id == 1) listfull = ptr;
+  else if (id == 2) listhalf = ptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -481,7 +464,7 @@ void PairMEAMSWSpline::init_list(int id, NeighList *ptr)
 ------------------------------------------------------------------------- */
 double PairMEAMSWSpline::init_one(int /*i*/, int /*j*/)
 {
-        return cutoff;
+  return cutoff;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -521,118 +504,116 @@ void PairMEAMSWSpline::unpack_reverse_comm(int /*n*/, int * /*list*/, double * /
 ------------------------------------------------------------------------- */
 double PairMEAMSWSpline::memory_usage()
 {
-        return nmax * sizeof(double);        // The Uprime_values array.
+  return nmax * sizeof(double);        // The Uprime_values array.
 }
 
 
 /// Parses the spline knots from a text file.
-void PairMEAMSWSpline::SplineFunction::parse(FILE* fp, Error* error)
+void PairMEAMSWSpline::SplineFunction::parse(PotentialFileReader &reader)
 {
-        char line[MAXLINE];
+  // Parse number of spline knots.
+  int n = reader.next_int();
+  if (n < 2)
+    throw TokenizerException("Invalid number of spline knots in MEAM potential file", std::to_string(n));
 
-        // Parse number of spline knots.
-        utils::sfgets(FLERR,line,MAXLINE,fp,nullptr,error);
-        int n = atoi(line);
-        if (n < 2)
-                error->one(FLERR,"Invalid number of spline knots in MEAM potential file");
+  // Parse first derivatives at beginning and end of spline.
+  auto values = reader.next_values(2);
+  double d0 = values.next_double();
+  double dN = values.next_double();
+  init(n, d0, dN);
 
-        // Parse first derivatives at beginning and end of spline.
-        utils::sfgets(FLERR,line,MAXLINE,fp,nullptr,error);
-        double d0 = atof(strtok(line, " \t\n\r\f"));
-        double dN = atof(strtok(nullptr, " \t\n\r\f"));
-        init(n, d0, dN);
+  // Skip line
+  reader.skip_line();
 
-        // Skip line.
-        utils::sfgets(FLERR,line,MAXLINE,fp,nullptr,error);
-
-        // Parse knot coordinates.
-        for (int i=0; i<n; i++) {
-          utils::sfgets(FLERR,line,MAXLINE,fp,nullptr,error);
-                double x, y, y2;
-                if (sscanf(line, "%lg %lg %lg", &x, &y, &y2) != 3) {
-                        error->one(FLERR,"Invalid knot line in MEAM potential file");
-                }
-                setKnot(i, x, y);
-        }
-
-        prepareSpline(error);
+  // Parse knot coordinates.
+  for (int i=0; i < n; ++i) {
+    values = reader.next_values(3);
+    double x = values.next_double();
+    double y = values.next_double();
+    // double y2 = values.next_double(); ignored
+    setKnot(i, x, y);
+  }
+  prepareSpline();
 }
 
 /// Calculates the second derivatives at the knots of the cubic spline.
-void PairMEAMSWSpline::SplineFunction::prepareSpline(Error* error)
+void PairMEAMSWSpline::SplineFunction::prepareSpline()
 {
-        xmin = X[0];
-        xmax = X[N-1];
+  xmin = X[0];
+  xmax = X[N-1];
 
-        isGridSpline = true;
-        h = (xmax-xmin)/((double)(N-1));
-        hsq = h*h;
+  isGridSpline = true;
+  h = (xmax-xmin)/((double)(N-1));
+  hsq = h*h;
 
-        double* u = new double[N];
-        Y2[0] = -0.5;
-        u[0] = (3.0/(X[1]-X[0])) * ((Y[1]-Y[0])/(X[1]-X[0]) - deriv0);
-        for (int i = 1; i <= N-2; i++) {
-                double sig = (X[i]-X[i-1]) / (X[i+1]-X[i-1]);
-                double p = sig * Y2[i-1] + 2.0;
-                Y2[i] = (sig - 1.0) / p;
-                u[i] = (Y[i+1]-Y[i]) / (X[i+1]-X[i]) - (Y[i]-Y[i-1])/(X[i]-X[i-1]);
-                u[i] = (6.0 * u[i]/(X[i+1]-X[i-1]) - sig*u[i-1])/p;
+  auto  u = new double[N];
+  Y2[0] = -0.5;
+  u[0] = (3.0/(X[1]-X[0])) * ((Y[1]-Y[0])/(X[1]-X[0]) - deriv0);
+  for (int i = 1; i <= N-2; i++) {
+    double sig = (X[i]-X[i-1]) / (X[i+1]-X[i-1]);
+    double p = sig * Y2[i-1] + 2.0;
+    Y2[i] = (sig - 1.0) / p;
+    u[i] = (Y[i+1]-Y[i]) / (X[i+1]-X[i]) - (Y[i]-Y[i-1])/(X[i]-X[i-1]);
+    u[i] = (6.0 * u[i]/(X[i+1]-X[i-1]) - sig*u[i-1])/p;
 
-                if (fabs(h*i+xmin - X[i]) > 1e-8)
-                        isGridSpline = false;
-        }
+    if (fabs(h*i+xmin - X[i]) > 1e-8)
+      isGridSpline = false;
+  }
 
-        double qn = 0.5;
-        double un = (3.0/(X[N-1]-X[N-2])) * (derivN - (Y[N-1]-Y[N-2])/(X[N-1]-X[N-2]));
-        Y2[N-1] = (un - qn*u[N-2]) / (qn * Y2[N-2] + 1.0);
-        for (int k = N-2; k >= 0; k--) {
-                Y2[k] = Y2[k] * Y2[k+1] + u[k];
-        }
+  double qn = 0.5;
+  double un = (3.0/(X[N-1]-X[N-2])) * (derivN - (Y[N-1]-Y[N-2])/(X[N-1]-X[N-2]));
+  Y2[N-1] = (un - qn*u[N-2]) / (qn * Y2[N-2] + 1.0);
+  for (int k = N-2; k >= 0; k--) {
+    Y2[k] = Y2[k] * Y2[k+1] + u[k];
+  }
 
-        delete[] u;
+  delete[] u;
 
 #if !SPLINE_MEAM_SUPPORT_NON_GRID_SPLINES
-        if (!isGridSpline)
-                error->one(FLERR,"Support for MEAM potentials with non-uniform cubic splines has not been enabled in the MEAM potential code. Set SPLINE_MEAM_SUPPORT_NON_GRID_SPLINES in pair_spline_meam.h to 1 to enable it");
+  if (!isGridSpline)
+    throw TokenizerException("Support for MEAM potentials with non-uniform cubic splines "
+                             "has not been enabled in the MEAM potential code. Set "
+                             "SPLINE_MEAM_SUPPORT_NON_GRID_SPLINES in pair_spline_meam.h "
+                             "to 1 to enable it", "");
 #endif
 
-        // Shift the spline to X=0 to speed up interpolation.
-        for (int i = 0; i < N; i++) {
-                Xs[i] = X[i] - xmin;
+  // Shift the spline to X=0 to speed up interpolation.
+  for (int i = 0; i < N; i++) {
+    Xs[i] = X[i] - xmin;
 #if !SPLINE_MEAM_SUPPORT_NON_GRID_SPLINES
-                if (i < N-1) Ydelta[i] = (Y[i+1]-Y[i])/h;
-                Y2[i] /= h*6.0;
+    if (i < N-1) Ydelta[i] = (Y[i+1]-Y[i])/h;
+    Y2[i] /= h*6.0;
 #endif
-        }
-        inv_h = 1/h;
-        xmax_shifted = xmax - xmin;
+  }
+  inv_h = 1/h;
+  xmax_shifted = xmax - xmin;
 }
 
 /// Broadcasts the spline function parameters to all processors.
 void PairMEAMSWSpline::SplineFunction::communicate(MPI_Comm& world, int me)
 {
-        MPI_Bcast(&N, 1, MPI_INT, 0, world);
-        MPI_Bcast(&deriv0, 1, MPI_DOUBLE, 0, world);
-        MPI_Bcast(&derivN, 1, MPI_DOUBLE, 0, world);
-        MPI_Bcast(&xmin, 1, MPI_DOUBLE, 0, world);
-        MPI_Bcast(&xmax, 1, MPI_DOUBLE, 0, world);
-        MPI_Bcast(&xmax_shifted, 1, MPI_DOUBLE, 0, world);
-        MPI_Bcast(&isGridSpline, 1, MPI_INT, 0, world);
-        MPI_Bcast(&h, 1, MPI_DOUBLE, 0, world);
-        MPI_Bcast(&hsq, 1, MPI_DOUBLE, 0, world);
-        MPI_Bcast(&inv_h, 1, MPI_DOUBLE, 0, world);
-        if (me != 0) {
-                X = new double[N];
-                Xs = new double[N];
-                Y = new double[N];
-                Y2 = new double[N];
-                Ydelta = new double[N];
-        }
-        MPI_Bcast(X, N, MPI_DOUBLE, 0, world);
-        MPI_Bcast(Xs, N, MPI_DOUBLE, 0, world);
-        MPI_Bcast(Y, N, MPI_DOUBLE, 0, world);
-        MPI_Bcast(Y2, N, MPI_DOUBLE, 0, world);
-        MPI_Bcast(Ydelta, N, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&N, 1, MPI_INT, 0, world);
+  MPI_Bcast(&deriv0, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&derivN, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&xmin, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&xmax, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&xmax_shifted, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&isGridSpline, 1, MPI_INT, 0, world);
+  MPI_Bcast(&h, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&hsq, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&inv_h, 1, MPI_DOUBLE, 0, world);
+  if (me != 0) {
+    X = new double[N];
+    Xs = new double[N];
+    Y = new double[N];
+    Y2 = new double[N];
+    Ydelta = new double[N];
+  }
+  MPI_Bcast(X, N, MPI_DOUBLE, 0, world);
+  MPI_Bcast(Xs, N, MPI_DOUBLE, 0, world);
+  MPI_Bcast(Y, N, MPI_DOUBLE, 0, world);
+  MPI_Bcast(Y2, N, MPI_DOUBLE, 0, world);
+  MPI_Bcast(Ydelta, N, MPI_DOUBLE, 0, world);
 }
 
 /// Writes a Gnuplot script that plots the spline function.
@@ -640,24 +621,24 @@ void PairMEAMSWSpline::SplineFunction::communicate(MPI_Comm& world, int me)
 /// This function is for debugging only!
 void PairMEAMSWSpline::SplineFunction::writeGnuplot(const char* filename, const char* title) const
 {
-        FILE* fp = fopen(filename, "w");
-        fprintf(fp, "#!/usr/bin/env gnuplot\n");
-        if (title) fprintf(fp, "set title \"%s\"\n", title);
-        double tmin = X[0] - (X[N-1] - X[0]) * 0.05;
-        double tmax = X[N-1] + (X[N-1] - X[0]) * 0.05;
-        double delta = (tmax - tmin) / (N*200);
-        fprintf(fp, "set xrange [%f:%f]\n", tmin, tmax);
-        fprintf(fp, "plot '-' with lines notitle, '-' with points notitle pt 3 lc 3\n");
-        for (double x = tmin; x <= tmax+1e-8; x += delta) {
-                double y = eval(x);
-                fprintf(fp, "%f %f\n", x, y);
-        }
-        fprintf(fp, "e\n");
-        for (int i = 0; i < N; i++) {
-                fprintf(fp, "%f %f\n", X[i], Y[i]);
-        }
-        fprintf(fp, "e\n");
-        fclose(fp);
+  FILE* fp = fopen(filename, "w");
+  fprintf(fp, "#!/usr/bin/env gnuplot\n");
+  if (title) fprintf(fp, "set title \"%s\"\n", title);
+  double tmin = X[0] - (X[N-1] - X[0]) * 0.05;
+  double tmax = X[N-1] + (X[N-1] - X[0]) * 0.05;
+  double delta = (tmax - tmin) / (N*200);
+  fprintf(fp, "set xrange [%f:%f]\n", tmin, tmax);
+  fprintf(fp, "plot '-' with lines notitle, '-' with points notitle pt 3 lc 3\n");
+  for (double x = tmin; x <= tmax+1e-8; x += delta) {
+    double y = eval(x);
+    fprintf(fp, "%f %f\n", x, y);
+  }
+  fprintf(fp, "e\n");
+  for (int i = 0; i < N; i++) {
+    fprintf(fp, "%f %f\n", X[i], Y[i]);
+  }
+  fprintf(fp, "e\n");
+  fclose(fp);
 }
 
 /* ----------------------------------------------------------------------

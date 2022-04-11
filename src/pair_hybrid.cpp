@@ -51,8 +51,8 @@ PairHybrid::~PairHybrid()
     for (int m = 0; m < nstyles; m++) {
       delete styles[m];
       delete[] keywords[m];
-      if (special_lj[m])   delete[] special_lj[m];
-      if (special_coul[m]) delete[] special_coul[m];
+      delete[] special_lj[m];
+      delete[] special_coul[m];
     }
   }
   delete[] styles;
@@ -115,7 +115,7 @@ void PairHybrid::compute(int eflag, int vflag)
   Respa *respa = nullptr;
   respaflag = 0;
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    respa = (Respa *) update->integrate;
+    respa = dynamic_cast<Respa *>( update->integrate);
     if (respa->nhybrid_styles > 0) respaflag = 1;
   }
 
@@ -275,8 +275,8 @@ void PairHybrid::settings(int narg, char **arg)
     for (int m = 0; m < nstyles; m++) {
       delete styles[m];
       delete[] keywords[m];
-      if (special_lj[m])   delete[] special_lj[m];
-      if (special_coul[m]) delete[] special_coul[m];
+      delete[] special_lj[m];
+      delete[] special_coul[m];
     }
     delete[] styles;
     delete[] keywords;
@@ -1013,7 +1013,7 @@ void PairHybrid::set_special(int m)
 
 double * PairHybrid::save_special()
 {
-  double *saved = new double[8];
+  auto saved = new double[8];
 
   for (int i = 0; i < 4; ++i) {
     saved[i] = force->special_lj[i];
@@ -1054,7 +1054,7 @@ void *PairHybrid::extract(const char *str, int &dim)
       if (couldim != -1 && dim != couldim)
         error->all(FLERR,
                    "Coulomb styles of pair hybrid sub-styles do not match");
-      double *p_newvalue = (double *) ptr;
+      auto p_newvalue = (double *) ptr;
       double newvalue = *p_newvalue;
       if (cutptr && (newvalue != cutvalue))
         error->all(FLERR,

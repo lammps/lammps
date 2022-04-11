@@ -90,24 +90,24 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(domain->regions[iregion]->style,"block") == 0) {
     region_style = 1;
-    xlo = ((RegBlock *) domain->regions[iregion])->xlo;
-    xhi = ((RegBlock *) domain->regions[iregion])->xhi;
-    ylo = ((RegBlock *) domain->regions[iregion])->ylo;
-    yhi = ((RegBlock *) domain->regions[iregion])->yhi;
-    zlo = ((RegBlock *) domain->regions[iregion])->zlo;
-    zhi = ((RegBlock *) domain->regions[iregion])->zhi;
+    xlo = (dynamic_cast<RegBlock *>( domain->regions[iregion]))->xlo;
+    xhi = (dynamic_cast<RegBlock *>( domain->regions[iregion]))->xhi;
+    ylo = (dynamic_cast<RegBlock *>( domain->regions[iregion]))->ylo;
+    yhi = (dynamic_cast<RegBlock *>( domain->regions[iregion]))->yhi;
+    zlo = (dynamic_cast<RegBlock *>( domain->regions[iregion]))->zlo;
+    zhi = (dynamic_cast<RegBlock *>( domain->regions[iregion]))->zhi;
     if (xlo < domain->boxlo[0] || xhi > domain->boxhi[0] ||
         ylo < domain->boxlo[1] || yhi > domain->boxhi[1] ||
         zlo < domain->boxlo[2] || zhi > domain->boxhi[2])
       error->all(FLERR,"Insertion region extends outside simulation box");
   } else if (strcmp(domain->regions[iregion]->style,"cylinder") == 0) {
     region_style = 2;
-    char axis = ((RegCylinder *) domain->regions[iregion])->axis;
-    xc = ((RegCylinder *) domain->regions[iregion])->c1;
-    yc = ((RegCylinder *) domain->regions[iregion])->c2;
-    rc = ((RegCylinder *) domain->regions[iregion])->radius;
-    zlo = ((RegCylinder *) domain->regions[iregion])->lo;
-    zhi = ((RegCylinder *) domain->regions[iregion])->hi;
+    char axis = (dynamic_cast<RegCylinder *>( domain->regions[iregion]))->axis;
+    xc = (dynamic_cast<RegCylinder *>( domain->regions[iregion]))->c1;
+    yc = (dynamic_cast<RegCylinder *>( domain->regions[iregion]))->c2;
+    rc = (dynamic_cast<RegCylinder *>( domain->regions[iregion]))->radius;
+    zlo = (dynamic_cast<RegCylinder *>( domain->regions[iregion]))->lo;
+    zhi = (dynamic_cast<RegCylinder *>( domain->regions[iregion]))->hi;
     if (axis != 'z')
       error->all(FLERR,"Must use a z-axis cylinder region with fix pour");
     if (xc-rc < domain->boxlo[0] || xc+rc > domain->boxhi[0] ||
@@ -188,7 +188,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   auto fixlist = modify->get_fix_by_style("^gravity");
   if (fixlist.size() != 1)
     error->all(FLERR,"There must be exactly one fix gravity defined for fix pour");
-  auto fixgrav = (FixGravity *)fixlist.front();
+  auto fixgrav = dynamic_cast<FixGravity *>(fixlist.front());
 
   grav = -fixgrav->magnitude * force->ftm2v;
 
@@ -312,7 +312,7 @@ void FixPour::init()
   auto fixlist = modify->get_fix_by_style("^gravity");
   if (fixlist.size() != 1)
     error->all(FLERR,"There must be exactly one fix gravity defined for fix pour");
-  auto fixgrav = (FixGravity *)fixlist.front();
+  auto fixgrav = dynamic_cast<FixGravity *>(fixlist.front());
   if (fixgrav->varflag != FixGravity::CONSTANT)
     error->all(FLERR,"Fix gravity for fix pour must be constant");
 

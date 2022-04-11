@@ -615,7 +615,7 @@ void FixPIMD::comm_init()
 
   if (buf_beads) {
     for (int i = 0; i < np; i++)
-      if (buf_beads[i]) delete[] buf_beads[i];
+      delete[] buf_beads[i];
     delete[] buf_beads;
   }
 

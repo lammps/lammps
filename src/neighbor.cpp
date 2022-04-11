@@ -470,12 +470,12 @@ void Neighbor::init()
 
   int respa = 0;
   if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
-    if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
-    if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
+    if ((dynamic_cast<Respa *>( update->integrate))->level_inner >= 0) respa = 1;
+    if ((dynamic_cast<Respa *>( update->integrate))->level_middle >= 0) respa = 2;
   }
 
   if (respa) {
-    double *cut_respa = ((Respa *) update->integrate)->cutoff;
+    double *cut_respa = (dynamic_cast<Respa *>( update->integrate))->cutoff;
     cut_inner_sq = (cut_respa[1] + skin) * (cut_respa[1] + skin);
     cut_middle_sq = (cut_respa[3] + skin) * (cut_respa[3] + skin);
     cut_middle_inside_sq = (cut_respa[0] - skin) * (cut_respa[0] - skin);
@@ -881,13 +881,13 @@ int Neighbor::init_pair()
     }
 
     if (requests[i]->pair && i < nrequest_original) {
-      Pair *pair = (Pair *) requests[i]->requestor;
+      auto pair = (Pair *) requests[i]->requestor;
       pair->init_list(requests[i]->id,lists[i]);
     } else if (requests[i]->fix && i < nrequest_original) {
       Fix *fix = (Fix *) requests[i]->requestor;
       fix->init_list(requests[i]->id,lists[i]);
     } else if (requests[i]->compute && i < nrequest_original) {
-      Compute *compute = (Compute *) requests[i]->requestor;
+      auto compute = (Compute *) requests[i]->requestor;
       compute->init_list(requests[i]->id,lists[i]);
     }
   }
@@ -2680,7 +2680,7 @@ void Neighbor::modify_params(int narg, char **arg)
 void Neighbor::modify_params(const std::string &modcmd)
 {
   auto args = utils::split_words(modcmd);
-  char **newarg = new char*[args.size()];
+  auto newarg = new char*[args.size()];
   int i=0;
   for (const auto &arg : args) {
     newarg[i++] = (char *)arg.c_str();

@@ -103,7 +103,7 @@ ArgInfo::ArgInfo(const std::string &arg, int allowed) : type(NONE), dim(0), inde
 
 char *ArgInfo::copy_name()
 {
-  char *dest = new char[name.size() + 1];
+  auto dest = new char[name.size() + 1];
   strcpy(dest, name.c_str());    // NOLINT
   return dest;
 }

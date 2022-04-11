@@ -227,7 +227,7 @@ void PPPM::init()
   pair_check();
 
   int itmp = 0;
-  double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
@@ -240,7 +240,7 @@ void PPPM::init()
   if (tip4pflag) {
     if (me == 0) utils::logmesg(lmp,"  extracting TIP4P info from pair style\n");
 
-    double *p_qdist = (double *) force->pair->extract("qdist",itmp);
+    auto p_qdist = (double *) force->pair->extract("qdist",itmp);
     int *p_typeO = (int *) force->pair->extract("typeO",itmp);
     int *p_typeH = (int *) force->pair->extract("typeH",itmp);
     int *p_typeA = (int *) force->pair->extract("typeA",itmp);
@@ -319,8 +319,7 @@ void PPPM::init()
 
   if (order < minorder) error->all(FLERR,"PPPM order < minimum allowed order");
   if (!overlap_allowed && !gctmp->ghost_adjacent())
-    error->all(FLERR,"PPPM grid stencil extends "
-               "beyond nearest neighbor processor");
+    error->all(FLERR,"PPPM grid stencil extends beyond nearest neighbor processor");
   if (gctmp) delete gctmp;
 
   // adjust g_ewald
@@ -569,8 +568,7 @@ void PPPM::setup_grid()
   allocate();
 
   if (!overlap_allowed && !gc->ghost_adjacent())
-    error->all(FLERR,"PPPM grid stencil extends "
-               "beyond nearest neighbor processor");
+    error->all(FLERR,"PPPM grid stencil extends beyond nearest neighbor processor");
 
   // pre-compute Green's function denomiator expansion
   // pre-compute 1d charge distribution coefficients
@@ -2610,7 +2608,7 @@ void PPPM::fieldforce_peratom()
 
 void PPPM::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -2670,7 +2668,7 @@ void PPPM::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPM::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -2730,7 +2728,7 @@ void PPPM::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPM::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   if (flag == REVERSE_RHO) {
     FFT_SCALAR *src = &density_brick[nzlo_out][nylo_out][nxlo_out];
@@ -2745,7 +2743,7 @@ void PPPM::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPM::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   if (flag == REVERSE_RHO) {
     FFT_SCALAR *dest = &density_brick[nzlo_out][nylo_out][nxlo_out];

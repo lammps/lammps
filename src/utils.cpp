@@ -744,7 +744,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
 
 char *utils::strdup(const std::string &text)
 {
-  char *tmp = new char[text.size() + 1];
+  auto tmp = new char[text.size() + 1];
   strcpy(tmp, text.c_str());    // NOLINT
   return tmp;
 }
@@ -791,9 +791,21 @@ std::string utils::trim(const std::string &line)
 
 std::string utils::trim_comment(const std::string &line)
 {
-  auto end = line.find_first_of('#');
+  auto end = line.find('#');
   if (end != std::string::npos) { return line.substr(0, end); }
   return {line};
+}
+
+/* ----------------------------------------------------------------------
+   Replace '*' with number and optional zero-padding
+------------------------------------------------------------------------- */
+
+std::string utils::star_subst(const std::string &name, bigint step, int pad)
+{
+  auto star = name.find('*');
+  if (star == std::string::npos) return name;
+
+  return fmt::format("{}{:0{}}{}",name.substr(0,star),step,pad,name.substr(star+1));
 }
 
 /* ----------------------------------------------------------------------
@@ -802,7 +814,7 @@ std::string utils::trim_comment(const std::string &line)
 
 std::string utils::utf8_subst(const std::string &line)
 {
-  const unsigned char *const in = (const unsigned char *) line.c_str();
+  const auto *const in = (const unsigned char *) line.c_str();
   const int len = line.size();
   std::string out;
 

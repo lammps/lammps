@@ -357,7 +357,7 @@ void FixTempCSVR::write_restart(FILE *fp)
 
 void FixTempCSVR::restart(char *buf)
 {
-  double *list = (double *) buf;
+  auto list = (double *) buf;
 
   energy = list[0];
   int nprocs = (int) list[1];

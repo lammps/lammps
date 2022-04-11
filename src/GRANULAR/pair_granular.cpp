@@ -102,7 +102,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   // this is so final order of Modify:fix will conform to input script
 
   fix_history = nullptr;
-  fix_dummy = (FixDummy *) modify->add_fix("NEIGH_HISTORY_GRANULAR_DUMMY all DUMMY");
+  fix_dummy = dynamic_cast<FixDummy *>( modify->add_fix("NEIGH_HISTORY_GRANULAR_DUMMY all DUMMY"));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -188,7 +188,7 @@ void PairGranular::compute(int eflag, int vflag)
   double *history,*allhistory,**firsthistory;
 
   bool touchflag = false;
-  const bool historyupdate = (update->setupflag) ? false : true;
+  const bool historyupdate = update->setupflag != 0;
 
   ev_init(eflag,vflag);
 
@@ -199,7 +199,7 @@ void PairGranular::compute(int eflag, int vflag)
   if (fix_rigid && neighbor->ago == 0) {
     int tmp;
     int *body = (int *) fix_rigid->extract("body",tmp);
-    double *mass_body = (double *) fix_rigid->extract("masstotal",tmp);
+    auto mass_body = (double *) fix_rigid->extract("masstotal",tmp);
     if (atom->nmax > nmax) {
       memory->destroy(mass_rigid);
       nmax = atom->nmax;
@@ -1130,10 +1130,10 @@ void PairGranular::init_style()
   // this is so its order in the fix list is preserved
 
   if (use_history && fix_history == nullptr) {
-    fix_history = (FixNeighHistory *) modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY",
+    fix_history = dynamic_cast<FixNeighHistory *>( modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY",
                                                           "NEIGH_HISTORY_GRANULAR"
                                                           " all NEIGH_HISTORY "
-                                                          + std::to_string(size_history),1);
+                                                          + std::to_string(size_history),1));
     fix_history->pair = this;
   }
 
@@ -1199,7 +1199,7 @@ void PairGranular::init_style()
   // set fix which stores history info
 
   if (size_history > 0) {
-    fix_history = (FixNeighHistory *) modify->get_fix_by_id("NEIGH_HISTORY_GRANULAR");
+    fix_history = dynamic_cast<FixNeighHistory *>( modify->get_fix_by_id("NEIGH_HISTORY_GRANULAR"));
     if (!fix_history) error->all(FLERR,"Could not find pair fix neigh history ID");
   }
 }

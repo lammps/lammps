@@ -2,7 +2,7 @@
 lammps_version: 17 Feb 2022
 date_generated: Fri Mar 18 22:17:29 2022
 epsilon: 5e-14
-skip_tests: gpu intel single
+skip_tests: gpu intel kokkos_omp single
 prerequisites: ! |
   atom full
   pair dpd

@@ -44,7 +44,7 @@ class ReaderADIOS : public Reader {
                      int &, int &, int &) override;
   void read_atoms(int, int, double **) override;
 
-  void open_file(const char *) override;
+  void open_file(const std::string &) override;
   void close_file() override;
 
  private:

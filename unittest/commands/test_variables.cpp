@@ -207,7 +207,7 @@ TEST_F(VariableTest, CreateDelete)
                  command("variable ten4   uloop     2"););
     TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
                  command("variable ten11  format    two \"%08f\""););
-    TEST_FAILURE(".*ERROR: Variable name 'ten@12' must have only alphanumeric characters or.*",
+    TEST_FAILURE(".*ERROR: Variable name 'ten@12' must have only letters, numbers, or undersc.*",
                  command("variable ten@12  index    one two three"););
     TEST_FAILURE(".*ERROR: Variable evaluation before simulation box is defined.*",
                  variable->compute_equal("c_thermo_press"););

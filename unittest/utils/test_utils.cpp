@@ -78,6 +78,25 @@ TEST(Utils, trim_comment)
     ASSERT_THAT(trimmed, StrEq("some text "));
 }
 
+TEST(Utils, star_subst)
+{
+    std::string starred = "beforeafter";
+    std::string subst   = utils::star_subst(starred, 1234, 0);
+    ASSERT_THAT(subst, StrEq("beforeafter"));
+
+    starred = "before*after";
+    subst   = utils::star_subst(starred, 1234, 6);
+    ASSERT_THAT(subst, StrEq("before001234after"));
+
+    starred = "before*";
+    subst   = utils::star_subst(starred, 1234, 0);
+    ASSERT_THAT(subst, StrEq("before1234"));
+
+    starred = "*after";
+    subst   = utils::star_subst(starred, 1234, 2);
+    ASSERT_THAT(subst, StrEq("1234after"));
+}
+
 TEST(Utils, has_utf8)
 {
     const char ascii_string[] = " -2";

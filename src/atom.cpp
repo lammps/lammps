@@ -800,7 +800,7 @@ AtomVec *Atom::style_match(const char *style)
 {
   if (strcmp(atom_style,style) == 0) return avec;
   else if (strcmp(atom_style,"hybrid") == 0) {
-    auto avec_hybrid = (AtomVecHybrid *) avec;
+    auto avec_hybrid = dynamic_cast<AtomVecHybrid *>( avec);
     for (int i = 0; i < avec_hybrid->nstyles; i++)
       if (strcmp(avec_hybrid->keywords[i],style) == 0)
         return avec_hybrid->styles[i];
@@ -1845,7 +1845,7 @@ int Atom::shape_consistency(int itype,
   double one[3] = {-1.0, -1.0, -1.0};
   double *shape;
 
-  auto avec_ellipsoid = (AtomVecEllipsoid *) style_match("ellipsoid");
+  auto avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>( style_match("ellipsoid"));
   auto bonus = avec_ellipsoid->bonus;
 
   int flag = 0;
@@ -2220,7 +2220,7 @@ void Atom::setup_sort_bins()
 
 #ifdef LMP_GPU
   if (userbinsize == 0.0) {
-    FixGPU *fix = (FixGPU *)modify->get_fix_by_id("package_gpu");
+    FixGPU *fix = dynamic_cast<FixGPU *>(modify->get_fix_by_id("package_gpu"));
     if (fix) {
       const double subx = domain->subhi[0] - domain->sublo[0];
       const double suby = domain->subhi[1] - domain->sublo[1];

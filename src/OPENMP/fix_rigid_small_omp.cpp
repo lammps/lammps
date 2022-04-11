@@ -111,7 +111,7 @@ void FixRigidSmallOMP::initial_integrate(int vflag)
 void FixRigidSmallOMP::compute_forces_and_torques()
 {
   double * const * _noalias const x = atom->x;
-  const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
+  const auto * _noalias const f = (dbl3_t *) atom->f[0];
   const double * const * const torque_one = atom->torque;
   const int nlocal = atom->nlocal;
   const int nthreads=comm->nthreads;
@@ -273,9 +273,9 @@ void FixRigidSmallOMP::final_integrate()
 template <int TRICLINIC, int EVFLAG>
 void FixRigidSmallOMP::set_xv_thr()
 {
-  dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
-  const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
+  auto * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const v = (dbl3_t *) atom->v[0];
+  const auto * _noalias const f = (dbl3_t *) atom->f[0];
   const double * _noalias const rmass = atom->rmass;
   const double * _noalias const mass = atom->mass;
   const int * _noalias const type = atom->type;
@@ -468,9 +468,9 @@ void FixRigidSmallOMP::set_xv_thr()
 template <int TRICLINIC, int EVFLAG>
 void FixRigidSmallOMP::set_v_thr()
 {
-  dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
-  const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
+  auto * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const v = (dbl3_t *) atom->v[0];
+  const auto * _noalias const f = (dbl3_t *) atom->f[0];
   const double * _noalias const rmass = atom->rmass;
   const double * _noalias const mass = atom->mass;
   const int * _noalias const type = atom->type;

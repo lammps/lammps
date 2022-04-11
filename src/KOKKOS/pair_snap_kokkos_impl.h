@@ -102,13 +102,15 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::init_style()
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style SNAP requires newton pair on");
 
-  // adjust neighbor list request for KOKKOS
+  // neighbor list request for KOKKOS
 
-  auto request = neighbor->find_request(this);
+  neighflag = lmp->kokkos->neighflag;
+
+  auto request = neighbor->add_request(this, NeighConst::REQ_FULL);
   request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
                            !std::is_same<DeviceType,LMPDeviceType>::value);
   request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
-  if (lmp->kokkos->neighflag == FULL)
+  if (neighflag == FULL)
     error->all(FLERR,"Must use half neighbor list style with pair snap/kk");
 }
 

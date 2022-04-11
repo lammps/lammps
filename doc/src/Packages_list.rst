@@ -249,7 +249,7 @@ whether an extra library is needed to build and use the package:
      - n/a
      - no
    * - :ref:`MDI <PKG-MDI>`
-     - client-server coupling
+     - client-server code coupling
      - :doc:`MDI Howto <Howto_mdi>`
      - PACKAGES/mdi
      - ext
@@ -262,11 +262,6 @@ whether an extra library is needed to build and use the package:
      - mesoscopic tubular potential model
      - pair styles :doc:`mesont/tpm <pair_mesont_tpm>`, :doc:`mesocnt <pair_mesocnt>`
      - PACKAGES/mesont
-     - int
-   * - :ref:`MESSAGE <PKG-MESSAGE>`
-     - client/server messaging
-     - :doc:`message <message>`
-     - message
      - int
    * - :ref:`MGPT <PKG-MGPT>`
      - fast MGPT multi-ion potentials

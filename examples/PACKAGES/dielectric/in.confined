@@ -38,7 +38,7 @@ group ions type 2 3
 group cations type 2
 group anions  type 3
 
-# set the dielectric constant of the medium where the ions belong
+# set the dielectric constant of the medium where the ions reside
 
 set group cations epsilon ${epsilon2}
 set group anions  epsilon ${epsilon2}

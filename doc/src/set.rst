@@ -22,7 +22,7 @@ Syntax
   *volume* or *image* or *bond* or *angle* or *dihedral* or
   *improper* or *sph/e* or *sph/cv* or *sph/rho* or
   *smd/contact/radius* or *smd/mass/density* or *dpd/theta* or
-  *edpd/temp* or *edpd/cv* or *cc* or
+  *edpd/temp* or *edpd/cv* or *cc* or *epsilon* or
   *i_name* or *d_name* or *i2_name* or *d2_name*
 
   .. parsed-literal::
@@ -124,6 +124,7 @@ Syntax
        *cc* values = index cc
          index = index of a chemical species (1 to Nspecies)
          cc = chemical concentration of tDPD particles for a species (mole/volume units)
+       *epsilon* value = dielectric constant of the medium where the atoms reside
        *i_name* value = custom integer vector with name
        *d_name* value = custom floating-point vector with name
        *i2_name* value = column of a custom integer array with name
@@ -488,6 +489,19 @@ specified species as defined by the DPD-MESO package. Currently, only
 attribute. An integer for "index" selects a chemical species (1 to
 Nspecies) where Nspecies is set by the atom_style command. The value
 for the chemical concentration must be >= 0.0.
+
+Keyword *epsilon* sets the dielectric constant of a particle,
+precily of the medium where the particle resides as defined by
+the DIELECTRIC package. Currently, only
+:doc:`atom_style dielectric <atom_style>` defines particles with this
+attribute. The value for the dielectric constant must be >= 0.0.
+Note that the set command with this keyword will rescale
+the particle charge accordingly so that the real charge
+(e.g., as read from a data file) stays intact. To change
+the real charges, one needs to use the set command with
+the *charge* keyword. Care must be taken to ensure that
+the real and scaled charges, and dielectric constants are
+consistent.
 
 Keywords *i_name*, *d_name*, *i2_name*, *d2_name* refer to custom
 per-atom integer and floating-point vectors or arrays that have been

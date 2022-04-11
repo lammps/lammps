@@ -607,19 +607,6 @@ void PairAmoeba::rotsite(int isite)
       k++;
     }
   }
-
-  // DEBUG
-
-  /*
-  i = isite;
-  if (atom->tag[i] == 68)
-  printf("ROTSITE %d %d: %g %g %g %g: %g %g %g %g: %g %g %g %g: %g\n",
-	 i,atom->tag[i],
-	 rpole[i][0],rpole[i][1],rpole[i][2],rpole[i][3],
-	 rpole[i][4],rpole[i][5],rpole[i][6],rpole[i][7],
-	 rpole[i][8],rpole[i][9],rpole[i][10],rpole[i][11],
-	 rpole[i][12]);
-  */
 }
 
 /* ----------------------------------------------------------------------
@@ -1016,8 +1003,8 @@ void PairAmoeba::torque2force(int i, double *trq,
   if (axetyp == ZONLY) {
     for (j = 0; j < 3; j++) {
       du = uv[j]*dphidv/(usiz*uvsin) + uw[j]*dphidw/usiz;
-      f[ia][j] += du;
-      f[ib][j] -= du;
+      f[ia][j] -= du;
+      f[ib][j] += du;
       frcz[j] += du;
     }
 
@@ -1027,9 +1014,9 @@ void PairAmoeba::torque2force(int i, double *trq,
     for (j = 0; j < 3; j++) {
       du = uv[j]*dphidv/(usiz*uvsin) + uw[j]*dphidw/usiz;
       dv = -uv[j]*dphidu/(vsiz*uvsin);
-      f[ia][j] += du;
-      f[ic][j] += dv;
-      f[ib][j] -= du + dv;
+      f[ia][j] -= du;
+      f[ic][j] -= dv;
+      f[ib][j] += du + dv;
       frcz[j] += du;
       frcx[j] += dv;
     }
@@ -1040,9 +1027,9 @@ void PairAmoeba::torque2force(int i, double *trq,
     for (j = 0; j < 3; j++) {
       du = uv[j]*dphidv/(usiz*uvsin) + 0.5*uw[j]*dphidw/usiz;
       dv = -uv[j]*dphidu/(vsiz*uvsin) + 0.5*vw[j]*dphidw/vsiz;
-      f[ia][j] += du;
-      f[ic][j] += dv;
-      f[ib][j] -= du + dv;
+      f[ia][j] -= du;
+      f[ic][j] -= dv;
+      f[ib][j] += du + dv;
       frcz[j] += du;
       frcx[j] += dv;
     }
@@ -1054,10 +1041,10 @@ void PairAmoeba::torque2force(int i, double *trq,
       du = ur[j]*dphidr/(usiz*ursin) + us[j]*dphids/usiz;
       dv = (vssin*s[j]-vscos*t1[j])*dphidu / (vsiz*(ut1sin+ut2sin));
       dw = (wssin*s[j]-wscos*t2[j])*dphidu / (wsiz*(ut1sin+ut2sin));
-      f[ia][j] += du;
-      f[ic][j] += dv;
-      f[id][j] += dw;
-      f[ib][j] -= du + dv + dw;
+      f[ia][j] -= du;
+      f[ic][j] -= dv;
+      f[id][j] -= dw;
+      f[ib][j] += du + dv + dw;
       frcz[j] += du;
       frcx[j] += dv;
       frcy[j] += dw;
@@ -1096,8 +1083,8 @@ void PairAmoeba::torque2force(int i, double *trq,
     eps[2] = del[0]*w[1] - del[1]*w[0];
     for (j = 0; j < 3; j++) {
       dw = del[j]*dphidr/(wsiz*rwsin) + eps[j]*dphiddel*wpcos/(wsiz*psiz);
-      f[id][j] += dw;
-      f[ib][j] -= dw;
+      f[id][j] -= dw;
+      f[ib][j] += dw;
       frcy[j] += dw;
     }
     r[0] = v[0] + w[0];
@@ -1121,8 +1108,8 @@ void PairAmoeba::torque2force(int i, double *trq,
     eps[2] = del[0]*u[1] - del[1]*u[0];
     for (j = 0; j < 3; j++) {
       du = del[j]*dphidr/(usiz*rusin) + eps[j]*dphiddel*upcos/(usiz*psiz);
-      f[ia][j] += du;
-      f[ib][j] -= du;
+      f[ia][j] -= du;
+      f[ib][j] += du;
       frcz[j] += du;
     }
     r[0] = u[0] + w[0];
@@ -1146,8 +1133,8 @@ void PairAmoeba::torque2force(int i, double *trq,
     eps[2] = del[0]*v[1] - del[1]*v[0];
     for (j = 0; j < 3; j++) {
       dv = del[j]*dphidr/(vsiz*rvsin) + eps[j]*dphiddel*vpcos/(vsiz*psiz);
-      f[ic][j] += dv;
-      f[ib][j] -= dv;
+      f[ic][j] -= dv;
+      f[ib][j] += dv;
       frcx[j] += dv;
     }
   }

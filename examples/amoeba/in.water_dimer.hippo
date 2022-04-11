@@ -21,7 +21,7 @@ read_data       data.water_dimer.hippo fix amtype NULL "Tinker Types"
 
 # force field
 
-pair_style      hippo include angle
+pair_style      hippo
 pair_coeff      * * hippo_water.prm hippo_water.key
 
 special_bonds   lj/coul 0.5 0.5 0.5 one/five yes

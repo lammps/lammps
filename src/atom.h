@@ -202,6 +202,10 @@ class Atom : protected Pointers {
 
   double pdscale;
 
+  // DIELECTRIC package
+
+  int dielectric_flag;
+
   // end of customization section
   // --------------------------------------------------------------------
 

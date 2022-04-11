@@ -37,6 +37,7 @@
 #include "pair_coul_cut_dielectric.h"
 #include "pair_coul_long_dielectric.h"
 #include "pair_lj_cut_coul_cut_dielectric.h"
+#include "pair_lj_cut_coul_debye_dielectric.h"
 #include "pair_lj_cut_coul_long_dielectric.h"
 #include "pair_lj_cut_coul_msm_dielectric.h"
 #include "pppm_dielectric.h"

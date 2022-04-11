@@ -19,10 +19,13 @@
 #include "error.h"
 #include "force.h"
 #include "memory.h"
+#include "modify.h"
 #include "neighbor.h"
 #include "random_mars.h"
 #include "respa.h"
 #include "update.h"
+
+#include "fix_bond_history.h"
 
 #include <cstring>
 

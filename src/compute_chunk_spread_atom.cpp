@@ -184,7 +184,7 @@ void ComputeChunkSpreadAtom::init_chunk()
   int icompute = modify->find_compute(idchunk);
   if (icompute < 0)
     error->all(FLERR,"Chunk/atom compute does not exist for compute chunk/spread/atom");
-  cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
   if (strcmp(cchunk->style,"chunk/atom") != 0)
     error->all(FLERR,"Compute chunk/spread/atom does not use chunk/atom compute");
 }

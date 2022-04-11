@@ -257,7 +257,7 @@ int DumpLocal::modify_param(int narg, char **arg)
       int i = utils::inumeric(FLERR,arg[1],false,lmp) - 1;
       if (i < 0 || i >= nfield)
         error->all(FLERR,"Illegal dump_modify command");
-      if (format_column_user[i]) delete[] format_column_user[i];
+      delete[] format_column_user[i];
       format_column_user[i] = utils::strdup(arg[2]);
     }
     return 3;

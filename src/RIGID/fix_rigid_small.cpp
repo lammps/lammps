@@ -139,7 +139,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
         if (input->variable->atomstyle(ivariable) == 0)
           error->all(FLERR,"Fix rigid/small custom variable {} is not atom-style variable",
                      arg[4]+2);
-        double *value = new double[nlocal];
+        auto value = new double[nlocal];
         input->variable->compute_atom(ivariable,0,value,1,0);
         int minval = INT_MAX;
         for (i = 0; i < nlocal; i++)
@@ -432,9 +432,9 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
   // atom style pointers to particles that store extra info
 
-  avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  avec_line = (AtomVecLine *) atom->style_match("line");
-  avec_tri = (AtomVecTri *) atom->style_match("tri");
+  avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
+  avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
+  avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
 
   // compute per body forces and torques inside final_integrate() by default
 
@@ -582,7 +582,7 @@ void FixRigidSmall::init()
   dtq = 0.5 * update->dt;
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    step_respa = ((Respa *) update->integrate)->step;
+    step_respa = (dynamic_cast<Respa *>( update->integrate))->step;
 }
 
 /* ----------------------------------------------------------------------
@@ -1573,8 +1573,7 @@ void FixRigidSmall::create_bodies(tagint *bodyID)
 
   int *proclist;
   memory->create(proclist,ncount,"rigid/small:proclist");
-  InRvous *inbuf = (InRvous *)
-    memory->smalloc(ncount*sizeof(InRvous),"rigid/small:inbuf");
+  auto inbuf = (InRvous *) memory->smalloc(ncount*sizeof(InRvous),"rigid/small:inbuf");
 
   // setup buf to pass to rendezvous comm
   // one BodyMsg datum for each constituent atom
@@ -1607,7 +1606,7 @@ void FixRigidSmall::create_bodies(tagint *bodyID)
                                  0,proclist,
                                  rendezvous_body,0,buf,sizeof(OutRvous),
                                  (void *) this);
-  OutRvous *outbuf = (OutRvous *) buf;
+  auto outbuf = (OutRvous *) buf;
 
   memory->destroy(proclist);
   memory->sfree(inbuf);
@@ -1649,7 +1648,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
   double *x,*xown,*rsqclose;
   double **bbox,**ctr;
 
-  FixRigidSmall *frsptr = (FixRigidSmall *) ptr;
+  auto frsptr = (FixRigidSmall *) ptr;
   Memory *memory = frsptr->memory;
   Error *error = frsptr->error;
   MPI_Comm world = frsptr->world;
@@ -1661,7 +1660,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
   // key = body ID
   // value = index into Ncount-length data structure
 
-  InRvous *in = (InRvous *) inbuf;
+  auto in = (InRvous *) inbuf;
   std::map<tagint,int> hash;
   tagint id;
 
@@ -1756,8 +1755,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
 
   int nout = n;
   memory->create(proclist,nout,"rigid/small:proclist");
-  OutRvous *out = (OutRvous *)
-    memory->smalloc(nout*sizeof(OutRvous),"rigid/small:out");
+  auto out = (OutRvous *) memory->smalloc(nout*sizeof(OutRvous),"rigid/small:out");
 
   for (i = 0; i < nout; i++) {
     proclist[i] = in[i].me;
@@ -2499,7 +2497,7 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
   if (nlines == 0) return;
   else if (nlines < 0) error->all(FLERR,"Fix rigid infile has incorrect format");
 
-  char *buffer = new char[CHUNK*MAXLINE];
+  auto buffer = new char[CHUNK*MAXLINE];
   int nread = 0;
   while (nread < nlines) {
     nchunk = MIN(nlines-nread,CHUNK);

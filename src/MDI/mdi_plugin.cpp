@@ -81,7 +81,7 @@ MDIPlugin::MDIPlugin(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
   // build full plugin_args string for args to plugin library
 
   int n = strlen(mdi_arg) + strlen(infile_arg) + strlen(extra_arg) + 16;
-  char *plugin_args = new char[n];
+  auto plugin_args = new char[n];
   plugin_args[0] = 0;
   strcat(plugin_args, "-mdi \"");
   strcat(plugin_args, mdi_arg);
@@ -114,13 +114,13 @@ MDIPlugin::MDIPlugin(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
 
 int MDIPlugin::plugin_wrapper(void * /*pmpicomm*/, MDI_Comm mdicomm, void *vptr)
 {
-  MDIPlugin *ptr = (MDIPlugin *) vptr;
+  auto ptr = (MDIPlugin *) vptr;
   LAMMPS *lammps = ptr->lmp;
   char *lammps_command = ptr->lammps_command;
 
   // set FixMDIAimd mdicomm to driver's mdicomm passed to this callback
 
-  FixMDIAimd *aimdptr = (FixMDIAimd *) (ptr->fixptr);
+  auto aimdptr = dynamic_cast<FixMDIAimd *> (ptr->fixptr);
   aimdptr->mdicomm = mdicomm;
 
   // invoke the specified LAMMPS command

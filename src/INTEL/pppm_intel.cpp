@@ -1119,9 +1119,9 @@ FFT_SCALAR *** PPPMIntel::create3d_offset(FFT_SCALAR ***&array, int n1lo,
 
   bigint nbytes = ((bigint) sizeof(FFT_SCALAR)) * n1*n2*n3 +
     INTEL_P3M_ALIGNED_MAXORDER*2;
-  FFT_SCALAR *data = (FFT_SCALAR *) memory->smalloc(nbytes,name);
+  auto data = (FFT_SCALAR *) memory->smalloc(nbytes,name);
   nbytes = ((bigint) sizeof(FFT_SCALAR *)) * n1*n2;
-  FFT_SCALAR **plane = (FFT_SCALAR **) memory->smalloc(nbytes,name);
+  auto plane = (FFT_SCALAR **) memory->smalloc(nbytes,name);
   nbytes = ((bigint) sizeof(FFT_SCALAR **)) * n1;
   array = (FFT_SCALAR ***) memory->smalloc(nbytes,name);
 

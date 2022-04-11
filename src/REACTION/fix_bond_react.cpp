@@ -792,7 +792,7 @@ void FixBondReact::init()
 {
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
 
   // check cutoff for iatomtype,jatomtype
   for (int i = 0; i < nreacts; i++) {
@@ -3938,7 +3938,7 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
   double tmp[MAXCONARGS];
   char **strargs,*ptr,*lptr;
   memory->create(strargs,MAXCONARGS,MAXLINE,"bond/react:strargs");
-  char *constraint_type = new char[MAXLINE];
+  auto constraint_type = new char[MAXLINE];
   strcpy(constraintstr[myrxn],"("); // string for boolean constraint logic
   for (int i = 0; i < nconstraints[myrxn]; i++) {
     readline(line);

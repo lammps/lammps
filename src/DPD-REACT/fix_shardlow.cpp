@@ -93,10 +93,10 @@ FixShardlow::FixShardlow(LAMMPS *lmp, int narg, char **arg) :
 
   pairDPD = nullptr;
   pairDPDE = nullptr;
-  pairDPD = (PairDPDfdt *) force->pair_match("dpd/fdt",1);
-  pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy",1);
+  pairDPD = dynamic_cast<PairDPDfdt *>( force->pair_match("dpd/fdt",1));
+  pairDPDE = dynamic_cast<PairDPDfdtEnergy *>( force->pair_match("dpd/fdt/energy",1));
   if (pairDPDE == nullptr)
-    pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy/kk",1);
+    pairDPDE = dynamic_cast<PairDPDfdtEnergy *>( force->pair_match("dpd/fdt/energy/kk",1));
 
   maxRNG = 0;
   if (pairDPDE) {
@@ -548,7 +548,7 @@ void FixShardlow::initial_integrate(int /*vflag*/)
                     "Either reduce the number of processors requested, or change the cutoff/skin: "
                     "rcut= {} bbx= {} bby= {} bbz= {}\n", rcut, bbx, bby, bbz);
 
-  NPairHalfBinNewtonSSA *np_ssa = dynamic_cast<NPairHalfBinNewtonSSA*>(list->np);
+  auto np_ssa = dynamic_cast<NPairHalfBinNewtonSSA*>(list->np);
   if (!np_ssa) error->one(FLERR, "NPair wasn't a NPairHalfBinNewtonSSA object");
   int ssa_phaseCt = np_ssa->ssa_phaseCt;
   int *ssa_phaseLen = np_ssa->ssa_phaseLen;

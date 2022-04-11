@@ -1740,7 +1740,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       int i = utils::inumeric(FLERR,arg[1],false,lmp) - 1;
       if (i < 0 || i >= nfield)
         error->all(FLERR,"Illegal dump_modify command");
-      if (format_column_user[i]) delete[] format_column_user[i];
+      delete[] format_column_user[i];
       format_column_user[i] = utils::strdup(arg[2]);
     }
     return 3;
@@ -2038,7 +2038,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       std::string threshid = fmt::format("{}{}_DUMP_STORE",id,nthreshlast);
       thresh_fixID[nthreshlast] = utils::strdup(threshid);
       threshid += fmt::format(" {} STORE peratom 1 1", group->names[igroup]);
-      thresh_fix[nthreshlast] = (FixStore *) modify->add_fix(threshid);
+      thresh_fix[nthreshlast] = dynamic_cast<FixStore *>( modify->add_fix(threshid));
 
       thresh_last[nthreshlast] = nthreshlast;
       thresh_first[nthreshlast] = 1;

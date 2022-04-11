@@ -53,7 +53,7 @@ void PairGranHookeOMP::compute(int eflag, int vflag)
   if (fix_rigid && neighbor->ago == 0) {
     int tmp;
     int *body = (int *) fix_rigid->extract("body",tmp);
-    double *mass_body = (double *) fix_rigid->extract("masstotal",tmp);
+    auto mass_body = (double *) fix_rigid->extract("masstotal",tmp);
     if (atom->nmax > nmax) {
       memory->destroy(mass_rigid);
       nmax = atom->nmax;

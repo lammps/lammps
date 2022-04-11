@@ -16,12 +16,13 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "fix_nh_sphere_omp.h"
+
 #include "atom.h"
 #include "compute.h"
 #include "error.h"
 
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -65,10 +66,10 @@ void FixNHSphereOMP::init()
 
 void FixNHSphereOMP::nve_v()
 {
-  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
-  dbl3_t * _noalias const omega = (dbl3_t *) atom->omega[0];
-  const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
-  const dbl3_t * _noalias const torque = (dbl3_t *) atom->torque[0];
+  auto * _noalias const v = (dbl3_t *) atom->v[0];
+  auto * _noalias const omega = (dbl3_t *) atom->omega[0];
+  const auto * _noalias const f = (dbl3_t *) atom->f[0];
+  const auto * _noalias const torque = (dbl3_t *) atom->torque[0];
   const double * _noalias const radius = atom->radius;
   const double * _noalias const rmass = atom->rmass;
   const int * _noalias const mask = atom->mask;
@@ -110,8 +111,8 @@ void FixNHSphereOMP::nve_v()
 
 void FixNHSphereOMP::nh_v_temp()
 {
-  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
-  dbl3_t * _noalias const omega = (dbl3_t *) atom->omega[0];
+  auto * _noalias const v = (dbl3_t *) atom->v[0];
+  auto * _noalias const omega = (dbl3_t *) atom->omega[0];
   const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
 

@@ -156,7 +156,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
           error->all(FLERR,"Variable {} for fix rigid/small custom does not exist", arg[4]+2);
         if (input->variable->atomstyle(ivariable) == 0)
           error->all(FLERR,"Fix rigid custom variable {} is not atom-style variable", arg[4]+2);
-        double *value = new double[nlocal];
+        auto value = new double[nlocal];
         input->variable->compute_atom(ivariable,0,value,1,0);
         int minval = INT_MAX;
         for (i = 0; i < nlocal; i++)
@@ -676,9 +676,9 @@ void FixRigid::init()
 
   // atom style pointers to particles that store extra info
 
-  avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  avec_line = (AtomVecLine *) atom->style_match("line");
-  avec_tri = (AtomVecTri *) atom->style_match("tri");
+  avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
+  avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
+  avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
 
   // warn if more than one rigid fix
   // if earlyflag, warn if any post-force fixes come after a rigid fix
@@ -737,7 +737,7 @@ void FixRigid::init()
   dtq = 0.5 * update->dt;
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    step_respa = ((Respa *) update->integrate)->step;
+    step_respa = (dynamic_cast<Respa *>( update->integrate))->step;
 
   // setup rigid bodies, using current atom info. if reinitflag is not set,
   // do the initialization only once, b/c properties may not be re-computable
@@ -2288,7 +2288,7 @@ void FixRigid::readfile(int which, double *vec, double **array1, double **array2
   if (nlines == 0) return;
   else if (nlines < 0) error->all(FLERR,"Fix rigid infile has incorrect format");
 
-  char *buffer = new char[CHUNK*MAXLINE];
+  auto buffer = new char[CHUNK*MAXLINE];
   int nread = 0;
   while (nread < nlines) {
     nchunk = MIN(nlines-nread,CHUNK);

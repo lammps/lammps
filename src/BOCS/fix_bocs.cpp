@@ -489,7 +489,7 @@ void FixBocs::init()
   {
     for (int i = 0; i < modify->nfix; i++)
       if (strcmp(modify->fix[i]->style,"deform") == 0) {
-        int *dimflag = ((FixDeform *) modify->fix[i])->dimflag;
+        int *dimflag = (dynamic_cast<FixDeform *>( modify->fix[i]))->dimflag;
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
             (p_flag[2] && dimflag[2]) || (p_flag[3] && dimflag[3]) ||
             (p_flag[4] && dimflag[4]) || (p_flag[5] && dimflag[5]))
@@ -523,12 +523,12 @@ void FixBocs::init()
       {
         if (p_basis_type == BASIS_ANALYTIC)
         {
-          ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type,
+          (dynamic_cast<ComputePressureBocs *>(pressure))->send_cg_info(p_basis_type,
                                N_p_match, p_match_coeffs, N_mol, vavg);
         }
         else if (p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE)
         {
-          ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type,
+          (dynamic_cast<ComputePressureBocs *>(pressure))->send_cg_info(p_basis_type,
                                                splines, spline_length);
         }
       }
@@ -589,8 +589,8 @@ void FixBocs::init()
   else kspace_flag = 0;
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
-    step_respa = ((Respa *) update->integrate)->step;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
+    step_respa = (dynamic_cast<Respa *>( update->integrate))->step;
     dto = 0.5*step_respa[0];
   }
 
@@ -1452,7 +1452,7 @@ int FixBocs::pack_restart_data(double *list)
 void FixBocs::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
   int flag = static_cast<int> (list[n++]);
   if (flag) {
     int m = static_cast<int> (list[n++]);
@@ -1551,12 +1551,12 @@ int FixBocs::modify_param(int narg, char **arg)
     {
       if (p_basis_type == BASIS_ANALYTIC)
       {
-        ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type, N_p_match,
+        (dynamic_cast<ComputePressureBocs *>(pressure))->send_cg_info(p_basis_type, N_p_match,
                                                    p_match_coeffs, N_mol, vavg);
       }
       else if (p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE )
       {
-        ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type, splines, spline_length );
+        (dynamic_cast<ComputePressureBocs *>(pressure))->send_cg_info(p_basis_type, splines, spline_length );
       }
     }
 

@@ -134,7 +134,7 @@ void FixACKS2ReaxFF::pertype_parameters(char *arg)
     eta = (double *) pair->extract("eta",tmp);
     gamma = (double *) pair->extract("gamma",tmp);
     bcut_acks2 = (double *) pair->extract("bcut_acks2",tmp);
-    double* bond_softness_ptr = (double *) pair->extract("bond_softness",tmp);
+    auto  bond_softness_ptr = (double *) pair->extract("bond_softness",tmp);
 
     if (chi == nullptr || eta == nullptr || gamma == nullptr ||
         bcut_acks2 == nullptr || bond_softness_ptr == nullptr)

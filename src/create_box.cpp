@@ -72,7 +72,7 @@ void CreateBox::command(int narg, char **arg)
 
   } else {
     domain->triclinic = 1;
-    RegPrism *region = (RegPrism *) domain->regions[iregion];
+    auto region = dynamic_cast<RegPrism *>( domain->regions[iregion]);
     domain->boxlo[0] = region->xlo;
     domain->boxhi[0] = region->xhi;
     domain->boxlo[1] = region->ylo;

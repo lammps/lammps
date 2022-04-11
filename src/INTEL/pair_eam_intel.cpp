@@ -44,7 +44,7 @@ using namespace LAMMPS_NS;
 PairEAMIntel::PairEAMIntel(LAMMPS *lmp) : PairEAM(lmp)
 {
   suffix_flag |= Suffix::INTEL;
-  fp_float = 0;
+  fp_float = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -197,7 +197,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
 
   const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
-  const int ** _noalias const firstneigh = (const int **)list->firstneigh;
+  const int ** _noalias const firstneigh = (const int **)list->firstneigh;  // NOLINT
   const FC_PACKED1_T * _noalias const rhor_spline_f = fc.rhor_spline_f;
   const FC_PACKED1_T * _noalias const rhor_spline_e = fc.rhor_spline_e;
   const FC_PACKED2_T * _noalias const z2r_spline_t = fc.z2r_spline_t;
@@ -306,7 +306,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
         const flt_t ytmp = x[i].y;
         const flt_t ztmp = x[i].z;
 
-        acc_t rhoi = (acc_t)0.0;
+        auto  rhoi = (acc_t)0.0;
         int ej = 0;
         #if defined(LMP_SIMD_COMPILER)
         #pragma vector aligned
@@ -656,7 +656,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
   if (EFLAG || vflag)
     fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
   else
-    fix->add_result_array(f_start, 0, offload);
+    fix->add_result_array(f_start, nullptr, offload);
 }
 
 /* ----------------------------------------------------------------------

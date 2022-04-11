@@ -293,10 +293,11 @@ void ComputeBornMatrix::init()
 
     // need an occasional half neighbor list
 
-    int irequest = neighbor->request((void *) this);
-    neighbor->requests[irequest]->pair = 0;
-    neighbor->requests[irequest]->compute = 1;
-    neighbor->requests[irequest]->occasional = 1;
+    neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
+    // int irequest = neighbor->request((void *) this);
+    // neighbor->requests[irequest]->pair = 0;
+    // neighbor->requests[irequest]->compute = 1;
+    // neighbor->requests[irequest]->occasional = 1;
 
   } else {
 
@@ -564,7 +565,7 @@ void ComputeBornMatrix::displace_atoms(int nall, int idir, double magnitude)
 
   // axial strain
 
-  if (l == k) 
+  if (l == k)
     for (int i = 0; i < nall; i++)
       x[i][k] = temp_x[i][k] + numdelta * magnitude * (temp_x[i][l] - fixedpoint[l]);
 
@@ -730,7 +731,7 @@ double ComputeBornMatrix::memory_usage()
 
 void ComputeBornMatrix::compute_bonds()
 {
-  int i, m, n, nb, atom1, atom2, imol, iatom, btype, ivar;
+  int i, j, m, n, nb, atom1, atom2, imol, iatom, btype, ivar;
   tagint tagprev;
   double dx, dy, dz, rsq;
 
@@ -805,12 +806,12 @@ void ComputeBornMatrix::compute_bonds()
         pair_pref = du2pair - dupair * rinv;
 
         a = b = c = d = 0;
-        for (i = 0; i < 21; i++) {
-          a = albemunu[i][0];
-          b = albemunu[i][1];
-          c = albemunu[i][2];
-          d = albemunu[i][3];
-          values_local[m + i] += pair_pref * rij[a] * rij[b] * rij[c] * rij[d] * r2inv;
+        for (j = 0; j < 21; j++) {
+          a = albemunu[j][0];
+          b = albemunu[j][1];
+          c = albemunu[j][2];
+          d = albemunu[j][3];
+          values_local[m + j] += pair_pref * rij[a] * rij[b] * rij[c] * rij[d] * r2inv;
         }
       }
     }
@@ -829,7 +830,7 @@ void ComputeBornMatrix::compute_bonds()
 
 void ComputeBornMatrix::compute_angles()
 {
-  int i, m, n, na, atom1, atom2, atom3, imol, iatom, atype, ivar;
+  int i, j, m, n, na, atom1, atom2, atom3, imol, iatom, atype, ivar;
   tagint tagprev;
   double delx1, dely1, delz1, delx2, dely2, delz2;
   double rsq1, rsq2, r1, r2, cost;
@@ -932,7 +933,11 @@ void ComputeBornMatrix::compute_angles()
       cost /= r1 * r2;
       if (cost > 1.0) cost = 1.0;
       if (cost < -1.0) cost = -1.0;
-      cinv = 1.0 / cost;
+      if (cost == 0.) {
+          cinv = 1.0 / cost;
+      } else {
+          cinv = 0.;
+      }
 
       // The method must return derivative with regards
       // to cos(theta)!
@@ -946,26 +951,30 @@ void ComputeBornMatrix::compute_angles()
       // 4 = 23, 5 = 13, 6 = 12
       a = b = c = d = 0;
       // clang-format off
-      for (i = 0; i<6; i++) {
-        a = sigma_albe[i][0];
-        b = sigma_albe[i][1];
-        dcos[i] = cost*((del1[a]*del2[b]+del1[b]*del2[a])*r1r2inv -
-                        del1[a]*del1[b]*rsq1inv - del2[a]*del2[b]*rsq2inv);
+      for (j = 0; j<6; j++) {
+          if (cost == 0) {
+              dcos[j] = 0.;
+          } else {
+            a = sigma_albe[j][0];
+            b = sigma_albe[j][1];
+            dcos[j] = cost*((del1[a]*del2[b]+del1[b]*del2[a])*r1r2inv -
+                            del1[a]*del1[b]*rsq1inv - del2[a]*del2[b]*rsq2inv);
+          }
       }
-      for (i = 0; i<21; i++) {
-        a = albemunu[i][0];
-        b = albemunu[i][1];
-        c = albemunu[i][2];
-        d = albemunu[i][3];
-        e = C_albe[i][0];
-        f = C_albe[i][1];
+      for (j = 0; j<21; j++) {
+        a = albemunu[j][0];
+        b = albemunu[j][1];
+        c = albemunu[j][2];
+        d = albemunu[j][3];
+        e = C_albe[j][0];
+        f = C_albe[j][1];
         d2lncos = 2*(del1[a]*del1[b]*del1[c]*del1[d]*rsq1inv*rsq1inv +
                         del2[a]*del2[b]*del2[c]*del2[d]*rsq2inv*rsq2inv) -
                        (del1[a]*del2[b]+del1[b]*del2[a]) *
                        (del1[c]*del2[d]+del1[d]*del2[c]) *
                        r1r2inv*r1r2inv;
         d2cos =  cost*d2lncos + dcos[e]*dcos[f]*cinv;
-        values_local[m+i] += duang*d2cos + du2ang*dcos[e]*dcos[f];
+        values_local[m+j] += duang*d2cos + du2ang*dcos[e]*dcos[f];
       }
       // clang-format on
     }
@@ -982,7 +991,7 @@ void ComputeBornMatrix::compute_angles()
 
 void ComputeBornMatrix::compute_dihedrals()
 {
-  int i, m, n, nd, atom1, atom2, atom3, atom4, imol, iatom, dtype, ivar;
+  int i, j, m, n, nd, atom1, atom2, atom3, atom4, imol, iatom, dtype, ivar;
   tagint tagprev;
   double vb1x, vb1y, vb1z, vb2x, vb2y, vb2z, vb3x, vb3y, vb3z, vb2xm, vb2ym, vb2zm;
   double ax, ay, az, bx, by, bz, rasq, rbsq, dotab, rgsq, rg, ra2inv, rb2inv, dotabinv, rabinv;
@@ -1074,7 +1083,7 @@ void ComputeBornMatrix::compute_dihedrals()
       // with dt/dcos(t) = -1/sin(t)
 
       dihedral->born_matrix(nd, atom1, atom2, atom3, atom4, dudih, du2dih);
-      // printf("Energy: %f, %f\n", dudih, du2dih);
+      printf("Energy: %f, %f\n", dudih, du2dih);
 
       vb1x = x[atom2][0] - x[atom1][0];
       vb1y = x[atom2][1] - x[atom1][1];
@@ -1160,35 +1169,36 @@ void ComputeBornMatrix::compute_dihedrals()
       int test2 = -1;
       int test3 = -1;
       // clang-format off
-      for (i = 0; i<6; i++) {
-        al = sigma_albe[i][0];
-        be = sigma_albe[i][1];
+      for (j = 0; j<6; j++) {
+        al = sigma_albe[j][0];
+        be = sigma_albe[j][1];
 
-        daa[i] = 2*(b2sq*b1[al]*b1[be]
-                + b1sq*b2[al]*b2[be]
-                - b1b2*(b1[al]*b2[be]+b2[al]*b1[be]));
+        daa[j] = 2*(b2sq*b1[al]*b1[be]
+                  + b1sq*b2[al]*b2[be]
+                  - b1b2*(b1[al]*b2[be]+b2[al]*b1[be]));
 
-        dbb[i] = 2*(b2sq*b3[al]*b3[be]
-                + b3sq*b2[al]*b2[be]
-                - b2b3*(b3[al]*b2[be]+b2[al]*b3[be]));
+        dbb[j] = 2*(b2sq*b3[al]*b3[be]
+                  + b3sq*b2[al]*b2[be]
+                  - b2b3*(b3[al]*b2[be]+b2[al]*b3[be]));
 
-        dab[i] = b1b2*(b2[al]*b3[be]+b3[al]*b2[be])
+        dab[j] = b1b2*(b2[al]*b3[be]+b3[al]*b2[be])
                + b2b3*(b1[al]*b2[be]+b2[al]*b1[be])
                - b1b3*(b2[al]*b2[be]+b2[al]*b2[be])
                - b2sq*(b1[al]*b3[be]+b3[al]*b1[be]);
-        if (i == test1) {
+
+        if (j == test1) {
             printf("b3sq = %f, b2[al] = %f, b2[be] = %f\n", b3sq, b2[al], b3[be]);
             printf("daa1 = %18.15g, daa2 = %18.15g, daa3 = %18.15g\n", b2sq*b1[al]*b1[be], b1sq*b2[al]*b2[be], b1b2*(b1[al]*b2[be]+b2[al]*b1[be]));
             printf("dbb1 = %18.15g, dbb2 = %18.15g, dbb3 = %18.15g\n", b2sq*b3[al]*b3[be], b3sq*b2[al]*b2[be], b2b3*(b3[al]*b2[be]+b2[al]*b3[be]));
             printf("dab1 = %18.15g, dab2 = %18.15g, dab3 = %18.15g, dab4 = %18.15g\n", b1b2*(b2[al]*b3[be]+b3[al]*b2[be]), b2b3*(b1[al]*b2[be]+b2[al]*b1[be]), -b1b3*(b2[al]*b2[be]+b2[al]*b2[be]), -b2sq*(b1[al]*b3[be]+b3[al]*b1[be]));
         }
 
-        dcos[i] = 0.5*co*(2*dotabinv*dab[i] - ra2inv*daa[i] - rb2inv*dbb[i]);
-        if (i == test1 || i == test2) {
-            printf("order 1 %d al: %d, be: %d\n", i+1, al, be);
-            printf("daa = %18.15g, dbb = %18.15g, dab = %18.15g\n", daa[i], dbb[i], dab[i]);
-            printf("daa/raa = %18.15g, dbb/rbb = %18.15g, dab/rab = %18.15g\n", ra2inv*daa[i], rb2inv*dbb[i], dotabinv*dab[i]);
-            printf("dcos = %e\n", dcos[i]);
+        dcos[j] = 0.5*co*(2*dotabinv*dab[j] - ra2inv*daa[j] - rb2inv*dbb[j]);
+        if (j == test1 || j == test2) {
+            printf("order 1 %d al: %d, be: %d\n", j+1, al, be);
+            printf("daa = %18.15g, dbb = %18.15g, dab = %18.15g\n", daa[j], dbb[j], dab[j]);
+            printf("daa/raa = %18.15g, dbb/rbb = %18.15g, dab/rab = %18.15g\n", ra2inv*daa[j], rb2inv*dbb[j], dotabinv*dab[j]);
+            printf("dcos = %e\n", dcos[j]);
         }
       }
       printf("dcos:\n");
@@ -1208,13 +1218,13 @@ void ComputeBornMatrix::compute_dihedrals()
       printf("%e %e %e\n", dab[3], dab[4], dab[5]);
       printf("\n");
 
-      for (i = 0; i<21; i++) {
-        al = albemunu[i][0];
-        be = albemunu[i][1];
-        mu = albemunu[i][2];
-        nu = albemunu[i][3];
-        e = C_albe[i][0];
-        f = C_albe[i][1];
+      for (j = 0; j<21; j++) {
+        al = albemunu[j][0];
+        be = albemunu[j][1];
+        mu = albemunu[j][2];
+        nu = albemunu[j][3];
+        e = C_albe[j][0];
+        f = C_albe[j][1];
 
         d2aa = 4*(b1[al]*b1[be]*b2[mu]*b2[nu] + b1[mu]*b1[nu]*b2[al]*b2[be])
              - 2*(b1[al]*b2[be]+b1[be]*b2[al])*(b1[mu]*b2[nu]+b1[nu]*b2[mu]);
@@ -1227,7 +1237,7 @@ void ComputeBornMatrix::compute_dihedrals()
              - (b1[al]*b3[be]+b3[al]*b1[be])*(b2[mu]*b2[nu]+b2[mu]*b2[nu])
              - (b2[al]*b2[be]+b2[al]*b2[be])*(b1[mu]*b3[nu]+b3[mu]*b1[nu]);
 
-        if (i == test1 || i == test2 || i == test3) {
+        if (j == test1 || j == test2 || j == test3) {
             printf("b1al = %g ", b1[al]);
             printf("b1be = %g ", b1[be]);
             printf("b1mu = %g ", b1[mu]);
@@ -1255,13 +1265,14 @@ void ComputeBornMatrix::compute_dihedrals()
             printf("4: %e\n", (b2[al]*b1[be]+b2[be]*b1[al])*(b2[mu]*b3[nu]+b2[nu]*b3[mu]));
         }
 
-        d2lncos = 2*(dotabinv*d2ab - dotabinv*dotabinv*dab[e]*dab[f]) + (ra2inv*ra2inv*daa[e]*daa[f] - ra2inv*d2aa) + (rb2inv*rb2inv*dbb[e]*dbb[f] - rb2inv*d2bb);
-        d2cos = 0.5*co*d2lncos + dcos[e]*dcos[f]/co/co;
+        // d2lncos = 2*(dotabinv*d2ab - dotabinv*dotabinv*dab[e]*dab[f]) + (ra2inv*ra2inv*daa[e]*daa[f] - ra2inv*d2aa) + (rb2inv*rb2inv*dbb[e]*dbb[f] - rb2inv*d2bb);
+        // d2cos = 0.5*co*d2lncos + dcos[e]*dcos[f]/co/co;
+        d2cos = 0.5*co*(-2*dotabinv*dotabinv*dab[e]*dab[f] + 2*dotabinv*d2ab + ra2inv*ra2inv*daa[e]*daa[f] - ra2inv*d2aa + rb2inv*rb2inv*dbb[e]*dbb[f] - rb2inv*d2bb + 2*dcos[e]*dcos[f]/co);
 
-        values_local[m+i] += dudih*d2cos;
-        values_local[m+i] += du2dih*dcos[e]*dcos[f];
-        if (i == test1 || i == test2 || i == test3) {
-            printf("order 2 %d al: %d, be: %d\n", i+1, al, be);
+        values_local[m+j] += dudih*d2cos;
+        values_local[m+j] += du2dih*dcos[e]*dcos[f];
+        if (j == test1 || j == test2 || j == test3) {
+            printf("order 2 %d al: %d, be: %d\n", j+1, al, be);
             printf("           mu: %d, nu: %d\n", mu, nu);
             printf("           e: %d, f: %d\n", e, f);
             printf("d2aa = %18.15e, d2bb = %18.15e, d2ab = %18.15e\n", d2aa, d2bb, d2ab);

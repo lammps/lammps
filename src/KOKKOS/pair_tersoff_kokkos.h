@@ -52,6 +52,7 @@ class PairTersoffKokkos : public PairTersoff {
   PairTersoffKokkos(class LAMMPS *);
   ~PairTersoffKokkos() override;
   void compute(int, int) override;
+  void coeff(int, char **) override;
   void init_style() override;
 
   template<int NEIGHFLAG, int EVFLAG>
@@ -82,60 +83,60 @@ class PairTersoffKokkos : public PairTersoff {
   void operator()(TagPairTersoffComputeShortNeigh, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  double ters_fc_k(const int &i, const int &j, const int &k, const F_FLOAT &r) const;
+  double ters_fc_k(Param *param, const F_FLOAT &r) const;
 
   KOKKOS_INLINE_FUNCTION
-  double ters_dfc(const int &i, const int &j, const int &k, const F_FLOAT &r) const;
+  double ters_dfc(Param *param, const F_FLOAT &r) const;
 
   KOKKOS_INLINE_FUNCTION
-  void ters_fc_k_and_ters_dfc(const int &i, const int &j, const int &k, const F_FLOAT &r, double &fc, double &dfc) const;
+  void ters_fc_k_and_ters_dfc(Param *param, const F_FLOAT &r, double &fc, double &dfc) const;
 
   KOKKOS_INLINE_FUNCTION
-  double ters_fa_k(const int &i, const int &j, const int &k, const F_FLOAT &r) const;
+  double ters_fa_k(Param *param, const F_FLOAT &r) const;
 
   KOKKOS_INLINE_FUNCTION
-  double ters_dfa(const int &i, const int &j, const int &k, const F_FLOAT &r) const;
+  double ters_dfa(Param *param, const F_FLOAT &r) const;
 
   KOKKOS_INLINE_FUNCTION
-  void ters_fa_k_and_ters_dfa(const int &i, const int &j, const int &k, const F_FLOAT &r, double &fa, double &dfa) const;
+  void ters_fa_k_and_ters_dfa(Param *param, const F_FLOAT &r, double &fa, double &dfa) const;
 
   KOKKOS_INLINE_FUNCTION
-  double ters_bij_k(const int &i, const int &j, const int &k, const F_FLOAT &bo) const;
+  double ters_bij_k(Param *param, const F_FLOAT &bo) const;
 
   KOKKOS_INLINE_FUNCTION
-  double ters_dbij(const int &i, const int &j, const int &k, const F_FLOAT &bo) const;
+  double ters_dbij(Param *param, const F_FLOAT &bo) const;
 
   KOKKOS_INLINE_FUNCTION
-  void ters_bij_k_and_ters_dbij(const int &i, const int &j, const int &k, const F_FLOAT &bo, double &bij, double &prefactor) const;
+  void ters_bij_k_and_ters_dbij(Param *param, const F_FLOAT &bo, double &bij, double &prefactor) const;
 
   KOKKOS_INLINE_FUNCTION
-  double bondorder(const int &i, const int &j, const int &k,
+  double bondorder(Param *param,
               const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
               const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2) const;
 
   KOKKOS_INLINE_FUNCTION
-  double ters_gijk(const int &i, const int &j, const int &k, const F_FLOAT &cos) const;
+  double ters_gijk(Param *param, const F_FLOAT &cos) const;
 
   KOKKOS_INLINE_FUNCTION
-  double ters_dgijk(const int &i, const int &j, const int &k, const F_FLOAT &cos) const;
+  double ters_dgijk(Param *param, const F_FLOAT &cos) const;
 
   KOKKOS_INLINE_FUNCTION
-  void ters_gijk_and_ters_dgijk(const int &i, const int &j, const int &k, const F_FLOAT &cos, double& gijk, double& dgijk) const;
+  void ters_gijk_and_ters_dgijk(Param *param, const F_FLOAT &cos, double& gijk, double& dgijk) const;
 
   KOKKOS_INLINE_FUNCTION
-  void ters_dthb(const int &i, const int &j, const int &k, const F_FLOAT &prefactor,
+  void ters_dthb(Param *param, const F_FLOAT &prefactor,
               const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
               const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2,
               F_FLOAT *fi, F_FLOAT *fj, F_FLOAT *fk) const;
 
   KOKKOS_INLINE_FUNCTION
-  void ters_dthbj(const int &i, const int &j, const int &k, const F_FLOAT &prefactor,
+  void ters_dthbj(Param *param, const F_FLOAT &prefactor,
               const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
               const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2,
               F_FLOAT *fj, F_FLOAT *fk) const;
 
   KOKKOS_INLINE_FUNCTION
-  void ters_dthbk(const int &i, const int &j, const int &k, const F_FLOAT &prefactor,
+  void ters_dthbk(Param *param, const F_FLOAT &prefactor,
               const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
               const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2,
               F_FLOAT *fk) const;
@@ -163,17 +164,6 @@ class PairTersoffKokkos : public PairTersoff {
   KOKKOS_INLINE_FUNCTION
   int sbmask(const int& j) const;
 
-  struct params_ters{
-    KOKKOS_INLINE_FUNCTION
-    params_ters() {powerm=0;gamma=0;lam3=0;c=0;d=0;h=0;powern=0;beta=0;lam2=0;bigb=0;
-                  bigr=0;bigd=0;lam1=0;biga=0;cutsq=0;c1=0;c2=0;c3=0;c4=0;};
-    KOKKOS_INLINE_FUNCTION
-    params_ters(int /*i*/) {powerm=0;gamma=0;lam3=0;c=0;d=0;h=0;powern=0;beta=0;lam2=0;bigb=0;
-                  bigr=0;bigd=0;lam1=0;biga=0;cutsq=0;c1=0;c2=0;c3=0;c4=0;};
-    F_FLOAT powerm, gamma, lam3, c, d, h, powern, beta, lam2, bigb, bigr,
-            bigd, lam1, biga, cutsq, c1, c2, c3, c4;
-  };
-
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
@@ -189,16 +179,21 @@ class PairTersoffKokkos : public PairTersoff {
   void v_tally3_atom(EV_FLOAT &ev, const int &i, const int &j, const int &k,
                 F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drjk) const;
 
-  void allocate() override;
   void setup_params() override;
 
  protected:
   typedef Kokkos::DualView<int***,DeviceType> tdual_int_3d;
-  Kokkos::DualView<params_ters***,Kokkos::LayoutRight,DeviceType> k_params;
-  typename Kokkos::DualView<params_ters***,
-    Kokkos::LayoutRight,DeviceType>::t_dev_const_um paramskk;
-  // hardwired to space for 12 atom types
-  //params_ters m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
+  typedef typename tdual_int_3d::t_dev_const_randomread t_int_3d_randomread;
+  typedef typename tdual_int_3d::t_host t_host_int_3d;
+
+  t_int_3d_randomread d_elem3param;
+  typename AT::t_int_1d_randomread d_map;
+
+  typedef Kokkos::DualView<Param*,DeviceType> tdual_param_1d;
+  typedef typename tdual_param_1d::t_dev t_param_1d;
+  typedef typename tdual_param_1d::t_host t_host_param_1d;
+
+  t_param_1d d_params;
 
   int inum;
   typename AT::t_x_array_randomread x;

@@ -134,11 +134,11 @@ void PairSWKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   int max_neighs = d_neighbors.extent(1);
 
-  if (((int) d_neighbors_short.extent(1) != max_neighs) ||
-      ((int) d_neighbors_short.extent(0) != ignum)) {
+  if (((int) d_neighbors_short.extent(1) < max_neighs) ||
+      ((int) d_neighbors_short.extent(0) < ignum)) {
     d_neighbors_short = Kokkos::View<int**,DeviceType>("SW::neighbors_short",ignum,max_neighs);
   }
-  if ((int)d_numneigh_short.extent(0)!=ignum)
+  if ((int)d_numneigh_short.extent(0) , ignum)
     d_numneigh_short = Kokkos::View<int*,DeviceType>("SW::numneighs_short",ignum);
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagPairSWComputeShortNeigh>(0,neighflag==FULL?ignum:inum), *this);
 
@@ -232,11 +232,11 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeShortNeigh, const int&
       const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cutmax*cutmax) {
-        d_neighbors_short(i,inside) = j;
+        d_neighbors_short(ii,inside) = j;
         inside++;
       }
     }
-    d_numneigh_short(i) = inside;
+    d_numneigh_short(ii) = inside;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -264,14 +264,14 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeHalf<NEIGHFLAG,EVFLAG>
 
   // two-body interactions, skip half of them
 
-  const int jnum = d_numneigh_short[i];
+  const int jnum = d_numneigh_short[ii];
 
   F_FLOAT fxtmpi = 0.0;
   F_FLOAT fytmpi = 0.0;
   F_FLOAT fztmpi = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
-    int j = d_neighbors_short(i,jj);
+    int j = d_neighbors_short(ii,jj);
     j &= NEIGHMASK;
     const tagint jtag = tag[j];
 
@@ -313,7 +313,7 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeHalf<NEIGHFLAG,EVFLAG>
   const int jnumm1 = jnum - 1;
 
   for (int jj = 0; jj < jnumm1; jj++) {
-    int j = d_neighbors_short(i,jj);
+    int j = d_neighbors_short(ii,jj);
     j &= NEIGHMASK;
     const int jtype = d_map[type[j]];
     const int ijparam = d_elem3param(itype,jtype,jtype);
@@ -328,7 +328,7 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeHalf<NEIGHFLAG,EVFLAG>
     F_FLOAT fztmpj = 0.0;
 
     for (int kk = jj+1; kk < jnum; kk++) {
-      int k = d_neighbors_short(i,kk);
+      int k = d_neighbors_short(ii,kk);
       k &= NEIGHMASK;
       const int ktype = d_map[type[k]];
       const int ikparam = d_elem3param(itype,ktype,ktype);
@@ -398,14 +398,14 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullA<NEIGHFLAG,EVFLAG
 
   // two-body interactions
 
-  const int jnum = d_numneigh_short[i];
+  const int jnum = d_numneigh_short[ii];
 
   F_FLOAT fxtmpi = 0.0;
   F_FLOAT fytmpi = 0.0;
   F_FLOAT fztmpi = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
-    int j = d_neighbors_short(i,jj);
+    int j = d_neighbors_short(ii,jj);
     j &= NEIGHMASK;
 
     const int jtype = d_map[type[j]];
@@ -434,7 +434,7 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullA<NEIGHFLAG,EVFLAG
   const int jnumm1 = jnum - 1;
 
   for (int jj = 0; jj < jnumm1; jj++) {
-    int j = d_neighbors_short(i,jj);
+    int j = d_neighbors_short(ii,jj);
     j &= NEIGHMASK;
     const int jtype = d_map[type[j]];
     const int ijparam = d_elem3param(itype,jtype,jtype);
@@ -446,7 +446,7 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullA<NEIGHFLAG,EVFLAG
     if (rsq1 >= d_params[ijparam].cutsq) continue;
 
     for (int kk = jj+1; kk < jnum; kk++) {
-      int k = d_neighbors_short(i,kk);
+      int k = d_neighbors_short(ii,kk);
       k &= NEIGHMASK;
       const int ktype = d_map[type[k]];
       const int ikparam = d_elem3param(itype,ktype,ktype);
@@ -503,14 +503,14 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullB<NEIGHFLAG,EVFLAG
   const X_FLOAT ytmpi = x(i,1);
   const X_FLOAT ztmpi = x(i,2);
 
-  const int jnum = d_numneigh_short[i];
+  const int jnum = d_numneigh_short[ii];
 
   F_FLOAT fxtmpi = 0.0;
   F_FLOAT fytmpi = 0.0;
   F_FLOAT fztmpi = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
-    int j = d_neighbors_short(i,jj);
+    int j = d_neighbors_short(ii,jj);
     j &= NEIGHMASK;
     if (j >= nlocal) continue;
     const int jtype = d_map[type[j]];
@@ -526,10 +526,10 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullB<NEIGHFLAG,EVFLAG
 
     if (rsq1 >= d_params[jiparam].cutsq) continue;
 
-    const int j_jnum = d_numneigh_short[j];
+    const int j_jnum = d_numneigh_short[jj];
 
     for (int kk = 0; kk < j_jnum; kk++) {
-      int k = d_neighbors_short(j,kk);
+      int k = d_neighbors_short(jj,kk);
       k &= NEIGHMASK;
       if (k == i) continue;
       const int ktype = d_map[type[k]];

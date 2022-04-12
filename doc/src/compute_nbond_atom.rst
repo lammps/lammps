@@ -1,7 +1,7 @@
 .. index:: compute nbond/atom
 
 compute nbond/atom command
-=======================
+==========================
 
 Syntax
 """"""
@@ -50,6 +50,3 @@ Default
 """""""
 
 none
-
-----------
-

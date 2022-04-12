@@ -1,10 +1,10 @@
 Broken Bonds
-===============
+============
 
 Typically, bond interactions persist for the duration of a simulation
 in LAMMPS. However, there are some exceptions that allow for bonds to
 break includung the :doc:`quartic bond style <bond_quartic>` and the
-bond styles in the :doc:`BPM package <Howto_BPM>` which contains the
+bond styles in the :doc:`BPM package <Howto_bpm>` which contains the
 :doc:`bpm/spring <bond_bpm_spring>` and
 :doc:`bpm/rotational <bond_bpm_rotational>` bond styles. In these cases,
 a bond can be broken if it is stretched beyond a user-defined threshold.
@@ -26,7 +26,7 @@ two atoms is turned on, since they are no longer bonded.
 In the BPM package, one can either turn off all pair interactions between
 bonded particles or leave them on, overlaying pair forces on top of bond
 forces. To remove pair forces, the special bond list is dynamically
-updated. More details can be found on the :doc:`Howto BPM <Howto_BPM>`
+updated. More details can be found on the :doc:`Howto BPM <Howto_bpm>`
 page.
 
 Bonds can also be broken by fixes which change bond topology, including
@@ -44,5 +44,5 @@ status of broken bonds or permanently delete them, e.g.:
    delete_bonds all stats
    delete_bonds all bond 0 remove
 
-The compute :doc:`nbonds/atom <compute_nbonds_atom>` can also be used
+The compute :doc:`nbond/atom <compute_nbond_atom>` can also be used
 to tally the current number of bonds per atom, excluding broken bonds.

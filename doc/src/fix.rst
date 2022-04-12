@@ -365,7 +365,6 @@ accelerated styles exist.
 * :doc:`spring/rg <fix_spring_rg>` - spring on radius of gyration of group of atoms
 * :doc:`spring/self <fix_spring_self>` - spring from each atom to its origin
 * :doc:`srd <fix_srd>` - stochastic rotation dynamics (SRD)
-* :doc:`store/local <fix_store_local>` - store local data for output
 * :doc:`store/force <fix_store_force>` - store force on each atom
 * :doc:`store/state <fix_store_state>` - store attributes for each atom
 * :doc:`tdpd/source <fix_dpd_source>` -
@@ -384,7 +383,6 @@ accelerated styles exist.
 * :doc:`ttm/grid <fix_ttm>` - two-temperature model for electronic/atomic coupling (distributed grid)
 * :doc:`ttm/mod <fix_ttm>` - enhanced two-temperature model with additional options
 * :doc:`tune/kspace <fix_tune_kspace>` - auto-tune KSpace parameters
-* :doc:`update/special/bonds <fix_update_special_bonds>` - update special bond lists for BPM bond styles that allow for bond breakage
 * :doc:`vector <fix_vector>` - accumulate a global vector every N timesteps
 * :doc:`viscosity <fix_viscosity>` - Muller-Plathe momentum exchange for viscosity calculation
 * :doc:`viscous <fix_viscous>` - viscous damping for granular simulations

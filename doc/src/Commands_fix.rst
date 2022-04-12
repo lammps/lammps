@@ -159,7 +159,6 @@ OPT.
    * :doc:`orient/fcc <fix_orient>`
    * :doc:`orient/eco <fix_orient_eco>`
    * :doc:`pafi <fix_pafi>`
-   * :doc:`pair/tracker <fix_pair_tracker>`
    * :doc:`phonon <fix_phonon>`
    * :doc:`pimd <fix_pimd>`
    * :doc:`planeforce <fix_planeforce>`
@@ -223,7 +222,6 @@ OPT.
    * :doc:`spring/rg <fix_spring_rg>`
    * :doc:`spring/self <fix_spring_self>`
    * :doc:`srd <fix_srd>`
-   * :doc:`store/local <fix_store_local>`
    * :doc:`store/force <fix_store_force>`
    * :doc:`store/state <fix_store_state>`
    * :doc:`tdpd/source <fix_dpd_source>`

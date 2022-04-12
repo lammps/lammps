@@ -475,7 +475,7 @@ The *fileper* keyword is documented below with the *nfile* keyword.
 The *header* keyword toggles whether the dump file will include a
 header.  Excluding a header will reduce the size of the dump file for
 data produced by :doc:`pair tracker <pair_tracker>` or
-:doc:`bpm bond styles <HowTo_bpm>` which may not require the
+:doc:`bpm bond styles <Howto_bpm>` which may not require the
 information typically written to the header.
 
 ----------

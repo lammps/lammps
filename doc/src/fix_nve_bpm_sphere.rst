@@ -1,7 +1,7 @@
 .. index:: fix nve/bpm/sphere
 
 fix nve/bpm/sphere command
-======================
+==========================
 
 Syntax
 """"""
@@ -38,7 +38,7 @@ ensemble.
 
 This fix differs from the :doc:`fix nve <fix_nve>` command, which
 assumes point particles and only updates their position and velocity.
-It also differs from the :doc:`fix nve/sphere <fix_nve/sphere>`
+It also differs from the :doc:`fix nve/sphere <fix_nve_sphere>`
 command which assumes finite-size spheroid particles which do not
 store a quaternion.  It thus does not update a particle's orientation
 or quaternion.

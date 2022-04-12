@@ -1,5 +1,5 @@
 Bonded particle models
-===============
+======================
 
 The BPM package implements bonded particle models which can be used to
 simulate mesoscale solids.  Solids are constructed as a collection of
@@ -21,7 +21,7 @@ pouring of extended, elastic bodies.
 ----------
 
 Bonds can be created using a :doc:`read data <read_data>` or
-:doc:`create bond <create_bond>` command. Alternatively, a
+:doc:`create bonds <create_bonds>` command. Alternatively, a
 :doc:`molecule <molecule>` template with bonds can be used with
 :doc:`fix deposit <fix_deposit>` or :doc:`fix pour <fix_pour>` to
 create solid grains.
@@ -98,7 +98,7 @@ to :doc:`fix nve/asphere <fix_nve_asphere>`.
 
 To monitor the fracture of bonds in the system, all BPM bond styles
 have the ability to record instances of bond breakage to output using
-the :doc:`dump local <dump_local>` command. Additionally, one can use
+the :doc:`dump local <dump>` command. Additionally, one can use
 :doc:`compute nbond/atom <compute_nbond_atom>` to tally the current
 number of bonds per atom.
 
@@ -118,7 +118,7 @@ following are currently compatible with BPM bond styles:
 * :doc:`fix bond/break <fix_bond_break>`
 * :doc:`fix bond/swap <fix_bond_swap>`
 
-Note :doc:`bond_create <bond_create>` requires certain special_bonds settings.
+Note :doc:`create_bonds <create_bonds>` requires certain special_bonds settings.
 To subtract pair interactions, one will need to switch between different
 special_bonds settings in the input script. An example is found in
 examples/bpm/impact.

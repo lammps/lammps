@@ -2618,7 +2618,7 @@ length of the data area, and a short description.
      - int
      - 1
      - 1 if the particle is a body particle, 0 if not
-  * - quat
+   * - quat
      - double
      - 4
      - four quaternion components of the particles

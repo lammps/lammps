@@ -1,7 +1,7 @@
 .. index:: pair_style bpm/spring
 
 pair_style bpm/spring command
-=======================
+=============================
 
 Syntax
 """"""
@@ -27,9 +27,9 @@ Style *bpm/spring* computes pairwise forces with the formula
 .. math::
 
    F = k (r - r_c)
-   
+
 where :math:`k` is a stiffness and :math:`r_c` is the cutoff length.
-An additional damping force is also applied to interacting 
+An additional damping force is also applied to interacting
 particles. The force is proportional to the difference in the
 normal velocity of particles
 

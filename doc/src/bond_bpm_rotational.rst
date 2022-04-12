@@ -1,7 +1,7 @@
 .. index:: bond_style bpm/rotational
 
 bond_style bpm/rotational command
-==========================
+=================================
 
 Syntax
 """"""
@@ -71,7 +71,7 @@ particles which are proportional to angular bending and twisting
 displacements with stiffnesses of :math`k_b` and :math:`k_t',
 respectively.  Details on the calculations of shear displacements and
 angular displacements can be found in :ref:`(Wang) <Wang2009>` and
-:ref:`(Wang and Mora) <WangMora2009b>`.
+:ref:`(Wang and Mora) <Wang2009b>`.
 
 Bonds will break under sufficient stress. A breaking criteria is calculated
 
@@ -154,7 +154,7 @@ timesteps. At the end of each interval, all of the saved accumulated
 data is deleted to make room for new data. Individual datum may
 therefore persist anywhere between *1* to *N* timesteps depending on
 when they are saved. This data can be accessed using the *fix_ID* and a
-:doc:`dump local <dump_local>` command. To ensure all data is output,
+:doc:`dump local <dump>` command. To ensure all data is output,
 the dump frequency should correspond to the same interval of *N*
 timesteps. A dump frequency of an integer multiple of *N* can be used
 to regularly output a sample of the accumulated data.

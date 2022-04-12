@@ -154,11 +154,11 @@ void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
     tag2 = it.second;
     i1 = atom->map(tag1);
     i2 = atom->map(tag2);
-    
+
     // Loop through atoms of owned atoms i j
     if (i1 < nlocal) {
       jlist = firstneigh[i1];
-      jnum = numneigh[i1];    
+      jnum = numneigh[i1];
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
         j &= SPECIALMASK; // Clear special bond bits

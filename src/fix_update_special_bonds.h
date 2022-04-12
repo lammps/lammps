@@ -34,7 +34,7 @@ class FixUpdateSpecialBonds : public Fix {
   int setmask();
   void setup(int);
   void pre_exchange();
-  void pre_force(int); 
+  void pre_force(int);
   void add_broken_bond(int,int);
 
  protected:

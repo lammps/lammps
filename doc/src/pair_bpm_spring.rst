@@ -52,7 +52,7 @@ This pair style is designed for use in a spring-based bonded particle
 model.  It mirrors the construction of the :doc:`bpm/spring
 <bond_bpm_spring>` bond style.
 
-This pair interaction is always applied to pairs of nonbonded particles
+This pair interaction is always applied to pairs of non-bonded particles
 that are within the interaction distance. For pairs of bonded particles
 that are within the interaction distance, there is the option to either
 include this pair interaction and overlay the pair force over the bond

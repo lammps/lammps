@@ -3,7 +3,7 @@ Broken Bonds
 
 Typically, bond interactions persist for the duration of a simulation
 in LAMMPS. However, there are some exceptions that allow for bonds to
-break includung the :doc:`quartic bond style <bond_quartic>` and the
+break including the :doc:`quartic bond style <bond_quartic>` and the
 bond styles in the :doc:`BPM package <Howto_bpm>` which contains the
 :doc:`bpm/spring <bond_bpm_spring>` and
 :doc:`bpm/rotational <bond_bpm_rotational>` bond styles. In these cases,

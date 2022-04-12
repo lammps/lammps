@@ -109,8 +109,8 @@ velocity damping as its sister bond style.
 
 ----------
 
-While LAMMPS has many untilites to create and delete bonds, the
-following are currently compatible with BPM bond styles:
+While LAMMPS has many utilities to create and delete bonds, *only*
+the following are currently compatible with BPM bond styles:
 
 * :doc:`create_bonds <create_bonds>`
 * :doc:`delete_bonds <delete_bonds>`

@@ -1,6 +1,6 @@
-.. index:: compute nbonds/atom
+.. index:: compute nbond/atom
 
-compute nbonds/atom command
+compute nbond/atom command
 =======================
 
 Syntax
@@ -8,17 +8,17 @@ Syntax
 
 .. parsed-literal::
 
-   compute ID group-ID nbonds/atom
+   compute ID group-ID nbond/atom
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
-* nbonds/atom = style name of this compute command
+* nbond/atom = style name of this compute command
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   compute 1 all nbonds/atom
+   compute 1 all nbond/atom
 
 Description
 """""""""""

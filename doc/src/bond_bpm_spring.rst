@@ -69,7 +69,7 @@ setting its type to 0 such that forces are no longer computed.
 An additional damping force is applied to the bonded
 particles.  This forces is proportional to the difference in the
 normal velocity of particles using a similar construction as
-dissipative particle dynamics (:ref:`(Groot) <Groot1>`):
+dissipative particle dynamics (:ref:`(Groot) <Groot4>`):
 
 .. math::
 
@@ -197,6 +197,6 @@ The option defaults are *smooth* = *yes*
 
 ----------
 
-.. _Groot1:
+.. _Groot4:
 
 **(Groot)** Groot and Warren, J Chem Phys, 107, 4423-35 (1997).

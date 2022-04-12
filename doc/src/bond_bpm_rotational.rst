@@ -98,7 +98,7 @@ added or removed using the *smooth* keyword.
 Finally, additional damping forces and torques are applied to the two
 particles. A force is applied proportional to the difference in the
 normal velocity of particles using a similar construction as
-dissipative particle dynamics (:ref:`(Groot) <Groot1>`):
+dissipative particle dynamics (:ref:`(Groot) <Groot3>`):
 
 .. math::
 
@@ -109,7 +109,7 @@ radial normal vector, and :math:`\vec{v}` is the velocity difference
 between the two particles. Similarly, tangential forces are applied to
 each atom proportional to the relative differences in sliding
 velocities with a constant prefactor :math:`\gamma_s` (:ref:`(Wang et
-al.) <Wang2015>`) along with their associated torques. The rolling and
+al.) <Wang20152>`) along with their associated torques. The rolling and
 twisting components of the relative angular velocities of the two
 atoms are also damped by applying torques with prefactors of
 :math:`\gamma_r` and :math:`\gamma_t`, respectively.
@@ -247,11 +247,11 @@ p 117-127 (2009).
 **(Wang and Mora)** Wang, Mora, Advances in Geocomputing,
 119, p 183-228 (2009).
 
-.. _Groot1:
+.. _Groot3:
 
 **(Groot)** Groot and Warren, J Chem Phys, 107, 4423-35 (1997).
 
-.. _Wang2015:
+.. _Wang20152:
 
 **(Wang et al, 2015)** Wang, Y., Alonso-Marroquin, F., & Guo,
 W. W. (2015).  Rolling and sliding in 3-D discrete element

@@ -85,11 +85,10 @@ void FixUpdateSpecialBonds::setup(int /*vflag*/)
 
 void FixUpdateSpecialBonds::pre_exchange()
 {
-  int i, j, key, m, n1, n3;
+  int i, j, m, n1, n3;
   tagint tagi, tagj;
   int nlocal = atom->nlocal;
 
-  tagint *tag = atom->tag;
   tagint *slist;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;

@@ -319,7 +319,6 @@ void FixBondHistory::shift_history(int i, int m, int k)
   if (m == k) return;
 
   double **stored = atom->darray[index];
-  int n = atom->num_bond[i];
   for (int idata = 0; idata < ndata; idata ++)
     stored[i][m*ndata+idata] = stored[i][k*ndata+idata];
 }

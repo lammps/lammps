@@ -26,8 +26,8 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "tokenizer.h"
-#include "utils.h"
 #include "update.h"
+#include "utils.h"
 
 #include <cstring>
 
@@ -36,7 +36,9 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairTracker::PairTracker(LAMMPS *lmp) :
-    Pair(lmp), pack_choice(nullptr), id_fix_store_local(nullptr), output_data(nullptr), type_filter(nullptr), fix_history(nullptr),  fix_store_local(nullptr)
+    Pair(lmp), onerad_dynamic(nullptr), onerad_frozen(nullptr), maxrad_dynamic(nullptr),
+    maxrad_frozen(nullptr), id_fix_store_local(nullptr), fix_dummy(nullptr), fix_history(nullptr),
+    fix_store_local(nullptr), type_filter(nullptr), output_data(nullptr), pack_choice(nullptr)
 {
   single_enable = 1;
   no_virial_fdotr_compute = 1;
@@ -138,9 +140,7 @@ void PairTracker::compute(int eflag, int vflag)
         if (rsq >= radsum * radsum) {
 
           data = &alldata[size_history * jj];
-          if (touch[jj] == 1) {
-            process_data(i, j, data);
-          }
+          if (touch[jj] == 1) process_data(i, j, data);
 
           touch[jj] = 0;
           data[0] = 0.0;    // initial timestep
@@ -165,9 +165,7 @@ void PairTracker::compute(int eflag, int vflag)
         if (rsq >= cutsq[itype][jtype]) {
 
           data = &alldata[size_history * jj];
-          if (touch[jj] == 1) {
-            process_data(i, j, data);
-          }
+          if (touch[jj] == 1) process_data(i, j, data);
 
           touch[jj] = 0;
           data[0] = 0.0;    // initial timestep
@@ -293,19 +291,16 @@ void PairTracker::settings(int narg, char **arg)
     } else {
       error->all(FLERR, "Illegal pair_style command");
     }
-    iarg ++;
+    iarg++;
   }
 
   if (nvalues == 0) error->all(FLERR, "Must request at least one value to output");
   memory->create(output_data, nvalues, "pair/tracker:output_data");
 
-  int ifix = modify->find_fix(id_fix_store_local);
-  if (ifix < 0) {
-    modify->add_fix(fmt::format("{} all STORE_LOCAL {} {}",
-      id_fix_store_local, store_local_freq, nvalues));
-    ifix = modify->find_fix(id_fix_store_local);
-  }
-  fix_store_local = (FixStoreLocal *) modify->fix[ifix];
+  fix_store_local = dynamic_cast<FixStoreLocal *>(modify->get_fix_by_id(id_fix_store_local));
+  if (!fix_store_local)
+    fix_store_local = dynamic_cast<FixStoreLocal *>(modify->add_fix(
+        fmt::format("{} all STORE_LOCAL {} {}", id_fix_store_local, store_local_freq, nvalues)));
 }
 
 /* ----------------------------------------------------------------------
@@ -343,7 +338,6 @@ void PairTracker::coeff(int narg, char **arg)
 
 void PairTracker::init_style()
 {
-  int i, ifix;
   // error and warning checks
 
   if (!atom->radius_flag && finitecutflag)
@@ -362,18 +356,18 @@ void PairTracker::init_style()
   if (fix_history == nullptr) {
     modify->replace_fix("NEIGH_HISTORY_TRACK_DUMMY",
                         fmt::format("NEIGH_HISTORY_TRACK all NEIGH_HISTORY {}", size_history), 1);
-    fix_history = dynamic_cast<FixNeighHistory *>( modify->get_fix_by_id("NEIGH_HISTORY_TRACK"));
+    fix_history = dynamic_cast<FixNeighHistory *>(modify->get_fix_by_id("NEIGH_HISTORY_TRACK"));
     fix_history->pair = this;
     fix_history->use_bit_flag = 0;
   } else {
-    fix_history = dynamic_cast<FixNeighHistory *>( modify->get_fix_by_id("NEIGH_HISTORY_TRACK"));
+    fix_history = dynamic_cast<FixNeighHistory *>(modify->get_fix_by_id("NEIGH_HISTORY_TRACK"));
     if (!fix_history) error->all(FLERR, "Could not find pair fix neigh history ID");
   }
 
   if (finitecutflag) {
     if (force->pair->beyond_contact)
       error->all(FLERR,
-        "Pair tracker incompatible with granular pairstyles that extend beyond contact");
+                 "Pair tracker incompatible with granular pairstyles that extend beyond contact");
 
     // check for FixFreeze and set freeze_group_bit
 
@@ -393,8 +387,8 @@ void PairTracker::init_style()
     // set maxrad_dynamic and maxrad_frozen for each type
     // include future FixPour and FixDeposit particles as dynamic
 
-    int itype;
-    for (i = 1; i <= atom->ntypes; i++) {
+    int itype = 0;
+    for (int i = 1; i <= atom->ntypes; i++) {
       onerad_dynamic[i] = onerad_frozen[i] = 0.0;
       for (auto &ipour : pours) {
         itype = i;
@@ -413,7 +407,7 @@ void PairTracker::init_style()
     int *type = atom->type;
     int nlocal = atom->nlocal;
 
-    for (i = 0; i < nlocal; i++)
+    for (int i = 0; i < nlocal; i++)
       if (mask[i] & freeze_group_bit)
         onerad_frozen[type[i]] = MAX(onerad_frozen[type[i]], radius[i]);
       else
@@ -547,7 +541,7 @@ double PairTracker::radii2cut(double r1, double r2)
 
 /* ---------------------------------------------------------------------- */
 
-void PairTracker::process_data(int i, int j, double * input_data)
+void PairTracker::process_data(int i, int j, double *input_data)
 {
   if ((update->ntimestep - input_data[0]) < tmin) return;
 
@@ -565,75 +559,70 @@ void PairTracker::process_data(int i, int j, double * input_data)
    the atom property is packed into a local vector or array
 ------------------------------------------------------------------------- */
 
-void PairTracker::pack_time_created(int n, int i, int j, double * data)
+void PairTracker::pack_time_created(int n, int /*i*/, int /*j*/, double *data)
 {
   output_data[n] = data[0];
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairTracker::pack_time_broken(int n, int i, int j, double * data)
+void PairTracker::pack_time_broken(int n, int /*i*/, int /*j*/, double * /*data*/)
 {
   output_data[n] = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairTracker::pack_time_total(int n, int i, int j, double * data)
+void PairTracker::pack_time_total(int n, int /*i*/, int /*j*/, double *data)
 {
   output_data[n] = update->ntimestep - data[0];
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairTracker::pack_id1(int n, int i, int j, double * data)
+void PairTracker::pack_id1(int n, int i, int /*j*/, double * /*data*/)
 {
-  tagint *tag = atom->tag;
-  output_data[n] = tag[i];
+  output_data[n] = atom->tag[i];
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairTracker::pack_id2(int n, int i, int j, double * data)
+void PairTracker::pack_id2(int n, int /*i*/, int j, double * /*data*/)
 {
-  tagint *tag = atom->tag;
-  output_data[n] = tag[j];
+  output_data[n] = atom->tag[j];
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairTracker::pack_x(int n, int i, int j, double * data)
+void PairTracker::pack_x(int n, int i, int j, double * /*data*/)
 {
-  double **x = atom->x;
-  output_data[n] = (x[i][0] + x[j][0])*0.5;
+  output_data[n] = (atom->x[i][0] + atom->x[j][0]) * 0.5;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairTracker::pack_y(int n, int i, int j, double * data)
+void PairTracker::pack_y(int n, int i, int j, double * /*data*/)
 {
-  double **x = atom->x;
-  output_data[n] = (x[i][1] + x[j][1])*0.5;
+  output_data[n] = (atom->x[i][1] + atom->x[j][1]) * 0.5;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairTracker::pack_z(int n, int i, int j, double * data)
+void PairTracker::pack_z(int n, int i, int j, double * /*data*/)
 {
-  double **x = atom->x;
-  output_data[n] = (x[i][2] + x[j][2])*0.5;
+  output_data[n] = (atom->x[i][2] + atom->x[j][2]) * 0.5;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairTracker::pack_rmin(int n, int i, int j, double * data)
+void PairTracker::pack_rmin(int n, int /*i*/, int /*j*/, double *data)
 {
   output_data[n] = data[2];
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairTracker::pack_rave(int n, int i, int j, double * data)
+void PairTracker::pack_rave(int n, int /*i*/, int /*j*/, double *data)
 {
   output_data[n] = data[1] / (update->ntimestep - data[0]);
 }

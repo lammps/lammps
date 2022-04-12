@@ -123,8 +123,8 @@ void AngleAmoeba::compute(int eflag, int vflag)
 
       // bondangle = bond-stretch cross term in Tinker
 
-      if (ba_k1[type] != 0.0)
-        tinker_bondangle(i1,i2,i3,type,eflag);
+      //if (ba_k1[type] != 0.0)
+      //tinker_bondangle(i1,i2,i3,type,eflag);
     }
 
     // Urey-Bradley H-H bond term within water molecules

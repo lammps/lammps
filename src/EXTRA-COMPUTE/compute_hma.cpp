@@ -90,8 +90,8 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
   // our new fix's group = same as compute group
 
   id_fix = utils::strdup(std::string(id)+"_COMPUTE_STORE");
-  fix = (FixStore *)modify->add_fix(fmt::format("{} {} STORE peratom 1 3",
-                                                id_fix, group->names[igroup]));
+  fix = dynamic_cast<FixStore *>(modify->add_fix(fmt::format("{} {} STORE peratom 1 3",
+                                                id_fix, group->names[igroup])));
 
   // calculate xu,yu,zu for fix store array
   // skip if reset from restart file
@@ -190,7 +190,7 @@ void ComputeHMA::setup()
   int dummy=0;
   int ifix = modify->find_fix(id_temp);
   if (ifix < 0) error->all(FLERR,"Could not find compute hma temperature ID");
-  double * temperat = (double *) modify->fix[ifix]->extract("t_target",dummy);
+  auto  temperat = (double *) modify->fix[ifix]->extract("t_target",dummy);
   if (temperat==nullptr) error->all(FLERR,"Could not find compute hma temperature ID");
   finaltemp = * temperat;
 
@@ -198,7 +198,7 @@ void ComputeHMA::setup()
 
   int ifix2 = modify->find_fix(id_fix);
   if (ifix2 < 0) error->all(FLERR,"Could not find hma store fix ID");
-  fix = (FixStore *) modify->fix[ifix2];
+  fix = dynamic_cast<FixStore *>( modify->fix[ifix2]);
 }
 
 /* ---------------------------------------------------------------------- */

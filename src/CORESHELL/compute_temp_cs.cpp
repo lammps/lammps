@@ -74,7 +74,7 @@ ComputeTempCS::ComputeTempCS(LAMMPS *lmp, int narg, char **arg) :
   strcpy(id_fix,fixcmd.c_str());
 
   fixcmd += fmt::format(" {} STORE peratom 0 1", group->names[igroup]);
-  fix = (FixStore *)modify->add_fix(fixcmd);
+  fix = dynamic_cast<FixStore *>(modify->add_fix(fixcmd));
 
   // set fix store values = 0 for now
   // fill them in via setup() once Comm::borders() has been called

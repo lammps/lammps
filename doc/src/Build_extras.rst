@@ -45,7 +45,6 @@ This is the list of packages that may require additional steps.
    * :ref:`MACHDYN <machdyn>`
    * :ref:`MDI <mdi>`
    * :ref:`MESONT <mesont>`
-   * :ref:`MESSAGE <message>`
    * :ref:`ML-HDNNP <ml-hdnnp>`
    * :ref:`ML-IAP <mliap>`
    * :ref:`ML-PACE <ml-pace>`
@@ -794,47 +793,6 @@ library.
       LAMMPS itself is built it will use these links.  You should also
       check that the ``Makefile.lammps`` file you create is appropriate
       for the compiler you use on your system to build LATTE.
-
-----------
-
-.. _message:
-
-MESSAGE package
------------------------------
-
-This package can optionally include support for messaging via sockets,
-using the open-source `ZeroMQ library <http://zeromq.org>`_, which must
-be installed on your system.
-
-.. tabs::
-
-   .. tab:: CMake build
-
-      .. code-block:: bash
-
-         -D MESSAGE_ZMQ=value    # build with ZeroMQ support, value = no (default) or yes
-         -D ZMQ_LIBRARY=path     # ZMQ library file (only needed if a custom location)
-         -D ZMQ_INCLUDE_DIR=path # ZMQ include directory (only needed if a custom location)
-
-   .. tab:: Traditional make
-
-      Before building LAMMPS, you must build the CSlib library in
-      ``lib/message``\ .  You can build the CSlib library manually if
-      you prefer; follow the instructions in ``lib/message/README``\ .
-      You can also do it in one step from the ``lammps/src`` dir, using
-      a command like these, which simply invoke the
-      ``lib/message/Install.py`` script with the specified args:
-
-      .. code-block:: bash
-
-         $ make lib-message               # print help message
-         $ make lib-message args="-m -z"  # build with MPI and socket (ZMQ) support
-         $ make lib-message args="-s"     # build as serial lib with no ZMQ support
-
-      The build should produce two files: ``lib/message/cslib/src/libmessage.a``
-      and ``lib/message/Makefile.lammps``.  The latter is copied from an
-      existing ``Makefile.lammps.*`` and has settings to link with the ZeroMQ
-      library if requested in the build.
 
 ----------
 

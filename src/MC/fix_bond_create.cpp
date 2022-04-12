@@ -235,7 +235,7 @@ int FixBondCreate::setmask()
 void FixBondCreate::init()
 {
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
 
   // check cutoff for iatomtype,jatomtype
 
@@ -621,9 +621,6 @@ void FixBondCreate::post_integrate()
   // also add angles/dihedrals/impropers induced by created bonds
 
   update_topology();
-
-  // DEBUG
-  //print_bb();
 }
 
 /* ----------------------------------------------------------------------
@@ -684,11 +681,6 @@ void FixBondCreate::update_topology()
   ndihedrals = 0;
   nimpropers = 0;
   overflow = 0;
-
-  //printf("NCREATE %d: ",ncreate);
-  //for (i = 0; i < ncreate; i++)
-  //  printf(" %d %d,",created[i][0],created[i][1]);
-  //printf("\n");
 
   for (i = 0; i < nlocal; i++) {
     influenced = 0;
@@ -1439,54 +1431,3 @@ double FixBondCreate::memory_usage()
   return bytes;
 }
 
-/* ---------------------------------------------------------------------- */
-
-void FixBondCreate::print_bb()
-{
-  for (int i = 0; i < atom->nlocal; i++) {
-    printf("TAG " TAGINT_FORMAT ": %d nbonds: ",atom->tag[i],atom->num_bond[i]);
-    for (int j = 0; j < atom->num_bond[i]; j++) {
-      printf(" " TAGINT_FORMAT,atom->bond_atom[i][j]);
-    }
-    printf("\n");
-    printf("TAG " TAGINT_FORMAT ": %d nangles: ",atom->tag[i],atom->num_angle[i]);
-    for (int j = 0; j < atom->num_angle[i]; j++) {
-      printf(" " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT ",",
-             atom->angle_atom1[i][j], atom->angle_atom2[i][j],
-             atom->angle_atom3[i][j]);
-    }
-    printf("\n");
-    printf("TAG " TAGINT_FORMAT ": %d ndihedrals: ",atom->tag[i],atom->num_dihedral[i]);
-    for (int j = 0; j < atom->num_dihedral[i]; j++) {
-      printf(" " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " "
-             TAGINT_FORMAT ",", atom->dihedral_atom1[i][j],
-             atom->dihedral_atom2[i][j],atom->dihedral_atom3[i][j],
-             atom->dihedral_atom4[i][j]);
-    }
-    printf("\n");
-    printf("TAG " TAGINT_FORMAT ": %d nimpropers: ",atom->tag[i],atom->num_improper[i]);
-    for (int j = 0; j < atom->num_improper[i]; j++) {
-      printf(" " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " "
-             TAGINT_FORMAT ",",atom->improper_atom1[i][j],
-             atom->improper_atom2[i][j],atom->improper_atom3[i][j],
-             atom->improper_atom4[i][j]);
-    }
-    printf("\n");
-    printf("TAG " TAGINT_FORMAT ": %d %d %d nspecial: ",atom->tag[i],
-           atom->nspecial[i][0],atom->nspecial[i][1],atom->nspecial[i][2]);
-    for (int j = 0; j < atom->nspecial[i][2]; j++) {
-      printf(" " TAGINT_FORMAT,atom->special[i][j]);
-    }
-    printf("\n");
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixBondCreate::print_copy(const char *str, tagint m,
-                              int n1, int n2, int n3, int *v)
-{
-  printf("%s " TAGINT_FORMAT ": %d %d %d nspecial: ",str,m,n1,n2,n3);
-  for (int j = 0; j < n3; j++) printf(" %d",v[j]);
-  printf("\n");
-}

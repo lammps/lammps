@@ -2387,7 +2387,7 @@ void AtomVec::setup_fields()
   else threads = nullptr;
   for (int i = 0; i < ngrow; i++) {
     Atom::PerAtom *field = &atom->peratom[mgrow.index[i]];
-    threads[i] = (field->threadflag) ? true : false;
+    threads[i] = field->threadflag == 1;
   }
 
   // set style-specific sizes

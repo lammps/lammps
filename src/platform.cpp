@@ -678,7 +678,7 @@ std::string platform::current_directory()
   if (_getcwd(buf, MAX_PATH)) { cwd = buf; }
   delete[] buf;
 #else
-  char *buf = new char[PATH_MAX];
+  auto buf = new char[PATH_MAX];
   if (::getcwd(buf, PATH_MAX)) { cwd = buf; }
   delete[] buf;
 #endif

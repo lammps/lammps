@@ -87,8 +87,8 @@ void AngleCosineShiftExpOMP::eval(int nfrom, int nto, ThrData * const thr)
   double rsq1,rsq2,r1,r2,c,s,a11,a12,a22;
   double exp2,aa,uumin,cccpsss,cssmscc;
 
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const auto * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const int4_t * _noalias const anglelist = (int4_t *) neighbor->anglelist[0];
   const int nlocal = atom->nlocal;
   eangle = 0.0;

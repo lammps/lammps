@@ -18,7 +18,7 @@ PairMap::PairMap(LammpsInterface * lammpsInterface, int groupbit ):
   nPairs_(0), nBonds_(0)
 {
 };
-PairMap::~PairMap(void)
+PairMap::~PairMap()
 {
 };
 //==========================================================
@@ -27,7 +27,7 @@ PairMapNeighbor::PairMapNeighbor(LammpsInterface * lammpsInterface, int groupbit
 {
 };
 
-void PairMapNeighbor::reset(void) const
+void PairMapNeighbor::reset() const
 {
   int inum = lammpsInterface_->neighbor_list_inum();
   int *ilist = lammpsInterface_->neighbor_list_ilist();
@@ -90,7 +90,7 @@ PairVirialEulerian::PairVirialEulerian(LammpsInterface * lammpsInterface,
 };
 
 
-void PairVirialEulerian::reset(void) const
+void PairVirialEulerian::reset() const
 {
   int nPairs = pairMap_.size();
   quantity_.reset(nPairs,nCols_);
@@ -129,7 +129,7 @@ PairVirialLagrangian::PairVirialLagrangian(LammpsInterface * lammpsInterface,
 };
 
 
-void PairVirialLagrangian::reset(void) const
+void PairVirialLagrangian::reset() const
 {
   int nPairs = pairMap_.size();
   quantity_.reset(nPairs,nCols_);
@@ -181,7 +181,7 @@ PairPotentialHeatFluxEulerian::PairPotentialHeatFluxEulerian(LammpsInterface * l
 
 };
 
-void PairPotentialHeatFluxEulerian::reset(void) const
+void PairPotentialHeatFluxEulerian::reset() const
 {
   int nPairs = pairMap_.size();
   quantity_.reset(nPairs,nCols_);
@@ -217,7 +217,7 @@ PairPotentialHeatFluxLagrangian::PairPotentialHeatFluxLagrangian(LammpsInterface
 
 };
 
-void PairPotentialHeatFluxLagrangian::reset(void) const
+void PairPotentialHeatFluxLagrangian::reset() const
 {
   int nPairs = pairMap_.size();
   quantity_.reset(nPairs,nCols_);
@@ -275,7 +275,7 @@ BondMatrixKernel::BondMatrixKernel(LammpsInterface * lammpsInterface,
   if (kernelFunction_ == nullptr)
     throw ATC_Error("No AtC kernel function initialized");
 };
-void BondMatrixKernel::reset(void) const
+void BondMatrixKernel::reset() const
 {
   int nPairs = pairMap_.size(); // needs to come after quantity for reset
   int nNodes = feMesh_->num_nodes_unique();
@@ -328,7 +328,7 @@ BondMatrixPartitionOfUnity::BondMatrixPartitionOfUnity(LammpsInterface * lammpsI
     lineWg_[i] *= 0.5;
   }
 };
-void BondMatrixPartitionOfUnity::reset(void) const
+void BondMatrixPartitionOfUnity::reset() const
 {
   int nNodes = feMesh_->num_nodes_unique();
   int nPairs = pairMap_.size();

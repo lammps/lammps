@@ -66,7 +66,7 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
 
   // create default Thermo class
 
-  char **newarg = new char*[1];
+  auto newarg = new char*[1];
   newarg[0] = (char *) "one";
   thermo = new Thermo(lmp,1,newarg);
   delete[] newarg;
@@ -192,7 +192,7 @@ void Output::setup(int memflag)
   // decide whether to write snapshot and/or calculate next step for dump
 
   if (ndump && update->restrict_output == 0) {
-    next_time_dump_any = MAXBIGINT;
+    next_dump_any = next_time_dump_any = MAXBIGINT;
 
     for (int idump = 0; idump < ndump; idump++) {
 
@@ -256,8 +256,7 @@ void Output::setup(int memflag)
 
       if (mode_dump[idump] && (dump[idump]->clearstep || var_dump[idump]))
         next_time_dump_any = MIN(next_time_dump_any,next_dump[idump]);
-      if (idump) next_dump_any = MIN(next_dump_any,next_dump[idump]);
-      else next_dump_any = next_dump[0];
+      next_dump_any = MIN(next_dump_any,next_dump[idump]);
     }
 
   // if no dumps, set next_dump_any to last+1 so will not influence next
@@ -276,7 +275,7 @@ void Output::setup(int memflag)
            (ntimestep/restart_every_single)*restart_every_single +
            restart_every_single;
        else {
-         bigint nextrestart = static_cast<bigint>
+         auto  nextrestart = static_cast<bigint>
            (input->variable->compute_equal(ivar_restart_single));
          if (nextrestart <= ntimestep)
            error->all(FLERR,"Restart variable returned a bad timestep");
@@ -289,7 +288,7 @@ void Output::setup(int memflag)
            (ntimestep/restart_every_double)*restart_every_double +
            restart_every_double;
        else {
-         bigint nextrestart = static_cast<bigint>
+         auto  nextrestart = static_cast<bigint>
            (input->variable->compute_equal(ivar_restart_double));
          if (nextrestart <= ntimestep)
            error->all(FLERR,"Restart variable returned a bad timestep");
@@ -356,9 +355,9 @@ void Output::setup(int memflag)
    //     what other command may have added it
 
    if (next_dump_any == ntimestep) {
+     next_dump_any = next_time_dump_any = MAXBIGINT;
 
      for (int idump = 0; idump < ndump; idump++) {
-       next_time_dump_any = MAXBIGINT;
 
        if (next_dump[idump] == ntimestep) {
          if (last_dump[idump] == ntimestep) continue;
@@ -381,8 +380,7 @@ void Output::setup(int memflag)
 
        if (mode_dump[idump] && (dump[idump]->clearstep || var_dump[idump]))
          next_time_dump_any = MIN(next_time_dump_any,next_dump[idump]);
-       if (idump) next_dump_any = MIN(next_dump_any,next_dump[idump]);
-       else next_dump_any = next_dump[0];
+       next_dump_any = MIN(next_dump_any,next_dump[idump]);
      }
    }
 
@@ -403,7 +401,7 @@ void Output::setup(int memflag)
        if (restart_every_single) next_restart_single += restart_every_single;
        else {
          modify->clearstep_compute();
-         bigint nextrestart = static_cast<bigint>
+         auto  nextrestart = static_cast<bigint>
            (input->variable->compute_equal(ivar_restart_single));
          if (nextrestart <= ntimestep)
            error->all(FLERR,"Restart variable returned a bad timestep");
@@ -424,7 +422,7 @@ void Output::setup(int memflag)
        if (restart_every_double) next_restart_double += restart_every_double;
        else {
          modify->clearstep_compute();
-         bigint nextrestart = static_cast<bigint>
+         auto  nextrestart = static_cast<bigint>
            (input->variable->compute_equal(ivar_restart_double));
          if (nextrestart <= ntimestep)
            error->all(FLERR,"Restart variable returned a bad timestep");
@@ -650,7 +648,7 @@ int Output::check_time_dumps(bigint ntimestep)
      } else {
        modify->clearstep_compute();
        update->ntimestep--;
-       bigint nextrestart = static_cast<bigint>
+       auto  nextrestart = static_cast<bigint>
          (input->variable->compute_equal(ivar_restart_single));
        if (nextrestart < ntimestep)
          error->all(FLERR,"Restart variable returned a bad timestep");
@@ -669,7 +667,7 @@ int Output::check_time_dumps(bigint ntimestep)
      } else {
        modify->clearstep_compute();
        update->ntimestep--;
-       bigint nextrestart = static_cast<bigint>
+       auto  nextrestart = static_cast<bigint>
          (input->variable->compute_equal(ivar_restart_double));
        if (nextrestart < ntimestep)
          error->all(FLERR,"Restart variable returned a bad timestep");

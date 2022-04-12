@@ -69,7 +69,7 @@ PPPMDispDielectric::PPPMDispDielectric(LAMMPS *lmp) : PPPMDisp(lmp)
   phi = nullptr;
   potflag = 0;
 
-  avec = (AtomVecDielectric *) atom->style_match("dielectric");
+  avec = dynamic_cast<AtomVecDielectric *>( atom->style_match("dielectric"));
   if (!avec) error->all(FLERR,"pppm/dielectric requires atom style dielectric");
 }
 

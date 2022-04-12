@@ -63,8 +63,8 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, a
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
 
   id_fix = utils::strdup(id + std::string("_COMPUTE_STORE"));
-  fix = (FixStore *) modify->add_fix(
-      fmt::format("{} {} STORE peratom 1 3", id_fix, group->names[igroup]));
+  fix = dynamic_cast<FixStore *>( modify->add_fix(
+      fmt::format("{} {} STORE peratom 1 3", id_fix, group->names[igroup])));
 
   // calculate xu,yu,zu for fix store array
   // skip if reset from restart file
@@ -127,7 +127,7 @@ void ComputeMSD::init()
 {
   // set fix which stores reference atom coords
 
-  fix = (FixStore *) modify->get_fix_by_id(id_fix);
+  fix = dynamic_cast<FixStore *>( modify->get_fix_by_id(id_fix));
   if (!fix) error->all(FLERR, "Could not find compute msd fix with ID {}", id_fix);
 
   // nmsd = # of atoms in group

@@ -503,7 +503,7 @@ void PairEAMCD::read_h_coeff(char *filename)
       error->one(FLERR,"Failure to seek to end-of-file for reading h(x) coeffs: {}",
                  utils::getsyserror());
 
-    char *buf = new char[MAXLINE+1];
+    auto buf = new char[MAXLINE+1];
     auto rv = fread(buf,1,MAXLINE,fptr);
     if (rv == 0) error->one(FLERR,"Failure to read h(x) coeffs: {}", utils::getsyserror());
     buf[rv] = '\0';        // must 0-terminate buffer for string processing

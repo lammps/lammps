@@ -90,26 +90,26 @@ void ComputeEfieldAtom::init()
 void ComputeEfieldAtom::setup()
 {
   if (strcmp(force->pair_style,"lj/cut/coul/long/dielectric") == 0)
-    efield_pair = ((PairLJCutCoulLongDielectric*)force->pair)->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulLongDielectric*>(force->pair))->efield;
   else if (strcmp(force->pair_style,"lj/cut/coul/long/dielectric/omp") == 0)
-    efield_pair = ((PairLJCutCoulMSMDielectric*)force->pair)->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulMSMDielectric*>(force->pair))->efield;
   else if (strcmp(force->pair_style,"lj/cut/coul/msm/dielectric") == 0)
-    efield_pair = ((PairLJCutCoulMSMDielectric*)force->pair)->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulMSMDielectric*>(force->pair))->efield;
   else if (strcmp(force->pair_style,"lj/cut/coul/cut/dielectric") == 0)
-    efield_pair = ((PairLJCutCoulCutDielectric*)force->pair)->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric*>(force->pair))->efield;
   else if (strcmp(force->pair_style,"lj/cut/coul/cut/dielectric/omp") == 0)
-    efield_pair = ((PairLJCutCoulCutDielectric*)force->pair)->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric*>(force->pair))->efield;
   else if (strcmp(force->pair_style,"coul/long/dielectric") == 0)
-    efield_pair = ((PairCoulLongDielectric*)force->pair)->efield;
+    efield_pair = (dynamic_cast<PairCoulLongDielectric*>(force->pair))->efield;
   else if (strcmp(force->pair_style,"coul/cut/dielectric") == 0)
-    efield_pair = ((PairCoulCutDielectric*)force->pair)->efield;
+    efield_pair = (dynamic_cast<PairCoulCutDielectric*>(force->pair))->efield;
   else error->all(FLERR,"Compute efield/atom not supported by pair style");
 
   if (force->kspace) {
     if (strcmp(force->kspace_style,"pppm/dielectric") == 0)
-      efield_kspace = ((PPPMDielectric*)force->kspace)->efield;
+      efield_kspace = (dynamic_cast<PPPMDielectric*>(force->kspace))->efield;
     else if (strcmp(force->kspace_style,"msm/dielectric") == 0)
-      efield_kspace = ((MSMDielectric*)force->kspace)->efield;
+      efield_kspace = (dynamic_cast<MSMDielectric*>(force->kspace))->efield;
     else error->all(FLERR,"Compute efield/atom not supported by kspace style");
     kspaceflag = 1;
   }

@@ -73,7 +73,7 @@ void FixNVTSllod::init()
   int i;
   for (i = 0; i < modify->nfix; i++)
     if (strncmp(modify->fix[i]->style,"deform",6) == 0) {
-      if (((FixDeform *) modify->fix[i])->remapflag != Domain::V_REMAP)
+      if ((dynamic_cast<FixDeform *>( modify->fix[i]))->remapflag != Domain::V_REMAP)
         error->all(FLERR,"Using fix nvt/sllod with inconsistent fix deform "
                    "remap option");
       break;

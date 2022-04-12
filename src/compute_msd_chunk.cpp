@@ -57,8 +57,8 @@ ComputeMSDChunk::ComputeMSDChunk(LAMMPS *lmp, int narg, char **arg) :
   // otherwise size reset and init will be done in setup()
 
   id_fix = utils::strdup(std::string(id) + "_COMPUTE_STORE");
-  fix = (FixStore *) modify->add_fix(fmt::format("{} {} STORE global 1 1",
-                                                 id_fix,group->names[igroup]));
+  fix = dynamic_cast<FixStore *>( modify->add_fix(fmt::format("{} {} STORE global 1 1",
+                                                 id_fix,group->names[igroup])));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -85,7 +85,7 @@ void ComputeMSDChunk::init()
   int icompute = modify->find_compute(idchunk);
   if (icompute < 0)
     error->all(FLERR,"Chunk/atom compute does not exist for compute msd/chunk");
-  cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
   if (strcmp(cchunk->style,"chunk/atom") != 0)
     error->all(FLERR,"Compute msd/chunk does not use chunk/atom compute");
 
@@ -93,7 +93,7 @@ void ComputeMSDChunk::init()
   // if firstflag, will be created in setup()
 
   if (!firstflag) {
-    fix = (FixStore *) modify->get_fix_by_id(id_fix);
+    fix = dynamic_cast<FixStore *>( modify->get_fix_by_id(id_fix));
     if (!fix) error->all(FLERR,"Could not find compute msd/chunk fix with ID {}", id_fix);
   }
 }
@@ -235,7 +235,7 @@ void ComputeMSDChunk::lock_disable()
 {
   int icompute = modify->find_compute(idchunk);
   if (icompute >= 0) {
-    cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+    cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
     cchunk->lockcount--;
   }
 }

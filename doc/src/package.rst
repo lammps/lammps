@@ -467,14 +467,14 @@ simple pairwise potentials such as Lennard-Jones do support threading
 over both atoms and neighbors.
 
 If the *neigh/transpose* keyword is set to *off*, then the KOKKOS
-package will use the same memory layout for building the neigh list on
+package will use the same memory layout for building the neighbor list on
 GPUs as used for the pair style. When this keyword is set to *on* it
-will use a different (transposed) memory layout to build the neigh
+will use a different (transposed) memory layout to build the neighbor
 list on GPUs. This can be faster in some cases (e.g. ReaxFF HNS
 benchmark) but slower in others (e.g. Lennard Jones benchmark). The
 copy between different memory layouts is done out of place and
-therefore doubles the memory overhead of the neigh list, which can be
-signicant.
+therefore doubles the memory overhead of the neighbor list, which can
+be significant.
 
 The *newton* keyword sets the Newton flags for pairwise and bonded
 interactions to *off* or *on*, the same as the :doc:`newton <newton>`
@@ -484,11 +484,12 @@ computation is done, but less communication. However, when running on
 CPUs a value of *on* is the default since it can often be faster, just
 as it is for non-accelerated pair styles
 
-The *binsize* keyword sets the size of bins used to bin atoms in
-neighbor list builds. The same value can be set by the :doc:`neigh_modify binsize <neigh_modify>` command. Making it an option in the package
-kokkos command allows it to be set from the command line. The default
-value for CPUs is 0.0, which means the LAMMPS default will be used,
-which is bins = 1/2 the size of the pairwise cutoff + neighbor skin
+The *binsize* keyword sets the size of bins used to bin atoms during
+neighbor list builds. The same value can be set by the
+:doc:`neigh_modify binsize <neigh_modify>` command. Making it an option
+in the package kokkos command allows it to be set from the command line.
+The default value for CPUs is 0.0, which means the LAMMPS default will be
+used, which is bins = 1/2 the size of the pairwise cutoff + neighbor skin
 distance. This is fine when neighbor lists are built on the CPU. For GPU
 builds, a 2x larger binsize equal to the pairwise cutoff + neighbor skin
 is often faster, which is the default. Note that if you use a

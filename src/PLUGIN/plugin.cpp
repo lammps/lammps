@@ -135,7 +135,7 @@ int plugin_load(const char *file, LAMMPS *lmp)
 void plugin_register(lammpsplugin_t *plugin, void *ptr)
 {
 #if defined(LMP_PLUGIN)
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  auto lmp = (LAMMPS *) ptr;
   int me = lmp->comm->me;
 
   if (plugin == nullptr) return;

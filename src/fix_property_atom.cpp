@@ -445,34 +445,35 @@ void FixPropertyAtom::write_data_section(int /*mth*/, FILE *fp,
                                          int n, double **buf, int /*index*/)
 {
   int k,icol,ncol,nv;
+  std::string line;
 
   for (int i = 0; i < n; i++) {
-    fprintf(fp,TAGINT_FORMAT,(tagint) ubuf(buf[i][0]).i);
+    line = fmt::format("{}",(tagint) ubuf(buf[i][0]).i);
     icol = 1;
     for (nv = 0; nv < nvalue; nv++) {
       if (styles[nv] == MOLECULE)
-        fprintf(fp," " TAGINT_FORMAT,(tagint) ubuf(buf[i][icol++]).i);
+        line += fmt::format(" {}",(tagint) ubuf(buf[i][icol++]).i);
       else if (styles[nv] == CHARGE)
-        fprintf(fp," %g",buf[i][icol++]);
+        line += fmt::format(" {}",buf[i][icol++]);
       else if (styles[nv] == RMASS)
-        fprintf(fp," %g",buf[i][icol++]);
+        line += fmt::format(" {}",buf[i][icol++]);
       else if (styles[nv] == IVEC)
-        fprintf(fp," %d",(int) ubuf(buf[i][icol++]).i);
+        line += fmt::format(" {}",(int) ubuf(buf[i][icol++]).i);
       else if (styles[nv] == DVEC)
-        fprintf(fp," %g",buf[i][icol++]);
+        line += fmt::format(" {}",buf[i][icol++]);
       else if (styles[nv] == IARRAY) {
         ncol = cols[nv];
         for (k = 0; k < ncol; k++)
-          fprintf(fp," %d",(int) ubuf(buf[i][icol+k]).i);
+          line += fmt::format(" {}",(int) ubuf(buf[i][icol+k]).i);
         icol += ncol;
       } else if (styles[nv] == DARRAY) {
         ncol = cols[nv];
         for (k = 0; k < ncol; k++)
-          fprintf(fp," %g",buf[i][icol+k]);
+          line += fmt::format(" {}",buf[i][icol+k]);
         icol += ncol;
       }
     }
-    fprintf(fp,"\n");
+    fmt::print(fp,line+"\n");
   }
 }
 

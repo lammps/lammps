@@ -23,16 +23,18 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_smd_ulsph_effm.h"
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
 #include "pair.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -87,12 +89,9 @@ void ComputeSMD_Ulsph_Effm::compute_peratom() {
         }
 
         int itmp = 0;
-        double *particle_dt = (double *) force->pair->extract("smd/ulsph/effective_modulus_ptr",
-                        itmp);
-        if (particle_dt == nullptr) {
-                error->all(FLERR,
-                                "compute smd/ulsph_effm failed to access particle_dt array");
-        }
+        auto particle_dt = (double *) force->pair->extract("smd/ulsph/effective_modulus_ptr", itmp);
+        if (particle_dt == nullptr)
+          error->all(FLERR, "compute smd/ulsph_effm failed to access particle_dt array");
 
         int *mask = atom->mask;
         int nlocal = atom->nlocal;

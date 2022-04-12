@@ -29,7 +29,7 @@ read_data       data.ubiquitin fix amtype NULL "Tinker Types" &
                 fix pit pitorsions PiTorsions &
                 fix bit bitorsions BiTorsions
 
-pair_style      amoeba
+pair_style      amoeba include angle
 pair_coeff      * * amoeba_ubiquitin.prm amoeba_ubiquitin.key
 
 special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
@@ -39,10 +39,11 @@ special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
 compute virial all pressure NULL virial
 
 thermo_style    custom step temp epair ebond eangle edihed eimp &
-                emol etotal #press c_virial[*]
+                emol etotal press c_virial[*]
 
 # zero step run
 
+dump            1 all custom 10 dump.ubi id type x y z fx fy fz
 run             0
 
 # dynamics

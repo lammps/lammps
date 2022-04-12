@@ -868,7 +868,7 @@ double PairTersoffKokkos<DeviceType>::bondorder(Param *param,
 
   const F_FLOAT costheta = (dx1*dx2 + dy1*dy2 + dz1*dz2)/(rij*rik);
 
-  F_FLOAT paramtmp = param->lam3 * (rij-rik);
+  const F_FLOAT paramtmp = param->lam3 * (rij-rik);
   if (int(param->powerm) == 3) arg = paramtmp*paramtmp*paramtmp;//pow(param->lam3 * (rij-rik),3.0);
   else arg = paramtmp;
 
@@ -1079,7 +1079,7 @@ void PairTersoffKokkos<DeviceType>::ters_dthb(
 
   ters_fc_k_and_ters_dfc(param,rik,fc,dfc);
 
-  F_FLOAT paramtmp = param->lam3 * (rij-rik);
+  const F_FLOAT paramtmp = param->lam3 * (rij-rik);
   if (int(param->powerm) == 3) tmp = paramtmp*paramtmp*paramtmp;//pow(param->lam3 * (rij-rik),3.0);
 
   if (tmp > 69.0776) ex_delr = 1.e30;
@@ -1147,7 +1147,7 @@ void PairTersoffKokkos<DeviceType>::ters_dthbj(
 
   fc = ters_fc_k(param,rik);
   dfc = ters_dfc(param,rik);
-  F_FLOAT paramtmp = param->lam3 * (rij-rik);
+  const F_FLOAT paramtmp = param->lam3 * (rij-rik);
   if (int(param->powerm) == 3) tmp = paramtmp*paramtmp*paramtmp;//pow(param->lam3 * (rij-rik),3.0);
 
   if (tmp > 69.0776) ex_delr = 1.e30;
@@ -1208,7 +1208,7 @@ void PairTersoffKokkos<DeviceType>::ters_dthbk(
 
   fc = ters_fc_k(param,rik);
   dfc = ters_dfc(param,rik);
-  F_FLOAT paramtmp = param->lam3 * (rij-rik);
+  const F_FLOAT paramtmp = param->lam3 * (rij-rik);
   if (int(param->powerm) == 3) tmp = paramtmp*paramtmp*paramtmp;//pow(param->lam3 * (rij-rik),3.0);
 
   if (tmp > 69.0776) ex_delr = 1.e30;

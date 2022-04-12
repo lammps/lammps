@@ -38,7 +38,6 @@ class PairTersoff : public Pair {
 
   static constexpr int NPARAMS_PER_LINE = 17;
 
- protected:
   struct Param {
     double lam1, lam2, lam3;
     double c, d, h;
@@ -56,6 +55,7 @@ class PairTersoff : public Pair {
     double c0;    // added for TersoffMODC
   };
 
+ protected:
   Param *params;      // parameter set for an I-J-K interaction
   double cutmax;      // max cutoff for all elements
   int maxshort;       // size of short neighbor list array

@@ -136,8 +136,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Invalid atom type in fix pour mol command");
 
       if (atom->molecular == Atom::TEMPLATE && onemols != atom->avec->onemols)
-        error->all(FLERR,"Fix pour molecule template ID must be same "
-                   "as atom style template ID");
+        error->all(FLERR,"Fix pour molecule template ID must be same as atom style template ID");
       onemols[i]->check_attributes(0);
 
       // fix pour uses geoemetric center of molecule for insertion

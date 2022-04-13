@@ -37,8 +37,7 @@ AtomVecBPMSphere::AtomVecBPMSphere(LAMMPS *lmp) : AtomVec(lmp)
 
   atom->molecule_flag = 1;
   atom->sphere_flag = 1;
-  atom->radius_flag = atom->rmass_flag = atom->omega_flag =
-    atom->torque_flag = atom->quat_flag = 1;
+  atom->radius_flag = atom->rmass_flag = atom->omega_flag = atom->torque_flag = atom->quat_flag = 1;
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings

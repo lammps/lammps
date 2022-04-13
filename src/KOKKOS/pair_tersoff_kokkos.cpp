@@ -686,7 +686,7 @@ double PairTersoffKokkos<DeviceType>::ters_dbij(const Param& param, const F_FLOA
     return param.beta * (factor *
            // error in negligible 2nd term fixed 2/21/2022
            // (1.0 - 0.5*(1.0 +  1.0/(2.0*param.powern)) *
-           (1.0 - (1.0 +  1.0/(2.0*param.powern)) *
+           (1.0 - (1.0 + 1.0/(2.0*param.powern)) *
            pow(tmp,-param.powern)));
   if (tmp < param.c4) return 0.0;
   if (tmp < param.c3)
@@ -936,8 +936,6 @@ void PairTersoffKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const i
       const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
                 const F_FLOAT &dely, const F_FLOAT &delz) const
 {
-  const int VFLAG = vflag_either;
-
   // The eatom and vatom arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
   auto v_eatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
@@ -952,7 +950,7 @@ void PairTersoffKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const i
     a_eatom[j] += epairhalf;
   }
 
-  if (VFLAG) {
+  if (vflag_either) {
     const E_FLOAT v0 = delx*delx*fpair;
     const E_FLOAT v1 = dely*dely*fpair;
     const E_FLOAT v2 = delz*delz*fpair;
@@ -1043,7 +1041,8 @@ void PairTersoffKokkos<DeviceType>::v_tally3(EV_FLOAT &ev,
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairTersoffKokkos<DeviceType>::v_tally3_atom(EV_FLOAT &ev, const int &i, const int & /*j*/,
-                                                  const int & /*k*/, F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drjk) const
+                                                  const int & /*k*/, F_FLOAT *fj, F_FLOAT *fk,
+                                                  F_FLOAT *drji, F_FLOAT *drjk) const
 {
   F_FLOAT v[6];
 

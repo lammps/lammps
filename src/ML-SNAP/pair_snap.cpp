@@ -692,7 +692,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
     if (keywd == "rinner" || keywd == "drinner") {
 
-      if (nwords != nelements+1)
+      if (words.size() != nelements+1)
         error->all(FLERR,"Incorrect SNAP parameter file");
 
       if (comm->me == 0)

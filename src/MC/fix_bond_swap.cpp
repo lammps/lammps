@@ -461,28 +461,28 @@ void FixBondSwap::post_integrate()
     if (bond_atom[i][ibond] == tag[inext]) {
       if (n_histories > 0)
         for (auto &ihistory: histories)
-          ((FixBondHistory *) ihistory)->delete_history(i,ibond);
+          dynamic_cast<FixBondHistory *>(ihistory)->delete_history(i,ibond);
       bond_atom[i][ibond] = tag[jnext];
     }
   for (jbond = 0; jbond < num_bond[j]; jbond++)
     if (bond_atom[j][jbond] == tag[jnext]) {
       if (n_histories > 0)
         for (auto &ihistory: histories)
-          ((FixBondHistory *) ihistory)->delete_history(j,jbond);
+          dynamic_cast<FixBondHistory *>(ihistory)->delete_history(j,jbond);
       bond_atom[j][jbond] = tag[inext];
     }
   for (ibond = 0; ibond < num_bond[inext]; ibond++)
     if (bond_atom[inext][ibond] == tag[i]) {
       if (n_histories > 0)
         for (auto &ihistory: histories)
-          ((FixBondHistory *) ihistory)->delete_history(inext,ibond);
+          dynamic_cast<FixBondHistory *>(ihistory)->delete_history(inext,ibond);
       bond_atom[inext][ibond] = tag[j];
     }
   for (jbond = 0; jbond < num_bond[jnext]; jbond++)
     if (bond_atom[jnext][jbond] == tag[j]) {
       if (n_histories > 0)
         for (auto &ihistory: histories)
-          ((FixBondHistory *) ihistory)->delete_history(jnext,jbond);
+          dynamic_cast<FixBondHistory *>(ihistory)->delete_history(jnext,jbond);
       bond_atom[jnext][jbond] = tag[i];
     }
 

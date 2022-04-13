@@ -301,11 +301,11 @@ void FixBondBreak::post_integrate()
           bond_type[i][k] = bond_type[i][k+1];
           if (n_histories > 0)
             for (auto &ihistory: histories)
-              ((FixBondHistory *) ihistory)->shift_history(i,k,k+1);
+              dynamic_cast<FixBondHistory *>(ihistory)->shift_history(i,k,k+1);
         }
         if (n_histories > 0)
           for (auto &ihistory: histories)
-            ((FixBondHistory *) ihistory)->delete_history(i,num_bond[i]-1);
+            dynamic_cast<FixBondHistory *>(ihistory)->delete_history(i,num_bond[i]-1);
         num_bond[i]--;
         break;
       }

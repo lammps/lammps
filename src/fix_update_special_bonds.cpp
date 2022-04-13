@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -16,15 +15,12 @@
 
 #include "atom.h"
 #include "atom_vec.h"
-#include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "neighbor.h"
 #include "neigh_list.h"
+#include "neighbor.h"
 #include "pair.h"
 
-#include <cstring>
-#include <vector>
 #include <utility>
 
 using namespace LAMMPS_NS;
@@ -33,15 +29,9 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixUpdateSpecialBonds::FixUpdateSpecialBonds(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+    Fix(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal fix update/special/bonds command");
-}
-
-/* ---------------------------------------------------------------------- */
-
-FixUpdateSpecialBonds::~FixUpdateSpecialBonds()
-{
+  if (narg != 3) error->all(FLERR, "Illegal fix update/special/bonds command");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -59,21 +49,18 @@ int FixUpdateSpecialBonds::setmask()
 void FixUpdateSpecialBonds::setup(int /*vflag*/)
 {
   // Require atoms know about all of their bonds and if they break
-  if (force->newton_bond)
-    error->all(FLERR,"Fix update/special/bonds requires Newton bond off");
+  if (force->newton_bond) error->all(FLERR, "Fix update/special/bonds requires Newton bond off");
 
-  if (!atom->avec->bonds_allow)
-    error->all(FLERR,"Fix update/special/bonds requires atom bonds");
+  if (!atom->avec->bonds_allow) error->all(FLERR, "Fix update/special/bonds requires atom bonds");
 
   // special lj must be 0 1 1 to censor pair forces between bonded particles
   // special coulomb must be 1 1 1 to ensure all pairs are included in the
   //   neighbor list and 1-3 and 1-4 special bond lists are skipped
-  if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 ||
-      force->special_lj[3] != 1.0)
-    error->all(FLERR,"Fix update/special/bonds requires special LJ weights = 0,1,1");
+  if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0)
+    error->all(FLERR, "Fix update/special/bonds requires special LJ weights = 0,1,1");
   if (force->special_coul[1] != 1.0 || force->special_coul[2] != 1.0 ||
       force->special_coul[3] != 1.0)
-    error->all(FLERR,"Fix update/special/bonds requires special Coulomb weights = 1,1,1");
+    error->all(FLERR, "Fix update/special/bonds requires special Coulomb weights = 1,1,1");
 
   new_broken_pairs.clear();
   broken_pairs.clear();
@@ -107,7 +94,7 @@ void FixUpdateSpecialBonds::pre_exchange()
       for (m = 0; m < n1; m++)
         if (slist[m] == tagj) break;
       n3 = nspecial[i][2];
-      for (; m < n3-1; m++) slist[m] = slist[m+1];
+      for (; m < n3 - 1; m++) slist[m] = slist[m + 1];
       nspecial[i][0]--;
       nspecial[i][1]--;
       nspecial[i][2]--;
@@ -119,7 +106,7 @@ void FixUpdateSpecialBonds::pre_exchange()
       for (m = 0; m < n1; m++)
         if (slist[m] == tagi) break;
       n3 = nspecial[j][2];
-      for (; m < n3-1; m++) slist[m] = slist[m+1];
+      for (; m < n3 - 1; m++) slist[m] = slist[m + 1];
       nspecial[j][0]--;
       nspecial[j][1]--;
       nspecial[j][2]--;
@@ -135,14 +122,14 @@ void FixUpdateSpecialBonds::pre_exchange()
 
 void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
 {
-  int i1,i2,j,jj,jnum;
-  int *jlist,*numneigh,**firstneigh;
+  int i1, i2, j, jj, jnum;
+  int *jlist, *numneigh, **firstneigh;
   tagint tag1, tag2;
 
   int nlocal = atom->nlocal;
 
   tagint *tag = atom->tag;
-  NeighList *list = force->pair->list; // may need to be generalized to work with pair hybrid*
+  NeighList *list = force->pair->list;    // may need to be generalized to work with pair hybrid*
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
@@ -161,9 +148,8 @@ void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
       jnum = numneigh[i1];
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
-        j &= SPECIALMASK; // Clear special bond bits
-        if (tag[j] == tag2)
-          jlist[jj] = j;
+        j &= SPECIALMASK;    // Clear special bond bits
+        if (tag[j] == tag2) jlist[jj] = j;
       }
     }
 
@@ -172,13 +158,11 @@ void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
       jnum = numneigh[i2];
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
-        j &= SPECIALMASK; // Clear special bond bits
-        if (tag[j] == tag1)
-          jlist[jj] = j;
+        j &= SPECIALMASK;    // Clear special bond bits
+        if (tag[j] == tag1) jlist[jj] = j;
       }
     }
   }
-
   new_broken_pairs.clear();
 }
 
@@ -186,9 +170,7 @@ void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
 
 void FixUpdateSpecialBonds::add_broken_bond(int i, int j)
 {
-  tagint *tag = atom->tag;
-  std::pair <tagint, tagint> tag_pair = std::make_pair(tag[i],tag[j]);
-
+  auto tag_pair = std::make_pair(atom->tag[i], atom->tag[j]);
   new_broken_pairs.push_back(tag_pair);
   broken_pairs.push_back(tag_pair);
 }

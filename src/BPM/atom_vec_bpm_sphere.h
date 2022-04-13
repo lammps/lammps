@@ -13,7 +13,7 @@
 
 #ifdef ATOM_CLASS
 // clang-format off
-AtomStyle(bpm/sphere,AtomVecBPMSphere)
+AtomStyle(bpm/sphere,AtomVecBPMSphere);
 // clang-format on
 #else
 
@@ -39,13 +39,12 @@ class AtomVecBPMSphere : public AtomVec {
   void pack_data_pre(int) override;
   void pack_data_post(int) override;
 
-
  private:
   int *num_bond;
   int **bond_type;
   int **nspecial;
 
-  double *radius,*rmass;
+  double *radius, *rmass;
   double **omega, **torque, **quat;
 
   int any_bond_negative;
@@ -53,7 +52,7 @@ class AtomVecBPMSphere : public AtomVec {
   int *bond_negative;
 
   int radvary;
-  double radius_one,rmass_one;
+  double radius_one, rmass_one;
 };
 
 }    // namespace LAMMPS_NS

@@ -427,6 +427,8 @@ void Atom::peratom_create()
   add_peratom("tri",&tri,INT,0);
   add_peratom("body",&body,INT,0);
 
+  // BPM package
+
   add_peratom("quat",&quat,DOUBLE,4);
 
   // MOLECULE package

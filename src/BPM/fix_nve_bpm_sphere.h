@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(nve/bpm/sphere,FixNVEBPMSphere)
+FixStyle(nve/bpm/sphere,FixNVEBPMSphere);
 // clang-format on
 #else
 

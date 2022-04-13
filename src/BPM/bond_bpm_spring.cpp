@@ -57,7 +57,6 @@ BondBPMSpring::~BondBPMSpring()
 
 double BondBPMSpring::store_bond(int n,int i,int j)
 {
-  int m,k;
   double delx, dely, delz, r;
   double **x = atom->x;
   double **bondstore = fix_bond_history->bondstore;
@@ -71,7 +70,7 @@ double BondBPMSpring::store_bond(int n,int i,int j)
   bondstore[n][0] = r;
 
   if (i < atom->nlocal) {
-    for (m = 0; m < atom->num_bond[i]; m ++) {
+    for (int m = 0; m < atom->num_bond[i]; m ++) {
       if (atom->bond_atom[i][m] == tag[j]) {
         fix_bond_history->update_atom_value(i, m, 0, r);
       }
@@ -79,7 +78,7 @@ double BondBPMSpring::store_bond(int n,int i,int j)
   }
 
   if (j < atom->nlocal) {
-    for (m = 0; m < atom->num_bond[j]; m ++) {
+    for (int m = 0; m < atom->num_bond[j]; m ++) {
       if (atom->bond_atom[j][m] == tag[i]) {
         fix_bond_history->update_atom_value(j, m, 0, r);
       }
@@ -136,7 +135,7 @@ void BondBPMSpring::compute(int eflag, int vflag)
     store_data();
   }
 
-  int i1,i2,itmp,m,n,type,itype,jtype;
+  int i1,i2,itmp,n,type;
   double delx, dely, delz, delvx, delvy, delvz;
   double e, rsq, r, r0, rinv, smooth, fbond, dot;
 
@@ -283,9 +282,9 @@ void BondBPMSpring::init_style()
 
   if (!id_fix_bond_history) {
     id_fix_bond_history = utils::strdup("HISTORY_BPM_SPRING");
-    fix_bond_history = (FixBondHistory *) modify->replace_fix(id_fix_dummy2,
-        fmt::format("{} all BOND_HISTORY 0 1", id_fix_bond_history),1);
-    delete [] id_fix_dummy2;
+    fix_bond_history = dynamic_cast<FixBondHistory *>(modify->replace_fix(id_fix_dummy2,
+        fmt::format("{} all BOND_HISTORY 0 1", id_fix_bond_history),1));
+    delete[] id_fix_dummy2;
     id_fix_dummy2 = nullptr;
   }
 }
@@ -297,7 +296,7 @@ void BondBPMSpring::settings(int narg, char **arg)
   BondBPM::settings(narg, arg);
 
   int iarg;
-  for (int i = 0; i < leftover_iarg.size(); i++) {
+  for (std::size_t i = 0; i < leftover_iarg.size(); i++) {
     iarg = leftover_iarg[i];
     if (strcmp(arg[iarg], "smooth") == 0) {
       if (iarg+1 > narg) error->all(FLERR,"Illegal bond bpm command");
@@ -366,7 +365,6 @@ double BondBPMSpring::single(int type, double rsq, int i, int j,
 
   double r = sqrt(rsq);
   double rinv = 1.0/r;
-  double e = (r - r0)/r0;
   fforce = k[type]*(r0-r);
 
   double **x = atom->x;

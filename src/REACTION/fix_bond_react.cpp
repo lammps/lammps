@@ -3111,9 +3111,9 @@ void FixBondReact::update_everything()
             if (n_histories > 0)
               for (auto &ihistory: histories) {
                 for (int n = 0; n < num_bond[atom->map(update_mega_glove[jj+1][i])]; n++)
-                  ((FixBondHistory *) ihistory)->cache_history(atom->map(update_mega_glove[jj+1][i]), n);
+                  dynamic_cast<FixBondHistory *>(ihistory)->cache_history(atom->map(update_mega_glove[jj+1][i]), n);
                 for (int n = 0; n < num_bond[atom->map(update_mega_glove[jj+1][i])]; n++)
-                  ((FixBondHistory *) ihistory)->delete_history(atom->map(update_mega_glove[jj+1][i]), 0);
+                  dynamic_cast<FixBondHistory *>(ihistory)->delete_history(atom->map(update_mega_glove[jj+1][i]), 0);
               }
             num_bond[atom->map(update_mega_glove[jj+1][i])] = 0;
           }
@@ -3125,17 +3125,17 @@ void FixBondReact::update_everything()
                   // Cache history information, shift history, then delete final element
                   if (n_histories > 0)
                     for (auto &ihistory: histories)
-                      ((FixBondHistory *) ihistory)->cache_history(atom->map(update_mega_glove[jj+1][i]), p);
+                      dynamic_cast<FixBondHistory *>(ihistory)->cache_history(atom->map(update_mega_glove[jj+1][i]), p);
                   for (int m = p; m < num_bond[atom->map(update_mega_glove[jj+1][i])]-1; m++) {
                     bond_type[atom->map(update_mega_glove[jj+1][i])][m] = bond_type[atom->map(update_mega_glove[jj+1][i])][m+1];
                     bond_atom[atom->map(update_mega_glove[jj+1][i])][m] = bond_atom[atom->map(update_mega_glove[jj+1][i])][m+1];
                     if (n_histories > 0)
                       for (auto &ihistory: histories)
-                        ((FixBondHistory *) ihistory)->shift_history(atom->map(update_mega_glove[jj+1][i]),m,m+1);
+                        dynamic_cast<FixBondHistory *>(ihistory)->shift_history(atom->map(update_mega_glove[jj+1][i]),m,m+1);
                   }
                   if (n_histories > 0)
                     for (auto &ihistory: histories)
-                      ((FixBondHistory *) ihistory)->delete_history(atom->map(update_mega_glove[jj+1][i]),
+                      dynamic_cast<FixBondHistory *>(ihistory)->delete_history(atom->map(update_mega_glove[jj+1][i]),
                                                                  num_bond[atom->map(update_mega_glove[jj+1][i])]-1);
                   num_bond[atom->map(update_mega_glove[jj+1][i])]--;
                   delta_bonds--;
@@ -3158,7 +3158,7 @@ void FixBondReact::update_everything()
               // Check cached history data to see if bond regenerated
               if (n_histories > 0)
                 for (auto &ihistory: histories)
-                  ((FixBondHistory *) ihistory)->check_cache(atom->map(update_mega_glove[jj+1][i]), p);
+                  dynamic_cast<FixBondHistory *>(ihistory)->check_cache(atom->map(update_mega_glove[jj+1][i]), p);
             }
           }
           if (landlocked_atoms[j][rxnID] == 0) {
@@ -3170,7 +3170,7 @@ void FixBondReact::update_everything()
                 // Check cached history data to see if bond regenerated
                 if (n_histories > 0)
                   for (auto &ihistory: histories)
-                    ((FixBondHistory *) ihistory)->check_cache(atom->map(update_mega_glove[jj+1][i]), insert_num);
+                    dynamic_cast<FixBondHistory *>(ihistory)->check_cache(atom->map(update_mega_glove[jj+1][i]), insert_num);
                 num_bond[atom->map(update_mega_glove[jj+1][i])]++;
                 if (num_bond[atom->map(update_mega_glove[jj+1][i])] > atom->bond_per_atom)
                   error->one(FLERR,"Bond/react topology/atom exceed system topology/atom");
@@ -3184,7 +3184,7 @@ void FixBondReact::update_everything()
 
     if (n_histories > 0)
       for (auto &ihistory: histories)
-        ((FixBondHistory *) ihistory)->clear_cache();
+        dynamic_cast<FixBondHistory *>(ihistory)->clear_cache();
 
     // Angles! First let's delete all angle info:
     if (force->angle && twomol->angleflag) {

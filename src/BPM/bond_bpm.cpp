@@ -67,7 +67,7 @@ BondBPM::BondBPM(LAMMPS *lmp) : Bond(lmp)
 
 BondBPM::~BondBPM()
 {
-  delete [] pack_choice;
+  delete[] pack_choice;
 
   if (id_fix_dummy) modify->delete_fix(id_fix_dummy);
   if (id_fix_dummy2) modify->delete_fix(id_fix_dummy2);
@@ -76,12 +76,12 @@ BondBPM::~BondBPM()
   if (id_fix_store_local) modify->delete_fix(id_fix_store_local);
   if (id_fix_prop_atom) modify->delete_fix(id_fix_prop_atom);
 
-  delete [] id_fix_dummy;
-  delete [] id_fix_dummy2;
-  delete [] id_fix_update;
-  delete [] id_fix_bond_history;
-  delete [] id_fix_store_local;
-  delete [] id_fix_prop_atom;
+  delete[] id_fix_dummy;
+  delete[] id_fix_dummy2;
+  delete[] id_fix_update;
+  delete[] id_fix_bond_history;
+  delete[] id_fix_store_local;
+  delete[] id_fix_prop_atom;
 
   memory->destroy(output_data);
 }
@@ -90,13 +90,12 @@ BondBPM::~BondBPM()
 
 void BondBPM::init_style()
 {
-  int ifix;
   if (id_fix_store_local) {
-    ifix = modify->find_fix(id_fix_store_local);
-    if (ifix < 0) error->all(FLERR, "Cannot find fix store/local");
-    if (strcmp(modify->fix[ifix]->style, "STORE_LOCAL") != 0)
+    auto ifix = modify->get_fix_by_id(id_fix_store_local);
+    if (!ifix) error->all(FLERR, "Cannot find fix store/local");
+    if (strcmp(ifix->style, "STORE_LOCAL") != 0)
       error->all(FLERR, "Incorrect fix style matched, not store/local");
-    fix_store_local = (FixStoreLocal *) modify->fix[ifix];
+    fix_store_local = dynamic_cast<FixStoreLocal *>(ifix);
     fix_store_local->nvalues = nvalues;
   }
 
@@ -107,7 +106,7 @@ void BondBPM::init_style()
                         "require special_bonds weight of 1.0 for first neighbors");
     if (id_fix_update) {
       modify->delete_fix(id_fix_update);
-      delete [] id_fix_update;
+      delete[] id_fix_update;
       id_fix_update = nullptr;
     }
   } else {
@@ -127,19 +126,17 @@ void BondBPM::init_style()
 
     if (id_fix_dummy) {
       id_fix_update = utils::strdup("BPM_UPDATE_SPECIAL_BONDS");
-      fix_update_special_bonds = (FixUpdateSpecialBonds *) modify->replace_fix(id_fix_dummy,
-        fmt::format("{} all UPDATE_SPECIAL_BONDS", id_fix_update),1);
-      delete [] id_fix_dummy;
+      fix_update_special_bonds = dynamic_cast<FixUpdateSpecialBonds *>(modify->replace_fix(
+          id_fix_dummy,fmt::format("{} all UPDATE_SPECIAL_BONDS", id_fix_update),1));
+      delete[] id_fix_dummy;
       id_fix_dummy = nullptr;
     }
   }
 
   if (force->angle || force->dihedral || force->improper)
-    error->all(FLERR,
-               "Bond style bpm cannot be used with 3,4-body interactions");
+    error->all(FLERR,"Bond style bpm cannot be used with 3,4-body interactions");
   if (atom->molecular == 2)
-    error->all(FLERR,
-               "Bond style bpm cannot be used with atom style template");
+    error->all(FLERR,"Bond style bpm cannot be used with atom style template");
 
   // special 1-3 and 1-4 weights must be 1 to prevent building 1-3 and 1-4 special bond lists
   if (force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0 ||
@@ -205,17 +202,15 @@ void BondBPM::settings(int narg, char **arg)
 
   if (id_fix_store_local) {
 
-    if (nvalues == 0) error->all(FLERR,
-        "Storing local data must include at least one value to output");
+    if (nvalues == 0)
+      error->all(FLERR, "Storing local data must include at least one value to output");
     memory->create(output_data, nvalues, "bond/bpm:output_data");
 
-    int ifix = modify->find_fix(id_fix_store_local);
-    if (ifix < 0) {
-      modify->add_fix(fmt::format("{} all STORE_LOCAL {} {}",
-        id_fix_store_local, store_local_freq, nvalues));
-      ifix = modify->find_fix(id_fix_store_local);
-    }
-    fix_store_local = (FixStoreLocal *) modify->fix[ifix];
+    auto ifix = modify->get_fix_by_id(id_fix_store_local);
+    if (!ifix)
+      ifix = modify->add_fix(fmt::format("{} all STORE_LOCAL {} {}",
+                                         id_fix_store_local, store_local_freq, nvalues));
+    fix_store_local = dynamic_cast<FixStoreLocal *>(ifix);
 
     // Use property/atom to save reference positions as it can transfer to ghost atoms
     // This won't work for instances where bonds are added (e.g. fix pour) but in those cases
@@ -227,12 +222,10 @@ void BondBPM::settings(int narg, char **arg)
       char *y_ref_id = utils::strdup("BPM_Y_REF");
       char *z_ref_id = utils::strdup("BPM_Z_REF");
 
-      ifix = modify->find_fix(id_fix_prop_atom);
-      if (ifix < 0) {
-        modify->add_fix(fmt::format("{} all property/atom {} {} {} ghost yes",
-          id_fix_prop_atom, x_ref_id, y_ref_id, z_ref_id));
-        ifix = modify->find_fix(id_fix_prop_atom);
-      }
+      ifix = modify->get_fix_by_id(id_fix_prop_atom);
+      if (!ifix)
+        ifix = modify->add_fix(fmt::format("{} all property/atom {} {} {} ghost yes",
+                                           id_fix_prop_atom, x_ref_id, y_ref_id, z_ref_id));
 
       int type_flag;
       int col_flag;
@@ -240,12 +233,12 @@ void BondBPM::settings(int narg, char **arg)
       index_y_ref = atom->find_custom(y_ref_id, type_flag, col_flag);
       index_z_ref = atom->find_custom(z_ref_id, type_flag, col_flag);
 
-      delete [] x_ref_id;
-      delete [] y_ref_id;
-      delete [] z_ref_id;
+      delete[] x_ref_id;
+      delete[] y_ref_id;
+      delete[] z_ref_id;
 
-      if (modify->fix[ifix]->restart_reset) {
-          modify->fix[ifix]->restart_reset = 0;
+      if (ifix->restart_reset) {
+          ifix->restart_reset = 0;
       } else {
         double *x_ref = atom->dvector[index_x_ref];
         double *y_ref = atom->dvector[index_y_ref];
@@ -266,7 +259,7 @@ void BondBPM::settings(int narg, char **arg)
    used to check bond communiction cutoff - not perfect, estimates based on local-local only
 ------------------------------------------------------------------------- */
 
-double BondBPM::equilibrium_distance(int i)
+double BondBPM::equilibrium_distance(int /*i*/)
 {
   // Ghost atoms may not yet be communicated, this may only be an estimate
   if (r0_max_estimate == 0) {
@@ -363,7 +356,7 @@ void BondBPM::process_broken(int i, int j)
    the atom property is packed into array or vector
 ------------------------------------------------------------------------- */
 
-void BondBPM::pack_id1(int n, int i, int j)
+void BondBPM::pack_id1(int n, int i, int /*j*/)
 {
   tagint *tag = atom->tag;
   output_data[n] = tag[i];
@@ -371,7 +364,7 @@ void BondBPM::pack_id1(int n, int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-void BondBPM::pack_id2(int n, int i, int j)
+void BondBPM::pack_id2(int n, int /*i*/, int j)
 {
   tagint *tag = atom->tag;
   output_data[n] = tag[j];
@@ -379,7 +372,7 @@ void BondBPM::pack_id2(int n, int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-void BondBPM::pack_time(int n, int i, int j)
+void BondBPM::pack_time(int n, int /*i*/, int /*j*/)
 {
   bigint time = update->ntimestep;
   output_data[n] = time;

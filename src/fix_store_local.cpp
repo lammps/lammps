@@ -123,4 +123,3 @@ double FixStoreLocal::memory_usage()
   double bytes = (double) nmax * (double) nvalues * sizeof(double);
   return bytes;
 }
-

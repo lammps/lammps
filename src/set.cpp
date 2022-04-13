@@ -950,28 +950,26 @@ void Set::set(int keyword)
       else
         error->one(FLERR,"Cannot set quaternion for atom that has none");
       if (domain->dimension == 2 && (xvalue != 0.0 || yvalue != 0.0))
-        error->one(FLERR,"Cannot set quaternion with xy components "
-                   "for 2d system");
+        error->one(FLERR,"Cannot set quaternion with xy components for 2d system");
 
-      double theta2 = MY_PI2 * wvalue/180.0;
-      double sintheta2 = sin(theta2);
+      const double theta2 = MY_PI2 * wvalue/180.0;
+      const double sintheta2 = sin(theta2);
+      double temp[4];
+      temp[0] = cos(theta2);
+      temp[1] = xvalue * sintheta2;
+      temp[2] = yvalue * sintheta2;
+      temp[3] = zvalue * sintheta2;
+      MathExtra::qnormalize(temp);
       if (atom->quat_flag) {
-        double temp[4];
-        temp[0] = cos(theta2);
-        temp[1] = xvalue * sintheta2;
-        temp[2] = yvalue * sintheta2;
-        temp[3] = zvalue * sintheta2;
-        MathExtra::qnormalize(temp);
         quat2[i][0] = temp[0];
         quat2[i][1] = temp[1];
         quat2[i][2] = temp[2];
         quat2[i][3] = temp[3];
       } else {
-        quat[0] = cos(theta2);
-        quat[1] = xvalue * sintheta2;
-        quat[2] = yvalue * sintheta2;
-        quat[3] = zvalue * sintheta2;
-        MathExtra::qnormalize(quat);
+        quat[0] = temp[0];
+        quat[1] = temp[1];
+        quat[2] = temp[2];
+        quat[3] = temp[3];
       }
     }
 

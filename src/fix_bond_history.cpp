@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -23,9 +22,7 @@
 #include "neighbor.h"
 
 #include <map>
-#include <string>
 #include <utility>
-#include <vector>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -36,15 +33,15 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixBondHistory::FixBondHistory(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+    Fix(lmp, narg, arg), bondstore(nullptr), id_fix(nullptr), id_array(nullptr)
+
 {
-  if (narg != 5) error->all(FLERR,"Illegal fix bond/history command");
-  update_flag = utils::inumeric(FLERR,arg[3],false,lmp);
-  ndata = utils::inumeric(FLERR,arg[4],false,lmp);
+  if (narg != 5) error->all(FLERR, "Illegal fix bond/history command");
+  update_flag = utils::inumeric(FLERR, arg[3], false, lmp);
+  ndata = utils::inumeric(FLERR, arg[4], false, lmp);
   nbond = atom->bond_per_atom;
 
-  if (nbond == 0)
-    error->all(FLERR, "Cannot store bond variables without any bonds");
+  if (nbond == 0) error->all(FLERR, "Cannot store bond variables without any bonds");
 
   stored_flag = false;
   restart_global = 1;
@@ -55,12 +52,8 @@ FixBondHistory::FixBondHistory(LAMMPS *lmp, int narg, char **arg) :
   // Prevents sequential calls to pre_exchange() without post_neighbor()
   updated_bond_flag = 0;
 
-  bondstore = nullptr;
   maxbond = 0;
   allocate();
-
-  id_fix = nullptr;
-  id_array = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -68,8 +61,8 @@ FixBondHistory::FixBondHistory(LAMMPS *lmp, int narg, char **arg) :
 FixBondHistory::~FixBondHistory()
 {
   if (id_fix && modify->nfix) modify->delete_fix(id_fix);
-  delete [] id_fix;
-  delete [] id_array;
+  delete[] id_fix;
+  delete[] id_array;
 
   memory->destroy(bondstore);
 }
@@ -92,10 +85,10 @@ void FixBondHistory::post_constructor()
 
   id_fix = utils::strdup(id + std::string("_FIX_PROP_ATOM"));
   id_array = utils::strdup(std::string("d2_") + id);
-  modify->add_fix(fmt::format("{} {} property/atom {} {}",
-                                id_fix, group->names[igroup], id_array, nbond*ndata));
+  modify->add_fix(fmt::format("{} {} property/atom {} {}", id_fix, group->names[igroup], id_array,
+                              nbond * ndata));
   int tmp1, tmp2;
-  index = atom->find_custom(&id_array[3],tmp1,tmp2);
+  index = atom->find_custom(&id_array[3], tmp1, tmp2);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -103,7 +96,7 @@ void FixBondHistory::post_constructor()
 void FixBondHistory::update_atom_value(int i, int m, int idata, double value)
 {
   if (idata >= ndata || m > nbond) error->all(FLERR, "Index exceeded in fix bond history");
-  atom->darray[index][i][m*ndata+idata] = value;
+  atom->darray[index][i][m * ndata + idata] = value;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -111,7 +104,7 @@ void FixBondHistory::update_atom_value(int i, int m, int idata, double value)
 double FixBondHistory::get_atom_value(int i, int m, int idata)
 {
   if (idata >= ndata || m > nbond) error->all(FLERR, "Index exceeded in fix bond history");
-  return atom->darray[index][i][m*ndata+idata];
+  return atom->darray[index][i][m * ndata + idata];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -148,15 +141,13 @@ void FixBondHistory::pre_exchange()
     i2 = bondlist[n][1];
 
     // skip bond if already broken
-    if (bondlist[n][2] <= 0) {
-      continue;
-    }
+    if (bondlist[n][2] <= 0) { continue; }
 
     if (i1 < nlocal) {
       for (m = 0; m < num_bond[i1]; m++) {
         if (bond_atom[i1][m] == tag[i2]) {
           for (idata = 0; idata < ndata; idata++) {
-            stored[i1][m*ndata+idata] = bondstore[n][idata];
+            stored[i1][m * ndata + idata] = bondstore[n][idata];
           }
         }
       }
@@ -166,7 +157,7 @@ void FixBondHistory::pre_exchange()
       for (m = 0; m < num_bond[i2]; m++) {
         if (bond_atom[i2][m] == tag[i1]) {
           for (idata = 0; idata < ndata; idata++) {
-            stored[i2][m*ndata+idata] = bondstore[n][idata];
+            stored[i2][m * ndata + idata] = bondstore[n][idata];
           }
         }
       }
@@ -181,9 +172,11 @@ void FixBondHistory::pre_exchange()
 void FixBondHistory::allocate()
 {
   //Ideally would just ask ntopo for maxbond, but protected
-  if (comm->nprocs == 1) maxbond = atom->nbonds;
-  else maxbond = static_cast<int> (LB_FACTOR * atom->nbonds / comm->nprocs);
-  memory->create(bondstore,maxbond,ndata,"fix_bond_store:bondstore");
+  if (comm->nprocs == 1)
+    maxbond = atom->nbonds;
+  else
+    maxbond = static_cast<int>(LB_FACTOR * atom->nbonds / comm->nprocs);
+  memory->create(bondstore, maxbond, ndata, "fix_bond_store:bondstore");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -193,7 +186,7 @@ void FixBondHistory::setup_post_neighbor()
   //Grow array if number of bonds has increased
   while (neighbor->nbondlist >= maxbond) {
     maxbond += DELTA;
-    memory->grow(bondstore,maxbond,ndata,"fix_bond_store:bondstore");
+    memory->grow(bondstore, maxbond, ndata, "fix_bond_store:bondstore");
   }
 
   pre_exchange();
@@ -210,7 +203,7 @@ void FixBondHistory::post_neighbor()
   //Grow array if number of bonds has increased
   while (neighbor->nbondlist >= maxbond) {
     maxbond += DELTA;
-    memory->grow(bondstore,maxbond,ndata,"fix_bond_store:bondstore");
+    memory->grow(bondstore, maxbond, ndata, "fix_bond_store:bondstore");
   }
 
   int i1, i2, n, m, idata;
@@ -228,25 +221,23 @@ void FixBondHistory::post_neighbor()
     i2 = bondlist[n][1];
 
     // skip bond if already broken
-    if (bondlist[n][2] <= 0) {
-      continue;
-    }
+    if (bondlist[n][2] <= 0) { continue; }
 
     if (i1 < nlocal) {
       for (m = 0; m < num_bond[i1]; m++) {
         if (bond_atom[i1][m] == tag[i2]) {
           for (idata = 0; idata < ndata; idata++) {
-            bondstore[n][idata] = stored[i1][m*ndata+idata];
+            bondstore[n][idata] = stored[i1][m * ndata + idata];
           }
         }
       }
     }
 
-    if (i2 < nlocal){
+    if (i2 < nlocal) {
       for (m = 0; m < num_bond[i2]; m++) {
         if (bond_atom[i2][m] == tag[i1]) {
           for (idata = 0; idata < ndata; idata++) {
-            bondstore[n][idata] = stored[i2][m*ndata+idata];
+            bondstore[n][idata] = stored[i2][m * ndata + idata];
           }
         }
       }
@@ -273,8 +264,8 @@ void FixBondHistory::write_restart(FILE *fp)
 
   if (comm->me == 0) {
     int size = n * sizeof(double);
-    fwrite(&size,sizeof(int),1,fp);
-    fwrite(list,sizeof(double),n,fp);
+    fwrite(&size, sizeof(int), 1, fp);
+    fwrite(list, sizeof(double), n, fp);
   }
 }
 
@@ -284,7 +275,7 @@ void FixBondHistory::restart(char *buf)
 {
   int n = 0;
   double *list = (double *) buf;
-  stored_flag = static_cast<int> (list[n++]);
+  stored_flag = static_cast<int>(list[n++]);
 }
 
 /* ----------------------------------------------------------------------
@@ -295,8 +286,7 @@ void FixBondHistory::set_arrays(int i)
 {
   double **stored = atom->darray[index];
   for (int m = 0; m < nbond; m++)
-    for (int idata = 0; idata < ndata; idata++)
-      stored[i][m*ndata+idata] = 0.0;
+    for (int idata = 0; idata < ndata; idata++) stored[i][m * ndata + idata] = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -306,8 +296,7 @@ void FixBondHistory::set_arrays(int i)
 void FixBondHistory::delete_history(int i, int m)
 {
   double **stored = atom->darray[index];
-  for (int idata = 0; idata < ndata; idata ++)
-    stored[i][m*ndata+idata] = 0.0;
+  for (int idata = 0; idata < ndata; idata++) stored[i][m * ndata + idata] = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -319,8 +308,8 @@ void FixBondHistory::shift_history(int i, int m, int k)
   if (m == k) return;
 
   double **stored = atom->darray[index];
-  for (int idata = 0; idata < ndata; idata ++)
-    stored[i][m*ndata+idata] = stored[i][k*ndata+idata];
+  for (int idata = 0; idata < ndata; idata++)
+    stored[i][m * ndata + idata] = stored[i][k * ndata + idata];
 }
 
 /* ----------------------------------------------------------------------
@@ -334,16 +323,15 @@ void FixBondHistory::cache_history(int i, int m)
   // Order tags to create a unique key pair
   tagint max_tag = MAX(atom->tag[i], atom->bond_atom[i][m]);
   tagint min_tag = MIN(atom->tag[i], atom->bond_atom[i][m]);
-  std::pair<tagint, tagint> key = std::make_pair(min_tag, max_tag);
+  auto key = std::make_pair(min_tag, max_tag);
 
   // Copy data to vector
   double **stored = atom->darray[index];
-  std::vector <double> data;
-  for (int idata = 0; idata < ndata; idata ++)
-    data.push_back(stored[i][m*ndata+idata]);
+  std::vector<double> data;
+  for (int idata = 0; idata < ndata; idata++) data.push_back(stored[i][m * ndata + idata]);
 
   // Add data to cache
-  cached_histories.insert(std::make_pair(key,data));
+  cached_histories.insert(std::make_pair(key, data));
 }
 
 /* ----------------------------------------------------------------------
@@ -355,16 +343,15 @@ void FixBondHistory::check_cache(int i, int m)
   // Order tags to create a unique key pair
   tagint max_tag = MAX(atom->tag[i], atom->bond_atom[i][m]);
   tagint min_tag = MIN(atom->tag[i], atom->bond_atom[i][m]);
-  std::pair<tagint, tagint> key = std::make_pair(min_tag, max_tag);
+  auto key = std::make_pair(min_tag, max_tag);
 
   // Check if it exists, if so, copy data
   double **stored = atom->darray[index];
-  std::vector <double> data;
+  std::vector<double> data;
   auto pos = cached_histories.find(key);
   if (pos != cached_histories.end()) {
     data = pos->second;
-    for (int idata = 0; idata < ndata; idata ++)
-      stored[i][m*ndata+idata] = data[idata];
+    for (int idata = 0; idata < ndata; idata++) stored[i][m * ndata + idata] = data[idata];
   }
 }
 

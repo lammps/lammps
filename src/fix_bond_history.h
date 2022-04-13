@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(BOND_HISTORY,FixBondHistory)
+FixStyle(BOND_HISTORY,FixBondHistory);
 // clang-format on
 #else
 
@@ -30,7 +30,6 @@ namespace LAMMPS_NS {
 
 class FixBondHistory : public Fix {
  public:
-
   FixBondHistory(class LAMMPS *, int, char **);
   ~FixBondHistory() override;
   int setmask() override;
@@ -48,25 +47,24 @@ class FixBondHistory : public Fix {
   double get_atom_value(int, int, int);
 
   // methods to reorder/delete elements of atom->bond_atom
-  void delete_history(int,int);
-  void shift_history(int,int,int);
-  void cache_history(int,int);
-  void check_cache(int,int);
+  void delete_history(int, int);
+  void shift_history(int, int, int);
+  void cache_history(int, int);
+  void check_cache(int, int);
   void clear_cache();
 
   // if data is temporarily stored while the bond_atom array
   // is being reordered, use map of vectors with pairs for keys
   // to enable quick look up
-  std::map<std::pair<tagint, tagint>, std::vector <double>> cached_histories;
+  std::map<std::pair<tagint, tagint>, std::vector<double>> cached_histories;
 
   double **bondstore;
   int stored_flag;
 
  protected:
-
   void allocate();
 
-  int update_flag;            //Flag whether history values can evolve
+  int update_flag;    //Flag whether history values can evolve
   int updated_bond_flag;
   int nbond, maxbond, ndata;
   int index;
@@ -93,7 +91,4 @@ E: Cannot store bond variables without any bonds
 
 Atoms must have a nonzero number of bonds to store data
 
-
-
 */
-

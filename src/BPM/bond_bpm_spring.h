@@ -13,7 +13,7 @@
 
 #ifdef BOND_CLASS
 // clang-format off
-BondStyle(bpm/spring,BondBPMSpring)
+BondStyle(bpm/spring,BondBPMSpring);
 // clang-format on
 #else
 
@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class BondBPMSpring : public BondBPM {
  public:
   BondBPMSpring(class LAMMPS *);
-  virtual ~BondBPMSpring() override;
-  virtual void compute(int, int) override;
+  ~BondBPMSpring() override;
+  void compute(int, int) override;
   void coeff(int, char **) override;
   void init_style() override;
   void settings(int, char **) override;

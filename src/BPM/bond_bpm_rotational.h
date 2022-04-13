@@ -13,7 +13,7 @@
 
 #ifdef BOND_CLASS
 // clang-format off
-BondStyle(bpm/rotational,BondBPMRotational)
+BondStyle(bpm/rotational,BondBPMRotational);
 // clang-format on
 #else
 
@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class BondBPMRotational : public BondBPM {
  public:
   BondBPMRotational(class LAMMPS *);
-  virtual ~BondBPMRotational() override;
-  virtual void compute(int, int) override;
+  ~BondBPMRotational() override;
+  void compute(int, int) override;
   void coeff(int, char **) override;
   void init_style() override;
   void settings(int, char **) override;
@@ -44,10 +44,9 @@ class BondBPMRotational : public BondBPM {
 
   double acos_limit(double);
 
-  double elastic_forces(int, int, int, double &, double, double, double,
-     double*, double*, double*, double*, double*, double*);
-  void damping_forces(int, int, int, double &, double*, double*, double*,
-     double*, double*);
+  double elastic_forces(int, int, int, double &, double, double, double, double *, double *,
+                        double *, double *, double *, double *);
+  void damping_forces(int, int, int, double &, double *, double *, double *, double *, double *);
 
   void allocate();
   void store_data();

@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(bpm/spring,PairBPMSpring)
+PairStyle(bpm/spring,PairBPMSpring);
 // clang-format on
 #else
 
@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class PairBPMSpring : public Pair {
  public:
   PairBPMSpring(class LAMMPS *);
-  virtual ~PairBPMSpring() override;
-  virtual void compute(int, int) override;
+  ~PairBPMSpring() override;
+  void compute(int, int) override;
   void settings(int, char **) override;
   void coeff(int, char **) override;
   double init_one(int, int) override;
@@ -39,12 +39,12 @@ class PairBPMSpring : public Pair {
   double single(int, int, int, int, double, double, double, double &) override;
 
  protected:
-  double **k,**cut,**gamma;
+  double **k, **cut, **gamma;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

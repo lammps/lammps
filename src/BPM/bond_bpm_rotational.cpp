@@ -89,7 +89,6 @@ double BondBPMRotational::acos_limit(double c)
 
 double BondBPMRotational::store_bond(int n,int i,int j)
 {
-  int m,k;
   double delx, dely, delz, r, rinv;
   double **x = atom->x;
   tagint *tag = atom->tag;
@@ -114,7 +113,7 @@ double BondBPMRotational::store_bond(int n,int i,int j)
   bondstore[n][3] = delz*rinv;
 
   if (i < atom->nlocal) {
-    for (m = 0; m < atom->num_bond[i]; m ++) {
+    for (int m = 0; m < atom->num_bond[i]; m ++) {
       if (atom->bond_atom[i][m] == tag[j]) {
         fix_bond_history->update_atom_value(i, m, 0, r);
         fix_bond_history->update_atom_value(i, m, 1, delx*rinv);
@@ -125,7 +124,7 @@ double BondBPMRotational::store_bond(int n,int i,int j)
   }
 
   if (j < atom->nlocal) {
-    for (m = 0; m < atom->num_bond[j]; m ++) {
+    for (int m = 0; m < atom->num_bond[j]; m ++) {
       if (atom->bond_atom[j][m] == tag[i]) {
         fix_bond_history->update_atom_value(j, m, 0, r);
         fix_bond_history->update_atom_value(j, m, 1, delx*rinv);
@@ -193,11 +192,11 @@ void BondBPMRotational::store_data()
     2) P. Mora & Y. Wang Advances in Geomcomputing 2009
 ---------------------------------------------------------------------- */
 
-double BondBPMRotational::elastic_forces(int i1, int i2, int type, double& Fr,
-     double r_mag, double r0_mag, double r_mag_inv, double* rhat, double* r,
-     double* r0, double* force1on2, double* torque1on2, double* torque2on1)
+double BondBPMRotational::elastic_forces(int i1, int i2, int type, double &Fr, double r_mag,
+                                         double r0_mag, double r_mag_inv, double * /*rhat*/,
+                                         double *r, double *r0, double *force1on2,
+                                         double *torque1on2, double *torque2on1)
 {
-  int m;
   double breaking, temp, r0_dot_rb, c, gamma;
   double psi, theta, cos_phi, sin_phi;
   double mag_in_plane, mag_out_plane;
@@ -336,7 +335,7 @@ double BondBPMRotational::elastic_forces(int i1, int i2, int type, double& Fr,
 
   MathExtra::quatrotvec(mq, Fsp, Ftmp);
   MathExtra::quatrotvec(mq, Tsp, Ttmp);
-  for (m = 0; m < 3; m++) {
+  for (int m = 0; m < 3; m++) {
     Fs[m] += Ftmp[m];
     Ts[m] += Ttmp[m];
   }
@@ -462,7 +461,7 @@ void BondBPMRotational::compute(int eflag, int vflag)
 
   int i1,i2,itmp,n,type;
   double r[3], r0[3], rhat[3];
-  double delx, dely, delz, rsq, r0_mag, r_mag, r_mag_inv;
+  double rsq, r0_mag, r_mag, r_mag_inv;
   double Fr, breaking, smooth;
   double force1on2[3], torque1on2[3], torque2on1[3];
 
@@ -471,7 +470,6 @@ void BondBPMRotational::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   double **torque = atom->torque;
-  double *radius = atom->radius;
   tagint *tag = atom->tag;
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
@@ -657,9 +655,9 @@ void BondBPMRotational::init_style()
 
   if (!id_fix_bond_history) {
     id_fix_bond_history = utils::strdup("HISTORY_BPM_ROTATIONAL");
-    fix_bond_history = (FixBondHistory *) modify->replace_fix(id_fix_dummy2,
-        fmt::format("{} all BOND_HISTORY 0 4", id_fix_bond_history),1);
-    delete [] id_fix_dummy2;
+    fix_bond_history = dynamic_cast<FixBondHistory *>(modify->replace_fix(id_fix_dummy2,
+        fmt::format("{} all BOND_HISTORY 0 4", id_fix_bond_history),1));
+    delete[] id_fix_dummy2;
     id_fix_dummy2 = nullptr;
   }
 }
@@ -671,7 +669,7 @@ void BondBPMRotational::settings(int narg, char **arg)
   BondBPM::settings(narg, arg);
 
   int iarg;
-  for (int i = 0; i < leftover_iarg.size(); i++) {
+  for (std::size_t i = 0; i < leftover_iarg.size(); i++) {
     iarg = leftover_iarg[i];
     if (strcmp(arg[iarg], "smooth") == 0) {
       if (iarg+1 > narg) error->all(FLERR,"Illegal bond bpm command");

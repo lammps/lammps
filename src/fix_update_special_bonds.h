@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(UPDATE_SPECIAL_BONDS,FixUpdateSpecialBonds)
+FixStyle(UPDATE_SPECIAL_BONDS,FixUpdateSpecialBonds);
 // clang-format on
 #else
 
@@ -22,26 +22,25 @@ FixStyle(UPDATE_SPECIAL_BONDS,FixUpdateSpecialBonds)
 
 #include "fix.h"
 
-#include <vector>
 #include <utility>
+#include <vector>
 
 namespace LAMMPS_NS {
 
 class FixUpdateSpecialBonds : public Fix {
  public:
   FixUpdateSpecialBonds(class LAMMPS *, int, char **);
-  ~FixUpdateSpecialBonds();
-  int setmask();
-  void setup(int);
-  void pre_exchange();
-  void pre_force(int);
-  void add_broken_bond(int,int);
+  int setmask() override;
+  void setup(int) override;
+  void pre_exchange() override;
+  void pre_force(int) override;
+  void add_broken_bond(int, int);
 
  protected:
   // Create two arrays to store bonds broken this timestep (new)
   // and since the last neighbor list build
-  std::vector <std::pair<tagint, tagint>> new_broken_pairs;
-  std::vector <std::pair<tagint, tagint>> broken_pairs;
+  std::vector<std::pair<tagint, tagint>> new_broken_pairs;
+  std::vector<std::pair<tagint, tagint>> broken_pairs;
 };
 
 }    // namespace LAMMPS_NS

@@ -61,60 +61,60 @@ class PairTersoffKokkos : public PairTersoff {
   void operator()(TagPairTersoffComputeShortNeigh, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  double ters_fc_k(Param *param, const F_FLOAT &r) const;
+  double ters_fc_k(const Param& param, const F_FLOAT &r) const;
 
   KOKKOS_INLINE_FUNCTION
-  double ters_dfc(Param *param, const F_FLOAT &r) const;
+  double ters_dfc(const Param& param, const F_FLOAT &r) const;
 
   KOKKOS_INLINE_FUNCTION
-  void ters_fc_k_and_ters_dfc(Param *param, const F_FLOAT &r, double &fc, double &dfc) const;
+  void ters_fc_k_and_ters_dfc(const Param& param, const F_FLOAT &r, double &fc, double &dfc) const;
 
   KOKKOS_INLINE_FUNCTION
-  double ters_fa_k(Param *param, const F_FLOAT &r) const;
+  double ters_fa_k(const Param& param, const F_FLOAT &r) const;
 
   KOKKOS_INLINE_FUNCTION
-  double ters_dfa(Param *param, const F_FLOAT &r) const;
+  double ters_dfa(const Param& param, const F_FLOAT &r) const;
 
   KOKKOS_INLINE_FUNCTION
-  void ters_fa_k_and_ters_dfa(Param *param, const F_FLOAT &r, double &fa, double &dfa) const;
+  void ters_fa_k_and_ters_dfa(const Param& param, const F_FLOAT &r, double &fa, double &dfa) const;
 
   KOKKOS_INLINE_FUNCTION
-  double ters_bij_k(Param *param, const F_FLOAT &bo) const;
+  double ters_bij_k(const Param& param, const F_FLOAT &bo) const;
 
   KOKKOS_INLINE_FUNCTION
-  double ters_dbij(Param *param, const F_FLOAT &bo) const;
+  double ters_dbij(const Param& param, const F_FLOAT &bo) const;
 
   KOKKOS_INLINE_FUNCTION
-  void ters_bij_k_and_ters_dbij(Param *param, const F_FLOAT &bo, double &bij, double &prefactor) const;
+  void ters_bij_k_and_ters_dbij(const Param& param, const F_FLOAT &bo, double &bij, double &prefactor) const;
 
   KOKKOS_INLINE_FUNCTION
-  double bondorder(Param *param,
+  double bondorder(const Param& param,
               const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
               const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2) const;
 
   KOKKOS_INLINE_FUNCTION
-  double ters_gijk(Param *param, const F_FLOAT &cos) const;
+  double ters_gijk(const Param& param, const F_FLOAT &cos) const;
 
   KOKKOS_INLINE_FUNCTION
-  double ters_dgijk(Param *param, const F_FLOAT &cos) const;
+  double ters_dgijk(const Param& param, const F_FLOAT &cos) const;
 
   KOKKOS_INLINE_FUNCTION
-  void ters_gijk_and_ters_dgijk(Param *param, const F_FLOAT &cos, double& gijk, double& dgijk) const;
+  void ters_gijk_and_ters_dgijk(const Param& param, const F_FLOAT &cos, double& gijk, double& dgijk) const;
 
   KOKKOS_INLINE_FUNCTION
-  void ters_dthb(Param *param, const F_FLOAT &prefactor,
+  void ters_dthb(const Param& param, const F_FLOAT &prefactor,
               const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
               const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2,
               F_FLOAT *fi, F_FLOAT *fj, F_FLOAT *fk) const;
 
   KOKKOS_INLINE_FUNCTION
-  void ters_dthbj(Param *param, const F_FLOAT &prefactor,
+  void ters_dthbj(const Param& param, const F_FLOAT &prefactor,
               const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
               const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2,
               F_FLOAT *fj, F_FLOAT *fk) const;
 
   KOKKOS_INLINE_FUNCTION
-  void ters_dthbk(Param *param, const F_FLOAT &prefactor,
+  void ters_dthbk(const Param& param, const F_FLOAT &prefactor,
               const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
               const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2,
               F_FLOAT *fk) const;

@@ -372,14 +372,14 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffCompute<NEIGHFLAG,E
 
       if (rsq2 > cutsq2) continue;
       const F_FLOAT rik = sqrt(rsq2);
-      bo_ij += bondorder(&d_params(iparam_ijk),rij,delx1,dely1,delz1,rik,delx2,dely2,delz2);
+      bo_ij += bondorder(d_params(iparam_ijk),rij,delx1,dely1,delz1,rik,delx2,dely2,delz2);
     }
 
     // attractive: pairwise potential and force
 
     F_FLOAT fa, dfa, bij, prefactor;
-    ters_fa_k_and_ters_dfa(&d_params(iparam_ij),rij,fa,dfa);
-    ters_bij_k_and_ters_dbij(&d_params(iparam_ij),bo_ij,bij,prefactor);
+    ters_fa_k_and_ters_dfa(d_params(iparam_ij),rij,fa,dfa);
+    ters_bij_k_and_ters_dbij(d_params(iparam_ij),bo_ij,bij,prefactor);
     const F_FLOAT fatt = -0.5*bij * dfa / rij;
     prefactor = 0.5*fa * prefactor;
 
@@ -414,7 +414,7 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffCompute<NEIGHFLAG,E
 
       if (rsq2 > cutsq2) continue;
       const F_FLOAT rik = sqrt(rsq2);
-      ters_dthb(&d_params(iparam_ijk),prefactor,rij,delx1,dely1,delz1,
+      ters_dthb(d_params(iparam_ijk),prefactor,rij,delx1,dely1,delz1,
                 rik,delx2,dely2,delz2,fi,fj,fk);
 
       f_x += fi[0];
@@ -451,7 +451,7 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffCompute<NEIGHFLAG,E
     }
     if (!continue_flag) {
        F_FLOAT tmp_fce, tmp_fcd;
-       ters_fc_k_and_ters_dfc(&d_params[iparam_ij],rij,tmp_fce,tmp_fcd);
+       ters_fc_k_and_ters_dfc(d_params[iparam_ij],rij,tmp_fce,tmp_fcd);
 
        const F_FLOAT tmp_exp = exp(-d_params[iparam_ij].lam1 * rij);
        const F_FLOAT frep = -d_params[iparam_ij].biga * tmp_exp *
@@ -494,10 +494,10 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffCompute<NEIGHFLAG,E
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double PairTersoffKokkos<DeviceType>::ters_fc_k(Param *param, const F_FLOAT &r) const
+double PairTersoffKokkos<DeviceType>::ters_fc_k(const Param& param, const F_FLOAT &r) const
 {
-  const F_FLOAT ters_R = param->bigr;
-  const F_FLOAT ters_D = param->bigd;
+  const F_FLOAT ters_R = param.bigr;
+  const F_FLOAT ters_D = param.bigd;
 
   if (r < ters_R-ters_D) return 1.0;
   if (r > ters_R+ters_D) return 0.0;
@@ -508,10 +508,10 @@ double PairTersoffKokkos<DeviceType>::ters_fc_k(Param *param, const F_FLOAT &r) 
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double PairTersoffKokkos<DeviceType>::ters_dfc(Param *param, const F_FLOAT &r) const
+double PairTersoffKokkos<DeviceType>::ters_dfc(const Param& param, const F_FLOAT &r) const
 {
-  const F_FLOAT ters_R = param->bigr;
-  const F_FLOAT ters_D = param->bigd;
+  const F_FLOAT ters_R = param.bigr;
+  const F_FLOAT ters_D = param.bigd;
 
   if (r < ters_R-ters_D) return 0.0;
   if (r > ters_R+ters_D) return 0.0;
@@ -522,10 +522,10 @@ double PairTersoffKokkos<DeviceType>::ters_dfc(Param *param, const F_FLOAT &r) c
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairTersoffKokkos<DeviceType>::ters_fc_k_and_ters_dfc(Param *param, const F_FLOAT &r, double& fc, double& dfc) const
+void PairTersoffKokkos<DeviceType>::ters_fc_k_and_ters_dfc(const Param& param, const F_FLOAT &r, double& fc, double& dfc) const
 {
-  const F_FLOAT ters_R = param->bigr;
-  const F_FLOAT ters_D = param->bigd;
+  const F_FLOAT ters_R = param.bigr;
+  const F_FLOAT ters_D = param.bigd;
 
   if (r < ters_R-ters_D) {
      fc = 1.0;
@@ -551,7 +551,7 @@ void PairTersoffKokkos<DeviceType>::ters_fc_k_and_ters_dfc(Param *param, const F
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double PairTersoffKokkos<DeviceType>::bondorder(Param *param,
+double PairTersoffKokkos<DeviceType>::bondorder(const Param& param,
         const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
         const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2) const
 {
@@ -559,8 +559,8 @@ double PairTersoffKokkos<DeviceType>::bondorder(Param *param,
 
   const F_FLOAT costheta = (dx1*dx2 + dy1*dy2 + dz1*dz2)/(rij*rik);
 
-  const F_FLOAT paramtmp = param->lam3 * (rij-rik);
-  if (int(param->powerm) == 3) arg = paramtmp*paramtmp*paramtmp;//pow(param->lam3 * (rij-rik),3.0);
+  const F_FLOAT paramtmp = param.lam3 * (rij-rik);
+  if (int(param.powerm) == 3) arg = paramtmp*paramtmp*paramtmp;//pow(param.lam3 * (rij-rik),3.0);
   else arg = paramtmp;
 
   if (arg > 69.0776) ex_delr = 1.e30;
@@ -575,13 +575,13 @@ double PairTersoffKokkos<DeviceType>::bondorder(Param *param,
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 double PairTersoffKokkos<DeviceType>::
-        ters_gijk(Param *param, const F_FLOAT &cos) const
+        ters_gijk(const Param& param, const F_FLOAT &cos) const
 {
-  const F_FLOAT ters_c = param->c * param->c;
-  const F_FLOAT ters_d = param->d * param->d;
-  const F_FLOAT hcth = param->h - cos;
+  const F_FLOAT ters_c = param.c * param.c;
+  const F_FLOAT ters_d = param.d * param.d;
+  const F_FLOAT hcth = param.h - cos;
 
-  return param->gamma*(1.0 + ters_c/ters_d - ters_c/(ters_d+hcth*hcth));
+  return param.gamma*(1.0 + ters_c/ters_d - ters_c/(ters_d+hcth*hcth));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -589,14 +589,14 @@ double PairTersoffKokkos<DeviceType>::
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 double PairTersoffKokkos<DeviceType>::
-        ters_dgijk(Param *param, const F_FLOAT &cos) const
+        ters_dgijk(const Param& param, const F_FLOAT &cos) const
 {
-  const F_FLOAT ters_c = param->c * param->c;
-  const F_FLOAT ters_d = param->d * param->d;
-  const F_FLOAT hcth = param->h - cos;
+  const F_FLOAT ters_c = param.c * param.c;
+  const F_FLOAT ters_d = param.d * param.d;
+  const F_FLOAT hcth = param.h - cos;
   const F_FLOAT numerator = -2.0 * ters_c * hcth;
   const F_FLOAT denominator = 1.0/(ters_d + hcth*hcth);
-  return param->gamma * numerator * denominator * denominator;
+  return param.gamma * numerator * denominator * denominator;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -604,27 +604,27 @@ double PairTersoffKokkos<DeviceType>::
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairTersoffKokkos<DeviceType>::
-        ters_gijk_and_ters_dgijk(Param *param, const F_FLOAT &cos, double &gijk, double &dgijk) const
+        ters_gijk_and_ters_dgijk(const Param& param, const F_FLOAT &cos, double &gijk, double &dgijk) const
 {
-  const F_FLOAT ters_c = param->c * param->c;
-  const F_FLOAT ters_d = param->d * param->d;
-  const F_FLOAT hcth = param->h - cos;
+  const F_FLOAT ters_c = param.c * param.c;
+  const F_FLOAT ters_d = param.d * param.d;
+  const F_FLOAT hcth = param.h - cos;
 
   const F_FLOAT numerator = -2.0 * ters_c * hcth;
   const F_FLOAT denominator = 1.0/(ters_d + hcth*hcth);
 
-  gijk = param->gamma*(1.0 + ters_c/ters_d - ters_c*denominator);
-  dgijk = param->gamma * numerator * denominator * denominator;
+  gijk = param.gamma*(1.0 + ters_c/ters_d - ters_c*denominator);
+  dgijk = param.gamma * numerator * denominator * denominator;
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double PairTersoffKokkos<DeviceType>::ters_fa_k(Param *param, const F_FLOAT &r) const
+double PairTersoffKokkos<DeviceType>::ters_fa_k(const Param& param, const F_FLOAT &r) const
 {
-  if (r > param->bigr + param->bigd) return 0.0;
-  return -param->bigb * exp(-param->lam2 * r)
+  if (r > param.bigr + param.bigd) return 0.0;
+  return -param.bigb * exp(-param.lam2 * r)
           * ters_fc_k(param,r);
 }
 
@@ -632,28 +632,28 @@ double PairTersoffKokkos<DeviceType>::ters_fa_k(Param *param, const F_FLOAT &r) 
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double PairTersoffKokkos<DeviceType>::ters_dfa(Param *param, const F_FLOAT &r) const
+double PairTersoffKokkos<DeviceType>::ters_dfa(const Param& param, const F_FLOAT &r) const
 {
-  if (r > param->bigr + param->bigd) return 0.0;
-  return param->bigb * exp(-param->lam2 * r) *
-    (param->lam2 * ters_fc_k(param,r) - ters_dfc(param,r));
+  if (r > param.bigr + param.bigd) return 0.0;
+  return param.bigb * exp(-param.lam2 * r) *
+    (param.lam2 * ters_fc_k(param,r) - ters_dfc(param,r));
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairTersoffKokkos<DeviceType>::ters_fa_k_and_ters_dfa(Param *param, const F_FLOAT &r, double &fa, double &dfa) const
+void PairTersoffKokkos<DeviceType>::ters_fa_k_and_ters_dfa(const Param& param, const F_FLOAT &r, double &fa, double &dfa) const
 {
-  if (r > param->bigr + param->bigd) {
+  if (r > param.bigr + param.bigd) {
      fa = 0.0;
      dfa = 0.0;
   } else {
-    double tmp1 = param->bigb * exp(-param->lam2 * r);
+    double tmp1 = param.bigb * exp(-param.lam2 * r);
     F_FLOAT fc_k, dfc;
     ters_fc_k_and_ters_dfc(param,r,fc_k,dfc);
     fa = -tmp1 * fc_k;
-    dfa = tmp1 * (param->lam2 * fc_k - dfc);
+    dfa = tmp1 * (param.lam2 * fc_k - dfc);
   }
 }
 
@@ -661,79 +661,79 @@ void PairTersoffKokkos<DeviceType>::ters_fa_k_and_ters_dfa(Param *param, const F
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double PairTersoffKokkos<DeviceType>::ters_bij_k(Param *param, const F_FLOAT &bo) const
+double PairTersoffKokkos<DeviceType>::ters_bij_k(const Param& param, const F_FLOAT &bo) const
 {
-  const F_FLOAT tmp = param->beta * bo;
-  if (tmp > param->c1) return 1.0/sqrt(tmp);
-  if (tmp > param->c2)
-    return (1.0 - pow(tmp,-param->powern) / (2.0*param->powern))/sqrt(tmp);
-  if (tmp < param->c4) return 1.0;
-  if (tmp < param->c3)
-    return 1.0 - pow(tmp,param->powern)/(2.0*param->powern);
-  return pow(1.0 + pow(tmp,param->powern), -1.0/(2.0*param->powern));
+  const F_FLOAT tmp = param.beta * bo;
+  if (tmp > param.c1) return 1.0/sqrt(tmp);
+  if (tmp > param.c2)
+    return (1.0 - pow(tmp,-param.powern) / (2.0*param.powern))/sqrt(tmp);
+  if (tmp < param.c4) return 1.0;
+  if (tmp < param.c3)
+    return 1.0 - pow(tmp,param.powern)/(2.0*param.powern);
+  return pow(1.0 + pow(tmp,param.powern), -1.0/(2.0*param.powern));
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double PairTersoffKokkos<DeviceType>::ters_dbij(Param *param, const F_FLOAT &bo) const
+double PairTersoffKokkos<DeviceType>::ters_dbij(const Param& param, const F_FLOAT &bo) const
 {
-  const F_FLOAT tmp = param->beta * bo;
+  const F_FLOAT tmp = param.beta * bo;
   const F_FLOAT factor = -0.5/sqrt(tmp*tmp*tmp); //pow(tmp,-1.5)
-  if (tmp > param->c1) return param->beta * factor;
-  if (tmp > param->c2)
-    return param->beta * (factor *
+  if (tmp > param.c1) return param.beta * factor;
+  if (tmp > param.c2)
+    return param.beta * (factor *
            // error in negligible 2nd term fixed 2/21/2022
-           // (1.0 - 0.5*(1.0 +  1.0/(2.0*param->powern)) *
-           (1.0 - (1.0 +  1.0/(2.0*param->powern)) *
-           pow(tmp,-param->powern)));
-  if (tmp < param->c4) return 0.0;
-  if (tmp < param->c3)
-    return -0.5*param->beta * pow(tmp,param->powern-1.0);
+           // (1.0 - 0.5*(1.0 +  1.0/(2.0*param.powern)) *
+           (1.0 - (1.0 +  1.0/(2.0*param.powern)) *
+           pow(tmp,-param.powern)));
+  if (tmp < param.c4) return 0.0;
+  if (tmp < param.c3)
+    return -0.5*param.beta * pow(tmp,param.powern-1.0);
 
-  const F_FLOAT tmp_n = pow(tmp,param->powern);
-  return -0.5 * pow(1.0+tmp_n, -1.0-(1.0/(2.0*param->powern)))*tmp_n / bo;
+  const F_FLOAT tmp_n = pow(tmp,param.powern);
+  return -0.5 * pow(1.0+tmp_n, -1.0-(1.0/(2.0*param.powern)))*tmp_n / bo;
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairTersoffKokkos<DeviceType>::ters_bij_k_and_ters_dbij(Param *param, const F_FLOAT &bo, double& bij, double& prefactor) const
+void PairTersoffKokkos<DeviceType>::ters_bij_k_and_ters_dbij(const Param& param, const F_FLOAT &bo, double& bij, double& prefactor) const
 {
-  const F_FLOAT tmp = param->beta * bo;
+  const F_FLOAT tmp = param.beta * bo;
   const F_FLOAT factor = -0.5/sqrt(tmp*tmp*tmp); //pow(tmp,-1.5)
-  if (tmp > param->c1) {
+  if (tmp > param.c1) {
       bij =  1.0/sqrt(tmp);
-      prefactor = param->beta * factor;
+      prefactor = param.beta * factor;
       return;
   }
 
-  auto prm_ijk_pn = param->powern;
+  auto prm_ijk_pn = param.powern;
 
-  if (tmp > param->c2) {
+  if (tmp > param.c2) {
     auto tmp_pow_neg_prm_ijk_pn =  pow(tmp,-prm_ijk_pn);
     bij =  (1.0 - tmp_pow_neg_prm_ijk_pn / (2.0*prm_ijk_pn))/sqrt(tmp);
-    prefactor =  param->beta * (factor *
+    prefactor =  param.beta * (factor *
            (1.0 - 0.5*(1.0 +  1.0/(2.0*prm_ijk_pn)) *
            tmp_pow_neg_prm_ijk_pn));
     return;
   }
 
-  if (tmp < param->c4) {
+  if (tmp < param.c4) {
     bij = 1.0;
     prefactor = 0.0;
     return;
   }
-  if (tmp < param->c3) {
+  if (tmp < param.c3) {
     auto tmp_pow_prm_ijk_pn_less_one =  pow(tmp,prm_ijk_pn-1.0);
     bij =  1.0 - tmp_pow_prm_ijk_pn_less_one*tmp/(2.0*prm_ijk_pn);
-    prefactor = -0.5*param->beta * tmp_pow_prm_ijk_pn_less_one;
+    prefactor = -0.5*param.beta * tmp_pow_prm_ijk_pn_less_one;
     return;
   }
 
-  const F_FLOAT tmp_n = pow(tmp,param->powern);
+  const F_FLOAT tmp_n = pow(tmp,param.powern);
   bij = pow(1.0 + tmp_n, -1.0/(2.0*prm_ijk_pn));
   prefactor =  -0.5 * pow(1.0+tmp_n, -1.0-(1.0/(2.0*prm_ijk_pn)))*tmp_n / bo;
 }
@@ -743,7 +743,7 @@ void PairTersoffKokkos<DeviceType>::ters_bij_k_and_ters_dbij(Param *param, const
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairTersoffKokkos<DeviceType>::ters_dthb(
-        Param *param, const F_FLOAT &prefactor,
+        const Param& param, const F_FLOAT &prefactor,
         const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
         const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2,
         F_FLOAT *fi, F_FLOAT *fj, F_FLOAT *fk) const
@@ -770,16 +770,16 @@ void PairTersoffKokkos<DeviceType>::ters_dthb(
 
   ters_fc_k_and_ters_dfc(param,rik,fc,dfc);
 
-  const F_FLOAT paramtmp = param->lam3 * (rij-rik);
-  if (int(param->powerm) == 3) tmp = paramtmp*paramtmp*paramtmp;//pow(param->lam3 * (rij-rik),3.0);
+  const F_FLOAT paramtmp = param.lam3 * (rij-rik);
+  if (int(param.powerm) == 3) tmp = paramtmp*paramtmp*paramtmp;//pow(param.lam3 * (rij-rik),3.0);
 
   if (tmp > 69.0776) ex_delr = 1.e30;
   else if (tmp < -69.0776) ex_delr = 0.0;
   else ex_delr = exp(tmp);
 
-  if (int(param->powerm) == 3)
-    dex_delr = 3.0*paramtmp*paramtmp*param->lam3*ex_delr;//pow(rij-rik,2.0)*ex_delr;
-  else dex_delr = param->lam3 * ex_delr;
+  if (int(param.powerm) == 3)
+    dex_delr = 3.0*paramtmp*paramtmp*param.lam3*ex_delr;//pow(rij-rik,2.0)*ex_delr;
+  else dex_delr = param.lam3 * ex_delr;
 
   cos = vec3_dot(rij_hat,rik_hat);
 
@@ -815,7 +815,7 @@ void PairTersoffKokkos<DeviceType>::ters_dthb(
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairTersoffKokkos<DeviceType>::ters_dthbj(
-        Param *param, const F_FLOAT &prefactor,
+        const Param& param, const F_FLOAT &prefactor,
         const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
         const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2,
         F_FLOAT *fj, F_FLOAT *fk) const
@@ -838,16 +838,16 @@ void PairTersoffKokkos<DeviceType>::ters_dthbj(
 
   fc = ters_fc_k(param,rik);
   dfc = ters_dfc(param,rik);
-  const F_FLOAT paramtmp = param->lam3 * (rij-rik);
-  if (int(param->powerm) == 3) tmp = paramtmp*paramtmp*paramtmp;//pow(param->lam3 * (rij-rik),3.0);
+  const F_FLOAT paramtmp = param.lam3 * (rij-rik);
+  if (int(param.powerm) == 3) tmp = paramtmp*paramtmp*paramtmp;//pow(param.lam3 * (rij-rik),3.0);
 
   if (tmp > 69.0776) ex_delr = 1.e30;
   else if (tmp < -69.0776) ex_delr = 0.0;
   else ex_delr = exp(tmp);
 
-  if (int(param->powerm) == 3)
-    dex_delr = 3.0*paramtmp*paramtmp*param->lam3*ex_delr;//pow(param->lam3,3.0) * pow(rij-rik,2.0)*ex_delr;
-  else dex_delr = param->lam3 * ex_delr;
+  if (int(param.powerm) == 3)
+    dex_delr = 3.0*paramtmp*paramtmp*param.lam3*ex_delr;//pow(param.lam3,3.0) * pow(rij-rik,2.0)*ex_delr;
+  else dex_delr = param.lam3 * ex_delr;
 
   cos = vec3_dot(rij_hat,rik_hat);
   gijk = ters_gijk(param,cos);
@@ -876,7 +876,7 @@ void PairTersoffKokkos<DeviceType>::ters_dthbj(
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairTersoffKokkos<DeviceType>::ters_dthbk(
-        Param *param, const F_FLOAT &prefactor,
+        const Param& param, const F_FLOAT &prefactor,
         const F_FLOAT &rij, const F_FLOAT &dx1, const F_FLOAT &dy1, const F_FLOAT &dz1,
         const F_FLOAT &rik, const F_FLOAT &dx2, const F_FLOAT &dy2, const F_FLOAT &dz2,
         F_FLOAT *fk) const
@@ -899,16 +899,16 @@ void PairTersoffKokkos<DeviceType>::ters_dthbk(
 
   fc = ters_fc_k(param,rik);
   dfc = ters_dfc(param,rik);
-  const F_FLOAT paramtmp = param->lam3 * (rij-rik);
-  if (int(param->powerm) == 3) tmp = paramtmp*paramtmp*paramtmp;//pow(param->lam3 * (rij-rik),3.0);
+  const F_FLOAT paramtmp = param.lam3 * (rij-rik);
+  if (int(param.powerm) == 3) tmp = paramtmp*paramtmp*paramtmp;//pow(param.lam3 * (rij-rik),3.0);
 
   if (tmp > 69.0776) ex_delr = 1.e30;
   else if (tmp < -69.0776) ex_delr = 0.0;
   else ex_delr = exp(tmp);
 
-  if (int(param->powerm) == 3)
-    dex_delr = 3.0*paramtmp*paramtmp*param->lam3*ex_delr;//pow(param->lam3,3.0) * pow(rij-rik,2.0)*ex_delr;
-  else dex_delr = param->lam3 * ex_delr;
+  if (int(param.powerm) == 3)
+    dex_delr = 3.0*paramtmp*paramtmp*param.lam3*ex_delr;//pow(param.lam3,3.0) * pow(rij-rik,2.0)*ex_delr;
+  else dex_delr = param.lam3 * ex_delr;
 
   cos = vec3_dot(rij_hat,rik_hat);
   gijk = ters_gijk(param,cos);

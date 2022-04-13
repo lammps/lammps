@@ -500,20 +500,16 @@ void AngleAmoeba::tinker_bondangle(int i1, int i2, int i3, int type, int eflag)
   b1 = ba_k1[type] * dtheta / r1;
   b2 = ba_k2[type] * dtheta / r2;
 
-  f1[0] -= vx11 + b1*delx1 + vx12;
-  f1[1] -= vy11 + b1*dely1 + vy12;
-  f1[2] -= vz11 + b1*delz1 + vz12;
+  f1[0] = -(vx11 + b1*delx1 + vx12);
+  f1[1] = -(vy11 + b1*dely1 + vy12);
+  f1[2] = -(vz11 + b1*delz1 + vz12);
   
-  f3[0] -= vx21 + b2*delx2 + vx22;
-  f3[1] -= vy21 + b2*dely2 + vy22;
-  f3[2] -= vz21 + b2*delz2 + vz22;
+  f3[0] = -(vx21 + b2*delx2 + vx22);
+  f3[1] = -(vy21 + b2*dely2 + vy22);
+  f3[2] = -(vz21 + b2*delz2 + vz22);
 
   eangle = 0.0;
   if (eflag) eangle = ba_k1[type]*dr1*dtheta + ba_k2[type]*dr2*dtheta;
-
-  printf("BA: ijk %d %d %d eng %g fi %g %g %g fk %g %g %g\n",
-         atom->tag[i1],atom->tag[i2],atom->tag[i3],
-         eangle,f1[0],f1[1],f1[2],f3[0],f3[1],f3[2]);
 
   // apply force to each of 3 atoms
 

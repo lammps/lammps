@@ -41,7 +41,6 @@ class FixPropertyAtom : public Fix {
 
   void grow_arrays(int) override;
   void copy_arrays(int, int, int) override;
-  void set_arrays(int) override;
   int pack_border(int, int *, double *) override;
   int unpack_border(int, int, double *) override;
   int pack_exchange(int, double *) override;

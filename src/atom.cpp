@@ -1926,8 +1926,7 @@ int Atom::find_molecule(char *id)
    called by fixes and commands that add molecules
 ------------------------------------------------------------------------- */
 
-void Atom::add_molecule_atom(Molecule *onemol, int iatom,
-                             int ilocal, tagint offset)
+void Atom::add_molecule_atom(Molecule *onemol, int iatom, int ilocal, tagint offset)
 {
   if (onemol->qflag && q_flag) q[ilocal] = onemol->q[iatom];
   if (onemol->radiusflag && radius_flag) radius[ilocal] = onemol->radius[iatom];
@@ -1941,6 +1940,19 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom,
                                  onemol->ibodyparams,onemol->dbodyparams);
     onemol->avec_body->set_quat(ilocal,onemol->quat_external);
   }
+
+  // initialize custom per-atom properties to zero if present
+
+  for (int i = 0; i < nivector; ++i)
+    ivector[i][ilocal] = 0;
+  for (int i = 0; i < ndvector; ++i)
+    dvector[i][ilocal] = 0.0;
+  for (int i = 0; i < niarray; ++i)
+    for (int j = 0; j < icols[i]; ++j)
+      iarray[i][ilocal][j] = 0;
+  for (int i = 0; i < ndarray; ++i)
+    for (int j = 0; j < dcols[i]; ++j)
+      darray[i][ilocal][j] = 0.0;
 
   if (molecular != Atom::MOLECULAR) return;
 

@@ -197,7 +197,13 @@ void ImproperAmoeba::compute(int eflag, int vflag)
     fd[2] = dedcos * (dccdzid+deedzid);
     fb[0] = -fa[0] - fc[0] - fd[0];
     fb[1] = -fa[1] - fc[1] - fd[1];
-    fb[2] = -fa[1] - fc[2] - fd[2];
+    fb[2] = -fa[2] - fc[2] - fd[2];
+
+    printf("IMP DBAC %d %d %d %d: angle %g eng %g dedcos %g "
+           "fD %g %g %g fA %g %g %g fC %g %g %g\n",
+           atom->tag[id],atom->tag[ib],atom->tag[ia],atom->tag[ic],
+           angle,e,dedcos,fd[0],fd[1],fd[2],fa[0],fa[1],fa[2],
+           fc[0],fc[1],fc[2]);
 
     // apply force to each of 4 atoms
 

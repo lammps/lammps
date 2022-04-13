@@ -116,17 +116,17 @@ void AngleAmoeba::compute(int eflag, int vflag)
     if (enable_angle) {
       tflag = pflag[type];
 
-      //if (tflag && nspecial[i2][0] == 3)
-      //  tinker_anglep(i1,i2,i3,type,eflag);
-      //else
-      //  tinker_angle(i1,i2,i3,type,eflag);
+      if (tflag && nspecial[i2][0] == 3)
+        tinker_anglep(i1,i2,i3,type,eflag);
+      else
+        tinker_angle(i1,i2,i3,type,eflag);
 
       // bondangle = bond-stretch cross term in Tinker
-
+      
       if (ba_k1[type] != 0.0)
         tinker_bondangle(i1,i2,i3,type,eflag);
     }
-
+    
     // Urey-Bradley H-H bond term within water molecules
 
     if (enable_urey) {

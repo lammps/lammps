@@ -30,20 +30,14 @@ PairStyle(tersoff/kk/host,PairTersoffKokkos<LMPHostType>);
 namespace LAMMPS_NS {
 
 template<int NEIGHFLAG, int EVFLAG>
-struct TagPairTersoffComputeHalf{};
-
-template<int NEIGHFLAG, int EVFLAG>
-struct TagPairTersoffComputeFullA{};
-
-template<int NEIGHFLAG, int EVFLAG>
-struct TagPairTersoffComputeFullB{};
+struct TagPairTersoffCompute{};
 
 struct TagPairTersoffComputeShortNeigh{};
 
 template<class DeviceType>
 class PairTersoffKokkos : public PairTersoff {
  public:
-  enum {EnabledNeighFlags=FULL};
+  enum {EnabledNeighFlags=HALF|HALFTHREAD};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -57,27 +51,11 @@ class PairTersoffKokkos : public PairTersoff {
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairTersoffComputeHalf<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
+  void operator()(TagPairTersoffCompute<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairTersoffComputeHalf<NEIGHFLAG,EVFLAG>, const int&) const;
-
-  template<int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairTersoffComputeFullA<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
-
-  template<int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairTersoffComputeFullA<NEIGHFLAG,EVFLAG>, const int&) const;
-
-  template<int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairTersoffComputeFullB<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
-
-  template<int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairTersoffComputeFullB<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(TagPairTersoffCompute<NEIGHFLAG,EVFLAG>, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairTersoffComputeShortNeigh, const int&) const;

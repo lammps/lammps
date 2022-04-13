@@ -27,13 +27,7 @@ PairStyle(sw/kk/host,PairSWKokkos<LMPHostType>);
 #include "pair_kokkos.h"
 
 template<int NEIGHFLAG, int EVFLAG>
-struct TagPairSWComputeHalf{};
-
-template<int NEIGHFLAG, int EVFLAG>
-struct TagPairSWComputeFullA{};
-
-template<int NEIGHFLAG, int EVFLAG>
-struct TagPairSWComputeFullB{};
+struct TagPairSWCompute{};
 
 struct TagPairSWComputeShortNeigh{};
 
@@ -42,7 +36,7 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 class PairSWKokkos : public PairSW {
  public:
-  enum {EnabledNeighFlags=FULL};
+  enum {EnabledNeighFlags=HALF|HALFTHREAD};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -56,27 +50,11 @@ class PairSWKokkos : public PairSW {
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairSWComputeHalf<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
+  void operator()(TagPairSWCompute<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairSWComputeHalf<NEIGHFLAG,EVFLAG>, const int&) const;
-
-  template<int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairSWComputeFullA<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
-
-  template<int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairSWComputeFullA<NEIGHFLAG,EVFLAG>, const int&) const;
-
-  template<int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairSWComputeFullB<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
-
-  template<int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairSWComputeFullB<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(TagPairSWCompute<NEIGHFLAG,EVFLAG>, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairSWComputeShortNeigh, const int&) const;

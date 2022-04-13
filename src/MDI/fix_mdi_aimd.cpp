@@ -29,7 +29,7 @@ enum { NATIVE, REAL, METAL };    // LAMMPS units which MDI supports
 
 FixMDIAimd::FixMDIAimd(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
-  if (narg > 4) error->all(FLERR, "Illegal fix mdi/aimd command");
+  if (narg != 3) error->all(FLERR, "Illegal fix mdi/aimd command");
 
   scalar_flag = 1;
   global_freq = 1;
@@ -37,16 +37,6 @@ FixMDIAimd::FixMDIAimd(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   energy_global_flag = 1;
   virial_global_flag = 1;
   thermo_energy = thermo_virial = 1;
-
-  // check for plugin arg
-
-  plugin = 0;
-  if (narg == 4) {
-    if (strcmp(arg[3], "plugin") == 0)
-      plugin = 1;
-    else
-      error->all(FLERR, "Illegal fix mdi/aimd command");
-  }
 
   // check requirements for LAMMPS to work with MDI as an engine
 
@@ -61,6 +51,11 @@ FixMDIAimd::FixMDIAimd(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   MDI_Get_role(&role);
   if (role != MDI_DRIVER)
     error->all(FLERR, "Must invoke LAMMPS as an MDI driver to use fix mdi/aimd");
+
+  // mdicomm will be one-time initialized in init()
+  // cannot be done here for a plugin library, b/c mdi plugin command is later
+
+  mdicomm = MDI_COMM_NULL;
 
   // storage for all atoms
 
@@ -78,13 +73,6 @@ FixMDIAimd::FixMDIAimd(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   unit_conversions();
 
-  // connect to MDI engine, only if engine is stand-alone code
-
-  if (!plugin) {
-    MDI_Accept_communicator(&mdicomm);
-    if (mdicomm <= 0) error->all(FLERR, "Unable to connect to MDI engine");
-  }
-
   nprocs = comm->nprocs;
 }
 
@@ -92,7 +80,8 @@ FixMDIAimd::FixMDIAimd(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
 FixMDIAimd::~FixMDIAimd()
 {
-  // send exit command to engine, only if engine is stand-alone code
+  // send exit command to engine if it is a stand-alone code
+  // for plugin, this happens in MDIPlugin::plugin_wrapper()
 
   if (!plugin) {
     int ierr = MDI_Send_command("EXIT", mdicomm);
@@ -114,6 +103,29 @@ int FixMDIAimd::setmask()
   mask |= POST_FORCE;
   mask |= MIN_POST_FORCE;
   return mask;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixMDIAimd::init()
+{
+  if (mdicomm != MDI_COMM_NULL) return;
+
+  // one-time initialization of mdicomm
+  // plugin = 0/1 if MDI engine is a stand-alone code vs plugin library
+
+  MDI_Get_communicator(&mdicomm,0);
+
+  if (mdicomm == MDI_COMM_NULL) { 
+    plugin = 0;
+    MDI_Accept_communicator(&mdicomm);
+    if (mdicomm <= 0) error->all(FLERR,"Unable to connect to MDI engine");
+  } else {
+    plugin = 1;
+    int method;
+    MDI_Get_method(&method,mdicomm);
+    if (method != MDI_PLUGIN) error->all(FLERR,"MDI internal error");
+  }
 }
 
 /* ---------------------------------------------------------------------- */

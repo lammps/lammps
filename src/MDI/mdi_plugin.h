@@ -25,7 +25,6 @@ class MDIPlugin : protected Pointers {
 
  private:
   char *lammps_command;
-  class Fix *fixptr;
 
   static int plugin_wrapper(void *, MDI_Comm, void *);
 };

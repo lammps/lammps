@@ -34,7 +34,7 @@ make lib-meam args="-m ifort"   # build MEAM lib with custom Makefile.ifort (usi
 
 # settings
 
-version = "1.3.0"
+version = "1.3.1"
 url = "https://github.com/MolSSI-MDI/MDI_Library/archive/v%s.tar.gz" % version
 
 # known checksums for different MDI versions. used to validate the download.

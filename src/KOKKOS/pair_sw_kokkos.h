@@ -158,7 +158,7 @@ class PairSWKokkos : public PairSW {
 
 /* ERROR/WARNING messages:
 
-E: Cannot use chosen neighbor list style with pair sw/kk
+E: Must use half neighbor list style with pair sw/kk
 
 Self-explanatory.
 

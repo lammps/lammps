@@ -116,15 +116,15 @@ void AngleAmoeba::compute(int eflag, int vflag)
     if (enable_angle) {
       tflag = pflag[type];
 
-      if (tflag && nspecial[i2][0] == 3)
-        tinker_anglep(i1,i2,i3,type,eflag);
-      else
-        tinker_angle(i1,i2,i3,type,eflag);
+      //if (tflag && nspecial[i2][0] == 3)
+      //  tinker_anglep(i1,i2,i3,type,eflag);
+      //else
+      //  tinker_angle(i1,i2,i3,type,eflag);
 
       // bondangle = bond-stretch cross term in Tinker
 
-      //if (ba_k1[type] != 0.0)
-      //tinker_bondangle(i1,i2,i3,type,eflag);
+      if (ba_k1[type] != 0.0)
+        tinker_bondangle(i1,i2,i3,type,eflag);
     }
 
     // Urey-Bradley H-H bond term within water molecules
@@ -510,6 +510,10 @@ void AngleAmoeba::tinker_bondangle(int i1, int i2, int i3, int type, int eflag)
 
   eangle = 0.0;
   if (eflag) eangle = ba_k1[type]*dr1*dtheta + ba_k2[type]*dr2*dtheta;
+
+  printf("BA: ijk %d %d %d eng %g fi %g %g %g fk %g %g %g\n",
+         atom->tag[i1],atom->tag[i2],atom->tag[i3],
+         eangle,f1[0],f1[1],f1[2],f3[0],f3[1],f3[2]);
 
   // apply force to each of 3 atoms
 

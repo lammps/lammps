@@ -105,12 +105,12 @@ void AtomVecWavepacket::data_atom_post(int ilocal)
    return -1 if name is unknown to this atom style
 ------------------------------------------------------------------------- */
 
-int AtomVecWavepacket::property_atom(char *name)
+int AtomVecWavepacket::property_atom(const std::string &name)
 {
-  if (strcmp(name, "spin") == 0) return 0;
-  if (strcmp(name, "eradius") == 0) return 1;
-  if (strcmp(name, "ervel") == 0) return 2;
-  if (strcmp(name, "erforce") == 0) return 3;
+  if (name == "spin") return 0;
+  if (name == "eradius") return 1;
+  if (name == "ervel") return 2;
+  if (name == "erforce") return 3;
   return -1;
 }
 

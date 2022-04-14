@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -30,11 +29,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondBPMSpring::BondBPMSpring(LAMMPS *lmp) : BondBPM(lmp)
+BondBPMSpring::BondBPMSpring(LAMMPS *_lmp) : BondBPM(_lmp), k(nullptr), ecrit(nullptr), gamma(nullptr)
 {
-  k = nullptr;
-  ecrit = nullptr;
-  gamma = nullptr;
   partial_flag = 1;
   smooth_flag = 1;
 }
@@ -55,7 +51,7 @@ BondBPMSpring::~BondBPMSpring()
   Store data for a single bond - if bond added after LAMMPS init (e.g. pour)
 ------------------------------------------------------------------------- */
 
-double BondBPMSpring::store_bond(int n,int i,int j)
+double BondBPMSpring::store_bond(int n, int i, int j)
 {
   double delx, dely, delz, r;
   double **x = atom->x;
@@ -66,22 +62,18 @@ double BondBPMSpring::store_bond(int n,int i,int j)
   dely = x[i][1] - x[j][1];
   delz = x[i][2] - x[j][2];
 
-  r = sqrt(delx*delx + dely*dely + delz*delz);
+  r = sqrt(delx * delx + dely * dely + delz * delz);
   bondstore[n][0] = r;
 
   if (i < atom->nlocal) {
-    for (int m = 0; m < atom->num_bond[i]; m ++) {
-      if (atom->bond_atom[i][m] == tag[j]) {
-        fix_bond_history->update_atom_value(i, m, 0, r);
-      }
+    for (int m = 0; m < atom->num_bond[i]; m++) {
+      if (atom->bond_atom[i][m] == tag[j]) { fix_bond_history->update_atom_value(i, m, 0, r); }
     }
   }
 
   if (j < atom->nlocal) {
-    for (int m = 0; m < atom->num_bond[j]; m ++) {
-      if (atom->bond_atom[j][m] == tag[i]) {
-        fix_bond_history->update_atom_value(j, m, 0, r);
-      }
+    for (int m = 0; m < atom->num_bond[j]; m++) {
+      if (atom->bond_atom[j][m] == tag[i]) { fix_bond_history->update_atom_value(j, m, 0, r); }
     }
   }
 
@@ -99,8 +91,8 @@ void BondBPMSpring::store_data()
   double **x = atom->x;
   int **bond_type = atom->bond_type;
 
-  for (i = 0; i < atom->nlocal; i ++) {
-    for (m = 0; m < atom->num_bond[i]; m ++) {
+  for (i = 0; i < atom->nlocal; i++) {
+    for (m = 0; m < atom->num_bond[i]; m++) {
       type = bond_type[i][m];
 
       //Skip if bond was turned off
@@ -116,7 +108,7 @@ void BondBPMSpring::store_data()
 
       // Get closest image in case bonded with ghost
       domain->minimum_image(delx, dely, delz);
-      r = sqrt(delx*delx + dely*dely + delz*delz);
+      r = sqrt(delx * delx + dely * dely + delz * delz);
 
       fix_bond_history->update_atom_value(i, m, 0, r);
     }
@@ -130,16 +122,16 @@ void BondBPMSpring::store_data()
 void BondBPMSpring::compute(int eflag, int vflag)
 {
 
-  if (! fix_bond_history->stored_flag) {
+  if (!fix_bond_history->stored_flag) {
     fix_bond_history->stored_flag = true;
     store_data();
   }
 
-  int i1,i2,itmp,n,type;
+  int i1, i2, itmp, n, type;
   double delx, dely, delz, delvx, delvy, delvz;
   double e, rsq, r, r0, rinv, smooth, fbond, dot;
 
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
   double **x = atom->x;
   double **v = atom->v;
@@ -172,16 +164,15 @@ void BondBPMSpring::compute(int eflag, int vflag)
     }
 
     // If bond hasn't been set - should be initialized to zero
-    if (r0 < EPSILON || std::isnan(r0))
-      r0 = store_bond(n,i1,i2);
+    if (r0 < EPSILON || std::isnan(r0)) r0 = store_bond(n, i1, i2);
 
     delx = x[i1][0] - x[i2][0];
     dely = x[i1][1] - x[i2][1];
     delz = x[i1][2] - x[i2][2];
 
-    rsq = delx*delx + dely*dely + delz*delz;
+    rsq = delx * delx + dely * dely + delz * delz;
     r = sqrt(rsq);
-    e = (r - r0)/r0;
+    e = (r - r0) / r0;
 
     if (fabs(e) > ecrit[type]) {
       bondlist[n][2] = 0;
@@ -189,18 +180,18 @@ void BondBPMSpring::compute(int eflag, int vflag)
       continue;
     }
 
-    rinv = 1.0/r;
-    fbond = k[type]*(r0-r);
+    rinv = 1.0 / r;
+    fbond = k[type] * (r0 - r);
 
     delvx = v[i1][0] - v[i2][0];
     delvy = v[i1][1] - v[i2][1];
     delvz = v[i1][2] - v[i2][2];
-    dot = delx*delvx + dely*delvy + delz*delvz;
-    fbond -= gamma[type]*dot*rinv;
+    dot = delx * delvx + dely * delvy + delz * delvz;
+    fbond -= gamma[type] * dot * rinv;
     fbond *= rinv;
 
     if (smooth_flag) {
-      smooth = (r-r0)/(r0*ecrit[type]);
+      smooth = (r - r0) / (r0 * ecrit[type]);
       smooth *= smooth;
       smooth *= smooth;
       smooth *= smooth;
@@ -209,18 +200,18 @@ void BondBPMSpring::compute(int eflag, int vflag)
     }
 
     if (newton_bond || i1 < nlocal) {
-      f[i1][0] += delx*fbond;
-      f[i1][1] += dely*fbond;
-      f[i1][2] += delz*fbond;
+      f[i1][0] += delx * fbond;
+      f[i1][1] += dely * fbond;
+      f[i1][2] += delz * fbond;
     }
 
     if (newton_bond || i2 < nlocal) {
-      f[i2][0] -= delx*fbond;
-      f[i2][1] -= dely*fbond;
-      f[i2][2] -= delz*fbond;
+      f[i2][0] -= delx * fbond;
+      f[i2][1] -= dely * fbond;
+      f[i2][2] -= delz * fbond;
     }
 
-    if (evflag) ev_tally(i1,i2,nlocal,newton_bond,0.0,fbond,delx,dely,delz);
+    if (evflag) ev_tally(i1, i2, nlocal, newton_bond, 0.0, fbond, delx, dely, delz);
   }
 }
 
@@ -229,14 +220,14 @@ void BondBPMSpring::compute(int eflag, int vflag)
 void BondBPMSpring::allocate()
 {
   allocated = 1;
-  int n = atom->nbondtypes;
+  const int np1 = atom->nbondtypes + 1;
 
-  memory->create(k,n+1,"bond:k");
-  memory->create(ecrit,n+1,"bond:ecrit");
-  memory->create(gamma,n+1,"bond:gamma");
+  memory->create(k, np1, "bond:k");
+  memory->create(ecrit, np1, "bond:ecrit");
+  memory->create(gamma, np1, "bond:gamma");
 
-  memory->create(setflag,n+1,"bond:setflag");
-  for (int i = 1; i <= n; i++) setflag[i] = 0;
+  memory->create(setflag, np1, "bond:setflag");
+  for (int i = 1; i < np1; i++) setflag[i] = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -245,15 +236,15 @@ void BondBPMSpring::allocate()
 
 void BondBPMSpring::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all(FLERR,"Incorrect args for bond coefficients");
+  if (narg != 4) error->all(FLERR, "Incorrect args for bond coefficients");
   if (!allocated) allocate();
 
-  int ilo,ihi;
-  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
+  int ilo, ihi;
+  utils::bounds(FLERR, arg[0], 1, atom->nbondtypes, ilo, ihi, error);
 
-  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
-  double ecrit_one = utils::numeric(FLERR,arg[2],false,lmp);
-  double gamma_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double k_one = utils::numeric(FLERR, arg[1], false, lmp);
+  double ecrit_one = utils::numeric(FLERR, arg[2], false, lmp);
+  double gamma_one = utils::numeric(FLERR, arg[3], false, lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -263,10 +254,10 @@ void BondBPMSpring::coeff(int narg, char **arg)
     setflag[i] = 1;
     count++;
 
-    if (1.0+ecrit[i] > max_stretch) max_stretch = 1.0+ecrit[i];
+    if (1.0 + ecrit[i] > max_stretch) max_stretch = 1.0 + ecrit[i];
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for bond coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -278,12 +269,12 @@ void BondBPMSpring::init_style()
   BondBPM::init_style();
 
   if (comm->ghost_velocity == 0)
-    error->all(FLERR,"Bond bpm/spring requires ghost atoms store velocity");
+    error->all(FLERR, "Bond bpm/spring requires ghost atoms store velocity");
 
   if (!id_fix_bond_history) {
     id_fix_bond_history = utils::strdup("HISTORY_BPM_SPRING");
-    fix_bond_history = dynamic_cast<FixBondHistory *>(modify->replace_fix(id_fix_dummy2,
-        fmt::format("{} all BOND_HISTORY 0 1", id_fix_bond_history),1));
+    fix_bond_history = dynamic_cast<FixBondHistory *>(modify->replace_fix(
+        id_fix_dummy2, fmt::format("{} all BOND_HISTORY 0 1", id_fix_bond_history), 1));
     delete[] id_fix_dummy2;
     id_fix_dummy2 = nullptr;
   }
@@ -299,8 +290,8 @@ void BondBPMSpring::settings(int narg, char **arg)
   for (std::size_t i = 0; i < leftover_iarg.size(); i++) {
     iarg = leftover_iarg[i];
     if (strcmp(arg[iarg], "smooth") == 0) {
-      if (iarg+1 > narg) error->all(FLERR,"Illegal bond bpm command");
-      smooth_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      if (iarg + 1 > narg) error->all(FLERR, "Illegal bond bpm command");
+      smooth_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       i += 1;
     } else {
       error->all(FLERR, "Illegal bond_style command");
@@ -314,9 +305,9 @@ void BondBPMSpring::settings(int narg, char **arg)
 
 void BondBPMSpring::write_restart(FILE *fp)
 {
-  fwrite(&k[1],sizeof(double),atom->nbondtypes,fp);
-  fwrite(&ecrit[1],sizeof(double),atom->nbondtypes,fp);
-  fwrite(&gamma[1],sizeof(double),atom->nbondtypes,fp);
+  fwrite(&k[1], sizeof(double), atom->nbondtypes, fp);
+  fwrite(&ecrit[1], sizeof(double), atom->nbondtypes, fp);
+  fwrite(&gamma[1], sizeof(double), atom->nbondtypes, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -328,13 +319,13 @@ void BondBPMSpring::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
-    utils::sfread(FLERR,&ecrit[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
-    utils::sfread(FLERR,&gamma[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR, &k[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
+    utils::sfread(FLERR, &ecrit[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
+    utils::sfread(FLERR, &gamma[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
   }
-  MPI_Bcast(&k[1],atom->nbondtypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&ecrit[1],atom->nbondtypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&gamma[1],atom->nbondtypes,MPI_DOUBLE,0,world);
+  MPI_Bcast(&k[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&ecrit[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&gamma[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
 
   for (int i = 1; i <= atom->nbondtypes; i++) setflag[i] = 1;
 }
@@ -346,26 +337,23 @@ void BondBPMSpring::read_restart(FILE *fp)
 void BondBPMSpring::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nbondtypes; i++)
-    fprintf(fp,"%d %g %g %g\n", i,k[i],ecrit[i],gamma[i]);
+    fprintf(fp, "%d %g %g %g\n", i, k[i], ecrit[i], gamma[i]);
 }
 
 /* ---------------------------------------------------------------------- */
 
-double BondBPMSpring::single(int type, double rsq, int i, int j,
-                           double &fforce)
+double BondBPMSpring::single(int type, double rsq, int i, int j, double &fforce)
 {
   if (type <= 0) return 0.0;
 
   double r0;
-  for (int n = 0; n < atom->num_bond[i]; n ++) {
-    if (atom->bond_atom[i][n] == atom->tag[j]) {
-      r0 = fix_bond_history->get_atom_value(i, n, 0);
-    }
+  for (int n = 0; n < atom->num_bond[i]; n++) {
+    if (atom->bond_atom[i][n] == atom->tag[j]) r0 = fix_bond_history->get_atom_value(i, n, 0);
   }
 
   double r = sqrt(rsq);
-  double rinv = 1.0/r;
-  fforce = k[type]*(r0-r);
+  double rinv = 1.0 / r;
+  fforce = k[type] * (r0 - r);
 
   double **x = atom->x;
   double **v = atom->v;
@@ -375,12 +363,12 @@ double BondBPMSpring::single(int type, double rsq, int i, int j,
   double delvx = v[i][0] - v[j][0];
   double delvy = v[i][1] - v[j][1];
   double delvz = v[i][2] - v[j][2];
-  double dot = delx*delvx + dely*delvy + delz*delvz;
-  fforce -= gamma[type]*dot*rinv;
+  double dot = delx * delvx + dely * delvy + delz * delvz;
+  fforce -= gamma[type] * dot * rinv;
   fforce *= rinv;
 
   if (smooth_flag) {
-    double smooth = (r-r0)/(r0*ecrit[type]);
+    double smooth = (r - r0) / (r0 * ecrit[type]);
     smooth *= smooth;
     smooth *= smooth;
     smooth *= smooth;

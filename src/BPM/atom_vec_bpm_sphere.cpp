@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -25,11 +24,11 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::MY_PI;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecBPMSphere::AtomVecBPMSphere(LAMMPS *lmp) : AtomVec(lmp)
+AtomVecBPMSphere::AtomVecBPMSphere(LAMMPS *_lmp) : AtomVec(_lmp)
 {
   mass_type = PER_ATOM;
   molecular = Atom::MOLECULAR;
@@ -44,23 +43,23 @@ AtomVecBPMSphere::AtomVecBPMSphere(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *)
-    "molecule num_bond bond_type bond_atom nspecial special radius rmass omega torque quat";
-  fields_copy = (char *)
-    "molecule num_bond bond_type bond_atom nspecial special radius rmass omega quat";
-  fields_comm = (char *) "";
-  fields_comm_vel = (char *) "omega quat";
-  fields_reverse = (char *) "torque";
-  fields_border = (char *) "molecule radius rmass";
+  // clang-format off
+  fields_grow       = (char *) "molecule num_bond bond_type bond_atom nspecial special radius rmass "
+                               "omega torque quat";
+  fields_copy       = (char *) "molecule num_bond bond_type bond_atom nspecial special radius rmass "
+                               "omega quat";
+  fields_comm       = (char *) "";
+  fields_comm_vel   = (char *) "omega quat";
+  fields_reverse    = (char *) "torque";
+  fields_border     = (char *) "molecule radius rmass";
   fields_border_vel = (char *) "molecule radius rmass omega quat";
-  fields_exchange = (char *)
-    "molecule num_bond bond_type bond_atom nspecial special radius rmass omega quat";
-  fields_restart = (char *)
-    "molecule num_bond bond_type bond_atom radius rmass omega quat";
-  fields_create = (char *)
-    "molecule num_bond nspecial radius rmass omega quat";
-  fields_data_atom = (char *) "id molecule type radius rmass x";
-  fields_data_vel = (char *) "id v omega";
+  fields_exchange   = (char *) "molecule num_bond bond_type bond_atom nspecial special radius rmass "
+                               "omega quat";
+  fields_restart    = (char *) "molecule num_bond bond_type bond_atom radius rmass omega quat";
+  fields_create     = (char *) "molecule num_bond nspecial radius rmass omega quat";
+  fields_data_atom  = (char *) "id molecule type radius rmass x";
+  fields_data_vel   = (char *) "id v omega";
+  // clang-format on
 
   bond_per_atom = 0;
   bond_negative = NULL;
@@ -73,14 +72,12 @@ AtomVecBPMSphere::AtomVecBPMSphere(LAMMPS *lmp) : AtomVec(lmp)
 
 void AtomVecBPMSphere::process_args(int narg, char **arg)
 {
-  if (narg != 0 && narg != 1)
-    error->all(FLERR,"Illegal atom_style bpm/sphere command");
+  if (narg != 0 && narg != 1) error->all(FLERR, "Illegal atom_style bpm/sphere command");
 
   radvary = 0;
   if (narg == 1) {
-    radvary = utils::numeric(FLERR,arg[0],true,lmp);
-    if (radvary < 0 || radvary > 1)
-      error->all(FLERR,"Illegal atom_style bpm/sphere command");
+    radvary = utils::numeric(FLERR, arg[0], true, lmp);
+    if (radvary < 0 || radvary > 1) error->all(FLERR, "Illegal atom_style bpm/sphere command");
   }
 
   // dynamic particle radius and mass must be communicated every step
@@ -104,11 +101,10 @@ void AtomVecBPMSphere::init()
   // check if optional radvary setting should have been set to 1
 
   for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"adapt") == 0) {
+    if (strcmp(modify->fix[i]->style, "adapt") == 0) {
       FixAdapt *fix = (FixAdapt *) modify->fix[i];
       if (fix->diamflag && radvary == 0)
-        error->all(FLERR,"Fix adapt changes particle radii "
-                   "but atom_style bpm/sphere is not dynamic");
+        error->all(FLERR, "Fix adapt changes atom radii but atom_style bpm/sphere is not dynamic");
     }
 }
 
@@ -129,7 +125,6 @@ void AtomVecBPMSphere::grow_pointers()
   nspecial = atom->nspecial;
 }
 
-
 /* ----------------------------------------------------------------------
    initialize non-zero atom quantities
 ------------------------------------------------------------------------- */
@@ -137,13 +132,12 @@ void AtomVecBPMSphere::grow_pointers()
 void AtomVecBPMSphere::create_atom_post(int ilocal)
 {
   radius[ilocal] = 0.5;
-  rmass[ilocal] = 4.0*MY_PI/3.0 * 0.5*0.5*0.5;
+  rmass[ilocal] = 4.0 * MY_PI / 3.0 * 0.5 * 0.5 * 0.5;
 
   quat[ilocal][0] = 1.0;
   quat[ilocal][1] = 0.0;
   quat[ilocal][2] = 0.0;
   quat[ilocal][3] = 0.0;
-
 }
 
 /* ----------------------------------------------------------------------
@@ -155,7 +149,7 @@ void AtomVecBPMSphere::pack_restart_pre(int ilocal)
   // insure bond_negative vector is needed length
 
   if (bond_per_atom < atom->bond_per_atom) {
-    delete [] bond_negative;
+    delete[] bond_negative;
     bond_per_atom = atom->bond_per_atom;
     bond_negative = new int[bond_per_atom];
   }
@@ -168,7 +162,8 @@ void AtomVecBPMSphere::pack_restart_pre(int ilocal)
       bond_negative[m] = 1;
       bond_type[ilocal][m] = -bond_type[ilocal][m];
       any_bond_negative = 1;
-    } else bond_negative[m] = 0;
+    } else
+      bond_negative[m] = 0;
   }
 }
 
@@ -206,11 +201,9 @@ void AtomVecBPMSphere::data_atom_post(int ilocal)
 {
   radius_one = 0.5 * atom->radius[ilocal];
   radius[ilocal] = radius_one;
-  if (radius_one > 0.0)
-    rmass[ilocal] *= 4.0*MY_PI/3.0 * radius_one*radius_one*radius_one;
+  if (radius_one > 0.0) rmass[ilocal] *= 4.0 * MY_PI / 3.0 * radius_one * radius_one * radius_one;
 
-  if (rmass[ilocal] <= 0.0)
-    error->one(FLERR,"Invalid density in Atoms section of data file");
+  if (rmass[ilocal] <= 0.0) error->one(FLERR, "Invalid density in Atoms section of data file");
 
   omega[ilocal][0] = 0.0;
   omega[ilocal][1] = 0.0;
@@ -237,9 +230,8 @@ void AtomVecBPMSphere::pack_data_pre(int ilocal)
   rmass_one = rmass[ilocal];
 
   radius[ilocal] *= 2.0;
-  if (radius_one!= 0.0)
-    rmass[ilocal] =
-      rmass_one / (4.0*MY_PI/3.0 * radius_one*radius_one*radius_one);
+  if (radius_one != 0.0)
+    rmass[ilocal] = rmass_one / (4.0 * MY_PI / 3.0 * radius_one * radius_one * radius_one);
 }
 
 /* ----------------------------------------------------------------------

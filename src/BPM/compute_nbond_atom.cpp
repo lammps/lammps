@@ -26,11 +26,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeNBondAtom::ComputeNBondAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  nbond(nullptr)
+ComputeNBondAtom::ComputeNBondAtom(LAMMPS *_lmp, int narg, char **arg) :
+    Compute(_lmp, narg, arg), nbond(nullptr)
 {
-  if (narg < 3) error->all(FLERR,"Illegal compute nbond/atom command");
+  if (narg < 3) error->all(FLERR, "Illegal compute nbond/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -55,7 +54,7 @@ void ComputeNBondAtom::compute_peratom()
 
   invoked_peratom = update->ntimestep;
   if (update->eflag_atom != invoked_peratom)
-    error->all(FLERR,"Per-atom nbond was not tallied on needed timestep");
+    error->all(FLERR, "Per-atom nbond was not tallied on needed timestep");
 
   // grow local nbond array if necessary
   // needs to be atom->nmax in length
@@ -63,7 +62,7 @@ void ComputeNBondAtom::compute_peratom()
   if (atom->nmax > nmax) {
     memory->destroy(nbond);
     nmax = atom->nmax;
-    memory->create(nbond, nmax,"nbond/atom:nbond");
+    memory->create(nbond, nmax, "nbond/atom:nbond");
     vector_atom = nbond;
   }
 
@@ -88,7 +87,7 @@ void ComputeNBondAtom::compute_peratom()
   for (i = 0; i < ntotal; i++) nbond[i] = 0;
 
   for (i = 0; i < nlocal; i++) {
-    for (j = 0; j <num_bond[i]; j ++) {
+    for (j = 0; j < num_bond[i]; j++) {
       if (bond_type[i][j] <= 0) continue;
 
       k = atom->map(bond_atom[i][j]);
@@ -100,8 +99,7 @@ void ComputeNBondAtom::compute_peratom()
   }
 
   // communicate ghost nbond between neighbor procs
-  if (force->newton)
-    comm->reverse_comm(this);
+  if (force->newton) comm->reverse_comm(this);
 
   // zero nbond of atoms not in group
   // only do this after comm since ghost contributions must be included
@@ -115,7 +113,7 @@ void ComputeNBondAtom::compute_peratom()
 
 int ComputeNBondAtom::pack_reverse_comm(int n, int first, double *buf)
 {
-  int i,m,last;
+  int i, m, last;
 
   m = 0;
   last = first + n;
@@ -127,7 +125,7 @@ int ComputeNBondAtom::pack_reverse_comm(int n, int first, double *buf)
 
 void ComputeNBondAtom::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  int i,j,m;
+  int i, j, m;
 
   m = 0;
   for (i = 0; i < n; i++) {

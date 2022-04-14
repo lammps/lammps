@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairBPMSpring::PairBPMSpring(LAMMPS *lmp) : Pair(lmp)
+PairBPMSpring::PairBPMSpring(LAMMPS *_lmp) : Pair(_lmp)
 {
   writedata = 1;
 }

@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -25,29 +24,22 @@
 #include "modify.h"
 #include "update.h"
 
-#include <string>
 #include <vector>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondBPM::BondBPM(LAMMPS *lmp) : Bond(lmp)
-{
-  id_fix_dummy =  nullptr;
-  id_fix_dummy2 =  nullptr;
-  id_fix_store_local = nullptr;
-  id_fix_bond_history = nullptr;
-  id_fix_prop_atom = nullptr;
-  id_fix_update = nullptr;
-  fix_store_local = nullptr;
-  fix_bond_history = nullptr;
+BondBPM::BondBPM(LAMMPS *_lmp) :
+    Bond(_lmp), id_fix_dummy(nullptr), id_fix_dummy2(nullptr), id_fix_update(nullptr),
+    id_fix_bond_history(nullptr), id_fix_store_local(nullptr), id_fix_prop_atom(nullptr),
+    fix_store_local(nullptr), fix_bond_history(nullptr), fix_update_special_bonds(nullptr),
+    pack_choice(nullptr), output_data(nullptr)
 
+{
   overlay_flag = 0;
   prop_atom_flag = 0;
   nvalues = 0;
-  output_data = nullptr;
-  pack_choice = nullptr;
 
   r0_max_estimate = 0.0;
   max_stretch = 1.0;
@@ -99,11 +91,11 @@ void BondBPM::init_style()
     fix_store_local->nvalues = nvalues;
   }
 
-
   if (overlay_flag) {
     if (force->special_lj[1] != 1.0)
-      error->all(FLERR, "With overlay/pair, BPM bond styles "
-                        "require special_bonds weight of 1.0 for first neighbors");
+      error->all(FLERR,
+                 "With overlay/pair, BPM bond styles require special_bonds weight of 1.0 for "
+                 "first neighbors");
     if (id_fix_update) {
       modify->delete_fix(id_fix_update);
       delete[] id_fix_update;
@@ -112,36 +104,37 @@ void BondBPM::init_style()
   } else {
     // Require atoms know about all of their bonds and if they break
     if (force->newton_bond)
-      error->all(FLERR,"Without overlay/pair, BPM bond styles require Newton bond off");
+      error->all(FLERR, "Without overlay/pair, BPM bond styles require Newton bond off");
 
     // special lj must be 0 1 1 to censor pair forces between bonded particles
     // special coulomb must be 1 1 1 to ensure all pairs are included in the
     //   neighbor list and 1-3 and 1-4 special bond lists are skipped
-    if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 ||
-        force->special_lj[3] != 1.0)
-      error->all(FLERR,"Without overlay/pair, BPM bond sytles requires special LJ weights = 0,1,1");
+    if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0)
+      error->all(FLERR,
+                 "Without overlay/pair, BPM bond sytles requires special LJ weights = 0,1,1");
     if (force->special_coul[1] != 1.0 || force->special_coul[2] != 1.0 ||
         force->special_coul[3] != 1.0)
-      error->all(FLERR,"Without overlay/pair, BPM bond sytles requires special Coulomb weights = 1,1,1");
+      error->all(FLERR,
+                 "Without overlay/pair, BPM bond sytles requires special Coulomb weights = 1,1,1");
 
     if (id_fix_dummy) {
       id_fix_update = utils::strdup("BPM_UPDATE_SPECIAL_BONDS");
       fix_update_special_bonds = dynamic_cast<FixUpdateSpecialBonds *>(modify->replace_fix(
-          id_fix_dummy,fmt::format("{} all UPDATE_SPECIAL_BONDS", id_fix_update),1));
+          id_fix_dummy, fmt::format("{} all UPDATE_SPECIAL_BONDS", id_fix_update), 1));
       delete[] id_fix_dummy;
       id_fix_dummy = nullptr;
     }
   }
 
   if (force->angle || force->dihedral || force->improper)
-    error->all(FLERR,"Bond style bpm cannot be used with 3,4-body interactions");
+    error->all(FLERR, "Bond style bpm cannot be used with 3,4-body interactions");
   if (atom->molecular == 2)
-    error->all(FLERR,"Bond style bpm cannot be used with atom style template");
+    error->all(FLERR, "Bond style bpm cannot be used with atom style template");
 
   // special 1-3 and 1-4 weights must be 1 to prevent building 1-3 and 1-4 special bond lists
-  if (force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0 ||
-    force->special_coul[2] != 1.0 || force->special_coul[3] != 1.0)
-    error->all(FLERR,"Bond style bpm requires 1-3 and 1-4 special weights of 1.0");
+  if (force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0 || force->special_coul[2] != 1.0 ||
+      force->special_coul[3] != 1.0)
+    error->all(FLERR, "Bond style bpm requires 1-3 and 1-4 special weights of 1.0");
 }
 
 /* ----------------------------------------------------------------------
@@ -160,8 +153,8 @@ void BondBPM::settings(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg], "store/local") == 0) {
       nvalues = 0;
-      id_fix_store_local = utils::strdup(arg[iarg+1]);
-      store_local_freq = utils::inumeric(FLERR, arg[iarg+2], false, lmp);
+      id_fix_store_local = utils::strdup(arg[iarg + 1]);
+      store_local_freq = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       pack_choice = new FnPtrPack[narg - iarg - 1];
       iarg += 3;
       while (iarg < narg) {
@@ -189,14 +182,14 @@ void BondBPM::settings(int narg, char **arg)
         } else {
           break;
         }
-        iarg ++;
+        iarg++;
       }
     } else if (strcmp(arg[iarg], "overlay/pair") == 0) {
       overlay_flag = 1;
-      iarg ++;
+      iarg++;
     } else {
       leftover_iarg.push_back(iarg);
-      iarg ++;
+      iarg++;
     }
   }
 
@@ -208,8 +201,8 @@ void BondBPM::settings(int narg, char **arg)
 
     auto ifix = modify->get_fix_by_id(id_fix_store_local);
     if (!ifix)
-      ifix = modify->add_fix(fmt::format("{} all STORE_LOCAL {} {}",
-                                         id_fix_store_local, store_local_freq, nvalues));
+      ifix = modify->add_fix(
+          fmt::format("{} all STORE_LOCAL {} {}", id_fix_store_local, store_local_freq, nvalues));
     fix_store_local = dynamic_cast<FixStoreLocal *>(ifix);
 
     // Use property/atom to save reference positions as it can transfer to ghost atoms
@@ -238,7 +231,7 @@ void BondBPM::settings(int narg, char **arg)
       delete[] z_ref_id;
 
       if (ifix->restart_reset) {
-          ifix->restart_reset = 0;
+        ifix->restart_reset = 0;
       } else {
         double *x_ref = atom->dvector[index_x_ref];
         double *y_ref = atom->dvector[index_y_ref];
@@ -266,34 +259,31 @@ double BondBPM::equilibrium_distance(int /*i*/)
     int type, j;
     double delx, dely, delz, r;
     double **x = atom->x;
-    for (int i = 0; i < atom->nlocal; i ++) {
-      for (int m = 0; m < atom->num_bond[i]; m ++) {
+    for (int i = 0; i < atom->nlocal; i++) {
+      for (int m = 0; m < atom->num_bond[i]; m++) {
         type = atom->bond_type[i][m];
         if (type == 0) continue;
 
         j = atom->map(atom->bond_atom[i][m]);
-        if(j == -1) continue;
+        if (j == -1) continue;
 
         delx = x[i][0] - x[j][0];
         dely = x[i][1] - x[j][1];
         delz = x[i][2] - x[j][2];
         domain->minimum_image(delx, dely, delz);
 
-        r = sqrt(delx*delx + dely*dely + delz*delz);
-        if(r > r0_max_estimate) r0_max_estimate = r;
+        r = sqrt(delx * delx + dely * dely + delz * delz);
+        if (r > r0_max_estimate) r0_max_estimate = r;
       }
     }
 
     double temp;
-    MPI_Allreduce(&r0_max_estimate,&temp,1,MPI_DOUBLE,MPI_MAX,world);
+    MPI_Allreduce(&r0_max_estimate, &temp, 1, MPI_DOUBLE, MPI_MAX, world);
     r0_max_estimate = temp;
-
-    //if (comm->me == 0)
-    //  utils::logmesg(lmp,fmt::format("Estimating longest bond = {}\n",r0_max_estimate));
   }
 
   // Divide out heuristic prefactor added in comm class
-  return max_stretch*r0_max_estimate/1.5;
+  return max_stretch * r0_max_estimate / 1.5;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -301,14 +291,12 @@ double BondBPM::equilibrium_distance(int /*i*/)
 void BondBPM::process_broken(int i, int j)
 {
   if (fix_store_local) {
-    for (int n = 0; n < nvalues; n++)
-      (this->*pack_choice[n])(n, i, j);
+    for (int n = 0; n < nvalues; n++) (this->*pack_choice[n])(n, i, j);
 
     fix_store_local->add_data(output_data, i, j);
   }
 
-  if (fix_update_special_bonds)
-    fix_update_special_bonds->add_broken_bond(i, j);
+  if (fix_update_special_bonds) fix_update_special_bonds->add_broken_bond(i, j);
 
   // Manually search and remove from atom arrays
   // need to remove in case special bonds arrays rebuilt
@@ -325,10 +313,10 @@ void BondBPM::process_broken(int i, int j)
       if (bond_atom[i][m] == tag[j]) {
         bond_type[i][m] = 0;
         n = num_bond[i];
-        bond_type[i][m] = bond_type[i][n-1];
-        bond_atom[i][m] = bond_atom[i][n-1];
-        fix_bond_history->shift_history(i, m, n-1);
-        fix_bond_history->delete_history(i, n-1);
+        bond_type[i][m] = bond_type[i][n - 1];
+        bond_atom[i][m] = bond_atom[i][n - 1];
+        fix_bond_history->shift_history(i, m, n - 1);
+        fix_bond_history->delete_history(i, n - 1);
         num_bond[i]--;
         break;
       }
@@ -340,10 +328,10 @@ void BondBPM::process_broken(int i, int j)
       if (bond_atom[j][m] == tag[i]) {
         bond_type[j][m] = 0;
         n = num_bond[j];
-        bond_type[j][m] = bond_type[j][n-1];
-        bond_atom[j][m] = bond_atom[j][n-1];
-        fix_bond_history->shift_history(j, m, n-1);
-        fix_bond_history->delete_history(j, n-1);
+        bond_type[j][m] = bond_type[j][n - 1];
+        bond_atom[j][m] = bond_atom[j][n - 1];
+        fix_bond_history->shift_history(j, m, n - 1);
+        fix_bond_history->delete_history(j, n - 1);
         num_bond[j]--;
         break;
       }
@@ -383,7 +371,7 @@ void BondBPM::pack_time(int n, int /*i*/, int /*j*/)
 void BondBPM::pack_x(int n, int i, int j)
 {
   double **x = atom->x;
-  output_data[n] = (x[i][0] + x[j][0])*0.5;
+  output_data[n] = (x[i][0] + x[j][0]) * 0.5;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -391,7 +379,7 @@ void BondBPM::pack_x(int n, int i, int j)
 void BondBPM::pack_y(int n, int i, int j)
 {
   double **x = atom->x;
-  output_data[n] = (x[i][1] + x[j][1])*0.5;
+  output_data[n] = (x[i][1] + x[j][1]) * 0.5;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -399,7 +387,7 @@ void BondBPM::pack_y(int n, int i, int j)
 void BondBPM::pack_z(int n, int i, int j)
 {
   double **x = atom->x;
-  output_data[n] = (x[i][2] + x[j][2])*0.5;
+  output_data[n] = (x[i][2] + x[j][2]) * 0.5;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -407,7 +395,7 @@ void BondBPM::pack_z(int n, int i, int j)
 void BondBPM::pack_x_ref(int n, int i, int j)
 {
   double *x = atom->dvector[index_x_ref];
-  output_data[n] = (x[i] + x[j])*0.5;
+  output_data[n] = (x[i] + x[j]) * 0.5;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -415,7 +403,7 @@ void BondBPM::pack_x_ref(int n, int i, int j)
 void BondBPM::pack_y_ref(int n, int i, int j)
 {
   double *y = atom->dvector[index_y_ref];
-  output_data[n] = (y[i] + y[j])*0.5;
+  output_data[n] = (y[i] + y[j]) * 0.5;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -423,5 +411,5 @@ void BondBPM::pack_y_ref(int n, int i, int j)
 void BondBPM::pack_z_ref(int n, int i, int j)
 {
   double *z = atom->dvector[index_z_ref];
-  output_data[n] = (z[i] + z[j])*0.5;
+  output_data[n] = (z[i] + z[j]) * 0.5;
 }

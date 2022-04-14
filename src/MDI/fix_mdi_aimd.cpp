@@ -110,21 +110,24 @@ int FixMDIAimd::setmask()
 void FixMDIAimd::init()
 {
   if (mdicomm != MDI_COMM_NULL) return;
-
-  // one-time initialization of mdicomm
-  // plugin = 0/1 if MDI engine is a stand-alone code vs plugin library
+  
+  // one-time auto-detect whether engine is stand-alone code or plugin library
+  // also initializes mdicomm
+  // plugin = 0/1 for engine = stand-alone code vs plugin library
 
   MDI_Get_communicator(&mdicomm,0);
 
   if (mdicomm == MDI_COMM_NULL) { 
     plugin = 0;
     MDI_Accept_communicator(&mdicomm);
-    if (mdicomm <= 0) error->all(FLERR,"Unable to connect to MDI engine");
+    if (mdicomm == MDI_COMM_NULL) 
+      error->all(FLERR,"MDI unable to connect to stand-alone engine");
   } else {
     plugin = 1;
     int method;
     MDI_Get_method(&method,mdicomm);
-    if (method != MDI_PLUGIN) error->all(FLERR,"MDI internal error");
+    if (method != MDI_PLUGIN) 
+      error->all(FLERR,"MDI internal error for plugin engine");
   }
 }
 

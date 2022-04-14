@@ -79,7 +79,8 @@ void ImproperAmoeba::compute(int eflag, int vflag)
   // conversion factors for radians to degrees and vice versa
 
   double rad2degree = 180.0/MY_PI;
-  double prefactor = 1.0 / (rad2degree*rad2degree);
+  double eprefactor = 1.0 / (rad2degree*rad2degree);
+  double fprefactor = 1.0 / rad2degree;
 
   for (n = 0; n < nimproperlist; n++) {
 
@@ -151,10 +152,11 @@ void ImproperAmoeba::compute(int eflag, int vflag)
     dt2 = dt * dt;
     dt3 = dt2 * dt;
     dt4 = dt2 * dt2;
-    e = prefactor * k[type] * dt2 * (1.0 + opbend_cubic*dt + opbend_quartic*dt2 + 
-                         opbend_pentic*dt3 + opbend_sextic*dt4);
+    e = eprefactor * k[type] * dt2 * 
+      (1.0 + opbend_cubic*dt + opbend_quartic*dt2 + 
+       opbend_pentic*dt3 + opbend_sextic*dt4);
 
-    deddt = k[type] * dt * 
+    deddt = fprefactor * k[type] * dt * 
       (2.0 + 3.0*opbend_cubic*dt + 4.0*opbend_quartic*dt2 + 
        5.0*opbend_pentic*dt3 + 6.0*opbend_sextic*dt4);
     sign = (ee >= 0.0) ? 1.0 : -1.0;
@@ -199,11 +201,13 @@ void ImproperAmoeba::compute(int eflag, int vflag)
     fb[1] = -fa[1] - fc[1] - fd[1];
     fb[2] = -fa[2] - fc[2] - fd[2];
 
+    /*
     printf("IMP DBAC %d %d %d %d: angle %g eng %g dedcos %g "
            "fD %g %g %g fA %g %g %g fC %g %g %g\n",
            atom->tag[id],atom->tag[ib],atom->tag[ia],atom->tag[ic],
            angle,e,dedcos,fd[0],fd[1],fd[2],fa[0],fa[1],fa[2],
            fc[0],fc[1],fc[2]);
+    */
 
     // apply force to each of 4 atoms
 

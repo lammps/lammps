@@ -286,46 +286,22 @@ while iarg < narg:
 
 if not mdiarg: error()
 
+mdi.MDI_Init(mdiarg)
+
 # LAMMPS engine is a stand-alone code
 # world = MPI communicator for just this driver
 # invoke perform_tasks() directly
 
-#if not plugin:
-#  mdi.MDI_Init(mdiarg)
-#  world = mdi.MDI_MPI_get_world_comm()
-
-  # connect to engine
-
-#  mdicomm = mdi.MDI_Accept_Communicator()
-
-#  perform_tasks(world,mdicomm,None)
+if not plugin:
+  world = mdi.MDI_MPI_get_world_comm()
+  mdicomm = mdi.MDI_Accept_Communicator()
+  perform_tasks(world,mdicomm,None)
 
 # LAMMPS engine is a plugin library
 # launch plugin
 # MDI will call back to perform_tasks()
 
-#if plugin:
-#  mdi.MDI_Init(mdiarg)
-#  world = MPI.COMM_WORLD
-#  plugin_args += " -mdi \"-role ENGINE -name lammps -method LINK\""
-#  mdi.MDI_Launch_plugin(plugin,plugin_args,world,perform_tasks,None)
-
-
-# new code to auto-detect whether engine is stand-alone code or plugin library
-
-mdi.MDI_Init(mdiarg)
-mdicomm = mdi.MDI_Get_communicator(0)
-
-if mdicomm == mdi.MDI_COMM_NULL:
-  world = mdi.MDI_MPI_get_world_comm()
-  mdicomm = mdi.MDI_Accept_Communicator()
-  if mdicomm == mdi.MDI_COMM_NULL:
-    error("MDI unable to connect to stand-alone engine")
-  perform_tasks(world,mdicomm,None)
-else:
+if plugin:
   world = MPI.COMM_WORLD
-  method = mdi.MDI_Get_method(mdicomm)
-  if method != mdi.MDI_PLUGIN:
-    error("MDI internal error for plugin engine")
   plugin_args += " -mdi \"-role ENGINE -name lammps -method LINK\""
   mdi.MDI_Launch_plugin(plugin,plugin_args,world,perform_tasks,None)

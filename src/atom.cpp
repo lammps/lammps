@@ -565,7 +565,7 @@ void Atom::add_peratom(const std::string &name, void *address,
 void Atom::add_peratom_change_columns(const std::string &name, int cols)
 {
   auto match = std::find_if(peratom.begin(), peratom.end(),
-                            [&n = name] (const PerAtom &p) { return p.name == n; });
+                            [name] (const PerAtom &p) { return p.name == name; });
 
   if (match != peratom.end()) (*match).cols = cols;
   else error->all(FLERR,"Could not find per-atom array name {} for column change", name);

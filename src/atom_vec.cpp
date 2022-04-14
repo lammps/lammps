@@ -2280,7 +2280,7 @@ void AtomVec::setup_fields()
     error->all(FLERR, "Atom style fields_data_vel must have 'id' and 'v' as first two fields");
 
   // process field strings
-  // return # of fields and matching index into atom->peratom (in Method struct)
+  // return # of fields and matching index into atom.peratom (in Method struct)
 
   ngrow = process_fields(fields_grow, default_grow, &mgrow);
   ncopy = process_fields(fields_copy, default_copy, &mcopy);
@@ -2317,8 +2317,8 @@ void AtomVec::setup_fields()
   else
     threads = nullptr;
   for (int i = 0; i < ngrow; i++) {
-    Atom::PerAtom *field = &atom->peratom[mgrow.index[i]];
-    threads[i] = field->threadflag == 1;
+    const auto &field = atom->peratom[mgrow.index[i]];
+    threads[i] = field.threadflag == 1;
   }
 
   // set style-specific sizes
@@ -2373,7 +2373,7 @@ void AtomVec::setup_fields()
   size_data_atom = 0;
   for (n = 0; n < ndata_atom; n++) {
     cols = mdata_atom.cols[n];
-    if (strcmp(atom->peratom[mdata_atom.index[n]].name, "x") == 0) xcol_data = size_data_atom + 1;
+    if (atom->peratom[mdata_atom.index[n]].name == "x") xcol_data = size_data_atom + 1;
     if (cols == 0)
       size_data_atom++;
     else
@@ -2402,8 +2402,8 @@ int AtomVec::process_fields(const std::vector<std::string> &words,
 
   // process fields one by one, add to index vector
 
-  Atom::PerAtom *peratom = atom->peratom;
-  int nperatom = atom->nperatom;
+  const auto &peratom = atom->peratom;
+  const int nperatom = peratom.size();
 
   // allocate memory in method
   method->resize(nfield);
@@ -2442,14 +2442,14 @@ int AtomVec::process_fields(const std::vector<std::string> &words,
 void AtomVec::init_method(int nfield, Method *method)
 {
   for (int i = 0; i < nfield; i++) {
-    Atom::PerAtom *field = &atom->peratom[method->index[i]];
-    method->pdata[i] = (void *) field->address;
-    method->datatype[i] = field->datatype;
-    method->cols[i] = field->cols;
+    const auto &field = atom->peratom[method->index[i]];
+    method->pdata[i] = (void *) field.address;
+    method->datatype[i] = field.datatype;
+    method->cols[i] = field.cols;
     if (method->cols[i] < 0) {
-      method->maxcols[i] = field->address_maxcols;
-      method->collength[i] = field->collength;
-      method->plength[i] = field->address_length;
+      method->maxcols[i] = field.address_maxcols;
+      method->collength[i] = field.collength;
+      method->plength[i] = field.address_length;
     }
   }
 }

@@ -13,56 +13,37 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(pair/tracker,FixPairTracker);
+FixStyle(STORE_LOCAL,FixStoreLocal);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_PAIR_TRACKING_H
-#define LMP_FIX_PAIR_TRACKING_H
+#ifndef LMP_FIX_STORE_LOCAL_H
+#define LMP_FIX_STORE_LOCAL_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixPairTracker : public Fix {
+class FixStoreLocal : public Fix {
  public:
-  FixPairTracker(class LAMMPS *, int, char **);
-  ~FixPairTracker() override;
+  FixStoreLocal(class LAMMPS *, int, char **);
+  ~FixStoreLocal() override;
   int setmask() override;
-  void init() override;
   void post_force(int) override;
   double memory_usage() override;
-  void lost_contact(int, int, double, double, double, double);
+  void add_data(double *, int, int);
+  int nvalues;
 
  private:
-  int nvalues, nmax;
-  int index_i, index_j;
-  double tmin, rmin, rsum, time_initial, nstep_initial;
+  int nmax;
 
   double *vector;
   double **array;
-  int **type_filter;
 
   int ncount;
+  int nreset;
 
   void reallocate(int);
-
-  typedef void (FixPairTracker::*FnPtrPack)(int);
-  FnPtrPack *pack_choice;    // ptrs to pack functions
-
-  void pack_id1(int);
-  void pack_id2(int);
-
-  void pack_time_created(int);
-  void pack_time_broken(int);
-  void pack_time_total(int);
-
-  void pack_x(int);
-  void pack_y(int);
-  void pack_z(int);
-
-  void pack_rmin(int);
-  void pack_rave(int);
 };
 
 }    // namespace LAMMPS_NS
@@ -78,8 +59,13 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Invalid keyword in fix pair/tracker command
+E: Invalid keyword in fix store/local command
 
 Self-explanatory.
+
+E: Unused instance of fix store/local
+
+Instance of fix store/local is not associated with any other LAMMPS
+class such as a bond style, pair style, etc.
 
 */

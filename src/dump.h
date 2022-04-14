@@ -66,7 +66,6 @@ class Dump : protected Pointers {
   char *multiname;         // filename with % converted to cluster ID
   MPI_Comm clustercomm;    // MPI communicator within my cluster of procs
 
-  int header_flag;          // 0 = item, 2 = xyz
   int flush_flag;           // 0 if no flush, 1 if flush every dump
   int sort_flag;            // 1 if sorted output
   int balance_flag;         // 1 if load balanced output

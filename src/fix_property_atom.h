@@ -27,6 +27,7 @@ namespace LAMMPS_NS {
 class FixPropertyAtom : public Fix {
  public:
   FixPropertyAtom(class LAMMPS *, int, char **);
+
   ~FixPropertyAtom() override;
   int setmask() override;
   void init() override;

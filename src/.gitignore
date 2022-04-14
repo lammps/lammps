@@ -254,6 +254,21 @@
 /pair_mesont_tpm.cpp
 /pair_mesont_tpm.h
 
+/atom_vec_bpm_sphere.cpp
+/atom_vec_bpm_sphere.h
+/bond_bpm.cpp
+/bond_bpm.h
+/bond_bpm_rotational.cpp
+/bond_bpm_rotational.h
+/bond_bpm_spring.cpp
+/bond_bpm_spring.h
+/compute_nbond_atom.cpp
+/compute_nbond_atom.h
+/fix_nve_bpm_sphere.cpp
+/fix_nve_bpm_sphere.h
+/pair_bpm_spring.cpp
+/pair_bpm_spring.h
+
 /compute_adf.cpp
 /compute_adf.h
 /compute_contact_atom.cpp
@@ -792,8 +807,6 @@
 /fix_orient_eco.h
 /fix_orient_fcc.cpp
 /fix_orient_fcc.h
-/fix_pair_tracker.cpp
-/fix_pair_tracker.h
 /fix_peri_neigh.cpp
 /fix_peri_neigh.h
 /fix_phonon.cpp
@@ -1524,3 +1537,4 @@
 /pair_smtbq.h
 /pair_vashishta*.cpp
 /pair_vashishta*.h
+

@@ -15,7 +15,10 @@
 #include "npair_half_size_multi_newton_omp.h"
 
 #include "atom.h"
+#include "atom_vec.h"
+#include "domain.h"
 #include "error.h"
+#include "molecule.h"
 #include "my_page.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -40,8 +43,10 @@ NPairHalfSizeMultiNewtonOmp::NPairHalfSizeMultiNewtonOmp(LAMMPS *lmp) : NPair(lm
 void NPairHalfSizeMultiNewtonOmp::build(NeighList *list)
 {
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
+  const int molecular = atom->molecular;
+  const int moltemplate = (molecular == Atom::TEMPLATE) ? 1 : 0;
   const int history = list->history;
-  const int mask_history = 3 << SBBITS;
+  const int mask_history = 1 << HISTBITS;
 
   NPAIR_OMP_INIT;
 #if defined(_OPENMP)
@@ -49,7 +54,9 @@ void NPairHalfSizeMultiNewtonOmp::build(NeighList *list)
 #endif
   NPAIR_OMP_SETUP(nlocal);
 
-  int i,j,k,n,itype,jtype,icollection,jcollection,ibin,jbin,ns;
+  int i,j,jh,k,n,itype,jtype,icollection,jcollection,ibin,jbin,ns;
+  int which,imol,iatom;
+  tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutdistsq;
   int *neighptr,*s;
@@ -62,7 +69,14 @@ void NPairHalfSizeMultiNewtonOmp::build(NeighList *list)
   double *radius = atom->radius;
   int *type = atom->type;
   int *mask = atom->mask;
+  tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
+  tagint **special = atom->special;
+  int **nspecial = atom->nspecial;
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -83,6 +97,11 @@ void NPairHalfSizeMultiNewtonOmp::build(NeighList *list)
     ytmp = x[i][1];
     ztmp = x[i][2];
     radi = radius[i];
+    if (moltemplate) {
+      imol = molindex[i];
+      iatom = molatom[i];
+      tagprev = tag[i] - iatom - 1;
+    }
 
     ibin = atom2bin[i];
 
@@ -107,7 +126,7 @@ void NPairHalfSizeMultiNewtonOmp::build(NeighList *list)
         //   if j is owned atom, store it if j > i
         //   if j is ghost, only store if j coords are "above and to the right" of i
 
-            for (j = js; j >= 0; j = bins[j]) {
+        for (j = js; j >= 0; j = bins[j]) {
           if(icollection != jcollection && j < i) continue;
 
               if (j >= nlocal) {
@@ -121,19 +140,32 @@ void NPairHalfSizeMultiNewtonOmp::build(NeighList *list)
           jtype = type[j];
           if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
-              delx = xtmp - x[j][0];
-              dely = ytmp - x[j][1];
-              delz = ztmp - x[j][2];
-              rsq = delx*delx + dely*dely + delz*delz;
-              radsum = radi + radius[j];
-              cutdistsq = (radsum+skin) * (radsum+skin);
+          delx = xtmp - x[j][0];
+          dely = ytmp - x[j][1];
+          delz = ztmp - x[j][2];
+          rsq = delx*delx + dely*dely + delz*delz;
+          radsum = radi + radius[j];
+          cutdistsq = (radsum+skin) * (radsum+skin);
 
-              if (rsq <= cutdistsq) {
-                if (history && rsq < radsum*radsum)
-                  neighptr[n++] = j ^ mask_history;
-                else
-                  neighptr[n++] = j;
-              }
+          if (rsq <= cutdistsq) {
+            jh = j;
+            if (history && rsq < radsum*radsum)
+              jh = jh ^ mask_history;
+
+            if (molecular != Atom::ATOMIC) {
+              if (!moltemplate)
+                which = find_special(special[i],nspecial[i],tag[j]);
+              else if (imol >=0)
+                which = find_special(onemols[imol]->special[iatom],
+                                     onemols[imol]->nspecial[iatom],
+                                     tag[j]-tagprev);
+              else which = 0;
+              if (which == 0) neighptr[n++] = jh;
+              else if (domain->minimum_image_check(delx,dely,delz))
+                neighptr[n++] = jh;
+              else if (which > 0) neighptr[n++] = jh ^ (which << SBBITS);
+            } else neighptr[n++] = jh;
+          }
         }
       }
 
@@ -142,31 +174,43 @@ void NPairHalfSizeMultiNewtonOmp::build(NeighList *list)
       // stencil is half if i same size as j
       // stencil is full if i smaller than j
 
-          s = stencil_multi[icollection][jcollection];
-          ns = nstencil_multi[icollection][jcollection];
+      s = stencil_multi[icollection][jcollection];
+      ns = nstencil_multi[icollection][jcollection];
 
-          for (k = 0; k < ns; k++) {
-            js = binhead_multi[jcollection][jbin + s[k]];
-            for (j = js; j >= 0; j = bins[j]) {
+      for (k = 0; k < ns; k++) {
+        js = binhead_multi[jcollection][jbin + s[k]];
+        for (j = js; j >= 0; j = bins[j]) {
 
           jtype = type[j];
-              if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+          if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
           delx = xtmp - x[j][0];
-              dely = ytmp - x[j][1];
-              delz = ztmp - x[j][2];
-              rsq = delx*delx + dely*dely + delz*delz;
-              radsum = radi + radius[j];
-              cutdistsq = (radsum+skin) * (radsum+skin);
+          dely = ytmp - x[j][1];
+          delz = ztmp - x[j][2];
+          rsq = delx*delx + dely*dely + delz*delz;
+          radsum = radi + radius[j];
+          cutdistsq = (radsum+skin) * (radsum+skin);
 
-              if (rsq <= cutdistsq) {
-                if (history && rsq < radsum*radsum)
-                    neighptr[n++] = j ^ mask_history;
-                else
-                    neighptr[n++] = j;
-              }
-            }
+          if (rsq <= cutdistsq) {
+            if (history && rsq < radsum*radsum)
+              j = j ^ mask_history;
+
+            if (molecular != Atom::ATOMIC) {
+              if (!moltemplate)
+                which = find_special(special[i],nspecial[i],tag[j]);
+              else if (imol >=0)
+                which = find_special(onemols[imol]->special[iatom],
+                                     onemols[imol]->nspecial[iatom],
+                                     tag[j]-tagprev);
+              else which = 0;
+              if (which == 0) neighptr[n++] = j;
+              else if (domain->minimum_image_check(delx,dely,delz))
+                neighptr[n++] = j;
+              else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
+            } else neighptr[n++] = j;
           }
+        }
+      }
     }
 
     ilist[i] = i;

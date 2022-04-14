@@ -85,7 +85,7 @@ PairTersoffZBLKokkos<DeviceType>::~PairTersoffZBLKokkos()
 template<class DeviceType>
 void PairTersoffZBLKokkos<DeviceType>::coeff(int narg, char **arg)
 {
-  PairTersoff::coeff(narg,arg);
+  PairTersoffZBL::coeff(narg,arg);
 
   // sync map
 
@@ -344,7 +344,6 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLCompute<NEIGH
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors_short(ii,jj);
-    j &= NEIGHMASK;
     const int jtype = d_map(type(j));
     const tagint jtag = tag(j);
 
@@ -422,7 +421,6 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLCompute<NEIGH
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors_short(ii,jj);
-    j &= NEIGHMASK;
     const int jtype = d_map(type(j));
 
     const F_FLOAT delx1 = xtmp - x(j,0);
@@ -439,7 +437,6 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLCompute<NEIGH
     for (int kk = 0; kk < jnum; kk++) {
       if (jj == kk) continue;
       int k = d_neighbors_short(ii,kk);
-      k &= NEIGHMASK;
       const int ktype = d_map(type(k));
 
       const F_FLOAT delx2 = xtmp - x(k,0);
@@ -481,7 +478,6 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLCompute<NEIGH
     for (int kk = 0; kk < jnum; kk++) {
       if (jj == kk) continue;
       int k = d_neighbors_short(ii,kk);
-      k &= NEIGHMASK;
       const int ktype = d_map(type(k));
 
       const F_FLOAT delx2 = xtmp - x(k,0);

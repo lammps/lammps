@@ -99,10 +99,6 @@ class PairSWKokkos : public PairSW {
   void threebody_kk(const Param&, const Param&, const Param&, const F_FLOAT&, const F_FLOAT&, F_FLOAT *, F_FLOAT *,
                     F_FLOAT *, F_FLOAT *, const int&, F_FLOAT&) const;
 
-  KOKKOS_INLINE_FUNCTION
-  void threebodyj(const Param&, const Param&, const Param&, const F_FLOAT&, const F_FLOAT&, F_FLOAT *, F_FLOAT *,
-                 F_FLOAT *) const;
-
   typename AT::t_x_array_randomread x;
   typename AT::t_f_array f;
   typename AT::t_tagint_1d tag;

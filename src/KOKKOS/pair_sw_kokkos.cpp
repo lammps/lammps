@@ -202,6 +202,7 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeShortNeigh, const int& ii) const {
     const int i = d_ilist[ii];
+    const int itype = d_map[type[i]];
     const X_FLOAT xtmp = x(i,0);
     const X_FLOAT ytmp = x(i,1);
     const X_FLOAT ztmp = x(i,2);
@@ -211,13 +212,15 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeShortNeigh, const int&
     for (int jj = 0; jj < jnum; jj++) {
       int j = d_neighbors(i,jj);
       j &= NEIGHMASK;
+      const int jtype = d_map[type[j]];
 
       const X_FLOAT delx = xtmp - x(j,0);
       const X_FLOAT dely = ytmp - x(j,1);
       const X_FLOAT delz = ztmp - x(j,2);
       const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-      if (rsq < cutmax*cutmax) {
+      const int ijparam = d_elem3param(itype,jtype,jtype);
+      if (rsq < d_params[ijparam].cutsq) {
         d_neighbors_short(ii,inside) = j;
         inside++;
       }
@@ -258,7 +261,6 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWCompute<NEIGHFLAG,EVFLAG>, co
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors_short(ii,jj);
-    j &= NEIGHMASK;
     const tagint jtag = tag[j];
 
     if (itag > jtag) {
@@ -279,7 +281,6 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWCompute<NEIGHFLAG,EVFLAG>, co
     const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
     const int ijparam = d_elem3param(itype,jtype,jtype);
-    if (rsq >= d_params[ijparam].cutsq) continue;
 
     twobody(d_params[ijparam],rsq,fpair,eflag,evdwl);
 
@@ -300,14 +301,12 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWCompute<NEIGHFLAG,EVFLAG>, co
 
   for (int jj = 0; jj < jnumm1; jj++) {
     int j = d_neighbors_short(ii,jj);
-    j &= NEIGHMASK;
     const int jtype = d_map[type[j]];
     const int ijparam = d_elem3param(itype,jtype,jtype);
     delr1[0] = x(j,0) - xtmp;
     delr1[1] = x(j,1) - ytmp;
     delr1[2] = x(j,2) - ztmp;
     const F_FLOAT rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
-    if (rsq1 >= d_params[ijparam].cutsq) continue;
 
     F_FLOAT fxtmpj = 0.0;
     F_FLOAT fytmpj = 0.0;
@@ -315,7 +314,6 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWCompute<NEIGHFLAG,EVFLAG>, co
 
     for (int kk = jj+1; kk < jnum; kk++) {
       int k = d_neighbors_short(ii,kk);
-      k &= NEIGHMASK;
       const int ktype = d_map[type[k]];
       const int ikparam = d_elem3param(itype,ktype,ktype);
       const int ijkparam = d_elem3param(itype,jtype,ktype);
@@ -324,8 +322,6 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWCompute<NEIGHFLAG,EVFLAG>, co
       delr2[1] = x(k,1) - ytmp;
       delr2[2] = x(k,2) - ztmp;
       const F_FLOAT rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-
-      if (rsq2 >= d_params[ikparam].cutsq) continue;
 
       threebody_kk(d_params[ijparam],d_params[ikparam],d_params[ijkparam],
                 rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
@@ -522,52 +518,6 @@ void PairSWKokkos<DeviceType>::threebody_kk(const Param& paramij, const Param& p
   fk[2] = delr2[2]*(frad2+csfac2)-delr1[2]*facang12;
 
   if (eflag) eng = facrad;
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void PairSWKokkos<DeviceType>::threebodyj(const Param& paramij, const Param& paramik, const Param& paramijk,
-                       const F_FLOAT& rsq1, const F_FLOAT& rsq2, F_FLOAT *delr1, F_FLOAT *delr2, F_FLOAT *fj) const
-{
-  F_FLOAT r1,rinvsq1,rainv1,gsrainv1,gsrainvsq1,expgsrainv1;
-  F_FLOAT r2, rainv2, gsrainv2, expgsrainv2;
-  F_FLOAT rinv12,cs,delcs,delcssq,facexp,facrad,frad1;
-  F_FLOAT facang,facang12,csfacang,csfac1;
-
-  r1 = sqrt(rsq1);
-  rinvsq1 = 1.0/rsq1;
-  rainv1 = 1.0/(r1 - paramij.cut);
-  gsrainv1 = paramij.sigma_gamma * rainv1;
-  gsrainvsq1 = gsrainv1*rainv1/r1;
-  expgsrainv1 = exp(gsrainv1);
-
-  r2 = sqrt(rsq2);
-  rainv2 = 1.0/(r2 - paramik.cut);
-  gsrainv2 = paramik.sigma_gamma * rainv2;
-  expgsrainv2 = exp(gsrainv2);
-
-  rinv12 = 1.0/(r1*r2);
-  cs = (delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2]) * rinv12;
-  delcs = cs - paramijk.costheta;
-  delcssq = delcs*delcs;
-
-  facexp = expgsrainv1*expgsrainv2;
-
-  // facrad = sqrt(paramij.lambda_epsilon*paramik.lambda_epsilon) *
-  //          facexp*delcssq;
-
-  facrad = paramijk.lambda_epsilon * facexp*delcssq;
-  frad1 = facrad*gsrainvsq1;
-  facang = paramijk.lambda_epsilon2 * facexp*delcs;
-  facang12 = rinv12*facang;
-  csfacang = cs*facang;
-  csfac1 = rinvsq1*csfacang;
-
-  fj[0] = delr1[0]*(frad1+csfac1)-delr2[0]*facang12;
-  fj[1] = delr1[1]*(frad1+csfac1)-delr2[1]*facang12;
-  fj[2] = delr1[2]*(frad1+csfac1)-delr2[2]*facang12;
 }
 
 /* ---------------------------------------------------------------------- */

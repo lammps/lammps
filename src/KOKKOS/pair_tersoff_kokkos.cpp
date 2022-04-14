@@ -343,7 +343,6 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffCompute<NEIGHFLAG,E
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors_short(ii,jj);
-    j &= NEIGHMASK;
     const int jtype = d_map(type(j));
 
     const F_FLOAT delx1 = xtmp - x(j,0);
@@ -360,7 +359,6 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffCompute<NEIGHFLAG,E
     for (int kk = 0; kk < jnum; kk++) {
       if (jj == kk) continue;
       int k = d_neighbors_short(ii,kk);
-      k &= NEIGHMASK;
       const int ktype = d_map(type(k));
 
       const F_FLOAT delx2 = xtmp - x(k,0);
@@ -402,7 +400,6 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffCompute<NEIGHFLAG,E
     for (int kk = 0; kk < jnum; kk++) {
       if (jj == kk) continue;
       int k = d_neighbors_short(ii,kk);
-      k &= NEIGHMASK;
       const int ktype = d_map(type(k));
 
       const F_FLOAT delx2 = xtmp - x(k,0);

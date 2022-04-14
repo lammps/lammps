@@ -60,19 +60,17 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-using namespace MathConst;
-
-//#define _POLARIZE_DEBUG
+using MathConst::MY_PI;
 
 /* ---------------------------------------------------------------------- */
 
-FixPolarizeBEMGMRES::FixPolarizeBEMGMRES(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), q_backup(nullptr), c(nullptr), g(nullptr), h(nullptr), r(nullptr), s(nullptr), v(nullptr),
-    y(nullptr)
+FixPolarizeBEMGMRES::FixPolarizeBEMGMRES(LAMMPS *_lmp, int narg, char **arg) :
+    Fix(_lmp, narg, arg), q_backup(nullptr), c(nullptr), g(nullptr), h(nullptr), r(nullptr),
+    s(nullptr), v(nullptr), y(nullptr)
 {
   if (narg < 5) error->all(FLERR, "Illegal fix polarize/bem/gmres command");
 
-  avec = dynamic_cast<AtomVecDielectric *>( atom->style_match("dielectric"));
+  avec = dynamic_cast<AtomVecDielectric *>(atom->style_match("dielectric"));
   if (!avec) error->all(FLERR, "Fix polarize requires atom style dielectric");
 
   // parse required arguments
@@ -236,9 +234,7 @@ void FixPolarizeBEMGMRES::init()
   }
 
   if (comm->me == 0)
-    utils::logmesg(lmp,
-                   "GMRES solver for {} induced charges "
-                   "using maximum {} q-vectors\n",
+    utils::logmesg(lmp, "GMRES solver for {} induced charges using maximum {} q-vectors\n",
                    num_induced_charges, mr);
 }
 
@@ -249,32 +245,32 @@ void FixPolarizeBEMGMRES::setup(int /*vflag*/)
   // check if the pair styles in use are compatible
 
   if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulLongDielectric *>( force->pair))->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulLongDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric/omp") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulLongDielectric *>( force->pair))->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulLongDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/msm/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulMSMDielectric *>( force->pair))->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulMSMDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>( force->pair))->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric/omp") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>( force->pair))->efield;
-  else if (strcmp(force->pair_style,"lj/cut/coul/debye/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulDebyeDielectric *>( force->pair))->efield;
-  else if (strcmp(force->pair_style,"lj/cut/coul/debye/dielectric/omp") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulDebyeDielectric *>( force->pair))->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/debye/dielectric") == 0)
+    efield_pair = (dynamic_cast<PairLJCutCoulDebyeDielectric *>(force->pair))->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/debye/dielectric/omp") == 0)
+    efield_pair = (dynamic_cast<PairLJCutCoulDebyeDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "coul/long/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairCoulLongDielectric *>( force->pair))->efield;
+    efield_pair = (dynamic_cast<PairCoulLongDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "coul/cut/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairCoulCutDielectric *>( force->pair))->efield;
+    efield_pair = (dynamic_cast<PairCoulCutDielectric *>(force->pair))->efield;
   else
     error->all(FLERR, "Pair style not compatible with fix polarize/bem/gmres");
 
   if (kspaceflag) {
     if (force->kspace) {
       if (strcmp(force->kspace_style, "pppm/dielectric") == 0)
-        efield_kspace = (dynamic_cast<PPPMDielectric *>( force->kspace))->efield;
+        efield_kspace = (dynamic_cast<PPPMDielectric *>(force->kspace))->efield;
       else if (strcmp(force->kspace_style, "msm/dielectric") == 0)
-        efield_kspace = (dynamic_cast<MSMDielectric *>( force->kspace))->efield;
+        efield_kspace = (dynamic_cast<MSMDielectric *>(force->kspace))->efield;
       else
         error->all(FLERR, "Kspace style not compatible with fix polarize/bem/gmres");
     } else
@@ -369,8 +365,7 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
       Ey += efield_kspace[i][1];
       Ez += efield_kspace[i][2];
     }
-    double ndotE = epsilon0e2q * (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) /
-      epsilon[i];
+    double ndotE = epsilon0e2q * (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) / epsilon[i];
     double sigma_f = q_real[i] / area[i];
     buffer[idx] = (1 - em[i]) * sigma_f - ed[i] * ndotE / (4 * MY_PI);
   }
@@ -535,10 +530,6 @@ void FixPolarizeBEMGMRES::gmres_solve(double *x, double *r)
 
       rho = fabs(g[k]);
 
-#ifdef _POLARIZE_DEBUG
-      if (comm->me == 0)
-        error->warning(FLERR, "itr = {}: k = {}, norm(r) = {} norm(b) = {}", itr, k, rho, normb);
-#endif
       if (rho <= rho_tol && rho <= tol_abs) break;
     }
 
@@ -567,11 +558,6 @@ void FixPolarizeBEMGMRES::gmres_solve(double *x, double *r)
     // rho = norm(r)
 
     rho = sqrt(vec_dot(r, r, n));
-
-#ifdef _POLARIZE_DEBUG
-    if (comm->me == 0)
-      error->warning(FLERR, "itr = {}: norm(r) = {} norm(b) = {}", itr, rho, normb);
-#endif
 
     // Barros et al. suggested the condition: norm(r) < EPSILON norm(b)
 
@@ -644,8 +630,7 @@ void FixPolarizeBEMGMRES::apply_operator(double *w, double *Aw, int /*n*/)
       Ey += efield_kspace[i][1];
       Ez += efield_kspace[i][2];
     }
-    double ndotE = epsilon0e2q * (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) /
-     epsilon[i];
+    double ndotE = epsilon0e2q * (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) / epsilon[i];
     buffer[idx] = em[i] * w[idx] + ed[i] * ndotE / (4 * MY_PI);
   }
 
@@ -717,7 +702,7 @@ void FixPolarizeBEMGMRES::update_residual(double *w, double *r, int /*n*/)
       Ez += efield_kspace[i][2];
     }
     double ndotE = epsilon0e2q * (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) /
-      epsilon[i] / (4 * MY_PI);
+        epsilon[i] / (4 * MY_PI);
     double sigma_f = q_real[i] / area[i];
     buffer[idx] = (1 - em[i]) * sigma_f - em[i] * w[idx] - ed[i] * ndotE;
   }

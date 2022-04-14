@@ -28,14 +28,14 @@
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::MY_PIS;
 
-#define EPSILON 1e-6
+static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulCutDielectricOMP::PairLJCutCoulCutDielectricOMP(LAMMPS *lmp) :
-    PairLJCutCoulCutDielectric(lmp), ThrOMP(lmp, THR_PAIR)
+PairLJCutCoulCutDielectricOMP::PairLJCutCoulCutDielectricOMP(LAMMPS *_lmp) :
+    PairLJCutCoulCutDielectric(_lmp), ThrOMP(_lmp, THR_PAIR)
 {
 }
 

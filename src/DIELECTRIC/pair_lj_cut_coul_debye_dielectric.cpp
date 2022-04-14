@@ -29,13 +29,13 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::MY_PIS;
 
-#define EPSILON 1e-6
+static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulDebyeDielectric::PairLJCutCoulDebyeDielectric(LAMMPS *lmp) : PairLJCutCoulDebye(lmp)
+PairLJCutCoulDebyeDielectric::PairLJCutCoulDebyeDielectric(LAMMPS *_lmp) : PairLJCutCoulDebye(_lmp)
 {
   efield = nullptr;
   epot = nullptr;
@@ -65,8 +65,8 @@ void PairLJCutCoulDebyeDielectric::compute(int eflag, int vflag)
     memory->destroy(efield);
     memory->destroy(epot);
     nmax = atom->nmax;
-    memory->create(efield,nmax,3,"pair:efield");
-    memory->create(epot,nmax,"pair:epot");
+    memory->create(efield, nmax, 3, "pair:efield");
+    memory->create(epot, nmax, "pair:epot");
   }
 
   evdwl = ecoul = 0.0;
@@ -193,7 +193,7 @@ void PairLJCutCoulDebyeDielectric::compute(int eflag, int vflag)
 
 void PairLJCutCoulDebyeDielectric::init_style()
 {
-  avec = dynamic_cast<AtomVecDielectric *>( atom->style_match("dielectric"));
+  avec = dynamic_cast<AtomVecDielectric *>(atom->style_match("dielectric"));
   if (!avec) error->all(FLERR, "Pair lj/cut/coul/debye/dielectric requires atom style dielectric");
 
   neighbor->add_request(this, NeighConst::REQ_FULL);

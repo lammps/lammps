@@ -30,8 +30,6 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
-
 #define EWALD_F 1.12837917
 #define EWALD_P 0.3275911
 #define A1 0.254829592
@@ -39,10 +37,11 @@ using namespace MathConst;
 #define A3 1.421413741
 #define A4 -1.453152027
 #define A5 1.061405429
+using MathConst::MY_PIS;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulLongDielectric::PairCoulLongDielectric(LAMMPS *lmp) : PairCoulLong(lmp)
+PairCoulLongDielectric::PairCoulLongDielectric(LAMMPS *_lmp) : PairCoulLong(_lmp)
 {
   efield = nullptr;
   nmax = 0;
@@ -207,7 +206,7 @@ void PairCoulLongDielectric::compute(int eflag, int vflag)
 
 void PairCoulLongDielectric::init_style()
 {
-  avec = dynamic_cast<AtomVecDielectric *>( atom->style_match("dielectric"));
+  avec = dynamic_cast<AtomVecDielectric *>(atom->style_match("dielectric"));
   if (!avec) error->all(FLERR, "Pair coul/long/dielectric requires atom style dielectric");
 
   neighbor->add_request(this, NeighConst::REQ_FULL);

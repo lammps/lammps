@@ -40,8 +40,8 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulLongDielectricOMP::PairLJCutCoulLongDielectricOMP(LAMMPS *lmp) :
-    PairLJCutCoulLongDielectric(lmp), ThrOMP(lmp, THR_PAIR)
+PairLJCutCoulLongDielectricOMP::PairLJCutCoulLongDielectricOMP(LAMMPS *_lmp) :
+    PairLJCutCoulLongDielectric(_lmp), ThrOMP(_lmp, THR_PAIR)
 {
 }
 

@@ -50,7 +50,7 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-PPPMDielectric::PPPMDielectric(LAMMPS *lmp) : PPPM(lmp)
+PPPMDielectric::PPPMDielectric(LAMMPS *_lmp) : PPPM(_lmp)
 {
   group_group_enable = 0;
 

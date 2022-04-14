@@ -40,11 +40,11 @@ using namespace MathConst;
 #define A4 -1.453152027
 #define A5 1.061405429
 
-#define EPSILON 1e-6
+static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulLongDielectric::PairLJCutCoulLongDielectric(LAMMPS *lmp) : PairLJCutCoulLong(lmp)
+PairLJCutCoulLongDielectric::PairLJCutCoulLongDielectric(LAMMPS *_lmp) : PairLJCutCoulLong(_lmp)
 {
   respa_enable = 0;
   cut_respa = nullptr;
@@ -244,7 +244,7 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
 
 void PairLJCutCoulLongDielectric::init_style()
 {
-  avec = dynamic_cast<AtomVecDielectric *>( atom->style_match("dielectric"));
+  avec = dynamic_cast<AtomVecDielectric *>(atom->style_match("dielectric"));
   if (!avec) error->all(FLERR, "Pair lj/cut/coul/long/dielectric requires atom style dielectric");
 
   neighbor->add_request(this, NeighConst::REQ_FULL);

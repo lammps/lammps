@@ -44,7 +44,7 @@ using namespace MathExtra;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJLongCoulLongDielectric::PairLJLongCoulLongDielectric(LAMMPS *lmp) : PairLJLongCoulLong(lmp)
+PairLJLongCoulLongDielectric::PairLJLongCoulLongDielectric(LAMMPS *_lmp) : PairLJLongCoulLong(_lmp)
 {
   respa_enable = 0;
   cut_respa = nullptr;
@@ -71,7 +71,7 @@ void PairLJLongCoulLongDielectric::init_style()
 {
   PairLJLongCoulLong::init_style();
 
-  avec = dynamic_cast<AtomVecDielectric *>( atom->style_match("dielectric"));
+  avec = dynamic_cast<AtomVecDielectric *>(atom->style_match("dielectric"));
   if (!avec) error->all(FLERR, "Pair lj/long/coul/long/dielectric requires atom style dielectric");
 
   neighbor->add_request(this, NeighConst::REQ_FULL);

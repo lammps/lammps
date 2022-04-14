@@ -29,13 +29,13 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::MY_PIS;
 
-#define EPSILON 1e-6
+static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulCutDielectric::PairLJCutCoulCutDielectric(LAMMPS *lmp) : PairLJCutCoulCut(lmp)
+PairLJCutCoulCutDielectric::PairLJCutCoulCutDielectric(LAMMPS *_lmp) : PairLJCutCoulCut(_lmp)
 {
   efield = nullptr;
   epot = nullptr;
@@ -190,7 +190,7 @@ void PairLJCutCoulCutDielectric::compute(int eflag, int vflag)
 
 void PairLJCutCoulCutDielectric::init_style()
 {
-  avec = dynamic_cast<AtomVecDielectric *>( atom->style_match("dielectric"));
+  avec = dynamic_cast<AtomVecDielectric *>(atom->style_match("dielectric"));
   if (!avec) error->all(FLERR, "Pair lj/cut/coul/cut/dielectric requires atom style dielectric");
 
   neighbor->add_request(this, NeighConst::REQ_FULL);

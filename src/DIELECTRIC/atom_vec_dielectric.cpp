@@ -38,7 +38,7 @@ static const char cite_user_dielectric_package[] =
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecDielectric::AtomVecDielectric(LAMMPS *lmp) : AtomVec(lmp)
+AtomVecDielectric::AtomVecDielectric(LAMMPS *_lmp) : AtomVec(_lmp)
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_dielectric_package);
 

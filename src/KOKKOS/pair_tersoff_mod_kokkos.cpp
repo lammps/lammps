@@ -106,8 +106,6 @@ void PairTersoffMODKokkos<DeviceType>::init_style()
   request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
                            !std::is_same<DeviceType,LMPDeviceType>::value);
   request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
-  // always request a full neighbor list
-  request->enable_full();
 
   if (neighflag == FULL)
     error->all(FLERR,"Must use half neighbor list style with pair tersoff/kk");
@@ -351,7 +349,7 @@ void PairTersoffMODKokkos<DeviceType>::operator()(TagPairTersoffMODCompute<NEIGH
     const int iparam_ij = d_elem3param(itype,jtype,jtype);
     const F_FLOAT cutsq = d_params(iparam_ij).cutsq;
 
-    if (rsq > cutsq) continue;
+    if (rsq >= cutsq) continue;
 
     const F_FLOAT r = sqrt(rsq);
     const F_FLOAT tmp_fce = ters_fc_k(d_params(iparam_ij),r);
@@ -664,6 +662,7 @@ void PairTersoffMODKokkos<DeviceType>::ters_dthb(
 
   const F_FLOAT paramtmp = param.lam3 * (rij-rik);
   if (int(param.powerm) == 3) tmp = paramtmp*paramtmp*paramtmp;//pow(param.lam3 * (rij-rik),3.0);
+  else tmp = paramtmp;
 
   if (tmp > 69.0776) ex_delr = 1.e30;
   else if (tmp < -69.0776) ex_delr = 0.0;
@@ -732,7 +731,7 @@ void PairTersoffMODKokkos<DeviceType>::ters_dthbj(
   dfc = ters_dfc(param,rik);
   const F_FLOAT paramtmp = param.lam3 * (rij-rik);
   if (int(param.powerm) == 3) tmp = paramtmp*paramtmp*paramtmp;//pow(param.lam3 * (rij-rik),3.0);
-  else tmp = param.lam3 * (rij-rik);
+  else tmp = paramtmp;
 
   if (tmp > 69.0776) ex_delr = 1.e30;
   else if (tmp < -69.0776) ex_delr = 0.0;
@@ -794,6 +793,7 @@ void PairTersoffMODKokkos<DeviceType>::ters_dthbk(
   dfc = ters_dfc(param,rik);
   const F_FLOAT paramtmp = param.lam3 * (rij-rik);
   if (int(param.powerm) == 3) tmp = paramtmp*paramtmp*paramtmp;//pow(param.lam3 * (rij-rik),3.0);
+  else tmp = paramtmp;
 
   if (tmp > 69.0776) ex_delr = 1.e30;
   else if (tmp < -69.0776) ex_delr = 0.0;

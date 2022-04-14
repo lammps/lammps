@@ -401,8 +401,6 @@ void PairSWKokkos<DeviceType>::init_style()
   request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
                            !std::is_same<DeviceType,LMPDeviceType>::value);
   request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
-  // always request a full neighbor list
-  request->enable_full();
 
   if (neighflag == FULL)
     error->all(FLERR,"Must use half neighbor list style with pair sw/kk");

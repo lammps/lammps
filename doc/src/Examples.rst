@@ -54,6 +54,8 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | body        | body particles, 2d system                                        |
 +-------------+------------------------------------------------------------------+
+| bpm         | BPM simulations of pouring elastic grains and plate impact       |
++-------------+------------------------------------------------------------------+
 | cmap        | CMAP 5-body contributions to CHARMM force field                  |
 +-------------+------------------------------------------------------------------+
 | colloid     | big colloid particles in a small particle solvent, 2d system     |

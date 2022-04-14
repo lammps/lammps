@@ -328,6 +328,8 @@ boxzlo
 bp
 bpclermont
 bpls
+bpm
+BPM
 br
 Branduardi
 Branicio
@@ -1149,8 +1151,10 @@ gdot
 GeC
 Geier
 gencode
+Geocomputing
 georg
 Georg
+Geotechnica
 germain
 Germann
 Germano
@@ -1320,6 +1324,7 @@ Holm
 holonomic
 Homebrew
 hooke
+hookean
 Hookean
 hostname
 hotpink
@@ -2074,6 +2079,7 @@ monopole
 monovalent
 Montalenti
 Montero
+Mora
 Morefoo
 Morfill
 Mori
@@ -2203,6 +2209,7 @@ Nbin
 Nbins
 nbody
 Nbody
+nbond
 nbonds
 nbondtype
 Nbondtype
@@ -3174,6 +3181,7 @@ Steinhauser
 Stepaniants
 stepwise
 Stesmans
+stiffnesses
 Stillinger
 stk
 stochastically

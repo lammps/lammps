@@ -53,6 +53,7 @@ OPT.
    * :doc:`born/coul/msm (o) <pair_born>`
    * :doc:`born/coul/wolf (go) <pair_born>`
    * :doc:`born/coul/wolf/cs (g) <pair_cs>`
+   * :doc:`bpm/spring <pair_bpm_spring>`
    * :doc:`brownian (o) <pair_brownian>`
    * :doc:`brownian/poly (o) <pair_brownian>`
    * :doc:`buck (giko) <pair_buck>`

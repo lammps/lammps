@@ -287,8 +287,10 @@ void FixPolarizeBEMGMRES::setup(int /*vflag*/)
   //             = 0.000240258
 
   epsilon0e2q = 1.0;
-  if (strcmp(update->unit_style,"real") == 0)
+  if (strcmp(update->unit_style, "real") == 0)
     epsilon0e2q = 0.0795776 / force->qqrd2e;
+  else if (strcmp(update->unit_style, "lj") != 0)
+    error->all(FLERR, "Only unit styles 'real' and 'lj' are supported");
 
   first = 1;
   compute_induced_charges();

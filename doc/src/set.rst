@@ -491,7 +491,7 @@ Nspecies) where Nspecies is set by the atom_style command. The value
 for the chemical concentration must be >= 0.0.
 
 Keyword *epsilon* sets the dielectric constant of a particle,
-precily of the medium where the particle resides as defined by
+precisely of the medium where the particle resides as defined by
 the DIELECTRIC package. Currently, only
 :doc:`atom_style dielectric <atom_style>` defines particles with this
 attribute. The value for the dielectric constant must be >= 0.0.

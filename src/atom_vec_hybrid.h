@@ -64,23 +64,18 @@ class AtomVecHybrid : public AtomVec {
   int pack_data_bonus(double *, int) override;
   void write_data_bonus(FILE *, int, double *, int) override;
 
-  int property_atom(char *) override;
+  int property_atom(const std::string &) override;
   void pack_property_atom(int, double *, int, int) override;
 
  private:
   int nallstyles;
   char **allstyles;
-  int fields_allocated;
-
-  struct FieldStrings {
-    char **fstr;
-  };
-  FieldStrings *fieldstrings;
 
   int nstyles_bonus;
   class AtomVec **styles_bonus;
 
-  char *merge_fields(int, char *, int, char *&);
+  void merge_fields(std::vector<std::string> &, const std::vector<std::string> &,
+                    int, std::vector<std::string> &);
   void build_styles();
   int known_style(char *);
 };

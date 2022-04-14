@@ -32,9 +32,6 @@ AtomVecCharge::AtomVecCharge(LAMMPS *lmp) : AtomVec(lmp)
 
   fields_grow = {"q"};
   fields_copy = {"q"};
-  fields_comm = {};
-  fields_comm_vel = {};
-  fields_reverse = {};
   fields_border = {"q"};
   fields_border_vel = {"q"};
   fields_exchange = {"q"};

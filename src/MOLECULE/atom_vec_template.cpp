@@ -37,9 +37,6 @@ AtomVecTemplate::AtomVecTemplate(LAMMPS *lmp) : AtomVec(lmp)
 
   fields_grow = {"molecule", "molindex", "molatom"};
   fields_copy = {"molecule", "molindex", "molatom"};
-  fields_comm = {};
-  fields_comm_vel = {};
-  fields_reverse = {};
   fields_border = {"molecule", "molindex", "molatom"};
   fields_border_vel = {"molecule", "molindex", "molatom"};
   fields_exchange = {"molecule", "molindex", "molatom"};

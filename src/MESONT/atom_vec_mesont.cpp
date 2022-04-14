@@ -34,9 +34,6 @@ AtomVecMesoNT::AtomVecMesoNT(LAMMPS *lmp) : AtomVec(lmp)
 
   fields_grow = {"rmass", "radius", "length", "buckling", "bond_nt", "molecule"};
   fields_copy = {"rmass", "radius", "length", "buckling", "bond_nt", "molecule"};
-  fields_comm = {};
-  fields_comm_vel = {};
-  fields_reverse = {};
   fields_border = {"rmass", "radius", "length", "buckling", "bond_nt", "molecule"};
   fields_border_vel = {"rmass", "radius", "length", "buckling", "bond_nt", "molecule"};
   fields_exchange = {"rmass", "radius", "length", "buckling", "bond_nt", "molecule"};

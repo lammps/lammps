@@ -58,7 +58,6 @@ AtomVecTri::AtomVecTri(LAMMPS *lmp) : AtomVec(lmp)
 
   fields_grow = {"molecule", "radius", "rmass", "omega", "angmom", "torque", "tri"};
   fields_copy = {"molecule", "radius", "rmass", "omega", "angmom"};
-  fields_comm = {};
   fields_comm_vel = {"omega", "angmom"};
   fields_reverse = {"torque"};
   fields_border = {"molecule", "radius", "rmass"};

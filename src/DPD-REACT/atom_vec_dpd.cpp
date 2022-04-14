@@ -41,7 +41,6 @@ AtomVecDPD::AtomVecDPD(LAMMPS *lmp) : AtomVec(lmp)
   fields_copy = {"dpdTheta", "uCond", "uMech", "uChem", "uCG", "uCGnew"};
   fields_comm = {"dpdTheta", "uCond", "uMech", "uChem"};
   fields_comm_vel = {"dpdTheta", "uCond", "uMech", "uChem"};
-  fields_reverse = {};
   fields_border = {"dpdTheta", "uCond", "uMech", "uChem", "uCG", "uCGnew"};
   fields_border_vel = {"dpdTheta", "uCond", "uMech", "uChem", "uCG", "uCGnew"};
   fields_exchange = {"dpdTheta", "uCond", "uMech", "uChem", "uCG", "uCGnew"};

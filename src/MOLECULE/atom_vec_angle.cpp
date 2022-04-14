@@ -37,9 +37,6 @@ AtomVecAngle::AtomVecAngle(LAMMPS *lmp) : AtomVec(lmp)
   fields_copy = {"molecule",    "num_bond",   "bond_type",   "bond_atom",
                  "num_angle",   "angle_type", "angle_atom1", "angle_atom2",
                  "angle_atom3", "nspecial",   "special"};
-  fields_comm = {};
-  fields_comm_vel = {};
-  fields_reverse = {};
   fields_border = {"molecule"};
   fields_border_vel = {"molecule"};
   fields_exchange = {"molecule",    "num_bond",   "bond_type",   "bond_atom",

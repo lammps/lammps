@@ -37,7 +37,6 @@ AtomVecDipole::AtomVecDipole(LAMMPS *lmp) : AtomVec(lmp)
   fields_copy = {"q", "mu"};
   fields_comm = {"mu3"};
   fields_comm_vel = {"mu3"};
-  fields_reverse = {};
   fields_border = {"q", "mu"};
   fields_border_vel = {"q", "mu"};
   fields_exchange = {"q", "mu"};

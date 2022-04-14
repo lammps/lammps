@@ -29,16 +29,6 @@ AtomVecAtomic::AtomVecAtomic(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = {};
-  fields_copy = {};
-  fields_comm = {};
-  fields_comm_vel = {};
-  fields_reverse = {};
-  fields_border = {};
-  fields_border_vel = {};
-  fields_exchange = {};
-  fields_restart = {};
-  fields_create = {};
   fields_data_atom = {"id", "type", "x"};
   fields_data_vel = {"id", "v"};
 

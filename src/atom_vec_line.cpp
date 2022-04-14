@@ -55,7 +55,6 @@ AtomVecLine::AtomVecLine(LAMMPS *lmp) : AtomVec(lmp)
 
   fields_grow = {"molecule", "radius", "rmass", "omega", "torque", "line"};
   fields_copy = {"molecule", "radius", "rmass", "omega"};
-  fields_comm = {};
   fields_comm_vel = {"omega"};
   fields_reverse = {"torque"};
   fields_border = {"molecule", "radius", "rmass"};

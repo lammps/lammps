@@ -65,7 +65,6 @@ AtomVecBody::AtomVecBody(LAMMPS *lmp) : AtomVec(lmp)
 
   fields_grow = {"radius", "rmass", "angmom", "torque", "body"};
   fields_copy = {"radius", "rmass", "angmom"};
-  fields_comm = {};
   fields_comm_vel = {"angmom"};
   fields_reverse = {"torque"};
   fields_border = {"radius", "rmass"};

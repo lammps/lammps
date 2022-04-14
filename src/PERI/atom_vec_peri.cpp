@@ -57,7 +57,6 @@ AtomVecPeri::AtomVecPeri(LAMMPS *lmp) : AtomVec(lmp)
   fields_copy = {"rmass", "vfrac", "s0", "x0"};
   fields_comm = {"s0"};
   fields_comm_vel = {"s0"};
-  fields_reverse = {};
   fields_border = {"rmass", "vfrac", "s0", "x0"};
   fields_border_vel = {"rmass", "vfrac", "s0", "x0"};
   fields_exchange = {"rmass", "vfrac", "s0", "x0"};

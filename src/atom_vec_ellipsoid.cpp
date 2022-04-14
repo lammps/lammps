@@ -53,7 +53,6 @@ AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp) : AtomVec(lmp)
 
   fields_grow = {"rmass", "angmom", "torque", "ellipsoid"};
   fields_copy = {"rmass", "angmom"};
-  fields_comm = {};
   fields_comm_vel = {"angmom"};
   fields_reverse = {"torque"};
   fields_border = {"rmass"};

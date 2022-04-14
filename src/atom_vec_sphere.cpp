@@ -40,7 +40,6 @@ AtomVecSphere::AtomVecSphere(LAMMPS *lmp) : AtomVec(lmp)
 
   fields_grow = {"radius", "rmass", "omega", "torque"};
   fields_copy = {"radius", "rmass", "omega"};
-  fields_comm = {};
   fields_comm_vel = {"omega"};
   fields_reverse = {"torque"};
   fields_border = {"radius", "rmass"};

@@ -33,9 +33,6 @@ AtomVecBond::AtomVecBond(LAMMPS *lmp) : AtomVec(lmp)
 
   fields_grow = {"molecule", "num_bond", "bond_type", "bond_atom", "nspecial", "special"};
   fields_copy = {"molecule", "num_bond", "bond_type", "bond_atom", "nspecial", "special"};
-  fields_comm = {};
-  fields_comm_vel = {};
-  fields_reverse = {};
   fields_border = {"molecule"};
   fields_border_vel = {"molecule"};
   fields_exchange = {"molecule", "num_bond", "bond_type", "bond_atom", "nspecial", "special"};

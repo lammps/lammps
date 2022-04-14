@@ -40,9 +40,6 @@ AtomVecFull::AtomVecFull(LAMMPS *lmp) : AtomVec(lmp)
     "angle_atom1", "angle_atom2", "angle_atom3", "num_dihedral", "dihedral_type", "dihedral_atom1",
     "dihedral_atom2", "dihedral_atom3", "dihedral_atom4", "num_improper", "improper_type",
     "improper_atom1", "improper_atom2", "improper_atom3", "improper_atom4", "nspecial", "special"};
-  fields_comm = {};
-  fields_comm_vel = {};
-  fields_reverse = {};
   fields_border = {"q", "molecule"};
   fields_border_vel = {"q", "molecule"};
   fields_exchange = {"q", "molecule", "num_bond", "bond_type", "bond_atom",

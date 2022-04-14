@@ -62,8 +62,6 @@ AtomVecDielectric::AtomVecDielectric(LAMMPS *lmp) : AtomVec(lmp)
     "improper_atom1", "improper_atom2", "improper_atom3", "improper_atom4", "nspecial", "special",
     "mu", "area", "ed", "em", "epsilon", "curvature", "q_unscaled"};
   fields_comm = {"q", "mu", "area", "ed", "em", "epsilon", "curvature", "q_unscaled"};
-  fields_comm_vel = {};
-  fields_reverse = {};
   fields_border = {"q", "molecule", "mu", "area", "ed", "em", "epsilon", "curvature", "q_unscaled"};
   fields_border_vel = {"q", "molecule", "mu", "area", "ed", "em", "epsilon", "curvature",
     "q_unscaled"};

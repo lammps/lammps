@@ -794,15 +794,14 @@ bigint Group::count(int igroup)
    count atoms in group and region
 ------------------------------------------------------------------------- */
 
-bigint Group::count(int igroup, int iregion)
+bigint Group::count(int igroup, Region *region)
 {
-  int groupbit = bitmask[igroup];
-  Region *region = domain->regions[iregion];
   region->prematch();
 
+  const int groupbit = bitmask[igroup];
   double **x = atom->x;
   int *mask = atom->mask;
-  int nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
 
   int n = 0;
   for (int i = 0; i < nlocal; i++)
@@ -812,6 +811,15 @@ bigint Group::count(int igroup, int iregion)
   bigint nall;
   MPI_Allreduce(&nsingle,&nall,1,MPI_LMP_BIGINT,MPI_SUM,world);
   return nall;
+}
+
+/* ----------------------------------------------------------------------
+   count atoms in group and region
+------------------------------------------------------------------------- */
+
+bigint Group::count(int igroup, int iregion)
+{
+  return count(igroup, domain->regions[iregion]);
 }
 
 /* ----------------------------------------------------------------------

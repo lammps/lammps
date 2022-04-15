@@ -41,6 +41,7 @@ class Group : protected Pointers {
   bigint count_all();        // count atoms in group all
   bigint count(int);         // count atoms in group
   bigint count(int, int);    // count atoms in group & region
+  bigint count(int, class Region *);    // count atoms in group & region
   double mass(int);          // total mass of atoms in group
   double mass(int, int);
   double charge(int);    // total charge of atoms in group

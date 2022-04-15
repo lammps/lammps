@@ -5576,6 +5576,13 @@ int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
   return 0;
 }
 
+#ifdef LMP_PYTHON
+#include <Python.h>
+int lammps_PYTHON_API_VERSION(){
+  return PYTHON_API_VERSION;
+}
+#endif
+
 // Local Variables:
 // fill-column: 72
 // End:

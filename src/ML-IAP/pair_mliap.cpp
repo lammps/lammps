@@ -25,6 +25,7 @@
 #include "mliap_model_nn.h"
 #include "mliap_model_quadratic.h"
 #ifdef MLIAP_PYTHON
+#include "mliap_unified.h"
 #include "mliap_model_python.h"
 #endif
 
@@ -93,11 +94,11 @@ void PairMLIAP::compute(int eflag, int vflag)
   // compute E_i and beta_i = dE_i/dB_i for all i in list
 
   model->compute_gradients(data);
-  e_tally(data);
 
   // calculate force contributions beta_i*dB_i/dR_j
 
   descriptor->compute_forces(data);
+  e_tally(data);
 
   // calculate stress
 
@@ -124,7 +125,7 @@ void PairMLIAP::allocate()
 
 void PairMLIAP::settings(int narg, char ** arg)
 {
-  if (narg < 4)
+  if (narg < 2)
     error->all(FLERR,"Illegal pair_style command");
 
   // set flags for required keywords
@@ -174,6 +175,16 @@ void PairMLIAP::settings(int narg, char ** arg)
 
       } else error->all(FLERR,"Illegal pair_style mliap command");
       descriptorflag = 1;
+#ifdef MLIAP_PYTHON
+    } else if (strcmp(arg[iarg], "unified") == 0) {
+      if (iarg+1 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+      MLIAPBuildUnified_t build = build_unified(arg[iarg+1], data, lmp);
+      model = build.model;
+      descriptor = build.descriptor;
+      modelflag = 1;
+      descriptorflag = 1;
+      iarg += 2;
+#endif
     } else
       error->all(FLERR,"Illegal pair_style mliap command");
   }

@@ -35,6 +35,7 @@ class MLIAPData : protected Pointers {
   int size_gradforce;
   int yoffset, zoffset;
   int ndims_force, ndims_virial;
+  double **f;
   double **gradforce;
   double **betas;          // betas for all atoms in list
   double **descriptors;    // descriptors for all atoms in list
@@ -56,15 +57,19 @@ class MLIAPData : protected Pointers {
   // data structures for mliap neighbor list
   // only neighbors strictly inside descriptor cutoff
 
+  int nlocal, nghost, ntotal;    // # of owned and ghost atoms on this proc, and sum of both
   int nlistatoms;                // current number of atoms in neighborlist
   int nlistatoms_max;            // allocated size of descriptor array
   int natomneigh_max;            // allocated size of atom neighbor arrays
   int *numneighs;                // neighbors count for each atom
   int *iatoms;                   // index of each atom
+  int *pair_i;                   // index of each i atom for each ij pair
   int *ielems;                   // element of each atom
   int nneigh_max;                // number of ij neighbors allocated
+  int npairs;                    // number of ij neighbor pairs
   int *jatoms;                   // index of each neighbor
   int *jelems;                   // element of each neighbor
+  int *elems;                    // element of each atom in or not in the neighborlist
   double **rij;                  // distance vector of each neighbor
   double ***graddesc;            // descriptor gradient w.r.t. each neighbor
   int eflag;                     // indicates if energy is needed

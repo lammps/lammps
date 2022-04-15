@@ -665,15 +665,15 @@ inline void MathExtra::quatrotvec(double *a, double *b, double *c)
   double temp[4];
 
   // temp = a*b
-  temp[0] = -a[1]*b[0] - a[2]*b[1] - a[3]*b[2];
-  temp[1] = a[0]*b[0] + a[2]*b[2] - a[3]*b[1];
-  temp[2] = a[0]*b[1] + a[3]*b[0] - a[1]*b[2];
-  temp[3] = a[0]*b[2] + a[1]*b[1] - a[2]*b[0];
+  temp[0] = -a[1] * b[0] - a[2] * b[1] - a[3] * b[2];
+  temp[1] = a[0] * b[0] + a[2] * b[2] - a[3] * b[1];
+  temp[2] = a[0] * b[1] + a[3] * b[0] - a[1] * b[2];
+  temp[3] = a[0] * b[2] + a[1] * b[1] - a[2] * b[0];
 
   // c = temp*conj(a)
-  c[0] = -a[1]*temp[0] + a[0]*temp[1] - a[3]*temp[2] + a[2]*temp[3];
-  c[1] = -a[2]*temp[0] + a[3]*temp[1] + a[0]*temp[2] - a[1]*temp[3];
-  c[2] = -a[3]*temp[0] - a[2]*temp[1] + a[1]*temp[2] + a[0]*temp[3];
+  c[0] = -a[1] * temp[0] + a[0] * temp[1] - a[3] * temp[2] + a[2] * temp[3];
+  c[1] = -a[2] * temp[0] + a[3] * temp[1] + a[0] * temp[2] - a[1] * temp[3];
+  c[2] = -a[3] * temp[0] - a[2] * temp[1] + a[1] * temp[2] + a[0] * temp[3];
 }
 
 /* ----------------------------------------------------------------------

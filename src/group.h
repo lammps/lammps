@@ -19,6 +19,7 @@
 #include <map>
 
 namespace LAMMPS_NS {
+class Region;
 
 class Group : protected Pointers {
  public:
@@ -38,12 +39,13 @@ class Group : protected Pointers {
   void write_restart(FILE *);
   void read_restart(FILE *);
 
-  bigint count_all();        // count atoms in group all
-  bigint count(int);         // count atoms in group
-  bigint count(int, int);    // count atoms in group & region
-  bigint count(int, class Region *);    // count atoms in group & region
-  double mass(int);          // total mass of atoms in group
+  bigint count_all();             // count atoms in group all
+  bigint count(int);              // count atoms in group
+  bigint count(int, int);         // count atoms in group & region
+  bigint count(int, Region *);    // count atoms in group & region
+  double mass(int);               // total mass of atoms in group
   double mass(int, int);
+  double mass(int, Region *);
   double charge(int);    // total charge of atoms in group
   double charge(int, int);
   void bounds(int, double *);    // bounds of atoms in group
@@ -52,10 +54,12 @@ class Group : protected Pointers {
   void xcm(int, double, double *, int);
   void vcm(int, double, double *);    // center-of-mass velocity of group
   void vcm(int, double, double *, int);
+  void vcm(int, double, double *, Region *);
   void fcm(int, double *);    // total force on group
   void fcm(int, double *, int);
   double ke(int);    // kinetic energy of group
   double ke(int, int);
+  double ke(int, Region *);
   double gyration(int, double, double *);    // radius-of-gyration of group
   double gyration(int, double, double *, int);
   void angmom(int, double *, double *);    // angular momentum of group

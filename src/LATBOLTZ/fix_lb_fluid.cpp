@@ -2387,8 +2387,8 @@ void FixLbFluid::dump(const bigint step)
                  "          </DataItem>\n"
                  "        </Attribute>\n\n",
                  dm_lb / (dx_lb * dx_lb * dx_lb), fluid_global_n0[2], fluid_global_n0[1],
-                 fluid_global_n0[0], sizeof(double), offset, fluid_global_n0[2],
-                 fluid_global_n0[1], fluid_global_n0[0], dump_file_name_raw.c_str());
+                 fluid_global_n0[0], sizeof(double), offset, fluid_global_n0[2], fluid_global_n0[1],
+                 fluid_global_n0[0], dump_file_name_raw.c_str());
       fmt::print(dump_file_handle_xdmf,
                  "        <Attribute Name=\"velocity\" AttributeType=\"Vector\">\n"
                  "          <DataItem ItemType=\"Function\" Function=\"$0 * {:f}\" "

@@ -857,10 +857,9 @@ double Group::mass(int igroup)
    use either per-type mass or per-atom rmass
 ------------------------------------------------------------------------- */
 
-double Group::mass(int igroup, int iregion)
+double Group::mass(int igroup, Region *region)
 {
   int groupbit = bitmask[igroup];
-  Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
@@ -885,6 +884,16 @@ double Group::mass(int igroup, int iregion)
   double all;
   MPI_Allreduce(&one,&all,1,MPI_DOUBLE,MPI_SUM,world);
   return all;
+}
+
+/* ----------------------------------------------------------------------
+   compute the total mass of group of atoms in region
+   use either per-type mass or per-atom rmass
+------------------------------------------------------------------------- */
+
+double Group::mass(int igroup, int iregion)
+{
+  return mass(igroup, domain->regions[iregion]);
 }
 
 /* ----------------------------------------------------------------------
@@ -1181,10 +1190,9 @@ void Group::vcm(int igroup, double masstotal, double *cm)
    return center-of-mass velocity in cm[]
 ------------------------------------------------------------------------- */
 
-void Group::vcm(int igroup, double masstotal, double *cm, int iregion)
+void Group::vcm(int igroup, double masstotal, double *cm, Region *region)
 {
   int groupbit = bitmask[igroup];
-  Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
@@ -1222,6 +1230,17 @@ void Group::vcm(int igroup, double masstotal, double *cm, int iregion)
     cm[1] /= masstotal;
     cm[2] /= masstotal;
   }
+}
+
+/* ----------------------------------------------------------------------
+   compute the center-of-mass velocity of group of atoms in region
+   masstotal = total mass
+   return center-of-mass velocity in cm[]
+------------------------------------------------------------------------- */
+
+void Group::vcm(int igroup, double masstotal, double *cm, int iregion)
+{
+  vcm(igroup, masstotal, cm, domain->regions[iregion]);
 }
 
 /* ----------------------------------------------------------------------
@@ -1316,10 +1335,9 @@ double Group::ke(int igroup)
    compute the total kinetic energy of group of atoms in region and return it
 ------------------------------------------------------------------------- */
 
-double Group::ke(int igroup, int iregion)
+double Group::ke(int igroup, Region *region)
 {
   int groupbit = bitmask[igroup];
-  Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
@@ -1348,6 +1366,15 @@ double Group::ke(int igroup, int iregion)
   MPI_Allreduce(&one,&all,1,MPI_DOUBLE,MPI_SUM,world);
   all *= 0.5 * force->mvv2e;
   return all;
+}
+
+/* ----------------------------------------------------------------------
+   compute the total kinetic energy of group of atoms in region and return it
+------------------------------------------------------------------------- */
+
+double Group::ke(int igroup, int iregion)
+{
+  return ke(igroup, domain->regions[iregion]);
 }
 
 /* ----------------------------------------------------------------------

@@ -111,7 +111,7 @@ class FixLbFluid : public Fix {
 
   int step;
 
-  int n_stencil;                // Number of points for spread/interpolate stencil
+  int n_stencil;    // Number of points for spread/interpolate stencil
 
   double bodyforcex, bodyforcey, bodyforcez;    // Body Forces acting on the fluid (default=0)
   double vwtp, vwbt;                            // Velocities of the z walls in the y

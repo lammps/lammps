@@ -36,9 +36,9 @@ class Reader : protected Pointers {
   virtual void close_file();
 
  protected:
-  FILE *fp;          // pointer to opened file or pipe
-  bool compressed;   // flag for dump file compression
-  bool binary;       // flag for (native) binary files
+  FILE *fp;           // pointer to opened file or pipe
+  bool compressed;    // flag for dump file compression
+  bool binary;        // flag for (native) binary files
 };
 
 }    // namespace LAMMPS_NS

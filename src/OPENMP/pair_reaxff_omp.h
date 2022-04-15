@@ -22,7 +22,7 @@ PairStyle(reax/c/omp,PairReaxFFOMP);
 #define LMP_PAIR_REAXFF_OMP_H
 
 #include "pair_reaxff.h"
-#include "thr_omp.h"            // IWYU pragma: export
+#include "thr_omp.h"    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 

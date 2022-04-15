@@ -38,14 +38,14 @@ class ComputeReduce : public Compute {
 
  protected:
   int me;
-  int mode, nvalues, iregion;
+  int mode, nvalues;
   int *which, *argindex, *flavor, *value2index;
   char **ids;
   double *onevec;
   int *replace, *indices, *owner;
   int index;
   char *idregion;
-
+  class Region *region;
   int maxatom;
   double *varatom;
 

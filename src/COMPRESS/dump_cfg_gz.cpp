@@ -91,8 +91,10 @@ void DumpCFGGZ::write_header(bigint n)
   //   so molecules are not split across periodic box boundaries
 
   double scale = 1.0;
-  if (atom->peri_flag) scale = atom->pdscale;
-  else if (unwrapflag == 1) scale = UNWRAPEXPAND;
+  if (atom->peri_flag)
+    scale = atom->pdscale;
+  else if (unwrapflag == 1)
+    scale = UNWRAPEXPAND;
 
   std::string header = fmt::format("Number of particles = {}\n", n);
   header += fmt::format("A = {:g} Angstrom (basic length-scale)\n", scale);

@@ -21,7 +21,7 @@ CommandStyle(plugin,Plugin);
 #define LMP_PLUGIN_H
 
 #include "command.h"
-#include "lammpsplugin.h" // IWYU pragma: export
+#include "lammpsplugin.h"    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 

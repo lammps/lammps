@@ -121,7 +121,7 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) :
       // the hybrid keyword requires a hybrid pair style
       if (!utils::strmatch(force->pair_style, "^hybrid"))
         error->all(FLERR, "Illegal run_style respa command");
-      auto hybrid = dynamic_cast<PairHybrid *>( force->pair);
+      auto hybrid = dynamic_cast<PairHybrid *>(force->pair);
       nhybrid_styles = hybrid->nstyles;
       // each hybrid sub-style needs to be assigned to a respa level
       if (iarg + nhybrid_styles > narg) error->all(FLERR, "Illegal run_style respa command");
@@ -296,7 +296,7 @@ void Respa::init()
 
   std::string cmd = fmt::format("RESPA all RESPA {}", nlevels);
   if (atom->torque_flag) cmd += " torque";
-  fix_respa = dynamic_cast<FixRespa *>( modify->add_fix(cmd));
+  fix_respa = dynamic_cast<FixRespa *>(modify->add_fix(cmd));
 
   // insure respa inner/middle/outer is using Pair class that supports it
 

@@ -35,10 +35,11 @@ class FixEvaporate : public Fix {
   double memory_usage() override;
 
  private:
-  int nevery, nflux, iregion;
+  int nevery, nflux;
   int molflag;
   int ndeleted;
   char *idregion;
+  class Region *region;
 
   int nmax;
   int *list, *mark;

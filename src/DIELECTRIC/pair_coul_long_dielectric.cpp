@@ -207,7 +207,7 @@ void PairCoulLongDielectric::compute(int eflag, int vflag)
 
 void PairCoulLongDielectric::init_style()
 {
-  avec = dynamic_cast<AtomVecDielectric *>( atom->style_match("dielectric"));
+  avec = dynamic_cast<AtomVecDielectric *>(atom->style_match("dielectric"));
   if (!avec) error->all(FLERR, "Pair coul/long/dielectric requires atom style dielectric");
 
   neighbor->add_request(this, NeighConst::REQ_FULL);

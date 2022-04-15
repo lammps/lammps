@@ -244,7 +244,7 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
 
 void PairLJCutCoulLongDielectric::init_style()
 {
-  avec = dynamic_cast<AtomVecDielectric *>( atom->style_match("dielectric"));
+  avec = dynamic_cast<AtomVecDielectric *>(atom->style_match("dielectric"));
   if (!avec) error->all(FLERR, "Pair lj/cut/coul/long/dielectric requires atom style dielectric");
 
   neighbor->add_request(this, NeighConst::REQ_FULL);

@@ -24,8 +24,8 @@ ReaderStyle(native,ReaderNative);
 
 #include "reader.h"
 
-#include <string>
 #include <map>
+#include <string>
 
 namespace LAMMPS_NS {
 

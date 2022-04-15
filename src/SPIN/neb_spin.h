@@ -29,7 +29,7 @@ class NEBSpin : public Command {
   NEBSpin(class LAMMPS *);
   ~NEBSpin() override;
   void command(int, char **) override;    // process neb/spin command
-  void run();                    // run NEBSpin
+  void run();                             // run NEBSpin
 
   double ebf, ebr;    // forward and reverse energy barriers
 

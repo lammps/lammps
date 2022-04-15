@@ -21,7 +21,8 @@
 namespace LAMMPS_NS {
 
 class Dump : protected Pointers {
- friend class Output;
+  friend class Output;
+
  public:
   char *id;                // user-defined name of Dump
   char *style;             // style of Dump
@@ -119,11 +120,11 @@ class Dump : protected Pointers {
   int fileidx;         // index of file in names list
   char **nameslist;    // list of history file names
 
-  bigint ntotal;         // total # of per-atom lines in snapshot
-  int reorderflag;       // 1 if OK to reorder instead of sort
+  bigint ntotal;            // total # of per-atom lines in snapshot
+  int reorderflag;          // 1 if OK to reorder instead of sort
   bigint ntotal_reorder;    // # of atoms that must be in snapshot
-  int nme_reorder;       // # of atoms I must own in snapshot
-  tagint idlo;           // lowest ID I own when reordering
+  int nme_reorder;          // # of atoms I must own in snapshot
+  tagint idlo;              // lowest ID I own when reordering
 
   int maxbuf;     // size of buf
   double *buf;    // memory for atom quantities

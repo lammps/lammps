@@ -66,12 +66,12 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 FixPolarizeBEMGMRES::FixPolarizeBEMGMRES(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), q_backup(nullptr), c(nullptr), g(nullptr), h(nullptr), r(nullptr), s(nullptr), v(nullptr),
-    y(nullptr)
+    Fix(lmp, narg, arg), q_backup(nullptr), c(nullptr), g(nullptr), h(nullptr), r(nullptr),
+    s(nullptr), v(nullptr), y(nullptr)
 {
   if (narg < 5) error->all(FLERR, "Illegal fix polarize/bem/gmres command");
 
-  avec = dynamic_cast<AtomVecDielectric *>( atom->style_match("dielectric"));
+  avec = dynamic_cast<AtomVecDielectric *>(atom->style_match("dielectric"));
   if (!avec) error->all(FLERR, "Fix polarize requires atom style dielectric");
 
   // parse required arguments
@@ -248,28 +248,28 @@ void FixPolarizeBEMGMRES::setup(int /*vflag*/)
   // check if the pair styles in use are compatible
 
   if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulLongDielectric *>( force->pair))->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulLongDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric/omp") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulLongDielectric *>( force->pair))->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulLongDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/msm/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulMSMDielectric *>( force->pair))->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulMSMDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>( force->pair))->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric/omp") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>( force->pair))->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "coul/long/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairCoulLongDielectric *>( force->pair))->efield;
+    efield_pair = (dynamic_cast<PairCoulLongDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "coul/cut/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairCoulCutDielectric *>( force->pair))->efield;
+    efield_pair = (dynamic_cast<PairCoulCutDielectric *>(force->pair))->efield;
   else
     error->all(FLERR, "Pair style not compatible with fix polarize");
 
   if (kspaceflag) {
     if (force->kspace) {
       if (strcmp(force->kspace_style, "pppm/dielectric") == 0)
-        efield_kspace = (dynamic_cast<PPPMDielectric *>( force->kspace))->efield;
+        efield_kspace = (dynamic_cast<PPPMDielectric *>(force->kspace))->efield;
       else if (strcmp(force->kspace_style, "msm/dielectric") == 0)
-        efield_kspace = (dynamic_cast<MSMDielectric *>( force->kspace))->efield;
+        efield_kspace = (dynamic_cast<MSMDielectric *>(force->kspace))->efield;
       else
         error->all(FLERR, "Kspace style not compatible with fix polarize/bem/gmres");
     } else

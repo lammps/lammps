@@ -129,7 +129,7 @@ void ComputeCoordAtom::init()
 {
   if (cstyle == ORIENT) {
     int iorientorder = modify->find_compute(id_orientorder);
-    c_orientorder = dynamic_cast<ComputeOrientOrderAtom *> (modify->compute[iorientorder]);
+    c_orientorder = dynamic_cast<ComputeOrientOrderAtom *>(modify->compute[iorientorder]);
     cutsq = c_orientorder->cutsq;
     l = c_orientorder->qlcomp;
     //  communicate real and imaginary 2*l+1 components of the normalized vector

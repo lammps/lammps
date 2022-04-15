@@ -22,8 +22,8 @@
 #include "memory.h"
 #include "modify.h"
 #include "text_file_reader.h"
-#include "update.h"
 #include "universe.h"
+#include "update.h"
 
 #include <cctype>
 #include <cerrno>
@@ -141,7 +141,7 @@ void utils::flush_buffers(LAMMPS *lmp)
 {
   if (lmp->screen) fflush(lmp->screen);
   if (lmp->logfile) fflush(lmp->logfile);
-  if (lmp->universe->uscreen)  fflush(lmp->universe->uscreen);
+  if (lmp->universe->uscreen) fflush(lmp->universe->uscreen);
   if (lmp->universe->ulogfile) fflush(lmp->universe->ulogfile);
 }
 
@@ -805,7 +805,7 @@ std::string utils::star_subst(const std::string &name, bigint step, int pad)
   auto star = name.find('*');
   if (star == std::string::npos) return name;
 
-  return fmt::format("{}{:0{}}{}",name.substr(0,star),step,pad,name.substr(star+1));
+  return fmt::format("{}{:0{}}{}", name.substr(0, star), step, pad, name.substr(star + 1));
 }
 
 /* ----------------------------------------------------------------------

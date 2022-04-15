@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(ave/sphere/atom,ComputeAveSphereAtom)
-
+// clang-format off
+ComputeStyle(ave/sphere/atom,ComputeAveSphereAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_AVE_SPHERE_ATOM_H
@@ -37,18 +37,18 @@ class ComputeAveSphereAtom : public Compute {
 
  protected:
   int nmax;
-  double cutoff,cutsq,sphere_vol;
+  double cutoff, cutsq, sphere_vol;
   class NeighList *list;
 
   double **result;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
 
-/* ERROR/WARNING messages:
+    /* ERROR/WARNING messages:
 
 E: Illegal ... command
 

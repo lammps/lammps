@@ -700,13 +700,13 @@ void Set::selection(int n)
       else select[i] = 0;
 
   } else if (style == REGION_SELECT) {
-    int iregion = domain->find_region(id);
-    if (iregion == -1) error->all(FLERR,"Set region ID does not exist");
-    domain->regions[iregion]->prematch();
+    auto region = domain->get_region_by_id(id);
+    if (!region) error->all(FLERR,"Set region {} does not exist", id);
+    region->prematch();
 
     double **x = atom->x;
     for (int i = 0; i < n; i++)
-      if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+      if (region->match(x[i][0],x[i][1],x[i][2]))
         select[i] = 1;
       else select[i] = 0;
   }

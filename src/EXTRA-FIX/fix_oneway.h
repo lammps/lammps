@@ -34,8 +34,8 @@ class FixOneWay : public Fix {
 
  protected:
   int direction;
-  int regionidx;
-  char *regionstr;
+  class Region *region;
+  char *idregion;
 };
 
 }    // namespace LAMMPS_NS

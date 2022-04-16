@@ -389,7 +389,7 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
     if (found != region_map->end()) region_map->erase(name);
 
     for (auto iregion : lmp->domain->get_region_by_style(name))
-      lmp->domain->delete_region(iregion->id);
+      lmp->domain->delete_region(iregion);
 
   } else if (pstyle == "command") {
 

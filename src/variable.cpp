@@ -3043,18 +3043,18 @@ double Variable::eval_tree(Tree *tree, int i)
   }
 
   if (tree->type == GMASK) {
-    if (atom->mask[i] & tree->ivalue1) return 1.0;
+    if (atom->mask[i] & tree->ivalue) return 1.0;
     else return 0.0;
   }
 
   if (tree->type == RMASK) {
-    if (domain->regions[tree->ivalue1]->match(atom->x[i][0], atom->x[i][1], atom->x[i][2])) return 1.0;
+    if (tree->region->match(atom->x[i][0], atom->x[i][1], atom->x[i][2])) return 1.0;
     else return 0.0;
   }
 
   if (tree->type == GRMASK) {
-    if ((atom->mask[i] & tree->ivalue1) &&
-        (domain->regions[tree->ivalue2]->match(atom->x[i][0], atom->x[i][1], atom->x[i][2]))) return 1.0;
+    if ((atom->mask[i] & tree->ivalue) &&
+        (tree->region->match(atom->x[i][0], atom->x[i][1], atom->x[i][2]))) return 1.0;
     else return 0.0;
   }
 
@@ -3664,32 +3664,31 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
 
   int igroup = group->find(args[0]);
   if (igroup == -1) {
-    std::string mesg = "Group ID '";
-    mesg += args[0];
-    mesg += "' in variable formula does not exist";
-    print_var_error(FLERR,mesg,ivar);
+    const auto errmesg = fmt::format("Group {} in variable formula does not exist", args[0]);
+    print_var_error(FLERR, errmesg, ivar);
   }
 
   // match word to group function
 
   double value = 0.0;
+  const auto group_errmesg = fmt::format("Invalid {}() function in variable formula", word);
 
   if (strcmp(word,"count") == 0) {
     if (narg == 1) value = group->count(igroup);
     else if (narg == 2)
       value = group->count(igroup,region_function(args[1],ivar));
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"mass") == 0) {
     if (narg == 1) value = group->mass(igroup);
     else if (narg == 2) value = group->mass(igroup,region_function(args[1],ivar));
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"charge") == 0) {
     if (narg == 1) value = group->charge(igroup);
     else if (narg == 2)
       value = group->charge(igroup,region_function(args[1],ivar));
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"xcm") == 0) {
     atom->check_mass(FLERR);
@@ -3698,14 +3697,14 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       double masstotal = group->mass(igroup);
       group->xcm(igroup,masstotal,xcm);
     } else if (narg == 3) {
-      int iregion = region_function(args[2],ivar);
-      double masstotal = group->mass(igroup,iregion);
-      group->xcm(igroup,masstotal,xcm,iregion);
-    } else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+      auto region = region_function(args[2],ivar);
+      double masstotal = group->mass(igroup,region);
+      group->xcm(igroup,masstotal,xcm,region);
+    } else print_var_error(FLERR,group_errmesg,ivar);
     if (strcmp(args[1],"x") == 0) value = xcm[0];
     else if (strcmp(args[1],"y") == 0) value = xcm[1];
     else if (strcmp(args[1],"z") == 0) value = xcm[2];
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"vcm") == 0) {
     atom->check_mass(FLERR);
@@ -3714,38 +3713,38 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       double masstotal = group->mass(igroup);
       group->vcm(igroup,masstotal,vcm);
     } else if (narg == 3) {
-      int iregion = region_function(args[2],ivar);
-      double masstotal = group->mass(igroup,iregion);
-      group->vcm(igroup,masstotal,vcm,iregion);
-    } else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+      auto region = region_function(args[2],ivar);
+      double masstotal = group->mass(igroup,region);
+      group->vcm(igroup,masstotal,vcm,region);
+    } else print_var_error(FLERR,group_errmesg,ivar);
     if (strcmp(args[1],"x") == 0) value = vcm[0];
     else if (strcmp(args[1],"y") == 0) value = vcm[1];
     else if (strcmp(args[1],"z") == 0) value = vcm[2];
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"fcm") == 0) {
     double fcm[3];
     if (narg == 2) group->fcm(igroup,fcm);
     else if (narg == 3) group->fcm(igroup,fcm,region_function(args[2],ivar));
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
     if (strcmp(args[1],"x") == 0) value = fcm[0];
     else if (strcmp(args[1],"y") == 0) value = fcm[1];
     else if (strcmp(args[1],"z") == 0) value = fcm[2];
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"bound") == 0) {
     double minmax[6];
     if (narg == 2) group->bounds(igroup,minmax);
     else if (narg == 3)
       group->bounds(igroup,minmax,region_function(args[2],ivar));
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
     if (strcmp(args[1],"xmin") == 0) value = minmax[0];
     else if (strcmp(args[1],"xmax") == 0) value = minmax[1];
     else if (strcmp(args[1],"ymin") == 0) value = minmax[2];
     else if (strcmp(args[1],"ymax") == 0) value = minmax[3];
     else if (strcmp(args[1],"zmin") == 0) value = minmax[4];
     else if (strcmp(args[1],"zmax") == 0) value = minmax[5];
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"gyration") == 0) {
     atom->check_mass(FLERR);
@@ -3755,16 +3754,16 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       group->xcm(igroup,masstotal,xcm);
       value = group->gyration(igroup,masstotal,xcm);
     } else if (narg == 2) {
-      int iregion = region_function(args[1],ivar);
-      double masstotal = group->mass(igroup,iregion);
-      group->xcm(igroup,masstotal,xcm,iregion);
-      value = group->gyration(igroup,masstotal,xcm,iregion);
-    } else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+      auto region = region_function(args[1],ivar);
+      double masstotal = group->mass(igroup,region);
+      group->xcm(igroup,masstotal,xcm,region);
+      value = group->gyration(igroup,masstotal,xcm,region);
+    } else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"ke") == 0) {
     if (narg == 1) value = group->ke(igroup);
     else if (narg == 2) value = group->ke(igroup,region_function(args[1],ivar));
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"angmom") == 0) {
     atom->check_mass(FLERR);
@@ -3774,15 +3773,15 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       group->xcm(igroup,masstotal,xcm);
       group->angmom(igroup,xcm,lmom);
     } else if (narg == 3) {
-      int iregion = region_function(args[2],ivar);
-      double masstotal = group->mass(igroup,iregion);
-      group->xcm(igroup,masstotal,xcm,iregion);
-      group->angmom(igroup,xcm,lmom,iregion);
-    } else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+      auto region = region_function(args[2],ivar);
+      double masstotal = group->mass(igroup,region);
+      group->xcm(igroup,masstotal,xcm,region);
+      group->angmom(igroup,xcm,lmom,region);
+    } else print_var_error(FLERR,group_errmesg,ivar);
     if (strcmp(args[1],"x") == 0) value = lmom[0];
     else if (strcmp(args[1],"y") == 0) value = lmom[1];
     else if (strcmp(args[1],"z") == 0) value = lmom[2];
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"torque") == 0) {
     atom->check_mass(FLERR);
@@ -3792,15 +3791,15 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       group->xcm(igroup,masstotal,xcm);
       group->torque(igroup,xcm,tq);
     } else if (narg == 3) {
-      int iregion = region_function(args[2],ivar);
-      double masstotal = group->mass(igroup,iregion);
-      group->xcm(igroup,masstotal,xcm,iregion);
-      group->torque(igroup,xcm,tq,iregion);
-    } else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+      auto region = region_function(args[2],ivar);
+      double masstotal = group->mass(igroup,region);
+      group->xcm(igroup,masstotal,xcm,region);
+      group->torque(igroup,xcm,tq,region);
+    } else print_var_error(FLERR,group_errmesg,ivar);
     if (strcmp(args[1],"x") == 0) value = tq[0];
     else if (strcmp(args[1],"y") == 0) value = tq[1];
     else if (strcmp(args[1],"z") == 0) value = tq[2];
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"inertia") == 0) {
     atom->check_mass(FLERR);
@@ -3810,18 +3809,18 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       group->xcm(igroup,masstotal,xcm);
       group->inertia(igroup,xcm,inertia);
     } else if (narg == 3) {
-      int iregion = region_function(args[2],ivar);
-      double masstotal = group->mass(igroup,iregion);
-      group->xcm(igroup,masstotal,xcm,iregion);
-      group->inertia(igroup,xcm,inertia,iregion);
-    } else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+      auto region = region_function(args[2],ivar);
+      double masstotal = group->mass(igroup,region);
+      group->xcm(igroup,masstotal,xcm,region);
+      group->inertia(igroup,xcm,inertia,region);
+    } else print_var_error(FLERR,group_errmesg,ivar);
     if (strcmp(args[1],"xx") == 0) value = inertia[0][0];
     else if (strcmp(args[1],"yy") == 0) value = inertia[1][1];
     else if (strcmp(args[1],"zz") == 0) value = inertia[2][2];
     else if (strcmp(args[1],"xy") == 0) value = inertia[0][1];
     else if (strcmp(args[1],"yz") == 0) value = inertia[1][2];
     else if (strcmp(args[1],"xz") == 0) value = inertia[0][2];
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
 
   } else if (strcmp(word,"omega") == 0) {
     atom->check_mass(FLERR);
@@ -3833,17 +3832,17 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       group->inertia(igroup,xcm,inertia);
       group->omega(angmom,inertia,omega);
     } else if (narg == 3) {
-      int iregion = region_function(args[2],ivar);
-      double masstotal = group->mass(igroup,iregion);
-      group->xcm(igroup,masstotal,xcm,iregion);
-      group->angmom(igroup,xcm,angmom,iregion);
-      group->inertia(igroup,xcm,inertia,iregion);
+      auto region = region_function(args[2],ivar);
+      double masstotal = group->mass(igroup,region);
+      group->xcm(igroup,masstotal,xcm,region);
+      group->angmom(igroup,xcm,angmom,region);
+      group->inertia(igroup,xcm,inertia,region);
       group->omega(angmom,inertia,omega);
-    } else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    } else print_var_error(FLERR,group_errmesg,ivar);
     if (strcmp(args[1],"x") == 0) value = omega[0];
     else if (strcmp(args[1],"y") == 0) value = omega[1];
     else if (strcmp(args[1],"z") == 0) value = omega[2];
-    else print_var_error(FLERR,"Invalid group function in variable formula",ivar);
+    else print_var_error(FLERR,group_errmesg,ivar);
   }
 
   // delete stored args
@@ -3864,21 +3863,16 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
 
 /* ---------------------------------------------------------------------- */
 
-int Variable::region_function(char *id, int ivar)
+Region *Variable::region_function(char *id, int ivar)
 {
-  int iregion = domain->find_region(id);
-  if (iregion == -1) {
-    std::string mesg = "Region ID '";
-    mesg += id;
-    mesg += "' in variable formula does not exist";
-    print_var_error(FLERR,mesg,ivar);
-  }
+  auto region = domain->get_region_by_id(id);
+  if (!region)
+    print_var_error(FLERR, fmt::format("Region {} in variable formula does not exist", id), ivar);
 
   // init region in case sub-regions have been deleted
 
-  domain->regions[iregion]->init();
-
-  return iregion;
+  region->init();
+  return region;
 }
 
 /* ----------------------------------------------------------------------
@@ -4149,7 +4143,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
 
     auto newtree = new Tree();
     newtree->type = GMASK;
-    newtree->ivalue1 = group->bitmask[igroup];
+    newtree->ivalue = group->bitmask[igroup];
     treestack[ntreestack++] = newtree;
 
   } else if (strcmp(word,"rmask") == 0) {
@@ -4158,12 +4152,12 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
     if (narg != 1)
       print_var_error(FLERR,"Invalid special function in variable formula",ivar);
 
-    int iregion = region_function(args[0],ivar);
-    domain->regions[iregion]->prematch();
+    auto region = region_function(args[0],ivar);
+    region->prematch();
 
     auto newtree = new Tree();
     newtree->type = RMASK;
-    newtree->ivalue1 = iregion;
+    newtree->region = region;
     treestack[ntreestack++] = newtree;
 
   } else if (strcmp(word,"grmask") == 0) {
@@ -4175,13 +4169,13 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
     int igroup = group->find(args[0]);
     if (igroup == -1)
       print_var_error(FLERR,"Group ID in variable formula does not exist",ivar);
-    int iregion = region_function(args[1],ivar);
-    domain->regions[iregion]->prematch();
+    auto region = region_function(args[1],ivar);
+    region->prematch();
 
     auto newtree = new Tree();
     newtree->type = GRMASK;
-    newtree->ivalue1 = group->bitmask[igroup];
-    newtree->ivalue2 = iregion;
+    newtree->ivalue = group->bitmask[igroup];
+    newtree->region = region;
     treestack[ntreestack++] = newtree;
 
   // special function for file-style or atomfile-style variables

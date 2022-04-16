@@ -106,9 +106,6 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   set_lattice(2,args);
   delete [] args;
 
-  nregion = maxregion = 0;
-  regions = nullptr;
-
   copymode = 0;
 
   region_map = new RegionCreatorMap();
@@ -128,10 +125,8 @@ Domain::~Domain()
 {
   if (copymode) return;
 
+  region_list.clear();
   delete lattice;
-  for (int i = 0; i < nregion; i++) delete regions[i];
-  memory->sfree(regions);
-
   delete region_map;
 }
 
@@ -194,7 +189,7 @@ void Domain::init()
 
   // region inits
 
-  for (int i = 0; i < nregion; i++) regions[i]->init();
+  for (auto reg : region_list) reg->init();
 }
 
 /* ----------------------------------------------------------------------
@@ -1758,88 +1753,67 @@ void Domain::add_region(int narg, char **arg)
   if (strcmp(arg[1],"none") == 0)
     error->all(FLERR,"Unrecognized region style 'none'");
 
-  if (find_region(arg[0]) >= 0) error->all(FLERR,"Reuse of region ID");
-
-  // extend Region list if necessary
-
-  if (nregion == maxregion) {
-    maxregion += DELTAREGION;
-    regions = (Region **)
-      memory->srealloc(regions,maxregion*sizeof(Region *),"domain:regions");
-  }
+  if (get_region_by_id(arg[0])) error->all(FLERR,"Reuse of region ID {}", arg[0]);
 
   // create the Region
+  Region *newregion = nullptr;
 
   if (lmp->suffix_enable) {
     if (lmp->suffix) {
       std::string estyle = std::string(arg[1]) + "/" + lmp->suffix;
       if (region_map->find(estyle) != region_map->end()) {
         RegionCreator &region_creator = (*region_map)[estyle];
-        regions[nregion] = region_creator(lmp, narg, arg);
-        regions[nregion]->init();
-        nregion++;
-        return;
+        newregion = region_creator(lmp, narg, arg);
       }
     }
 
-    if (lmp->suffix2) {
+    if (!newregion && lmp->suffix2) {
       std::string estyle = std::string(arg[1]) + "/" + lmp->suffix2;
       if (region_map->find(estyle) != region_map->end()) {
         RegionCreator &region_creator = (*region_map)[estyle];
-        regions[nregion] = region_creator(lmp, narg, arg);
-        regions[nregion]->init();
-        nregion++;
-        return;
+        newregion = region_creator(lmp, narg, arg);
       }
     }
   }
 
-  if (region_map->find(arg[1]) != region_map->end()) {
+  if (!newregion && (region_map->find(arg[1]) != region_map->end())) {
     RegionCreator &region_creator = (*region_map)[arg[1]];
-    regions[nregion] = region_creator(lmp, narg, arg);
-  } else error->all(FLERR,utils::check_packages_for_style("region",arg[1],lmp));
+    newregion = region_creator(lmp, narg, arg);
+  }
+
+  if (!newregion)
+    error->all(FLERR,utils::check_packages_for_style("region",arg[1],lmp));
 
   // initialize any region variables via init()
   // in case region is used between runs, e.g. to print a variable
 
-  regions[nregion]->init();
-  nregion++;
+  newregion->init();
+  region_list.push_back(newregion);
 }
 
 /* ----------------------------------------------------------------------
    delete a region
 ------------------------------------------------------------------------- */
 
-void Domain::delete_region(int iregion)
+void Domain::delete_region(Region *reg)
 {
-  if ((iregion < 0) || (iregion >= nregion)) return;
+  if (!reg) return;
 
   // delete and move other Regions down in list one slot
-
-  delete regions[iregion];
-  for (int i = iregion+1; i < nregion; ++i)
-    regions[i-1] = regions[i];
-  nregion--;
+  bool match = false;
+  for (std::size_t i = 0; i < region_list.size(); ++i) {
+    if (match) region_list[i-1] = region_list[i];
+    if (reg == region_list[i]) match = true;
+  }
+  delete reg;
+  region_list.resize(region_list.size() - 1);
 }
 
 void Domain::delete_region(const std::string &id)
 {
-  int iregion = find_region(id);
-  if (iregion == -1) error->all(FLERR,"Delete region ID does not exist");
-
-  delete_region(iregion);
-}
-
-/* ----------------------------------------------------------------------
-   return region index if name matches existing region ID
-   return -1 if no such region
-------------------------------------------------------------------------- */
-
-int Domain::find_region(const std::string &name) const
-{
-  for (int iregion = 0; iregion < nregion; iregion++)
-    if (name == regions[iregion]->id) return iregion;
-  return -1;
+  auto reg = get_region_by_id(id);
+  if (!reg) error->all(FLERR,"Delete region {} does not exist", id);
+  delete_region(reg);
 }
 
 /* ----------------------------------------------------------------------
@@ -1849,8 +1823,8 @@ int Domain::find_region(const std::string &name) const
 
 Region *Domain::get_region_by_id(const std::string &name) const
 {
-  for (int iregion = 0; iregion < nregion; iregion++)
-    if (name == regions[iregion]->id) return regions[iregion];
+  for (auto &reg : region_list)
+    if (name == reg->id) return reg;
   return nullptr;
 }
 
@@ -1864,10 +1838,19 @@ const std::vector<Region *> Domain::get_region_by_style(const std::string &name)
   std::vector<Region *> matches;
   if (name.empty()) return matches;
 
-  for (int iregion = 0; iregion < nregion; iregion++)
-    if (name == regions[iregion]->style) matches.push_back(regions[iregion]);
+  for (auto &reg : region_list)
+    if (name == reg->style)  matches.push_back(reg);
 
   return matches;
+}
+
+/* ----------------------------------------------------------------------
+   return list of fixes as vector
+------------------------------------------------------------------------- */
+
+const std::vector<Region *> &Domain::get_region_list()
+{
+  return region_list;
 }
 
 /* ----------------------------------------------------------------------

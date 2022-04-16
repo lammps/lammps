@@ -546,19 +546,17 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & REGIONS) {
-    int nreg = domain->nregion;
-    Region **regs = domain->regions;
     fputs("\nRegion information:\n",out);
-    for (int i=0; i < nreg; ++i) {
+    int i=0;
+    for (auto &reg : domain->get_region_list()) {
       fmt::print(out,"Region[{:3d}]:  {:16}  style = {:16}  side = {}\n",
-                 i, std::string(regs[i]->id)+',',
-                 std::string(regs[i]->style)+',',
-                 regs[i]->interior ? "in" : "out");
-      if (regs[i]->bboxflag)
+                 i, std::string(reg->id)+',', std::string(reg->style)+',',
+                 reg->interior ? "in" : "out");
+      if (reg->bboxflag)
         fmt::print(out,"   Boundary:  lo {:.8} {:.8} {:.8}  hi {:.8} {:.8} {:.8}\n",
-                   regs[i]->extent_xlo, regs[i]->extent_ylo,
-                   regs[i]->extent_zlo, regs[i]->extent_xhi,
-                   regs[i]->extent_yhi, regs[i]->extent_zhi);
+                   reg->extent_xlo, reg->extent_ylo,
+                   reg->extent_zlo, reg->extent_xhi,
+                   reg->extent_yhi, reg->extent_zhi);
       else fputs("   No Boundary\n",out);
     }
   }
@@ -916,12 +914,8 @@ bool Info::is_defined(const char *category, const char *name)
         return true;
     }
   } else if (strcmp(category,"region") == 0) {
-    int nreg = domain->nregion;
-    Region **regs = domain->regions;
-    for (int i=0; i < nreg; ++i) {
-      if (strcmp(regs[i]->id,name) == 0)
-        return true;
-    }
+    for (auto &reg : domain->get_region_list())
+      if (strcmp(reg->id,name) == 0) return true;
   } else if (strcmp(category,"variable") == 0) {
     int nvar = input->variable->nvar;
     char **names = input->variable->names;

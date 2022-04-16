@@ -859,7 +859,7 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
         fix[ifix]->style = utils::strdup(estyle);
       }
     }
-    if (fix[ifix] == nullptr && lmp->suffix2) {
+    if ((fix[ifix] == nullptr) && lmp->suffix2) {
       std::string estyle = arg[2] + std::string("/") + lmp->suffix2;
       if (fix_map->find(estyle) != fix_map->end()) {
         FixCreator &fix_creator = (*fix_map)[estyle];
@@ -870,7 +870,7 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
     }
   }
 
-  if (fix[ifix] == nullptr && fix_map->find(arg[2]) != fix_map->end()) {
+  if ((fix[ifix] == nullptr) && (fix_map->find(arg[2]) != fix_map->end())) {
     FixCreator &fix_creator = (*fix_map)[arg[2]];
     fix[ifix] = fix_creator(lmp, narg, arg);
   }

@@ -273,7 +273,7 @@ void DumpCustomADIOS::init_style()
   }
 
   // set index and check validity of region
-  if (idregion && !domain->find_region(idregion))
+  if (idregion && !domain->get_region_by_id(idregion))
     error->all(FLERR, "Region {} for dump custom/adios does not exist", idregion);
 
   /* Define the group of variables for the atom style here since it's a fixed

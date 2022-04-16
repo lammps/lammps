@@ -104,7 +104,7 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   args[0] = (char *) "none";
   args[1] = (char *) "1.0";
   set_lattice(2,args);
-  delete [] args;
+  delete[] args;
 
   copymode = 0;
 
@@ -125,7 +125,8 @@ Domain::~Domain()
 {
   if (copymode) return;
 
-  region_list.clear();
+  for (auto reg : regions) delete reg;
+  regions.clear();
   delete lattice;
   delete region_map;
 }
@@ -189,7 +190,7 @@ void Domain::init()
 
   // region inits
 
-  for (auto reg : region_list) reg->init();
+  for (auto reg : regions) reg->init();
 }
 
 /* ----------------------------------------------------------------------
@@ -1788,7 +1789,7 @@ void Domain::add_region(int narg, char **arg)
   // in case region is used between runs, e.g. to print a variable
 
   newregion->init();
-  region_list.push_back(newregion);
+  regions.insert(newregion);
 }
 
 /* ----------------------------------------------------------------------
@@ -1799,14 +1800,8 @@ void Domain::delete_region(Region *reg)
 {
   if (!reg) return;
 
-  // delete and move other Regions down in list one slot
-  bool match = false;
-  for (std::size_t i = 0; i < region_list.size(); ++i) {
-    if (match) region_list[i-1] = region_list[i];
-    if (reg == region_list[i]) match = true;
-  }
+  regions.erase(reg);
   delete reg;
-  region_list.resize(region_list.size() - 1);
 }
 
 void Domain::delete_region(const std::string &id)
@@ -1823,7 +1818,7 @@ void Domain::delete_region(const std::string &id)
 
 Region *Domain::get_region_by_id(const std::string &name) const
 {
-  for (auto &reg : region_list)
+  for (auto &reg : regions)
     if (name == reg->id) return reg;
   return nullptr;
 }
@@ -1838,19 +1833,19 @@ const std::vector<Region *> Domain::get_region_by_style(const std::string &name)
   std::vector<Region *> matches;
   if (name.empty()) return matches;
 
-  for (auto &reg : region_list)
+  for (auto &reg : regions)
     if (name == reg->style)  matches.push_back(reg);
 
   return matches;
 }
 
 /* ----------------------------------------------------------------------
-   return list of fixes as vector
+   return list of regions as vector
 ------------------------------------------------------------------------- */
 
-const std::vector<Region *> &Domain::get_region_list()
+const std::vector<Region *> Domain::get_region_list()
 {
-  return region_list;
+  return std::vector<Region *>(regions.begin(), regions.end());
 }
 
 /* ----------------------------------------------------------------------

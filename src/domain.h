@@ -17,8 +17,9 @@
 #include "pointers.h"
 
 #include <cmath>
-#include <vector>
 #include <map>
+#include <unordered_set>
+#include <vector>
 
 namespace LAMMPS_NS {
 class Region;
@@ -138,7 +139,7 @@ class Domain : protected Pointers {
   void delete_region(const std::string &);
   Region *get_region_by_id(const std::string &) const;
   const std::vector<Region *> get_region_by_style(const std::string &) const;
-  const std::vector<Region *> &get_region_list();
+  const std::vector<Region *> get_region_list();
   void set_boundary(int, char **, int);
   void set_box(int, char **);
   void print_box(const std::string &);
@@ -172,7 +173,7 @@ class Domain : protected Pointers {
 
  protected:
   double small[3];    // fractions of box lengths
-  std::vector<Region *> region_list;
+  std::unordered_set<Region *> regions;
 };
 
 }    // namespace LAMMPS_NS

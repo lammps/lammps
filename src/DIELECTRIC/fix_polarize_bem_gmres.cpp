@@ -311,7 +311,7 @@ void FixPolarizeBEMGMRES::setup(int /*vflag*/)
   else if (strcmp(update->unit_style, "si") == 0)
     epsilon0e2q = 8.854187812813e-12;
   else if (strcmp(update->unit_style, "nano") == 0)
-    epsilon0e2q = 0.000345866711328125;    
+    epsilon0e2q = 0.000345866711328125;
   else if (strcmp(update->unit_style, "lj") != 0)
     error->all(FLERR, "Only unit styles 'lj', 'real', 'metal', 'si' and 'nano' are supported");
 

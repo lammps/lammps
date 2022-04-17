@@ -124,7 +124,7 @@ void PairCoulCutDielectric::compute(int eflag, int vflag)
       if (rsq < cutsq[itype][jtype] && rsq > EPSILON) {
         r2inv = 1.0 / rsq;
         rinv = sqrt(r2inv);
-        efield_i = scale[itype][jtype] * q[j] * rinv;
+        efield_i = qqrd2e * scale[itype][jtype] * q[j] * rinv;
         forcecoul = qtmp * efield_i;
 
         fpair_i = factor_coul * etmp * forcecoul * r2inv;

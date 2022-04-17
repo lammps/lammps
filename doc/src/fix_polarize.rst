@@ -154,6 +154,9 @@ if LAMMPS was built with that package, which requires that also the
 KSPACE package is installed.  See the :doc:`Build package
 <Build_package>` page for more info.
 
+Note that the *polarize/bem/gmres* and *polarize/bem/icc* fixes only support
+:doc:`units <units>` *lj*, *real*, *metal*, *si* and *nano* at the moment.
+
 
 Related commands
 """"""""""""""""

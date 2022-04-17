@@ -178,7 +178,7 @@ void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData *const t
             forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
             if (factor_coul < 1.0) forcecoul -= (1.0 - factor_coul) * prefactor;
 
-            prefactorE = q[j] / r;
+            prefactorE = qqrd2e * q[j] / r;
             efield_i = prefactorE * (erfc + EWALD_F * grij * expm2);
             if (factor_coul < 1.0) efield_i -= (1.0 - factor_coul) * prefactorE;
             epot_i = efield_i;
@@ -197,7 +197,7 @@ void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData *const t
               prefactor = qtmp * q[j] * table;
               forcecoul -= (1.0 - factor_coul) * prefactor;
 
-              prefactorE = q[j] * table / qqrd2e;
+              prefactorE = q[j] * table;
               efield_i -= (1.0 - factor_coul) * prefactorE;
             }
             epot_i = efield_i;

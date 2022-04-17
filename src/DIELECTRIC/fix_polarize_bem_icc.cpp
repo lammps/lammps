@@ -183,16 +183,43 @@ void FixPolarizeBEMICC::setup(int /*vflag*/)
     }
   }
 
-  // NOTE: qqrd2e = e^2/(4 pi e0) in kcal/mol
-  // converting epsilon0 [efield] from (F/m)(kcal/mol/e/A) into e/A^2
-  // epsilon0e2q = epsilon0 * (4184/6.023e+23) * (1/1.6e-19)^2 / (1e+10) / 332.06
-  //             = 0.000240258
+  // NOTE: epsilon0e2q converts (epsilon0 * efield) to the unit of (charge unit / squared distance unit)
+  // efield is computed by pair and kspace styles in the unit of energy unit / charge unit / distance unit
+  // for units real efield is in the unit of kcal/mol/e/A
+  // converting from (F/m) (kcal/mol/e/A)  to e/A^2 (1 e = 1.6e-19 C, 1 m = 1e+10 A)
+  // epsilon0e2q = 8.854187812813e-12 (C^2/N/m^2) * (4184 Nm/6.023e+23) /e/A
+  //             = 8.854187812813e-12 * (4184/6.023e+23) * (1/1.6e-19)^2 e^2 / (1e+10 A) /e/A
+  //             = 0.000240263377163643 e/A^2
+
+  // for units metal efield is in the unit of eV/e/A
+  // converting from (F/m) (eV/e/A)  to e/A^2 (1 V = 1 Nm/C)
+  // epsilon0e2q = 8.854187812813e-12 (C^2/N/m^2) * (1 e Nm/C) /e/A
+  //             = 8.854187812813e-12 * 1/1.6e-19 e^2 / (1e+10 A) /e/A
+  //             = 0.00553386738300813 e/A^2
+
+  // for units si efield is in the unit of J/C/m
+  // converting from (F/m) (J/C/m) to C/m^2
+  // epsilon0e2q = 8.854187812813e-12 (C^2/N/m^2) * (1 Nm/C/m)
+  //             = 8.854187812813e-12 C/m^2
+
+  // for units nano efield is in the unit of attogram nm^2/ns^2/e/nm
+  // converting from (F/m) (attogram nm^2/ns^2/e/nm) to e/nm^2
+  // epsilon0e2q = 8.854187812813e-12 (C^2/N/m^2) * (1e-21 kg nm^2 / (1e-18s^2) / e / nm)
+  //             = 8.854187812813e-12 (C^2/N/m^2) * (1e-21 kg 1e-9 m / (1e-18s^2) / e)
+  //             = 8.854187812813e-12 (1/1.6e-19)^2 (1e-21 * 1e-9 / (1e-18)) e / (1e+18 nm^2)
+  //             = 0.000345866711328125 e/nm^2
 
   epsilon0e2q = 1.0;
   if (strcmp(update->unit_style, "real") == 0)
-    epsilon0e2q = 0.0795776 / force->qqrd2e;
+    epsilon0e2q = 0.000240263377163643;
+  else if (strcmp(update->unit_style, "metal") == 0)
+    epsilon0e2q = 0.00553386738300813;
+  else if (strcmp(update->unit_style, "si") == 0)
+    epsilon0e2q = 8.854187812813e-12;
+  else if (strcmp(update->unit_style, "nano") == 0)
+    epsilon0e2q = 0.000345866711328125;    
   else if (strcmp(update->unit_style, "lj") != 0)
-    error->all(FLERR, "Only unit styles 'lj' and 'real' are supported");
+    error->all(FLERR, "Only unit styles 'lj', 'real', 'metal', 'si' and 'nano' are supported");
 
   compute_induced_charges();
 }

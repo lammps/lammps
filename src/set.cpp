@@ -303,7 +303,7 @@ void Set::command(int narg, char **arg)
       else zvalue = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (utils::strmatch(arg[iarg+4],"^v_")) varparse(arg[iarg+4],4);
       else wvalue = utils::numeric(FLERR,arg[iarg+4],false,lmp);
-      if (!atom->ellipsoid_flag && !atom->tri_flag && !atom->body_flag)
+      if (!atom->ellipsoid_flag && !atom->tri_flag && !atom->body_flag && !atom->quat_flag)
         error->all(FLERR,"Cannot set this attribute for this atom style");
       set(QUAT);
       iarg += 5;
@@ -311,7 +311,7 @@ void Set::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"quat/random") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
       ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (!atom->ellipsoid_flag && !atom->tri_flag && !atom->body_flag)
+      if (!atom->ellipsoid_flag && !atom->tri_flag && !atom->body_flag && !atom->quat_flag)
         error->all(FLERR,"Cannot set this attribute for this atom style");
       if (ivalue <= 0)
         error->all(FLERR,"Invalid random number seed in set command");
@@ -946,31 +946,44 @@ void Set::set(int keyword)
       sp[i][3] = dvalue;
     }
 
-    // set quaternion orientation of ellipsoid or tri or body particle
-    // set quaternion orientation of ellipsoid or tri or body particle
+    // set quaternion orientation of ellipsoid or tri or body particle or sphere/bpm
     // enforce quat rotation vector in z dir for 2d systems
 
     else if (keyword == QUAT) {
       double *quat = nullptr;
+      double **quat2 = nullptr;
       if (avec_ellipsoid && atom->ellipsoid[i] >= 0)
         quat = avec_ellipsoid->bonus[atom->ellipsoid[i]].quat;
       else if (avec_tri && atom->tri[i] >= 0)
         quat = avec_tri->bonus[atom->tri[i]].quat;
       else if (avec_body && atom->body[i] >= 0)
         quat = avec_body->bonus[atom->body[i]].quat;
+      else if (atom->quat_flag)
+        quat2 = atom->quat;
       else
         error->one(FLERR,"Cannot set quaternion for atom that has none");
       if (domain->dimension == 2 && (xvalue != 0.0 || yvalue != 0.0))
-        error->one(FLERR,"Cannot set quaternion with xy components "
-                   "for 2d system");
+        error->one(FLERR,"Cannot set quaternion with xy components for 2d system");
 
-      double theta2 = MY_PI2 * wvalue/180.0;
-      double sintheta2 = sin(theta2);
-      quat[0] = cos(theta2);
-      quat[1] = xvalue * sintheta2;
-      quat[2] = yvalue * sintheta2;
-      quat[3] = zvalue * sintheta2;
-      MathExtra::qnormalize(quat);
+      const double theta2 = MY_PI2 * wvalue/180.0;
+      const double sintheta2 = sin(theta2);
+      double temp[4];
+      temp[0] = cos(theta2);
+      temp[1] = xvalue * sintheta2;
+      temp[2] = yvalue * sintheta2;
+      temp[3] = zvalue * sintheta2;
+      MathExtra::qnormalize(temp);
+      if (atom->quat_flag) {
+        quat2[i][0] = temp[0];
+        quat2[i][1] = temp[1];
+        quat2[i][2] = temp[2];
+        quat2[i][3] = temp[3];
+      } else {
+        quat[0] = temp[0];
+        quat[1] = temp[1];
+        quat[2] = temp[2];
+        quat[3] = temp[3];
+      }
     }
 
     // set theta of line particle
@@ -1247,6 +1260,7 @@ void Set::setrandom(int keyword)
   } else if (keyword == QUAT_RANDOM) {
     int nlocal = atom->nlocal;
     double *quat;
+    double **quat2;
 
     if (domain->dimension == 3) {
       double s,t1,t2,theta1,theta2;
@@ -1258,6 +1272,8 @@ void Set::setrandom(int keyword)
             quat = avec_tri->bonus[atom->tri[i]].quat;
           else if (avec_body && atom->body[i] >= 0)
             quat = avec_body->bonus[atom->body[i]].quat;
+          else if (atom->quat_flag)
+            quat2 = atom->quat;
           else
             error->one(FLERR,"Cannot set quaternion for atom that has none");
 
@@ -1267,10 +1283,17 @@ void Set::setrandom(int keyword)
           t2 = sqrt(s);
           theta1 = 2.0*MY_PI*ranpark->uniform();
           theta2 = 2.0*MY_PI*ranpark->uniform();
-          quat[0] = cos(theta2)*t2;
-          quat[1] = sin(theta1)*t1;
-          quat[2] = cos(theta1)*t1;
-          quat[3] = sin(theta2)*t2;
+          if (atom->quat_flag) {
+            quat2[i][0] = cos(theta2)*t2;
+            quat2[i][1] = sin(theta1)*t1;
+            quat2[i][2] = cos(theta1)*t1;
+            quat2[i][3] = sin(theta2)*t2;
+          } else {
+            quat[0] = cos(theta2)*t2;
+            quat[1] = sin(theta1)*t1;
+            quat[2] = cos(theta1)*t1;
+            quat[3] = sin(theta2)*t2;
+          }
           count++;
         }
 
@@ -1282,15 +1305,24 @@ void Set::setrandom(int keyword)
             quat = avec_ellipsoid->bonus[atom->ellipsoid[i]].quat;
           else if (avec_body && atom->body[i] >= 0)
             quat = avec_body->bonus[atom->body[i]].quat;
+          else if (atom->quat_flag)
+            quat2 = atom->quat;
           else
             error->one(FLERR,"Cannot set quaternion for atom that has none");
 
           ranpark->reset(seed,x[i]);
           theta2 = MY_PI*ranpark->uniform();
-          quat[0] = cos(theta2);
-          quat[1] = 0.0;
-          quat[2] = 0.0;
-          quat[3] = sin(theta2);
+          if (atom->quat_flag) {
+            quat2[i][0] = cos(theta2);
+            quat2[i][1] = 0.0;
+            quat2[i][2] = 0.0;
+            quat2[i][3] = sin(theta2);
+          } else {
+            quat[0] = cos(theta2);
+            quat[1] = 0.0;
+            quat[2] = 0.0;
+            quat[3] = sin(theta2);
+          }
           count++;
         }
     }

@@ -13,14 +13,6 @@ endif
 
 NVCC = nvcc
 
-# obsolete hardware. not supported by current drivers anymore.
-#CUDA_ARCH = -arch=sm_13
-#CUDA_ARCH = -arch=sm_10 -DCUDA_PRE_THREE
-
-# Fermi hardware
-#CUDA_ARCH = -arch=sm_20
-#CUDA_ARCH = -arch=sm_21
-
 # Kepler hardware
 #CUDA_ARCH = -arch=sm_30
 #CUDA_ARCH = -arch=sm_32
@@ -44,6 +36,9 @@ CUDA_ARCH = -arch=sm_50
 # Ampere hardware
 #CUDA_ARCH = -arch=sm_80
 #CUDA_ARCH = -arch=sm_86
+
+# Hopper hardware
+#CUDA_ARCH = -arch=sm_90
 
 CUDA_CODE = -gencode arch=compute_50,code=[sm_50,compute_50] -gencode arch=compute_52,code=[sm_52,compute_52] \
 	    -gencode arch=compute_60,code=[sm_60,compute_60] -gencode arch=compute_61,code=[sm_61,compute_61] \

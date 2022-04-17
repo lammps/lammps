@@ -36,6 +36,7 @@ using MathConst::MY_CUBEROOT2;
 BondQuartic::BondQuartic(LAMMPS *_lmp) :
     Bond(_lmp), k(nullptr), b1(nullptr), b2(nullptr), rc(nullptr), u0(nullptr)
 {
+  partial_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

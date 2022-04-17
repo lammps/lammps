@@ -23,6 +23,8 @@ General howto
    Howto_library
    Howto_couple
    Howto_mdi
+   Howto_bpm
+   Howto_broken_bonds
 
 Settings howto
 ==============

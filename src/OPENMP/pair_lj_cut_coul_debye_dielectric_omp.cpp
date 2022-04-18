@@ -12,14 +12,13 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Trung Nguyen (Northwestern)
+   Contributing author: Trung Nguyen (U Chicago)
 ------------------------------------------------------------------------- */
 
-#include "pair_lj_cut_coul_long_dielectric_omp.h"
+#include "pair_lj_cut_coul_debye_dielectric_omp.h"
 
 #include "atom.h"
 #include "comm.h"
-#include "ewald_const.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
@@ -29,19 +28,20 @@
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
-using namespace EwaldConst;
 using MathConst::MY_PIS;
+
+static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulLongDielectricOMP::PairLJCutCoulLongDielectricOMP(LAMMPS *_lmp) :
-    PairLJCutCoulLongDielectric(_lmp), ThrOMP(_lmp, THR_PAIR)
+PairLJCutCoulDebyeDielectricOMP::PairLJCutCoulDebyeDielectricOMP(LAMMPS *_lmp) :
+    PairLJCutCoulDebyeDielectric(_lmp), ThrOMP(_lmp, THR_PAIR)
 {
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutCoulLongDielectricOMP::compute(int eflag, int vflag)
+void PairLJCutCoulDebyeDielectricOMP::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
 
@@ -95,22 +95,22 @@ void PairLJCutCoulLongDielectricOMP::compute(int eflag, int vflag)
 /* ---------------------------------------------------------------------- */
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData *const thr)
+void PairLJCutCoulDebyeDielectricOMP::eval(int iifrom, int iito, ThrData *const thr)
 {
-  int i, j, ii, jj, jnum, itype, jtype, itable;
-  double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul, fpair;
-  double fraction, table;
-  double r, rsq, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj;
-  double grij, expm2, prefactor, t, erfc, prefactorE, efield_i, epot_i;
+  int i, j, ii, jj, jnum, itype, jtype;
+  double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul;
+  double fpair_i, fpair_j;
+  double rsq, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj, efield_i, epot_i;
+  double r, rinv, screening;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
   evdwl = ecoul = 0.0;
 
-  const auto *_noalias const x = (dbl3_t *) atom->x[0];
-  auto *_noalias const f = (dbl3_t *) thr->get_f()[0];
+  const dbl3_t *_noalias const x = (dbl3_t *) atom->x[0];
+  dbl3_t *_noalias const f = (dbl3_t *) thr->get_f()[0];
   const double *_noalias const q = atom->q;
   const double *_noalias const eps = atom->epsilon;
-  const auto *_noalias const norm = (dbl3_t *) atom->mu[0];
+  const dbl3_t *_noalias const norm = (dbl3_t *) atom->mu[0];
   const double *_noalias const curvature = atom->curvature;
   const double *_noalias const area = atom->area;
   const int *_noalias const type = atom->type;
@@ -140,8 +140,7 @@ void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData *const t
     fxtmp = fytmp = fztmp = 0.0;
     extmp = eytmp = eztmp = 0.0;
 
-    // self term Eq. (55) for I_{ii} and Eq. (52) and in Barros et al.
-
+    // self term Eq. (55) for I_{ii} and Eq. (52) and in Barros et al
     double curvature_threshold = sqrt(area[i]);
     if (curvature[i] < curvature_threshold) {
       double sf = curvature[i] / (4.0 * MY_PIS * curvature_threshold) * area[i] * q[i];
@@ -151,6 +150,8 @@ void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData *const t
     } else {
       efield[i][0] = efield[i][1] = efield[i][2] = 0;
     }
+
+    epot[i] = 0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -167,81 +168,47 @@ void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData *const t
       if (rsq < cutsq[itype][jtype]) {
         r2inv = 1.0 / rsq;
 
-        if (rsq < cut_coulsq) {
-          if (!ncoultablebits || rsq <= tabinnersq) {
-            r = sqrt(rsq);
-            grij = g_ewald * r;
-            expm2 = exp(-grij * grij);
-            t = 1.0 / (1.0 + EWALD_P * grij);
-            erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
-            prefactor = qqrd2e * qtmp * q[j] / r;
-            forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
-            if (factor_coul < 1.0) forcecoul -= (1.0 - factor_coul) * prefactor;
-
-            prefactorE = qqrd2e * q[j] / r;
-            efield_i = prefactorE * (erfc + EWALD_F * grij * expm2);
-            if (factor_coul < 1.0) efield_i -= (1.0 - factor_coul) * prefactorE;
-            epot_i = efield_i;
-
-          } else {
-            union_int_float_t rsq_lookup;
-            rsq_lookup.f = rsq;
-            itable = rsq_lookup.i & ncoulmask;
-            itable >>= ncoulshiftbits;
-            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
-            table = ftable[itable] + fraction * dftable[itable];
-            forcecoul = qtmp * q[j] * table;
-            efield_i = q[j] * table / qqrd2e;
-            if (factor_coul < 1.0) {
-              table = ctable[itable] + fraction * dctable[itable];
-              prefactor = qtmp * q[j] * table;
-              forcecoul -= (1.0 - factor_coul) * prefactor;
-
-              prefactorE = q[j] * table;
-              efield_i -= (1.0 - factor_coul) * prefactorE;
-            }
-            epot_i = efield_i;
-          }
+        if (rsq < cut_coulsq[itype][jtype] && rsq > EPSILON) {
+          r = sqrt(rsq);
+          rinv = 1.0 / r;
+          screening = exp(-kappa * r);
+          efield_i = qqrd2e * q[j] * screening * (kappa + rinv);
+          forcecoul = qtmp * efield_i;
+          epot_i = efield_i;
         } else
           epot_i = efield_i = forcecoul = 0.0;
 
         if (rsq < cut_ljsq[itype][jtype]) {
           r6inv = r2inv * r2inv * r2inv;
           forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
-          forcelj *= factor_lj;
         } else
           forcelj = 0.0;
 
-        fpair = (forcecoul + forcelj) * r2inv;
+        fpair_i = (factor_coul * etmp * forcecoul + factor_lj * forcelj) * r2inv;
 
-        fxtmp += delx * fpair;
-        fytmp += dely * fpair;
-        fztmp += delz * fpair;
+        fxtmp += delx * fpair_i;
+        fytmp += dely * fpair_i;
+        fztmp += delz * fpair_i;
 
-        efield_i *= (etmp * r2inv);
+        efield_i *= (factor_coul * etmp * r2inv);
         extmp += delx * efield_i;
         eytmp += dely * efield_i;
         eztmp += delz * efield_i;
         epot[i] += epot_i;
 
-        if (NEWTON_PAIR || j < nlocal) {
-          f[j].x -= delx * fpair;
-          f[j].y -= dely * fpair;
-          f[j].z -= delz * fpair;
+        if (NEWTON_PAIR || j >= nlocal) {
+          fpair_j = (factor_coul * eps[j] * forcecoul + factor_lj * forcelj) * r2inv;
+          f[j].x -= delx * fpair_j;
+          f[j].y -= dely * fpair_j;
+          f[j].z -= delz * fpair_j;
         }
 
         if (EFLAG) {
-          if (rsq < cut_coulsq) {
-            if (!ncoultablebits || rsq <= tabinnersq)
-              ecoul = prefactor * (etmp + eps[j]) * erfc;
-            else {
-              table = etable[itable] + fraction * detable[itable];
-              ecoul = qtmp * q[j] * (etmp + eps[j]) * table;
-            }
-            if (factor_coul < 1.0) ecoul -= (1.0 - factor_coul) * prefactor;
+          if (rsq < cut_coulsq[itype][jtype]) {
+            ecoul = factor_coul * qqrd2e * qtmp * q[j] * (etmp + eps[j]) * rinv * screening;
           } else
             ecoul = 0.0;
-
+          ecoul *= 0.5;
           if (rsq < cut_ljsq[itype][jtype]) {
             evdwl = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]) - offset[itype][jtype];
             evdwl *= factor_lj;
@@ -250,7 +217,8 @@ void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData *const t
         }
 
         if (EVFLAG)
-          ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, evdwl, ecoul, fpair, delx, dely, delz, thr);
+          ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, evdwl, ecoul, fpair_i, delx, dely, delz,
+                       thr);
       }
     }
     f[i].x += fxtmp;

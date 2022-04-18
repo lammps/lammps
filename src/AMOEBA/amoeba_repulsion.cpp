@@ -383,7 +383,7 @@ void PairAmoeba::repulsion()
   // reverse comm to sum torque from ghost atoms to owned atoms
 
   crstyle = TORQUE;
-  comm->reverse_comm_pair(this);
+  comm->reverse_comm(this);
 
   // resolve site torques then increment forces and virial
 

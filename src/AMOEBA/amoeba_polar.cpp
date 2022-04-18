@@ -1175,7 +1175,7 @@ void PairAmoeba::polar_real()
   // reverse comm to sum ufld,dufld from ghost atoms to owned atoms
 
   crstyle = UFLD;
-  comm->reverse_comm_pair(this);
+  comm->reverse_comm(this);
 
   // torque is induced field and gradient cross permanent moments
   

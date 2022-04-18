@@ -111,7 +111,7 @@ void PairAmoeba::induce()
   // reverse comm to sum field,fieldp from ghost atoms to owned atoms
 
   crstyle = FIELD;
-  comm->reverse_comm_pair(this);
+  comm->reverse_comm(this);
 
   // DEBUG statements
 
@@ -166,12 +166,12 @@ void PairAmoeba::induce()
       optlevel = m - 1;     // used in umutual1() for fopt,foptp
 
       cfstyle = INDUCE;
-      comm->forward_comm_pair(this);
+      comm->forward_comm(this);
 
       ufield0c(field,fieldp);
 
       crstyle = FIELD;
-      comm->reverse_comm_pair(this);
+      comm->reverse_comm(this);
 
       for (i = 0; i < nlocal; i++) {
 	itype = amtype[i];
@@ -251,12 +251,12 @@ void PairAmoeba::induce()
     // get the electrostatic field due to induced dipoles
 
     cfstyle = INDUCE;
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
 
     ufield0c(field,fieldp);
 
     crstyle = FIELD;
-    comm->reverse_comm_pair(this);
+    comm->reverse_comm(this);
 
     // DEBUG statements
 
@@ -293,11 +293,11 @@ void PairAmoeba::induce()
 
     if (pcgprec) {
       cfstyle = RSD;
-      comm->forward_comm_pair(this);
+      comm->forward_comm(this);
       uscale0b(BUILD,rsd,rsdp,zrsd,zrsdp);
       uscale0b(APPLY,rsd,rsdp,zrsd,zrsdp); 
       crstyle = ZRSD;
-      comm->reverse_comm_pair(this);
+      comm->reverse_comm(this);
    }
 
     for (i = 0; i < nlocal; i++) {
@@ -336,14 +336,14 @@ void PairAmoeba::induce()
       }
 
       cfstyle = INDUCE;
-      comm->forward_comm_pair(this);
+      comm->forward_comm(this);
 
       ufield0c(field,fieldp);
 
       //error->all(FLERR,"STOP");
 
       crstyle = FIELD;
-      comm->reverse_comm_pair(this);
+      comm->reverse_comm(this);
 
       // DEBUG statements
 
@@ -418,10 +418,10 @@ void PairAmoeba::induce()
       
       if (pcgprec) {
         cfstyle = RSD;
-        comm->forward_comm_pair(this);
+        comm->forward_comm(this);
         uscale0b(APPLY,rsd,rsdp,zrsd,zrsdp); 
         crstyle = ZRSD;
-        comm->reverse_comm_pair(this);
+        comm->reverse_comm(this);
       }
 
       // DEBUG statements

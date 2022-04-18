@@ -27,25 +27,25 @@ namespace LAMMPS_NS {
 class FixTTMGrid : public FixTTM {
  public:
   FixTTMGrid(class LAMMPS *, int, char **);
-  ~FixTTMGrid();
-  void post_constructor();
-  void init();
-  void post_force(int);
-  void end_of_step();
+  ~FixTTMGrid() override;
+  void post_constructor() override;
+  void init() override;
+  void post_force(int) override;
+  void end_of_step() override;
 
   // grid communication
 
-  void pack_forward_grid(int, void *, int, int *);
-  void unpack_forward_grid(int, void *, int, int *);
-  void pack_reverse_grid(int, void *, int, int *);
-  void unpack_reverse_grid(int, void *, int, int *);
-  void pack_gather_grid(int, void *);
-  void unpack_gather_grid(int, void *, void *, int, int, int, int, int, int);
+  void pack_forward_grid(int, void *, int, int *) override;
+  void unpack_forward_grid(int, void *, int, int *) override;
+  void pack_reverse_grid(int, void *, int, int *) override;
+  void unpack_reverse_grid(int, void *, int, int *) override;
+  void pack_gather_grid(int, void *) override;
+  void unpack_gather_grid(int, void *, void *, int, int, int, int, int, int) override;
 
-  void write_restart(FILE *);
-  void restart(char *);
-  double compute_vector(int);
-  double memory_usage();
+  void write_restart(FILE *) override;
+  void restart(char *) override;
+  double compute_vector(int) override;
+  double memory_usage() override;
 
  private:
   int ngridmine,ngridout;
@@ -59,10 +59,10 @@ class FixTTMGrid : public FixTTM {
   int ngc_buf1,ngc_buf2;
   double *gc_buf1,*gc_buf2;
 
-  void allocate_grid();
-  void deallocate_grid();
-  void read_electron_temperatures(const std::string &);
-  void write_electron_temperatures(const std::string &);
+  void allocate_grid() override;
+  void deallocate_grid() override;
+  void read_electron_temperatures(const std::string &) override;
+  void write_electron_temperatures(const std::string &) override;
 };
 
 }    // namespace LAMMPS_NS

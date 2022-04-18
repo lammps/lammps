@@ -206,13 +206,15 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   #endif
 
   // set newton pair flag
-  // require newtonflag = 0 since currently required by all GPU pair styles
-
-  if (newtonflag == 1) error->all(FLERR,"Illegal package gpu command");
 
   force->newton_pair = newtonflag;
   if (force->newton_pair || force->newton_bond) force->newton = 1;
   else force->newton = 0;
+
+  // require newton pair off if _particle_split < 1
+
+  if (force->newton_pair == 1 && _particle_split < 1)
+    error->all(FLERR,"Cannot use newton pair on for split less than 1 for now");
 
   if (pair_only_flag) {
     lmp->suffixp = lmp->suffix;
@@ -273,7 +275,7 @@ void FixGPU::init()
   // also disallow GPU neighbor lists for hybrid styles
 
   if (force->pair_match("^hybrid",0) != nullptr) {
-    PairHybrid *hybrid = (PairHybrid *) force->pair;
+    auto hybrid = dynamic_cast<PairHybrid *>( force->pair);
     for (int i = 0; i < hybrid->nstyles; i++)
       if (!utils::strmatch(hybrid->keywords[i],"/gpu$"))
         force->pair->no_virial_fdotr_compute = 1;
@@ -284,7 +286,7 @@ void FixGPU::init()
   // rRESPA support
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    _nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    _nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -298,9 +300,9 @@ void FixGPU::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet")) post_force(vflag);
   else {
     // In setup only, all forces calculated on GPU are put in the outer level
-    ((Respa *) update->integrate)->copy_flevel_f(_nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(_nlevels_respa-1);
     post_force(vflag);
-    ((Respa *) update->integrate)->copy_f_flevel(_nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(_nlevels_respa-1);
   }
 }
 
@@ -335,7 +337,6 @@ void FixGPU::post_force(int /* vflag */)
   force->pair->virial[4] += lvirial[4];
   force->pair->virial[5] += lvirial[5];
 
-  if (force->pair->vflag_fdotr) force->pair->virial_fdotr_compute();
   timer->stamp(Timer::PAIR);
 }
 

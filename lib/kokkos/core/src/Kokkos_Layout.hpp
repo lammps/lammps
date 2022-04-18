@@ -50,7 +50,6 @@
 
 #include <cstddef>
 #include <impl/Kokkos_Traits.hpp>
-#include <impl/Kokkos_Tags.hpp>
 
 namespace Kokkos {
 
@@ -89,6 +88,16 @@ struct LayoutLeft {
                                 size_t N3 = 0, size_t N4 = 0, size_t N5 = 0,
                                 size_t N6 = 0, size_t N7 = 0)
       : dimension{N0, N1, N2, N3, N4, N5, N6, N7} {}
+
+  friend bool operator==(const LayoutLeft& left, const LayoutLeft& right) {
+    for (unsigned int rank = 0; rank < ARRAY_LAYOUT_MAX_RANK; ++rank)
+      if (left.dimension[rank] != right.dimension[rank]) return false;
+    return true;
+  }
+
+  friend bool operator!=(const LayoutLeft& left, const LayoutLeft& right) {
+    return !(left == right);
+  }
 };
 
 //----------------------------------------------------------------------------
@@ -123,6 +132,16 @@ struct LayoutRight {
                                  size_t N3 = 0, size_t N4 = 0, size_t N5 = 0,
                                  size_t N6 = 0, size_t N7 = 0)
       : dimension{N0, N1, N2, N3, N4, N5, N6, N7} {}
+
+  friend bool operator==(const LayoutRight& left, const LayoutRight& right) {
+    for (unsigned int rank = 0; rank < ARRAY_LAYOUT_MAX_RANK; ++rank)
+      if (left.dimension[rank] != right.dimension[rank]) return false;
+    return true;
+  }
+
+  friend bool operator!=(const LayoutRight& left, const LayoutRight& right) {
+    return !(left == right);
+  }
 };
 
 //----------------------------------------------------------------------------
@@ -184,6 +203,18 @@ struct LayoutStride {
                                   size_t S7 = 0)
       : dimension{N0, N1, N2, N3, N4, N5, N6, N7}, stride{S0, S1, S2, S3,
                                                           S4, S5, S6, S7} {}
+
+  friend bool operator==(const LayoutStride& left, const LayoutStride& right) {
+    for (unsigned int rank = 0; rank < ARRAY_LAYOUT_MAX_RANK; ++rank)
+      if (left.dimension[rank] != right.dimension[rank] ||
+          left.stride[rank] != right.stride[rank])
+        return false;
+    return true;
+  }
+
+  friend bool operator!=(const LayoutStride& left, const LayoutStride& right) {
+    return !(left == right);
+  }
 };
 
 // ===================================================================================
@@ -229,18 +260,6 @@ struct LayoutTiled {
   static_assert(IsPowerOfTwo,
                 "LayoutTiled must be given power-of-two tile dimensions");
 
-#if 0
-  static_assert( (Impl::is_integral_power_of_two(ArgN0) ) &&
-                 (Impl::is_integral_power_of_two(ArgN1) ) &&
-                 (Impl::is_integral_power_of_two(ArgN2) || (ArgN2 == 0) ) &&
-                 (Impl::is_integral_power_of_two(ArgN3) || (ArgN3 == 0) ) &&
-                 (Impl::is_integral_power_of_two(ArgN4) || (ArgN4 == 0) ) &&
-                 (Impl::is_integral_power_of_two(ArgN5) || (ArgN5 == 0) ) &&
-                 (Impl::is_integral_power_of_two(ArgN6) || (ArgN6 == 0) ) &&
-                 (Impl::is_integral_power_of_two(ArgN7) || (ArgN7 == 0) )
-               , "LayoutTiled must be given power-of-two tile dimensions" );
-#endif
-
   using array_layout = LayoutTiled<OuterP, InnerP, ArgN0, ArgN1, ArgN2, ArgN3,
                                    ArgN4, ArgN5, ArgN6, ArgN7, IsPowerOfTwo>;
   static constexpr Iterate outer_pattern = OuterP;
@@ -270,6 +289,16 @@ struct LayoutTiled {
                                  size_t argN4 = 0, size_t argN5 = 0,
                                  size_t argN6 = 0, size_t argN7 = 0)
       : dimension{argN0, argN1, argN2, argN3, argN4, argN5, argN6, argN7} {}
+
+  friend bool operator==(const LayoutTiled& left, const LayoutTiled& right) {
+    for (unsigned int rank = 0; rank < ARRAY_LAYOUT_MAX_RANK; ++rank)
+      if (left.dimension[rank] != right.dimension[rank]) return false;
+    return true;
+  }
+
+  friend bool operator!=(const LayoutTiled& left, const LayoutTiled& right) {
+    return !(left == right);
+  }
 };
 
 }  // namespace Experimental

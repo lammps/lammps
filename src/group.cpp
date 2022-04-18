@@ -105,8 +105,8 @@ void Group::assign(int narg, char **arg)
     int igroup = find(arg[0]);
     if (igroup == -1) error->all(FLERR,"Could not find group delete group ID");
     if (igroup == 0) error->all(FLERR,"Cannot delete group all");
-    for (i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->igroup == igroup)
+    for (const auto &fix : modify->get_fix_list())
+      if (fix->igroup == igroup)
         error->all(FLERR,"Cannot delete group currently used by a fix");
     for (i = 0; i < modify->ncompute; i++)
       if (modify->compute[i]->igroup == igroup)
@@ -675,8 +675,8 @@ void Group::add_molecules(int /*igroup*/, int bit)
 
 void Group::molring(int n, char *cbuf, void *ptr)
 {
-  Group *gptr = (Group *) ptr;
-  tagint *list = (tagint *) cbuf;
+  auto gptr = (Group *) ptr;
+  auto list = (tagint *) cbuf;
   std::map<tagint,int> *hash = gptr->hash;
   int nlocal = gptr->atom->nlocal;
   tagint *molecule = gptr->atom->molecule;

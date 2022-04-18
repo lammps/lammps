@@ -20,7 +20,6 @@
 #include "lammps.h"
 #include "lattice.h"
 #include "region.h"
-#include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -36,8 +35,8 @@ bool verbose = false;
 using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
+using ::testing::ContainsRegex;
 using ::testing::ExitedWithCode;
-using ::testing::MatchesRegex;
 using ::testing::StrEq;
 
 class LatticeRegionTest : public LAMMPSTest {
@@ -83,7 +82,7 @@ TEST_F(LatticeRegionTest, lattice_sc)
     BEGIN_CAPTURE_OUTPUT();
     command("lattice sc 1.0 spacing 1.5 2.0 3.0");
     auto output = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(output, MatchesRegex(".*Lattice spacing in x,y,z = 1.50* 2.0* 3.0*.*"));
+    ASSERT_THAT(output, ContainsRegex(".*Lattice spacing in x,y,z = 1.5.* 2.* 3.*"));
 
     auto lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->xlattice, 1.5);
@@ -93,7 +92,7 @@ TEST_F(LatticeRegionTest, lattice_sc)
     BEGIN_CAPTURE_OUTPUT();
     command("lattice sc 2.0");
     output = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(output, MatchesRegex(".*Lattice spacing in x,y,z = 2.0* 2.0* 2.0*.*"));
+    ASSERT_THAT(output, ContainsRegex(".*Lattice spacing in x,y,z = 2.* 2.* 2.*"));
 
     lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->style, Lattice::SC);
@@ -631,7 +630,7 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (Info::get_mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
+    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. "
                      "Death tests will be skipped\n";
 

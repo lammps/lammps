@@ -18,16 +18,16 @@
 
 #include "pair_lj_cut_coul_wolf.h"
 
-#include <cmath>
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -270,9 +270,7 @@ void PairLJCutCoulWolf::init_style()
 
   cut_coulsq = cut_coul * cut_coul;
 
-  // request regular or rRESPA neighbor list
-
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

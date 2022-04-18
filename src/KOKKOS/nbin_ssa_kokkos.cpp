@@ -142,7 +142,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     k_gbincount.sync<DeviceType>();
     ghosts_per_gbin = 0;
     NPairSSAKokkosBinIDGhostsFunctor<DeviceType> f(*this);
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<LMPDeviceType>(nlocal,nall), f, ghosts_per_gbin);
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(nlocal,nall), f, ghosts_per_gbin);
   }
 
   // actually bin the ghost atoms
@@ -228,12 +228,12 @@ void NBinSSAKokkos<DeviceType>::binIDAtomsItem(const int &i, int &update) const
   binID(i) = ibin;
 
   // Find the bounding box of the local atoms in the bins
-  if (loc[0] < d_lbinxlo()) Kokkos::atomic_fetch_min(&d_lbinxlo(),loc[0]);
-  if (loc[0] >= d_lbinxhi()) Kokkos::atomic_fetch_max(&d_lbinxhi(),loc[0] + 1);
-  if (loc[1] < d_lbinylo()) Kokkos::atomic_fetch_min(&d_lbinylo(),loc[1]);
-  if (loc[1] >= d_lbinyhi()) Kokkos::atomic_fetch_max(&d_lbinyhi(),loc[1] + 1);
-  if (loc[2] < d_lbinzlo()) Kokkos::atomic_fetch_min(&d_lbinzlo(),loc[2]);
-  if (loc[2] >= d_lbinzhi()) Kokkos::atomic_fetch_max(&d_lbinzhi(),loc[2] + 1);
+  if (loc[0] < d_lbinxlo()) Kokkos::atomic_min(&d_lbinxlo(),loc[0]);
+  if (loc[0] >= d_lbinxhi()) Kokkos::atomic_max(&d_lbinxhi(),loc[0] + 1);
+  if (loc[1] < d_lbinylo()) Kokkos::atomic_min(&d_lbinylo(),loc[1]);
+  if (loc[1] >= d_lbinyhi()) Kokkos::atomic_max(&d_lbinyhi(),loc[1] + 1);
+  if (loc[2] < d_lbinzlo()) Kokkos::atomic_min(&d_lbinzlo(),loc[2]);
+  if (loc[2] >= d_lbinzhi()) Kokkos::atomic_max(&d_lbinzhi(),loc[2] + 1);
 
   const int ac = Kokkos::atomic_fetch_add(&(bincount[ibin]), (int)1);
   if (update <= ac) update = ac + 1;

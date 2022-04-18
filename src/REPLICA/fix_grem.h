@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class FixGrem : public Fix {
  public:
   FixGrem(class LAMMPS *, int, char **);
-  ~FixGrem();
-  int setmask();
-  void init();
-  void setup(int);
-  void min_setup(int);
-  void post_force(int);
-  void *extract(const char *, int &);
-  double compute_scalar();
+  ~FixGrem() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void min_setup(int) override;
+  void post_force(int) override;
+  void *extract(const char *, int &) override;
+  double compute_scalar() override;
   double scale_grem, lambda, eta, h0;
   int pressflag;
 

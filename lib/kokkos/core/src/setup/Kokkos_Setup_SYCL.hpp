@@ -62,10 +62,10 @@ void sink(Args&&... args) {
     Kokkos::ImplSYCL::sink(__VA_ARGS__);   \
   } while (0)
 #else
-#define KOKKOS_IMPL_DO_NOT_USE_PRINTF(format, ...)                       \
-  do {                                                                   \
-    static const __attribute__((opencl_constant)) char fmt[] = (format); \
-    sycl::ONEAPI::experimental::printf(fmt, ##__VA_ARGS__);              \
+#define KOKKOS_IMPL_DO_NOT_USE_PRINTF(format, ...)                \
+  do {                                                            \
+    const __attribute__((opencl_constant)) char fmt[] = (format); \
+    sycl::ONEAPI::experimental::printf(fmt, ##__VA_ARGS__);       \
   } while (0)
 #endif
 #endif

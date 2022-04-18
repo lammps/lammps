@@ -29,12 +29,12 @@ class TabularFunction;
 class PairPolymorphic : public Pair {
  public:
   PairPolymorphic(class LAMMPS *);
-  virtual ~PairPolymorphic();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
+  ~PairPolymorphic() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
  protected:
   struct PairParameters {

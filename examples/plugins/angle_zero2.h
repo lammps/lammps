@@ -21,17 +21,17 @@ namespace LAMMPS_NS {
 class AngleZero2 : public Angle {
  public:
   AngleZero2(class LAMMPS *);
-  virtual ~AngleZero2();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
-  virtual void settings(int, char **);
+  ~AngleZero2() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void settings(int, char **) override;
 
-  double equilibrium_angle(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
+  double equilibrium_angle(int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
 
-  double single(int, int, int, int);
+  double single(int, int, int, int) override;
 
  protected:
   double *theta0;

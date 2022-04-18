@@ -23,7 +23,6 @@ namespace LAMMPS_NS {
 class Reader : protected Pointers {
  public:
   Reader(class LAMMPS *);
-  virtual ~Reader() {}
 
   virtual void settings(int, char **);
 
@@ -33,12 +32,13 @@ class Reader : protected Pointers {
                              int &, int &, int &) = 0;
   virtual void read_atoms(int, int, double **) = 0;
 
-  virtual void open_file(const char *);
+  virtual void open_file(const std::string &);
   virtual void close_file();
 
  protected:
   FILE *fp;          // pointer to opened file or pipe
-  int compressed;    // flag for dump file compression
+  bool compressed;   // flag for dump file compression
+  bool binary;       // flag for (native) binary files
 };
 
 }    // namespace LAMMPS_NS

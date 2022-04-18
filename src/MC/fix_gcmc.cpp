@@ -62,7 +62,7 @@ using namespace MathConst;
 #define MAXENERGYTEST 1.0e50
 
 enum{EXCHATOM,EXCHMOL}; // exchmode
-enum{MOVEATOM,MOVEMOL}; // movemode
+enum{NONE,MOVEATOM,MOVEMOL}; // movemode
 
 /* ---------------------------------------------------------------------- */
 
@@ -235,7 +235,7 @@ void FixGCMC::options(int narg, char **arg)
   // defaults
 
   exchmode = EXCHATOM;
-  movemode = MOVEATOM;
+  movemode = NONE;
   patomtrans = 0.0;
   pmoltrans = 0.0;
   pmolrotate = 0.0;
@@ -447,27 +447,29 @@ void FixGCMC::init()
 
   // set probabilities for MC moves
 
-  if (pmctot == 0.0)
-    if (exchmode == EXCHATOM) {
-      movemode = MOVEATOM;
-      patomtrans = 1.0;
-      pmoltrans = 0.0;
-      pmolrotate = 0.0;
-    } else {
-      movemode = MOVEMOL;
-      patomtrans = 0.0;
-      pmoltrans = 0.5;
-      pmolrotate = 0.5;
-   }
-  else {
-    if (pmoltrans == 0.0 && pmolrotate == 0.0)
-      movemode = MOVEATOM;
-    else
-      movemode = MOVEMOL;
-    patomtrans /= pmctot;
-    pmoltrans /= pmctot;
-    pmolrotate /= pmctot;
-  }
+  if (nmcmoves > 0) {
+    if (pmctot == 0.0)
+      if (exchmode == EXCHATOM) {
+        movemode = MOVEATOM;
+        patomtrans = 1.0;
+        pmoltrans = 0.0;
+        pmolrotate = 0.0;
+      } else {
+        movemode = MOVEMOL;
+        patomtrans = 0.0;
+        pmoltrans = 0.5;
+        pmolrotate = 0.5;
+      }
+    else {
+      if (pmoltrans == 0.0 && pmolrotate == 0.0)
+        movemode = MOVEATOM;
+      else
+        movemode = MOVEMOL;
+      patomtrans /= pmctot;
+      pmoltrans /= pmctot;
+      pmolrotate /= pmctot;
+    }
+  } else movemode = NONE;
 
   // decide whether to switch to the full_energy option
 
@@ -504,8 +506,7 @@ void FixGCMC::init()
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
     if (flagall && comm->me == 0)
-      error->all(FLERR,
-       "Fix gcmc cannot exchange individual atoms belonging to a molecule");
+      error->all(FLERR, "Fix gcmc cannot exchange individual atoms belonging to a molecule");
   }
 
   // if molecules are exchanged or moved, check for unset mol IDs
@@ -520,16 +521,13 @@ void FixGCMC::init()
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
     if (flagall && comm->me == 0)
-      error->all(FLERR,
-       "All mol IDs should be set for fix gcmc group atoms");
+      error->all(FLERR, "All mol IDs should be set for fix gcmc group atoms");
   }
 
   if (exchmode == EXCHMOL || movemode == MOVEMOL)
     if (atom->molecule_flag == 0 || !atom->tag_enable
         || (atom->map_style == Atom::MAP_NONE))
-      error->all(FLERR,
-       "Fix gcmc molecule command requires that "
-       "atoms have molecule attributes");
+      error->all(FLERR, "Fix gcmc molecule command requires that atoms have molecule attributes");
 
   // if rigidflag defined, check for rigid/small fix
   // its molecule template must be same as this one
@@ -541,9 +539,7 @@ void FixGCMC::init()
     fixrigid = modify->fix[ifix];
     int tmp;
     if (&onemols[imol] != (Molecule **) fixrigid->extract("onemol",tmp))
-      error->all(FLERR,
-                 "Fix gcmc and fix rigid/small not using "
-                 "same molecule template ID");
+      error->all(FLERR, "Fix gcmc and fix rigid/small not using same molecule template ID");
   }
 
   // if shakeflag defined, check for SHAKE fix
@@ -687,11 +683,13 @@ void FixGCMC::init()
     }
   }
 
-  // Current implementation is broken using
-  // full_flag on molecules on more than one processor.
-  // Print error if this is the current mode
-  if (full_flag && (exchmode == EXCHMOL || movemode == MOVEMOL) && comm->nprocs > 1)
-    error->all(FLERR,"fix gcmc does currently not support full_energy option with molecules on more than 1 MPI process.");
+  // current implementation is broken using
+  // full_flag and translation/rotation of molecules
+  // on more than one processor.
+
+  if (full_flag && movemode == MOVEMOL && comm->nprocs > 1)
+    error->all(FLERR,"fix gcmc does currently not support full_energy "
+               "option with molecule MC moves on more than 1 MPI process.");
 
 }
 
@@ -1326,7 +1324,7 @@ void FixGCMC::attempt_molecule_insertion()
   MathExtra::quat_to_mat(quat,rotmat);
 
   double insertion_energy = 0.0;
-  bool *procflag = new bool[natoms_per_molecule];
+  auto procflag = new bool[natoms_per_molecule];
 
   for (int i = 0; i < natoms_per_molecule; i++) {
     MathExtra::matvec(rotmat,onemols[imol]->x[i],molcoords[i]);
@@ -2418,9 +2416,9 @@ void FixGCMC::update_gas_atoms_list()
       for (int i = 0; i < nlocal; i++) maxmol = MAX(maxmol,molecule[i]);
       tagint maxmol_all;
       MPI_Allreduce(&maxmol,&maxmol_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
-      double *comx = new double[maxmol_all];
-      double *comy = new double[maxmol_all];
-      double *comz = new double[maxmol_all];
+      auto comx = new double[maxmol_all];
+      auto comy = new double[maxmol_all];
+      auto comz = new double[maxmol_all];
       for (int imolecule = 0; imolecule < maxmol_all; imolecule++) {
         for (int i = 0; i < nlocal; i++) {
           if (molecule[i] == imolecule) {
@@ -2540,7 +2538,7 @@ void FixGCMC::write_restart(FILE *fp)
 void FixGCMC::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
 
   seed = static_cast<int> (list[n++]);
   random_equal->reset(seed);

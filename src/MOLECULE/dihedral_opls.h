@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class DihedralOPLS : public Dihedral {
  public:
   DihedralOPLS(class LAMMPS *);
-  virtual ~DihedralOPLS();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
-  void write_restart(FILE *);
-  virtual void read_restart(FILE *);
-  void write_data(FILE *);
+  ~DihedralOPLS() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
 
  protected:
   double *k1, *k2, *k3, *k4;

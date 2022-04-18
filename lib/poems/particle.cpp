@@ -19,11 +19,9 @@
 #include "particle.h"
 #include "fixedpoint.h"
 
-Particle::Particle(){
-}
+Particle::Particle() = default;
 
-Particle::~Particle(){
-}
+Particle::~Particle() = default;
 
 BodyType Particle::GetType(){
   return PARTICLE;

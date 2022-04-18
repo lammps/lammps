@@ -21,18 +21,18 @@ namespace LAMMPS_NS {
 class BondZero2 : public Bond {
  public:
   BondZero2(class LAMMPS *);
-  virtual ~BondZero2();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
+  ~BondZero2() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
 
-  void coeff(int, char **);
-  double equilibrium_distance(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
+  void coeff(int, char **) override;
+  double equilibrium_distance(int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
 
-  double single(int, double, int, int, double &);
-  virtual void *extract(const char *, int &);
+  double single(int, double, int, int, double &) override;
+  void *extract(const char *, int &) override;
 
  protected:
   double *r0;

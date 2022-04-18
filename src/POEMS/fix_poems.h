@@ -29,31 +29,30 @@ namespace LAMMPS_NS {
 class FixPOEMS : public Fix {
  public:
   FixPOEMS(class LAMMPS *, int narg, char **arg);
-  ~FixPOEMS();
-  int setmask();
-  void init();
-  void setup(int);
-  void initial_integrate(int);
-  void post_force(int);
-  void final_integrate();
-  void initial_integrate_respa(int, int, int);
-  void post_force_respa(int, int, int);
-  void final_integrate_respa(int, int);
+  ~FixPOEMS() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void initial_integrate(int) override;
+  void post_force(int) override;
+  void final_integrate() override;
+  void initial_integrate_respa(int, int, int) override;
+  void post_force_respa(int, int, int) override;
+  void final_integrate_respa(int, int) override;
 
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  double memory_usage();
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  double memory_usage() override;
 
-  void pre_neighbor();
-  int dof(int);
-  void deform(int);
-  int modify_param(int, char **);
-  void reset_dt();
+  void pre_neighbor() override;
+  int dof(int) override;
+  void deform(int) override;
+  int modify_param(int, char **) override;
+  void reset_dt() override;
 
  private:
-  int me;
   double dtv, dtf, dthalf;
   double *step_respa;
   int nlevels_respa;
@@ -101,8 +100,7 @@ class FixPOEMS : public Fix {
   // internal class functions
 
   void compute_forces_and_torques();
-  void readfile(char *);
-  int readline(FILE *, char **, int *);
+  void readfile(const char *);
   void jointbuild();
   void sortlist(int, tagint **);
   int loopcheck(int, int, tagint **);

@@ -81,6 +81,7 @@ TEST_F(DumpCfgTest, write_dump)
     auto fields    = "mass type xs ys zs id proc procp1 x y z ix iy iz vx vy vz fx fy fz";
 
     BEGIN_HIDE_OUTPUT();
+    command("run 0 post no");
     command(std::string("write_dump all cfg dump_cfg.melt.cfg ") + fields);
     command(std::string("write_dump all cfg dump_cfg*.melt.cfg ") + fields);
     END_HIDE_OUTPUT();

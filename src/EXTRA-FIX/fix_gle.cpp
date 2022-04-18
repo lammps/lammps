@@ -14,7 +14,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Michele Ceriotti (EPFL), Joe Morrone (Stony Brook),
-                         Axel Kohylmeyer (Temple U)
+                         Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 #include "fix_gle.h"
@@ -24,12 +24,14 @@
 #include "error.h"
 #include "force.h"
 #include "memory.h"
+#include "potential_file_reader.h"
 #include "random_mars.h"
 #include "respa.h"
 #include "update.h"
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -55,8 +57,8 @@ namespace GLE {
 //"stabilized" cholesky decomposition. does a LDL^t decomposition, then sets to zero the negative diagonal elements and gets MM^t
 void StabCholesky(int n, const double* MMt, double* M)
 {
-  double *L = new double[n*n];
-  double *D = new double[n];
+  auto L = new double[n*n];
+  auto D = new double[n];
 
   int i,j,k;
   for (i=0; i<n; ++i) D[i]=0.0;
@@ -157,9 +159,9 @@ void MyPrint(int n, const double* A)
 //matrix exponential by scaling and squaring.
 void MatrixExp(int n, const double* M, double* EM, int j=8, int k=8)
 {
-  double *tc = new double[j+1];
-  double *SM = new double[n*n];
-  double *TMP = new double[n*n];
+  auto tc = new double[j+1];
+  auto SM = new double[n*n];
+  auto TMP = new double[n*n];
   double onetotwok=pow(0.5,1.0*k);
 
 
@@ -210,6 +212,8 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   S  = new double[ns1sq];
   TT = new double[ns1sq];
   ST = new double[ns1sq];
+  memset(A,0,sizeof(double)*ns1sq);
+  memset(C,0,sizeof(double)*ns1sq);
 
   // start temperature (t ramp)
   t_start = utils::numeric(FLERR,arg[4],false,lmp);
@@ -221,46 +225,16 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   int seed = utils::inumeric(FLERR,arg[6],false,lmp);
 
   // LOADING A matrix
-  FILE *fgle = nullptr;
   char *fname = arg[7];
   if (comm->me == 0) {
-    fgle = utils::open_potential(fname,lmp,nullptr);
-    if (fgle == nullptr)
-      error->one(FLERR,"Cannot open A-matrix file {}: {}",fname, utils::getsyserror());
-    utils::logmesg(lmp,"Reading A-matrix from {}\n", fname);
-  }
-
-  // read each line of the file, skipping blank lines or leading '#'
-
-  char line[MAXLINE],*ptr;
-  int n,nwords,ndone=0,eof=0;
-  while (1) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fgle);
-      if (ptr == nullptr) {
-        eof = 1;
-        fclose(fgle);
-      } else n = strlen(line) + 1;
+    PotentialFileReader reader(lmp,fname,"fix gle A matrix");
+    try {
+      reader.next_dvector(A, ns1sq);
+    } catch (std::exception &e) {
+      error->one(FLERR,"Error reading A-matrix: {}", e.what());
     }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
-
-    // strip comment, skip line if blank
-
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
-
-    ptr = strtok(line," \t\n\r\f");
-    do {
-      A[ndone] = atof(ptr);
-      ptr = strtok(nullptr," \t\n\r\f");
-      ndone++;
-    } while ((ptr != nullptr) && (ndone < ns1sq));
   }
+  MPI_Bcast(A,ns1sq,MPI_DOUBLE,0,world);
 
   fnoneq=0; gle_every=1; gle_step=0;
   for (int iarg=8; iarg<narg; iarg+=2) {
@@ -284,49 +258,23 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   if (fnoneq == 0) {
     t_target=t_start;
     const double kT = t_target * force->boltz / force->mvv2e;
-    memset(C,0,sizeof(double)*ns1sq);
     for (int i=0; i<ns1sq; i+=(ns+2))
       C[i]=kT;
 
   } else {
+
+    // LOADING C matrix
     if (comm->me == 0) {
-      fgle = utils::open_potential(fname,lmp,nullptr);
-      if (fgle == nullptr)
-        error->one(FLERR,"Cannot open C-matrix file {}: {}",fname, utils::getsyserror());
-      utils::logmesg(lmp,"Reading C-matrix from {}\n", fname);
-    }
-
-    // read each line of the file, skipping blank lines or leading '#'
-    ndone = eof = 0;
-    const double cfac = force->boltz / force->mvv2e;
-
-    while (1) {
-      if (comm->me == 0) {
-        ptr = fgets(line,MAXLINE,fgle);
-        if (ptr == nullptr) {
-          eof = 1;
-          fclose(fgle);
-        } else n = strlen(line) + 1;
+      PotentialFileReader reader(lmp,fname,"fix gle C matrix");
+      try {
+        reader.next_dvector(C, ns1sq);
+      } catch (std::exception &e) {
+        error->one(FLERR,"Error reading C-matrix: {}", e.what());
       }
-      MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof) break;
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
-
-      // strip comment, skip line if blank
-
-      if ((ptr = strchr(line,'#'))) *ptr = '\0';
-
-      nwords = utils::count_words(line);
-      if (nwords == 0) continue;
-
-      ptr = strtok(line," \t\n\r\f");
-      do {
-        C[ndone] = cfac*atof(ptr);
-        ptr = strtok(nullptr," \t\n\r\f");
-        ndone++;
-      } while ((ptr != nullptr) && (ndone < ns1sq));
     }
+    MPI_Bcast(C,ns1sq,MPI_DOUBLE,0,world);
+    const double cfac = force->boltz / force->mvv2e;
+    for (int i=0; i < ns1sq; ++i) C[i] *= cfac;
   }
 
 #ifdef GLE_DEBUG
@@ -366,12 +314,12 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
 FixGLE::~FixGLE()
 {
   delete random;
-  delete [] A;
-  delete [] C;
-  delete [] S;
-  delete [] T;
-  delete [] TT;
-  delete [] ST;
+  delete[] A;
+  delete[] C;
+  delete[] S;
+  delete[] T;
+  delete[] TT;
+  delete[] ST;
 
   memory->destroy(sqrt_m);
   memory->destroy(gle_s);
@@ -408,8 +356,8 @@ void FixGLE::init()
   }
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
-    step_respa = ((Respa *) update->integrate)->step;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
+    step_respa = (dynamic_cast<Respa *>( update->integrate))->step;
   }
 
   init_gle();
@@ -421,8 +369,8 @@ void FixGLE::init_gle()
 {
   // compute Langevin terms
 
-  double *tmp1 = new double[ns1sq];
-  double *tmp2 = new double[ns1sq];
+  auto tmp1 = new double[ns1sq];
+  auto tmp2 = new double[ns1sq];
 
   for (int i=0; i<ns1sq; ++i) {
     tmp1[i]=-A[i]*update->dt*0.5*gle_every;
@@ -458,10 +406,10 @@ void FixGLE::init_gles()
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  double *rootC  = new double[ns1sq];
-  double *rootCT = new double[ns1sq];
-  double *newg   = new double[3*(ns+1)*nlocal];
-  double *news   = new double[3*(ns+1)*nlocal];
+  auto rootC  = new double[ns1sq];
+  auto rootCT = new double[ns1sq];
+  auto newg   = new double[3*(ns+1)*nlocal];
+  auto news   = new double[3*(ns+1)*nlocal];
 
   GLE::StabCholesky(ns+1, C, rootC);
   GLE::MyTrans(ns+1,rootC,rootCT);
@@ -496,9 +444,9 @@ void FixGLE::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(nlevels_respa-1);
     post_force_respa(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(nlevels_respa-1);
   }
 }
 

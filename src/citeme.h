@@ -22,7 +22,7 @@ namespace LAMMPS_NS {
 class CiteMe : protected Pointers {
  public:
   CiteMe(class LAMMPS *, int, int, const char *);
-  virtual ~CiteMe();
+  ~CiteMe() override;
   void add(const std::string &);    // register publication for output
   void flush();                     // flush buffers to screen and logfile
   enum { VERBOSE, TERSE };

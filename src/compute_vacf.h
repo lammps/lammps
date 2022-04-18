@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class ComputeVACF : public Compute {
  public:
   ComputeVACF(class LAMMPS *, int, char **);
-  ~ComputeVACF();
-  void init();
-  virtual void compute_vector();
-  void set_arrays(int);
+  ~ComputeVACF() override;
+  void init() override;
+  void compute_vector() override;
+  void set_arrays(int) override;
 
  protected:
   bigint nvacf;

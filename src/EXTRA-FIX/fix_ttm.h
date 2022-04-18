@@ -21,33 +21,32 @@ FixStyle(ttm,FixTTM);
 #define LMP_FIX_TTM_H
 
 #include "fix.h"
-#include <exception>
 
 namespace LAMMPS_NS {
 
 class FixTTM : public Fix {
  public:
   FixTTM(class LAMMPS *, int, char **);
-  virtual ~FixTTM();
-  virtual void post_constructor();
-  int setmask();
-  virtual void init();
-  void setup(int);
+  ~FixTTM() override;
+  void post_constructor() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
   void post_force_setup(int);
-  virtual void post_force(int);
+  void post_force(int) override;
   void post_force_respa_setup(int, int, int);
-  void post_force_respa(int, int, int);
-  virtual void end_of_step();
-  void reset_dt();
-  void grow_arrays(int);
-  virtual void write_restart(FILE *);
-  virtual void restart(char *);
-  int pack_restart(int, double *);
-  void unpack_restart(int, int);
-  int size_restart(int);
-  int maxsize_restart();
-  virtual double compute_vector(int);
-  virtual double memory_usage();
+  void post_force_respa(int, int, int) override;
+  void end_of_step() override;
+  void reset_dt() override;
+  void grow_arrays(int) override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
+  int pack_restart(int, double *) override;
+  void unpack_restart(int, int) override;
+  int size_restart(int) override;
+  int maxsize_restart() override;
+  double compute_vector(int) override;
+  double memory_usage() override;
 
  protected:
   int nlevels_respa;
@@ -77,14 +76,6 @@ class FixTTM : public Fix {
   virtual void deallocate_grid();
   virtual void read_electron_temperatures(const std::string &);
   virtual void write_electron_temperatures(const std::string &);
-
-  class parser_error : public std::exception {
-    std::string message;
-
-   public:
-    parser_error(const std::string &mesg) { message = mesg; }
-    const char *what() const noexcept { return message.c_str(); }
-  };
 };
 
 }    // namespace LAMMPS_NS

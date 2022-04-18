@@ -96,7 +96,7 @@ void ResetMolIDs::command(int narg, char **arg)
   // record wall time for resetting molecule IDs
 
   MPI_Barrier(world);
-  double time1 = MPI_Wtime();
+  double time1 = platform::walltime();
 
   // initialize system since comm->borders() will be invoked
 
@@ -132,7 +132,7 @@ void ResetMolIDs::command(int narg, char **arg)
     else
       utils::logmesg(lmp,"  number of new molecule IDs = {}\n",nchunk);
     utils::logmesg(lmp,"  reset_mol_ids CPU = {:.3f} seconds\n",
-                   MPI_Wtime()-time1);
+                   platform::walltime()-time1);
   }
 }
 
@@ -151,24 +151,14 @@ void ResetMolIDs::create_computes(char *fixid, char *groupid)
   // 'fixid' allows for creating independent instances of the computes
 
   idfrag = fmt::format("{}_reset_mol_ids_FRAGMENT_ATOM",fixid);
-  if (singleflag)
-    modify->add_compute(fmt::format("{} {} fragment/atom single yes",idfrag,groupid));
-  else
-    modify->add_compute(fmt::format("{} {} fragment/atom single no",idfrag,groupid));
+  auto use_single = singleflag ? "yes" : "no";
+  cfa = dynamic_cast<ComputeFragmentAtom *>(
+    modify->add_compute(fmt::format("{} {} fragment/atom single {}",idfrag,groupid,use_single)));
 
   idchunk = fmt::format("{}_reset_mol_ids_CHUNK_ATOM",fixid);
   if (compressflag)
-    modify->add_compute(fmt::format("{} {} chunk/atom molecule compress yes",
-                                    idchunk,groupid));
-
-  int icompute = modify->find_compute(idfrag);
-  cfa = (ComputeFragmentAtom *) modify->compute[icompute];
-
-
-  if (compressflag) {
-    icompute = modify->find_compute(idchunk);
-    cca = (ComputeChunkAtom *) modify->compute[icompute];
-  }
+    cca = dynamic_cast<ComputeChunkAtom *>(
+      modify->add_compute(fmt::format("{} {} chunk/atom molecule compress yes",idchunk,groupid)));
 }
 
 /* ----------------------------------------------------------------------
@@ -241,7 +231,7 @@ void ResetMolIDs::reset()
 
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        tagint newid =  static_cast<tagint>(chunkIDs[i]);
+        auto  newid =  static_cast<tagint>(chunkIDs[i]);
         if (singleexist) {
           if (newid == 1) newid = 0;
           else newid += offset - 1;

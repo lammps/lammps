@@ -67,15 +67,15 @@ void PairHybridScaled::compute(int eflag, int vflag)
 
   const int nvars = scalevars.size();
   if (nvars > 0) {
-    double *vals = new double[nvars];
-    for (i = 0; i < nvars; ++i) {
-      j = input->variable->find(scalevars[i].c_str());
-      if (j < 0)
-        error->all(FLERR, "Variable '{}' not found when updating scale factors", scalevars[i]);
-      vals[i] = input->variable->compute_equal(j);
+    auto vals = new double[nvars];
+    for (int k = 0; k < nvars; ++k) {
+      int m = input->variable->find(scalevars[k].c_str());
+      if (m < 0)
+        error->all(FLERR, "Variable '{}' not found when updating scale factors", scalevars[k]);
+      vals[k] = input->variable->compute_equal(m);
     }
-    for (i = 0; i < nstyles; ++i) {
-      if (scaleidx[i] >= 0) scaleval[i] = vals[scaleidx[i]];
+    for (int k = 0; k < nstyles; ++k) {
+      if (scaleidx[k] >= 0) scaleval[k] = vals[scaleidx[k]];
     }
     delete[] vals;
   }
@@ -130,7 +130,7 @@ void PairHybridScaled::compute(int eflag, int vflag)
   Respa *respa = nullptr;
   respaflag = 0;
   if (utils::strmatch(update->integrate_style, "^respa")) {
-    respa = (Respa *) update->integrate;
+    respa = dynamic_cast<Respa *>( update->integrate);
     if (respa->nhybrid_styles > 0) respaflag = 1;
   }
 
@@ -250,8 +250,8 @@ void PairHybridScaled::settings(int narg, char **arg)
     for (int m = 0; m < nstyles; m++) {
       delete styles[m];
       delete[] keywords[m];
-      if (special_lj[m]) delete[] special_lj[m];
-      if (special_coul[m]) delete[] special_coul[m];
+      delete[] special_lj[m];
+      delete[] special_coul[m];
     }
     delete[] styles;
     delete[] keywords;
@@ -328,7 +328,7 @@ void PairHybridScaled::settings(int narg, char **arg)
       error->all(FLERR, "Pair style hybrid/scaled cannot have none as an argument");
 
     styles[nstyles] = force->new_pair(arg[iarg], 1, dummy);
-    force->store_style(keywords[nstyles], arg[iarg], 0);
+    keywords[nstyles] = force->store_style(arg[iarg], 0);
     special_lj[nstyles] = special_coul[nstyles] = nullptr;
     compute_tally[nstyles] = 1;
 
@@ -385,15 +385,15 @@ double PairHybridScaled::single(int i, int j, int itype, int jtype, double rsq, 
 
   const int nvars = scalevars.size();
   if (nvars > 0) {
-    double *vals = new double[nvars];
-    for (i = 0; i < nvars; ++i) {
-      j = input->variable->find(scalevars[i].c_str());
-      if (j < 0)
-        error->all(FLERR, "Variable '{}' not found when updating scale factors", scalevars[i]);
-      vals[i] = input->variable->compute_equal(j);
+    auto vals = new double[nvars];
+    for (int k = 0; k < nvars; ++k) {
+      int m = input->variable->find(scalevars[k].c_str());
+      if (m < 0)
+        error->all(FLERR, "Variable '{}' not found when updating scale factors", scalevars[k]);
+      vals[k] = input->variable->compute_equal(m);
     }
-    for (i = 0; i < nstyles; ++i) {
-      if (scaleidx[i] >= 0) scaleval[i] = vals[scaleidx[i]];
+    for (int k = 0; k < nstyles; ++k) {
+      if (scaleidx[k] >= 0) scaleval[k] = vals[scaleidx[k]];
     }
     delete[] vals;
   }
@@ -524,7 +524,7 @@ void PairHybridScaled::write_restart(FILE *fp)
 
   int n = scalevars.size();
   fwrite(&n, sizeof(int), 1, fp);
-  for (auto var : scalevars) {
+  for (auto &var : scalevars) {
     n = var.size() + 1;
     fwrite(&n, sizeof(int), 1, fp);
     fwrite(var.c_str(), sizeof(char), n, fp);
@@ -593,7 +593,7 @@ void PairHybridScaled::init_svector()
 void PairHybridScaled::copy_svector(int itype, int jtype)
 {
   int n = 0;
-  Pair *this_style;
+  Pair *this_style = nullptr;
 
   // fill svector array.
   // copy data from active styles and use 0.0 for inactive ones

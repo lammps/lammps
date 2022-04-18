@@ -29,13 +29,13 @@ namespace LAMMPS_NS {
 class PairLCBOP : public Pair {
  public:
   PairLCBOP(class LAMMPS *);
-  virtual ~PairLCBOP();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  double memory_usage();
+  ~PairLCBOP() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  double memory_usage() override;
 
  protected:
   int **pages;    // neighbor list pages

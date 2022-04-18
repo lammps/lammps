@@ -280,7 +280,7 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
 
   // read electron temperature values from file, one chunk at a time
 
-  char *buffer = new char[CHUNK * MAXLINE];
+  auto buffer = new char[CHUNK * MAXLINE];
   bigint ntotal = (bigint) nxgrid * nygrid * nzgrid;
   bigint nread = 0;
 
@@ -306,7 +306,7 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
           int iz = values.next_int();
 
           if (ix < 0 || ix >= nxgrid || iy < 0 || iy >= nygrid || iz < 0 || iz >= nzgrid)
-            throw parser_error("Fix ttm/grid invalid grid index in input");
+            throw TokenizerException("Fix ttm/grid invalid grid index in input","");
 
           if (ix >= nxlo_in && ix <= nxhi_in && iy >= nylo_in && iy <= nyhi_in
               && iz >= nzlo_in && iz <= nzhi_in) {
@@ -314,7 +314,7 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
             T_initial_set[iz][iy][ix] = 1;
           }
         } else {
-          throw parser_error("Incorrect format in fix ttm electron grid file");
+          throw TokenizerException("Incorrect format in fix ttm electron grid file","");
         }
       } catch (std::exception &e) {
         error->one(FLERR,e.what());
@@ -372,7 +372,7 @@ void FixTTMGrid::write_electron_temperatures(const std::string &filename)
 
 void FixTTMGrid::pack_forward_grid(int /*flag*/, void *vbuf, int nlist, int *list)
 {
-  double *buf = (double *) vbuf;
+  auto buf = (double *) vbuf;
   double *src = &T_electron[nzlo_out][nylo_out][nxlo_out];
 
   for (int i = 0; i < nlist; i++) buf[i] = src[list[i]];
@@ -384,7 +384,7 @@ void FixTTMGrid::pack_forward_grid(int /*flag*/, void *vbuf, int nlist, int *lis
 
 void FixTTMGrid::unpack_forward_grid(int /*flag*/, void *vbuf, int nlist, int *list)
 {
-  double *buf = (double *) vbuf;
+  auto buf = (double *) vbuf;
   double *dest = &T_electron[nzlo_out][nylo_out][nxlo_out];
 
   for (int i = 0; i < nlist; i++) dest[list[i]] = buf[i];
@@ -396,7 +396,7 @@ void FixTTMGrid::unpack_forward_grid(int /*flag*/, void *vbuf, int nlist, int *l
 
 void FixTTMGrid::pack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *list)
 {
-  double *buf = (double *) vbuf;
+  auto buf = (double *) vbuf;
   double *src = &net_energy_transfer[nzlo_out][nylo_out][nxlo_out];
 
   for (int i = 0; i < nlist; i++) buf[i] = src[list[i]];
@@ -408,7 +408,7 @@ void FixTTMGrid::pack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *lis
 
 void FixTTMGrid::unpack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *list)
 {
-  double *buf = (double *) vbuf;
+  auto buf = (double *) vbuf;
   double *dest = &net_energy_transfer[nzlo_out][nylo_out][nxlo_out];
 
   for (int i = 0; i < nlist; i++) dest[list[i]] += buf[i];
@@ -535,7 +535,7 @@ void FixTTMGrid::restart(char *buf)
   int ix, iy, iz;
 
   int n = 0;
-  double *rlist = (double *) buf;
+  auto rlist = (double *) buf;
 
   // check that restart grid size is same as current grid size
 
@@ -578,7 +578,7 @@ void FixTTMGrid::pack_gather_grid(int /*which*/, void *vbuf)
 {
   int ix, iy, iz;
 
-  double *buf = (double *) vbuf;
+  auto buf = (double *) vbuf;
 
   int m = 0;
   for (iz = nzlo_in; iz <= nzhi_in; iz++)
@@ -596,8 +596,8 @@ void FixTTMGrid::unpack_gather_grid(int which, void *vbuf, void *vgbuf, int xlo,
 {
   int ix, iy, iz;
 
-  double *buf = (double *) vbuf;
-  double *gbuf = (double *) vgbuf;
+  auto buf = (double *) vbuf;
+  auto gbuf = (double *) vgbuf;
 
   if (which == 0) {
     int iglobal;

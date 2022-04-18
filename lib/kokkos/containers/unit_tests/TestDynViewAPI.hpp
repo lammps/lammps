@@ -702,6 +702,11 @@ class TestDynViewAPI {
 
   using View0 = Kokkos::View<T, device>;
   using View1 = Kokkos::View<T*, device>;
+  using View2 = Kokkos::View<T**, device>;
+  using View3 = Kokkos::View<T***, device>;
+  using View4 = Kokkos::View<T****, device>;
+  using View5 = Kokkos::View<T*****, device>;
+  using View6 = Kokkos::View<T******, device>;
   using View7 = Kokkos::View<T*******, device>;
 
   using host_view_space = typename View0::host_mirror_space;
@@ -1065,7 +1070,7 @@ class TestDynViewAPI {
 
     dView0 d_uninitialized(
         Kokkos::view_alloc(Kokkos::WithoutInitializing, "uninit"), 10, 20);
-    ASSERT_TRUE(d_uninitialized.data() != nullptr);
+    ASSERT_NE(d_uninitialized.data(), nullptr);
     ASSERT_EQ(d_uninitialized.rank(), 2);
     ASSERT_EQ(d_uninitialized.extent(0), 10);
     ASSERT_EQ(d_uninitialized.extent(1), 20);
@@ -1075,14 +1080,14 @@ class TestDynViewAPI {
     hView0 hx, hy, hz;
 
     ASSERT_TRUE(Kokkos::is_dyn_rank_view<dView0>::value);
-    ASSERT_FALSE(Kokkos::is_dyn_rank_view<Kokkos::View<double> >::value);
+    ASSERT_FALSE(Kokkos::is_dyn_rank_view<Kokkos::View<double>>::value);
 
-    ASSERT_TRUE(dx.data() == nullptr);  // Okay with UVM
-    ASSERT_TRUE(dy.data() == nullptr);  // Okay with UVM
-    ASSERT_TRUE(dz.data() == nullptr);  // Okay with UVM
-    ASSERT_TRUE(hx.data() == nullptr);
-    ASSERT_TRUE(hy.data() == nullptr);
-    ASSERT_TRUE(hz.data() == nullptr);
+    ASSERT_EQ(dx.data(), nullptr);  // Okay with UVM
+    ASSERT_EQ(dy.data(), nullptr);  // Okay with UVM
+    ASSERT_EQ(dz.data(), nullptr);  // Okay with UVM
+    ASSERT_EQ(hx.data(), nullptr);
+    ASSERT_EQ(hy.data(), nullptr);
+    ASSERT_EQ(hz.data(), nullptr);
     ASSERT_EQ(dx.extent(0), 0u);  // Okay with UVM
     ASSERT_EQ(dy.extent(0), 0u);  // Okay with UVM
     ASSERT_EQ(dz.extent(0), 0u);  // Okay with UVM
@@ -1153,11 +1158,11 @@ class TestDynViewAPI {
 
     ASSERT_EQ(dx.use_count(), size_t(2));
 
-    ASSERT_FALSE(dx.data() == nullptr);
-    ASSERT_FALSE(const_dx.data() == nullptr);
-    ASSERT_FALSE(unmanaged_dx.data() == nullptr);
-    ASSERT_FALSE(unmanaged_from_ptr_dx.data() == nullptr);
-    ASSERT_FALSE(dy.data() == nullptr);
+    ASSERT_NE(dx.data(), nullptr);
+    ASSERT_NE(const_dx.data(), nullptr);
+    ASSERT_NE(unmanaged_dx.data(), nullptr);
+    ASSERT_NE(unmanaged_from_ptr_dx.data(), nullptr);
+    ASSERT_NE(dy.data(), nullptr);
     ASSERT_NE(dx, dy);
 
     ASSERT_EQ(dx.extent(0), unsigned(N0));
@@ -1317,17 +1322,17 @@ class TestDynViewAPI {
     ASSERT_NE(dx, dz);
 
     dx = dView0();
-    ASSERT_TRUE(dx.data() == nullptr);
-    ASSERT_FALSE(dy.data() == nullptr);
-    ASSERT_FALSE(dz.data() == nullptr);
+    ASSERT_EQ(dx.data(), nullptr);
+    ASSERT_NE(dy.data(), nullptr);
+    ASSERT_NE(dz.data(), nullptr);
     dy = dView0();
-    ASSERT_TRUE(dx.data() == nullptr);
-    ASSERT_TRUE(dy.data() == nullptr);
-    ASSERT_FALSE(dz.data() == nullptr);
+    ASSERT_EQ(dx.data(), nullptr);
+    ASSERT_EQ(dy.data(), nullptr);
+    ASSERT_NE(dz.data(), nullptr);
     dz = dView0();
-    ASSERT_TRUE(dx.data() == nullptr);
-    ASSERT_TRUE(dy.data() == nullptr);
-    ASSERT_TRUE(dz.data() == nullptr);
+    ASSERT_EQ(dx.data(), nullptr);
+    ASSERT_EQ(dy.data(), nullptr);
+    ASSERT_EQ(dz.data(), nullptr);
 
     // View - DynRankView Interoperability tests
     // deep_copy from view to dynrankview
@@ -1367,7 +1372,7 @@ class TestDynViewAPI {
   static void check_auto_conversion_to_const(
       const Kokkos::DynRankView<const DataType, device>& arg_const,
       const Kokkos::DynRankView<DataType, device>& arg) {
-    ASSERT_TRUE(arg_const == arg);
+    ASSERT_EQ(arg_const, arg);
   }
 
   static void run_test_allocated() {
@@ -1396,8 +1401,8 @@ class TestDynViewAPI {
     const_typeX xc = x;
     const_typeR xr = x;
 
-    ASSERT_TRUE(xc == x);
-    ASSERT_TRUE(x == xc);
+    ASSERT_EQ(xc, x);
+    ASSERT_EQ(x, xc);
 
     // For CUDA the constant random access View does not return
     // an lvalue reference due to retrieving through texture cache
@@ -1406,7 +1411,7 @@ class TestDynViewAPI {
     if (!std::is_same<typename device::execution_space, Kokkos::Cuda>::value)
 #endif
     {
-      ASSERT_TRUE(x.data() == xr.data());
+      ASSERT_EQ(x.data(), xr.data());
     }
 
     // typeX xf = xc ; // setting non-const from const must not compile
@@ -1659,29 +1664,29 @@ class TestDynViewAPI {
     const_svector_right_type cvr3 =
         Kokkos::subdynrankview(mv, Kokkos::ALL(), 2);
 
-    ASSERT_TRUE(&v1[0] == &v1(0));
-    ASSERT_TRUE(&v1[0] == &mv(0, 0));
-    ASSERT_TRUE(&v2[0] == &mv(0, 1));
-    ASSERT_TRUE(&v3[0] == &mv(0, 2));
+    ASSERT_EQ(&v1[0], &v1(0));
+    ASSERT_EQ(&v1[0], &mv(0, 0));
+    ASSERT_EQ(&v2[0], &mv(0, 1));
+    ASSERT_EQ(&v3[0], &mv(0, 2));
 
-    ASSERT_TRUE(&cv1[0] == &mv(0, 0));
-    ASSERT_TRUE(&cv2[0] == &mv(0, 1));
-    ASSERT_TRUE(&cv3[0] == &mv(0, 2));
+    ASSERT_EQ(&cv1[0], &mv(0, 0));
+    ASSERT_EQ(&cv2[0], &mv(0, 1));
+    ASSERT_EQ(&cv3[0], &mv(0, 2));
 
-    ASSERT_TRUE(&vr1[0] == &mv(0, 0));
-    ASSERT_TRUE(&vr2[0] == &mv(0, 1));
-    ASSERT_TRUE(&vr3[0] == &mv(0, 2));
+    ASSERT_EQ(&vr1[0], &mv(0, 0));
+    ASSERT_EQ(&vr2[0], &mv(0, 1));
+    ASSERT_EQ(&vr3[0], &mv(0, 2));
 
-    ASSERT_TRUE(&cvr1[0] == &mv(0, 0));
-    ASSERT_TRUE(&cvr2[0] == &mv(0, 1));
-    ASSERT_TRUE(&cvr3[0] == &mv(0, 2));
+    ASSERT_EQ(&cvr1[0], &mv(0, 0));
+    ASSERT_EQ(&cvr2[0], &mv(0, 1));
+    ASSERT_EQ(&cvr3[0], &mv(0, 2));
 
-    ASSERT_TRUE(&mv1(0, 0) == &mv(1, 2));
-    ASSERT_TRUE(&mv1(1, 1) == &mv(2, 3));
-    ASSERT_TRUE(&mv1(3, 2) == &mv(4, 4));
-    ASSERT_TRUE(&mvr1(0, 0) == &mv_right(1, 2));
-    ASSERT_TRUE(&mvr1(1, 1) == &mv_right(2, 3));
-    ASSERT_TRUE(&mvr1(3, 2) == &mv_right(4, 4));
+    ASSERT_EQ(&mv1(0, 0), &mv(1, 2));
+    ASSERT_EQ(&mv1(1, 1), &mv(2, 3));
+    ASSERT_EQ(&mv1(3, 2), &mv(4, 4));
+    ASSERT_EQ(&mvr1(0, 0), &mv_right(1, 2));
+    ASSERT_EQ(&mvr1(1, 1), &mv_right(2, 3));
+    ASSERT_EQ(&mvr1(3, 2), &mv_right(4, 4));
 
     const_svector_type c_cv1(v1);
     typename svector_type::const_type c_cv2(v2);

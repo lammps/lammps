@@ -24,7 +24,7 @@ using namespace std;
 
 ColMatMap::ColMatMap(){
   numrows = 0;
-  elements = 0;
+  elements = nullptr;
 }
 
 ColMatMap::~ColMatMap(){
@@ -33,7 +33,7 @@ ColMatMap::~ColMatMap(){
 
 ColMatMap::ColMatMap(const ColMatMap& A){  // copy constructor
   numrows = 0;
-  elements = 0;
+  elements = nullptr;
   Dim(A.numrows);
   for(int i=0;i<numrows;i++)
     elements[i] = A.elements[i];
@@ -41,7 +41,7 @@ ColMatMap::ColMatMap(const ColMatMap& A){  // copy constructor
 
 ColMatMap::ColMatMap(ColMatrix& A){  // copy constructor
   numrows = 0;
-  elements = 0;
+  elements = nullptr;
   Dim(A.GetNumRows());
   for(int i=0;i<numrows;i++)
     elements[i] = A.GetElementPointer(i);
@@ -63,7 +63,7 @@ ColMatrix::ColMatrix(const VirtualMatrix& A){  // copy constructor
 
 ColMatMap::ColMatMap(int m){  // size constructor
   numrows = 0;
-  elements = 0;
+  elements = nullptr;
   Dim(m);
 }
 

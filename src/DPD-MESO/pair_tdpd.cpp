@@ -18,19 +18,19 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_tdpd.h"
-#include <cmath>
-#include <ctime>
-#include "atom.h"
-#include "comm.h"
-#include "update.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "random_mars.h"
-#include "citeme.h"
-#include "memory.h"
-#include "error.h"
 
+#include "atom.h"
+#include "citeme.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "random_mars.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -239,12 +239,13 @@ void PairTDPD::settings(int narg, char **arg)
   seed = utils::inumeric(FLERR,arg[2],false,lmp);
 
   // initialize Marsaglia RNG with processor-unique seed
+  // create a positive seed based on the system clock, if requested.
 
   if (seed <= 0) {
-    struct timespec time;
-    clock_gettime( CLOCK_REALTIME, &time );
-    seed = time.tv_nsec;  // if seed is non-positive, get the current time as the seed
+    constexpr double LARGE_NUM = 2<<30;
+    seed = int(fmod(platform::walltime() * LARGE_NUM, LARGE_NUM)) + 1;
   }
+
   delete random;
   random = new RanMars(lmp,(seed + comm->me) % 900000000);
 
@@ -278,9 +279,9 @@ void PairTDPD::coeff(int narg, char **arg)
   double power_one = utils::numeric(FLERR,arg[4],false,lmp);
   double cut_one   = utils::numeric(FLERR,arg[5],false,lmp);
   double cutcc_one = utils::numeric(FLERR,arg[6],false,lmp);
-  double *kappa_one = new double[cc_species];
-  double *epsilon_one = new double[cc_species];
-  double *powercc_one = new double[cc_species];
+  auto kappa_one = new double[cc_species];
+  auto epsilon_one = new double[cc_species];
+  auto powercc_one = new double[cc_species];
   for (int k=0; k<cc_species; k++) {
     kappa_one[k]   = utils::numeric(FLERR,arg[7+3*k],false,lmp);
     epsilon_one[k] = utils::numeric(FLERR,arg[8+3*k],false,lmp);
@@ -327,10 +328,9 @@ void PairTDPD::init_style()
   // using different random numbers
 
   if (force->newton_pair == 0 && comm->me == 0)
-    error->warning(FLERR,"Pair tdpd needs newton pair on "
-                   "for momentum conservation");
+    error->warning(FLERR,"Pair tdpd needs newton pair on for momentum conservation");
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

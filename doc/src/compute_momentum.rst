@@ -23,11 +23,10 @@ Examples
 Description
 """""""""""
 
-Define a computation that calculates the translational momentum
-of a group of particles.
-
-The momentum of each particles is computed as m v, where m and v are
-the mass and velocity of the particle.
+Define a computation that calculates the translational momentum *p*
+of a group of particles.  It is computed as the sum :math:`\vec{p} = \sum_i m_i \cdot \vec{v}_i`
+over all particles in the compute group, where *m* and *v* are
+the mass and velocity vector of the particle, respectively.
 
 Output info
 """""""""""

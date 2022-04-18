@@ -523,7 +523,7 @@ FixTGNHDrude::FixTGNHDrude(LAMMPS *lmp, int narg, char **arg) :
   for (ifix = 0; ifix < modify->nfix; ifix++)
     if (strcmp(modify->fix[ifix]->style,"drude") == 0) break;
   if (ifix == modify->nfix) error->all(FLERR, "fix tgnh/drude requires fix drude");
-  fix_drude = (FixDrude *) modify->fix[ifix];
+  fix_drude = dynamic_cast<FixDrude *>( modify->fix[ifix]);
 
   // make sure ghost atoms have velocity
   if (!comm->ghost_velocity)
@@ -595,7 +595,7 @@ void FixTGNHDrude::init()
   if (pstat_flag)
     for (int i = 0; i < modify->nfix; i++)
       if (strcmp(modify->fix[i]->style,"deform") == 0) {
-        int *dimflag = ((FixDeform *) modify->fix[i])->dimflag;
+        int *dimflag = (dynamic_cast<FixDeform *>( modify->fix[i]))->dimflag;
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
             (p_flag[2] && dimflag[2]) || (p_flag[3] && dimflag[3]) ||
             (p_flag[4] && dimflag[4]) || (p_flag[5] && dimflag[5]))
@@ -664,8 +664,8 @@ void FixTGNHDrude::init()
   else kspace_flag = 0;
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
-    step_respa = ((Respa *) update->integrate)->step;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
+    step_respa = (dynamic_cast<Respa *>( update->integrate))->step;
     dto = 0.5*step_respa[0];
   }
 
@@ -732,7 +732,7 @@ void FixTGNHDrude::setup_mol_mass_dof() {
   memory->create(v_mol_tmp, n_mol + 1, 3, "fix_tgnh_drude::v_mol_tmp");
   memory->create(mass_mol, n_mol + 1, "fix_tgnh_drude::mass_mol");
 
-  double *mass_tmp = new double[n_mol + 1];
+  auto mass_tmp = new double[n_mol + 1];
   memset(mass_tmp, 0, sizeof(double) * (n_mol + 1));
   for (int i = 0; i < atom->nlocal; i++) {
     id_mol = molecule[i];
@@ -761,7 +761,7 @@ void FixTGNHDrude::setup_mol_mass_dof() {
               dof_mol, dof_int, dof_drude);
     }
   }
-  if (dof_mol <=0 or dof_int <=0 or dof_drude <=0)
+  if (dof_mol <=0 || dof_int <=0 || dof_drude <=0)
     error->all(FLERR, "TGNHC thermostat requires DOFs of molecules, atoms and dipoles larger than 0");
 }
 
@@ -1364,7 +1364,7 @@ int FixTGNHDrude::pack_restart_data(double *list)
 void FixTGNHDrude::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
   int flag = static_cast<int> (list[n++]);
   if (flag) {
     int m = static_cast<int> (list[n++]);

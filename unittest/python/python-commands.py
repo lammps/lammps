@@ -1,6 +1,6 @@
 
-import sys,os,unittest
-from lammps import lammps, LMP_VAR_ATOM, LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR
+import sys,os,unittest,ctypes
+from lammps import lammps, LMP_VAR_ATOM, LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, LAMMPS_DOUBLE_2D, LAMMPS_AUTODETECT
 
 has_manybody=False
 try:
@@ -356,18 +356,16 @@ create_atoms 1 single &
 
     def test_extract_box_triclinic(self):
         self.lmp.command("boundary p p p")
-        self.lmp.command("region box block 0 2 0 2 0 2")
+        self.lmp.command("region box prism 0 2 0 2 0 2 0.1 0.2 0.3")
         self.lmp.command("create_box 1 box")
-        self.lmp.command("change_box all triclinic")
-        self.lmp.command("change_box all xy final 0.1 yz final 0.2 xz final 0.3")
 
         boxlo, boxhi, xy, yz, xz, periodicity, box_change = self.lmp.extract_box()
 
         self.assertEqual(boxlo, [0.0, 0.0, 0.0])
         self.assertEqual(boxhi, [2.0, 2.0, 2.0])
         self.assertEqual(xy, 0.1)
-        self.assertEqual(yz, 0.2)
-        self.assertEqual(xz, 0.3)
+        self.assertEqual(xz, 0.2)
+        self.assertEqual(yz, 0.3)
         self.assertEqual(periodicity, [1, 1, 1])
         self.assertEqual(box_change, 0)
 
@@ -493,6 +491,43 @@ create_atoms 1 single &
         self.assertEqual(self.lmp.extract_global("triclinic"), 1)
         self.assertEqual(self.lmp.extract_global("sublo_lambda"), [0.0, 0.0, 0.0])
         self.assertEqual(self.lmp.extract_global("subhi_lambda"), [1.0, 1.0, 1.0])
+
+    def test_create_atoms(self):
+        self.lmp.command("boundary f p m")
+        self.lmp.command("region box block 0 10 0 10 0 10")
+        self.lmp.command("create_box 2 box")
+        # second atom is outside the box -> dropped
+        self.lmp.create_atoms(2, [1,2], [1,1], [1.0, 1.0, 3.0, 5.0, 8.0, 12.0])
+        self.assertEqual(self.lmp.get_natoms(),1)
+        # non-zero velocities
+        self.lmp.create_atoms(2, None, [2,2], [2.0, 2.0, 1.0, 3.0, 4.0, 6.0], v=[0.1, 0.2, 0.3, -0.1, -0.2, -0.3])
+        self.assertEqual(self.lmp.get_natoms(),3)
+        # first atom is dropped, extend shrinkwrapped box for second atom, third atoms is wrapped around PBC.
+        self.lmp.create_atoms(3, [5,8,10], [1,2,1], [-1.0, 1.0, 3.0, 5.0, 8.0, 12.0, 1.0, -1.0, 1.0], shrinkexceed=True)
+        self.assertEqual(self.lmp.get_natoms(),5)
+        # set image flags
+        self.lmp.create_atoms(1, None, [2], [5.0, 8.0, 1.0], image=[self.lmp.encode_image_flags(1,0,-1)])
+        self.assertEqual(self.lmp.get_natoms(),6)
+        tag = self.lmp.extract_atom("id")
+        typ = self.lmp.extract_atom("type")
+        pos = self.lmp.extract_atom("x",LAMMPS_DOUBLE_2D)
+        vel = self.lmp.extract_atom("v",LAMMPS_DOUBLE_2D)
+        img = self.lmp.extract_atom("image",LAMMPS_AUTODETECT)
+        # expected results: tag, type, x, v, image
+        result = [ [ 1, 1, [1.0, 1.0,  3.0], [ 0.0,  0.0,  0.0], [0, 0,  0]],\
+                   [ 2, 2, [2.0, 2.0,  1.0], [ 0.1,  0.2,  0.3], [0, 0,  0]],\
+                   [ 3, 2, [3.0, 4.0,  6.0], [-0.1, -0.2, -0.3], [0, 0,  0]],\
+                   [ 8, 2, [5.0, 8.0, 12.0], [ 0.0,  0.0,  0.0], [0, 0,  0]],\
+                   [10, 1, [1.0, 9.0,  1.0], [ 0.0,  0.0,  0.0], [0, 0,  0]],\
+                   [11, 2, [5.0, 8.0,  1.0], [ 0.0,  0.0,  0.0], [1, 0, -1]] ]
+        for i in range(len(result)):
+            self.assertEqual(tag[i],result[i][0])
+            self.assertEqual(typ[i],result[i][1])
+            for j in range(3):
+                self.assertEqual(pos[i][0:3],result[i][2])
+                self.assertEqual(vel[i][0:3],result[i][3])
+                self.assertEqual(self.lmp.decode_image_flags(img[i]), result[i][4])
+
 
 ##############################
 if __name__ == "__main__":

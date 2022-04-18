@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class ComputePairLocal : public Compute {
  public:
   ComputePairLocal(class LAMMPS *, int, char **);
-  ~ComputePairLocal();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_local();
-  double memory_usage();
+  ~ComputePairLocal() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_local() override;
+  double memory_usage() override;
 
  private:
   int nvalues, ncount, cutstyle;

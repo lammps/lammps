@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class FixAveCorrelate : public Fix {
  public:
   FixAveCorrelate(class LAMMPS *, int, char **);
-  ~FixAveCorrelate();
-  int setmask();
-  void init();
-  void setup(int);
-  void end_of_step();
-  double compute_array(int, int);
+  ~FixAveCorrelate() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void end_of_step() override;
+  double compute_array(int, int) override;
 
  private:
   int me, nvalues;
@@ -44,7 +44,7 @@ class FixAveCorrelate : public Fix {
 
   int type, ave, startstep, overwrite;
   double prefactor;
-  long filepos;
+  bigint filepos;
 
   int firstindex;    // index in values ring of earliest time sample
   int lastindex;     // index in values ring of latest time sample

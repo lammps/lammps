@@ -62,7 +62,6 @@ if me == 0:
   plt.show(block=False)
 
 # run nfreq steps at a time w/out pre/post, query compute, refresh plot
-import time
 
 while ntimestep < nsteps:
   lmp.command("run %d pre no post no" % nfreq)

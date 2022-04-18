@@ -7,7 +7,7 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		mpicxx
-CCFLAGS =	-g -O3
+CCFLAGS =	-g -O3 -DNDEBUG
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
@@ -66,6 +66,11 @@ JPG_INC =
 JPG_PATH =
 JPG_LIB =
 
+#  library for loading shared objects (defaults to -ldl, should be empty on Windows)
+# uncomment to change the default
+
+# override DYN_LIB =
+
 # ---------------------------------------------------------------------
 # build rules and dependencies
 # do not edit this section
@@ -75,7 +80,7 @@ include Makefile.package
 
 EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)
 EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(JPG_PATH) $(PKG_SYSPATH)
-EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(JPG_LIB) $(PKG_SYSLIB)
+EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(JPG_LIB) $(PKG_SYSLIB) $(DYN_LIB)
 EXTRA_CPP_DEPENDS = $(PKG_CPP_DEPENDS)
 EXTRA_LINK_DEPENDS = $(PKG_LINK_DEPENDS)
 

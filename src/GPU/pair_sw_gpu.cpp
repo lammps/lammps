@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -26,7 +25,6 @@
 #include "gpu_extra.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "suffix.h"
 
@@ -34,26 +32,21 @@ using namespace LAMMPS_NS;
 
 // External functions from cuda library for atom decomposition
 
-int sw_gpu_init(const int ntypes, const int inum, const int nall,
-                const int max_nbors, const double cell_size, int &gpu_mode,
-                FILE *screen, double **ncutsq, double **ncut, double **sigma,
-                double **powerp, double **powerq, double **sigma_gamma,
-                double **c1, double **c2, double **c3,double **c4,
-                double **c5, double **c6, double ***lambda_epsilon,
-                double ***costheta, const int *map, int ***e2param);
+int sw_gpu_init(const int ntypes, const int inum, const int nall, const int max_nbors,
+                const double cell_size, int &gpu_mode, FILE *screen, double **ncutsq, double **ncut,
+                double **sigma, double **powerp, double **powerq, double **sigma_gamma, double **c1,
+                double **c2, double **c3, double **c4, double **c5, double **c6,
+                double ***lambda_epsilon, double ***costheta, const int *map, int ***e2param);
 void sw_gpu_clear();
-int ** sw_gpu_compute_n(const int ago, const int inum, const int nall,
-                        double **host_x, int *host_type, double *sublo,
-                        double *subhi, tagint *tag, int **nspecial,
-                        tagint **special, const bool eflag, const bool vflag,
-                        const bool eatom, const bool vatom, int &host_start,
-                        int **ilist, int **jnum,
-                        const double cpu_time, bool &success);
-void sw_gpu_compute(const int ago, const int nloc, const int nall,
-                    const int ln, double **host_x, int *host_type, int *ilist,
-                    int *numj, int **firstneigh, const bool eflag,
-                    const bool vflag, const bool eatom, const bool vatom,
-                    int &host_start, const double cpu_time, bool &success);
+int **sw_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
+                       int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
+                       tagint **special, const bool eflag, const bool vflag, const bool eatom,
+                       const bool vatom, int &host_start, int **ilist, int **jnum,
+                       const double cpu_time, bool &success);
+void sw_gpu_compute(const int ago, const int nloc, const int nall, const int ln, double **host_x,
+                    int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
+                    const bool vflag, const bool eatom, const bool vatom, int &host_start,
+                    const double cpu_time, bool &success);
 double sw_gpu_bytes();
 
 #define MAXLINE 1024
@@ -79,15 +72,14 @@ PairSWGPU::PairSWGPU(LAMMPS *lmp) : PairSW(lmp), gpu_mode(GPU_FORCE)
 PairSWGPU::~PairSWGPU()
 {
   sw_gpu_clear();
-  if (allocated)
-    memory->destroy(cutghost);
+  if (allocated) memory->destroy(cutghost);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairSWGPU::compute(int eflag, int vflag)
 {
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
@@ -95,7 +87,7 @@ void PairSWGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
-    double sublo[3],subhi[3];
+    double sublo[3], subhi[3];
     if (domain->triclinic == 0) {
       sublo[0] = domain->sublo[0];
       sublo[1] = domain->sublo[1];
@@ -104,28 +96,24 @@ void PairSWGPU::compute(int eflag, int vflag)
       subhi[1] = domain->subhi[1];
       subhi[2] = domain->subhi[2];
     } else {
-      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+      domain->bbox(domain->sublo_lamda, domain->subhi_lamda, sublo, subhi);
     }
     inum = atom->nlocal;
-    firstneigh = sw_gpu_compute_n(neighbor->ago, inum, nall,
-                                   atom->x, atom->type, sublo,
-                                   subhi, atom->tag, atom->nspecial,
-                                   atom->special, eflag, vflag, eflag_atom,
-                                   vflag_atom, host_start,
-                                   &ilist, &numneigh, cpu_time, success);
+    firstneigh =
+        sw_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag,
+                         atom->nspecial, atom->special, eflag, vflag, eflag_atom, vflag_atom,
+                         host_start, &ilist, &numneigh, cpu_time, success);
   } else {
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
 
-    sw_gpu_compute(neighbor->ago, inum, nall, inum+list->gnum,
-                   atom->x, atom->type, ilist, numneigh, firstneigh, eflag,
-                   vflag, eflag_atom, vflag_atom, host_start, cpu_time,
+    sw_gpu_compute(neighbor->ago, inum, nall, inum + list->gnum, atom->x, atom->type, ilist,
+                   numneigh, firstneigh, eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time,
                    success);
   }
-  if (!success)
-    error->one(FLERR,"Insufficient memory on accelerator");
+  if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -135,7 +123,7 @@ void PairSWGPU::allocate()
   PairSW::allocate();
   int n = atom->ntypes;
 
-  memory->create(cutghost,n+1,n+1,"pair:cutghost");
+  memory->create(cutghost, n + 1, n + 1, "pair:cutghost");
 }
 
 /* ----------------------------------------------------------------------
@@ -146,10 +134,7 @@ void PairSWGPU::init_style()
 {
   double cell_size = cutmax + neighbor->skin;
 
-  if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style sw/gpu requires atom IDs");
-  if (force->newton_pair != 0)
-    error->all(FLERR,"Pair style sw/gpu requires newton pair off");
+  if (atom->tag_enable == 0) error->all(FLERR, "Pair style sw/gpu requires atom IDs");
 
   double **c1, **c2, **c3, **c4, **c5, **c6;
   double **ncutsq, **ncut, **sigma, **powerp, **powerq, **sigma_gamma;
@@ -211,10 +196,9 @@ void PairSWGPU::init_style()
   }
 
   int mnf = 5e-2 * neighbor->oneatom;
-  int success = sw_gpu_init(tp1, atom->nlocal, atom->nlocal+atom->nghost, mnf,
-                            cell_size, gpu_mode, screen, ncutsq, ncut, sigma,
-                            powerp, powerq, sigma_gamma,  c1, c2, c3, c4, c5,
-                            c6, lambda_epsilon, costheta, map, elem3param);
+  int success = sw_gpu_init(tp1, atom->nlocal, atom->nlocal + atom->nghost, mnf, cell_size,
+                            gpu_mode, screen, ncutsq, ncut, sigma, powerp, powerq, sigma_gamma, c1,
+                            c2, c3, c4, c5, c6, lambda_epsilon, costheta, map, elem3param);
 
   memory->destroy(ncutsq);
   memory->destroy(ncut);
@@ -231,18 +215,13 @@ void PairSWGPU::init_style()
   memory->destroy(lambda_epsilon);
   memory->destroy(costheta);
 
-  GPU_EXTRA::check_flag(success,error,world);
+  GPU_EXTRA::check_flag(success, error, world);
 
-  if (gpu_mode == GPU_FORCE) {
-    int irequest = neighbor->request(this,instance_me);
-    neighbor->requests[irequest]->half = 0;
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->ghost = 1;
-  }
-  if (comm->cutghostuser < (2.0*cutmax + neighbor->skin)) {
-    comm->cutghostuser=2.0*cutmax + neighbor->skin;
-    if (comm->me == 0)
-       error->warning(FLERR,"Increasing communication cutoff for GPU style");
+  if (gpu_mode == GPU_FORCE)
+    neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
+  if (comm->cutghostuser < (2.0 * cutmax + neighbor->skin)) {
+    comm->cutghostuser = 2.0 * cutmax + neighbor->skin;
+    if (comm->me == 0) error->warning(FLERR, "Increasing communication cutoff for GPU style");
   }
 }
 
@@ -252,10 +231,9 @@ void PairSWGPU::init_style()
 
 double PairSWGPU::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
   cutghost[i][j] = cutmax;
   cutghost[j][i] = cutmax;
 
   return cutmax;
 }
-

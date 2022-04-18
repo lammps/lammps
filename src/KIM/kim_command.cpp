@@ -112,24 +112,24 @@ void KimCommand::command(int narg, char **arg)
   if (lmp->citeme) lmp->citeme->add(cite_openkim);
 
   if (subcmd == "init") {
-    KimInit *cmd = new KimInit(lmp);
+    auto cmd = new KimInit(lmp);
     cmd->command(narg, arg);
     delete cmd;
   } else if (subcmd == "interactions") {
-    KimInteractions *cmd = new KimInteractions(lmp);
+    auto cmd = new KimInteractions(lmp);
     cmd->command(narg, arg);
     delete cmd;
   } else if (subcmd == "param") {
-    KimParam *cmd = new KimParam(lmp);
+    auto cmd = new KimParam(lmp);
     cmd->command(narg, arg);
     delete cmd;
   } else if (subcmd == "property") {
-    KimProperty *cmd = new KimProperty(lmp);
+    auto cmd = new KimProperty(lmp);
     cmd->command(narg, arg);
     delete cmd;
   } else if (subcmd == "query") {
     if (lmp->citeme) lmp->citeme->add(cite_openkim_query);
-    KimQuery *cmd = new KimQuery(lmp);
+    auto cmd = new KimQuery(lmp);
     cmd->command(narg, arg);
     delete cmd;
   } else error->all(FLERR,"Unknown kim subcommand {}", subcmd);

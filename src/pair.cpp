@@ -41,6 +41,7 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 enum{NONE,RLINEAR,RSQ,BMP};
+static const std::string mixing_rule_names[Pair::SIXTHPOWER+1] = {"geometric", "arithmetic", "sixthpower" };
 
 // allocate space for static class instance variable and initialize it
 
@@ -66,6 +67,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   finitecutflag = 0;
   ghostneigh = 0;
   unit_convert_flag = utils::NOCONVERT;
+  did_mix = false;
 
   nextra = 0;
   pvector = nullptr;
@@ -217,11 +219,9 @@ void Pair::init()
   if (tail_flag && domain->nonperiodic && comm->me == 0)
     error->warning(FLERR,"Using pair tail corrections with non-periodic system");
   if (!compute_flag && tail_flag && comm->me == 0)
-    error->warning(FLERR,"Using pair tail corrections with "
-                   "pair_modify compute no");
+    error->warning(FLERR,"Using pair tail corrections with pair_modify compute no");
   if (!compute_flag && offset_flag && comm->me == 0)
-    error->warning(FLERR,"Using pair potential shift with "
-                   "pair_modify compute no");
+    error->warning(FLERR,"Using pair potential shift with pair_modify compute no");
 
   // for manybody potentials
   // check if bonded exclusions could invalidate the neighbor list
@@ -259,13 +259,18 @@ void Pair::init()
   etail = ptail = 0.0;
   mixed_flag = 1;
   double cut;
+  int mixed_count = 0;
 
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if ((i != j) && setflag[i][j]) mixed_flag = 0;
+      did_mix = false;
       cut = init_one(i,j);
       cutsq[i][j] = cutsq[j][i] = cut*cut;
       cutforce = MAX(cutforce,cut);
+      if (i != j) {
+        if (setflag[i][j]) mixed_flag = 0;
+        if (did_mix) ++mixed_count;
+      }
       if (tail_flag) {
         etail += etail_ij;
         ptail += ptail_ij;
@@ -275,6 +280,12 @@ void Pair::init()
         }
       }
     }
+
+  if (!manybody_flag && (comm->me == 0)) {
+    const int num_mixed_pairs = atom->ntypes * (atom->ntypes - 1) / 2;
+    utils::logmesg(lmp,"  generated {} of {} mixed pair_coeff terms from {} mixing rule\n",
+                   mixed_count, num_mixed_pairs, mixing_rule_names[mix_flag]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -315,7 +326,7 @@ void Pair::reinit()
 
 void Pair::init_style()
 {
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------
@@ -681,6 +692,7 @@ void Pair::free_disp_tables()
 
 double Pair::mix_energy(double eps1, double eps2, double sig1, double sig2)
 {
+  did_mix = true;
   if (mix_flag == GEOMETRIC)
     return sqrt(eps1*eps2);
   else if (mix_flag == ARITHMETIC)
@@ -688,7 +700,8 @@ double Pair::mix_energy(double eps1, double eps2, double sig1, double sig2)
   else if (mix_flag == SIXTHPOWER)
     return (2.0 * sqrt(eps1*eps2) *
       pow(sig1,3.0) * pow(sig2,3.0) / (pow(sig1,6.0) + pow(sig2,6.0)));
-  else return 0.0;
+  else did_mix = false;
+  return 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -1799,7 +1812,7 @@ void Pair::write_file(int narg, char **arg)
     //   write out a line with "DATE:" and "UNITS:" tags
     // - if the file already exists, print a message about appending
     //   while printing the date and check that units are consistent.
-    if (utils::file_is_readable(table_file)) {
+    if (platform::file_is_readable(table_file)) {
       std::string units = utils::get_potential_units(table_file,"table");
       if (!units.empty() && (units != update->unit_style)) {
         error->one(FLERR,"Trying to append to a table file "

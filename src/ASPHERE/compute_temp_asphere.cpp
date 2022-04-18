@@ -94,7 +94,7 @@ void ComputeTempAsphere::init()
 {
   // error check
 
-  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  avec = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
   if (!avec)
     error->all(FLERR,"Compute temp/asphere requires atom style ellipsoid");
 

@@ -130,7 +130,7 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
 #endif
   {
     const int tid = get_tid();
-    Timer *t = new Timer(lmp);
+    auto t = new Timer(lmp);
     thr[tid] = new ThrData(tid,t);
   }
 }
@@ -182,7 +182,7 @@ void FixOMP::init()
 #endif
     {
       const int tid = get_tid();
-      Timer *t = new Timer(lmp);
+      auto t = new Timer(lmp);
       thr[tid] = new ThrData(tid,t);
     }
   }
@@ -198,10 +198,8 @@ void FixOMP::init()
       && !utils::strmatch(update->integrate_style,"^respa/omp"))
     error->all(FLERR,"Must use respa/omp for r-RESPA with /omp styles");
 
-  if (force->pair && force->pair->compute_flag) _pair_compute_flag = true;
-  else _pair_compute_flag = false;
-  if (force->kspace && force->kspace->compute_flag) _kspace_compute_flag = true;
-  else _kspace_compute_flag = false;
+  _pair_compute_flag = force->pair && force->pair->compute_flag;
+  _kspace_compute_flag = force->kspace && force->kspace->compute_flag;
 
   int check_hybrid, kspace_split;
   last_pair_hybrid = nullptr;
@@ -277,7 +275,7 @@ void FixOMP::init()
 
 #undef CheckStyleForOMP
 #undef CheckHybridForOMP
-  set_neighbor_omp();
+  neighbor->set_omp_neighbor(_neighbor ? 1 : 0);
 
   // diagnostic output
   if (comm->me == 0) {
@@ -289,27 +287,6 @@ void FixOMP::init()
       utils::logmesg(lmp,"No /omp style for force computation currently active\n");
     }
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixOMP::set_neighbor_omp()
-{
-  // select or deselect multi-threaded neighbor
-  // list build depending on setting in package omp.
-  // NOTE: since we are at the top of the list of
-  // fixes, we cannot adjust neighbor lists from
-  // other fixes. those have to be re-implemented
-  // as /omp fix styles. :-(
-
-  const int neigh_omp = _neighbor ? 1 : 0;
-  const int nrequest = neighbor->nrequest;
-
-  // flag *all* neighbor list requests as OPENMP threaded,
-  // but skip lists already flagged as INTEL threaded
-  for (int i = 0; i < nrequest; ++i)
-    if (! neighbor->requests[i]->intel)
-      neighbor->requests[i]->omp = neigh_omp;
 }
 
 /* ---------------------------------------------------------------------- */

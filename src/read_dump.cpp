@@ -121,7 +121,7 @@ void ReadDump::command(int narg, char **arg)
 
   // reset timestep to nstep
 
-  update->reset_timestep(nstep);
+  update->reset_timestep(nstep, true);
 
   // counters
 
@@ -233,7 +233,7 @@ void ReadDump::setup_reader(int narg, char **arg)
   // create Nreader reader classes per reader
   // match readerstyle to options in style_reader.h
 
-  if (0) {
+  if (false) {     // NOLINT
     return;        // dummy line to enable else-if macro expansion
 
 #define READER_CLASS
@@ -289,7 +289,7 @@ bigint ReadDump::seek(bigint nrequest, int exact)
         readers[0]->open_file(multiname.c_str());
       } else readers[0]->open_file(files[ifile]);
 
-      while (1) {
+      while (true) {
         eofflag = readers[0]->read_time(ntimestep);
         if (eofflag) break;
         if (ntimestep >= nrequest) break;
@@ -333,7 +333,7 @@ bigint ReadDump::seek(bigint nrequest, int exact)
       readers[i]->open_file(multiname.c_str());
 
       bigint step;
-      while (1) {
+      while (true) {
         eofflag = readers[i]->read_time(step);
         if (eofflag) break;
         if (step == ntimestep) break;
@@ -382,7 +382,7 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
         } else readers[0]->open_file(files[ifile]);
       }
 
-      while (1) {
+      while (true) {
         eofflag = readers[0]->read_time(ntimestep);
         if (eofflag) break;
         if (ntimestep > nlast) break;
@@ -435,7 +435,7 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
       readers[i]->open_file(multiname.c_str());
 
       bigint step;
-      while (1) {
+      while (true) {
         eofflag = readers[i]->read_time(step);
         if (eofflag) break;
         if (step == ntimestep) break;
@@ -1078,7 +1078,7 @@ void ReadDump::migrate_old_atoms()
   for (int i = 0; i < nlocal; i++)
     procassign[i] = tag[i] % nprocs;
 
-  Irregular *irregular = new Irregular(lmp);
+  auto irregular = new Irregular(lmp);
   irregular->migrate_atoms(1,1,procassign);
   delete irregular;
 
@@ -1101,7 +1101,7 @@ void ReadDump::migrate_new_atoms()
     procassign[i] = mtag % nprocs;
   }
 
-  Irregular *irregular = new Irregular(lmp);
+  auto irregular = new Irregular(lmp);
   int nrecv = irregular->create_data(nnew,procassign,1);
   int newmaxnew = MAX(nrecv,maxnew);
   newmaxnew = MAX(newmaxnew,1);    // avoid null pointer
@@ -1138,7 +1138,7 @@ void ReadDump::migrate_atoms_by_coords()
 
   if (triclinic) domain->x2lamda(atom->nlocal);
   domain->reset_box();
-  Irregular *irregular = new Irregular(lmp);
+  auto irregular = new Irregular(lmp);
   irregular->migrate_atoms(1);
   delete irregular;
   if (triclinic) domain->lamda2x(atom->nlocal);

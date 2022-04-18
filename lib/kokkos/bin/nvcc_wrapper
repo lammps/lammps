@@ -96,10 +96,10 @@ replace_pragma_ident=0
 first_xcompiler_arg=1
 
 # Allow for setting temp dir without setting TMPDIR in parent (see https://docs.olcf.ornl.gov/systems/summit_user_guide.html#setting-tmpdir-causes-jsm-jsrun-errors-job-state-flip-flop)
-if [[ ! -z ${NVCC_WRAPPER_TMPDIR+x} ]]; then
+if [[ -z ${NVCC_WRAPPER_TMPDIR+x} ]]; then
   temp_dir=${TMPDIR:-/tmp}
 else
-  temp_dir=${NVCC_WRAPPER_TMPDIR+x}
+  temp_dir=${NVCC_WRAPPER_TMPDIR}
 fi
 
 # optimization flag added as a command-line argument
@@ -226,14 +226,14 @@ do
     cuda_args="$cuda_args $1"
     ;;
   #Handle more known nvcc args
-  --expt-extended-lambda|--expt-relaxed-constexpr|--Wno-deprecated-gpu-targets|-Wno-deprecated-gpu-targets)
+  --expt-extended-lambda|--expt-relaxed-constexpr|--Wno-deprecated-gpu-targets|-Wno-deprecated-gpu-targets|-allow-unsupported-compiler|--allow-unsupported-compiler)
     cuda_args="$cuda_args $1"
     ;;
   #Handle known nvcc args that have an argument
-  -maxrregcount=*|--maxrregcount=*)
+  -maxrregcount=*|--maxrregcount=*|-time=*)
     cuda_args="$cuda_args $1"
     ;;
-  -maxrregcount|--default-stream|-Xnvlink|--fmad|-cudart|--cudart|-include)
+  -maxrregcount|--default-stream|-Xnvlink|--fmad|-cudart|--cudart|-include|-time)
     cuda_args="$cuda_args $1 $2"
     shift
     ;;
@@ -552,14 +552,14 @@ if [ $host_only -eq 1 ]; then
   $host_command
 elif [ -n "$nvcc_depfile_command" ]; then
   if [ "$NVCC_WRAPPER_SHOW_COMMANDS_BEING_RUN" == "1" ] ; then
-    echo "$nvcc_command && $nvcc_depfile_command"
+    echo "TMPDIR=${temp_dir} $nvcc_command && TMPDIR=${temp_dir} $nvcc_depfile_command"
   fi
-  $nvcc_command && $nvcc_depfile_command
+  TMPDIR=${temp_dir} $nvcc_command && TMPDIR=${temp_dir} $nvcc_depfile_command
 else
   if [ "$NVCC_WRAPPER_SHOW_COMMANDS_BEING_RUN" == "1" ] ; then
-    echo "$nvcc_command"
+    echo "TMPDIR=${temp_dir} $nvcc_command"
   fi
-  $nvcc_command
+  TMPDIR=${temp_dir} $nvcc_command
 fi
 error_code=$?
 

@@ -117,7 +117,7 @@ class Force : protected Pointers {
   int special_extra;         // extra space for added bonds
 
   Force(class LAMMPS *);
-  ~Force();
+  ~Force() override;
   void init();
   void setup();
 
@@ -146,19 +146,13 @@ class Force : protected Pointers {
   KSpace *new_kspace(const std::string &, int, int &);
   KSpace *kspace_match(const std::string &, int);
 
-  void store_style(char *&, const std::string &, int);
+  char *store_style(const std::string &, int);
   void set_special(int, char **);
 
   double memory_usage();
 
  private:
   void create_factories();
-  template <typename T> static Pair *pair_creator(LAMMPS *);
-  template <typename T> static Bond *bond_creator(LAMMPS *);
-  template <typename T> static Angle *angle_creator(LAMMPS *);
-  template <typename T> static Dihedral *dihedral_creator(LAMMPS *);
-  template <typename T> static Improper *improper_creator(LAMMPS *);
-  template <typename T> static KSpace *kspace_creator(LAMMPS *);
 };
 
 }    // namespace LAMMPS_NS

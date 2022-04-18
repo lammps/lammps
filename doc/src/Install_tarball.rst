@@ -6,7 +6,7 @@ of the `LAMMPS website <lws_>`_.
 
 .. _download: https://www.lammps.org/download.html
 .. _bug: https://www.lammps.org/bug.html
-.. _older: https://www.lammps.org/tars
+.. _older: https://download.lammps.org/tars/
 .. _lws: https://www.lammps.org
 
 You have two choices of tarballs, either the most recent stable

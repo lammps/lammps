@@ -69,7 +69,6 @@
 #include <impl/Kokkos_FunctorAdapter.hpp>
 #include <impl/Kokkos_FunctorAnalysis.hpp>
 #include <impl/Kokkos_Tools.hpp>
-#include <impl/Kokkos_Tags.hpp>
 #include <impl/Kokkos_TaskQueue.hpp>
 #include <impl/Kokkos_ExecSpaceInitializer.hpp>
 
@@ -318,25 +317,50 @@ class HPX {
   }
 
   void impl_fence_instance() const {
-    if (hpx::threads::get_self_ptr() == nullptr) {
-      hpx::threads::run_as_hpx_thread([this]() { impl_get_future().wait(); });
-    } else {
-      impl_get_future().wait();
-    }
+    impl_fence_instance(
+        "Kokkos::Experimental::HPX::impl_fence_instance: Unnamed Instance "
+        "Fence");
+  }
+  void impl_fence_instance(const std::string &name) const {
+    Kokkos::Tools::Experimental::Impl::profile_fence_event(name, *this, [&]() {
+      if (hpx::threads::get_self_ptr() == nullptr) {
+        hpx::threads::run_as_hpx_thread([this]() { impl_get_future().wait(); });
+      } else {
+        impl_get_future().wait();
+      }
+    });
   }
 
   void impl_fence_all_instances() const {
-    hpx::util::yield_while(
-        []() { return m_active_parallel_region_count.load() != 0; });
+    impl_fence_instance(
+        "Kokkos::Experimental::HPX::impl_fence_all_instances: Unnamed Global "
+        "HPX Fence");
+  }
+  void impl_fence_all_instances(const std::string &namename) const {
+    Kokkos::Tools::Experimental::Impl::profile_fence_event(name, *this, [&]() {
+      hpx::util::yield_while(
+          []() { return m_active_parallel_region_count.load() != 0; });
+    });
   }
 #endif
 
   void fence() const {
 #if defined(KOKKOS_ENABLE_HPX_ASYNC_DISPATCH)
     if (m_mode == instance_mode::global) {
-      impl_fence_all_instances();
+      impl_fence_all_instances(
+          "Kokkos::Experimental::HPX::fence: Unnamed Global HPX Fence");
     } else {
-      impl_fence_instance();
+      impl_fence_instance(
+          "Kokkos::Experimental::HPX::fence: Unnamed HPX Instance Fence");
+    }
+#endif
+  }
+  void fence(const std::string &name) const {
+#if defined(KOKKOS_ENABLE_HPX_ASYNC_DISPATCH)
+    if (m_mode == instance_mode::global) {
+      impl_fence_all_instances(name);
+    } else {
+      impl_fence_instance(name);
     }
 #endif
   }
@@ -464,6 +488,7 @@ class HPXSpaceInitializer : public ExecSpaceInitializerBase {
   void initialize(const InitArguments &args) final;
   void finalize(const bool) final;
   void fence() final;
+  void fence(const std::string &) final;
   void print_configuration(std::ostream &msg, const bool detail) final;
 };
 
@@ -491,7 +516,9 @@ inline void dispatch_execute_task(Closure *closure,
   }
 
   if (force_synchronous) {
-    instance.fence();
+    instance.fence(
+        "Kokkos::Experimental::Impl::HPX::dispatch_execute_task: fence due to "
+        "forced syncronizations");
   }
 }
 #else

@@ -43,7 +43,7 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 
 /* ---------------------------------------------------------------------- */
 
-Velocity::Velocity(LAMMPS *lmp) : Command(lmp) {}
+Velocity::Velocity(LAMMPS *lmp) : Command(lmp), rigid_fix(nullptr), temperature(nullptr) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -91,7 +91,6 @@ void Velocity::command(int narg, char **arg)
   bias_flag = 0;
   loop_flag = ALL;
   scale_flag = 1;
-  rfix = -1;
 
   // read options from end of input line
   // change defaults as options specify
@@ -108,8 +107,7 @@ void Velocity::command(int narg, char **arg)
   // b/c methods invoked in the compute/fix perform forward/reverse comm
 
   int initcomm = 0;
-  if (style == ZERO && rfix >= 0 &&
-      utils::strmatch(modify->fix[rfix]->style,"^rigid.*/small.*")) initcomm = 1;
+  if (style == ZERO && rigid_fix && utils::strmatch(rigid_fix->style,"^rigid.*/small.*")) initcomm = 1;
   if ((style == CREATE || style == SET) && temperature &&
       strcmp(temperature->style,"temp/cs") == 0) initcomm = 1;
 
@@ -154,7 +152,6 @@ void Velocity::init_external(const char *extgroup)
   momentum_flag = 1;
   rotation_flag = 0;
   loop_flag = ALL;
-  rfix = -1;
   scale_flag = 1;
   bias_flag = 0;
 }
@@ -692,21 +689,21 @@ void Velocity::ramp(int /*narg*/, char **arg)
 void Velocity::zero(int /*narg*/, char **arg)
 {
   if (strcmp(arg[0],"linear") == 0) {
-    if (rfix < 0) zero_momentum();
-    else if (utils::strmatch(modify->fix[rfix]->style,"^rigid/small")) {
-      modify->fix[rfix]->setup_pre_neighbor();
-      modify->fix[rfix]->zero_momentum();
-    } else if (utils::strmatch(modify->fix[rfix]->style,"^rigid")) {
-      modify->fix[rfix]->zero_momentum();
+    if (!rigid_fix) zero_momentum();
+    else if (utils::strmatch(rigid_fix->style,"^rigid/small")) {
+      rigid_fix->setup_pre_neighbor();
+      rigid_fix->zero_momentum();
+    } else if (utils::strmatch(rigid_fix->style,"^rigid")) {
+      rigid_fix->zero_momentum();
     } else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
 
   } else if (strcmp(arg[0],"angular") == 0) {
-    if (rfix < 0) zero_rotation();
-    else if (utils::strmatch(modify->fix[rfix]->style,"^rigid/small")) {
-      modify->fix[rfix]->setup_pre_neighbor();
-      modify->fix[rfix]->zero_rotation();
-    } else if (utils::strmatch(modify->fix[rfix]->style,"^rigid")) {
-      modify->fix[rfix]->zero_rotation();
+    if (!rigid_fix) zero_rotation();
+    else if (utils::strmatch(rigid_fix->style,"^rigid/small")) {
+      rigid_fix->setup_pre_neighbor();
+      rigid_fix->zero_rotation();
+    } else if (utils::strmatch(rigid_fix->style,"^rigid")) {
+      rigid_fix->zero_rotation();
     } else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
 
   } else error->all(FLERR,"Illegal velocity command");
@@ -843,11 +840,10 @@ void Velocity::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");
-      int icompute = modify->find_compute(arg[iarg+1]);
-      if (icompute < 0) error->all(FLERR,"Could not find velocity temperature ID");
-      temperature = modify->compute[icompute];
+      temperature = modify->get_compute_by_id(arg[iarg+1]);
+      if (!temperature) error->all(FLERR,"Could not find velocity temperature compute ID");
       if (temperature->tempflag == 0)
-        error->all(FLERR,"Velocity temperature ID does not compute temperature");
+        error->all(FLERR,"Velocity temperature compute {} does not compute temperature", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"bias") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");
@@ -862,8 +858,8 @@ void Velocity::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"rigid") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");
-      rfix = modify->find_fix(arg[iarg+1]);
-      if (rfix < 0) error->all(FLERR,"Fix ID for velocity does not exist");
+      rigid_fix = modify->get_fix_by_id(arg[iarg+1]);
+      if (!rigid_fix) error->all(FLERR,"Fix ID {} for velocity does not exist", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"units") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");

@@ -135,7 +135,8 @@ with #) anywhere. Each non-blank non-comment line must contain one
 keyword/value pair. The required keywords are *rcutfac* and
 *twojmax*\ . Optional keywords are *rfac0*, *rmin0*,
 *switchflag*, *bzeroflag*, *quadraticflag*, *chemflag*,
-*bnormflag*, *wselfallflag*, *chunksize*, and *parallelthresh*\ .
+*bnormflag*, *wselfallflag*,  *switchinnerflag*,
+*rinner*, *drinner*, *chunksize*, and *parallelthresh*\ .
 
 The default values for these keywords are
 
@@ -147,6 +148,7 @@ The default values for these keywords are
 * *chemflag* = 0
 * *bnormflag* = 0
 * *wselfallflag* = 0
+* *switchinnerflag* = 0
 * *chunksize* = 32768
 * *parallelthresh* = 8192
 
@@ -188,6 +190,16 @@ corresponding *K*-vector of linear coefficients for element
 :math:`N_{elem}` is the number of elements in the SNAP coefficient file,
 which must equal the number of unique elements appearing in the LAMMPS
 pair_coeff command, to avoid ambiguity in the number of coefficients.
+
+The keyword *switchinnerflag* activates an additional switching function
+that smoothly turns off contributions to the SNAP potential from neighbor
+atoms at short separations. If *switchinnerflag* is set to 1 then
+the additional keywords *rinner* and *drinner* must also be provided.
+Each of these is followed by *nelements* values, where *nelements*
+is the number of unique elements appearing in appearing in the LAMMPS
+pair_coeff command. The element order should correspond to the order
+in which elements first appear in the pair_coeff command reading from
+left to right.
 
 The keywords *chunksize* and *parallelthresh* are only applicable when
 using the pair style *snap* with the KOKKOS package on GPUs and are

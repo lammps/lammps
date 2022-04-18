@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class DihedralCharmmfsw : public Dihedral {
  public:
   DihedralCharmmfsw(class LAMMPS *);
-  virtual ~DihedralCharmmfsw();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
-  virtual void init_style();
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
+  ~DihedralCharmmfsw() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
 
  protected:
   int implicit, weightflag, dihedflag;

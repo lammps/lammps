@@ -33,16 +33,16 @@ class BondHybrid : public Bond {
   char **keywords;    // keyword for each Bond style
 
   BondHybrid(class LAMMPS *);
-  ~BondHybrid();
-  void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double equilibrium_distance(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  double single(int, double, int, int, double &);
-  double memory_usage();
+  ~BondHybrid() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double equilibrium_distance(int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  double single(int, double, int, int, double &) override;
+  double memory_usage() override;
 
  private:
   int *map;           // which style each bond type points to

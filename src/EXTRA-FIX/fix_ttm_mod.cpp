@@ -31,11 +31,11 @@
 #include "random_mars.h"
 #include "respa.h"
 #include "potential_file_reader.h"
-#include "tokenizer.h"
 #include "update.h"
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -271,7 +271,7 @@ void FixTTMMod::init()
         net_energy_transfer_all[ix][iy][iz] = 0;
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -281,9 +281,9 @@ void FixTTMMod::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet")) {
     post_force_setup(vflag);
   } else {
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(nlevels_respa-1);
     post_force_respa_setup(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(nlevels_respa-1);
   }
 }
 
@@ -584,10 +584,10 @@ void FixTTMMod::read_electron_temperatures(const std::string &filename)
         // check correctness of input data
 
         if ((ix < 0) || (ix >= nxgrid) || (iy < 0) || (iy >= nygrid) || (iz < 0) || (iz >= nzgrid))
-          throw parser_error("Fix ttm invalid grid index in fix ttm/mod grid file");
+          throw TokenizerException("Fix ttm invalid grid index in fix ttm/mod grid file","");
 
         if (T_tmp < 0.0)
-          throw parser_error("Fix ttm electron temperatures must be > 0.0");
+          throw TokenizerException("Fix ttm electron temperatures must be > 0.0","");
 
         T_electron[iz][iy][ix] = T_tmp;
         T_initial_set[iz][iy][ix] = 1;
@@ -789,9 +789,9 @@ void FixTTMMod::end_of_step()
             if (left_x == -1) left_x = nxgrid - 1;
             if (left_y == -1) left_y = nygrid - 1;
             if (left_z == -1) left_z = nzgrid - 1;
-            double skin_layer_d = double(skin_layer);
-            double ix_d = double(ix);
-            double surface_d = double(t_surface_l);
+            auto  skin_layer_d = double(skin_layer);
+            auto  ix_d = double(ix);
+            auto  surface_d = double(t_surface_l);
             mult_factor = 0.0;
             if (duration < width) {
               if (ix >= t_surface_l) mult_factor = (intensity/(dx*skin_layer_d))*exp((-1.0)*(ix_d - surface_d)/skin_layer_d);
@@ -937,7 +937,7 @@ void FixTTMMod::write_restart(FILE *fp)
 void FixTTMMod::restart(char *buf)
 {
   int n = 0;
-  double *rlist = (double *) buf;
+  auto rlist = (double *) buf;
 
   // check that restart grid size is same as current grid size
 

@@ -27,24 +27,24 @@ namespace LAMMPS_NS {
 class FixBondCreate : public Fix {
  public:
   FixBondCreate(class LAMMPS *, int, char **);
-  virtual ~FixBondCreate();
-  int setmask();
-  void init();
-  void init_list(int, class NeighList *);
-  void setup(int);
-  void post_integrate();
-  void post_integrate_respa(int, int);
+  ~FixBondCreate() override;
+  int setmask() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void setup(int) override;
+  void post_integrate() override;
+  void post_integrate_respa(int, int) override;
 
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  double compute_vector(int);
-  double memory_usage();
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  double compute_vector(int) override;
+  double memory_usage() override;
 
  protected:
   int me;
@@ -88,11 +88,6 @@ class FixBondCreate : public Fix {
   int dedup(int, int, tagint *);
 
   virtual int constrain(int, int, double, double) { return 1; }
-
-  // DEBUG
-
-  void print_bb();
-  void print_copy(const char *, tagint, int, int, int, int *);
 };
 
 }    // namespace LAMMPS_NS

@@ -33,10 +33,6 @@ DumpAtomZstd::DumpAtomZstd(LAMMPS *lmp, int narg, char **arg) : DumpAtom(lmp, na
   if (!compressed) error->all(FLERR, "Dump atom/zstd only writes compressed files");
 }
 
-/* ---------------------------------------------------------------------- */
-
-DumpAtomZstd::~DumpAtomZstd() {}
-
 /* ----------------------------------------------------------------------
    generic opening of a dump file
    ASCII or binary or compressed
@@ -56,19 +52,7 @@ void DumpAtomZstd::openfile()
   if (multiproc) filecurrent = multiname;
 
   if (multifile) {
-    char *filestar = filecurrent;
-    filecurrent = new char[strlen(filestar) + 16];
-    char *ptr = strchr(filestar, '*');
-    *ptr = '\0';
-    if (padflag == 0)
-      sprintf(filecurrent, "%s" BIGINT_FORMAT "%s", filestar, update->ntimestep, ptr + 1);
-    else {
-      char bif[8], pad[16];
-      strcpy(bif, BIGINT_FORMAT);
-      sprintf(pad, "%%s%%0%d%s%%s", padflag, &bif[1]);
-      sprintf(filecurrent, pad, filestar, update->ntimestep, ptr + 1);
-    }
-    *ptr = '*';
+    filecurrent = utils::strdup(utils::star_subst(filecurrent, update->ntimestep, padflag));
     if (maxfiles > 0) {
       if (numfiles < maxfiles) {
         nameslist[numfiles] = utils::strdup(filecurrent);

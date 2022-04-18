@@ -26,8 +26,8 @@
 #include "memory.h"
 #include "update.h"
 
-#include <cstring>
 #include <cmath>
+#include <cstring>
 
 #include "molfile_interface.h"
 
@@ -98,7 +98,7 @@ DumpMolfile::DumpMolfile(LAMMPS *lmp, int narg, char **arg)
 
     mf = new MolfileInterface(arg[5],MFI::M_WRITE);
 
-    const char *path = (const char *) ".";
+    const char *path = (const char *) "."; // NOLINT
     if (narg > 6)
       path=arg[6];
 
@@ -131,9 +131,9 @@ DumpMolfile::~DumpMolfile()
 
   if (typenames) {
     for (int i = 1; i <= ntypes; i++)
-      delete [] typenames[i];
+      delete[] typenames[i];
 
-    delete [] typenames;
+    delete[] typenames;
     typenames = nullptr;
   }
 }
@@ -152,8 +152,7 @@ void DumpMolfile::init_style()
       typenames = new char*[ntypes+1];
       for (int itype = 1; itype <= ntypes; itype++) {
         /* a 32-bit int can be maximally 10 digits plus sign */
-        typenames[itype] = new char[12];
-        sprintf(typenames[itype],"%d",itype);
+        typenames[itype] = utils::strdup(std::to_string(itype));
       }
     }
 
@@ -207,6 +206,7 @@ void DumpMolfile::write()
     }
   }
   ntotal = 0;
+  reorderflag = 0;
 
   // if file per timestep, open new file
 
@@ -274,29 +274,12 @@ void DumpMolfile::openfile()
 
     // if one file per timestep, replace '*' with current timestep
 
-    char *filecurrent = new char[strlen(filename) + 16];
-    if (multifile == 0) {
-      strcpy(filecurrent,filename);
-    } else {
-      char *ptr = strchr(filename,'*');
-      char *p1 = filename;
-      char *p2 = filecurrent;
-      while (p1 != ptr)
-        *p2++ = *p1++;
+    std::string filecurrent = filename;
+    if (multifile == 1)
+      filecurrent = utils::star_subst(filename, update->ntimestep, padflag);
 
-      if (padflag == 0) {
-        sprintf(p2,BIGINT_FORMAT "%s",update->ntimestep,ptr+1);
-      } else {
-        char bif[8],pad[16];
-        strcpy(bif,BIGINT_FORMAT);
-        sprintf(pad,"%%0%d%s%%s",padflag,&bif[1]);
-        sprintf(p2,pad,update->ntimestep,ptr+1);
-      }
-    }
-
-    if (mf->open(filecurrent,&natoms))
-      error->one(FLERR,"Cannot open dump file");
-    delete[] filecurrent;
+    if (mf->open(filecurrent.c_str(), &natoms))
+      error->one(FLERR,"Cannot open dump file {}: {}", filecurrent, utils::getsyserror());
   }
 }
 
@@ -430,9 +413,9 @@ int DumpMolfile::modify_param(int narg, char **arg)
 
     if (typenames) {
       for (int i = 1; i <= ntypes; i++)
-        delete [] typenames[i];
+        delete[] typenames[i];
 
-      delete [] typenames;
+      delete[] typenames;
       typenames = nullptr;
     }
 

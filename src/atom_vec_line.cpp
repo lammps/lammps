@@ -337,16 +337,17 @@ int AtomVecLine::unpack_restart_bonus(int ilocal, double *buf)
    unpack one line from Lines section of data file
 ------------------------------------------------------------------------- */
 
-void AtomVecLine::data_atom_bonus(int m, char **values)
+void AtomVecLine::data_atom_bonus(int m, const std::vector<std::string> &values)
 {
   if (line[m]) error->one(FLERR,"Assigning line parameters to non-line atom");
 
   if (nlocal_bonus == nmax_bonus) grow_bonus();
 
-  double x1 = utils::numeric(FLERR,values[0],true,lmp);
-  double y1 = utils::numeric(FLERR,values[1],true,lmp);
-  double x2 = utils::numeric(FLERR,values[2],true,lmp);
-  double y2 = utils::numeric(FLERR,values[3],true,lmp);
+  int ivalue = 1;
+  double x1 = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  double y1 = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  double x2 = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  double y2 = utils::numeric(FLERR,values[ivalue++],true,lmp);
   double dx = x2 - x1;
   double dy = y2 - y1;
   double length = sqrt(dx*dx + dy*dy);

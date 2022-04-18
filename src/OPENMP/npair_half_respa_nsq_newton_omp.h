@@ -30,8 +30,7 @@ namespace LAMMPS_NS {
 class NPairHalfRespaNsqNewtonOmp : public NPair {
  public:
   NPairHalfRespaNsqNewtonOmp(class LAMMPS *);
-  ~NPairHalfRespaNsqNewtonOmp() {}
-  void build(class NeighList *);
+  void build(class NeighList *) override;
 };
 
 }    // namespace LAMMPS_NS

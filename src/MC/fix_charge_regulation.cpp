@@ -22,6 +22,7 @@
 #include "atom.h"
 #include "atom_vec.h"
 #include "bond.h"
+#include "citeme.h"
 #include "comm.h"
 #include "compute.h"
 #include "dihedral.h"
@@ -52,6 +53,16 @@ using namespace FixConst;
 using namespace MathConst;
 using namespace MathSpecial;
 
+static const char cite_fix_charge_regulation[] =
+  "fix charge/regulation: \n\n"
+  "@Article{Curk22,\n"
+  " author = {T. Curk, J. Yuan, E. Luijten},\n"
+  " title = {Accelerated simulation method for charge regulation effects},\n"
+  " journal = {The Journal of Chemical Physics},\n"
+  " year = 2022,\n"
+  " volume = 156\n"
+  "}\n\n";
+
 enum{CONSTANT,EQUAL}; // parsing input variables
 
 // large energy value used to signal overlap
@@ -68,6 +79,7 @@ FixChargeRegulation::FixChargeRegulation(LAMMPS *lmp, int narg, char **arg) :
   c_pe(nullptr), random_equal(nullptr), random_unequal(nullptr),
   idftemp(nullptr)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_fix_charge_regulation);
 
   // Region restrictions not yet implemented ..
 
@@ -646,6 +658,8 @@ void FixChargeRegulation::forward_ions() {
 
   m1 = insert_particle(cation_type, +1, 0, dummyp);
   m2 = insert_particle(anion_type, -1, 0, dummyp);
+  if (force->kspace) force->kspace->qsum_qsq();
+  if (force->pair->tail_flag) force->pair->reinit();
   double energy_after = energy_full();
   if (energy_after < MAXENERGYTEST &&
       random_equal->uniform() < factor * exp(beta * (energy_before - energy_after))) {
@@ -985,9 +999,17 @@ int FixChargeRegulation::insert_particle(int ptype, double charge, double rd, do
     modify->create_attribute(m);
 
   }
-  atom->nghost = 0;
-  comm->borders();
   atom->natoms++;
+  atom->nghost = 0;
+  if (atom->tag_enable) {
+    if (atom->tag_enable) {
+      atom->tag_extend();
+      if (atom->map_style != Atom::MAP_NONE) atom->map_init();
+    }
+  }
+  if (triclinic) domain->x2lamda(atom->nlocal);
+  comm->borders();
+  if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   return m;
 }
 
@@ -1174,6 +1196,61 @@ double FixChargeRegulation::compute_vector(int n) {
     return particle_number(anion_type, salt_charge[1]);
   }
   return 0.0;
+}
+
+
+/* ----------------------------------------------------------------------
+   pack entire state of Fix into one write
+------------------------------------------------------------------------- */
+
+void FixChargeRegulation::write_restart(FILE *fp)
+{
+  int n = 0;
+  double list[10];
+  list[n++] = random_equal->state();
+  list[n++] = random_unequal->state();
+  list[n++] = nacid_attempts;
+  list[n++] = nacid_successes;
+  list[n++] = nbase_attempts;
+  list[n++] = nbase_successes;
+  list[n++] = nsalt_attempts;
+  list[n++] = nsalt_successes;
+  list[n++] = ubuf(next_reneighbor).d;
+  list[n++] = ubuf(update->ntimestep).d;
+
+  if (comm->me == 0) {
+    int size = (int) sizeof(list);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(list,sizeof(list),1,fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   use state info from restart file to restart the Fix
+------------------------------------------------------------------------- */
+
+void FixChargeRegulation::restart(char *buf)
+{
+  int n = 0;
+  auto list = (double *) buf;
+
+  seed = static_cast<int> (list[n++]);
+  random_equal->reset(seed);
+
+  seed = static_cast<int> (list[n++]);
+  random_unequal->reset(seed);
+
+  nacid_attempts  = list[n++];
+  nacid_successes = list[n++];
+  nbase_attempts  = list[n++];
+  nbase_successes = list[n++];
+  nsalt_attempts  = list[n++];
+  nsalt_successes = list[n++];
+
+  next_reneighbor = (bigint) ubuf(list[n++]).i;
+  bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
+  if (ntimestep_restart != update->ntimestep)
+    error->all(FLERR,"Must not reset timestep when restarting fix gcmc");
 }
 
 void FixChargeRegulation::setThermoTemperaturePointer() {

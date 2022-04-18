@@ -289,9 +289,9 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) :
 
   // atom style pointers to particles that store bonus info
 
-  avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  avec_line = (AtomVecLine *) atom->style_match("line");
-  avec_tri = (AtomVecTri *) atom->style_match("tri");
+  avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
+  avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
+  avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
 
   // fix parameters
 
@@ -369,7 +369,7 @@ void FixSRD::init()
     if (strcmp(modify->fix[m]->style, "wall/srd") == 0) {
       if (wallexist) error->all(FLERR, "Cannot use fix wall/srd more than once");
       wallexist = 1;
-      wallfix = (FixWallSRD *) modify->fix[m];
+      wallfix = dynamic_cast<FixWallSRD *>( modify->fix[m]);
       nwall = wallfix->nwall;
       wallvarflag = wallfix->varflag;
       wallwhich = wallfix->wallwhich;
@@ -394,7 +394,7 @@ void FixSRD::init()
     if (fixes[i]->box_change & BOX_CHANGE_SHAPE) change_shape = 1;
     if (strcmp(fixes[i]->style, "deform") == 0) {
       deformflag = 1;
-      FixDeform *deform = (FixDeform *) modify->fix[i];
+      auto deform = dynamic_cast<FixDeform *>( modify->fix[i]);
       if ((deform->box_change & BOX_CHANGE_SHAPE) && deform->remapflag != Domain::V_REMAP)
         error->all(FLERR, "Using fix srd with inconsistent fix deform remap option");
     }
@@ -775,7 +775,7 @@ void FixSRD::post_force(int /*vflag*/)
   if (bigexist) {
     flocal = f;
     tlocal = torque;
-    comm->reverse_comm_fix(this);
+    comm->reverse_comm(this);
   }
 
   // if any SRD particle has moved too far, trigger reneigh on next step
@@ -1433,7 +1433,7 @@ void FixSRD::collisions_multi()
     jlast = -1;
     dt = dt_big;
 
-    while (1) {
+    while (true) {
       nbig = nbinbig[ibin];
       if (ibounce == 0) ncheck += nbig;
 
@@ -2263,7 +2263,7 @@ void FixSRD::slip(double *vs, double *vb, double *xb, Big *big, double *xsurf, d
   double tangent[3], vsurf[3];
   double *omega = big->omega;
 
-  while (1) {
+  while (true) {
     r1 = sigma * random->gaussian();
     r2 = sigma * random->gaussian();
     vnmag = sqrt(r1 * r1 + r2 * r2);
@@ -2319,7 +2319,7 @@ void FixSRD::slip_wall(double *vs, int iwall, double *norm, double *vsnew)
   tangent2[1] = norm[2] * tangent1[0] - norm[0] * tangent1[2];
   tangent2[2] = norm[0] * tangent1[1] - norm[1] * tangent1[0];
 
-  while (1) {
+  while (true) {
     r1 = sigma * random->gaussian();
     r2 = sigma * random->gaussian();
     vnmag = sqrt(r1 * r1 + r2 * r2);
@@ -2370,7 +2370,7 @@ void FixSRD::noslip(double *vs, double *vb, double *xb, Big *big, int iwall, dou
   tangent2[1] = norm[2] * tangent1[0] - norm[0] * tangent1[2];
   tangent2[2] = norm[0] * tangent1[1] - norm[1] * tangent1[0];
 
-  while (1) {
+  while (true) {
     r1 = sigma * random->gaussian();
     r2 = sigma * random->gaussian();
     vnmag = sqrt(r1 * r1 + r2 * r2);
@@ -3942,6 +3942,7 @@ double FixSRD::distance(int i, int j)
 }
 
 /* ---------------------------------------------------------------------- */
+#ifdef SRD_DEBUG
 
 void FixSRD::print_collision(int i, int j, int ibounce, double t_remain, double dt, double *xscoll,
                              double *xbcoll, double *norm, int type)
@@ -3951,8 +3952,7 @@ void FixSRD::print_collision(int i, int j, int ibounce, double t_remain, double 
   double **v = atom->v;
 
   if (type != WALL) {
-    printf("COLLISION between SRD " TAGINT_FORMAT " and BIG " TAGINT_FORMAT "\n", atom->tag[i],
-           atom->tag[j]);
+    fmt::print("COLLISION between SRD {} and BIG {}\n", atom->tag[i], atom->tag[j]);
     printf("  bounce # = %d\n", ibounce + 1);
     printf("  local indices: %d %d\n", i, j);
     printf("  timestep = %g\n", dt);
@@ -3993,7 +3993,7 @@ void FixSRD::print_collision(int i, int j, int ibounce, double t_remain, double 
   } else {
     int dim = wallwhich[j] / 2;
 
-    printf("COLLISION between SRD " TAGINT_FORMAT " and WALL %d\n", atom->tag[i], j);
+    fmt::print("COLLISION between SRD {} and WALL {}\n", atom->tag[i], j);
     printf("  bounce # = %d\n", ibounce + 1);
     printf("  local indices: %d %d\n", i, j);
     printf("  timestep = %g\n", dt);
@@ -4025,3 +4025,6 @@ void FixSRD::print_collision(int i, int j, int ibounce, double t_remain, double 
     printf("  separation at end   = %g\n", rend);
   }
 }
+#else
+void FixSRD::print_collision(int, int, int, double, double, double *, double *, double *, int) {}
+#endif

@@ -1074,7 +1074,7 @@ reverse_comm_regular(T *ptr, int nper, int /*nbyte*/, int which,
       if (swap[m].npack) MPI_Wait(&request,MPI_STATUS_IGNORE);
     }
 
-    caller->unpack_reverse_grid(which,buf2,swap[m].npack,swap[m].packlist);
+    ptr->unpack_reverse_grid(which,buf2,swap[m].npack,swap[m].packlist);
   }
 }
 

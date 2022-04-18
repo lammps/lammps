@@ -620,14 +620,6 @@ void PairAmoeba::coeff(int narg, char **arg)
   if (narg == 3) read_keyfile(NULL);
   else read_keyfile(arg[3]);
 
-  // required for now, until 1-5 settings are implemented in LAMMPS
-
-  //if (special_hal[4] != 1.0 || special_repel[4] != 1.0 ||
-  //    special_disp[4] != 1.0 || special_mpole[4] != 1.0 ||
-  //    special_polar_pscale[4] != 1.0 || special_polar_piscale[4] != 1.0 ||
-  //    special_polar_wscale[4] != 1.0)
-  //  error->all(FLERR,"AMOEBA 1-5 weights must be 1.0 for now");
-  
   // compute Vdwl mixing rules, only for AMOEBA
 
   if (amoeba) {

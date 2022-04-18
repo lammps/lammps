@@ -493,9 +493,6 @@ void PairAmoeba::read_keyfile(char *filename)
     } else if (strcmp(keyword,"pcg-peek") == 0) {
       if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
       pcgpeek = utils::numeric(FLERR,words[1],true,lmp);
-    } else if (strcmp(keyword,"usolve-diag") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      udiag = utils::numeric(FLERR,words[1],true,lmp);
       
     } else {}
 

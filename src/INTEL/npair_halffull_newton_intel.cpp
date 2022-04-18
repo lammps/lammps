@@ -24,18 +24,14 @@
 #include "modify.h"
 #include "my_page.h"
 #include "neigh_list.h"
-#include "neighbor.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 NPairHalffullNewtonIntel::NPairHalffullNewtonIntel(LAMMPS *lmp) : NPair(lmp) {
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  _fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  _fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!_fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 }
 
 /* ----------------------------------------------------------------------
@@ -58,8 +54,7 @@ void NPairHalffullNewtonIntel::build_t(NeighList *list,
   int ** _noalias const firstneigh = list->firstneigh;
   const int * _noalias const ilist_full = list->listfull->ilist;
   const int * _noalias const numneigh_full = list->listfull->numneigh;
-  const int ** _noalias const firstneigh_full =
-    (const int ** const)list->listfull->firstneigh;
+  const int ** _noalias const firstneigh_full = (const int ** const)list->listfull->firstneigh;  // NOLINT
 
   #if defined(_OPENMP)
   #pragma omp parallel
@@ -145,8 +140,7 @@ void NPairHalffullNewtonIntel::build_t3(NeighList *list, int *numhalf)
   int ** _noalias const firstneigh = list->firstneigh;
   const int * _noalias const ilist_full = list->listfull->ilist;
   const int * _noalias const numneigh_full = numhalf;
-  const int ** _noalias const firstneigh_full =
-    (const int ** const)list->listfull->firstneigh;
+  const int ** _noalias const firstneigh_full = (const int ** const)list->listfull->firstneigh;  // NOLINT
 
   int packthreads = 1;
   if (comm->nthreads > INTEL_HTHREADS) packthreads = comm->nthreads;

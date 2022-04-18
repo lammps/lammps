@@ -27,23 +27,23 @@ namespace LAMMPS_NS {
 class PairILPGrapheneHBN : public Pair {
  public:
   PairILPGrapheneHBN(class LAMMPS *);
-  virtual ~PairILPGrapheneHBN();
+  ~PairILPGrapheneHBN() override;
 
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void init_style();
-  void ILP_neigh();
-  void calc_normal();
-  void calc_FRep(int, int);
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void init_style() override;
   void calc_FvdW(int, int);
-  double single(int, int, int, int, double, double, double, double &);
+  double single(int, int, int, int, double, double, double, double &) override;
 
   static constexpr int NPARAMS_PER_LINE = 13;
 
+  enum { ILP_GrhBN, ILP_TMD, SAIP_METAL };    // for telling class variants apart in shared code
+
  protected:
   int me;
+  int variant;
   int maxlocal;            // size of numneigh, firstneigh arrays
   int pgsize;              // size of neighbor page
   int oneatom;             // max # of neighbors for one atom
@@ -68,6 +68,18 @@ class PairILPGrapheneHBN : public Pair {
   double ***dnormdri;
   double ****dnormal;
 
+  // adds for ilp/tmd
+  int Nnei;    // max # of nearest neighbors for one atom
+  double **dnn;
+  double **vect;
+  double **pvet;
+  double ***dpvet1;
+  double ***dpvet2;
+  double ***dNave;
+
+  virtual void ILP_neigh();
+  virtual void calc_normal();
+  virtual void calc_FRep(int, int);
   void read_file(char *);
   void allocate();
 };

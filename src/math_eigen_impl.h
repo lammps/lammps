@@ -506,8 +506,7 @@ _Jacobi(int n, Scalar **M, int *max_idx_row) {
     this->M = M;
     this->max_idx_row = max_idx_row;
     //assert(this->max_idx_row);
-  }
-  else {
+  } else {
     is_preallocated = false;
     SetSize(n); // allocate the "M" and "max_int_row" arrays
   }

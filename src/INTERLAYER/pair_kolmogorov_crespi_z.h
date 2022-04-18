@@ -27,12 +27,13 @@ namespace LAMMPS_NS {
 class PairKolmogorovCrespiZ : public Pair {
  public:
   PairKolmogorovCrespiZ(class LAMMPS *);
-  virtual ~PairKolmogorovCrespiZ();
+  ~PairKolmogorovCrespiZ() override;
 
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   static constexpr int NPARAMS_PER_LINE = 11;
 

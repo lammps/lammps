@@ -418,6 +418,7 @@ html_context['current_version'] = os.environ.get('LAMMPS_WEBSITE_BUILD_VERSION',
 html_context['git_commit'] = git_commit
 html_context['versions'] = [
   ('latest', 'https://docs.lammps.org/latest/'),
+  ('stable', 'https://docs.lammps.org/stable/'),
   (version, 'https://docs.lammps.org/')
 ]
 html_context['downloads'] = [('PDF', 'Manual.pdf')]

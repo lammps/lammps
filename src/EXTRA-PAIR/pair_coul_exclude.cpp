@@ -182,14 +182,14 @@ void PairCoulExclude::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style coul/exclude requires atom attribute q");
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairCoulExclude::init_one(int i, int j)
+double PairCoulExclude::init_one(int /*i*/, int /*j*/)
 {
   return cut_global;
 }

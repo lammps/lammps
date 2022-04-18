@@ -19,34 +19,26 @@
 
 #include "atom.h"
 #include "atom_vec_dielectric.h"
-#include "comm.h"
 #include "error.h"
+#include "ewald_const.h"
 #include "force.h"
 #include "kspace.h"
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 
 #include <cmath>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using namespace EwaldConst;
+using MathConst::MY_PIS;
 
-#define EWALD_F 1.12837917
-#define EWALD_P 0.3275911
-#define A1 0.254829592
-#define A2 -0.284496736
-#define A3 1.421413741
-#define A4 -1.453152027
-#define A5 1.061405429
-
-#define EPSILON 1e-6
+static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulLongDielectric::PairLJCutCoulLongDielectric(LAMMPS *lmp) : PairLJCutCoulLong(lmp)
+PairLJCutCoulLongDielectric::PairLJCutCoulLongDielectric(LAMMPS *_lmp) : PairLJCutCoulLong(_lmp)
 {
   respa_enable = 0;
   cut_respa = nullptr;
@@ -160,7 +152,7 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
             forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
             if (factor_coul < 1.0) forcecoul -= (1.0 - factor_coul) * prefactor;
 
-            prefactorE = q[j] / r;
+            prefactorE = qqrd2e * q[j] / r;
             efield_i = prefactorE * (erfc + EWALD_F * grij * expm2);
             if (factor_coul < 1.0) efield_i -= (1.0 - factor_coul) * prefactorE;
             epot_i = efield_i;
@@ -172,13 +164,13 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
             fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
             table = ftable[itable] + fraction * dftable[itable];
             forcecoul = qtmp * q[j] * table;
-            efield_i = q[j] * table / qqrd2e;
+            efield_i = q[j] * table;
             if (factor_coul < 1.0) {
               table = ctable[itable] + fraction * dctable[itable];
               prefactor = qtmp * q[j] * table;
               forcecoul -= (1.0 - factor_coul) * prefactor;
 
-              prefactorE = q[j] * table / qqrd2e;
+              prefactorE = q[j] * table;
               efield_i -= (1.0 - factor_coul) * prefactorE;
             }
             epot_i = efield_i;
@@ -246,18 +238,16 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
 
 void PairLJCutCoulLongDielectric::init_style()
 {
-  avec = (AtomVecDielectric *) atom->style_match("dielectric");
+  avec = dynamic_cast<AtomVecDielectric *>(atom->style_match("dielectric"));
   if (!avec) error->all(FLERR, "Pair lj/cut/coul/long/dielectric requires atom style dielectric");
 
-  int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 
   cut_coulsq = cut_coul * cut_coul;
 
   // insure use of KSpace long-range solver, set g_ewald
 
-  if (force->kspace == NULL) error->all(FLERR, "Pair style requires a KSpace style");
+  if (force->kspace == nullptr) error->all(FLERR, "Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
   // setup force tables

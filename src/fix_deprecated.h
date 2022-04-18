@@ -17,6 +17,9 @@
 FixStyle(DEPRECATED,FixDeprecated);
 FixStyle(ave/spatial,FixDeprecated);
 FixStyle(ave/spatial/sphere,FixDeprecated);
+FixStyle(lb/pc,FixDeprecated);
+FixStyle(lb/rigid/pc/sphere,FixDeprecated);
+FixStyle(client/md,FixDeprecated);
 // clang-format on
 #else
 
@@ -30,9 +33,9 @@ namespace LAMMPS_NS {
 class FixDeprecated : public Fix {
  public:
   FixDeprecated(class LAMMPS *, int, char **);
-  ~FixDeprecated() {}
-  int setmask() { return 0; }
-  void init() {}
+
+  int setmask() override { return 0; }
+  void init() override {}
 };
 
 }    // namespace LAMMPS_NS

@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class ComputeOrientOrderAtom : public Compute {
  public:
   ComputeOrientOrderAtom(class LAMMPS *, int, char **);
-  ~ComputeOrientOrderAtom();
-  virtual void init();
-  void init_list(int, class NeighList *);
-  virtual void compute_peratom();
-  double memory_usage();
+  ~ComputeOrientOrderAtom() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_peratom() override;
+  double memory_usage() override;
   double cutsq;
   int iqlcomp, qlcomp, qlcompflag, wlflag, wlhatflag;
   int *qlist;
@@ -50,7 +50,6 @@ class ComputeOrientOrderAtom : public Compute {
 
   void select3(int, int, double *, int *, double **);
   void calc_boop(double **rlist, int numNeighbors, double qn[], int nlist[], int nnlist);
-  double dist(const double r[]);
 
   double polar_prefactor(int, int, double);
   double associated_legendre(int, int, double);

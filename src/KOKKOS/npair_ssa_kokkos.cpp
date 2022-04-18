@@ -613,7 +613,7 @@ void NPairSSAKokkosExecute<DeviceType>::build_locals_onePhase(const bool firstTr
           neigh_list.d_ilist(inum++) = i;
           if (n > neigh_list.maxneighs) {
             resize() = 1;
-            if (n > new_maxneighs()) Kokkos::atomic_fetch_max(&new_maxneighs(),n);
+            if (n > new_maxneighs()) Kokkos::atomic_max(&new_maxneighs(),n);
           }
         }
       }
@@ -741,7 +741,7 @@ void NPairSSAKokkosExecute<DeviceType>::build_ghosts_onePhase(int workPhase) con
           neigh_list.d_ilist(gNdx++) = i;
           if (n > neigh_list.maxneighs) {
             resize() = 1;
-            if (n > new_maxneighs()) Kokkos::atomic_fetch_max(&new_maxneighs(),n);
+            if (n > new_maxneighs()) Kokkos::atomic_max(&new_maxneighs(),n);
           }
         }
       }

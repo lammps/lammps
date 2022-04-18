@@ -1,3 +1,9 @@
+IMPORTANT NOTE: This example has not been updated since 2013,
+so it is not likely to work anymore out of the box.  There have
+been changes to LAMMPS and its library interface that would need
+to be applied. Please see the manual for the documentation of
+the library interface.
+
 This directory has an application that models grain growth in the
 presence of strain.
 

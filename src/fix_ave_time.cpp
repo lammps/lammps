@@ -28,7 +28,6 @@
 #include "variable.h"
 
 #include <cstring>
-#include <unistd.h>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -57,6 +56,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   global_freq = nfreq;
 
   dynamic_group_allow = 1;
+  time_depend = 1;
 
   // scan values to count them
   // then read options so know mode = SCALAR/VECTOR before re-reading values
@@ -244,10 +244,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   if (any_variable_length &&
       (nrepeat > 1 || ave == RUNNING || ave == WINDOW)) {
     for (int i = 0; i < nvalues; i++)
-      if (varlen[i] && which[i] == ArgInfo::COMPUTE) {
-        int icompute = modify->find_compute(ids[i]);
-        modify->compute[icompute]->lock_enable();
-      }
+      if (varlen[i] && which[i] == ArgInfo::COMPUTE)
+        modify->get_compute_by_id(ids[i])->lock_enable();
     lockforever = 0;
   }
 
@@ -274,18 +272,18 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
     if (ferror(fp))
       error->one(FLERR,"Error writing file header");
 
-    filepos = ftell(fp);
+    filepos = platform::ftell(fp);
   }
 
-  delete [] title1;
-  delete [] title2;
-  delete [] title3;
+  delete[] title1;
+  delete[] title2;
+  delete[] title3;
 
   // if wildcard expansion occurred, free earg memory from expand_args()
   // wait to do this until after file comment lines are printed
 
   if (expand) {
-    for (int i = 0; i < nvalues; i++) delete [] earg[i];
+    for (int i = 0; i < nvalues; i++) delete[] earg[i];
     memory->sfree(earg);
   }
 
@@ -446,24 +444,24 @@ FixAveTime::~FixAveTime()
       }
   }
 
-  delete [] format_user;
+  delete[] format_user;
 
-  delete [] which;
-  delete [] argindex;
-  delete [] value2index;
-  delete [] offcol;
-  delete [] varlen;
-  for (int i = 0; i < nvalues; i++) delete [] ids[i];
-  delete [] ids;
+  delete[] which;
+  delete[] argindex;
+  delete[] value2index;
+  delete[] offcol;
+  delete[] varlen;
+  for (int i = 0; i < nvalues; i++) delete[] ids[i];
+  delete[] ids;
 
-  delete [] extlist;
+  delete[] extlist;
 
   if (fp && me == 0) fclose(fp);
 
   memory->destroy(column);
 
-  delete [] vector;
-  delete [] vector_total;
+  delete[] vector;
+  delete[] vector_total;
   memory->destroy(array);
   memory->destroy(array_total);
   memory->destroy(array_list);
@@ -526,11 +524,8 @@ void FixAveTime::setup(int /*vflag*/)
 void FixAveTime::end_of_step()
 {
   // skip if not step which requires doing something
-  // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
-  if (ntimestep < nvalid_last || ntimestep > nvalid)
-    error->all(FLERR,"Invalid timestep reset for fix ave/time");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
 
@@ -673,19 +668,18 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
 
   if (fp && me == 0) {
     clearerr(fp);
-    if (overwrite) fseek(fp,filepos,SEEK_SET);
-    fprintf(fp,BIGINT_FORMAT,ntimestep);
+    if (overwrite) platform::fseek(fp,filepos);
+    fmt::print(fp,"{}",ntimestep);
     for (i = 0; i < nvalues; i++) fprintf(fp,format,vector_total[i]/norm);
     fprintf(fp,"\n");
-    if (ferror(fp))
-      error->one(FLERR,"Error writing out time averaged data");
+    if (ferror(fp)) error->one(FLERR,"Error writing out time averaged data");
 
     fflush(fp);
 
     if (overwrite) {
-      long fileend = ftell(fp);
-      if ((fileend > 0) && (ftruncate(fileno(fp),fileend)))
-        perror("Error while tuncating output");
+      bigint fileend = platform::ftell(fp);
+      if ((fileend > 0) && (platform::ftruncate(fp,fileend)))
+        error->warning(FLERR,"Error while tuncating output: {}", utils::getsyserror());
     }
   }
 }
@@ -885,8 +879,8 @@ void FixAveTime::invoke_vector(bigint ntimestep)
   // output result to file
 
   if (fp && me == 0) {
-    if (overwrite) fseek(fp,filepos,SEEK_SET);
-    fprintf(fp,BIGINT_FORMAT " %d\n",ntimestep,nrows);
+    if (overwrite) platform::fseek(fp,filepos);
+    fmt::print(fp,"{} {}\n",ntimestep,nrows);
     for (i = 0; i < nrows; i++) {
       fprintf(fp,"%d",i+1);
       for (j = 0; j < nvalues; j++) fprintf(fp,format,array_total[i][j]/norm);
@@ -894,9 +888,9 @@ void FixAveTime::invoke_vector(bigint ntimestep)
     }
     fflush(fp);
     if (overwrite) {
-      long fileend = ftell(fp);
-      if ((fileend > 0) && (ftruncate(fileno(fp),fileend)))
-        perror("Error while tuncating output");
+      bigint fileend = platform::ftell(fp);
+      if ((fileend > 0) && (platform::ftruncate(fp,fileend)))
+        error->warning(FLERR,"Error while tuncating output: {}", utils::getsyserror());
     }
   }
 }
@@ -1066,23 +1060,23 @@ void FixAveTime::options(int iarg, int narg, char **arg)
       iarg += 1;
     } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
-      delete [] format_user;
+      delete[] format_user;
       format_user = utils::strdup(arg[iarg+1]);
       format = format_user;
       iarg += 2;
     } else if (strcmp(arg[iarg],"title1") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
-      delete [] title1;
+      delete[] title1;
       title1 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title2") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
-      delete [] title2;
+      delete[] title2;
       title2 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title3") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
-      delete [] title3;
+      delete[] title3;
       title3 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix ave/time command");

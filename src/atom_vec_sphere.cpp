@@ -6,7 +6,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributead under
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -95,7 +95,7 @@ void AtomVecSphere::init()
 
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"adapt") == 0) {
-      FixAdapt *fix = (FixAdapt *) modify->fix[i];
+      auto fix = dynamic_cast<FixAdapt *>( modify->fix[i]);
       if (fix->diamflag && radvary == 0)
         error->all(FLERR,"Fix adapt changes particle radii "
                    "but atom_style sphere is not dynamic");

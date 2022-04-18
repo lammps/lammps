@@ -50,15 +50,14 @@
 #include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
+#include "text_file_reader.h"
 #include "update.h"
 
 #include <cmath>
 #include <cstring>
 
 #include <algorithm>
-#include <vector>
 #include <fstream>
 #include <iomanip>
 
@@ -74,6 +73,8 @@ using namespace MathSpecial;
 #define DELTA 4
 #define PGDELTA 1
 #define MAXNEIGH 24
+
+static constexpr char SMTBQ_SEPARATORS[] = "' \t\n\r";
 
 /* ---------------------------------------------------------------------- */
 
@@ -132,6 +133,12 @@ PairSMTBQ::PairSMTBQ(LAMMPS *lmp) : Pair(lmp)
   Nevery = 0.0;
   Neverypot = 0.0;
 
+  QEqMode = nullptr;
+  Bavard = nullptr;
+  QInitMode = nullptr;
+  writepot = nullptr;
+  writeenerg = nullptr;
+
   fct = nullptr;
 
   maxpage = 0;
@@ -150,16 +157,16 @@ PairSMTBQ::~PairSMTBQ()
 {
   int i;
   if (elements) {
-    for (i = 0; i < atom->ntypes ; i++ ) free( params[i].nom);
-    for (i = 1; i <= maxintparam ; i++ ) free( intparams[i].typepot);
-    for (i = 1; i <= maxintparam ; i++ ) free( intparams[i].mode);
+    for (i = 0; i < atom->ntypes ; i++ ) delete[] params[i].nom;
+    for (i = 1; i <= maxintparam ; i++ ) delete[] intparams[i].typepot;
+    for (i = 1; i <= maxintparam ; i++ ) delete[] intparams[i].mode;
   }
 
-  free(QEqMode);
-  free(QInitMode);
-  free(writepot);
-  free(writeenerg);
-  free(Bavard);
+  delete[] QEqMode;
+  delete[] Bavard;
+  delete[] QInitMode;
+  delete[] writepot;
+  delete[] writeenerg;
 
   memory->sfree(params);
   memory->sfree(intparams);
@@ -287,9 +294,7 @@ void PairSMTBQ::init_style()
 
   // need a full neighbor list
 
-  int irequest = neighbor->request(this);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 
   pgsize = neighbor->pgsize;
   oneatom = neighbor->oneatom;
@@ -311,7 +316,17 @@ double PairSMTBQ::init_one(int i, int j)
 void PairSMTBQ::read_file(char *file)
 {
   int num_atom_types,i,k,m,test,j,verbose;
-  char **words;
+
+  if (params) {
+    for (i = 0; i < atom->ntypes ; i++ ) delete[] params[i].nom;
+    for (i = 1; i <= maxintparam ; i++ ) delete[] intparams[i].typepot;
+    for (i = 1; i <= maxintparam ; i++ ) delete[] intparams[i].mode;
+    delete[] QEqMode;
+    delete[] Bavard;
+    delete[] QInitMode;
+    delete[] writepot;
+    delete[] writeenerg;
+  }
 
   memory->sfree(params);
   params = nullptr;
@@ -329,444 +344,462 @@ void PairSMTBQ::read_file(char *file)
   coordOxSurf = 0.0;
   ROxBB = 0.0;
   ROxSurf = 0.0;
+  QEqMode = nullptr;
+  Bavard = nullptr;
+  QInitMode = nullptr;
+  writepot = nullptr;
+  writeenerg = nullptr;
 
-      // open file on all processors
-  FILE *fp;
-  fp = utils::open_potential(file,lmp,nullptr);
-  if (fp  == nullptr) {
-    char str[128];
-    snprintf(str,128,"Cannot open SMTBQ potential file %s",file);
-    error->one(FLERR,str);
+  // open file on all processors
+  auto potfile = utils::get_potential_file_path(file);
+  if (!potfile.empty()) {
+    auto date = utils::get_potential_date(potfile, "SMTBQ");
+    auto units = utils::get_potential_units(potfile, "SMTBQ");
+    if (!date.empty() && (comm->me == 0))
+      utils::logmesg(lmp, "Reader SMTBQ potential file {} with DATE: {}\n",potfile,date);
+    if (!units.empty() && (units != update->unit_style) && (comm->me == 0))
+      error->one(FLERR, "Potential file {} requires {} units but {} units are in use",
+                 potfile, units, update->unit_style);
+  } else {
+    error->all(FLERR, "Cannot open SMTBQ potential file {}", file);
   }
+  TextFileReader reader(potfile, "SMTBQ");
 
-  // read each line out of file, skipping blank lines or leading '#'
-  // store line of params if all 3 element tags are in element list
+  try {
 
-  char *ptr;
+    // Nombre d'atome different dans la structure
+    //  ===============================================
+    const char *line = reader.next_line();
+    auto values = ValueTokenizer(line, SMTBQ_SEPARATORS);
+    auto label = values.next_string();
+    num_atom_types = values.next_int();
+    if ((comm->me == 0) && verbose) utils::logmesg(lmp," {} {}\n",label,num_atom_types);
 
-  ptr = (char*) malloc(sizeof(char)*MAXLINE);
-  words = (char**) malloc(sizeof(char*)*MAXTOKENS);
-  for (i=0; i < MAXTOKENS; i++)
-    words[i] = (char*) malloc(sizeof(char)*MAXTOKENS);
-
-
-  /* strip comment, skip line if blank */
-
-  if (verbose) printf ("\n");
-  fgets(ptr,MAXLINE,fp);
-  while (strchr(ptr,'#')) {
-    if (verbose) printf ("%s",ptr);
-    fgets(ptr,MAXLINE,fp);
-  }
-
-
-  // Nombre d'atome different dans la structure
-  //  ===============================================
-  Tokenize( ptr, &words );
-  num_atom_types = atoi(words[1]);
-  if (verbose) printf (" %s %d\n", words[0], num_atom_types);
-
-  memory->create(intype,num_atom_types,num_atom_types,"pair:intype");
-
-  m = 0;
-  for (i = 0; i < num_atom_types; i++) {
-    for (j = 0; j < num_atom_types; j++) {
-      if (j < i) { intype[i][j] = intype[j][i];}
-      else       { intype[i][j] = 0;
-        m = m + 1;   }
-      if (verbose) printf ("i %d, j %d, intype %d - nb pair %d\n",i,j,intype[i][j],m);
-    }
-  }
-
-  // load up parameter settings and error check their values
-
-  nparams = maxparam = num_atom_types;
-  params = (Param *) memory->create(params,maxparam*sizeof(Param),
-                                        "pair:params");
-  maxintparam = m;
-  intparams = (Intparam *) memory->create(intparams,(maxintparam+1)*sizeof(Intparam),
-                                              "pair:intparams");
-
-  for (i=0; i < num_atom_types; i++)
-    params[i].nom = (char*) malloc(sizeof(char)*3);
-
-  for (i=1; i <= maxintparam; i++)
-    intparams[i].typepot = (char*) malloc(sizeof(char)*15);
-
-  for (i=1; i <= maxintparam; i++)
-    intparams[i].mode = (char*) malloc(sizeof(char)*6);
-
-  QEqMode = (char*) malloc(sizeof(char)*19);
-  Bavard = (char*) malloc(sizeof(char)*6);
-  QInitMode = (char*) malloc(sizeof(char)*19);
-  writepot = (char*) malloc(sizeof(char)*6);
-  writeenerg = (char*) malloc(sizeof(char)*6);
-
-
-  //  Little loop for ion's parameters
-  // ================================================
-  for (i=0; i<num_atom_types; i++) {
-
-    fgets(ptr,MAXLINE,fp);  if (verbose) printf ("%s",ptr);
-
-    // Line 2 - Al
-
-    fgets( ptr, MAXLINE, fp);
-    Tokenize( ptr, &words );
-    strcpy(params[i].nom , words[1]);
-    params[i].sto = atof(words[2]);
-    if (verbose) printf (" %s %s %f\n", words[0],params[i].nom,params[i].sto);
-
-    //Line 3 - Charges
-
-    fgets( ptr, MAXLINE, fp);
-    Tokenize( ptr, &words );
-
-    params[i].qform = atof(words[1]);
-    params[i].masse = atof(words[2]);
-    if (verbose) printf (" %s %f %f \n", words[0],params[i].qform, params[i].masse);
-
-    // Line 4 - Parametres QEq
-
-    fgets( ptr, MAXLINE, fp);
-    Tokenize ( ptr, &words );
-    params[i].ne = atof(words[1]) ;
-    params[i].chi = atof(words[2])  ;
-    params[i].dj = atof(words[3]) ;
-
-    if (strcmp(params[i].nom,"O")!=0) {
-      params[i].R = atof(words[4]) ;
-      if (verbose) printf(" %s %f %f %f %f\n",words[0],params[i].ne,params[i].chi,
-                          params[i].dj,params[i].R);
-    } else {
-      if (verbose) printf(" %s %f %f %f\n",words[0],params[i].ne,params[i].chi,params[i].dj);
+    memory->create(intype,num_atom_types,num_atom_types,"pair:intype");
+    m = 0;
+    for (i = 0; i < num_atom_types; i++) {
+      for (j = 0; j < num_atom_types; j++) {
+        if (j < i) { intype[i][j] = intype[j][i]; }
+        else       { intype[i][j] = 0; m = m + 1; }
+        if ((comm->me == 0)  && verbose)
+          utils::logmesg(lmp, "i {}, j {}, intype {} - nb pair {}\n",i,j,intype[i][j],m);
+      }
     }
 
+    // load up parameter settings and error check their values
+    nparams = maxparam = num_atom_types;
+    maxintparam = m;
+    params = (Param *) memory->create(params,maxparam*sizeof(Param),"pair:params");
+    intparams = (Intparam *) memory->create(intparams,(maxintparam+1)*sizeof(Intparam),
+                                            "pair:intparams");
 
-    // Line 4bis - Coordinance et rayon pour Ox
-    if (strcmp(params[i].nom,"O")==0) {
+    for (i=0; i < num_atom_types; i++)
+      params[i].nom = nullptr;
 
-      fgets( ptr, MAXLINE, fp);
-      Tokenize ( ptr, &words );
+    for (i=1; i <= maxintparam; i++)
+      intparams[i].typepot = nullptr;
 
-      coordOxBB=   atof(words[1]) ;
-      coordOxBulk=  atof(words[2]) ;
-      coordOxSurf=  atof(words[3]) ;
-      ROxBB = atof(words[4]) ;
-      params[i].R = atof(words[5]) ;
-      ROxSurf = atof(words[6]) ;
-      if (verbose) printf(" %s %f %f %f %f %f %f\n",words[0],coordOxBB,coordOxBulk,coordOxSurf,ROxBB,params[i].R,ROxSurf);
-    }
+    for (i=1; i <= maxintparam; i++)
+      intparams[i].mode = nullptr;
 
-    // Ligne 5 - Nombre d'etats partages
 
-    fgets( ptr, MAXLINE, fp);
-    Tokenize ( ptr, &words );
-    params[i].n0 = atof(words[1]);
-    if (verbose) printf(" %s %f\n",words[0],params[i].n0);
+    QEqMode = nullptr;
+    Bavard = nullptr;
+    QInitMode = nullptr;
+    writepot = nullptr;
+    writeenerg = nullptr;
 
-    // Parametres de Slater
-    params[i].dzeta = (2.0*params[i].ne + 1.0)/(4.0*params[i].R);
-    if (verbose) printf (" Parametre dzeta (Slater) : %f\n",params[i].dzeta);
 
-  } // Fin elements i
+    //  Little loop for ion's parameters
+    // ================================================
+    for (i=0; i<num_atom_types; i++) {
+      line = reader.next_line();
+      values = ValueTokenizer(line, SMTBQ_SEPARATORS);
+      label = values.next_string();
+      if ((comm->me == 0) && verbose) utils::logmesg(lmp, label+"\n");
 
-  /* =====================================================================
-     reading the interaction's parameters
-     ===================================================================== */
+      // Line 2 - Al
 
-  m = 0; maxintsm = 0;        //
-  for (k=0 ; k<=maxintparam ; k++) {intparams[k].intsm = 0;}
-  //  ---------------------------------
-  for (k = 0; k < maxintparam; k++) {
+      line = reader.next_line();
+      values = ValueTokenizer(line, SMTBQ_SEPARATORS);
+      label = values.next_string();
+      params[i].nom = utils::strdup(values.next_string());
+      params[i].sto = values.next_double();
+      if ((comm->me == 0) && verbose)
+        utils::logmesg(lmp, " {} {} {}\n", label,params[i].nom,params[i].sto);
+
+      //Line 3 - Charges
+
+      line = reader.next_line();
+      values = ValueTokenizer(line, SMTBQ_SEPARATORS);
+      label = values.next_string();
+      params[i].qform = values.next_double();
+      params[i].masse = values.next_double();
+      if ((comm->me == 0) && verbose)
+        utils::logmesg(lmp, " {} {} {}\n", label,params[i].qform,params[i].masse);
+
+      // Line 4 - Parametres QEq
+
+      line = reader.next_line();
+      values = ValueTokenizer(line, SMTBQ_SEPARATORS);
+      label = values.next_string();
+      params[i].ne = values.next_double();
+      params[i].chi = values.next_double();
+      params[i].dj = values.next_double();
+
+      if (strcmp(params[i].nom, "O") !=0) {
+        params[i].R = values.next_double();
+        if ((comm->me == 0) && verbose)
+          utils::logmesg(lmp, " {} {} {} {} {}\n",label,params[i].ne,params[i].chi,
+                         params[i].dj,params[i].R);
+      } else {
+        if ((comm->me == 0) && verbose)
+          utils::logmesg(lmp," {} {} {} {}\n",label,params[i].ne,params[i].chi,params[i].dj);
+      }
+
+
+      // Line 4bis - Coordinance et rayon pour Ox
+      if (strcmp(params[i].nom,"O") == 0) {
+
+        line = reader.next_line();
+        values = ValueTokenizer(line, SMTBQ_SEPARATORS);
+        label = values.next_string();
+        coordOxBB = values.next_double();
+        coordOxBulk = values.next_double();
+        coordOxSurf = values.next_double();
+        ROxBB = values.next_double();
+        params[i].R = values.next_double();
+        ROxSurf = values.next_double();
+        if ((comm->me == 0) && verbose)
+          utils::logmesg(lmp, " {} {} {} {} {} {} {}\n",
+                         label,coordOxBB,coordOxBulk,coordOxSurf,ROxBB,params[i].R,ROxSurf);
+      }
+
+      // Ligne 5 - Nombre d'etats partages
+
+      line = reader.next_line();
+      values = ValueTokenizer(line, SMTBQ_SEPARATORS);
+      label = values.next_string();
+      params[i].n0 = values.next_double();
+      if ((comm->me == 0) && verbose) utils::logmesg(lmp, " {} {}\n",label,params[i].n0);
+
+      // Parametres de Slater
+      params[i].dzeta = (2.0*params[i].ne + 1.0)/(4.0*params[i].R);
+      if ((comm->me == 0) && verbose)
+        utils::logmesg(lmp, " Parametre dzeta (Slater) : {}\n",params[i].dzeta);
+
+    } // Fin elements i
+
+    /* =====================================================================
+       reading the interaction's parameters
+       ===================================================================== */
+
+    m = 0; maxintsm = 0;        //
+    for (k=0 ; k<=maxintparam ; k++) {intparams[k].intsm = 0;}
     //  ---------------------------------
-    m += 1;
+    for (k = 0; k < maxintparam; k++) {
+      //  ---------------------------------
+      m += 1;
 
-    // Ligne 5 - parametre des potentials
-    fgets(ptr,MAXLINE,fp);  if (verbose) printf ("%s",ptr);
+      // Ligne 5 - parametre des potentials
+      line = reader.next_line();
+      values = ValueTokenizer(line, SMTBQ_SEPARATORS);
+      label = values.next_string();
+      if ((comm->me == 0) && verbose) utils::logmesg(lmp, label+"\n");
 
-    // Lecture des protagonistes
-    fgets( ptr, MAXLINE, fp);
-    Tokenize( ptr, &words );
+      // Lecture des protagonistes
+      test = 0;
+      auto words = Tokenizer(reader.next_line(), SMTBQ_SEPARATORS).as_vector();
+      if (words.size() < 3) test = 1;
 
-    test = 0;
-    for (i = 0; i <num_atom_types; i++)
-      {
-        if (strcmp(params[i].nom,words[1])==0) break;
+
+      for (i = 0; (i < num_atom_types) && (test == 0); i++) {
+        if (words[1] == params[i].nom) break;
         if (i == num_atom_types - 1) test = 1;
       }
-    //   if (test == 0) printf (" on a %s -> %d = %s\n",words[1],i,params[i].nom);
 
-    for (j = 0; j <num_atom_types; j++)
-      {
-        if (strcmp(params[j].nom,words[2])==0) break;
+      for (j = 0; (j <num_atom_types) && (test == 0); j++) {
+        if (words[2] == params[j].nom) break;
         if (j == num_atom_types - 1) test = 1;
       }
-    //    if (test == 0) printf (" on a %s -> %d = %s\n",words[2],j,params[j].nom);
 
-
-    if (test == 1) {
-      if (verbose) printf ("========== fin des interaction ==========\n");
-      break ; }
-
-
-    intype[i][j] = m;
-    intype[j][i] = intype[i][j];
-    strcpy( intparams[m].typepot , words[3] );
-    intparams[m].intsm = 0;
-    if (verbose) printf (" itype %d jtype %d - intype %d\n",i,j,intype[i][j]);
-
-    if (strcmp(intparams[m].typepot,"second_moment") !=0 &&
-        strcmp(intparams[m].typepot,"buck") != 0 &&
-        strcmp(intparams[m].typepot,"buckPlusAttr") != 0) {
-      error->all(FLERR,"the potential other than second_moment or buckingham have not treated here\n");}
-
-
-    // On detemrine le type d'interaction
-    // -----------------------------------
-    if (strcmp(intparams[m].typepot,"second_moment") == 0) {
-      maxintsm += 1;
-      strcpy( intparams[m].mode , words[4] );
-      intparams[m].intsm = maxintsm;
-
-      if (strcmp(intparams[m].mode,"oxide") != 0 &&
-          strcmp(intparams[m].mode,"metal") != 0) {
-        error->all(FLERR,"needs mode to second moment interaction : oxide or metal"); }
-
-      //      if (strcmp(intparams[m].mode,"oxide") == 0)
-      //             intparams[m].ncov = min((params[i].sto)*(params[i].n0),(params[j].sto)*(params[j].n0));
-
-      if (verbose) printf(" %s %s %s %s %s \n",words[0],words[1],words[2],
-                          intparams[m].typepot,intparams[m].mode);
-
-      fgets( ptr, MAXLINE, fp);
-      Tokenize( ptr, &words );
-
-      intparams[m].a = atof(words[1])   ;
-      intparams[m].p = atof(words[2])   ;
-      intparams[m].ksi = atof(words[3]) ;
-      intparams[m].q = atof(words[4])   ;
-      if (verbose) printf (" %s %f %f %f %f\n",words[0],
-                           intparams[m].a,intparams[m].p,intparams[m].ksi,intparams[m].q);
-
-      // Ligne 6 - rayon de coupure potential SM
-
-      fgets( ptr, MAXLINE, fp);
-      Tokenize( ptr, &words );
-
-      intparams[m].dc1 = atof(words[1]) ;
-      intparams[m].dc2 = atof(words[2]) ;
-      intparams[m].r0 = atof(words[3]) ;
-
-
-      if (strcmp(intparams[m].mode,"metal") == 0) {
-        if (verbose) printf (" %s %f %f %f\n",words[0],
-                             intparams[m].dc1,intparams[m].dc2,intparams[m].r0);
-      } else {
-        if (verbose) printf (" %s %f %f %f\n",words[0],
-                             intparams[m].dc1,intparams[m].dc2,intparams[m].r0);
+      if (test == 1) {
+        if ((comm->me == 0) && verbose)
+          utils::logmesg(lmp, "========== fin des interaction ==========\n");
+        break ;
       }
 
+      intype[i][j] = m;
+      intype[j][i] = intype[i][j];
+      intparams[m].typepot = utils::strdup(words[3]);
+      intparams[m].intsm = 0;
+      if ((comm->me == 0) && verbose)
+        utils::logmesg(lmp," itype {} jtype {} - intype {}\n",i,j,intype[i][j]);
 
-    } else if (strcmp(intparams[m].typepot,"buck") == 0) {
+      if (strcmp(intparams[m].typepot,"second_moment") != 0 &&
+          strcmp(intparams[m].typepot,"buck") != 0 &&
+          strcmp(intparams[m].typepot,"buckPlusAttr") != 0) {
+        error->all(FLERR,"Potential must be 'second_moment' or 'buckingham'\n");
+      }
 
-      if (verbose) printf(" %s %s %s %s\n",words[0],words[1],words[2],
-                          intparams[m].typepot);
+      // On detemrine le type d'interaction
+      // -----------------------------------
+      if (strcmp(intparams[m].typepot,"second_moment") == 0) {
+        maxintsm += 1;
+        intparams[m].mode = utils::strdup(words[4]);
+        intparams[m].intsm = maxintsm;
 
-      fgets( ptr, MAXLINE, fp);
-      Tokenize( ptr, &words );
+        if (strcmp(intparams[m].mode,"oxide") != 0 &&
+            strcmp(intparams[m].mode,"metal") != 0) {
+          error->all(FLERR,"Mode of second moment interaction must be 'oxide' or 'metal'");
+        }
 
-      intparams[m].abuck = atof(words[1]) ; intparams[m].rhobuck = atof(words[2]) ;
-      if (verbose) printf (" %s %f %f\n",words[0],intparams[m].abuck,intparams[m].rhobuck);
+        if ((comm->me == 0) && verbose)
+          utils::logmesg(lmp, " {} {} {} {} {}\n",words[0],words[1],words[2],
+                         intparams[m].typepot,intparams[m].mode);
 
+        line = reader.next_line();
+        values = ValueTokenizer(line, SMTBQ_SEPARATORS);
+        label = values.next_string();
+        intparams[m].a = values.next_double();
+        intparams[m].p = values.next_double();
+        intparams[m].ksi = values.next_double();
+        intparams[m].q = values.next_double();
+        if ((comm->me == 0) && verbose)
+          utils::logmesg(lmp, " {} {} {} {} {}\n",label,intparams[m].a,
+                         intparams[m].p,intparams[m].ksi,intparams[m].q);
+
+        // Ligne 6 - rayon de coupure potential SM
+
+        line = reader.next_line();
+        values = ValueTokenizer(line, SMTBQ_SEPARATORS);
+        label = values.next_string();
+        intparams[m].dc1 = values.next_double();
+        intparams[m].dc2 = values.next_double();
+        intparams[m].r0 = values.next_double();
+
+
+        if ((comm->me == 0) && verbose)
+          utils::logmesg(lmp, " {} {} {} {}\n",label, intparams[m].dc1,
+                         intparams[m].dc2,intparams[m].r0);
+
+      } else if (strcmp(intparams[m].typepot,"buck") == 0) {
+
+        if ((comm->me == 0) && verbose)
+          utils::logmesg(lmp, " {} {} {} {}\n",words[0],words[1],words[2],intparams[m].typepot);
+
+        line = reader.next_line();
+        values = ValueTokenizer(line, SMTBQ_SEPARATORS);
+        label = values.next_string();
+        intparams[m].abuck = values.next_double();
+        intparams[m].rhobuck = values.next_double();
+
+        if ((comm->me == 0) && verbose)
+          utils::logmesg(lmp, " {} {} {}\n",label,intparams[m].abuck,intparams[m].rhobuck);
+
+      } else if (strcmp(intparams[m].typepot,"buckPlusAttr") == 0) {
+
+        if ((comm->me == 0) && verbose)
+          utils::logmesg(lmp, " {} {} {} {}\n",words[0],words[1],words[2],intparams[m].typepot);
+
+        line = reader.next_line();
+        values = ValueTokenizer(line, SMTBQ_SEPARATORS);
+        label = values.next_string();
+        intparams[m].abuck = values.next_double();
+        intparams[m].rhobuck = values.next_double();
+
+        if ((comm->me == 0) && verbose)
+          utils::logmesg(lmp, " {} {} {}\n",label,intparams[m].abuck,intparams[m].rhobuck);
+
+        line = reader.next_line();
+        values = ValueTokenizer(line, SMTBQ_SEPARATORS);
+        label = values.next_string();
+        intparams[m].aOO = values.next_double();
+        intparams[m].bOO = values.next_double();
+        intparams[m].r1OO = values.next_double();
+        intparams[m].r2OO = values.next_double();
+        if ((comm->me == 0) && verbose)
+          utils::logmesg(lmp, " {} {} {} {} {}\n",label,intparams[m].aOO,
+                         intparams[m].bOO,intparams[m].r1OO,intparams[m].r2OO);
+
+      }
+      if ((comm->me == 0) && verbose)
+        utils::logmesg(lmp, " intsm {} \n",intparams[m].intsm);
+
+    } // for maxintparam
+
+    /* ====================================================================
+       tables Parameters
+       ==================================================================== */
+    // Ligne 9 - rayon de coupure Electrostatique
+    if (test == 0) {
+      line = reader.next_line();
+      if ((comm->me == 0) && verbose)
+        utils::logmesg(lmp, line);
+      line = reader.next_line();
     }
 
-    else if (strcmp(intparams[m].typepot,"buckPlusAttr") == 0) {
+    values = ValueTokenizer(line, SMTBQ_SEPARATORS);
+    label = values.next_string();
+    cutmax = values.next_double();
+    for (i=0 ; i<num_atom_types; i++) { params[i].cutsq = cutmax; }
 
-      if (verbose) printf(" %s %s %s %s\n",words[0],words[1],words[2],
-                          intparams[m].typepot);
+    if ((comm->me == 0) && verbose)
+      utils::logmesg(lmp, " {} {} \n",label,cutmax);
 
-      fgets( ptr, MAXLINE, fp);
-      Tokenize( ptr, &words );
+    // Ligne 9 - parametre pour les tableaux
 
-      intparams[m].abuck = atof(words[1]) ; intparams[m].rhobuck = atof(words[2]) ;
-      if (verbose) printf (" %s %f %f\n",words[0],intparams[m].abuck,intparams[m].rhobuck);
+    values = reader.next_values(0,SMTBQ_SEPARATORS);
+    label = values.next_string();
+    rmin = values.next_double();
+    dr = values.next_double();
+    if ((comm->me == 0) && verbose)
+      utils::logmesg(lmp, " {} {} {}\n",label, rmin, dr);
 
+    kmax = int(cutmax*cutmax/(2.0*dr*rmin));
+    ds = cutmax*cutmax/static_cast<double>(kmax) ;
+    if ((comm->me == 0) && verbose)
+      utils::logmesg(lmp, " kmax {} et ds {}\n",kmax,ds);
 
-      fgets( ptr, MAXLINE, fp);
-      Tokenize( ptr, &words );
+    /* ======================================================== */
+    if ((comm->me == 0) && verbose)
+      utils::logmesg(lmp, reader.next_line());
+    else reader.skip_line();
 
-      intparams[m].aOO = atof(words[1]) ; intparams[m].bOO = atof(words[2]) ;
-      intparams[m].r1OO = atof(words[3]) ;intparams[m].r2OO = atof(words[4]) ;
-      if (verbose) printf (" %s %f %f %f %f \n",words[0],intparams[m].aOO,
-                           intparams[m].bOO,intparams[m].r1OO,intparams[m].r2OO);
+    values = reader.next_values(0, SMTBQ_SEPARATORS);
+    label = values.next_string();
+    Qstep = values.next_bigint();
+    if ((comm->me == 0) && verbose)
+      utils::logmesg(lmp, " {} {}\n",label, Qstep);
 
+    values = reader.next_values(0, SMTBQ_SEPARATORS);
+    label = values.next_string();
+    loopmax = values.next_int();
+    precision = values.next_double();
+    if ((comm->me == 0) && verbose)
+      utils::logmesg(lmp, " {} {} {}\n",label, loopmax, precision);
+
+    /* Param de coordination ============================================= */
+
+    if ((comm->me == 0) && verbose)
+      utils::logmesg(lmp, reader.next_values(0, SMTBQ_SEPARATORS).next_string()+"\n");
+    else reader.skip_line();
+
+    values = reader.next_values(0, SMTBQ_SEPARATORS);
+    label = values.next_string();
+    r1Coord = values.next_double();
+    r2Coord = values.next_double();
+    if ((comm->me == 0) && verbose)
+      utils::logmesg(lmp, " {} {} {}\n",label,r1Coord,r2Coord);
+
+    /* Mode for QInit============================================= */
+
+    if ((comm->me == 0) && verbose)
+      utils::logmesg(lmp, reader.next_values(0, SMTBQ_SEPARATORS).next_string()+"\n");
+    else reader.skip_line();
+
+    values = reader.next_values(0, SMTBQ_SEPARATORS);
+    label = values.next_string();
+    QInitMode = utils::strdup(values.next_string());
+    if (strcmp(QInitMode,"true") == 0) QOxInit= values.next_double();
+    else QOxInit = 0.0;
+    if ((comm->me == 0) && verbose)
+      utils::logmesg(lmp, " {} {} {}\n",label,QInitMode,QOxInit);
+
+    /* Mode for QEq============================================= */
+
+    if ((comm->me == 0) && verbose)
+      utils::logmesg(lmp, reader.next_values(0, SMTBQ_SEPARATORS).next_string()+"\n");
+    else reader.skip_line();
+
+    values = reader.next_values(0, SMTBQ_SEPARATORS);
+    label = values.next_string();
+    QEqMode = utils::strdup(values.next_string());
+    if ((comm->me == 0) && verbose)
+      utils::logmesg(lmp, " {} {}\n",label,QEqMode);
+
+    if (strcmp(QEqMode,"BulkFromSlab") == 0) {
+      zlim1QEq = values.next_double();
+      zlim2QEq = values.next_double();
+      if ((comm->me == 0) && verbose)
+        utils::logmesg(lmp, " {} {} {}\n",label,zlim1QEq,zlim2QEq);
+
+    } else if (strcmp(QEqMode,"Surface") == 0) {
+
+      zlim1QEq = values.next_double();
+      if ((comm->me == 0) && verbose)
+        utils::logmesg(lmp, " {} {}\n",label,zlim1QEq);
+
+    } else if (strcmp(QEqMode,"QEqAll") != 0         &&
+               strcmp(QEqMode,"QEqAllParallel") != 0 &&
+               strcmp(QEqMode,"Surface") != 0) {
+      error->all(FLERR,"The QEq Mode is not known. QEq mode should be :\n"
+                 "  Possible QEq  modes    |   parameters\n"
+                 "  QEqAll                 |   no parameters\n"
+                 "  QEqAllParallel         |   no parameters\n"
+                 "  Surface                |   zlim   (QEq only for z>zlim)\n"
+                 "  BulkFromSlab           |   zlim1  zlim2  (QEq only for zlim1<z<zlim2)\n");
     }
-    if (verbose) printf (" intsm %d \n",intparams[m].intsm);
 
-  } // for maxintparam
+    /* Bavard============================================= */
 
+    if ((comm->me == 0) && verbose)
+      utils::logmesg(lmp, reader.next_values(0, SMTBQ_SEPARATORS).next_string()+"\n");
+    else reader.skip_line();
 
-  /* ====================================================================
-     tables Parameters
-     ==================================================================== */
+    values = reader.next_values(0, SMTBQ_SEPARATORS);
+    label = values.next_string();
+    Bavard = utils::strdup(values.next_string());
+    if ((comm->me == 0) && verbose)
+      utils::logmesg(lmp, " {} {}\n",label,Bavard);
 
-  // Ligne 9 - rayon de coupure Electrostatique
-  if (test == 0) {
-    fgets(ptr,MAXLINE,fp);
-    if (verbose) printf ("%s\n",ptr);
+    // ---------------------------------------
+    //  Writing the energy component.
 
-    fgets( ptr, MAXLINE, fp);
-  }
-  Tokenize( ptr, &words );
+    values = reader.next_values(0, SMTBQ_SEPARATORS);
+    label = values.next_string();
+    writeenerg = utils::strdup(values.next_string());
+    if (strcmp(writeenerg,"true") == 0) Nevery = values.next_double();
+    else Nevery = 0.0;
+    if ((comm->me == 0) && verbose)
+      utils::logmesg(lmp, " {} {} {}\n",label,writeenerg,Nevery);
 
-  for (i=0 ; i<num_atom_types; i++) { params[i].cutsq = atof(words[1]); }
-  cutmax = atof(words[1]);
-  if (verbose) printf (" %s %f\n",words[0],params[0].cutsq);
+    // ---------------------------------------
+    //  Writing the chimical electronic potential.
 
-  // Ligne 9 - parametre pour les tableaux
+    values = reader.next_values(0, SMTBQ_SEPARATORS);
+    label = values.next_string();
+    writepot = utils::strdup(values.next_string());
+    if (strcmp(writepot,"true") == 0) Neverypot = values.next_double();
+    else Neverypot = 0.0;
+    if ((comm->me == 0) && verbose)
+      utils::logmesg(lmp, " {} {} {}\n",label,writepot,Neverypot);
 
-  fgets( ptr, MAXLINE, fp);
-  Tokenize( ptr, &words );
+    // === Rayon de coupure premier voisins : 1,2*r0
+    for (i=0 ; i<num_atom_types ; i++) {
+      for (j=0 ; j<=i ; j++) {
+        m = intype[i][j];
+        if (m == 0) continue;
+        if (intparams[m].intsm == 0) continue;
 
-  rmin = atof(words[1]) ; dr = atof(words[2]);
-  if (verbose) printf (" %s %f %f\n",words[0],rmin,dr);
-
-  kmax = int(cutmax*cutmax/(2.0*dr*rmin));
-  ds = cutmax*cutmax/static_cast<double>(kmax) ;
-  if (verbose) printf (" kmax %d et ds %f\n",kmax,ds);
-
-  /* ======================================================== */
-  fgets( ptr, MAXLINE, fp);
-  if (verbose) printf ("%s",ptr);
-
-  fgets( ptr, MAXLINE, fp);
-  Tokenize( ptr, &words );
-  Qstep = atoi(words[1]);
-  if (verbose) printf (" %s " BIGINT_FORMAT "\n",words[0],Qstep);
-
-  fgets( ptr, MAXLINE, fp);
-  Tokenize( ptr, &words );
-  loopmax = atoi(words[1]);
-  precision = atof(words[2]);
-  if (verbose) printf (" %s %d %f\n",words[0],loopmax,precision);
-
-  /* Param de coordination ============================================= */
-
-  fgets( ptr, MAXLINE, fp);
-  if (verbose) printf ("%s",ptr);
-
-  fgets( ptr, MAXLINE, fp);
-  Tokenize( ptr, &words );
-  r1Coord = atof(words[1]);
-  r2Coord = atof(words[2]);
-  if (verbose) printf (" %s %f %f\n",words[0],r1Coord,r2Coord);
-
-  /* Mode for QInit============================================= */
-  fgets( ptr, MAXLINE, fp);
-  if (verbose) printf ("%s",ptr);
-
-  fgets( ptr, MAXLINE, fp);
-  Tokenize( ptr, &words );
-  strcpy( QInitMode , words[1] );
-  if (strcmp(QInitMode,"true") == 0) QOxInit= atof(words[2]);
-  else QOxInit = 0.0;
-  if (verbose) printf (" %s %s %f\n",words[0],QInitMode,QOxInit);
-
-
-  /* Mode for QEq============================================= */
-
-  fgets( ptr, MAXLINE, fp);
-  if (verbose) printf ("%s",ptr);
-
-  fgets( ptr, MAXLINE, fp);
-  Tokenize( ptr, &words );
-  strcpy( QEqMode , words[1] );
-  if (verbose) printf (" %s %s\n",words[0],QEqMode);
-
-  fgets( ptr, MAXLINE, fp);
-
-  if (strcmp(QEqMode,"BulkFromSlab") == 0) {
-    Tokenize( ptr, &words );
-    zlim1QEq = atof(words[1]);
-    zlim2QEq = atof(words[2]);
-    if (verbose) printf (" %s %f %f\n",words[0],zlim1QEq,zlim2QEq);
-
-  } else if (strcmp(QEqMode,"Surface") == 0) {
-    Tokenize( ptr, &words );
-    zlim1QEq = atof(words[1]);
-    if (verbose) printf (" %s %f \n",words[0],zlim1QEq);
-
-  } else if (strcmp(QEqMode,"QEqAll") != 0         &&
-             strcmp(QEqMode,"QEqAllParallel") != 0 &&
-             strcmp(QEqMode,"Surface") != 0) {
-    error->all(FLERR,"The QEq Mode is not known. QEq mode should be :\n"
-               "  Possible QEq  modes    |   parameters\n"
-               "  QEqAll                      |   no parameters\n"
-               "  QEqAllParallel        |   no parameters\n"
-               "  Surface                |   zlim   (QEq only for z>zlim)\n"
-               "  BulkFromSlab                |   zlim1  zlim2  (QEq only for zlim1<z<zlim2)\n");
-  }
-
-  /* Bavard============================================= */
-
-  fgets( ptr, MAXLINE, fp);
-  if (verbose) printf ("%s",ptr);
-
-  fgets( ptr, MAXLINE, fp);
-  Tokenize( ptr, &words );
-  strcpy( Bavard , words[1] );
-  if (verbose) printf (" %s %s\n",words[0],Bavard);
-
-  // ---------------------------------------
-  //  Writing the energy component.
-
-  fgets( ptr, MAXLINE, fp);
-  Tokenize( ptr, &words );
-  strcpy( writeenerg, words[1] );
-  if (strcmp (writeenerg,"true") == 0) { Nevery = atof(words[2]); }
-  else { Nevery = 0.0; }
-  if (verbose) printf (" %s %s %f\n",words[0],writeenerg,Nevery);
-
-  // ---------------------------------------
-  //  Writing the chimical electronic potential.
-
-  fgets( ptr, MAXLINE, fp);
-  Tokenize( ptr, &words );
-  strcpy( writepot, words[1] );
-  if (strcmp (writepot,"true") == 0) { Neverypot = atof(words[2]); }
-  else { Neverypot = 0.0; }
-  if (verbose) printf (" %s %s %f\n",words[0],writepot,Neverypot);
-
-
-  /* ======================================================== */
-
-  /* deallocate helper storage */
-  for (i = 0; i < MAXTOKENS ; i++ ) free( words[i]);
-  free( words );
-  free( ptr );
-  fclose(fp);
-
-  // === Rayon de coupure premier voisins : 1,2*r0
-  for (i=0 ; i<num_atom_types ; i++) {
-    for (j=0 ; j<=i ; j++) {
-      m = intype[i][j];
-      if (m == 0) continue;
-      if (intparams[m].intsm == 0) continue;
-
-      intparams[m].neig_cut = 1.2*intparams[m].r0;
-      if (strcmp(intparams[m].typepot,"second_moment") == 0 )
-        if (verbose) printf (" Rc 1er voisin, typepot %s -> %f Ang\n",
-                             intparams[m].typepot,intparams[m].neig_cut);
+        intparams[m].neig_cut = 1.2*intparams[m].r0;
+        if (strcmp(intparams[m].typepot,"second_moment") == 0 )
+          if ((comm->me == 0) && verbose)
+            utils::logmesg(lmp, " Rc 1er voisin, typepot {} -> {} Ang\n",
+                           intparams[m].typepot,intparams[m].neig_cut);
+      }
     }
+
+    //A adapter au STO
+    for (i=1,ncov=params[0].sto*params[0].n0; i < nparams; ++i)
+      ncov = min(ncov,(params[1].sto)*(params[1].n0));
+
+    if ((comm->me == 0) && verbose)
+      utils::logmesg(lmp, " Parametre ncov = {}\n"
+                     " ********************************************* \n",ncov);
+  } catch (std::exception &e) {
+    error->all(FLERR, "Error parsing SMTBQ parameter file: {}", e.what());
   }
-
-  //A adapter au STO
-  for (i=1,ncov=params[0].sto*params[0].n0; i < nparams; ++i)
-    ncov = min(ncov,(params[1].sto)*(params[1].n0));
-
-  if (verbose) printf (" Parametre ncov = %f\n",ncov);
-  if (verbose) printf (" ********************************************* \n");
 }
 
 /* ----------------------------------------------------------------------
@@ -1117,7 +1150,7 @@ void PairSMTBQ::compute(int eflag, int vflag)
   if (me == 0&& strcmp(Bavard,"false") != 0) {
     printf ("A la fin de Compute\n");
 
-    printf ("Nemton_pair : %d, evflag %d, tail_flag %d,vflag_fdotr %d\n",
+    printf ("Newton_pair : %d, evflag %d, tail_flag %d,vflag_fdotr %d\n",
             newton_pair,evflag,force->pair->tail_flag,vflag_fdotr);
     printf ("neighbor->includegroup %d\n",neighbor->includegroup);
 
@@ -2427,7 +2460,7 @@ void PairSMTBQ::Charge()
   ilist = list->ilist;
 
 
-  if (me == 0) t_init = MPI_Wtime();
+  if (me == 0) t_init = platform::walltime();
   if (step == 0) cluster = 0;
 
   // ---------------------------
@@ -2730,7 +2763,7 @@ void PairSMTBQ::Charge()
       printf (" convergence : %f - %f\n",enegchk[gp],enegmax[gp]);
     }
 
-    t_end = MPI_Wtime();
+    t_end = platform::walltime();
     dt = t_end - t_init;
     printf (" temps dans charges : %f seconde. \n",dt);
     printf (" ======================================================== \n");
@@ -3398,7 +3431,7 @@ void PairSMTBQ::forward(double *tab)
 
   for (i=0; i<nlocal+nghost; i++) tab_comm[i] = tab[i];
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   for (i=0; i<nlocal+nghost; i++) tab[i] = tab_comm[i];
 }
@@ -3413,7 +3446,7 @@ void PairSMTBQ::reverse(double *tab)
 
   for (i=0; i<nlocal+nghost; i++)  tab_comm[i] = tab[i];
 
-  comm->reverse_comm_pair(this);
+  comm->reverse_comm(this);
 
   for (i=0; i<nlocal+nghost; i++)  tab[i] = tab_comm[i];
 }
@@ -3428,7 +3461,7 @@ void PairSMTBQ::forward_int(int *tab)
 
   for (i=0; i<nlocal+nghost; i++) { tab_comm[i] = static_cast<double>(tab[i]);}
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   for (i=0; i<nlocal+nghost; i++) {
     if (fabs(tab_comm[i]) > 0.1) tab[i] = int(tab_comm[i]) ; }
@@ -3444,7 +3477,7 @@ void PairSMTBQ::reverse_int(int *tab)
 
   for (i=0; i<nlocal+nghost; i++) { tab_comm[i] = static_cast<double>(tab[i]);}
 
-  comm->reverse_comm_pair(this);
+  comm->reverse_comm(this);
 
   for (i=0; i<nlocal+nghost; i++) {
     if (fabs(tab_comm[i]) > 0.1) tab[i] = int(tab_comm[i]); }
@@ -3476,28 +3509,6 @@ void PairSMTBQ::add_pages(int howmany)
 }
 
 /* ---------------------------------------------------------------------- */
-
-
-int PairSMTBQ::Tokenize( char* s, char*** tok )
-{
-  char test[MAXLINE];
-  const char *sep = "' ";
-  char *mot;
-  int count=0;
-  mot = nullptr;
-
-
-  strncpy( test, s, MAXLINE-1 );
-
-  for (mot = strtok(test, sep); mot; mot = strtok(nullptr, sep)) {
-    strncpy( (*tok)[count], mot, MAXLINE );
-    count++;
-  }
-
-  return count;
-}
-
-
 
 void PairSMTBQ::CheckEnergyVSForce()
 {

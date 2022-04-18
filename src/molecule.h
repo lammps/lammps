@@ -16,8 +16,6 @@
 
 #include "pointers.h"
 
-#include <vector>
-
 namespace LAMMPS_NS {
 
 class Molecule : protected Pointers {
@@ -121,7 +119,7 @@ class Molecule : protected Pointers {
                             // e.g. FixPour or CreateAtoms
 
   Molecule(class LAMMPS *, int, char **, int &);
-  ~Molecule();
+  ~Molecule() override;
   void compute_center();
   void compute_mass();
   void compute_com();

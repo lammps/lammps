@@ -215,15 +215,6 @@ FixSMDMoveTriSurf::FixSMDMoveTriSurf(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixSMDMoveTriSurf::~FixSMDMoveTriSurf()
-{
-  // unregister callbacks to this fix from Atom class
-  //atom->delete_callback(id,Atom::GROW);
-  //atom->delete_callback(id,Atom::RESTART);
-}
-
-/* ---------------------------------------------------------------------- */
-
 int FixSMDMoveTriSurf::setmask() {
         int mask = 0;
         mask |= INITIAL_INTEGRATE;
@@ -441,7 +432,7 @@ void FixSMDMoveTriSurf::initial_integrate(int /*vflag*/) {
         }
 
         // we changed smd_data_9, x0. perform communication to ghosts
-        comm->forward_comm_fix(this);
+        comm->forward_comm(this);
 
 }
 

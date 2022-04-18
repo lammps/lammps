@@ -18,23 +18,15 @@
 #include "pair_lj_smooth_gpu.h"
 
 #include "atom.h"
-#include "atom_vec.h"
-#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "gpu_extra.h"
-#include "integrate.h"
-#include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "suffix.h"
-#include "universe.h"
-#include "update.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -122,9 +114,9 @@ void PairLJSmoothGPU::compute(int eflag, int vflag)
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
   if (host_start < inum) {
-    cpu_time = MPI_Wtime();
+    cpu_time = platform::walltime();
     cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
-    cpu_time = MPI_Wtime() - cpu_time;
+    cpu_time = platform::walltime() - cpu_time;
   }
   //fprintf("LJ_SMOOTH_GPU");
 }
@@ -136,8 +128,6 @@ void PairLJSmoothGPU::compute(int eflag, int vflag)
 void PairLJSmoothGPU::init_style()
 {
   //cut_respa = nullptr;
-
-  if (force->newton_pair) error->all(FLERR, "Pair style lj/smooth/gpu requires newton pair off");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;
@@ -164,11 +154,7 @@ void PairLJSmoothGPU::init_style()
                      gpu_mode, screen, ljsw0, ljsw1, ljsw2, ljsw3, ljsw4, cut_inner, cut_inner_sq);
   GPU_EXTRA::check_flag(success, error, world);
 
-  if (gpu_mode == GPU_FORCE) {
-    int irequest = neighbor->request(this, instance_me);
-    neighbor->requests[irequest]->half = 0;
-    neighbor->requests[irequest]->full = 1;
-  }
+  if (gpu_mode == GPU_FORCE) neighbor->add_request(this, NeighConst::REQ_FULL);
 }
 
 /* ---------------------------------------------------------------------- */

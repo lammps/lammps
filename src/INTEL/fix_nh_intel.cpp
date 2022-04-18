@@ -27,7 +27,6 @@
 #include "neighbor.h"
 #include "update.h"
 
-#include <cstring>
 #include <cmath>
 
 using namespace LAMMPS_NS;
@@ -47,7 +46,7 @@ typedef struct { double x,y,z; } dbl3_t;
 FixNHIntel::FixNHIntel(LAMMPS *lmp, int narg, char **arg) :
   FixNH(lmp, narg, arg)
 {
-  _dtfm = 0;
+  _dtfm = nullptr;
   _nlocal3 = 0;
   _nlocal_max = 0;
 }
@@ -77,7 +76,7 @@ void FixNHIntel::remap()
   double oldlo,oldhi;
   double expfac;
 
-  dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const x = (dbl3_t *) atom->x[0];
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   double *h = domain->h;
@@ -417,7 +416,7 @@ void FixNHIntel::nh_v_press()
     return;
   }
 
-  dbl3_t * _noalias const v = (dbl3_t *)atom->v[0];
+  auto * _noalias const v = (dbl3_t *)atom->v[0];
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;

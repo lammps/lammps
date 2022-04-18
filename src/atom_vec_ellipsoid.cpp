@@ -381,7 +381,7 @@ int AtomVecEllipsoid::unpack_restart_bonus(int ilocal, double *buf)
    unpack one line from Ellipsoids section of data file
 ------------------------------------------------------------------------- */
 
-void AtomVecEllipsoid::data_atom_bonus(int m, char **values)
+void AtomVecEllipsoid::data_atom_bonus(int m, const std::vector<std::string> & values)
 {
   if (ellipsoid[m])
     error->one(FLERR,"Assigning ellipsoid parameters to non-ellipsoid atom");
@@ -389,17 +389,18 @@ void AtomVecEllipsoid::data_atom_bonus(int m, char **values)
   if (nlocal_bonus == nmax_bonus) grow_bonus();
 
   double *shape = bonus[nlocal_bonus].shape;
-  shape[0] = 0.5 * utils::numeric(FLERR,values[0],true,lmp);
-  shape[1] = 0.5 * utils::numeric(FLERR,values[1],true,lmp);
-  shape[2] = 0.5 * utils::numeric(FLERR,values[2],true,lmp);
+  int ivalue = 1;
+  shape[0] = 0.5 * utils::numeric(FLERR,values[ivalue++],true,lmp);
+  shape[1] = 0.5 * utils::numeric(FLERR,values[ivalue++],true,lmp);
+  shape[2] = 0.5 * utils::numeric(FLERR,values[ivalue++],true,lmp);
   if (shape[0] <= 0.0 || shape[1] <= 0.0 || shape[2] <= 0.0)
     error->one(FLERR,"Invalid shape in Ellipsoids section of data file");
 
   double *quat = bonus[nlocal_bonus].quat;
-  quat[0] = utils::numeric(FLERR,values[3],true,lmp);
-  quat[1] = utils::numeric(FLERR,values[4],true,lmp);
-  quat[2] = utils::numeric(FLERR,values[5],true,lmp);
-  quat[3] = utils::numeric(FLERR,values[6],true,lmp);
+  quat[0] = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  quat[1] = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  quat[2] = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  quat[3] = utils::numeric(FLERR,values[ivalue++],true,lmp);
   MathExtra::qnormalize(quat);
 
   // reset ellipsoid mass

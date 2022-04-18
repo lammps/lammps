@@ -191,24 +191,24 @@ static inline double mtrace(int n,double A[8][8],double B[8][8]) {
 
 void PairMGPT::make_triplet(bond_data *ij_bond,bond_data *ik_bond,
                              triplet_data *triptr) {
-  if (1) {
-    const trmul_fun tr_mul = linalg.tr_mul;
-    tr_mul(&(ij_bond->H.m[1][0]), &(ik_bond->H.m[1][0]) ,&(triptr->H1H2.m[1][0]) );
-    tr_mul(&(ij_bond->Hx.m[1][0]),&(ik_bond->H.m[1][0]) ,&(triptr->H1xH2.m[1][0]));
-    tr_mul(&(ij_bond->Hy.m[1][0]),&(ik_bond->H.m[1][0]) ,&(triptr->H1yH2.m[1][0]));
-    tr_mul(&(ij_bond->Hz.m[1][0]),&(ik_bond->H.m[1][0]) ,&(triptr->H1zH2.m[1][0]));
-    tr_mul(&(ij_bond->H.m[1][0]) ,&(ik_bond->Hx.m[1][0]),&(triptr->H1H2x.m[1][0]));
-    tr_mul(&(ij_bond->H.m[1][0]) ,&(ik_bond->Hy.m[1][0]),&(triptr->H1H2y.m[1][0]));
-    tr_mul(&(ij_bond->H.m[1][0]) ,&(ik_bond->Hz.m[1][0]),&(triptr->H1H2z.m[1][0]));
-  } else {
-    transprod(ij_bond->H, ik_bond->H ,triptr->H1H2 );
-    transprod(ij_bond->Hx,ik_bond->H ,triptr->H1xH2);
-    transprod(ij_bond->Hy,ik_bond->H ,triptr->H1yH2);
-    transprod(ij_bond->Hz,ik_bond->H ,triptr->H1zH2);
-    transprod(ij_bond->H ,ik_bond->Hx,triptr->H1H2x);
-    transprod(ij_bond->H ,ik_bond->Hy,triptr->H1H2y);
-    transprod(ij_bond->H ,ik_bond->Hz,triptr->H1H2z);
-  }
+#if 1
+  const trmul_fun tr_mul = linalg.tr_mul;
+  tr_mul(&(ij_bond->H.m[1][0]), &(ik_bond->H.m[1][0]) ,&(triptr->H1H2.m[1][0]) );
+  tr_mul(&(ij_bond->Hx.m[1][0]),&(ik_bond->H.m[1][0]) ,&(triptr->H1xH2.m[1][0]));
+  tr_mul(&(ij_bond->Hy.m[1][0]),&(ik_bond->H.m[1][0]) ,&(triptr->H1yH2.m[1][0]));
+  tr_mul(&(ij_bond->Hz.m[1][0]),&(ik_bond->H.m[1][0]) ,&(triptr->H1zH2.m[1][0]));
+  tr_mul(&(ij_bond->H.m[1][0]) ,&(ik_bond->Hx.m[1][0]),&(triptr->H1H2x.m[1][0]));
+  tr_mul(&(ij_bond->H.m[1][0]) ,&(ik_bond->Hy.m[1][0]),&(triptr->H1H2y.m[1][0]));
+  tr_mul(&(ij_bond->H.m[1][0]) ,&(ik_bond->Hz.m[1][0]),&(triptr->H1H2z.m[1][0]));
+#else
+  transprod(ij_bond->H, ik_bond->H ,triptr->H1H2 );
+  transprod(ij_bond->Hx,ik_bond->H ,triptr->H1xH2);
+  transprod(ij_bond->Hy,ik_bond->H ,triptr->H1yH2);
+  transprod(ij_bond->Hz,ik_bond->H ,triptr->H1zH2);
+  transprod(ij_bond->H ,ik_bond->Hx,triptr->H1H2x);
+  transprod(ij_bond->H ,ik_bond->Hy,triptr->H1H2y);
+  transprod(ij_bond->H ,ik_bond->Hz,triptr->H1H2z);
+#endif
 }
 
 static double t_make_t = 0.0,t_make_b = 0.0,n_make = 0.0;
@@ -222,8 +222,8 @@ PairMGPT::triplet_data *PairMGPT::get_triplet(const double xx[][3],int i,int j,i
 
   double t0,t1;
 
-  bond_data *bij = 0,*bik = 0;
-  triplet_data *tptr = 0;
+  bond_data *bij = nullptr,*bik = nullptr;
+  triplet_data *tptr = nullptr;
 
   t0 = gettime();
   if (recompute == 0) {
@@ -231,7 +231,7 @@ PairMGPT::triplet_data *PairMGPT::get_triplet(const double xx[][3],int i,int j,i
     bik = bhash->Lookup(Doublet(i,k));
   }
 
-  if (bij == 0) {
+  if (bij == nullptr) {
     if (recompute == 0)
       bij = bhash->Insert(Doublet(i,j));
     else
@@ -242,7 +242,7 @@ PairMGPT::triplet_data *PairMGPT::get_triplet(const double xx[][3],int i,int j,i
       make_bond(xx,j,i,bij);
   }
 
-  if (bik == 0) {
+  if (bik == nullptr) {
     if (recompute == 0)
       bik = bhash->Insert(Doublet(i,k));
     else
@@ -256,7 +256,7 @@ PairMGPT::triplet_data *PairMGPT::get_triplet(const double xx[][3],int i,int j,i
   t_make_b += t1-t0;
 
   t0 = gettime();
-  if (bij != 0 && bij != 0) {
+  if (bij != nullptr && bij != nullptr) {
     tptr = twork;
     make_triplet(bij,bik,tptr);
     *dvir_ij_p = bij->fl_deriv_sum;
@@ -289,7 +289,7 @@ double PairMGPT::numderiv3t(double xx[][3],int i,int j,int k,int p) {
 
   xx[i][p] = xsave - delta;
   make_bond(xx,i,j,&Bij);
-  if (0) { /* This bond doesn't change when i is perturbed */
+  if (false) { /* This bond doesn't change when i is perturbed */
     make_bond(xx,j,k,&Bjk);
   }
   make_bond(xx,k,i,&Bki);
@@ -341,7 +341,7 @@ double PairMGPT::numderiv4(double xx[][3],int i,int j,int k,int m,int p) {
 
   xx[i][p] = xsave - delta;
   make_bond(xx,i,j,&Bij);
-  if (0) { /* Only the i coordinates changed... */
+  if (false) { /* Only the i coordinates changed... */
     make_bond(xx,j,k,&Bjk);
     make_bond(xx,k,m,&Bkm);
   }
@@ -438,7 +438,7 @@ void PairMGPT::force_debug_4(double xx[][3],
   for (int p = 0; p<3; p++) {
     /* Compute numerical derivatives by displacing atoms i,j,k,m */
     double ndfi,ndfj,ndfk,ndfm;
-    if (1) {
+    if (true) {
       double ndf[] = {0.0,0.0,0.0,0.0};
       for (int s = 0; s<4; s++)
         for (int t = 0; t<4; t++)
@@ -765,11 +765,11 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
 
   int c_p = 0, c_t = 0, c_q = 0;
 
-  if (0)
+  if (false)
     if (domain->triclinic) {
       if (comm->me == 0)
         printf("Can not handle triclinic box yet\n");
-      error->all(__FILE__,__LINE__,"Can not handle triclinic cell with mgpt yet.");
+      error->all(FLERR,"Can not handle triclinic cell with mgpt yet.");
     }
 
   /*
@@ -876,7 +876,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
         if (first[i+1] > nneitot) {
           printf("nneitot = %d, short list full. i=%d\n",
                  nneitot,i);
-          error->one(__FILE__,__LINE__,"Shit! Short list full\n");
+          error->one(FLERR,"Shit! Short list full\n");
         }
 
       }
@@ -933,7 +933,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
           const int ski = (k < i) ? 1 : -1;
 
 
-          T12 = T23 = T31 = 0;
+          T12 = T23 = T31 = nullptr;
 
           mj = first[j];
           /*
@@ -1042,7 +1042,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
                 accumulate_forces_3(w3);
             }
 
-            if (T12 != 0) {
+            if (T12 != nullptr) {
               //printf("T12 i,j,k = %d,%d,%d\n",i,j,k);
               mcount++;
               if (three_body_energies && evflag) {
@@ -1098,7 +1098,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
                 accumulate_forces_3(w3);
             }
 
-            if (T23 != 0) {
+            if (T23 != nullptr) {
               //printf("T23 i,j,k = %d,%d,%d\n",i,j,k);
               mcount++;
               if (three_body_energies && evflag) {
@@ -1154,7 +1154,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
 
             }
 
-            if (T31 != 0) {
+            if (T31 != nullptr) {
               //printf("T31 i,j,k = %d,%d,%d\n",i,j,k);
               mcount++;
               if (three_body_energies && evflag) {
@@ -1272,7 +1272,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
                          "  k=%d  first[k]=%d  first[k+1]=%d  mk=%d\n",
                          j,first[j],first[j+1],mj,
                          k,first[k],first[k+1],mk);
-                  error->one(__FILE__,__LINE__,"Shit, brkoen quad loop");
+                  error->one(FLERR,"Shit, brkoen quad loop");
                 }
 
                 if (nlist_short[mj] == nlist_short[mk]) {
@@ -1327,15 +1327,15 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
                       tr1 = tr2 = tr3 = 0.0;
 
                       dvir_im = dvir_jm = dvir_km = 0.0;
-                      T45 = T56 = T64 = 0;
-                      if (T12 != 0 && c_km && c_im)
+                      T45 = T56 = T64 = nullptr;
+                      if (T12 != nullptr && c_km && c_im)
                         T45 = get_triplet(xx,m,i,k,&bond_hash,&T45work,&dvir_im,&dvir_km);
-                      if (T23 != 0 && c_im && c_jm)
+                      if (T23 != nullptr && c_im && c_jm)
                         T56 = get_triplet(xx,m,i,j,&bond_hash,&T56work,&dvir_im,&dvir_jm);
-                      if (T31 != 0 && c_jm && c_km)
+                      if (T31 != nullptr && c_jm && c_km)
                         T64 = get_triplet(xx,m,j,k,&bond_hash,&T64work,&dvir_jm,&dvir_km);
 
-                      if (T12 != 0 && T45 != 0) {
+                      if (T12 != nullptr && T45 != nullptr) {
                         if (four_body_energies && evflag) {
                           tr1 = transtrace(T12->H1H2,T45->H1H2);
                           double dvir = ( (dvir_ij + dvir_jk + dvir_im + dvir_km)*splinepot.ve +
@@ -1364,7 +1364,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
                           accumulate_forces_4(w4);
                       }
 
-                      if (T23 != 0 && T56 != 0) {
+                      if (T23 != nullptr && T56 != nullptr) {
                         if (four_body_energies && evflag) {
                           tr2 = transtrace(T23->H1H2,T56->H1H2);
                           double dvir = ( (dvir_ki + dvir_jk + dvir_im + dvir_jm)*splinepot.ve +
@@ -1394,7 +1394,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
 
                       }
 
-                      if (T31 != 0 && T64 != 0) {
+                      if (T31 != nullptr && T64 != nullptr) {
                         if (four_body_energies && evflag) {
                           tr3 = transtrace(T31->H1H2,T64->H1H2);
                           double dvir = ( (dvir_ki + dvir_ij + dvir_jm + dvir_km)*splinepot.ve +
@@ -1690,7 +1690,7 @@ void PairMGPT::compute(int eflag, int vflag)
 
   compute_x(listfull->numneigh,listfull->firstneigh,&e_s,&e_p,&e_t,&e_q,evflag,newton_pair);
 
-  if (0) { // Stupid force calculation / verification
+  if (false) { // Stupid force calculation / verification
     int ii,nmax=-1;
     for (ii = 0; ii<listfull->inum + listfull->gnum; ii++) {
       int i = listfull->ilist[ii];
@@ -1768,7 +1768,7 @@ void PairMGPT::compute(int eflag, int vflag)
   }
 
 
-  if (0) {
+  if (false) {
     printf("\nForces MGPT:\n");
     const int iimax = (listfull->inum < 10) ? listfull->inum : 10;
     for (int ii = 0; ii<iimax; ii++) {
@@ -1804,7 +1804,7 @@ void PairMGPT::allocate()
 ------------------------------------------------------------------------- */
 void PairMGPT::settings(int narg, char **/*arg*/)
 {
-  if (narg != 0) error->all(__FILE__,__LINE__,"Illegal pair_style command");
+  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -1816,18 +1816,18 @@ void PairMGPT::coeff(int narg, char **arg)
   int single_precision = 0;
 
   if (narg < 5)
-    error->all(__FILE__,__LINE__,
+    error->all(FLERR,
                "Not enough arguments for mgpt (MGPT) pair coefficients.");
 
   if (!allocated) allocate();
 
   // Make sure I,J args are * *
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(__FILE__,__LINE__,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   double vol;
   if (sscanf(arg[4], "%lg", &vol) != 1 || vol <= 0.0)
-    error->all(__FILE__,__LINE__,"Invalid volume in mgpt (MGPT) pair coefficients.");
+    error->all(FLERR,"Invalid volume in mgpt (MGPT) pair coefficients.");
 
   volpres_flag = 1;
   single_precision = 0;
@@ -1846,8 +1846,8 @@ void PairMGPT::coeff(int narg, char **arg)
           char line[1024];
           sprintf(line,"(In %s:%d) Invalid value for volumetric pressure argument.\n"
                   "It should be \"volpress yes\" or \"volpress no\".\n"
-                  "The value is \"%s\".\n",__FILE__,__LINE__,arg[iarg+1]);
-          error->all(__FILE__,__LINE__,line);
+                  "The value is \"%s\".\n",FLERR,arg[iarg+1]);
+          error->all(FLERR,line);
         }
         volpres_tag = 1;
         iarg += 2;
@@ -1868,8 +1868,8 @@ void PairMGPT::coeff(int narg, char **arg)
                   "It should be e.g. \"nbody=1234\" (for single, pair, triple, and quad forces/energiers)\n"
                   "For e.g. only pair and triple forces/energies, use \"nbody=23\".\n"
                   "The default is \"nbody=1234\".\n"
-                  "The current value is \"%s\".\n",__FILE__,__LINE__,arg[iarg+1]);
-          error->all(__FILE__,__LINE__,line);
+                  "The current value is \"%s\".\n",FLERR,arg[iarg+1]);
+          error->all(FLERR,line);
         }
         nbody_tag = 1;
         iarg += 2;
@@ -1882,8 +1882,8 @@ void PairMGPT::coeff(int narg, char **arg)
           char line[1024];
           sprintf(line,"(In %s:%d) Invalid value for precision argument.\n"
                   "It should be \"precision single\" or \"precision double\".\n"
-                  "The value is \"%s\".\n",__FILE__,__LINE__,arg[iarg+1]);
-          error->all(__FILE__,__LINE__,line);
+                  "The value is \"%s\".\n",FLERR,arg[iarg+1]);
+          error->all(FLERR,line);
         }
         precision_tag = 1;
         iarg += 2;
@@ -1894,8 +1894,8 @@ void PairMGPT::coeff(int narg, char **arg)
                 "    volpress {yes|no} , default = yes\n"
                 "    precision {single|double} , default = double\n"
                 "    nbody {[1234,]*} , default = whichever terms potential require\n"
-                "The invalid argument is \"%s\".\n",__FILE__,__LINE__,arg[iarg]);
-        error->all(__FILE__,__LINE__,line);
+                "The invalid argument is \"%s\".\n",FLERR,arg[iarg]);
+        error->all(FLERR,line);
       }
     }
 
@@ -1995,18 +1995,11 @@ void PairMGPT::coeff(int narg, char **arg)
 void PairMGPT::init_style()
 {
         if (force->newton_pair == 0)
-          error->all(__FILE__,__LINE__,"Pair style mgpt requires newton pair on.");
+          error->all(FLERR,"Pair style mgpt requires newton pair on.");
 
-        // Need full neighbor list.
-        int irequest_full = neighbor->request(this);
-        neighbor->requests[irequest_full]->id = 1;
-        neighbor->requests[irequest_full]->half = 0;
-        neighbor->requests[irequest_full]->full = 1;
-        neighbor->requests[irequest_full]->ghost = 1;
-
-        // Also need half neighbor list.
-        int irequest_half = neighbor->request(this);
-        neighbor->requests[irequest_half]->id = 2;
+        // Need a half list and a full neighbor list with neighbors of ghosts
+        neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST)->set_id(1);
+        neighbor->add_request(this)->set_id(2);
 }
 
 /* ----------------------------------------------------------------------

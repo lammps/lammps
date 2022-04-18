@@ -36,24 +36,17 @@
 
 using namespace LAMMPS_NS;
 
-#define MAX_TEXT_HEADER_SIZE 4096
 #define DUMP_BUF_CHUNK_SIZE 16384
 #define DUMP_BUF_INCREMENT_SIZE 4096
 
-// clang-format off
-enum{ ID, MOL, TYPE, ELEMENT, MASS,
-  X, Y, Z, XS, YS, ZS, XSTRI, YSTRI, ZSTRI, XU, YU, ZU, XUTRI, YUTRI, ZUTRI,
-  XSU, YSU, ZSU, XSUTRI, YSUTRI, ZSUTRI,
-  IX, IY, IZ, VX, VY, VZ, FX, FY, FZ,
-  Q, MUX, MUY, MUZ, MU, RADIUS, DIAMETER,
-  OMEGAX, OMEGAY, OMEGAZ, ANGMOMX, ANGMOMY, ANGMOMZ,
-  TQX, TQY, TQZ, SPIN, ERADIUS, ERVEL, ERFORCE,
-  COMPUTE, FIX, VARIABLE };
-enum{ LT, LE, GT, GE, EQ, NEQ };
-// clang-format on
 /* ---------------------------------------------------------------------- */
 
-DumpCustomMPIIO::DumpCustomMPIIO(LAMMPS *lmp, int narg, char **arg) : DumpCustom(lmp, narg, arg) {}
+DumpCustomMPIIO::DumpCustomMPIIO(LAMMPS *lmp, int narg, char **arg)
+  : DumpCustom(lmp, narg, arg)
+{
+  if (me == 0)
+    error->warning(FLERR,"MPI-IO output is unmaintained and unreliable. Use with caution.");
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -66,7 +59,7 @@ DumpCustomMPIIO::~DumpCustomMPIIO()
 
 void DumpCustomMPIIO::openfile()
 {
-  if (singlefile_opened) {    // single file already opened, so just return after resetting filesize
+  if (singlefile_opened) { // single file already opened, so just return after resetting filesize
     mpifo = currentFileSize;
     MPI_File_set_size(mpifh, mpifo + headerSize + sumFileSize);
     currentFileSize = mpifo + headerSize + sumFileSize;
@@ -79,19 +72,7 @@ void DumpCustomMPIIO::openfile()
   filecurrent = filename;
 
   if (multifile) {
-    char *filestar = filecurrent;
-    filecurrent = new char[strlen(filestar) + 16];
-    char *ptr = strchr(filestar, '*');
-    *ptr = '\0';
-    if (padflag == 0) {
-      sprintf(filecurrent, "%s" BIGINT_FORMAT "%s", filestar, update->ntimestep, ptr + 1);
-    } else {
-      char bif[8], pad[16];
-      strcpy(bif, BIGINT_FORMAT);
-      sprintf(pad, "%%s%%0%d%s%%s", padflag, &bif[1]);
-      sprintf(filecurrent, pad, filestar, update->ntimestep, ptr + 1);
-    }
-    *ptr = '*';
+    filecurrent = utils::strdup(utils::star_subst(filecurrent, update->ntimestep, padflag));
     if (maxfiles > 0) {
       if (numfiles < maxfiles) {
         nameslist[numfiles] = new char[strlen(filecurrent) + 1];
@@ -224,51 +205,52 @@ void DumpCustomMPIIO::write()
 
 void DumpCustomMPIIO::init_style()
 {
+  // assemble ITEMS: column string from defaults and user values
+
+  delete[] columns;
+  std::string combined;
+  int icol = 0;
+  for (auto item : utils::split_words(columns_default)) {
+    if (combined.size()) combined += " ";
+    if (keyword_user[icol].size()) combined += keyword_user[icol];
+    else combined += item;
+    ++icol;
+  }
+  columns = utils::strdup(combined);
+
   // format = copy of default or user-specified line format
 
   delete[] format;
-  char *str;
-  if (format_line_user)
-    str = format_line_user;
-  else
-    str = format_default;
-
-  int n = strlen(str) + 1;
-  format = new char[n];
-  strcpy(format, str);
+  if (format_line_user) format = utils::strdup(format_line_user);
+  else format = utils::strdup(format_default);
 
   // tokenize the format string and add space at end of each format element
   // if user-specified int/float format exists, use it instead
   // if user-specified column format exists, use it instead
   // lo priority = line, medium priority = int/float, hi priority = column
 
-  char *ptr;
-  for (int i = 0; i < size_one; i++) {
-    if (i == 0)
-      ptr = strtok(format, " \0");
-    else
-      ptr = strtok(nullptr, " \0");
-    if (ptr == nullptr) error->all(FLERR, "Dump_modify format line is too short");
+  auto words = utils::split_words(format);
+  if ((int) words.size() < nfield)
+    error->all(FLERR,"Dump_modify format line is too short");
+
+  int i=0;
+  for (const auto &word : words) {
     delete[] vformat[i];
 
-    if (format_column_user[i]) {
-      vformat[i] = new char[strlen(format_column_user[i]) + 2];
-      strcpy(vformat[i], format_column_user[i]);
-    } else if (vtype[i] == Dump::INT && format_int_user) {
-      vformat[i] = new char[strlen(format_int_user) + 2];
-      strcpy(vformat[i], format_int_user);
-    } else if (vtype[i] == Dump::DOUBLE && format_float_user) {
-      vformat[i] = new char[strlen(format_float_user) + 2];
-      strcpy(vformat[i], format_float_user);
-    } else if (vtype[i] == Dump::BIGINT && format_bigint_user) {
-      vformat[i] = new char[strlen(format_bigint_user) + 2];
-      strcpy(vformat[i], format_bigint_user);
-    } else {
-      vformat[i] = new char[strlen(ptr) + 2];
-      strcpy(vformat[i], ptr);
-    }
+    if (format_column_user[i])
+      vformat[i] = utils::strdup(std::string(format_column_user[i]) + " ");
+    else if (vtype[i] == Dump::INT && format_int_user)
+      vformat[i] = utils::strdup(std::string(format_int_user) + " ");
+    else if (vtype[i] == Dump::DOUBLE && format_float_user)
+      vformat[i] = utils::strdup(std::string(format_float_user) + " ");
+    else if (vtype[i] == Dump::BIGINT && format_bigint_user)
+      vformat[i] = utils::strdup(std::string(format_bigint_user) + " ");
+    else vformat[i] = utils::strdup(word + " ");
 
-    vformat[i] = strcat(vformat[i], " ");
+    // remove trailing blank on last column's format
+    if (i == nfield-1) vformat[i][strlen(vformat[i])-1] = '\0';
+
+    ++i;
   }
 
   // setup boundary string
@@ -294,26 +276,22 @@ void DumpCustomMPIIO::init_style()
   // find current ptr for each compute,fix,variable
   // check that fix frequency is acceptable
 
-  int icompute;
-  for (int i = 0; i < ncompute; i++) {
-    icompute = modify->find_compute(id_compute[i]);
-    if (icompute < 0) error->all(FLERR, "Could not find dump custom compute ID");
-    compute[i] = modify->compute[icompute];
+  for (i = 0; i < ncompute; i++) {
+    compute[i] = modify->get_compute_by_id(id_compute[i]);
+    if (!compute[i]) error->all(FLERR,"Could not find dump custom compute ID {}",id_compute[i]);
   }
 
-  int ifix;
-  for (int i = 0; i < nfix; i++) {
-    ifix = modify->find_fix(id_fix[i]);
-    if (ifix < 0) error->all(FLERR, "Could not find dump custom fix ID");
-    fix[i] = modify->fix[ifix];
-    if (nevery % modify->fix[ifix]->peratom_freq)
-      error->all(FLERR, "Dump custom and fix not computed at compatible times");
+  for (i = 0; i < nfix; i++) {
+    fix[i] = modify->get_fix_by_id(id_fix[i]);
+    if (!fix[i]) error->all(FLERR,"Could not find dump custom fix ID {}", id_fix[i]);
+    if (nevery % fix[i]->peratom_freq)
+      error->all(FLERR,"Dump custom and fix not computed at compatible times");
   }
 
-  int ivariable;
-  for (int i = 0; i < nvariable; i++) {
-    ivariable = input->variable->find(id_variable[i]);
-    if (ivariable < 0) error->all(FLERR, "Could not find dump custom variable name");
+  for (i = 0; i < nvariable; i++) {
+    int ivariable = input->variable->find(id_variable[i]);
+    if (ivariable < 0)
+      error->all(FLERR,"Could not find dump custom variable name {}", id_variable[i]);
     variable[i] = ivariable;
   }
 

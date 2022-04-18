@@ -54,6 +54,7 @@ OPT.
    * :doc:`born/coul/msm (o) <pair_born>`
    * :doc:`born/coul/wolf (go) <pair_born>`
    * :doc:`born/coul/wolf/cs (g) <pair_cs>`
+   * :doc:`bpm/spring <pair_bpm_spring>`
    * :doc:`brownian (o) <pair_brownian>`
    * :doc:`brownian/poly (o) <pair_brownian>`
    * :doc:`buck (giko) <pair_buck>`
@@ -89,12 +90,12 @@ OPT.
    * :doc:`coul/tt <pair_coul_tt>`
    * :doc:`coul/wolf (ko) <pair_coul>`
    * :doc:`coul/wolf/cs <pair_cs>`
-   * :doc:`dpd (gio) <pair_dpd>`
+   * :doc:`dpd (giko) <pair_dpd>`
    * :doc:`dpd/fdt <pair_dpd_fdt>`
-   * :doc:`dpd/ext <pair_dpd_ext>`
-   * :doc:`dpd/ext/tstat <pair_dpd_ext>`
+   * :doc:`dpd/ext (k) <pair_dpd_ext>`
+   * :doc:`dpd/ext/tstat (k) <pair_dpd_ext>`
    * :doc:`dpd/fdt/energy (k) <pair_dpd_fdt>`
-   * :doc:`dpd/tstat (go) <pair_dpd>`
+   * :doc:`dpd/tstat (gko) <pair_dpd>`
    * :doc:`dsmc <pair_dsmc>`
    * :doc:`e3b <pair_e3b>`
    * :doc:`drip <pair_drip>`
@@ -120,11 +121,13 @@ OPT.
    * :doc:`granular <pair_granular>`
    * :doc:`gw <pair_gw>`
    * :doc:`gw/zbl <pair_gw>`
+   * :doc:`harmonic/cut (o) <pair_harmonic_cut>`
    * :doc:`hbond/dreiding/lj (o) <pair_hbond_dreiding>`
    * :doc:`hbond/dreiding/morse (o) <pair_hbond_dreiding>`
    * :doc:`hdnnp <pair_hdnnp>`
    * :doc:`hippo <pair_amoeba>`
    * :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>`
+   * :doc:`ilp/tmd <pair_ilp_tmd>`
    * :doc:`kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`
    * :doc:`kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`
    * :doc:`lcbop <pair_lcbop>`
@@ -151,7 +154,7 @@ OPT.
    * :doc:`lj/cut/coul/cut/dielectric (o) <pair_dielectric>`
    * :doc:`lj/cut/coul/cut/soft (o) <pair_fep_soft>`
    * :doc:`lj/cut/coul/debye (gko) <pair_lj_cut_coul>`
-   * :doc:`lj/cut/coul/debye/dielectric <pair_dielectric>`
+   * :doc:`lj/cut/coul/debye/dielectric (o) <pair_dielectric>`
    * :doc:`lj/cut/coul/dsf (gko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/long (gikot) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/long/cs <pair_cs>`
@@ -212,6 +215,7 @@ OPT.
    * :doc:`nm/cut (o) <pair_nm>`
    * :doc:`nm/cut/coul/cut (o) <pair_nm>`
    * :doc:`nm/cut/coul/long (o) <pair_nm>`
+   * :doc:`nm/cut/split <pair_nm>`
    * :doc:`oxdna/coaxstk <pair_oxdna>`
    * :doc:`oxdna/excv <pair_oxdna>`
    * :doc:`oxdna/hbond <pair_oxdna>`
@@ -241,6 +245,7 @@ OPT.
    * :doc:`reaxff (ko) <pair_reaxff>`
    * :doc:`rebo (io) <pair_airebo>`
    * :doc:`resquared (go) <pair_resquared>`
+   * :doc:`saip/metal <pair_saip_metal>`
    * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`
    * :doc:`smd/hertz <pair_smd_hertz>`
    * :doc:`smd/tlsph <pair_smd_tlsph>`
@@ -264,6 +269,7 @@ OPT.
    * :doc:`spin/neel <pair_spin_neel>`
    * :doc:`srp <pair_srp>`
    * :doc:`sw (giko) <pair_sw>`
+   * :doc:`sw/mod (o) <pair_sw>`
    * :doc:`table (gko) <pair_table>`
    * :doc:`table/rx (k) <pair_table_rx>`
    * :doc:`tdpd <pair_mesodpd>`

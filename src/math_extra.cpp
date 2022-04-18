@@ -144,6 +144,58 @@ void richardson(double *q, double *m, double *w, double *moments, double dtq)
 }
 
 /* ----------------------------------------------------------------------
+   Richardson iteration to update quaternion from angular velocity
+   return new normalized quaternion q
+   also returns updated omega at 1/2 step
+   Assumes spherical particles - no need to rotate to match moments
+------------------------------------------------------------------------- */
+
+void richardson_sphere(double *q, double *w, double dtq)
+{
+  // full update from dq/dt = 1/2 w q
+
+  double wq[4];
+  MathExtra::vecquat(w,q,wq);
+
+  double qfull[4];
+  qfull[0] = q[0] + dtq * wq[0];
+  qfull[1] = q[1] + dtq * wq[1];
+  qfull[2] = q[2] + dtq * wq[2];
+  qfull[3] = q[3] + dtq * wq[3];
+  MathExtra::qnormalize(qfull);
+
+  // 1st half update from dq/dt = 1/2 w q
+
+  double qhalf[4];
+  qhalf[0] = q[0] + 0.5*dtq * wq[0];
+  qhalf[1] = q[1] + 0.5*dtq * wq[1];
+  qhalf[2] = q[2] + 0.5*dtq * wq[2];
+  qhalf[3] = q[3] + 0.5*dtq * wq[3];
+  MathExtra::qnormalize(qhalf);
+
+  // re-compute q at 1/2 step
+  // recompute wq
+
+  MathExtra::vecquat(w,qhalf,wq);
+
+  // 2nd half update from dq/dt = 1/2 w q
+
+  qhalf[0] += 0.5*dtq * wq[0];
+  qhalf[1] += 0.5*dtq * wq[1];
+  qhalf[2] += 0.5*dtq * wq[2];
+  qhalf[3] += 0.5*dtq * wq[3];
+  MathExtra::qnormalize(qhalf);
+
+  // corrected Richardson update
+
+  q[0] = 2.0*qhalf[0] - qfull[0];
+  q[1] = 2.0*qhalf[1] - qfull[1];
+  q[2] = 2.0*qhalf[2] - qfull[2];
+  q[3] = 2.0*qhalf[3] - qfull[3];
+  MathExtra::qnormalize(q);
+}
+
+/* ----------------------------------------------------------------------
    apply evolution operators to quat, quat momentum
    Miller et al., J Chem Phys. 116, 8649-8659 (2002)
 ------------------------------------------------------------------------- */

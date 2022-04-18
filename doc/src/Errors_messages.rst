@@ -714,7 +714,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Cannot create/grow a vector/array of pointers for %s*
    LAMMPS code is making an illegal call to the templated memory
-   allocaters, to create a vector or array of pointers.
+   allocators, to create a vector or array of pointers.
 
 *Cannot create_atoms after reading restart file with per-atom info*
    The per-atom info was stored to be used when by a fix that you may
@@ -1939,6 +1939,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Compute ID for fix numdiff does not exist*
+   Self-explanatory.
+
+*Compute ID for fix numdiff/virial does not exist*
    Self-explanatory.
 
 *Compute ID for fix store/state does not exist*
@@ -3795,6 +3798,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Fix numdiff requires consecutive atom IDs*
    Self-explanatory. Efficient loop over all atoms for numerical
    difference requires consecutive atom IDs.
+
+*Fix numdiff/virial must use group all*
+   Virial contributions computed by this fix are
+   computed on all atoms.
 
 *Fix nve/asphere requires extended particles*
    This fix can only be used for particles with a shape setting.
@@ -7772,9 +7779,6 @@ keyword to allow for additional bonds to be formed
    The system size must fit in a 32-bit integer to use this dump
    style.
 
-*Too many atoms to dump sort*
-   Cannot sort when running with more than 2\^31 atoms.
-
 *Too many elements extracted from MEAM library.*
    Increase 'maxelt' in meam.h and recompile.
 
@@ -7879,19 +7883,19 @@ keyword to allow for additional bonds to be formed
 *Unexpected end of -reorder file*
    Self-explanatory.
 
-*Unexpected empty line in AngleCoeffs section*
+*Unexpected empty line in Angle Coeffs section*
    Read a blank line where there should be coefficient data.
 
-*Unexpected empty line in BondCoeffs section*
+*Unexpected empty line in Bond Coeffs section*
    Read a blank line where there should be coefficient data.
 
-*Unexpected empty line in DihedralCoeffs section*
+*Unexpected empty line in Dihedral Coeffs section*
    Read a blank line where there should be coefficient data.
 
-*Unexpected empty line in ImproperCoeffs section*
+*Unexpected empty line in Improper Coeffs section*
    Read a blank line where there should be coefficient data.
 
-*Unexpected empty line in PairCoeffs section*
+*Unexpected empty line in Pair Coeffs section*
    Read a blank line where there should be coefficient data.
 
 *Unexpected end of custom file*

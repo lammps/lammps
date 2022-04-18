@@ -62,6 +62,7 @@ From: ubuntu:20.04
         valgrind \
         gdb \
         zstd \
+        libyaml-cpp-dev \
         libkim-api-dev \
         openkim-models
 
@@ -99,7 +100,7 @@ From: ubuntu:20.04
     # Plumed
     ###########################################################################
 
-    export PLUMED_PKG_VERSION=2.6.1
+    export PLUMED_PKG_VERSION=2.7.3
 
     mkdir plumed
     cd plumed

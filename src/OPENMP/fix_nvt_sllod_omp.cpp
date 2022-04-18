@@ -78,7 +78,7 @@ void FixNVTSllodOMP::init()
   int i;
   for (i = 0; i < modify->nfix; i++)
     if (utils::strmatch(modify->fix[i]->style,"^deform")) {
-      if (((FixDeform *) modify->fix[i])->remapflag != Domain::V_REMAP)
+      if ((dynamic_cast<FixDeform *>( modify->fix[i]))->remapflag != Domain::V_REMAP)
         error->all(FLERR,"Using fix nvt/sllod/omp with inconsistent fix "
                    "deform remap option");
       break;
@@ -100,7 +100,7 @@ void FixNVTSllodOMP::nh_v_temp()
   //   calculate temperature since some computes require temp
   //   computed on current nlocal atoms to remove bias
 
-  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
+  auto * _noalias const v = (dbl3_t *) atom->v[0];
   const int * _noalias const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
 

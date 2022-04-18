@@ -26,7 +26,6 @@
 #include "math_const.h"
 #include "memory.h"
 #include "neighbor.h"
-#include "update.h"
 
 #include <cmath>
 

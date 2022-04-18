@@ -33,6 +33,7 @@ class Pair : protected Pointers {
   friend class PairHybridScaled;
   friend class ThrOMP;
   friend class Info;
+  friend class Neighbor;
 
  public:
   static int instance_total;    // # of Pair classes ever instantiated
@@ -110,6 +111,7 @@ class Pair : protected Pointers {
                        //       public so external driver can check
   int compute_flag;    // 0 if skip compute()
   int mixed_flag;      // 1 if all itype != jtype coeffs are from mixing
+  bool did_mix;        // set to true by mix_energy() to indicate that mixing was performed
 
   enum { GEOMETRIC, ARITHMETIC, SIXTHPOWER };    // mixing options
 
@@ -122,7 +124,7 @@ class Pair : protected Pointers {
   int kokkosable;    // 1 if Kokkos pair
 
   Pair(class LAMMPS *);
-  virtual ~Pair();
+  ~Pair() override;
 
   // top-level Pair methods
 

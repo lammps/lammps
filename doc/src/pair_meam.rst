@@ -28,16 +28,16 @@ Description
    as of November 2010; see description below of the mixture_ref_t
    parameter
 
-Style *meam* computes pairwise interactions for a variety of materials
-using modified embedded-atom method (MEAM) potentials
+Pair style *meam* computes non-bonded interactions for a variety of materials
+using the modified embedded-atom method (MEAM)
 :ref:`(Baskes) <Baskes>`.  Conceptually, it is an extension to the original
-:doc:`EAM potentials <pair_eam>` which adds angular forces.  It is
+:doc:`EAM method <pair_eam>` which adds angular forces.  It is
 thus suitable for modeling metals and alloys with fcc, bcc, hcp and
-diamond cubic structures, as well as covalently bonded materials like
-silicon and carbon. Style *meam* is a translation of the (now obsolete)
-*meam* code from Fortran to C++. It is functionally equivalent to *meam*
-but more efficient, and thus *meam* has been removed from LAMMPS after
-the 12 December 2018 release.
+diamond cubic structures, as well as materials with covalent interactions
+like silicon and carbon. This *meam* pair style is a translation of the
+original Fortran version to C++. It is functionally equivalent but more
+efficient and has additional features. The Fortran version of the *meam*
+pair style has been removed from LAMMPS after the 12 December 2018 release.
 
 In the MEAM formulation, the total energy E of a system of atoms is
 given by:
@@ -75,16 +75,16 @@ N additional arguments after the second filename in the pair_coeff
 command, where N is the number of LAMMPS atom types:
 
 * MEAM library file
-* Elem1, Elem2, ...
+* Element1, Element2, ...
 * MEAM parameter file
 * N element names = mapping of MEAM elements to atom types
 
 See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the potential files.
 
-As an example, the potentials/library.meam file has generic MEAM
-settings for a variety of elements.  The potentials/SiC.meam file has
-specific parameter settings for a Si and C alloy system.  If your
+As an example, the ``potentials/library.meam`` file has generic MEAM
+settings for a variety of elements.  The ``potentials/SiC.meam`` file
+has specific parameter settings for a Si and C alloy system.  If your
 LAMMPS simulation has 4 atoms types and you want the first 3 to be Si,
 and the fourth to be C, you would use the following pair_coeff command:
 
@@ -118,30 +118,30 @@ that will be used with other potentials.
 
    If the second filename is NULL, the element names between the two
    filenames can appear in any order, e.g. "Si C" or "C Si" in the
-   example above.  However, if the second filename is not NULL (as in the
-   example above), it contains settings that are Fortran-indexed for the
-   elements that precede it.  Thus you need to insure you list the
-   elements between the filenames in an order consistent with how the
+   example above.  However, if the second filename is **not** NULL (as in the
+   example above), it contains settings that are indexed **by numbers**
+   for the elements that precede it.  Thus you need to insure that you list
+   the elements between the filenames in an order consistent with how the
    values in the second filename are indexed.  See details below on the
    syntax for settings in the second file.
 
 The MEAM library file provided with LAMMPS has the name
-potentials/library.meam.  It is the "meamf" file used by other MD
-codes.  Aside from blank and comment lines (start with #) which can
-appear anywhere, it is formatted as a series of entries, each of which
+``potentials/library.meam``.  It is the "meamf" file used by other MD
+codes.  Aside from blank and comment lines (starting with # which can
+appear anywhere), it is formatted as a series of entries, each of which
 has 19 parameters and can span multiple lines:
 
 elt, lat, z, ielement, atwt, alpha, b0, b1, b2, b3, alat, esub, asub,
 t0, t1, t2, t3, rozero, ibar
 
-The "elt" and "lat" parameters are text strings, such as elt = Si or
-Cu and lat = dia or fcc.  Because the library file is used by Fortran
+The *elt* and *lat* parameters are text strings, such as *elt* = Si or
+Cu and *lat* = dia or fcc.  Because the library file is used by Fortran
 MD codes, these strings may be enclosed in single quotes, but this is
 not required.  The other numeric parameters match values in the
-formulas above.  The value of the "elt" string is what is used in the
+formulas above.  The value of the *elt* string is what is used in the
 pair_coeff command to identify which settings from the library file
 you wish to read in.  There can be multiple entries in the library
-file with the same "elt" value; LAMMPS reads the first matching entry it
+file with the same *elt* value; LAMMPS reads the first matching entry it
 finds and ignores the rest.
 
 Other parameters in the MEAM library file correspond to single-element
@@ -157,13 +157,13 @@ potential parameters:
    esub     = energy per atom (eV) in the reference structure at equilibrium
    asub     = "A" parameter for MEAM (see e.g. :ref:`(Baskes) <Baskes>`)
 
-The alpha, b0, b1, b2, b3, t0, t1, t2, t3 parameters correspond to the
+The *alpha*, *b0*, *b1*, *b2*, *b3*, *t0*, *t1*, *t2*, *t3* parameters correspond to the
 standard MEAM parameters in the literature :ref:`(Baskes) <Baskes>` (the b
 parameters are the standard beta parameters). Note that only parameters
-normalized to t0 = 1.0 are supported.  The rozero parameter is
+normalized to *t0 = 1.0* are supported.  The *rozero* parameter is
 an element-dependent density scaling that weights the reference
 background density (see e.g. equation 4.5 in :ref:`(Gullet) <Gullet>`) and
-is typically 1.0 for single-element systems.  The ibar parameter
+is typically 1.0 for single-element systems.  The *ibar* parameter
 selects the form of the function G(Gamma) used to compute the electron
 density; options are
 
@@ -180,7 +180,7 @@ If used, the MEAM parameter file contains settings that override or
 complement the library file settings.  Examples of such parameter
 files are in the potentials directory with a ".meam" suffix.  Their
 format is the same as is read by other Fortran MD codes.  Aside from
-blank and comment lines (start with #) which can appear anywhere, each
+blank and comment lines (start with # which can appear anywhere), each
 line has one of the following forms.  Each line can also have a
 trailing comment (starting with #) which is ignored.
 
@@ -213,7 +213,7 @@ The recognized keywords for the parameter file are as follows:
    delta(I,J)  = heat of formation for I-J alloy; if Ec_IJ is input as
                  zero, then LAMMPS sets Ec_IJ = (Ec_II + Ec_JJ)/2 - delta_IJ
    alpha(I,J)  = alpha parameter for pair potential between I and J (can
-                 be computed from bulk modulus of reference structure
+                 be computed from bulk modulus of reference structure)
    re(I,J)     = equilibrium distance between I and J in the reference
                  structure
    Cmax(I,J,K) = Cmax screening parameter when I-J pair is screened
@@ -283,8 +283,8 @@ The recognized keywords for the parameter file are as follows:
                        1 = rho_bkgd = rho0_meam(a)\*Z_meam(a) (matches DYNAMO)
                        default = 0
 
-Rc, delr, re are in distance units (Angstroms in the case of metal
-units).  Ec and delta are in energy units (eV in the case of metal
+*Rc*, *delr*, *re* are in distance units (Angstroms in the case of metal
+units).  *Ec* and *delta* are in energy units (eV in the case of metal
 units).
 
 Each keyword represents a quantity which is either a scalar, vector,
@@ -299,37 +299,37 @@ Thus these lines
    rho0(2) = 2.25
    alpha(1,2) = 4.37
 
-set rho0 for the second element to the value 2.25 and set alpha for the
+set *rho0* for the second element to the value 2.25 and set *alpha* for the
 alloy interaction between elements 1 and 2 to 4.37.
 
-The augt1 parameter is related to modifications in the MEAM
+The *augt1* parameter is related to modifications in the MEAM
 formulation of the partial electron density function.  In recent
 literature, an extra term is included in the expression for the
 third-order density in order to make the densities orthogonal (see for
 example :ref:`(Wang) <Wang2>`, equation 3d); this term is included in the
 MEAM implementation in lammps.  However, in earlier published work
 this term was not included when deriving parameters, including most of
-those provided in the library.meam file included with lammps, and to
-account for this difference the parameter t1 must be augmented by
-3/5\*t3.  If augt1=1, the default, this augmentation is done
+those provided in the ``library.meam`` file included with lammps, and to
+account for this difference the parameter *t1* must be augmented by
+3/5\**t3*.  If *augt1* = 1, the default, this augmentation is done
 automatically.  When parameter values are fit using the modified
 density function, as in more recent literature, augt1 should be set to
 0.
 
-The mixture_ref_t parameter is available to match results with those
+The *mixture_ref_t* parameter is available to match results with those
 of previous versions of lammps (before January 2011).  Newer versions
-of lammps, by default, use the single-element values of the t
+of lammps, by default, use the single-element values of the *t*
 parameters to compute the background reference density.  This is the
 proper way to compute these parameters.  Earlier versions of lammps
-used an alloy mixture averaged value of t to compute the background
-reference density.  Setting mixture_ref_t=1 gives the old behavior.
-WARNING: using mixture_ref_t=1 will give results that are demonstrably
+used an alloy mixture averaged value of *t* to compute the background
+reference density.  Setting *mixture_ref_t* = 1 gives the old behavior.
+WARNING: using *mixture_ref_t* = 1 will give results that are demonstrably
 incorrect for second-neighbor MEAM, and non-standard for
 first-neighbor MEAM; this option is included only for matching with
 previous versions of lammps and should be avoided if possible.
 
-The parameters attrac and repuls, along with the integer selection
-parameter erose_form, can be used to modify the Rose energy function
+The parameters *attrac* and *repuls*, along with the integer selection
+parameter *erose_form*, can be used to modify the Rose energy function
 used to compute the pair potential.  This function gives the energy of
 the reference state as a function of interatomic spacing.  The form of
 this function is:
@@ -343,19 +343,19 @@ this function is:
    a3 = repuls, astar < 0
    a3 = attrac, astar >= 0
 
-Most published MEAM parameter sets use the default values attrac=repulse=0.
-Setting repuls=attrac=delta corresponds to the form used in several
+Most published MEAM parameter sets use the default values *attrac* = *repulse* = 0.
+Setting *repuls* = *attrac* = *delta* corresponds to the form used in several
 recent published MEAM parameter sets, such as :ref:`(Valone) <Valone>`
 
 .. note::
 
-   The default form of the erose expression in LAMMPS was corrected
+   The default form of the *erose* expression in LAMMPS was corrected
    in March 2009.  The current version is correct, but may show different
    behavior compared with earlier versions of lammps with the attrac
    and/or repuls parameters are non-zero.  To obtain the previous default
-   form, use erose_form = 1 (this form does not seem to appear in the
+   form, use *erose_form* = 1 (this form does not seem to appear in the
    literature).  An alternative form (see e.g. :ref:`(Lee2) <Lee2>`) is
-   available using erose_form = 2.
+   available using *erose_form* = 2.
 
 ----------
 
@@ -364,13 +364,13 @@ Mixing, shift, table, tail correction, restart, rRESPA info
 
 For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS with
-user-specifiable parameters as described above.  You never need to
-specify a pair_coeff command with I != J arguments for this style.
+user-specifiable parameters as described above.
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
-shift, table, and tail options.
+*shift*, *table*, and *tail* options.
 
-This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
+This pair style does not write its information to :doc:`binary restart files <restart>`,
+since it is stored in potential files.  Thus, you
 need to re-specify the pair_style and pair_coeff commands in an input
 script that reads a restart file.
 

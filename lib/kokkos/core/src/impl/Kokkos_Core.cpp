@@ -58,7 +58,7 @@
 #ifndef _WIN32
 #include <unistd.h>
 #else
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 //----------------------------------------------------------------------------
@@ -128,6 +128,11 @@ void ExecSpaceManager::finalize_spaces(const bool all_spaces) {
 void ExecSpaceManager::static_fence() {
   for (auto& to_fence : exec_space_factory_list) {
     to_fence.second->fence();
+  }
+}
+void ExecSpaceManager::static_fence(const std::string& name) {
+  for (auto& to_fence : exec_space_factory_list) {
+    to_fence.second->fence(name);
   }
 }
 void ExecSpaceManager::print_configuration(std::ostream& msg,
@@ -507,11 +512,6 @@ void pre_initialize_internal(const InitArguments& args) {
 #else
   declare_configuration_metadata("options", "KOKKOS_ENABLE_LIBRT", "no");
 #endif
-#ifdef KOKKOS_ENABLE_MPI
-  declare_configuration_metadata("options", "KOKKOS_ENABLE_MPI", "yes");
-#else
-  declare_configuration_metadata("options", "KOKKOS_ENABLE_MPI", "no");
-#endif
   declare_configuration_metadata("architecture", "Default Device",
                                  typeid(Kokkos::DefaultExecutionSpace).name());
 }
@@ -564,7 +564,9 @@ void finalize_internal(const bool all_spaces = false) {
   g_tune_internals = false;
 }
 
-void fence_internal() { Impl::ExecSpaceManager::get_instance().static_fence(); }
+void fence_internal(const std::string& name) {
+  Impl::ExecSpaceManager::get_instance().static_fence(name);
+}
 
 bool check_arg(char const* arg, char const* expected) {
   std::size_t arg_len = std::strlen(arg);
@@ -1092,7 +1094,8 @@ void finalize_all() {
   Impl::finalize_internal(all_spaces);
 }
 
-void fence() { Impl::fence_internal(); }
+void fence() { Impl::fence_internal("Kokkos::fence: Unnamed Global Fence"); }
+void fence(const std::string& name) { Impl::fence_internal(name); }
 
 void print_helper(std::ostringstream& out,
                   const std::map<std::string, std::string>& print_me) {

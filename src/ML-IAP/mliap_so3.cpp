@@ -17,7 +17,6 @@
 
 #include "mliap_so3.h"
 
-#include "comm.h"
 #include "error.h"
 #include "math_const.h"
 #include "math_special.h"
@@ -370,16 +369,16 @@ void MLIAP_SO3::compute_W(int nmax, double *arr)
   }
 
   int i, j, k, n = nmax;
-  double *outeig = new double[n];
-  double *outeigvec = new double[n * n];
-  double *arrinv = new double[n * n];
+  auto outeig = new double[n];
+  auto outeigvec = new double[n * n];
+  auto arrinv = new double[n * n];
 
-  double *sqrtD = new double[n * n];
-  double *tempM = new double[n * n];
+  auto sqrtD = new double[n * n];
+  auto tempM = new double[n * n];
 
-  double **temparr = new double *[n];
-  double **tempvl = new double *[n];
-  double *tempout = new double[n];
+  auto temparr = new double *[n];
+  auto tempvl = new double *[n];
+  auto tempout = new double[n];
 
   int info;
 

@@ -20,7 +20,7 @@ namespace LAMMPS_NS {
 
 class PythonInterface {
  public:
-  virtual ~PythonInterface();
+  virtual ~PythonInterface() = default;
   virtual void command(int, char **) = 0;
   virtual void invoke_function(int, char *) = 0;
   virtual int find(const char *) = 0;
@@ -34,7 +34,7 @@ class PythonInterface {
 class Python : protected Pointers {
  public:
   Python(class LAMMPS *);
-  ~Python();
+  ~Python() override;
 
   void command(int, char **);
   void invoke_function(int, char *);
@@ -47,6 +47,7 @@ class Python : protected Pointers {
 
   bool is_enabled() const;
   void init();
+  static void finalize();
 
  private:
   PythonInterface *impl;

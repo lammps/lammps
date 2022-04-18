@@ -1,7 +1,8 @@
 ---
 lammps_version: 10 Feb 2021
+tags: slow
 date_generated: Fri Feb 26 23:09:34 2021
-epsilon: 3e-13
+epsilon: 4e-13
 prerequisites: ! |
   atom full
   pair tip4p/long

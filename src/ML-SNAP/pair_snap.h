@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class PairSNAP : public Pair {
  public:
   PairSNAP(class LAMMPS *);
-  ~PairSNAP();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  virtual void coeff(int, char **);
-  virtual void init_style();
-  virtual double init_one(int, int);
-  virtual double memory_usage();
-  virtual void *extract(const char *, int &);
+  ~PairSNAP() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  double memory_usage() override;
+  void *extract(const char *, int &) override;
 
   double rcutfac, quadraticflag;    // declared public to workaround gcc 4.9
   int ncoeff;                       //  compiler bug, manifest in KOKKOS package
@@ -59,7 +59,10 @@ class PairSNAP : public Pair {
   double **scale;         // for thermodynamic integration
   int twojmax, switchflag, bzeroflag, bnormflag;
   int chemflag, wselfallflag;
-  int chunksize;
+  int switchinnerflag;    // inner cutoff switch
+  double *rinnerelem;     // element inner cutoff
+  double *drinnerelem;    // element inner cutoff range
+  int chunksize,parallel_thresh;
   double rfac0, rmin0, wj1, wj2;
   int rcutfacflag, twojmaxflag;    // flags for required parameters
   int beta_max;                    // length of beta

@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class Special : protected Pointers {
  public:
   Special(class LAMMPS *);
-  ~Special();
+  ~Special() override;
   void build();
 
  private:

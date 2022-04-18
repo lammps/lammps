@@ -30,7 +30,6 @@
 #include "variable.h"
 
 #include <cstring>
-#include <unistd.h>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -53,6 +52,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
   nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
 
+  time_depend = 1;
   global_freq = nfreq;
 
   // expand args if any have wildcard character "*"
@@ -139,17 +139,17 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
       iarg += 1;
     } else if (strcmp(arg[iarg],"title1") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/correlate command");
-      delete [] title1;
+      delete[] title1;
       title1 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title2") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/correlate command");
-      delete [] title2;
+      delete[] title2;
       title2 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title3") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/correlate command");
-      delete [] title3;
+      delete[] title3;
       title3 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix ave/correlate command");
@@ -256,18 +256,18 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
     if (ferror(fp))
       error->one(FLERR,"Error writing file header");
 
-    filepos = ftell(fp);
+    filepos = platform::ftell(fp);
   }
 
-  delete [] title1;
-  delete [] title2;
-  delete [] title3;
+  delete[] title1;
+  delete[] title2;
+  delete[] title3;
 
   // if wildcard expansion occurred, free earg memory from expand_args()
   // wait to do this until after file comment lines are printed
 
   if (expand) {
-    for (int i = 0; i < nargnew; i++) delete [] earg[i];
+    for (int i = 0; i < nargnew; i++) delete[] earg[i];
     memory->sfree(earg);
   }
 
@@ -312,11 +312,11 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
 
 FixAveCorrelate::~FixAveCorrelate()
 {
-  delete [] which;
-  delete [] argindex;
-  delete [] value2index;
-  for (int i = 0; i < nvalues; i++) delete [] ids[i];
-  delete [] ids;
+  delete[] which;
+  delete[] argindex;
+  delete[] value2index;
+  for (int i = 0; i < nvalues; i++) delete[] ids[i];
+  delete[] ids;
 
   memory->destroy(values);
   memory->destroy(count);
@@ -391,11 +391,8 @@ void FixAveCorrelate::end_of_step()
   double scalar;
 
   // skip if not step which requires doing something
-  // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
-  if (ntimestep < nvalid_last || ntimestep > nvalid)
-    error->all(FLERR,"Invalid timestep reset for fix ave/correlate");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
 
@@ -489,8 +486,8 @@ void FixAveCorrelate::end_of_step()
 
   if (fp && me == 0) {
     clearerr(fp);
-    if (overwrite) fseek(fp,filepos,SEEK_SET);
-    fprintf(fp,BIGINT_FORMAT " %d\n",ntimestep,nrepeat);
+    if (overwrite) platform::fseek(fp,filepos);
+    fmt::print(fp,"{} {}\n",ntimestep,nrepeat);
     for (i = 0; i < nrepeat; i++) {
       fprintf(fp,"%d %d %d",i+1,i*nevery,count[i]);
       if (count[i])
@@ -507,9 +504,9 @@ void FixAveCorrelate::end_of_step()
     fflush(fp);
 
     if (overwrite) {
-      long fileend = ftell(fp);
-      if ((fileend > 0) && (ftruncate(fileno(fp),fileend)))
-        perror("Error while tuncating output");
+      bigint fileend = platform::ftell(fp);
+      if ((fileend > 0) && (platform::ftruncate(fp,fileend)))
+        error->warning(FLERR,"Error while tuncating output: {}", utils::getsyserror());
     }
   }
 

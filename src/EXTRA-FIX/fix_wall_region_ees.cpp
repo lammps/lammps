@@ -91,7 +91,7 @@ void FixWallRegionEES::init()
   if (iregion == -1)
     error->all(FLERR,"Region ID for fix wall/region/ees does not exist");
 
-  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  avec = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
   if (!avec)
     error->all(FLERR,"Fix wall/region/ees requires atom style ellipsoid");
 
@@ -119,7 +119,7 @@ void FixWallRegionEES::init()
 
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -129,9 +129,9 @@ void FixWallRegionEES::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(nlevels_respa-1);
     post_force_respa(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(nlevels_respa-1);
   }
 }
 
@@ -194,8 +194,10 @@ void FixWallRegionEES::post_force(int /*vflag*/)
         nhat[(which+2)%3] = 0 ;
         sn2 = 0 ;
         MathExtra::transpose_matvec(A,nhat,tempvec);
-        for (int k = 0; k<3; k++) tempvec[k] *= shape[k];
-        for (int k = 0; k<3 ; k++) sn2 += tempvec[k]*tempvec[k];
+        for (int k = 0; k<3; k++) {
+          tempvec[k] *= shape[k];
+          sn2 += tempvec[k]*tempvec[k];
+        }
         sn = sqrt(sn2);
         tooclose[which] = sn;
       }
@@ -321,9 +323,11 @@ void FixWallRegionEES::ees(int m, int i)
 
   sigman2 = 0.0;
   MathExtra::transpose_matvec(A,nhat,tempvec);
-  for (int k = 0; k<3; k++) tempvec[k] *= shape[k];
-  for (int k = 0; k<3; k++) sigman2 += tempvec[k]*tempvec[k];
-  for (int k = 0; k<3; k++) SAn[k] = tempvec[k];
+  for (int k = 0; k<3; k++) {
+    tempvec[k] *= shape[k];
+    sigman2 += tempvec[k]*tempvec[k];
+    SAn[k] = tempvec[k];
+  }
 
   sigman = sqrt(sigman2);
   delta = fabs(region->contact[m].r);

@@ -19,6 +19,7 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
 #include "neigh_list.h"

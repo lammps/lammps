@@ -64,6 +64,7 @@ extern void   lammps_close(void *handle);
 extern void   lammps_mpi_init();
 extern void   lammps_mpi_finalize();
 extern void   lammps_kokkos_finalize();
+extern void   lammps_python_finalize();
 extern void   lammps_file(void *handle, const char *file);
 extern char  *lammps_command(void *handle, const char *cmd);
 extern void   lammps_commands_list(void *handle, int ncmd, const char **cmds);
@@ -155,6 +156,8 @@ extern int    lammps_is_running(void *handle);
 extern void   lammps_force_timeout(void *handle);
 extern int    lammps_has_error(void *handle);
 extern int    lammps_get_last_error_message(void *handle, char *buffer, int buf_size);
+
+extern void   lammps_flush_buffers(void *ptr);
 %}
 
 enum _LMP_DATATYPE_CONST {
@@ -199,6 +202,7 @@ extern void   lammps_close(void *handle);
 extern void   lammps_mpi_init();
 extern void   lammps_mpi_finalize();
 extern void   lammps_kokkos_finalize();
+extern void   lammps_python_finalize();
 extern void   lammps_file(void *handle, const char *file);
 extern char  *lammps_command(void *handle, const char *cmd);
 extern void   lammps_commands_list(void *handle, int ncmd, const char **cmds);
@@ -285,4 +289,6 @@ extern void   lammps_force_timeout(void *handle);
 extern int    lammps_has_error(void *handle);
 extern int    lammps_get_last_error_message(void *handle, char *buffer, int buf_size);
 
-/* last revised on 21 July 2021 */
+extern void   lammps_flush_buffers(void *ptr);
+
+/* last revised on 4 February 2022 */

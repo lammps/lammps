@@ -28,12 +28,14 @@ include:
     - src/**
     - lib/**
     - tools/coding_standard
+    - tools/python
 exclude:
     - lib/colvars/Install.py
     - lib/gpu/geryon/file_to_cstr.sh
     - lib/hdnnp
     - lib/kim
     - lib/kokkos
+    - lib/latte
     - lib/machdyn
     - lib/mdi
     - lib/mscg
@@ -41,6 +43,7 @@ exclude:
     - lib/plumed
     - lib/quip
     - lib/scafacos
+    - lib/voronoi
     - src/Make.sh
 patterns:
     - "*.c"
@@ -51,6 +54,7 @@ patterns:
     - "*.py"
     - "*.rst"
     - "*.sh"
+    - "*.f90"
     - ".gitignore"
     - "README"
     - "requirements.txt"

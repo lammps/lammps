@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -35,16 +34,16 @@
 #include "reaxff_defs.h"
 
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
-  if (narg < 7) error->all(FLERR,"Illegal fix reaxff/species command");
+  if (narg < 7) error->all(FLERR, "Illegal fix reaxff/species command");
 
   force_reneighbor = 0;
 
@@ -56,34 +55,34 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 0;
   peratom_freq = 1;
 
+  compressed = 0;
   nvalid = -1;
 
-  MPI_Comm_rank(world,&me);
-  MPI_Comm_size(world,&nprocs);
+  MPI_Comm_rank(world, &me);
+  MPI_Comm_size(world, &nprocs);
   ntypes = atom->ntypes;
 
-  nevery = atoi(arg[3]);
-  nrepeat = atoi(arg[4]);
-  global_freq = nfreq = atoi(arg[5]);
+  nevery = utils::inumeric(FLERR, arg[3], false, lmp);
+  nrepeat = utils::inumeric(FLERR, arg[4], false, lmp);
+  global_freq = nfreq = utils::inumeric(FLERR, arg[5], false, lmp);
 
   comm_forward = 4;
 
   if (nevery <= 0 || nrepeat <= 0 || nfreq <= 0)
-    error->all(FLERR,"Illegal fix reaxff/species command");
-  if (nfreq % nevery || nrepeat*nevery > nfreq)
-    error->all(FLERR,"Illegal fix reaxff/species command");
+    error->all(FLERR, "Illegal fix reaxff/species command");
+  if (nfreq % nevery || nrepeat * nevery > nfreq)
+    error->all(FLERR, "Illegal fix reaxff/species command");
 
   // Neighbor lists must stay unchanged during averaging of bonds,
   // but may be updated when no averaging is performed.
 
   int rene_flag = 0;
-  if (nevery * nrepeat != 1 && (nfreq % neighbor->every != 0 || neighbor->every < nevery * nrepeat)) {
+  if (nevery * nrepeat != 1 &&
+      (nfreq % neighbor->every != 0 || neighbor->every < nevery * nrepeat)) {
     int newneighborevery = nevery * nrepeat;
-    while (nfreq % newneighborevery != 0 && newneighborevery <= nfreq / 2)
-      newneighborevery++;
+    while (nfreq % newneighborevery != 0 && newneighborevery <= nfreq / 2) newneighborevery++;
 
-    if (nfreq % newneighborevery != 0)
-      newneighborevery = nfreq;
+    if (nfreq % newneighborevery != 0) newneighborevery = nfreq;
 
     neighbor->every = newneighborevery;
     rene_flag = 1;
@@ -95,42 +94,30 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
     rene_flag = 1;
   }
 
-  if (me == 0 && rene_flag) {
-    error->warning(FLERR,"Resetting reneighboring criteria for fix reaxff/species");
-  }
-
-  tmparg = nullptr;
-  memory->create(tmparg,4,4,"reaxff/species:tmparg");
-  strcpy(tmparg[0],arg[3]);
-  strcpy(tmparg[1],arg[4]);
-  strcpy(tmparg[2],arg[5]);
+  if (me == 0 && rene_flag)
+    error->warning(FLERR,
+                   "Resetting reneighboring criteria to 'delay {} every {} check no' "
+                   "for fix reaxff/species",
+                   neighbor->delay, neighbor->every);
 
   if (me == 0) {
-    char *suffix = strrchr(arg[6],'.');
-    if (suffix && strcmp(suffix,".gz") == 0) {
-#ifdef LAMMPS_GZIP
-      auto gzip = fmt::format("gzip -6 > {}",arg[6]);
-#ifdef _WIN32
-      fp = _popen(gzip.c_str(),"wb");
-#else
-      fp = popen(gzip.c_str(),"w");
-#endif
-#else
-      error->one(FLERR,"Cannot open gzipped file");
-#endif
-    } else fp = fopen(arg[6],"w");
+    if (platform::has_compress_extension(arg[6])) {
+      fp = platform::compressed_write(arg[6]);
+      compressed = 1;
+      if (!fp) error->one(FLERR, "Cannot open compressed file");
+    } else
+      fp = fopen(arg[6], "w");
 
     if (!fp)
-      error->one(FLERR,fmt::format("Cannot open fix reaxff/species file {}: "
-                                   "{}",arg[6],utils::getsyserror()));
+      error->one(FLERR, "Cannot open fix reaxff/species file {}: {}", arg[6], utils::getsyserror());
   }
 
   x0 = nullptr;
   clusterID = nullptr;
 
   int ntmp = 1;
-  memory->create(x0,ntmp,"reaxff/species:x0");
-  memory->create(clusterID,ntmp,"reaxff/species:clusterID");
+  memory->create(x0, ntmp, "reaxff/species:x0");
+  memory->create(clusterID, ntmp, "reaxff/species:clusterID");
   vector_atom = clusterID;
 
   BOCut = nullptr;
@@ -148,11 +135,10 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
   int n, i, j, itype, jtype;
   double bo_cut;
   bg_cut = 0.30;
-  n = ntypes+1;
-  memory->create(BOCut,n,n,"reaxff/species:BOCut");
-  for (i = 1; i < n; i ++)
-    for (j = 1; j < n; j ++)
-      BOCut[i][j] = bg_cut;
+  n = ntypes + 1;
+  memory->create(BOCut, n, n, "reaxff/species:BOCut");
+  for (i = 1; i < n; i++)
+    for (j = 1; j < n; j++) BOCut[i][j] = bg_cut;
 
   // optional args
   eletype = nullptr;
@@ -167,74 +153,68 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
 
     // set BO cutoff
-    if (strcmp(arg[iarg],"cutoff") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix reaxff/species command");
-      itype = atoi(arg[iarg+1]);
-      jtype = atoi(arg[iarg+2]);
-      bo_cut = atof(arg[iarg+3]);
-      if (itype > ntypes || jtype > ntypes)
-        error->all(FLERR,"Illegal fix reaxff/species command");
-      if (itype <= 0 || jtype <= 0)
-        error->all(FLERR,"Illegal fix reaxff/species command");
-      if (bo_cut > 1.0 || bo_cut < 0.0)
-        error->all(FLERR,"Illegal fix reaxff/species command");
+    if (strcmp(arg[iarg], "cutoff") == 0) {
+      if (iarg + 4 > narg) error->all(FLERR, "Illegal fix reaxff/species command");
+      itype = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      jtype = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
+      bo_cut = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
+      if (itype > ntypes || jtype > ntypes) error->all(FLERR, "Illegal fix reaxff/species command");
+      if (itype <= 0 || jtype <= 0) error->all(FLERR, "Illegal fix reaxff/species command");
+      if (bo_cut > 1.0 || bo_cut < 0.0) error->all(FLERR, "Illegal fix reaxff/species command");
 
       BOCut[itype][jtype] = bo_cut;
       BOCut[jtype][itype] = bo_cut;
       iarg += 4;
 
       // modify element type names
-    } else if (strcmp(arg[iarg],"element") == 0) {
-      if (iarg+ntypes+1 > narg) error->all(FLERR,"Illegal fix reaxff/species command");
+    } else if (strcmp(arg[iarg], "element") == 0) {
+      if (iarg + ntypes + 1 > narg) error->all(FLERR, "Illegal fix reaxff/species command");
 
-      eletype = (char**) malloc(ntypes*sizeof(char*));
+      eletype = (char **) malloc(ntypes * sizeof(char *));
       int len;
-      for (int i = 0; i < ntypes; i ++) {
-        len = strlen(arg[iarg+1+i])+1;
-        eletype[i] = (char*) malloc(len*sizeof(char));
-        strcpy(eletype[i],arg[iarg+1+i]);
+      for (int i = 0; i < ntypes; i++) {
+        len = strlen(arg[iarg + 1 + i]) + 1;
+        eletype[i] = (char *) malloc(len * sizeof(char));
+        strcpy(eletype[i], arg[iarg + 1 + i]);
       }
       eleflag = 1;
       iarg += ntypes + 1;
 
       // position of molecules
-    } else if (strcmp(arg[iarg],"position") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix reaxff/species command");
+    } else if (strcmp(arg[iarg], "position") == 0) {
+      if (iarg + 3 > narg) error->all(FLERR, "Illegal fix reaxff/species command");
       posflag = 1;
-      posfreq = atoi(arg[iarg+1]);
-      if (posfreq < nfreq || (posfreq%nfreq != 0))
-        error->all(FLERR,"Illegal fix reaxff/species command");
+      posfreq = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      if (posfreq < nfreq || (posfreq % nfreq != 0))
+        error->all(FLERR, "Illegal fix reaxff/species command");
 
       filepos = new char[255];
-      strcpy(filepos,arg[iarg+2]);
-      if (strchr(filepos,'*')) {
+      strcpy(filepos, arg[iarg + 2]);
+      if (strchr(filepos, '*')) {
         multipos = 1;
       } else {
         if (me == 0) {
           pos = fopen(filepos, "w");
-          if (pos == nullptr) error->one(FLERR,"Cannot open fix reaxff/species position file");
+          if (pos == nullptr) error->one(FLERR, "Cannot open fix reaxff/species position file");
         }
         singlepos_opened = 1;
         multipos = 0;
       }
       iarg += 3;
-    } else error->all(FLERR,"Illegal fix reaxff/species command");
+    } else
+      error->all(FLERR, "Illegal fix reaxff/species command");
   }
 
   if (!eleflag) {
-    memory->create(ele,ntypes+1,"reaxff/species:ele");
-    ele[0]='C';
-    if (ntypes > 1)
-      ele[1]='H';
-    if (ntypes > 2)
-      ele[2]='O';
-    if (ntypes > 3)
-      ele[3]='N';
+    memory->create(ele, ntypes + 1, "reaxff/species:ele");
+    ele[0] = 'C';
+    if (ntypes > 1) ele[1] = 'H';
+    if (ntypes > 2) ele[2] = 'O';
+    if (ntypes > 3) ele[3] = 'N';
   }
 
   vector_nmole = 0;
   vector_nspec = 0;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -251,16 +231,22 @@ FixReaxFFSpecies::~FixReaxFFSpecies()
   memory->destroy(NMol);
   memory->destroy(MolType);
   memory->destroy(MolName);
-  memory->destroy(tmparg);
 
-  if (filepos)
-    delete [] filepos;
+  delete[] filepos;
 
-  if (me == 0) fclose(fp);
-  if (me == 0 && posflag && multipos_opened) fclose(pos);
+  if (me == 0) {
+    if (compressed)
+      platform::pclose(fp);
+    else
+      fclose(fp);
+    if (posflag && multipos_opened) fclose(pos);
+  }
 
-  modify->delete_compute("SPECATOM");
-  modify->delete_fix("SPECBOND");
+  try {
+    modify->delete_compute(fmt::format("SPECATOM_{}", id));
+    modify->delete_fix(fmt::format("SPECBOND_{}", id));
+  } catch (std::exception &) {
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -276,9 +262,8 @@ int FixReaxFFSpecies::setmask()
 
 void FixReaxFFSpecies::setup(int /*vflag*/)
 {
-  ntotal = static_cast<int> (atom->natoms);
-  if (Name == nullptr)
-    memory->create(Name,ntypes,"reaxff/species:Name");
+  ntotal = static_cast<int>(atom->natoms);
+  if (Name == nullptr) memory->create(Name, ntypes, "reaxff/species:Name");
 
   post_integrate();
 }
@@ -288,35 +273,31 @@ void FixReaxFFSpecies::setup(int /*vflag*/)
 void FixReaxFFSpecies::init()
 {
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Cannot use fix reaxff/species unless atoms have IDs");
+    error->all(FLERR, "Cannot use fix reaxff/species unless atoms have IDs");
 
-  reaxff = (PairReaxFF *) force->pair_match("^reax..",0);
-  if (reaxff == nullptr) error->all(FLERR,"Cannot use fix reaxff/species without "
-                                "pair_style reaxff, reaxff/kk, or reaxff/omp");
+  reaxff = dynamic_cast<PairReaxFF *>( force->pair_match("^reax..", 0));
+  if (reaxff == nullptr)
+    error->all(FLERR,
+               "Cannot use fix reaxff/species without "
+               "pair_style reaxff, reaxff/kk, or reaxff/omp");
 
   reaxff->fixspecies_flag = 1;
 
   // reset next output timestep if not yet set or timestep has been reset
-  if (nvalid != update->ntimestep)
-    nvalid = update->ntimestep+nfreq;
-
-  // check if this fix has been called twice
-  int count = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"reaxff/species") == 0) count++;
-  if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one fix reaxff/species");
+  if (nvalid != update->ntimestep) nvalid = update->ntimestep + nfreq;
 
   if (!setupflag) {
     // create a compute to store properties
-    modify->add_compute("SPECATOM all SPEC/ATOM q x y z vx vy vz abo01 abo02 abo03 abo04 "
-                        "abo05 abo06 abo07 abo08 abo09 abo10 abo11 abo12 abo13 abo14 "
-                        "abo15 abo16 abo17 abo18 abo19 abo20 abo21 abo22 abo23 abo24");
+    modify->add_compute(fmt::format("SPECATOM_{} all SPEC/ATOM q x y z vx vy vz abo01 abo02 "
+                                    "abo03 abo04 abo05 abo06 abo07 abo08 abo09 abo10 abo11 "
+                                    "abo12 abo13 abo14 abo15 abo16 abo17 abo18 abo19 abo20 "
+                                    "abo21 abo22 abo23 abo24",
+                                    id));
 
     // create a fix to point to fix_ave_atom for averaging stored properties
-    auto fixcmd = fmt::format("SPECBOND all ave/atom {} {} {}",tmparg[0],tmparg[1],tmparg[2]);
-    for (int i = 1; i < 32; ++i) fixcmd += " c_SPECATOM[" + std::to_string(i) + "]";
-    f_SPECBOND = (FixAveAtom *) modify->add_fix(fixcmd);
+    auto fixcmd = fmt::format("SPECBOND_{} all ave/atom {} {} {}", id, nevery, nrepeat, nfreq);
+    for (int i = 1; i < 32; ++i) fixcmd += fmt::format(" c_SPECATOM_{}[{}]", id, i);
+    f_SPECBOND = dynamic_cast<FixAveAtom *>( modify->add_fix(fixcmd));
     setupflag = 1;
   }
 }
@@ -332,7 +313,7 @@ void FixReaxFFSpecies::init_list(int /*id*/, NeighList *ptr)
 
 void FixReaxFFSpecies::post_integrate()
 {
-  Output_ReaxFF_Bonds(update->ntimestep,fp);
+  Output_ReaxFF_Bonds(update->ntimestep, fp);
   if (me == 0) fflush(fp);
 }
 
@@ -354,30 +335,27 @@ void FixReaxFFSpecies::Output_ReaxFF_Bonds(bigint ntimestep, FILE * /*fp*/)
     nmax = atom->nmax;
     memory->destroy(x0);
     memory->destroy(clusterID);
-    memory->create(x0,nmax,"reaxff/species:x0");
-    memory->create(clusterID,nmax,"reaxff/species:clusterID");
+    memory->create(x0, nmax, "reaxff/species:x0");
+    memory->create(clusterID, nmax, "reaxff/species:clusterID");
     vector_atom = clusterID;
   }
 
-  for (int i = 0; i < nmax; i++) {
-    x0[i].x = x0[i].y = x0[i].z = 0.0;
-  }
+  for (int i = 0; i < nmax; i++) { x0[i].x = x0[i].y = x0[i].z = 0.0; }
 
   Nmole = Nspec = 0;
 
   FindMolecule();
 
-  SortMolecule (Nmole);
+  SortMolecule(Nmole);
 
   FindSpecies(Nmole, Nspec);
 
   vector_nmole = Nmole;
   vector_nspec = Nspec;
 
-  if (me == 0 && ntimestep >= 0)
-    WriteFormulas (Nmole, Nspec);
+  if (me == 0 && ntimestep >= 0) WriteFormulas(Nmole, Nspec);
 
-  if (posflag && ((ntimestep)%posfreq==0)) {
+  if (posflag && ((ntimestep) % posfreq == 0)) {
     WritePos(Nmole, Nspec);
     if (me == 0) fflush(pos);
   }
@@ -395,8 +373,7 @@ AtomCoord FixReaxFFSpecies::chAnchor(AtomCoord in1, AtomCoord in2)
     if (in1.y < in2.y)
       return in1;
     else if (in1.y == in2.y) {
-      if (in1.z < in2.z)
-        return in1;
+      if (in1.z < in2.z) return in1;
     }
   }
   return in2;
@@ -404,13 +381,13 @@ AtomCoord FixReaxFFSpecies::chAnchor(AtomCoord in1, AtomCoord in2)
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxFFSpecies::FindMolecule ()
+void FixReaxFFSpecies::FindMolecule()
 {
-  int i,j,ii,jj,inum,itype,jtype,loop,looptot;
-  int change,done,anychange;
+  int i, j, ii, jj, inum, itype, jtype, loop, looptot;
+  int change, done, anychange;
   int *mask = atom->mask;
   int *ilist;
-  double bo_tmp,bo_cut;
+  double bo_tmp, bo_cut;
   double **spec_atom = f_SPECBOND->array_atom;
 
   inum = reaxff->list->inum;
@@ -423,17 +400,17 @@ void FixReaxFFSpecies::FindMolecule ()
       x0[i].x = spec_atom[i][1];
       x0[i].y = spec_atom[i][2];
       x0[i].z = spec_atom[i][3];
-    }
-    else clusterID[i] = 0.0;
+    } else
+      clusterID[i] = 0.0;
   }
 
   loop = 0;
-  while (1) {
-    comm->forward_comm_fix(this);
-    loop ++;
+  while (true) {
+    comm->forward_comm(this);
+    loop++;
 
     change = 0;
-    while (1) {
+    while (true) {
       done = 1;
 
       for (ii = 0; ii < inum; ii++) {
@@ -448,14 +425,13 @@ void FixReaxFFSpecies::FindMolecule ()
           if ((j == 0) || (j < i)) continue;
           if (!(mask[j] & groupbit)) continue;
 
-          if (clusterID[i] == clusterID[j]
-              && x0[i].x == x0[j].x
-              && x0[i].y == x0[j].y
-              && x0[i].z == x0[j].z) continue;
+          if (clusterID[i] == clusterID[j] && x0[i].x == x0[j].x && x0[i].y == x0[j].y &&
+              x0[i].z == x0[j].z)
+            continue;
 
           jtype = atom->type[j];
           bo_cut = BOCut[itype][jtype];
-          bo_tmp = spec_atom[i][jj+7];
+          bo_tmp = spec_atom[i][jj + 7];
 
           if (bo_tmp > bo_cut) {
             clusterID[i] = clusterID[j] = MIN(clusterID[i], clusterID[j]);
@@ -467,12 +443,11 @@ void FixReaxFFSpecies::FindMolecule ()
       if (!done) change = 1;
       if (done) break;
     }
-    MPI_Allreduce(&change,&anychange,1,MPI_INT,MPI_MAX,world);
+    MPI_Allreduce(&change, &anychange, 1, MPI_INT, MPI_MAX, world);
     if (!anychange) break;
 
-    MPI_Allreduce(&loop,&looptot,1,MPI_INT,MPI_SUM,world);
-    if (looptot >= 400*nprocs) break;
-
+    MPI_Allreduce(&loop, &looptot, 1, MPI_INT, MPI_SUM, world);
+    if (looptot >= 400 * nprocs) break;
   }
 }
 
@@ -484,45 +459,45 @@ void FixReaxFFSpecies::SortMolecule(int &Nmole)
   molmap = nullptr;
 
   int n, idlo, idhi;
-  int *mask =atom->mask;
+  int *mask = atom->mask;
   int lo = ntotal;
   int hi = -ntotal;
   int flag = 0;
   for (n = 0; n < nlocal; n++) {
     if (!(mask[n] & groupbit)) continue;
     if (clusterID[n] == 0.0) flag = 1;
-    lo = MIN(lo,nint(clusterID[n]));
-    hi = MAX(hi,nint(clusterID[n]));
+    lo = MIN(lo, nint(clusterID[n]));
+    hi = MAX(hi, nint(clusterID[n]));
   }
   int flagall;
-  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
   if (flagall && me == 0)
-    error->warning(FLERR,"Atom with cluster ID = 0 included in "
-                   "fix reaxff/species group");
-  MPI_Allreduce(&lo,&idlo,1,MPI_INT,MPI_MIN,world);
-  MPI_Allreduce(&hi,&idhi,1,MPI_INT,MPI_MAX,world);
+    error->warning(FLERR, "Atom with cluster ID = 0 included in fix reaxff/species group");
+  MPI_Allreduce(&lo, &idlo, 1, MPI_INT, MPI_MIN, world);
+  MPI_Allreduce(&hi, &idhi, 1, MPI_INT, MPI_MAX, world);
   if (idlo == ntotal)
     if (me == 0)
-      error->warning(FLERR,"Atom with cluster ID = maxmol "
-                     "included in fix reaxff/species group");
+      error->warning(FLERR, "Atom with cluster ID = maxmol included in fix reaxff/species group");
 
   int nlen = idhi - idlo + 1;
-  memory->create(molmap,nlen,"reaxff/species:molmap");
+  memory->create(molmap, nlen, "reaxff/species:molmap");
   for (n = 0; n < nlen; n++) molmap[n] = 0;
 
   for (n = 0; n < nlocal; n++) {
     if (!(mask[n] & groupbit)) continue;
-    molmap[nint(clusterID[n])-idlo] = 1;
+    molmap[nint(clusterID[n]) - idlo] = 1;
   }
 
   int *molmapall;
-  memory->create(molmapall,nlen,"reaxff/species:molmapall");
-  MPI_Allreduce(molmap,molmapall,nlen,MPI_INT,MPI_MAX,world);
+  memory->create(molmapall, nlen, "reaxff/species:molmapall");
+  MPI_Allreduce(molmap, molmapall, nlen, MPI_INT, MPI_MAX, world);
 
   Nmole = 0;
   for (n = 0; n < nlen; n++) {
-    if (molmapall[n]) molmap[n] = Nmole++;
-    else molmap[n] = -1;
+    if (molmapall[n])
+      molmap[n] = Nmole++;
+    else
+      molmap[n] = -1;
   }
   memory->destroy(molmapall);
 
@@ -530,21 +505,19 @@ void FixReaxFFSpecies::SortMolecule(int &Nmole)
   for (n = 0; n < nlocal; n++) {
     if (mask[n] & groupbit) continue;
     if (nint(clusterID[n]) < idlo || nint(clusterID[n]) > idhi) continue;
-    if (molmap[nint(clusterID[n])-idlo] >= 0) flag = 1;
+    if (molmap[nint(clusterID[n]) - idlo] >= 0) flag = 1;
   }
 
-  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall && comm->me == 0)
-    error->warning(FLERR,"One or more cluster has atoms not in group");
+  MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
+  if (flagall && comm->me == 0) error->warning(FLERR, "One or more cluster has atoms not in group");
 
   for (n = 0; n < nlocal; n++) {
     if (!(mask[n] & groupbit)) continue;
-    clusterID[n] = molmap[nint(clusterID[n])-idlo] + 1;
+    clusterID[n] = molmap[nint(clusterID[n]) - idlo] + 1;
   }
 
   memory->destroy(molmap);
   molmap = nullptr;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -554,52 +527,50 @@ void FixReaxFFSpecies::FindSpecies(int Nmole, int &Nspec)
   int k, l, m, n, itype, cid;
   int flag_identity, flag_mol, flag_spec;
   int flag_tmp;
-  int *mask =atom->mask;
+  int *mask = atom->mask;
   int *Nameall, *NMolall;
 
   memory->destroy(MolName);
   MolName = nullptr;
-  memory->create(MolName,Nmole*(ntypes+1),"reaxff/species:MolName");
+  memory->create(MolName, Nmole * (ntypes + 1), "reaxff/species:MolName");
 
   memory->destroy(NMol);
   NMol = nullptr;
-  memory->create(NMol,Nmole,"reaxff/species:NMol");
-  for (m = 0; m < Nmole; m ++)
-    NMol[m] = 1;
+  memory->create(NMol, Nmole, "reaxff/species:NMol");
+  for (m = 0; m < Nmole; m++) NMol[m] = 1;
 
-  memory->create(Nameall,ntypes,"reaxff/species:Nameall");
-  memory->create(NMolall,Nmole,"reaxff/species:NMolall");
+  memory->create(Nameall, ntypes, "reaxff/species:Nameall");
+  memory->create(NMolall, Nmole, "reaxff/species:NMolall");
 
-  for (m = 1, Nspec = 0; m <= Nmole; m ++) {
-    for (n = 0; n < ntypes; n ++) Name[n] = 0;
-    for (n = 0, flag_mol = 0; n < nlocal; n ++) {
+  for (m = 1, Nspec = 0; m <= Nmole; m++) {
+    for (n = 0; n < ntypes; n++) Name[n] = 0;
+    for (n = 0, flag_mol = 0; n < nlocal; n++) {
       if (!(mask[n] & groupbit)) continue;
       cid = nint(clusterID[n]);
       if (cid == m) {
-        itype = atom->type[n]-1;
-        Name[itype] ++;
+        itype = atom->type[n] - 1;
+        Name[itype]++;
         flag_mol = 1;
       }
     }
-    MPI_Allreduce(&flag_mol,&flag_tmp,1,MPI_INT,MPI_MAX,world);
+    MPI_Allreduce(&flag_mol, &flag_tmp, 1, MPI_INT, MPI_MAX, world);
     flag_mol = flag_tmp;
 
-    MPI_Allreduce(Name,Nameall,ntypes,MPI_INT,MPI_SUM,world);
+    MPI_Allreduce(Name, Nameall, ntypes, MPI_INT, MPI_SUM, world);
     for (n = 0; n < ntypes; n++) Name[n] = Nameall[n];
 
     if (flag_mol == 1) {
       flag_identity = 1;
-      for (k = 0; k < Nspec; k ++) {
-        flag_spec=0;
-        for (l = 0; l < ntypes; l ++)
-          if (MolName[ntypes*k+l] != Name[l]) flag_spec = 1;
-        if (flag_spec == 0) NMol[k] ++;
+      for (k = 0; k < Nspec; k++) {
+        flag_spec = 0;
+        for (l = 0; l < ntypes; l++)
+          if (MolName[ntypes * k + l] != Name[l]) flag_spec = 1;
+        if (flag_spec == 0) NMol[k]++;
         flag_identity *= flag_spec;
       }
       if (Nspec == 0 || flag_identity == 1) {
-        for (l = 0; l < ntypes; l ++)
-          MolName[ntypes*Nspec+l] = Name[l];
-        Nspec ++;
+        for (l = 0; l < ntypes; l++) MolName[ntypes * Nspec + l] = Name[l];
+        Nspec++;
       }
     }
   }
@@ -608,11 +579,11 @@ void FixReaxFFSpecies::FindSpecies(int Nmole, int &Nspec)
 
   memory->destroy(nd);
   nd = nullptr;
-  memory->create(nd,Nspec,"reaxff/species:nd");
+  memory->create(nd, Nspec, "reaxff/species:nd");
 
   memory->destroy(MolType);
   MolType = nullptr;
-  memory->create(MolType,Nspec*(ntypes+2),"reaxff/species:MolType");
+  memory->create(MolType, Nspec * (ntypes + 2), "reaxff/species:MolType");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -621,18 +592,17 @@ int FixReaxFFSpecies::CheckExistence(int id, int ntypes)
 {
   int i, j, molid, flag;
 
-  for (i = 0; i < Nmoltype; i ++) {
+  for (i = 0; i < Nmoltype; i++) {
     flag = 0;
-    for (j = 0; j < ntypes; j ++) {
+    for (j = 0; j < ntypes; j++) {
       molid = MolType[ntypes * i + j];
       if (molid != MolName[ntypes * id + j]) flag = 1;
     }
     if (flag == 0) return i;
   }
-  for (i = 0; i < ntypes; i ++)
-    MolType[ntypes * Nmoltype + i] = MolName[ntypes *id + i];
+  for (i = 0; i < ntypes; i++) MolType[ntypes * Nmoltype + i] = MolName[ntypes * id + i];
 
-  Nmoltype ++;
+  Nmoltype++;
   return Nmoltype - 1;
 }
 
@@ -643,63 +613,46 @@ void FixReaxFFSpecies::WriteFormulas(int Nmole, int Nspec)
   int i, j, itemp;
   bigint ntimestep = update->ntimestep;
 
-  fprintf(fp,"# Timestep     No_Moles     No_Specs     ");
+  fprintf(fp, "# Timestep     No_Moles     No_Specs     ");
 
   Nmoltype = 0;
 
-  for (i = 0; i < Nspec; i ++)
-    nd[i] = CheckExistence(i, ntypes);
+  for (i = 0; i < Nspec; i++) nd[i] = CheckExistence(i, ntypes);
 
-  for (i = 0; i < Nmoltype; i ++) {
-    for (j = 0;j < ntypes; j ++) {
+  for (i = 0; i < Nmoltype; i++) {
+    for (j = 0; j < ntypes; j++) {
       itemp = MolType[ntypes * i + j];
       if (itemp != 0) {
-        if (eletype) fprintf(fp,"%s",eletype[j]);
-        else fprintf(fp,"%c",ele[j]);
-        if (itemp != 1) fprintf(fp,"%d",itemp);
+        if (eletype)
+          fprintf(fp, "%s", eletype[j]);
+        else
+          fprintf(fp, "%c", ele[j]);
+        if (itemp != 1) fprintf(fp, "%d", itemp);
       }
     }
-    fprintf(fp,"\t");
+    fputs("\t", fp);
   }
-  fprintf(fp,"\n");
+  fputs("\n", fp);
 
-  fprintf(fp,BIGINT_FORMAT,ntimestep);
-  fprintf(fp,"%11d%11d\t",Nmole,Nspec);
+  fmt::print(fp, "{} {:11} {:11}\t", ntimestep, Nmole, Nspec);
 
-  for (i = 0; i < Nmoltype; i ++)
-    fprintf(fp," %d\t",NMol[i]);
-  fprintf(fp,"\n");
-
+  for (i = 0; i < Nmoltype; i++) fprintf(fp, " %d\t", NMol[i]);
+  fprintf(fp, "\n");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixReaxFFSpecies::OpenPos()
 {
-  char *filecurrent;
-  bigint ntimestep = update->ntimestep;
-
-  filecurrent = (char*) malloc((strlen(filepos)+16)*sizeof(char));
-  char *ptr = strchr(filepos,'*');
-  *ptr = '\0';
-  if (padflag == 0)
-    sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
-            filepos,ntimestep,ptr+1);
-  else {
-    char bif[8],pad[16];
-    strcpy(bif,BIGINT_FORMAT);
-    sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
-    sprintf(filecurrent,pad,filepos,ntimestep,ptr+1);
-  }
-  *ptr = '*';
-
   if (me == 0) {
-    pos = fopen(filecurrent, "w");
-    if (pos == nullptr) error->one(FLERR,"Cannot open fix reaxff/species position file");
-  } else pos = nullptr;
+    auto filecurrent = utils::star_subst(filepos, update->ntimestep, padflag);
+    pos = fopen(filecurrent.c_str(), "w");
+    if (pos == nullptr)
+      error->one(FLERR, "Cannot open fix reaxff/species position file {}: {}", filecurrent,
+                 utils::getsyserror());
+  } else
+    pos = nullptr;
   multipos_opened = 1;
-
-  free(filecurrent);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -709,7 +662,7 @@ void FixReaxFFSpecies::WritePos(int Nmole, int Nspec)
   int i, itype, cid;
   int count, count_tmp, m, n, k;
   int *Nameall;
-  int *mask =atom->mask;
+  int *mask = atom->mask;
   double avq, avq_tmp, avx[3], avx_tmp, box[3], halfbox[3];
   double **spec_atom = f_SPECBOND->array_atom;
 
@@ -719,101 +672,89 @@ void FixReaxFFSpecies::WritePos(int Nmole, int Nspec)
   box[1] = domain->boxhi[1] - domain->boxlo[1];
   box[2] = domain->boxhi[2] - domain->boxlo[2];
 
-  for (int j = 0; j < 3; j++)
-    halfbox[j] = box[j] / 2;
+  for (int j = 0; j < 3; j++) halfbox[j] = box[j] / 2;
 
   if (me == 0) {
-    fprintf(pos,"Timestep " BIGINT_FORMAT " NMole %d  NSpec %d  xlo %f  "
-            "xhi %f  ylo %f  yhi %f  zlo %f  zhi %f\n",
-            update->ntimestep,Nmole, Nspec,
-            domain->boxlo[0],domain->boxhi[0],
-            domain->boxlo[1],domain->boxhi[1],
-            domain->boxlo[2],domain->boxhi[2]);
+    fmt::print(pos,
+               "Timestep {} NMole {}  NSpec {}  xlo {:f}  "
+               "xhi {:f}  ylo {:f}  yhi {:f}  zlo {:f}  zhi {:f}\n",
+               update->ntimestep, Nmole, Nspec, domain->boxlo[0], domain->boxhi[0],
+               domain->boxlo[1], domain->boxhi[1], domain->boxlo[2], domain->boxhi[2]);
 
-    fprintf(pos,"ID\tAtom_Count\tType\tAve_q\t\tCoM_x\t\tCoM_y\t\tCoM_z\n");
+    fprintf(pos, "ID\tAtom_Count\tType\tAve_q\t\tCoM_x\t\tCoM_y\t\tCoM_z\n");
   }
 
   Nameall = nullptr;
-  memory->create(Nameall,ntypes,"reaxff/species:Nameall");
+  memory->create(Nameall, ntypes, "reaxff/species:Nameall");
 
-  for (m = 1; m <= Nmole; m ++) {
+  for (m = 1; m <= Nmole; m++) {
 
     count = 0;
     avq = 0.0;
-    for (n = 0; n < 3; n++)
-      avx[n] = 0.0;
-    for (n = 0; n < ntypes; n ++)
-      Name[n] = 0;
+    for (n = 0; n < 3; n++) avx[n] = 0.0;
+    for (n = 0; n < ntypes; n++) Name[n] = 0;
 
-    for (i = 0; i < nlocal; i ++) {
+    for (i = 0; i < nlocal; i++) {
       if (!(mask[i] & groupbit)) continue;
       cid = nint(clusterID[i]);
       if (cid == m) {
-        itype = atom->type[i]-1;
-        Name[itype] ++;
-        count ++;
+        itype = atom->type[i] - 1;
+        Name[itype]++;
+        count++;
         avq += spec_atom[i][0];
-        if ((x0[i].x - spec_atom[i][1]) > halfbox[0])
-          spec_atom[i][1] += box[0];
-        if ((spec_atom[i][1] - x0[i].x) > halfbox[0])
-          spec_atom[i][1] -= box[0];
-        if ((x0[i].y - spec_atom[i][2]) > halfbox[1])
-          spec_atom[i][2] += box[1];
-        if ((spec_atom[i][2] - x0[i].y) > halfbox[1])
-          spec_atom[i][2] -= box[1];
-        if ((x0[i].z - spec_atom[i][3]) > halfbox[2])
-          spec_atom[i][3] += box[2];
-        if ((spec_atom[i][3] - x0[i].z) > halfbox[2])
-          spec_atom[i][3] -= box[2];
-        for (n = 0; n < 3; n++)
-          avx[n] += spec_atom[i][n+1];
+        if ((x0[i].x - spec_atom[i][1]) > halfbox[0]) spec_atom[i][1] += box[0];
+        if ((spec_atom[i][1] - x0[i].x) > halfbox[0]) spec_atom[i][1] -= box[0];
+        if ((x0[i].y - spec_atom[i][2]) > halfbox[1]) spec_atom[i][2] += box[1];
+        if ((spec_atom[i][2] - x0[i].y) > halfbox[1]) spec_atom[i][2] -= box[1];
+        if ((x0[i].z - spec_atom[i][3]) > halfbox[2]) spec_atom[i][3] += box[2];
+        if ((spec_atom[i][3] - x0[i].z) > halfbox[2]) spec_atom[i][3] -= box[2];
+        for (n = 0; n < 3; n++) avx[n] += spec_atom[i][n + 1];
       }
     }
 
     avq_tmp = 0.0;
-    MPI_Allreduce(&avq,&avq_tmp,1,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(&avq, &avq_tmp, 1, MPI_DOUBLE, MPI_SUM, world);
     avq = avq_tmp;
 
     for (n = 0; n < 3; n++) {
       avx_tmp = 0.0;
-      MPI_Reduce(&avx[n],&avx_tmp,1,MPI_DOUBLE,MPI_SUM,0,world);
+      MPI_Reduce(&avx[n], &avx_tmp, 1, MPI_DOUBLE, MPI_SUM, 0, world);
       avx[n] = avx_tmp;
     }
 
-    MPI_Reduce(&count,&count_tmp,1,MPI_INT,MPI_SUM,0,world);
+    MPI_Reduce(&count, &count_tmp, 1, MPI_INT, MPI_SUM, 0, world);
     count = count_tmp;
 
-    MPI_Reduce(Name,Nameall,ntypes,MPI_INT,MPI_SUM,0,world);
+    MPI_Reduce(Name, Nameall, ntypes, MPI_INT, MPI_SUM, 0, world);
     for (n = 0; n < ntypes; n++) Name[n] = Nameall[n];
 
     if (me == 0) {
-      fprintf(pos,"%d\t%d\t",m,count);
+      fprintf(pos, "%d\t%d\t", m, count);
       for (n = 0; n < ntypes; n++) {
         if (Name[n] != 0) {
-          if (eletype) fprintf(pos,"%s",eletype[n]);
-          else fprintf(pos,"%c",ele[n]);
-          if (Name[n] != 1) fprintf(pos,"%d",Name[n]);
+          if (eletype)
+            fprintf(pos, "%s", eletype[n]);
+          else
+            fprintf(pos, "%c", ele[n]);
+          if (Name[n] != 1) fprintf(pos, "%d", Name[n]);
         }
       }
       if (count > 0) {
         avq /= count;
         for (k = 0; k < 3; k++) {
           avx[k] /= count;
-          if (avx[k] >= domain->boxhi[k])
-            avx[k] -= box[k];
-          if (avx[k] < domain->boxlo[k])
-            avx[k] += box[k];
+          if (avx[k] >= domain->boxhi[k]) avx[k] -= box[k];
+          if (avx[k] < domain->boxlo[k]) avx[k] += box[k];
 
           avx[k] -= domain->boxlo[k];
           avx[k] /= box[k];
         }
-        fprintf(pos,"\t%.8f \t%.8f \t%.8f \t%.8f",
-                avq,avx[0],avx[1],avx[2]);
+        fprintf(pos, "\t%.8f \t%.8f \t%.8f \t%.8f", avq, avx[0], avx[1], avx[2]);
       }
-      fprintf(pos,"\n");
+      fprintf(pos, "\n");
     }
   }
-  if (me == 0 && !multipos) fprintf(pos,"#\n");
+  if (me == 0 && !multipos) fprintf(pos, "#\n");
   memory->destroy(Nameall);
 }
 
@@ -821,12 +762,9 @@ void FixReaxFFSpecies::WritePos(int Nmole, int Nspec)
 
 double FixReaxFFSpecies::compute_vector(int n)
 {
-  if (n == 0)
-    return vector_nmole;
-  if (n == 1)
-    return vector_nspec;
+  if (n == 0) return vector_nmole;
+  if (n == 1) return vector_nspec;
   return 0.0;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -834,25 +772,27 @@ double FixReaxFFSpecies::compute_vector(int n)
 int FixReaxFFSpecies::nint(const double &r)
 {
   int i = 0;
-  if (r>0.0) i = static_cast<int>(r+0.5);
-  else if (r<0.0) i = static_cast<int>(r-0.5);
+  if (r > 0.0)
+    i = static_cast<int>(r + 0.5);
+  else if (r < 0.0)
+    i = static_cast<int>(r - 0.5);
   return i;
 }
 
 /* ---------------------------------------------------------------------- */
 
-int FixReaxFFSpecies::pack_forward_comm(int n, int *list, double *buf,
-                                       int /*pbc_flag*/, int * /*pbc*/)
+int FixReaxFFSpecies::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/,
+                                        int * /*pbc*/)
 {
-  int i,j,m;
+  int i, j, m;
 
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
     buf[m] = clusterID[j];
-    buf[m+1] = x0[j].x;
-    buf[m+2] = x0[j].y;
-    buf[m+3] = x0[j].z;
+    buf[m + 1] = x0[j].x;
+    buf[m + 2] = x0[j].y;
+    buf[m + 3] = x0[j].z;
     m += 4;
   }
   return m;
@@ -862,15 +802,15 @@ int FixReaxFFSpecies::pack_forward_comm(int n, int *list, double *buf,
 
 void FixReaxFFSpecies::unpack_forward_comm(int n, int first, double *buf)
 {
-  int i,m,last;
+  int i, m, last;
 
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
     clusterID[i] = buf[m];
-    x0[i].x = buf[m+1];
-    x0[i].y = buf[m+2];
-    x0[i].z = buf[m+3];
+    x0[i].x = buf[m + 1];
+    x0[i].y = buf[m + 2];
+    x0[i].z = buf[m + 3];
     m += 4;
   }
 }
@@ -881,7 +821,7 @@ double FixReaxFFSpecies::memory_usage()
 {
   double bytes;
 
-  bytes = 4*nmax*sizeof(double);  // clusterID + x0
+  bytes = 4 * nmax * sizeof(double);    // clusterID + x0
 
   return bytes;
 }

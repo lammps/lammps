@@ -24,7 +24,7 @@ using namespace std;
 
 RowMatrix::RowMatrix(){
   numcols = 0;
-  elements = 0;
+  elements = nullptr;
 }
 
 RowMatrix::~RowMatrix(){
@@ -33,7 +33,7 @@ RowMatrix::~RowMatrix(){
 
 RowMatrix::RowMatrix(const RowMatrix& A){  // copy constructor
   numcols = 0;
-  elements = 0;
+  elements = nullptr;
   Dim(A.numcols);
   for(int i=0;i<numcols;i++)
     elements[i] = A.elements[i];
@@ -41,7 +41,7 @@ RowMatrix::RowMatrix(const RowMatrix& A){  // copy constructor
 
 RowMatrix::RowMatrix(const VirtualRowMatrix& A){  // copy constructor
   numcols = 0;
-  elements = 0;
+  elements = nullptr;
   Dim(A.GetNumCols());
   for(int i=0;i<numcols;i++)
     elements[i] = A.BasicGet(i);
@@ -53,7 +53,7 @@ RowMatrix::RowMatrix(const VirtualMatrix& A){  // copy constructor
     exit(1);
   }
   numcols = 0;
-  elements = 0;
+  elements = nullptr;
   Dim(A.GetNumCols());
   for(int i=0;i<numcols;i++)
     elements[i] = A.BasicGet(i,0);
@@ -61,7 +61,7 @@ RowMatrix::RowMatrix(const VirtualMatrix& A){  // copy constructor
 
 RowMatrix::RowMatrix(int n){  // size constructor
   numcols = 0;
-  elements = 0;
+  elements = nullptr;
   Dim(n);
 }
 

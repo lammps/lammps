@@ -43,23 +43,24 @@ class FixSMD_TLSPH_ReferenceConfiguration : public Fix {
 
  public:
   FixSMD_TLSPH_ReferenceConfiguration(class LAMMPS *, int, char **);
-  ~FixSMD_TLSPH_ReferenceConfiguration();
-  int setmask();
-  void init();
-  void setup(int);
-  void pre_exchange();
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  ~FixSMD_TLSPH_ReferenceConfiguration() override;
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  int pack_restart(int, double *);
-  void unpack_restart(int, int);
-  int size_restart(int);
-  int maxsize_restart();
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void pre_exchange() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  int pack_restart(int, double *) override;
+  void unpack_restart(int, int) override;
+  int size_restart(int) override;
+  int maxsize_restart() override;
 
   bool crack_exclude(int i, int j);
   bool get_line_intersection(int i, int j);

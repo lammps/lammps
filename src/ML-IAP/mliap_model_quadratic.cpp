@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mliap_model_quadratic.h"
-#include "pair_mliap.h"
+
 #include "mliap_data.h"
 #include "error.h"
 #include <cmath>
@@ -33,10 +33,6 @@ MLIAPModelQuadratic::MLIAPModelQuadratic(LAMMPS* lmp, char* coefffilename) :
   if (nparams > 0) ndescriptors = sqrt(2*nparams)-1;
   nonlinearflag = 1;
 }
-
-/* ---------------------------------------------------------------------- */
-
-MLIAPModelQuadratic::~MLIAPModelQuadratic() {}
 
 /* ----------------------------------------------------------------------
    get number of parameters

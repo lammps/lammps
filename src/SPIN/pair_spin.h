@@ -23,14 +23,14 @@ class PairSpin : public Pair {
 
  public:
   PairSpin(class LAMMPS *);
-  virtual ~PairSpin();
-  virtual void settings(int, char **);
-  virtual void coeff(int, char **) {}
-  virtual void init_style();
-  virtual double init_one(int, int) { return 0.0; }
-  virtual void *extract(const char *, int &) { return nullptr; }
 
-  virtual void compute(int, int) {}
+  void settings(int, char **) override;
+  void coeff(int, char **) override {}
+  void init_style() override;
+  double init_one(int, int) override { return 0.0; }
+  void *extract(const char *, int &) override { return nullptr; }
+
+  void compute(int, int) override {}
   virtual void compute_single_pair(int, double *) {}
 
   // storing magnetic energies

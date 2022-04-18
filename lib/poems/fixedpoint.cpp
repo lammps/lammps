@@ -22,11 +22,6 @@
 
 using namespace std;
 
-FixedPoint::FixedPoint(){
-}
-FixedPoint::~FixedPoint(){
-}
-
 FixedPoint::FixedPoint(double x, double y, double z){
   position(1) = x;
   position(2) = y;

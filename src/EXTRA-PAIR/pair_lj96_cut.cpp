@@ -25,7 +25,6 @@
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "respa.h"
 #include "update.h"
@@ -376,8 +375,7 @@ void PairLJ96Cut::compute_outer(int eflag, int vflag)
           r2inv = 1.0/rsq;
           r6inv = r2inv*r2inv*r2inv;
           r3inv = sqrt(r6inv);
-          evdwl = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) -
-            offset[itype][jtype];
+          evdwl = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) - offset[itype][jtype];
           evdwl *= factor_lj;
         }
 
@@ -392,8 +390,7 @@ void PairLJ96Cut::compute_outer(int eflag, int vflag)
             fpair = factor_lj*forcelj*r2inv;
         }
 
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                             evdwl,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
@@ -487,27 +484,20 @@ void PairLJ96Cut::init_style()
 {
   // request regular or rRESPA neighbor list
 
-  int irequest;
-  int respa = 0;
+  int list_style = NeighConst::REQ_DEFAULT;
 
-  if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
-    if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
-    if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
+  if (update->whichflag == 1 && utils::strmatch(update->integrate_style, "^respa")) {
+    auto respa = dynamic_cast<Respa *>( update->integrate);
+    if (respa->level_inner >= 0) list_style = NeighConst::REQ_RESPA_INOUT;
+    if (respa->level_middle >= 0) list_style = NeighConst::REQ_RESPA_ALL;
   }
-
-  irequest = neighbor->request(this,instance_me);
-
-  if (respa >= 1) {
-    neighbor->requests[irequest]->respaouter = 1;
-    neighbor->requests[irequest]->respainner = 1;
-  }
-  if (respa == 2) neighbor->requests[irequest]->respamiddle = 1;
+  neighbor->add_request(this, list_style);
 
   // set rRESPA cutoffs
 
   if (utils::strmatch(update->integrate_style,"^respa") &&
-      ((Respa *) update->integrate)->level_inner >= 0)
-    cut_respa = ((Respa *) update->integrate)->cutoff;
+      (dynamic_cast<Respa *>( update->integrate))->level_inner >= 0)
+    cut_respa = (dynamic_cast<Respa *>( update->integrate))->cutoff;
   else cut_respa = nullptr;
 }
 

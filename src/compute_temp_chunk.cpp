@@ -14,15 +14,16 @@
 
 #include "compute_temp_chunk.h"
 
-#include <cstring>
 #include "atom.h"
-#include "update.h"
-#include "force.h"
-#include "modify.h"
 #include "compute_chunk_atom.h"
 #include "domain.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -76,26 +77,20 @@ ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"com") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute temp/chunk command");
-      if (strcmp(arg[iarg+1],"yes") == 0) comflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) comflag = 0;
-      else error->all(FLERR,"Illegal compute temp/chunk command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute temp/chunk command");
+      comflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"bias") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute temp/chunk command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute temp/chunk command");
       biasflag = 1;
       id_bias = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"adof") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute temp/chunk command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute temp/chunk command");
       adof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"cdof") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute temp/chunk command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute temp/chunk command");
       cdof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal compute temp/chunk command");
@@ -169,7 +164,7 @@ void ComputeTempChunk::init()
   if (icompute < 0)
     error->all(FLERR,"Chunk/atom compute does not exist for "
                "compute temp/chunk");
-  cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
   if (strcmp(cchunk->style,"chunk/atom") != 0)
     error->all(FLERR,"Compute temp/chunk does not use chunk/atom compute");
 
@@ -779,7 +774,7 @@ void ComputeTempChunk::lock_disable()
 {
   int icompute = modify->find_compute(idchunk);
   if (icompute >= 0) {
-    cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+    cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
     cchunk->lockcount--;
   }
 }

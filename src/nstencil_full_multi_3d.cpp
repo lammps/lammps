@@ -13,12 +13,8 @@
 ------------------------------------------------------------------------- */
 
 #include "nstencil_full_multi_3d.h"
-#include "neighbor.h"
+
 #include "neigh_list.h"
-#include "nbin.h"
-#include "memory.h"
-#include "atom.h"
-#include <math.h>
 
 using namespace LAMMPS_NS;
 
@@ -38,8 +34,8 @@ void NStencilFullMulti3d::set_stencil_properties()
 
   for (i = 0; i < n; i++) {
     for (j = 0; j < n; j++) {
-      flag_half_multi[i][j] = 0;
-      flag_skip_multi[i][j] = 0;
+      flag_half_multi[i][j] = true;
+      flag_skip_multi[i][j] = false;
       bin_collection_multi[i][j] = j;
     }
   }

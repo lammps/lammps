@@ -23,6 +23,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "text_file_reader.h"
 
 #include <cstring>
 #include <Eigen/Eigen>
@@ -191,253 +192,144 @@ void FixSMDWallSurface::setup(int /*vflag*/) {
 void FixSMDWallSurface::read_triangles(int pass) {
 
   double coord[3];
-
   int nlocal_previous = atom->nlocal;
   int ilocal = nlocal_previous;
-  int m;
-  int me;
-
   bigint natoms_previous = atom->natoms;
   Vector3d *vert;
   vert = new Vector3d[3];
   Vector3d normal, center;
 
   FILE *fp = fopen(filename, "r");
-  if (fp == nullptr) {
-    char str[128];
-    snprintf(str,128, "Cannot open file %s", filename);
-    error->one(FLERR, str);
+  if (fp == nullptr)
+    error->one(FLERR, "Cannot open file {}: {}", filename, utils::getsyserror());
+
+  if (comm->me == 0) {
+    utils::logmesg(lmp, "\n>>========>>========>>========>>========>>========>>========\n");
+    if (pass == 0)
+      utils::logmesg(lmp, "  scanning triangle pairs ...\n");
+    else
+      utils::logmesg(lmp, "  reading triangle pairs ...\n");
   }
 
-  MPI_Comm_rank(world, &me);
-  if (me == 0) {
-    if (screen) {
-      if (pass == 0) {
-        printf("\n>>========>>========>>========>>========>>========>>========>>========>>========\n");
-        fprintf(screen, "  scanning triangle pairs ...\n");
-      } else {
-        fprintf(screen, "  reading triangle pairs ...\n");
-      }
-    }
-    if (logfile) {
-      if (pass == 0) {
-        fprintf(logfile, "  scanning triangle pairs ...\n");
-      } else {
-        fprintf(logfile, "  reading triangle pairs ...\n");
-      }
-    }
-  }
+  TextFileReader reader(fp, "triangles");
+  try {
+    char *line = reader.next_line();
+    if (!line || !utils::strmatch(line, "^solid"))
+      throw TokenizerException("Invalid triangles file format","");
 
-  char line[256];
-  char *retpointer;
-  char **values;
-  int nwords;
+    if (comm->me == 0)
+      utils::logmesg(lmp, "  reading STL object '{}' from {}\n", utils::trim(line+6), filename);
 
-  // read STL solid name
-  retpointer = fgets(line, sizeof(line), fp);
-  if (retpointer == nullptr) {
-    error->one(FLERR,"error reading number of triangle pairs");
-  }
+    while((line = reader.next_line())) {
 
-  nwords = utils::count_words(line);
-  if (nwords < 1) {
-    error->one(FLERR,"first line of file is incorrect");
-  }
+      // next line is facet line with 5 words
+      auto values = utils::split_words(line);
+      // otherwise stop reading
+      if ((values.size() != 5) || !utils::strmatch(values[0],"^facet")) break;
 
-//      values = new char*[nwords];
-//      values[0] = strtok(line, " \t\n\r\f");
-//      if (values[0] == nullptr)
-//              error->all(FLERR, "Incorrect atom format in data file");
-//      for (m = 1; m < nwords; m++) {
-//              values[m] = strtok(nullptr, " \t\n\r\f");
-//              if (values[m] == nullptr)
-//                      error->all(FLERR, "Incorrect atom format in data file");
-//      }
-//      delete[] values;
-//
-//      if (comm->me == 0) {
-//              cout << "STL file contains solid body with name: " << values[1] << endl;
-//      }
+      normal << utils::numeric(FLERR, values[2], false, lmp),
+        utils::numeric(FLERR, values[3], false, lmp),
+        utils::numeric(FLERR, values[4], false, lmp);
 
-  // iterate over STL facets util end of body is reached
+      line = reader.next_line(2);
+      if (!line || !utils::strmatch(line, "^ *outer *loop"))
+        throw TokenizerException("Error reading outer loop","");
 
-  while (fgets(line, sizeof(line), fp)) { // read a line, should be the facet line
+      for (int k = 0; k < 3; ++k) {
+        line = reader.next_line(4);
+        values = utils::split_words(line);
+        if ((values.size() != 4) || !utils::strmatch(values[0],"^vertex"))
+          throw TokenizerException("Error reading vertex","");
 
-    // evaluate facet line
-    nwords = utils::count_words(line);
-    if (nwords != 5) {
-      //sprintf(str, "found end solid line");
-      //error->message(FLERR, str);
-      break;
-    } else {
-      // should be facet line
-    }
-
-    values = new char*[nwords];
-    values[0] = strtok(line, " \t\n\r\f");
-    if (values[0] == nullptr)
-      error->all(FLERR, "Incorrect atom format in data file");
-    for (m = 1; m < nwords; m++) {
-      values[m] = strtok(nullptr, " \t\n\r\f");
-      if (values[m] == nullptr)
-        error->all(FLERR, "Incorrect atom format in data file");
-    }
-
-    normal << utils::numeric(FLERR, values[2], false, lmp),
-              utils::numeric(FLERR, values[3], false, lmp),
-              utils::numeric(FLERR, values[4], false, lmp);
-    //cout << "normal is " << normal << endl;
-
-    delete[] values;
-
-    // read outer loop line
-    retpointer = fgets(line, sizeof(line), fp);
-    if (retpointer == nullptr) {
-      error->one(FLERR, "error reading outer loop");
-    }
-
-    nwords = utils::count_words(line);
-    if (nwords != 2) {
-      error->one(FLERR,"error reading outer loop");
-    }
-
-    // read vertex lines
-
-    for (int k = 0; k < 3; k++) {
-      retpointer = fgets(line, sizeof(line), fp);
-      if (retpointer == nullptr) {
-        error->one(FLERR,"error reading vertex line");
+        vert[k] << utils::numeric(FLERR, values[1], false, lmp),
+          utils::numeric(FLERR, values[2], false, lmp),
+          utils::numeric(FLERR, values[3], false, lmp);
       }
 
-      nwords = utils::count_words(line);
-      if (nwords != 4) {
-        error->one(FLERR,"error reading vertex line");
-      }
+      line = reader.next_line(1);
+      if (!line || !utils::strmatch(line, "^ *endloop"))
+        throw TokenizerException("Error reading endloop","");
+      line = reader.next_line(1);
+      if (!line || !utils::strmatch(line, "^ *endfacet"))
+        throw TokenizerException("Error reading endfacet","");
 
-      values = new char*[nwords];
-      values[0] = strtok(line, " \t\n\r\f");
-      if (values[0] == nullptr)
-        error->all(FLERR,"Incorrect vertex line");
-      for (m = 1; m < nwords; m++) {
-        values[m] = strtok(nullptr, " \t\n\r\f");
-        if (values[m] == nullptr)
-          error->all(FLERR, "Incorrect vertex line");
-      }
+      // now we have a normal and three vertices ... proceed with adding triangle
 
-      vert[k] << utils::numeric(FLERR, values[1], false, lmp),
-                 utils::numeric(FLERR, values[2], false, lmp),
-                 utils::numeric(FLERR, values[3], false, lmp);
-      //cout << "vertex is " << vert[k] << endl;
-      //printf("%s %s %s\n", values[1], values[2], values[3]);
-      delete[] values;
-      //exit(1);
+      center = (vert[0] + vert[1] + vert[2]) / 3.0;
 
-    }
-
-    // read end loop line
-    retpointer = fgets(line, sizeof(line), fp);
-    if (retpointer == nullptr) {
-      error->one(FLERR, "error reading endloop");
-    }
-
-    nwords = utils::count_words(line);
-    if (nwords != 1) {
-      error->one(FLERR,"error reading endloop");
-    }
-
-    // read end facet line
-    retpointer = fgets(line, sizeof(line), fp);
-    if (retpointer == nullptr) {
-      error->one(FLERR,"error reading endfacet");
-    }
-
-    nwords = utils::count_words(line);
-    if (nwords != 1) {
-      error->one(FLERR,"error reading endfacet");
-    }
-
-    // now we have a normal and three vertices ... proceed with adding triangle
-
-    center = (vert[0] + vert[1] + vert[2]) / 3.0;
-
-    //      cout << "center is " << center << endl;
-
-    double r1 = (center - vert[0]).norm();
-    double r2 = (center - vert[1]).norm();
-    double r3 = (center - vert[2]).norm();
-    double r = MAX(r1, r2);
-    r = MAX(r, r3);
-
-    /*
-     * if atom/molecule is in my subbox, create it
-     * ... use x0 to hold triangle normal.
-     * ... use smd_data_9 to hold the three vertices
-     * ... use x to hold triangle center
-     * ... radius is the mmaximal distance from triangle center to all vertices
-     */
-
-    //      printf("coord: %f %f %f\n", coord[0], coord[1], coord[2]);
-    //      printf("sublo: %f %f %f\n", sublo[0], sublo[1], sublo[2]);
-    //      printf("subhi: %f %f %f\n", subhi[0], subhi[1], subhi[2]);
-    //printf("ilocal = %d\n", ilocal);
-    if (center(0) >= sublo[0] && center(0) < subhi[0] && center(1) >= sublo[1] && center(1) < subhi[1] && center(2) >= sublo[2]
-        && center(2) < subhi[2]) {
-      //printf("******* KERATIN nlocal=%d ***\n", nlocal);
-      coord[0] = center(0);
-      coord[1] = center(1);
-      coord[2] = center(2);
-      atom->avec->create_atom(wall_particle_type, coord);
+      double r1 = (center - vert[0]).norm();
+      double r2 = (center - vert[1]).norm();
+      double r3 = (center - vert[2]).norm();
+      double r = MAX(r1, r2);
+      r = MAX(r, r3);
 
       /*
-       * need to initialize pointers to atom vec arrays here, because they could have changed
-       * due to calling grow() in create_atoms() above;
+       * if atom/molecule is in my subbox, create it
+       * ... use x0 to hold triangle normal.
+       * ... use smd_data_9 to hold the three vertices
+       * ... use x to hold triangle center
+       * ... radius is the mmaximal distance from triangle center to all vertices
        */
 
-      tagint *mol = atom->molecule;
-      int *type = atom->type;
-      double *radius = atom->radius;
-      double *contact_radius = atom->contact_radius;
-      double **smd_data_9 = atom->smd_data_9;
-      double **x0 = atom->x0;
+      if (center(0) >= sublo[0] && center(0) < subhi[0] && center(1) >= sublo[1] && center(1) < subhi[1] && center(2) >= sublo[2]
+          && center(2) < subhi[2]) {
 
-      radius[ilocal] = r; //ilocal;
-      contact_radius[ilocal] = r; //ilocal;
-      mol[ilocal] = wall_molecule_id;
-      type[ilocal] = wall_particle_type;
-      x0[ilocal][0] = normal(0);
-      x0[ilocal][1] = normal(1);
-      x0[ilocal][2] = normal(2);
-      smd_data_9[ilocal][0] = vert[0](0);
-      smd_data_9[ilocal][1] = vert[0](1);
-      smd_data_9[ilocal][2] = vert[0](2);
-      smd_data_9[ilocal][3] = vert[1](0);
-      smd_data_9[ilocal][4] = vert[1](1);
-      smd_data_9[ilocal][5] = vert[1](2);
-      smd_data_9[ilocal][6] = vert[2](0);
-      smd_data_9[ilocal][7] = vert[2](1);
-      smd_data_9[ilocal][8] = vert[2](2);
+        coord[0] = center(0);
+        coord[1] = center(1);
+        coord[2] = center(2);
+        atom->avec->create_atom(wall_particle_type, coord);
 
-      ilocal++;
+        /*
+         * need to initialize pointers to atom vec arrays here, because they could have changed
+         * due to calling grow() in create_atoms() above;
+         */
+
+        tagint *mol = atom->molecule;
+        int *type = atom->type;
+        double *radius = atom->radius;
+        double *contact_radius = atom->contact_radius;
+        double **smd_data_9 = atom->smd_data_9;
+        double **x0 = atom->x0;
+
+        radius[ilocal] = r; //ilocal;
+        contact_radius[ilocal] = r; //ilocal;
+        mol[ilocal] = wall_molecule_id;
+        type[ilocal] = wall_particle_type;
+        x0[ilocal][0] = normal(0);
+        x0[ilocal][1] = normal(1);
+        x0[ilocal][2] = normal(2);
+        smd_data_9[ilocal][0] = vert[0](0);
+        smd_data_9[ilocal][1] = vert[0](1);
+        smd_data_9[ilocal][2] = vert[0](2);
+        smd_data_9[ilocal][3] = vert[1](0);
+        smd_data_9[ilocal][4] = vert[1](1);
+        smd_data_9[ilocal][5] = vert[1](2);
+        smd_data_9[ilocal][6] = vert[2](0);
+        smd_data_9[ilocal][7] = vert[2](1);
+        smd_data_9[ilocal][8] = vert[2](2);
+
+        ilocal++;
+      }
     }
-
+  } catch (std::exception &e) {
+    error->all(FLERR, "Error reading triangles from file {}: {}", filename, e.what());
   }
 
-// set new total # of atoms and error check
+  // set new total # of atoms and error check
 
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal, &atom->natoms, 1, MPI_LMP_BIGINT, MPI_SUM, world);
   if (atom->natoms < 0 || atom->natoms >= MAXBIGINT)
     error->all(FLERR, "Too many total atoms");
 
-// add IDs for newly created atoms
-// check that atom IDs are valid
+  // add IDs for newly created atoms
+  // check that atom IDs are valid
 
-  if (atom->tag_enable)
-    atom->tag_extend();
+  if (atom->tag_enable) atom->tag_extend();
   atom->tag_check();
 
-// create global mapping of atoms
-// zero nghost in case are adding new atoms to existing atoms
+  // create global mapping of atoms
+  // zero nghost in case are adding new atoms to existing atoms
 
   if (atom->map_style != Atom::MAP_NONE) {
     atom->nghost = 0;
@@ -445,21 +337,13 @@ void FixSMDWallSurface::read_triangles(int pass) {
     atom->map_set();
   }
 
-// print status
+  // print status
   if (comm->me == 0) {
-    if (screen) {
-      printf("... fix smd/wall_surface finished reading triangulated surface\n");
-      fprintf(screen, "fix smd/wall_surface created " BIGINT_FORMAT " atoms\n", atom->natoms - natoms_previous);
-      printf(">>========>>========>>========>>========>>========>>========>>========>>========\n");
-    }
-    if (logfile) {
-      fprintf(logfile, "... fix smd/wall_surface finished reading triangulated surface\n");
-      fprintf(logfile, "fix smd/wall_surface created " BIGINT_FORMAT " atoms\n", atom->natoms - natoms_previous);
-      fprintf(logfile, ">>========>>========>>========>>========>>========>>========>>========>>========\n");
-    }
+    utils::logmesg(lmp, "... fix smd/wall_surface finished reading triangulated surface\n");
+    utils::logmesg(lmp, "fix smd/wall_surface created {} atoms\n", atom->natoms - natoms_previous);
+    utils::logmesg(lmp, ">>========>>========>>========>>========>>========>>========\n");
   }
 
   delete[] vert;
   fclose(fp);
 }
-

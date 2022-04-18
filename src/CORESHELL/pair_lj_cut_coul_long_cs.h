@@ -28,10 +28,10 @@ class PairLJCutCoulLongCS : public PairLJCutCoulLong {
 
  public:
   PairLJCutCoulLongCS(class LAMMPS *);
-  virtual void compute(int, int);
-  void compute_inner();
-  void compute_middle();
-  virtual void compute_outer(int, int);
+  void compute(int, int) override;
+  void compute_inner() override;
+  void compute_middle() override;
+  void compute_outer(int, int) override;
 };
 
 }    // namespace LAMMPS_NS

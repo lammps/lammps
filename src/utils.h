@@ -21,9 +21,7 @@
 
 #include <mpi.h>
 
-#include <cstdio>
-#include <string>
-#include <vector>
+#include <vector> // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -75,6 +73,16 @@ namespace utils {
    *  \param mesg   string with message to be printed */
 
   void logmesg(LAMMPS *lmp, const std::string &mesg);
+
+  /*! Flush output buffers
+   *
+   *  This function calls fflush() on screen and logfile FILE pointers
+   *  if available and thus tells the operating system to output all
+   *  currently buffered data. This is local operation and independent
+   *  from buffering by a file system or an MPI library.
+   */
+
+  void flush_buffers(LAMMPS *lmp);
 
   /*! Return a string representing the current system error status
    *
@@ -160,8 +168,43 @@ namespace utils {
   std::string check_packages_for_style(const std::string &style, const std::string &name,
                                        LAMMPS *lmp);
 
+  /*! Convert a string to a boolean while checking whether it is a valid boolean term.
+   *  Valid terms are 'yes', 'no', 'true', 'false', 'on', 'off', and '1', '0'. Only
+   *  lower case is accepted.
+   *
+   *  \param file     name of source file for error message
+   *  \param line     line number in source file for error message
+   *  \param str      string to be converted to logical
+   *  \param do_abort determines whether to call Error::one() or Error::all()
+   *  \param lmp      pointer to top-level LAMMPS class instance
+   *  \return         1 if string resolves to "true", otherwise 0 */
+
+  int logical(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp);
+
+  /*! \overload
+   *
+   *  \param file     name of source file for error message
+   *  \param line     line number in source file for error message
+   *  \param str      string to be converted to logical
+   *  \param do_abort determines whether to call Error::one() or Error::all()
+   *  \param lmp      pointer to top-level LAMMPS class instance
+   *  \return         1 if string resolves to "true", otherwise 0 */
+
+  int logical(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp);
+
   /*! Convert a string to a floating point number while checking
    *  if it is a valid floating point or integer number
+   *
+   *  \param file     name of source file for error message
+   *  \param line     line number in source file for error message
+   *  \param str      string to be converted to number
+   *  \param do_abort determines whether to call Error::one() or Error::all()
+   *  \param lmp      pointer to top-level LAMMPS class instance
+   *  \return         double precision floating point number */
+
+  double numeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp);
+
+  /*! \overload
    *
    *  \param file     name of source file for error message
    *  \param line     line number in source file for error message
@@ -182,6 +225,17 @@ namespace utils {
    *  \param lmp      pointer to top-level LAMMPS class instance
    *  \return         integer number (regular int)  */
 
+  int inumeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp);
+
+  /*! \overload
+   *
+   *  \param file     name of source file for error message
+   *  \param line     line number in source file for error message
+   *  \param str      string to be converted to number
+   *  \param do_abort determines whether to call Error::one() or Error::all()
+   *  \param lmp      pointer to top-level LAMMPS class instance
+   *  \return         double precision floating point number */
+
   int inumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp);
 
   /*! Convert a string to an integer number while checking
@@ -194,6 +248,17 @@ namespace utils {
    *  \param lmp      pointer to top-level LAMMPS class instance
    *  \return         integer number (bigint) */
 
+  bigint bnumeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp);
+
+  /*! \overload
+   *
+   *  \param file     name of source file for error message
+   *  \param line     line number in source file for error message
+   *  \param str      string to be converted to number
+   *  \param do_abort determines whether to call Error::one() or Error::all()
+   *  \param lmp      pointer to top-level LAMMPS class instance
+   *  \return         double precision floating point number */
+
   bigint bnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp);
 
   /*! Convert a string to an integer number while checking
@@ -205,6 +270,17 @@ namespace utils {
    * \param do_abort determines whether to call Error::one() or Error::all()
    * \param lmp      pointer to top-level LAMMPS class instance
    * \return         integer number (tagint) */
+
+  tagint tnumeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp);
+
+  /*! \overload
+   *
+   *  \param file     name of source file for error message
+   *  \param line     line number in source file for error message
+   *  \param str      string to be converted to number
+   *  \param do_abort determines whether to call Error::one() or Error::all()
+   *  \param lmp      pointer to top-level LAMMPS class instance
+   *  \return         double precision floating point number */
 
   tagint tnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp);
 
@@ -271,6 +347,20 @@ namespace utils {
 
   char *strdup(const std::string &text);
 
+  /*! Convert string to lowercase
+   *
+   * \param line  string that should be converted
+   * \return new string with all lowercase characters */
+
+  std::string lowercase(const std::string &line);
+
+  /*! Convert string to uppercase
+   *
+   * \param line  string that should be converted
+   * \return new string with all uppercase characters */
+
+  std::string uppercase(const std::string &line);
+
   /*! Trim leading and trailing whitespace. Like TRIM() in Fortran.
    *
    * \param line  string that should be trimmed
@@ -278,12 +368,26 @@ namespace utils {
 
   std::string trim(const std::string &line);
 
-  /*! Return string with anything from '#' onward removed
+  /*! Return string with anything from the first '#' character onward removed
    *
    * \param line  string that should be trimmed
    * \return new string without comment (string) */
 
   std::string trim_comment(const std::string &line);
+
+  /*! Replace first '*' character in a string with a number, optionally zero-padded
+   *
+   * If there is no '*' character in the string, return the original string.
+   * If the number requires more characters than the value of the *pad*
+   * argument, do not add zeros; otherwise add as many zeroes as needed to
+   * the left to make the the number representation *pad* characters wide.
+   *
+   * \param name  string with file containing a '*' (or not)
+   * \param step  step number to replace the (first) '*'
+   * \param pad   zero-padding (may be zero)
+   * \return  processed string */
+
+  std::string star_subst(const std::string &name, bigint step, int pad);
 
   /*! Check if a string will likely have UTF-8 encoded characters
    *
@@ -406,49 +510,6 @@ namespace utils {
 
   bool is_id(const std::string &str);
 
-  /*! Try to detect pathname from FILE pointer.
-   *
-   * Currently only supported on Linux, otherwise will report "(unknown)".
-   *
-   *  \param buf  storage buffer for pathname. output will be truncated if not large enough
-   *  \param len  size of storage buffer. output will be truncated to this length - 1
-   *  \param fp   FILE pointer struct from STDIO library for which we want to detect the name
-   *  \return pointer to the storage buffer, i.e. buf */
-
-  const char *guesspath(char *buf, int len, FILE *fp);
-
-  /*! Strip off leading part of path, return just the filename
-   *
-   * \param path file path
-   * \return file name */
-
-  std::string path_basename(const std::string &path);
-
-  /*! Return the directory part of a path. Return "." if empty
-   *
-   * \param path file path
-   * \return directory name */
-
-  std::string path_dirname(const std::string &path);
-
-  /*! Join two pathname segments
-   *
-   * This uses the forward slash '/' character unless LAMMPS is compiled
-   * for Windows where it used the equivalent backward slash '\\'.
-   *
-   * \param   a  first path
-   * \param   b  second path
-   * \return     combined path */
-
-  std::string path_join(const std::string &a, const std::string &b);
-
-  /*! Check if file exists and is readable
-   *
-   * \param path file path
-   * \return true if file exists and is readable */
-
-  bool file_is_readable(const std::string &path);
-
   /*! Determine full path of potential file. If file is not found in current directory,
    *  search directories listed in LAMMPS_POTENTIALS environment variable
    *
@@ -540,6 +601,31 @@ namespace utils {
    * \return       date code */
 
   int date2num(const std::string &date);
+
+  /*! Return current date as string
+   *
+   * This will generate a string containing the current date in YYYY-MM-DD format.
+   *
+   * \return       string with current date */
+
+  std::string current_date();
+
+  /*! Binary search in a vector of ascending doubles of length N
+   *
+   * If the value is smaller than the smallest value in the vector, 0 is returned.
+   * If the value is larger or equal than the largest value in the vector, N-1 is returned.
+   * Otherwise the index that satisfies the condition
+   *
+   * haystack[index] <= value < haystack[index+1]
+   *
+   * is returned, i.e. a value from 1 to N-2. Note that if there are tied values in the
+   * haystack, always the larger index is returned as only that satisfied the condition.
+   *
+   * \param  needle    search value for which are are looking for the closest index
+   * \param  n         size of the haystack array
+   * \param  haystack  array with data in ascending order.
+   * \return           index of value in the haystack array smaller or equal to needle */
+  int binary_search(const double needle, const int n, const double *haystack);
 
   /*! Custom merge sort implementation
    *

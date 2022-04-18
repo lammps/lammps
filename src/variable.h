@@ -23,7 +23,7 @@ class Variable : protected Pointers {
 
  public:
   Variable(class LAMMPS *);
-  ~Variable();
+  ~Variable() override;
   void set(int, char **);
   void set(const std::string &);
   void set(char *, int, char **);
@@ -72,6 +72,7 @@ class Variable : protected Pointers {
     PYTHON,
     INTERNAL
   };
+  static constexpr int VALUELENGTH = 64;
 
  private:
   int me;
@@ -151,7 +152,7 @@ class VarReader : protected Pointers {
   char *id_fix;
 
   VarReader(class LAMMPS *, char *, char *, int);
-  ~VarReader();
+  ~VarReader() override;
   int read_scalar(char *);
   int read_peratom();
 

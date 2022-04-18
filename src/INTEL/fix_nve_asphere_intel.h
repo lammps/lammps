@@ -32,12 +32,12 @@ namespace LAMMPS_NS {
 class FixNVEAsphereIntel : public FixNVE {
  public:
   FixNVEAsphereIntel(class LAMMPS *, int, char **);
-  void init();
-  void setup(int vflag);
-  void initial_integrate(int);
-  void final_integrate();
-  void reset_dt();
-  virtual double memory_usage();
+  void init() override;
+  void setup(int vflag) override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  void reset_dt() override;
+  double memory_usage() override;
 
  private:
   double *_dtfm, *_inertia0, *_inertia1, *_inertia2;

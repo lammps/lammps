@@ -92,40 +92,22 @@ void VerletKokkos::setup(int flag)
   // acquire ghosts
   // build neighbor lists
 
-  atomKK->sync(Host,ALL_MASK);
-  atomKK->modified(Host,ALL_MASK);
+  lmp->kokkos->auto_sync = 1;
 
-  atomKK->setup();
+  atom->setup();
   modify->setup_pre_exchange();
-      // debug
-  atomKK->sync(Host,ALL_MASK);
-  atomKK->modified(Host,ALL_MASK);
-  if (triclinic) domain->x2lamda(atomKK->nlocal);
+  if (triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
-
-  atomKK->sync(Host,ALL_MASK);
-
-
   domain->reset_box();
   comm->setup();
   if (neighbor->style) neighbor->setup_bins();
-
   comm->exchange();
-
-  if (atomKK->sortfreq > 0) atomKK->sort();
-
+  if (atom->sortfreq > 0) atom->sort();
   comm->borders();
-
-  if (triclinic) domain->lamda2x(atomKK->nlocal+atomKK->nghost);
-
-  atomKK->sync(Host,ALL_MASK);
-
+  if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   domain->image_check();
   domain->box_too_small_check();
   modify->setup_pre_neighbor();
-
-  atomKK->modified(Host,ALL_MASK);
-
   neighbor->build(1);
   modify->setup_post_neighbor();
   neighbor->ncalls = 0;
@@ -144,7 +126,7 @@ void VerletKokkos::setup(int flag)
   }
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
-  if (atomKK->molecular != Atom::ATOMIC) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) {
       atomKK->sync(force->bond->execution_space,force->bond->datamask_read);
       force->bond->compute(eflag,vflag);
@@ -200,35 +182,21 @@ void VerletKokkos::setup_minimal(int flag)
   // acquire ghosts
   // build neighbor lists
 
+  lmp->kokkos->auto_sync = 1;
+
   if (flag) {
-    atomKK->sync(Host,ALL_MASK);
-    atomKK->modified(Host,ALL_MASK);
-
     modify->setup_pre_exchange();
-      // debug
-      atomKK->sync(Host,ALL_MASK);
-      atomKK->modified(Host,ALL_MASK);
-
-    if (triclinic) domain->x2lamda(atomKK->nlocal);
+    if (triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
-
-    atomKK->sync(Host,ALL_MASK);
-
     domain->reset_box();
     comm->setup();
     if (neighbor->style) neighbor->setup_bins();
     comm->exchange();
     comm->borders();
-    if (triclinic) domain->lamda2x(atomKK->nlocal+atomKK->nghost);
-
-    atomKK->sync(Host,ALL_MASK);
-
+    if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     domain->image_check();
     domain->box_too_small_check();
     modify->setup_pre_neighbor();
-
-    atomKK->modified(Host,ALL_MASK);
-
     neighbor->build(1);
     modify->setup_post_neighbor();
     neighbor->ncalls = 0;
@@ -247,7 +215,7 @@ void VerletKokkos::setup_minimal(int flag)
   }
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
-  if (atomKK->molecular != Atom::ATOMIC) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) {
       atomKK->sync(force->bond->execution_space,force->bond->datamask_read);
       force->bond->compute(eflag,vflag);
@@ -315,7 +283,7 @@ void VerletKokkos::run(int n)
 
   atomKK->sync(Device,ALL_MASK);
   //static double time = 0.0;
-  //Kokkos::Impl::Timer ktimer;
+  //Kokkos::Timer ktimer;
 
   timer->init_timeout();
   for (int i = 0; i < n; i++) {
@@ -477,7 +445,7 @@ void VerletKokkos::run(int n)
     if (pair_compute_flag) {
       atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
       atomKK->sync(force->pair->execution_space,~(~force->pair->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
-      Kokkos::Impl::Timer ktimer;
+      Kokkos::Timer ktimer;
       force->pair->compute(eflag,vflag);
       atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
       atomKK->modified(force->pair->execution_space,~(~force->pair->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
@@ -524,7 +492,7 @@ void VerletKokkos::run(int n)
       timer->stamp(Timer::KSPACE);
     }
 
-    if (execute_on_host && !std::is_same<LMPHostType,LMPDeviceType>::value) {
+    if (execute_on_host && atomKK->k_f.h_view.data() != atomKK->k_f.d_view.data()) {
       if (f_merge_copy.extent(0)<atomKK->k_f.extent(0)) {
         f_merge_copy = DAT::t_f_array("VerletKokkos::f_merge_copy",atomKK->k_f.extent(0));
       }

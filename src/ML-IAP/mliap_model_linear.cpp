@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mliap_model_linear.h"
-#include "pair_mliap.h"
+
 #include "mliap_data.h"
 #include "error.h"
 
@@ -30,10 +30,6 @@ MLIAPModelLinear::MLIAPModelLinear(LAMMPS* lmp, char* coefffilename) :
 {
   if (nparams > 0) ndescriptors = nparams - 1;
 }
-
-/* ---------------------------------------------------------------------- */
-
-MLIAPModelLinear::~MLIAPModelLinear() {}
 
 /* ----------------------------------------------------------------------
    get number of parameters

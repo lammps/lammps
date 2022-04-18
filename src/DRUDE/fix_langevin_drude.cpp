@@ -91,9 +91,7 @@ FixLangevinDrude::FixLangevinDrude(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"zero") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix langevin/drude command");
-      if (strcmp(arg[iarg+1],"no") == 0) zero = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) zero = 1;
-      else error->all(FLERR,"Illegal fix langevin/drude command");
+      zero = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix langevin/drude command");
   }
@@ -150,7 +148,7 @@ void FixLangevinDrude::init()
   for (ifix = 0; ifix < modify->nfix; ifix++)
     if (strcmp(modify->fix[ifix]->style,"drude") == 0) break;
   if (ifix == modify->nfix) error->all(FLERR, "fix langevin/drude requires fix drude");
-  fix_drude = (FixDrude *) modify->fix[ifix];
+  fix_drude = dynamic_cast<FixDrude *>( modify->fix[ifix]);
 }
 
 /* ---------------------------------------------------------------------- */

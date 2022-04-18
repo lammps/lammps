@@ -523,7 +523,7 @@ namespace ATC {
 //  print
 //-------------------------------------------------------------------------
 
-  void PrescribedDataManager::print(void)
+  void PrescribedDataManager::print()
   {
     // print and check consistency
     enum dataType {FREE=0,FIELD,SOURCE};

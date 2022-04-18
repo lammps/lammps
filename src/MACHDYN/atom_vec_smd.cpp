@@ -115,6 +115,7 @@ void AtomVecSMD::grow_pointers()
   vfrac = atom->vfrac;
   rmass = atom->rmass;
   x0 = atom->x0;
+  x = atom->x;
   radius = atom->radius;
   contact_radius = atom->contact_radius;
   molecule = atom->molecule;
@@ -129,13 +130,11 @@ void AtomVecSMD::grow_pointers()
 /* ----------------------------------------------------------------------
    clear extra forces starting at atom N
    nbytes = # of bytes to clear for a per-atom vector
-   NOTE: does f need to be re-cleared?
 ------------------------------------------------------------------------- */
 
 void AtomVecSMD::force_clear(int n, size_t nbytes)
 {
   memset(&desph[n],0,nbytes);
-  memset(&f[n][0],0,3*nbytes);
 }
 
 /* ----------------------------------------------------------------------

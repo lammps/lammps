@@ -20,17 +20,11 @@
 #include "fix_brownian.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
-#include "math_extra.h"
-#include "memory.h"
 #include "random_mars.h"
-#include "update.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -39,7 +33,8 @@ using namespace FixConst;
 
 FixBrownian::FixBrownian(LAMMPS *lmp, int narg, char **arg) : FixBrownianBase(lmp, narg, arg)
 {
-  if (dipole_flag || gamma_t_eigen_flag || gamma_r_eigen_flag || gamma_r_flag) {
+  if (dipole_flag || gamma_t_eigen_flag || gamma_r_eigen_flag || gamma_r_flag || rot_temp_flag ||
+      planar_rot_flag) {
     error->all(FLERR, "Illegal fix brownian command.");
   }
   if (!gamma_t_flag) { error->all(FLERR, "Illegal fix brownian command."); }
@@ -51,7 +46,7 @@ void FixBrownian::init()
 {
   FixBrownianBase::init();
   g1 /= gamma_t;
-  g2 *= sqrt(gamma_t);
+  g2 *= sqrt(temp / gamma_t);
 }
 
 /* ---------------------------------------------------------------------- */

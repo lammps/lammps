@@ -27,20 +27,20 @@ namespace LAMMPS_NS {
 class ComputeTempProfile : public Compute {
  public:
   ComputeTempProfile(class LAMMPS *, int, char **);
-  ~ComputeTempProfile();
-  void init();
-  void setup();
-  double compute_scalar();
-  void compute_vector();
-  void compute_array();
+  ~ComputeTempProfile() override;
+  void init() override;
+  void setup() override;
+  double compute_scalar() override;
+  void compute_vector() override;
+  void compute_array() override;
 
-  void remove_bias(int, double *);
-  void remove_bias_thr(int, double *, double *);
-  void remove_bias_all();
-  void restore_bias(int, double *);
-  void restore_bias_thr(int, double *, double *);
-  void restore_bias_all();
-  double memory_usage();
+  void remove_bias(int, double *) override;
+  void remove_bias_thr(int, double *, double *) override;
+  void remove_bias_all() override;
+  void restore_bias(int, double *) override;
+  void restore_bias_thr(int, double *, double *) override;
+  void restore_bias_all() override;
+  double memory_usage() override;
 
  private:
   int xflag, yflag, zflag, ncount, outflag;

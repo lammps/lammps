@@ -23,27 +23,25 @@ PairStyle(meam/c,PairMEAM);
 
 #include "pair.h"
 
-#include <vector>
-
 namespace LAMMPS_NS {
 
 class PairMEAM : public Pair {
  public:
   PairMEAM(class LAMMPS *);
-  ~PairMEAM();
-  void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  void init_list(int, class NeighList *);
-  double init_one(int, int);
-  virtual void *extract(const char *, int &);
+  ~PairMEAM() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  void init_list(int, class NeighList *) override;
+  double init_one(int, int) override;
+  void *extract(const char *, int &) override;
 
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  double memory_usage();
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
 
  private:
   class MEAM *meam_inst;

@@ -29,7 +29,7 @@ class Group : protected Pointers {
   int *dynamic;        // 1 if dynamic, 0 if not
 
   Group(class LAMMPS *);
-  ~Group();
+  ~Group() override;
   void assign(int, char **);                  // assign atoms to a group
   void assign(const std::string &);           // convenience function
   void create(const std::string &, int *);    // add flagged atoms to a group

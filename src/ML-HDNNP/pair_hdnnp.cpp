@@ -26,9 +26,10 @@
 #include "error.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
+
+#include <cstring>
 
 #include "InterfaceLammps.h"    // n2p2 interface header
 
@@ -146,12 +147,7 @@ void PairHDNNP::settings(int narg, char **arg)
       // show extrapolation warnings
     } else if (strcmp(arg[iarg], "showew") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal pair_style command");
-      if (strcmp(arg[iarg + 1], "yes") == 0)
-        showew = true;
-      else if (strcmp(arg[iarg + 1], "no") == 0)
-        showew = false;
-      else
-        error->all(FLERR, "Illegal pair_style command");
+      showew = utils::logical(FLERR, arg[iarg + 1], false, lmp) == 1;
       iarg += 2;
       // show extrapolation warning summary
     } else if (strcmp(arg[iarg], "showewsum") == 0) {
@@ -166,12 +162,7 @@ void PairHDNNP::settings(int narg, char **arg)
       // reset extrapolation warning counter
     } else if (strcmp(arg[iarg], "resetew") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal pair_style command");
-      if (strcmp(arg[iarg + 1], "yes") == 0)
-        resetew = true;
-      else if (strcmp(arg[iarg + 1], "no") == 0)
-        resetew = false;
-      else
-        error->all(FLERR, "Illegal pair_style command");
+      resetew = utils::logical(FLERR, arg[iarg + 1], false, lmp) == 1;
       iarg += 2;
       // length unit conversion factor
     } else if (strcmp(arg[iarg], "cflength") == 0) {
@@ -234,9 +225,7 @@ void PairHDNNP::coeff(int narg, char **arg)
 
 void PairHDNNP::init_style()
 {
-  int irequest = neighbor->request((void *) this);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 
   // Return immediately if HDNNP setup is already completed.
   if (interface->isInitialized()) return;
@@ -330,7 +319,7 @@ void PairHDNNP::handleExtrapolationWarnings()
           MPI_Status ms;
           // Get buffer size.
           MPI_Recv(&bs, 1, MPI_LONG, i, 0, world, &ms);
-          char *buf = new char[bs];
+          auto buf = new char[bs];
           // Receive buffer.
           MPI_Recv(buf, bs, MPI_BYTE, i, 0, world, &ms);
           interface->extractEWBuffer(buf, bs);
@@ -342,7 +331,7 @@ void PairHDNNP::handleExtrapolationWarnings()
       // Get desired buffer length for all extrapolation warning entries.
       long bs = interface->getEWBufferSize();
       // Allocate and fill buffer.
-      char *buf = new char[bs];
+      auto buf = new char[bs];
       interface->fillEWBuffer(buf, bs);
       // Send buffer size and buffer.
       MPI_Send(&bs, 1, MPI_LONG, 0, 0, world);

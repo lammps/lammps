@@ -33,7 +33,7 @@ namespace user_manifold {
     thyla_part(int type, double *args, double xlo, double ylo, double zlo, double xhi, double yhi,
                double zhi);
     thyla_part() : type(-1), x0(-1337), y0(-1337), z0(-1337) {}
-    ~thyla_part();
+    ~thyla_part() = default;
 
     double g(const double *x);
     void n(const double *x, double *n);

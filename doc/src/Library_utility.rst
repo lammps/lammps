@@ -13,6 +13,7 @@ functions.  They do not directly call the LAMMPS library.
 - :cpp:func:`lammps_fix_external_set_virial_peratom`
 - :cpp:func:`lammps_fix_external_set_vector_length`
 - :cpp:func:`lammps_fix_external_set_vector`
+- :cpp:func:`lammps_flush_buffers`
 - :cpp:func:`lammps_free`
 - :cpp:func:`lammps_is_running`
 - :cpp:func:`lammps_force_timeout`
@@ -68,6 +69,11 @@ where such memory buffers were allocated that require the use of
 -----------------------
 
 .. doxygenfunction:: lammps_fix_external_set_vector
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_flush_buffers
    :project: progguide
 
 -----------------------

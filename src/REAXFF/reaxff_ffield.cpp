@@ -32,20 +32,22 @@
 #include "text_file_reader.h"
 #include "utils.h"
 
-#include <cctype>
 #include <cmath>
+#include <cstring>
+#include <exception>
 #include <string>
 
 using LAMMPS_NS::utils::open_potential;
 using LAMMPS_NS::utils::getsyserror;
+using LAMMPS_NS::utils::uppercase;
 
 namespace ReaxFF {
 
-  class parser_error : public std::exception {
+  class ffield_parser_error : public std::exception {
     std::string message;
   public:
-    parser_error(const std::string &mesg) { message = mesg; }
-    const char *what() const noexcept { return message.c_str(); }
+    explicit ffield_parser_error(const std::string &mesg) { message = mesg; }
+    const char *what() const noexcept override { return message.c_str(); }
   };
 
   void Read_Force_Field(const char *filename, reax_interaction *reax,
@@ -59,7 +61,7 @@ namespace ReaxFF {
     // read and parse the force field only on rank 0
 
 #define THROW_ERROR(txt)                                                \
-    throw parser_error(fmt::format("{}:{}: {}",filename,lineno,txt))
+    throw ffield_parser_error(fmt::format("{}:{}: {}",filename,lineno,txt))
 
     if (control->me == 0) {
       FILE *fp = LAMMPS_NS::utils::open_potential(filename, lmp, nullptr);
@@ -159,11 +161,10 @@ namespace ReaxFF {
           if (values.count() < 9)
             THROW_ERROR("Invalid force field file format");
 
-          auto element = values.next_string();
-          int len = MIN(element.size(),3); // truncate stored element symbol if necessary
-          for (j = 0; j < len; ++j)
-            sbp[i].name[j] = toupper(element[j]);
-          sbp[i].name[len] = '\0';
+          // copy element symbol in uppercase and truncate stored element symbol if necessary
+          auto element = uppercase(values.next_string());
+          strncpy(sbp[i].name,element.c_str(),3);
+          sbp[i].name[3] = '\0';
 
           sbp[i].r_s        = values.next_double();
           sbp[i].valency    = values.next_double();
@@ -204,6 +205,7 @@ namespace ReaxFF {
           sbp[i].b_o_131    = values.next_double();
           sbp[i].b_o_132    = values.next_double();
           sbp[i].b_o_133    = values.next_double();
+          sbp[i].bcut_acks2  = values.next_double();
 
           // line four
 
@@ -581,6 +583,7 @@ namespace ReaxFF {
       } catch (std::exception &e) {
         error->one(FLERR,e.what());
       }
+      fclose(fp);
     }
 
     // broadcast global parameters and allocate list on ranks != 0

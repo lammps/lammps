@@ -29,7 +29,6 @@
 #include "modify.h"
 #include "molecule.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "random_mars.h"
 #include "region.h"
@@ -133,11 +132,11 @@ void DeleteAtoms::command(int narg, char **arg)
 
   // reset bonus data counts
 
-  AtomVecEllipsoid *avec_ellipsoid =
-    (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  AtomVecLine *avec_line = (AtomVecLine *) atom->style_match("line");
-  AtomVecTri *avec_tri = (AtomVecTri *) atom->style_match("tri");
-  AtomVecBody *avec_body = (AtomVecBody *) atom->style_match("body");
+  auto avec_ellipsoid =
+    dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
+  auto avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
+  auto avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
+  auto avec_body = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
   bigint nlocal_bonus;
 
   if (atom->nellipsoids > 0) {
@@ -237,9 +236,9 @@ void DeleteAtoms::delete_region(int narg, char **arg)
 {
   if (narg < 2) error->all(FLERR,"Illegal delete_atoms command");
 
-  int iregion = domain->find_region(arg[1]);
-  if (iregion == -1) error->all(FLERR,"Could not find delete_atoms region ID");
-  domain->regions[iregion]->prematch();
+  auto iregion = domain->get_region_by_id(arg[1]);
+  if (!iregion) error->all(FLERR,"Could not find delete_atoms region ID");
+  iregion->prematch();
 
   options(narg-2,&arg[2]);
 
@@ -252,7 +251,7 @@ void DeleteAtoms::delete_region(int narg, char **arg)
   double **x = atom->x;
 
   for (int i = 0; i < nlocal; i++)
-    if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2])) dlist[i] = 1;
+    if (iregion->match(x[i][0],x[i][1],x[i][2])) dlist[i] = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -284,13 +283,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
   // request a full neighbor list for use by this command
 
-  int irequest = neighbor->request(this);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->command = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
-  neighbor->requests[irequest]->command_style = "delete_atoms";
+  neighbor->add_request(this, "delete_atoms", NeighConst::REQ_FULL);
 
   // init entire system since comm->borders and neighbor->build is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
@@ -320,9 +313,9 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   neighbor->build(1);
 
-  // build neighbor list this command needs based on earlier request
+  // build neighbor list this command needs based on the earlier request
 
-  NeighList *list = neighbor->lists[irequest];
+  auto list = neighbor->find_list(this);
   neighbor->build_one(list);
 
   // allocate and initialize deletion list
@@ -422,17 +415,20 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
 void DeleteAtoms::delete_porosity(int narg, char **arg)
 {
-  if (narg < 4) error->all(FLERR,"Illegal delete_atoms command");
+  if (narg < 5) error->all(FLERR,"Illegal delete_atoms command");
 
-  int iregion = domain->find_region(arg[1]);
-  if (iregion == -1) error->all(FLERR,"Could not find delete_atoms region ID");
-  domain->regions[iregion]->prematch();
+  int igroup = group->find(arg[1]);
+  if (igroup == -1) error->all(FLERR,"Could not find delete_atoms group ID");
 
-  double porosity_fraction = utils::numeric(FLERR,arg[2],false,lmp);
-  int seed = utils::inumeric(FLERR,arg[3],false,lmp);
-  options(narg-4,&arg[4]);
+  auto iregion = domain->get_region_by_id(arg[2]);
+  if (!iregion && (strcmp(arg[2],"NULL") != 0))
+    error->all(FLERR,"Could not find delete_atoms region ID");
 
-  RanMars *random = new RanMars(lmp,seed + comm->me);
+  double porosity_fraction = utils::numeric(FLERR,arg[3],false,lmp);
+  int seed = utils::inumeric(FLERR,arg[4],false,lmp);
+  options(narg-5,&arg[5]);
+
+  auto random = new RanMars(lmp,seed + comm->me);
 
   // allocate and initialize deletion list
 
@@ -440,11 +436,19 @@ void DeleteAtoms::delete_porosity(int narg, char **arg)
   memory->create(dlist,nlocal,"delete_atoms:dlist");
   for (int i = 0; i < nlocal; i++) dlist[i] = 0;
 
-  double **x = atom->x;
+  // delete fraction of atoms which are in both group and region
 
-  for (int i = 0; i < nlocal; i++)
-    if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-      if (random->uniform() <= porosity_fraction) dlist[i] = 1;
+  double **x = atom->x;
+  int *mask = atom->mask;
+
+  int groupbit = group->bitmask[igroup];
+  if (iregion) iregion->prematch();
+
+  for (int i = 0; i < nlocal; i++) {
+    if (!(mask[i] & groupbit)) continue;
+    if (iregion && !iregion->match(x[i][0],x[i][1],x[i][2])) continue;
+    if (random->uniform() <= porosity_fraction) dlist[i] = 1;
+  }
 
   delete random;
 }
@@ -590,8 +594,8 @@ void DeleteAtoms::recount_topology()
 
 void DeleteAtoms::bondring(int nbuf, char *cbuf, void *ptr)
 {
-  DeleteAtoms *daptr = (DeleteAtoms *) ptr;
-  tagint *list = (tagint *) cbuf;
+  auto daptr = (DeleteAtoms *) ptr;
+  auto list = (tagint *) cbuf;
   std::map<tagint,int> *hash = daptr->hash;
 
   int *num_bond = daptr->atom->num_bond;
@@ -707,8 +711,8 @@ void DeleteAtoms::bondring(int nbuf, char *cbuf, void *ptr)
 
 void DeleteAtoms::molring(int n, char *cbuf, void *ptr)
 {
-  DeleteAtoms *daptr = (DeleteAtoms *)ptr;
-  tagint *list = (tagint *) cbuf;
+  auto daptr = (DeleteAtoms *)ptr;
+  auto list = (tagint *) cbuf;
   int *dlist = daptr->dlist;
   std::map<tagint,int> *hash = daptr->hash;
   int nlocal = daptr->atom->nlocal;
@@ -738,30 +742,21 @@ void DeleteAtoms::options(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"compress") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal delete_atoms command");
-      if (strcmp(arg[iarg+1],"yes") == 0) compress_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) compress_flag = 0;
-      else error->all(FLERR,"Illegal delete_atoms command");
+      compress_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"bond") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal delete_atoms command");
       if (atom->molecular == Atom::ATOMIC)
-        error->all(FLERR,"Cannot delete_atoms bond yes for "
-                   "non-molecular systems");
+        error->all(FLERR,"Cannot delete_atoms bond yes for non-molecular systems");
       if (atom->molecular == Atom::TEMPLATE)
-        error->all(FLERR,"Cannot use delete_atoms bond yes with "
-                   "atom_style template");
-      if (strcmp(arg[iarg+1],"yes") == 0) bond_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) bond_flag = 0;
-      else error->all(FLERR,"Illegal delete_atoms command");
+        error->all(FLERR,"Cannot use delete_atoms bond yes with atom_style template");
+      bond_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal delete_atoms command");
       if (atom->molecule_flag == 0)
-        error->all(FLERR,"Delete_atoms mol yes requires "
-                   "atom attribute molecule");
-      if (strcmp(arg[iarg+1],"yes") == 0) mol_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) mol_flag = 0;
-      else error->all(FLERR,"Illegal delete_atoms command");
+        error->all(FLERR,"Delete_atoms mol yes requires atom attribute molecule");
+      mol_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal delete_atoms command");
   }

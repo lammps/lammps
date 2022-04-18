@@ -48,7 +48,7 @@
 #include <Kokkos_DynRankView.hpp>
 #include <vector>
 
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 
 // Compare performance of DynRankView to View, specific focus on the parenthesis
 // operators

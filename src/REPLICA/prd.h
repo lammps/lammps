@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class PRD : public Command {
  public:
   PRD(class LAMMPS *);
-  ~PRD() {}
-  void command(int, char **);
+
+  void command(int, char **) override;
 
  private:
   int me, nprocs;

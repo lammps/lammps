@@ -25,7 +25,7 @@
 class VirtualColMatrix : public VirtualMatrix  {
 public:
         VirtualColMatrix();
-        ~VirtualColMatrix();
+        ~VirtualColMatrix() = default;
         double& operator_2int (int i, int j); // array access
         double Get_2int (int i, int j) const;
         void Set_2int (int i, int j, double value);

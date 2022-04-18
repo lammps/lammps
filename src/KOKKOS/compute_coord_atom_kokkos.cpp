@@ -59,7 +59,7 @@ ComputeCoordAtomKokkos<DeviceType>::ComputeCoordAtomKokkos(LAMMPS *lmp, int narg
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-ComputeCoordAtomKokkos<DeviceType>::~ComputeCoordAtomKokkos<DeviceType>()
+ComputeCoordAtomKokkos<DeviceType>::~ComputeCoordAtomKokkos()
 {
   if (copymode) return;
 
@@ -74,17 +74,12 @@ void ComputeCoordAtomKokkos<DeviceType>::init()
 {
   ComputeCoordAtom::init();
 
-  // need an occasional full neighbor list
+  // adjust neighbor list request for KOKKOS
 
-  // irequest = neigh request made by parent class
-
-  int irequest = neighbor->nrequest - 1;
-
-  neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
+  auto request = neighbor->find_request(this);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -119,7 +114,7 @@ void ComputeCoordAtomKokkos<DeviceType>::compute_peratom()
     }
     nqlist = c_orientorder->nqlist;
     normv = c_orientorder->array_atom;
-    comm->forward_comm_compute(this);
+    comm->forward_comm(this);
 
     if (!c_orientorder->kokkosable)
       error->all(FLERR,"Must use compute orientorder/atom/kk with compute coord/atom/kk");

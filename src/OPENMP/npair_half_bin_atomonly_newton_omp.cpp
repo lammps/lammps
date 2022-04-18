@@ -15,7 +15,6 @@
 #include "npair_half_bin_atomonly_newton_omp.h"
 
 #include "atom.h"
-#include "atom_vec.h"
 #include "error.h"
 #include "my_page.h"
 #include "neigh_list.h"

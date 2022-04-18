@@ -19,16 +19,16 @@
 
 #include "dihedral_fourier.h"
 
-#include <cmath>
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
+#include "error.h"
 #include "force.h"
-#include "pair.h"
-#include "update.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+#include "pair.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -62,7 +62,6 @@ DihedralFourier::~DihedralFourier()
     delete [] shift;
     delete [] cos_shift;
     delete [] sin_shift;
-
   }
 }
 

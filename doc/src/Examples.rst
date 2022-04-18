@@ -27,7 +27,7 @@ be quickly post-processed into a movie using commands described on the
 :doc:`dump image <dump_image>` doc page.
 
 Animations of many of the examples can be viewed on the Movies section
-of the `LAMMPS web site <https://www.lammps.org/movies.html>`_.
+of the `LAMMPS website <https://www.lammps.org/movies.html>`_.
 
 There are two kinds of sub-directories in the examples folder.  Lower
 case named directories contain one or a few simple, quick-to-run
@@ -53,6 +53,8 @@ Lowercase directories
 | balance     | dynamic load balancing, 2d system                                |
 +-------------+------------------------------------------------------------------+
 | body        | body particles, 2d system                                        |
++-------------+------------------------------------------------------------------+
+| bpm         | BPM simulations of pouring elastic grains and plate impact       |
 +-------------+------------------------------------------------------------------+
 | cmap        | CMAP 5-body contributions to CHARMM force field                  |
 +-------------+------------------------------------------------------------------+
@@ -80,7 +82,7 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | friction    | frictional contact of spherical asperities between 2d surfaces   |
 +-------------+------------------------------------------------------------------+
-| gcmc        | Grand Canonical Monte Carlo (GCMC) via the fix gcmc command      |
+| mc          | Monte Carlo features via fix gcmc, widom and other commands      |
 +-------------+------------------------------------------------------------------+
 | granregion  | use of fix wall/region/gran as boundary on granular particles    |
 +-------------+------------------------------------------------------------------+
@@ -94,11 +96,11 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | latte       | examples for using fix latte for DFTB via the LATTE library      |
 +-------------+------------------------------------------------------------------+
+| mdi         | use of the MDI package and MolSSI MDI code coupling library      |
++-------------+------------------------------------------------------------------+
 | meam        | MEAM test for SiC and shear (same as shear examples)             |
 +-------------+------------------------------------------------------------------+
 | melt        | rapid melt of 3d LJ system                                       |
-+-------------+------------------------------------------------------------------+
-| message     | demos for LAMMPS client/server coupling with the MESSAGE package |
 +-------------+------------------------------------------------------------------+
 | micelle     | self-assembly of small lipid-like molecules into 2d bilayers     |
 +-------------+------------------------------------------------------------------+
@@ -169,7 +171,7 @@ Running the simulation produces the files *dump.indent* and
 *log.lammps*\ .  You can visualize the dump file of snapshots with a
 variety of third-party tools highlighted on the
 `Visualization <https://www.lammps.org/viz.html>`_ page of the LAMMPS
-web site.
+website.
 
 If you uncomment the :doc:`dump image <dump_image>` line(s) in the input
 script a series of JPG images will be produced by the run (assuming
@@ -205,7 +207,7 @@ Uppercase directories
 +------------+--------------------------------------------------------------------------------------------------+
 | KAPPA      | compute thermal conductivity via several methods                                                 |
 +------------+--------------------------------------------------------------------------------------------------+
-| MC         | using LAMMPS in a Monte Carlo mode to relax the energy of a system                               |
+| MC-LOOP    | using LAMMPS in a Monte Carlo mode to relax the energy of a system in a input script loop        |
 +------------+--------------------------------------------------------------------------------------------------+
 | PACKAGES   | examples for specific packages and contributed commands                                          |
 +------------+--------------------------------------------------------------------------------------------------+

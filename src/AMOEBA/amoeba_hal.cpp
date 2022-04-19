@@ -152,8 +152,8 @@ void PairAmoeba::hal()
       // increment the total van der Waals energy and derivatives
       // if jv < 0, trigger an error, needed H-bond partner is missing
 
-      iv = ired2local[i];
-      jv = ired2local[j];
+      iv = red2local[i];
+      jv = red2local[j];
       if (jv < 0)
         error->one(FLERR,"AMOEBA hal cannot find H bond partner - "
                    "ghost comm is too short");

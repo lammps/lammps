@@ -158,16 +158,11 @@ class PairAmoeba : public Pair {
 
   // static per-atom properties, must persist as atoms migrate
 
-  int index_amtype,index_amgroup,index_ired;
-  int index_xaxis,index_yaxis,index_zaxis;
-  int index_polaxe,index_pval;
+  int index_amtype,index_amgroup,index_redID;
+  int index_xaxis,index_yaxis,index_zaxis,index_polaxe,index_pval;
 
   int *amtype;                    // AMOEBA type, 1 to N_amtype
   int *amgroup;                   // AMOEBA polarization group, 1 to Ngroup
-  tagint *ired;                   // ID of atom that H is bonded to
-  tagint *xaxis,*yaxis,*zaxis;    // IDs of nearby atoms for multipole def
-  int *polaxe;
-  double *pval;
 
   char *id_pole,*id_udalt,*id_upalt;
   class FixStore *fixpole;        // stores pole = multipole components
@@ -252,7 +247,7 @@ class PairAmoeba : public Pair {
                                                // just for owned atoms
                                                // set to self if not defined
 
-  int *ired2local;   // local indices of ired IDs, computed for owned and ghost
+  int *red2local;    // local indices of ired IDs, computed for owned and ghost
   double **xred;     // altered coords for H atoms for Vdwl, comm to ghosts
 
   double **tq;       // torque from pairwise multipole, reverse comm from ghosts

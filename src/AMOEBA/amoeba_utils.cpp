@@ -51,11 +51,10 @@ void PairAmoeba::kmpole()
   tagint angleneigh[36];
 
   amtype = atom->ivector[index_amtype];
-  xaxis = atom->ivector[index_xaxis];
-  yaxis = atom->ivector[index_yaxis];
-  zaxis = atom->ivector[index_zaxis];
-  polaxe = atom->ivector[index_polaxe];
-
+  int *polaxe = atom->ivector[index_polaxe];
+  double *xaxis = atom->dvector[index_xaxis];
+  double *yaxis = atom->dvector[index_yaxis];
+  double *zaxis = atom->dvector[index_zaxis];
   double **pole = fixpole->astore;
 
   int **nspecial = atom->nspecial;
@@ -126,9 +125,9 @@ void PairAmoeba::kmpole()
             if (ktype == xtype) {
               if (ytype == 0 && !flag) {
                 flag = 1;
-                zaxis[i] = jneigh;
-                xaxis[i] = kneigh;
-                yaxis[i] = 0;
+                zaxis[i] = ubuf(jneigh).d;
+                xaxis[i] = ubuf(kneigh).d;
+                yaxis[i] = 0.0;
                 polaxe[i] = mpaxis[itype][iframe];
                 for (j = 0; j < 13; j++)
                   pole[i][j] = fpole[itype][iframe][j];
@@ -142,9 +141,9 @@ void PairAmoeba::kmpole()
                   mtype = amtype[m];
                   if (mtype == ytype && !flag) {
                     flag = 1;
-                    zaxis[i] = jneigh;
-                    xaxis[i] = kneigh;
-                    yaxis[i] = mneigh;
+                    zaxis[i] = ubuf(jneigh).d;
+                    xaxis[i] = ubuf(kneigh).d;
+                    yaxis[i] = ubuf(mneigh).d;
                     polaxe[i] = mpaxis[itype][iframe];
                     for (j = 0; j < 13; j++)
                       pole[i][j] = fpole[itype][iframe][j];
@@ -184,9 +183,9 @@ void PairAmoeba::kmpole()
             if (ktype == xtype) {
               if (ytype == 0 && !flag) {
                 flag = 1;
-                zaxis[i] = jneigh;
-                xaxis[i] = kneigh;
-                yaxis[i] = 0;
+                zaxis[i] = ubuf(jneigh).d;
+                xaxis[i] = ubuf(kneigh).d;
+                yaxis[i] = 0.0;
                 polaxe[i] = mpaxis[itype][iframe];
                 for (j = 0; j < 13; j++)
                   pole[i][j] = fpole[itype][iframe][j];
@@ -204,9 +203,9 @@ void PairAmoeba::kmpole()
                   if (!path) continue;
                   if (mtype == ytype && !flag) {
                     flag = 1;
-                    zaxis[i] = jneigh;
-                    xaxis[i] = kneigh;
-                    yaxis[i] = mneigh;
+                    zaxis[i] = ubuf(jneigh).d;
+                    xaxis[i] = ubuf(kneigh).d;
+                    yaxis[i] = ubuf(mneigh).d;
                     polaxe[i] = mpaxis[itype][iframe];
                     for (j = 0; j < 13; j++)
                       pole[i][j] = fpole[itype][iframe][j];
@@ -235,8 +234,8 @@ void PairAmoeba::kmpole()
         if (jtype == ztype) {
           if (xtype == 0 && !flag) {
             flag = 1;
-            zaxis[i] = jtype;
-            xaxis[i] = yaxis[i] = 0;
+            zaxis[i] = ubuf(jneigh).d;
+            xaxis[i] = yaxis[i] = 0.0;
             polaxe[i] = mpaxis[itype][iframe];
             for (j = 0; j < 13; j++)
               pole[i][j] = fpole[itype][iframe][j];
@@ -255,7 +254,7 @@ void PairAmoeba::kmpole()
       ztype = zpole[itype][iframe];
       if (ztype == 0 && !flag) {
         flag = 1;
-        zaxis[i] = xaxis[i] = yaxis[i] = 0;
+        zaxis[i] = xaxis[i] = yaxis[i] = 0.0;
         polaxe[i] = mpaxis[itype][iframe];
         for (j = 0; j < 13; j++)
           pole[i][j] = fpole[itype][iframe][j];
@@ -295,15 +294,18 @@ void PairAmoeba::chkpole(int i)
   double xcd,ycd,zcd;
   double c1,c2,c3,vol;
 
-  polaxe = atom->ivector[index_polaxe];
   double **pole = fixpole->astore;
+
+  int *polaxe = atom->ivector[index_polaxe];
+  double *yaxis = atom->dvector[index_yaxis];
+  tagint yaxisID = (tagint) ubuf(yaxis[i]).i;
 
   // test for chirality inversion
   // if not, return
 
   check = true;
   if (polaxe[i] != ZTHENX) check = false;
-  if (yaxis[i] == 0) check = false;
+  if (yaxisID == 0) check = false;
   if (!check) return;
 
   ib = zaxis2local[i];
@@ -331,9 +333,8 @@ void PairAmoeba::chkpole(int i)
   // invert atomic multipole components involving the y-axis
   // flip sign in permanent yaxis, not yaxis2local
 
-  int k = yaxis[i];
-  if ((k < 0 && vol > 0.0) || (k > 0 && vol < 0.0)) {
-    yaxis[i] = -k;
+  if ((yaxisID < 0 && vol > 0.0) || (yaxisID > 0 && vol < 0.0)) {
+    yaxis[i] = -ubuf(yaxisID).d;
     pole[i][2] = -pole[i][2];
     pole[i][5] = -pole[i][5];
     pole[i][7] = -pole[i][7];
@@ -359,7 +360,7 @@ void PairAmoeba::rotmat(int i)
   double dx2,dy2,dz2;
   double dx3,dy3,dz3;
 
-  polaxe = atom->ivector[index_polaxe];
+  int *polaxe = atom->ivector[index_polaxe];
 
   // get coordinates and frame definition for the multipole site
 
@@ -671,32 +672,34 @@ void PairAmoeba::add_onefive_neighbors()
 
 /* ----------------------------------------------------------------------
    update local indices of hydrogen neighbors for owned and ghost atoms
-   ired2local = used for offset of hydrogen positions in Vdwl term
+   red2local = used for offset of hydrogen positions in Vdwl term
    called on reneighboring steps, only for AMOEBA
 ------------------------------------------------------------------------- */
 
 void PairAmoeba::find_hydrogen_neighbors()
 {
   int index;
+  tagint id;
 
-  // grab current ptr for ired
-  // ired[i] = atom ID that atom I is bonded to
-  // ired2local[i] = local index of that atom
+  // grab current ptr for redID
+  // redID[i] = atom ID that atom I is bonded to
+  // red2local[i] = local index of that atom
   // for furthest away ghost atoms, bond partner can be missing
-  // in that case ired2local = -1, but only an error if accessed in hal()
+  // in that case red2local = -1, but only an error if accessed in hal()
 
-  ired = atom->ivector[index_ired];
+  double *redID = atom->dvector[index_redID];
 
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   int nmissing = 0;
 
   for (int i = 0; i < nall; i++) {
-    if (ired[i] == 0) ired2local[i] = i;
+    if (redID[i] == 0.0) red2local[i] = i;
     else {
-      index = atom->map(ired[i]);
+      id = (tagint) ubuf(redID[i]).i;
+      index = atom->map(id);
       if (index >= 0) index = domain->closest_image(i,index);
-      ired2local[i] = index;
+      red2local[i] = index;
     }
   }
 }
@@ -710,22 +713,27 @@ void PairAmoeba::find_hydrogen_neighbors()
 void PairAmoeba::find_multipole_neighbors()
 {
   int index,ypos;
+  tagint xaxisID,yaxisID,zaxisID;
 
   // grab current pts for xaxis,yaxis,zaxis
   // xyz axis[i] = atom IDs that atom I uses for its multipole orientation
   // can be zero if not used, in which case set local index to self
   // yaxis can be negative, in which case use absolute value
 
-  xaxis = atom->ivector[index_xaxis];
-  yaxis = atom->ivector[index_yaxis];
-  zaxis = atom->ivector[index_zaxis];
+  double *xaxis = atom->dvector[index_xaxis];
+  double *yaxis = atom->dvector[index_yaxis];
+  double *zaxis = atom->dvector[index_zaxis];
 
   int nlocal = atom->nlocal;
   int nmissing = 0;
 
   for (int i = 0; i < nlocal; i++) {
-    if (xaxis[i]) {
-      index = atom->map(xaxis[i]);
+    xaxisID = (tagint) ubuf(xaxis[i]).i;
+    yaxisID = (tagint) ubuf(yaxis[i]).i;
+    zaxisID = (tagint) ubuf(zaxis[i]).i;
+
+    if (xaxisID) {
+      index = atom->map(xaxisID);
       if (index == -1) nmissing++;
       else {
         index = domain->closest_image(i,index);
@@ -733,10 +741,9 @@ void PairAmoeba::find_multipole_neighbors()
       }
     } else xaxis2local[i] = i;
 
-    if (yaxis[i]) {
-      if (yaxis[i] > 0) ypos = yaxis[i];
-      else ypos = -yaxis[i];
-      index = atom->map(ypos);
+    if (yaxisID) {
+      if (yaxis[i] < 0) yaxisID = -yaxisID;
+      index = atom->map(yaxisID);
       if (index == -1) nmissing++;
       else {
         index = domain->closest_image(i,index);
@@ -744,8 +751,8 @@ void PairAmoeba::find_multipole_neighbors()
       }
     } else yaxis2local[i] = i;
 
-    if (zaxis[i]) {
-      index = atom->map(zaxis[i]);
+    if (zaxisID) {
+      index = atom->map(zaxisID);
       if (index == -1) nmissing++;
       else {
         index = domain->closest_image(i,index);
@@ -838,7 +845,7 @@ void PairAmoeba::torque2force(int i, double *trq,
 
   // get the local frame type and the frame-defining atoms
 
-  polaxe = atom->ivector[index_polaxe];
+  int *polaxe = atom->ivector[index_polaxe];
   axetyp = polaxe[i];
   if (axetyp == NOFRAME) return;
 

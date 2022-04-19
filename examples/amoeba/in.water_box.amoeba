@@ -12,7 +12,7 @@ dihedral_style  none
 
 fix             amtype all property/atom i_amtype ghost yes
 fix             extra all property/atom &
-                i_amgroup i_ired i_xaxis i_yaxis i_zaxis d_pval ghost yes
+                i_amgroup d_redID d_xaxis d_yaxis d_zaxis d_pval ghost yes
 fix             extra2 all property/atom i_polaxe
 
 # read data file

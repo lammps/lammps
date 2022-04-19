@@ -84,7 +84,7 @@ PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
   rpole = NULL;
   tq = NULL;
 
-  ired2local = NULL;
+  red2local = NULL;
   xred = NULL;
 
   uind = uinp = udirp = NULL;
@@ -166,7 +166,7 @@ PairAmoeba::~PairAmoeba()
   memory->destroy(rpole);
   memory->destroy(tq);
 
-  memory->destroy(ired2local);
+  memory->destroy(red2local);
   memory->destroy(xred);
 
   memory->destroy(uind);
@@ -289,7 +289,7 @@ void PairAmoeba::compute(int eflag, int vflag)
     kmpole();
 
     if (hippo) {
-      pval = atom->dvector[index_pval];
+      double *pval = atom->dvector[index_pval];
       double **pole = fixpole->astore;
       int nlocal = atom->nlocal;
       int itype,iclass;
@@ -316,7 +316,7 @@ void PairAmoeba::compute(int eflag, int vflag)
 
   // if reneighboring step:
   // augment neighbor list to include 1-5 neighbor flags
-  // re-create xyz axis2local and ired2local
+  // re-create xyz axis2local and red2local
   // re-create induce neighbor list
 
   if (neighbor->ago == 0) {
@@ -341,7 +341,7 @@ void PairAmoeba::compute(int eflag, int vflag)
     int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++) {
-      j = ired2local[i];
+      j = red2local[i];
       iclass = amtype2class[amtype[i]];
       rdn = kred[iclass];
       xred[i][0] = rdn*(x[i][0]-x[j][0]) + x[j][0];
@@ -707,17 +707,17 @@ void PairAmoeba::init_style()
   if (index_amgroup < 0 || flag || cols)
     error->all(FLERR,"Pair amoeba amgroup is not defined");
 
-  index_ired = atom->find_custom("ired",flag,cols);
-  if (index_ired < 0 || flag || cols)
-    error->all(FLERR,"Pair amoeba ired is not defined");
+  index_redID = atom->find_custom("redID",flag,cols);
+  if (index_redID < 0 || !flag || cols)
+    error->all(FLERR,"Pair amoeba redID is not defined");
   index_xaxis = atom->find_custom("xaxis",flag,cols);
-  if (index_xaxis < 0 || flag || cols)
+  if (index_xaxis < 0 || !flag || cols)
     error->all(FLERR,"Pair amoeba xaxis is not defined");
   index_yaxis = atom->find_custom("yaxis",flag,cols);
-  if (index_yaxis < 0 || flag || cols)
+  if (index_yaxis < 0 || !flag || cols)
     error->all(FLERR,"Pair amoeba yaxis is not defined");
   index_zaxis = atom->find_custom("zaxis",flag,cols);
-  if (index_zaxis < 0 || flag || cols)
+  if (index_zaxis < 0 || !flag || cols)
     error->all(FLERR,"Pair amoeba zaxis is not defined");
 
   index_polaxe = atom->find_custom("polaxe",flag,cols);
@@ -879,7 +879,7 @@ void PairAmoeba::init_style()
   // pval is not set until first call to compute(), and only for HIPPO
 
   if (first_flag) {
-    pval = atom->dvector[index_pval];
+    double *pval = atom->dvector[index_pval];
     int nlocal = atom->nlocal;
     for (int i = 0; i < nlocal; i++) pval[i] = 0.0;
   }
@@ -918,14 +918,13 @@ void PairAmoeba::init_style()
     fixupalt = (FixStore *) modify->fix[ifix];
   }
 
-  // assign hydrogen neighbors (ired) to each owned atom
+  // assign hydrogen neighbors (redID) to each owned atom
   // only set if kred[i] is non-zero and I is bonded to a single atom
-  // conceptually: non-zero if I is a hydrogen bonded to another atom
-  // NOTE: ired needs to be a tagint vector?  but atom ivector is not!
+  // conceptually: non-zero if I is hydrogen bonded to another atom
 
   if (amoeba) {
     amtype = atom->ivector[index_amtype];
-    ired = atom->ivector[index_ired];
+    double *redID = atom->dvector[index_redID];
 
     int **nspecial = atom->nspecial;
     tagint **special = atom->special;
@@ -937,13 +936,13 @@ void PairAmoeba::init_style()
       itype = amtype[i];
       iclass = amtype2class[itype];
       if (kred[iclass] == 0.0) {
-        ired[i] = 0;
+        redID[i] = 0.0;
       }
       else if (nspecial[i][0] != 1) {
-        ired[i] = 0;
+        redID[i] = 0.0;
       }
       else {
-        ired[i] = special[i][0];
+        redID[i] = ubuf(special[i][0]).d;
       }
     }
   }
@@ -1207,6 +1206,7 @@ int PairAmoeba::pack_forward_comm(int n, int *list, double *buf,
     }
 
   } else if (cfstyle == PVAL) {
+    double *pval = atom->dvector[index_pval];
     for (i = 0; i < n; i++) {
       j = list[i];
       buf[m++] = pval[j];
@@ -1310,6 +1310,7 @@ void PairAmoeba::unpack_forward_comm(int n, int first, double *buf)
     }
 
   } else if (cfstyle == PVAL) {
+    double *pval = atom->dvector[index_pval];
     for (i = first; i < last; i++) {
       pval[i] = buf[m++];
     }
@@ -2112,7 +2113,7 @@ void PairAmoeba::grow_local()
   memory->destroy(tq);
 
   if (amoeba) {
-    memory->destroy(ired2local);
+    memory->destroy(red2local);
     memory->destroy(xred);
   }
 
@@ -2163,7 +2164,7 @@ void PairAmoeba::grow_local()
   memory->create(tq,nmax,3,"amoeba:tq");
 
   if (amoeba) {
-    memory->create(ired2local,nmax,"amoeba:ired2local");
+    memory->create(red2local,nmax,"amoeba:red2local");
     memory->create(xred,nmax,3,"amoeba:xred");
   }
 

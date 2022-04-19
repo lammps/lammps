@@ -193,8 +193,7 @@ void PairAmoeba::multipole_real()
 
   // owned atoms
 
-  pval = atom->dvector[index_pval];
-
+  double *pval = atom->dvector[index_pval];
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;

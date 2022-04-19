@@ -772,8 +772,7 @@ void PairAmoeba::uscale0b(int mode, double **rsd, double **rsdp,
 
   // owned atoms
 
-  pval = atom->dvector[index_pval];
-
+  double *pval = atom->dvector[index_pval];
   double **x = atom->x;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
@@ -1441,9 +1440,8 @@ void PairAmoeba::udirect2b(double **field, double **fieldp)
 
   // owned atoms
 
-  pval = atom->dvector[index_pval];
-
   double **x = atom->x;
+  double *pval = atom->dvector[index_pval];
 
   // neigh list
 

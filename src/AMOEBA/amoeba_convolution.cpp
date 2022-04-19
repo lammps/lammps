@@ -58,8 +58,8 @@ enum{MPOLE_GRID,POLAR_GRID,POLAR_GRIDC,DISP_GRID,INDUCE_GRID,INDUCE_GRIDC};
 ------------------------------------------------------------------------- */
 
 AmoebaConvolution::AmoebaConvolution(LAMMPS *lmp, Pair *pair,
-				     int nx_caller, int ny_caller, int nz_caller,
-				     int order_caller, int which_caller) :
+                                     int nx_caller, int ny_caller, int nz_caller,
+                                     int order_caller, int which_caller) :
   Pointers(lmp)
 {
   amoeba = pair;
@@ -73,9 +73,9 @@ AmoebaConvolution::AmoebaConvolution(LAMMPS *lmp, Pair *pair,
   if (which == POLAR_GRIDC || which == INDUCE_GRIDC) flag3d = 0;
 
   // NOTE: worry about overflow
-  
+
   nfft_global = nx * ny * nz;
-  
+
   // global indices of grid range from 0 to N-1
   // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
   //   global grid that I own without ghost cells
@@ -112,10 +112,10 @@ AmoebaConvolution::AmoebaConvolution(LAMMPS *lmp, Pair *pair,
   //   convert to triclinic if necessary
   // nlo_out,nhi_out = nlo,nhi + stencil size for particle mapping
   // NOTE: this needs to be computed same as IGRID in amoeba
-  
+
   double *prd,*boxlo,*sublo,*subhi;
   int triclinic = domain->triclinic;
-  
+
   if (triclinic == 0) {
     prd = domain->prd;
     boxlo = domain->boxlo;
@@ -153,7 +153,7 @@ AmoebaConvolution::AmoebaConvolution(LAMMPS *lmp, Pair *pair,
   nhi = static_cast<int> ((subhi[2]+dist[2]-boxlo[2]) * nz/zprd);
   nzlo_out = nlo + nlower;
   nzhi_out = nhi + nupper;
-  
+
   // x-pencil decomposition of FFT mesh
   // global indices range from 0 to N-1
   // each proc owns entire x-dimension, clumps of columns in y,z dimensions
@@ -166,7 +166,7 @@ AmoebaConvolution::AmoebaConvolution(LAMMPS *lmp, Pair *pair,
 
   int me = comm->me;
   int nprocs = comm->nprocs;
-  
+
   int npey_fft,npez_fft;
   if (nz >= nprocs) {
     npey_fft = 1;
@@ -189,7 +189,7 @@ AmoebaConvolution::AmoebaConvolution(LAMMPS *lmp, Pair *pair,
   // nfft_owned = owned grid points in FFT decomp
   // ngrid_either = max of nbrick_onwed and nfft_owned
   // nfft = total FFT grid points
-  
+
   nbrick_owned = (nxhi_in-nxlo_in+1) * (nyhi_in-nylo_in+1) *
     (nzhi_in-nzlo_in+1);
   nbrick_ghosts = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
@@ -202,43 +202,43 @@ AmoebaConvolution::AmoebaConvolution(LAMMPS *lmp, Pair *pair,
   // instantiate FFT, GridComm, and Remap
 
   int tmp;
-  
+
   fft1 = new FFT3d(lmp,world,nx,ny,nz,
-		   nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-		   nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
+                   nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
+                   nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
        1,0,&tmp,0);
-  //	   0,0,&tmp,0);
+  //       0,0,&tmp,0);
 
   fft2 = new FFT3d(lmp,world,nx,ny,nz,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                    //1,0,&tmp,0);
                    0,0,&tmp,0);
-  
+
   gc = new GridComm(lmp,world,nx,ny,nz,
-		    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-		    nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
+                    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                    nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
   int nqty = flag3d ? 1 : 2;
   remap = new Remap(lmp,world,
-		    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-		    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-		    nqty,0,0,FFT_PRECISION,0);
-  
+                    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
+                    nqty,0,0,FFT_PRECISION,0);
+
   // memory allocations
 
   if (flag3d) {
     memory->create3d_offset(grid_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-			    nxlo_out,nxhi_out,"amoeba:grid_brick");
+                            nxlo_out,nxhi_out,"amoeba:grid_brick");
     grid_brick_start = &grid_brick[nzlo_out][nylo_out][nxlo_out];
     cgrid_brick = NULL;
   } else {
     memory->create4d_offset_last(cgrid_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
-				 nxlo_out,nxhi_out,2,"amoeba:cgrid_brick");
+                                 nxlo_out,nxhi_out,2,"amoeba:cgrid_brick");
     grid_brick_start = &cgrid_brick[nzlo_out][nylo_out][nxlo_out][0];
     grid_brick = NULL;
   }
-  
+
   memory->create(grid_fft,ngrid_either,"amoeba:grid_fft");
   memory->create(cfft,2*ngrid_either,"amoeba:cfft");
 
@@ -263,7 +263,7 @@ AmoebaConvolution::~AmoebaConvolution()
   memory->destroy(gc_buf1);
   memory->destroy(gc_buf2);
   memory->destroy(remap_buf);
-  
+
   delete fft1;
   delete fft2;
   delete gc;
@@ -288,7 +288,7 @@ void *AmoebaConvolution::zero_3d()
 {
   if (!grid_brick) return NULL;
   memset(&(grid_brick[nzlo_out][nylo_out][nxlo_out]),0,
-	 nbrick_ghosts*sizeof(FFT_SCALAR));
+         nbrick_ghosts*sizeof(FFT_SCALAR));
   return (void *) grid_brick;
 }
 
@@ -298,7 +298,7 @@ void *AmoebaConvolution::zero_4d()
 {
   if (!cgrid_brick) return NULL;
   memset(&(cgrid_brick[nzlo_out][nylo_out][nxlo_out][0]),0,
-	 2*nbrick_ghosts*sizeof(FFT_SCALAR));
+         2*nbrick_ghosts*sizeof(FFT_SCALAR));
   return (void *) cgrid_brick;
 }
 
@@ -327,11 +327,11 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_3d()
   if (DEBUG) debug_scalar(GRIDBRICK_OUT,"PRE Convo / PRE GridComm");
 
   gc->reverse_comm(GridComm::PAIR,amoeba,1,sizeof(FFT_SCALAR),which,
-		   gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                   gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   if (DEBUG) debug_scalar(GRIDBRICK_IN,"PRE Convo / POST GridComm");
   if (DEBUG) debug_file(GRIDBRICK_IN,"pre.convo.post.gridcomm");
-  
+
   // copy owned 3d brick grid values to FFT grid
 
   n = 0;
@@ -339,7 +339,7 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_3d()
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++)
         grid_fft[n++] = grid_brick[iz][iy][ix];
-  
+
   // remap FFT grid from brick to x pencil partitioning
 
   remap->perform(grid_fft,grid_fft,remap_buf);
@@ -348,7 +348,7 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_3d()
   if (DEBUG) debug_file(FFT,"pre.convo.post.remap");
 
   // copy real values into complex grid
-  
+
   n = 0;
   for (int i = 0; i < nfft_owned; i++) {
     cfft[n++] = grid_fft[i];
@@ -356,7 +356,7 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_3d()
   }
 
   // perform forward FFT
-  
+
   fft1->compute(cfft,cfft,FFT3d::FORWARD);
 
   if (SCALE) {
@@ -383,7 +383,7 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_4d()
   if (DEBUG) debug_scalar(GRIDBRICK_OUT,"PRE Convo / PRE GridComm");
 
   gc->reverse_comm(GridComm::PAIR,amoeba,2,sizeof(FFT_SCALAR),which,
-		   gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                   gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   if (DEBUG) debug_scalar(GRIDBRICK_IN,"PRE Convo / POST GridComm");
   if (DEBUG) debug_file(GRIDBRICK_IN,"pre.convo.post.gridcomm");
@@ -400,14 +400,14 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_4d()
 
   // remap FFT grid from brick to x pencil partitioning
   // NOTE: could just setup FFT to start from brick decomp and skip remap
-  
+
   remap->perform(cfft,cfft,remap_buf);
 
   if (DEBUG) debug_scalar(FFT,"PRE Convo / POST Remap");
   if (DEBUG) debug_file(FFT,"pre.convo.post.remap");
 
   // perform forward FFT
-  
+
   fft1->compute(cfft,cfft,FFT3d::FORWARD);
 
   if (SCALE) {
@@ -440,7 +440,7 @@ void *AmoebaConvolution::post_convolution()
 void *AmoebaConvolution::post_convolution_3d()
 {
   int ix,iy,iz,n;
-  
+
   // perform backward FFT
 
   if (DEBUG) debug_scalar(CFFT1,"POST Convo / PRE FFT");
@@ -457,17 +457,17 @@ void *AmoebaConvolution::post_convolution_3d()
   for (iz = nzlo_in; iz <= nzhi_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	grid_brick[iz][iy][ix] = cfft[n];
-	n += 2;
+        grid_brick[iz][iy][ix] = cfft[n];
+        n += 2;
       }
-  
+
   // forward comm to populate ghost grid values
 
   if (DEBUG) debug_scalar(GRIDBRICK_IN,"POST Convo / PRE gridcomm");
   if (DEBUG) debug_file(GRIDBRICK_IN,"post.convo.pre.gridcomm");
 
   gc->forward_comm(GridComm::PAIR,amoeba,1,sizeof(FFT_SCALAR),which,
-		   gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                   gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   return (void *) grid_brick;
 }
@@ -496,17 +496,17 @@ void *AmoebaConvolution::post_convolution_4d()
   for (iz = nzlo_in; iz <= nzhi_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++) {
-	cgrid_brick[iz][iy][ix][0] = cfft[n++];
-	cgrid_brick[iz][iy][ix][1] = cfft[n++];
+        cgrid_brick[iz][iy][ix][0] = cfft[n++];
+        cgrid_brick[iz][iy][ix][1] = cfft[n++];
       }
-  
+
   // forward comm to populate ghost grid values
 
   if (DEBUG) debug_scalar(GRIDBRICK_IN,"POST Convo / PRE gridcomm");
   if (DEBUG) debug_file(GRIDBRICK_IN,"post.convo.pre.gridcomm");
 
   gc->forward_comm(GridComm::PAIR,amoeba,2,sizeof(FFT_SCALAR),which,
-		   gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+                   gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   return (void *) cgrid_brick;
 }
@@ -524,7 +524,7 @@ void AmoebaConvolution::kspacebbox(double r, double *b)
 {
   double *h = domain->h;
   double lx,ly,lz,xy,xz,yz;
-  
+
   lx = h[0]; ly = h[1]; lz = h[2];
   yz = h[3]; xz = h[4]; xy = h[5];
 
@@ -585,42 +585,42 @@ void AmoebaConvolution::debug_scalar(int array, const char *label)
   if (array == GRIDBRICK_OUT) {
     if (flag3d) {
       for (int iz = nzlo_out; iz <= nzhi_out; iz++)
-	for (int iy = nylo_out; iy <= nyhi_out; iy++)
-	  for (int ix = nxlo_out; ix <= nxhi_out; ix++)
-	    sum += grid_brick[iz][iy][ix];
+        for (int iy = nylo_out; iy <= nyhi_out; iy++)
+          for (int ix = nxlo_out; ix <= nxhi_out; ix++)
+            sum += grid_brick[iz][iy][ix];
     } else {
       for (int iz = nzlo_out; iz <= nzhi_out; iz++)
-	for (int iy = nylo_out; iy <= nyhi_out; iy++)
-	  for (int ix = nxlo_out; ix <= nxhi_out; ix++) {
-	    sum += cgrid_brick[iz][iy][ix][0];
-	    sum += cgrid_brick[iz][iy][ix][1];
-	  }
+        for (int iy = nylo_out; iy <= nyhi_out; iy++)
+          for (int ix = nxlo_out; ix <= nxhi_out; ix++) {
+            sum += cgrid_brick[iz][iy][ix][0];
+            sum += cgrid_brick[iz][iy][ix][1];
+          }
     }
   }
 
   if (array == GRIDBRICK_IN) {
     if (flag3d) {
       for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-	for (int iy = nylo_in; iy <= nyhi_in; iy++)
-	  for (int ix = nxlo_in; ix <= nxhi_in; ix++)
-	    sum += grid_brick[iz][iy][ix];
+        for (int iy = nylo_in; iy <= nyhi_in; iy++)
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
+            sum += grid_brick[iz][iy][ix];
     } else {
       for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-	for (int iy = nylo_in; iy <= nyhi_in; iy++)
-	  for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
-	    sum += cgrid_brick[iz][iy][ix][0];
-	    sum += cgrid_brick[iz][iy][ix][1];
-	  }
+        for (int iy = nylo_in; iy <= nyhi_in; iy++)
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+            sum += cgrid_brick[iz][iy][ix][0];
+            sum += cgrid_brick[iz][iy][ix][1];
+          }
     }
   }
 
   if (array == FFT) {
     if (flag3d) {
       for (int i = 0; i < nfft_owned; i++)
-	sum += grid_fft[i];
+        sum += grid_fft[i];
     } else {
       for (int i = 0; i < 2*nfft_owned; i++)
-	sum += cfft[i];
+        sum += cfft[i];
     }
   }
 
@@ -628,13 +628,13 @@ void AmoebaConvolution::debug_scalar(int array, const char *label)
     for (int i = 0; i < 2*nfft_owned; i++)
       sum += cfft[i];
   }
-  
+
   if (array == CFFT2) {
     for (int i = 0; i < 2*nbrick_owned; i++)
       sum += cfft[i];
   }
- 
-  /* 
+
+  /*
   double sumall;
   MPI_Allreduce(&sum,&sumall,1,MPI_DOUBLE,MPI_SUM,world);
   if (comm->me == 0) printf("%s: %s: %12.8g\n",labels[which],label,sumall);
@@ -654,14 +654,14 @@ void AmoebaConvolution::debug_file(int array, const char *label)
   int nprocs = comm->nprocs;
 
   // open file
-  
+
   char fname[128];
   sprintf(fname,"tmp.%s.%s",labels[which],label);
   if (me == 0) fp = fopen(fname,"w");
 
   // file header
   // ncol = # of columns, including grid cell ID
-  
+
   bigint ntot = nx * ny * nz;
 
   int ncol;
@@ -701,58 +701,58 @@ void AmoebaConvolution::debug_file(int array, const char *label)
 
   int ngridmax;
   MPI_Allreduce(&ngrid,&ngridmax,1,MPI_INT,MPI_MAX,world);
-  
+
   double *buf,*buf2;
   memory->create(buf,ncol*ngridmax,"amoeba:buf");
   memory->create(buf2,ncol*ngridmax,"amoeba:buf2");
 
   ngrid = 0;
-  
+
   if (array == GRIDBRICK_IN) {
     if (flag3d) {
       for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-	for (int iy = nylo_in; iy <= nyhi_in; iy++)
-	  for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
-	    int id = iz*ny*nx + iy*nx + ix + 1;
-	    buf[ncol*ngrid] = id;
-	    buf[ncol*ngrid+1] = grid_brick[iz][iy][ix];
-	    ngrid++;
-	  }
+        for (int iy = nylo_in; iy <= nyhi_in; iy++)
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+            int id = iz*ny*nx + iy*nx + ix + 1;
+            buf[ncol*ngrid] = id;
+            buf[ncol*ngrid+1] = grid_brick[iz][iy][ix];
+            ngrid++;
+          }
     } else {
       for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-	for (int iy = nylo_in; iy <= nyhi_in; iy++)
-	  for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
-	    int id = iz*ny*nx + iy*nx + ix + 1;
-	    buf[ncol*ngrid] = id;
-	    buf[ncol*ngrid+1] = cgrid_brick[iz][iy][ix][0];
-	    buf[ncol*ngrid+2] = cgrid_brick[iz][iy][ix][1];
-	    ngrid++;
-	  }
+        for (int iy = nylo_in; iy <= nyhi_in; iy++)
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+            int id = iz*ny*nx + iy*nx + ix + 1;
+            buf[ncol*ngrid] = id;
+            buf[ncol*ngrid+1] = cgrid_brick[iz][iy][ix][0];
+            buf[ncol*ngrid+2] = cgrid_brick[iz][iy][ix][1];
+            ngrid++;
+          }
     }
   }
-  
+
   if (array == FFT) {
     if (flag3d) {
       int m = 0;
       for (int iz = nzlo_fft; iz <= nzhi_fft; iz++)
-	for (int iy = nylo_fft; iy <= nyhi_fft; iy++)
-	  for (int ix = nxlo_fft; ix <= nxhi_fft; ix++) {
-	    int id = iz*ny*nx + iy*nx + ix + 1;
-	    buf[ncol*ngrid] = id;
-	    buf[ncol*ngrid+1] = grid_fft[m++];
-	    ngrid++;
-	  }
-    } else { 
+        for (int iy = nylo_fft; iy <= nyhi_fft; iy++)
+          for (int ix = nxlo_fft; ix <= nxhi_fft; ix++) {
+            int id = iz*ny*nx + iy*nx + ix + 1;
+            buf[ncol*ngrid] = id;
+            buf[ncol*ngrid+1] = grid_fft[m++];
+            ngrid++;
+          }
+    } else {
       int m = 0;
       for (int iz = nzlo_fft; iz <= nzhi_fft; iz++)
-	for (int iy = nylo_fft; iy <= nyhi_fft; iy++)
-	  for (int ix = nxlo_fft; ix <= nxhi_fft; ix++) {
-	    int id = iz*ny*nx + iy*nx + ix + 1;
-	    buf[ncol*ngrid] = id;
-	    buf[ncol*ngrid+1] = cfft[m++];
-	    buf[ncol*ngrid+2] = cfft[m++];
-	    ngrid++;
-	  }
+        for (int iy = nylo_fft; iy <= nyhi_fft; iy++)
+          for (int ix = nxlo_fft; ix <= nxhi_fft; ix++) {
+            int id = iz*ny*nx + iy*nx + ix + 1;
+            buf[ncol*ngrid] = id;
+            buf[ncol*ngrid+1] = cfft[m++];
+            buf[ncol*ngrid+2] = cfft[m++];
+            ngrid++;
+          }
     }
   }
 
@@ -760,62 +760,62 @@ void AmoebaConvolution::debug_file(int array, const char *label)
     int m = 0;
     for (int iz = nzlo_fft; iz <= nzhi_fft; iz++)
       for (int iy = nylo_fft; iy <= nyhi_fft; iy++)
-	for (int ix = nxlo_fft; ix <= nxhi_fft; ix++) {
-	  int id = iz*ny*nx + iy*nx + ix + 1;
-	  buf[ncol*ngrid] = id;
-	  buf[ncol*ngrid+1] = cfft[m++];
-	  buf[ncol*ngrid+2] = cfft[m++];
-	  ngrid++;
-	}
+        for (int ix = nxlo_fft; ix <= nxhi_fft; ix++) {
+          int id = iz*ny*nx + iy*nx + ix + 1;
+          buf[ncol*ngrid] = id;
+          buf[ncol*ngrid+1] = cfft[m++];
+          buf[ncol*ngrid+2] = cfft[m++];
+          ngrid++;
+        }
   }
 
   if (array == CFFT2) {
     int m = 0;
     for (int iz = nzlo_in; iz <= nzhi_in; iz++)
       for (int iy = nylo_in; iy <= nyhi_in; iy++)
-	for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
-	  int id = iz*ny*nx + iy*nx + ix + 1;
-	  buf[ncol*ngrid] = id;
-	  buf[ncol*ngrid+1] = cfft[m++];
-	  buf[ncol*ngrid+2] = cfft[m++];
-	  ngrid++;
-	}
+        for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+          int id = iz*ny*nx + iy*nx + ix + 1;
+          buf[ncol*ngrid] = id;
+          buf[ncol*ngrid+1] = cfft[m++];
+          buf[ncol*ngrid+2] = cfft[m++];
+          ngrid++;
+        }
   }
-  
+
   // proc 0 outputs values
   // pings other procs, send/recv of their values
 
   int tmp,nlines;
   MPI_Request request;
   MPI_Status status;
-  
+
   if (me == 0) {
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
-	MPI_Irecv(buf,ngridmax*ncol,MPI_DOUBLE,iproc,0,world,&request);
-	MPI_Send(&tmp,0,MPI_INT,me+iproc,0,world);
-	MPI_Wait(&request,&status);
-	MPI_Get_count(&status,MPI_DOUBLE,&nlines);
-	nlines /= ncol;
+        MPI_Irecv(buf,ngridmax*ncol,MPI_DOUBLE,iproc,0,world,&request);
+        MPI_Send(&tmp,0,MPI_INT,me+iproc,0,world);
+        MPI_Wait(&request,&status);
+        MPI_Get_count(&status,MPI_DOUBLE,&nlines);
+        nlines /= ncol;
       } else nlines = ngrid;
 
       int n = 0;
       for (int m = 0; m < nlines; m++) {
-	if (ncol == 2)
-	  fprintf(fp,"%d %12.8g\n",(int) buf[n],buf[n+1]);
-	else if (ncol == 3) 
-	  fprintf(fp,"%d %12.8g %12.8g\n",(int ) buf[n],buf[n+1],buf[n+2]);
-	n += ncol;
+        if (ncol == 2)
+          fprintf(fp,"%d %12.8g\n",(int) buf[n],buf[n+1]);
+        else if (ncol == 3)
+          fprintf(fp,"%d %12.8g %12.8g\n",(int ) buf[n],buf[n+1],buf[n+2]);
+        n += ncol;
       }
     }
-    
+
   } else {
     MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
     MPI_Rsend(buf,ngrid*ncol,MPI_DOUBLE,0,0,world);
   }
-  
+
   // close file
-  
+
   if (me == 0) fclose(fp);
 
   // clean up

@@ -55,7 +55,7 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
   special_angle = special_dihedral = 0;
   special_onefive = 0;
   special_extra = 0;
-  
+
   dielectric = 1.0;
   qqr2e_lammps_real = 332.06371;    // these constants are toggled
   qqr2e_charmm_real = 332.0716;     // by new CHARMM pair styles
@@ -706,7 +706,7 @@ void Force::set_special(int narg, char **arg)
   special_coul[1] = special_coul[2] = special_coul[3] = 0.0;
   special_angle = special_dihedral = 0;
   special_onefive = 0;
-  
+
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "amber") == 0) {
@@ -777,8 +777,8 @@ void Force::set_special(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"yes") == 0) special_onefive = 1;
       else error->all(FLERR,"Illegal special_bonds command");
       if (special_onefive && atom->nspecial15_flag == 0)
-	error->all(FLERR,"Cannot set special_bonds one/five if "
-		   "atom style does not support it");
+        error->all(FLERR,"Cannot set special_bonds one/five if "
+                   "atom style does not support it");
       iarg += 2;
     } else error->all(FLERR,"Illegal special_bonds command");
   }

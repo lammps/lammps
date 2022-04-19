@@ -92,7 +92,7 @@ void PairAmoeba::hal()
       factor_hal = special_hal[special_which];
       if (factor_hal == 0.0) continue;
       j &= NEIGHMASK15;
-      
+
       xr = xi - xred[j][0];
       yr = yi - xred[j][1];
       zr = zi - xred[j][2];
@@ -141,7 +141,7 @@ void PairAmoeba::hal()
       }
 
       ehal += e;
-      
+
       // find the chain rule terms for derivative components
 
       de = de / rik;
@@ -151,13 +151,13 @@ void PairAmoeba::hal()
 
       // increment the total van der Waals energy and derivatives
       // if jv < 0, trigger an error, needed H-bond partner is missing
-      
+
       iv = ired2local[i];
       jv = ired2local[j];
       if (jv < 0)
-	error->one(FLERR,"AMOEBA hal cannot find H bond partner - "
-		   "ghost comm is too short");
-      
+        error->one(FLERR,"AMOEBA hal cannot find H bond partner - "
+                   "ghost comm is too short");
+
       if (i == iv) {
         f[i][0] -= dedx;
         f[i][1] -= dedy;
@@ -205,7 +205,7 @@ void PairAmoeba::hal()
       // energy = e
       // virial = 6-vec vir
       // NOTE: add tally function
-      
+
       if (evflag) {
       }
     }

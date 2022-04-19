@@ -115,7 +115,7 @@ void PairAmoeba::repulsion()
 
   // DEBUG
   //FILE *fp = fopen("lammps.dat","w");
-  
+
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     itype = amtype[i];
@@ -138,7 +138,7 @@ void PairAmoeba::repulsion()
     qiyy = rpole[i][8];
     qiyz = rpole[i][9];
     qizz = rpole[i][12];
-    
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       factor_repel = special_repel[sbmask15(j)];
@@ -231,11 +231,11 @@ void PairAmoeba::repulsion()
       dkqirx = dkqiz*yr - dkqiy*zr;
       dkqiry = dkqix*zr - dkqiz*xr;
       dkqirz = dkqiy*xr - dkqix*yr;
-      dqikx = diy*qkz - diz*qky + dky*qiz - dkz*qiy - 
+      dqikx = diy*qkz - diz*qky + dky*qiz - dkz*qiy -
         2.0*(qixy*qkxz+qiyy*qkyz+qiyz*qkzz-qixz*qkxy-qiyz*qkyy-qizz*qkyz);
-      dqiky = diz*qkx - dix*qkz + dkz*qix - dkx*qiz - 
+      dqiky = diz*qkx - dix*qkz + dkz*qix - dkx*qiz -
         2.0*(qixz*qkxx+qiyz*qkxy+qizz*qkxz-qixx*qkxz-qixy*qkyz-qixz*qkzz);
-      dqikz = dix*qky - diy*qkx + dkx*qiy - dky*qix - 
+      dqikz = dix*qky - diy*qkx + dkx*qiy - dky*qix -
         2.0*(qixx*qkxy+qixy*qkyy+qixz*qkyz-qixy*qkxx-qiyy*qkxy-qiyz*qkxz);
 
       // get reciprocal distance terms for this interaction
@@ -258,7 +258,7 @@ void PairAmoeba::repulsion()
       term3 = vali*qkr + valk*qir - dir*dkr + 2.0*(dkqi-diqk+qiqk);
       term4 = dir*qkr - dkr*qir - 4.0*qik;
       term5 = qir*qkr;
-      eterm = term1*dmpik[0] + term2*dmpik[2] + 
+      eterm = term1*dmpik[0] + term2*dmpik[2] +
         term3*dmpik[4] + term4*dmpik[6] + term5*dmpik[8];
 
       // compute the Pauli repulsion energy for this interaction
@@ -268,7 +268,7 @@ void PairAmoeba::repulsion()
 
       // calculate intermediate terms for force and torque
 
-      de = term1*dmpik[2] + term2*dmpik[4] + term3*dmpik[6] + 
+      de = term1*dmpik[2] + term2*dmpik[4] + term3*dmpik[6] +
         term4*dmpik[8] + term5*dmpik[10];
       term1 = -valk*dmpik[2] + dkr*dmpik[4] - qkr*dmpik[6];
       term2 = vali*dmpik[2] + dir*dmpik[4] + qir*dmpik[6];
@@ -279,11 +279,11 @@ void PairAmoeba::repulsion()
 
       // compute the force components for this interaction
 
-      frcx = de*xr + term1*dix + term2*dkx + term3*(diqkx-dkqix) + 
+      frcx = de*xr + term1*dix + term2*dkx + term3*(diqkx-dkqix) +
         term4*qix + term5*qkx + term6*(qixk+qkxi);
-      frcy = de*yr + term1*diy + term2*dky + term3*(diqky-dkqiy) + 
+      frcy = de*yr + term1*diy + term2*dky + term3*(diqky-dkqiy) +
         term4*qiy + term5*qky + term6*(qiyk+qkyi);
-      frcz = de*zr + term1*diz + term2*dkz + term3*(diqkz-dkqiz) + 
+      frcz = de*zr + term1*diz + term2*dkz + term3*(diqkz-dkqiz) +
         term4*qiz + term5*qkz + term6*(qizk+qkzi);
       frcx = frcx*rr1 + eterm*rr3*xr;
       frcy = frcy*rr1 + eterm*rr3*yr;
@@ -293,18 +293,18 @@ void PairAmoeba::repulsion()
       frcz = sizik * frcz;
 
       // compute the torque components for this interaction
-      
-      ttri[0] = -dmpik[2]*dikx + term1*dirx + term3*(dqikx+dkqirx) - 
+
+      ttri[0] = -dmpik[2]*dikx + term1*dirx + term3*(dqikx+dkqirx) -
         term4*qirx - term6*(qikrx+qikx);
-      ttri[1] = -dmpik[2]*diky + term1*diry + term3*(dqiky+dkqiry) - 
+      ttri[1] = -dmpik[2]*diky + term1*diry + term3*(dqiky+dkqiry) -
         term4*qiry - term6*(qikry+qiky);
-      ttri[2] = -dmpik[2]*dikz + term1*dirz + term3*(dqikz+dkqirz) - 
+      ttri[2] = -dmpik[2]*dikz + term1*dirz + term3*(dqikz+dkqirz) -
         term4*qirz - term6*(qikrz+qikz);
-      ttrk[0] = dmpik[2]*dikx + term2*dkrx - term3*(dqikx+diqkrx) - 
+      ttrk[0] = dmpik[2]*dikx + term2*dkrx - term3*(dqikx+diqkrx) -
         term5*qkrx - term6*(qkirx-qikx);
-      ttrk[1] = dmpik[2]*diky + term2*dkry - term3*(dqiky+diqkry) - 
+      ttrk[1] = dmpik[2]*diky + term2*dkry - term3*(dqiky+diqkry) -
         term5*qkry - term6*(qkiry-qiky);
-      ttrk[2] = dmpik[2]*dikz + term2*dkrz - term3*(dqikz+diqkrz) - 
+      ttrk[2] = dmpik[2]*dikz + term2*dkrz - term3*(dqikz+diqkrz) -
         term5*qkrz - term6*(qkirz-qikz);
       ttri[0] = sizik * ttri[0] * rr1;
       ttri[1] = sizik * ttri[1] * rr1;
@@ -371,7 +371,7 @@ void PairAmoeba::repulsion()
       // energy = e
       // virial = 6-vec vir
       // NOTE: add tally function
-      
+
       if (evflag) {
       }
     }
@@ -379,7 +379,7 @@ void PairAmoeba::repulsion()
 
   // DEBUG
   //fclose(fp);
-  
+
   // reverse comm to sum torque from ghost atoms to owned atoms
 
   crstyle = TORQUE;
@@ -407,11 +407,11 @@ void PairAmoeba::repulsion()
     vxx = xix*fix[0] + xiy*fiy[0] + xiz*fiz[0];
     vyy = yix*fix[1] + yiy*fiy[1] + yiz*fiz[1];
     vzz = zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
-    vxy = 0.5 * (yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] + 
+    vxy = 0.5 * (yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] +
                  xix*fix[1] + xiy*fiy[1] + xiz*fiz[1]);
-    vxz = 0.5 * (zix*fix[0] + ziy*fiy[0] + ziz*fiz[0] + 
+    vxz = 0.5 * (zix*fix[0] + ziy*fiy[0] + ziz*fiz[0] +
                  xix*fix[2] + xiy*fiy[2] + xiz*fiz[2]);
-    vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] + 
+    vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
 
     virrepulse[0] += vxx;
@@ -423,7 +423,7 @@ void PairAmoeba::repulsion()
 
     // virial = 6-vec vir
     // NOTE: add tally function
-    
+
     if (evflag) {
     }
   }
@@ -440,7 +440,7 @@ void PairAmoeba::repulsion()
    150, 084104 (2019)
 ------------------------------------------------------------------------- */
 
-void PairAmoeba::damprep(double r, double r2, double rr1, double rr3, 
+void PairAmoeba::damprep(double r, double r2, double rr1, double rr3,
                          double rr5, double rr7, double rr9, double rr11,
                          int rorder, double dmpi, double dmpk, double *dmpik)
 {
@@ -519,46 +519,46 @@ void PairAmoeba::damprep(double r, double r2, double rr1, double rr3,
     tmp = 4.0 * dmpi2 * dmpk2 / term;
     s = (dampi-tmp)*expk + (dampk+tmp)*expi;
 
-    ds = (dmpi2*dmpk2*r2 - 4.0*dmpi2*dmpk22*r/term - 
-          4.0*dmpi2*dmpk2/term) * expk + 
+    ds = (dmpi2*dmpk2*r2 - 4.0*dmpi2*dmpk22*r/term -
+          4.0*dmpi2*dmpk2/term) * expk +
       (dmpi2*dmpk2*r2 + 4.0*dmpi22*dmpk2*r/term + 4.0*dmpi2*dmpk2/term) * expi;
-    d2s = (dmpi2*dmpk2*r2/3.0 + dmpi2*dmpk22*r3/3.0 - 
-           (4.0/3.0)*dmpi2*dmpk23*r2/term - 4.0*dmpi2*dmpk22*r/term - 
-           4.0*dmpi2*dmpk2/term) * expk + 
-      (dmpi2*dmpk2*r2/3.0 + dmpi22*dmpk2*r3/3.0 + 
-       (4.0/3.0)*dmpi23*dmpk2*r2/term + 4.0*dmpi22*dmpk2*r/term + 
+    d2s = (dmpi2*dmpk2*r2/3.0 + dmpi2*dmpk22*r3/3.0 -
+           (4.0/3.0)*dmpi2*dmpk23*r2/term - 4.0*dmpi2*dmpk22*r/term -
+           4.0*dmpi2*dmpk2/term) * expk +
+      (dmpi2*dmpk2*r2/3.0 + dmpi22*dmpk2*r3/3.0 +
+       (4.0/3.0)*dmpi23*dmpk2*r2/term + 4.0*dmpi22*dmpk2*r/term +
        4.0*dmpi2*dmpk2/term) * expi;
-    d3s = (dmpi2*dmpk23*r4/15.0 + dmpi2*dmpk22*r3/5.0 + dmpi2*dmpk2*r2/5.0 - 
-           (4.0/15.0)*dmpi2*dmpk24*r3/term - (8.0/5.0)*dmpi2*dmpk23*r2/term - 
-           4.0*dmpi2*dmpk22*r/term - 4.0/term*dmpi2*dmpk2) * expk + 
-      (dmpi23*dmpk2*r4/15.0 + dmpi22*dmpk2*r3/5.0 + dmpi2*dmpk2*r2/5.0 + 
-       (4.0/15.0)*dmpi24*dmpk2*r3/term + (8.0/5.0)*dmpi23*dmpk2*r2/term + 
+    d3s = (dmpi2*dmpk23*r4/15.0 + dmpi2*dmpk22*r3/5.0 + dmpi2*dmpk2*r2/5.0 -
+           (4.0/15.0)*dmpi2*dmpk24*r3/term - (8.0/5.0)*dmpi2*dmpk23*r2/term -
+           4.0*dmpi2*dmpk22*r/term - 4.0/term*dmpi2*dmpk2) * expk +
+      (dmpi23*dmpk2*r4/15.0 + dmpi22*dmpk2*r3/5.0 + dmpi2*dmpk2*r2/5.0 +
+       (4.0/15.0)*dmpi24*dmpk2*r3/term + (8.0/5.0)*dmpi23*dmpk2*r2/term +
        4.0*dmpi22*dmpk2*r/term + 4.0/term*dmpi2*dmpk2) * expi;
-    d4s = (dmpi2*dmpk24*r5/105.0 + (2.0/35.0)*dmpi2*dmpk23*r4 + 
-           dmpi2*dmpk22*r3/7.0 + dmpi2*dmpk2*r2/7.0 - 
-           (4.0/105.0)*dmpi2*dmpk25*r4/term - (8.0/21.0)*dmpi2*dmpk24*r3/term - 
-           (12.0/7.0)*dmpi2*dmpk23*r2/term - 4.0*dmpi2*dmpk22*r/term - 
-           4.0*dmpi2*dmpk2/term) * expk + 
-      (dmpi24*dmpk2*r5/105.0 + (2.0/35.0)*dmpi23*dmpk2*r4 + 
-       dmpi22*dmpk2*r3/7.0 + dmpi2*dmpk2*r2/7.0 + 
-       (4.0/105.0)*dmpi25*dmpk2*r4/term + (8.0/21.0)*dmpi24*dmpk2*r3/term + 
-       (12.0/7.0)*dmpi23*dmpk2*r2/term + 4.0*dmpi22*dmpk2*r/term + 
+    d4s = (dmpi2*dmpk24*r5/105.0 + (2.0/35.0)*dmpi2*dmpk23*r4 +
+           dmpi2*dmpk22*r3/7.0 + dmpi2*dmpk2*r2/7.0 -
+           (4.0/105.0)*dmpi2*dmpk25*r4/term - (8.0/21.0)*dmpi2*dmpk24*r3/term -
+           (12.0/7.0)*dmpi2*dmpk23*r2/term - 4.0*dmpi2*dmpk22*r/term -
+           4.0*dmpi2*dmpk2/term) * expk +
+      (dmpi24*dmpk2*r5/105.0 + (2.0/35.0)*dmpi23*dmpk2*r4 +
+       dmpi22*dmpk2*r3/7.0 + dmpi2*dmpk2*r2/7.0 +
+       (4.0/105.0)*dmpi25*dmpk2*r4/term + (8.0/21.0)*dmpi24*dmpk2*r3/term +
+       (12.0/7.0)*dmpi23*dmpk2*r2/term + 4.0*dmpi22*dmpk2*r/term +
        4.0*dmpi2*dmpk2/term) * expi;
-    
+
     if (rorder >= 11) {
       r6 = r5 * r;
       dmpi26 = dmpi25 * dmpi2;
       dmpk26 = dmpk25 * dmpk2;
-      d5s = (dmpi2*dmpk25*r6/945.0 + (2.0/189.0)*dmpi2*dmpk24*r5 + 
-             dmpi2*dmpk23*r4/21.0 + dmpi2*dmpk22*r3/9.0 + dmpi2*dmpk2*r2/9.0 - 
-             (4.0/945.0)*dmpi2*dmpk26*r5/term - 
-             (4.0/63.0)*dmpi2*dmpk25*r4/term - (4.0/9.0)*dmpi2*dmpk24*r3/term - 
-             (16.0/9.0)*dmpi2*dmpk23*r2/term - 4.0*dmpi2*dmpk22*r/term - 
-             4.0*dmpi2*dmpk2/term) * expk + 
-        (dmpi25*dmpk2*r6/945.0 + (2.0/189.0)*dmpi24*dmpk2*r5 + 
-         dmpi23*dmpk2*r4/21.0 + dmpi22*dmpk2*r3/9.0 + dmpi2*dmpk2*r2/9.0 + 
-         (4.0/945.0)*dmpi26*dmpk2*r5/term + (4.0/63.0)*dmpi25*dmpk2*r4/term + 
-         (4.0/9.0)*dmpi24*dmpk2*r3/term + (16.0/9.0)*dmpi23*dmpk2*r2/term + 
+      d5s = (dmpi2*dmpk25*r6/945.0 + (2.0/189.0)*dmpi2*dmpk24*r5 +
+             dmpi2*dmpk23*r4/21.0 + dmpi2*dmpk22*r3/9.0 + dmpi2*dmpk2*r2/9.0 -
+             (4.0/945.0)*dmpi2*dmpk26*r5/term -
+             (4.0/63.0)*dmpi2*dmpk25*r4/term - (4.0/9.0)*dmpi2*dmpk24*r3/term -
+             (16.0/9.0)*dmpi2*dmpk23*r2/term - 4.0*dmpi2*dmpk22*r/term -
+             4.0*dmpi2*dmpk2/term) * expk +
+        (dmpi25*dmpk2*r6/945.0 + (2.0/189.0)*dmpi24*dmpk2*r5 +
+         dmpi23*dmpk2*r4/21.0 + dmpi22*dmpk2*r3/9.0 + dmpi2*dmpk2*r2/9.0 +
+         (4.0/945.0)*dmpi26*dmpk2*r5/term + (4.0/63.0)*dmpi25*dmpk2*r4/term +
+         (4.0/9.0)*dmpi24*dmpk2*r3/term + (16.0/9.0)*dmpi23*dmpk2*r2/term +
          4.0*dmpi22*dmpk2*r/term + 4.0*dmpi2*dmpk2/term) * expi;
     }
   }

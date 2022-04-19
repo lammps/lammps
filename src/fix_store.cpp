@@ -105,7 +105,7 @@ vstore(nullptr), astore(nullptr), rbuf(nullptr)
 
   if (flavor == GLOBAL) {
     if (vecflag) {
-      for (int i = 0; i < n1; i++) 
+      for (int i = 0; i < n1; i++)
         vstore[i] = 0.0;
     } else if (arrayflag) {
       for (int i = 0; i < n1; i++)
@@ -117,7 +117,7 @@ vstore(nullptr), astore(nullptr), rbuf(nullptr)
   if (flavor == PERATOM) {
     int nlocal = atom->nlocal;
     if (vecflag) {
-      for (int i = 0; i < nlocal; i++) 
+      for (int i = 0; i < nlocal; i++)
         vstore[i] = 0.0;
     } else if (arrayflag) {
       for (int i = 0; i < nlocal; i++)

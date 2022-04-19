@@ -61,7 +61,7 @@ void PairAmoeba::moduli()
 
   int maxfft = MAX(nfft1,nfft2);
   maxfft = MAX(maxfft,nfft3);
-  
+
   double *array = new double[bsorder];
   double *bsarray = new double[maxfft];
 
@@ -79,7 +79,7 @@ void PairAmoeba::moduli()
   dftmod(bsmod3,bsarray,nfft3,bsorder);
 
   // perform deallocation of local arrays
-  
+
   delete [] array;
   delete [] bsarray;
 }
@@ -104,7 +104,7 @@ void PairAmoeba::bspline(double x, int n, double *c)
   /*for (k = 2; k < n; k++) {
     denom = 1.0 / (k-1);
     c[k] = x * c[k-1] * denom;
-    for (i = 0; i < k-1; i++) 
+    for (i = 0; i < k-1; i++)
       c[k-i] = ((x+i)*c[k-i-1] + (k-i-x)*c[k-i]) * denom;
     c[0] = (1.0-x) * c[0] * denom;
   }*/
@@ -148,15 +148,15 @@ void PairAmoeba::dftmod(double *bsmod, double *bsarray, int nfft, int order)
     bsmod[i] = sum1*sum1 + sum2*sum2;
     //printf("BSMOD AAA i %d bsmod %g\n",i,bsmod[i]);
   }
-  
+
   // fix for exponential Euler spline interpolation failure
 
   eps = 1.0e-7;
   if (bsmod[0] < eps) bsmod[0] = 0.5 * bsmod[1];
-  for (i = 1; i < nfft-1; i++) 
+  for (i = 1; i < nfft-1; i++)
     if (bsmod[i] < eps) bsmod[i] = 0.5 * (bsmod[i-1] + bsmod[i+1]);
   if (bsmod[nfft-1] < eps) bsmod[nfft-1] = 0.5 * bsmod[nfft-2];
-  
+
   // compute and apply the optimal zeta coefficient
 
   jcut = 50;
@@ -170,14 +170,14 @@ void PairAmoeba::dftmod(double *bsmod, double *bsarray, int nfft, int order)
       sum2 = 1.0;
       factor = MY_PI * k / nfft;
       for (j = 1; j <= jcut; j++) {
-	arg = factor / (factor + MY_PI*j);
-	sum1 += pow(arg,order);
-	sum2 += pow(arg,order2);
+        arg = factor / (factor + MY_PI*j);
+        sum1 += pow(arg,order);
+        sum2 += pow(arg,order2);
       }
       for (j = 1; j <= jcut; j++) {
-	arg = factor / (factor - MY_PI*j);
-	sum1 += pow(arg,order);
-	sum2 += pow(arg,order2);
+        arg = factor / (factor - MY_PI*j);
+        sum1 += pow(arg,order);
+        sum2 += pow(arg,order2);
       }
       zeta = sum2 / sum1;
     }
@@ -197,7 +197,7 @@ void PairAmoeba::bspline_fill()
   double xi,yi,zi;
   double w,fr,eps;
   double lamda[3];
-  
+
   int nlocal = atom->nlocal;
   double **x = atom->x;
 
@@ -258,7 +258,7 @@ void PairAmoeba::bsplgen(double w, double **thetai)
   double denom;
 
   level = 4;
-  
+
   // initialization to get to 2nd order recursion
 
   bsbuild[1][1] = w;
@@ -278,7 +278,7 @@ void PairAmoeba::bsplgen(double w, double **thetai)
     bsbuild[i-1][i-1] = denom * w * bsbuild[k-1][k-1];
     for (j = 1; j <= i-2; j++) {
       bsbuild[i-j-1][i-1] = denom *
-	((w+j)*bsbuild[i-j-2][k-1] + (i-j-w)*bsbuild[i-j-1][k-1]);
+        ((w+j)*bsbuild[i-j-2][k-1] + (i-j-w)*bsbuild[i-j-1][k-1]);
     }
     bsbuild[0][i-1] = denom * (1.0-w) * bsbuild[0][k-1];
   }
@@ -290,7 +290,7 @@ void PairAmoeba::bsplgen(double w, double **thetai)
   for (int i = bsorder-1; i >= 2; i--)
     bsbuild[i-1][k-1] = bsbuild[i-2][k-1] - bsbuild[i-1][k-1];
   bsbuild[0][k-1] = -bsbuild[0][k-1];
-  
+
   // get coefficients for the B-spline second derivative
 
   if (level == 4) {
@@ -351,7 +351,7 @@ void PairAmoeba::cmp_to_fmp(double **cmp, double **fmp)
     for (j = 1; j < 4; j++) {
       fmp[i][j] = 0.0;
       for (k = 1; k < 4; k++)
-	fmp[i][j] += ctf[j][k] * cmp[i][k];
+        fmp[i][j] += ctf[j][k] * cmp[i][k];
     }
     for (j = 4; j < 10; j++) {
       fmp[i][j] = 0.0;
@@ -439,12 +439,12 @@ void PairAmoeba::fphi_to_cphi(double **fphi, double **cphi)
     for (j = 1; j < 4; j++) {
       cphi[i][j] = 0.0;
       for (k = 1; k < 4; k++)
-	cphi[i][j] += ftc[j][k] * fphi[i][k];
+        cphi[i][j] += ftc[j][k] * fphi[i][k];
     }
     for (j = 4; j < 10; j++) {
       cphi[i][j] = 0.0;
       for (k = 4; k < 10; k++)
-	cphi[i][j] += ftc[j][k] * fphi[i][k];
+        cphi[i][j] += ftc[j][k] * fphi[i][k];
     }
   }
 }
@@ -530,9 +530,9 @@ void PairAmoeba::grid_mpole(double **fmp, double ***grid)
   // spread the permanent multipole moments onto the grid
 
   int nlocal = atom->nlocal;
-  
+
   for (m = 0; m < nlocal; m++) {
-    
+
     k = igrid[m][2] - nlpts;
     for (kb = 0; kb < bsorder; kb++) {
       v0 = thetai3[m][kb][0];
@@ -541,43 +541,43 @@ void PairAmoeba::grid_mpole(double **fmp, double ***grid)
 
       j = igrid[m][1] - nlpts;
       for (jb = 0; jb < bsorder; jb++) {
-	u0 = thetai2[m][jb][0];
-	u1 = thetai2[m][jb][1];
-	u2 = thetai2[m][jb][2];
-	term0 = fmp[m][0]*u0*v0 + fmp[m][2]*u1*v0 + fmp[m][3]*u0*v1 +
-	  fmp[m][5]*u2*v0 + fmp[m][6]*u0*v2 + fmp[m][9]*u1*v1;
-	term1 = fmp[m][1]*u0*v0 + fmp[m][7]*u1*v0 + fmp[m][8]*u0*v1;
-	term2 = fmp[m][4]*u0*v0;
-	
-	i = igrid[m][0] - nlpts;
-	for (ib = 0; ib < bsorder; ib++) {
-	  t0 = thetai1[m][ib][0];
-	  t1 = thetai1[m][ib][1];
-	  t2 = thetai1[m][ib][2];
-	  grid[k][j][i] += term0*t0 + term1*t1 + term2*t2;
-	  
-	  // if (m == 0) {
-	  //   int istencil = kb*bsorder*bsorder + jb*bsorder + ib + 1;
-	  //   printf("GRIDMPOLE iStencil %d atomID %d igrid %d %d %d "
-		//    "ibjbkb %d %d %d ijk %d %d %d "
-		//    "th1 %g %g %g th2 %g %g %g th3 %g %g %g "
-		//    "fmp0-9 %e %e %e %e %e %e %e %e %e %e "
+        u0 = thetai2[m][jb][0];
+        u1 = thetai2[m][jb][1];
+        u2 = thetai2[m][jb][2];
+        term0 = fmp[m][0]*u0*v0 + fmp[m][2]*u1*v0 + fmp[m][3]*u0*v1 +
+          fmp[m][5]*u2*v0 + fmp[m][6]*u0*v2 + fmp[m][9]*u1*v1;
+        term1 = fmp[m][1]*u0*v0 + fmp[m][7]*u1*v0 + fmp[m][8]*u0*v1;
+        term2 = fmp[m][4]*u0*v0;
+
+        i = igrid[m][0] - nlpts;
+        for (ib = 0; ib < bsorder; ib++) {
+          t0 = thetai1[m][ib][0];
+          t1 = thetai1[m][ib][1];
+          t2 = thetai1[m][ib][2];
+          grid[k][j][i] += term0*t0 + term1*t1 + term2*t2;
+
+          // if (m == 0) {
+          //   int istencil = kb*bsorder*bsorder + jb*bsorder + ib + 1;
+          //   printf("GRIDMPOLE iStencil %d atomID %d igrid %d %d %d "
+                //    "ibjbkb %d %d %d ijk %d %d %d "
+                //    "th1 %g %g %g th2 %g %g %g th3 %g %g %g "
+                //    "fmp0-9 %e %e %e %e %e %e %e %e %e %e "
     //    "term012 %e %e %e "
-		//    "gridvalue %g\n",
-		//    istencil,atom->tag[m],
-		//    igrid[m][0],igrid[m][1],igrid[m][2],
-		//    ib,jb,kb,i,j,k,
-		//    t0,t1,t2,u0,u1,u2,v0,v1,v2,
-		//    fmp[m][0],fmp[m][1],fmp[m][2],
-		//    fmp[m][3],fmp[m][4],fmp[m][5],
-		//    fmp[m][6],fmp[m][7],fmp[m][8],fmp[m][9],
+                //    "gridvalue %g\n",
+                //    istencil,atom->tag[m],
+                //    igrid[m][0],igrid[m][1],igrid[m][2],
+                //    ib,jb,kb,i,j,k,
+                //    t0,t1,t2,u0,u1,u2,v0,v1,v2,
+                //    fmp[m][0],fmp[m][1],fmp[m][2],
+                //    fmp[m][3],fmp[m][4],fmp[m][5],
+                //    fmp[m][6],fmp[m][7],fmp[m][8],fmp[m][9],
     //    term0,term1,term2,
-		//    term0*t0 + term1*t1 + term2*t2);
-	  // }
-	  
-	  i++;
-	}
-	j++;
+                //    term0*t0 + term1*t1 + term2*t2);
+          // }
+
+          i++;
+        }
+        j++;
       }
       k++;
     }
@@ -608,9 +608,9 @@ void PairAmoeba::fphi_mpole(double ***grid, double **fphi)
   int nrpts = bsorder - nlpts - 1;
 
   // extract the permanent multipole field at each site
-  
+
   int nlocal = atom->nlocal;
-  
+
   for (m = 0; m < nlocal; m++) {
     tuv000 = 0.0;
     tuv001 = 0.0;
@@ -649,39 +649,39 @@ void PairAmoeba::fphi_mpole(double ***grid, double **fphi)
       tu21 = 0.0;
       tu12 = 0.0;
       tu03 = 0.0;
-      
+
       j = igrid[m][1] - nlpts;
       for (jb = 0; jb < bsorder; jb++) {
-	u0 = thetai2[m][jb][0];
-	u1 = thetai2[m][jb][1];
-	u2 = thetai2[m][jb][2];
-	u3 = thetai2[m][jb][3];
-	t0 = 0.0;
-	t1 = 0.0;
-	t2 = 0.0;
-	t3 = 0.0;
+        u0 = thetai2[m][jb][0];
+        u1 = thetai2[m][jb][1];
+        u2 = thetai2[m][jb][2];
+        u3 = thetai2[m][jb][3];
+        t0 = 0.0;
+        t1 = 0.0;
+        t2 = 0.0;
+        t3 = 0.0;
 
-	i = igrid[m][0] - nlpts;
-	for (ib = 0; ib < bsorder; ib++) {
-	  tq = grid[k][j][i];
-	  t0 += tq*thetai1[m][ib][0];
-	  t1 += tq*thetai1[m][ib][1];
-	  t2 += tq*thetai1[m][ib][2];
-	  t3 += tq*thetai1[m][ib][3];
-	  i++;
-	}
+        i = igrid[m][0] - nlpts;
+        for (ib = 0; ib < bsorder; ib++) {
+          tq = grid[k][j][i];
+          t0 += tq*thetai1[m][ib][0];
+          t1 += tq*thetai1[m][ib][1];
+          t2 += tq*thetai1[m][ib][2];
+          t3 += tq*thetai1[m][ib][3];
+          i++;
+        }
 
-	tu00 += t0*u0;
-	tu10 += t1*u0;
-	tu01 += t0*u1;
-	tu20 += t2*u0;
-	tu11 += t1*u1;
-	tu02 += t0*u2;
-	tu30 += t3*u0;
-	tu21 += t2*u1;
-	tu12 += t1*u2;
-	tu03 += t0*u3;
-	j++;
+        tu00 += t0*u0;
+        tu10 += t1*u0;
+        tu01 += t0*u1;
+        tu20 += t2*u0;
+        tu11 += t1*u1;
+        tu02 += t0*u2;
+        tu30 += t3*u0;
+        tu21 += t2*u1;
+        tu12 += t1*u2;
+        tu03 += t0*u3;
+        j++;
       }
 
       tuv000 += tu00*v0;
@@ -749,7 +749,7 @@ void PairAmoeba::grid_uind(double **fuind, double **fuinp, double ****grid)
   // put the induced dipole moments onto the grid
 
   int nlocal = atom->nlocal;
-  
+
   for (m = 0; m < nlocal; m++) {
 
     k = igrid[m][2] - nlpts;
@@ -759,23 +759,23 @@ void PairAmoeba::grid_uind(double **fuind, double **fuinp, double ****grid)
 
       j = igrid[m][1] - nlpts;
       for (jb = 0; jb < bsorder; jb++) {
-	u0 = thetai2[m][jb][0];
-	u1 = thetai2[m][jb][1];
-	term01 = fuind[m][1]*u1*v0 + fuind[m][2]*u0*v1;
-	term11 = fuind[m][0]*u0*v0;
-	term02 = fuinp[m][1]*u1*v0 + fuinp[m][2]*u0*v1;
-	term12 = fuinp[m][0]*u0*v0;
+        u0 = thetai2[m][jb][0];
+        u1 = thetai2[m][jb][1];
+        term01 = fuind[m][1]*u1*v0 + fuind[m][2]*u0*v1;
+        term11 = fuind[m][0]*u0*v0;
+        term02 = fuinp[m][1]*u1*v0 + fuinp[m][2]*u0*v1;
+        term12 = fuinp[m][0]*u0*v0;
 
-	i = igrid[m][0] - nlpts;
-	for (ib = 0; ib < bsorder; ib++) {
-	  t0 = thetai1[m][ib][0];
-	  t1 = thetai1[m][ib][1];
-	  grid[k][j][i][0] += term01*t0 + term11*t1;
-	  grid[k][j][i][1] += term02*t0 + term12*t1;
+        i = igrid[m][0] - nlpts;
+        for (ib = 0; ib < bsorder; ib++) {
+          t0 = thetai1[m][ib][0];
+          t1 = thetai1[m][ib][1];
+          grid[k][j][i][0] += term01*t0 + term11*t1;
+          grid[k][j][i][1] += term02*t0 + term12*t1;
     //printf("gridcheck %g %g \n",grid[k][j][i][0],grid[k][j][i][0]);
-	  i++;
-	}
-	j++;
+          i++;
+        }
+        j++;
       }
       k++;
     }
@@ -783,12 +783,12 @@ void PairAmoeba::grid_uind(double **fuind, double **fuinp, double ****grid)
 }
 
 /* ----------------------------------------------------------------------
-   fphi_uind = induced potential from grid 
+   fphi_uind = induced potential from grid
    fphi_uind extracts the induced dipole potential from the particle mesh Ewald grid
 ------------------------------------------------------------------------- */
 
 void PairAmoeba::fphi_uind(double ****grid, double **fdip_phi1,
-			   double **fdip_phi2, double **fdip_sum_phi)
+                           double **fdip_phi2, double **fdip_sum_phi)
 {
   int i,j,k,m,ib,jb,kb;
   double v0,v1,v2,v3;
@@ -820,7 +820,7 @@ void PairAmoeba::fphi_uind(double ****grid, double **fdip_phi1,
   // extract the permanent multipole field at each site
 
   int nlocal = atom->nlocal;
-  
+
   for (m = 0; m < nlocal; m++) {
     tuv100_1 = 0.0;
     tuv010_1 = 0.0;
@@ -892,60 +892,60 @@ void PairAmoeba::fphi_uind(double ****grid, double **fdip_phi1,
 
       j = igrid[m][1] - nlpts;
       for (jb = 0; jb < bsorder; jb++) {
-	u0 = thetai2[m][jb][0];
-	u1 = thetai2[m][jb][1];
-	u2 = thetai2[m][jb][2];
-	u3 = thetai2[m][jb][3];
-	t0_1 = 0.0;
-	t1_1 = 0.0;
-	t2_1 = 0.0;
-	t0_2 = 0.0;
-	t1_2 = 0.0;
-	t2_2 = 0.0;
-	t3 = 0.0;
+        u0 = thetai2[m][jb][0];
+        u1 = thetai2[m][jb][1];
+        u2 = thetai2[m][jb][2];
+        u3 = thetai2[m][jb][3];
+        t0_1 = 0.0;
+        t1_1 = 0.0;
+        t2_1 = 0.0;
+        t0_2 = 0.0;
+        t1_2 = 0.0;
+        t2_2 = 0.0;
+        t3 = 0.0;
 
-	i = igrid[m][0] - nlpts;
-	for (ib = 0; ib < bsorder; ib++) {
-	  tq_1 = grid[k][j][i][0];
-	  tq_2 = grid[k][j][i][1];
-	  t0_1 += tq_1*thetai1[m][ib][0];
-	  t1_1 += tq_1*thetai1[m][ib][1];
-	  t2_1 += tq_1*thetai1[m][ib][2];
-	  t0_2 += tq_2*thetai1[m][ib][0];
-	  t1_2 += tq_2*thetai1[m][ib][1];
-	  t2_2 += tq_2*thetai1[m][ib][2];
-	  t3 += (tq_1+tq_2)*thetai1[m][ib][3];
-	  i++;
-	}
+        i = igrid[m][0] - nlpts;
+        for (ib = 0; ib < bsorder; ib++) {
+          tq_1 = grid[k][j][i][0];
+          tq_2 = grid[k][j][i][1];
+          t0_1 += tq_1*thetai1[m][ib][0];
+          t1_1 += tq_1*thetai1[m][ib][1];
+          t2_1 += tq_1*thetai1[m][ib][2];
+          t0_2 += tq_2*thetai1[m][ib][0];
+          t1_2 += tq_2*thetai1[m][ib][1];
+          t2_2 += tq_2*thetai1[m][ib][2];
+          t3 += (tq_1+tq_2)*thetai1[m][ib][3];
+          i++;
+        }
 
-	tu00_1 += t0_1*u0;
-	tu10_1 += t1_1*u0;
-	tu01_1 += t0_1*u1;
-	tu20_1 += t2_1*u0;
-	tu11_1 += t1_1*u1;
-	tu02_1 += t0_1*u2;
-	tu00_2 += t0_2*u0;
-	tu10_2 += t1_2*u0;
-	tu01_2 += t0_2*u1;
-	tu20_2 += t2_2*u0;
-	tu11_2 += t1_2*u1;
-	tu02_2 += t0_2*u2;
-	t0 = t0_1 + t0_2;
-	t1 = t1_1 + t1_2;
-	t2 = t2_1 + t2_2;
-	tu00 += t0*u0;
-	tu10 += t1*u0;
-	tu01 += t0*u1;
-	tu20 += t2*u0;
-	tu11 += t1*u1;
-	tu02 += t0*u2;
-	tu30 += t3*u0;
-	tu21 += t2*u1;
-	tu12 += t1*u2;
-	tu03 += t0*u3;
-	j++;
+        tu00_1 += t0_1*u0;
+        tu10_1 += t1_1*u0;
+        tu01_1 += t0_1*u1;
+        tu20_1 += t2_1*u0;
+        tu11_1 += t1_1*u1;
+        tu02_1 += t0_1*u2;
+        tu00_2 += t0_2*u0;
+        tu10_2 += t1_2*u0;
+        tu01_2 += t0_2*u1;
+        tu20_2 += t2_2*u0;
+        tu11_2 += t1_2*u1;
+        tu02_2 += t0_2*u2;
+        t0 = t0_1 + t0_2;
+        t1 = t1_1 + t1_2;
+        t2 = t2_1 + t2_2;
+        tu00 += t0*u0;
+        tu10 += t1*u0;
+        tu01 += t0*u1;
+        tu20 += t2*u0;
+        tu11 += t1*u1;
+        tu02 += t0*u2;
+        tu30 += t3*u0;
+        tu21 += t2*u1;
+        tu12 += t1*u2;
+        tu03 += t0*u3;
+        j++;
       }
-      
+
       tuv100_1 += tu10_1*v0;
       tuv010_1 += tu01_1*v0;
       tuv001_1 += tu00_1*v1;
@@ -997,7 +997,7 @@ void PairAmoeba::fphi_uind(double ****grid, double **fdip_phi1,
     fdip_phi1[m][7] = tuv110_1;
     fdip_phi1[m][8] = tuv101_1;
     fdip_phi1[m][9] = tuv011_1;
-    
+
     fdip_phi2[m][0] = 0.0;
     fdip_phi2[m][1] = tuv100_2;
     fdip_phi2[m][2] = tuv010_2;
@@ -1008,7 +1008,7 @@ void PairAmoeba::fphi_uind(double ****grid, double **fdip_phi1,
     fdip_phi2[m][7] = tuv110_2;
     fdip_phi2[m][8] = tuv101_2;
     fdip_phi2[m][9] = tuv011_2;
-    
+
     fdip_sum_phi[m][0] = tuv000;
     fdip_sum_phi[m][1] = tuv100;
     fdip_sum_phi[m][2] = tuv010;
@@ -1049,7 +1049,7 @@ void PairAmoeba::grid_disp(double ***grid)
   // put the dispersion sites onto the grid
 
   int nlocal = atom->nlocal;
-  
+
   for (m = 0; m < nlocal; m++) {
     itype = amtype[m];
     iclass = amtype2class[itype];
@@ -1057,19 +1057,19 @@ void PairAmoeba::grid_disp(double ***grid)
     k = igrid[m][2] - nlpts;
     for (kb = 0; kb < bsorder; kb++) {
       v0 = thetai3[m][kb][0] * csix[iclass];
-      
+
       j = igrid[m][1] - nlpts;
       for (jb = 0; jb < bsorder; jb++) {
-	u0 = thetai2[m][jb][0];
-	term = v0 * u0;
-	
-	i = igrid[m][0] - nlpts;
-	for (ib = 0; ib < bsorder; ib++) {
-	  t0 = thetai1[m][ib][0];
-	  grid[k][j][i] += term*t0;
-	  i++;
-	}
-	j++;
+        u0 = thetai2[m][jb][0];
+        term = v0 * u0;
+
+        i = igrid[m][0] - nlpts;
+        for (ib = 0; ib < bsorder; ib++) {
+          t0 = thetai1[m][ib][0];
+          grid[k][j][i] += term*t0;
+          i++;
+        }
+        j++;
       }
       k++;
     }
@@ -1091,19 +1091,19 @@ void PairAmoeba::kewald()
   double size,slope;
 
   // use_ewald is for multipole and induce and polar
-  
+
   if (!use_ewald) aeewald = apewald = 0.0;
-  
+
   if (use_ewald) {
     if (!aeewald_key) aeewald = ewaldcof(ewaldcut);
-    
+
     if (!apewald_key) {
       apewald = aeewald;
       size = MIN(domain->xprd,domain->yprd);
       size = MIN(size,domain->zprd);
       if (size < 6.0) {
-	slope = (1.0-apewald) / 2.0;
-	apewald += slope*(6.0-size);
+        slope = (1.0-apewald) / 2.0;
+        apewald += slope*(6.0-size);
       }
     }
 
@@ -1122,14 +1122,14 @@ void PairAmoeba::kewald()
     while (!factorable(nefft2)) nefft2++;
     while (!factorable(nefft3)) nefft3++;
   }
-  
+
   // use_dewald is for dispersion
-  
+
   if (!use_dewald) adewald = 0.0;
-  
+
   if (use_dewald) {
     if (!adewald_key) adewald = ewaldcof(dispcut);
-    
+
     if (!dpmegrid_key) {
       delta = 1.0e-8;
       ddens = 0.8;
@@ -1140,7 +1140,7 @@ void PairAmoeba::kewald()
 
     // increase grid sizes until factorable by 2,3,5
     // NOTE: also worry about satisfying Tinker minfft ?
-    
+
     while (!factorable(ndfft1)) ndfft1++;
     while (!factorable(ndfft2)) ndfft3++;
     while (!factorable(ndfft3)) ndfft3++;
@@ -1160,12 +1160,12 @@ void PairAmoeba::kewald()
   if (use_dewald) nfft1 = MAX(nfft1,ndfft1);
   if (use_dewald) nfft2 = MAX(nfft2,ndfft2);
   if (use_dewald) nfft3 = MAX(nfft3,ndfft3);
-  
+
   bsordermax = 0;
   if (use_ewald) bsordermax = bseorder;
   if (use_ewald) bsordermax = MAX(bsordermax,bsporder);
   if (use_dewald) bsordermax = MAX(bsordermax,bsdorder);
-  
+
   memory->create(bsmod1,nfft1,"amoeba:bsmod1");
   memory->create(bsmod2,nfft2,"amoeba:bsmod2");
   memory->create(bsmod3,nfft3,"amoeba:bsmod3");
@@ -1203,7 +1203,7 @@ double PairAmoeba::ewaldcof(double cutoff)
   }
 
   // use a binary search to refine the coefficient
-  
+
   k = i + 60;
   xlo = 0.0;
   xhi = x;
@@ -1214,7 +1214,7 @@ double PairAmoeba::ewaldcof(double cutoff)
     if (ratio >= eps) xlo = x;
     else xhi = x;
   }
-  
+
   return x;
 }
 

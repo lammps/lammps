@@ -357,7 +357,7 @@ void Angle::ev_tally(int i, int j, int k, int nlocal, int newton_bond, double ea
 ------------------------------------------------------------------------- */
 
 void Angle::ev_tally4(int i, int j, int k, int m, int nlocal, int newton_bond,
-                      double eangle, 
+                      double eangle,
                       double *f1, double *f2, double *f3, double *f4)
 {
   double eanglefourth,v[6];

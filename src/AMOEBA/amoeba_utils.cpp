@@ -111,49 +111,49 @@ void PairAmoeba::kmpole()
       ztype = zpole[itype][iframe];
       for (j12 = 0; j12 < nspecial[i][0]; j12++) {
         jneigh = bondneigh[j12];
-	j = atom->map(jneigh);
-	if (j < 0) 
+        j = atom->map(jneigh);
+        if (j < 0)
           error->one(FLERR,"AMOEBA kmpole() could not find bond partner");
-	jtype = amtype[j];
-	if (jtype == ztype) {
-	  for (k12 = 0; k12 < nspecial[i][0]; k12++) {
-	    if (k12 == j12) continue;
+        jtype = amtype[j];
+        if (jtype == ztype) {
+          for (k12 = 0; k12 < nspecial[i][0]; k12++) {
+            if (k12 == j12) continue;
             kneigh = bondneigh[k12];
-	    k = atom->map(kneigh);
-	    if (k < 0) 
+            k = atom->map(kneigh);
+            if (k < 0)
               error->one(FLERR,"AMOEBA kmpole() could not find bond partner");
-	    ktype = amtype[k];
-	    if (ktype == xtype) {
-	      if (ytype == 0 && !flag) {
-		flag = 1;
-		zaxis[i] = jneigh;
-		xaxis[i] = kneigh;
-		yaxis[i] = 0;
-		polaxe[i] = mpaxis[itype][iframe];
-		for (j = 0; j < 13; j++)
-		  pole[i][j] = fpole[itype][iframe][j];
-	      } else {
-		for (m12 = 0; m12 < nspecial[i][0]; m12++) {
-		  if (m12 == j12 || m12 == k12) continue;
+            ktype = amtype[k];
+            if (ktype == xtype) {
+              if (ytype == 0 && !flag) {
+                flag = 1;
+                zaxis[i] = jneigh;
+                xaxis[i] = kneigh;
+                yaxis[i] = 0;
+                polaxe[i] = mpaxis[itype][iframe];
+                for (j = 0; j < 13; j++)
+                  pole[i][j] = fpole[itype][iframe][j];
+              } else {
+                for (m12 = 0; m12 < nspecial[i][0]; m12++) {
+                  if (m12 == j12 || m12 == k12) continue;
                   mneigh = bondneigh[m12];
-		  m = atom->map(mneigh);
-		  if (m < 0)
-		    error->one(FLERR,"AMOEBA kmpole() could not find bond partner");
-		  mtype = amtype[m];
-		  if (mtype == ytype && !flag) {
-		    flag = 1;
-		    zaxis[i] = jneigh;
-		    xaxis[i] = kneigh;
-		    yaxis[i] = mneigh;
-		    polaxe[i] = mpaxis[itype][iframe];
-		    for (j = 0; j < 13; j++)
-		      pole[i][j] = fpole[itype][iframe][j];
-		  }
-		}
-	      }
-	    }
-	  }
-	}
+                  m = atom->map(mneigh);
+                  if (m < 0)
+                    error->one(FLERR,"AMOEBA kmpole() could not find bond partner");
+                  mtype = amtype[m];
+                  if (mtype == ytype && !flag) {
+                    flag = 1;
+                    zaxis[i] = jneigh;
+                    xaxis[i] = kneigh;
+                    yaxis[i] = mneigh;
+                    polaxe[i] = mpaxis[itype][iframe];
+                    for (j = 0; j < 13; j++)
+                      pole[i][j] = fpole[itype][iframe][j];
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
 
@@ -167,55 +167,55 @@ void PairAmoeba::kmpole()
       ztype = zpole[itype][iframe];
       for (j12 = 0; j12 < nspecial[i][0]; j12++) {
         jneigh = bondneigh[j12];
-	j = atom->map(jneigh);
-	if (j < 0) error->one(FLERR,"AMOEBA kmpole() could not find bond partner");
-	jtype = amtype[j];
-	if (jtype == ztype) {
-	  for (k13 = nspecial[i][0]; k13 < nspecial[i][1]; k13++) {
+        j = atom->map(jneigh);
+        if (j < 0) error->one(FLERR,"AMOEBA kmpole() could not find bond partner");
+        jtype = amtype[j];
+        if (jtype == ztype) {
+          for (k13 = nspecial[i][0]; k13 < nspecial[i][1]; k13++) {
             kneigh = angleneigh[k13];
-	    k = atom->map(kneigh);
-	    if (k < 0) error->one(FLERR,"AMOEBA kmpole() could not find bond partner");
-	    ktype = amtype[k];
-	    path = false;
-	    for (m12 = 0; m12 < nspecial[k][0]; m12++)
-	      if (special[k][m12] == jneigh) path = true;
-	    if (!path) continue;
-	    
-	    if (ktype == xtype) {
-	      if (ytype == 0 && !flag) {
-		flag = 1;
-		zaxis[i] = jneigh;
-		xaxis[i] = kneigh;
-		yaxis[i] = 0;
-		polaxe[i] = mpaxis[itype][iframe];
-		for (j = 0; j < 13; j++)
-		  pole[i][j] = fpole[itype][iframe][j];
-	      } else {
-		for (m13 = nspecial[i][0]; m13 < nspecial[i][1]; m13++) {
-		  if (m13 == k13) continue;
+            k = atom->map(kneigh);
+            if (k < 0) error->one(FLERR,"AMOEBA kmpole() could not find bond partner");
+            ktype = amtype[k];
+            path = false;
+            for (m12 = 0; m12 < nspecial[k][0]; m12++)
+              if (special[k][m12] == jneigh) path = true;
+            if (!path) continue;
+
+            if (ktype == xtype) {
+              if (ytype == 0 && !flag) {
+                flag = 1;
+                zaxis[i] = jneigh;
+                xaxis[i] = kneigh;
+                yaxis[i] = 0;
+                polaxe[i] = mpaxis[itype][iframe];
+                for (j = 0; j < 13; j++)
+                  pole[i][j] = fpole[itype][iframe][j];
+              } else {
+                for (m13 = nspecial[i][0]; m13 < nspecial[i][1]; m13++) {
+                  if (m13 == k13) continue;
                   mneigh = angleneigh[m13];
-		  m = atom->map(mneigh);
-		  if (m < 0)
-		    error->one(FLERR,"AMOEBA kmpole() could not find bond partner");
-		  mtype = amtype[m];
-		  path = false;
-		  for (m12 = 0; m12 < nspecial[m][0]; m12++)
-		    if (special[m][m12] == jneigh) path = true;
-		  if (!path) continue;
-		  if (mtype == ytype && !flag) {
-		    flag = 1;
-		    zaxis[i] = jneigh;
-		    xaxis[i] = kneigh;
-		    yaxis[i] = mneigh;
-		    polaxe[i] = mpaxis[itype][iframe];
-		    for (j = 0; j < 13; j++)
-		      pole[i][j] = fpole[itype][iframe][j];
-		  }
-		}
-	      }
-	    }
-	  }
-	}
+                  m = atom->map(mneigh);
+                  if (m < 0)
+                    error->one(FLERR,"AMOEBA kmpole() could not find bond partner");
+                  mtype = amtype[m];
+                  path = false;
+                  for (m12 = 0; m12 < nspecial[m][0]; m12++)
+                    if (special[m][m12] == jneigh) path = true;
+                  if (!path) continue;
+                  if (mtype == ytype && !flag) {
+                    flag = 1;
+                    zaxis[i] = jneigh;
+                    xaxis[i] = kneigh;
+                    yaxis[i] = mneigh;
+                    polaxe[i] = mpaxis[itype][iframe];
+                    for (j = 0; j < 13; j++)
+                      pole[i][j] = fpole[itype][iframe][j];
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
 
@@ -229,19 +229,19 @@ void PairAmoeba::kmpole()
       ztype = zpole[itype][iframe];
       for (j12 = 0; j12 < nspecial[i][0]; j12++) {
         jneigh = bondneigh[j12];
-	j = atom->map(jneigh);
-	if (j < 0) error->one(FLERR,"AMOEBA kmpole() could not find bond partner");
-	jtype = amtype[j];
-	if (jtype == ztype) {
-	  if (xtype == 0 && !flag) {
-	    flag = 1;
-	    zaxis[i] = jtype;
-	    xaxis[i] = yaxis[i] = 0;
-	    polaxe[i] = mpaxis[itype][iframe];
-	    for (j = 0; j < 13; j++)
-	      pole[i][j] = fpole[itype][iframe][j];
-	  }
-	}
+        j = atom->map(jneigh);
+        if (j < 0) error->one(FLERR,"AMOEBA kmpole() could not find bond partner");
+        jtype = amtype[j];
+        if (jtype == ztype) {
+          if (xtype == 0 && !flag) {
+            flag = 1;
+            zaxis[i] = jtype;
+            xaxis[i] = yaxis[i] = 0;
+            polaxe[i] = mpaxis[itype][iframe];
+            for (j = 0; j < 13; j++)
+              pole[i][j] = fpole[itype][iframe][j];
+          }
+        }
       }
     }
 
@@ -254,11 +254,11 @@ void PairAmoeba::kmpole()
       ytype = ypole[itype][iframe];
       ztype = zpole[itype][iframe];
       if (ztype == 0 && !flag) {
-	flag = 1;
-	zaxis[i] = xaxis[i] = yaxis[i] = 0;
-	polaxe[i] = mpaxis[itype][iframe];
-	for (j = 0; j < 13; j++)
-	  pole[i][j] = fpole[itype][iframe][j];
+        flag = 1;
+        zaxis[i] = xaxis[i] = yaxis[i] = 0;
+        polaxe[i] = mpaxis[itype][iframe];
+        for (j = 0; j < 13; j++)
+          pole[i][j] = fpole[itype][iframe][j];
       }
     }
 
@@ -647,7 +647,7 @@ void PairAmoeba::add_onefive_neighbors()
     list15 = special15[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       which = j >> SBBITS & 3;
@@ -655,12 +655,12 @@ void PairAmoeba::add_onefive_neighbors()
       jtag = tag[j];
 
       if (!which) {
-	for (k = 0; k < n15; k++) {
-	  if (list15[k] == jtag) {
-	    which = 4;
-	    break;
-	  }
-	}
+        for (k = 0; k < n15; k++) {
+          if (list15[k] == jtag) {
+            which = 4;
+            break;
+          }
+        }
       }
 
       if (which) jlist[jj] = j ^ (which << SBBITS15);
@@ -792,7 +792,7 @@ void PairAmoeba::find_multipole_neighbors()
    f = force vector for local atoms, multiple atoms will be updated
 ------------------------------------------------------------------------- */
 
-void PairAmoeba::torque2force(int i, double *trq, 
+void PairAmoeba::torque2force(int i, double *trq,
                               double *frcx, double *frcy, double *frcz,
                               double **f)
 {

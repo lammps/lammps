@@ -26,7 +26,7 @@ AtomVecAmoeba::AtomVecAmoeba(LAMMPS *lmp) : AtomVec(lmp)
 
   atom->molecule_flag = atom->q_flag = 1;
   atom->nspecial15_flag = 1;
-  
+
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
   // order of fields in a string does not matter

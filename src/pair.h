@@ -192,12 +192,12 @@ class Pair : protected Pointers {
   virtual void unpack_forward_comm(int, int, double *) {}
   virtual int pack_reverse_comm(int, int, double *) { return 0; }
   virtual void unpack_reverse_comm(int, int *, double *) {}
-  
+
   virtual void pack_forward_grid(int, void *, int, int *) {}
   virtual void unpack_forward_grid(int, void *, int, int *) {}
   virtual void pack_reverse_grid(int, void *, int, int *) {}
   virtual void unpack_reverse_grid(int, void *, int, int *) {}
-  
+
   virtual double memory_usage();
 
   void set_copymode(int value) { copymode = value; }

@@ -94,14 +94,14 @@ and HIPPO.
    improper_style     amoeba
                                                      # required per-atom data
    fix                amtype all property/atom i_amtype ghost yes
-   fix                extra all property/atom &                      
+   fix                extra all property/atom &
                       i_amgroup i_ired i_xaxis i_yaxis i_zaxis d_pval ghost yes
    fix                polaxe all property/atom i_polaxe
 
    fix                pit all amoeba/pitorsion       # PiTorsion terms in FF
    fix_modify         pit energy yes
                                                      # Bitorsion terms in FF
-   fix                bit all amoeba/bitorsion bitorsion.ubiquitin.data  
+   fix                bit all amoeba/bitorsion bitorsion.ubiquitin.data
    fix_modify         bit energy yes
 
    read_data          data.ubiquitin fix amtype NULL "Tinker Types" &

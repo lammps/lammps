@@ -72,7 +72,7 @@ while the HIPPO force field contains these terms:
    U_{hippo} = U_{repulsion} + U_{dispersion} + U_{multipole} + U_{polar} + U_{qxfer}
 
 Conceptually, these terms compute the following interactions:
- 
+
 * :math:`U_{hal}` = buffered 14-7 van der Waals with offsets applied to hydrogen atoms
 * :math:`U_{repulsion}` = Pauli repulsion due to rearrangement of electron density
 * :math:`U_{dispersion}` = dispersion between correlated, instantaneous induced dipole moments
@@ -119,7 +119,7 @@ examples of both PRM and KEY files.
 
 A Tinker PRM file composed of sections, each of which has multiple
 lines.  A Tinker KEY file is composed of lines, each of which has a keyword,
-which can be followed by zero or more parameters.  
+which can be followed by zero or more parameters.
 
 The list of PRM sections and KEY keywords which LAMMPS recognizes are
 listed on the doc:`Howto amoeba <howto_ameoba>` doc page.  If not

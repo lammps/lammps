@@ -73,7 +73,7 @@ void Special::build()
   // set onefive_flag if special_bonds command set it
 
   onefive_flag = force->special_onefive;
-  
+
   // initialize nspecial counters to 0
 
   int **nspecial = atom->nspecial;
@@ -89,7 +89,7 @@ void Special::build()
   if (onefive_flag) {
     for (int i = 0; i < nlocal; i++) nspecial15[i] = 0;
   }
-  
+
   // setup atomIDs and procowner vectors in rendezvous decomposition
 
   atom_owners();
@@ -107,7 +107,7 @@ void Special::build()
 
   // done if special_bond weights for 1-3, 1-4 are set to 1.0
   // onefive_flag must also be off, else 1-4 is needed to create 1-5
-  
+
   if (!onefive_flag &&
       force->special_lj[2] == 1.0 && force->special_coul[2] == 1.0 &&
       force->special_lj[3] == 1.0 && force->special_coul[3] == 1.0) {
@@ -132,7 +132,7 @@ void Special::build()
 
   // done if special_bond weights for 1-4 are set to 1.0
   // onefive_flag must also be off, else 1-4 is needed to create 1-5
-  
+
   if (!onefive_flag &&
       force->special_lj[3] == 1.0 && force->special_coul[3] == 1.0) {
     dedup();
@@ -671,7 +671,7 @@ void Special::dedup()
   int unique;
 
   // dedup onetwo
-  
+
   for (i = 0; i < nlocal; i++) {
     unique = 0;
     atom->map_one(tag[i],0);
@@ -703,7 +703,7 @@ void Special::dedup()
     atom->map_one(tag[i],-1);
     for (j = 0; j < unique; j++) atom->map_one(onethree[i][j],-1);
   }
- 
+
   // dedup onefour
 
   for (i = 0; i < nlocal; i++) {
@@ -728,11 +728,11 @@ void Special::dedup()
       unique = 0;
       atom->map_one(tag[i],0);
       for (j = 0; j < nspecial15[i]; j++) {
-	m = onefive[i][j];
-	if (atom->map(m) < 0) {
-	  onefive[i][unique++] = m;
-	  atom->map_one(m,0);
-	}
+        m = onefive[i][j];
+        if (atom->map(m) < 0) {
+          onefive[i][unique++] = m;
+          atom->map_one(m,0);
+        }
       }
       nspecial15[i] = unique;
       atom->map_one(tag[i],-1);
@@ -784,7 +784,7 @@ void Special::combine()
   int unique,unique15;
   int maxspecial = 0;
   int maxspecial15 = 0;
-  
+
   for (i = 0; i < nlocal; i++) {
     unique = 0;
     atom->map_one(tag[i],0);
@@ -816,11 +816,11 @@ void Special::combine()
     if (onefive_flag) {
       unique15 = 0;
       for (j = 0; j < nspecial15[i]; j++) {
-	m = onefive[i][j];
-	if (atom->map(m) < 0) {
-	  unique15++;
-	  atom->map_one(m,0);
-	}
+        m = onefive[i][j];
+        if (atom->map(m) < 0) {
+          unique15++;
+          atom->map_one(m,0);
+        }
       }
       maxspecial15 = MAX(maxspecial15,unique15);
     }
@@ -927,11 +927,11 @@ void Special::combine()
     if (onefive_flag) {
       unique15 = 0;
       for (j = 0; j < nspecial15[i]; j++) {
-	m = onefive[i][j];
-	if (atom->map(m) < 0) {
-	  special15[i][unique15++] = m;
-	  atom->map_one(m,0);
-	}
+        m = onefive[i][j];
+        if (atom->map(m) < 0) {
+          special15[i][unique15++] = m;
+          atom->map_one(m,0);
+        }
       }
       nspecial15[i] = unique15;
     }

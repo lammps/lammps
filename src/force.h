@@ -116,7 +116,7 @@ class Force : protected Pointers {
                              // 1 if only weight 1,4 atoms if in a dihedral
   int special_extra;         // extra space for added bonds
   int special_onefive;       // 0 if 1-5 neighbors are not stored, 1 if yes
-  
+
   Force(class LAMMPS *);
   ~Force() override;
   void init();

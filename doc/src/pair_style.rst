@@ -116,7 +116,7 @@ accelerated styles exist.
 * :doc:`agni <pair_agni>` - AGNI machine-learning potential
 * :doc:`airebo <pair_airebo>` - AIREBO potential of Stuart
 * :doc:`airebo/morse <pair_airebo>` - AIREBO with Morse instead of LJ
-* :doc:`amoeba <pair_amoeba>` - 
+* :doc:`amoeba <pair_amoeba>` -
 * :doc:`atm <pair_atm>` - Axilrod-Teller-Muto potential
 * :doc:`awpmd/cut <pair_awpmd>` - Antisymmetrized Wave Packet MD potential for atoms and electrons
 * :doc:`beck <pair_beck>` - Beck potential
@@ -203,7 +203,7 @@ accelerated styles exist.
 * :doc:`hbond/dreiding/lj <pair_hbond_dreiding>` - DREIDING hydrogen bonding LJ potential
 * :doc:`hbond/dreiding/morse <pair_hbond_dreiding>` - DREIDING hydrogen bonding Morse potential
 * :doc:`hdnnp <pair_hdnnp>` - High-dimensional neural network potential
-* :doc:`hippo <pair_amoeba>` - 
+* :doc:`hippo <pair_amoeba>` -
 * :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>` - registry-dependent interlayer potential (ILP)
 * :doc:`ilp/tmd <pair_ilp_tmd>` - interlayer potential (ILP) potential for transition metal dichalcogenides (TMD)
 * :doc:`kim <pair_kim>` - interface to potentials provided by KIM project

@@ -118,7 +118,7 @@ void PairAmoeba::charge_transfer()
       de = felec * de * factor_mpole;
 
       // use energy switching if near the cutoff distance
-      
+
       if (r2 > cut2) {
         r3 = r2 * r;
         r4 = r2 * r2;
@@ -165,7 +165,7 @@ void PairAmoeba::charge_transfer()
       // energy = e
       // virial = 6-vec vir
       // NOTE: add tally function
-      
+
       if (evflag) {
       }
     }

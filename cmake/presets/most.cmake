@@ -3,6 +3,7 @@
 # are removed. The resulting binary should be able to run most inputs.
 
 set(ALL_PACKAGES
+  AMOEBA
   ASPHERE
   BOCS
   BODY

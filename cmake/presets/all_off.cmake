@@ -3,6 +3,7 @@
 
 set(ALL_PACKAGES
   ADIOS
+  AMOEBA
   ASPHERE
   ATC
   AWPMD

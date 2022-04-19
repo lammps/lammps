@@ -167,6 +167,7 @@ option(CMAKE_VERBOSE_MAKEFILE "Generate verbose Makefiles" OFF)
 
 set(STANDARD_PACKAGES
   ADIOS
+  AMOEBA
   ASPHERE
   ATC
   AWPMD

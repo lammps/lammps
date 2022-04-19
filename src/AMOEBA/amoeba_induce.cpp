@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -1377,7 +1377,7 @@ void PairAmoeba::udirect1(double **field)
   fphi_mpole(gridpost,fphi);
 
         // printf ("fphi %g %g %g %g %g %g %g %g %g %g %g %g\n",
-        // 	fphi[1][1],fphi[1][2],fphi[1][3],fphi[1][4],fphi[1][5],
+        //      fphi[1][1],fphi[1][2],fphi[1][3],fphi[1][4],fphi[1][5],
   //   fphi[1][6],fphi[1][7],fphi[1][8],fphi[1][9],fphi[1][10],
   //   fphi[1][11],fphi[1][12]);
 

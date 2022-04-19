@@ -59,7 +59,7 @@ void PairAmoeba::kmpole()
   double **pole = fixpole->astore;
 
   int **nspecial = atom->nspecial;
-  int **special = atom->special;
+  tagint **special = atom->special;
   int nlocal = atom->nlocal;
 
   int nmissing = 0;
@@ -639,7 +639,7 @@ void PairAmoeba::add_onefive_neighbors()
 
   tagint *tag = atom->tag;
   int *nspecial15 = atom->nspecial15;
-  int **special15 = atom->special15;
+  tagint **special15 = atom->special15;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];

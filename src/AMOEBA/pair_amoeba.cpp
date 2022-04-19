@@ -928,7 +928,7 @@ void PairAmoeba::init_style()
     ired = atom->ivector[index_ired];
 
     int **nspecial = atom->nspecial;
-    int **special = atom->special;
+    tagint **special = atom->special;
     int nlocal = atom->nlocal;
 
     int itype,iclass;
@@ -1192,7 +1192,7 @@ int PairAmoeba::pack_forward_comm(int n, int *list, double *buf,
 
   } else if (cfstyle == KMPOLE) {
     int **nspecial = atom->nspecial;
-    int **special = atom->special;
+    tagint **special = atom->special;
     for (i = 0; i < n; i++) {
       j = list[i];
       buf[m++] = ubuf(nspecial[j][0]).d;
@@ -1297,7 +1297,7 @@ void PairAmoeba::unpack_forward_comm(int n, int first, double *buf)
 
   } else if (cfstyle == KMPOLE) {
     int **nspecial = atom->nspecial;
-    int **special = atom->special;
+    tagint **special = atom->special;
     for (i = first; i < last; i++) {
       nspecial[i][0] = (int) ubuf(buf[m++]).i;
       for (k = 0; k < nspecial[i][0]; k++)
@@ -1599,7 +1599,7 @@ void PairAmoeba::assign_groups()
   int maxstack = 0;
   int *stack = NULL;
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;

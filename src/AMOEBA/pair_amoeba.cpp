@@ -736,21 +736,14 @@ void PairAmoeba::init_style()
   // create a new fix STORE style for each atom's pole vector
   // id = "AMOEBA_pole", fix group = all
 
-  if (first_flag) {
-    int n = strlen("AMOEBA_pole") + 1;
-    id_pole = new char[n];
-    strcpy(id_pole,"AMOEBA_pole");
+  // TODO: shouldn't there be an instance_me added to the identifier
+  // in case there would be multiple pair style instances in a hybrid pair style?
 
-    char **newarg = new char*[6];
-    newarg[0] = id_pole;
-    newarg[1] = group->names[0];
-    newarg[2] = (char *) "STORE";
-    newarg[3] = (char *) "peratom";
-    newarg[4] = (char *) "1";
-    newarg[5] = (char *) "13";
-    modify->add_fix(6,newarg);
-    fixpole = (FixStore *) modify->fix[modify->nfix-1];
-    delete [] newarg;
+  Fix *myfix;
+  if (first_flag) {
+    id_pole = utils::strdup("AMOEBA_pole");
+    myfix = modify->add_fix(fmt::format("{} {} STORE peratom 1 13",id_pole,group->names[0]));
+    fixpole = dynamic_cast<FixStore *>(myfix);
   }
 
   // creation of per-atom storage
@@ -760,40 +753,15 @@ void PairAmoeba::init_style()
   // only if using preconditioner
 
   if (first_flag && use_pred) {
-    char ualt[8];
-    sprintf(ualt,"%d",maxualt);
+    id_udalt = utils::strdup("AMOEBA_udalt");
+    myfix = modify->add_fix(fmt::format("{} {} STORE peratom 1 {} 3",
+                                        id_udalt, group->names[0], maxualt));
+    fixudalt = dynamic_cast<FixStore *>(myfix);
 
-    int n = strlen("AMOEBA_udalt") + 1;
-    id_udalt = new char[n];
-    strcpy(id_udalt,"AMOEBA_udalt");
-
-    char **newarg = new char*[7];
-    newarg[0] = id_udalt;
-    newarg[1] = group->names[0];
-    newarg[2] = (char *) "STORE";
-    newarg[3] = (char *) "peratom";
-    newarg[4] = (char *) "1";
-    newarg[5] = ualt;
-    newarg[6] = (char *) "3";
-    modify->add_fix(7,newarg);
-    fixudalt = (FixStore *) modify->fix[modify->nfix-1];
-    delete [] newarg;
-
-    n = strlen("AMOEBA_upalt") + 1;
-    id_upalt = new char[n];
-    strcpy(id_udalt,"AMOEBA_upalt");
-
-    newarg = new char*[7];
-    newarg[0] = id_upalt;
-    newarg[1] = group->names[0];
-    newarg[2] = (char *) "STORE";
-    newarg[3] = (char *) "peratom";
-    newarg[4] = (char *) "1";
-    newarg[5] = ualt;
-    newarg[6] = (char *) "3";
-    modify->add_fix(7,newarg);
-    fixupalt = (FixStore *) modify->fix[modify->nfix-1];
-    delete [] newarg;
+    id_upalt = utils::strdup("AMOEBA_upalt");
+    myfix = modify->add_fix(fmt::format("{} {} STORE peratom 1 {} 3",
+                                        id_upalt, group->names[0], maxualt));
+    fixupalt = dynamic_cast<FixStore *>(myfix);
   }
 
   // create pages for storing pairwise data:
@@ -904,18 +872,20 @@ void PairAmoeba::init_style()
   // check for fixes which store persistent per-atom properties
 
   if (id_pole) {
-    int ifix = modify->find_fix(id_pole);
-    if (ifix < 0) error->all(FLERR,"Could not find pair amoeba fix ID");
-    fixpole = (FixStore *) modify->fix[ifix];
+    myfix = modify->get_fix_by_id(id_pole);
+    if (!myfix) error->all(FLERR,"Could not find internal pair amoeba fix STORE id {}", id_pole);
+    fixpole = dynamic_cast<FixStore *>(myfix);
+
   }
 
   if (id_udalt) {
-    int ifix = modify->find_fix(id_udalt);
-    if (ifix < 0) error->all(FLERR,"Could not find pair amoeba fix ID");
-    fixudalt = (FixStore *) modify->fix[ifix];
-    ifix = modify->find_fix(id_upalt);
-    if (ifix < 0) error->all(FLERR,"Could not find pair amoeba fix ID");
-    fixupalt = (FixStore *) modify->fix[ifix];
+    myfix = modify->get_fix_by_id(id_udalt);
+    if (!myfix) error->all(FLERR,"Could not find internal pair amoeba fix STORE id {}", id_udalt);
+    fixudalt = dynamic_cast<FixStore *>(myfix);
+
+    myfix = modify->get_fix_by_id(id_upalt);
+    if (!myfix) error->all(FLERR,"Could not find internal pair amoeba fix STORE id {}", id_upalt);
+    fixupalt = dynamic_cast<FixStore *>(myfix);
   }
 
   // assign hydrogen neighbors (redID) to each owned atom

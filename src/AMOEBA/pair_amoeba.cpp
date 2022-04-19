@@ -156,9 +156,9 @@ PairAmoeba::~PairAmoeba()
     if (id_upalt) modify->delete_fix(id_upalt);
   }
 
-  delete [] id_pole;
-  delete [] id_udalt;
-  delete [] id_upalt;
+  delete[] id_pole;
+  delete[] id_udalt;
+  delete[] id_upalt;
 
   memory->destroy(xaxis2local);
   memory->destroy(yaxis2local);
@@ -218,14 +218,14 @@ PairAmoeba::~PairAmoeba()
   if (amoeba) deallocate_vdwl();
   deallocate_smallsize();
 
-  delete [] forcefield;
+  delete[] forcefield;
 
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
   }
 
-  delete [] factors;
+  delete[] factors;
 
   // DEBUG
 
@@ -475,32 +475,24 @@ void PairAmoeba::compute(int eflag, int vflag)
   MPI_Allreduce(&time_qxfer,&ave,1,MPI_DOUBLE,MPI_SUM,world);
   time_qxfer = ave/nprocs;
 
-  double time_amtot = time_init + time_hal + time_repulse + time_disp +
-    time_mpole + time_induce + time_polar + time_qxfer;
+  const double time_amtot = (time_init + time_hal + time_repulse + time_disp +
+                             time_mpole + time_induce + time_polar + time_qxfer) / 100.0;
 
   if (me == 0) {
     utils::logmesg(lmp,"\nAMEOBA/HIPPO timing info:\n");
-    utils::logmesg(lmp,"  Init   time: {:.6g} {:.6g}\n",
-                   time_init,time_init/time_amtot);
-    if (amoeba)
-      utils::logmesg(lmp,"  Hal    time: {:.6g} {:.6g}\n",
-                     time_hal,time_hal/time_amtot*100);
+    utils::logmesg(lmp,"  Init   time: {:.6g} {:.3g}%\n", time_init, time_init/time_amtot);
+    if (amoeba) {
+      utils::logmesg(lmp,"  Hal    time: {:.6g} {:.3g}%\n", time_hal, time_hal/time_amtot);
+    } else { // hippo
+      utils::logmesg(lmp,"  Repls  time: {:.6g} {:.3g}%\n", time_repulse, time_repulse/time_amtot);
+      utils::logmesg(lmp,"  Disp   time: {:.6g} {:.3g}%\n", time_disp, time_disp/time_amtot);
+    }
+    utils::logmesg(lmp,"  Mpole  time: {:.6g} {:.3g}%\n", time_mpole, time_mpole/time_amtot);
+    utils::logmesg(lmp,"  Induce time: {:.6g} {:.3g}%\n", time_induce, time_induce/time_amtot);
+    utils::logmesg(lmp,"  Polar  time: {:.6g} {:.3g}%\n", time_polar,time_polar/time_amtot);
     if (hippo)
-      utils::logmesg(lmp,"  Repls  time: {:.6g} {:.6g}\n",
-                     time_repulse,time_repulse/time_amtot*100);
-    if (hippo)
-      utils::logmesg(lmp,"  Disp   time: {:.6g} {:.6g}\n",
-                     time_disp,time_disp/time_amtot*100);
-    utils::logmesg(lmp,"  Mpole  time: {:.6g} {:.6g}\n",
-                   time_mpole,time_mpole/time_amtot*100);
-    utils::logmesg(lmp,"  Induce time: {:.6g} {:.6g}\n",
-                   time_induce,time_induce/time_amtot*100);
-    utils::logmesg(lmp,"  Polar  time: {:.6g} {:.6g}\n",
-                   time_polar,time_polar/time_amtot*100);
-    if (hippo)
-      utils::logmesg(lmp,"  Qxfer  time: {:.6g} {:.6g}\n",
-                     time_qxfer,time_qxfer/time_amtot*100);
-    utils::logmesg(lmp,"  Total  time: {:.6g}\n\n",time_amtot);
+      utils::logmesg(lmp,"  Qxfer  time: {:.6g} {:.6g}%\n", time_qxfer, time_qxfer/time_amtot);
+    utils::logmesg(lmp,"  Total  time: {:.6g}\n\n",time_amtot*100.0);
   }
 }
 
@@ -686,7 +678,7 @@ void PairAmoeba::init_style()
   // error checks
 
   if (!atom->q_flag)
-    error->all(FLERR,"Pair style amoeba/hippo requires atom attribute q");
+    error->all(FLERR,"Pair style {} requires atom attribute q", (amoeba) ? "amoeba" : "hippo");
   //if (!force->special_onefive)
   //  error->all(FLERR,"Pair style amoeba/hippo requires special_bonds one/five be set");
 
@@ -854,12 +846,7 @@ void PairAmoeba::init_style()
 
   // output FF settings to screen and logfile
 
-  if (first_flag) {
-    if (comm->me == 0) {
-      if (screen) print_settings(screen);
-      if (logfile) print_settings(logfile);
-    }
-  }
+  if (first_flag && (comm->me == 0)) print_settings();
 
   // all done with one-time initializations
 
@@ -940,99 +927,93 @@ void PairAmoeba::init_style()
   // open debug output files
   // names are hard-coded
 
-  if (me == 0) {
-    char fname[32];
-    sprintf(fname,"tmp.uind.kspace.%d",nprocs);
-    if (UIND_DEBUG) fp_uind = fopen(fname,"w");
-  }
+  if ((me == 0) && UIND_DEBUG)
+    fp_uind = fopen(fmt::format("tmp.uind.kspace.{}",nprocs).c_str(),"w");
 }
 
 /* ----------------------------------------------------------------------
    print settings to screen and logfile
 ------------------------------------------------------------------------- */
 
-void PairAmoeba::print_settings(FILE *fp)
+void PairAmoeba::print_settings()
 {
-  fprintf(fp,"AMOEBA/HIPPO force field settings\n");
+  std::string mesg = "AMOEBA/HIPPO force field settings\n";
 
   if (amoeba) {
     choose(HAL);
-    fprintf(fp,"  hal: cut %g taper %g vscale %g %g %g %g\n",
-            sqrt(off2),sqrt(cut2),
-            special_hal[1],special_hal[2],special_hal[3],special_hal[4]);
+    mesg += fmt::format("  hal: cut {} taper {} vscale {} {} {} {}\n",
+                        sqrt(off2),sqrt(cut2),
+                        special_hal[1],special_hal[2],special_hal[3],special_hal[4]);
   }
 
   if (hippo) {
     choose(REPULSE);
-    fprintf(fp,"  repulsion: cut %g taper %g rscale %g %g %g %g\n",
-            sqrt(off2),sqrt(cut2),
-            special_repel[1],special_repel[2],special_repel[3],special_repel[4]);
-  }
+    mesg += fmt::format("  repulsion: cut {} taper {} rscale {} {} {} {}\n",
+                        sqrt(off2),sqrt(cut2),
+                        special_repel[1],special_repel[2],special_repel[3],special_repel[4]);
 
-  if (hippo) {
     choose(QFER);
-    fprintf(fp,"  qxfer: cut %g taper %g mscale %g %g %g %g\n",
-            sqrt(off2),sqrt(cut2),
-            special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
-  }
+    mesg += fmt::format("  qxfer: cut {} taper {} mscale {} {} {} {}\n",
+                        sqrt(off2),sqrt(cut2),
+                        special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
 
-  if (hippo) {
     if (use_dewald) {
       choose(DISP_LONG);
-      fprintf(fp,"  dispersion: cut %g aewald %g bsorder %d "
-              "FFT %d %d %d dspscale %g %g %g %g\n",
-              sqrt(off2),aewald,bsdorder,ndfft1,ndfft2,ndfft3,
-              special_disp[1],special_disp[2],special_disp[3],special_disp[4]);
+      mesg += fmt::format("  dispersion: cut {} aewald {} bsorder {} "
+                          "FFT {} {} {} dspscale {} {} {} {}\n",
+                          sqrt(off2),aewald,bsdorder,ndfft1,ndfft2,ndfft3,
+                          special_disp[1],special_disp[2],special_disp[3],special_disp[4]);
     } else {
       choose(DISP);
-      fprintf(fp,"  dispersion: cut %g aewald %g dspscale %g %g %g %g\n",
-              sqrt(off2),aewald,
-              special_disp[1],special_disp[2],special_disp[3],special_disp[4]);
+      mesg += fmt::format("  dispersion: cut {} aewald {} dspscale {} {} {} {}\n",
+                          sqrt(off2),aewald,
+                          special_disp[1],special_disp[2],special_disp[3],special_disp[4]);
     }
   }
 
   if (use_ewald) {
     choose(MPOLE_LONG);
-    fprintf(fp,"  multipole: cut %g aewald %g bsorder %d "
-            "FFT %d %d %d mscale %g %g %g %g\n",
-            sqrt(off2),aewald,bseorder,nefft1,nefft2,nefft3,
-            special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
+    mesg += fmt::format("  multipole: cut {} aewald {} bsorder {} "
+                        "FFT {} {} {} mscale {} {} {} {}\n",
+                        sqrt(off2),aewald,bseorder,nefft1,nefft2,nefft3,
+                        special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
   } else {
     choose(MPOLE);
-    fprintf(fp,"  multipole: cut %g aewald %g mscale %g %g %g %g\n",
-            sqrt(off2),aewald,
-            special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
+    mesg += fmt::format("  multipole: cut {} aewald {} mscale {} {} {} {}\n",
+                        sqrt(off2),aewald,
+                        special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
   }
 
   if (use_ewald) {
     choose(POLAR_LONG);
-    fprintf(fp,"  polar: cut %g aewald %g bsorder %d FFT %d %d %d\n",
-            sqrt(off2),aewald,bsporder,nefft1,nefft2,nefft3);
-    fprintf(fp,"         pscale %g %g %g %g piscale %g %g %g %g "
-            "wscale %g %g %g %g d/u scale %g %g\n",
-            special_polar_pscale[1],special_polar_pscale[2],
-            special_polar_pscale[3],special_polar_pscale[4],
-            special_polar_piscale[1],special_polar_piscale[2],
-            special_polar_piscale[3],special_polar_piscale[4],
-            special_polar_wscale[1],special_polar_wscale[2],
-            special_polar_wscale[3],special_polar_wscale[4],
-            polar_dscale,polar_uscale);
+    mesg += fmt::format("  polar: cut {} aewald {} bsorder {} FFT {} {} {}\n",
+                        sqrt(off2),aewald,bsporder,nefft1,nefft2,nefft3);
+    mesg += fmt::format("         pscale {} {} {} {} piscale {} {} {} {} "
+                        "wscale {} {} {} {} d/u scale {} {}\n",
+                        special_polar_pscale[1],special_polar_pscale[2],
+                        special_polar_pscale[3],special_polar_pscale[4],
+                        special_polar_piscale[1],special_polar_piscale[2],
+                        special_polar_piscale[3],special_polar_piscale[4],
+                        special_polar_wscale[1],special_polar_wscale[2],
+                        special_polar_wscale[3],special_polar_wscale[4],
+                        polar_dscale,polar_uscale);
   } else {
     choose(POLAR);
-    fprintf(fp,"  polar: cut %g aewald %g\n",sqrt(off2),aewald);
-    fprintf(fp,"         pscale %g %g %g %g piscale %g %g %g %g "
-            "wscale %g %g %g %g d/u scale %g %g\n",
-            special_polar_pscale[1],special_polar_pscale[2],
-            special_polar_pscale[3],special_polar_pscale[4],
-            special_polar_piscale[1],special_polar_piscale[2],
-            special_polar_piscale[3],special_polar_piscale[4],
-            special_polar_wscale[1],special_polar_wscale[2],
-            special_polar_wscale[3],special_polar_wscale[4],
-            polar_dscale,polar_uscale);
+    mesg += fmt::format("  polar: cut {} aewald {}\n",sqrt(off2),aewald);
+    mesg += fmt::format("         pscale {} {} {} {} piscale {} {} {} {} "
+                        "wscale {} {} {} {} d/u scale {} {}\n",
+                        special_polar_pscale[1],special_polar_pscale[2],
+                        special_polar_pscale[3],special_polar_pscale[4],
+                        special_polar_piscale[1],special_polar_piscale[2],
+                        special_polar_piscale[3],special_polar_piscale[4],
+                        special_polar_wscale[1],special_polar_wscale[2],
+                        special_polar_wscale[3],special_polar_wscale[4],
+                        polar_dscale,polar_uscale);
   }
 
   choose(USOLV);
-  fprintf(fp,"  precondition: cut %g\n",sqrt(off2));
+  mesg += fmt::format("  precondition: cut {}\n",sqrt(off2));
+  utils::logmesg(lmp, mesg);
 }
 
 /* ----------------------------------------------------------------------
@@ -1678,12 +1659,7 @@ void PairAmoeba::assign_groups()
   bigint allbcount;
   MPI_Allreduce(&bcount,&allbcount,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
-  if (comm->me == 0) {
-    if (screen)
-      fprintf(screen,"  AMOEBA/HIPPO group count: " BIGINT_FORMAT "\n",allbcount);
-    if (logfile)
-      fprintf(logfile,"  AMOEBA/HIPPO group count: " BIGINT_FORMAT "\n",allbcount);
-  }
+  if (comm->me == 0) utils::logmesg(lmp, "  AMOEBA/HIPPO group count: {}\n",allbcount);
 }
 
 /* ----------------------------------------------------------------------
@@ -2232,9 +2208,9 @@ void PairAmoeba::dump6(FILE *fp, const char *columns, double scale,
 
   if (me == 0) {
     fprintf(fp,"ITEM: TIMESTEP\n");
-    fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
+    fmt::print(fp,"{}\n",update->ntimestep);
     fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
-    fprintf(fp,BIGINT_FORMAT "\n",atom->natoms);
+    fmt::print(fp,"{}\n",atom->natoms);
     fprintf(fp,"ITEM: BOX BOUNDS %s\n",boundstr);
     fprintf(fp,"%-1.16e %-1.16e\n",domain->boxlo[0],domain->boxhi[0]);
     fprintf(fp,"%-1.16e %-1.16e\n",domain->boxlo[1],domain->boxhi[1]);

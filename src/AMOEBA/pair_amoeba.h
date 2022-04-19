@@ -405,7 +405,7 @@ class PairAmoeba : public Pair {
   // functions in pair_amoeba.cpp
 
   void allocate();
-  void print_settings(FILE *);
+  void print_settings();
 
   void initialize_vdwl();
   void allocate_vdwl();

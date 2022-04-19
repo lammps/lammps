@@ -39,7 +39,7 @@ class AtomVecAmoeba : public AtomVec {
   int *num_bond,*num_angle,*num_dihedral,*num_improper;
   int **bond_type,**angle_type,**dihedral_type,**improper_type;
   int **nspecial;
-  int *nspecial15,**special15;
+  int *nspecial15;
 
   int any_bond_negative,any_angle_negative,
     any_dihedral_negative,any_improper_negative;

@@ -230,9 +230,9 @@ void ComputeGridLocal::set_grid_local()
 void ComputeGridLocal::assign_coords()
 {
   int igrid = 0;
-  for (int iz = nzlo; iz <= nzhi; iz++)
+  for (int ix = nxlo; ix <= nxhi; ix++)
     for (int iy = nylo; iy <= nyhi; iy++)
-      for (int ix = nxlo; ix <= nxhi; ix++) {
+      for (int iz = nzlo; iz <= nzhi; iz++) {
 	alocal[igrid][0] = ix;
 	alocal[igrid][1] = iy;
 	alocal[igrid][2] = iz;
@@ -260,9 +260,9 @@ void ComputeGridLocal::assign_coords()
 void ComputeGridLocal::copy_gridlocal_to_local_array()
 {
   int igrid = 0;
-  for (int iz = nzlo; iz <= nzhi; iz++)
+  for (int ix = nxlo; ix <= nxhi; ix++)
     for (int iy = nylo; iy <= nyhi; iy++)
-      for (int ix = nxlo; ix <= nxhi; ix++) {
+      for (int iz = nzlo; iz <= nzhi; iz++) {
 	for (int icol = size_local_cols_base; icol < size_local_cols; icol++)
 	  alocal[igrid][icol] = gridlocal[icol][iz][iy][ix];
 	igrid++;

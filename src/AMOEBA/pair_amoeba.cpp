@@ -12,29 +12,30 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_amoeba.h"
-#include <mpi.h>
+
+#include "amoeba_convolution.h"
+#include "atom.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "fft3d_wrap.h"
+#include "fix.h"
+#include "fix_store.h"
+#include "force.h"
+#include "gridcomm.h"
+#include "group.h"
+#include "memory.h"
+#include "modify.h"
+#include "my_page.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "update.h"
+#include "utils.h"
+
 #include <cstdlib>
 #include <cstring>
 #include <cctype>
-#include "amoeba_convolution.h"
-#include "atom.h"
-#include "update.h"
-#include "domain.h"
-#include "force.h"
-#include "comm.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "neigh_list.h"
-#include "group.h"
-#include "modify.h"
-#include "fix.h"
-#include "fix_store.h"
-#include "fft3d_wrap.h"
-#include "gridcomm.h"
-#include "my_page.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -284,7 +285,7 @@ void PairAmoeba::compute(int eflag, int vflag)
 
   if (first_flag_compute) {
     cfstyle = KMPOLE;
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
     kmpole();
 
     if (hippo) {
@@ -298,7 +299,7 @@ void PairAmoeba::compute(int eflag, int vflag)
         pval[i] = pole[i][0] - pcore[iclass];
       }
       cfstyle = PVAL;
-      comm->forward_comm_pair(this);
+      comm->forward_comm(this);
     }
   }
 
@@ -364,7 +365,7 @@ void PairAmoeba::compute(int eflag, int vflag)
 
   if (amoeba) cfstyle = SETUP_AMOEBA;
   else cfstyle = SETUP_HIPPO;
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   if (amoeba) pbc_xred();
 
@@ -400,7 +401,7 @@ void PairAmoeba::compute(int eflag, int vflag)
   if (polar_rspace_flag || polar_kspace_flag) {
     induce();
     cfstyle = INDUCE;
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
   }
   time6 = MPI_Wtime();
 
@@ -1609,7 +1610,7 @@ void PairAmoeba::assign_groups()
 
   for (i = 0; i < nlocal; i++) amgroup[i] = tag[i];
   cfstyle = AMGROUP;
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // loop until no ghost atom groupIDs are reset
 
@@ -1687,7 +1688,7 @@ void PairAmoeba::assign_groups()
     // communicate new groupIDs to ghost atoms
 
     cfstyle = AMGROUP;
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
 
     // done if no proc reset groupID of a ghost atom
 

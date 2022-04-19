@@ -35,15 +35,15 @@ This formula seems like a simplified version of the formula for the
 :math:`\chi_0` = 0.0.  However the computation of the angle
 :math:`\chi` is done differently to match how the Tinker MD code
 computes its out-of-plane improper for the AMOEBA and HIPPO force
-fields.  See the doc:`Howto amoeba <howto_ameoba>` doc page for more
+fields.  See the :doc:`Howto amoeba <howto_ameoba>` doc page for more
 information about the implemention of AMOEBA and HIPPO in LAMMPS.
 
 If the 4 atoms in an improper quadruplet (listed in the data file read
-by the :doc:`read_data <read_data>` command) are ordered I,J,K,L then
-atoms I,K,L form a plane and atom J is out-of-place.  The angle
-:math:`\chi_0` is computed as the Allinger angle which is defined as
-the angle between the plane of I,K,L, and the vector from atom I to
-atom J.
+by the :doc:`read_data <read_data>` command are ordered I,J,K,L then
+atoms I,K,L are considered to lie in a plane and atom J is
+out-of-place.  The angle :math:`\chi_0` is computed as the Allinger
+angle which is defined as the angle between the plane of I,K,L, and
+the vector from atom I to atom J.
 
 The following coefficient must be defined for each improper type via
 the :doc:`improper_coeff <improper_coeff>` command as in the example

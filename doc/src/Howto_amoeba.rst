@@ -36,7 +36,7 @@ details for HIPPO are in this paper: :ref:`(Rackers)
 
    U & = U_{intermolecular} + U_{intramolecular) \\
    U_{intermolecular} & = U_{hal} + U_{repulsion} + U_{dispersion} + U_{multipole} + U_{polar} + U_{qxfer} \\
-   U_{intramolecular} & = U_{bond} + U_{angle} + U_{torsion} + U_{oop} + U_{b\theta} + U_{Urey-Bradley} + U_{pitorsion} + U_{bitorsion}
+   U_{intramolecular} & = U_{bond} + U_{angle} + U_{torsion} + U_{oop} + U_{b\theta} + U_{UB} + U_{pitorsion} + U_{bitorsion}
 
 For intermolecular terms, the AMOEBA force field includes only the
 :math:`U_{hal}`, :math:`U_{multipole}`, :math:`U_{polar}` terms.  The
@@ -50,9 +50,9 @@ For intramolecular terms, the :math:`U_{bond}`, :math:`U_{angle}`,
 <angle_amoeba>`, :doc:`dihedral_style fourier <dihedral_fourier>`, and
 :doc:`improper_style amoeba <improper_amoeba>` commands respectively.
 The :doc:`angle_style amoeba <angle_amoeba>` command includes the
-:math:`U_{b\theta}` bond-angle cross term, and the
-:math:`U_{Urey-Bradley}` term for a bond contribution between the 1-3
-atoms in the angle.
+:math:`U_{b\theta}` bond-angle cross term, and the :math:`U_{UB}` term
+for a Urey-Bradley bond contribution between the I,K atoms in the IJK
+angle.
 
 The :math:`U_{pitorsion}` term is computed by the :doc:`fix
 amoeba/pitorsion <fix_pitorsion>` command.  It computes 6-body
@@ -121,15 +121,15 @@ The data file read by the :doc:`read_data <read_data>` command should
 be created by the tools/tinker/tinker2lmp.py conversion program
 described below.  It will create a section in the data file with the
 header "Tinker Types".  A :doc:`fix property/atom <fix_property_atom>`
-command for the data must be specified befroe the read_data command.
-In the example above the fix ID is amtype.
+command for the data must be specified before the read_data command.
+In the example above the fix ID is *amtype*.
 
 Similarly, if the system you are simulating defines AMOEBA/HIPPO
 pitorsion or bitorsion interactions, there will be entries in the data
 file for those interactions.  They require a :doc:`fix
 amoeba/pitortion <fix_amoeba_pitortion>` and :doc:`fix
 amoeba/bitorsion <fix_amoeba_bitorsion>` command be defined.  In the
-example above, the IDs for these two fixes are "pit" and "bit".
+example above, the IDs for these two fixes are *pit* and *bit*.
 
 Of course, if the system being modeled does not have one or more of
 the following -- bond, angle, dihedral, improper, pitorision,
@@ -139,8 +139,9 @@ examples/amoeba for water systems as examples; they are simpler than
 what is listed above.
 
 The two :doc:`fix property/atom <fix_property_atom>` commands with IDs
-"extra" and "polaxe" are also needed to define internal per-atom
-quantities used by the AMOEBA and HIPPO force fields.
+(in the example above) *extra* and *polaxe* are also needed to define
+internal per-atom quantities used by the AMOEBA and HIPPO force
+fields.
 
 The :doc:`pair_coeff <pair_coeff>` command used for either the AMOEBA
 or HIPPO force field takes two arguments for Tinker force field files,
@@ -150,7 +151,7 @@ files are meant to allow use of native Tinker files as-is.  However
 LAMMPS does not support all the options which can be included
 in a Tinker PRM or KEY file.  See specifis below.
 
-A :doc:`special_bonds <special_bonds>` command with the "one/five"
+A :doc:`special_bonds <special_bonds>` command with the *one/five*
 option is required, since the AMOEBA/HIPPO force fields define
 weighting factors for not only 1-2, 1-3, 1-4 interactions, but also
 1-5 interactions.  This command will trigger a per-atom list of 1-5
@@ -171,7 +172,7 @@ details:
 Tinker PRM and KEY files
 
 A Tinker PRM file is composed of sections, each of which has multiple
-lines.  This is the list of sections LAMMPS knows how to parse and
+lines.  This is the list of PRM sections LAMMPS knows how to parse and
 use.  Any other sections are skipped:
 
 * Angle Bending Parameters
@@ -194,60 +195,59 @@ use.  Any other sections are skipped:
 * Van der Waals Pair Parameters
 * Van der Waals Parameters
 
-A Tinker KEY file is composed of lines, each of which has a keyword,
-which can be followed by zero or more parameters.  This is the list of
-keywords LAMMPS knows how to parse and use in the same manner Tinker
-does.  Any other keywords are skipped.  The value following the equal
-sign is the default value for the keyword if it is not specified, or
-if the keyfile in the :doc:`pair_coeff <pair_coeff>` command is
-specified as NULL:
+A Tinker KEY file is composed of lines, each of which has a keyword
+followed by zero or more parameters.  This is the list of keywords
+LAMMPS knows how to parse and use in the same manner Tinker does.  Any
+other keywords are skipped.  The value in parenthesis is the default
+value for the keyword if it is not specified, or if the keyfile in the
+:doc:`pair_coeff <pair_coeff>` command is specified as NULL:
 
-* a-axis = 0.0
-* b-axis = 0.0
-* c-axis = 0.0
-* ctrn-cutoff = 6.0
-* ctrn-taper = 0.9 * ctrn-cutoff
+* a-axis (0.0)
+* b-axis (0.0)
+* c-axis (0.0)
+* ctrn-cutoff (6.0)
+* ctrn-taper (0.9 * ctrn-cutoff)
 * cutoff
-* delta-halgren = 0.07
-* dewald = no use of long-range dispersion unless specified
-* dewald-alpha = 0.4
-* dewald-cutoff = 7.0
-* dispersion-cutoff = 9.0
-* dispersion-taper = 9.0 * dispersion-cutoff
+* delta-halgren (0.07)
+* dewald (no long-range dispersion unless specified)
+* dewald-alpha (0.4)
+* dewald-cutoff (7.0)
+* dispersion-cutoff (9.0)
+* dispersion-taper (9.0 * dispersion-cutoff)
 * dpme-grid
-* dpme-order = 4
-* ewald = no use of long-range electrostatics unless specified
-* ewald-alpha = 0.4
-* ewald-cutoff = 7.0
-* gamma-halgren = 0.12
-* mpole-cutoff = 9.0
-* mpole-taper 0.65 * mpole-cutoff
-* pcg-guess = enabled (default)
-* pcg-noguess = disable pcg-guess
-* pcg-noprecond = disable pcg-precond
-* pcg-peek = 1.0
-* pcg-precond = enabled (default)
-* pewald-alpha = 0.4
+* dpme-order (4)
+* ewald (no long-range electrostatics unless specified)
+* ewald-alpha (0.4)
+* ewald-cutoff (7.0)
+* gamma-halgren (0.12)
+* mpole-cutoff (9.0)
+* mpole-taper (0.65 * mpole-cutoff)
+* pcg-guess (enabled by default)
+* pcg-noguess (disable pcg-guess if specified)
+* pcg-noprecond (disable pcg-precond if specified)
+* pcg-peek (1.0)
+* pcg-precond (enabled by default)
+* pewald-alpha (0.4)
 * pme-grid
-* pme-order = 5
-* polar-eps = 1.0e-6
-* polar-iter = 100
-* polar-predict = no prediction operation unless specified
-* ppme-order = 5
-* repulsion-cutoff = 6.0
-* repulsion-taper = 0.9 * repulsion-cutoff
+* pme-order (5)
+* polar-eps (1.0e-6)
+* polar-iter (100)
+* polar-predict (no prediction operation unless specified)
+* ppme-order (5)
+* repulsion-cutoff (6.0)
+* repulsion-taper (0.9 * repulsion-cutoff)
 * taper
-* usolve-cutoff = 4.5
-* usolve-diag = 2.0
-* vdw-cutoff = 9.0
-* vdw-taper = 0.9 * vdw-cutoff
+* usolve-cutoff (4.5)
+* usolve-diag (2.0)
+* vdw-cutoff (9.0)
+* vdw-taper (0.9 * vdw-cutoff)
 
 ----------
 
 Tinker2lmp.py tool
 
 This conversion tool is found in the tools/tinker directory.
-As listed in examples/amoeba/README, these commands produce
+As shown in examples/amoeba/README, these commands produce
 the data files found in examples/amoeba, and also illustrate
 all the options available to use with the tinker2lmp.py script:
 

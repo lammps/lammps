@@ -31,23 +31,23 @@ The *amoeba* angle style uses the potential
    E & = E_a + E_{ba} + E_{ub} \\
    E_a = K_2\left(\theta - \theta_0\right)^2 + K_3\left(\theta - \theta_0\right)^3 + K_4\left(\theta - \theta_0\right)^4 + K_5\left(\theta - \theta_0\right)^5 + K_6\left(\theta - \theta_0\right)^6
    E_{ba} & = N_1 (r_{ij} - r_1) (\theta - \theta_0) + N_2(r_{jk} - r_2)(\theta - \theta_0)
-   E_{ub} & = K_{ub} (r_{ik} - r_{ub})^2)
+   E_{UB} & = K_{ub} (r_{ik} - r_{ub})^2)
 
 where :math:`E_a` is the angle term, :math:`E_{ba}` is a bond-angle
-term, ::math:`E_{ub}` is a Urey-Bradley bond term, :math:`\theta_0` is
+term, :math:`E_{UB}` is a Urey-Bradley bond term, :math:`\theta_0` is
 the equilibrium angle, :math:`r_1` and :math:`r_2` are the equilibrium
 bond lengths, and :math:`r_{ub}` is the equilibrium Urey-Bradley bond
-length between atoms I and K in the angle IJK.
+length.
 
-These formulas match how the Tinker MD code does its angle
+These formulas match how the Tinker MD code performs its angle
 calculations for the AMOEBA and HIPPO force fields.  See the
-doc:`Howto amoeba <howto_ameoba>` doc page for more information about
+:doc:`Howto amoeba <howto_ameoba>` doc page for more information about
 the implemention of AMOEBA and HIPPO in LAMMPS.
 
 Note that the :math:`E_a` and :math:`E_{ba}` formulas are identical to
 those used for the :doc:`angle_style class2/p6 <angle_class2_p6>`
 command, however there is no bond-bond cross term formula for
-:math:`E_{bb}`.  Additionally, there is a :math:`E_{ub}` term for a
+:math:`E_{bb}`.  Additionally, there is a :math:`E_{UB}` term for a
 Urey-Bradley bond.  It is effectively a harmonic bond between the I
 and K atoms of angle IJK, even though that bond is not enumerated in
 the "Bonds" section of the data file.
@@ -59,7 +59,7 @@ which Tinker may use if the center atom J in the angle is bonded to
 one additional atom in addition to I and K.  In this case, all 4 atoms
 are used to compute the :math:`E_a` formula, resulting in forces on
 all 4 atoms.  In the Tinker PRM file, these 2 options are denoted by
-"angle" versus "anglep" entries in the "Angle Bending Parameters"
+*angle* versus *anglep* entries in the "Angle Bending Parameters"
 section of the PRM force field file.  The *pflag* coefficient
 described below selects between the 2 options.
 
@@ -87,8 +87,9 @@ A pflag value of 0 vs 1 selects between the "in-plane" and
 "out-of-plane" options described above.  Ubflag is 1 if there is a
 Urey-Bradley term associated with this angle type, else it is 0.
 :math:`\theta_0` is specified in degrees, but LAMMPS converts it to
-radians internally; hence the various :math:`K` are effectively energy
-per radian\^2 or radian\^3 or radian\^4 or radian\^5 or radian\^6.
+radians internally; hence the various :math:`K` vaues are effectively
+energy per radian\^2 or radian\^3 or radian\^4 or radian\^5 or
+radian\^6.
 
 For the :math:`E_{ba}` formula, each line in a :doc:`angle_coeff
 <angle_coeff>` command in the input script lists 5 coefficients, the

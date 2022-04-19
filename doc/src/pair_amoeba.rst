@@ -33,7 +33,7 @@ Examples
 Additional info
 """""""""""""""
 
-* doc:`Howto amoeba <howto_ameoba>`
+* :doc:`Howto amoeba <howto_ameoba>`
 * examples/amoeba
 * tools/amoeba
 * potentials/*.amoeba
@@ -57,7 +57,7 @@ the LAMMPS potentials directory with a "amoeba" or "hippo" suffix can
 be used.  The Tinker distribution and website have additional force
 field files as well.
 
-As discussed on the doc:`Howto amoeba <howto_ameoba>` doc page, the
+As discussed on the :doc:`Howto amoeba <howto_ameoba>` doc page, the
 intermolecular (non-bonded) portion of the AMOEBA force field contains
 these terms:
 
@@ -117,17 +117,17 @@ Examples of the PRM files are in the potentials directory with an
 *.amoeba or *.hippo suffix.  The examples/amoeba directory has
 examples of both PRM and KEY files.
 
-A Tinker PRM file composed of sections, each of which has multiple
-lines.  A Tinker KEY file is composed of lines, each of which has a keyword,
-which can be followed by zero or more parameters.  
+A Tinker PRM file is composed of sections, each of which has multiple
+lines.  A Tinker KEY file is composed of lines, each of which has a
+keyword, followed by zero or more parameters.
 
 The list of PRM sections and KEY keywords which LAMMPS recognizes are
-listed on the doc:`Howto amoeba <howto_ameoba>` doc page.  If not
+listed on the :doc:`Howto amoeba <howto_ameoba>` doc page.  If not
 recognized, the section or keyword is skipped.
 
 Note that if the KEY file is specified as NULL, then no file is
 required; default values for various AMOEBA/HIPPO settings are used.
-The doc:`Howto amoeba <howto_ameoba>` doc page also gives the default
+The :doc:`Howto amoeba <howto_ameoba>` doc page also gives the default
 settings.
 
 ----------
@@ -212,8 +212,7 @@ none
 
 .. _amoeba-Shi:
 
-**(Shi)** Shi, Xiz, Znahg, Best, Wu, Ponder, Ren, J Chem Theory Comp,
- 9, 4046, 2013.
+**(Shi)** Shi, Xiz, Znahg, Best, Wu, Ponder, Ren, J Chem Theory Comp, 9, 4046, 2013.
 
 .. _amoeba-Rackers:
 

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -39,14 +39,14 @@ class AmoebaConvolution : protected Pointers {
   int nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out;
   int nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft;
   double *grid_brick_start;    // lower left corner of (c)grid_brick data
-  
+
   AmoebaConvolution(class LAMMPS *, class Pair *,
-		    int, int, int, int, int);
+                    int, int, int, int, int);
   ~AmoebaConvolution();
   void *zero();
   FFT_SCALAR *pre_convolution();
   void *post_convolution();
-    
+
  private:
   int which;                   // caller name for convolution being performed
   int flag3d;                  // 1 if using 3d grid_brick, 0 for 4d cgrid_brick
@@ -58,13 +58,13 @@ class AmoebaConvolution : protected Pointers {
   class FFT3d *fft1,*fft2;
   class GridComm *gc;
   class Remap *remap;
-  
+
   double ***grid_brick;        // 3d real brick grid with ghosts
   double ****cgrid_brick;      // 4d complex brick grid with ghosts
-  
+
   FFT_SCALAR *grid_fft;        // 3d FFT grid as 1d vector
   FFT_SCALAR *cfft;            // 3d complex FFT grid as 1d vector
-  
+
   double *gc_buf1,*gc_buf2;    // buffers for GridComm
   double *remap_buf;           // buffer for Remap
 

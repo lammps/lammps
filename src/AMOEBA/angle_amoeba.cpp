@@ -33,7 +33,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-AngleAmoeba::AngleAmoeba(LAMMPS *lmp) : Angle(lmp) 
+AngleAmoeba::AngleAmoeba(LAMMPS *lmp) : Angle(lmp)
 {
   pflag = nullptr;
   ubflag = nullptr;
@@ -122,11 +122,11 @@ void AngleAmoeba::compute(int eflag, int vflag)
         tinker_angle(i1,i2,i3,type,eflag);
 
       // bondangle = bond-stretch cross term in Tinker
-      
+
       if (ba_k1[type] != 0.0)
         tinker_bondangle(i1,i2,i3,type,eflag);
     }
-    
+
     // Urey-Bradley H-H bond term within water molecules
 
     if (enable_urey) {
@@ -162,7 +162,7 @@ void AngleAmoeba::tinker_angle(int i1, int i2, int i3, int type, int eflag)
   r1 = sqrt(rsq1);
 
   // 2nd bond
-  
+
   delx2 = x[i3][0] - x[i2][0];
   dely2 = x[i3][1] - x[i2][1];
   delz2 = x[i3][2] - x[i2][2];
@@ -171,7 +171,7 @@ void AngleAmoeba::tinker_angle(int i1, int i2, int i3, int type, int eflag)
   r2 = sqrt(rsq2);
 
   // angle (cos and sin)
-  
+
   c = delx1*delx2 + dely1*dely2 + delz1*delz2;
   c /= r1*r2;
 
@@ -181,7 +181,7 @@ void AngleAmoeba::tinker_angle(int i1, int i2, int i3, int type, int eflag)
   s = sqrt(1.0 - c*c);
   if (s < SMALL) s = SMALL;
   s = 1.0/s;
-  
+
   // force & energy for angle term
 
   dtheta = acos(c) - theta0[type];
@@ -198,17 +198,17 @@ void AngleAmoeba::tinker_angle(int i1, int i2, int i3, int type, int eflag)
   a11 = a*c / rsq1;
   a12 = -a / (r1*r2);
   a22 = a*c / rsq2;
-  
+
   f1[0] = a11*delx1 + a12*delx2;
   f1[1] = a11*dely1 + a12*dely2;
   f1[2] = a11*delz1 + a12*delz2;
-  
+
   f3[0] = a22*delx2 + a12*delx1;
   f3[1] = a22*dely2 + a12*dely1;
   f3[2] = a22*delz2 + a12*delz1;
 
   eangle = 0.0;
-  if (eflag) eangle = k2[type]*dtheta2 + k3[type]*dtheta3 + 
+  if (eflag) eangle = k2[type]*dtheta2 + k3[type]*dtheta3 +
                k4[type]*dtheta4 + k5[type]*dtheta5 + k6[type]*dtheta6;
 
   // apply force to each of 3 atoms
@@ -261,7 +261,7 @@ void AngleAmoeba::tinker_anglep(int i1, int i2, int i3, int type, int eflag)
   int newton_bond = force->newton_bond;
 
   // i4 = index of third atom that i2 is bonded to
-  
+
   i1tag = atom->tag[i1];
   i3tag = atom->tag[i3];
 
@@ -329,7 +329,7 @@ void AngleAmoeba::tinker_anglep(int i1, int i2, int i3, int type, int eflag)
   cosine = MIN(1.0,MAX(-1.0,cosine));
 
   // force & energy for angle term
-  
+
   dtheta = acos(cosine) - theta0[type];
   dtheta2 = dtheta*dtheta;
   dtheta3 = dtheta2*dtheta;
@@ -341,7 +341,7 @@ void AngleAmoeba::tinker_anglep(int i1, int i2, int i3, int type, int eflag)
     4.0*k4[type]*dtheta3 + 5.0*k5[type]*dtheta4 + 6.0*k6[type]*dtheta5;
 
   eangle = 0.0;
-  if (eflag) eangle = k2[type]*dtheta2 + k3[type]*dtheta3 + 
+  if (eflag) eangle = k2[type]*dtheta2 + k3[type]*dtheta3 +
                k4[type]*dtheta4 + k5[type]*dtheta5 + k6[type]*dtheta6;
 
   // chain rule terms for first derivative components
@@ -445,7 +445,7 @@ void AngleAmoeba::tinker_bondangle(int i1, int i2, int i3, int type, int eflag)
   r1 = sqrt(rsq1);
 
   // 2nd bond
-  
+
   delx2 = x[i3][0] - x[i2][0];
   dely2 = x[i3][1] - x[i2][1];
   delz2 = x[i3][2] - x[i2][2];
@@ -454,7 +454,7 @@ void AngleAmoeba::tinker_bondangle(int i1, int i2, int i3, int type, int eflag)
   r2 = sqrt(rsq2);
 
   // angle (cos and sin)
-  
+
   c = delx1*delx2 + dely1*dely2 + delz1*delz2;
   c /= r1*r2;
 
@@ -503,7 +503,7 @@ void AngleAmoeba::tinker_bondangle(int i1, int i2, int i3, int type, int eflag)
   f1[0] = -(vx11 + b1*delx1 + vx12);
   f1[1] = -(vy11 + b1*dely1 + vy12);
   f1[2] = -(vz11 + b1*delz1 + vz12);
-  
+
   f3[0] = -(vx21 + b2*delx2 + vx22);
   f3[1] = -(vy21 + b2*dely2 + vy22);
   f3[2] = -(vz21 + b2*delz2 + vz22);
@@ -558,7 +558,7 @@ void AngleAmoeba::tinker_urey_bradley(int i1, int i2, int type, int eflag)
   rk = ub_k[type] * dr;
 
   // force & energy
-  
+
   if (r > 0.0) fbond = -2.0*rk/r;
   else fbond = 0.0;
 
@@ -610,7 +610,7 @@ void AngleAmoeba::allocate()
   memory->create(setflag_ba,n+1,"angle:setflag_ba");
   memory->create(setflag_ub,n+1,"angle:setflag_ub");
 
-  for (int i = 1; i <= n; i++) 
+  for (int i = 1; i <= n; i++)
     setflag[i] = setflag_a[i] = setflag_ba[i] = setflag_ub[i] = 0;
 }
 
@@ -627,7 +627,7 @@ void AngleAmoeba::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
   int count = 0;
-  
+
   if (strcmp(arg[1],"ba") == 0) {
     if (narg != 6) error->all(FLERR,"Incorrect args for angle coefficients");
 
@@ -658,7 +658,7 @@ void AngleAmoeba::coeff(int narg, char **arg)
       count++;
     }
 
-  } else { 
+  } else {
     if (narg != 9) error->all(FLERR,"Incorrect args for angle coefficients");
 
     int pflag_one = utils::inumeric(FLERR,arg[1],false,lmp);
@@ -671,7 +671,7 @@ void AngleAmoeba::coeff(int narg, char **arg)
     double k6_one = utils::numeric(FLERR,arg[8],false,lmp);
 
     // convert theta0 from degrees to radians
-  
+
     for (int i = ilo; i <= ihi; i++) {
       pflag[i] = pflag_one;
       ubflag[i] = ubflag_one;
@@ -689,7 +689,7 @@ void AngleAmoeba::coeff(int narg, char **arg)
   if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
 
   for (int i = ilo; i <= ihi; i++)
-    if (setflag_a[i] == 1 && setflag_ba[i] == 1 && setflag_ub[i]) 
+    if (setflag_a[i] == 1 && setflag_ba[i] == 1 && setflag_ub[i])
       setflag[i] = 1;
 }
 

@@ -215,7 +215,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   maxspecial15 = 1;
   nspecial15 = nullptr;
   special15 = nullptr;
-  
+
   // DIELECTRIC package
 
   area = ed = em = epsilon = curvature = q_unscaled = nullptr;
@@ -679,7 +679,7 @@ void Atom::set_atomflag_defaults()
   contact_radius_flag = smd_data_9_flag = smd_stress_flag = 0;
   eff_plastic_strain_flag = eff_plastic_strain_rate_flag = 0;
   nspecial15_flag = 0;
-  
+
   pdscale = 1.0;
 }
 

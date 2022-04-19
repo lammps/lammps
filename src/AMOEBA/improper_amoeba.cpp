@@ -127,9 +127,9 @@ void ImproperAmoeba::compute(int eflag, int vflag)
     xcd = xic - xid;
     ycd = yic - yid;
     zcd = zic - zid;
-    
+
     // Allinger angle between A-C-D plane and D-B vector for D-B < AC
-      
+
     rad2 = xad*xad + yad*yad + zad*zad;
     rcd2 = xcd*xcd + ycd*ycd + zcd*zcd;
     dot = xad*xcd + yad*ycd + zad*zcd;
@@ -152,12 +152,12 @@ void ImproperAmoeba::compute(int eflag, int vflag)
     dt2 = dt * dt;
     dt3 = dt2 * dt;
     dt4 = dt2 * dt2;
-    e = eprefactor * k[type] * dt2 * 
-      (1.0 + opbend_cubic*dt + opbend_quartic*dt2 + 
+    e = eprefactor * k[type] * dt2 *
+      (1.0 + opbend_cubic*dt + opbend_quartic*dt2 +
        opbend_pentic*dt3 + opbend_sextic*dt4);
 
-    deddt = fprefactor * k[type] * dt * 
-      (2.0 + 3.0*opbend_cubic*dt + 4.0*opbend_quartic*dt2 + 
+    deddt = fprefactor * k[type] * dt *
+      (2.0 + 3.0*opbend_cubic*dt + 4.0*opbend_quartic*dt2 +
        5.0*opbend_pentic*dt3 + 6.0*opbend_sextic*dt4);
     sign = (ee >= 0.0) ? 1.0 : -1.0;
     dedcos = -deddt * sign / sqrt(cc*rdb2 - ee*ee);

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -86,7 +86,7 @@ class PairAmoeba : public Pair {
 
   double time_init,time_hal,time_repulse,time_disp;
   double time_mpole,time_induce,time_polar,time_qxfer;
-  
+
   // energy/virial components
 
   double ehal,erepulse,edisp,epolar,empole,eqxfer;
@@ -116,7 +116,7 @@ class PairAmoeba : public Pair {
   double special_polar_wscale[5];
 
   double polar_dscale,polar_uscale;
-  
+
   // scalar values defined in keyfile
 
   double dhal,ghal;
@@ -132,7 +132,7 @@ class PairAmoeba : public Pair {
   double usolvcut;
 
   int use_ewald,use_dewald;
-  
+
   int use_pred;
   int politer,polpred;
   int pcgprec,pcgguess;
@@ -144,7 +144,7 @@ class PairAmoeba : public Pair {
 
   int aeewald_key,apewald_key,adewald_key;
   int pmegrid_key,dpmegrid_key;
-  
+
   // types and classes
 
   int n_amtype;                   // # of defined AMOEBA types, 1-N
@@ -155,7 +155,7 @@ class PairAmoeba : public Pair {
   int *amtype_defined;            // 1 if type was defined in FF file
   int *amclass_defined;           // 1 if class was defined in FF file
   int *amtype2class;              // amt2c[i] = class which type I belongs to
-  
+
   // static per-atom properties, must persist as atoms migrate
 
   int index_amtype,index_amgroup,index_ired;
@@ -168,7 +168,7 @@ class PairAmoeba : public Pair {
   tagint *xaxis,*yaxis,*zaxis;    // IDs of nearby atoms for multipole def
   int *polaxe;
   double *pval;
-  
+
   char *id_pole,*id_udalt,*id_upalt;
   class FixStore *fixpole;        // stores pole = multipole components
   class FixStore *fixudalt;       // stores udalt = induced dipole history
@@ -194,7 +194,7 @@ class PairAmoeba : public Pair {
   // multipole frame info for each amtype, read from PRM file
 
   int *nmultiframe;             // # of frames for each type
-  int **mpaxis;                 // polaxe values         
+  int **mpaxis;                 // polaxe values
   int **xpole,**ypole,**zpole;  // other types in xyz dirs for multipole frame
   double ***fpole;              // 13 values from file
                                 // 0 = monopole, same as q
@@ -216,7 +216,7 @@ class PairAmoeba : public Pair {
   double *vdwl_sigma_pair;  // Vdwl sigma for pair of classes
   int nvdwl_pair;           // # of pairwise Vdwl entries in file
   int max_vdwl_pair;        // size of allocated data for pairwise Vdwl
-  
+
   // vectors and arrays of small size
 
   double *copt,*copm;         // 0:optorder in length
@@ -245,7 +245,7 @@ class PairAmoeba : public Pair {
   // peratom values computed each step
   // none of them persist with atoms
   // some of them need communication to ghosts
-  
+
   double **rpole;  // multipole, comm to ghosts
 
   int *xaxis2local,*yaxis2local,*zaxis2local;  // xyz axis IDs -> local indices
@@ -271,7 +271,7 @@ class PairAmoeba : public Pair {
 
   double ***fopt,***foptp;        // computed in induce, used by polar, if OPT
                                   // Nlocal x optorder x 10
-  
+
   // derived local neighbor lists
 
   int *numneigh_dipole;          // number of dipole neighs for each atom
@@ -292,7 +292,7 @@ class PairAmoeba : public Pair {
   // in indices = owned portion of grid in spatial decomp
   // out indices = in + ghost grid cells
   // fft indices = owned portion of grid in FFT decomp
-  
+
   int nefft1,nefft2,nefft3;   // for electrostatic PME operations
   int ndfft1,ndfft2,ndfft3;   // for dispersion PME operations
 
@@ -300,12 +300,12 @@ class PairAmoeba : public Pair {
   int bsporder;               // for polarization
   int bsdorder;               // for dispersion
   int bsordermax;             // max of 3 bsorder values
-  
+
   double aewald;              // current Ewald alpha
   double aeewald;             // for electrostatics
   double apewald;             // for polarization
   double adewald;             // for dispersion
-  
+
   double *bsmod1,*bsmod2,*bsmod3;    // B-spline module along abc axes
                                      // set to max of any nfft1,nfft2,nfft3
 
@@ -318,12 +318,12 @@ class PairAmoeba : public Pair {
                      // indices ARE flipped vs Fortran
 
   // Kspace data for induce and polar
-  
+
   double *qfac;                         // convoulution pre-factors
-  double **cmp,**fmp,**cphi,**fphi;     // Cartesian and fractional multipoles 
+  double **cmp,**fmp,**cphi,**fphi;     // Cartesian and fractional multipoles
 
   // params for current KSpace solve and FFT being worked on
-  
+
   int nfft1,nfft2,nfft3;   // size of FFT
   int bsorder;             // stencil size
   double recip[3][3];      // indices NOT flipped vs Fortran
@@ -332,12 +332,12 @@ class PairAmoeba : public Pair {
 
   class AmoebaConvolution *m_kspace,*p_kspace,*pc_kspace,*d_kspace;
   class AmoebaConvolution *i_kspace,*ic_kspace;
-  
+
   // FFT grid size factors
 
   int nfactors;      // # of factors
   int *factors;      // list of possible factors (2,3,5)
-  
+
   // components of force field
 
   void hal();
@@ -396,9 +396,9 @@ class PairAmoeba : public Pair {
 
   void kewald();
   void kewald_parallel(int, int, int, int,
-		       int &, int &, int &, int &, int &, int &,
-		       int &, int &, int &, int &, int &, int &,
-		       int &, int &, int &, int &, int &, int &);
+                       int &, int &, int &, int &, int &, int &,
+                       int &, int &, int &, int &, int &, int &,
+                       int &, int &, int &, int &, int &, int &);
   double ewaldcof(double);
   int factorable(int);
 
@@ -411,7 +411,7 @@ class PairAmoeba : public Pair {
 
   void allocate();
   void print_settings(FILE *);
-  
+
   void initialize_vdwl();
   void allocate_vdwl();
   void deallocate_vdwl();
@@ -447,7 +447,7 @@ class PairAmoeba : public Pair {
   void set_defaults();
   void read_prmfile(char *);
   void read_keyfile(char *);
-  
+
   int read_section_name(FILE *fp, char *);
   int read_section_line(FILE *fp, char *, int &, char *);
   int tokenize(char *, char **&, char *&);
@@ -477,7 +477,7 @@ class PairAmoeba : public Pair {
   void file_charge_transfer(int, char **);
 
   // inline function for neighbor list unmasking
-  
+
   inline int sbmask15(int j) const {
     return j >> SBBITS15 & 7;
   }

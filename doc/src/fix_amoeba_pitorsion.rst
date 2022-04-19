@@ -1,7 +1,7 @@
 .. index:: fix amoeba/pitorsion
 
 fix amoeba/pitorsion command
-================
+============================
 
 Syntax
 """"""
@@ -86,7 +86,7 @@ the pitorsion 5-atom tuples; it is ignored by LAMMPS.  The second
 column is the "type" of the interaction; it is an index into the
 PiTorsion Coeffs.  The remaining 5 columns are the atom IDs of the
 atoms in the two 4-atom dihedrals that overlap to create the pitorsion
-5-body interaction.  
+5-body interaction.
 
 Note that the *pitorsion types* and *pitorsions* and *PiTorsion
 Coeffs* and *PiTorsions* keywords for the header and body sections of

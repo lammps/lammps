@@ -111,9 +111,9 @@ class FixAmoebaBiTorsion : public Fix {
 
   void chkttor(int, int, int, double &, double &, double &);
   void bcuint1(double *, double *, double *, double *,
-               double, double, double, double, double, double, 
+               double, double, double, double, double, double,
                double &, double &, double &);
-  void bcucof(double *, double *, double *, double *, double, double, 
+  void bcucof(double *, double *, double *, double *, double, double,
               double [][4]);
 };
 

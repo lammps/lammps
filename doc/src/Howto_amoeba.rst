@@ -34,9 +34,9 @@ details for HIPPO are in this paper: :ref:`(Rackers)
 
 .. math::
 
-   U & = U_{intermolecular} + U_{intramolecular) \\
-   U_{intermolecular} & = U_{hal} + U_{repulsion} + U_{dispersion} + U_{multipole} + U_{polar} + U_{qxfer} \\
-   U_{intramolecular} & = U_{bond} + U_{angle} + U_{torsion} + U_{oop} + U_{b\theta} + U_{UB} + U_{pitorsion} + U_{bitorsion}
+  U & = U_{intermolecular} + U_{intramolecular} \\
+  U_{intermolecular} & = U_{hal} + U_{repulsion} + U_{dispersion} + U_{multipole} + U_{polar} + U_{qxfer} \\
+  U_{intramolecular} & = U_{bond} + U_{angle} + U_{torsion} + U_{oop} + U_{b\theta} + U_{UB} + U_{pitorsion} + U_{bitorsion}
 
 For intermolecular terms, the AMOEBA force field includes only the
 :math:`U_{hal}`, :math:`U_{multipole}`, :math:`U_{polar}` terms.  The
@@ -55,12 +55,12 @@ for a Urey-Bradley bond contribution between the I,K atoms in the IJK
 angle.
 
 The :math:`U_{pitorsion}` term is computed by the :doc:`fix
-amoeba/pitorsion <fix_pitorsion>` command.  It computes 6-body
+amoeba/pitorsion <fix_amoeba_pitorsion>` command.  It computes 6-body
 interaction between a pair of bonded atoms which each have 2
 additional bond partners.
 
 The :math:`U_{bitorsion}` term is computed by the :doc:`fix
-amoeba/bitorsion <fix_bitorsion>` command.  It computes 5-body
+amoeba/bitorsion <fix_amoeba_bitorsion>` command.  It computes 5-body
 interaction between two 4-body torsions (dihedrals) which overlap,
 having 3 atoms in common.
 
@@ -72,8 +72,8 @@ compute:
 * :doc:`angle_style amoeba <angle_amoeba>`
 * :doc:`dihedral_style fourier <dihedral_fourier>`
 * :doc:`improper_style amoeba <improper_amoeba>`
-* :doc:`fix amoeba/pitorsion <fix_pitorsion>`
-* :doc:`fix amoeba/bitorsion <fix_bitorsion>`
+* :doc:`fix amoeba/pitorsion <fix_amoeba_pitorsion>`
+* :doc:`fix amoeba/bitorsion <fix_amoeba_bitorsion>`
 
 ----------
 
@@ -94,14 +94,14 @@ and HIPPO.
    improper_style     amoeba
                                                      # required per-atom data
    fix                amtype all property/atom i_amtype ghost yes
-   fix                extra all property/atom &                      
+   fix                extra all property/atom &
                       i_amgroup i_ired i_xaxis i_yaxis i_zaxis d_pval ghost yes
    fix                polaxe all property/atom i_polaxe
 
    fix                pit all amoeba/pitorsion       # PiTorsion terms in FF
    fix_modify         pit energy yes
                                                      # Bitorsion terms in FF
-   fix                bit all amoeba/bitorsion bitorsion.ubiquitin.data  
+   fix                bit all amoeba/bitorsion bitorsion.ubiquitin.data
    fix_modify         bit energy yes
 
    read_data          data.ubiquitin fix amtype NULL "Tinker Types" &
@@ -127,7 +127,7 @@ In the example above the fix ID is *amtype*.
 Similarly, if the system you are simulating defines AMOEBA/HIPPO
 pitorsion or bitorsion interactions, there will be entries in the data
 file for those interactions.  They require a :doc:`fix
-amoeba/pitortion <fix_amoeba_pitortion>` and :doc:`fix
+amoeba/pitortion <fix_amoeba_pitorsion>` and :doc:`fix
 amoeba/bitorsion <fix_amoeba_bitorsion>` command be defined.  In the
 example above, the IDs for these two fixes are *pit* and *bit*.
 
@@ -263,7 +263,7 @@ Switches and their arguments may be specified in any order.
 
 The -xyz switch is required and specifies an input XYZ file as an
 argument.  The format of this file is an extended XYZ format used by
-Tinker for its input.  Example *.xyz files are in the examples/amoeba
+Tinker for its input.  Example \*.xyz files are in the examples/amoeba
 directory.  The file lists the atoms in the system.  Each atom has the
 following information: Tinker species name (ignored by LAMMPS), xyz
 coordinates, Tinker numeric type, and a list of atom IDs the atom is

@@ -208,7 +208,7 @@ class Atom : protected Pointers {
   // AMOEBA package
 
   int nspecial15_flag;
-  
+
   // Peridynamics scale factor, used by dump cfg
 
   double pdscale;

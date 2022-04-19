@@ -649,8 +649,8 @@ class Memory : protected Pointers {
 
   template <typename TYPE>
   TYPE ****create4d_offset_last(TYPE ****&array, int n1lo, int n1hi,
-				int n2lo, int n2hi, int n3lo, int n3hi, int n4,
-				const char *name)
+                                int n2lo, int n2hi, int n3lo, int n3hi, int n4,
+                                const char *name)
   {
     if (n1lo > n1hi || n2lo > n2hi || n3lo > n3hi || n4 <= 0) return nullptr;
 
@@ -668,9 +668,9 @@ class Memory : protected Pointers {
 
   template <typename TYPE>
   TYPE ****create4d_offset_last(TYPE *****& /*array*/, int /*n1lo*/, int /*n1hi*/,
-				int /*n2lo*/, int /*n2hi*/,
-				int /*n3lo*/, int /*n3hi*/, int /*n4*/,
-				const char *name)
+                                int /*n2lo*/, int /*n2hi*/,
+                                int /*n3lo*/, int /*n3hi*/, int /*n4*/,
+                                const char *name)
   {fail(name); return nullptr;}
 
 /* ----------------------------------------------------------------------
@@ -679,7 +679,7 @@ class Memory : protected Pointers {
 
   template <typename TYPE>
   void destroy4d_offset_last(TYPE ****&array,
-			     int n1_offset, int n2_offset, int n3_offset)
+                             int n1_offset, int n2_offset, int n3_offset)
   {
     if (array == nullptr) return;
     sfree(&array[n1_offset][n2_offset][n3_offset][0]);
@@ -688,7 +688,7 @@ class Memory : protected Pointers {
     sfree(&array[n1_offset]);
     array = nullptr;
   }
-      
+
 /* ----------------------------------------------------------------------
    create a 5d array
 ------------------------------------------------------------------------- */

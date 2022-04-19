@@ -256,7 +256,7 @@ void FixAmoebaBiTorsion::pre_neighbor()
 
   if (max_bitorsion_list == 0) {
     if (nprocs == 1) max_bitorsion_list = nbitorsions;
-    else max_bitorsion_list = 
+    else max_bitorsion_list =
            static_cast<int> (LB_FACTOR*nbitorsions/nprocs);
     memory->create(bitorsion_list,max_bitorsion_list,6,
                    "bitorsion:bitorsion_list");
@@ -559,7 +559,7 @@ void FixAmoebaBiTorsion::post_force(int vflag)
     dedxu = -dedang1 * (yu*zcb - ycb*zu) / (ru2*rcb);
     dedyu = -dedang1 * (zu*xcb - zcb*xu) / (ru2*rcb);
     dedzu = -dedang1 * (xu*ycb - xcb*yu) / (ru2*rcb);
-    
+
     // compute first derivative components for first angle
 
     dedxia = zcb*dedyt - ycb*dedzt;
@@ -576,18 +576,18 @@ void FixAmoebaBiTorsion::post_force(int vflag)
     dedzid = ycb*dedxu - xcb*dedyu;
 
     // chain rule terms for second angle derivative components
-    
+
     xec = xie - xic;
     yec = yie - yic;
     zec = zie - zic;
-    
+
     dedxu2 = dedang2 * (yu*zdc - ydc*zu) / (ru2*rdc);
     dedyu2 = dedang2 * (zu*xdc - zdc*xu) / (ru2*rdc);
     dedzu2 = dedang2 * (xu*ydc - xdc*yu) / (ru2*rdc);
     dedxv2 = -dedang2 * (yv*zdc - ydc*zv) / (rv2*rdc);
     dedyv2 = -dedang2 * (zv*xdc - zdc*xv) / (rv2*rdc);
     dedzv2 = -dedang2 * (xv*ydc - xdc*yv) / (rv2*rdc);
-      
+
     // compute first derivative components for second angle
 
     dedxib2 = zdc*dedyu2 - ydc*dedzu2;
@@ -662,14 +662,14 @@ void FixAmoebaBiTorsion::post_force(int vflag)
       vyy2 = ydc*(dedyid2+dedyie2) - ycb*dedyib2 + yed*dedyie2;
       vzy2 = zdc*(dedyid2+dedyie2) - zcb*dedyib2 + zed*dedyie2;
       vzz2 = zdc*(dedzid2+dedzie2) - zcb*dedzib2 + zed*dedzie2;
-    
+
       v[0] += vxx + vxx2;
       v[1] += vyy + vyy2;
       v[2] += vzz + vzz2;
       v[3] += vyx + vyx2;
       v[4] += vzx + vzx2;
       v[5] += vzy + vzy2;
-      
+
       ev_tally(nlist,list,5.0,e,v);
     }
   }
@@ -735,7 +735,7 @@ void FixAmoebaBiTorsion::read_grid_data(char *bitorsion_file)
     eof = fgets(line,MAXLINE,fp);
     eof = fgets(line,MAXLINE,fp);
     eof = fgets(line,MAXLINE,fp);
-    if (eof == nullptr) 
+    if (eof == nullptr)
       error->one(FLERR,"Unexpected end of fix amoeba/bitorsion file");
 
     sscanf(line,"%d",&nbitypes);
@@ -762,7 +762,7 @@ void FixAmoebaBiTorsion::read_grid_data(char *bitorsion_file)
     if (me == 0) {
       eof = fgets(line,MAXLINE,fp);
       eof = fgets(line,MAXLINE,fp);
-      if (eof == nullptr) 
+      if (eof == nullptr)
         error->one(FLERR,"Unexpected end of fix amoeba/bitorsion file");
       sscanf(line,"%d %d %d",&tmp,&nx,&ny);
     }
@@ -782,7 +782,7 @@ void FixAmoebaBiTorsion::read_grid_data(char *bitorsion_file)
       for (int iy = 0; iy < ny; iy++) {
         for (int ix = 0; ix < nx; ix++) {
           eof = fgets(line,MAXLINE,fp);
-          if (eof == nullptr) 
+          if (eof == nullptr)
             error->one(FLERR,"Unexpected end of fix amoeba/bitorsion file");
           sscanf(line,"%lg %lg %lg",&xgrid,&ygrid,&value);
           if (iy == 0) ttx[itype][ix] = xgrid;
@@ -857,7 +857,7 @@ void FixAmoebaBiTorsion::create_splines()
     // cyclic = 1 if angle range is -180.0 to 180.0 in both dims
     // error if cyclic and x,y pairs of edges of 2d array values do not match
     // equality comparisons are within eps
-    
+
     int cyclic = 1;
     double eps = 1.0e-6;
 
@@ -876,19 +876,19 @@ void FixAmoebaBiTorsion::create_splines()
 
     // spline fit of derivatives about 1st torsion
 
-    for (int i = 0; i < nx; i++) 
+    for (int i = 0; i < nx; i++)
       tmp1[i] = ttx[itype][i];
 
     for (int j = 0; j < ny; j++) {
-      for (int i = 0; i < nx; i++) 
+      for (int i = 0; i < nx; i++)
         tmp2[i] = tbf[itype][j*nx+i];
 
-      if (cyclic) 
+      if (cyclic)
         cspline(nx-1,tmp1,tmp2,bs,cs,ds,tmp3,tmp4,tmp5,tmp6,tmp7);
-      else 
+      else
         nspline(nx-1,tmp1,tmp2,bs,cs,tmp3,tmp4,tmp5,tmp6,tmp7);
 
-      for (int i = 0; i < nx; i++) 
+      for (int i = 0; i < nx; i++)
         tbx[itype][j*nx+i] = bs[i];
     }
 
@@ -901,9 +901,9 @@ void FixAmoebaBiTorsion::create_splines()
       for (int j = 0; j < ny; j++)
         tmp2[j] = tbf[itype][j*nx+i];
 
-      if (cyclic) 
+      if (cyclic)
         cspline(ny-1,tmp1,tmp2,bs,cs,ds,tmp3,tmp4,tmp5,tmp6,tmp7);
-      else 
+      else
         nspline(ny-1,tmp1,tmp2,bs,cs,tmp3,tmp4,tmp5,tmp6,tmp7);
 
       for (int j = 0; j < ny; j++)
@@ -919,12 +919,12 @@ void FixAmoebaBiTorsion::create_splines()
       for (int j = 0; j < ny; j++)
         tmp2[j] = tbx[itype][j*nx+i];
 
-      if (cyclic) 
+      if (cyclic)
         cspline(ny-1,tmp1,tmp2,bs,cs,ds,tmp3,tmp4,tmp5,tmp6,tmp7);
-      else 
+      else
         nspline(ny-1,tmp1,tmp2,bs,cs,tmp3,tmp4,tmp5,tmp6,tmp7);
 
-      for (int j = 0; j < ny; j++) 
+      for (int j = 0; j < ny; j++)
         tbxy[itype][j*nx+i] = bs[j];
     }
   }
@@ -953,9 +953,9 @@ void FixAmoebaBiTorsion::create_splines()
    rest of args are outputs
 ------------------------------------------------------------------------- */
 
-void FixAmoebaBiTorsion::nspline(int n, double *x0, double *y0, 
+void FixAmoebaBiTorsion::nspline(int n, double *x0, double *y0,
                                  double *s1, double *s2,
-                                 double *h, double *g, double *dy, 
+                                 double *h, double *g, double *dy,
                                  double *dla, double *dmu)
 {
   int i;
@@ -982,7 +982,7 @@ void FixAmoebaBiTorsion::nspline(int n, double *x0, double *y0,
   }
 
   // set the initial value via natural boundary condition
-  
+
   dla[n] = 1.0;
   dla[0] = 0.0;
   dmu[n] = 0.0;
@@ -1024,9 +1024,9 @@ void FixAmoebaBiTorsion::nspline(int n, double *x0, double *y0,
    rest of args are outputs
 ------------------------------------------------------------------------- */
 
-void FixAmoebaBiTorsion::cspline(int n, double *xn, double *fn, 
+void FixAmoebaBiTorsion::cspline(int n, double *xn, double *fn,
                                  double *b, double *c, double *d,
-                                 double *h, double *du, double *dm, 
+                                 double *h, double *du, double *dm,
                                  double *rc, double *rs)
 {
   int i;
@@ -1038,7 +1038,7 @@ void FixAmoebaBiTorsion::cspline(int n, double *xn, double *fn,
 
   // get auxiliary variables and matrix elements on first call
 
-  for (i = 0; i < n; i++) 
+  for (i = 0; i < n; i++)
     h[i] = xn[i+1] - xn[i];
   h[n] = h[0];
 
@@ -1083,7 +1083,7 @@ void FixAmoebaBiTorsion::cspline(int n, double *xn, double *fn,
    du,cr,rs,x,iflag are outputs
 ------------------------------------------------------------------------- */
 
-void FixAmoebaBiTorsion::cytsy(int n, double *dm, double *du, 
+void FixAmoebaBiTorsion::cytsy(int n, double *dm, double *du,
                                double *cr, double *rs, double *x, int &iflag)
 {
   iflag = -2;
@@ -1103,14 +1103,14 @@ void FixAmoebaBiTorsion::cytsy(int n, double *dm, double *du,
    du,cr,iflag are outputs
 ------------------------------------------------------------------------- */
 
-void FixAmoebaBiTorsion::cytsyp(int n, double *dm, double *du, 
+void FixAmoebaBiTorsion::cytsyp(int n, double *dm, double *du,
                                 double *cr, int &iflag)
 {
   int i;
   double temp1,temp2;
 
   // set error bound and test for condition n greater than 2
-  
+
   double eps = 1.0e-8;
 
   iflag = -2;
@@ -1135,7 +1135,7 @@ void FixAmoebaBiTorsion::cytsyp(int n, double *dm, double *du,
     return;
   }
 
-  // factoring a while checking for a positive definite and 
+  // factoring a while checking for a positive definite and
   //   strong nonsingular matrix a
 
   temp1 = du[1];
@@ -1177,7 +1177,7 @@ void FixAmoebaBiTorsion::cytsyp(int n, double *dm, double *du,
   dm[n] = dm[n] - dm[n-1]*du[n-1]*du[n-1];
   temp1 = 0.0;
 
-  for (i = 1; i < n-1; i++) 
+  for (i = 1; i < n-1; i++)
     temp1 += dm[i]*cr[i]*cr[i];
 
   dm[n] = dm[n] - temp1;
@@ -1201,7 +1201,7 @@ void FixAmoebaBiTorsion::cytsyp(int n, double *dm, double *du,
    rs,x are outputs
 ------------------------------------------------------------------------- */
 
-void FixAmoebaBiTorsion::cytsys(int n, double *dm, double *du, 
+void FixAmoebaBiTorsion::cytsys(int n, double *dm, double *du,
                                 double *cr, double *rs, double *x)
 {
   int i;
@@ -1233,7 +1233,7 @@ void FixAmoebaBiTorsion::cytsys(int n, double *dm, double *du,
 /* ----------------------------------------------------------------------
 ------------------------------------------------------------------------- */
 
-void FixAmoebaBiTorsion::chkttor(int ib, int ic, int id, 
+void FixAmoebaBiTorsion::chkttor(int ib, int ic, int id,
                                  double &sign, double &value1, double &value2)
 {
 }
@@ -1245,10 +1245,10 @@ void FixAmoebaBiTorsion::chkttor(int ib, int ic, int id,
    output = ansy,ansy1,ansy2
 ------------------------------------------------------------------------- */
 
-void FixAmoebaBiTorsion::bcuint1(double *y, double *y1, 
+void FixAmoebaBiTorsion::bcuint1(double *y, double *y1,
                                  double *y2, double *y12,
-                                 double x1l, double x1u, double x2l, double x2u, 
-                                 double x1, double x2, 
+                                 double x1l, double x1u, double x2l, double x2u,
+                                 double x1, double x2,
                                  double &ansy, double &ansy1, double &ansy2)
 {
   double c[4][4];
@@ -1466,7 +1466,7 @@ void FixAmoebaBiTorsion::write_data_section_size(int /*mth*/, int &nx, int &ny)
   for (i = 0; i < nlocal; i++)
     for (m = 0; m < num_bitorsion[i]; m++)
       if (bitorsion_atom3[i][m] == tag[i]) nx++;
-  
+
   ny = 6;
 }
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -111,7 +111,7 @@ void PairAmoeba::multipole()
     qizz = rpole[i][12];
     cii = ci*ci;
     dii = dix*dix + diy*diy + diz*diz;
-    qii = 2.0*(qixy*qixy+qixz*qixz+qiyz*qiyz) + 
+    qii = 2.0*(qixy*qixy+qixz*qixz+qiyz*qiyz) +
       qixx*qixx + qiyy*qiyy + qizz*qizz;
     e = fterm * (cii + term*(dii/3.0+2.0*term*qii/5.0));
     empole += e;
@@ -214,7 +214,7 @@ void PairAmoeba::multipole_real()
 
   //int count = 0;
   //int imin,imax;
-  
+
   // compute the real space portion of the Ewald summation
 
   for (ii = 0; ii < inum; ii++) {
@@ -257,7 +257,7 @@ void PairAmoeba::multipole_real()
       if (r2 > off2) continue;
 
       // DEBUG
-      
+
       //imin = MIN(atom->tag[i],atom->tag[j]);
       //imax = MAX(atom->tag[i],atom->tag[j]);
 
@@ -292,7 +292,7 @@ void PairAmoeba::multipole_real()
       qik = qix*qkx + qiy*qky + qiz*qkz;
       diqk = dix*qkx + diy*qky + diz*qkz;
       dkqi = dkx*qix + dky*qiy + dkz*qiz;
-      qiqk = 2.0*(qixy*qkxy+qixz*qkxz+qiyz*qkyz) + 
+      qiqk = 2.0*(qixy*qkxy+qixz*qkxz+qiyz*qkyz) +
         qixx*qkxx + qiyy*qkyy + qizz*qkzz;
 
       // additional intermediates involving moments and distance
@@ -339,11 +339,11 @@ void PairAmoeba::multipole_real()
       dkqirx = dkqiz*yr - dkqiy*zr;
       dkqiry = dkqix*zr - dkqiz*xr;
       dkqirz = dkqiy*xr - dkqix*yr;
-      dqikx = diy*qkz - diz*qky + dky*qiz - dkz*qiy - 
+      dqikx = diy*qkz - diz*qky + dky*qiz - dkz*qiy -
         2.0*(qixy*qkxz+qiyy*qkyz+qiyz*qkzz - qixz*qkxy-qiyz*qkyy-qizz*qkyz);
-      dqiky = diz*qkx - dix*qkz + dkz*qix - dkx*qiz - 
+      dqiky = diz*qkx - dix*qkz + dkz*qix - dkx*qiz -
         2.0*(qixz*qkxx+qiyz*qkxy+qizz*qkxz - qixx*qkxz-qixy*qkyz-qixz*qkzz);
-      dqikz = dix*qky - diy*qkx + dkx*qiy - dky*qix - 
+      dqikz = dix*qky - diy*qkx + dkx*qiy - dky*qix -
         2.0*(qixx*qkxy+qixy*qkyy+qixz*qkyz - qixy*qkxx-qiyy*qkxy-qiyz*qkxz);
 
       // get reciprocal distance terms for this interaction
@@ -377,11 +377,11 @@ void PairAmoeba::multipole_real()
         alphak = palpha[jclass];
         valk = pval[j];
 
-	/*
-	printf("HIPPO MPOLE ij %d %d: pcore/alpha/val I %g %g %g: J %g %g %g\n",
-	       atom->tag[i],atom->tag[j],corei,alphai,vali,corek,alphak,valk);
-	*/
-	
+        /*
+        printf("HIPPO MPOLE ij %d %d: pcore/alpha/val I %g %g %g: J %g %g %g\n",
+               atom->tag[i],atom->tag[j],corei,alphai,vali,corek,alphak,valk);
+        */
+
         term1 = corei*corek;
         term1i = corek*vali;
         term2i = corek*dir;
@@ -412,16 +412,16 @@ void PairAmoeba::multipole_real()
         rr11ik = bn[5] - (1.0-scalek*dmpij[10])*rr11;
         rr1 = bn[0] - (1.0-scalek)*rr1;
         rr3 = bn[1] - (1.0-scalek)*rr3;
-        e = term1*rr1 + term4ik*rr7ik + term5ik*rr9ik + 
-          term1i*rr1i + term1k*rr1k + term1ik*rr1ik + 
-          term2i*rr3i + term2k*rr3k + term2ik*rr3ik + 
+        e = term1*rr1 + term4ik*rr7ik + term5ik*rr9ik +
+          term1i*rr1i + term1k*rr1k + term1ik*rr1ik +
+          term2i*rr3i + term2k*rr3k + term2ik*rr3ik +
           term3i*rr5i + term3k*rr5k + term3ik*rr5ik;
 
         // find damped multipole intermediates for force and torque
 
-        de = term1*rr3 + term4ik*rr9ik + term5ik*rr11ik + 
-          term1i*rr3i + term1k*rr3k + term1ik*rr3ik + 
-          term2i*rr5i + term2k*rr5k + term2ik*rr5ik + 
+        de = term1*rr3 + term4ik*rr9ik + term5ik*rr11ik +
+          term1i*rr3i + term1k*rr3k + term1ik*rr3ik +
+          term2i*rr5i + term2k*rr5k + term2ik*rr5ik +
           term3i*rr7i + term3k*rr7k + term3ik*rr7ik;
         term1 = -corek*rr3i - valk*rr3ik + dkr*rr5ik - qkr*rr7ik;
         term2 = corei*rr3k + vali*rr3ik + dir*rr5ik + qir*rr7ik;
@@ -467,44 +467,44 @@ void PairAmoeba::multipole_real()
       count++;
 
       if (imin == 68 && imax == 1021) {
-	//printf("AAA %d %d %16.12g\n",imin,imax,e);
-	printf("AAA %d: %d %d: %d %d: %d: %16.12g\n",
-	       me,atom->tag[i],atom->tag[j],i,j,atom->nlocal,e);
-	printf("XYZ %g %g %g: %g %g %g\n",
-	       x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]);
+        //printf("AAA %d %d %16.12g\n",imin,imax,e);
+        printf("AAA %d: %d %d: %d %d: %d: %16.12g\n",
+               me,atom->tag[i],atom->tag[j],i,j,atom->nlocal,e);
+        printf("XYZ %g %g %g: %g %g %g\n",
+               x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]);
       }
       */
-      
+
       /*
       if (atom->tag[i] == 1 || atom->tag[j] == 1) {
-	printf("MPOLE %d %d %d: %15.12g %15.12g %g\n",
-	       atom->tag[i],atom->tag[j],j,r,e,factor_mpole);
-	printf("  BN: %g %g %g: %g %g %g\n",bn[0],bn[1],bn[2],bn[3],bn[4],bn[5]);
+        printf("MPOLE %d %d %d: %15.12g %15.12g %g\n",
+               atom->tag[i],atom->tag[j],j,r,e,factor_mpole);
+        printf("  BN: %g %g %g: %g %g %g\n",bn[0],bn[1],bn[2],bn[3],bn[4],bn[5]);
       }
       */
-      
+
       // compute the force components for this interaction
 
-      frcx = de*xr + term1*dix + term2*dkx + term3*(diqkx-dkqix) + 
+      frcx = de*xr + term1*dix + term2*dkx + term3*(diqkx-dkqix) +
         term4*qix + term5*qkx + term6*(qixk+qkxi);
-      frcy = de*yr + term1*diy + term2*dky + term3*(diqky-dkqiy) + 
+      frcy = de*yr + term1*diy + term2*dky + term3*(diqky-dkqiy) +
         term4*qiy + term5*qky + term6*(qiyk+qkyi);
-      frcz = de*zr + term1*diz + term2*dkz + term3*(diqkz-dkqiz) + 
+      frcz = de*zr + term1*diz + term2*dkz + term3*(diqkz-dkqiz) +
         term4*qiz + term5*qkz + term6*(qizk+qkzi);
 
       // compute the torque components for this interaction
 
-      ttmi[0] = -rr3*dikx + term1*dirx + term3*(dqikx+dkqirx) - 
+      ttmi[0] = -rr3*dikx + term1*dirx + term3*(dqikx+dkqirx) -
         term4*qirx - term6*(qikrx+qikx);
-      ttmi[1] = -rr3*diky + term1*diry + term3*(dqiky+dkqiry) - 
+      ttmi[1] = -rr3*diky + term1*diry + term3*(dqiky+dkqiry) -
         term4*qiry - term6*(qikry+qiky);
-      ttmi[2] = -rr3*dikz + term1*dirz + term3*(dqikz+dkqirz) - 
+      ttmi[2] = -rr3*dikz + term1*dirz + term3*(dqikz+dkqirz) -
         term4*qirz - term6*(qikrz+qikz);
-      ttmk[0] = rr3*dikx + term2*dkrx - term3*(dqikx+diqkrx) - 
+      ttmk[0] = rr3*dikx + term2*dkrx - term3*(dqikx+diqkrx) -
         term5*qkrx - term6*(qkirx-qikx);
-      ttmk[1] = rr3*diky + term2*dkry - term3*(dqiky+diqkry) - 
+      ttmk[1] = rr3*diky + term2*dkry - term3*(dqiky+diqkry) -
         term5*qkry - term6*(qkiry-qiky);
-      ttmk[2] = rr3*dikz + term2*dkrz - term3*(dqikz+diqkrz) - 
+      ttmk[2] = rr3*dikz + term2*dkrz - term3*(dqikz+diqkrz) -
         term5*qkrz - term6*(qkirz-qikz);
 
       // increment force-based gradient and torque on first site
@@ -544,7 +544,7 @@ void PairAmoeba::multipole_real()
       // energy = e
       // virial = 6-vec vir
       // NOTE: add tally function
-      
+
       if (evflag) {
       }
     }
@@ -558,7 +558,7 @@ void PairAmoeba::multipole_real()
   // resolve site torques then increment forces and virial
 
   for (i = 0; i < nlocal; i++) {
-    torque2force(i,tq[i],fix,fiy,fiz,f);  
+    torque2force(i,tq[i],fix,fiy,fiz,f);
 
     iz = zaxis2local[i];
     ix = xaxis2local[i];
@@ -575,12 +575,12 @@ void PairAmoeba::multipole_real()
     ziy = x[iy][2] - x[i][2];
 
     vxx = xix*fix[0] + xiy*fiy[0] + xiz*fiz[0];
-    vxy = 0.5 * (yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] + 
+    vxy = 0.5 * (yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] +
                  xix*fix[1] + xiy*fiy[1] + xiz*fiz[1]);
-    vxz = 0.5 * (zix*fix[0] + ziy*fiy[0] + ziz*fiz[0] + 
+    vxz = 0.5 * (zix*fix[0] + ziy*fiy[0] + ziz*fiz[0] +
                  xix*fix[2] + xiy*fiy[2] + xiz*fiz[2]);
     vyy = yix*fix[1] + yiy*fiy[1] + yiz*fiz[1];
-    vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] + 
+    vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
     vzz = zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
 
@@ -643,10 +643,10 @@ void PairAmoeba::multipole_kspace()
   double volbox = domain->prd[0] * domain->prd[1] * domain->prd[2];
 
   felec = electric / am_dielectric;
-  
+
   // perform dynamic allocation of arrays
   // NOTE: just do this one time?
-  
+
   memory->create(cmp,nlocal,10,"ameoba/mpole:cmp");
   memory->create(fmp,nlocal,10,"ameoba/mpole:fmp");
   memory->create(cphi,nlocal,10,"ameoba/mpole:cphi");
@@ -692,11 +692,11 @@ void PairAmoeba::multipole_kspace()
 
   // pre-convolution operations including forward FFT
   // gridfft = my portion of complex 3d grid in FFT decomp as 1d vector
-  
+
   double *gridfft = m_kspace->pre_convolution();
 
   // ---------------------
-  // convolution operation 
+  // convolution operation
   // ---------------------
 
   // zero virial accumulation variables
@@ -718,7 +718,7 @@ void PairAmoeba::multipole_kspace()
 
   pterm = pow((MY_PI/aewald),2.0);
   volterm = MY_PI * volbox;
-  
+
   // printf("bsmod1 %e %e %e %e %e %e \n",bsmod1[0],bsmod1[1],bsmod1[2],bsmod1[3],bsmod1[4],bsmod1[5]);
   // printf("bsmod2 %e %e %e %e %e %e \n",bsmod2[0],bsmod2[1],bsmod2[2],bsmod2[3],bsmod2[4],bsmod2[5]);
   // printf("bsmod3 %e %e %e %e %e %e \n",bsmod3[0],bsmod3[1],bsmod3[2],bsmod3[3],bsmod3[4],bsmod3[5]);
@@ -727,33 +727,33 @@ void PairAmoeba::multipole_kspace()
   for (k = nzlo; k <= nzhi; k++) {
     for (j = nylo; j <= nyhi; j++) {
       for (i = nxlo; i <= nxhi; i++) {
-	r1 = (i >= nhalf1) ? i-nfft1 : i;
-	r2 = (j >= nhalf2) ? j-nfft2 : j;
-	r3 = (k >= nhalf3) ? k-nfft3 : k;
+        r1 = (i >= nhalf1) ? i-nfft1 : i;
+        r2 = (j >= nhalf2) ? j-nfft2 : j;
+        r3 = (k >= nhalf3) ? k-nfft3 : k;
   //printf("ijk %i %i %i r1r2r3 %f %f %f \n",i,j,k,r1,r2,r3);
-	h1 = recip[0][0]*r1 + recip[0][1]*r2 + recip[0][2]*r3;  // matvec
-	h2 = recip[1][0]*r1 + recip[1][1]*r2 + recip[1][2]*r3;
-	h3 = recip[2][0]*r1 + recip[2][1]*r2 + recip[2][2]*r3;
-	hsq = h1*h1 + h2*h2 + h3*h3;
-	term = -pterm * hsq;
-	expterm = 0.0;
-	if (term > -50.0 && hsq != 0.0) {
-	  denom = volterm*hsq*bsmod1[i]*bsmod2[j]*bsmod3[k];
-	  expterm = exp(term) / denom;
+        h1 = recip[0][0]*r1 + recip[0][1]*r2 + recip[0][2]*r3;  // matvec
+        h2 = recip[1][0]*r1 + recip[1][1]*r2 + recip[1][2]*r3;
+        h3 = recip[2][0]*r1 + recip[2][1]*r2 + recip[2][2]*r3;
+        hsq = h1*h1 + h2*h2 + h3*h3;
+        term = -pterm * hsq;
+        expterm = 0.0;
+        if (term > -50.0 && hsq != 0.0) {
+          denom = volterm*hsq*bsmod1[i]*bsmod2[j]*bsmod3[k];
+          expterm = exp(term) / denom;
     //printf("bsmod %e %e %e expterm %e \n",bsmod1[i],bsmod2[j],bsmod3[k],expterm);
-	  struc2 = gridfft[n]*gridfft[n] + gridfft[n+1]*gridfft[n+1];
-	  eterm = 0.5 * felec * expterm * struc2;
-	  vterm = (2.0/hsq) * (1.0-term) * eterm;
-	  vxx += h1*h1*vterm - eterm;
-	  vyy += h2*h2*vterm - eterm;
-	  vzz += h3*h3*vterm - eterm;
-	  vxy += h1*h2*vterm;
-	  vxz += h1*h3*vterm;
-	  vyz += h2*h3*vterm;
-	}
+          struc2 = gridfft[n]*gridfft[n] + gridfft[n+1]*gridfft[n+1];
+          eterm = 0.5 * felec * expterm * struc2;
+          vterm = (2.0/hsq) * (1.0-term) * eterm;
+          vxx += h1*h1*vterm - eterm;
+          vyy += h2*h2*vterm - eterm;
+          vzz += h3*h3*vterm - eterm;
+          vxy += h1*h2*vterm;
+          vxz += h1*h3*vterm;
+          vyz += h2*h3*vterm;
+        }
         gridfft[n] *= expterm;
         gridfft[n+1] *= expterm;
-	n += 2;
+        n += 2;
       }
     }
   }
@@ -773,7 +773,7 @@ void PairAmoeba::multipole_kspace()
   double ***gridpost = (double ***) m_kspace->post_convolution();
 
   // get potential
-  
+
   fphi_mpole(gridpost,fphi);
 
   //printf("fphi %e %e %e %e \n",fphi[0][0],fphi[0][1],fphi[0][2],fphi[0][3]);
@@ -813,41 +813,41 @@ void PairAmoeba::multipole_kspace()
   }
   empole += 0.5*e;
   //printf("mpole_force %g %g %g \n", f[0][0], f[0][1], f[0][2]);
-  
+
   // augment the permanent multipole virial contributions
 
   for (i = 0; i < nlocal; i++) {
-    vxx = vxx - cmp[i][1]*cphi[i][1] - 2.0*cmp[i][4]*cphi[i][4] - 
+    vxx = vxx - cmp[i][1]*cphi[i][1] - 2.0*cmp[i][4]*cphi[i][4] -
       cmp[i][7]*cphi[i][7] - cmp[i][8]*cphi[i][8];
-    vxy = vxy - 0.5*(cmp[i][2]*cphi[i][1]+cmp[i][1]*cphi[i][2]) - 
-      (cmp[i][4]+cmp[i][5])*cphi[i][7] - 0.5*cmp[i][7]*(cphi[i][4]+cphi[i][5]) - 
+    vxy = vxy - 0.5*(cmp[i][2]*cphi[i][1]+cmp[i][1]*cphi[i][2]) -
+      (cmp[i][4]+cmp[i][5])*cphi[i][7] - 0.5*cmp[i][7]*(cphi[i][4]+cphi[i][5]) -
       0.5*(cmp[i][8]*cphi[i][9]+cmp[i][9]*cphi[i][8]);
-    vxz = vxz - 0.5*(cmp[i][3]*cphi[i][1]+cmp[i][1]*cphi[i][3]) - 
-      (cmp[i][4]+cmp[i][6])*cphi[i][8] - 0.5*cmp[i][8]*(cphi[i][4]+cphi[i][6]) - 
+    vxz = vxz - 0.5*(cmp[i][3]*cphi[i][1]+cmp[i][1]*cphi[i][3]) -
+      (cmp[i][4]+cmp[i][6])*cphi[i][8] - 0.5*cmp[i][8]*(cphi[i][4]+cphi[i][6]) -
       0.5*(cmp[i][7]*cphi[i][9]+cmp[i][9]*cphi[i][7]);
-    vyy = vyy - cmp[i][2]*cphi[i][2] - 2.0*cmp[i][5]*cphi[i][5] - 
+    vyy = vyy - cmp[i][2]*cphi[i][2] - 2.0*cmp[i][5]*cphi[i][5] -
       cmp[i][7]*cphi[i][7] - cmp[i][9]*cphi[i][9];
-    vyz = vyz - 0.5*(cmp[i][3]*cphi[i][2]+cmp[i][2]*cphi[i][3]) - 
-      (cmp[i][5]+cmp[i][6])*cphi[i][9] - 0.5*cmp[i][9]*(cphi[i][5]+cphi[i][6]) - 
+    vyz = vyz - 0.5*(cmp[i][3]*cphi[i][2]+cmp[i][2]*cphi[i][3]) -
+      (cmp[i][5]+cmp[i][6])*cphi[i][9] - 0.5*cmp[i][9]*(cphi[i][5]+cphi[i][6]) -
       0.5*(cmp[i][7]*cphi[i][8]+cmp[i][8]*cphi[i][7]);
-    vzz = vzz - cmp[i][3]*cphi[i][3] - 2.0*cmp[i][6]*cphi[i][6] - 
+    vzz = vzz - cmp[i][3]*cphi[i][3] - 2.0*cmp[i][6]*cphi[i][6] -
       cmp[i][8]*cphi[i][8] - cmp[i][9]*cphi[i][9];
   }
 
   // resolve site torques then increment forces and virial
 
   for (i = 0; i < nlocal; i++) {
-    tem[0] = cmp[i][3]*cphi[i][2] - cmp[i][2]*cphi[i][3] + 
-      2.0*(cmp[i][6]-cmp[i][5])*cphi[i][9] + 
-      cmp[i][8]*cphi[i][7] + cmp[i][9]*cphi[i][5] - 
+    tem[0] = cmp[i][3]*cphi[i][2] - cmp[i][2]*cphi[i][3] +
+      2.0*(cmp[i][6]-cmp[i][5])*cphi[i][9] +
+      cmp[i][8]*cphi[i][7] + cmp[i][9]*cphi[i][5] -
       cmp[i][7]*cphi[i][8] - cmp[i][9]*cphi[i][6];
-    tem[1] = cmp[i][1]*cphi[i][3] - cmp[i][3]*cphi[i][1] + 
-      2.0*(cmp[i][4]-cmp[i][6])*cphi[i][8] + 
-      cmp[i][7]*cphi[i][9] + cmp[i][8]*cphi[i][6] - 
+    tem[1] = cmp[i][1]*cphi[i][3] - cmp[i][3]*cphi[i][1] +
+      2.0*(cmp[i][4]-cmp[i][6])*cphi[i][8] +
+      cmp[i][7]*cphi[i][9] + cmp[i][8]*cphi[i][6] -
         cmp[i][8]*cphi[i][4] - cmp[i][9]*cphi[i][7];
-    tem[2] = cmp[i][2]*cphi[i][1] - cmp[i][1]*cphi[i][2] + 
-      2.0*(cmp[i][5]-cmp[i][4])*cphi[i][7] + 
-      cmp[i][7]*cphi[i][4] + cmp[i][9]*cphi[i][8] - 
+    tem[2] = cmp[i][2]*cphi[i][1] - cmp[i][1]*cphi[i][2] +
+      2.0*(cmp[i][5]-cmp[i][4])*cphi[i][7] +
+      cmp[i][7]*cphi[i][4] + cmp[i][9]*cphi[i][8] -
       cmp[i][7]*cphi[i][5] - cmp[i][8]*cphi[i][9];
 
     torque2force(i,tem,fix,fiy,fiz,f);
@@ -867,16 +867,16 @@ void PairAmoeba::multipole_kspace()
     ziy = x[iy][2] - x[i][2];
 
     vxx += xix*fix[0] + xiy*fiy[0] + xiz*fiz[0];
-    vxy += 0.5*(yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] + 
+    vxy += 0.5*(yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] +
                 xix*fix[1] + xiy*fiy[1] + xiz*fiz[1]);
-    vxz += 0.5*(zix*fix[0] + ziy*fiy[0] + ziz*fiz[0] + 
+    vxz += 0.5*(zix*fix[0] + ziy*fiy[0] + ziz*fiz[0] +
                 xix*fix[2] + xiy*fiy[2] + xiz*fiz[2]);
     vyy += yix*fix[1] + yiy*fiy[1] + yiz*fiz[1];
-    vyz += 0.5*(zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] + 
+    vyz += 0.5*(zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
                 yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
     vzz += zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
   }
-  
+
   // increment total internal virial tensor components
 
   virmpole[0] += vxx;
@@ -947,7 +947,7 @@ void PairAmoeba::damppole(double r, int rorder, double alphai, double alphak,
   dmpi[2] = 1.0 - (1.0 + dampi + 0.5*dampi2)*expi;
   dmpi[4] = 1.0 - (1.0 + dampi + 0.5*dampi2 + dampi3/6.0)*expi;
   dmpi[6] = 1.0 - (1.0 + dampi + 0.5*dampi2 + dampi3/6.0 + dampi4/30.0)*expi;
-  dmpi[8] = 1.0 - (1.0 + dampi + 0.5*dampi2 + dampi3/6.0 + 
+  dmpi[8] = 1.0 - (1.0 + dampi + 0.5*dampi2 + dampi3/6.0 +
                    4.0*dampi4/105.0 + dampi5/210.0)*expi;
   if (diff < eps) {
     dmpk[0] = dmpi[0];
@@ -964,7 +964,7 @@ void PairAmoeba::damppole(double r, int rorder, double alphai, double alphak,
     dmpk[2] = 1.0 - (1.0 + dampk + 0.5*dampk2)*expk;
     dmpk[4] = 1.0 - (1.0 + dampk + 0.5*dampk2 + dampk3/6.0)*expk;
     dmpk[6] = 1.0 - (1.0 + dampk + 0.5*dampk2 + dampk3/6.0 + dampk4/30.0)*expk;
-    dmpk[8] = 1.0 - (1.0 + dampk + 0.5*dampk2 + dampk3/6.0 + 
+    dmpk[8] = 1.0 - (1.0 + dampk + 0.5*dampk2 + dampk3/6.0 +
                      4.0*dampk4/105.0 + dampk5/210.0)*expk;
   }
 
@@ -973,21 +973,21 @@ void PairAmoeba::damppole(double r, int rorder, double alphai, double alphak,
   if (diff < eps) {
     dampi6 = dampi3 * dampi3;
     dampi7 = dampi3 * dampi4;
-    dmpik[0] = 1.0 - (1.0 + 11.0*dampi/16.0 + 3.0*dampi2/16.0 + 
+    dmpik[0] = 1.0 - (1.0 + 11.0*dampi/16.0 + 3.0*dampi2/16.0 +
                       dampi3/48.0)*expi;
-    dmpik[2] = 1.0 - (1.0 + dampi + 0.5*dampi2 + 
+    dmpik[2] = 1.0 - (1.0 + dampi + 0.5*dampi2 +
                       7.0*dampi3/48.0 + dampi4/48.0)*expi;
-    dmpik[4] = 1.0 - (1.0 + dampi + 0.5*dampi2 + dampi3/6.0 + 
+    dmpik[4] = 1.0 - (1.0 + dampi + 0.5*dampi2 + dampi3/6.0 +
                       dampi4/24.0 + dampi5/144.0)*expi;
-    dmpik[6] = 1.0 - (1.0 + dampi + 0.5*dampi2 + dampi3/6.0 + 
+    dmpik[6] = 1.0 - (1.0 + dampi + 0.5*dampi2 + dampi3/6.0 +
                       dampi4/24.0 + dampi5/120.0 + dampi6/720.0)*expi;
-    dmpik[8] = 1.0 - (1.0 + dampi + 0.5*dampi2 + dampi3/6.0 + 
-                      dampi4/24.0 + dampi5/120.0 + dampi6/720.0 + 
+    dmpik[8] = 1.0 - (1.0 + dampi + 0.5*dampi2 + dampi3/6.0 +
+                      dampi4/24.0 + dampi5/120.0 + dampi6/720.0 +
                       dampi7/5040.0)*expi;
     if (rorder >= 11) {
       dampi8 = dampi4 * dampi4;
-      dmpik[10] = 1.0 - (1.0 + dampi + 0.5*dampi2 + dampi3/6.0 + 
-                         dampi4/24.0 + dampi5/120.0 + dampi6/720.0 + 
+      dmpik[10] = 1.0 - (1.0 + dampi + 0.5*dampi2 + dampi3/6.0 +
+                         dampi4/24.0 + dampi5/120.0 + dampi6/720.0 +
                          dampi7/5040.0 + dampi8/45360.0)*expi;
     }
 
@@ -998,41 +998,41 @@ void PairAmoeba::damppole(double r, int rorder, double alphai, double alphak,
     termk = alphai2 / (alphai2-alphak2);
     termi2 = termi * termi;
     termk2 = termk * termk;
-    dmpik[0] = 1.0 - termi2*(1.0 + 2.0*termk + 0.5*dampi)*expi - 
+    dmpik[0] = 1.0 - termi2*(1.0 + 2.0*termk + 0.5*dampi)*expi -
       termk2*(1.0 + 2.0*termi + 0.5*dampk)*expk;
     dmpik[2] = 1.0 - termi2*(1.0+dampi+0.5*dampi2)*expi -
       termk2*(1.0+dampk+0.5*dampk2)*expk -
       2.0*termi2*termk*(1.0+dampi)*expi -
       2.0*termk2*termi*(1.0+dampk)*expk;
-    dmpik[4] = 1.0 - termi2*(1.0 + dampi + 0.5*dampi2 + dampi3/6.0)*expi - 
-      termk2*(1.0 + dampk + 0.5*dampk2 + dampk3/6.0)*expk - 
-      2.0*termi2*termk*(1.0 + dampi + dampi2/3.0)*expi - 
+    dmpik[4] = 1.0 - termi2*(1.0 + dampi + 0.5*dampi2 + dampi3/6.0)*expi -
+      termk2*(1.0 + dampk + 0.5*dampk2 + dampk3/6.0)*expk -
+      2.0*termi2*termk*(1.0 + dampi + dampi2/3.0)*expi -
       2.0*termk2*termi*(1.0 + dampk + dampk2/3.0)*expk;
-    dmpik[6] = 1.0 - termi2*(1.0 + dampi + 0.5*dampi2 + 
-                             dampi3/6.0 + dampi4/30.0)*expi - 
-      termk2*(1.0 + dampk + 0.5*dampk2 + dampk3/6.0 + dampk4/30.0)*expk - 
-      2.0*termi2*termk*(1.0 + dampi + 2.0*dampi2/5.0 + dampi3/15.0)*expi - 
+    dmpik[6] = 1.0 - termi2*(1.0 + dampi + 0.5*dampi2 +
+                             dampi3/6.0 + dampi4/30.0)*expi -
+      termk2*(1.0 + dampk + 0.5*dampk2 + dampk3/6.0 + dampk4/30.0)*expk -
+      2.0*termi2*termk*(1.0 + dampi + 2.0*dampi2/5.0 + dampi3/15.0)*expi -
       2.0*termk2*termi*(1.0 + dampk + 2.0*dampk2/5.0 + dampk3/15.0)*expk;
-    dmpik[8] = 1.0 - termi2*(1.0 + dampi + 0.5*dampi2 + dampi3/6.0 + 
-                             4.0*dampi4/105.0 + dampi5/210.0)*expi - 
-      termk2*(1.0 + dampk + 0.5*dampk2 + dampk3/6.0 + 
-              4.0*dampk4/105.0 + dampk5/210.0)*expk - 
-      2.0*termi2*termk*(1.0 + dampi + 3.0*dampi2/7.0 + 
-                        2.0*dampi3/21.0 + dampi4/105.0)*expi - 
-      2.0*termk2*termi*(1.0 + dampk + 3.0*dampk2/7.0 + 
+    dmpik[8] = 1.0 - termi2*(1.0 + dampi + 0.5*dampi2 + dampi3/6.0 +
+                             4.0*dampi4/105.0 + dampi5/210.0)*expi -
+      termk2*(1.0 + dampk + 0.5*dampk2 + dampk3/6.0 +
+              4.0*dampk4/105.0 + dampk5/210.0)*expk -
+      2.0*termi2*termk*(1.0 + dampi + 3.0*dampi2/7.0 +
+                        2.0*dampi3/21.0 + dampi4/105.0)*expi -
+      2.0*termk2*termi*(1.0 + dampk + 3.0*dampk2/7.0 +
                         2.0*dampk3/21.0 + dampk4/105.0)*expk;
-    
+
     if (rorder >= 11) {
       dampi6 = dampi3 * dampi3;
       dampk6 = dampk3 * dampk3;
-      dmpik[10] = 1.0 - termi2*(1.0 + dampi + 0.5*dampi2 + dampi3/6.0 + 
-                                5.0*dampi4/126.0 + 2.0*dampi5/315.0 + 
-                                dampi6/1890.0)*expi - 
-        termk2*(1.0 + dampk + 0.5*dampk2 + dampk3/6.0 + 5.0*dampk4/126.0 + 
-                2.0*dampk5/315.0 + dampk6/1890.0)*expk - 
-        2.0*termi2*termk*(1.0 + dampi + 4.0*dampi2/9.0 + dampi3/9.0 + 
-                          dampi4/63.0 + dampi5/945.0)*expi - 
-        2.0*termk2*termi*(1.0 + dampk + 4.0*dampk2/9.0 + dampk3/9.0 + 
+      dmpik[10] = 1.0 - termi2*(1.0 + dampi + 0.5*dampi2 + dampi3/6.0 +
+                                5.0*dampi4/126.0 + 2.0*dampi5/315.0 +
+                                dampi6/1890.0)*expi -
+        termk2*(1.0 + dampk + 0.5*dampk2 + dampk3/6.0 + 5.0*dampk4/126.0 +
+                2.0*dampk5/315.0 + dampk6/1890.0)*expk -
+        2.0*termi2*termk*(1.0 + dampi + 4.0*dampi2/9.0 + dampi3/9.0 +
+                          dampi4/63.0 + dampi5/945.0)*expi -
+        2.0*termk2*termi*(1.0 + dampk + 4.0*dampk2/9.0 + dampk3/9.0 +
                           dampk4/63.0 + dampk5/945.0)*expk;
     }
   }

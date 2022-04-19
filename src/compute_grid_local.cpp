@@ -191,18 +191,18 @@ void ComputeGridLocal::set_grid_local()
     zfrachi = comm->mysplit[2][1];
   }
 
-  // not fully clear why this works
-  // without, sometimes get uneven assignments
-  // in case where ngridz is multiple of nprocz
+  // // not fully clear why this works
+  // // without, sometimes get uneven assignments
+  // // in case where ngridz is multiple of nprocz
 
-  double MYEPS = 1.0e-10;
+  // double MYEPS = 1.0e-10;
 
-  xfraclo += MYEPS;
-  xfrachi += MYEPS;
-  yfraclo += MYEPS;
-  yfrachi += MYEPS;
-  zfraclo += MYEPS;
-  zfrachi += MYEPS;
+  // xfraclo += MYEPS;
+  // xfrachi += MYEPS;
+  // yfraclo += MYEPS;
+  // yfrachi += MYEPS;
+  // zfraclo += MYEPS;
+  // zfrachi += MYEPS;
 
   nxlo = static_cast<int> (xfraclo * nx);
   if (1.0*nxlo != xfraclo*nx) nxlo++;

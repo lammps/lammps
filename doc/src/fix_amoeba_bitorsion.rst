@@ -1,7 +1,7 @@
 .. index:: fix amoeba/bitorsion
 
 fix amoeba/bitorsion command
-================
+============================
 
 Syntax
 """"""

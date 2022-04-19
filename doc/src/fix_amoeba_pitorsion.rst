@@ -1,7 +1,7 @@
 .. index:: fix amoeba/pitorsion
 
 fix amoeba/pitorsion command
-================
+============================
 
 Syntax
 """"""

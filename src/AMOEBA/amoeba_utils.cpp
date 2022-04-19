@@ -622,7 +622,7 @@ void PairAmoeba::add_onefive_neighbors()
   int i,j,k,ii,jj,which,inum,jnum,n15;
   tagint jtag;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  int *list15;
+  tagint *list15;
 
   // test for overflow of reduced allowed size of neighbor list
 

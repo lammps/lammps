@@ -146,6 +146,7 @@ PACKAGE = \
 PACKBASIC = kspace manybody molecule rigid
 
 PACKMOST = \
+	amoeba \
 	asphere \
 	bocs \
 	body \

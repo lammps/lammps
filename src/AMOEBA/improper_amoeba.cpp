@@ -201,38 +201,30 @@ void ImproperAmoeba::compute(int eflag, int vflag)
     fb[1] = -fa[1] - fc[1] - fd[1];
     fb[2] = -fa[2] - fc[2] - fd[2];
 
-    /*
-    printf("IMP DBAC %d %d %d %d: angle %g eng %g dedcos %g "
-           "fD %g %g %g fA %g %g %g fC %g %g %g\n",
-           atom->tag[id],atom->tag[ib],atom->tag[ia],atom->tag[ic],
-           angle,e,dedcos,fd[0],fd[1],fd[2],fa[0],fa[1],fa[2],
-           fc[0],fc[1],fc[2]);
-    */
-
     // apply force to each of 4 atoms
 
     if (newton_bond || id < nlocal) {
-      f[id][0] += fd[0];
-      f[id][1] += fd[1];
-      f[id][2] += fd[2];
+      f[id][0] -= fd[0];
+      f[id][1] -= fd[1];
+      f[id][2] -= fd[2];
     }
 
     if (newton_bond || ib < nlocal) {
-      f[ib][0] += fb[0];
-      f[ib][1] += fb[1];
-      f[ib][2] += fb[2];
+      f[ib][0] -= fb[0];
+      f[ib][1] -= fb[1];
+      f[ib][2] -= fb[2];
     }
 
     if (newton_bond || ia < nlocal) {
-      f[ia][0] += fa[0];
-      f[ia][1] += fa[1];
-      f[ia][2] += fa[2];
+      f[ia][0] -= fa[0];
+      f[ia][1] -= fa[1];
+      f[ia][2] -= fa[2];
     }
 
     if (newton_bond || ic < nlocal) {
-      f[ic][0] += fc[0];
-      f[ic][1] += fc[1];
-      f[ic][2] += fc[2];
+      f[ic][0] -= fc[0];
+      f[ic][1] -= fc[1];
+      f[ic][2] -= fc[2];
     }
 
     if (evflag)

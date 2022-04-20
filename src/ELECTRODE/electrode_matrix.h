@@ -18,13 +18,14 @@
 #include "pointers.h"
 
 #include <map>
+#include <unordered_map>
 
 namespace LAMMPS_NS {
 
 class ElectrodeMatrix : protected Pointers {
  public:
   ElectrodeMatrix(class LAMMPS *, int, double);
-  void setup(const std::map<tagint, int> &, class Pair *, class NeighList *);
+  void setup(const std::unordered_map<tagint, int> &, class Pair *, class NeighList *);
   void setup_tf(const std::map<int, double> &);
   void compute_array(double **);
   int igroup;
@@ -36,7 +37,7 @@ class ElectrodeMatrix : protected Pointers {
   double g_ewald, eta;
   bool tfflag;
   std::map<int, double> tf_types;
-  std::map<tagint, int> tag_to_iele;
+  std::unordered_map<tagint, int> tag_to_iele;
   bool assigned;
   std::vector<bigint> mpos;
   class Pair *pair;

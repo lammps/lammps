@@ -31,6 +31,7 @@ FixStyle(electrode/conp, FixElectrodeConp);
 
 #include <algorithm>
 #include <map>
+#include <unordered_map>
 
 namespace LAMMPS_NS {
 
@@ -39,6 +40,7 @@ class FixElectrodeConp : public Fix {
   FixElectrodeConp(class LAMMPS *, int, char **);
   ~FixElectrodeConp() override;
   int setmask() override;
+  void setup_pre_exchange() override;
   void setup_post_neighbor() override;
   void setup_pre_reverse(int, int) override;
   void pre_force(int) override;
@@ -50,6 +52,14 @@ class FixElectrodeConp : public Fix {
   void init() override;
   void init_list(int, NeighList *) override;
   void post_constructor() override;    // used by ffield to set up fix efield
+  double memory_usage() override;
+
+  // atomvec-based tracking of electrode atoms
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
 
  protected:
   virtual void update_psi();
@@ -59,7 +69,6 @@ class FixElectrodeConp : public Fix {
   std::vector<int> group_bits;
   int num_of_groups;
   bigint ngroup;
-  std::vector<int> mpos_to_group;
   std::vector<std::vector<double>> sd_vectors;
   std::vector<double> sb_charges;
   std::vector<int> group_psi_var_ids, group_psi_var_styles;
@@ -80,8 +89,6 @@ class FixElectrodeConp : public Fix {
   class ElectrodeVector *ele_vector;
   std::vector<int> groups;
   double **capacitance;
-  std::vector<tagint> taglist, taglist_bygroup, group_idx;
-  std::map<tagint, int> tag_to_iele;
   bool read_inv, read_mat;
   double eta;
   double update_time, mult_time;
@@ -90,9 +97,8 @@ class FixElectrodeConp : public Fix {
   void symmetrize();
   double gausscorr(int, bool);
   void update_charges();
-  double potential_energy(int, const std::vector<int> &);
+  double potential_energy(int);
   double self_energy(int);
-  std::vector<int> local_to_matrix();
   void write_to_file(FILE *, const std::vector<tagint> &, const std::vector<std::vector<double>> &);
   void read_from_file(std::string input_file, double **, const std::string &);
   void compute_sd_vectors();
@@ -112,6 +118,32 @@ class FixElectrodeConp : public Fix {
   bool tfflag;
   bool timer_flag;
   std::map<int, double> tf_types;
+
+  // fix-specific electrode ID storage system:
+
+  std::vector<tagint> taglist;            // global list: all tags in combined electrode group
+  std::vector<tagint> taglist_bygroup;    // taglist sorted by group
+  std::vector<tagint> group_idx;          // permutation taglist<->taglist_bygroup
+  std::unordered_map<tagint, int> tag_to_iele;    // inverse of taglist:
+  std::vector<int> iele_to_group;
+  // tag_to_iele[taglist[iele]] = iele
+  int nlocalele;    // current no. of local electrode atoms
+
+  int nlocalele_outdated;          // trigger rebuilding of following structures:
+  std::vector<int> list_iele;      // electrode IDs owned by me
+  int *recvcounts, *displs;        // for MPI-building of iele_gathered
+  int *iele_gathered;              // MPIgathered list_iele: all electrode IDs, nproc-ordered
+  std::vector<double> buf_iele;    // buffer for electrode properties ordered by list_iele
+  double *buf_gathered;            // buffer for MPIgathered buf_iele (NOT YET iele-ordered)
+  double *potential_i;             // potentials, i-indexed (0 for non-electrode atoms)
+  double *potential_iele;          // potentials ordered by iele
+  double *charge_iele;             // charges ordered by iele
+
+  void gather_list_iele();                       // build iele_gathered
+  void gather_elevec(double *);                  // gather buf_iele and rearrange into iele-order
+  void buffer_and_gather(double *, double *);    // buffer into buf_iele then gather and rearrange
+
+  int nmax;
 };
 
 }    // namespace LAMMPS_NS

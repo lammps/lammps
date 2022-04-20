@@ -73,6 +73,8 @@ PPPMElectrodeIntel::PPPMElectrodeIntel(LAMMPS *lmp) :
   electrolyte_density_brick = nullptr;
   electrolyte_density_fft = nullptr;
   compute_vector_called = false;
+  last_source_grpbit = 1 << 0;    // default to "all"
+  last_invert_source = false;
 }
 
 PPPMElectrodeIntel::~PPPMElectrodeIntel()
@@ -195,16 +197,16 @@ void PPPMElectrodeIntel::compute(int eflag, int vflag)
     // grab only electrode atoms
     switch (fix->precision()) {
       case FixIntel::PREC_MODE_MIXED:
-        make_rho_in_brick<float, double>(fix->get_mixed_buffers(), imat_cached, density_brick,
-                                         ELECTRODE);
+        make_rho_in_brick<float, double>(fix->get_mixed_buffers(), last_source_grpbit,
+                                         density_brick, !last_invert_source);
         break;
       case FixIntel::PREC_MODE_DOUBLE:
-        make_rho_in_brick<double, double>(fix->get_double_buffers(), imat_cached, density_brick,
-                                          ELECTRODE);
+        make_rho_in_brick<double, double>(fix->get_double_buffers(), last_source_grpbit,
+                                          density_brick, !last_invert_source);
         break;
       default:
-        make_rho_in_brick<float, float>(fix->get_single_buffers(), imat_cached, density_brick,
-                                        ELECTRODE);
+        make_rho_in_brick<float, float>(fix->get_single_buffers(), last_source_grpbit,
+                                        density_brick, !last_invert_source);
     }
     gc->reverse_comm(GridComm::KSPACE, this, 1, sizeof(FFT_SCALAR), REVERSE_RHO, gc_buf1, gc_buf2,
                      MPI_FFT_SCALAR);
@@ -309,9 +311,13 @@ void PPPMElectrodeIntel::start_compute()
 
 /* ----------------------------------------------------------------------
 ------------------------------------------------------------------------- */
-void PPPMElectrodeIntel::compute_vector(bigint *imat, double *vec)
+void PPPMElectrodeIntel::compute_vector(double *vec, int sensor_grpbit, int source_grpbit,
+                                        bool invert_source)
 {
   start_compute();
+
+  last_source_grpbit = source_grpbit;
+  last_invert_source = invert_source;
 
   // temporarily store and switch pointers so we can use brick2fft() for
   // electrolyte density (without writing an additional function)
@@ -319,16 +325,16 @@ void PPPMElectrodeIntel::compute_vector(bigint *imat, double *vec)
   FFT_SCALAR *density_fft_real = density_fft;
   switch (fix->precision()) {
     case FixIntel::PREC_MODE_MIXED:
-      make_rho_in_brick<float, double>(fix->get_mixed_buffers(), imat, electrolyte_density_brick,
-                                       ELECTROLYTE);
+      make_rho_in_brick<float, double>(fix->get_mixed_buffers(), source_grpbit,
+                                       electrolyte_density_brick, invert_source);
       break;
     case FixIntel::PREC_MODE_DOUBLE:
-      make_rho_in_brick<double, double>(fix->get_double_buffers(), imat, electrolyte_density_brick,
-                                        ELECTROLYTE);
+      make_rho_in_brick<double, double>(fix->get_double_buffers(), source_grpbit,
+                                        electrolyte_density_brick, invert_source);
       break;
     default:
-      make_rho_in_brick<float, float>(fix->get_single_buffers(), imat, electrolyte_density_brick,
-                                      ELECTROLYTE);
+      make_rho_in_brick<float, float>(fix->get_single_buffers(), source_grpbit,
+                                      electrolyte_density_brick, invert_source);
   }
   density_brick = electrolyte_density_brick;
   density_fft = electrolyte_density_fft;
@@ -367,20 +373,21 @@ void PPPMElectrodeIntel::compute_vector(bigint *imat, double *vec)
 
   switch (fix->precision()) {
     case FixIntel::PREC_MODE_MIXED:
-      project_psi<float, double>(fix->get_mixed_buffers(), imat, vec);
+      project_psi<float, double>(fix->get_mixed_buffers(), vec, sensor_grpbit);
       break;
     case FixIntel::PREC_MODE_DOUBLE:
-      project_psi<double, double>(fix->get_double_buffers(), imat, vec);
+      project_psi<double, double>(fix->get_double_buffers(), vec, sensor_grpbit);
       break;
     default:
-      project_psi<float, float>(fix->get_single_buffers(), imat, vec);
+      project_psi<float, float>(fix->get_single_buffers(), vec, sensor_grpbit);
   }
   compute_vector_called = true;
 }
 
 // project u_brick with weight matrix
 template <class flt_t, class acc_t, int use_table>
-void PPPMElectrodeIntel::project_psi(IntelBuffers<flt_t, acc_t> *buffers, bigint *imat, double *vec)
+void PPPMElectrodeIntel::project_psi(IntelBuffers<flt_t, acc_t> *buffers, double *vec,
+                                     int sensor_grpbit)
 {
   ATOM_T *_noalias const x = buffers->get_x(0);
 
@@ -393,9 +400,10 @@ void PPPMElectrodeIntel::project_psi(IntelBuffers<flt_t, acc_t> *buffers, bigint
     nthr = comm->nthreads;
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(nthr, imat, vec) if (!_use_lrt)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(nthr, vec, sensor_grpbit) if (!_use_lrt)
 #endif
   {
+    int *mask = atom->mask;
     const flt_t scaleinv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
 
     const flt_t lo0 = boxlo[0];
@@ -410,11 +418,7 @@ void PPPMElectrodeIntel::project_psi(IntelBuffers<flt_t, acc_t> *buffers, bigint
     IP_PRE_omp_range_id(ifrom, ito, tid, nlocal, nthr);
 
     for (int i = ifrom; i < ito; i++) {
-      int ipos = imat[i];
-      // skip if (ipos < 0) ^ which_particles:
-      // skip if ipos < 0 && ELECTRODE (true) || ipos >= 0 && ELECTROLYTE
-      // (false)
-      if (ipos < 0) continue;
+      if (!(mask[i] & sensor_grpbit)) continue;
 
       double v = 0.;
       // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
@@ -487,7 +491,7 @@ void PPPMElectrodeIntel::project_psi(IntelBuffers<flt_t, acc_t> *buffers, bigint
           }
         }
       }
-      vec[ipos] += v * scaleinv;
+      vec[i] += v * scaleinv;
     }
   }
 }
@@ -862,11 +866,9 @@ void PPPMElectrodeIntel::two_step_multiplication(bigint *imat, vector<double> gr
 }
 
 template <class flt_t, class acc_t, int use_table>
-void PPPMElectrodeIntel::make_rho_in_brick(IntelBuffers<flt_t, acc_t> *buffers, bigint *imat,
-                                           FFT_SCALAR ***scratch_brick,
-                                           bool processing_electrode_particles)
+void PPPMElectrodeIntel::make_rho_in_brick(IntelBuffers<flt_t, acc_t> *buffers, int source_grpbit,
+                                           FFT_SCALAR ***scratch_brick, bool invert_source)
 {
-  imat_cached = imat;
 
   FFT_SCALAR *_noalias global_density = &(scratch_brick[nzlo_out][nylo_out][nxlo_out]);
 
@@ -880,9 +882,11 @@ void PPPMElectrodeIntel::make_rho_in_brick(IntelBuffers<flt_t, acc_t> *buffers, 
     nthr = comm->nthreads;
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(nthr, nlocal, global_density, imat, processing_electrode_particles) if (!_use_lrt)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(nthr, nlocal, global_density, source_grpbit, \
+                                                 invert_source) if (!_use_lrt)
 #endif
   {
+    int *mask = atom->mask;
     const int nix = nxhi_out - nxlo_out + 1;
     const int niy = nyhi_out - nylo_out + 1;
 
@@ -902,7 +906,8 @@ void PPPMElectrodeIntel::make_rho_in_brick(IntelBuffers<flt_t, acc_t> *buffers, 
     memset(my_density, 0, ngrid * sizeof(FFT_SCALAR));
 
     for (int i = ifrom; i < ito; i++) {
-      if ((imat[i] >= 0) ^ processing_electrode_particles) continue;
+      bool const i_in_source = !!(mask[i] & source_grpbit) ^ invert_source;
+      if (!i_in_source) continue;
 
       int nx = part2grid[i][0];
       int ny = part2grid[i][1];
@@ -1008,9 +1013,10 @@ void PPPMElectrodeIntel::compute_matrix_corr(bigint *imat, double **matrix)
   boundcorr->matrix_corr(imat, matrix);
 }
 
-void PPPMElectrodeIntel::compute_vector_corr(bigint *imat, double *vec)
+void PPPMElectrodeIntel::compute_vector_corr(double *vec, int sensor_grpbit, int source_grpbit,
+                                             bool invert_source)
 {
-  boundcorr->vector_corr(imat, vec);
+  boundcorr->vector_corr(vec, sensor_grpbit, source_grpbit, invert_source);
 }
 
 void PPPMElectrodeIntel::allocate()

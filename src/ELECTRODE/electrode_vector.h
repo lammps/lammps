@@ -23,37 +23,30 @@ namespace LAMMPS_NS {
 
 class ElectrodeVector : protected Pointers {
  public:
-  ElectrodeVector(class LAMMPS *, int, double);
+  ElectrodeVector(class LAMMPS *, int, int, double, bool);
   ~ElectrodeVector() override;
-  void setup(const std::map<tagint, int> &, class Pair *, class NeighList *);
-  void compute_vector();
-  double *vector;
-  int igroup;
+  void setup(class Pair *, class NeighList *);
+  void compute_vector(double *);
+  int igroup, source_group;
 
  private:
-  int groupbit;
+  bool invert_source;
+  int groupbit, source_grpbit;
   bigint ngroup;
   double **cutsq;
   double g_ewald, eta;
-  std::map<tagint, int> tag_to_iele;
-  std::vector<bigint> mpos;
   class Pair *pair;
   class NeighList *list;
   class ElectrodeKSpace *electrode_kspace;
 
-  void update_mpos();
 
-  void pair_contribution();
+  void pair_contribution(double *);
   double calc_erfc(double);
 
-  double setup_time_total;
-  double reduce_time_total;
   double kspace_time_total;
   double pair_time_total;
   double boundary_time_total;
   double b_time_total;
-  double alloc_time_total;
-  double mpos_time_total;
 };
 
 }    // namespace LAMMPS_NS

@@ -84,20 +84,20 @@ void SlabDipole::compute_corr(double qsum, int eflag_atom, int eflag_global, dou
   for (int i = 0; i < nlocal; i++) f[i][2] += ffact * q[i] * (dipole_all - qsum * x[i][2]);
 }
 
-void SlabDipole::vector_corr(bigint *imat, double *vec)
+void SlabDipole::vector_corr(double *vec, int sensor_grpbit, int source_grpbit, bool invert_source)
 {
   int const nlocal = atom->nlocal;
   double **x = atom->x;
   double *q = atom->q;
+  int *mask = atom->mask;
   double dipole = 0.;
   for (int i = 0; i < nlocal; i++) {
-    if (imat[i] < 0) dipole += q[i] * x[i][2];
+    if (!!(mask[i] & source_grpbit) != invert_source) dipole += q[i] * x[i][2];
   }
   MPI_Allreduce(MPI_IN_PLACE, &dipole, 1, MPI_DOUBLE, MPI_SUM, world);
   dipole *= 4.0 * MY_PI / volume;
   for (int i = 0; i < nlocal; i++) {
-    int const pos = imat[i];
-    if (pos >= 0) vec[pos] += x[i][2] * dipole;
+    if (mask[i] & sensor_grpbit) vec[i] += x[i][2] * dipole;
   }
 }
 

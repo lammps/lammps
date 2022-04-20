@@ -79,15 +79,16 @@ void Slab2d::compute_corr(double /*qsum*/, int eflag_atom, int eflag_global, dou
   }
 }
 
-void Slab2d::vector_corr(bigint *imat, double *vec)
+void Slab2d::vector_corr(double *vec, int sensor_grpbit, int source_grpbit, bool invert_source)
 {
   int const nlocal = atom->nlocal;
   double **x = atom->x;
   double *q = atom->q;
+  int *mask = atom->mask;
   std::vector<double> z_local;    // z coordinates of electrolyte atoms
   std::vector<double> q_local;    // charges of electrolyte atoms
   for (int i = 0; i < nlocal; i++) {
-    if (imat[i] < 0) {
+    if (!!(mask[i] & source_grpbit) != invert_source) {
       z_local.push_back(x[i][2]);
       q_local.push_back(q[i]);
     }
@@ -106,16 +107,18 @@ void Slab2d::vector_corr(bigint *imat, double *vec)
                  &recvcounts.front(), &displs.front(), MPI_DOUBLE, world);
   double const prefac = 2 * MY_PIS / area;
   for (int i = 0; i < nlocal; i++) {
-    bigint ii = imat[i];
-    if (ii < 0) continue;
+    if (!(mask[i] & sensor_grpbit)) continue;
     double b = 0;
     double zi = x[i][2];
     for (size_t j = 0; j < z_all.size(); j++) {
       double zij = z_all[j] - zi;
       double gzij = g_ewald * zij;
-      b += q_all[j] * (exp(-(gzij * gzij)) / g_ewald + MY_PIS * zij * erf(gzij));
+      double zfac = (gzij > 7)
+          ? MY_PIS * zij
+          : exp(-(gzij * gzij)) / g_ewald + MY_PIS * zij * erf(gzij);    // avoid exp underflow
+      b += q_all[j] * zfac;
     }
-    vec[ii] -= prefac * b;
+    vec[i] -= prefac * b;
   }
 }
 

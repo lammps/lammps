@@ -59,8 +59,8 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
   void setup_grid() override;
   void compute(int, int) override;
 
-  void compute_vector(bigint *, double *) override;
-  void compute_vector_corr(bigint *, double *) override;
+  void compute_vector(double *, int, int, bool) override;
+  void compute_vector_corr(double*, int, int, bool) override;
   void compute_matrix(bigint *, double **) override;
   void compute_matrix_corr(bigint *, double **) override;
 
@@ -109,15 +109,16 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
 
  private:
   int compute_step;
+  int last_source_grpbit;
+  bool last_invert_source;
   void start_compute();
-  void make_rho_in_brick(bigint *, FFT_SCALAR ***, bool);
-  void project_psi(bigint *, double *vec);
+  void make_rho_in_brick(int, FFT_SCALAR ***, bool);
+  void project_psi(double *, int);
   void one_step_multiplication(bigint *, const std::vector<double> &, double **, double **,
                                int const);
   void two_step_multiplication(bigint *, const std::vector<double> &, double **, double **,
                                int const);
   bool compute_vector_called;
-  bigint *imat_cached;
 };
 
 }    // namespace LAMMPS_NS

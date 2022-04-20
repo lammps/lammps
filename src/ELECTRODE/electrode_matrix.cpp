@@ -52,7 +52,7 @@ ElectrodeMatrix::ElectrodeMatrix(LAMMPS *lmp, int electrode_group, double eta) :
 
 /* ---------------------------------------------------------------------- */
 
-void ElectrodeMatrix::setup(const std::map<tagint, int> &tag_ids, class Pair *fix_pair,
+void ElectrodeMatrix::setup(const std::unordered_map<tagint, int> &tag_ids, class Pair *fix_pair,
                             class NeighList *fix_neighlist)
 {
   pair = fix_pair;

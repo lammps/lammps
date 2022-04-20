@@ -22,9 +22,9 @@ namespace LAMMPS_NS {
 class Slab2d : public BoundaryCorrection {
  public:
   Slab2d(LAMMPS *);
-  void vector_corr(bigint *, double *);
-  void matrix_corr(bigint *, double **);
-  void compute_corr(double, int, int, double &, double *);
+  void vector_corr(double *, int, int, bool) override;
+  void matrix_corr(bigint *, double **) override;
+  void compute_corr(double, int, int, double &, double *) override;
   void setup(double);
 };
 }    // namespace LAMMPS_NS

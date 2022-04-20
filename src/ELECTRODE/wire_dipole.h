@@ -22,7 +22,7 @@ namespace LAMMPS_NS {
 class WireDipole : public BoundaryCorrection {
  public:
   WireDipole(LAMMPS *);
-  void vector_corr(bigint *, double *);
+  void vector_corr(double *, int, int, bool);
   void matrix_corr(bigint *, double **);
   void compute_corr(double, int, int, double &, double *);
   void setup(double);

@@ -888,12 +888,14 @@ void EwaldElectrode::compute_group_group(int /*groupbit_A*/, int /*groupbit_B*/,
    compute b-vector of constant potential approach
  ------------------------------------------------------------------------- */
 
-void EwaldElectrode::compute_vector(bigint *imat, double *vector)
+void EwaldElectrode::compute_vector(double *vec, int sensor_grpbit, int source_grpbit,
+                                    bool invert_source)
 {
   update_eikr(false);
 
   int const nlocal = atom->nlocal;
   double *q = atom->q;
+  int *mask = atom->mask;
   std::vector<double> q_cos(kcount);
   std::vector<double> q_sin(kcount);
 
@@ -904,7 +906,8 @@ void EwaldElectrode::compute_vector(bigint *imat, double *vector)
     double q_cos_k = 0;
     double q_sin_k = 0;
     for (int i = 0; i < nlocal; i++) {
-      if (imat[i] >= 0) continue;    // only electrode atoms
+      bool const i_in_source = !!(mask[i] & source_grpbit) != invert_source;
+      if (!i_in_source) continue;    // only electrode atoms
       double const cos_kxky = cs[kx][0][i] * cs[ky][1][i] - sn[kx][0][i] * sn[ky][1][i];
       double const sin_kxky = sn[kx][0][i] * cs[ky][1][i] + cs[kx][0][i] * sn[ky][1][i];
       double const cos_kr = cos_kxky * cs[kz][2][i] - sin_kxky * sn[kz][2][i];
@@ -921,7 +924,7 @@ void EwaldElectrode::compute_vector(bigint *imat, double *vector)
   MPI_Allreduce(MPI_IN_PLACE, &q_sin.front(), kcount, MPI_DOUBLE, MPI_SUM, world);
 
   for (int i = 0; i < nlocal; i++) {
-    if (imat[i] < 0) continue;
+    if (!(mask[i] & sensor_grpbit)) continue;
     double bi = 0;
     for (int k = 0; k < kcount; k++) {
       int const kx = kxvecs[k];
@@ -933,7 +936,7 @@ void EwaldElectrode::compute_vector(bigint *imat, double *vector)
       double const sin_kr = sin_kxky * cs[kz][2][i] + cos_kxky * sn[kz][2][i];
       bi += 2 * ug[k] * (cos_kr * q_cos[k] + sin_kr * q_sin[k]);
     }
-    vector[imat[i]] += bi;
+    vec[i] += bi;
   }
 }
 
@@ -941,10 +944,11 @@ void EwaldElectrode::compute_vector(bigint *imat, double *vector)
    compute b-vector EW3DC correction of constant potential approach
  ------------------------------------------------------------------------- */
 
-void EwaldElectrode::compute_vector_corr(bigint *imat, double *vec)
+void EwaldElectrode::compute_vector_corr(double *vec, int sensor_grpbit, int source_grpbit,
+                                         bool invert_source)
 {
   update_eikr(false);
-  boundcorr->vector_corr(imat, vec);
+  boundcorr->vector_corr(vec, sensor_grpbit, source_grpbit, invert_source);
 }
 
 /* ----------------------------------------------------------------------

@@ -36,22 +36,22 @@ using namespace LAMMPS_NS;
 #define A4 -1.453152027
 #define A5 1.061405429
 
-ElectrodeVector::ElectrodeVector(LAMMPS *lmp, int electrode_group, double eta) : Pointers(lmp)
+ElectrodeVector::ElectrodeVector(LAMMPS *lmp, int sensor_group, int source_group, double eta,
+                                 bool invert_source) :
+    Pointers(lmp)
 {
-  igroup = electrode_group;    // group of all electrode atoms
+  igroup = sensor_group;                // group of all atoms at which we calculate potential
+  this->source_group = source_group;    // group of all atoms influencing potential
+  this->invert_source = invert_source;
   groupbit = group->bitmask[igroup];
   ngroup = group->count(igroup);
-  vector = new double[ngroup]();    // init to zero
+  source_grpbit = group->bitmask[source_group];
   this->eta = eta;
 
-  setup_time_total = 0;
-  reduce_time_total = 0;
   kspace_time_total = 0;
   pair_time_total = 0;
   boundary_time_total = 0;
   b_time_total = 0;
-  alloc_time_total = 0;
-  mpos_time_total = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -63,17 +63,12 @@ ElectrodeVector::~ElectrodeVector()
     utils::logmesg(lmp, fmt::format("B kspace time: {}\n", kspace_time_total));
     utils::logmesg(lmp, fmt::format("B pair time: {}\n", pair_time_total));
     utils::logmesg(lmp, fmt::format("B boundary time: {}\n", boundary_time_total));
-    utils::logmesg(lmp, fmt::format("B setup time: {}\n", setup_time_total));
-    utils::logmesg(lmp, fmt::format("B reduce time: {}\n", reduce_time_total));
-    utils::logmesg(lmp, fmt::format("B alloc time: {}\n", alloc_time_total));
-    utils::logmesg(lmp, fmt::format("B mpos time: {}\n", mpos_time_total));
   }
-  delete[] vector;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ElectrodeVector::setup(const std::map<tagint, int> &tag_ids, class Pair *fix_pair,
+void ElectrodeVector::setup(class Pair *fix_pair,
                             class NeighList *fix_neighlist)
 {
   pair = fix_pair;
@@ -83,48 +78,35 @@ void ElectrodeVector::setup(const std::map<tagint, int> &tag_ids, class Pair *fi
   electrode_kspace = dynamic_cast<ElectrodeKSpace *>(force->kspace);
   if (electrode_kspace == nullptr) error->all(FLERR, "KSpace does not implement ElectrodeKSpace");
   g_ewald = force->kspace->g_ewald;
-
-  tag_to_iele = tag_ids;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ElectrodeVector::compute_vector()
+void ElectrodeVector::compute_vector(double *vector)
 {
   MPI_Barrier(world);
   double start_time = MPI_Wtime();
-  // setup
-  double setup_start_time = MPI_Wtime();
-  update_mpos();
-  for (int i = 0; i < ngroup; i++) vector[i] = 0.;
-  MPI_Barrier(world);
-  setup_time_total += MPI_Wtime() - setup_start_time;
   // pair
   double pair_start_time = MPI_Wtime();
-  pair_contribution();
+  pair_contribution(vector);
   MPI_Barrier(world);
   pair_time_total += MPI_Wtime() - pair_start_time;
   // kspace
   double kspace_start_time = MPI_Wtime();
-  electrode_kspace->compute_vector(&mpos[0], vector);
+  electrode_kspace->compute_vector(vector, groupbit, source_grpbit, invert_source);
   MPI_Barrier(world);
   kspace_time_total += MPI_Wtime() - kspace_start_time;
   // boundary
   double boundary_start_time = MPI_Wtime();
-  electrode_kspace->compute_vector_corr(&mpos[0], vector);
+  electrode_kspace->compute_vector_corr(vector, groupbit, source_grpbit, invert_source);
   MPI_Barrier(world);
   boundary_time_total += MPI_Wtime() - boundary_start_time;
-  // reduce
-  double reduce_start_time = MPI_Wtime();
-  MPI_Allreduce(MPI_IN_PLACE, vector, ngroup, MPI_DOUBLE, MPI_SUM, world);
-  MPI_Barrier(world);
-  reduce_time_total += MPI_Wtime() - reduce_start_time;
   b_time_total += MPI_Wtime() - start_time;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ElectrodeVector::pair_contribution()
+void ElectrodeVector::pair_contribution(double *vector)
 {
   double **x = atom->x;
   double *q = atom->q;
@@ -140,7 +122,8 @@ void ElectrodeVector::pair_contribution()
 
   for (int ii = 0; ii < inum; ii++) {
     int const i = ilist[ii];
-    bool const i_in_electrode = (mask[i] & groupbit);
+    bool const i_in_sensor = (mask[i] & groupbit);
+    bool const i_in_source = !!(mask[i] & source_grpbit) != invert_source;
     double const xtmp = x[i][0];
     double const ytmp = x[i][1];
     double const ztmp = x[i][2];
@@ -149,8 +132,11 @@ void ElectrodeVector::pair_contribution()
     int jnum = numneigh[i];
     for (int jj = 0; jj < jnum; jj++) {
       int const j = jlist[jj] & NEIGHMASK;
-      bool const j_in_electrode = (mask[j] & groupbit);
-      if (i_in_electrode == j_in_electrode) continue;
+      bool const j_in_sensor = (mask[j] & groupbit);
+      bool const j_in_source = !!(mask[j] & source_grpbit) != invert_source;
+      bool const compute_ij = i_in_sensor && j_in_source;
+      bool const compute_ji = (newton_pair || j < nlocal) && (j_in_sensor && i_in_source);
+      if (!(compute_ij || compute_ji)) continue;
       double const delx = xtmp - x[j][0];    // neighlists take care of pbc
       double const dely = ytmp - x[j][1];
       double const delz = ztmp - x[j][2];
@@ -162,38 +148,13 @@ void ElectrodeVector::pair_contribution()
       double aij = rinv;
       aij *= calc_erfc(g_ewald * r);
       aij -= calc_erfc(eta * r) * rinv;
-      if (!(newton_pair || j < nlocal)) aij *= 0.5;
-      if (i_in_electrode) {
-        vector[mpos[i]] += aij * q[j];
-      } else if (j_in_electrode) {
-        vector[mpos[j]] += aij * q[i];
+      if (i_in_sensor) {
+        vector[i] += aij * q[j];
+      } else if (j_in_sensor) {
+        vector[j] += aij * q[i];
       }
     }
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ElectrodeVector::update_mpos()
-{
-  MPI_Barrier(world);
-  double alloc_start = MPI_Wtime();
-  int const nall = atom->nlocal + atom->nghost;
-  tagint *tag = atom->tag;
-  int *mask = atom->mask;
-  mpos = std::vector<bigint>(nall, -1);
-
-  MPI_Barrier(world);
-  alloc_time_total += MPI_Wtime() - alloc_start;
-  double mpos_start = MPI_Wtime();
-  for (int i = 0; i < nall; i++) {
-    if (mask[i] & groupbit)
-      mpos[i] = tag_to_iele[tag[i]];
-    else
-      mpos[i] = -1;
-  }
-  MPI_Barrier(world);
-  mpos_time_total += MPI_Wtime() - mpos_start;
 }
 
 /* ---------------------------------------------------------------------- */

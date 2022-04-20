@@ -53,7 +53,6 @@ using namespace MathSpecial;
 
 enum { REVERSE_RHO };
 enum { FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM };
-enum : bool { ELECTRODE = true, ELECTROLYTE = false };
 
 #ifdef FFT_SINGLE
 #define ZEROF 0.0f
@@ -73,6 +72,8 @@ PPPMElectrode::PPPMElectrode(LAMMPS *lmp) :
   electrolyte_density_brick = nullptr;
   electrolyte_density_fft = nullptr;
   compute_vector_called = false;
+  last_source_grpbit = 1 << 0;    // initialize to "all"
+  last_invert_source = false;     // not sure what to initialize here
 }
 /* ----------------------------------------------------------------------
    free all memory
@@ -440,7 +441,9 @@ void PPPMElectrode::compute(int eflag, int vflag)
   if (compute_vector_called) {
     // electrolyte_density_brick is filled, so we can
     // grab only electrode atoms
-    make_rho_in_brick(imat_cached, density_brick, ELECTRODE);
+    // TODO: this is dangerous now that compute_vector's interface has been
+    // changed since a compute could call an arbitrary source, needs tightening
+    make_rho_in_brick(last_source_grpbit, density_brick, !last_invert_source);
     gc->reverse_comm(GridComm::KSPACE, this, 1, sizeof(FFT_SCALAR), REVERSE_RHO, gc_buf1, gc_buf2,
                      MPI_FFT_SCALAR);
     for (int nz = nzlo_out; nz <= nzhi_out; nz++)
@@ -574,7 +577,8 @@ void PPPMElectrode::start_compute()
 
 /* ----------------------------------------------------------------------
 ------------------------------------------------------------------------- */
-void PPPMElectrode::compute_vector(bigint *imat, double *vec)
+void PPPMElectrode::compute_vector(double *vec, int sensor_grpbit, int source_grpbit,
+                                   bool invert_source)
 {
   start_compute();
 
@@ -582,7 +586,7 @@ void PPPMElectrode::compute_vector(bigint *imat, double *vec)
   // electrolyte density (without writing an additional function)
   FFT_SCALAR ***density_brick_real = density_brick;
   FFT_SCALAR *density_fft_real = density_fft;
-  make_rho_in_brick(imat, electrolyte_density_brick, ELECTROLYTE);
+  make_rho_in_brick(source_grpbit, electrolyte_density_brick, invert_source);
   density_brick = electrolyte_density_brick;
   density_fft = electrolyte_density_fft;
   gc->reverse_comm(GridComm::KSPACE, this, 1, sizeof(FFT_SCALAR), REVERSE_RHO, gc_buf1, gc_buf2,
@@ -615,18 +619,18 @@ void PPPMElectrode::compute_vector(bigint *imat, double *vec)
       }
   gc->forward_comm(GridComm::KSPACE, this, 1, sizeof(FFT_SCALAR), FORWARD_AD, gc_buf1, gc_buf2,
                    MPI_FFT_SCALAR);
-  project_psi(imat, vec);
+  project_psi(vec, sensor_grpbit);
   compute_vector_called = true;
 }
 
-void PPPMElectrode::project_psi(bigint *imat, double *vec)
+void PPPMElectrode::project_psi(double *vec, int sensor_grpbit)
 {
   // project u_brick with weight matrix
   double **x = atom->x;
+  int *mask = atom->mask;
   double const scaleinv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
   for (int i = 0; i < atom->nlocal; i++) {
-    int ipos = imat[i];
-    if (ipos < 0) continue;
+    if (!(mask[i] & sensor_grpbit)) continue;
     double v = 0.;
     // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
     // (dx,dy,dz) = distance to "lower left" grid pt
@@ -651,7 +655,7 @@ void PPPMElectrode::project_psi(bigint *imat, double *vec)
         }
       }
     }
-    vec[ipos] += v * scaleinv;
+    vec[i] += v * scaleinv;
   }
 }
 /* ----------------------------------------------------------------------
@@ -1610,15 +1614,16 @@ ghosts) in global grid
 -------------------------------------------------------------------------
 */
 
-void PPPMElectrode::make_rho_in_brick(bigint *imat, FFT_SCALAR ***scratch_brick,
-                                      bool processing_electrode_particles)
+void PPPMElectrode::make_rho_in_brick(int source_grpbit, FFT_SCALAR ***scratch_brick,
+                                      bool invert_source)
 {
   int l, m, n, nx, ny, nz, mx, my, mz;
   FFT_SCALAR dx, dy, dz, x0, y0, z0;
 
-  imat_cached = imat;
-  // clear 3d density array
+  last_source_grpbit = source_grpbit;
+  last_invert_source = invert_source;
 
+  // clear 3d density array
   memset(&(scratch_brick[nzlo_out][nylo_out][nxlo_out]), 0, ngrid * sizeof(FFT_SCALAR));
 
   // loop over my charges, add their contribution to nearby grid points
@@ -1628,10 +1633,12 @@ void PPPMElectrode::make_rho_in_brick(bigint *imat, FFT_SCALAR ***scratch_brick,
 
   double *q = atom->q;
   double **x = atom->x;
+  int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if ((imat[i] >= 0) ^ processing_electrode_particles) continue;
+    bool const i_in_source = !!(mask[i] & source_grpbit) != invert_source;
+    if (!i_in_source) continue;
     nx = part2grid[i][0];
     ny = part2grid[i][1];
     nz = part2grid[i][2];
@@ -1676,7 +1683,8 @@ void PPPMElectrode::compute_matrix_corr(bigint *imat, double **matrix)
  -------------------------------------------------------------------------
 */
 
-void PPPMElectrode::compute_vector_corr(bigint *imat, double *vec)
+void PPPMElectrode::compute_vector_corr(double *vec, int sensor_grpbit, int source_grpbit,
+                                        bool invert_source)
 {
-  boundcorr->vector_corr(imat, vec);
+  boundcorr->vector_corr(vec, sensor_grpbit, source_grpbit, invert_source);
 }

@@ -92,22 +92,22 @@ void WireDipole::compute_corr(double /*qsum*/, int eflag_atom, int eflag_global,
   }
 }
 
-void WireDipole::vector_corr(bigint *imat, double *vec)
+void WireDipole::vector_corr(double *vec, int sensor_grpbit, int source_grpbit, bool invert_source)
 {
   int const nlocal = atom->nlocal;
   double **x = atom->x;
   double *q = atom->q;
+  int *mask = atom->mask;
   double dipole[2] = {0., 0.};    // dipole in x and y direction
   for (int i = 0; i < nlocal; i++) {
-    if (imat[i] < 0) {
+    if (!!(mask[i] & source_grpbit) != invert_source) {
       for (int dim : {0, 1}) dipole[dim] += q[i] * x[i][dim];
     }
   }
   MPI_Allreduce(MPI_IN_PLACE, &dipole, 2, MPI_DOUBLE, MPI_SUM, world);
   for (double &d : dipole) d *= MY_2PI / volume;
   for (int i = 0; i < nlocal; i++) {
-    int const pos = imat[i];
-    if (pos >= 0) vec[pos] += x[i][0] * dipole[0] + x[i][1] * dipole[1];
+    if (mask[i] & sensor_grpbit) vec[i] += x[i][0] * dipole[0] + x[i][1] * dipole[1];
   }
 }
 

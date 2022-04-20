@@ -448,7 +448,7 @@ void FixElectrodeConp::setup_post_neighbor()
 {
   int const nlocal = atom->nlocal;
   int *mask = atom->mask;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
 
   // setvars asserts:
   assert(setvars_groups.size() == setvars_vars.size());
@@ -708,7 +708,7 @@ void FixElectrodeConp::compute_sd_vectors_ffield()
 {
   double **x = atom->x;
   int *mask = atom->mask;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   double zprd = domain->prd[2];
   for (int i = 0; i < atom->nlocal; i++) {
     if (mask[i] & groupbit) {
@@ -765,7 +765,7 @@ void FixElectrodeConp::update_charges()
   std::fill(sb_charges.begin(), sb_charges.end(), 0.);
   double *q = atom->q;
   int *mask = atom->mask;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int const nlocal = atom->nlocal;
   int const nall = nlocal + atom->nghost;
   memset(potential_i, 0, atom->nmax * sizeof(double));
@@ -926,7 +926,7 @@ double FixElectrodeConp::potential_energy(int eflag)
   double const qqrd2e = force->qqrd2e;
   int const nlocal = atom->nlocal;
   int *mask = atom->mask;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   double *q = atom->q;
   double energy = 0;
   for (int i = 0; i < nlocal; i++) {
@@ -1220,7 +1220,7 @@ void FixElectrodeConp::gather_list_iele()
   if (nlocalele_outdated == 0) return;
 
   int *mask = atom->mask;
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int const nlocal = atom->nlocal;
   list_iele.clear();
   list_iele.reserve(nlocalele);

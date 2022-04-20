@@ -20,6 +20,4 @@ Data files in this directory were created by the tools/tinker/tinker2lmp.py scri
 
 ** ubiquitin:
 
-% python tinker2lmp.py -xyz ubiquitin.xyz -amoeba amoeba_ubiquitin.prm -data data.ubiquitin.new -pbc 54.99 41.91 41.91 -bitorsion bitorsion.ubiquitin.data.new
-
-
+% python tinker2lmp.py -xyz ubiquitin.xyz -amoeba amoeba_ubiquitin.prm -data data.ubiquitin -pbc 54.99 41.91 41.91 -bitorsion bitorsion.ubiquitin.data

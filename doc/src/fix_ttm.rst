@@ -214,7 +214,7 @@ generate an error. LAMMPS will check if a "UNITS:" tag is in the first
 line and stop with an error, if there is a mismatch with the current
 units used.
 
-..note::
+.. note::
 
   The electronic temperature at each grid point must be a non-zero
   positive value, both initially, and as the temperature evovles over

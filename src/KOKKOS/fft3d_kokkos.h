@@ -60,6 +60,10 @@ struct fft_plan_3d_kokkos {
   cufftHandle plan_fast;
   cufftHandle plan_mid;
   cufftHandle plan_slow;
+#elif defined(FFT_HIPFFT)
+  hipfftHandle plan_fast;
+  hipfftHandle plan_mid;
+  hipfftHandle plan_slow;
 #else
   kiss_fft_state_kokkos<DeviceType> cfg_fast_forward;
   kiss_fft_state_kokkos<DeviceType> cfg_fast_backward;

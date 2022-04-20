@@ -49,10 +49,14 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
     lmp->error->all(FLERR,"Cannot use the MKL library with Kokkos CUDA on GPUs");
 #elif defined(FFT_FFTW3)
   if (ngpus > 0 && execution_space == Device)
-    lmp->error->all(FLERR,"Cannot use the FFTW library with Kokkos CUDA on GPUs");
+    lmp->error->all(FLERR,"Cannot use the FFTW library with Kokkos CUDA/HIP on GPUs");
 #elif defined(FFT_CUFFT)
   if (ngpus > 0 && execution_space == Host)
     lmp->error->all(FLERR,"Cannot use the cuFFT library with Kokkos CUDA on the host CPUs");
+#elif defined(FFT_HIPFFT)
+  if (ngpus > 0 && execution_space == Host)
+    lmp->error->all(FLERR,"Cannot use the hipFFT library with Kokkos HIP on the host CPUs");
+
 #elif defined(FFT_KISSFFT)
   // The compiler can't statically determine the stack size needed for
   //  recursive function calls in KISS FFT and the default per-thread
@@ -63,6 +67,11 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
     cudaDeviceGetLimit(&stack_size,cudaLimitStackSize);
     if (stack_size < 2048)
       cudaDeviceSetLimit(cudaLimitStackSize,2048);
+//  #elif defined (KOKKOS_ENABLE_HIP)
+//    size_t stack_size;
+//    hipDeviceGetLimit(&stack_size,hipLimitStackSize);
+//    if (stack_size < 2048)
+//      hipDeviceSetLimit(hipLimitStackSize,2048);
   #endif
 #endif
 
@@ -145,7 +154,7 @@ public:
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &i) const {
-#if defined(FFT_FFTW3) || defined(FFT_CUFFT)
+#if defined(FFT_FFTW3) || defined(FFT_CUFFT) || defined(FFT_HIPFFT)
     FFT_SCALAR* out_ptr = (FFT_SCALAR *)(d_out.data()+i);
     *(out_ptr++) *= norm;
     *(out_ptr++) *= norm;
@@ -227,6 +236,8 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename FFT_AT::t_FFT_DATA_1d d_in,
       FFTW_API(execute_dft)(plan->plan_fast_backward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
   #elif defined(FFT_CUFFT)
     cufftExec(plan->plan_fast,d_data.data(),d_data.data(),-flag);
+  #elif defined(FFT_HIPFFT)
+    hipfftExec(plan->plan_fast,d_data.data(),d_data.data(),-flag);
   #else
     typename FFT_AT::t_FFT_DATA_1d d_tmp =
      typename FFT_AT::t_FFT_DATA_1d(Kokkos::view_alloc("fft_3d:tmp",Kokkos::WithoutInitializing),d_data.extent(0));
@@ -271,6 +282,8 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename FFT_AT::t_FFT_DATA_1d d_in,
       FFTW_API(execute_dft)(plan->plan_mid_backward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
   #elif defined(FFT_CUFFT)
     cufftExec(plan->plan_mid,d_data.data(),d_data.data(),-flag);
+  #elif defined(FFT_HIPFFT)
+    hipfftExec(plan->plan_mid,d_data.data(),d_data.data(),-flag);
   #else
     d_tmp = typename FFT_AT::t_FFT_DATA_1d(Kokkos::view_alloc("fft_3d:tmp",Kokkos::WithoutInitializing),d_data.extent(0));
     if (flag == 1)
@@ -313,6 +326,8 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename FFT_AT::t_FFT_DATA_1d d_in,
       FFTW_API(execute_dft)(plan->plan_slow_backward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
   #elif defined(FFT_CUFFT)
     cufftExec(plan->plan_slow,d_data.data(),d_data.data(),-flag);
+  #elif defined(FFT_HIPFFT)
+    hipfftExec(plan->plan_slow,d_data.data(),d_data.data(),-flag);
   #else
     d_tmp = typename FFT_AT::t_FFT_DATA_1d(Kokkos::view_alloc("fft_3d:tmp",Kokkos::WithoutInitializing),d_data.extent(0));
     if (flag == 1)
@@ -699,6 +714,23 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
     &nslow,1,plan->length3,
     CUFFT_TYPE,plan->total3/plan->length3);
 
+#elif defined(FFT_HIPFFT)
+
+  hipfftPlanMany(&(plan->plan_fast), 1, &nfast,
+    &nfast,1,plan->length1,
+    &nfast,1,plan->length1,
+    HIPFFT_TYPE,plan->total1/plan->length1);
+
+  hipfftPlanMany(&(plan->plan_mid), 1, &nmid,
+    &nmid,1,plan->length2,
+    &nmid,1,plan->length2,
+    HIPFFT_TYPE,plan->total2/plan->length2);
+
+  hipfftPlanMany(&(plan->plan_slow), 1, &nslow,
+    &nslow,1,plan->length3,
+    &nslow,1,plan->length3,
+    HIPFFT_TYPE,plan->total3/plan->length3);
+
 #else  /* FFT_KISS */
 
   kissfftKK = new KissFFTKokkos<DeviceType>();
@@ -863,6 +895,10 @@ void FFT3dKokkos<DeviceType>::fft_3d_1d_only_kokkos(typename FFT_AT::t_FFT_DATA_
   cufftExec(plan->plan_fast,d_data.data(),d_data.data(),-flag);
   cufftExec(plan->plan_mid,d_data.data(),d_data.data(),-flag);
   cufftExec(plan->plan_slow,d_data.data(),d_data.data(),-flag);
+#elif defined(FFT_HIPFFT)
+  hipfftExec(plan->plan_fast,d_data.data(),d_data.data(),-flag);
+  hipfftExec(plan->plan_mid,d_data.data(),d_data.data(),-flag);
+  hipfftExec(plan->plan_slow,d_data.data(),d_data.data(),-flag);
 #else
   kiss_fft_functor<DeviceType> f;
     typename FFT_AT::t_FFT_DATA_1d d_tmp =

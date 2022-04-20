@@ -111,7 +111,9 @@ if((CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC") OR (CMAKE_CXX_COMPILER_ID STREQUAL "
 endif()
 
 # we require C++11 without extensions. Kokkos requires at least C++14 (currently)
-set(CMAKE_CXX_STANDARD 11)
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 11)
+endif()
 if(PKG_KOKKOS AND (CMAKE_CXX_STANDARD LESS 14))
   set(CMAKE_CXX_STANDARD 14)
 endif()

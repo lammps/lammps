@@ -392,6 +392,14 @@ void FixAmoebaBiTorsion::post_force(int vflag)
     ie = bitorsion_list[n][4];
     btype = bitorsion_list[n][5];
 
+    if (n == 0)
+      printf("BITORSION: abcde %d %d %d %d %d\n",
+             atom->tag[ia],
+             atom->tag[ib],
+             atom->tag[ic],
+             atom->tag[id],
+             atom->tag[ie]);
+
     xia = x[ia][0];
     yia = x[ia][1];
     zia = x[ia][2];
@@ -455,11 +463,18 @@ void FixAmoebaBiTorsion::post_force(int vflag)
     if (sign < 0.0) angle2 = -angle2;
     value2 = angle2;
 
+    if (n == 0)
+      printf("  angle1 %g angle2 %g value1 %g value2 %g\n",
+             angle1,angle2,value1,value2);
+
     // check for inverted chirality at the central atom
     // inputs = ib,ic,id
     // outputs = sign,value1,value2
 
     chkttor(ib,ic,id,sign,value1,value2);
+
+    if (n == 0)
+      printf("  post-chktor: value1 %g value2 %g\n",value1,value2);
 
     // 2 binary searches to find location of angles 1,2 in grid
     // ttx,tty are 0-indexed here, 1-indexed in Tinker
@@ -486,6 +501,9 @@ void FixAmoebaBiTorsion::post_force(int vflag)
       else nlo = nt;
     }
     ylo = nlo;
+
+    if (n == 0)
+      printf("  xlo/ylo: %d %d\n",xlo,ylo);
 
     // fill ftt,ft1,ft2,ft12 vecs with spline coeffs near xlo,ylo grid pt
     // ttx,tty,tbf,tbx,tby,tbxy are 0-indexed here, 1-indexed in Tinker
@@ -519,8 +537,19 @@ void FixAmoebaBiTorsion::post_force(int vflag)
     ft12[2] = tbxy[btype][pos2+1];
     ft12[3] = tbxy[btype][pos2];
 
+    if (n == 0)
+      printf("  pre-bcuint1 x1l %g xlu %g y1l %g y1u %g pos12 %d %d\n",
+             x1l,x1u,y1l,y1u,pos1,pos2);
+
     // bicuint1() uses bicubic interpolation to compute interpolated values
     // outputs = e,dedang1,dedang2
+
+    if (n == 0) {
+      printf("  ftt %g %g %g %g\n",ftt[0],ftt[1],ftt[2],ftt[3]);
+      printf("  ft1 %g %g %g %g\n",ft1[0],ft1[1],ft1[2],ft1[3]);
+      printf("  ft2 %g %g %g %g\n",ft2[0],ft2[1],ft2[2],ft2[3]);
+      printf("  ft12 %g %g %g %g\n",ft12[0],ft12[1],ft12[2],ft12[3]);
+    }
 
     bcuint1(ftt,ft1,ft2,ft12,x1l,x1u,y1l,y1u,value1,value2,
             e,dedang1,dedang2);
@@ -528,21 +557,12 @@ void FixAmoebaBiTorsion::post_force(int vflag)
     dedang1 = sign * radian2degree * dedang1;
     dedang2 = sign * radian2degree * dedang2;
 
-    // DEBUG
-
-    /*
-    printf("BiTorsion: %d %d %d %d %d: angle12 %g %g: eng %g\n",
-           atom->tag[ia],
-           atom->tag[ib],
-           atom->tag[ic],
-           atom->tag[id],
-           atom->tag[ie],
-           angle1,angle2,e);
-    */
-
     // fraction of energy for each atom
 
     engfraction = e * onefifth;
+
+    if (n == 0)
+      printf("  post-bcuint1 dedang12 %g %g eng %g\n",dedang1,dedang2,e);
 
     // chain rule terms for first angle derivative components
 
@@ -605,12 +625,21 @@ void FixAmoebaBiTorsion::post_force(int vflag)
 
     // increment the torsion-torsion energy and gradient
 
+    if (n == 0)
+      printf("  forceA dedia %g %g %g\n",dedxia,dedyia,dedzia);
+
     if (ia < nlocal) {
       ebitorsion += engfraction;
       f[ia][0] -= dedxia;
       f[ia][1] -= dedyia;
       f[ia][2] -= dedzia;
     }
+
+    if (n == 0)
+      printf("  forceB dedib %g %g %g\n",
+             dedxib+dedxib2,
+             dedyib+dedyib2,
+             dedzib+dedzib2);
 
     if (ib < nlocal) {
       ebitorsion += engfraction;
@@ -619,6 +648,12 @@ void FixAmoebaBiTorsion::post_force(int vflag)
       f[ib][2] -= dedzib + dedzib2;
     }
 
+    if (n == 0)
+      printf("  forceC dedic %g %g %g\n",
+             dedxic+dedxic2,
+             dedyic+dedyic2,
+             dedzic+dedzic2);
+
     if (ic < nlocal) {
       ebitorsion += engfraction;
       f[ic][0] -= dedxic + dedxic2;
@@ -626,12 +661,21 @@ void FixAmoebaBiTorsion::post_force(int vflag)
       f[ic][2] -= dedzic + dedzic2;
     }
 
+    if (n == 0)
+      printf("  forceD dedid %g %g %g\n",
+             dedxid+dedxid2,
+             dedyid+dedyid2,
+             dedzid+dedzid2);
+
     if (id < nlocal) {
       ebitorsion += engfraction;
       f[id][0] -= dedxid + dedxid2;
       f[id][1] -= dedyid + dedyid2;
       f[id][2] -= dedzid + dedzid2;
     }
+
+    if (n == 0)
+      printf("  forceE dedie %g %g %g\n",dedxie2,dedyie2,dedzie2);
 
     if (ie < nlocal) {
       ebitorsion += engfraction;

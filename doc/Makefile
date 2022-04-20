@@ -18,7 +18,6 @@ PYTHON         = $(shell which python3)
 DOXYGEN        = $(shell which doxygen)
 VIRTUALENV     = virtualenv
 HAS_PYTHON3    = NO
-HAS_VIRTUALENV = NO
 HAS_DOXYGEN    = NO
 HAS_PDFLATEX   = NO
 
@@ -28,16 +27,6 @@ endif
 
 ifeq ($(shell which doxygen >/dev/null 2>&1; echo $$?), 0)
 HAS_DOXYGEN    = YES
-endif
-
-ifeq ($(shell which virtualenv-3 >/dev/null 2>&1; echo $$?), 0)
-VIRTUALENV     = virtualenv-3
-HAS_VIRTUALENV = YES
-endif
-
-ifeq ($(shell which virtualenv >/dev/null 2>&1; echo $$?), 0)
-VIRTUALENV     = virtualenv
-HAS_VIRTUALENV = YES
 endif
 
 ifeq ($(shell which pdflatex >/dev/null 2>&1; echo $$?), 0)
@@ -238,9 +227,8 @@ $(VENV):
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@if [ "$(HAS_PYTHON3)" == "NO" ] ; then echo "python3 was not found! Please see README for further instructions" 1>&2; exit 1; fi
 	@if [ "$(HAS_DOXYGEN)" == "NO" ] ; then echo "doxygen was not found! Please see README for further instructions" 1>&2; exit 1; fi
-	@if [ "$(HAS_VIRTUALENV)" == "NO" ] ; then echo "virtualenv was not found! Please see README for further instructions" 1>&2; exit 1; fi
 	@( \
-		$(VIRTUALENV) -p $(PYTHON) $(VENV); \
+		$(PYTHON) -m venv $(VENV); \
 		. $(VENV)/bin/activate; \
 		pip $(PIP_OPTIONS) install --upgrade pip; \
 		pip $(PIP_OPTIONS) install -r $(BUILDDIR)/utils/requirements.txt; \

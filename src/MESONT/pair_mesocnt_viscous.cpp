@@ -150,7 +150,7 @@ void PairMesoCNTViscous::viscous()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
   
-  for (ii = 0; ii < inum; i++) {
+  for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     xtmp = x[i][0];
     ytmp = x[i][1];

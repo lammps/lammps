@@ -2564,11 +2564,6 @@ double TILD::calculate_rho0()
                                              "achieve user specified TILD rho.\n",
                                              modified_rho0);
           error->warning(FLERR, mesg_mod);
-          if (modified_rho0 < 0) {
-            std::string mesg_mod =
-                fmt::format("Modified TILD NP rho is below zero and is unphysical.\n");
-            error->all(FLERR, mesg_mod);
-          }
         }
       }
       utils::logmesg(lmp, mesg);
@@ -2586,6 +2581,12 @@ double TILD::calculate_rho0()
   }
 
   MPI_Bcast(&rho, 1, MPI_DOUBLE, 0, world);
+
+  if (modified_rho0 < 0) {
+    std::string mesg_mod =
+        fmt::format("Modified TILD NP rho is below zero and is unphysical.\n");
+    error->all(FLERR, mesg_mod);
+  }
 
   if (rho <= 0.f) {
     if (set_rho0 <= 0.f) {

@@ -58,7 +58,7 @@ SPHINXEXTRA = -E -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiproc
 # we only want to use explicitly listed files.
 DOXYFILES      = $(shell sed -n -e 's/\#.*$$//' -e '/^ *INPUT \+=/,/^[A-Z_]\+ \+=/p' doxygen/Doxyfile.in | sed -e 's/@LAMMPS_SOURCE_DIR@/..\/src/g' -e 's/\\//g' -e 's/ \+/ /' -e 's/[A-Z_]\+ \+= *\(YES\|NO\|\)//') 
 
-.PHONY: help clean-all clean clean-spelling epub mobi rst html pdf spelling anchor_check style_check char_check xmlgen
+.PHONY: help clean-all clean clean-spelling epub mobi rst html pdf spelling anchor_check style_check char_check xmlgen fasthtml
 
 # ------------------------------------------
 
@@ -70,7 +70,8 @@ help:
 	@echo "  epub          create ePUB format manual for e-book readers"
 	@echo "  mobi          convert ePUB to MOBI format manual for e-book readers (e.g. Kindle)"
 	@echo "                      (requires ebook-convert tool from calibre)"
-	@echo "  clean         remove all intermediate RST files"
+	@echo "  fasthtml      approximate HTML page creation in fasthtml dir (for development)"
+	@echo "  clean         remove all intermediate files"
 	@echo "  clean-all     reset the entire build environment"
 	@echo "  anchor_check  scan for duplicate anchor labels"
 	@echo "  style_check   check for complete and consistent style lists"
@@ -83,7 +84,7 @@ clean-all: clean
 	rm -rf $(BUILDDIR)/docenv $(MATHJAX) $(BUILDDIR)/LAMMPS.mobi $(BUILDDIR)/LAMMPS.epub $(BUILDDIR)/Manual.pdf
 
 clean: clean-spelling
-	rm -rf $(BUILDDIR)/html $(BUILDDIR)/epub $(BUILDDIR)/latex $(BUILDDIR)/doctrees $(BUILDDIR)/doxygen/xml $(BUILDDIR)/doxygen-warn.log $(BUILDDIR)/doxygen/Doxyfile $(SPHINXCONFIG)/conf.py
+	rm -rf $(BUILDDIR)/html $(BUILDDIR)/epub $(BUILDDIR)/latex $(BUILDDIR)/doctrees $(BUILDDIR)/doxygen/xml $(BUILDDIR)/doxygen-warn.log $(BUILDDIR)/doxygen/Doxyfile $(SPHINXCONFIG)/conf.py $(BUILDDIR)/fasthtml
 
 clean-spelling:
 	rm -rf $(BUILDDIR)/spelling
@@ -117,6 +118,23 @@ html: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 	@cp -r src/PDF html/PDF
 	@rm -rf html/PDF/.[sg]*
 	@echo "Build finished. The HTML pages are in doc/html."
+
+fasthtml: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
+	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
+	@$(MAKE) $(MFLAGS) -C graphviz all
+	@mkdir -p fasthtml
+	@(\
+		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
+		sphinx-build -j 4 -b html -c $(SPHINXCONFIG) -d $(BUILDDIR)/fasthtml/doctrees $(RSTDIR) fasthtml ;\
+		deactivate ;\
+	)
+	@rm -rf fasthtml/_sources
+	@rm -rf fasthtml/PDF
+	@rm -rf fasthtml/USER
+	@rm -rf fasthtml/JPG
+	@cp -r src/PDF fasthtml/PDF
+	@rm -rf fasthtml/PDF/.[sg]*
+	@echo "Fast HTML build finished. The HTML pages are in doc/fasthtml."
 
 spelling: xmlgen $(SPHINXCONFIG)/conf.py $(VENV) $(SPHINXCONFIG)/false_positives.txt
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi

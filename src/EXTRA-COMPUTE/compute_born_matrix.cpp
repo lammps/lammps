@@ -294,7 +294,7 @@ void ComputeBornMatrix::init()
 
     // need an occasional half neighbor list
 
-    neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
+    neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
     // int irequest = neighbor->request((void *) this);
     // neighbor->requests[irequest]->pair = 0;
     // neighbor->requests[irequest]->compute = 1;
@@ -353,10 +353,12 @@ void ComputeBornMatrix::compute_vector()
 
     // compute Born contribution
 
-    if (pairflag) compute_pairs();
-    if (bondflag) compute_bonds();
-    if (angleflag) compute_angles();
-    if (dihedflag) compute_dihedrals();
+    if (neighbor->ago > 0) {
+      if (pairflag) compute_pairs();
+      if (bondflag) compute_bonds();
+      if (angleflag) compute_angles();
+      if (dihedflag) compute_dihedrals();
+    }
 
     // sum Born contributions over all procs
 
@@ -1046,8 +1048,9 @@ void ComputeBornMatrix::compute_dihedrals()
   for (atom2 = 0; atom2 < nlocal; atom2++) {
     if (!(mask[atom2] & groupbit)) continue;
 
-    if (molecular == 1)
-      nd = num_dihedral[atom2];
+    // if (molecular == 1)
+    //   nd = num_dihedral[atom2];
+    if (molecular == Atom::MOLECULAR) nd = num_dihedral[atom2];
     else {
       if (molindex[atom2] < 0) continue;
       imol = molindex[atom2];
@@ -1081,7 +1084,7 @@ void ComputeBornMatrix::compute_dihedrals()
       // dU(t)/de = dt/dcos(t)*dU(t)/dt*dcos(t)/de
       // with dt/dcos(t) = -1/sin(t)
 
-      dihedral->born_matrix(nd, atom1, atom2, atom3, atom4, dudih, du2dih);
+      dihedral->born_matrix(i, atom1, atom2, atom3, atom4, dudih, du2dih);
 
       vb1x = x[atom2][0] - x[atom1][0];
       vb1y = x[atom2][1] - x[atom1][1];

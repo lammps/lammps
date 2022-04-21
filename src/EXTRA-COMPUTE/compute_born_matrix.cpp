@@ -45,6 +45,7 @@
 using namespace LAMMPS_NS;
 
 #define BIG 1000000000
+#define SMALL 1e-16
 
 // this table is used to pick the 3d rij vector indices used to
 // compute the 6 indices long Voigt stress vector
@@ -731,7 +732,7 @@ double ComputeBornMatrix::memory_usage()
 
 void ComputeBornMatrix::compute_bonds()
 {
-  int i, j, m, n, nb, atom1, atom2, imol, iatom, btype, ivar;
+  int i, m, n, nb, atom1, atom2, imol, iatom, btype, ivar;
   tagint tagprev;
   double dx, dy, dz, rsq;
 
@@ -761,61 +762,56 @@ void ComputeBornMatrix::compute_bonds()
 
   // loop over all atoms and their bonds
 
-  m = 0;
-  while (m < nvalues) {
+  for (atom1 = 0; atom1 < nlocal; atom1++) {
+    if (!(mask[atom1] & groupbit)) continue;
 
-    for (atom1 = 0; atom1 < nlocal; atom1++) {
-      if (!(mask[atom1] & groupbit)) continue;
+    if (molecular == 1)
+      nb = num_bond[atom1];
+    else {
+      if (molindex[atom1] < 0) continue;
+      imol = molindex[atom1];
+      iatom = molatom[atom1];
+      nb = onemols[imol]->num_bond[iatom];
+    }
 
-      if (molecular == 1)
-        nb = num_bond[atom1];
-      else {
-        if (molindex[atom1] < 0) continue;
-        imol = molindex[atom1];
-        iatom = molatom[atom1];
-        nb = onemols[imol]->num_bond[iatom];
+    for (i = 0; i < nb; i++) {
+      if (molecular == 1) {
+        btype = bond_type[atom1][i];
+        atom2 = atom->map(bond_atom[atom1][i]);
+      } else {
+        tagprev = tag[atom1] - iatom - 1;
+        btype = onemols[imol]->bond_type[iatom][i];
+        atom2 = atom->map(onemols[imol]->bond_atom[iatom][i] + tagprev);
       }
 
-      for (i = 0; i < nb; i++) {
-        if (molecular == 1) {
-          btype = bond_type[atom1][i];
-          atom2 = atom->map(bond_atom[atom1][i]);
-        } else {
-          tagprev = tag[atom1] - iatom - 1;
-          btype = onemols[imol]->bond_type[iatom][i];
-          atom2 = atom->map(onemols[imol]->bond_atom[iatom][i] + tagprev);
-        }
+      if (atom2 < 0 || !(mask[atom2] & groupbit)) continue;
+      if (newton_bond == 0 && tag[atom1] > tag[atom2]) continue;
+      if (btype <= 0) continue;
 
-        if (atom2 < 0 || !(mask[atom2] & groupbit)) continue;
-        if (newton_bond == 0 && tag[atom1] > tag[atom2]) continue;
-        if (btype <= 0) continue;
+      dx = x[atom2][0] - x[atom1][0];
+      dy = x[atom2][1] - x[atom1][1];
+      dz = x[atom2][2] - x[atom1][2];
+      domain->minimum_image(dx, dy, dz);
+      rsq = dx * dx + dy * dy + dz * dz;
+      rij[0] = dx;
+      rij[1] = dy;
+      rij[2] = dz;
+      r2inv = 1.0 / rsq;
+      rinv = sqrt(r2inv);
 
-        dx = x[atom2][0] - x[atom1][0];
-        dy = x[atom2][1] - x[atom1][1];
-        dz = x[atom2][2] - x[atom1][2];
-        domain->minimum_image(dx, dy, dz);
-        rsq = dx * dx + dy * dy + dz * dz;
-        rij[0] = dx;
-        rij[1] = dy;
-        rij[2] = dz;
-        r2inv = 1.0 / rsq;
-        rinv = sqrt(r2inv);
+      pair_pref = dupair = du2pair = 0.0;
+      bond->born_matrix(btype, rsq, atom1, atom2, dupair, du2pair);
+      pair_pref = du2pair - dupair * rinv;
 
-        pair_pref = dupair = du2pair = 0.0;
-        bond->born_matrix(btype, rsq, atom1, atom2, dupair, du2pair);
-        pair_pref = du2pair - dupair * rinv;
-
-        a = b = c = d = 0;
-        for (j = 0; j < 21; j++) {
-          a = albemunu[j][0];
-          b = albemunu[j][1];
-          c = albemunu[j][2];
-          d = albemunu[j][3];
-          values_local[m + j] += pair_pref * rij[a] * rij[b] * rij[c] * rij[d] * r2inv;
-        }
+      a = b = c = d = 0;
+      for (m = 0; m < 21; m++) {
+        a = albemunu[m][0];
+        b = albemunu[m][1];
+        c = albemunu[m][2];
+        d = albemunu[m][3];
+        values_local[m] += pair_pref * rij[a] * rij[b] * rij[c] * rij[d] * r2inv;
       }
     }
-    m += 21;
   }
 }
 
@@ -830,12 +826,12 @@ void ComputeBornMatrix::compute_bonds()
 
 void ComputeBornMatrix::compute_angles()
 {
-  int i, j, m, n, na, atom1, atom2, atom3, imol, iatom, atype, ivar;
+  int i, m, n, na, atom1, atom2, atom3, imol, iatom, atype, ivar;
   tagint tagprev;
   double delx1, dely1, delz1, delx2, dely2, delz2;
   double rsq1, rsq2, r1, r2, cost;
   double r1r2, r1r2inv;
-  double rsq1inv, rsq2inv, r1inv, r2inv, cinv;
+  double rsq1inv, rsq2inv, cinv;
   double *ptr;
 
   double **x = atom->x;
@@ -910,7 +906,6 @@ void ComputeBornMatrix::compute_angles()
       rsq1 = delx1 * delx1 + dely1 * dely1 + delz1 * delz1;
       rsq1inv = 1.0 / rsq1;
       r1 = sqrt(rsq1);
-      r1inv = 1.0 / r1;
 
       delx2 = x[atom3][0] - x[atom2][0];
       dely2 = x[atom3][1] - x[atom2][1];
@@ -923,21 +918,30 @@ void ComputeBornMatrix::compute_angles()
       rsq2 = delx2 * delx2 + dely2 * dely2 + delz2 * delz2;
       rsq2inv = 1.0 / rsq2;
       r2 = sqrt(rsq2);
-      r2inv = 1.0 / r2;
 
       r1r2 = delx1 * delx2 + dely1 * dely2 + delz1 * delz2;
-      r1r2inv = 1 / r1r2;
-      // cost = cosine of angle
+      r1r2inv = 0;
+      if (r1r2 == 0.) {
+        // Worst case scenario. A 0 cosine has an undefined logarithm.
+        // We then add a small amount of the third bond to the first one
+        // so they are not orthogonal anymore and recompute.
+        del1[0] += SMALL*del2[0];
+        del1[1] += SMALL*del2[1];
+        del1[2] += SMALL*del2[2];
+        r1r2 = del1[0] * del2[0] + del1[1] * del2[1] + del1[2] * del2[2];
+        r1r2inv = 1/r1r2;
 
-      cost = delx1 * delx2 + dely1 * dely2 + delz1 * delz2;
-      cost /= r1 * r2;
+        // cost = cosine of angle
+        cost = r1r2/(r1 * r2);
+
+      } else {
+        r1r2inv = 1/r1r2;
+        cost = r1r2/(r1 * r2);
+      }
+
       if (cost > 1.0) cost = 1.0;
       if (cost < -1.0) cost = -1.0;
-      if (cost == 0.) {
-          cinv = 1.0 / cost;
-      } else {
-          cinv = 0.;
-      }
+      cinv = 1.0 / cost;
 
       // The method must return derivative with regards
       // to cos(theta)!
@@ -951,30 +955,26 @@ void ComputeBornMatrix::compute_angles()
       // 4 = 23, 5 = 13, 6 = 12
       a = b = c = d = 0;
       // clang-format off
-      for (j = 0; j<6; j++) {
-          if (cost == 0) {
-              dcos[j] = 0.;
-          } else {
-            a = sigma_albe[j][0];
-            b = sigma_albe[j][1];
-            dcos[j] = cost*((del1[a]*del2[b]+del1[b]*del2[a])*r1r2inv -
-                            del1[a]*del1[b]*rsq1inv - del2[a]*del2[b]*rsq2inv);
-          }
+      for (m = 0; m<6; m++) {
+        a = sigma_albe[m][0];
+        b = sigma_albe[m][1];
+        dcos[m] = cost*((del1[a]*del2[b]+del1[b]*del2[a])*r1r2inv -
+                        del1[a]*del1[b]*rsq1inv - del2[a]*del2[b]*rsq2inv);
       }
-      for (j = 0; j<21; j++) {
-        a = albemunu[j][0];
-        b = albemunu[j][1];
-        c = albemunu[j][2];
-        d = albemunu[j][3];
-        e = C_albe[j][0];
-        f = C_albe[j][1];
+      for (m = 0; m<21; m++) {
+        a = albemunu[m][0];
+        b = albemunu[m][1];
+        c = albemunu[m][2];
+        d = albemunu[m][3];
+        e = C_albe[m][0];
+        f = C_albe[m][1];
         d2lncos = 2*(del1[a]*del1[b]*del1[c]*del1[d]*rsq1inv*rsq1inv +
                         del2[a]*del2[b]*del2[c]*del2[d]*rsq2inv*rsq2inv) -
                        (del1[a]*del2[b]+del1[b]*del2[a]) *
                        (del1[c]*del2[d]+del1[d]*del2[c]) *
                        r1r2inv*r1r2inv;
         d2cos =  cost*d2lncos + dcos[e]*dcos[f]*cinv;
-        values_local[m+j] += duang*d2cos + du2ang*dcos[e]*dcos[f];
+        values_local[m] += duang*d2cos + du2ang*dcos[e]*dcos[f];
       }
       // clang-format on
     }
@@ -991,7 +991,7 @@ void ComputeBornMatrix::compute_angles()
 
 void ComputeBornMatrix::compute_dihedrals()
 {
-  int i, j, m, n, nd, atom1, atom2, atom3, atom4, imol, iatom, dtype, ivar;
+  int i, m, n, nd, atom1, atom2, atom3, atom4, imol, iatom, dtype, ivar;
   tagint tagprev;
   double vb1x, vb1y, vb1z, vb2x, vb2y, vb2z, vb3x, vb3y, vb3z, vb2xm, vb2ym, vb2zm;
   double ax, ay, az, bx, by, bz, rasq, rbsq, dotab, rgsq, rg, ra2inv, rb2inv, dotabinv, rabinv;
@@ -1030,8 +1030,7 @@ void ComputeBornMatrix::compute_dihedrals()
   double b2[3];
   double b3[3];
 
-  // Actually derivatives of the square of the
-  // vectors dot product.
+  // 1st and 2nd order derivatives of the dot products
   double dab[6];
   double daa[6];
   double dbb[6];
@@ -1083,7 +1082,6 @@ void ComputeBornMatrix::compute_dihedrals()
       // with dt/dcos(t) = -1/sin(t)
 
       dihedral->born_matrix(nd, atom1, atom2, atom3, atom4, dudih, du2dih);
-      printf("Energy: %f, %f\n", dudih, du2dih);
 
       vb1x = x[atom2][0] - x[atom1][0];
       vb1y = x[atom2][1] - x[atom1][1];
@@ -1111,15 +1109,6 @@ void ComputeBornMatrix::compute_dihedrals()
       b3[1] = vb3y;
       b3[2] = vb3z;
       b3sq = b3[0] * b3[0] + b3[1] * b3[1] + b3[2] * b3[2];
-      printf("b1 :");
-      for (i = 0; i<3; i++) printf(" %f ", b1[i]);
-      printf("\n");
-      printf("b2 :");
-      for (i = 0; i<3; i++) printf(" %f ", b2[i]);
-      printf("\n");
-      printf("b3 :");
-      for (i = 0; i<3; i++) printf(" %f ", b3[i]);
-      printf("\n");
 
       b1b2 = b1[0] * b2[0] + b1[1] * b2[1] + b1[2] * b2[2];
       b1b3 = b1[0] * b3[0] + b1[1] * b3[1] + b1[2] * b3[2];
@@ -1142,89 +1131,76 @@ void ComputeBornMatrix::compute_dihedrals()
       ra2inv = rb2inv = rabinv = dotabinv = 0.0;
       if (rasq > 0) ra2inv = 1.0 / rasq;
       if (rbsq > 0) rb2inv = 1.0 / rbsq;
-      dotabinv = 1.0/dotab;
+      if (dotab != 0.) dotabinv = 1.0/dotab;
       rabinv = sqrt(ra2inv * rb2inv);
-      printf("a :");
-      printf(" %f %f %f %f ", ax, ay, az, ra2inv);
-      printf("b :");
-      printf(" %f %f %f %f ", bx, by, bz, rb2inv);
-      printf("rabinv :");
-      printf(" %f", dotabinv);
-      printf("\n");
-      printf("TESTa1: %f, TESTa2: %f\n", rasq, b1sq*b2sq-b1b2*b1b2);
-      printf("TESTb1: %f, TESTb2: %f\n", rbsq, b3sq*b2sq-b2b3*b2b3);
-      printf("TESTab1: %f, TESTab2: %f\n", 1/dotabinv, b1b3*b2sq-b1b2*b2b3);
 
       co = (ax * bx + ay * by + az * bz) * rabinv;
-      si = rg * rabinv * (ax * vb3x + ay * vb3y + az * vb3z);
+      si = sqrt(b2sq) * rabinv * (ax * vb3x + ay * vb3y + az * vb3z);
 
+      if (co == 0.) {
+        // Worst case scenario. A 0 cosine has an undefined logarithm.
+        // We then add a small amount of the third bond to the first one
+        // so they are not orthogonal anymore and recompute.
+        b1[0] += SMALL*b3[0];
+        b1[1] += SMALL*b3[1];
+        b1[2] += SMALL*b3[2];
+        b1sq = b1[0] * b1[0] + b1[1] * b1[1] + b1[2] * b1[2];
+        b3sq = b3[0] * b3[0] + b3[1] * b3[1] + b3[2] * b3[2];
+        b1b2 = b1[0] * b2[0] + b1[1] * b2[1] + b1[2] * b2[2];
+        b1b3 = b1[0] * b3[0] + b1[1] * b3[1] + b1[2] * b3[2];
+        b2b3 = b2[0] * b3[0] + b2[1] * b3[1] + b2[2] * b3[2];
+        ax = b1[1] * b2[2] - b1[2] * b2[1];
+        ay = b1[2] * b2[0] - b1[0] * b2[2];
+        az = b1[0] * b2[1] - b1[1] * b2[0];
+        bx = b2[1] * b3[2] - b2[2] * b3[1];
+        by = b2[2] * b3[0] - b2[0] * b3[2];
+        bz = b2[0] * b3[1] - b2[1] * b3[0];
+        rasq = ax * ax + ay * ay + az * az;
+        rbsq = bx * bx + by * by + bz * bz;
+        dotab = ax*bx + ay*by + az*bz;
+        ra2inv = rb2inv = rabinv = dotabinv = 0.0;
+        if (rasq > 0) ra2inv = 1.0 / rasq;
+        if (rbsq > 0) rb2inv = 1.0 / rbsq;
+        if (dotab != 0.) dotabinv = 1.0/dotab;
+        rabinv = sqrt(ra2inv * rb2inv);
+        co = (ax * bx + ay * by + az * bz) * rabinv;
+        si = sqrt(b2sq) * rabinv * (ax * vb3x + ay * vb3y + az * vb3z);
+      }
       if (co > 1.0) co = 1.0;
       if (co < -1.0) co = -1.0;
+
       phi = atan2(si, co);
-      printf("Cos: %18.15g, Sin: %18.15g, Phi: %18.15g\n", co, si, phi);
 
       al = be = mu = nu = e = f = 0;
-      double d2lncos;
-      int test1 = 19;
-      int test2 = -1;
-      int test3 = -1;
       // clang-format off
-      for (j = 0; j<6; j++) {
-        al = sigma_albe[j][0];
-        be = sigma_albe[j][1];
+      for (m = 0; m<6; m++) {
+        al = sigma_albe[m][0];
+        be = sigma_albe[m][1];
 
-        daa[j] = 2*(b2sq*b1[al]*b1[be]
+        daa[m] = 2*(b2sq*b1[al]*b1[be]
                   + b1sq*b2[al]*b2[be]
                   - b1b2*(b1[al]*b2[be]+b2[al]*b1[be]));
 
-        dbb[j] = 2*(b2sq*b3[al]*b3[be]
+        dbb[m] = 2*(b2sq*b3[al]*b3[be]
                   + b3sq*b2[al]*b2[be]
                   - b2b3*(b3[al]*b2[be]+b2[al]*b3[be]));
 
-        dab[j] = b1b2*(b2[al]*b3[be]+b3[al]*b2[be])
+        dab[m] = b1b2*(b2[al]*b3[be]+b3[al]*b2[be])
                + b2b3*(b1[al]*b2[be]+b2[al]*b1[be])
                - b1b3*(b2[al]*b2[be]+b2[al]*b2[be])
                - b2sq*(b1[al]*b3[be]+b3[al]*b1[be]);
 
-        if (j == test1) {
-            printf("b3sq = %f, b2[al] = %f, b2[be] = %f\n", b3sq, b2[al], b3[be]);
-            printf("daa1 = %18.15g, daa2 = %18.15g, daa3 = %18.15g\n", b2sq*b1[al]*b1[be], b1sq*b2[al]*b2[be], b1b2*(b1[al]*b2[be]+b2[al]*b1[be]));
-            printf("dbb1 = %18.15g, dbb2 = %18.15g, dbb3 = %18.15g\n", b2sq*b3[al]*b3[be], b3sq*b2[al]*b2[be], b2b3*(b3[al]*b2[be]+b2[al]*b3[be]));
-            printf("dab1 = %18.15g, dab2 = %18.15g, dab3 = %18.15g, dab4 = %18.15g\n", b1b2*(b2[al]*b3[be]+b3[al]*b2[be]), b2b3*(b1[al]*b2[be]+b2[al]*b1[be]), -b1b3*(b2[al]*b2[be]+b2[al]*b2[be]), -b2sq*(b1[al]*b3[be]+b3[al]*b1[be]));
-        }
 
-        dcos[j] = 0.5*co*(2*dotabinv*dab[j] - ra2inv*daa[j] - rb2inv*dbb[j]);
-        if (j == test1 || j == test2) {
-            printf("order 1 %d al: %d, be: %d\n", j+1, al, be);
-            printf("daa = %18.15g, dbb = %18.15g, dab = %18.15g\n", daa[j], dbb[j], dab[j]);
-            printf("daa/raa = %18.15g, dbb/rbb = %18.15g, dab/rab = %18.15g\n", ra2inv*daa[j], rb2inv*dbb[j], dotabinv*dab[j]);
-            printf("dcos = %e\n", dcos[j]);
-        }
+        dcos[m] = 0.5*co*(2*dotabinv*dab[m] - ra2inv*daa[m] - rb2inv*dbb[m]);
       }
-      printf("dcos:\n");
-      printf("%e %e %e\n", dcos[0], dcos[1], dcos[2]);
-      printf("%e %e %e\n", dcos[3], dcos[4], dcos[5]);
-      printf("\n");
-      printf("daa:\n");
-      printf("%e %e %e\n", daa[0], daa[1], daa[2]);
-      printf("%e %e %e\n", daa[3], daa[4], daa[5]);
-      printf("\n");
-      printf("dbb:\n");
-      printf("%e %e %e\n", dbb[0], dbb[1], dbb[2]);
-      printf("%e %e %e\n", dbb[3], dbb[4], dbb[5]);
-      printf("\n");
-      printf("dab:\n");
-      printf("%e %e %e\n", dab[0], dab[1], dab[2]);
-      printf("%e %e %e\n", dab[3], dab[4], dab[5]);
-      printf("\n");
 
-      for (j = 0; j<21; j++) {
-        al = albemunu[j][0];
-        be = albemunu[j][1];
-        mu = albemunu[j][2];
-        nu = albemunu[j][3];
-        e = C_albe[j][0];
-        f = C_albe[j][1];
+      for (m = 0; m<21; m++) {
+        al = albemunu[m][0];
+        be = albemunu[m][1];
+        mu = albemunu[m][2];
+        nu = albemunu[m][3];
+        e = C_albe[m][0];
+        f = C_albe[m][1];
 
         d2aa = 4*(b1[al]*b1[be]*b2[mu]*b2[nu] + b1[mu]*b1[nu]*b2[al]*b2[be])
              - 2*(b1[al]*b2[be]+b1[be]*b2[al])*(b1[mu]*b2[nu]+b1[nu]*b2[mu]);
@@ -1237,58 +1213,15 @@ void ComputeBornMatrix::compute_dihedrals()
              - (b1[al]*b3[be]+b3[al]*b1[be])*(b2[mu]*b2[nu]+b2[mu]*b2[nu])
              - (b2[al]*b2[be]+b2[al]*b2[be])*(b1[mu]*b3[nu]+b3[mu]*b1[nu]);
 
-        if (j == test1 || j == test2 || j == test3) {
-            printf("b1al = %g ", b1[al]);
-            printf("b1be = %g ", b1[be]);
-            printf("b1mu = %g ", b1[mu]);
-            printf("b1nu = %g ", b1[nu]);
-            printf("b2al = %g ", b2[al]);
-            printf("b2be = %g ", b2[be]);
-            printf("b2mu = %g ", b2[mu]);
-            printf("b2nu = %g ", b2[nu]);
-            printf("b3al = %g ", b3[al]);
-            printf("b3be = %g ", b3[be]);
-            printf("b3mu = %g ", b3[mu]);
-            printf("b3nu = %g \n", b3[nu]);
-            printf("d2aa details:\n");
-            printf("1: %e\n", 4*(b1[al]*b1[be]*b2[mu]*b2[nu]+b1[mu]*b1[nu]*b2[al]*b2[be]));
-            printf("2: %e\n", 2*(b1[al]*b2[be]*(b1[mu]*b2[nu] + b1[nu]*b2[mu])));
-            printf("3: %e\n", 2*(b1[be]*b2[al]*(b1[mu]*b2[nu] + b1[nu]*b2[mu])));
-            printf("d2bb details:\n");
-            printf("1: %e\n", 4*(b3[al]*b3[be]*b2[mu]*b2[nu]+b3[mu]*b3[nu]*b2[al]*b2[be]));
-            printf("2: %e\n", 2*(b3[al]*b2[be]*(b3[mu]*b2[nu] + b3[nu]*b2[mu])));
-            printf("3: %e\n", 2*(b3[be]*b2[al]*(b3[mu]*b2[nu] + b3[nu]*b2[mu])));
-            printf("d2ab details:\n");
-            printf("1: %e\n", (b1[al]*b3[be]+b1[be]*b3[al])*(b2[mu]*b2[nu]+b2[nu]*b2[mu]));
-            printf("2: %e\n", 2*b2[al]*b2[be]*(b1[mu]*b3[nu]+b1[nu]*b3[mu]));
-            printf("3: %e\n", (b2[al]*b3[be]+b2[be]*b3[al])*(b1[mu]*b2[nu]+b1[nu]*b2[mu]));
-            printf("4: %e\n", (b2[al]*b1[be]+b2[be]*b1[al])*(b2[mu]*b3[nu]+b2[nu]*b3[mu]));
-        }
+        d2cos = -2*dotabinv*dotabinv*dab[e]*dab[f] + 2*dotabinv*d2ab
+                + ra2inv*ra2inv*daa[e]*daa[f] - ra2inv*d2aa
+                + rb2inv*rb2inv*dbb[e]*dbb[f] - rb2inv*d2bb
+                + 2*dcos[e]*dcos[f]/co/co;
+        d2cos *= 0.5*co;
 
-        // d2lncos = 2*(dotabinv*d2ab - dotabinv*dotabinv*dab[e]*dab[f]) + (ra2inv*ra2inv*daa[e]*daa[f] - ra2inv*d2aa) + (rb2inv*rb2inv*dbb[e]*dbb[f] - rb2inv*d2bb);
-        // d2cos = 0.5*co*d2lncos + dcos[e]*dcos[f]/co/co;
-        d2cos = 0.5*co*(-2*dotabinv*dotabinv*dab[e]*dab[f] + 2*dotabinv*d2ab + ra2inv*ra2inv*daa[e]*daa[f] - ra2inv*d2aa + rb2inv*rb2inv*dbb[e]*dbb[f] - rb2inv*d2bb + 2*dcos[e]*dcos[f]/co);
-
-        values_local[m+j] += dudih*d2cos;
-        values_local[m+j] += du2dih*dcos[e]*dcos[f];
-        if (j == test1 || j == test2 || j == test3) {
-            printf("order 2 %d al: %d, be: %d\n", j+1, al, be);
-            printf("           mu: %d, nu: %d\n", mu, nu);
-            printf("           e: %d, f: %d\n", e, f);
-            printf("d2aa = %18.15e, d2bb = %18.15e, d2ab = %18.15e\n", d2aa, d2bb, d2ab);
-            printf("(ab) t1 = %18.15e; t2 = %18.15e\n", dotabinv*d2ab, dotabinv*dotabinv*dab[e]*dab[f]);
-            printf("(aa) t1 = %18.15e; t2 = %18.15e\n", ra2inv*d2aa, ra2inv*ra2inv*daa[e]*daa[f]);
-            printf("(aa) 0.5*(t1-t2) = %18.15e\n", 0.5*(ra2inv*d2aa-ra2inv*ra2inv*daa[e]*daa[f]));
-            printf("(bb) t1 = %18.15e; t2 = %18.15e\n", rb2inv*d2bb, rb2inv*rb2inv*dbb[e]*dbb[f]);
-            printf("(bb) 0.5*(t1-t2) = %18.15e\n", 0.5*(rb2inv*d2bb - rb2inv*rb2inv*dbb[e]*dbb[f]));
-            printf("D1 = %18.15e; D2 = %18.15e\n", dotabinv*d2ab+0.5*(ra2inv*d2aa+rb2inv*d2bb), dotabinv*dotabinv*dab[e]*dab[f]-0.5*(ra2inv*ra2inv*daa[e]*daa[f]+rb2inv*rb2inv*dbb[e]*dbb[f]));
-            printf("d2lncos = %18.15e\n", d2lncos);
-            printf("co*d2lncos = %18.15e; dcos*dcos/co = %18.15e\n", co*d2lncos, dcos[e]*dcos[f]/co);
-            printf("d2cos = %e\n", d2cos);
-            printf("dudih*d2cos = %e; du2dih*dcos*dcos = %e\n", dudih*d2cos, du2dih*dcos[e]*dcos[f]);
-        }
+        values_local[m] += dudih*d2cos;
+        values_local[m] += du2dih*dcos[e]*dcos[f];
       }
-      printf("\n");
       // clang-format on
     }
   }

@@ -355,9 +355,7 @@ void DihedralNHarmonic::born_matrix(int nd, int i1, int i2, int i3, int i4,
   double **x = atom->x;
 
   int ndihedrallist = neighbor->ndihedrallist;
-  if (nd > ndihedrallist) error->all(FLERR,"Incorrect dihedral number in DihedralNharmonic Born_matrix for dihedral coefficients");
-  // type = dihedrallist[nd][4];
-  type = 1;
+  type = dihedrallist[nd][4];
 
   vb1x = x[i1][0] - x[i2][0];
   vb1y = x[i1][1] - x[i2][1];

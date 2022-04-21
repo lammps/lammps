@@ -181,9 +181,11 @@ void FixGroup::set_group()
   int nlocal = atom->nlocal;
 
   // invoke atom-style variable if defined
-  // this is for any compute to check if it needs to
-  //   operate differently due to invocation this early in timestep
-  // e.g. perform ghost comm update due to atoms having just moved
+  // NOTE: after variable invocation could reset invoked computes to not-invoked
+  //   this would avoid an issue where other post-force fixes 
+  //   change the compute result since it will not be re-invoked at end-of-step,
+  //   e.g. if compute pe/atom includes pe contributions from fixes
+
 
   double *var = nullptr;
   int *ivector = nullptr;

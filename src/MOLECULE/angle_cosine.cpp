@@ -75,7 +75,6 @@ void AngleCosine::compute(int eflag, int vflag)
     dely1 = x[i1][1] - x[i2][1];
     delz1 = x[i1][2] - x[i2][2];
 
-    domain->minimum_image(delx1, dely1, delz1);
     rsq1 = delx1 * delx1 + dely1 * dely1 + delz1 * delz1;
     r1 = sqrt(rsq1);
 
@@ -84,7 +83,6 @@ void AngleCosine::compute(int eflag, int vflag)
     delx2 = x[i3][0] - x[i2][0];
     dely2 = x[i3][1] - x[i2][1];
     delz2 = x[i3][2] - x[i2][2];
-    domain->minimum_image(delx2, dely2, delz2);
 
     rsq2 = delx2 * delx2 + dely2 * dely2 + delz2 * delz2;
     r2 = sqrt(rsq2);

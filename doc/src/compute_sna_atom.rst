@@ -73,7 +73,7 @@ Examples
    compute vb all sna/atom 1.4 0.95 6 2.0 1.0
    compute snap all snap 1.4 0.95 6 2.0 1.0
    compute snap all snap 1.0 0.99363 6 3.81 3.83 1.0 0.93 chem 2 0 1
-   compute snap all snap 1.0 0.99363 6 3.81 3.83 1.0 0.93 switchinnerflag 1.1 1.3 0.5 0.6
+   compute snap all snap 1.0 0.99363 6 3.81 3.83 1.0 0.93 switchinnerflag 1.35 1.6 0.25 0.3
 
 Description
 """""""""""

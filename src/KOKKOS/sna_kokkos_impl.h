@@ -25,12 +25,13 @@
 namespace LAMMPS_NS {
 
 static const double MY_PI  = 3.14159265358979323846; // pi
+static const double MY_PI2  = 1.57079632679489661923; // pi/2
 
 template<class DeviceType, typename real_type, int vector_length>
 inline
 SNAKokkos<DeviceType, real_type, vector_length>::SNAKokkos(real_type rfac0_in,
          int twojmax_in, real_type rmin0_in, int switch_flag_in, int bzero_flag_in,
-         int chem_flag_in, int bnorm_flag_in, int wselfall_flag_in, int nelements_in)
+	 int chem_flag_in, int bnorm_flag_in, int wselfall_flag_in, int nelements_in, int switch_inner_flag_in)
 {
   LAMMPS_NS::ExecutionSpace execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   host_flag = (execution_space == LAMMPS_NS::Host);
@@ -40,6 +41,7 @@ SNAKokkos<DeviceType, real_type, vector_length>::SNAKokkos(real_type rfac0_in,
   rfac0 = rfac0_in;
   rmin0 = rmin0_in;
   switch_flag = switch_flag_in;
+  switch_inner_flag = switch_inner_flag_in;
   bzero_flag = bzero_flag_in;
 
   chem_flag = chem_flag_in;
@@ -295,6 +297,8 @@ void SNAKokkos<DeviceType, real_type, vector_length>::grow_rij(int newnatom, int
   rij = t_sna_3d(Kokkos::NoInit("sna:rij"),natom,nmax,3);
   wj = t_sna_2d(Kokkos::NoInit("sna:wj"),natom,nmax);
   rcutij = t_sna_2d(Kokkos::NoInit("sna:rcutij"),natom,nmax);
+  sinnerij = t_sna_2d(Kokkos::NoInit("sna:sinnerij"),natom,nmax);
+  dinnerij = t_sna_2d(Kokkos::NoInit("sna:dinnerij"),natom,nmax);
   inside = t_sna_2i(Kokkos::NoInit("sna:inside"),natom,nmax);
   element = t_sna_2i(Kokkos::NoInit("sna:element"),natom,nmax);
   dedr = t_sna_3d(Kokkos::NoInit("sna:dedr"),natom,nmax,3);
@@ -371,6 +375,8 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_cayley_klein(const
   const real_type rsq = x * x + y * y + z * z;
   const real_type r = sqrt(rsq);
   const real_type rcut = rcutij(iatom, jnbor);
+  const real_type sinner = sinnerij(iatom, jnbor);
+  const real_type dinner = dinnerij(iatom, jnbor);
   const real_type rscale0 = rfac0 * static_cast<real_type>(MY_PI) / (rcut - rmin0);
   const real_type theta0 = (r - rmin0) * rscale0;
   const real_type sn = sin(theta0);
@@ -380,7 +386,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_cayley_klein(const
 
   const real_type wj_local = wj(iatom, jnbor);
   real_type sfac, dsfac;
-  compute_s_dsfac(r, rcut, sfac, dsfac);
+  compute_s_dsfac(r, rcut, sinner, dinner, sfac, dsfac);
   sfac *= wj_local;
   dsfac *= wj_local;
 
@@ -1238,7 +1244,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_ui_cpu(const typen
   z0 = r / tan(theta0);
 
   compute_uarray_cpu(team, iatom, jnbor, x, y, z, z0, r);
-  add_uarraytot(team, iatom, jnbor, r, wj(iatom,jnbor), rcutij(iatom,jnbor), element(iatom, jnbor));
+  add_uarraytot(team, iatom, jnbor, r, wj(iatom,jnbor), rcutij(iatom,jnbor), sinnerij(iatom,jnbor), dinnerij(iatom,jnbor), element(iatom, jnbor));
 
 }
 /* ----------------------------------------------------------------------
@@ -1541,7 +1547,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_duidrj_cpu(const t
   z0 = r * cs / sn;
   dz0dr = z0 / r - (r*rscale0) * (rsq + z0 * z0) / rsq;
 
-  compute_duarray_cpu(team, iatom, jnbor, x, y, z, z0, r, dz0dr, wj(iatom,jnbor), rcutij(iatom,jnbor));
+  compute_duarray_cpu(team, iatom, jnbor, x, y, z, z0, r, dz0dr, wj(iatom,jnbor), rcutij(iatom,jnbor), sinnerij(iatom,jnbor), dinnerij(iatom,jnbor));
 }
 
 
@@ -1623,9 +1629,10 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_deidrj_cpu(const t
 template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, vector_length>::add_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor,
-                                          const real_type& r, const real_type& wj, const real_type& rcut, int jelem)
+    const real_type& r, const real_type& wj, const real_type& rcut,
+    const real_type& sinner, const real_type& dinner, int jelem)
 {
-  const real_type sfac = compute_sfac(r, rcut) * wj;
+  const real_type sfac = compute_sfac(r, rcut, sinner, dinner) * wj;
 
   Kokkos::parallel_for(Kokkos::ThreadVectorRange(team,twojmax+1),
       [&] (const int& j) {
@@ -1746,7 +1753,8 @@ KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, vector_length>::compute_duarray_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor,
                           const real_type& x, const real_type& y, const real_type& z,
                           const real_type& z0, const real_type& r, const real_type& dz0dr,
-                          const real_type& wj, const real_type& rcut)
+			  const real_type& wj, const real_type& rcut,
+			  const real_type& sinner, const real_type& dinner)
 {
   real_type r0inv;
   real_type a_r, a_i, b_r, b_i;
@@ -1872,8 +1880,8 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_duarray_cpu(const 
     });
   }
 
-  real_type sfac = compute_sfac(r, rcut);
-  real_type dsfac = compute_dsfac(r, rcut);
+  real_type sfac = compute_sfac(r, rcut, sinner, dinner);
+  real_type dsfac = compute_dsfac(r, rcut, sinner, dinner);
 
   sfac *= wj;
   dsfac *= wj;
@@ -2224,7 +2232,7 @@ int SNAKokkos<DeviceType, real_type, vector_length>::compute_ncoeff()
 
 template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-real_type SNAKokkos<DeviceType, real_type, vector_length>::compute_sfac(real_type r, real_type rcut)
+real_type SNAKokkos<DeviceType, real_type, vector_length>::compute_sfac(real_type r, real_type rcut, real_type sinner, real_type  dinner)
 {
   constexpr real_type one = static_cast<real_type>(1.0);
   constexpr real_type zero = static_cast<real_type>(0.0);
@@ -2235,18 +2243,30 @@ real_type SNAKokkos<DeviceType, real_type, vector_length>::compute_sfac(real_typ
     else if (r > rcut) return zero;
     else {
       real_type rcutfac = static_cast<real_type>(MY_PI) / (rcut - rmin0);
-      return onehalf * (cos((r - rmin0) * rcutfac) + one);
+      if (switch_inner_flag == 0)
+	return onehalf * (cos((r - rmin0) * rcutfac) + one);
+      if (switch_inner_flag == 1) {
+	if (r >= sinner + dinner) 
+	  return onehalf * (cos((r - rmin0) * rcutfac) + one);
+	else if (r > sinner - dinner) {
+	  real_type rcutfacinner = static_cast<real_type>(MY_PI2) / dinner;
+	  return onehalf * (cos((r - rmin0) * rcutfac) + one) *
+	    onehalf * (one - cos(static_cast<real_type>(MY_PI2) + (r - sinner) * rcutfacinner));
+	} else return zero;
+      }
+      return zero; // dummy return
     }
   }
-  return zero;
+  return zero; // dummy return
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-real_type SNAKokkos<DeviceType, real_type, vector_length>::compute_dsfac(real_type r, real_type rcut)
+real_type SNAKokkos<DeviceType, real_type, vector_length>::compute_dsfac(real_type r, real_type rcut, real_type sinner, real_type dinner)
 {
+  constexpr real_type one = static_cast<real_type>(1.0);
   constexpr real_type zero = static_cast<real_type>(0.0);
   constexpr real_type onehalf = static_cast<real_type>(0.5);
   if (switch_flag == 0) return zero;
@@ -2258,12 +2278,12 @@ real_type SNAKokkos<DeviceType, real_type, vector_length>::compute_dsfac(real_ty
       return -onehalf * sin((r - rmin0) * rcutfac) * rcutfac;
     }
   }
-  return zero;
+  return zero; // dummy return
 }
 
 template<class DeviceType, typename real_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void SNAKokkos<DeviceType, real_type, vector_length>::compute_s_dsfac(const real_type r, const real_type rcut, real_type& sfac, real_type& dsfac) {
+void SNAKokkos<DeviceType, real_type, vector_length>::compute_s_dsfac(const real_type r, const real_type rcut, const real_type sinner, const real_type dinner, real_type& sfac, real_type& dsfac) {
   constexpr real_type one = static_cast<real_type>(1.0);
   constexpr real_type zero = static_cast<real_type>(0.0);
   constexpr real_type onehalf = static_cast<real_type>(0.5);
@@ -2356,6 +2376,8 @@ double SNAKokkos<DeviceType, real_type, vector_length>::memory_usage()
   bytes += natom * nmax * sizeof(real_type);                // inside
   bytes += natom * nmax * sizeof(real_type);                // wj
   bytes += natom * nmax * sizeof(real_type);                // rcutij
+  bytes += natom * nmax * sizeof(real_type);                // sinnerij
+  bytes += natom * nmax * sizeof(real_type);                // dinnerij
 
   return bytes;
 }

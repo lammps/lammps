@@ -136,7 +136,7 @@ keyword/value pair. The required keywords are *rcutfac* and
 *twojmax*\ . Optional keywords are *rfac0*, *rmin0*,
 *switchflag*, *bzeroflag*, *quadraticflag*, *chemflag*,
 *bnormflag*, *wselfallflag*,  *switchinnerflag*,
-*Sinner*, *Dinner*, *chunksize*, and *parallelthresh*\ .
+*sinner*, *dinner*, *chunksize*, and *parallelthresh*\ .
 
 The default values for these keywords are
 
@@ -197,7 +197,7 @@ pair_coeff command, to avoid ambiguity in the number of coefficients.
 The keyword *switchinnerflag* activates an additional switching function
 that smoothly turns off contributions to the SNAP potential from neighbor
 atoms at short separations. If *switchinnerflag* is set to 1 then
-the additional keywords *Sinner* and *Dinner* must also be provided.
+the additional keywords *sinner* and *dinner* must also be provided.
 Each of these is followed by *nelements* values, where *nelements*
 is the number of unique elements appearing in appearing in the LAMMPS
 pair_coeff command. The element order should correspond to the order

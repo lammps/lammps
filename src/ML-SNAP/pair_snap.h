@@ -60,8 +60,8 @@ class PairSNAP : public Pair {
   int twojmax, switchflag, bzeroflag, bnormflag;
   int chemflag, wselfallflag;
   int switchinnerflag;    // inner cutoff switch
-  double *rinnerelem;     // element inner cutoff
-  double *drinnerelem;    // element inner cutoff range
+  double *sinnerelem;     // element inner cutoff midpoint
+  double *dinnerelem;     // element inner cutoff half-width
   int chunksize,parallel_thresh;
   double rfac0, rmin0, wj1, wj2;
   int rcutfacflag, twojmaxflag;    // flags for required parameters

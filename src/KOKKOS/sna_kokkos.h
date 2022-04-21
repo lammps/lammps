@@ -103,7 +103,7 @@ inline
   SNAKokkos(const SNAKokkos<DeviceType,real_type,vector_length>& sna, const typename Kokkos::TeamPolicy<DeviceType>::member_type& team);
 
 inline
-  SNAKokkos(real_type, int, real_type, int, int, int, int, int, int);
+SNAKokkos(real_type, int, real_type, int, int, int, int, int, int, int);
 
   KOKKOS_INLINE_FUNCTION
   ~SNAKokkos();
@@ -192,13 +192,13 @@ inline
   void compute_deidrj_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int); // ForceSNAP
 
   KOKKOS_INLINE_FUNCTION
-  real_type compute_sfac(real_type, real_type); // add_uarraytot, compute_duarray
+  real_type compute_sfac(real_type, real_type, real_type, real_type); // add_uarraytot, compute_duarray
 
   KOKKOS_INLINE_FUNCTION
-  real_type compute_dsfac(real_type, real_type); // compute_duarray
+  real_type compute_dsfac(real_type, real_type, real_type, real_type); // compute_duarray
 
   KOKKOS_INLINE_FUNCTION
-  void compute_s_dsfac(const real_type, const real_type, real_type&, real_type&); // compute_cayley_klein
+  void compute_s_dsfac(const real_type, const real_type, const real_type, const real_type, real_type&, real_type&); // compute_cayley_klein
 
 #ifdef TIMING_INFO
   double* timers;
@@ -214,6 +214,8 @@ inline
   t_sna_2i inside;
   t_sna_2d wj;
   t_sna_2d rcutij;
+  t_sna_2d sinnerij;
+  t_sna_2d dinnerij;
   t_sna_2i element;
   t_sna_3d dedr;
   int natom, nmax;
@@ -297,7 +299,7 @@ inline
   void init_rootpqarray();    // init()
 
   KOKKOS_INLINE_FUNCTION
-  void add_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int, const real_type&, const real_type&, const real_type&, int); // compute_ui
+  void add_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int, const real_type&, const real_type&, const real_type&, const real_type&, const real_type&, int); // compute_ui
 
   KOKKOS_INLINE_FUNCTION
   void compute_uarray_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int,
@@ -313,12 +315,18 @@ inline
   KOKKOS_INLINE_FUNCTION
   void compute_duarray_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int,
                        const real_type&, const real_type&, const real_type&, // compute_duidrj_cpu
-                       const real_type&, const real_type&, const real_type&, const real_type&, const real_type&);
+			   const real_type&, const real_type&, const real_type&, const real_type&, const real_type&,
+			   const real_type&, const real_type&);
 
   // Sets the style for the switching function
   // 0 = none
   // 1 = cosine
   int switch_flag;
+
+  // Sets the style for the inner switching function
+  // 0 = none
+  // 1 = cosine
+  int switch_inner_flag;
 
   // Chem snap flags
   int chem_flag;

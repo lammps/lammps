@@ -35,9 +35,9 @@ consistent with the microcanonical ensemble (NVE) provided there
 are (full) periodic boundary conditions and no other "manipulations"
 of the system (e.g. fixes that modify forces or velocities).
 
-By default, this fix invokes the velocity form of the
-Störmer-Verlet time integration algorithm (velocity-Verlet). Other schemes
-can be invoked using the :doc:`run_style <run_style>` command.
+This fix invokes the velocity form of the
+Störmer-Verlet time integration algorithm (velocity-Verlet). Other 
+time integration options can be invoked using the :doc:`run_style <run_style>` command.
 
 ----------
 

@@ -43,6 +43,7 @@ Bond::Bond(LAMMPS *_lmp) : Pointers(_lmp)
   energy = 0.0;
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
   writedata = 1;
+  reinitflag = 1;
 
   comm_forward = comm_reverse = comm_reverse_off = 0;
 
@@ -336,11 +337,13 @@ double Bond::memory_usage()
 }
 
 /* -----------------------------------------------------------------------
-   Reset all type-based bond params via init.
+   reset all type-based bond params via init()
 -------------------------------------------------------------------------- */
+
 void Bond::reinit()
 {
-  if (!reinitflag) error->all(FLERR, "Fix adapt interface to this bond style not supported");
+  if (!reinitflag) 
+    error->all(FLERR, "Fix adapt interface to this bond style not supported");
 
   init();
 }

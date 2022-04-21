@@ -163,6 +163,9 @@ class Modify : protected Pointers {
 
   int *end_of_step_every;
 
+  int n_post_force_group;      // list of fix GROUPs for post_force invocation
+  int *list_post_force_group;
+
   int n_timeflag;    // list of computes that store time invocation
   int *list_timeflag;
 
@@ -187,6 +190,8 @@ class Modify : protected Pointers {
   void list_init_energy_couple(int &, int *&);
   void list_init_energy_global(int &, int *&);
   void list_init_energy_atom(int &, int *&);
+  void list_init_post_force_group(int &, int *&);
+  void list_init_post_force_respa_group(int &, int *&);
   void list_init_dofflag(int &, int *&);
   void list_init_compute();
 

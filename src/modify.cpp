@@ -58,6 +58,8 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   n_pre_force_respa = n_post_force_respa = n_final_integrate_respa = 0;
   n_min_pre_exchange = n_min_pre_force = n_min_pre_reverse = 0;
   n_min_post_force = n_min_energy = 0;
+
+  n_post_force_group = 0;
   n_timeflag = -1;
 
   fix = nullptr;
@@ -75,6 +77,8 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   list_min_energy = nullptr;
 
   end_of_step_every = nullptr;
+
+  list_post_force_group = nullptr;
 
   list_timeflag = nullptr;
 
@@ -156,6 +160,7 @@ Modify::~Modify()
   delete[] list_min_pre_reverse;
   delete[] list_min_post_force;
   delete[] list_min_energy;
+  delete[] list_post_force_group;
 
   delete[] end_of_step_every;
   delete[] list_timeflag;
@@ -226,6 +231,7 @@ void Modify::init()
   list_init_energy_couple(n_energy_couple, list_energy_couple);
   list_init_energy_global(n_energy_global, list_energy_global);
   list_init_energy_atom(n_energy_atom, list_energy_atom);
+  list_init_post_force_group(n_post_force_group, list_post_force_group);
 
   list_init(INITIAL_INTEGRATE_RESPA, n_initial_integrate_respa, list_initial_integrate_respa);
   list_init(POST_INTEGRATE_RESPA, n_post_integrate_respa, list_post_integrate_respa);
@@ -441,10 +447,16 @@ void Modify::pre_reverse(int eflag, int vflag)
 
 /* ----------------------------------------------------------------------
    post_force call, only for relevant fixes
+   first call any instances of fix GROUP if they exist
 ------------------------------------------------------------------------- */
 
 void Modify::post_force(int vflag)
 {
+  if (n_post_force_group) {
+    for (int i = 0; i < n_post_force_group; i++) 
+      fix[list_post_force_group[i]]->post_force(vflag);
+  }
+
   for (int i = 0; i < n_post_force; i++) fix[list_post_force[i]]->post_force(vflag);
 }
 
@@ -585,10 +597,16 @@ void Modify::pre_force_respa(int vflag, int ilevel, int iloop)
 
 /* ----------------------------------------------------------------------
    rRESPA post_force call, only for relevant fixes
+   first call any instances of fix GROUP if they exist
 ------------------------------------------------------------------------- */
 
 void Modify::post_force_respa(int vflag, int ilevel, int iloop)
 {
+  if (n_post_force_group) {
+    for (int i = 0; i < n_post_force_group; i++) 
+      fix[list_post_force_group[i]]->post_force_respa(vflag, ilevel, iloop);
+  }
+
   for (int i = 0; i < n_post_force_respa; i++)
     fix[list_post_force_respa[i]]->post_force_respa(vflag, ilevel, iloop);
 }
@@ -1714,6 +1732,26 @@ void Modify::list_init_energy_atom(int &n, int *&list)
   n = 0;
   for (int i = 0; i < nfix; i++)
     if (fix[i]->energy_peratom_flag && fix[i]->thermo_energy) list[n++] = i;
+}
+
+/* ----------------------------------------------------------------------
+   create list of fix indices for fix GROUP
+   are invoked first in post_force() or post_force_respa()
+------------------------------------------------------------------------- */
+
+void Modify::list_init_post_force_group(int &n, int *&list)
+{
+  delete[] list;
+
+  n = 0;
+  for (int i = 0; i < nfix; i++)
+    if (strcmp(fix[i]->style,"GROUP") == 0) n++;
+  list = new int[n];
+
+  n = 0;
+  for (int i = 0; i < nfix; i++)
+    if (strcmp(fix[i]->style,"GROUP") == 0)
+      list[n++] = i;
 }
 
 /* ----------------------------------------------------------------------

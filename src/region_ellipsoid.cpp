@@ -460,6 +460,7 @@ void RegEllipsoid::variable_check()
   }
 }
 
+// ------------------------------------------------------------------
 // David Eberly, Geometric Tools, Redmond WA 98052
 // Copyright (c) 1998-2021
 // Based on https://www.geometrictools.com/Documentation/DistancePointEllipseEllipsoid.pdf
@@ -467,10 +468,11 @@ void RegEllipsoid::variable_check()
 // https://www.boost.org/LICENSE_1_0.txt
 // https://www.geometrictools.com/License/Boost/LICENSE_1_0.txt
 // Version: 4.0.2021.08.01
+// ------------------------------------------------------------------
 
 /* ----------------------------------------------------------------------
- *    functions for the 2D case
- *    ------------------------------------------------------------------------- */
+   functions for the 2D case
+------------------------------------------------------------------------- */
 
 double RegEllipsoid::GetRoot2D(double r0, double z0, double z1, double g)
 {
@@ -543,8 +545,8 @@ double RegEllipsoid::DistancePointEllipse(double e0, double e1, double y0, doubl
 }
 
 /* ----------------------------------------------------------------------
- *    functions for the 3D case
- * ------------------------------------------------------------------------- */
+   functions for the 3D case
+------------------------------------------------------------------------- */
 
 double RegEllipsoid::GetRoot3D(double r0, double r1, double z0, double z1, double z2, double g)
 {
@@ -647,4 +649,3 @@ double RegEllipsoid::DistancePointEllipsoid(double e0, double e1, double e2, dou
   }
   return distance;
 }
-

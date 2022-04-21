@@ -59,9 +59,9 @@ Syntax
        *bikflag* value = *0* or *1* (only implemented for compute snap)
           *0* = per-atom bispectrum descriptors are summed over atoms
           *1* = per-atom bispectrum descriptors are not summed over atoms
-       *switchinnerflag* values = *rinnerlist* *drinnerlist*
-          *rinnerlist* = *ntypes* values of rinner (distance units)
-          *drinnerlist* = *ntypes* values of drinner (distance units)
+       *switchinnerflag* values = *sinnerlist* *dinnerlist*
+          *sinnerlist* = *ntypes* values of *Sinner* (distance units)
+          *dinnerlist* = *ntypes* values of *Dinner* (distance units)
 
 Examples
 """"""""
@@ -316,21 +316,24 @@ The keyword *switchinnerflag* activates an additional radial switching
 function similar to :math:`f_c(r)` above, but acting to switch off
 smoothly contributions from neighbor atoms at short separation distances.
 This is useful when SNAP is used in combination with a simple
-repulsive potential. The keyword is followed by the *ntypes*
-values for :math:`r_{inner}` and the *ntypes*
-values for :math:`\Delta r_{inner}`. For a neighbor atom at
+repulsive potential. For a neighbor atom at
 distance :math:`r`, its contribution is scaled by a multiplicative
 factor :math:`f_{inner}(r)` defined as follows:
 
 .. math::
 
-               = & 0,  r \leq r_{inner} \\
-  f_{inner}(r) = & \frac{1}{2}(1 - \cos(\pi \frac{r-r_{inner}}{\Delta r_{inner}})), r_{inner} < r \leq r_{inner} + \Delta r_{inner} \\
-               = & 1,  r > r_{inner} + \Delta r_{inner}
+               = & 0,  r \leq S_{inner} - D_{inner} \\
+  f_{inner}(r) = & \frac{1}{2}(1 - \cos(\frac{\pi}{2} (1 + \frac{r-S_{inner}}{D_{inner}})), S_{inner} - D_{inner} < r \leq S_{inner} + D_{inner} \\
+               = & 1,  r > S_{inner} + D_{inner}
 
-The values of :math:`r_{inner}` and :math:`\Delta r_{inner}` are
-the arithmetic means of the values for the central atom of type I
-and the neighbor atom of type J.
+where the switching region is centered at :math:`S_{inner}` and it extends a distance :math:`D_{inner}`
+to the left and to the right of this.
+The keyword is followed by the *ntypes*
+values for :math:`S_{inner}` and the *ntypes*
+values for :math:`D_{inner}`. 
+When the central atom and the neighbor atom have different types,
+the values of :math:`S_{inner}` and :math:`D_{inner}` are
+the arithmetic means of the values for both types.
 
 .. note::
 
@@ -450,7 +453,7 @@ Default
 
 The optional keyword defaults are *rmin0* = 0,
 *switchflag* = 1, *bzeroflag* = 1, *quadraticflag* = 0,
-*bnormflag* = 0, *wselfallflag* = 0
+*bnormflag* = 0, *wselfallflag* = 0, *switchinnerflag* = off, 
 
 ----------
 

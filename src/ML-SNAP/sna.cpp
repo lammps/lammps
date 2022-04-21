@@ -1582,10 +1582,10 @@ double SNA::compute_sfac_inner(double r, double rinner, double drinner)
   double sfac;
   if (switch_inner_flag == 0) sfac = 1.0;
   else if (r >= rinner + drinner) sfac = 1.0;
-  else if (r <= rinner) sfac = 0.0;
+  else if (r <= rinner - drinner) sfac = 0.0;
   else {
-    double rcutfac = MY_PI / drinner;
-    sfac = 0.5 * (1.0 - cos((r - rinner) * rcutfac));
+    double rcutfac = MY_PI2 / drinner;
+    sfac = 0.5 * (1.0 - cos(MY_PI2 + (r - rinner) * rcutfac));
   }
   return sfac;
 }
@@ -1597,10 +1597,10 @@ double SNA::compute_dsfac_inner(double r, double rinner, double drinner)
   double dsfac;
   if (switch_inner_flag == 0) dsfac = 0.0;
   else if (r >= rinner + drinner) dsfac = 0.0;
-  else if (r <= rinner) dsfac = 0.0;
+  else if (r <= rinner - drinner) dsfac = 0.0;
   else {
-    double rcutfac = MY_PI / drinner;
-    dsfac = 0.5 * sin((r - rinner) * rcutfac) * rcutfac;
+    double rcutfac = MY_PI2 / drinner;
+    dsfac = 0.5 * rcutfac * sin(MY_PI2 + (r - rinner) * rcutfac);
   }
   return dsfac;
 }

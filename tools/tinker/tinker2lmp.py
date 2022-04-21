@@ -755,8 +755,7 @@ for atom1 in id:
         atom5 = bonds[atom2-1][0]
         atom6 = bonds[atom2-1][1]
 
-      #pitorsionlist.append((atom3,atom4,atom1,atom2,atom5,atom6))
-      pitorsionlist.append((atom3,atom4,atom1,atom2,atom6,atom5))
+      pitorsionlist.append((atom3,atom4,atom1,atom2,atom5,atom6))
 
 # create bitorslist = list of 5-body interactions
 # generate topology via double loop over neighbors of central atom3

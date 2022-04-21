@@ -328,6 +328,8 @@ boxzlo
 bp
 bpclermont
 bpls
+bpm
+BPM
 br
 Branduardi
 Branicio
@@ -1149,8 +1151,10 @@ gdot
 GeC
 Geier
 gencode
+Geocomputing
 georg
 Georg
+Geotechnica
 germain
 Germann
 Germano
@@ -1180,6 +1184,7 @@ Gladky
 gld
 gle
 globbing
+Gloor
 Glosli
 Glotzer
 gmail
@@ -1319,6 +1324,7 @@ Holm
 holonomic
 Homebrew
 hooke
+hookean
 Hookean
 hostname
 hotpink
@@ -1417,6 +1423,7 @@ initializations
 InitiatorIDs
 initio
 InP
+inq
 inregion
 instantiation
 Institut
@@ -1428,6 +1435,7 @@ interal
 interatomic
 Interatomic
 interconvert
+interfacial
 interial
 interlayer
 intermolecular
@@ -1738,6 +1746,7 @@ libdl
 libfftw
 libgcc
 libgpu
+libinqmdi
 libjpeg
 libkim
 liblammps
@@ -1752,6 +1761,7 @@ libplumed
 libplumedKernel
 libpng
 libpoems
+libqemdi
 libqmmm
 librar
 libreax
@@ -1787,6 +1797,7 @@ Liu
 Livermore
 lj
 llammps
+lld
 LLVM
 lm
 lmp
@@ -2068,6 +2079,7 @@ monopole
 monovalent
 Montalenti
 Montero
+Mora
 Morefoo
 Morfill
 Mori
@@ -2197,6 +2209,7 @@ Nbin
 Nbins
 nbody
 Nbody
+nbond
 nbonds
 nbondtype
 Nbondtype
@@ -2205,6 +2218,7 @@ Nbondtypes
 nBOt
 nbrhood
 Nbtypes
+Nbytes
 nc
 Nc
 nchunk
@@ -3167,6 +3181,7 @@ Steinhauser
 Stepaniants
 stepwise
 Stesmans
+stiffnesses
 Stillinger
 stk
 stochastically

@@ -233,7 +233,7 @@ void FixRX::post_constructor()
   int nUniqueSpecies = 0;
   bool match;
 
-  char **tmpspecies = new char*[maxspecies];
+  auto tmpspecies = new char*[maxspecies];
   for (int jj=0; jj < maxspecies; jj++)
     tmpspecies[jj] = nullptr;
 
@@ -319,9 +319,9 @@ void FixRX::post_constructor()
   newcmd1 += " ghost yes";
   newcmd2 += " ghost yes";
 
-  fix_species = (FixPropertyAtom *) modify->add_fix(newcmd1);
+  fix_species = dynamic_cast<FixPropertyAtom *>( modify->add_fix(newcmd1));
   restartFlag = fix_species->restart_reset;
-  fix_species_old = (FixPropertyAtom *) modify->add_fix(newcmd2);
+  fix_species_old = dynamic_cast<FixPropertyAtom *>( modify->add_fix(newcmd2));
 
   if (nspecies==0) error->all(FLERR,"There are no rx species specified.");
 
@@ -579,9 +579,9 @@ int FixRX::setmask()
 
 void FixRX::init()
 {
-  pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy",1);
+  pairDPDE = dynamic_cast<PairDPDfdtEnergy *>( force->pair_match("dpd/fdt/energy",1));
   if (pairDPDE == nullptr)
-    pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy/kk",1);
+    pairDPDE = dynamic_cast<PairDPDfdtEnergy *>( force->pair_match("dpd/fdt/energy/kk",1));
 
   if (pairDPDE == nullptr)
     error->all(FLERR,"Must use pair_style dpd/fdt/energy with fix rx");
@@ -625,7 +625,7 @@ void FixRX::setup_pre_force(int /*vflag*/)
     userData.kFor = new double[nreactions];
     userData.rxnRateLaw = new double[nreactions];
 
-    double *rwork = new double[8*nspecies];
+    auto rwork = new double[8*nspecies];
 
     if (localTempFlag) {
       int count = nlocal + (newton_pair ? nghost : 0);
@@ -695,7 +695,7 @@ void FixRX::pre_force(int /*vflag*/)
   }
 
   {
-    double *rwork = new double[8*nspecies];
+    auto rwork = new double[8*nspecies];
 
     UserRHSData userData;
     userData.kFor = new double[nreactions];
@@ -1575,7 +1575,7 @@ int FixRX::rhs(double t, const double *y, double *dydt, void *params)
 
 int FixRX::rhs_dense(double /*t*/, const double *y, double *dydt, void *params)
 {
-  UserRHSData *userData = (UserRHSData *) params;
+  auto userData = (UserRHSData *) params;
 
   double *rxnRateLaw = userData->rxnRateLaw;
   double *kFor       = userData->kFor;
@@ -1609,7 +1609,7 @@ int FixRX::rhs_dense(double /*t*/, const double *y, double *dydt, void *params)
 
 int FixRX::rhs_sparse(double /*t*/, const double *y, double *dydt, void *v_params) const
 {
-   UserRHSData *userData = (UserRHSData *) v_params;
+   auto userData = (UserRHSData *) v_params;
 
    const double VDPD = domain->xprd * domain->yprd * domain->zprd / atom->natoms;
 

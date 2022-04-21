@@ -67,7 +67,7 @@ void PairHybridScaled::compute(int eflag, int vflag)
 
   const int nvars = scalevars.size();
   if (nvars > 0) {
-    double *vals = new double[nvars];
+    auto vals = new double[nvars];
     for (int k = 0; k < nvars; ++k) {
       int m = input->variable->find(scalevars[k].c_str());
       if (m < 0)
@@ -130,7 +130,7 @@ void PairHybridScaled::compute(int eflag, int vflag)
   Respa *respa = nullptr;
   respaflag = 0;
   if (utils::strmatch(update->integrate_style, "^respa")) {
-    respa = (Respa *) update->integrate;
+    respa = dynamic_cast<Respa *>( update->integrate);
     if (respa->nhybrid_styles > 0) respaflag = 1;
   }
 
@@ -250,8 +250,8 @@ void PairHybridScaled::settings(int narg, char **arg)
     for (int m = 0; m < nstyles; m++) {
       delete styles[m];
       delete[] keywords[m];
-      if (special_lj[m]) delete[] special_lj[m];
-      if (special_coul[m]) delete[] special_coul[m];
+      delete[] special_lj[m];
+      delete[] special_coul[m];
     }
     delete[] styles;
     delete[] keywords;
@@ -385,7 +385,7 @@ double PairHybridScaled::single(int i, int j, int itype, int jtype, double rsq, 
 
   const int nvars = scalevars.size();
   if (nvars > 0) {
-    double *vals = new double[nvars];
+    auto vals = new double[nvars];
     for (int k = 0; k < nvars; ++k) {
       int m = input->variable->find(scalevars[k].c_str());
       if (m < 0)

@@ -47,7 +47,7 @@ void WriteDump::command(int narg, char **arg)
 
   Dump *dump = nullptr;
 
-  char **dumpargs = new char*[modindex+2];
+  auto dumpargs = new char*[modindex+2];
   dumpargs[0] = (char *) "WRITE_DUMP"; // dump id
   dumpargs[1] = arg[0];                // group
   dumpargs[2] = arg[1];                // dump style
@@ -56,7 +56,7 @@ void WriteDump::command(int narg, char **arg)
   for (int i = 2; i < modindex; ++i)
     dumpargs[i+2] = arg[i];
 
-  if (false) {
+  if (false) {      // NOLINT
     return;         // dummy branch to enable else-if macro expansion
 
 #define DUMP_CLASS
@@ -74,10 +74,10 @@ void WriteDump::command(int narg, char **arg)
   // set multifile_override for DumpImage so that filename needs no "*"
 
   if (strcmp(arg[1],"image") == 0)
-    ((DumpImage *) dump)->multifile_override = 1;
+    (dynamic_cast<DumpImage *>( dump))->multifile_override = 1;
 
   if (strcmp(arg[1],"cfg") == 0)
-    ((DumpCFG *) dump)->multifile_override = 1;
+    (dynamic_cast<DumpCFG *>( dump))->multifile_override = 1;
 
   if ((update->first_update == 0) && (comm->me == 0))
     error->warning(FLERR,"Calling write_dump before a full system init.");

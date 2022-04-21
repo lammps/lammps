@@ -46,6 +46,7 @@ class KokkosLMP : protected Pointers {
   int gpu_aware_flag;
   int neigh_thread;
   int neigh_thread_set;
+  int neigh_transpose;
   int newtonflag;
   double binsize;
 

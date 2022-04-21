@@ -28,14 +28,14 @@
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::MY_PIS;
 
-#define EPSILON 1e-6
+static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulCutDielectricOMP::PairLJCutCoulCutDielectricOMP(LAMMPS *lmp) :
-    PairLJCutCoulCutDielectric(lmp), ThrOMP(lmp, THR_PAIR)
+PairLJCutCoulCutDielectricOMP::PairLJCutCoulCutDielectricOMP(LAMMPS *_lmp) :
+    PairLJCutCoulCutDielectric(_lmp), ThrOMP(_lmp, THR_PAIR)
 {
 }
 
@@ -106,11 +106,11 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const th
 
   evdwl = ecoul = 0.0;
 
-  const dbl3_t *_noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t *_noalias const f = (dbl3_t *) thr->get_f()[0];
+  const auto *_noalias const x = (dbl3_t *) atom->x[0];
+  auto *_noalias const f = (dbl3_t *) thr->get_f()[0];
   const double *_noalias const q = atom->q;
   const double *_noalias const eps = atom->epsilon;
-  const dbl3_t *_noalias const norm = (dbl3_t *) atom->mu[0];
+  const auto *_noalias const norm = (dbl3_t *) atom->mu[0];
   const double *_noalias const curvature = atom->curvature;
   const double *_noalias const area = atom->area;
   const int *_noalias const type = atom->type;
@@ -169,8 +169,8 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const th
         r2inv = 1.0 / rsq;
 
         if (rsq < cut_coulsq[itype][jtype] && rsq > EPSILON) {
-          efield_i = q[j] * sqrt(r2inv);
-          forcecoul = qqrd2e * qtmp * efield_i;
+          efield_i = qqrd2e * q[j] * sqrt(r2inv);
+          forcecoul = qtmp * efield_i;
           epot_i = efield_i;
         } else
           epot_i = efield_i = forcecoul = 0.0;

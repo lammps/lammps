@@ -60,6 +60,7 @@ class DumpCustom : public Dump {
   char **vformat;     // format string for each vector element
                       //
   char *columns;      // column labels
+  char *columns_default;
                       //
   int nchoose;        // # of selected atoms
   int maxlocal;       // size of atom selection and variable arrays

@@ -172,6 +172,7 @@ set(STANDARD_PACKAGES
   AWPMD
   BOCS
   BODY
+  BPM
   BROWNIAN
   CG-DNA
   CG-SDK
@@ -208,7 +209,6 @@ set(STANDARD_PACKAGES
   MDI
   MEAM
   MESONT
-  MESSAGE
   MGPT
   MISC
   ML-HDNNP
@@ -451,7 +451,7 @@ else()
 endif()
 
 foreach(PKG_WITH_INCL KSPACE PYTHON ML-IAP VORONOI COLVARS ML-HDNNP MDI MOLFILE NETCDF
-        PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM LATTE MESSAGE MSCG COMPRESS ML-PACE)
+        PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM LATTE MSCG COMPRESS ML-PACE)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()
@@ -810,6 +810,7 @@ endif()
 include(FeatureSummary)
 feature_summary(DESCRIPTION "The following tools and libraries have been found and configured:" WHAT PACKAGES_FOUND)
 message(STATUS "<<< Build configuration >>>
+   LAMMPS Version:   ${PROJECT_VERSION}
    Operating System: ${CMAKE_SYSTEM_NAME} ${CMAKE_LINUX_DISTRO} ${CMAKE_DISTRO_VERSION}
    Build type:       ${LAMMPS_BUILD_TYPE}
    Install path:     ${CMAKE_INSTALL_PREFIX}

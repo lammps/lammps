@@ -32,6 +32,7 @@ page gives those details.
    * :ref:`AWPMD <PKG-AWPMD>`
    * :ref:`BOCS <PKG-BOCS>`
    * :ref:`BODY <PKG-BODY>`
+   * :ref:`BPM <PKG-BPM>`
    * :ref:`BROWNIAN <PKG-BROWNIAN>`
    * :ref:`CG-DNA <PKG-CG-DNA>`
    * :ref:`CG-SDK <PKG-CG-SDK>`
@@ -72,7 +73,6 @@ page gives those details.
    * :ref:`MDI <PKG-MDI>`
    * :ref:`MEAM <PKG-MEAM>`
    * :ref:`MESONT <PKG-MESONT>`
-   * :ref:`MESSAGE <PKG-MESSAGE>`
    * :ref:`MGPT <PKG-MGPT>`
    * :ref:`MISC <PKG-MISC>`
    * :ref:`ML-HDNNP <PKG-ML-HDNNP>`
@@ -281,6 +281,33 @@ overview.
 * :doc:`fix nve/body <fix_nve_body>`
 * :doc:`pair_style body/nparticle <pair_body_nparticle>`
 * examples/body
+
+----------
+
+.. _PKG-BPM:
+
+BPM package
+------------
+
+**Contents:**
+
+Pair styles, bond styles, fixes, and computes for bonded particle
+models for mesoscale simulations of solids and fracture.  See the
+:doc:`Howto bpm <Howto_bpm>` page for an overview.
+
+**Authors:** Joel T. Clemmer (Sandia National Labs)
+
+**Supporting info:**
+
+* src/BPM filenames -> commands
+* :doc:`Howto_bpm <Howto_bpm>`
+* :doc:`atom_style bpm/sphere <atom_style>`
+* :doc:`bond_style bpm/rotational <bond_bpm_rotational>`
+* :doc:`bond_style bpm/spring <bond_bpm_spring>`
+* :doc:`compute nbond/atom <compute_nbond_atom>`
+* :doc:`fix nve/bpm/sphere <fix_nve_bpm_sphere>`
+* :doc:`pair_style bpm/spring <pair_bpm_spring>`
+* examples/bpm
 
 ----------
 
@@ -529,8 +556,20 @@ To use this package, also the :ref:`KSPACE <PKG-KSPACE>` and
 **Supporting info:**
 
 * src/DIELECTRIC: filenames -> commands
+* :doc:`atom_style dielectric <atom_style>`
+* :doc:`pair_style coul/cut/dielectric <pair_dielectric>`
+* :doc:`pair_style coul/long/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/cut/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/debye/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/long/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/msm/dielectric <pair_dielectric>`
+* :doc:`pair_style pppm/dielectric <kspace_style>`
+* :doc:`pair_style pppm/disp/dielectric <kspace_style>`
+* :doc:`pair_style msm/dielectric <kspace_style>`
+* :doc:`fix_style polarize/bem/icc <fix_polarize>`
+* :doc:`fix_style polarize/bem/gmres <fix_polarize>`
+* :doc:`fix_style polarize/functional <fix_polarize>`
 * :doc:`compute efield/atom  <compute_efield_atom>`
-* TODO: add all styles
 * examples/PACKAGES/dielectric
 
 ----------
@@ -1396,17 +1435,25 @@ MDI package
 
 **Contents:**
 
-A LAMMPS command and fix to allow client-server coupling of LAMMPS to
-other atomic or molecular simulation codes via the `MolSSI Driver Interface
+A LAMMPS command and fixes to allow client-server coupling of LAMMPS
+to other atomic or molecular simulation codes or materials modeling
+workflows via the `MolSSI Driver Interface
 (MDI) library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
 
 **Author:** Taylor Barnes - MolSSI, taylor.a.barnes at gmail.com
 
+**Install:**
+
+This package has :ref:`specific installation instructions <mdi>` on
+the :doc:`Build extras <Build_extras>` page.
+
 **Supporting info:**
 
 * src/MDI/README
-* :doc:`mdi/engine <mdi_engine>`
-* :doc:`fix mdi/engine <fix_mdi_engine>`
+* lib/mdi/README
+* :doc:`Howto MDI <Howto_mdi>`
+* :doc:`mdi <mdi>`
+* :doc:`fix mdi/aimd <fix_mdi_aimd>`
 * examples/PACKAGES/mdi
 
 ----------
@@ -1483,32 +1530,6 @@ Philipp Kloza (U Cambridge)
 
 ----------
 
-.. _PKG-MESSAGE:
-
-MESSAGE package
----------------
-
-**Contents:**
-
-Commands to use LAMMPS as either a client or server and couple it to
-another application.
-
-**Install:**
-
-This package has :ref:`specific installation instructions <message>` on the :doc:`Build extras <Build_extras>` page.
-
-**Supporting info:**
-
-* src/MESSAGE: filenames -> commands
-* lib/message/README
-* :doc:`message <message>`
-* :doc:`fix client/md <fix_client_md>`
-* :doc:`server md <server_md>`
-* :doc:`server mc <server_mc>`
-* examples/message
-
-----------
-
 .. _PKG-MGPT:
 
 MGPT package
@@ -1564,7 +1585,6 @@ listing, "ls src/MISC", to see the list of commands.
 * :doc:`pair_style list <pair_list>`
 * :doc:`pair_style srp <pair_srp>`
 * :doc:`pair_style tracker <pair_tracker>`
-* :doc:`fix pair/tracker <fix_pair_tracker>`
 
 ----------
 

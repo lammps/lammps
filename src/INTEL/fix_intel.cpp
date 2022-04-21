@@ -71,11 +71,11 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   _offload_threads = 0;
   _offload_tpc = 4;
 
-  _force_array_s = 0;
-  _force_array_m = 0;
-  _force_array_d = 0;
-  _ev_array_s = 0;
-  _ev_array_d = 0;
+  _force_array_s = nullptr;
+  _force_array_m = nullptr;
+  _force_array_d = nullptr;
+  _ev_array_s = nullptr;
+  _ev_array_d = nullptr;
 
   #ifdef _LMP_INTEL_OFFLOAD
   if (ncops < 0) error->all(FLERR,"Illegal package intel command");
@@ -375,7 +375,7 @@ void FixIntel::setup_pre_reverse(int eflag, int vflag)
 
 bool FixIntel::pair_hybrid_check()
 {
-  PairHybrid *ph = (PairHybrid *)force->pair;
+  auto ph = dynamic_cast<PairHybrid *>(force->pair);
   bool has_intel = false;
   int nstyles = ph->nstyles;
 
@@ -557,30 +557,30 @@ void FixIntel::_sync_main_arrays(const int prereverse)
   if (!prereverse) _zero_master = 1;
   int done_this_step = prereverse;
   if (_pair_hybrid_zero == 0) done_this_step = 1;
-  if (_force_array_m != 0) {
+  if (_force_array_m != nullptr) {
     if (_need_reduce) {
       reduce_results(&_force_array_m[0].x);
       _need_reduce = 0;
     }
     add_results(_force_array_m, _ev_array_d, _results_eatom, _results_vatom,0);
-    if (done_this_step) _force_array_m = 0;
-    else _ev_array_d = 0;
-  } else if (_force_array_d != 0) {
+    if (done_this_step) _force_array_m = nullptr;
+    else _ev_array_d = nullptr;
+  } else if (_force_array_d != nullptr) {
     if (_need_reduce) {
       reduce_results(&_force_array_d[0].x);
       _need_reduce = 0;
     }
     add_results(_force_array_d, _ev_array_d, _results_eatom, _results_vatom,0);
-    if (done_this_step) _force_array_d = 0;
-    else _ev_array_d = 0;
-  } else if (_force_array_s != 0) {
+    if (done_this_step) _force_array_d = nullptr;
+    else _ev_array_d = nullptr;
+  } else if (_force_array_s != nullptr) {
     if (_need_reduce) {
       reduce_results(&_force_array_s[0].x);
       _need_reduce = 0;
     }
     add_results(_force_array_s, _ev_array_s, _results_eatom, _results_vatom,0);
-    if (done_this_step) _force_array_s = 0;
-    else _ev_array_s = 0;
+    if (done_this_step) _force_array_s = nullptr;
+    else _ev_array_s = nullptr;
   }
 
   #ifdef _LMP_INTEL_OFFLOAD

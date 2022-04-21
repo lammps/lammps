@@ -64,6 +64,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`event/displace <compute_event_displace>`
    * :doc:`fabric <compute_fabric>`
    * :doc:`fep <compute_fep>`
+   * :doc:`fep/ta <compute_fep_ta>`
    * :doc:`force/tally <compute_tally>`
    * :doc:`fragment/atom <compute_cluster_atom>`
    * :doc:`global/atom <compute_global_atom>`
@@ -91,6 +92,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`msd <compute_msd>`
    * :doc:`msd/chunk <compute_msd_chunk>`
    * :doc:`msd/nongauss <compute_msd_nongauss>`
+   * :doc:`nbond/atom <compute_nbond_atom>`
    * :doc:`omega/chunk <compute_omega_chunk>`
    * :doc:`orientorder/atom (k) <compute_orientorder_atom>`
    * :doc:`pair <compute_pair>`

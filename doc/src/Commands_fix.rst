@@ -51,7 +51,6 @@ OPT.
    * :doc:`bond/swap <fix_bond_swap>`
    * :doc:`box/relax <fix_box_relax>`
    * :doc:`charge/regulation <fix_charge_regulation>`
-   * :doc:`client/md <fix_client_md>`
    * :doc:`cmap <fix_cmap>`
    * :doc:`colvars <fix_colvars>`
    * :doc:`controller <fix_controller>`
@@ -101,7 +100,7 @@ OPT.
    * :doc:`lb/viscous <fix_lb_viscous>`
    * :doc:`lineforce <fix_lineforce>`
    * :doc:`manifoldforce <fix_manifoldforce>`
-   * :doc:`mdi/engine <fix_mdi_engine>`
+   * :doc:`mdi/aimd <fix_mdi_aimd>`
    * :doc:`meso/move <fix_meso_move>`
    * :doc:`mol/swap <fix_mol_swap>`
    * :doc:`momentum (k) <fix_momentum>`
@@ -142,6 +141,7 @@ OPT.
    * :doc:`nve/manifold/rattle <fix_nve_manifold_rattle>`
    * :doc:`nve/noforce <fix_nve_noforce>`
    * :doc:`nve/sphere (ko) <fix_nve_sphere>`
+   * :doc:`nve/bpm/sphere <fix_nve_bpm_sphere>`
    * :doc:`nve/spin <fix_nve_spin>`
    * :doc:`nve/tri <fix_nve_tri>`
    * :doc:`nvk <fix_nvk>`
@@ -159,7 +159,6 @@ OPT.
    * :doc:`orient/fcc <fix_orient>`
    * :doc:`orient/eco <fix_orient_eco>`
    * :doc:`pafi <fix_pafi>`
-   * :doc:`pair/tracker <fix_pair_tracker>`
    * :doc:`phonon <fix_phonon>`
    * :doc:`pimd <fix_pimd>`
    * :doc:`planeforce <fix_planeforce>`

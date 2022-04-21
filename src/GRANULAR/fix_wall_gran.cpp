@@ -498,7 +498,7 @@ void FixWallGran::init()
   dt = update->dt;
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
 
   // check for FixRigid so can extract rigid body masses
 
@@ -550,9 +550,9 @@ void FixWallGran::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(nlevels_respa-1);
     post_force_respa(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(nlevels_respa-1);
   }
 }
 
@@ -577,7 +577,7 @@ void FixWallGran::post_force(int /*vflag*/)
   if (neighbor->ago == 0 && fix_rigid) {
     int tmp;
     int *body = (int *) fix_rigid->extract("body",tmp);
-    double *mass_body = (double *) fix_rigid->extract("masstotal",tmp);
+    auto mass_body = (double *) fix_rigid->extract("masstotal",tmp);
     if (atom->nmax > nmax) {
       memory->destroy(mass_rigid);
       nmax = atom->nmax;

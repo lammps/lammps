@@ -483,7 +483,7 @@ void LammpsInterface::periodicity_correction(double * x) const
   }
 }
 
-void LammpsInterface::set_reference_box(void) const
+void LammpsInterface::set_reference_box() const
 {
   double * hi = lammps_->domain->boxhi;
   double * lo = lammps_->domain->boxlo;
@@ -570,7 +570,7 @@ void LammpsInterface::closest_image(const double * const xi, const double * cons
 // -----------------------------------------------------------------
 //  update interface methods
 // -----------------------------------------------------------------
-LammpsInterface::UnitsType LammpsInterface::units_style(void) const
+LammpsInterface::UnitsType LammpsInterface::units_style() const
 {
     if      (strcmp(lammps_->update->unit_style,"lj") == 0)    return LJ;
     else if (strcmp(lammps_->update->unit_style,"real") == 0)  return REAL;
@@ -655,7 +655,7 @@ void LammpsInterface::basis_vectors(double **basis) const
 }
 
 //* gets the (max) lattice constant
-double LammpsInterface::max_lattice_constant(void) const
+double LammpsInterface::max_lattice_constant() const
 {
   double a1[3], a2[3], a3[3];
   unit_cell(a1,a2,a3);
@@ -666,7 +666,7 @@ double LammpsInterface::max_lattice_constant(void) const
 }
 
 //* computes a cutoff distance halfway between 1st and 2nd nearest neighbors
-double LammpsInterface::near_neighbor_cutoff(void) const
+double LammpsInterface::near_neighbor_cutoff() const
 {
   double cutoff;
   double alat = LammpsInterface::max_lattice_constant();
@@ -716,7 +716,7 @@ void LammpsInterface::unit_cell(double *a1, double *a2, double *a3) const
 }
 
 //* gets number of atoms in a unit cell
-int LammpsInterface::num_atoms_per_cell(void) const
+int LammpsInterface::num_atoms_per_cell() const
 {
   int naCell = 0;
   LatticeType type = lattice_style();
@@ -733,7 +733,7 @@ int LammpsInterface::num_atoms_per_cell(void) const
 }
 
 //* gets tributary volume for an atom
-double LammpsInterface::volume_per_atom(void) const
+double LammpsInterface::volume_per_atom() const
 {
   double naCell = num_atoms_per_cell();
   double volPerAtom =
@@ -1468,7 +1468,7 @@ LAMMPS_NS::Compute * LammpsInterface::const_to_active(COMPUTE_POINTER computePoi
 //  compute pe/atom interface methods
 //  - the only compute "owned" by ATC
 // -----------------------------------------------------------------
-int  LammpsInterface::create_compute_pe_peratom(void)  const
+int  LammpsInterface::create_compute_pe_peratom()  const
 {
   char **list = new char*[4];
   string atomPeName = compute_pe_name();
@@ -1493,7 +1493,7 @@ int  LammpsInterface::create_compute_pe_peratom(void)  const
   return icompute;
 }
 
-double * LammpsInterface::compute_pe_peratom(void) const
+double * LammpsInterface::compute_pe_peratom() const
 {
   if (atomPE_) {
     atomPE_->compute_peratom();

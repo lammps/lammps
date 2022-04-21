@@ -83,9 +83,9 @@ indent:   spherical indenter into a 2d solid
 kim:      use of potentials in Knowledge Base for Interatomic Models (KIM)
 latte:    use of LATTE density-functional tight-binding quantum code
 mc:       MC package models: GCMC, Widom, fix mol/swap
+mdi:      use of the MDI package and MolSSI MDI code coupling library
 meam:     MEAM test for SiC and shear (same as shear examples)
 melt:     rapid melt of 3d LJ system
-message:  client/server coupling of 2 codes
 micelle:  self-assembly of small lipid-like molecules into 2d bilayers
 min:      energy minimization of 2d LJ melt
 mliap:    examples for using several bundled MLIAP potentials
@@ -118,6 +118,7 @@ ttm:      two-temeperature model examples
 vashishta: models using the Vashishta potential
 voronoi:  Voronoi tesselation via compute voronoi/atom command
 wall:     use of reflective walls with different stochastic models
+yaml:     demonstrates use of yaml thermo and dump styles
 
 Here is how you might run and visualize one of the sample problems:
 

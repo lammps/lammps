@@ -16,6 +16,8 @@
 
 #include "pointers.h"    // IWYU pragma: export
 
+#include <map>
+
 namespace LAMMPS_NS {
 
 class Dump : protected Pointers {
@@ -64,7 +66,6 @@ class Dump : protected Pointers {
   char *multiname;         // filename with % converted to cluster ID
   MPI_Comm clustercomm;    // MPI communicator within my cluster of procs
 
-  int header_flag;          // 0 = item, 2 = xyz
   int flush_flag;           // 0 if no flush, 1 if flush every dump
   int sort_flag;            // 1 if sorted output
   int balance_flag;         // 1 if load balanced output
@@ -100,6 +101,8 @@ class Dump : protected Pointers {
   char *format_bigint_user;
   char **format_column_user;
   enum { INT, DOUBLE, STRING, BIGINT };
+  std::map<std::string, int> key2col;
+  std::vector<std::string> keyword_user;
 
   FILE *fp;        // file to write dump to
   int size_one;    // # of quantities for one atom

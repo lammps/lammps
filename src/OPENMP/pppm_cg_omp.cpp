@@ -359,8 +359,8 @@ void PPPMCGOMP::make_rho()
 #endif
   {
     const double * _noalias const q = atom->q;
-    const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-    const int3_t * _noalias const p2g = (int3_t *) part2grid[0];
+    const auto * _noalias const x = (dbl3_t *) atom->x[0];
+    const auto * _noalias const p2g = (int3_t *) part2grid[0];
 
     const double boxlox = boxlo[0];
     const double boxloy = boxlo[1];
@@ -441,7 +441,7 @@ void PPPMCGOMP::fieldforce_ik()
   // (mx,my,mz) = global coords of moving stencil pt
   // ek = 3 components of E-field on particle
 
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  const auto * _noalias const x = (dbl3_t *) atom->x[0];
   const double * _noalias const q = atom->q;
   const double qqrd2e = force->qqrd2e;
   const int nthreads = comm->nthreads;
@@ -458,7 +458,7 @@ void PPPMCGOMP::fieldforce_ik()
     // get per thread data
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+    auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
     FFT_SCALAR * const * const r1d = static_cast<FFT_SCALAR **>(thr->get_rho1d());
 
     for (int j = ifrom; j < ito; ++j) {
@@ -522,7 +522,7 @@ void PPPMCGOMP::fieldforce_ad()
   // (mx,my,mz) = global coords of moving stencil pt
   // ek = 3 components of E-field on particle
 
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  const auto * _noalias const x = (dbl3_t *) atom->x[0];
   const double * _noalias const q = atom->q;
   const double qqrd2e = force->qqrd2e;
   const int nthreads = comm->nthreads;
@@ -540,7 +540,7 @@ void PPPMCGOMP::fieldforce_ad()
     // get per thread data
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+    auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
     FFT_SCALAR * const * const r1d = static_cast<FFT_SCALAR **>(thr->get_rho1d());
     FFT_SCALAR * const * const d1d = static_cast<FFT_SCALAR **>(thr->get_drho1d());
 
@@ -616,7 +616,7 @@ void PPPMCGOMP::fieldforce_peratom()
   // (dx,dy,dz) = distance to "lower left" grid pt
   // (mx,my,mz) = global coords of moving stencil pt
 
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  const auto * _noalias const x = (dbl3_t *) atom->x[0];
   const double * _noalias const q = atom->q;
   const int nthreads = comm->nthreads;
 

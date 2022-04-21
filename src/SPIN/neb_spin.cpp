@@ -172,7 +172,7 @@ void NEBSpin::run()
   if (fixes.size() != 1)
     error->all(FLERR,"NEBSpin requires use of exactly one fix neb/spin instance");
 
-  fneb = (FixNEBSpin *) fixes[0];
+  fneb = dynamic_cast<FixNEBSpin *>( fixes[0]);
   if (verbose) numall =7;
   else  numall = 4;
   memory->create(all,nreplica,numall,"neb:all");
@@ -418,7 +418,7 @@ void NEBSpin::readfile(char *file, int flag)
       error->all(FLERR,"Incorrectly formatted NEB file");
   }
 
-  char *buffer = new char[CHUNK*MAXLINE];
+  auto buffer = new char[CHUNK*MAXLINE];
   double fraction = ireplica/(nreplica-1.0);
   double **x = atom->x;
   double **sp = atom->sp;
@@ -799,10 +799,8 @@ void NEBSpin::print_status()
     FILE *uscreen = universe->uscreen;
     FILE *ulogfile = universe->ulogfile;
     if (uscreen) {
-      fprintf(uscreen,BIGINT_FORMAT " %12.8g %12.8g ",
-              update->ntimestep,fmaxreplica,fmaxatom);
-      fprintf(uscreen,"%12.8g %12.8g %12.8g ",
-              gradvnorm0,gradvnorm1,gradvnormc);
+      fmt::print(uscreen,"{} {:12.8g} {:12.8g} ",update->ntimestep,fmaxreplica,fmaxatom);
+      fprintf(uscreen,"%12.8g %12.8g %12.8g ",gradvnorm0,gradvnorm1,gradvnormc);
       fprintf(uscreen,"%12.8g %12.8g %12.8g ",ebf,ebr,endpt);
       for (int i = 0; i < nreplica; i++)
         fprintf(uscreen,"%12.8g %12.8g ",rdist[i],all[i][0]);
@@ -815,10 +813,8 @@ void NEBSpin::print_status()
     }
 
     if (ulogfile) {
-      fprintf(ulogfile,BIGINT_FORMAT " %12.8g %12.8g ",
-              update->ntimestep,fmaxreplica,fmaxatom);
-      fprintf(ulogfile,"%12.8g %12.8g %12.8g ",
-              gradvnorm0,gradvnorm1,gradvnormc);
+      fmt::print(ulogfile,"{} {:12.8} {:12.8g} ",update->ntimestep,fmaxreplica,fmaxatom);
+      fprintf(ulogfile,"%12.8g %12.8g %12.8g ",gradvnorm0,gradvnorm1,gradvnormc);
       fprintf(ulogfile,"%12.8g %12.8g %12.8g ",ebf,ebr,endpt);
       for (int i = 0; i < nreplica; i++)
         fprintf(ulogfile,"%12.8g %12.8g ",rdist[i],all[i][0]);

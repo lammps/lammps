@@ -887,6 +887,13 @@ typedef tdual_neighbors_2d::t_dev_um t_neighbors_2d_um;
 typedef tdual_neighbors_2d::t_dev_const_um t_neighbors_2d_const_um;
 typedef tdual_neighbors_2d::t_dev_const_randomread t_neighbors_2d_randomread;
 
+typedef Kokkos::DualView<int**, Kokkos::LayoutRight, LMPDeviceType> tdual_neighbors_2d_lr;
+typedef tdual_neighbors_2d_lr::t_dev t_neighbors_2d_lr;
+typedef tdual_neighbors_2d_lr::t_dev_const t_neighbors_2d_const_lr;
+typedef tdual_neighbors_2d_lr::t_dev_um t_neighbors_2d_um_lr;
+typedef tdual_neighbors_2d_lr::t_dev_const_um t_neighbors_2d_const_um_lr;
+typedef tdual_neighbors_2d_lr::t_dev_const_randomread t_neighbors_2d_randomread_lr;
+
 };
 
 #ifdef LMP_KOKKOS_GPU
@@ -1156,6 +1163,13 @@ typedef tdual_neighbors_2d::t_host_um t_neighbors_2d_um;
 typedef tdual_neighbors_2d::t_host_const_um t_neighbors_2d_const_um;
 typedef tdual_neighbors_2d::t_host_const_randomread t_neighbors_2d_randomread;
 
+typedef Kokkos::DualView<int**, Kokkos::LayoutRight, LMPDeviceType> tdual_neighbors_2d_lr;
+typedef tdual_neighbors_2d_lr::t_host t_neighbors_2d_lr;
+typedef tdual_neighbors_2d_lr::t_host_const t_neighbors_2d_const_lr;
+typedef tdual_neighbors_2d_lr::t_host_um t_neighbors_2d_um_lr;
+typedef tdual_neighbors_2d_lr::t_host_const_um t_neighbors_2d_const_um_lr;
+typedef tdual_neighbors_2d_lr::t_host_const_randomread t_neighbors_2d_randomread_lr;
+
 };
 #endif
 //default LAMMPS Types
@@ -1198,6 +1212,12 @@ struct params_lj_coul {
   KOKKOS_INLINE_FUNCTION
   params_lj_coul(int /*i*/) {cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
   F_FLOAT cut_ljsq,cut_coulsq,lj1,lj2,lj3,lj4,offset;
+};
+
+// ReaxFF
+
+struct alignas(4 * sizeof(int)) reax_int4 {
+  int i0, i1, i2, i3;
 };
 
 // Pair SNAP

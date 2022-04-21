@@ -209,7 +209,8 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`erotate/sphere/atom <compute_erotate_sphere_atom>` - rotational energy for each spherical particle
 * :doc:`event/displace <compute_event_displace>` - detect event on atom displacement
 * :doc:`fabric <compute_fabric>` - calculates fabric tensors from pair interactions
-* :doc:`fep <compute_fep>` -
+* :doc:`fep <compute_fep>` - compute free energies for alchemical transformation from perturbation theory
+* :doc:`fep/ta <compute_fep_ta>` - compute free energies for a test area perturbation
 * :doc:`force/tally <compute_tally>` - force between two groups of atoms via the tally callback mechanism
 * :doc:`fragment/atom <compute_cluster_atom>` - fragment ID for each atom
 * :doc:`global/atom <compute_global_atom>` -
@@ -236,6 +237,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`msd <compute_msd>` - mean-squared displacement of group of atoms
 * :doc:`msd/chunk <compute_msd_chunk>` - mean-squared displacement for each chunk
 * :doc:`msd/nongauss <compute_msd_nongauss>` - MSD and non-Gaussian parameter of group of atoms
+* :doc:`nbond/atom <compute_nbond_atom>` - calculates number of bonds per atom
 * :doc:`omega/chunk <compute_omega_chunk>` - angular velocity for each chunk
 * :doc:`orientorder/atom <compute_orientorder_atom>` - Steinhardt bond orientational order parameters Ql
 * :doc:`pair <compute_pair>` - values computed by a pair style

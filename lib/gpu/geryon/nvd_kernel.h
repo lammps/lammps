@@ -165,17 +165,11 @@ class UCL_Program {
 class UCL_Kernel {
  public:
   UCL_Kernel() : _dimensions(1), _num_args(0) {
-    #if CUDA_VERSION < 4000
-    _param_size=0;
-    #endif
     _num_blocks[0]=0;
   }
 
   UCL_Kernel(UCL_Program &program, const char *function) :
     _dimensions(1), _num_args(0) {
-    #if CUDA_VERSION < 4000
-    _param_size=0;
-    #endif
     _num_blocks[0]=0;
     set_function(program,function);
     _cq=program._cq;
@@ -211,11 +205,7 @@ class UCL_Kernel {
     if (index==_num_args)
       add_arg(arg);
     else if (index<_num_args)
-      #if CUDA_VERSION >= 4000
       _kernel_args[index]=arg;
-      #else
-      CU_SAFE_CALL(cuParamSetv(_kernel, _offsets[index], arg, sizeof(dtype)));
-      #endif
     else
       assert(0==1); // Must add kernel parameters in sequential order
   }
@@ -242,15 +232,7 @@ class UCL_Kernel {
 
   /// Add a kernel argument.
   inline void add_arg(const CUdeviceptr* const arg) {
-    #if CUDA_VERSION >= 4000
     _kernel_args[_num_args]=(void *)arg;
-    #else
-    void* ptr = (void*)(size_t)(*arg);
-    _param_size = (_param_size + __alignof(ptr) - 1) & ~(__alignof(ptr) - 1);
-    CU_SAFE_CALL(cuParamSetv(_kernel, _param_size, &ptr, sizeof(ptr)));
-    _offsets.push_back(_param_size);
-    _param_size+=sizeof(ptr);
-    #endif
     _num_args++;
     if (_num_args>UCL_MAX_KERNEL_ARGS) assert(0==1);
   }
@@ -258,14 +240,7 @@ class UCL_Kernel {
   /// Add a kernel argument.
   template <class dtype>
   inline void add_arg(const dtype* const arg) {
-    #if CUDA_VERSION >= 4000
     _kernel_args[_num_args]=const_cast<dtype *>(arg);
-    #else
-    _param_size = (_param_size+__alignof(dtype)-1) & ~(__alignof(dtype)-1);
-    CU_SAFE_CALL(cuParamSetv(_kernel,_param_size,(void*)arg,sizeof(dtype)));
-    _offsets.push_back(_param_size);
-    _param_size+=sizeof(dtype);
-    #endif
     _num_args++;
     if (_num_args>UCL_MAX_KERNEL_ARGS) assert(0==1);
   }
@@ -298,13 +273,9 @@ class UCL_Kernel {
     _num_blocks[0]=num_blocks;
     _num_blocks[1]=1;
     _num_blocks[2]=1;
-    #if CUDA_VERSION >= 4000
     _block_size[0]=block_size;
     _block_size[1]=1;
     _block_size[2]=1;
-    #else
-    CU_SAFE_CALL(cuFuncSetBlockShape(_kernel,block_size,1,1));
-    #endif
   }
 
   /// Set the number of thread blocks and the number of threads in each block
@@ -323,13 +294,9 @@ class UCL_Kernel {
     _num_blocks[0]=num_blocks_x;
     _num_blocks[1]=num_blocks_y;
     _num_blocks[2]=1;
-    #if CUDA_VERSION >= 4000
     _block_size[0]=block_size_x;
     _block_size[1]=block_size_y;
     _block_size[2]=1;
-    #else
-    CU_SAFE_CALL(cuFuncSetBlockShape(_kernel,block_size_x,block_size_y,1));
-    #endif
   }
 
   /// Set the number of thread blocks and the number of threads in each block
@@ -350,14 +317,9 @@ class UCL_Kernel {
     _num_blocks[0]=num_blocks_x;
     _num_blocks[1]=num_blocks_y;
     _num_blocks[2]=1;
-    #if CUDA_VERSION >= 4000
     _block_size[0]=block_size_x;
     _block_size[1]=block_size_y;
     _block_size[2]=block_size_z;
-    #else
-    CU_SAFE_CALL(cuFuncSetBlockShape(_kernel,block_size_x,block_size_y,
-                                     block_size_z));
-    #endif
   }
 
   /// Set the number of thread blocks and the number of threads in each block
@@ -373,23 +335,14 @@ class UCL_Kernel {
 
   /// Run the kernel in the default command queue
   inline void run() {
-    #if CUDA_VERSION >= 4000
     CU_SAFE_CALL(cuLaunchKernel(_kernel,_num_blocks[0],_num_blocks[1],
                                 _num_blocks[2],_block_size[0],_block_size[1],
                                 _block_size[2],0,_cq,_kernel_args,nullptr));
-    #else
-    CU_SAFE_CALL(cuParamSetSize(_kernel,_param_size));
-    CU_SAFE_CALL(cuLaunchGridAsync(_kernel,_num_blocks[0],_num_blocks[1],_cq));
-    #endif
   }
 
   /// Clear any arguments associated with the kernel
   inline void clear_args() {
     _num_args=0;
-    #if CUDA_VERSION < 4000
-    _offsets.clear();
-    _param_size=0;
-    #endif
   }
 
   /// Return the default command queue/stream associated with this data
@@ -406,13 +359,8 @@ class UCL_Kernel {
   unsigned _num_args;
   friend class UCL_Texture;
 
-  #if CUDA_VERSION >= 4000
   unsigned _block_size[3];
   void * _kernel_args[UCL_MAX_KERNEL_ARGS];
-  #else
-  std::vector<unsigned> _offsets;
-  unsigned _param_size;
-  #endif
 };
 
 } // namespace

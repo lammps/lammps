@@ -81,13 +81,10 @@ This program uses the .car and .mdf files from MSI/Biosyms's INSIGHT
 
    -- msi2lmp.exe is the name of the executable
    -- <ROOTNAME> is the base name of the .car and .mdf files
-   -- -2001
-         Output lammps files for LAMMPS version 2001 (F90 version)
-         Default is to write output for the C++ version of LAMMPS
 
    -- -print (or -p)
-	 # is the print level  0 - silent except for error messages
-	                       1 - minimal (default)
+         # is the print level  0 - silent except for error messages
+                               1 - minimal (default)
                                2 - verbose (usual for developing and
                                    checking new data files for consistency)
                                3 - even more verbose (additional debug info)

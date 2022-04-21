@@ -168,7 +168,7 @@ Input::~Input()
   memory->sfree(line);
   memory->sfree(copy);
   memory->sfree(work);
-  if (labelstr) delete[] labelstr;
+  delete[] labelstr;
   memory->sfree(arg);
   delete[] infiles;
   delete variable;
@@ -891,7 +891,7 @@ void Input::ifthenelse()
     int ncommands = last-first + 1;
     if (ncommands <= 0) error->all(FLERR,"Illegal if command");
 
-    char **commands = new char*[ncommands];
+    auto commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
       n = strlen(arg[i]) + 1;
@@ -944,7 +944,7 @@ void Input::ifthenelse()
     int ncommands = last-first + 1;
     if (ncommands <= 0) error->all(FLERR,"Illegal if command");
 
-    char **commands = new char*[ncommands];
+    auto commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
       n = strlen(arg[i]) + 1;
@@ -1026,7 +1026,7 @@ void Input::jump()
 
   if (narg == 2) {
     label_active = 1;
-    if (labelstr) delete[] labelstr;
+    delete[] labelstr;
     labelstr = utils::strdup(arg[1]);
   }
 }

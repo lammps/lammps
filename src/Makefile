@@ -54,6 +54,7 @@ PACKAGE = \
 	awpmd \
 	bocs \
 	body \
+        bpm \
 	brownian \
 	cg-dna \
 	cg-sdk \
@@ -93,7 +94,6 @@ PACKAGE = \
 	mdi \
 	meam \
 	mesont \
-	message \
 	mgpt \
 	misc \
 	ml-hdnnp \
@@ -148,7 +148,8 @@ PACKMOST = \
 	asphere \
 	bocs \
 	body \
-	brownian \
+	bpm \
+        brownian \
 	cg-dna \
 	cg-sdk \
 	class2 \
@@ -207,7 +208,6 @@ PACKLIB = \
 	kim \
 	kokkos \
 	latte \
-	message \
 	mpiio \
 	mscg \
 	poems \
@@ -234,7 +234,7 @@ PACKLIB = \
 
 PACKSYS = compress latboltz mpiio python
 
-PACKINT = atc awpmd colvars gpu kokkos mesont message poems
+PACKINT = atc awpmd colvars gpu kokkos mesont poems
 
 PACKEXT = \
 	adios \

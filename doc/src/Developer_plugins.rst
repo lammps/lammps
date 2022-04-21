@@ -68,7 +68,7 @@ Members of ``lammpsplugin_t``
    * - author
      - String with the name and email of the author
    * - creator.v1
-     - Pointer to factory function for pair, bond, angle, dihedral, improper or command styles
+     - Pointer to factory function for pair, bond, angle, dihedral, improper, kspace, or command styles
    * - creator.v2
      - Pointer to factory function for compute, fix, or region styles
    * - handle
@@ -262,3 +262,24 @@ A plugin may be registered under an existing style name.  In that case
 the plugin will override the existing code.  This can be used to modify
 the behavior of existing styles or to debug new versions of them without
 having to re-compile or re-install all of LAMMPS.
+
+Compiling plugins
+^^^^^^^^^^^^^^^^^
+
+Plugins need to be compiled with the same compilers and libraries
+(e.g. MPI) and compilation settings (MPI on/off, OpenMP, integer sizes)
+as the LAMMPS executable and library.  Otherwise the plugin will likely
+not load due to mismatches in the function signatures (LAMMPS is C++ so
+scope, type, and number of arguments are encoded into the symbol names
+and thus differences in them will lead to failed plugin load commands.
+Compilation of the plugin can be managed via both, CMake or traditional
+GNU makefiles.  Some examples that can be used as a template are in the
+``examples/plugins`` folder.  The CMake script code has some small
+adjustments to allow building the plugins for running unit tests with
+them. Another example that converts the KIM package into a plugin can be
+found in the ``examples/kim/plugin`` folder.  No changes to the sources
+of the KIM package themselves are needed; only the plugin interface and
+loader code needs to be added.  This example only supports building with
+CMake, but is probably a more typical example. To compile you need to
+run CMake with -DLAMMPS_SOURCE_DIR=<path/to/lammps/src/folder>.  Other
+configuration setting are identical to those for compiling LAMMPS.

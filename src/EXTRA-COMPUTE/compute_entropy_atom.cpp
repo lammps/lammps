@@ -150,8 +150,8 @@ void ComputeEntropyAtom::compute_peratom()
   int i,j,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double *rbin = new double[nbin];
-  double *rbinsq = new double[nbin];
+  auto rbin = new double[nbin];
+  auto rbinsq = new double[nbin];
 
   invoked_peratom = update->ntimestep;
 
@@ -199,8 +199,8 @@ void ComputeEntropyAtom::compute_peratom()
 
   double **x = atom->x;
   int *mask = atom->mask;
-  double *gofr = new double[nbin];
-  double *integrand = new double[nbin];
+  auto gofr = new double[nbin];
+  auto integrand = new double[nbin];
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];

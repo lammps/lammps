@@ -41,7 +41,7 @@ DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
   sort_flag = 1;
   sortcol = 0;
 
-  if (format_default) delete [] format_default;
+  delete[] format_default;
 
   format_default = utils::strdup("%s %g %g %g");
 
@@ -130,10 +130,10 @@ int DumpXYZ::modify_param(int narg, char **arg)
 void DumpXYZ::write_header(bigint n)
 {
   if (me == 0) {
-    if (time_flag) {
-      double tcurrent = update->atime + (update->ntimestep-update->atimestep) + update->dt;
-      fmt::print(fp,"{}\n Atoms. Timestep: {} Time: {:.6f}\n", n, update->ntimestep, tcurrent);
-    } else fmt::print(fp,"{}\n Atoms. Timestep: {}\n", n, update->ntimestep);
+    auto header = fmt::format("{}\n Atoms. Timestep: {}", n, update->ntimestep);
+    if (time_flag) header += fmt::format(" Time: {:.6f}", compute_time());
+    header += "\n";
+    fmt::print(fp, header);
   }
 }
 

@@ -350,7 +350,7 @@ void FixAmoebaPiTorsion::post_force(int vflag)
     ic = pitorsion_list[n][2];
     id = pitorsion_list[n][3];
     ie = pitorsion_list[n][4];
-    ib = pitorsion_list[n][5];
+    ig = pitorsion_list[n][5];
     ptype = pitorsion_list[n][6];
 
     // compute the value of the pi-system torsion angle

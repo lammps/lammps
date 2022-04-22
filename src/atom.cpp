@@ -604,7 +604,7 @@ void Atom::add_peratom_change_columns(const char *name, int cols)
             return;
     }
   }
-  error->all(FLERR,"Could not find name of peratom array for column change");
+  error->all(FLERR,"Could not find name {} of peratom array for column change", name);
 }
 
 /* ----------------------------------------------------------------------
@@ -775,7 +775,7 @@ void Atom::init()
   if (firstgroupname) {
     firstgroup = group->find(firstgroupname);
     if (firstgroup < 0)
-      error->all(FLERR,"Could not find atom_modify first group ID");
+      error->all(FLERR,"Could not find atom_modify first group ID {}", firstgroupname);
   } else firstgroup = -1;
 
   // init AtomVec
@@ -818,30 +818,30 @@ AtomVec *Atom::style_match(const char *style)
 
 void Atom::modify_params(int narg, char **arg)
 {
-  if (narg == 0) error->all(FLERR,"Illegal atom_modify command");
+  if (narg == 0) utils::missing_cmd_args(FLERR, "atom_modify", error);
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"id") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal atom_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "atom_modify id", error);
       if (domain->box_exist)
         error->all(FLERR,"Atom_modify id command after simulation box is defined");
       tag_enable = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"map") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal atom_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "atom_modify map", error);
       if (domain->box_exist)
         error->all(FLERR,"Atom_modify map command after simulation box is defined");
       if (strcmp(arg[iarg+1],"array") == 0) map_user = 1;
       else if (strcmp(arg[iarg+1],"hash") == 0) map_user = 2;
       else if (strcmp(arg[iarg+1],"yes") == 0) map_user = 3;
-      else error->all(FLERR,"Illegal atom_modify command");
+      else error->all(FLERR,"Illegal atom_modify map command argument {}", arg[iarg+1]);
       map_style = map_user;
       iarg += 2;
     } else if (strcmp(arg[iarg],"first") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal atom_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "atom_modify first", error);
       if (strcmp(arg[iarg+1],"all") == 0) {
-        delete [] firstgroupname;
+        delete[] firstgroupname;
         firstgroupname = nullptr;
       } else {
         firstgroupname = utils::strdup(arg[iarg+1]);
@@ -849,16 +849,15 @@ void Atom::modify_params(int narg, char **arg)
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"sort") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal atom_modify command");
+      if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "atom_modify sort", error);
       sortfreq = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       userbinsize = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      if (sortfreq < 0 || userbinsize < 0.0)
-        error->all(FLERR,"Illegal atom_modify command");
-      if (sortfreq >= 0 && firstgroupname)
-        error->all(FLERR,"Atom_modify sort and first options "
-                   "cannot be used together");
+      if (sortfreq < 0) error->all(FLERR,"Illegal atom_modify sort frequency {}", sortfreq);
+      if (userbinsize < 0.0) error->all(FLERR,"Illegal atom_modify sort bin size {}", userbinsize);
+      if ((sortfreq >= 0) && firstgroupname)
+        error->all(FLERR,"Atom_modify sort and first options cannot be used together");
       iarg += 3;
-    } else error->all(FLERR,"Illegal atom_modify command");
+    } else error->all(FLERR,"Illegal atom_modify command argument: {}", arg[iarg]);
   }
 }
 
@@ -929,7 +928,7 @@ void Atom::tag_extend()
   bigint notag_total;
   MPI_Allreduce(&notag,&notag_total,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (notag_total >= MAXTAGINT)
-    error->all(FLERR,"New atom IDs exceed maximum allowed ID");
+    error->all(FLERR,"New atom IDs exceed maximum allowed ID {}", MAXTAGINT);
 
   bigint notag_sum;
   MPI_Scan(&notag,&notag_sum,1,MPI_LMP_BIGINT,MPI_SUM,world);
@@ -1726,24 +1725,26 @@ void Atom::allocate_type_arrays()
 
 void Atom::set_mass(const char *file, int line, const char *str, int type_offset)
 {
-  if (mass == nullptr) error->all(file,line,"Cannot set mass for this atom style");
+  if (mass == nullptr) error->all(file,line,"Cannot set mass for atom style {}", atom_style);
 
   int itype;
   double mass_one;
-  try {
-    ValueTokenizer values(utils::trim_comment(str));
-    itype = values.next_int() + type_offset;
-    mass_one = values.next_double();
-    if (values.has_next()) throw TokenizerException("Too many tokens", "");
+  ValueTokenizer values(utils::trim_comment(str));
+  if (values.has_next()) {
+    try {
+      itype = values.next_int() + type_offset;
+      mass_one = values.next_double();
+      if (values.has_next()) throw TokenizerException("Too many tokens", "");
 
-    if (itype < 1 || itype > ntypes) throw TokenizerException("Invalid atom type", "");
-    if (mass_one <= 0.0) throw TokenizerException("Invalid mass value", "");
-  } catch (TokenizerException &e) {
-    error->all(file,line,"{} in Masses section of data file: {}", e.what(), utils::trim(str));
+      if (itype < 1 || itype > ntypes) throw TokenizerException("Invalid atom type", "");
+      if (mass_one <= 0.0) throw TokenizerException("Invalid mass value", "");
+    } catch (TokenizerException &e) {
+      error->all(file,line,"{} in Masses section of data file: {}", e.what(), utils::trim(str));
+    }
+
+    mass[itype] = mass_one;
+    mass_setflag[itype] = 1;
   }
-
-  mass[itype] = mass_one;
-  mass_setflag[itype] = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -1753,14 +1754,13 @@ void Atom::set_mass(const char *file, int line, const char *str, int type_offset
 
 void Atom::set_mass(const char *file, int line, int itype, double value)
 {
-  if (mass == nullptr) error->all(file,line,"Cannot set mass for this atom style");
+  if (mass == nullptr) error->all(file,line,"Cannot set mass for atom style {}", atom_style);
   if (itype < 1 || itype > ntypes)
-    error->all(file,line,"Invalid type for mass set");
+    error->all(file,line,"Invalid type {} for atom mass {}", itype, value);
+  if (value <= 0.0) error->all(file,line,"Invalid atom mass value {}", value);
 
   mass[itype] = value;
   mass_setflag[itype] = 1;
-
-  if (mass[itype] <= 0.0) error->all(file,line,"Invalid mass value");
 }
 
 /* ----------------------------------------------------------------------
@@ -1770,17 +1770,19 @@ void Atom::set_mass(const char *file, int line, int itype, double value)
 
 void Atom::set_mass(const char *file, int line, int /*narg*/, char **arg)
 {
-  if (mass == nullptr) error->all(file,line,"Cannot set mass for this atom style");
+  if (mass == nullptr) error->all(file,line,"Cannot set atom mass for atom style", atom_style);
 
   int lo,hi;
   utils::bounds(file,line,arg[0],1,ntypes,lo,hi,error);
-  if (lo < 1 || hi > ntypes) error->all(file,line,"Invalid type for mass set");
+  if ((lo < 1) || (hi > ntypes))
+    error->all(file,line,"Invalid type {} for atom mass {}", arg[1]);
+
+  const double value = utils::numeric(FLERR,arg[1],false,lmp);
+  if (value <= 0.0) error->all(file,line,"Invalid atom mass value {}", value);
 
   for (int itype = lo; itype <= hi; itype++) {
-    mass[itype] = utils::numeric(FLERR,arg[1],false,lmp);
+    mass[itype] = value;
     mass_setflag[itype] = 1;
-
-    if (mass[itype] <= 0.0) error->all(file,line,"Invalid mass value");
   }
 }
 
@@ -1882,10 +1884,10 @@ int Atom::shape_consistency(int itype,
 
 void Atom::add_molecule(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal molecule command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "molecule", error);
 
   if (find_molecule(arg[0]) >= 0)
-    error->all(FLERR,"Reuse of molecule template ID");
+    error->all(FLERR,"Reuse of molecule template ID {}", arg[0]);
 
   // 1st molecule in set stores nset = # of mols, others store nset = 0
   // ifile = count of molecules in set

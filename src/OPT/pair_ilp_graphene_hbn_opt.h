@@ -27,31 +27,28 @@ namespace LAMMPS_NS {
 class PairILPGrapheneHBNOpt : public Pair {
  public:
   PairILPGrapheneHBNOpt(class LAMMPS *);
-  ~PairILPGrapheneHBNOpt() override;
+  virtual ~PairILPGrapheneHBNOpt();
 
-  void computeILP(int, int);
-
-  void compute(int, int) override;
-  void settings(int, char **) override;
-  void coeff(int, char **) override;
-  double init_one(int, int) override;
-  void init_style() override;
-
+  virtual void compute(int, int);
+  void settings(int, char **);
+  void coeff(int, char **);
+  double init_one(int, int);
+  void init_style();
+  void calc_single_normal(int i, int *ILP_neigh, int nneigh, double *normal, double (*dnormdri)[3],
+                          double (*dnormdrk)[3][3]);
+  void update_internal_list();
+  double single(int, int, int, int, double, double, double, double &);
+  template <int, int, int> void eval();
   static constexpr int NPARAMS_PER_LINE = 13;
 
  protected:
   int me;
-  int maxlocal;            // size of numneigh, firstneigh arrays
-  int pgsize;              // size of neighbor page
-  int oneatom;             // max # of neighbors for one atom
-  MyPage<int> *ipage;      // neighbor list pages
-  int *ILP_numneigh;       // # of pair neighbors for each atom
-  int **ILP_firstneigh;    // ptr to 1st neighbor of each atom
-  int tap_flag;            // flag to turn on/off taper function
+  int maxlocal;    // size of numneigh, firstneigh arrays
+  int tap_flag;    // flag to turn on/off taper function
 
   struct Param {
     double z0, alpha, epsilon, C, delta, d, sR, reff, C6, S;
-    double delta2inv, seff, lambda, rcut;
+    double delta2inv, seff, lambda, rcut, seffinv;
     int ielement, jelement;
   };
   Param *params;    // parameter set for I-J interactions
@@ -61,19 +58,12 @@ class PairILPGrapheneHBNOpt : public Pair {
   double cut_normal;
   double **cutILPsq;    // mapping the cutoff from element pairs to parameters
   double **offset;
-  double **normal;
-  double ***dnormdri;
-  double ****dnormal;
-
+  int *layered_neigh;
+  int **first_layered_neigh;
+  int *num_intra, *num_inter, *num_vdw;
+  int inum_max, jnum_max;
   void read_file(char *);
   void allocate();
-
-  inline void cross_deriv(double *pv, double (*dpv)[3][3], double (*vet)[3], int j, int k, int l);
-  inline void calc_dnormal(double (*dnormal)[3][3], double (*dn1)[3][3], double *n1, double nn,
-                           double nn2);
-  inline void ev_tally_buffer(int i, int j, double *ei, double *vi, double *ej, double *vj,
-                              int nlocal, int newton_pair, double evdwl, double ecoul, double fx,
-                              double fy, double fz, double delx, double dely, double delz);
 };
 
 }    // namespace LAMMPS_NS

@@ -21,7 +21,7 @@
 
 #include <mpi.h>
 
-#include <vector> // IWYU pragma: export
+#include <vector>    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -46,6 +46,18 @@ namespace utils {
    *  \return the string that matches the pattern or an empty one */
 
   std::string strfind(const std::string &text, const std::string &pattern);
+
+  /*! Print error message about missing arguments for command
+   *
+   * This function simplifies the repetitive reporting missing arguments to a command.
+   *
+   *  \param file     name of source file for error message
+   *  \param line     line number in source file for error message
+   *  \param cmd      name of the failing command
+   *  \param error    pointer to Error class instance (for abort) or nullptr */
+
+  [[noreturn]] void missing_cmd_args(const std::string &file, int line, const std::string &cmd,
+                                     Error *error);
 
   /* Internal function handling the argument list for logmesg(). */
 

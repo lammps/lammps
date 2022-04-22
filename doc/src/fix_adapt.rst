@@ -297,17 +297,17 @@ means all types from 1 to N.  A leading asterisk means all types from
 (inclusive).
 
 Currently *bond* does not support bond_style hybrid nor bond_style
-hybrid/overlay as bond styles. The only bonds that currently are
-working with fix_adapt are
+hybrid/overlay as bond styles. The bond styles that currently work
+with fix_adapt are
 
 +------------------------------------+-------+-----------------+
 | :doc:`class2 <bond_class2>`        | r0         | type bonds |
 +------------------------------------+-------+-----------------+
-| :doc:`fene <bond_fene>`            | k, r0      | type bonds |
+| :doc:`fene <bond_fene>`            | k,r0       | type bonds |
 +------------------------------------+-------+-----------------+
-| :doc:`fene/nm <bond_fene_nm>`      | k, r0      | type bonds |
+| :doc:`fene/nm <bond_fene_nm>`      | k,r0       | type bonds |
 +------------------------------------+-------+-----------------+
-| :doc:`gromos <bond_gromos>`        | k, r0      | type bonds |
+| :doc:`gromos <bond_gromos>`        | k,r0       | type bonds |
 +------------------------------------+-------+-----------------+
 | :doc:`harmonic <bond_harmonic>`    | k,r0       | type bonds |
 +------------------------------------+-------+-----------------+
@@ -333,11 +333,13 @@ means all types from 1 to N.  A leading asterisk means all types from
 (inclusive).
 
 Currently *angle* does not support angle_style hybrid nor angle_style
-hybrid/overlay as angle styles. The only angles that currently are
-working with fix_adapt are
+hybrid/overlay as angle styles. The angle styles that currently work
+with fix_adapt are
 
 +------------------------------------+-------+-----------------+
 | :doc:`harmonic <angle_harmonic>`    | k,theta0 | type angles |
++------------------------------------+-------+-----------------+
+| :doc:`cosine <angle_cosine>`        | k        | type angles |
 +------------------------------------+-------+-----------------+
 
 Note that internally, theta0 is stored in radians, so the variable

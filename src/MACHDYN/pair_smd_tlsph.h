@@ -39,21 +39,21 @@ namespace LAMMPS_NS {
 class PairTlsph : public Pair {
  public:
   PairTlsph(class LAMMPS *);
-  virtual ~PairTlsph();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void init_style();
-  void init_list(int, class NeighList *);
-  void write_restart_settings(FILE *) {}
-  void read_restart_settings(FILE *) {}
-  virtual double memory_usage();
-  void compute_shape_matrix(void);
-  void material_model(void);
-  void *extract(const char *, int &);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  ~PairTlsph() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void init_style() override;
+  void init_list(int, class NeighList *) override;
+  void write_restart_settings(FILE *) override {}
+  void read_restart_settings(FILE *) override {}
+  double memory_usage() override;
+  void compute_shape_matrix();
+  void material_model();
+  void *extract(const char *, int &) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
   void AssembleStress();
 
   void PreCompute();

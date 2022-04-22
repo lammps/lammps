@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class FixEOStableRX : public Fix {
  public:
   FixEOStableRX(class LAMMPS *, int, char **);
-  virtual ~FixEOStableRX();
-  int setmask();
-  void setup(int);
-  virtual void init();
-  virtual void post_integrate();
-  virtual void end_of_step();
+  ~FixEOStableRX() override;
+  int setmask() override;
+  void setup(int) override;
+  void init() override;
+  void post_integrate() override;
+  void end_of_step() override;
   void energy_lookup(int, double, double &);
   void temperature_lookup(int, double, double &);
 
@@ -69,10 +69,10 @@ class FixEOStableRX : public Fix {
 
   double *dHf, *energyCorr, *tempCorrCoeff, *moleculeCorrCoeff;
 
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
   int *eosSpecies;
   int ncolumn;

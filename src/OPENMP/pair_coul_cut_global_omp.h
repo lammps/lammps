@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class PairCoulCutGlobalOMP : public PairCoulCutOMP {
  public:
   PairCoulCutGlobalOMP(class LAMMPS *lmp) : PairCoulCutOMP(lmp) {}
-  void coeff(int, char **);
-  void *extract(const char *, int &);
+  void coeff(int, char **) override;
+  void *extract(const char *, int &) override;
 };
 
 }    // namespace LAMMPS_NS

@@ -127,9 +127,8 @@ class Answer {
   /// Add forces and torques from the GPU into a LAMMPS pointer
   void get_answers(double **f, double **tor);
 
-  inline double get_answers(double **f, double **tor, double *eatom,
-                            double **vatom, double *virial, double &ecoul,
-                            int &error_flag_in) {
+  inline double get_answers(double **f, double **tor, double *eatom, double **vatom,
+                            double *virial, double &ecoul, int &error_flag_in) {
     double ta=MPI_Wtime();
     time_answer.sync_stop();
     _time_cpu_idle+=MPI_Wtime()-ta;

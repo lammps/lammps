@@ -27,13 +27,14 @@
 #include "force.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
+#include "potential_file_reader.h"
 #include "region.h"
 #include "update.h"
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -137,12 +138,7 @@ void FixElectronStopping::init()
   SeLoss = 0.0;
 
   // need an occasional full neighbor list
-  int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -236,49 +232,43 @@ double FixElectronStopping::compute_scalar()
   return SeLoss_all;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   read electron stopping parameters. only called from MPI rank 0.
+   format: energy then one column per atom type
+   read as many lines as available.
+   energies must be sorted in ascending order.
+   ---------------------------------------------------------------------- */
 
 void FixElectronStopping::read_table(const char *file)
 {
-  char line[MAXLINE];
-
-  FILE *fp = utils::open_potential(file,lmp,nullptr);
-  if (fp == nullptr)
-    error->one(FLERR,"Cannot open stopping range table {}: {}", file, utils::getsyserror());
-
   const int ncol = atom->ntypes + 1;
+  int nlines = 0;
+  PotentialFileReader reader(lmp, file, "electron stopping data table");
 
-  int l = 0;
-  while (true) {
-    if (fgets(line, MAXLINE, fp) == nullptr) break; // end of file
-    if (line[0] == '#') continue; // comment
+  try {
+    char *line;
+    double oldvalue = 0.0;
 
-    char *pch = strtok(line, " \t\n\r");
-    if (pch == nullptr) continue; // blank line
+    while ((line = reader.next_line())) {
+      if (nlines >= maxlines) grow_table();
+      ValueTokenizer values(line);
+      elstop_ranges[0][nlines] = values.next_double();
+      if (elstop_ranges[0][nlines] <= oldvalue)
+        throw TokenizerException("energy values must be positive and in ascending order",line);
 
-    if (l >= maxlines) grow_table();
+      oldvalue = elstop_ranges[0][nlines];
+      for (int i = 1; i < ncol; ++i)
+        elstop_ranges[i][nlines] = values.next_double();
 
-    int i = 0;
-    for ( ; i < ncol && pch != nullptr; i++) {
-      elstop_ranges[i][l] = utils::numeric(FLERR, pch,false,lmp);
-      pch = strtok(nullptr, " \t\n\r");
+      ++nlines;
     }
-
-    if (i != ncol || pch != nullptr) // too short or too long
-      error->one(FLERR, "fix electron/stopping: Invalid table line");
-
-    if (l >= 1 && elstop_ranges[0][l] <= elstop_ranges[0][l-1])
-      error->one(FLERR,
-          "fix electron/stopping: Energies must be in ascending order");
-
-    l++;
+  } catch (std::exception &e) {
+    error->one(FLERR, "Problem parsing electron stopping data: {}", e.what());
   }
-  table_entries = l;
-
-  if (table_entries == 0)
+  if (nlines == 0)
     error->one(FLERR, "Did not find any data in electron/stopping table file");
 
-  fclose(fp);
+  table_entries = nlines;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -27,17 +27,17 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "potential_file_reader.h"
-#include "tokenizer.h"
 
 #include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using MathConst::MY_PI;
 
 #define MAXLINE 1024
 #define DELTA 4
@@ -296,7 +296,6 @@ void PairTersoffTable::compute(int eflag, int vflag)
         k &= NEIGHMASK;
         ktype = map[type[k]];
         ikparam = elem3param[itype][ktype][ktype];
-        ijkparam = elem3param[itype][jtype][ktype];
 
         dr_ik[0] = xtmp -x[k][0];
         dr_ik[1] = ytmp -x[k][1];
@@ -321,7 +320,6 @@ void PairTersoffTable::compute(int eflag, int vflag)
         k &= NEIGHMASK;
         ktype = map[type[k]];
         ikparam = elem3param[itype][ktype][ktype];
-        ijkparam = elem3param[itype][jtype][ktype];
 
         dr_ik[0] = xtmp -x[k][0];
         dr_ik[1] = ytmp -x[k][1];
@@ -380,7 +378,6 @@ void PairTersoffTable::compute(int eflag, int vflag)
         k &= NEIGHMASK;
         ktype = map[type[k]];
         ikparam = elem3param[itype][ktype][ktype];
-        ijkparam = elem3param[itype][jtype][ktype];
 
         dr_ik[0] = xtmp -x[k][0];
         dr_ik[1] = ytmp -x[k][1];
@@ -442,7 +439,6 @@ void PairTersoffTable::compute(int eflag, int vflag)
         k &= NEIGHMASK;
         ktype = map[type[k]];
         ikparam = elem3param[itype][ktype][ktype];
-        ijkparam = elem3param[itype][jtype][ktype];
 
         dr_ik[0] = xtmp -x[k][0];
         dr_ik[1] = ytmp -x[k][1];
@@ -506,7 +502,7 @@ void PairTersoffTable::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void PairTersoffTable::deallocatePreLoops(void)
+void PairTersoffTable::deallocatePreLoops()
 {
     memory->destroy(preGtetaFunction);
     memory->destroy(preGtetaFunctionDerived);
@@ -514,7 +510,7 @@ void PairTersoffTable::deallocatePreLoops(void)
     memory->destroy(preCutoffFunctionDerived);
 }
 
-void PairTersoffTable::allocatePreLoops(void)
+void PairTersoffTable::allocatePreLoops()
 {
   deallocatePreLoops();
   memory->create(preGtetaFunction,leadingDimensionInteractionList,
@@ -538,7 +534,7 @@ void PairTersoffTable::deallocateGrids()
   memory->destroy(betaZetaPowerDerived);
 }
 
-void PairTersoffTable::allocateGrids(void)
+void PairTersoffTable::allocateGrids()
 {
   int   i, j, k, l;
 
@@ -548,7 +544,6 @@ void PairTersoffTable::allocateGrids(void)
   double  deltaArgumentCutoffFunction, deltaArgumentExponential, deltaArgumentBetaZetaPower;
   double  deltaArgumentGtetaFunction;
   double  r, minMu, maxLambda, maxCutoff;
-  double const PI=acos(-1.0);
 
   deallocateGrids();
 
@@ -583,7 +578,6 @@ void PairTersoffTable::allocateGrids(void)
   memory->create(gtetaFunction,nelements,numGridPointsGtetaFunction,"tersofftable:gtetaFunction");
   memory->create(gtetaFunctionDerived,nelements,numGridPointsGtetaFunction,"tersofftable:gtetaFunctionDerived");
 
-  r = minArgumentExponential;
   for (i=0; i<nelements; i++) {
     r = -1.0;
     deltaArgumentGtetaFunction = 1.0 / GRIDDENSITY_GTETA;
@@ -658,8 +652,8 @@ void PairTersoffTable::allocateGrids(void)
         }
 
         for (l = numGridPointsOneCutoffFunction; l < numGridPointsCutoffFunction; l++) {
-          cutoffFunction[i][j][l] = 0.5 + 0.5 * cos (PI * (r - cutoffR)/(cutoffS-cutoffR)) ;
-          cutoffFunctionDerived[i][j][l] =  -0.5 * PI * sin (PI * (r - cutoffR)/(cutoffS-cutoffR)) / (cutoffS-cutoffR) ;
+          cutoffFunction[i][j][l] = 0.5 + 0.5 * cos (MY_PI * (r - cutoffR)/(cutoffS-cutoffR)) ;
+          cutoffFunctionDerived[i][j][l] =  -0.5 * MY_PI * sin (MY_PI * (r - cutoffR)/(cutoffS-cutoffR)) / (cutoffS-cutoffR);
           r += deltaArgumentCutoffFunction;
         }
       }
@@ -749,9 +743,7 @@ void PairTersoffTable::init_style()
 
   // need a full neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 }
 
 /* ----------------------------------------------------------------------

@@ -9,7 +9,7 @@ gives links to documentation, example scripts, and pictures/movies (if
 available) that illustrate use of the package.
 
 The majority of packages can be included in a LAMMPS build with a
-single setting (``-D PGK_<NAME>=on`` for CMake) or command
+single setting (``-D PKG_<NAME>=on`` for CMake) or command
 (``make yes-<name>`` for make).  See the :doc:`Build package <Build_package>`
 page for more info.  A few packages may require additional steps;
 this is indicated in the descriptions below.  The :doc:`Build extras <Build_extras>`
@@ -27,11 +27,13 @@ page gives those details.
    :columns: 6
 
    * :ref:`ADIOS <PKG-ADIOS>`
+   * :ref:`AMOEBA <PKG-AMOEBA>`
    * :ref:`ASPHERE <PKG-ASPHERE>`
    * :ref:`ATC <PKG-ATC>`
    * :ref:`AWPMD <PKG-AWPMD>`
    * :ref:`BOCS <PKG-BOCS>`
    * :ref:`BODY <PKG-BODY>`
+   * :ref:`BPM <PKG-BPM>`
    * :ref:`BROWNIAN <PKG-BROWNIAN>`
    * :ref:`CG-DNA <PKG-CG-DNA>`
    * :ref:`CG-SDK <PKG-CG-SDK>`
@@ -72,7 +74,6 @@ page gives those details.
    * :ref:`MDI <PKG-MDI>`
    * :ref:`MEAM <PKG-MEAM>`
    * :ref:`MESONT <PKG-MESONT>`
-   * :ref:`MESSAGE <PKG-MESSAGE>`
    * :ref:`MGPT <PKG-MGPT>`
    * :ref:`MISC <PKG-MISC>`
    * :ref:`ML-HDNNP <PKG-ML-HDNNP>`
@@ -145,6 +146,24 @@ This package has :ref:`specific installation instructions <adios>` on the :doc:`
 * :doc:`dump atom/adios <dump_adios>`
 * :doc:`dump custom/adios <dump_adios>`
 * :doc:`read_dump <read_dump>`
+
+----------
+
+.. _PKG-AMOEBA:
+
+AMOEBA package
+---------------
+
+**Contents:**
+
+TODO
+
+**Supporting info:**
+
+* src/AMOEBA: filenames -> commands
+* :doc:`AMOEBA and HIPPO howto <Howto_amoeba>`
+* examples/amoeba
+* TODO
 
 ----------
 
@@ -281,6 +300,33 @@ overview.
 * :doc:`fix nve/body <fix_nve_body>`
 * :doc:`pair_style body/nparticle <pair_body_nparticle>`
 * examples/body
+
+----------
+
+.. _PKG-BPM:
+
+BPM package
+------------
+
+**Contents:**
+
+Pair styles, bond styles, fixes, and computes for bonded particle
+models for mesoscale simulations of solids and fracture.  See the
+:doc:`Howto bpm <Howto_bpm>` page for an overview.
+
+**Authors:** Joel T. Clemmer (Sandia National Labs)
+
+**Supporting info:**
+
+* src/BPM filenames -> commands
+* :doc:`Howto_bpm <Howto_bpm>`
+* :doc:`atom_style bpm/sphere <atom_style>`
+* :doc:`bond_style bpm/rotational <bond_bpm_rotational>`
+* :doc:`bond_style bpm/spring <bond_bpm_spring>`
+* :doc:`compute nbond/atom <compute_nbond_atom>`
+* :doc:`fix nve/bpm/sphere <fix_nve_bpm_sphere>`
+* :doc:`pair_style bpm/spring <pair_bpm_spring>`
+* examples/bpm
 
 ----------
 
@@ -529,8 +575,20 @@ To use this package, also the :ref:`KSPACE <PKG-KSPACE>` and
 **Supporting info:**
 
 * src/DIELECTRIC: filenames -> commands
+* :doc:`atom_style dielectric <atom_style>`
+* :doc:`pair_style coul/cut/dielectric <pair_dielectric>`
+* :doc:`pair_style coul/long/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/cut/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/debye/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/long/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/msm/dielectric <pair_dielectric>`
+* :doc:`pair_style pppm/dielectric <kspace_style>`
+* :doc:`pair_style pppm/disp/dielectric <kspace_style>`
+* :doc:`pair_style msm/dielectric <kspace_style>`
+* :doc:`fix_style polarize/bem/icc <fix_polarize>`
+* :doc:`fix_style polarize/bem/gmres <fix_polarize>`
+* :doc:`fix_style polarize/functional <fix_polarize>`
 * :doc:`compute efield/atom  <compute_efield_atom>`
-* TODO: add all styles
 * examples/PACKAGES/dielectric
 
 ----------
@@ -915,7 +973,7 @@ This package has :ref:`specific installation instructions <gpu>` on the :doc:`Bu
 * :doc:`package gpu <package>`
 * :doc:`Commands <Commands_all>` pages (:doc:`pair <Commands_pair>`, :doc:`kspace <Commands_kspace>`)
   for styles followed by (g)
-* `Benchmarks page <https://www.lammps.org/bench.html>`_ of web site
+* `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
 
 ----------
 
@@ -1027,7 +1085,7 @@ This package has :ref:`specific installation instructions <intel>` on the :doc:`
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`, :doc:`kspace <Commands_kspace>`) for styles followed by (i)
 * src/INTEL/TEST
-* `Benchmarks page <https://www.lammps.org/bench.html>`_ of web site
+* `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
 
 ----------
 
@@ -1164,7 +1222,7 @@ This package has :ref:`specific installation instructions <kokkos>` on the :doc:
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`,
   :doc:`kspace <Commands_kspace>`) for styles followed by (k)
-* `Benchmarks page <https://www.lammps.org/bench.html>`_ of web site
+* `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
 
 ----------
 
@@ -1242,7 +1300,7 @@ A fix command which wraps the LATTE DFTB code, so that molecular
 dynamics can be run with LAMMPS using density-functional tight-binding
 quantum forces calculated by LATTE.
 
-More information on LATTE can be found at this web site:
+More information on LATTE can be found at this website:
 `https://github.com/lanl/LATTE <latte-home_>`_.  A brief technical
 description is given with the :doc:`fix latte <fix_latte>` command.
 
@@ -1396,17 +1454,25 @@ MDI package
 
 **Contents:**
 
-A LAMMPS command and fix to allow client-server coupling of LAMMPS to
-other atomic or molecular simulation codes via the `MolSSI Driver Interface
+A LAMMPS command and fixes to allow client-server coupling of LAMMPS
+to other atomic or molecular simulation codes or materials modeling
+workflows via the `MolSSI Driver Interface
 (MDI) library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
 
 **Author:** Taylor Barnes - MolSSI, taylor.a.barnes at gmail.com
 
+**Install:**
+
+This package has :ref:`specific installation instructions <mdi>` on
+the :doc:`Build extras <Build_extras>` page.
+
 **Supporting info:**
 
 * src/MDI/README
-* :doc:`mdi/engine <mdi_engine>`
-* :doc:`fix mdi/engine <fix_mdi_engine>`
+* lib/mdi/README
+* :doc:`Howto MDI <Howto_mdi>`
+* :doc:`mdi <mdi>`
+* :doc:`fix mdi/aimd <fix_mdi_aimd>`
 * examples/PACKAGES/mdi
 
 ----------
@@ -1483,32 +1549,6 @@ Philipp Kloza (U Cambridge)
 
 ----------
 
-.. _PKG-MESSAGE:
-
-MESSAGE package
----------------
-
-**Contents:**
-
-Commands to use LAMMPS as either a client or server and couple it to
-another application.
-
-**Install:**
-
-This package has :ref:`specific installation instructions <message>` on the :doc:`Build extras <Build_extras>` page.
-
-**Supporting info:**
-
-* src/MESSAGE: filenames -> commands
-* lib/message/README
-* :doc:`message <message>`
-* :doc:`fix client/md <fix_client_md>`
-* :doc:`server md <server_md>`
-* :doc:`server mc <server_mc>`
-* examples/message
-
-----------
-
 .. _PKG-MGPT:
 
 MGPT package
@@ -1564,7 +1604,6 @@ listing, "ls src/MISC", to see the list of commands.
 * :doc:`pair_style list <pair_list>`
 * :doc:`pair_style srp <pair_srp>`
 * :doc:`pair_style tracker <pair_tracker>`
-* :doc:`fix pair/tracker <fix_pair_tracker>`
 
 ----------
 
@@ -1880,6 +1919,12 @@ MPIIO library.  It adds :doc:`dump styles <dump>` with a "mpiio" in
 their style name.  Restart files with an ".mpiio" suffix are also
 written and read in parallel.
 
+.. warning::
+
+   The MPIIO package is currently unmaintained and has become
+   unreliable. Use with caution.
+
+
 **Install:**
 
 The MPIIO package requires that LAMMPS is build in :ref:`MPI parallel mode <serial>`.
@@ -2017,7 +2062,7 @@ the :doc:`Build extras <Build_extras>` page.
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`,
   :doc:`kspace <Commands_kspace>`) for styles followed by (o)
-* `Benchmarks page <https://www.lammps.org/bench.html>`_ of web site
+* `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
 
 ----------
 
@@ -2051,7 +2096,7 @@ This package has :ref:`specific installation instructions <opt>` on the :doc:`Bu
 * :doc:`OPT package <Speed_opt>`
 * :doc:`Section 2.6 -sf opt <Run_options>`
 * Search the :doc:`pair style <Commands_pair>` page for styles followed by (t)
-* `Benchmarks page <https://www.lammps.org/bench.html>`_ of web site
+* `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
 
 .. _PKG-ORIENT:
 
@@ -2147,6 +2192,11 @@ PLUGIN package
 A :doc:`plugin <plugin>` command that can load and unload several
 kind of styles in LAMMPS from shared object files at runtime without
 having to recompile and relink LAMMPS.
+
+When the environment variable ``LAMMPS_PLUGIN_PATH`` is set, then LAMMPS
+will search the directory (or directories) listed in this path for files
+with names that end in ``plugin.so`` (e.g. ``helloplugin.so``) and will
+try to load the contained plugins automatically at start-up.
 
 **Authors:** Axel Kohlmeyer (Temple U)
 
@@ -2248,16 +2298,16 @@ PYTHON package
 
 A :doc:`python <python>` command which allow you to execute Python code
 from a LAMMPS input script.  The code can be in a separate file or
-embedded in the input script itself.  See the :doc:`Python call <Python_call>` page for an overview of using Python from
-LAMMPS in this manner and all the :doc:`Python <Python_head>` manual pages
-for other ways to use LAMMPS and Python together.
+embedded in the input script itself.  See the :doc:`Python call
+<Python_call>` page for an overview of using Python from LAMMPS in this
+manner and all the :doc:`Python <Python_head>` manual pages for other
+ways to use LAMMPS and Python together.
 
 .. note::
 
-   Building with the PYTHON package assumes you have a Python
-   shared library available on your system, which needs to be a Python 2
-   version, 2.6 or later.  Python 3 is not yet supported.  See the
-   lib/python/README for more details.
+   Building with the PYTHON package assumes you have a Python development
+   environment (headers and libraries) available on your system, which needs
+   to be either Python version 2.7 or Python 3.5 and later.
 
 **Install:**
 

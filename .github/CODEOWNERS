@@ -83,7 +83,7 @@ src/library.*             @sjplimp
 src/main.cpp              @sjplimp
 src/min_*.*               @sjplimp
 src/memory.*              @sjplimp
-src/modify.*              @sjplimp
+src/modify.*              @sjplimp @stanmoore1
 src/molecule.*            @sjplimp
 src/my_page.h             @sjplimp
 src/my_pool_chunk.h       @sjplimp

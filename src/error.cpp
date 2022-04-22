@@ -58,7 +58,8 @@ void Error::universe_all(const std::string &file, int line, const std::string &s
   std::string mesg = "ERROR: " + str;
   try {
     mesg += fmt::format(" ({}:{})\n",truncpath(file),line);
-  } catch (fmt::format_error &e) {
+  } catch (fmt::format_error &) {
+    ; // do nothing
   }
   if (universe->me == 0) {
     if (universe->uscreen)  fputs(mesg.c_str(),universe->uscreen);
@@ -147,9 +148,9 @@ void Error::all(const std::string &file, int line, const std::string &str)
     std::string mesg = "ERROR: " + str;
     if (input && input->line) lastcmd = input->line;
     try {
-      mesg += fmt::format(" ({}:{})\nLast command: {}\n",
-                          truncpath(file),line,lastcmd);
-    } catch (fmt::format_error &e) {
+      mesg += fmt::format(" ({}:{})\nLast command: {}\n", truncpath(file),line,lastcmd);
+    } catch (fmt::format_error &) {
+      ; // do nothing
     }
     utils::logmesg(lmp,mesg);
   }
@@ -195,7 +196,7 @@ void Error::one(const std::string &file, int line, const std::string &str)
   MPI_Comm_rank(world,&me);
 
   if (input && input->line) lastcmd = input->line;
-  std::string mesg = fmt::format("ERROR on proc {}: {} ({}:{})\n",
+  std::string mesg = fmt::format("ERROR on proc {}: {} ({}:{})\nLast command: {}\n",
                                  me,str,truncpath(file),line,lastcmd);
   utils::logmesg(lmp,mesg);
 
@@ -212,8 +213,7 @@ void Error::one(const std::string &file, int line, const std::string &str)
 
   throw LAMMPSAbortException(mesg, world);
 #else
-  if (screen) fflush(screen);
-  if (logfile) fflush(logfile);
+  utils::flush_buffers(lmp);
   KokkosLMP::finalize();
   MPI_Abort(world,1);
   exit(1); // to trick "smart" compilers into believing this does not return

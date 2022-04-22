@@ -19,24 +19,23 @@
 
 #include "fix_efield.h"
 
-#include <cstring>
 #include "atom.h"
-#include "update.h"
-#include "domain.h"
 #include "comm.h"
-#include "modify.h"
-#include "force.h"
-#include "respa.h"
-#include "input.h"
-#include "variable.h"
-#include "region.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
+#include "force.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "region.h"
+#include "respa.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-
-enum{NONE,CONSTANT,EQUAL,ATOM};
 
 /* ---------------------------------------------------------------------- */
 
@@ -111,6 +110,8 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
 
   maxatom = atom->nmax;
   memory->create(efield,maxatom,4,"efield:efield");
+
+  maxatom_energy = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -199,9 +200,7 @@ void FixEfield::init()
     error->all(FLERR,"Fix efield with dipoles cannot use atom-style variables");
 
   if (muflag && update->whichflag == 2 && comm->me == 0)
-    error->warning(FLERR,
-                   "The minimizer does not re-orient dipoles "
-                   "when using fix efield");
+    error->warning(FLERR, "The minimizer does not re-orient dipoles when using fix efield");
 
   if (varflag == CONSTANT && estyle != NONE)
     error->all(FLERR,"Cannot use variable energy with "
@@ -211,7 +210,7 @@ void FixEfield::init()
     error->all(FLERR,"Must use variable energy with fix efield");
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
+    ilevel_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
 }
@@ -223,9 +222,9 @@ void FixEfield::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
+    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(ilevel_respa);
     post_force_respa(vflag,ilevel_respa,0);
-    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
+    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(ilevel_respa);
   }
 }
 
@@ -428,7 +427,7 @@ double FixEfield::memory_usage()
    return energy added by fix
 ------------------------------------------------------------------------- */
 
-double FixEfield::compute_scalar(void)
+double FixEfield::compute_scalar()
 {
   if (force_flag == 0) {
     MPI_Allreduce(fsum,fsum_all,4,MPI_DOUBLE,MPI_SUM,world);
@@ -449,3 +448,4 @@ double FixEfield::compute_vector(int n)
   }
   return fsum_all[n+1];
 }
+

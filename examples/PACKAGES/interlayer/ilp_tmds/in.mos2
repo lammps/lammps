@@ -1,0 +1,36 @@
+units           metal
+atom_style      full
+processors      * * 1
+boundary        p p f
+read_data       ./bilayer_MoS2_AAprime_stacking.data
+
+mass            * 32.065  # mass of sulphur atom , uint: a.u.=1.66X10^(-27)kg
+mass            1 95.94   # mass of molebdenum atom , uint: a.u.=1.66X10^(-27)kg
+mass            4 95.94
+
+# Define potentials
+pair_style     	hybrid/overlay sw/mod sw/mod ilp/tmd 16.0
+pair_coeff     	* * sw/mod 1 tmd.sw.mod Mo S S NULL NULL NULL
+pair_coeff     	* * sw/mod 2 tmd.sw.mod NULL NULL NULL Mo S S
+pair_coeff     	* * ilp/tmd  MoS2.ILP Mo S S Mo S S
+
+# Calculate the pair potential
+compute   	0 all pair ilp/tmd
+compute   	1 all pair sw/mod 1
+compute   	2 all pair sw/mod 2
+variable  	SW1 equal c_1
+variable  	SW2 equal c_2
+variable  	ILP equal c_0
+variable  	Eatt equal c_0[1]
+variable  	Erep equal c_0[2]
+
+thermo_style    custom step etotal pe ke v_SW1 v_SW2 v_ILP v_Erep v_Eatt temp
+
+thermo          100
+thermo_modify   lost error
+
+timestep	1e-3
+
+velocity  	all create 300.0 12345
+fix             intall all nve
+run 		1000

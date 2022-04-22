@@ -151,9 +151,11 @@ void FixAmoebaPiTorsion::init()
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
 
-  // check if PairAmoeba disabled pitorsion terms
+  // check if PairAmoeba or PairHippo disabled pitorsion terms
 
-  Pair *pair = force->pair_match("amoeba",1,0);
+  Pair *pair = NULL;
+  pair = force->pair_match("amoeba",1,0);
+  if (!pair) pair = force->pair_match("hippo",1,0);
 
   if (!pair) disable = 0;
   else {
@@ -220,7 +222,7 @@ void FixAmoebaPiTorsion::pre_neighbor()
 
   if (max_pitorsion_list == 0) {
     if (nprocs == 1) max_pitorsion_list = npitorsions;
-    else max_pitorsion_list = 
+    else max_pitorsion_list =
            static_cast<int> (LB_FACTOR*npitorsions/nprocs);
     memory->create(pitorsion_list,max_pitorsion_list,7,
                    "pitorsion:pitorsion_list");
@@ -421,7 +423,7 @@ void FixAmoebaPiTorsion::post_force(int vflag)
     sine = (xdc*xtu + ydc*ytu + zdc*ztu) / (rdc*rtru);
 
     // set the pi-system torsion parameters for this angle
-        
+
     v2 = kpit[ptype];
     c2 = -1.0;
     s2 = 0.0;
@@ -499,44 +501,44 @@ void FixAmoebaPiTorsion::post_force(int vflag)
 
     if (ia < nlocal) {
       epitorsion += engfraction;
-      f[ia][0] += dedxia;
-      f[ia][1] += dedyia;
-      f[ia][2] += dedzia;
+      f[ia][0] -= dedxia;
+      f[ia][1] -= dedyia;
+      f[ia][2] -= dedzia;
     }
 
     if (ib < nlocal) {
       epitorsion += engfraction;
-      f[ib][0] += dedxib;
-      f[ib][1] += dedyib;
-      f[ib][2] += dedzib;
+      f[ib][0] -= dedxib;
+      f[ib][1] -= dedyib;
+      f[ib][2] -= dedzib;
     }
 
     if (ic < nlocal) {
       epitorsion += engfraction;
-      f[ic][0] += dedxic;
-      f[ic][1] += dedyic;
-      f[ic][2] += dedzic;
+      f[ic][0] -= dedxic;
+      f[ic][1] -= dedyic;
+      f[ic][2] -= dedzic;
     }
 
     if (id < nlocal) {
       epitorsion += engfraction;
-      f[id][0] += dedxid;
-      f[id][1] += dedyid;
-      f[id][2] += dedzid;
+      f[id][0] -= dedxid;
+      f[id][1] -= dedyid;
+      f[id][2] -= dedzid;
     }
 
     if (ie < nlocal) {
       epitorsion += engfraction;
-      f[ie][0] += dedxie;
-      f[ie][1] += dedyie;
-      f[ie][2] += dedzie;
+      f[ie][0] -= dedxie;
+      f[ie][1] -= dedyie;
+      f[ie][2] -= dedzie;
     }
 
     if (ig < nlocal) {
       epitorsion += engfraction;
-      f[ig][0] += dedxig;
-      f[ig][1] += dedyig;
-      f[ig][2] += dedzig;
+      f[ig][0] -= dedxig;
+      f[ig][1] -= dedyig;
+      f[ig][2] -= dedzig;
     }
 
     // virial tensor components
@@ -623,11 +625,11 @@ void FixAmoebaPiTorsion::read_data_section(char *keyword, int n, char *buf,
     sscanf(keyword,"%d",&npitorsion_types);
     which = 1;
   } else error->all(FLERR,"Invalid read data section for fix amoeba/pitorsion");
-  
+
   // loop over lines of PiTorsion Coeffs
   // tokenize the line into values
   // initialize kpit vector
-  
+
   if (which == 1) {
     int itype;
     double value;
@@ -660,7 +662,7 @@ void FixAmoebaPiTorsion::read_data_section(char *keyword, int n, char *buf,
     *next = '\0';
     int nwords = utils::count_words(utils::trim_comment(buf));
     *next = '\n';
-    
+
     if (nwords != 8)
       error->all(FLERR,"Incorrect {} format in data file",keyword);
 
@@ -690,7 +692,7 @@ void FixAmoebaPiTorsion::read_data_section(char *keyword, int n, char *buf,
         pitorsion_atom6[m][num_pitorsion[m]] = atom6;
         num_pitorsion[m]++;
       }
-      
+
       if ((m = atom->map(atom2)) >= 0) {
         if (num_pitorsion[m] == PITORSIONMAX)
           error->one(FLERR,"Too many PiTorsions for one atom");
@@ -703,7 +705,7 @@ void FixAmoebaPiTorsion::read_data_section(char *keyword, int n, char *buf,
         pitorsion_atom6[m][num_pitorsion[m]] = atom6;
         num_pitorsion[m]++;
       }
-      
+
       if ((m = atom->map(atom3)) >= 0) {
         if (num_pitorsion[m] == PITORSIONMAX)
           error->one(FLERR,"Too many PiTorsions for one atom");
@@ -729,7 +731,7 @@ void FixAmoebaPiTorsion::read_data_section(char *keyword, int n, char *buf,
         pitorsion_atom6[m][num_pitorsion[m]] = atom6;
         num_pitorsion[m]++;
       }
-      
+
       if ((m = atom->map(atom5)) >= 0) {
         if (num_pitorsion[m] == PITORSIONMAX)
           error->one(FLERR,"Too many PiTorsions for one atom");
@@ -742,7 +744,7 @@ void FixAmoebaPiTorsion::read_data_section(char *keyword, int n, char *buf,
         pitorsion_atom6[m][num_pitorsion[m]] = atom6;
         num_pitorsion[m]++;
       }
-      
+
       if ((m = atom->map(atom6)) >= 0) {
         if (num_pitorsion[m] == PITORSIONMAX)
           error->one(FLERR,"Too many PiTorsions for one atom");
@@ -755,7 +757,7 @@ void FixAmoebaPiTorsion::read_data_section(char *keyword, int n, char *buf,
         pitorsion_atom6[m][num_pitorsion[m]] = atom6;
         num_pitorsion[m]++;
       }
-      
+
       buf = next + 1;
     }
   }
@@ -778,7 +780,7 @@ bigint FixAmoebaPiTorsion::read_data_skip_lines(char *keyword)
 void FixAmoebaPiTorsion::write_data_header(FILE *fp, int mth)
 {
   if (mth == 0) fprintf(fp,BIGINT_FORMAT " pitorsions\n",npitorsions);
-  else if (mth == 1) 
+  else if (mth == 1)
     fprintf(fp,BIGINT_FORMAT " pitorsion types\n",npitorsion_types);
 }
 
@@ -896,7 +898,7 @@ void FixAmoebaPiTorsion::write_data_section(int mth, FILE *fp,
   if (mth == 0) {
     for (int i = 0; i < n; i++)
       fprintf(fp,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT
-              " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT 
+              " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT
               " " TAGINT_FORMAT "\n",
               index+i,(int) ubuf(buf[i][0]).i,(tagint) ubuf(buf[i][1]).i,
               (tagint) ubuf(buf[i][2]).i,(tagint) ubuf(buf[i][3]).i,

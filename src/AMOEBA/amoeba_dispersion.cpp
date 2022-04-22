@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -97,7 +97,7 @@ void PairAmoeba::dispersion_real()
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   // owned atoms
-  
+
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
@@ -172,10 +172,10 @@ void PairAmoeba::dispersion_real()
         tk2 = tk * tk;
         damp3 = 1.0 - ti2*(1.0+di+0.5*di2)*expi - tk2*(1.0+dk+0.5*dk2)*expk -
           2.0*ti2*tk*(1.0+di)*expi - 2.0*tk2*ti*(1.0+dk)*expk;
-        damp5 = 1.0 - ti2*(1.0+di+0.5*di2+di3/6.0)*expi - 
-          tk2*(1.0+dk+0.5*dk2 + dk3/6.0)*expk - 
+        damp5 = 1.0 - ti2*(1.0+di+0.5*di2+di3/6.0)*expi -
+          tk2*(1.0+dk+0.5*dk2 + dk3/6.0)*expk -
           2.0*ti2*tk*(1.0+di+di2/3.0)*expi - 2.0*tk2*ti*(1.0+dk+dk2/3.0)*expk;
-        ddamp = 0.25 * di2 * ti2 * ai * expi * (r*ai+4.0*tk-1.0) + 
+        ddamp = 0.25 * di2 * ti2 * ai * expi * (r*ai+4.0*tk-1.0) +
           0.25 * dk2 * tk2 * ak * expk * (r*ak+4.0*ti-1.0);
 
       } else {
@@ -187,7 +187,7 @@ void PairAmoeba::dispersion_real()
       }
 
       damp = 1.5*damp5 - 0.5*damp3;
-      
+
       // apply damping and scaling factors for this interaction
 
       scale = factor_disp * damp*damp;
@@ -203,12 +203,12 @@ void PairAmoeba::dispersion_real()
       dedx = de * xr;
       dedy = de * yr;
       dedz = de * zr;
-      f[i][0] += dedx;
-      f[i][1] += dedy;
-      f[i][2] += dedz;
-      f[j][0] -= dedx;
-      f[j][1] -= dedy;
-      f[j][2] -= dedz;
+      f[i][0] -= dedx;
+      f[i][1] -= dedy;
+      f[i][2] -= dedz;
+      f[j][0] += dedx;
+      f[j][1] += dedy;
+      f[j][2] += dedz;
 
       // increment the internal virial tensor components
 
@@ -229,7 +229,7 @@ void PairAmoeba::dispersion_real()
       // energy = e
       // virial = 6-vec vir
       // NOTE: add tally function
-      
+
       if (evflag) {
       }
     }
@@ -298,11 +298,11 @@ void PairAmoeba::dispersion_kspace()
 
   // pre-convolution operations including forward FFT
   // gridfft = my portion of complex 3d grid in FFT decomposition
-  
+
   double *gridfft = d_kspace->pre_convolution();
 
   // ---------------------
-  // convolution operation 
+  // convolution operation
   // ---------------------
 
   nhalf1 = (nfft1+1) / 2;
@@ -329,39 +329,39 @@ void PairAmoeba::dispersion_kspace()
   for (k = nzlo; k <= nzhi; k++) {
     for (j = nylo; j <= nyhi; j++) {
       for (i = nxlo; i <= nxhi; i++) {
-    	r1 = (i >= nhalf1) ? i-nfft1 : i;
-	r2 = (j >= nhalf2) ? j-nfft2 : j;
-	r3 = (k >= nhalf3) ? k-nfft3 : k;
-	h1 = recip[0][0]*r1 + recip[0][1]*r2 + recip[0][2]*r3;  // matvec
-	h2 = recip[1][0]*r1 + recip[1][1]*r2 + recip[1][2]*r3;
-	h3 = recip[2][0]*r1 + recip[2][1]*r2 + recip[2][2]*r3;
-	hsq = h1*h1 + h2*h2 + h3*h3;
-	h = sqrt(hsq);
-	b = h*bfac;
-	hhh = h*hsq;
-	term = -b*b;
-	expterm = 0.0;
-	erfcterm = erfc(b);
-	denom = denom0*bsmod1[i]*bsmod2[j]*bsmod3[k];
-	if (term > -50.0 && hsq != 0.0) {
-	  expterm = exp(term);
-	  erfcterm = erfc(b);
-	  term1 = fac1*erfcterm*hhh + expterm*(fac2 + fac3*hsq);
-	  struc2 = gridfft[n]*gridfft[n] + gridfft[n+1]*gridfft[n+1];
-	  e = -(term1 / denom) * struc2;
-	  edisp += e;
-	  vterm = 3.0 * (fac1*erfcterm*h + fac3*expterm) * struc2/denom;
-	  virdisp[0] += h1*h1*vterm - e; 
-	  virdisp[1] += h2*h2*vterm - e;
-	  virdisp[2] += h3*h3*vterm - e;
-	  virdisp[3] += h1*h2*vterm;
-	  virdisp[4] += h1*h3*vterm;
-	  virdisp[5] += h2*h3*vterm;
-	} else term1 = 0.0;
-	// NOTE: pre-calc this division only once
-	gridfft[n] *= -(term1/denom);
-	gridfft[n+1] *= -(term1/denom);
-	n += 2;
+        r1 = (i >= nhalf1) ? i-nfft1 : i;
+        r2 = (j >= nhalf2) ? j-nfft2 : j;
+        r3 = (k >= nhalf3) ? k-nfft3 : k;
+        h1 = recip[0][0]*r1 + recip[0][1]*r2 + recip[0][2]*r3;  // matvec
+        h2 = recip[1][0]*r1 + recip[1][1]*r2 + recip[1][2]*r3;
+        h3 = recip[2][0]*r1 + recip[2][1]*r2 + recip[2][2]*r3;
+        hsq = h1*h1 + h2*h2 + h3*h3;
+        h = sqrt(hsq);
+        b = h*bfac;
+        hhh = h*hsq;
+        term = -b*b;
+        expterm = 0.0;
+        erfcterm = erfc(b);
+        denom = denom0*bsmod1[i]*bsmod2[j]*bsmod3[k];
+        if (term > -50.0 && hsq != 0.0) {
+          expterm = exp(term);
+          erfcterm = erfc(b);
+          term1 = fac1*erfcterm*hhh + expterm*(fac2 + fac3*hsq);
+          struc2 = gridfft[n]*gridfft[n] + gridfft[n+1]*gridfft[n+1];
+          e = -(term1 / denom) * struc2;
+          edisp += e;
+          vterm = 3.0 * (fac1*erfcterm*h + fac3*expterm) * struc2/denom;
+          virdisp[0] += h1*h1*vterm - e;
+          virdisp[1] += h2*h2*vterm - e;
+          virdisp[2] += h3*h3*vterm - e;
+          virdisp[3] += h1*h2*vterm;
+          virdisp[4] += h1*h3*vterm;
+          virdisp[5] += h2*h3*vterm;
+        } else term1 = 0.0;
+        // NOTE: pre-calc this division only once
+        gridfft[n] *= -(term1/denom);
+        gridfft[n+1] *= -(term1/denom);
+        n += 2;
       }
     }
   }
@@ -371,7 +371,7 @@ void PairAmoeba::dispersion_kspace()
 
   double ***gridpost = (double ***) d_kspace->post_convolution();
 
-  // get first derivatives of the reciprocal space energy 
+  // get first derivatives of the reciprocal space energy
 
   int nlpts = (bsorder-1) / 2;
   int nrpts = bsorder - nlpts - 1;
@@ -391,31 +391,31 @@ void PairAmoeba::dispersion_kspace()
         t2 = thetai2[m][jb][0];
         dt2 = nfft2 * thetai2[m][jb][1];
 
-	i = igrid[m][0] - nlpts;
-	for (ib = 0; ib < bsorder; ib++) {
-	  t1 = thetai1[m][ib][0];
+        i = igrid[m][0] - nlpts;
+        for (ib = 0; ib < bsorder; ib++) {
+          t1 = thetai1[m][ib][0];
           dt1 = nfft1 * thetai1[m][ib][1];
           term = gridpost[k][j][i];
           de1 += 2.0*term*dt1*t2*t3;
           de2 += 2.0*term*dt2*t1*t3;
           de3 += 2.0*term*dt3*t1*t2;
-	  i++;
+          i++;
         }
-	j++;
+        j++;
       }
       k++;
     }
 
     fi = csix[iclass];
-    f[m][0] += fi * (recip[0][0]*de1 + recip[0][1]*de2 + recip[0][2]*de3);
-    f[m][1] += fi * (recip[1][0]*de1 + recip[1][1]*de2 + recip[1][2]*de3);
-    f[m][2] += fi * (recip[2][0]*de1 + recip[2][1]*de2 + recip[2][2]*de3);
+    f[m][0] -= fi * (recip[0][0]*de1 + recip[0][1]*de2 + recip[0][2]*de3);
+    f[m][1] -= fi * (recip[1][0]*de1 + recip[1][1]*de2 + recip[1][2]*de3);
+    f[m][2] -= fi * (recip[2][0]*de1 + recip[2][1]*de2 + recip[2][2]*de3);
   }
 
   // account for the energy and virial correction terms
 
   term = csixpr * aewald*aewald*aewald / denom0;
-  
+
   if (me == 0) {
     edisp -= term;
     virdisp[0] += term;

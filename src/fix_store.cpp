@@ -94,7 +94,7 @@ vstore(nullptr), astore(nullptr), rbuf(nullptr)
   }
 
   if (flavor == PERATOM) {
-    grow_arrays(atom->nmax);
+    FixStore::grow_arrays(atom->nmax);
     atom->add_callback(Atom::GROW);
     if (restart_peratom) atom->add_callback(Atom::RESTART);
     rbuf = nullptr;
@@ -105,7 +105,7 @@ vstore(nullptr), astore(nullptr), rbuf(nullptr)
 
   if (flavor == GLOBAL) {
     if (vecflag) {
-      for (int i = 0; i < n1; i++) 
+      for (int i = 0; i < n1; i++)
         vstore[i] = 0.0;
     } else if (arrayflag) {
       for (int i = 0; i < n1; i++)
@@ -117,7 +117,7 @@ vstore(nullptr), astore(nullptr), rbuf(nullptr)
   if (flavor == PERATOM) {
     int nlocal = atom->nlocal;
     if (vecflag) {
-      for (int i = 0; i < nlocal; i++) 
+      for (int i = 0; i < nlocal; i++)
         vstore[i] = 0.0;
     } else if (arrayflag) {
       for (int i = 0; i < nlocal; i++)
@@ -212,7 +212,7 @@ void FixStore::restart(char *buf)
 {
   // first 2 values in buf are vec/array sizes
 
-  double *dbuf = (double *) buf;
+  auto *dbuf = (double *) buf;
   int n1_restart = dbuf[0];
   int n2_restart = dbuf[1];
 

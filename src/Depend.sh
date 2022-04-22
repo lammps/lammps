@@ -73,8 +73,13 @@ fi
 
 if (test $1 = "DPD-BASIC") then
   depend GPU
+  depend KOKKOS
   depend OPENMP
   depend INTEL
+fi
+
+if (test $1 = "EXTRA-COMPUTE") then
+  depend KOKKOS
 fi
 
 if (test $1 = "EXTRA-MOLECULE") then
@@ -129,6 +134,10 @@ fi
 
 if (test $1 = "PYTHON") then
   depend ML-IAP
+fi
+
+if (test $1 = "PHONON") then
+  depend KOKKOS
 fi
 
 if (test $1 = "RIGID") then

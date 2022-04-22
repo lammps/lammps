@@ -16,19 +16,20 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "fix_gravity_omp.h"
+
 #include "atom.h"
 #include "update.h"
 #include "input.h"
 #include "modify.h"
 #include "variable.h"
 
+#include "omp_compat.h"
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 enum{CHUTE,SPHERICAL,GRADIENT,VECTOR};
-enum{CONSTANT,EQUAL};
 
 /* ---------------------------------------------------------------------- */
 

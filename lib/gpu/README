@@ -171,7 +171,13 @@ NOTE: when compiling with CMake, all of the considerations listed below
 are considered within the CMake configuration process, so no separate
 compilation of the gpu library is required. Also this will build in support
 for all compute architecture that are supported by the CUDA toolkit version
-used to build the gpu library.
+used to build the gpu library.  A similar setup is possible using
+Makefile.linux_multi after adjusting the settings for the CUDA toolkit in use.
+
+Only CUDA toolkit version 8.0 and later and only GPU architecture 3.0
+(aka Kepler) and later are supported by this version of LAMMPS. If you want
+to use older hard- or software you have to compile for OpenCL or use an older
+version of LAMMPS.
 
 If you do not want to use a fat binary, that supports multiple CUDA
 architectures, the CUDA_ARCH must be set to match the GPU architecture. This
@@ -225,7 +231,8 @@ If GERYON_NUMA_FISSION is defined at build time, LAMMPS will consider separate
 NUMA nodes on GPUs or accelerators as separate devices. For example, a 2-socket
 CPU would appear as two separate devices for OpenCL (and LAMMPS would require
 two MPI processes to use both sockets with the GPU library - each with its
-own device ID as output by ocl_get_devices).
+own device ID as output by ocl_get_devices). OpenCL version 1.2 or later is
+required.
 
 For a debug build, use "-DUCL_DEBUG -DGERYON_KERNEL_DUMP" and remove
 "-DUCL_NO_EXIT" and "-DMPI_GERYON" from the build options.

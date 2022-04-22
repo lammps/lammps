@@ -27,9 +27,9 @@ namespace LAMMPS_NS {
 class ComputeERotateRigid : public Compute {
  public:
   ComputeERotateRigid(class LAMMPS *, int, char **);
-  ~ComputeERotateRigid();
-  void init();
-  double compute_scalar();
+  ~ComputeERotateRigid() override;
+  void init() override;
+  double compute_scalar() override;
 
  private:
   int irfix;

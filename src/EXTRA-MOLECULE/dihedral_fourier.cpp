@@ -19,16 +19,16 @@
 
 #include "dihedral_fourier.h"
 
-#include <cmath>
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
+#include "error.h"
 #include "force.h"
-#include "pair.h"
-#include "update.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+#include "pair.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -62,7 +62,6 @@ DihedralFourier::~DihedralFourier()
     delete [] shift;
     delete [] cos_shift;
     delete [] sin_shift;
-
   }
 }
 
@@ -333,9 +332,11 @@ void DihedralFourier::coeff(int narg, char **arg)
 
 void DihedralFourier::init_style()
 {
-  // check if PairAmoeba disabled dihedral terms
+  // check if PairAmoeba or PairHippo disabled dihedral terms
 
-  Pair *pair = force->pair_match("amoeba",1,0);
+  Pair *pair = NULL;
+  pair = force->pair_match("amoeba",1,0);
+  if (!pair) pair = force->pair_match("hippo",1,0);
 
   if (!pair) disable = 0;
   else {

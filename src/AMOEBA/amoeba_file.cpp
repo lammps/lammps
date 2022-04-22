@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel ator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -135,7 +135,7 @@ void PairAmoeba::read_prmfile(char *filename)
     if (forcefield_flag == 0 && section != FFIELD)
       error->all(FLERR,"Force Field is not first section of "
                  "pair amoeba potential file");
-    if (section != FFIELD && section != LITERATURE && section != ATOMTYPE && 
+    if (section != FFIELD && section != LITERATURE && section != ATOMTYPE &&
         section != UNKNOWN && atomtype_flag == 0)
       error->all(FLERR,"Atom Type section of pair amoeba potential file "
                  "must come before all but Force Field section");
@@ -159,8 +159,8 @@ void PairAmoeba::read_prmfile(char *filename)
       // convert all chars in line to lower-case
 
       for (int i = 0; i < n; i++)
-	line[i] = tolower(line[i]);
-      
+        line[i] = tolower(line[i]);
+
       char *copy;
       char **words;
       int nwords = tokenize(line,words,copy);
@@ -205,11 +205,11 @@ void PairAmoeba::read_prmfile(char *filename)
 void PairAmoeba::read_keyfile(char *filename)
 {
   double aprd,bprd,cprd;
-  
+
   // default settings for which there are keyword options
 
   aprd = bprd = cprd = 0.0;
-  
+
   vdwcut = 9.0;
   vdwtaper = 0.9 * vdwcut;
   repcut = 6.0;
@@ -254,7 +254,7 @@ void PairAmoeba::read_keyfile(char *filename)
   // done if keyfile not specified by pair_coeff command
 
   if (!filename) return;
-  
+
   // open key file
 
   int me = comm->me;
@@ -320,14 +320,14 @@ void PairAmoeba::read_keyfile(char *filename)
       if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
       double taper = utils::numeric(FLERR,words[1],true,lmp);
       if (taper >= 1.0) {
-	vdwtaper = reptaper = disptaper = mpoletaper = ctrntaper = taper;
+        vdwtaper = reptaper = disptaper = mpoletaper = ctrntaper = taper;
       } else {
-	taper = -taper;
-	vdwtaper = taper * vdwcut;
-	reptaper = taper * repcut;
-	disptaper = taper * dispcut;
-	mpoletaper = taper * mpolecut;
-	ctrntaper = taper * ctrncut;
+        taper = -taper;
+        vdwtaper = taper * vdwcut;
+        reptaper = taper * repcut;
+        disptaper = taper * dispcut;
+        mpoletaper = taper * mpolecut;
+        ctrntaper = taper * ctrncut;
       }
     } else if (strcmp(keyword,"vdw-cutoff") == 0) {
       if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
@@ -396,7 +396,7 @@ void PairAmoeba::read_keyfile(char *filename)
     } else if (strcmp(keyword,"dewald") == 0) {
       if (nwords != 1) error->all(FLERR,"AMOEBA keyfile line is invalid");
       use_dewald = 1;
-      
+
     } else if (strcmp(keyword,"pme-order") == 0) {
       if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
       bseorder = utils::numeric(FLERR,words[1],true,lmp);
@@ -409,24 +409,24 @@ void PairAmoeba::read_keyfile(char *filename)
 
     } else if (strcmp(keyword,"pme-grid") == 0) {
       if (nwords != 2 && nwords != 4)
-	error->all(FLERR,"AMOEBA keyfile line is invalid");
+        error->all(FLERR,"AMOEBA keyfile line is invalid");
       if (nwords == 2)
-	nefft1 = nefft2 = nefft3 = utils::numeric(FLERR,words[1],true,lmp);
+        nefft1 = nefft2 = nefft3 = utils::numeric(FLERR,words[1],true,lmp);
       else {
-	nefft1 = utils::numeric(FLERR,words[1],true,lmp);
-	nefft2 = utils::numeric(FLERR,words[2],true,lmp);
-	nefft3 = utils::numeric(FLERR,words[3],true,lmp);
+        nefft1 = utils::numeric(FLERR,words[1],true,lmp);
+        nefft2 = utils::numeric(FLERR,words[2],true,lmp);
+        nefft3 = utils::numeric(FLERR,words[3],true,lmp);
       }
       pmegrid_key = 1;
     } else if (strcmp(keyword,"dpme-grid") == 0) {
       if (nwords != 2 && nwords != 4)
-	error->all(FLERR,"AMOEBA keyfile line is invalid");
+        error->all(FLERR,"AMOEBA keyfile line is invalid");
       if (nwords == 2)
-	ndfft1 = ndfft2 = ndfft3 = utils::numeric(FLERR,words[1],true,lmp);
+        ndfft1 = ndfft2 = ndfft3 = utils::numeric(FLERR,words[1],true,lmp);
       else {
-	ndfft1 = utils::numeric(FLERR,words[1],true,lmp);
-	ndfft2 = utils::numeric(FLERR,words[2],true,lmp);
-	ndfft3 = utils::numeric(FLERR,words[3],true,lmp);
+        ndfft1 = utils::numeric(FLERR,words[1],true,lmp);
+        ndfft2 = utils::numeric(FLERR,words[2],true,lmp);
+        ndfft3 = utils::numeric(FLERR,words[3],true,lmp);
       }
       dpmegrid_key = 1;
 
@@ -448,27 +448,27 @@ void PairAmoeba::read_keyfile(char *filename)
     } else if (strcmp(words[0],"polarization") == 0) {
       if (strcmp(words[1],"mutual") == 0) poltyp = MUTUAL;
       else if (strstr(words[1],"opt") == words[1]) {
-	poltyp = OPT;
-	if (strcmp(words[1],"opt") == 0) optorder = 4;
-	else optorder = utils::inumeric(FLERR,&words[1][3],true,lmp);
-	if (optorder < 1 || optorder > 6) 
-	  error->all(FLERR,"Unrecognized polarization OPTn in AMOEBA FF file");
+        poltyp = OPT;
+        if (strcmp(words[1],"opt") == 0) optorder = 4;
+        else optorder = utils::inumeric(FLERR,&words[1][3],true,lmp);
+        if (optorder < 1 || optorder > 6)
+          error->all(FLERR,"Unrecognized polarization OPTn in AMOEBA FF file");
       } else if (strcmp(words[1],"tcg") == 0)
-	error->all(FLERR,"Polarization TCG not yet supported in AMOEBA/HIPPO");
+        error->all(FLERR,"Polarization TCG not yet supported in AMOEBA/HIPPO");
       else if (strcmp(words[1],"direct") == 0) poltyp = DIRECT;
       else error->all(FLERR,"Unrecognized polarization in AMOEBA FF file");
 
     } else if (strcmp(keyword,"polar-predict") == 0) {
       if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
       if (strcmp(words[1],"gear") == 0) {
-	polpred = GEAR;
-	maxualt = 7;
+        polpred = GEAR;
+        maxualt = 7;
       } else if (strcmp(words[1],"aspc") == 0) {
-	polpred = ASPC;
-	maxualt = 17;
+        polpred = ASPC;
+        maxualt = 17;
       } else if (strcmp(words[1],"lsqr") == 0) {
-	polpred = LSQR;
-	maxualt = 7;
+        polpred = LSQR;
+        maxualt = 7;
       } else error->all(FLERR,"AMOEBA keyfile line is invalid");
       use_pred = 1;
     } else if (strcmp(keyword,"polar-iter") == 0) {
@@ -493,10 +493,7 @@ void PairAmoeba::read_keyfile(char *filename)
     } else if (strcmp(keyword,"pcg-peek") == 0) {
       if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
       pcgpeek = utils::numeric(FLERR,words[1],true,lmp);
-    } else if (strcmp(keyword,"usolve-diag") == 0) {
-      if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
-      udiag = utils::numeric(FLERR,words[1],true,lmp);
-      
+
     } else {}
 
     delete [] copy;
@@ -504,14 +501,14 @@ void PairAmoeba::read_keyfile(char *filename)
   }
 
   // close key file
-  
+
   if (me == 0) fclose(fptr);
 
   // cutoff resets for long-range interactions
 
   if (use_ewald) mpolecut = ewaldcut;
   if (use_dewald) dispcut = dewaldcut;
-  
+
   // error checks
 
   if (use_ewald || use_dewald) {
@@ -558,8 +555,8 @@ int PairAmoeba::read_section_name(FILE *fp, char *line)
     }
     break;
   }
-   
-  if ((strstr(words[0],"##") != words[0]) || 
+
+  if ((strstr(words[0],"##") != words[0]) ||
       (strstr(words[nwords-1],"##") != words[nwords-1]))
     error->one(FLERR,"Section header of pair amoeba potential file is invalid");
 
@@ -583,7 +580,7 @@ int PairAmoeba::read_section_name(FILE *fp, char *line)
 
 /* ---------------------------------------------------------------------- */
 
-int PairAmoeba::read_section_line(FILE *fp, char *line, 
+int PairAmoeba::read_section_line(FILE *fp, char *line,
                                   int &nextflag, char *next)
 {
   // loop on read line
@@ -597,7 +594,7 @@ int PairAmoeba::read_section_line(FILE *fp, char *line,
   //   until a line is blank, starts with #, starts with alpha char, or EOF
   // save next line read, and set nextflag for next call
   // return length of line
-  
+
   char *ptr,*copy,*copy_next;
   char **words,**words_next;
   int nwords,nwords_next;
@@ -779,7 +776,7 @@ void PairAmoeba::file_ffield(int nwords, char **words)
       poltyp = OPT;
       if (strcmp(words[1],"opt") == 0) optorder = 4;
       else optorder = utils::inumeric(FLERR,&words[1][3],true,lmp);
-      if (optorder < 1 || optorder > 6) 
+      if (optorder < 1 || optorder > 6)
         error->all(FLERR,"Unrecognized polarization OPTn in AMOEBA FF file");
     } else if (strcmp(words[1],"tcg") == 0)
       error->all(FLERR,"Polarization TCG not yet supported in AMOEBA/HIPPO");
@@ -788,7 +785,7 @@ void PairAmoeba::file_ffield(int nwords, char **words)
 
   // NOTE: enable all variants of special settings
   //       do these need to be set to defaults if don't appear in file?
-    
+
   } else if (strcmp(words[0],"vdw-12-scale") == 0) {
     special_hal[1] = utils::numeric(FLERR,words[1],true,lmp);
   } else if (strcmp(words[0],"vdw-13-scale") == 0) {
@@ -886,9 +883,9 @@ void PairAmoeba::file_atomtype(int nwords, char **words)
 {
   if (nwords < 8)
     error->all(FLERR,"AMOEBA atom type line is invalid");
-  if (strcmp(words[0],"atom") != 0) 
+  if (strcmp(words[0],"atom") != 0)
     error->all(FLERR,"AMOEBA atom type line is invalid");
- 
+
   int itype = utils::inumeric(FLERR,words[1],true,lmp);
   int iclass = utils::inumeric(FLERR,words[2],true,lmp);
 
@@ -916,7 +913,7 @@ void PairAmoeba::file_vdwl(int nwords, char **words)
 {
   if (nwords != 4 && nwords != 5)
     error->all(FLERR,"AMOEBA Van der Waals line is invalid");
-  if (strcmp(words[0],"vdw") != 0) 
+  if (strcmp(words[0],"vdw") != 0)
     error->all(FLERR,"AMOEBA Van der Waals line is invalid");
 
   int iclass = utils::inumeric(FLERR,words[1],true,lmp);
@@ -933,9 +930,9 @@ void PairAmoeba::file_vdwl(int nwords, char **words)
 
 void PairAmoeba::file_vdwl_pair(int nwords, char **words)
 {
-  if (nwords != 5) 
+  if (nwords != 5)
     error->all(FLERR,"AMOEBA Van der Waals pair line is invalid");
-  if (strcmp(words[0],"vdwpr") != 0) 
+  if (strcmp(words[0],"vdwpr") != 0)
     error->all(FLERR,"AMOEBA Van der Waals pair line is invalid");
 
   if (nvdwl_pair == max_vdwl_pair) {
@@ -958,7 +955,7 @@ void PairAmoeba::file_bstretch(int nwords, char **words)
 {
   if (nwords < 5)
     error->all(FLERR,"AMOEBA bond stretch line is invalid");
-  if (strcmp(words[0],"bond") != 0) 
+  if (strcmp(words[0],"bond") != 0)
     error->all(FLERR,"AMOEBA bond stretch line is invalid");
 }
 
@@ -966,9 +963,9 @@ void PairAmoeba::file_bstretch(int nwords, char **words)
 
 void PairAmoeba::file_sbend(int nwords, char **words)
 {
-  if (nwords != 6) 
+  if (nwords != 6)
     error->all(FLERR,"AMOEBA strectch-bend line is invalid");
-  if (strstr(words[0],"strbnd") != words[0]) 
+  if (strstr(words[0],"strbnd") != words[0])
     error->all(FLERR,"AMOEBA strectch-bend line is invalid");
 }
 
@@ -986,7 +983,7 @@ void PairAmoeba::file_pauli(int nwords, char **words)
 {
   if (nwords < 5)
     error->all(FLERR,"AMOEBA Pauli repulsion line is invalid");
-  if (strstr(words[0],"repulsion") != words[0]) 
+  if (strstr(words[0],"repulsion") != words[0])
     error->all(FLERR,"AMOEBA Pauli repulsion line is invalid");
 
   int itype = utils::inumeric(FLERR,words[1],true,lmp);
@@ -1006,7 +1003,7 @@ void PairAmoeba::file_dispersion(int nwords, char **words)
 {
   if (nwords < 4)
     error->all(FLERR,"AMOEBA dispersion line is invalid");
-  if (strstr(words[0],"dispersion") != words[0]) 
+  if (strstr(words[0],"dispersion") != words[0])
     error->all(FLERR,"AMOEBA dipersion line is invalid");
 
   int iclass = utils::inumeric(FLERR,words[1],true,lmp);
@@ -1023,7 +1020,7 @@ void PairAmoeba::file_ub(int nwords, char **words)
 {
   if (nwords != 6)
     error->all(FLERR,"AMOEBA Urey-Bradley line is invalid");
-  if (strstr(words[0],"ureybrad") != words[0]) 
+  if (strstr(words[0],"ureybrad") != words[0])
     error->all(FLERR,"AMOEBA Urey-Bradley line is invalid");
 }
 
@@ -1033,7 +1030,7 @@ void PairAmoeba::file_outplane(int nwords, char **words)
 {
   if (nwords != 6)
     error->all(FLERR,"AMOEBA out-of-plane bend line is invalid");
-  if (strstr(words[0],"opbend") != words[0]) 
+  if (strstr(words[0],"opbend") != words[0])
     error->all(FLERR,"AMOEBA out-of-plane bend line is invalid");
 }
 
@@ -1043,7 +1040,7 @@ void PairAmoeba::file_torsion(int nwords, char **words)
 {
   if (nwords != 14)
     error->all(FLERR,"AMOEBA torsional line is invalid");
-  if (strstr(words[0],"torsion") != words[0]) 
+  if (strstr(words[0],"torsion") != words[0])
     error->all(FLERR,"AMOEBA torsional line is invalid");
 }
 
@@ -1063,7 +1060,7 @@ void PairAmoeba::file_multipole(int nwords, char **words)
 {
   if (nwords < 12 || nwords > 15)
     error->all(FLERR,"AMOEBA atomic multipole line is invalid");
-  if (strstr(words[0],"multipole") != words[0]) 
+  if (strstr(words[0],"multipole") != words[0])
     error->all(FLERR,"AMOEBA atomic multipole line is invalid");
 
   int itype = utils::inumeric(FLERR,words[1],true,lmp);
@@ -1073,7 +1070,7 @@ void PairAmoeba::file_multipole(int nwords, char **words)
   int iframe = nmultiframe[itype];
   if (iframe == MAX_FRAME_PER_TYPE)
     error->all(FLERR,"AMOEBA MAX_FRAME_PER_TYPE is too small");
-  
+
   int extra;
   if (nwords == 12) {
     zpole[itype][iframe] = xpole[itype][iframe] = ypole[itype][iframe] = 0;
@@ -1119,7 +1116,7 @@ void PairAmoeba::file_multipole(int nwords, char **words)
   // quadrupole terms divided by 3 for use as traceless values
 
   for (int i = 1; i < 4; i++)
-    fpole[itype][iframe][i] *= BOHR; 
+    fpole[itype][iframe][i] *= BOHR;
   for (int i = 4; i < 13; i++)
     fpole[itype][iframe][i] *= BOHR*BOHR / 3.0;
 
@@ -1138,7 +1135,7 @@ void PairAmoeba::file_multipole(int nwords, char **words)
   xyzmax = MAX(xyzmax,ypole[itype][iframe]);
   if (xyzmax < 0) mpaxis[itype][iframe] = THREEFOLD;
   if (mpaxis[itype][iframe] < 0) error->all(FLERR,"Mpaxis value not set");
-  
+
   // now reset xyz pole to positive values
 
   if (xpole[itype][iframe] < 0) xpole[itype][iframe] = -xpole[itype][iframe];
@@ -1154,7 +1151,7 @@ void PairAmoeba::file_charge_penetration(int nwords, char **words)
 {
   if (nwords < 4)
     error->all(FLERR,"AMOEBA charge penetration line is invalid");
-  if (strstr(words[0],"chgpen") != words[0]) 
+  if (strstr(words[0],"chgpen") != words[0])
     error->all(FLERR,"AMOEBA charge penetration line is invalid");
 
   int iclass = utils::inumeric(FLERR,words[1],true,lmp);
@@ -1175,7 +1172,7 @@ void PairAmoeba::file_dippolar(int nwords, char **words)
 
   if (nwords < nparams)
     error->all(FLERR,"AMOEBA dipole polarizability line is invalid");
-  if (strstr(words[0],"polarize") != words[0]) 
+  if (strstr(words[0],"polarize") != words[0])
     error->all(FLERR,"AMOEBA dipole polarizability line is invalid");
 
   int itype = utils::inumeric(FLERR,words[1],true,lmp);
@@ -1196,7 +1193,7 @@ void PairAmoeba::file_dippolar(int nwords, char **words)
 
   npolgroup[itype] = ngroup;
   for (int igroup = 0; igroup < ngroup; igroup++)
-    polgroup[itype][igroup] = 
+    polgroup[itype][igroup] =
       utils::inumeric(FLERR,words[nparams+igroup],true,lmp);
 }
 
@@ -1206,7 +1203,7 @@ void PairAmoeba::file_charge_transfer(int nwords, char **words)
 {
   if (nwords < 4)
     error->all(FLERR,"AMOEBA charge transfer line is invalid");
-  if (strstr(words[0],"chgtrn") != words[0]) 
+  if (strstr(words[0],"chgtrn") != words[0])
     error->all(FLERR,"AMOEBA charge transfer line is invalid");
 
   int iclass = utils::inumeric(FLERR,words[1],true,lmp);
@@ -1226,7 +1223,7 @@ void PairAmoeba::initialize_type_class()
   n_amtype = n_amclass = 0;
   max_amtype = max_amclass = 0;
   nvdwl_pair = max_vdwl_pair = 0;
-    
+
   // per type data
 
   amtype_defined = NULL;

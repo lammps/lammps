@@ -29,15 +29,15 @@ namespace LAMMPS_NS {
 class BondSpecial : public Bond {
  public:
   BondSpecial(class LAMMPS *);
-  virtual ~BondSpecial();
-  void init_style();
-  void compute(int, int);
-  void coeff(int, char **);
-  double equilibrium_distance(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
-  double single(int, double, int, int, double &);
+  ~BondSpecial() override;
+  void init_style() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  double equilibrium_distance(int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
+  double single(int, double, int, int, double &) override;
 
  protected:
   double *factor_lj, *factor_coul;

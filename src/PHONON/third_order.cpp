@@ -10,11 +10,11 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-   ----------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
-//
-// Created by charlie sievers on 7/5/18.
-//
+/* ----------------------------------------------------------------------
+   Contributing author: Charlie Sievers (UC Davis), charliesievers at cox.net
+------------------------------------------------------------------------- */
 
 #include "third_order.h"
 
@@ -32,6 +32,9 @@
 #include "kspace.h"
 #include "math_special.h"
 #include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "timer.h"
@@ -42,7 +45,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
-enum{REGULAR,BALLISTICO};
+enum{REGULAR,ESKM};
 
 /* ---------------------------------------------------------------------- */
 
@@ -55,7 +58,10 @@ ThirdOrder::ThirdOrder(LAMMPS *lmp) : Command(lmp), fp(nullptr)
 
 ThirdOrder::~ThirdOrder()
 {
-  if (fp && me == 0) fclose(fp);
+  if (fp && me == 0) {
+    if (compressed) platform::pclose(fp);
+    else fclose(fp);
+  }
   fp = nullptr;
   memory->destroy(groupmap);
 }
@@ -83,11 +89,21 @@ void ThirdOrder::setup()
   domain->box_too_small_check();
   neighbor->build(1);
 
+  // build neighbor list this command needs based on earlier request
+
+  neighbor->build_one(list);
+
   // compute all forces
   external_force_clear = 0;
   eflag=0;
   vflag=0;
+  if (force->kspace) {
+    force->kspace->setup();
+  }
   update_force();
+
+  modify->setup(vflag);
+  update->setupflag = 0;
 
   if (gcount == atom->natoms)
     for (bigint i=0; i<atom->natoms; i++)
@@ -106,7 +122,12 @@ void ThirdOrder::command(int narg, char **arg)
     error->all(FLERR,"third_order command before simulation box is defined");
   if (narg < 2) error->all(FLERR,"Illegal third_order command");
 
+  // request a full neighbor list for use by this command
+
+  neighbor->add_request(this, "third_order", NeighConst::REQ_FULL);
+
   lmp->init();
+  list = neighbor->find_list(this);
 
   // orthogonal vs triclinic simulation box
 
@@ -120,7 +141,7 @@ void ThirdOrder::command(int narg, char **arg)
   // group and style
 
   igroup = group->find(arg[0]);
-  if (igroup == -1) error->all(FLERR,"Could not find dynamical matrix group ID");
+  if (igroup == -1) error->all(FLERR,"Could not find third_order group ID");
   groupbit = group->bitmask[igroup];
   gcount = group->count(igroup);
   dynlen = (gcount)*3;
@@ -129,7 +150,7 @@ void ThirdOrder::command(int narg, char **arg)
 
   int style = -1;
   if (strcmp(arg[1],"regular") == 0) style = REGULAR;
-  else if (strcmp(arg[1],"eskm") == 0) style = BALLISTICO;
+  else if (strcmp(arg[1],"eskm") == 0) style = ESKM;
   else error->all(FLERR,"Illegal Dynamical Matrix command");
 
   // set option defaults
@@ -140,15 +161,23 @@ void ThirdOrder::command(int narg, char **arg)
   file_flag = 0;
   file_opened = 0;
   conversion = 1;
+  folded = 0;
+
+  // set Neigborlist attributes to NULL
+  ijnum = nullptr;
+  neighbortags = nullptr;
 
   // read options from end of input line
-  if (style == REGULAR) options(narg-3,&arg[3]);  //COME BACK
-  else if (style == BALLISTICO) options(narg-3,&arg[3]); //COME BACK
-  else if (comm->me == 0 && screen) fprintf(screen,"Illegal Dynamical Matrix command\n");
+  if (style == REGULAR) options(narg-3,&arg[3]);
+  else if (style == ESKM) options(narg-3,&arg[3]);
+  else error->all(FLERR,"Illegal Third Order command");
   del = utils::numeric(FLERR, arg[2],false,lmp);
 
+  if (!folded) dynlenb = dynlen;
+  else dynlenb = (atom->natoms)*3;
+
   if (atom->map_style == Atom::MAP_NONE)
-    error->all(FLERR,"third_order command requires an atom map, see atom_modify");
+    error->all(FLERR,"Third Order command requires an atom map, see atom_modify");
 
   // move atoms by 3-vector or specified variable(s)
 
@@ -160,7 +189,7 @@ void ThirdOrder::command(int narg, char **arg)
     timer->barrier_stop();
   }
 
-  if (style == BALLISTICO) {
+  if (style == ESKM) {
     setup();
     convert_units(update->unit_style);
     conversion = conv_energy/conv_distance/conv_distance;
@@ -180,34 +209,42 @@ void ThirdOrder::command(int narg, char **arg)
 
 void ThirdOrder::options(int narg, char **arg)
 {
-  if (narg < 0) error->all(FLERR,"Illegal third_order command");
+  if (narg < 0) error->all(FLERR,"Illegal Third Order command");
   int iarg = 0;
-  const char *filename = "third_order.dat";
+  const char *filename = "Third Order.dat";
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"file") == 0) {
+    if (strcmp(arg[iarg],"binary") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal Third Order command");
+      if (strcmp(arg[iarg+1],"gzip") == 0) {
+        compressed = 1;
+      } else {
+        binaryflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      }
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR, "Illegal third_order command");
       filename = arg[iarg + 1];
       file_flag = 1;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"binary") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal third_order command");
-      if (strcmp(arg[iarg+1],"gzip") == 0) {
-        compressed = 1;
-      } else if (strcmp(arg[iarg+1],"yes") == 0) {
-        binaryflag = 1;
-      }
+    } else if (strcmp(arg[iarg],"fold") == 0) {
+      if (iarg+2 > narg) error->all(FLERR, "Illegal Third Order command");
+      if (strcmp(arg[iarg+1],"yes") == 0) {
+        folded = 1;
+      } else if (strcmp(arg[iarg+1],"no") == 0) {
+        folded = 0;
+      } else error->all(FLERR,"Illegal input for Third Order fold option");
       iarg += 2;
-    } else error->all(FLERR,"Illegal third_order command");
+    } else error->all(FLERR,"Illegal Third Order command");
   }
-  if (file_flag == 1 and me == 0) {
+  if (file_flag == 1 && me == 0) {
     openfile(filename);
   }
 }
 
 /* ----------------------------------------------------------------------
    generic opening of a file
-   ASCII or binary or gzipped
+   ASCII or binary or compressed
    some derived classes override this function
 ------------------------------------------------------------------------- */
 
@@ -215,32 +252,26 @@ void ThirdOrder::openfile(const char* filename)
 {
   // if file already opened, return
   if (file_opened) return;
+  fp = nullptr;
 
-  if (compressed) {
-#ifdef LAMMPS_GZIP
-    char gzip[128];
-    sprintf(gzip,"gzip -6 > %s",filename);
-#ifdef _WIN32
-    fp = _popen(gzip,"wb");
-#else
-    fp = popen(gzip,"w");
-#endif
-#else
-    error->one(FLERR,"Cannot open gzipped file");
-#endif
-  } else if (binaryflag) {
-    fp = fopen(filename,"wb");
-  } else {
-    fp = fopen(filename,"w");
+  if (me == 0) {
+    if (compressed) {
+      fp = platform::compressed_write(std::string(filename)+".gz");
+      if (!fp) error->one(FLERR,"Cannot open compressed file");
+    } else if (binaryflag) {
+      fp = fopen(filename,"wb");
+    } else {
+      fp = fopen(filename,"w");
+    }
+    if (!fp) error->one(FLERR,"Cannot open third_order file: {}", utils::getsyserror());
   }
 
-  if (fp == nullptr) error->one(FLERR,"Cannot open dump file");
 
   file_opened = 1;
 }
 
 /* ----------------------------------------------------------------------
-   create dynamical matrix
+   create third order tensor
 ------------------------------------------------------------------------- */
 
 void ThirdOrder::calculateMatrix()
@@ -252,28 +283,40 @@ void ThirdOrder::calculateMatrix()
   bigint natoms = atom->natoms;
   bigint *gm = groupmap;
   double **f = atom->f;
+  int inum;
+  bigint j;
+  bigint *firstneigh;
 
-  double *dynmat = new double[3*dynlen];
-  double *fdynmat = new double[3*dynlen];
-  memset(&dynmat[0],0,dynlen*sizeof(double));
-  memset(&fdynmat[0],0,dynlen*sizeof(double));
+  auto dynmat = new double[dynlenb];
+  auto fdynmat = new double[dynlenb];
+  memset(&dynmat[0],0,dynlenb*sizeof(double));
+  memset(&fdynmat[0],0,dynlenb*sizeof(double));
+
+  getNeighbortags();
 
   if (comm->me == 0 && screen) {
-    fprintf(screen,"Calculating Third Order ...\n");
-    fprintf(screen,"  Total # of atoms = " BIGINT_FORMAT "\n", natoms);
-    fprintf(screen,"  Atoms in group = " BIGINT_FORMAT "\n", gcount);
-    fprintf(screen,"  Total third order elements = "
-            BIGINT_FORMAT "\n", (dynlen*dynlen*dynlen) );
+    fputs("Calculating Third Order ...\n", screen);
+    fmt::print(screen,"  Total # of atoms = {}\n"
+                      "  Atoms in group = {}\n"
+                      "  Total third order elements = {}\n",
+                      natoms, gcount, dynlen*dynlen*dynlen);
   }
 
   update->nsteps = 0;
   int prog = 0;
-  for (bigint i=1; i<=natoms; i++) {
+  for (bigint i=1; i<=natoms; i++){
+    if (gm[i-1] < 0)
+      continue;
+    inum = ijnum[i-1];
+    firstneigh = neighbortags[i-1];
     local_idx = atom->map(i);
-    for (int alpha=0; alpha<3; alpha++) {
-      for (bigint j=1; j<=natoms; j++) {
-        local_jdx = atom->map(j);
-        for (int beta=0; beta<3; beta++) {
+    for (int alpha=0; alpha<3; alpha++){
+      for (int jj=0; jj<inum; jj++){
+        j = firstneigh[jj];
+        if (gm[j] < 0 && !folded)
+          continue;
+        local_jdx = atom->map(j+1);
+        for (int beta=0; beta<3; beta++){
           displace_atom(local_idx, alpha, 1);
           displace_atom(local_jdx, beta, 1);
           update_force();
@@ -281,9 +324,13 @@ void ThirdOrder::calculateMatrix()
             local_kdx = atom->map(k);
             for (int gamma=0; gamma<3; gamma++) {
               if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
-                  && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
+                  && ((gm[j] >= 0 && gm[k-1] >= 0) || folded)
                   && local_kdx < nlocal) {
-                dynmat[gm[k-1]*3+gamma] += f[local_kdx][gamma];
+                if (folded) {
+                  dynmat[(k-1)*3+gamma] += f[local_kdx][gamma];
+                } else {
+                  dynmat[gm[k-1]*3+gamma] += f[local_kdx][gamma];
+                }
               }
             }
           }
@@ -293,9 +340,13 @@ void ThirdOrder::calculateMatrix()
             local_kdx = atom->map(k);
             for (int gamma=0; gamma<3; gamma++) {
               if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
-                  && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
+                  && ((gm[j] >= 0 && gm[k-1] >= 0) || folded)
                   && local_kdx < nlocal) {
-                dynmat[gm[k-1]*3+gamma] -= f[local_kdx][gamma];
+                if (folded) {
+                  dynmat[(k-1)*3+gamma] -= f[local_kdx][gamma];
+                } else {
+                  dynmat[gm[k-1]*3+gamma] -= f[local_kdx][gamma];
+                }
               }
             }
           }
@@ -307,9 +358,13 @@ void ThirdOrder::calculateMatrix()
             local_kdx = atom->map(k);
             for (int gamma=0; gamma<3; gamma++) {
               if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
-                  && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
+                  && ((gm[j] >= 0 && gm[k-1] >= 0) || folded)
                   && local_kdx < nlocal) {
-                dynmat[gm[k-1]*3+gamma] -= f[local_kdx][gamma];
+                if (folded) {
+                  dynmat[(k-1)*3+gamma] -= f[local_kdx][gamma];
+                } else {
+                  dynmat[gm[k-1]*3+gamma] -= f[local_kdx][gamma];
+                }
               }
             }
           }
@@ -319,24 +374,33 @@ void ThirdOrder::calculateMatrix()
             local_kdx = atom->map(k);
             for (int gamma=0; gamma<3; gamma++) {
               if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
-                  && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
+                  && ((gm[j] >= 0 && gm[k-1] >= 0) || folded)
                   && local_kdx < nlocal) {
-                dynmat[gm[k-1]*3+gamma] += f[local_kdx][gamma];
-                dynmat[gm[k-1]*3+gamma] /= (4 * del * del);
+                if (folded) {
+                  dynmat[(k-1)*3+gamma] += f[local_kdx][gamma];
+                  dynmat[(k-1)*3+gamma] /= (4 * del * del);
+                } else {
+                  dynmat[gm[k-1]*3+gamma] += f[local_kdx][gamma];
+                  dynmat[gm[k-1]*3+gamma] /= (4 * del * del);
+                }
               }
             }
           }
           displace_atom(local_jdx, beta, 1);
           displace_atom(local_idx, alpha, 1);
-          MPI_Reduce(dynmat,fdynmat,3*dynlen,MPI_DOUBLE,MPI_SUM,0,world);
-          if (me == 0) {
-            writeMatrix(fdynmat, gm[i-1], alpha, gm[j-1], beta);
+          MPI_Reduce(dynmat,fdynmat,dynlenb,MPI_DOUBLE,MPI_SUM,0,world);
+          if (me == 0){
+            if (folded) {
+              writeMatrix(fdynmat, gm[i-1], alpha, j, beta);
+            } else {
+              writeMatrix(fdynmat, gm[i-1], alpha, gm[j], beta);
+            }
           }
-          memset(&dynmat[0],0,dynlen*sizeof(double));
+          memset(&dynmat[0],0,dynlenb*sizeof(double));
         }
       }
     }
-    if (comm->me == 0 && screen) {
+    if (me == 0 && screen) {
       int p = 10 * gm[i-1] / gcount;
       if (p > prog) {
         prog = p;
@@ -349,12 +413,12 @@ void ThirdOrder::calculateMatrix()
   delete [] dynmat;
   delete [] fdynmat;
 
-  if (screen && me ==0 )
+  if (screen && me ==0)
     fprintf(screen,"Finished Calculating Third Order Tensor\n");
 }
 
 /* ----------------------------------------------------------------------
-   write dynamical matrix
+   write third order tensor
 ------------------------------------------------------------------------- */
 
 void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
@@ -365,18 +429,22 @@ void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
   double norm;
   if (!binaryflag && fp) {
     clearerr(fp);
-    for (int k = 0; k < gcount; k++) {
-      norm = square(dynmat[k*3])+
-        square(dynmat[k*3+1])+
-        square(dynmat[k*3+2]);
-      if (norm > 1.0e-16)
-        fprintf(fp,
-                BIGINT_FORMAT " %d " BIGINT_FORMAT " %d " BIGINT_FORMAT
-                " %7.8f %7.8f %7.8f\n",
-                i+1, a + 1, j+1, b + 1, groupmap[k]+1,
-                dynmat[k*3] * conversion,
-                dynmat[k*3+1] * conversion,
-                dynmat[k*3+2] * conversion);
+    if (folded){
+      for (int k = 0; k < atom->natoms; k++){
+        norm = square(dynmat[k*3])+square(dynmat[k*3+1])+square(dynmat[k*3+2]);
+        if (norm > 1.0e-16)
+          fmt::print(fp, "{} {} {} {} {} {:17.8f} {:17.8f} {:17.8f}\n",
+                     i+1, a+1, j+1, b+1, k+1, dynmat[k*3] * conversion,
+                     dynmat[k*3+1] * conversion, dynmat[k*3+2] * conversion);
+      }
+    } else {
+      for (int k = 0; k < gcount; k++){
+        norm = square(dynmat[k*3])+square(dynmat[k*3+1])+square(dynmat[k*3+2]);
+        if (norm > 1.0e-16)
+          fmt::print(fp, "{} {} {} {} {} {:17.8f} {:17.8f} {:17.8f}\n",
+                     i+1, a+1, j+1, b+1, groupmap[k]+1, dynmat[k*3] * conversion,
+                     dynmat[k*3+1] * conversion, dynmat[k*3+2] * conversion);
+      }
     }
   } else if (binaryflag && fp) {
     clearerr(fp);
@@ -416,7 +484,17 @@ void ThirdOrder::displace_atom(int local_idx, int direction, int magnitude)
 
 void ThirdOrder::update_force()
 {
+  neighbor->ago = 0;
+  if (modify->get_fix_by_id("package_intel")) neighbor->decide();
   force_clear();
+  int n_post_force = modify->n_post_force;
+  int n_pre_force = modify->n_pre_force;
+  int n_pre_reverse = modify->n_pre_reverse;
+
+  if (n_pre_force) {
+    modify->pre_force(vflag);
+    timer->stamp(Timer::MODIFY);
+  }
 
   if (pair_compute_flag) {
     force->pair->compute(eflag,vflag);
@@ -433,10 +511,22 @@ void ThirdOrder::update_force()
     force->kspace->compute(eflag,vflag);
     timer->stamp(Timer::KSPACE);
   }
+  if (n_pre_reverse) {
+    modify->pre_reverse(eflag,vflag);
+    timer->stamp(Timer::MODIFY);
+  }
   if (force->newton) {
     comm->reverse_comm();
     timer->stamp(Timer::COMM);
   }
+
+  // force modifications
+
+  if (n_post_force) {
+    modify->post_force(vflag);
+    timer->stamp(Timer::MODIFY);
+  }
+
   ++ update->nsteps;
 }
 
@@ -483,13 +573,13 @@ void ThirdOrder::convert_units(const char *style)
     conv_distance = 1; // angstrom -> angstrom
 
   } else if (strcmp(style,"si") == 0) {
-    if (comm->me) error->warning(FLERR,"Conversion Warning: Multiplication by Large Float");
+    if (me) error->warning(FLERR,"Conversion Warning: Multiplication by Large Float");
     conv_energy = 6.022E22; // J -> 10 J/mol
     conv_mass = 6.022E26; // kg -> g/mol
     conv_distance = 1E-10; // meter -> angstrom
 
   } else if (strcmp(style,"cgs") == 0) {
-    if (comm->me) error->warning(FLERR,"Conversion Warning: Multiplication by Large Float");
+    if (me) error->warning(FLERR,"Conversion Warning: Multiplication by Large Float");
     conv_energy = 6.022E12; // Erg -> 10 J/mol
     conv_mass = 6.022E23; // g -> g/mol
     conv_distance = 1E-7; // centimeter -> angstrom
@@ -500,13 +590,13 @@ void ThirdOrder::convert_units(const char *style)
     conv_distance = 0.529177249; // bohr -> angstrom
 
   } else if (strcmp(style,"micro") == 0) {
-    if (comm->me) error->warning(FLERR,"Conversion Warning: Untested Conversion");
+    if (me) error->warning(FLERR,"Conversion Warning: Untested Conversion");
     conv_energy = 6.022E10; // picogram-micrometer^2/microsecond^2 -> 10 J/mol
     conv_mass = 6.022E11; // pg -> g/mol
     conv_distance = 1E-4; // micrometer -> angstrom
 
   } else if (strcmp(style,"nano") == 0) {
-    if (comm->me) error->warning(FLERR,"Conversion Warning: Untested Conversion");
+    if (me) error->warning(FLERR,"Conversion Warning: Untested Conversion");
     conv_energy = 6.022E4; // attogram-nanometer^2/nanosecond^2 -> 10 J/mol
     conv_mass = 6.022E5; // ag -> g/mol
     conv_distance = 0.1; // angstrom -> angstrom
@@ -529,7 +619,7 @@ void ThirdOrder::create_groupmap()
   bigint natoms = atom->natoms;
   int *recv = new int[comm->nprocs];
   int *displs = new int[comm->nprocs];
-  bigint *temp_groupmap = new bigint[natoms];
+  auto temp_groupmap = new bigint[natoms];
 
   //find number of local atoms in the group (final_gid)
   for (bigint i=1; i<=natoms; i++) {
@@ -538,7 +628,7 @@ void ThirdOrder::create_groupmap()
       gid += 1; // gid at the end of loop is final_Gid
   }
   //create an array of length final_gid
-  bigint *sub_groupmap = new bigint[gid];
+  auto sub_groupmap = new bigint[gid];
 
   gid = 0;
   //create a map between global atom id and group atom id for each proc
@@ -555,7 +645,7 @@ void ThirdOrder::create_groupmap()
   for (int i=0; i<comm->nprocs; i++) {
     recv[i] = 0;
   }
-  recv[comm->me] = gid;
+  recv[me] = gid;
   MPI_Allreduce(recv,displs,comm->nprocs,MPI_INT,MPI_SUM,world);
   for (int i=0; i<comm->nprocs; i++) {
     recv[i]=displs[i];
@@ -564,8 +654,7 @@ void ThirdOrder::create_groupmap()
   }
 
   //combine subgroup maps into total temporary groupmap
-  MPI_Allgatherv(sub_groupmap,gid,MPI_LMP_BIGINT,
-                 temp_groupmap,recv,displs,MPI_LMP_BIGINT,world);
+  MPI_Allgatherv(sub_groupmap,gid,MPI_LMP_BIGINT,temp_groupmap,recv,displs,MPI_LMP_BIGINT,world);
   std::sort(temp_groupmap,temp_groupmap+gcount);
 
   //populate member groupmap based on temp groupmap
@@ -583,4 +672,145 @@ void ThirdOrder::create_groupmap()
   delete[] displs;
   delete[] sub_groupmap;
   delete[] temp_groupmap;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ThirdOrder::getNeighbortags() {
+  // Create an extended neighbor list which is indexed by atom tag and yields atom tags
+  // groupmap[global atom index-1] = global atom indices (-1) of extended neighbors
+
+  bigint natoms = atom->natoms;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+  bigint *Jlist,*klist;
+  int ii,jj,kk,inum,jnum,knum,sum;
+  int *temptags = (int*) malloc(natoms*sizeof(int));
+  int *ijnumproc = (int*) malloc(natoms*sizeof(int));
+  memory->create(ijnum, natoms, "thirdorder:ijnum");
+  bigint **firsttags;
+
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+  memset(&ijnum[0],0,natoms*sizeof(int));
+  for (ii = 0; ii < inum; ii++) {
+    sum = 0;
+    memset(&temptags[0],0,natoms*sizeof(int));
+    jnum = numneigh[ii];
+    jlist = firstneigh[ii];
+    temptags[atom->tag[ilist[ii] & NEIGHMASK]-1] = 1;
+    for (jj = 0; jj < jnum; jj++) {
+      temptags[atom->tag[jlist[jj] & NEIGHMASK]-1] = 1;
+    }
+    for (bigint i=0; i<=natoms-1; i++) {
+      sum += temptags[i];
+    }
+    ijnum[atom->tag[ilist[ii] & NEIGHMASK]-1] = sum;
+  }
+  MPI_Allreduce(ijnum,ijnumproc,natoms,MPI_INT,MPI_SUM,world);
+  memset(&ijnum[0],0,natoms*sizeof(int));
+  sum = 0;
+  for (bigint i=0; i<=natoms-1; i++) {
+    sum += ijnumproc[i];
+  }
+
+  bigint nbytes = ((bigint) sizeof(bigint)) * sum;
+  auto data = (bigint *) memory->smalloc(nbytes, "thirdorder:firsttags");
+  auto datarecv = (bigint *) memory->smalloc(nbytes, "thirdorder:neighbortags");
+  nbytes = ((bigint) sizeof(bigint *)) * natoms;
+  firsttags = (bigint **) memory->smalloc(nbytes, "thirdorder:firsttags");
+  neighbortags = (bigint **) memory->smalloc(nbytes, "thirdorder:neighbortags");
+  memset(&data[0],0,sum*sizeof(bigint));
+  memset(&datarecv[0],0,sum*sizeof(bigint));
+
+  bigint n = 0;
+  for (bigint i = 0; i < natoms; i++) {
+    firsttags[i] = &data[n];
+    neighbortags[i] = &datarecv[n];
+    n += ijnumproc[i];
+  }
+
+  for (ii = 0; ii < inum; ii++) {
+    int m = 0;
+    memset(&temptags[0],0,natoms*sizeof(int));
+    jnum = numneigh[ii];
+    jlist = firstneigh[ii];
+    temptags[atom->tag[ilist[ii] & NEIGHMASK]-1] = 1;
+    for (jj = 0; jj < jnum; jj++) {
+      temptags[atom->tag[jlist[jj] & NEIGHMASK]-1] = 1;
+    }
+    for (int j=0; j < natoms; j++) {
+      if (temptags[j] == 1) {
+        neighbortags[atom->tag[ilist[ii] & NEIGHMASK]-1][m] = j;
+        m += 1;
+      }
+    }
+  }
+  MPI_Allreduce(datarecv,data,sum,MPI_LMP_BIGINT,MPI_SUM,world);
+
+  for (bigint i = 0; i < natoms; i++) {
+    ijnum[i] = 0;
+    sum = 0;
+    memset(&temptags[0],0,natoms*sizeof(int));
+    jnum = ijnumproc[i];
+    Jlist = firsttags[i];
+    temptags[i] = 1;
+    for (jj = 0; jj < jnum; jj++) {
+      temptags[Jlist[jj]] = 1;
+      klist = firsttags[Jlist[jj]];
+      knum = ijnumproc[Jlist[jj]];
+      for (kk = 0; kk < knum; kk++) {
+        temptags[klist[kk]] = 1;
+      }
+    }
+    for (bigint j=0; j<natoms; j++)
+      sum += temptags[j];
+
+    ijnum[i] = sum;
+  }
+
+  sum = 0;
+  for (bigint i=0; i<=natoms-1; i++) {
+    sum += ijnum[i];
+  }
+
+  free (neighbortags);
+  nbytes = ((bigint) sizeof(bigint)) * sum;
+  datarecv = (bigint *) memory->smalloc(nbytes, "thirdorder:firsttags");
+  nbytes = ((bigint) sizeof(bigint *)) * natoms;
+  neighbortags = (bigint **) memory->smalloc(nbytes, "thirdorder:neighbortags");
+  memset(&datarecv[0],0,sum*sizeof(bigint));
+
+  n = 0;
+  for (bigint i = 0; i < natoms; i++) {
+    neighbortags[i] = &datarecv[n];
+    n += ijnum[i];
+  }
+
+  for (bigint i = 0; i < natoms; i++) {
+    int m = 0;
+    memset(&temptags[0],0,natoms*sizeof(int));
+    jnum = ijnumproc[i];
+    Jlist = firsttags[i];
+    temptags[i] = 1;
+    for (int j = 0; j < jnum; j++) {
+      temptags[Jlist[j]] = 1;
+      klist = firsttags[Jlist[j]];
+      knum = ijnumproc[Jlist[j]];
+      for (kk = 0; kk < knum; kk++) {
+        temptags[klist[kk]] = 1;
+      }
+    }
+    for (bigint j=0; j < natoms; j++) {
+      if (temptags[j] == 1) {
+        neighbortags[i][m] = j;
+        m += 1;
+      }
+    }
+  }
+
+  free (firsttags);
+  free (ijnumproc);
+  free (temptags);
 }

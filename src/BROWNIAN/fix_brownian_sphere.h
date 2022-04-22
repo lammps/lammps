@@ -27,12 +27,13 @@ namespace LAMMPS_NS {
 class FixBrownianSphere : public FixBrownianBase {
  public:
   FixBrownianSphere(class LAMMPS *, int, char **);
-  virtual ~FixBrownianSphere(){};
-  void init();
-  void initial_integrate(int);
+
+  void init() override;
+  void initial_integrate(int) override;
 
  private:
-  template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_2D> void initial_integrate_templated();
+  template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_2D, int Tp_2Drot>
+  void initial_integrate_templated();
   double g3, g4;
 };
 }    // namespace LAMMPS_NS
@@ -50,6 +51,10 @@ E: Compute brownian/sphere requires atom style sphere
 Self-explanatory.
 
 E: Compute brownian/sphere requires atom attribute mu
+
+Self-explanatory.
+
+E: Compute brownian/sphere requires atom style sphere
 
 Self-explanatory.
 

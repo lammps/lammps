@@ -18,17 +18,12 @@
 
 #include "pair_tersoff_intel.h"
 
-#include "atom.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "force.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
-
-#include <cmath>
-#include <cstring>
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
 using namespace LAMMPS_NS;
 
@@ -411,16 +406,10 @@ void PairTersoffIntel::init_style()
 
   // need a full neighbor list
 
-  int irequest = neighbor->request(this);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->intel = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   fix->pair_init_check();
   fix->three_body_neighbor(1);

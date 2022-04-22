@@ -18,20 +18,21 @@
    Updated algorithm by: Brian Barnes, brian.c.barnes11.civ@mail.mil
 ------------------------------------------------------------------------- */
 
+#include "compute_ackland_atom.h"
+
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
-#include "compute_ackland_atom.h"
-#include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "pair.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -60,16 +61,10 @@ ComputeAcklandAtom::ComputeAcklandAtom(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 3;
   while (narg > iarg) {
     if (strcmp("legacy",arg[iarg]) == 0) {
-      ++iarg;
-      if (iarg >= narg)
-        error->all(FLERR,"Invalid compute ackland/atom command");
-      if (strcmp("yes",arg[iarg]) == 0)
-        legacy = 1;
-      else if (strcmp("no",arg[iarg]) == 0)
-        legacy = 0;
-      else error->all(FLERR,"Invalid compute ackland/atom command");
+      if (iarg+2 > narg) error->all(FLERR,"Invalid compute ackland/atom command");
+      legacy = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
     }
-    ++iarg;
   }
 }
 
@@ -90,12 +85,7 @@ void ComputeAcklandAtom::init()
 {
   // need an occasional full neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
   int count = 0;
   for (int i = 0; i < modify->ncompute; i++)

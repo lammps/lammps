@@ -32,9 +32,12 @@ OPT.
    *
    *
    *
+   * :doc:`bpm/rotational <bond_bpm_rotational>`
+   * :doc:`bpm/spring <bond_bpm_spring>`
    * :doc:`class2 (ko) <bond_class2>`
    * :doc:`fene (iko) <bond_fene>`
    * :doc:`fene/expand (o) <bond_fene_expand>`
+   * :doc:`fene/nm <bond_fene>`
    * :doc:`gaussian <bond_gaussian>`
    * :doc:`gromos (o) <bond_gromos>`
    * :doc:`harmonic (iko) <bond_harmonic>`
@@ -71,6 +74,7 @@ OPT.
    *
    *
    *
+   * :doc:`amoeba <angle_amoeba>`
    * :doc:`charmm (iko) <angle_charmm>`
    * :doc:`class2 (ko) <angle_class2>`
    * :doc:`class2/p6 <angle_class2>`
@@ -149,6 +153,7 @@ OPT.
    *
    *
    *
+   * :doc:`amoeba <improper_amoeba>`
    * :doc:`class2 (ko) <improper_class2>`
    * :doc:`cossq (o) <improper_cossq>`
    * :doc:`cvff (io) <improper_cvff>`

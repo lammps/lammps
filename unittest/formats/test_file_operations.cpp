@@ -29,7 +29,6 @@
 
 using namespace LAMMPS_NS;
 
-using testing::MatchesRegex;
 using testing::StrEq;
 
 using utils::read_lines_from_file;
@@ -335,7 +334,9 @@ TEST_F(FileOperationsTest, write_restart)
     ASSERT_FILE_EXISTS("multi2-0.restart");
     ASSERT_FILE_EXISTS("multi3-base.restart");
     ASSERT_FILE_EXISTS("multi3-0.restart");
-    if (info->has_package("MPIIO")) ASSERT_FILE_EXISTS("test.restart.mpiio");
+    if (info->has_package("MPIIO")) {
+        ASSERT_FILE_EXISTS("test.restart.mpiio");
+    }
 
     if (!info->has_package("MPIIO")) {
         TEST_FAILURE(".*ERROR: Writing to MPI-IO filename when MPIIO package is not inst.*",
@@ -491,7 +492,7 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (Info::get_mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
+    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. "
                      "Death tests will be skipped\n";
 

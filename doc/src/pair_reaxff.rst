@@ -19,13 +19,15 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *checkqeq* or *lgvdw* or *safezone* or *mincap* or *minhbonds*
-       *checkqeq* value = *yes* or *no* = whether or not to require qeq/reaxff fix
+     keyword = *checkqeq* or *lgvdw* or *safezone* or *mincap* or *minhbonds* or *tabulate* or *list/blocking*
+       *checkqeq* value = *yes* or *no* = whether or not to require qeq/reaxff or acks2/reaxff fix
        *enobonds* value = *yes* or *no* = whether or not to tally energy of atoms with no bonds
        *lgvdw* value = *yes* or *no* = whether or not to use a low gradient vdW correction
        *safezone* = factor used for array allocation
        *mincap* = minimum size for array allocation
        *minhbonds* = minimum size use for storing hydrogen bonds
+       *tabulate* value = size of interpolation table for Lennard-Jones and Coulomb interactions
+       *list/blocking* value = *yes* or *no* = whether or not to use "blocking" scheme for bond list build
 
 Examples
 """"""""
@@ -119,7 +121,8 @@ The ReaxFF parameter files provided were created using a charge
 equilibration (QEq) model for handling the electrostatic interactions.
 Therefore, by default, LAMMPS requires that either the
 :doc:`fix qeq/reaxff <fix_qeq_reaxff>` or the
-:doc:`fix qeq/shielded <fix_qeq>` command be used with
+:doc:`fix qeq/shielded <fix_qeq>` or :doc:`fix acks2/reaxff <fix_acks2_reaxff>`
+command be used with
 *pair_style reaxff* when simulating a ReaxFF model, to equilibrate
 the charges each timestep.
 
@@ -128,7 +131,8 @@ for the QEq fixes, allowing a simulation to be run without charge
 equilibration. In this case, the static charges you assign to each
 atom will be used for computing the electrostatic interactions in
 the system. See the :doc:`fix qeq/reaxff <fix_qeq_reaxff>` or
-:doc:`fix qeq/shielded <fix_qeq>` command documentation for more details.
+:doc:`fix qeq/shielded <fix_qeq>` or :doc:`fix acks2/reaxff <fix_acks2_reaxff>`
+command documentation for more details.
 
 Using the optional keyword *lgvdw* with the value *yes* turns on the
 low-gradient correction of ReaxFF for long-range London Dispersion,
@@ -155,6 +159,21 @@ could occur under certain conditions. These keywords are not used by
 the Kokkos version, which instead uses a more robust memory allocation
 scheme that checks if the sizes of the arrays have been exceeded and
 automatically allocates more memory.
+
+The keyword *tabulate* controls the size of interpolation table for
+Lennard-Jones and Coulomb interactions. Tabulation may also be set in the
+control file (see below). If tabulation is set in both the input script and the
+control file, the value in the control file will be ignored. A size of 10000 is
+typically used for the interpolation table. A value of 0 means no tabulation
+will be used.
+
+The keyword *list/blocking* is only supported by the Kokkos version of
+ReaxFF and ignored otherwise. Setting the value to *yes* enables the
+"blocking" scheme (dynamically building interaction lists) for the
+ReaxFF bond neighbor list. This reduces the number of empty
+interactions and can improve performance in some cases (e.g. large
+number of atoms/GPU on AMD hardware). It is also enabled by default
+when running the CPU with Kokkos.
 
 The thermo variable *evdwl* stores the sum of all the ReaxFF potential
 energy contributions, with the exception of the Coulombic and charge
@@ -352,13 +371,15 @@ Related commands
 """"""""""""""""
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`fix qeq/reaxff <fix_qeq_reaxff>`,
-:doc:`fix reaxff/bonds <fix_reaxff_bonds>`, :doc:`fix reaxff/species <fix_reaxff_species>`
+:doc:`fix acks2/reaxff <fix_acks2_reaxff>`, :doc:`fix reaxff/bonds <fix_reaxff_bonds>`,
+:doc:`fix reaxff/species <fix_reaxff_species>`
 
 Default
 """""""
 
-The keyword defaults are checkqeq = yes, enobonds = yes, lgvdw = no,
-safezone = 1.2, mincap = 50, minhbonds = 25.
+The keyword defaults are checkqeq = yes, enobonds = yes, lgvdw = no, safezone =
+1.2, mincap = 50, minhbonds = 25, tabulate = 0, list/blocking = yes on CPU, no
+on GPU.
 
 ----------
 

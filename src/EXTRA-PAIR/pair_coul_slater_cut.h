@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class PairCoulSlaterCut : public PairCoulCut {
  public:
   PairCoulSlaterCut(class LAMMPS *);
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  double single(int, int, int, int, double, double, double, double &) override;
 
  protected:
   double lamda;

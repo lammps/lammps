@@ -18,21 +18,20 @@
 
 #include "pair_lj_expand_coul_long.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
-#include "update.h"
-#include "respa.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "respa.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -195,14 +194,12 @@ void PairLJExpandCoulLong::compute(int eflag, int vflag)
           } else ecoul = 0.0;
 
           if (rsq < cut_ljsq[itype][jtype]) {
-            evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-              offset[itype][jtype];
+            evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) - offset[itype][jtype];
             evdwl *= factor_lj;
           } else evdwl = 0.0;
         }
 
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                             evdwl,ecoul,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,ecoul,fpair,delx,dely,delz);
       }
     }
   }
@@ -688,29 +685,22 @@ void PairLJExpandCoulLong::init_style()
 
   // request regular or rRESPA neighbor list
 
-  int irequest;
-  int respa = 0;
+  int list_style = NeighConst::REQ_DEFAULT;
 
-  if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
-    if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
-    if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
+  if (update->whichflag == 1 && utils::strmatch(update->integrate_style, "^respa")) {
+    auto respa = dynamic_cast<Respa *>( update->integrate);
+    if (respa->level_inner >= 0) list_style = NeighConst::REQ_RESPA_INOUT;
+    if (respa->level_middle >= 0) list_style = NeighConst::REQ_RESPA_ALL;
   }
-
-  irequest = neighbor->request(this,instance_me);
-
-  if (respa >= 1) {
-    neighbor->requests[irequest]->respaouter = 1;
-    neighbor->requests[irequest]->respainner = 1;
-  }
-  if (respa == 2) neighbor->requests[irequest]->respamiddle = 1;
+  neighbor->add_request(this, list_style);
 
   cut_coulsq = cut_coul * cut_coul;
 
   // set rRESPA cutoffs
 
   if (utils::strmatch(update->integrate_style,"^respa") &&
-      ((Respa *) update->integrate)->level_inner >= 0)
-    cut_respa = ((Respa *) update->integrate)->cutoff;
+      (dynamic_cast<Respa *>( update->integrate))->level_inner >= 0)
+    cut_respa = (dynamic_cast<Respa *>( update->integrate))->cutoff;
   else cut_respa = nullptr;
 
   // insure use of KSpace long-range solver, set g_ewald
@@ -980,8 +970,7 @@ double PairLJExpandCoulLong::single(int i, int j, int itype, int jtype,
   }
 
   if (rsq < cut_ljsq[itype][jtype]) {
-    philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-      offset[itype][jtype];
+    philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) - offset[itype][jtype];
     eng += factor_lj*philj;
   }
 

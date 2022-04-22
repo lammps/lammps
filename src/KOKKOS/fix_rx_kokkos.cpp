@@ -54,7 +54,7 @@ namespace /* anonymous */
 {
 
 typedef double TimerType;
-TimerType getTimeStamp(void) { return MPI_Wtime(); }
+TimerType getTimeStamp(void) { return platform::walltime(); }
 double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0; }
 
 } // end namespace
@@ -113,11 +113,6 @@ void FixRxKokkos<DeviceType>::post_constructor()
 template <typename DeviceType>
 void FixRxKokkos<DeviceType>::init()
 {
-  //printf("Inside FixRxKokkos::init\n");
-
-  // Call the parent's version.
-  //FixRX::init();
-
   pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy",1);
   if (pairDPDE == nullptr)
     pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy/kk",1);
@@ -137,30 +132,14 @@ void FixRxKokkos<DeviceType>::init()
   if (update_kinetics_data)
     create_kinetics_data();
 
-  // From FixRX::init()
   // need a half neighbor list
   // built whenever re-neighboring occurs
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
-
-  // Update the neighbor data for Kokkos.
-  int neighflag = lmp->kokkos->neighflag;
-
-  neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
-
-  if (neighflag == FULL) {
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->half = 0;
-  } else { //if (neighflag == HALF || neighflag == HALFTHREAD)
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 1;
-  }
+  auto request = neighbor->add_request(this);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  if (lmp->kokkos->neighflag == FULL) request->enable_full();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1673,7 +1652,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int /*vflag*/, const bool is
   // Communicate the updated species data to all nodes
   atomKK->sync ( Host, DVECTOR_MASK );
 
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   atomKK->modified ( Host, DVECTOR_MASK );
 
@@ -2075,7 +2054,7 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
 
   // Local list views. (This isn't working!)
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
-  if (not(list->kokkos))
+  if (!list->kokkos)
      error->one(FLERR,"list is not a Kokkos list\n");
 
   //typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors = k_list->d_neighbors;
@@ -2162,7 +2141,7 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
   k_sumWeights.   template modify<DeviceType>();
 
   // Communicate the sum dpdTheta and the weights on the host.
-  if (NEWTON_PAIR) comm->reverse_comm_fix(this);
+  if (NEWTON_PAIR) comm->reverse_comm(this);
 
   // Update the device view in case they got changed.
   k_dpdThetaLocal.template sync<DeviceType>();

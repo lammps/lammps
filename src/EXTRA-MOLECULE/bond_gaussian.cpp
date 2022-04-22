@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -14,16 +13,16 @@
 
 #include "bond_gaussian.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
-#include "neighbor.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -32,9 +31,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-BondGaussian::BondGaussian(LAMMPS *lmp)
-  : Bond(lmp), nterms(nullptr), bond_temperature(nullptr),
-    alpha(nullptr), width(nullptr), r0(nullptr)
+BondGaussian::BondGaussian(LAMMPS *lmp) :
+    Bond(lmp), nterms(nullptr), bond_temperature(nullptr), alpha(nullptr), width(nullptr),
+    r0(nullptr)
 {
   reinitflag = 1;
 }
@@ -48,13 +47,13 @@ BondGaussian::~BondGaussian()
     memory->destroy(nterms);
     memory->destroy(bond_temperature);
     for (int i = 1; i <= atom->nbondtypes; i++) {
-      delete [] alpha[i];
-      delete [] width[i];
-      delete [] r0[i];
+      delete[] alpha[i];
+      delete[] width[i];
+      delete[] r0[i];
     }
-    delete [] alpha;
-    delete [] width;
-    delete [] r0;
+    delete[] alpha;
+    delete[] width;
+    delete[] r0;
   }
 }
 
@@ -62,13 +61,13 @@ BondGaussian::~BondGaussian()
 
 void BondGaussian::compute(int eflag, int vflag)
 {
-  int i1,i2,n,type;
-  double delx,dely,delz,ebond,fbond;
-  double rsq,r,dr;
+  int i1, i2, n, type;
+  double delx, dely, delz, ebond, fbond;
+  double rsq, r, dr;
   double prefactor, exponent, g_i, sum_g_i, sum_numerator;
 
   ebond = 0.0;
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -86,43 +85,45 @@ void BondGaussian::compute(int eflag, int vflag)
     dely = x[i1][1] - x[i2][1];
     delz = x[i1][2] - x[i2][2];
 
-    rsq = delx*delx + dely*dely + delz*delz;
+    rsq = delx * delx + dely * dely + delz * delz;
     r = sqrt(rsq);
 
     sum_g_i = 0.0;
     sum_numerator = 0.0;
     for (int i = 0; i < nterms[type]; i++) {
       dr = r - r0[type][i];
-      prefactor = (alpha[type][i]/(width[type][i]*sqrt(MY_PI2)));
-      exponent = -2*dr*dr/(width[type][i]*width[type][i]);
-      g_i = prefactor*exp(exponent);
+      prefactor = (alpha[type][i] / (width[type][i] * sqrt(MY_PI2)));
+      exponent = -2 * dr * dr / (width[type][i] * width[type][i]);
+      g_i = prefactor * exp(exponent);
       sum_g_i += g_i;
-      sum_numerator += g_i*dr/(width[type][i]*width[type][i]);
+      sum_numerator += g_i * dr / (width[type][i] * width[type][i]);
     }
 
     // force & energy
     if (sum_g_i < SMALL) sum_g_i = SMALL;
 
-    if (r > 0.0) fbond = -4.0*(force->boltz*bond_temperature[type])*(sum_numerator/sum_g_i)/r;
-    else fbond = 0.0;
+    if (r > 0.0)
+      fbond = -4.0 * (force->boltz * bond_temperature[type]) * (sum_numerator / sum_g_i) / r;
+    else
+      fbond = 0.0;
 
-    if (eflag) ebond = -(force->boltz*bond_temperature[type])*log(sum_g_i);
+    if (eflag) ebond = -(force->boltz * bond_temperature[type]) * log(sum_g_i);
 
     // apply force to each of 2 atoms
 
     if (newton_bond || i1 < nlocal) {
-      f[i1][0] += delx*fbond;
-      f[i1][1] += dely*fbond;
-      f[i1][2] += delz*fbond;
+      f[i1][0] += delx * fbond;
+      f[i1][1] += dely * fbond;
+      f[i1][2] += delz * fbond;
     }
 
     if (newton_bond || i2 < nlocal) {
-      f[i2][0] -= delx*fbond;
-      f[i2][1] -= dely*fbond;
-      f[i2][2] -= delz*fbond;
+      f[i2][0] -= delx * fbond;
+      f[i2][1] -= dely * fbond;
+      f[i2][2] -= delz * fbond;
     }
 
-    if (evflag) ev_tally(i1,i2,nlocal,newton_bond,ebond,fbond,delx,dely,delz);
+    if (evflag) ev_tally(i1, i2, nlocal, newton_bond, ebond, fbond, delx, dely, delz);
   }
 }
 
@@ -131,20 +132,20 @@ void BondGaussian::compute(int eflag, int vflag)
 void BondGaussian::allocate()
 {
   allocated = 1;
-  int n = atom->nbondtypes;
+  int n = atom->nbondtypes + 1;
 
-  memory->create(nterms,n+1,"bond:nterms");
-  memory->create(bond_temperature,n+1,"bond:bond_temperature");
+  memory->create(nterms, n, "bond:nterms");
+  memory->create(bond_temperature, n, "bond:bond_temperature");
 
-  alpha = new double *[n+1];
-  width = new double *[n+1];
-  r0 = new double *[n+1];
-  memset(alpha,0,sizeof(double)*(n+1));
-  memset(width,0,sizeof(double)*(n+1));
-  memset(r0,0,sizeof(double)*(n+1));
+  alpha = new double *[n];
+  width = new double *[n];
+  r0 = new double *[n];
+  memset(alpha, 0, sizeof(double *) * n);
+  memset(width, 0, sizeof(double *) * n);
+  memset(r0, 0, sizeof(double *) * n);
 
-  memory->create(setflag,n+1,"bond:setflag");
-  for (int i = 1; i <= n; i++) setflag[i] = 0;
+  memory->create(setflag, n, "bond:setflag");
+  memset(setflag, 0, sizeof(int) * n);
 }
 
 /* ----------------------------------------------------------------------
@@ -153,15 +154,14 @@ void BondGaussian::allocate()
 
 void BondGaussian::coeff(int narg, char **arg)
 {
-  if (narg < 6) error->all(FLERR,"Incorrect args for bond coefficients");
+  if (narg < 6) error->all(FLERR, "Incorrect args for bond coefficients");
 
-  int ilo,ihi;
-  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
+  int ilo, ihi;
+  utils::bounds(FLERR, arg[0], 1, atom->nbondtypes, ilo, ihi, error);
 
-  double bond_temp_one = utils::numeric(FLERR,arg[1],false,lmp);
-  int n = utils::inumeric(FLERR,arg[2],false,lmp);
-  if (narg != 3*n + 3)
-    error->all(FLERR,"Incorrect args for bond coefficients");
+  double bond_temp_one = utils::numeric(FLERR, arg[1], false, lmp);
+  int n = utils::inumeric(FLERR, arg[2], false, lmp);
+  if (narg != 3 * n + 3) error->all(FLERR, "Incorrect args for bond coefficients");
 
   if (!allocated) allocate();
 
@@ -170,21 +170,21 @@ void BondGaussian::coeff(int narg, char **arg)
     bond_temperature[i] = bond_temp_one;
     nterms[i] = n;
     delete[] alpha[i];
-    alpha[i] = new double [n];
+    alpha[i] = new double[n];
     delete[] width[i];
-    width[i] = new double [n];
+    width[i] = new double[n];
     delete[] r0[i];
-    r0[i] = new double [n];
+    r0[i] = new double[n];
     for (int j = 0; j < n; j++) {
-      alpha[i][j] = utils::numeric(FLERR,arg[3+3*j],false,lmp);
-      width[i][j] = utils::numeric(FLERR,arg[4+3*j],false,lmp);
-      r0[i][j] = utils::numeric(FLERR,arg[5+3*j],false,lmp);
+      alpha[i][j] = utils::numeric(FLERR, arg[3 + 3 * j], false, lmp);
+      width[i][j] = utils::numeric(FLERR, arg[4 + 3 * j], false, lmp);
+      r0[i][j] = utils::numeric(FLERR, arg[5 + 3 * j], false, lmp);
       setflag[i] = 1;
     }
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for bond coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -202,12 +202,12 @@ double BondGaussian::equilibrium_distance(int i)
 
 void BondGaussian::write_restart(FILE *fp)
 {
-  fwrite(&bond_temperature[1],sizeof(double),atom->nbondtypes,fp);
-  fwrite(&nterms[1],sizeof(int),atom->nbondtypes,fp);
+  fwrite(&bond_temperature[1], sizeof(double), atom->nbondtypes, fp);
+  fwrite(&nterms[1], sizeof(int), atom->nbondtypes, fp);
   for (int i = 1; i <= atom->nbondtypes; i++) {
-    fwrite(alpha[i],sizeof(double),nterms[i],fp);
-    fwrite(width[i],sizeof(double),nterms[i],fp);
-    fwrite(r0[i],sizeof(double),nterms[i],fp);
+    fwrite(alpha[i], sizeof(double), nterms[i], fp);
+    fwrite(width[i], sizeof(double), nterms[i], fp);
+    fwrite(r0[i], sizeof(double), nterms[i], fp);
   }
 }
 
@@ -220,31 +220,32 @@ void BondGaussian::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&bond_temperature[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
-    utils::sfread(FLERR,&nterms[1],sizeof(int),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR, &bond_temperature[1], sizeof(double), atom->nbondtypes, fp, nullptr,
+                  error);
+    utils::sfread(FLERR, &nterms[1], sizeof(int), atom->nbondtypes, fp, nullptr, error);
   }
-  MPI_Bcast(&bond_temperature[1],atom->nbondtypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&nterms[1],atom->nbondtypes,MPI_INT,0,world);
+  MPI_Bcast(&bond_temperature[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&nterms[1], atom->nbondtypes, MPI_INT, 0, world);
 
   // allocate
   for (int i = 1; i <= atom->nbondtypes; i++) {
-    alpha[i] = new double [nterms[i]];
-    width[i] = new double [nterms[i]];
-    r0[i] = new double [nterms[i]];
+    alpha[i] = new double[nterms[i]];
+    width[i] = new double[nterms[i]];
+    r0[i] = new double[nterms[i]];
   }
 
   if (comm->me == 0) {
     for (int i = 1; i <= atom->nbondtypes; i++) {
-      utils::sfread(FLERR,alpha[i],sizeof(double),nterms[i],fp,nullptr,error);
-      utils::sfread(FLERR,width[i],sizeof(double),nterms[i],fp,nullptr,error);
-      utils::sfread(FLERR,r0[i],sizeof(double),nterms[i],fp,nullptr,error);
+      utils::sfread(FLERR, alpha[i], sizeof(double), nterms[i], fp, nullptr, error);
+      utils::sfread(FLERR, width[i], sizeof(double), nterms[i], fp, nullptr, error);
+      utils::sfread(FLERR, r0[i], sizeof(double), nterms[i], fp, nullptr, error);
     }
   }
 
   for (int i = 1; i <= atom->nbondtypes; i++) {
-    MPI_Bcast(alpha[i],nterms[i],MPI_DOUBLE,0,world);
-    MPI_Bcast(width[i],nterms[i],MPI_DOUBLE,0,world);
-    MPI_Bcast(r0[i],nterms[i],MPI_DOUBLE,0,world);
+    MPI_Bcast(alpha[i], nterms[i], MPI_DOUBLE, 0, world);
+    MPI_Bcast(width[i], nterms[i], MPI_DOUBLE, 0, world);
+    MPI_Bcast(r0[i], nterms[i], MPI_DOUBLE, 0, world);
   }
 
   for (int i = 1; i <= atom->nbondtypes; i++) setflag[i] = 1;
@@ -257,9 +258,9 @@ void BondGaussian::read_restart(FILE *fp)
 void BondGaussian::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nbondtypes; i++) {
-    fprintf(fp,"%d %g %d",i,bond_temperature[i],nterms[i]);
+    fprintf(fp, "%d %g %d", i, bond_temperature[i], nterms[i]);
     for (int j = 0; j < nterms[i]; j++) {
-      fprintf(fp," %g %g %g",alpha[i][j],width[i][j],r0[i][j]);
+      fprintf(fp, " %g %g %g", alpha[i][j], width[i][j], r0[i][j]);
     }
     fprintf(fp, "\n");
   }
@@ -267,26 +268,25 @@ void BondGaussian::write_data(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondGaussian::single(int type, double rsq, int /*i*/, int /*j*/,
-                            double &fforce)
+double BondGaussian::single(int type, double rsq, int /*i*/, int /*j*/, double &fforce)
 {
   double r = sqrt(rsq);
   fforce = 0;
 
   double sum_g_i = 0.0;
   double sum_numerator = 0.0;
-    for (int i = 0; i < nterms[type]; i++) {
-      double dr = r - r0[type][i];
-      double prefactor = (alpha[type][i]/(width[type][i]*sqrt(MY_PI2)));
-      double exponent = -2*dr*dr/(width[type][i]*width[type][i]);
-      double g_i = prefactor*exp(exponent);
-      sum_g_i += g_i;
-      sum_numerator += g_i*dr/(width[type][i]*width[type][i]);
-    }
+  for (int i = 0; i < nterms[type]; i++) {
+    double dr = r - r0[type][i];
+    double prefactor = (alpha[type][i] / (width[type][i] * sqrt(MY_PI2)));
+    double exponent = -2 * dr * dr / (width[type][i] * width[type][i]);
+    double g_i = prefactor * exp(exponent);
+    sum_g_i += g_i;
+    sum_numerator += g_i * dr / (width[type][i] * width[type][i]);
+  }
 
   if (sum_g_i < SMALL) sum_g_i = SMALL;
-  if (r > 0.0) fforce = -4.0*(force->boltz*bond_temperature[type])*(sum_numerator/sum_g_i)/r;
+  if (r > 0.0)
+    fforce = -4.0 * (force->boltz * bond_temperature[type]) * (sum_numerator / sum_g_i) / r;
 
-  return -(force->boltz*bond_temperature[type])*log(sum_g_i);
+  return -(force->boltz * bond_temperature[type]) * log(sum_g_i);
 }
-

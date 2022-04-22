@@ -113,6 +113,9 @@ You can dump out snapshots of the current bond topology via the :doc:`dump local
    may need to thermostat your system to compensate for energy changes
    resulting from broken bonds (and angles, dihedrals, impropers).
 
+See the :doc:`Howto <Howto_broken_bonds>` page on broken bonds for more
+information on related features in LAMMPS.
+
 ----------
 
 Restart, fix_modify, output, run start/stop, minimize info

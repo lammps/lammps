@@ -25,6 +25,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "gridcomm.h"
 #include "math_const.h"
 #include "math_special.h"
@@ -32,7 +33,6 @@
 #include "modify.h"
 #include "suffix.h"
 
-#include <cstdlib>
 #include <cmath>
 
 #include "omp_compat.h"
@@ -93,11 +93,8 @@ PPPMIntel::~PPPMIntel()
 void PPPMIntel::init()
 {
   PPPM::init();
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   #ifdef _LMP_INTEL_OFFLOAD
   _use_base = 0;
@@ -230,8 +227,8 @@ void PPPMIntel::compute_first(int eflag, int vflag)
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
-                          gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+  gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
+                   gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // compute potential gradient on my FFT grid and
@@ -246,21 +243,21 @@ void PPPMIntel::compute_first(int eflag, int vflag)
   // to fill ghost cells surrounding their 3d bricks
 
   if (differentiation_flag == 1)
-    gc->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD,
-                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->forward_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),FORWARD_AD,
+                     gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   else
-    gc->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK,
-                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->forward_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),FORWARD_IK,
+                     gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
     if (differentiation_flag == 1 && vflag_atom)
-      gc->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM,
-                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(GridComm::KSPACE,this,6,sizeof(FFT_SCALAR),
+                       FORWARD_AD_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     else if (differentiation_flag == 0)
-      gc->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM,
-                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
+                       FORWARD_IK_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   }
 }
 
@@ -1122,9 +1119,9 @@ FFT_SCALAR *** PPPMIntel::create3d_offset(FFT_SCALAR ***&array, int n1lo,
 
   bigint nbytes = ((bigint) sizeof(FFT_SCALAR)) * n1*n2*n3 +
     INTEL_P3M_ALIGNED_MAXORDER*2;
-  FFT_SCALAR *data = (FFT_SCALAR *) memory->smalloc(nbytes,name);
+  auto data = (FFT_SCALAR *) memory->smalloc(nbytes,name);
   nbytes = ((bigint) sizeof(FFT_SCALAR *)) * n1*n2;
-  FFT_SCALAR **plane = (FFT_SCALAR **) memory->smalloc(nbytes,name);
+  auto plane = (FFT_SCALAR **) memory->smalloc(nbytes,name);
   nbytes = ((bigint) sizeof(FFT_SCALAR **)) * n1;
   array = (FFT_SCALAR ***) memory->smalloc(nbytes,name);
 

@@ -184,7 +184,7 @@ FixRigidNHSmall::~FixRigidNHSmall()
     deallocate_order();
   }
 
-  if (rfix) delete [] rfix;
+  delete[] rfix;
 
   if (tcomputeflag) modify->delete_compute(id_temp);
   delete [] id_temp;
@@ -268,7 +268,7 @@ void FixRigidNHSmall::init()
 
     for (int i = 0; i < modify->nfix; i++)
       if (strcmp(modify->fix[i]->style,"deform") == 0) {
-        int *dimflag = ((FixDeform *) modify->fix[i])->dimflag;
+        int *dimflag = (dynamic_cast<FixDeform *>( modify->fix[i]))->dimflag;
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
             (p_flag[2] && dimflag[2]))
           error->all(FLERR,"Cannot use fix rigid npt/nph and fix deform on "
@@ -301,7 +301,7 @@ void FixRigidNHSmall::init()
     // rfix[] = indices to each fix rigid
     // this will include self
 
-    if (rfix) delete [] rfix;
+    delete[] rfix;
     nrigidfix = 0;
     rfix = nullptr;
 
@@ -551,7 +551,7 @@ void FixRigidNHSmall::initial_integrate(int vflag)
   // forward communicate updated info of all bodies
 
   commflag = INITIAL;
-  comm->forward_comm_fix(this,26);
+  comm->forward_comm(this,26);
 
   // accumulate translational and rotational kinetic energies
 
@@ -699,7 +699,7 @@ void FixRigidNHSmall::final_integrate()
   // forward communicate updated info of all bodies
 
   commflag = FINAL;
-  comm->forward_comm_fix(this,10);
+  comm->forward_comm(this,10);
 
   // accumulate translational and rotational kinetic energies
 
@@ -1192,13 +1192,7 @@ void FixRigidNHSmall::compute_dof()
       for (int k = 0; k < dimension; k++)
         if (fabs(b->inertia[k]) < EPSILON) nf_r--;
     }
-  } else if (dimension == 2) {
-    nf_r = nlocal_body;
-    for (int ibody = 0; ibody < nlocal_body; ibody++) {
-      Body *b = &body[ibody];
-      if (fabs(b->inertia[2]) < EPSILON) nf_r--;
-    }
-  }
+  } else if (dimension == 2) nf_r = nlocal_body;
 
   double nf[2], nfall[2];
   nf[0] = nf_t;
@@ -1278,7 +1272,7 @@ void FixRigidNHSmall::write_restart(FILE *fp)
 void FixRigidNHSmall::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
   int flag = static_cast<int> (list[n++]);
 
   if (flag) {

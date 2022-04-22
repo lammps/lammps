@@ -26,9 +26,16 @@ KOKKOS_CFG_DEPENDS(OPTIONS COMPILER_ID)
 # Put a check in just in case people are using this option
 KOKKOS_DEPRECATED_LIST(OPTIONS ENABLE)
 
+# Set the Default for Desul Atomics usage.
+set(_DESUL_ATOMICS_DEFAULT ON)
+
 KOKKOS_ENABLE_OPTION(CUDA_RELOCATABLE_DEVICE_CODE  OFF "Whether to enable relocatable device code (RDC) for CUDA")
 KOKKOS_ENABLE_OPTION(CUDA_UVM             OFF "Whether to use unified memory (UM) for CUDA by default")
 KOKKOS_ENABLE_OPTION(CUDA_LDG_INTRINSIC   OFF "Whether to use CUDA LDG intrinsics")
+# As of 08/12/2021 CudaMallocAsync causes issues if UCX is used as MPI communication layer.
+KOKKOS_ENABLE_OPTION(IMPL_CUDA_MALLOC_ASYNC      OFF  "Whether to enable CudaMallocAsync (requires CUDA Toolkit 11.2)")
+KOKKOS_ENABLE_OPTION(DEPRECATED_CODE_3    ON "Whether code deprecated in major release 3 is available" )
+KOKKOS_ENABLE_OPTION(DEPRECATION_WARNINGS ON "Whether to emit deprecation warnings" )
 KOKKOS_ENABLE_OPTION(HIP_RELOCATABLE_DEVICE_CODE  OFF "Whether to enable relocatable device code (RDC) for HIP")
 KOKKOS_ENABLE_OPTION(HPX_ASYNC_DISPATCH   OFF "Whether HPX supports asynchronous dispatch")
 KOKKOS_ENABLE_OPTION(TESTS         OFF  "Whether to build the unit tests")
@@ -49,6 +56,9 @@ KOKKOS_ENABLE_OPTION(PROFILING_LOAD_PRINT OFF "Whether to print information abou
 KOKKOS_ENABLE_OPTION(TUNING               OFF "Whether to create bindings for tuning tools")
 KOKKOS_ENABLE_OPTION(AGGRESSIVE_VECTORIZATION OFF "Whether to aggressively vectorize loops")
 KOKKOS_ENABLE_OPTION(LAUNCH_COMPILER      ON  "Whether to potentially use the launch compiler")
+
+# This option will go away eventually, but allows fallback to old implementation when needed.
+KOKKOS_ENABLE_OPTION(IMPL_DESUL_ATOMICS   ON  "Whether to use desul based atomics - option only during beta")
 
 IF (KOKKOS_ENABLE_CUDA)
   SET(KOKKOS_COMPILER_CUDA_VERSION "${KOKKOS_COMPILER_VERSION_MAJOR}${KOKKOS_COMPILER_VERSION_MINOR}")

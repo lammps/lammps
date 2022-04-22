@@ -29,8 +29,8 @@
 #include "force.h"
 #include "memory.h"
 #include "neigh_list.h"
+#include "neighbor.h"
 #include "potential_file_reader.h"
-#include "tokenizer.h"
 
 #include <cmath>
 #include <cstring>
@@ -158,7 +158,18 @@ void PairKolmogorovCrespiZ::compute(int eflag, int vflag)
         if (eflag) { evdwl = -p.A * p.z06 / r6 + exp1 * sumCff - offset[itype][jtype]; }
 
         if (evflag) {
-          ev_tally_xyz(i, j, nlocal, newton_pair, evdwl, 0, fsum, fsum, fpair, delx, dely, delz);
+          ev_tally(i, j, nlocal, newton_pair, evdwl, 0.0, fpair, delx, dely, delz);
+          if (vflag_either) {
+            double fi[3], fj[3];
+            fi[0] = delx * fpair1;
+            fi[1] = dely * fpair1;
+            fi[2] = 0;
+            fj[0] = -delx * fpair1;
+            fj[1] = -dely * fpair1;
+            fj[2] = 0;
+            v_tally2_newton(i, fi, x[i]);
+            v_tally2_newton(j, fj, x[j]);
+          }
         }
       }
     }
@@ -226,6 +237,18 @@ void PairKolmogorovCrespiZ::coeff(int narg, char **arg)
   }
 
   if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
+}
+
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairKolmogorovCrespiZ::init_style()
+{
+  if (force->newton_pair == 0)
+    error->all(FLERR, "Pair style kolmogorov/crespi/z requires newton pair on");
+
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

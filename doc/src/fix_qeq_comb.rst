@@ -63,6 +63,14 @@ performing charge equilibration (more iterations) and accuracy.
 If the *file* keyword is used, then information about each
 equilibration calculation is written to the specified file.
 
+.. note::
+
+   In order to solve the self-consistent equations for electronegativity
+   equalization, LAMMPS imposes the additional constraint that all the
+   charges in the fix group must add up to zero.  The initial charge
+   assignments should also satisfy this constraint.  LAMMPS will print a
+   warning if that is not the case.
+
 ----------
 
 .. include:: accel_styles.rst

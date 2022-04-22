@@ -1,4 +1,4 @@
-LAMMPS data file created from Tinker watersmall.xyz and amoeba.prm files
+LAMMPS data file created from Tinker water_box.xyz and amoeba_water.prm files
 
 648 atoms
 432 bonds
@@ -6,9 +6,9 @@ LAMMPS data file created from Tinker watersmall.xyz and amoeba.prm files
 2 atom types
 1 bond types
 1 angle types
--9.869157 9.999917 xlo xhi
--10.006163 10.191392 ylo yhi
--9.986525 10.056536 zlo zhi
+0 18.643 xlo xhi
+0 18.643 ylo yhi
+0 18.643 zlo zhi
 
 Masses
 
@@ -1326,7 +1326,15 @@ Bond Coeffs
 
 Angle Coeffs
 
-1 0 108.5 48.7 -39.064262472 8.95286947775 -6.41202044508 11.5462823034
+1 0 1 108.5 48.7 -39.064262472 8.95286947775 -6.41202044508 11.5462823034
+
+BondAngle Coeffs
+
+1 0.0 0.0 0.0 0.0
+
+UreyBradley Coeffs
+
+1 -7.6 1.5537
 
 Tinker Types
 

@@ -37,13 +37,13 @@ class PairLJClass2Kokkos : public PairLJClass2 {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairLJClass2Kokkos(class LAMMPS *);
-  ~PairLJClass2Kokkos();
+  ~PairLJClass2Kokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   struct params_lj{
     KOKKOS_INLINE_FUNCTION
@@ -96,7 +96,7 @@ class PairLJClass2Kokkos : public PairLJClass2 {
   int neighflag;
   int nlocal,nall,eflag,vflag;
 
-  void allocate();
+  void allocate() override;
   friend struct PairComputeFunctor<PairLJClass2Kokkos,FULL,true>;
   friend struct PairComputeFunctor<PairLJClass2Kokkos,HALF,true>;
   friend struct PairComputeFunctor<PairLJClass2Kokkos,HALFTHREAD,true>;

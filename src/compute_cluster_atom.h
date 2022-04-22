@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class ComputeClusterAtom : public Compute {
  public:
   ComputeClusterAtom(class LAMMPS *, int, char **);
-  ~ComputeClusterAtom();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_peratom();
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  double memory_usage();
+  ~ComputeClusterAtom() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_peratom() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  double memory_usage() override;
 
  private:
   int nmax, commflag;

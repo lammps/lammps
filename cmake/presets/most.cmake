@@ -3,9 +3,11 @@
 # are removed. The resulting binary should be able to run most inputs.
 
 set(ALL_PACKAGES
+  AMOEBA
   ASPHERE
   BOCS
   BODY
+  BPM
   BROWNIAN
   CG-DNA
   CG-SDK
@@ -24,6 +26,7 @@ set(ALL_PACKAGES
   DRUDE
   EFF
   EXTRA-COMPUTE
+  EXTRA-DUMP
   EXTRA-FIX
   EXTRA-MOLECULE
   EXTRA-PAIR
@@ -47,7 +50,6 @@ set(ALL_PACKAGES
   PHONON
   PLUGIN
   POEMS
-  PYTHON
   QEQ
   REACTION
   REAXFF

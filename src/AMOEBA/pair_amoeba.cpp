@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,29 +12,30 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_amoeba.h"
-#include <mpi.h>
+
+#include "amoeba_convolution.h"
+#include "atom.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "fft3d_wrap.h"
+#include "fix.h"
+#include "fix_store.h"
+#include "force.h"
+#include "gridcomm.h"
+#include "group.h"
+#include "memory.h"
+#include "modify.h"
+#include "my_page.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "update.h"
+#include "utils.h"
+
 #include <cstdlib>
 #include <cstring>
 #include <cctype>
-#include "amoeba_convolution.h"
-#include "atom.h"
-#include "update.h"
-#include "domain.h"
-#include "force.h"
-#include "comm.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "neigh_list.h"
-#include "group.h"
-#include "modify.h"
-#include "fix.h"
-#include "fix_store.h"
-#include "fft3d_wrap.h"
-#include "gridcomm.h"
-#include "my_page.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -56,7 +57,7 @@ PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
 {
   // error checks
 
-  if (strcmp(update->unit_style,"real") != 0) 
+  if (strcmp(update->unit_style,"real") != 0)
     error->all(FLERR,"Pair style amoeba/hippo require real units");
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style amoeba/hippo require newton pair on");
@@ -65,7 +66,7 @@ PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
 
   me = comm->me;
   nprocs = comm->nprocs;
-  
+
   // force field settings
 
   one_coeff = 1;
@@ -77,13 +78,13 @@ PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
   optorder = 0;
   maxualt = 0;
   tcgnab = 0;
-  
+
   nmax = 0;
   xaxis2local = yaxis2local = zaxis2local = NULL;
   rpole = NULL;
   tq = NULL;
 
-  ired2local = NULL;
+  red2local = NULL;
   xred = NULL;
 
   uind = uinp = udirp = NULL;
@@ -102,7 +103,7 @@ PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
 
   m_kspace = p_kspace = pc_kspace = d_kspace = NULL;
   i_kspace = ic_kspace = NULL;
-  
+
   numneigh_dipole = NULL;
   firstneigh_dipole = NULL;
   firstneigh_dipdip = NULL;
@@ -135,7 +136,7 @@ PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
   //electric = force->qqr2e;
 
   // factors for FFT grid size
-  
+
   nfactors = 3;
   factors = new int[nfactors];
   factors[0] = 2;
@@ -165,7 +166,7 @@ PairAmoeba::~PairAmoeba()
   memory->destroy(rpole);
   memory->destroy(tq);
 
-  memory->destroy(ired2local);
+  memory->destroy(red2local);
   memory->destroy(xred);
 
   memory->destroy(uind);
@@ -265,7 +266,7 @@ void PairAmoeba::compute(int eflag, int vflag)
   if (atom->nlocal + atom->nghost > nmax) grow_local();
 
   // set amtype/amgroup ptrs for rest of compute() to use it
-  
+
   amtype = atom->ivector[index_amtype];
   amgroup = atom->ivector[index_amgroup];
 
@@ -275,30 +276,30 @@ void PairAmoeba::compute(int eflag, int vflag)
   // -------------------------------------------------------------------
 
   // assignment of atoms to polarization groups
-  
+
   if (first_flag_compute) assign_groups();
 
   // assigmment of multipole neighbors to each owned atom
   // sets xaxis,yaxis,zaxis
   // for HIPPO, also set pval for each atom, then ghost comm of pval
-  
+
   if (first_flag_compute) {
     cfstyle = KMPOLE;
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
     kmpole();
-    
+
     if (hippo) {
-      pval = atom->dvector[index_pval];
+      double *pval = atom->dvector[index_pval];
       double **pole = fixpole->astore;
       int nlocal = atom->nlocal;
       int itype,iclass;
       for (int i = 0; i < nlocal; i++) {
-	itype = amtype[i];
-	iclass = amtype2class[itype];
-	pval[i] = pole[i][0] - pcore[iclass];
+        itype = amtype[i];
+        iclass = amtype2class[itype];
+        pval[i] = pole[i][0] - pcore[iclass];
       }
       cfstyle = PVAL;
-      comm->forward_comm_pair(this);
+      comm->forward_comm(this);
     }
   }
 
@@ -315,7 +316,7 @@ void PairAmoeba::compute(int eflag, int vflag)
 
   // if reneighboring step:
   // augment neighbor list to include 1-5 neighbor flags
-  // re-create xyz axis2local and ired2local
+  // re-create xyz axis2local and red2local
   // re-create induce neighbor list
 
   if (neighbor->ago == 0) {
@@ -328,7 +329,7 @@ void PairAmoeba::compute(int eflag, int vflag)
   // reset KSpace recip matrix if box size/shape change dynamically
 
   if (domain->box_change) lattice();
-  
+
   // compute reduced H coords for owned atoms
   // needs to be computed before forward_comm with cfstyle = SETUP
 
@@ -340,12 +341,12 @@ void PairAmoeba::compute(int eflag, int vflag)
     int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++) {
-      j = ired2local[i];
+      j = red2local[i];
       iclass = amtype2class[amtype[i]];
       rdn = kred[iclass];
       xred[i][0] = rdn*(x[i][0]-x[j][0]) + x[j][0];
       xred[i][1] = rdn*(x[i][1]-x[j][1]) + x[j][1];
-      xred[i][2] = rdn*(x[i][2]-x[j][2]) + x[j][2]; 
+      xred[i][2] = rdn*(x[i][2]-x[j][2]) + x[j][2];
     }
   }
 
@@ -364,7 +365,7 @@ void PairAmoeba::compute(int eflag, int vflag)
 
   if (amoeba) cfstyle = SETUP_AMOEBA;
   else cfstyle = SETUP_HIPPO;
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   if (amoeba) pbc_xred();
 
@@ -400,7 +401,7 @@ void PairAmoeba::compute(int eflag, int vflag)
   if (polar_rspace_flag || polar_kspace_flag) {
     induce();
     cfstyle = INDUCE;
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
   }
   time6 = MPI_Wtime();
 
@@ -424,14 +425,14 @@ void PairAmoeba::compute(int eflag, int vflag)
   int nall = nlocal + atom->nghost;
 
   for (int i = 0; i < 6; i++)
-    virial[i] = virhal[i] + virrepulse[i] + virdisp[i] + 
+    virial[i] = virhal[i] + virrepulse[i] + virdisp[i] +
       virpolar[i] + virmpole[i] + virqxfer[i];
 
   // virial computation
   // NOTE: how does this work for AMOEBA ?
   // do all terms get summed this way, or only pairwise
   // it is 2x what summed virial[6] above is
-  
+
   // if (vflag_fdotr) virial_fdotr_compute();
 
   // timing information
@@ -527,7 +528,7 @@ void PairAmoeba::allocate()
 void PairAmoeba::settings(int narg, char **arg)
 {
   // turn on all FF components by default
-  
+
   hal_flag = repulse_flag = qxfer_flag = 1;
   disp_rspace_flag = disp_kspace_flag = 1;
   polar_rspace_flag = polar_kspace_flag = 1;
@@ -565,18 +566,18 @@ void PairAmoeba::settings(int narg, char **arg)
     if (strcmp(arg[iarg],"hal") == 0) hal_flag = newvalue;
     else if (strcmp(arg[iarg],"repulse") == 0) repulse_flag = newvalue;
     else if (strcmp(arg[iarg],"qxfer") == 0) qxfer_flag = newvalue;
-    else if (strcmp(arg[iarg],"disp") == 0) 
+    else if (strcmp(arg[iarg],"disp") == 0)
       disp_rspace_flag = disp_kspace_flag = newvalue;
     else if (strcmp(arg[iarg],"disp/rspace") == 0) disp_rspace_flag = newvalue;
-    else if (strcmp(arg[iarg],"disp/kspace") == 0) disp_rspace_flag = newvalue;
-    else if (strcmp(arg[iarg],"polar") == 0) 
+    else if (strcmp(arg[iarg],"disp/kspace") == 0) disp_kspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"polar") == 0)
       polar_rspace_flag = polar_kspace_flag = newvalue;
     else if (strcmp(arg[iarg],"polar/rspace") == 0) polar_rspace_flag = newvalue;
-    else if (strcmp(arg[iarg],"polar/kspace") == 0) polar_rspace_flag = newvalue;
-    else if (strcmp(arg[iarg],"mpole") == 0) 
+    else if (strcmp(arg[iarg],"polar/kspace") == 0) polar_kspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"mpole") == 0)
       mpole_rspace_flag = mpole_kspace_flag = newvalue;
     else if (strcmp(arg[iarg],"mpole/rspace") == 0) mpole_rspace_flag = newvalue;
-    else if (strcmp(arg[iarg],"mpole/kspace") == 0) mpole_rspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"mpole/kspace") == 0) mpole_kspace_flag = newvalue;
     else if (strcmp(arg[iarg],"bond") == 0) bond_flag = newvalue;
     else if (strcmp(arg[iarg],"angle") == 0) angle_flag = newvalue;
     else if (strcmp(arg[iarg],"dihedral") == 0) dihedral_flag = newvalue;
@@ -620,14 +621,6 @@ void PairAmoeba::coeff(int narg, char **arg)
   if (narg == 3) read_keyfile(NULL);
   else read_keyfile(arg[3]);
 
-  // required for now, until 1-5 settings are implemented in LAMMPS
-
-  //if (special_hal[4] != 1.0 || special_repel[4] != 1.0 ||
-  //    special_disp[4] != 1.0 || special_mpole[4] != 1.0 ||
-  //    special_polar_pscale[4] != 1.0 || special_polar_piscale[4] != 1.0 ||
-  //    special_polar_wscale[4] != 1.0)
-  //  error->all(FLERR,"AMOEBA 1-5 weights must be 1.0 for now");
-  
   // compute Vdwl mixing rules, only for AMOEBA
 
   if (amoeba) {
@@ -701,44 +694,44 @@ void PairAmoeba::init_style()
 
   if (apewald == aeewald && polar_kspace_flag && !mpole_kspace_flag)
     error->all(FLERR,
-	       "Pair amoeba with apewald = aeewald requires mpole and polar together");
-    
+               "Pair amoeba with apewald = aeewald requires mpole and polar together");
+
   // check if all custom atom arrays were set via fix property/atom
 
   int flag,cols;
 
   index_amtype = atom->find_custom("amtype",flag,cols);
-  if (index_amtype < 0 || flag || cols) 
+  if (index_amtype < 0 || flag || cols)
     error->all(FLERR,"Pair amoeba amtype is not defined");
   index_amgroup = atom->find_custom("amgroup",flag,cols);
-  if (index_amgroup < 0 || flag || cols) 
+  if (index_amgroup < 0 || flag || cols)
     error->all(FLERR,"Pair amoeba amgroup is not defined");
-  
-  index_ired = atom->find_custom("ired",flag,cols);
-  if (index_ired < 0 || flag || cols) 
-    error->all(FLERR,"Pair amoeba ired is not defined");
+
+  index_redID = atom->find_custom("redID",flag,cols);
+  if (index_redID < 0 || !flag || cols)
+    error->all(FLERR,"Pair amoeba redID is not defined");
   index_xaxis = atom->find_custom("xaxis",flag,cols);
-  if (index_xaxis < 0 || flag || cols) 
+  if (index_xaxis < 0 || !flag || cols)
     error->all(FLERR,"Pair amoeba xaxis is not defined");
   index_yaxis = atom->find_custom("yaxis",flag,cols);
-  if (index_yaxis < 0 || flag || cols) 
+  if (index_yaxis < 0 || !flag || cols)
     error->all(FLERR,"Pair amoeba yaxis is not defined");
   index_zaxis = atom->find_custom("zaxis",flag,cols);
-  if (index_zaxis < 0 || flag || cols) 
+  if (index_zaxis < 0 || !flag || cols)
     error->all(FLERR,"Pair amoeba zaxis is not defined");
-  
+
   index_polaxe = atom->find_custom("polaxe",flag,cols);
-  if (index_polaxe < 0 || flag || cols) 
+  if (index_polaxe < 0 || flag || cols)
     error->all(FLERR,"Pair amoeba polaxe is not defined");
   index_pval = atom->find_custom("pval",flag,cols);
-  if (index_pval < 0 || !flag || cols) 
+  if (index_pval < 0 || !flag || cols)
     error->all(FLERR,"Pair amoeba pval is not defined");
 
   // -------------------------------------------------------------------
   // one-time initializations
   // can't do earlier b/c need all atoms to exist
   // -------------------------------------------------------------------
-  
+
   // creation of per-atom storage
   // create a new fix STORE style for each atom's pole vector
   // id = "AMOEBA_pole", fix group = all
@@ -823,24 +816,24 @@ void PairAmoeba::init_style()
   // initialize KSpace Ewald settings and FFTs and parallel grid objects
   // Coulombic grid is used with two orders: bseorder and bsporder
   //   so need two GridComm instantiations for ghost comm
-  
+
   if (first_flag) {
     kewald();
     if (use_ewald) {
       m_kspace =
-	new AmoebaConvolution(lmp,this,nefft1,nefft2,nefft3,bseorder,MPOLE_GRID);
+        new AmoebaConvolution(lmp,this,nefft1,nefft2,nefft3,bseorder,MPOLE_GRID);
       p_kspace =
-	new AmoebaConvolution(lmp,this,nefft1,nefft2,nefft3,bsporder,POLAR_GRID);
+        new AmoebaConvolution(lmp,this,nefft1,nefft2,nefft3,bsporder,POLAR_GRID);
       pc_kspace =
-	new AmoebaConvolution(lmp,this,nefft1,nefft2,nefft3,bsporder,POLAR_GRIDC);
+        new AmoebaConvolution(lmp,this,nefft1,nefft2,nefft3,bsporder,POLAR_GRIDC);
       i_kspace =
-	new AmoebaConvolution(lmp,this,nefft1,nefft2,nefft3,bsporder,INDUCE_GRID);
+        new AmoebaConvolution(lmp,this,nefft1,nefft2,nefft3,bsporder,INDUCE_GRID);
       ic_kspace =
-	new AmoebaConvolution(lmp,this,nefft1,nefft2,nefft3,bsporder,INDUCE_GRIDC);
+        new AmoebaConvolution(lmp,this,nefft1,nefft2,nefft3,bsporder,INDUCE_GRIDC);
     }
     if (use_dewald) {
       d_kspace =
-	new AmoebaConvolution(lmp,this,ndfft1,ndfft2,ndfft3,bsdorder,DISP_GRID);
+        new AmoebaConvolution(lmp,this,ndfft1,ndfft2,ndfft3,bsdorder,DISP_GRID);
     }
   }
 
@@ -869,7 +862,7 @@ void PairAmoeba::init_style()
     csixpr = 0.0;
     for (int i = 1; i <= n_amclass; i++) {
       for (int j = i+1; j <= n_amclass; j++) {
-	csixpr += csix[i]*csix[j] * csix_num[i]*csix_num[j];
+        csixpr += csix[i]*csix[j] * csix_num[i]*csix_num[j];
       }
     }
     csixpr *= 2.0;
@@ -886,13 +879,13 @@ void PairAmoeba::init_style()
   // pval is not set until first call to compute(), and only for HIPPO
 
   if (first_flag) {
-    pval = atom->dvector[index_pval];
+    double *pval = atom->dvector[index_pval];
     int nlocal = atom->nlocal;
     for (int i = 0; i < nlocal; i++) pval[i] = 0.0;
   }
-  
+
   // output FF settings to screen and logfile
-  
+
   if (first_flag) {
     if (comm->me == 0) {
       if (screen) print_settings(screen);
@@ -901,7 +894,7 @@ void PairAmoeba::init_style()
   }
 
   // all done with one-time initializations
-  
+
   first_flag = 0;
 
   // -------------------------------------------------------------------
@@ -925,17 +918,16 @@ void PairAmoeba::init_style()
     fixupalt = (FixStore *) modify->fix[ifix];
   }
 
-  // assign hydrogen neighbors (ired) to each owned atom
+  // assign hydrogen neighbors (redID) to each owned atom
   // only set if kred[i] is non-zero and I is bonded to a single atom
-  // conceptually: non-zero if I is a hydrogen bonded to another atom
-  // NOTE: ired needs to be a tagint vector?  but atom ivector is not!
+  // conceptually: non-zero if I is hydrogen bonded to another atom
 
   if (amoeba) {
     amtype = atom->ivector[index_amtype];
-    ired = atom->ivector[index_ired];
+    double *redID = atom->dvector[index_redID];
 
     int **nspecial = atom->nspecial;
-    int **special = atom->special;
+    tagint **special = atom->special;
     int nlocal = atom->nlocal;
 
     int itype,iclass;
@@ -944,13 +936,13 @@ void PairAmoeba::init_style()
       itype = amtype[i];
       iclass = amtype2class[itype];
       if (kred[iclass] == 0.0) {
-        ired[i] = 0;
+        redID[i] = 0.0;
       }
       else if (nspecial[i][0] != 1) {
-        ired[i] = 0;
+        redID[i] = 0.0;
       }
       else {
-        ired[i] = special[i][0];
+        redID[i] = ubuf(special[i][0]).d;
       }
     }
   }
@@ -1009,14 +1001,14 @@ void PairAmoeba::print_settings(FILE *fp)
             sqrt(off2),sqrt(cut2),
             special_repel[1],special_repel[2],special_repel[3],special_repel[4]);
   }
-  
+
   if (hippo) {
     choose(QFER);
     fprintf(fp,"  qxfer: cut %g taper %g mscale %g %g %g %g\n",
             sqrt(off2),sqrt(cut2),
             special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
   }
-  
+
   if (hippo) {
     if (use_dewald) {
       choose(DISP_LONG);
@@ -1031,47 +1023,47 @@ void PairAmoeba::print_settings(FILE *fp)
               special_disp[1],special_disp[2],special_disp[3],special_disp[4]);
     }
   }
-  
+
   if (use_ewald) {
     choose(MPOLE_LONG);
     fprintf(fp,"  multipole: cut %g aewald %g bsorder %d "
-	    "FFT %d %d %d mscale %g %g %g %g\n",
-	    sqrt(off2),aewald,bseorder,nefft1,nefft2,nefft3,
-	    special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
+            "FFT %d %d %d mscale %g %g %g %g\n",
+            sqrt(off2),aewald,bseorder,nefft1,nefft2,nefft3,
+            special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
   } else {
     choose(MPOLE);
     fprintf(fp,"  multipole: cut %g aewald %g mscale %g %g %g %g\n",
-	    sqrt(off2),aewald,
-	    special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
+            sqrt(off2),aewald,
+            special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
   }
-  
+
   if (use_ewald) {
     choose(POLAR_LONG);
     fprintf(fp,"  polar: cut %g aewald %g bsorder %d FFT %d %d %d\n",
-	    sqrt(off2),aewald,bsporder,nefft1,nefft2,nefft3); 
+            sqrt(off2),aewald,bsporder,nefft1,nefft2,nefft3);
     fprintf(fp,"         pscale %g %g %g %g piscale %g %g %g %g "
-	    "wscale %g %g %g %g d/u scale %g %g\n",
-	    special_polar_pscale[1],special_polar_pscale[2],
-	    special_polar_pscale[3],special_polar_pscale[4],
-	    special_polar_piscale[1],special_polar_piscale[2],
-	    special_polar_piscale[3],special_polar_piscale[4],
-	    special_polar_wscale[1],special_polar_wscale[2],
-	    special_polar_wscale[3],special_polar_wscale[4],
-	    polar_dscale,polar_uscale);
+            "wscale %g %g %g %g d/u scale %g %g\n",
+            special_polar_pscale[1],special_polar_pscale[2],
+            special_polar_pscale[3],special_polar_pscale[4],
+            special_polar_piscale[1],special_polar_piscale[2],
+            special_polar_piscale[3],special_polar_piscale[4],
+            special_polar_wscale[1],special_polar_wscale[2],
+            special_polar_wscale[3],special_polar_wscale[4],
+            polar_dscale,polar_uscale);
   } else {
     choose(POLAR);
     fprintf(fp,"  polar: cut %g aewald %g\n",sqrt(off2),aewald);
     fprintf(fp,"         pscale %g %g %g %g piscale %g %g %g %g "
-	    "wscale %g %g %g %g d/u scale %g %g\n",
-	    special_polar_pscale[1],special_polar_pscale[2],
-	    special_polar_pscale[3],special_polar_pscale[4],
-	    special_polar_piscale[1],special_polar_piscale[2],
-	    special_polar_piscale[3],special_polar_piscale[4],
-	    special_polar_wscale[1],special_polar_wscale[2],
-	    special_polar_wscale[3],special_polar_wscale[4],
-	    polar_dscale,polar_uscale);
+            "wscale %g %g %g %g d/u scale %g %g\n",
+            special_polar_pscale[1],special_polar_pscale[2],
+            special_polar_pscale[3],special_polar_pscale[4],
+            special_polar_piscale[1],special_polar_piscale[2],
+            special_polar_piscale[3],special_polar_piscale[4],
+            special_polar_wscale[1],special_polar_wscale[2],
+            special_polar_wscale[3],special_polar_wscale[4],
+            polar_dscale,polar_uscale);
   }
-  
+
   choose(USOLV);
   fprintf(fp,"  precondition: cut %g\n",sqrt(off2));
 }
@@ -1202,7 +1194,7 @@ int PairAmoeba::pack_forward_comm(int n, int *list, double *buf,
 
   } else if (cfstyle == KMPOLE) {
     int **nspecial = atom->nspecial;
-    int **special = atom->special;
+    tagint **special = atom->special;
     for (i = 0; i < n; i++) {
       j = list[i];
       buf[m++] = ubuf(nspecial[j][0]).d;
@@ -1217,6 +1209,7 @@ int PairAmoeba::pack_forward_comm(int n, int *list, double *buf,
     }
 
   } else if (cfstyle == PVAL) {
+    double *pval = atom->dvector[index_pval];
     for (i = 0; i < n; i++) {
       j = list[i];
       buf[m++] = pval[j];
@@ -1307,7 +1300,7 @@ void PairAmoeba::unpack_forward_comm(int n, int first, double *buf)
 
   } else if (cfstyle == KMPOLE) {
     int **nspecial = atom->nspecial;
-    int **special = atom->special;
+    tagint **special = atom->special;
     for (i = first; i < last; i++) {
       nspecial[i][0] = (int) ubuf(buf[m++]).i;
       for (k = 0; k < nspecial[i][0]; k++)
@@ -1320,6 +1313,7 @@ void PairAmoeba::unpack_forward_comm(int n, int first, double *buf)
     }
 
   } else if (cfstyle == PVAL) {
+    double *pval = atom->dvector[index_pval];
     for (i = first; i < last; i++) {
       pval[i] = buf[m++];
     }
@@ -1609,7 +1603,7 @@ void PairAmoeba::assign_groups()
   int maxstack = 0;
   int *stack = NULL;
 
-  int **special = atom->special;
+  tagint **special = atom->special;
   int **nspecial = atom->nspecial;
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
@@ -1617,91 +1611,91 @@ void PairAmoeba::assign_groups()
 
   // initially, groupID = atomID
   // communicate new groupIDs to ghost atoms
-  
+
   for (i = 0; i < nlocal; i++) amgroup[i] = tag[i];
   cfstyle = AMGROUP;
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // loop until no ghost atom groupIDs are reset
 
   while (1) {
 
     // loop over all atoms and their group neighborhoods
-    
+
     ghostmark = 0;
     for (i = 0; i < nlocal; i++) {
 
       // push atom I on stack
-	
+
       nstack = 0;
       if (nstack == maxstack) {
-	maxstack += DELTASTACK;
-	memory->grow(stack,maxstack,"amoeba:stack");
+        maxstack += DELTASTACK;
+        memory->grow(stack,maxstack,"amoeba:stack");
       }
       stack[nstack++] = i;
 
       // loop over I's group neighborhood until stack is empty
-      
+
       while (nstack > 0) {
 
-	// pop atom M off stack
-	  
-	m = stack[nstack-1];
-	nstack--;
-	mtype = amtype[m];
+        // pop atom M off stack
 
-	// loop over bond partners of atom M
-	
-	nbond = nspecial[m][0];
-	for (ibond = 0; ibond < nbond; ibond++) {
-	  jglobal = special[m][ibond];
-	  j = atom->map(jglobal);
-	  if (j < 0)
-	    error->one(FLERR,"AMOEBA group assignment bond neighbor not found");
-	  jtype = amtype[j];
+        m = stack[nstack-1];
+        nstack--;
+        mtype = amtype[m];
 
-	  // if amtype of bondpartner J is not in polgroup of atom M, continue
-	    
-	  ngroup = npolgroup[mtype];
-	  for (igroup = 0; igroup < ngroup; igroup++)
-	    if (jtype == polgroup[mtype][igroup]) break;
-	  if (igroup == ngroup) continue;
-	    
-	  // if groupID of atoms J and M are the same, continue
-	  // else set atom with larger groupID to smaller groupID
-	  // if changed atom is ghost, set ghostmark, else push atom on stack
-	    
-	  if (amgroup[m] == amgroup[j]) continue;
+        // loop over bond partners of atom M
 
-	  if (amgroup[m] > amgroup[j]) {
-	    amgroup[m] = amgroup[j];
-	    if (nstack == maxstack) {
-	      maxstack += DELTASTACK;
-	      memory->grow(stack,maxstack,"amoeba:stack");
-	    }
-	    stack[nstack++] = m;
-	  } else {
-	    amgroup[j] = amgroup[m];
-	    if (j >= nlocal) ghostmark = 1;
-	    else {
-	      if (nstack == maxstack) {
-		maxstack += DELTASTACK;
-		memory->grow(stack,maxstack,"amoeba:stack");
-	      }
-	      stack[nstack++] = j;
-	    }
-	  }
-	}
+        nbond = nspecial[m][0];
+        for (ibond = 0; ibond < nbond; ibond++) {
+          jglobal = special[m][ibond];
+          j = atom->map(jglobal);
+          if (j < 0)
+            error->one(FLERR,"AMOEBA group assignment bond neighbor not found");
+          jtype = amtype[j];
+
+          // if amtype of bondpartner J is not in polgroup of atom M, continue
+
+          ngroup = npolgroup[mtype];
+          for (igroup = 0; igroup < ngroup; igroup++)
+            if (jtype == polgroup[mtype][igroup]) break;
+          if (igroup == ngroup) continue;
+
+          // if groupID of atoms J and M are the same, continue
+          // else set atom with larger groupID to smaller groupID
+          // if changed atom is ghost, set ghostmark, else push atom on stack
+
+          if (amgroup[m] == amgroup[j]) continue;
+
+          if (amgroup[m] > amgroup[j]) {
+            amgroup[m] = amgroup[j];
+            if (nstack == maxstack) {
+              maxstack += DELTASTACK;
+              memory->grow(stack,maxstack,"amoeba:stack");
+            }
+            stack[nstack++] = m;
+          } else {
+            amgroup[j] = amgroup[m];
+            if (j >= nlocal) ghostmark = 1;
+            else {
+              if (nstack == maxstack) {
+                maxstack += DELTASTACK;
+                memory->grow(stack,maxstack,"amoeba:stack");
+              }
+              stack[nstack++] = j;
+            }
+          }
+        }
       }
     }
 
     // communicate new groupIDs to ghost atoms
-    
+
     cfstyle = AMGROUP;
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
 
     // done if no proc reset groupID of a ghost atom
-    
+
     MPI_Allreduce(&ghostmark,&anyghostmark,1,MPI_INT,MPI_MAX,world);
     if (!anyghostmark) break;
   }
@@ -1732,7 +1726,7 @@ void PairAmoeba::assign_groups()
 void PairAmoeba::pbc_xred()
 {
   double prd,prd_half,delta;
-  
+
   double **x = atom->x;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
@@ -1743,9 +1737,9 @@ void PairAmoeba::pbc_xred()
     for (int i = nlocal; i < nall; i++) {
       delta = xred[i][0] - x[i][0];
       while (fabs(delta) > prd_half) {
-	if (delta < 0.0) xred[i][0] += prd;
-	else xred[i][0] -= prd;
-	delta = xred[i][0] - x[i][0];
+        if (delta < 0.0) xred[i][0] += prd;
+        else xred[i][0] -= prd;
+        delta = xred[i][0] - x[i][0];
       }
     }
   }
@@ -1756,22 +1750,22 @@ void PairAmoeba::pbc_xred()
     for (int i = nlocal; i < nall; i++) {
       delta = xred[i][1] - x[i][1];
       while (fabs(delta) > prd_half) {
-	if (delta < 0.0) xred[i][1] += prd;
-	else xred[i][1] -= prd;
-	delta = xred[i][1] - x[i][1];
+        if (delta < 0.0) xred[i][1] += prd;
+        else xred[i][1] -= prd;
+        delta = xred[i][1] - x[i][1];
       }
     }
   }
-  
+
   if (domain->zperiodic) {
     prd = domain->zprd;
     prd_half = domain->zprd_half;
     for (int i = nlocal; i < nall; i++) {
       delta = xred[i][2] - x[i][2];
       while (fabs(delta) > prd_half) {
-	if (delta < 0.0) xred[i][2] += prd;
-	else xred[i][2] -= prd;
-	delta = xred[i][2] - x[i][2];
+        if (delta < 0.0) xred[i][2] += prd;
+        else xred[i][2] -= prd;
+        delta = xred[i][2] - x[i][2];
       }
     }
   }
@@ -1857,7 +1851,7 @@ void PairAmoeba::allocate_vdwl()
   memory->create(epsilon,n_amclass+1,n_amclass+1,"amoeba:epsilon");
   memory->create(epsilon4,n_amclass+1,n_amclass+1,"amoeba:epsilon4");
 }
- 
+
 void PairAmoeba::deallocate_vdwl()
 {
   memory->destroy(radmin);
@@ -1933,7 +1927,7 @@ void PairAmoeba::choose(int which)
   double off,cut;
 
   // short-range only terms
-  
+
   if (which == HAL) {
     off = vdwcut;
     cut = vdwtaper;
@@ -1960,7 +1954,7 @@ void PairAmoeba::choose(int which)
     cut = 0.99*off;   // not used
 
   // short-range + long-range terms
-    
+
   } else if (which == DISP_LONG) {
     off = dispcut;
     cut = 0.99*cut;   // not used
@@ -1974,7 +1968,7 @@ void PairAmoeba::choose(int which)
     cut = 0.99*off;   // not used
     aewald = apewald;
   }
-  
+
   off2 = off*off;
   cut2 = cut*cut;
 
@@ -2004,16 +1998,16 @@ void PairAmoeba::mix()
   double TWOSIX = pow(2.0,1.0/6.0);
 
   for (i = 1; i <= n_amclass; i++) {
-    
+
     // printf("MIX i %d nclass %d eps %g sigma %g\n",
     //        i,n_amclass,vdwl_eps[i],vdwl_sigma[i]);
-    
+
     for (j = i; j <= n_amclass; j++) {
       ei = vdwl_eps[i];
       ej = vdwl_eps[j];
       ri = vdwl_sigma[i];
       rj = vdwl_sigma[j];
-      
+
       if (radius_type == SIGMA) {
         ri *= TWOSIX;
         rj *= TWOSIX;
@@ -2022,7 +2016,7 @@ void PairAmoeba::mix()
         ri *= 0.5;
         rj *= 0.5;
       }
-      
+
       sri = sqrt(ri);
       ei = fabs(ei);
       sei = sqrt(ei);
@@ -2072,7 +2066,7 @@ void PairAmoeba::mix()
     j = vdwl_class_pair[m][1];
     rij = vdwl_sigma_pair[m];
     eij = vdwl_eps_pair[m];
-    
+
     if (radius_type == SIGMA) rij *= TWOSIX;
 
     radmin[j][i] = radmin[i][j] = rij;
@@ -2122,7 +2116,7 @@ void PairAmoeba::grow_local()
   memory->destroy(tq);
 
   if (amoeba) {
-    memory->destroy(ired2local);
+    memory->destroy(red2local);
     memory->destroy(xred);
   }
 
@@ -2173,7 +2167,7 @@ void PairAmoeba::grow_local()
   memory->create(tq,nmax,3,"amoeba:tq");
 
   if (amoeba) {
-    memory->create(ired2local,nmax,"amoeba:ired2local");
+    memory->create(red2local,nmax,"amoeba:red2local");
     memory->create(xred,nmax,3,"amoeba:xred");
   }
 
@@ -2228,12 +2222,12 @@ void PairAmoeba::grow_local()
 ------------------------------------------------------------------------- */
 
 void PairAmoeba::dump6(FILE *fp, const char *columns, double scale,
-		       double **a, double **b)
+                       double **a, double **b)
 {
   int i,j,m;
   MPI_Status status;
   MPI_Request request;
-  
+
   // setup
 
   int size_one = 7;
@@ -2264,7 +2258,7 @@ void PairAmoeba::dump6(FILE *fp, const char *columns, double scale,
   }
 
   // write file
-  
+
   if (me == 0) {
     fprintf(fp,"ITEM: TIMESTEP\n");
     fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
@@ -2279,25 +2273,25 @@ void PairAmoeba::dump6(FILE *fp, const char *columns, double scale,
 
   int nlines;
   double tmp;
-  
+
   if (me == 0) {
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
-	MPI_Irecv(buf,maxlocal*size_one,MPI_DOUBLE,iproc,0,world,&request);
-	MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
-	MPI_Wait(&request,&status);
-	MPI_Get_count(&status,MPI_DOUBLE,&nlines);
-	nlines /= size_one;
+        MPI_Irecv(buf,maxlocal*size_one,MPI_DOUBLE,iproc,0,world,&request);
+        MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
+        MPI_Wait(&request,&status);
+        MPI_Get_count(&status,MPI_DOUBLE,&nlines);
+        nlines /= size_one;
       } else nlines = nlocal;
-      
+
       m = 0;
       for (i = 0; i < nlines; i++) {
-	for (j = 0; j < size_one; j++) {
-	  if (j == 0) fprintf(fp,"%d",static_cast<tagint> (buf[m]));
-	  else fprintf(fp," %g",buf[m]);
-	  m++;
-	}
-	fprintf(fp,"\n");
+        for (j = 0; j < size_one; j++) {
+          if (j == 0) fprintf(fp,"%d",static_cast<tagint> (buf[m]));
+          else fprintf(fp," %g",buf[m]);
+          m++;
+        }
+        fprintf(fp,"\n");
       }
     }
 

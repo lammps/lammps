@@ -39,7 +39,7 @@ class UCL_H_Vec : public UCL_BaseMat {
    };
    typedef numtyp data_type;
 
- UCL_H_Vec() : _cols(0), _row_bytes(0) {
+ UCL_H_Vec() : _row_bytes(0), _cols(0){
     #ifdef _OCL_MAT
     _carray=(cl_mem)(0);
     #endif

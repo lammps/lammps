@@ -30,63 +30,63 @@ namespace LAMMPS_NS {
 class AtomVecMolecularKokkos : public AtomVecKokkos {
  public:
   AtomVecMolecularKokkos(class LAMMPS *);
-  virtual ~AtomVecMolecularKokkos() {}
-  void grow(int);
-  void copy(int, int, int);
-  int pack_comm(int, int *, double *, int, int *);
-  int pack_comm_vel(int, int *, double *, int, int *);
-  void unpack_comm(int, int, double *);
-  void unpack_comm_vel(int, int, double *);
-  int pack_reverse(int, int, double *);
-  void unpack_reverse(int, int *, double *);
-  int pack_border(int, int *, double *, int, int *);
-  int pack_border_vel(int, int *, double *, int, int *);
-  int pack_border_hybrid(int, int *, double *);
-  void unpack_border(int, int, double *);
-  void unpack_border_vel(int, int, double *);
-  int unpack_border_hybrid(int, int, double *);
-  int pack_exchange(int, double *);
-  int unpack_exchange(double *);
-  int size_restart();
-  int pack_restart(int, double *);
-  int unpack_restart(double *);
-  void create_atom(int, double *);
-  void data_atom(double *, tagint, char **);
-  int data_atom_hybrid(int, char **);
-  void pack_data(double **);
-  int pack_data_hybrid(int, double *);
-  void write_data(FILE *, int, double **);
-  int write_data_hybrid(FILE *, double *);
-  double memory_usage();
 
-  void grow_pointers();
+  void grow(int) override;
+  void copy(int, int, int) override;
+  int pack_comm(int, int *, double *, int, int *) override;
+  int pack_comm_vel(int, int *, double *, int, int *) override;
+  void unpack_comm(int, int, double *) override;
+  void unpack_comm_vel(int, int, double *) override;
+  int pack_reverse(int, int, double *) override;
+  void unpack_reverse(int, int *, double *) override;
+  int pack_border(int, int *, double *, int, int *) override;
+  int pack_border_vel(int, int *, double *, int, int *) override;
+  int pack_border_hybrid(int, int *, double *) override;
+  void unpack_border(int, int, double *) override;
+  void unpack_border_vel(int, int, double *) override;
+  int unpack_border_hybrid(int, int, double *) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(double *) override;
+  int size_restart() override;
+  int pack_restart(int, double *) override;
+  int unpack_restart(double *) override;
+  void create_atom(int, double *) override;
+  void data_atom(double *, imageint, const std::vector<std::string> &) override;
+  int data_atom_hybrid(int, const std::vector<std::string> &, int) override;
+  void pack_data(double **) override;
+  int pack_data_hybrid(int, double *) override;
+  void write_data(FILE *, int, double **) override;
+  int write_data_hybrid(FILE *, double *) override;
+  double memory_usage() override;
+
+  void grow_pointers() override;
   int pack_comm_kokkos(const int &n, const DAT::tdual_int_2d &k_sendlist,
                        const int & iswap,
                        const DAT::tdual_xfloat_2d &buf,
-                       const int &pbc_flag, const int pbc[]);
+                       const int &pbc_flag, const int pbc[]) override;
   void unpack_comm_kokkos(const int &n, const int &nfirst,
-                          const DAT::tdual_xfloat_2d &buf);
+                          const DAT::tdual_xfloat_2d &buf) override;
   int pack_comm_self(const int &n, const DAT::tdual_int_2d &list,
                      const int & iswap, const int nfirst,
-                     const int &pbc_flag, const int pbc[]);
+                     const int &pbc_flag, const int pbc[]) override;
   int pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
                          DAT::tdual_xfloat_2d buf,int iswap,
-                         int pbc_flag, int *pbc, ExecutionSpace space);
+                         int pbc_flag, int *pbc, ExecutionSpace space) override;
   void unpack_border_kokkos(const int &n, const int &nfirst,
                             const DAT::tdual_xfloat_2d &buf,
-                            ExecutionSpace space);
+                            ExecutionSpace space) override;
   int pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &buf,
                            DAT::tdual_int_1d k_sendlist,
                            DAT::tdual_int_1d k_copylist,
                            ExecutionSpace space, int dim,
-                           X_FLOAT lo, X_FLOAT hi);
+                           X_FLOAT lo, X_FLOAT hi) override;
   int unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int nrecv,
                              int nlocal, int dim, X_FLOAT lo, X_FLOAT hi,
-                             ExecutionSpace space);
+                             ExecutionSpace space) override;
 
-  void sync(ExecutionSpace space, unsigned int mask);
-  void modified(ExecutionSpace space, unsigned int mask);
-  void sync_overlapping_device(ExecutionSpace space, unsigned int mask);
+  void sync(ExecutionSpace space, unsigned int mask) override;
+  void modified(ExecutionSpace space, unsigned int mask) override;
+  void sync_overlapping_device(ExecutionSpace space, unsigned int mask) override;
 
  protected:
 

@@ -1,4 +1,4 @@
-LAMMPS data file created from Tinker water_dimer.xyz and hippo.prm files
+LAMMPS data file created from Tinker water_dimer.xyz and hippo_water.prm files
 
 6 atoms
 4 bonds
@@ -42,7 +42,15 @@ Bond Coeffs
 
 Angle Coeffs
 
-1 0 107.7 48.7 -39.064262472 8.95286947775 -6.41202044508 11.5462823034
+1 0 0 107.7 48.7 -39.064262472 8.95286947775 -6.41202044508 11.5462823034
+
+BondAngle Coeffs
+
+1 0.0 0.0 0.0 0.0
+
+UreyBradley Coeffs
+
+1 0.0 0.0
 
 Tinker Types
 

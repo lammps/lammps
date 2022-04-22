@@ -17,6 +17,9 @@
 #include "atom.h"
 #include "citeme.h"
 
+#include <cmath>
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 static const char cite_user_dielectric_package[] =
@@ -35,7 +38,7 @@ static const char cite_user_dielectric_package[] =
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecDielectric::AtomVecDielectric(LAMMPS *lmp) : AtomVec(lmp)
+AtomVecDielectric::AtomVecDielectric(LAMMPS *_lmp) : AtomVec(_lmp)
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_dielectric_package);
 
@@ -44,6 +47,7 @@ AtomVecDielectric::AtomVecDielectric(LAMMPS *lmp) : AtomVec(lmp)
   mass_type = PER_TYPE;
 
   atom->molecule_flag = atom->q_flag = atom->mu_flag = 1;
+  atom->dielectric_flag = 1;
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings

@@ -27,12 +27,13 @@ namespace LAMMPS_NS {
 class PairLebedevaZ : public Pair {
  public:
   PairLebedevaZ(class LAMMPS *);
-  virtual ~PairLebedevaZ();
+  ~PairLebedevaZ() override;
 
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   static constexpr int NPARAMS_PER_LINE = 12;
 

@@ -90,16 +90,33 @@ class FixAmoebaBiTorsion : public Fix {
   int max_bitorsion_list;
   int **bitorsion_list;
 
-  // BiTorsion grid data
+  // BiTorsion grid and spline data
 
-  int ntypes;
+  int nbitypes;
   int *nxgrid,*nygrid;
-  double ****btgrid;
+  double **ttx,**tty,**tbf;
+  double **tbx,**tby,**tbxy;
 
-  // read BiTorsion grid data
+  // local methods
 
   void read_grid_data(char *);
+  void create_splines();
+  void nspline(int, double *, double *, double *, double *,
+               double *, double *, double *, double *, double *);
+  void cspline(int, double *, double *, double *, double *, double *,
+               double *, double *, double *, double *, double *);
+  void cytsy(int, double *, double *, double *, double *, double *, int &);
+  void cytsyp(int, double *, double *, double *, int &);
+  void cytsys(int, double *, double *, double *, double *, double *);
+
+  void chkttor(int, int, int, double &, double &, double &);
+  void bcuint1(double *, double *, double *, double *,
+               double, double, double, double, double, double,
+               double &, double &, double &);
+  void bcucof(double *, double *, double *, double *, double, double,
+              double [][4]);
 };
+
 }    // namespace LAMMPS_NS
 
 #endif

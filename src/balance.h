@@ -33,8 +33,8 @@ class Balance : public Command {
   int outflag;                 // 1 for output of balance results to file
 
   Balance(class LAMMPS *);
-  ~Balance();
-  void command(int, char **);
+  ~Balance() override;
+  void command(int, char **) override;
   void options(int, int, char **);
   void weight_storage(char *);
   void init_imbalance(int);
@@ -45,6 +45,7 @@ class Balance : public Command {
   int *bisection(int sortflag = 0);
   void dumpout(bigint);
 
+  static constexpr int BSTR_SIZE = 3;
  private:
   int me, nprocs;
 
@@ -56,7 +57,7 @@ class Balance : public Command {
 
   int nitermax;    // params for shift LB
   double stopthresh;
-  char bstr[4];
+  char bstr[BSTR_SIZE+1];
 
   int shift_allocate;       // 1 if SHIFT vectors have been allocated
   int ndim;                 // length of balance string bstr
@@ -84,7 +85,6 @@ class Balance : public Command {
   void shift_setup_static(char *);
   void tally(int, int, double *);
   int adjust(int, double *);
-  int binary(double, int, double *);
 #ifdef BALANCE_DEBUG
   void debug_shift_output(int, int, int, double *);
 #endif

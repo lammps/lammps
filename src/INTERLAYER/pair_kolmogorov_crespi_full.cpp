@@ -31,10 +31,8 @@
 #include "memory.h"
 #include "my_page.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "potential_file_reader.h"
-#include "tokenizer.h"
 
 #include <cmath>
 #include <cstring>
@@ -47,6 +45,7 @@ using namespace InterLayer;
 #define PGDELTA 1
 
 static const char cite_kc[] =
+    "kolmogorov/crespi/full potential doi:10.1021/acs.nanolett.8b02848\n"
     "@Article{Ouyang2018\n"
     " author = {W. Ouyang, D. Mandelli, M. Urbakh, and O. Hod},\n"
     " title = {Nanoserpents: Graphene Nanoribbon Motion on Two-Dimensional Hexagonal Materials},\n"
@@ -141,8 +140,8 @@ void PairKolmogorovCrespiFull::allocate()
 void PairKolmogorovCrespiFull::settings(int narg, char **arg)
 {
   if (narg < 1 || narg > 2) error->all(FLERR, "Illegal pair_style command");
-  if (strcmp(force->pair_style, "hybrid/overlay") != 0)
-    error->all(FLERR, "ERROR: requires hybrid/overlay pair_style");
+  if (!utils::strmatch(force->pair_style, "^hybrid/overlay"))
+    error->all(FLERR, "Pair style kolmogorov/crespi/full must be used as sub-style with hybrid/overlay");
 
   cut_global = utils::numeric(FLERR, arg[0], false, lmp);
   if (narg == 2) tap_flag = utils::numeric(FLERR, arg[1], false, lmp);
@@ -269,16 +268,16 @@ void PairKolmogorovCrespiFull::read_file(char *filename)
 
       nparams++;
     }
-
-    MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
-    MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
-
-    if (comm->me != 0) {
-      params = (Param *) memory->srealloc(params, maxparam * sizeof(Param), "pair:params");
-    }
-
-    MPI_Bcast(params, maxparam * sizeof(Param), MPI_BYTE, 0, world);
   }
+
+  MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
+  MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
+
+  if (comm->me != 0) {
+    params = (Param *) memory->srealloc(params, maxparam * sizeof(Param), "pair:params");
+  }
+
+  MPI_Bcast(params, maxparam * sizeof(Param), MPI_BYTE, 0, world);
 
   memory->destroy(elem2param);
   memory->destroy(cutKCsq);
@@ -289,7 +288,7 @@ void PairKolmogorovCrespiFull::read_file(char *filename)
       int n = -1;
       for (int m = 0; m < nparams; m++) {
         if (i == params[m].ielement && j == params[m].jelement) {
-          if (n >= 0) error->all(FLERR, "KC Potential file has duplicate entry");
+          if (n >= 0) error->all(FLERR, "KC potential file has duplicate entry");
           n = m;
         }
       }
@@ -313,10 +312,7 @@ void PairKolmogorovCrespiFull::init_style()
 
   // need a full neighbor list, including neighbors of ghosts
 
-  int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->ghost = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
 
   // local KC neighbor list
   // create pages if first time or if neighbor pgsize/oneatom has changed
@@ -478,7 +474,7 @@ void PairKolmogorovCrespiFull::calc_FRep(int eflag, int /* vflag */)
   double dprodnorm1[3] = {0.0, 0.0, 0.0};
   double fp1[3] = {0.0, 0.0, 0.0};
   double fprod1[3] = {0.0, 0.0, 0.0};
-  double delkj[3] = {0.0, 0.0, 0.0};
+  double delki[3] = {0.0, 0.0, 0.0};
   double fk[3] = {0.0, 0.0, 0.0};
 
   inum = list->inum;
@@ -585,12 +581,12 @@ void PairKolmogorovCrespiFull::calc_FRep(int eflag, int /* vflag */)
           f[k][0] += fk[0];
           f[k][1] += fk[1];
           f[k][2] += fk[2];
-          delkj[0] = x[k][0] - x[j][0];
-          delkj[1] = x[k][1] - x[j][1];
-          delkj[2] = x[k][2] - x[j][2];
+          delki[0] = x[k][0] - x[i][0];
+          delki[1] = x[k][1] - x[i][1];
+          delki[2] = x[k][2] - x[i][2];
           if (evflag)
-            ev_tally_xyz(k, j, nlocal, newton_pair, 0.0, 0.0, fk[0], fk[1], fk[2], delkj[0],
-                         delkj[1], delkj[2]);
+            ev_tally_xyz(k, j, nlocal, newton_pair, 0.0, 0.0, fk[0], fk[1], fk[2], delki[0],
+                         delki[1], delki[2]);
         }
 
         if (eflag) {

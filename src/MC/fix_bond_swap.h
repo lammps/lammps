@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class FixBondSwap : public Fix {
  public:
   FixBondSwap(class LAMMPS *, int, char **);
-  ~FixBondSwap();
-  int setmask();
-  void init();
-  void init_list(int, class NeighList *);
-  void post_integrate();
-  int modify_param(int, char **);
-  double compute_vector(int);
-  double memory_usage();
+  ~FixBondSwap() override;
+  int setmask() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void post_integrate() override;
+  int modify_param(int, char **) override;
+  double compute_vector(int) override;
+  double memory_usage() override;
 
  private:
   double fraction, cutsq;

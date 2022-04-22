@@ -20,23 +20,23 @@
 
 #include "pair_lubricateU_poly.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "domain.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_wall.h"
+#include "force.h"
 #include "input.h"
-#include "variable.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -198,7 +198,7 @@ void PairLubricateUPoly::iterate(double **x, int stage)
 
   // set velocities for ghost particles
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // Find initial residual
 
@@ -233,7 +233,7 @@ void PairLubricateUPoly::iterate(double **x, int stage)
 
     // set velocities for ghost particles
 
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
 
     compute_RU(x);
 
@@ -292,7 +292,7 @@ void PairLubricateUPoly::iterate(double **x, int stage)
 
   // set velocities for ghost particles
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // compute the viscosity/pressure
 
@@ -1165,7 +1165,7 @@ void PairLubricateUPoly::init_style()
                    "Cannot use multiple fix wall commands with "
                    "pair lubricateU");
       flagwall = 1; // Walls exist
-      wallfix = (FixWall *) modify->fix[i];
+      wallfix = dynamic_cast<FixWall *>( modify->fix[i]);
       if (wallfix->xflag) flagwall = 2; // Moving walls exist
     }
   }
@@ -1235,7 +1235,5 @@ void PairLubricateUPoly::init_style()
     RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
   }
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 }

@@ -50,7 +50,7 @@ void FixNVETri::init()
 {
   // error checks
 
-  avec = (AtomVecTri *) atom->style_match("tri");
+  avec = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
   if (!avec) error->all(FLERR,"Fix nve/tri requires atom style tri");
 
   if (domain->dimension != 3)

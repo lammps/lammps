@@ -109,17 +109,17 @@ bool AtomT::alloc(const int nall) {
   gpu_bytes+=x_cast.device.row_bytes()+type_cast.device.row_bytes();
   #endif
 
-  if (_charge && _host_view==false) {
+  if (_charge && !_host_view) {
     success=success && (q.alloc(_max_atoms,*dev,UCL_WRITE_ONLY,
                                 UCL_READ_ONLY)==UCL_SUCCESS);
     gpu_bytes+=q.device.row_bytes();
   }
-  if (_rot && _host_view==false) {
+  if (_rot && !_host_view) {
     success=success && (quat.alloc(_max_atoms*4,*dev,UCL_WRITE_ONLY,
                                    UCL_READ_ONLY)==UCL_SUCCESS);
     gpu_bytes+=quat.device.row_bytes();
   }
-  if (_vel && _host_view==false) {
+  if (_vel && !_host_view) {
     success=success && (v.alloc(_max_atoms*4,*dev,UCL_WRITE_ONLY,
                                    UCL_READ_ONLY)==UCL_SUCCESS);
     gpu_bytes+=v.device.row_bytes();
@@ -169,30 +169,30 @@ bool AtomT::add_fields(const bool charge, const bool rot,
   // Ignore host/device transfers?
   int gpu_bytes=0;
 
-  if (charge && _charge==false) {
+  if (charge && !_charge) {
     _charge=true;
     _other=true;
-    if (_host_view==false) {
+    if (!_host_view) {
       success=success && (q.alloc(_max_atoms,*dev,UCL_WRITE_ONLY,
                                   UCL_READ_ONLY)==UCL_SUCCESS);
       gpu_bytes+=q.device.row_bytes();
     }
   }
 
-  if (rot && _rot==false) {
+  if (rot && !_rot) {
     _rot=true;
     _other=true;
-    if (_host_view==false) {
+    if (!_host_view) {
       success=success && (quat.alloc(_max_atoms*4,*dev,UCL_WRITE_ONLY,
                                      UCL_READ_ONLY)==UCL_SUCCESS);
       gpu_bytes+=quat.device.row_bytes();
     }
   }
 
-  if (vel && _vel==false) {
+  if (vel && !_vel) {
     _vel=true;
     _other=true;
-    if (_host_view==false) {
+    if (!_host_view) {
       success=success && (v.alloc(_max_atoms*4,*dev,UCL_WRITE_ONLY,
                                      UCL_READ_ONLY)==UCL_SUCCESS);
       gpu_bytes+=v.device.row_bytes();

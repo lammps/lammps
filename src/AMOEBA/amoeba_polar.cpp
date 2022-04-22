@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -61,7 +61,7 @@ void PairAmoeba::polar()
   double tep[3];
 
   // set cutoffs, taper coeffs, and PME params
-  
+
   if (use_ewald) choose(POLAR_LONG);
   else choose(POLAR);
 
@@ -122,11 +122,11 @@ void PairAmoeba::polar()
     vyy = yix*fix[1] + yiy*fiy[1] + yiz*fiz[1];
     vzz = zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
 
-    vxy = 0.5 * (yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] + 
+    vxy = 0.5 * (yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] +
                  xix*fix[1] + xiy*fiy[1] + xiz*fiz[1]);
-    vxz = 0.5 * (zix*fix[0] + ziy*fiy[0] + ziz*fiz[0] + 
+    vxz = 0.5 * (zix*fix[0] + ziy*fiy[0] + ziz*fiz[0] +
                  xix*fix[2] + xiy*fiy[2] + xiz*fiz[2]);
-    vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] + 
+    vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
 
     virpolar[0] += vxx;
@@ -139,7 +139,7 @@ void PairAmoeba::polar()
 
   // clean up
   // qfac was allocated in induce
-  
+
   if (use_ewald) memory->destroy(qfac);
 }
 
@@ -172,7 +172,7 @@ void PairAmoeba::polar_energy()
     itype = amtype[i];
     fi = felec / polarity[itype];
     e = 0.0;
-    for (j = 0; j < 3; j++) 
+    for (j = 0; j < 3; j++)
       e += fi*uind[i][j]*udirp[i][j];
     epolar += e;
   }
@@ -275,8 +275,7 @@ void PairAmoeba::polar_real()
 
   // owned atoms
 
-  pval = atom->dvector[index_pval];
-
+  double *pval = atom->dvector[index_pval];
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
@@ -301,7 +300,7 @@ void PairAmoeba::polar_real()
 
   // set the energy unit conversion factor
   // NOTE: why 1/2 ?
-  
+
   felec = 0.5 * electric / am_dielectric;
 
   // compute the dipole polarization gradient components
@@ -368,33 +367,32 @@ void PairAmoeba::polar_real()
       yr = x[j][1] - yi;
       zr = x[j][2] - zi;
       r2 = xr*xr + yr*yr + zr*zr;
-
-      if (r2 > off2) continue; 
+      if (r2 > off2) continue;
 
       jtype = amtype[j];
       jclass = amtype2class[jtype];
       jgroup = amgroup[j];
 
       if (amoeba) {
-	factor_wscale = special_polar_wscale[sbmask15(jextra)];
-	if (igroup == jgroup) {
-	  factor_pscale = special_polar_piscale[sbmask15(jextra)];
-	  factor_dscale = polar_dscale;
-	  factor_uscale = polar_uscale;
-	} else {
-	  factor_pscale = special_polar_pscale[sbmask15(jextra)];
-	  factor_dscale = factor_uscale = 1.0;
-	}
-	
+        factor_wscale = special_polar_wscale[sbmask15(jextra)];
+        if (igroup == jgroup) {
+          factor_pscale = special_polar_piscale[sbmask15(jextra)];
+          factor_dscale = polar_dscale;
+          factor_uscale = polar_uscale;
+        } else {
+          factor_pscale = special_polar_pscale[sbmask15(jextra)];
+          factor_dscale = factor_uscale = 1.0;
+        }
+
       } else if (hippo) {
-	factor_wscale = special_polar_wscale[sbmask15(jextra)];
-	if (igroup == jgroup) {
-	  factor_dscale = factor_pscale = special_polar_piscale[sbmask15(jextra)];
-	  factor_uscale = polar_uscale;
-	} else {
-	  factor_dscale = factor_pscale = special_polar_pscale[sbmask15(jextra)];
-	  factor_uscale = 1.0;
-	}
+        factor_wscale = special_polar_wscale[sbmask15(jextra)];
+        if (igroup == jgroup) {
+          factor_dscale = factor_pscale = special_polar_piscale[sbmask15(jextra)];
+          factor_uscale = polar_uscale;
+        } else {
+          factor_dscale = factor_pscale = special_polar_pscale[sbmask15(jextra)];
+          factor_uscale = 1.0;
+        }
       }
       //if (i == 12 && j < 20) printf("j = %d: r = %f; factor_wscale = %f\n", j, sqrt(r2), factor_wscale);
       r = sqrt(r2);
@@ -572,7 +570,7 @@ void PairAmoeba::polar_real()
       ufld[j][2] += tkz3 + zr*tukr;
 
       // get induced dipole field gradient used for quadrupole torques
-      
+
       if (amoeba) {
         tix5 = 2.0 * (psr5*ukx+dsr5*ukxp);
         tiy5 = 2.0 * (psr5*uky+dsr5*ukyp);
@@ -607,7 +605,7 @@ void PairAmoeba::polar_real()
       dufld[j][5] -= zr*tkz5 + zr*zr*tukr;
 
       // get the dEd/dR terms used for direct polarization force
-      
+
       if (amoeba) {
         term1 = bn[2] - dsc3*rr5;
         term2 = bn[3] - dsc5*rr7;
@@ -617,52 +615,52 @@ void PairAmoeba::polar_real()
         term6 = (bn[4]-dsc7*rr9)*xr*xr - bn[3] - rr7*xr*drc7[0];
         term7 = rr5*drc5[0] - 2.0*bn[3]*xr + (dsc5+1.5*dsc7)*rr7*xr;
         tixx = ci*term3 + dix*term4 + dir*term5 +
-	  2.0*dsr5*qixx + (qiy*yr+qiz*zr)*dsc7*rr7 + 2.0*qix*term7 + qir*term6;
+          2.0*dsr5*qixx + (qiy*yr+qiz*zr)*dsc7*rr7 + 2.0*qix*term7 + qir*term6;
         tkxx = ck*term3 - dkx*term4 - dkr*term5 +
-	  2.0*dsr5*qkxx + (qky*yr+qkz*zr)*dsc7*rr7 + 2.0*qkx*term7 + qkr*term6;
+          2.0*dsr5*qkxx + (qky*yr+qkz*zr)*dsc7*rr7 + 2.0*qkx*term7 + qkr*term6;
         term3 = -dsr3 + term1*yr*yr - rr3*yr*drc3[1];
         term4 = rr3*drc3[1] - term1*yr - dsr5*yr;
         term5 = term2*yr*yr - dsr5 - rr5*yr*drc5[1];
         term6 = (bn[4]-dsc7*rr9)*yr*yr - bn[3] - rr7*yr*drc7[1];
         term7 = rr5*drc5[1] - 2.0*bn[3]*yr + (dsc5+1.5*dsc7)*rr7*yr;
         tiyy = ci*term3 + diy*term4 + dir*term5 +
-	  2.0*dsr5*qiyy + (qix*xr+qiz*zr)*dsc7*rr7 + 2.0*qiy*term7 + qir*term6;
+          2.0*dsr5*qiyy + (qix*xr+qiz*zr)*dsc7*rr7 + 2.0*qiy*term7 + qir*term6;
         tkyy = ck*term3 - dky*term4 - dkr*term5 +
-	  2.0*dsr5*qkyy + (qkx*xr+qkz*zr)*dsc7*rr7 + 2.0*qky*term7 + qkr*term6;
+          2.0*dsr5*qkyy + (qkx*xr+qkz*zr)*dsc7*rr7 + 2.0*qky*term7 + qkr*term6;
         term3 = -dsr3 + term1*zr*zr - rr3*zr*drc3[2];
         term4 = rr3*drc3[2] - term1*zr - dsr5*zr;
         term5 = term2*zr*zr - dsr5 - rr5*zr*drc5[2];
         term6 = (bn[4]-dsc7*rr9)*zr*zr - bn[3] - rr7*zr*drc7[2];
         term7 = rr5*drc5[2] - 2.0*bn[3]*zr + (dsc5+1.5*dsc7)*rr7*zr;
         tizz = ci*term3 + diz*term4 + dir*term5 +
-	  2.0*dsr5*qizz + (qix*xr+qiy*yr)*dsc7*rr7 + 2.0*qiz*term7 + qir*term6;
+          2.0*dsr5*qizz + (qix*xr+qiy*yr)*dsc7*rr7 + 2.0*qiz*term7 + qir*term6;
         tkzz = ck*term3 - dkz*term4 - dkr*term5 +
-	  2.0*dsr5*qkzz + (qkx*xr+qky*yr)*dsc7*rr7 + 2.0*qkz*term7 + qkr*term6;
+          2.0*dsr5*qkzz + (qkx*xr+qky*yr)*dsc7*rr7 + 2.0*qkz*term7 + qkr*term6;
         term3 = term1*xr*yr - rr3*yr*drc3[0];
         term4 = rr3*drc3[0] - term1*xr;
         term5 = term2*xr*yr - rr5*yr*drc5[0];
         term6 = (bn[4]-dsc7*rr9)*xr*yr - rr7*yr*drc7[0];
         term7 = rr5*drc5[0] - term2*xr;
         tixy = ci*term3 - dsr5*dix*yr + diy*term4 + dir*term5 +
-	  2.0*dsr5*qixy - 2.0*dsr7*yr*qix + 2.0*qiy*term7 + qir*term6;
+          2.0*dsr5*qixy - 2.0*dsr7*yr*qix + 2.0*qiy*term7 + qir*term6;
         tkxy = ck*term3 + dsr5*dkx*yr - dky*term4 - dkr*term5 +
-	  2.0*dsr5*qkxy - 2.0*dsr7*yr*qkx + 2.0*qky*term7 + qkr*term6;
+          2.0*dsr5*qkxy - 2.0*dsr7*yr*qkx + 2.0*qky*term7 + qkr*term6;
         term3 = term1*xr*zr - rr3*zr*drc3[0];
         term5 = term2*xr*zr - rr5*zr*drc5[0];
         term6 = (bn[4]-dsc7*rr9)*xr*zr - rr7*zr*drc7[0];
         tixz = ci*term3 - dsr5*dix*zr + diz*term4 + dir*term5 +
-	  2.0*dsr5*qixz - 2.0*dsr7*zr*qix + 2.0*qiz*term7 + qir*term6;
+          2.0*dsr5*qixz - 2.0*dsr7*zr*qix + 2.0*qiz*term7 + qir*term6;
         tkxz = ck*term3 + dsr5*dkx*zr - dkz*term4 - dkr*term5 +
-	  2.0*dsr5*qkxz - 2.0*dsr7*zr*qkx + 2.0*qkz*term7 + qkr*term6;
+          2.0*dsr5*qkxz - 2.0*dsr7*zr*qkx + 2.0*qkz*term7 + qkr*term6;
         term3 = term1*yr*zr - rr3*zr*drc3[1];
         term4 = rr3*drc3[1] - term1*yr;
         term5 = term2*yr*zr - rr5*zr*drc5[1];
         term6 = (bn[4]-dsc7*rr9)*yr*zr - rr7*zr*drc7[1];
         term7 = rr5*drc5[1] - term2*yr;
         tiyz = ci*term3 - dsr5*diy*zr + diz*term4 + dir*term5 +
-	  2.0*dsr5*qiyz - 2.0*dsr7*zr*qiy + 2.0*qiz*term7 + qir*term6;
+          2.0*dsr5*qiyz - 2.0*dsr7*zr*qiy + 2.0*qiz*term7 + qir*term6;
         tkyz = ck*term3 + dsr5*dky*zr - dkz*term4 - dkr*term5 +
-	  2.0*dsr5*qkyz - 2.0*dsr7*zr*qky + 2.0*qkz*term7 + qkr*term6;
+          2.0*dsr5*qkyz - 2.0*dsr7*zr*qky + 2.0*qkz*term7 + qkr*term6;
         depx = tixx*ukxp + tixy*ukyp + tixz*ukzp - tkxx*uixp - tkxy*uiyp - tkxz*uizp;
         depy = tixy*ukxp + tiyy*ukyp + tiyz*ukzp - tkxy*uixp - tkyy*uiyp - tkyz*uizp;
         depz = tixz*ukxp + tiyz*ukyp + tizz*ukzp - tkxz*uixp - tkyz*uiyp - tkzz*uizp;
@@ -671,7 +669,7 @@ void PairAmoeba::polar_real()
         frcz = depz;
 
         // get the dEp/dR terms used for direct polarization force
-        
+
         term1 = bn[2] - psc3*rr5;
         term2 = bn[3] - psc5*rr7;
         term3 = -psr3 + term1*xr*xr - rr3*xr*prc3[0];
@@ -680,52 +678,52 @@ void PairAmoeba::polar_real()
         term6 = (bn[4]-psc7*rr9)*xr*xr - bn[3] - rr7*xr*prc7[0];
         term7 = rr5*prc5[0] - 2.0*bn[3]*xr + (psc5+1.5*psc7)*rr7*xr;
         tixx = ci*term3 + dix*term4 + dir*term5 +
-	  2.0*psr5*qixx + (qiy*yr+qiz*zr)*psc7*rr7 + 2.0*qix*term7 + qir*term6;
+          2.0*psr5*qixx + (qiy*yr+qiz*zr)*psc7*rr7 + 2.0*qix*term7 + qir*term6;
         tkxx = ck*term3 - dkx*term4 - dkr*term5 +
-	  2.0*psr5*qkxx + (qky*yr+qkz*zr)*psc7*rr7 + 2.0*qkx*term7 + qkr*term6;
+          2.0*psr5*qkxx + (qky*yr+qkz*zr)*psc7*rr7 + 2.0*qkx*term7 + qkr*term6;
         term3 = -psr3 + term1*yr*yr - rr3*yr*prc3[1];
         term4 = rr3*prc3[1] - term1*yr - psr5*yr;
         term5 = term2*yr*yr - psr5 - rr5*yr*prc5[1];
         term6 = (bn[4]-psc7*rr9)*yr*yr - bn[3] - rr7*yr*prc7[1];
         term7 = rr5*prc5[1] - 2.0*bn[3]*yr + (psc5+1.5*psc7)*rr7*yr;
         tiyy = ci*term3 + diy*term4 + dir*term5 +
-	  2.0*psr5*qiyy + (qix*xr+qiz*zr)*psc7*rr7 + 2.0*qiy*term7 + qir*term6;
+          2.0*psr5*qiyy + (qix*xr+qiz*zr)*psc7*rr7 + 2.0*qiy*term7 + qir*term6;
         tkyy = ck*term3 - dky*term4 - dkr*term5 +
-	  2.0*psr5*qkyy + (qkx*xr+qkz*zr)*psc7*rr7 + 2.0*qky*term7 + qkr*term6;
+          2.0*psr5*qkyy + (qkx*xr+qkz*zr)*psc7*rr7 + 2.0*qky*term7 + qkr*term6;
         term3 = -psr3 + term1*zr*zr - rr3*zr*prc3[2];
         term4 = rr3*prc3[2] - term1*zr - psr5*zr;
         term5 = term2*zr*zr - psr5 - rr5*zr*prc5[2];
         term6 = (bn[4]-psc7*rr9)*zr*zr - bn[3] - rr7*zr*prc7[2];
         term7 = rr5*prc5[2] - 2.0*bn[3]*zr + (psc5+1.5*psc7)*rr7*zr;
         tizz = ci*term3 + diz*term4 + dir*term5 +
-	  2.0*psr5*qizz + (qix*xr+qiy*yr)*psc7*rr7 + 2.0*qiz*term7 + qir*term6;
+          2.0*psr5*qizz + (qix*xr+qiy*yr)*psc7*rr7 + 2.0*qiz*term7 + qir*term6;
         tkzz = ck*term3 - dkz*term4 - dkr*term5 +
-	  2.0*psr5*qkzz + (qkx*xr+qky*yr)*psc7*rr7 + 2.0*qkz*term7 + qkr*term6;
+          2.0*psr5*qkzz + (qkx*xr+qky*yr)*psc7*rr7 + 2.0*qkz*term7 + qkr*term6;
         term3 = term1*xr*yr - rr3*yr*prc3[0];
         term4 = rr3*prc3[0] - term1*xr;
         term5 = term2*xr*yr - rr5*yr*prc5[0];
         term6 = (bn[4]-psc7*rr9)*xr*yr - rr7*yr*prc7[0];
         term7 = rr5*prc5[0] - term2*xr;
         tixy = ci*term3 - psr5*dix*yr + diy*term4 + dir*term5 +
-	  2.0*psr5*qixy - 2.0*psr7*yr*qix + 2.0*qiy*term7 + qir*term6;
+          2.0*psr5*qixy - 2.0*psr7*yr*qix + 2.0*qiy*term7 + qir*term6;
         tkxy = ck*term3 + psr5*dkx*yr - dky*term4 - dkr*term5 +
-	  2.0*psr5*qkxy - 2.0*psr7*yr*qkx + 2.0*qky*term7 + qkr*term6;
+          2.0*psr5*qkxy - 2.0*psr7*yr*qkx + 2.0*qky*term7 + qkr*term6;
         term3 = term1*xr*zr - rr3*zr*prc3[0];
         term5 = term2*xr*zr - rr5*zr*prc5[0];
         term6 = (bn[4]-psc7*rr9)*xr*zr - rr7*zr*prc7[0];
         tixz = ci*term3 - psr5*dix*zr + diz*term4 + dir*term5 +
-	  2.0*psr5*qixz - 2.0*psr7*zr*qix + 2.0*qiz*term7 + qir*term6;
+          2.0*psr5*qixz - 2.0*psr7*zr*qix + 2.0*qiz*term7 + qir*term6;
         tkxz = ck*term3 + psr5*dkx*zr - dkz*term4 - dkr*term5 +
-	  2.0*psr5*qkxz - 2.0*psr7*zr*qkx + 2.0*qkz*term7 + qkr*term6;
+          2.0*psr5*qkxz - 2.0*psr7*zr*qkx + 2.0*qkz*term7 + qkr*term6;
         term3 = term1*yr*zr - rr3*zr*prc3[1];
         term4 = rr3*prc3[1] - term1*yr;
         term5 = term2*yr*zr - rr5*zr*prc5[1];
         term6 = (bn[4]-psc7*rr9)*yr*zr - rr7*zr*prc7[1];
         term7 = rr5*prc5[1] - term2*yr;
         tiyz = ci*term3 - psr5*diy*zr + diz*term4 + dir*term5 +
-	  2.0*psr5*qiyz - 2.0*psr7*zr*qiy + 2.0*qiz*term7 + qir*term6;
+          2.0*psr5*qiyz - 2.0*psr7*zr*qiy + 2.0*qiz*term7 + qir*term6;
         tkyz = ck*term3 + psr5*dky*zr - dkz*term4 - dkr*term5 +
-	  2.0*psr5*qkyz - 2.0*psr7*zr*qky + 2.0*qkz*term7 + qkr*term6;
+          2.0*psr5*qkyz - 2.0*psr7*zr*qky + 2.0*qkz*term7 + qkr*term6;
         depx = tixx*ukx + tixy*uky + tixz*ukz - tkxx*uix - tkxy*uiy - tkxz*uiz;
         depy = tixy*ukx + tiyy*uky + tiyz*ukz - tkxy*uix - tkyy*uiy - tkyz*uiz;
         depz = tixz*ukx + tiyz*uky + tizz*ukz - tkxz*uix - tkyz*uiy - tkzz*uiz;
@@ -734,7 +732,7 @@ void PairAmoeba::polar_real()
         frcz = frcz + depz;
 
       // get the field gradient for direct polarization force
-        
+
       } else if (hippo) {
         term1i = rr3i - rr5i*xr*xr;
         term1core = rr3core - rr5core*xr*xr;
@@ -750,9 +748,9 @@ void PairAmoeba::polar_real()
         term5k = 5.0*rr7k*xr;
         term6k = rr9k*xr*xr;
         tixx = vali*term1i + corei*term1core + dix*term2i - dir*term3i -
-	  qixx*term4i + qix*term5i - qir*term6i + (qiy*yr+qiz*zr)*rr7i;
+          qixx*term4i + qix*term5i - qir*term6i + (qiy*yr+qiz*zr)*rr7i;
         tkxx = valk*term1k + corek*term1core - dkx*term2k + dkr*term3k -
-	  qkxx*term4k + qkx*term5k - qkr*term6k + (qky*yr+qkz*zr)*rr7k;
+          qkxx*term4k + qkx*term5k - qkr*term6k + (qky*yr+qkz*zr)*rr7k;
         term1i = rr3i - rr5i*yr*yr;
         term1core = rr3core - rr5core*yr*yr;
         term2i = 2.0*rr5i*yr;
@@ -767,9 +765,9 @@ void PairAmoeba::polar_real()
         term5k = 5.0*rr7k*yr;
         term6k = rr9k*yr*yr;
         tiyy = vali*term1i + corei*term1core + diy*term2i - dir*term3i -
-	  qiyy*term4i + qiy*term5i - qir*term6i + (qix*xr+qiz*zr)*rr7i;
+          qiyy*term4i + qiy*term5i - qir*term6i + (qix*xr+qiz*zr)*rr7i;
         tkyy = valk*term1k + corek*term1core - dky*term2k + dkr*term3k -
-	  qkyy*term4k + qky*term5k - qkr*term6k + (qkx*xr+qkz*zr)*rr7k;
+          qkyy*term4k + qky*term5k - qkr*term6k + (qkx*xr+qkz*zr)*rr7k;
         term1i = rr3i - rr5i*zr*zr;
         term1core = rr3core - rr5core*zr*zr;
         term2i = 2.0*rr5i*zr;
@@ -784,9 +782,9 @@ void PairAmoeba::polar_real()
         term5k = 5.0*rr7k*zr;
         term6k = rr9k*zr*zr;
         tizz = vali*term1i + corei*term1core + diz*term2i - dir*term3i -
-	  qizz*term4i + qiz*term5i - qir*term6i + (qix*xr+qiy*yr)*rr7i;
+          qizz*term4i + qiz*term5i - qir*term6i + (qix*xr+qiy*yr)*rr7i;
         tkzz = valk*term1k + corek*term1core - dkz*term2k + dkr*term3k -
-	  qkzz*term4k + qkz*term5k - qkr*term6k + (qkx*xr+qky*yr)*rr7k;
+          qkzz*term4k + qkz*term5k - qkr*term6k + (qkx*xr+qky*yr)*rr7k;
         term2i = rr5i*xr ;
         term1i = yr * term2i;
         term1core = rr5core*xr*yr;
@@ -805,9 +803,9 @@ void PairAmoeba::polar_real()
         term7k = 2.0*rr7k*yr;
         term8k = yr*rr9k*xr;
         tixy = -vali*term1i - corei*term1core + diy*term2i + dix*term3i -
-	  dir*term4i - qixy*term5i + qiy*term6i + qix*term7i - qir*term8i;
+          dir*term4i - qixy*term5i + qiy*term6i + qix*term7i - qir*term8i;
         tkxy = -valk*term1k - corek*term1core - dky*term2k - dkx*term3k +
-	  dkr*term4k - qkxy*term5k + qky*term6k + qkx*term7k - qkr*term8k;
+          dkr*term4k - qkxy*term5k + qky*term6k + qkx*term7k - qkr*term8k;
         term2i = rr5i*xr;
         term1i = zr * term2i;
         term1core = rr5core*xr*zr;
@@ -826,9 +824,9 @@ void PairAmoeba::polar_real()
         term7k = 2.0*rr7k*zr;
         term8k = zr*rr9k*xr;
         tixz = -vali*term1i - corei*term1core + diz*term2i + dix*term3i -
-	  dir*term4i - qixz*term5i + qiz*term6i + qix*term7i - qir*term8i;
+          dir*term4i - qixz*term5i + qiz*term6i + qix*term7i - qir*term8i;
         tkxz = -valk*term1k - corek*term1core - dkz*term2k - dkx*term3k +
-	  dkr*term4k - qkxz*term5k + qkz*term6k + qkx*term7k - qkr*term8k;
+          dkr*term4k - qkxz*term5k + qkz*term6k + qkx*term7k - qkr*term8k;
         term2i = rr5i*yr;
         term1i = zr * term2i;
         term1core = rr5core*yr*zr;
@@ -847,9 +845,9 @@ void PairAmoeba::polar_real()
         term7k = 2.0*rr7k*zr;
         term8k = zr*rr9k*yr;
         tiyz = -vali*term1i - corei*term1core + diz*term2i + diy*term3i -
-	  dir*term4i - qiyz*term5i + qiz*term6i + qiy*term7i - qir*term8i;
+          dir*term4i - qiyz*term5i + qiz*term6i + qiy*term7i - qir*term8i;
         tkyz = -valk*term1k - corek*term1core - dkz*term2k - dky*term3k +
-	  dkr*term4k - qkyz*term5k + qkz*term6k + qky*term7k - qkr*term8k;
+          dkr*term4k - qkyz*term5k + qkz*term6k + qky*term7k - qkr*term8k;
         depx = tixx*ukx + tixy*uky + tixz*ukz - tkxx*uix - tkxy*uiy - tkxz*uiz;
         depy = tixy*ukx + tiyy*uky + tiyz*ukz - tkxy*uix - tkyy*uiy - tkyz*uiz;
         depz = tixz*ukx + tiyz*uky + tizz*ukz - tkxz*uix - tkyz*uiy - tkzz*uiz;
@@ -860,7 +858,7 @@ void PairAmoeba::polar_real()
       }
 
       // get the dtau/dr terms used for mutual polarization force
-      
+
       if (poltyp == MUTUAL && amoeba) {
         term1 = bn[2] - usc3*rr5;
         term2 = bn[3] - usc5*rr7;
@@ -900,9 +898,9 @@ void PairAmoeba::polar_real()
         frcx = frcx + depx;
         frcy = frcy + depy;
         frcz = frcz + depz;
-        
+
       // get the dtau/dr terms used for mutual polarization force
-        
+
       } else if (poltyp == MUTUAL && hippo) {
         term1 = 2.0 * rr5ik;
         term2 = term1*xr;
@@ -938,7 +936,7 @@ void PairAmoeba::polar_real()
         frcz = frcz - depz;
 
       // get the dtau/dr terms used for OPT polarization force
-        
+
       } else if (poltyp == OPT && amoeba) {
         for (k = 0; k < optorder; k++) {
           uirm = uopt[i][k][0]*xr + uopt[i][k][1]*yr + uopt[i][k][2]*zr;
@@ -974,19 +972,19 @@ void PairAmoeba::polar_real()
             tiyz = uopt[i][k][1]*term4 + uopt[i][k][2]*term5 + uirm*term6;
             tkyz = uopt[j][m][1]*term4 + uopt[j][m][2]*term5 + ukrm*term6;
             depx = tixx*uoptp[j][m][0] + tkxx*uoptp[i][k][0] + tixy*uoptp[j][m][1] +
-	      tkxy*uoptp[i][k][1] + tixz*uoptp[j][m][2] + tkxz*uoptp[i][k][2];
+              tkxy*uoptp[i][k][1] + tixz*uoptp[j][m][2] + tkxz*uoptp[i][k][2];
             depy = tixy*uoptp[j][m][0] + tkxy*uoptp[i][k][0] + tiyy*uoptp[j][m][1] +
-	      tkyy*uoptp[i][k][1] + tiyz*uoptp[j][m][2] + tkyz*uoptp[i][k][2];
+              tkyy*uoptp[i][k][1] + tiyz*uoptp[j][m][2] + tkyz*uoptp[i][k][2];
             depz = tixz*uoptp[j][m][0] + tkxz*uoptp[i][k][0] + tiyz*uoptp[j][m][1] +
-	      tkyz*uoptp[i][k][1] + tizz*uoptp[j][m][2] + tkzz*uoptp[i][k][2];
+              tkyz*uoptp[i][k][1] + tizz*uoptp[j][m][2] + tkzz*uoptp[i][k][2];
             frcx += copm[k+m+1]*depx;
             frcy += copm[k+m+1]*depy;
             frcz += copm[k+m+1]*depz;
           }
         }
-        
+
       // get the dtau/dr terms used for OPT polarization force
-        
+
       } else if (poltyp == OPT && hippo) {
         for (k = 0; k < optorder; k++) {
           uirm = uopt[i][k][0]*xr + uopt[i][k][1]*yr + uopt[i][k][2]*zr;
@@ -1019,19 +1017,19 @@ void PairAmoeba::polar_real()
             tiyz = uopt[i][k][1]*term1 + uopt[i][k][2]*term2 - uirm*term3;
             tkyz = uopt[j][m][1]*term1 + uopt[j][m][2]*term2 - ukrm*term3;
             depx = tixx*uoptp[j][m][0] + tkxx*uoptp[i][k][0] + tixy*uoptp[j][m][1] +
-	      tkxy*uoptp[i][k][1] + tixz*uoptp[j][m][2] + tkxz*uoptp[i][k][2];
+              tkxy*uoptp[i][k][1] + tixz*uoptp[j][m][2] + tkxz*uoptp[i][k][2];
             depy = tixy*uoptp[j][m][0] + tkxy*uoptp[i][k][0] + tiyy*uoptp[j][m][1] +
-	      tkyy*uoptp[i][k][1] + tiyz*uoptp[j][m][2] + tkyz*uoptp[i][k][2];
+              tkyy*uoptp[i][k][1] + tiyz*uoptp[j][m][2] + tkyz*uoptp[i][k][2];
             depz = tixz*uoptp[j][m][0] + tkxz*uoptp[i][k][0] + tiyz*uoptp[j][m][1] +
-	      tkyz*uoptp[i][k][1] + tizz*uoptp[j][m][2] + tkzz*uoptp[i][k][2];
+              tkyz*uoptp[i][k][1] + tizz*uoptp[j][m][2] + tkzz*uoptp[i][k][2];
             frcx -= copm[k+m+1]*depx;
             frcy -= copm[k+m+1]*depy;
             frcz -= copm[k+m+1]*depz;
           }
         }
-        
+
       // get the dtau/dr terms used for TCG polarization force
-        
+
       } else if (poltyp == TCG) {
         /*
         for (m = 0; m < tcgnab; m++) {
@@ -1137,18 +1135,18 @@ void PairAmoeba::polar_real()
         }
         */
       }
-      
+
       // increment force-based gradient on the interaction sites
-      
-      f[i][0] -= frcx;
-      f[i][1] -= frcy;
-      f[i][2] -= frcz;
-      f[j][0] += frcx;
-      f[j][1] += frcy;
-      f[j][2] += frcz;
+
+      f[i][0] += frcx;
+      f[i][1] += frcy;
+      f[i][2] += frcz;
+      f[j][0] -= frcx;
+      f[j][1] -= frcy;
+      f[j][2] -= frcz;
 
       // increment the virial due to pairwise Cartesian forces
-      
+
       vxx = xr * frcx;
       vxy = 0.5 * (yr*frcx+xr*frcy);
       vxz = 0.5 * (zr*frcx+xr*frcz);
@@ -1166,7 +1164,7 @@ void PairAmoeba::polar_real()
       // energy = e
       // virial = 6-vec vir
       // NOTE: add tally function
-      
+
       if (evflag) {
       }
     }
@@ -1175,7 +1173,7 @@ void PairAmoeba::polar_real()
   // reverse comm to sum ufld,dufld from ghost atoms to owned atoms
 
   crstyle = UFLD;
-  comm->reverse_comm_pair(this);
+  comm->reverse_comm(this);
 
   // torque is induced field and gradient cross permanent moments
 
@@ -1189,18 +1187,18 @@ void PairAmoeba::polar_real()
     qiyy = rpole[i][8];
     qiyz = rpole[i][9];
     qizz = rpole[i][12];
-    tep[0] = diz*ufld[i][1] - diy*ufld[i][2] + 
+    tep[0] = diz*ufld[i][1] - diy*ufld[i][2] +
       qixz*dufld[i][1] - qixy*dufld[i][3] +
       2.0*qiyz*(dufld[i][2]-dufld[i][5]) + (qizz-qiyy)*dufld[i][4];
-    tep[1] = dix*ufld[i][2] - diz*ufld[i][0] - 
-      qiyz*dufld[i][1] + qixy*dufld[i][4] + 
+    tep[1] = dix*ufld[i][2] - diz*ufld[i][0] -
+      qiyz*dufld[i][1] + qixy*dufld[i][4] +
       2.0*qixz*(dufld[i][5]-dufld[i][0]) + (qixx-qizz)*dufld[i][3];
-    tep[2] = diy*ufld[i][0] - dix*ufld[i][1] + 
-      qiyz*dufld[i][3] - qixz*dufld[i][4] + 
+    tep[2] = diy*ufld[i][0] - dix*ufld[i][1] +
+      qiyz*dufld[i][3] - qixz*dufld[i][4] +
       2.0*qixy*(dufld[i][0]-dufld[i][2]) + (qiyy-qixx)*dufld[i][1];
 
     torque2force(i,tep,fix,fiy,fiz,f);
-    
+
     iz = zaxis2local[i];
     ix = xaxis2local[i];
     iy = yaxis2local[i];
@@ -1218,11 +1216,11 @@ void PairAmoeba::polar_real()
     vxx = xix*fix[0] + xiy*fiy[0] + xiz*fiz[0];
     vyy = yix*fix[1] + yiy*fiy[1] + yiz*fiz[1];
     vzz = zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
-    vxy = 0.5 * (yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] + 
+    vxy = 0.5 * (yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] +
                  xix*fix[1] + xiy*fiy[1] + xiz*fiz[1]);
-    vxz = 0.5 * (zix*fix[0] + ziy*fiy[0] + ziz*fiz[0] + 
+    vxz = 0.5 * (zix*fix[0] + ziy*fiy[0] + ziz*fiz[0] +
                  xix*fix[2] + xiy*fiy[2] + xiz*fiz[2]);
-    vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] + 
+    vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
     //if (i < 10) printf("fix = %f %f %f; v %f %f %f %f %f %f\n", fix[0], fix[1], fix[2], vxx, vyy, vzz, vxy, vxz,vyz);
     virpolar[0] += vxx;
@@ -1267,7 +1265,7 @@ void PairAmoeba::polar_kspace()
 
   double **fuind,**fuinp,**fphid,**fphip;
   double **fphidp,**cphidp;
-  
+
   // indices into the electrostatic field array
   // decremented by 1 versus Fortran
 
@@ -1288,7 +1286,7 @@ void PairAmoeba::polar_kspace()
   double volbox = domain->prd[0] * domain->prd[1] * domain->prd[2];
   pterm = pow((MY_PI/aewald),2.0);
   volterm = MY_PI * volbox;
-  
+
   // initialize variables required for the scalar summation
 
   felec = electric / am_dielectric;
@@ -1296,7 +1294,7 @@ void PairAmoeba::polar_kspace()
   // dynamic allocation of local arrays
   // NOTE: just do this one time?
   // NOTE: overlap with induce
-  
+
   memory->create(fuind,nlocal,3,"polar:fuind");
   memory->create(fuinp,nlocal,3,"polar:fuinp");
   memory->create(fphid,nlocal,10,"polar:fphid");
@@ -1325,10 +1323,10 @@ void PairAmoeba::polar_kspace()
   nzhi = p_kspace->nzhi_fft;
 
   // use previous results or compute new qfac and convolution
-  
+
   if (aewald == aeewald) {
     vxx = -vmsave[0];
-    vyy = -vmsave[1]; 
+    vyy = -vmsave[1];
     vzz = -vmsave[2];
     vxy = -vmsave[3];
     vxz = -vmsave[4];
@@ -1350,20 +1348,20 @@ void PairAmoeba::polar_kspace()
     double ***gridpre = (double ***) p_kspace->zero();
 
     // map atoms to grid
-    
+
     grid_mpole(fmp,gridpre);
 
     // pre-convolution operations including forward FFT
     // gridfft = my portion of complex 3d grid in FFT decomp as 1d vector
-  
+
     double *gridfft = p_kspace->pre_convolution();
- 
+
     // ---------------------
-    // convolution operation 
+    // convolution operation
     // ---------------------
-    
+
     // zero virial accumulation variables
-    
+
     vxx = vyy = vzz = vxy = vxz = vyz = 0.0;
 
     // perform convolution on K-space points I own
@@ -1371,50 +1369,50 @@ void PairAmoeba::polar_kspace()
     m = n = 0;
     for (k = nzlo; k <= nzhi; k++) {
       for (j = nylo; j <= nyhi; j++) {
-	for (i = nxlo; i <= nxhi; i++) {
-	  r1 = (i >= nhalf1) ? i-nfft1 : i;
-	  r2 = (j >= nhalf2) ? j-nfft2 : j;
-	  r3 = (k >= nhalf3) ? k-nfft3 : k;
-	  h1 = recip[0][0]*r1 + recip[0][1]*r2 + recip[0][2]*r3;  // matvec
-	  h2 = recip[1][0]*r1 + recip[1][1]*r2 + recip[1][2]*r3;
-	  h3 = recip[2][0]*r1 + recip[2][1]*r2 + recip[2][2]*r3;
-	  hsq = h1*h1 + h2*h2 + h3*h3;
-	  term = -pterm * hsq;
-	  expterm = 0.0;
-	  if (term > -50.0 && hsq != 0.0) {
+        for (i = nxlo; i <= nxhi; i++) {
+          r1 = (i >= nhalf1) ? i-nfft1 : i;
+          r2 = (j >= nhalf2) ? j-nfft2 : j;
+          r3 = (k >= nhalf3) ? k-nfft3 : k;
+          h1 = recip[0][0]*r1 + recip[0][1]*r2 + recip[0][2]*r3;  // matvec
+          h2 = recip[1][0]*r1 + recip[1][1]*r2 + recip[1][2]*r3;
+          h3 = recip[2][0]*r1 + recip[2][1]*r2 + recip[2][2]*r3;
+          hsq = h1*h1 + h2*h2 + h3*h3;
+          term = -pterm * hsq;
+          expterm = 0.0;
+          if (term > -50.0 && hsq != 0.0) {
             denom = volterm*hsq*bsmod1[i]*bsmod2[j]*bsmod3[k];
-	    if (hsq) expterm = exp(term) / denom;
-	    struc2 = gridfft[n]*gridfft[n] + gridfft[n+1]*gridfft[n+1];
-	    eterm = 0.5 * felec * expterm * struc2;
-	    vterm = (2.0/hsq) * (1.0-term) * eterm;
+            if (hsq) expterm = exp(term) / denom;
+            struc2 = gridfft[n]*gridfft[n] + gridfft[n+1]*gridfft[n+1];
+            eterm = 0.5 * felec * expterm * struc2;
+            vterm = (2.0/hsq) * (1.0-term) * eterm;
             vxx -= h1*h1*vterm - eterm;
-	    vyy -= h2*h2*vterm - eterm;
-	    vzz -= h3*h3*vterm - eterm;
-	    vxy -= h1*h2*vterm;
-	    vxz -= h1*h3*vterm;
-	    vyz -= h2*h3*vterm;
-	  }
-    
+            vyy -= h2*h2*vterm - eterm;
+            vzz -= h3*h3*vterm - eterm;
+            vxy -= h1*h2*vterm;
+            vxz -= h1*h3*vterm;
+            vyz -= h2*h3*vterm;
+          }
+
           expterm = qfac[m++];
-	  gridfft[n] *= expterm;
-	  gridfft[n+1] *= expterm;
-	  n += 2;
-	}
+          gridfft[n] *= expterm;
+          gridfft[n+1] *= expterm;
+          n += 2;
+        }
       }
     }
 
     // post-convolution operations including backward FFT
     // gridppost = my portion of 3d grid in brick decomp w/ ghost values
-    
+
     double ***gridpost = (double ***) p_kspace->post_convolution();
-  
+
     // get potential
-  
+
     fphi_mpole(gridpost,fphi);
 
     for (i = 0; i < nlocal; i++) {
       for (k = 0; k < 20; k++)
-	fphi[i][k] *= felec;
+        fphi[i][k] *= felec;
     }
 
     // convert field from fractional to Cartesian
@@ -1423,7 +1421,7 @@ void PairAmoeba::polar_kspace()
   }
 
   // convert Cartesian induced dipoles to fractional coordinates
-  
+
   for (i = 0; i < 3; i++) {
     a[0][i] = nfft1 * recip[0][i];
     a[1][i] = nfft2 * recip[1][i];
@@ -1449,15 +1447,15 @@ void PairAmoeba::polar_kspace()
 
   // pre-convolution operations including forward FFT
   // gridfft = my portion of complex 3d grid in FFT decomposition
-  
+
   double *gridfft = pc_kspace->pre_convolution();
 
   // ---------------------
-  // convolution operation 
+  // convolution operation
   // ---------------------
 
   // use qfac values from above or from induce()
-  
+
   m = n = 0;
   for (k = nzlo; k <= nzhi; k++) {
     for (j = nylo; j <= nyhi; j++) {
@@ -1465,7 +1463,7 @@ void PairAmoeba::polar_kspace()
         term = qfac[m++];
         gridfft[n] *= term;
         gridfft[n+1] *= term;
-	n += 2;
+        n += 2;
       }
     }
   }
@@ -1518,9 +1516,9 @@ void PairAmoeba::polar_kspace()
     h1 = recip[0][0]*f1 + recip[0][1]*f2 + recip[0][2]*f3;
     h2 = recip[1][0]*f1 + recip[1][1]*f2 + recip[1][2]*f3;
     h3 = recip[2][0]*f1 + recip[2][1]*f2 + recip[2][2]*f3;
-    f[i][0] += h1;
-    f[i][1] += h2;
-    f[i][2] += h3;
+    f[i][0] -= h1;
+    f[i][1] -= h2;
+    f[i][2] -= h3;
   }
 
   // set the potential to be the induced dipole average
@@ -1548,27 +1546,27 @@ void PairAmoeba::polar_kspace()
       }
     }
 
-    vxx -= cmp[i][1]*cphidp[i][1] + 
+    vxx -= cmp[i][1]*cphidp[i][1] +
       0.5*((uind[i][0]+uinp[i][0])*cphi[i][1]);
-    vyy -= cmp[i][2]*cphidp[i][2] + 
+    vyy -= cmp[i][2]*cphidp[i][2] +
       0.5*((uind[i][1]+uinp[i][1])*cphi[i][2]);
-    vzz -= cmp[i][3]*cphidp[i][3] + 
+    vzz -= cmp[i][3]*cphidp[i][3] +
       0.5*((uind[i][2]+uinp[i][2])*cphi[i][3]);
-    vxy -= 0.5*(cphidp[i][1]*cmp[i][2]+cphidp[i][2]*cmp[i][1]) + 
+    vxy -= 0.5*(cphidp[i][1]*cmp[i][2]+cphidp[i][2]*cmp[i][1]) +
       0.25*((uind[i][1]+uinp[i][1])*cphi[i][1] +
             (uind[i][0]+uinp[i][0])*cphi[i][2]);
     vyz -= 0.5*(cphidp[i][2]*cmp[i][3]+cphidp[i][3]*cmp[i][2]) +
       0.25*((uind[i][2]+uinp[i][2])*cphi[i][2] +
             (uind[i][1]+uinp[i][1])*cphi[i][3]);
     vxz -= 0.5*(cphidp[i][1]*cmp[i][3]+cphidp[i][3]*cmp[i][1]) +
-      0.25*((uind[i][2]+uinp[i][2])*cphi[i][1] + 
+      0.25*((uind[i][2]+uinp[i][2])*cphi[i][1] +
             (uind[i][0]+uinp[i][0])*cphi[i][3]);
 
-    vxx -= 2.0*cmp[i][4]*cphidp[i][4] + cmp[i][7]*cphidp[i][7] + 
+    vxx -= 2.0*cmp[i][4]*cphidp[i][4] + cmp[i][7]*cphidp[i][7] +
       cmp[i][8]*cphidp[i][8];
     vyy -= 2.0*cmp[i][5]*cphidp[i][5] + cmp[i][7]*cphidp[i][7] +
       cmp[i][9]*cphidp[i][9];
-    vzz -= 2.0*cmp[i][6]*cphidp[i][6] + cmp[i][8]*cphidp[i][8] + 
+    vzz -= 2.0*cmp[i][6]*cphidp[i][6] + cmp[i][8]*cphidp[i][8] +
       cmp[i][9]*cphidp[i][9];
     vxy -= (cmp[i][4]+cmp[i][5])*cphidp[i][7] +
       0.5*(cmp[i][7]*(cphidp[i][5]+cphidp[i][4]) +
@@ -1576,7 +1574,7 @@ void PairAmoeba::polar_kspace()
     vyz -= (cmp[i][5]+cmp[i][6])*cphidp[i][9] +
       0.5*(cmp[i][9]*(cphidp[i][5]+cphidp[i][6]) +
            cmp[i][7]*cphidp[i][8]+cmp[i][8]*cphidp[i][7]);
-    vxz -= (cmp[i][4]+cmp[i][6])*cphidp[i][8] + 
+    vxz -= (cmp[i][4]+cmp[i][6])*cphidp[i][8] +
       0.5*(cmp[i][8]*(cphidp[i][4]+cphidp[i][6]) +
            cmp[i][7]*cphidp[i][9]+cmp[i][9]*cphidp[i][7]);
 
@@ -1585,11 +1583,11 @@ void PairAmoeba::polar_kspace()
       vyy -= 0.5 * (cphid[2]*uinp[i][1]+cphip[2]*uind[i][1]);
       vzz -= 0.5 * (cphid[3]*uinp[i][2]+cphip[3]*uind[i][2]);
       vxy -= 0.25 * (cphid[1]*uinp[i][1]+cphip[1]*uind[i][1] +
-		     cphid[2]*uinp[i][0]+cphip[2]*uind[i][0]);
+                     cphid[2]*uinp[i][0]+cphip[2]*uind[i][0]);
       vyz -= 0.25 * (cphid[2]*uinp[i][2]+cphip[2]*uind[i][2] +
-		     cphid[3]*uinp[i][1]+cphip[3]*uind[i][1]);
+                     cphid[3]*uinp[i][1]+cphip[3]*uind[i][1]);
       vxz -= 0.25 * (cphid[1]*uinp[i][2]+cphip[1]*uind[i][2] +
-		     cphid[3]*uinp[i][0]+cphip[3]*uind[i][0]);
+                     cphid[3]*uinp[i][0]+cphip[3]*uind[i][0]);
     }
   }
 
@@ -1597,16 +1595,16 @@ void PairAmoeba::polar_kspace()
   // resolve site torques then increment forces and virial
 
   for (i = 0; i < nlocal; i++) {
-    tep[0] = cmp[i][3]*cphidp[i][2] - cmp[i][2]*cphidp[i][3] + 
-      2.0*(cmp[i][6]-cmp[i][5])*cphidp[i][9] + cmp[i][8]*cphidp[i][7] + 
+    tep[0] = cmp[i][3]*cphidp[i][2] - cmp[i][2]*cphidp[i][3] +
+      2.0*(cmp[i][6]-cmp[i][5])*cphidp[i][9] + cmp[i][8]*cphidp[i][7] +
       cmp[i][9]*cphidp[i][5]- cmp[i][7]*cphidp[i][8] - cmp[i][9]*cphidp[i][6];
-    tep[1] = cmp[i][1]*cphidp[i][3] - cmp[i][3]*cphidp[i][1] + 
-      2.0*(cmp[i][4]-cmp[i][6])*cphidp[i][8] + cmp[i][7]*cphidp[i][9] + 
+    tep[1] = cmp[i][1]*cphidp[i][3] - cmp[i][3]*cphidp[i][1] +
+      2.0*(cmp[i][4]-cmp[i][6])*cphidp[i][8] + cmp[i][7]*cphidp[i][9] +
       cmp[i][8]*cphidp[i][6] - cmp[i][8]*cphidp[i][4] - cmp[i][9]*cphidp[i][7];
-    tep[2] = cmp[i][2]*cphidp[i][1] - cmp[i][1]*cphidp[i][2] + 
-      2.0*(cmp[i][5]-cmp[i][4])*cphidp[i][7] + cmp[i][7]*cphidp[i][4] + 
+    tep[2] = cmp[i][2]*cphidp[i][1] - cmp[i][1]*cphidp[i][2] +
+      2.0*(cmp[i][5]-cmp[i][4])*cphidp[i][7] + cmp[i][7]*cphidp[i][4] +
       cmp[i][9]*cphidp[i][8] - cmp[i][7]*cphidp[i][5] - cmp[i][8]*cphidp[i][9];
-    
+
     torque2force(i,tep,fix,fiy,fiz,f);
 
     iz = zaxis2local[i];
@@ -1626,12 +1624,12 @@ void PairAmoeba::polar_kspace()
     vxx += xix*fix[0] + xiy*fiy[0] + xiz*fiz[0];
     vyy += yix*fix[1] + yiy*fiy[1] + yiz*fiz[1];
     vzz += zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
-    vxy += 0.5*(yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] + 
-		xix*fix[1] + xiy*fiy[1] + xiz*fiz[1]);
-    vyz += 0.5*(zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] + 
-		yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
-    vxz += 0.5*(zix*fix[0] + ziy*fiy[0] + ziz*fiz[0] + 
-		xix*fix[2] + xiy*fiy[2] + xiz*fiz[2]);
+    vxy += 0.5*(yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] +
+                xix*fix[1] + xiy*fiy[1] + xiz*fiz[1]);
+    vyz += 0.5*(zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
+                yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
+    vxz += 0.5*(zix*fix[0] + ziy*fiy[0] + ziz*fiz[0] +
+                xix*fix[2] + xiy*fiy[2] + xiz*fiz[2]);
   }
 
   // account for dipole response terms in the OPT method
@@ -1643,12 +1641,12 @@ void PairAmoeba::polar_kspace()
           fphid[i][j] = felec * fopt[i][k][j];
           fphip[i][j] = felec * foptp[i][k][j];
         }
-        
+
         for (m = 0; m < optorder-k; m++) {
           for (j = 0; j < 3; j++) {
-            fuind[i][j] = a[0][j]*uopt[i][m][0] + a[1][j]*uopt[i][m][1] + 
+            fuind[i][j] = a[0][j]*uopt[i][m][0] + a[1][j]*uopt[i][m][1] +
               a[2][j]*uopt[i][m][2];
-            fuinp[i][j] = a[0][j]*uoptp[i][m][0] + a[1][j]*uoptp[i][m][1] + 
+            fuinp[i][j] = a[0][j]*uoptp[i][m][0] + a[1][j]*uoptp[i][m][1] +
               a[2][j]*uoptp[i][m][2];
           }
 
@@ -1672,9 +1670,9 @@ void PairAmoeba::polar_kspace()
           h2 = recip[1][0]*f1 + recip[1][1]*f2 + recip[1][2]*f3;
           h3 = recip[2][0]*f1 + recip[2][1]*f2 + recip[2][2]*f3;
 
-          f[i][0] += copm[k+m+1]*h1;
-          f[i][1] += copm[k+m+1]*h2;
-          f[i][2] += copm[k+m+1]*h3;
+          f[i][0] -= copm[k+m+1]*h1;
+          f[i][1] -= copm[k+m+1]*h2;
+          f[i][2] -= copm[k+m+1]*h3;
 
           for (j = 1; j < 4; j++) {
             cphid[j] = 0.0;
@@ -1692,7 +1690,7 @@ void PairAmoeba::polar_kspace()
           vzz -= 0.5*copm[k+m+1] *
             (cphid[3]*uoptp[i][m][2]+ cphip[3]*uopt[i][m][2]);
           vxy -= 0.25*copm[k+m+1] *
-            (cphid[1]*uoptp[i][m][1]+ cphip[1]*uopt[i][m][1]+ 
+            (cphid[1]*uoptp[i][m][1]+ cphip[1]*uopt[i][m][1]+
              cphid[2]*uoptp[i][m][0]+ cphip[2]*uopt[i][m][0]);
           vyz -= 0.25*copm[k+m+1] *
             (cphid[1]*uoptp[i][m][2]+ cphip[1]*uopt[i][m][2]+
@@ -1707,15 +1705,15 @@ void PairAmoeba::polar_kspace()
 
   // account for dipole response terms in the TCG method
 
-  /* 
+  /*
   if (poltyp == TCG) {
 
     for (m = 0; m < tcgnab; m++) {
       for (i = 0; i < nlocal; i++) {
         for (j = 0; j < 3; j++) {
-          fuind[i][j] = a[0][j]*uad[i][m][0] + a[1][j]*uad[i][m][1] + 
+          fuind[i][j] = a[0][j]*uad[i][m][0] + a[1][j]*uad[i][m][1] +
             a[2][j]*uad[i][m][2];
-          fuinp[i][j] = a[0][j]*ubp[i][m][0] + a[1][j]*ubp[i][m][1] + 
+          fuinp[i][j] = a[0][j]*ubp[i][m][0] + a[1][j]*ubp[i][m][1] +
             a[2][j]*ubp[i][m][2];
         }
       }
@@ -1762,9 +1760,9 @@ void PairAmoeba::polar_kspace()
         h1 = recip[0][0]*f1 + recip[0][1]*f2 + recip[0][2]*f3;
         h2 = recip[1][0]*f1 + recip[1][1]*f2 + recip[1][2]*f3;
         h3 = recip[2][0]*f1 + recip[2][1]*f2 + recip[2][2]*f3;
-        f[i][0] += h1;
-        f[i][1] += h2;
-        f[i][2] += h3;
+        f[i][0] -= h1;
+        f[i][1] -= h2;
+        f[i][2] -= h3;
 
         for (j = 1; j < 4; j++) {
           cphid[j] = 0.0;
@@ -1789,9 +1787,9 @@ void PairAmoeba::polar_kspace()
 
       for (i = 0; i < nlocal; i++) {
         for (j = 0; j < 3; j++) {
-          fuind[i][j] = a[0][j]*ubd[i][m][0] + a[1][j]*ubd[i][m][1] + 
+          fuind[i][j] = a[0][j]*ubd[i][m][0] + a[1][j]*ubd[i][m][1] +
             a[2][j]*ubd[i][m][2];
-          fuinp[i][j] = a[0][j]*uap[i][m][0] + a[1][j]*uap[i][m][1] + 
+          fuinp[i][j] = a[0][j]*uap[i][m][0] + a[1][j]*uap[i][m][1] +
             a[2][j]*uap[i][m][2];
         }
       }
@@ -1838,9 +1836,9 @@ void PairAmoeba::polar_kspace()
         h1 = recip[0][0]*f1 + recip[0][1]*f2 + recip[0][2]*f3;  // matvec
         h2 = recip[1][0]*f1 + recip[1][1]*f2 + recip[1][2]*f3;
         h3 = recip[2][0]*f1 + recip[2][1]*f2 + recip[2][2]*f3;
-        f[i][0] += h1;
-        f[i][1] += h2;
-        f[i][2] += h3;
+        f[i][0] -= h1;
+        f[i][1] -= h2;
+        f[i][2] -= h3;
 
         for (j = 1; j < 4; j++) {
           cphid[j] = 0.0;
@@ -1866,7 +1864,7 @@ void PairAmoeba::polar_kspace()
   */
 
   // assign permanent and induced multipoles to the PME grid
-  
+
   for (i = 0; i < nlocal; i++) {
     for (j = 1; j < 4; j++)
       cmp[i][j] += uinp[i][j-1];
@@ -1878,7 +1876,7 @@ void PairAmoeba::polar_kspace()
 
   // gridpre = my portion of 3d grid in brick decomp w/ ghost values
   // zeroed by zero()
-  
+
   double ***gridpre = (double ***) p_kspace->zero();
 
   // DEBUG
@@ -1887,11 +1885,11 @@ void PairAmoeba::polar_kspace()
   for (k = p_kspace->nzlo_out; k <= p_kspace->nzhi_out; k++) {
     for (j = p_kspace->nylo_out; j <= p_kspace->nyhi_out; j++) {
       for (i = p_kspace->nxlo_out; i <= p_kspace->nxhi_out; i++) {
-	psum += gridpre[k][j][i];
+        psum += gridpre[k][j][i];
       }
     }
   }
-  
+
   // map atoms to grid
 
   grid_mpole(fmp,gridpre);
@@ -1903,7 +1901,7 @@ void PairAmoeba::polar_kspace()
 
   // gridfft1 = copy of first FFT
   // NOTE: need to allocate this, when is it freed?
-  
+
   FFT_SCALAR *gridfft1;
   int nfft_owned = p_kspace->nfft_owned;
   memory->create(gridfft1,2*nfft_owned,"amoeba:gridfft1");
@@ -1922,7 +1920,7 @@ void PairAmoeba::polar_kspace()
 
   // gridpre = my portion of 3d grid in brick decomp w/ ghost values
   // zeroed by zero()
-  
+
   gridpre = (double ***) p_kspace->zero();
 
   // map atoms to grid
@@ -1931,40 +1929,40 @@ void PairAmoeba::polar_kspace()
 
   // pre-convolution operations including forward FFT
   // gridfft1/2 = my portions of complex 3d grid in FFT decomp as 1d vectors
-  
+
   double *gridfft2 = p_kspace->pre_convolution();
 
   // ---------------------
-  // convolution operation 
+  // convolution operation
   // ---------------------
 
   m = n = 0;
   for (k = nzlo; k <= nzhi; k++) {
     for (j = nylo; j <= nyhi; j++) {
       for (i = nxlo; i <= nxhi; i++) {
-	r1 = (i >= nhalf1) ? i-nfft1 : i;
-	r2 = (j >= nhalf2) ? j-nfft2 : j;
-	r3 = (k >= nhalf3) ? k-nfft3 : k;
-	h1 = recip[0][0]*r1 + recip[0][1]*r2 + recip[0][2]*r3;  // matvec
-	h2 = recip[1][0]*r1 + recip[1][1]*r2 + recip[1][2]*r3;
-	h3 = recip[2][0]*r1 + recip[2][1]*r2 + recip[2][2]*r3;
-	hsq = h1*h1 + h2*h2 + h3*h3;
-	term = -pterm * hsq;
-	expterm = 0.0;
-	if (term > -50.0 && hsq != 0.0) {
-	  denom = volterm*hsq*bsmod1[i]*bsmod2[j]*bsmod3[k];
-	  expterm = exp(term) / denom;
-	  struc2 = gridfft1[n]*gridfft2[n] + gridfft1[n+1]*gridfft2[n+1];
-	  eterm = 0.5 * felec * expterm * struc2;
-	  vterm = (2.0/hsq) * (1.0-term) * eterm;
-	  vxx += h1*h1*vterm - eterm;
-	  vyy += h2*h2*vterm - eterm;
-	  vzz += h3*h3*vterm - eterm;
-	  vxy += h1*h2*vterm;
-	  vyz += h2*h3*vterm;
-	  vxz += h1*h3*vterm;
-	}
-	n += 2;
+        r1 = (i >= nhalf1) ? i-nfft1 : i;
+        r2 = (j >= nhalf2) ? j-nfft2 : j;
+        r3 = (k >= nhalf3) ? k-nfft3 : k;
+        h1 = recip[0][0]*r1 + recip[0][1]*r2 + recip[0][2]*r3;  // matvec
+        h2 = recip[1][0]*r1 + recip[1][1]*r2 + recip[1][2]*r3;
+        h3 = recip[2][0]*r1 + recip[2][1]*r2 + recip[2][2]*r3;
+        hsq = h1*h1 + h2*h2 + h3*h3;
+        term = -pterm * hsq;
+        expterm = 0.0;
+        if (term > -50.0 && hsq != 0.0) {
+          denom = volterm*hsq*bsmod1[i]*bsmod2[j]*bsmod3[k];
+          expterm = exp(term) / denom;
+          struc2 = gridfft1[n]*gridfft2[n] + gridfft1[n+1]*gridfft2[n+1];
+          eterm = 0.5 * felec * expterm * struc2;
+          vterm = (2.0/hsq) * (1.0-term) * eterm;
+          vxx += h1*h1*vterm - eterm;
+          vyy += h2*h2*vterm - eterm;
+          vzz += h3*h3*vterm - eterm;
+          vxy += h1*h2*vterm;
+          vyz += h2*h3*vterm;
+          vxz += h1*h3*vterm;
+        }
+        n += 2;
       }
     }
   }
@@ -1972,23 +1970,23 @@ void PairAmoeba::polar_kspace()
   // assign only the induced dipoles to the PME grid
   // and perform the 3-D FFT forward transformation
   // NOTE: why is there no inverse FFT in this section?
-  
+
   if (poltyp == DIRECT || poltyp == TCG) {
 
     for (i = 0; i < nlocal; i++) {
-      for (j = 0; j < 10; j++) 
+      for (j = 0; j < 10; j++)
         cmp[i][j] = 0.0;
-      for (j = 1; j < 4; j++) 
+      for (j = 1; j < 4; j++)
         cmp[i][j] = uinp[i][j-1];
     }
 
     // convert Cartesian multipoles to fractional multipoles
-    
+
     cmp_to_fmp(cmp,fmp);
 
     // gridpre = my portion of 3d grid in brick decomp w/ ghost values
     // zeroed by zero()
-  
+
     double ***gridpre = (double ***) p_kspace->zero();
 
     // map atoms to grid
@@ -1997,19 +1995,19 @@ void PairAmoeba::polar_kspace()
 
     // pre-convolution operations including forward FFT
     // gridfft = my portion of complex 3d grid in FFT decomp as 1d vector
-  
+
     double *gridfft = p_kspace->pre_convolution();
 
     // gridfft1 = copy of first FFT
     // NOTE: do this same as above
-    
+
     int nfft_owned = p_kspace->nfft_owned;
     memcpy(gridfft1,gridfft,2*nfft_owned*sizeof(double));
 
     // assign ??? to the PME grid
 
     for (i = 0; i < nlocal; i++) {
-      for (j = 1; j < 4; j++) 
+      for (j = 1; j < 4; j++)
         cmp[i][j] = uind[i][j-1];
     }
 
@@ -2018,7 +2016,7 @@ void PairAmoeba::polar_kspace()
     cmp_to_fmp(cmp,fmp);
 
     // gridpre = my portion of 3d grid in brick decomp w/ ghost values
-    
+
     gridpre = (double ***) p_kspace->zero();
 
     // map atoms to grid
@@ -2031,37 +2029,37 @@ void PairAmoeba::polar_kspace()
     double *gridfft2 = p_kspace->pre_convolution();
 
     // ---------------------
-    // convolution operation 
+    // convolution operation
     // ---------------------
 
     m = n = 0;
     for (k = nzlo; k <= nzhi; k++) {
       for (j = nylo; j <= nyhi; j++) {
-	for (i = nxlo; i <= nxhi; i++) {
-	  r1 = (i >= nhalf1) ? i-nfft1 : i;
-	  r2 = (j >= nhalf2) ? j-nfft2 : j;
-	  r3 = (k >= nhalf3) ? k-nfft3 : k;
-	  h1 = recip[0][0]*r1 + recip[0][1]*r2 + recip[0][2]*r3;  // matvec
-	  h2 = recip[1][0]*r1 + recip[1][1]*r2 + recip[1][2]*r3;
-	  h3 = recip[2][0]*r1 + recip[2][1]*r2 + recip[2][2]*r3;
-	  hsq = h1*h1 + h2*h2 + h3*h3;
-	  term = -pterm * hsq;
-	  expterm = 0.0;
-	  if (term > -50.0 && hsq != 0.0) {
-	    denom = volterm*hsq*bsmod1[i]*bsmod2[j]*bsmod3[k];
-	    expterm = exp(term) / denom;
-	    struc2 = gridfft1[n]*gridfft2[n] + gridfft1[n+1]*gridfft2[n+1];
-	    eterm = 0.5 * felec * expterm * struc2;
-	    vterm = (2.0/hsq) * (1.0-term) * eterm;
-	    vxx += h1*h1*vterm - eterm;
-	    vyy += h2*h2*vterm - eterm;
-	    vzz += h3*h3*vterm - eterm;
-	    vxy += h1*h2*vterm;
-	    vyz += h2*h3*vterm;
-	    vxz += h1*h3*vterm;
-	  }
-	  n += 2;
-	}
+        for (i = nxlo; i <= nxhi; i++) {
+          r1 = (i >= nhalf1) ? i-nfft1 : i;
+          r2 = (j >= nhalf2) ? j-nfft2 : j;
+          r3 = (k >= nhalf3) ? k-nfft3 : k;
+          h1 = recip[0][0]*r1 + recip[0][1]*r2 + recip[0][2]*r3;  // matvec
+          h2 = recip[1][0]*r1 + recip[1][1]*r2 + recip[1][2]*r3;
+          h3 = recip[2][0]*r1 + recip[2][1]*r2 + recip[2][2]*r3;
+          hsq = h1*h1 + h2*h2 + h3*h3;
+          term = -pterm * hsq;
+          expterm = 0.0;
+          if (term > -50.0 && hsq != 0.0) {
+            denom = volterm*hsq*bsmod1[i]*bsmod2[j]*bsmod3[k];
+            expterm = exp(term) / denom;
+            struc2 = gridfft1[n]*gridfft2[n] + gridfft1[n+1]*gridfft2[n+1];
+            eterm = 0.5 * felec * expterm * struc2;
+            vterm = (2.0/hsq) * (1.0-term) * eterm;
+            vxx += h1*h1*vterm - eterm;
+            vyy += h2*h2*vterm - eterm;
+            vzz += h3*h3*vterm - eterm;
+            vxy += h1*h2*vterm;
+            vyz += h2*h3*vterm;
+            vxz += h1*h3*vterm;
+          }
+          n += 2;
+        }
       }
     }
   }
@@ -2109,7 +2107,7 @@ void PairAmoeba::polar_kspace()
       for (m = 1; m < ntot; m++) {
         k1 = m % nfft1;
         k2 = (m % nff) / nfft1;
-	k3 = m/nff;
+        k3 = m/nff;
         r1 = (k1 >= nf1) ? k1-nfft1 : k1;
         r2 = (k2 >= nf2) ? k2-nfft2 : k2;
         r3 = (k3 >= nf3) ? k3-nfft3 : k3;
@@ -2122,7 +2120,7 @@ void PairAmoeba::polar_kspace()
         if (term > -50.0 && hsq != 0.0) {
           denom = volterm*hsq*bsmod1[k1]*bsmod2[k2]*bsmod3[k3];
           expterm = exp(term) / denom;
-          struc2 = qgrid[k3][k2][k1][0]*qgrip[k3][k2][k1][0] + 
+          struc2 = qgrid[k3][k2][k1][0]*qgrip[k3][k2][k1][0] +
             qgrid[k3][k2][k1][1]*qgrip[k3][k2][k1][1];
           eterm = 0.5 * felec * expterm * struc2;
           vterm = (2.0/hsq) * (1.0-term) * eterm;
@@ -2172,11 +2170,11 @@ void PairAmoeba::polar_kspace()
 
       for (m = 1; m < ntot; m++) {
         k1 = m % nfft1;
-	k2 = (m % nff) / nfft1;
-	k3 = m/nff;
-	r1 = (k1 >= nf1) ? k1-nfft1 : k1;
-	r2 = (k2 >= nf2) ? k2-nfft2 : k2;
-	r3 = (k3 >= nf3) ? k3-nfft3 : k3;
+        k2 = (m % nff) / nfft1;
+        k3 = m/nff;
+        r1 = (k1 >= nf1) ? k1-nfft1 : k1;
+        r2 = (k2 >= nf2) ? k2-nfft2 : k2;
+        r3 = (k3 >= nf3) ? k3-nfft3 : k3;
         h1 = recip[0][0]*r1 + recip[0][1]*r2 + recip[0][2]*r3;
         h2 = recip[1][0]*r1 + recip[1][1]*r2 + recip[1][2]*r3;
         h3 = recip[2][0]*r1 + recip[2][1]*r2 + recip[2][2]*r3;
@@ -2186,7 +2184,7 @@ void PairAmoeba::polar_kspace()
         if (term > -50.0 && hsq != 0.0) {
           denom = volterm*hsq*bsmod1[k1]*bsmod2[k2]*bsmod3[k3];
           expterm = exp(term) / denom;
-          struc2 = qgrid[k3][k2][k1][0]*qgrip[k3][k2][k1][0] + 
+          struc2 = qgrid[k3][k2][k1][0]*qgrip[k3][k2][k1][0] +
             qgrid[k3][k2][k1][1]*qgrip[k3][k2][k1][1];
           eterm = 0.5 * felec * expterm * struc2;
           vterm = (2.0/hsq) * (1.0-term) * eterm;

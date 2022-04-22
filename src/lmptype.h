@@ -55,11 +55,15 @@
 
 namespace LAMMPS_NS {
 
-// reserve 2 hi bits in molecular system neigh list for special bonds flag
-// max local + ghost atoms per processor = 2^30 - 1
+// reserve 2 highest bits in molecular system neigh list for special bonds flag
+// reserve 3rd highest bit in neigh list for fix neigh/history flag
+// max local + ghost atoms per processor = 2^29 - 1
 
 #define SBBITS 30
-#define NEIGHMASK 0x3FFFFFFF
+#define HISTBITS 29
+#define NEIGHMASK 0x1FFFFFFF
+#define HISTMASK 0xDFFFFFFF
+#define SPECIALMASK 0x3FFFFFFF
 
 // default to 32-bit smallint and other ints, 64-bit bigint
 
@@ -286,12 +290,6 @@ union ubuf {
 #endif
 #else
 #define _noopt
-#endif
-
-// settings to enable LAMMPS to build under Windows
-
-#ifdef _WIN32
-#include "lmpwindows.h"
 #endif
 
 // suppress unused parameter warning

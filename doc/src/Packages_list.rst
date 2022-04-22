@@ -33,6 +33,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`dump adios <dump_adios>`
      - PACKAGES/adios
      - ext
+   * - :ref:`AMOEBA <PKG-AMOEBA>`
+     - AMOEBA and HIPPO force fields
+     - :doc:`AMOEBA and HIPPO howto <Howto_amoeba>`
+     - amoeba
+     - no
    * - :ref:`ASPHERE <PKG-ASPHERE>`
      - aspherical particle models
      - :doc:`Howto spherical <Howto_spherical>`
@@ -57,6 +62,11 @@ whether an extra library is needed to build and use the package:
      - body-style particles
      - :doc:`Howto body <Howto_body>`
      - body
+     - no
+   * - :ref:`BPM <PKG-BPM>`
+     - bonded particle models
+     - :doc:`Howto bpm <Howto_bpm>`
+     - bpm
      - no
    * - :ref:`BROWNIAN <PKG-BROWNIAN>`
      - Brownian dynamics, self-propelled particles
@@ -244,7 +254,7 @@ whether an extra library is needed to build and use the package:
      - n/a
      - no
    * - :ref:`MDI <PKG-MDI>`
-     - client-server coupling
+     - client-server code coupling
      - :doc:`MDI Howto <Howto_mdi>`
      - PACKAGES/mdi
      - ext
@@ -257,11 +267,6 @@ whether an extra library is needed to build and use the package:
      - mesoscopic tubular potential model
      - pair styles :doc:`mesont/tpm <pair_mesont_tpm>`, :doc:`mesocnt <pair_mesocnt>`
      - PACKAGES/mesont
-     - int
-   * - :ref:`MESSAGE <PKG-MESSAGE>`
-     - client/server messaging
-     - :doc:`message <message>`
-     - message
      - int
    * - :ref:`MGPT <PKG-MGPT>`
      - fast MGPT multi-ion potentials

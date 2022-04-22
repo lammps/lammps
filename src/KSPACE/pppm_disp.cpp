@@ -245,8 +245,8 @@ PPPMDisp::~PPPMDisp()
   cii = nullptr;
   delete [] csumi;
   csumi = nullptr;
-  deallocate();
-  deallocate_peratom();
+  PPPMDisp::deallocate();
+  PPPMDisp::deallocate_peratom();
   memory->destroy(part2grid);
   memory->destroy(part2grid_6);
   part2grid = part2grid_6 = nullptr;
@@ -366,7 +366,7 @@ void PPPMDisp::init()
 
   if (tip4pflag) {
     int itmp;
-    double *p_qdist = (double *) force->pair->extract("qdist",itmp);
+    auto p_qdist = (double *) force->pair->extract("qdist",itmp);
     int *p_typeO = (int *) force->pair->extract("typeO",itmp);
     int *p_typeH = (int *) force->pair->extract("typeH",itmp);
     int *p_typeA = (int *) force->pair->extract("typeA",itmp);
@@ -456,8 +456,7 @@ void PPPMDisp::init()
     if (order < minorder)
       error->all(FLERR,"Coulomb PPPMDisp order has been reduced below minorder");
     if (!overlap_allowed && !gctmp->ghost_adjacent())
-      error->all(FLERR,"PPPMDisp grid stencil extends "
-                 "beyond nearest neighbor processor");
+      error->all(FLERR,"PPPMDisp grid stencil extends beyond nearest neighbor processor");
     if (gctmp) delete gctmp;
 
     // adjust g_ewald
@@ -538,8 +537,7 @@ void PPPMDisp::init()
       error->all(FLERR,"Dispersion PPPMDisp order has been "
                  "reduced below minorder");
     if (!overlap_allowed && !gctmp->ghost_adjacent())
-      error->all(FLERR,"Dispersion PPPMDisp grid stencil extends "
-                 "beyond nearest neighbor processor");
+      error->all(FLERR,"Dispersion PPPMDisp grid stencil extends beyond nearest neighbor proc");
     if (gctmp) delete gctmp;
 
     // adjust g_ewald_6
@@ -837,13 +835,11 @@ void PPPMDisp::setup_grid()
 
   if (function[0]) {
     if (!overlap_allowed && !gc->ghost_adjacent())
-      error->all(FLERR,"PPPMDisp grid stencil extends "
-                 "beyond nearest neighbor processor");
+      error->all(FLERR,"PPPMDisp grid stencil extends beyond nearest neighbor processor");
   }
   if (function[1] + function[2] + function[3]) {
     if (!overlap_allowed && !gc6->ghost_adjacent())
-      error->all(FLERR,"Dispersion PPPMDisp grid stencil extends "
-                 "beyond nearest neighbor processor");
+      error->all(FLERR,"Dispersion PPPMDisp grid stencil extends beyond nearest neighbor proc");
   }
 
   // pre-compute Green's function denomiator expansion
@@ -930,8 +926,8 @@ void PPPMDisp::compute(int eflag, int vflag)
 
     make_rho_c();
 
-    gc->reverse_comm(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
-		     gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+                     REVERSE_RHO,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
     brick2fft(nxlo_in,nylo_in,nzlo_in,nxhi_in,nyhi_in,nzhi_in,
               density_brick,density_fft,work1,remap);
@@ -945,14 +941,14 @@ void PPPMDisp::compute(int eflag, int vflag)
                  virial_1,vg,vg2,
                  u_brick,v0_brick,v1_brick,v2_brick,v3_brick,v4_brick,v5_brick);
 
-      gc->forward_comm(this,1,sizeof(FFT_SCALAR),FORWARD_AD,
-		       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+                       FORWARD_AD,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
       fieldforce_c_ad();
 
       if (vflag_atom)
-        gc->forward_comm(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM,
-			 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+        gc->forward_comm(GridComm::KSPACE,this,6,sizeof(FFT_SCALAR),
+                         FORWARD_AD_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
     } else {
       poisson_ik(work1,work2,density_fft,fft1,fft2,
@@ -964,14 +960,14 @@ void PPPMDisp::compute(int eflag, int vflag)
                  vdx_brick,vdy_brick,vdz_brick,virial_1,vg,vg2,
                  u_brick,v0_brick,v1_brick,v2_brick,v3_brick,v4_brick,v5_brick);
 
-      gc->forward_comm(this,3,sizeof(FFT_SCALAR),FORWARD_IK,
-		       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),
+                       FORWARD_IK,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
       fieldforce_c_ik();
 
       if (evflag_atom)
-        gc->forward_comm(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM,
-			 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+        gc->forward_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
+                         FORWARD_IK_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     }
 
     if (evflag_atom) fieldforce_c_peratom();
@@ -988,8 +984,8 @@ void PPPMDisp::compute(int eflag, int vflag)
 
     make_rho_g();
 
-    gc6->reverse_comm(this,1,sizeof(FFT_SCALAR),REVERSE_RHO_GEOM,
-                      gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+    gc6->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+                      REVERSE_RHO_GEOM,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     brick2fft(nxlo_in_6,nylo_in_6,nzlo_in_6,nxhi_in_6,nyhi_in_6,nzhi_in_6,
               density_brick_g,density_fft_g,work1_6,remap_6);
@@ -1004,14 +1000,14 @@ void PPPMDisp::compute(int eflag, int vflag)
                  u_brick_g,v0_brick_g,v1_brick_g,v2_brick_g,
                  v3_brick_g,v4_brick_g,v5_brick_g);
 
-      gc6->forward_comm(this,1,sizeof(FFT_SCALAR),FORWARD_AD_GEOM,
-                        gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      gc6->forward_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+                        FORWARD_AD_GEOM,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_g_ad();
 
       if (vflag_atom)
-        gc6->forward_comm(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM_GEOM,
-                          gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm(GridComm::KSPACE,this,6,sizeof(FFT_SCALAR),
+                          FORWARD_AD_PERATOM_GEOM,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     } else {
       poisson_ik(work1_6,work2_6,density_fft_g,fft1_6,fft2_6,
@@ -1024,14 +1020,14 @@ void PPPMDisp::compute(int eflag, int vflag)
                  u_brick_g,v0_brick_g,v1_brick_g,v2_brick_g,
                  v3_brick_g,v4_brick_g,v5_brick_g);
 
-      gc6->forward_comm(this,3,sizeof(FFT_SCALAR),FORWARD_IK_GEOM,
-                        gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      gc6->forward_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),
+                        FORWARD_IK_GEOM,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_g_ik();
 
       if (evflag_atom)
-        gc6->forward_comm(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM_GEOM,
-                          gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
+                          FORWARD_IK_PERATOM_GEOM,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
     }
 
     if (evflag_atom) fieldforce_g_peratom();
@@ -1048,8 +1044,8 @@ void PPPMDisp::compute(int eflag, int vflag)
 
     make_rho_a();
 
-    gc6->reverse_comm(this,7,sizeof(FFT_SCALAR),REVERSE_RHO_ARITH,
-                      gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+    gc6->reverse_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
+                      REVERSE_RHO_ARITH,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     brick2fft_a();
 
@@ -1078,14 +1074,14 @@ void PPPMDisp::compute(int eflag, int vflag)
                     u_brick_a4,v0_brick_a4,v1_brick_a4,v2_brick_a4,
                     v3_brick_a4,v4_brick_a4,v5_brick_a4);
 
-      gc6->forward_comm(this,7,sizeof(FFT_SCALAR),FORWARD_AD_ARITH,
-                        gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      gc6->forward_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
+                        FORWARD_AD_ARITH,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_a_ad();
 
       if (evflag_atom)
-        gc6->forward_comm(this,42,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM_ARITH,
-                          gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm(GridComm::KSPACE,this,42,sizeof(FFT_SCALAR),
+                          FORWARD_AD_PERATOM_ARITH,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     }  else {
       poisson_ik(work1_6,work2_6,density_fft_a3,fft1_6,fft2_6,
@@ -1119,14 +1115,14 @@ void PPPMDisp::compute(int eflag, int vflag)
                     u_brick_a4,v0_brick_a4,v1_brick_a4,v2_brick_a4,
                     v3_brick_a4,v4_brick_a4,v5_brick_a4);
 
-      gc6->forward_comm(this,21,sizeof(FFT_SCALAR),FORWARD_IK_ARITH,
-                        gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      gc6->forward_comm(GridComm::KSPACE,this,21,sizeof(FFT_SCALAR),
+                        FORWARD_IK_ARITH,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_a_ik();
 
       if (evflag_atom)
-        gc6->forward_comm(this,49,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM_ARITH,
-                          gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm(GridComm::KSPACE,this,49,sizeof(FFT_SCALAR),
+                          FORWARD_IK_PERATOM_ARITH,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
     }
 
     if (evflag_atom) fieldforce_a_peratom();
@@ -1143,8 +1139,8 @@ void PPPMDisp::compute(int eflag, int vflag)
 
     make_rho_none();
 
-    gc6->reverse_comm(this,nsplit_alloc,sizeof(FFT_SCALAR),REVERSE_RHO_NONE,
-                      gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+    gc6->reverse_comm(GridComm::KSPACE,this,nsplit_alloc,sizeof(FFT_SCALAR),
+                      REVERSE_RHO_NONE,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     brick2fft_none();
 
@@ -1158,16 +1154,14 @@ void PPPMDisp::compute(int eflag, int vflag)
         n += 2;
       }
 
-      gc6->forward_comm(this,1*nsplit_alloc,sizeof(FFT_SCALAR),
-                        FORWARD_AD_NONE,
-                        gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      gc6->forward_comm(GridComm::KSPACE,this,1*nsplit_alloc,sizeof(FFT_SCALAR),
+                        FORWARD_AD_NONE,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_none_ad();
 
       if (vflag_atom)
-        gc6->forward_comm(this,6*nsplit_alloc,sizeof(FFT_SCALAR),
-                          FORWARD_AD_PERATOM_NONE,
-                          gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm(GridComm::KSPACE,this,6*nsplit_alloc,sizeof(FFT_SCALAR),
+                          FORWARD_AD_PERATOM_NONE,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     } else {
       int n = 0;
@@ -1180,16 +1174,14 @@ void PPPMDisp::compute(int eflag, int vflag)
         n += 2;
       }
 
-      gc6->forward_comm(this,3*nsplit_alloc,sizeof(FFT_SCALAR),
-                        FORWARD_IK_NONE,
-                        gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      gc6->forward_comm(GridComm::KSPACE,this,3*nsplit_alloc,sizeof(FFT_SCALAR),
+                        FORWARD_IK_NONE,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_none_ik();
 
       if (evflag_atom)
-        gc6->forward_comm(this,7*nsplit_alloc,sizeof(FFT_SCALAR),
-                          FORWARD_IK_PERATOM_NONE,
-                          gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm(GridComm::KSPACE,this,7*nsplit_alloc,sizeof(FFT_SCALAR),
+                          FORWARD_IK_PERATOM_NONE,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
     }
 
     if (evflag_atom) fieldforce_none_peratom();
@@ -1305,7 +1297,7 @@ void PPPMDisp::init_coeffs()
     double **Q=nullptr;
     if (n > 1) {
       // get dispersion coefficients
-      double **b = (double **) force->pair->extract("B",tmp);
+      auto b = (double **) force->pair->extract("B",tmp);
       memory->create(A,n,n,"pppm/disp:A");
       memory->create(Q,n,n,"pppm/disp:Q");
       // fill coefficients to matrix a
@@ -1383,7 +1375,7 @@ void PPPMDisp::init_coeffs()
     // check if the function should preferably be [1] or [2] or [3]
 
     if (nsplit == 1) {
-      if (B) delete [] B;
+      delete[] B;
       function[3] = 0;
       function[2] = 0;
       function[1] = 1;
@@ -1396,12 +1388,12 @@ void PPPMDisp::init_coeffs()
         utils::logmesg(lmp,"  Using {} instead of 7 structure factors\n",nsplit);
       //function[3] = 1;
       //function[2] = 0;
-      if (B) delete [] B;   // remove this when un-comment previous 2 lines
+      delete[] B;   // remove this when un-comment previous 2 lines
    }
 
     if (function[2] && (nsplit > 6)) {
       if (me == 0) utils::logmesg(lmp,"  Using 7 structure factors\n");
-      if (B) delete [] B;
+      delete[] B;
     }
 
     if (function[3]) {
@@ -1417,15 +1409,15 @@ void PPPMDisp::init_coeffs()
   }
 
   if (function[1]) {                                    // geometric 1/r^6
-    double **b = (double **) force->pair->extract("B",tmp);
+    auto b = (double **) force->pair->extract("B",tmp);
     B = new double[n+1];
     B[0] = 0.0;
     for (int i=1; i<=n; ++i) B[i] = sqrt(fabs(b[i][i]));
   }
 
   if (function[2]) {                                    // arithmetic 1/r^6
-    double **epsilon = (double **) force->pair->extract("epsilon",tmp);
-    double **sigma = (double **) force->pair->extract("sigma",tmp);
+    auto epsilon = (double **) force->pair->extract("epsilon",tmp);
+    auto sigma = (double **) force->pair->extract("sigma",tmp);
     if (!(epsilon&&sigma))
       error->all(FLERR,"Epsilon or sigma reference not set by pair style for PPPMDisp");
     double eps_i,sigma_i,sigma_n;
@@ -1475,7 +1467,7 @@ int PPPMDisp::qr_alg(double **A, double **Q, int n)
   // start loop for the matrix factorization
   int count = 0;
   int countmax = 100000;
-  while (1) {
+  while (true) {
     // make a Wilkinson shift
     an1 = A[n-2][n-2];
     an = A[n-1][n-1];
@@ -2649,7 +2641,7 @@ void PPPMDisp::set_grid()
   if (!gridflag) {
     h = h_x = h_y = h_z = 4.0/g_ewald;
     int count = 0;
-    while (1) {
+    while (true) {
 
       // set grid dimension
 
@@ -3667,7 +3659,7 @@ void PPPMDisp::set_n_pppm_6()
   // decrease grid spacing until required precision is obtained
 
   int count = 0;
-  while (1) {
+  while (true) {
 
     // set grid dimension
     nx_pppm_6 = static_cast<int> (xprd/h_x);
@@ -6824,7 +6816,7 @@ void PPPMDisp::fieldforce_none_peratom()
 
 void PPPMDisp::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -7337,7 +7329,7 @@ void PPPMDisp::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMDisp::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -7850,7 +7842,7 @@ void PPPMDisp::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMDisp::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -7905,7 +7897,7 @@ void PPPMDisp::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMDisp::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -8187,7 +8179,7 @@ int PPPMDisp::timing_1d(int n, double &time1d)
     for (int i = 0; i < 2*nfft_both_6; i++) work1_6[i] = ZEROF;
 
   MPI_Barrier(world);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   if (function[0]) {
     for (int i = 0; i < n; i++) {
@@ -8201,11 +8193,11 @@ int PPPMDisp::timing_1d(int n, double &time1d)
   }
 
   MPI_Barrier(world);
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
   time1d = time2 - time1;
 
   MPI_Barrier(world);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   if (function[1] + function[2] + function[3]) {
     for (int i = 0; i < n; i++) {
@@ -8219,7 +8211,7 @@ int PPPMDisp::timing_1d(int n, double &time1d)
   }
 
   MPI_Barrier(world);
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
   time1d += (time2 - time1)*mixing;
 
   if (differentiation_flag) return 2;
@@ -8242,7 +8234,7 @@ int PPPMDisp::timing_3d(int n, double &time3d)
     for (int i = 0; i < 2*nfft_both_6; i++) work1_6[i] = ZEROF;
 
   MPI_Barrier(world);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   if (function[0]) {
     for (int i = 0; i < n; i++) {
@@ -8256,11 +8248,11 @@ int PPPMDisp::timing_3d(int n, double &time3d)
   }
 
   MPI_Barrier(world);
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
   time3d = time2 - time1;
 
   MPI_Barrier(world);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   if (function[1] + function[2] + function[3]) {
     for (int i = 0; i < n; i++) {
@@ -8274,7 +8266,7 @@ int PPPMDisp::timing_3d(int n, double &time3d)
   }
 
   MPI_Barrier(world);
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
   time3d += (time2 - time1) * mixing;
 
   if (differentiation_flag) return 2;

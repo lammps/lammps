@@ -79,7 +79,8 @@ void ImproperAmoeba::compute(int eflag, int vflag)
   // conversion factors for radians to degrees and vice versa
 
   double rad2degree = 180.0/MY_PI;
-  double prefactor = 1.0 / (rad2degree*rad2degree);
+  double eprefactor = 1.0 / (rad2degree*rad2degree);
+  double fprefactor = 1.0 / rad2degree;
 
   for (n = 0; n < nimproperlist; n++) {
 
@@ -126,9 +127,9 @@ void ImproperAmoeba::compute(int eflag, int vflag)
     xcd = xic - xid;
     ycd = yic - yid;
     zcd = zic - zid;
-    
+
     // Allinger angle between A-C-D plane and D-B vector for D-B < AC
-      
+
     rad2 = xad*xad + yad*yad + zad*zad;
     rcd2 = xcd*xcd + ycd*ycd + zcd*zcd;
     dot = xad*xcd + yad*ycd + zad*zcd;
@@ -151,11 +152,12 @@ void ImproperAmoeba::compute(int eflag, int vflag)
     dt2 = dt * dt;
     dt3 = dt2 * dt;
     dt4 = dt2 * dt2;
-    e = prefactor * k[type] * dt2 * (1.0 + opbend_cubic*dt + opbend_quartic*dt2 + 
-                         opbend_pentic*dt3 + opbend_sextic*dt4);
+    e = eprefactor * k[type] * dt2 *
+      (1.0 + opbend_cubic*dt + opbend_quartic*dt2 +
+       opbend_pentic*dt3 + opbend_sextic*dt4);
 
-    deddt = k[type] * dt * 
-      (2.0 + 3.0*opbend_cubic*dt + 4.0*opbend_quartic*dt2 + 
+    deddt = fprefactor * k[type] * dt *
+      (2.0 + 3.0*opbend_cubic*dt + 4.0*opbend_quartic*dt2 +
        5.0*opbend_pentic*dt3 + 6.0*opbend_sextic*dt4);
     sign = (ee >= 0.0) ? 1.0 : -1.0;
     dedcos = -deddt * sign / sqrt(cc*rdb2 - ee*ee);
@@ -197,32 +199,32 @@ void ImproperAmoeba::compute(int eflag, int vflag)
     fd[2] = dedcos * (dccdzid+deedzid);
     fb[0] = -fa[0] - fc[0] - fd[0];
     fb[1] = -fa[1] - fc[1] - fd[1];
-    fb[2] = -fa[1] - fc[2] - fd[2];
+    fb[2] = -fa[2] - fc[2] - fd[2];
 
     // apply force to each of 4 atoms
 
     if (newton_bond || id < nlocal) {
-      f[id][0] += fd[0];
-      f[id][1] += fd[1];
-      f[id][2] += fd[2];
+      f[id][0] -= fd[0];
+      f[id][1] -= fd[1];
+      f[id][2] -= fd[2];
     }
 
     if (newton_bond || ib < nlocal) {
-      f[ib][0] += fb[0];
-      f[ib][1] += fb[1];
-      f[ib][2] += fb[2];
+      f[ib][0] -= fb[0];
+      f[ib][1] -= fb[1];
+      f[ib][2] -= fb[2];
     }
 
     if (newton_bond || ia < nlocal) {
-      f[ia][0] += fa[0];
-      f[ia][1] += fa[1];
-      f[ia][2] += fa[2];
+      f[ia][0] -= fa[0];
+      f[ia][1] -= fa[1];
+      f[ia][2] -= fa[2];
     }
 
     if (newton_bond || ic < nlocal) {
-      f[ic][0] += fc[0];
-      f[ic][1] += fc[1];
-      f[ic][2] += fc[2];
+      f[ic][0] -= fc[0];
+      f[ic][1] -= fc[1];
+      f[ic][2] -= fc[2];
     }
 
     if (evflag)
@@ -276,21 +278,24 @@ void ImproperAmoeba::coeff(int narg, char **arg)
 
 void ImproperAmoeba::init_style()
 {
-  Pair *pair = force->pair_match("amoeba",1,0);
+  // check if PairAmoeba disabled improper terms
+
+  Pair *pair = NULL;
+  pair = force->pair_match("amoeba",1,0);
   if (!pair) pair = force->pair_match("hippo",1,0);
-  if (!pair) error->all(FLERR,"Improper amoeba could not find pair amoega");
-  
+  if (!pair) error->all(FLERR,"Improper amoeba could not find pair amoeba/hippo");
+
+  int tmp;
+  int flag = *((int *) pair->extract("improper_flag",tmp));
+  disable = flag ? 0 : 1;
+
+  // also extract opbend params
+
   int dim;
   opbend_cubic = *(double *) pair->extract("opbend_cubic",dim);
   opbend_quartic = *(double *) pair->extract("opbend_quartic",dim);
   opbend_pentic = *(double *) pair->extract("opbend_pentic",dim);
   opbend_sextic = *(double *) pair->extract("opbend_sextic",dim);
-
-  // check if PairAmoeba disabled improper terms
-
-  int tmp;
-  int flag = *((int *) pair->extract("improper_flag",tmp));
-  disable = flag ? 0 : 1;
 }
 
 /* ----------------------------------------------------------------------

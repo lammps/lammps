@@ -5,7 +5,7 @@ pair_style amoeba command
 =========================
 
 pair_style hippo command
-=========================
+========================
 
 Syntax
 """"""
@@ -33,100 +33,73 @@ Examples
 Additional info
 """""""""""""""
 
-doc:`Howto amoeba <howto_ameoba>`
-doc:`bond_style amoeba <bond_amoeba>`
-doc:`angle_style amoeba <angle_amoeba>`
-doc:`dihedral_style amoeba <dihedral_amoeba>`
-examples/amoeba
-tools/amoeba
-potentials/\*.prm.ameoba
-potentials/\*.key.ameoba
-potentials/\*.prm.hippo
-potentials/\*.key.hippo
+* :doc:`Howto amoeba <howto_ameoba>`
+* examples/amoeba
+* tools/amoeba
+* potentials/\*.amoeba
+* potentials/\*.hippo
 
 Description
 """""""""""
 
-NOTE: edit this paragraph however you wish including adding or changing
-citations (see bottom of this file)
-
 The *amoeba* style computes the AMOEBA polarizeable field formulated
-by Jay Ponder's group at U Washington at St Louis :ref:`(Ren)
-<amoeba-Ren>`, :ref:`(Shi) <amoeba-Shi>`.  The *hippo* style
-computes the HIPPO polarizeable force field , an extension to AMOEBA,
-formulated by Josh Rackers and collaborators in the Ponder group
-:ref:`(Rackers) <amoeba-Rackers>`.  
+by Jay Ponder's group at the U Washington at St Louis :ref:`(Ren)
+<amoeba-Ren>`, :ref:`(Shi) <amoeba-Shi>`.  The *hippo* style computes
+the HIPPO polarizeable force field, an extension to AMOEBA, formulated
+by Josh Rackers and collaborators in the Ponder group :ref:`(Rackers)
+<amoeba-Rackers>`.
 
 These force fields can be used when polarization effects are desired
 in simulations of water, organic molecules, and biomolecules including
-proteins, provided that parameterizations (force field files) are
-available for the systems you are interested in.  Files in the LAMMPS
-potentials with a "amoeba" or "hippo" suffix can be used.  The Tinker
-distribution and website may have other such files.
+proteins, provided that parameterizations (Tinker PRM force field
+files) are available for the systems you are interested in.  Files in
+the LAMMPS potentials directory with a "amoeba" or "hippo" suffix can
+be used.  The Tinker distribution and website have additional force
+field files as well.
 
-NOTE: replace these LaTeX formulas with a list of AMOEBA and HIPPO
-terms in some simple notation.  If desired, a more detailed
-mathematical expression for each term could also be included below
-the initial 2 formulas.
-
-The AMOEBA force field can be written as a collection of terms
+As discussed on the :doc:`Howto amoeba <howto_ameoba>` doc page, the
+intermolecular (non-bonded) portion of the AMOEBA force field contains
+these terms:
 
 .. math::
 
-   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
-       \left(\frac{\sigma}{r}\right)^6 \right]
-                       \qquad r < r_c
+   U_{amoeba} = U_{hal} + U_{multipole} + U_{polar}
 
-:math:`r_c` is the cutoff, blah is the dipole, etc
-
-The HIPPO force field is similar but alters some of the terms
+while the HIPPO force field contains these terms:
 
 .. math::
 
-   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
-       \left(\frac{\sigma}{r}\right)^6 \right]
-                       \qquad r < r_c
+   U_{hippo} = U_{repulsion} + U_{dispersion} + U_{multipole} + U_{polar} + U_{qxfer}
 
-:math:`r_c` is the cutoff, blah is the dipole, etc
+Conceptually, these terms compute the following interactions:
 
-NOTE: Add a sentence for each term to explain what physical effects
-the FFs are encoding.  E.g. The polar term iteratively computes an
-induced dipole for each atom, then calculates dipole-dipole
-interactions ...
+* :math:`U_{hal}` = buffered 14-7 van der Waals with offsets applied to hydrogen atoms
+* :math:`U_{repulsion}` = Pauli repulsion due to rearrangement of electron density
+* :math:`U_{dispersion}` = dispersion between correlated, instantaneous induced dipole moments
+* :math:`U_{multipole}` = electrostatics between permanent point charges, dipoles, and quadrupoles
+* :math:`U_{polar}` = electronic polarization bewteen induced point dipoles
+* :math:`U_{qxfer}` = charge transfer effects
 
-See the AMOEBA and HIPPO papers for further details.
+Note that the AMOEBA versus HIPPO force fields typically compute the
+same term differently using their own formulas.  The references on
+this doc page give full details for both force fields.
 
 .. note::
 
   The AMOEBA and HIPPO force fields compute long-range charge, dipole,
-  and quadrupole interactions (NOTE: also long-range dispersion?).
-  However, unlike other models with long-range interactions in LAMMPS,
-  this does not require use of a KSpace style via the
+  and quadrupole interactions as well as long-range dispersion
+  effects.  However, unlike other models with long-range interactions
+  in LAMMPS, this does not require use of a KSpace style via the
   :doc:`kspace_style <kspace_style>` command.  That is because for
   AMOEBA and HIPPO the long-range computations are intertwined with
-  the pairwise compuations.  So these pair style include both short-
+  the pairwise computations.  So these pair style include both short-
   and long-range computations.  This means the energy and virial
   computed by the pair style as well as the "Pair" timing reported by
-  LAMMPS will include the long-range components.
-
-.. note::
-
-  As explained on the :doc:`Howto amoeba <howto_ameoba>` doc page, use
-  of these pair styles to run a simulation with the AMOEBA or HIPPO
-  force fields requires your input script to use the :doc:`atom_style
-  hybrid full amoeba <atom_style>` atom style, AMOEBA versions of
-  bond/angle/dihedral styles, the :doc:`special_bonds one/five
-  <special_bonds>` option, and the :doc:`fix property/atom one/five
-  <fix_property>` command to define several additional per-atom
-  properties.  The latter requires a "Tinker Types" section be
-  included in the LAMMPS data file.  This can be auto-generated using
-  the tools/amoeba/tinker2lmp.py Python script.  See the :doc:`Howto
-  amoeba <howto_ameoba>` doc page and tools/amoeba/README file for
-  details on using that tool.
+  LAMMPS will include the long-range calculations.
 
 The implementation of the AMOEBA and HIPPO force fields in LAMMPS was
-done using code provided by the Ponder group from their `Tinker MD
-code <https://dasher.wustl.edu/tinker/>`_ written in F90.
+done using F90 code provided by the Ponder group from their `Tinker MD
+code <https://dasher.wustl.edu/tinker/>`_.
 
 NOTE: what version of AMOEBA and HIPPO does LAMMPS implement?
 
@@ -140,22 +113,22 @@ Only a single pair_coeff command is used with either the *amoeba* and
    pair_coeff * * ../potentials/protein.prm.amoeba ../potentials/protein.key.amoeba
    pair_coeff * * ../potentials/water.prm.hippo ../potentials/water.key.hippo
 
-See examples of these files in the potentials directory.
+Examples of the PRM files are in the potentials directory with an
+\*.amoeba or \*.hippo suffix.  The examples/amoeba directory has
+examples of both PRM and KEY files.
 
-The format of a PRM file is a collection of sections, each with
-multiple lines.  These are the sections which LAMMPS recognizes:
+A Tinker PRM file is composed of sections, each of which has multiple
+lines.  A Tinker KEY file is composed of lines, each of which has a
+keyword followed by zero or more parameters.
 
-NOTE: need to list these, possibly there are some LAMMPS skips
-      or which need to be removed for LAMMPS to use the PRM file?
+The list of PRM sections and KEY keywords which LAMMPS recognizes are
+listed on the :doc:`Howto amoeba <howto_ameoba>` doc page.  If not
+recognized, the section or keyword is skipped.
 
-The format of a KEY file is a series of lines, with one parameter and
-its value per line.  These are the parameters which LAMMPS recognizes:
-
-NOTE: need to list these, possibly there are some keywords LAMMPS skips
-      or which need to be removed for LAMMPS to use the KEY file?
-
-NOTE: Any other info about PRM and KEY files we should explain
-for LAMMPS users here?
+Note that if the KEY file is specified as NULL, then no file is
+required; default values for various AMOEBA/HIPPO settings are used.
+The :doc:`Howto amoeba <howto_ameoba>` doc page also gives the default
+settings.
 
 ----------
 
@@ -184,23 +157,52 @@ enabled if LAMMPS was built with that package.  See the :doc:`Build
 package <Build_package>` doc page for more info.
 
 The AMOEBA and HIPPO potential (PRM) and KEY files provided with
-LAMMPS in the potentials directory are Tinker files parameterized for
-Tinker units.  Their numeric parameters are converted by LAMMPS to its
-real units :doc:`units <units>`.  You can only use these pair styles
-with real units.
+LAMMPS in the potentials and examples/amoeva directories are Tinker
+files parameterized for Tinker units.  Their numeric parameters are
+converted by LAMMPS to its real units :doc:`units <units>`.  Thus uou
+can only use these pair styles with real units.
 
 These potentials do not yet calculate per-atom energy or virial
 contributions.
+
+As explained on the :doc:`AMOEBA and HIPPO howto <Howto_amoeba>` page,
+use of these pair styles to run a simulation with the AMOEBA or HIPPO
+force fields requires several things.
+
+The first is a data file generated by the tools/tinker/tinker2lmp.py
+conversion script which uses Tinker file force field file input to
+create a data file compatible with LAMMPS.
+
+The second is use of these commands:
+
+* :doc:`atom_style amoeba <atom_style>`
+* :doc:`fix property/atom <fix_property_atom>`
+* :doc:`special_bonds one/five <special_bonds>`
+
+And third, depending on the model being simulated, these
+commands for intramolecular interactions may also be required:
+
+* :doc:`bond_style class2 <bond_class2>`
+* :doc:`angle_style amoeba <angle_amoeba>`
+* :doc:`dihedral_style fourier <dihedral_fourier>`
+* :doc:`improper_style amoeba <improper_amoeba>`
+* :doc:`fix amoeba/pitorsion <fix_amoeba_pitorsion>`
+* :doc:`fix amoeba/bitorsion <fix_amoeba_bitorsion>`
 
 ----------
 
 Related commands
 """"""""""""""""
 
-:doc:`atom_style amoeba <atom_style>`, `bond_style amoeba
-:doc:<bond_amoeba>`, `angle_style amoeba <angle_amoeba>`,
-:doc:`dihedral_style amoeba <dihedral_amoeba>`, `special_bonds
-:doc:one/five <special_bonds>`
+:doc:`atom_style amoeba <atom_style>`,
+:doc:`bond_style class2 <bond_class2>`,
+:doc:`angle_style amoeba <angle_amoeba>`,
+:doc:`dihedral_style fourier <dihedral_fourier>`,
+:doc:`improper_style amoeba <improper_amoeba>`,
+:doc:`fix amoeba/pitorsion <fix_amoeba_pitorsion>`,
+:doc:`fix amoeba/bitorsion <fix_amoeba_bitorsion>`,
+:doc:`special_bonds one/five <special_bonds>`,
+:doc:`fix property/atom <fix_property_atom>`
 
 Default
 """""""
@@ -215,8 +217,7 @@ none
 
 .. _amoeba-Shi:
 
-**(Shi)** Shi, Xiz, Znahg, Best, Wu, Ponder, Ren, J Chem Theory Comp,
- 9, 4046, 2013.
+**(Shi)** Shi, Xiz, Znahg, Best, Wu, Ponder, Ren, J Chem Theory Comp, 9, 4046, 2013.
 
 .. _amoeba-Rackers:
 

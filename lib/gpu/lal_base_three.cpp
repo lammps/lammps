@@ -20,7 +20,7 @@ namespace LAMMPS_AL {
 extern Device<PRECISION,ACC_PRECISION> global_device;
 
 template <class numtyp, class acctyp>
-BaseThreeT::BaseThree() : _compiled(false), _max_bytes(0), _onetype(-1) {
+BaseThreeT::BaseThree() : _compiled(false), _onetype(-1), _max_bytes(0) {
   device=&global_device;
   ans=new Answer<numtyp,acctyp>();
   nbor=new Neighbor();

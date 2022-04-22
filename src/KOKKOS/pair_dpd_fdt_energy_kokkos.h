@@ -54,10 +54,10 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
   typedef EV_FLOAT value_type;
 
   PairDPDfdtEnergyKokkos(class LAMMPS *);
-  virtual ~PairDPDfdtEnergyKokkos();
-  virtual void compute(int, int);
-  void init_style();
-  double init_one(int, int);
+  ~PairDPDfdtEnergyKokkos() override;
+  void compute(int, int) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairDPDfdtEnergyZero, const int&) const;
@@ -118,7 +118,7 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
   double boltz,ftm2v;
   double special_lj[4];
 
-  virtual void allocate();
+  void allocate() override;
 
   Kokkos::DualView<params_dpd**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_dpd**,

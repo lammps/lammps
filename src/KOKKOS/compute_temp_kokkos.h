@@ -28,6 +28,16 @@ ComputeStyle(temp/kk/host,ComputeTempKokkos<LMPHostType>);
 
 namespace LAMMPS_NS {
 
+template<int RMASS>
+struct TagComputeTempScalar{};
+
+template<int RMASS>
+struct TagComputeTempVector{};
+
+template<class DeviceType>
+class ComputeTempKokkos : public ComputeTemp {
+ public:
+
   struct s_CTEMP {
     double t0, t1, t2, t3, t4, t5;
     KOKKOS_INLINE_FUNCTION
@@ -55,25 +65,16 @@ namespace LAMMPS_NS {
       t5 += rhs.t5;
     }
   };
+
   typedef s_CTEMP CTEMP;
-
-template<int RMASS>
-struct TagComputeTempScalar{};
-
-template<int RMASS>
-struct TagComputeTempVector{};
-
-template<class DeviceType>
-class ComputeTempKokkos : public ComputeTemp {
- public:
   typedef DeviceType device_type;
   typedef CTEMP value_type;
   typedef ArrayTypes<DeviceType> AT;
 
   ComputeTempKokkos(class LAMMPS *, int, char **);
-  virtual ~ComputeTempKokkos() {}
-  double compute_scalar();
-  void compute_vector();
+
+  double compute_scalar() override;
+  void compute_vector() override;
 
   template<int RMASS>
   KOKKOS_INLINE_FUNCTION

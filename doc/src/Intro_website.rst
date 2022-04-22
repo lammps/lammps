@@ -20,13 +20,12 @@ available online are listed below.
 * `Glossary of terms relevant to LAMMPS <https://www.lammps.org/glossary.html>`_
 * `LAMMPS highlights with images <https://www.lammps.org/pictures.html>`_
 * `LAMMPS highlights with movies <https://www.lammps.org/movies.html>`_
-* `Mailing list <https://www.lammps.org/mail.html>`_
 * `LAMMPS forum <https://www.lammps.org/forum.html>`_
 * `Workshops <https://www.lammps.org/workshops.html>`_
 * `Tutorials <https://www.lammps.org/tutorials.html>`_
 
 * `Pre- and post-processing tools for LAMMPS <https://www.lammps.org/prepost.html>`_
-* `Other software usable with LAMMPS <https://www.lammps.org/offsite.html>`_
+* `Other software usable with LAMMPS <https://www.lammps.org/external.html>`_
 * `Viz tools usable with LAMMPS <https://www.lammps.org/viz.html>`_
 
 * `Benchmark performance <https://www.lammps.org/bench.html>`_

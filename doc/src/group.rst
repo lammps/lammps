@@ -38,7 +38,7 @@ Syntax
        *intersect* args = two or more group IDs
        *dynamic* args = parent-ID keyword value ...
          one or more keyword/value pairs may be appended
-         keyword = *region* or *var* or *every*
+         keyword = *region* or *var* or *property* or *every*
            *region* value = region-ID
            *var* value = name of variable
            *property* value = name of custom integer or floating point vector
@@ -294,11 +294,13 @@ group and running further.
 
 .. note::
 
-   All fixes and computes take a group ID as an argument, but they
-   do not all allow for use of a dynamic group.  If you get an error
+   All fixes and computes take a group ID as an argument, but they do
+   not all allow for use of a dynamic group.  If you get an error
    message that this is not allowed, but feel that it should be for the
    fix or compute in question, then please post your reasoning to the
-   LAMMPS mail list and we can change it.
+   `LAMMPS forum at MatSci <https://matsci.org/c/lammps-development/>`_
+   and we can look into changing it.  The same applies if you come
+   across inconsistent behavior when dynamic groups are allowed.
 
 The *static* style removes the setting for a dynamic group, converting
 it to a static group (the default).  The atoms in the static group are

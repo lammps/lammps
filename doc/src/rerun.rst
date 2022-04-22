@@ -175,24 +175,28 @@ include and perform all the usual operations of an input script that
 uses the :doc:`run <run>` command.  There are a few exceptions and
 points to consider, as discussed here.
 
-Fixes that perform time integration, such as :doc:`fix nve <fix_nve>` or
-:doc:`fix npt <fix_nh>` are not invoked, since no time integration is
-performed.  Fixes that perturb or constrain the forces on atoms will
-be invoked, just as they would during a normal run.  Examples are :doc:`fix indent <fix_indent>` and :doc:`fix langevin <fix_langevin>`.  So you
-should think carefully as to whether that makes sense for the manner
-in which you are reprocessing the dump snapshots.
+Fixes that perform time integration, such as :doc:`fix nve <fix_nve>`
+or :doc:`fix npt <fix_nh>` are not invoked, since no time integration
+is performed.  Fixes that perturb or constrain the forces on atoms
+will be invoked, just as they would during a normal run.  Examples are
+:doc:`fix indent <fix_indent>` and :doc:`fix langevin <fix_langevin>`.
+So you should think carefully as to whether that makes sense for the
+manner in which you are reprocessing the dump snapshots.
 
-If you only want the rerun script to perform an analysis that does
-not involve pair interactions, such as use compute msd to calculated
-displacements over time, you do not need to define a :doc:`pair style <pair_style>`, which may also mean neighbor lists will not
-need to be calculated which saves time.  The :doc:`comm_modify cutoff <comm_modify>` command can also be used to insure ghost
-atoms are acquired from far enough away for operations like bond and
-angle evaluations, if no pair style is being used.
+If you only want the rerun script to perform an analysis that does not
+involve pair interactions, such as use compute msd to calculated
+displacements over time, you do not need to define a :doc:`pair style
+<pair_style>`, which may also mean neighbor lists will not need to be
+calculated which saves time.  The :doc:`comm_modify cutoff
+<comm_modify>` command can also be used to insure ghost atoms are
+acquired from far enough away for operations like bond and angle
+evaluations, if no pair style is being used.
 
 Every time a snapshot is read, the timestep for the simulation is
 reset, as if the :doc:`reset_timestep <reset_timestep>` command were
 used.  This command has some restrictions as to what fixes can be
-defined.  See its page for details.  For example, the :doc:`fix deposit <fix_deposit>` and :doc:`fix dt/reset <fix_dt_reset>` fixes
+defined.  See its page for details.  For example, the :doc:`fix
+deposit <fix_deposit>` and :doc:`fix dt/reset <fix_dt_reset>` fixes
 are in this category.  They also make no sense to use with a rerun
 command.
 

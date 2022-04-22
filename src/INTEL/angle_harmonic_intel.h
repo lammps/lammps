@@ -33,9 +33,9 @@ namespace LAMMPS_NS {
 class AngleHarmonicIntel : public AngleHarmonic {
  public:
   AngleHarmonicIntel(class LAMMPS *);
-  virtual ~AngleHarmonicIntel();
-  virtual void compute(int, int);
-  virtual void init_style();
+  ~AngleHarmonicIntel() override;
+  void compute(int, int) override;
+  void init_style() override;
 
  protected:
   FixIntel *fix;
@@ -60,7 +60,7 @@ class AngleHarmonicIntel : public AngleHarmonic {
     } fc_packed1;
 
     fc_packed1 *fc;
-    ForceConst() : _nangletypes(0) {}
+    ForceConst() : fc(nullptr), _nangletypes(0) {}
     ~ForceConst() { set_ntypes(0, nullptr); }
 
     void set_ntypes(const int nangletypes, Memory *memory);

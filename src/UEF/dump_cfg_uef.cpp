@@ -68,8 +68,8 @@ void DumpCFGUef::write_header(bigint n)
   //   so molecules are not split across periodic box boundaries
 
   double box[3][3],rot[3][3];
-  ((FixNHUef*) modify->fix[ifix_uef])->get_box(box);
-  ((FixNHUef*) modify->fix[ifix_uef])->get_rot(rot);
+  (dynamic_cast<FixNHUef*>( modify->fix[ifix_uef]))->get_box(box);
+  (dynamic_cast<FixNHUef*>( modify->fix[ifix_uef]))->get_rot(rot);
   // rot goes from "lab frame" to "upper triangular frame"
   // it's transpose takes the simulation box to the flow frame
   for (int i=0;i<3;i++)
@@ -86,7 +86,7 @@ void DumpCFGUef::write_header(bigint n)
   if (atom->peri_flag) scale = atom->pdscale;
   else if (unwrapflag == 1) scale = UNWRAPEXPAND;
 
-  fprintf(fp,"Number of particles = " BIGINT_FORMAT "\n",n);
+  fmt::print(fp,"Number of particles = {}\n",n);
   fprintf(fp,"A = %g Angstrom (basic length-scale)\n",scale);
   // in box[][] columns are cell edges
   // in H0, rows are cell edges

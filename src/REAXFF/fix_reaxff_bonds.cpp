@@ -28,8 +28,6 @@
 #include "pair_reaxff.h"
 #include "reaxff_api.h"
 
-#include <cstring>
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace ReaxFF;
@@ -45,30 +43,21 @@ FixReaxFFBonds::FixReaxFFBonds(LAMMPS *lmp, int narg, char **arg) :
   MPI_Comm_size(world,&nprocs);
   ntypes = atom->ntypes;
   nmax = atom->nmax;
+  compressed = 0;
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
 
-  if (nevery <= 0)
-    error->all(FLERR,"Illegal fix reaxff/bonds command");
+  if (nevery <= 0) error->all(FLERR,"Illegal fix reaxff/bonds command");
 
   if (me == 0) {
-    char *suffix = strrchr(arg[4],'.');
-    if (suffix && strcmp(suffix,".gz") == 0) {
-#ifdef LAMMPS_GZIP
-      auto gzip = fmt::format("gzip -6 > {}",arg[4]);
-#ifdef _WIN32
-      fp = _popen(gzip.c_str(),"wb");
-#else
-      fp = popen(gzip.c_str(),"w");
-#endif
-#else
-      error->one(FLERR,"Cannot open gzipped file");
-#endif
+    if (platform::has_compress_extension(arg[4])) {
+      compressed = 1;
+      fp = platform::compressed_write(arg[4]);
+      if (!fp) error->one(FLERR,"Cannot open compressed file");
     } else fp = fopen(arg[4],"w");
 
-    if (!fp)
-      error->one(FLERR,fmt::format("Cannot open fix reaxff/bonds file {}: "
-                                   "{}",arg[4],utils::getsyserror()));
+    if (!fp) error->one(FLERR,fmt::format("Cannot open fix reaxff/bonds file {}: {}",
+                                          arg[4],utils::getsyserror()));
   }
 
   if (atom->tag_consecutive() == 0)
@@ -112,7 +101,7 @@ void FixReaxFFBonds::setup(int /*vflag*/)
 
 void FixReaxFFBonds::init()
 {
-  reaxff = (PairReaxFF *) force->pair_match("^reax..",0);
+  reaxff = dynamic_cast<PairReaxFF *>( force->pair_match("^reax..",0));
   if (reaxff == nullptr) error->all(FLERR,"Cannot use fix reaxff/bonds without "
                                 "pair_style reaxff, reaxff/kk, or reaxff/omp");
 }
@@ -251,23 +240,21 @@ void FixReaxFFBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
 {
   int i, j, k, itype;
   int inode, nlocal_tmp, numbonds;
-  tagint itag,jtag;
+  tagint itag;
   int nlocal = atom->nlocal;
   bigint ntimestep = update->ntimestep;
-  double sbotmp, nlptmp, avqtmp, abotmp;
+  double sbotmp, nlptmp, avqtmp;
 
   double cutof3 = reaxff->api->control->bg_cut;
   MPI_Request irequest, irequest2;
 
   if (me == 0) {
-    fprintf(fp,"# Timestep " BIGINT_FORMAT " \n",ntimestep);
-    fprintf(fp,"# \n");
-    fprintf(fp,"# Number of particles %d \n",natoms);
-    fprintf(fp,"# \n");
-    fprintf(fp,"# Max number of bonds per atom %d with "
-            "coarse bond order cutoff %5.3f \n",maxnum,cutof3);
-    fprintf(fp,"# Particle connection table and bond orders \n");
-    fprintf(fp,"# id type nb id_1...id_nb mol bo_1...bo_nb abo nlp q \n");
+    fmt::print(fp,"# Timestep {}\n#\n",ntimestep);
+    fmt::print(fp,"# Number of particles {}\n#\n",natoms);
+    fmt::print(fp,"# Max number of bonds per atom {} with coarse bond order cutoff {:5.3f}\n",
+               maxnum,cutof3);
+    fmt::print(fp,"# Particle connection table and bond orders\n"
+               "# id type nb id_1...id_nb mol bo_1...bo_nb abo nlp q\n");
   }
 
   j = 2;
@@ -289,30 +276,26 @@ void FixReaxFFBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
         avqtmp = buf[j+3];
         numbonds = nint(buf[j+4]);
 
-        fprintf(fp," " TAGINT_FORMAT " %d %d",itag,itype,numbonds);
-
-        for (k = 5; k < 5+numbonds; k++) {
-          jtag = static_cast<tagint> (buf[j+k]);
-          fprintf(fp," " TAGINT_FORMAT,jtag);
-        }
+        auto mesg = fmt::format(" {} {} {}",itag,itype,numbonds);
+        for (k = 5; k < 5+numbonds; k++)
+          mesg += " " + std::to_string(static_cast<tagint> (buf[j+k]));
         j += (5+numbonds);
 
-        fprintf(fp," " TAGINT_FORMAT,static_cast<tagint> (buf[j]));
+        mesg += " " + std::to_string(static_cast<tagint> (buf[j]));
         j ++;
 
-        for (k = 0; k < numbonds; k++) {
-          abotmp = buf[j+k];
-          fprintf(fp,"%14.3f",abotmp);
-        }
+        for (k = 0; k < numbonds; k++) mesg += fmt::format("{:14.3f}",buf[j+k]);
         j += (1+numbonds);
-        fprintf(fp,"%14.3f%14.3f%14.3f\n",sbotmp,nlptmp,avqtmp);
+
+        mesg += fmt::format("{:14.3f}{:14.3f}{:14.3f}\n",sbotmp,nlptmp,avqtmp);
+        fmt::print(fp, mesg);
       }
     }
   } else {
     MPI_Isend(&buf[0],nbuf_local,MPI_DOUBLE,0,0,world,&irequest2);
     MPI_Wait(&irequest2,MPI_STATUS_IGNORE);
   }
-  if (me ==0) fprintf(fp,"# \n");
+  if (me ==0) fputs("# \n",fp);
 
 }
 

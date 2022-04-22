@@ -55,13 +55,13 @@
 
 #include <impl/Kokkos_AnalyzePolicy.hpp>
 #include <Kokkos_CudaSpace.hpp>
+#include <Cuda/Kokkos_Cuda_Error.hpp>  // CUDA_SAFE_CALL
 
 #include <Kokkos_Parallel.hpp>
 #include <Kokkos_TaskScheduler.hpp>
 #include <Kokkos_Layout.hpp>
 #include <Kokkos_ScratchSpace.hpp>
 #include <Kokkos_MemoryTraits.hpp>
-#include <impl/Kokkos_Tags.hpp>
 #include <impl/Kokkos_ExecSpaceInitializer.hpp>
 #include <impl/Kokkos_HostSharedPtr.hpp>
 
@@ -184,8 +184,10 @@ class Cuda {
   /// method does not return until all dispatched functors on this
   /// device have completed.
   static void impl_static_fence();
+  static void impl_static_fence(const std::string&);
 
   void fence() const;
+  void fence(const std::string&) const;
 
   /** \brief  Return the maximum amount of concurrency.  */
   static int concurrency();
@@ -199,7 +201,7 @@ class Cuda {
 
   Cuda();
 
-  Cuda(cudaStream_t stream);
+  Cuda(cudaStream_t stream, bool manage_stream = false);
 
   //--------------------------------------------------------------------------
   //! \name Device-specific functions
@@ -246,7 +248,7 @@ class Cuda {
   inline Impl::CudaInternal* impl_internal_space_instance() const {
     return m_space_instance.get();
   }
-  uint32_t impl_instance_id() const noexcept { return 0; }
+  uint32_t impl_instance_id() const noexcept;
 
  private:
   Kokkos::Impl::HostSharedPtr<Impl::CudaInternal> m_space_instance;
@@ -271,9 +273,28 @@ class CudaSpaceInitializer : public ExecSpaceInitializerBase {
   void initialize(const InitArguments& args) final;
   void finalize(const bool all_spaces) final;
   void fence() final;
+  void fence(const std::string&) final;
   void print_configuration(std::ostream& msg, const bool detail) final;
 };
 
+template <class DT, class... DP>
+struct ZeroMemset<Kokkos::Cuda, DT, DP...> {
+  ZeroMemset(const Kokkos::Cuda& exec_space_instance,
+             const View<DT, DP...>& dst,
+             typename View<DT, DP...>::const_value_type&) {
+    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaMemsetAsync(
+        dst.data(), 0,
+        dst.size() * sizeof(typename View<DT, DP...>::value_type),
+        exec_space_instance.cuda_stream()));
+  }
+
+  ZeroMemset(const View<DT, DP...>& dst,
+             typename View<DT, DP...>::const_value_type&) {
+    KOKKOS_IMPL_CUDA_SAFE_CALL(
+        cudaMemset(dst.data(), 0,
+                   dst.size() * sizeof(typename View<DT, DP...>::value_type)));
+  }
+};
 }  // namespace Impl
 }  // namespace Kokkos
 

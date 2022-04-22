@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -92,7 +92,7 @@ void PairAmoeba::hal()
       factor_hal = special_hal[special_which];
       if (factor_hal == 0.0) continue;
       j &= NEIGHMASK15;
-      
+
       xr = xi - xred[j][0];
       yr = yi - xred[j][1];
       zr = zi - xred[j][2];
@@ -141,7 +141,7 @@ void PairAmoeba::hal()
       }
 
       ehal += e;
-      
+
       // find the chain rule terms for derivative components
 
       de = de / rik;
@@ -151,39 +151,39 @@ void PairAmoeba::hal()
 
       // increment the total van der Waals energy and derivatives
       // if jv < 0, trigger an error, needed H-bond partner is missing
-      
-      iv = ired2local[i];
-      jv = ired2local[j];
+
+      iv = red2local[i];
+      jv = red2local[j];
       if (jv < 0)
-	error->one(FLERR,"AMOEBA hal cannot find H bond partner - "
-		   "ghost comm is too short");
-      
+        error->one(FLERR,"AMOEBA hal cannot find H bond partner - "
+                   "ghost comm is too short");
+
       if (i == iv) {
-        f[i][0] += dedx;
-        f[i][1] += dedy;
-        f[i][2] += dedz;
+        f[i][0] -= dedx;
+        f[i][1] -= dedy;
+        f[i][2] -= dedz;
       } else {
-        f[i][0] += dedx*redi;
-        f[i][1] += dedy*redi;
-        f[i][2] += dedz*redi;
-        f[iv][0] += dedx*rediv;
-        f[iv][1] += dedy*rediv;
-        f[iv][2] += dedz*rediv;
+        f[i][0] -= dedx*redi;
+        f[i][1] -= dedy*redi;
+        f[i][2] -= dedz*redi;
+        f[iv][0] -= dedx*rediv;
+        f[iv][1] -= dedy*rediv;
+        f[iv][2] -= dedz*rediv;
       }
 
       if (j == jv) {
-        f[j][0] -= dedx;
-        f[j][1] -= dedy;
-        f[j][2] -= dedz;
+        f[j][0] += dedx;
+        f[j][1] += dedy;
+        f[j][2] += dedz;
       } else {
         redj = kred[jclass];
         redjv = 1.0 - redj;
-        f[j][0] -= dedx*redj;
-        f[j][1] -= dedy*redj;
-        f[j][2] -= dedz*redj;
-        f[jv][0] -= dedx*redjv;
-        f[jv][1] -= dedy*redjv;
-        f[jv][2] -= dedz*redjv;
+        f[j][0] += dedx*redj;
+        f[j][1] += dedy*redj;
+        f[j][2] += dedz*redj;
+        f[jv][0] += dedx*redjv;
+        f[jv][1] += dedy*redjv;
+        f[jv][2] += dedz*redjv;
       }
 
       // increment the internal virial tensor components
@@ -205,7 +205,7 @@ void PairAmoeba::hal()
       // energy = e
       // virial = 6-vec vir
       // NOTE: add tally function
-      
+
       if (evflag) {
       }
     }

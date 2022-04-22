@@ -29,14 +29,14 @@ namespace LAMMPS_NS {
 class FixReaxFFBonds : public Fix {
  public:
   FixReaxFFBonds(class LAMMPS *, int, char **);
-  virtual ~FixReaxFFBonds();
-  int setmask();
-  virtual void init();
-  void setup(int);
-  void end_of_step();
+  ~FixReaxFFBonds() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void end_of_step() override;
 
  protected:
-  int me, nprocs, nmax, ntypes, maxsize;
+  int me, nprocs, nmax, ntypes, maxsize, compressed;
   int *numneigh;
   tagint **neighid;
   double **abo;
@@ -49,7 +49,7 @@ class FixReaxFFBonds : public Fix {
   void PassBuffer(double *, int &);
   void RecvBuffer(double *, int, int, int, int);
   int nint(const double &);
-  virtual double memory_usage();
+  double memory_usage() override;
 
   bigint nvalid, nextvalid();
   struct _reax_list *lists;

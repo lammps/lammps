@@ -26,9 +26,9 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "suffix.h"
-#include "update.h"
 
 #include <cmath>
+#include <cstring>
 
 #include "omp_compat.h"
 
@@ -220,12 +220,12 @@ void DihedralHarmonicIntel::eval(const int vflag,
       if (c > (flt_t)1.0) c = (flt_t)1.0;
       if (c < (flt_t)-1.0) c = (flt_t)-1.0;
 
-      const flt_t tcos_shift = fc.bp[type].cos_shift;
-      const flt_t tsin_shift = fc.bp[type].sin_shift;
-      const flt_t tk = fc.bp[type].k;
-      const int m = fc.bp[type].multiplicity;
+      const flt_t tcos_shift = fc.fc[type].cos_shift;
+      const flt_t tsin_shift = fc.fc[type].sin_shift;
+      const flt_t tk = fc.fc[type].k;
+      const int m = fc.fc[type].multiplicity;
 
-      flt_t p = (flt_t)1.0;
+      auto  p = (flt_t)1.0;
       flt_t ddf1, df1;
       ddf1 = df1 = (flt_t)0.0;
 
@@ -359,11 +359,8 @@ void DihedralHarmonicIntel::init_style()
 {
   DihedralHarmonic::init_style();
 
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   #ifdef _LMP_INTEL_OFFLOAD
   _use_base = 0;
@@ -389,29 +386,28 @@ template <class flt_t, class acc_t>
 void DihedralHarmonicIntel::pack_force_const(ForceConst<flt_t> &fc,
                                              IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
-  const int bp1 = atom->ndihedraltypes + 1;
-  fc.set_ntypes(bp1,memory);
+  const int dp1 = atom->ndihedraltypes + 1;
+  fc.set_ntypes(dp1,memory);
 
-  for (int i = 1; i < bp1; i++) {
-    fc.bp[i].multiplicity = multiplicity[i];
-    fc.bp[i].cos_shift = cos_shift[i];
-    fc.bp[i].sin_shift = sin_shift[i];
-    fc.bp[i].k = k[i];
+  for (int i = 1; i < dp1; i++) {
+    fc.fc[i].multiplicity = multiplicity[i];
+    fc.fc[i].cos_shift = cos_shift[i];
+    fc.fc[i].sin_shift = sin_shift[i];
+    fc.fc[i].k = k[i];
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t>
-void DihedralHarmonicIntel::ForceConst<flt_t>::set_ntypes(const int nbondtypes,
+void DihedralHarmonicIntel::ForceConst<flt_t>::set_ntypes(const int ndihderaltypes,
                                                           Memory *memory) {
-  if (nbondtypes != _nbondtypes) {
-    if (_nbondtypes > 0)
-      _memory->destroy(bp);
+  if (memory != nullptr) _memory = memory;
+  if (ndihderaltypes != _ndihderaltypes) {
+    _memory->destroy(fc);
 
-    if (nbondtypes > 0)
-      _memory->create(bp,nbondtypes,"dihedralcharmmintel.bp");
+    if (ndihderaltypes > 0)
+      _memory->create(fc,ndihderaltypes,"dihedralcharmmintel.fc");
   }
-  _nbondtypes = nbondtypes;
-  _memory = memory;
+  _ndihderaltypes = ndihderaltypes;
 }

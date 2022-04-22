@@ -27,8 +27,7 @@ namespace LAMMPS_NS {
 class ComputeMSDNonGauss : public ComputeMSD {
  public:
   ComputeMSDNonGauss(class LAMMPS *, int, char **);
-  ~ComputeMSDNonGauss() {}
-  void compute_vector();
+  void compute_vector() override;
 };
 
 }    // namespace LAMMPS_NS

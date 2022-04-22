@@ -1,6 +1,13 @@
-import sys,os,unittest
+import os,unittest
 from lammps import PyLammps
 
+try:
+    import numpy
+    NUMPY_INSTALLED = True
+except ImportError:
+    NUMPY_INSTALLED = False
+
+@unittest.skipIf(not NUMPY_INSTALLED, "numpy is not available")
 class PythonPyLammps(unittest.TestCase):
     def setUp(self):
         machine = None
@@ -49,8 +56,8 @@ class PythonPyLammps(unittest.TestCase):
         self.assertEqual(self.pylmp.lmp.create_atoms(2, id=None, type=types, x=x), 2)
         self.assertEqual(self.pylmp.system.natoms, 2)
         self.assertEqual(len(self.pylmp.atoms), 2)
-        self.assertEqual(self.pylmp.atoms[0].position, tuple(x[0:3]))
-        self.assertEqual(self.pylmp.atoms[1].position, tuple(x[3:6]))
+        numpy.testing.assert_array_equal(self.pylmp.atoms[0].position, tuple(x[0:3]))
+        numpy.testing.assert_array_equal(self.pylmp.atoms[1].position, tuple(x[3:6]))
         self.assertEqual(self.pylmp.last_run, None)
 
 
@@ -83,6 +90,41 @@ class PythonPyLammps(unittest.TestCase):
         self.assertEqual(len(self.pylmp.last_run.thermo.E_mol), 2)
         self.assertEqual(len(self.pylmp.last_run.thermo.TotEng), 2)
         self.assertEqual(len(self.pylmp.last_run.thermo.Press), 2)
+
+    def test_info_queries(self):
+        self.pylmp.lattice("fcc", 0.8442),
+        self.pylmp.region("box block", 0, 4, 0, 4, 0, 4)
+        self.pylmp.create_box(1, "box")
+        self.pylmp.variable("a equal 10.0")
+        self.pylmp.variable("b string value")
+        self.assertEqual(self.pylmp.variables['a'].value, 10.0)
+        self.assertEqual(self.pylmp.variables['b'].value, 'value')
+        self.assertEqual(len(self.pylmp.variables),2)
+        self.assertEqual(self.pylmp.system.units,'lj')
+        self.assertEqual(self.pylmp.system.atom_style,'atomic')
+        self.assertEqual(self.pylmp.system.ntypes,1)
+        self.assertEqual(self.pylmp.system.natoms,0)
+        self.assertEqual(self.pylmp.communication.comm_style,'brick')
+        self.assertEqual(self.pylmp.communication.comm_layout,'uniform')
+        self.assertEqual(self.pylmp.communication.nprocs,1)
+        self.assertEqual(len(self.pylmp.computes),3)
+        self.assertEqual(self.pylmp.computes[0]['name'], 'thermo_temp')
+        self.assertEqual(self.pylmp.computes[0]['style'], 'temp')
+        self.assertEqual(self.pylmp.computes[0]['group'], 'all')
+        self.assertEqual(self.pylmp.computes[1]['name'], 'thermo_press')
+        self.assertEqual(self.pylmp.computes[1]['style'], 'pressure')
+        self.assertEqual(self.pylmp.computes[1]['group'], 'all')
+        self.assertEqual(self.pylmp.computes[2]['name'], 'thermo_pe')
+        self.assertEqual(self.pylmp.computes[2]['style'], 'pe')
+        self.assertEqual(self.pylmp.computes[2]['group'], 'all')
+        self.assertEqual(len(self.pylmp.dumps),0)
+        self.pylmp.fix('one','all','nve')
+        self.assertEqual(len(self.pylmp.fixes),1)
+        self.assertEqual(self.pylmp.fixes[0]['name'], 'one')
+        self.assertEqual(self.pylmp.fixes[0]['style'], 'nve')
+        self.assertEqual(self.pylmp.fixes[0]['group'], 'all')
+        self.pylmp.group('none','empty')
+        self.assertEqual(len(self.pylmp.groups),2)
 
 if __name__ == "__main__":
     unittest.main()

@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 class BondClass2 : public Bond {
  public:
   BondClass2(class LAMMPS *);
-  virtual ~BondClass2();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
-  void init_style();
-  double equilibrium_distance(int);
-  void write_restart(FILE *);
-  virtual void read_restart(FILE *);
-  void write_data(FILE *);
-  double single(int, double, int, int, double &);
-  virtual void *extract(const char *, int &);
+  ~BondClass2() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double equilibrium_distance(int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
+  double single(int, double, int, int, double &) override;
+  void *extract(const char *, int &) override;
 
  protected:
   double *r0, *k2, *k3, *k4;

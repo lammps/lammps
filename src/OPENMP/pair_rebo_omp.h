@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class PairREBOOMP : public PairAIREBOOMP {
  public:
   PairREBOOMP(class LAMMPS *);
-  virtual void settings(int, char **);
+  void settings(int, char **) override;
 
  protected:
-  void spline_init();
+  void spline_init() override;
 };
 
 }    // namespace LAMMPS_NS

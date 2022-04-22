@@ -34,31 +34,31 @@ class FixNeighHistory : public Fix {
   class Pair *pair;       // ptr to pair style that uses neighbor history
 
   FixNeighHistory(class LAMMPS *, int, char **);
-  ~FixNeighHistory();
-  int setmask();
-  void init();
-  void setup_post_neighbor();
-  void pre_exchange();
-  void min_pre_exchange();
-  virtual void post_neighbor();
-  void min_post_neighbor();
-  void post_run();
+  ~FixNeighHistory() override;
+  int setmask() override;
+  void init() override;
+  void setup_post_neighbor() override;
+  void pre_exchange() override;
+  void min_pre_exchange() override;
+  void post_neighbor() override;
+  void min_post_neighbor() override;
+  void post_run() override;
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  void set_arrays(int);
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
 
-  int pack_reverse_comm_size(int, int);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  void write_restart(FILE *);
-  int pack_restart(int, double *);
-  void unpack_restart(int, int);
-  int size_restart(int);
-  int maxsize_restart();
+  int pack_reverse_comm_size(int, int) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  void write_restart(FILE *) override;
+  int pack_restart(int, double *) override;
+  void unpack_restart(int, int) override;
+  int size_restart(int) override;
+  int maxsize_restart() override;
 
  protected:
   int newton_pair;        // same as force setting
@@ -93,7 +93,8 @@ class FixNeighHistory : public Fix {
   virtual void pre_exchange_no_newton();
   void allocate_pages();
 
-  inline int sbmask(int j) const { return j >> SBBITS & 3; }
+  // Shift by HISTBITS and check the first bit
+  inline int histmask(int j) const { return j >> HISTBITS & 1; }
 };
 
 }    // namespace LAMMPS_NS

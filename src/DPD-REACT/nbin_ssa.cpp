@@ -34,10 +34,6 @@ NBinSSA::NBinSSA(LAMMPS *lmp) : NBinStandard(lmp)
   }
 }
 
-NBinSSA::~NBinSSA()
-{
-}
-
 /* ----------------------------------------------------------------------
    bin owned and ghost atoms for the Shardlow Splitting Algorithm (SSA)
    local atoms are in distinct bins (binhead[]) from the ghosts

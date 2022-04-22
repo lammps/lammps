@@ -27,18 +27,17 @@ namespace LAMMPS_NS {
 class PairTersoff : public Pair {
  public:
   PairTersoff(class LAMMPS *);
-  virtual ~PairTersoff();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  virtual void init_style();
-  double init_one(int, int);
+  ~PairTersoff() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   template <int SHIFT_FLAG, int EVFLAG, int EFLAG, int VFLAG_ATOM> void eval();
 
   static constexpr int NPARAMS_PER_LINE = 17;
 
- protected:
   struct Param {
     double lam1, lam2, lam3;
     double c, d, h;
@@ -56,6 +55,7 @@ class PairTersoff : public Pair {
     double c0;    // added for TersoffMODC
   };
 
+ protected:
   Param *params;      // parameter set for an I-J-K interaction
   double cutmax;      // max cutoff for all elements
   int maxshort;       // size of short neighbor list array

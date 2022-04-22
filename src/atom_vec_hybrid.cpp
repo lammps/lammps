@@ -187,20 +187,20 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   // save concat_grow to check for duplicates of special-case fields
 
   char *concat_grow;;
-  char *null = nullptr;
+  char *dummyptr = nullptr;
 
   fields_grow = merge_fields(0,fields_grow,1,concat_grow);
-  fields_copy = merge_fields(1,fields_copy,0,null);
-  fields_comm = merge_fields(2,fields_comm,0,null);
-  fields_comm_vel = merge_fields(3,fields_comm_vel,0,null);
-  fields_reverse = merge_fields(4,fields_reverse,0,null);
-  fields_border = merge_fields(5,fields_border,0,null);
-  fields_border_vel = merge_fields(6,fields_border_vel,0,null);
-  fields_exchange = merge_fields(7,fields_exchange,0,null);
-  fields_restart = merge_fields(8,fields_restart,0,null);
-  fields_create = merge_fields(9,fields_create,0,null);
-  fields_data_atom = merge_fields(10,fields_data_atom,0,null);
-  fields_data_vel = merge_fields(11,fields_data_vel,0,null);
+  fields_copy = merge_fields(1,fields_copy,0,dummyptr);
+  fields_comm = merge_fields(2,fields_comm,0,dummyptr);
+  fields_comm_vel = merge_fields(3,fields_comm_vel,0,dummyptr);
+  fields_reverse = merge_fields(4,fields_reverse,0,dummyptr);
+  fields_border = merge_fields(5,fields_border,0,dummyptr);
+  fields_border_vel = merge_fields(6,fields_border_vel,0,dummyptr);
+  fields_exchange = merge_fields(7,fields_exchange,0,dummyptr);
+  fields_restart = merge_fields(8,fields_restart,0,dummyptr);
+  fields_create = merge_fields(9,fields_create,0,dummyptr);
+  fields_data_atom = merge_fields(10,fields_data_atom,0,dummyptr);
+  fields_data_vel = merge_fields(11,fields_data_vel,0,dummyptr);
 
   fields_allocated = 1;
 
@@ -213,7 +213,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   char *ptr;
 
   for (int idup = 0; idup < ndupfield; idup++) {
-    char *dup = (char *) dupfield[idup];
+    auto dup = (char *) dupfield[idup];
     ptr = strstr(concat_grow,dup);
     if ((ptr && strstr(ptr+1,dup)) && (comm->me == 0))
       error->warning(FLERR,fmt::format("Per-atom {} is used in multiple sub-"
@@ -545,56 +545,38 @@ void AtomVecHybrid::pack_property_atom(int multiindex, double *buf,
 char *AtomVecHybrid::merge_fields(int inum, char *root,
                                   int concat_flag, char *&concat_str)
 {
-  // create concatenated string of length size from root + all substyles
+  // create vector with all words combined
 
-  int size = strlen(root) + 1;
-  for (int k = 0; k < nstyles; k++)
-    size += strlen(fieldstrings[k].fstr[inum]) + 1;
-
-  char *concat = new char[size];
-  strcpy(concat,root);
-
+  std::string concat;
+  if (root) concat += root;
   for (int k = 0; k < nstyles; k++) {
-    if (strlen(concat)) strcat(concat," ");
-    strcat(concat,fieldstrings[k].fstr[inum]);
+    if (concat.size() > 0) concat += " ";
+    concat += fieldstrings[k].fstr[inum];
+  }
+  if (concat_flag) concat_str = utils::strdup(concat);
+
+  // remove duplicate words without changing the order
+
+  auto words = Tokenizer(concat, " ").as_vector();
+  std::vector<std::string> dedup;
+  for (auto &w : words) {
+    bool found = false;
+    for (auto &d : dedup) {
+       if (w == d) found = true;
+    }
+    if (!found) dedup.push_back(w);
   }
 
-  // identify unique words in concatenated string
-
-  std::vector<std::string> words = Tokenizer(concat, " ").as_vector();
-  int nwords = words.size();
-
-  int *unique = new int[nwords];
-
-  for (int i = 0; i < nwords; i++) {
-    unique[i] = 1;
-    for (int j = 0; j < i; j++)
-      if (words[i] == words[j]) unique[i] = 0;
+  // create final concatenated, deduped string
+  concat.clear();
+  for (auto &d : dedup) {
+    concat += d;
+    concat += " ";
   }
 
-  // construct a new deduped string
-
-  char *dedup = new char[size];
-  dedup[0] = '\0';
-
-  for (int i = 0; i < nwords; i++) {
-    if (!unique[i]) continue;
-    strcat(dedup,words[i].c_str());
-    if (i < nwords-1) strcat(dedup," ");
-  }
-
-  // clean up or return concat
-
-  if (concat_flag) concat_str = concat;
-  else delete [] concat;
-
-  // clean up
-
-  delete [] unique;
-
-  // return final concatenated, deduped string
-
-  return dedup;
+  // remove trailing blank
+  if (concat.size() > 0) concat.pop_back();
+  return utils::strdup(concat);
 }
 
 /* ----------------------------------------------------------------------

@@ -14,7 +14,7 @@ sys.path.append(path)
 from dump import dump
 
 if len(sys.argv) != 4:
-  raise StandardError, "Syntax: dumpsort.py oldfile N newfile"
+  sys.exit("Syntax: dumpsort.py oldfile N newfile")
 
 oldfile = sys.argv[1]
 ncolumn = int(sys.argv[2])

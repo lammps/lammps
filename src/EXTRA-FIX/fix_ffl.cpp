@@ -110,7 +110,7 @@ FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // allocates space for temporaries
   ffl_tmp1=ffl_tmp2=nullptr;
 
-  grow_arrays(atom->nmax);
+  FixFFL::grow_arrays(atom->nmax);
 
   // add callbacks to enable restarts
   atom->add_callback(Atom::GROW);
@@ -158,8 +158,8 @@ void FixFFL::init() {
   }
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
-    step_respa = ((Respa *) update->integrate)->step;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
+    step_respa = (dynamic_cast<Respa *>( update->integrate))->step;
   }
 
   init_ffl();
@@ -182,9 +182,9 @@ void FixFFL::setup(int vflag) {
   if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(nlevels_respa-1);
     post_force_respa(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(nlevels_respa-1);
   }
 }
 

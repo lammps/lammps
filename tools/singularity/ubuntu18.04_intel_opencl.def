@@ -59,6 +59,7 @@ From: ubuntu:18.04
         python3-pkg-resources \
         python3-setuptools \
         python3-virtualenv \
+        python3-venv \
         rsync \
         ssh \
         vim-nox \
@@ -69,6 +70,7 @@ From: ubuntu:18.04
         valgrind \
         gdb \
         zstd \
+        libyaml-cpp-dev \
         libkim-api-dev \
         openkim-models
 
@@ -106,7 +108,7 @@ From: ubuntu:18.04
     # Plumed
     ###########################################################################
 
-    export PLUMED_PKG_VERSION=2.6.1
+    export PLUMED_PKG_VERSION=2.7.3
 
     mkdir plumed
     cd plumed

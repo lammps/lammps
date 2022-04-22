@@ -15,13 +15,13 @@
 #include "meam.h"
 
 #include "math_const.h"
+
 #include <algorithm>
 #include <cmath>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::MY_PI;
 
-//
 //     do a sanity check on index parameters
 void
 MEAM::meam_checkindex(int num, int lim, int nidx, int* idx /*idx(3)*/, int* ierr)
@@ -233,7 +233,6 @@ MEAM::meam_setup_param(int which, double value, int nindex, int* index /*index(3
     //     21 = theta
     // see alloyparams(void) in meam_setup_done.cpp
     case 21:
-      // const double PI = 3.141592653589793238463;
       meam_checkindex(2, neltypes, nindex, index, errorflag);
       if (*errorflag != 0)
         return;

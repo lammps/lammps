@@ -30,10 +30,10 @@ class FixWallReflect : public Fix {
   enum { NONE = 0, EDGE, CONSTANT, VARIABLE };
 
   FixWallReflect(class LAMMPS *, int, char **);
-  virtual ~FixWallReflect();
-  int setmask();
-  void init();
-  void post_integrate();
+  ~FixWallReflect() override;
+  int setmask() override;
+  void init() override;
+  void post_integrate() override;
 
  protected:
   int nwall;

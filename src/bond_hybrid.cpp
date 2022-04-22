@@ -242,7 +242,7 @@ void BondHybrid::settings(int narg, char **arg)
     if (strncmp(arg[i], "quartic", 7) == 0) has_quartic = m;
 
     styles[nstyles] = force->new_bond(arg[i], 1, dummy);
-    force->store_style(keywords[nstyles], arg[i], 0);
+    keywords[nstyles] = force->store_style(arg[i], 0);
 
     istyle = i;
     if (strcmp(arg[i], "table") == 0) i++;

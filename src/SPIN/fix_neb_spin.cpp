@@ -56,7 +56,7 @@ FixNEBSpin::FixNEBSpin(LAMMPS *lmp, int narg, char **arg) :
   counts(nullptr), displacements(nullptr)
 {
 
-  if (narg < 4) error->all(FLERR,"Illegal fix neb_spin command");
+  if (narg < 4) error->all(FLERR,"Illegal fix neb/spin command");
 
   kspring = utils::numeric(FLERR,arg[3],false,lmp);
   if (kspring <= 0.0) error->all(FLERR,"Illegal fix neb command");
@@ -77,16 +77,16 @@ FixNEBSpin::FixNEBSpin(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"parallel") == 0) {
-      error->all(FLERR,"Illegal fix neb command");
+      error->all(FLERR,"Illegal fix neb/spin command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"perp") == 0) {
-      error->all(FLERR,"Illegal fix neb command");
+      error->all(FLERR,"Illegal fix neb/spin command");
       iarg += 2;
     } else if (strcmp (arg[iarg],"end") == 0) {
       iarg += 3;
     } else if (strcmp (arg[iarg],"lattice") == 0) {
       iarg += 2;
-    } else error->all(FLERR,"Illegal fix neb command");
+    } else error->all(FLERR,"Illegal fix neb/spin command");
   }
 
   // nreplica = number of partitions
@@ -107,16 +107,18 @@ FixNEBSpin::FixNEBSpin(LAMMPS *lmp, int narg, char **arg) :
   else procnext = -1;
 
   uworld = universe->uworld;
-  int *iroots = new int[nreplica];
-  MPI_Group uworldgroup,rootgroup;
   if (NEBLongRange) {
-    for (int i=0; i<nreplica; i++)
-      iroots[i] = universe->root_proc[i];
+    int *iroots = new int[nreplica];
+    MPI_Group uworldgroup,rootgroup;
+
+    for (int i=0; i<nreplica; i++) iroots[i] = universe->root_proc[i];
     MPI_Comm_group(uworld, &uworldgroup);
     MPI_Group_incl(uworldgroup, nreplica, iroots, &rootgroup);
     MPI_Comm_create(uworld, rootgroup, &rootworld);
+    if (rootgroup != MPI_GROUP_NULL) MPI_Group_free(&rootgroup);
+    if (uworldgroup != MPI_GROUP_NULL) MPI_Group_free(&uworldgroup);
+    delete [] iroots;
   }
-  delete [] iroots;
 
   // create a new compute pe style
   // id = fix-ID + pe, compute group = all

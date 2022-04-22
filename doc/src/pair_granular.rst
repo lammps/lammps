@@ -205,7 +205,7 @@ For *damping mass_velocity*, the normal damping is given by:
    \eta_n = \eta_{n0} m_{eff}
 
 Here, :math:`\eta_{n0}` is the damping coefficient specified for the normal
-contact model, in units of *mass*\ /\ *time* and
+contact model, in units of 1/\ *time* and
 :math:`m_{eff} = m_i m_j/(m_i + m_j)` is the effective mass.
 Use *damping mass_velocity* to reproduce the damping behavior of
 *pair gran/hooke/\**.

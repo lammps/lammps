@@ -20,13 +20,13 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *pH*, *pKa*, *pKb*, *pIp*, *pIm*, *pKs*, *acid_type*, *base_type*, *lunit_nm*, *temp*, *tempfixid*, *nevery*, *nmc*, *xrd*, *seed*, *tag*, *group*, *onlysalt*, *pmcmoves*
+     keyword = *pH*, *pKa*, *pKb*, *pIp*, *pIm*, *pKs*, *acid_type*, *base_type*, *lunit_nm*, *temp*, *tempfixid*, *nevery*, *nmc*, *rxd*, *seed*, *tag*, *group*, *onlysalt*, *pmcmoves*
      *pH* value = pH of the solution (can be specified as an equal-style variable)
-     *pKa* value = acid dissociation constant
-     *pKb* value = base dissociation constant
-     *pIp* value = chemical potential of free cations
-     *pIm* value = chemical potential of free anions
-     *pKs* value = solution self-dissociation constant
+     *pKa* value = acid dissociation constant (in the -log10 representation)
+     *pKb* value = base dissociation constant (in the -log10 representation)
+     *pIp* value = activity (effective concentration) of free cations (in the -log10 representation)
+     *pIm* value = activity (effective concentration) of free anions (in the -log10 representation)
+     *pKs* value = solvent self-dissociation constant (in the -log10 representation)
      *acid_type* = atom type of acid groups
      *base_type*  = atom type of base groups
      *lunit_nm* value = unit length used by LAMMPS (# in the units of nanometers)
@@ -34,7 +34,7 @@ Syntax
      *tempfixid* value = fix ID of temperature thermostat
      *nevery* value = invoke this fix every nevery steps
      *nmc* value = number of charge regulation MC moves to attempt every nevery steps
-     *xrd* value = cutoff distance for acid/base reaction
+     *rxd* value = cutoff distance for acid/base reaction
      *seed* value = random # seed (positive integer)
      *tag* value = yes or no (yes: The code assign unique tags to inserted ions; no: The tag of all inserted ions is "0")
      *group* value = group-ID, inserted ions are assigned to group group-ID. Can be used multiple times to assign inserted ions to multiple groups.
@@ -47,7 +47,7 @@ Examples
 """"""""
 .. code-block:: LAMMPS
 
-    fix chareg all charge/regulation 1 2 acid_type 3 base_type 4 pKa 5 pKb 7 lb 1.0 nevery 200 nexchange 200 seed 123 tempfixid fT
+    fix chareg all charge/regulation 1 2 acid_type 3 base_type 4 pKa 5.0 pKb 6.0 pH 7.0 pIp 3.0 pIm 3.0 nevery 200 nmc 200 seed 123 tempfixid fT
 
     fix chareg all charge/regulation 1 2 pIp 3 pIm 3 onlysalt yes 2 -1 seed 123 tag yes temp 1.0
 
@@ -92,7 +92,11 @@ where the fix attempts to charge :math:`\mathrm{A}` (discharge
 :math:`\mathrm{A}^-`) to :math:`\mathrm{A}^-` (:math:`\mathrm{A}`) and
 insert (delete) a proton (atom type 2). Besides, the fix implements
 self-ionization reaction of water :math:`\emptyset \rightleftharpoons
-\mathrm{H}^++\mathrm{OH}^-`.  However, this approach is highly
+\mathrm{H}^++\mathrm{OH}^-`.
+
+
+
+However, this approach is highly
 inefficient at :math:`\mathrm{pH} \approx 7` when the concentration of
 both protons and hydroxyl ions is low, resulting in a relatively low
 acceptance rate of MC moves.
@@ -102,24 +106,31 @@ reactions, which can be easily achieved via
 
 .. code-block:: LAMMPS
 
-    fix acid_reaction all charge/regulation 4 5 acid_type 1 pH 7.0 pKa 5.0 pIp 2.0 pIm 2.0
+    fix acid_reaction2 all charge/regulation 4 5 acid_type 1 pH 7.0 pKa 5.0 pIp 2.0 pIm 2.0
 
-where particles of atom type 4 and 5 are the salt cations and anions,
-both at chemical potential pI=2.0, see :ref:`(Curk1) <Curk1>` and
+where particles of atom type 4 and 5 are the salt cations and anions, both at activity (effective concentration) of :math:`10^{-2}` mol/l, see :ref:`(Curk1) <Curk1>` and
 :ref:`(Landsgesell) <Landsgesell>` for more details.
 
-
- Similarly, we could have simultaneously added a base ionization reaction
- (:math:`\mathrm{B} \rightleftharpoons \mathrm{B}^++\mathrm{OH}^-`)
+We could have simultaneously added a base ionization reaction (:math:`\mathrm{B} \rightleftharpoons \mathrm{B}^++\mathrm{OH}^-`)
 
 .. code-block:: LAMMPS
 
-    fix base_reaction all charge/regulation 2 3 base_type 6 pH 7.0 pKb 6.0 pIp 7.0 pIm 7.0
+    fix acid_base_reaction all charge/regulation 2 3 acid_type 1 base_type 6 pH 7.0 pKa 5.0 pKb 6.0 pIp 7.0 pIm 7.0
 
 where the fix will attempt to charge :math:`\mathrm{B}` (discharge
 :math:`\mathrm{B}^+`) to :math:`\mathrm{B}^+` (:math:`\mathrm{B}`) and
-insert (delete) a hydroxyl ion :math:`\mathrm{OH}^-` of atom type 3.  If
-neither the acid or the base type is specified, for example,
+insert (delete) a hydroxyl ion :math:`\mathrm{OH}^-` of atom type 3.
+
+
+Dissociated ions and salt ions can be combined into a single particle type, which reduces the number of necessary MC moves and increases sampling performance, see :ref:`(Curk1) <Curk1>`. The :math:`\mathrm{H}^+` and monovalent salt cation (:math:`\mathrm{S}^+`) are combined into a single particle type, :math:`\mathrm{X}^+ = \{\mathrm{H}^+, \mathrm{S}^+\}`. In this case "pIp" refers to the effective concentration of the combined cation type :math:`\mathrm{X}^+` and its value is determined by :math:`10^{-\mathrm{pIp}} = 10^{-\mathrm{pH}} + 10^{-\mathrm{pSp}}`, where :math:`10^{-\mathrm{pSp}}` is the effective concentration of salt cations. For example, at pH=7 and pSp=6 we would find pIp~5.958 and the command that performs reactions with combined ions could read,
+
+.. code-block:: LAMMPS
+
+    fix acid_reaction_combined all charge/regulation 2 3 acid_type 1 pH 7.0 pKa 5.0 pIp 5.958 pIm 5.958
+
+
+
+If neither the acid or the base type is specified, for example,
 
 .. code-block:: LAMMPS
 
@@ -127,11 +138,11 @@ neither the acid or the base type is specified, for example,
 
 the fix simply inserts or deletes an ion pair of a free cation (atom
 type 4) and a free anion (atom type 5) as done in a conventional
-grand-canonical MC simulation.
+grand-canonical MC simulation. Multivalent ions can be inserted (deleted) by using the *onlysalt* keyword.
 
 
 The fix is compatible with LAMMPS sub-packages such as *molecule* or
-*rigid*. That said, the acid and base particles can be part of larger
+*rigid*. The acid and base particles can be part of larger
 molecules or rigid bodies. Free ions that are inserted to or deleted
 from the system must be defined as single particles (no bonded
 interactions allowed) and cannot be part of larger molecules or rigid
@@ -153,14 +164,14 @@ Langevin thermostat:
     fix fT all langevin 1.0 1.0 1.0 123
     fix_modify fT temp dtemp
 
-The chemical potential units (e.g. pH) are in the standard log10
+The units of  pH, pKa, pKb, pIp, pIm are considered to be in the standard -log10
 representation assuming reference concentration :math:`\rho_0 =
-\mathrm{mol}/\mathrm{l}`.  Therefore, to perform the internal unit
-conversion, the length (in nanometers) of the LAMMPS unit length must be
-specified via *lunit_nm* (default is set to the Bjerrum length in water
-at room temperature *lunit_nm* = 0.71nm). For example, in the dilute
-ideal solution limit, the concentration of free ions will be
-:math:`c_\mathrm{I} = 10^{-\mathrm{pIp}}\mathrm{mol}/\mathrm{l}`.
+\mathrm{mol}/\mathrm{l}`.  For example, in the dilute
+ideal solution limit, the concentration of free cations will be
+:math:`c_\mathrm{I} = 10^{-\mathrm{pIp}}\mathrm{mol}/\mathrm{l}`. To perform the internal unit
+conversion, the the value of the LAMMPS unit length must be
+specified in nanometers via *lunit_nm*. The default value is set to the Bjerrum length in water
+at room temperature (0.71 nm), *lunit_nm* = 0.71.
 
 The temperature used in MC acceptance probability is set by *temp*. This
 temperature should be the same as the temperature set by the molecular
@@ -171,10 +182,10 @@ thermostat fix-ID is *fT*. The inserted particles attain a random
 velocity corresponding to the specified temperature. Using *tempfixid*
 overrides any fixed temperature set by *temp*.
 
-The *xrd* keyword can be used to restrict the inserted/deleted
+The *rxd* keyword can be used to restrict the inserted/deleted
 counterions to a specific radial distance from an acid or base particle
 that is currently participating in a reaction. This can be used to
-simulate more realist reaction dynamics. If *xrd* = 0 or *xrd* > *L* /
+simulate more realist reaction dynamics. If *rxd* = 0 or *rxd* > *L* /
 2, where *L* is the smallest box dimension, the radial restriction is
 automatically turned off and free ion can be inserted or deleted
 anywhere in the simulation box.
@@ -258,18 +269,18 @@ Default
 
 pH = 7.0; pKa = 100.0; pKb = 100.0; pIp = 5.0; pIm = 5.0; pKs = 14.0;
 acid_type = -1; base_type = -1; lunit_nm = 0.71; temp = 1.0; nevery =
-100; nmc = 100; xrd = 0; seed = 0; tag = no; onlysalt = no, pmcmoves =
+100; nmc = 100; rxd = 0; seed = 0; tag = no; onlysalt = no, pmcmoves =
 [1/3, 1/3, 1/3], group-ID = all
 
 ----------
 
 .. _Curk1:
 
-**(Curk1)** T. Curk, J. Yuan, and E. Luijten, "Coarse-grained simulation of charge regulation using LAMMPS", preprint (2021).
+**(Curk1)** T. Curk, J. Yuan, and E. Luijten, "Accelerated simulation method for charge regulation effects", JCP 156 (2022).
 
 .. _Curk2:
 
-**(Curk2)** T. Curk and E. Luijten, "Charge-regulation effects in nanoparticle self-assembly", PRL (2021)
+**(Curk2)** T. Curk and E. Luijten, "Charge-regulation effects in nanoparticle self-assembly", PRL 126 (2021)
 
 .. _Landsgesell:
 

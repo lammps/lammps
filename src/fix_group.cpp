@@ -186,7 +186,6 @@ void FixGroup::set_group()
   //   change the compute result since it will not be re-invoked at end-of-step,
   //   e.g. if compute pe/atom includes pe contributions from fixes
 
-
   double *var = nullptr;
   int *ivector = nullptr;
   double *dvector = nullptr;

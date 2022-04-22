@@ -8,22 +8,26 @@ PairStyle(deepmd,PairDeepMD)
 #define LMP_PAIR_NNP_H
 
 #include "pair.h"
+#ifdef LMPPLUGIN
+#include "DeepPot.h"
+#else
 #include "deepmd/DeepPot.h"
+#endif
 #include <iostream>
 #include <fstream>
 
-#define GIT_SUMM v2.0.0.b3-3-gcd11885
-#define GIT_HASH cd11885
+#define GIT_SUMM v2.0.3-110-g10fdc93
+#define GIT_HASH 10fdc93
 #define GIT_BRANCH devel
-#define GIT_DATE 2021-07-08 10:09:06 +0800
+#define GIT_DATE 2022-04-01 11:01:01 +0800
 #ifdef HIGH_PREC
 #define FLOAT_PREC double
 #else
 #define FLOAT_PREC float
 #endif
-#define DEEPMD_ROOT /scratch/gpfs/yifanl/usr/licensed/anaconda3/2020.7/dp-dev-4
-#define TensorFlow_INCLUDE_DIRS /scratch/gpfs/yifanl/usr/licensed/anaconda3/2020.7/dp-dev-4/include;/scratch/gpfs/yifanl/usr/licensed/anaconda3/2020.7/dp-dev-4/include
-#define TensorFlow_LIBRARY /scratch/gpfs/yifanl/usr/licensed/anaconda3/2020.7/dp-dev-4/lib/libtensorflow_cc.so;/scratch/gpfs/yifanl/usr/licensed/anaconda3/2020.7/dp-dev-4/lib/libtensorflow_framework.so
+#define DEEPMD_ROOT /home/yifanl/.conda/envs/dpdev4
+#define TensorFlow_INCLUDE_DIRS /home/yifanl/.conda/envs/dpdev4/include;/home/yifanl/.conda/envs/dpdev4/include
+#define TensorFlow_LIBRARY /home/yifanl/.conda/envs/dpdev4/lib/libtensorflow_cc.so;/home/yifanl/.conda/envs/dpdev4/lib/libtensorflow_framework.so
 #define DPMD_CVT_STR(x) #x
 #define DPMD_CVT_ASSTR(X) DPMD_CVT_STR(X)
 #define STR_GIT_SUMM DPMD_CVT_ASSTR(GIT_SUMM)

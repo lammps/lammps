@@ -10,8 +10,13 @@ FixStyle(dplr,FixDPLR)
 #include <stdio.h>
 #include "fix.h"
 #include "pair_deepmd.h"
+#ifdef LMPPLUGIN
+#include "DeepTensor.h"
+#include "DataModifier.h"
+#else
 #include "deepmd/DeepTensor.h"
 #include "deepmd/DataModifier.h"
+#endif
 
 #ifdef HIGH_PREC
 #define FLOAT_PREC double

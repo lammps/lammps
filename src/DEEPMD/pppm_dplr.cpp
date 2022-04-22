@@ -28,7 +28,8 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-#ifdef OLD_LMP_PPPM
+#if LAMMPS_VERSION_NUMBER<20181109
+// See lammps/lammps#1165
 PPPMDPLR::PPPMDPLR(LAMMPS *lmp, int narg, char **arg) :
   PPPM(lmp, narg, arg)
 #else
@@ -108,8 +109,13 @@ void PPPMDPLR::compute(int eflag, int vflag)
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
+#if LAMMPS_VERSION_NUMBER>=20210831
+  gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
+                          gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+#else
   gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+#endif
   brick2fft();
 
   // compute potential gradient on my FFT grid and
@@ -123,21 +129,41 @@ void PPPMDPLR::compute(int eflag, int vflag)
   // to fill ghost cells surrounding their 3d bricks
 
   if (differentiation_flag == 1)
+#if LAMMPS_VERSION_NUMBER>=20210831
+    gc->forward_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),FORWARD_AD,
+                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+#else
     gc->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD,
                             gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+#endif
   else
+#if LAMMPS_VERSION_NUMBER>=20210831
+    gc->forward_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),FORWARD_IK,
+                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+#else
     gc->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK,
                             gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+#endif
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
     if (differentiation_flag == 1 && vflag_atom)
+#if LAMMPS_VERSION_NUMBER>=20210831
+      gc->forward_comm(GridComm::KSPACE,this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM,
+                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+#else
       gc->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM,
                               gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+#endif
     else if (differentiation_flag == 0)
+#if LAMMPS_VERSION_NUMBER>=20210831
+      gc->forward_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM,
+                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+#else
       gc->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM,
                               gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+#endif
   }
 
   // calculate the force on my particles

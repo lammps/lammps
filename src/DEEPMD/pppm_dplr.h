@@ -21,7 +21,8 @@ namespace LAMMPS_NS {
 
   class PPPMDPLR : public PPPM {
 public:
-#ifdef OLD_LMP_PPPM
+#if LAMMPS_VERSION_NUMBER<20181109
+// See lammps/lammps#1165
     PPPMDPLR(class LAMMPS *, int, char **);
 #else
     PPPMDPLR(class LAMMPS *);

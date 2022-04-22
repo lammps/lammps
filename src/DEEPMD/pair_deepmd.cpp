@@ -238,6 +238,11 @@ PairDeepMD::PairDeepMD(LAMMPS *lmp)
     error->all(FLERR,"Pair deepmd requires metal unit, please set it by \"units metal\"");
   }
   restartinfo = 1;
+#if LAMMPS_VERSION_NUMBER>=20201130
+  centroidstressflag = CENTROID_AVAIL ; // set centroidstressflag = CENTROID_AVAIL to allow the use of the centroid/stress/atom. Added by Davide Tisi
+#else 
+  centroidstressflag = 2 ; // set centroidstressflag = 2 to allow the use of the centroid/stress/atom. Added by Davide Tisi
+#endif
   pppmflag = 1;
   respa_enable = 0;
   writedata = 0;
@@ -266,6 +271,12 @@ void
 PairDeepMD::print_summary(const string pre) const
 {
   if (comm->me == 0){
+    // capture cout to a string, then call LAMMPS's utils::logmesg
+    // https://stackoverflow.com/a/4043813/9567349
+    std::stringstream buffer;
+    std::streambuf *sbuf = std::cout.rdbuf();
+    std::cout.rdbuf(buffer.rdbuf());
+
     cout << "Summary of lammps deepmd module ..." << endl;
     cout << pre << ">>> Info of deepmd-kit:" << endl;
     deep_pot.print_summary(pre);
@@ -278,6 +289,9 @@ PairDeepMD::print_summary(const string pre) const
     cout << pre << "build float prec:   " << STR_FLOAT_PREC << endl;
     cout << pre << "build with tf inc:  " << STR_TensorFlow_INCLUDE_DIRS << endl;
     cout << pre << "build with tf lib:  " << STR_TensorFlow_LIBRARY << endl;
+
+    std::cout.rdbuf(sbuf);
+    utils::logmesg(lmp, buffer.str());
   }
 }
 
@@ -366,9 +380,14 @@ void PairDeepMD::compute(int eflag, int vflag)
   if (do_ghost) {
     deepmd::InputNlist lmp_list (list->inum, list->ilist, list->numneigh, list->firstneigh);
     if (single_model || multi_models_no_mod_devi) {
-      if ( ! (eflag_atom || vflag_atom) ) {      
+      //cvflag_atom is the right flag for the cvatom matrix 
+      if ( ! (eflag_atom || cvflag_atom) ) {      
 #ifdef HIGH_PREC
+  try {
 	deep_pot.compute (dener, dforce, dvirial, dcoord, dtype, dbox, nghost, lmp_list, ago, fparam, daparam);
+  } catch(deepmd::deepmd_exception& e) {
+    error->all(FLERR, e.what());
+  }
 #else
 	vector<float> dcoord_(dcoord.size());
 	vector<float> dbox_(dbox.size());
@@ -377,7 +396,11 @@ void PairDeepMD::compute(int eflag, int vflag)
 	vector<float> dforce_(dforce.size(), 0);
 	vector<float> dvirial_(dvirial.size(), 0);
 	double dener_ = 0;
+  try {
 	deep_pot.compute (dener_, dforce_, dvirial_, dcoord_, dtype, dbox_, nghost, lmp_list, ago, fparam, daparam);
+  } catch(deepmd::deepmd_exception& e) {
+    error->all(FLERR, e.what());
+  }
 	for (unsigned dd = 0; dd < dforce.size(); ++dd) dforce[dd] = dforce_[dd];	
 	for (unsigned dd = 0; dd < dvirial.size(); ++dd) dvirial[dd] = dvirial_[dd];	
 	dener = dener_;
@@ -399,7 +422,11 @@ void PairDeepMD::compute(int eflag, int vflag)
 	vector<float> deatom_(dforce.size(), 0);
 	vector<float> dvatom_(dforce.size(), 0);
 	double dener_ = 0;
+  try {
 	deep_pot.compute (dener_, dforce_, dvirial_, deatom_, dvatom_, dcoord_, dtype, dbox_, nghost, lmp_list, ago, fparam, daparam);
+  } catch(deepmd::deepmd_exception& e) {
+    error->all(FLERR, e.what());
+  }
 	for (unsigned dd = 0; dd < dforce.size(); ++dd) dforce[dd] = dforce_[dd];	
 	for (unsigned dd = 0; dd < dvirial.size(); ++dd) dvirial[dd] = dvirial_[dd];	
 	for (unsigned dd = 0; dd < deatom.size(); ++dd) deatom[dd] = deatom_[dd];	
@@ -409,14 +436,26 @@ void PairDeepMD::compute(int eflag, int vflag)
 	if (eflag_atom) {
 	  for (int ii = 0; ii < nlocal; ++ii) eatom[ii] += deatom[ii];
 	}
-	if (vflag_atom) {
+	// Added by Davide Tisi 2020
+	// interface the atomic virial computed by DeepMD 
+	// with the one used in centroid atoms
+	if (cvflag_atom) {
 	  for (int ii = 0; ii < nall; ++ii){
-	    vatom[ii][0] += 1.0 * dvatom[9*ii+0];
-	    vatom[ii][1] += 1.0 * dvatom[9*ii+4];
-	    vatom[ii][2] += 1.0 * dvatom[9*ii+8];
-	    vatom[ii][3] += 1.0 * dvatom[9*ii+3];
-	    vatom[ii][4] += 1.0 * dvatom[9*ii+6];
-	    vatom[ii][5] += 1.0 * dvatom[9*ii+7];
+	    //vatom[ii][0] += 1.0 * dvatom[9*ii+0];
+	    //vatom[ii][1] += 1.0 * dvatom[9*ii+4];
+	    //vatom[ii][2] += 1.0 * dvatom[9*ii+8];
+	    //vatom[ii][3] += 1.0 * dvatom[9*ii+3];
+	    //vatom[ii][4] += 1.0 * dvatom[9*ii+6];
+	    //vatom[ii][5] += 1.0 * dvatom[9*ii+7];
+            cvatom[ii][0] += -1.0 * dvatom[9*ii+0]; // xx
+            cvatom[ii][1] += -1.0 * dvatom[9*ii+4]; // yy 
+            cvatom[ii][2] += -1.0 * dvatom[9*ii+8]; // zz
+            cvatom[ii][3] += -1.0 * dvatom[9*ii+3]; // xy
+            cvatom[ii][4] += -1.0 * dvatom[9*ii+6]; // xz
+            cvatom[ii][5] += -1.0 * dvatom[9*ii+7]; // yz
+            cvatom[ii][6] += -1.0 * dvatom[9*ii+1]; // yx
+            cvatom[ii][7] += -1.0 * dvatom[9*ii+2]; // zx
+            cvatom[ii][8] += -1.0 * dvatom[9*ii+5]; // zy
 	  }
 	}
       }
@@ -429,7 +468,11 @@ void PairDeepMD::compute(int eflag, int vflag)
       vector<double> 		all_energy;
       vector<vector<double>> 	all_atom_energy;
       vector<vector<double>> 	all_atom_virial;
+      try {
       deep_pot_model_devi.compute(all_energy, all_force, all_virial, all_atom_energy, all_atom_virial, dcoord, dtype, dbox, nghost, lmp_list, ago, fparam, daparam);
+      } catch(deepmd::deepmd_exception& e) {
+        error->all(FLERR, e.what());
+      }
       // deep_pot_model_devi.compute_avg (dener, all_energy);
       // deep_pot_model_devi.compute_avg (dforce, all_force);
       // deep_pot_model_devi.compute_avg (dvirial, all_virial);
@@ -455,7 +498,11 @@ void PairDeepMD::compute(int eflag, int vflag)
       vector<vector<float>> 	all_virial_;	       
       vector<vector<float>> 	all_atom_energy_;
       vector<vector<float>> 	all_atom_virial_;
+      try {
       deep_pot_model_devi.compute(all_energy_, all_force_, all_virial_, all_atom_energy_, all_atom_virial_, dcoord_, dtype, dbox_, nghost, lmp_list, ago, fparam, daparam);
+      } catch(deepmd::deepmd_exception& e) {
+        error->all(FLERR, e.what());
+      }
       // deep_pot_model_devi.compute_avg (dener_, all_energy_);
       // deep_pot_model_devi.compute_avg (dforce_, all_force_);
       // deep_pot_model_devi.compute_avg (dvirial_, all_virial_);
@@ -478,25 +525,48 @@ void PairDeepMD::compute(int eflag, int vflag)
 	  all_force[ii][jj] = all_force_[ii][jj];
 	}
       }
+      all_virial.resize(all_virial_.size());
+      for (unsigned ii = 0; ii < all_virial_.size(); ++ii){
+        all_virial[ii].resize(all_virial_[ii].size());
+        for (unsigned jj = 0; jj < all_virial_[ii].size(); ++jj){
+          all_virial[ii][jj] = all_virial_[ii][jj];
+        }
+      }
 #endif
       if (eflag_atom) {
 	for (int ii = 0; ii < nlocal; ++ii) eatom[ii] += deatom[ii];
       }
-      if (vflag_atom) {
+	// Added by Davide Tisi 2020
+	// interface the atomic virial computed by DeepMD 
+	// with the one used in centroid atoms
+      if (cvflag_atom) {
 	for (int ii = 0; ii < nall; ++ii){
-	  vatom[ii][0] += 1.0 * dvatom[9*ii+0];
-	  vatom[ii][1] += 1.0 * dvatom[9*ii+4];
-	  vatom[ii][2] += 1.0 * dvatom[9*ii+8];
-	  vatom[ii][3] += 1.0 * dvatom[9*ii+3];
-	  vatom[ii][4] += 1.0 * dvatom[9*ii+6];
-	  vatom[ii][5] += 1.0 * dvatom[9*ii+7];
+	  //vatom[ii][0] += 1.0 * dvatom[9*ii+0];
+	  //vatom[ii][1] += 1.0 * dvatom[9*ii+4];
+	  //vatom[ii][2] += 1.0 * dvatom[9*ii+8];
+	  //vatom[ii][3] += 1.0 * dvatom[9*ii+3];
+	  //vatom[ii][4] += 1.0 * dvatom[9*ii+6];
+	  //vatom[ii][5] += 1.0 * dvatom[9*ii+7];
+            cvatom[ii][0] += -1.0 * dvatom[9*ii+0]; // xx
+            cvatom[ii][1] += -1.0 * dvatom[9*ii+4]; // yy 
+            cvatom[ii][2] += -1.0 * dvatom[9*ii+8]; // zz
+            cvatom[ii][3] += -1.0 * dvatom[9*ii+3]; // xy
+            cvatom[ii][4] += -1.0 * dvatom[9*ii+6]; // xz
+            cvatom[ii][5] += -1.0 * dvatom[9*ii+7]; // yz
+            cvatom[ii][6] += -1.0 * dvatom[9*ii+1]; // yx
+            cvatom[ii][7] += -1.0 * dvatom[9*ii+2]; // zx
+            cvatom[ii][8] += -1.0 * dvatom[9*ii+5]; // zy
 	}
       }      
       if (out_freq > 0 && update->ntimestep % out_freq == 0) {
 	int rank = comm->me;
 	// std force 
 	if (newton_pair) {
-	  comm->reverse_comm_pair(this);
+#if LAMMPS_VERSION_NUMBER>=20220324
+	  comm->reverse_comm(this);
+#else
+    comm->reverse_comm_pair(this);
+#endif
 	}
 	vector<double> std_f;
 #ifdef HIGH_PREC
@@ -646,7 +716,11 @@ void PairDeepMD::compute(int eflag, int vflag)
   else {
     if (numb_models == 1) {
 #ifdef HIGH_PREC
+      try {
       deep_pot.compute (dener, dforce, dvirial, dcoord, dtype, dbox);
+      } catch(deepmd::deepmd_exception& e) {
+        error->all(FLERR, e.what());
+      }
 #else
       vector<float> dcoord_(dcoord.size());
       vector<float> dbox_(dbox.size());
@@ -655,7 +729,11 @@ void PairDeepMD::compute(int eflag, int vflag)
       vector<float> dforce_(dforce.size(), 0);
       vector<float> dvirial_(dvirial.size(), 0);
       double dener_ = 0;
+      try {
       deep_pot.compute (dener_, dforce_, dvirial_, dcoord_, dtype, dbox_);
+      } catch(deepmd::deepmd_exception& e) {
+        error->all(FLERR, e.what());
+      }
       for (unsigned dd = 0; dd < dforce.size(); ++dd) dforce[dd] = dforce_[dd];	
       for (unsigned dd = 0; dd < dvirial.size(); ++dd) dvirial[dd] = dvirial_[dd];	
       dener = dener_;      
@@ -751,15 +829,23 @@ void PairDeepMD::settings(int narg, char **arg)
   }
   numb_models = models.size();
   if (numb_models == 1) {
+    try {
     deep_pot.init (arg[0], get_node_rank(), get_file_content(arg[0]));
+    } catch(deepmd::deepmd_exception& e) {
+      error->all(FLERR, e.what());
+    }
     cutoff = deep_pot.cutoff ();
     numb_types = deep_pot.numb_types();
     dim_fparam = deep_pot.dim_fparam();
     dim_aparam = deep_pot.dim_aparam();
   }
   else {
+    try {
     deep_pot.init (arg[0], get_node_rank(), get_file_content(arg[0]));
     deep_pot_model_devi.init(models, get_node_rank(), get_file_content(models));
+    } catch(deepmd::deepmd_exception& e) {
+      error->all(FLERR, e.what());
+    }
     cutoff = deep_pot_model_devi.cutoff();
     numb_types = deep_pot_model_devi.numb_types();
     dim_fparam = deep_pot_model_devi.dim_fparam();
@@ -957,10 +1043,14 @@ void PairDeepMD::coeff(int narg, char **arg)
 
 void PairDeepMD::init_style()
 {
+#if LAMMPS_VERSION_NUMBER>=20220324
+  neighbor->add_request(this, NeighConst::REQ_FULL);
+#else
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->half = 0;
-  // neighbor->requests[irequest]->full = 1;  
+  neighbor->requests[irequest]->full = 1;  
   // neighbor->requests[irequest]->newton = 2;  
+#endif
   if (out_each == 1){
     int ntotal = atom->natoms;
     int nprocs = comm->nprocs;

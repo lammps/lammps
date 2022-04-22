@@ -1137,54 +1137,57 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
+    if (!next) error->all(FLERR, "Missing data in Atoms section of data file");
     *next = '\0';
     auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
-    if ((int)values.size() != nwords)
+    if (values.size() == 0) {
+      // skip over empty of comment lines
+    } else if ((int)values.size() != nwords) {
       error->all(FLERR, "Incorrect atom format in data file: {}", utils::trim(buf));
-
-    int imx = 0, imy = 0, imz = 0;
-    if (imageflag) {
-      imx = utils::inumeric(FLERR,values[iptr],false,lmp);
-      imy = utils::inumeric(FLERR,values[iptr+1],false,lmp);
-      imz = utils::inumeric(FLERR,values[iptr+2],false,lmp);
-      if ((domain->dimension == 2) && (imz != 0))
-        error->all(FLERR,"Z-direction image flag must be 0 for 2d-systems");
-      if ((!domain->xperiodic) && (imx != 0)) { reset_image_flag[0] = true; imx = 0; }
-      if ((!domain->yperiodic) && (imy != 0)) { reset_image_flag[1] = true; imy = 0; }
-      if ((!domain->zperiodic) && (imz != 0)) { reset_image_flag[2] = true; imz = 0; }
-    }
-    imagedata = ((imageint) (imx + IMGMAX) & IMGMASK) |
+    } else {
+      int imx = 0, imy = 0, imz = 0;
+      if (imageflag) {
+        imx = utils::inumeric(FLERR,values[iptr],false,lmp);
+        imy = utils::inumeric(FLERR,values[iptr+1],false,lmp);
+        imz = utils::inumeric(FLERR,values[iptr+2],false,lmp);
+        if ((domain->dimension == 2) && (imz != 0))
+          error->all(FLERR,"Z-direction image flag must be 0 for 2d-systems");
+        if ((!domain->xperiodic) && (imx != 0)) { reset_image_flag[0] = true; imx = 0; }
+        if ((!domain->yperiodic) && (imy != 0)) { reset_image_flag[1] = true; imy = 0; }
+        if ((!domain->zperiodic) && (imz != 0)) { reset_image_flag[2] = true; imz = 0; }
+      }
+      imagedata = ((imageint) (imx + IMGMAX) & IMGMASK) |
         (((imageint) (imy + IMGMAX) & IMGMASK) << IMGBITS) |
         (((imageint) (imz + IMGMAX) & IMGMASK) << IMG2BITS);
 
-    xdata[0] = utils::numeric(FLERR,values[xptr],false,lmp);
-    xdata[1] = utils::numeric(FLERR,values[xptr+1],false,lmp);
-    xdata[2] = utils::numeric(FLERR,values[xptr+2],false,lmp);
-    if (shiftflag) {
-      xdata[0] += shift[0];
-      xdata[1] += shift[1];
-      xdata[2] += shift[2];
-    }
+      xdata[0] = utils::numeric(FLERR,values[xptr],false,lmp);
+      xdata[1] = utils::numeric(FLERR,values[xptr+1],false,lmp);
+      xdata[2] = utils::numeric(FLERR,values[xptr+2],false,lmp);
+      if (shiftflag) {
+        xdata[0] += shift[0];
+        xdata[1] += shift[1];
+        xdata[2] += shift[2];
+      }
 
-    domain->remap(xdata,imagedata);
-    if (triclinic) {
-      domain->x2lamda(xdata,lamda);
-      coord = lamda;
-    } else coord = xdata;
+      domain->remap(xdata,imagedata);
+      if (triclinic) {
+        domain->x2lamda(xdata,lamda);
+        coord = lamda;
+      } else coord = xdata;
 
-    if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
-        coord[1] >= sublo[1] && coord[1] < subhi[1] &&
-        coord[2] >= sublo[2] && coord[2] < subhi[2]) {
-      avec->data_atom(xdata,imagedata,values);
-      if (id_offset) tag[nlocal-1] += id_offset;
-      if (mol_offset) molecule[nlocal-1] += mol_offset;
-      if (type_offset) {
-        type[nlocal-1] += type_offset;
-        if (type[nlocal-1] > ntypes)
-          error->one(FLERR,"Invalid atom type in Atoms section of data file");
+      if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
+          coord[1] >= sublo[1] && coord[1] < subhi[1] &&
+          coord[2] >= sublo[2] && coord[2] < subhi[2]) {
+        avec->data_atom(xdata,imagedata,values);
+        if (id_offset) tag[nlocal-1] += id_offset;
+        if (mol_offset) molecule[nlocal-1] += mol_offset;
+        if (type_offset) {
+          type[nlocal-1] += type_offset;
+          if (type[nlocal-1] > ntypes)
+            error->one(FLERR,"Invalid atom type in Atoms section of data file");
+        }
       }
     }
-
     buf = next + 1;
   }
 }
@@ -1200,30 +1203,25 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
   int m;
   char *next;
 
-  next = strchr(buf,'\n');
-  *next = '\0';
-  int nwords = utils::trim_and_count_words(buf);
-  *next = '\n';
-
-  if (nwords != avec->size_data_vel)
-    error->all(FLERR,"Incorrect velocity format in data file");
-
   // loop over lines of atom velocities
   // tokenize the line into values
   // if I own atom tag, unpack its values
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
+    if (!next) error->all(FLERR, "Missing data in Velocities section of data file");
     *next = '\0';
     auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
-    if ((int)values.size() != nwords)
-      error->all(FLERR, "Incorrect atom format in data file: {}", utils::trim(buf));
-
-    tagint tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
-    if (tagdata <= 0 || tagdata > map_tag_max)
-      error->one(FLERR,"Invalid atom ID in Velocities section of data file");
-    if ((m = map(tagdata)) >= 0) avec->data_vel(m,values);
-
+    if (values.size() == 0) {
+      // skip over empty or comment lines
+    } else if ((int)values.size() != avec->size_data_vel) {
+      error->all(FLERR, "Incorrect velocity format in data file: {}", utils::trim(buf));
+    } else {
+      tagint tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
+      if (tagdata <= 0 || tagdata > map_tag_max)
+        error->one(FLERR,"Invalid atom ID {} in Velocities section of data file: {}", tagdata, buf);
+      if ((m = map(tagdata)) >= 0) avec->data_vel(m,values);
+    }
     buf = next + 1;
   }
 }
@@ -1246,45 +1244,49 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
+    if (!next) error->all(FLERR, "Missing data in Bonds section of data file");
     *next = '\0';
-    try {
-      ValueTokenizer values(utils::trim_comment(buf));
-      values.next_int();
-      itype = values.next_int();
-      atom1 = values.next_tagint();
-      atom2 = values.next_tagint();
-      if (values.has_next()) throw TokenizerException("Too many tokens","");
-    } catch (TokenizerException &e) {
-      error->one(FLERR,"{} in {}: {}", e.what(), location, utils::trim(buf));
-    }
-    if (id_offset) {
-      atom1 += id_offset;
-      atom2 += id_offset;
-    }
-    itype += type_offset;
-
-    if ((atom1 <= 0) || (atom1 > map_tag_max) ||
-        (atom2 <= 0) || (atom2 > map_tag_max) || (atom1 == atom2))
-      error->one(FLERR,"Invalid atom ID in {}: {}", location, utils::trim(buf));
-    if (itype <= 0 || itype > nbondtypes)
-      error->one(FLERR,"Invalid bond type in {}: {}", location, utils::trim(buf));
-    if ((m = map(atom1)) >= 0) {
-      if (count) count[m]++;
-      else {
-        bond_type[m][num_bond[m]] = itype;
-        bond_atom[m][num_bond[m]] = atom2;
-        num_bond[m]++;
-        avec->data_bonds_post(m, num_bond[m], atom1, atom2, id_offset);
+    ValueTokenizer values(utils::trim_comment(buf));
+    // skip over empty of comment lines
+    if (values.has_next()) {
+      try {
+        values.next_int();
+        itype = values.next_int();
+        atom1 = values.next_tagint();
+        atom2 = values.next_tagint();
+        if (values.has_next()) throw TokenizerException("Too many tokens","");
+      } catch (TokenizerException &e) {
+        error->one(FLERR,"{} in {}: {}", e.what(), location, utils::trim(buf));
       }
-    }
-    if (newton_bond == 0) {
-      if ((m = map(atom2)) >= 0) {
+      if (id_offset) {
+        atom1 += id_offset;
+        atom2 += id_offset;
+      }
+      itype += type_offset;
+
+      if ((atom1 <= 0) || (atom1 > map_tag_max) ||
+          (atom2 <= 0) || (atom2 > map_tag_max) || (atom1 == atom2))
+        error->one(FLERR,"Invalid atom ID in {}: {}", location, utils::trim(buf));
+      if (itype <= 0 || itype > nbondtypes)
+        error->one(FLERR,"Invalid bond type in {}: {}", location, utils::trim(buf));
+      if ((m = map(atom1)) >= 0) {
         if (count) count[m]++;
         else {
           bond_type[m][num_bond[m]] = itype;
-          bond_atom[m][num_bond[m]] = atom1;
+          bond_atom[m][num_bond[m]] = atom2;
           num_bond[m]++;
           avec->data_bonds_post(m, num_bond[m], atom1, atom2, id_offset);
+        }
+      }
+      if (newton_bond == 0) {
+        if ((m = map(atom2)) >= 0) {
+          if (count) count[m]++;
+          else {
+            bond_type[m][num_bond[m]] = itype;
+            bond_atom[m][num_bond[m]] = atom1;
+            num_bond[m]++;
+            avec->data_bonds_post(m, num_bond[m], atom1, atom2, id_offset);
+          }
         }
       }
     }
@@ -1310,44 +1312,36 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
+    if (!next) error->all(FLERR, "Missing data in Angles section of data file");
     *next = '\0';
-    try {
-      ValueTokenizer values(utils::trim_comment(buf));
-      values.next_int();
-      itype = values.next_int();
-      atom1 = values.next_tagint();
-      atom2 = values.next_tagint();
-      atom3 = values.next_tagint();
-      if (values.has_next()) throw TokenizerException("Too many tokens","");
-    } catch (TokenizerException &e) {
-      error->one(FLERR,"{} in {}: {}", e.what(), location, utils::trim(buf));
-    }
-    if (id_offset) {
-      atom1 += id_offset;
-      atom2 += id_offset;
-      atom3 += id_offset;
-    }
-    itype += type_offset;
-
-    if ((atom1 <= 0) || (atom1 > map_tag_max) ||
-        (atom2 <= 0) || (atom2 > map_tag_max) ||
-        (atom3 <= 0) || (atom3 > map_tag_max) ||
-        (atom1 == atom2) || (atom1 == atom3) || (atom2 == atom3))
-      error->one(FLERR,"Invalid atom ID in {}: {}", location, utils::trim(buf));
-    if (itype <= 0 || itype > nangletypes)
-      error->one(FLERR,"Invalid angle type in {}: {}", location, utils::trim(buf));
-    if ((m = map(atom2)) >= 0) {
-      if (count) count[m]++;
-      else {
-        angle_type[m][num_angle[m]] = itype;
-        angle_atom1[m][num_angle[m]] = atom1;
-        angle_atom2[m][num_angle[m]] = atom2;
-        angle_atom3[m][num_angle[m]] = atom3;
-        num_angle[m]++;
+    ValueTokenizer values(utils::trim_comment(buf));
+    // skip over empty of comment lines
+    if (values.has_next()) {
+      try {
+        values.next_int();
+        itype = values.next_int();
+        atom1 = values.next_tagint();
+        atom2 = values.next_tagint();
+        atom3 = values.next_tagint();
+        if (values.has_next()) throw TokenizerException("Too many tokens","");
+      } catch (TokenizerException &e) {
+        error->one(FLERR,"{} in {}: {}", e.what(), location, utils::trim(buf));
       }
-    }
-    if (newton_bond == 0) {
-      if ((m = map(atom1)) >= 0) {
+      if (id_offset) {
+        atom1 += id_offset;
+        atom2 += id_offset;
+        atom3 += id_offset;
+      }
+      itype += type_offset;
+
+      if ((atom1 <= 0) || (atom1 > map_tag_max) ||
+          (atom2 <= 0) || (atom2 > map_tag_max) ||
+          (atom3 <= 0) || (atom3 > map_tag_max) ||
+          (atom1 == atom2) || (atom1 == atom3) || (atom2 == atom3))
+        error->one(FLERR,"Invalid atom ID in {}: {}", location, utils::trim(buf));
+      if (itype <= 0 || itype > nangletypes)
+        error->one(FLERR,"Invalid angle type in {}: {}", location, utils::trim(buf));
+      if ((m = map(atom2)) >= 0) {
         if (count) count[m]++;
         else {
           angle_type[m][num_angle[m]] = itype;
@@ -1357,14 +1351,26 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
           num_angle[m]++;
         }
       }
-      if ((m = map(atom3)) >= 0) {
-        if (count) count[m]++;
-        else {
-          angle_type[m][num_angle[m]] = itype;
-          angle_atom1[m][num_angle[m]] = atom1;
-          angle_atom2[m][num_angle[m]] = atom2;
-          angle_atom3[m][num_angle[m]] = atom3;
-          num_angle[m]++;
+      if (newton_bond == 0) {
+        if ((m = map(atom1)) >= 0) {
+          if (count) count[m]++;
+          else {
+            angle_type[m][num_angle[m]] = itype;
+            angle_atom1[m][num_angle[m]] = atom1;
+            angle_atom2[m][num_angle[m]] = atom2;
+            angle_atom3[m][num_angle[m]] = atom3;
+            num_angle[m]++;
+          }
+        }
+        if ((m = map(atom3)) >= 0) {
+          if (count) count[m]++;
+          else {
+            angle_type[m][num_angle[m]] = itype;
+            angle_atom1[m][num_angle[m]] = atom1;
+            angle_atom2[m][num_angle[m]] = atom2;
+            angle_atom3[m][num_angle[m]] = atom3;
+            num_angle[m]++;
+          }
         }
       }
     }
@@ -1390,49 +1396,40 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
+    if (!next) error->all(FLERR, "Missing data in Dihedrals section of data file");
     *next = '\0';
-    try {
-      ValueTokenizer values(utils::trim_comment(buf));
-      values.next_int();
-      itype = values.next_int();
-      atom1 = values.next_tagint();
-      atom2 = values.next_tagint();
-      atom3 = values.next_tagint();
-      atom4 = values.next_tagint();
-      if (values.has_next()) throw TokenizerException("Too many tokens","");
-    } catch (TokenizerException &e) {
-      error->one(FLERR,"{} in {}: {}", e.what(), location, utils::trim(buf));
-    }
-    if (id_offset) {
-      atom1 += id_offset;
-      atom2 += id_offset;
-      atom3 += id_offset;
-      atom4 += id_offset;
-    }
-    itype += type_offset;
+    ValueTokenizer values(utils::trim_comment(buf));
+    // skip over empty of comment lines
+    if (values.has_next()) {
+      try {
+        values.next_int();
+        itype = values.next_int();
+        atom1 = values.next_tagint();
+        atom2 = values.next_tagint();
+        atom3 = values.next_tagint();
+        atom4 = values.next_tagint();
+        if (values.has_next()) throw TokenizerException("Too many tokens","");
+      } catch (TokenizerException &e) {
+        error->one(FLERR,"{} in {}: {}", e.what(), location, utils::trim(buf));
+      }
+      if (id_offset) {
+        atom1 += id_offset;
+        atom2 += id_offset;
+        atom3 += id_offset;
+        atom4 += id_offset;
+      }
+      itype += type_offset;
 
-    if ((atom1 <= 0) || (atom1 > map_tag_max) ||
-        (atom2 <= 0) || (atom2 > map_tag_max) ||
-        (atom3 <= 0) || (atom3 > map_tag_max) ||
-        (atom4 <= 0) || (atom4 > map_tag_max) ||
-        (atom1 == atom2) || (atom1 == atom3) || (atom1 == atom4) ||
-        (atom2 == atom3) || (atom2 == atom4) || (atom3 == atom4))
-      error->one(FLERR, "Invalid atom ID in {}: {}", location, utils::trim(buf));
-    if (itype <= 0 || itype > ndihedraltypes)
-      error->one(FLERR, "Invalid dihedral type in {}: {}", location, utils::trim(buf));
-    if ((m = map(atom2)) >= 0) {
-      if (count) count[m]++;
-      else {
-        dihedral_type[m][num_dihedral[m]] = itype;
-        dihedral_atom1[m][num_dihedral[m]] = atom1;
-        dihedral_atom2[m][num_dihedral[m]] = atom2;
-        dihedral_atom3[m][num_dihedral[m]] = atom3;
-        dihedral_atom4[m][num_dihedral[m]] = atom4;
-        num_dihedral[m]++;
-      }
-    }
-    if (newton_bond == 0) {
-      if ((m = map(atom1)) >= 0) {
+      if ((atom1 <= 0) || (atom1 > map_tag_max) ||
+          (atom2 <= 0) || (atom2 > map_tag_max) ||
+          (atom3 <= 0) || (atom3 > map_tag_max) ||
+          (atom4 <= 0) || (atom4 > map_tag_max) ||
+          (atom1 == atom2) || (atom1 == atom3) || (atom1 == atom4) ||
+          (atom2 == atom3) || (atom2 == atom4) || (atom3 == atom4))
+        error->one(FLERR, "Invalid atom ID in {}: {}", location, utils::trim(buf));
+      if (itype <= 0 || itype > ndihedraltypes)
+        error->one(FLERR, "Invalid dihedral type in {}: {}", location, utils::trim(buf));
+      if ((m = map(atom2)) >= 0) {
         if (count) count[m]++;
         else {
           dihedral_type[m][num_dihedral[m]] = itype;
@@ -1443,26 +1440,39 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
           num_dihedral[m]++;
         }
       }
-      if ((m = map(atom3)) >= 0) {
-        if (count) count[m]++;
-        else {
-          dihedral_type[m][num_dihedral[m]] = itype;
-          dihedral_atom1[m][num_dihedral[m]] = atom1;
-          dihedral_atom2[m][num_dihedral[m]] = atom2;
-          dihedral_atom3[m][num_dihedral[m]] = atom3;
-          dihedral_atom4[m][num_dihedral[m]] = atom4;
-          num_dihedral[m]++;
+      if (newton_bond == 0) {
+        if ((m = map(atom1)) >= 0) {
+          if (count) count[m]++;
+          else {
+            dihedral_type[m][num_dihedral[m]] = itype;
+            dihedral_atom1[m][num_dihedral[m]] = atom1;
+            dihedral_atom2[m][num_dihedral[m]] = atom2;
+            dihedral_atom3[m][num_dihedral[m]] = atom3;
+            dihedral_atom4[m][num_dihedral[m]] = atom4;
+            num_dihedral[m]++;
+          }
         }
-      }
-      if ((m = map(atom4)) >= 0) {
-        if (count) count[m]++;
-        else {
-          dihedral_type[m][num_dihedral[m]] = itype;
-          dihedral_atom1[m][num_dihedral[m]] = atom1;
-          dihedral_atom2[m][num_dihedral[m]] = atom2;
-          dihedral_atom3[m][num_dihedral[m]] = atom3;
-          dihedral_atom4[m][num_dihedral[m]] = atom4;
-          num_dihedral[m]++;
+        if ((m = map(atom3)) >= 0) {
+          if (count) count[m]++;
+          else {
+            dihedral_type[m][num_dihedral[m]] = itype;
+            dihedral_atom1[m][num_dihedral[m]] = atom1;
+            dihedral_atom2[m][num_dihedral[m]] = atom2;
+            dihedral_atom3[m][num_dihedral[m]] = atom3;
+            dihedral_atom4[m][num_dihedral[m]] = atom4;
+            num_dihedral[m]++;
+          }
+        }
+        if ((m = map(atom4)) >= 0) {
+          if (count) count[m]++;
+          else {
+            dihedral_type[m][num_dihedral[m]] = itype;
+            dihedral_atom1[m][num_dihedral[m]] = atom1;
+            dihedral_atom2[m][num_dihedral[m]] = atom2;
+            dihedral_atom3[m][num_dihedral[m]] = atom3;
+            dihedral_atom4[m][num_dihedral[m]] = atom4;
+            num_dihedral[m]++;
+          }
         }
       }
     }
@@ -1488,49 +1498,40 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
+    if (!next) error->all(FLERR, "Missing data in Impropers section of data file");
     *next = '\0';
-    try {
-      ValueTokenizer values(utils::trim_comment(buf));
-      values.next_int();
-      itype = values.next_int();
-      atom1 = values.next_tagint();
-      atom2 = values.next_tagint();
-      atom3 = values.next_tagint();
-      atom4 = values.next_tagint();
-      if (values.has_next()) throw TokenizerException("Too many tokens","");
-    } catch (TokenizerException &e) {
-      error->one(FLERR,"{} in {}: {}", e.what(), location, utils::trim(buf));
-    }
-    if (id_offset) {
-      atom1 += id_offset;
-      atom2 += id_offset;
-      atom3 += id_offset;
-      atom4 += id_offset;
-    }
-    itype += type_offset;
+    ValueTokenizer values(utils::trim_comment(buf));
+    // skip over empty of comment lines
+    if (values.has_next()) {
+      try {
+        values.next_int();
+        itype = values.next_int();
+        atom1 = values.next_tagint();
+        atom2 = values.next_tagint();
+        atom3 = values.next_tagint();
+        atom4 = values.next_tagint();
+        if (values.has_next()) throw TokenizerException("Too many tokens","");
+      } catch (TokenizerException &e) {
+        error->one(FLERR,"{} in {}: {}", e.what(), location, utils::trim(buf));
+      }
+      if (id_offset) {
+        atom1 += id_offset;
+        atom2 += id_offset;
+        atom3 += id_offset;
+        atom4 += id_offset;
+      }
+      itype += type_offset;
 
-    if ((atom1 <= 0) || (atom1 > map_tag_max) ||
-        (atom2 <= 0) || (atom2 > map_tag_max) ||
-        (atom3 <= 0) || (atom3 > map_tag_max) ||
-        (atom4 <= 0) || (atom4 > map_tag_max) ||
-        (atom1 == atom2) || (atom1 == atom3) || (atom1 == atom4) ||
-        (atom2 == atom3) || (atom2 == atom4) || (atom3 == atom4))
-      error->one(FLERR, "Invalid atom ID in {}: {}", location, utils::trim(buf));
-    if (itype <= 0 || itype > nimpropertypes)
-      error->one(FLERR, "Invalid improper type in {}: {}", location, utils::trim(buf));
-    if ((m = map(atom2)) >= 0) {
-      if (count) count[m]++;
-      else {
-        improper_type[m][num_improper[m]] = itype;
-        improper_atom1[m][num_improper[m]] = atom1;
-        improper_atom2[m][num_improper[m]] = atom2;
-        improper_atom3[m][num_improper[m]] = atom3;
-        improper_atom4[m][num_improper[m]] = atom4;
-        num_improper[m]++;
-      }
-    }
-    if (newton_bond == 0) {
-      if ((m = map(atom1)) >= 0) {
+      if ((atom1 <= 0) || (atom1 > map_tag_max) ||
+          (atom2 <= 0) || (atom2 > map_tag_max) ||
+          (atom3 <= 0) || (atom3 > map_tag_max) ||
+          (atom4 <= 0) || (atom4 > map_tag_max) ||
+          (atom1 == atom2) || (atom1 == atom3) || (atom1 == atom4) ||
+          (atom2 == atom3) || (atom2 == atom4) || (atom3 == atom4))
+        error->one(FLERR, "Invalid atom ID in {}: {}", location, utils::trim(buf));
+      if (itype <= 0 || itype > nimpropertypes)
+        error->one(FLERR, "Invalid improper type in {}: {}", location, utils::trim(buf));
+      if ((m = map(atom2)) >= 0) {
         if (count) count[m]++;
         else {
           improper_type[m][num_improper[m]] = itype;
@@ -1541,26 +1542,39 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
           num_improper[m]++;
         }
       }
-      if ((m = map(atom3)) >= 0) {
-        if (count) count[m]++;
-        else {
-          improper_type[m][num_improper[m]] = itype;
-          improper_atom1[m][num_improper[m]] = atom1;
-          improper_atom2[m][num_improper[m]] = atom2;
-          improper_atom3[m][num_improper[m]] = atom3;
-          improper_atom4[m][num_improper[m]] = atom4;
-          num_improper[m]++;
+      if (newton_bond == 0) {
+        if ((m = map(atom1)) >= 0) {
+          if (count) count[m]++;
+          else {
+            improper_type[m][num_improper[m]] = itype;
+            improper_atom1[m][num_improper[m]] = atom1;
+            improper_atom2[m][num_improper[m]] = atom2;
+            improper_atom3[m][num_improper[m]] = atom3;
+            improper_atom4[m][num_improper[m]] = atom4;
+            num_improper[m]++;
+          }
         }
-      }
-      if ((m = map(atom4)) >= 0) {
-        if (count) count[m]++;
-        else {
-          improper_type[m][num_improper[m]] = itype;
-          improper_atom1[m][num_improper[m]] = atom1;
-          improper_atom2[m][num_improper[m]] = atom2;
-          improper_atom3[m][num_improper[m]] = atom3;
-          improper_atom4[m][num_improper[m]] = atom4;
-          num_improper[m]++;
+        if ((m = map(atom3)) >= 0) {
+          if (count) count[m]++;
+          else {
+            improper_type[m][num_improper[m]] = itype;
+            improper_atom1[m][num_improper[m]] = atom1;
+            improper_atom2[m][num_improper[m]] = atom2;
+            improper_atom3[m][num_improper[m]] = atom3;
+            improper_atom4[m][num_improper[m]] = atom4;
+            num_improper[m]++;
+          }
+        }
+        if ((m = map(atom4)) >= 0) {
+          if (count) count[m]++;
+          else {
+            improper_type[m][num_improper[m]] = itype;
+            improper_atom1[m][num_improper[m]] = atom1;
+            improper_atom2[m][num_improper[m]] = atom2;
+            improper_atom3[m][num_improper[m]] = atom3;
+            improper_atom4[m][num_improper[m]] = atom4;
+            num_improper[m]++;
+          }
         }
       }
     }
@@ -1579,34 +1593,29 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
   int m;
   char *next;
 
-  next = strchr(buf,'\n');
-  *next = '\0';
-  int nwords = utils::trim_and_count_words(buf);
-  *next = '\n';
-
-  if (nwords != avec_bonus->size_data_bonus)
-    error->all(FLERR,"Incorrect bonus data format in data file");
-
   // loop over lines of bonus atom data
   // tokenize the line into values
   // if I own atom tag, unpack its values
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
+    if (!next) error->all(FLERR, "Missing data in Bonus section of data file");
     *next = '\0';
     auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
-    if ((int)values.size() != nwords)
-      error->all(FLERR, "Incorrect atom format in data file: {}", utils::trim(buf));
+    if (values.size() == 0) {
+      // skip over empty of comment lines
+    } else if ((int)values.size() != avec_bonus->size_data_bonus) {
+      error->all(FLERR, "Incorrect bonus data format in data file: {}", utils::trim(buf));
+    } else {
+      tagint tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
+      if (tagdata <= 0 || tagdata > map_tag_max)
+        error->one(FLERR,"Invalid atom ID in Bonus section of data file");
 
-    tagint tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
-    if (tagdata <= 0 || tagdata > map_tag_max)
-      error->one(FLERR,"Invalid atom ID in Bonus section of data file");
+      // ok to call child's data_atom_bonus() method thru parent avec_bonus,
+      // since data_bonus() was called with child ptr, and method is virtual
 
-    // ok to call child's data_atom_bonus() method thru parent avec_bonus,
-    // since data_bonus() was called with child ptr, and method is virtual
-
-    if ((m = map(tagdata)) >= 0) avec_bonus->data_atom_bonus(m,values);
-
+      if ((m = map(tagdata)) >= 0) avec_bonus->data_atom_bonus(m,values);
+    }
     buf = next + 1;
   }
 }
@@ -1631,46 +1640,49 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
 
   for (int i = 0; i < n; i++) {
     char *next = strchr(buf,'\n');
+    if (!next) error->all(FLERR, "Missing data in Bodies section of data file");
     *next = '\0';
 
     auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
-    tagint tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
-    int ninteger = utils::inumeric(FLERR,values[1],false,lmp);
-    int ndouble = utils::inumeric(FLERR,values[2],false,lmp);
+    if (values.size()) {
+      tagint tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
+      int ninteger = utils::inumeric(FLERR,values[1],false,lmp);
+      int ndouble = utils::inumeric(FLERR,values[2],false,lmp);
 
-    if (unique_tags->find(tagdata) == unique_tags->end())
-      unique_tags->insert(tagdata);
-    else
-      error->one(FLERR,"Duplicate atom ID in Bodies section of data file");
+      if (unique_tags->find(tagdata) == unique_tags->end())
+        unique_tags->insert(tagdata);
+      else
+        error->one(FLERR,"Duplicate atom ID {} in Bodies section of data file", tagdata);
 
-    buf = next + 1;
-    int m = map(tagdata);
-    if (m >= 0) {
-      ivalues.resize(ninteger);
-      dvalues.resize(ndouble);
+      buf = next + 1;
+      int m = map(tagdata);
+      if (m >= 0) {
+        ivalues.resize(ninteger);
+        dvalues.resize(ndouble);
 
-      for (int j = 0; j < ninteger; j++) {
-        buf += strspn(buf," \t\n\r\f");
-        buf[strcspn(buf," \t\n\r\f")] = '\0';
-        ivalues[j] = utils::inumeric(FLERR,buf,false,lmp);
-        buf += strlen(buf)+1;
-      }
+        for (int j = 0; j < ninteger; j++) {
+          buf += strspn(buf," \t\n\r\f");
+          buf[strcspn(buf," \t\n\r\f")] = '\0';
+          ivalues[j] = utils::inumeric(FLERR,buf,false,lmp);
+          buf += strlen(buf)+1;
+        }
 
-      for (int j = 0; j < ndouble; j++) {
-        buf += strspn(buf," \t\n\r\f");
-        buf[strcspn(buf," \t\n\r\f")] = '\0';
-        dvalues[j] = utils::numeric(FLERR,buf,false,lmp);
-        buf += strlen(buf)+1;
-      }
+        for (int j = 0; j < ndouble; j++) {
+          buf += strspn(buf," \t\n\r\f");
+          buf[strcspn(buf," \t\n\r\f")] = '\0';
+          dvalues[j] = utils::numeric(FLERR,buf,false,lmp);
+          buf += strlen(buf)+1;
+        }
 
-      avec_body->data_body(m,ninteger,ndouble,ivalues.data(),dvalues.data());
+        avec_body->data_body(m,ninteger,ndouble,ivalues.data(),dvalues.data());
 
-    } else {
-      int nvalues = ninteger + ndouble;    // number of values to skip
-      for (int j = 0; j < nvalues; j++) {
-        buf += strspn(buf," \t\n\r\f");
-        buf[strcspn(buf," \t\n\r\f")] = '\0';
-        buf += strlen(buf)+1;
+      } else {
+        int nvalues = ninteger + ndouble;    // number of values to skip
+        for (int j = 0; j < nvalues; j++) {
+          buf += strspn(buf," \t\n\r\f");
+          buf[strcspn(buf," \t\n\r\f")] = '\0';
+          buf += strlen(buf)+1;
+        }
       }
     }
     buf += strspn(buf," \t\n\r\f");

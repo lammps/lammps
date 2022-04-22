@@ -44,8 +44,9 @@ enum{DIAMETER,CHARGE};
 
 /* ---------------------------------------------------------------------- */
 
-FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-nadapt(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
+FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg), nadapt(0), anypair(0), anybond(0), anyangle(0),
+  id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix adapt command");
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
@@ -329,6 +330,7 @@ void FixAdapt::init()
 
   anypair = 0;
   anybond = 0;
+  anyangle = 0;
 
   for (int m = 0; m < nadapt; m++) {
     Adapt *ad = &adapt[m];
@@ -748,6 +750,7 @@ void FixAdapt::restore_settings()
 
   if (anypair) force->pair->reinit();
   if (anybond) force->bond->reinit();
+  if (anyangle) force->angle->reinit();
   if (chgflag && force->kspace) force->kspace->qsum_qsq();
 }
 

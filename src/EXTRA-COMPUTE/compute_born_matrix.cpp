@@ -349,12 +349,11 @@ void ComputeBornMatrix::compute_vector()
 
     // compute Born contribution
 
-    if (neighbor->ago > 0) {
-      if (pairflag) compute_pairs();
-      if (bondflag) compute_bonds();
-      if (angleflag) compute_angles();
-      if (dihedflag) compute_dihedrals();
-    }
+    if (pairflag) compute_pairs();
+    if (bondflag) compute_bonds();
+    if (angleflag) compute_angles();
+    if (dihedflag) compute_dihedrals();
+
 
     // sum Born contributions over all procs
 
@@ -451,23 +450,21 @@ void ComputeBornMatrix::compute_pairs()
 
       if (rsq >= cutsq[itype][jtype]) continue;
 
-      if (newton_pair || j < nlocal) {
+      // Add contribution to Born tensor
 
-        // Add contribution to Born tensor
+      pair_pref = dupair = du2pair = 0.0;
+      pair->born_matrix(i, j, itype, jtype, rsq, factor_coul, factor_lj, dupair, du2pair);
+      pair_pref = 0.5*du2pair - dupair * rinv;
 
-        pair->born_matrix(i, j, itype, jtype, rsq, factor_coul, factor_lj, dupair, du2pair);
-        pair_pref = du2pair - dupair * rinv;
+      // See albemunu in compute_born_matrix.h for indices order.
 
-        // See albemunu in compute_born_matrix.h for indices order.
-
-        a = b = c = d = 0;
-        for (int m = 0; m < nvalues; m++) {
-          a = albemunu[m][0];
-          b = albemunu[m][1];
-          c = albemunu[m][2];
-          d = albemunu[m][3];
-          values_local[m] += pair_pref * rij[a] * rij[b] * rij[c] * rij[d] * r2inv;
-        }
+      a = b = c = d = 0;
+      for (int m = 0; m < nvalues; m++) {
+        a = albemunu[m][0];
+        b = albemunu[m][1];
+        c = albemunu[m][2];
+        d = albemunu[m][3];
+        values_local[m] += pair_pref * rij[a] * rij[b] * rij[c] * rij[d] * r2inv;
       }
     }
   }

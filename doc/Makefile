@@ -14,23 +14,22 @@ ANCHORCHECK    = $(VENV)/bin/rst_anchor_check
 SPHINXCONFIG   = $(BUILDDIR)/utils/sphinx-config
 MATHJAX        = $(SPHINXCONFIG)/_static/mathjax
 
-PYTHON         = $(shell which python3)
-DOXYGEN        = $(shell which doxygen)
-VIRTUALENV     = virtualenv
+PYTHON         = $(word 3,$(shell type python3))
+DOXYGEN        = $(word 3,$(shell type doxygen))
 HAS_PYTHON3    = NO
 HAS_DOXYGEN    = NO
 HAS_PDFLATEX   = NO
 
-ifeq ($(shell which python3 >/dev/null 2>&1; echo $$?), 0)
+ifeq ($(shell type python3 >/dev/null 2>&1; echo $$?), 0)
 HAS_PYTHON3    = YES
 endif
 
-ifeq ($(shell which doxygen >/dev/null 2>&1; echo $$?), 0)
+ifeq ($(shell type doxygen >/dev/null 2>&1; echo $$?), 0)
 HAS_DOXYGEN    = YES
 endif
 
-ifeq ($(shell which pdflatex >/dev/null 2>&1; echo $$?), 0)
-ifeq ($(shell which latexmk >/dev/null 2>&1; echo $$?), 0)
+ifeq ($(shell type pdflatex >/dev/null 2>&1; echo $$?), 0)
+ifeq ($(shell type latexmk >/dev/null 2>&1; echo $$?), 0)
 HAS_PDFLATEX = YES
 endif
 endif

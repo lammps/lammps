@@ -286,11 +286,11 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
 Atom::~Atom()
 {
-  delete [] atom_style;
+  delete[] atom_style;
   delete avec;
   delete avec_map;
 
-  delete [] firstgroupname;
+  delete[] firstgroupname;
   memory->destroy(binhead);
   memory->destroy(next);
   memory->destroy(permute);
@@ -306,26 +306,26 @@ Atom::~Atom()
   // delete peratom data struct
 
   for (int i = 0; i < nperatom; i++)
-    delete [] peratom[i].name;
+    delete[] peratom[i].name;
   memory->sfree(peratom);
 
   // delete custom atom arrays
 
   for (int i = 0; i < nivector; i++) {
-    delete [] ivname[i];
+    delete[] ivname[i];
     memory->destroy(ivector[i]);
   }
   for (int i = 0; i < ndvector; i++) {
-    delete [] dvname[i];
+    delete[] dvname[i];
     if (dvector) // (needed for Kokkos)
       memory->destroy(dvector[i]);
   }
   for (int i = 0; i < niarray; i++) {
-    delete [] ianame[i];
+    delete[] ianame[i];
     memory->destroy(iarray[i]);
   }
   for (int i = 0; i < ndarray; i++) {
-    delete [] daname[i];
+    delete[] daname[i];
     memory->destroy(darray[i]);
   }
 
@@ -347,8 +347,8 @@ Atom::~Atom()
 
   // delete per-type arrays
 
-  delete [] mass;
-  delete [] mass_setflag;
+  delete[] mass;
+  delete[] mass_setflag;
 
   // delete extra arrays
 
@@ -386,7 +386,7 @@ void Atom::settings(Atom *old)
 void Atom::peratom_create()
 {
   for (int i = 0; i < nperatom; i++)
-    delete [] peratom[i].name;
+    delete[] peratom[i].name;
   memory->sfree(peratom);
 
   peratom = nullptr;
@@ -600,8 +600,8 @@ void Atom::add_peratom_change_columns(const char *name, int cols)
 {
   for (int i = 0; i < nperatom; i++) {
     if (strcmp(name,peratom[i].name) == 0) {
-            peratom[i].cols = cols;
-            return;
+      peratom[i].cols = cols;
+      return;
     }
   }
   error->all(FLERR,"Could not find name {} of peratom array for column change", name);
@@ -1060,12 +1060,13 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 
   // use the first line to detect and validate the number of words/tokens per line
   next = strchr(buf,'\n');
+  if (!next) error->all(FLERR, "Missing data in Atoms section of data file");
   *next = '\0';
   int nwords = utils::trim_and_count_words(buf);
   *next = '\n';
 
-  if (nwords != avec->size_data_atom && nwords != avec->size_data_atom + 3)
-    error->all(FLERR,"Incorrect atom format in data file");
+  if ((nwords != avec->size_data_atom) && (nwords != avec->size_data_atom + 3))
+    error->all(FLERR,"Incorrect atom format in data file: {}", utils::trim(buf));
 
   // set bounds for my proc
   // if periodic and I am lo/hi proc, adjust bounds by EPSILON
@@ -1141,7 +1142,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
     *next = '\0';
     auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
     if (values.size() == 0) {
-      // skip over empty of comment lines
+      // skip over empty or comment lines
     } else if ((int)values.size() != nwords) {
       error->all(FLERR, "Incorrect atom format in data file: {}", utils::trim(buf));
     } else {
@@ -1315,7 +1316,7 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
     if (!next) error->all(FLERR, "Missing data in Angles section of data file");
     *next = '\0';
     ValueTokenizer values(utils::trim_comment(buf));
-    // skip over empty of comment lines
+    // skip over empty or comment lines
     if (values.has_next()) {
       try {
         values.next_int();
@@ -1399,7 +1400,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
     if (!next) error->all(FLERR, "Missing data in Dihedrals section of data file");
     *next = '\0';
     ValueTokenizer values(utils::trim_comment(buf));
-    // skip over empty of comment lines
+    // skip over empty or comment lines
     if (values.has_next()) {
       try {
         values.next_int();
@@ -1501,7 +1502,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
     if (!next) error->all(FLERR, "Missing data in Impropers section of data file");
     *next = '\0';
     ValueTokenizer values(utils::trim_comment(buf));
-    // skip over empty of comment lines
+    // skip over empty or comment lines
     if (values.has_next()) {
       try {
         values.next_int();
@@ -1603,7 +1604,7 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
     *next = '\0';
     auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
     if (values.size() == 0) {
-      // skip over empty of comment lines
+      // skip over empty or comment lines
     } else if ((int)values.size() != avec_bonus->size_data_bonus) {
       error->all(FLERR, "Incorrect bonus data format in data file: {}", utils::trim(buf));
     } else {
@@ -1821,7 +1822,7 @@ void Atom::check_mass(const char *file, int line)
   if (rmass_flag) return;
   for (int itype = 1; itype <= ntypes; itype++)
     if (mass_setflag[itype] == 0)
-      error->all(file,line,"Not all per-type masses are set");
+      error->all(file,line,"Not all per-type masses are set. Type {} is missing.", itype);
 }
 
 /* ----------------------------------------------------------------------
@@ -1854,8 +1855,7 @@ int Atom::radius_consistency(int itype, double &rad)
    also return the 3 shape params for itype
 ------------------------------------------------------------------------- */
 
-int Atom::shape_consistency(int itype,
-                            double &shapex, double &shapey, double &shapez)
+int Atom::shape_consistency(int itype, double &shapex, double &shapey, double &shapez)
 {
   double zero[3] = {0.0, 0.0, 0.0};
   double one[3] = {-1.0, -1.0, -1.0};
@@ -1874,7 +1874,7 @@ int Atom::shape_consistency(int itype,
       one[0] = shape[0];
       one[1] = shape[1];
       one[2] = shape[2];
-    } else if (one[0] != shape[0] || one[1] != shape[1] || one[2] != shape[2])
+    } else if ((one[0] != shape[0]) || (one[1] != shape[1]) || (one[2] != shape[2]))
       flag = 1;
   }
 
@@ -2169,8 +2169,7 @@ void Atom::setup_sort_bins()
   if ((binsize == 0.0) && (sortfreq > 0)) {
     sortfreq = 0;
     if (comm->me == 0)
-          error->warning(FLERR,"No pairwise cutoff or binsize set. "
-                         "Atom sorting therefore disabled.");
+      error->warning(FLERR,"No pairwise cutoff or binsize set. Atom sorting therefore disabled.");
     return;
   }
 
@@ -2272,8 +2271,7 @@ void Atom::setup_sort_bins()
   }
 #endif
 
-  if (1.0*nbinx*nbiny*nbinz > INT_MAX)
-    error->one(FLERR,"Too many atom sorting bins");
+  if (1.0*nbinx*nbiny*nbinz > INT_MAX) error->one(FLERR,"Too many atom sorting bins");
 
   nbins = nbinx*nbiny*nbinz;
 
@@ -2518,25 +2516,25 @@ void Atom::remove_custom(int index, int flag, int cols)
   if (flag == 0 && cols == 0) {
     memory->destroy(ivector[index]);
     ivector[index] = nullptr;
-    delete [] ivname[index];
+    delete[] ivname[index];
     ivname[index] = nullptr;
 
   } else if (flag == 1 && cols == 0) {
     memory->destroy(dvector[index]);
     dvector[index] = nullptr;
-    delete [] dvname[index];
+    delete[] dvname[index];
     dvname[index] = nullptr;
 
   } else if (flag == 0 && cols) {
     memory->destroy(iarray[index]);
     iarray[index] = nullptr;
-    delete [] ianame[index];
+    delete[] ianame[index];
     ianame[index] = nullptr;
 
   } else if (flag == 1 && cols) {
     memory->destroy(darray[index]);
     darray[index] = nullptr;
-    delete [] daname[index];
+    delete[] daname[index];
     daname[index] = nullptr;
   }
 }
@@ -2931,4 +2929,3 @@ double Atom::memory_usage()
 
   return bytes;
 }
-

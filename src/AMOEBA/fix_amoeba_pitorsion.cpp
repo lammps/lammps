@@ -501,44 +501,44 @@ void FixAmoebaPiTorsion::post_force(int vflag)
 
     if (ia < nlocal) {
       epitorsion += engfraction;
-      f[ia][0] += dedxia;
-      f[ia][1] += dedyia;
-      f[ia][2] += dedzia;
+      f[ia][0] -= dedxia;
+      f[ia][1] -= dedyia;
+      f[ia][2] -= dedzia;
     }
 
     if (ib < nlocal) {
       epitorsion += engfraction;
-      f[ib][0] += dedxib;
-      f[ib][1] += dedyib;
-      f[ib][2] += dedzib;
+      f[ib][0] -= dedxib;
+      f[ib][1] -= dedyib;
+      f[ib][2] -= dedzib;
     }
 
     if (ic < nlocal) {
       epitorsion += engfraction;
-      f[ic][0] += dedxic;
-      f[ic][1] += dedyic;
-      f[ic][2] += dedzic;
+      f[ic][0] -= dedxic;
+      f[ic][1] -= dedyic;
+      f[ic][2] -= dedzic;
     }
 
     if (id < nlocal) {
       epitorsion += engfraction;
-      f[id][0] += dedxid;
-      f[id][1] += dedyid;
-      f[id][2] += dedzid;
+      f[id][0] -= dedxid;
+      f[id][1] -= dedyid;
+      f[id][2] -= dedzid;
     }
 
     if (ie < nlocal) {
       epitorsion += engfraction;
-      f[ie][0] += dedxie;
-      f[ie][1] += dedyie;
-      f[ie][2] += dedzie;
+      f[ie][0] -= dedxie;
+      f[ie][1] -= dedyie;
+      f[ie][2] -= dedzie;
     }
 
     if (ig < nlocal) {
       epitorsion += engfraction;
-      f[ig][0] += dedxig;
-      f[ig][1] += dedyig;
-      f[ig][2] += dedzig;
+      f[ig][0] -= dedxig;
+      f[ig][1] -= dedyig;
+      f[ig][2] -= dedzig;
     }
 
     // virial tensor components

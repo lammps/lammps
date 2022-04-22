@@ -29,7 +29,7 @@ read_data       data.ubiquitin fix amtype NULL "Tinker Types" &
                 fix pit pitorsions PiTorsions &
                 fix bit bitorsions BiTorsions
 
-pair_style      amoeba include pitorsion
+pair_style      amoeba include bitorsion
 pair_coeff      * * amoeba_ubiquitin.prm amoeba_ubiquitin.key
 
 special_bonds   lj/coul 0.5 0.5 0.5 one/five yes

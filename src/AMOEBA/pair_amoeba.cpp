@@ -2078,6 +2078,10 @@ void PairAmoeba::mix()
 void *PairAmoeba::extract(const char *str, int &dim)
 {
   dim = 0;
+
+  if (strcmp(str,"amtype") == 0) return (void *) amtype;
+  if (strcmp(str,"atomic_num") == 0) return (void *) atomic_num;
+
   if (strcmp(str,"bond_flag") == 0) return (void *) &bond_flag;
   if (strcmp(str,"angle_flag") == 0) return (void *) &angle_flag;
   if (strcmp(str,"dihedral_flag") == 0) return (void *) &dihedral_flag;

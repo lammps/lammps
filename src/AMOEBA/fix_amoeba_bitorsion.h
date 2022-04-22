@@ -97,6 +97,11 @@ class FixAmoebaBiTorsion : public Fix {
   double **ttx,**tty,**tbf;
   double **tbx,**tby,**tbxy;
 
+  // data from PairAmoeba
+
+  class Pair *pair;
+  int *amtype,*atomic_num;
+
   // local methods
 
   void read_grid_data(char *);

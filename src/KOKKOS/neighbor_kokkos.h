@@ -33,10 +33,10 @@ class NeighborKokkos : public Neighbor {
   typedef int value_type;
 
   NeighborKokkos(class LAMMPS *);
-  ~NeighborKokkos();
-  void init();
-  void init_topology();
-  void build_topology();
+  ~NeighborKokkos() override;
+  void init() override;
+  void init_topology() override;
+  void build_topology() override;
 
   template<class DeviceType>
   KOKKOS_INLINE_FUNCTION
@@ -73,22 +73,22 @@ class NeighborKokkos : public Neighbor {
 
   X_FLOAT deltasq;
 
-  void init_cutneighsq_kokkos(int);
-  void create_kokkos_list(int);
-  void init_ex_type_kokkos(int);
-  void init_ex_bit_kokkos();
-  void init_ex_mol_bit_kokkos();
-  void grow_ex_mol_intra_kokkos();
-  virtual int check_distance();
+  void init_cutneighsq_kokkos(int) override;
+  void create_kokkos_list(int) override;
+  void init_ex_type_kokkos(int) override;
+  void init_ex_bit_kokkos() override;
+  void init_ex_mol_bit_kokkos() override;
+  void grow_ex_mol_intra_kokkos() override;
+  int check_distance() override;
   template<class DeviceType> int check_distance_kokkos();
-  virtual void build(int);
+  void build(int) override;
   template<class DeviceType> void build_kokkos(int);
   void setup_bins_kokkos(int);
   void modify_ex_type_grow_kokkos();
   void modify_ex_group_grow_kokkos();
   void modify_mol_group_grow_kokkos();
   void modify_mol_intra_grow_kokkos();
-  void set_binsize_kokkos();
+  void set_binsize_kokkos() override;
 };
 
 }

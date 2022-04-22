@@ -79,6 +79,7 @@ class Atom : protected Pointers {
   double *radius;
   double **omega, **angmom, **torque;
   int *ellipsoid, *line, *tri, *body;
+  double **quat;
 
   // molecular systems
 
@@ -180,7 +181,7 @@ class Atom : protected Pointers {
 
   int molecule_flag, molindex_flag, molatom_flag;
   int q_flag, mu_flag;
-  int rmass_flag, radius_flag, omega_flag, torque_flag, angmom_flag;
+  int rmass_flag, radius_flag, omega_flag, torque_flag, angmom_flag, quat_flag;
   int vfrac_flag, spin_flag, eradius_flag, ervel_flag, erforce_flag;
   int cs_flag, csforce_flag, vforce_flag, ervelforce_flag, etag_flag;
   int rho_flag, esph_flag, cv_flag, vest_flag;
@@ -201,6 +202,10 @@ class Atom : protected Pointers {
   // Peridynamics scale factor, used by dump cfg
 
   double pdscale;
+
+  // DIELECTRIC package
+
+  int dielectric_flag;
 
   // end of customization section
   // --------------------------------------------------------------------
@@ -284,7 +289,7 @@ class Atom : protected Pointers {
   // functions
 
   Atom(class LAMMPS *);
-  virtual ~Atom();
+  ~Atom() override;
 
   void settings(class Atom *);
   void peratom_create();
@@ -416,9 +421,6 @@ class Atom : protected Pointers {
   void set_atomflag_defaults();
   void setup_sort_bins();
   int next_prime(int);
-
- private:
-  template <typename T> static AtomVec *avec_creator(LAMMPS *);
 };
 
 }    // namespace LAMMPS_NS

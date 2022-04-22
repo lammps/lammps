@@ -21,18 +21,21 @@ In that case, the functions will stop with an error message, indicating
 the name of the problematic file, if possible unless the *error* argument
 is a NULL pointer.
 
-The :cpp:func:`fgets_trunc` function will work similar for ``fgets()``
-but it will read in a whole line (i.e. until the end of line or end
-of file), but store only as many characters as will fit into the buffer
-including a final newline character and the terminating NULL byte.
-If the line in the file is longer it will thus be truncated in the buffer.
-This function is used by :cpp:func:`read_lines_from_file` to read individual
-lines but make certain they follow the size constraints.
+The :cpp:func:`utils::fgets_trunc() <LAMMPS_NS::utils::fgets_trunc>`
+function will work similar for ``fgets()`` but it will read in a whole
+line (i.e. until the end of line or end of file), but store only as many
+characters as will fit into the buffer including a final newline
+character and the terminating NULL byte.  If the line in the file is
+longer it will thus be truncated in the buffer.  This function is used
+by :cpp:func:`utils::read_lines_from_file()
+<LAMMPS_NS::utils::read_lines_from_file>` to read individual lines but
+make certain they follow the size constraints.
 
-The :cpp:func:`read_lines_from_file` function will read the requested
-number of lines of a maximum length into a buffer and will return 0
-if successful or 1 if not. It also guarantees that all lines are
-terminated with a newline character and the entire buffer with a
+The :cpp:func:`utils::read_lines_from_file()
+<LAMMPS_NS::utils::read_lines_from_file>` function will read the
+requested number of lines of a maximum length into a buffer and will
+return 0 if successful or 1 if not. It also guarantees that all lines
+are terminated with a newline character and the entire buffer with a
 NULL character.
 
 ----------
@@ -62,7 +65,7 @@ silently returning the result of a partial conversion or zero in cases
 where the string is not a valid number.  This behavior improves
 detecting typos or issues when processing input files.
 
-Similarly the :cpp:func:`logical() <LAMMPS_NS::utils::logical>` function
+Similarly the :cpp:func:`utils::logical() <LAMMPS_NS::utils::logical>` function
 will convert a string into a boolean and will only accept certain words.
 
 The *do_abort* flag should be set to ``true`` in case  this function
@@ -70,8 +73,8 @@ is called only on a single MPI rank, as that will then trigger the
 a call to ``Error::one()`` for errors instead of ``Error::all()``
 and avoids a "hanging" calculation when run in parallel.
 
-Please also see :cpp:func:`is_integer() <LAMMPS_NS::utils::is_integer>`
-and :cpp:func:`is_double() <LAMMPS_NS::utils::is_double>` for testing
+Please also see :cpp:func:`utils::is_integer() <LAMMPS_NS::utils::is_integer>`
+and :cpp:func:`utils::is_double() <LAMMPS_NS::utils::is_double>` for testing
 strings for compliance without conversion.
 
 ----------
@@ -128,6 +131,9 @@ and parsing files or arguments.
    :project: progguide
 
 .. doxygenfunction:: trim_comment
+   :project: progguide
+
+.. doxygenfunction:: star_subst
    :project: progguide
 
 .. doxygenfunction:: has_utf8
@@ -203,6 +209,9 @@ Convenience functions
    :project: progguide
 
 .. doxygenfunction:: logmesg(LAMMPS *lmp, const std::string &mesg)
+   :project: progguide
+
+.. doxygenfunction:: flush_buffers(LAMMPS *lmp)
    :project: progguide
 
 .. doxygenfunction:: getsyserror
@@ -337,11 +346,11 @@ This code example should produce the following output:
 
 .. doxygenclass:: LAMMPS_NS::InvalidIntegerException
    :project: progguide
-   :members: what
+   :members:
 
 .. doxygenclass:: LAMMPS_NS::InvalidFloatException
    :project: progguide
-   :members: what
+   :members:
 
 ----------
 
@@ -390,21 +399,26 @@ A typical code segment would look like this:
 
 ----------
 
+.. _file-reader-classes:
+
 File reader classes
 -------------------
 
 The purpose of the file reader classes is to simplify the recurring task
 of reading and parsing files. They can use the
-:cpp:class:`LAMMPS_NS::ValueTokenizer` class to process the read in
-text.  The :cpp:class:`LAMMPS_NS::TextFileReader` is a more general
-version while :cpp:class:`LAMMPS_NS::PotentialFileReader` is specialized
-to implement the behavior expected for looking up and reading/parsing
-files with potential parameters in LAMMPS.  The potential file reader
-class requires a LAMMPS instance, requires to be run on MPI rank 0 only,
-will use the :cpp:func:`LAMMPS_NS::utils::get_potential_file_path`
-function to look up and open the file, and will call the
-:cpp:class:`LAMMPS_NS::Error` class in case of failures to read or to
-convert numbers, so that LAMMPS will be aborted.
+:cpp:class:`ValueTokenizer <LAMMPS_NS::ValueTokenizer>` class to process
+the read in text.  The :cpp:class:`TextFileReader
+<LAMMPS_NS::TextFileReader>` is a more general version while
+:cpp:class:`PotentialFileReader <LAMMPS_NS::PotentialFileReader>` is
+specialized to implement the behavior expected for looking up and
+reading/parsing files with potential parameters in LAMMPS.  The
+potential file reader class requires a LAMMPS instance, requires to be
+run on MPI rank 0 only, will use the
+:cpp:func:`utils::get_potential_file_path
+<LAMMPS_NS::utils::get_potential_file_path>` function to look up and
+open the file, and will call the :cpp:class:`LAMMPS_NS::Error` class in
+case of failures to read or to convert numbers, so that LAMMPS will be
+aborted.
 
 .. code-block:: C++
    :caption: Use of PotentialFileReader class in pair style coul/streitz
@@ -479,10 +493,10 @@ provided, as that is used to determine whether a new page of memory
 must be used.
 
 The :cpp:class:`MyPage <LAMMPS_NS::MyPage>` class offers two ways to
-reserve a chunk: 1) with :cpp:func:`get() <LAMMPS_NS::MyPage::get>` the
-chunk size needs to be known in advance, 2) with :cpp:func:`vget()
+reserve a chunk: 1) with :cpp:func:`MyPage::get() <LAMMPS_NS::MyPage::get>` the
+chunk size needs to be known in advance, 2) with :cpp:func:`MyPage::vget()
 <LAMMPS_NS::MyPage::vget>` a pointer to the next chunk is returned, but
-its size is registered later with :cpp:func:`vgot()
+its size is registered later with :cpp:func:`MyPage::vgot()
 <LAMMPS_NS::MyPage::vgot>`.
 
 .. code-block:: C++
@@ -585,4 +599,3 @@ the communication buffers.
 
 .. doxygenunion:: LAMMPS_NS::ubuf
    :project: progguide
-

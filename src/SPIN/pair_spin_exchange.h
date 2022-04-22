@@ -27,23 +27,23 @@ namespace LAMMPS_NS {
 class PairSpinExchange : public PairSpin {
  public:
   PairSpinExchange(class LAMMPS *);
-  virtual ~PairSpinExchange();
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void *extract(const char *, int &);
+  ~PairSpinExchange() override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void *extract(const char *, int &) override;
 
-  void compute(int, int);
-  void compute_single_pair(int, double *);
+  void compute(int, int) override;
+  void compute_single_pair(int, double *) override;
 
   void compute_exchange(int, int, double, double *, double *);
   void compute_exchange_mech(int, int, double, double *, double *, double *, double *);
   double compute_energy(int, int, double, double *, double *);
 
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
 
   double cut_spin_exchange_global;    // global exchange cutoff distance
 
@@ -54,7 +54,7 @@ class PairSpinExchange : public PairSpin {
   double **J2, **J3;             // J1 in eV, J2 adim, J3 in Ang
   double **cut_spin_exchange;    // cutoff distance exchange
 
-  void allocate();
+  void allocate() override;
 };
 
 }    // namespace LAMMPS_NS

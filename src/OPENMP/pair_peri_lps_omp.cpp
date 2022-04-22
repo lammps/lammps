@@ -23,7 +23,6 @@
 #include "lattice.h"
 #include "math_const.h"
 #include "memory.h"
-#include "modify.h"
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "suffix.h"
@@ -234,10 +233,10 @@ void PairPeriLPSOMP::eval(int iifrom, int iito, ThrData * const thr)
 #pragma omp master
 #endif
   { // communicate dilatation (theta) of each particle
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
     // communicate weighted volume (wvolume) upon every reneighbor
     if (neighbor->ago == 0)
-      comm->forward_comm_fix(fix_peri_neigh);
+      comm->forward_comm(fix_peri_neigh);
   }
 
   sync_threads();

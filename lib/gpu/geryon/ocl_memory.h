@@ -256,7 +256,7 @@ template <class mat_type>
 inline int _device_alloc(mat_type &mat, UCL_Device &dev, const size_t n,
                          const enum UCL_MEMOPT kind) {
   cl_int error_flag;
-  cl_mem_flags flag;
+  cl_mem_flags flag = CL_MEM_READ_WRITE;
   if (kind==UCL_READ_WRITE)
     flag=CL_MEM_READ_WRITE;
   else if (kind==UCL_READ_ONLY)
@@ -321,7 +321,7 @@ inline int _device_resize(mat_type &mat, const size_t n) {
                &context,nullptr));
   CL_DESTRUCT_CALL(clReleaseMemObject(mat.cbegin()));
 
-  cl_mem_flags flag;
+  cl_mem_flags flag = CL_MEM_READ_WRITE;
   if (mat.kind()==UCL_READ_WRITE)
     flag=CL_MEM_READ_WRITE;
   else if (mat.kind()==UCL_READ_ONLY)

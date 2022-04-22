@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class RegCone : public Region {
  public:
   RegCone(class LAMMPS *, int, char **);
-  ~RegCone();
-  int inside(double, double, double);
-  int surface_interior(double *, double);
-  int surface_exterior(double *, double);
+  ~RegCone() override;
+  int inside(double, double, double) override;
+  int surface_interior(double *, double) override;
+  int surface_exterior(double *, double) override;
 
  private:
   char axis;

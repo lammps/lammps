@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class PairSPHHeatConduction : public Pair {
  public:
   PairSPHHeatConduction(class LAMMPS *);
-  virtual ~PairSPHHeatConduction();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  virtual double init_one(int, int);
-  virtual double single(int, int, int, int, double, double, double, double &);
+  ~PairSPHHeatConduction() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  double single(int, int, int, int, double, double, double, double &) override;
 
  protected:
   double **cut, **alpha;

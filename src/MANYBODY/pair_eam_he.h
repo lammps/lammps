@@ -27,10 +27,9 @@ namespace LAMMPS_NS {
 class PairEAMHE : public PairEAMFS {
  public:
   PairEAMHE(class LAMMPS *);
-  virtual ~PairEAMHE() {}
 
  protected:
-  void compute(int, int);
+  void compute(int, int) override;
 };
 
 }    // namespace LAMMPS_NS

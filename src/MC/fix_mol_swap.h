@@ -27,15 +27,15 @@ namespace LAMMPS_NS {
 class FixMolSwap : public Fix {
  public:
   FixMolSwap(class LAMMPS *, int, char **);
-  ~FixMolSwap();
-  int setmask();
-  void init();
-  void pre_exchange();
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  double compute_vector(int);
-  void write_restart(FILE *);
-  void restart(char *);
+  ~FixMolSwap() override;
+  int setmask() override;
+  void init() override;
+  void pre_exchange() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  double compute_vector(int) override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
 
  private:
   int nevery, ncycles, seed;

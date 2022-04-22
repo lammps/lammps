@@ -30,6 +30,8 @@ action () {
 
 action compute_fep.cpp
 action compute_fep.h
+action compute_fep_ta.cpp
+action compute_fep_ta.h
 action fix_adapt_fep.cpp
 action fix_adapt_fep.h
 action pair_coul_cut_soft.cpp

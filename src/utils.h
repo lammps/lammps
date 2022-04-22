@@ -74,6 +74,16 @@ namespace utils {
 
   void logmesg(LAMMPS *lmp, const std::string &mesg);
 
+  /*! Flush output buffers
+   *
+   *  This function calls fflush() on screen and logfile FILE pointers
+   *  if available and thus tells the operating system to output all
+   *  currently buffered data. This is local operation and independent
+   *  from buffering by a file system or an MPI library.
+   */
+
+  void flush_buffers(LAMMPS *lmp);
+
   /*! Return a string representing the current system error status
    *
    *  This is a wrapper around calling strerror(errno).
@@ -358,12 +368,26 @@ namespace utils {
 
   std::string trim(const std::string &line);
 
-  /*! Return string with anything from '#' onward removed
+  /*! Return string with anything from the first '#' character onward removed
    *
    * \param line  string that should be trimmed
    * \return new string without comment (string) */
 
   std::string trim_comment(const std::string &line);
+
+  /*! Replace first '*' character in a string with a number, optionally zero-padded
+   *
+   * If there is no '*' character in the string, return the original string.
+   * If the number requires more characters than the value of the *pad*
+   * argument, do not add zeros; otherwise add as many zeroes as needed to
+   * the left to make the the number representation *pad* characters wide.
+   *
+   * \param name  string with file containing a '*' (or not)
+   * \param step  step number to replace the (first) '*'
+   * \param pad   zero-padding (may be zero)
+   * \return  processed string */
+
+  std::string star_subst(const std::string &name, bigint step, int pad);
 
   /*! Check if a string will likely have UTF-8 encoded characters
    *

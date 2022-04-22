@@ -36,9 +36,9 @@ class ComputeAveSphereAtomKokkos : public ComputeAveSphereAtom {
   typedef ArrayTypes<DeviceType> AT;
 
   ComputeAveSphereAtomKokkos(class LAMMPS *, int, char **);
-  virtual ~ComputeAveSphereAtomKokkos();
-  void init();
-  void compute_peratom();
+  ~ComputeAveSphereAtomKokkos() override;
+  void init() override;
+  void compute_peratom() override;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagComputeAveSphereAtom, const int&) const;

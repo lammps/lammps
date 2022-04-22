@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class WriteCoeff : public Command {
  public:
   WriteCoeff(class LAMMPS *lmp) : Command(lmp){};
-  void command(int, char **);
+  void command(int, char **) override;
 };
 
 }    // namespace LAMMPS_NS

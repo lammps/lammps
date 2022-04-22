@@ -157,7 +157,7 @@ void FixAveForce::init()
   else varflag = CONSTANT;
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,nlevels_respa-1);
     else ilevel_respa = nlevels_respa-1;
   }
@@ -171,9 +171,9 @@ void FixAveForce::setup(int vflag)
     post_force(vflag);
   else
     for (int ilevel = 0; ilevel < nlevels_respa; ilevel++) {
-      ((Respa *) update->integrate)->copy_flevel_f(ilevel);
+      (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(ilevel);
       post_force_respa(vflag,ilevel,0);
-      ((Respa *) update->integrate)->copy_f_flevel(ilevel);
+      (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(ilevel);
     }
 }
 

@@ -247,11 +247,8 @@ void BondHarmonicIntel::init_style()
 {
   BondHarmonic::init_style();
 
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   #ifdef _LMP_INTEL_OFFLOAD
   _use_base = 0;
@@ -291,13 +288,12 @@ void BondHarmonicIntel::pack_force_const(ForceConst<flt_t> &fc,
 template <class flt_t>
 void BondHarmonicIntel::ForceConst<flt_t>::set_ntypes(const int nbondtypes,
                                                       Memory *memory) {
+  if (memory != nullptr) _memory = memory;
   if (nbondtypes != _nbondtypes) {
-    if (_nbondtypes > 0)
-      _memory->destroy(fc);
+    _memory->destroy(fc);
 
     if (nbondtypes > 0)
       _memory->create(fc,nbondtypes,"bondharmonicintel.fc");
   }
   _nbondtypes = nbondtypes;
-  _memory = memory;
 }

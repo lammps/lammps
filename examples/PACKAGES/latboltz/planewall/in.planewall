@@ -1,0 +1,103 @@
+#===========================================================================#
+# Rigid sphere freely moving near a stationary plane wall in a system       #
+#   undergoing shear flow.                                                  # 
+# Every 10 time steps the center of mass velocity and angular velocity of   #
+#   the sphere are printed to the screen.                                   #
+# To run this example, LAMMPS needs to be compiled with a the following     #
+# packages: RIGID, LATBOLTZ                                                 #
+#                                                                           #
+#===========================================================================# 
+
+units          micro
+dimension      3
+boundary       p p f
+atom_style     atomic
+
+#----------------------------------------------------------------------------
+# Need a neighbor bin size smaller than the lattice-Boltzmann grid spacing
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid.
+# The arguments for neigh_modify have been set to "delay 0 every 1", again
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid.  However, these values can likely
+#   be somewhat increased without issue.  If a problem does arise (a particle
+#   is outside of its processors LB grid) an error message is printed and 
+#   the simulation is terminated.   
+# The communcation cutoff is set to 2.5 dx to ensure that all particles in the
+#   processor ghost fluid region (of width 2dx) are known to local processor.
+#----------------------------------------------------------------------------
+neighbor       1.0 bin
+neigh_modify   delay 0 every 1 
+comm_modify cutoff 10.0
+
+read_data      data.one_radius16d2
+
+#----------------------------------------------------------------------------
+# None of the particles interact with one another.
+#----------------------------------------------------------------------------
+pair_style     lj/cut 2.45
+pair_coeff     * * 0.0 0.0 2.45
+neigh_modify   exclude type 1 1 
+
+mass           * 1.0
+
+timestep       4.0
+
+group          sphere1 id <> 1 320
+
+#----------------------------------------------------------------------------
+# Colloidal particle is initially stationary.
+#----------------------------------------------------------------------------
+velocity       all set 0.0 0.0 0.0 units box
+
+#----------------------------------------------------------------------------
+# Create a lattice-Boltzmann fluid covering the simulation domain.
+# All of the particles in the simulation apply a force to the fluid.
+#   (however, this fix does not explicitly apply a force back on to these 
+#    particles...this is accomplished through the use of the lb/viscous fix.
+# Use a fluid density = 1.0, fluid viscosity = 1.0 (water), and a lattice
+#   spacing dx=4.0.
+# Use the trilinear interpolation stencil (default) to distribute the force
+#   from a given particle onto the fluid mesh.
+# Create shear in the system, by giving the upper z-wall a velocity of 0.0001
+#   along the y-direction, while keeping the lower z-wall stationary.
+#-----------------------------------------------------------------------------
+fix   1 all lb/fluid 1 1.0 1.0 dx 4.0 zwall_velocity 0.0 0.0001
+
+#----------------------------------------------------------------------------
+# Apply the force due to the fluid onto the particles.
+#----------------------------------------------------------------------------
+fix   2 all lb/viscous
+
+#----------------------------------------------------------------------------
+# Integrate the motion of the particles, constraining them to move and 
+#   rotate together as a single rigid spherical object.  Use the first
+#   version to allow the sphere to freely rotate and move with the fluid 
+#   and the 2nd version to measure the force and torque on a fixed sphere
+#   in the shear flow which will allow you to measure the Stokes drag and
+#   torque on the sphere.
+#----------------------------------------------------------------------------
+fix   3 all rigid group 1 sphere1
+#fix   3 all rigid group 1 sphere1 force * off off off torque * off off off
+
+#----------------------------------------------------------------------------
+# Create variables for the center-of-mass velocities, angular velocities, and 
+#   force and torque on the CM.  Then output these quantities to the screen.
+#----------------------------------------------------------------------------
+variable vx equal vcm(all,x)
+variable vy equal vcm(all,y)
+variable vz equal vcm(all,z)
+variable omegax equal omega(all,x)
+variable omegay equal omega(all,y)
+variable omegaz equal omega(all,z)
+variable fx equal fcm(all,x)
+variable fy equal fcm(all,y)
+variable fz equal fcm(all,z)
+variable tx equal torque(all,x)
+variable ty equal torque(all,y)
+variable tz equal torque(all,z)
+
+thermo_style   custom v_vx v_vy v_vz v_omegax v_omegay v_omegaz v_fx v_fy v_fz v_tx v_ty v_tz
+thermo         100
+
+run   7500

@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class ComputeGlobalAtom : public Compute {
  public:
   ComputeGlobalAtom(class LAMMPS *, int, char **);
-  virtual ~ComputeGlobalAtom();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeGlobalAtom() override;
+  void init() override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  protected:
   int whichref, indexref, ref2index;

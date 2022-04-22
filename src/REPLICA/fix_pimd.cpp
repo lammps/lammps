@@ -502,7 +502,7 @@ void FixPIMD::nmpimd_init()
 void FixPIMD::nmpimd_fill(double **ptr)
 {
   comm_ptr = ptr;
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -615,7 +615,7 @@ void FixPIMD::comm_init()
 
   if (buf_beads) {
     for (int i = 0; i < np; i++)
-      if (buf_beads[i]) delete[] buf_beads[i];
+      delete[] buf_beads[i];
     delete[] buf_beads;
   }
 

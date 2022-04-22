@@ -67,11 +67,11 @@ void VerletLRTIntel::init()
 {
   Verlet::init();
 
-  _intel_kspace = (PPPMIntel*)(force->kspace_match("^pppm/intel", 0));
+  _intel_kspace = dynamic_cast<PPPMIntel*>(force->kspace_match("^pppm/intel", 0));
 
   #ifndef LMP_INTEL_USELRT
   error->all(FLERR,
-             "LRT otion for Intel package disabled at compile time");
+             "LRT otion for INTEL package disabled at compile time");
   #endif
 }
 
@@ -81,7 +81,7 @@ void VerletLRTIntel::init()
 
 void VerletLRTIntel::setup(int flag)
 {
-  if (_intel_kspace == 0) {
+  if (_intel_kspace == nullptr) {
     Verlet::setup(flag);
     return;
   }
@@ -94,10 +94,10 @@ void VerletLRTIntel::setup(int flag)
   }
   #endif
 
-  if (comm->me == 0 && screen) {
+  if (comm->me == 0) {
     fprintf(screen,"Setting up VerletLRTIntel run ...\n");
     fprintf(screen,"  Unit style    : %s\n", update->unit_style);
-    fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n", update->ntimestep);
+    fmt::print(screen,"  Current step  : {}\n", update->ntimestep);
     fprintf(screen,"  Time step     : %g\n", update->dt);
     timer->print_timeout(screen);
   }
@@ -109,11 +109,8 @@ void VerletLRTIntel::setup(int flag)
     sched_getaffinity(0, sizeof(cpuset), &cpuset);
     int my_cpu_count = CPU_COUNT(&cpuset);
     if (my_cpu_count < comm->nthreads + 1) {
-      char str[128];
-      sprintf(str,"Using %d threads per MPI rank, but only %d core(s)"
-                  " allocated for each MPI rank",
-              comm->nthreads + 1, my_cpu_count);
-      error->warning(FLERR, str);
+      error->warning(FLERR, "Using {} threads per MPI rank, but only {} core(s) allocated "
+                     "for each MPI rank", comm->nthreads + 1, my_cpu_count);
     }
   }
   #endif
@@ -205,7 +202,7 @@ void VerletLRTIntel::setup(int flag)
 
 void VerletLRTIntel::run(int n)
 {
-  if (_intel_kspace == 0) {
+  if (_intel_kspace == nullptr) {
     Verlet::run(n);
     return;
   }
@@ -391,7 +388,7 @@ void VerletLRTIntel::run(int n)
 ------------------------------------------------------------------------- */
 void * VerletLRTIntel::k_launch_loop(void *context)
 {
-  VerletLRTIntel * const c = (VerletLRTIntel *)context;
+  auto  const c = (VerletLRTIntel *)context;
 
   if (c->kspace_compute_flag)
     c->_intel_kspace->compute_first(c->eflag, c->vflag);

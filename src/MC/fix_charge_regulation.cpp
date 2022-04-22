@@ -22,6 +22,7 @@
 #include "atom.h"
 #include "atom_vec.h"
 #include "bond.h"
+#include "citeme.h"
 #include "comm.h"
 #include "compute.h"
 #include "dihedral.h"
@@ -52,6 +53,16 @@ using namespace FixConst;
 using namespace MathConst;
 using namespace MathSpecial;
 
+static const char cite_fix_charge_regulation[] =
+  "fix charge/regulation: \n\n"
+  "@Article{Curk22,\n"
+  " author = {T. Curk, J. Yuan, E. Luijten},\n"
+  " title = {Accelerated simulation method for charge regulation effects},\n"
+  " journal = {The Journal of Chemical Physics},\n"
+  " year = 2022,\n"
+  " volume = 156\n"
+  "}\n\n";
+
 enum{CONSTANT,EQUAL}; // parsing input variables
 
 // large energy value used to signal overlap
@@ -68,6 +79,7 @@ FixChargeRegulation::FixChargeRegulation(LAMMPS *lmp, int narg, char **arg) :
   c_pe(nullptr), random_equal(nullptr), random_unequal(nullptr),
   idftemp(nullptr)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_fix_charge_regulation);
 
   // Region restrictions not yet implemented ..
 
@@ -646,6 +658,8 @@ void FixChargeRegulation::forward_ions() {
 
   m1 = insert_particle(cation_type, +1, 0, dummyp);
   m2 = insert_particle(anion_type, -1, 0, dummyp);
+  if (force->kspace) force->kspace->qsum_qsq();
+  if (force->pair->tail_flag) force->pair->reinit();
   double energy_after = energy_full();
   if (energy_after < MAXENERGYTEST &&
       random_equal->uniform() < factor * exp(beta * (energy_before - energy_after))) {
@@ -1218,7 +1232,7 @@ void FixChargeRegulation::write_restart(FILE *fp)
 void FixChargeRegulation::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
 
   seed = static_cast<int> (list[n++]);
   random_equal->reset(seed);

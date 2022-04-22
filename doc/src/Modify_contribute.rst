@@ -27,11 +27,10 @@ join the `LAMMPS developers on Slack <https://lammps.slack.com>`_.  This
 slack work space is by invitation only.  Thus for access, please send an
 e-mail to ``slack@lammps.org`` explaining what part of LAMMPS you are
 working on.  Only discussions related to LAMMPS development are
-tolerated in that work space, so this is **NOT** for people that look for
-help with compiling, installing, or using LAMMPS.  Please post a message
-to the `lammps-users mailing list <https://www.lammps.org/mail.html>`_
-or the `LAMMPS forum <https://www.lammps.org/forum.html>`_ for those
-purposes.
+tolerated in that work space, so this is **NOT** for people that look
+for help with compiling, installing, or using LAMMPS.  Please post a
+message to the `LAMMPS forum <https://www.lammps.org/forum.html>`_ for
+those purposes.
 
 Packages versus individual files
 --------------------------------

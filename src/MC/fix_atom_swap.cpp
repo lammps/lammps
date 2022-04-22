@@ -205,7 +205,7 @@ int FixAtomSwap::setmask()
 
 void FixAtomSwap::init()
 {
-  char *id_pe = (char *) "thermo_pe";
+  auto id_pe = (char *) "thermo_pe";
   int ipe = modify->find_compute(id_pe);
   c_pe = modify->compute[ipe];
 
@@ -378,7 +378,7 @@ int FixAtomSwap::attempt_semi_grand()
     if (modify->n_pre_neighbor) modify->pre_neighbor();
     neighbor->build(1);
   } else {
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
   }
 
   // post-swap energy
@@ -464,7 +464,7 @@ int FixAtomSwap::attempt_swap()
     if (modify->n_pre_neighbor) modify->pre_neighbor();
     neighbor->build(1);
   } else {
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
   }
 
   // post-swap energy
@@ -804,7 +804,7 @@ void FixAtomSwap::write_restart(FILE *fp)
 void FixAtomSwap::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
 
   seed = static_cast<int> (list[n++]);
   random_equal->reset(seed);

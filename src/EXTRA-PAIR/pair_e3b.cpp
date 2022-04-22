@@ -99,7 +99,7 @@ void PairE3B::compute(int eflag, int vflag)
 
   ev_init(eflag, vflag);
   //clear sumExp array
-  memset(sumExp, 0.0, nbytes);
+  memset(sumExp, 0, sizeof(double)*maxID);
 
   evdwl = 0.0;
   pvector[0] = pvector[1] = pvector[2] = pvector[3] = 0.0;
@@ -364,7 +364,6 @@ void PairE3B::allocateE3B()
   maxID = find_maxID();
   if (!natoms) error->all(FLERR, "No atoms found");
   memory->create(sumExp, maxID, "pair:sumExp");
-  nbytes = sizeof(double) * maxID;
 }
 
 /* ----------------------------------------------------------------------
@@ -459,7 +458,7 @@ void PairE3B::init_style()
   if (typeO < 1 || typeO > atom->ntypes) error->all(FLERR, "Invalid Otype: out of bounds");
 
   // need a half neighbor list
-  neighbor->request(this, instance_me);
+  neighbor->add_request(this);
 
   if (!force->pair_match("tip4p", false, 0))
     if (comm->me == 0)

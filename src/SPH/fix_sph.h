@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class FixSPH : public Fix {
  public:
   FixSPH(class LAMMPS *, int, char **);
-  int setmask();
-  virtual void init();
-  virtual void setup_pre_force(int);
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
-  void reset_dt();
+  int setmask() override;
+  void init() override;
+  void setup_pre_force(int) override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  void reset_dt() override;
 
  private:
   class NeighList *list;

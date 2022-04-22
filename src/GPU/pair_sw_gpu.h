@@ -27,15 +27,15 @@ namespace LAMMPS_NS {
 class PairSWGPU : public PairSW {
  public:
   PairSWGPU(class LAMMPS *);
-  ~PairSWGPU();
-  void compute(int, int);
-  double init_one(int, int);
-  void init_style();
+  ~PairSWGPU() override;
+  void compute(int, int) override;
+  double init_one(int, int) override;
+  void init_style() override;
 
   enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  protected:
-  void allocate();
+  void allocate() override;
 
   int gpu_mode;
   double cpu_time;

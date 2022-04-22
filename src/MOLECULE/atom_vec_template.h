@@ -28,12 +28,12 @@ class AtomVecTemplate : public AtomVec {
  public:
   AtomVecTemplate(class LAMMPS *);
 
-  void grow_pointers();
-  void process_args(int, char **);
-  void create_atom_post(int);
-  void pack_data_pre(int);
-  void pack_data_post(int);
-  void data_atom_post(int);
+  void grow_pointers() override;
+  void process_args(int, char **) override;
+  void create_atom_post(int) override;
+  void pack_data_pre(int) override;
+  void pack_data_post(int) override;
+  void data_atom_post(int) override;
 
  private:
   int *molindex, *molatom;

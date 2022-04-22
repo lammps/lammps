@@ -58,7 +58,7 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM,
 
 /* ---------------------------------------------------------------------- */
 
-PPPMDispDielectric::PPPMDispDielectric(LAMMPS *lmp) : PPPMDisp(lmp)
+PPPMDispDielectric::PPPMDispDielectric(LAMMPS *_lmp) : PPPMDisp(_lmp)
 {
   dipoleflag = 0; // turned off for now, until dipole works
   group_group_enable = 0;
@@ -69,7 +69,7 @@ PPPMDispDielectric::PPPMDispDielectric(LAMMPS *lmp) : PPPMDisp(lmp)
   phi = nullptr;
   potflag = 0;
 
-  avec = (AtomVecDielectric *) atom->style_match("dielectric");
+  avec = dynamic_cast<AtomVecDielectric *>( atom->style_match("dielectric"));
   if (!avec) error->all(FLERR,"pppm/dielectric requires atom style dielectric");
 }
 

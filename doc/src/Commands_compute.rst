@@ -63,6 +63,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`event/displace <compute_event_displace>`
    * :doc:`fabric <compute_fabric>`
    * :doc:`fep <compute_fep>`
+   * :doc:`fep/ta <compute_fep_ta>`
    * :doc:`force/tally <compute_tally>`
    * :doc:`fragment/atom <compute_cluster_atom>`
    * :doc:`global/atom <compute_global_atom>`
@@ -90,6 +91,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`msd <compute_msd>`
    * :doc:`msd/chunk <compute_msd_chunk>`
    * :doc:`msd/nongauss <compute_msd_nongauss>`
+   * :doc:`nbond/atom <compute_nbond_atom>`
    * :doc:`omega/chunk <compute_omega_chunk>`
    * :doc:`orientorder/atom (k) <compute_orientorder_atom>`
    * :doc:`pair <compute_pair>`
@@ -100,7 +102,6 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`pe/tally <compute_tally>`
    * :doc:`plasticity/atom <compute_plasticity_atom>`
    * :doc:`pressure <compute_pressure>`
-   * :doc:`pressure/cylinder <compute_pressure_cylinder>`
    * :doc:`pressure/uef <compute_pressure_uef>`
    * :doc:`property/atom <compute_property_atom>`
    * :doc:`property/chunk <compute_property_chunk>`
@@ -143,8 +144,11 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`sph/t/atom <compute_sph_t_atom>`
    * :doc:`spin <compute_spin>`
    * :doc:`stress/atom <compute_stress_atom>`
+   * :doc:`stress/cartesian <compute_stress_profile>`
+   * :doc:`stress/cylinder <compute_stress_profile>`
    * :doc:`stress/mop <compute_stress_mop>`
    * :doc:`stress/mop/profile <compute_stress_mop>`
+   * :doc:`stress/spherical <compute_stress_profile>`
    * :doc:`stress/tally <compute_tally>`
    * :doc:`tdpd/cc/atom <compute_tdpd_cc_atom>`
    * :doc:`temp (k) <compute_temp>`

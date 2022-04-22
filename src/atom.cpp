@@ -38,10 +38,6 @@
 #include <algorithm>
 #include <cstring>
 
-#ifdef LMP_INTEL
-#include "neigh_request.h"
-#endif
-
 #ifdef LMP_GPU
 #include "fix_gpu.h"
 #include <cmath>
@@ -53,6 +49,15 @@ using namespace MathConst;
 #define DELTA 1
 #define DELTA_PERATOM 64
 #define EPSILON 1.0e-6
+
+/* ----------------------------------------------------------------------
+   one instance per AtomVec style in style_atom.h
+------------------------------------------------------------------------- */
+
+template <typename T> static AtomVec *avec_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -123,6 +128,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   omega = angmom = torque = nullptr;
   radius = rmass = nullptr;
   ellipsoid = line = tri = body = nullptr;
+  quat = nullptr;
 
   // molecular systems
 
@@ -421,6 +427,10 @@ void Atom::peratom_create()
   add_peratom("tri",&tri,INT,0);
   add_peratom("body",&body,INT,0);
 
+  // BPM package
+
+  add_peratom("quat",&quat,DOUBLE,4);
+
   // MOLECULE package
 
   add_peratom("molecule",&molecule,tagintsize,0);
@@ -641,6 +651,7 @@ void Atom::set_atomflag_defaults()
   // identical list as 2nd customization in atom.h
 
   sphere_flag = ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
+  quat_flag = 0;
   peri_flag = electron_flag = 0;
   wavepacket_flag = sph_flag = 0;
   molecule_flag = molindex_flag = molatom_flag = 0;
@@ -743,16 +754,6 @@ AtomVec *Atom::new_avec(const std::string &style, int trysuffix, int &sflag)
   return nullptr;
 }
 
-/* ----------------------------------------------------------------------
-   one instance per AtomVec style in style_atom.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-AtomVec *Atom::avec_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
-}
-
 /* ---------------------------------------------------------------------- */
 
 void Atom::init()
@@ -801,7 +802,7 @@ AtomVec *Atom::style_match(const char *style)
 {
   if (strcmp(atom_style,style) == 0) return avec;
   else if (strcmp(atom_style,"hybrid") == 0) {
-    auto avec_hybrid = (AtomVecHybrid *) avec;
+    auto avec_hybrid = dynamic_cast<AtomVecHybrid *>( avec);
     for (int i = 0; i < avec_hybrid->nstyles; i++)
       if (strcmp(avec_hybrid->keywords[i],style) == 0)
         return avec_hybrid->styles[i];
@@ -1052,7 +1053,7 @@ void Atom::deallocate_topology()
 void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
                       int type_offset, int shiftflag, double *shift)
 {
-  int m,xptr,iptr;
+  int xptr,iptr;
   imageint imagedata;
   double xdata[3],lamda[3];
   double *coord;
@@ -1139,7 +1140,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
     next = strchr(buf,'\n');
     *next = '\0';
     auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
-    if (values.size() != nwords)
+    if ((int)values.size() != nwords)
       error->all(FLERR, "Incorrect atom format in data file: {}", utils::trim(buf));
 
     int imx = 0, imy = 0, imz = 0;
@@ -1197,7 +1198,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 
 void Atom::data_vels(int n, char *buf, tagint id_offset)
 {
-  int j,m;
+  int m;
   char *next;
 
   next = strchr(buf,'\n');
@@ -1216,7 +1217,7 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
     next = strchr(buf,'\n');
     *next = '\0';
     auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
-    if (values.size() != nwords)
+    if ((int)values.size() != nwords)
       error->all(FLERR, "Incorrect atom format in data file: {}", utils::trim(buf));
 
     tagint tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
@@ -1576,7 +1577,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
 
 void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
 {
-  int j,m;
+  int m;
   char *next;
 
   next = strchr(buf,'\n');
@@ -1595,7 +1596,7 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
     next = strchr(buf,'\n');
     *next = '\0';
     auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
-    if (values.size() != nwords)
+    if ((int)values.size() != nwords)
       error->all(FLERR, "Incorrect atom format in data file: {}", utils::trim(buf));
 
     tagint tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
@@ -1846,7 +1847,7 @@ int Atom::shape_consistency(int itype,
   double one[3] = {-1.0, -1.0, -1.0};
   double *shape;
 
-  auto avec_ellipsoid = (AtomVecEllipsoid *) style_match("ellipsoid");
+  auto avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>( style_match("ellipsoid"));
   auto bonus = avec_ellipsoid->bonus;
 
   int flag = 0;
@@ -1894,8 +1895,7 @@ void Atom::add_molecule(int narg, char **arg)
   int index = 1;
   while (true) {
     molecules = (Molecule **)
-      memory->srealloc(molecules,(nmolecule+1)*sizeof(Molecule *),
-                       "atom::molecules");
+      memory->srealloc(molecules,(nmolecule+1)*sizeof(Molecule *), "atom::molecules");
     molecules[nmolecule] = new Molecule(lmp,narg,arg,index);
     molecules[nmolecule]->nset = 0;
     molecules[nmolecule-ifile+1]->nset++;
@@ -1925,8 +1925,7 @@ int Atom::find_molecule(char *id)
    called by fixes and commands that add molecules
 ------------------------------------------------------------------------- */
 
-void Atom::add_molecule_atom(Molecule *onemol, int iatom,
-                             int ilocal, tagint offset)
+void Atom::add_molecule_atom(Molecule *onemol, int iatom, int ilocal, tagint offset)
 {
   if (onemol->qflag && q_flag) q[ilocal] = onemol->q[iatom];
   if (onemol->radiusflag && radius_flag) radius[ilocal] = onemol->radius[iatom];
@@ -1940,6 +1939,19 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom,
                                  onemol->ibodyparams,onemol->dbodyparams);
     onemol->avec_body->set_quat(ilocal,onemol->quat_external);
   }
+
+  // initialize custom per-atom properties to zero if present
+
+  for (int i = 0; i < nivector; ++i)
+    ivector[i][ilocal] = 0;
+  for (int i = 0; i < ndvector; ++i)
+    dvector[i][ilocal] = 0.0;
+  for (int i = 0; i < niarray; ++i)
+    for (int j = 0; j < icols[i]; ++j)
+      iarray[i][ilocal][j] = 0;
+  for (int i = 0; i < ndarray; ++i)
+    for (int j = 0; j < dcols[i]; ++j)
+      darray[i][ilocal][j] = 0.0;
 
   if (molecular != Atom::MOLECULAR) return;
 
@@ -2178,12 +2190,7 @@ void Atom::setup_sort_bins()
   bininvz = nbinz / (bboxhi[2]-bboxlo[2]);
 
 #ifdef LMP_INTEL
-  int intel_neigh = 0;
-  if (neighbor->nrequest) {
-    if (neighbor->requests[0]->intel) intel_neigh = 1;
-  } else if (neighbor->old_nrequest)
-    if (neighbor->old_requests[0]->intel) intel_neigh = 1;
-  if (intel_neigh && userbinsize == 0.0) {
+  if (neighbor->has_intel_request() && userbinsize == 0.0) {
     if (neighbor->binsizeflag) bininv = 1.0/neighbor->binsize_user;
 
     double nx_low = neighbor->bboxlo[0];
@@ -2226,7 +2233,7 @@ void Atom::setup_sort_bins()
 
 #ifdef LMP_GPU
   if (userbinsize == 0.0) {
-    FixGPU *fix = (FixGPU *)modify->get_fix_by_id("package_gpu");
+    FixGPU *fix = dynamic_cast<FixGPU *>(modify->get_fix_by_id("package_gpu"));
     if (fix) {
       const double subx = domain->subhi[0] - domain->sublo[0];
       const double suby = domain->subhi[1] - domain->sublo[1];
@@ -2624,6 +2631,10 @@ length of the data area, and a short description.
      - int
      - 1
      - 1 if the particle is a body particle, 0 if not
+   * - quat
+     - double
+     - 4
+     - four quaternion components of the particles
    * - i_name
      - int
      - 1
@@ -2679,6 +2690,7 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"line") == 0) return (void *) line;
   if (strcmp(name,"tri") == 0) return (void *) tri;
   if (strcmp(name,"body") == 0) return (void *) body;
+  if (strcmp(name,"quat") == 0) return (void *) quat;
 
   if (strcmp(name,"vfrac") == 0) return (void *) vfrac;
   if (strcmp(name,"s0") == 0) return (void *) s0;
@@ -2801,6 +2813,7 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"line") == 0) return LAMMPS_INT;
   if (strcmp(name,"tri") == 0) return LAMMPS_INT;
   if (strcmp(name,"body") == 0) return LAMMPS_INT;
+  if (strcmp(name,"quat") == 0) return LAMMPS_DOUBLE_2D;
 
   if (strcmp(name,"vfrac") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"s0") == 0) return LAMMPS_DOUBLE;

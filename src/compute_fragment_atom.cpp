@@ -121,7 +121,7 @@ void ComputeFragmentAtom::compute_peratom()
 
   if (group->dynamic[igroup]) {
     commflag = 0;
-    comm->forward_comm_compute(this);
+    comm->forward_comm(this);
   }
 
   // owned + ghost atoms start with fragmentID = atomID
@@ -153,7 +153,7 @@ void ComputeFragmentAtom::compute_peratom()
   while (true) {
     iteration++;
 
-    comm->forward_comm_compute(this);
+    comm->forward_comm(this);
     done = 1;
 
     // set markflag = 0 for all owned atoms, for new iteration

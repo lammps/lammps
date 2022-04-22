@@ -37,13 +37,13 @@ class PairCoulDebyeKokkos : public PairCoulDebye {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairCoulDebyeKokkos(class LAMMPS *);
-  ~PairCoulDebyeKokkos();
+  ~PairCoulDebyeKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   struct params_coul{
     KOKKOS_INLINE_FUNCTION
@@ -111,7 +111,7 @@ class PairCoulDebyeKokkos : public PairCoulDebye {
   double special_lj[4];
   double qqrd2e;
 
-  void allocate();
+  void allocate() override;
   friend struct PairComputeFunctor<PairCoulDebyeKokkos,FULL,true>;
   friend struct PairComputeFunctor<PairCoulDebyeKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairCoulDebyeKokkos,HALFTHREAD,true>;

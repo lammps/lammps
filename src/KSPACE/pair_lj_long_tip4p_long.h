@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class PairLJLongTIP4PLong : public PairLJLongCoulLong {
  public:
   PairLJLongTIP4PLong(class LAMMPS *);
-  ~PairLJLongTIP4PLong();
-  virtual void compute(int, int);
-  virtual void compute_inner();
-  virtual void compute_middle();
-  virtual void compute_outer(int, int);
-  void settings(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void write_restart_settings(FILE *fp);
-  void read_restart_settings(FILE *fp);
-  void *extract(const char *, int &);
-  double memory_usage();
+  ~PairLJLongTIP4PLong() override;
+  void compute(int, int) override;
+  void compute_inner() override;
+  void compute_middle() override;
+  void compute_outer(int, int) override;
+  void settings(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart_settings(FILE *fp) override;
+  void read_restart_settings(FILE *fp) override;
+  void *extract(const char *, int &) override;
+  double memory_usage() override;
 
  protected:
   int typeH, typeO;    // atom types of TIP4P water H and O atoms

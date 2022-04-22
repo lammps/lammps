@@ -264,8 +264,8 @@ int FixAppendAtoms::get_spatial()
       else failed = 0;
       count++;
     }
-    double *pos = new double[count-2];
-    double *val = new double[count-2];
+    auto pos = new double[count-2];
+    auto val = new double[count-2];
     for (int loop=0; loop < count-2; loop++) {
       pos[loop] = fix->compute_vector(2*loop);
       val[loop] = fix->compute_vector(2*loop+1);

@@ -196,7 +196,7 @@ void FixEHEX::init()
     if (cnt_shake > 1)
       error->all(FLERR,"Multiple instances of fix shake/rattle detected (not supported yet)");
     else if (cnt_shake == 1)   {
-     fshake = ((FixShake*) modify->fix[id_shake]);
+     fshake = (dynamic_cast<FixShake*>( modify->fix[id_shake]));
     }
     else if (cnt_shake == 0)
       error->all(FLERR, "Fix ehex was configured with keyword constrain, but shake/rattle was not defined");

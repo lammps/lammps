@@ -29,8 +29,8 @@ class PairEDIPOMP : public PairEDIP, public ThrOMP {
  public:
   PairEDIPOMP(class LAMMPS *);
 
-  virtual void compute(int, int);
-  virtual double memory_usage();
+  void compute(int, int) override;
+  double memory_usage() override;
 
  private:
   template <int EVFLAG, int EFLAG, int VFLAG_ATOM>

@@ -167,7 +167,7 @@ void PRD::command(int narg, char **arg)
 
   // create FixEventPRD class to store event and pre-quench states
 
-  fix_event = (FixEventPRD *) modify->add_fix("prd_event all EVENT/PRD");
+  fix_event = dynamic_cast<FixEventPRD *>( modify->add_fix("prd_event all EVENT/PRD"));
 
   // create Finish for timing output
 
@@ -416,18 +416,10 @@ void PRD::command(int narg, char **arg)
   neighbor->ndanger = ndanger;
 
   if (me_universe == 0) {
-    if (universe->uscreen)
-      fprintf(universe->uscreen,
-              "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT
-              " atoms\n",
-              timer->get_wall(Timer::TOTAL),nprocs_universe,
-              nsteps,atom->natoms);
-    if (universe->ulogfile)
-      fprintf(universe->ulogfile,
-              "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT
-              " atoms\n",
-              timer->get_wall(Timer::TOTAL),nprocs_universe,
-              nsteps,atom->natoms);
+    auto mesg = fmt::format("Loop time of {} on {} procs for {} steps with {} atoms\n",
+                            timer->get_wall(Timer::TOTAL), nprocs_universe, nsteps,atom->natoms);
+    if (universe->uscreen) fmt::print(universe->uscreen, mesg);
+    if (universe->ulogfile) fmt::print(universe->ulogfile, mesg);
   }
 
   if (me == 0) utils::logmesg(lmp,"\nPRD done\n");
@@ -729,24 +721,13 @@ void PRD::log_event()
 {
   timer->set_wall(Timer::TOTAL, time_start);
   if (universe->me == 0) {
-    if (universe->uscreen)
-      fprintf(universe->uscreen,
-              BIGINT_FORMAT " %.3f " BIGINT_FORMAT " %d %d %d %d\n",
-              fix_event->event_timestep,
-              timer->elapsed(Timer::TOTAL),
-              fix_event->clock,
-              fix_event->event_number,fix_event->correlated_event,
-              fix_event->ncoincident,
-              fix_event->replica_number);
-    if (universe->ulogfile)
-      fprintf(universe->ulogfile,
-              BIGINT_FORMAT " %.3f " BIGINT_FORMAT " %d %d %d %d\n",
-              fix_event->event_timestep,
-              timer->elapsed(Timer::TOTAL),
-              fix_event->clock,
-              fix_event->event_number,fix_event->correlated_event,
-              fix_event->ncoincident,
-              fix_event->replica_number);
+    auto mesg = fmt::format("{} {:.3f} {} {} {} {} {}\n", fix_event->event_timestep,
+                            timer->elapsed(Timer::TOTAL), fix_event->clock,
+                            fix_event->event_number, fix_event->correlated_event,
+                            fix_event->ncoincident, fix_event->replica_number);
+
+    if (universe->uscreen) fmt::print(universe->uscreen, mesg);
+    if (universe->ulogfile) fmt::print(universe->ulogfile, mesg);
   }
 }
 

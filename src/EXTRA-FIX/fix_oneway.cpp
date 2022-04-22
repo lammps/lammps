@@ -65,7 +65,7 @@ FixOneWay::FixOneWay(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
 FixOneWay::~FixOneWay()
 {
-  if (regionstr) delete[] regionstr;
+  delete[] regionstr;
 }
 
 /* ---------------------------------------------------------------------- */

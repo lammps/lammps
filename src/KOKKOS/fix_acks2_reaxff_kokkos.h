@@ -54,8 +54,7 @@ struct TagACKS2Precon1B{};
 struct TagACKS2Precon2{};
 struct TagACKS2Add{};
 struct TagACKS2ZeroQGhosts{};
-struct TagACKS2CalculateQ1{};
-struct TagACKS2CalculateQ2{};
+struct TagACKS2CalculateQ{};
 
 template<class DeviceType>
 class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF {
@@ -152,10 +151,7 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF {
   void operator()(TagACKS2ZeroQGhosts, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagACKS2CalculateQ1, const int&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagACKS2CalculateQ2, const int&) const;
+  void operator()(TagACKS2CalculateQ, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   double calculate_H_k(const F_FLOAT &r, const F_FLOAT &shld) const;
@@ -183,16 +179,16 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF {
   Kokkos::DualView<params_acks2*,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_acks2*, Kokkos::LayoutRight,DeviceType>::t_dev_const params;
 
-  typename ArrayTypes<DeviceType>::t_x_array x;
-  typename ArrayTypes<DeviceType>::t_v_array v;
-  typename ArrayTypes<DeviceType>::t_f_array_const f;
-  typename ArrayTypes<DeviceType>::t_ffloat_1d_randomread mass;
-  typename ArrayTypes<DeviceType>::t_ffloat_1d q;
-  typename ArrayTypes<DeviceType>::t_int_1d type, mask;
-  typename ArrayTypes<DeviceType>::t_tagint_1d tag;
+  typename AT::t_x_array x;
+  typename AT::t_v_array v;
+  typename AT::t_f_array_const f;
+  typename AT::t_ffloat_1d_randomread mass;
+  typename AT::t_ffloat_1d q;
+  typename AT::t_int_1d type, mask;
+  typename AT::t_tagint_1d tag;
 
-  typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread d_ilist, d_numneigh;
+  typename AT::t_neighbors_2d d_neighbors;
+  typename AT::t_int_1d_randomread d_ilist, d_numneigh;
 
   DAT::tdual_ffloat_1d k_tap;
   typename AT::t_ffloat_1d d_tap;
@@ -222,11 +218,19 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF {
   typename AT::t_ffloat_2d d_shield, d_s_hist, d_s_hist_X, d_s_hist_last;
   typename AT::t_ffloat_2d_randomread r_s_hist, r_s_hist_X, r_s_hist_last;
 
-  Kokkos::Experimental::ScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated> dup_X_diag;
-  Kokkos::Experimental::ScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated> ndup_X_diag;
+  using KKDeviceType = typename KKDevice<DeviceType>::value;
 
-  Kokkos::Experimental::ScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated> dup_bb;
-  Kokkos::Experimental::ScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated> ndup_bb;
+  template<typename DataType, typename Layout>
+  using DupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterDuplicated>;
+
+  template<typename DataType, typename Layout>
+  using NonDupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterNonDuplicated>;
+
+  DupScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout> dup_X_diag;
+  NonDupScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout> ndup_X_diag;
+
+  DupScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout> dup_bb;
+  NonDupScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout> ndup_bb;
 
   void init_shielding_k();
   void init_hist();

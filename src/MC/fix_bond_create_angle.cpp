@@ -17,18 +17,12 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_bond_create_angle.h"
+
 #include "atom.h"
+
 #include <cmath>
 
 using namespace LAMMPS_NS;
-
-/* ---------------------------------------------------------------------- */
-
-FixBondCreateAngle::FixBondCreateAngle(LAMMPS *lmp, int narg, char **arg) :
-  FixBondCreate(lmp, narg, arg)
-{
-
-}
 
 /* ---------------------------------------------------------------------- */
 

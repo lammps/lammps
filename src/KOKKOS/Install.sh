@@ -108,6 +108,8 @@ action dihedral_opls_kokkos.cpp dihedral_opls.cpp
 action dihedral_opls_kokkos.h dihedral_opls.h
 action domain_kokkos.cpp
 action domain_kokkos.h
+action dynamical_matrix_kokkos.cpp dynamical_matrix.cpp
+action dynamical_matrix_kokkos.h dynamical_matrix.h
 action fftdata_kokkos.h fft3d.h
 action fft3d_kokkos.cpp fft3d.cpp
 action fft3d_kokkos.h fft3d.h
@@ -228,6 +230,14 @@ action pair_coul_long_kokkos.cpp pair_coul_long.cpp
 action pair_coul_long_kokkos.h pair_coul_long.h
 action pair_coul_wolf_kokkos.cpp
 action pair_coul_wolf_kokkos.h
+action pair_dpd_kokkos.h pair_dpd.h
+action pair_dpd_kokkos.cpp pair_dpd.cpp
+action pair_dpd_ext_kokkos.cpp pair_dpd_ext.cpp
+action pair_dpd_ext_kokkos.h pair_dpd_ext.h
+action pair_dpd_ext_tstat_kokkos.h pair_dpd_ext_tstat.h
+action pair_dpd_ext_tstat_kokkos.cpp pair_dpd_ext_tstat.cpp
+action pair_dpd_tstat_kokkos.h pair_dpd_tstat.h
+action pair_dpd_tstat_kokkos.cpp pair_dpd_tstat.cpp
 action pair_dpd_fdt_energy_kokkos.cpp pair_dpd_fdt_energy.cpp
 action pair_dpd_fdt_energy_kokkos.h pair_dpd_fdt_energy.h
 action pair_eam_kokkos.cpp pair_eam.cpp
@@ -312,6 +322,9 @@ action remap_kokkos.cpp remap.cpp
 action remap_kokkos.h remap.h
 action sna_kokkos.h sna.h
 action sna_kokkos_impl.h sna.cpp
+action third_order_kokkos.cpp dynamical_matrix.cpp
+action third_order_kokkos.h dynamical_matrix.h
+action transpose_helper_kokkos.h
 action verlet_kokkos.cpp
 action verlet_kokkos.h
 

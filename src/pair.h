@@ -33,6 +33,7 @@ class Pair : protected Pointers {
   friend class PairHybridScaled;
   friend class ThrOMP;
   friend class Info;
+  friend class Neighbor;
 
  public:
   static int instance_total;    // # of Pair classes ever instantiated
@@ -123,7 +124,7 @@ class Pair : protected Pointers {
   int kokkosable;    // 1 if Kokkos pair
 
   Pair(class LAMMPS *);
-  virtual ~Pair();
+  ~Pair() override;
 
   // top-level Pair methods
 

@@ -83,7 +83,7 @@ using ATC_Utility::to_string;
   }
 
   //-------------------------------------------------------------------
-  void ATC_TransferKernel::compute_kernel_matrix_molecule(void) // KKM add
+  void ATC_TransferKernel::compute_kernel_matrix_molecule() // KKM add
   {
     int nLocalMol = smallMoleculeSet_->local_molecule_count();
     if (nLocal_>0) {

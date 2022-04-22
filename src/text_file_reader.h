@@ -26,8 +26,8 @@ namespace LAMMPS_NS {
 class TextFileReader {
   std::string filetype;
   bool closefp;
-  static constexpr int MAXLINE = 1024;
-  char line[MAXLINE];
+  int bufsize;
+  char *line;
   FILE *fp;
 
  public:
@@ -35,9 +35,14 @@ class TextFileReader {
 
   TextFileReader(const std::string &filename, const std::string &filetype);
   TextFileReader(FILE *fp, std::string filetype);
+  TextFileReader() = delete;
+  TextFileReader(const TextFileReader &) = delete;
+  TextFileReader(const TextFileReader &&) = delete;
+  TextFileReader &operator=(const TextFileReader &) = delete;
+  virtual ~TextFileReader();
 
-  ~TextFileReader();
-
+  void set_bufsize(int);
+  void rewind();
   void skip_line();
   char *next_line(int nparams = 0);
 
@@ -52,9 +57,7 @@ class FileReaderException : public std::exception {
  public:
   FileReaderException(const std::string &msg) : message(msg) {}
 
-  ~FileReaderException() noexcept {}
-
-  virtual const char *what() const noexcept { return message.c_str(); }
+  const char *what() const noexcept override { return message.c_str(); }
 };
 
 class EOFException : public FileReaderException {

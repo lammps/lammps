@@ -39,11 +39,11 @@
 #include "memory.h"
 #include "potential_file_reader.h"
 #include "respa.h"
-#include "tokenizer.h"
 #include "update.h"
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -189,7 +189,7 @@ void FixCMAP::init()
   newton_bond = force->newton_bond;
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
+    ilevel_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
 }
@@ -203,9 +203,9 @@ void FixCMAP::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
+    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(ilevel_respa);
     post_force_respa(vflag,ilevel_respa,0);
-    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
+    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(ilevel_respa);
   }
 }
 
@@ -637,7 +637,7 @@ void FixCMAP::read_grid_map(char *cmapfile)
 {
   if (comm->me == 0) {
     try {
-      memset(&cmapgrid[0][0][0], 6*CMAPDIM*CMAPDIM, sizeof(double));
+      memset(&cmapgrid[0][0][0], 0, 6*CMAPDIM*CMAPDIM*sizeof(double));
       PotentialFileReader reader(lmp, cmapfile, "cmap grid");
 
       // there are six maps in this order.

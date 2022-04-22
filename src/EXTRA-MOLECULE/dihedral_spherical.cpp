@@ -52,16 +52,16 @@ DihedralSpherical::~DihedralSpherical()
     memory->destroy(nterms);
 
     for (int i = 1; i <= atom->ndihedraltypes; i++) {
-      if (Ccoeff[i]) delete[] Ccoeff[i];
-      if (phi_mult[i]) delete[] phi_mult[i];
-      if (phi_shift[i]) delete[] phi_shift[i];
-      if (phi_offset[i]) delete[] phi_offset[i];
-      if (theta1_mult[i]) delete[] theta1_mult[i];
-      if (theta1_shift[i]) delete[] theta1_shift[i];
-      if (theta1_offset[i]) delete[] theta1_offset[i];
-      if (theta2_mult[i]) delete[] theta2_mult[i];
-      if (theta2_shift[i]) delete[] theta2_shift[i];
-      if (theta2_offset[i]) delete[] theta2_offset[i];
+      delete[] Ccoeff[i];
+      delete[] phi_mult[i];
+      delete[] phi_shift[i];
+      delete[] phi_offset[i];
+      delete[] theta1_mult[i];
+      delete[] theta1_shift[i];
+      delete[] theta1_offset[i];
+      delete[] theta2_mult[i];
+      delete[] theta2_shift[i];
+      delete[] theta2_offset[i];
     }
     delete[] Ccoeff;
     delete[] phi_mult;

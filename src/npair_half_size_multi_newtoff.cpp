@@ -15,7 +15,10 @@ es   certain rights in this software.  This software is distributed under
 #include "npair_half_size_multi_newtoff.h"
 
 #include "atom.h"
+#include "atom_vec.h"
+#include "domain.h"
 #include "error.h"
+#include "molecule.h"
 #include "my_page.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -37,7 +40,9 @@ NPairHalfSizeMultiNewtoff::NPairHalfSizeMultiNewtoff(LAMMPS *lmp) : NPair(lmp) {
 
 void NPairHalfSizeMultiNewtoff::build(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,icollection,jcollection,ibin,jbin,ns;
+  int i,j,jh,k,n,itype,jtype,icollection,jcollection,ibin,jbin,ns;
+  int which,imol,iatom,moltemplate;
+  tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutdistsq;
   int *neighptr,*s;
@@ -48,9 +53,18 @@ void NPairHalfSizeMultiNewtoff::build(NeighList *list)
   double *radius = atom->radius;
   int *type = atom->type;
   int *mask = atom->mask;
+  tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
+  tagint **special = atom->special;
+  int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
   if (includegroup) nlocal = atom->nfirst;
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
+  if (molecular == Atom::TEMPLATE) moltemplate = 1;
+  else moltemplate = 0;
 
   int history = list->history;
   int *ilist = list->ilist;
@@ -58,7 +72,7 @@ void NPairHalfSizeMultiNewtoff::build(NeighList *list)
   int **firstneigh = list->firstneigh;
   MyPage<int> *ipage = list->ipage;
 
-  int mask_history = 3 << SBBITS;
+  int mask_history = 1 << HISTBITS;
 
   int inum = 0;
   ipage->reset();
@@ -72,6 +86,11 @@ void NPairHalfSizeMultiNewtoff::build(NeighList *list)
     ytmp = x[i][1];
     ztmp = x[i][2];
     radi = radius[i];
+    if (moltemplate) {
+      imol = molindex[i];
+      iatom = molatom[i];
+      tagprev = tag[i] - iatom - 1;
+    }
 
     ibin = atom2bin[i];
 
@@ -92,27 +111,40 @@ void NPairHalfSizeMultiNewtoff::build(NeighList *list)
       ns = nstencil_multi[icollection][jcollection];
 
       for (k = 0; k < ns; k++) {
-            js = binhead_multi[jcollection][jbin + s[k]];
-            for (j = js; j >= 0; j = bins[j]) {
-              if (j <= i) continue;
+        js = binhead_multi[jcollection][jbin + s[k]];
+        for (j = js; j >= 0; j = bins[j]) {
+          if (j <= i) continue;
 
           jtype = type[j];
           if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
-              delx = xtmp - x[j][0];
-              dely = ytmp - x[j][1];
-              delz = ztmp - x[j][2];
-              rsq = delx*delx + dely*dely + delz*delz;
-              radsum = radi + radius[j];
-              cutdistsq = (radsum+skin) * (radsum+skin);
+          delx = xtmp - x[j][0];
+          dely = ytmp - x[j][1];
+          delz = ztmp - x[j][2];
+          rsq = delx*delx + dely*dely + delz*delz;
+          radsum = radi + radius[j];
+          cutdistsq = (radsum+skin) * (radsum+skin);
 
-              if (rsq <= cutdistsq) {
-                if (history && rsq < radsum*radsum)
-                  neighptr[n++] = j ^ mask_history;
-                else
-                  neighptr[n++] = j;
-              }
-            }
+          if (rsq <= cutdistsq) {
+            jh = j;
+            if (history && rsq < radsum*radsum)
+              jh = jh ^ mask_history;
+
+            if (molecular != Atom::ATOMIC) {
+              if (!moltemplate)
+                which = find_special(special[i],nspecial[i],tag[j]);
+              else if (imol >= 0)
+                which = find_special(onemols[imol]->special[iatom],
+                                     onemols[imol]->nspecial[iatom],
+                                     tag[j]-tagprev);
+              else which = 0;
+              if (which == 0) neighptr[n++] = jh;
+              else if (domain->minimum_image_check(delx,dely,delz))
+                neighptr[n++] = jh;
+              else if (which > 0) neighptr[n++] = jh ^ (which << SBBITS);
+            } else neighptr[n++] = jh;
+          }
+        }
       }
     }
 

@@ -77,17 +77,17 @@ bin, its thermal velocity will thus be 0.0.
 
 After the spatially-averaged velocity field has been subtracted from
 each atom, the temperature is calculated by the formula
-KE = (dim\*N - stream\*Nx\*Ny\*Nz - extra ) k T/2, where KE = total
-kinetic energy of the group of atoms (sum of 1/2 m v\^2), dim = 2
-or 3 = dimensionality of the simulation, stream = 0, 1, 2 or 3 for
-streaming velocity subtracted in 0, 1, 2 or 3 dimensions, extra = extra
-degrees-of-freedom, N = number of atoms in the group, k = Boltzmann
-constant, and T = temperature.  The stream\*Nx\*Ny\*Nz term is degrees
+*KE* = (*dim\*N* - *Ns\*Nx\*Ny\*Nz* - *extra* ) *k* *T*/2, where *KE* = total
+kinetic energy of the group of atoms (sum of 1/2 *m* *v*\^2), *dim* = 2
+or 3 = dimensionality of the simulation, *Ns* = 0, 1, 2 or 3 for
+streaming velocity subtracted in 0, 1, 2 or 3 dimensions, *extra* = extra
+degrees-of-freedom, *N* = number of atoms in the group, *k* = Boltzmann
+constant, and *T* = temperature.  The *Ns\*Nx\*Ny\*Nz* term is degrees
 of freedom subtracted to adjust for the removal of the center-of-mass
-velocity in each direction of the Nx\*Ny\*Nz bins, as discussed in the
-:ref:`(Evans) <Evans1>` paper.  The extra term defaults to (dim - stream)
+velocity in each direction of the *Nx\*Ny\*Nz* bins, as discussed in the
+:ref:`(Evans) <Evans1>` paper.  The extra term defaults to (*dim* - *Ns*)
 and accounts for overall conservation of center-of-mass velocity across
-the group in directions where streaming velocity is not subtracted. This
+the group in directions where streaming velocity is *not* subtracted. This
 can be altered using the *extra* option of the
 :doc:`compute_modify <compute_modify>` command.
 
@@ -95,9 +95,9 @@ If the *out* keyword is used with a *tensor* value, which is the
 default, a kinetic energy tensor, stored as a 6-element vector, is
 also calculated by this compute for use in the computation of a
 pressure tensor.  The formula for the components of the tensor is the
-same as the above formula, except that v\^2 is replaced by vx\*vy for
-the xy component, etc.  The 6 components of the vector are ordered xx,
-yy, zz, xy, xz, yz.
+same as the above formula, except that *v*\^2 is replaced by *vx\*vy* for
+the xy component, etc.  The 6 components of the vector are ordered *xx,
+yy, zz, xy, xz, yz.*
 
 If the *out* keyword is used with a *bin* value, the count of atoms
 and computed temperature for each bin are stored for output, as an
@@ -133,10 +133,12 @@ needed, the subtracted degrees-of-freedom can be altered using the
    calculated temperature for each bin includes the degrees-of-freedom
    adjustment described in the preceding paragraph for fixes that
    constrain molecular motion, as well as the adjustment due to
-   the *extra* option (which defaults to dim - stream as described above),
+   the *extra* option (which defaults to *dim* - *Ns* as described above),
    by fractionally applying them based on the fraction of atoms in each
-   bin, so that the degrees-of-freedom summed over all bins is consistent
-   with the degrees-of-freedom in the scalar temperature calculation.
+   bin. As a result, the bin degrees-of-freedom summed over all bins exactly
+   equals the degrees-of-freedom used in the scalar temperature calculation,
+   :math:`\Sigma N_{DOF_i} = N_{DOF}` and the corresponding relation for temperature
+   is also satisfied :math:`\Sigma N_{DOF_i} T_i = N_{DOF} T` 
 
 See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
 discussion of different ways to compute temperature and perform

@@ -211,6 +211,9 @@ Convenience functions
 .. doxygenfunction:: logmesg(LAMMPS *lmp, const std::string &mesg)
    :project: progguide
 
+.. doxygenfunction:: errorurl
+   :project: progguide
+
 .. doxygenfunction:: flush_buffers(LAMMPS *lmp)
    :project: progguide
 

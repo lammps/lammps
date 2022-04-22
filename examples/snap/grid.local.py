@@ -82,9 +82,11 @@ bgridlocalnrows = lmp.extract_compute("bgridlocal", LMP_STYLE_LOCAL, LMP_SIZE_RO
 print("bgridlocal nrows = ",bgridlocalnrows)
 bgridlocalncols = lmp.extract_compute("bgridlocal", LMP_STYLE_LOCAL, LMP_SIZE_COLS)
 print("bgridlocal ncols = ",bgridlocalncols)
-bgridlocalptr = lmp.extract_compute("bgridlocal", LMP_STYLE_LOCAL, LMP_TYPE_ARRAY)
-print("bgridlocal = ",bgridlocalptr)
-print("bgridlocal[0][0] = ",bgridlocalptr[5][10])
+
+if bgridlocalnrows > 0:
+    bgridlocalptr = lmp.extract_compute("bgridlocal", LMP_STYLE_LOCAL, LMP_TYPE_ARRAY)
+    print("bgridlocal = ",bgridlocalptr)
+    print("bgridlocal[0][0] = ",bgridlocalptr[5][10])
 
 # print out the LAMMPS array to a file
 

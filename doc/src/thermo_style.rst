@@ -10,7 +10,7 @@ Syntax
 
    thermo_style style args
 
-* style = *one* or *multi* *yaml* or *custom*
+* style = *one* or *multi* or *yaml* or *custom*
 * args = list of arguments for a particular style
 
   .. parsed-literal::

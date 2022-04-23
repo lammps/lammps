@@ -27,10 +27,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondHarmonic::BondHarmonic(LAMMPS *_lmp) : Bond(_lmp)
-{
-  reinitflag = 1;
-}
+BondHarmonic::BondHarmonic(LAMMPS *_lmp) : Bond(_lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -201,12 +198,13 @@ double BondHarmonic::single(int type, double rsq, int /*i*/, int /*j*/, double &
 }
 
 /* ----------------------------------------------------------------------
-    Return ptr to internal members upon request.
+   return ptr to internal members upon request
 ------------------------------------------------------------------------ */
+
 void *BondHarmonic::extract(const char *str, int &dim)
 {
   dim = 1;
-  if (strcmp(str, "kappa") == 0) return (void *) k;
+  if (strcmp(str, "k") == 0) return (void *) k;
   if (strcmp(str, "r0") == 0) return (void *) r0;
   return nullptr;
 }

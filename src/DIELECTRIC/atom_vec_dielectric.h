@@ -35,7 +35,7 @@ class AtomVecDielectric : public AtomVec {
   void create_atom_post(int) override;
   void data_atom_post(int) override;
   void unpack_restart_init(int) override;
-  int property_atom(char *) override;
+  int property_atom(const std::string &) override;
   void pack_property_atom(int, double *, int, int) override;
 
  protected:

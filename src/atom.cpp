@@ -47,7 +47,6 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 #define DELTA 1
-#define DELTA_PERATOM 64
 #define EPSILON 1.0e-6
 
 /* ----------------------------------------------------------------------
@@ -104,11 +103,6 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   maxbin = maxnext = 0;
   binhead = nullptr;
   next = permute = nullptr;
-
-  // data structure with info on per-atom vectors/arrays
-
-  nperatom = maxperatom = 0;
-  peratom = nullptr;
 
   // --------------------------------------------------------------------
   // 1st customization section: customize by adding new per-atom variables
@@ -303,12 +297,6 @@ Atom::~Atom()
   memory->destroy(v);
   memory->destroy(f);
 
-  // delete peratom data struct
-
-  for (int i = 0; i < nperatom; i++)
-    delete[] peratom[i].name;
-  memory->sfree(peratom);
-
   // delete custom atom arrays
 
   for (int i = 0; i < nivector; i++) {
@@ -385,12 +373,7 @@ void Atom::settings(Atom *old)
 
 void Atom::peratom_create()
 {
-  for (int i = 0; i < nperatom; i++)
-    delete[] peratom[i].name;
-  memory->sfree(peratom);
-
-  peratom = nullptr;
-  nperatom = maxperatom = 0;
+  peratom.clear();
 
   // --------------------------------------------------------------------
   // 2nd customization section: add peratom variables here, order does not matter
@@ -571,23 +554,11 @@ void Atom::peratom_create()
    use add_peratom_vary() when column count varies per atom
 ------------------------------------------------------------------------- */
 
-void Atom::add_peratom(const char *name, void *address,
+void Atom::add_peratom(const std::string &name, void *address,
                        int datatype, int cols, int threadflag)
 {
-  if (nperatom == maxperatom) {
-    maxperatom += DELTA_PERATOM;
-    peratom = (PerAtom *)
-      memory->srealloc(peratom,maxperatom*sizeof(PerAtom),"atom:peratom");
-  }
-
-  peratom[nperatom].name = utils::strdup(name);
-  peratom[nperatom].address = address;
-  peratom[nperatom].datatype = datatype;
-  peratom[nperatom].cols = cols;
-  peratom[nperatom].threadflag = threadflag;
-  peratom[nperatom].address_length = nullptr;
-
-  nperatom++;
+  PerAtom item = {name, address, nullptr, nullptr, datatype, cols, 0, threadflag};
+  peratom.push_back(item);
 }
 
 /* ----------------------------------------------------------------------
@@ -596,15 +567,13 @@ void Atom::add_peratom(const char *name, void *address,
    see atom_style tdpd as an example
 ------------------------------------------------------------------------- */
 
-void Atom::add_peratom_change_columns(const char *name, int cols)
+void Atom::add_peratom_change_columns(const std::string &name, int cols)
 {
-  for (int i = 0; i < nperatom; i++) {
-    if (strcmp(name,peratom[i].name) == 0) {
-      peratom[i].cols = cols;
-      return;
-    }
-  }
-  error->all(FLERR,"Could not find name {} of peratom array for column change", name);
+  auto match = std::find_if(peratom.begin(), peratom.end(),
+                            [&name] (const PerAtom &p) { return p.name == name; });
+
+  if (match != peratom.end()) (*match).cols = cols;
+  else error->all(FLERR,"Could not find per-atom array name {} for column change", name);
 }
 
 /* ----------------------------------------------------------------------
@@ -619,25 +588,11 @@ void Atom::add_peratom_change_columns(const char *name, int cols)
      e.g. nspecial
 ------------------------------------------------------------------------- */
 
-void Atom::add_peratom_vary(const char *name, void *address,
+void Atom::add_peratom_vary(const std::string &name, void *address,
                             int datatype, int *cols, void *length, int collength)
 {
-  if (nperatom == maxperatom) {
-    maxperatom += DELTA_PERATOM;
-    peratom = (PerAtom *)
-      memory->srealloc(peratom,maxperatom*sizeof(PerAtom),"atom:peratom");
-  }
-
-  peratom[nperatom].name = utils::strdup(name);
-  peratom[nperatom].address = address;
-  peratom[nperatom].datatype = datatype;
-  peratom[nperatom].cols = -1;
-  peratom[nperatom].threadflag = 0;
-  peratom[nperatom].address_maxcols = cols;
-  peratom[nperatom].address_length = length;
-  peratom[nperatom].collength = collength;
-
-  nperatom++;
+  PerAtom item = {name, address, length, cols, datatype, -1, collength, 0};
+  peratom.push_back(item);
 }
 
 /* ----------------------------------------------------------------------

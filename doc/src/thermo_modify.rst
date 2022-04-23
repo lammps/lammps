@@ -252,6 +252,6 @@ flush = no, and temp/press = compute IDs defined by thermo_style.
 
 The defaults for the line and format options depend on the thermo style.
 For styles "one" and "custom", the line and format defaults are "one",
-"%10d", and "%12.8g".  For style "multi", the line and format defaults
+"%10d", and "%14.8g".  For style "multi", the line and format defaults
 are "multi", "%14d", and "%14.4f". For style "yaml", the line and format
 defaults are "%d" and "%.15g".

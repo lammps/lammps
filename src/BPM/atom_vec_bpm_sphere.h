@@ -45,7 +45,7 @@ class AtomVecBPMSphere : public AtomVec {
   int **nspecial;
 
   double *radius, *rmass;
-  double **omega, **torque, **quat;
+  double **omega, **quat;
 
   int any_bond_negative;
   int bond_per_atom;

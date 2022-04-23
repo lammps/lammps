@@ -273,7 +273,7 @@ double BondFENENM::single(int type, double rsq, int /*i*/, int /*j*/, double &ff
 void *BondFENENM::extract(const char *str, int &dim)
 {
   dim = 1;
-  if (strcmp(str, "kappa") == 0) return (void *) k;
+  if (strcmp(str, "k") == 0) return (void *) k;
   if (strcmp(str, "r0") == 0) return (void *) r0;
   return nullptr;
 }

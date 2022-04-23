@@ -80,8 +80,7 @@ int FixOneWay::setmask()
 void FixOneWay::init()
 {
   region = domain->get_region_by_id(idregion);
-  if (!region)
-    error->all(FLERR, "Region {} for fix oneway does not exist", idregion);
+  if (!region) error->all(FLERR, "Region {} for fix oneway does not exist", idregion);
 }
 
 /* ---------------------------------------------------------------------- */

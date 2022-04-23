@@ -353,3 +353,14 @@ double Angle::memory_usage()
   bytes += (double) comm->nthreads * maxcvatom * 9 * sizeof(double);
   return bytes;
 }
+
+/* -----------------------------------------------------------------------
+   reset all type-based angle params via init()
+-------------------------------------------------------------------------- */
+
+void Angle::reinit()
+{
+  if (!reinitflag) error->all(FLERR, "Fix adapt interface to this angle style not supported");
+
+  init();
+}

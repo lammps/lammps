@@ -74,8 +74,8 @@ class AtomVecHybrid : public AtomVec {
   int nstyles_bonus;
   class AtomVec **styles_bonus;
 
-  void merge_fields(std::vector<std::string> &, const std::vector<std::string> &,
-                    int, std::vector<std::string> &);
+  void merge_fields(std::vector<std::string> &, const std::vector<std::string> &, int,
+                    std::vector<std::string> &);
   void build_styles();
   int known_style(char *);
 };

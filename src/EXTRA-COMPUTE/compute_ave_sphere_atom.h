@@ -48,7 +48,7 @@ class ComputeAveSphereAtom : public Compute {
 #endif
 #endif
 
-    /* ERROR/WARNING messages:
+/* ERROR/WARNING messages:
 
 E: Illegal ... command
 

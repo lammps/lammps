@@ -118,8 +118,8 @@ class Variable : protected Pointers {
     Tree **extra;            // ptrs further down tree for nextra args
 
     Tree() :
-        array(nullptr), iarray(nullptr), barray(nullptr), selfalloc(0), ivalue(0),
-        nextra(0), region(nullptr), first(nullptr), second(nullptr), extra(nullptr)
+        array(nullptr), iarray(nullptr), barray(nullptr), selfalloc(0), ivalue(0), nextra(0),
+        region(nullptr), first(nullptr), second(nullptr), extra(nullptr)
     {
     }
   };

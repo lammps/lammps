@@ -162,7 +162,7 @@ void FixEHEX::init()
 
   if (idregion) {
     region = domain->get_region_by_id(idregion);
-    if (!region) error->all(FLERR, "Region {} for fix ehex does not exist",idregion);
+    if (!region) error->all(FLERR, "Region {} for fix ehex does not exist", idregion);
   }
 
   // cannot have 0 atoms in group

@@ -138,12 +138,12 @@ needed, the subtracted degrees-of-freedom can be altered using the
    bin. As a result, the bin degrees-of-freedom summed over all bins exactly
    equals the degrees-of-freedom used in the scalar temperature calculation,
    :math:`\Sigma N_{DOF_i} = N_{DOF}` and the corresponding relation for temperature
-   is also satisfied :math:`\Sigma N_{DOF_i} T_i = N_{DOF} T`, so long as
-   all bins contain more degrees of freedom than the number of constraints per bin.
-   Note that as degrees-of-freedom subtracted due to fixes that contstrain
-   molecular motion are distributed equally between bins, the reported
-   temperature within a bin may not be accurate for systems containing
-   inhomogeneously distributed rigid molecules.
+   is also satisfied :math:`\Sigma N_{DOF_i} T_i = N_{DOF} T`. 
+   These relations will breakdown in cases where the adjustment 
+   exceeds the actual number of degrees-of-freedom in a bin. This could happen
+   if a bin is empty or in situations where rigid molecules
+   are non-uniformly distributed, in which case the reported 
+   temperature within a bin may not be accurate.
 
 See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
 discussion of different ways to compute temperature and perform

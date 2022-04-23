@@ -214,6 +214,9 @@ Convenience functions
 .. doxygenfunction:: errorurl
    :project: progguide
 
+.. doxygenfunction:: missing_cmd_args
+   :project: progguide
+
 .. doxygenfunction:: flush_buffers(LAMMPS *lmp)
    :project: progguide
 

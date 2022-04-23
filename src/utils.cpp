@@ -120,6 +120,12 @@ std::string utils::strfind(const std::string &text, const std::string &pattern)
     return "";
 }
 
+void utils::missing_cmd_args(const std::string &file, int line, const std::string &cmd,
+                             Error *error)
+{
+  if (error) error->all(file, line, "Illegal {} command: missing argument(s)", cmd);
+}
+
 /* specialization for the case of just a single string argument */
 
 void utils::logmesg(LAMMPS *lmp, const std::string &mesg)
@@ -571,14 +577,14 @@ void utils::bounds(const char *file, int line, const std::string &str,
       error->all(file, line, fmt::format("Invalid range string: {}", str));
 
     if (nlo < nmin)
-      error->all(file, line, fmt::format("Numeric index {} is out of bounds "
-                             "({}-{})", nlo, nmin, nmax));
+      error->all(file, line, fmt::format("Numeric index {} is out of bounds ({}-{})",
+                                         nlo, nmin, nmax));
     else if (nhi > nmax)
-      error->all(file, line, fmt::format("Numeric index {} is out of bounds "
-                             "({}-{})", nhi, nmin, nmax));
+      error->all(file, line, fmt::format("Numeric index {} is out of bounds ({}-{})",
+                                         nhi, nmin, nmax));
     else if (nlo > nhi)
-      error->all(file, line, fmt::format("Numeric index {} is out of bounds "
-                             "({}-{})", nlo, nmin, nhi));
+      error->all(file, line, fmt::format("Numeric index {} is out of bounds ({}-{})",
+                                         nlo, nmin, nhi));
   }
 }
 

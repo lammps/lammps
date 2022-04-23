@@ -64,7 +64,7 @@ class AtomVecHybridKokkos : public AtomVecKokkos {
   void write_data(FILE *, int, double **) override;
   void pack_vel(double **) override;
   void write_vel(FILE *, int, double **) override;
-  int property_atom(char *) override;
+  int property_atom(const std::string &) override;
   void pack_property_atom(int, double *, int, int) override;
   double memory_usage() override;
 

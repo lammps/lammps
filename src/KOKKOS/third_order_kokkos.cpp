@@ -160,7 +160,7 @@ void ThirdOrderKokkos::update_force()
 {
   int n_pre_force = modify->n_pre_force;
   int n_pre_reverse = modify->n_pre_reverse;
-  int n_post_force = modify->n_post_force;
+  int n_post_force = modify->n_post_force_any;
 
   lmp->kokkos->auto_sync = 0;
 

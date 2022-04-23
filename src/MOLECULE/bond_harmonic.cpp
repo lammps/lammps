@@ -29,7 +29,6 @@ using namespace LAMMPS_NS;
 
 BondHarmonic::BondHarmonic(LAMMPS *_lmp) : Bond(_lmp)
 {
-  reinitflag = 1;
   born_matrix_enable = 1;
 }
 
@@ -216,12 +215,13 @@ void BondHarmonic::born_matrix(int type, double rsq, int /*i*/, int /*j*/,
 }
 
 /* ----------------------------------------------------------------------
-    Return ptr to internal members upon request.
+   return ptr to internal members upon request
 ------------------------------------------------------------------------ */
+
 void *BondHarmonic::extract(const char *str, int &dim)
 {
   dim = 1;
-  if (strcmp(str, "kappa") == 0) return (void *) k;
+  if (strcmp(str, "k") == 0) return (void *) k;
   if (strcmp(str, "r0") == 0) return (void *) r0;
   return nullptr;
 }

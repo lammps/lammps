@@ -213,7 +213,7 @@ class Atom : protected Pointers {
   // per-atom data struct describing all per-atom vectors/arrays
 
   struct PerAtom {
-    char *name;
+    std::string name;
     void *address;
     void *address_length;
     int *address_maxcols;
@@ -223,8 +223,7 @@ class Atom : protected Pointers {
     int threadflag;
   };
 
-  PerAtom *peratom;
-  int nperatom, maxperatom;
+  std::vector<PerAtom> peratom;
 
   // custom vectors and arrays used by fix property/atom
 
@@ -293,9 +292,9 @@ class Atom : protected Pointers {
 
   void settings(class Atom *);
   void peratom_create();
-  void add_peratom(const char *, void *, int, int, int threadflag = 0);
-  void add_peratom_change_columns(const char *, int);
-  void add_peratom_vary(const char *, void *, int, int *, void *, int collength = 0);
+  void add_peratom(const std::string &, void *, int, int, int threadflag = 0);
+  void add_peratom_change_columns(const std::string &, int);
+  void add_peratom_vary(const std::string &, void *, int, int *, void *, int collength = 0);
   void create_avec(const std::string &, int, char **, int);
   virtual AtomVec *new_avec(const std::string &, int, int &);
 

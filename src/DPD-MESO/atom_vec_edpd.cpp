@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -38,18 +37,18 @@ AtomVecEDPD::AtomVecEDPD(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *) "edpd_cv edpd_temp edpd_flux vest vest_temp";
-  fields_copy = (char *) "edpd_cv edpd_temp edpd_flux vest vest_temp";
-  fields_comm = (char *) "edpd_temp vest vest_temp";
-  fields_comm_vel = (char *) "edpd_temp vest vest_temp";
-  fields_reverse = (char *) "edpd_flux";
-  fields_border = (char *) "edpd_cv edpd_temp vest vest_temp";
-  fields_border_vel = (char *) "edpd_cv edpd_temp vest vest_temp";
-  fields_exchange = (char *) "edpd_cv edpd_temp vest vest_temp";
-  fields_restart = (char * ) "edpd_cv edpd_temp vest vest_temp";
-  fields_create = (char *) "edpd_cv edpd_temp edpd_flux vest vest_temp";
-  fields_data_atom = (char *) "id type edpd_temp edpd_cv x";
-  fields_data_vel = (char *) "id v";
+  fields_grow = {"edpd_cv", "edpd_temp", "edpd_flux", "vest", "vest_temp"};
+  fields_copy = {"edpd_cv", "edpd_temp", "edpd_flux", "vest", "vest_temp"};
+  fields_comm = {"edpd_temp", "vest", "vest_temp"};
+  fields_comm_vel = {"edpd_temp", "vest", "vest_temp"};
+  fields_reverse = {"edpd_flux"};
+  fields_border = {"edpd_cv", "edpd_temp", "vest", "vest_temp"};
+  fields_border_vel = {"edpd_cv", "edpd_temp", "vest", "vest_temp"};
+  fields_exchange = {"edpd_cv", "edpd_temp", "vest", "vest_temp"};
+  fields_restart = {"edpd_cv", "edpd_temp", "vest", "vest_temp"};
+  fields_create = {"edpd_cv", "edpd_temp", "edpd_flux", "vest", "vest_temp"};
+  fields_data_atom = {"id", "type", "edpd_temp", "edpd_cv", "x"};
+  fields_data_vel = {"id", "v"};
 
   setup_fields();
 }
@@ -60,8 +59,7 @@ void AtomVecEDPD::init()
 {
   AtomVec::init();
 
-  if (strcmp(update->unit_style,"lj") != 0)
-    error->all(FLERR,"Atom style edpd requires lj units");
+  if (strcmp(update->unit_style, "lj") != 0) error->all(FLERR, "Atom style edpd requires lj units");
 }
 
 /* ----------------------------------------------------------------------
@@ -85,7 +83,7 @@ void AtomVecEDPD::grow_pointers()
 
 void AtomVecEDPD::force_clear(int n, size_t nbytes)
 {
-  memset(&edpd_flux[n],0,nbytes);
+  memset(&edpd_flux[n], 0, nbytes);
 }
 
 /* ----------------------------------------------------------------------
@@ -95,7 +93,7 @@ void AtomVecEDPD::force_clear(int n, size_t nbytes)
 void AtomVecEDPD::create_atom_post(int ilocal)
 {
   edpd_temp[ilocal] = 1.0;
-  edpd_cv[ilocal]= 1.0e5;
+  edpd_cv[ilocal] = 1.0e5;
   vest_temp[ilocal] = edpd_temp[ilocal];
 }
 

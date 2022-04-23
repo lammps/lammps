@@ -11,6 +11,7 @@ them.
    :maxdepth: 1
 
    Errors_common
+   Errors_details
    Errors_bugs
    Errors_debug
    Errors_messages

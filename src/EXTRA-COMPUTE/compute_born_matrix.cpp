@@ -586,7 +586,7 @@ void ComputeBornMatrix::restore_atoms(int nall, int idir)
   int k = dirlist[idir][0];
   int l = dirlist[idir][1];
   double **x = atom->x;
-  if (l == k) 
+  if (l == k)
     for (int i = 0; i < nall; i++) x[i][k] = temp_x[i][k];
   else
     for (int i = 0; i < nall; i++) {

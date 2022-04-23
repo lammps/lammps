@@ -34,9 +34,7 @@ using namespace MathConst;
 BondGaussian::BondGaussian(LAMMPS *lmp) :
     Bond(lmp), nterms(nullptr), bond_temperature(nullptr), alpha(nullptr), width(nullptr),
     r0(nullptr)
-{
-  reinitflag = 1;
-}
+{}
 
 /* ---------------------------------------------------------------------- */
 

@@ -37,6 +37,9 @@ class Angle : protected Pointers {
                              // CENTROID_AVAIL = different and implemented
                              // CENTROID_NOTAVAIL = different, not yet implemented
 
+  int reinitflag;            // 0 if not compatible with fix adapt
+                             // extract() method may still need to be added
+
   // KOKKOS host/device flag and data masks
 
   ExecutionSpace execution_space;
@@ -63,6 +66,8 @@ class Angle : protected Pointers {
     du2 = 0.0;
   }
   virtual double memory_usage();
+  virtual void *extract(const char *, int &) { return nullptr; }
+  void reinit();
 
  protected:
   int suffix_flag;    // suffix compatibility flag

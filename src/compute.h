@@ -108,7 +108,7 @@ class Compute : protected Pointers {
   Compute(class LAMMPS *, int, char **);
   ~Compute() override;
   void modify_params(int, char **);
-  void reset_extra_dof();
+  virtual void reset_extra_dof();
 
   virtual void init() = 0;
   virtual void init_list(int, class NeighList *) {}

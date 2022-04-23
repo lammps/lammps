@@ -259,14 +259,16 @@ void ComputeCoordAtom::compute_peratom()
             j = jlist[jj];
             j &= NEIGHMASK;
 
-            jtype = type[j];
-            delx = xtmp - x[j][0];
-            dely = ytmp - x[j][1];
-            delz = ztmp - x[j][2];
-            rsq = delx * delx + dely * dely + delz * delz;
-            if (rsq < cutsq) {
-              for (m = 0; m < ncol; m++)
-                if (jtype >= typelo[m] && jtype <= typehi[m]) count[m] += 1.0;
+            if (mask[j] & jgroupbit) {
+              jtype = type[j];
+              delx = xtmp - x[j][0];
+              dely = ytmp - x[j][1];
+              delz = ztmp - x[j][2];
+              rsq = delx * delx + dely * dely + delz * delz;
+              if (rsq < cutsq) {
+                for (m = 0; m < ncol; m++)
+                  if (jtype >= typelo[m] && jtype <= typehi[m]) count[m] += 1.0;
+              }
             }
           }
         }
@@ -309,8 +311,8 @@ void ComputeCoordAtom::compute_peratom()
 
 /* ---------------------------------------------------------------------- */
 
-int ComputeCoordAtom::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/,
-                                        int * /*pbc*/)
+int ComputeCoordAtom::pack_forward_comm(int n, int *list, double *buf,
+                                        int /*pbc_flag*/, int * /*pbc*/)
 {
   int i, m = 0, j;
   for (i = 0; i < n; ++i) {

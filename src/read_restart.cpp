@@ -118,6 +118,10 @@ void ReadRestart::command(int narg, char **arg)
   format_revision();
   check_eof_magic();
 
+  if ((comm->me == 0) && (modify->get_fix_by_style("property/atom").size() > 0))
+    error->warning(FLERR, "Fix property/atom command must be specified after read_restart "
+                   "to restore its data.");
+
   // read header info which creates simulation box
 
   header();

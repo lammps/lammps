@@ -77,7 +77,7 @@ void RespaOMP::setup(int flag)
         mesg += fmt::format(" {}:{}", ilevel + 1, step[ilevel]);
 
       mesg += "\n  r-RESPA fixes :";
-      for (int l = 0; l < modify->n_post_force_respa; ++l) {
+      for (int l = 0; l < modify->n_post_force_respa_any; ++l) {
         Fix *f = modify->get_fix_by_index(modify->list_post_force_respa[l]);
         if (f->respa_level >= 0)
           mesg += fmt::format(" {}:{}[{}]", MIN(f->respa_level + 1, nlevels), f->style, f->id);
@@ -420,7 +420,7 @@ void RespaOMP::recurse(int ilevel)
       timer->stamp(Timer::COMM);
     }
     timer->stamp();
-    if (modify->n_post_force_respa)
+    if (modify->n_post_force_respa_any)
       modify->post_force_respa(vflag,ilevel,iloop);
     modify->final_integrate_respa(ilevel,iloop);
     timer->stamp(Timer::MODIFY);

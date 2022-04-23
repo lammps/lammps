@@ -21,7 +21,7 @@
 
 #include <mpi.h>
 
-#include <vector> // IWYU pragma: export
+#include <vector>    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -73,6 +73,18 @@ namespace utils {
    *  \param mesg   string with message to be printed */
 
   void logmesg(LAMMPS *lmp, const std::string &mesg);
+
+  /*! Return text redirecting the user to a specific paragraph in the manual
+   *
+   * The LAMMPS manual contains detailed detailed explanations for errors and
+   * warnings where a simple error message may not be sufficient.  These can
+   * be reached through URLs with a numeric code.  This function creates the
+   * corresponding text to be included into the error message that redirects
+   * the user to that URL.
+   *
+   *  \param errorcode   number pointing to a paragraph in the manual */
+
+  std::string errorurl(int errorcode);
 
   /*! Flush output buffers
    *

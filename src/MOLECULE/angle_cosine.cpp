@@ -237,10 +237,21 @@ double AngleCosine::single(int type, int i1, int i2, int i3)
 
   return k[type] * (1.0 + c);
 }
+
 /* ---------------------------------------------------------------------- */
 
 void AngleCosine::born_matrix(int type, int i1, int i2, int i3, double& du, double& du2)
 {
   du2 = 0;
   du = k[type];
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleCosine::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  return nullptr;
 }

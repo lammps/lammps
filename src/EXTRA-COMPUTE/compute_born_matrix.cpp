@@ -972,8 +972,8 @@ void ComputeBornMatrix::compute_dihedrals()
   int i, m, nd, atom1, atom2, atom3, atom4, imol, iatom;
   tagint tagprev;
   double vb1x, vb1y, vb1z, vb2x, vb2y, vb2z, vb3x, vb3y, vb3z;
-  double ax, ay, az, bx, by, bz, rasq, rbsq, dotab, rgsq, ra2inv, rb2inv, dotabinv, rabinv;
-  double si, co;
+  double ax, ay, az, bx, by, bz, rasq, rbsq, dotab, ra2inv, rb2inv, dotabinv, rabinv;
+  double co;
 
   double **x = atom->x;
   tagint *tag = atom->tag;
@@ -995,28 +995,15 @@ void ComputeBornMatrix::compute_dihedrals()
 
   Dihedral *dihedral = force->dihedral;
 
-  double dudih, du2dih;
   int al, be, mu, nu, e, f;
-  double b1sq;
-  double b2sq;
-  double b3sq;
-  double b1b2;
-  double b1b3;
-  double b2b3;
-  double b1[3];
-  double b2[3];
-  double b3[3];
+  double dudih, du2dih, b1sq, b2sq, b3sq, b1b2, b1b3, b2b3;
+  double b1[3], b2[3], b3[3];
 
   // 1st and 2nd order derivatives of the dot products
-  double dab[6];
-  double daa[6];
-  double dbb[6];
-  double d2ab;
-  double d2aa;
-  double d2bb;
+  double dab[6], daa[6], dbb[6];
+  double d2ab, d2aa, d2bb;
 
-  double dcos[6];
-  double d2cos;
+  double dcos[6], d2cos;
 
   for (i = 0; i < 6; i++) dab[i] = daa[i] = dbb[i] = dcos[i] = 0;
 
@@ -1103,9 +1090,7 @@ void ComputeBornMatrix::compute_dihedrals()
 
       rasq = ax * ax + ay * ay + az * az;
       rbsq = bx * bx + by * by + bz * bz;
-      rgsq = vb2x * vb2x + vb2y * vb2y + vb2z * vb2z;
       dotab = ax * bx + ay * by + az * bz;
-      rg = sqrt(rgsq);
 
       ra2inv = rb2inv = rabinv = dotabinv = 0.0;
       if (rasq > 0) ra2inv = 1.0 / rasq;
@@ -1114,9 +1099,8 @@ void ComputeBornMatrix::compute_dihedrals()
       rabinv = sqrt(ra2inv * rb2inv);
 
       co = (ax * bx + ay * by + az * bz) * rabinv;
-      si = sqrt(b2sq) * rabinv * (ax * vb3x + ay * vb3y + az * vb3z);
 
-      if (co == 0.) {
+      if (co == 0.0) {
         // Worst case scenario. A 0 cosine has an undefined logarithm.
         // We then add a small amount of the third bond to the first one
         // so they are not orthogonal anymore and recompute.
@@ -1143,12 +1127,9 @@ void ComputeBornMatrix::compute_dihedrals()
         if (dotab != 0.) dotabinv = 1.0 / dotab;
         rabinv = sqrt(ra2inv * rb2inv);
         co = (ax * bx + ay * by + az * bz) * rabinv;
-        si = sqrt(b2sq) * rabinv * (ax * vb3x + ay * vb3y + az * vb3z);
       }
       if (co > 1.0) co = 1.0;
       if (co < -1.0) co = -1.0;
-
-      phi = atan2(si, co);
 
       al = be = mu = nu = e = f = 0;
       // clang-format off

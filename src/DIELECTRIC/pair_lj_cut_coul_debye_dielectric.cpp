@@ -29,13 +29,13 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::MY_PIS;
 
-#define EPSILON 1e-6
+static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulDebyeDielectric::PairLJCutCoulDebyeDielectric(LAMMPS *lmp) : PairLJCutCoulDebye(lmp)
+PairLJCutCoulDebyeDielectric::PairLJCutCoulDebyeDielectric(LAMMPS *_lmp) : PairLJCutCoulDebye(_lmp)
 {
   efield = nullptr;
   epot = nullptr;
@@ -75,10 +75,10 @@ void PairLJCutCoulDebyeDielectric::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
-  double *eps = avec->epsilon;
-  double **norm = avec->mu;
-  double *curvature = avec->curvature;
-  double *area = avec->area;
+  double *eps = atom->epsilon;
+  double **norm = atom->mu;
+  double *curvature = atom->curvature;
+  double *area = atom->area;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
@@ -140,7 +140,7 @@ void PairLJCutCoulDebyeDielectric::compute(int eflag, int vflag)
           forcecoul = qtmp * efield_i;
           epot_i = efield_i;
         } else
-          efield_i = forcecoul = 0.0;
+          epot_i = efield_i = forcecoul = 0.0;
 
         if (rsq < cut_ljsq[itype][jtype]) {
           r6inv = r2inv * r2inv * r2inv;
@@ -157,7 +157,6 @@ void PairLJCutCoulDebyeDielectric::compute(int eflag, int vflag)
         efield[i][0] += delx * efield_i;
         efield[i][1] += dely * efield_i;
         efield[i][2] += delz * efield_i;
-
         epot[i] += epot_i;
 
         if (newton_pair && j >= nlocal) {
@@ -207,7 +206,7 @@ double PairLJCutCoulDebyeDielectric::single(int i, int j, int itype, int jtype, 
 {
   double r2inv, r6inv, forcecoul, forcelj, phicoul, ei, ej, philj;
   double r, rinv, screening;
-  double *eps = avec->epsilon;
+  double *eps = atom->epsilon;
 
   r2inv = 1.0 / rsq;
   if (rsq < cut_coulsq[itype][jtype]) {

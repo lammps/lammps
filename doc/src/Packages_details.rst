@@ -556,8 +556,20 @@ To use this package, also the :ref:`KSPACE <PKG-KSPACE>` and
 **Supporting info:**
 
 * src/DIELECTRIC: filenames -> commands
+* :doc:`atom_style dielectric <atom_style>`
+* :doc:`pair_style coul/cut/dielectric <pair_dielectric>`
+* :doc:`pair_style coul/long/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/cut/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/debye/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/long/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/msm/dielectric <pair_dielectric>`
+* :doc:`pair_style pppm/dielectric <kspace_style>`
+* :doc:`pair_style pppm/disp/dielectric <kspace_style>`
+* :doc:`pair_style msm/dielectric <kspace_style>`
+* :doc:`fix_style polarize/bem/icc <fix_polarize>`
+* :doc:`fix_style polarize/bem/gmres <fix_polarize>`
+* :doc:`fix_style polarize/functional <fix_polarize>`
 * :doc:`compute efield/atom  <compute_efield_atom>`
-* TODO: add all styles
 * examples/PACKAGES/dielectric
 
 ----------

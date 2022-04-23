@@ -44,6 +44,7 @@
 #include "pair_coul_cut_dielectric.h"
 #include "pair_coul_long_dielectric.h"
 #include "pair_lj_cut_coul_cut_dielectric.h"
+#include "pair_lj_cut_coul_debye_dielectric.h"
 #include "pair_lj_cut_coul_long_dielectric.h"
 #include "pair_lj_cut_coul_msm_dielectric.h"
 #include "pppm_dielectric.h"
@@ -60,14 +61,12 @@ using namespace MathSpecial;
 
 enum { REAL2SCALED = 0, SCALED2REAL = 1 };
 
-#define EPSILON 1e-6
-
-//#define _POLARIZE_DEBUG
+static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-FixPolarizeFunctional::FixPolarizeFunctional(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg)
+FixPolarizeFunctional::FixPolarizeFunctional(LAMMPS *_lmp, int narg, char **arg) :
+    Fix(_lmp, narg, arg)
 {
   if (narg < 4) error->all(FLERR, "Illegal fix polarize/functional command");
 
@@ -299,6 +298,10 @@ void FixPolarizeFunctional::setup(int /*vflag*/)
     efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric/omp") == 0)
     efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/debye/dielectric") == 0)
+    efield_pair = (dynamic_cast<PairLJCutCoulDebyeDielectric *>(force->pair))->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/debye/dielectric/omp") == 0)
+    efield_pair = (dynamic_cast<PairLJCutCoulDebyeDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "coul/long/dielectric") == 0)
     efield_pair = (dynamic_cast<PairCoulLongDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "coul/cut/dielectric") == 0)
@@ -804,16 +807,6 @@ void FixPolarizeFunctional::calculate_Rww_cutoff()
 
   MPI_Allreduce(buffer1[0], Rww[0], num_induced_charges * num_induced_charges, MPI_DOUBLE, MPI_SUM,
                 world);
-
-#ifdef _POLARIZE_DEBUG
-  if (comm->me == 0) {
-    FILE *fp = fopen("Rww-functional.txt", "w");
-    for (int i = 0; i < num_induced_charges; i++)
-      fprintf(fp, "%d %g %g %g\n", i, Rww[i][i], Rww[i][num_induced_charges / 2],
-              Rww[num_induced_charges / 2][i]);
-    fclose(fp);
-  }
-#endif
 }
 
 /* ---------------------------------------------------------------------- */

@@ -11,36 +11,19 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef ATOM_CLASS
-// clang-format off
-AtomStyle(sph,AtomVecSPH);
-// clang-format on
-#else
-
-#ifndef LMP_ATOM_VEC_SPH_H
-#define LMP_ATOM_VEC_SPH_H
-
-#include "atom_vec.h"
+#ifndef LMP_EWALD_CONST_H
+#define LMP_EWALD_CONST_H
 
 namespace LAMMPS_NS {
-
-class AtomVecSPH : public AtomVec {
- public:
-  AtomVecSPH(class LAMMPS *);
-
-  void grow_pointers() override;
-  void force_clear(int, size_t) override;
-  void create_atom_post(int) override;
-  void data_atom_post(int) override;
-  int property_atom(const std::string &) override;
-  void pack_property_atom(int, double *, int, int) override;
-
- private:
-  double *rho, *drho, *esph, *desph, *cv;
-  double **vest;
-};
-
+namespace EwaldConst {
+  static constexpr double EWALD_F = 1.12837917;
+  static constexpr double EWALD_P = 0.3275911;
+  static constexpr double A1 = 0.254829592;
+  static constexpr double A2 = -0.284496736;
+  static constexpr double A3 = 1.421413741;
+  static constexpr double A4 = -1.453152027;
+  static constexpr double A5 = 1.061405429;
+}    // namespace EwaldConst
 }    // namespace LAMMPS_NS
 
-#endif
 #endif

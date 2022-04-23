@@ -50,7 +50,7 @@ enum{TYPE,TYPE_FRACTION,TYPE_RATIO,TYPE_SUBSET,
      THETA,THETA_RANDOM,ANGMOM,OMEGA,
      DIAMETER,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
      SPH_E,SPH_CV,SPH_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
-     SMD_CONTACT_RADIUS,DPDTHETA,IVEC,DVEC,IARRAY,DARRAY};
+     SMD_CONTACT_RADIUS,DPDTHETA,EPSILON,IVEC,DVEC,IARRAY,DARRAY};
 
 #define BIG INT_MAX
 
@@ -568,6 +568,19 @@ void Set::command(int narg, char **arg)
       set(DPDTHETA);
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"epsilon") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+      if (strcmp(arg[iarg+1],"NULL") == 0) dvalue = -1.0;
+      else if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
+      else {
+        dvalue = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        if (dvalue < 0.0) error->all(FLERR,"Illegal set command");
+      }
+      if (!atom->dielectric_flag)
+        error->all(FLERR,"Cannot set epsilon for this atom style");
+      set(EPSILON);
+      iarg += 2;
+
     } else {
 
       // set custom per-atom vector or array or error out
@@ -1010,6 +1023,22 @@ void Set::set(int keyword)
       atom->image[i] = ((imageint) (xbox + IMGMAX) & IMGMASK) |
         (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
         (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
+    }
+
+    // set the local dielectric constant
+
+    else if (keyword == EPSILON) {
+      if (dvalue >= 0.0) {
+
+        // compute the unscaled charge value (i.e. atom->q_unscaled)
+        // assign the new local dielectric constant
+        // update both the scaled and unscaled charge values
+
+        double q_unscaled = atom->q[i] * atom->epsilon[i];
+        atom->epsilon[i] = dvalue;
+        atom->q[i] = q_unscaled / dvalue;
+        atom->q_unscaled[i] = q_unscaled;
+      }
     }
 
     // set value for custom property vector or array

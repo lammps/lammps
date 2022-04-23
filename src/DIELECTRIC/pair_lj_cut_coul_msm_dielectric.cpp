@@ -31,13 +31,13 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::MY_PIS;
 
-#define EPSILON 1e-6
+static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulMSMDielectric::PairLJCutCoulMSMDielectric(LAMMPS *lmp) : PairLJCutCoulLong(lmp)
+PairLJCutCoulMSMDielectric::PairLJCutCoulMSMDielectric(LAMMPS *_lmp) : PairLJCutCoulLong(_lmp)
 {
   ewaldflag = pppmflag = 0;
   msmflag = 1;
@@ -165,7 +165,7 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
             forcecoul = prefactor * fgamma;
             if (factor_coul < 1.0) forcecoul -= (1.0 - factor_coul) * prefactor;
 
-            prefactorE = q[j] / r;
+            prefactorE = qqrd2e * q[j] / r;
             efield_i = prefactorE * fgamma;
             if (factor_coul < 1.0) efield_i -= (1.0 - factor_coul) * prefactorE;
 
@@ -177,13 +177,13 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
             fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
             table = ftable[itable] + fraction * dftable[itable];
             forcecoul = qtmp * q[j] * table;
-            efield_i = q[j] * table / qqrd2e;
+            efield_i = q[j] * table;
             if (factor_coul < 1.0) {
               table = ctable[itable] + fraction * dctable[itable];
               prefactor = qtmp * q[j] * table;
               forcecoul -= (1.0 - factor_coul) * prefactor;
 
-              prefactorE = q[j] * table / qqrd2e;
+              prefactorE = q[j] * table;
               efield_i -= (1.0 - factor_coul) * prefactorE;
             }
           }

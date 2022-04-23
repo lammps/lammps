@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://www.lammps.org/, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,40 +13,27 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(coul/slater/long,PairCoulSlaterLong);
+PairStyle(lj/cut/coul/debye/dielectric/omp,PairLJCutCoulDebyeDielectricOMP);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_COUL_SLATER_LONG_H
-#define LMP_PAIR_COUL_SLATER_LONG_H
+#ifndef LMP_PAIR_LJ_CUT_COUL_DEBYE_DIELECTRIC_OMP_H
+#define LMP_PAIR_LJ_CUT_COUL_DEBYE_DIELECTRIC_OMP_H
 
-#include "pair.h"
+#include "pair_lj_cut_coul_debye_dielectric.h"
+#include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairCoulSlaterLong : public Pair {
+class PairLJCutCoulDebyeDielectricOMP : public PairLJCutCoulDebyeDielectric, public ThrOMP {
  public:
-  PairCoulSlaterLong(class LAMMPS *);
-  ~PairCoulSlaterLong() override;
+  PairLJCutCoulDebyeDielectricOMP(class LAMMPS *);
+  ~PairLJCutCoulDebyeDielectricOMP() override = default;
   void compute(int, int) override;
-  void settings(int, char **) override;
-  void coeff(int, char **) override;
-  void init_style() override;
-  double init_one(int, int) override;
-  void write_restart(FILE *) override;
-  void read_restart(FILE *) override;
-  void write_restart_settings(FILE *) override;
-  void read_restart_settings(FILE *) override;
-  double single(int, int, int, int, double, double, double, double &) override;
-  void *extract(const char *, int &) override;
 
  protected:
-  double cut_coul, cut_coulsq, qdist;
-  double lamda;
-  double g_ewald;
-  double **scale;
-
-  virtual void allocate();
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
 }    // namespace LAMMPS_NS
@@ -66,12 +53,8 @@ E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
-E: Pair style coul/slater/long requires atom attribute q
+E: Pair style lj/cut/coul/debye/dielectric requires atom attribute q
 
 The atom style defined does not have this attribute.
-
-E: Pair style requires a KSpace style
-
-No kspace style is defined.
 
 */

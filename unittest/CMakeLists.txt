@@ -20,6 +20,12 @@ add_library(GTest::GMock ALIAS gmock)
 add_library(GTest::GTestMain ALIAS gtest_main)
 add_library(GTest::GMockMain ALIAS gmock_main)
 
+# import
+foreach(_FLAG ${CMAKE_TUNE_FLAGS})
+  add_compile_options(${_FLAG})
+endforeach()
+
+
 ########################################
 # General tests using the LAMMPS executable itself
 ########################################

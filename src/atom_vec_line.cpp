@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -23,12 +22,11 @@
 #include "modify.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::MY_PI;
 
-#define EPSILON 0.001
+static constexpr double EPSILON = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
@@ -55,18 +53,17 @@ AtomVecLine::AtomVecLine(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *) "molecule radius rmass omega torque line";
-  fields_copy = (char *) "molecule radius rmass omega";
-  fields_comm = (char *) "";
-  fields_comm_vel = (char *) "omega";
-  fields_reverse = (char *) "torque";
-  fields_border = (char *) "molecule radius rmass";
-  fields_border_vel = (char *) "molecule radius rmass omega";
-  fields_exchange = (char *) "molecule radius rmass omega";
-  fields_restart = (char *) "molecule radius rmass omega";
-  fields_create = (char *) "molecule radius rmass omega line";
-  fields_data_atom = (char *) "id molecule type line rmass x";
-  fields_data_vel = (char *) "id v omega";
+  fields_grow = {"molecule", "radius", "rmass", "omega", "torque", "line"};
+  fields_copy = {"molecule", "radius", "rmass", "omega"};
+  fields_comm_vel = {"omega"};
+  fields_reverse = {"torque"};
+  fields_border = {"molecule", "radius", "rmass"};
+  fields_border_vel = {"molecule", "radius", "rmass", "omega"};
+  fields_exchange = {"molecule", "radius", "rmass", "omega"};
+  fields_restart = {"molecule", "radius", "rmass", "omega"};
+  fields_create = {"molecule", "radius", "rmass", "omega", "line"};
+  fields_data_atom = {"id", "molecule", "type", "line", "rmass", "x"};
+  fields_data_vel = {"id", "v", "omega"};
 
   setup_fields();
 }
@@ -85,7 +82,7 @@ void AtomVecLine::init()
   AtomVec::init();
 
   if (domain->dimension != 2)
-    error->all(FLERR,"Atom_style line can only be used in 2d simulations");
+    error->all(FLERR, "Atom_style line can only be used in 2d simulations");
 }
 
 /* ----------------------------------------------------------------------
@@ -108,11 +105,9 @@ void AtomVecLine::grow_pointers()
 void AtomVecLine::grow_bonus()
 {
   nmax_bonus = grow_nmax_bonus(nmax_bonus);
-  if (nmax_bonus < 0)
-    error->one(FLERR,"Per-processor system is too big");
+  if (nmax_bonus < 0) error->one(FLERR, "Per-processor system is too big");
 
-  bonus = (Bonus *) memory->srealloc(bonus,nmax_bonus*sizeof(Bonus),
-                                     "atom:bonus");
+  bonus = (Bonus *) memory->srealloc(bonus, nmax_bonus * sizeof(Bonus), "atom:bonus");
 }
 
 /* ----------------------------------------------------------------------
@@ -124,7 +119,7 @@ void AtomVecLine::copy_bonus(int i, int j, int delflag)
   // if deleting atom J via delflag and J has bonus data, then delete it
 
   if (delflag && line[j] >= 0) {
-    copy_bonus_all(nlocal_bonus-1,line[j]);
+    copy_bonus_all(nlocal_bonus - 1, line[j]);
     nlocal_bonus--;
   }
 
@@ -143,7 +138,7 @@ void AtomVecLine::copy_bonus(int i, int j, int delflag)
 void AtomVecLine::copy_bonus_all(int i, int j)
 {
   line[bonus[i].ilocal] = j;
-  memcpy(&bonus[j],&bonus[i],sizeof(Bonus));
+  memcpy(&bonus[j], &bonus[i], sizeof(Bonus));
 }
 
 /* ----------------------------------------------------------------------
@@ -164,7 +159,7 @@ void AtomVecLine::clear_bonus()
 
 int AtomVecLine::pack_comm_bonus(int n, int *list, double *buf)
 {
-  int i,j,m;
+  int i, j, m;
 
   m = 0;
   for (i = 0; i < n; i++) {
@@ -179,7 +174,7 @@ int AtomVecLine::pack_comm_bonus(int n, int *list, double *buf)
 
 void AtomVecLine::unpack_comm_bonus(int n, int first, double *buf)
 {
-  int i,m,last;
+  int i, m, last;
 
   m = 0;
   last = first + n;
@@ -192,12 +187,13 @@ void AtomVecLine::unpack_comm_bonus(int n, int first, double *buf)
 
 int AtomVecLine::pack_border_bonus(int n, int *list, double *buf)
 {
-  int i,j,m;
+  int i, j, m;
 
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
-    if (line[j] < 0) buf[m++] = ubuf(0).d;
+    if (line[j] < 0)
+      buf[m++] = ubuf(0).d;
     else {
       buf[m++] = ubuf(1).d;
       buf[m++] = bonus[line[j]].length;
@@ -212,13 +208,14 @@ int AtomVecLine::pack_border_bonus(int n, int *list, double *buf)
 
 int AtomVecLine::unpack_border_bonus(int n, int first, double *buf)
 {
-  int i,j,m,last;
+  int i, j, m, last;
 
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
     line[i] = (int) ubuf(buf[m++]).i;
-    if (line[i] == 0) line[i] = -1;
+    if (line[i] == 0)
+      line[i] = -1;
     else {
       j = nlocal_bonus + nghost_bonus;
       if (j == nmax_bonus) grow_bonus();
@@ -242,7 +239,8 @@ int AtomVecLine::pack_exchange_bonus(int i, double *buf)
 {
   int m = 0;
 
-  if (line[i] < 0) buf[m++] = ubuf(0).d;
+  if (line[i] < 0)
+    buf[m++] = ubuf(0).d;
   else {
     buf[m++] = ubuf(1).d;
     int j = line[i];
@@ -260,7 +258,8 @@ int AtomVecLine::unpack_exchange_bonus(int ilocal, double *buf)
   int m = 0;
 
   line[ilocal] = (int) ubuf(buf[m++]).i;
-  if (line[ilocal] == 0) line[ilocal] = -1;
+  if (line[ilocal] == 0)
+    line[ilocal] = -1;
   else {
     if (nlocal_bonus == nmax_bonus) grow_bonus();
     bonus[nlocal_bonus].length = buf[m++];
@@ -284,8 +283,10 @@ int AtomVecLine::size_restart_bonus()
   int n = 0;
   int nlocal = atom->nlocal;
   for (i = 0; i < nlocal; i++) {
-    if (line[i] >= 0) n += size_restart_bonus_one;
-    else n++;
+    if (line[i] >= 0)
+      n += size_restart_bonus_one;
+    else
+      n++;
   }
 
   return n;
@@ -301,7 +302,8 @@ int AtomVecLine::pack_restart_bonus(int i, double *buf)
 {
   int m = 0;
 
-  if (line[i] < 0) buf[m++] = ubuf(0).d;
+  if (line[i] < 0)
+    buf[m++] = ubuf(0).d;
   else {
     buf[m++] = ubuf(1).d;
     int j = line[i];
@@ -321,7 +323,8 @@ int AtomVecLine::unpack_restart_bonus(int ilocal, double *buf)
   int m = 0;
 
   line[ilocal] = (int) ubuf(buf[m++]).i;
-  if (line[ilocal] == 0) line[ilocal] = -1;
+  if (line[ilocal] == 0)
+    line[ilocal] = -1;
   else {
     if (nlocal_bonus == nmax_bonus) grow_bonus();
     bonus[nlocal_bonus].length = buf[m++];
@@ -339,31 +342,32 @@ int AtomVecLine::unpack_restart_bonus(int ilocal, double *buf)
 
 void AtomVecLine::data_atom_bonus(int m, const std::vector<std::string> &values)
 {
-  if (line[m]) error->one(FLERR,"Assigning line parameters to non-line atom");
+  if (line[m]) error->one(FLERR, "Assigning line parameters to non-line atom");
 
   if (nlocal_bonus == nmax_bonus) grow_bonus();
 
   int ivalue = 1;
-  double x1 = utils::numeric(FLERR,values[ivalue++],true,lmp);
-  double y1 = utils::numeric(FLERR,values[ivalue++],true,lmp);
-  double x2 = utils::numeric(FLERR,values[ivalue++],true,lmp);
-  double y2 = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  double x1 = utils::numeric(FLERR, values[ivalue++], true, lmp);
+  double y1 = utils::numeric(FLERR, values[ivalue++], true, lmp);
+  double x2 = utils::numeric(FLERR, values[ivalue++], true, lmp);
+  double y2 = utils::numeric(FLERR, values[ivalue++], true, lmp);
   double dx = x2 - x1;
   double dy = y2 - y1;
-  double length = sqrt(dx*dx + dy*dy);
+  double length = sqrt(dx * dx + dy * dy);
 
   bonus[nlocal_bonus].length = length;
-  if (dy >= 0.0) bonus[nlocal_bonus].theta = acos(dx/length);
-  else bonus[nlocal_bonus].theta = -acos(dx/length);
+  if (dy >= 0.0)
+    bonus[nlocal_bonus].theta = acos(dx / length);
+  else
+    bonus[nlocal_bonus].theta = -acos(dx / length);
 
-  double xc = 0.5*(x1+x2);
-  double yc = 0.5*(y1+y2);
+  double xc = 0.5 * (x1 + x2);
+  double yc = 0.5 * (y1 + y2);
   dx = xc - x[m][0];
   dy = yc - x[m][1];
-  double delta = sqrt(dx*dx + dy*dy);
+  double delta = sqrt(dx * dx + dy * dy);
 
-  if (delta/length > EPSILON)
-    error->one(FLERR,"Inconsistent line segment in data file");
+  if (delta / length > EPSILON) error->one(FLERR, "Inconsistent line segment in data file");
 
   x[m][0] = xc;
   x[m][1] = yc;
@@ -385,7 +389,7 @@ void AtomVecLine::data_atom_bonus(int m, const std::vector<std::string> &values)
 double AtomVecLine::memory_usage_bonus()
 {
   double bytes = 0;
-  bytes += (double)nmax_bonus*sizeof(Bonus);
+  bytes += (double) nmax_bonus * sizeof(Bonus);
   return bytes;
 }
 
@@ -398,7 +402,7 @@ void AtomVecLine::create_atom_post(int ilocal)
 {
   double radius_one = 0.5;
   radius[ilocal] = radius_one;
-  rmass[ilocal] = 4.0*MY_PI/3.0 * radius_one*radius_one*radius_one;
+  rmass[ilocal] = 4.0 * MY_PI / 3.0 * radius_one * radius_one * radius_one;
   line[ilocal] = -1;
 }
 
@@ -410,19 +414,22 @@ void AtomVecLine::create_atom_post(int ilocal)
 void AtomVecLine::data_atom_post(int ilocal)
 {
   line_flag = line[ilocal];
-  if (line_flag == 0) line_flag = -1;
-  else if (line_flag == 1) line_flag = 0;
-  else error->one(FLERR,"Invalid line flag in Atoms section of data file");
+  if (line_flag == 0)
+    line_flag = -1;
+  else if (line_flag == 1)
+    line_flag = 0;
+  else
+    error->one(FLERR, "Invalid line flag in Atoms section of data file");
   line[ilocal] = line_flag;
 
-  if (rmass[ilocal] <= 0.0)
-    error->one(FLERR,"Invalid density in Atoms section of data file");
+  if (rmass[ilocal] <= 0.0) error->one(FLERR, "Invalid density in Atoms section of data file");
 
   if (line_flag < 0) {
     double radius_one = 0.5;
     radius[ilocal] = radius_one;
-    rmass[ilocal] *= 4.0*MY_PI/3.0 * radius_one*radius_one*radius_one;
-  } else radius[ilocal] = 0.0;
+    rmass[ilocal] *= 4.0 * MY_PI / 3.0 * radius_one * radius_one * radius_one;
+  } else
+    radius[ilocal] = 0.0;
 
   omega[ilocal][0] = 0.0;
   omega[ilocal][1] = 0.0;
@@ -438,13 +445,16 @@ void AtomVecLine::pack_data_pre(int ilocal)
   line_flag = line[ilocal];
   rmass_one = rmass[ilocal];
 
-  if (line_flag < 0) line[ilocal] = 0;
-  else line[ilocal] = 1;
+  if (line_flag < 0)
+    line[ilocal] = 0;
+  else
+    line[ilocal] = 1;
 
   if (line_flag < 0) {
     double radius_one = radius[ilocal];
-    rmass[ilocal] /= 4.0*MY_PI/3.0 * radius_one*radius_one*radius_one;
-  } else rmass[ilocal] /= bonus[line_flag].length;
+    rmass[ilocal] /= 4.0 * MY_PI / 3.0 * radius_one * radius_one * radius_one;
+  } else
+    rmass[ilocal] /= bonus[line_flag].length;
 }
 
 /* ----------------------------------------------------------------------
@@ -464,9 +474,9 @@ void AtomVecLine::pack_data_post(int ilocal)
 
 int AtomVecLine::pack_data_bonus(double *buf, int /*flag*/)
 {
-  int i,j;
-  double length,theta;
-  double xc,yc,x1,x2,y1,y2;
+  int i, j;
+  double length, theta;
+  double xc, yc, x1, x2, y1, y2;
 
   double **x = atom->x;
   tagint *tag = atom->tag;
@@ -482,15 +492,16 @@ int AtomVecLine::pack_data_bonus(double *buf, int /*flag*/)
       theta = bonus[j].theta;
       xc = x[i][0];
       yc = x[i][1];
-      x1 = xc - 0.5*cos(theta)*length;
-      y1 = yc - 0.5*sin(theta)*length;
-      x2 = xc + 0.5*cos(theta)*length;
-      y2 = yc + 0.5*sin(theta)*length;
+      x1 = xc - 0.5 * cos(theta) * length;
+      y1 = yc - 0.5 * sin(theta) * length;
+      x2 = xc + 0.5 * cos(theta) * length;
+      y2 = yc + 0.5 * sin(theta) * length;
       buf[m++] = x1;
       buf[m++] = y1;
       buf[m++] = x2;
       buf[m++] = y2;
-    } else m += size_data_bonus;
+    } else
+      m += size_data_bonus;
   }
   return m;
 }
@@ -503,8 +514,8 @@ void AtomVecLine::write_data_bonus(FILE *fp, int n, double *buf, int /*flag*/)
 {
   int i = 0;
   while (i < n) {
-    fmt::print(fp,"{} {} {} {} {}\n",ubuf(buf[i]).i,
-               buf[i+1],buf[i+2],buf[i+3],buf[i+4]);
+    fmt::print(fp, "{} {} {} {} {}\n", ubuf(buf[i]).i, buf[i + 1], buf[i + 2], buf[i + 3],
+               buf[i + 4]);
     i += size_data_bonus;
   }
 }
@@ -525,10 +536,11 @@ void AtomVecLine::set_length(int i, double value)
     bonus[nlocal_bonus].ilocal = i;
     line[i] = nlocal_bonus++;
   } else if (value == 0.0) {
-    copy_bonus_all(nlocal_bonus-1,line[i]);
+    copy_bonus_all(nlocal_bonus - 1, line[i]);
     nlocal_bonus--;
     line[i] = -1;
-  } else bonus[line[i]].length = value;
+  } else
+    bonus[line[i]].length = value;
 
   // also set radius = half of length
   // unless value = 0.0, then set diameter = 1.0
@@ -536,40 +548,3 @@ void AtomVecLine::set_length(int i, double value)
   radius[i] = 0.5 * value;
   if (value == 0.0) radius[i] = 0.5;
 }
-
-/* ----------------------------------------------------------------------
-   check consistency of internal Bonus data structure
-   n = # of atoms in regular structure to check against
-------------------------------------------------------------------------- */
-
-/*
-void AtomVecLine::consistency_check(int n, char *str)
-{
-  int iflag = 0;
-  int count = 0;
-  for (int i = 0; i < n; i++) {
-
-    if (line[i] >= 0) {
-      count++;
-      if (line[i] >= nlocal_bonus) iflag++;
-      if (bonus[line[i]].ilocal != i) iflag++;
-      //if (comm->me == 1 && update->ntimestep == 873)
-      //        printf("CCHK %s: %d %d: %d %d: %d %d\n",
-      //       str,i,n,line[i],nlocal_bonus,bonus[line[i]].ilocal,iflag);
-    }
-  }
-
-  if (iflag) {
-    printf("BAD vecline ptrs: %s: %d %d: %d\n",str,comm->me,
-           update->ntimestep,iflag);
-    MPI_Abort(world,1);
-  }
-
-  if (count != nlocal_bonus) {
-    char msg[128];
-    printf("BAD vecline count: %s: %d %d: %d %d\n",
-           str,comm->me,update->ntimestep,count,nlocal_bonus);
-    MPI_Abort(world,1);
-  }
-}
-*/

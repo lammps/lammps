@@ -29,13 +29,13 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::MY_PIS;
 
-#define EPSILON 1e-6
+static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulCutDielectric::PairCoulCutDielectric(LAMMPS *lmp) : PairCoulCut(lmp)
+PairCoulCutDielectric::PairCoulCutDielectric(LAMMPS *_lmp) : PairCoulCut(_lmp)
 {
   efield = nullptr;
   nmax = 0;
@@ -124,7 +124,7 @@ void PairCoulCutDielectric::compute(int eflag, int vflag)
       if (rsq < cutsq[itype][jtype] && rsq > EPSILON) {
         r2inv = 1.0 / rsq;
         rinv = sqrt(r2inv);
-        efield_i = scale[itype][jtype] * q[j] * rinv;
+        efield_i = qqrd2e * scale[itype][jtype] * q[j] * rinv;
         forcecoul = qtmp * efield_i;
 
         fpair_i = factor_coul * etmp * forcecoul * r2inv;

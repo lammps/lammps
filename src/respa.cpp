@@ -704,7 +704,7 @@ void Respa::recurse(int ilevel)
       timer->stamp(Timer::COMM);
     }
     timer->stamp();
-    if (modify->n_post_force_respa_any) 
+    if (modify->n_post_force_respa_any)
       modify->post_force_respa(vflag, ilevel, iloop);
     modify->final_integrate_respa(ilevel, iloop);
     timer->stamp(Timer::MODIFY);

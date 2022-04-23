@@ -182,7 +182,7 @@ void FixGroup::set_group()
 
   // invoke atom-style variable if defined
   // NOTE: after variable invocation could reset invoked computes to not-invoked
-  //   this would avoid an issue where other post-force fixes 
+  //   this would avoid an issue where other post-force fixes
   //   change the compute result since it will not be re-invoked at end-of-step,
   //   e.g. if compute pe/atom includes pe contributions from fixes
 
@@ -237,7 +237,7 @@ void FixGroup::set_group()
 
 /* ---------------------------------------------------------------------- */
 
-int FixGroup::pack_forward_comm(int n, int *list, double *buf, 
+int FixGroup::pack_forward_comm(int n, int *list, double *buf,
                                 int /*pbc_flag*/, int * /*pbc*/)
 {
   int i, j, m;
@@ -261,9 +261,9 @@ void FixGroup::unpack_forward_comm(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
- 
+
   int *mask = atom->mask;
-  
+
   for (i = first; i < last; i++) mask[i] = (int) ubuf(buf[m++]).i;
 }
 

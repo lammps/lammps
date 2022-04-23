@@ -1,0 +1,26 @@
+# this generates a 2-atom triclinic cell
+# due to rotation on to x-axis,
+# elastic constant analysis is not working yet
+
+# unit lattice vectors are
+# a1 = (1 0 0)
+# a2 = (1/2 sqrt3/2 0)
+# a3 = (1/2 1/(2sqrt3) sqrt2/sqrt3)
+
+variable        a1x equal 1
+variable 	a2x equal 1/2
+variable 	a2y equal sqrt(3)/2
+variable 	a3x equal 1/2
+variable 	a3y equal 1/(2*sqrt(3))
+variable	a3z equal sqrt(2/3)
+variable 	l equal $a/sqrt(2)
+
+lattice         custom ${l}             &
+                a1 ${a1x} 0 0           &
+                a2 ${a2x} ${a2y} 0.0    &
+                a3 ${a3x} ${a3y} ${a3z} &
+                basis 0 0 0             &
+                basis 0.25 0.25 0.25    &
+		spacing 1 1 1
+
+region		box prism 0 ${a1x} 0 ${a2y} 0 ${a3z} ${a2x} ${a3x} ${a3y}

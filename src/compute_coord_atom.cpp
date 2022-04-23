@@ -311,7 +311,7 @@ void ComputeCoordAtom::compute_peratom()
 
 /* ---------------------------------------------------------------------- */
 
-int ComputeCoordAtom::pack_forward_comm(int n, int *list, double *buf, 
+int ComputeCoordAtom::pack_forward_comm(int n, int *list, double *buf,
                                         int /*pbc_flag*/, int * /*pbc*/)
 {
   int i, m = 0, j;

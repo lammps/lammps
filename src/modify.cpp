@@ -457,12 +457,12 @@ void Modify::pre_reverse(int eflag, int vflag)
 void Modify::post_force(int vflag)
 {
   if (n_post_force_group) {
-    for (int i = 0; i < n_post_force_group; i++) 
+    for (int i = 0; i < n_post_force_group; i++)
       fix[list_post_force_group[i]]->post_force(vflag);
   }
 
   if (n_post_force) {
-    for (int i = 0; i < n_post_force; i++) 
+    for (int i = 0; i < n_post_force; i++)
       fix[list_post_force[i]]->post_force(vflag);
   }
 }
@@ -610,7 +610,7 @@ void Modify::pre_force_respa(int vflag, int ilevel, int iloop)
 void Modify::post_force_respa(int vflag, int ilevel, int iloop)
 {
   if (n_post_force_group) {
-    for (int i = 0; i < n_post_force_group; i++) 
+    for (int i = 0; i < n_post_force_group; i++)
       fix[list_post_force_group[i]]->post_force_respa(vflag, ilevel, iloop);
   }
 

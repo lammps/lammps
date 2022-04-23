@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -56,9 +56,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(STORE/KIM,FixStoreKIM)
-
+// clang-format off
+FixStyle(STORE/KIM,FixStoreKIM);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_STORE_KIM_H
@@ -71,20 +71,20 @@ namespace LAMMPS_NS {
 class FixStoreKIM : public Fix {
  public:
   FixStoreKIM(class LAMMPS *, int, char **);
-  ~FixStoreKIM();
-  int setmask();
+  ~FixStoreKIM() override;
+  int setmask() override;
 
-  void  setptr(const std::string &, void *);
+  void setptr(const std::string &, void *);
   void *getptr(const std::string &);
 
  private:
-  void *simulator_model;        // pointer to KIM simulator model class
-  void *model_name;             // string of KIM model name
-  void *model_units;            // string of unit conversion origin or null pointer
-  void *user_units;             // string of unit conversion target or null pointer
+  void *simulator_model;    // pointer to KIM simulator model class
+  void *model_name;         // string of KIM model name
+  void *model_units;        // string of unit conversion origin or null pointer
+  void *user_units;         // string of unit conversion target or null pointer
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

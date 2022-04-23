@@ -239,6 +239,9 @@ TEST(TEST_CATEGORY, impl_shared_alloc) {
 #elif (TEST_CATEGORY_NUMBER == 6)  // hip
   test_shared_alloc<Kokkos::Experimental::HIPSpace,
                     Kokkos::DefaultHostExecutionSpace>();
+#elif (TEST_CATEGORY_NUMBER == 7)  // sycl
+  test_shared_alloc<Kokkos::Experimental::SYCLDeviceUSMSpace,
+                    Kokkos::DefaultHostExecutionSpace>();
 #endif
 #else
   test_shared_alloc<TEST_EXECSPACE, Kokkos::DefaultHostExecutionSpace>();

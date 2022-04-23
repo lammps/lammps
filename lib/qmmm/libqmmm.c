@@ -73,7 +73,7 @@ int read_qmmm_config(const char *file, qmmm_config_t *cfg)
             if ((ptr[i]=='\0') || (ptr[i]==' ') || (ptr[i]=='\t'))
                 break;
             ptr[i] = tolower(ptr[i]);
-        }   
+        }
 
         /* handle keywords */
         if (strncmp(ptr,"mode",4) == 0) {
@@ -205,7 +205,7 @@ int read_qmmm_config(const char *file, qmmm_config_t *cfg)
                     lineno, file, buf);
             return QMMM_ERROR;
         }
-        
+
         if (feof(fp)) break;
     }
 
@@ -239,7 +239,7 @@ const char *check_qmmm_config(qmmm_config_t *cfg) {
     } else if (cfg->maout == NULL) {
         msg = "MM master output file not set";
     } else if (cfg->slout == NULL) {
-        msg = "MM slave output file not set";    
+        msg = "MM slave output file not set";
     }
     return msg;
 }

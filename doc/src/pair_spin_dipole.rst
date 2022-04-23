@@ -97,7 +97,7 @@ Restrictions
 
 The *spin/dipole/cut* and *spin/dipole/long* styles are part of
 the SPIN package.  They are only enabled if LAMMPS was built with that
-package.  See the :doc:`Build package <Build_package>` doc page for more
+package.  See the :doc:`Build package <Build_package>` page for more
 info.
 
 Using dipole/spin pair styles with *electron* :doc:`units <units>` is not

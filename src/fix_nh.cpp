@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,23 +17,25 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nh.h"
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
+#include "comm.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "fix_deform.h"
 #include "force.h"
 #include "group.h"
-#include "comm.h"
-#include "neighbor.h"
 #include "irregular.h"
-#include "modify.h"
-#include "fix_deform.h"
-#include "compute.h"
 #include "kspace.h"
-#include "update.h"
-#include "respa.h"
-#include "domain.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -90,8 +93,6 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
 
   tcomputeflag = 0;
   pcomputeflag = 0;
-  id_temp = nullptr;
-  id_press = nullptr;
 
   // turn on tilt factor scaling, whenever applicable
 
@@ -275,9 +276,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
       else {
         allremap = 0;
         delete [] id_dilate;
-        int n = strlen(arg[iarg+1]) + 1;
-        id_dilate = new char[n];
-        strcpy(id_dilate,arg[iarg+1]);
+        id_dilate = utils::strdup(arg[iarg+1]);
         int idilate = group->find(id_dilate);
         if (idilate == -1)
           error->all(FLERR,"Fix nvt/npt/nph dilate group ID does not exist");
@@ -298,9 +297,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"mtk") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      if (strcmp(arg[iarg+1],"yes") == 0) mtk_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) mtk_flag = 0;
-      else error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      mtk_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tloop") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
@@ -319,27 +316,19 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"scalexy") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      if (strcmp(arg[iarg+1],"yes") == 0) scalexy = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) scalexy = 0;
-      else error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      scalexy = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"scalexz") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      if (strcmp(arg[iarg+1],"yes") == 0) scalexz = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) scalexz = 0;
-      else error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      scalexz = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"scaleyz") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      if (strcmp(arg[iarg+1],"yes") == 0) scaleyz = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) scaleyz = 0;
-      else error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      scaleyz = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"flip") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
-      if (strcmp(arg[iarg+1],"yes") == 0) flipflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) flipflag = 0;
-      else error->all(FLERR,"Illegal fix nvt/npt/nph command");
+      flipflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"update") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
@@ -636,6 +625,7 @@ int FixNH::setmask()
   mask |= FINAL_INTEGRATE;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
+  mask |= PRE_FORCE_RESPA;
   if (pre_exchange_flag) mask |= PRE_EXCHANGE;
   return mask;
 }
@@ -658,7 +648,7 @@ void FixNH::init()
   if (pstat_flag)
     for (int i = 0; i < modify->nfix; i++)
       if (strcmp(modify->fix[i]->style,"deform") == 0) {
-        int *dimflag = ((FixDeform *) modify->fix[i])->dimflag;
+        int *dimflag = (dynamic_cast<FixDeform *>( modify->fix[i]))->dimflag;
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
             (p_flag[2] && dimflag[2]) || (p_flag[3] && dimflag[3]) ||
             (p_flag[4] && dimflag[4]) || (p_flag[5] && dimflag[5]))
@@ -730,9 +720,9 @@ void FixNH::init()
   if (force->kspace) kspace_flag = 1;
   else kspace_flag = 0;
 
-  if (strstr(update->integrate_style,"respa")) {
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
-    step_respa = ((Respa *) update->integrate)->step;
+  if (utils::strmatch(update->integrate_style,"^respa")) {
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
+    step_respa = (dynamic_cast<Respa *>( update->integrate))->step;
     dto = 0.5*step_respa[0];
   }
 
@@ -1007,7 +997,12 @@ void FixNH::initial_integrate_respa(int /*vflag*/, int ilevel, int /*iloop*/)
     nve_x();
     if (pstat_flag) remap();
   }
+}
 
+/* ---------------------------------------------------------------------- */
+
+void FixNH::pre_force_respa(int /*vflag*/, int ilevel, int /*iloop*/)
+{
   // if barostat, redo KSpace coeffs at outermost level,
   // since volume has changed
 
@@ -1094,7 +1089,7 @@ void FixNH::remap()
 
   // omega is not used, except for book-keeping
 
-  for (int i = 0; i < 6; i++) omega[i] += dto*omega_dot[i];
+  for (i = 0; i < 6; i++) omega[i] += dto*omega_dot[i];
 
   // convert pertinent atoms and rigid bodies to lamda coords
 
@@ -1357,7 +1352,7 @@ int FixNH::pack_restart_data(double *list)
 void FixNH::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
   int flag = static_cast<int> (list[n++]);
   if (flag) {
     int m = static_cast<int> (list[n++]);
@@ -1414,9 +1409,7 @@ int FixNH::modify_param(int narg, char **arg)
       tcomputeflag = 0;
     }
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0)
@@ -1448,9 +1441,7 @@ int FixNH::modify_param(int narg, char **arg)
       pcomputeflag = 0;
     }
     delete [] id_press;
-    int n = strlen(arg[1]) + 1;
-    id_press = new char[n];
-    strcpy(id_press,arg[1]);
+    id_press = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");
@@ -1728,7 +1719,7 @@ void FixNH::reset_dt()
 
   // If using respa, then remap is performed in innermost level
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     dto = 0.5*step_respa[0];
 
   if (pstat_flag)
@@ -1787,7 +1778,7 @@ void FixNH::nhc_temp_integrate()
 
   if (eta_mass_flag) {
     eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
-    for (int ich = 1; ich < mtchain; ich++)
+    for (ich = 1; ich < mtchain; ich++)
       eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
   }
 
@@ -1859,12 +1850,12 @@ void FixNH::nhc_press_integrate()
 
   if (omega_mass_flag) {
     double nkt = (atom->natoms + 1) * kt;
-    for (int i = 0; i < 3; i++)
+    for (i = 0; i < 3; i++)
       if (p_flag[i])
         omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
 
     if (pstyle == TRICLINIC) {
-      for (int i = 3; i < 6; i++)
+      for (i = 3; i < 6; i++)
         if (p_flag[i]) omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
     }
   }
@@ -1872,9 +1863,9 @@ void FixNH::nhc_press_integrate()
   if (etap_mass_flag) {
     if (mpchain) {
       etap_mass[0] = boltz * t_target / (p_freq_max*p_freq_max);
-      for (int ich = 1; ich < mpchain; ich++)
+      for (ich = 1; ich < mpchain; ich++)
         etap_mass[ich] = boltz * t_target / (p_freq_max*p_freq_max);
-      for (int ich = 1; ich < mpchain; ich++)
+      for (ich = 1; ich < mpchain; ich++)
         etap_dotdot[ich] =
           (etap_mass[ich-1]*etap_dot[ich-1]*etap_dot[ich-1] -
            boltz * t_target) / etap_mass[ich];

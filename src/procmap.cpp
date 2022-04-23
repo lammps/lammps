@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,6 +23,7 @@
 #include "error.h"
 #include "math_extra.h"
 #include "memory.h"
+#include "tokenizer.h"
 #include "universe.h"
 
 #include <cmath>
@@ -161,7 +163,7 @@ void ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
   char node_name[MPI_MAX_PROCESSOR_NAME];
   MPI_Get_processor_name(node_name,&name_length);
   node_name[name_length] = '\0';
-  char *node_names = new char[MPI_MAX_PROCESSOR_NAME*nprocs];
+  auto node_names = new char[MPI_MAX_PROCESSOR_NAME*nprocs];
   MPI_Allgather(node_name,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,node_names,
                 MPI_MAX_PROCESSOR_NAME,MPI_CHAR,world);
   std::string node_string = std::string(node_name);
@@ -292,7 +294,7 @@ void ProcMap::custom_grid(char *cfile, int nprocs,
     char *ptr;
     if (!fgets(line,MAXLINE,fp))
       error->one(FLERR,"Unexpected end of custom file");
-    while (1) {
+    while (true) {
       if ((ptr = strchr(line,'#'))) *ptr = '\0';
       if (strspn(line," \t\n\r") != strlen(line)) break;
       if (!fgets(line,MAXLINE,fp))
@@ -300,12 +302,16 @@ void ProcMap::custom_grid(char *cfile, int nprocs,
     }
   }
 
-  int n = strlen(line) + 1;
-  MPI_Bcast(&n,1,MPI_INT,0,world);
-  MPI_Bcast(line,n,MPI_CHAR,0,world);
-
-  int rv = sscanf(line,"%d %d %d",&procgrid[0],&procgrid[1],&procgrid[2]);
-  if (rv != 3) error->all(FLERR,"Processors custom grid file is inconsistent");
+  MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
+  try {
+    ValueTokenizer procs(line);
+    procgrid[0] = procs.next_int();
+    procgrid[1] = procs.next_int();
+    procgrid[2] = procs.next_int();
+  } catch (TokenizerException &e) {
+    error->all(FLERR,"Processors custom grid file "
+                                 "is inconsistent: {}", e.what());
+  }
 
   int flag = 0;
   if (procgrid[0]*procgrid[1]*procgrid[2] != nprocs) flag = 1;
@@ -324,10 +330,17 @@ void ProcMap::custom_grid(char *cfile, int nprocs,
     for (int i = 0; i < nprocs; i++) {
       if (!fgets(line,MAXLINE,fp))
         error->one(FLERR,"Unexpected end of custom file");
-      rv = sscanf(line,"%d %d %d %d",
-                  &cmap[i][0],&cmap[i][1],&cmap[i][2],&cmap[i][3]);
-      if (rv != 4)
-        error->one(FLERR,"Processors custom grid file is inconsistent");
+
+      try {
+        ValueTokenizer pmap(line);
+        cmap[i][0] = pmap.next_int();
+        cmap[i][1] = pmap.next_int();
+        cmap[i][2] = pmap.next_int();
+        cmap[i][3] = pmap.next_int();
+      } catch (TokenizerException &e) {
+        error->one(FLERR,"Processors custom grid file is "
+                                     "inconsistent: {}", e.what());
+      }
     }
     fclose(fp);
   }

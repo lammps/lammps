@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -37,7 +38,20 @@ ModifyKokkos::ModifyKokkos(LAMMPS *lmp) : Modify(lmp)
 void ModifyKokkos::setup(int vflag)
 {
   // compute setup needs to come before fix setup
-  // b/c NH fixes need use DOF of temperature computes
+  //   b/c NH fixes need DOF of temperature computes
+  // fix group setup() is special case since populates a dynamic group
+  //   needs to be done before temperature compute setup
+
+  for (int i = 0; i < nfix; i++) {
+    if (strcmp(fix[i]->style,"GROUP") == 0) {
+      atomKK->sync(fix[i]->execution_space,fix[i]->datamask_read);
+      int prev_auto_sync = lmp->kokkos->auto_sync;
+      if (!fix[i]->kokkosable) lmp->kokkos->auto_sync = 1;
+      fix[i]->setup(vflag);
+      lmp->kokkos->auto_sync = prev_auto_sync;
+      atomKK->modified(fix[i]->execution_space,fix[i]->datamask_modify);
+    }
+  }
 
   for (int i = 0; i < ncompute; i++) compute[i]->setup();
 
@@ -120,6 +134,37 @@ void ModifyKokkos::setup_pre_neighbor()
       lmp->kokkos->auto_sync = prev_auto_sync;
       atomKK->modified(fix[list_min_pre_neighbor[i]]->execution_space,
                        fix[list_min_pre_neighbor[i]]->datamask_modify);
+    }
+}
+
+/* ----------------------------------------------------------------------
+   setup post_neighbor call, only for fixes that define post_neighbor
+   called from Verlet, RESPA
+------------------------------------------------------------------------- */
+
+void ModifyKokkos::setup_post_neighbor()
+{
+  if (update->whichflag == 1)
+    for (int i = 0; i < n_post_neighbor; i++) {
+      atomKK->sync(fix[list_post_neighbor[i]]->execution_space,
+                   fix[list_post_neighbor[i]]->datamask_read);
+      int prev_auto_sync = lmp->kokkos->auto_sync;
+      if (!fix[list_post_neighbor[i]]->kokkosable) lmp->kokkos->auto_sync = 1;
+      fix[list_post_neighbor[i]]->setup_post_neighbor();
+      lmp->kokkos->auto_sync = prev_auto_sync;
+      atomKK->modified(fix[list_post_neighbor[i]]->execution_space,
+                       fix[list_post_neighbor[i]]->datamask_modify);
+    }
+  else if (update->whichflag == 2)
+    for (int i = 0; i < n_min_post_neighbor; i++) {
+      atomKK->sync(fix[list_min_post_neighbor[i]]->execution_space,
+                   fix[list_min_post_neighbor[i]]->datamask_read);
+      int prev_auto_sync = lmp->kokkos->auto_sync;
+      if (!fix[list_min_post_neighbor[i]]->kokkosable) lmp->kokkos->auto_sync = 1;
+      fix[list_min_post_neighbor[i]]->setup_post_neighbor();
+      lmp->kokkos->auto_sync = prev_auto_sync;
+      atomKK->modified(fix[list_min_post_neighbor[i]]->execution_space,
+                       fix[list_min_post_neighbor[i]]->datamask_modify);
     }
 }
 
@@ -254,6 +299,24 @@ void ModifyKokkos::pre_neighbor()
     lmp->kokkos->auto_sync = prev_auto_sync;
     atomKK->modified(fix[list_pre_neighbor[i]]->execution_space,
                      fix[list_pre_neighbor[i]]->datamask_modify);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   post_neighbor call, only for relevant fixes
+------------------------------------------------------------------------- */
+
+void ModifyKokkos::post_neighbor()
+{
+  for (int i = 0; i < n_post_neighbor; i++) {
+    atomKK->sync(fix[list_post_neighbor[i]]->execution_space,
+                 fix[list_post_neighbor[i]]->datamask_read);
+    int prev_auto_sync = lmp->kokkos->auto_sync;
+    if (!fix[list_post_neighbor[i]]->kokkosable) lmp->kokkos->auto_sync = 1;
+    fix[list_post_neighbor[i]]->post_neighbor();
+    lmp->kokkos->auto_sync = prev_auto_sync;
+    atomKK->modified(fix[list_post_neighbor[i]]->execution_space,
+                     fix[list_post_neighbor[i]]->datamask_modify);
   }
 }
 
@@ -419,6 +482,12 @@ void ModifyKokkos::post_run()
     atomKK->modified(fix[i]->execution_space,
                      fix[i]->datamask_modify);
   }
+
+  // must reset this to its default value, since computes may be added
+  // or removed between runs and with this change we will redirect any
+  // calls to addstep_compute() to addstep_compute_all() instead.
+  n_timeflag = -1;
+
 }
 
 /* ----------------------------------------------------------------------
@@ -567,6 +636,24 @@ void ModifyKokkos::min_pre_neighbor()
 }
 
 /* ----------------------------------------------------------------------
+   minimizer post-neighbor call, only for relevant fixes
+------------------------------------------------------------------------- */
+
+void ModifyKokkos::min_post_neighbor()
+{
+  for (int i = 0; i < n_min_post_neighbor; i++) {
+    atomKK->sync(fix[list_min_post_neighbor[i]]->execution_space,
+                 fix[list_min_post_neighbor[i]]->datamask_read);
+    int prev_auto_sync = lmp->kokkos->auto_sync;
+    if (!fix[list_min_post_neighbor[i]]->kokkosable) lmp->kokkos->auto_sync = 1;
+    fix[list_min_post_neighbor[i]]->min_post_neighbor();
+    lmp->kokkos->auto_sync = prev_auto_sync;
+    atomKK->modified(fix[list_min_post_neighbor[i]]->execution_space,
+                     fix[list_min_post_neighbor[i]]->datamask_modify);
+  }
+}
+
+/* ----------------------------------------------------------------------
    minimizer pre-force call, only for relevant fixes
 ------------------------------------------------------------------------- */
 
@@ -645,7 +732,7 @@ double ModifyKokkos::min_energy(double *fextra)
 }
 
 /* ----------------------------------------------------------------------
-   store current state of extra dof, only for relevant fixes
+   store current state of extra minimizer dof, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 void ModifyKokkos::min_store()
@@ -663,7 +750,7 @@ void ModifyKokkos::min_store()
 }
 
 /* ----------------------------------------------------------------------
-   mange state of extra dof on a stack, only for relevant fixes
+   manage state of extra minimizer dof on a stack, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 void ModifyKokkos::min_clearstore()
@@ -709,7 +796,7 @@ void ModifyKokkos::min_popstore()
 }
 
 /* ----------------------------------------------------------------------
-   displace extra dof along vector hextra, only for relevant fixes
+   displace extra minimizer dof along vector hextra, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 void ModifyKokkos::min_step(double alpha, double *hextra)
@@ -754,7 +841,7 @@ double ModifyKokkos::max_alpha(double *hextra)
 }
 
 /* ----------------------------------------------------------------------
-   extract extra dof for minimization, only for relevant fixes
+   extract extra minimizer dof, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 int ModifyKokkos::min_dof()
@@ -774,7 +861,7 @@ int ModifyKokkos::min_dof()
 }
 
 /* ----------------------------------------------------------------------
-   reset reference state of fix, only for relevant fixes
+   reset minimizer reference state of fix, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 int ModifyKokkos::min_reset_ref()
@@ -787,8 +874,8 @@ int ModifyKokkos::min_reset_ref()
     int prev_auto_sync = lmp->kokkos->auto_sync;
     if (!fix[list_min_energy[i]]->kokkosable) lmp->kokkos->auto_sync = 1;
     itmp = fix[list_min_energy[i]]->min_reset_ref();
-    lmp->kokkos->auto_sync = prev_auto_sync;
     if (itmp) itmpall = 1;
+    lmp->kokkos->auto_sync = prev_auto_sync;
     atomKK->modified(fix[list_min_energy[i]]->execution_space,
                      fix[list_min_energy[i]]->datamask_modify);
   }

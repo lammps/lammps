@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -64,9 +65,7 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
       bstyle[nvalues++] = PHI;
     } else if (strncmp(arg[iarg],"v_",2) == 0) {
       bstyle[nvalues++] = VARIABLE;
-      int n = strlen(arg[iarg]);
-      vstr[nvar] = new char[n];
-      strcpy(vstr[nvar],&arg[iarg][2]);
+      vstr[nvar] = utils::strdup(&arg[iarg][2]);
       nvar++;
     } else break;
   }
@@ -83,9 +82,7 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute dihedral/local command");
       if (strcmp(arg[iarg+1],"phi") == 0) {
         delete [] pstr;
-        int n = strlen(arg[iarg+2]) + 1;
-        pstr = new char[n];
-        strcpy(pstr,arg[iarg+2]);
+        pstr = utils::strdup(arg[iarg+2]);
       } else error->all(FLERR,"Illegal compute dihedral/local command");
       iarg += 3;
     } else error->all(FLERR,"Illegal compute dihedral/local command");
@@ -195,7 +192,7 @@ void ComputeDihedralLocal::compute_local()
 
 int ComputeDihedralLocal::compute_dihedrals(int flag)
 {
-  int i,m,n,nd,atom1,atom2,atom3,atom4,imol,iatom,ivar;
+  int i,m,nd,atom1,atom2,atom3,atom4,imol,iatom,ivar;
   tagint tagprev;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
   double ax,ay,az,bx,by,bz,rasq,rbsq,rgsq,rg,ra2inv,rb2inv,rabinv;
@@ -220,7 +217,7 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
 
   // loop over all atoms and their dihedrals
 
-  m = n = 0;
+  m = 0;
   for (atom2 = 0; atom2 < nlocal; atom2++) {
     if (!(mask[atom2] & groupbit)) continue;
 
@@ -309,7 +306,7 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
         if (pstr) input->variable->internal_set(pvar,phi);
       }
 
-      for (n = 0; n < nvalues; n++) {
+      for (int n = 0; n < nvalues; n++) {
         switch (bstyle[n]) {
         case PHI:
           ptr[n] = 180.0*phi/MY_PI;

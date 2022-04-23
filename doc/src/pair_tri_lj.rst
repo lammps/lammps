@@ -66,7 +66,7 @@ using only sigma_II values, specific to the triangles's type, this
 means that any specified sigma_IJ values (for I != J) are effectively
 ignored.
 
-For style *tri/lj*\ , the following coefficients must be defined for
+For style *tri/lj*, the following coefficients must be defined for
 each pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command
 as in the examples above, or in the data file or restart files read by
 the :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
@@ -96,7 +96,7 @@ This pair style does not write its information to :doc:`binary restart files <re
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -104,7 +104,7 @@ Restrictions
 """"""""""""
 
 This style is part of the ASPHERE package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Defining particles to be triangles so they participate in tri/tri or
 tri/particle interactions requires the use the :doc:`atom_style tri <atom_style>` command.

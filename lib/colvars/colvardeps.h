@@ -283,6 +283,10 @@ public:
     /// center with fictitious mass; bias forces will be applied to
     /// the center
     f_cv_extended_Lagrangian,
+    /// \brief An extended variable that sets an external variable in the
+    /// back-end (eg. an alchemical coupling parameter for lambda-dynamics)
+    /// Can have a single component
+    f_cv_external,
     /// \brief The extended system coordinate undergoes Langevin dynamics
     f_cv_Langevin,
     /// \brief Output the potential and kinetic energies
@@ -375,6 +379,7 @@ public:
   enum features_atomgroup {
     f_ag_active,
     f_ag_center,
+    f_ag_center_origin,
     f_ag_rotate,
     f_ag_fitting_group,
     /// Perform a standard minimum msd fit for given atoms

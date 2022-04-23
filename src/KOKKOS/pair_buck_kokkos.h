@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(buck/kk,PairBuckKokkos<LMPDeviceType>)
-PairStyle(buck/kk/device,PairBuckKokkos<LMPDeviceType>)
-PairStyle(buck/kk/host,PairBuckKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(buck/kk,PairBuckKokkos<LMPDeviceType>);
+PairStyle(buck/kk/device,PairBuckKokkos<LMPDeviceType>);
+PairStyle(buck/kk/host,PairBuckKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_BUCK_KOKKOS_H
 #define LMP_PAIR_BUCK_KOKKOS_H
 
@@ -36,12 +37,12 @@ class PairBuckKokkos : public PairBuck {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairBuckKokkos(class LAMMPS *);
-  ~PairBuckKokkos();
+  ~PairBuckKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void init_style();
-  double init_one(int, int);
+  void init_style() override;
+  double init_one(int, int) override;
 
   struct params_buck{
     KOKKOS_INLINE_FUNCTION
@@ -52,8 +53,6 @@ class PairBuckKokkos : public PairBuck {
   };
 
  protected:
-  void cleanup_copy() {}
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
@@ -92,7 +91,7 @@ class PairBuckKokkos : public PairBuck {
   int neighflag;
   int nlocal,nall,eflag,vflag;
 
-  void allocate();
+  void allocate() override;
   friend struct PairComputeFunctor<PairBuckKokkos,FULL,true>;
   friend struct PairComputeFunctor<PairBuckKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairBuckKokkos,HALFTHREAD,true>;

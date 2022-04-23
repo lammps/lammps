@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -23,28 +24,28 @@ class CommTiledKokkos : public CommTiled {
  public:
   CommTiledKokkos(class LAMMPS *);
   CommTiledKokkos(class LAMMPS *, class Comm *);
-  virtual ~CommTiledKokkos();
+  ~CommTiledKokkos() override;
 
-  void forward_comm(int dummy = 0);    // forward comm of atom coords
-  void reverse_comm();                 // reverse comm of forces
-  void exchange();                     // move atoms to new procs
-  void borders();                      // setup list of atoms to comm
+  void forward_comm(int dummy = 0) override;    // forward comm of atom coords
+  void reverse_comm() override;                 // reverse comm of forces
+  void exchange() override;                     // move atoms to new procs
+  void borders() override;                      // setup list of atoms to comm
 
-  void forward_comm_pair(class Pair *);    // forward comm from a Pair
-  void reverse_comm_pair(class Pair *);    // reverse comm from a Pair
-  void forward_comm_fix(class Fix *, int size=0);
+  void forward_comm(class Pair *) override;    // forward comm from a Pair
+  void reverse_comm(class Pair *) override;    // reverse comm from a Pair
+  void forward_comm(class Fix *, int size=0) override;
                                                    // forward comm from a Fix
-  void reverse_comm_fix(class Fix *, int size=0);
+  void reverse_comm(class Fix *, int size=0) override;
                                                    // reverse comm from a Fix
-  void reverse_comm_fix_variable(class Fix *);
+  void reverse_comm_variable(class Fix *) override;
                                      // variable size reverse comm from a Fix
-  void forward_comm_compute(class Compute *);  // forward from a Compute
-  void reverse_comm_compute(class Compute *);  // reverse from a Compute
-  void forward_comm_dump(class Dump *);    // forward comm from a Dump
-  void reverse_comm_dump(class Dump *);    // reverse comm from a Dump
+  void forward_comm(class Compute *) override;  // forward from a Compute
+  void reverse_comm(class Compute *) override;  // reverse from a Compute
+  void forward_comm(class Dump *) override;    // forward comm from a Dump
+  void reverse_comm(class Dump *) override;    // reverse comm from a Dump
 
-  void forward_comm_array(int, double **);          // forward comm of array
-  int exchange_variable(int, double *, double *&);  // exchange on neigh stencil
+  void forward_comm_array(int, double **) override;          // forward comm of array
+  int exchange_variable(int, double *, double *&) override;  // exchange on neigh stencil
 
  private:
 

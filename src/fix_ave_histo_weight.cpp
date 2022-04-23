@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -26,8 +27,6 @@
 #include "modify.h"
 #include "update.h"
 #include "variable.h"
-
-#include <unistd.h>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -95,11 +94,8 @@ void FixAveHistoWeight::end_of_step()
   int i,j,m;
 
   // skip if not step which requires doing something
-  // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
-  if (ntimestep < nvalid_last || ntimestep > nvalid)
-    error->all(FLERR,"Invalid timestep reset for fix ave/histo");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
 
@@ -471,8 +467,8 @@ void FixAveHistoWeight::end_of_step()
 
   if (fp && me == 0) {
     clearerr(fp);
-    if (overwrite) fseek(fp,filepos,SEEK_SET);
-    fprintf(fp,BIGINT_FORMAT " %d %g %g %g %g\n",ntimestep,nbins,
+    if (overwrite) platform::fseek(fp,filepos);
+    fmt::print(fp,"{} {} {} {} {} {}\n",ntimestep,nbins,
             stats_total[0],stats_total[1],stats_total[2],stats_total[3]);
     if (stats_total[0] != 0.0)
       for (i = 0; i < nbins; i++)
@@ -487,9 +483,9 @@ void FixAveHistoWeight::end_of_step()
 
     fflush(fp);
     if (overwrite) {
-      long fileend = ftell(fp);
-      if ((fileend > 0) && (ftruncate(fileno(fp),fileend)))
-        perror("Error while tuncating output");
+      bigint fileend = platform::ftell(fp);
+      if ((fileend > 0) && (platform::ftruncate(fp,fileend)))
+        error->warning(FLERR,"Error while tuncating output: {}", utils::getsyserror());
     }
   }
 }

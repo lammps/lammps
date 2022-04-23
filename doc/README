@@ -25,16 +25,11 @@ github-development-workflow.md   notes on the LAMMPS development workflow
 include-file-conventions.md      notes on LAMMPS' include file conventions
 documentation_conventions.md     notes on writing documentation for LAMMPS
 
-If you downloaded a LAMMPS tarball from lammps.sandia.gov, then the html
+If you downloaded a LAMMPS tarball from www.lammps.org, then the html
 folder and the PDF manual should be included. If you downloaded LAMMPS
-from GitHub then you either need to download them or build them.
+from GitHub then you either need to build them.
 
-(a) You can "fetch" the current HTML and PDF files from the LAMMPS web
-site.  Just type "make fetch".  This should create a html_www directory
-and Manual_www.pdf file.  These will always represent the latest published
-patch/development version of LAMMPS.
-
-(b) You can build the HTML and PDF files yourself, by typing "make html"
+You can build the HTML and PDF files yourself, by typing "make html"
 or by "make pdf", respectively.  This requires various tools and files.
 Some of them have to be installed (more on that below).  For the rest the
 build process will attempt to download and install into a python virtual
@@ -78,4 +73,4 @@ the tool 'ebook-convert' from the 'calibre' e-book management software
 ----------------
 
 More details this can be found in the manual itself. The online
-version is at: https://lammps.sandia.gov/doc/Manual_build.html
+version is at: https://docs.lammps.org/Build_manual.html

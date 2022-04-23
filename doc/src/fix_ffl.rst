@@ -110,8 +110,8 @@ In order to perform constant-pressure simulations please use
 :doc:`fix npt <fix_nh>`, to avoid duplicate integration of the
 equations of motion.
 
-This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the EXTRA-FIX package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

@@ -129,7 +129,7 @@ derived class.  See fix.h for details.
 Typically, only a small fraction of these methods are defined for a
 particular fix.  Setmask is mandatory, as it determines when the fix
 will be invoked during the timestep.  Fixes that perform time
-integration (\ *nve*\ , *nvt*\ , *npt*\ ) implement initial_integrate() and
+integration (\ *nve*, *nvt*, *npt*\ ) implement initial_integrate() and
 final_integrate() to perform velocity Verlet updates.  Fixes that
 constrain forces implement post_force().
 

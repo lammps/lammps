@@ -71,7 +71,7 @@ kinetic energy at the start of the simulation.  Setting this parameter
 to a non-zero value may assist in compression at the start of
 simulations where it is slow to occur.
 
-If keywords *e0*\ , *p0*\ ,or *v0* are not supplied, these quantities will
+If keywords *e0*, *p0*,or *v0* are not supplied, these quantities will
 be calculated on the first step, after the energy specified by
 *tscale* is removed.  The value of *e0* is not used in the dynamical
 equations, but is used in calculating the deviation from the Hugoniot.
@@ -112,7 +112,7 @@ new computes are the fix-ID + "_MSST_temp" or "MSST_press" or
 
 The *dftb* keyword is to allow this fix to be used when LAMMPS is
 being driven by DFTB+, a density-functional tight-binding code. If the
-keyword *dftb* is used with a value of *yes*\ , then the MSST equations
+keyword *dftb* is used with a value of *yes*, then the MSST equations
 are altered to account for the electron entropy contribution to the
 Hugonio relations and total energy.  See :ref:`(Reed2) <Reed2>` and
 :ref:`(Goldman) <Goldman2>` for details on this contribution.  In this case,
@@ -152,7 +152,7 @@ integration of the dynamic equations.
 The global vector contains four values in the following order.  The
 vector values output by this fix are "intensive".
 
-[\ *dhugoniot*\ , *drayleigh*\ , *lagrangian_speed*,
+[\ *dhugoniot*, *drayleigh*, *lagrangian_speed*,
 *lagrangian_position*]
 
 1. *dhugoniot* is the departure from the Hugoniot (temperature units).
@@ -177,7 +177,7 @@ Restrictions
 
 This fix style is part of the SHOCK package.  It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 All cell dimensions must be periodic. This fix can not be used with a
 triclinic cell.  The MSST fix has been tested only for the group-ID

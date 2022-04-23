@@ -16,13 +16,14 @@ Fix commands
 
 An alphabetic list of all LAMMPS :doc:`fix <fix>` commands.  Some styles
 have accelerated versions.  This is indicated by additional letters in
-parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
+parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
 OPT.
 
 .. table_from_list::
    :columns: 5
 
    * :doc:`accelerate/cos <fix_accelerate_cos>`
+   * :doc:`acks2/reaxff (k) <fix_acks2_reaxff>`
    * :doc:`adapt <fix_adapt>`
    * :doc:`adapt/fep <fix_adapt_fep>`
    * :doc:`addforce <fix_addforce>`
@@ -39,6 +40,9 @@ OPT.
    * :doc:`ave/time <fix_ave_time>`
    * :doc:`aveforce <fix_aveforce>`
    * :doc:`balance <fix_balance>`
+   * :doc:`brownian <fix_brownian>`
+   * :doc:`brownian/asphere <fix_brownian>`
+   * :doc:`brownian/sphere <fix_brownian>`
    * :doc:`bocs <fix_bocs>`
    * :doc:`bond/break <fix_bond_break>`
    * :doc:`bond/create <fix_bond_create>`
@@ -46,10 +50,11 @@ OPT.
    * :doc:`bond/react <fix_bond_react>`
    * :doc:`bond/swap <fix_bond_swap>`
    * :doc:`box/relax <fix_box_relax>`
-   * :doc:`client/md <fix_client_md>`
+   * :doc:`charge/regulation <fix_charge_regulation>`
    * :doc:`cmap <fix_cmap>`
    * :doc:`colvars <fix_colvars>`
    * :doc:`controller <fix_controller>`
+   * :doc:`damping/cundall <fix_damping_cundall>`
    * :doc:`deform (k) <fix_deform>`
    * :doc:`deposit <fix_deposit>`
    * :doc:`dpd/energy (k) <fix_dpd_energy>`
@@ -92,12 +97,12 @@ OPT.
    * :doc:`latte <fix_latte>`
    * :doc:`lb/fluid <fix_lb_fluid>`
    * :doc:`lb/momentum <fix_lb_momentum>`
-   * :doc:`lb/pc <fix_lb_pc>`
-   * :doc:`lb/rigid/pc/sphere <fix_lb_rigid_pc_sphere>`
    * :doc:`lb/viscous <fix_lb_viscous>`
    * :doc:`lineforce <fix_lineforce>`
    * :doc:`manifoldforce <fix_manifoldforce>`
+   * :doc:`mdi/aimd <fix_mdi_aimd>`
    * :doc:`meso/move <fix_meso_move>`
+   * :doc:`mol/swap <fix_mol_swap>`
    * :doc:`momentum (k) <fix_momentum>`
    * :doc:`momentum/chunk <fix_momentum>`
    * :doc:`move <fix_move>`
@@ -122,6 +127,7 @@ OPT.
    * :doc:`npt/sphere (o) <fix_npt_sphere>`
    * :doc:`npt/uef <fix_nh_uef>`
    * :doc:`numdiff <fix_numdiff>`
+   * :doc:`numdiff/virial <fix_numdiff_virial>`
    * :doc:`nve (giko) <fix_nve>`
    * :doc:`nve/asphere (gi) <fix_nve_asphere>`
    * :doc:`nve/asphere/noforce <fix_nve_asphere_noforce>`
@@ -135,6 +141,7 @@ OPT.
    * :doc:`nve/manifold/rattle <fix_nve_manifold_rattle>`
    * :doc:`nve/noforce <fix_nve_noforce>`
    * :doc:`nve/sphere (ko) <fix_nve_sphere>`
+   * :doc:`nve/bpm/sphere <fix_nve_bpm_sphere>`
    * :doc:`nve/spin <fix_nve_spin>`
    * :doc:`nve/tri <fix_nve_tri>`
    * :doc:`nvk <fix_nvk>`
@@ -143,7 +150,7 @@ OPT.
    * :doc:`nvt/body <fix_nvt_body>`
    * :doc:`nvt/eff <fix_nh_eff>`
    * :doc:`nvt/manifold/rattle <fix_nvt_manifold_rattle>`
-   * :doc:`nvt/sllod (io) <fix_nvt_sllod>`
+   * :doc:`nvt/sllod (iko) <fix_nvt_sllod>`
    * :doc:`nvt/sllod/eff <fix_nvt_sllod_eff>`
    * :doc:`nvt/sphere (o) <fix_nvt_sphere>`
    * :doc:`nvt/uef <fix_nh_uef>`
@@ -157,6 +164,9 @@ OPT.
    * :doc:`planeforce <fix_planeforce>`
    * :doc:`plumed <fix_plumed>`
    * :doc:`poems <fix_poems>`
+   * :doc:`polarize/bem/gmres <fix_polarize>`
+   * :doc:`polarize/bem/icc <fix_polarize>`
+   * :doc:`polarize/functional <fix_polarize>`
    * :doc:`pour <fix_pour>`
    * :doc:`precession/spin <fix_precession_spin>`
    * :doc:`press/berendsen <fix_press_berendsen>`
@@ -170,14 +180,14 @@ OPT.
    * :doc:`qeq/dynamic <fix_qeq>`
    * :doc:`qeq/fire <fix_qeq>`
    * :doc:`qeq/point <fix_qeq>`
-   * :doc:`qeq/reax (ko) <fix_qeq_reax>`
+   * :doc:`qeq/reaxff (ko) <fix_qeq_reaxff>`
    * :doc:`qeq/shielded <fix_qeq>`
    * :doc:`qeq/slater <fix_qeq>`
    * :doc:`qmmm <fix_qmmm>`
    * :doc:`qtb <fix_qtb>`
    * :doc:`rattle <fix_shake>`
-   * :doc:`reax/c/bonds (k) <fix_reaxc_bonds>`
-   * :doc:`reax/c/species (k) <fix_reaxc_species>`
+   * :doc:`reaxff/bonds (k) <fix_reaxff_bonds>`
+   * :doc:`reaxff/species (k) <fix_reaxff_species>`
    * :doc:`recenter <fix_recenter>`
    * :doc:`restrain <fix_restrain>`
    * :doc:`rhok <fix_rhok>`
@@ -227,11 +237,13 @@ OPT.
    * :doc:`ti/spring <fix_ti_spring>`
    * :doc:`tmd <fix_tmd>`
    * :doc:`ttm <fix_ttm>`
+   * :doc:`ttm/grid <fix_ttm>`
    * :doc:`ttm/mod <fix_ttm>`
    * :doc:`tune/kspace <fix_tune_kspace>`
    * :doc:`vector <fix_vector>`
    * :doc:`viscosity <fix_viscosity>`
    * :doc:`viscous <fix_viscous>`
+   * :doc:`viscous/sphere <fix_viscous_sphere>`
    * :doc:`wall/body/polygon <fix_wall_body_polygon>`
    * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>`
    * :doc:`wall/colloid <fix_wall>`

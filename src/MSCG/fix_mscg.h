@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(mscg,FixMSCG)
-
+// clang-format off
+FixStyle(mscg,FixMSCG);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_MSCG_H
@@ -27,26 +27,26 @@ namespace LAMMPS_NS {
 class FixMSCG : public Fix {
  public:
   FixMSCG(class LAMMPS *, int, char **);
-  ~FixMSCG();
-  int setmask();
-  void post_constructor();
-  void init();
-  void end_of_step();
-  void post_run();
+  ~FixMSCG() override;
+  int setmask() override;
+  void post_constructor() override;
+  void init() override;
+  void end_of_step() override;
+  void post_run() override;
 
  private:
-  int range_flag,name_flag,me,nprocs;
-  int nframes,n_frames,block_size,n_cg_sites,n_cg_types,*cg_site_types;
-  int max_partners_bond,max_partners_angle,max_partners_dihedral;
-  unsigned *n_partners_bond,*n_partners_angle,*n_partners_dihedral;
-  unsigned **partners_bond,**partners_angle,**partners_dihedral;
-  double *x1d,*f1d,**f;
+  int range_flag, name_flag, me, nprocs;
+  int nframes, n_frames, block_size, n_cg_sites, n_cg_types, *cg_site_types;
+  int max_partners_bond, max_partners_angle, max_partners_dihedral;
+  unsigned *n_partners_bond, *n_partners_angle, *n_partners_dihedral;
+  unsigned **partners_bond, **partners_angle, **partners_dihedral;
+  double *x1d, *f1d, **f;
   double box_half_lengths[3];
   char **type_names;
   void *mscg_struct;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

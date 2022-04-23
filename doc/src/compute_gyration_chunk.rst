@@ -101,7 +101,7 @@ number of rows in the array = the number of chunks *Nchunk* as
 calculated by the specified :doc:`compute chunk/atom <compute_chunk_atom>` command.  If the *tensor* keyword
 is specified, the global array has 6 columns.  The vector or array can
 be accessed by any command that uses global values from a compute as
-input.  See the :doc:`Howto output <Howto_output>` doc page for an
+input.  See the :doc:`Howto output <Howto_output>` page for an
 overview of LAMMPS output options.
 
 All the vector or array values calculated by this compute are

@@ -50,9 +50,12 @@
 // and compiler environment then sets a collection of #define macros.
 
 #include <Kokkos_Macros.hpp>
+#include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_Utilities.hpp>
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
 #include <Kokkos_MasterLock.hpp>
+#endif
 
 //----------------------------------------------------------------------------
 // Have assumed a 64bit build (8byte pointers) throughout the code base.
@@ -180,7 +183,6 @@ using DefaultHostExecutionSpace KOKKOS_IMPL_DEFAULT_HOST_EXEC_SPACE_ANNOTATION =
 // a given memory space.
 
 namespace Kokkos {
-
 namespace Impl {
 
 #if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA) && \
@@ -196,16 +198,22 @@ using ActiveExecutionMemorySpace = Kokkos::HostSpace;
 using ActiveExecutionMemorySpace = void;
 #endif
 
-template <class ActiveSpace, class MemorySpace>
-struct VerifyExecutionCanAccessMemorySpace {
-  enum { value = 0 };
+template <typename DstMemorySpace, typename SrcMemorySpace>
+struct MemorySpaceAccess;
+
+template <typename DstMemorySpace, typename SrcMemorySpace,
+          bool = Kokkos::Impl::MemorySpaceAccess<DstMemorySpace,
+                                                 SrcMemorySpace>::accessible>
+struct verify_space {
+  KOKKOS_FUNCTION static void check() {}
 };
 
-template <class Space>
-struct VerifyExecutionCanAccessMemorySpace<Space, Space> {
-  enum { value = 1 };
-  KOKKOS_INLINE_FUNCTION static void verify(void) {}
-  KOKKOS_INLINE_FUNCTION static void verify(const void *) {}
+template <typename DstMemorySpace, typename SrcMemorySpace>
+struct verify_space<DstMemorySpace, SrcMemorySpace, false> {
+  KOKKOS_FUNCTION static void check() {
+    Kokkos::abort(
+        "Kokkos::View ERROR: attempt to access inaccessible memory space");
+  };
 };
 
 // Base class for exec space initializer factories
@@ -220,19 +228,20 @@ class LogicalMemorySpace;
 
 }  // namespace Kokkos
 
-#define KOKKOS_RESTRICT_EXECUTION_TO_DATA(DATA_SPACE, DATA_PTR) \
-  Kokkos::Impl::VerifyExecutionCanAccessMemorySpace<            \
-      Kokkos::Impl::ActiveExecutionMemorySpace, DATA_SPACE>::verify(DATA_PTR)
+#define KOKKOS_RESTRICT_EXECUTION_TO_DATA(DATA_SPACE, DATA_PTR)        \
+  Kokkos::Impl::verify_space<Kokkos::Impl::ActiveExecutionMemorySpace, \
+                             DATA_SPACE>::check();
 
-#define KOKKOS_RESTRICT_EXECUTION_TO_(DATA_SPACE)    \
-  Kokkos::Impl::VerifyExecutionCanAccessMemorySpace< \
-      Kokkos::Impl::ActiveExecutionMemorySpace, DATA_SPACE>::verify()
+#define KOKKOS_RESTRICT_EXECUTION_TO_(DATA_SPACE)                      \
+  Kokkos::Impl::verify_space<Kokkos::Impl::ActiveExecutionMemorySpace, \
+                             DATA_SPACE>::check();
 
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
 void fence();
-}
+void fence(const std::string &);
+}  // namespace Kokkos
 
 //----------------------------------------------------------------------------
 
@@ -244,8 +253,12 @@ class View;
 namespace Impl {
 
 template <class DstSpace, class SrcSpace,
-          class ExecutionSpace = typename DstSpace::execution_space>
+          class ExecutionSpace = typename DstSpace::execution_space,
+          class Enable         = void>
 struct DeepCopy;
+
+template <typename ExecutionSpace, class DT, class... DP>
+struct ZeroMemset;
 
 template <class ViewType, class Layout = typename ViewType::array_layout,
           class ExecSpace = typename ViewType::execution_space,
@@ -256,8 +269,7 @@ template <class ViewTypeA, class ViewTypeB, class Layout, class ExecSpace,
           int Rank, typename iType>
 struct ViewCopy;
 
-template <class Functor, class Policy, class EnableFunctor = void,
-          class EnablePolicy = void>
+template <class Functor, class Policy>
 struct FunctorPolicyExecutionSpace;
 
 //----------------------------------------------------------------------------

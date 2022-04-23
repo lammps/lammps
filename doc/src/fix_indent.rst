@@ -96,9 +96,9 @@ the plane's current position will feel no force.  Vice versa if *side*
 is specified as *hi*\ .
 
 Any of the 4 quantities defining a spherical indenter's geometry can
-be specified as an equal-style :doc:`variable <variable>`, namely *x*\ ,
-*y*\ , *z*\ , or *R*\ .  Similarly, for a cylindrical indenter, any of *c1*\ ,
-*c2*\ , or *R*\ , can be a variable.  For a planar indenter, *pos* can be
+be specified as an equal-style :doc:`variable <variable>`, namely *x*,
+*y*, *z*, or *R*\ .  Similarly, for a cylindrical indenter, any of *c1*,
+*c2*, or *R*, can be a variable.  For a planar indenter, *pos* can be
 a variable.  If the value is a variable, it should be specified as
 v_name, where name is the variable name.  In this case, the variable
 will be evaluated each timestep, and its value used to define the
@@ -139,10 +139,10 @@ rate.
    variable rate equal 1.0
    variable r equal "v_r0 + step*dt*v_rate"
 
-If the *side* keyword is specified as *out*\ , which is the default,
+If the *side* keyword is specified as *out*, which is the default,
 then particles outside the indenter are pushed away from its outer
 surface, as described above.  This only applies to spherical or
-cylindrical indenters.  If the *side* keyword is specified as *in*\ ,
+cylindrical indenters.  If the *side* keyword is specified as *in*,
 the action of the indenter is reversed.  Particles inside the indenter
 are pushed away from its inner surface.  In other words, the indenter
 is now a containing wall that traps the particles inside it.  If the
@@ -160,7 +160,7 @@ cylindrical indenter is scaled by the x lattice spacing.
 
 Note that the units keyword only affects indenter geometry parameters
 specified directly with numbers, not those specified as variables.  In
-the latter case, you should use the *xlat*\ , *ylat*\ , *zlat* keywords of
+the latter case, you should use the *xlat*, *ylat*, *zlat* keywords of
 the :doc:`thermo_style <thermo_style>` command if you want to include
 lattice spacings in a variable formula.
 
@@ -168,7 +168,7 @@ The force constant *K* is not affected by the *units* keyword.  It is
 always in force/distance\^2 units where force and distance are defined
 by the :doc:`units <units>` command.  If you wish K to be scaled by the
 lattice spacing, you can define K with a variable whose formula
-contains *xlat*\ , *ylat*\ , *zlat* keywords of the
+contains *xlat*, *ylat*, *zlat* keywords of the
 :doc:`thermo_style <thermo_style>` command, e.g.
 
 .. code-block:: LAMMPS

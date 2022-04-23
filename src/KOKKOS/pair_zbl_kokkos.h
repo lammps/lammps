@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(zbl/kk,PairZBLKokkos<LMPDeviceType>)
-PairStyle(zbl/kk/device,PairZBLKokkos<LMPDeviceType>)
-PairStyle(zbl/kk/host,PairZBLKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(zbl/kk,PairZBLKokkos<LMPDeviceType>);
+PairStyle(zbl/kk/device,PairZBLKokkos<LMPDeviceType>);
+PairStyle(zbl/kk/host,PairZBLKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_ZBL_KOKKOS_H
 #define LMP_PAIR_ZBL_KOKKOS_H
 
@@ -37,10 +38,10 @@ class PairZBLKokkos : public PairZBL {
   typedef ArrayTypes<DeviceType> AT;
 
   PairZBLKokkos(class LAMMPS *);
-  virtual ~PairZBLKokkos();
-  void compute(int, int);
-  void init_style();
-  F_FLOAT init_one(int, int);
+  ~PairZBLKokkos() override;
+  void compute(int, int) override;
+  void init_style() override;
+  F_FLOAT init_one(int, int) override;
 
  private:
   DAT::tdual_ffloat_1d k_z;
@@ -86,8 +87,7 @@ class PairZBLKokkos : public PairZBL {
   F_FLOAT compute_ecoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
                         const int& /*itype*/, const int& /*jtype*/) const { return 0; }
 
-  void cleanup_copy();
-  void allocate();
+  void allocate() override;
 
   friend struct PairComputeFunctor<PairZBLKokkos,FULL,true>;
   friend struct PairComputeFunctor<PairZBLKokkos,HALF,true>;

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,20 +18,18 @@
 
 #include "pair_eam.h"
 
-#include <cmath>
-
-#include <cstring>
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
+#include "potential_file_reader.h"
 #include "update.h"
 
-#include "tokenizer.h"
-#include "potential_file_reader.h"
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -49,7 +48,6 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
   rho = nullptr;
   fp = nullptr;
   numforce = nullptr;
-  map = nullptr;
   type2frho = nullptr;
 
   nfuncfl = 0;
@@ -90,9 +88,7 @@ PairEAM::~PairEAM()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    delete [] map;
     delete [] type2frho;
-    map = nullptr;
     type2frho = nullptr;
     memory->destroy(type2rhor);
     memory->destroy(type2z2r);
@@ -225,7 +221,7 @@ void PairEAM::compute(int eflag, int vflag)
 
   // communicate and sum densities
 
-  if (newton_pair) comm->reverse_comm_pair(this);
+  if (newton_pair) comm->reverse_comm(this);
 
   // fp = derivative of embedding energy at each atom
   // phi = embedding energy at each atom
@@ -252,7 +248,7 @@ void PairEAM::compute(int eflag, int vflag)
 
   // communicate derivative of embedding function
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
   embedstep = update->ntimestep;
 
   // compute forces on each atom
@@ -348,6 +344,7 @@ void PairEAM::allocate()
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
+  delete[] map;
   map = new int[n+1];
   for (int i = 1; i <= n; i++) map[i] = -1;
 
@@ -395,9 +392,7 @@ void PairEAM::coeff(int narg, char **arg)
     funcfl = (Funcfl *)
       memory->srealloc(funcfl,nfuncfl*sizeof(Funcfl),"pair:funcfl");
     read_file(arg[2]);
-    int n = strlen(arg[2]) + 1;
-    funcfl[ifuncfl].file = new char[n];
-    strcpy(funcfl[ifuncfl].file,arg[2]);
+    funcfl[ifuncfl].file = utils::strdup(arg[2]);
   }
 
   // set setflag and map only for i,i type pairs
@@ -430,7 +425,7 @@ void PairEAM::init_style()
   file2array();
   array2spline();
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
   embedstep = -1;
 }
 

@@ -46,13 +46,14 @@ system volume (or area in 2d).  The second term is the virial, equal to
 -dU/dV, computed for all pairwise as well as 2-body, 3-body, 4-body,
 many-body, and long-range interactions, where :math:`r_i` and
 :math:`f_i` are the position and force vector of atom *i*, and the black
-dot indicates a dot product.  When periodic boundary conditions are
-used, N' necessarily includes periodic image (ghost) atoms outside the
-central box, and the position and force vectors of ghost atoms are thus
-included in the summation.  When periodic boundary conditions are not
-used, N' = N = the number of atoms in the system.  :doc:`Fixes <fix>`
-that impose constraints (e.g. the :doc:`fix shake <fix_shake>` command)
-also contribute to the virial term.
+dot indicates a dot product.  This is computed in parallel for each
+sub-domain and then summed over all parallel processes. Thus N'
+necessarily includes atoms from neighboring sub-domains (so-called ghost
+atoms) and the position and force vectors of ghost atoms are thus
+included in the summation.  Only when running in serial and without
+periodic boundary conditions is N' = N = the number of atoms in the
+system.  :doc:`Fixes <fix>` that impose constraints (e.g. the :doc:`fix
+shake <fix_shake>` command) may also contribute to the virial term.
 
 A symmetric pressure tensor, stored as a 6-element vector, is also
 calculated by this compute.  The 6 components of the vector are
@@ -123,7 +124,7 @@ This compute calculates a global scalar (the pressure) and a global
 vector of length 6 (pressure tensor), which can be accessed by indices
 1-6.  These values can be used by any command that uses global scalar
 or vector values from a compute as input.  See the :doc:`Howto output
-<Howto_output>` doc page for an overview of LAMMPS output options.
+<Howto_output>` page for an overview of LAMMPS output options.
 
 The ordering of values in the symmetric pressure tensor is as follows:
 pxx, pyy, pzz, pxy, pxz, pyz.
@@ -140,7 +141,7 @@ Related commands
 """"""""""""""""
 
 :doc:`compute temp <compute_temp>`, :doc:`compute stress/atom <compute_stress_atom>`,
-:doc:`thermo_style <thermo_style>`,
+:doc:`thermo_style <thermo_style>`, :doc:`fix numdiff/virial <fix_numdiff_virial>`,
 
 Default
 """""""

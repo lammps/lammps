@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(bond/create/angle,FixBondCreateAngle)
-
+// clang-format off
+FixStyle(bond/create/angle,FixBondCreateAngle);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_BOND_CREATE_ANGLE_H
@@ -26,13 +26,13 @@ namespace LAMMPS_NS {
 
 class FixBondCreateAngle : public FixBondCreate {
  public:
-  FixBondCreateAngle(class LAMMPS *, int, char **);
+  FixBondCreateAngle(LAMMPS *_lmp, int narg, char **arg) : FixBondCreate(_lmp, narg, arg) {}
 
  private:
-  int constrain(int, int, double, double);
+  int constrain(int, int, double, double) override;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

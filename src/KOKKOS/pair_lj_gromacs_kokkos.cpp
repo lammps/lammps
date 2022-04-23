@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,19 +17,21 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_gromacs_kokkos.h"
-#include <cmath>
-#include <cstring>
-#include "kokkos.h"
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
+#include "kokkos.h"
+#include "memory_kokkos.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "update.h"
+#include "neighbor.h"
 #include "respa.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -47,10 +50,6 @@ PairLJGromacsKokkos<DeviceType>::PairLJGromacsKokkos(LAMMPS *lmp):PairLJGromacs(
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = nullptr;
-  cut_inner = nullptr;
-  cut_inner_sq = nullptr;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -58,31 +57,15 @@ PairLJGromacsKokkos<DeviceType>::PairLJGromacsKokkos(LAMMPS *lmp):PairLJGromacs(
 template<class DeviceType>
 PairLJGromacsKokkos<DeviceType>::~PairLJGromacsKokkos()
 {
-  if (!copymode) {
+  if (copymode) return;
+
+  if (allocated) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    k_cutsq = DAT::tdual_ffloat_2d();
-    k_cut_inner_sq = DAT::tdual_ffloat_2d();
-    memory->sfree(cutsq);
-    eatom = nullptr;
-    vatom = nullptr;
-    cutsq = nullptr;
-    cut_inner = nullptr;
-    cut_inner_sq = nullptr;
+    memoryKK->destroy_kokkos(k_cutsq,cutsq);
+    memoryKK->destroy_kokkos(k_cut_inner,cut_inner);
+    memoryKK->destroy_kokkos(k_cut_inner_sq,cut_inner_sq);
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairLJGromacsKokkos<DeviceType>::cleanup_copy() {
-  // WHY needed: this prevents parent copy from deallocating any arrays
-  allocated = 0;
-  cutsq = nullptr;
-  cut_inner = nullptr;
-  cut_inner_sq = nullptr;
-  eatom = nullptr;
-  vatom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -272,7 +255,7 @@ void PairLJGromacsKokkos<DeviceType>::init_style()
 
   // error if rRESPA with inner levels
 
-  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
+  if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
     int respa = 0;
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
@@ -280,26 +263,14 @@ void PairLJGromacsKokkos<DeviceType>::init_style()
       error->all(FLERR,"Cannot use Kokkos pair style with rRESPA inner/middle");
   }
 
-  // irequest = neigh request made by parent class
+  // adjust neighbor list request for KOKKOS
 
   neighflag = lmp->kokkos->neighflag;
-  int irequest = neighbor->nrequest - 1;
-
-  neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
-
-  if (neighflag == FULL) {
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->half = 0;
-  } else if (neighflag == HALF || neighflag == HALFTHREAD) {
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 1;
-  } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with lj/gromacs/kk");
-  }
+  auto request = neighbor->find_request(this);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  if (neighflag == FULL) request->enable_full();
 }
 
 /* ----------------------------------------------------------------------

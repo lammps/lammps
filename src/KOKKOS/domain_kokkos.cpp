@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -26,14 +27,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DomainKokkos::DomainKokkos(LAMMPS *lmp) : Domain(lmp) {}
-
-/* ---------------------------------------------------------------------- */
-
-void DomainKokkos::init()
-{
+DomainKokkos::DomainKokkos(LAMMPS *lmp) : Domain(lmp) {
   atomKK = (AtomKokkos *) atom;
-  Domain::init();
 }
 
 /* ----------------------------------------------------------------------
@@ -59,6 +54,17 @@ public:
   void init(value_type &dst) const {
     dst.value[2][0] = dst.value[1][0] = dst.value[0][0] = BIG;
     dst.value[2][1] = dst.value[1][1] = dst.value[0][1] = -BIG;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void join(value_type &dst,
+             const value_type &src) const {
+    dst.value[0][0] = MIN(dst.value[0][0],src.value[0][0]);
+    dst.value[0][1] = MAX(dst.value[0][1],src.value[0][1]);
+    dst.value[1][0] = MIN(dst.value[1][0],src.value[1][0]);
+    dst.value[1][1] = MAX(dst.value[1][1],src.value[1][1]);
+    dst.value[2][0] = MIN(dst.value[2][0],src.value[2][0]);
+    dst.value[2][1] = MAX(dst.value[2][1],src.value[2][1]);
   }
 
   KOKKOS_INLINE_FUNCTION

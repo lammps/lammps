@@ -85,7 +85,7 @@ time.  Thus it is easy to specify a time-dependent temperature.
    normally be used on atoms that also have their temperature controlled
    by another fix - e.g. by :doc:`fix nvt <fix_nh>` or :doc:`fix langevin <fix_langevin>` commands.
 
-See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
+See the :doc:`Howto thermostat <Howto_thermostat>` page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
@@ -110,28 +110,29 @@ during thermodynamic output via the :doc:`thermo_style custom <thermo_style>` co
 It also means that changing attributes of *thermo_temp* will have no
 effect on this fix.
 
-Like other fixes that perform thermostatting, these fixes can be used
-with :doc:`compute commands <compute>` that calculate a temperature
-after removing a "bias" from the atom velocities.  E.g. removing the
-center-of-mass velocity from a group of atoms or only calculating
-temperature on the x-component of velocity or only calculating
-temperature for atoms in a geometric region.  This is not done by
-default, but only if the :doc:`fix_modify <fix_modify>` command is used
-to assign a temperature compute to this fix that includes such a bias
-term.  See the doc pages for individual :doc:`compute commands <compute>` to determine which ones include a bias.  In
-this case, the thermostat works in the following manner: the current
-temperature is calculated taking the bias into account, bias is
-removed from each atom, thermostatting is performed on the remaining
-thermal degrees of freedom, and the bias is added back in.
+Like other fixes that perform thermostatting, this fix can be used
+with :doc:`compute commands <compute>` that remove a "bias" from the
+atom velocities.  E.g. to apply the thermostat only to atoms within a
+spatial :doc:`region <region>`, or to remove the center-of-mass
+velocity from a group of atoms, or to remove the x-component of
+velocity from the calculation.
+
+This is not done by default, but only if the :doc:`fix_modify
+<fix_modify>` command is used to assign a temperature compute to this
+fix that includes such a bias term.  See the doc pages for individual
+:doc:`compute temp commands <compute>` to determine which ones include
+a bias.  In this case, the thermostat works in the following manner:
+bias is removed from each atom, thermostatting is performed on the
+remaining thermal degrees of freedom, and the bias is added back in.
 
 An important feature of these thermostats is that they have an
-associated effective energy that is a constant of motion.
-The effective energy is the total energy (kinetic + potential) plus
-the accumulated kinetic energy changes due to the thermostat. The
-latter quantity is the global scalar computed by these fixes. This
-feature is useful to check the integration of the equations of motion
-against discretization errors. In other words, the conservation of
-the effective energy can be used to choose an appropriate integration
+associated effective energy that is a constant of motion.  The
+effective energy is the total energy (kinetic + potential) plus the
+accumulated kinetic energy changes due to the thermostat. The latter
+quantity is the global scalar computed by these fixes. This feature is
+useful to check the integration of the equations of motion against
+discretization errors. In other words, the conservation of the
+effective energy can be used to choose an appropriate integration
 :doc:`timestep <timestep>`. This is similar to the usual paradigm of
 checking the conservation of the total energy in the microcanonical
 ensemble.
@@ -176,9 +177,12 @@ These fixes are not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-These fixes are not compatible with :doc:`fix shake <fix_shake>`.
+Fix *temp/csld* is not compatible with :doc:`fix shake <fix_shake>`.
 
-The fix can be used with dynamic groups as defined by the
+These fixes are part of the EXTRA-FIX package.  They are only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+
+These fixes can be used with dynamic groups as defined by the
 :doc:`group <group>` command.  Likewise it can be used with groups to
 which atoms are added or deleted over time, e.g. a deposition
 simulation.  However, the conservation properties of the thermostat

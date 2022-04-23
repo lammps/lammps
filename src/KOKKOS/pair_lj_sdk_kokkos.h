@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/sdk/kk,PairLJSDKKokkos<LMPDeviceType>)
-PairStyle(lj/sdk/kk/device,PairLJSDKKokkos<LMPDeviceType>)
-PairStyle(lj/sdk/kk/host,PairLJSDKKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(lj/sdk/kk,PairLJSDKKokkos<LMPDeviceType>);
+PairStyle(lj/sdk/kk/device,PairLJSDKKokkos<LMPDeviceType>);
+PairStyle(lj/sdk/kk/host,PairLJSDKKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_LJ_SDK_KOKKOS_H
 #define LMP_PAIR_LJ_SDK_KOKKOS_H
 
@@ -36,13 +37,13 @@ class PairLJSDKKokkos : public PairLJSDK {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairLJSDKKokkos(class LAMMPS *);
-  ~PairLJSDKKokkos();
+  ~PairLJSDKKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   struct params_lj{
     KOKKOS_INLINE_FUNCTION
@@ -54,8 +55,6 @@ class PairLJSDKKokkos : public PairLJSDK {
   };
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
@@ -95,7 +94,7 @@ class PairLJSDKKokkos : public PairLJSDK {
   int neighflag;
   int nlocal,nall,eflag,vflag;
 
-  void allocate();
+  void allocate() override;
   friend struct PairComputeFunctor<PairLJSDKKokkos,FULL,true>;
   friend struct PairComputeFunctor<PairLJSDKKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairLJSDKKokkos,HALFTHREAD,true>;

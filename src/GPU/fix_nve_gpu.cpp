@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nve_gpu.h"
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -36,7 +37,7 @@ using namespace FixConst;
 FixNVEGPU::FixNVEGPU(LAMMPS *lmp, int narg, char **arg) :
   FixNVE(lmp, narg, arg)
 {
-  _dtfm = 0;
+  _dtfm = nullptr;
   _nlocal_max = 0;
 }
 
@@ -52,11 +53,15 @@ FixNVEGPU::~FixNVEGPU()
 void FixNVEGPU::setup(int vflag)
 {
   FixNVE::setup(vflag);
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     _respa_on = 1;
   else
     _respa_on = 0;
-  if (atom->ntypes > 1) reset_dt();
+
+  // ensure that _dtfm array is initialized if the group is not "all"
+  // or there is more than one atom type as that re-ordeted array is used for
+  // per-type/per-atom masses and group membership detection.
+  if ((igroup != 0) || (atom->ntypes > 1)) reset_dt();
 }
 
 /* ----------------------------------------------------------------------

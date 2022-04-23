@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,18 +17,20 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_body_polygon.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "body_rounded_polygon.h"
 #include "domain.h"
-#include "update.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "error.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -97,7 +100,7 @@ FixWallBodyPolygon::FixWallBodyPolygon(LAMMPS *lmp, int narg, char **arg) :
     lo = hi = 0.0;
     cylradius = utils::numeric(FLERR,arg[iarg+1],false,lmp);
     iarg += 2;
-  } else error->all(FLERR,fmt::format("Unknown wall style {}",arg[iarg]));
+  } else error->all(FLERR,"Unknown wall style {}",arg[iarg]);
 
   // check for trailing keyword/values
 
@@ -176,13 +179,13 @@ void FixWallBodyPolygon::init()
 {
   dt = update->dt;
 
-  avec = (AtomVecBody *) atom->style_match("body");
+  avec = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
   if (!avec)
     error->all(FLERR,"Pair body/rounded/polygon requires atom style body");
   if (strcmp(avec->bptr->style,"rounded/polygon") != 0)
     error->all(FLERR,"Pair body/rounded/polygon requires "
                "body style rounded/polygon");
-  bptr = (BodyRoundedPolygon *) avec->bptr;
+  bptr = dynamic_cast<BodyRoundedPolygon *>( avec->bptr);
 
   // set pairstyle from body/polygonular pair style
 
@@ -195,7 +198,7 @@ void FixWallBodyPolygon::init()
 
 void FixWallBodyPolygon::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
 }
 
@@ -334,8 +337,7 @@ void FixWallBodyPolygon::post_force(int /*vflag*/)
 
       num_contacts = 0;
       facc[0] = facc[1] = facc[2] = 0;
-      vertex_against_wall(i, wall_pos, x, f, torque, side,
-                          contact_list, num_contacts, facc);
+      vertex_against_wall(i, wall_pos, x, f, torque, side, contact_list, num_contacts, facc);
 
       if (num_contacts >= 2) {
 

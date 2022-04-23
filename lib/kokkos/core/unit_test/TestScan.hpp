@@ -75,15 +75,11 @@ struct TestScan {
       if (answer != update) {
         int fail = errors()++;
 
-        // FIXME_SYCL
-#ifndef KOKKOS_ENABLE_SYCL
         if (fail < 20) {
-          printf("TestScan(%d,%ld) != %ld\n", iwork, static_cast<long>(update),
-                 static_cast<long>(answer));
+          KOKKOS_IMPL_DO_NOT_USE_PRINTF("TestScan(%d,%ld) != %ld\n", iwork,
+                                        static_cast<long>(update),
+                                        static_cast<long>(answer));
         }
-#else
-        (void)fail;
-#endif
       }
     }
   }

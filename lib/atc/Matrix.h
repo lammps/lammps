@@ -7,7 +7,7 @@ static const int myPrecision = 15;
 
   /**
    *  @class  Matrix
-   *  @brief  Base class for linear algebra subsystem 
+   *  @brief  Base class for linear algebra subsystem
    */
 
 template<typename T>
@@ -34,11 +34,11 @@ public:
   DenseMatrix<T> pow(int n) const;
   DenseMatrix<T> pow(double n) const;
 
-  // functions that return a copy 
+  // functions that return a copy
   DenseMatrix<T> transpose() const;
   void row_partition(const std::set<int> & rowsIn, std::set<int> & rows, std::set<int> & colsC,
     DenseMatrix<T> & A1, DenseMatrix<T> & A2, bool complement=true) const;
-  std::set<int> row_partition(const std::set<int> & rows, 
+  std::set<int> row_partition(const std::set<int> & rows,
     DenseMatrix<T> & A1, DenseMatrix<T> & A2) const;
   void map(const std::set<int>& rows, const std::set<int>& cols, DenseMatrix<T> & A) const;
   void insert(const std::set<int>& rows, const std::set<int>& cols, const DenseMatrix<T> & A);
@@ -70,22 +70,22 @@ public:
   T col_min  (INDEX i=0) const { return column(*this,i).min();  }
   T col_max  (INDEX i=0) const { return column(*this,i).max();  }
   T col_stdev(INDEX i=0) const { return column(*this,i).stdev(); }
- 
+
   // pure virtual functions (required to implement these) ---------------------
   //* reference index operator
-  virtual T& operator()(INDEX i, INDEX j)=0;      
+  virtual T& operator()(INDEX i, INDEX j)=0;
   //* value index operator
-  virtual T  operator()(INDEX i, INDEX j)const=0; 
+  virtual T  operator()(INDEX i, INDEX j)const=0;
   //* value flat index operator
-  virtual T& operator [](INDEX i)=0;              
+  virtual T& operator [](INDEX i)=0;
   //* reference flat index operator
-  virtual T operator [](INDEX i) const=0;         
+  virtual T operator [](INDEX i) const=0;
   //* returns the # of rows
-  virtual INDEX nRows() const=0;                  
+  virtual INDEX nRows() const=0;
   //* returns the # of columns
-  virtual INDEX nCols() const=0;                  
+  virtual INDEX nCols() const=0;
   //* returns a pointer to the data (dangerous)
-  virtual T * ptr() const=0;                  
+  virtual T * ptr() const=0;
   //* resizes the matrix, copy what fits default to OFF
   virtual void resize(INDEX nRows, INDEX nCols=1, bool copy=false)=0;
   //* resizes the matrix, zero it out default to ON
@@ -93,7 +93,7 @@ public:
   //* resizes and copies data
   virtual void copy(const T * ptr, INDEX nRows, INDEX nCols=1)=0;
   //* create restart file
-  virtual void write_restart(FILE *f) const=0;    
+  virtual void write_restart(FILE *f) const=0;
   //* writes a matlab command to recreate this in a variable named s
   virtual void matlab(std::ostream &o, const std::string &s="M") const;
   //* writes a mathematica command to recreate this in a variable named s
@@ -106,7 +106,7 @@ public:
 
   Matrix<T>& operator+=(const Matrix &r);
   Matrix<T>& operator-=(const Matrix &r);
-  
+
   Matrix<T>& operator*=(const Matrix<T>& R);
   Matrix<T>& operator/=(const Matrix<T>& R);
   Matrix<T>& operator+=(const T v);
@@ -116,7 +116,7 @@ public:
   Matrix<T>& divide_zero_safe(const Matrix<T>& B);
 
   Matrix<T>& operator=(const T &v);
-  Matrix<T>& operator=(const Matrix<T> &c); 
+  Matrix<T>& operator=(const Matrix<T> &c);
   virtual void set_all_elements_to(const T &v);
   //* adds a matrix scaled by factor s to this one.
   void add_scaled(const Matrix<T> &A, const T& s);
@@ -148,11 +148,11 @@ protected:
   virtual void _set_equal(const Matrix<T> &r) = 0;
 };
 
-//* Matrix operations 
+//* Matrix operations
 //@{
 //* Sets C as b*C + a*A[transpose?]*B[transpose?]
 template<typename T>
-void MultAB(const Matrix<T> &A, const Matrix<T> &B, DenseMatrix<T> &C, 
+void MultAB(const Matrix<T> &A, const Matrix<T> &B, DenseMatrix<T> &C,
             bool At=0, bool Bt=0, T a=1, T b=0);
 //* performs a matrix-vector multiply
 template<typename T>
@@ -166,7 +166,7 @@ DenseMatrix<double> eigensystem(const Matrix<double>& A, const Matrix<double>& B
 DenseMatrix<double>  polar_decomposition(const Matrix<double>& A, DenseMatrix<double> & rotation, DenseMatrix<double> & stretch, bool leftRotation = true);
 
 //* returns the trace of a matrix
-template<typename T> 
+template<typename T>
 T trace(const Matrix<T>& A) { return A.trace(); }
 //* computes the determinant of a square matrix
 double det(const Matrix<double>& A);
@@ -175,7 +175,7 @@ double max_eigenvalue(const Matrix<double>& A);
 //@}
 
 //-----------------------------------------------------------------------------
-// computes the sum of the difference squared of each element. 
+// computes the sum of the difference squared of each element.
 //-----------------------------------------------------------------------------
 template<typename T>
 double sum_difference_squared(const Matrix<T>& A, const Matrix<T> &B)
@@ -200,21 +200,21 @@ DenseMatrix<T> operator*(const Matrix<T> &A, const Matrix<T> &B)
   return C;
 }
 //-----------------------------------------------------------------------------
-//* Multiply a Matrix by a scalar 
+//* Multiply a Matrix by a scalar
 //-----------------------------------------------------------------------------
 template<typename T>
 DenseMatrix<T> operator*(const Matrix<T> &M, const T s)
 {
   DenseMatrix<T> R(M);
-  return R*=s; 
+  return R*=s;
 }
 //-----------------------------------------------------------------------------
-//* Multiply a Matrix by a scalar 
+//* Multiply a Matrix by a scalar
 template<typename T>
 DenseMatrix<T> operator*(const T s, const Matrix<T> &M)
 {
   DenseMatrix<T> R(M);
-  return R*=s; 
+  return R*=s;
 }
 //-----------------------------------------------------------------------------
 //* inverse scaling operator - must always create memory
@@ -247,7 +247,7 @@ DenseMatrix<T> operator-(const Matrix<T> &A, const Matrix<T> &B)
 //-----------------------------------------------------------------------------
 //* performs a matrix-matrix multiply with general type implementation
 template<typename T>
-void MultAB(const Matrix<T> &A, const Matrix<T> &B, DenseMatrix<T> &C, 
+void MultAB(const Matrix<T> &A, const Matrix<T> &B, DenseMatrix<T> &C,
             const bool At, const bool Bt, T /* a */, T b)
 {
   const INDEX sA[2] = {A.nRows(), A.nCols()};  // m is sA[At] k is sA[!At]
@@ -311,16 +311,16 @@ void Matrix<T>::print(std::ostream &o, const std::string &name, int p) const
 //-----------------------------------------------------------------------------
 //* print operator, use cout by default
 template<typename T>
-void Matrix<T>::print() const 
+void Matrix<T>::print() const
 {
-  print(std::cout); 
+  print(std::cout);
 }
 //-----------------------------------------------------------------------------
 //* named print operator, use cout by default
 template<typename T>
-void Matrix<T>::print(const std::string &name, int p) const 
+void Matrix<T>::print(const std::string &name, int p) const
 {
-  print(std::cout, name, p); 
+  print(std::cout, name, p);
 }
 //-----------------------------------------------------------------------------
 //* element by element division
@@ -367,8 +367,8 @@ DenseMatrix<T> Matrix<T>::transpose()                                     const
 {
   DenseMatrix<T> t(this->nCols(), this->nRows());
   int szi = this->nRows();
-  int szj = this->nCols(); 
-  for (INDEX i = 0; i < szi; i++) 
+  int szj = this->nCols();
+  for (INDEX i = 0; i < szi; i++)
     for (INDEX j = 0; j < szj; j++)
       t(j,i) = (*this)(i,j);
   return t;
@@ -381,14 +381,14 @@ DenseMatrix<T> transpose(const Matrix<T> &A)
   return A.transpose();
 }
 //-----------------------------------------------------------------------------
-//* Returns the sum of all matrix elements 
+//* Returns the sum of all matrix elements
 template<typename T>
 T Matrix<T>::sum() const
 {
   if (!size())  return T(0);
   T v = (*this)[0];
   for (INDEX i=1; i<this->size(); i++) v += (*this)[i];
-  return v; 
+  return v;
 }
 //-----------------------------------------------------------------------------
 //* Returns the standard deviation of the matrix
@@ -399,12 +399,12 @@ T Matrix<T>::stdev() const
   T mean = this->mean();
   T diff = (*this)[0]-mean;
   T stdev = diff*diff;
-  for (INDEX i=1; i<this->size(); i++) 
+  for (INDEX i=1; i<this->size(); i++)
   {
     diff = (*this)[i]-mean;
     stdev += diff*diff;
   }
-  return sqrt(stdev/T(this->size()-1)); 
+  return sqrt(stdev/T(this->size()-1));
 }
 //-----------------------------------------------------------------------------
 //* Returns the maximum of the matrix
@@ -414,7 +414,7 @@ T Matrix<T>::max() const
   GCHK(!this->size(), "Matrix::max() size must be > 0");
   T v = (*this)[0];
   for (INDEX i=1; i<this->size(); i++)   v = std::max(v, (*this)[i]);
-  return v; 
+  return v;
 }
 //-----------------------------------------------------------------------------
 //* Returns the minimum of the matrix
@@ -424,7 +424,7 @@ T Matrix<T>::min() const
   GCHK(!this->size(), "Matrix::min() size must be > 0");
   T v = (*this)[0];
   for (INDEX i=1; i<this->size(); i++)   v = std::min(v, (*this)[i]);
-  return v; 
+  return v;
 }
 //-----------------------------------------------------------------------------
 //* Returns the maximum absolute value of the matrix
@@ -434,7 +434,7 @@ T Matrix<T>::maxabs() const
   GCHK(!this->size(), "Matrix::maxabs() size must be > 0");
   T v = (*this)[0];
   for (INDEX i=1; i<this->size(); i++)   v = ATC_Utility::max_abs(v, (*this)[i]);
-  return v; 
+  return v;
 }
 //-----------------------------------------------------------------------------
 //* Returns the minimum absoute value of the matrix
@@ -444,28 +444,28 @@ T Matrix<T>::minabs() const
   GCHK(!this->size(), "Matrix::minabs() size must be > 0");
   T v = (*this)[0];
   for (INDEX i=1; i<this->size(); i++)   v = ATC_Utility::min_abs(v, (*this)[i]);
-  return v; 
+  return v;
 }
 //-----------------------------------------------------------------------------
 //* returns the L2 norm of the matrix
 template<typename T>
-T Matrix<T>::norm()                                                       const    
+T Matrix<T>::norm()                                                       const
 {
   GCHK(!this->size(), "Matrix::norm() size must be > 0");
-  return sqrt(dot(*this)); 
+  return sqrt(dot(*this));
 }
 //-----------------------------------------------------------------------------
 //* returns the L2 norm of the matrix
 template<typename T>
-T Matrix<T>::norm_sq()                                                       const    
+T Matrix<T>::norm_sq()                                                       const
 {
   GCHK(!this->size(), "Matrix::norm() size must be > 0");
-  return dot(*this); 
+  return dot(*this);
 }
 //-----------------------------------------------------------------------------
 //* returns the average of the matrix
 template<typename T>
-T Matrix<T>::mean()                                                       const    
+T Matrix<T>::mean()                                                       const
 {
   GCHK(!this->size(), "Matrix::mean() size must be > 0");
   return sum()/T(this->size());
@@ -497,7 +497,7 @@ T Matrix<T>::trace() const
 //-----------------------------------------------------------------------------
 //* Adds a matrix to this one
 template<typename T>
-Matrix<T>& Matrix<T>::operator+=(const Matrix &r) 
+Matrix<T>& Matrix<T>::operator+=(const Matrix &r)
 {
   SSCK(*this, r, "operator+= or operator +");
   int sz=this->size(); for(INDEX i=0; i<sz; i++) (*this)[i]+=r[i];
@@ -507,7 +507,7 @@ Matrix<T>& Matrix<T>::operator+=(const Matrix &r)
 // subtracts a matrix from this one
 //-----------------------------------------------------------------------------
 template<typename T>
-Matrix<T>& Matrix<T>::operator-=(const Matrix &r) 
+Matrix<T>& Matrix<T>::operator-=(const Matrix &r)
 {
   SSCK(*this, r, "operator-= or operator -");
   int sz=this->size(); for(INDEX i=0; i<sz; i++) (*this)[i]-=r[i];
@@ -522,28 +522,28 @@ Matrix<T>& Matrix<T>::operator*=(const Matrix<T>& R)
 {
   if ((R.nCols()==1) && (this->nCols()>1)) { // multiply every entry in a row by the same value
     int szi = this->nRows();
-    int szj = this->nCols(); 
-    for (INDEX i = 0; i < szi; i++) 
+    int szj = this->nCols();
+    for (INDEX i = 0; i < szi; i++)
       for (INDEX j = 0; j < szj; j++)
         {
           (*this)(i,j) *= R[i];
         }
   }
-  else if (((R.nCols()==R.size()) && (R.nRows()==R.size())) && !((this->nCols()==this->size()) && (this->nRows()==this->size()))){ 
+  else if (((R.nCols()==R.size()) && (R.nRows()==R.size())) && !((this->nCols()==this->size()) && (this->nRows()==this->size()))){
     int szi = this->nRows();
-    int szj = this->nCols(); 
-    for (INDEX i = 0; i < szi; i++) 
+    int szj = this->nCols();
+    for (INDEX i = 0; i < szi; i++)
       for (INDEX j = 0; j < szj; j++)
       {
           (*this)(i,j) *= R[i];
     }
-  } 
+  }
   else { // multiply each entry by a different value
 
     int sz = this->size();
-    for (INDEX i = 0; i < sz; i++) 
+    for (INDEX i = 0; i < sz; i++)
       {
-        (*this)[i] *= R[i]; 
+        (*this)[i] *= R[i];
       }
   }
   return *this;
@@ -566,10 +566,10 @@ Matrix<T>& Matrix<T>::operator/=(const Matrix<T>& R)
   else { // divide each entry by a different value
     SSCK(*this, R, "operator/= or operator/");
     int sz = this->size();
-    for(INDEX i = 0; i < sz; i++) 
+    for(INDEX i = 0; i < sz; i++)
       {
-        GCHK(fabs(R[i])==0,"Operator/: division by zero"); 
-        (*this)[i] /= R[i]; 
+        GCHK(fabs(R[i])==0,"Operator/: division by zero");
+        (*this)[i] /= R[i];
       }
   }
   return *this;
@@ -594,10 +594,10 @@ Matrix<T>& Matrix<T>::divide_zero_safe(const Matrix<T>& R)
   else { // divide each entry by a different value
     SSCK(*this, R, "operator/= or operator/");
     int sz = this->size();
-    for(INDEX i = 0; i < sz; i++) 
+    for(INDEX i = 0; i < sz; i++)
       {
         if(fabs(R[i])!=0) {
-          (*this)[i] /= R[i]; 
+          (*this)[i] /= R[i];
         }
       }
   }
@@ -607,33 +607,33 @@ Matrix<T>& Matrix<T>::divide_zero_safe(const Matrix<T>& R)
 // scales this matrix by a constant
 //-----------------------------------------------------------------------------
 template<typename T>
-Matrix<T>& Matrix<T>::operator*=(const T v)       
+Matrix<T>& Matrix<T>::operator*=(const T v)
 {
-  int sz=this->size(); for(INDEX i=0; i<sz; i++) (*this)[i]*=v;      
+  int sz=this->size(); for(INDEX i=0; i<sz; i++) (*this)[i]*=v;
   return *this;
 }
 //-----------------------------------------------------------------------------
-// adds a constant to this matrix 
+// adds a constant to this matrix
 //-----------------------------------------------------------------------------
 template<typename T>
-Matrix<T>& Matrix<T>::operator+=(const T v)       
+Matrix<T>& Matrix<T>::operator+=(const T v)
 {
-  int sz=this->size(); for(INDEX i=0; i<sz; i++) (*this)[i]+=v;      
+  int sz=this->size(); for(INDEX i=0; i<sz; i++) (*this)[i]+=v;
   return *this;
 }
 //-----------------------------------------------------------------------------
 // subtracts a constant to this matrix
 //-----------------------------------------------------------------------------
 template<typename T>
-Matrix<T>& Matrix<T>::operator-=(const T v)       
+Matrix<T>& Matrix<T>::operator-=(const T v)
 {
-  int sz=this->size(); for(INDEX i=0; i<sz; i++) (*this)[i]-=v;      
+  int sz=this->size(); for(INDEX i=0; i<sz; i++) (*this)[i]-=v;
   return *this;
 }
 //-----------------------------------------------------------------------------
 //* scales this matrix by the inverse of a constant
 template<typename T>
-Matrix<T>& Matrix<T>::operator/=(T v)    
+Matrix<T>& Matrix<T>::operator/=(T v)
 {
   return (*this)*=(1.0/v);
 }
@@ -650,15 +650,15 @@ Matrix<T>& Matrix<T>::operator=(const Matrix<T> &r)
 //-----------------------------------------------------------------------------
 //* sets all elements to a constant
 template<typename T>
-inline Matrix<T>& Matrix<T>::operator=(const T &v)    
+inline Matrix<T>& Matrix<T>::operator=(const T &v)
 {
-  set_all_elements_to(v); 
+  set_all_elements_to(v);
   return *this;
 }
 //-----------------------------------------------------------------------------
 //* sets all elements to a constant
 template<typename T>
-void Matrix<T>::set_all_elements_to(const T &v)    
+void Matrix<T>::set_all_elements_to(const T &v)
 {
   int sz=this->size(); for(INDEX i=0; i<sz; i++) (*this)[i] = v;
 }
@@ -674,9 +674,9 @@ void Matrix<T>::add_scaled(const Matrix<T> &A, const T& s)
 //-----------------------------------------------------------------------------
 //* writes a matlab command to the console
 template<typename T>
-void Matrix<T>::matlab(const std::string &s) const 
+void Matrix<T>::matlab(const std::string &s) const
 {
-  this->matlab(std::cout, s); 
+  this->matlab(std::cout, s);
 }
 //-----------------------------------------------------------------------------
 //* Writes a matlab script defining the vector to the stream
@@ -685,17 +685,17 @@ void Matrix<T>::matlab(std::ostream &o, const std::string &s) const
 {
   o << s <<"=zeros(" << nRows() << ","<<nCols()<<");\n";
   int szi = this->nRows();
-  int szj = this->nCols(); 
+  int szj = this->nCols();
   for (INDEX i = 0; i < szi; i++)
-    for (INDEX j = 0; j < szj; j++) 
+    for (INDEX j = 0; j < szj; j++)
       o << s << "("<<i+1<<","<<j+1<<")=" << (*this)(i,j) << ";\n";
 }
 //-----------------------------------------------------------------------------
 //* writes a mathematica command to the console
 template<typename T>
-void Matrix<T>::mathematica(const std::string &s) const 
+void Matrix<T>::mathematica(const std::string &s) const
 {
-  this->mathematica(std::cout, s); 
+  this->mathematica(std::cout, s);
 }
 //-----------------------------------------------------------------------------
 //* Writes a mathematica script defining the vector to the stream
@@ -710,7 +710,7 @@ void Matrix<T>::mathematica(std::ostream &o, const std::string &s) const
     for(INDEX j=1; j< nCols(); j++) o << ", " << (*this)(i,j);
     if (i+1 == nRows()) { o <<" }  \n"; }
     else                { o <<" }, \n"; }
-      
+
   }
   o << "};\n";
   o << std::scientific;
@@ -718,16 +718,16 @@ void Matrix<T>::mathematica(std::ostream &o, const std::string &s) const
 //-----------------------------------------------------------------------------
 //* sets all matrix elements to zero
 template<typename T>
-inline Matrix<T>& Matrix<T>::zero() 
-{ 
+inline Matrix<T>& Matrix<T>::zero()
+{
   set_all_elements_to(T(0));
   return *this;
 }
 //-----------------------------------------------------------------------------
 //* sets to identity
 template<typename T>
-inline Matrix<T>& Matrix<T>::identity(int nrows) 
-{ 
+inline Matrix<T>& Matrix<T>::identity(int nrows)
+{
   if (nrows == 0) {
     SQCK(*this, "DenseMatrix::inv(), matrix not square"); // check matrix is square
     nrows = nRows();
@@ -739,30 +739,30 @@ inline Matrix<T>& Matrix<T>::identity(int nrows)
 //-----------------------------------------------------------------------------
 //* returns the total number of elements
 template<typename T>
-inline INDEX Matrix<T>::size() const 
-{ 
-  return nRows()*nCols(); 
+inline INDEX Matrix<T>::size() const
+{
+  return nRows()*nCols();
 }
 //-----------------------------------------------------------------------------
 //* returns true if (i,j) is within the range of the matrix
 template<typename T>
 inline bool Matrix<T>::in_range(INDEX i, INDEX j) const
-{ 
-  return i<nRows() && j<nCols(); 
+{
+  return i<nRows() && j<nCols();
 }
 //-----------------------------------------------------------------------------
 //* returns true if the matrix size is rs x cs
 template<typename T>
 inline bool Matrix<T>::is_size(INDEX rs, INDEX cs) const
-{ 
-  return nRows()==rs && nCols()==cs; 
+{
+  return nRows()==rs && nCols()==cs;
 }
 //-----------------------------------------------------------------------------
 //* returns true if the matrix is square and not empty
 template<typename T>
 inline bool Matrix<T>::is_square() const
-{ 
-  return nRows()==nCols() && nRows(); 
+{
+  return nRows()==nCols() && nRows();
 }
 //-----------------------------------------------------------------------------
 //* returns true if Matrix, m, is the same size as this
@@ -776,14 +776,14 @@ inline bool Matrix<T>::same_size(const Matrix<T> &m) const
 template<typename T>
 inline bool Matrix<T>::same_size(const Matrix<T> &a, const Matrix<T> &b)
 {
-  return a.same_size(b); 
+  return a.same_size(b);
 }
 //-----------------------------------------------------------------------------
 //* returns true if Matrix a rows =  Matrix b cols
 template<typename T>
 inline bool Matrix<T>::cols_equals_rows(const Matrix<T> &a, const Matrix<T> &b)
 {
-  return a.nCols() == b.nRows(); 
+  return a.nCols() == b.nRows();
 }
 //-----------------------------------------------------------------------------
 //* returns true if no value is outside of the range
@@ -842,7 +842,7 @@ void merror(const Matrix<T> &a, const Matrix<T> &b, const std::string m)
 //* rows is the map for A1, (rows,colsC) is the map for A2
 
 template <typename T>
-void Matrix<T>::row_partition(const std::set<int> & rowsIn, 
+void Matrix<T>::row_partition(const std::set<int> & rowsIn,
 std::set<int> & rows, std::set<int> & colsC,
 DenseMatrix<T> & A1, DenseMatrix<T> & A2, bool complement) const
 {
@@ -890,7 +890,7 @@ DenseMatrix<T> & A1, DenseMatrix<T> & A2, bool complement) const
 }
 
 template <typename T>
-std::set<int> Matrix<T>::row_partition(const std::set<int> & rows, 
+std::set<int> Matrix<T>::row_partition(const std::set<int> & rows,
 DenseMatrix<T> & A1, DenseMatrix<T> & A2) const
 {
   // complement of set "rows" in set of this.cols is "cols"
@@ -935,7 +935,7 @@ DenseMatrix<T> & A1, DenseMatrix<T> & A2) const
 //-----------------------------------------------------------------------------
 //* returns row & column mapped matrix
 template <typename T>
-void Matrix<T>::map(const std::set<int> & rows, const std::set<int> & cols, 
+void Matrix<T>::map(const std::set<int> & rows, const std::set<int> & cols,
 DenseMatrix<T> & A ) const
 {
   if      (rows.size() == 0 || cols.size() == 0 ) {
@@ -957,10 +957,10 @@ DenseMatrix<T> & A ) const
   }
 }
 //-----------------------------------------------------------------------------
-//* inserts elements from a smaller matrix 
+//* inserts elements from a smaller matrix
 template <typename T>
-void Matrix<T>::insert(const std::set<int> & rows, const std::set<int> & cols, 
-const DenseMatrix<T> & A ) 
+void Matrix<T>::insert(const std::set<int> & rows, const std::set<int> & cols,
+const DenseMatrix<T> & A )
 {
   if      (rows.size() == 0 || cols.size() == 0 )  return;
   std::set<int>::const_iterator itrI, itrJ;
@@ -976,10 +976,10 @@ const DenseMatrix<T> & A )
   }
 }
 //-----------------------------------------------------------------------------
-//* assemble elements from a smaller matrix 
+//* assemble elements from a smaller matrix
 template <typename T>
-void Matrix<T>::assemble(const std::set<int> & rows, const std::set<int> & cols, 
-const DenseMatrix<T> & A ) 
+void Matrix<T>::assemble(const std::set<int> & rows, const std::set<int> & cols,
+const DenseMatrix<T> & A )
 {
   if      (rows.size() == 0 || cols.size() == 0 )  return;
   std::set<int>::const_iterator itrI, itrJ;

@@ -30,6 +30,7 @@ COLVARS_SRCS = \
         colvarbias_histogram.cpp \
         colvarbias_meta.cpp \
         colvarbias_restraint.cpp \
+        colvarcomp_alchlambda.cpp \
         colvarcomp_angles.cpp \
         colvarcomp_apath.cpp \
         colvarcomp_coordnums.cpp \

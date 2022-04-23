@@ -17,6 +17,7 @@ It documents the following functions:
 - :cpp:func:`lammps_gather_atoms_subset`
 - :cpp:func:`lammps_scatter_atoms`
 - :cpp:func:`lammps_scatter_atoms_subset`
+- :cpp:func:`lammps_gather_bonds`
 - :cpp:func:`lammps_gather`
 - :cpp:func:`lammps_gather_concat`
 - :cpp:func:`lammps_gather_subset`
@@ -51,6 +52,11 @@ It documents the following functions:
 
 -----------------------
 
+.. doxygenfunction:: lammps_gather_bonds
+   :project: progguide
+
+-----------------------
+
 .. doxygenfunction:: lammps_gather
    :project: progguide
 
@@ -76,7 +82,7 @@ It documents the following functions:
 
 -----------------------
 
-.. doxygenfunction:: lammps_create_atoms(void *handle, int n, int *id, int *type, double *x, double *v, int *image, int bexpand)
+.. doxygenfunction:: lammps_create_atoms(void *handle, int n, const int *id, const int *type, const double *x, const double *v, const int *image, int bexpand)
    :project: progguide
 
 

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -55,7 +56,7 @@ Special::~Special()
 void Special::build()
 {
   MPI_Barrier(world);
-  double time1 = MPI_Wtime();
+  double time1 = platform::walltime();
 
   if (me == 0) {
     const double * const special_lj   = force->special_lj;
@@ -92,7 +93,7 @@ void Special::build()
   // print max # of 1-2 neighbors
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("{:>6} = max # of 1-2 neighbors\n",maxall));
+    utils::logmesg(lmp,"{:>6} = max # of 1-2 neighbors\n",maxall);
 
   // done if special_bond weights for 1-3, 1-4 are set to 1.0
 
@@ -115,7 +116,7 @@ void Special::build()
   // print max # of 1-3 neighbors
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("{:>6} = max # of 1-3 neighbors\n",maxall));
+    utils::logmesg(lmp,"{:>6} = max # of 1-3 neighbors\n",maxall);
 
   // done if special_bond weights for 1-4 are set to 1.0
 
@@ -138,7 +139,7 @@ void Special::build()
   // print max # of 1-4 neighbors
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("{:>6} = max # of 1-4 neighbors\n",maxall));
+    utils::logmesg(lmp,"{:>6} = max # of 1-4 neighbors\n",maxall);
 
   // finish processing the onetwo, onethree, onefour lists
 
@@ -164,8 +165,7 @@ void Special::atom_owners()
 
   int *proclist;
   memory->create(proclist,nlocal,"special:proclist");
-  IDRvous *idbuf = (IDRvous *)
-    memory->smalloc((bigint) nlocal*sizeof(IDRvous),"special:idbuf");
+  auto idbuf = (IDRvous *) memory->smalloc((bigint) nlocal*sizeof(IDRvous),"special:idbuf");
 
   // setup input buf for rendezvous comm
   // one datum for each owned atom: datum = owning proc, atomID
@@ -214,8 +214,7 @@ void Special::onetwo_build_newton()
 
   int *proclist;
   memory->create(proclist,nsend,"special:proclist");
-  PairRvous *inbuf = (PairRvous *)
-    memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
+  auto inbuf = (PairRvous *) memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
 
   // setup input buf to rendezvous comm
   // one datum for each unowned bond partner: bond partner ID, atomID
@@ -236,11 +235,9 @@ void Special::onetwo_build_newton()
   // perform rendezvous operation
 
   char *buf;
-  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous),
-                                 0,proclist,
-                                 rendezvous_pairs,0,buf,sizeof(PairRvous),
-                                 (void *) this);
-  PairRvous *outbuf = (PairRvous *) buf;
+  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous), 0,proclist,
+                                 rendezvous_pairs,0,buf,sizeof(PairRvous), (void *) this);
+  auto outbuf = (PairRvous *) buf;
 
   memory->destroy(proclist);
   memory->sfree(inbuf);
@@ -342,8 +339,7 @@ void Special::onethree_build()
 
   int *proclist;
   memory->create(proclist,nsend,"special:proclist");
-  PairRvous *inbuf = (PairRvous *)
-    memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
+  auto inbuf = (PairRvous *) memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
 
   // setup input buf to rendezvous comm
   // datums = pairs of onetwo partners where either is unknown
@@ -370,11 +366,9 @@ void Special::onethree_build()
   // perform rendezvous operation
 
   char *buf;
-  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous),
-                                 0,proclist,
-                                 rendezvous_pairs,0,buf,sizeof(PairRvous),
-                                 (void *) this);
-  PairRvous *outbuf = (PairRvous *) buf;
+  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous), 0,proclist,
+                                 rendezvous_pairs,0,buf,sizeof(PairRvous), (void *) this);
+  auto outbuf = (PairRvous *) buf;
 
   memory->destroy(proclist);
   memory->sfree(inbuf);
@@ -447,8 +441,7 @@ void Special::onefour_build()
 
   int *proclist;
   memory->create(proclist,nsend,"special:proclist");
-  PairRvous *inbuf = (PairRvous *)
-    memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
+  auto inbuf = (PairRvous *) memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
 
   // setup input buf to rendezvous comm
   // datums = pairs of onethree and onetwo partners where onethree is unknown
@@ -474,11 +467,9 @@ void Special::onefour_build()
   // perform rendezvous operation
 
   char *buf;
-  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous),
-                                 0,proclist,
-                                 rendezvous_pairs,0,buf,sizeof(PairRvous),
-                                 (void *) this);
-  PairRvous *outbuf = (PairRvous *) buf;
+  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous), 0,proclist,
+                                 rendezvous_pairs,0,buf,sizeof(PairRvous), (void *) this);
+  auto outbuf = (PairRvous *) buf;
 
   memory->destroy(proclist);
   memory->sfree(inbuf);
@@ -690,14 +681,13 @@ void Special::combine()
   force->special_extra = 0;
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("{:>6} = max # of special "
-                   "neighbors\n",atom->maxspecial));
+    utils::logmesg(lmp,"{:>6} = max # of special neighbors\n",atom->maxspecial);
 
   if (lmp->kokkos) {
-    AtomKokkos* atomKK = (AtomKokkos*) atom;
+    auto  atomKK = dynamic_cast<AtomKokkos*>( atom);
     atomKK->modified(Host,SPECIAL_MASK);
     atomKK->sync(Device,SPECIAL_MASK);
-    MemoryKokkos* memoryKK = (MemoryKokkos*) memory;
+    auto  memoryKK = dynamic_cast<MemoryKokkos*>( memory);
     memoryKK->grow_kokkos(atomKK->k_special,atom->special,
                         atom->nmax,atom->maxspecial,"atom:special");
     atomKK->modified(Device,SPECIAL_MASK);
@@ -793,8 +783,8 @@ void Special::angle_trim()
   MPI_Allreduce(&onethreecount,&allcount,1,MPI_DOUBLE,MPI_SUM,world);
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  {} = # of 1-3 neighbors "
-                   "before angle trim\n",allcount));
+    utils::logmesg(lmp,"  {} = # of 1-3 neighbors before angle trim\n",
+                   allcount);
 
   // if angles or dihedrals are defined
   // rendezvous angle 1-3 and dihedral 1-3,2-4 pairs
@@ -831,8 +821,7 @@ void Special::angle_trim()
 
     int *proclist;
     memory->create(proclist,nsend,"special:proclist");
-    PairRvous *inbuf = (PairRvous *)
-      memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
+    auto inbuf = (PairRvous *) memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
 
     // setup input buf to rendezvous comm
     // datums = pairs of onetwo partners where either is unknown
@@ -898,11 +887,9 @@ void Special::angle_trim()
     // perform rendezvous operation
 
     char *buf;
-    int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous),
-                                   0,proclist,
-                                   rendezvous_pairs,0,buf,sizeof(PairRvous),
-                                   (void *) this);
-    PairRvous *outbuf = (PairRvous *) buf;
+    int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous), 0,proclist,
+                                   rendezvous_pairs,0,buf,sizeof(PairRvous), (void *) this);
+    auto outbuf = (PairRvous *) buf;
 
     memory->destroy(proclist);
     memory->sfree(inbuf);
@@ -1023,8 +1010,8 @@ void Special::angle_trim()
   MPI_Allreduce(&onethreecount,&allcount,1,MPI_DOUBLE,MPI_SUM,world);
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  {} = # of 1-3 neighbors "
-                   "after angle trim\n",allcount));
+    utils::logmesg(lmp,"  {} = # of 1-3 neighbors after angle trim\n",
+                   allcount);
 }
 
 /* ----------------------------------------------------------------------
@@ -1053,8 +1040,8 @@ void Special::dihedral_trim()
   MPI_Allreduce(&onefourcount,&allcount,1,MPI_DOUBLE,MPI_SUM,world);
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  {} = # of 1-4 neighbors "
-                   "before dihedral trim\n",allcount));
+    utils::logmesg(lmp,"  {} = # of 1-4 neighbors before dihedral trim\n",
+                   allcount);
 
   // if dihedrals are defined, rendezvous the dihedral 1-4 pairs
 
@@ -1075,8 +1062,7 @@ void Special::dihedral_trim()
 
     int *proclist;
     memory->create(proclist,nsend,"special:proclist");
-    PairRvous *inbuf = (PairRvous *)
-      memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
+    auto inbuf = (PairRvous *) memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
 
     // setup input buf to rendezvous comm
     // datums = pairs of onefour atom IDs in a dihedral defined for my atoms
@@ -1111,11 +1097,9 @@ void Special::dihedral_trim()
     // perform rendezvous operation
 
     char *buf;
-    int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous),
-                                   0,proclist,
-                                   rendezvous_pairs,0,buf,sizeof(PairRvous),
-                                   (void *) this);
-    PairRvous *outbuf = (PairRvous *) buf;
+    int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous), 0,proclist,
+                                   rendezvous_pairs,0,buf,sizeof(PairRvous), (void *) this);
+    auto outbuf = (PairRvous *) buf;
 
     memory->destroy(proclist);
     memory->sfree(inbuf);
@@ -1197,8 +1181,8 @@ void Special::dihedral_trim()
   MPI_Allreduce(&onefourcount,&allcount,1,MPI_DOUBLE,MPI_SUM,world);
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  {} = # of 1-4 neighbors "
-                   "after dihedral trim\n",allcount));
+    utils::logmesg(lmp,"  {} = # of 1-4 neighbors after dihedral trim\n",
+                   allcount);
 }
 
 /* ----------------------------------------------------------------------
@@ -1207,11 +1191,9 @@ void Special::dihedral_trim()
    no outbuf
 ------------------------------------------------------------------------- */
 
-int Special::rendezvous_ids(int n, char *inbuf,
-                            int &flag, int *& /*proclist*/, char *& /*outbuf*/,
-                            void *ptr)
+int Special::rendezvous_ids(int n, char *inbuf, int &flag, int *& /*proclist*/, char *& /*outbuf*/, void *ptr)
 {
-  Special *sptr = (Special *) ptr;
+  auto sptr = (Special *) ptr;
   Memory *memory = sptr->memory;
 
   int *procowner;
@@ -1220,7 +1202,7 @@ int Special::rendezvous_ids(int n, char *inbuf,
   memory->create(procowner,n,"special:procowner");
   memory->create(atomIDs,n,"special:atomIDs");
 
-  IDRvous *in = (IDRvous *) inbuf;
+  auto in = (IDRvous *) inbuf;
 
   for (int i = 0; i < n; i++) {
     procowner[i] = in[i].me;
@@ -1246,11 +1228,10 @@ int Special::rendezvous_ids(int n, char *inbuf,
    outbuf = same list of N PairRvous datums, routed to different procs
 ------------------------------------------------------------------------- */
 
-int Special::rendezvous_pairs(int n, char *inbuf,
-                             int &flag, int *&proclist, char *&outbuf,
-                             void *ptr)
+int Special::rendezvous_pairs(int n, char *inbuf, int &flag, int *&proclist,
+                              char *&outbuf, void *ptr)
 {
-  Special *sptr = (Special *) ptr;
+  auto sptr = (Special *) ptr;
   Atom *atom = sptr->atom;
   Memory *memory = sptr->memory;
 
@@ -1269,7 +1250,7 @@ int Special::rendezvous_pairs(int n, char *inbuf,
 
   // proclist = owner of atomID in caller decomposition
 
-  PairRvous *in = (PairRvous *) inbuf;
+  auto in = (PairRvous *) inbuf;
   int *procowner = sptr->procowner;
   memory->create(proclist,n,"special:proclist");
 
@@ -1301,9 +1282,8 @@ int Special::rendezvous_pairs(int n, char *inbuf,
 
 void Special::fix_alteration()
 {
-  for (int ifix = 0; ifix < modify->nfix; ifix++)
-    if (modify->fix[ifix]->special_alter_flag)
-      modify->fix[ifix]->rebuild_special();
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->special_alter_flag) ifix->rebuild_special();
 }
 
 /* ----------------------------------------------------------------------
@@ -1313,6 +1293,6 @@ void Special::fix_alteration()
 void Special::timer_output(double time1)
 {
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("  special bonds CPU = {:.3f} seconds\n",
-                                   MPI_Wtime()-time1));
+    utils::logmesg(lmp,"  special bonds CPU = {:.3f} seconds\n",
+                   platform::walltime()-time1);
 }

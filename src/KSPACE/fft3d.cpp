@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,11 +21,12 @@
 ------------------------------------------------------------------------- */
 
 #include "fft3d.h"
-#include <mpi.h>
-#include <cstdio>
+
+#include "remap.h"
+
 #include <cstdlib>
 #include <cmath>
-#include "remap.h"
+
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
@@ -69,7 +71,6 @@
 
 void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 {
-  int i,total,length,offset,num;
   FFT_SCALAR norm;
 #if defined(FFT_FFTW3)
   FFT_SCALAR *out_ptr;
@@ -99,9 +100,6 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 
   // 1d FFTs along fast axis
 
-  total = plan->total1;
-  length = plan->length1;
-
 #if defined(FFT_MKL)
   if (flag == 1)
     DftiComputeForward(plan->handle_fast,data);
@@ -114,11 +112,14 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
     theplan=plan->plan_fast_backward;
   FFTW_API(execute_dft)(theplan,data,data);
 #else
+  int total = plan->total1;
+  int length = plan->length1;
+
   if (flag == 1)
-    for (offset = 0; offset < total; offset += length)
+    for (int offset = 0; offset < total; offset += length)
       kiss_fft(plan->cfg_fast_forward,&data[offset],&data[offset]);
   else
-    for (offset = 0; offset < total; offset += length)
+    for (int offset = 0; offset < total; offset += length)
       kiss_fft(plan->cfg_fast_backward,&data[offset],&data[offset]);
 #endif
 
@@ -133,9 +134,6 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 
   // 1d FFTs along mid axis
 
-  total = plan->total2;
-  length = plan->length2;
-
 #if defined(FFT_MKL)
   if (flag == 1)
     DftiComputeForward(plan->handle_mid,data);
@@ -148,11 +146,14 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
     theplan=plan->plan_mid_backward;
   FFTW_API(execute_dft)(theplan,data,data);
 #else
+  total = plan->total2;
+  length = plan->length2;
+
   if (flag == 1)
-    for (offset = 0; offset < total; offset += length)
+    for (int offset = 0; offset < total; offset += length)
       kiss_fft(plan->cfg_mid_forward,&data[offset],&data[offset]);
   else
-    for (offset = 0; offset < total; offset += length)
+    for (int offset = 0; offset < total; offset += length)
       kiss_fft(plan->cfg_mid_backward,&data[offset],&data[offset]);
 #endif
 
@@ -167,9 +168,6 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 
   // 1d FFTs along slow axis
 
-  total = plan->total3;
-  length = plan->length3;
-
 #if defined(FFT_MKL)
   if (flag == 1)
     DftiComputeForward(plan->handle_slow,data);
@@ -182,11 +180,14 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
     theplan=plan->plan_slow_backward;
   FFTW_API(execute_dft)(theplan,data,data);
 #else
+  total = plan->total3;
+  length = plan->length3;
+
   if (flag == 1)
-    for (offset = 0; offset < total; offset += length)
+    for (int offset = 0; offset < total; offset += length)
       kiss_fft(plan->cfg_slow_forward,&data[offset],&data[offset]);
   else
-    for (offset = 0; offset < total; offset += length)
+    for (int offset = 0; offset < total; offset += length)
       kiss_fft(plan->cfg_slow_backward,&data[offset],&data[offset]);
 #endif
 
@@ -201,11 +202,11 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
 
   if (flag == -1 && plan->scaled) {
     norm = plan->norm;
-    num = plan->normnum;
+    const int num = plan->normnum;
 #if defined(FFT_FFTW3)
     out_ptr = (FFT_SCALAR *)out;
 #endif
-    for (i = 0; i < num; i++) {
+    for (int i = 0; i < num; i++) {
 #if defined(FFT_FFTW3)
       *(out_ptr++) *= norm;
       *(out_ptr++) *= norm;
@@ -307,10 +308,9 @@ struct fft_plan_3d *fft_3d_create_plan(
     first_jhi = (ip1+1)*nmid/np1 - 1;
     first_klo = ip2*nslow/np2;
     first_khi = (ip2+1)*nslow/np2 - 1;
-    plan->pre_plan =
-      remap_3d_create_plan(comm,in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
-                           first_ilo,first_ihi,first_jlo,first_jhi,
-                           first_klo,first_khi,2,0,0,FFT_PRECISION,0);
+    plan->pre_plan = remap_3d_create_plan(comm,in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
+                                          first_ilo,first_ihi,first_jlo,first_jhi,
+                                          first_klo,first_khi,2,0,0,FFT_PRECISION,0);
     if (plan->pre_plan == nullptr) return nullptr;
   }
 
@@ -329,13 +329,10 @@ struct fft_plan_3d *fft_3d_create_plan(
   second_jhi = nmid - 1;
   second_klo = ip2*nslow/np2;
   second_khi = (ip2+1)*nslow/np2 - 1;
-  plan->mid1_plan =
-      remap_3d_create_plan(comm,
-                           first_ilo,first_ihi,first_jlo,first_jhi,
-                           first_klo,first_khi,
-                           second_ilo,second_ihi,second_jlo,second_jhi,
-                           second_klo,second_khi,2,1,0,FFT_PRECISION,
-                           usecollective);
+  plan->mid1_plan = remap_3d_create_plan(comm, first_ilo,first_ihi,first_jlo,first_jhi,
+                                         first_klo,first_khi,second_ilo,second_ihi,
+                                         second_jlo,second_jhi,second_klo,second_khi,
+                                         2,1,0,FFT_PRECISION,usecollective);
   if (plan->mid1_plan == nullptr) return nullptr;
 
   // 1d FFTs along mid axis

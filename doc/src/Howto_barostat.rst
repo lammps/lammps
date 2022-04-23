@@ -50,7 +50,7 @@ a temperature or pressure compute to a barostatting fix.
 
 Thermodynamic output, which can be setup via the
 :doc:`thermo_style <thermo_style>` command, often includes pressure
-values.  As explained on the doc page for the
+values.  As explained on the page for the
 :doc:`thermo_style <thermo_style>` command, the default pressure is
 setup by the thermo command itself.  It is NOT the pressure associated
 with any barostatting fix you have defined or with any compute you

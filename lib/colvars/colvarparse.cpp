@@ -125,6 +125,10 @@ void colvarparse::mark_key_set_user(std::string const &key_str,
     cvm::log("# "+key_str+" = "+cvm::to_str(value)+"\n",
              cvm::log_user_params());
   }
+  if (parse_mode & parse_deprecation_warning) {
+    cvm::log("Warning: keyword "+key_str+
+      " is deprecated. Check the documentation for the current equivalent.\n");
+  }
 }
 
 
@@ -918,6 +922,26 @@ int colvarparse::check_braces(std::string const &conf,
   }
   return (brace_count != 0) ? INPUT_ERROR : COLVARS_OK;
 }
+
+
+int colvarparse::check_ascii(std::string const &conf)
+{
+  // Check for non-ASCII characters
+  std::string line;
+  std::istringstream is(conf);
+  while (cvm::getline(is, line)) {
+    unsigned char const * const uchars =
+      reinterpret_cast<unsigned char const *>(line.c_str());
+    for (size_t i = 0; i < line.size(); i++) {
+      if (uchars[i] & 0x80U) {
+        cvm::log("Warning: non-ASCII character detected in this line: \""+
+                 line+"\".\n");
+      }
+    }
+  }
+  return COLVARS_OK;
+}
+
 
 void colvarparse::split_string(const std::string& data, const std::string& delim, std::vector<std::string>& dest) {
     size_t index = 0, new_index = 0;

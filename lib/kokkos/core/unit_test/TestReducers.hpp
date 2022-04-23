@@ -296,7 +296,8 @@ struct TestReducers {
     Scalar reference_sum = 0;
 
     for (int i = 0; i < N; i++) {
-      h_values(i) = (Scalar)(rand() % 100);
+      int denom   = sizeof(Scalar) <= 2 ? 10 : 100;
+      h_values(i) = (Scalar)(rand() % denom);
       reference_sum += h_values(i);
     }
     Kokkos::deep_copy(values, h_values);
@@ -1015,7 +1016,12 @@ struct TestReducers {
     test_minloc(10003);
     test_max(10007);
     test_maxloc(10007);
+    // FIXME_OPENMPTARGET - The minmaxloc test fails in the Release and
+    // RelWithDebInfo builds for the OPENMPTARGET backend but passes in Debug
+    // mode.
+#if !defined(KOKKOS_ENABLE_OPENMPTARGET)
     test_minmaxloc(10007);
+#endif
   }
 
   // NOTE test_prod generates N random numbers between 1 and 4.
@@ -1028,7 +1034,12 @@ struct TestReducers {
     test_minloc(10003);
     test_max(10007);
     test_maxloc(10007);
+    // FIXME_OPENMPTARGET - The minmaxloc test fails in the Release and
+    // RelWithDebInfo builds for the OPENMPTARGET backend but passes in Debug
+    // mode.
+#if !defined(KOKKOS_ENABLE_OPENMPTARGET)
     test_minmaxloc(10007);
+#endif
     test_BAnd(35);
     test_BOr(35);
     test_LAnd(35);

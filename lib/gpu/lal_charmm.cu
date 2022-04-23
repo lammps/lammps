@@ -29,7 +29,8 @@ _texture(q_tex, int2);
 #endif
 
 __kernel void k_charmm(const __global numtyp4 *restrict x_,
-                       const __global numtyp2 *restrict ljd,
+                       const __global numtyp4 *restrict lj1,
+                       const int lj_types,
                        const __global numtyp *restrict sp_lj,
                        const __global int *dev_nbor,
                        const __global int *dev_packed,
@@ -88,20 +89,14 @@ __kernel void k_charmm(const __global numtyp4 *restrict x_,
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
+      int mtype=itype*lj_types+jtype;
       if (rsq<cut_bothsq) {
         numtyp r2inv=ucl_recip(rsq);
-        numtyp forcecoul, force_lj, force, switch1;
-        numtyp lj3, lj4;
+        numtyp forcecoul, force_lj, force, r6inv, switch1;
 
         if (rsq < cut_ljsq) {
-          numtyp eps = ucl_sqrt(ljd[itype].x*ljd[jtype].x);
-          numtyp sig6 = (numtyp)0.5 * (ljd[itype].y+ljd[jtype].y);
-
-          numtyp sig_r_6 = sig6*sig6*r2inv;
-          sig_r_6 = sig_r_6*sig_r_6*sig_r_6;
-          lj4 = (numtyp)4.0*eps*sig_r_6;
-          lj3 = lj4*sig_r_6;
-          force_lj = factor_lj*((numtyp)12.0 * lj3 - (numtyp)6.0 * lj4);
+          r6inv = r2inv*r2inv*r2inv;
+          force_lj = factor_lj*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
           if (rsq > cut_lj_innersq) {
             switch1 = (cut_ljsq-rsq);
             numtyp switch2 = (numtyp)12.0*rsq*switch1*(rsq-cut_lj_innersq)*
@@ -109,7 +104,7 @@ __kernel void k_charmm(const __global numtyp4 *restrict x_,
             switch1 *= switch1;
             switch1 *= (cut_ljsq+(numtyp)2.0*rsq-(numtyp)3.0*cut_lj_innersq)*
                        denom_lj;
-            switch2 *= lj3-lj4;
+            switch2 *= r6inv*(lj1[mtype].z*r6inv-lj1[mtype].w);
             force_lj = force_lj*switch1+switch2;
           }
         } else
@@ -137,7 +132,7 @@ __kernel void k_charmm(const __global numtyp4 *restrict x_,
         if (EVFLAG && eflag) {
           e_coul += forcecoul;
           if (rsq < cut_ljsq) {
-            numtyp e=lj3-lj4;
+            numtyp e=r6inv*(lj1[mtype].z*r6inv-lj1[mtype].w);
             if (rsq > cut_lj_innersq)
               e *= switch1;
             energy+=factor_lj*e;

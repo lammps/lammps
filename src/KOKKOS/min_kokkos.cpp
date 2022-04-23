@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -347,7 +348,7 @@ void MinKokkos::setup_minimal(int flag)
 void MinKokkos::run(int n)
 {
   if (nextra_atom)
-    error->all(FLERR,"Cannot yet use extra atom DOFs (e.g. USER-AWPMD and USER-EFF packages) "
+    error->all(FLERR,"Cannot yet use extra atom DOFs (e.g. AWPMD and EFF packages) "
      "with Kokkos minimize");
 
   // minimizer iterations
@@ -462,7 +463,7 @@ double MinKokkos::energy_force(int resetflag)
     timer->stamp(Timer::PAIR);
   }
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) {
       atomKK->sync(force->bond->execution_space,force->bond->datamask_read);
       force->bond->compute(eflag,vflag);

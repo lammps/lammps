@@ -132,7 +132,7 @@ Restrictions
 """"""""""""
 
 
-This pair style is a part of the USER-MSEONT package, and it is only enabled if
+This pair style is a part of the MSEONT package, and it is only enabled if
 LAMMPS is built with that package. See the :doc:`Build package <Build_package>`
 doc page for more information.
 

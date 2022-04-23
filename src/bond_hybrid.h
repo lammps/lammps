@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(hybrid,BondHybrid)
-
+// clang-format off
+BondStyle(hybrid,BondHybrid);
+// clang-format on
 #else
 
 #ifndef LMP_BOND_HYBRID_H
@@ -28,33 +28,33 @@ class BondHybrid : public Bond {
   friend class Force;
 
  public:
-  int nstyles;                  // # of different bond styles
-  Bond **styles;                // class list for each Bond style
-  char **keywords;              // keyword for each Bond style
+  int nstyles;        // # of different bond styles
+  Bond **styles;      // class list for each Bond style
+  char **keywords;    // keyword for each Bond style
 
   BondHybrid(class LAMMPS *);
-  ~BondHybrid();
-  void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double equilibrium_distance(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  double single(int, double, int, int, double &);
-  double memory_usage();
+  ~BondHybrid() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double equilibrium_distance(int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  double single(int, double, int, int, double &) override;
+  double memory_usage() override;
 
  private:
-  int *map;                     // which style each bond type points to
-  int has_quartic;              // which style, if any is a quartic bond style
-  int *nbondlist;               // # of bonds in sub-style bondlists
-  int *maxbond;                 // max # of bonds sub-style lists can store
-  int ***bondlist;              // bondlist for each sub-style
+  int *map;           // which style each bond type points to
+  int has_quartic;    // which style, if any is a quartic bond style
+  int *nbondlist;     // # of bonds in sub-style bondlists
+  int *maxbond;       // max # of bonds sub-style lists can store
+  int ***bondlist;    // bondlist for each sub-style
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

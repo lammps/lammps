@@ -21,7 +21,7 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *mol*\ , *region*\ , *full_energy*, *charge*\ , *intra_energy*
+     keyword = *mol*, *region*, *full_energy*, *charge*, *intra_energy*
        *mol* value = template-ID
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
        *region* value = region-ID

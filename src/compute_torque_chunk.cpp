@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -40,11 +41,9 @@ ComputeTorqueChunk::ComputeTorqueChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // ID of compute chunk/atom
 
-  int n = strlen(arg[3]) + 1;
-  idchunk = new char[n];
-  strcpy(idchunk,arg[3]);
+  idchunk = utils::strdup(arg[3]);
 
-  init();
+  ComputeTorqueChunk::init();
 
   // chunk-based data
 
@@ -74,7 +73,7 @@ void ComputeTorqueChunk::init()
   if (icompute < 0)
     error->all(FLERR,"Chunk/atom compute does not exist for "
                "compute torque/chunk");
-  cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
   if (strcmp(cchunk->style,"chunk/atom") != 0)
     error->all(FLERR,"Compute torque/chunk does not use chunk/atom compute");
 }
@@ -102,7 +101,7 @@ void ComputeTorqueChunk::compute_array()
 
   // zero local per-chunk values
 
-  for (int i = 0; i < nchunk; i++) {
+  for (i = 0; i < nchunk; i++) {
     massproc[i] = 0.0;
     com[i][0] = com[i][1] = com[i][2] = 0.0;
     torque[i][0] = torque[i][1] = torque[i][2] = 0.0;
@@ -118,7 +117,7 @@ void ComputeTorqueChunk::compute_array()
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
+  for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       index = ichunk[i]-1;
       if (index < 0) continue;
@@ -134,7 +133,7 @@ void ComputeTorqueChunk::compute_array()
   MPI_Allreduce(massproc,masstotal,nchunk,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&com[0][0],&comall[0][0],3*nchunk,MPI_DOUBLE,MPI_SUM,world);
 
-  for (int i = 0; i < nchunk; i++) {
+  for (i = 0; i < nchunk; i++) {
     if (masstotal[i] > 0.0) {
       comall[i][0] /= masstotal[i];
       comall[i][1] /= masstotal[i];
@@ -186,7 +185,7 @@ void ComputeTorqueChunk::lock_disable()
 {
   int icompute = modify->find_compute(idchunk);
   if (icompute >= 0) {
-    cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+    cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
     cchunk->lockcount--;
   }
 }

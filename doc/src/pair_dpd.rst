@@ -1,20 +1,22 @@
 .. index:: pair_style dpd
 .. index:: pair_style dpd/gpu
 .. index:: pair_style dpd/intel
+.. index:: pair_style dpd/kk
 .. index:: pair_style dpd/omp
 .. index:: pair_style dpd/tstat
 .. index:: pair_style dpd/tstat/gpu
+.. index:: pair_style dpd/tstat/kk
 .. index:: pair_style dpd/tstat/omp
 
 pair_style dpd command
 ======================
 
-Accelerator Variants: *dpd/gpu*, *dpd/intel*, *dpd/omp*
+Accelerator Variants: *dpd/gpu*, *dpd/intel*, *dpd/kk*, *dpd/omp*
 
 pair_style dpd/tstat command
 ============================
 
-Accelerator Variants: *dpd/tstat/gpu*, *dpd/tstat/omp*
+Accelerator Variants: *dpd/tstat/gpu*, *dpd/tstat/kk*, *dpd/tstat/omp*
 
 Syntax
 """"""
@@ -50,14 +52,14 @@ Style *dpd* computes a force field for dissipative particle dynamics
 
 Style *dpd/tstat* invokes a DPD thermostat on pairwise interactions,
 which is equivalent to the non-conservative portion of the DPD force
-field.  This pair-wise thermostat can be used in conjunction with any
+field.  This pairwise thermostat can be used in conjunction with any
 :doc:`pair style <pair_style>`, and in leiu of per-particle thermostats
 like :doc:`fix langevin <fix_langevin>` or ensemble thermostats like
 Nose Hoover as implemented by :doc:`fix nvt <fix_nh>`.  To use
 *dpd/tstat* as a thermostat for another pair style, use the :doc:`pair_style hybrid/overlay <pair_hybrid>` command to compute both the desired
 pair interaction and the thermostat for each pair of particles.
 
-For style *dpd*\ , the force on atom I due to atom J is given as a sum
+For style *dpd*, the force on atom I due to atom J is given as a sum
 of 3 terms
 
 .. math::
@@ -79,18 +81,18 @@ is set equal to :math:`\sqrt{2 k_B T \gamma}`, where :math:`k_B` is the
 Boltzmann constant and T is the temperature parameter in the pair_style
 command.
 
-For style *dpd/tstat*\ , the force on atom I due to atom J is the same
+For style *dpd/tstat*, the force on atom I due to atom J is the same
 as the above equation, except that the conservative Fc term is
 dropped.  Also, during the run, T is set each timestep to a ramped
 value from Tstart to Tstop.
 
-For style *dpd*\ , the pairwise energy associated with style *dpd* is
+For style *dpd*, the pairwise energy associated with style *dpd* is
 only due to the conservative force term Fc, and is shifted to be zero
 at the cutoff distance Rc.  The pairwise virial is calculated using
 all 3 terms.  For style *dpd/tstat* there is no pairwise energy, but
 the last two terms of the formula make a contribution to the virial.
 
-For style *dpd*\ , the following coefficients must be defined for each
+For style *dpd*, the following coefficients must be defined for each
 pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command as in
 the examples above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
@@ -105,7 +107,7 @@ cutoff is used.  Note that sigma is set equal to sqrt(2 T gamma),
 where T is the temperature set by the :doc:`pair_style <pair_style>`
 command so it does not need to be specified.
 
-For style *dpd/tstat*\ , the coefficients defined for each pair of
+For style *dpd/tstat*, the coefficients defined for each pair of
 atoms types via the :doc:`pair_coeff <pair_coeff>` command is the same,
 except that A is not included.
 
@@ -150,22 +152,22 @@ shifted to be 0.0 at the cutoff distance Rc.
 The :doc:`pair_modify <pair_modify>` table option is not relevant
 for these pair styles.
 
-These pair style do not support the :doc:`pair_modify <pair_modify>`
+These pair styles do not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 
-These pair styles writes their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
-to be specified in an input script that reads a restart file.  Note
-that the user-specified random number seed is stored in the restart
-file, so when a simulation is restarted, each processor will
-re-initialize its random number generator the same way it did
-initially.  This means the random forces will be random, but will not
-be the same as they would have been if the original simulation had
-continued past the restart time.
+These pair styles write their information to :doc:`binary restart files
+<restart>`, so pair_style and pair_coeff commands do not need to be
+specified in an input script that reads a restart file.  Note that the
+user-specified random number seed is stored in the restart file, so when
+a simulation is restarted, each processor will re-initialize its random
+number generator the same way it did initially.  This means the random
+forces will be random, but will not be the same as they would have been
+if the original simulation had continued past the restart time.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 The *dpd/tstat* style can ramp its target temperature over multiple
 runs, using the *start* and *stop* keywords of the :doc:`run <run>`
@@ -177,22 +179,26 @@ this.
 Restrictions
 """"""""""""
 
+These styles are part of the DPD-BASIC package.  They are only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
+
 The default frequency for rebuilding neighbor lists is every 10 steps
 (see the :doc:`neigh_modify <neigh_modify>` command). This may be too
-infrequent for style *dpd* simulations since particles move rapidly
-and can overlap by large amounts.  If this setting yields a non-zero
-number of "dangerous" reneighborings (printed at the end of a
-simulation), you should experiment with forcing reneighboring more
-often and see if system energies/trajectories change.
+infrequent for style *dpd* simulations since particles move rapidly and
+can overlap by large amounts.  If this setting yields a non-zero number
+of "dangerous" reneighborings (printed at the end of a simulation), you
+should experiment with forcing reneighboring more often and see if
+system energies/trajectories change.
 
-These pair styles requires you to use the :doc:`comm_modify vel yes <comm_modify>` command so that velocities are stored by ghost
-atoms.
+These pair styles requires you to use the :doc:`comm_modify vel yes
+<comm_modify>` command so that velocities are stored by ghost atoms.
 
 These pair styles will not restart exactly when using the
 :doc:`read_restart <read_restart>` command, though they should provide
-statistically similar results.  This is because the forces they
-compute depend on atom velocities.  See the
-:doc:`read_restart <read_restart>` command for more details.
+statistically similar results.  This is because the forces they compute
+depend on atom velocities.  See the :doc:`read_restart <read_restart>`
+command for more details.
 
 Related commands
 """"""""""""""""

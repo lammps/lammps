@@ -43,7 +43,7 @@ complex loop with branching logic, than can be created using the
 simple looping and branching logic enabled by the :doc:`next <next>` and
 :doc:`if <if>` commands.
 
-See the :doc:`python <python>` doc page and the :doc:`variable <variable>`
+See the :doc:`python <python>` page and the :doc:`variable <variable>`
 doc page for its python-style variables for more info, including
 examples of Python code you can write for both pure Python operations
 and callbacks to LAMMPS.

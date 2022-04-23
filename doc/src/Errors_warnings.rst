@@ -14,10 +14,6 @@ generated.  For example, a message like this:
 means that line #187 in the file src/domain.cpp generated the error.
 Looking in the source code may help you figure out what went wrong.
 
-Note that warning messages from :doc:`user-contributed packages <Packages_user>` are not listed here.  If such a warning
-occurs and is not self-explanatory, you will need to look in the source
-code or contact the author of the package.
-
 Doc page with :doc:`ERROR messages <Errors_messages>`
 
 ----------
@@ -217,7 +213,7 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    in unexpected behavior.
 
 *Fix bond/swap will ignore defined angles*
-   See the doc page for fix bond/swap for more info on this
+   See the page for fix bond/swap for more info on this
    restriction.
 
 *Fix deposit near setting < possible overlap separation %g*
@@ -420,7 +416,7 @@ This will most likely cause errors in kinetic fluctuations.
    not defined for the specified atom style.
 
 *Molecule has bond topology but no special bond settings*
-   This means the bonded atoms will not be excluded in pair-wise
+   This means the bonded atoms will not be excluded in pairwise
    interactions.
 
 *Molecule template for create_atoms has multiple molecules*
@@ -518,7 +514,7 @@ This will most likely cause errors in kinetic fluctuations.
    will integrate the body motion, but it would be more efficient to use
    fix rigid.
 
-*Not using real units with pair reax*
+*Not using real units with pair reaxff*
    This is most likely an error, unless you have created your own ReaxFF
    parameter file in a different set of units.
 
@@ -529,7 +525,7 @@ This will most likely cause errors in kinetic fluctuations.
 
 *OMP_NUM_THREADS environment is not set.*
    This environment variable must be set appropriately to use the
-   USER-OMP package.
+   OPENMP package.
 
 *One or more atoms are time integrated more than once*
    This is probably an error since you typically do not want to
@@ -809,5 +805,3 @@ This will most likely cause errors in kinetic fluctuations.
 *Using pair tail corrections with pair_modify compute no*
    The tail corrections will thus not be computed.
 
-*pair style reax is now deprecated and will soon be retired. Users should switch to pair_style reax/c*
-   Self-explanatory.

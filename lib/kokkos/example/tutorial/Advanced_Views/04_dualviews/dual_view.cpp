@@ -44,7 +44,7 @@
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_DualView.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 #include <cstdio>
 #include <cstdlib>
 
@@ -175,8 +175,9 @@ int main(int narg, char* arg[]) {
     // Get a reference to the host view of idx directly (equivalent to
     // idx.view<idx_type::host_mirror_space>() )
     idx_type::t_host h_idx = idx.h_view;
+    using size_type        = view_type::size_type;
     for (int i = 0; i < size; ++i) {
-      for (view_type::size_type j = 0; j < h_idx.extent(1); ++j) {
+      for (size_type j = 0; j < static_cast<size_type>(h_idx.extent(1)); ++j) {
         h_idx(i, j) = (size + i + (rand() % 500 - 250)) % size;
       }
     }

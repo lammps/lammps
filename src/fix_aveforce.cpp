@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -155,8 +156,8 @@ void FixAveForce::init()
   if (xstyle == EQUAL || ystyle == EQUAL || zstyle == EQUAL) varflag = EQUAL;
   else varflag = CONSTANT;
 
-  if (strstr(update->integrate_style,"respa")) {
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+  if (utils::strmatch(update->integrate_style,"^respa")) {
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,nlevels_respa-1);
     else ilevel_respa = nlevels_respa-1;
   }
@@ -166,13 +167,13 @@ void FixAveForce::init()
 
 void FixAveForce::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else
     for (int ilevel = 0; ilevel < nlevels_respa; ilevel++) {
-      ((Respa *) update->integrate)->copy_flevel_f(ilevel);
+      (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(ilevel);
       post_force_respa(vflag,ilevel,0);
-      ((Respa *) update->integrate)->copy_f_flevel(ilevel);
+      (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(ilevel);
     }
 }
 

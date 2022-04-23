@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,22 +13,23 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_sdk_kokkos.h"
-#include <cmath>
-#include <cstdio>
-#include <cstring>
-#include "kokkos.h"
+
 #include "atom_kokkos.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "update.h"
-#include "respa.h"
-#include "memory_kokkos.h"
-#include "error.h"
 #include "atom_masks.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "kokkos.h"
+#include "memory_kokkos.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "respa.h"
+#include "update.h"
 
 #include "lj_sdk_common.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace LJSDKParms;
@@ -47,7 +49,6 @@ PairLJSDKKokkos<DeviceType>::PairLJSDKKokkos(LAMMPS *lmp) : PairLJSDK(lmp)
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -55,22 +56,13 @@ PairLJSDKKokkos<DeviceType>::PairLJSDKKokkos(LAMMPS *lmp) : PairLJSDK(lmp)
 template<class DeviceType>
 PairLJSDKKokkos<DeviceType>::~PairLJSDKKokkos()
 {
+  if (copymode) return;
+
   if (allocated) {
-    k_cutsq = DAT::tdual_ffloat_2d();
-    memory->sfree(cutsq);
-    cutsq = nullptr;
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->destroy_kokkos(k_cutsq,cutsq);
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairLJSDKKokkos<DeviceType>::cleanup_copy() {
-  // WHY needed: this prevents parent copy from deallocating any arrays
-  allocated = 0;
-  cutsq = nullptr;
-  eatom = nullptr;
-  vatom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -255,7 +247,7 @@ void PairLJSDKKokkos<DeviceType>::init_style()
 
   // error if rRESPA with inner levels
 
-  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
+  if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
     int respa = 0;
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
@@ -263,26 +255,14 @@ void PairLJSDKKokkos<DeviceType>::init_style()
       error->all(FLERR,"Cannot use Kokkos pair style with rRESPA inner/middle");
   }
 
-  // irequest = neigh request made by parent class
+  // adjust neighbor list request for KOKKOS
 
   neighflag = lmp->kokkos->neighflag;
-  int irequest = neighbor->nrequest - 1;
-
-  neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
-
-  if (neighflag == FULL) {
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->half = 0;
-  } else if (neighflag == HALF || neighflag == HALFTHREAD) {
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 1;
-  } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with lj/sdk/kk");
-  }
+  auto request = neighbor->find_request(this);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  if (neighflag == FULL) request->enable_full();
 }
 
 /* ----------------------------------------------------------------------

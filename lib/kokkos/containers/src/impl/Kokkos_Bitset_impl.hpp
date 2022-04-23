@@ -59,7 +59,7 @@ namespace Impl {
 
 KOKKOS_FORCEINLINE_FUNCTION
 unsigned rotate_right(unsigned i, int r) {
-  enum { size = static_cast<int>(sizeof(unsigned) * CHAR_BIT) };
+  constexpr int size = static_cast<int>(sizeof(unsigned) * CHAR_BIT);
   return r ? ((i >> r) | (i << (size - r))) : i;
 }
 

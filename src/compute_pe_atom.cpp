@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -158,7 +159,7 @@ void ComputePEAtom::compute_peratom()
   // communicate ghost energy between neighbor procs
 
   if (force->newton || (force->kspace && force->kspace->tip4pflag))
-    comm->reverse_comm_compute(this);
+    comm->reverse_comm(this);
 
   // zero energy of atoms not in group
   // only do this after comm since ghost contributions must be included

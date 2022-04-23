@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -141,7 +142,7 @@ void ImproperClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_warning_flag.template modify<DeviceType>();
   k_warning_flag.template sync<LMPHostType>();
   if (h_warning_flag())
-    error->warning(FLERR,"Improper problem",0);
+    error->warning(FLERR,"Improper problem");
 
   // Angle-Angle energy/force
 
@@ -279,10 +280,10 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2Compute<NEWTO
 
     /*
     if ((c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) && !d_warning_flag())
-      Kokkos::atomic_fetch_add(&d_warning_flag(),1);
+      d_warning_flag() = 1;
     */
     if ((costheta[0] == -1.0 || costheta[1] == -1.0 || costheta[2] == -1.0) && !d_warning_flag())
-      Kokkos::atomic_fetch_add(&d_warning_flag(),1);
+      d_warning_flag() = 1;
 
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;

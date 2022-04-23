@@ -36,7 +36,7 @@ Syntax
 
 * ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms to be dumped
-* style = *atom* or *atom/gz* or *atom/zstd or *atom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *dcd* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *xyz/mpiio*
+* style = *atom* or *atom/gz* or *atom/zstd or *atom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *dcd* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *xyz/mpiio* or *yaml*
 * N = dump every this many timesteps
 * file = name of file to write dump info to
 * args = list of arguments for a particular style
@@ -52,7 +52,7 @@ Syntax
        *cfg/gz* args = same as *custom* args, see below
        *cfg/zstd* args = same as *custom* args, see below
        *cfg/mpiio* args = same as *custom* args, see below
-       *custom*\ , *custom/gz*\ , *custom/zstd* , *custom/mpiio* args = see below
+       *custom*, *custom/gz*, *custom/zstd*, *custom/mpiio* args = see below
        *custom/adios* args = same as *custom* args, discussed on :doc:`dump custom/adios <dump_adios>` doc page
        *dcd* args = none
        *h5md* args = discussed on :doc:`dump h5md <dump_h5md>` doc page
@@ -68,8 +68,9 @@ Syntax
        *xyz/gz* args = none
        *xyz/zstd* args = none
        *xyz/mpiio* args = none
+       *yaml* args = same as *custom* args, see below
 
-* *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *netcdf* or *netcdf/mpiio* args = list of atom attributes
+* *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *netcdf* or *netcdf/mpiio* or *yaml* args = list of atom attributes
 
   .. parsed-literal::
 
@@ -80,7 +81,8 @@ Syntax
                                q, mux, muy, muz, mu,
                                radius, diameter, omegax, omegay, omegaz,
                                angmomx, angmomy, angmomz, tqx, tqy, tqz,
-                               c_ID, c_ID[N], f_ID, f_ID[N], v_name
+                               c_ID, c_ID[I], f_ID, f_ID[I], v_name,
+                               i_name, d_name, i2_name[I], d2_name[I]
 
   .. parsed-literal::
 
@@ -110,8 +112,10 @@ Syntax
            f_ID = per-atom vector calculated by a fix with ID
            f_ID[I] = Ith column of per-atom array calculated by a fix with ID, I can include wildcard (see below)
            v_name = per-atom vector calculated by an atom-style variable with name
-           d_name = per-atom floating point vector with name, managed by fix property/atom
-           i_name = per-atom integer vector with name, managed by fix property/atom
+           i_name = custom integer vector with name
+           d_name = custom floating point vector with name
+           i2_name[I] = Ith column of custom integer array with name, I can include wildcard (see below)
+           d2_name[I] = Ith column of custom floating point vector with name, I can include wildcard (see below)
 
 * *local* or *local/gz* or *local/zstd* args = list of local attributes
 
@@ -134,7 +138,7 @@ Examples
    dump myDump all atom/gz 100 dump.atom.gz
    dump myDump all atom/zstd 100 dump.atom.zst
    dump 2 subgroup atom 50 dump.run.bin
-   dump 2 subgroup atom 50 dump.run.mpiio.bin
+   dump 2 subgroup atom/mpiio 50 dump.run.mpiio.bin
    dump 4a all custom 100 dump.myforce.* id type x y vx fx
    dump 4b flow custom 100 dump.%.myforce id type c_myF[3] v_ke
    dump 4b flow custom 100 dump.%.myforce id type c_myF[*] v_ke
@@ -166,11 +170,12 @@ or multiple smaller files).
 
 .. note::
 
-   Because periodic boundary conditions are enforced only on
-   timesteps when neighbor lists are rebuilt, the coordinates of an atom
-   written to a dump file may be slightly outside the simulation box.
-   Re-neighbor timesteps will not typically coincide with the timesteps
-   dump snapshots are written.  See the :doc:`dump_modify pbc <dump_modify>` command if you with to force coordinates to be
+   Because periodic boundary conditions are enforced only on timesteps
+   when neighbor lists are rebuilt, the coordinates of an atom written
+   to a dump file may be slightly outside the simulation box.
+   Re-neighbor timesteps will not typically coincide with the
+   timesteps dump snapshots are written.  See the :doc:`dump_modify
+   pbc <dump_modify>` command if you with to force coordinates to be
    strictly inside the simulation box.
 
 .. note::
@@ -185,29 +190,30 @@ or multiple smaller files).
    parallel, because data for a single snapshot is collected from
    multiple processors, each of which owns a subset of the atoms.
 
-For the *atom*\ , *custom*\ , *cfg*\ , and *local* styles, sorting is off by
-default.  For the *dcd*\ , *xtc*\ , *xyz*\ , and *molfile* styles, sorting by
-atom ID is on by default. See the :doc:`dump_modify <dump_modify>` doc
-page for details.
+For the *atom*, *custom*, *cfg*, and *local* styles, sorting is off by
+default.  For the *dcd*, *xtc*, *xyz*, and *molfile* styles, sorting
+by atom ID is on by default. See the :doc:`dump_modify <dump_modify>`
+doc page for details.
 
-The *atom/gz*\ , *cfg/gz*\ , *custom/gz*\ , *local/gz*, and *xyz/gz* styles are identical
-in command syntax to the corresponding styles without "gz", however,
-they generate compressed files using the zlib library. Thus the filename
-suffix ".gz" is mandatory. This is an alternative approach to writing
-compressed files via a pipe, as done by the regular dump styles, which
-may be required on clusters where the interface to the high-speed network
-disallows using the fork() library call (which is needed for a pipe).
-For the remainder of this doc page, you should thus consider the *atom*
-and *atom/gz* styles (etc) to be inter-changeable, with the exception
-of the required filename suffix.
+The *atom/gz*, *cfg/gz*, *custom/gz*, *local/gz*, and *xyz/gz* styles
+are identical in command syntax to the corresponding styles without
+"gz", however, they generate compressed files using the zlib
+library. Thus the filename suffix ".gz" is mandatory. This is an
+alternative approach to writing compressed files via a pipe, as done
+by the regular dump styles, which may be required on clusters where
+the interface to the high-speed network disallows using the fork()
+library call (which is needed for a pipe).  For the remainder of this
+doc page, you should thus consider the *atom* and *atom/gz* styles
+(etc) to be inter-changeable, with the exception of the required
+filename suffix.
 
-Similarly, the *atom/zstd*\ , *cfg/zstd*\ , *custom/zstd*\ , *local/zstd*,
+Similarly, the *atom/zstd*, *cfg/zstd*, *custom/zstd*, *local/zstd*,
 and *xyz/zstd* styles are identical to the gz styles, but use the Zstd
 compression library instead and require the ".zst" suffix. See the
-:doc:`dump_modify <dump_modify>` doc page for details on how to control
+:doc:`dump_modify <dump_modify>` page for details on how to control
 the compression level in both variants.
 
-As explained below, the *atom/mpiio*\ , *cfg/mpiio*\ , *custom/mpiio*\ , and
+As explained below, the *atom/mpiio*, *cfg/mpiio*, *custom/mpiio*, and
 *xyz/mpiio* styles are identical in command syntax and in the format
 of the dump files they create, to the corresponding styles without
 "mpiio", except the single dump file they produce is written in
@@ -215,6 +221,11 @@ parallel via the MPI-IO library.  For the remainder of this doc page,
 you should thus consider the *atom* and *atom/mpiio* styles (etc) to
 be inter-changeable.  The one exception is how the filename is
 specified for the MPI-IO styles, as explained below.
+
+.. warning::
+
+   The MPIIO package is currently unmaintained and has become
+   unreliable. Use with caution.
 
 The precision of values output to text-based dump files can be
 controlled by the :doc:`dump_modify format <dump_modify>` command and
@@ -227,13 +238,13 @@ file and in what format.  Settings made via the
 :doc:`dump_modify <dump_modify>` command can also alter the format of
 individual values and the file itself.
 
-The *atom*\ , *local*\ , and *custom* styles create files in a simple text
+The *atom*, *local*, and *custom* styles create files in a simple text
 format that is self-explanatory when viewing a dump file.  Some of the
 LAMMPS post-processing tools described on the :doc:`Tools <Tools>` doc
-page, including `Pizza.py <https://pizza.sandia.gov>`_,
+page, including `Pizza.py <https://lammps.github.io/pizza>`_,
 work with this format, as does the :doc:`rerun <rerun>` command.
 
-For post-processing purposes the *atom*\ , *local*\ , and *custom* text
+For post-processing purposes the *atom*, *local*, and *custom* text
 files are self-describing in the following sense.
 
 The dimensions of the simulation box are included in each snapshot.
@@ -272,10 +283,11 @@ This bounding box is convenient for many visualization programs.  The
 meaning of the 6 character flags for "xx yy zz" is the same as above.
 
 Note that the first two numbers on each line are now xlo_bound instead
-of xlo, etc, since they represent a bounding box.  See the :doc:`Howto triclinic <Howto_triclinic>` doc page for a geometric description
-of triclinic boxes, as defined by LAMMPS, simple formulas for how the
-6 bounding box extents (xlo_bound,xhi_bound,etc) are calculated from
-the triclinic parameters, and how to transform those parameters to and
+of xlo, etc, since they represent a bounding box.  See the :doc:`Howto
+triclinic <Howto_triclinic>` page for a geometric description of
+triclinic boxes, as defined by LAMMPS, simple formulas for how the 6
+bounding box extents (xlo_bound,xhi_bound,etc) are calculated from the
+triclinic parameters, and how to transform those parameters to and
 from other commonly used triclinic representations.
 
 The "ITEM: ATOMS" line in each snapshot lists column descriptors for
@@ -283,7 +295,7 @@ the per-atom lines that follow.  For example, the descriptors would be
 "id type xs ys zs" for the default *atom* style, and would be the atom
 attributes you specify in the dump command for the *custom* style.
 
-For style *atom*\ , atom coordinates are written to the file, along with
+For style *atom*, atom coordinates are written to the file, along with
 the atom ID and atom type.  By default, atom coords are written in a
 scaled format (from 0 to 1).  I.e. an x value of 0.25 means the atom
 is at a location 1/4 of the distance from xlo to xhi of the box
@@ -295,38 +307,39 @@ Style *custom* allows you to specify a list of atom attributes to be
 written to the dump file for each atom.  Possible attributes are
 listed above and will appear in the order specified.  You cannot
 specify a quantity that is not defined for a particular simulation -
-such as *q* for atom style *bond*\ , since that atom style does not
+such as *q* for atom style *bond*, since that atom style does not
 assign charges.  Dumps occur at the very end of a timestep, so atom
 attributes will include effects due to fixes that are applied during
 the timestep.  An explanation of the possible dump custom attributes
 is given below.
 
-For style *local*\ , local output generated by :doc:`computes <compute>`
+For style *local*, local output generated by :doc:`computes <compute>`
 and :doc:`fixes <fix>` is used to generate lines of output that is
 written to the dump file.  This local data is typically calculated by
 each processor based on the atoms it owns, but there may be zero or
 more entities per atom, e.g. a list of bond distances.  An explanation
 of the possible dump local attributes is given below.  Note that by
-using input from the :doc:`compute property/local <compute_property_local>` command with dump local,
-it is possible to generate information on bonds, angles, etc that can
-be cut and pasted directly into a data file read by the
-:doc:`read_data <read_data>` command.
+using input from the :doc:`compute property/local
+<compute_property_local>` command with dump local, it is possible to
+generate information on bonds, angles, etc that can be cut and pasted
+directly into a data file read by the :doc:`read_data <read_data>`
+command.
 
 Style *cfg* has the same command syntax as style *custom* and writes
-extended CFG format files, as used by the
-`AtomEye <http://li.mit.edu/Archive/Graphics/A/>`_ visualization
-package.  Since the extended CFG format uses a single snapshot of the
-system per file, a wildcard "\*" must be included in the filename, as
-discussed below.  The list of atom attributes for style *cfg* must
-begin with either "mass type xs ys zs" or "mass type xsu ysu zsu"
-since these quantities are needed to write the CFG files in the
-appropriate format (though the "mass" and "type" fields do not appear
-explicitly in the file).  Any remaining attributes will be stored as
-"auxiliary properties" in the CFG files.  Note that you will typically
-want to use the :doc:`dump_modify element <dump_modify>` command with
+extended CFG format files, as used by the `AtomEye
+<http://li.mit.edu/Archive/Graphics/A/>`_ visualization package.
+Since the extended CFG format uses a single snapshot of the system per
+file, a wildcard "\*" must be included in the filename, as discussed
+below.  The list of atom attributes for style *cfg* must begin with
+either "mass type xs ys zs" or "mass type xsu ysu zsu" since these
+quantities are needed to write the CFG files in the appropriate format
+(though the "mass" and "type" fields do not appear explicitly in the
+file).  Any remaining attributes will be stored as "auxiliary
+properties" in the CFG files.  Note that you will typically want to
+use the :doc:`dump_modify element <dump_modify>` command with
 CFG-formatted files, to associate element names with atom types, so
 that AtomEye can render atoms appropriately. When unwrapped
-coordinates *xsu*\ , *ysu*\ , and *zsu* are requested, the nominal AtomEye
+coordinates *xsu*, *ysu*, and *zsu* are requested, the nominal AtomEye
 periodic cell dimensions are expanded by a large factor UNWRAPEXPAND =
 10.0, which ensures atoms that are displayed correctly for up to
 UNWRAPEXPAND/2 periodic boundary crossings in any direction.  Beyond
@@ -349,7 +362,7 @@ the box size stored with the snapshot.
 
 The *xtc* style writes XTC files, a compressed trajectory format used
 by the GROMACS molecular dynamics package, and described
-`here <http://manual.gromacs.org/current/online/xtc.html>`_.
+`here <https://manual.gromacs.org/current/reference-manual/file-formats.html#xtc>`_.
 The precision used in XTC files can be adjusted via the
 :doc:`dump_modify <dump_modify>` command.  The default value of 1000
 means that coordinates are stored to 1/1000 nanometer accuracy.  XTC
@@ -374,7 +387,71 @@ from using the (numerical) atom type to an element name (or some
 other label). This will help many visualization programs to guess
 bonds and colors.
 
-Note that *atom*\ , *custom*\ , *dcd*\ , *xtc*\ , and *xyz* style dump files
+Dump style *yaml* has the same command syntax as style *custom* and
+writes YAML format files that can be easily parsed by a variety of data
+processing tools and programming languages.  Each timestep will be
+written as a YAML "document" (i.e. starts with "---" and ends with
+"...").  The style supports writing one file per timestep through the
+"\*" wildcard but not multi-processor outputs with the "%" token in the
+filename.  In addition to per-atom data, :doc:`thermo <thermo>` data can
+be included in the *yaml* style dump file using the :doc:`dump_modify
+thermo yes <dump_modify>`. The data included in the dump file uses the
+"thermo" tag and is otherwise identical to data specified by the
+:doc:`thermo_style <thermo_style>` command.
+
+Below is an example for a YAML format dump created by the following commands.
+
+.. code-block:: LAMMPS
+
+   dump out all yaml 100 dump.yaml id type x y z vx vy vz ix iy iz
+   dump_modify out time yes units yes thermo yes format 1 %5d format "% 10.6e"
+
+The tags "time", "units", and "thermo" are optional and enabled by the
+dump_modify command. The list under the "box" tag has 3 lines for
+orthogonal boxes and 4 lines with triclinic boxes, where the first 3 are
+the box boundaries and the 4th the three tilt factors (xy, xz, yz).  The
+"thermo" data follows the format of the *yaml* thermo style.  The
+"keywords" tag lists the per-atom properties contained in the "data"
+columns, which contain a list with one line per atom.  The keywords may
+be renamed using the dump_modify command same as for the *custom* dump
+style.
+
+.. code-block:: yaml
+
+   ---
+   timestep: 0
+   units: lj
+   time: 0
+   natoms: 4000
+   boundary: [ p, p, p, p, p, p, ]
+   thermo:
+     - keywords: [ Step, Temp, E_pair, E_mol, TotEng, Press, ]
+     - data: [ 0, 0, -27093.472213010766, 0, 0, 0, ]
+   box:
+     - [ 0, 16.795961913825074 ]
+     - [ 0, 16.795961913825074 ]
+     - [ 0, 16.795961913825074 ]
+     - [ 0, 0, 0 ]
+   keywords: [ id, type, x, y, z, vx, vy, vz, ix, iy, iz,  ]
+   data:
+     - [     1 , 1 ,  0.000000e+00 ,  0.000000e+00 ,  0.000000e+00 ,  -1.841579e-01 , -9.710036e-01 , -2.934617e+00 , 0 , 0 , 0, ]
+     - [     2 , 1 ,  8.397981e-01 ,  8.397981e-01 ,  0.000000e+00 ,  -1.799591e+00 ,  2.127197e+00 ,  2.298572e+00 , 0 , 0 , 0, ]
+     - [     3 , 1 ,  8.397981e-01 ,  0.000000e+00 ,  8.397981e-01 ,  -1.807682e+00 , -9.585130e-01 ,  1.605884e+00 , 0 , 0 , 0, ]
+
+     [...]
+   ...
+   ---
+   timestep: 100
+   units: lj
+   time: 0.5
+
+     [...]
+
+   ...
+
+----------
+
+Note that *atom*, *custom*, *dcd*, *xtc*, and *xyz* style dump files
 can be read directly by `VMD <http://www.ks.uiuc.edu/Research/vmd>`_, a
 popular molecular viewing program.
 
@@ -415,9 +492,9 @@ If a "%" character appears in the filename, then each of P processors
 writes a portion of the dump file, and the "%" character is replaced
 with the processor ID from 0 to P-1.  For example, tmp.dump.% becomes
 tmp.dump.0, tmp.dump.1, ... tmp.dump.P-1, etc.  This creates smaller
-files and can be a fast mode of output on parallel machines that
-support parallel I/O for output. This option is not available for the
-*dcd*\ , *xtc*\ , and *xyz* styles.
+files and can be a fast mode of output on parallel machines that support
+parallel I/O for output. This option is **not** available for the *dcd*,
+*xtc*, *xyz*, and *yaml* styles.
 
 By default, P = the number of processors meaning one file per
 processor, but P can be set to a smaller value via the *nfile* or
@@ -428,7 +505,7 @@ when running on large numbers of processors.
 Note that using the "\*" and "%" characters together can produce a
 large number of small dump files!
 
-For the *atom/mpiio*\ , *cfg/mpiio*\ , *custom/mpiio*\ , and *xyz/mpiio*
+For the *atom/mpiio*, *cfg/mpiio*, *custom/mpiio*, and *xyz/mpiio*
 styles, a single dump file is written in parallel via the MPI-IO
 library, which is part of the MPI standard for versions 2.0 and above.
 Using MPI-IO requires two steps.  First, build LAMMPS with its MPIIO
@@ -448,6 +525,11 @@ counterparts.  This means you can write a dump file using MPI-IO and
 use the :doc:`read_dump <read_dump>` command or perform other
 post-processing, just as if the dump file was not written using
 MPI-IO.
+
+.. warning::
+
+   The MPIIO package is currently unmaintained and has become
+   unreliable. Use with caution.
 
 Note that MPI-IO dump files are one large file which all processors
 write to.  You thus cannot use the "%" wildcard character described
@@ -474,16 +556,15 @@ styles.
 ----------
 
 Note that in the discussion which follows, for styles which can
-reference values from a compute or fix, like the *custom*\ , *cfg*\ , or
-*local* styles, the bracketed index I can be specified using a
-wildcard asterisk with the index to effectively specify multiple
-values.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  If N = the
-size of the vector (for *mode* = scalar) or the number of columns in
-the array (for *mode* = vector), then an asterisk with no numeric
-values means all indices from 1 to N.  A leading asterisk means all
-indices from 1 to n (inclusive).  A trailing asterisk means all
-indices from n to N (inclusive).  A middle asterisk means all indices
-from m to n (inclusive).
+reference values from a compute or fix or custom atom property, like
+the *custom*\ , *cfg*\ , or *local* styles, the bracketed index I can
+be specified using a wildcard asterisk with the index to effectively
+specify multiple values.  This takes the form "\*" or "\*n" or "n\*"
+or "m\*n".  If N = the number of columns in the array, then an
+asterisk with no numeric values means all column indices from 1 to N.
+A leading asterisk means all indices from 1 to n (inclusive).  A
+trailing asterisk means all indices from n to N (inclusive).  A middle
+asterisk means all indices from m to n (inclusive).
 
 Using a wildcard is the same as if the individual columns of the array
 had been listed one by one.  E.g. these 2 dump commands are
@@ -521,8 +602,9 @@ bonds and angles.
 
 Note that computes which calculate global or per-atom quantities, as
 opposed to local quantities, cannot be output in a dump local command.
-Instead, global quantities can be output by the :doc:`thermo_style custom <thermo_style>` command, and per-atom quantities can be
-output by the dump custom command.
+Instead, global quantities can be output by the :doc:`thermo_style
+custom <thermo_style>` command, and per-atom quantities can be output
+by the dump custom command.
 
 If *c_ID* is used as a attribute, then the local vector calculated by
 the compute is printed.  If *c_ID[I]* is used, then I must be in the
@@ -557,8 +639,8 @@ the distance and energy of each bond:
 This section explains the atom attributes that can be specified as
 part of the *custom* and *cfg* styles.
 
-The *id*\ , *mol*\ , *proc*\ , *procp1*\ , *type*\ , *element*\ , *mass*\ , *vx*\ ,
-*vy*\ , *vz*\ , *fx*\ , *fy*\ , *fz*\ , *q* attributes are self-explanatory.
+The *id*, *mol*, *proc*, *procp1*, *type*, *element*, *mass*, *vx*,
+*vy*, *vz*, *fx*, *fy*, *fz*, *q* attributes are self-explanatory.
 
 *Id* is the atom ID.  *Mol* is the molecule ID, included in the data
 file for molecular systems.  *Proc* is the ID of the processor (0 to
@@ -566,33 +648,34 @@ Nprocs-1) that currently owns the atom.  *Procp1* is the proc ID+1,
 which can be convenient in place of a *type* attribute (1 to Ntypes)
 for coloring atoms in a visualization program.  *Type* is the atom
 type (1 to Ntypes).  *Element* is typically the chemical name of an
-element, which you must assign to each type via the :doc:`dump_modify element <dump_modify>` command.  More generally, it can be any
-string you wish to associated with an atom type.  *Mass* is the atom
-mass.  *Vx*\ , *vy*\ , *vz*\ , *fx*\ , *fy*\ , *fz*\ , and *q* are components of
-atom velocity and force and atomic charge.
+element, which you must assign to each type via the :doc:`dump_modify
+element <dump_modify>` command.  More generally, it can be any string
+you wish to associated with an atom type.  *Mass* is the atom mass.
+*Vx*, *vy*, *vz*, *fx*, *fy*, *fz*, and *q* are components of atom
+velocity and force and atomic charge.
 
-There are several options for outputting atom coordinates.  The *x*\ ,
-*y*\ , *z* attributes write atom coordinates "unscaled", in the
+There are several options for outputting atom coordinates.  The *x*,
+*y*, *z* attributes write atom coordinates "unscaled", in the
 appropriate distance :doc:`units <units>` (Angstroms, sigma, etc).  Use
-*xs*\ , *ys*\ , *zs* if you want the coordinates "scaled" to the box size,
+*xs*, *ys*, *zs* if you want the coordinates "scaled" to the box size,
 so that each value is 0.0 to 1.0.  If the simulation box is triclinic
 (tilted), then all atom coords will still be between 0.0 and 1.0.
 I.e. actual unscaled (x,y,z) = xs\*A + ys\*B + zs\*C, where (A,B,C) are
 the non-orthogonal vectors of the simulation box edges, as discussed
 on the :doc:`Howto triclinic <Howto_triclinic>` doc page.
 
-Use *xu*\ , *yu*\ , *zu* if you want the coordinates "unwrapped" by the
+Use *xu*, *yu*, *zu* if you want the coordinates "unwrapped" by the
 image flags for each atom.  Unwrapped means that if the atom has
 passed through a periodic boundary one or more times, the value is
 printed for what the coordinate would be if it had not been wrapped
-back into the periodic box.  Note that using *xu*\ , *yu*\ , *zu* means
+back into the periodic box.  Note that using *xu*, *yu*, *zu* means
 that the coordinate values may be far outside the box bounds printed
-with the snapshot.  Using *xsu*\ , *ysu*\ , *zsu* is similar to using
-*xu*\ , *yu*\ , *zu*\ , except that the unwrapped coordinates are scaled by
+with the snapshot.  Using *xsu*, *ysu*, *zsu* is similar to using
+*xu*, *yu*, *zu*, except that the unwrapped coordinates are scaled by
 the box size. Atoms that have passed through a periodic boundary will
 have the corresponding coordinate increased or decreased by 1.0.
 
-The image flags can be printed directly using the *ix*\ , *iy*\ , *iz*
+The image flags can be printed directly using the *ix*, *iy*, *iz*
 attributes.  For periodic dimensions, they specify which image of the
 simulation box the atom is considered to be in.  An image of 0 means
 it is inside the box as defined.  A value of 2 means add 2 box lengths
@@ -600,7 +683,7 @@ to get the true value.  A value of -1 means subtract 1 box length to
 get the true value.  LAMMPS updates these flags as atoms cross
 periodic boundaries during the simulation.
 
-The *mux*\ , *muy*\ , *muz* attributes are specific to dipolar systems
+The *mux*, *muy*, *muz* attributes are specific to dipolar systems
 defined with an atom style of *dipole*\ .  They give the orientation of
 the atom's point dipole moment.  The *mu* attribute gives the
 magnitude of the atom's dipole moment.
@@ -609,15 +692,15 @@ The *radius* and *diameter* attributes are specific to spherical
 particles that have a finite size, such as those defined with an atom
 style of *sphere*\ .
 
-The *omegax*\ , *omegay*\ , and *omegaz* attributes are specific to
+The *omegax*, *omegay*, and *omegaz* attributes are specific to
 finite-size spherical particles that have an angular velocity.  Only
 certain atom styles, such as *sphere* define this quantity.
 
-The *angmomx*\ , *angmomy*\ , and *angmomz* attributes are specific to
+The *angmomx*, *angmomy*, and *angmomz* attributes are specific to
 finite-size aspherical particles that have an angular momentum.  Only
 the *ellipsoid* atom style defines this quantity.
 
-The *tqx*\ , *tqy*\ , *tqz* attributes are for finite-size particles that
+The *tqx*, *tqy*, *tqz* attributes are for finite-size particles that
 can sustain a rotational torque due to interactions with other
 particles.
 
@@ -643,11 +726,12 @@ above for how I can be specified with a wildcard asterisk to
 effectively specify multiple values.
 
 The *f_ID* and *f_ID[I]* attributes allow vector or array per-atom
-quantities calculated by a :doc:`fix <fix>` to be output.  The ID in the
-attribute should be replaced by the actual ID of the fix that has been
-defined previously in the input script.  The :doc:`fix ave/atom <fix_ave_atom>` command is one that calculates per-atom
-quantities.  Since it can time-average per-atom quantities produced by
-any :doc:`compute <compute>`, :doc:`fix <fix>`, or atom-style
+quantities calculated by a :doc:`fix <fix>` to be output.  The ID in
+the attribute should be replaced by the actual ID of the fix that has
+been defined previously in the input script.  The :doc:`fix ave/atom
+<fix_ave_atom>` command is one that calculates per-atom quantities.
+Since it can time-average per-atom quantities produced by any
+:doc:`compute <compute>`, :doc:`fix <fix>`, or atom-style
 :doc:`variable <variable>`, this allows those time-averaged results to
 be written to a dump file.
 
@@ -664,16 +748,23 @@ should be replaced by the actual name of the variable that has been
 defined previously in the input script.  Only an atom-style variable
 can be referenced, since it is the only style that generates per-atom
 values.  Variables of style *atom* can reference individual atom
-attributes, per-atom attributes, thermodynamic keywords, or
-invoke other computes, fixes, or variables when they are evaluated, so
-this is a very general means of creating quantities to output to a
-dump file.
+attributes, per-atom attributes, thermodynamic keywords, or invoke
+other computes, fixes, or variables when they are evaluated, so this
+is a very general means of creating quantities to output to a dump
+file.
 
-The *d_name* and *i_name* attributes allow to output custom per atom
-floating point or integer properties that are managed by
-:doc:`fix property/atom <fix_property_atom>`.
+The *i_name*, *d_name*, *i2_name*, *d2_name* attributes refer to
+per-atom integer and floating-point vectors or arrays that have been
+added via the :doc:`fix property/atom <fix_property_atom>` command.
+When that command is used specific names are given to each attribute
+which are the "name" portion of these keywords.  For arrays *i2_name*
+and *d2_name*, the column of the array must also be included following
+the name in brackets: e.g. d2_xyz[I], i2_mySpin[I], where I is in the
+range from 1-M, where M is the number of columns in the custom array.
+See the discussion above for how I can be specified with a wildcard
+asterisk to effectively specify multiple values.
 
-See the :doc:`Modify <Modify>` doc page for information on how to add
+See the :doc:`Modify <Modify>` page for information on how to add
 new compute and fix styles to LAMMPS to calculate per-atom quantities
 which could then be output into dump files.
 
@@ -684,20 +775,21 @@ Restrictions
 
 To write gzipped dump files, you must either compile LAMMPS with the
 -DLAMMPS_GZIP option or use the styles from the COMPRESS package.
-See the :doc:`Build settings <Build_settings>` doc page for details.
+See the :doc:`Build settings <Build_settings>` page for details.
 
-The *atom/gz*\ , *cfg/gz*\ , *custom/gz*\ , and *xyz/gz* styles are part of
+The *atom/gz*, *cfg/gz*, *custom/gz*, and *xyz/gz* styles are part of
 the COMPRESS package.  They are only enabled if LAMMPS was built with
-that package.  See the :doc:`Build package <Build_package>` doc page for
+that package.  See the :doc:`Build package <Build_package>` page for
 more info.
 
-The *atom/mpiio*\ , *cfg/mpiio*\ , *custom/mpiio*\ , and *xyz/mpiio* styles
+The *atom/mpiio*, *cfg/mpiio*, *custom/mpiio*, and *xyz/mpiio* styles
 are part of the MPIIO package.  They are only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
-The *xtc* style is part of the MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+The *xtc*, *dcd* and *yaml* styles are part of the EXTRA-DUMP package.
+They are only enabled if LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

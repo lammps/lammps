@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -95,8 +96,11 @@ void FixMomentum::init()
 
 void FixMomentum::end_of_step()
 {
+  double **x = atom->x;
   double **v = atom->v;
   int *mask = atom->mask;
+  imageint *image = atom->image;
+
   const int nlocal = atom->nlocal;
   double ekin_old,ekin_new;
   ekin_old = ekin_new = 0.0;
@@ -156,12 +160,6 @@ void FixMomentum::end_of_step()
     // adjust velocities to zero omega
     // vnew_i = v_i - w x r_i
     // must use unwrapped coords to compute r_i correctly
-
-    double **x = atom->x;
-    double **v = atom->v;
-    int *mask = atom->mask;
-    imageint *image = atom->image;
-    int nlocal = atom->nlocal;
 
     double dx,dy,dz;
     double unwrap[3];

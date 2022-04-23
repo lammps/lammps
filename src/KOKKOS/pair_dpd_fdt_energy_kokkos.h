@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(dpd/fdt/energy/kk,PairDPDfdtEnergyKokkos<LMPDeviceType>)
-PairStyle(dpd/fdt/energy/kk/device,PairDPDfdtEnergyKokkos<LMPDeviceType>)
-PairStyle(dpd/fdt/energy/kk/host,PairDPDfdtEnergyKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(dpd/fdt/energy/kk,PairDPDfdtEnergyKokkos<LMPDeviceType>);
+PairStyle(dpd/fdt/energy/kk/device,PairDPDfdtEnergyKokkos<LMPDeviceType>);
+PairStyle(dpd/fdt/energy/kk/host,PairDPDfdtEnergyKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_DPD_FDT_ENERGY_KOKKOS_H
 #define LMP_PAIR_DPD_FDT_ENERGY_KOKKOS_H
 
@@ -53,10 +54,10 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
   typedef EV_FLOAT value_type;
 
   PairDPDfdtEnergyKokkos(class LAMMPS *);
-  virtual ~PairDPDfdtEnergyKokkos();
-  virtual void compute(int, int);
-  void init_style();
-  double init_one(int, int);
+  ~PairDPDfdtEnergyKokkos() override;
+  void compute(int, int) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairDPDfdtEnergyZero, const int&) const;
@@ -117,7 +118,7 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
   double boltz,ftm2v;
   double special_lj[4];
 
-  virtual void allocate();
+  void allocate() override;
 
   Kokkos::DualView<params_dpd**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_dpd**,

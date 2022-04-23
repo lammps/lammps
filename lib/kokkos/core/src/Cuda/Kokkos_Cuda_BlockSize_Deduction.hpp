@@ -134,13 +134,18 @@ inline int cuda_deduce_block_size(bool early_termination,
     }
 
     if (blocks_per_sm >= min_blocks_per_sm) {
-      if (threads_per_sm >= opt_threads_per_sm) {
+      // The logic prefers smaller block sizes over larger ones to
+      // give more flexibility to the scheduler.
+      // But don't go below 128 where performance suffers significantly
+      // for simple copy/set kernels.
+      if ((threads_per_sm > opt_threads_per_sm) ||
+          ((block_size >= 128) && (threads_per_sm == opt_threads_per_sm))) {
         opt_block_size     = block_size;
         opt_threads_per_sm = threads_per_sm;
       }
     }
 
-    if (early_termination && blocks_per_sm != 0) break;
+    if (early_termination && opt_block_size != 0) break;
   }
 
   return opt_block_size;
@@ -222,7 +227,8 @@ inline size_t get_shmem_per_sm_prefer_l1(cudaDeviceProp const& properties) {
       case 52:
       case 61: return 96;
       case 70:
-      case 80: return 8;
+      case 80:
+      case 86: return 8;
       case 75: return 32;
       default:
         Kokkos::Impl::throw_runtime_exception(

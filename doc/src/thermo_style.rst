@@ -10,13 +10,14 @@ Syntax
 
    thermo_style style args
 
-* style = *one* or *multi* or *custom*
+* style = *one* or *multi* or *yaml* or *custom*
 * args = list of arguments for a particular style
 
   .. parsed-literal::
 
        *one* args = none
        *multi* args = none
+       *yaml* args = none
        *custom* args = list of keywords
          possible keywords = step, elapsed, elaplong, dt, time,
                              cpu, tpcpu, spcpu, cpuremain, part, timeremain,
@@ -92,6 +93,8 @@ Examples
 .. code-block:: LAMMPS
 
    thermo_style multi
+   thermo_style yaml
+   thermo_style one
    thermo_style custom step temp pe etotal press vol
    thermo_style custom step temp etotal c_myTemp v_abc
    thermo_style custom step temp etotal c_myTemp[*] v_abc
@@ -99,17 +102,34 @@ Examples
 Description
 """""""""""
 
-Set the style and content for printing thermodynamic data to the
-screen and log file.
+Set the style and content for printing thermodynamic data to the screen
+and log files.
 
-Style *one* prints a one-line summary of thermodynamic info that is
-the equivalent of "thermo_style custom step temp epair emol etotal
-press".  The line contains only numeric values.
+Style *one* prints a single line of thermodynamic info that is the
+equivalent of "thermo_style custom step temp epair emol etotal press".
+The line contains only numeric values.
 
 Style *multi* prints a multiple-line listing of thermodynamic info
 that is the equivalent of "thermo_style custom etotal ke temp pe ebond
 eangle edihed eimp evdwl ecoul elong press".  The listing contains
 numeric values and a string ID for each quantity.
+
+.. versionadded:: 24Mar2022
+
+Style *yaml* is similar to style *one* but prints the output in `YAML
+<https://yaml.org/>`_ format which can be easily read by a variety of
+script languages and data handling packages.  Since LAMMPS may print
+other output before, after, or in between thermodynamic output, the
+YAML format content needs to be separated from the rest.  All YAML
+format thermodynamic output can be matched with a regular expression
+and can thus be extracted with commands like ``egrep`` as follows:
+
+.. code-block:: sh
+
+   egrep  '^(keywords:|data:$|---$|\.\.\.$|  - \[)' log.lammps > log.yaml
+
+Information about processing such YAML files is in the :doc:`structured
+data output howto <Howto_structured_data>`.
 
 Style *custom* is the most general setting and allows you to specify
 which of the keywords listed above you want printed on each
@@ -117,7 +137,7 @@ thermodynamic timestep.  Note that the keywords c_ID, f_ID, v_name are
 references to :doc:`computes <compute>`, :doc:`fixes <fix>`, and
 equal-style :doc:`variables <variable>` that have been defined elsewhere
 in the input script or can even be new styles which users have added
-to LAMMPS.  See the :doc:`Modify <Modify>` doc page for details on the
+to LAMMPS.  See the :doc:`Modify <Modify>` page for details on the
 latter.  Thus the *custom* style provides a flexible means of
 outputting essentially any desired quantity as a simulation proceeds.
 
@@ -218,16 +238,16 @@ to see which ones contribute and whether their default
 A long-range tail correction *etail* for the van der Waals pairwise
 energy will be non-zero only if the :doc:`pair_modify tail
 <pair_modify>` option is turned on.  The *etail* contribution is
-included in *evdwl*\ , *epair*\ , *pe*\ , and *etotal*\ , and the
+included in *evdwl*, *epair*, *pe*, and *etotal*, and the
 corresponding tail correction to the pressure is included in *press*
-and *pxx*\ , *pyy*\ , etc.
+and *pxx*, *pyy*, etc.
 
 ----------
 
 Here is more information on other keywords whose meaning may not be
 clear:
 
-The *step*\ , *elapsed*\ , and *elaplong* keywords refer to timestep
+The *step*, *elapsed*, and *elaplong* keywords refer to timestep
 count.  *Step* is the current timestep, or iteration count when a
 :doc:`minimization <minimize>` is being performed.  *Elapsed* is the
 number of timesteps elapsed since the beginning of this run.
@@ -318,13 +338,13 @@ to reduce the delay factor to insure no force interactions are missed
 by atoms moving beyond the neighbor skin distance before a rebuild
 takes place.
 
-The keywords *cella*\ , *cellb*\ , *cellc*\ , *cellalpha*\ ,
-*cellbeta*\ , *cellgamma*\ , correspond to the usual crystallographic
+The keywords *cella*, *cellb*, *cellc*, *cellalpha*,
+*cellbeta*, *cellgamma*, correspond to the usual crystallographic
 quantities that define the periodic unit cell of a crystal.  See the
-:doc:`Howto triclinic <Howto_triclinic>` doc page for a geometric
+:doc:`Howto triclinic <Howto_triclinic>` page for a geometric
 description of triclinic periodic cells, including a precise
 definition of these quantities in terms of the internal LAMMPS cell
-dimensions *lx*\ , *ly*\ , *lz*\ , *yz*\ , *xz*\ , *xy*\ .
+dimensions *lx*, *ly*, *lz*, *yz*, *xz*, *xy*\ .
 
 ----------
 

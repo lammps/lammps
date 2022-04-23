@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(freeze,FixFreeze)
-
+// clang-format off
+FixStyle(freeze,FixFreeze);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_FREEZE_H
@@ -27,19 +27,19 @@ namespace LAMMPS_NS {
 class FixFreeze : public Fix {
  public:
   FixFreeze(class LAMMPS *, int, char **);
-  int setmask();
-  void init();
-  void setup(int);
-  void post_force(int);
-  void post_force_respa(int, int, int);
-  double compute_vector(int);
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  double compute_vector(int) override;
 
  protected:
   int force_flag;
-  double foriginal[3],foriginal_all[3];
+  double foriginal[3], foriginal_all[3];
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

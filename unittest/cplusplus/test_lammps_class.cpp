@@ -1,13 +1,17 @@
 // unit tests for the LAMMPS base class
 
+#include "comm.h"
+#include "info.h"
 #include "lammps.h"
-#include <cstdio> // for stdin, stdout
+#include <cstdio>  // for stdin, stdout
+#include <cstdlib> // for setenv
 #include <mpi.h>
 #include <string>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+using ::testing::ContainsRegex;
 using ::testing::StartsWith;
 
 namespace LAMMPS_NS {
@@ -86,14 +90,14 @@ TEST_F(LAMMPS_plain, InitMembers)
     EXPECT_EQ(lmp->memoryKK, nullptr);
     EXPECT_NE(lmp->python, nullptr);
     EXPECT_EQ(lmp->citeme, nullptr);
-    if (LAMMPS::has_git_info) {
-        EXPECT_STRNE(LAMMPS::git_commit, "");
-        EXPECT_STRNE(LAMMPS::git_branch, "");
-        EXPECT_STRNE(LAMMPS::git_descriptor, "");
+    if (LAMMPS::has_git_info()) {
+        EXPECT_STRNE(LAMMPS::git_commit(), "");
+        EXPECT_STRNE(LAMMPS::git_branch(), "");
+        EXPECT_STRNE(LAMMPS::git_descriptor(), "");
     } else {
-        EXPECT_STREQ(LAMMPS::git_commit, "(unknown)");
-        EXPECT_STREQ(LAMMPS::git_branch, "(unknown)");
-        EXPECT_STREQ(LAMMPS::git_descriptor, "(unknown)");
+        EXPECT_STREQ(LAMMPS::git_commit(), "(unknown)");
+        EXPECT_STREQ(LAMMPS::git_branch(), "(unknown)");
+        EXPECT_STREQ(LAMMPS::git_descriptor(), "(unknown)");
     }
 }
 
@@ -104,21 +108,22 @@ TEST_F(LAMMPS_plain, TestStyles)
     const char *found;
 
     const char *atom_styles[] = {"atomic", "body",   "charge", "ellipsoid", "hybrid",
-                                 "line",   "sphere", "tri",    NULL};
-    for (int i = 0; atom_styles[i] != NULL; ++i) {
+                                 "line",   "sphere", "tri",    nullptr};
+    for (int i = 0; atom_styles[i] != nullptr; ++i) {
         found = lmp->match_style("atom", atom_styles[i]);
-        EXPECT_STREQ(found, NULL);
+        EXPECT_STREQ(found, nullptr);
     }
 
-    const char *molecule_atom_styles[] = {"angle", "bond", "full", "molecular", "template", NULL};
-    for (int i = 0; molecule_atom_styles[i] != NULL; ++i) {
+    const char *molecule_atom_styles[] = {"angle",     "bond",     "full",
+                                          "molecular", "template", nullptr};
+    for (int i = 0; molecule_atom_styles[i] != nullptr; ++i) {
         found = lmp->match_style("atom", molecule_atom_styles[i]);
         EXPECT_STREQ(found, "MOLECULE");
     }
 
     const char *kokkos_atom_styles[] = {"angle/kk",     "bond/kk",   "full/kk",
-                                        "molecular/kk", "hybrid/kk", NULL};
-    for (int i = 0; kokkos_atom_styles[i] != NULL; ++i) {
+                                        "molecular/kk", "hybrid/kk", nullptr};
+    for (int i = 0; kokkos_atom_styles[i] != nullptr; ++i) {
         found = lmp->match_style("atom", kokkos_atom_styles[i]);
         EXPECT_STREQ(found, "KOKKOS");
     }
@@ -129,23 +134,23 @@ TEST_F(LAMMPS_plain, TestStyles)
     found = lmp->match_style("atom", "spin");
     EXPECT_STREQ(found, "SPIN");
     found = lmp->match_style("atom", "wavepacket");
-    EXPECT_STREQ(found, "USER-AWPMD");
+    EXPECT_STREQ(found, "AWPMD");
     found = lmp->match_style("atom", "dpd");
-    EXPECT_STREQ(found, "USER-DPD");
+    EXPECT_STREQ(found, "DPD-REACT");
     found = lmp->match_style("atom", "edpd");
-    EXPECT_STREQ(found, "USER-MESODPD");
+    EXPECT_STREQ(found, "DPD-MESO");
     found = lmp->match_style("atom", "mdpd");
-    EXPECT_STREQ(found, "USER-MESODPD");
+    EXPECT_STREQ(found, "DPD-MESO");
     found = lmp->match_style("atom", "tdpd");
-    EXPECT_STREQ(found, "USER-MESODPD");
+    EXPECT_STREQ(found, "DPD-MESO");
     found = lmp->match_style("atom", "spin");
     EXPECT_STREQ(found, "SPIN");
     found = lmp->match_style("atom", "smd");
-    EXPECT_STREQ(found, "USER-SMD");
+    EXPECT_STREQ(found, "MACHDYN");
     found = lmp->match_style("atom", "sph");
-    EXPECT_STREQ(found, "USER-SPH");
+    EXPECT_STREQ(found, "SPH");
     found = lmp->match_style("atom", "i_don't_exist");
-    EXPECT_STREQ(found, NULL);
+    EXPECT_STREQ(found, nullptr);
 }
 
 // test fixture for OpenMP with 2 threads
@@ -172,9 +177,9 @@ protected:
         char **argv        = (char **)args;
         int argc           = sizeof(args) / sizeof(char *);
 
-        // only run this test fixture with omp suffix if USER-OMP package is installed
+        // only run this test fixture with omp suffix if OPENMP package is installed
 
-        if (LAMMPS::is_installed_pkg("USER-OMP"))
+        if (LAMMPS::is_installed_pkg("OPENMP"))
             lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
         else
             GTEST_SKIP();
@@ -220,18 +225,18 @@ TEST_F(LAMMPS_omp, InitMembers)
     EXPECT_EQ(lmp->memoryKK, nullptr);
     EXPECT_NE(lmp->python, nullptr);
     EXPECT_NE(lmp->citeme, nullptr);
-    if (LAMMPS::has_git_info) {
-        EXPECT_STRNE(LAMMPS::git_commit, "");
-        EXPECT_STRNE(LAMMPS::git_branch, "");
-        EXPECT_STRNE(LAMMPS::git_descriptor, "");
+    if (LAMMPS::has_git_info()) {
+        EXPECT_STRNE(LAMMPS::git_commit(), "");
+        EXPECT_STRNE(LAMMPS::git_branch(), "");
+        EXPECT_STRNE(LAMMPS::git_descriptor(), "");
     } else {
-        EXPECT_STREQ(LAMMPS::git_commit, "(unknown)");
-        EXPECT_STREQ(LAMMPS::git_branch, "(unknown)");
-        EXPECT_STREQ(LAMMPS::git_descriptor, "(unknown)");
+        EXPECT_STREQ(LAMMPS::git_commit(), "(unknown)");
+        EXPECT_STREQ(LAMMPS::git_branch(), "(unknown)");
+        EXPECT_STREQ(LAMMPS::git_descriptor(), "(unknown)");
     }
 }
 
-// test fixture for Kokkos tests
+// test fixture for Kokkos using 2 threads if threading is available
 class LAMMPS_kokkos : public ::testing::Test {
 protected:
     LAMMPS *lmp;
@@ -251,18 +256,15 @@ protected:
     void SetUp() override
     {
         const char *args[] = {"LAMMPS_test", "-log", "none", "-echo", "none", "-screen", "none",
-                              "-k",          "on",   "t",    "2",     "-sf",  "kk"};
-        char **argv        = (char **)args;
-        int argc           = sizeof(args) / sizeof(char *);
-
-        // only run this test fixture with kk suffix if KOKKOS package is installed
-        // also need to figure out a way to find which parallelizations are enabled
+                              "-k",          "on",   "t",    "1",     "-sf",  "kk"};
+        if (Info::has_accelerator_feature("KOKKOS", "api", "openmp")) args[10] = "2";
+        char **argv = (char **)args;
+        int argc    = sizeof(args) / sizeof(char *);
 
         if (LAMMPS::is_installed_pkg("KOKKOS")) {
             ::testing::internal::CaptureStdout();
-            lmp                = new LAMMPS(argc, argv, MPI_COMM_WORLD);
-            std::string output = ::testing::internal::GetCapturedStdout();
-            EXPECT_THAT(output, StartsWith("Kokkos::OpenMP::"));
+            lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+            ::testing::internal::GetCapturedStdout();
         } else
             GTEST_SKIP();
     }
@@ -302,34 +304,81 @@ TEST_F(LAMMPS_kokkos, InitMembers)
     EXPECT_EQ(lmp->num_package, 0);
     EXPECT_EQ(lmp->clientserver, 0);
 
+    if (Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
+        EXPECT_EQ(lmp->comm->nthreads, 2);
+    else
+        EXPECT_EQ(lmp->comm->nthreads, 1);
     EXPECT_NE(lmp->kokkos, nullptr);
     EXPECT_NE(lmp->atomKK, nullptr);
     EXPECT_NE(lmp->memoryKK, nullptr);
     EXPECT_NE(lmp->python, nullptr);
     EXPECT_NE(lmp->citeme, nullptr);
-    if (LAMMPS::has_git_info) {
-        EXPECT_STRNE(LAMMPS::git_commit, "");
-        EXPECT_STRNE(LAMMPS::git_branch, "");
-        EXPECT_STRNE(LAMMPS::git_descriptor, "");
+    if (LAMMPS::has_git_info()) {
+        EXPECT_STRNE(LAMMPS::git_commit(), "");
+        EXPECT_STRNE(LAMMPS::git_branch(), "");
+        EXPECT_STRNE(LAMMPS::git_descriptor(), "");
     } else {
-        EXPECT_STREQ(LAMMPS::git_commit, "(unknown)");
-        EXPECT_STREQ(LAMMPS::git_branch, "(unknown)");
-        EXPECT_STREQ(LAMMPS::git_descriptor, "(unknown)");
+        EXPECT_STREQ(LAMMPS::git_commit(), "(unknown)");
+        EXPECT_STREQ(LAMMPS::git_branch(), "(unknown)");
+        EXPECT_STREQ(LAMMPS::git_descriptor(), "(unknown)");
     }
 }
 
-// check help message printing
-TEST(LAMMPS_help, HelpMessage)
+TEST(LAMMPS_init, OpenMP)
 {
-    const char *args[] = {"LAMMPS_test", "-h"};
+    if (!LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
+    if (platform::openmp_standard() == "OpenMP not enabled") GTEST_SKIP();
+
+    FILE *fp = fopen("in.lammps_empty", "w");
+    fputs("\n", fp);
+    fclose(fp);
+
+    const char *args[] = {"LAMMPS_init", "-in", "in.lammps_empty", "-log", "none", "-nocite"};
     char **argv        = (char **)args;
     int argc           = sizeof(args) / sizeof(char *);
 
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp        = new LAMMPS(argc, argv, MPI_COMM_WORLD);
     std::string output = ::testing::internal::GetCapturedStdout();
-    EXPECT_THAT(output,
-                StartsWith("\nLarge-scale Atomic/Molecular Massively Parallel Simulator -"));
+    EXPECT_THAT(output, ContainsRegex(".*using 2 OpenMP thread.*per MPI task.*"));
+
+    if (LAMMPS_NS::Info::has_accelerator_feature("OPENMP", "api", "openmp"))
+        EXPECT_EQ(lmp->comm->nthreads, 2);
+    else
+        EXPECT_EQ(lmp->comm->nthreads, 1);
+    ::testing::internal::CaptureStdout();
     delete lmp;
+    ::testing::internal::GetCapturedStdout();
+
+    remove("in.lammps_empty");
 }
+
+// check no OMP_NUM_THREADS warning message printing. this must be the
+// last OpenMP related test as threads will be locked to 1 from here on.
+
+TEST(LAMMPS_init, NoOpenMP)
+{
+    if (!LAMMPS_NS::Info::has_accelerator_feature("OPENMP", "api", "openmp"))
+        GTEST_SKIP() << "No threading enabled";
+
+    FILE *fp = fopen("in.lammps_class_noomp", "w");
+    fputs("\n", fp);
+    fclose(fp);
+    platform::unsetenv("OMP_NUM_THREADS");
+
+    const char *args[] = {"LAMMPS_init", "-in", "in.lammps_class_noomp", "-log", "none", "-nocite"};
+    char **argv        = (char **)args;
+    int argc           = sizeof(args) / sizeof(char *);
+
+    ::testing::internal::CaptureStdout();
+    LAMMPS *lmp        = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+    std::string output = ::testing::internal::GetCapturedStdout();
+    EXPECT_THAT(output, ContainsRegex(
+                            ".*OMP_NUM_THREADS environment is not set.*Defaulting to 1 thread.*"));
+    EXPECT_EQ(lmp->comm->nthreads, 1);
+    ::testing::internal::CaptureStdout();
+    delete lmp;
+    ::testing::internal::GetCapturedStdout();
+}
+
 } // namespace LAMMPS_NS

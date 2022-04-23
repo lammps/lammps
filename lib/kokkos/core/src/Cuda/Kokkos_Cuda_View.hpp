@@ -139,7 +139,7 @@ struct CudaLDGFetch {
 
   template <typename iType>
   KOKKOS_INLINE_FUNCTION ValueType operator[](const iType& i) const {
-#ifdef __CUDA_ARCH__
+#if defined(__CUDA_ARCH__) && (350 <= _CUDA_ARCH__)
     AliasType v = __ldg(reinterpret_cast<const AliasType*>(&m_ptr[i]));
     return *(reinterpret_cast<ValueType*>(&v));
 #else

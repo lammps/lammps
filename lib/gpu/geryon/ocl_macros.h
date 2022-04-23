@@ -5,7 +5,7 @@
 #include <cassert>
 
 #ifndef CL_TARGET_OPENCL_VERSION
-#define CL_TARGET_OPENCL_VERSION 210
+#define CL_TARGET_OPENCL_VERSION 300
 #endif
 
 #ifdef __APPLE__

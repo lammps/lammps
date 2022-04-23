@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,8 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "remap.h"
-#include <mpi.h>
-#include <cstdio>
+
 #include <cstdlib>
 
 #define PACK_DATA FFT_SCALAR
@@ -125,10 +125,8 @@ void remap_3d(FFT_SCALAR *in, FFT_SCALAR *out, FFT_SCALAR *buf,
       for (int i=0;i<plan->nrecv;i++)
         recvBufferSize += plan->recv_size[i];
 
-      FFT_SCALAR *packedSendBuffer
-        = (FFT_SCALAR *) malloc(sizeof(FFT_SCALAR) * sendBufferSize);
-      FFT_SCALAR *packedRecvBuffer
-        = (FFT_SCALAR *) malloc(sizeof(FFT_SCALAR) * recvBufferSize);
+      auto packedSendBuffer = (FFT_SCALAR *) malloc(sizeof(FFT_SCALAR) * sendBufferSize);
+      auto packedRecvBuffer = (FFT_SCALAR *) malloc(sizeof(FFT_SCALAR) * recvBufferSize);
 
       int *sendcnts = (int *) malloc(sizeof(int) * plan->commringlen);
       int *rcvcnts = (int *) malloc(sizeof(int) * plan->commringlen);
@@ -242,7 +240,7 @@ struct remap_plan_3d *remap_3d_create_plan(
   struct remap_plan_3d *plan;
   struct extent_3d *inarray, *outarray;
   struct extent_3d in,out,overlap;
-  int i,iproc,nsend,nrecv,ibuf,size,me,nprocs;
+  int i,j,iproc,nsend,nrecv,ibuf,size,me,nprocs;
 
   // query MPI info
 
@@ -466,14 +464,14 @@ struct remap_plan_3d *remap_3d_create_plan(
     int *commringlist = (int *) malloc(maxcommsize*sizeof(int));
     int commringlen = 0;
 
-    for (int i = 0; i < nrecv; i++) {
+    for (i = 0; i < nrecv; i++) {
       commringlist[i] = plan->recv_proc[i];
       commringlen++;
     }
 
-    for (int i = 0; i < nsend; i++) {
+    for (i = 0; i < nsend; i++) {
       int foundentry = 0;
-      for (int j=0;j<commringlen;j++)
+      for (j = 0; j < commringlen;j++)
         if (commringlist[j] == plan->send_proc[i]) foundentry = 1;
       if (!foundentry) {
         commringlist[commringlen] = plan->send_proc[i];
@@ -484,12 +482,12 @@ struct remap_plan_3d *remap_3d_create_plan(
     // sort initial commringlist
 
     int swap = 0;
-    for (int c = 0 ; c < (commringlen - 1); c++) {
-      for (int d = 0 ; d < commringlen - c - 1; d++) {
-        if (commringlist[d] > commringlist[d+1]) {
-          swap = commringlist[d];
-          commringlist[d]   = commringlist[d+1];
-          commringlist[d+1] = swap;
+    for (i = 0 ; i < (commringlen - 1); i++) {
+      for (j = 0 ; j < commringlen - i - 1; j++) {
+        if (commringlist[j] > commringlist[j+1]) {
+          swap = commringlist[j];
+          commringlist[j]   = commringlist[j+1];
+          commringlist[j+1] = swap;
         }
       }
     }
@@ -503,12 +501,12 @@ struct remap_plan_3d *remap_3d_create_plan(
     while (commringappend) {
       int newcommringlen = commringlen;
       commringappend = 0;
-      for (int i=0;i<commringlen;i++) {
-        for (int j=0;j<nprocs;j++) {
+      for (i = 0; i < commringlen; i++) {
+        for (j = 0; j < nprocs; j++) {
           if (remap_3d_collide(&inarray[commringlist[i]],
                                &outarray[j],&overlap)) {
             int alreadyinlist = 0;
-            for (int k=0;k<newcommringlen;k++) {
+            for (int k = 0; k < newcommringlen; k++) {
               if (commringlist[k] == j) {
                 alreadyinlist = 1;
               }
@@ -521,7 +519,7 @@ struct remap_plan_3d *remap_3d_create_plan(
           if (remap_3d_collide(&outarray[commringlist[i]],
                                &inarray[j],&overlap)) {
             int alreadyinlist = 0;
-            for (int k=0;k<newcommringlen;k++) {
+            for (int k = 0 ; k < newcommringlen; k++) {
               if (commringlist[k] == j) alreadyinlist = 1;
             }
             if (!alreadyinlist) {
@@ -536,12 +534,12 @@ struct remap_plan_3d *remap_3d_create_plan(
 
     // sort the final commringlist
 
-    for (int c = 0 ; c < ( commringlen - 1 ); c++) {
-      for (int d = 0 ; d < commringlen - c - 1; d++) {
-        if (commringlist[d] > commringlist[d+1]) {
-          swap = commringlist[d];
-          commringlist[d]   = commringlist[d+1];
-          commringlist[d+1] = swap;
+    for (i = 0 ; i < ( commringlen - 1 ); i++) {
+      for (j = 0 ; j < commringlen - i - 1; j++) {
+        if (commringlist[j] > commringlist[j+1]) {
+          swap = commringlist[j];
+          commringlist[j]   = commringlist[j+1];
+          commringlist[j+1] = swap;
         }
       }
     }

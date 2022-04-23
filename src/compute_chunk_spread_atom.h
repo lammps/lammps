@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(chunk/spread/atom,ComputeChunkSpreadAtom)
-
+// clang-format off
+ComputeStyle(chunk/spread/atom,ComputeChunkSpreadAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_CHUNK_SPREAD_ATOM_H
@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 class ComputeChunkSpreadAtom : public Compute {
  public:
   ComputeChunkSpreadAtom(class LAMMPS *, int, char **);
-  ~ComputeChunkSpreadAtom();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeChunkSpreadAtom() override;
+  void init() override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  protected:
-  int mode,nvalues;
+  int mode, nvalues;
   char *idchunk;
   char **ids;
-  int *which,*argindex,*value2index;
+  int *which, *argindex, *value2index;
 
   int nmax;
   class ComputeChunkAtom *cchunk;
@@ -44,7 +44,7 @@ class ComputeChunkSpreadAtom : public Compute {
   void init_chunk();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

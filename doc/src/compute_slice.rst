@@ -44,9 +44,9 @@ quantities; they cannot be per-atom or local quantities.
 group specified with this command is ignored.
 
 The values extracted from the input vector(s) are determined by the
-*Nstart*\ , *Nstop*\ , and *Nskip* parameters.  The elements of an input
+*Nstart*, *Nstop*, and *Nskip* parameters.  The elements of an input
 vector of length N are indexed from 1 to N.  Starting at element
-*Nstart*\ , every Mth element is extracted, where M = *Nskip*\ , until
+*Nstart*, every Mth element is extracted, where M = *Nskip*, until
 element *Nstop* is reached.  The extracted quantities are stored as a
 vector, which is typically shorter than the input vector.
 
@@ -65,7 +65,7 @@ used.  Users can also write code for their own compute styles and :doc:`add them
 
 If a value begins with "f\_", a fix ID must follow which has been
 previously defined in the input script and which generates a global
-vector or array.  See the individual :doc:`fix <fix>` doc page for
+vector or array.  See the individual :doc:`fix <fix>` page for
 details.  Note that some fixes only produce their values on certain
 timesteps, which must be compatible with when compute slice references
 the values, else an error results.  If no bracketed integer is
@@ -97,7 +97,7 @@ specified or a global array with N columns where N is the number of
 inputs.  The length of the vector or the number of rows in the array
 is equal to the number of values extracted from each input vector.
 These values can be used by any command that uses global vector or
-array values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+array values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 The vector or array values calculated by this compute are simply

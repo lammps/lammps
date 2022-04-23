@@ -122,9 +122,9 @@ the run command. This fix is not invoked during energy minimization.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MISC package. It is only enabled if
+This fix is part of the ORIENT package. It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 
 Related commands

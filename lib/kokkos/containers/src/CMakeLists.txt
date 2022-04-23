@@ -26,8 +26,6 @@ KOKKOS_ADD_LIBRARY(
   HEADERS ${KOKKOS_CONTAINER_HEADERS}
 )
 
-SET_TARGET_PROPERTIES(kokkoscontainers PROPERTIES VERSION ${Kokkos_VERSION})
-
 KOKKOS_LIB_INCLUDE_DIRECTORIES(kokkoscontainers
   ${KOKKOS_TOP_BUILD_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
@@ -36,4 +34,3 @@ KOKKOS_LIB_INCLUDE_DIRECTORIES(kokkoscontainers
 KOKKOS_LINK_INTERNAL_LIBRARY(kokkoscontainers kokkoscore)
 
 #-----------------------------------------------------------------------------
-

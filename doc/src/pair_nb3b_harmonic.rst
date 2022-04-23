@@ -30,7 +30,7 @@ energy E of a system of atoms as
 
 where :math:`\theta_0` is the equilibrium value of the angle and *K* is a
 prefactor. Note that the usual 1/2 factor is included in *K*\ . The form
-of the potential is identical to that used in angle_style *harmonic*\ ,
+of the potential is identical to that used in angle_style *harmonic*,
 but in this case, the atoms do not need to be explicitly bonded.
 
 Only a single pair_coeff command is used with this style which
@@ -42,7 +42,7 @@ number of LAMMPS atom types:
 * filename
 * N element names = mapping of elements to atom types
 
-See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the potential file.
 
 As an example, imagine a file SiC.nb3b.harmonic has potential values
@@ -100,7 +100,7 @@ Restrictions
 """"""""""""
 
 This pair style can only be used if LAMMPS was built with the MANYBODY
-package.  See the :doc:`Build package <Build_package>` doc page for more
+package.  See the :doc:`Build package <Build_package>` page for more
 info.
 
 Related commands

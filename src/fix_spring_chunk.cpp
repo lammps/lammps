@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -49,13 +50,8 @@ FixSpringChunk::FixSpringChunk(LAMMPS *lmp, int narg, char **arg) :
 
   k_spring = utils::numeric(FLERR,arg[3],false,lmp);
 
-  int n = strlen(arg[4]) + 1;
-  idchunk = new char[n];
-  strcpy(idchunk,arg[4]);
-
-  n = strlen(arg[5]) + 1;
-  idcom = new char[n];
-  strcpy(idcom,arg[5]);
+  idchunk = utils::strdup(arg[4]);
+  idcom = utils::strdup(arg[5]);
 
   esprings = 0.0;
   nchunk = 0;
@@ -72,7 +68,7 @@ FixSpringChunk::~FixSpringChunk()
 
   int icompute = modify->find_compute(idchunk);
   if (icompute >= 0) {
-    cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+    cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
     cchunk->unlock(this);
     cchunk->lockcount--;
   }
@@ -101,14 +97,14 @@ void FixSpringChunk::init()
   int icompute = modify->find_compute(idchunk);
   if (icompute < 0)
     error->all(FLERR,"Chunk/atom compute does not exist for fix spring/chunk");
-  cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
   if (strcmp(cchunk->style,"chunk/atom") != 0)
     error->all(FLERR,"Fix spring/chunk does not use chunk/atom compute");
 
   icompute = modify->find_compute(idcom);
   if (icompute < 0)
     error->all(FLERR,"Com/chunk compute does not exist for fix spring/chunk");
-  ccom = (ComputeCOMChunk *) modify->compute[icompute];
+  ccom = dynamic_cast<ComputeCOMChunk *>( modify->compute[icompute]);
   if (strcmp(ccom->style,"com/chunk") != 0)
     error->all(FLERR,"Fix spring/chunk does not use com/chunk compute");
 
@@ -117,8 +113,8 @@ void FixSpringChunk::init()
   if (strcmp(idchunk,ccom->idchunk) != 0)
     error->all(FLERR,"Fix spring chunk chunkID not same as comID chunkID");
 
-  if (strstr(update->integrate_style,"respa")) {
-    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
+  if (utils::strmatch(update->integrate_style,"^respa")) {
+    ilevel_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
 }
@@ -127,12 +123,12 @@ void FixSpringChunk::init()
 
 void FixSpringChunk::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
+    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(ilevel_respa);
     post_force_respa(vflag,ilevel_respa,0);
-    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
+    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(ilevel_respa);
   }
 }
 
@@ -266,7 +262,7 @@ void FixSpringChunk::write_restart(FILE *fp)
 
 void FixSpringChunk::restart(char *buf)
 {
-  double *list = (double *) buf;
+  auto list = (double *) buf;
   int n = list[0];
 
   memory->destroy(com0);
@@ -275,7 +271,7 @@ void FixSpringChunk::restart(char *buf)
   int icompute = modify->find_compute(idchunk);
   if (icompute < 0)
     error->all(FLERR,"Chunk/atom compute does not exist for fix spring/chunk");
-  cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
   if (strcmp(cchunk->style,"chunk/atom") != 0)
     error->all(FLERR,"Fix spring/chunk does not use chunk/atom compute");
   nchunk = cchunk->setup_chunks();

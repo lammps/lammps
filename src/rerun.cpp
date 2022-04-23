@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -29,7 +30,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Rerun::Rerun(LAMMPS *lmp) : Pointers(lmp) {}
+Rerun::Rerun(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -51,6 +52,7 @@ void Rerun::command(int narg, char **arg)
     if (strcmp(arg[iarg],"start") == 0) break;
     if (strcmp(arg[iarg],"stop") == 0) break;
     if (strcmp(arg[iarg],"dump") == 0) break;
+    if (strcmp(arg[iarg],"post") == 0) break;
     iarg++;
   }
   int nfile = iarg;
@@ -65,6 +67,7 @@ void Rerun::command(int narg, char **arg)
   int nskip = 1;
   int startflag = 0;
   int stopflag = 0;
+  int postflag = 0;
   bigint start = -1;
   bigint stop = -1;
 
@@ -101,6 +104,10 @@ void Rerun::command(int narg, char **arg)
       stop = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
       if (stop < 0) error->all(FLERR,"Illegal rerun command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"post") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
+      postflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
     } else if (strcmp(arg[iarg],"dump") == 0) {
       break;
     } else error->all(FLERR,"Illegal rerun command");
@@ -115,7 +122,7 @@ void Rerun::command(int narg, char **arg)
   // pass list of filenames to ReadDump
   // along with post-"dump" args and post-"format" args
 
-  ReadDump *rd = new ReadDump(lmp);
+  auto rd = new ReadDump(lmp);
 
   rd->store_files(nfile,arg);
   if (nremain)
@@ -149,10 +156,10 @@ void Rerun::command(int narg, char **arg)
   if (ntimestep < 0)
     error->all(FLERR,"Rerun dump file does not contain requested snapshot");
 
-  while (1) {
+  while (true) {
     ndump++;
     rd->header(firstflag);
-    update->reset_timestep(ntimestep);
+    update->reset_timestep(ntimestep, false);
     rd->atoms();
 
     modify->init();
@@ -182,7 +189,7 @@ void Rerun::command(int narg, char **arg)
   update->nsteps = ndump;
 
   Finish finish(lmp);
-  finish.end(1);
+  finish.end(postflag);
 
   update->whichflag = 0;
   update->firststep = update->laststep = 0;

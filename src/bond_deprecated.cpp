@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -34,7 +35,7 @@ void BondDeprecated::settings(int, char **)
   // called, our style was just added at the end of the list of substyles
 
   if (utils::strmatch(my_style,"^hybrid")) {
-    BondHybrid *hybrid = (BondHybrid *)force->bond;
+    auto hybrid = dynamic_cast<BondHybrid *>(force->bond);
     my_style = hybrid->keywords[hybrid->nstyles];
   }
 

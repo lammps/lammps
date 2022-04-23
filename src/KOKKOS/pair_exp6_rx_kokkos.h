@@ -1,6 +1,6 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(exp6/rx/kk,PairExp6rxKokkos<LMPDeviceType>)
-PairStyle(exp6/rx/kk/device,PairExp6rxKokkos<LMPDeviceType>)
-PairStyle(exp6/rx/kk/host,PairExp6rxKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(exp6/rx/kk,PairExp6rxKokkos<LMPDeviceType>);
+PairStyle(exp6/rx/kk/device,PairExp6rxKokkos<LMPDeviceType>);
+PairStyle(exp6/rx/kk/host,PairExp6rxKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_EXP6_RX_KOKKOS_H
 #define LMP_PAIR_EXP6_RX_KOKKOS_H
 
@@ -44,7 +45,7 @@ struct PairExp6ParamDataTypeKokkos
           epsilonOld2, alphaOld2, rmOld2, mixWtSite2old;
 
    // Default constructor -- nullify everything.
-   PairExp6ParamDataTypeKokkos<DeviceType>(void)
+   PairExp6ParamDataTypeKokkos()
       : n(0)
    {}
 };
@@ -62,7 +63,7 @@ struct PairExp6ParamDataTypeKokkosVect
                            nTotalold;
 
    // Default constructor -- nullify everything.
-   PairExp6ParamDataTypeKokkosVect<DeviceType>(void)
+   PairExp6ParamDataTypeKokkosVect()
    {}
 };
 
@@ -86,10 +87,10 @@ class PairExp6rxKokkos : public PairExp6rx {
   typedef EV_FLOAT value_type;
 
   PairExp6rxKokkos(class LAMMPS *);
-  virtual ~PairExp6rxKokkos();
-  void compute(int, int);
-  void coeff(int, char **);
-  void init_style();
+  ~PairExp6rxKokkos() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void init_style() override;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairExp6rxZeroMixingWeights, const int&) const;
@@ -164,7 +165,7 @@ class PairExp6rxKokkos : public PairExp6rx {
   PairExp6ParamDataTypeKokkos<DeviceType> PairExp6ParamData;
   PairExp6ParamDataTypeKokkosVect<DeviceType> PairExp6ParamDataVect;
 
-  void allocate();
+  void allocate() override;
   DAT::tdual_int_1d k_mol2param;               // mapping from molecule to parameters
   typename AT::t_int_1d_randomread d_mol2param;
 
@@ -177,8 +178,8 @@ class PairExp6rxKokkos : public PairExp6rx {
   typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cutsq;
   typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq;
 
-  void read_file(char *);
-  void setup();
+  void read_file(char *) override;
+  void setup() override;
 
   KOKKOS_INLINE_FUNCTION
   void getMixingWeights(int, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &) const;

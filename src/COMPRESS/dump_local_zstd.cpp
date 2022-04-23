@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,34 +18,24 @@
 #ifdef LAMMPS_ZSTD
 
 #include "dump_local_zstd.h"
+
 #include "domain.h"
 #include "error.h"
+#include "file_writer.h"
 #include "update.h"
-
 
 #include <cstring>
 
-
 using namespace LAMMPS_NS;
 
-DumpLocalZstd::DumpLocalZstd(LAMMPS *lmp, int narg, char **arg) :
-  DumpLocal(lmp, narg, arg)
+DumpLocalZstd::DumpLocalZstd(LAMMPS *lmp, int narg, char **arg) : DumpLocal(lmp, narg, arg)
 {
-  if (!compressed)
-    error->all(FLERR,"Dump local/zstd only writes compressed files");
+  if (!compressed) error->all(FLERR, "Dump local/zstd only writes compressed files");
 }
-
-
-/* ---------------------------------------------------------------------- */
-
-DumpLocalZstd::~DumpLocalZstd()
-{
-}
-
 
 /* ----------------------------------------------------------------------
    generic opening of a dump file
-   ASCII or binary or gzipped
+   ASCII or binary or compressed
    some derived classes override this function
 ------------------------------------------------------------------------- */
 
@@ -62,30 +52,17 @@ void DumpLocalZstd::openfile()
   if (multiproc) filecurrent = multiname;
 
   if (multifile) {
-    char *filestar = filecurrent;
-    filecurrent = new char[strlen(filestar) + 16];
-    char *ptr = strchr(filestar,'*');
-    *ptr = '\0';
-    if (padflag == 0)
-      sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
-              filestar,update->ntimestep,ptr+1);
-    else {
-      char bif[8],pad[16];
-      strcpy(bif,BIGINT_FORMAT);
-      sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
-      sprintf(filecurrent,pad,filestar,update->ntimestep,ptr+1);
-    }
-    *ptr = '*';
+    filecurrent = utils::strdup(utils::star_subst(filecurrent, update->ntimestep, padflag));
     if (maxfiles > 0) {
       if (numfiles < maxfiles) {
-        nameslist[numfiles] = new char[strlen(filecurrent)+1];
-        strcpy(nameslist[numfiles],filecurrent);
+        nameslist[numfiles] = utils::strdup(filecurrent);
         ++numfiles;
       } else {
-        remove(nameslist[fileidx]);
+        if (remove(nameslist[fileidx]) != 0) {
+          error->warning(FLERR, "Could not delete {}", nameslist[fileidx]);
+        }
         delete[] nameslist[fileidx];
-        nameslist[fileidx] = new char[strlen(filecurrent)+1];
-        strcpy(nameslist[fileidx],filecurrent);
+        nameslist[fileidx] = utils::strdup(filecurrent);
         fileidx = (fileidx + 1) % maxfiles;
       }
     }
@@ -94,9 +71,7 @@ void DumpLocalZstd::openfile()
   // each proc with filewriter = 1 opens a file
 
   if (filewriter) {
-    if (append_flag) {
-      error->one(FLERR, "dump cfg/zstd currently doesn't support append");
-    }
+    if (append_flag) { error->one(FLERR, "dump cfg/zstd currently doesn't support append"); }
 
     try {
       writer.open(filecurrent);
@@ -107,7 +82,7 @@ void DumpLocalZstd::openfile()
 
   // delete string with timestep replaced
 
-  if (multifile) delete [] filecurrent;
+  if (multifile) delete[] filecurrent;
 }
 
 void DumpLocalZstd::write_header(bigint ndump)
@@ -117,12 +92,10 @@ void DumpLocalZstd::write_header(bigint ndump)
   if ((multiproc) || (!multiproc && me == 0)) {
     if (unit_flag && !unit_count) {
       ++unit_count;
-      header = fmt::format("ITEM: UNITS\n{}\n",update->unit_style);
+      header = fmt::format("ITEM: UNITS\n{}\n", update->unit_style);
     }
 
-    if (time_flag) {
-      header += fmt::format("ITEM: TIME\n{0:.16g}\n", compute_time());
-    }
+    if (time_flag) { header += fmt::format("ITEM: TIME\n{0:.16g}\n", compute_time()); }
 
     header += fmt::format("ITEM: TIMESTEP\n{}\n", update->ntimestep);
     header += fmt::format("ITEM: NUMBER OF {}\n{}\n", label, ndump);
@@ -147,7 +120,35 @@ void DumpLocalZstd::write_header(bigint ndump)
 
 void DumpLocalZstd::write_data(int n, double *mybuf)
 {
-  writer.write(mybuf, sizeof(char)*n);
+  if (buffer_flag == 1) {
+    writer.write(mybuf, sizeof(char) * n);
+  } else {
+    constexpr size_t VBUFFER_SIZE = 256;
+    char vbuffer[VBUFFER_SIZE];
+    int m = 0;
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < size_one; j++) {
+        int written = 0;
+        if (vtype[j] == Dump::INT) {
+          written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<int>(mybuf[m]));
+        } else if (vtype[j] == Dump::DOUBLE) {
+          written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], mybuf[m]);
+        } else if (vtype[j] == Dump::BIGINT) {
+          written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<bigint>(mybuf[m]));
+        } else {
+          written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], mybuf[m]);
+        }
+
+        if (written > 0) {
+          writer.write(vbuffer, written);
+        } else if (written < 0) {
+          error->one(FLERR, "Error while writing dump local/gz output");
+        }
+        m++;
+      }
+      writer.write("\n", 1);
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -159,9 +160,7 @@ void DumpLocalZstd::write()
     if (multifile) {
       writer.close();
     } else {
-      if (flush_flag && writer.isopen()) {
-        writer.flush();
-      }
+      if (flush_flag && writer.isopen()) { writer.flush(); }
     }
   }
 }
@@ -173,20 +172,17 @@ int DumpLocalZstd::modify_param(int narg, char **arg)
   int consumed = DumpLocal::modify_param(narg, arg);
   if (consumed == 0) {
     try {
-      if (strcmp(arg[0],"checksum") == 0) {
-        if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-        if (strcmp(arg[1],"yes") == 0) writer.setChecksum(true);
-        else if (strcmp(arg[1],"no") == 0) writer.setChecksum(false);
-        else error->all(FLERR,"Illegal dump_modify command");
+      if (strcmp(arg[0], "checksum") == 0) {
+        if (narg < 2) error->all(FLERR, "Illegal dump_modify command");
+        writer.setChecksum(utils::logical(FLERR, arg[1], false, lmp) == 1);
         return 2;
-      } else if (strcmp(arg[0],"compression_level") == 0) {
-        if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-        int compression_level = utils::inumeric(FLERR, arg[1], false, lmp);
-        writer.setCompressionLevel(compression_level);
+      } else if (strcmp(arg[0], "compression_level") == 0) {
+        if (narg < 2) error->all(FLERR, "Illegal dump_modify command");
+        writer.setCompressionLevel(utils::inumeric(FLERR, arg[1], false, lmp));
         return 2;
       }
     } catch (FileWriterException &e) {
-      error->one(FLERR, e.what());
+      error->one(FLERR, "Illegal dump_modify command: {}", e.what());
     }
   }
   return consumed;

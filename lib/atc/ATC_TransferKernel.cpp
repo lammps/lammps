@@ -1,4 +1,4 @@
-// ATC headers 
+// ATC headers
 #include "ATC_TransferKernel.h"
 #include "ATC_Error.h"
 #include "FE_Engine.h"
@@ -44,10 +44,10 @@ using ATC_Utility::to_string;
   {
     bool match = false;
 
-    /*! \page man_hardy_kernel fix_modify AtC kernel 
+    /*! \page man_hardy_kernel fix_modify AtC kernel
       \section syntax
       fix_modify AtC kernel <type> <parameters>
-      - type (keyword) = step, cell, cubic_bar, cubic_cylinder, cubic_sphere, 
+      - type (keyword) = step, cell, cubic_bar, cubic_cylinder, cubic_sphere,
                          quartic_bar, quartic_cylinder, quartic_sphere \n
       - parameters :\n
       step = radius (double) \n
@@ -62,7 +62,7 @@ using ATC_Utility::to_string;
       <TT> fix_modify AtC kernel cell 1.0 1.0 1.0 </TT> \n
       <TT> fix_modify AtC kernel quartic_sphere 10.0 </TT>
       \section description
-      
+
       \section restrictions
       Must be used with the hardy AtC fix \n
       For bar kernel types, half-width oriented along x-direction \n
@@ -83,7 +83,7 @@ using ATC_Utility::to_string;
   }
 
   //-------------------------------------------------------------------
-  void ATC_TransferKernel::compute_kernel_matrix_molecule(void) // KKM add
+  void ATC_TransferKernel::compute_kernel_matrix_molecule() // KKM add
   {
     int nLocalMol = smallMoleculeSet_->local_molecule_count();
     if (nLocal_>0) {
@@ -92,28 +92,28 @@ using ATC_Utility::to_string;
       SPAR_MAT & dN(kernelAccumulantMolGrad_.set_quantity());
       dN.reset(nLocalMol,nNodes_);
       DENS_VEC derivKer(nsd_);
-      DENS_VEC xI(nsd_),xm(nsd_),xmI(nsd_); 
+      DENS_VEC xI(nsd_),xm(nsd_),xmI(nsd_);
       const DENS_MAT & centroidMolMatrix(moleculeCentroid_->quantity());
-      ATC::LammpsInterface::instance()->stream_msg_once("computing kernel matrix molecule ",true,false); 
-      int heartbeatFreq = (nNodes_ <= 10 ? 1 : (int) nNodes_ / 10); 
+      ATC::LammpsInterface::instance()->stream_msg_once("computing kernel matrix molecule ",true,false);
+      int heartbeatFreq = (nNodes_ <= 10 ? 1 : (int) nNodes_ / 10);
       for (int i = 0; i < nNodes_; i++) {
-        if (i % heartbeatFreq == 0 ) { 
+        if (i % heartbeatFreq == 0 ) {
           ATC::LammpsInterface::instance()->stream_msg_once(".",false,false);
-        }  
+        }
         xI = (feEngine_->fe_mesh())->nodal_coordinates(i);
         for (int j = 0; j < nLocalMol; j++) {
           for (int k = 0; k < nsd_; k++) {
             xm(k) = centroidMolMatrix(j,k);
           }
-          xmI = xm - xI; 
+          xmI = xm - xI;
           lammpsInterface_->periodicity_correction(xmI.ptr());
           double val = kernelFunction_->value(xmI);
           if (val > 0) N.add(j,i,val);
           kernelFunction_->derivative(xmI,derivKer);
           double val_grad = derivKer(2);
           if (val_grad!= 0) dN.add(j,i,val_grad);
-        }   
-      } 
+        }
+      }
       // reset kernelShpFunctions with the weights of molecules on processors
       DENS_VEC fractions(N.nRows());
       DENS_VEC fractions_deriv(dN.nRows());
@@ -126,10 +126,10 @@ using ATC_Utility::to_string;
         dN.compress();
       if (lammpsInterface_->rank_zero()) {
         ATC::LammpsInterface::instance()->stream_msg_once("done",false,true);
-      }  
-    }   
+      }
+    }
   }
-  
+
   //-------------------------------------------------------------------
   void ATC_TransferKernel::compute_projection(const DENS_MAT & atomData,
                                               DENS_MAT & nodeData)
@@ -183,7 +183,7 @@ using ATC_Utility::to_string;
     int **firstneigh = lammpsInterface_->neighbor_list_firstneigh();
     double ** xatom    = lammpsInterface_->xatom();
     double lam1,lam2;
-    double bond_value; 
+    double bond_value;
     // process differently for mesh vs translation-invariant kernels
     ATC::LammpsInterface::instance()->stream_msg_once("computing potential stress: ",true,false);
     int heartbeatFreq = (nNodes_ <= 10 ? 1 : (int) nNodes_ / 10);
@@ -202,7 +202,7 @@ using ATC_Utility::to_string;
       int inode = i;
       for (int j = 0; j < nLocal_; j++) {
         // second (neighbor) atom location
-        int lammps_j = internalToAtom_(j); 
+        int lammps_j = internalToAtom_(j);
         xa.copy(xPointer_[lammps_j],3);
         // difference vector
         xaI = xa - xI;
@@ -217,8 +217,8 @@ using ATC_Utility::to_string;
           kernelFunction_->bond_intercepts(xaI,xbI,lam1,lam2);
           // compute virial
           if (lam1 < lam2) {
-            bond_value 
-              = kernel_inv_vol*(kernelFunction_->bond(xaI,xbI,lam1,lam2)); 
+            bond_value
+              = kernel_inv_vol*(kernelFunction_->bond(xaI,xbI,lam1,lam2));
             double delx = xatom[lammps_j][0] - xatom[lammps_k][0];
             double dely = xatom[lammps_j][1] - xatom[lammps_k][1];
             double delz = xatom[lammps_j][2] - xatom[lammps_k][2];
@@ -227,9 +227,9 @@ using ATC_Utility::to_string;
             lammpsInterface_->pair_force(lammps_j,lammps_k,rsq,fforce);
             fforce *= 0.5; // dbl count
             if (atomToElementMapType_ == LAGRANGIAN) {
-              double delX = xref_[lammps_j][0] - xref_[lammps_k][0]; 
-              double delY = xref_[lammps_j][1] - xref_[lammps_k][1]; 
-              double delZ = xref_[lammps_j][2] - xref_[lammps_k][2]; 
+              double delX = xref_[lammps_j][0] - xref_[lammps_k][0];
+              double delY = xref_[lammps_j][1] - xref_[lammps_k][1];
+              double delZ = xref_[lammps_j][2] - xref_[lammps_k][2];
               stress(inode,0) +=-delx*fforce*delX*bond_value;
               stress(inode,1) +=-delx*fforce*delY*bond_value;
               stress(inode,2) +=-delx*fforce*delZ*bond_value;
@@ -266,9 +266,9 @@ using ATC_Utility::to_string;
     int **firstneigh = lammpsInterface_->neighbor_list_firstneigh();
     double ** xatom    = lammpsInterface_->xatom();
     double ** vatom    = lammpsInterface_->vatom();
-    
+
     double lam1,lam2;
-    double bond_value; 
+    double bond_value;
     // process differently for mesh vs translation-invariant kernels
     // "normal" kernel functions
     DENS_VEC xa(nsd_),xI(nsd_),xaI(nsd_),xb(nsd_),xbI(nsd_),xba(nsd_);
@@ -281,7 +281,7 @@ using ATC_Utility::to_string;
         continue;
       }
       for (int j = 0; j < nLocal_; j++) {
-        int lammps_j = internalToAtom_(j); 
+        int lammps_j = internalToAtom_(j);
         xa.copy(xPointer_[lammps_j],3);
         // difference vector
         xaI = xa - xI;
@@ -296,8 +296,8 @@ using ATC_Utility::to_string;
           kernelFunction_->bond_intercepts(xaI,xbI,lam1,lam2);
           // compute virial
           if (lam1 < lam2) {
-            bond_value 
-              = kernel_inv_vol*(kernelFunction_->bond(xaI,xbI,lam1,lam2)); 
+            bond_value
+              = kernel_inv_vol*(kernelFunction_->bond(xaI,xbI,lam1,lam2));
             double delx = xatom[lammps_j][0] - xatom[lammps_k][0];
             double dely = xatom[lammps_j][1] - xatom[lammps_k][1];
             double delz = xatom[lammps_j][2] - xatom[lammps_k][2];
@@ -308,9 +308,9 @@ using ATC_Utility::to_string;
             double * v = vatom[lammps_j];
             fforce *= (delx*v[0] + dely*v[1] + delz*v[2]);
             if (atomToElementMapType_ == LAGRANGIAN) {
-              double delX = xref_[lammps_j][0] - xref_[lammps_k][0]; 
-              double delY = xref_[lammps_j][1] - xref_[lammps_k][1]; 
-              double delZ = xref_[lammps_j][2] - xref_[lammps_k][2]; 
+              double delX = xref_[lammps_j][0] - xref_[lammps_k][0];
+              double delY = xref_[lammps_j][1] - xref_[lammps_k][1];
+              double delZ = xref_[lammps_j][2] - xref_[lammps_k][2];
               flux(inode,0) +=fforce*delX*bond_value;
               flux(inode,1) +=fforce*delY*bond_value;
               flux(inode,2) +=fforce*delZ*bond_value;
@@ -327,7 +327,7 @@ using ATC_Utility::to_string;
   }
 
   //-------------------------------------------------------------------
-  // calculation of the dislocation density tensor 
+  // calculation of the dislocation density tensor
   void ATC_TransferKernel::compute_dislocation_density(DENS_MAT & A)
   {
    A.reset(nNodes_,9);
@@ -348,7 +348,7 @@ using ATC_Utility::to_string;
    lammpsInterface_->int_allsum(&localNumberLines,&totalNumberLines,1);
    if (totalNumberLines == 0) {
      ATC::LammpsInterface::instance()->print_msg_once("no dislocation lines found");
-     return; 
+     return;
    }
 
    // for output
@@ -366,7 +366,7 @@ using ATC_Utility::to_string;
 
 
    DENS_MAT local_A(nNodes_,9);
-   local_A.zero(); 
+   local_A.zero();
    DENS_VEC xa(nsd_),xI(nsd_),xaI(nsd_),xb(nsd_),xbI(nsd_),xba(nsd_);
    double kernel_inv_vol = kernelFunction_->inv_vol();
    int iPt = 0, iSeg= 0;
@@ -393,7 +393,7 @@ using ATC_Utility::to_string;
          xa(k) = x1[k];
          xb(k) = x2[k];
          xba(k) = delta[k];
-       } 
+       }
        for (int I = 0; I < nNodes_; I++) {
          xI = (feEngine_->fe_mesh())->nodal_coordinates(I);
          if (!kernelFunction_->node_contributes(xI)) {
@@ -405,7 +405,7 @@ using ATC_Utility::to_string;
          double lam1=0,lam2=0;
          kernelFunction_->bond_intercepts(xaI,xbI,lam1,lam2);
          if (lam1 < lam2) {
-           double bond_value 
+           double bond_value
              = kernel_inv_vol*(kernelFunction_->bond(xaI,xbI,lam1,lam2));
            local_A(I,0) += xba(0)*burgers[0]*bond_value;
            local_A(I,1) += xba(0)*burgers[1]*bond_value;
@@ -449,7 +449,7 @@ using ATC_Utility::to_string;
    lammpsInterface_->int_allsum(&nSeg,&totalNumberSegments,1);
 
    // output
-   double volume = lammpsInterface_->domain_volume(); 
+   double volume = lammpsInterface_->domain_volume();
    stringstream ss;
    ss << "total dislocation line length = " << totalDislocationDensity;
    ss << " lines = " << totalNumberLines << " segments = " << totalNumberSegments;
@@ -474,10 +474,10 @@ using ATC_Utility::to_string;
      segOutput.write_geometry(&segCoor,&segConn);
      OUTPUT_LIST segOut;
      segOut["burgers_vector"] = &segBurg;
-     segOutput.write_data(0,&segOut); 
+     segOutput.write_data(0,&segOut);
    }
 #else
-  throw ATC_Error("unimplemented function compute_dislocation_density (DXA support not included"); 
+  throw ATC_Error("unimplemented function compute_dislocation_density (DXA support not included");
 #endif
   }
 

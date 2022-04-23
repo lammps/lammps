@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
-ImproperStyle(umbrella,ImproperUmbrella)
-
+// clang-format off
+ImproperStyle(umbrella,ImproperUmbrella);
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_UMBRELLA_H
@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class ImproperUmbrella : public Improper {
  public:
   ImproperUmbrella(class LAMMPS *);
-  virtual ~ImproperUmbrella();
-  virtual void compute(int, int);
-  void coeff(int, char **);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
+  ~ImproperUmbrella() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
 
  protected:
   double *kw, *w0, *C;
@@ -40,7 +40,7 @@ class ImproperUmbrella : public Improper {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

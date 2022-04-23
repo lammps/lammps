@@ -1,0 +1,196 @@
+LAMMPS (10 Mar 2021)
+  using 1 OpenMP thread(s) per MPI task
+# GCMC for CO2 molecular fluid, rigid/small dynamics
+# Rigid CO2 TraPPE model
+# [Potoff and J.I. Siepmann, Vapor-liquid equilibria of
+# mixtures containing alkanes, carbon dioxide and
+# nitrogen AIChE J., 47,1676-1682 (2001)].
+
+# variables available on command line
+
+variable        mu index -8.1
+variable        disp index 0.5
+variable        temp index 338.0
+variable        lbox index 10.0
+variable        spacing index 5.0
+
+# global model settings
+
+units           real
+atom_style      full
+boundary        p p p
+pair_style      lj/cut/coul/long  14
+pair_modify     mix arithmetic tail yes
+kspace_style    ewald 0.0001
+bond_style      harmonic
+angle_style     harmonic
+
+# box, start molecules on simple cubic lattice
+
+lattice         sc ${spacing}
+lattice         sc 5.0
+Lattice spacing in x,y,z = 5.0000000 5.0000000 5.0000000
+region          box block 0 ${lbox} 0 ${lbox} 0 ${lbox} units box
+region          box block 0 10.0 0 ${lbox} 0 ${lbox} units box
+region          box block 0 10.0 0 10.0 0 ${lbox} units box
+region          box block 0 10.0 0 10.0 0 10.0 units box
+create_box      2 box                                       bond/types 1                                angle/types 1                               extra/bond/per/atom 2                       extra/angle/per/atom 1                      extra/special/per/atom 2
+Created orthogonal box = (0.0000000 0.0000000 0.0000000) to (10.000000 10.000000 10.000000)
+  1 by 1 by 1 MPI processor grid
+molecule        co2mol CO2.txt
+Read molecule template co2mol:
+  1 molecules
+  3 atoms with max type 2
+  2 bonds with max type 1
+  1 angles with max type 1
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+create_atoms    0 box mol co2mol 464563 units box
+Created 24 atoms
+  create_atoms CPU = 0.002 seconds
+
+# rigid CO2 TraPPE model
+
+pair_coeff      1   1  0.053649   2.8
+pair_coeff      2   2  0.156973   3.05
+bond_coeff      1       0       1.16
+angle_coeff     1       0       180
+
+# masses
+
+mass 1 12.0107
+mass 2 15.9994
+
+# MD settings
+
+group           co2 type 1 2
+24 atoms in group co2
+neighbor        2.0 bin
+neigh_modify    every 1 delay 10 check yes
+velocity        all create ${temp} 54654
+velocity        all create 338.0 54654
+timestep        1.0
+
+# rigid constraints with thermostat
+
+fix             myrigid co2 rigid/small molecule mol co2mol
+  create bodies CPU = 0.000 seconds
+  8 rigid bodies with 24 atoms
+  1.1600000 = max distance from body owner to body atom
+
+# dynamically update  fix rigid/nvt/small temperature ndof
+fix_modify      myrigid dynamic/dof yes
+
+# gcmc
+
+variable        tfac equal 5.0/3.0 # (3 trans + 2 rot)/(3 trans)
+fix             mygcmc co2 gcmc 100 100 0 0 54341 ${temp} ${mu} ${disp} mol                 co2mol tfac_insert ${tfac} group co2 rigid myrigid
+fix             mygcmc co2 gcmc 100 100 0 0 54341 338.0 ${mu} ${disp} mol                 co2mol tfac_insert ${tfac} group co2 rigid myrigid
+fix             mygcmc co2 gcmc 100 100 0 0 54341 338.0 -8.1 ${disp} mol                 co2mol tfac_insert ${tfac} group co2 rigid myrigid
+fix             mygcmc co2 gcmc 100 100 0 0 54341 338.0 -8.1 0.5 mol                 co2mol tfac_insert ${tfac} group co2 rigid myrigid
+fix             mygcmc co2 gcmc 100 100 0 0 54341 338.0 -8.1 0.5 mol                 co2mol tfac_insert 1.66666666666667 group co2 rigid myrigid
+
+# atom counts
+
+variable        carbon atom "type==1"
+variable        oxygen atom "type==2"
+group           carbon dynamic co2 var carbon
+dynamic group carbon defined
+group           oxygen dynamic co2 var oxygen
+dynamic group oxygen defined
+variable        nC equal count(carbon)
+variable        nO equal count(oxygen)
+
+# output
+
+variable        tacc equal f_mygcmc[2]/(f_mygcmc[1]+0.1)
+variable        iacc equal f_mygcmc[4]/(f_mygcmc[3]+0.1)
+variable        dacc equal f_mygcmc[6]/(f_mygcmc[5]+0.1)
+variable        racc equal f_mygcmc[8]/(f_mygcmc[7]+0.1)
+
+# dynamically update default temperature ndof
+compute_modify  thermo_temp dynamic/dof yes
+
+thermo_style    custom step temp press pe ke density atoms v_iacc v_dacc v_tacc v_racc v_nC v_nO
+thermo          1000
+
+# run
+
+run             20000
+Ewald initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:339)
+  G vector (1/distance) = 0.16463644
+  estimated absolute RMS force accuracy = 0.033206372
+  estimated relative force accuracy = 0.0001
+  KSpace vectors: actual max1d max3d = 16 2 62
+                  kxmax kymax kzmax  = 2 2 2
+WARNING: Fix gcmc using full_energy option (src/MC/fix_gcmc.cpp:482)
+0 atoms in group FixGCMC:gcmc_exclusion_group:mygcmc
+0 atoms in group FixGCMC:rotation_gas_atoms:mygcmc
+WARNING: Neighbor exclusions used with KSpace solver may give inconsistent Coulombic energies (src/neighbor.cpp:486)
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 16
+  ghost atom cutoff = 16
+  binsize = 8, bins = 2 2 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 15.62 | 15.62 | 15.62 Mbytes
+Step Temp Press PotEng KinEng Density Atoms v_iacc v_dacc v_tacc v_racc v_nC v_nO 
+       0    364.27579    4238.8631   -9.6809388    13.391989    0.5846359       24            0            0            0            0            8           16 
+    1000    261.50949   -204.60974   -9.6459249    8.3147747   0.51155641       21  0.096366192  0.097590121            0            0            7           14 
+    2000    479.39697    231.28436   -7.0089345     10.47927   0.36539744       15  0.085531005  0.085453295            0            0            5           10 
+    3000    318.31766   -433.17133   -7.3680951    8.5396005   0.43847693       18  0.078556687  0.080101462            0            0            6           12 
+    4000    357.40776      -186.78   -16.453111    14.915105   0.65771539       27  0.082003877   0.08249082            0            0            9           18 
+    5000    399.94731    1524.2909   -16.624678    18.677282   0.73079488       30  0.071285101  0.072731705            0            0           10           20 
+    6000    354.71736    60.134827   -18.988979    16.565073   0.73079488       30  0.071615663  0.071713414            0            0           10           20 
+    7000    483.32057    966.32174   -5.7393251    10.565037   0.36539744       15  0.087027775  0.089855826            0            0            5           10 
+    8000    547.68562    494.96891    -4.125626     11.97201   0.36539744       15   0.11738082   0.11937373            0            0            5           10 
+    9000    433.76488    390.91467  -0.85312985    5.1718828   0.21923846        9   0.13265238   0.13513212            0            0            3            6 
+   10000    330.01685   -862.07457   -26.494645    18.690633   0.87695385       36   0.13775034   0.13905403            0            0           12           24 
+   11000    334.26318   -578.48274   -13.236965    12.288625    0.5846359       24   0.13713936   0.13960485            0            0            8           16 
+   12000    243.68657   -1244.7156   -25.757644    12.590645   0.80387436       33    0.1339588   0.13588739            0            0           11           22 
+   13000    307.66758   -429.66928   -17.864639    14.367878   0.73079488       30   0.12604721    0.1278094            0            0           10           20 
+   14000    330.91434    495.97112   -15.374248    13.809499   0.65771539       27   0.12011756   0.12145865            0            0            9           18 
+   15000    564.87966    982.72332   -14.810525    26.379517   0.73079488       30   0.12164324   0.12343521            0            0           10           20 
+   16000    342.63867   -54.776299   -2.2580523    5.7875978   0.29231795       12   0.13535812   0.13790758            0            0            4            8 
+   17000    461.07005   -2.4317694    -1.145154    3.2068452   0.14615898        6    0.1444739   0.14730804            0            0            2            4 
+   18000    197.21207   -40.124433   -7.0857418    5.2906654   0.43847693       18   0.14403997   0.14574329            0            0            6           12 
+   19000    393.36395   -420.49802   -11.172739    14.461366    0.5846359       24   0.15005606   0.15142063            0            0            8           16 
+   20000    356.48539    56.071962   -1.7861789    4.2504609   0.21923846        9   0.15422732   0.15627984            0            0            3            6 
+Loop time of 19.5982 on 1 procs for 20000 steps with 9 atoms
+
+Performance: 88.171 ns/day, 0.272 hours/ns, 1020.502 timesteps/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.3404     | 2.3404     | 2.3404     |   0.0 | 11.94
+Bond    | 0.033919   | 0.033919   | 0.033919   |   0.0 |  0.17
+Kspace  | 0.19974    | 0.19974    | 0.19974    |   0.0 |  1.02
+Neigh   | 0.11478    | 0.11478    | 0.11478    |   0.0 |  0.59
+Comm    | 0.22538    | 0.22538    | 0.22538    |   0.0 |  1.15
+Output  | 0.00096536 | 0.00096536 | 0.00096536 |   0.0 |  0.00
+Modify  | 16.627     | 16.627     | 16.627     |   0.0 | 84.84
+Other   |            | 0.05594    |            |       |  0.29
+
+Nlocal:        9.00000 ave           9 max           9 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        703.000 ave         703 max         703 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:        719.000 ave         719 max         719 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 719
+Ave neighs/atom = 79.888889
+Ave special neighs/atom = 2.0000000
+Neighbor list builds = 20196
+Dangerous builds = 0
+
+Total wall time: 0:00:19

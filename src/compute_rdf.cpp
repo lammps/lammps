@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,22 +18,22 @@
 
 #include "compute_rdf.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
-#include "update.h"
-#include "force.h"
-#include "pair.h"
+#include "comm.h"
 #include "domain.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "neigh_list.h"
+#include "error.h"
+#include "force.h"
 #include "group.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
-#include "comm.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -203,14 +204,8 @@ void ComputeRDF::init()
   //   (until next reneighbor), so it needs to contain atoms further
   //   than cutoff_user apart, just like a normal neighbor list does
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->occasional = 1;
-  if (cutflag) {
-    neighbor->requests[irequest]->cut = 1;
-    neighbor->requests[irequest]->cutoff = mycutneigh;
-  }
+  auto req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
+  if (cutflag) req->set_cutoff(mycutneigh);
 }
 
 /* ---------------------------------------------------------------------- */

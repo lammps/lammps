@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -300,8 +301,7 @@ void PairLineLJ::compute(int eflag, int vflag)
         }
       }
 
-      if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                           evdwl,0.0,fpair,delx,dely,delz);
+      if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
     }
   }
 
@@ -402,10 +402,10 @@ void PairLineLJ::coeff(int narg, char **arg)
 
 void PairLineLJ::init_style()
 {
-  avec = (AtomVecLine *) atom->style_match("line");
+  avec = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
   if (!avec) error->all(FLERR,"Pair line/lj requires atom style line");
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this,NeighConst::REQ_DEFAULT);
 }
 
 /* ----------------------------------------------------------------------

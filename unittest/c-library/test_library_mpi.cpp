@@ -167,7 +167,6 @@ TEST(MPI, split_comm)
 
 TEST(MPI, multi_partition)
 {
-    FILE *fp;
     int nprocs, me;
     lammps_mpi_init();
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
@@ -191,7 +190,7 @@ TEST(MPI, multi_partition)
     EXPECT_EQ(lammps_extract_setting(lmp, "world_rank"), 0);
 
     char *part_id = (char *)lammps_extract_variable(lmp, "partition", nullptr);
-    ASSERT_THAT(part_id, StrEq(std::to_string(me+1)));
+    ASSERT_THAT(part_id, StrEq(std::to_string(me + 1)));
 
     lammps_close(lmp);
 };

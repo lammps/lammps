@@ -1,9 +1,9 @@
-=== USER-MESONT tools ===
+=== MESONT tools ===
 ===============================
 
 The programs in this folder can be used to analyze the 
 output of simulations using the CNT mesoscopic force 
-field (USER-MESONT).
+field (MESONT).
 
 dump2vtk.cpp converts output written in *.dump format (the 
 sequence of columns must be "ATOMS id type x y z Es Eb Et 

@@ -114,7 +114,7 @@ closer to the MEP and read them in.
 
 ----------
 
-For a *file-style* setting of *final*\ , a filename is specified which
+For a *file-style* setting of *final*, a filename is specified which
 contains atomic coordinates for zero or more atoms, in the format
 described below.  For each atom that appears in the file, the new
 coordinates are assigned to that atom in the final replica.  Each
@@ -143,7 +143,7 @@ case.
    interpolation is outside the periodic box, the atom will be wrapped
    back into the box when the NEB calculation begins.
 
-For a *file-style* setting of *each*\ , a filename is specified which is
+For a *file-style* setting of *each*, a filename is specified which is
 assumed to be unique to each replica.  This can be done by using a
 variable in the filename, e.g.
 
@@ -162,7 +162,7 @@ as described below, and for any atom that appears in the file, assign
 the specified coordinates to its atom.  The various files do not need
 to contain the same set of atoms.
 
-For a *file-style* setting of *none*\ , no filename is specified.  Each
+For a *file-style* setting of *none*, no filename is specified.  Each
 replica is assumed to already be in its initial configuration at the
 time the neb command is issued.  This allows each replica to define
 its own configuration by reading a replica-specific data or restart or
@@ -185,13 +185,13 @@ that a long calculation can be restarted if needed.
 A NEB calculation proceeds in two stages, each of which is a
 minimization procedure, performed via damped dynamics.  To enable
 this, you must first define a damped dynamics
-:doc:`min_style <min_style>`, such as *quickmin* or *fire*\ .  The *cg*\ ,
-*sd*\ , and *hftn* styles cannot be used, since they perform iterative
+:doc:`min_style <min_style>`, such as *quickmin* or *fire*\ .  The *cg*,
+*sd*, and *hftn* styles cannot be used, since they perform iterative
 line searches in their inner loop, which cannot be easily synchronized
 across multiple replicas.
 
 The minimizer tolerances for energy and force are set by *etol* and
-*ftol*\ , the same as for the :doc:`minimize <minimize>` command.
+*ftol*, the same as for the :doc:`minimize <minimize>` command.
 
 A non-zero *etol* means that the NEB calculation will terminate if the
 energy criterion is met by every replica.  The energies being compared

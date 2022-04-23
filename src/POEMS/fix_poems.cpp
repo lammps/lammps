@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,57 +19,58 @@
 
 #include "fix_poems.h"
 
-#include <cmath>
-#include <cstring>
-
-#include "workspace.h"
 #include "atom.h"
+#include "citeme.h"
+#include "comm.h"
 #include "domain.h"
-#include "update.h"
-#include "respa.h"
-#include "modify.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
-#include "comm.h"
-#include "citeme.h"
-#include "memory.h"
-#include "error.h"
 #include "math_eigen.h"
+#include "memory.h"
+#include "modify.h"
+#include "respa.h"
+#include "text_file_reader.h"
+#include "update.h"
+#include "workspace.h"
+
+#include <cmath>
+#include <cstring>
+#include <vector>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define MAXBODY 2         // currently 2 since only linear chains allowed
+#define MAXBODY 2    // currently 2 since only linear chains allowed
 #define DELTA 128
 #define TOLERANCE 1.0e-6
 #define EPSILON 1.0e-7
 
 static const char cite_fix_poems[] =
-  "fix poems command:\n\n"
-  "@Article{Mukherjee08,\n"
-  " author = {R. M. Mukherjee, P. S. Crozier, S. J. Plimpton, K. S. Anderson},\n"
-  " title = {Substructured molecular dynamics using multibody dynamics algorithms},\n"
-  " journal = {Intl.~J.~Non-linear Mechanics},\n"
-  " year =    2008,\n"
-  " volume =  43,\n"
-  " pages =   {1045--1055}\n"
-  "}\n\n";
+    "fix poems command:\n\n"
+    "@Article{Mukherjee08,\n"
+    " author = {R. M. Mukherjee, P. S. Crozier, S. J. Plimpton, K. S. Anderson},\n"
+    " title = {Substructured molecular dynamics using multibody dynamics algorithms},\n"
+    " journal = {Intl.~J.~Non-linear Mechanics},\n"
+    " year =    2008,\n"
+    " volume =  43,\n"
+    " pages =   {1045--1055}\n"
+    "}\n\n";
 
 /* ----------------------------------------------------------------------
    define rigid bodies and joints, initiate POEMS
 ------------------------------------------------------------------------- */
 
 FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), step_respa(nullptr), natom2body(nullptr),
-  atom2body(nullptr), displace(nullptr), nrigid(nullptr), masstotal(nullptr),
-  xcm(nullptr), vcm(nullptr), fcm(nullptr), inertia(nullptr), ex_space(nullptr),
-  ey_space(nullptr), ez_space(nullptr), angmom(nullptr), omega(nullptr),
-  torque(nullptr), sum(nullptr), all(nullptr), jointbody(nullptr),
-  xjoint(nullptr), freelist(nullptr), poems(nullptr)
+    Fix(lmp, narg, arg), step_respa(nullptr), natom2body(nullptr), atom2body(nullptr),
+    displace(nullptr), nrigid(nullptr), masstotal(nullptr), xcm(nullptr), vcm(nullptr),
+    fcm(nullptr), inertia(nullptr), ex_space(nullptr), ey_space(nullptr), ez_space(nullptr),
+    angmom(nullptr), omega(nullptr), torque(nullptr), sum(nullptr), all(nullptr),
+    jointbody(nullptr), xjoint(nullptr), freelist(nullptr), poems(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_poems);
 
-  int i,j,ibody;
+  int i, j, ibody;
 
   time_integrate = 1;
   rigid_flag = 1;
@@ -77,8 +78,6 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   centroidstressflag = CENTROID_NOTAVAIL;
   thermo_virial = 1;
   dof_flag = 1;
-
-  MPI_Comm_rank(world,&me);
 
   // perform initial allocation of atom-based arrays
   // register with atom class
@@ -108,19 +107,18 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   // set natom2body, atom2body for all atoms and nbody = # of rigid bodies
   // atoms must also be in fix group to be in a body
 
-  if (narg < 4) error->all(FLERR,"Illegal fix poems command");
+  if (narg < 4) error->all(FLERR, "Illegal fix poems command");
 
   // group = arg has list of groups
 
-  if (strcmp(arg[3],"group") == 0) {
-    nbody = narg-4;
-    if (nbody <= 0) error->all(FLERR,"Illegal fix poems command");
+  if (strcmp(arg[3], "group") == 0) {
+    nbody = narg - 4;
+    if (nbody <= 0) error->all(FLERR, "Illegal fix poems command");
 
     int *igroups = new int[nbody];
     for (ibody = 0; ibody < nbody; ibody++) {
-      igroups[ibody] = group->find(arg[ibody+4]);
-      if (igroups[ibody] == -1)
-        error->all(FLERR,"Could not find fix poems group ID");
+      igroups[ibody] = group->find(arg[ibody + 4]);
+      if (igroups[ibody] == -1) error->all(FLERR, "Could not find fix poems group ID");
     }
 
     int *mask = atom->mask;
@@ -134,13 +132,13 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
           }
     }
 
-    delete [] igroups;
+    delete[] igroups;
 
-  // file = read bodies from file
-  // file read doesn't pay attention to fix group,
-  //   so after read, reset natom2body = 0 if atom is not in fix group
+    // file = read bodies from file
+    // file read doesn't pay attention to fix group,
+    //   so after read, reset natom2body = 0 if atom is not in fix group
 
-  } else if (strcmp(arg[3],"file") == 0) {
+  } else if (strcmp(arg[3], "file") == 0) {
 
     readfile(arg[4]);
 
@@ -148,17 +146,16 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
     for (int i = 0; i < nlocal; i++)
       if (!(mask[i] & groupbit)) natom2body[i] = 0;
 
-  // each molecule in fix group is a rigid body
-  // maxmol = largest molecule ID
-  // ncount = # of atoms in each molecule (have to sum across procs)
-  // nbody = # of non-zero ncount values
-  // use nall as incremented ptr to set atom2body[] values for each atom
+    // each molecule in fix group is a rigid body
+    // maxmol = largest molecule ID
+    // ncount = # of atoms in each molecule (have to sum across procs)
+    // nbody = # of non-zero ncount values
+    // use nall as incremented ptr to set atom2body[] values for each atom
 
-  } else if (strcmp(arg[3],"molecule") == 0) {
-    if (narg != 4) error->all(FLERR,"Illegal fix poems command");
+  } else if (strcmp(arg[3], "molecule") == 0) {
+    if (narg != 4) error->all(FLERR, "Illegal fix poems command");
     if (atom->molecular == Atom::ATOMIC)
-      error->all(FLERR,
-                 "Must use a molecular atom style with fix poems molecule");
+      error->all(FLERR, "Must use a molecular atom style with fix poems molecule");
 
     int *mask = atom->mask;
     tagint *molecule = atom->molecule;
@@ -166,29 +163,30 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
 
     tagint maxmol_tag = -1;
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) maxmol_tag = MAX(maxmol_tag,molecule[i]);
+      if (mask[i] & groupbit) maxmol_tag = MAX(maxmol_tag, molecule[i]);
 
     tagint itmp;
-    MPI_Allreduce(&maxmol_tag,&itmp,1,MPI_LMP_TAGINT,MPI_MAX,world);
-    if (itmp+1 > MAXSMALLINT)
-      error->all(FLERR,"Too many molecules for fix poems");
+    MPI_Allreduce(&maxmol_tag, &itmp, 1, MPI_LMP_TAGINT, MPI_MAX, world);
+    if (itmp + 1 > MAXSMALLINT) error->all(FLERR, "Too many molecules for fix poems");
     int maxmol = (int) itmp;
 
     int *ncount;
-    memory->create(ncount,maxmol+1,"rigid:ncount");
+    memory->create(ncount, maxmol + 1, "rigid:ncount");
     for (i = 0; i <= maxmol; i++) ncount[i] = 0;
 
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) ncount[molecule[i]]++;
 
     int *nall;
-    memory->create(nall,maxmol+1,"rigid:ncount");
-    MPI_Allreduce(ncount,nall,maxmol+1,MPI_INT,MPI_SUM,world);
+    memory->create(nall, maxmol + 1, "rigid:ncount");
+    MPI_Allreduce(ncount, nall, maxmol + 1, MPI_INT, MPI_SUM, world);
 
     nbody = 0;
     for (i = 0; i <= maxmol; i++)
-      if (nall[i]) nall[i] = nbody++;
-      else nall[i] = -1;
+      if (nall[i])
+        nall[i] = nbody++;
+      else
+        nall[i] = -1;
 
     for (i = 0; i < nlocal; i++) {
       natom2body[i] = 0;
@@ -201,38 +199,38 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
     memory->destroy(ncount);
     memory->destroy(nall);
 
-  } else error->all(FLERR,"Illegal fix poems command");
+  } else
+    error->all(FLERR, "Illegal fix poems command");
 
   // error if no bodies
   // error if any atom in too many bodies
 
-  if (nbody == 0) error->all(FLERR,"No rigid bodies defined");
+  if (nbody == 0) error->all(FLERR, "No rigid bodies defined");
 
   int flag = 0;
   for (int i = 0; i < nlocal; i++)
     if (natom2body[i] > MAXBODY) flag = 1;
   int flagall;
-  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall)
-    error->all(FLERR,"Atom in too many rigid bodies - boost MAXBODY");
+  MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
+  if (flagall) error->all(FLERR, "Atom in too many rigid bodies - boost MAXBODY");
 
   // create all nbody-length arrays
 
   nrigid = new int[nbody];
   masstotal = new double[nbody];
-  memory->create(xcm,nbody,3,"poems:xcm");
-  memory->create(vcm,nbody,3,"poems:vcm");
-  memory->create(fcm,nbody,3,"poems:fcm");
-  memory->create(inertia,nbody,3,"poems:inertia");
-  memory->create(ex_space,nbody,3,"poems:ex_space");
-  memory->create(ey_space,nbody,3,"poems:ey_space");
-  memory->create(ez_space,nbody,3,"poems:ez_space");
-  memory->create(angmom,nbody,3,"poems:angmom");
-  memory->create(omega,nbody,3,"poems:omega");
-  memory->create(torque,nbody,3,"poems:torque");
+  memory->create(xcm, nbody, 3, "poems:xcm");
+  memory->create(vcm, nbody, 3, "poems:vcm");
+  memory->create(fcm, nbody, 3, "poems:fcm");
+  memory->create(inertia, nbody, 3, "poems:inertia");
+  memory->create(ex_space, nbody, 3, "poems:ex_space");
+  memory->create(ey_space, nbody, 3, "poems:ey_space");
+  memory->create(ez_space, nbody, 3, "poems:ez_space");
+  memory->create(angmom, nbody, 3, "poems:angmom");
+  memory->create(omega, nbody, 3, "poems:omega");
+  memory->create(torque, nbody, 3, "poems:torque");
 
-  memory->create(sum,nbody,6,"poems:sum");
-  memory->create(all,nbody,6,"poems:all");
+  memory->create(sum, nbody, 6, "poems:sum");
+  memory->create(all, nbody, 6, "poems:all");
 
   // nrigid[n] = # of atoms in Nth rigid body
   // double count joint atoms as being in multiple bodies
@@ -242,14 +240,13 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   for (ibody = 0; ibody < nbody; ibody++) ncount[ibody] = 0;
 
   for (i = 0; i < nlocal; i++)
-    for (j = 0; j < natom2body[i]; j++)
-      ncount[atom2body[i][j]]++;
+    for (j = 0; j < natom2body[i]; j++) ncount[atom2body[i][j]]++;
 
-  MPI_Allreduce(ncount,nrigid,nbody,MPI_INT,MPI_SUM,world);
-  delete [] ncount;
+  MPI_Allreduce(ncount, nrigid, nbody, MPI_INT, MPI_SUM, world);
+  delete[] ncount;
 
   for (ibody = 0; ibody < nbody; ibody++)
-    if (nrigid[ibody] <= 1) error->all(FLERR,"One or zero atoms in rigid body");
+    if (nrigid[ibody] <= 1) error->all(FLERR, "One or zero atoms in rigid body");
 
   // build list of joint connections and check for cycles and trees
 
@@ -276,9 +273,9 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   for (ibody = 0; ibody < nbody; ibody++) nsum += nrigid[ibody];
   nsum -= njoint;
 
-  if (me == 0)
-    utils::logmesg(lmp,fmt::format("{} clusters, {} bodies, {} joints, {} atoms\n",
-                                   ncluster,nbody,njoint,nsum));
+  if (comm->me == 0)
+    utils::logmesg(lmp, "{} clusters, {} bodies, {} joints, {} atoms\n", ncluster, nbody, njoint,
+                   nsum);
 }
 
 /* ----------------------------------------------------------------------
@@ -290,7 +287,7 @@ FixPOEMS::~FixPOEMS()
   // if atom class still exists:
   //   unregister this fix so atom class doesn't invoke it any more
 
-  if (atom) atom->delete_callback(id,Atom::GROW);
+  if (atom) atom->delete_callback(id, Atom::GROW);
 
   // delete locally stored arrays
 
@@ -300,8 +297,8 @@ FixPOEMS::~FixPOEMS()
 
   // delete nbody-length arrays
 
-  delete [] nrigid;
-  delete [] masstotal;
+  delete[] nrigid;
+  delete[] masstotal;
   memory->destroy(xcm);
   memory->destroy(vcm);
   memory->destroy(fcm);
@@ -320,7 +317,7 @@ FixPOEMS::~FixPOEMS()
 
   memory->destroy(jointbody);
   memory->destroy(xjoint);
-  delete [] freelist;
+  delete[] freelist;
 
   // delete POEMS object
 
@@ -346,39 +343,31 @@ int FixPOEMS::setmask()
 
 void FixPOEMS::init()
 {
-  int i,ibody;
+  int i, ibody;
 
   // warn if more than one POEMS fix
   // if earlyflag, warn if any post-force fixes come after POEMS fix
 
-  int count = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"poems") == 0) count++;
-  if (count > 1 && comm->me == 0) error->warning(FLERR,"More than one fix poems");
+  if (modify->get_fix_by_style("poems").size() > 1)
+    if (comm->me == 0) error->warning(FLERR, "More than one fix poems");
 
   if (earlyflag) {
-    int pflag = 0;
-    for (i = 0; i < modify->nfix; i++) {
-      if (strcmp(modify->fix[i]->style,"poems") == 0) pflag = 1;
-      if (pflag && (modify->fmask[i] & POST_FORCE) &&
-          !modify->fix[i]->rigid_flag) {
+    bool pflag = false;
+    for (auto ifix : modify->get_fix_list()) {
+      if (utils::strmatch(ifix->style, "^poems")) pflag = true;
+      if (pflag && (ifix->setmask() & POST_FORCE) && !ifix->rigid_flag)
         if (comm->me == 0)
-          error->warning(FLERR,std::string("Fix ") + modify->fix[i]->id
-                         + std::string(" alters forces after fix poems"));
-      }
+          error->warning(FLERR,"Fix {} with ID {} alters forces after fix poems",
+                         ifix->style, ifix->id);
     }
   }
 
   // error if npt,nph fix comes before rigid fix
-
-  for (i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"npt") == 0) break;
-    if (strcmp(modify->fix[i]->style,"nph") == 0) break;
-  }
-  if (i < modify->nfix) {
-    for (int j = i; j < modify->nfix; j++)
-      if (strcmp(modify->fix[j]->style,"poems") == 0)
-        error->all(FLERR,"POEMS fix must come before NPT/NPH fix");
+  bool pflag = false;
+  for (auto ifix : modify->get_fix_list()) {
+    if (!pflag && utils::strmatch(ifix->style, "np[th]"))
+      error->all(FLERR, "POEMS fix must come before NPT/NPH fix");
+    if (utils::strmatch(ifix->style, "^poems")) pflag = true;
   }
 
   // timestep info
@@ -389,7 +378,7 @@ void FixPOEMS::init()
 
   // rRESPA info
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style, "^respa")) {
     step_respa = ((Respa *) update->integrate)->step;
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
   }
@@ -408,7 +397,7 @@ void FixPOEMS::init()
   double yprd = domain->yprd;
   double zprd = domain->zprd;
 
-  int xbox,ybox,zbox;
+  int xbox, ybox, zbox;
   double massone;
 
   for (ibody = 0; ibody < nbody; ibody++)
@@ -421,23 +410,22 @@ void FixPOEMS::init()
       ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
       zbox = (image[i] >> IMG2BITS) - IMGMAX;
       massone = mass[type[i]];
-      sum[ibody][0] += (x[i][0] + xbox*xprd) * massone;
-      sum[ibody][1] += (x[i][1] + ybox*yprd) * massone;
-      sum[ibody][2] += (x[i][2] + zbox*zprd) * massone;
+      sum[ibody][0] += (x[i][0] + xbox * xprd) * massone;
+      sum[ibody][1] += (x[i][1] + ybox * yprd) * massone;
+      sum[ibody][2] += (x[i][2] + zbox * zprd) * massone;
       sum[ibody][3] += massone;
-      sum[ibody][4] += massone *
-        (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
+      sum[ibody][4] += massone * (v[i][0] * v[i][0] + v[i][1] * v[i][1] + v[i][2] * v[i][2]);
     }
   }
 
-  MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(sum[0], all[0], 6 * nbody, MPI_DOUBLE, MPI_SUM, world);
 
   total_ke = 0.0;
   for (ibody = 0; ibody < nbody; ibody++) {
     masstotal[ibody] = all[ibody][3];
-    xcm[ibody][0] = all[ibody][0]/masstotal[ibody];
-    xcm[ibody][1] = all[ibody][1]/masstotal[ibody];
-    xcm[ibody][2] = all[ibody][2]/masstotal[ibody];
+    xcm[ibody][0] = all[ibody][0] / masstotal[ibody];
+    xcm[ibody][1] = all[ibody][1] / masstotal[ibody];
+    xcm[ibody][2] = all[ibody][2] / masstotal[ibody];
     total_ke += 0.5 * all[ibody][4];
   }
 
@@ -445,7 +433,7 @@ void FixPOEMS::init()
   // only count joint atoms in 1st body
   // dx,dy,dz = coords relative to center-of-mass
 
-  double dx,dy,dz;
+  double dx, dy, dz;
 
   for (ibody = 0; ibody < nbody; ibody++)
     for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
@@ -457,31 +445,31 @@ void FixPOEMS::init()
       xbox = (image[i] & IMGMASK) - IMGMAX;
       ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
       zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      dx = x[i][0] + xbox*xprd - xcm[ibody][0];
-      dy = x[i][1] + ybox*yprd - xcm[ibody][1];
-      dz = x[i][2] + zbox*zprd - xcm[ibody][2];
+      dx = x[i][0] + xbox * xprd - xcm[ibody][0];
+      dy = x[i][1] + ybox * yprd - xcm[ibody][1];
+      dz = x[i][2] + zbox * zprd - xcm[ibody][2];
       massone = mass[type[i]];
 
-      sum[ibody][0] += massone * (dy*dy + dz*dz);
-      sum[ibody][1] += massone * (dx*dx + dz*dz);
-      sum[ibody][2] += massone * (dx*dx + dy*dy);
-      sum[ibody][3] -= massone * dx*dy;
-      sum[ibody][4] -= massone * dy*dz;
-      sum[ibody][5] -= massone * dx*dz;
+      sum[ibody][0] += massone * (dy * dy + dz * dz);
+      sum[ibody][1] += massone * (dx * dx + dz * dz);
+      sum[ibody][2] += massone * (dx * dx + dy * dy);
+      sum[ibody][3] -= massone * dx * dy;
+      sum[ibody][4] -= massone * dy * dz;
+      sum[ibody][5] -= massone * dx * dz;
     }
   }
 
-  MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(sum[0], all[0], 6 * nbody, MPI_DOUBLE, MPI_SUM, world);
 
   // inertia = 3 eigenvalues = principal moments of inertia
   // ex_space,ey_space,ez_space = 3 eigenvectors = principal axes of rigid body
 
-  double **tensor,**evectors;
-  memory->create(tensor,3,3,"fix_rigid:tensor");
-  memory->create(evectors,3,3,"fix_rigid:evectors");
+  double **tensor, **evectors;
+  memory->create(tensor, 3, 3, "fix_rigid:tensor");
+  memory->create(evectors, 3, 3, "fix_rigid:evectors");
 
   int ierror;
-  double ez0,ez1,ez2;
+  double ez0, ez1, ez2;
 
   for (ibody = 0; ibody < nbody; ibody++) {
     tensor[0][0] = all[ibody][0];
@@ -491,8 +479,8 @@ void FixPOEMS::init()
     tensor[1][2] = tensor[2][1] = all[ibody][4];
     tensor[0][2] = tensor[2][0] = all[ibody][5];
 
-    ierror = MathEigen::jacobi3(tensor,inertia[ibody],evectors);
-    if (ierror) error->all(FLERR,"Insufficient Jacobi rotations for POEMS body");
+    ierror = MathEigen::jacobi3(tensor, inertia[ibody], evectors);
+    if (ierror) error->all(FLERR, "Insufficient Jacobi rotations for POEMS body");
 
     ex_space[ibody][0] = evectors[0][0];
     ex_space[ibody][1] = evectors[1][0];
@@ -510,26 +498,21 @@ void FixPOEMS::init()
     // this is b/c POEMS cannot yet handle degenerate bodies
 
     double max;
-    max = MAX(inertia[ibody][0],inertia[ibody][1]);
-    max = MAX(max,inertia[ibody][2]);
+    max = MAX(inertia[ibody][0], inertia[ibody][1]);
+    max = MAX(max, inertia[ibody][2]);
 
-    if (inertia[ibody][0] < EPSILON*max ||
-        inertia[ibody][1] < EPSILON*max ||
-        inertia[ibody][2] < EPSILON*max)
-      error->all(FLERR,"Rigid body has degenerate moment of inertia");
+    if (inertia[ibody][0] < EPSILON * max || inertia[ibody][1] < EPSILON * max ||
+        inertia[ibody][2] < EPSILON * max)
+      error->all(FLERR, "Rigid body has degenerate moment of inertia");
 
     // enforce 3 evectors as a right-handed coordinate system
     // flip 3rd evector if needed
 
-    ez0 = ex_space[ibody][1]*ey_space[ibody][2] -
-      ex_space[ibody][2]*ey_space[ibody][1];
-    ez1 = ex_space[ibody][2]*ey_space[ibody][0] -
-      ex_space[ibody][0]*ey_space[ibody][2];
-    ez2 = ex_space[ibody][0]*ey_space[ibody][1] -
-      ex_space[ibody][1]*ey_space[ibody][0];
+    ez0 = ex_space[ibody][1] * ey_space[ibody][2] - ex_space[ibody][2] * ey_space[ibody][1];
+    ez1 = ex_space[ibody][2] * ey_space[ibody][0] - ex_space[ibody][0] * ey_space[ibody][2];
+    ez2 = ex_space[ibody][0] * ey_space[ibody][1] - ex_space[ibody][1] * ey_space[ibody][0];
 
-    if (ez0*ez_space[ibody][0] + ez1*ez_space[ibody][1] +
-        ez2*ez_space[ibody][2] < 0.0) {
+    if (ez0 * ez_space[ibody][0] + ez1 * ez_space[ibody][1] + ez2 * ez_space[ibody][2] < 0.0) {
       ez_space[ibody][0] = -ez_space[ibody][0];
       ez_space[ibody][1] = -ez_space[ibody][1];
       ez_space[ibody][2] = -ez_space[ibody][2];
@@ -552,17 +535,15 @@ void FixPOEMS::init()
       xbox = (image[i] & IMGMASK) - IMGMAX;
       ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
       zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      dx = x[i][0] + xbox*xprd - xcm[ibody][0];
-      dy = x[i][1] + ybox*yprd - xcm[ibody][1];
-      dz = x[i][2] + zbox*zprd - xcm[ibody][2];
+      dx = x[i][0] + xbox * xprd - xcm[ibody][0];
+      dy = x[i][1] + ybox * yprd - xcm[ibody][1];
+      dz = x[i][2] + zbox * zprd - xcm[ibody][2];
 
-      displace[i][0] = dx*ex_space[ibody][0] + dy*ex_space[ibody][1] +
-        dz*ex_space[ibody][2];
-      displace[i][1] = dx*ey_space[ibody][0] + dy*ey_space[ibody][1] +
-        dz*ey_space[ibody][2];
-      displace[i][2] = dx*ez_space[ibody][0] + dy*ez_space[ibody][1] +
-        dz*ez_space[ibody][2];
-    } else displace[i][0] = displace[i][1] = displace[i][2] = 0.0;
+      displace[i][0] = dx * ex_space[ibody][0] + dy * ex_space[ibody][1] + dz * ex_space[ibody][2];
+      displace[i][1] = dx * ey_space[ibody][0] + dy * ey_space[ibody][1] + dz * ey_space[ibody][2];
+      displace[i][2] = dx * ez_space[ibody][0] + dy * ez_space[ibody][1] + dz * ez_space[ibody][2];
+    } else
+      displace[i][0] = displace[i][1] = displace[i][2] = 0.0;
   }
 
   // test for valid principal moments & axes
@@ -576,7 +557,7 @@ void FixPOEMS::init()
   for (ibody = 0; ibody < nbody; ibody++)
     for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
 
-  double ddx,ddy,ddz;
+  double ddx, ddy, ddz;
 
   for (i = 0; i < nlocal; i++) {
     if (natom2body[i]) {
@@ -585,38 +566,34 @@ void FixPOEMS::init()
       xbox = (image[i] & IMGMASK) - IMGMAX;
       ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
       zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      dx = x[i][0] + xbox*xprd - xcm[ibody][0];
-      dy = x[i][1] + ybox*yprd - xcm[ibody][1];
-      dz = x[i][2] + zbox*zprd - xcm[ibody][2];
+      dx = x[i][0] + xbox * xprd - xcm[ibody][0];
+      dy = x[i][1] + ybox * yprd - xcm[ibody][1];
+      dz = x[i][2] + zbox * zprd - xcm[ibody][2];
       massone = mass[type[i]];
 
-      ddx = dx*ex_space[ibody][0] + dy*ex_space[ibody][1] +
-        dz*ex_space[ibody][2];
-      ddy = dx*ey_space[ibody][0] + dy*ey_space[ibody][1] +
-        dz*ey_space[ibody][2];
-      ddz = dx*ez_space[ibody][0] + dy*ez_space[ibody][1] +
-        dz*ez_space[ibody][2];
+      ddx = dx * ex_space[ibody][0] + dy * ex_space[ibody][1] + dz * ex_space[ibody][2];
+      ddy = dx * ey_space[ibody][0] + dy * ey_space[ibody][1] + dz * ey_space[ibody][2];
+      ddz = dx * ez_space[ibody][0] + dy * ez_space[ibody][1] + dz * ez_space[ibody][2];
 
-      sum[ibody][0] += massone * (ddy*ddy + ddz*ddz);
-      sum[ibody][1] += massone * (ddx*ddx + ddz*ddz);
-      sum[ibody][2] += massone * (ddx*ddx + ddy*ddy);
-      sum[ibody][3] -= massone * ddx*ddy;
-      sum[ibody][4] -= massone * ddy*ddz;
-      sum[ibody][5] -= massone * ddx*ddz;
+      sum[ibody][0] += massone * (ddy * ddy + ddz * ddz);
+      sum[ibody][1] += massone * (ddx * ddx + ddz * ddz);
+      sum[ibody][2] += massone * (ddx * ddx + ddy * ddy);
+      sum[ibody][3] -= massone * ddx * ddy;
+      sum[ibody][4] -= massone * ddy * ddz;
+      sum[ibody][5] -= massone * ddx * ddz;
     }
   }
 
-  MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(sum[0], all[0], 6 * nbody, MPI_DOUBLE, MPI_SUM, world);
 
   for (ibody = 0; ibody < nbody; ibody++) {
-    if (fabs(all[ibody][0]-inertia[ibody][0]) > TOLERANCE ||
-        fabs(all[ibody][1]-inertia[ibody][1]) > TOLERANCE ||
-        fabs(all[ibody][2]-inertia[ibody][2]) > TOLERANCE)
-      error->all(FLERR,"Bad principal moments");
-    if (fabs(all[ibody][3]) > TOLERANCE ||
-        fabs(all[ibody][4]) > TOLERANCE ||
+    if (fabs(all[ibody][0] - inertia[ibody][0]) > TOLERANCE ||
+        fabs(all[ibody][1] - inertia[ibody][1]) > TOLERANCE ||
+        fabs(all[ibody][2] - inertia[ibody][2]) > TOLERANCE)
+      error->all(FLERR, "Bad principal moments");
+    if (fabs(all[ibody][3]) > TOLERANCE || fabs(all[ibody][4]) > TOLERANCE ||
         fabs(all[ibody][5]) > TOLERANCE)
-      error->all(FLERR,"Bad principal moments");
+      error->all(FLERR, "Bad principal moments");
   }
 }
 
@@ -627,7 +604,7 @@ void FixPOEMS::init()
 
 void FixPOEMS::setup(int vflag)
 {
-  int i,n,ibody;
+  int i, n, ibody;
 
   // vcm = velocity of center-of-mass of each rigid body
   // angmom = angular momentum of each rigid body
@@ -644,8 +621,8 @@ void FixPOEMS::setup(int vflag)
   double yprd = domain->yprd;
   double zprd = domain->zprd;
 
-  int xbox,ybox,zbox;
-  double massone,dx,dy,dz;
+  int xbox, ybox, zbox;
+  double massone, dx, dy, dz;
 
   for (ibody = 0; ibody < nbody; ibody++)
     for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
@@ -658,25 +635,25 @@ void FixPOEMS::setup(int vflag)
       xbox = (image[i] & IMGMASK) - IMGMAX;
       ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
       zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      dx = x[i][0] + xbox*xprd - xcm[ibody][0];
-      dy = x[i][1] + ybox*yprd - xcm[ibody][1];
-      dz = x[i][2] + zbox*zprd - xcm[ibody][2];
+      dx = x[i][0] + xbox * xprd - xcm[ibody][0];
+      dy = x[i][1] + ybox * yprd - xcm[ibody][1];
+      dz = x[i][2] + zbox * zprd - xcm[ibody][2];
 
       sum[ibody][0] += v[i][0] * massone;
       sum[ibody][1] += v[i][1] * massone;
       sum[ibody][2] += v[i][2] * massone;
-      sum[ibody][3] += dy * massone*v[i][2] - dz * massone*v[i][1];
-      sum[ibody][4] += dz * massone*v[i][0] - dx * massone*v[i][2];
-      sum[ibody][5] += dx * massone*v[i][1] - dy * massone*v[i][0];
+      sum[ibody][3] += dy * massone * v[i][2] - dz * massone * v[i][1];
+      sum[ibody][4] += dz * massone * v[i][0] - dx * massone * v[i][2];
+      sum[ibody][5] += dx * massone * v[i][1] - dy * massone * v[i][0];
     }
   }
 
-  MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(sum[0], all[0], 6 * nbody, MPI_DOUBLE, MPI_SUM, world);
 
   for (ibody = 0; ibody < nbody; ibody++) {
-    vcm[ibody][0] = all[ibody][0]/masstotal[ibody];
-    vcm[ibody][1] = all[ibody][1]/masstotal[ibody];
-    vcm[ibody][2] = all[ibody][2]/masstotal[ibody];
+    vcm[ibody][0] = all[ibody][0] / masstotal[ibody];
+    vcm[ibody][1] = all[ibody][1] / masstotal[ibody];
+    vcm[ibody][2] = all[ibody][2] / masstotal[ibody];
     angmom[ibody][0] = all[ibody][3];
     angmom[ibody][1] = all[ibody][4];
     angmom[ibody][2] = all[ibody][5];
@@ -689,8 +666,8 @@ void FixPOEMS::setup(int vflag)
   // set velocities from angmom & omega
 
   for (ibody = 0; ibody < nbody; ibody++)
-    omega_from_mq(angmom[ibody],ex_space[ibody],ey_space[ibody],
-                  ez_space[ibody],inertia[ibody],omega[ibody]);
+    omega_from_mq(angmom[ibody], ex_space[ibody], ey_space[ibody], ez_space[ibody], inertia[ibody],
+                  omega[ibody]);
   set_v();
 
   // guestimate virial as 2x the set_v contribution
@@ -700,8 +677,7 @@ void FixPOEMS::setup(int vflag)
       for (n = 0; n < 6; n++) virial[n] *= 2.0;
     if (vflag_atom) {
       for (i = 0; i < nlocal; i++)
-        for (n = 0; n < 6; n++)
-          vatom[i][n] *= 2.0;
+        for (n = 0; n < 6; n++) vatom[i][n] *= 2.0;
     }
   }
 
@@ -712,10 +688,9 @@ void FixPOEMS::setup(int vflag)
 
   // setup for POEMS
 
-  poems->MakeSystem(nbody,masstotal,inertia,xcm,vcm,omega,
-                    ex_space,ey_space,ez_space,
-                    njoint,jointbody,xjoint,nfree,freelist,
-                    dthalf,dtv,force->ftm2v,total_ke);
+  poems->MakeSystem(nbody, masstotal, inertia, xcm, vcm, omega, ex_space, ey_space, ez_space,
+                    njoint, jointbody, xjoint, nfree, freelist, dthalf, dtv, force->ftm2v,
+                    total_ke);
 }
 
 /* ----------------------------------------------------------------------
@@ -727,7 +702,7 @@ void FixPOEMS::initial_integrate(int vflag)
 {
   // perform POEMS integration
 
-  poems->LobattoOne(xcm,vcm,omega,torque,fcm,ex_space,ey_space,ez_space);
+  poems->LobattoOne(xcm, vcm, omega, torque, fcm, ex_space, ey_space, ez_space);
 
   // virial setup before call to set_xv
 
@@ -752,9 +727,9 @@ void FixPOEMS::post_force(int /* vflag */)
 
 void FixPOEMS::compute_forces_and_torques()
 {
-  int i,ibody;
-  int xbox,ybox,zbox;
-  double dx,dy,dz;
+  int i, ibody;
+  int xbox, ybox, zbox;
+  double dx, dy, dz;
 
   imageint *image = atom->image;
   double **x = atom->x;
@@ -779,17 +754,17 @@ void FixPOEMS::compute_forces_and_torques()
       xbox = (image[i] & IMGMASK) - IMGMAX;
       ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
       zbox = (image[i] >> IMG2BITS) - IMGMAX;
-      dx = x[i][0] + xbox*xprd - xcm[ibody][0];
-      dy = x[i][1] + ybox*yprd - xcm[ibody][1];
-      dz = x[i][2] + zbox*zprd - xcm[ibody][2];
+      dx = x[i][0] + xbox * xprd - xcm[ibody][0];
+      dy = x[i][1] + ybox * yprd - xcm[ibody][1];
+      dz = x[i][2] + zbox * zprd - xcm[ibody][2];
 
-      sum[ibody][3] += dy*f[i][2] - dz*f[i][1];
-      sum[ibody][4] += dz*f[i][0] - dx*f[i][2];
-      sum[ibody][5] += dx*f[i][1] - dy*f[i][0];
+      sum[ibody][3] += dy * f[i][2] - dz * f[i][1];
+      sum[ibody][4] += dz * f[i][0] - dx * f[i][2];
+      sum[ibody][5] += dx * f[i][1] - dy * f[i][0];
     }
   }
 
-  MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(sum[0], all[0], 6 * nbody, MPI_DOUBLE, MPI_SUM, world);
 
   for (ibody = 0; ibody < nbody; ibody++) {
     fcm[ibody][0] = all[ibody][0];
@@ -822,7 +797,7 @@ void FixPOEMS::final_integrate()
 
   // perform POEMS integration
 
-  poems->LobattoTwo(vcm,omega,torque,fcm);
+  poems->LobattoTwo(vcm, omega, torque, fcm);
 
   // set velocities of atoms in rigid bodies
   // virial is already setup from initial_integrate
@@ -838,15 +813,17 @@ void FixPOEMS::initial_integrate_respa(int vflag, int ilevel, int /* iloop */)
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
   dthalf = 0.5 * step_respa[ilevel];
 
-  if (ilevel == 0) initial_integrate(vflag);
-  else final_integrate();
+  if (ilevel == 0)
+    initial_integrate(vflag);
+  else
+    final_integrate();
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixPOEMS::post_force_respa(int vflag, int ilevel, int /* iloop */)
 {
-  if (ilevel == nlevels_respa-1) post_force(vflag);
+  if (ilevel == nlevels_respa - 1) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -895,27 +872,27 @@ int FixPOEMS::dof(int igroup)
       if (natom2body[i]) ncount[atom2body[i][0]]++;
 
   int *nall = new int[nbody];
-  MPI_Allreduce(ncount,nall,nbody,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(ncount, nall, nbody, MPI_INT, MPI_SUM, world);
 
   // remove 3N - 6 dof for each rigid body if at least 2 atoms are in igroup
 
   int n = 0;
   for (int ibody = 0; ibody < nbody; ibody++)
-    if (nall[ibody] > 2) n += 3*nall[ibody] - 6;
+    if (nall[ibody] > 2) n += 3 * nall[ibody] - 6;
 
   // subtract 3 additional dof for each joint if atom is also in igroup
 
   int m = 0;
   for (int i = 0; i < nlocal; i++)
-    if (natom2body[i] > 1 && (mask[i] & groupbit)) m += 3*(natom2body[i]-1);
+    if (natom2body[i] > 1 && (mask[i] & groupbit)) m += 3 * (natom2body[i] - 1);
   int mall;
-  MPI_Allreduce(&m,&mall,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&m, &mall, 1, MPI_INT, MPI_SUM, world);
   n += mall;
 
   // delete local memory
 
-  delete [] ncount;
-  delete [] nall;
+  delete[] ncount;
+  delete[] nall;
 
   return n;
 }
@@ -935,74 +912,55 @@ void FixPOEMS::deform(int /* flag */) {}
 
 /* ---------------------------------------------------------------------- */
 
-void FixPOEMS::readfile(char *file)
+void FixPOEMS::readfile(const char *file)
 {
-  FILE *fp;
 
-  if (me == 0) {
-    fp = fopen(file,"r");
-    if (fp == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open fix poems file %s",file);
-      error->one(FLERR,str);
+  // read and parse file with bodies on rank 0 and then broadcast and process data
+  std::vector<std::vector<bigint>> bodies;
+  int maxbody = 0;
+
+  if (comm->me == 0) {
+    try {
+      TextFileReader reader(file, "POEMS rigid bodies");
+      while (true) {
+        std::vector<bigint> onebody;
+        auto values = reader.next_values(0);
+        values.skip(2);    // ignore body id and body type
+        while (values.has_next()) onebody.push_back(values.next_bigint());
+        maxbody = MAX(maxbody, (int) onebody.size());
+        bodies.push_back(onebody);
+      }
+    } catch (EOFException &) {
+      // reached end of file
+      printf("reached EOF\n");
+    } catch (std::exception &e) {
+      error->one(FLERR, "Error reading file with POEMS body definitions: {}", e.what());
     }
   }
 
-  nbody = 0;
-  char *line = nullptr;
-  int maxline = 0;
-  char *ptr;
-  int nlocal = atom->nlocal;
-  int i,id,nlen;
+  nbody = bodies.size();
+  MPI_Bcast(&nbody, 1, MPI_INT, 0, world);
+  MPI_Bcast(&maxbody, 1, MPI_INT, 0, world);
+  bigint *buf = new bigint[maxbody + 1];
+  const int nlocal = atom->nlocal;
 
-  while (1) {
-    if (me == 0) nlen = readline(fp,&line,&maxline);
-    MPI_Bcast(&nlen,1,MPI_INT,0,world);
-    if (nlen == 0) break;
-    MPI_Bcast(line,nlen,MPI_CHAR,0,world);
-
-    ptr = strtok(line," ,\t\n\0");
-    if (ptr == nullptr || ptr[0] == '#') continue;
-    ptr = strtok(nullptr," ,\t\n\0");
-
-    while ((ptr = strtok(nullptr," ,\t\n\0"))) {
-      id = atoi(ptr);
-      i = atom->map(id);
-      if (i < 0 || i >= nlocal) continue;
-      if (natom2body[i] < MAXBODY) atom2body[i][natom2body[i]] = nbody;
-      natom2body[i]++;
+  for (int i = 0; i < nbody; ++i) {
+    if (comm->me == 0) {
+      buf[0] = bodies[i].size();
+      memcpy(buf + 1, bodies[i].data(), bodies[i].size() * sizeof(bigint));
     }
-    nbody++;
+    MPI_Bcast(buf, maxbody + 1, MPI_LMP_BIGINT, 0, world);
+
+    // convert global atom ids to local atom indices and fill data structures
+    for (int j = 1; j <= buf[0]; ++j) {
+      int k = atom->map(buf[j]);
+      if (k < 0 || k >= nlocal) continue;
+      if (natom2body[k] < MAXBODY) atom2body[k][natom2body[k]] = i;
+      natom2body[k]++;
+    }
   }
 
-  memory->destroy(line);
-  if (me == 0) fclose(fp);
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixPOEMS::readline(FILE *fp, char **pline, int *pmaxline)
-{
-  int n = 0;
-  char *line = *pline;
-  int maxline = *pmaxline;
-
-  while (1) {
-    if (n+1 >= maxline) {
-      maxline += DELTA;
-      memory->grow(line,maxline,"fix_poems:line");
-    }
-    if (fgets(&line[n],maxline-n,fp) == nullptr) {
-      n = 0;
-      break;
-    }
-    n = strlen(line);
-    if (n < maxline-1 || line[n-1] == '\n') break;
-  }
-
-  *pmaxline = maxline;
-  *pline = line;
-  return n;
+  delete[] buf;
 }
 
 /* ----------------------------------------------------------------------
@@ -1011,7 +969,7 @@ int FixPOEMS::readline(FILE *fp, char **pline, int *pmaxline)
 
 void FixPOEMS::jointbuild()
 {
-  int i,j;
+  int i, j;
 
   // convert atom2body into list of joint atoms on this proc
   // mjoint = # of joint atoms in this proc
@@ -1024,11 +982,11 @@ void FixPOEMS::jointbuild()
   int mjoint = 0;
   for (i = 0; i < nlocal; i++) {
     if (natom2body[i] <= 1) continue;
-    mjoint += natom2body[i]-1;
+    mjoint += natom2body[i] - 1;
   }
 
   tagint **mylist = nullptr;
-  if (mjoint) memory->create(mylist,mjoint,3,"poems:mylist");
+  if (mjoint) memory->create(mylist, mjoint, 3, "poems:mylist");
 
   mjoint = 0;
   for (i = 0; i < nlocal; i++) {
@@ -1043,50 +1001,48 @@ void FixPOEMS::jointbuild()
 
   // jlist = mylist concatenated across all procs via MPI_Allgatherv
 
-  MPI_Allreduce(&mjoint,&njoint,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&mjoint, &njoint, 1, MPI_INT, MPI_SUM, world);
   tagint **jlist = nullptr;
-  if (njoint) memory->create(jlist,njoint,3,"poems:jlist");
+  if (njoint) memory->create(jlist, njoint, 3, "poems:jlist");
 
   int nprocs;
-  MPI_Comm_size(world,&nprocs);
+  MPI_Comm_size(world, &nprocs);
 
   int *recvcounts = new int[nprocs];
-  int tmp = 3*mjoint;
-  MPI_Allgather(&tmp,1,MPI_INT,recvcounts,1,MPI_INT,world);
+  int tmp = 3 * mjoint;
+  MPI_Allgather(&tmp, 1, MPI_INT, recvcounts, 1, MPI_INT, world);
 
   int *displs = new int[nprocs];
   displs[0] = 0;
-  for (i = 1; i < nprocs; i++) displs[i] = displs[i-1] + recvcounts[i-1];
+  for (i = 1; i < nprocs; i++) displs[i] = displs[i - 1] + recvcounts[i - 1];
 
   // allgather the local joint lists
   // 2 versions in case mjoint is 0 on this proc
 
   if (njoint) {
     if (mjoint)
-      MPI_Allgatherv(mylist[0],3*mjoint,MPI_LMP_TAGINT,jlist[0],
-                     recvcounts,displs,MPI_LMP_TAGINT,world);
+      MPI_Allgatherv(mylist[0], 3 * mjoint, MPI_LMP_TAGINT, jlist[0], recvcounts, displs,
+                     MPI_LMP_TAGINT, world);
     else
-      MPI_Allgatherv(nullptr,3*mjoint,MPI_LMP_TAGINT,jlist[0],
-                     recvcounts,displs,MPI_LMP_TAGINT,world);
+      MPI_Allgatherv(nullptr, 3 * mjoint, MPI_LMP_TAGINT, jlist[0], recvcounts, displs,
+                     MPI_LMP_TAGINT, world);
   }
 
-  delete [] recvcounts;
-  delete [] displs;
+  delete[] recvcounts;
+  delete[] displs;
 
   // warning if no joints
 
-  if (njoint == 0 && me == 0)
-    error->warning(FLERR,
-                   "No joints between rigid bodies, use fix rigid instead");
+  if (njoint == 0 && comm->me == 0)
+    error->warning(FLERR, "No joints between rigid bodies, use fix rigid instead");
 
   // sort joint list in ascending order by body indices
   // check for loops in joint connections between rigid bodies
   // check for trees = same body in more than 2 joints
 
-  sortlist(njoint,jlist);
+  sortlist(njoint, jlist);
 
-  if (loopcheck(nbody,njoint,jlist))
-    error->all(FLERR,"Cyclic loop in joint connections");
+  if (loopcheck(nbody, njoint, jlist)) error->all(FLERR, "Cyclic loop in joint connections");
 
   int *bodyflag = new int[nbody];
   for (i = 0; i < nbody; i++) bodyflag[i] = 0;
@@ -1095,9 +1051,8 @@ void FixPOEMS::jointbuild()
     bodyflag[jlist[i][1]]++;
   }
   for (i = 0; i < nbody; i++)
-    if (bodyflag[i] > 2)
-      error->all(FLERR,"Tree structure in joint connections");
-  delete [] bodyflag;
+    if (bodyflag[i] > 2) error->all(FLERR, "Tree structure in joint connections");
+  delete[] bodyflag;
 
   // allocate and setup joint arrays
   // jointbody stores body indices from 1 to Nbody to pass to POEMS
@@ -1108,9 +1063,9 @@ void FixPOEMS::jointbuild()
   xjoint = nullptr;
   double **myjoint = nullptr;
   if (njoint) {
-    memory->create(jointbody,njoint,2,"poems:jointbody");
-    memory->create(xjoint,njoint,3,"poems:xjoint");
-    memory->create(myjoint,njoint,3,"poems:myjoint");
+    memory->create(jointbody, njoint, 2, "poems:jointbody");
+    memory->create(xjoint, njoint, 3, "poems:xjoint");
+    memory->create(myjoint, njoint, 3, "poems:myjoint");
   }
 
   double **x = atom->x;
@@ -1123,11 +1078,11 @@ void FixPOEMS::jointbuild()
       myjoint[i][0] = x[j][0];
       myjoint[i][1] = x[j][1];
       myjoint[i][2] = x[j][2];
-    } else myjoint[i][0] = myjoint[i][1] = myjoint[i][2] = 0.0;
+    } else
+      myjoint[i][0] = myjoint[i][1] = myjoint[i][2] = 0.0;
   }
 
-  if (njoint)
-    MPI_Allreduce(myjoint[0],xjoint[0],3*njoint,MPI_DOUBLE,MPI_SUM,world);
+  if (njoint) MPI_Allreduce(myjoint[0], xjoint[0], 3 * njoint, MPI_DOUBLE, MPI_SUM, world);
 
   // compute freelist of nfree single unconnected bodies
   // POEMS could do this itself
@@ -1135,19 +1090,21 @@ void FixPOEMS::jointbuild()
   int *mark = new int[nbody];
   for (i = 0; i < nbody; i++) mark[i] = 1;
   for (i = 0; i < njoint; i++) {
-    mark[jointbody[i][0]-1] = 0;
-    mark[jointbody[i][1]-1] = 0;
+    mark[jointbody[i][0] - 1] = 0;
+    mark[jointbody[i][1] - 1] = 0;
   }
 
   nfree = 0;
   for (i = 0; i < nbody; i++)
     if (mark[i]) nfree++;
-  if (nfree) freelist = new int[nfree];
-  else freelist = nullptr;
+  if (nfree)
+    freelist = new int[nfree];
+  else
+    freelist = nullptr;
   nfree = 0;
   for (i = 0; i < nbody; i++)
     if (mark[i]) freelist[nfree++] = i + 1;
-  delete [] mark;
+  delete[] mark;
 
   // free memory local to this routine
 
@@ -1163,35 +1120,35 @@ void FixPOEMS::jointbuild()
 
 void FixPOEMS::sortlist(int n, tagint **list)
 {
-  int i,j,flag;
-  tagint v0,v1,v2;
+  int i, j, flag;
+  tagint v0, v1, v2;
 
   int inc = 1;
-  while (inc <= n) inc = 3*inc + 1;
+  while (inc <= n) inc = 3 * inc + 1;
 
   do {
     inc /= 3;
-    for (i = inc+1; i <= n; i++) {
-      v0 = list[i-1][0];
-      v1 = list[i-1][1];
-      v2 = list[i-1][2];
+    for (i = inc + 1; i <= n; i++) {
+      v0 = list[i - 1][0];
+      v1 = list[i - 1][1];
+      v2 = list[i - 1][2];
       j = i;
       flag = 0;
-      if (list[j-inc-1][0] > v0 ||
-          (list[j-inc-1][0] == v0 && list[j-inc-1][1] > v1)) flag = 1;
+      if (list[j - inc - 1][0] > v0 || (list[j - inc - 1][0] == v0 && list[j - inc - 1][1] > v1))
+        flag = 1;
       while (flag) {
-        list[j-1][0] = list[j-inc-1][0];
-        list[j-1][1] = list[j-inc-1][1];
-        list[j-1][2] = list[j-inc-1][2];
+        list[j - 1][0] = list[j - inc - 1][0];
+        list[j - 1][1] = list[j - inc - 1][1];
+        list[j - 1][2] = list[j - inc - 1][2];
         j -= inc;
         if (j <= inc) break;
         flag = 0;
-        if (list[j-inc-1][0] > v0 ||
-            (list[j-inc-1][0] == v0 && list[j-inc-1][1] > v1)) flag = 1;
+        if (list[j - inc - 1][0] > v0 || (list[j - inc - 1][0] == v0 && list[j - inc - 1][1] > v1))
+          flag = 1;
       }
-      list[j-1][0] = v0;
-      list[j-1][1] = v1;
-      list[j-1][2] = v2;
+      list[j - 1][0] = v0;
+      list[j - 1][1] = v1;
+      list[j - 1][2] = v2;
     }
   } while (inc > 1);
 }
@@ -1203,7 +1160,7 @@ void FixPOEMS::sortlist(int n, tagint **list)
 
 int FixPOEMS::loopcheck(int nvert, int nedge, tagint **elist)
 {
-  int i,j,k;
+  int i, j, k;
 
   // ecount[i] = # of vertices connected to vertex i via edge
   // elistfull[i][*] = list of vertices connected to vertex i
@@ -1216,10 +1173,10 @@ int FixPOEMS::loopcheck(int nvert, int nedge, tagint **elist)
   }
 
   int emax = 0;
-  for (i = 0; i < nvert; i++) emax = MAX(emax,ecount[i]);
+  for (i = 0; i < nvert; i++) emax = MAX(emax, ecount[i]);
 
   int **elistfull;
-  memory->create(elistfull,nvert,emax,"poems:elistfull");
+  memory->create(elistfull, nvert, emax, "poems:elistfull");
   for (i = 0; i < nvert; i++) ecount[i] = 0;
   for (i = 0; i < nedge; i++) {
     elistfull[elist[i][0]][ecount[elist[i][0]]++] = elist[i][1];
@@ -1247,7 +1204,7 @@ int FixPOEMS::loopcheck(int nvert, int nedge, tagint **elist)
   int *stack = new int[nvert];
   ncluster = 0;
 
-  while (1) {
+  while (true) {
     for (i = 0; i < nvert; i++)
       if (mark[i] == 0) break;
     if (i == nvert) break;
@@ -1271,11 +1228,11 @@ int FixPOEMS::loopcheck(int nvert, int nedge, tagint **elist)
 
   // free memory local to this routine
 
-  delete [] ecount;
+  delete[] ecount;
   memory->destroy(elistfull);
-  delete [] parent;
-  delete [] mark;
-  delete [] stack;
+  delete[] parent;
+  delete[] mark;
+  delete[] stack;
 
   return 0;
 }
@@ -1290,21 +1247,27 @@ int FixPOEMS::loopcheck(int nvert, int nedge, tagint **elist)
      and divide by principal moments
 ------------------------------------------------------------------------- */
 
-void FixPOEMS::omega_from_mq(double *m, double *ex, double *ey, double *ez,
-                             double *inertia, double *w)
+void FixPOEMS::omega_from_mq(double *m, double *ex, double *ey, double *ez, double *inertia,
+                             double *w)
 {
   double wbody[3];
 
-  if (inertia[0] == 0.0) wbody[0] = 0.0;
-  else wbody[0] = (m[0]*ex[0] + m[1]*ex[1] + m[2]*ex[2]) / inertia[0];
-  if (inertia[1] == 0.0) wbody[1] = 0.0;
-  else wbody[1] = (m[0]*ey[0] + m[1]*ey[1] + m[2]*ey[2]) / inertia[1];
-  if (inertia[2] == 0.0) wbody[2] = 0.0;
-  else wbody[2] = (m[0]*ez[0] + m[1]*ez[1] + m[2]*ez[2]) / inertia[2];
+  if (inertia[0] == 0.0)
+    wbody[0] = 0.0;
+  else
+    wbody[0] = (m[0] * ex[0] + m[1] * ex[1] + m[2] * ex[2]) / inertia[0];
+  if (inertia[1] == 0.0)
+    wbody[1] = 0.0;
+  else
+    wbody[1] = (m[0] * ey[0] + m[1] * ey[1] + m[2] * ey[2]) / inertia[1];
+  if (inertia[2] == 0.0)
+    wbody[2] = 0.0;
+  else
+    wbody[2] = (m[0] * ez[0] + m[1] * ez[1] + m[2] * ez[2]) / inertia[2];
 
-  w[0] = wbody[0]*ex[0] + wbody[1]*ey[0] + wbody[2]*ez[0];
-  w[1] = wbody[0]*ex[1] + wbody[1]*ey[1] + wbody[2]*ez[1];
-  w[2] = wbody[0]*ex[2] + wbody[1]*ey[2] + wbody[2]*ez[2];
+  w[0] = wbody[0] * ex[0] + wbody[1] * ey[0] + wbody[2] * ez[0];
+  w[1] = wbody[0] * ex[1] + wbody[1] * ey[1] + wbody[2] * ez[1];
+  w[2] = wbody[0] * ex[2] + wbody[1] * ey[2] + wbody[2] * ez[2];
 }
 
 /* ----------------------------------------------------------------------
@@ -1316,8 +1279,8 @@ void FixPOEMS::omega_from_mq(double *m, double *ex, double *ey, double *ez,
 void FixPOEMS::set_xv()
 {
   int ibody;
-  int xbox,ybox,zbox;
-  double x0,x1,x2,v0,v1,v2,fc0,fc1,fc2,massone;
+  int xbox, ybox, zbox;
+  double x0, x1, x2, v0, v1, v2, fc0, fc1, fc2, massone;
   double vr[6];
 
   imageint *image = atom->image;
@@ -1346,9 +1309,9 @@ void FixPOEMS::set_xv()
     // save old positions and velocities for virial
 
     if (evflag) {
-      x0 = x[i][0] + xbox*xprd;
-      x1 = x[i][1] + ybox*yprd;
-      x2 = x[i][2] + zbox*zprd;
+      x0 = x[i][0] + xbox * xprd;
+      x1 = x[i][1] + ybox * yprd;
+      x2 = x[i][2] + zbox * zprd;
 
       v0 = v[i][0];
       v1 = v[i][1];
@@ -1358,29 +1321,23 @@ void FixPOEMS::set_xv()
     // x = displacement from center-of-mass, based on body orientation
     // v = vcm + omega around center-of-mass
 
-    x[i][0] = ex_space[ibody][0]*displace[i][0] +
-      ey_space[ibody][0]*displace[i][1] +
-      ez_space[ibody][0]*displace[i][2];
-    x[i][1] = ex_space[ibody][1]*displace[i][0] +
-      ey_space[ibody][1]*displace[i][1] +
-      ez_space[ibody][1]*displace[i][2];
-    x[i][2] = ex_space[ibody][2]*displace[i][0] +
-      ey_space[ibody][2]*displace[i][1] +
-      ez_space[ibody][2]*displace[i][2];
+    x[i][0] = ex_space[ibody][0] * displace[i][0] + ey_space[ibody][0] * displace[i][1] +
+        ez_space[ibody][0] * displace[i][2];
+    x[i][1] = ex_space[ibody][1] * displace[i][0] + ey_space[ibody][1] * displace[i][1] +
+        ez_space[ibody][1] * displace[i][2];
+    x[i][2] = ex_space[ibody][2] * displace[i][0] + ey_space[ibody][2] * displace[i][1] +
+        ez_space[ibody][2] * displace[i][2];
 
-    v[i][0] = omega[ibody][1]*x[i][2] - omega[ibody][2]*x[i][1] +
-      vcm[ibody][0];
-    v[i][1] = omega[ibody][2]*x[i][0] - omega[ibody][0]*x[i][2] +
-      vcm[ibody][1];
-    v[i][2] = omega[ibody][0]*x[i][1] - omega[ibody][1]*x[i][0] +
-      vcm[ibody][2];
+    v[i][0] = omega[ibody][1] * x[i][2] - omega[ibody][2] * x[i][1] + vcm[ibody][0];
+    v[i][1] = omega[ibody][2] * x[i][0] - omega[ibody][0] * x[i][2] + vcm[ibody][1];
+    v[i][2] = omega[ibody][0] * x[i][1] - omega[ibody][1] * x[i][0] + vcm[ibody][2];
 
     // add center of mass to displacement
     // map back into periodic box via xbox,ybox,zbox
 
-    x[i][0] += xcm[ibody][0] - xbox*xprd;
-    x[i][1] += xcm[ibody][1] - ybox*yprd;
-    x[i][2] += xcm[ibody][2] - zbox*zprd;
+    x[i][0] += xcm[ibody][0] - xbox * xprd;
+    x[i][1] += xcm[ibody][1] - ybox * yprd;
+    x[i][2] += xcm[ibody][2] - zbox * zprd;
 
     // virial = unwrapped coords dotted into body constraint force
     // body constraint force = implied force due to v change minus f external
@@ -1390,18 +1347,18 @@ void FixPOEMS::set_xv()
 
     if (evflag) {
       massone = mass[type[i]];
-      fc0 = massone*(v[i][0] - v0)/dtf - f[i][0];
-      fc1 = massone*(v[i][1] - v1)/dtf - f[i][1];
-      fc2 = massone*(v[i][2] - v2)/dtf - f[i][2];
+      fc0 = massone * (v[i][0] - v0) / dtf - f[i][0];
+      fc1 = massone * (v[i][1] - v1) / dtf - f[i][1];
+      fc2 = massone * (v[i][2] - v2) / dtf - f[i][2];
 
-      vr[0] = 0.5*fc0*x0;
-      vr[1] = 0.5*fc1*x1;
-      vr[2] = 0.5*fc2*x2;
-      vr[3] = 0.5*fc1*x0;
-      vr[4] = 0.5*fc2*x0;
-      vr[5] = 0.5*fc2*x1;
+      vr[0] = 0.5 * fc0 * x0;
+      vr[1] = 0.5 * fc1 * x1;
+      vr[2] = 0.5 * fc2 * x2;
+      vr[3] = 0.5 * fc1 * x0;
+      vr[4] = 0.5 * fc2 * x0;
+      vr[5] = 0.5 * fc2 * x1;
 
-      v_tally(1,&i,1.0,vr);
+      v_tally(1, &i, 1.0, vr);
     }
   }
 }
@@ -1414,9 +1371,9 @@ void FixPOEMS::set_xv()
 void FixPOEMS::set_v()
 {
   int ibody;
-  int xbox,ybox,zbox;
-  double dx,dy,dz;
-  double x0,x1,x2,v0,v1,v2,fc0,fc1,fc2,massone;
+  int xbox, ybox, zbox;
+  double dx, dy, dz;
+  double x0, x1, x2, v0, v1, v2, fc0, fc1, fc2, massone;
   double vr[6];
 
   double *mass = atom->mass;
@@ -1438,15 +1395,12 @@ void FixPOEMS::set_v()
     if (natom2body[i] == 0) continue;
     ibody = atom2body[i][0];
 
-    dx = ex_space[ibody][0]*displace[i][0] +
-      ey_space[ibody][0]*displace[i][1] +
-      ez_space[ibody][0]*displace[i][2];
-    dy = ex_space[ibody][1]*displace[i][0] +
-      ey_space[ibody][1]*displace[i][1] +
-      ez_space[ibody][1]*displace[i][2];
-    dz = ex_space[ibody][2]*displace[i][0] +
-      ey_space[ibody][2]*displace[i][1] +
-      ez_space[ibody][2]*displace[i][2];
+    dx = ex_space[ibody][0] * displace[i][0] + ey_space[ibody][0] * displace[i][1] +
+        ez_space[ibody][0] * displace[i][2];
+    dy = ex_space[ibody][1] * displace[i][0] + ey_space[ibody][1] * displace[i][1] +
+        ez_space[ibody][1] * displace[i][2];
+    dz = ex_space[ibody][2] * displace[i][0] + ey_space[ibody][2] * displace[i][1] +
+        ez_space[ibody][2] * displace[i][2];
 
     // save old velocities for virial
 
@@ -1456,9 +1410,9 @@ void FixPOEMS::set_v()
       v2 = v[i][2];
     }
 
-    v[i][0] = omega[ibody][1]*dz - omega[ibody][2]*dy + vcm[ibody][0];
-    v[i][1] = omega[ibody][2]*dx - omega[ibody][0]*dz + vcm[ibody][1];
-    v[i][2] = omega[ibody][0]*dy - omega[ibody][1]*dx + vcm[ibody][2];
+    v[i][0] = omega[ibody][1] * dz - omega[ibody][2] * dy + vcm[ibody][0];
+    v[i][1] = omega[ibody][2] * dx - omega[ibody][0] * dz + vcm[ibody][1];
+    v[i][2] = omega[ibody][0] * dy - omega[ibody][1] * dx + vcm[ibody][2];
 
     // virial = unwrapped coords dotted into body constraint force
     // body constraint force = implied force due to v change minus f external
@@ -1468,26 +1422,26 @@ void FixPOEMS::set_v()
 
     if (evflag) {
       massone = mass[type[i]];
-      fc0 = massone*(v[i][0] - v0)/dtf - f[i][0];
-      fc1 = massone*(v[i][1] - v1)/dtf - f[i][1];
-      fc2 = massone*(v[i][2] - v2)/dtf - f[i][2];
+      fc0 = massone * (v[i][0] - v0) / dtf - f[i][0];
+      fc1 = massone * (v[i][1] - v1) / dtf - f[i][1];
+      fc2 = massone * (v[i][2] - v2) / dtf - f[i][2];
 
       xbox = (image[i] & IMGMASK) - IMGMAX;
       ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
       zbox = (image[i] >> IMG2BITS) - IMGMAX;
 
-      x0 = x[i][0] + xbox*xprd;
-      x1 = x[i][1] + ybox*yprd;
-      x2 = x[i][2] + zbox*zprd;
+      x0 = x[i][0] + xbox * xprd;
+      x1 = x[i][1] + ybox * yprd;
+      x2 = x[i][2] + zbox * zprd;
 
-      vr[0] = 0.5*fc0*x0;
-      vr[1] = 0.5*fc1*x1;
-      vr[2] = 0.5*fc2*x2;
-      vr[3] = 0.5*fc1*x0;
-      vr[4] = 0.5*fc2*x0;
-      vr[5] = 0.5*fc2*x1;
+      vr[0] = 0.5 * fc0 * x0;
+      vr[1] = 0.5 * fc1 * x1;
+      vr[2] = 0.5 * fc2 * x2;
+      vr[3] = 0.5 * fc1 * x0;
+      vr[4] = 0.5 * fc2 * x0;
+      vr[5] = 0.5 * fc2 * x1;
 
-      v_tally(1,&i,1.0,vr);
+      v_tally(1, &i, 1.0, vr);
     }
   }
 }
@@ -1498,9 +1452,9 @@ void FixPOEMS::set_v()
 
 void FixPOEMS::grow_arrays(int nmax)
 {
-  memory->grow(natom2body,nmax,"fix_poems:natom2body");
-  memory->grow(atom2body,nmax,MAXBODY,"fix_poems:atom2body");
-  memory->grow(displace,nmax,3,"fix_poems:displace");
+  memory->grow(natom2body, nmax, "fix_poems:natom2body");
+  memory->grow(atom2body, nmax, MAXBODY, "fix_poems:atom2body");
+  memory->grow(displace, nmax, 3, "fix_poems:displace");
 }
 
 /* ----------------------------------------------------------------------
@@ -1523,9 +1477,9 @@ void FixPOEMS::copy_arrays(int i, int j, int /* delflag */)
 double FixPOEMS::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = (double)nmax * sizeof(int);
-  bytes += (double)nmax*MAXBODY * sizeof(int);
-  bytes += (double)nmax*3 * sizeof(double);
+  double bytes = (double) nmax * sizeof(int);
+  bytes += (double) nmax * MAXBODY * sizeof(int);
+  bytes += (double) nmax * 3 * sizeof(double);
   return bytes;
 }
 
@@ -1536,9 +1490,8 @@ double FixPOEMS::memory_usage()
 int FixPOEMS::pack_exchange(int i, double *buf)
 {
   int m = 0;
-  buf[m++] = static_cast<double> (natom2body[i]);
-  for (int j = 0; j < natom2body[i]; j++)
-    buf[m++] = static_cast<double> (atom2body[i][j]);
+  buf[m++] = static_cast<double>(natom2body[i]);
+  for (int j = 0; j < natom2body[i]; j++) buf[m++] = static_cast<double>(atom2body[i][j]);
   buf[m++] = displace[i][0];
   buf[m++] = displace[i][1];
   buf[m++] = displace[i][2];
@@ -1552,9 +1505,8 @@ int FixPOEMS::pack_exchange(int i, double *buf)
 int FixPOEMS::unpack_exchange(int nlocal, double *buf)
 {
   int m = 0;
-  natom2body[nlocal] = static_cast<int> (buf[m++]);
-  for (int i = 0; i < natom2body[nlocal]; i++)
-    atom2body[nlocal][i] = static_cast<int> (buf[m++]);
+  natom2body[nlocal] = static_cast<int>(buf[m++]);
+  for (int i = 0; i < natom2body[nlocal]; i++) atom2body[nlocal][i] = static_cast<int>(buf[m++]);
   displace[nlocal][0] = buf[m++];
   displace[nlocal][1] = buf[m++];
   displace[nlocal][2] = buf[m++];
@@ -1565,11 +1517,14 @@ int FixPOEMS::unpack_exchange(int nlocal, double *buf)
 
 int FixPOEMS::modify_param(int narg, char **arg)
 {
-  if (strcmp(arg[0],"bodyforces") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
-    if (strcmp(arg[1],"early") == 0) earlyflag = 1;
-    else if (strcmp(arg[1],"late") == 0) earlyflag = 0;
-    else error->all(FLERR,"Illegal fix_modify command");
+  if (strcmp(arg[0], "bodyforces") == 0) {
+    if (narg < 2) error->all(FLERR, "Illegal fix_modify command");
+    if (strcmp(arg[1], "early") == 0)
+      earlyflag = 1;
+    else if (strcmp(arg[1], "late") == 0)
+      earlyflag = 0;
+    else
+      error->all(FLERR, "Illegal fix_modify command");
     return 2;
   }
 

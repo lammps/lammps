@@ -58,7 +58,7 @@ specifying additional BondBond (and BondAngle) coefficients either via
 the input script or in the data file.  I.e. *class2* must be added to
 each line after the angle type.  For lines in the BondBond (or
 BondAngle) section of the data file for angle types that are not
-*class2*\ , you must use an angle style of *skip* as a placeholder, e.g.
+*class2*, you must use an angle style of *skip* as a placeholder, e.g.
 
 .. parsed-literal::
 

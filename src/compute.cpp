@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,7 +23,6 @@
 #include "modify.h"
 
 #include <cstring>
-#include <cctype>
 
 using namespace LAMMPS_NS;
 
@@ -49,22 +49,15 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
   // compute ID, group, and style
   // ID must be all alphanumeric chars or underscores
 
-  int n = strlen(arg[0]) + 1;
-  id = new char[n];
-  strcpy(id,arg[0]);
-
-  for (int i = 0; i < n-1; i++)
-    if (!isalnum(id[i]) && id[i] != '_')
-      error->all(FLERR,
-                 "Compute ID must be alphanumeric or underscore characters");
+  id = utils::strdup(arg[0]);
+  if (!utils::is_id(id))
+    error->all(FLERR,"Compute ID must be alphanumeric or underscore characters");
 
   igroup = group->find(arg[1]);
   if (igroup == -1) error->all(FLERR,"Could not find compute group ID");
   groupbit = group->bitmask[igroup];
 
-  n = strlen(arg[2]) + 1;
-  style = new char[n];
-  strcpy(style,arg[2]);
+  style = utils::strdup(arg[2]);
 
   // set child class defaults
 
@@ -135,9 +128,7 @@ void Compute::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"dynamic") == 0 ||
                strcmp(arg[iarg],"dynamic/dof") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute_modify command");
-      if (strcmp(arg[iarg+1],"no") == 0) dynamic_user = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) dynamic_user = 1;
-      else error->all(FLERR,"Illegal compute_modify command");
+      dynamic_user = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal compute_modify command");
   }
@@ -149,13 +140,10 @@ void Compute::modify_params(int narg, char **arg)
 
 void Compute::adjust_dof_fix()
 {
-  Fix **fix = modify->fix;
-  int nfix = modify->nfix;
-
   fix_dof = 0;
-  for (int i = 0; i < nfix; i++)
-    if (fix[i]->dof_flag)
-      fix_dof += fix[i]->dof(igroup);
+  for (auto &ifix : modify->get_fix_list())
+    if (ifix->dof_flag)
+      fix_dof += ifix->dof(igroup);
 }
 
 /* ----------------------------------------------------------------------

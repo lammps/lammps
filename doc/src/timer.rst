@@ -81,7 +81,7 @@ which can be set with the *every* keyword. Default is checking
 every 10 steps. After the timer timeout has expired all subsequent
 run or minimize commands in the input script will be skipped.
 The remaining time or timer status can be accessed with the
-:doc:`thermo <thermo_style>` variable *timeremain*\ , which will be
+:doc:`thermo <thermo_style>` variable *timeremain*, which will be
 zero, if the timeout is inactive (default setting), it will be
 negative, if the timeout time is expired and positive if there
 is time remaining and in this case the value of the variable are

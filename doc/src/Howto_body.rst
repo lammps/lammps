@@ -10,7 +10,7 @@ deformable objects, etc.  Note that other kinds of finite-size
 spherical and aspherical particles are also supported by LAMMPS, such
 as spheres, ellipsoids, line segments, and triangles, but they are
 simpler entities than body particles.  See the :doc:`Howto spherical
-<Howto_spherical>` doc page for a general overview of all these
+<Howto_spherical>` page for a general overview of all these
 particle types.
 
 Body particles are used via the :doc:`atom_style body <atom_style>`
@@ -170,14 +170,14 @@ with this body style to compute body/body and body/non-body interactions.
 The *rounded/polygon* body style represents body particles as a 2d
 polygon with a variable number of N vertices.  This style can only be
 used for 2d models; see the :doc:`boundary <boundary>` command.  See the
-"pair_style body/rounded/polygon" doc page for a diagram of two
+"pair_style body/rounded/polygon" page for a diagram of two
 squares with rounded circles at the vertices.  Special cases for N = 1
 (circle) and N = 2 (rod with rounded ends) can also be specified.
 
 One use of this body style is for 2d discrete element models, as
 described in :ref:`Fraige <body-Fraige>`.
 
-Similar to body style *nparticle*\ , the atom_style body command for
+Similar to body style *nparticle*, the atom_style body command for
 this body style takes two additional arguments:
 
 .. parsed-literal::
@@ -284,7 +284,7 @@ The *rounded/polyhedron* body style represents body particles as a 3d
 polyhedron with a variable number of N vertices, E edges and F faces.
 This style can only be used for 3d models; see the
 :doc:`boundary <boundary>` command.  See the "pair_style
-body/rounded/polygon" doc page for a diagram of a two 2d squares with
+body/rounded/polygon" page for a diagram of a two 2d squares with
 rounded circles at the vertices.  A 3d cube with rounded spheres at
 the 8 vertices and 12 rounded edges would be similar.  Special cases
 for N = 1 (sphere) and N = 2 (rod with rounded ends) can also be
@@ -293,7 +293,7 @@ specified.
 This body style is for 3d discrete element models, as described in
 :ref:`Wang <body-Wang>`.
 
-Similar to body style *rounded/polygon*\ , the atom_style body command
+Similar to body style *rounded/polygon*, the atom_style body command
 for this body style takes two additional arguments:
 
 .. parsed-literal::

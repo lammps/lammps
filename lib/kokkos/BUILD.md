@@ -262,6 +262,9 @@ Architecture-specific optimizations can be enabled by specifying `-DKokkos_ARCH_
 * Kokkos_ARCH_ZEN2
     * Whether to optimize for the Zen2 architecture
     * BOOL Default: OFF
+* Kokkos_ARCH_ZEN3
+    * Whether to optimize for the Zen3 architecture
+    * BOOL Default: OFF
 * Kokkos_ARCH_HSW
     * Whether to optimize for the HSW architecture
     * BOOL Default: OFF

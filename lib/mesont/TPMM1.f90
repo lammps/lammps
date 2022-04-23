@@ -1,6 +1,6 @@
 ! ------------ ----------------------------------------------------------
 !   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-!   http://lammps.sandia.gov, Sandia National Laboratories
+!   https://www.lammps.org/ Sandia National Laboratories
 !   Steve Plimpton, sjplimp@sandia.gov
 !
 !   Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -9,9 +9,9 @@
 !   the GNU General Public License.
 !
 !   See the README file in the top-level LAMMPS directory.
-!   
+!
 !   Contributing author: Alexey N. Volkov, UA, avolkov1@ua.edu
-!------------------------------------------------------------------------- 
+!-------------------------------------------------------------------------
 
 module TPMM1 !**************************************************************************************
 !
@@ -56,9 +56,9 @@ implicit none
         real(c_double), dimension(0:TPM_MAX_CHAIN-1)            :: W, C
         real(c_double), dimension(0:2)                          :: RR, E10
         real(c_double)                                          :: L10, D10
-        
+
 contains !******************************************************************************************
-        
+
         subroutine PairWeight1 ( W, E1_1, E1_2, E2_1, E2_2, R2_1, R2_2 ) !!!!!!!!!!!!!!!!!!!!!!!!!!!
         real(c_double), intent(out)                     :: W
         real(c_double), dimension(0:2), intent(out)     :: E1_1, E1_2, E2_1, E2_2
@@ -78,7 +78,7 @@ contains !**********************************************************************
                         E2_2 = 0.0d+00
                         return
                 end if
-                E20 = 0.5d+00 * ( R2_2 - R2_1 ) 
+                E20 = 0.5d+00 * ( R2_2 - R2_1 )
                 L20 = sqrt ( S_V3xx ( E20 ) + sqr ( TPMR2 ) )
                 D20 = L10 + L20 + TPBRcutoff + RSkin
                 if ( D > D20 * D20 ) then
@@ -96,12 +96,12 @@ contains !**********************************************************************
                 t = ( D - D10 ) / D20
                 W = 1.0d+00 - t * t * ( 3.0d+00 - 2.0d+00 * t )
                 dWdD = 3.0d+00 * t * ( t - 1.0d+00 ) / D20
-                E1_1 = dWdD * ( t * E10 - E ) 
-                E1_2 = dWdD * ( - t * E10 - E ) 
-                E2_1 = dWdD * ( E + t * E20 ) 
-                E2_2 = dWdD * ( E - t * E20 ) 
+                E1_1 = dWdD * ( t * E10 - E )
+                E1_2 = dWdD * ( - t * E10 - E )
+                E2_1 = dWdD * ( E + t * E20 )
+                E2_2 = dWdD * ( E - t * E20 )
         end subroutine PairWeight1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
         integer(c_int) function EndWeight1 ( W, E1_1, E1_2, E2_1, E2_2, R1_1, R1_2, R2_1, R2_2 ) !!!
         real(c_double), intent(out)                     :: W
         real(c_double), dimension(0:2), intent(out)     :: E1_1, E1_2, E2_1, E2_2
@@ -114,7 +114,7 @@ contains !**********************************************************************
                 E = 0.5d+00 * ( R2_1 + R2_2 - ( R1_1 + R1_2 ) )
                 call ApplyPeriodicBC ( E )
                 D = S_V3norm3 ( E )
-                E20 = 0.5d+00 * ( R2_2 - R2_1 ) 
+                E20 = 0.5d+00 * ( R2_2 - R2_1 )
                 L20 = sqrt ( S_V3xx ( E20 ) + sqr ( TPMR2 ) )
                 D1 = L10 + L20 + TPBRcutoff + RSkin
                 if ( D < D1 ) then
@@ -126,7 +126,7 @@ contains !**********************************************************************
                         E2_2 = 0.0d+00
                         return
                 end if
-                D2 = D1 + TPMC3  
+                D2 = D1 + TPMC3
                 if ( D > D2 ) then
                         EndWeight1 = 2
                         W = 0.0d+00
@@ -142,13 +142,13 @@ contains !**********************************************************************
                 t = ( D - D1 ) / TPMC3
                 W = 1.0d+00 - t * t * ( 3.0d+00 - 2.0d+00 * t )
                 dWdD = 3.0d+00 * t * ( t - 1.0d+00 ) / TPMC3
-                E1_1 = dWdD * ( E10 - E ) 
-                E1_2 = dWdD * ( - E10 - E ) 
-                E2_1 = dWdD * ( E + E20 ) 
-                E2_2 = dWdD * ( E - E20 ) 
+                E1_1 = dWdD * ( E10 - E )
+                E1_2 = dWdD * ( - E10 - E )
+                E2_1 = dWdD * ( E + E20 )
+                E2_2 = dWdD * ( E - E20 )
         end function EndWeight1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        integer(c_int) function TPMInteractionFC1 ( Q, U, F1, F2, P1, P2, Pe, Pe1, R1, R2, Q1, Q2, Qe, Qe1, EType ) 
+        integer(c_int) function TPMInteractionFC1 ( Q, U, F1, F2, P1, P2, Pe, Pe1, R1, R2, Q1, Q2, Qe, Qe1, EType )
         real(c_double), intent(out)                     :: Q, U
         real(c_double), dimension(0:2), intent(out)     :: F1, F2, P1, P2, Pe, Pe1
         real(c_double), dimension(0:2), intent(in)      :: R1, R2, Q1, Q2, Qe, Qe1
@@ -196,11 +196,11 @@ contains !**********************************************************************
                                 end if
                                 call TPMSegmentForces ( P1a, P2a, F1a, F2a, R1, R2, QX, M, L )
                         end if
-                        
+
                         if ( CaseID > 0 ) then
                                 IntSignb = TPMInteractionF ( Qb, Ub, F1b, F2b, P1b, P2b, Peeb, R1, R2, Q1, Q2, 0 )
                         end if
-                        
+
                         if ( CaseID == 0 ) then
                                 TPMInteractionFC1 = IntSigna
                                 Q   = Qa
@@ -226,7 +226,7 @@ contains !**********************************************************************
                                 TPMInteractionFC1 = 0
                                 if ( IntSigna > 0 .or. IntSignb > 0 ) TPMInteractionFC1 = 1
                                 W1  = 1.0d+00 - W
-                                DU  = Ub - Ua 
+                                DU  = Ub - Ua
                                 Q   = W * Qa + W1 * Qb
                                 U   = W * Ua + W1 * Ub
                                 Pe  = ( W * Peea / D ) * Me
@@ -240,7 +240,7 @@ contains !**********************************************************************
                         end if
                 end if
         end function TPMInteractionFC1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
         integer(c_int) function TPMInteractionFW1 ( QQ, U, U1, U2, UU, F1, F2, F, Fe, G1, G2, R1, R2, N, NMAX, R, Re, EType )
         real(c_double), intent(out)                             :: U, U1, U2
         integer(c_int), intent(in)                              :: N, NMAX, EType
@@ -251,7 +251,7 @@ contains !**********************************************************************
         real(c_double), dimension(0:2,0:NMAX-1), intent(in)     :: R
         !-------------------------------------------------------------------------------------------
         integer(c_int)                                          :: i, j
-        real(c_double)                                          :: Q, WW, DD 
+        real(c_double)                                          :: Q, WW, DD
         !-------------------------------------------------------------------------------------------
                 Q1 = 0.0d+00
                 Q2 = 0.0d+00
@@ -259,7 +259,7 @@ contains !**********************************************************************
                 Z1  = 0.0d+00
                 Z2  = 0.0d+00
                 TPMInteractionFW1 = 0
-                E10 = 0.5d+00 * ( R2 - R1 ) 
+                E10 = 0.5d+00 * ( R2 - R1 )
                 L10 = sqrt ( S_V3xx ( E10 ) + sqr ( TPMR1 ) )
                 D10 = TPMR1 + TPMR2 + TPMC123 * TPBRcutoff + RSkin
                 E10 = E10 / L10
@@ -293,10 +293,10 @@ contains !**********************************************************************
                         Qe = 0.0d+00
                         Qe1 = 0.0d+00
                 end if
-                
-                TPMInteractionFW1 = TPMInteractionFC1 ( Q, U, F1, F2, S1, S2, Pe, Pe1, R1, R2, Q1, Q2, Qe, Qe1, EType ) 
+
+                TPMInteractionFW1 = TPMInteractionFC1 ( Q, U, F1, F2, S1, S2, Pe, Pe1, R1, R2, Q1, Q2, Qe, Qe1, EType )
                 if ( TPMInteractionFW1 == 0 ) return
-                
+
                 W(0:N-2)  = W(0:N-2) / WW
                 E1(0:2,0:N-2) = E1(0:2,0:N-2) / WW
                 E2(0:2,0:N-2) = E2(0:2,0:N-2) / WW
@@ -322,7 +322,7 @@ contains !**********************************************************************
                 do j = 0, N - 2
                         if ( j == 0 ) then
                                 DR = EE1(0:2,0) * ( 1.0d+00 - W(0) )
-                        else 
+                        else
                                 DR = - W(j) * EE1(0:2,0)
                         end if
                         F(0:2,0) = F(0:2,0) + C(j) * DR
@@ -337,8 +337,8 @@ contains !**********************************************************************
                                 else if ( j == i - 1 ) then
                                         G1(0:2,i) = G1(0:2,i) + C(j) * ( EE2(0:2,j) - W(j) * EE2(0:2,i-1) )
                                         G2(0:2,i) = G2(0:2,i) - C(j) * W(j) * EE1(0:2,i)
-                                else 
-                                        G1(0:2,i) = G1(0:2,i) - C(j) * W(j) * EE2(0:2,i-1) 
+                                else
+                                        G1(0:2,i) = G1(0:2,i) - C(j) * W(j) * EE2(0:2,i-1)
                                         G2(0:2,i) = G2(0:2,i) - C(j) * W(j) * EE1(0:2,i)
                                 end if
                         end do
@@ -348,7 +348,7 @@ contains !**********************************************************************
                 do j = 0, N - 2
                         if ( j == N - 2 ) then
                                 DR = EE2(0:2,N-2) * ( 1.0d+00 - W(N-2) )
-                        else 
+                        else
                                 DR = - W(j) * EE2(0:2,N-2)
                         end if
                         F(0:2,N-1) = F(0:2,N-1) + C(j) * DR
@@ -368,5 +368,5 @@ contains !**********************************************************************
                 G1(0:2,N-1) = F(0:2,N-1)
                 G2(0:2,0) = F(0:2,0)
         end function TPMInteractionFW1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
 end module TPMM1 !**********************************************************************************

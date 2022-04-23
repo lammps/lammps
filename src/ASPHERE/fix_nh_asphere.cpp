@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -35,7 +36,7 @@ FixNHAsphere::FixNHAsphere(LAMMPS *lmp, int narg, char **arg) :
 
 void FixNHAsphere::init()
 {
-  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  avec = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
   if (!avec)
     error->all(FLERR,
                "Compute nvt/nph/npt asphere requires atom style ellipsoid");

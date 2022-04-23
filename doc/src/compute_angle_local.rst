@@ -128,7 +128,7 @@ array is the number of angles.  If a single value is specified, a
 local vector is produced.  If two or more values are specified, a
 local array is produced where the number of columns = the number of
 values.  The vector or array can be accessed by any command that uses
-local values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+local values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 The output for *theta* will be in degrees.  The output for *eng* will

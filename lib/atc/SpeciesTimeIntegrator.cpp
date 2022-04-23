@@ -24,7 +24,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  Constructor
   //        Grab data from ATC
-  //-------------------------------------------------------- 
+  //--------------------------------------------------------
   SpeciesTimeIntegrator::SpeciesTimeIntegrator(ATC_CouplingMass * atc,
                                                TimeIntegrationType timeIntegrationType) :
     TimeIntegrator(atc, timeIntegrationType),
@@ -88,7 +88,7 @@ namespace ATC {
   //--------------------------------------------------------
   void SpeciesTimeIntegrator::pack_fields(RESTART_LIST & data)
   {
-    
+
     TimeIntegrator::pack_fields(data);
   }
 
@@ -101,7 +101,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  Constructor
   //        Grab data from ATC
-  //-------------------------------------------------------- 
+  //--------------------------------------------------------
   SpeciesIntegrationMethod::SpeciesIntegrationMethod(SpeciesTimeIntegrator * speciesTimeIntegrator,
     const map<string,pair<MolSize,int> > & moleculeIds) :
     TimeIntegrationMethod(speciesTimeIntegrator),
@@ -124,10 +124,10 @@ namespace ATC {
   void SpeciesIntegrationMethod::construct_transfers()
   {
     InterscaleManager & interscaleManager = atc_->interscale_manager();
-    
+
     // get existing data
     nodalAtomicMassDensity_ = interscaleManager.dense_matrix(field_to_intrinsic_name(MASS_DENSITY));
-    if (atc_->has_tracked_species()) 
+    if (atc_->has_tracked_species())
       nodalAtomicSpeciesConcentration_ = interscaleManager.dense_matrix(field_to_intrinsic_name(SPECIES_CONCENTRATION));
   }
 
@@ -139,7 +139,7 @@ namespace ATC {
 
   //--------------------------------------------------------
   //  Constructor
-  //-------------------------------------------------------- 
+  //--------------------------------------------------------
   SpeciesTimeIntegratorFractionalStep::SpeciesTimeIntegratorFractionalStep(SpeciesTimeIntegrator * speciesTimeIntegrator,
     const map<string,pair<MolSize,int> > & moleculeIds) :
     SpeciesIntegrationMethod(speciesTimeIntegrator,moleculeIds)
@@ -161,10 +161,10 @@ namespace ATC {
     }
 
     if (!timeFilterManager->end_equilibrate()) {
-      nodalAtomicSpeciesConcentrationFiltered_ = nodalAtomicSpeciesConcentration_->quantity();  
+      nodalAtomicSpeciesConcentrationFiltered_ = nodalAtomicSpeciesConcentration_->quantity();
     }
 
-    
+
     pre_final_integrate1(0.);
   }
 
@@ -172,7 +172,7 @@ namespace ATC {
   //  pre_initial_integrate1
   //--------------------------------------------------------
   void SpeciesTimeIntegratorFractionalStep::pre_initial_integrate1(double dt)
-  {   
+  {
     const DENS_MAT & my(nodalAtomicSpeciesConcentration_->quantity());
     // updated filtered energy using explicit-implicit scheme
     timeFilter_->apply_pre_step1(nodalAtomicSpeciesConcentrationFiltered_.set_quantity(),
@@ -182,15 +182,15 @@ namespace ATC {
 
   //--------------------------------------------------------
   //  pre_final_integrate1
-  //    first time integration computations 
+  //    first time integration computations
   //    before FractionalStep step 2
   //--------------------------------------------------------
   void SpeciesTimeIntegratorFractionalStep::pre_final_integrate1(double /* dt */)
   {
     // Compute MD contribution to FEM equation
-    
-    
-    massDensity_ = nodalAtomicMassDensity_->quantity();  
+
+
+    massDensity_ = nodalAtomicMassDensity_->quantity();
     speciesConcentration_ = nodalAtomicSpeciesConcentration_->quantity();
     atc_->set_fixed_nodes();
   }
@@ -204,7 +204,7 @@ namespace ATC {
     timeFilter_->apply_post_step1(
       nodalAtomicSpeciesConcentrationFiltered_.set_quantity(),
       nodalAtomicSpeciesConcentration_->quantity(),dt);
-    speciesConcentration_ = nodalAtomicSpeciesConcentrationFiltered_.quantity(); 
+    speciesConcentration_ = nodalAtomicSpeciesConcentrationFiltered_.quantity();
   }
 
   //--------------------------------------------------------
@@ -213,7 +213,7 @@ namespace ATC {
   //--------------------------------------------------------
   void SpeciesTimeIntegratorFractionalStep::post_process()
   {
-    
+
     map<string,pair<MolSize,int> >::const_iterator molecule;
     for (molecule = moleculeIds_.begin(); molecule != moleculeIds_.end(); molecule++) {
       DENS_MAN & nodalMoleculeMassDensityOut(atc_->tagged_dens_man(molecule->first));

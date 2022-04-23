@@ -67,14 +67,14 @@ then be 415 for the third chunk.
 
 The *coordN* attributes can only be used if a *binning* style was used
 in the :doc:`compute chunk/atom <compute_chunk_atom>` command referenced
-by chunkID.  For *bin/1d*\ , *bin/2d*\ , and *bin/3d* styles the attribute
+by chunkID.  For *bin/1d*, *bin/2d*, and *bin/3d* styles the attribute
 is the center point of the bin in the corresponding dimension.  Style
 *bin/1d* only defines a *coord1* attribute.  Style *bin/2d* adds a
 *coord2* attribute.  Style *bin/3d* adds a *coord3* attribute.
 
-Note that if the value of the *units* keyword used in the :doc:`compute chunk/atom command <compute_chunk_atom>` is *box* or *lattice*\ , the
+Note that if the value of the *units* keyword used in the :doc:`compute chunk/atom command <compute_chunk_atom>` is *box* or *lattice*, the
 *coordN* attributes will be in distance :doc:`units <units>`.  If the
-value of the *units* keyword is *reduced*\ , the *coordN* attributes
+value of the *units* keyword is *reduced*, the *coordN* attributes
 will be in unitless reduced units (0-1).
 
 The simplest way to output the results of the compute property/chunk
@@ -102,7 +102,7 @@ single input is specified, a global vector is produced.  If two or
 more inputs are specified, a global array is produced where the number
 of columns = the number of inputs.  The vector or array can be
 accessed by any command that uses global values from a compute as
-input.  See the :doc:`Howto output <Howto_output>` doc page for an
+input.  See the :doc:`Howto output <Howto_output>` page for an
 overview of LAMMPS output options.
 
 The vector or array values are "intensive".  The values will be

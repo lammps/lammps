@@ -56,6 +56,8 @@ public:
     parse_echo = (1<<1),
     /// Print the default value of a keyword, if it is NOT given
     parse_echo_default = (1<<2),
+    /// Print a deprecation warning if the keyword is given
+    parse_deprecation_warning = (1<<3),
     /// Do not print the keyword
     parse_silent = 0,
     /// Raise error if the keyword is not provided
@@ -66,7 +68,9 @@ public:
     /// The call is being executed from a read_restart() function
     parse_restart = (1<<18),
     /// Alias for old default behavior (should be phased out)
-    parse_normal = (1<<2) | (1<<1) | (1<<17)
+    parse_normal = (1<<2) | (1<<1) | (1<<17),
+    /// Settings for a deprecated keyword
+    parse_deprecated = (1<<1) | (1<<3) | (1<<17)
   };
 
   /// \brief Check that all the keywords within "conf" are in the list
@@ -316,6 +320,10 @@ public:
   /// \param conf The configuration string \param start_pos Start the count
   /// from this position
   static int check_braces(std::string const &conf, size_t const start_pos);
+
+  /// \brief Check that a config string contains non-ASCII characters
+  /// \param conf The configuration string
+  static int check_ascii(std::string const &conf);
 
   /// \brief Split a string with a specified delimiter into a vector
   /// \param data The string to be splitted

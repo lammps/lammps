@@ -29,10 +29,10 @@ Description
 """""""""""
 
 Perform targeted molecular dynamics (TMD) on a group of atoms.  A
-holonomic constraint is used to force the atoms to move towards (or
-away from) the target configuration.  The parameter "rho" is
-monotonically decreased (or increased) from its initial value to
-rho_final at the end of the run.
+holonomic constraint is used to force the atoms to move towards (or away
+from) the target configuration.  The parameter "rho" is monotonically
+decreased (or increased) from its initial value to rho_final at the end
+of the run.
 
 Rho has distance units and is a measure of the root-mean-squared
 distance (RMSD) between the current configuration of the atoms in the
@@ -55,21 +55,24 @@ a .gz suffix).  The format of the target file1 is as follows:
 
 The first 3 lines may or may not be needed, depending on the format of
 the atoms to follow.  If image flags are included with the atoms, the
-first 3 lo/hi lines must appear in the file.  If image flags are not
-included, the first 3 lines should not appear.  The 3 lines contain the
+first 3 lo/hi lines **must** appear in the file.  If image flags are not
+included, the first 3 lines **must not** appear.  The 3 lines contain the
 simulation box dimensions for the atom coordinates, in the same format
 as in a LAMMPS data file (see the :doc:`read_data <read_data>` command).
 
 The remaining lines each contain an atom ID and its target x,y,z
 coordinates.  The atom lines (all or none of them) can optionally be
-followed by 3 integer values: nx,ny,nz.  For periodic dimensions, they
+followed by 3 integer values: nx,ny,nz.For periodic dimensions, they
 specify which image of the box the atom is considered to be in, i.e. a
 value of N (positive or negative) means add N times the box length to
-the coordinate to get the true value.
+the coordinate to get the true value.  Those 3 integers either must
+be given for all atoms or none.
 
 The atom lines can be listed in any order, but every atom in the group
 must be listed in the file.  Atoms not in the fix group may also be
 listed; they will be ignored.
+
+Comments starting with '#' and empty lines may be included as well.
 
 TMD statistics are written to file2 every N timesteps, unless N is
 specified as 0, which means no statistics.
@@ -104,6 +107,9 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
+
+This fix is part of the EXTRA-FIX package.  It is only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 All TMD fixes must be listed in the input script after all integrator
 fixes (nve, nvt, npt) are applied.  This ensures that atoms are moved

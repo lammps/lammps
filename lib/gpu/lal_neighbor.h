@@ -26,19 +26,22 @@
 
 #if !defined(USE_OPENCL) && !defined(USE_HIP)
 #ifndef LAL_USE_OLD_NEIGHBOR
-// Issue with incorrect results with CUDA 11.2
-#if (CUDA_VERSION > 11019) && (CUDA_VERSION < 11030)
+// Issue with incorrect results with CUDA >= 11.2
+#if (CUDA_VERSION > 11019)
 #define LAL_USE_OLD_NEIGHBOR
 #endif
 #endif
+#endif
+
+#if defined(USE_HIP)
+#define LAL_USE_OLD_NEIGHBOR
 #endif
 
 namespace LAMMPS_AL {
 
 class Neighbor {
  public:
-  Neighbor() : _allocated(false), _use_packing(false), _ncells(0),
-    _old_max_nbors(0) {}
+  Neighbor() : _allocated(false), _use_packing(false), _old_max_nbors(0), _ncells(0) {}
   ~Neighbor() { clear(); }
 
   /// Determine whether neighbor unpacking should be used
@@ -68,7 +71,7 @@ class Neighbor {
             const int block_cell_2d, const int block_cell_id,
             const int block_nbor_build, const int threads_per_atom,
             const int simd_size, const bool time_device,
-            const std::string compile_flags, const bool ilist_map);
+            const std::string &compile_flags, const bool ilist_map);
 
   /// Set the cutoff+skin
   inline void set_cutoff(const double cutoff) {
@@ -120,7 +123,7 @@ class Neighbor {
     }
   }
 
-  inline void acc_timers(FILE *screen) {
+  inline void acc_timers(FILE *) {
     if (_nbor_time_avail) {
       if (_time_device) {
         time_nbor.add_to_total();

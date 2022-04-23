@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,16 +13,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_coul_cut_kokkos.h"
-#include <cmath>
-#include "kokkos.h"
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
+#include "kokkos.h"
+#include "memory_kokkos.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
+#include "neighbor.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -38,7 +41,6 @@ PairCoulCutKokkos<DeviceType>::PairCoulCutKokkos(LAMMPS *lmp) : PairCoulCut(lmp)
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -46,19 +48,13 @@ PairCoulCutKokkos<DeviceType>::PairCoulCutKokkos(LAMMPS *lmp) : PairCoulCut(lmp)
 template<class DeviceType>
 PairCoulCutKokkos<DeviceType>::~PairCoulCutKokkos()
 {
-  if (allocated)
+  if (copymode) return;
+
+  if (allocated) {
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->destroy_kokkos(k_cutsq, cutsq);
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairCoulCutKokkos<DeviceType>::cleanup_copy() {
- // WHY needed: this prevents parent copy from deallocating any arrays
-  allocated = 0;
-  cutsq = nullptr;
-  eatom = nullptr;
-  vatom = nullptr;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -215,26 +211,14 @@ void PairCoulCutKokkos<DeviceType>::init_style()
 {
   PairCoulCut::init_style();
 
-  // irequest = neigh request made by parent class
+  // adjust neighbor list request for KOKKOS
 
   neighflag = lmp->kokkos->neighflag;
-  int irequest = neighbor->nrequest - 1;
-
-  neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
-
-  if (neighflag == FULL) {
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->half = 0;
-  } else if (neighflag == HALF || neighflag == HALFTHREAD) {
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 1;
-  } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with coul/cut/kk");
-  }
+  auto request = neighbor->find_request(this);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  if (neighflag == FULL) request->enable_full();
 }
 
 /* ----------------------------------------------------------------------

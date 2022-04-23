@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(temp/profile,ComputeTempProfile)
-
+// clang-format off
+ComputeStyle(temp/profile,ComputeTempProfile);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_TEMP_PROFILE_H
@@ -27,38 +27,38 @@ namespace LAMMPS_NS {
 class ComputeTempProfile : public Compute {
  public:
   ComputeTempProfile(class LAMMPS *, int, char **);
-  ~ComputeTempProfile();
-  void init();
-  void setup();
-  double compute_scalar();
-  void compute_vector();
-  void compute_array();
+  ~ComputeTempProfile() override;
+  void init() override;
+  void setup() override;
+  double compute_scalar() override;
+  void compute_vector() override;
+  void compute_array() override;
 
-  void reset_extra_dof();
-  void remove_bias(int, double *);
-  void remove_bias_thr(int, double *, double *);
-  void remove_bias_all();
-  void restore_bias(int, double *);
-  void restore_bias_thr(int, double *, double *);
-  void restore_bias_all();
-  double memory_usage();
+  void reset_extra_dof() override;
+  void remove_bias(int, double *) override;
+  void remove_bias_thr(int, double *, double *) override;
+  void remove_bias_all() override;
+  void restore_bias(int, double *) override;
+  void restore_bias_thr(int, double *, double *) override;
+  void restore_bias_all() override;
+  double memory_usage() override;
 
  private:
-  int xflag,yflag,zflag,ncount,outflag;
-  int nbinx,nbiny,nbinz,nbins;
-  int ivx,ivy,ivz;
+  int xflag, yflag, zflag, ncount, outflag;
+  int nbinx, nbiny, nbinz, nbins;
+  int ivx, ivy, ivz;
   double tfactor;
   double nstreaming;
 
-  int box_change,triclinic;
+  int box_change, triclinic;
   int *periodicity;
-  double *boxlo,*boxhi,*prd;
+  double *boxlo, *boxhi, *prd;
   double invdelta[3];
 
   int maxatom;
   int *bin;
-  double **vbin,**binave;
-  double *tbin,*tbinall;
+  double **vbin, **binave;
+  double *tbin, *tbinall;
 
   void dof_compute();
   void bin_average();
@@ -66,7 +66,7 @@ class ComputeTempProfile : public Compute {
   void bin_assign();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

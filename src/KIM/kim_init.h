@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -62,16 +62,18 @@
 #include "pointers.h"
 
 // Forward declaration.
-typedef struct KIM_Model KIM_Model;
+struct KIM_Model;
+struct KIM_Collections;
 
 namespace LAMMPS_NS {
 
 class KimInit : protected Pointers {
  public:
-  KimInit(class LAMMPS *lmp) : Pointers(lmp) {};
+  KimInit(class LAMMPS *lmp) : Pointers(lmp){};
   void command(int, char **);
-  enum model_type_enum {MO, SM};
+  enum model_type_enum { MO, SM };
   static void write_log_cite(class LAMMPS *, model_type_enum, char *);
+
  private:
   model_type_enum model_type;
   bool unit_conversion_mode;
@@ -79,9 +81,11 @@ class KimInit : protected Pointers {
   void determine_model_type_and_units(char *, char *, char **, KIM_Model *&);
   void do_init(char *, char *, char *, KIM_Model *&);
   void do_variables(const std::string &, const std::string &);
+
+  void print_dirs(struct KIM_Collections * const collections) const;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

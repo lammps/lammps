@@ -54,10 +54,11 @@
 #include <functional>
 #include <list>
 #include <cerrno>
+#include <regex>
 #ifndef _WIN32
 #include <unistd.h>
 #else
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 //----------------------------------------------------------------------------
@@ -80,6 +81,23 @@ std::stack<hook_function_type, std::list<hook_function_type>> finalize_hooks;
 
 namespace Kokkos {
 namespace Impl {
+/**
+ * The category is only used in printing, tools
+ * get all metadata free of category
+ */
+using metadata_category_type = std::string;
+using metadata_key_type      = std::string;
+using metadata_value_type    = std::string;
+
+std::map<metadata_category_type,
+         std::map<metadata_key_type, metadata_value_type>>
+    metadata_map;
+
+void declare_configuration_metadata(const std::string& category,
+                                    const std::string& key,
+                                    const std::string& value) {
+  metadata_map[category][key] = value;
+}
 
 ExecSpaceManager& ExecSpaceManager::get_instance() {
   static ExecSpaceManager space_initializer = {};
@@ -110,6 +128,11 @@ void ExecSpaceManager::finalize_spaces(const bool all_spaces) {
 void ExecSpaceManager::static_fence() {
   for (auto& to_fence : exec_space_factory_list) {
     to_fence.second->fence();
+  }
+}
+void ExecSpaceManager::static_fence(const std::string& name) {
+  for (auto& to_fence : exec_space_factory_list) {
+    to_fence.second->fence(name);
   }
 }
 void ExecSpaceManager::print_configuration(std::ostream& msg,
@@ -210,8 +233,19 @@ int get_ctest_gpu(const char* local_rank_str) {
 
 // function to extract gpu # from args
 int get_gpu(const InitArguments& args) {
-  int use_gpu           = args.device_id;
-  const int ndevices    = args.ndevices;
+  int use_gpu        = args.device_id;
+  const int ndevices = [](int num_devices) -> int {
+    if (num_devices > 0) return num_devices;
+#if defined(KOKKOS_ENABLE_CUDA)
+    return Cuda::detect_device_count();
+#elif defined(KOKKOS_ENABLE_HIP)
+    return Experimental::HIP::detect_device_count();
+#elif defined(KOKKOS_ENABLE_SYCL)
+    return sycl::device::get_devices(sycl::info::device_type::gpu).size();
+#else
+    return num_devices;
+#endif
+  }(args.ndevices);
   const int skip_device = args.skip_device;
 
   // if the exact device is not set, but ndevices was given, assign round-robin
@@ -232,7 +266,7 @@ int get_gpu(const InitArguments& args) {
         local_rank_str) {
       // Use the device assigned by CTest
       use_gpu = get_ctest_gpu(local_rank_str);
-    } else if (ndevices >= 0) {
+    } else if (ndevices > 0) {
       // Use the device assigned by the rank
       if (local_rank_str) {
         auto local_rank = std::stoi(local_rank_str);
@@ -270,13 +304,216 @@ void initialize_backends(const InitArguments& args) {
   Impl::ExecSpaceManager::get_instance().initialize_spaces(args);
 }
 
-void initialize_profiling(const InitArguments&) {
-  Kokkos::Profiling::initialize();
+void initialize_profiling(const InitArguments& args) {
+  Kokkos::Profiling::initialize(args.tool_lib);
+  if (args.tool_help) {
+    if (!Kokkos::Tools::printHelp(args.tool_args)) {
+      std::cerr << "Tool has not provided a help message" << std::endl;
+    }
+    g_is_initialized = true;
+    ::Kokkos::finalize();
+    std::exit(EXIT_SUCCESS);
+  }
+  Kokkos::Tools::parseArgs(args.tool_args);
+  for (const auto& category_value : Kokkos::Impl::metadata_map) {
+    for (const auto& key_value : category_value.second) {
+      Kokkos::Tools::declareMetadata(key_value.first, key_value.second);
+    }
+  }
 }
 
+std::string version_string_from_int(int version_number) {
+  std::stringstream str_builder;
+  str_builder << version_number / 10000 << "." << (version_number % 10000) / 100
+              << "." << version_number % 100;
+  return str_builder.str();
+}
 void pre_initialize_internal(const InitArguments& args) {
   if (args.disable_warnings) g_show_warnings = false;
   if (args.tune_internals) g_tune_internals = true;
+  declare_configuration_metadata("version_info", "Kokkos Version",
+                                 version_string_from_int(KOKKOS_VERSION));
+#ifdef KOKKOS_COMPILER_APPLECC
+  declare_configuration_metadata("compiler_version", "KOKKOS_COMPILER_APPLECC",
+                                 std::to_string(KOKKOS_COMPILER_APPLECC));
+  declare_configuration_metadata("tools_only", "compiler_family", "apple");
+#endif
+#ifdef KOKKOS_COMPILER_CLANG
+  declare_configuration_metadata("compiler_version", "KOKKOS_COMPILER_CLANG",
+                                 std::to_string(KOKKOS_COMPILER_CLANG));
+  declare_configuration_metadata("tools_only", "compiler_family", "clang");
+#endif
+#ifdef KOKKOS_COMPILER_CRAYC
+  declare_configuration_metadata("compiler_version", "KOKKOS_COMPILER_CRAYC",
+                                 std::to_string(KOKKOS_COMPILER_CRAYC));
+  declare_configuration_metadata("tools_only", "compiler_family", "cray");
+#endif
+#ifdef KOKKOS_COMPILER_GNU
+  declare_configuration_metadata("compiler_version", "KOKKOS_COMPILER_GNU",
+                                 std::to_string(KOKKOS_COMPILER_GNU));
+  declare_configuration_metadata("tools_only", "compiler_family", "gnu");
+#endif
+#ifdef KOKKOS_COMPILER_IBM
+  declare_configuration_metadata("compiler_version", "KOKKOS_COMPILER_IBM",
+                                 std::to_string(KOKKOS_COMPILER_IBM));
+  declare_configuration_metadata("tools_only", "compiler_family", "ibm");
+#endif
+#ifdef KOKKOS_COMPILER_INTEL
+  declare_configuration_metadata("compiler_version", "KOKKOS_COMPILER_INTEL",
+                                 std::to_string(KOKKOS_COMPILER_INTEL));
+  declare_configuration_metadata("tools_only", "compiler_family", "intel");
+#endif
+#ifdef KOKKOS_COMPILER_NVCC
+  declare_configuration_metadata("compiler_version", "KOKKOS_COMPILER_NVCC",
+                                 std::to_string(KOKKOS_COMPILER_NVCC));
+  declare_configuration_metadata("tools_only", "compiler_family", "nvcc");
+#endif
+#ifdef KOKKOS_COMPILER_PGI
+  declare_configuration_metadata("compiler_version", "KOKKOS_COMPILER_PGI",
+                                 std::to_string(KOKKOS_COMPILER_PGI));
+  declare_configuration_metadata("tools_only", "compiler_family", "pgi");
+#endif
+#ifdef KOKKOS_COMPILER_MSVC
+  declare_configuration_metadata("compiler_version", "KOKKOS_COMPILER_MSVC",
+                                 std::to_string(KOKKOS_COMPILER_MSVC));
+  declare_configuration_metadata("tools_only", "compiler_family", "msvc");
+#endif
+#ifdef KOKKOS_ENABLE_ISA_KNC
+  declare_configuration_metadata("architecture", "KOKKOS_ENABLE_ISA_KNC",
+                                 "yes");
+#else
+  declare_configuration_metadata("architecture", "KOKKOS_ENABLE_ISA_KNC", "no");
+#endif
+#ifdef KOKKOS_ENABLE_ISA_POWERPCLE
+  declare_configuration_metadata("architecture", "KOKKOS_ENABLE_ISA_POWERPCLE",
+                                 "yes");
+#else
+  declare_configuration_metadata("architecture", "KOKKOS_ENABLE_ISA_POWERPCLE",
+                                 "no");
+#endif
+#ifdef KOKKOS_ENABLE_ISA_X86_64
+  declare_configuration_metadata("architecture", "KOKKOS_ENABLE_ISA_X86_64",
+                                 "yes");
+#else
+  declare_configuration_metadata("architecture", "KOKKOS_ENABLE_ISA_X86_64",
+                                 "no");
+#endif
+
+#ifdef KOKKOS_ENABLE_GNU_ATOMICS
+  declare_configuration_metadata("atomics", "KOKKOS_ENABLE_GNU_ATOMICS", "yes");
+#else
+  declare_configuration_metadata("atomics", "KOKKOS_ENABLE_GNU_ATOMICS", "no");
+#endif
+#ifdef KOKKOS_ENABLE_INTEL_ATOMICS
+  declare_configuration_metadata("atomics", "KOKKOS_ENABLE_INTEL_ATOMICS",
+                                 "yes");
+#else
+  declare_configuration_metadata("atomics", "KOKKOS_ENABLE_INTEL_ATOMICS",
+                                 "no");
+#endif
+#ifdef KOKKOS_ENABLE_WINDOWS_ATOMICS
+  declare_configuration_metadata("atomics", "KOKKOS_ENABLE_WINDOWS_ATOMICS",
+                                 "yes");
+#else
+  declare_configuration_metadata("atomics", "KOKKOS_ENABLE_WINDOWS_ATOMICS",
+                                 "no");
+#endif
+
+#ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
+  declare_configuration_metadata("vectorization", "KOKKOS_ENABLE_PRAGMA_IVDEP",
+                                 "yes");
+#else
+  declare_configuration_metadata("vectorization", "KOKKOS_ENABLE_PRAGMA_IVDEP",
+                                 "no");
+#endif
+#ifdef KOKKOS_ENABLE_PRAGMA_LOOPCOUNT
+  declare_configuration_metadata("vectorization",
+                                 "KOKKOS_ENABLE_PRAGMA_LOOPCOUNT", "yes");
+#else
+  declare_configuration_metadata("vectorization",
+                                 "KOKKOS_ENABLE_PRAGMA_LOOPCOUNT", "no");
+#endif
+#ifdef KOKKOS_ENABLE_PRAGMA_SIMD
+  declare_configuration_metadata("vectorization", "KOKKOS_ENABLE_PRAGMA_SIMD",
+                                 "yes");
+#else
+  declare_configuration_metadata("vectorization", "KOKKOS_ENABLE_PRAGMA_SIMD",
+                                 "no");
+#endif
+#ifdef KOKKOS_ENABLE_PRAGMA_UNROLL
+  declare_configuration_metadata("vectorization", "KOKKOS_ENABLE_PRAGMA_UNROLL",
+                                 "yes");
+#else
+  declare_configuration_metadata("vectorization", "KOKKOS_ENABLE_PRAGMA_UNROLL",
+                                 "no");
+#endif
+#ifdef KOKKOS_ENABLE_PRAGMA_VECTOR
+  declare_configuration_metadata("vectorization", "KOKKOS_ENABLE_PRAGMA_VECTOR",
+                                 "yes");
+#else
+  declare_configuration_metadata("vectorization", "KOKKOS_ENABLE_PRAGMA_VECTOR",
+                                 "no");
+#endif
+
+#ifdef KOKKOS_ENABLE_HBWSPACE
+  declare_configuration_metadata("memory", "KOKKOS_ENABLE_HBWSPACE", "yes");
+#else
+  declare_configuration_metadata("memory", "KOKKOS_ENABLE_HBWSPACE", "no");
+#endif
+#ifdef KOKKOS_ENABLE_INTEL_MM_ALLOC
+  declare_configuration_metadata("memory", "KOKKOS_ENABLE_INTEL_MM_ALLOC",
+                                 "yes");
+#else
+  declare_configuration_metadata("memory", "KOKKOS_ENABLE_INTEL_MM_ALLOC",
+                                 "no");
+#endif
+#ifdef KOKKOS_ENABLE_POSIX_MEMALIGN
+  declare_configuration_metadata("memory", "KOKKOS_ENABLE_POSIX_MEMALIGN",
+                                 "yes");
+#else
+  declare_configuration_metadata("memory", "KOKKOS_ENABLE_POSIX_MEMALIGN",
+                                 "no");
+#endif
+
+#ifdef KOKKOS_ENABLE_ASM
+  declare_configuration_metadata("options", "KOKKOS_ENABLE_ASM", "yes");
+#else
+  declare_configuration_metadata("options", "KOKKOS_ENABLE_ASM", "no");
+#endif
+#ifdef KOKKOS_ENABLE_CXX14
+  declare_configuration_metadata("options", "KOKKOS_ENABLE_CXX14", "yes");
+#else
+  declare_configuration_metadata("options", "KOKKOS_ENABLE_CXX14", "no");
+#endif
+#ifdef KOKKOS_ENABLE_CXX17
+  declare_configuration_metadata("options", "KOKKOS_ENABLE_CXX17", "yes");
+#else
+  declare_configuration_metadata("options", "KOKKOS_ENABLE_CXX17", "no");
+#endif
+#ifdef KOKKOS_ENABLE_CXX20
+  declare_configuration_metadata("options", "KOKKOS_ENABLE_CXX20", "yes");
+#else
+  declare_configuration_metadata("options", "KOKKOS_ENABLE_CXX20", "no");
+#endif
+#ifdef KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK
+  declare_configuration_metadata("options", "KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK",
+                                 "yes");
+#else
+  declare_configuration_metadata("options", "KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK",
+                                 "no");
+#endif
+#ifdef KOKKOS_ENABLE_HWLOC
+  declare_configuration_metadata("options", "KOKKOS_ENABLE_HWLOC", "yes");
+#else
+  declare_configuration_metadata("options", "KOKKOS_ENABLE_HWLOC", "no");
+#endif
+#ifdef KOKKOS_ENABLE_LIBRT
+  declare_configuration_metadata("options", "KOKKOS_ENABLE_LIBRT", "yes");
+#else
+  declare_configuration_metadata("options", "KOKKOS_ENABLE_LIBRT", "no");
+#endif
+  declare_configuration_metadata("architecture", "Default Device",
+                                 typeid(Kokkos::DefaultExecutionSpace).name());
 }
 
 void post_initialize_internal(const InitArguments& args) {
@@ -327,7 +564,9 @@ void finalize_internal(const bool all_spaces = false) {
   g_tune_internals = false;
 }
 
-void fence_internal() { Impl::ExecSpaceManager::get_instance().static_fence(); }
+void fence_internal(const std::string& name) {
+  Impl::ExecSpaceManager::get_instance().static_fence(name);
+}
 
 bool check_arg(char const* arg, char const* expected) {
   std::size_t arg_len = std::strlen(arg);
@@ -364,6 +603,24 @@ bool check_int_arg(char const* arg, char const* expected, int* value) {
   return true;
 }
 
+bool check_str_arg(char const* arg, char const* expected, std::string& value) {
+  if (!check_arg(arg, expected)) return false;
+  std::size_t arg_len = std::strlen(arg);
+  std::size_t exp_len = std::strlen(expected);
+  bool okay           = true;
+  if (arg_len == exp_len || arg[exp_len] != '=') okay = false;
+  char const* remain = arg + exp_len + 1;
+  value              = remain;
+  if (!okay) {
+    std::ostringstream ss;
+    ss << "Error: expecting an '=STRING' after command line argument '"
+       << expected << "'";
+    ss << ". Raised by Kokkos::initialize(int narg, char* argc[]).";
+    Impl::throw_runtime_exception(ss.str());
+  }
+  return true;
+}
+
 void warn_deprecated_command_line_argument(std::string deprecated,
                                            std::string valid) {
   std::cerr
@@ -390,6 +647,9 @@ void parse_command_line_arguments(int& narg, char* arg[],
   auto& skip_device      = arguments.skip_device;
   auto& disable_warnings = arguments.disable_warnings;
   auto& tune_internals   = arguments.tune_internals;
+  auto& tool_help        = arguments.tool_help;
+  auto& tool_args        = arguments.tool_args;
+  auto& tool_lib         = arguments.tool_lib;
 
   bool kokkos_threads_found  = false;
   bool kokkos_numa_found     = false;
@@ -461,7 +721,7 @@ void parse_command_line_arguments(int& narg, char* arg[],
       int num1_len    = num2 == nullptr ? strlen(num1) : num2 - num1;
       char* num1_only = new char[num1_len + 1];
       strncpy(num1_only, num1, num1_len);
-      num1_only[num1_len] = 0;
+      num1_only[num1_len] = '\0';
 
       if (!is_unsigned_int(num1_only) || (strlen(num1_only) == 0)) {
         throw_runtime_exception(
@@ -510,6 +770,37 @@ void parse_command_line_arguments(int& narg, char* arg[],
         arg[k] = arg[k + 1];
       }
       narg--;
+    } else if (check_str_arg(arg[iarg], "--kokkos-tools-library", tool_lib)) {
+      for (int k = iarg; k < narg - 1; k++) {
+        arg[k] = arg[k + 1];
+      }
+      narg--;
+    } else if (check_str_arg(arg[iarg], "--kokkos-tools-args", tool_args)) {
+      for (int k = iarg; k < narg - 1; k++) {
+        arg[k] = arg[k + 1];
+      }
+      narg--;
+      // strip any leading and/or trailing quotes if they were retained in the
+      // string because this will very likely cause parsing issues for tools.
+      // If the quotes are retained (via bypassing the shell):
+      //    <EXE> --kokkos-tools-args="-c my example"
+      // would be tokenized as:
+      //    "<EXE>" "\"-c" "my" "example\""
+      // instead of:
+      //    "<EXE>" "-c" "my" "example"
+      if (!tool_args.empty()) {
+        if (tool_args.front() == '"') tool_args = tool_args.substr(1);
+        if (tool_args.back() == '"')
+          tool_args = tool_args.substr(0, tool_args.length() - 1);
+      }
+      // add the name of the executable to the beginning
+      if (narg > 0) tool_args = std::string(arg[0]) + " " + tool_args;
+    } else if (check_arg(arg[iarg], "--kokkos-tools-help")) {
+      tool_help = true;
+      for (int k = iarg; k < narg - 1; k++) {
+        arg[k] = arg[k + 1];
+      }
+      narg--;
     } else if (check_arg(arg[iarg], "--kokkos-help") ||
                check_arg(arg[iarg], "--help")) {
       auto const help_message = R"(
@@ -526,7 +817,7 @@ void parse_command_line_arguments(int& narg, char* arg[],
       --kokkos-disable-warnings      : disable kokkos warning messages
       --kokkos-tune-internals        : allow Kokkos to autotune policies and declare
                                        tuning features through the tuning system. If
-				         left off, Kokkos uses heuristics
+                                       left off, Kokkos uses heuristics
       --kokkos-threads=INT           : specify total number of threads or
                                        number of threads per NUMA region if
                                        used in conjunction with '--numa' option.
@@ -540,6 +831,18 @@ void parse_command_line_arguments(int& narg, char* arg[],
                                        to be ignored. This is most useful on workstations
                                        with multiple GPUs of which one is used to drive
                                        screen output.
+      --kokkos-tools-library         : Equivalent to KOKKOS_PROFILE_LIBRARY environment
+                                       variable. Must either be full path to library or
+                                       name of library if the path is present in the
+                                       runtime library search path (e.g. LD_LIBRARY_PATH)
+      --kokkos-tools-help            : Query the (loaded) kokkos-tool for its command-line
+                                       option support (which should then be passed via
+                                       --kokkos-tools-args="...")
+      --kokkos-tools-args=STR        : A single (quoted) string of options which will be
+                                       whitespace delimited and passed to the loaded
+                                       kokkos-tool as command-line arguments. E.g.
+                                       `<EXE> --kokkos-tools-args="-c input.txt"` will
+                                       pass `<EXE> -c input.txt` as argc/argv to tool
       --------------------------------------------------------------------------------
 )";
       std::cout << help_message << std::endl;
@@ -556,6 +859,7 @@ void parse_command_line_arguments(int& narg, char* arg[],
     } else
       iarg++;
   }
+  if (tool_args.empty() && narg > 0) tool_args = arg[0];
 }
 
 void parse_environment_variables(InitArguments& arguments) {
@@ -566,6 +870,7 @@ void parse_environment_variables(InitArguments& arguments) {
   auto& skip_device      = arguments.skip_device;
   auto& disable_warnings = arguments.disable_warnings;
   auto& tune_internals   = arguments.tune_internals;
+  auto& tool_lib         = arguments.tool_lib;
   char* endptr;
   auto env_num_threads_str = std::getenv("KOKKOS_NUM_THREADS");
   if (env_num_threads_str != nullptr) {
@@ -711,7 +1016,9 @@ void parse_environment_variables(InitArguments& arguments) {
     for (char& c : env_str) {
       c = toupper(c);
     }
-    if ((env_str == "TRUE") || (env_str == "ON") || (env_str == "1"))
+    const auto _rc = std::regex_constants::icase | std::regex_constants::egrep;
+    const auto _re = std::regex("^(true|on|yes|[1-9])$", _rc);
+    if (std::regex_match(env_str, _re))
       disable_warnings = true;
     else if (disable_warnings)
       Impl::throw_runtime_exception(
@@ -732,6 +1039,16 @@ void parse_environment_variables(InitArguments& arguments) {
           "Error: expecting a match between --kokkos-tune-internals and "
           "KOKKOS_TUNE_INTERNALS if both are set. Raised by "
           "Kokkos::initialize(int narg, char* argc[]).");
+  }
+  auto env_tool_lib = std::getenv("KOKKOS_PROFILE_LIBRARY");
+  if (env_tool_lib != nullptr) {
+    if (!tool_lib.empty() && std::string(env_tool_lib) != tool_lib)
+      Impl::throw_runtime_exception(
+          "Error: expecting a match between --kokkos-tools-library and "
+          "KOKKOS_PROFILE_LIBRARY if both are set. Raised by "
+          "Kokkos::initialize(int narg, char* argc[]).");
+    else
+      tool_lib = env_tool_lib;
   }
 }
 
@@ -765,6 +1082,7 @@ void pre_initialize(const InitArguments& args) {
 void post_initialize(const InitArguments& args) {
   post_initialize_internal(args);
 }
+
 }  // namespace Impl
 
 void push_finalize_hook(std::function<void()> f) { finalize_hooks.push(f); }
@@ -776,182 +1094,38 @@ void finalize_all() {
   Impl::finalize_internal(all_spaces);
 }
 
-void fence() { Impl::fence_internal(); }
+void fence() { Impl::fence_internal("Kokkos::fence: Unnamed Global Fence"); }
+void fence(const std::string& name) { Impl::fence_internal(name); }
+
+void print_helper(std::ostringstream& out,
+                  const std::map<std::string, std::string>& print_me) {
+  for (const auto& kv : print_me) {
+    out << kv.first << ": " << kv.second << '\n';
+  }
+}
 
 void print_configuration(std::ostream& out, const bool detail) {
   std::ostringstream msg;
 
-  msg << "Kokkos Version:" << std::endl;
-  msg << "  " << KOKKOS_VERSION / 10000 << "." << (KOKKOS_VERSION % 10000) / 100
-      << "." << KOKKOS_VERSION % 100 << std::endl;
+  print_helper(msg, Kokkos::Impl::metadata_map["version_info"]);
 
   msg << "Compiler:" << std::endl;
-#ifdef KOKKOS_COMPILER_APPLECC
-  msg << "  KOKKOS_COMPILER_APPLECC: " << KOKKOS_COMPILER_APPLECC << std::endl;
-#endif
-#ifdef KOKKOS_COMPILER_CLANG
-  msg << "  KOKKOS_COMPILER_CLANG: " << KOKKOS_COMPILER_CLANG << std::endl;
-#endif
-#ifdef KOKKOS_COMPILER_CRAYC
-  msg << "  KOKKOS_COMPILER_CRAYC: " << KOKKOS_COMPILER_CRAYC << std::endl;
-#endif
-#ifdef KOKKOS_COMPILER_GNU
-  msg << "  KOKKOS_COMPILER_GNU: " << KOKKOS_COMPILER_GNU << std::endl;
-#endif
-#ifdef KOKKOS_COMPILER_IBM
-  msg << "  KOKKOS_COMPILER_IBM: " << KOKKOS_COMPILER_IBM << std::endl;
-#endif
-#ifdef KOKKOS_COMPILER_INTEL
-  msg << "  KOKKOS_COMPILER_INTEL: " << KOKKOS_COMPILER_INTEL << std::endl;
-#endif
-#ifdef KOKKOS_COMPILER_NVCC
-  msg << "  KOKKOS_COMPILER_NVCC: " << KOKKOS_COMPILER_NVCC << std::endl;
-#endif
-#ifdef KOKKOS_COMPILER_PGI
-  msg << "  KOKKOS_COMPILER_PGI: " << KOKKOS_COMPILER_PGI << std::endl;
-#endif
+  print_helper(msg, Kokkos::Impl::metadata_map["compiler_version"]);
 
   msg << "Architecture:" << std::endl;
-#ifdef KOKKOS_ENABLE_ISA_KNC
-  msg << "  KOKKOS_ENABLE_ISA_KNC: yes" << std::endl;
-#else
-  msg << "  KOKKOS_ENABLE_ISA_KNC: no" << std::endl;
-#endif
-#ifdef KOKKOS_ENABLE_ISA_POWERPCLE
-  msg << "  KOKKOS_ENABLE_ISA_POWERPCLE: yes" << std::endl;
-#else
-  msg << "  KOKKOS_ENABLE_ISA_POWERPCLE: no" << std::endl;
-#endif
-#ifdef KOKKOS_ENABLE_ISA_X86_64
-  msg << "  KOKKOS_ENABLE_ISA_X86_64: yes" << std::endl;
-#else
-  msg << "  KOKKOS_ENABLE_ISA_X86_64: no" << std::endl;
-#endif
-
-  msg << "Default Device:" << typeid(Kokkos::DefaultExecutionSpace).name()
-      << std::endl;
+  print_helper(msg, Kokkos::Impl::metadata_map["architecture"]);
 
   msg << "Atomics:" << std::endl;
-  msg << "  KOKKOS_ENABLE_GNU_ATOMICS: ";
-#ifdef KOKKOS_ENABLE_GNU_ATOMICS
-  msg << "yes" << std::endl;
-#else
-  msg << "no" << std::endl;
-#endif
-  msg << "  KOKKOS_ENABLE_INTEL_ATOMICS: ";
-#ifdef KOKKOS_ENABLE_INTEL_ATOMICS
-  msg << "yes" << std::endl;
-#else
-  msg << "no" << std::endl;
-#endif
-  msg << "  KOKKOS_ENABLE_WINDOWS_ATOMICS: ";
-#ifdef KOKKOS_ENABLE_WINDOWS_ATOMICS
-  msg << "yes" << std::endl;
-#else
-  msg << "no" << std::endl;
-#endif
+  print_helper(msg, Kokkos::Impl::metadata_map["atomics"]);
 
   msg << "Vectorization:" << std::endl;
-  msg << "  KOKKOS_ENABLE_PRAGMA_IVDEP: ";
-#ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
-  msg << "yes" << std::endl;
-#else
-  msg << "no" << std::endl;
-#endif
-  msg << "  KOKKOS_ENABLE_PRAGMA_LOOPCOUNT: ";
-#ifdef KOKKOS_ENABLE_PRAGMA_LOOPCOUNT
-  msg << "yes" << std::endl;
-#else
-  msg << "no" << std::endl;
-#endif
-  msg << "  KOKKOS_ENABLE_PRAGMA_SIMD: ";
-#ifdef KOKKOS_ENABLE_PRAGMA_SIMD
-  msg << "yes" << std::endl;
-#else
-  msg << "no" << std::endl;
-#endif
-  msg << "  KOKKOS_ENABLE_PRAGMA_UNROLL: ";
-#ifdef KOKKOS_ENABLE_PRAGMA_UNROLL
-  msg << "yes" << std::endl;
-#else
-  msg << "no" << std::endl;
-#endif
-  msg << "  KOKKOS_ENABLE_PRAGMA_VECTOR: ";
-#ifdef KOKKOS_ENABLE_PRAGMA_VECTOR
-  msg << "yes" << std::endl;
-#else
-  msg << "no" << std::endl;
-#endif
+  print_helper(msg, Kokkos::Impl::metadata_map["vectorization"]);
 
   msg << "Memory:" << std::endl;
-  msg << "  KOKKOS_ENABLE_HBWSPACE: ";
-#ifdef KOKKOS_ENABLE_HBWSPACE
-  msg << "yes" << std::endl;
-#else
-  msg << "no" << std::endl;
-#endif
-  msg << "  KOKKOS_ENABLE_INTEL_MM_ALLOC: ";
-#ifdef KOKKOS_ENABLE_INTEL_MM_ALLOC
-  msg << "yes" << std::endl;
-#else
-  msg << "no" << std::endl;
-#endif
-  msg << "  KOKKOS_ENABLE_POSIX_MEMALIGN: ";
-#ifdef KOKKOS_ENABLE_POSIX_MEMALIGN
-  msg << "yes" << std::endl;
-#else
-  msg << "no" << std::endl;
-#endif
+  print_helper(msg, Kokkos::Impl::metadata_map["memory"]);
 
   msg << "Options:" << std::endl;
-  msg << "  KOKKOS_ENABLE_ASM: ";
-#ifdef KOKKOS_ENABLE_ASM
-  msg << "yes" << std::endl;
-#else
-  msg << "no" << std::endl;
-#endif
-  msg << "  KOKKOS_ENABLE_CXX14: ";
-#ifdef KOKKOS_ENABLE_CXX14
-  msg << "yes" << std::endl;
-#else
-  msg << "no" << std::endl;
-#endif
-  msg << "  KOKKOS_ENABLE_CXX17: ";
-#ifdef KOKKOS_ENABLE_CXX17
-  msg << "yes" << std::endl;
-#else
-  msg << "no" << std::endl;
-#endif
-  msg << "  KOKKOS_ENABLE_CXX20: ";
-#ifdef KOKKOS_ENABLE_CXX20
-  msg << "yes" << std::endl;
-#else
-  msg << "no" << std::endl;
-#endif
-  msg << "  KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK: ";
-#ifdef KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK
-  msg << "yes" << std::endl;
-#else
-  msg << "no" << std::endl;
-#endif
-  msg << "  KOKKOS_ENABLE_HWLOC: ";
-#ifdef KOKKOS_ENABLE_HWLOC
-  msg << "yes" << std::endl;
-#else
-  msg << "no" << std::endl;
-#endif
-  msg << "  KOKKOS_ENABLE_LIBRT: ";
-#ifdef KOKKOS_ENABLE_LIBRT
-  msg << "yes" << std::endl;
-#else
-  msg << "no" << std::endl;
-#endif
-  msg << "  KOKKOS_ENABLE_MPI: ";
-#ifdef KOKKOS_ENABLE_MPI
-  msg << "yes" << std::endl;
-#else
-  msg << "no" << std::endl;
-#endif
+  print_helper(msg, Kokkos::Impl::metadata_map["options"]);
 
   Impl::ExecSpaceManager::get_instance().print_configuration(msg, detail);
 

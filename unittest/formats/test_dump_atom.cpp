@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,6 +15,8 @@
 #include "../testing/systems/melt.h"
 #include "../testing/utils.h"
 #include "fmt/format.h"
+#include "output.h"
+#include "thermo.h"
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -24,6 +26,7 @@
 using ::testing::Eq;
 
 char *BINARY2TXT_BINARY = nullptr;
+bool verbose            = false;
 
 class DumpAtomTest : public MeltTest {
     std::string dump_style = "atom";
@@ -31,28 +34,57 @@ class DumpAtomTest : public MeltTest {
 public:
     void enable_triclinic()
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         command("change_box all triclinic");
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        END_HIDE_OUTPUT();
+    }
+
+    std::string dump_filename(std::string ident)
+    {
+        return fmt::format("dump_{}_{}.melt", dump_style, ident);
+    }
+
+    std::string text_dump_filename(std::string ident)
+    {
+        return fmt::format("dump_{}_text_{}.melt", dump_style, ident);
+    }
+
+    std::string binary_dump_filename(std::string ident)
+    {
+        return fmt::format("dump_{}_binary_{}.melt.bin", dump_style, ident);
     }
 
     void generate_dump(std::string dump_file, std::string dump_modify_options, int ntimesteps)
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id all {} 1 {}", dump_style, dump_file));
 
         if (!dump_modify_options.empty()) {
             command(fmt::format("dump_modify id {}", dump_modify_options));
         }
 
-        command(fmt::format("run {}", ntimesteps));
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        command(fmt::format("run {} post no", ntimesteps));
+        END_HIDE_OUTPUT();
+    }
+
+    void continue_dump(int ntimesteps)
+    {
+        BEGIN_HIDE_OUTPUT();
+        command(fmt::format("run {} pre no post no", ntimesteps));
+        END_HIDE_OUTPUT();
+    }
+
+    void close_dump()
+    {
+        BEGIN_HIDE_OUTPUT();
+        command("undump id");
+        END_HIDE_OUTPUT();
     }
 
     void generate_text_and_binary_dump(std::string text_file, std::string binary_file,
                                        std::string dump_modify_options, int ntimesteps)
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id0 all {} 1 {}", dump_style, text_file));
         command(fmt::format("dump id1 all {} 1 {}", dump_style, binary_file));
 
@@ -61,23 +93,23 @@ public:
             command(fmt::format("dump_modify id1 {}", dump_modify_options));
         }
 
-        command(fmt::format("run {}", ntimesteps));
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        command(fmt::format("run {} post no", ntimesteps));
+        END_HIDE_OUTPUT();
     }
 
     std::string convert_binary_to_text(std::string binary_file)
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         std::string cmdline = fmt::format("{} {}", BINARY2TXT_BINARY, binary_file);
         system(cmdline.c_str());
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        END_HIDE_OUTPUT();
         return fmt::format("{}.txt", binary_file);
     }
 };
 
 TEST_F(DumpAtomTest, run0)
 {
-    auto dump_file = "dump_run0.melt";
+    auto dump_file = dump_filename("run0");
     generate_dump(dump_file, "scale yes image no", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
@@ -93,7 +125,7 @@ TEST_F(DumpAtomTest, run0)
 
 TEST_F(DumpAtomTest, format_line_run0)
 {
-    auto dump_file = "dump_format_line_run0.melt";
+    auto dump_file = dump_filename("format_line_run0");
     generate_dump(dump_file, "format line \"%d %d %20.15g %g %g\" scale yes image no", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
@@ -109,8 +141,8 @@ TEST_F(DumpAtomTest, format_line_run0)
 
 TEST_F(DumpAtomTest, no_scale_run0)
 {
-    auto dump_file = "dump_no_scale_run0.melt";
-    generate_dump(dump_file, "scale no", 0);
+    auto dump_file = dump_filename("no_scale_run0");
+    generate_dump(dump_file, "scale off", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -124,8 +156,8 @@ TEST_F(DumpAtomTest, no_scale_run0)
 
 TEST_F(DumpAtomTest, no_buffer_no_scale_run0)
 {
-    auto dump_file = "dump_no_buffer_no_scale_run0.melt";
-    generate_dump(dump_file, "scale no", 0);
+    auto dump_file = dump_filename("no_buffer_no_scale_run0");
+    generate_dump(dump_file, "buffer false scale false", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -139,8 +171,8 @@ TEST_F(DumpAtomTest, no_buffer_no_scale_run0)
 
 TEST_F(DumpAtomTest, no_buffer_with_scale_run0)
 {
-    auto dump_file = "dump_no_buffer_with_scale_run0.melt";
-    generate_dump(dump_file, "buffer no scale yes", 0);
+    auto dump_file = dump_filename("no_buffer_with_scale_run0");
+    generate_dump(dump_file, "buffer 0 scale 1", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -154,8 +186,8 @@ TEST_F(DumpAtomTest, no_buffer_with_scale_run0)
 
 TEST_F(DumpAtomTest, with_image_run0)
 {
-    auto dump_file = "dump_with_image_run0.melt";
-    generate_dump(dump_file, "scale no image yes", 0);
+    auto dump_file = dump_filename("with_image_run0");
+    generate_dump(dump_file, "scale no image on", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -167,8 +199,8 @@ TEST_F(DumpAtomTest, with_image_run0)
 
 TEST_F(DumpAtomTest, with_units_run0)
 {
-    auto dump_file = "dump_with_units_run0.melt";
-    generate_dump(dump_file, "scale no units yes", 0);
+    auto dump_file = dump_filename("with_units_run0");
+    generate_dump(dump_file, "scale false units 1", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -182,8 +214,8 @@ TEST_F(DumpAtomTest, with_units_run0)
 
 TEST_F(DumpAtomTest, with_time_run0)
 {
-    auto dump_file = "dump_with_time_run0.melt";
-    generate_dump(dump_file, "scale no time yes", 0);
+    auto dump_file = dump_filename("with_time_run0");
+    generate_dump(dump_file, "scale off time true", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -196,8 +228,8 @@ TEST_F(DumpAtomTest, with_time_run0)
 
 TEST_F(DumpAtomTest, with_units_run1)
 {
-    auto dump_file = "dump_with_units_run1.melt";
-    generate_dump(dump_file, "scale no units yes", 1);
+    auto dump_file = dump_filename("with_units_run1");
+    generate_dump(dump_file, "scale 0 units on", 1);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -211,8 +243,8 @@ TEST_F(DumpAtomTest, with_units_run1)
 
 TEST_F(DumpAtomTest, no_buffer_with_scale_and_image_run0)
 {
-    auto dump_file = "dump_no_buffer_with_scale_and_image_run0.melt";
-    generate_dump(dump_file, "buffer no scale yes image yes", 0);
+    auto dump_file = dump_filename("no_buffer_with_scale_and_image_run0");
+    generate_dump(dump_file, "buffer 0 scale 1 image true", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -225,7 +257,7 @@ TEST_F(DumpAtomTest, no_buffer_with_scale_and_image_run0)
 }
 TEST_F(DumpAtomTest, triclinic_run0)
 {
-    auto dump_file = "dump_triclinic_run0.melt";
+    auto dump_file = dump_filename("triclinic_run0");
     enable_triclinic();
     generate_dump(dump_file, "", 0);
 
@@ -241,9 +273,9 @@ TEST_F(DumpAtomTest, triclinic_run0)
 
 TEST_F(DumpAtomTest, triclinic_with_units_run0)
 {
-    auto dump_file = "dump_triclinic_with_units_run0.melt";
+    auto dump_file = dump_filename("triclinic_with_units_run0");
     enable_triclinic();
-    generate_dump(dump_file, "units yes", 0);
+    generate_dump(dump_file, "units on", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -259,9 +291,9 @@ TEST_F(DumpAtomTest, triclinic_with_units_run0)
 
 TEST_F(DumpAtomTest, triclinic_with_time_run0)
 {
-    auto dump_file = "dump_triclinic_with_time_run0.melt";
+    auto dump_file = dump_filename("triclinic_with_time_run0");
     enable_triclinic();
-    generate_dump(dump_file, "time yes", 0);
+    generate_dump(dump_file, "time on", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -276,7 +308,7 @@ TEST_F(DumpAtomTest, triclinic_with_time_run0)
 
 TEST_F(DumpAtomTest, triclinic_with_image_run0)
 {
-    auto dump_file = "dump_triclinic_with_image_run0.melt";
+    auto dump_file = dump_filename("triclinic_with_image_run0");
     enable_triclinic();
     generate_dump(dump_file, "image yes", 0);
 
@@ -298,8 +330,8 @@ TEST_F(DumpAtomTest, binary_run0)
 {
     if (!BINARY2TXT_BINARY) GTEST_SKIP();
 
-    auto text_file   = "dump_text_run0.melt";
-    auto binary_file = "dump_binary_run0.melt.bin";
+    auto text_file   = text_dump_filename("run0");
+    auto binary_file = binary_dump_filename("run0");
 
     generate_text_and_binary_dump(text_file, binary_file, "", 0);
 
@@ -319,8 +351,8 @@ TEST_F(DumpAtomTest, binary_with_units_run0)
 {
     if (!BINARY2TXT_BINARY) GTEST_SKIP();
 
-    auto text_file   = "dump_text_with_units_run0.melt";
-    auto binary_file = "dump_binary_with_units_run0.melt.bin";
+    auto text_file   = text_dump_filename("with_units_run0");
+    auto binary_file = binary_dump_filename("with_units_run0");
 
     generate_text_and_binary_dump(text_file, binary_file, "scale no units yes", 0);
 
@@ -340,8 +372,8 @@ TEST_F(DumpAtomTest, binary_with_time_run0)
 {
     if (!BINARY2TXT_BINARY) GTEST_SKIP();
 
-    auto text_file   = "dump_text_with_time_run0.melt";
-    auto binary_file = "dump_binary_with_time_run0.melt.bin";
+    auto text_file   = text_dump_filename("with_time_run0");
+    auto binary_file = binary_dump_filename("with_time_run0");
 
     generate_text_and_binary_dump(text_file, binary_file, "scale no time yes", 0);
 
@@ -361,8 +393,8 @@ TEST_F(DumpAtomTest, binary_triclinic_run0)
 {
     if (!BINARY2TXT_BINARY) GTEST_SKIP();
 
-    auto text_file   = "dump_text_tri_run0.melt";
-    auto binary_file = "dump_binary_tri_run0.melt.bin";
+    auto text_file   = text_dump_filename("tri_run0");
+    auto binary_file = binary_dump_filename("tri_run0");
 
     enable_triclinic();
     generate_text_and_binary_dump(text_file, binary_file, "", 0);
@@ -383,8 +415,8 @@ TEST_F(DumpAtomTest, binary_triclinic_with_units_run0)
 {
     if (!BINARY2TXT_BINARY) GTEST_SKIP();
 
-    auto text_file   = "dump_text_tri_with_units_run0.melt";
-    auto binary_file = "dump_binary_tri_with_units_run0.melt.bin";
+    auto text_file   = text_dump_filename("tri_with_units_run0");
+    auto binary_file = binary_dump_filename("tri_with_units_run0");
 
     enable_triclinic();
     generate_text_and_binary_dump(text_file, binary_file, "scale no units yes", 0);
@@ -405,8 +437,8 @@ TEST_F(DumpAtomTest, binary_triclinic_with_time_run0)
 {
     if (!BINARY2TXT_BINARY) GTEST_SKIP();
 
-    auto text_file   = "dump_text_tri_with_time_run0.melt";
-    auto binary_file = "dump_binary_tri_with_time_run0.melt.bin";
+    auto text_file   = text_dump_filename("tri_with_time_run0");
+    auto binary_file = binary_dump_filename("tri_with_time_run0");
 
     enable_triclinic();
     generate_text_and_binary_dump(text_file, binary_file, "scale no time yes", 0);
@@ -427,8 +459,8 @@ TEST_F(DumpAtomTest, binary_triclinic_with_image_run0)
 {
     if (!BINARY2TXT_BINARY) GTEST_SKIP();
 
-    auto text_file   = "dump_text_tri_with_image_run0.melt";
-    auto binary_file = "dump_binary_tri_with_image_run0.melt.bin";
+    auto text_file   = text_dump_filename("tri_with_image_run0");
+    auto binary_file = binary_dump_filename("tri_with_image_run0");
 
     enable_triclinic();
     generate_text_and_binary_dump(text_file, binary_file, "image yes", 0);
@@ -445,19 +477,22 @@ TEST_F(DumpAtomTest, binary_triclinic_with_image_run0)
     delete_file(converted_file);
 }
 
-TEST_F(DumpAtomTest, run1)
+TEST_F(DumpAtomTest, run1plus1)
 {
-    auto dump_file = "dump_run1.melt";
+    auto dump_file = dump_filename("run1plus1");
     generate_dump(dump_file, "", 1);
 
     ASSERT_FILE_EXISTS(dump_file);
     ASSERT_EQ(count_lines(dump_file), 82);
+    continue_dump(1);
+    ASSERT_FILE_EXISTS(dump_file);
+    ASSERT_EQ(count_lines(dump_file), 123);
     delete_file(dump_file);
 }
 
 TEST_F(DumpAtomTest, run2)
 {
-    auto dump_file = "dump_run2.melt";
+    auto dump_file = dump_filename("run2");
     generate_dump(dump_file, "", 2);
 
     ASSERT_FILE_EXISTS(dump_file);
@@ -465,81 +500,145 @@ TEST_F(DumpAtomTest, run2)
     delete_file(dump_file);
 }
 
+TEST_F(DumpAtomTest, rerun)
+{
+    auto dump_file = dump_filename("rerun");
+    HIDE_OUTPUT([&] {
+        command("fix 1 all nve");
+    });
+    generate_dump(dump_file, "format line \"%d %d %20.15g %20.15g %20.15g\"", 1);
+    double pe_1, pe_2, pe_rerun;
+    lmp->output->thermo->evaluate_keyword("pe", &pe_1);
+    ASSERT_FILE_EXISTS(dump_file);
+    ASSERT_EQ(count_lines(dump_file), 82);
+    continue_dump(1);
+    close_dump();
+    lmp->output->thermo->evaluate_keyword("pe", &pe_2);
+    ASSERT_FILE_EXISTS(dump_file);
+    ASSERT_EQ(count_lines(dump_file), 123);
+    HIDE_OUTPUT([&] {
+        command(fmt::format("rerun {} first 1 last 1 every 1 post no dump x y z", dump_file));
+    });
+    lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
+    ASSERT_DOUBLE_EQ(pe_1, pe_rerun);
+    HIDE_OUTPUT([&] {
+        command(fmt::format("rerun {} first 2 last 2 every 1 post yes dump x y z", dump_file));
+    });
+    lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
+    ASSERT_DOUBLE_EQ(pe_2, pe_rerun);
+    delete_file(dump_file);
+}
+
+TEST_F(DumpAtomTest, rerun_bin)
+{
+    auto dump_file = binary_dump_filename("rerun");
+    HIDE_OUTPUT([&] {
+        command("fix 1 all nve");
+    });
+    generate_dump(dump_file, "", 1);
+    double pe_1, pe_2, pe_rerun;
+    lmp->output->thermo->evaluate_keyword("pe", &pe_1);
+    ASSERT_FILE_EXISTS(dump_file);
+    continue_dump(1);
+    close_dump();
+    lmp->output->thermo->evaluate_keyword("pe", &pe_2);
+    ASSERT_FILE_EXISTS(dump_file);
+    HIDE_OUTPUT([&] {
+        command(fmt::format("rerun {} first 1 last 1 every 1 post no dump x y z", dump_file));
+    });
+    lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
+    ASSERT_NEAR(pe_1, pe_rerun, 1.0e-14);
+    HIDE_OUTPUT([&] {
+        command(fmt::format("rerun {} first 2 last 2 every 1 post yes dump x y z", dump_file));
+    });
+    lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
+    ASSERT_NEAR(pe_2, pe_rerun, 1.0e-14);
+    delete_file(dump_file);
+}
+
 TEST_F(DumpAtomTest, multi_file_run1)
 {
-    auto dump_file = "dump_run1_*.melt";
+    auto dump_file = dump_filename("run1_*");
     generate_dump(dump_file, "", 1);
 
-    ASSERT_FILE_EXISTS("dump_run1_0.melt");
-    ASSERT_FILE_EXISTS("dump_run1_1.melt");
-    ASSERT_EQ(count_lines("dump_run1_0.melt"), 41);
-    ASSERT_EQ(count_lines("dump_run1_1.melt"), 41);
-    delete_file("dump_run1_0.melt");
-    delete_file("dump_run1_1.melt");
+    auto run1_0 = dump_filename("run1_0");
+    auto run1_1 = dump_filename("run1_1");
+    ASSERT_FILE_EXISTS(run1_0);
+    ASSERT_FILE_EXISTS(run1_1);
+    ASSERT_EQ(count_lines(run1_0), 41);
+    ASSERT_EQ(count_lines(run1_1), 41);
+    delete_file(run1_0);
+    delete_file(run1_1);
 }
 
 TEST_F(DumpAtomTest, per_processor_file_run1)
 {
-    auto dump_file = "dump_run1_p%.melt";
+    auto dump_file = dump_filename("run1_p%");
     generate_dump(dump_file, "", 1);
 
-    ASSERT_FILE_EXISTS("dump_run1_p0.melt");
-    ASSERT_EQ(count_lines("dump_run1_p0.melt"), 82);
-    delete_file("dump_run1_p0.melt");
+    auto run1_p0 = dump_filename("run1_p0");
+    ASSERT_FILE_EXISTS(run1_p0);
+    ASSERT_EQ(count_lines(run1_p0), 82);
+    delete_file(run1_p0);
 }
 
 TEST_F(DumpAtomTest, per_processor_multi_file_run1)
 {
-    auto dump_file = "dump_run1_p%_*.melt";
+    auto dump_file = dump_filename("run1_p%_*");
     generate_dump(dump_file, "", 1);
 
-    ASSERT_FILE_EXISTS("dump_run1_p0_0.melt");
-    ASSERT_FILE_EXISTS("dump_run1_p0_1.melt");
-    ASSERT_EQ(count_lines("dump_run1_p0_0.melt"), 41);
-    ASSERT_EQ(count_lines("dump_run1_p0_1.melt"), 41);
-    delete_file("dump_run1_p0_0.melt");
-    delete_file("dump_run1_p0_1.melt");
+    auto run1_p0_0 = dump_filename("run1_p0_0");
+    auto run1_p0_1 = dump_filename("run1_p0_1");
+    ASSERT_FILE_EXISTS(run1_p0_0);
+    ASSERT_FILE_EXISTS(run1_p0_1);
+    ASSERT_EQ(count_lines(run1_p0_0), 41);
+    ASSERT_EQ(count_lines(run1_p0_1), 41);
+    delete_file(run1_p0_0);
+    delete_file(run1_p0_1);
 }
 
 TEST_F(DumpAtomTest, dump_modify_scale_invalid)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("dump id all atom 1 dump.txt");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
-    TEST_FAILURE(".*Illegal dump_modify command.*", command("dump_modify id scale true"););
+    TEST_FAILURE(".*Expected boolean parameter instead of 'xxx'.*",
+                 command("dump_modify id scale xxx"););
 }
 
 TEST_F(DumpAtomTest, dump_modify_image_invalid)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("dump id all atom 1 dump.txt");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
-    TEST_FAILURE(".*Illegal dump_modify command.*", command("dump_modify id image true"););
+    TEST_FAILURE(".*Expected boolean parameter instead of 'xxx'.*",
+                 command("dump_modify id image xxx"););
 }
 
 TEST_F(DumpAtomTest, dump_modify_invalid)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("dump id all atom 1 dump.txt");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     TEST_FAILURE(".*Illegal dump_modify command.*", command("dump_modify id true"););
 }
 
 TEST_F(DumpAtomTest, write_dump)
 {
-    auto reference = "dump_ref_run0.melt";
-    auto dump_file = "write_dump_atom_run0.melt";
+    auto reference = dump_filename("run0_ref");
+    auto dump_file = fmt::format("write_{}", dump_filename("run*"));
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command(fmt::format("dump id all atom 1 {}", reference));
     command("dump_modify id scale no units yes");
     command("run 0");
-    command("write_dump all atom write_dump_atom_run*.melt modify scale no units yes");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    command(fmt::format("write_dump all atom {} modify scale no units yes", dump_file));
+    END_HIDE_OUTPUT();
 
+    dump_file = fmt::format("write_{}", dump_filename("run0"));
     ASSERT_FILE_EXISTS(reference);
     ASSERT_FILE_EXISTS(dump_file);
 
@@ -552,16 +651,17 @@ TEST_F(DumpAtomTest, binary_write_dump)
 {
     if (!BINARY2TXT_BINARY) GTEST_SKIP();
 
-    auto reference = "dump_run0.melt.bin";
-    auto dump_file = "write_dump_atom_run0_p0.melt.bin";
+    auto reference = binary_dump_filename("write_run0_ref");
+    auto dump_file = fmt::format("write_{}", binary_dump_filename("write_dump_atom_run*_p%"));
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command(fmt::format("dump id all atom 1 {}", reference));
     command("dump_modify id scale no units yes");
     command("run 0");
-    command("write_dump all atom write_dump_atom_run*_p%.melt.bin modify scale no units yes");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    command(fmt::format("write_dump all atom {} modify scale no units yes", dump_file));
+    END_HIDE_OUTPUT();
 
+    dump_file = fmt::format("write_{}", binary_dump_filename("write_dump_atom_run0_p0"));
     ASSERT_FILE_EXISTS(reference);
     ASSERT_FILE_EXISTS(dump_file);
 

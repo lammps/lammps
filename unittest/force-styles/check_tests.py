@@ -31,7 +31,7 @@ if not tests_dir:
 try:
     src_dir = os.path.abspath(os.path.expanduser(src_dir))
     tests_dir = os.path.abspath(os.path.expanduser(tests_dir))
-except:
+except:                                 # lgtm [py/catch-base-exception]
     parser.print_help()
     sys.exit(1)
 
@@ -87,6 +87,11 @@ for header in headers:
                 # skip over internal styles w/o explicit documentation
                 style = m[1]
                 if upper.match(style):
+                    continue
+                if style in ['reax/c', 'reax/c/omp', 'reax/c/kk',
+                        'reax/c/kk/device', 'reax/c/kk/host',
+                        'reax/c/species', 'reax/c/bonds',
+                        'reax/c/species/kk', 'reax/c/bonds/kk', 'meam/c']:
                     continue
 
                 # detect, process, and flag suffix styles:

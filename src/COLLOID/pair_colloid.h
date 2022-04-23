@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(colloid,PairColloid)
-
+// clang-format off
+PairStyle(colloid,PairColloid);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COLLOID_H
@@ -27,33 +27,33 @@ namespace LAMMPS_NS {
 class PairColloid : public Pair {
  public:
   PairColloid(class LAMMPS *);
-  virtual ~PairColloid();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  void write_data(FILE *);
-  void write_data_all(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
+  ~PairColloid() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  void write_data(FILE *) override;
+  void write_data_all(FILE *) override;
+  double single(int, int, int, int, double, double, double, double &) override;
 
  protected:
-  enum {SMALL_SMALL,SMALL_LARGE,LARGE_LARGE};
+  enum { SMALL_SMALL, SMALL_LARGE, LARGE_LARGE };
 
   double cut_global;
   double **cut;
-  double **a12,**d1,**d2,**diameter,**a1,**a2,**offset;
-  double **sigma,**sigma3,**sigma6;
-  double **lj1,**lj2,**lj3,**lj4;
+  double **a12, **d1, **d2, **diameter, **a1, **a2, **offset;
+  double **sigma, **sigma3, **sigma6;
+  double **lj1, **lj2, **lj3, **lj4;
   int **form;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

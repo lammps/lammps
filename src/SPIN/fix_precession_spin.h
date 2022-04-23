@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(precession/spin,FixPrecessionSpin)
-
+// clang-format off
+FixStyle(precession/spin,FixPrecessionSpin);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PRECESSION_SPIN_H
@@ -29,23 +29,28 @@ class FixPrecessionSpin : public Fix {
 
  public:
   FixPrecessionSpin(class LAMMPS *, int, char **);
-  ~FixPrecessionSpin();
-  int setmask();
-  void init();
-  void setup(int);
-  void min_setup(int);
-  void post_force(int);
-  void post_force_respa(int, int, int);
-  void min_post_force(int);
-  double compute_scalar();
+  ~FixPrecessionSpin() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void min_setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  void min_post_force(int) override;
+  double compute_scalar() override;
 
-  int zeeman_flag, aniso_flag, cubic_flag;
+  int zeeman_flag, stt_flag, aniso_flag, cubic_flag, hexaniso_flag;
   void compute_single_precession(int, double *, double *);
 
   // zeeman calculations
 
   void compute_zeeman(int, double *);
   double compute_zeeman_energy(double *);
+
+  // stt calculations
+
+  void compute_stt(double *, double *);
+  double compute_stt_energy(double *);
 
   // uniaxial aniso calculations
 
@@ -57,13 +62,18 @@ class FixPrecessionSpin : public Fix {
   void compute_cubic(double *, double *);
   double compute_cubic_energy(double *);
 
+  // hexagonal aniso calculations
+
+  void compute_hexaniso(double *, double *);
+  double compute_hexaniso_energy(double *);
+
   // storing magnetic energies
 
-  int nlocal_max;               // max nlocal (for list size)
-  double *emag;                 // energy list
+  int nlocal_max;    // max nlocal (for list size)
+  double *emag;      // energy list
 
  protected:
-  int style;                    // style of the magnetic precession
+  int style;    // style of the magnetic precession
 
   double degree2rad;
   double hbar;
@@ -81,28 +91,40 @@ class FixPrecessionSpin : public Fix {
 
   double H_field;
   double nhx, nhy, nhz;
-  double hx, hy, hz;            // temp. force variables
+  double hx, hy, hz;    // temp. force variables
+
+  // STT intensity and direction
+
+  double stt_field;
+  double nsttx, nstty, nsttz;
+  double sttx, stty, sttz;
 
   // magnetic anisotropy intensity and direction
 
-  double Ka;                    // aniso const. in eV
-  double Kah;                   // aniso const. in rad.THz
+  double Ka;     // aniso const. in eV
+  double Kah;    // aniso const. in rad.THz
   double nax, nay, naz;
-  double Kax, Kay, Kaz;         // temp. force variables
+  double Kax, Kay, Kaz;    // temp. force variables
 
   // cubic anisotropy intensity
 
-  double k1c,k2c;               // cubic const. in eV
-  double k1ch,k2ch;             // cubic const. in rad.THz
-  double nc1x,nc1y,nc1z;
-  double nc2x,nc2y,nc2z;
-  double nc3x,nc3y,nc3z;
+  double k1c, k2c;      // cubic const. in eV
+  double k1ch, k2ch;    // cubic const. in rad.THz
+  double nc1x, nc1y, nc1z;
+  double nc2x, nc2y, nc2z;
+  double nc3x, nc3y, nc3z;
+
+  // hexagonal anisotropy
+  double K6;               // hexagonal aniso const. in eV
+  double K6h;              // hexagonal aniso const. in rad.THz
+  double n6x, n6y, n6z;    // main axis
+  double m6x, m6y, m6z;    // secondary (perpendicular) axis
+  double l6x, l6y, l6z;    // =(m x n)
 
   void set_magneticprecession();
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

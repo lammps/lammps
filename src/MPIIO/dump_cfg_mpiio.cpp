@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -50,7 +51,11 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 DumpCFGMPIIO::DumpCFGMPIIO(LAMMPS *lmp, int narg, char **arg) :
-  DumpCFG(lmp, narg, arg) {}
+  DumpCFG(lmp, narg, arg)
+{
+  if (me == 0)
+    error->warning(FLERR,"MPI-IO output is unmaintained and unreliable. Use with caution.");
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -76,20 +81,7 @@ void DumpCFGMPIIO::openfile()
   filecurrent = filename;
 
   if (multifile) {
-    char *filestar = filecurrent;
-    filecurrent = new char[strlen(filestar) + 16];
-    char *ptr = strchr(filestar,'*');
-    *ptr = '\0';
-    if (padflag == 0)
-      sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
-          filestar,update->ntimestep,ptr+1);
-    else {
-      char bif[8],pad[16];
-      strcpy(bif,BIGINT_FORMAT);
-      sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
-      sprintf(filecurrent,pad,filestar,update->ntimestep,ptr+1);
-    }
-    *ptr = '*';
+    filecurrent = utils::strdup(utils::star_subst(filecurrent, update->ntimestep, padflag));
     if (maxfiles > 0) {
       if (numfiles < maxfiles) {
         nameslist[numfiles] = new char[strlen(filecurrent)+1];
@@ -106,12 +98,10 @@ void DumpCFGMPIIO::openfile()
   }
 
   if (append_flag) { // append open
-    int err = MPI_File_open( world, filecurrent, MPI_MODE_CREATE | MPI_MODE_APPEND | MPI_MODE_WRONLY  , MPI_INFO_NULL, &mpifh);
-    if (err != MPI_SUCCESS) {
-      char str[128];
-      sprintf(str,"Cannot open dump file %s",filecurrent);
-      error->one(FLERR,str);
-    }
+    int err = MPI_File_open( world, filecurrent, MPI_MODE_CREATE | MPI_MODE_APPEND |
+                             MPI_MODE_WRONLY, MPI_INFO_NULL, &mpifh);
+    if (err != MPI_SUCCESS) error->one(FLERR, "Cannot open dump file {}", filecurrent);
+
     int myrank;
     MPI_Comm_rank(world,&myrank);
     if (myrank == 0)
@@ -120,15 +110,11 @@ void DumpCFGMPIIO::openfile()
     MPI_File_set_size(mpifh,mpifo+headerSize+sumFileSize);
     currentFileSize = mpifo+headerSize+sumFileSize;
 
-  }
-  else { // replace open
+  } else { // replace open
 
-    int err = MPI_File_open( world, filecurrent, MPI_MODE_CREATE | MPI_MODE_WRONLY  , MPI_INFO_NULL, &mpifh);
-    if (err != MPI_SUCCESS) {
-      char str[128];
-      sprintf(str,"Cannot open dump file %s",filecurrent);
-      error->one(FLERR,str);
-    }
+    int err = MPI_File_open( world, filecurrent, MPI_MODE_CREATE | MPI_MODE_WRONLY,
+                             MPI_INFO_NULL, &mpifh);
+    if (err != MPI_SUCCESS) error->one(FLERR, "Cannot open dump file {}", filecurrent);
     mpifo = 0;
 
     MPI_File_set_size(mpifh,(MPI_Offset) (headerSize+sumFileSize));
@@ -285,41 +271,32 @@ void DumpCFGMPIIO::write_header(bigint n)
   // for unwrapped coords, set to UNWRAPEXPAND (10.0)
   //   so molecules are not split across periodic box boundaries
 
+  double scale = 1.0;
+  if (atom->peri_flag) scale = atom->pdscale;
+  else if (unwrapflag == 1) scale = UNWRAPEXPAND;
+
+  auto header = fmt::format("Number of particles = {}\n",n);
+  header += fmt::format("A = {} Angstrom (basic length-scale)\n",scale);
+  header += fmt::format("H0(1,1) = {} A\n",domain->xprd);
+  header += fmt::format("H0(1,2) = 0 A\n");
+  header += fmt::format("H0(1,3) = 0 A\n");
+  header += fmt::format("H0(2,1) = {} A\n",domain->xy);
+  header += fmt::format("H0(2,2) = {} A\n",domain->yprd);
+  header += fmt::format("H0(2,3) = 0 A\n");
+  header += fmt::format("H0(3,1) = {} A\n",domain->xz);
+  header += fmt::format("H0(3,2) = {} A\n",domain->yz);
+  header += fmt::format("H0(3,3) = {} A\n",domain->zprd);
+  header += fmt::format(".NO_VELOCITY.\n");
+  header += fmt::format("entry_count = {}\n",nfield-2);
+  for (int i = 0; i < nfield-5; i++)
+    header += fmt::format("auxiliary[{}] = {}\n",i,auxname[i]);
+
   if (performEstimate) {
-
-    headerBuffer = (char *) malloc(MAX_TEXT_HEADER_SIZE);
-
-    headerSize = 0;
-
-    double scale = 1.0;
-    if (atom->peri_flag) scale = atom->pdscale;
-    else if (unwrapflag == 1) scale = UNWRAPEXPAND;
-
-    char str[64];
-
-    sprintf(str,"Number of particles = %s\n",BIGINT_FORMAT);
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),str,n);
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"A = %g Angstrom (basic length-scale)\n",scale);
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"H0(1,1) = %g A\n",domain->xprd);
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"H0(1,2) = 0 A \n");
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"H0(1,3) = 0 A \n");
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"H0(2,1) = %g A \n",domain->xy);
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"H0(2,2) = %g A\n",domain->yprd);
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"H0(2,3) = 0 A \n");
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"H0(3,1) = %g A \n",domain->xz);
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"H0(3,2) = %g A \n",domain->yz);
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"H0(3,3) = %g A\n",domain->zprd);
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),".NO_VELOCITY.\n");
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"entry_count = %d\n",nfield-2);
-    for (int i = 0; i < nfield-5; i++)
-      headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"auxiliary[%d] = %s\n",i,auxname[i]);
-  }
-  else { // write data
-
+    headerSize = header.size();
+  } else { // write data
     if (me == 0)
-      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_CHAR,MPI_STATUS_IGNORE);
-    mpifo += headerSize;
-    free(headerBuffer);
+      MPI_File_write_at(mpifh,mpifo,(void *)header.c_str(),header.size(),MPI_CHAR,MPI_STATUS_IGNORE);
+    mpifo += header.size();
   }
 }
 

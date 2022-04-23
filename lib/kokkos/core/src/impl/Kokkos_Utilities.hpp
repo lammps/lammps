@@ -49,344 +49,13 @@
 #include <cstdint>
 #include <type_traits>
 #include <initializer_list>  // in-order comma operator fold emulation
+#include <utility>           // integer_sequence and friends
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
 namespace Impl {
-
-//----------------------------------------
-// C++14 integer sequence
-template <typename T, T... Ints>
-struct integer_sequence {
-  using value_type = T;
-  static constexpr std::size_t size() noexcept { return sizeof...(Ints); }
-};
-
-template <typename T, std::size_t N>
-struct make_integer_sequence_helper;
-
-template <typename T, T N>
-using make_integer_sequence = typename make_integer_sequence_helper<T, N>::type;
-
-template <typename T>
-struct make_integer_sequence_helper<T, 0> {
-  using type = integer_sequence<T>;
-};
-
-template <typename T>
-struct make_integer_sequence_helper<T, 1> {
-  using type = integer_sequence<T, 0>;
-};
-
-template <typename T>
-struct make_integer_sequence_helper<T, 2> {
-  using type = integer_sequence<T, 0, 1>;
-};
-
-template <typename T>
-struct make_integer_sequence_helper<T, 3> {
-  using type = integer_sequence<T, 0, 1, 2>;
-};
-
-template <typename T>
-struct make_integer_sequence_helper<T, 4> {
-  using type = integer_sequence<T, 0, 1, 2, 3>;
-};
-
-template <typename T>
-struct make_integer_sequence_helper<T, 5> {
-  using type = integer_sequence<T, 0, 1, 2, 3, 4>;
-};
-
-template <typename T>
-struct make_integer_sequence_helper<T, 6> {
-  using type = integer_sequence<T, 0, 1, 2, 3, 4, 5>;
-};
-
-template <typename T>
-struct make_integer_sequence_helper<T, 7> {
-  using type = integer_sequence<T, 0, 1, 2, 3, 4, 5, 6>;
-};
-
-template <typename T>
-struct make_integer_sequence_helper<T, 8> {
-  using type = integer_sequence<T, 0, 1, 2, 3, 4, 5, 6, 7>;
-};
-
-template <typename X, typename Y>
-struct make_integer_sequence_concat;
-
-template <typename T, T... x, T... y>
-struct make_integer_sequence_concat<integer_sequence<T, x...>,
-                                    integer_sequence<T, y...>> {
-  using type = integer_sequence<T, x..., (sizeof...(x) + y)...>;
-};
-
-template <typename T, std::size_t N>
-struct make_integer_sequence_helper {
-  using type = typename make_integer_sequence_concat<
-      typename make_integer_sequence_helper<T, N / 2>::type,
-      typename make_integer_sequence_helper<T, N - N / 2>::type>::type;
-};
-
-//----------------------------------------
-
-template <std::size_t... Indices>
-using index_sequence = integer_sequence<std::size_t, Indices...>;
-
-template <std::size_t N>
-using make_index_sequence = make_integer_sequence<std::size_t, N>;
-
-//----------------------------------------
-
-template <unsigned I, typename IntegerSequence>
-struct integer_sequence_at;
-
-template <unsigned I, typename T, T h0, T... tail>
-struct integer_sequence_at<I, integer_sequence<T, h0, tail...>>
-    : public integer_sequence_at<I - 1u, integer_sequence<T, tail...>> {
-  static_assert(8 <= I, "Reasoning Error");
-  static_assert(I < integer_sequence<T, h0, tail...>::size(),
-                "Error: Index out of bounds");
-};
-
-template <typename T, T h0, T... tail>
-struct integer_sequence_at<0u, integer_sequence<T, h0, tail...>> {
-  using type               = T;
-  static constexpr T value = h0;
-};
-
-template <typename T, T h0, T h1, T... tail>
-struct integer_sequence_at<1u, integer_sequence<T, h0, h1, tail...>> {
-  using type               = T;
-  static constexpr T value = h1;
-};
-
-template <typename T, T h0, T h1, T h2, T... tail>
-struct integer_sequence_at<2u, integer_sequence<T, h0, h1, h2, tail...>> {
-  using type               = T;
-  static constexpr T value = h2;
-};
-
-template <typename T, T h0, T h1, T h2, T h3, T... tail>
-struct integer_sequence_at<3u, integer_sequence<T, h0, h1, h2, h3, tail...>> {
-  using type               = T;
-  static constexpr T value = h3;
-};
-
-template <typename T, T h0, T h1, T h2, T h3, T h4, T... tail>
-struct integer_sequence_at<4u,
-                           integer_sequence<T, h0, h1, h2, h3, h4, tail...>> {
-  using type               = T;
-  static constexpr T value = h4;
-};
-
-template <typename T, T h0, T h1, T h2, T h3, T h4, T h5, T... tail>
-struct integer_sequence_at<
-    5u, integer_sequence<T, h0, h1, h2, h3, h4, h5, tail...>> {
-  using type               = T;
-  static constexpr T value = h5;
-};
-
-template <typename T, T h0, T h1, T h2, T h3, T h4, T h5, T h6, T... tail>
-struct integer_sequence_at<
-    6u, integer_sequence<T, h0, h1, h2, h3, h4, h5, h6, tail...>> {
-  using type               = T;
-  static constexpr T value = h6;
-};
-
-template <typename T, T h0, T h1, T h2, T h3, T h4, T h5, T h6, T h7, T... tail>
-struct integer_sequence_at<
-    7u, integer_sequence<T, h0, h1, h2, h3, h4, h5, h6, h7, tail...>> {
-  using type               = T;
-  static constexpr T value = h7;
-};
-
-//----------------------------------------
-
-template <typename T>
-constexpr T at(const unsigned, integer_sequence<T>) noexcept {
-  return ~static_cast<T>(0);
-}
-
-template <typename T, T h0, T... tail>
-constexpr T at(const unsigned i, integer_sequence<T, h0>) noexcept {
-  return i == 0u ? h0 : ~static_cast<T>(0);
-}
-
-template <typename T, T h0, T h1>
-constexpr T at(const unsigned i, integer_sequence<T, h0, h1>) noexcept {
-  return i == 0u ? h0 : i == 1u ? h1 : ~static_cast<T>(0);
-}
-
-template <typename T, T h0, T h1, T h2>
-constexpr T at(const unsigned i, integer_sequence<T, h0, h1, h2>) noexcept {
-  return i == 0u ? h0 : i == 1u ? h1 : i == 2u ? h2 : ~static_cast<T>(0);
-}
-
-template <typename T, T h0, T h1, T h2, T h3>
-constexpr T at(const unsigned i, integer_sequence<T, h0, h1, h2, h3>) noexcept {
-  return i == 0u
-             ? h0
-             : i == 1u ? h1 : i == 2u ? h2 : i == 3u ? h3 : ~static_cast<T>(0);
-}
-
-template <typename T, T h0, T h1, T h2, T h3, T h4>
-constexpr T at(const unsigned i,
-               integer_sequence<T, h0, h1, h2, h3, h4>) noexcept {
-  return i == 0u
-             ? h0
-             : i == 1u
-                   ? h1
-                   : i == 2u ? h2
-                             : i == 3u ? h3 : i == 4u ? h4 : ~static_cast<T>(0);
-}
-
-template <typename T, T h0, T h1, T h2, T h3, T h4, T h5>
-constexpr T at(const unsigned i,
-               integer_sequence<T, h0, h1, h2, h3, h4, h5>) noexcept {
-  return i == 0u
-             ? h0
-             : i == 1u
-                   ? h1
-                   : i == 2u ? h2
-                             : i == 3u ? h3
-                                       : i == 4u ? h4
-                                                 : i == 5u ? h5
-                                                           : ~static_cast<T>(0);
-}
-
-template <typename T, T h0, T h1, T h2, T h3, T h4, T h5, T h6>
-constexpr T at(const unsigned i,
-               integer_sequence<T, h0, h1, h2, h3, h4, h5, h6>) noexcept {
-  return i == 0u
-             ? h0
-             : i == 1u
-                   ? h1
-                   : i == 2u
-                         ? h2
-                         : i == 3u
-                               ? h3
-                               : i == 4u
-                                     ? h4
-                                     : i == 5u
-                                           ? h5
-                                           : i == 6u ? h6 : ~static_cast<T>(0);
-}
-
-template <typename T, T h0, T h1, T h2, T h3, T h4, T h5, T h6, T h7, T... tail>
-constexpr T at(
-    const unsigned i,
-    integer_sequence<T, h0, h1, h2, h3, h4, h5, h6, h7, tail...>) noexcept {
-  return i == 0u
-             ? h0
-             : i == 1u
-                   ? h1
-                   : i == 2u
-                         ? h2
-                         : i == 3u
-                               ? h3
-                               : i == 4u
-                                     ? h4
-                                     : i == 5u
-                                           ? h5
-                                           : i == 6u
-                                                 ? h6
-                                                 : i == 7u
-                                                       ? h7
-                                                       : at(i - 8u,
-                                                            integer_sequence<
-                                                                T, tail...>{});
-}
-
-//----------------------------------------
-
-template <typename IntegerSequence,
-          typename ResultSequence =
-              integer_sequence<typename IntegerSequence::value_type>>
-struct reverse_integer_sequence_helper;
-
-template <typename T, T h0, T... tail, T... results>
-struct reverse_integer_sequence_helper<integer_sequence<T, h0, tail...>,
-                                       integer_sequence<T, results...>>
-    : public reverse_integer_sequence_helper<
-          integer_sequence<T, tail...>, integer_sequence<T, h0, results...>> {};
-
-template <typename T, T... results>
-struct reverse_integer_sequence_helper<integer_sequence<T>,
-                                       integer_sequence<T, results...>> {
-  using type = integer_sequence<T, results...>;
-};
-
-template <typename IntegerSequence>
-using reverse_integer_sequence =
-    typename reverse_integer_sequence_helper<IntegerSequence>::type;
-
-//----------------------------------------
-
-template <typename IntegerSequence, typename Result,
-          typename ResultSequence =
-              integer_sequence<typename IntegerSequence::value_type>>
-struct exclusive_scan_integer_sequence_helper;
-
-template <typename T, T h0, T... tail, typename Result, T... results>
-struct exclusive_scan_integer_sequence_helper<
-    integer_sequence<T, h0, tail...>, Result, integer_sequence<T, results...>>
-    : public exclusive_scan_integer_sequence_helper<
-          integer_sequence<T, tail...>,
-          std::integral_constant<T, Result::value + h0>,
-          integer_sequence<T, 0, (results + h0)...>> {};
-
-template <typename T, typename Result, T... results>
-struct exclusive_scan_integer_sequence_helper<integer_sequence<T>, Result,
-                                              integer_sequence<T, results...>> {
-  using type               = integer_sequence<T, results...>;
-  static constexpr T value = Result::value;
-};
-
-template <typename IntegerSequence>
-struct exclusive_scan_integer_sequence {
-  using value_type = typename IntegerSequence::value_type;
-  using helper     = exclusive_scan_integer_sequence_helper<
-      reverse_integer_sequence<IntegerSequence>,
-      std::integral_constant<value_type, 0>>;
-  using type                        = typename helper::type;
-  static constexpr value_type value = helper::value;
-};
-
-//----------------------------------------
-
-template <typename IntegerSequence, typename Result,
-          typename ResultSequence =
-              integer_sequence<typename IntegerSequence::value_type>>
-struct inclusive_scan_integer_sequence_helper;
-
-template <typename T, T h0, T... tail, typename Result, T... results>
-struct inclusive_scan_integer_sequence_helper<
-    integer_sequence<T, h0, tail...>, Result, integer_sequence<T, results...>>
-    : public inclusive_scan_integer_sequence_helper<
-          integer_sequence<T, tail...>,
-          std::integral_constant<T, Result::value + h0>,
-          integer_sequence<T, h0, (results + h0)...>> {};
-
-template <typename T, typename Result, T... results>
-struct inclusive_scan_integer_sequence_helper<integer_sequence<T>, Result,
-                                              integer_sequence<T, results...>> {
-  using type               = integer_sequence<T, results...>;
-  static constexpr T value = Result::value;
-};
-
-template <typename IntegerSequence>
-struct inclusive_scan_integer_sequence {
-  using value_type = typename IntegerSequence::value_type;
-  using helper     = inclusive_scan_integer_sequence_helper<
-      reverse_integer_sequence<IntegerSequence>,
-      std::integral_constant<value_type, 0>>;
-  using type                        = typename helper::type;
-  static constexpr value_type value = helper::value;
-};
 
 template <typename T>
 struct identity {
@@ -395,6 +64,14 @@ struct identity {
 
 template <typename T>
 using identity_t = typename identity<T>::type;
+
+#if defined(__cpp_lib_void_t)
+// since C++17
+using std::void_t;
+#else
+template <class...>
+using void_t = void;
+#endif
 
 //==============================================================================
 // <editor-fold desc="remove_cvref_t"> {{{1
@@ -465,6 +142,122 @@ struct destruct_delete {
     p->~T();
   }
 };
+//==============================================================================
+
+//==============================================================================
+// <editor-fold desc="type_list"> {{{1
+
+// An intentionally uninstantiateable type_list for metaprogramming purposes
+template <class...>
+struct type_list;
+
+//------------------------------------------------------------------------------
+// <editor-fold desc="type_list_remove_first"> {{{2
+
+// Currently linear complexity; if we use this a lot, maybe make it better?
+
+template <class Entry, class InList, class OutList>
+struct _type_list_remove_first_impl;
+
+template <class Entry, class T, class... Ts, class... OutTs>
+struct _type_list_remove_first_impl<Entry, type_list<T, Ts...>,
+                                    type_list<OutTs...>>
+    : _type_list_remove_first_impl<Entry, type_list<Ts...>,
+                                   type_list<OutTs..., T>> {};
+
+template <class Entry, class... Ts, class... OutTs>
+struct _type_list_remove_first_impl<Entry, type_list<Entry, Ts...>,
+                                    type_list<OutTs...>>
+    : _type_list_remove_first_impl<Entry, type_list<>,
+                                   type_list<OutTs..., Ts...>> {};
+
+template <class Entry, class... OutTs>
+struct _type_list_remove_first_impl<Entry, type_list<>, type_list<OutTs...>>
+    : identity<type_list<OutTs...>> {};
+
+template <class Entry, class List>
+struct type_list_remove_first
+    : _type_list_remove_first_impl<Entry, List, type_list<>> {};
+
+// </editor-fold> end type_list_remove_first }}}2
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+// <editor-fold desc="type_list_any"> {{{2
+
+template <template <class> class UnaryPred, class List>
+struct type_list_any;
+
+#ifdef KOKKOS_ENABLE_CXX17
+template <template <class> class UnaryPred, class... Ts>
+struct type_list_any<UnaryPred, type_list<Ts...>>
+    : std::bool_constant<(UnaryPred<Ts>::value || ...)> {};
+#else
+template <template <class> class UnaryPred, class T, class... Ts>
+struct type_list_any<UnaryPred, type_list<T, Ts...>> {
+  using type = typename std::conditional_t<
+      UnaryPred<T>::value, std::true_type,
+      type_list_any<UnaryPred, type_list<Ts...>>>::type;
+  static constexpr auto value = type::value;
+};
+
+template <template <class> class UnaryPred>
+struct type_list_any<UnaryPred, type_list<>> : std::false_type {};
+
+#endif
+
+// </editor-fold> end type_list_any }}}2
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+// <editor-fold desc="concat_type_list"> {{{2
+//  concat_type_list combines types in multiple type_lists
+
+// forward declaration
+template <typename... T>
+struct concat_type_list;
+
+// alias
+template <typename... T>
+using concat_type_list_t = typename concat_type_list<T...>::type;
+
+// final instantiation
+template <typename... T>
+struct concat_type_list<type_list<T...>> {
+  using type = type_list<T...>;
+};
+
+// combine consecutive type_lists
+template <typename... T, typename... U, typename... Tail>
+struct concat_type_list<type_list<T...>, type_list<U...>, Tail...>
+    : concat_type_list<type_list<T..., U...>, Tail...> {};
+// </editor-fold> end concat_type_list }}}2
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+// <editor-fold desc="filter_type_list"> {{{2
+//  filter_type_list generates type-list of types which satisfy
+//  PredicateT<T>::value == ValueT
+
+template <template <typename> class PredicateT, typename TypeListT,
+          bool ValueT = true>
+struct filter_type_list;
+
+template <template <typename> class PredicateT, typename... T, bool ValueT>
+struct filter_type_list<PredicateT, type_list<T...>, ValueT> {
+  using type =
+      concat_type_list_t<std::conditional_t<PredicateT<T>::value == ValueT,
+                                            type_list<T>, type_list<>>...>;
+};
+
+template <template <typename> class PredicateT, typename T, bool ValueT = true>
+using filter_type_list_t =
+    typename filter_type_list<PredicateT, T, ValueT>::type;
+
+// </editor-fold> end filter_type_list }}}2
+//------------------------------------------------------------------------------
+
+// </editor-fold> end type_list }}}1
 //==============================================================================
 
 }  // namespace Impl

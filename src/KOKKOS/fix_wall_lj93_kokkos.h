@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(wall/lj93/kk,FixWallLJ93Kokkos<LMPDeviceType>)
-FixStyle(wall/lj93/kk/device,FixWallLJ93Kokkos<LMPDeviceType>)
-FixStyle(wall/lj93/kk/host,FixWallLJ93Kokkos<LMPHostType>)
-
+// clang-format off
+FixStyle(wall/lj93/kk,FixWallLJ93Kokkos<LMPDeviceType>);
+FixStyle(wall/lj93/kk/device,FixWallLJ93Kokkos<LMPDeviceType>);
+FixStyle(wall/lj93/kk/host,FixWallLJ93Kokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_WALL_LJ93_KOKKOS_H
 #define LMP_FIX_WALL_LJ93_KOKKOS_H
 
@@ -35,7 +36,7 @@ class FixWallLJ93Kokkos : public FixWallLJ93 {
   typedef double value_type[];
 
   FixWallLJ93Kokkos(class LAMMPS *, int, char **);
-  void wall_particle(int, int, double);
+  void wall_particle(int, int, double) override;
 
   int m;
 

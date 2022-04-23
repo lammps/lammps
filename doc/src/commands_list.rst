@@ -59,7 +59,7 @@ Commands
    lattice
    log
    mass
-   message
+   mdi
    min_modify
    min_spin
    min_style
@@ -77,6 +77,7 @@ Commands
    pair_style
    pair_write
    partition
+   plugin
    prd
    print
    processors
@@ -94,9 +95,6 @@ Commands
    restart
    run
    run_style
-   server
-   server_mc
-   server_md
    set
    shell
    special_bonds

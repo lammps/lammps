@@ -127,17 +127,17 @@ When choosing the values of the four constants, it is best to first
 pick a value and sign for :math:`\alpha` that is consistent with the
 magnitudes and signs of *pvar* and *cvar*\ .  The magnitude of :math:`K_p`
 should then be tested over a large positive range keeping :math:`K_i = K_d =0`.
-A good value for :math:`K_p` will produce a fast response in *pvar*\ ,
+A good value for :math:`K_p` will produce a fast response in *pvar*,
 without overshooting the *setpoint*\ .  For many applications, proportional
 feedback is sufficient, and so :math:`K_i` = K_d =0` can be used. In cases
 where there is a substantial lag time in the response of *pvar* to a change
-in *cvar*\ , this can be counteracted by increasing :math:`K_d`. In situations
-where *pvar* plateaus without reaching *setpoint*\ , this can be
+in *cvar*, this can be counteracted by increasing :math:`K_d`. In situations
+where *pvar* plateaus without reaching *setpoint*, this can be
 counteracted by increasing :math:`K_i`.  In the language of Charles Dickens,
 :math:`K_p` represents the error of the present, :math:`K_i` the error of
 the past, and :math:`K_d` the error yet to come.
 
-Because this fix updates *cvar*\ , but does not initialize its value,
+Because this fix updates *cvar*, but does not initialize its value,
 the initial value is that assigned by the user in the input script via
 the :doc:`internal-style variable <variable>` command.  This value is
 used (by the other LAMMPS command that used the variable) until this
@@ -162,7 +162,7 @@ used.  Users can also write code for their own compute styles and :doc:`add them
 
 If *pvar* begins with "f\_", a fix ID must follow which has been
 previously defined in the input script and which generates a global
-scalar or vector.  See the individual :doc:`fix <fix>` doc page for
+scalar or vector.  See the individual :doc:`fix <fix>` page for
 details.  Note that some fixes only produce their values on certain
 timesteps, which must be compatible with when fix controller
 references the values, or else an error results.  If no bracketed integer
@@ -215,7 +215,9 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
- none
+
+This fix is part of the EXTRA-FIX package.  It is only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

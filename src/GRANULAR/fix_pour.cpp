@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,26 +14,26 @@
 
 #include "fix_pour.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
-#include "force.h"
-#include "update.h"
 #include "comm.h"
-#include "molecule.h"
-#include "modify.h"
-#include "fix_gravity.h"
 #include "domain.h"
+#include "error.h"
+#include "fix_gravity.h"
+#include "force.h"
+#include "math_const.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "modify.h"
+#include "molecule.h"
+#include "random_park.h"
 #include "region.h"
 #include "region_block.h"
 #include "region_cylinder.h"
-#include "random_park.h"
-#include "math_extra.h"
-#include "math_const.h"
-#include "memory.h"
-#include "error.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -40,7 +41,6 @@ using namespace MathConst;
 
 enum{ATOM,MOLECULE};
 enum{ONE,RANGE,POLY};
-enum{CONSTANT,EQUAL};    // same as FixGravity
 
 #define EPSILON 0.001
 #define SMALL 1.0e-10
@@ -90,24 +90,24 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(domain->regions[iregion]->style,"block") == 0) {
     region_style = 1;
-    xlo = ((RegBlock *) domain->regions[iregion])->xlo;
-    xhi = ((RegBlock *) domain->regions[iregion])->xhi;
-    ylo = ((RegBlock *) domain->regions[iregion])->ylo;
-    yhi = ((RegBlock *) domain->regions[iregion])->yhi;
-    zlo = ((RegBlock *) domain->regions[iregion])->zlo;
-    zhi = ((RegBlock *) domain->regions[iregion])->zhi;
+    xlo = (dynamic_cast<RegBlock *>( domain->regions[iregion]))->xlo;
+    xhi = (dynamic_cast<RegBlock *>( domain->regions[iregion]))->xhi;
+    ylo = (dynamic_cast<RegBlock *>( domain->regions[iregion]))->ylo;
+    yhi = (dynamic_cast<RegBlock *>( domain->regions[iregion]))->yhi;
+    zlo = (dynamic_cast<RegBlock *>( domain->regions[iregion]))->zlo;
+    zhi = (dynamic_cast<RegBlock *>( domain->regions[iregion]))->zhi;
     if (xlo < domain->boxlo[0] || xhi > domain->boxhi[0] ||
         ylo < domain->boxlo[1] || yhi > domain->boxhi[1] ||
         zlo < domain->boxlo[2] || zhi > domain->boxhi[2])
       error->all(FLERR,"Insertion region extends outside simulation box");
   } else if (strcmp(domain->regions[iregion]->style,"cylinder") == 0) {
     region_style = 2;
-    char axis = ((RegCylinder *) domain->regions[iregion])->axis;
-    xc = ((RegCylinder *) domain->regions[iregion])->c1;
-    yc = ((RegCylinder *) domain->regions[iregion])->c2;
-    rc = ((RegCylinder *) domain->regions[iregion])->radius;
-    zlo = ((RegCylinder *) domain->regions[iregion])->lo;
-    zhi = ((RegCylinder *) domain->regions[iregion])->hi;
+    char axis = (dynamic_cast<RegCylinder *>( domain->regions[iregion]))->axis;
+    xc = (dynamic_cast<RegCylinder *>( domain->regions[iregion]))->c1;
+    yc = (dynamic_cast<RegCylinder *>( domain->regions[iregion]))->c2;
+    rc = (dynamic_cast<RegCylinder *>( domain->regions[iregion]))->radius;
+    zlo = (dynamic_cast<RegCylinder *>( domain->regions[iregion]))->lo;
+    zhi = (dynamic_cast<RegCylinder *>( domain->regions[iregion]))->hi;
     if (axis != 'z')
       error->all(FLERR,"Must use a z-axis cylinder region with fix pour");
     if (xc-rc < domain->boxlo[0] || xc+rc > domain->boxhi[0] ||
@@ -136,8 +136,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Invalid atom type in fix pour mol command");
 
       if (atom->molecular == Atom::TEMPLATE && onemols != atom->avec->onemols)
-        error->all(FLERR,"Fix pour molecule template ID must be same "
-                   "as atom style template ID");
+        error->all(FLERR,"Fix pour molecule template ID must be same as atom style template ID");
       onemols[i]->check_attributes(0);
 
       // fix pour uses geoemetric center of molecule for insertion
@@ -185,10 +184,12 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   // grav = gravity in distance/time^2 units
   // assume grav = -magnitude at this point, enforce in init()
 
-  int ifix = modify->find_fix_by_style("^gravity");
-  if (ifix == -1)
-    error->all(FLERR,"No fix gravity defined for fix pour");
-  grav = - ((FixGravity *) modify->fix[ifix])->magnitude * force->ftm2v;
+  auto fixlist = modify->get_fix_by_style("^gravity");
+  if (fixlist.size() != 1)
+    error->all(FLERR,"There must be exactly one fix gravity defined for fix pour");
+  auto fixgrav = dynamic_cast<FixGravity *>(fixlist.front());
+
+  grav = -fixgrav->magnitude * force->ftm2v;
 
   // nfreq = timesteps between insertions
   // should be time for a particle to fall from top of insertion region
@@ -207,9 +208,8 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
     v_relative = vy - rate;
     delta = yhi - ylo;
   }
-  double t =
-    (-v_relative - sqrt(v_relative*v_relative - 2.0*grav*delta)) / grav;
-  nfreq = static_cast<int> (t/update->dt + 0.5);
+  double t = (-v_relative - sqrt(v_relative*v_relative - 2.0*grav*delta)) / grav;
+  nfreq = static_cast<int>(t/update->dt + 0.5);
 
   // 1st insertion on next timestep
 
@@ -267,16 +267,9 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 
   // print stats
 
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,
-              "Particle insertion: %d every %d steps, %d by step %d\n",
-              nper,nfreq,ninsert,nfinal);
-    if (logfile)
-      fprintf(logfile,
-              "Particle insertion: %d every %d steps, %d by step %d\n",
-              nper,nfreq,ninsert,nfinal);
-  }
+  if (me == 0)
+    utils::logmesg(lmp, "Particle insertion: {} every {} steps, {} by step {}\n",
+                   nper,nfreq,ninsert,nfinal);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -315,17 +308,16 @@ void FixPour::init()
   // for 3d must point in -z, for 2d must point in -y
   // else insertion cannot work
 
-  int ifix = modify->find_fix_by_style("^gravity");
-  if (ifix == -1)
-    error->all(FLERR,"No fix gravity defined for fix pour");
-
-  int varflag = ((FixGravity *) modify->fix[ifix])->varflag;
-  if (varflag != CONSTANT)
+  auto fixlist = modify->get_fix_by_style("^gravity");
+  if (fixlist.size() != 1)
+    error->all(FLERR,"There must be exactly one fix gravity defined for fix pour");
+  auto fixgrav = dynamic_cast<FixGravity *>(fixlist.front());
+  if (fixgrav->varflag != FixGravity::CONSTANT)
     error->all(FLERR,"Fix gravity for fix pour must be constant");
 
-  double xgrav = ((FixGravity *) modify->fix[ifix])->xgrav;
-  double ygrav = ((FixGravity *) modify->fix[ifix])->ygrav;
-  double zgrav = ((FixGravity *) modify->fix[ifix])->zgrav;
+  double xgrav = fixgrav->xgrav;
+  double ygrav = fixgrav->ygrav;
+  double zgrav = fixgrav->zgrav;
 
   if (domain->dimension == 3) {
     if (fabs(xgrav) > EPSILON || fabs(ygrav) > EPSILON ||
@@ -337,37 +329,29 @@ void FixPour::init()
       error->all(FLERR,"Gravity must point in -y to use with fix pour in 2d");
   }
 
-  double gnew = - ((FixGravity *) modify->fix[ifix])->magnitude * force->ftm2v;
-  if (gnew != grav)
-    error->all(FLERR,"Gravity changed since fix pour was created");
+  double gnew = -fixgrav->magnitude * force->ftm2v;
+  if (gnew != grav) error->all(FLERR,"Gravity changed since fix pour was created");
 
   // if rigidflag defined, check for rigid/small fix
   // its molecule template must be same as this one
 
-  fixrigid = nullptr;
   if (rigidflag) {
-    int ifix = modify->find_fix(idrigid);
-    if (ifix < 0) error->all(FLERR,"Fix pour rigid fix does not exist");
-    fixrigid = modify->fix[ifix];
+    fixrigid = modify->get_fix_by_id(idrigid);
+    if (!fixrigid) error->all(FLERR,"Fix pour rigid fix does not exist");
     int tmp;
     if (onemols != (Molecule **) fixrigid->extract("onemol",tmp))
-      error->all(FLERR,
-                 "Fix pour and fix rigid/small not using "
-                 "same molecule template ID");
+      error->all(FLERR,"Fix pour and fix rigid/small not using same molecule template ID");
   }
 
   // if shakeflag defined, check for SHAKE fix
   // its molecule template must be same as this one
 
-  fixshake = nullptr;
   if (shakeflag) {
-    int ifix = modify->find_fix(idshake);
-    if (ifix < 0) error->all(FLERR,"Fix pour shake fix does not exist");
-    fixshake = modify->fix[ifix];
+    fixshake = modify->get_fix_by_id(idshake);
+    if (!fixshake) error->all(FLERR,"Fix pour shake fix does not exist");
     int tmp;
     if (onemols != (Molecule **) fixshake->extract("onemol",tmp))
-      error->all(FLERR,"Fix pour and fix shake not using "
-                 "same molecule template ID");
+      error->all(FLERR,"Fix pour and fix shake not using same molecule template ID");
   }
 }
 
@@ -393,10 +377,12 @@ void FixPour::pre_exchange()
 
   if (next_reneighbor != update->ntimestep) return;
 
-  // clear ghost count and any ghost bonus data internal to AtomVec
+  // clear ghost count (and atom map) and any ghost bonus data
+  //   internal to AtomVec
   // same logic as beginning of Comm::exchange()
   // do it now b/c inserting atoms will overwrite ghost atoms
 
+  if (atom->map_style != Atom::MAP_NONE) atom->map_clear();
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
@@ -700,7 +686,7 @@ void FixPour::pre_exchange()
   int ninserted_mols = ninserted_atoms / natom;
   ninserted += ninserted_mols;
   if (ninserted_mols < nnew && me == 0)
-    error->warning(FLERR,"Less insertions than requested",0);
+    error->warning(FLERR,"Less insertions than requested");
 
   // reset global natoms,nbonds,etc
   // increment maxtag_all and maxmol_all if necessary
@@ -720,10 +706,13 @@ void FixPour::pre_exchange()
     }
     if (maxtag_all >= MAXTAGINT)
       error->all(FLERR,"New atom IDs exceed maximum allowed ID");
-    if (atom->map_style != Atom::MAP_NONE) {
-      atom->map_init();
-      atom->map_set();
-    }
+  }
+
+  // rebuild atom map
+
+  if (atom->map_style != Atom::MAP_NONE) {
+    if (success) atom->map_init();
+    atom->map_set();
   }
 
   // free local memory
@@ -852,7 +841,7 @@ void FixPour::xyz_random(double h, double *coord)
       coord[2] = h;
     } else {
       double r1,r2;
-      while (1) {
+      while (true) {
         r1 = random->uniform() - 0.5;
         r2 = random->uniform() - 0.5;
         if (r1*r1 + r2*r2 < 0.25) break;
@@ -948,18 +937,14 @@ void FixPour::options(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"rigid") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix pour command");
-      int n = strlen(arg[iarg+1]) + 1;
       delete [] idrigid;
-      idrigid = new char[n];
-      strcpy(idrigid,arg[iarg+1]);
+      idrigid = utils::strdup(arg[iarg+1]);
       rigidflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"shake") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix pour command");
-      int n = strlen(arg[iarg+1]) + 1;
       delete [] idshake;
-      idshake = new char[n];
-      strcpy(idshake,arg[iarg+1]);
+      idshake = utils::strdup(arg[iarg+1]);
       shakeflag = 1;
       iarg += 2;
 

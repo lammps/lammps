@@ -10,7 +10,7 @@ KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
 export MPICH_CXX = $(KOKKOS_ABSOLUTE_PATH)/bin/nvcc_wrapper
 export OMPI_CXX = $(KOKKOS_ABSOLUTE_PATH)/bin/nvcc_wrapper
 CC =		mpicxx
-CCFLAGS =	-g -O3
+CCFLAGS =	-g -O3 -DNDEBUG -Xcudafe --diag_suppress=unrecognized_pragma
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
@@ -23,7 +23,7 @@ ARCHIVE =	ar
 ARFLAGS =	-rc
 SHLIBFLAGS =	-shared
 KOKKOS_DEVICES = Cuda
-KOKKOS_ARCH = Kepler35
+KOKKOS_ARCH = Volta70
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings, all OPTIONAL
@@ -55,7 +55,7 @@ MPI_LIB =
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC = -DFFT_CUFFT	
+FFT_INC = -DFFT_CUFFT
 FFT_PATH = 
 FFT_LIB = -lcufft
 
@@ -70,6 +70,11 @@ JPG_INC =
 JPG_PATH =
 JPG_LIB =
 
+#  library for loading shared objects (defaults to -ldl, should be empty on Windows)
+# uncomment to change the default
+
+# override DYN_LIB =
+
 # ---------------------------------------------------------------------
 # build rules and dependencies
 # do not edit this section
@@ -79,7 +84,7 @@ include Makefile.package
 
 EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)
 EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(JPG_PATH) $(PKG_SYSPATH)
-EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(JPG_LIB) $(PKG_SYSLIB)
+EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(JPG_LIB) $(PKG_SYSLIB) $(DYN_LIB)
 EXTRA_CPP_DEPENDS = $(PKG_CPP_DEPENDS)
 EXTRA_LINK_DEPENDS = $(PKG_LINK_DEPENDS)
 

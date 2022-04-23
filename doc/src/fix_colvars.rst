@@ -50,7 +50,7 @@ The Colvars library is developed at `https://github.com/colvars/colvars <https:/
 A detailed discussion of its implementation is in :ref:`(Fiorin) <Fiorin>`.
 
 There are some example scripts for using this package with LAMMPS in the
-examples/USER/colvars directory.
+examples/PACKAGES/colvars directory.
 
 ----------
 
@@ -80,7 +80,7 @@ that will be used in the colvars module.
 
 The *unwrap* keyword controls whether wrapped or unwrapped coordinates
 are passed to the colvars library for calculation of the collective
-variables and the resulting forces. The default is *yes*\ , i.e. to use
+variables and the resulting forces. The default is *yes*, i.e. to use
 the image flags to reconstruct the absolute atom positions.
 Setting this to *no* will use the current local coordinates that are
 wrapped back into the simulation cell at each re-neighboring instead.
@@ -122,9 +122,9 @@ energy mentioned above.  The scalar value calculated by this fix is
 Restrictions
 """"""""""""
 
-This fix is part of the USER-COLVARS package.  It is only enabled if
+This fix is part of the COLVARS package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 There can only be one colvars fix active at a time. Since the interface
 communicates only the minimum amount of information and colvars module

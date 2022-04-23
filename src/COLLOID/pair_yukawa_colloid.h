@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(yukawa/colloid,PairYukawaColloid)
-
+// clang-format off
+PairStyle(yukawa/colloid,PairYukawaColloid);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_YUKAWA_COLLOID_H
@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class PairYukawaColloid : public PairYukawa {
  public:
   PairYukawaColloid(class LAMMPS *);
-  virtual ~PairYukawaColloid() {}
-  virtual void compute(int, int);
-  void init_style();
-  double init_one(int, int);
-  double single(int, int, int, int, double, double, double, double &);
+
+  void compute(int, int) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  double single(int, int, int, int, double, double, double, double &) override;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

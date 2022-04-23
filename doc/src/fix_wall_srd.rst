@@ -17,11 +17,11 @@ Syntax
 
   .. parsed-literal::
 
-       *xlo*\ ,\ *ylo*\ ,\ *zlo* arg = EDGE or constant or variable
+       *xlo*,\ *ylo*,\ *zlo* arg = EDGE or constant or variable
          EDGE = current lo edge of simulation box
          constant = number like 0.0 or -30.0 (distance units)
          variable = :doc:`equal-style variable <variable>` like v_x or v_wiggle
-       *xhi*\ ,\ *yhi*\ ,\ *zhi* arg = EDGE or constant or variable
+       *xhi*,\ *yhi*,\ *zhi* arg = EDGE or constant or variable
          EDGE = current hi edge of simulation box
          constant = number like 50.0 or 100.3 (distance units)
          variable = :doc:`equal-style variable <variable>` like v_x or v_wiggle
@@ -72,8 +72,8 @@ tangential direction for the SRD velocity is chosen randomly.  This
 collision style imparts both a normal and tangential force to the
 wall.
 
-Up to 6 walls or faces can be specified in a single command: *xlo*\ ,
-*xhi*\ , *ylo*\ , *yhi*\ , *zlo*\ , *zhi*\ .  A *lo* face reflects particles
+Up to 6 walls or faces can be specified in a single command: *xlo*,
+*xhi*, *ylo*, *yhi*, *zlo*, *zhi*\ .  A *lo* face reflects particles
 that move to a coordinate less than the wall position, back in the
 *hi* direction.  A *hi* face reflects particles that move to a
 coordinate higher than the wall position, back in the *lo* direction.

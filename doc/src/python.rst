@@ -185,12 +185,12 @@ output as a string, then the default maximum length of that string is
 a longer string, the *length* keyword can be specified with its *Nlen*
 value set to a larger number (the code allocates space for Nlen+1 to
 include the string terminator).  If the Python function generates a
-string longer than the default 63 or the specified *Nlen*\ , it will be
+string longer than the default 63 or the specified *Nlen*, it will be
 truncated.
 
 ----------
 
-Either the *file*\ , *here*\ , or *exists* keyword must be used, but only
+Either the *file*, *here*, or *exists* keyword must be used, but only
 one of them.  These keywords specify what Python code to load into the
 Python interpreter.  The *file* keyword gives the name of a file,
 which should end with a ".py" suffix, which contains Python code.  The
@@ -340,7 +340,7 @@ to the screen and log file.  Note that since the LAMMPS print command
 itself takes a string in quotes as its argument, the Python string
 must be delimited with a different style of quotes.
 
-The :doc:`Python_head` doc page describes the syntax
+The :doc:`Python_head` page describes the syntax
 for how Python wraps the various functions included in the LAMMPS
 library interface.
 
@@ -495,7 +495,7 @@ Restrictions
 """"""""""""
 
 This command is part of the PYTHON package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Building LAMMPS with the PYTHON package will link LAMMPS with the
 Python library on your system.  Settings to enable this are in the

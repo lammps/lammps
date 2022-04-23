@@ -16,7 +16,7 @@ Syntax
    pair_style table style N keyword ...
 
 * style = *lookup* or *linear* or *spline* or *bitmap* = method of interpolation
-* N = use N values in *lookup*\ , *linear*\ , *spline* tables
+* N = use N values in *lookup*, *linear*, *spline* tables
 * N = use 2\^N values in *bitmap* tables
 * zero or more keywords may be appended
 * keyword = *ewald* or *pppm* or *msm* or *dispersion* or *tip4p*
@@ -47,7 +47,7 @@ cubic splines to the file values and interpolating energy and force
 values at each of *N* distances.  During a simulation, the tables are
 used to interpolate energy and force values as needed for each pair of
 particles separated by a distance *R*\ .  The interpolation is done in
-one of 4 styles: *lookup*\ , *linear*\ , *spline*\ , or *bitmap*\ .
+one of 4 styles: *lookup*, *linear*, *spline*, or *bitmap*\ .
 
 For the *lookup* style, the distance *R* is used to find the nearest
 table entry, which is the energy or force.
@@ -240,7 +240,7 @@ commands do need to be specified in the restart input script.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 

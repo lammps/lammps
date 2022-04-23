@@ -65,6 +65,8 @@ TEST(TEST_CATEGORY, team_for) {
       1000);
 }
 
+// FIXME_OPENMPTARGET wrong results
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
 TEST(TEST_CATEGORY, team_reduce) {
   TestTeamPolicy<TEST_EXECSPACE,
                  Kokkos::Schedule<Kokkos::Static> >::test_reduce(0);
@@ -79,42 +81,100 @@ TEST(TEST_CATEGORY, team_reduce) {
   TestTeamPolicy<TEST_EXECSPACE,
                  Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce(1000);
 }
+#endif
 
 TEST(TEST_CATEGORY, team_broadcast_long) {
-  // FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  if constexpr (!std::is_same<TEST_EXECSPACE,
-                              Kokkos::Experimental::OpenMPTarget>::value)
-#endif
-  {
-    TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
-                      long>::test_teambroadcast(0, 1);
-    TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>,
-                      long>::test_teambroadcast(0, 1);
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
+                    long>::test_teambroadcast(0, 1);
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>,
+                    long>::test_teambroadcast(0, 1);
 
-    TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
-                      long>::test_teambroadcast(2, 1);
-    TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>,
-                      long>::test_teambroadcast(2, 1);
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
+                    long>::test_teambroadcast(2, 1);
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>,
+                    long>::test_teambroadcast(2, 1);
 
-    TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
-                      long>::test_teambroadcast(16, 1);
-    TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>,
-                      long>::test_teambroadcast(16, 1);
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
+                    long>::test_teambroadcast(16, 1);
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>,
+                    long>::test_teambroadcast(16, 1);
 
-    TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
-                      long>::test_teambroadcast(1000, 1);
-    TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>,
-                      long>::test_teambroadcast(1000, 1);
-  }
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
+                    long>::test_teambroadcast(1000, 1);
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>,
+                    long>::test_teambroadcast(1000, 1);
 }
 
-TEST(TEST_CATEGORY, team_broadcast_char) {
-  // FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  if constexpr (!std::is_same<TEST_EXECSPACE,
-                              Kokkos::Experimental::OpenMPTarget>::value)
+// FIXME_OPENMPTARGET CI fails with
+// Libomptarget error: Copying data from device failed.
+// Possibly, because long_wrapper is not trivially-copyable.
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
+struct long_wrapper {
+  long value;
+
+  KOKKOS_FUNCTION
+  long_wrapper() : value(0) {}
+
+  KOKKOS_FUNCTION
+  long_wrapper(long val) : value(val) {}
+
+  KOKKOS_FUNCTION
+  friend void operator+=(long_wrapper& lhs, const long_wrapper& rhs) {
+    lhs.value += rhs.value;
+  }
+
+  KOKKOS_FUNCTION
+  friend void operator+=(volatile long_wrapper& lhs,
+                         const volatile long_wrapper& rhs) {
+    lhs.value += rhs.value;
+  }
+
+  KOKKOS_FUNCTION
+  void operator=(const long_wrapper& other) { value = other.value; }
+
+  KOKKOS_FUNCTION
+  void operator=(const volatile long_wrapper& other) volatile {
+    value = other.value;
+  }
+  KOKKOS_FUNCTION
+  operator long() const { return value; }
+};
+}  // namespace Test
+
+namespace Kokkos {
+template <>
+struct reduction_identity<Test::long_wrapper>
+    : public reduction_identity<long> {};
+}  // namespace Kokkos
+
+namespace Test {
+
+// Test for non-arithmetic type
+TEST(TEST_CATEGORY, team_broadcast_long_wrapper) {
+  static_assert(!std::is_arithmetic<long_wrapper>::value, "");
+
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
+                    long_wrapper>::test_teambroadcast(0, 1);
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>,
+                    long_wrapper>::test_teambroadcast(0, 1);
+
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
+                    long_wrapper>::test_teambroadcast(2, 1);
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>,
+                    long_wrapper>::test_teambroadcast(2, 1);
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
+                    long_wrapper>::test_teambroadcast(16, 1);
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>,
+                    long_wrapper>::test_teambroadcast(16, 1);
+
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
+                    long_wrapper>::test_teambroadcast(1000, 1);
+  TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>,
+                    long_wrapper>::test_teambroadcast(1000, 1);
+}
 #endif
+
+TEST(TEST_CATEGORY, team_broadcast_char) {
   {
     TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
                       unsigned char>::test_teambroadcast(0, 1);
@@ -139,11 +199,6 @@ TEST(TEST_CATEGORY, team_broadcast_char) {
 }
 
 TEST(TEST_CATEGORY, team_broadcast_float) {
-  // FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  if constexpr (!std::is_same<TEST_EXECSPACE,
-                              Kokkos::Experimental::OpenMPTarget>::value)
-#endif
   {
     TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
                       float>::test_teambroadcast(0, 1.3);
@@ -178,11 +233,6 @@ TEST(TEST_CATEGORY, team_broadcast_float) {
 }
 
 TEST(TEST_CATEGORY, team_broadcast_double) {
-  // FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  if constexpr (!std::is_same<TEST_EXECSPACE,
-                              Kokkos::Experimental::OpenMPTarget>::value)
-#endif
   {
     TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
                       double>::test_teambroadcast(0, 1.3);
@@ -215,6 +265,10 @@ TEST(TEST_CATEGORY, team_broadcast_double) {
                           double>::test_teambroadcast(1000, 1.3);
       }
   }
+}
+
+TEST(TEST_CATEGORY, team_handle_by_value) {
+  { TestTeamPolicyHandleByValue<TEST_EXECSPACE>(); }
 }
 
 }  // namespace Test

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(coul/debye/kk,PairCoulDebyeKokkos<LMPDeviceType>)
-PairStyle(coul/debye/kk/device,PairCoulDebyeKokkos<LMPDeviceType>)
-PairStyle(coul/debye/kk/host,PairCoulDebyeKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(coul/debye/kk,PairCoulDebyeKokkos<LMPDeviceType>);
+PairStyle(coul/debye/kk/device,PairCoulDebyeKokkos<LMPDeviceType>);
+PairStyle(coul/debye/kk/host,PairCoulDebyeKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_COUL_DEBYE_KOKKOS_H
 #define LMP_PAIR_COUL_DEBYE_KOKKOS_H
 
@@ -36,13 +37,13 @@ class PairCoulDebyeKokkos : public PairCoulDebye {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairCoulDebyeKokkos(class LAMMPS *);
-  ~PairCoulDebyeKokkos();
+  ~PairCoulDebyeKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   struct params_coul{
     KOKKOS_INLINE_FUNCTION
@@ -53,8 +54,6 @@ class PairCoulDebyeKokkos : public PairCoulDebye {
   };
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
@@ -112,7 +111,7 @@ class PairCoulDebyeKokkos : public PairCoulDebye {
   double special_lj[4];
   double qqrd2e;
 
-  void allocate();
+  void allocate() override;
   friend struct PairComputeFunctor<PairCoulDebyeKokkos,FULL,true>;
   friend struct PairComputeFunctor<PairCoulDebyeKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairCoulDebyeKokkos,HALFTHREAD,true>;

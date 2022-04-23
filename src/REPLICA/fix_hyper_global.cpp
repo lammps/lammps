@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,8 +14,6 @@
 
 #include "fix_hyper_global.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "group.h"
@@ -22,11 +21,13 @@
 #include "domain.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "neigh_request.h"
 #include "neigh_list.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -137,10 +138,7 @@ void FixHyperGlobal::init()
 
   // need an occasional half neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
 }
 
 /* ---------------------------------------------------------------------- */

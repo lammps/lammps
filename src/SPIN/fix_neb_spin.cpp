@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -23,18 +24,18 @@
 
 #include "fix_neb_spin.h"
 
-#include <cmath>
-#include <cstring>
-#include "universe.h"
-#include "update.h"
 #include "atom.h"
 #include "comm.h"
-#include "modify.h"
 #include "compute.h"
+#include "error.h"
 #include "group.h"
 #include "memory.h"
-#include "error.h"
-#include "force.h"
+#include "modify.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -55,7 +56,7 @@ FixNEBSpin::FixNEBSpin(LAMMPS *lmp, int narg, char **arg) :
   counts(nullptr), displacements(nullptr)
 {
 
-  if (narg < 4) error->all(FLERR,"Illegal fix neb_spin command");
+  if (narg < 4) error->all(FLERR,"Illegal fix neb/spin command");
 
   kspring = utils::numeric(FLERR,arg[3],false,lmp);
   if (kspring <= 0.0) error->all(FLERR,"Illegal fix neb command");
@@ -76,16 +77,16 @@ FixNEBSpin::FixNEBSpin(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"parallel") == 0) {
-      error->all(FLERR,"Illegal fix neb command");
+      error->all(FLERR,"Illegal fix neb/spin command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"perp") == 0) {
-      error->all(FLERR,"Illegal fix neb command");
+      error->all(FLERR,"Illegal fix neb/spin command");
       iarg += 2;
     } else if (strcmp (arg[iarg],"end") == 0) {
       iarg += 3;
     } else if (strcmp (arg[iarg],"lattice") == 0) {
       iarg += 2;
-    } else error->all(FLERR,"Illegal fix neb command");
+    } else error->all(FLERR,"Illegal fix neb/spin command");
   }
 
   // nreplica = number of partitions
@@ -106,31 +107,24 @@ FixNEBSpin::FixNEBSpin(LAMMPS *lmp, int narg, char **arg) :
   else procnext = -1;
 
   uworld = universe->uworld;
-  int *iroots = new int[nreplica];
-  MPI_Group uworldgroup,rootgroup;
   if (NEBLongRange) {
-    for (int i=0; i<nreplica; i++)
-      iroots[i] = universe->root_proc[i];
+    int *iroots = new int[nreplica];
+    MPI_Group uworldgroup,rootgroup;
+
+    for (int i=0; i<nreplica; i++) iroots[i] = universe->root_proc[i];
     MPI_Comm_group(uworld, &uworldgroup);
     MPI_Group_incl(uworldgroup, nreplica, iroots, &rootgroup);
     MPI_Comm_create(uworld, rootgroup, &rootworld);
+    if (rootgroup != MPI_GROUP_NULL) MPI_Group_free(&rootgroup);
+    if (uworldgroup != MPI_GROUP_NULL) MPI_Group_free(&uworldgroup);
+    delete [] iroots;
   }
-  delete [] iroots;
 
   // create a new compute pe style
   // id = fix-ID + pe, compute group = all
 
-  int n = strlen(id) + 4;
-  id_pe = new char[n];
-  strcpy(id_pe,id);
-  strcat(id_pe,"_pe");
-
-  char **newarg = new char*[3];
-  newarg[0] = id_pe;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pe";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  id_pe = utils::strdup(std::string(id)+"_pe");
+  modify->add_compute(std::string(id_pe)+" all pe");
 
   // initialize local storage
 

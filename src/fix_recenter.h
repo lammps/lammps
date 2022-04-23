@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(recenter,FixRecenter)
-
+// clang-format off
+FixStyle(recenter,FixRecenter);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_RECENTER_H
@@ -27,22 +27,22 @@ namespace LAMMPS_NS {
 class FixRecenter : public Fix {
  public:
   FixRecenter(class LAMMPS *, int, char **);
-  int setmask();
-  void init();
-  void initial_integrate(int);
-  void initial_integrate_respa(int, int, int);
-  double compute_scalar();
-  double compute_vector(int);
+  int setmask() override;
+  void init() override;
+  void initial_integrate(int) override;
+  void initial_integrate_respa(int, int, int) override;
+  double compute_scalar() override;
+  double compute_vector(int) override;
 
  private:
-  int group2bit,scaleflag;
-  int xflag,yflag,zflag;
-  int xinitflag,yinitflag,zinitflag;
+  int group2bit, scaleflag;
+  int xflag, yflag, zflag;
+  int xinitflag, yinitflag, zinitflag;
   int nlevels_respa;
-  double xcom,ycom,zcom,xinit,yinit,zinit,masstotal,distance,shift[3];
+  double xcom, ycom, zcom, xinit, yinit, zinit, masstotal, distance, shift[3];
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

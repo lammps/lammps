@@ -78,18 +78,18 @@ specified values may represent calculations performed by computes and
 fixes which store their own "group" definitions.
 
 Each listed value can be the result of a compute or fix or the
-evaluation of an equal-style variable. See the :doc:`fix ave/correlate <fix_ave_correlate>` doc page for details.
+evaluation of an equal-style variable. See the :doc:`fix ave/correlate <fix_ave_correlate>` page for details.
 
 The *Nevery* and *Nfreq* arguments specify on what timesteps the input
 values will be used to calculate correlation data, and the frequency
 with which the time correlation functions will be output to a file.
 Note that there is no *Nrepeat* argument, unlike the :doc:`fix ave/correlate <fix_ave_correlate>` command.
 
-The optional keywords *ncorr*\ , *nlen*\ , and *ncount* are unique to this
+The optional keywords *ncorr*, *nlen*, and *ncount* are unique to this
 command and determine the number of correlation points calculated and
 the memory and CPU overhead used by this calculation. *Nlen* and
 *ncount* determine the amount of averaging done at longer correlation
-times.  The default values *nlen=16*\ , *ncount=2* ensure that the
+times.  The default values *nlen=16*, *ncount=2* ensure that the
 systematic error of the multiple-tau correlator is always below the
 level of the statistical error of a typical simulation (which depends
 on the ensemble size and the simulation length).
@@ -127,8 +127,8 @@ the run command. This fix is not invoked during energy minimization.
 Restrictions
 """"""""""""
 
-This compute is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is part of the EXTRA-FIX package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

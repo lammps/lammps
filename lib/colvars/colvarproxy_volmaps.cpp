@@ -9,9 +9,13 @@
 
 #include "colvarmodule.h"
 #include "colvarproxy_volmaps.h"
+#include "colvarmodule_utils.h"
 
 
-colvarproxy_volmaps::colvarproxy_volmaps() {}
+colvarproxy_volmaps::colvarproxy_volmaps()
+{
+  volmaps_rms_applied_force_ = volmaps_max_applied_force_ = 0.0;
+}
 
 
 colvarproxy_volmaps::~colvarproxy_volmaps() {}
@@ -46,25 +50,41 @@ int colvarproxy_volmaps::add_volmap_slot(int volmap_id)
 }
 
 
-int colvarproxy_volmaps::init_volmap(int volmap_id)
+int colvarproxy_volmaps::check_volmap_by_id(int /* volmap_id */)
 {
-  return cvm::error("Error: access to volumetric maps is unavailable "
-                    "in this build.\n",
+  return cvm::error("Error: selecting volumetric maps is not available.\n",
                     COLVARS_NOT_IMPLEMENTED);
 }
 
 
-int colvarproxy_volmaps::init_volmap(const char *volmap_name)
+int colvarproxy_volmaps::check_volmap_by_name(const char * /* volmap_name */)
 {
-  return cvm::error("Error: access to volumetric maps is unavailable "
-                    "in this build.\n",
-                    COLVARS_NOT_IMPLEMENTED);
+  return cvm::error("Error: selecting volumetric maps by name is not "
+                    "available.\n", COLVARS_NOT_IMPLEMENTED);
 }
 
 
-int colvarproxy_volmaps::init_volmap(const std::string &volmap_name)
+int colvarproxy_volmaps::init_volmap_by_name(char const *volmap_name)
 {
-  return init_volmap(volmap_name.c_str());
+  return -1;
+}
+
+
+int colvarproxy_volmaps::init_volmap_by_id(int volmap_id)
+{
+  return -1;
+}
+
+
+int colvarproxy_volmaps::init_volmap_by_name(std::string const &volmap_name)
+{
+  return init_volmap_by_name(volmap_name.c_str());
+}
+
+
+int colvarproxy_volmaps::check_volmap_by_name(std::string const &volmap_name)
+{
+  return check_volmap_by_name(volmap_name.c_str());
 }
 
 
@@ -78,4 +98,37 @@ void colvarproxy_volmaps::clear_volmap(int index)
   if (volmaps_ncopies[index] > 0) {
     volmaps_ncopies[index] -= 1;
   }
+}
+
+
+int colvarproxy_volmaps::get_volmap_id_from_name(char const *volmap_name)
+{
+  // Raise error
+  colvarproxy_volmaps::check_volmap_by_name(volmap_name);
+  return -1;
+}
+
+
+int colvarproxy_volmaps::compute_volmap(int /* flags */,
+                                        int /* volmap_id */,
+                                        cvm::atom_iter /* atom_begin */,
+                                        cvm::atom_iter /* atom_end */,
+                                        cvm::real * /* value */,
+                                        cvm::real * /* atom_field */)
+{
+  return COLVARS_NOT_IMPLEMENTED;
+}
+
+
+void colvarproxy_volmaps::compute_rms_volmaps_applied_force()
+{
+  volmaps_rms_applied_force_ =
+    compute_norm2_stats<cvm::real, 0, false>(volmaps_new_colvar_forces);
+}
+
+
+void colvarproxy_volmaps::compute_max_volmaps_applied_force()
+{
+  volmaps_max_applied_force_ =
+    compute_norm2_stats<cvm::real, 1, false>(volmaps_new_colvar_forces);
 }

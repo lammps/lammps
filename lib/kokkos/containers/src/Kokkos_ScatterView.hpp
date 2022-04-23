@@ -649,13 +649,13 @@ struct ReduceDuplicatesBase {
   size_t stride;
   size_t start;
   size_t n;
-  ReduceDuplicatesBase(ValueType const* src_in, ValueType* dest_in,
-                       size_t stride_in, size_t start_in, size_t n_in,
-                       std::string const& name)
+  ReduceDuplicatesBase(ExecSpace const& exec_space, ValueType const* src_in,
+                       ValueType* dest_in, size_t stride_in, size_t start_in,
+                       size_t n_in, std::string const& name)
       : src(src_in), dst(dest_in), stride(stride_in), start(start_in), n(n_in) {
     parallel_for(
         std::string("Kokkos::ScatterView::ReduceDuplicates [") + name + "]",
-        RangePolicy<ExecSpace, size_t>(0, stride),
+        RangePolicy<ExecSpace, size_t>(exec_space, 0, stride),
         static_cast<Derived const&>(*this));
   }
 };
@@ -667,9 +667,10 @@ template <typename ExecSpace, typename ValueType, typename Op>
 struct ReduceDuplicates
     : public ReduceDuplicatesBase<ExecSpace, ValueType, Op> {
   using Base = ReduceDuplicatesBase<ExecSpace, ValueType, Op>;
-  ReduceDuplicates(ValueType const* src_in, ValueType* dst_in, size_t stride_in,
-                   size_t start_in, size_t n_in, std::string const& name)
-      : Base(src_in, dst_in, stride_in, start_in, n_in, name) {}
+  ReduceDuplicates(ExecSpace const& exec_space, ValueType const* src_in,
+                   ValueType* dst_in, size_t stride_in, size_t start_in,
+                   size_t n_in, std::string const& name)
+      : Base(exec_space, src_in, dst_in, stride_in, start_in, n_in, name) {}
   KOKKOS_FORCEINLINE_FUNCTION void operator()(size_t i) const {
     for (size_t j = Base::start; j < Base::n; ++j) {
       ScatterValue<ValueType, Op, ExecSpace,
@@ -687,12 +688,12 @@ template <typename ExecSpace, typename ValueType, typename Op>
 struct ResetDuplicatesBase {
   using Derived = ResetDuplicates<ExecSpace, ValueType, Op>;
   ValueType* data;
-  ResetDuplicatesBase(ValueType* data_in, size_t size_in,
-                      std::string const& name)
+  ResetDuplicatesBase(ExecSpace const& exec_space, ValueType* data_in,
+                      size_t size_in, std::string const& name)
       : data(data_in) {
     parallel_for(
         std::string("Kokkos::ScatterView::ResetDuplicates [") + name + "]",
-        RangePolicy<ExecSpace, size_t>(0, size_in),
+        RangePolicy<ExecSpace, size_t>(exec_space, 0, size_in),
         static_cast<Derived const&>(*this));
   }
 };
@@ -703,8 +704,9 @@ struct ResetDuplicatesBase {
 template <typename ExecSpace, typename ValueType, typename Op>
 struct ResetDuplicates : public ResetDuplicatesBase<ExecSpace, ValueType, Op> {
   using Base = ResetDuplicatesBase<ExecSpace, ValueType, Op>;
-  ResetDuplicates(ValueType* data_in, size_t size_in, std::string const& name)
-      : Base(data_in, size_in, name) {}
+  ResetDuplicates(ExecSpace const& exec_space, ValueType* data_in,
+                  size_t size_in, std::string const& name)
+      : Base(exec_space, data_in, size_in, name) {}
   KOKKOS_FORCEINLINE_FUNCTION void operator()(size_t i) const {
     ScatterValue<ValueType, Op, ExecSpace,
                  Kokkos::Experimental::ScatterNonAtomic>
@@ -712,6 +714,16 @@ struct ResetDuplicates : public ResetDuplicatesBase<ExecSpace, ValueType, Op> {
     sv.reset();
   }
 };
+
+template <typename... P>
+void check_scatter_view_allocation_properties_argument(
+    ViewCtorProp<P...> const&) {
+  static_assert(ViewCtorProp<P...>::has_execution_space &&
+                    ViewCtorProp<P...>::has_label &&
+                    ViewCtorProp<P...>::initialize,
+                "Allocation property must have an execution name as well as a "
+                "label, and must perform the view initialization");
+}
 
 }  // namespace Experimental
 }  // namespace Impl
@@ -762,9 +774,25 @@ class ScatterView<DataType, Layout, DeviceType, Op, ScatterNonDuplicated,
   ScatterView(View<RT, RP...> const& original_view)
       : internal_view(original_view) {}
 
+  template <typename RT, typename... P, typename... RP>
+  ScatterView(execution_space const& /* exec_space */,
+              View<RT, RP...> const& original_view)
+      : internal_view(original_view) {}
+
   template <typename... Dims>
   ScatterView(std::string const& name, Dims... dims)
       : internal_view(name, dims...) {}
+
+  // This overload allows specifying an execution space instance to be
+  // used by passing, e.g., Kokkos::view_alloc(exec_space, "label") as
+  // first argument.
+  template <typename... P, typename... Dims>
+  ScatterView(::Kokkos::Impl::ViewCtorProp<P...> const& arg_prop, Dims... dims)
+      : internal_view(arg_prop, dims...) {
+    using ::Kokkos::Impl::Experimental::
+        check_scatter_view_allocation_properties_argument;
+    check_scatter_view_allocation_properties_argument(arg_prop);
+  }
 
   template <typename OtherDataType, typename OtherDeviceType>
   KOKKOS_FUNCTION ScatterView(
@@ -796,27 +824,41 @@ class ScatterView<DataType, Layout, DeviceType, Op, ScatterNonDuplicated,
 
   template <typename DT, typename... RP>
   void contribute_into(View<DT, RP...> const& dest) const {
+    contribute_into(execution_space(), dest);
+  }
+
+  template <typename DT, typename... RP>
+  void contribute_into(execution_space const& exec_space,
+                       View<DT, RP...> const& dest) const {
     using dest_type = View<DT, RP...>;
     static_assert(std::is_same<typename dest_type::array_layout, Layout>::value,
                   "ScatterView contribute destination has different layout");
     static_assert(
-        Kokkos::Impl::VerifyExecutionCanAccessMemorySpace<
-            memory_space, typename dest_type::memory_space>::value,
+        Kokkos::SpaceAccessibility<
+            execution_space, typename dest_type::memory_space>::accessible,
         "ScatterView contribute destination memory space not accessible");
     if (dest.data() == internal_view.data()) return;
     Kokkos::Impl::Experimental::ReduceDuplicates<execution_space,
                                                  original_value_type, Op>(
-        internal_view.data(), dest.data(), 0, 0, 1, internal_view.label());
+        exec_space, internal_view.data(), dest.data(), 0, 0, 1,
+        internal_view.label());
   }
 
-  void reset() {
+  void reset(execution_space const& exec_space = execution_space()) {
     Kokkos::Impl::Experimental::ResetDuplicates<execution_space,
                                                 original_value_type, Op>(
-        internal_view.data(), internal_view.size(), internal_view.label());
+        exec_space, internal_view.data(), internal_view.size(),
+        internal_view.label());
   }
   template <typename DT, typename... RP>
   void reset_except(View<DT, RP...> const& view) {
-    if (view.data() != internal_view.data()) reset();
+    reset_except(execution_space(), view);
+  }
+
+  template <typename DT, typename... RP>
+  void reset_except(const execution_space& exec_space,
+                    View<DT, RP...> const& view) {
+    if (view.data() != internal_view.data()) reset(exec_space);
   }
 
   void resize(const size_t n0 = 0, const size_t n1 = 0, const size_t n2 = 0,
@@ -928,10 +970,16 @@ class ScatterView<DataType, Kokkos::LayoutRight, DeviceType, Op,
 
   template <typename RT, typename... RP>
   ScatterView(View<RT, RP...> const& original_view)
+      : ScatterView(execution_space(), original_view) {}
+
+  template <typename RT, typename... P, typename... RP>
+  ScatterView(execution_space const& exec_space,
+              View<RT, RP...> const& original_view)
       : unique_token(),
         internal_view(
             view_alloc(WithoutInitializing,
-                       std::string("duplicated_") + original_view.label()),
+                       std::string("duplicated_") + original_view.label(),
+                       exec_space),
             unique_token.size(),
             original_view.rank_dynamic > 0 ? original_view.extent(0)
                                            : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
@@ -949,14 +997,32 @@ class ScatterView<DataType, Kokkos::LayoutRight, DeviceType, Op,
                                            : KOKKOS_IMPL_CTOR_DEFAULT_ARG)
 
   {
-    reset();
+    reset(exec_space);
   }
 
   template <typename... Dims>
   ScatterView(std::string const& name, Dims... dims)
-      : internal_view(view_alloc(WithoutInitializing, name),
+      : ScatterView(view_alloc(execution_space(), name), dims...) {}
+
+  // This overload allows specifying an execution space instance to be
+  // used by passing, e.g., Kokkos::view_alloc(exec_space, "label") as
+  // first argument.
+  template <typename... P, typename... Dims>
+  ScatterView(::Kokkos::Impl::ViewCtorProp<P...> const& arg_prop, Dims... dims)
+      : internal_view(view_alloc(WithoutInitializing,
+                                 static_cast<::Kokkos::Impl::ViewCtorProp<
+                                     void, std::string> const&>(arg_prop)
+                                     .value),
                       unique_token.size(), dims...) {
-    reset();
+    using ::Kokkos::Impl::Experimental::
+        check_scatter_view_allocation_properties_argument;
+    check_scatter_view_allocation_properties_argument(arg_prop);
+
+    auto const exec_space =
+        static_cast<::Kokkos::Impl::ViewCtorProp<void, execution_space> const&>(
+            arg_prop)
+            .value;
+    reset(exec_space);
   }
 
   template <typename OverrideContribution = Contribution>
@@ -984,37 +1050,51 @@ class ScatterView<DataType, Kokkos::LayoutRight, DeviceType, Op,
 
   template <typename DT, typename... RP>
   void contribute_into(View<DT, RP...> const& dest) const {
+    contribute_into(execution_space(), dest);
+  }
+
+  template <typename DT, typename... RP>
+  void contribute_into(execution_space const& exec_space,
+                       View<DT, RP...> const& dest) const {
     using dest_type = View<DT, RP...>;
     static_assert(std::is_same<typename dest_type::array_layout,
                                Kokkos::LayoutRight>::value,
                   "ScatterView deep_copy destination has different layout");
     static_assert(
-        Kokkos::Impl::VerifyExecutionCanAccessMemorySpace<
-            memory_space, typename dest_type::memory_space>::value,
+        Kokkos::SpaceAccessibility<
+            execution_space, typename dest_type::memory_space>::accessible,
         "ScatterView deep_copy destination memory space not accessible");
     bool is_equal = (dest.data() == internal_view.data());
     size_t start  = is_equal ? 1 : 0;
     Kokkos::Impl::Experimental::ReduceDuplicates<execution_space,
                                                  original_value_type, Op>(
-        internal_view.data(), dest.data(), internal_view.stride(0), start,
-        internal_view.extent(0), internal_view.label());
+        exec_space, internal_view.data(), dest.data(), internal_view.stride(0),
+        start, internal_view.extent(0), internal_view.label());
   }
 
-  void reset() {
+  void reset(execution_space const& exec_space = execution_space()) {
     Kokkos::Impl::Experimental::ResetDuplicates<execution_space,
                                                 original_value_type, Op>(
-        internal_view.data(), internal_view.size(), internal_view.label());
+        exec_space, internal_view.data(), internal_view.size(),
+        internal_view.label());
   }
+
   template <typename DT, typename... RP>
   void reset_except(View<DT, RP...> const& view) {
+    reset_except(execution_space(), view);
+  }
+
+  template <typename DT, typename... RP>
+  void reset_except(execution_space const& exec_space,
+                    View<DT, RP...> const& view) {
     if (view.data() != internal_view.data()) {
-      reset();
+      reset(exec_space);
       return;
     }
     Kokkos::Impl::Experimental::ResetDuplicates<execution_space,
                                                 original_value_type, Op>(
-        internal_view.data() + view.size(), internal_view.size() - view.size(),
-        internal_view.label());
+        exec_space, internal_view.data() + view.size(),
+        internal_view.size() - view.size(), internal_view.label());
   }
 
   void resize(const size_t n0 = 0, const size_t n1 = 0, const size_t n2 = 0,
@@ -1075,7 +1155,13 @@ class ScatterView<DataType, Kokkos::LayoutLeft, DeviceType, Op,
   ScatterView() = default;
 
   template <typename RT, typename... RP>
-  ScatterView(View<RT, RP...> const& original_view) : unique_token() {
+  ScatterView(View<RT, RP...> const& original_view)
+      : ScatterView(execution_space(), original_view) {}
+
+  template <typename RT, typename... P, typename... RP>
+  ScatterView(execution_space const& exec_space,
+              View<RT, RP...> const& original_view)
+      : unique_token() {
     size_t arg_N[8] = {original_view.rank > 0 ? original_view.extent(0)
                                               : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
                        original_view.rank > 1 ? original_view.extent(1)
@@ -1094,14 +1180,27 @@ class ScatterView<DataType, Kokkos::LayoutLeft, DeviceType, Op,
     arg_N[internal_view_type::rank - 1] = unique_token.size();
     internal_view                       = internal_view_type(
         view_alloc(WithoutInitializing,
-                   std::string("duplicated_") + original_view.label()),
+                   std::string("duplicated_") + original_view.label(),
+                   exec_space),
         arg_N[0], arg_N[1], arg_N[2], arg_N[3], arg_N[4], arg_N[5], arg_N[6],
         arg_N[7]);
-    reset();
+    reset(exec_space);
   }
 
   template <typename... Dims>
-  ScatterView(std::string const& name, Dims... dims) {
+  ScatterView(std::string const& name, Dims... dims)
+      : ScatterView(view_alloc(execution_space(), name), dims...) {}
+
+  // This overload allows specifying an execution space instance to be
+  // used by passing, e.g., Kokkos::view_alloc(exec_space, "label") as
+  // first argument.
+  template <typename... P, typename... Dims>
+  ScatterView(::Kokkos::Impl::ViewCtorProp<P...> const& arg_prop,
+              Dims... dims) {
+    using ::Kokkos::Impl::Experimental::
+        check_scatter_view_allocation_properties_argument;
+    check_scatter_view_allocation_properties_argument(arg_prop);
+
     original_view_type original_view;
     size_t arg_N[8] = {original_view.rank > 0 ? original_view.static_extent(0)
                                               : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
@@ -1120,10 +1219,20 @@ class ScatterView<DataType, Kokkos::LayoutLeft, DeviceType, Op,
                        KOKKOS_IMPL_CTOR_DEFAULT_ARG};
     Kokkos::Impl::Experimental::args_to_array(arg_N, 0, dims...);
     arg_N[internal_view_type::rank - 1] = unique_token.size();
+
+    auto const name =
+        static_cast<::Kokkos::Impl::ViewCtorProp<void, std::string> const&>(
+            arg_prop)
+            .value;
     internal_view = internal_view_type(view_alloc(WithoutInitializing, name),
                                        arg_N[0], arg_N[1], arg_N[2], arg_N[3],
                                        arg_N[4], arg_N[5], arg_N[6], arg_N[7]);
-    reset();
+
+    auto const exec_space =
+        static_cast<::Kokkos::Impl::ViewCtorProp<void, execution_space> const&>(
+            arg_prop)
+            .value;
+    reset(exec_space);
   }
 
   template <typename OtherDataType, typename OtherDeviceType>
@@ -1166,6 +1275,12 @@ class ScatterView<DataType, Kokkos::LayoutLeft, DeviceType, Op,
 
   template <typename... RP>
   void contribute_into(View<RP...> const& dest) const {
+    contribute_into(execution_space(), dest);
+  }
+
+  template <typename... RP>
+  void contribute_into(execution_space const& exec_space,
+                       View<RP...> const& dest) const {
     using dest_type = View<RP...>;
     static_assert(
         std::is_same<typename dest_type::value_type,
@@ -1175,34 +1290,42 @@ class ScatterView<DataType, Kokkos::LayoutLeft, DeviceType, Op,
                                Kokkos::LayoutLeft>::value,
                   "ScatterView deep_copy destination has different layout");
     static_assert(
-        Kokkos::Impl::VerifyExecutionCanAccessMemorySpace<
-            memory_space, typename dest_type::memory_space>::value,
+        Kokkos::SpaceAccessibility<
+            execution_space, typename dest_type::memory_space>::accessible,
         "ScatterView deep_copy destination memory space not accessible");
     auto extent   = internal_view.extent(internal_view_type::rank - 1);
     bool is_equal = (dest.data() == internal_view.data());
     size_t start  = is_equal ? 1 : 0;
     Kokkos::Impl::Experimental::ReduceDuplicates<execution_space,
                                                  original_value_type, Op>(
-        internal_view.data(), dest.data(),
+        exec_space, internal_view.data(), dest.data(),
         internal_view.stride(internal_view_type::rank - 1), start, extent,
         internal_view.label());
   }
 
-  void reset() {
+  void reset(execution_space const& exec_space = execution_space()) {
     Kokkos::Impl::Experimental::ResetDuplicates<execution_space,
                                                 original_value_type, Op>(
-        internal_view.data(), internal_view.size(), internal_view.label());
+        exec_space, internal_view.data(), internal_view.size(),
+        internal_view.label());
   }
+
   template <typename DT, typename... RP>
   void reset_except(View<DT, RP...> const& view) {
+    reset_except(execution_space(), view);
+  }
+
+  template <typename DT, typename... RP>
+  void reset_except(execution_space const& exec_space,
+                    View<DT, RP...> const& view) {
     if (view.data() != internal_view.data()) {
-      reset();
+      reset(exec_space);
       return;
     }
     Kokkos::Impl::Experimental::ResetDuplicates<execution_space,
                                                 original_value_type, Op>(
-        internal_view.data() + view.size(), internal_view.size() - view.size(),
-        internal_view.label());
+        exec_space, internal_view.data() + view.size(),
+        internal_view.size() - view.size(), internal_view.label());
   }
 
   void resize(const size_t n0 = 0, const size_t n1 = 0, const size_t n2 = 0,
@@ -1316,21 +1439,21 @@ template <typename Op          = Kokkos::Experimental::ScatterSum,
 ScatterView<
     RT, typename ViewTraits<RT, RP...>::array_layout,
     typename ViewTraits<RT, RP...>::device_type, Op,
-    typename Kokkos::Impl::if_c<
+    std::conditional_t<
         std::is_same<Duplication, void>::value,
         typename Kokkos::Impl::Experimental::DefaultDuplication<
             typename ViewTraits<RT, RP...>::execution_space>::type,
-        Duplication>::type,
-    typename Kokkos::Impl::if_c<
+        Duplication>,
+    std::conditional_t<
         std::is_same<Contribution, void>::value,
         typename Kokkos::Impl::Experimental::DefaultContribution<
             typename ViewTraits<RT, RP...>::execution_space,
-            typename Kokkos::Impl::if_c<
+            typename std::conditional_t<
                 std::is_same<Duplication, void>::value,
                 typename Kokkos::Impl::Experimental::DefaultDuplication<
                     typename ViewTraits<RT, RP...>::execution_space>::type,
-                Duplication>::type>::type,
-        Contribution>::type>
+                Duplication>>::type,
+        Contribution>>
 create_scatter_view(View<RT, RP...> const& original_view) {
   return original_view;  // implicit ScatterView constructor call
 }
@@ -1368,9 +1491,18 @@ namespace Experimental {
 template <typename DT1, typename DT2, typename LY, typename ES, typename OP,
           typename CT, typename DP, typename... VP>
 void contribute(
+    typename ES::execution_space const& exec_space, View<DT1, VP...>& dest,
+    Kokkos::Experimental::ScatterView<DT2, LY, ES, OP, CT, DP> const& src) {
+  src.contribute_into(exec_space, dest);
+}
+
+template <typename DT1, typename DT2, typename LY, typename ES, typename OP,
+          typename CT, typename DP, typename... VP>
+void contribute(
     View<DT1, VP...>& dest,
     Kokkos::Experimental::ScatterView<DT2, LY, ES, OP, CT, DP> const& src) {
-  src.contribute_into(dest);
+  using execution_space = typename ES::execution_space;
+  contribute(execution_space{}, dest, src);
 }
 
 }  // namespace Experimental

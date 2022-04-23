@@ -55,7 +55,7 @@ shell of distances in 3d and a thin ring of distances in 2d.
    command, and means those pairwise interactions do not appear in the
    neighbor list.  Because this fix uses a neighbor list, it also means
    those pairs will not be included in the RDF. This does not apply when
-   using long-range coulomb interactions (\ *coul/long*\ , *coul/msm*\ ,
+   using long-range coulomb interactions (\ *coul/long*, *coul/msm*,
    *coul/wolf* or similar.  One way to get around this would be to set
    special_bond scaling factors to very tiny numbers that are not exactly
    zero (e.g. 1.0e-50). Another workaround is to write a dump file, and
@@ -94,7 +94,7 @@ The *itypeN* and *jtypeN* arguments are optional.  These arguments
 must come in pairs.  If no pairs are listed, then a single histogram
 is computed for g(r) between all atom types.  If one or more pairs are
 listed, then a separate histogram is generated for each
-*itype*\ ,\ *jtype* pair.
+*itype*,\ *jtype* pair.
 
 The *itypeN* and *jtypeN* settings can be specified in one of two
 ways.  An explicit numeric value can be used, as in the fourth example
@@ -156,13 +156,13 @@ Output info
 """""""""""
 
 This compute calculates a global array with the number of rows =
-*Nbins*\ , and the number of columns = 1 + 2\*Npairs, where Npairs is the
+*Nbins*, and the number of columns = 1 + 2\*Npairs, where Npairs is the
 number of I,J pairings specified.  The first column has the bin
 coordinate (center of the bin), Each successive set of 2 columns has
 the g(r) and coord(r) values for a specific set of *itypeN* versus
 *jtypeN* interactions, as described above.  These values can be used
 by any command that uses a global values from a compute as input.  See
-the :doc:`Howto output <Howto_output>` doc page for an overview of
+the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
 The array values calculated by this compute are all "intensive".
@@ -186,7 +186,7 @@ your model.  The definition of g(r) used by LAMMPS is only appropriate
 for characterizing atoms that are uniformly distributed throughout the
 simulation cell. In such cases, the coordination number is still
 correct and meaningful.  As an example, if a large simulation cell
-contains only one atom of type *itypeN* and one of *jtypeN*\ , then g(r)
+contains only one atom of type *itypeN* and one of *jtypeN*, then g(r)
 will register an arbitrarily large spike at whatever distance they
 happen to be at, and zero everywhere else.  Coord(r) will show a step
 change from zero to one at the location of the spike in g(r).

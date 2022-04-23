@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,17 +18,18 @@
 
 #include "fix_rattle.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "domain.h"
-#include "force.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -60,7 +62,7 @@ FixRattle::FixRattle(LAMMPS *lmp, int narg, char **arg) :
   // allocate memory for unconstrained velocity update
 
   vp = nullptr;
-  grow_arrays(atom->nmax);
+  FixRattle::grow_arrays(atom->nmax);
 
   // default communication mode
   // necessary for compatibility with SHAKE
@@ -156,7 +158,7 @@ void FixRattle::post_force(int vflag)
 
   if (nprocs > 1) {
     comm_mode = VP;
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
   }
 
   // correct the velocity for each molecule accordingly
@@ -188,7 +190,7 @@ void FixRattle::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 
   if (nprocs > 1) {
     comm_mode = VP;
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
   }
 
   // correct the velocity for each molecule accordingly
@@ -718,7 +720,7 @@ void FixRattle::shake_end_of_step(int vflag) {
 
   if (nprocs > 1) {
     comm_mode = V;
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
   }
 
   comm_mode = XSHAKE;
@@ -759,7 +761,7 @@ void FixRattle::correct_velocities() {
 
   if (nprocs > 1) {
     comm_mode = VP;
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
   }
 
   // correct the velocity for each molecule accordingly
@@ -788,7 +790,7 @@ void FixRattle::end_of_step()
 {
   if (nprocs > 1) {
        comm_mode = V;
-       comm->forward_comm_fix(this);
+       comm->forward_comm(this);
   }
   if (!check_constraints(v, RATTLE_TEST_POS, RATTLE_TEST_VEL) && RATTLE_RAISE_ERROR) {
     error->one(FLERR, "Rattle failed ");

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -10,6 +10,7 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+// clang-format off
 
 // Pointers class contains ptrs to master copy of
 //   fundamental LAMMPS class ptrs stored in lammps.h
@@ -22,13 +23,16 @@
 #define LMP_POINTERS_H
 
 #include "lmptype.h"    // IWYU pragma: export
+
 #include <mpi.h>        // IWYU pragma: export
 #include <cstddef>      // IWYU pragme: export
 #include <cstdio>       // IWYU pragma: export
 #include <string>       // IWYU pragma: export
-#include "lammps.h"     // IWYU pragma: export
-#include "utils.h"      // IWYU pragma: export
+
 #include "fmt/format.h" // IWYU pragma: export
+#include "lammps.h"     // IWYU pragma: export
+#include "platform.h"   // IWYU pragma: export
+#include "utils.h"      // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -41,7 +45,7 @@ namespace LAMMPS_NS {
 
 // enum used for KOKKOS host/device flags
 
-enum ExecutionSpace{Host,Device};
+enum ExecutionSpace{ Host, Device };
 
 // global forward declarations
 
@@ -87,7 +91,15 @@ class Pointers {
     atomKK(ptr->atomKK),
     memoryKK(ptr->memoryKK),
     python(ptr->python) {}
-  virtual ~Pointers() {}
+  virtual ~Pointers() = default;
+
+  // remove default members execept for the copy constructor
+
+  Pointers() = delete;
+  Pointers(const Pointers &) = default;
+  Pointers(Pointers &&) = delete;
+  Pointers & operator=(const Pointers&) = delete;
+  Pointers & operator=(Pointers&&) = delete;
 
  protected:
   LAMMPS *lmp;

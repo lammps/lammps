@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -32,7 +33,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ResetMolIDs::ResetMolIDs(LAMMPS *lmp) : Pointers(lmp) {
+ResetMolIDs::ResetMolIDs(LAMMPS *lmp) : Command(lmp) {
   cfa = nullptr;
   cca = nullptr;
 
@@ -76,19 +77,15 @@ void ResetMolIDs::command(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"compress") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal reset_mol_ids command");
-      if (strcmp(arg[iarg+1],"yes") == 0) compressflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) compressflag = 0;
-      else error->all(FLERR,"Illegal reset_mol_ids command");
+      compressflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"single") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal reset_mol_ids command");
-      if (strcmp(arg[iarg+1],"yes") == 0) singleflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) singleflag = 0;
-      else error->all(FLERR,"Illegal reset_mol_ids command");
+      singleflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"offset") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal reset_mol_ids command");
-      offset = utils::tnumeric(FLERR,arg[iarg+1],1,lmp);
+      offset = utils::tnumeric(FLERR,arg[iarg+1],true,lmp);
       if (offset < -1) error->all(FLERR,"Illegal reset_mol_ids command");
       iarg += 2;
     } else error->all(FLERR,"Illegal reset_mol_ids command");
@@ -99,7 +96,7 @@ void ResetMolIDs::command(int narg, char **arg)
   // record wall time for resetting molecule IDs
 
   MPI_Barrier(world);
-  double time1 = MPI_Wtime();
+  double time1 = platform::walltime();
 
   // initialize system since comm->borders() will be invoked
 
@@ -131,11 +128,11 @@ void ResetMolIDs::command(int narg, char **arg)
 
   if (comm->me == 0) {
     if (nchunk < 0)
-      utils::logmesg(lmp,fmt::format("  number of new molecule IDs = unknown\n"));
+      utils::logmesg(lmp,"  number of new molecule IDs = unknown\n");
     else
-      utils::logmesg(lmp,fmt::format("  number of new molecule IDs = {}\n",nchunk));
-    utils::logmesg(lmp,fmt::format("  reset_mol_ids CPU = {:.3f} seconds\n",
-                                   MPI_Wtime()-time1));
+      utils::logmesg(lmp,"  number of new molecule IDs = {}\n",nchunk);
+    utils::logmesg(lmp,"  reset_mol_ids CPU = {:.3f} seconds\n",
+                   platform::walltime()-time1);
   }
 }
 
@@ -154,24 +151,14 @@ void ResetMolIDs::create_computes(char *fixid, char *groupid)
   // 'fixid' allows for creating independent instances of the computes
 
   idfrag = fmt::format("{}_reset_mol_ids_FRAGMENT_ATOM",fixid);
-  if (singleflag)
-    modify->add_compute(fmt::format("{} {} fragment/atom single yes",idfrag,groupid));
-  else
-    modify->add_compute(fmt::format("{} {} fragment/atom single no",idfrag,groupid));
+  auto use_single = singleflag ? "yes" : "no";
+  cfa = dynamic_cast<ComputeFragmentAtom *>(
+    modify->add_compute(fmt::format("{} {} fragment/atom single {}",idfrag,groupid,use_single)));
 
   idchunk = fmt::format("{}_reset_mol_ids_CHUNK_ATOM",fixid);
   if (compressflag)
-    modify->add_compute(fmt::format("{} {} chunk/atom molecule compress yes",
-                                    idchunk,groupid));
-
-  int icompute = modify->find_compute(idfrag);
-  cfa = (ComputeFragmentAtom *) modify->compute[icompute];
-
-
-  if (compressflag) {
-    icompute = modify->find_compute(idchunk);
-    cca = (ComputeChunkAtom *) modify->compute[icompute];
-  }
+    cca = dynamic_cast<ComputeChunkAtom *>(
+      modify->add_compute(fmt::format("{} {} chunk/atom molecule compress yes",idchunk,groupid)));
 }
 
 /* ----------------------------------------------------------------------
@@ -244,7 +231,7 @@ void ResetMolIDs::reset()
 
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        tagint newid =  static_cast<tagint>(chunkIDs[i]);
+        auto  newid =  static_cast<tagint>(chunkIDs[i]);
         if (singleexist) {
           if (newid == 1) newid = 0;
           else newid += offset - 1;

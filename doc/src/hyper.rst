@@ -72,7 +72,7 @@ the system and runs dynamics on each independently with a normal
 unbiased potential until an event occurs in one of the replicas.  The
 time between events is reduced by a factor of Nr replicas.  For both
 methods, per CPU second, more physical time elapses and more events
-occur.  See the :doc:`prd <prd>` doc page for more info about PRD.
+occur.  See the :doc:`prd <prd>` page for more info about PRD.
 
 An HD run has several stages, which are repeated each time an event
 occurs, as explained below.  The logic for an HD run is as follows:
@@ -148,7 +148,7 @@ the specified *dump-ID* to output a snapshot each time an event is
 detected.  It can be specified multiple times with different *dump-ID*
 values, as in the example above.  These snapshots will be for the
 quenched state of the system on a timestep that is a multiple of
-*Nevent*\ , i.e. a timestep after the event has occurred.  Note that any
+*Nevent*, i.e. a timestep after the event has occurred.  Note that any
 dump command in the input script will also output snapshots at
 whatever timestep interval it defines via its *N* argument; see the
 :doc:`dump <dump>` command for details.  This means if you only want a

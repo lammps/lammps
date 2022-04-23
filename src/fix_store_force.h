@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(store/force,FixStoreForce)
-
+// clang-format off
+FixStyle(store/force,FixStoreForce);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_STORE_FORCE_H
@@ -27,23 +27,23 @@ namespace LAMMPS_NS {
 class FixStoreForce : public Fix {
  public:
   FixStoreForce(class LAMMPS *, int, char **);
-  ~FixStoreForce();
-  int setmask();
-  void init();
-  void setup(int);
-  void min_setup(int);
-  void post_force(int);
-  void post_force_respa(int, int, int);
-  void min_post_force(int);
-  double memory_usage();
+  ~FixStoreForce() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void min_setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  void min_post_force(int) override;
+  double memory_usage() override;
 
  private:
   int nlevels_respa;
   int nmax;
-  double **foriginal;         // stored force on atoms
+  double **foriginal;    // stored force on atoms
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

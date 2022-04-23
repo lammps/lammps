@@ -80,7 +80,7 @@ with units = box or the *random* style.  For the remainder of this doc
 page, a created atom or molecule is referred to as a "particle".
 
 If created particles are individual atoms, they are assigned the
-specified atom *type*\ , though this can be altered via the *basis*
+specified atom *type*, though this can be altered via the *basis*
 keyword as discussed below.  If molecules are being created, the type
 of each atom in the created molecule is specified in the file read by
 the :doc:`molecule <molecule>` command, and those values are added to
@@ -116,7 +116,7 @@ positions.
 For the *random* style, N particles are added to the system at
 randomly generated coordinates, which can be useful for generating an
 amorphous system.  The particles are created one by one using the
-specified random number *seed*\ , resulting in the same set of particles
+specified random number *seed*, resulting in the same set of particles
 coordinates, independent of how many processors are being used in the
 simulation.  If the *region-ID* argument is specified as NULL, then
 the created particles will be anywhere in the simulation box.  If a
@@ -159,7 +159,7 @@ used to remove overlapping atoms or molecules.
    However, you can first use the :doc:`change_box <change_box>` command to
    temporarily expand the box, then add atoms via create_atoms, then
    finally use change_box command again if needed to re-shrink-wrap the
-   new atoms.  See the :doc:`change_box <change_box>` doc page for an
+   new atoms.  See the :doc:`change_box <change_box>` page for an
    example of how to do this, using the create_atoms *single* style to
    insert a new atom outside the current simulation box.
 
@@ -227,9 +227,9 @@ fashion.  Which lattice sites are selected will change with the number
 of processors used.
 
 The *remap* keyword only applies to the *single* style.  If it is set
-to *yes*\ , then if the specified position is outside the simulation
+to *yes*, then if the specified position is outside the simulation
 box, it will mapped back into the box, assuming the relevant
-dimensions are periodic.  If it is set to *no*\ , no remapping is done
+dimensions are periodic.  If it is set to *no*, no remapping is done
 and no particle is created if its position is outside the box.
 
 The *var* and *set* keywords can be used together to provide a
@@ -288,7 +288,7 @@ determined by the rotation vector (Rx,Ry,Rz) that goes through the
 insertion point.  The specified *theta* determines the angle of
 rotation around that axis.  Note that the direction of rotation for
 the atoms around the rotation axis is consistent with the right-hand
-rule: if your right-hand's thumb points along *R*\ , then your fingers
+rule: if your right-hand's thumb points along *R*, then your fingers
 wrap around the axis in the direction of rotation.
 
 The *units* keyword determines the meaning of the distance units used

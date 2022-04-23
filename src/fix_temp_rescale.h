@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(temp/rescale,FixTempRescale)
-
+// clang-format off
+FixStyle(temp/rescale,FixTempRescale);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_TEMP_RESCALE_H
@@ -27,22 +27,22 @@ namespace LAMMPS_NS {
 class FixTempRescale : public Fix {
  public:
   FixTempRescale(class LAMMPS *, int, char **);
-  virtual ~FixTempRescale();
-  int setmask();
-  void init();
-  virtual void end_of_step();
-  int modify_param(int, char **);
-  void reset_target(double);
-  double compute_scalar();
-  void write_restart(FILE *);
-  void restart(char *buf);
-  virtual void *extract(const char *, int &);
+  ~FixTempRescale() override;
+  int setmask() override;
+  void init() override;
+  void end_of_step() override;
+  int modify_param(int, char **) override;
+  void reset_target(double) override;
+  double compute_scalar() override;
+  void write_restart(FILE *) override;
+  void restart(char *buf) override;
+  void *extract(const char *, int &) override;
 
  protected:
   int which;
-  double t_start,t_stop,t_window,t_target;
-  double fraction,energy,efactor;
-  int tstyle,tvar;
+  double t_start, t_stop, t_window, t_target;
+  double fraction, energy, efactor;
+  int tstyle, tvar;
   char *tstr;
 
   char *id_temp;
@@ -50,7 +50,7 @@ class FixTempRescale : public Fix {
   int tflag;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

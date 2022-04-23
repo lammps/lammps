@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,19 +12,20 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 typedef NPairSSAKokkos<LMPHostType> NPairSSAKokkosHost;
 NPairStyle(half/bin/newton/ssa/kk/host,
            NPairSSAKokkosHost,
-           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA | NP_GHOST | NP_KOKKOS_HOST)
+           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA | NP_GHOST | NP_KOKKOS_HOST);
 
 typedef NPairSSAKokkos<LMPDeviceType> NPairSSAKokkosDevice;
 NPairStyle(half/bin/newton/ssa/kk/device,
            NPairSSAKokkosDevice,
-           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA | NP_GHOST | NP_KOKKOS_DEVICE)
-
+           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA | NP_GHOST | NP_KOKKOS_DEVICE);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_NPAIR_SSA_KOKKOS_H
 #define LMP_NPAIR_SSA_KOKKOS_H
 
@@ -58,11 +59,10 @@ class NPairSSAKokkos : public NPair {
   typename AT::t_int_2d ssa_gitemLen;
 
   NPairSSAKokkos(class LAMMPS *);
-  ~NPairSSAKokkos() {}
-  void copy_neighbor_info();
-  void copy_bin_info();
-  void copy_stencil_info();
-  void build(class NeighList *);
+  void copy_neighbor_info() override;
+  void copy_bin_info() override;
+  void copy_stencil_info() override;
+  void build(class NeighList *) override;
  private:
   // data from Neighbor class
 

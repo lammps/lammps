@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(latte,FixLatte)
-
+// clang-format off
+FixStyle(latte,FixLatte);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_LATTE_H
@@ -27,28 +27,28 @@ namespace LAMMPS_NS {
 class FixLatte : public Fix {
  public:
   FixLatte(class LAMMPS *, int, char **);
-  virtual ~FixLatte();
-  int setmask();
-  void init();
-  void init_list(int, class NeighList *);
-  void setup(int);
-  void min_setup(int);
-  void setup_pre_reverse(int, int);
-  void initial_integrate(int);
-  void pre_reverse(int, int);
-  void post_force(int);
-  void min_post_force(int);
-  void final_integrate();
-  void reset_dt();
-  double compute_scalar();
-  double memory_usage();
+  ~FixLatte() override;
+  int setmask() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void setup(int) override;
+  void min_setup(int) override;
+  void setup_pre_reverse(int, int) override;
+  void initial_integrate(int) override;
+  void pre_reverse(int, int) override;
+  void post_force(int) override;
+  void min_post_force(int) override;
+  void final_integrate() override;
+  void reset_dt() override;
+  double compute_scalar() override;
+  double memory_usage() override;
 
  protected:
   char *id_pe;
-  int coulomb,pbcflag,pe_peratom,virial_global,virial_peratom,neighflag;
+  int coulomb, pbcflag, pe_peratom, virial_global, virial_peratom, neighflag;
   int eflag_caller;
 
-  int nmax,newsystem;
+  int nmax, newsystem;
   double *qpotential;
   double **flatte;
   double latte_energy;
@@ -57,7 +57,7 @@ class FixLatte : public Fix {
   class Compute *c_pe;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

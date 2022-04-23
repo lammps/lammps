@@ -179,7 +179,9 @@ class GetCrsTransposeCounts {
     const closure_type closure(*this,
                                policy_type(0, index_type(in.entries.size())));
     closure.execute();
-    execution_space().fence();
+    execution_space().fence(
+        "Kokkos::Impl::GetCrsTransposeCounts::GetCrsTransposeCounts: fence "
+        "after functor execution");
   }
 };
 
@@ -199,7 +201,7 @@ class CrsRowMapFromCounts {
  public:
   KOKKOS_INLINE_FUNCTION
   void operator()(index_type i, value_type& update, bool final_pass) const {
-    if (i < m_in.size()) {
+    if (i < static_cast<index_type>(m_in.size())) {
       update += m_in(i);
       if (final_pass) m_out(i + 1) = update;
     } else if (final_pass) {
@@ -261,7 +263,9 @@ class FillCrsTransposeEntries {
     using closure_type = Kokkos::Impl::ParallelFor<self_type, policy_type>;
     const closure_type closure(*this, policy_type(0, index_type(in.numRows())));
     closure.execute();
-    execution_space().fence();
+    execution_space().fence(
+        "Kokkos::Impl::FillCrsTransposeEntries::FillCrsTransposeEntries: fence "
+        "after functor execution");
   }
 };
 

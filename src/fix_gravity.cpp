@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -28,15 +29,14 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-using namespace MathConst;
+using MathConst::DEG2RAD;
 
 enum{CHUTE,SPHERICAL,VECTOR};
-enum{CONSTANT,EQUAL};          // same as FixPour
 
 /* ---------------------------------------------------------------------- */
 
-FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
+FixGravity::FixGravity(LAMMPS *_lmp, int narg, char **arg) :
+  Fix(_lmp, narg, arg),
   mstr(nullptr), vstr(nullptr), pstr(nullptr), tstr(nullptr),
   xstr(nullptr), ystr(nullptr), zstr(nullptr)
 {
@@ -135,7 +135,6 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
 
   // initializations
 
-  degree2rad = MY_PI/180.0;
   time_origin = update->ntimestep;
 
   eflag = 0;
@@ -181,8 +180,8 @@ int FixGravity::setmask()
 
 void FixGravity::init()
 {
-  if (strstr(update->integrate_style,"respa")) {
-    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
+  if (utils::strmatch(update->integrate_style,"^respa")) {
+    ilevel_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
 
@@ -243,12 +242,12 @@ void FixGravity::init()
 
 void FixGravity::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
+    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(ilevel_respa);
     post_force_respa(vflag,ilevel_respa,0);
-    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
+    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(ilevel_respa);
   }
 }
 
@@ -328,12 +327,12 @@ void FixGravity::set_acceleration()
       theta = 180.0 - vert;
     }
     if (domain->dimension == 3) {
-      xgrav = sin(degree2rad * theta) * cos(degree2rad * phi);
-      ygrav = sin(degree2rad * theta) * sin(degree2rad * phi);
-      zgrav = cos(degree2rad * theta);
+      xgrav = sin(DEG2RAD * theta) * cos(DEG2RAD * phi);
+      ygrav = sin(DEG2RAD * theta) * sin(DEG2RAD * phi);
+      zgrav = cos(DEG2RAD * theta);
     } else {
-      xgrav = sin(degree2rad * theta);
-      ygrav = cos(degree2rad * theta);
+      xgrav = sin(DEG2RAD * theta);
+      ygrav = cos(DEG2RAD * theta);
       zgrav = 0.0;
     }
   } else if (style == VECTOR) {

@@ -20,7 +20,7 @@ namespace LAMMPS_AL {
 extern Device<PRECISION,ACC_PRECISION> global_device;
 
 template <class numtyp, class acctyp>
-BaseThreeT::BaseThree() : _compiled(false), _max_bytes(0), _onetype(-1) {
+BaseThreeT::BaseThree() : _compiled(false), _onetype(-1), _max_bytes(0) {
   device=&global_device;
   ans=new Answer<numtyp,acctyp>();
   nbor=new Neighbor();
@@ -461,7 +461,7 @@ void BaseThreeT::compile_kernels(UCL_Device &dev, const void *pair_str,
   _compiled=true;
 
   #if defined(USE_OPENCL) && (defined(CL_VERSION_2_1) || defined(CL_VERSION_3_0))
-  if (dev.cl_device_version() >= 210) {
+  if (dev.has_subgroup_support()) {
     size_t mx_subgroup_sz = k_pair.max_subgroup_size(_block_size);
     mx_subgroup_sz = std::min(mx_subgroup_sz, k_three_center.max_subgroup_size(_block_size));
     mx_subgroup_sz = std::min(mx_subgroup_sz, k_three_end.max_subgroup_size(_block_size));

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,7 +18,6 @@
 #include "error.h"
 
 #include <cstring>
-#include <cctype>
 
 using namespace LAMMPS_NS;
 
@@ -42,7 +42,7 @@ void PairHybridOverlay::coeff(int narg, char **arg)
   // 4th arg = pair sub-style index if name used multiple times
   // allow for "none" as valid sub-style name
 
-  int multflag;
+  int multflag = 0;
   int m;
 
   for (m = 0; m < nstyles; m++) {
@@ -51,10 +51,7 @@ void PairHybridOverlay::coeff(int narg, char **arg)
       if (multiple[m]) {
         multflag = 1;
         if (narg < 4) error->all(FLERR,"Incorrect args for pair coefficients");
-        if (!isdigit(arg[3][0]))
-          error->all(FLERR,"Incorrect args for pair coefficients");
-        int index = utils::inumeric(FLERR,arg[3],false,lmp);
-        if (index == multiple[m]) break;
+        if (multiple[m] == utils::inumeric(FLERR,arg[3],false,lmp)) break;
         else continue;
       } else break;
     }
@@ -73,9 +70,15 @@ void PairHybridOverlay::coeff(int narg, char **arg)
   arg[2+multflag] = arg[1];
   arg[1+multflag] = arg[0];
 
+  // ensure that one_coeff flag is honored
+
+  if (!none && styles[m]->one_coeff)
+    if ((strcmp(arg[0],"*") != 0) || (strcmp(arg[1],"*") != 0))
+      error->all(FLERR,"Incorrect args for pair coefficients");
+
   // invoke sub-style coeff() starting with 1st remaining arg
 
-  if (!none) styles[m]->coeff(narg-1-multflag,&arg[1+multflag]);
+  if (!none) styles[m]->coeff(narg-1-multflag,arg+1+multflag);
 
   // set setflag and which type pairs map to which sub-style
   // if sub-style is none: set hybrid subflag, wipe out map
@@ -131,7 +134,7 @@ void PairHybridOverlay::init_svector()
 void PairHybridOverlay::copy_svector(int itype, int jtype)
 {
   int n=0;
-  Pair *this_style;
+  Pair *this_style = nullptr;
 
   // fill svector array.
   // copy data from active styles and use 0.0 for inactive ones

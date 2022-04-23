@@ -54,6 +54,7 @@
 #include <Kokkos_ScratchSpace.hpp>
 #include <impl/Kokkos_ExecSpaceInitializer.hpp>
 #include <impl/Kokkos_Profiling_Interface.hpp>
+#include <impl/Kokkos_HostSharedPtr.hpp>
 
 namespace Kokkos {
 namespace Experimental {
@@ -79,15 +80,16 @@ class SYCL {
 
   using scratch_memory_space = ScratchMemorySpace<SYCL>;
 
-  ~SYCL() = default;
   SYCL();
+  explicit SYCL(const sycl::queue&);
 
-  SYCL(SYCL&&)      = default;
-  SYCL(const SYCL&) = default;
-  SYCL& operator=(SYCL&&) = default;
-  SYCL& operator=(const SYCL&) = default;
+  uint32_t impl_instance_id() const noexcept {
+    return m_space_instance->impl_get_instance_id();
+  }
 
-  uint32_t impl_instance_id() const noexcept { return 0; }
+  sycl::context sycl_context() const noexcept {
+    return m_space_instance->m_queue->get_context();
+  };
 
   //@}
   //------------------------------------
@@ -95,7 +97,7 @@ class SYCL {
   //@{
 
   KOKKOS_INLINE_FUNCTION static int in_parallel() {
-#if defined(__SYCL_ARCH__)
+#if defined(__SYCL_DEVICE_ONLY__)
     return true;
 #else
     return false;
@@ -110,10 +112,12 @@ class SYCL {
 
   /** \brief Wait until all dispatched functors complete. A noop for OpenMP. */
   static void impl_static_fence();
+  static void impl_static_fence(const std::string&);
   void fence() const;
+  void fence(const std::string&) const;
 
   /// \brief Print configuration information to the given output stream.
-  static void print_configuration(std::ostream&, const bool detail = false);
+  void print_configuration(std::ostream&, const bool detail = false);
 
   /// \brief Free any resources being consumed by the device.
   static void impl_finalize();
@@ -123,25 +127,19 @@ class SYCL {
    */
 
   struct SYCLDevice {
-    SYCLDevice();
-    explicit SYCLDevice(cl::sycl::device d);
-    explicit SYCLDevice(const cl::sycl::device_selector& selector);
+    SYCLDevice() : SYCLDevice(sycl::default_selector()) {}
+    explicit SYCLDevice(sycl::device d);
+    explicit SYCLDevice(const sycl::device_selector& selector);
     explicit SYCLDevice(size_t id);
-    explicit SYCLDevice(const std::function<bool(const sycl::device&)>& pred);
 
-    cl::sycl::device get_device() const;
+    sycl::device get_device() const;
 
     friend std::ostream& operator<<(std::ostream& os, const SYCLDevice& that) {
-      return that.info(os);
+      return SYCL::impl_sycl_info(os, that.m_device);
     }
 
-    static std::ostream& list_devices(std::ostream& os);
-    static void list_devices();
-
    private:
-    std::ostream& info(std::ostream& os) const;
-
-    cl::sycl::device m_device;
+    sycl::device m_device;
   };
 
   static void impl_initialize(SYCLDevice = SYCLDevice());
@@ -154,11 +152,14 @@ class SYCL {
   static const char* name();
 
   inline Impl::SYCLInternal* impl_internal_space_instance() const {
-    return m_space_instance;
+    return m_space_instance.get();
   }
 
  private:
-  Impl::SYCLInternal* m_space_instance;
+  static std::ostream& impl_sycl_info(std::ostream& os,
+                                      const sycl::device& device);
+
+  Kokkos::Impl::HostSharedPtr<Impl::SYCLInternal> m_space_instance;
 };
 
 namespace Impl {
@@ -168,6 +169,7 @@ class SYCLSpaceInitializer : public Kokkos::Impl::ExecSpaceInitializerBase {
   void initialize(const InitArguments& args) final;
   void finalize(const bool) final;
   void fence() final;
+  void fence(const std::string&) final;
   void print_configuration(std::ostream& msg, const bool detail) final;
 };
 
@@ -183,6 +185,41 @@ struct DeviceTypeTraits<Kokkos::Experimental::SYCL> {
 };
 }  // namespace Experimental
 }  // namespace Tools
+
+namespace Experimental {
+template <class... Args>
+std::vector<SYCL> partition_space(const SYCL& sycl_space, Args...) {
+#ifdef __cpp_fold_expressions
+  static_assert(
+      (... && std::is_arithmetic_v<Args>),
+      "Kokkos Error: partitioning arguments must be integers or floats");
+#endif
+
+  sycl::context context = sycl_space.sycl_context();
+  sycl::default_selector device_selector;
+  std::vector<SYCL> instances;
+  instances.reserve(sizeof...(Args));
+  for (unsigned int i = 0; i < sizeof...(Args); ++i)
+    instances.emplace_back(sycl::queue(context, device_selector));
+  return instances;
+}
+
+template <class T>
+std::vector<SYCL> partition_space(const SYCL& sycl_space,
+                                  std::vector<T>& weights) {
+  static_assert(
+      std::is_arithmetic<T>::value,
+      "Kokkos Error: partitioning arguments must be integers or floats");
+
+  sycl::context context = sycl_space.sycl_context();
+  sycl::default_selector device_selector;
+  std::vector<SYCL> instances;
+  instances.reserve(weights.size());
+  for (unsigned int i = 0; i < weights.size(); ++i)
+    instances.emplace_back(sycl::queue(context, device_selector));
+  return instances;
+}
+}  // namespace Experimental
 
 }  // namespace Kokkos
 

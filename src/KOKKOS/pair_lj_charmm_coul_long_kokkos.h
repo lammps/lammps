@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/charmm/coul/long/kk,PairLJCharmmCoulLongKokkos<LMPDeviceType>)
-PairStyle(lj/charmm/coul/long/kk/device,PairLJCharmmCoulLongKokkos<LMPDeviceType>)
-PairStyle(lj/charmm/coul/long/kk/host,PairLJCharmmCoulLongKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(lj/charmm/coul/long/kk,PairLJCharmmCoulLongKokkos<LMPDeviceType>);
+PairStyle(lj/charmm/coul/long/kk/device,PairLJCharmmCoulLongKokkos<LMPDeviceType>);
+PairStyle(lj/charmm/coul/long/kk/host,PairLJCharmmCoulLongKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_LJ_CHARMM_COUL_LONG_KOKKOS_H
 #define LMP_PAIR_LJ_CHARMM_COUL_LONG_KOKKOS_H
 
@@ -36,17 +37,15 @@ class PairLJCharmmCoulLongKokkos : public PairLJCharmmCoulLong {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairLJCharmmCoulLongKokkos(class LAMMPS *);
-  ~PairLJCharmmCoulLongKokkos();
+  ~PairLJCharmmCoulLongKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void init_tables(double cut_coul, double *cut_respa);
-  void init_style();
-  double init_one(int, int);
+  void init_tables(double cut_coul, double *cut_respa) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
@@ -91,9 +90,7 @@ class PairLJCharmmCoulLongKokkos : public PairLJCharmmCoulLong {
 
   typename AT::tdual_ffloat_2d k_cutsq;
   typename AT::t_ffloat_2d d_cutsq;
-  typename AT::tdual_ffloat_2d k_cut_ljsq;
   typename AT::t_ffloat_2d d_cut_ljsq;
-  typename AT::tdual_ffloat_2d k_cut_coulsq;
   typename AT::t_ffloat_2d d_cut_coulsq;
 
   typename AT::t_ffloat_1d_randomread
@@ -107,7 +104,7 @@ class PairLJCharmmCoulLongKokkos : public PairLJCharmmCoulLong {
   double special_lj[4];
   double qqrd2e;
 
-  void allocate();
+  void allocate() override;
 
   friend struct PairComputeFunctor<PairLJCharmmCoulLongKokkos,FULL,true,CoulLongTable<1> >;
   friend struct PairComputeFunctor<PairLJCharmmCoulLongKokkos,HALF,true,CoulLongTable<1> >;

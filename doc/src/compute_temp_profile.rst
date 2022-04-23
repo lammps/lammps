@@ -54,14 +54,14 @@ flow, e.g. via a profile-unbiased thermostat (PUT) as described in
 that computes a temperature, e.g. :doc:`thermo_modify <thermo_modify>`,
 :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix npt <fix_nh>`, etc.
 
-The *xflag*\ , *yflag*\ , *zflag* settings determine which components of
+The *xflag*, *yflag*, *zflag* settings determine which components of
 average velocity are subtracted out.
 
-The *binstyle* setting and its *Nx*\ , *Ny*\ , *Nz* arguments determine
+The *binstyle* setting and its *Nx*, *Ny*, *Nz* arguments determine
 how bins are setup to perform spatial averaging.  "Bins" can be 1d
 slabs, 2d pencils, or 3d bricks depending on which *binstyle* is used.
 The simulation box is partitioned conceptually into *Nx* by *Ny* by
-*Nz* bins.  Depending on the *binstyle*\ , you may only specify one or
+*Nz* bins.  Depending on the *binstyle*, you may only specify one or
 two of these values; the others are effectively set to 1 (no binning
 in that dimension).  For non-orthogonal (triclinic) simulation boxes,
 the bins are "tilted" slabs or pencils or bricks that are parallel to
@@ -129,7 +129,7 @@ needed, the subtracted degrees-of-freedom can be altered using the
 
 .. note::
 
-   When using the *out* keyword with a value of *bin*\ , the
+   When using the *out* keyword with a value of *bin*, the
    calculated temperature for each bin includes the degrees-of-freedom
    adjustment described in the preceding paragraph for fixes that
    constrain molecular motion, as well as the adjustment due to
@@ -138,14 +138,14 @@ needed, the subtracted degrees-of-freedom can be altered using the
    bin. As a result, the bin degrees-of-freedom summed over all bins exactly
    equals the degrees-of-freedom used in the scalar temperature calculation,
    :math:`\Sigma N_{DOF_i} = N_{DOF}` and the corresponding relation for temperature
-   is also satisfied :math:`\Sigma N_{DOF_i} T_i = N_{DOF} T`. 
-   These relations will breakdown in cases where the adjustment 
+   is also satisfied :math:`\Sigma N_{DOF_i} T_i = N_{DOF} T`.
+   These relations will breakdown in cases where the adjustment
    exceeds the actual number of degrees-of-freedom in a bin. This could happen
    if a bin is empty or in situations where rigid molecules
-   are non-uniformly distributed, in which case the reported 
+   are non-uniformly distributed, in which case the reported
    temperature within a bin may not be accurate.
 
-See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
+See the :doc:`Howto thermostat <Howto_thermostat>` page for a
 discussion of different ways to compute temperature and perform
 thermostatting.  Using this compute in conjunction with a
 thermostatting fix, as explained there, will effectively implement a
@@ -156,7 +156,7 @@ Output info
 
 This compute calculates a global scalar (the temperature).  Depending
 on the setting of the *out* keyword, it also calculates a global
-vector or array.  For *out* = *tensor*\ , it calculates a vector of
+vector or array.  For *out* = *tensor*, it calculates a vector of
 length 6 (KE tensor), which can be accessed by indices 1-6.  For *out*
 = *bin* it calculates a global array which has 2 columns and N rows,
 where N is the number of bins.  The first column contains the number
@@ -169,7 +169,7 @@ indices ix,iy,iz = 2,3,4 would map to row M = (iz-1)\*10\*10 + (iy-1)\*10
 indices are numbered from 1 to 10 in each dimension.
 
 These values can be used by any command that uses global scalar or
-vector or array values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+vector or array values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 The scalar value calculated by this compute is "intensive".  The

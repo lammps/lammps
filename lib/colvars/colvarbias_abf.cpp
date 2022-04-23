@@ -136,10 +136,11 @@ int colvarbias_abf::init(std::string const &conf)
       colvars[i]->enable(f_cv_hide_Jacobian);
     }
 
-    // If any colvar is extended-system, we need to collect the extended
-    // system gradient
-    if (colvars[i]->is_enabled(f_cv_extended_Lagrangian))
+    // If any colvar is extended-system (restrained style, not external with constraint), we are running eABF
+    if (colvars[i]->is_enabled(f_cv_extended_Lagrangian)
+        && !colvars[i]->is_enabled(f_cv_external)) {
       b_extended = true;
+    }
 
     // Cannot mix and match coarse time steps with ABF because it gives
     // wrong total force averages - total force needs to be averaged over
@@ -475,7 +476,7 @@ int colvarbias_abf::update()
     last_gradients->copy_grid(*gradients);
     last_samples->copy_grid(*samples);
     shared_last_step = cvm::step_absolute();
-    cvm::log("Prepared sample and gradient buffers at step "+cvm::to_str(cvm::step_absolute())+".");
+    cvm::log("Prepared sample and gradient buffers at step "+cvm::to_str(cvm::step_absolute())+".\n");
   }
 
   // update UI estimator every step
@@ -812,8 +813,10 @@ int colvarbias_abf::write_output_files()
     cvm::log("ABF bias trying to write gradients and samples to disk");
   }
 
-  if (shared_on && cvm::main()->proxy->replica_index() > 0) {
+  if (shared_on && cvm::main()->proxy->replica_index() > 0
+    && ! (b_CZAR_estimator || b_UI_estimator) ) {
     // No need to report the same data as replica 0, let it do the I/O job
+    // except if using an eABF FE estimator
     return COLVARS_OK;
   }
 

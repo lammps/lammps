@@ -27,7 +27,7 @@ public:
   /// Is Tcl available? (trigger initialization if needed)
   int tcl_available();
 
-  /// Tcl implementation of script_obj_to_str()
+  /// Get a string representation of the Tcl object pointed to by obj
   char const *tcl_get_str(void *obj);
 
   /// Tcl implementation of run_force_callback()
@@ -49,6 +49,12 @@ public:
   inline void *get_tcl_interp()
   {
     return tcl_interp_;
+  }
+
+  /// Set the pointer to the Tcl interpreter
+  inline void set_tcl_interp(void *interp)
+  {
+    tcl_interp_ = interp;
   }
 
 protected:

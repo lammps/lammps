@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(ewald/dipole,EwaldDipole)
-
+// clang-format off
+KSpaceStyle(ewald/dipole,EwaldDipole);
+// clang-format on
 #else
 
 #ifndef LMP_EWALD_DIPOLE_H
@@ -27,27 +27,26 @@ namespace LAMMPS_NS {
 class EwaldDipole : public Ewald {
  public:
   EwaldDipole(class LAMMPS *);
-  virtual ~EwaldDipole();
-  void init();
-  void setup();
-  virtual void compute(int, int);
+  ~EwaldDipole() override;
+  void init() override;
+  void setup() override;
+  void compute(int, int) override;
 
  protected:
-  double musum,musqsum,mu2;
-  double **tk;                  // field for torque
-  double **vc;                  // virial per k
+  double musum, musqsum, mu2;
+  double **tk;    // field for torque
+  double **vc;    // virial per k
 
   void musum_musq();
   double rms_dipole(int, double, bigint);
-  virtual void eik_dot_r();
+  void eik_dot_r() override;
   void slabcorr();
   double NewtonSolve(double, double, bigint, double, double);
   double f(double, double, bigint, double, double);
   double derivf(double, double, bigint, double, double);
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

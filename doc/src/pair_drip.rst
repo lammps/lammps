@@ -117,18 +117,18 @@ pair_coeff commands in an input script that reads a restart file.
 Restrictions
 """"""""""""
 
-This pair style is part of the USER-MISC package. It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc
-page for more info.
+This pair style is part of the INTERLAYER package. It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
-This pair potential requires the :doc:`newton <newton>` setting to be "on" for
+This pair style requires the :doc:`newton <newton>` setting to be "on" for
 pair interactions.
 
 The *C.drip* parameter file provided with LAMMPS (see the "potentials"
-directory) is parameterized for metal :doc:`units <units>`. You can use the DRIP
-potential with any LAMMPS units, but you would need to create your own custom
-parameter file with coefficients listed in the appropriate units, if your
-simulation does not use "metal" units.
+directory) is parameterized for metal :doc:`units <units>`. You can use
+the DRIP potential with any LAMMPS units, but you would need to create
+your own custom parameter file with coefficients listed in the
+appropriate units, if your simulation does not use "metal" units.
 
 Related commands
 """"""""""""""""

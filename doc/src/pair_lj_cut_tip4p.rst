@@ -109,7 +109,7 @@ long-range Coulombic solver (Ewald or PPPM).
    atom.  For example, if the atom ID of an O atom in a TIP4P water
    molecule is 500, then its 2 H atoms must have IDs 501 and 502.
 
-See the :doc:`Howto tip4p <Howto_tip4p>` doc page for more information
+See the :doc:`Howto tip4p <Howto_tip4p>` page for more information
 on how to use the TIP4P pair styles and lists of parameters to set.
 Note that the neighbor list cutoff for Coulomb interactions is
 effectively extended by a distance 2\*qdist when using the TIP4P pair
@@ -145,10 +145,26 @@ specified since a Coulombic cutoff cannot be specified for an individual I,J
 type pair. All type pairs use the same global Coulombic cutoff specified in
 the pair_style command.
 
+.. warning::
+
+   Because of how these pair styles implement the coulomb interactions
+   by implicitly defining a fourth site for the negative charge
+   of the TIP4P and similar water models, special care must be taken
+   when using these pair styles with other computations that also use
+   charges.  Unless they are specially set up to also handle the implicit
+   definition of the 4th site, results are likely incorrect.  Example:
+   :doc:`compute dipole/chunk <compute_dipole_chunk>`.  For the same
+   reason, when using one of these pair styles with
+   :doc:`pair_style  hybrid <pair_hybrid>`, **all** coulomb interactions
+   should be handled by a single sub-style with TIP4P support. All other
+   instances and styles will "see" the M point charges at the position
+   of the Oxygen atom and thus compute incorrect forces and energies.
+   LAMMPS will print a warning when it detects one of these issues.
+
 ----------
 
-A version of these styles with a soft core, *lj/cut/tip4p/long/soft*\ , suitable
-for use in free energy calculations, is part of the USER-FEP package and
+A version of these styles with a soft core, *lj/cut/tip4p/long/soft*, suitable
+for use in free energy calculations, is part of the FEP package and
 is documented with the :doc:`pair_style */soft <pair_fep_soft>`
 styles.
 
@@ -183,7 +199,7 @@ All of the *lj/cut* pair styles write their information to :doc:`binary restart 
 not need to be specified in an input script that reads a restart file.
 
 The *lj/cut* and *lj/cut/coul/long* pair styles support the use of the
-*inner*\ , *middle*\ , and *outer* keywords of the :doc:`run_style respa <run_style>` command, meaning the pairwise forces can be
+*inner*, *middle*, and *outer* keywords of the :doc:`run_style respa <run_style>` command, meaning the pairwise forces can be
 partitioned by distance at different levels of the rRESPA hierarchy.
 The other styles only support the *pair* keyword of run_style respa.
 See the :doc:`run_style <run_style>` command for details.
@@ -196,7 +212,7 @@ Restrictions
 The *lj/cut/tip4p/long* styles are part of the
 KSPACE package. The *lj/cut/tip4p/cut* style is part of the MOLECULE
 package. These styles are only enabled if LAMMPS was built with those
-packages.  See the :doc:`Build package <Build_package>` doc page for
+packages.  See the :doc:`Build package <Build_package>` page for
 more info.
 
 Related commands

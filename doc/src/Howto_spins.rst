@@ -21,8 +21,8 @@ orientations and their associated inter-atomic distances.
 
 The command :doc:`fix precession/spin <fix_precession_spin>` allows to
 apply a constant magnetic torque on all the spins in the system. This
-torque can be an external magnetic field (Zeeman interaction), or an
-uniaxial magnetic anisotropy.
+torque can be an external magnetic field (Zeeman interaction), and an
+uniaxial or cubic magnetic anisotropy.
 
 A Langevin thermostat can be applied to those magnetic spins using
 :doc:`fix langevin/spin <fix_langevin_spin>`. Typically, this thermostat

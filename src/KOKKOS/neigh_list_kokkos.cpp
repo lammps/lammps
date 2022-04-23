@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,6 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "neigh_list_kokkos.h"
+#include "kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -41,7 +43,13 @@ void NeighListKokkos<DeviceType>::grow(int nmax)
   k_ilist = DAT::tdual_int_1d("neighlist:ilist",maxatoms);
   d_ilist = k_ilist.view<DeviceType>();
   d_numneigh = typename ArrayTypes<DeviceType>::t_int_1d("neighlist:numneigh",maxatoms);
+  d_neighbors = typename ArrayTypes<DeviceType>::t_neighbors_2d();
   d_neighbors = typename ArrayTypes<DeviceType>::t_neighbors_2d(Kokkos::NoInit("neighlist:neighbors"),maxatoms,maxneighs);
+
+  if (lmp->kokkos->neigh_transpose) {
+    d_neighbors_transpose = typename ArrayTypes<DeviceType>::t_neighbors_2d_lr();
+    d_neighbors_transpose = typename ArrayTypes<DeviceType>::t_neighbors_2d_lr(Kokkos::NoInit("neighlist:neighbors"),maxatoms,maxneighs);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

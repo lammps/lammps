@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(table,BondTable)
-
+// clang-format off
+BondStyle(table,BondTable);
+// clang-format on
 #else
 
 #ifndef LMP_BOND_TABLE_H
@@ -27,29 +27,29 @@ namespace LAMMPS_NS {
 class BondTable : public Bond {
  public:
   BondTable(class LAMMPS *);
-  virtual ~BondTable();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double equilibrium_distance(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  double single(int, double, int, int, double &);
+  ~BondTable() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double equilibrium_distance(int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  double single(int, double, int, int, double &) override;
 
  protected:
-  int tabstyle,tablength;
+  int tabstyle, tablength;
   double *r0;
 
   struct Table {
-    int ninput,fpflag;
-    double fplo,fphi,r0;
-    double lo,hi;
-    double *rfile,*efile,*ffile;
-    double *e2file,*f2file;
-    double delta,invdelta,deltasq6;
-    double *r,*e,*de,*f,*df,*e2,*f2;
+    int ninput, fpflag;
+    double fplo, fphi, r0;
+    double lo, hi;
+    double *rfile, *efile, *ffile;
+    double *e2file, *f2file;
+    double delta, invdelta, deltasq6;
+    double *r, *e, *de, *f, *df, *e2, *f2;
   };
 
   int ntables;
@@ -72,7 +72,7 @@ class BondTable : public Bond {
   void u_lookup(int, double, double &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

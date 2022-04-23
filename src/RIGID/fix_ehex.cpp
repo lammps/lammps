@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -24,17 +25,19 @@
 
 #include "fix_ehex.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "domain.h"
-#include "region.h"
-#include "group.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "group.h"
+#include "memory.h"
+#include "modify.h"
+#include "region.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
+
 #include "fix_shake.h"
 
 using namespace LAMMPS_NS;
@@ -91,9 +94,7 @@ FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
         error->all(FLERR,"Region ID for fix ehex does not exist");
-      int n = strlen(arg[iarg+1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[iarg+1]);
+      idregion = utils::strdup(arg[iarg+1]);
       iarg += 2;
     }
 
@@ -128,7 +129,7 @@ FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
 
   scale = 1.0;
   scalingmask    = nullptr;
-  grow_arrays(atom->nmax);
+  FixEHEX::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 
 }
@@ -195,7 +196,7 @@ void FixEHEX::init()
     if (cnt_shake > 1)
       error->all(FLERR,"Multiple instances of fix shake/rattle detected (not supported yet)");
     else if (cnt_shake == 1)   {
-     fshake = ((FixShake*) modify->fix[id_shake]);
+     fshake = (dynamic_cast<FixShake*>( modify->fix[id_shake]));
     }
     else if (cnt_shake == 0)
       error->all(FLERR, "Fix ehex was configured with keyword constrain, but shake/rattle was not defined");

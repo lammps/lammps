@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,28 +12,28 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(delete_atoms,DeleteAtoms)
-
+// clang-format off
+CommandStyle(delete_atoms,DeleteAtoms);
+// clang-format on
 #else
 
 #ifndef LMP_DELETE_ATOMS_H
 #define LMP_DELETE_ATOMS_H
 
-#include "pointers.h"
+#include "command.h"
 #include <map>
 
 namespace LAMMPS_NS {
 
-class DeleteAtoms : protected Pointers {
+class DeleteAtoms : public Command {
  public:
   DeleteAtoms(class LAMMPS *);
-  void command(int, char **);
+  void command(int, char **) override;
 
  private:
   int *dlist;
-  int allflag,compress_flag,bond_flag,mol_flag;
-  std::map<tagint,int> *hash;
+  int allflag, compress_flag, bond_flag, mol_flag;
+  std::map<tagint, int> *hash;
 
   void delete_group(int, char **);
   void delete_region(int, char **);
@@ -45,9 +45,7 @@ class DeleteAtoms : protected Pointers {
   void recount_topology();
   void options(int, char **);
 
-  inline int sbmask(int j) const {
-    return j >> SBBITS & 3;
-  }
+  inline int sbmask(int j) const { return j >> SBBITS & 3; }
 
   // callback functions for ring communication
 
@@ -55,7 +53,7 @@ class DeleteAtoms : protected Pointers {
   static void molring(int, char *, void *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

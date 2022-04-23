@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/gromacs/coul/gromacs/kk,PairLJGromacsCoulGromacsKokkos<LMPDeviceType>)
-PairStyle(lj/gromacs/coul/gromacs/kk/device,PairLJGromacsCoulGromacsKokkos<LMPDeviceType>)
-PairStyle(lj/gromacs/coul/gromacs/kk/host,PairLJGromacsCoulGromacsKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(lj/gromacs/coul/gromacs/kk,PairLJGromacsCoulGromacsKokkos<LMPDeviceType>);
+PairStyle(lj/gromacs/coul/gromacs/kk/device,PairLJGromacsCoulGromacsKokkos<LMPDeviceType>);
+PairStyle(lj/gromacs/coul/gromacs/kk/host,PairLJGromacsCoulGromacsKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_LJ_GROMACS_COUL_GROMACS_KOKKOS_H
 #define LMP_PAIR_LJ_GROMACS_COUL_GROMACS_KOKKOS_H
 
@@ -36,14 +37,14 @@ class PairLJGromacsCoulGromacsKokkos : public PairLJGromacsCoulGromacs {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairLJGromacsCoulGromacsKokkos(class LAMMPS *);
-  ~PairLJGromacsCoulGromacsKokkos();
+  ~PairLJGromacsCoulGromacsKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_tables(double cut_coul, double *cut_respa);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_tables(double cut_coul, double *cut_respa) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   struct params_lj_coul_gromacs{
     KOKKOS_INLINE_FUNCTION
@@ -54,8 +55,6 @@ class PairLJGromacsCoulGromacsKokkos : public PairLJGromacsCoulGromacs {
   };
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
@@ -100,9 +99,7 @@ class PairLJGromacsCoulGromacsKokkos : public PairLJGromacsCoulGromacs {
 
   typename AT::tdual_ffloat_2d k_cutsq;
   typename AT::t_ffloat_2d d_cutsq;
-  typename AT::tdual_ffloat_2d k_cut_ljsq;
   typename AT::t_ffloat_2d d_cut_ljsq;
-  typename AT::tdual_ffloat_2d k_cut_coulsq;
   typename AT::t_ffloat_2d d_cut_coulsq;
 
   typename AT::t_ffloat_1d_randomread
@@ -116,7 +113,7 @@ class PairLJGromacsCoulGromacsKokkos : public PairLJGromacsCoulGromacs {
   double special_lj[4];
   double qqrd2e;
 
-  void allocate();
+  void allocate() override;
 
   friend struct PairComputeFunctor<PairLJGromacsCoulGromacsKokkos,FULL,true,CoulLongTable<1> >;
   friend struct PairComputeFunctor<PairLJGromacsCoulGromacsKokkos,HALF,true,CoulLongTable<1> >;

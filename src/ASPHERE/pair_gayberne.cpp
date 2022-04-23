@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,18 +18,18 @@
 
 #include "pair_gayberne.h"
 
-#include <cmath>
-#include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
 #include "citeme.h"
-#include "memory.h"
+#include "comm.h"
 #include "error.h"
+#include "force.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -344,10 +345,10 @@ void PairGayBerne::coeff(int narg, char **arg)
 
 void PairGayBerne::init_style()
 {
-  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  avec = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
   if (!avec) error->all(FLERR,"Pair gayberne requires atom style ellipsoid");
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this,NeighConst::REQ_DEFAULT);
 
   // per-type shape precalculations
   // require that atom shapes are identical within each type

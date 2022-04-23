@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -612,7 +613,7 @@ void NPairSSAKokkosExecute<DeviceType>::build_locals_onePhase(const bool firstTr
           neigh_list.d_ilist(inum++) = i;
           if (n > neigh_list.maxneighs) {
             resize() = 1;
-            if (n > new_maxneighs()) Kokkos::atomic_fetch_max(&new_maxneighs(),n);
+            if (n > new_maxneighs()) Kokkos::atomic_max(&new_maxneighs(),n);
           }
         }
       }
@@ -740,7 +741,7 @@ void NPairSSAKokkosExecute<DeviceType>::build_ghosts_onePhase(int workPhase) con
           neigh_list.d_ilist(gNdx++) = i;
           if (n > neigh_list.maxneighs) {
             resize() = 1;
-            if (n > new_maxneighs()) Kokkos::atomic_fetch_max(&new_maxneighs(),n);
+            if (n > new_maxneighs()) Kokkos::atomic_max(&new_maxneighs(),n);
           }
         }
       }

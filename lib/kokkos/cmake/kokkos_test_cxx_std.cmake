@@ -86,6 +86,19 @@ ELSE()
   MESSAGE(FATAL_ERROR "Unknown C++ standard ${KOKKOS_CXX_STANDARD} - must be 14, 17, or 20")
 ENDIF()
 
+# Enforce that we can compile a simple C++14 program
+
+TRY_COMPILE(CAN_COMPILE_CPP14
+  ${KOKKOS_TOP_BUILD_DIR}/corner_cases
+  ${KOKKOS_SOURCE_DIR}/cmake/compile_tests/cplusplus14.cpp
+  OUTPUT_VARIABLE ERROR_MESSAGE
+  CXX_STANDARD 14
+)
+if (NOT CAN_COMPILE_CPP14)
+  UNSET(CAN_COMPILE_CPP14 CACHE) #make sure CMake always re-runs this
+  MESSAGE(FATAL_ERROR "C++${KOKKOS_CXX_STANDARD}-compliant compiler detected, but unable to compile C++14 or later program. Verify that ${CMAKE_CXX_COMPILER_ID}:${CMAKE_CXX_COMPILER_VERSION} is set up correctly (e.g., check that correct library headers are being used).\nFailing output:\n ${ERROR_MESSAGE}")
+ENDIF()
+UNSET(CAN_COMPILE_CPP14 CACHE) #make sure CMake always re-runs this
 
 
 # Enforce that extensions are turned off for nvcc_wrapper.
@@ -127,7 +140,7 @@ IF (NOT KOKKOS_CXX_STANDARD_FEATURE)
   IF(KOKKOS_CXX_COMPILER_ID STREQUAL Cray)
     INCLUDE(${KOKKOS_SRC_PATH}/cmake/cray.cmake)
     kokkos_set_cray_flags(${KOKKOS_CXX_STANDARD} ${KOKKOS_CXX_INTERMEDIATE_STANDARD})
-  ELSEIF(KOKKOS_CXX_COMPILER_ID STREQUAL PGI)
+  ELSEIF(KOKKOS_CXX_COMPILER_ID STREQUAL NVHPC)
     INCLUDE(${KOKKOS_SRC_PATH}/cmake/pgi.cmake)
     kokkos_set_pgi_flags(${KOKKOS_CXX_STANDARD} ${KOKKOS_CXX_INTERMEDIATE_STANDARD})
   ELSEIF(KOKKOS_CXX_COMPILER_ID STREQUAL Intel)

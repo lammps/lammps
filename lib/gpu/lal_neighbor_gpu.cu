@@ -21,8 +21,12 @@
 #define tagint int
 #endif
 #ifdef LAMMPS_BIGBIG
-#include "inttypes.h"
+#ifdef USE_OPENCL
+#define tagint long
+#else
+#include "stdint.h"
 #define tagint int64_t
+#endif
 #endif
 #ifdef LAMMPS_SMALLSMALL
 #define tagint int
@@ -34,10 +38,14 @@ _texture_2d( pos_tex,int4);
 #endif
 
 #ifdef NV_KERNEL
-#if (__CUDACC_VER_MAJOR__ == 11) && (__CUDACC_VER_MINOR__ == 2)
-// Issue with incorrect results in CUDA 11.2
+#if (__CUDACC_VER_MAJOR__ == 11) && (__CUDACC_VER_MINOR__ >= 2)
+// Issue with incorrect results in CUDA >= 11.2
 #define LAL_USE_OLD_NEIGHBOR
 #endif
+#endif
+
+#ifdef USE_HIP
+#define LAL_USE_OLD_NEIGHBOR
 #endif
 
 __kernel void calc_cell_id(const numtyp4 *restrict x_,
@@ -115,7 +123,7 @@ __kernel void kernel_calc_cell_counts(const unsigned *restrict cell_id,
 #define tagint int
 #endif
 #ifdef LAMMPS_BIGBIG
-#define tagint long long int
+#define tagint long
 #endif
 #ifdef LAMMPS_SMALLSMALL
 #define tagint int

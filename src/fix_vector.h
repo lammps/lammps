@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(vector,FixVector)
-
+// clang-format off
+FixStyle(vector,FixVector);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_VECTOR_H
@@ -27,28 +27,28 @@ namespace LAMMPS_NS {
 class FixVector : public Fix {
  public:
   FixVector(class LAMMPS *, int, char **);
-  ~FixVector();
-  int setmask();
-  void init();
-  void setup(int);
-  void end_of_step();
-  double compute_vector(int);
-  double compute_array(int,int);
+  ~FixVector() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void end_of_step() override;
+  double compute_vector(int) override;
+  double compute_array(int, int) override;
 
  private:
   int nvalues;
-  int *which,*argindex,*value2index;
+  int *which, *argindex, *value2index;
   char **ids;
 
-  bigint nextstep,initialstep;
+  bigint nextstep, initialstep;
 
-  int ncount;        // # of values currently in growing vector or array
-  int ncountmax;     // max # of values vector/array can hold
+  int ncount;       // # of values currently in growing vector or array
+  int ncountmax;    // max # of values vector/array can hold
   double *vector;
   double **array;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

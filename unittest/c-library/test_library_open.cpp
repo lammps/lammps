@@ -18,7 +18,7 @@ using ::testing::StartsWith;
 TEST(lammps_open, null_args)
 {
     ::testing::internal::CaptureStdout();
-    void *handle       = lammps_open(0, NULL, MPI_COMM_WORLD, NULL);
+    void *handle       = lammps_open(0, nullptr, MPI_COMM_WORLD, nullptr);
     std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_THAT(output, StartsWith("LAMMPS ("));
     if (verbose) std::cout << output;
@@ -137,7 +137,7 @@ TEST(lammps_open_no_mpi, no_screen)
 
 TEST(lammps_open_no_mpi, with_omp)
 {
-    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
+    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
     const char *args[] = {"liblammps", "-pk", "omp",  "2",    "neigh",  "no",
                           "-sf",       "omp", "-log", "none", "-nocite"};
     char **argv        = (char **)args;
@@ -175,7 +175,7 @@ TEST(lammps_open_fortran, no_args)
     MPI_Comm_split(MPI_COMM_WORLD, 0, 1, &mycomm);
     int fcomm = MPI_Comm_c2f(mycomm);
     ::testing::internal::CaptureStdout();
-    void *handle       = lammps_open_fortran(0, NULL, fcomm);
+    void *handle       = lammps_open_fortran(0, nullptr, fcomm);
     std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_THAT(output, StartsWith("LAMMPS ("));
     if (verbose) std::cout << output;

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -35,7 +36,7 @@ enum{X=0,Y,Z,YZ,XZ,XY};
 
 /* ---------------------------------------------------------------------- */
 
-ChangeBox::ChangeBox(LAMMPS *lmp) : Pointers(lmp) {}
+ChangeBox::ChangeBox(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -193,7 +194,7 @@ void ChangeBox::command(int narg, char **arg)
   // compute scale factors if FINAL,DELTA used since they have distance units
 
   int flag = 0;
-  for (int i = 0; i < nops; i++)
+  for (i = 0; i < nops; i++)
     if (ops[i].style == FINAL || ops[i].style == DELTA) flag = 1;
 
   if (flag && scaleflag) {
@@ -290,16 +291,12 @@ void ChangeBox::command(int narg, char **arg)
 
     } else if (ops[m].style == ORTHO) {
       if (domain->xy != 0.0 || domain->yz != 0.0 || domain->xz != 0.0)
-        error->all(FLERR,
-                   "Cannot change box to orthogonal when tilt is non-zero");
+        error->all(FLERR,"Cannot change box to orthogonal when tilt is non-zero");
       if (output->ndump)
-        error->all(FLERR,
-                   "Cannot change box ortho/triclinic with dumps defined");
-      for (int i = 0; i < modify->nfix; i++)
-        if (modify->fix[i]->no_change_box)
-          error->all(FLERR,
-                     "Cannot change box ortho/triclinic with "
-                     "certain fixes defined");
+        error->all(FLERR,"Cannot change box ortho/triclinic with dumps defined");
+      for (const auto &fix : modify->get_fix_list())
+        if (fix->no_change_box)
+          error->all(FLERR,"Cannot change box ortho/triclinic with certain fixes defined");
       domain->triclinic = 0;
       domain->set_initial_box();
       domain->set_global_box();
@@ -308,13 +305,10 @@ void ChangeBox::command(int narg, char **arg)
 
     } else if (ops[m].style == TRICLINIC) {
       if (output->ndump)
-        error->all(FLERR,
-                   "Cannot change box ortho/triclinic with dumps defined");
-      for (int i = 0; i < modify->nfix; i++)
-        if (modify->fix[i]->no_change_box)
-          error->all(FLERR,
-                     "Cannot change box ortho/triclinic with "
-                     "certain fixes defined");
+        error->all(FLERR,"Cannot change box ortho/triclinic with dumps defined");
+      for (const auto &fix : modify->get_fix_list())
+        if (fix->no_change_box)
+          error->all(FLERR,"Cannot change box ortho/triclinic with certain fixes defined");
       domain->triclinic = 1;
       domain->set_lamda_box();
       domain->set_initial_box();
@@ -378,7 +372,7 @@ void ChangeBox::command(int narg, char **arg)
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->reset_box();
-  Irregular *irregular = new Irregular(lmp);
+  auto irregular = new Irregular(lmp);
   irregular->migrate_atoms(1);
   delete irregular;
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
@@ -389,9 +383,8 @@ void ChangeBox::command(int narg, char **arg)
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (natoms != atom->natoms && comm->me == 0)
-    error->warning(FLERR,fmt::format("Lost atoms via change_box: "
-                                     "original {} current {}",
-                                     atom->natoms,natoms));
+    error->warning(FLERR,"Lost atoms via change_box: original {} "
+                   "current {}", atom->natoms,natoms);
 }
 
 /* ----------------------------------------------------------------------

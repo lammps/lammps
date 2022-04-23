@@ -43,7 +43,7 @@
 */
 
 #include <Kokkos_Core.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 #include <cstdio>
 #include <cstdlib>
 
@@ -113,8 +113,9 @@ int main(int narg, char* arg[]) {
 
     srand(134231);
 
+    using size_type = view_type::size_type;
     for (int i = 0; i < size; i++) {
-      for (view_type::size_type j = 0; j < h_idx.extent(1); ++j) {
+      for (size_type j = 0; j < static_cast<size_type>(h_idx.extent(1)); ++j) {
         h_idx(i, j) = (size + i + (rand() % 500 - 250)) % size;
       }
     }

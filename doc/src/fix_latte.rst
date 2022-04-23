@@ -153,7 +153,7 @@ Restrictions
 
 This fix is part of the LATTE package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 You must use metal units, as set by the :doc:`units <units>` command to
 use this fix.
@@ -171,7 +171,7 @@ doing 99% or more of the work to compute quantum-accurate forces.
    NEB calculations can be done using this fix using multiple
    replicas and running LAMMPS in parallel.  However, each replica must
    be run on a single MPI task.  For details, see the :doc:`neb <neb>`
-   command doc page and the :doc:`-partition command-line switch <Run_options>`
+   command page and the :doc:`-partition command-line switch <Run_options>`
 
 Related commands
 """"""""""""""""

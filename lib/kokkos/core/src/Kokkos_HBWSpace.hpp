@@ -287,7 +287,10 @@ struct DeepCopy<Kokkos::Experimental::HBWSpace, Kokkos::Experimental::HBWSpace,
   DeepCopy(void* dst, const void* src, size_t n) { memcpy(dst, src, n); }
 
   DeepCopy(const ExecutionSpace& exec, void* dst, const void* src, size_t n) {
-    exec.fence();
+    exec.fence(
+        "Kokkos::Impl::DeepCopy<Kokkos::Experimental::HBWSpace, "
+        "Kokkos::Experimental::HBWSpace,ExecutionSpace::DeepCopy: fence before "
+        "copy");
     memcpy(dst, src, n);
   }
 };
@@ -297,7 +300,9 @@ struct DeepCopy<HostSpace, Kokkos::Experimental::HBWSpace, ExecutionSpace> {
   DeepCopy(void* dst, const void* src, size_t n) { memcpy(dst, src, n); }
 
   DeepCopy(const ExecutionSpace& exec, void* dst, const void* src, size_t n) {
-    exec.fence();
+    exec.fence(
+        "Kokkos::Impl::DeepCopy<HostSpace, Kokkos::Experimental::HBWSpace, "
+        "ExecutionSpace>::DeepCopy: fence before copy");
     memcpy(dst, src, n);
   }
 };
@@ -307,33 +312,11 @@ struct DeepCopy<Kokkos::Experimental::HBWSpace, HostSpace, ExecutionSpace> {
   DeepCopy(void* dst, const void* src, size_t n) { memcpy(dst, src, n); }
 
   DeepCopy(const ExecutionSpace& exec, void* dst, const void* src, size_t n) {
-    exec.fence();
+    exec.fence(
+        "Kokkos::Impl::DeepCopy<Kokkos::Experimental::HBWSpace, HostSpace, "
+        "ExecutionSpace>::DeepCopy: fence before copy");
     memcpy(dst, src, n);
   }
-};
-
-}  // namespace Impl
-
-}  // namespace Kokkos
-
-namespace Kokkos {
-
-namespace Impl {
-
-template <>
-struct VerifyExecutionCanAccessMemorySpace<Kokkos::HostSpace,
-                                           Kokkos::Experimental::HBWSpace> {
-  enum : bool { value = true };
-  inline static void verify(void) {}
-  inline static void verify(const void*) {}
-};
-
-template <>
-struct VerifyExecutionCanAccessMemorySpace<Kokkos::Experimental::HBWSpace,
-                                           Kokkos::HostSpace> {
-  enum : bool { value = true };
-  inline static void verify(void) {}
-  inline static void verify(const void*) {}
 };
 
 }  // namespace Impl

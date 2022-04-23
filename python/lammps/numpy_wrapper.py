@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------
 #   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-#   http://lammps.sandia.gov, Sandia National Laboratories
+#   https://www.lammps.org/ Sandia National Laboratories
 #   Steve Plimpton, sjplimp@sandia.gov
 #
 #   Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,10 +17,10 @@
 ################################################################################
 
 import warnings
-from ctypes import POINTER, c_double, c_int, c_int32, c_int64, cast
+from ctypes import POINTER, c_void_p, c_char_p, c_double, c_int, c_int32, c_int64, cast
 
 
-from .constants import *
+from .constants import *                # lgtm [py/polluting-import]
 from .data import NeighList
 
 
@@ -92,8 +92,12 @@ class numpy_wrapper:
     if dim == LAMMPS_AUTODETECT:
       if dtype in (LAMMPS_INT_2D, LAMMPS_DOUBLE_2D, LAMMPS_INT64_2D):
         # TODO add other fields
-        if name in ("x", "v", "f", "angmom", "torque", "csforce", "vforce"):
+        if name in ("x", "v", "f", "x0","omega", "angmom", "torque", "csforce", "vforce", "vest"):
           dim = 3
+        elif name == "smd_data_9":
+          dim = 9
+        elif name == "smd_stress":
+          dim = 6
         else:
           dim = 2
       else:
@@ -142,7 +146,7 @@ class numpy_wrapper:
 
   # -------------------------------------------------------------------------
 
-  def extract_compute(self, cid, style, type):
+  def extract_compute(self, cid, cstyle, ctype):
     """Retrieve data from a LAMMPS compute
 
     This is a wrapper around the
@@ -150,50 +154,50 @@ class numpy_wrapper:
     It behaves the same as the original method, but returns NumPy arrays
     instead of ``ctypes`` pointers.
 
-    :param id: compute ID
-    :type id:  string
-    :param style: style of the data retrieve (global, atom, or local), see :ref:`py_style_constants`
-    :type style:  int
-    :param type: type of the returned data (scalar, vector, or array), see :ref:`py_type_constants`
-    :type type:  int
+    :param cid: compute ID
+    :type cid:  string
+    :param cstyle: style of the data retrieve (global, atom, or local), see :ref:`py_style_constants`
+    :type cstyle:  int
+    :param ctype: type of the returned data (scalar, vector, or array), see :ref:`py_type_constants`
+    :type ctype:  int
     :return: requested data either as float, as NumPy array with direct access to C data, or None
     :rtype: float, numpy.array, or NoneType
     """
-    value = self.lmp.extract_compute(cid, style, type)
+    value = self.lmp.extract_compute(cid, cstyle, ctype)
 
-    if style in (LMP_STYLE_GLOBAL, LMP_STYLE_LOCAL):
-      if type == LMP_TYPE_VECTOR:
-        nrows = self.lmp.extract_compute(cid, style, LMP_SIZE_VECTOR)
+    if cstyle in (LMP_STYLE_GLOBAL, LMP_STYLE_LOCAL):
+      if ctype == LMP_TYPE_VECTOR:
+        nrows = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_VECTOR)
         return self.darray(value, nrows)
-      elif type == LMP_TYPE_ARRAY:
-        nrows = self.lmp.extract_compute(cid, style, LMP_SIZE_ROWS)
-        ncols = self.lmp.extract_compute(cid, style, LMP_SIZE_COLS)
+      elif ctype == LMP_TYPE_ARRAY:
+        nrows = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_ROWS)
+        ncols = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_COLS)
         return self.darray(value, nrows, ncols)
-    elif style == LMP_STYLE_ATOM:
-      if type == LMP_TYPE_VECTOR:
+    elif cstyle == LMP_STYLE_ATOM:
+      if ctype == LMP_TYPE_VECTOR:
         nlocal = self.lmp.extract_global("nlocal")
         return self.darray(value, nlocal)
-      elif type == LMP_TYPE_ARRAY:
+      elif ctype == LMP_TYPE_ARRAY:
         nlocal = self.lmp.extract_global("nlocal")
-        ncols = self.lmp.extract_compute(cid, style, LMP_SIZE_COLS)
+        ncols = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_COLS)
         return self.darray(value, nlocal, ncols)
     return value
 
   # -------------------------------------------------------------------------
 
-  def extract_fix(self, fid, style, type, nrow=0, ncol=0):
+  def extract_fix(self, fid, fstyle, ftype, nrow=0, ncol=0):
     """Retrieve data from a LAMMPS fix
 
     This is a wrapper around the :py:meth:`lammps.extract_fix() <lammps.lammps.extract_fix()>` method.
     It behaves the same as the original method, but returns NumPy arrays
     instead of ``ctypes`` pointers.
 
-    :param id: fix ID
-    :type id:  string
-    :param style: style of the data retrieve (global, atom, or local), see :ref:`py_style_constants`
-    :type style:  int
-    :param type: type or size of the returned data (scalar, vector, or array), see :ref:`py_type_constants`
-    :type type:  int
+    :param fid: fix ID
+    :type fid:  string
+    :param fstyle: style of the data retrieve (global, atom, or local), see :ref:`py_style_constants`
+    :type fstyle:  int
+    :param ftype: type or size of the returned data (scalar, vector, or array), see :ref:`py_type_constants`
+    :type ftype:  int
     :param nrow: index of global vector element or row index of global array element
     :type nrow:  int
     :param ncol: column index of global array element
@@ -202,22 +206,22 @@ class numpy_wrapper:
     :rtype: integer or double value, pointer to 1d or 2d double array  or None
 
     """
-    value = self.lmp.extract_fix(fid, style, type, nrow, ncol)
-    if style == LMP_STYLE_ATOM:
-      if type == LMP_TYPE_VECTOR:
+    value = self.lmp.extract_fix(fid, fstyle, ftype, nrow, ncol)
+    if fstyle == LMP_STYLE_ATOM:
+      if ftype == LMP_TYPE_VECTOR:
         nlocal = self.lmp.extract_global("nlocal")
         return self.darray(value, nlocal)
-      elif type == LMP_TYPE_ARRAY:
+      elif ftype == LMP_TYPE_ARRAY:
         nlocal = self.lmp.extract_global("nlocal")
-        ncols = self.lmp.extract_fix(fid, style, LMP_SIZE_COLS, 0, 0)
+        ncols = self.lmp.extract_fix(fid, fstyle, LMP_SIZE_COLS, 0, 0)
         return self.darray(value, nlocal, ncols)
-    elif style == LMP_STYLE_LOCAL:
-      if type == LMP_TYPE_VECTOR:
-        nrows = self.lmp.extract_fix(fid, style, LMP_SIZE_ROWS, 0, 0)
+    elif fstyle == LMP_STYLE_LOCAL:
+      if ftype == LMP_TYPE_VECTOR:
+        nrows = self.lmp.extract_fix(fid, fstyle, LMP_SIZE_ROWS, 0, 0)
         return self.darray(value, nrows)
-      elif type == LMP_TYPE_ARRAY:
-        nrows = self.lmp.extract_fix(fid, style, LMP_SIZE_ROWS, 0, 0)
-        ncols = self.lmp.extract_fix(fid, style, LMP_SIZE_COLS, 0, 0)
+      elif ftype == LMP_TYPE_ARRAY:
+        nrows = self.lmp.extract_fix(fid, fstyle, LMP_SIZE_ROWS, 0, 0)
+        ncols = self.lmp.extract_fix(fid, fstyle, LMP_SIZE_COLS, 0, 0)
         return self.darray(value, nrows, ncols)
     return value
 
@@ -246,7 +250,109 @@ class numpy_wrapper:
       return np.ctypeslib.as_array(value)
     return value
 
-  # -------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+
+  def gather_bonds(self):
+    """Retrieve global list of bonds as NumPy array
+
+    This is a wrapper around :py:meth:`lammps.gather_bonds() <lammps.lammps.gather_bonds()>`
+    It behaves the same as the original method, but returns a NumPy array instead
+    of a ``ctypes`` list.
+
+    .. versionadded:: 28Jul2021
+
+    :return: the requested data as a 2d-integer numpy array
+    :rtype: numpy.array(nbonds,3)
+    """
+    import numpy as np
+    nbonds, value = self.lmp.gather_bonds()
+    return np.ctypeslib.as_array(value).reshape(nbonds,3)
+
+    # -------------------------------------------------------------------------
+
+  def fix_external_get_force(self, fix_id):
+    """Get access to the array with per-atom forces of a fix external instance with a given fix ID.
+
+    This function is a wrapper around the
+    :py:meth:`lammps.fix_external_get_force() <lammps.lammps.fix_external_get_force()>`
+    method.  It behaves the same as the original method, but returns a NumPy array instead
+    of a ``ctypes`` pointer.
+
+    .. versionchanged:: 28Jul2021
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :return: requested data
+    :rtype: numpy.array
+    """
+    import numpy as np
+    nlocal = self.lmp.extract_setting('nlocal')
+    value = self.lmp.fix_external_get_force(fix_id)
+    return self.darray(value,nlocal,3)
+
+    # -------------------------------------------------------------------------
+
+  def fix_external_set_energy_peratom(self, fix_id, eatom):
+    """Set the per-atom energy contribution for a fix external instance with the given ID.
+
+    This function is an alternative to
+    :py:meth:`lammps.fix_external_set_energy_peratom() <lammps.lammps.fix_external_set_energy_peratom()>`
+    method.  It behaves the same as the original method, but accepts a NumPy array
+    instead of a list as argument.
+
+    .. versionadded:: 28Jul2021
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :param eatom:   per-atom potential energy
+    :type: numpy.array
+    """
+    import numpy as np
+    nlocal = self.lmp.extract_setting('nlocal')
+    if len(eatom) < nlocal:
+      raise Exception('per-atom energy dimension must be at least nlocal')
+
+    c_double_p = POINTER(c_double)
+    value = eatom.astype(np.double)
+    return self.lmp.lib.lammps_fix_external_set_energy_peratom(self.lmp.lmp, fix_id.encode(),
+                                                               value.ctypes.data_as(c_double_p))
+
+    # -------------------------------------------------------------------------
+
+  def fix_external_set_virial_peratom(self, fix_id, vatom):
+    """Set the per-atom virial contribution for a fix external instance with the given ID.
+
+    This function is an alternative to
+    :py:meth:`lammps.fix_external_set_virial_peratom() <lammps.lammps.fix_external_set_virial_peratom()>`
+    method.  It behaves the same as the original method, but accepts a NumPy array
+    instead of a list as argument.
+
+    .. versionadded:: 28Jul2021
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :param eatom:   per-atom potential energy
+    :type: numpy.array
+    """
+    import numpy as np
+    nlocal = self.lmp.extract_setting('nlocal')
+    if len(vatom) < nlocal:
+      raise Exception('per-atom virial first dimension must be at least nlocal')
+    if len(vatom[0]) != 6:
+      raise Exception('per-atom virial second dimension must be 6')
+
+    c_double_pp = np.ctypeslib.ndpointer(dtype=np.uintp, ndim=1, flags='C')
+
+    # recast numpy array to be compatible with library interface
+    value = (vatom.__array_interface__['data'][0]
+                   + np.arange(vatom.shape[0])*vatom.strides[0]).astype(np.uintp)
+
+    # change prototype to our custom type
+    self.lmp.lib.lammps_fix_external_set_virial_peratom.argtypes = [ c_void_p, c_char_p, c_double_pp ]
+
+    self.lmp.lib.lammps_fix_external_set_virial_peratom(self.lmp.lmp, fix_id.encode(), value)
+
+    # -------------------------------------------------------------------------
 
   def get_neighlist(self, idx):
     """Returns an instance of :class:`NumPyNeighList` which wraps access to the neighbor list with the given index
@@ -284,6 +390,9 @@ class numpy_wrapper:
   # -------------------------------------------------------------------------
 
   def iarray(self, c_int_type, raw_ptr, nelem, dim=1):
+    if raw_ptr is None:
+      return None
+
     import numpy as np
     np_int_type = self._ctype_to_numpy_int(c_int_type)
 
@@ -293,20 +402,32 @@ class numpy_wrapper:
       ptr = cast(raw_ptr[0], POINTER(c_int_type * nelem * dim))
 
     a = np.frombuffer(ptr.contents, dtype=np_int_type)
-    a.shape = (nelem, dim)
+
+    if dim > 1:
+      a.shape = (nelem, dim)
+    else:
+      a.shape = (nelem)
     return a
 
   # -------------------------------------------------------------------------
 
   def darray(self, raw_ptr, nelem, dim=1):
+    if raw_ptr is None:
+      return None
+
     import numpy as np
+
     if dim == 1:
       ptr = cast(raw_ptr, POINTER(c_double * nelem))
     else:
       ptr = cast(raw_ptr[0], POINTER(c_double * nelem * dim))
 
     a = np.frombuffer(ptr.contents)
-    a.shape = (nelem, dim)
+
+    if dim > 1:
+      a.shape = (nelem, dim)
+    else:
+      a.shape = (nelem)
     return a
 
 # -------------------------------------------------------------------------
@@ -331,8 +452,25 @@ class NumPyNeighList(NeighList):
 
     def get(self, element):
         """
+        Access a specific neighbor list entry. "element" must be a number from 0 to the size-1 of the list
+
         :return: tuple with atom local index, numpy array of neighbor local atom indices
         :rtype:  (int, numpy.array)
         """
         iatom, neighbors = self.lmp.numpy.get_neighlist_element_neighbors(self.idx, element)
         return iatom, neighbors
+
+    def find(self, iatom):
+        """
+        Find the neighbor list for a specific (local) atom iatom.
+        If there is no list for iatom, None is returned.
+
+        :return: numpy array of neighbor local atom indices
+        :rtype:  numpy.array or None
+        """
+        inum = self.size
+        for ii in range(inum):
+          idx, neighbors = self.get(ii)
+          if idx == iatom:
+            return neighbors
+        return None

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -27,11 +28,9 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 2048
-
 /* ---------------------------------------------------------------------- */
 
-Run::Run(LAMMPS *lmp) : Pointers(lmp) {}
+Run::Run(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -78,15 +77,11 @@ void Run::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"pre") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run command");
-      if (strcmp(arg[iarg+1],"no") == 0) preflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) preflag = 1;
-      else error->all(FLERR,"Illegal run command");
+      preflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"post") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run command");
-      if (strcmp(arg[iarg+1],"no") == 0) postflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) postflag = 1;
-      else error->all(FLERR,"Illegal run command");
+      postflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
       // all remaining args are commands
@@ -134,7 +129,7 @@ void Run::command(int narg, char **arg)
       error->all(FLERR,"Run command stop value is before end of run");
   }
 
-  if (!preflag && strstr(update->integrate_style,"respa"))
+  if (!preflag && utils::strmatch(update->integrate_style,"^respa"))
     error->all(FLERR,"Run flag 'pre no' not compatible with r-RESPA");
 
   // if nevery, make copies of arg strings that are commands
@@ -145,9 +140,7 @@ void Run::command(int narg, char **arg)
     commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
-      int n = strlen(arg[i]) + 1;
-      commands[ncommands] = new char[n];
-      strcpy(commands[ncommands],arg[i]);
+      commands[ncommands] = utils::strdup(arg[i]);
       ncommands++;
     }
   }

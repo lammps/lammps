@@ -12,8 +12,8 @@ template<class T> class SparseVector;
 template<class T> T dot(const SparseVector<T> &a, const SparseVector<T> &b);
 
   /**
-   *  @class  SparseVector 
-   *  @brief  Class for vectors that contain a majority of zero elements and provides relevant operations 
+   *  @class  SparseVector
+   *  @brief  Class for vectors that contain a majority of zero elements and provides relevant operations
    */
 
 template<class T>
@@ -37,17 +37,17 @@ class SparseVector : public Vector<T> {
 public:
   //* Constructor - sets length of vector (NOT # of nonzeros).
   SparseVector(INDEX length=0);
-  //* Copies another SparseVector 
-  SparseVector(const SparseVector<T> &c); 
+  //* Copies another SparseVector
+  SparseVector(const SparseVector<T> &c);
   //* Copies a general Vector (avoid if possible, its going to be slow).
-  SparseVector(const Vector<T> &c); 
+  SparseVector(const Vector<T> &c);
 
   //* Overrides output to string function to list only nonzeros and indices.
   std::string to_string() const;
   //* Indexing operators (w/ const overloading).
   //@{
   T  operator()(INDEX i, INDEX j=0) const;
-  
+
   T& operator()(INDEX i, INDEX j=0);
   T  operator[](INDEX i) const;
   T& operator[](INDEX i);
@@ -88,9 +88,9 @@ protected:
   //@{
   SparseVector(const Matrix<T> &c);
   SparseVector<T>& operator=(Matrix<T> &c);
-  T* ptr() const {return nullptr; } 
+  T* ptr() const {return nullptr; }
   //@}
-  
+
   STORE data_;  //*> sparse data structure
   INDEX length_;             //*> number of rows
 };
@@ -98,6 +98,6 @@ protected:
 } // end namespace
 
 #include "SparseVector-inl.h"
-#undef STORE 
+#undef STORE
 #endif
 

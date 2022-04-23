@@ -30,7 +30,7 @@ Define a computation that calculates the temperature of a system based
 on the center-of-mass velocity of atom pairs that are bonded to each
 other.  This compute is designed to be used with the adiabatic
 core/shell model of :ref:`(Mitchell and Finchham) <MitchellFinchham1>`.  See
-the :doc:`Howto coreshell <Howto_coreshell>` doc page for an overview of
+the :doc:`Howto coreshell <Howto_coreshell>` page for an overview of
 the model as implemented in LAMMPS.  Specifically, this compute
 enables correct temperature calculation and thermostatting of
 core/shell pairs where it is desirable for the internal degrees of
@@ -81,7 +81,7 @@ Thermostatting fixes that work in this way include :doc:`fix nvt <fix_nh>`, :doc
 
 The internal energy of core/shell pairs can be calculated by the
 :doc:`compute temp/chunk <compute_temp_chunk>` command, if chunks are
-defined as core/shell pairs.  See the :doc:`Howto coreshell <Howto_coreshell>` doc page doc page for more discussion
+defined as core/shell pairs.  See the :doc:`Howto coreshell <Howto_coreshell>` page doc page for more discussion
 on how to do this.
 
 Output info

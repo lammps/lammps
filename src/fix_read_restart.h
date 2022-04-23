@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(READ_RESTART,FixReadRestart)
-
+// clang-format off
+FixStyle(READ_RESTART,FixReadRestart);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_READ_RESTART_H
@@ -30,20 +30,20 @@ class FixReadRestart : public Fix {
   double **extra;
 
   FixReadRestart(class LAMMPS *, int, char **);
-  ~FixReadRestart();
-  int setmask();
+  ~FixReadRestart() override;
+  int setmask() override;
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
 
  private:
-  int nextra;          // max number of extra values for any atom
+  int nextra;    // max number of extra values for any atom
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

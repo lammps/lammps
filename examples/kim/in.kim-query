@@ -6,7 +6,7 @@
 # the KIM package, is the KIM API library that must be downloaded from the
 # OpenKIM website and installed before LAMMPS is compiled. The 'kim query'
 # command requires the libcurl library to be installed. See the
-# `https://lammps.sandia.gov/doc/Build_extras.html#kim` doc page for further
+# `https://docs.lammps.org/Build_extras.html#kim` doc page for further
 # details
 #
 # This example requires that the KIM Models

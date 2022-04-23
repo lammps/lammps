@@ -187,7 +187,7 @@ to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -195,7 +195,7 @@ Restrictions
 """"""""""""
 
 This style is part of the COLLOID package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Normally, this pair style should be used with finite-size particles
 which have a diameter, e.g. see the :doc:`atom_style sphere <atom_style>` command.  However, this is not a requirement,

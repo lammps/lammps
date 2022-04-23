@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(heat/flux,ComputeHeatFlux)
-
+// clang-format off
+ComputeStyle(heat/flux,ComputeHeatFlux);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_HEAT_FLUX_H
@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 class ComputeHeatFlux : public Compute {
  public:
   ComputeHeatFlux(class LAMMPS *, int, char **);
-  ~ComputeHeatFlux();
-  void init();
-  void compute_vector();
+  ~ComputeHeatFlux() override;
+  void init() override;
+  void compute_vector() override;
 
  private:
-  char *id_ke,*id_pe,*id_stress;
-  class Compute *c_ke,*c_pe,*c_stress;
+  char *id_ke, *id_pe, *id_stress;
+  class Compute *c_ke, *c_pe, *c_stress;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

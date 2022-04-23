@@ -32,11 +32,17 @@ void test_reduce_device_view(int64_t N, PolicyType policy,
   typename ExecSpace::execution_space().fence();
   double time_fence0 = timer.seconds();
   Kokkos::deep_copy(result, 0);
+
+  // We need a warm-up to get reasonable results
+  Kokkos::parallel_reduce("Test::ReduceDeviceView::TestReducer", policy,
+                          functor,
+                          Kokkos::Sum<int64_t, TEST_EXECSPACE>(result));
+  Kokkos::fence();
+
   timer.reset();
   bool is_async = time0 < time_fence0;
 
   // Test Reducer
-
   Kokkos::parallel_reduce("Test::ReduceDeviceView::TestReducer", policy,
                           functor,
                           Kokkos::Sum<int64_t, TEST_EXECSPACE>(result));
@@ -75,11 +81,11 @@ void test_reduce_device_view(int64_t N, PolicyType policy,
 
   ASSERT_EQ(N, scalar_result);
   if (is_async) {
-    ASSERT_TRUE(time1 < time_fence1);
+    ASSERT_LT(time1, time_fence1);
   }
   if (is_async) {
-    ASSERT_TRUE(time2 < time_fence2);
-    ASSERT_TRUE(time3 > time_fence3);
+    ASSERT_LT(time2, time_fence2);
+    ASSERT_GT(time3, time_fence3);
   }
 }
 
@@ -109,7 +115,12 @@ struct TeamPolicyFunctor {
 }  // namespace
 
 TEST(TEST_CATEGORY, reduce_device_view_range_policy) {
+  // Avoid running out of memory
+#ifdef KOKKOS_ENABLE_SYCL
+  int N = 100 * 1024 * 1024;
+#else
   int N = 1000 * 1024 * 1024;
+#endif
   test_reduce_device_view(N, Kokkos::RangePolicy<TEST_EXECSPACE>(0, N),
                           RangePolicyFunctor());
 }
@@ -123,13 +134,19 @@ TEST(TEST_CATEGORY, reduce_device_view_mdrange_policy) {
       MDRangePolicyFunctor());
 }
 
-// FIXME_HIP
-#ifndef KOKKOS_ENABLE_HIP
 TEST(TEST_CATEGORY, reduce_device_view_team_policy) {
+// FIXME_SYCL The number of workgroups on CUDA devices can not be larger than
+// 65535
+#ifdef KOKKOS_ENABLE_SYCL
+  int N = 63 * 1024 * 1024;
+  test_reduce_device_view(
+      N, Kokkos::TeamPolicy<TEST_EXECSPACE>(63 * 1024, Kokkos::AUTO),
+      TeamPolicyFunctor(1024));
+#else
   int N = 1000 * 1024 * 1024;
   test_reduce_device_view(
       N, Kokkos::TeamPolicy<TEST_EXECSPACE>(1000 * 1024, Kokkos::AUTO),
       TeamPolicyFunctor(1024));
-}
 #endif
+}
 }  // namespace Test

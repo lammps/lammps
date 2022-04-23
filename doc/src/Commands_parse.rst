@@ -47,7 +47,7 @@ LAMMPS:
    named "x" followed by an "x" character.
 
    How the variable is converted to a text string depends on what style
-   of variable it is; see the :doc:`variable <variable>` doc page for
+   of variable it is; see the :doc:`variable <variable>` page for
    details.  It can be a variable that stores multiple text strings, and
    return one of them.  The returned text string can be multiple "words"
    (space separated) which will then be interpreted as multiple
@@ -164,7 +164,7 @@ LAMMPS:
    allowed, but that should be sufficient for most use cases.
 
 .. admonition:: ASCII versus UTF-8
-        :class: note
+   :class: note
 
    LAMMPS expects and processes 7-bit ASCII format text internally.
    Many modern environments use UTF-8 encoding, which is a superset

@@ -1,5 +1,5 @@
 #ifndef WEAK_EQUATION_SCHRODINGER_H
-#define WEAK_EQUATION_SCHRODINGER_H 
+#define WEAK_EQUATION_SCHRODINGER_H
 
 #include <set>
 #include <string>
@@ -11,20 +11,20 @@ namespace ATC{
 /**
   *  @class  WeakEquationSchrodinger
   *  @brief  Schrodinger equation
-  *  -hbar^2 /2 1/m^* psi,xx + phi psi = E psi             
+  *  -hbar^2 /2 1/m^* psi,xx + phi psi = E psi
   *  (-c*B^T B + phi N^T N) psi = E N^T N psi
   */
 
 class WeakEquationSchrodinger : public WeakEquation {
 
   public:
-  
-  // constructor 
+
+  // constructor
   WeakEquationSchrodinger();
 
   // destructor
   virtual ~WeakEquationSchrodinger();
-  
+
   /** RHS stiffness matrix  */
   virtual bool has_BB_tangent_coefficients(void) const {return true;}
   virtual void BB_tangent_coefficients(const FieldName field,

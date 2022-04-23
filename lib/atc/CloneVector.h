@@ -7,7 +7,7 @@
 namespace ATC_matrix {
 
   /**
-   *  @class  CloneVector 
+   *  @class  CloneVector
    *  @brief  Class for creating objects that wrap matrix data for manipulation through vector operations
    */
 
@@ -39,7 +39,7 @@ public:
 
 private:
   void _resize(INDEX nRows, INDEX nCols, bool copy, bool zero);
- 
+
   Vector<T> * const _baseV; // ptr to a base vector
   Matrix<T> * const _baseM; // ptr to a base matrix
   int _clone_type;          // what to clone (see enum CLONE_TYPE)
@@ -52,7 +52,7 @@ private:
 //-----------------------------------------------------------------------------
 template<typename T>
 CloneVector<T>::CloneVector(const Vector<T> &c)
- : Vector<T>(), _baseV(const_cast<Vector<T>*>(&c)), _baseM(nullptr) 
+ : Vector<T>(), _baseV(const_cast<Vector<T>*>(&c)), _baseM(nullptr)
 {}
 //-----------------------------------------------------------------------------
 // Construct from a matrix, the const_cast isn't pretty
@@ -64,7 +64,7 @@ CloneVector<T>::CloneVector(const Vector<T> &c)
 */
 //-----------------------------------------------------------------------------
 template<typename T>
-CloneVector<T>::CloneVector(const Matrix<T> &c, int dim, INDEX idx) 
+CloneVector<T>::CloneVector(const Matrix<T> &c, int dim, INDEX idx)
  : Vector<T>(), _baseV(nullptr), _baseM(const_cast<Matrix<T>*>(&c))
  , _clone_type(dim), _idx(idx)
 {}
@@ -72,7 +72,7 @@ CloneVector<T>::CloneVector(const Matrix<T> &c, int dim, INDEX idx)
 // Construct from a DiagonalMatrix
 //-----------------------------------------------------------------------------
 template<typename T>
-CloneVector<T>::CloneVector(const DiagonalMatrix<T> &c, INDEX /* idx */) 
+CloneVector<T>::CloneVector(const DiagonalMatrix<T> &c, INDEX /* idx */)
  : Vector<T>(), _baseV(nullptr), _baseM(const_cast<DiagonalMatrix<T>*>(&c))
  , _clone_type(CLONE_DIAG), _idx(0)
 {}
@@ -80,7 +80,7 @@ CloneVector<T>::CloneVector(const DiagonalMatrix<T> &c, INDEX /* idx */)
 // value (const) indexing operator
 //-----------------------------------------------------------------------------
 template<typename T>
-  T CloneVector<T>::operator()(INDEX i, INDEX /* j */) const 
+  T CloneVector<T>::operator()(INDEX i, INDEX /* j */) const
 {
   return (*this)[i];
 }
@@ -134,7 +134,7 @@ INDEX CloneVector<T>::nRows()                                             const
 template<typename T>
 CloneVector<T>& CloneVector<T>::operator=(const T &v)
 {
-  this->set_all_elements_to(v);   
+  this->set_all_elements_to(v);
   return *this;
 }
 //-----------------------------------------------------------------------------
@@ -144,7 +144,7 @@ template<typename T>
 CloneVector<T>& CloneVector<T>::operator=(const CloneVector<T> &C)
 {
   GCK(*this, C, this->size()!=C.size(), "Error in CloneVector:operator=");
-  int sz = this->size(); 
+  int sz = this->size();
   for (INDEX i = 0; i < sz; i++) (*this)[i] = C[i];
   return *this;
 }
@@ -155,7 +155,7 @@ template<typename T>
 CloneVector<T>& CloneVector<T>::operator=(const Matrix<T> &C)
 {
   GCK(*this, C, this->size()!=C.size(), "Error in CloneVector:operator=");
-  int sz = this->size(); 
+  int sz = this->size();
   for (INDEX i = 0; i < sz; i++) (*this)[i] = C[i];
   return *this;
 }
@@ -168,7 +168,7 @@ bool CloneVector<T>::memory_contiguous()  const
   // drill down through clone of clones
   if (_baseV) return _baseV->memory_contiguous();
   // could be okay if DiagonalMatrix, but can't guarantee this
-  if (_clone_type == CLONE_DIAG) return false; 
+  if (_clone_type == CLONE_DIAG) return false;
 #ifdef ROW_STORAGE
   return _clone_type == CLONE_ROW;
 #else
@@ -199,7 +199,7 @@ T* CloneVector<T>::ptr()                                              const
 template<typename T>
 void CloneVector<T>::_resize(INDEX nRows, INDEX nCols, bool copy, bool zero)
 {
-  if (_baseV) 
+  if (_baseV)
   {
     if (copy) _baseV->resize(nRows, nCols, copy);
     else      _baseV->reset (nRows, nCols, zero);
@@ -232,7 +232,7 @@ void CloneVector<T>::resize(INDEX nRows, INDEX nCols, bool copy)
   _resize(nRows, nCols, copy, false);
 }
 //-----------------------------------------------------------------------------
-// resizes the matrix and optionally zeros it out 
+// resizes the matrix and optionally zeros it out
 //-----------------------------------------------------------------------------
 template<typename T>
 void CloneVector<T>::reset(INDEX nRows, INDEX nCols, bool zero)

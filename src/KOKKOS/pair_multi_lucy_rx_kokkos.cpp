@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,20 +23,23 @@
 ------------------------------------------------------------------------------------------- */
 
 #include "pair_multi_lucy_rx_kokkos.h"
+
+#include "atom_kokkos.h"
+#include "atom_masks.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "kokkos.h"
+#include "math_const.h"
+#include "memory_kokkos.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+
 #include <cmath>
 #include <cstring>
-#include "math_const.h"
-#include "atom_kokkos.h"
-#include "force.h"
-#include "comm.h"
-#include "neigh_list.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
-#include "neigh_request.h"
-#include "kokkos.h"
 
 using namespace LAMMPS_NS;
+using MathConst::MY_PI;
 
 enum{NONE,RLINEAR,RSQ};
 
@@ -94,26 +98,14 @@ void PairMultiLucyRXKokkos<DeviceType>::init_style()
 {
   PairMultiLucyRX::init_style();
 
-  // irequest = neigh request made by parent class
+  // adjust neighbor list request for KOKKOS
 
   neighflag = lmp->kokkos->neighflag;
-  int irequest = neighbor->nrequest - 1;
-
-  neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
-
-  if (neighflag == FULL) {
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->half = 0;
-  } else if (neighflag == HALF || neighflag == HALFTHREAD) {
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 1;
-  } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with multi/lucy/rx/kk");
-  }
+  auto request = neighbor->find_request(this);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  if (neighflag == FULL) request->enable_full();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -281,7 +273,6 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
   double mixWtSite2old_i,mixWtSite2old_j;
   double mixWtSite1_i;
 
-  double pi = MathConst::MY_PI;
   double A_i, A_j;
   double fraction_i,fraction_j;
   int jtable;
@@ -416,7 +407,7 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
     evdwl = d_table_const.e(tidx,itable) + fraction_i*d_table_const.de(tidx,itable);
   } else k_error_flag.template view<DeviceType>()() = 3;
 
-  evdwl *=(pi*d_cutsq(itype,itype)*d_cutsq(itype,itype))/84.0;
+  evdwl *=(MY_PI*d_cutsq(itype,itype)*d_cutsq(itype,itype))/84.0;
   evdwlOld = mixWtSite1old_i*evdwl;
   evdwl = mixWtSite1_i*evdwl;
 
@@ -457,15 +448,13 @@ void PairMultiLucyRXKokkos<DeviceType>::computeLocalDensity()
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
 
-  const double pi = MathConst::MY_PI;
-
   const bool newton_pair = force->newton_pair;
   const bool one_type = (atom->ntypes == 1);
 
   // Special cut-off values for when there's only one type.
   cutsq_type11 = cutsq[1][1];
   rcut_type11 = sqrt(cutsq_type11);
-  factor_type11 = 84.0/(5.0*pi*rcut_type11*rcut_type11*rcut_type11);
+  factor_type11 = 84.0/(5.0*MY_PI*rcut_type11*rcut_type11*rcut_type11);
 
   // zero out density
   int m = nlocal;
@@ -515,9 +504,9 @@ void PairMultiLucyRXKokkos<DeviceType>::computeLocalDensity()
   // communicate and sum densities
 
   if (newton_pair)
-    comm->reverse_comm_pair(this);
+    comm->reverse_comm(this);
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
   atomKK->sync(execution_space,DPDRHO_MASK);
 }
 
@@ -547,8 +536,6 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXComputeLoca
   const int itype = type[i];
   const int jnum = d_numneigh[i];
 
-  const double pi = MathConst::MY_PI;
-
   for (int jj = 0; jj < jnum; jj++) {
     const int j = (d_neighbors(i,jj) & NEIGHMASK);
     const int jtype = type[j];
@@ -573,7 +560,7 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXComputeLoca
       const double rcut = sqrt(d_cutsq(itype,jtype));
       const double tmpFactor = 1.0-sqrt(rsq)/rcut;
       const double tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
-      const double factor = (84.0/(5.0*pi*rcut*rcut*rcut))*(1.0+3.0*sqrt(rsq)/(2.0*rcut))*tmpFactor4;
+      const double factor = (84.0/(5.0*MY_PI*rcut*rcut*rcut))*(1.0+3.0*sqrt(rsq)/(2.0*rcut))*tmpFactor4;
       rho_i_contrib += factor;
       if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
         a_rho[j] += factor;
@@ -668,7 +655,7 @@ int PairMultiLucyRXKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdua
   d_sendlist = k_sendlist.view<DeviceType>();
   iswap = iswap_in;
   v_buf = buf.view<DeviceType>();
-  Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagPairMultiLucyRXPackForwardComm>(0,n),*this);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXPackForwardComm>(0,n),*this);
   return n;
 }
 
@@ -686,7 +673,7 @@ void PairMultiLucyRXKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int fi
 {
   first = first_in;
   v_buf = buf.view<DeviceType>();
-  Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType, TagPairMultiLucyRXUnpackForwardComm>(0,n),*this);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXUnpackForwardComm>(0,n),*this);
 
   atomKK->modified(execution_space,DPDRHO_MASK); // needed for auto_sync
 }

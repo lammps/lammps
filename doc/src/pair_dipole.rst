@@ -242,19 +242,19 @@ dipole-charge, and charge-charge interactions are all supported, along
 with the standard 12/6 Lennard-Jones interactions.  LJ interactions
 can be cutoff or long-ranged.
 
-For style *lj/long/dipole/long*\ , if *flag_lj* is set to *long*\ , no
+For style *lj/long/dipole/long*, if *flag_lj* is set to *long*, no
 cutoff is used on the LJ 1/r\^6 dispersion term.  The long-range
 portion is calculated by using the :doc:`kspace_style ewald_disp <kspace_style>` command.  The specified LJ cutoff then
 determines which portion of the LJ interactions are computed directly
 by the pair potential versus which part is computed in reciprocal
-space via the Kspace style.  If *flag_lj* is set to *cut*\ , the LJ
-interactions are simply cutoff, as with :doc:`pair_style lj/cut <pair_lj>`.  If *flag_lj* is set to *off*\ , LJ interactions
+space via the Kspace style.  If *flag_lj* is set to *cut*, the LJ
+interactions are simply cutoff, as with :doc:`pair_style lj/cut <pair_lj>`.  If *flag_lj* is set to *off*, LJ interactions
 are not computed at all.
 
-If *flag_coul* is set to *long*\ , no cutoff is used on the Coulombic or
+If *flag_coul* is set to *long*, no cutoff is used on the Coulombic or
 dipole interactions.  The long-range portion is calculated by using
 *ewald_disp* of the :doc:`kspace_style <kspace_style>` command. If
-*flag_coul* is set to *off*\ , Coulombic and dipole interactions are not
+*flag_coul* is set to *off*, Coulombic and dipole interactions are not
 computed at all.
 
 Atoms with dipole moments should be integrated using the :doc:`fix nve/sphere update dipole <fix_nve_sphere>` or the :doc:`fix nvt/sphere update dipole <fix_nvt_sphere>` command to rotate the
@@ -320,20 +320,17 @@ to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 Restrictions
 """"""""""""
 
-The *lj/cut/dipole/cut*\ , *lj/cut/dipole/long*\ , and
-*lj/long/dipole/long* styles are part of the DIPOLE package.  They are
-only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+The *lj/cut/dipole/cut*, *lj/cut/dipole/long*, *lj/long/dipole/long*,
+and lj/sf/dipole/sf* styles are part of the DIPOLE package.  They are only
+enabled if LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
-The *lj/sf/dipole/sf* style is part of the USER-MISC package.  It is
-only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-Using dipole pair styles with *electron* :doc:`units <units>` is not
-currently supported.
+Using dipole pair styles with *electron* :doc:`units <units>` is not currently supported.
 
 Related commands
 """"""""""""""""

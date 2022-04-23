@@ -77,7 +77,7 @@ calculating the normals.
 
 The parameter file (e.g. BNCH.ILP), is intended for use with *metal*
 :doc:`units <units>`, with energies in meV. Two additional parameters,
-*S*\ , and *rcut* are included in the parameter file. *S* is designed to
+*S*, and *rcut* are included in the parameter file. *S* is designed to
 facilitate scaling of energies. *rcut* is designed to build the neighbor
 list for calculating the normals for each atom pair.
 
@@ -139,10 +139,11 @@ that reads a restart file.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This pair style is part of the INTERLAYER package.  It is only enabled
+if LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
-This pair potential requires the newton setting to be *on* for pair
+This pair style requires the newton setting to be *on* for pair
 interactions.
 
 The BNCH.ILP potential file provided with LAMMPS (see the potentials
@@ -158,6 +159,8 @@ Related commands
 :doc:`pair_none <pair_none>`,
 :doc:`pair_style hybrid/overlay <pair_hybrid>`,
 :doc:`pair_style drip <pair_drip>`,
+:doc:`pair_style ilp_tmd <pair_ilp_tmd>`,
+:doc:`pair_style saip_metal <pair_saip_metal>`,
 :doc:`pair_style pair_kolmogorov_crespi_z <pair_kolmogorov_crespi_z>`,
 :doc:`pair_style pair_kolmogorov_crespi_full <pair_kolmogorov_crespi_full>`,
 :doc:`pair_style pair_lebedeva_z <pair_lebedeva_z>`,

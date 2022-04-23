@@ -46,9 +46,8 @@ public:
   /// COLVARSCRIPT_ERROR
   int proxy_error;
 
-  /// If an error is returned by one of the methods, it should set this to the
-  /// error message
-  std::string result;
+  /// String representation of the result of a script call
+  std::string str_result_;
 
   /// Run a script command with space-separated positional arguments (objects)
   int run(int objc, unsigned char *const objv[]);
@@ -56,13 +55,13 @@ public:
   /// Get the string result of the current scripting call
   inline std::string const &str_result() const
   {
-    return result;
+    return str_result_;
   }
 
   /// Modify the string result of the current scripting call
   inline std::string &modify_str_result()
   {
-    return result;
+    return str_result_;
   }
 
   /// Set the return value to the given string
@@ -137,21 +136,38 @@ public:
   template<colvarscript::Object_type T>
   int cmd_arg_shift();
 
-  /// Use scripting language to get the string representation of an object
-  inline char const *obj_to_str(unsigned char *const obj)
-  {
-    return (obj == NULL ? NULL : proxy_->script_obj_to_str(obj));
-  }
-
   /// Get names of all commands
   inline char const **get_command_names() const
   {
     return cmd_names;
   }
 
+  /// Get one-line help summary for a command
+  /// \param cmd Name of the command's function (e.g. "cv_units")
+  char const *get_command_help(char const *cmd);
+
+  /// Get description of the return value of a command
+  /// \param cmd Name of the command's function (e.g. "cv_units")
+  char const *get_command_rethelp(char const *cmd);
+
+  /// Get description of the argument of a command (excluding prefix)
+  /// \param cmd Name of the command's function (e.g. "cv_units")
+  /// \param i Index of the argument; 0 is the first argument after the
+  /// prefix, e.g. "value" has an index of 0 in the array of arguments:
+  /// { "cv", "colvar", "xi", "value" }
+  char const *get_command_arghelp(char const *cmd, int i);
+
+  /// Get number of required arguments (excluding prefix)
+  /// \param cmd Name of the command's function (e.g. "cv_units")
+  int get_command_n_args_min(char const *cmd);
+
+  /// Get number of total arguments (excluding prefix)
+  /// \param cmd Name of the command's function (e.g. "cv_units")
+  int get_command_n_args_max(char const *cmd);
+
   /// Get help string for a command (does not specify how it is launched)
   /// \param cmd Name of the command's function (e.g. "cv_units")
-  std::string get_command_help(char const *cmd);
+  char const *get_command_full_help(char const *cmd);
 
   /// Get summary of command line syntax for all commands of a given context
   /// \param t One of use_module, use_colvar or use_bias
@@ -182,6 +198,53 @@ public:
     return this->proxy_;
   }
 
+  // Input functions - get the string reps of script argument objects
+
+  /// Get the string representation of an object (by default, a simple cast)
+  char *obj_to_str(unsigned char *obj);
+
+  /// Get a list of strings from an object (does not work with a simple cast)
+  std::vector<std::string> obj_to_str_vector(unsigned char *obj);
+
+
+  // Output functions - convert internal objects to representations suitable
+  // for use in the scripting language.  At the moment only conversion to C
+  // strings is supported, and obj is assumed to be a char * pointer.
+
+  /// Copy x into obj if not NULL, or into the script object's result otherwise
+  int set_result_int(int const &x, unsigned char *obj = NULL);
+
+  /// Copy x into obj if not NULL, or into the script object's result otherwise
+  int set_result_int_vec(std::vector<int> const &x, unsigned char *obj = NULL);
+
+  /// Copy x into obj if not NULL, or into the script object's result otherwise
+  int set_result_long_int(long int const &x, unsigned char *obj = NULL);
+
+  /// Copy x into obj if not NULL, or into the script object's result otherwise
+  int set_result_long_int_vec(std::vector<long int> const &x,
+                              unsigned char *obj = NULL);
+
+  /// Copy x into obj if not NULL, or into the script object's result otherwise
+  int set_result_real(cvm::real const &x, unsigned char *obj = NULL);
+
+  /// Copy x into obj if not NULL, or into the script object's result otherwise
+  int set_result_real_vec(std::vector<cvm::real> const &x,
+                          unsigned char *obj = NULL);
+
+  /// Copy x into obj if not NULL, or into the script object's result otherwise
+  int set_result_rvector(cvm::rvector const &x, unsigned char *obj = NULL);
+
+  /// Copy x into obj if not NULL, or into the script object's result otherwise
+  int set_result_rvector_vec(std::vector<cvm::rvector> const &x,
+                             unsigned char *obj = NULL);
+
+  /// Copy x into obj if not NULL, or into the script object's result otherwise
+  int set_result_colvarvalue(colvarvalue const &x, unsigned char *obj = NULL);
+
+  /// Copy x into obj if not NULL, or into the script object's result otherwise
+  int set_result_colvarvalue_vec(std::vector<colvarvalue> const &x,
+                                 unsigned char *obj = NULL);
+
 private:
 
   /// Set up all script API functions
@@ -192,14 +255,6 @@ private:
                    char const *name, char const *help,
                    int n_args_min, int n_args_max, char const *arghelp,
                    int (*fn)(void *, int, unsigned char * const *));
-
-  /// Execute a script command
-  inline int exec_command(command c,
-                          void *pobj,
-                          int objc, unsigned char * const *objv)
-  {
-    return (*(cmd_fns[c]))(pobj, objc, objv);
-  }
 
 public: // TODO this function will be removed soon
 
@@ -218,6 +273,9 @@ private: // TODO
   /// Help strings for each command
   std::vector<std::string> cmd_help;
 
+  /// Description of the return values of each command (may be empty)
+  std::vector<std::string> cmd_rethelp;
+
   /// Minimum number of arguments for each command
   std::vector<size_t> cmd_n_args_min;
 
@@ -226,6 +284,9 @@ private: // TODO
 
   /// Help strings for each command argument
   std::vector< std::vector<std::string> > cmd_arghelp;
+
+  /// Full help strings for each command
+  std::vector<std::string> cmd_full_help;
 
   /// Implementations of each command
   std::vector<int (*)(void *, int, unsigned char * const *)> cmd_fns;
@@ -240,6 +301,18 @@ private: // TODO
     }
     return NULL;
   }
+
+  /// Set obj equal to x, using its string representation
+  template <typename T>
+  int set_result_text(T const &x, unsigned char *obj);
+
+  /// Code reused by instances of set_result_text()
+  template <typename T>
+  int pack_vector_elements_text(std::vector<T> const &x, std::string &x_str);
+
+  /// Code reused by all instances of set_result_text()
+  int set_result_text_from_str(std::string const &x_str, unsigned char *obj);
+
 
 };
 
@@ -305,13 +378,15 @@ int colvarscript::check_cmd_nargs(char const *cmd,
 {
   int const shift = cmd_arg_shift<T>();
   if (objc < shift+n_args_min) {
-    add_error_msg("Missing arguments for script function \""+std::string(cmd)+
-                  "\":\n"+get_command_help(cmd));
+    add_error_msg("Insufficient number of arguments ("+cvm::to_str(objc)+
+                  ") for script function \""+std::string(cmd)+
+                  "\":\n"+get_command_full_help(cmd));
     return COLVARSCRIPT_ERROR;
   }
   if (objc > shift+n_args_max) {
-    add_error_msg("Too many arguments for script function \""+std::string(cmd)+
-                  "\":\n"+get_command_help(cmd));
+    add_error_msg("Too many arguments ("+cvm::to_str(objc)+
+                  ") for script function \""+std::string(cmd)+
+                  "\":\n"+get_command_full_help(cmd));
     return COLVARSCRIPT_ERROR;
   }
   return COLVARSCRIPT_OK;
@@ -363,18 +438,6 @@ int colvarscript::cmd_arg_shift()
 
 
 extern "C" {
-
-#if defined(COLVARS_TCL)
-  /// Run the script API via Tcl command-line interface
-  /// \param clientData Not used
-  /// \param my_interp Pointer to Tcl_Interp object (read from Colvars if NULL)
-  /// \param objc Number of Tcl command parameters
-  /// \param objv Array of command parameters
-  /// \return Result of the script command
-  int tcl_run_colvarscript_command(ClientData clientData,
-                                   Tcl_Interp *interp_in,
-                                   int objc, Tcl_Obj *const objv[]);
-#endif // #if defined(COLVARS_TCL)
 
   /// Generic wrapper for string-based scripting
   int run_colvarscript_command(int objc, unsigned char *const objv[]);

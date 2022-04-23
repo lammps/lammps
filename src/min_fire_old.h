@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef MINIMIZE_CLASS
-
-MinimizeStyle(fire/old,MinFireOld)
-
+// clang-format off
+MinimizeStyle(fire/old,MinFireOld);
+// clang-format on
 #else
 
 #ifndef LMP_MIN_FIRE_OLD_H
@@ -27,19 +27,19 @@ namespace LAMMPS_NS {
 class MinFireOld : public Min {
  public:
   MinFireOld(class LAMMPS *);
-  ~MinFireOld() {}
-  void init();
-  void setup_style();
-  void reset_vectors();
-  int iterate(int);
+
+  void init() override;
+  void setup_style() override;
+  void reset_vectors() override;
+  int iterate(int) override;
 
  private:
-  double dt,dtmax;
+  double dt, dtmax;
   double alpha;
   bigint last_negative;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

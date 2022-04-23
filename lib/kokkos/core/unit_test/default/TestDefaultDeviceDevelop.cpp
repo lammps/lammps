@@ -47,7 +47,7 @@
 
 #include <Kokkos_Core.hpp>
 
-#include <default/TestDefaultDeviceType_Category.hpp>
+#include <TestDefaultDeviceType_Category.hpp>
 
 namespace Test {
 

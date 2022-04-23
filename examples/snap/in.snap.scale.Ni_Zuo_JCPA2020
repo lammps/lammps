@@ -1,0 +1,53 @@
+# Toy demonstration of SNAP "scale" parameter, using fix/adapt and hybrid/overlay
+# Mixing linear and quadratic SNAP Ni potentials by Zuo et al. JCPA 2020
+
+# mixing parameter
+
+variable lambda equal 0.2
+
+
+# Initialize simulation
+
+variable nsteps index 100
+variable nrep equal 3
+variable a equal 3.52
+units           metal
+
+# generate the box and atom positions using a FCC lattice
+variable nx equal ${nrep}
+variable ny equal ${nrep}
+variable nz equal ${nrep}
+
+boundary        p p p
+
+lattice         fcc $a
+region          box block 0 ${nx} 0 ${ny} 0 ${nz}
+create_box      1 box
+create_atoms    1 box
+
+mass 1 34.
+
+# choose bundled SNAP Ni potential from Zuo et al. JCPA 2020
+pair_style hybrid/overlay snap snap
+pair_coeff * * snap 1 Ni_Zuo_JPCA2020.snapcoeff Ni_Zuo_JPCA2020.snapparam Ni
+pair_coeff * * snap 2 Ni_Zuo_JPCA2020.quadratic.snapcoeff Ni_Zuo_JPCA2020.quadratic.snapparam Ni
+
+# scale according to mixing parameter
+variable l1 equal ${lambda}
+variable l2 equal 1.0-${lambda}
+fix scale1 all adapt 1 pair snap:1 scale * * v_l1
+fix scale2 all adapt 1 pair snap:2 scale * * v_l2
+
+# Setup output
+thermo          1
+thermo_modify norm yes
+
+# Set up NVE run
+timestep 0.5e-3
+neighbor 1.0 bin
+neigh_modify every 1 delay 0 check yes
+
+# Run MD
+velocity all create 300.0 4928459 loop geom
+fix 1 all nve
+run             ${nsteps}

@@ -169,7 +169,7 @@ in the array is the number of inputs provided.  The length of the
 vector or the number of vector elements or array rows = the number of
 chunks *Nchunk* as calculated by the specified :doc:`compute chunk/atom <compute_chunk_atom>` command.  The vector or array can
 be accessed by any command that uses global values from a compute as
-input.  See the :doc:`Howto output <Howto_output>` doc page for an
+input.  See the :doc:`Howto output <Howto_output>` page for an
 overview of LAMMPS output options.
 
 The per-atom values for the vector or each column of the array will be

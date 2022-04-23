@@ -141,7 +141,7 @@ commands, or by mixing as described below:
 
 * cutoff (distance units)
 
-For *eff/cut*\ , the cutoff coefficient is optional.  If it is not used
+For *eff/cut*, the cutoff coefficient is optional.  If it is not used
 (as in some of the examples above), the default global value specified
 in the pair_style command is used.
 
@@ -232,7 +232,7 @@ complexity in higher Z elements (up to Z<18).  A fixed-core should be
 defined with a mass that includes the corresponding nuclear mass plus
 the 2 s electrons in atomic mass units (2x5.4857990943e-4), and a
 radius equivalent to that of minimized 1s electrons (see examples
-under /examples/USER/eff/fixed-core).  An pseudo-core should be
+under /examples/PACKAGES/eff/fixed-core).  An pseudo-core should be
 described with a mass that includes the corresponding nuclear mass,
 plus all the core electrons (i.e no outer shell electrons), and a
 radius equivalent to that of a corresponding minimized full-electron
@@ -283,7 +283,7 @@ to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -291,8 +291,8 @@ Restrictions
 """"""""""""
 
 These pair styles will only be enabled if LAMMPS is built with the
-USER-EFF package.  It will only be enabled if LAMMPS was built with
-that package.  See the :doc:`Build package <Build_package>` doc page for
+EFF package.  It will only be enabled if LAMMPS was built with
+that package.  See the :doc:`Build package <Build_package>` page for
 more info.
 
 These pair styles require that particles store electron attributes

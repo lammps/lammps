@@ -52,6 +52,15 @@
 #include <omp.h>
 #endif
 
+// To use OpenCL(TM) built-in intrinsics inside kernels, we have to
+// forward-declare their prototype, also see
+// https://github.com/intel/pti-gpu/blob/master/chapters/binary_instrumentation/OpenCLBuiltIn.md
+#if defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GPU) && \
+    defined(__SYCL_DEVICE_ONLY__)
+extern SYCL_EXTERNAL unsigned long __attribute__((overloadable))
+intel_get_cycle_counter();
+#endif
+
 namespace Kokkos {
 namespace Impl {
 
@@ -69,13 +78,16 @@ namespace Impl {
  */
 
 KOKKOS_FORCEINLINE_FUNCTION
-uint64_t clock_tic(void) noexcept {
+uint64_t clock_tic() noexcept {
 #if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
 
   // Return value of 64-bit hi-res clock register.
 
   return clock64();
 
+#elif defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GPU) && \
+    defined(__SYCL_DEVICE_ONLY__)
+  return intel_get_cycle_counter();
 #elif defined(KOKKOS_ENABLE_OPENMPTARGET)
   return uint64_t(omp_get_wtime() * 1.e9);
 #elif defined(__i386__) || defined(__x86_64)

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "../testing/core.h"
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "atom_vec_ellipsoid.h"
@@ -39,11 +40,7 @@
 #elif defined(__GNUC__)
 #if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 9))
 #pragma GCC optimize("no-var-tracking-assignments", "O0")
-#else
-#pragma GCC optimize("no-var-tracking-assignments")
 #endif
-#else
-#define _do_nothing
 #endif
 #endif
 
@@ -51,7 +48,7 @@
 
 using LAMMPS_NS::utils::split_words;
 
-static void create_molecule_files()
+static void create_molecule_files(const std::string &h2o_filename, const std::string &co2_filename)
 {
     // create molecule files
     const char h2o_file[] = "# Water molecule. SPC/E model.\n\n3 atoms\n2 bonds\n1 angles\n\n"
@@ -76,18 +73,16 @@ static void create_molecule_files()
                             "Special Bond Counts\n\n1 2 0 0\n2 1 1 0\n3 1 1 0\n\n"
                             "Special Bonds\n\n1 2 3\n2 1 3\n3 1 2\n\n";
 
-    FILE *fp = fopen("tmp.h2o.mol", "w");
+    FILE *fp = fopen(h2o_filename.c_str(), "w");
     if (fp) {
         fputs(h2o_file, fp);
         fclose(fp);
     }
-    rename("tmp.h2o.mol", "h2o.mol");
-    fp = fopen("tmp.co2.mol", "w");
+    fp = fopen(co2_filename.c_str(), "w");
     if (fp) {
         fputs(co2_file, fp);
         fclose(fp);
     }
-    rename("tmp.co2.mol", "co2.mol");
 }
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
@@ -98,32 +93,32 @@ const double EPSILON = 5.0e-14;
 namespace LAMMPS_NS {
 using ::testing::Eq;
 
-class AtomStyleTest : public ::testing::Test {
+class AtomStyleTest : public LAMMPSTest {
 protected:
-    LAMMPS *lmp;
+    static void SetUpTestSuite() { create_molecule_files("h2o.mol", "co2.mol"); }
+
+    static void TearDownTestSuite()
+    {
+        remove("h2o.mol");
+        remove("co2.mol");
+    }
 
     void SetUp() override
     {
-        const char *args[] = {"SimpleCommandsTest", "-log", "none", "-echo", "screen", "-nocite"};
-        char **argv        = (char **)args;
-        int argc           = sizeof(args) / sizeof(char *);
-        if (!verbose) ::testing::internal::CaptureStdout();
-        lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        testbinary = "AtomStyleTest";
+        LAMMPSTest::SetUp();
         ASSERT_NE(lmp, nullptr);
-        if (!verbose) ::testing::internal::CaptureStdout();
-        lmp->input->one("units real");
-        lmp->input->one("dimension 3");
-        lmp->input->one("pair_style zero 4.0");
-        lmp->input->one("region box block -4 4 -4 4 -4 4");
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        BEGIN_HIDE_OUTPUT();
+        command("units real");
+        command("dimension 3");
+        command("pair_style zero 4.0");
+        command("region box block -4 4 -4 4 -4 4");
+        END_HIDE_OUTPUT();
     }
 
     void TearDown() override
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
-        delete lmp;
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        LAMMPSTest::TearDown();
         remove("test_atom_styles.data");
         remove("input_atom_styles.data");
         remove("test_atom_styles.restart");
@@ -241,13 +236,21 @@ struct AtomState {
     bool has_dihedral = false;
     bool has_improper = false;
 
-    bool has_iname        = false;
-    bool has_dname        = false;
+    bool has_ivname       = false;
+    bool has_dvname       = false;
+    bool has_ianame       = false;
+    bool has_daname       = false;
     bool has_mass         = false;
     bool has_mass_setflag = false;
 
     bool has_nspecial = false;
     bool has_special  = false;
+
+    bool has_extra_grow    = false;
+    bool has_extra_restart = false;
+    bool has_extra_border  = false;
+    bool has_extra         = false;
+    bool has_sametag       = false;
 };
 
 #define ASSERT_ARRAY_ALLOCATED(ptr, enabled) \
@@ -265,7 +268,7 @@ void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
     ASSERT_EQ(atom->natoms, expected.natoms);
     ASSERT_EQ(atom->nlocal, expected.nlocal);
     ASSERT_EQ(atom->nghost, expected.nghost);
-    ASSERT_EQ(atom->nmax, expected.nmax);
+    ASSERT_EQ(atom->nmax == 1, expected.nmax == 1);
     ASSERT_EQ(atom->tag_enable, expected.tag_enable);
     ASSERT_EQ(atom->molecular, expected.molecular);
     ASSERT_EQ(atom->nellipsoids, expected.nellipsoids);
@@ -442,8 +445,10 @@ void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
     ASSERT_EQ(atom->nivector, expected.nivector);
     ASSERT_EQ(atom->ndvector, expected.ndvector);
 
-    ASSERT_ARRAY_ALLOCATED(atom->iname, expected.has_iname);
-    ASSERT_ARRAY_ALLOCATED(atom->dname, expected.has_dname);
+    ASSERT_ARRAY_ALLOCATED(atom->ivname, expected.has_ivname);
+    ASSERT_ARRAY_ALLOCATED(atom->dvname, expected.has_dvname);
+    ASSERT_ARRAY_ALLOCATED(atom->ianame, expected.has_ianame);
+    ASSERT_ARRAY_ALLOCATED(atom->daname, expected.has_daname);
     ASSERT_ARRAY_ALLOCATED(atom->mass, expected.has_mass);
     ASSERT_ARRAY_ALLOCATED(atom->mass_setflag, expected.has_mass_setflag);
 
@@ -455,11 +460,11 @@ void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
     ASSERT_EQ(atom->nextra_border_max, expected.nextra_border_max);
     ASSERT_EQ(atom->nextra_store, expected.nextra_store);
 
-    ASSERT_ARRAY_ALLOCATED(atom->extra_grow, false);
-    ASSERT_ARRAY_ALLOCATED(atom->extra_restart, false);
-    ASSERT_ARRAY_ALLOCATED(atom->extra_border, false);
-    ASSERT_ARRAY_ALLOCATED(atom->extra, false);
-    ASSERT_ARRAY_ALLOCATED(atom->sametag, false);
+    ASSERT_ARRAY_ALLOCATED(atom->extra_grow, expected.has_extra_grow);
+    ASSERT_ARRAY_ALLOCATED(atom->extra_restart, expected.has_extra_restart);
+    ASSERT_ARRAY_ALLOCATED(atom->extra_border, expected.has_extra_border);
+    ASSERT_ARRAY_ALLOCATED(atom->extra, expected.has_extra);
+    ASSERT_ARRAY_ALLOCATED(atom->sametag, expected.has_sametag);
 
     ASSERT_EQ(atom->map_style, expected.map_style);
     ASSERT_EQ(atom->map_user, expected.map_user);
@@ -495,27 +500,27 @@ TEST_F(AtomStyleTest, atomic_after_charge)
     expected.has_v      = true;
     expected.has_f      = true;
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("atom_style charge");
-    lmp->input->one("atom_style atomic");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("atom_style charge");
+    command("atom_style atomic");
+    END_HIDE_OUTPUT();
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 }
 
 TEST_F(AtomStyleTest, atomic)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("atom_modify map hash");
-    lmp->input->one("create_box 2 box");
-    lmp->input->one("create_atoms 1 single -2.0  2.0  0.1");
-    lmp->input->one("create_atoms 1 single -2.0 -2.0 -0.1");
-    lmp->input->one("create_atoms 2 single  2.0  2.0 -0.1");
-    lmp->input->one("create_atoms 2 single  2.0 -2.0  0.1");
-    lmp->input->one("mass 1 4.0");
-    lmp->input->one("mass 2 2.4");
-    lmp->input->one("pair_coeff * *");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("atom_modify map hash");
+    command("create_box 2 box");
+    command("create_atoms 1 single -2.0  2.0  0.1");
+    command("create_atoms 1 single -2.0 -2.0 -0.1");
+    command("create_atoms 2 single  2.0  2.0 -0.1");
+    command("create_atoms 2 single  2.0 -2.0  0.1");
+    command("mass 1 4.0");
+    command("mass 2 2.4");
+    command("pair_coeff * *");
+    END_HIDE_OUTPUT();
 
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
     ASSERT_NE(lmp->atom->avec, nullptr);
@@ -533,16 +538,16 @@ TEST_F(AtomStyleTest, atomic)
     ASSERT_EQ(lmp->atom->map_style, Atom::MAP_HASH);
     ASSERT_EQ(lmp->atom->map_user, 2);
     ASSERT_EQ(lmp->atom->map_tag_max, 4);
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("pair_coeff * *");
-    lmp->input->one("write_data test_atom_styles.data nocoeff");
-    lmp->input->one("clear");
-    lmp->input->one("atom_style atomic");
-    lmp->input->one("pair_style zero 4.0");
-    lmp->input->one("atom_modify map array");
-    lmp->input->one("units real");
-    lmp->input->one("read_data test_atom_styles.data");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("pair_coeff * *");
+    command("write_data test_atom_styles.data nocoeff");
+    command("clear");
+    command("atom_style atomic");
+    command("pair_style zero 4.0");
+    command("atom_modify map array");
+    command("units real");
+    command("read_data test_atom_styles.data");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 4);
@@ -590,14 +595,14 @@ TEST_F(AtomStyleTest, atomic)
     ASSERT_EQ(lmp->atom->map_tag_max, 4);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("pair_coeff * *");
-    lmp->input->one("group two id 2:4:2");
-    lmp->input->one("delete_atoms group two compress no");
-    lmp->input->one("write_restart test_atom_styles.restart");
-    lmp->input->one("clear");
-    lmp->input->one("read_restart test_atom_styles.restart");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("pair_coeff * *");
+    command("group two id 2:4:2");
+    command("delete_atoms group two compress no");
+    command("write_restart test_atom_styles.restart");
+    command("clear");
+    command("read_restart test_atom_styles.restart");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 2);
@@ -631,16 +636,16 @@ TEST_F(AtomStyleTest, atomic)
     ASSERT_EQ(lmp->atom->map_style, Atom::MAP_ARRAY);
     ASSERT_EQ(lmp->atom->map_user, 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 3);
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_atom_ids");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("reset_atom_ids");
+    END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->map_tag_max, 2);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("comm_style tiled");
-    lmp->input->one("change_box all triclinic");
-    lmp->input->one("replicate 2 2 2");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("comm_style tiled");
+    command("change_box all triclinic");
+    command("replicate 2 2 2");
+    END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->map_tag_max, 16);
     x   = lmp->atom->x;
     tag = lmp->atom->tag;
@@ -696,9 +701,9 @@ TEST_F(AtomStyleTest, atomic)
 
 TEST_F(AtomStyleTest, charge)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("atom_style charge");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("atom_style charge");
+    END_HIDE_OUTPUT();
 
     AtomState expected;
     expected.atom_style = "charge";
@@ -713,20 +718,20 @@ TEST_F(AtomStyleTest, charge)
     expected.q_flag     = 1;
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("create_box 2 box");
-    lmp->input->one("create_atoms 1 single -2.0  2.0  0.1");
-    lmp->input->one("create_atoms 1 single -2.0 -2.0 -0.1");
-    lmp->input->one("create_atoms 2 single  2.0  2.0 -0.1");
-    lmp->input->one("create_atoms 2 single  2.0 -2.0  0.1");
-    lmp->input->one("mass 1 4.0");
-    lmp->input->one("mass 2 2.4");
-    lmp->input->one("set atom 1 charge -0.5");
-    lmp->input->one("set atom 2 charge  0.5");
-    lmp->input->one("set atom 3 charge -1.0");
-    lmp->input->one("set atom 4 charge  1.0");
-    lmp->input->one("pair_coeff * *");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("create_box 2 box");
+    command("create_atoms 1 single -2.0  2.0  0.1");
+    command("create_atoms 1 single -2.0 -2.0 -0.1");
+    command("create_atoms 2 single  2.0  2.0 -0.1");
+    command("create_atoms 2 single  2.0 -2.0  0.1");
+    command("mass 1 4.0");
+    command("mass 2 2.4");
+    command("set atom 1 charge -0.5");
+    command("set atom 2 charge  0.5");
+    command("set atom 3 charge -1.0");
+    command("set atom 4 charge  1.0");
+    command("pair_coeff * *");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("charge"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 4);
@@ -739,16 +744,16 @@ TEST_F(AtomStyleTest, charge)
 
     ASSERT_NE(lmp->atom->mass, nullptr);
     ASSERT_NE(lmp->atom->mass_setflag, nullptr);
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("pair_coeff * *");
-    lmp->input->one("write_data test_atom_styles.data nocoeff");
-    lmp->input->one("clear");
-    lmp->input->one("atom_style charge");
-    lmp->input->one("pair_style zero 4.0");
-    lmp->input->one("units real");
-    lmp->input->one("atom_modify map array");
-    lmp->input->one("read_data test_atom_styles.data");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("pair_coeff * *");
+    command("write_data test_atom_styles.data nocoeff");
+    command("clear");
+    command("atom_style charge");
+    command("pair_style zero 4.0");
+    command("units real");
+    command("atom_modify map array");
+    command("read_data test_atom_styles.data");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("charge"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 4);
@@ -802,15 +807,15 @@ TEST_F(AtomStyleTest, charge)
     ASSERT_EQ(lmp->atom->mass_setflag[1], 1);
     ASSERT_EQ(lmp->atom->mass_setflag[2], 1);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("pair_coeff * *");
-    lmp->input->one("group two id 2:4:2");
-    lmp->input->one("delete_atoms group two compress no");
-    lmp->input->one("write_restart test_atom_styles.restart");
-    lmp->input->one("clear");
+    BEGIN_HIDE_OUTPUT();
+    command("pair_coeff * *");
+    command("group two id 2:4:2");
+    command("delete_atoms group two compress no");
+    command("write_restart test_atom_styles.restart");
+    command("clear");
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
-    lmp->input->one("read_restart test_atom_styles.restart");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    command("read_restart test_atom_styles.restart");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("charge"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 2);
@@ -846,11 +851,11 @@ TEST_F(AtomStyleTest, charge)
     ASSERT_EQ(lmp->atom->mass_setflag[1], 1);
     ASSERT_EQ(lmp->atom->mass_setflag[2], 1);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_atom_ids");
-    lmp->input->one("change_box all triclinic");
-    lmp->input->one("replicate 2 2 2 bbox");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("reset_atom_ids");
+    command("change_box all triclinic");
+    command("replicate 2 2 2 bbox");
+    END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->map_tag_max, 16);
     q = lmp->atom->q;
     EXPECT_NEAR(q[GETIDX(1)], -0.5, EPSILON);
@@ -873,9 +878,9 @@ TEST_F(AtomStyleTest, charge)
 
 TEST_F(AtomStyleTest, sphere)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("atom_style sphere");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("atom_style sphere");
+    END_HIDE_OUTPUT();
 
     AtomState expected;
     expected.atom_style  = "sphere";
@@ -895,22 +900,22 @@ TEST_F(AtomStyleTest, sphere)
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("create_box 2 box");
-    lmp->input->one("create_atoms 1 single -2.0  2.0  0.1");
-    lmp->input->one("create_atoms 1 single -2.0 -2.0 -0.1");
-    lmp->input->one("create_atoms 2 single  2.0  2.0 -0.1");
-    lmp->input->one("create_atoms 2 single  2.0 -2.0  0.1");
-    lmp->input->one("set atom 1 mass 4.0");
-    lmp->input->one("set atom 2 mass 4.0");
-    lmp->input->one("set atom 3 mass 2.4");
-    lmp->input->one("set atom 4 mass 2.4");
-    lmp->input->one("set atom 1 omega -0.5  0.1  0.1");
-    lmp->input->one("set atom 2 omega  0.5 -0.1 -0.1");
-    lmp->input->one("set atom 3 omega -1.0  0.0  0.0");
-    lmp->input->one("set atom 4 omega  0.0  1.0  0.0");
-    lmp->input->one("pair_coeff * *");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("create_box 2 box");
+    command("create_atoms 1 single -2.0  2.0  0.1");
+    command("create_atoms 1 single -2.0 -2.0 -0.1");
+    command("create_atoms 2 single  2.0  2.0 -0.1");
+    command("create_atoms 2 single  2.0 -2.0  0.1");
+    command("set atom 1 mass 4.0");
+    command("set atom 2 mass 4.0");
+    command("set atom 3 mass 2.4");
+    command("set atom 4 mass 2.4");
+    command("set atom 1 omega -0.5  0.1  0.1");
+    command("set atom 2 omega  0.5 -0.1 -0.1");
+    command("set atom 3 omega -1.0  0.0  0.0");
+    command("set atom 4 omega  0.0  1.0  0.0");
+    command("pair_coeff * *");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("sphere"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 4);
@@ -924,16 +929,16 @@ TEST_F(AtomStyleTest, sphere)
     ASSERT_EQ(lmp->atom->mass, nullptr);
     ASSERT_EQ(lmp->atom->mass_setflag, nullptr);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("pair_coeff * *");
-    lmp->input->one("write_data test_atom_styles.data nocoeff");
-    lmp->input->one("clear");
-    lmp->input->one("atom_style sphere");
-    lmp->input->one("pair_style zero 4.0");
-    lmp->input->one("units real");
-    lmp->input->one("atom_modify map array");
-    lmp->input->one("read_data test_atom_styles.data");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("pair_coeff * *");
+    command("write_data test_atom_styles.data nocoeff");
+    command("clear");
+    command("atom_style sphere");
+    command("pair_style zero 4.0");
+    command("units real");
+    command("atom_modify map array");
+    command("read_data test_atom_styles.data");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("sphere"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 4);
@@ -997,17 +1002,17 @@ TEST_F(AtomStyleTest, sphere)
     EXPECT_NEAR(omega[GETIDX(4)][1], 1.0, EPSILON);
     EXPECT_NEAR(omega[GETIDX(4)][2], 0.0, EPSILON);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("pair_coeff * *");
-    lmp->input->one("group two id 2:4:2");
-    lmp->input->one("delete_atoms group two compress no");
-    lmp->input->one("write_restart test_atom_styles.restart");
-    lmp->input->one("clear");
+    BEGIN_HIDE_OUTPUT();
+    command("pair_coeff * *");
+    command("group two id 2:4:2");
+    command("delete_atoms group two compress no");
+    command("write_restart test_atom_styles.restart");
+    command("clear");
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
-    lmp->input->one("read_restart test_atom_styles.restart");
-    lmp->input->one("replicate 1 1 2");
-    lmp->input->one("reset_atom_ids");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    command("read_restart test_atom_styles.restart");
+    command("replicate 1 1 2");
+    command("reset_atom_ids");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("sphere"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 4);
@@ -1044,9 +1049,9 @@ TEST_F(AtomStyleTest, ellipsoid)
 {
     if (!LAMMPS::is_installed_pkg("ASPHERE")) GTEST_SKIP();
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("atom_style ellipsoid");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("atom_style ellipsoid");
+    END_HIDE_OUTPUT();
 
     AtomState expected;
     expected.atom_style     = "ellipsoid";
@@ -1065,25 +1070,25 @@ TEST_F(AtomStyleTest, ellipsoid)
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("create_box 3 box");
-    lmp->input->one("create_atoms 1 single -2.0  2.0  0.1");
-    lmp->input->one("create_atoms 1 single -2.0 -2.0 -0.1");
-    lmp->input->one("create_atoms 2 single  2.0  2.0 -0.1");
-    lmp->input->one("create_atoms 2 single  2.0 -2.0  0.1");
-    lmp->input->one("create_atoms 3 single  2.0  2.0 -2.1");
-    lmp->input->one("create_atoms 3 single  2.0 -2.0  2.1");
-    lmp->input->one("set type 1 mass 4.0");
-    lmp->input->one("set type 2 mass 2.4");
-    lmp->input->one("set type 3 mass 4.4");
-    lmp->input->one("set type 1 shape 1.0 1.0 1.0");
-    lmp->input->one("set type 2 shape 3.0 0.8 1.1");
-    lmp->input->one("set atom 1 quat 1.0 0.0 0.0  0.0");
-    lmp->input->one("set atom 2 quat 0.0 1.0 0.0 90.0");
-    lmp->input->one("set atom 3 quat 1.0 0.0 1.0 30.0");
-    lmp->input->one("set atom 4 quat 1.0 1.0 1.0 60.0");
-    lmp->input->one("pair_coeff * *");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("create_box 3 box");
+    command("create_atoms 1 single -2.0  2.0  0.1");
+    command("create_atoms 1 single -2.0 -2.0 -0.1");
+    command("create_atoms 2 single  2.0  2.0 -0.1");
+    command("create_atoms 2 single  2.0 -2.0  0.1");
+    command("create_atoms 3 single  2.0  2.0 -2.1");
+    command("create_atoms 3 single  2.0 -2.0  2.1");
+    command("set type 1 mass 4.0");
+    command("set type 2 mass 2.4");
+    command("set type 3 mass 4.4");
+    command("set type 1 shape 1.0 1.0 1.0");
+    command("set type 2 shape 3.0 0.8 1.1");
+    command("set atom 1 quat 1.0 0.0 0.0  0.0");
+    command("set atom 2 quat 0.0 1.0 0.0 90.0");
+    command("set atom 3 quat 1.0 0.0 1.0 30.0");
+    command("set atom 4 quat 1.0 1.0 1.0 60.0");
+    command("pair_coeff * *");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("ellipsoid"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 6);
@@ -1111,16 +1116,16 @@ TEST_F(AtomStyleTest, ellipsoid)
     ASSERT_NE(lmp->atom->ellipsoid, nullptr);
     ASSERT_EQ(lmp->atom->mass_setflag, nullptr);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("write_data test_atom_styles.data nocoeff");
-    lmp->input->one("clear");
-    lmp->input->one("atom_style ellipsoid");
-    lmp->input->one("pair_style zero 4.0");
-    lmp->input->one("units real");
-    lmp->input->one("atom_modify map array");
-    lmp->input->one("read_data test_atom_styles.data");
-    lmp->input->one("pair_coeff * *");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("write_data test_atom_styles.data nocoeff");
+    command("clear");
+    command("atom_style ellipsoid");
+    command("pair_style zero 4.0");
+    command("units real");
+    command("atom_modify map array");
+    command("read_data test_atom_styles.data");
+    command("pair_coeff * *");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("ellipsoid"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 6);
@@ -1230,15 +1235,15 @@ TEST_F(AtomStyleTest, ellipsoid)
     EXPECT_NEAR(bonus[3].quat[2], sqrt(5.0 / 30.0), EPSILON);
     EXPECT_NEAR(bonus[3].quat[3], sqrt(5.0 / 30.0), EPSILON);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("group two id 2:4:2");
-    lmp->input->one("delete_atoms group two compress no");
-    lmp->input->one("write_restart test_atom_styles.restart");
-    lmp->input->one("clear");
-    lmp->input->one("read_restart test_atom_styles.restart");
-    lmp->input->one("comm_style tiled");
-    lmp->input->one("replicate 1 1 2 bbox");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("group two id 2:4:2");
+    command("delete_atoms group two compress no");
+    command("write_restart test_atom_styles.restart");
+    command("clear");
+    command("read_restart test_atom_styles.restart");
+    command("comm_style tiled");
+    command("replicate 1 1 2 bbox");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("ellipsoid"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 8);
@@ -1311,9 +1316,9 @@ TEST_F(AtomStyleTest, ellipsoid)
     EXPECT_NEAR(bonus[3].quat[2], 0.0, EPSILON);
     EXPECT_NEAR(bonus[3].quat[3], 0.25056280708573159, EPSILON);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_atom_ids");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("reset_atom_ids");
+    END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->nellipsoids, 4);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 8);
@@ -1381,10 +1386,10 @@ TEST_F(AtomStyleTest, line)
 {
     if (!LAMMPS::is_installed_pkg("ASPHERE")) GTEST_SKIP();
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("dimension 2");
-    lmp->input->one("atom_style line");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("dimension 2");
+    command("atom_style line");
+    END_HIDE_OUTPUT();
 
     AtomState expected;
     expected.atom_style    = "line";
@@ -1406,25 +1411,25 @@ TEST_F(AtomStyleTest, line)
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("create_box 3 box");
-    lmp->input->one("create_atoms 1 single -2.0  2.0  0.0");
-    lmp->input->one("create_atoms 1 single -2.0 -2.0  0.0");
-    lmp->input->one("create_atoms 2 single  2.0  2.0  0.0");
-    lmp->input->one("create_atoms 2 single  2.0 -2.0  0.0");
-    lmp->input->one("create_atoms 3 single  3.0  0.0  0.0");
-    lmp->input->one("create_atoms 3 single  0.0 -3.0  0.0");
-    lmp->input->one("set type 1 mass 4.0");
-    lmp->input->one("set type 2 mass 2.4");
-    lmp->input->one("set type 3 mass 4.4");
-    lmp->input->one("set type 1 length 2.0");
-    lmp->input->one("set type 2 length 3.0");
-    lmp->input->one("set atom 1 theta 0.0");
-    lmp->input->one("set atom 2 theta 90.0");
-    lmp->input->one("set atom 3 theta 30.0");
-    lmp->input->one("set atom 4 theta 60.0");
-    lmp->input->one("pair_coeff * *");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("create_box 3 box");
+    command("create_atoms 1 single -2.0  2.0  0.0");
+    command("create_atoms 1 single -2.0 -2.0  0.0");
+    command("create_atoms 2 single  2.0  2.0  0.0");
+    command("create_atoms 2 single  2.0 -2.0  0.0");
+    command("create_atoms 3 single  3.0  0.0  0.0");
+    command("create_atoms 3 single  0.0 -3.0  0.0");
+    command("set type 1 mass 4.0");
+    command("set type 2 mass 2.4");
+    command("set type 3 mass 4.4");
+    command("set type 1 length 2.0");
+    command("set type 2 length 3.0");
+    command("set atom 1 theta 0.0");
+    command("set atom 2 theta 90.0");
+    command("set atom 3 theta 30.0");
+    command("set atom 4 theta 60.0");
+    command("pair_coeff * *");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("line"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 6);
@@ -1440,16 +1445,16 @@ TEST_F(AtomStyleTest, line)
     ASSERT_NE(lmp->atom->rmass, nullptr);
     ASSERT_EQ(lmp->atom->mass_setflag, nullptr);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("write_data test_atom_styles.data nocoeff");
-    lmp->input->one("clear");
-    lmp->input->one("dimension 2");
-    lmp->input->one("atom_style line");
-    lmp->input->one("pair_style zero 4.0");
-    lmp->input->one("units real");
-    lmp->input->one("atom_modify map array");
-    lmp->input->one("read_data test_atom_styles.data");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("write_data test_atom_styles.data nocoeff");
+    command("clear");
+    command("dimension 2");
+    command("atom_style line");
+    command("pair_style zero 4.0");
+    command("units real");
+    command("atom_modify map array");
+    command("read_data test_atom_styles.data");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("line"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 6);
@@ -1539,17 +1544,17 @@ TEST_F(AtomStyleTest, line)
     EXPECT_NEAR(bonus[3].length, 3.0, EPSILON);
     EXPECT_NEAR(bonus[3].theta, MathConst::MY_PI / 3.0, EPSILON);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("pair_coeff * *");
-    lmp->input->one("group two id 2:4:2");
-    lmp->input->one("delete_atoms group two compress no");
-    lmp->input->one("write_restart test_atom_styles.restart");
-    lmp->input->one("clear");
-    lmp->input->one("read_restart test_atom_styles.restart");
-    lmp->input->one("comm_style tiled");
-    lmp->input->one("change_box all triclinic");
-    lmp->input->one("replicate 1 2 1 bbox");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("pair_coeff * *");
+    command("group two id 2:4:2");
+    command("delete_atoms group two compress no");
+    command("write_restart test_atom_styles.restart");
+    command("clear");
+    command("read_restart test_atom_styles.restart");
+    command("comm_style tiled");
+    command("change_box all triclinic");
+    command("replicate 1 2 1 bbox");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("line"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 8);
@@ -1602,9 +1607,9 @@ TEST_F(AtomStyleTest, line)
     EXPECT_NEAR(bonus[3].length, 3.0, EPSILON);
     EXPECT_NEAR(bonus[3].theta, MathConst::MY_PI / 6.0, EPSILON);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_atom_ids");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("reset_atom_ids");
+    END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->nlines, 4);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 8);
@@ -1652,9 +1657,9 @@ TEST_F(AtomStyleTest, tri)
 {
     if (!LAMMPS::is_installed_pkg("ASPHERE")) GTEST_SKIP();
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("atom_style tri");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("atom_style tri");
+    END_HIDE_OUTPUT();
 
     AtomState expected;
     expected.atom_style    = "tri";
@@ -1677,25 +1682,25 @@ TEST_F(AtomStyleTest, tri)
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("create_box 3 box");
-    lmp->input->one("create_atoms 1 single -2.0  2.0  0.1");
-    lmp->input->one("create_atoms 1 single -2.0 -2.0 -0.1");
-    lmp->input->one("create_atoms 2 single  2.0  2.0 -0.1");
-    lmp->input->one("create_atoms 2 single  2.0 -2.0  0.1");
-    lmp->input->one("create_atoms 3 single  2.0  2.0 -2.1");
-    lmp->input->one("create_atoms 3 single  2.0 -2.0  2.1");
-    lmp->input->one("set type 1 mass 4.0");
-    lmp->input->one("set type 2 mass 2.4");
-    lmp->input->one("set type 3 mass 4.4");
-    lmp->input->one("set type 1 tri 1.0");
-    lmp->input->one("set type 2 tri 1.5");
-    lmp->input->one("set atom 1 quat 1.0 0.0 0.0  0.0");
-    lmp->input->one("set atom 2 quat 0.0 1.0 0.0 90.0");
-    lmp->input->one("set atom 3 quat 1.0 0.0 1.0 30.0");
-    lmp->input->one("set atom 4 quat 1.0 1.0 1.0 60.0");
-    lmp->input->one("pair_coeff * *");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("create_box 3 box");
+    command("create_atoms 1 single -2.0  2.0  0.1");
+    command("create_atoms 1 single -2.0 -2.0 -0.1");
+    command("create_atoms 2 single  2.0  2.0 -0.1");
+    command("create_atoms 2 single  2.0 -2.0  0.1");
+    command("create_atoms 3 single  2.0  2.0 -2.1");
+    command("create_atoms 3 single  2.0 -2.0  2.1");
+    command("set type 1 mass 4.0");
+    command("set type 2 mass 2.4");
+    command("set type 3 mass 4.4");
+    command("set type 1 tri 1.0");
+    command("set type 2 tri 1.5");
+    command("set atom 1 quat 1.0 0.0 0.0  0.0");
+    command("set atom 2 quat 0.0 1.0 0.0 90.0");
+    command("set atom 3 quat 1.0 0.0 1.0 30.0");
+    command("set atom 4 quat 1.0 1.0 1.0 60.0");
+    command("pair_coeff * *");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("tri"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 6);
@@ -1723,16 +1728,16 @@ TEST_F(AtomStyleTest, tri)
     ASSERT_NE(lmp->atom->tri, nullptr);
     ASSERT_EQ(lmp->atom->mass_setflag, nullptr);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("write_data test_atom_styles.data nocoeff");
-    lmp->input->one("clear");
-    lmp->input->one("atom_style tri");
-    lmp->input->one("pair_style zero 4.0");
-    lmp->input->one("units real");
-    lmp->input->one("atom_modify map array");
-    lmp->input->one("read_data test_atom_styles.data");
-    lmp->input->one("pair_coeff * *");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("write_data test_atom_styles.data nocoeff");
+    command("clear");
+    command("atom_style tri");
+    command("pair_style zero 4.0");
+    command("units real");
+    command("atom_modify map array");
+    command("read_data test_atom_styles.data");
+    command("pair_coeff * *");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("tri"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 6);
@@ -1885,15 +1890,15 @@ TEST_F(AtomStyleTest, tri)
     EXPECT_NEAR(bonus[3].c3[1], 0.64304946932374796, EPSILON);
     EXPECT_NEAR(bonus[3].c3[2], -0.32808266428854477, EPSILON);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("group two id 2:4:2");
-    lmp->input->one("delete_atoms group two compress no");
-    lmp->input->one("write_restart test_atom_styles.restart");
-    lmp->input->one("clear");
-    lmp->input->one("read_restart test_atom_styles.restart");
-    lmp->input->one("change_box all triclinic");
-    lmp->input->one("replicate 1 1 2");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("group two id 2:4:2");
+    command("delete_atoms group two compress no");
+    command("write_restart test_atom_styles.restart");
+    command("clear");
+    command("read_restart test_atom_styles.restart");
+    command("change_box all triclinic");
+    command("replicate 1 1 2");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("tri"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 8);
@@ -2011,9 +2016,9 @@ TEST_F(AtomStyleTest, tri)
     EXPECT_NEAR(bonus[3].c3[1], 0.85047049833171351, EPSILON);
     EXPECT_NEAR(bonus[3].c3[2], -0.15731490073748589, EPSILON);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_atom_ids");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("reset_atom_ids");
+    END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->ntris, 4);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 8);
@@ -2056,9 +2061,9 @@ TEST_F(AtomStyleTest, body_nparticle)
 {
     if (!LAMMPS::is_installed_pkg("BODY")) GTEST_SKIP();
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("atom_style body nparticle 2 4");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("atom_style body nparticle 2 4");
+    END_HIDE_OUTPUT();
 
     AtomState expected;
     expected.atom_style  = "body";
@@ -2118,21 +2123,21 @@ TEST_F(AtomStyleTest, body_nparticle)
                              "12.0 0.0 12.0 0.0 0.0 0.0\n"
                              "0.0 1.0 0.0\n"
                              "0.0 -3.0 0.0\n";
-    FILE *fp = fopen("input_atom_styles.data", "w");
+    FILE *fp               = fopen("input_atom_styles.data", "w");
     fputs(data_file, fp);
     fclose(fp);
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("atom_modify map array");
-    lmp->input->one("read_data input_atom_styles.data");
-    lmp->input->one("create_atoms 3 single  2.0  2.0 -2.1");
-    lmp->input->one("create_atoms 3 single  2.0 -2.0  2.1");
-    lmp->input->one("set type 3 mass 4.4");
-    lmp->input->one("set atom 1 quat 1.0 0.0 0.0  0.0");
-    lmp->input->one("set atom 2 quat 0.0 1.0 0.0 90.0");
-    lmp->input->one("set atom 3 quat 1.0 0.0 1.0 30.0");
-    lmp->input->one("set atom 4 quat 1.0 1.0 1.0 60.0");
-    lmp->input->one("pair_coeff * *");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("atom_modify map array");
+    command("read_data input_atom_styles.data");
+    command("create_atoms 3 single  2.0  2.0 -2.1");
+    command("create_atoms 3 single  2.0 -2.0  2.1");
+    command("set type 3 mass 4.4");
+    command("set atom 1 quat 1.0 0.0 0.0  0.0");
+    command("set atom 2 quat 0.0 1.0 0.0 90.0");
+    command("set atom 3 quat 1.0 0.0 1.0 30.0");
+    command("set atom 4 quat 1.0 1.0 1.0 60.0");
+    command("pair_coeff * *");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("body"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 6);
@@ -2298,16 +2303,16 @@ TEST_F(AtomStyleTest, body_nparticle)
     ASSERT_NE(bonus[2].dvalue, nullptr);
     ASSERT_NE(bonus[3].dvalue, nullptr);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("write_data test_atom_styles.data nocoeff");
-    lmp->input->one("clear");
-    lmp->input->one("atom_style body nparticle 2 4");
-    lmp->input->one("pair_style zero 4.0");
-    lmp->input->one("units real");
-    lmp->input->one("atom_modify map array");
-    lmp->input->one("read_data test_atom_styles.data");
-    lmp->input->one("pair_coeff * *");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("write_data test_atom_styles.data nocoeff");
+    command("clear");
+    command("atom_style body nparticle 2 4");
+    command("pair_style zero 4.0");
+    command("units real");
+    command("atom_modify map array");
+    command("read_data test_atom_styles.data");
+    command("pair_coeff * *");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("body"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 6);
@@ -2471,15 +2476,15 @@ TEST_F(AtomStyleTest, body_nparticle)
     ASSERT_NE(bonus[2].dvalue, nullptr);
     ASSERT_NE(bonus[3].dvalue, nullptr);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("group two id 2:4:2");
-    lmp->input->one("delete_atoms group two compress no");
-    lmp->input->one("write_restart test_atom_styles.restart");
-    lmp->input->one("clear");
-    lmp->input->one("read_restart test_atom_styles.restart");
-    lmp->input->one("comm_style tiled");
-    lmp->input->one("replicate 1 1 2");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("group two id 2:4:2");
+    command("delete_atoms group two compress no");
+    command("write_restart test_atom_styles.restart");
+    command("clear");
+    command("read_restart test_atom_styles.restart");
+    command("comm_style tiled");
+    command("replicate 1 1 2");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("body"));
     avec = (AtomVecBody *)lmp->atom->avec;
     ASSERT_THAT(std::string(avec->bptr->style), Eq("nparticle"));
@@ -2586,9 +2591,9 @@ TEST_F(AtomStyleTest, body_nparticle)
     ASSERT_NE(bonus[2].dvalue, nullptr);
     ASSERT_NE(bonus[3].dvalue, nullptr);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_atom_ids");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("reset_atom_ids");
+    END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->nbodies, 4);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 8);
@@ -2623,12 +2628,11 @@ TEST_F(AtomStyleTest, body_nparticle)
 TEST_F(AtomStyleTest, template)
 {
     if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
-    create_molecule_files();
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
-    lmp->input->one("atom_style template twomols");
-    lmp->input->one("newton on");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
+    command("atom_style template twomols");
+    command("newton on");
+    END_HIDE_OUTPUT();
 
     AtomState expected;
     expected.atom_style    = "template";
@@ -2650,25 +2654,25 @@ TEST_F(AtomStyleTest, template)
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("create_box 4 box bond/types 2 angle/types 2 ");
-    lmp->input->one("create_atoms 0 single -2.0  2.0  0.1 mol twomols 65234");
-    lmp->input->one("create_atoms 0 single -2.0 -2.0 -0.1 mol twomols 62346");
-    lmp->input->one("create_atoms 0 single  2.0  2.0 -0.1 mol twomols 61354");
-    lmp->input->one("create_atoms 3 single  2.0 -2.0  0.1");
-    lmp->input->one("create_atoms 3 single  2.0  2.0 -2.1");
-    lmp->input->one("create_atoms 4 single  2.0 -2.0  2.1");
-    lmp->input->one("mass 1 16.0");
-    lmp->input->one("mass 2 1.0");
-    lmp->input->one("mass 3 12.0");
-    lmp->input->one("mass 4 16.0");
-    lmp->input->one("bond_style zero");
-    lmp->input->one("bond_coeff 1 1.0");
-    lmp->input->one("bond_coeff 2 1.16");
-    lmp->input->one("angle_style zero");
-    lmp->input->one("angle_coeff * 109.0");
-    lmp->input->one("pair_coeff * *");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("create_box 4 box bond/types 2 angle/types 2 ");
+    command("create_atoms 0 single -2.0  2.0  0.1 mol twomols 65234");
+    command("create_atoms 0 single -2.0 -2.0 -0.1 mol twomols 62346");
+    command("create_atoms 0 single  2.0  2.0 -0.1 mol twomols 61354");
+    command("create_atoms 3 single  2.0 -2.0  0.1");
+    command("create_atoms 3 single  2.0  2.0 -2.1");
+    command("create_atoms 4 single  2.0 -2.0  2.1");
+    command("mass 1 16.0");
+    command("mass 2 1.0");
+    command("mass 3 12.0");
+    command("mass 4 16.0");
+    command("bond_style zero");
+    command("bond_coeff 1 1.0");
+    command("bond_coeff 2 1.16");
+    command("angle_style zero");
+    command("angle_coeff * 109.0");
+    command("pair_coeff * *");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("template"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 12);
@@ -2698,19 +2702,19 @@ TEST_F(AtomStyleTest, template)
     ASSERT_NE(lmp->atom->mass, nullptr);
     ASSERT_NE(lmp->atom->mass_setflag, nullptr);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("write_data test_atom_styles.data");
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("newton off");
-    lmp->input->one("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
-    lmp->input->one("atom_style template twomols");
-    lmp->input->one("pair_style zero 4.0");
-    lmp->input->one("bond_style zero");
-    lmp->input->one("angle_style zero");
-    lmp->input->one("atom_modify map array");
-    lmp->input->one("read_data test_atom_styles.data");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("write_data test_atom_styles.data");
+    command("clear");
+    command("units real");
+    command("newton off on");
+    command("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
+    command("atom_style template twomols");
+    command("pair_style zero 4.0");
+    command("bond_style zero");
+    command("angle_style zero");
+    command("atom_modify map array");
+    command("read_data test_atom_styles.data");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("template"));
     ASSERT_NE(lmp->atom->avec, nullptr);
 
@@ -2772,17 +2776,17 @@ TEST_F(AtomStyleTest, template)
     ASSERT_EQ(molatom[GETIDX(11)], -1);
     ASSERT_EQ(molatom[GETIDX(12)], -1);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
-    lmp->input->one("atom_style template twomols");
-    lmp->input->one("pair_style zero 4.0");
-    lmp->input->one("bond_style zero");
-    lmp->input->one("angle_style zero");
-    lmp->input->one("atom_modify map array");
-    lmp->input->one("read_data test_atom_styles.data");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("clear");
+    command("units real");
+    command("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
+    command("atom_style template twomols");
+    command("pair_style zero 4.0");
+    command("bond_style zero");
+    command("angle_style zero");
+    command("atom_modify map array");
+    command("read_data test_atom_styles.data");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("template"));
     ASSERT_NE(lmp->atom->avec, nullptr);
 
@@ -2894,15 +2898,15 @@ TEST_F(AtomStyleTest, template)
     ASSERT_EQ(type[GETIDX(11)], 3);
     ASSERT_EQ(type[GETIDX(12)], 4);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("group two id 7:10");
-    lmp->input->one("delete_atoms group two compress no");
-    lmp->input->one("write_restart test_atom_styles.restart");
-    lmp->input->one("clear");
-    lmp->input->one("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
-    lmp->input->one("read_restart test_atom_styles.restart");
-    lmp->input->one("replicate 1 1 2 bbox");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("group two id 7:10");
+    command("delete_atoms group two compress no");
+    command("write_restart test_atom_styles.restart");
+    command("clear");
+    command("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
+    command("read_restart test_atom_styles.restart");
+    command("replicate 1 1 2 bbox");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("template"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 16);
@@ -2972,9 +2976,9 @@ TEST_F(AtomStyleTest, template)
     ASSERT_EQ(molatom[GETIDX(23)], -1);
     ASSERT_EQ(molatom[GETIDX(24)], -1);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_atom_ids");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("reset_atom_ids");
+    END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 16);
 
@@ -3019,12 +3023,11 @@ TEST_F(AtomStyleTest, template)
 TEST_F(AtomStyleTest, template_charge)
 {
     if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
-    create_molecule_files();
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
-    lmp->input->one("atom_style hybrid template twomols charge");
-    lmp->input->one("newton on");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
+    command("atom_style hybrid template twomols charge");
+    command("newton on");
+    END_HIDE_OUTPUT();
 
     AtomState expected;
     expected.atom_style    = "hybrid";
@@ -3055,28 +3058,28 @@ TEST_F(AtomStyleTest, template_charge)
     ASSERT_NE(hybrid->styles[0], nullptr);
     ASSERT_NE(hybrid->styles[1], nullptr);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("create_box 4 box bond/types 2 angle/types 2 ");
-    lmp->input->one("create_atoms 0 single -2.0  2.0  0.1 mol twomols 65234");
-    lmp->input->one("create_atoms 0 single -2.0 -2.0 -0.1 mol twomols 62346");
-    lmp->input->one("create_atoms 0 single  2.0  2.0 -0.1 mol twomols 61354");
-    lmp->input->one("create_atoms 3 single  2.0 -2.0  0.1");
-    lmp->input->one("create_atoms 3 single  2.0  2.0 -2.1");
-    lmp->input->one("create_atoms 4 single  2.0 -2.0  2.1");
-    lmp->input->one("mass 1 16.0");
-    lmp->input->one("mass 2 1.0");
-    lmp->input->one("mass 3 12.0");
-    lmp->input->one("mass 4 16.0");
-    lmp->input->one("set atom 10 charge 0.7");
-    lmp->input->one("set atom 11 charge -0.35");
-    lmp->input->one("set atom 12 charge -0.35");
-    lmp->input->one("bond_style zero");
-    lmp->input->one("bond_coeff 1 1.0");
-    lmp->input->one("bond_coeff 2 1.16");
-    lmp->input->one("angle_style zero");
-    lmp->input->one("angle_coeff * 109.0");
-    lmp->input->one("pair_coeff * *");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("create_box 4 box bond/types 2 angle/types 2 ");
+    command("create_atoms 0 single -2.0  2.0  0.1 mol twomols 65234");
+    command("create_atoms 0 single -2.0 -2.0 -0.1 mol twomols 62346");
+    command("create_atoms 0 single  2.0  2.0 -0.1 mol twomols 61354");
+    command("create_atoms 3 single  2.0 -2.0  0.1");
+    command("create_atoms 3 single  2.0  2.0 -2.1");
+    command("create_atoms 4 single  2.0 -2.0  2.1");
+    command("mass 1 16.0");
+    command("mass 2 1.0");
+    command("mass 3 12.0");
+    command("mass 4 16.0");
+    command("set atom 10 charge 0.7");
+    command("set atom 11 charge -0.35");
+    command("set atom 12 charge -0.35");
+    command("bond_style zero");
+    command("bond_coeff 1 1.0");
+    command("bond_coeff 2 1.16");
+    command("angle_style zero");
+    command("angle_coeff * 109.0");
+    command("pair_coeff * *");
+    END_HIDE_OUTPUT();
     ASSERT_NE(lmp->atom->avec, nullptr);
     hybrid = (AtomVecHybrid *)lmp->atom->avec;
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
@@ -3114,19 +3117,19 @@ TEST_F(AtomStyleTest, template_charge)
     ASSERT_NE(lmp->atom->mass, nullptr);
     ASSERT_NE(lmp->atom->mass_setflag, nullptr);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("write_data test_atom_styles.data");
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("newton off");
-    lmp->input->one("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
-    lmp->input->one("atom_style hybrid template twomols charge");
-    lmp->input->one("pair_style zero 4.0");
-    lmp->input->one("bond_style zero");
-    lmp->input->one("angle_style zero");
-    lmp->input->one("atom_modify map array");
-    lmp->input->one("read_data test_atom_styles.data");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("write_data test_atom_styles.data");
+    command("clear");
+    command("units real");
+    command("newton off on");
+    command("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
+    command("atom_style hybrid template twomols charge");
+    command("pair_style zero 4.0");
+    command("bond_style zero");
+    command("angle_style zero");
+    command("atom_modify map array");
+    command("read_data test_atom_styles.data");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
     ASSERT_NE(lmp->atom->avec, nullptr);
 
@@ -3188,17 +3191,17 @@ TEST_F(AtomStyleTest, template_charge)
     ASSERT_EQ(molatom[GETIDX(11)], -1);
     ASSERT_EQ(molatom[GETIDX(12)], -1);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
-    lmp->input->one("atom_style hybrid template twomols charge");
-    lmp->input->one("pair_style zero 4.0");
-    lmp->input->one("bond_style zero");
-    lmp->input->one("angle_style zero");
-    lmp->input->one("atom_modify map array");
-    lmp->input->one("read_data test_atom_styles.data");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("clear");
+    command("units real");
+    command("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
+    command("atom_style hybrid template twomols charge");
+    command("pair_style zero 4.0");
+    command("bond_style zero");
+    command("angle_style zero");
+    command("atom_modify map array");
+    command("read_data test_atom_styles.data");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
     ASSERT_NE(lmp->atom->avec, nullptr);
 
@@ -3323,15 +3326,15 @@ TEST_F(AtomStyleTest, template_charge)
     ASSERT_EQ(type[GETIDX(11)], 3);
     ASSERT_EQ(type[GETIDX(12)], 4);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("group two id 7:10");
-    lmp->input->one("delete_atoms group two compress no");
-    lmp->input->one("write_restart test_atom_styles.restart");
-    lmp->input->one("clear");
-    lmp->input->one("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
-    lmp->input->one("read_restart test_atom_styles.restart");
-    lmp->input->one("replicate 1 1 2 bbox");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("group two id 7:10");
+    command("delete_atoms group two compress no");
+    command("write_restart test_atom_styles.restart");
+    command("clear");
+    command("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
+    command("read_restart test_atom_styles.restart");
+    command("replicate 1 1 2 bbox");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 16);
@@ -3401,9 +3404,9 @@ TEST_F(AtomStyleTest, template_charge)
     ASSERT_EQ(molatom[GETIDX(23)], -1);
     ASSERT_EQ(molatom[GETIDX(24)], -1);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_atom_ids");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("reset_atom_ids");
+    END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 16);
 
@@ -3449,10 +3452,10 @@ TEST_F(AtomStyleTest, bond)
 {
     if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("atom_style bond");
-    lmp->input->one("newton on");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("atom_style bond");
+    command("newton on");
+    END_HIDE_OUTPUT();
 
     AtomState expected;
     expected.atom_style    = "bond";
@@ -3472,27 +3475,27 @@ TEST_F(AtomStyleTest, bond)
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("create_box 3 box bond/types 2 "
-                    "extra/bond/per/atom 2 extra/special/per/atom 4");
-    lmp->input->one("create_atoms 1 single -2.0  2.0  0.1");
-    lmp->input->one("create_atoms 1 single -2.0 -2.0 -0.1");
-    lmp->input->one("create_atoms 2 single  2.0  2.0 -0.1");
-    lmp->input->one("create_atoms 2 single  2.0 -2.0  0.1");
-    lmp->input->one("create_atoms 3 single  2.0  2.0 -2.1");
-    lmp->input->one("create_atoms 3 single  2.0 -2.0  2.1");
-    lmp->input->one("mass 1 4.0");
-    lmp->input->one("mass 2 2.4");
-    lmp->input->one("mass 3 4.4");
-    lmp->input->one("bond_style zero");
-    lmp->input->one("bond_coeff * 4.0");
-    lmp->input->one("pair_coeff * *");
-    lmp->input->one("create_bonds single/bond 1 1 5");
-    lmp->input->one("create_bonds single/bond 1 1 3");
-    lmp->input->one("create_bonds single/bond 2 3 5");
-    lmp->input->one("create_bonds single/bond 2 3 6");
-    lmp->input->one("create_bonds single/bond 2 5 6");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("create_box 3 box bond/types 2 "
+            "extra/bond/per/atom 2 extra/special/per/atom 4");
+    command("create_atoms 1 single -2.0  2.0  0.1");
+    command("create_atoms 1 single -2.0 -2.0 -0.1");
+    command("create_atoms 2 single  2.0  2.0 -0.1");
+    command("create_atoms 2 single  2.0 -2.0  0.1");
+    command("create_atoms 3 single  2.0  2.0 -2.1");
+    command("create_atoms 3 single  2.0 -2.0  2.1");
+    command("mass 1 4.0");
+    command("mass 2 2.4");
+    command("mass 3 4.4");
+    command("bond_style zero");
+    command("bond_coeff * 4.0");
+    command("pair_coeff * *");
+    command("create_bonds single/bond 1 1 5");
+    command("create_bonds single/bond 1 1 3");
+    command("create_bonds single/bond 2 3 5");
+    command("create_bonds single/bond 2 3 6");
+    command("create_bonds single/bond 2 5 6");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("bond"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 6);
@@ -3525,19 +3528,19 @@ TEST_F(AtomStyleTest, bond)
     lmp->atom->bond_type[GETIDX(1)][0] *= -1;
     lmp->atom->bond_type[GETIDX(5)][0] *= -1;
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("write_data test_atom_styles.data nocoeff");
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("newton off");
-    lmp->input->one("atom_style bond");
-    lmp->input->one("pair_style zero 4.0");
-    lmp->input->one("bond_style zero");
-    lmp->input->one("atom_modify map array");
-    lmp->input->one("read_data test_atom_styles.data");
-    lmp->input->one("pair_coeff * *");
-    lmp->input->one("bond_coeff * 4.0");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("write_data test_atom_styles.data nocoeff");
+    command("clear");
+    command("units real");
+    command("newton off");
+    command("atom_style bond");
+    command("pair_style zero 4.0");
+    command("bond_style zero");
+    command("atom_modify map array");
+    command("read_data test_atom_styles.data");
+    command("pair_coeff * *");
+    command("bond_coeff * 4.0");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("bond"));
     ASSERT_NE(lmp->atom->avec, nullptr);
 
@@ -3586,17 +3589,17 @@ TEST_F(AtomStyleTest, bond)
     ASSERT_EQ(bond_atom[GETIDX(6)][0], 3);
     ASSERT_EQ(bond_atom[GETIDX(6)][1], 5);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("atom_style bond");
-    lmp->input->one("pair_style zero 4.0");
-    lmp->input->one("bond_style zero");
-    lmp->input->one("atom_modify map array");
-    lmp->input->one("read_data test_atom_styles.data");
-    lmp->input->one("pair_coeff * *");
-    lmp->input->one("bond_coeff * 4.0");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("clear");
+    command("units real");
+    command("atom_style bond");
+    command("pair_style zero 4.0");
+    command("bond_style zero");
+    command("atom_modify map array");
+    command("read_data test_atom_styles.data");
+    command("pair_coeff * *");
+    command("bond_coeff * 4.0");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("bond"));
     ASSERT_NE(lmp->atom->avec, nullptr);
 
@@ -3684,15 +3687,15 @@ TEST_F(AtomStyleTest, bond)
     lmp->atom->bond_type[GETIDX(1)][0] *= -1;
     lmp->atom->bond_type[GETIDX(5)][0] *= -1;
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("pair_coeff * *");
-    lmp->input->one("group two id 2:4:2");
-    lmp->input->one("delete_atoms group two compress no");
-    lmp->input->one("write_restart test_atom_styles.restart");
-    lmp->input->one("clear");
-    lmp->input->one("read_restart test_atom_styles.restart");
-    lmp->input->one("replicate 1 1 2 bbox");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("pair_coeff * *");
+    command("group two id 2:4:2");
+    command("delete_atoms group two compress no");
+    command("write_restart test_atom_styles.restart");
+    command("clear");
+    command("read_restart test_atom_styles.restart");
+    command("replicate 1 1 2 bbox");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("bond"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 8);
@@ -3746,10 +3749,10 @@ TEST_F(AtomStyleTest, bond)
     ASSERT_EQ(bond_type[GETIDX(9)][1], 2);
     ASSERT_EQ(bond_type[GETIDX(11)][0], 2);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("delete_bonds all bond 2");
-    lmp->input->one("reset_atom_ids");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("delete_bonds all bond 2");
+    command("reset_atom_ids");
+    END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 8);
 
@@ -3797,10 +3800,10 @@ TEST_F(AtomStyleTest, angle)
 {
     if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("atom_style angle");
-    lmp->input->one("newton on");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("atom_style angle");
+    command("newton on");
+    END_HIDE_OUTPUT();
 
     AtomState expected;
     expected.atom_style    = "angle";
@@ -3821,32 +3824,32 @@ TEST_F(AtomStyleTest, angle)
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("create_box 3 box bond/types 2 angle/types 2 "
-                    "extra/bond/per/atom 2 extra/angle/per/atom 1 "
-                    "extra/special/per/atom 4");
-    lmp->input->one("create_atoms 1 single -2.0  2.0  0.1");
-    lmp->input->one("create_atoms 1 single -2.0 -2.0 -0.1");
-    lmp->input->one("create_atoms 2 single  2.0  2.0 -0.1");
-    lmp->input->one("create_atoms 2 single  2.0 -2.0  0.1");
-    lmp->input->one("create_atoms 3 single  2.0  2.0 -2.1");
-    lmp->input->one("create_atoms 3 single  2.0 -2.0  2.1");
-    lmp->input->one("mass 1 4.0");
-    lmp->input->one("mass 2 2.4");
-    lmp->input->one("mass 3 4.4");
-    lmp->input->one("pair_coeff * *");
-    lmp->input->one("bond_style zero");
-    lmp->input->one("bond_coeff * 4.0");
-    lmp->input->one("angle_style zero");
-    lmp->input->one("angle_coeff * 90.0");
-    lmp->input->one("create_bonds single/bond 1 1 3");
-    lmp->input->one("create_bonds single/bond 1 1 5");
-    lmp->input->one("create_bonds single/bond 2 3 5");
-    lmp->input->one("create_bonds single/bond 2 3 6");
-    lmp->input->one("create_bonds single/bond 2 5 6");
-    lmp->input->one("create_bonds single/angle 1 1 3 5");
-    lmp->input->one("create_bonds single/angle 2 3 5 6");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("create_box 3 box bond/types 2 angle/types 2 "
+            "extra/bond/per/atom 2 extra/angle/per/atom 1 "
+            "extra/special/per/atom 4");
+    command("create_atoms 1 single -2.0  2.0  0.1");
+    command("create_atoms 1 single -2.0 -2.0 -0.1");
+    command("create_atoms 2 single  2.0  2.0 -0.1");
+    command("create_atoms 2 single  2.0 -2.0  0.1");
+    command("create_atoms 3 single  2.0  2.0 -2.1");
+    command("create_atoms 3 single  2.0 -2.0  2.1");
+    command("mass 1 4.0");
+    command("mass 2 2.4");
+    command("mass 3 4.4");
+    command("pair_coeff * *");
+    command("bond_style zero");
+    command("bond_coeff * 4.0");
+    command("angle_style zero");
+    command("angle_coeff * 90.0");
+    command("create_bonds single/bond 1 1 3");
+    command("create_bonds single/bond 1 1 5");
+    command("create_bonds single/bond 2 3 5");
+    command("create_bonds single/bond 2 3 6");
+    command("create_bonds single/bond 2 5 6");
+    command("create_bonds single/angle 1 1 3 5");
+    command("create_bonds single/angle 2 3 5 6");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("angle"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 6);
@@ -3881,21 +3884,21 @@ TEST_F(AtomStyleTest, angle)
     lmp->atom->angle_type[GETIDX(3)][0] *= -1;
     lmp->atom->angle_type[GETIDX(5)][0] *= -1;
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("write_data test_atom_styles.data nocoeff");
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("newton off");
-    lmp->input->one("atom_style angle");
-    lmp->input->one("pair_style zero 4.0");
-    lmp->input->one("bond_style zero");
-    lmp->input->one("angle_style zero");
-    lmp->input->one("atom_modify map array");
-    lmp->input->one("read_data test_atom_styles.data");
-    lmp->input->one("pair_coeff * *");
-    lmp->input->one("bond_coeff * 4.0");
-    lmp->input->one("angle_coeff * 90.0");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("write_data test_atom_styles.data nocoeff");
+    command("clear");
+    command("units real");
+    command("newton off");
+    command("atom_style angle");
+    command("pair_style zero 4.0");
+    command("bond_style zero");
+    command("angle_style zero");
+    command("atom_modify map array");
+    command("read_data test_atom_styles.data");
+    command("pair_coeff * *");
+    command("bond_coeff * 4.0");
+    command("angle_coeff * 90.0");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("angle"));
     ASSERT_NE(lmp->atom->avec, nullptr);
 
@@ -3979,17 +3982,17 @@ TEST_F(AtomStyleTest, angle)
     ASSERT_EQ(angle_atom2[GETIDX(6)][0], 5);
     ASSERT_EQ(angle_atom3[GETIDX(6)][0], 6);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("atom_style angle");
-    lmp->input->one("pair_style zero 4.0");
-    lmp->input->one("bond_style zero");
-    lmp->input->one("atom_modify map array");
-    lmp->input->one("read_data test_atom_styles.data");
-    lmp->input->one("pair_coeff * *");
-    lmp->input->one("bond_coeff * 4.0");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("clear");
+    command("units real");
+    command("atom_style angle");
+    command("pair_style zero 4.0");
+    command("bond_style zero");
+    command("atom_modify map array");
+    command("read_data test_atom_styles.data");
+    command("pair_coeff * *");
+    command("bond_coeff * 4.0");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("angle"));
     ASSERT_NE(lmp->atom->avec, nullptr);
 
@@ -4078,15 +4081,15 @@ TEST_F(AtomStyleTest, angle)
     ASSERT_EQ(angle_type[GETIDX(3)][0], 1);
     ASSERT_EQ(angle_type[GETIDX(5)][0], 2);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("pair_coeff * *");
-    lmp->input->one("group two id 2:4:2");
-    lmp->input->one("delete_atoms group two compress no");
-    lmp->input->one("write_restart test_atom_styles.restart");
-    lmp->input->one("clear");
-    lmp->input->one("read_restart test_atom_styles.restart");
-    lmp->input->one("replicate 1 1 2");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("pair_coeff * *");
+    command("group two id 2:4:2");
+    command("delete_atoms group two compress no");
+    command("write_restart test_atom_styles.restart");
+    command("clear");
+    command("read_restart test_atom_styles.restart");
+    command("replicate 1 1 2");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("angle"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 8);
@@ -4123,10 +4126,10 @@ TEST_F(AtomStyleTest, angle)
     ASSERT_EQ(angle_type[GETIDX(9)][0], 1);
     ASSERT_EQ(angle_type[GETIDX(11)][0], 2);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("delete_bonds all angle 2");
-    lmp->input->one("reset_atom_ids");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("delete_bonds all angle 2");
+    command("reset_atom_ids");
+    END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 8);
 
@@ -4158,9 +4161,9 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     if (!LAMMPS::is_installed_pkg("ASPHERE")) GTEST_SKIP();
     if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("atom_style hybrid full ellipsoid");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("atom_style hybrid full ellipsoid");
+    END_HIDE_OUTPUT();
 
     AtomState expected;
     expected.atom_style     = "hybrid";
@@ -4196,42 +4199,42 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     ASSERT_NE(hybrid->styles[0], nullptr);
     ASSERT_NE(hybrid->styles[1], nullptr);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("create_box 3 box bond/types 2 "
-                    "extra/bond/per/atom 2 extra/special/per/atom 4");
-    lmp->input->one("create_atoms 1 single -2.0  2.0  0.1");
-    lmp->input->one("create_atoms 1 single -2.0 -2.0 -0.1");
-    lmp->input->one("create_atoms 2 single  2.0  2.0 -0.1");
-    lmp->input->one("create_atoms 2 single  2.0 -2.0  0.1");
-    lmp->input->one("create_atoms 3 single  2.0  2.0 -2.1");
-    lmp->input->one("create_atoms 3 single  2.0 -2.0  2.1");
-    lmp->input->one("set type 1 mass 4.0");
-    lmp->input->one("set type 2 mass 2.4");
-    lmp->input->one("set type 3 mass 4.4");
-    lmp->input->one("mass 1 4.0");
-    lmp->input->one("mass 2 2.4");
-    lmp->input->one("mass 3 4.4");
-    lmp->input->one("set type 1 shape 1.0 1.0 1.0");
-    lmp->input->one("set type 2 shape 3.0 0.8 1.1");
-    lmp->input->one("set atom 1 quat 1.0 0.0 0.0  0.0");
-    lmp->input->one("set atom 2 quat 0.0 1.0 0.0 90.0");
-    lmp->input->one("set atom 3 quat 1.0 0.0 1.0 30.0");
-    lmp->input->one("set atom 4 quat 1.0 1.0 1.0 60.0");
-    lmp->input->one("set atom 1 charge -0.5");
-    lmp->input->one("set atom 2 charge  0.5");
-    lmp->input->one("set atom 3 charge -1.0");
-    lmp->input->one("set atom 4 charge  1.0");
-    lmp->input->one("set atom 5 charge  2.0");
-    lmp->input->one("set atom 6 charge -2.0");
-    lmp->input->one("bond_style zero");
-    lmp->input->one("bond_coeff * 4.0");
-    lmp->input->one("pair_coeff * *");
-    lmp->input->one("create_bonds single/bond 1 1 5");
-    lmp->input->one("create_bonds single/bond 1 1 3");
-    lmp->input->one("create_bonds single/bond 2 3 5");
-    lmp->input->one("create_bonds single/bond 2 3 6");
-    lmp->input->one("create_bonds single/bond 2 5 6");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("create_box 3 box bond/types 2 "
+            "extra/bond/per/atom 2 extra/special/per/atom 4");
+    command("create_atoms 1 single -2.0  2.0  0.1");
+    command("create_atoms 1 single -2.0 -2.0 -0.1");
+    command("create_atoms 2 single  2.0  2.0 -0.1");
+    command("create_atoms 2 single  2.0 -2.0  0.1");
+    command("create_atoms 3 single  2.0  2.0 -2.1");
+    command("create_atoms 3 single  2.0 -2.0  2.1");
+    command("set type 1 mass 4.0");
+    command("set type 2 mass 2.4");
+    command("set type 3 mass 4.4");
+    command("mass 1 4.0");
+    command("mass 2 2.4");
+    command("mass 3 4.4");
+    command("set type 1 shape 1.0 1.0 1.0");
+    command("set type 2 shape 3.0 0.8 1.1");
+    command("set atom 1 quat 1.0 0.0 0.0  0.0");
+    command("set atom 2 quat 0.0 1.0 0.0 90.0");
+    command("set atom 3 quat 1.0 0.0 1.0 30.0");
+    command("set atom 4 quat 1.0 1.0 1.0 60.0");
+    command("set atom 1 charge -0.5");
+    command("set atom 2 charge  0.5");
+    command("set atom 3 charge -1.0");
+    command("set atom 4 charge  1.0");
+    command("set atom 5 charge  2.0");
+    command("set atom 6 charge -2.0");
+    command("bond_style zero");
+    command("bond_coeff * 4.0");
+    command("pair_coeff * *");
+    command("create_bonds single/bond 1 1 5");
+    command("create_bonds single/bond 1 1 3");
+    command("create_bonds single/bond 2 3 5");
+    command("create_bonds single/bond 2 3 6");
+    command("create_bonds single/bond 2 5 6");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 6);
@@ -4261,18 +4264,18 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     ASSERT_NE(lmp->atom->ellipsoid, nullptr);
     ASSERT_NE(lmp->atom->mass_setflag, nullptr);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("write_data test_atom_styles.data nocoeff");
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("atom_style hybrid full ellipsoid");
-    lmp->input->one("pair_style zero 4.0");
-    lmp->input->one("bond_style zero");
-    lmp->input->one("atom_modify map array");
-    lmp->input->one("read_data test_atom_styles.data");
-    lmp->input->one("pair_coeff * *");
-    lmp->input->one("bond_coeff * 4.0");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("write_data test_atom_styles.data nocoeff");
+    command("clear");
+    command("units real");
+    command("atom_style hybrid full ellipsoid");
+    command("pair_style zero 4.0");
+    command("bond_style zero");
+    command("atom_modify map array");
+    command("read_data test_atom_styles.data");
+    command("pair_coeff * *");
+    command("bond_coeff * 4.0");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     hybrid = (AtomVecHybrid *)lmp->atom->avec;
@@ -4397,15 +4400,15 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     EXPECT_NEAR(bonus[3].quat[2], sqrt(5.0 / 30.0), EPSILON);
     EXPECT_NEAR(bonus[3].quat[3], sqrt(5.0 / 30.0), EPSILON);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("pair_coeff * *");
-    lmp->input->one("group two id 2:4:2");
-    lmp->input->one("delete_atoms group two compress no");
-    lmp->input->one("write_restart test_atom_styles.restart");
-    lmp->input->one("clear");
-    lmp->input->one("read_restart test_atom_styles.restart");
-    lmp->input->one("replicate 1 1 2 bbox");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("pair_coeff * *");
+    command("group two id 2:4:2");
+    command("delete_atoms group two compress no");
+    command("write_restart test_atom_styles.restart");
+    command("clear");
+    command("read_restart test_atom_styles.restart");
+    command("replicate 1 1 2 bbox");
+    END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
     hybrid = (AtomVecHybrid *)lmp->atom->avec;
     ASSERT_EQ(hybrid->nstyles, 2);
@@ -4484,9 +4487,9 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     EXPECT_NEAR(bonus[3].quat[2], 0.0, EPSILON);
     EXPECT_NEAR(bonus[3].quat[3], 0.25056280708573159, EPSILON);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_atom_ids");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    BEGIN_HIDE_OUTPUT();
+    command("reset_atom_ids");
+    END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->nellipsoids, 4);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 8);
@@ -4549,6 +4552,701 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     EXPECT_NEAR(bonus[3].quat[1], 0.25056280708573159, EPSILON);
     EXPECT_NEAR(bonus[3].quat[2], 0.0, EPSILON);
     EXPECT_NEAR(bonus[3].quat[3], 0.25056280708573159, EPSILON);
+}
+
+TEST_F(AtomStyleTest, property_atom)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("atom_modify map array");
+    command("fix Properties all property/atom "
+            "i_one d_two mol d_three q rmass i2_four 2 d2_five 3 ghost yes");
+    END_HIDE_OUTPUT();
+
+    AtomState expected;
+    expected.atom_style         = "atomic";
+    expected.molecular          = Atom::ATOMIC;
+    expected.tag_enable         = 1;
+    expected.map_style          = 1;
+    expected.map_user           = 1;
+    expected.has_type           = true;
+    expected.has_image          = true;
+    expected.has_mask           = true;
+    expected.has_x              = true;
+    expected.has_v              = true;
+    expected.has_f              = true;
+    expected.has_ivname         = true;
+    expected.has_dvname         = true;
+    expected.has_ianame         = true;
+    expected.has_daname         = true;
+    expected.has_extra_grow     = true;
+    expected.has_extra_restart  = true;
+    expected.has_extra_border   = true;
+    expected.molecule_flag      = 1;
+    expected.q_flag             = 1;
+    expected.rmass_flag         = 1;
+    expected.nivector           = 1;
+    expected.ndvector           = 2;
+    expected.nextra_grow        = 1;
+    expected.nextra_grow_max    = 1;
+    expected.nextra_restart     = 1;
+    expected.nextra_restart_max = 1;
+    expected.nextra_border      = 1;
+    expected.nextra_border_max  = 1;
+    ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
+
+    BEGIN_HIDE_OUTPUT();
+    command("create_box 2 box");
+    command("create_atoms 1 single -2.0  2.0  0.1");
+    command("create_atoms 1 single -2.0 -2.0 -0.1");
+    command("create_atoms 2 single  2.0  2.0 -0.1");
+    command("create_atoms 2 single  2.0 -2.0  0.1");
+    command("mass 1 4.0");
+    command("mass 2 2.4");
+    command("set atom 1 charge -0.5");
+    command("set atom 2 charge  0.5");
+    command("set atom 3 charge -1.0");
+    command("set atom 4 charge  1.0");
+    command("set type 1 mass 4.0");
+    command("set type 2 mass 2.4");
+    command("set atom 1 mol 1");
+    command("set atom 2 mol 2");
+    command("set atom 3 mol 2");
+    command("set atom 4 mol 1");
+    command("set atom * i_one -5");
+    command("set atom 3* i_one 5");
+    command("set type 1 d_two 2.0");
+    command("set type 2 d_two 1.0");
+    command("set atom 1 d_three -2.5");
+    command("set atom 2 d_three -1.0");
+    command("set atom 3 d_three 0.5");
+    command("set atom 4 d_three 2.0");
+    command("set atom * d2_five[1] -5.9");
+    command("set atom * d2_five[2] 1.1e-2");
+    command("set atom * d2_five[3] .1");
+    command("set atom 1*2 i2_four[1] -2");
+    command("set atom 3*4 i2_four[1] -1");
+    command("set atom * i2_four[2] 2");
+    END_HIDE_OUTPUT();
+    expected.natoms           = 4;
+    expected.nlocal           = 4;
+    expected.map_tag_max      = 4;
+    expected.nmax             = 16384;
+    expected.ntypes           = 2;
+    expected.has_mass         = true;
+    expected.has_mass_setflag = true;
+    expected.has_sametag      = true;
+    ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
+    ASSERT_NE(lmp->atom->avec, nullptr);
+    ASSERT_NE(lmp->atom->nmax, -1);
+    ASSERT_NE(lmp->atom->rmass, nullptr);
+
+    BEGIN_HIDE_OUTPUT();
+    command("pair_coeff * *");
+    command("write_data test_atom_styles.data nocoeff");
+    command("clear");
+    command("atom_style atomic");
+    command("pair_style zero 4.0");
+    command("units real");
+    command("atom_modify map array");
+    command("fix props all property/atom i_one d_two mol d_three q rmass "
+            "i2_four 2 d2_five 3 ghost yes");
+    command("read_data test_atom_styles.data fix props NULL Properties");
+    command("pair_coeff * *");
+    END_HIDE_OUTPUT();
+    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
+    ASSERT_NE(lmp->atom->avec, nullptr);
+    ASSERT_EQ(lmp->atom->natoms, 4);
+    ASSERT_EQ(lmp->atom->nlocal, 4);
+    ASSERT_EQ(lmp->atom->nghost, 0);
+    ASSERT_NE(lmp->atom->nmax, -1);
+    ASSERT_EQ(lmp->atom->tag_enable, 1);
+    ASSERT_EQ(lmp->atom->molecular, Atom::ATOMIC);
+    ASSERT_EQ(lmp->atom->ntypes, 2);
+    ASSERT_EQ(lmp->atom->q_flag, 1);
+    ASSERT_EQ(lmp->atom->molecule_flag, 1);
+    ASSERT_EQ(lmp->atom->rmass_flag, 1);
+    ASSERT_NE(lmp->atom->sametag, nullptr);
+    ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
+    ASSERT_EQ(lmp->atom->map_style, Atom::MAP_ARRAY);
+    ASSERT_EQ(lmp->atom->map_user, 1);
+    ASSERT_EQ(lmp->atom->map_tag_max, 4);
+
+    auto x = lmp->atom->x;
+    auto v = lmp->atom->v;
+    auto q = lmp->atom->q;
+    EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
+    EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
+    EXPECT_NEAR(x[GETIDX(1)][2], 0.1, EPSILON);
+    EXPECT_NEAR(x[GETIDX(2)][0], -2.0, EPSILON);
+    EXPECT_NEAR(x[GETIDX(2)][1], -2.0, EPSILON);
+    EXPECT_NEAR(x[GETIDX(2)][2], -0.1, EPSILON);
+    EXPECT_NEAR(x[GETIDX(3)][0], 2.0, EPSILON);
+    EXPECT_NEAR(x[GETIDX(3)][1], 2.0, EPSILON);
+    EXPECT_NEAR(x[GETIDX(3)][2], -0.1, EPSILON);
+    EXPECT_NEAR(x[GETIDX(4)][0], 2.0, EPSILON);
+    EXPECT_NEAR(x[GETIDX(4)][1], -2.0, EPSILON);
+    EXPECT_NEAR(x[GETIDX(4)][2], 0.1, EPSILON);
+    EXPECT_NEAR(v[GETIDX(1)][0], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(1)][1], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(1)][2], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(2)][0], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(2)][1], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(2)][2], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(3)][0], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(3)][1], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(3)][2], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(4)][0], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(4)][1], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(4)][2], 0.0, EPSILON);
+    EXPECT_NEAR(q[GETIDX(1)], -0.5, EPSILON);
+    EXPECT_NEAR(q[GETIDX(2)], 0.5, EPSILON);
+    EXPECT_NEAR(q[GETIDX(3)], -1.0, EPSILON);
+    EXPECT_NEAR(q[GETIDX(4)], 1.0, EPSILON);
+
+    EXPECT_NEAR(lmp->atom->mass[1], 4.0, EPSILON);
+    EXPECT_NEAR(lmp->atom->mass[2], 2.4, EPSILON);
+    ASSERT_EQ(lmp->atom->mass_setflag[1], 1);
+    ASSERT_EQ(lmp->atom->mass_setflag[2], 1);
+
+    auto rmass = lmp->atom->rmass;
+    auto one   = lmp->atom->ivector[0];
+    auto two   = lmp->atom->dvector[0];
+    auto three = lmp->atom->dvector[1];
+
+    EXPECT_NEAR(rmass[GETIDX(1)], 4.0, EPSILON);
+    EXPECT_NEAR(rmass[GETIDX(2)], 4.0, EPSILON);
+    EXPECT_NEAR(rmass[GETIDX(3)], 2.4, EPSILON);
+    EXPECT_NEAR(rmass[GETIDX(4)], 2.4, EPSILON);
+    EXPECT_EQ(one[GETIDX(1)], -5);
+    EXPECT_EQ(one[GETIDX(2)], -5);
+    EXPECT_EQ(one[GETIDX(3)], 5);
+    EXPECT_EQ(one[GETIDX(4)], 5);
+    EXPECT_NEAR(two[GETIDX(1)], 2.0, EPSILON);
+    EXPECT_NEAR(two[GETIDX(2)], 2.0, EPSILON);
+    EXPECT_NEAR(two[GETIDX(3)], 1.0, EPSILON);
+    EXPECT_NEAR(two[GETIDX(4)], 1.0, EPSILON);
+    EXPECT_NEAR(three[GETIDX(1)], -2.5, EPSILON);
+    EXPECT_NEAR(three[GETIDX(2)], -1.0, EPSILON);
+    EXPECT_NEAR(three[GETIDX(3)], 0.5, EPSILON);
+    EXPECT_NEAR(three[GETIDX(4)], 2.0, EPSILON);
+
+    BEGIN_HIDE_OUTPUT();
+    command("pair_coeff * *");
+    command("group two id 2:4:2");
+    command("delete_atoms group two compress no");
+    command("write_restart test_atom_styles.restart");
+    command("clear");
+    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
+    command("read_restart test_atom_styles.restart");
+    command("fix props all property/atom i_one d_two mol d_three q rmass "
+            "i2_four 2 d2_five 3 ghost yes");
+    END_HIDE_OUTPUT();
+    expected.natoms           = 2;
+    expected.nlocal           = 2;
+    expected.nghost           = 0;
+    expected.map_tag_max      = 3;
+    expected.nmax             = 16384;
+    expected.ntypes           = 2;
+    expected.has_mass         = true;
+    expected.has_mass_setflag = true;
+    expected.has_sametag      = true;
+    expected.has_extra        = true;
+    expected.has_ivname       = true;
+    expected.has_dvname       = true;
+    expected.has_ianame       = true;
+    expected.has_daname       = true;
+    expected.nextra_store     = 12;
+
+    ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
+    ASSERT_NE(lmp->atom->avec, nullptr);
+    ASSERT_EQ(lmp->atom->tag_consecutive(), 0);
+
+    q = lmp->atom->q;
+    EXPECT_NEAR(q[GETIDX(1)], -0.5, EPSILON);
+    EXPECT_NEAR(q[GETIDX(3)], -1.0, EPSILON);
+
+    rmass = lmp->atom->rmass;
+    one   = lmp->atom->ivector[0];
+    two   = lmp->atom->dvector[0];
+    three = lmp->atom->dvector[1];
+    EXPECT_NEAR(lmp->atom->mass[1], 4.0, EPSILON);
+    EXPECT_NEAR(lmp->atom->mass[2], 2.4, EPSILON);
+    ASSERT_EQ(lmp->atom->mass_setflag[1], 1);
+    ASSERT_EQ(lmp->atom->mass_setflag[2], 1);
+    EXPECT_NEAR(rmass[GETIDX(1)], 4.0, EPSILON);
+    EXPECT_NEAR(rmass[GETIDX(3)], 2.4, EPSILON);
+    EXPECT_EQ(one[GETIDX(1)], -5);
+    EXPECT_EQ(one[GETIDX(3)], 5);
+    EXPECT_NEAR(two[GETIDX(1)], 2.0, EPSILON);
+    EXPECT_NEAR(two[GETIDX(3)], 1.0, EPSILON);
+    EXPECT_NEAR(three[GETIDX(1)], -2.5, EPSILON);
+    EXPECT_NEAR(three[GETIDX(3)], 0.5, EPSILON);
+
+    BEGIN_HIDE_OUTPUT();
+    command("reset_atom_ids");
+    command("change_box all triclinic");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->atom->map_tag_max, 2);
+    q = lmp->atom->q;
+    EXPECT_NEAR(q[GETIDX(1)], -0.5, EPSILON);
+    EXPECT_NEAR(q[GETIDX(2)], -1.0, EPSILON);
+
+    rmass = lmp->atom->rmass;
+    one   = lmp->atom->ivector[0];
+    two   = lmp->atom->dvector[0];
+    three = lmp->atom->dvector[1];
+    EXPECT_NEAR(lmp->atom->mass[1], 4.0, EPSILON);
+    EXPECT_NEAR(lmp->atom->mass[2], 2.4, EPSILON);
+    ASSERT_EQ(lmp->atom->mass_setflag[1], 1);
+    ASSERT_EQ(lmp->atom->mass_setflag[2], 1);
+    EXPECT_NEAR(rmass[GETIDX(1)], 4.0, EPSILON);
+    EXPECT_NEAR(rmass[GETIDX(2)], 2.4, EPSILON);
+    EXPECT_EQ(one[GETIDX(1)], -5);
+    EXPECT_EQ(one[GETIDX(2)], 5);
+    EXPECT_NEAR(two[GETIDX(1)], 2.0, EPSILON);
+    EXPECT_NEAR(two[GETIDX(2)], 1.0, EPSILON);
+    EXPECT_NEAR(three[GETIDX(1)], -2.5, EPSILON);
+    EXPECT_NEAR(three[GETIDX(2)], 0.5, EPSILON);
+}
+
+TEST_F(AtomStyleTest, oxdna)
+{
+    if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
+    if (!LAMMPS::is_installed_pkg("ASPHERE")) GTEST_SKIP();
+    if (!LAMMPS::is_installed_pkg("CG-DNA")) GTEST_SKIP();
+
+    BEGIN_HIDE_OUTPUT();
+    command("atom_style hybrid bond ellipsoid oxdna");
+    END_HIDE_OUTPUT();
+
+    AtomState expected;
+    expected.atom_style     = "hybrid";
+    expected.molecular      = Atom::MOLECULAR;
+    expected.tag_enable     = 1;
+    expected.molecule_flag  = 1;
+    expected.ellipsoid_flag = 1;
+    expected.rmass_flag     = 1;
+    expected.torque_flag    = 1;
+    expected.angmom_flag    = 1;
+    expected.has_type       = true;
+    expected.has_mask       = true;
+    expected.has_image      = true;
+    expected.has_x          = true;
+    expected.has_v          = true;
+    expected.has_f          = true;
+    expected.has_bonds      = true;
+    expected.has_nspecial   = true;
+    expected.has_special    = true;
+    expected.map_style      = 3;
+
+    ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
+
+    auto hybrid = (AtomVecHybrid *)lmp->atom->avec;
+    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
+    ASSERT_EQ(hybrid->nstyles, 3);
+    ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("bond"));
+    ASSERT_THAT(std::string(hybrid->keywords[1]), Eq("ellipsoid"));
+    ASSERT_THAT(std::string(hybrid->keywords[2]), Eq("oxdna"));
+    ASSERT_NE(hybrid->styles[0], nullptr);
+    ASSERT_NE(hybrid->styles[1], nullptr);
+    ASSERT_NE(hybrid->styles[2], nullptr);
+
+    BEGIN_HIDE_OUTPUT();
+    command("units lj");
+    command("dimension 3");
+    command("newton on");
+    command("boundary  p p p");
+    command("atom_modify sort 0 1.0");
+    command("neighbor 2.0 bin");
+    command("neigh_modify every 1 delay 0 check yes");
+    command("region mybox block -20 20 -20 20 -20 20");
+    command("create_box 4 mybox bond/types 1 extra/bond/per/atom 2 extra/special/per/atom 4");
+    command("create_atoms 1 single -0.33741452300167507 -0.43708835412476305 0.6450685042019271");
+    command("create_atoms 2 single -0.32142606102826937 -0.7137743037592722 1.1817366147004618");
+    command("create_atoms 3 single -0.130363628207774 -0.9147144801536078 1.62581312195109");
+    command("create_atoms 4 single 0.16795127962282844 -0.9808507459807022 2.0894908590909003");
+    command("create_atoms 1 single 0.46370423490634166 -0.7803347954883079 2.4251986815515827");
+    command("create_atoms 4 single -0.4462950185476711 0.09062163051035639 2.4668941268777607");
+    command("create_atoms 1 single -0.03377054097560965 0.20979847489755046 2.078208732038921");
+    command("create_atoms 2 single 0.3297325391466579 0.17657587120899895 1.7206328374934152");
+    command("create_atoms 3 single 0.6063699309305985 0.04682595158675571 1.2335049647817748");
+    command("create_atoms 4 single 0.8003979559814726 -0.364393011459011 0.9884025318908612");
+    command("set type 1 mass 3.1575");
+    command("set type 2 mass 3.1575");
+    command("set type 3 mass 3.1575");
+    command("set type 4 mass 3.1575");
+    command("mass 1 3.1575");
+    command("mass 2 3.1575");
+    command("mass 3 3.1575");
+    command("mass 4 3.1575");
+    command("set atom 1 shape 1.173984503142341 1.173984503142341 1.173984503142341");
+    command("set atom 2 shape 1.173984503142341 1.173984503142341 1.173984503142341");
+    command("set atom 3 shape 1.173984503142341 1.173984503142341 1.173984503142341");
+    command("set atom 4 shape 1.173984503142341 1.173984503142341 1.173984503142341");
+    command("set atom 5 shape 1.173984503142341 1.173984503142341 1.173984503142341");
+    command("set atom 6 shape 1.173984503142341 1.173984503142341 1.173984503142341");
+    command("set atom 7 shape 1.173984503142341 1.173984503142341 1.173984503142341");
+    command("set atom 8 shape 1.173984503142341 1.173984503142341 1.173984503142341");
+    command("set atom 9 shape 1.173984503142341 1.173984503142341 1.173984503142341");
+    command("set atom 10 shape 1.173984503142341 1.173984503142341 1.173984503142341");
+    command("set atom 1 quat 0.120438343611269 -0.970540441176996 0.208676441957758 16.990727782866998");
+    command("set atom 2 quat 0.122039415796829 -0.068232256412985 0.990177125658213 40.001729435287870");
+    command("set atom 3 quat 0.052760168698289 0.030943512185297 0.998127679033382 69.627682451632380");
+    command("set atom 4 quat -0.037622918613871 0.030623545471522 0.998822664169035 97.038820280300570");
+    command("set atom 5 quat 0.055056042946138 0.077631917807377 0.995460756369964 137.7813218321917");
+    command("set atom 6 quat 0.931128471673637 -0.355724722922553 -0.080372201291206 166.2836226291888");
+    command("set atom 7 quat 0.753526078198930 -0.648440397941919 0.108275111595674 200.6802564250672");
+    command("set atom 8 quat 0.553942138074214 -0.829580511279186 0.070315595507185 192.0355407659524");
+    command("set atom 9 quat -0.373540155765431 0.913070802138105 -0.163613759548524 171.0789308260751");
+    command("set atom 10 quat 0.027515673832457 0.998248649922676 -0.052369080773879 161.2621224558284");
+    command("bond_style oxdna2/fene");
+    command("bond_coeff * 2.0 0.25 0.7564");
+    command("special_bonds lj 0 1 1");
+    command("create_bonds single/bond 1 1 2");
+    command("create_bonds single/bond 1 2 3");
+    command("create_bonds single/bond 1 3 4");
+    command("create_bonds single/bond 1 4 5");
+    command("create_bonds single/bond 1 6 7");
+    command("create_bonds single/bond 1 7 8");
+    command("create_bonds single/bond 1 8 9");
+    command("create_bonds single/bond 1 9 10");
+    command("pair_style hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk oxdna2/coaxstk oxdna2/dh");
+    command("pair_coeff * * oxdna2/excv 2.0 0.7 0.675 2.0 0.515 0.5 2.0 0.33 0.32");
+    command("pair_coeff * * oxdna2/stk seqdep 0.1 1.3523 2.6717 6.0 0.4 0.9 0.32 0.75 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65");
+    command("pair_coeff * * oxdna2/hbond seqdep 0.0 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45");
+    command("pair_coeff 1 4 oxdna2/hbond seqdep 1.0678 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45");
+    command("pair_coeff 2 3 oxdna2/hbond seqdep 1.0678 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45");
+    command("pair_coeff * * oxdna2/xstk 47.5 0.575 0.675 0.495 0.655 2.25 0.791592653589793 0.58 1.7 1.0 0.68 1.7 1.0 0.68 1.5 0 0.65 1.7 0.875 0.68 1.7 0.875 0.68");
+    command("pair_coeff * * oxdna2/coaxstk 58.5 0.4 0.6 0.22 0.58 2.0 2.891592653589793 0.65 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 40.0 3.116592653589793");
+    command("pair_coeff * * oxdna2/dh 0.1 0.2 0.815");
+    END_HIDE_OUTPUT();
+
+    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
+    ASSERT_NE(lmp->atom->avec, nullptr);
+    ASSERT_EQ(lmp->atom->natoms, 10);
+    ASSERT_EQ(lmp->atom->nbonds, 8);
+    ASSERT_EQ(lmp->atom->nbondtypes, 1);
+    ASSERT_EQ(lmp->atom->nellipsoids, 10);
+    ASSERT_EQ(lmp->atom->nlocal, 10);
+    ASSERT_EQ(lmp->atom->nghost, 0);
+    ASSERT_NE(lmp->atom->nmax, -1);
+    ASSERT_EQ(lmp->atom->tag_enable, 1);
+    ASSERT_EQ(lmp->atom->molecular, Atom::MOLECULAR);
+    ASSERT_EQ(lmp->atom->ntypes, 4);
+    ASSERT_EQ(lmp->atom->nextra_grow, 0);
+    ASSERT_EQ(lmp->atom->nextra_restart, 0);
+    ASSERT_EQ(lmp->atom->nextra_border, 0);
+    ASSERT_EQ(lmp->atom->nextra_grow_max, 0);
+    ASSERT_EQ(lmp->atom->nextra_restart_max, 0);
+    ASSERT_EQ(lmp->atom->nextra_border_max, 0);
+    ASSERT_EQ(lmp->atom->nextra_store, 0);
+    ASSERT_EQ(lmp->atom->extra_grow, nullptr);
+    ASSERT_EQ(lmp->atom->extra_restart, nullptr);
+    ASSERT_EQ(lmp->atom->extra_border, nullptr);
+    ASSERT_EQ(lmp->atom->extra, nullptr);
+    ASSERT_NE(lmp->atom->mass, nullptr);
+    ASSERT_NE(lmp->atom->rmass, nullptr);
+    ASSERT_EQ(lmp->atom->ellipsoid_flag, 1);
+    ASSERT_NE(lmp->atom->ellipsoid, nullptr);
+    ASSERT_NE(lmp->atom->mass_setflag, nullptr);
+    ASSERT_NE(lmp->atom->id5p, nullptr);
+
+    BEGIN_HIDE_OUTPUT();
+    command("write_data test_atom_styles.data nocoeff");
+    command("clear");
+    command("units lj");
+    command("dimension 3");
+    command("newton on");
+    command("boundary  p p p");
+    command("atom_style hybrid bond ellipsoid oxdna");
+    command("atom_modify sort 0 1.0");
+    command("neighbor 2.0 bin");
+    command("neigh_modify every 1 delay 0 check yes");
+    command("read_data test_atom_styles.data");
+    command("set type 1 mass 3.1575");
+    command("set type 2 mass 3.1575");
+    command("set type 3 mass 3.1575");
+    command("set type 4 mass 3.1575");
+    command("mass 1 3.1575");
+    command("mass 2 3.1575");
+    command("mass 3 3.1575");
+    command("mass 4 3.1575");
+    command("bond_style oxdna2/fene");
+    command("bond_coeff * 2.0 0.25 0.7564");
+    command("special_bonds lj 0 1 1");
+    command("pair_style hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk oxdna2/coaxstk oxdna2/dh");
+    command("pair_coeff * * oxdna2/excv 2.0 0.7 0.675 2.0 0.515 0.5 2.0 0.33 0.32");
+    command("pair_coeff * * oxdna2/stk seqdep 0.1 1.3523 2.6717 6.0 0.4 0.9 0.32 0.75 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65");
+    command("pair_coeff * * oxdna2/hbond seqdep 0.0 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45");
+    command("pair_coeff 1 4 oxdna2/hbond seqdep 1.0678 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45");
+    command("pair_coeff 2 3 oxdna2/hbond seqdep 1.0678 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45");
+    command("pair_coeff * * oxdna2/xstk 47.5 0.575 0.675 0.495 0.655 2.25 0.791592653589793 0.58 1.7 1.0 0.68 1.7 1.0 0.68 1.5 0 0.65 1.7 0.875 0.68 1.7 0.875 0.68");
+    command("pair_coeff * * oxdna2/coaxstk 58.5 0.4 0.6 0.22 0.58 2.0 2.891592653589793 0.65 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 40.0 3.116592653589793");
+    command("pair_coeff * * oxdna2/dh 0.1 0.2 0.815");
+
+    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
+    ASSERT_NE(lmp->atom->avec, nullptr);
+    hybrid = (AtomVecHybrid *)lmp->atom->avec;
+
+    ASSERT_EQ(hybrid->nstyles, 3);
+    ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("bond"));
+    ASSERT_THAT(std::string(hybrid->keywords[1]), Eq("ellipsoid"));
+    ASSERT_THAT(std::string(hybrid->keywords[2]), Eq("oxdna"));
+    ASSERT_NE(hybrid->styles[0], nullptr);
+    ASSERT_NE(hybrid->styles[1], nullptr);
+    ASSERT_NE(hybrid->styles[2], nullptr);
+
+    ASSERT_EQ(lmp->atom->natoms, 10);
+    ASSERT_EQ(lmp->atom->nbonds, 8);
+    ASSERT_EQ(lmp->atom->nbondtypes, 1);
+    ASSERT_EQ(lmp->atom->nellipsoids, 10);
+    ASSERT_EQ(lmp->atom->nlocal, 10);
+    ASSERT_EQ(lmp->atom->nghost, 0);
+    ASSERT_NE(lmp->atom->nmax, -1);
+    ASSERT_EQ(lmp->atom->tag_enable, 1);
+    ASSERT_EQ(lmp->atom->molecular, Atom::MOLECULAR);
+    ASSERT_EQ(lmp->atom->ntypes, 4);
+    ASSERT_EQ(lmp->atom->nextra_grow, 0);
+    ASSERT_EQ(lmp->atom->nextra_restart, 0);
+    ASSERT_EQ(lmp->atom->nextra_border, 0);
+    ASSERT_EQ(lmp->atom->nextra_grow_max, 0);
+    ASSERT_EQ(lmp->atom->nextra_restart_max, 0);
+    ASSERT_EQ(lmp->atom->nextra_border_max, 0);
+    ASSERT_EQ(lmp->atom->nextra_store, 0);
+    ASSERT_EQ(lmp->atom->extra_grow, nullptr);
+    ASSERT_EQ(lmp->atom->extra_restart, nullptr);
+    ASSERT_EQ(lmp->atom->extra_border, nullptr);
+    ASSERT_EQ(lmp->atom->extra, nullptr);
+    ASSERT_NE(lmp->atom->mass, nullptr);
+    ASSERT_NE(lmp->atom->rmass, nullptr);
+    ASSERT_EQ(lmp->atom->ellipsoid_flag, 1);
+    ASSERT_NE(lmp->atom->ellipsoid, nullptr);
+    ASSERT_NE(lmp->atom->mass_setflag, nullptr);
+    ASSERT_NE(lmp->atom->id5p, nullptr);
+
+    auto x         = lmp->atom->x;
+    auto v         = lmp->atom->v;
+    auto type      = lmp->atom->type;
+    auto ellipsoid = lmp->atom->ellipsoid;
+    auto rmass     = lmp->atom->rmass;
+
+    auto avec  = (AtomVecEllipsoid *)hybrid->styles[1];
+    auto bonus = avec->bonus;
+
+    EXPECT_NEAR(x[GETIDX(1)][0], -0.33741452300167507, EPSILON);
+    EXPECT_NEAR(x[GETIDX(1)][1], -0.43708835412476305, EPSILON);
+    EXPECT_NEAR(x[GETIDX(1)][2], 0.6450685042019271, EPSILON);
+    EXPECT_NEAR(x[GETIDX(2)][0], -0.32142606102826937, EPSILON);
+    EXPECT_NEAR(x[GETIDX(2)][1], -0.7137743037592722, EPSILON);
+    EXPECT_NEAR(x[GETIDX(2)][2], 1.1817366147004618, EPSILON);
+    EXPECT_NEAR(x[GETIDX(3)][0], -0.130363628207774, EPSILON);
+    EXPECT_NEAR(x[GETIDX(3)][1], -0.9147144801536078, EPSILON);
+    EXPECT_NEAR(x[GETIDX(3)][2], 1.62581312195109, EPSILON);
+    EXPECT_NEAR(x[GETIDX(4)][0], 0.16795127962282844, EPSILON);
+    EXPECT_NEAR(x[GETIDX(4)][1], -0.9808507459807022, EPSILON);
+    EXPECT_NEAR(x[GETIDX(4)][2], 2.0894908590909003, EPSILON);
+    EXPECT_NEAR(x[GETIDX(5)][0], 0.46370423490634166, EPSILON);
+    EXPECT_NEAR(x[GETIDX(5)][1], -0.7803347954883079, EPSILON);
+    EXPECT_NEAR(x[GETIDX(5)][2], 2.4251986815515827, EPSILON);
+    EXPECT_NEAR(x[GETIDX(6)][0], -0.4462950185476711, EPSILON);
+    EXPECT_NEAR(x[GETIDX(6)][1], 0.09062163051035639, EPSILON);
+    EXPECT_NEAR(x[GETIDX(6)][2], 2.4668941268777607, EPSILON);
+    EXPECT_NEAR(x[GETIDX(7)][0], -0.03377054097560965, EPSILON);
+    EXPECT_NEAR(x[GETIDX(7)][1], 0.20979847489755046, EPSILON);
+    EXPECT_NEAR(x[GETIDX(7)][2], 2.078208732038921, EPSILON);
+    EXPECT_NEAR(x[GETIDX(8)][0], 0.3297325391466579, EPSILON);
+    EXPECT_NEAR(x[GETIDX(8)][1], 0.17657587120899895, EPSILON);
+    EXPECT_NEAR(x[GETIDX(8)][2], 1.7206328374934152, EPSILON);
+    EXPECT_NEAR(x[GETIDX(9)][0], 0.6063699309305985, EPSILON);
+    EXPECT_NEAR(x[GETIDX(9)][1], 0.04682595158675571, EPSILON);
+    EXPECT_NEAR(x[GETIDX(9)][2], 1.2335049647817748, EPSILON);
+    EXPECT_NEAR(x[GETIDX(10)][0], 0.8003979559814726, EPSILON);
+    EXPECT_NEAR(x[GETIDX(10)][1], -0.364393011459011, EPSILON);
+    EXPECT_NEAR(x[GETIDX(10)][2], 0.9884025318908612, EPSILON);
+
+    EXPECT_NEAR(v[GETIDX(1)][0], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(1)][1], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(1)][2], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(2)][0], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(2)][1], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(2)][2], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(3)][0], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(3)][1], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(3)][2], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(4)][0], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(4)][1], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(4)][2], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(5)][0], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(5)][1], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(5)][2], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(6)][0], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(6)][1], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(6)][2], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(7)][0], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(7)][1], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(7)][2], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(8)][0], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(8)][1], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(8)][2], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(9)][0], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(9)][1], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(9)][2], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(10)][0], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(10)][1], 0.0, EPSILON);
+    EXPECT_NEAR(v[GETIDX(10)][2], 0.0, EPSILON);
+
+    ASSERT_EQ(type[GETIDX(1)], 1);
+    ASSERT_EQ(type[GETIDX(2)], 2);
+    ASSERT_EQ(type[GETIDX(3)], 3);
+    ASSERT_EQ(type[GETIDX(4)], 4);
+    ASSERT_EQ(type[GETIDX(5)], 1);
+    ASSERT_EQ(type[GETIDX(6)], 4);
+    ASSERT_EQ(type[GETIDX(7)], 1);
+    ASSERT_EQ(type[GETIDX(8)], 2);
+    ASSERT_EQ(type[GETIDX(9)], 3);
+    ASSERT_EQ(type[GETIDX(10)], 4);
+
+    ASSERT_EQ(ellipsoid[GETIDX(1)], 0);
+    ASSERT_EQ(ellipsoid[GETIDX(2)], 1);
+    ASSERT_EQ(ellipsoid[GETIDX(3)], 2);
+    ASSERT_EQ(ellipsoid[GETIDX(4)], 3);
+    ASSERT_EQ(ellipsoid[GETIDX(5)], 4);
+    ASSERT_EQ(ellipsoid[GETIDX(6)], 5);
+    ASSERT_EQ(ellipsoid[GETIDX(7)], 6);
+    ASSERT_EQ(ellipsoid[GETIDX(8)], 7);
+    ASSERT_EQ(ellipsoid[GETIDX(9)], 8);
+    ASSERT_EQ(ellipsoid[GETIDX(10)], 9);
+
+    EXPECT_NEAR(rmass[GETIDX(1)], 3.1575, EPSILON);
+    EXPECT_NEAR(rmass[GETIDX(2)], 3.1575, EPSILON);
+    EXPECT_NEAR(rmass[GETIDX(3)], 3.1575, EPSILON);
+    EXPECT_NEAR(rmass[GETIDX(4)], 3.1575, EPSILON);
+    EXPECT_NEAR(rmass[GETIDX(5)], 3.1575, EPSILON);
+    EXPECT_NEAR(rmass[GETIDX(6)], 3.1575, EPSILON);
+    EXPECT_NEAR(rmass[GETIDX(7)], 3.1575, EPSILON);
+    EXPECT_NEAR(rmass[GETIDX(8)], 3.1575, EPSILON);
+    EXPECT_NEAR(rmass[GETIDX(9)], 3.1575, EPSILON);
+    EXPECT_NEAR(rmass[GETIDX(10)], 3.1575, EPSILON);
+
+    EXPECT_NEAR(bonus[0].shape[0], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[0].shape[1], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[0].shape[2], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[1].shape[0], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[1].shape[1], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[1].shape[2], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[2].shape[0], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[2].shape[1], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[2].shape[2], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[3].shape[0], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[3].shape[1], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[3].shape[2], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[4].shape[0], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[4].shape[1], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[4].shape[2], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[5].shape[0], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[5].shape[1], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[5].shape[2], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[6].shape[0], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[6].shape[1], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[6].shape[2], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[7].shape[0], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[7].shape[1], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[7].shape[2], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[8].shape[0], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[8].shape[1], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[8].shape[2], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[9].shape[0], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[9].shape[1], 0.5869922515711705, EPSILON);
+    EXPECT_NEAR(bonus[9].shape[2], 0.5869922515711705, EPSILON);
+
+    EXPECT_NEAR(bonus[0].quat[0], 0.9890278201757743, EPSILON); 
+    EXPECT_NEAR(bonus[0].quat[1], 0.01779228232037064, EPSILON);
+    EXPECT_NEAR(bonus[0].quat[2], -0.14337734159225404, EPSILON);
+    EXPECT_NEAR(bonus[0].quat[3], 0.030827642240801516, EPSILON);
+    EXPECT_NEAR(bonus[1].quat[0], 0.939687458852748, EPSILON);
+    EXPECT_NEAR(bonus[1].quat[1], 0.04174166924055095, EPSILON);
+    EXPECT_NEAR(bonus[1].quat[2], -0.023337773785056866, EPSILON);
+    EXPECT_NEAR(bonus[1].quat[3], 0.338674565089608, EPSILON);
+    EXPECT_NEAR(bonus[2].quat[0], 0.8210113150655425, EPSILON);
+    EXPECT_NEAR(bonus[2].quat[1], 0.03012140921736572, EPSILON);
+    EXPECT_NEAR(bonus[2].quat[2], 0.017666019956944813, EPSILON);
+    EXPECT_NEAR(bonus[2].quat[3], 0.5698429897612057, EPSILON);
+    EXPECT_NEAR(bonus[3].quat[0], 0.6623662858285051, EPSILON);
+    EXPECT_NEAR(bonus[3].quat[1], -0.028186343967346823, EPSILON);
+    EXPECT_NEAR(bonus[3].quat[2], 0.022942552517501488, EPSILON);
+    EXPECT_NEAR(bonus[3].quat[3], 0.7482981175276918, EPSILON);
+    EXPECT_NEAR(bonus[4].quat[0], 0.3601488726765216, EPSILON);
+    EXPECT_NEAR(bonus[4].quat[1], 0.0513614985821682, EPSILON);
+    EXPECT_NEAR(bonus[4].quat[2], 0.0724224158335286, EPSILON);
+    EXPECT_NEAR(bonus[4].quat[3], 0.9286602067807472, EPSILON);
+    EXPECT_NEAR(bonus[5].quat[0], 0.11941234710084649, EPSILON);
+    EXPECT_NEAR(bonus[5].quat[1], 0.9244660117493703, EPSILON);
+    EXPECT_NEAR(bonus[5].quat[2], -0.35317942248051865, EPSILON);
+    EXPECT_NEAR(bonus[5].quat[3], -0.07979711784524246, EPSILON);
+    EXPECT_NEAR(bonus[6].quat[0], -0.17949125421205164, EPSILON);
+    EXPECT_NEAR(bonus[6].quat[1], 0.7412884899431119, EPSILON);
+    EXPECT_NEAR(bonus[6].quat[2], -0.6379094464220707, EPSILON);
+    EXPECT_NEAR(bonus[6].quat[3], 0.1065166771202199, EPSILON);
+    EXPECT_NEAR(bonus[7].quat[0], -0.10483691088405202, EPSILON);
+    EXPECT_NEAR(bonus[7].quat[1], 0.5508895999584645, EPSILON);
+    EXPECT_NEAR(bonus[7].quat[2], -0.8250090480220789, EPSILON);
+    EXPECT_NEAR(bonus[7].quat[3], 0.06992811634525403, EPSILON);
+    EXPECT_NEAR(bonus[8].quat[0], 0.07777239911646, EPSILON);
+    EXPECT_NEAR(bonus[8].quat[1], -0.3724087549185288, EPSILON);
+    EXPECT_NEAR(bonus[8].quat[2], 0.9103052384821374, EPSILON);
+    EXPECT_NEAR(bonus[8].quat[3], -0.1631181963720798, EPSILON);
+    EXPECT_NEAR(bonus[9].quat[0], 0.16279109707978262, EPSILON);
+    EXPECT_NEAR(bonus[9].quat[1], 0.027148630125149613, EPSILON);
+    EXPECT_NEAR(bonus[9].quat[2], 0.9849325709665359, EPSILON);
+    EXPECT_NEAR(bonus[9].quat[3], -0.0516705065113425, EPSILON);
+
+    auto num_bond  = lmp->atom->num_bond;
+    auto bond_type = lmp->atom->bond_type;
+    auto bond_atom = lmp->atom->bond_atom;
+    auto id5p      = lmp->atom->id5p;
+
+    ASSERT_EQ(num_bond[GETIDX(1)], 1);
+    ASSERT_EQ(num_bond[GETIDX(2)], 1);
+    ASSERT_EQ(num_bond[GETIDX(3)], 1);
+    ASSERT_EQ(num_bond[GETIDX(4)], 1);
+    ASSERT_EQ(num_bond[GETIDX(5)], 0);
+    ASSERT_EQ(num_bond[GETIDX(6)], 1);
+    ASSERT_EQ(num_bond[GETIDX(7)], 1);
+    ASSERT_EQ(num_bond[GETIDX(8)], 1);
+    ASSERT_EQ(num_bond[GETIDX(9)], 1);
+    ASSERT_EQ(num_bond[GETIDX(10)], 0);
+
+    ASSERT_EQ(bond_type[GETIDX(1)][0], 1);
+    ASSERT_EQ(bond_type[GETIDX(2)][0], 1);
+    ASSERT_EQ(bond_type[GETIDX(3)][0], 1);
+    ASSERT_EQ(bond_type[GETIDX(4)][0], 1);
+    ASSERT_EQ(bond_type[GETIDX(6)][0], 1);
+    ASSERT_EQ(bond_type[GETIDX(7)][0], 1);
+    ASSERT_EQ(bond_type[GETIDX(8)][0], 1);
+    ASSERT_EQ(bond_type[GETIDX(9)][0], 1);
+
+    ASSERT_EQ(bond_atom[GETIDX(1)][0], 2);
+    ASSERT_EQ(bond_atom[GETIDX(2)][0], 3);
+    ASSERT_EQ(bond_atom[GETIDX(3)][0], 4);
+    ASSERT_EQ(bond_atom[GETIDX(4)][0], 5);
+    ASSERT_EQ(bond_atom[GETIDX(6)][0], 7);
+    ASSERT_EQ(bond_atom[GETIDX(7)][0], 8);
+    ASSERT_EQ(bond_atom[GETIDX(8)][0], 9);
+    ASSERT_EQ(bond_atom[GETIDX(9)][0], 10);
+
+    ASSERT_EQ(id5p[GETIDX(1)], 2);
+    ASSERT_EQ(id5p[GETIDX(2)], 3);
+    ASSERT_EQ(id5p[GETIDX(3)], 4);
+    ASSERT_EQ(id5p[GETIDX(4)], 5);
+    ASSERT_EQ(id5p[GETIDX(5)], -1);
+    ASSERT_EQ(id5p[GETIDX(6)], 7);
+    ASSERT_EQ(id5p[GETIDX(7)], 8);
+    ASSERT_EQ(id5p[GETIDX(8)], 9);
+    ASSERT_EQ(id5p[GETIDX(9)], 10);
+    ASSERT_EQ(id5p[GETIDX(10)], -1);
+
+    END_HIDE_OUTPUT();
+
 }
 
 } // namespace LAMMPS_NS

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,20 +17,20 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_box_relax.h"
-#include <cmath>
-#include <cstring>
 
 #include "atom.h"
-#include "domain.h"
-#include "update.h"
 #include "comm.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
-#include "modify.h"
-#include "compute.h"
-#include "error.h"
 #include "math_extra.h"
+#include "modify.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -195,21 +196,15 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"scalexy") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      if (strcmp(arg[iarg+1],"yes") == 0) scalexy = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) scalexy = 0;
-      else error->all(FLERR,"Illegal fix box/relax command");
+      scalexy = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"scalexz") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      if (strcmp(arg[iarg+1],"yes") == 0) scalexz = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) scalexz = 0;
-      else error->all(FLERR,"Illegal fix box/relax command");
+      scalexz = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"scaleyz") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      if (strcmp(arg[iarg+1],"yes") == 0) scaleyz = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) scaleyz = 0;
-      else error->all(FLERR,"Illegal fix box/relax command");
+      scaleyz = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"fixedpoint") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix box/relax command");
@@ -319,29 +314,21 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
   // compute group = all since pressure is always global (group all)
   //   and thus its KE/temperature contribution should use group all
 
-  std::string tcmd = id + std::string("_temp");
-  id_temp = new char[tcmd.size()+1];
-  strcpy(id_temp,tcmd.c_str());
-
-  tcmd += " all temp";
-  modify->add_compute(tcmd);
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} all temp",id_temp));
   tflag = 1;
 
   // create a new compute pressure style (virial only)
   // id = fix-ID + press, compute group = all
   // pass id_temp as 4th arg to pressure constructor
 
-  std::string pcmd = id + std::string("_press");
-  id_press = new char[pcmd.size()+1];
-  strcpy(id_press,pcmd.c_str());
-
-  pcmd += " all pressure " + std::string(id_temp) + " virial";
-  modify->add_compute(pcmd);
+  id_press = utils::strdup(std::string(id) + "_press");
+  modify->add_compute(fmt::format("{} all pressure {} virial",id_press, id_temp));
   pflag = 1;
 
   dimension = domain->dimension;
   nrigid = 0;
-  rfix = 0;
+  rfix = nullptr;
 
   current_lifo = 0;
 }
@@ -761,9 +748,7 @@ int FixBoxRelax::modify_param(int narg, char **arg)
       tflag = 0;
     }
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0)
@@ -792,9 +777,7 @@ int FixBoxRelax::modify_param(int narg, char **arg)
       pflag = 0;
     }
     delete [] id_press;
-    int n = strlen(arg[1]) + 1;
-    id_press = new char[n];
-    strcpy(id_press,arg[1]);
+    id_press = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");

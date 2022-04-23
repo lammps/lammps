@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -111,25 +112,25 @@ void KimCommand::command(int narg, char **arg)
   if (lmp->citeme) lmp->citeme->add(cite_openkim);
 
   if (subcmd == "init") {
-    KimInit *cmd = new KimInit(lmp);
+    auto cmd = new KimInit(lmp);
     cmd->command(narg, arg);
     delete cmd;
   } else if (subcmd == "interactions") {
-    KimInteractions *cmd = new KimInteractions(lmp);
+    auto cmd = new KimInteractions(lmp);
     cmd->command(narg, arg);
     delete cmd;
   } else if (subcmd == "param") {
-    KimParam *cmd = new KimParam(lmp);
+    auto cmd = new KimParam(lmp);
     cmd->command(narg, arg);
     delete cmd;
   } else if (subcmd == "property") {
-    KimProperty *cmd = new KimProperty(lmp);
+    auto cmd = new KimProperty(lmp);
     cmd->command(narg, arg);
     delete cmd;
   } else if (subcmd == "query") {
     if (lmp->citeme) lmp->citeme->add(cite_openkim_query);
-    KimQuery *cmd = new KimQuery(lmp);
+    auto cmd = new KimQuery(lmp);
     cmd->command(narg, arg);
     delete cmd;
-  } else error->all(FLERR, fmt::format("Unknown kim subcommand {}", subcmd));
+  } else error->all(FLERR,"Unknown kim subcommand {}", subcmd);
 }

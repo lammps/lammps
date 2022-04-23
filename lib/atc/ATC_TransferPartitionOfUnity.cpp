@@ -1,4 +1,4 @@
-// ATC headers 
+// ATC headers
 #include "ATC_TransferPartitionOfUnity.h"
 #include "ATC_Error.h"
 #include "FE_Engine.h"
@@ -27,7 +27,7 @@ static double line_xg[line_ngauss], line_wg[line_ngauss];
 namespace ATC {
 
   ATC_TransferPartitionOfUnity::ATC_TransferPartitionOfUnity(
-    string groupName, 
+    string groupName,
     double ** & perAtomArray,
     LAMMPS_NS::Fix * thisFix,
     string matParamFile)
@@ -67,7 +67,7 @@ namespace ATC {
 
   //-------------------------------------------------------------------
   // kinetic energy portion of stress
-  
+
  /**
  *  @class  KineticTensor
  *  @brief  Class for computing the quantity - m v' (x) v'
@@ -83,7 +83,7 @@ namespace ATC {
     double mvv2e = lammpsInterface_->mvv2e(); // [MV^2]-->[Energy]
 
     DENS_MAT & v = variationVelocity_;
- 
+
     atomicTensor_.reset(nLocal_,6);
     for (int i = 0; i < nLocal_; i++) {
       int atomIdx = internalToAtom_(i);
@@ -132,7 +132,7 @@ namespace ATC {
         ATC::LammpsInterface::instance()->stream_msg_once(".",false,false);
       }
       // first atom location
-      int lammps_j = internalToAtom_(j); 
+      int lammps_j = internalToAtom_(j);
       xa.copy(xPointer_[lammps_j],3);
       for (int k = 0; k < numneigh[lammps_j]; ++k) {
         int lammps_k = firstneigh[lammps_j][k];
@@ -147,9 +147,9 @@ namespace ATC {
         lammpsInterface_->pair_force(lammps_j,lammps_k,rsq,fforce);
         fforce *= 0.5; // 1/2 sum_ab = sum_(ab)
         if (atomToElementMapType_ == LAGRANGIAN) {
-          double delX = xref_[lammps_j][0] - xref_[lammps_k][0]; 
-          double delY = xref_[lammps_j][1] - xref_[lammps_k][1]; 
-          double delZ = xref_[lammps_j][2] - xref_[lammps_k][2]; 
+          double delX = xref_[lammps_j][0] - xref_[lammps_k][0];
+          double delY = xref_[lammps_j][1] - xref_[lammps_k][1];
+          double delZ = xref_[lammps_j][2] - xref_[lammps_k][2];
           virial[0] =-delx*fforce*delX;
           virial[1] =-delx*fforce*delY;
           virial[2] =-delx*fforce*delZ;
@@ -172,7 +172,7 @@ namespace ATC {
         for (int i = 0; i < line_ngauss; i++) {
           double lambda = line_xg[i];
           xlambda = lambda*xab + xb;
-          
+
           lammpsInterface_->periodicity_correction(xlambda.ptr());
           feEngine_->shape_functions(xlambda,shp,node_list);
           // accumulate to nodes whose support overlaps the integration point
@@ -242,7 +242,7 @@ namespace ATC {
     DENS_VEC xa(nsd_),xb(nsd_),xab(nsd_),xlambda(nsd_);
     for (int j = 0; j < nLocal_; j++) {
       // first atom location
-      int lammps_j = internalToAtom_(j); 
+      int lammps_j = internalToAtom_(j);
       xa.copy(xPointer_[lammps_j],3);
       for (int k = 0; k < numneigh[lammps_j]; ++k) {
         int lammps_k = firstneigh[lammps_j][k];
@@ -260,9 +260,9 @@ namespace ATC {
                    delz*variationVelocity_(j,2));
         double flux_vec[3];
         if (atomToElementMapType_ == LAGRANGIAN) {
-          double delX = xref_[lammps_j][0] - xref_[lammps_k][0]; 
-          double delY = xref_[lammps_j][1] - xref_[lammps_k][1]; 
-          double delZ = xref_[lammps_j][2] - xref_[lammps_k][2]; 
+          double delX = xref_[lammps_j][0] - xref_[lammps_k][0];
+          double delY = xref_[lammps_j][1] - xref_[lammps_k][1];
+          double delZ = xref_[lammps_j][2] - xref_[lammps_k][2];
           flux_vec[0] =fforce*delX;
           flux_vec[1] =fforce*delY;
           flux_vec[2] =fforce*delZ;
@@ -276,7 +276,7 @@ namespace ATC {
         for (int i = 0; i < line_ngauss; i++) {
           double lambda = line_xg[i];
           xlambda = lambda*xab + xb;
-          
+
           lammpsInterface_->periodicity_correction(xlambda.ptr());
           feEngine_->shape_functions(xlambda,shp,node_list);
           // accumulate to nodes whose support overlaps the integration point
@@ -316,7 +316,7 @@ namespace ATC {
                       field_to_prolongation_name(VELOCITY));
       }
       // use of prolong assumes atom system contained within mesh
-      vbar_ = vbar->quantity(); 
+      vbar_ = vbar->quantity();
       // compute and store variation velocities of atoms
       for (int i = 0; i < nLocal_; i++) {
         int atomIdx = internalToAtom_(i);
@@ -328,10 +328,10 @@ namespace ATC {
   }
 
   //-------------------------------------------------------------------
-  // calculation of the dislocation density tensor 
+  // calculation of the dislocation density tensor
   void ATC_TransferPartitionOfUnity::compute_dislocation_density(DENS_MAT & A)
   {
-    
+
     A.reset(nNodes_,9);
 #ifdef HAS_DXA
    double cnaCutoff = lammpsInterface_->near_neighbor_cutoff();
@@ -368,7 +368,7 @@ namespace ATC {
 
 
    DENS_MAT local_A(nNodes_,9);
-   local_A.zero(); 
+   local_A.zero();
    Array<bool> latticePeriodicity(3);
    latticePeriodicity(0) = (bool) periodicity[0];
    latticePeriodicity(1) = (bool) periodicity[1];
@@ -406,7 +406,7 @@ namespace ATC {
        for (int i = 0; i < line_ngauss; i++) {
          double lambda = line_xg[i];
          xlambda = lambda*xba + xa;
-         
+
          lammpsInterface_->periodicity_correction(xlambda.ptr());
          feEngine_->shape_functions(xlambda,shp,node_list);
          // accumulate to nodes whose support overlaps the integration point
@@ -472,7 +472,7 @@ namespace ATC {
    }
    ATC::LammpsInterface::instance()->print_msg_once(ss.str());
    ss.str("");
-   DENS_VEC A_avg(9); 
+   DENS_VEC A_avg(9);
    for (int i = 0; i < nNodes_; i++) {
      for (int j = 0; j < 9; j++) {
        A_avg(j) += A(i,j);
@@ -480,9 +480,9 @@ namespace ATC {
    }
    A_avg /= nNodes_;
    ss << "average nodal dislocation density tensor = \n";
-   ss << A_avg(0) << "  " << A_avg(1) << " " << A_avg(2) << "\n"; 
-   ss << A_avg(3) << "  " << A_avg(4) << " " << A_avg(5) << "\n"; 
-   ss << A_avg(6) << "  " << A_avg(7) << " " << A_avg(8) << "\n"; 
+   ss << A_avg(0) << "  " << A_avg(1) << " " << A_avg(2) << "\n";
+   ss << A_avg(3) << "  " << A_avg(4) << " " << A_avg(5) << "\n";
+   ss << A_avg(6) << "  " << A_avg(7) << " " << A_avg(8) << "\n";
    ATC::LammpsInterface::instance()->print_msg_once(ss.str());
 
    if (nSeg > 0) {
@@ -495,7 +495,7 @@ namespace ATC {
      segOutput.write_geometry(&segCoor,&segConn);
      OUTPUT_LIST segOut;
      segOut["burgers_vector"] = &segBurg;
-     segOutput.write_data(0,&segOut); 
+     segOutput.write_data(0,&segOut);
    }
 #else
     throw ATC_Error("TransferParititionOfUnity::compute_dislocaton_density - unimplemented function");

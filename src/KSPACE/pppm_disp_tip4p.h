@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(pppm/disp/tip4p,PPPMDispTIP4P)
-
+// clang-format off
+KSpaceStyle(pppm/disp/tip4p,PPPMDispTIP4P);
+// clang-format on
 #else
 
 #ifndef LMP_PPPM_DISP_TIP4P_H
@@ -27,23 +27,22 @@ namespace LAMMPS_NS {
 class PPPMDispTIP4P : public PPPMDisp {
  public:
   PPPMDispTIP4P(class LAMMPS *);
-  virtual ~PPPMDispTIP4P () {};
-  void init();
+
+  void init() override;
 
  protected:
-  virtual void particle_map_c(double, double, double,
-                              double, int **, int, int,
-                              int, int, int, int, int, int);
-  virtual void make_rho_c();
-  virtual void fieldforce_c_ik();
-  virtual void fieldforce_c_ad();
-  virtual void fieldforce_c_peratom();
+  void particle_map_c(double, double, double, double, int **, int, int, int, int, int, int,
+                              int, int) override;
+  void make_rho_c() override;
+  void fieldforce_c_ik() override;
+  void fieldforce_c_ad() override;
+  void fieldforce_c_peratom() override;
 
  private:
   void find_M(int, int &, int &, double *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

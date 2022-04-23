@@ -103,7 +103,7 @@ Restrictions
 """"""""""""
 
 This fix style is part of the SHOCK package.  It is only enabled if
-LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package. See the :doc:`Build package <Build_package>` page for more info.
 
 The face that has the wall/piston must be boundary type 's'
 (shrink-wrapped). The opposing face can be

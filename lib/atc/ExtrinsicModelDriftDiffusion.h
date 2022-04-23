@@ -32,7 +32,7 @@ namespace ATC {
   //--------------------------------------------------------
 
   class ExtrinsicModelDriftDiffusion : public ExtrinsicModelTwoTemperature {
-  
+
   public:
 
     // constructor
@@ -63,7 +63,7 @@ namespace ATC {
 
     /** get LAMMPS display variables */
     virtual bool compute_vector(int n, double & value);
- 
+
   protected:
     /** Poisson solve */
     void poisson_solve();
@@ -91,7 +91,7 @@ namespace ATC {
     enum electronDensityEqnType { ELECTRON_CONTINUITY,
                                   ELECTRON_EQUILIBRIUM,
                                   ELECTRON_SCHRODINGER};
-  
+
     /** frequency for updating the electron state */
     int fluxUpdateFreq_;
 
@@ -139,7 +139,7 @@ namespace ATC {
   //--------------------------------------------------------
 
   class ExtrinsicModelDriftDiffusionConvection : public ExtrinsicModelDriftDiffusion {
-  
+
   public:
 
     // constructor
@@ -167,7 +167,7 @@ namespace ATC {
 
     /** get LAMMPS display variables */
     virtual bool compute_vector(int n, double & value);
- 
+
   protected:
 
     /** compute the total kinetic energy of the electrons */
@@ -176,7 +176,7 @@ namespace ATC {
     /** Linear solver for velocity */
     std::vector<LinearSolver * > velocitySolvers_;
 
-    
+
     /** Linear solver for solving the poisson equations */
     LinearSolver * cddmPoissonSolver_;
 

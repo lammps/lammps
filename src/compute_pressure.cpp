@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -53,9 +54,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(arg[3],"NULL") == 0) id_temp = nullptr;
   else {
-    int n = strlen(arg[3]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[3]);
+    id_temp = utils::strdup(arg[3]);
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0)
@@ -82,10 +81,10 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
     while (iarg < narg) {
       if (strcmp(arg[iarg],"ke") == 0) keflag = 1;
       else if (strcmp(arg[iarg],"pair/hybrid") == 0) {
-        int n = strlen(arg[++iarg]) + 1;
-        if (lmp->suffix) n += strlen(lmp->suffix) + 1;
-        pstyle = new char[n];
-        strcpy(pstyle,arg[iarg++]);
+        if (lmp->suffix)
+          pstyle = utils::strdup(fmt::format("{}/{}",arg[++iarg],lmp->suffix));
+        else
+          pstyle = utils::strdup(arg[++iarg]);
 
         nsub = 0;
 
@@ -102,8 +101,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
 
         pairhybrid = (Pair *) force->pair_match(pstyle,1,nsub);
         if (!pairhybrid && lmp->suffix) {
-          strcat(pstyle,"/");
-          strcat(pstyle,lmp->suffix);
+          pstyle[strlen(pstyle) - strlen(lmp->suffix) - 1] = '\0';
           pairhybrid = (Pair *) force->pair_match(pstyle,1,nsub);
         }
 
@@ -197,14 +195,14 @@ void ComputePressure::init()
     if (improperflag && force->improper) nvirial++;
   }
   if (fixflag)
-    for (int i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->thermo_virial) nvirial++;
+    for (auto &ifix : modify->get_fix_list())
+      if (ifix->thermo_virial) nvirial++;
 
   if (nvirial) {
     vptr = new double*[nvirial];
     nvirial = 0;
     if (pairhybridflag && force->pair) {
-      PairHybrid *ph = (PairHybrid *) force->pair;
+      auto ph = dynamic_cast<PairHybrid *>( force->pair);
       ph->no_virial_fdotr_compute = 1;
       vptr[nvirial++] = pairhybrid->virial;
     }
@@ -216,9 +214,9 @@ void ComputePressure::init()
     if (improperflag && force->improper)
       vptr[nvirial++] = force->improper->virial;
     if (fixflag)
-      for (int i = 0; i < modify->nfix; i++)
-        if (modify->fix[i]->virial_global_flag && modify->fix[i]->thermo_virial)
-          vptr[nvirial++] = modify->fix[i]->virial;
+    for (auto &ifix : modify->get_fix_list())
+      if (ifix->virial_global_flag && ifix->thermo_virial)
+          vptr[nvirial++] = ifix->virial;
   }
 
   // flag Kspace contribution separately, since not summed across procs
@@ -239,18 +237,16 @@ double ComputePressure::compute_scalar()
 
   // invoke temperature if it hasn't been already
 
-  double t;
   if (keflag) {
     if (temperature->invoked_scalar != update->ntimestep)
-      t = temperature->compute_scalar();
-    else t = temperature->scalar;
+      temperature->compute_scalar();
   }
 
   if (dimension == 3) {
     inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
     virial_compute(3,3);
     if (keflag)
-      scalar = (temperature->dof * boltz * t +
+      scalar = (temperature->dof * boltz * temperature->scalar +
                 virial[0] + virial[1] + virial[2]) / 3.0 * inv_volume * nktv2p;
     else
       scalar = (virial[0] + virial[1] + virial[2]) / 3.0 * inv_volume * nktv2p;
@@ -258,7 +254,7 @@ double ComputePressure::compute_scalar()
     inv_volume = 1.0 / (domain->xprd * domain->yprd);
     virial_compute(2,2);
     if (keflag)
-      scalar = (temperature->dof * boltz * t +
+      scalar = (temperature->dof * boltz * temperature->scalar +
                 virial[0] + virial[1]) / 2.0 * inv_volume * nktv2p;
     else
       scalar = (virial[0] + virial[1]) / 2.0 * inv_volume * nktv2p;
@@ -353,7 +349,5 @@ void ComputePressure::virial_compute(int n, int ndiag)
 void ComputePressure::reset_extra_compute_fix(const char *id_new)
 {
   delete [] id_temp;
-  int n = strlen(id_new) + 1;
-  id_temp = new char[n];
-  strcpy(id_temp,id_new);
+  id_temp = utils::strdup(id_new);
 }

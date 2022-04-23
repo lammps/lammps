@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,22 +19,24 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rigid_nh.h"
-#include <cmath>
-#include <cstring>
-#include "math_extra.h"
+
 #include "atom.h"
+#include "comm.h"
 #include "compute.h"
 #include "domain.h"
-#include "update.h"
-#include "modify.h"
-#include "fix_deform.h"
-#include "group.h"
-#include "comm.h"
-#include "force.h"
-#include "kspace.h"
-#include "memory.h"
 #include "error.h"
+#include "fix_deform.h"
+#include "force.h"
+#include "group.h"
+#include "kspace.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "modify.h"
 #include "rigid_const.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -169,7 +172,7 @@ FixRigidNH::~FixRigidNH()
     deallocate_order();
   }
 
-  if (rfix) delete [] rfix;
+  delete[] rfix;
 
   if (tcomputeflag) modify->delete_compute(id_temp);
   delete [] id_temp;
@@ -234,8 +237,6 @@ void FixRigidNH::init()
   }
 
   g_f = nf_t + nf_r;
-  onednft = 1.0 + (double)(dimension) / (double)g_f;
-  onednfr = (double) (dimension) / (double)g_f;
 
   // see Table 1 in Kamberaj et al
 
@@ -269,7 +270,7 @@ void FixRigidNH::init()
 
     for (int i = 0; i < modify->nfix; i++)
       if (strcmp(modify->fix[i]->style,"deform") == 0) {
-        int *dimflag = ((FixDeform *) modify->fix[i])->dimflag;
+        int *dimflag = (dynamic_cast<FixDeform *>( modify->fix[i]))->dimflag;
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
             (p_flag[2] && dimflag[2]))
           error->all(FLERR,"Cannot use fix rigid npt/nph and fix deform on "
@@ -302,7 +303,7 @@ void FixRigidNH::init()
     // rfix[] = indices to each fix rigid
     // this will include self
 
-    if (rfix) delete [] rfix;
+    delete[] rfix;
     nrigidfix = 0;
     rfix = nullptr;
 
@@ -719,6 +720,8 @@ void FixRigidNH::final_integrate()
 
 void FixRigidNH::nhc_temp_integrate()
 {
+  if (g_f == 0) return;
+
   int i,j,k;
   double kt,gfkt_t,gfkt_r,tmp,ms,s,s2;
 
@@ -820,7 +823,7 @@ void FixRigidNH::nhc_press_integrate()
 
   double tb_mass = kt / (p_freq_max * p_freq_max);
   q_b[0] = dimension * dimension * tb_mass;
-  for (int i = 1; i < p_chain; i++) {
+  for (i = 1; i < p_chain; i++) {
     q_b[i] = tb_mass;
     f_eta_b[i] = q_b[i-1] * eta_dot_b[i-1] * eta_dot_b[i-1] - kt;
     f_eta_b[i] /= q_b[i];
@@ -1063,6 +1066,8 @@ void FixRigidNH::compute_press_target()
 
 void FixRigidNH::nh_epsilon_dot()
 {
+  if (g_f == 0) return;
+
   int i;
   double volume,scale,f_epsilon;
 
@@ -1157,7 +1162,7 @@ void FixRigidNH::write_restart(FILE *fp)
 void FixRigidNH::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
   int flag = static_cast<int> (list[n++]);
 
   if (flag) {
@@ -1202,9 +1207,7 @@ int FixRigidNH::modify_param(int narg, char **arg)
       tcomputeflag = 0;
     }
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0)
@@ -1236,9 +1239,7 @@ int FixRigidNH::modify_param(int narg, char **arg)
       pcomputeflag = 0;
     }
     delete [] id_press;
-    int n = strlen(arg[1]) + 1;
-    id_press = new char[n];
-    strcpy(id_press,arg[1]);
+    id_press = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");

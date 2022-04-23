@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/class2/kk,PairLJClass2Kokkos<LMPDeviceType>)
-PairStyle(lj/class2/kk/device,PairLJClass2Kokkos<LMPDeviceType>)
-PairStyle(lj/class2/kk/host,PairLJClass2Kokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(lj/class2/kk,PairLJClass2Kokkos<LMPDeviceType>);
+PairStyle(lj/class2/kk/device,PairLJClass2Kokkos<LMPDeviceType>);
+PairStyle(lj/class2/kk/host,PairLJClass2Kokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_LJ_CLASS2_KOKKOS_H
 #define LMP_PAIR_LJ_CLASS2_KOKKOS_H
 
@@ -36,13 +37,13 @@ class PairLJClass2Kokkos : public PairLJClass2 {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairLJClass2Kokkos(class LAMMPS *);
-  ~PairLJClass2Kokkos();
+  ~PairLJClass2Kokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   struct params_lj{
     KOKKOS_INLINE_FUNCTION
@@ -53,8 +54,6 @@ class PairLJClass2Kokkos : public PairLJClass2 {
   };
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
@@ -97,7 +96,7 @@ class PairLJClass2Kokkos : public PairLJClass2 {
   int neighflag;
   int nlocal,nall,eflag,vflag;
 
-  void allocate();
+  void allocate() override;
   friend struct PairComputeFunctor<PairLJClass2Kokkos,FULL,true>;
   friend struct PairComputeFunctor<PairLJClass2Kokkos,HALF,true>;
   friend struct PairComputeFunctor<PairLJClass2Kokkos,HALFTHREAD,true>;

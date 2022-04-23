@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -117,7 +118,7 @@ void Irregular::migrate_atoms(int sortflag, int preassign, int *procassign)
   // exchange() doesn't need to clear ghosts b/c borders()
   //   is called right after and it clears ghosts and calls map_set()
 
-  if (map_style) atom->map_clear();
+  if (map_style != Atom::MAP_NONE) atom->map_clear();
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
@@ -891,7 +892,6 @@ int Irregular::create_data_grouped(int n, int *procs, int sortflag)
     utils::merge_sort(order,nrecv_proc,(void *)proc_recv,compare_standalone);
 #endif
 
-    int j;
     for (i = 0; i < nrecv_proc; i++) {
       j = order[i];
       proc_recv_ordered[i] = proc_recv[j];
@@ -998,18 +998,11 @@ void Irregular::destroy_data()
 
 void Irregular::init_exchange()
 {
-  int nfix = modify->nfix;
-  Fix **fix = modify->fix;
-
-  int onefix;
   int maxexchange_fix = 0;
-  for (int i = 0; i < nfix; i++) {
-    onefix = fix[i]->maxexchange;
-    maxexchange_fix = MAX(maxexchange_fix,onefix);
-  }
+  for (auto &ifix : modify->get_fix_list())
+    maxexchange_fix = MAX(maxexchange_fix, ifix->maxexchange);
 
-  int maxexchange = atom->avec->maxexchange + maxexchange_fix;
-  bufextra = maxexchange + BUFEXTRA;
+  bufextra = atom->avec->maxexchange + maxexchange_fix + BUFEXTRA;
 }
 
 /* ----------------------------------------------------------------------

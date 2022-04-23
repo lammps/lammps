@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -52,37 +53,35 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(earg[2],"xs") == 0) {
     if (strcmp(earg[3],"ysu") == 0 || strcmp(earg[4],"zsu") == 0)
-      error->all(FLERR,
-                 "Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
+      error->all(FLERR,"Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
     unwrapflag = 0;
   } else {
     if (strcmp(earg[3],"ys") == 0 || strcmp(earg[4],"zs") == 0)
-      error->all(FLERR,
-                 "Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
+      error->all(FLERR,"Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
     unwrapflag = 1;
   }
 
   // setup auxiliary property name strings
   // convert 'X_ID[m]' (X=c,f,v) to 'X_ID_m'
 
-  if (nfield > 5) auxname = new char*[nfield];
+  if (nfield > 5) auxname = new char*[nfield-5];
   else auxname = nullptr;
 
   int i = 0;
+  key2col.clear();
+  keyword_user.resize(nfield-5);
   for (int iarg = 5; iarg < nfield; iarg++, i++) {
-    ArgInfo argi(earg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE
-                 |ArgInfo::DNAME|ArgInfo::INAME);
+    ArgInfo argi(earg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE|
+                 ArgInfo::DNAME|ArgInfo::INAME);
 
     if (argi.get_dim() == 1) {
-      std::string newarg(std::to_string(earg[iarg][0]));
-      newarg += std::string("_") + argi.get_name();
-      newarg += std::string("_") + std::to_string(argi.get_index1());
-      auxname[i] = new char[newarg.size()+1];
-      strcpy(auxname[i],newarg.c_str());
+      std::string newarg = fmt::format("{}_{}_{}", earg[iarg][0], argi.get_name(), argi.get_index1());
+      auxname[i] = utils::strdup(newarg);
     } else {
-      auxname[i] = new char[strlen(earg[iarg]) + 1];
-      strcpy(auxname[i],earg[iarg]);
+      auxname[i] = utils::strdup(earg[iarg]);
     }
+    key2col[earg[iarg]] = i;
+    keyword_user[i].clear();
   }
 }
 
@@ -91,8 +90,8 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
 DumpCFG::~DumpCFG()
 {
   if (auxname) {
-    for (int i = 0; i < nfield-5; i++) delete [] auxname[i];
-    delete [] auxname;
+    for (int i = 0; i < nfield-5; i++) delete[] auxname[i];
+    delete[] auxname;
   }
 }
 
@@ -126,21 +125,25 @@ void DumpCFG::write_header(bigint n)
   if (atom->peri_flag) scale = atom->pdscale;
   else if (unwrapflag == 1) scale = UNWRAPEXPAND;
 
-  fprintf(fp,"Number of particles = " BIGINT_FORMAT "\n", n);
-  fprintf(fp,"A = %g Angstrom (basic length-scale)\n",scale);
-  fprintf(fp,"H0(1,1) = %g A\n",domain->xprd);
-  fprintf(fp,"H0(1,2) = 0 A \n");
-  fprintf(fp,"H0(1,3) = 0 A \n");
-  fprintf(fp,"H0(2,1) = %g A \n",domain->xy);
-  fprintf(fp,"H0(2,2) = %g A\n",domain->yprd);
-  fprintf(fp,"H0(2,3) = 0 A \n");
-  fprintf(fp,"H0(3,1) = %g A \n",domain->xz);
-  fprintf(fp,"H0(3,2) = %g A \n",domain->yz);
-  fprintf(fp,"H0(3,3) = %g A\n",domain->zprd);
-  fprintf(fp,".NO_VELOCITY.\n");
-  fprintf(fp,"entry_count = %d\n",nfield-2);
+  auto header = fmt::format("Number of particles = {}\n",n);
+  header += fmt::format("A = {:g} Angstrom (basic length-scale)\n",scale);
+  header += fmt::format("H0(1,1) = {:g} A\n",domain->xprd);
+  header += fmt::format("H0(1,2) = 0 A\n");
+  header += fmt::format("H0(1,3) = 0 A\n");
+  header += fmt::format("H0(2,1) = {:g} A\n",domain->xy);
+  header += fmt::format("H0(2,2) = {:g} A\n",domain->yprd);
+  header += fmt::format("H0(2,3) = 0 A\n");
+  header += fmt::format("H0(3,1) = {:g} A\n",domain->xz);
+  header += fmt::format("H0(3,2) = {:g} A\n",domain->yz);
+  header += fmt::format("H0(3,3) = {:g} A\n",domain->zprd);
+  header += fmt::format(".NO_VELOCITY.\n");
+  header += fmt::format("entry_count = {}\n",nfield-2);
   for (int i = 0; i < nfield-5; i++)
-    fprintf(fp,"auxiliary[%d] = %s\n",i,auxname[i]);
+    if (keyword_user[i].size())
+      header += fmt::format("auxiliary[{}] = {}\n",i,keyword_user[i]);
+    else
+      header += fmt::format("auxiliary[{}] = {}\n",i,auxname[i]);
+  fmt::print(fp, header);
 }
 
 /* ----------------------------------------------------------------------
@@ -170,16 +173,13 @@ int DumpCFG::convert_string(int n, double *mybuf)
           offset += sprintf(&sbuf[offset],"%s \n",typenames[(int) mybuf[m]]);
         } else if (j >= 2) {
           if (vtype[j] == Dump::INT)
-            offset +=
-              sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
+            offset += sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
           else if (vtype[j] == Dump::DOUBLE)
             offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
           else if (vtype[j] == Dump::STRING)
-            offset +=
-              sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
+            offset += sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
           else if (vtype[j] == Dump::BIGINT)
-            offset +=
-              sprintf(&sbuf[offset],vformat[j],static_cast<bigint> (mybuf[m]));
+            offset += sprintf(&sbuf[offset],vformat[j],static_cast<bigint> (mybuf[m]));
         }
         m++;
       }
@@ -236,7 +236,8 @@ void DumpCFG::write_data(int n, double *mybuf)
 
 void DumpCFG::write_string(int n, double *mybuf)
 {
-  fwrite(mybuf,sizeof(char),n,fp);
+  if (mybuf)
+    fwrite(mybuf,sizeof(char),n,fp);
 }
 
 /* ---------------------------------------------------------------------- */

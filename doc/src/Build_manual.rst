@@ -22,35 +22,26 @@ files. Here is a list with descriptions:
    .gitignore       # list of files and folders to be ignored by git
    doxygen-warn.log # logfile with warnings from running doxygen
    github-development-workflow.md   # notes on the LAMMPS development workflow
-   include-file-conventions.md      # notes on LAMMPS' include file conventions
 
 If you downloaded LAMMPS as a tarball from `the LAMMPS website <lws_>`_,
 the html folder and the PDF files should be included.
 
 If you downloaded LAMMPS from the public git repository, then the HTML
-and PDF files are not included.  Instead you need to create them, in one
-of two ways:
+and PDF files are not included.  You can build the HTML or PDF files yourself,
+by typing ``make html``  or ``make pdf`` in the ``doc`` folder.  This requires
+various tools and files.  Some of them have to be installed (see below).  For
+the rest the build process will attempt to download and install them into
+a python virtual environment and local folders.
 
-a. You can "fetch" the current HTML and PDF files from the LAMMPS web
-   site.  Just type ``make fetch``.  This should download a ``html_www``
-   directory and a ``Manual_www.pdf`` file.  Note that if new LAMMPS features
-   have been added more recently than the date of your LAMMPS version, the
-   fetched documentation will include those changes (but your source code
-   will not, unless you update your local repository).
-
-b. You can build the HTML or PDF files yourself, by typing ``make html``
-   or ``make pdf`` in the ``doc`` folder.  This requires various tools
-   and files.  Some of them have to be installed (see below).  For the
-   rest the build process will attempt to download and install them into
-   a python virtual environment and local folders.
-
-A current version of the manual (latest patch release, aka unstable
-branch) is is available online at:
-`https://lammps.sandia.gov/doc/Manual.html
-<https://lammps.sandia.gov/doc/Manual.html>`_ A version of the manual
-corresponding to the ongoing development (aka master branch) is
-available online at: `https://docs.lammps.org/
-<https://docs.lammps.org/>`_
+A current version of the manual (latest patch release, that is the state
+of the *release* branch) is is available online at:
+`https://docs.lammps.org/ <https://docs.lammps.org/>`_.
+A version of the manual corresponding to the ongoing development (that is
+the state of the *develop* branch) is available online at:
+`https://docs.lammps.org/latest/ <https://docs.lammps.org/latest/>`_
+A version of the manual corresponding to the latest stable LAMMPS release
+(that is the state of the *stable* branch) is available online at:
+`https://docs.lammps.org/stable/ <https://docs.lammps.org/stable/>`_
 
 Build using GNU make
 --------------------
@@ -86,11 +77,12 @@ folder.  The following ``make`` commands are available:
 .. code-block:: bash
 
    make html          # generate HTML in html dir using Sphinx
-   make pdf           # generate PDF  as Manual.pdf using Sphinx and pdflatex
-   make fetch         # fetch HTML pages and PDF files from LAMMPS web site
-                      #  and unpack into the html_www folder and Manual_www.pdf
+   make pdf           # generate PDF  as Manual.pdf using Sphinx and PDFLaTeX
    make epub          # generate LAMMPS.epub in ePUB format using Sphinx
    make mobi          # generate LAMMPS.mobi in MOBI format using ebook-convert
+
+   make fasthtml      # generate approximate HTML in fasthtml dir using Sphinx
+                      # some Sphinx extensions do not work correctly with this
 
    make clean         # remove intermediate RST files created by HTML build
    make clean-all     # remove entire build folder and any cached data
@@ -202,8 +194,13 @@ folder need to be updated or new files added. These files are written in
 `reStructuredText <rst_>`_ markup for translation with the Sphinx tool.
 
 Before contributing any documentation, please check that both the HTML
-and the PDF format documentation can translate without errors. Please also
-check the output to the console for any warnings or problems.  There will
+and the PDF format documentation can translate without errors.  During
+testing the html translation, you may use the ``make fasthtml`` command
+which does an approximate translation (i.e. not all Sphinx features and
+extensions will work), but runs very fast because it will only translate
+files that have been changed since the last ``make fasthtml`` command.
+
+Please also check the output to the console for any warnings or problems.  There will
 be multiple tests run automatically:
 
 - A test for correctness of all anchor labels and their references
@@ -215,9 +212,9 @@ be multiple tests run automatically:
 
   .. parsed-literal::
 
-     Found 33 standard and 41 user packages
-     Standard package NEWPACKAGE missing in Packages_standard.rst
-     Standard package NEWPACKAGE missing in Packages_details.rst
+     Found 88 packages
+     Package NEWPACKAGE missing in Packages_list.rst
+     Package NEWPACKAGE missing in Packages_details.rst
 
 - A test that only standard, printable ASCII text characters are used.
   This runs the command ``env LC_ALL=C grep -n '[^ -~]' src/*.rst`` and
@@ -257,4 +254,4 @@ the file ``lammps/doc/utils/sphinx-config/false_positives.txt``.
 
 .. _rst: https://docutils.readthedocs.io/en/sphinx-docs/user/rst/quickstart.html
 
-.. _lws: https://lammps.sandia.gov
+.. _lws: https://www.lammps.org

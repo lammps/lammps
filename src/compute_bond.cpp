@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -36,7 +37,7 @@ ComputeBond::ComputeBond(LAMMPS *lmp, int narg, char **arg) :
 
   // check if bond style hybrid exists
 
-  bond = (BondHybrid *) force->bond_match("hybrid");
+  bond = dynamic_cast<BondHybrid *>( force->bond_match("hybrid"));
   if (!bond)
     error->all(FLERR,"Bond style for compute bond command is not hybrid");
   size_vector = nsub = bond->nstyles;
@@ -59,7 +60,7 @@ void ComputeBond::init()
 {
   // recheck bond style in case it has been changed
 
-  bond = (BondHybrid *) force->bond_match("hybrid");
+  bond = dynamic_cast<BondHybrid *>( force->bond_match("hybrid"));
   if (!bond)
     error->all(FLERR,"Bond style for compute bond command is not hybrid");
   if (bond->nstyles != nsub)

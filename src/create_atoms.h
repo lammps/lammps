@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,43 +12,43 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(create_atoms,CreateAtoms)
-
+// clang-format off
+CommandStyle(create_atoms,CreateAtoms);
+// clang-format on
 #else
 
 #ifndef LMP_CREATE_ATOMS_H
 #define LMP_CREATE_ATOMS_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class CreateAtoms : protected Pointers {
+class CreateAtoms : public Command {
  public:
   CreateAtoms(class LAMMPS *);
-  void command(int, char **);
+  void command(int, char **) override;
 
  private:
-  int me,nprocs;
-  int ntype,style,mode,nregion,nbasis,nrandom,seed;
+  int me, nprocs;
+  int ntype, style, mode, nregion, nbasis, nrandom, seed;
   int remapflag;
   int subsetflag;
   bigint nsubset;
   double subsetfrac;
   int *basistype;
-  double xone[3],quatone[4];
+  double xone[3], quatone[4];
 
-  int varflag,vvar,xvar,yvar,zvar;
-  char *vstr,*xstr,*ystr,*zstr;
-  char *xstr_copy,*ystr_copy,*zstr_copy;
+  int varflag, vvar, xvar, yvar, zvar;
+  char *vstr, *xstr, *ystr, *zstr;
+  char *xstr_copy, *ystr_copy, *zstr_copy;
 
-  int ilo,ihi,jlo,jhi,klo,khi;
+  int ilo, ihi, jlo, jhi, klo, khi;
 
-  int nlatt;                  // number of owned lattice sites
-  int nlatt_overflow;         // 1 if local nlatt exceeds a 32-bit int
+  int nlatt;             // number of owned lattice sites
+  int nlatt_overflow;    // 1 if local nlatt exceeds a 32-bit int
 
-  int *flag;                  // flag subset of particles to insert on lattice
+  int *flag;    // flag subset of particles to insert on lattice
   int *next;
 
   class Molecule *onemol;
@@ -56,17 +56,17 @@ class CreateAtoms : protected Pointers {
   class RanMars *ranlatt;
 
   int triclinic;
-  double sublo[3],subhi[3];   // epsilon-extended proc sub-box for adding atoms
+  double sublo[3], subhi[3];    // epsilon-extended proc sub-box for adding atoms
 
   void add_single();
   void add_random();
   void add_lattice();
   void loop_lattice(int);
   void add_molecule(double *, double * = nullptr);
-  int vartest(double *);      // evaluate a variable with new atom position
+  int vartest(double *);    // evaluate a variable with new atom position
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

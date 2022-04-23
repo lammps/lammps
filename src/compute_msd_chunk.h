@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(msd/chunk,ComputeMSDChunk)
-
+// clang-format off
+ComputeStyle(msd/chunk,ComputeMSDChunk);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_MSD_CHUNK_H
@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class ComputeMSDChunk : public Compute {
  public:
   ComputeMSDChunk(class LAMMPS *, int, char **);
-  ~ComputeMSDChunk();
-  void init();
-  void setup();
-  void compute_array();
+  ~ComputeMSDChunk() override;
+  void init() override;
+  void setup() override;
+  void compute_array() override;
 
-  void lock_enable();
-  void lock_disable();
-  int lock_length();
-  void lock(class Fix *, bigint, bigint);
-  void unlock(class Fix *);
+  void lock_enable() override;
+  void lock_disable() override;
+  int lock_length() override;
+  void lock(class Fix *, bigint, bigint) override;
+  void unlock(class Fix *) override;
 
-  double memory_usage();
+  double memory_usage() override;
 
  private:
   int nchunk;
@@ -48,14 +48,14 @@ class ComputeMSDChunk : public Compute {
   class FixStore *fix;
   int firstflag;
 
-  double *massproc,*masstotal;
-  double **com,**comall;
+  double *massproc, *masstotal;
+  double **com, **comall;
   double **msd;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

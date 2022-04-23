@@ -83,8 +83,8 @@ this fix and by the compute should be the same.
 
 The cumulative energy change in the system imposed by this fix is
 included in the :doc:`thermodynamic output <thermo_style>` keywords
-*ecouple* and *econserve*\ , but only if the *tally* keyword to set to
-*yes*\ .  See the :doc:`thermo_style <thermo_style>` doc page for
+*ecouple* and *econserve*, but only if the *tally* keyword to set to
+*yes*\ .  See the :doc:`thermo_style <thermo_style>` page for
 details.
 
 This fix computes a global scalar which can be accessed by various
@@ -104,8 +104,8 @@ Restrictions
 """"""""""""
  none
 
-This fix is part of the USER-EFF package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the EFF package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

@@ -55,7 +55,6 @@
 //----------------------------------------------------------------------------
 
 #include <Kokkos_MemoryPool.hpp>
-#include <impl/Kokkos_Tags.hpp>
 
 #include <Kokkos_Future.hpp>
 #include <impl/Kokkos_TaskQueue.hpp>
@@ -236,8 +235,8 @@ class BasicTaskScheduler : public Impl::TaskSchedulerBase {
         Kokkos::Impl::SharedAllocationRecord<memory_space,
                                              typename queue_type::Destroy>;
 
-    record_type* record =
-        record_type::allocate(memory_space(), "TaskQueue", sizeof(queue_type));
+    record_type* record = record_type::allocate(
+        memory_space(), "Kokkos::TaskQueue", sizeof(queue_type));
 
     m_queue = new (record->data()) queue_type(arg_memory_pool);
 
@@ -372,7 +371,10 @@ class BasicTaskScheduler : public Impl::TaskSchedulerBase {
         task_base* const t = arg[i].m_task;
         if (nullptr != t) {
           // Increment reference count to track subsequent assignment.
-          Kokkos::atomic_increment(&(t->m_ref_count));
+          // This likely has to be SeqCst
+          Kokkos::Impl::desul_atomic_inc(&(t->m_ref_count),
+                                         Kokkos::Impl::MemoryOrderSeqCst(),
+                                         Kokkos::Impl::MemoryScopeDevice());
           if (q != static_cast<queue_type const*>(t->m_queue)) {
             Kokkos::abort(
                 "Kokkos when_all Futures must be in the same scheduler");
@@ -467,7 +469,10 @@ class BasicTaskScheduler : public Impl::TaskSchedulerBase {
           //  scheduler" );
           //}
           // Increment reference count to track subsequent assignment.
-          Kokkos::atomic_increment(&(arg_f.m_task->m_ref_count));
+          // This increment likely has to be SeqCst
+          Kokkos::Impl::desul_atomic_inc(&(arg_f.m_task->m_ref_count),
+                                         Kokkos::Impl::MemoryOrderSeqCst(),
+                                         Kokkos::Impl::MemoryScopeDevice());
           dep[i] = arg_f.m_task;
         }
       }

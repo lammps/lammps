@@ -27,7 +27,7 @@ Perform constant NVE integration to update position, velocity,
 orientation, and angular momentum for triangular particles in the
 group each timestep.  V is volume; E is energy.  This creates a system
 trajectory consistent with the microcanonical ensemble.  See the
-:doc:`Howto spherical <Howto_spherical>` doc page for an overview of
+:doc:`Howto spherical <Howto_spherical>` page for an overview of
 using triangular particles.
 
 This fix differs from the :doc:`fix nve <fix_nve>` command, which
@@ -46,7 +46,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the ASPHERE package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 This fix requires that particles be triangles as defined by the
 :doc:`atom_style tri <atom_style>` command.

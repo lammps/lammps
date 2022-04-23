@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(pppm/stagger,PPPMStagger)
-
+// clang-format off
+KSpaceStyle(pppm/stagger,PPPMStagger);
+// clang-format on
 #else
 
 #ifndef LMP_PPPM_STAGGER_H
@@ -27,54 +27,53 @@ namespace LAMMPS_NS {
 class PPPMStagger : public PPPM {
  public:
   PPPMStagger(class LAMMPS *);
-  virtual ~PPPMStagger();
-  virtual void init();
-  virtual void compute(int, int);
-  virtual int timing_1d(int, double &);
-  virtual int timing_3d(int, double &);
+  ~PPPMStagger() override;
+  void init() override;
+  void compute(int, int) override;
+  int timing_1d(int, double &) override;
+  int timing_3d(int, double &) override;
 
  protected:
   int nstagger;
   double stagger;
   double **gf_b2;
 
-  virtual double compute_qopt();
+  double compute_qopt() override;
   double compute_qopt_ad();
-  virtual void compute_gf_denom();
-  virtual void compute_gf_ik();
-  virtual void compute_gf_ad();
+  void compute_gf_denom() override;
+  void compute_gf_ik() override;
+  void compute_gf_ad() override;
 
-  virtual void particle_map();
-  virtual void make_rho();
-  virtual void fieldforce_ik();
-  virtual void fieldforce_ad();
-  virtual void fieldforce_peratom();
+  void particle_map() override;
+  void make_rho() override;
+  void fieldforce_ik() override;
+  void fieldforce_ad() override;
+  void fieldforce_peratom() override;
 
-  inline double gf_denom2(const double &x, const double &y,
-                         const double &z) const
+  inline double gf_denom2(const double &x, const double &y, const double &z) const
   {
-    double sx,sy,sz;
-    double x2 = x*x;
-    double y2 = y*y;
-    double z2 = z*z;
+    double sx, sy, sz;
+    double x2 = x * x;
+    double y2 = y * y;
+    double z2 = z * z;
     double xl = x;
     double yl = y;
     double zl = z;
     sx = sy = sz = 0.0;
     for (int l = 0; l < order; l++) {
-      sx += gf_b2[order][l]*xl;
-      sy += gf_b2[order][l]*yl;
-      sz += gf_b2[order][l]*zl;
+      sx += gf_b2[order][l] * xl;
+      sy += gf_b2[order][l] * yl;
+      sz += gf_b2[order][l] * zl;
       xl *= x2;
       yl *= y2;
       zl *= z2;
     }
-    double s = sx*sy*sz;
-    return s*s;
+    double s = sx * sy * sz;
+    return s * s;
   };
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

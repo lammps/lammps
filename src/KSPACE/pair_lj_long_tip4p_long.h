@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/long/tip4p/long,PairLJLongTIP4PLong)
-
+// clang-format off
+PairStyle(lj/long/tip4p/long,PairLJLongTIP4PLong);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_LONG_TIP4P_LONG_H
@@ -27,34 +27,33 @@ namespace LAMMPS_NS {
 class PairLJLongTIP4PLong : public PairLJLongCoulLong {
  public:
   PairLJLongTIP4PLong(class LAMMPS *);
-  ~PairLJLongTIP4PLong();
-  virtual void compute(int, int);
-  virtual void compute_inner();
-  virtual void compute_middle();
-  virtual void compute_outer(int, int);
-  void settings(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void write_restart_settings(FILE *fp);
-  void read_restart_settings(FILE *fp);
-  void *extract(const char *, int &);
-  double memory_usage();
-
+  ~PairLJLongTIP4PLong() override;
+  void compute(int, int) override;
+  void compute_inner() override;
+  void compute_middle() override;
+  void compute_outer(int, int) override;
+  void settings(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart_settings(FILE *fp) override;
+  void read_restart_settings(FILE *fp) override;
+  void *extract(const char *, int &) override;
+  double memory_usage() override;
 
  protected:
-  int typeH,typeO;             // atom types of TIP4P water H and O atoms
-  int typeA,typeB;             // angle and bond types of TIP4P water
-  double alpha;                // geometric constraint parameter for TIP4P
+  int typeH, typeO;    // atom types of TIP4P water H and O atoms
+  int typeA, typeB;    // angle and bond types of TIP4P water
+  double alpha;        // geometric constraint parameter for TIP4P
 
-  int nmax;                    // info on off-oxygen charge sites
-  int **hneigh;                // 0,1 = indices of 2 H associated with O
-                               // 2 = 0 if site loc not yet computed, 1 if yes
-  double **newsite;            // locations of charge sites
+  int nmax;            // info on off-oxygen charge sites
+  int **hneigh;        // 0,1 = indices of 2 H associated with O
+                       // 2 = 0 if site loc not yet computed, 1 if yes
+  double **newsite;    // locations of charge sites
 
   void compute_newsite(double *, double *, double *, double *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

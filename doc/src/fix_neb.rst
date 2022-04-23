@@ -89,14 +89,14 @@ first stage) is changed to:
 
 .. parsed-literal::
 
-   Fi = -Grad(V) + 2 (Grad(V) dot T') T'
+   Fi = -Grad(V) + 2 (Grad(V) dot T') T' + Fnudge_perp
 
 and the relaxation procedure is continued to a new converged MEP.
 
 ----------
 
 The keyword *parallel* specifies how the parallel nudging force is
-computed.  With a value of *neigh*\ , the parallel nudging force is
+computed.  With a value of *neigh*, the parallel nudging force is
 computed as in :ref:`(Henkelman1) <Henkelman1>` by connecting each
 intermediate replica with the previous and the next image:
 
@@ -107,7 +107,7 @@ intermediate replica with the previous and the next image:
 Note that in this case the specified *Kspring* is in force/distance
 units.
 
-With a value of *ideal*\ , the spring force is computed as suggested in
+With a value of *ideal*, the spring force is computed as suggested in
 ref`(WeinanE) <WeinanE>`
 
 .. parsed-literal::
@@ -151,7 +151,7 @@ force is added.
 
 By default, no additional forces act on the first and last replicas
 during the NEB relaxation, so these replicas simply relax toward their
-respective local minima.  By using the key word *end*\ , additional
+respective local minima.  By using the key word *end*, additional
 forces can be applied to the first and/or last replicas, to enable
 them to relax toward a MEP while constraining their energy E to the
 target energy ETarget.
@@ -166,8 +166,8 @@ If ETarget>E, the interatomic force Fi for the specified replica becomes:
 The "spring" constant on the difference in energies is the specified
 *Kspring3* value.
 
-When *estyle* is specified as *first*\ , the force is applied to the
-first replica.  When *estyle* is specified as *last*\ , the force is
+When *estyle* is specified as *first*, the force is applied to the
+first replica.  When *estyle* is specified as *last*, the force is
 applied to the last replica.  Note that the *end* keyword can be used
 twice to add forces to both the first and last replicas.
 
@@ -175,13 +175,13 @@ For both these *estyle* settings, the target energy *ETarget* is set
 to the initial energy of the replica (at the start of the NEB
 calculation).
 
-If the *estyle* is specified as *last/efirst* or *last/efirst/middle*\ ,
+If the *estyle* is specified as *last/efirst* or *last/efirst/middle*,
 force is applied to the last replica, but the target energy *ETarget*
 is continuously set to the energy of the first replica, as it evolves
 during the NEB relaxation.
 
 The difference between these two *estyle* options is as follows.  When
-*estyle* is specified as *last/efirst*\ , no change is made to the
+*estyle* is specified as *last/efirst*, no change is made to the
 inter-replica force applied to the intermediate replicas (neither
 first or last).  If the initial path is too far from the MEP, an
 intermediate replica may relax "faster" and reach a lower energy than
@@ -195,7 +195,7 @@ than the first replica.  This should effectively prevent the
 intermediate replicas from over-relaxing.
 
 After converging a NEB calculation using an *estyle* of
-*last/efirst/middle*\ , you should check that all intermediate replicas
+*last/efirst/middle*, you should check that all intermediate replicas
 have a larger energy than the first replica. If this is not the case,
 the path is probably not a MEP.
 

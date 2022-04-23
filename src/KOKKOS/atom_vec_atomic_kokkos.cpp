@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
-   LAMMPS - Large-scale AtomicKokkos/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -820,8 +821,8 @@ void AtomVecAtomicKokkos::create_atom(int itype, double *coord)
    initialize other atom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVecAtomicKokkos::data_atom(double *coord, tagint imagetmp,
-                                    char **values)
+void AtomVecAtomicKokkos::data_atom(double *coord, imageint imagetmp,
+                                    const std::vector<std::string> &values)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);

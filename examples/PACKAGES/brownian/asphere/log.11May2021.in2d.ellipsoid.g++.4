@@ -1,0 +1,145 @@
+LAMMPS (8 Apr 2021)
+  using 1 OpenMP thread(s) per MPI task
+##### overdamped dynamics of non-interacting ellipsoids in 2D #####
+
+variable        rng string gaussian
+variable        seed string 198098
+variable        temp string 1.0
+variable        gamma_r_1 string inf
+variable        gamma_r_2 string inf
+variable        gamma_r_3 string 0.1
+variable        gamma_t_1 string 5.0
+variable        gamma_t_2 string 7.0
+variable        gamma_t_3 string inf
+variable        params string ${rng}_${temp}_${gamma_r_1}_${gamma_r_2}_${gamma_r_3}_${gamma_t_1}_${gamma_t_2}_${gamma_t_3}
+variable        params string gaussian_${temp}_${gamma_r_1}_${gamma_r_2}_${gamma_r_3}_${gamma_t_1}_${gamma_t_2}_${gamma_t_3}
+variable        params string gaussian_1.0_${gamma_r_1}_${gamma_r_2}_${gamma_r_3}_${gamma_t_1}_${gamma_t_2}_${gamma_t_3}
+variable        params string gaussian_1.0_inf_${gamma_r_2}_${gamma_r_3}_${gamma_t_1}_${gamma_t_2}_${gamma_t_3}
+variable        params string gaussian_1.0_inf_inf_${gamma_r_3}_${gamma_t_1}_${gamma_t_2}_${gamma_t_3}
+variable        params string gaussian_1.0_inf_inf_0.1_${gamma_t_1}_${gamma_t_2}_${gamma_t_3}
+variable        params string gaussian_1.0_inf_inf_0.1_5.0_${gamma_t_2}_${gamma_t_3}
+variable        params string gaussian_1.0_inf_inf_0.1_5.0_7.0_${gamma_t_3}
+variable        params string gaussian_1.0_inf_inf_0.1_5.0_7.0_inf
+
+units           lj
+atom_style      hybrid dipole ellipsoid
+WARNING: Atom style hybrid defines both, per-type and per-atom masses; both must be set, but only per-atom masses will be used (src/atom_vec_hybrid.cpp:156)
+dimension       2
+newton off
+
+lattice         sq 0.4
+Lattice spacing in x,y,z = 1.5811388 1.5811388 1.5811388
+region          box block -30 30 -30 30 -0.2 0.2
+create_box      1 box
+Created orthogonal box = (-47.434165 -47.434165 -0.31622777) to (47.434165 47.434165 0.31622777)
+  2 by 2 by 1 MPI processor grid
+create_atoms    1 box
+Created 3600 atoms
+  create_atoms CPU = 0.007 seconds
+mass            * 1.0
+set             type  * dipole/random ${seed} 1.0
+set             type  * dipole/random 198098 1.0
+Setting atom values ...
+  3600 settings made for dipole/random
+set             type * shape 3.0 1.0 1.0
+Setting atom values ...
+  3600 settings made for shape
+set             type * quat/random ${seed}
+set             type * quat/random 198098
+Setting atom values ...
+  3600 settings made for quat/random
+velocity        all create 1.0 1 loop geom
+
+neighbor        1.0 bin
+neigh_modify    every 1 delay 1 check yes
+
+pair_style none
+
+fix         1 all brownian/asphere ${temp} ${seed} rng ${rng}             gamma_r_eigen ${gamma_r_1} ${gamma_r_2} ${gamma_r_3}             gamma_t_eigen ${gamma_t_1} ${gamma_t_2} ${gamma_t_3}             dipole 1.0 0.0 0.0
+fix         1 all brownian/asphere 1.0 ${seed} rng ${rng}             gamma_r_eigen ${gamma_r_1} ${gamma_r_2} ${gamma_r_3}             gamma_t_eigen ${gamma_t_1} ${gamma_t_2} ${gamma_t_3}             dipole 1.0 0.0 0.0
+fix         1 all brownian/asphere 1.0 198098 rng ${rng}             gamma_r_eigen ${gamma_r_1} ${gamma_r_2} ${gamma_r_3}             gamma_t_eigen ${gamma_t_1} ${gamma_t_2} ${gamma_t_3}             dipole 1.0 0.0 0.0
+fix         1 all brownian/asphere 1.0 198098 rng gaussian             gamma_r_eigen ${gamma_r_1} ${gamma_r_2} ${gamma_r_3}             gamma_t_eigen ${gamma_t_1} ${gamma_t_2} ${gamma_t_3}             dipole 1.0 0.0 0.0
+fix         1 all brownian/asphere 1.0 198098 rng gaussian             gamma_r_eigen inf ${gamma_r_2} ${gamma_r_3}             gamma_t_eigen ${gamma_t_1} ${gamma_t_2} ${gamma_t_3}             dipole 1.0 0.0 0.0
+fix         1 all brownian/asphere 1.0 198098 rng gaussian             gamma_r_eigen inf inf ${gamma_r_3}             gamma_t_eigen ${gamma_t_1} ${gamma_t_2} ${gamma_t_3}             dipole 1.0 0.0 0.0
+fix         1 all brownian/asphere 1.0 198098 rng gaussian             gamma_r_eigen inf inf 0.1             gamma_t_eigen ${gamma_t_1} ${gamma_t_2} ${gamma_t_3}             dipole 1.0 0.0 0.0
+fix         1 all brownian/asphere 1.0 198098 rng gaussian             gamma_r_eigen inf inf 0.1             gamma_t_eigen 5.0 ${gamma_t_2} ${gamma_t_3}             dipole 1.0 0.0 0.0
+fix         1 all brownian/asphere 1.0 198098 rng gaussian             gamma_r_eigen inf inf 0.1             gamma_t_eigen 5.0 7.0 ${gamma_t_3}             dipole 1.0 0.0 0.0
+fix         1 all brownian/asphere 1.0 198098 rng gaussian             gamma_r_eigen inf inf 0.1             gamma_t_eigen 5.0 7.0 inf             dipole 1.0 0.0 0.0
+
+#initialisation for the main run
+
+# MSD
+compute         msd  all msd
+
+thermo_style    custom step ke pe c_msd[*]
+
+#dump            1 all custom 1000 dump_${params}_2d.lammpstrj id type #               x y z xu yu zu mux muy muz fx fy fz
+#dump_modify     1 first yes sort id
+
+timestep        0.00001
+thermo          100
+
+# main run
+run             3000
+WARNING: No pairwise cutoff or binsize set. Atom sorting therefore disabled. (src/atom.cpp:2141)
+WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (src/comm_brick.cpp:167)
+Per MPI rank memory allocation (min/avg/max) = 5.102 | 5.102 | 5.102 Mbytes
+Step KinEng PotEng c_msd[1] c_msd[2] c_msd[3] c_msd[4] 
+       0   0.99972222            0            0            0            0            0 
+     100    33874.438            0 0.0003458147 0.00033165629            0 0.00067747099 
+     200    34893.188            0 0.00066290209 0.00068146332            0 0.0013443654 
+     300    34494.226            0 0.0010064902 0.0010276646            0 0.0020341548 
+     400    34537.887            0 0.0013457339 0.0014057042            0 0.0027514381 
+     500     34458.46            0 0.0017006949 0.0017120083            0 0.0034127033 
+     600    33229.977            0 0.0020841613 0.0020485346            0 0.0041326959 
+     700    33288.631            0 0.0024270272 0.0023673304            0 0.0047943576 
+     800    35317.512            0 0.0027924435 0.0026950912            0 0.0054875347 
+     900    33094.299            0 0.0031503627 0.0030789319            0 0.0062292946 
+    1000    35801.751            0  0.003489398 0.0034594626            0 0.0069488607 
+    1100    33427.701            0 0.0038547506 0.0038375809            0 0.0076923316 
+    1200     34675.07            0 0.0041824195 0.0042017298            0 0.0083841493 
+    1300    33080.294            0 0.0045258945 0.0045816356            0 0.0091075301 
+    1400    34927.288            0 0.0048252992 0.0049215701            0 0.0097468693 
+    1500    34338.558            0 0.0051959155 0.0053020102            0  0.010497926 
+    1600    34686.248            0 0.0055111463 0.0056220225            0  0.011133169 
+    1700    34336.158            0 0.0059240394 0.0059060319            0  0.011830071 
+    1800    34315.859            0 0.0063027944 0.0063004467            0  0.012603241 
+    1900    35096.721            0 0.0066098525   0.00672222            0  0.013332073 
+    2000     33544.18            0 0.0069401261  0.007074124            0   0.01401425 
+    2100    33863.219            0 0.0072726502 0.0074175954            0  0.014690246 
+    2200    34705.892            0 0.0075586722 0.0077552683            0  0.015313941 
+    2300    34025.357            0 0.0079046728 0.0081760519            0  0.016080725 
+    2400    34741.849            0  0.008252969 0.0085203087            0  0.016773278 
+    2500    34406.959            0 0.0085370091 0.0088556377            0  0.017392647 
+    2600     34062.63            0 0.0088134153 0.0092536326            0  0.018067048 
+    2700    34677.666            0 0.0090592854 0.0096225881            0  0.018681874 
+    2800    33464.216            0 0.0093984162 0.0099647695            0  0.019363186 
+    2900    32920.721            0 0.0098222985  0.010366517            0  0.020188816 
+    3000     34539.66            0  0.010133317   0.01068102            0  0.020814337 
+Loop time of 1.12143 on 4 procs for 3000 steps with 3600 atoms
+
+Performance: 2311.341 tau/day, 2675.163 timesteps/s
+96.1% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.036017   | 0.042828   | 0.051558   |   2.7 |  3.82
+Output  | 0.0012608  | 0.0025993  | 0.0063775  |   4.3 |  0.23
+Modify  | 0.9002     | 0.93095    | 0.99546    |   3.9 | 83.01
+Other   |            | 0.1451     |            |       | 12.93
+
+Nlocal:        900.000 ave         900 max         900 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:        61.0000 ave          61 max          61 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:         0.00000 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0.0000000
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:01

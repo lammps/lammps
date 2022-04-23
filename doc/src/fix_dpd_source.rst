@@ -77,8 +77,8 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MESODPD package. It is only enabled if
-LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the DPD-MESO package. It is only enabled if
+LAMMPS was built with that package. See the :doc:`Build package <Build_package>` page for more info.
 
 Fix *edpd/source* must be used with the :doc:`pair_style edpd <pair_mesodpd>` command.  Fix *tdpd/source* must be used with the
 :doc:`pair_style tdpd <pair_mesodpd>` command.

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(pressure,ComputePressure)
-
+// clang-format off
+ComputeStyle(pressure,ComputePressure);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_PRESSURE_H
@@ -27,24 +27,24 @@ namespace LAMMPS_NS {
 class ComputePressure : public Compute {
  public:
   ComputePressure(class LAMMPS *, int, char **);
-  virtual ~ComputePressure();
-  virtual void init();
-  virtual double compute_scalar();
-  virtual void compute_vector();
-  void reset_extra_compute_fix(const char *);
+  ~ComputePressure() override;
+  void init() override;
+  double compute_scalar() override;
+  void compute_vector() override;
+  void reset_extra_compute_fix(const char *) override;
 
  protected:
-  double boltz,nktv2p,inv_volume;
-  int nvirial,dimension;
+  double boltz, nktv2p, inv_volume;
+  int nvirial, dimension;
   double **vptr;
   double *kspace_virial;
   Compute *temperature;
   char *id_temp;
-  double virial[6];                // ordering: xx,yy,zz,xy,xz,yz
+  double virial[6];    // ordering: xx,yy,zz,xy,xz,yz
   int pairhybridflag;
   class Pair *pairhybrid;
-  int keflag,pairflag,bondflag,angleflag,dihedralflag,improperflag;
-  int fixflag,kspaceflag;
+  int keflag, pairflag, bondflag, angleflag, dihedralflag, improperflag;
+  int fixflag, kspaceflag;
 
   void virial_compute(int, int);
 
@@ -53,7 +53,7 @@ class ComputePressure : public Compute {
   int nsub;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

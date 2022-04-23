@@ -46,7 +46,7 @@ If mode is *pf/callback* then the fix will make a callback every
 The external program computes forces on atoms by setting values in an
 array owned by the fix.  The fix then adds these forces to each atom
 in the group, once every *Napply* steps, similar to the way the :doc:`fix addforce <fix_addforce>` command works.  Note that if *Ncall* >
-*Napply*\ , the force values produced by one callback will persist, and
+*Napply*, the force values produced by one callback will persist, and
 be used multiple times to update atom forces.
 
 The callback function "foo" is invoked by the fix as:

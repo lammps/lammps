@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,32 +18,33 @@
 
 #include "fix_gcmc.h"
 
-#include <cmath>
-#include <cstring>
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
+#include "bond.h"
 #include "comm.h"
 #include "compute.h"
-#include "group.h"
-#include "domain.h"
-#include "region.h"
-#include "random_park.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
-#include "angle.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "group.h"
 #include "improper.h"
 #include "kspace.h"
-#include "math_extra.h"
 #include "math_const.h"
+#include "math_extra.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "molecule.h"
 #include "neighbor.h"
+#include "pair.h"
+#include "random_park.h"
+#include "region.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -60,15 +62,15 @@ using namespace MathConst;
 #define MAXENERGYTEST 1.0e50
 
 enum{EXCHATOM,EXCHMOL}; // exchmode
-enum{MOVEATOM,MOVEMOL}; // movemode
+enum{NONE,MOVEATOM,MOVEMOL}; // movemode
 
 /* ---------------------------------------------------------------------- */
 
 FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  idregion(nullptr), full_flag(0), ngroups(0), groupstrings(nullptr), ngrouptypes(0), grouptypestrings(nullptr),
-  grouptypebits(nullptr), grouptypes(nullptr), local_gas_list(nullptr), molcoords(nullptr), molq(nullptr), molimage(nullptr),
-  random_equal(nullptr), random_unequal(nullptr),
+  idregion(nullptr), full_flag(false), ngroups(0), groupstrings(nullptr), ngrouptypes(0),
+  grouptypestrings(nullptr), grouptypebits(nullptr), grouptypes(nullptr), local_gas_list(nullptr),
+  molcoords(nullptr), molq(nullptr), molimage(nullptr), random_equal(nullptr), random_unequal(nullptr),
   fixrigid(nullptr), fixshake(nullptr), idrigid(nullptr), idshake(nullptr)
 {
   if (narg < 11) error->all(FLERR,"Illegal fix gcmc command");
@@ -233,7 +235,7 @@ void FixGCMC::options(int narg, char **arg)
   // defaults
 
   exchmode = EXCHATOM;
-  movemode = MOVEATOM;
+  movemode = NONE;
   patomtrans = 0.0;
   pmoltrans = 0.0;
   pmolrotate = 0.0;
@@ -301,9 +303,7 @@ void FixGCMC::options(int narg, char **arg)
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
         error->all(FLERR,"Region ID for fix gcmc does not exist");
-      int n = strlen(arg[iarg+1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[iarg+1]);
+      idregion = utils::strdup(arg[iarg+1]);
       regionflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"maxangle") == 0) {
@@ -327,18 +327,14 @@ void FixGCMC::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"rigid") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      int n = strlen(arg[iarg+1]) + 1;
       delete [] idrigid;
-      idrigid = new char[n];
-      strcpy(idrigid,arg[iarg+1]);
+      idrigid = utils::strdup(arg[iarg+1]);
       rigidflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"shake") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      int n = strlen(arg[iarg+1]) + 1;
       delete [] idshake;
-      idshake = new char[n];
-      strcpy(idshake,arg[iarg+1]);
+      idshake = utils::strdup(arg[iarg+1]);
       shakeflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"full_energy") == 0) {
@@ -353,9 +349,7 @@ void FixGCMC::options(int narg, char **arg)
                            ngroupsmax*sizeof(char *),
                            "fix_gcmc:groupstrings");
       }
-      int n = strlen(arg[iarg+1]) + 1;
-      groupstrings[ngroups] = new char[n];
-      strcpy(groupstrings[ngroups],arg[iarg+1]);
+      groupstrings[ngroups] = utils::strdup(arg[iarg+1]);
       ngroups++;
       iarg += 2;
     } else if (strcmp(arg[iarg],"grouptype") == 0) {
@@ -370,9 +364,7 @@ void FixGCMC::options(int narg, char **arg)
                            "fix_gcmc:grouptypestrings");
       }
       grouptypes[ngrouptypes] = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      int n = strlen(arg[iarg+2]) + 1;
-      grouptypestrings[ngrouptypes] = new char[n];
-      strcpy(grouptypestrings[ngrouptypes],arg[iarg+2]);
+      grouptypestrings[ngrouptypes] = utils::strdup(arg[iarg+2]);
       ngrouptypes++;
       iarg += 3;
     } else if (strcmp(arg[iarg],"intra_energy") == 0) {
@@ -455,27 +447,29 @@ void FixGCMC::init()
 
   // set probabilities for MC moves
 
-  if (pmctot == 0.0)
-    if (exchmode == EXCHATOM) {
-      movemode = MOVEATOM;
-      patomtrans = 1.0;
-      pmoltrans = 0.0;
-      pmolrotate = 0.0;
-    } else {
-      movemode = MOVEMOL;
-      patomtrans = 0.0;
-      pmoltrans = 0.5;
-      pmolrotate = 0.5;
-   }
-  else {
-    if (pmoltrans == 0.0 && pmolrotate == 0.0)
-      movemode = MOVEATOM;
-    else
-      movemode = MOVEMOL;
-    patomtrans /= pmctot;
-    pmoltrans /= pmctot;
-    pmolrotate /= pmctot;
-  }
+  if (nmcmoves > 0) {
+    if (pmctot == 0.0)
+      if (exchmode == EXCHATOM) {
+        movemode = MOVEATOM;
+        patomtrans = 1.0;
+        pmoltrans = 0.0;
+        pmolrotate = 0.0;
+      } else {
+        movemode = MOVEMOL;
+        patomtrans = 0.0;
+        pmoltrans = 0.5;
+        pmolrotate = 0.5;
+      }
+    else {
+      if (pmoltrans == 0.0 && pmolrotate == 0.0)
+        movemode = MOVEATOM;
+      else
+        movemode = MOVEMOL;
+      patomtrans /= pmctot;
+      pmoltrans /= pmctot;
+      pmolrotate /= pmctot;
+    }
+  } else movemode = NONE;
 
   // decide whether to switch to the full_energy option
 
@@ -512,8 +506,7 @@ void FixGCMC::init()
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
     if (flagall && comm->me == 0)
-      error->all(FLERR,
-       "Fix gcmc cannot exchange individual atoms belonging to a molecule");
+      error->all(FLERR, "Fix gcmc cannot exchange individual atoms belonging to a molecule");
   }
 
   // if molecules are exchanged or moved, check for unset mol IDs
@@ -528,16 +521,13 @@ void FixGCMC::init()
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
     if (flagall && comm->me == 0)
-      error->all(FLERR,
-       "All mol IDs should be set for fix gcmc group atoms");
+      error->all(FLERR, "All mol IDs should be set for fix gcmc group atoms");
   }
 
   if (exchmode == EXCHMOL || movemode == MOVEMOL)
     if (atom->molecule_flag == 0 || !atom->tag_enable
         || (atom->map_style == Atom::MAP_NONE))
-      error->all(FLERR,
-       "Fix gcmc molecule command requires that "
-       "atoms have molecule attributes");
+      error->all(FLERR, "Fix gcmc molecule command requires that atoms have molecule attributes");
 
   // if rigidflag defined, check for rigid/small fix
   // its molecule template must be same as this one
@@ -549,9 +539,7 @@ void FixGCMC::init()
     fixrigid = modify->fix[ifix];
     int tmp;
     if (&onemols[imol] != (Molecule **) fixrigid->extract("onemol",tmp))
-      error->all(FLERR,
-                 "Fix gcmc and fix rigid/small not using "
-                 "same molecule template ID");
+      error->all(FLERR, "Fix gcmc and fix rigid/small not using same molecule template ID");
   }
 
   // if shakeflag defined, check for SHAKE fix
@@ -589,14 +577,7 @@ void FixGCMC::init()
     // neighbor list exclusion setup
     // turn off interactions between group all and the exclusion group
 
-    int narg = 4;
-    char **arg = new char*[narg];;
-    arg[0] = (char *) "exclude";
-    arg[1] = (char *) "group";
-    arg[2] = (char *) group_id.c_str();
-    arg[3] = (char *) "all";
-    neighbor->modify_params(narg,arg);
-    delete [] arg;
+    neighbor->modify_params(fmt::format("exclude group {} all",group_id));
   }
 
   // create a new group for temporary use with selected molecules
@@ -702,11 +683,13 @@ void FixGCMC::init()
     }
   }
 
-  // Current implementation is broken using
-  // full_flag on molecules on more than one processor.
-  // Print error if this is the current mode
-  if (full_flag && (exchmode == EXCHMOL || movemode == MOVEMOL) && comm->nprocs > 1)
-    error->all(FLERR,"fix gcmc does currently not support full_energy option with molecules on more than 1 MPI process.");
+  // current implementation is broken using
+  // full_flag and translation/rotation of molecules
+  // on more than one processor.
+
+  if (full_flag && movemode == MOVEMOL && comm->nprocs > 1)
+    error->all(FLERR,"fix gcmc does currently not support full_energy "
+               "option with molecule MC moves on more than 1 MPI process.");
 
 }
 
@@ -1245,7 +1228,7 @@ void FixGCMC::attempt_molecule_deletion()
 
   // work-around to avoid n=0 problem with fix rigid/nvt/small
 
-  if (ngas == natoms_per_molecule) return;
+  if (rigidflag && ngas == natoms_per_molecule) return;
 
   tagint deletion_molecule = pick_random_gas_molecule();
   if (deletion_molecule == -1) return;
@@ -1341,7 +1324,7 @@ void FixGCMC::attempt_molecule_insertion()
   MathExtra::quat_to_mat(quat,rotmat);
 
   double insertion_energy = 0.0;
-  bool *procflag = new bool[natoms_per_molecule];
+  auto procflag = new bool[natoms_per_molecule];
 
   for (int i = 0; i < natoms_per_molecule; i++) {
     MathExtra::matvec(rotmat,onemols[imol]->x[i],molcoords[i]);
@@ -1915,7 +1898,7 @@ void FixGCMC::attempt_molecule_deletion_full()
 
   // work-around to avoid n=0 problem with fix rigid/nvt/small
 
-  if (ngas == natoms_per_molecule) return;
+  if (rigidflag && ngas == natoms_per_molecule) return;
 
   tagint deletion_molecule = pick_random_gas_molecule();
   if (deletion_molecule == -1) return;
@@ -2318,7 +2301,7 @@ double FixGCMC::energy_full()
 
   if (force->pair) force->pair->compute(eflag,vflag);
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) force->bond->compute(eflag,vflag);
     if (force->angle) force->angle->compute(eflag,vflag);
     if (force->dihedral) force->dihedral->compute(eflag,vflag);
@@ -2330,12 +2313,13 @@ double FixGCMC::energy_full()
   // unlike Verlet, not performing a reverse_comm() or forces here
   // b/c GCMC does not care about forces
   // don't think it will mess up energy due to any post_force() fixes
+  // but Modify::pre_reverse() is needed for INTEL
 
+  if (modify->n_pre_reverse) modify->pre_reverse(eflag,vflag);
   if (modify->n_post_force) modify->post_force(vflag);
-  if (modify->n_end_of_step) modify->end_of_step();
 
   // NOTE: all fixes with energy_global_flag set and which
-  //   operate at pre_force() or post_force() or end_of_step()
+  //   operate at pre_force() or post_force()
   //   and which user has enabled via fix_modify energy yes,
   //   will contribute to total MC energy via pe->compute_scalar()
 
@@ -2432,9 +2416,9 @@ void FixGCMC::update_gas_atoms_list()
       for (int i = 0; i < nlocal; i++) maxmol = MAX(maxmol,molecule[i]);
       tagint maxmol_all;
       MPI_Allreduce(&maxmol,&maxmol_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
-      double *comx = new double[maxmol_all];
-      double *comy = new double[maxmol_all];
-      double *comz = new double[maxmol_all];
+      auto comx = new double[maxmol_all];
+      auto comy = new double[maxmol_all];
+      auto comz = new double[maxmol_all];
       for (int imolecule = 0; imolecule < maxmol_all; imolecule++) {
         for (int i = 0; i < nlocal; i++) {
           if (molecule[i] == imolecule) {
@@ -2554,7 +2538,7 @@ void FixGCMC::write_restart(FILE *fp)
 void FixGCMC::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
 
   seed = static_cast<int> (list[n++]);
   random_equal->reset(seed);

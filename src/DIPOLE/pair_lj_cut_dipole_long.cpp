@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/
+   https://www.lammps.org/
    Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,19 +14,19 @@
 
 #include "pair_lj_cut_dipole_long.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 #include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -453,7 +454,7 @@ void PairLJCutDipoleLong::init_style()
 
   cut_coulsq = cut_coul * cut_coul;
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------
@@ -539,18 +540,18 @@ void PairLJCutDipoleLong::read_restart_settings(FILE *fp)
 
 void *PairLJCutDipoleLong::extract(const char *str, int &dim)
 {
-  if (strcmp(str,"cut_coul") == 0) {
-    dim = 0;
-    return (void *) &cut_coul;
-  } else if (strcmp(str,"ewald_order") == 0) {
+  dim = 0;
+  if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
+  else if (strcmp(str,"ewald_order") == 0) {
     ewald_order = 0;
     ewald_order |= 1<<1;
     ewald_order |= 1<<3;
-    dim = 0;
     return (void *) &ewald_order;
-  } else if (strcmp(str,"ewald_mix") == 0) {
-    dim = 0;
-    return (void *) &mix_flag;
-  }
+  } else if (strcmp(str,"ewald_mix") == 0) return (void *) &mix_flag;
+
+  dim = 2;
+  if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
+  else if (strcmp(str,"sigma") == 0) return (void *) sigma;
+
   return nullptr;
 }

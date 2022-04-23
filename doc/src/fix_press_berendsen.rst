@@ -46,7 +46,7 @@ timestep.
 Regardless of what atoms are in the fix group, a global pressure is
 computed for all atoms.  Similarly, when the size of the simulation
 box is changed, all atoms are re-scaled to new positions, unless the
-keyword *dilate* is specified with a value of *partial*\ , in which case
+keyword *dilate* is specified with a value of *partial*, in which case
 only the atoms in the fix group are re-scaled.  The latter can be
 useful for leaving the coordinates of atoms in a solid substrate
 unchanged and controlling the pressure of a surrounding fluid.
@@ -61,13 +61,13 @@ unchanged and controlling the pressure of a surrounding fluid.
    atoms.  This fix can be used in conjunction with thermostatting fixes
    to control the temperature, such as :doc:`fix nvt <fix_nh>` or :doc:`fix langevin <fix_langevin>` or :doc:`fix temp/berendsen <fix_temp_berendsen>`.
 
-See the :doc:`Howto baroostat <Howto_barostat>` doc page for a
+See the :doc:`Howto baroostat <Howto_barostat>` page for a
 discussion of different ways to perform barostatting.
 
 ----------
 
-The barostat is specified using one or more of the *iso*\ , *aniso*\ ,
-*x*\ , *y*\ , *z*\ , and *couple* keywords.  These keywords give you the
+The barostat is specified using one or more of the *iso*, *aniso*,
+*x*, *y*, *z*, and *couple* keywords.  These keywords give you the
 ability to specify the 3 diagonal components of an external stress
 tensor, and to couple various of these components together so that the
 dimensions they represent are varied together during a
@@ -77,7 +77,7 @@ constant-pressure simulation.  Unlike the :doc:`fix npt <fix_nh>` and
 general pressure tensor.
 
 The target pressures for each of the 3 diagonal components of the
-stress tensor can be specified independently via the *x*\ , *y*\ , *z*\ ,
+stress tensor can be specified independently via the *x*, *y*, *z*,
 keywords, which correspond to the 3 simulation box dimensions.  For
 each component, the external pressure or tensor component at each
 timestep is a ramped value during the run from *Pstart* to *Pstop*\ .
@@ -131,7 +131,7 @@ things: the instantaneous stress will be computed as an average of the
 corresponding diagonal components, and the coupled box dimensions will
 be changed together in lockstep, meaning coupled dimensions will be
 dilated or contracted by the same percentage every timestep.  The
-*Pstart*\ , *Pstop*\ , *Pdamp* parameters for any coupled dimensions must
+*Pstart*, *Pstop*, *Pdamp* parameters for any coupled dimensions must
 be identical.  *Couple xyz* can be used for a 2d simulation; the *z*
 dimension is simply ignored.
 
@@ -152,8 +152,8 @@ specifying these 4 keywords:
    z Pstart Pstop Pdamp
    couple xyz
 
-The keyword *aniso* means *x*\ , *y*\ , and *z* dimensions are controlled
-independently using the *Pxx*\ , *Pyy*\ , and *Pzz* components of the
+The keyword *aniso* means *x*, *y*, and *z* dimensions are controlled
+independently using the *Pxx*, *Pyy*, and *Pzz* components of the
 stress tensor as the driving forces, and the specified scalar external
 pressure.  Using "aniso Pstart Pstop Pdamp" is the same as specifying
 these 4 keywords:

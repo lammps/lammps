@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/charmmfsw/coul/charmmfsh,PairLJCharmmfswCoulCharmmfsh)
-
+// clang-format off
+PairStyle(lj/charmmfsw/coul/charmmfsh,PairLJCharmmfswCoulCharmmfsh);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CHARMMFSW_COUL_CHARMMFSH_H
@@ -27,39 +27,39 @@ namespace LAMMPS_NS {
 class PairLJCharmmfswCoulCharmmfsh : public Pair {
  public:
   PairLJCharmmfswCoulCharmmfsh(class LAMMPS *);
-  virtual ~PairLJCharmmfswCoulCharmmfsh();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  void coeff(int, char **);
-  virtual void init_style();
-  virtual double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  void write_data(FILE *);
-  void write_data_all(FILE *);
-  virtual double single(int, int, int, int, double, double, double, double &);
-  virtual void *extract(const char *, int &);
+  ~PairLJCharmmfswCoulCharmmfsh() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  void write_data(FILE *) override;
+  void write_data_all(FILE *) override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  void *extract(const char *, int &) override;
 
  protected:
   int implicit;
   int dihedflag;
 
-  double cut_lj_inner,cut_lj,cut_coul,cut_coulinv,cut_ljinv,cut_lj_innerinv;
-  double cut_lj_innersq,cut_ljsq,cut_coulsq,cut_bothsq;
-  double cut_lj3inv,cut_lj_inner3inv,cut_lj3,cut_lj_inner3;
-  double cut_lj6inv,cut_lj_inner6inv,cut_lj6,cut_lj_inner6;
-  double denom_lj,denom_lj12,denom_lj6;
+  double cut_lj_inner, cut_lj, cut_coul, cut_coulinv, cut_ljinv, cut_lj_innerinv;
+  double cut_lj_innersq, cut_ljsq, cut_coulsq, cut_bothsq;
+  double cut_lj3inv, cut_lj_inner3inv, cut_lj3, cut_lj_inner3;
+  double cut_lj6inv, cut_lj_inner6inv, cut_lj6, cut_lj_inner6;
+  double denom_lj, denom_lj12, denom_lj6;
 
-  double **epsilon,**sigma,**eps14,**sigma14;
-  double **lj1,**lj2,**lj3,**lj4;
-  double **lj14_1,**lj14_2,**lj14_3,**lj14_4;
+  double **epsilon, **sigma, **eps14, **sigma14;
+  double **lj1, **lj2, **lj3, **lj4;
+  double **lj14_1, **lj14_2, **lj14_3, **lj14_4;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

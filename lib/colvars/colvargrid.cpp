@@ -122,16 +122,90 @@ cvm::real colvar_grid_scalar::entropy() const
 
 
 colvar_grid_gradient::colvar_grid_gradient()
-  : colvar_grid<cvm::real>(), samples(NULL)
+  : colvar_grid<cvm::real>(),
+    samples(NULL),
+    weights(NULL)
 {}
 
 colvar_grid_gradient::colvar_grid_gradient(std::vector<int> const &nx_i)
-  : colvar_grid<cvm::real>(nx_i, 0.0, nx_i.size()), samples(NULL)
+  : colvar_grid<cvm::real>(nx_i, 0.0, nx_i.size()),
+    samples(NULL),
+    weights(NULL)
 {}
 
 colvar_grid_gradient::colvar_grid_gradient(std::vector<colvar *> &colvars)
-  : colvar_grid<cvm::real>(colvars, 0.0, colvars.size()), samples(NULL)
+  : colvar_grid<cvm::real>(colvars, 0.0, colvars.size()),
+    samples(NULL),
+    weights(NULL)
 {}
+
+
+colvar_grid_gradient::colvar_grid_gradient(std::string &filename)
+  : colvar_grid<cvm::real>(),
+    samples(NULL),
+    weights(NULL)
+{
+  std::ifstream is;
+  is.open(filename.c_str());
+  if (!is.is_open()) {
+    cvm::error("Error opening multicol gradient file " + filename + " for reading.\n");
+    return;
+  }
+
+  // Data in the header: nColvars, then for each
+  // xiMin, dXi, nPoints, periodic flag
+
+  std::string  hash;
+  size_t i;
+
+  if ( !(is >> hash) || (hash != "#") ) {
+    cvm::error("Error reading grid at position "+
+                cvm::to_str(static_cast<size_t>(is.tellg()))+
+                " in stream(read \"" + hash + "\")\n");
+    return;
+  }
+
+  is >> nd;
+
+  if (nd > 50) {
+    cvm::error("Error: excessive number of dimensions in file \""+
+               filename+"\".  Please ensure that the file is not corrupt.\n",
+               INPUT_ERROR);
+    return;
+  }
+
+  mult = nd;
+  std::vector<cvm::real> lower_in(nd), widths_in(nd);
+  std::vector<int>       nx_in(nd);
+  std::vector<int>       periodic_in(nd);
+
+  for (i = 0; i < nd; i++ ) {
+    if ( !(is >> hash) || (hash != "#") ) {
+      cvm::error("Error reading grid at position "+
+                  cvm::to_str(static_cast<size_t>(is.tellg()))+
+                  " in stream(read \"" + hash + "\")\n");
+      return;
+    }
+
+    is >> lower_in[i] >> widths_in[i] >> nx_in[i] >> periodic_in[i];
+  }
+
+  this->setup(nx_in, 0., mult);
+
+  widths = widths_in;
+
+  for (i = 0; i < nd; i++ ) {
+    lower_boundaries.push_back(colvarvalue(lower_in[i]));
+    periodic.push_back(static_cast<bool>(periodic_in[i]));
+  }
+
+  // Reset the istream for read_multicol, which expects the whole file
+  is.clear();
+  is.seekg(0);
+  read_multicol(is);
+  is.close();
+}
+
 
 void colvar_grid_gradient::write_1D_integral(std::ostream &os)
 {
@@ -202,7 +276,7 @@ integrate_potential::integrate_potential(std::vector<colvar *> &colvars, colvar_
     // Compute inverse of Laplacian diagonal for Jacobi preconditioning
     // For now all code related to preconditioning is commented out
     // until a method better than Jacobi is implemented
-//     cvm::log("Preparing inverse diagonal for preconditioning...");
+//     cvm::log("Preparing inverse diagonal for preconditioning...\n");
 //     inv_lap_diag.resize(nt);
 //     std::vector<cvm::real> id(nt), lap_col(nt);
 //     for (int i = 0; i < nt; i++) {
@@ -213,7 +287,30 @@ integrate_potential::integrate_potential(std::vector<colvar *> &colvars, colvar_
 //       id[i] = 0.;
 //       inv_lap_diag[i] = 1. / lap_col[i];
 //     }
-//     cvm::log("Done.");
+//     cvm::log("Done.\n");
+  }
+}
+
+
+integrate_potential::integrate_potential(colvar_grid_gradient * gradients)
+  : gradients(gradients)
+{
+  nd = gradients->num_variables();
+  nx = gradients->number_of_points_vec();
+  widths = gradients->widths;
+  periodic = gradients->periodic;
+
+  // Expand grid by 1 bin in non-periodic dimensions
+  for (size_t i = 0; i < nd; i++ ) {
+    if (!periodic[i]) nx[i]++;
+    // Shift the grid by half the bin width (values at edges instead of center of bins)
+    lower_boundaries.push_back(gradients->lower_boundaries[i].real_value - 0.5 * widths[i]);
+  }
+
+  setup(nx);
+
+  if (nd > 1) {
+    divergence.resize(nt);
   }
 }
 
@@ -246,7 +343,7 @@ int integrate_potential::integrate(const int itmax, const cvm::real &tol, cvm::r
   } else if (nd <= 3) {
 
     nr_linbcg_sym(divergence, data, tol, itmax, iter, err);
-    cvm::log("Integrated in " + cvm::to_str(iter) + " steps, error: " + cvm::to_str(err));
+    cvm::log("Integrated in " + cvm::to_str(iter) + " steps, error: " + cvm::to_str(err) + "\n");
 
   } else {
     cvm::error("Cannot integrate PMF in dimension > 3\n");

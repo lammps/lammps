@@ -127,7 +127,7 @@ region surface will move over time in the corresponding manner.
 The energy of wall-particle interactions depends on the specified
 style.
 
-For style *lj93*\ , the energy E is given by the 9/3 potential:
+For style *lj93*, the energy E is given by the 9/3 potential:
 
 .. math::
 
@@ -135,7 +135,7 @@ For style *lj93*\ , the energy E is given by the 9/3 potential:
                        \left(\frac{\sigma}{r}\right)^3 \right]
                        \qquad r < r_c
 
-For style *lj126*\ , the energy E is given by the 12/6 potential:
+For style *lj126*, the energy E is given by the 12/6 potential:
 
 .. math::
 
@@ -143,7 +143,7 @@ For style *lj126*\ , the energy E is given by the 12/6 potential:
                        \left(\frac{\sigma}{r}\right)^6 \right]
                        \qquad r < r_c
 
-For style *wall/lj1043*\ , the energy E is given by the 10/4/3 potential:
+For style *wall/lj1043*, the energy E is given by the 10/4/3 potential:
 
 .. math::
 
@@ -152,7 +152,7 @@ For style *wall/lj1043*\ , the energy E is given by the 10/4/3 potential:
                        \frac{\sqrt(2)\sigma^3}{3\left(r+\left(0.61/\sqrt(2)\right)\sigma\right)^3}\right]
                        \qquad r < r_c
 
-For style *colloid*\ , the energy E is given by an integrated form of
+For style *colloid*, the energy E is given by an integrated form of
 the :doc:`pair_style colloid <pair_colloid>` potential:
 
 .. math::
@@ -162,14 +162,14 @@ the :doc:`pair_style colloid <pair_colloid>` potential:
     & \left. - \frac{1}{6} \left(\frac{2R(D+R) + D(D+2R)
     \left[ \ln D - \ln (D+2R) \right]}{D(D+2R)} \right) \right] \qquad r < r_c
 
-For style *wall/harmonic*\ , the energy E is given by a harmonic spring
+For style *wall/harmonic*, the energy E is given by a harmonic spring
 potential (the distance parameter is ignored):
 
 .. math::
 
    E = \epsilon \quad (r - r_c)^2 \qquad r < r_c
 
-For style *wall/morse*\ , the energy E is given by the Morse potential:
+For style *wall/morse*, the energy E is given by the Morse potential:
 
 .. math::
 

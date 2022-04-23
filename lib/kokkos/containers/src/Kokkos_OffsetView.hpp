@@ -116,8 +116,7 @@ KOKKOS_INLINE_FUNCTION void offsetview_verify_operator_bounds(
       This check should cover the case of Views that don't
       have the Unmanaged trait but were initialized by pointer. */
     if (tracker.has_record()) {
-      Kokkos::Impl::operator_bounds_error_on_device<MapType>(
-          map, Kokkos::Impl::has_printable_label_typedef<MapType>());
+      Kokkos::Impl::operator_bounds_error_on_device(map);
     } else {
       Kokkos::abort("OffsetView bounds error");
     }
@@ -377,34 +376,20 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
       std::is_same<typename traits::specialize, void>::value &&
       (is_layout_left || is_layout_right || is_layout_stride);
 
-  template <class Space, bool = Kokkos::Impl::MemorySpaceAccess<
-                             Space, typename traits::memory_space>::accessible>
-  struct verify_space {
-    KOKKOS_FORCEINLINE_FUNCTION static void check() {}
-  };
-
-  template <class Space>
-  struct verify_space<Space, false> {
-    KOKKOS_FORCEINLINE_FUNCTION static void check() {
-      Kokkos::abort(
-          "Kokkos::View ERROR: attempt to access inaccessible memory space");
-    };
-  };
-
 #if defined(KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK)
 
-#define KOKKOS_IMPL_OFFSETVIEW_OPERATOR_VERIFY(ARG)              \
-  OffsetView::template verify_space<                             \
-      Kokkos::Impl::ActiveExecutionMemorySpace>::check();        \
-  Kokkos::Experimental::Impl::offsetview_verify_operator_bounds< \
-      typename traits::memory_space>                             \
+#define KOKKOS_IMPL_OFFSETVIEW_OPERATOR_VERIFY(ARG)                    \
+  Kokkos::Impl::verify_space<Kokkos::Impl::ActiveExecutionMemorySpace, \
+                             typename traits::memory_space>::check();  \
+  Kokkos::Experimental::Impl::offsetview_verify_operator_bounds<       \
+      typename traits::memory_space>                                   \
       ARG;
 
 #else
 
-#define KOKKOS_IMPL_OFFSETVIEW_OPERATOR_VERIFY(ARG) \
-  OffsetView::template verify_space<                \
-      Kokkos::Impl::ActiveExecutionMemorySpace>::check();
+#define KOKKOS_IMPL_OFFSETVIEW_OPERATOR_VERIFY(ARG)                    \
+  Kokkos::Impl::verify_space<Kokkos::Impl::ActiveExecutionMemorySpace, \
+                             typename traits::memory_space>::check();
 
 #endif
  public:
@@ -1258,7 +1243,8 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
     // to avoid incomplete type errors from usng Kokkos::Cuda directly.
     if (std::is_same<Kokkos::CudaUVMSpace,
                      typename traits::device_type::memory_space>::value) {
-      typename traits::device_type::memory_space::execution_space().fence();
+      typename traits::device_type::memory_space::execution_space().fence(
+          "Kokkos::OffsetView::OffsetView(): fence before UVM allocation");
     }
 #endif
     //------------------------------------------------------------
@@ -1270,7 +1256,8 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
 #if defined(KOKKOS_ENABLE_CUDA)
     if (std::is_same<Kokkos::CudaUVMSpace,
                      typename traits::device_type::memory_space>::value) {
-      typename traits::device_type::memory_space::execution_space().fence();
+      typename traits::device_type::memory_space::execution_space().fence(
+          "Kokkos::OffsetView::OffsetView(): fence after UVM allocation");
     }
 #endif
     //------------------------------------------------------------

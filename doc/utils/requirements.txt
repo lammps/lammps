@@ -1,6 +1,9 @@
 Sphinx
 sphinxcontrib-spelling
-git+git://github.com/akohlmey/sphinx-fortran@parallel-read
+git+https://github.com/akohlmey/sphinx-fortran@parallel-read
 sphinx_tabs
 breathe
 Pygments
+six
+pyyaml
+wheel

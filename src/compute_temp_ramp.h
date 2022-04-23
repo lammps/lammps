@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(temp/ramp,ComputeTempRamp)
-
+// clang-format off
+ComputeStyle(temp/ramp,ComputeTempRamp);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_TEMP_RAMP_H
@@ -27,32 +27,32 @@ namespace LAMMPS_NS {
 class ComputeTempRamp : public Compute {
  public:
   ComputeTempRamp(class LAMMPS *, int, char **);
-  ~ComputeTempRamp();
-  void init() {}
-  void setup();
-  double compute_scalar();
-  void compute_vector();
+  ~ComputeTempRamp() override;
+  void init() override {}
+  void setup() override;
+  double compute_scalar() override;
+  void compute_vector() override;
 
-  void remove_bias(int, double *);
-  void remove_bias_all();
-  void remove_bias_thr(int, double *, double *);
-  void restore_bias(int, double *);
-  void restore_bias_thr(int, double *, double *);
-  void restore_bias_all();
-  double memory_usage();
+  void remove_bias(int, double *) override;
+  void remove_bias_all() override;
+  void remove_bias_thr(int, double *, double *) override;
+  void restore_bias(int, double *) override;
+  void restore_bias_thr(int, double *, double *) override;
+  void restore_bias_all() override;
+  double memory_usage() override;
 
  private:
   int coord_dim;
-  double coord_lo,coord_hi;
+  double coord_lo, coord_hi;
   int v_dim;
-  double v_lo,v_hi;
+  double v_lo, v_hi;
   int scaleflag;
-  double tfactor,xscale,yscale,zscale;
+  double tfactor, xscale, yscale, zscale;
 
   void dof_compute();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

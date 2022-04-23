@@ -181,7 +181,8 @@ page for an overview of LAMMPS output options.
 
 Restrictions
 """"""""""""
- none
+
+none
 
 Related commands
 """"""""""""""""

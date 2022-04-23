@@ -43,5 +43,5 @@
 //@HEADER
 */
 
-#include <serial/TestSerial_Category.hpp>
+#include <TestSerial_Category.hpp>
 #include <TestGraph.hpp>

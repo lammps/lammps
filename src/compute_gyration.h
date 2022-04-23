@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(gyration,ComputeGyration)
-
+// clang-format off
+ComputeStyle(gyration,ComputeGyration);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_GYRATION_H
@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 class ComputeGyration : public Compute {
  public:
   ComputeGyration(class LAMMPS *, int, char **);
-  ~ComputeGyration();
-  void init();
-  double compute_scalar();
-  void compute_vector();
+  ~ComputeGyration() override;
+  void init() override;
+  double compute_scalar() override;
+  void compute_vector() override;
 
  private:
   double masstotal;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

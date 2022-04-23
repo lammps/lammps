@@ -41,7 +41,7 @@ Perform charge equilibration (QeQ) in conjunction with the COMB
 equilibration portion of the calculation using the so-called QEq
 method, whereby the charge on each atom is adjusted to minimize the
 energy of the system.  This fix can only be used with the COMB
-potential; see the :doc:`fix qeq/reax <fix_qeq_reax>` command for a QeQ
+potential; see the :doc:`fix qeq/reaxff <fix_qeq_reaxff>` command for a QeQ
 calculation that can be used with any potential.
 
 Only charges on the atoms in the specified group are equilibrated.
@@ -62,6 +62,14 @@ performing charge equilibration (more iterations) and accuracy.
 
 If the *file* keyword is used, then information about each
 equilibration calculation is written to the specified file.
+
+.. note::
+
+   In order to solve the self-consistent equations for electronegativity
+   equalization, LAMMPS imposes the additional constraint that all the
+   charges in the fix group must add up to zero.  The initial charge
+   assignments should also satisfy this constraint.  LAMMPS will print a
+   warning if that is not the case.
 
 ----------
 

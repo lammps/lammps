@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(qeq/comb,FixQEQComb)
-
+// clang-format off
+FixStyle(qeq/comb,FixQEQComb);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_QEQ_COMB_H
@@ -27,20 +27,20 @@ namespace LAMMPS_NS {
 class FixQEQComb : public Fix {
  public:
   FixQEQComb(class LAMMPS *, int, char **);
-  virtual ~FixQEQComb();
-  int setmask();
-  virtual void init();
-  void setup(int);
-  virtual void post_force(int);
-  void post_force_respa(int,int,int);
-  double memory_usage();
-  int pack_forward_comm(int , int *, double *, int, int *);
-  void unpack_forward_comm(int , int , double *);
+  ~FixQEQComb() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  double memory_usage() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
-  void min_post_force(int);
+  void min_post_force(int) override;
 
  protected:
-  int me,firstflag;
+  int me, firstflag;
   double precision;
   int ilevel_respa;
   bigint ngroup;
@@ -49,10 +49,10 @@ class FixQEQComb : public Fix {
   class PairComb *comb;
   class PairComb3 *comb3;
   int nmax;
-  double *qf,*q1,*q2;
+  double *qf, *q1, *q2;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

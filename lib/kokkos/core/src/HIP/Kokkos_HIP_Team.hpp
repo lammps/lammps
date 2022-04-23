@@ -316,198 +316,6 @@ class HIPTeamMember {
 #endif
   }
 
-  //--------------------------------------------------------------------------
-  /**\brief  Global reduction across all blocks
-   *
-   *  Return !0 if reducer contains the final value
-   */
-  template <typename ReducerType>
-  KOKKOS_INLINE_FUNCTION static
-      typename std::enable_if<is_reducer<ReducerType>::value, int>::type
-      global_reduce(ReducerType const& reducer, int* const global_scratch_flags,
-                    void* const global_scratch_space, void* const shmem,
-                    int const shmem_size) {
-#ifdef __HIP_DEVICE_COMPILE__
-    using value_type   = typename ReducerType::value_type;
-    using pointer_type = value_type volatile*;
-
-    // Number of shared memory entries for the reduction:
-    const int nsh = shmem_size / sizeof(value_type);
-
-    // Number of HIP threads in the block, rank within the block
-    const int nid = blockDim.x * blockDim.y * blockDim.z;
-    const int tid =
-        threadIdx.x + blockDim.x * (threadIdx.y + blockDim.y * threadIdx.z);
-
-    // Reduces within block using all available shared memory
-    // Contributes if it is the root "vector lane"
-
-    // wn == number of warps in the block
-    // wx == which lane within the warp
-    // wy == which warp within the block
-
-    const int wn = (nid + Experimental::Impl::HIPTraits::WarpIndexMask) >>
-                   Experimental::Impl::HIPTraits::WarpIndexShift;
-    const int wx = tid & Experimental::Impl::HIPTraits::WarpIndexMask;
-    const int wy = tid >> Experimental::Impl::HIPTraits::WarpIndexShift;
-
-    //------------------------
-    {  // Intra warp shuffle reduction from contributing HIP threads
-
-      value_type tmp(reducer.reference());
-
-      int constexpr warp_size =
-          ::Kokkos::Experimental::Impl::HIPTraits::WarpSize;
-      for (int i = warp_size; static_cast<int>(blockDim.x) <= (i >>= 1);) {
-        Experimental::Impl::in_place_shfl_down(reducer.reference(), tmp, i,
-                                               warp_size);
-
-        // Root of each vector lane reduces "thread" contribution
-        if (0 == threadIdx.x && wx < i) {
-          reducer.join(&tmp, reducer.data());
-        }
-      }
-
-      // Reduce across warps using shared memory.
-      // Number of warps may not be power of two.
-
-      __syncthreads();  // Wait before shared data write
-
-      // Number of shared memory entries for the reduction
-      // is at most one per warp
-      const int nentry = wn < nsh ? wn : nsh;
-
-      if (0 == wx && wy < nentry) {
-        // Root thread of warp 'wy' has warp's value to contribute
-        (reinterpret_cast<value_type*>(shmem))[wy] = tmp;
-      }
-
-      __syncthreads();  // Wait for write to be visible to block
-
-      // When more warps than shared entries
-      // then warps must take turns joining their contribution
-      // to the designated shared memory entry.
-      for (int i = nentry; i < wn; i += nentry) {
-        const int k = wy - i;
-
-        if (0 == wx && i <= wy && k < nentry) {
-          // Root thread of warp 'wy' has warp's value to contribute
-          reducer.join((reinterpret_cast<value_type*>(shmem)) + k, &tmp);
-        }
-
-        __syncthreads();  // Wait for write to be visible to block
-      }
-
-      // One warp performs the inter-warp reduction:
-
-      if (0 == wy) {
-        // Start fan-in at power of two covering nentry
-
-        for (int i = (1 << (warp_size - __clz(nentry - 1))); (i >>= 1);) {
-          const int k = wx + i;
-          if (wx < i && k < nentry) {
-            reducer.join((reinterpret_cast<pointer_type>(shmem)) + wx,
-                         (reinterpret_cast<pointer_type>(shmem)) + k);
-            __threadfence_block();  // Wait for write to be visible to warp
-          }
-        }
-      }
-    }
-    //------------------------
-    {  // Write block's value to global_scratch_memory
-
-      int last_block = 0;
-
-      if (0 == wx) {
-        reducer.copy((reinterpret_cast<pointer_type>(global_scratch_space)) +
-                         blockIdx.x * reducer.length(),
-                     reducer.data());
-
-        __threadfence();  // Wait until global write is visible.
-
-        last_block = static_cast<int>(gridDim.x) ==
-                     1 + Kokkos::atomic_fetch_add(global_scratch_flags, 1);
-
-        // If last block then reset count
-        if (last_block) *global_scratch_flags = 0;
-      }
-
-      // FIXME hip does not support __syncthreads_or so we need to do it by hand
-      // last_block = __syncthreads_or(last_block);
-
-      __shared__ int last_block_shared;
-      if (last_block) last_block_shared = last_block;
-      __threadfence_block();
-
-      if (!last_block_shared) return 0;
-    }
-    //------------------------
-    // Last block reads global_scratch_memory into shared memory.
-
-    const int nentry = nid < gridDim.x ? (nid < nsh ? nid : nsh)
-                                       : (gridDim.x < nsh ? gridDim.x : nsh);
-
-    // nentry = min( nid , nsh , gridDim.x )
-
-    // whole block reads global memory into shared memory:
-
-    if (tid < nentry) {
-      const int offset = tid * reducer.length();
-
-      reducer.copy(
-          (reinterpret_cast<pointer_type>(shmem)) + offset,
-          (reinterpret_cast<pointer_type>(global_scratch_space)) + offset);
-
-      for (int i = nentry + tid; i < static_cast<int>(gridDim.x); i += nentry) {
-        reducer.join((reinterpret_cast<pointer_type>(shmem)) + offset,
-                     (reinterpret_cast<pointer_type>(global_scratch_space)) +
-                         i * reducer.length());
-      }
-    }
-
-    __syncthreads();  // Wait for writes to be visible to block
-
-    if (0 == wy) {
-      // Iterate to reduce shared memory to single warp fan-in size
-
-      int constexpr warp_size =
-          ::Kokkos::Experimental::Impl::HIPTraits::WarpSize;
-      const int nreduce = warp_size < nentry ? warp_size : nentry;
-
-      if (wx < nreduce && nreduce < nentry) {
-        for (int i = nreduce + wx; i < nentry; i += nreduce) {
-          reducer.join(((pointer_type)shmem) + wx, ((pointer_type)shmem) + i);
-        }
-        __threadfence_block();  // Wait for writes to be visible to warp
-      }
-
-      // Start fan-in at power of two covering nentry
-
-      for (int i = (1 << (warp_size - __clz(nreduce - 1))); (i >>= 1);) {
-        const int k = wx + i;
-        if (wx < i && k < nreduce) {
-          reducer.join((reinterpret_cast<pointer_type>(shmem)) + wx,
-                       (reinterpret_cast<pointer_type>(shmem)) + k);
-          __threadfence_block();  // Wait for writes to be visible to warp
-        }
-      }
-
-      if (0 == wx) {
-        reducer.copy(reducer.data(), reinterpret_cast<pointer_type>(shmem));
-        return 1;
-      }
-    }
-    return 0;
-#else
-    (void)reducer;
-    (void)global_scratch_flags;
-    (void)global_scratch_space;
-    (void)shmem;
-    (void)shmem_size;
-    return 0;
-#endif
-  }
-
   //----------------------------------------
   // Private for the driver
 
@@ -644,13 +452,14 @@ KOKKOS_INLINE_FUNCTION
       thread, count);
 }
 
-template <typename iType>
-KOKKOS_INLINE_FUNCTION
-    Impl::ThreadVectorRangeBoundariesStruct<iType, Impl::HIPTeamMember>
-    ThreadVectorRange(const Impl::HIPTeamMember& thread, iType arg_begin,
-                      iType arg_end) {
+template <typename iType1, typename iType2>
+KOKKOS_INLINE_FUNCTION Impl::ThreadVectorRangeBoundariesStruct<
+    typename std::common_type<iType1, iType2>::type, Impl::HIPTeamMember>
+ThreadVectorRange(const Impl::HIPTeamMember& thread, iType1 arg_begin,
+                  iType2 arg_end) {
+  using iType = typename std::common_type<iType1, iType2>::type;
   return Impl::ThreadVectorRangeBoundariesStruct<iType, Impl::HIPTeamMember>(
-      thread, arg_begin, arg_end);
+      thread, iType(arg_begin), iType(arg_end));
 }
 
 KOKKOS_INLINE_FUNCTION
@@ -961,7 +770,7 @@ KOKKOS_INLINE_FUNCTION
 
 //----------------------------------------------------------------------------
 
-/** \brief  Intra-thread vector parallel exclusive prefix sum.
+/** \brief  Intra-thread vector parallel scan with reducer.
  *
  *  Executes closure(iType i, ValueType & val, bool final) for each i=[0..N)
  *
@@ -969,21 +778,20 @@ KOKKOS_INLINE_FUNCTION
  *  thread and a scan operation is performed.
  *  The last call to closure has final == true.
  */
-template <typename iType, class Closure>
-KOKKOS_INLINE_FUNCTION void parallel_scan(
-    const Impl::ThreadVectorRangeBoundariesStruct<iType, Impl::HIPTeamMember>&
-        loop_boundaries,
-    const Closure& closure) {
+template <typename iType, class Closure, typename ReducerType>
+KOKKOS_INLINE_FUNCTION
+    typename std::enable_if<Kokkos::is_reducer<ReducerType>::value>::type
+    parallel_scan(const Impl::ThreadVectorRangeBoundariesStruct<
+                      iType, Impl::HIPTeamMember>& loop_boundaries,
+                  const Closure& closure, const ReducerType& reducer) {
 #ifdef __HIP_DEVICE_COMPILE__
-  // Extract value_type from closure
-
-  using value_type = typename Kokkos::Impl::FunctorAnalysis<
-      Kokkos::Impl::FunctorPatternInterface::SCAN, void, Closure>::value_type;
+  using value_type = typename ReducerType::value_type;
+  value_type accum;
+  reducer.init(accum);
+  const value_type identity = accum;
 
   // Loop through boundaries by vector-length chunks
   // must scan at each iteration
-
-  value_type accum = 0;
 
   // All thread "lanes" must loop the same number of times.
   // Determine an loop end for all thread "lanes."
@@ -997,45 +805,70 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
   const int end  = loop_boundaries.end + (rem ? blockDim.x - rem : 0);
 
   for (int i = threadIdx.x; i < end; i += blockDim.x) {
-    value_type val = 0;
+    value_type val = identity;
 
-    // First acquire per-lane contributions:
-    if (i < loop_boundaries.end) closure(i, val, false);
+    // First acquire per-lane contributions.
+    // This sets i's val to i-1's contribution
+    // to make the latter in_place_shfl_up an
+    // exclusive scan -- the final accumulation
+    // of i's val will be included in the second
+    // closure call later.
+    if (i < loop_boundaries.end && threadIdx.x > 0) closure(i - 1, val, false);
 
-    value_type sval = val;
-
-    // Bottom up inclusive scan in triangular pattern
+    // Bottom up exclusive scan in triangular pattern
     // where each HIP thread is the root of a reduction tree
     // from the zeroth "lane" to itself.
     //  [t] += [t-1] if t >= 1
     //  [t] += [t-2] if t >= 2
     //  [t] += [t-4] if t >= 4
     //  ...
-
+    //  This differs from the non-reducer overload, where an inclusive scan was
+    //  implemented, because in general the binary operator cannot be inverted
+    //  and we would not be able to remove the inclusive contribution by
+    //  inversion.
     for (int j = 1; j < static_cast<int>(blockDim.x); j <<= 1) {
-      value_type tmp = 0;
-      ::Kokkos::Experimental::Impl::in_place_shfl_up(tmp, sval, j, blockDim.x);
+      value_type tmp = identity;
+      ::Kokkos::Experimental::Impl::in_place_shfl_up(tmp, val, j, blockDim.x);
       if (j <= static_cast<int>(threadIdx.x)) {
-        sval += tmp;
+        reducer.join(val, tmp);
       }
     }
 
-    // Include accumulation and remove value for exclusive scan:
-    val = accum + sval - val;
+    // Include accumulation
+    reducer.join(val, accum);
 
-    // Provide exclusive scan value:
+    // Update i's contribution into the val
+    // and add it to accum for next round
     if (i < loop_boundaries.end) closure(i, val, true);
-
-    // Accumulate the last value in the inclusive scan:
-    ::Kokkos::Experimental::Impl::in_place_shfl(sval, sval, blockDim.x - 1,
+    ::Kokkos::Experimental::Impl::in_place_shfl(accum, val, blockDim.x - 1,
                                                 blockDim.x);
-
-    accum += sval;
   }
 #else
   (void)loop_boundaries;
   (void)closure;
+  (void)reducer;
 #endif
+}
+
+//----------------------------------------------------------------------------
+
+/** \brief  Intra-thread vector parallel exclusive prefix sum.
+ *
+ *  Executes closure(iType i, ValueType & val, bool final) for each i=[0..N)
+ *
+ *  The range [0..N) is mapped to all vector lanes in the
+ *  thread and a scan operation is performed.
+ *  The last call to closure has final == true.
+ */
+template <typename iType, class Closure>
+KOKKOS_INLINE_FUNCTION void parallel_scan(
+    const Impl::ThreadVectorRangeBoundariesStruct<iType, Impl::HIPTeamMember>&
+        loop_boundaries,
+    const Closure& closure) {
+  using value_type = typename Kokkos::Impl::FunctorAnalysis<
+      Kokkos::Impl::FunctorPatternInterface::SCAN, void, Closure>::value_type;
+  value_type dummy;
+  parallel_scan(loop_boundaries, closure, Kokkos::Sum<value_type>(dummy));
 }
 
 }  // namespace Kokkos

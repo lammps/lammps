@@ -1,15 +1,21 @@
+IMPORTANT NOTE: This example has not been updated since 2014,
+so it is not likely to work anymore out of the box.  There have
+been changes to LAMMPS and its library interface that would need
+to be applied. Please see the manual for the documentation of
+the library interface.
+
 This directory has an application that runs classical MD via LAMMPS,
 but uses quantum forces calculated by the Quest DFT (density
 functional) code in place of the usual classical MD forces calculated
 by a pair style in LAMMPS.
 
-lmpqst.cpp	    main program
-		    it links LAMMPS as a library
-		    it invokes Quest as an executable
-in.lammps	    LAMMPS input script, without the run command
-si_111.in	    Quest input script for an 8-atom Si unit cell
-lmppath.h	    contains path to LAMMPS home directory
-qstexe.h	    contains full pathname to Quest executable
+lmpqst.cpp          main program
+                    it links LAMMPS as a library
+                    it invokes Quest as an executable
+in.lammps           LAMMPS input script, without the run command
+si_111.in           Quest input script for an 8-atom Si unit cell
+lmppath.h           contains path to LAMMPS home directory
+qstexe.h            contains full pathname to Quest executable
 
 After editing the Makefile, lmppath.h, and qstexe.h to make them
 suitable for your box, type:

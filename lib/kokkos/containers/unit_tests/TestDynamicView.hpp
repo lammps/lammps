@@ -52,7 +52,7 @@
 #include <Kokkos_Core.hpp>
 
 #include <Kokkos_DynamicView.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 
 namespace Test {
 
@@ -243,8 +243,6 @@ struct TestDynamicView {
   }
 };
 
-// FIXME_SYCL needs resize_serial
-#ifndef KOKKOS_ENABLE_SYCL
 TEST(TEST_CATEGORY, dynamic_view) {
   using TestDynView = TestDynamicView<double, TEST_EXECSPACE>;
 
@@ -252,7 +250,6 @@ TEST(TEST_CATEGORY, dynamic_view) {
     TestDynView::run(100000 + 100 * i);
   }
 }
-#endif
 
 }  // namespace Test
 

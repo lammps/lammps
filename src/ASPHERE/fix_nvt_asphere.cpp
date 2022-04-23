@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,12 +13,10 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nvt_asphere.h"
-#include <cstring>
 
+#include "error.h"
 #include "group.h"
 #include "modify.h"
-#include "error.h"
-
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -35,11 +34,8 @@ FixNVTAsphere::FixNVTAsphere(LAMMPS *lmp, int narg, char **arg) :
   // create a new compute temp style
   // id = fix-ID + temp
 
-  std::string cmd = id + std::string("_temp");
-  id_temp = new char[cmd.size()+1];
-  strcpy(id_temp,cmd.c_str());
-
-  cmd += fmt::format(" {} temp/asphere",group->names[igroup]);
-  modify->add_compute(cmd);
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} {} temp/asphere",
+                                  id_temp,group->names[igroup]));
   tcomputeflag = 1;
 }

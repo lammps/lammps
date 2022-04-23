@@ -17,7 +17,7 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command.
 * bond/react = style name of this fix command
 * the common keyword/values may be appended directly after 'bond/react'
-* this applies to all reaction specifications (below)
+* common keywords apply to all reaction specifications
 * common_keyword = *stabilization* or *reset_mol_ids*
 
   .. parsed-literal::
@@ -69,7 +69,7 @@ Syntax
 Examples
 """"""""
 
-For unabridged example scripts and files, see examples/USER/reaction.
+For unabridged example scripts and files, see examples/PACKAGES/reaction.
 
 .. code-block:: LAMMPS
 
@@ -159,7 +159,7 @@ constant-topology parts of your system separately. The dynamic group
 contains only atoms not involved in a reaction at a given timestep,
 and therefore should be used by a subsequent system-wide time
 integrator such as nvt, npt, or nve, as shown in the second example
-above (full examples can be found at examples/USER/reaction). The time
+above (full examples can be found at examples/PACKAGES/reaction). The time
 integration command should be placed after the fix bond/react command
 due to the internal dynamic grouping performed by fix bond/react.
 
@@ -328,8 +328,8 @@ keyword 'ChiralIDs' lists the atom IDs of chiral atoms whose
 handedness should be enforced. The fifth optional section begins with
 the keyword 'Constraints' and lists additional criteria that must be
 satisfied in order for the reaction to occur. Currently, there are
-five types of constraints available, as discussed below: 'distance',
-'angle', 'dihedral', 'arrhenius', and 'rmsd'.
+six types of constraints available, as discussed below: 'distance',
+'angle', 'dihedral', 'arrhenius', 'rmsd', and 'custom'.
 
 A sample map file is given below:
 
@@ -424,7 +424,7 @@ The constraint of type 'angle' has the following syntax:
 
    angle *ID1* *ID2* *ID3* *amin* *amax*
 
-where 'angle' is the required keyword, *ID1*\ , *ID2* and *ID3* are
+where 'angle' is the required keyword, *ID1*, *ID2* and *ID3* are
 pre-reaction atom IDs (or molecule-fragment IDs, see below), and these
 three atoms must form an angle between *amin* and *amax* for the
 reaction to occur (where *ID2* is the central atom). Angles must be
@@ -437,7 +437,7 @@ The constraint of type 'dihedral' has the following syntax:
 
    dihedral *ID1* *ID2* *ID3* *ID4* *amin* *amax* *amin2* *amax2*
 
-where 'dihedral' is the required keyword, and *ID1*\ , *ID2*\ , *ID3*
+where 'dihedral' is the required keyword, and *ID1*, *ID2*, *ID3*
 and *ID4* are pre-reaction atom IDs (or molecule-fragment IDs, see
 below). Dihedral angles are calculated in the interval (-180,180].
 Refer to the :doc:`dihedral style <dihedral_style>` documentation for
@@ -499,6 +499,45 @@ determine the RMSD. A molecule fragment must have been defined in the
 example, the molecule fragment could consist of only the backbone
 atoms of a polymer chain. This constraint can be used to enforce a
 specific relative position and orientation between reacting molecules.
+
+The constraint of type 'custom' has the following syntax:
+
+.. parsed-literal::
+
+   custom *varstring*
+
+where 'custom' is the required keyword, and *varstring* is a
+variable expression. The expression must be a valid equal-style
+variable formula that can be read by the :doc:`variable <variable>` command,
+after any special reaction functions are evaluated. If the resulting
+expression is zero, the reaction is prevented from occurring;
+otherwise, it is permitted to occur. There are two special reaction
+functions available, 'rxnsum' and 'rxnave'. These functions operate
+over the atoms in a given reaction site, and have one mandatory
+argument and one optional argument. The mandatory argument is the
+identifier for an atom-style variable. The second, optional argument
+is the name of a molecule fragment in the pre-reaction template, and
+can be used to operate over a subset of atoms in the reaction site.
+The 'rxnsum' function sums the atom-style variable over the reaction
+site, while the 'rxnave' returns the average value. For example, a
+constraint on the total potential energy of atoms involved in the
+reaction can be imposed as follows:
+
+.. code-block:: LAMMPS
+
+   compute 1 all pe/atom # in LAMMPS input script
+   variable my_pe atom c_1 # in LAMMPS input script
+
+.. code-block:: LAMMPS
+
+   custom "rxnsum(v_my_pe) > 100" # in Constraints section of map file
+
+The above example prevents the reaction from occurring unless the
+total potential energy of the reaction site is above 100. The variable
+expression can be interpreted as the probability of the reaction
+occurring by using an inequality and the 'random(x,y,z)' function
+available as an equal-style variable input, similar to the 'arrhenius'
+constraint above.
 
 By default, all constraints must be satisfied for the reaction to
 occur. In other words, constraints are evaluated as a series of
@@ -628,9 +667,9 @@ all other fixes that use any group created by fix bond/react.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-REACTION package.  It is only enabled if
+This fix is part of the REACTION package.  It is only enabled if
 LAMMPS was built with that package.  See the
-:doc:`Build package <Build_package>` doc page for more info.
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

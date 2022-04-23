@@ -1,0 +1,36 @@
+# Charge regulation lammps for simple weak electrolyte
+
+units           lj
+atom_style      charge
+neighbor        3.0 bin
+read_data       data.chreg-acid
+
+variable        cut_long equal 12.5
+variable        nevery equal 100
+variable        nmc equal 100
+variable        pH equal 7.0
+variable        pKa equal 6.0
+variable        pIm equal 3.0
+variable        pIp equal 3.0
+
+variable        cut_lj equal 2^(1.0/6.0)
+variable        lunit_nm equal 0.72 # in the units of nm
+velocity        all create 1.0 8008 loop geom
+
+pair_style      lj/cut/coul/long ${cut_lj} ${cut_long}
+pair_coeff      * *  1.0 1.0
+kspace_style    ewald 1.0e-3
+pair_modify     shift yes
+
+#########  VERLET INTEGRATION WITH LANGEVIN THERMOSTAT  ###########
+fix             fnve all nve
+compute         dtemp all temp
+compute_modify  dtemp dynamic yes
+fix             fT all langevin 1.0 1.0 1.0 123
+fix_modify      fT temp dtemp
+
+fix chareg      all charge/regulation 2 3 acid_type 1 pH ${pH} pKa ${pKa} pIp ${pIp} pIm ${pIm} lunit_nm ${lunit_nm} nevery ${nevery} nmc ${nmc} seed 2345 tempfixid fT
+thermo          100
+thermo_style custom step pe c_dtemp f_chareg[1] f_chareg[2] f_chareg[3] f_chareg[4] f_chareg[5] f_chareg[6] f_chareg[7] f_chareg[8]
+timestep        0.005
+run             2000

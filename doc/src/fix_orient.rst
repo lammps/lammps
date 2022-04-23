@@ -177,11 +177,11 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-This fix is part of the MISC package.  It is only enabled if LAMMPS
+These fixes are part of the ORIENT package.  They are only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
-This fix should only be used with fcc or bcc lattices.
+These fixes should only be used with fcc or bcc lattices.
 
 Related commands
 """"""""""""""""

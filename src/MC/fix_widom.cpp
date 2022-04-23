@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -58,9 +59,8 @@ enum{EXCHATOM,EXCHMOL}; // exchmode
 
 FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  idregion(nullptr), full_flag(0),
-  local_gas_list(nullptr), molcoords(nullptr), molq(nullptr), molimage(nullptr),
-  random_equal(nullptr)
+  idregion(nullptr), full_flag(false), local_gas_list(nullptr), molcoords(nullptr),
+  molq(nullptr), molimage(nullptr), random_equal(nullptr)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix widom command");
 
@@ -224,9 +224,7 @@ void FixWidom::options(int narg, char **arg)
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
         error->all(FLERR,"Region ID for fix widom does not exist");
-      int n = strlen(arg[iarg+1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[iarg+1]);
+      idregion = utils::strdup(arg[iarg+1]);
       regionflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"charge") == 0) {
@@ -312,16 +310,13 @@ void FixWidom::init()
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
     if (flagall && comm->me == 0)
-      error->all(FLERR,
-       "All mol IDs should be set for fix widom group atoms");
+      error->all(FLERR, "All mol IDs should be set for fix widom group atoms");
   }
 
   if (exchmode == EXCHMOL)
     if (atom->molecule_flag == 0 || !atom->tag_enable
         || (atom->map_style == Atom::MAP_NONE))
-      error->all(FLERR,
-       "Fix widom molecule command requires that "
-       "atoms have molecule attributes");
+      error->all(FLERR, "Fix widom molecule command requires that atoms have molecule attributes");
 
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use fix widom in a 2d simulation");
@@ -344,14 +339,7 @@ void FixWidom::init()
     // neighbor list exclusion setup
     // turn off interactions between group all and the exclusion group
 
-    int narg = 4;
-    char **arg = new char*[narg];;
-    arg[0] = (char *) "exclude";
-    arg[1] = (char *) "group";
-    arg[2] = (char *) group_id.c_str();
-    arg[3] = (char *) "all";
-    neighbor->modify_params(narg,arg);
-    delete [] arg;
+    neighbor->modify_params(fmt::format("exclude group {} all",group_id));
   }
 
   // create a new group for temporary use with selected molecules
@@ -631,7 +619,7 @@ void FixWidom::attempt_molecule_insertion()
     MathExtra::quat_to_mat(quat,rotmat);
 
     double insertion_energy = 0.0;
-    bool *procflag = new bool[natoms_per_molecule];
+    auto procflag = new bool[natoms_per_molecule];
 
     for (int i = 0; i < natoms_per_molecule; i++) {
       MathExtra::matvec(rotmat,onemols[imol]->x[i],molcoords[i]);
@@ -1045,7 +1033,7 @@ double FixWidom::energy_full()
 
   if (force->pair) force->pair->compute(eflag,vflag);
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) force->bond->compute(eflag,vflag);
     if (force->angle) force->angle->compute(eflag,vflag);
     if (force->dihedral) force->dihedral->compute(eflag,vflag);
@@ -1057,12 +1045,13 @@ double FixWidom::energy_full()
   // unlike Verlet, not performing a reverse_comm() or forces here
   // b/c Widom does not care about forces
   // don't think it will mess up energy due to any post_force() fixes
+  // but Modify::pre_reverse() is needed for INTEL
 
+  if (modify->n_pre_reverse) modify->pre_reverse(eflag,vflag);
   if (modify->n_pre_force) modify->pre_force(vflag);
-  if (modify->n_end_of_step) modify->end_of_step();
 
   // NOTE: all fixes with energy_global_flag set and which
-  //   operate at pre_force() or post_force() or end_of_step()
+  //   operate at pre_force() or post_force()
   //   and which user has enabled via fix_modify energy yes,
   //   will contribute to total MC energy via pe->compute_scalar()
 
@@ -1100,9 +1089,9 @@ void FixWidom::update_gas_atoms_list()
       for (int i = 0; i < nlocal; i++) maxmol = MAX(maxmol,molecule[i]);
       tagint maxmol_all;
       MPI_Allreduce(&maxmol,&maxmol_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
-      double *comx = new double[maxmol_all];
-      double *comy = new double[maxmol_all];
-      double *comz = new double[maxmol_all];
+      auto comx = new double[maxmol_all];
+      auto comy = new double[maxmol_all];
+      auto comz = new double[maxmol_all];
       for (int imolecule = 0; imolecule < maxmol_all; imolecule++) {
         for (int i = 0; i < nlocal; i++) {
           if (molecule[i] == imolecule) {
@@ -1206,7 +1195,7 @@ void FixWidom::write_restart(FILE *fp)
 void FixWidom::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
 
   seed = static_cast<int> (list[n++]);
   random_equal->reset(seed);

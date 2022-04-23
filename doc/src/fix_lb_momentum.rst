@@ -38,7 +38,7 @@ lattice-Boltzmann fluid is present.
 
 Zero the total linear momentum of the system, including both the atoms
 specified by group-ID and the lattice-Boltzmann fluid every nevery
-timesteps.  This is accomplished by adjusting the particle velocities
+timesteps.  If there are no atoms specified by group-ID only the fluid momentum is affected.  This is accomplished by adjusting the particle velocities
 and the fluid velocities at each lattice site.
 
 .. note::
@@ -46,7 +46,7 @@ and the fluid velocities at each lattice site.
    This fix only considers the linear momentum of the system.
 
 By default, the subtraction is performed for each dimension.  This can
-be changed by specifying the keyword *linear*\ , along with a set of
+be changed by specifying the keyword *linear*, along with a set of
 three flags set to 0/1 in order to exclude/ include the corresponding
 dimension.
 
@@ -66,8 +66,8 @@ Can only be used if a lattice-Boltzmann fluid has been created via the
 :doc:`fix lb/fluid <fix_lb_fluid>` command, and must come after this
 command.
 
-This fix is part of the USER-LB package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the LATBOLTZ package.  It is only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

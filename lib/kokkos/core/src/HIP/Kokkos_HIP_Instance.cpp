@@ -77,7 +77,7 @@ class HIPInternalDevices {
 };
 
 HIPInternalDevices::HIPInternalDevices() {
-  HIP_SAFE_CALL(hipGetDeviceCount(&m_hipDevCount));
+  KOKKOS_IMPL_HIP_SAFE_CALL(hipGetDeviceCount(&m_hipDevCount));
 
   if (m_hipDevCount > MAXIMUM_DEVICE_COUNT) {
     Kokkos::abort(
@@ -85,7 +85,7 @@ HIPInternalDevices::HIPInternalDevices() {
         "have. Please report this to github.com/kokkos/kokkos.");
   }
   for (int i = 0; i < m_hipDevCount; ++i) {
-    HIP_SAFE_CALL(hipGetDeviceProperties(m_hipProp + i, i));
+    KOKKOS_IMPL_HIP_SAFE_CALL(hipGetDeviceProperties(m_hipProp + i, i));
   }
 }
 
@@ -94,6 +94,9 @@ const HIPInternalDevices &HIPInternalDevices::singleton() {
   return self;
 }
 }  // namespace
+
+unsigned long *Impl::HIPInternal::constantMemHostStaging = nullptr;
+hipEvent_t Impl::HIPInternal::constantMemReusable        = nullptr;
 
 namespace Impl {
 
@@ -154,6 +157,9 @@ int HIPInternal::verify_is_initialized(const char *const label) const {
   return 0 <= m_hipDev;
 }
 
+uint32_t HIPInternal::impl_get_instance_id() const noexcept {
+  return m_instance_id;
+}
 HIPInternal &HIPInternal::singleton() {
   static HIPInternal *self = nullptr;
   if (!self) {
@@ -163,10 +169,23 @@ HIPInternal &HIPInternal::singleton() {
 }
 
 void HIPInternal::fence() const {
-  HIP_SAFE_CALL(hipStreamSynchronize(m_stream));
+  fence("Kokkos::HIPInternal::fence: Unnamed Internal Fence");
+}
+void HIPInternal::fence(const std::string &name) const {
+  Kokkos::Tools::Experimental::Impl::profile_fence_event<
+      Kokkos::Experimental::HIP>(
+      name,
+      Kokkos::Tools::Experimental::Impl::DirectFenceIDHandle{
+          impl_get_instance_id()},
+      [&]() {
+        KOKKOS_IMPL_HIP_SAFE_CALL(hipStreamSynchronize(m_stream));
+        // can reset our cycle id now as well
+        m_cycleId = 0;
+      });
 }
 
-void HIPInternal::initialize(int hip_device_id, hipStream_t stream) {
+void HIPInternal::initialize(int hip_device_id, hipStream_t stream,
+                             bool manage_stream) {
   if (was_finalized)
     Kokkos::abort("Calling HIP::initialize after HIP::finalize is illegal\n");
 
@@ -195,9 +214,10 @@ void HIPInternal::initialize(int hip_device_id, hipStream_t stream) {
     m_hipDev     = hip_device_id;
     m_deviceProp = hipProp;
 
-    HIP_SAFE_CALL(hipSetDevice(m_hipDev));
+    KOKKOS_IMPL_HIP_SAFE_CALL(hipSetDevice(m_hipDev));
 
     m_stream                    = stream;
+    m_manage_stream             = manage_stream;
     m_team_scratch_current_size = 0;
     m_team_scratch_ptr          = nullptr;
 
@@ -220,7 +240,7 @@ void HIPInternal::initialize(int hip_device_id, hipStream_t stream) {
     // theoretically, we can get 40 WF's / CU, but only can sustain 32
     // see
     // https://github.com/ROCm-Developer-Tools/HIP/blob/a0b5dfd625d99af7e288629747b40dd057183173/vdi/hip_platform.cpp#L742
-    m_maxBlocksPerSM = 32;
+    m_maxWavesPerCU = 32;
     // FIXME_HIP - Nick to implement this upstream
     //             Register count comes from Sec. 2.2. "Data Sharing" of the
     //             Vega 7nm ISA document (see the diagram)
@@ -230,7 +250,7 @@ void HIPInternal::initialize(int hip_device_id, hipStream_t stream) {
     m_regsPerSM        = 65536;
     m_shmemPerSM       = hipProp.maxSharedMemoryPerMultiProcessor;
     m_maxShmemPerBlock = hipProp.sharedMemPerBlock;
-    m_maxThreadsPerSM  = m_maxBlocksPerSM * HIPTraits::WarpSize;
+    m_maxThreadsPerSM  = m_maxWavesPerCU * HIPTraits::WarpSize;
     //----------------------------------
     // Multiblock reduction uses scratch flags for counters
     // and scratch space for partial reduction values.
@@ -256,15 +276,15 @@ void HIPInternal::initialize(int hip_device_id, hipStream_t stream) {
                                                void>;
 
       Record *const r = Record::allocate(Kokkos::Experimental::HIPSpace(),
-                                         "InternalScratchBitset",
+                                         "Kokkos::InternalScratchBitset",
                                          sizeof(uint32_t) * buffer_bound);
 
       Record::increment(r);
 
       m_scratchConcurrentBitset = reinterpret_cast<uint32_t *>(r->data());
 
-      HIP_SAFE_CALL(hipMemset(m_scratchConcurrentBitset, 0,
-                              sizeof(uint32_t) * buffer_bound));
+      KOKKOS_IMPL_HIP_SAFE_CALL(hipMemset(m_scratchConcurrentBitset, 0,
+                                          sizeof(uint32_t) * buffer_bound));
     }
     //----------------------------------
 
@@ -285,6 +305,15 @@ void HIPInternal::initialize(int hip_device_id, hipStream_t stream) {
 
   // Init the array for used for arbitrarily sized atomics
   if (m_stream == nullptr) ::Kokkos::Impl::initialize_host_hip_lock_arrays();
+
+  // Allocate a staging buffer for constant mem in pinned host memory
+  // and an event to avoid overwriting driver for previous kernel launches
+  if (m_stream == nullptr) {
+    KOKKOS_IMPL_HIP_SAFE_CALL(hipHostMalloc((void **)&constantMemHostStaging,
+                                            HIPTraits::ConstantMemoryUsage));
+
+    KOKKOS_IMPL_HIP_SAFE_CALL(hipEventCreate(&constantMemReusable));
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -303,8 +332,10 @@ Kokkos::Experimental::HIP::size_type *HIPInternal::scratch_space(
         Kokkos::Impl::SharedAllocationRecord<Kokkos::Experimental::HIPSpace,
                                              void>;
 
-    static Record *const r = Record::allocate(
-        Kokkos::Experimental::HIPSpace(), "InternalScratchSpace",
+    if (m_scratchSpace) Record::decrement(Record::get_record(m_scratchSpace));
+
+    Record *const r = Record::allocate(
+        Kokkos::Experimental::HIPSpace(), "Kokkos::InternalScratchSpace",
         (sizeScratchGrain * m_scratchSpaceCount));
 
     Record::increment(r);
@@ -325,15 +356,17 @@ Kokkos::Experimental::HIP::size_type *HIPInternal::scratch_flags(
         Kokkos::Impl::SharedAllocationRecord<Kokkos::Experimental::HIPSpace,
                                              void>;
 
+    if (m_scratchFlags) Record::decrement(Record::get_record(m_scratchFlags));
+
     Record *const r = Record::allocate(
-        Kokkos::Experimental::HIPSpace(), "InternalScratchFlags",
+        Kokkos::Experimental::HIPSpace(), "Kokkos::InternalScratchFlags",
         (sizeScratchGrain * m_scratchFlagsCount));
 
     Record::increment(r);
 
     m_scratchFlags = reinterpret_cast<size_type *>(r->data());
 
-    HIP_SAFE_CALL(
+    KOKKOS_IMPL_HIP_SAFE_CALL(
         hipMemset(m_scratchFlags, 0, m_scratchFlagsCount * sizeScratchGrain));
   }
 
@@ -345,7 +378,7 @@ void *HIPInternal::resize_team_scratch_space(std::int64_t bytes,
   if (m_team_scratch_current_size == 0) {
     m_team_scratch_current_size = bytes;
     m_team_scratch_ptr = Kokkos::kokkos_malloc<Kokkos::Experimental::HIPSpace>(
-        "HIPSpace::ScratchMemory", m_team_scratch_current_size);
+        "Kokkos::HIPSpace::TeamScratchMemory", m_team_scratch_current_size);
   }
   if ((bytes > m_team_scratch_current_size) ||
       ((bytes < m_team_scratch_current_size) && (force_shrink))) {
@@ -359,7 +392,7 @@ void *HIPInternal::resize_team_scratch_space(std::int64_t bytes,
 //----------------------------------------------------------------------------
 
 void HIPInternal::finalize() {
-  this->fence();
+  this->fence("Kokkos::HIPInternal::finalize: fence on finalization");
   was_finalized = true;
   if (nullptr != m_scratchSpace || nullptr != m_scratchFlags) {
     using RecordHIP =
@@ -371,6 +404,9 @@ void HIPInternal::finalize() {
 
     if (m_team_scratch_current_size > 0)
       Kokkos::kokkos_free<Kokkos::Experimental::HIPSpace>(m_team_scratch_ptr);
+
+    if (m_manage_stream && m_stream != nullptr)
+      KOKKOS_IMPL_HIP_SAFE_CALL(hipStreamDestroy(m_stream));
 
     m_hipDev                    = -1;
     m_hipArch                   = -1;
@@ -388,6 +424,50 @@ void HIPInternal::finalize() {
     m_team_scratch_current_size = 0;
     m_team_scratch_ptr          = nullptr;
   }
+  if (nullptr != d_driverWorkArray) {
+    KOKKOS_IMPL_HIP_SAFE_CALL(hipHostFree(d_driverWorkArray));
+    d_driverWorkArray = nullptr;
+  }
+
+  // only destroy these if we're finalizing the singleton
+  if (this == &singleton()) {
+    KOKKOS_IMPL_HIP_SAFE_CALL(hipHostFree(constantMemHostStaging));
+    KOKKOS_IMPL_HIP_SAFE_CALL(hipEventDestroy(constantMemReusable));
+  }
+}
+
+char *HIPInternal::get_next_driver(size_t driverTypeSize) const {
+  std::lock_guard<std::mutex> const lock(m_mutexWorkArray);
+  if (d_driverWorkArray == nullptr) {
+    KOKKOS_IMPL_HIP_SAFE_CALL(
+        hipHostMalloc(&d_driverWorkArray,
+                      m_maxDriverCycles * m_maxDriverTypeSize * sizeof(char),
+                      hipHostMallocNonCoherent));
+  }
+  if (driverTypeSize > m_maxDriverTypeSize) {
+    // fence handles the cycle id reset for us
+    fence(
+        "Kokkos::HIPInternal::get_next_driver: fence before reallocating "
+        "resources");
+    KOKKOS_IMPL_HIP_SAFE_CALL(hipHostFree(d_driverWorkArray));
+    m_maxDriverTypeSize = driverTypeSize;
+    if (m_maxDriverTypeSize % 128 != 0)
+      m_maxDriverTypeSize =
+          m_maxDriverTypeSize + 128 - m_maxDriverTypeSize % 128;
+    KOKKOS_IMPL_HIP_SAFE_CALL(
+        hipHostMalloc(&d_driverWorkArray,
+                      m_maxDriverCycles * m_maxDriverTypeSize * sizeof(char),
+                      hipHostMallocNonCoherent));
+  } else {
+    m_cycleId = (m_cycleId + 1) % m_maxDriverCycles;
+    if (m_cycleId == 0) {
+      // ensure any outstanding kernels are completed before we wrap around
+      fence(
+          "Kokkos::HIPInternal::get_next_driver: fence before reusing first "
+          "driver");
+    }
+  }
+  return &d_driverWorkArray[m_maxDriverTypeSize * m_cycleId];
 }
 
 //----------------------------------------------------------------------------
@@ -422,7 +502,14 @@ Kokkos::Experimental::HIP::size_type *hip_internal_scratch_flags(
 
 namespace Kokkos {
 namespace Impl {
-void hip_device_synchronize() { HIP_SAFE_CALL(hipDeviceSynchronize()); }
+void hip_device_synchronize(const std::string &name) {
+  Kokkos::Tools::Experimental::Impl::profile_fence_event<
+      Kokkos::Experimental::HIP>(
+      name,
+      Kokkos::Tools::Experimental::SpecialSynchronizationCases::
+          GlobalDeviceSynchronization,
+      [&]() { KOKKOS_IMPL_HIP_SAFE_CALL(hipDeviceSynchronize()); });
+}
 
 void hip_internal_error_throw(hipError_t e, const char *name, const char *file,
                               const int line) {

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(bond/create,FixBondCreate)
-
+// clang-format off
+FixStyle(bond/create,FixBondCreate);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_BOND_CREATE_H
@@ -27,47 +27,47 @@ namespace LAMMPS_NS {
 class FixBondCreate : public Fix {
  public:
   FixBondCreate(class LAMMPS *, int, char **);
-  virtual ~FixBondCreate();
-  int setmask();
-  void init();
-  void init_list(int, class NeighList *);
-  void setup(int);
-  void post_integrate();
-  void post_integrate_respa(int, int);
+  ~FixBondCreate() override;
+  int setmask() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void setup(int) override;
+  void post_integrate() override;
+  void post_integrate_respa(int, int) override;
 
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  double compute_vector(int);
-  double memory_usage();
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  double compute_vector(int) override;
+  double memory_usage() override;
 
  protected:
   int me;
-  int iatomtype,jatomtype;
-  int btype,seed;
-  int imaxbond,jmaxbond;
-  int inewtype,jnewtype;
-  int constrainflag,constrainpass;
-  double amin,amax;
-  double cutsq,fraction;
-  int atype,dtype,itype;
-  int angleflag,dihedralflag,improperflag;
+  int iatomtype, jatomtype;
+  int btype, seed;
+  int imaxbond, jmaxbond;
+  int inewtype, jnewtype;
+  int constrainflag, constrainpass;
+  double amin, amax;
+  double cutsq, fraction;
+  int atype, dtype, itype;
+  int angleflag, dihedralflag, improperflag;
 
   int overflow;
   tagint lastcheck;
 
   int *bondcount;
-  int createcount,createcounttotal;
+  int createcount, createcounttotal;
   int nmax;
-  tagint *partner,*finalpartner;
-  double *distsq,*probability;
+  tagint *partner, *finalpartner;
+  double *distsq, *probability;
 
-  int ncreate,maxcreate;
+  int ncreate, maxcreate;
   tagint **created;
 
   tagint *copy;
@@ -75,9 +75,9 @@ class FixBondCreate : public Fix {
   class RanMars *random;
   class NeighList *list;
 
-  int countflag,commflag;
+  int countflag, commflag;
   int nlevels_respa;
-  int nangles,ndihedrals,nimpropers;
+  int nangles, ndihedrals, nimpropers;
 
   void check_ghosts();
   void update_topology();
@@ -87,15 +87,10 @@ class FixBondCreate : public Fix {
   void create_impropers(int);
   int dedup(int, int, tagint *);
 
-  virtual int constrain(int, int, double, double) {return 1;}
-
-  // DEBUG
-
-  void print_bb();
-  void print_copy(const char *, tagint, int, int, int, int *);
+  virtual int constrain(int, int, double, double) { return 1; }
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

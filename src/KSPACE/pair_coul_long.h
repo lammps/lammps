@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(coul/long,PairCoulLong)
-
+// clang-format off
+PairStyle(coul/long,PairCoulLong);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COUL_LONG_H
@@ -27,21 +27,21 @@ namespace LAMMPS_NS {
 class PairCoulLong : public Pair {
  public:
   PairCoulLong(class LAMMPS *);
-  ~PairCoulLong();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  void coeff(int, char **);
-  virtual void init_style();
-  virtual double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  virtual void write_restart_settings(FILE *);
-  virtual void read_restart_settings(FILE *);
-  virtual double single(int, int, int, int, double, double, double, double &);
-  virtual void *extract(const char *, int &);
+  ~PairCoulLong() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  void *extract(const char *, int &) override;
 
  protected:
-  double cut_coul,cut_coulsq,qdist;
+  double cut_coul, cut_coulsq, qdist;
   double *cut_respa;
   double g_ewald;
   double **scale;
@@ -49,7 +49,7 @@ class PairCoulLong : public Pair {
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

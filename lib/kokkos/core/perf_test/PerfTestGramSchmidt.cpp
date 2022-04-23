@@ -69,7 +69,7 @@ struct InvNorm2 : public Kokkos::DotSingle<VectorView> {
 
   KOKKOS_INLINE_FUNCTION
   void final(value_type& result) const {
-    result = std::sqrt(result);
+    result = Kokkos::Experimental::sqrt(result);
     Rjj()  = result;
     inv()  = (0 < result) ? 1.0 / result : 0;
   }
@@ -145,7 +145,7 @@ struct ModifiedGramSchmidt {
       // Q(:,j) *= ( 1 / R(j,j) ); => Q(:,j) *= tmp ;
       Kokkos::scale(tmp, Qj);
 
-      for (size_t k = j + 1; k < count; ++k) {
+      for (size_type k = j + 1; k < count; ++k) {
         const vector_type Qk = Kokkos::subview(Q_, Kokkos::ALL(), k);
         const value_view Rjk = Kokkos::subview(R_, j, k);
 
@@ -165,7 +165,7 @@ struct ModifiedGramSchmidt {
 
   //--------------------------------------------------------------------------
 
-  static double test(const size_t length, const size_t count,
+  static double test(const size_type length, const size_type count,
                      const size_t iter = 1) {
     multivector_type Q_("Q", length, count);
     multivector_type R_("R", count, count);
@@ -231,7 +231,7 @@ void run_test_gramschmidt(int exp_beg, int exp_end, int num_trials,
 
     std::cout << label_gramschmidt << " , " << parallel_work_length << " , "
               << min_seconds << " , " << (min_seconds / parallel_work_length)
-              << std::endl;
+              << ", " << avg_seconds << std::endl;
   }
 }
 

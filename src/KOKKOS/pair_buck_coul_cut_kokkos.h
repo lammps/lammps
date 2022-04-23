@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(buck/coul/cut/kk,PairBuckCoulCutKokkos<LMPDeviceType>)
-PairStyle(buck/coul/cut/kk/device,PairBuckCoulCutKokkos<LMPDeviceType>)
-PairStyle(buck/coul/cut/kk/host,PairBuckCoulCutKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(buck/coul/cut/kk,PairBuckCoulCutKokkos<LMPDeviceType>);
+PairStyle(buck/coul/cut/kk/device,PairBuckCoulCutKokkos<LMPDeviceType>);
+PairStyle(buck/coul/cut/kk/host,PairBuckCoulCutKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_BUCK_COUL_CUT_KOKKOS_H
 #define LMP_PAIR_BUCK_COUL_CUT_KOKKOS_H
 
@@ -36,13 +37,13 @@ class PairBuckCoulCutKokkos : public PairBuckCoulCut {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairBuckCoulCutKokkos(class LAMMPS *);
-  ~PairBuckCoulCutKokkos();
+  ~PairBuckCoulCutKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   struct params_buck_coul{
     KOKKOS_INLINE_FUNCTION
@@ -53,8 +54,6 @@ class PairBuckCoulCutKokkos : public PairBuckCoulCut {
   };
 
  protected:
-  void cleanup_copy() {}
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
@@ -111,7 +110,7 @@ class PairBuckCoulCutKokkos : public PairBuckCoulCut {
   double special_lj[4], special_coul[4];
   double qqrd2e;
 
-  void allocate();
+  void allocate() override;
 
   friend struct PairComputeFunctor<PairBuckCoulCutKokkos,FULL,true>;
   friend struct PairComputeFunctor<PairBuckCoulCutKokkos,HALF,true>;

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,8 +22,6 @@
 #include "modify.h"
 #include "update.h"
 #include "variable.h"
-
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -66,64 +65,54 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
 
   // setup and error check
   // for fix inputs, check that fix frequency is acceptable
-
-  for (int i = 0; i < nvalues; i++) {
-    if (which[i] == ArgInfo::COMPUTE) {
-      int icompute = modify->find_compute(ids[i]);
-      if (icompute < 0)
-        error->all(FLERR,"Compute ID for fix vector does not exist");
-      if (argindex[i] == 0 && modify->compute[icompute]->scalar_flag == 0)
-        error->all(FLERR,"Fix vector compute does not calculate a scalar");
-      if (argindex[i] && modify->compute[icompute]->vector_flag == 0)
-        error->all(FLERR,"Fix vector compute does not calculate a vector");
-      if (argindex[i] && argindex[i] > modify->compute[icompute]->size_vector)
-        error->all(FLERR,
-                   "Fix vector compute vector is accessed out-of-range");
-
-    } else if (which[i] == ArgInfo::FIX) {
-      int ifix = modify->find_fix(ids[i]);
-      if (ifix < 0)
-        error->all(FLERR,"Fix ID for fix vector does not exist");
-      if (argindex[i] == 0 && modify->fix[ifix]->scalar_flag == 0)
-        error->all(FLERR,"Fix vector fix does not calculate a scalar");
-      if (argindex[i] && modify->fix[ifix]->vector_flag == 0)
-        error->all(FLERR,"Fix vector fix does not calculate a vector");
-      if (argindex[i] && argindex[i] > modify->fix[ifix]->size_vector)
-        error->all(FLERR,"Fix vector fix vector is accessed out-of-range");
-      if (nevery % modify->fix[ifix]->global_freq)
-        error->all(FLERR,
-                   "Fix for fix vector not computed at compatible time");
-
-    } else if (which[i] == ArgInfo::VARIABLE) {
-      int ivariable = input->variable->find(ids[i]);
-      if (ivariable < 0)
-        error->all(FLERR,"Variable name for fix vector does not exist");
-      if (argindex[i] == 0 && input->variable->equalstyle(ivariable) == 0)
-        error->all(FLERR,"Fix vector variable is not equal-style variable");
-      if (argindex[i] && input->variable->vectorstyle(ivariable) == 0)
-        error->all(FLERR,"Fix vector variable is not vector-style variable");
-    }
-  }
-
   // this fix produces either a global vector or array
   // intensive/extensive flags set by compute,fix,variable that produces value
 
   int value,finalvalue;
   for (int i = 0; i < nvalues; i++) {
     if (which[i] == ArgInfo::COMPUTE) {
-      Compute *compute = modify->compute[modify->find_compute(ids[i])];
-      if (argindex[0] == 0) value = compute->extscalar;
-      else if (compute->extvector >= 0) value = compute->extvector;
-      else value = compute->extlist[argindex[0]-1];
+      auto icompute = modify->get_compute_by_id(ids[i]);
+      if (!icompute) error->all(FLERR,"Compute ID {} for fix vector does not exist",ids[i]);
+      if (argindex[i] == 0 && icompute->scalar_flag == 0)
+        error->all(FLERR,"Fix vector compute {} does not calculate a scalar",ids[i]);
+      if (argindex[i] && icompute->vector_flag == 0)
+        error->all(FLERR,"Fix vector compute {} does not calculate a vector",ids[i]);
+      if (argindex[i] && argindex[i] > icompute->size_vector)
+        error->all(FLERR,"Fix vector compute {} vector is accessed out-of-range",ids[i]);
+
+      if (argindex[i] == 0) value = icompute->extscalar;
+      else if (icompute->extvector >= 0) value = icompute->extvector;
+      else value = icompute->extlist[argindex[i]-1];
+
     } else if (which[i] == ArgInfo::FIX) {
-      Fix *fix = modify->fix[modify->find_fix(ids[i])];
-      if (argindex[i] == 0) value = fix->extvector;
-      else value = fix->extarray;
-    } else if (which[i] == ArgInfo::VARIABLE) value = 0;
+      auto ifix = modify->get_fix_by_id(ids[i]);
+      if (!ifix) error->all(FLERR,"Fix ID {} for fix vector does not exist",ids[i]);
+      if (argindex[i] == 0 && ifix->scalar_flag == 0)
+        error->all(FLERR,"Fix vector fix {} does not calculate a scalar",ids[i]);
+      if (argindex[i] && ifix->vector_flag == 0)
+        error->all(FLERR,"Fix vector fix {} does not calculate a vector",ids[i]);
+      if (argindex[i] && argindex[i] > ifix->size_vector)
+        error->all(FLERR,"Fix vector fix {} vector is accessed out-of-range",ids[i]);
+      if (nevery % ifix->global_freq)
+        error->all(FLERR,"Fix for fix {} vector not computed at compatible time",ids[i]);
+
+      if (argindex[i] == 0) value = ifix->extvector;
+      else value = ifix->extarray;
+
+    } else if (which[i] == ArgInfo::VARIABLE) {
+      int ivariable = input->variable->find(ids[i]);
+      if (ivariable < 0)
+        error->all(FLERR,"Variable name {} for fix vector does not exist",ids[i]);
+      if (argindex[i] == 0 && input->variable->equalstyle(ivariable) == 0)
+        error->all(FLERR,"Fix vector variable {} is not equal-style variable",ids[i]);
+      if (argindex[i] && input->variable->vectorstyle(ivariable) == 0)
+        error->all(FLERR,"Fix vector variable {} is not vector-style variable",ids[i]);
+      value = 0;
+    }
+
     if (i == 0) finalvalue = value;
     else if (value != finalvalue)
-      error->all(FLERR,"Fix vector cannot set output array "
-                 "intensive/extensive from these inputs");
+      error->all(FLERR,"Fix vector cannot set output array intensive/extensive from these inputs");
   }
 
   if (nvalues == 1) {
@@ -192,14 +181,12 @@ void FixVector::init()
   for (int i = 0; i < nvalues; i++) {
     if (which[i] == ArgInfo::COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
-      if (icompute < 0)
-        error->all(FLERR,"Compute ID for fix vector does not exist");
+      if (icompute < 0) error->all(FLERR,"Compute ID {} for fix vector does not exist",id[i]);
       value2index[i] = icompute;
 
     } else if (which[i] == ArgInfo::FIX) {
       int ifix = modify->find_fix(ids[i]);
-      if (ifix < 0)
-        error->all(FLERR,"Fix ID for fix vector does not exist");
+      if (ifix < 0) error->all(FLERR,"Fix ID {} for fix vector does not exist",id[i]);
       value2index[i] = ifix;
 
     } else if (which[i] == ArgInfo::VARIABLE) {
@@ -255,7 +242,7 @@ void FixVector::end_of_step()
     // invoke compute if not previously invoked
 
     if (which[i] == ArgInfo::COMPUTE) {
-      Compute *compute = modify->compute[m];
+      auto compute = modify->get_compute_by_index(m);
 
       if (argindex[i] == 0) {
         if (!(compute->invoked_flag & Compute::INVOKED_SCALAR)) {
@@ -275,9 +262,9 @@ void FixVector::end_of_step()
 
     } else if (which[i] == ArgInfo::FIX) {
       if (argindex[i] == 0)
-        result[i] = modify->fix[m]->compute_scalar();
+        result[i] = modify->get_fix_by_index(m)->compute_scalar();
       else
-        result[i] = modify->fix[m]->compute_vector(argindex[i]-1);
+        result[i] = modify->get_fix_by_index(m)->compute_vector(argindex[i]-1);
 
     // evaluate equal-style or vector-style variable
 

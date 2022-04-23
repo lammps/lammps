@@ -57,7 +57,7 @@ coordinates of other atoms fixed by applying :doc:`fix setforce
 <fix_setforce>` to the other atoms.  See a fuller discussion of using
 fixes while minimizing below.
 
-The :doc:`minimization styles <min_style>` *cg*\ , *sd*\ , and *hftn*
+The :doc:`minimization styles <min_style>` *cg*, *sd*, and *hftn*
 involves an outer iteration loop which sets the search direction along
 which atom coordinates are changed.  An inner iteration is then
 performed using a line search algorithm.  The line search typically
@@ -68,7 +68,7 @@ be more robust than previous line searches we have tried.  The
 backtracking method is described in Nocedal and Wright's Numerical
 Optimization (Procedure 3.1 on p 41).
 
-The :doc:`minimization styles <min_style>` *quickmin*\ , *fire* and
+The :doc:`minimization styles <min_style>` *quickmin*, *fire* and
 *fire/old* perform damped dynamics using an Euler integration step.  Thus
 they require a :doc:`timestep <timestep>` be defined.
 
@@ -118,12 +118,12 @@ The minimization procedure stops if any of several criteria are met:
 
 .. note::
 
-   the :doc:`minimization style <min_style>` *spin*\ ,
-   *spin/cg*\ , and *spin/lbfgs* replace
+   the :doc:`minimization style <min_style>` *spin*,
+   *spin/cg*, and *spin/lbfgs* replace
    the force tolerance *ftol* by a torque tolerance.
    The minimization procedure stops if the 2-norm (length) of the torque vector on atom
    (defined as the cross product between the
-   atomic spin and its precession vectors omega) is less than *ftol*\ ,
+   atomic spin and its precession vectors omega) is less than *ftol*,
    or if any of the other criteria are met. Torque have the same units as the energy.
 
 .. note::

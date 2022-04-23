@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(vacf,ComputeVACF)
-
+// clang-format off
+ComputeStyle(vacf,ComputeVACF);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_VACF_H
@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class ComputeVACF : public Compute {
  public:
   ComputeVACF(class LAMMPS *, int, char **);
-  ~ComputeVACF();
-  void init();
-  virtual void compute_vector();
-  void set_arrays(int);
+  ~ComputeVACF() override;
+  void init() override;
+  void compute_vector() override;
+  void set_arrays(int) override;
 
  protected:
   bigint nvacf;
@@ -38,7 +38,7 @@ class ComputeVACF : public Compute {
   class FixStore *fix;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

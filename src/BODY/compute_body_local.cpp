@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -52,7 +53,7 @@ ComputeBodyLocal::ComputeBodyLocal(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  avec = (AtomVecBody *) atom->style_match("body");
+  avec = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
   if (!avec) error->all(FLERR,"Compute body/local requires atom style body");
   bptr = avec->bptr;
 
@@ -152,7 +153,7 @@ int ComputeBodyLocal::compute_body(int flag)
   // perform computation and fill output vector/array
 
   int m,n,ibonus;
-  double *values = new double[bptr->noutcol()];
+  auto values = new double[bptr->noutcol()];
 
   double **x = atom->x;
   tagint *tag = atom->tag;

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -70,9 +71,7 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
     if (narg != 10) error->all(FLERR,"Illegal fix spring command");
     styleflag = COUPLE;
 
-    int n = strlen(arg[4]) + 1;
-    group2 = new char[n];
-    strcpy(group2,arg[4]);
+    group2 = utils::strdup(arg[4]);
     igroup2 = group->find(arg[4]);
     if (igroup2 == -1)
       error->all(FLERR,"Fix spring couple group ID does not exist");
@@ -130,8 +129,8 @@ void FixSpring::init()
   masstotal = group->mass(igroup);
   if (styleflag == COUPLE) masstotal2 = group->mass(igroup2);
 
-  if (strstr(update->integrate_style,"respa")) {
-    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
+  if (utils::strmatch(update->integrate_style,"^respa")) {
+    ilevel_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
 }
@@ -140,12 +139,12 @@ void FixSpring::init()
 
 void FixSpring::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
+    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(ilevel_respa);
     post_force_respa(vflag,ilevel_respa,0);
-    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
+    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(ilevel_respa);
   }
 }
 

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,18 +18,18 @@
 
 #include "pair_tip4p_cut.h"
 
-#include <cmath>
-#include "atom.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "domain.h"
 #include "angle.h"
+#include "atom.h"
 #include "bond.h"
 #include "comm.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -418,17 +419,15 @@ void PairTIP4PCut::init_style()
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style tip4p/cut requires atom IDs");
   if (!force->newton_pair)
-    error->all(FLERR,
-               "Pair style tip4p/cut requires newton pair on");
+    error->all(FLERR,"Pair style tip4p/cut requires newton pair on");
   if (!atom->q_flag)
-    error->all(FLERR,
-               "Pair style tip4p/cut requires atom attribute q");
+    error->all(FLERR,"Pair style tip4p/cut requires atom attribute q");
   if (force->bond == nullptr)
     error->all(FLERR,"Must use a bond style with TIP4P potential");
   if (force->angle == nullptr)
     error->all(FLERR,"Must use an angle style with TIP4P potential");
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 
   // set alpha parameter
 

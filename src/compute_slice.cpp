@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -91,25 +92,22 @@ ComputeSlice::ComputeSlice(LAMMPS *lmp, int narg, char **arg) :
                         "global vector or array");
 
     } else if (which[i] == ArgInfo::FIX) {
-      int ifix = modify->find_fix(ids[i]);
-      if (ifix < 0)
-        error->all(FLERR,"Fix ID for compute slice does not exist");
-      if (modify->fix[ifix]->vector_flag) {
+      auto ifix = modify->get_fix_by_id(ids[i]);
+      if (!ifix)
+        error->all(FLERR,"Fix ID {} for compute slice does not exist", ids[i]);
+      if (ifix->vector_flag) {
         if (argindex[i])
-          error->all(FLERR,"Compute slice fix does not "
-                     "calculate a global array");
-        if (nstop > modify->fix[ifix]->size_vector)
-          error->all(FLERR,"Compute slice fix vector is accessed out-of-range");
-      } else if (modify->fix[ifix]->array_flag) {
+          error->all(FLERR,"Compute slice fix {} does not calculate a global array", ids[i]);
+        if (nstop > ifix->size_vector)
+          error->all(FLERR,"Compute slice fix {} vector is accessed out-of-range", ids[i]);
+      } else if (ifix->array_flag) {
         if (argindex[i] == 0)
-          error->all(FLERR,"Compute slice fix does not "
-                     "calculate a global vector");
-        if (argindex[i] > modify->fix[ifix]->size_array_cols)
-          error->all(FLERR,"Compute slice fix array is accessed out-of-range");
-        if (nstop > modify->fix[ifix]->size_array_rows)
-          error->all(FLERR,"Compute slice fix array is accessed out-of-range");
-      } else error->all(FLERR,"Compute slice fix does not calculate "
-                        "global vector or array");
+          error->all(FLERR,"Compute slice fix {} does not calculate a global vector", ids[i]);
+        if (argindex[i] > ifix->size_array_cols)
+          error->all(FLERR,"Compute slice fix {} array is accessed out-of-range", ids[i]);
+        if (nstop > ifix->size_array_rows)
+          error->all(FLERR,"Compute slice fix {} array is accessed out-of-range", ids[i]);
+      } else error->all(FLERR,"Compute slice fix {} does not calculate global vector or array", ids[i]);
 
     } else if (which[i] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
@@ -143,16 +141,16 @@ ComputeSlice::ComputeSlice(LAMMPS *lmp, int narg, char **arg) :
         }
       } else extvector = modify->compute[icompute]->extarray;
     } else if (which[0] == ArgInfo::FIX) {
-      int ifix = modify->find_fix(ids[0]);
+      auto ifix = modify->get_fix_by_id(ids[0]);
       if (argindex[0] == 0) {
-        extvector = modify->fix[ifix]->extvector;
-        if (modify->fix[ifix]->extvector == -1) {
+        extvector = ifix->extvector;
+        if (ifix->extvector == -1) {
           extlist = new int[size_vector];
           int j = 0;
           for (int i = nstart; i < nstop; i += nskip)
-            extlist[j++] = modify->fix[ifix]->extlist[i-1];
+            extlist[j++] = ifix->extlist[i-1];
         }
-      } else extvector = modify->fix[ifix]->extarray;
+      } else extvector = ifix->extarray;
     } else if (which[0] == ArgInfo::VARIABLE) {
       extvector = 0;
     }
@@ -177,15 +175,15 @@ ComputeSlice::ComputeSlice(LAMMPS *lmp, int narg, char **arg) :
           if (modify->compute[icompute]->extarray) extarray = 1;
         }
       } else if (which[i] == ArgInfo::FIX) {
-        int ifix = modify->find_fix(ids[i]);
+        auto ifix = modify->get_fix_by_id(ids[i]);
         if (argindex[i] == 0) {
-          if (modify->fix[ifix]->extvector == 1) extarray = 1;
-          if (modify->fix[ifix]->extvector == -1) {
-            for (int j = 0; j < modify->fix[ifix]->size_vector; j++)
-              if (modify->fix[ifix]->extlist[j]) extarray = 1;
+          if (ifix->extvector == 1) extarray = 1;
+          if (ifix->extvector == -1) {
+            for (int j = 0; j < ifix->size_vector; j++)
+              if (ifix->extlist[j]) extarray = 1;
           }
         } else {
-          if (modify->fix[ifix]->extarray) extarray = 1;
+          if (ifix->extarray) extarray = 1;
         }
       } else if (which[i] == ArgInfo::VARIABLE) {
         // variable is always intensive, does not change extarray

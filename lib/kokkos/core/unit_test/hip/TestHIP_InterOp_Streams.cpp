@@ -42,7 +42,7 @@
 //@HEADER
 */
 
-#include <hip/TestHIP_Category.hpp>
+#include <TestHIP_Category.hpp>
 #include <Test_InterOp_Streams.hpp>
 
 namespace Test {
@@ -51,11 +51,11 @@ namespace Test {
 // bound in HIP due to an error when computing the block size.
 TEST(hip, raw_hip_streams) {
   hipStream_t stream;
-  HIP_SAFE_CALL(hipStreamCreate(&stream));
+  KOKKOS_IMPL_HIP_SAFE_CALL(hipStreamCreate(&stream));
   Kokkos::InitArguments arguments{-1, -1, -1, false};
   Kokkos::initialize(arguments);
   int* p;
-  HIP_SAFE_CALL(hipMalloc(&p, sizeof(int) * 100));
+  KOKKOS_IMPL_HIP_SAFE_CALL(hipMalloc(&p, sizeof(int) * 100));
   using MemorySpace = typename TEST_EXECSPACE::memory_space;
 
   {
@@ -97,12 +97,13 @@ TEST(hip, raw_hip_streams) {
   }
   Kokkos::finalize();
   offset_streams<<<100, 64, 0, stream>>>(p);
-  HIP_SAFE_CALL(hipDeviceSynchronize());
-  HIP_SAFE_CALL(hipStreamDestroy(stream));
+  KOKKOS_IMPL_HIP_SAFE_CALL(hipDeviceSynchronize());
+  KOKKOS_IMPL_HIP_SAFE_CALL(hipStreamDestroy(stream));
 
   int h_p[100];
-  HIP_SAFE_CALL(hipMemcpy(h_p, p, sizeof(int) * 100, hipMemcpyDefault));
-  HIP_SAFE_CALL(hipDeviceSynchronize());
+  KOKKOS_IMPL_HIP_SAFE_CALL(
+      hipMemcpy(h_p, p, sizeof(int) * 100, hipMemcpyDefault));
+  KOKKOS_IMPL_HIP_SAFE_CALL(hipDeviceSynchronize());
   int64_t sum        = 0;
   int64_t sum_expect = 0;
   for (int i = 0; i < 100; i++) {

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(orientorder/atom,ComputeOrientOrderAtom)
-
+// clang-format off
+ComputeStyle(orientorder/atom,ComputeOrientOrderAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_ORIENTORDER_ATOM_H
@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class ComputeOrientOrderAtom : public Compute {
  public:
   ComputeOrientOrderAtom(class LAMMPS *, int, char **);
-  ~ComputeOrientOrderAtom();
-  virtual void init();
-  void init_list(int, class NeighList *);
-  virtual void compute_peratom();
-  double memory_usage();
+  ~ComputeOrientOrderAtom() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_peratom() override;
+  double memory_usage() override;
   double cutsq;
   int iqlcomp, qlcomp, qlcompflag, wlflag, wlhatflag;
   int *qlist;
   int nqlist;
 
  protected:
-  int nmax,maxneigh,ncol,nnn;
+  int nmax, maxneigh, ncol, nnn;
   class NeighList *list;
   double *distsq;
   int *nearest;
@@ -49,20 +49,18 @@ class ComputeOrientOrderAtom : public Compute {
   double **qnm_i;
 
   void select3(int, int, double *, int *, double **);
-  void calc_boop(double **rlist, int numNeighbors,
-                 double qn[], int nlist[], int nnlist);
-  double dist(const double r[]);
+  void calc_boop(double **rlist, int numNeighbors, double qn[], int nlist[], int nnlist);
 
   double polar_prefactor(int, int, double);
   double associated_legendre(int, int, double);
 
   virtual void init_clebsch_gordan();
-  double *cglist;                      // Clebsch-Gordan coeffs
+  double *cglist;    // Clebsch-Gordan coeffs
   int idxcg_max;
   int chunksize;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

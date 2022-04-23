@@ -13,6 +13,10 @@
 #include <string.h>
 #include <ctype.h>
 
+#if defined(_WIN32)
+#define strdup(x) _strdup(x)
+#endif
+
 static int blank_line(char *line)
 {
   while (*line != '\0') {

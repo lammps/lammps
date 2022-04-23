@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -308,7 +309,7 @@ int Atom::map_style_set()
   if (map_user == MAP_ARRAY || map_user == MAP_HASH) {
     map_style = map_user;
   } else {  // map_user == MAP_YES
-    if (map_tag_max > 1000000 && !lmp->kokkos) map_style = MAP_HASH;
+    if (map_tag_max > 1000000) map_style = MAP_HASH;
     else map_style = MAP_ARRAY;
   }
 

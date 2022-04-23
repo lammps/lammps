@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,19 +19,17 @@
 
 #include "pair_adp.h"
 
-#include <cmath>
-
-#include <cstring>
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-
-#include "tokenizer.h"
 #include "potential_file_reader.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -45,7 +44,6 @@ PairADP::PairADP(LAMMPS *lmp) : Pair(lmp)
   fp = nullptr;
   mu = nullptr;
   lambda = nullptr;
-  map = nullptr;
 
   setfl = nullptr;
 
@@ -86,7 +84,6 @@ PairADP::~PairADP()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    delete [] map;
     delete [] type2frho;
     memory->destroy(type2rhor);
     memory->destroy(type2z2r);
@@ -249,7 +246,7 @@ void PairADP::compute(int eflag, int vflag)
 
   // communicate and sum densities
 
-  if (newton_pair) comm->reverse_comm_pair(this);
+  if (newton_pair) comm->reverse_comm(this);
 
   // fp = derivative of embedding energy at each atom
   // phi = embedding energy at each atom
@@ -279,7 +276,7 @@ void PairADP::compute(int eflag, int vflag)
 
   // communicate derivative of embedding function
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // compute forces on each atom
   // loop over neighbors of my atoms
@@ -515,7 +512,7 @@ void PairADP::init_style()
   file2array();
   array2spline();
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

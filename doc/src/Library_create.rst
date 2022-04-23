@@ -9,6 +9,8 @@ This section documents the following functions:
 - :cpp:func:`lammps_close`
 - :cpp:func:`lammps_mpi_init`
 - :cpp:func:`lammps_mpi_finalize`
+- :cpp:func:`lammps_kokkos_finalize`
+- :cpp:func:`lammps_python_finalize`
 
 --------------------
 
@@ -32,7 +34,7 @@ simple example demonstrating its use:
      int lmpargc = sizeof(lmpargv)/sizeof(const char *);
 
      /* create LAMMPS instance */
-     handle = lammps_open_no_mpi(lmpargc, lmpargv, NULL);
+     handle = lammps_open_no_mpi(lmpargc, (char **)lmpargv, NULL);
      if (handle == NULL) {
        printf("LAMMPS initialization failed");
        lammps_mpi_finalize();
@@ -102,4 +104,14 @@ calling program.
 -----------------------
 
 .. doxygenfunction:: lammps_mpi_finalize
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_kokkos_finalize
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_python_finalize
    :project: progguide

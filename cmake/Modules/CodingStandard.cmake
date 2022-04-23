@@ -16,6 +16,11 @@ if(Python3_EXECUTABLE)
           WORKING_DIRECTORY  ${LAMMPS_DIR}
           COMMENT "Check for whitespace errors")
         add_custom_target(
+          check-homepage
+          ${Python3_EXECUTABLE} ${LAMMPS_TOOLS_DIR}/coding_standard/homepage.py .
+          WORKING_DIRECTORY  ${LAMMPS_DIR}
+          COMMENT "Check for homepage URL errors")
+        add_custom_target(
           check-permissions
           ${Python3_EXECUTABLE} ${LAMMPS_TOOLS_DIR}/coding_standard/permissions.py .
           WORKING_DIRECTORY  ${LAMMPS_DIR}
@@ -25,6 +30,11 @@ if(Python3_EXECUTABLE)
           ${Python3_EXECUTABLE} ${LAMMPS_TOOLS_DIR}/coding_standard/whitespace.py -f .
           WORKING_DIRECTORY  ${LAMMPS_DIR}
           COMMENT "Fix whitespace errors")
+        add_custom_target(
+          fix-homepage
+          ${Python3_EXECUTABLE} ${LAMMPS_TOOLS_DIR}/coding_standard/homepage.py -f .
+          WORKING_DIRECTORY  ${LAMMPS_DIR}
+          COMMENT "Fix homepage URL errors")
         add_custom_target(
           fix-permissions
           ${Python3_EXECUTABLE} ${LAMMPS_TOOLS_DIR}/coding_standard/permissions.py -f .

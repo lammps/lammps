@@ -84,7 +84,7 @@ and the :doc:`simulated time <thermo_style>` as calculated by LAMMPS is
 meaningless.
 
 The critical parameter determining the success of a tfMC simulation is
-*Delta*\ , the maximal displacement length of the lightest element in
+*Delta*, the maximal displacement length of the lightest element in
 the system: the larger it is, the longer the effective time scale of
 the simulation will be (there is an approximately quadratic
 dependence). However, *Delta* must also be chosen sufficiently small
@@ -92,7 +92,7 @@ in order to comply with detailed balance; in general values between 5
 and 10 % of the nearest neighbor distance are found to be a good
 choice. For a more extensive discussion with specific examples, please
 refer to :ref:`(Bal) <Bal>`, which also describes how the code calculates
-element-specific maximal displacements from *Delta*\ , based on the
+element-specific maximal displacements from *Delta*, based on the
 fourth root of their mass.
 
 Because of the uncorrelated movements of the atoms, the center-of-mass

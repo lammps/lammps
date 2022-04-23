@@ -85,7 +85,7 @@ appropriate fix.
 
    For most fixes that support the *energy* keyword, the default
    setting is *no*.  For a few it is *yes*, when a user would expect
-   that to be the case.  The doc page of each fix gives the default.
+   that to be the case.  The page of each fix gives the default.
 
 The *virial* keyword can be used with fixes that support it, which is
 explained at the bottom of their doc page.  *Virial yes* will add a
@@ -110,7 +110,7 @@ option to include or exclude the contribution from fixes.
 
    For most fixes that support the *virial* keyword, the default
    setting is *no*.  For a few it is *yes*, when a user would expect
-   that to be the case.  The doc page of each fix gives the default.
+   that to be the case.  The page of each fix gives the default.
 
 For fixes that set or modify forces, it may be possible to select at
 which :doc:`r-RESPA <run_style>` level the fix operates via the *respa*

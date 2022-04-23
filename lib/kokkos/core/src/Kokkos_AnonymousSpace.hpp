@@ -104,20 +104,6 @@ struct MemorySpaceAccess<Kokkos::AnonymousSpace, Kokkos::AnonymousSpace> {
   enum : bool { deepcopy = true };
 };
 
-template <typename OtherSpace>
-struct VerifyExecutionCanAccessMemorySpace<OtherSpace, Kokkos::AnonymousSpace> {
-  enum { value = 1 };
-  KOKKOS_INLINE_FUNCTION static void verify(void) {}
-  KOKKOS_INLINE_FUNCTION static void verify(const void *) {}
-};
-
-template <typename OtherSpace>
-struct VerifyExecutionCanAccessMemorySpace<Kokkos::AnonymousSpace, OtherSpace> {
-  enum { value = 1 };
-  KOKKOS_INLINE_FUNCTION static void verify(void) {}
-  KOKKOS_INLINE_FUNCTION static void verify(const void *) {}
-};
-
 }  // namespace Impl
 
 }  // namespace Kokkos

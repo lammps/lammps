@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,37 +12,35 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
-DumpStyle(local/gz,DumpLocalGZ)
-
+// clang-format off
+DumpStyle(local/gz,DumpLocalGZ);
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_LOCAL_GZ_H
 #define LMP_DUMP_LOCAL_GZ_H
 
 #include "dump_local.h"
-#include <zlib.h>
+#include "gz_file_writer.h"
 
 namespace LAMMPS_NS {
 
 class DumpLocalGZ : public DumpLocal {
  public:
   DumpLocalGZ(class LAMMPS *, int, char **);
-  virtual ~DumpLocalGZ();
 
  protected:
-  int compression_level;
-  gzFile gzFp;  // file pointer for the compressed output stream
+  GzFileWriter writer;
 
-  virtual void openfile();
-  virtual void write_header(bigint);
-  virtual void write_data(int, double *);
-  virtual void write();
+  void openfile() override;
+  void write_header(bigint) override;
+  void write_data(int, double *) override;
+  void write() override;
 
-  virtual int modify_param(int, char **);
+  int modify_param(int, char **) override;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

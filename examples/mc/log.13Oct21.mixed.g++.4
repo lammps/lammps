@@ -1,0 +1,164 @@
+LAMMPS (29 Sep 2021)
+# test script for fix mol/swap
+# initial system is 50/50 chains of type 1 and type 2
+# b/c epsilon12 is set to 1.02 (weakly same as 1/1 or 1/2) the
+#   system will stay in equilibrium as a mix of both chain types
+# fix mol/swap helps this happen quickly
+# see the last 2 columns of thermo output for counts of 2 chain types
+
+units              lj
+atom_style         angle
+neighbor           0.36 bin
+neigh_modify       delay 0
+
+pair_style         lj/cut 1.1224620483
+bond_style         fene
+angle_style        cosine
+special_bonds	   lj 0.0 1.0 1.0
+
+read_data          data.bead
+Reading data file ...
+  orthogonal box = (-8.2115700 -8.2115700 -8.2115700) to (8.2115700 8.2115700 8.2115700)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  4000 atoms
+  scanning bonds ...
+  1 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  reading bonds ...
+  3900 bonds
+  reading angles ...
+  3800 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        1        1       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     2 = max # of 1-3 neighbors
+     4 = max # of 1-4 neighbors
+     6 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.028 seconds
+
+pair_coeff         * * 1.0 1.0 1.1224620483
+pair_coeff         1 2 1.02 1.0 1.1224620483
+bond_coeff         1 30.0 1.5 1.0 1.0
+angle_coeff        1 1.500
+pair_modify 	   shift yes
+
+variable           vt1 atom type==1
+variable           vt2 atom type==2
+group              g1 dynamic all var vt1 every 100
+dynamic group g1 defined
+group              g2 dynamic all var vt2 every 100
+dynamic group g2 defined
+variable           count1 equal count(g1)
+variable           count2 equal count(g2)
+
+timestep	   0.010
+
+fix                1 all langevin 1.0 1.0 100.0 702547
+fix                2 all nve
+fix                3 all mol/swap 100 1 1 2 482794 1.0
+
+compute            p all pressure thermo_temp
+thermo             1000
+thermo_style       custom step temp etotal press f_3[1] f_3[2] v_count1 v_count2
+
+run                50000
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.482462
+  ghost atom cutoff = 1.482462
+  binsize = 0.74123102, bins = 23 23 23
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+WARNING: Communication cutoff 1.4824620483 is shorter than a bond length based estimate of 1.815. This may lead to errors. (../comm.cpp:728)
+Per MPI rank memory allocation (min/avg/max) = 5.313 | 5.314 | 5.314 Mbytes
+Step Temp TotEng Press f_3[1] f_3[2] v_count1 v_count2 
+       0            0    21.451627     5.079399            0            0         2000         2000 
+    1000   0.49011138     21.59359    4.2337989           10           10         2000         2000 
+    2000   0.55288866    21.724374    4.4596786           20           20         2080         1920 
+    3000   0.59299724    21.844178    4.6112243           30           29         2280         1720 
+    4000   0.64746348    21.964318    4.9463669           40           39         2280         1720 
+    5000   0.67853936    22.053147    5.1950218           50           48         2320         1680 
+    6000   0.70751144    22.147453    5.0636869           60           58         2240         1760 
+    7000   0.73570064    22.233705    5.4872622           70           68         2160         1840 
+    8000    0.7677554    22.312938    5.4283736           80           77         2360         1640 
+    9000   0.78493237    22.383155    5.8547233           90           87         2440         1560 
+   10000   0.80634514    22.449402    5.8785731          100           96         2400         1600 
+   11000   0.82563194    22.475286    5.8193738          110          104         2400         1600 
+   12000   0.81684024    22.527492    6.0323967          120          114         2320         1680 
+   13000   0.84497155    22.567888    6.0488755          130          122         2240         1760 
+   14000   0.85452242    22.606908    6.1983634          140          132         2080         1920 
+   15000   0.88109242    22.654336    6.1408279          150          141         1960         2040 
+   16000   0.88925915    22.707597    6.1560975          160          150         2000         2000 
+   17000   0.91598439    22.762791    6.1071728          170          160         2000         2000 
+   18000   0.92453211    22.778304    6.3330693          180          170         2240         1760 
+   19000   0.92839551    22.797316    6.2917909          190          180         2000         2000 
+   20000   0.93054033    22.819289     6.091701          200          189         2200         1800 
+   21000   0.93955351    22.844135    6.5833013          210          198         2000         2000 
+   22000   0.94454858    22.856272    6.5661753          220          207         2200         1800 
+   23000   0.95446407    22.878735    6.5957294          230          216         2160         1840 
+   24000   0.94748257    22.894539    6.6187447          240          226         1920         2080 
+   25000   0.95732202    22.912292    6.4795471          250          236         1680         2320 
+   26000   0.96970172    22.908988     6.537366          260          245         1720         2280 
+   27000   0.96032166    22.924899    6.6238248          270          255         1960         2040 
+   28000   0.96197769      22.9358    6.8926097          280          264         1920         2080 
+   29000   0.98745595    22.964694    6.5839025          290          271         2040         1960 
+   30000   0.99264869    22.947884    6.3893499          300          280         1920         2080 
+   31000   0.96953069    22.957927    6.6616047          310          289         1800         2200 
+   32000   0.99955117    22.963979    6.5958456          320          298         1680         2320 
+   33000   0.97090103    22.969029    6.9087296          330          307         1800         2200 
+   34000   0.99818457    22.988477    6.6471994          340          316         1920         2080 
+   35000    0.9965288    22.992883    6.9691785          350          325         2040         1960 
+   36000   0.99533174    22.983774    6.6585089          360          334         2000         2000 
+   37000   0.98819278    22.995387     6.618802          370          344         2080         1920 
+   38000   0.99598576    22.991892    6.7536669          380          354         2080         1920 
+   39000   0.99312702    22.989239    6.4028165          390          364         2080         1920 
+   40000    1.0035821    23.001944    6.9307671          400          374         1920         2080 
+   41000   0.99914733     23.00134    6.6251677          410          383         1880         2120 
+   42000   0.98054536    22.981781    6.5918554          420          393         1880         2120 
+   43000   0.99413829       23.008    6.7390795          430          403         1720         2280 
+   44000   0.98867961     23.00521    6.8505543          440          412         1600         2400 
+   45000   0.99626811    23.019995     6.827741          450          421         1640         2360 
+   46000    1.0186043    23.020759    6.6195562          460          430         1680         2320 
+   47000    1.0121335    23.019271    6.6022102          470          439         1800         2200 
+   48000   0.99883756    23.013973    6.5255522          480          448         1920         2080 
+   49000   0.99425223    23.022708     6.609746          490          458         2240         1760 
+   50000   0.99505489    23.012641    6.4592863          500          468         2240         1760 
+Loop time of 19.4175 on 4 procs for 50000 steps with 4000 atoms
+
+Performance: 2224796.830 tau/day, 2574.996 timesteps/s
+95.0% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.5467     | 2.6684     | 2.7896     |   6.3 | 13.74
+Bond    | 2.3037     | 2.4117     | 2.5085     |   5.3 | 12.42
+Neigh   | 7.3597     | 7.3633     | 7.3673     |   0.1 | 37.92
+Comm    | 3.0482     | 3.2694     | 3.4997     |  10.2 | 16.84
+Output  | 0.0014609  | 0.0017069  | 0.0021793  |   0.7 |  0.01
+Modify  | 2.9624     | 3.0581     | 3.1424     |   4.7 | 15.75
+Other   |            | 0.6447     |            |       |  3.32
+
+Nlocal:        1000.00 ave        1013 max         986 min
+Histogram: 1 0 0 1 0 0 0 1 0 1
+Nghost:        1186.25 ave        1198 max        1178 min
+Histogram: 2 0 0 0 0 0 1 0 0 1
+Neighs:        4927.00 ave        5028 max        4790 min
+Histogram: 1 0 0 0 0 1 0 1 0 1
+
+Total # of neighbors = 19708
+Ave neighs/atom = 4.9270000
+Ave special neighs/atom = 5.7000000
+Neighbor list builds = 10721
+Dangerous builds = 0
+
+Total wall time: 0:00:19

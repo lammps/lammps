@@ -22,7 +22,7 @@ namespace ATC {
   //  Class ATC_CouplingMomentumEnergy
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -36,12 +36,12 @@ namespace ATC {
       nodalAtomicConfigurationalTemperature_(nullptr),
       refPE_(0)
   {
-    // Allocate PhysicsModel 
+    // Allocate PhysicsModel
     create_physics_model(THERMO_ELASTIC, matParamFile);
 
     // create extrinsic physics model
     if (extrinsicModel != NO_MODEL) {
-      extrinsicModelManager_.create_model(extrinsicModel,matParamFile);  
+      extrinsicModelManager_.create_model(extrinsicModel,matParamFile);
     }
 
     // set up field data based on physicsModel
@@ -129,14 +129,14 @@ namespace ATC {
     AtomicMomentum * atomicMomentum = new AtomicMomentum(this);
     interscaleManager_.add_per_atom_quantity(atomicMomentum,
                                              "AtomicMomentum");
-    
+
     // nodal momentum for RHS
     AtfShapeFunctionRestriction * nodalAtomicMomentum = new AtfShapeFunctionRestriction(this,
                                                                                         atomicMomentum,
                                                                                         shpFcn_);
     interscaleManager_.add_dense_matrix(nodalAtomicMomentum,
                                         "NodalAtomicMomentum");
-    
+
     // nodal forces
     FundamentalAtomQuantity * atomicForce = interscaleManager_.fundamental_atom_quantity(LammpsInterface::ATOM_FORCE);
     AtfShapeFunctionRestriction * nodalAtomicForce = new AtfShapeFunctionRestriction(this,
@@ -144,14 +144,14 @@ namespace ATC {
                                                                                      shpFcn_);
     interscaleManager_.add_dense_matrix(nodalAtomicForce,
                                         "NodalAtomicForce");
-    
+
     // nodal velocity derived only from atoms
     AtfShapeFunctionMdProjection * nodalAtomicVelocity = new AtfShapeFunctionMdProjection(this,
                                                                                           nodalAtomicMomentum,
                                                                                           VELOCITY);
     interscaleManager_.add_dense_matrix(nodalAtomicVelocity,
                                         "NodalAtomicVelocity");
-    
+
     if (trackDisplacement_) {
       // mass-weighted (center-of-mass) displacement of each atom
       AtomicMassWeightedDisplacement * atomicMassWeightedDisplacement;
@@ -166,14 +166,14 @@ namespace ATC {
         atomicMassWeightedDisplacement = new AtomicMassWeightedDisplacement(this);
       interscaleManager_.add_per_atom_quantity(atomicMassWeightedDisplacement,
                                                "AtomicMassWeightedDisplacement");
-      
+
       // nodal (RHS) mass-weighted displacement
       AtfShapeFunctionRestriction * nodalAtomicMassWeightedDisplacement = new AtfShapeFunctionRestriction(this,
                                                                                                           atomicMassWeightedDisplacement,
                                                                                                           shpFcn_);
       interscaleManager_.add_dense_matrix(nodalAtomicMassWeightedDisplacement,
                                           "NodalAtomicMassWeightedDisplacement");
-      
+
       // nodal displacement derived only from atoms
       AtfShapeFunctionMdProjection * nodalAtomicDisplacement = new AtfShapeFunctionMdProjection(this,
                                                                                                 nodalAtomicMassWeightedDisplacement,
@@ -183,7 +183,7 @@ namespace ATC {
     }
 
     // always need fluctuating velocity and kinetic energy
-    
+
     FtaShapeFunctionProlongation * atomicMeanVelocity = new FtaShapeFunctionProlongation(this,&fields_[VELOCITY],shpFcn_);
     interscaleManager_.add_per_atom_quantity(atomicMeanVelocity,
                                              field_to_prolongation_name(VELOCITY));
@@ -267,16 +267,16 @@ namespace ATC {
     // register the per-atom quantity for the temperature definition
     interscaleManager_.add_per_atom_quantity(atomEnergyForTemperature,
                                              "AtomicEnergyForTemperature");
-    
+
     // nodal restriction of the atomic energy quantity for the temperature definition
     AtfShapeFunctionRestriction * nodalAtomicEnergy = new AtfShapeFunctionRestriction(this,
                                                                                       atomEnergyForTemperature,
                                                                                       shpFcn_);
     interscaleManager_.add_dense_matrix(nodalAtomicEnergy,
                                         "NodalAtomicEnergy");
-    
+
     // nodal atomic temperature field
-    
+
     AtfShapeFunctionMdProjection * nodalAtomicTemperature = new AtfShapeFunctionMdProjection(this,
                                                                                              nodalAtomicEnergy,
                                                                                              TEMPERATURE);
@@ -299,17 +299,17 @@ namespace ATC {
       throw ATC_Error("ATC_CouplingMomentumEnergy::initialize - method only valid with fractional step time integration");
     }
 
-    
+
     ATC_Coupling::init_filter();
-    
-    
-    
-    
+
+
+
+
     if (timeFilterManager_.end_equilibrate() && equilibriumStart_) {
       if (atomicRegulator_->coupling_mode(VELOCITY)==AtomicRegulator::FLUX || atomicRegulator_->coupling_mode(VELOCITY)==AtomicRegulator::GHOST_FLUX)
         // nothing needed in other cases since kinetostat force is balanced by boundary flux in FE equations
        atomicRegulator_->reset_lambda_contribution(nodalAtomicFieldsRoc_[VELOCITY].quantity(),VELOCITY);
- 
+
       DENS_MAT powerMat(-1.*(nodalAtomicFields_[TEMPERATURE].quantity()));
       atomicRegulator_->reset_lambda_contribution(powerMat,TEMPERATURE);
     }
@@ -327,7 +327,7 @@ namespace ATC {
   //--------------------------------------------------------------------
   //     compute_scalar : added energy
   //--------------------------------------------------------------------
-  double ATC_CouplingMomentumEnergy::compute_scalar(void)
+  double ATC_CouplingMomentumEnergy::compute_scalar()
   {
     double energy = 0.0;
     energy += extrinsicModelManager_.compute_scalar();
@@ -337,7 +337,7 @@ namespace ATC {
     //--------------------------------------------------------------------
   //     total kinetic energy
   //--------------------------------------------------------------------
-  double ATC_CouplingMomentumEnergy::kinetic_energy(void)
+  double ATC_CouplingMomentumEnergy::kinetic_energy()
   {
     const MATRIX & M = massMats_[VELOCITY].quantity();
 
@@ -355,12 +355,12 @@ namespace ATC {
   //--------------------------------------------------------------------
   //     total potential energy
   //--------------------------------------------------------------------
-  double ATC_CouplingMomentumEnergy::potential_energy(void)
+  double ATC_CouplingMomentumEnergy::potential_energy()
   {
     Array<FieldName> mask(1);
     mask(0) = VELOCITY;
     FIELD_MATS energy;
-    feEngine_->compute_energy(mask, 
+    feEngine_->compute_energy(mask,
                                 fields_,
                                 physicsModel_,
                                 elementToMaterialMap_,
@@ -371,7 +371,7 @@ namespace ATC {
     potentialEnergy *= mvv2e; // convert to LAMMPS units
     return potentialEnergy-refPE_;
   }
-  
+
   //--------------------------------------------------------------------
   //     compute_vector
   //--------------------------------------------------------------------
@@ -399,14 +399,14 @@ namespace ATC {
       Array<FieldName> mask(1);
       FIELD_MATS energy;
       mask(0) = TEMPERATURE;
-      
-      feEngine_->compute_energy(mask, 
+
+      feEngine_->compute_energy(mask,
                                 fields_,
                                 physicsModel_,
                                 elementToMaterialMap_,
                                 energy,
                                 &(elementMask_->quantity()));
-      
+
       double phononEnergy = mvv2e * energy[TEMPERATURE].col_sum();
       return phononEnergy;
     }
@@ -435,9 +435,9 @@ namespace ATC {
         _keTemp_ = nodalAtomicKineticTemperature_->quantity();
       if (nodalAtomicConfigurationalTemperature_)
         _peTemp_ = nodalAtomicConfigurationalTemperature_->quantity();
-      
+
       OUTPUT_LIST outputData;
-      
+
       // base class output
       ATC_Method::output();
 
@@ -447,13 +447,13 @@ namespace ATC {
       }
 
       // auxiliary data
-      
+
       for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
         (_tiIt_->second)->output(outputData);
       }
       atomicRegulator_->output(outputData);
       extrinsicModelManager_.output(outputData);
-        
+
       DENS_MAT & velocity(nodalAtomicFields_[VELOCITY].set_quantity());
       DENS_MAT & rhs(rhs_[VELOCITY].set_quantity());
       DENS_MAT & temperature(nodalAtomicFields_[TEMPERATURE].set_quantity());
@@ -469,18 +469,18 @@ namespace ATC {
         feEngine_->add_global("temperature_std_dev",  T_stddev);
         double Ta_mean =  (nodalAtomicFields_[TEMPERATURE].quantity()).col_sum(0)/nNodes_;
         feEngine_->add_global("atomic_temperature_mean",  Ta_mean);
-        double Ta_stddev =  (nodalAtomicFields_[TEMPERATURE].quantity()).col_stdev(0); 
+        double Ta_stddev =  (nodalAtomicFields_[TEMPERATURE].quantity()).col_stdev(0);
         feEngine_->add_global("atomic_temperature_std_dev",  Ta_stddev);
 
         // different temperature measures, if appropriate
         if (nodalAtomicKineticTemperature_)
           outputData["kinetic_temperature"] = & _keTemp_;
-        
+
         if (nodalAtomicConfigurationalTemperature_) {
           _peTemp_ *= 2; // account for full temperature
           outputData["configurational_temperature"] = & _peTemp_;
         }
-        
+
         // mesh data
         outputData["NodalAtomicVelocity"] = &velocity;
         outputData["FE_Force"] = &rhs;
@@ -491,10 +491,10 @@ namespace ATC {
         outputData["ddot_temperature"] = &ddotTemperature;
         outputData["NodalAtomicPower"] = &rocTemperature;
         outputData["fePower"] = &fePower;
-      
+
         feEngine_->write_data(output_index(), fields_, & outputData);
       }
-      
+
       //      hence propagation is performed on proc 0 but not others.
       //      The real fix is to have const data in the output list
       // force optional variables to reset to keep in sync

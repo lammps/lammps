@@ -89,7 +89,7 @@ style computes.
    command, and means those pairwise interactions do not appear in the
    neighbor list.  Because this fix uses the neighbor list, it also means
    those pairs will not be included when computing the clusters. This
-   does not apply when using long-range coulomb (\ *coul/long*\ , *coul/msm*\ ,
+   does not apply when using long-range coulomb (\ *coul/long*, *coul/msm*,
    *coul/wolf* or similar.  One way to get around this would be to set
    special_bond scaling factors to very tiny numbers that are not exactly
    zero (e.g. 1.0e-50). Another workaround is to write a dump file, and
@@ -111,14 +111,15 @@ Output info
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
-the :doc:`Howto output <Howto_output>` doc page for an overview of
+the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
 The per-atom vector values will be an ID > 0, as explained above.
 
 Restrictions
 """"""""""""
- none
+
+none
 
 Related commands
 """"""""""""""""
@@ -127,7 +128,6 @@ Related commands
 
 Default
 """""""
-
 
 The default for fragment/atom is single no.
 

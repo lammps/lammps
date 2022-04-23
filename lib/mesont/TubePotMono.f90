@@ -1,6 +1,6 @@
 ! ------------ ----------------------------------------------------------
 !   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-!   http://lammps.sandia.gov, Sandia National Laboratories
+!   https://www.lammps.org/ Sandia National Laboratories
 !   Steve Plimpton, sjplimp@sandia.gov
 !
 !   Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -9,9 +9,9 @@
 !   the GNU General Public License.
 !
 !   See the README file in the top-level LAMMPS directory.
-!   
+!
 !   Contributing author: Alexey N. Volkov, UA, avolkov1@ua.edu
-!------------------------------------------------------------------------- 
+!-------------------------------------------------------------------------
 
 module TubePotMono !********************************************************************************
 !
@@ -27,22 +27,22 @@ module TubePotMono !************************************************************
 !
 ! Four potentials and transfer functions are calculated in this module:
 !
-! 1. SSTP (segment - semi-infinite tube parallel): Linear density of the potential along 
-!    the segment axis which is produced by a parallel semi-infinite tube. 2D tables for this potential 
+! 1. SSTP (segment - semi-infinite tube parallel): Linear density of the potential along
+!    the segment axis which is produced by a parallel semi-infinite tube. 2D tables for this potential
 !    are generated at initialization or can be loaded from a file.
 !
-! 2. STP (segment - tube parallel): Linear density of the potential along the segment axis 
-!    which is produced by a parallel infinite tubes. This is only a particular case of the SSTP potential, 
-!    but it is considered separately for computational efficiency. 1D tables of this potential are taken 
+! 2. STP (segment - tube parallel): Linear density of the potential along the segment axis
+!    which is produced by a parallel infinite tubes. This is only a particular case of the SSTP potential,
+!    but it is considered separately for computational efficiency. 1D tables of this potential are taken
 !    from 2D tables of SSTP potential.
 !
 ! 3. SST (segment - semi-infinite tube): Potential for a segment produced by an arbitrary-
-!    oriented semi-infinite tube. This potential can not be kept in 2D tables, therefore, all 
-!    data are calculated 'on fly' with the help of SSTP potential and numerical integration along the 
+!    oriented semi-infinite tube. This potential can not be kept in 2D tables, therefore, all
+!    data are calculated 'on fly' with the help of SSTP potential and numerical integration along the
 !    segment axis
 !
-! 4. ST (segment - tube): Potential for a segment produced by an arbitrary-oriented 
-!    infinitely long tube. 2D tables for this potential are generated at initialization or can be 
+! 4. ST (segment - tube): Potential for a segment produced by an arbitrary-oriented
+!    infinitely long tube. 2D tables for this potential are generated at initialization or can be
 !    loaded from a file.
 !
 !***************************************************************************************************
@@ -62,77 +62,77 @@ implicit none
 
         integer(c_int), parameter                    :: TPMNZMAX     = 129
         integer(c_int), parameter                    :: TPMNEMAX     = 128
-        
-        integer(c_int), parameter                    :: TPMNHMAX     = 1001  
-        integer(c_int), parameter                    :: TPMNXMAX     = 1001 
-        integer(c_int), parameter                    :: TPMNMAX      = 1001 
-        
+
+        integer(c_int), parameter                    :: TPMNHMAX     = 1001
+        integer(c_int), parameter                    :: TPMNXMAX     = 1001
+        integer(c_int), parameter                    :: TPMNMAX      = 1001
+
 !---------------------------------------------------------------------------------------------------
 ! Global variables
 !---------------------------------------------------------------------------------------------------
-        
+
         integer(c_int)                               :: TPMStartMode = 1
-        character*512                                :: TPMFile      = 'MESONT-TABTP.xrs'
+        character(len=512)                           :: TPMFile      = 'MESONT-TABTP.xrs'
         integer(c_int)                               :: TPMUnitID    ! Unit for the tabulated potential file
-        
+
         integer(c_int)                               :: TPMNZ        = TPMNZMAX
         integer(c_int)                               :: TPMNZ1       = TPMNZMAX - 1
         integer(c_int)                               :: TPMNE        = TPMNEMAX
         integer(c_int)                               :: TPMNE1       = TPMNEMAX - 1
-        
+
         integer(c_int)                               :: TPMNH        = TPMNHMAX
         integer(c_int)                               :: TPMNH1       = TPMNHMAX - 1
         integer(c_int)                               :: TPMNX        = TPMNXMAX
         integer(c_int)                               :: TPMNX1       = TPMNXMAX - 1
-        
-        integer                                      :: TPMChiIndM   ! Chirality index M 
+
+        integer                                      :: TPMChiIndM   ! Chirality index M
         integer                                      :: TPMChiIndN   ! Chirality index N
         real(c_double)                               :: TPMR1
         real(c_double)                               :: TPMR2
-        
+
         real(c_double)                               :: TPMHmax
         real(c_double)                               :: TPMDH
-        
+
         ! Parameters of empirical correction functions
-        
+
         integer(c_int)                               :: TPMAN        = 20
         real(c_double)                               :: TPMAHmin
         real(c_double)                               :: TPMAHmax
         real(c_double)                               :: TPMADH
         real(c_double), dimension(0:TPMNHMAX-1)      :: TPMAH, TPMAF, TPMAFxx
-        
+
         ! Fitting parameters that depend on the SWCNT chirality
 
         real(c_double)                               :: TPMCaA       = 0.22d+00 ! 0.22 for (10,10) CNTs
         real(c_double)                               :: TPMCeA       = 0.35d+00 ! 0.35 for (10,10) CNTs
         real(c_double)                               :: TPMAHmin0    = 10.0d+00 ! 10.0 A for (10,10) CNTs
-        
+
         ! Parameters of SSTP integrator
-        
+
         real(c_double)                               :: TPMDE
         real(c_double), dimension(0:TPMNEMAX-1)      :: TPMCE, TPMSE
-        
+
         ! Additional parameters for SSTP potential
 
         real(c_double)                               :: TPMSSTPDelta = 0.25d+00
         integer(c_int)                               :: TPMSSTPNH
         integer(c_int)                               :: TPMSSTPNX
-        
+
         real(c_double)                               :: TPMSSTPX1
         real(c_double)                               :: TPMSSTPXmax
         real(c_double)                               :: TPMSSTPDX
-        
+
         real(c_double), dimension(0:TPMNHMAX-1,0:TPMNXMAX-1) :: TPMSSTPG
         real(c_double), dimension(0:TPMNHMAX-1,0:TPMNXMAX-1) :: TPMSSTPF, TPMSSTPFxx, TPMSSTPFyy, TPMSSTPFxxyy
         real(c_double), dimension(0:TPMNHMAX-1)      :: TPMSSTPH
         real(c_double), dimension(0:TPMNXMAX-1)      :: TPMSSTPX
-        
+
         ! Additional parameters for STP potential
-        
+
         ! In calculations of this potential, some parameters of SSTP potential are also used.
         ! In particular, STP potential has no its own integrator. All data comes from SSTP integrator.
         ! It does not result in any computational inefficiency unless the STP potential is used without SSTP one.
-        
+
         integer(c_int)                               :: TPMNN        = 10
         real(c_double), dimension(0:TPMNHMAX-1)      :: TPMSTPG
         real(c_double), dimension(0:TPMNHMAX-1)      :: TPMSTPF, TPMSTPFxx
@@ -140,25 +140,25 @@ implicit none
         ! Parameters for ST potential
 
         ! Minimum gap dh for ST-potential
-        real(c_double)                               :: TPMSTDelta   = 1.0d+00       
+        real(c_double)                               :: TPMSTDelta   = 1.0d+00
         ! Number of subdivisions for every grid step in ST-integrator
-        integer(c_int)                               :: TPMSTNXS     = 10            
+        integer(c_int)                               :: TPMSTNXS     = 10
         real(c_double)                               :: TPMSTXmax
         real(c_double)                               :: TPMSTH1
         real(c_double)                               :: TPMSTH2
         real(c_double)                               :: TPMSTDH12
-        
+
         real(c_double), dimension(0:TPMNHMAX-1,0:TPMNXMAX-1) :: TPMSTG
         real(c_double), dimension(0:TPMNHMAX-1,0:TPMNXMAX-1) :: TPMSTF, TPMSTFxx, TPMSTFyy, TPMSTFxxyy
         real(c_double), dimension(0:TPMNHMAX-1) :: TPMSTH
         real(c_double), dimension(0:TPMNXMAX-1) :: TPMSTX
-        
+
         ! Switching parameters
-        
+
         ! Height switch (at H=0 in SST-potential)
         integer(c_int)                               :: TPMHSwitch   = 0             ! 1, use h-switch; 0, do not use the switch
         real(c_double)                               :: TPMHS        = 3.0d+00       ! Switch height, Angstrom
-        
+
         ! Angle switch
         integer(c_int)                               :: TPMASwitch   = 0             ! 1, use a-switch; 0, do not use the switch
         real(c_double)                               :: TPMAS        = 3.0d+00       ! Switch angle, degree
@@ -220,7 +220,7 @@ contains !**********************************************************************
                                 R2Y = TPMR1 * TPMSE(j)
                                 R2Z = Zmin - D
                                 do k = 0, TPMNZ1 ! Integration over the length of the second tube
-                                        R = sqr ( R2X - R1X ) + sqr ( R2Y - R1Y ) + sqr ( R2Z ) 
+                                        R = sqr ( R2X - R1X ) + sqr ( R2Y - R1Y ) + sqr ( R2Z )
                                         if ( R < Rcutoff2 ) then
                                                 R = dsqrt ( R )
                                                 if ( k == 0 .or. k == TPMNZ1 ) then
@@ -239,7 +239,7 @@ contains !**********************************************************************
                 Q = Q * C
                 U = U * sqr ( TPBD ) * C
         end subroutine TPMSSTPIntegrator !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
         integer(c_int) function TPMSSTPInt0 ( Q, U, H, X ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ! This function returns the transfer function Q and potential U for the SSTP potential
         ! calculated by interpolation in the table without switch.
@@ -253,7 +253,7 @@ contains !**********************************************************************
                 i = 1 + int ( H / TPMDH )
                 j = 1 + int ( ( X + TPMSSTPXMax ) / TPMSSTPDX )
                 if ( ( i < TPMSSTPNH ) .and. ( j > TPMSSTPNX ) ) then
-                        !call PrintTPErrMsg ()        
+                        !call PrintTPErrMsg ()
                         !!call PrintStdLogMsg (TPErrMsg )
                         !write ( TPErrMsg, '(a,e20.10,a,e20.10)' ) 'Tubes intersect each other: H=', H, ', X=', X
                         !call Error ( 'TPMSSTPInt0', TPErrMsg )
@@ -273,7 +273,7 @@ contains !**********************************************************************
                 else
                         XX = X
                 end if
-                Q = CalcLinFun2_0 ( i, j, H, XX, TPMNH, TPMNX, TPMSSTPH, TPMSSTPX, TPMSSTPG ) 
+                Q = CalcLinFun2_0 ( i, j, H, XX, TPMNH, TPMNX, TPMSSTPH, TPMSSTPX, TPMSSTPG )
                 U = CalcSpline2_0 ( i, j, H, XX, TPMNH, TPMNX, TPMSSTPH, TPMSSTPX, TPMSSTPF, TPMSSTPFxx, TPMSSTPFyy, TPMSSTPFxxyy )
                 TPMSSTPInt0 = 1
         end function TPMSSTPInt0 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -303,7 +303,7 @@ contains !**********************************************************************
                         end if
                 end if
         end function TPMSSTPInt0S !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
         integer(c_int) function TPMSSTPInt1 ( Q, U, Uh, Ux, H, X ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ! This function returns the transfer function Q, potential U, and derivatives Uh=dU/dH and
         ! Ux=dU/dX for the SSTP potential calculated by interpolation in the table without switch
@@ -317,7 +317,7 @@ contains !**********************************************************************
                 i = 1 + int ( H / TPMDH )
                 j = 1 + int ( ( X + TPMSSTPXMax ) / TPMSSTPDX )
                 if ( ( i < TPMSSTPNH ) .and. ( j > TPMSSTPNX ) ) then
-                        !call PrintTPErrMsg ()        
+                        !call PrintTPErrMsg ()
                         !!call PrintStdLogMsg ( TPErrMsg )
                         !write ( TPErrMsg, '(a,e20.10,a,e20.10)' ) 'Tubes intersect each other: H=', H, ', X=', X
                         !call Error ( 'TPMSSTPInt1', TPErrMsg )
@@ -339,15 +339,15 @@ contains !**********************************************************************
                 else
                         XX = X
                 end if
-                Q = CalcLinFun2_0 ( i, j, H, XX, TPMNH, TPMNX, TPMSSTPH, TPMSSTPX, TPMSSTPG ) 
+                Q = CalcLinFun2_0 ( i, j, H, XX, TPMNH, TPMNX, TPMSSTPH, TPMSSTPX, TPMSSTPG )
                 call CalcSpline2_1 ( U, Uh, Ux, i, j, H, XX, TPMNH, TPMNX, TPMSSTPH, TPMSSTPX, TPMSSTPF, &
-                        TPMSSTPFxx, TPMSSTPFyy, TPMSSTPFxxyy ) 
+                        TPMSSTPFxx, TPMSSTPFyy, TPMSSTPFxxyy )
                 TPMSSTPInt1 = 1
         end function TPMSSTPInt1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
         integer(c_int) function TPMSSTPInt1S ( Q, U, Uh, Ux, H, X ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ! This function returns the transfer function Q, potential U, and derivatives Uh=dU/dH and
-        ! Ux=dU/dX for the SSTP potential calculated by interpolation in the table and switch to 
+        ! Ux=dU/dX for the SSTP potential calculated by interpolation in the table and switch to
         ! the case of zero H.
         !-------------------------------------------------------------------------------------------
         real(c_double), intent(out)     :: Q, U, Uh, Ux
@@ -375,7 +375,7 @@ contains !**********************************************************************
                         end if
                 end if
         end function TPMSSTPInt1S !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
         subroutine TPMSSTPWrite () !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ! This function writes the table of the SSTP potential to a disk file.
         !-------------------------------------------------------------------------------------------
@@ -412,7 +412,7 @@ contains !**********************************************************************
                         end do
                 end do
         end subroutine TPMSSTPRead !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
         subroutine TPMSSTPInit () !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ! This function calculates the table of the SSTP potential.
         !-------------------------------------------------------------------------------------------
@@ -424,7 +424,7 @@ contains !**********************************************************************
                 TPMDE = M_2PI / TPMNE
                 E = 0.0d+00
                 do i = 0, TPMNE1
-                        TPMCE(i) = cos ( E ) 
+                        TPMCE(i) = cos ( E )
                         TPMSE(i) = sin ( E )
                         E = E + TPMDE
                 end do
@@ -444,7 +444,7 @@ contains !**********************************************************************
                                 do j = 0, TPMNX1
                                         if ( ( i .ge. TPMSSTPNH ) .or. ( j .le. TPMSSTPNX ) ) then
                                                 call TPMSSTPIntegrator ( TPMSSTPG(i,j), TPMSSTPF(i,j), TPMSSTPH(i), TPMSSTPX(j) )
-                                                print '(2i5,a,e20.10,a,e20.10,a,e20.10,a,e20.10)', i, j, ' H=', TPMSSTPH(i), & 
+                                                print '(2i5,a,e20.10,a,e20.10,a,e20.10,a,e20.10)', i, j, ' H=', TPMSSTPH(i), &
                                                         ', X=', TPMSSTPX(j), ', Q=', TPMSSTPG(i,j), ', U=', TPMSSTPF(i,j)
                                         end if
                                 end do
@@ -454,11 +454,11 @@ contains !**********************************************************************
                         call TPMSSTPRead ()
                 end if
                 call CreateSpline2Ext ( 3, 3, 3, 3, TPMNH, TPMSSTPNH, TPMNX, TPMSSTPNX, TPMNMAX, TPMSSTPH, TPMSSTPX, &
-                        TPMSSTPF, TPMSSTPFxx, TPMSSTPFyy, TPMSSTPFxxyy, FF, MM, DD, K0, K1, K2 )                
+                        TPMSSTPF, TPMSSTPFxx, TPMSSTPFyy, TPMSSTPFxxyy, FF, MM, DD, K0, K1, K2 )
         end subroutine TPMSSTPInit !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !---------------------------------------------------------------------------------------------------
-! STP potential for an infinite tube interacting with a parallel segment. No actual initialization 
+! STP potential for an infinite tube interacting with a parallel segment. No actual initialization
 ! is necessary for this potential, since the data are taken from the table for the SSTP potential.
 !---------------------------------------------------------------------------------------------------
 
@@ -473,7 +473,7 @@ contains !**********************************************************************
         !-------------------------------------------------------------------------------------------
                 i = 1 + int ( H / TPMDH )
                 if ( i < TPMSSTPNH ) then
-                        !call PrintTPErrMsg ()        
+                        !call PrintTPErrMsg ()
                         !!call PrintStdLogMsg ( TPErrMsg )
                         !write ( TPErrMsg, '(a,e20.10)' ) 'Tubes intersect each other: H=', H
                         !call Error ( 'TPMSTPInt0', TPErrMsg )
@@ -485,13 +485,13 @@ contains !**********************************************************************
                         return
                 end if
                 if ( i == TPMNH ) i = TPMNH - 1
-                Q = CalcLinFun1_0 ( i, H, TPMNH, TPMSSTPH, TPMSTPG ) 
-                U = CalcSpline1_0 ( i, H, TPMNH, TPMSSTPH, TPMSTPF, TPMSTPFxx ) 
+                Q = CalcLinFun1_0 ( i, H, TPMNH, TPMSSTPH, TPMSTPG )
+                U = CalcSpline1_0 ( i, H, TPMNH, TPMSSTPH, TPMSTPF, TPMSTPFxx )
                 TPMSTPInt0 = 1
         end function TPMSTPInt0 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         integer(c_int) function TPMSTPInt1 ( Q, U, dUdH, H ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        ! This function returns the transfer function Q, potential U, and derivative dUdH for 
+        ! This function returns the transfer function Q, potential U, and derivative dUdH for
         ! the STP potential calculated by interpolation in the table.
         !-------------------------------------------------------------------------------------------
         real(c_double), intent(out)     :: Q, U, dUdH
@@ -500,7 +500,7 @@ contains !**********************************************************************
         !-------------------------------------------------------------------------------------------
                 i = 1 + int ( H / TPMDH )
                 if ( i < TPMSSTPNH ) then
-                        !call PrintTPErrMsg ()        
+                        !call PrintTPErrMsg ()
                         !!call PrintStdLogMsg ( TPErrMsg )
                         !write ( TPErrMsg, '(a,e20.10)' ) 'Tubes intersect each other: H=', H
                         !call Error ( 'TPMSTPInt0', TPErrMsg )
@@ -512,11 +512,11 @@ contains !**********************************************************************
                         TPMSTPInt1 = 0
                         return
                 end if
-                Q = CalcLinFun1_0 ( i, H, TPMNH, TPMSSTPH, TPMSTPG ) 
-                call CalcSpline1_1 ( U, dUdH, i, H, TPMNH, TPMSSTPH, TPMSTPF, TPMSTPFxx ) 
+                Q = CalcLinFun1_0 ( i, H, TPMNH, TPMSSTPH, TPMSTPG )
+                call CalcSpline1_1 ( U, dUdH, i, H, TPMNH, TPMSSTPH, TPMSTPF, TPMSTPFxx )
                 TPMSTPInt1 = 1
         end function TPMSTPInt1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
         subroutine TPMSTPInit () !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ! This function initializes the table of the STP potential
         !-------------------------------------------------------------------------------------------
@@ -524,7 +524,7 @@ contains !**********************************************************************
                 TPMSTPF(0:TPMNH1)   = TPMSSTPF(0:TPMNH1,TPMNX1)
                 TPMSTPFxx(0:TPMNH1) = TPMSSTPFxx(0:TPMNH1,TPMNX1)
         end subroutine TPMSTPInit !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
 !---------------------------------------------------------------------------------------------------
 ! Fitting functions for the SST and ST potentials.
 ! This correction functions are chosen empirically to improve accuracy of the SST and ST potentials.
@@ -567,14 +567,14 @@ contains !**********************************************************************
                         X = - ( X1_2 - X1_1 ) / 2.0d+00
                         do j = 0, ( TPTNXMAX - 1 ) / 2
                                 HH = sqrt ( TPMAH(i) * TPMAH(i) + sqr ( X * sin ( M_PI_2 ) ) )
-                                IntSign = TPMSTPInt0 ( Qb, Ub, HH ) 
+                                IntSign = TPMSTPInt0 ( Qb, Ub, HH )
                                 call TPTSetSegPosition2 ( TPTSeg1, R1_1, R1_2 )
                                 call TPTSetSegPosition2 ( TPTSeg2, R2_1, R2_2 )
-                                IntSign = TPTSectionPotential ( Qa, Ua, Fa, Ma, TPTSeg1, j, TPTSeg2 ) 
+                                IntSign = TPTSectionPotential ( Qa, Ua, Fa, Ma, TPTSeg1, j, TPTSeg2 )
                                 if ( j == 0 ) then
                                         Uamin = Ua
                                         Ubmin = Ub
-                                else 
+                                else
                                         if ( Ua < Uamin ) then
                                                 Uamin = Ua
                                         end if
@@ -614,7 +614,7 @@ contains !**********************************************************************
                         return
                 end if
                 i = 1 + int ( ( H - TPMAHmin ) / TPMADH )
-                TPMA0 = CalcSpline1_0 ( i, H, TPMAN, TPMAH, TPMAF, TPMAFxx ) 
+                TPMA0 = CalcSpline1_0 ( i, H, TPMAN, TPMAH, TPMAF, TPMAFxx )
         end function TPMA0 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         subroutine TPMA1 ( A, Ah, H ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -646,9 +646,9 @@ contains !**********************************************************************
                 i = 1 + int ( ( H - TPMAHmin ) / TPMADH )
                 call CalcSpline1_1 ( A, Ah, i, H, TPMAN, TPMAH, TPMAF, TPMAFxx )
         end subroutine TPMA1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
         real(c_double) function TPMCu0 ( H, cosA, sinA ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        ! This function returns the correction function for the magnitude of the potential. 
+        ! This function returns the correction function for the magnitude of the potential.
         !-------------------------------------------------------------------------------------------
         real(c_double), intent(in)      :: H, cosA, sinA
         !-------------------------------------------------------------------------------------------
@@ -656,7 +656,7 @@ contains !**********************************************************************
         end function TPMCu0 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         subroutine TPMCu1 ( Cu, CuH, CuA, H, cosA, sinA ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        ! The subroutine calculates the correction function Cu for the magnitude of the potential and 
+        ! The subroutine calculates the correction function Cu for the magnitude of the potential and
         ! its derivatives CuH and CuA.
         !-------------------------------------------------------------------------------------------
         real(c_double), intent(ouT)     :: Cu, CuH, CuA
@@ -664,7 +664,7 @@ contains !**********************************************************************
         real(c_double)                  :: AA, AAh, D
         !-------------------------------------------------------------------------------------------
                 call TPMA1 ( AA, AAh, H )
-                D = sqr ( sinA ) 
+                D = sqr ( sinA )
                 AA = AA - 1.0d+00
                 Cu = 1.0d+00 + AA * D
                 CuH = AAh * D
@@ -672,7 +672,7 @@ contains !**********************************************************************
         end subroutine TPMCu1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         real(c_double) function TPMCa0 ( cosA, sinA ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        ! This function returns the correction function for the argument of the potential. 
+        ! This function returns the correction function for the argument of the potential.
         ! If correction is not necessary, it should return sinA.
         !-------------------------------------------------------------------------------------------
         real(c_double), intent(in)      :: cosA, sinA
@@ -681,21 +681,21 @@ contains !**********************************************************************
         end function TPMCa0 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         subroutine TPMCa1 ( Ca, CaA, Ka, KaA, cosA, sinA ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        ! This subroutine calculates the correction function Cu for the depth of the potential well 
-        ! and its derivatives CuH and CuA. If correction is not necessary, it returns Ca = sinA 
+        ! This subroutine calculates the correction function Cu for the depth of the potential well
+        ! and its derivatives CuH and CuA. If correction is not necessary, it returns Ca = sinA
         ! and CaA = cosA.
         !-------------------------------------------------------------------------------------------
         real(c_double), intent(out)     :: Ca, CaA, Ka, KaA
         real(c_double), intent(in)      :: cosA, sinA
         !-------------------------------------------------------------------------------------------
                 Ka  = 1.0d+00 / ( 1.0d+00 - TPMCaA * sqr ( sinA ) )
-                Ca = sinA * Ka 
+                Ca = sinA * Ka
                 KaA = 2.0d+00 * TPMCaA * sinA * cosA * sqr ( Ka )
                 CaA = cosA * Ka + sinA * KaA
         end subroutine TPMCa1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         real(c_double) function TPMCe0 ( sinA ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        ! This function returns the correction function for the argument of the potential. 
+        ! This function returns the correction function for the argument of the potential.
         ! If correction is not necessary, it returns sinA.
         !-------------------------------------------------------------------------------------------
         real(c_double), intent(in)      :: sinA
@@ -713,19 +713,19 @@ contains !**********************************************************************
                 CeA = - 2.0d+00 * TPMCeA * sinA * cosA
                 Ke = TPMCeA
         end subroutine TPMCe1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
 !---------------------------------------------------------------------------------------------------
-! SST potential for the semi-infinite tube interacting with segment. 
-! This potential does not need any initialization. All necessary data is taken from tables of the 
+! SST potential for the semi-infinite tube interacting with segment.
+! This potential does not need any initialization. All necessary data is taken from tables of the
 ! SSTP potential.
 !---------------------------------------------------------------------------------------------------
 
         integer(c_int) function TPMSSTPotential ( Q, U, X1, X2, H, cosA, D, N ) !!!!!!!!!!!!!!!!!!!!
-        ! This function calculates the transfer function Q and potential U applied to a segment 
-        ! from a semi-infinite tube based on the numerical integration (trapezoidal rule) along the segment 
-        ! axis for non-parallel objects. 
+        ! This function calculates the transfer function Q and potential U applied to a segment
+        ! from a semi-infinite tube based on the numerical integration (trapezoidal rule) along the segment
+        ! axis for non-parallel objects.
         ! Relative position of the nanotube and segment is given by axial positions of the segment
-        ! ends X1 and X2, height H, cosA= cos(A), where A is the cross-axis angle, and the displacement 
+        ! ends X1 and X2, height H, cosA= cos(A), where A is the cross-axis angle, and the displacement
         ! D of a nanotube end.
         !-------------------------------------------------------------------------------------------
         real(c_double), intent(out)     :: Q, U
@@ -761,7 +761,7 @@ contains !**********************************************************************
         end function TPMSSTPotential !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         integer(c_int) function TPMSSTPotentialPar ( Q, U, R1_1, Laxis1, R2_1, Laxis2, L1, N ) !!!!!
-        ! Potential for a segment and a semi-infinite tube is calculated by the numerical 
+        ! Potential for a segment and a semi-infinite tube is calculated by the numerical
         ! integration (trapezoidal rule) along the segment axis for parallel objects.
         !-------------------------------------------------------------------------------------------
         real(c_double), intent(out)                     :: Q, U
@@ -799,9 +799,9 @@ contains !**********************************************************************
                 Q = Q * DX
                 U = U * DX
         end function TPMSSTPotentialPar !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
         integer(c_int) function TPMSSTForces ( Q, U, F1, F2, Fd, X1, X2, H, cosA, D, N ) !!!!!!!!!!!
-        ! Potential and forces applied to the segment from a semi-infinite tube are calculated 
+        ! Potential and forces applied to the segment from a semi-infinite tube are calculated
         ! by the numerical integration (trapezoidal rule) along the segment axis.
         ! Non-parallel case.
         !-------------------------------------------------------------------------------------------
@@ -859,7 +859,7 @@ contains !**********************************************************************
                         X   = X + DX
                 end do
                 if ( TPMSSTForces == 0 ) return
-                
+
                 C   = DX * Cu
                 I0  = I0 * C
                 Ih  = Ih * C
@@ -868,7 +868,7 @@ contains !**********************************************************************
                 Ix  = Ix * C
                 Ix1 = Ix1 * C
 
-                DX  = X2 - X1 
+                DX  = X2 - X1
 
                 Q  = Q * C
                 U  = I0
@@ -877,23 +877,23 @@ contains !**********************************************************************
 
                 C1 = Ka * Ka * Ih1
                 C  = h * ( C1 + cosA * Ke * Ix ) / DX
-                F1(0) = X2 * Uh - C 
+                F1(0) = X2 * Uh - C
                 F2(0) = C - X1 * Uh
-                
+
                 C = ( cosA * sinA * C1 + ( Ke * sinA - sinA ) * Ix ) / DX
-                F1(1) = Ua - X2 * C 
+                F1(1) = Ua - X2 * C
                 F2(1) = X1 * C - Ua
-                
+
                 C1 = Ca * Ca * Ih1 + cosA * Ix
                 C2 = Ca * Ca * Ih2 + cosA * Ix1
                 F1(2) = ( U - X2 * C1 + C2 ) / DX
                 F2(2) = ( X1 * C1 - C2 - U ) / DX
-                
+
                 Fd = Ce * Ix
         end function TPMSSTForces !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        integer(c_int) function TPMSSTForcesPar ( Q, U, F1, F2, Fd, R1_1, Laxis1, R2_1, Laxis2, L1, N ) 
-        ! Potential and forces applied to the segment from a semi-infinite tube are calculated by 
+        integer(c_int) function TPMSSTForcesPar ( Q, U, F1, F2, Fd, R1_1, Laxis1, R2_1, Laxis2, L1, N )
+        ! Potential and forces applied to the segment from a semi-infinite tube are calculated by
         ! the numerical integration (trapezoidal rule) along the segment axis.
         ! Parallel case
         !-------------------------------------------------------------------------------------------
@@ -942,8 +942,8 @@ contains !**********************************************************************
                                         U  = U + Us
                                         Fd = Fd + Usx
                                 end if
-                                F1 = F1 + Gamma * Fs 
-                                F2 = F2 + Beta * Fs 
+                                F1 = F1 + Gamma * Fs
+                                F2 = F2 + Beta * Fs
                         end if
                         X = X + DX
                 end do
@@ -954,15 +954,15 @@ contains !**********************************************************************
                 F1 = DX * F1 + Fs
                 F2 = DX * F2 - Fs
         end function TPMSSTForcesPar !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
 !---------------------------------------------------------------------------------------------------
 ! ST: Potential for a infinite tube interacting with a segment
 !--------------------------------------------------------------------------------------------------
-        
+
         !
         ! These functions are used to smooth boundaries in (H,X) domain for ST potential
         !
-        
+
         real(c_double) function TPMSTXMin0 ( H ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         real(c_double), intent(in)      :: H
         !-------------------------------------------------------------------------------------------
@@ -979,7 +979,7 @@ contains !**********************************************************************
                 TPMSTXMin0 = sqrt ( TPMSTH2 * TPMSTH2 - H * H ) &
                         * ( 1.0d+00 - X * X * X * ( 3.0d+00 * X * ( 2.0d+00 * X - 5.0d+00 ) + 10.0d+00 ) )
         end function TPMSTXMin0 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
         real(c_double) function TPMSTXMax0 ( H ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         real(c_double), intent(in)      :: H
         !-------------------------------------------------------------------------------------------
@@ -1005,11 +1005,11 @@ contains !**********************************************************************
                 F = 1.0d+00 - X * X * X * ( 3.0d+00 * X * ( 2.0d+00 * X - 5.0d+00 ) + 10.0d+00 )
                 X = X * ( X - 1.0d+00 )
                 dFdX = - 30.0d+00 * X * X
-                XMin = sqrt ( TPMSTH2 * TPMSTH2 - H * H ) 
+                XMin = sqrt ( TPMSTH2 * TPMSTH2 - H * H )
                 dXMindH = - H * F / XMin + XMin * dFdX / TPMSTDH12
                 XMin = XMin * F
         end subroutine TPMSTXMin1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
         subroutine TPMSTXMax1 ( XMax, dXMaxdH, H ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         real(c_double), intent(out)     :: XMax, dXMaxdH
         real(c_double), intent(in)      :: H
@@ -1017,11 +1017,11 @@ contains !**********************************************************************
                 XMax    = sqrt ( TPMSTXMax * TPMSTXMax - H * H )
                 dXMaxdH = - H / XMax
         end subroutine TPMSTXMax1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
         !
         ! ST (segment-tube) table
         !
-        
+
         subroutine TPMSTIntegrator ( G, F, Q, U, H, X, DX ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         real(c_double), intent(inout)   :: G, F, Q, U
         real(c_double), intent(in)      :: H, X, DX
@@ -1036,7 +1036,7 @@ contains !**********************************************************************
                 U = 0.0d+00
                 HH  = dsqrt ( sqr ( H ) + sqr ( X ) )
                 if ( HH > TPMHmax ) return
-                IntSign = TPMSTPInt0 ( Q, U, HH ) 
+                IntSign = TPMSTPInt0 ( Q, U, HH )
                 if ( IntSign == 1 ) then
                         G = G + Q * DDX
                         F = F + U * DDX
@@ -1059,10 +1059,10 @@ contains !**********************************************************************
                         G = 0.0d+00
                         F = 0.0d+00
                         TPMSTInt0 = 2
-                        !call PrintTPErrMsg ()        
+                        !call PrintTPErrMsg ()
                         !!call PrintStdLogMsg ( TPErrMsg )
                         !all Error ( 'TPMSTInt0', 'H < 0' )
-                        !!return 
+                        !!return
                 end if
                 S = signum ( X )
                 XA = dabs ( X )
@@ -1074,7 +1074,7 @@ contains !**********************************************************************
                 if ( XXX < 0.0d+00 ) then
                         j  = 1
                         XXXX = 0.0d+00
-                        !call PrintTPErrMsg ()        
+                        !call PrintTPErrMsg ()
                         !write ( TPErrMsg, '(a,e20.10,a,e20.10,a,e20.10)' ) 'X < XMin, X=', XA, ', XMin=', XMin, ', H=', H
                         !call Error ( 'TPMSTInt0', TPErrMsg )
                 else if ( XXX .ge. 1.0d+00 ) then
@@ -1084,8 +1084,8 @@ contains !**********************************************************************
                         XXXX = XXX
                         j = 1 + int ( XXXX * TPMNX1 )
                 end if
-                G = S * CalcLinFun2_0 ( i, j, H, XXXX, TPMNH, TPMNX, TPMSTH, TPMSTX, TPMSTG ) 
-                F = S * CalcSpline2_0 ( i, j, H, XXXX, TPMNH, TPMNX, TPMSTH, TPMSTX, TPMSTF, TPMSTFxx, TPMSTFyy, TPMSTFxxyy ) 
+                G = S * CalcLinFun2_0 ( i, j, H, XXXX, TPMNH, TPMNX, TPMSTH, TPMSTX, TPMSTG )
+                F = S * CalcSpline2_0 ( i, j, H, XXXX, TPMNH, TPMNX, TPMSTH, TPMSTX, TPMSTF, TPMSTFxx, TPMSTFyy, TPMSTFxxyy )
                 TPMSTInt0 = 1
         end function TPMSTInt0 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1109,10 +1109,10 @@ contains !**********************************************************************
                         Fh = 0.0d+00
                         Fx = 0.0d+00
                         TPMSTInt1 = 2
-                        !call PrintTPErrMsg ()        
+                        !call PrintTPErrMsg ()
                         !!call PrintStdLogMsg ( trim ( TPErrMsg ) )
                         !call Error ( 'TPMSTInt1', 'H < 0' )
-                        !!return 
+                        !!return
                 end if
                 S = signum ( X )
                 XA = dabs ( X )
@@ -1126,7 +1126,7 @@ contains !**********************************************************************
                         j  = 1
                         XXX = 0.0d+00
                         XXXX = 0.0d+00
-                        !call PrintTPErrMsg ()        
+                        !call PrintTPErrMsg ()
                         !write ( TPErrMsg, '(a,e20.10,a,e20.10,a,e20.10)' ) 'X < XMin, X=', XA, ', XMin=', XMin, ', H=', H
                         !call Error ( 'TPMSTInt', TPErrMsg )
                 else if ( XXX .ge. 1.0d+00 ) then
@@ -1134,19 +1134,19 @@ contains !**********************************************************************
                         XXX = 1.0d+00
                         XXXX = 1.0d+00
                 else
-                        XXXX = XXX 
+                        XXXX = XXX
                         j = 1 + int ( XXXX * TPMNX1 )
                 end if
-                G = S * CalcLinFun2_0 ( i, j, H, XXXX, TPMNH, TPMNX, TPMSTH, TPMSTX, TPMSTG ) 
+                G = S * CalcLinFun2_0 ( i, j, H, XXXX, TPMNH, TPMNX, TPMSTH, TPMSTX, TPMSTG )
                 call CalcSpline2_1 ( F, Fh, Fx, i, j, H, XXXX, TPMNH, TPMNX, TPMSTH, TPMSTX, &
-                        TPMSTF, TPMSTFxx, TPMSTFyy, TPMSTFxxyy ) 
+                        TPMSTF, TPMSTFxx, TPMSTFyy, TPMSTFxxyy )
                 Fx = Fx / DX
                 Fh = Fh - Fx * ( dXMaxdH * XXX + dXMindH * ( 1.0d+00 - XXX ) )
                 F = F * S
                 Fh = Fh * S
                 TPMSTInt1 = 1
         end function TPMSTInt1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
         integer(c_int) function TPMSTPotential ( Q, U, X1, X2, H, cosA, CaseID ) !!!!!!!!!!!!!!!!!!!
         real(c_double), intent(out)     :: Q, U
         real(c_double), intent(in)      :: X1, X2, H, cosA
@@ -1157,7 +1157,7 @@ contains !**********************************************************************
                 if ( CaseID == MD_LINES_PAR ) then
                         TPMSTPotential = TPMSTPInt0 ( Q, U, H )
                         U = U * ( X2 - X1 )
-                        return 
+                        return
                 end if
                 TPMSTPotential = 0
                 sinA = dsqrt ( 1.0d+00 - cosA * cosA )
@@ -1192,12 +1192,12 @@ contains !**********************************************************************
                         F2(2) = - U
                         Q     = Q * DX
                         U     = U * DX
-                        return 
+                        return
                 end if
 
                 sinA = dsqrt ( 1.0d+00 - cosA * cosA )
                 call TPMCa1 ( Ca, CaA, Ka, KaA, cosA, sinA )
-                IntSign1 = TPMSTInt1  ( GG1, FF1, Fh1, Fx1, H, X1 * Ca )               
+                IntSign1 = TPMSTInt1  ( GG1, FF1, Fh1, Fx1, H, X1 * Ca )
                 IntSign2 = TPMSTInt1  ( GG2, FF2, Fh2, Fx2, H, X2 * Ca )
                 if ( ( IntSign1 .ne. 1 ) .and. ( IntSign2 .ne. 1 ) ) then
                         Q = 0.0d+00
@@ -1205,11 +1205,11 @@ contains !**********************************************************************
                         F1 = 0.0d+00
                         F2 = 0.0d+00
                         TPMSTForces = 0
-                        return 
+                        return
                 end if
-                
+
                 call TPMCu1 ( Cu, CuH, CuA, H, cosA, sinA )
-                
+
                 Q = Cu * ( GG2 - GG1 ) / Ca
                 U = Cu * ( FF2 - FF1 ) / Ca
 
@@ -1218,19 +1218,19 @@ contains !**********************************************************************
                 D = CuH * U / Cu + Cu * ( Fh2 - Fh1 ) / Ca
                 F1(0) = ( X2 * D - C ) / DX
                 F2(0) = ( C - X1 * D ) / DX
-                
+
                 C = cosA * B
                 D = ( CuA / Cu - CaA / Ca ) * U + CaA * Cu * ( X2 * Fx2 - X1 * Fx1 ) / Ca
                 F1(1) = ( D - X2 * C ) / DX
                 F2(1) = ( X1 * C - D ) / DX
-                
+
                 F1(2) = Cu * Fx1
                 F2(2) = - Cu * Fx2
-                
+
                 TPMSTForces = 1
         end function TPMSTForces !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        integer(c_int) function TPMSTForceTorque( Qi, Ui, Fi, Ti, Q, U, F, T, Psi, PsiA, Cap, L, H, cosA, CaseID ) 
+        integer(c_int) function TPMSTForceTorque( Qi, Ui, Fi, Ti, Q, U, F, T, Psi, PsiA, Cap, L, H, cosA, CaseID )
         real(c_double), intent(out)                     :: Qi, Ui, Fi, Ti, Q, U, F, T, Psi, PsiA, Cap
         real(c_double), intent(in)                      :: L, H, cosA
         integer(c_int), intent(in)                      :: CaseID
@@ -1254,14 +1254,14 @@ contains !**********************************************************************
                         Psi = 0.0d+00
                         PsiA = 0.0d+00
                         Cap = 0.0d+00
-                        return 
+                        return
                 end if
-                
+
                 L2 = 0.5d+00 * L
                 sinA = dsqrt ( 1.0d+00 - cosA * cosA )
                 call TPMCa1 ( Ca, CaA, Ka, KaA, cosA, sinA )
-                IntSign = TPMSTInt1  ( GG, FF, Fh, Fx, H, L2 * Ca )               
-                IntSign = TPMSTInt1  ( GGi, FFi, Fhi, Fxi, H, TPMSTXmax )               
+                IntSign = TPMSTInt1  ( GG, FF, Fh, Fx, H, L2 * Ca )
+                IntSign = TPMSTInt1  ( GGi, FFi, Fhi, Fxi, H, TPMSTXmax )
                 if ( IntSign .ne. 1 ) then
                         Qi = 0.0d+00
                         Ui = 0.0d+00
@@ -1275,11 +1275,11 @@ contains !**********************************************************************
                         PsiA = 0.0d+00
                         Cap  = 0.0d+00
                         TPMSTForceTorque = 0
-                        return 
+                        return
                 end if
-                
+
                 call TPMCu1 ( Cu, CuH, CuA, H, cosA, sinA )
-                
+
                 Psi = Cu / Ca
                 PsiA = ( CuA * Ca - Cu * CaA ) / Ca / Ca
                 Cap = CuA / Cu - KaA / Ka - cosA / sinA
@@ -1287,16 +1287,16 @@ contains !**********************************************************************
                 Ui = 2.0d+00 * Psi * FFi
                 Fi = - 2.0d+00 * ( CuH * FFi / Ca + Psi * Fhi )
                 Ti = - Cap * Ui
-                
+
                 Q = 2.0d+00 * Cu * GG / Ca
                 U = 2.0d+00 * Cu * FF / Ca
                 F = - 2.0d+00 * ( CuH * FF / Ca + Psi * Fh )
                 T = - 2.0d+00 * ( ( CuA * Ka - Cu * KaA ) / ( Ka * Ka * sinA ) - Cu * cosA / ( Ka * sinA * sinA ) ) * FF &
                     - 2.0d+00 * Cu / ( Ka * sinA ) * Fx * L2 * ( KaA * sinA + Ka * cosA )
-                
+
                 TPMSTForceTorque = 1
         end function TPMSTForceTorque !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
         subroutine TPMSTInit () !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         real(c_double)                          :: X, Q, U, DX, DDX, XMin, XMax
         integer(c_int)                          :: i, j, k
@@ -1307,7 +1307,7 @@ contains !**********************************************************************
                 TPMSTDH12 = TPMSTH2 - TPMSTH1
                 TPMSTXmax = TPMHMax + TPMSTDelta
                 DX = 1.0 / TPMNX1
-                do j = 0, TPMNX1  
+                do j = 0, TPMNX1
                         TPMSTX(j) = DX * j
                 end do
                 do i = 0, TPMNH1
@@ -1323,7 +1323,7 @@ contains !**********************************************************************
                         TPMSTF(i,0) = 0.0d+00
                         TPMSTFyy(i,0) = U
                         TPMSTFyy(i,TPMNX1) = 0.0d+00
-                        do j = 1, TPMNX1  
+                        do j = 1, TPMNX1
                                 TPMSTG(i,j) = TPMSTG(i,j-1)
                                 TPMSTF(i,j) = TPMSTF(i,j-1)
                                 do k = 0, TPMSTNXS - 1
@@ -1334,18 +1334,18 @@ contains !**********************************************************************
                         end do
                 end do
                 call CreateSpline2 ( 3, 3, 3, 3, TPMNH, TPMNX, TPMNMAX, TPMSTH, TPMSTX, TPMSTF, TPMSTFxx, &
-                        TPMSTFyy, TPMSTFxxyy, FF, MM, DD, K0, K1, K2 )                
+                        TPMSTFyy, TPMSTFxxyy, FF, MM, DD, K0, K1, K2 )
         end subroutine TPMSTInit !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !---------------------------------------------------------------------------------------------------
-! Interaction functions: They can be used for calculation of the potential and forces between a 
+! Interaction functions: They can be used for calculation of the potential and forces between a
 ! segment and an  infinite or semi-infinite nanotube.
 !---------------------------------------------------------------------------------------------------
 
         subroutine TPMSegmentForces ( F2_1, F2_2, F1_1, F1_2, R1_1, R1_2, R2, Laxis2, L2 ) !!!!!!!!!
         real(c_double), dimension(0:2), intent(out)     :: F2_1, F2_2
         real(c_double), dimension(0:2), intent(in)      :: F1_1, F1_2, R1_1, R1_2, R2, Laxis2
-        real(c_double), intent(in)                      :: L2 
+        real(c_double), intent(in)                      :: L2
         !-------------------------------------------------------------------------------------------
         real(c_double), dimension(0:2)                  :: F, M, RR
         !-------------------------------------------------------------------------------------------
@@ -1389,11 +1389,11 @@ contains !**********************************************************************
                 L2 = S_V3norm3 ( Laxis2 )
                 Laxis1 = Laxis1 / L1
                 Laxis2 = Laxis2 / L2
-                L1 = 0.5d+00 * L1 
+                L1 = 0.5d+00 * L1
                 L2 = 0.5d+00 * L2
                 if ( SType2 == 2 ) Laxis2 = - Laxis2
                 GeomID = LineLine ( H, cosA, D1, D2, L12, R1, Laxis1, R2, Laxis2, TPGeomPrec )
-                
+
                 ! Angle switch
                 if ( TPMASwitch == 0 ) then
                         if ( GeomID == MD_LINES_PAR ) then
@@ -1414,7 +1414,7 @@ contains !**********************************************************************
                                 SwitchID = 1
                         end if
                 end if
-                
+
                 if ( SwitchID < 2 ) then
                         D2 = D2 - L2
                         if ( SType2 == 0 ) then
@@ -1429,14 +1429,14 @@ contains !**********************************************************************
                         Ly = Ly * S
                         if ( IntSigna > 0 ) then
                                 F1_1a = F1(0) * L12 + F1(1) * Ly + F1(2) * Laxis1
-                                F1_2a = F2(0) * L12 + F2(1) * Ly + F2(2) * Laxis1 
+                                F1_2a = F2(0) * L12 + F2(1) * Ly + F2(2) * Laxis1
                         else
                                 F1_1a = 0.0d+00
                                 F1_2a = 0.0d+00
                         end if
                 end if
-                
-                if ( SwitchID > 0 ) then 
+
+                if ( SwitchID > 0 ) then
                         if ( SType2 == 0 ) then
                                 call LinePoint ( H, L12, R2, Laxis2, R1 )
                                 L12 = L12 - R1
@@ -1451,7 +1451,7 @@ contains !**********************************************************************
                                         else
                                                 L12 = L12 / H
                                                 F1_1b = F1(0) * L12 + F1(2) * Laxis1
-                                                F1_2b = F2(0) * L12 + F2(2) * Laxis1 
+                                                F1_2b = F2(0) * L12 + F2(2) * Laxis1
                                         end if
                                 else
                                         F1_1b = 0.0d+00
@@ -1480,7 +1480,7 @@ contains !**********************************************************************
                         F1_2 = F1_2b
                         Fd   = Fdb
                         TPMInteractionF = IntSignb
-                else 
+                else
                         W1   = 1.0d+00 - W
                         Q    = W * Qa + W1 * Qb
                         U    = W * Ua + W1 * Ub
@@ -1490,7 +1490,7 @@ contains !**********************************************************************
                         Fd   = W * Fda + W1 * Fdb
                         TPMInteractionF = 0
                         if ( IntSigna > 0 .or. IntSignb > 0 ) TPMInteractionF = 1
-                end if      
+                end if
 
                 ! Calculation of forces for the complimentary tube
                 if ( SType2 == 2 ) Laxis2 = - Laxis2
@@ -1510,7 +1510,7 @@ contains !**********************************************************************
                         F2_1 = F2_1 - DR
                 end if
         end function TPMInteractionF !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
         integer(c_int) function TPMInteractionU ( Q, U, R1_1, R1_2, R2_1, R2_2, SType2 ) !!!!!!!!!!!
         real(c_double), intent(inout)                   :: Q, U
         real(c_double), dimension(0:2), intent(in)      :: R1_1, R1_2, R2_1, R2_2
@@ -1560,7 +1560,7 @@ contains !**********************************************************************
                                 IntSigna = TPMSSTPotential  ( Qa, Ua, D1 - L1, D1 + L1, H, cosA, D2 - L2, TPMNN )
                         end if
                 end if
-                
+
                 if ( SwitchID > 0 ) then
                         if ( Stype2 == 0 ) then
                                 call LinePoint ( H, L12, R2, Laxis2, R1 )
@@ -1573,7 +1573,7 @@ contains !**********************************************************************
                                 IntSignb = TPMSSTPotentialPar ( Qb, Ub, R1_1, Laxis1, R2_2, Laxis2, 2.0d+00 * L1, TPMNN )
                         end if
                 end if
-                
+
                 if ( SwitchID == 0 ) then
                         Q = Qa
                         U = Ua
@@ -1612,14 +1612,14 @@ contains !**********************************************************************
                 D2 = 2.0d+00 * Delta
                 do i = 0, 2
                         DD = - Delta
-                        do j = 0 , 1  
-                                RR = R1_1 
+                        do j = 0 , 1
+                                RR = R1_1
                                 RR(i) = RR(i) + DD
                                 IntSign = TPMInteractionU ( QQ, U1_1(j,i), RR, R1_2, R2_1, R2_2, SType2 )
-                                RR = R1_2 
+                                RR = R1_2
                                 RR(i) = RR(i) + DD
                                 IntSign = TPMInteractionU ( QQ, U1_2(j,i), R1_1, RR, R2_1, R2_2, SType2 )
-                                RR = R2_1 
+                                RR = R2_1
                                 RR(i) = RR(i) + DD;
                                 IntSign = TPMInteractionU ( QQ, U2_1(j,i), R1_1, R1_2, RR, R2_2, SType2 )
                                 RR = R2_2
@@ -1635,7 +1635,7 @@ contains !**********************************************************************
                         F2_2(i) = ( U2_2(0,i) - U2_2(1,i) ) / D2
                 end do
         end function TPMInteractionFNum !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
 !---------------------------------------------------------------------------------------------------
 ! Initialization
 !---------------------------------------------------------------------------------------------------
@@ -1643,10 +1643,10 @@ contains !**********************************************************************
         subroutine TPMInit ( ChiIndM, ChiIndN ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         integer(c_int), intent(in)      :: ChiIndM, ChiIndN
         real(c_double)                  :: RT, DX
-        character*512                   :: PDate
+        character(len=512)              :: PDate
         !-------------------------------------------------------------------------------------------
                 TPPotType = TP_POT_MONO_R
-        
+
                 ! Here we calculate the radius of nanotubes
                 RT = TPBAcc * sqrt ( 3.0d+00 * ( ChiIndM * ChiIndM + ChiIndN * ChiIndN + ChiIndM * ChiIndN ) ) / M_2PI
 
@@ -1661,7 +1661,7 @@ contains !**********************************************************************
 
                 TPMHmax = TPMR1 + TPMR2 + TPBRcutoff
                 TPMDH   = TPMHmax / TPMNH1
-                
+
                 ! Parameters of the angle switch
                 TPMASMin = sqr ( cos ( rad ( TPMAS ) ) )
                 TPMASMax = 1.0d+00 - TPGeomPrec
@@ -1669,30 +1669,29 @@ contains !**********************************************************************
 
                 if ( TPMStartMode == 1 ) then
                         TPMUnitID = OpenFile ( TPMFile, 'rt', '' )
-                        read ( unit = TPMUnitID, fmt = '()' ) 
-                        read ( unit = TPMUnitID, fmt = '()' ) 
-                        read ( unit = TPMUnitID, fmt = '()' ) 
+                        read ( unit = TPMUnitID, fmt = '()' )
+                        read ( unit = TPMUnitID, fmt = '()' )
+                        read ( unit = TPMUnitID, fmt = '()' )
                 else
                         TPMUnitID = OpenFile ( TPMFile, 'wt', '' )
-                        call fdate( PDate )
-                        write ( unit = TPMUnitID, fmt = '(a,a)' ) 'DATE ', PDate 
+                        write ( unit = TPMUnitID, fmt = '(a,a)' ) 'DATE (unknown)'
                         write ( unit = TPMUnitID, fmt = '(a,i3,a,i3,a)' ) &
                               'Tabulated data of the tubular potential for (', ChiIndM, ',', ChiIndN, ') CNTs'
                         write ( unit = TPMUnitID, fmt = '(a)' ) &
                               'A. N. Volkov, L. V. Zhigilei, J. Phys. Chem. C 114, 5513-5531, 2010. doi: 10.1021/jp906142h'
                 end if
-                
+
                 call TPMSSTPInit ()
-                
+
                 call TPMSTPInit ()
-                
+
                 DX = TPMR1 + TPMR2 + TPBRcutoff
-                call TPMAInit ( - DX, DX, - DX, DX )                
-                
+                call TPMAInit ( - DX, DX, - DX, DX )
+
                 call TPMSTInit ()
 
                 call CloseFile ( TPMUnitID )
-                
+
         end subroutine TPMInit !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
 end module TubePotMono !****************************************************************************

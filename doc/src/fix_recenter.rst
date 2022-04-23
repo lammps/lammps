@@ -58,7 +58,7 @@ example, the COM could be computed on a protein to keep it in the
 center of the simulation box.  But the entire system (protein + water)
 could be shifted.
 
-If the *units* keyword is set to *box*\ , then the distance units of
+If the *units* keyword is set to *box*, then the distance units of
 x,y,z are defined by the :doc:`units <units>` command - e.g. Angstroms
 for *real* units.  A *lattice* value means the distance units are in
 lattice spacings.  The :doc:`lattice <lattice>` command must have been

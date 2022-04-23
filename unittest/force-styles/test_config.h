@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,7 +14,9 @@
 #ifndef TEST_CONFIG_H
 #define TEST_CONFIG_H
 
+#include <set>
 #include <string>
+#include <sstream>
 #include <utility>
 #include <vector>
 
@@ -32,9 +34,11 @@ public:
     std::string date_generated;
     std::string basename;
     double epsilon;
+    std::set<std::string> skip_tests;
     std::vector<std::pair<std::string, std::string>> prerequisites;
     std::vector<std::string> pre_commands;
     std::vector<std::string> post_commands;
+    std::vector<std::string> tags;
     std::string input_file;
     std::string pair_style;
     std::string bond_style;
@@ -74,6 +78,7 @@ public:
         init_vdwl(0), run_vdwl(0), init_coul(0), run_coul(0), init_stress({0, 0, 0, 0, 0, 0}),
         run_stress({0, 0, 0, 0, 0, 0}), global_scalar(0)
     {
+        skip_tests.clear();
         prerequisites.clear();
         pre_commands.clear();
         post_commands.clear();
@@ -92,6 +97,19 @@ public:
         global_vector.clear();
     }
     virtual ~TestConfig(){};
+
+    std::string tags_line() const
+    {
+      if(tags.size() > 0) {
+          std::stringstream line;
+          line << tags[0];
+          for(size_t i = 1; i < tags.size(); i++) {
+            line << ", " << tags[i];
+          }
+          return line.str();
+      }
+      return "generated";
+    }
 
 private:
     TestConfig(const TestConfig &){};

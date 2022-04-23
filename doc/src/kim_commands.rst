@@ -372,9 +372,9 @@ the *kim interactions* command executes the following LAMMPS input commands:
 
 .. code-block:: LAMMPS
 
-   pair_style reax/c lmp_control safezone 2.0 mincap 100
+   pair_style reaxff lmp_control safezone 2.0 mincap 100
    pair_coeff * * ffield.reax.rdx C H N O
-   fix reaxqeq all qeq/reax 1 0.0 10.0 1.0e-6 param.qeq
+   fix reaxqeq all qeq/reaxff 1 0.0 10.0 1.0e-6 param.qeq
 
 .. note::
 
@@ -476,7 +476,7 @@ performed.
 The second required argument *query_function* is the name of the query function
 to be called (e.g.  *get_lattice_constant_cubic*\ ).  All following
 :doc:`arguments <Commands_parse>` are parameters handed over to the web query in
-the format *keyword=value*\ , where *value* is always an array of one or more
+the format *keyword=value*, where *value* is always an array of one or more
 comma-separated items in brackets.  The list of supported keywords and the type
 and format of their values depend on the query function used.  The current list
 of query functions is available on the OpenKIM webpage at
@@ -1205,7 +1205,7 @@ coordinates of atoms in the unit cell of the cubic crystal.  In the case of,
 e.g. a conventional fcc unit cell, the "source-value" key in the map associated
 with this key should be assigned the following value:
 
-.. code-block:: LAMMPS
+.. code-block:: text
 
    [[0.0, 0.0, 0.0],
     [0.5, 0.5, 0.0],

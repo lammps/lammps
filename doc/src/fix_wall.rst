@@ -103,7 +103,7 @@ wall that interacts with the atoms in the group by generating a force
 on the atom in a direction perpendicular to the wall.  The energy of
 wall-particle interactions depends on the style.
 
-For style *wall/lj93*\ , the energy E is given by the 9/3 potential:
+For style *wall/lj93*, the energy E is given by the 9/3 potential:
 
 .. math::
 
@@ -111,7 +111,7 @@ For style *wall/lj93*\ , the energy E is given by the 9/3 potential:
                        \left(\frac{\sigma}{r}\right)^3 \right]
                        \qquad r < r_c
 
-For style *wall/lj126*\ , the energy E is given by the 12/6 potential:
+For style *wall/lj126*, the energy E is given by the 12/6 potential:
 
 .. math::
 
@@ -119,7 +119,7 @@ For style *wall/lj126*\ , the energy E is given by the 12/6 potential:
                        \left(\frac{\sigma}{r}\right)^6 \right]
                        \qquad r < r_c
 
-For style *wall/lj1043*\ , the energy E is given by the 10/4/3 potential:
+For style *wall/lj1043*, the energy E is given by the 10/4/3 potential:
 
 .. math::
 
@@ -128,7 +128,7 @@ For style *wall/lj1043*\ , the energy E is given by the 10/4/3 potential:
                        \frac{\sqrt(2)\sigma^3}{3\left(r+\left(0.61/\sqrt(2)\right)\sigma\right)^3}\right]
                        \qquad r < r_c
 
-For style *wall/colloid*\ , the energy E is given by an integrated form
+For style *wall/colloid*, the energy E is given by an integrated form
 of the :doc:`pair_style colloid <pair_colloid>` potential:
 
 .. math::
@@ -138,14 +138,14 @@ of the :doc:`pair_style colloid <pair_colloid>` potential:
     & \left. - \frac{1}{6} \left(\frac{2R(D+R) + D(D+2R)
     \left[ \ln D - \ln (D+2R) \right]}{D(D+2R)} \right) \right] \qquad r < r_c
 
-For style *wall/harmonic*\ , the energy E is given by a harmonic spring
+For style *wall/harmonic*, the energy E is given by a harmonic spring
 potential:
 
 .. math::
 
  E = \epsilon \quad (r - r_c)^2 \qquad r < r_c
 
-For style *wall/morse*\ , the energy E is given by a Morse potential:
+For style *wall/morse*, the energy E is given by a Morse potential:
 
 .. math::
 
@@ -153,13 +153,13 @@ For style *wall/morse*\ , the energy E is given by a Morse potential:
        \qquad r < r_c
 
 In all cases, *r* is the distance from the particle to the wall at
-position *coord*\ , and :math:`r_c` is the *cutoff* distance at which the
+position *coord*, and :math:`r_c` is the *cutoff* distance at which the
 particle and wall no longer interact.  The energy of the wall
 potential is shifted so that the wall-particle interaction energy is
 0.0 at the cutoff distance.
 
-Up to 6 walls or faces can be specified in a single command: *xlo*\ ,
-*xhi*\ , *ylo*\ , *yhi*\ , *zlo*\ , *zhi*\ .  A *lo* face interacts with
+Up to 6 walls or faces can be specified in a single command: *xlo*,
+*xhi*, *ylo*, *yhi*, *zlo*, *zhi*\ .  A *lo* face interacts with
 particles near the lower side of the simulation box in that dimension.
 A *hi* face interacts with particles near the upper side of the
 simulation box in that dimension.
@@ -267,13 +267,13 @@ The *fld* keyword can be used with a *yes* setting to invoke the wall
 constraint before pairwise interactions are computed.  This allows an
 implicit FLD model using :doc:`pair_style lubricateU <pair_lubricateU>`
 to include the wall force in its calculations.  If the setting is
-*no*\ , wall forces are imposed after pairwise interactions, in the
+*no*, wall forces are imposed after pairwise interactions, in the
 usual manner.
 
 The *pbc* keyword can be used with a *yes* setting to allow walls to
 be specified in a periodic dimension.  See the
 :doc:`boundary <boundary>` command for options on simulation box
-boundaries.  The default for *pbc* is *no*\ , which means the system
+boundaries.  The default for *pbc* is *no*, which means the system
 must be non-periodic when using a wall.  But you may wish to use a
 periodic box.  E.g. to allow some particles to interact with the wall
 via the fix group-ID, and others to pass through it and wrap around a
@@ -306,7 +306,7 @@ sigma) could be varied with additional variable definitions.
 
 The *ramp(lo,hi)* function adjusts the wall position linearly from *lo* to
 *hi* over the course of a run.  The *vdisplace(c0,velocity)* function does
-something similar using the equation *position = c0 + velocity\*delta*\ ,
+something similar using the equation *position = c0 + velocity\*delta*,
 where *delta* is the elapsed time.
 
 The *swiggle(c0,A,period)* function causes the wall position to

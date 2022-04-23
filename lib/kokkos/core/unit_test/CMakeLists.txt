@@ -17,9 +17,8 @@ KOKKOS_ADD_TEST_LIBRARY(
 TARGET_COMPILE_DEFINITIONS(kokkos_gtest PUBLIC GTEST_HAS_TR1_TUPLE=0 GTEST_HAS_PTHREAD=0)
 
 TARGET_INCLUDE_DIRECTORIES(kokkos_gtest PUBLIC ${GTEST_SOURCE_DIR})
-#Gtest minimally requires C++11
 IF((NOT (Kokkos_ENABLE_CUDA AND WIN32)) AND (NOT ("${KOKKOS_CXX_COMPILER_ID}" STREQUAL "Fujitsu")))
-TARGET_COMPILE_FEATURES(kokkos_gtest PUBLIC cxx_std_11)
+  TARGET_COMPILE_FEATURES(kokkos_gtest PUBLIC cxx_std_14)
 ENDIF()
 
 # Suppress clang-tidy diagnostics on code that we do not have control over
@@ -40,11 +39,18 @@ SET(KOKKOS_HPX_FEATURE_LEVEL 999)
 SET(KOKKOS_HPX_NAME Experimental::HPX)
 SET(KOKKOS_OPENMP_FEATURE_LEVEL 999)
 SET(KOKKOS_OPENMP_NAME OpenMP)
-SET(KOKKOS_OPENMPTARGET_FEATURE_LEVEL 12)
+
+# FIXME_OPENMPTARGET - The NVIDIA HPC compiler nvc++ only compiles the first 8 incremental tests for the OpenMPTarget backend.
+IF(KOKKOS_CXX_COMPILER_ID STREQUAL NVHPC)
+  SET(KOKKOS_OPENMPTARGET_FEATURE_LEVEL 10)
+ELSE()
+  SET(KOKKOS_OPENMPTARGET_FEATURE_LEVEL 14)
+ENDIF()
+
 SET(KOKKOS_OPENMPTARGET_NAME Experimental::OpenMPTarget)
 SET(KOKKOS_SERIAL_FEATURE_LEVEL 999)
 SET(KOKKOS_SERIAL_NAME Serial)
-SET(KOKKOS_SYCL_FEATURE_LEVEL 5)
+SET(KOKKOS_SYCL_FEATURE_LEVEL 999)
 SET(KOKKOS_SYCL_NAME Experimental::SYCL)
 SET(KOKKOS_THREADS_FEATURE_LEVEL 999)
 SET(KOKKOS_THREADS_NAME Threads)
@@ -57,6 +63,22 @@ SET(KOKKOS_THREADS_NAME Threads)
 #I will leave these alone for now because I don't need transitive dependencies on tests
 KOKKOS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 KOKKOS_INCLUDE_DIRECTORIES(REQUIRED_DURING_INSTALLATION_TESTING ${CMAKE_CURRENT_SOURCE_DIR})
+KOKKOS_INCLUDE_DIRECTORIES(${KOKKOS_SOURCE_DIR}/core/unit_test/category_files)
+
+SET(COMPILE_ONLY_SOURCES
+  TestDetectionIdiom.cpp
+  TestInterOp.cpp
+  TestTypeList.cpp
+)
+# TestInterOp has a dependency on containers
+IF(KOKKOS_HAS_TRILINOS)
+  LIST(REMOVE_ITEM COMPILE_ONLY_SOURCES TestInterOp.cpp)
+ENDIF()
+KOKKOS_ADD_EXECUTABLE(
+  TestCompileOnly
+  SOURCES
+  ${COMPILE_ONLY_SOURCES}
+)
 
 foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenMPTarget;HIP;SYCL)
   # Because there is always an exception to the rule
@@ -73,7 +95,7 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenMPTarget;HIP;SYCL)
     # Needed to split this for Windows NVCC, since it ends up putting everything on the
     # command line in an intermediate compilation step even if CMake generated a response
     # file. That then exceeded the shell command line max length.
-    set(${Tag}_SOURCES1)
+    set(${Tag}_SOURCES1A)
     foreach(Name
         AtomicOperations_int
         AtomicOperations_unsignedint
@@ -91,15 +113,37 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenMPTarget;HIP;SYCL)
         Complex
         Crs
         DeepCopyAlignment
+        ExecutionSpace
         FunctorAnalysis
         Init
         LocalDeepCopy
+        MathematicalFunctions
         MDRange_a
         MDRange_b
         MDRange_c
+        HostSharedPtr
+        HostSharedPtrAccessOnDevice
+        QuadPrecisionMath
+        ExecSpacePartitioning
+        MathematicalSpecialFunctions
+        )
+      set(file ${dir}/Test${Tag}_${Name}.cpp)
+      # Write to a temporary intermediate file and call configure_file to avoid
+      # updating timestamps triggering unnecessary rebuilds on subsequent cmake runs.
+      file(WRITE ${dir}/dummy.cpp
+          "#include <Test${Tag}_Category.hpp>\n"
+          "#include <Test${Name}.hpp>\n"
+      )
+      configure_file(${dir}/dummy.cpp ${file})
+      list(APPEND ${Tag}_SOURCES1A ${file})
+    endforeach()
+
+    set(${Tag}_SOURCES1B)
+    foreach(Name
         MDRange_d
         MDRange_e
         MDRange_f
+        NumericTraits
         Other
         RangePolicy
         RangePolicyRequire
@@ -121,10 +165,10 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenMPTarget;HIP;SYCL)
           "#include <Test${Name}.hpp>\n"
       )
       configure_file(${dir}/dummy.cpp ${file})
-      list(APPEND ${Tag}_SOURCES1 ${file})
+      list(APPEND ${Tag}_SOURCES1B ${file})
     endforeach()
 
-    SET(${Tag}_SOURCES2)
+    SET(${Tag}_SOURCES2A)
     foreach(Name
       TeamBasic
       TeamReductionScan
@@ -144,9 +188,9 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenMPTarget;HIP;SYCL)
       ViewMapping_b
       ViewMapping_subview
       ViewOfClass
-      WorkGraph
-      View_64bit
       ViewResize
+      View_64bit
+      WorkGraph
       )
       set(file ${dir}/Test${Tag}_${Name}.cpp)
       # Write to a temporary intermediate file and call configure_file to avoid
@@ -156,7 +200,7 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenMPTarget;HIP;SYCL)
           "#include <Test${Name}.hpp>\n"
       )
       configure_file(${dir}/dummy.cpp ${file})
-      list(APPEND ${Tag}_SOURCES2 ${file})
+      list(APPEND ${Tag}_SOURCES2A ${file})
     endforeach()
 
     set(TagHostAccessible ${Tag})
@@ -164,7 +208,11 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenMPTarget;HIP;SYCL)
       set(TagHostAccessible CudaUVM)
     elseif(Tag STREQUAL "HIP")
       set(TagHostAccessible HIPHostPinned)
+    elseif(Tag STREQUAL "SYCL")
+      set(TagHostAccessible SYCLSharedUSM)
     endif()
+
+    set(${Tag}_SOURCES2B)
     foreach(Name
       SubView_a
       SubView_b
@@ -173,27 +221,95 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenMPTarget;HIP;SYCL)
       SubView_c03
       SubView_c04
       SubView_c05
-      SubView_c06
-      SubView_c07
-      SubView_c08
-      SubView_c09
-      SubView_c10
-      SubView_c11
-      SubView_c12
-      SubView_c13
       )
       set(file ${dir}/Test${Tag}_${Name}.cpp)
       # Write to a temporary intermediate file and call configure_file to avoid
       # updating timestamps triggering unnecessary rebuilds on subsequent cmake runs.
       file(WRITE ${dir}/dummy.cpp
-	  "#include <Test${TagHostAccessible}_Category.hpp>\n"
+          "#include <Test${TagHostAccessible}_Category.hpp>\n"
           "#include <Test${Name}.hpp>\n"
       )
       configure_file(${dir}/dummy.cpp ${file})
-      list(APPEND ${Tag}_SOURCES2 ${file})
+      list(APPEND ${Tag}_SOURCES2B ${file})
     endforeach()
 
+    set(${Tag}_SOURCES2C)
+    foreach(Name
+      SubView_c06
+      SubView_c07
+      SubView_c08
+      SubView_c09
+      )
+      set(file ${dir}/Test${Tag}_${Name}.cpp)
+      # Write to a temporary intermediate file and call configure_file to avoid
+      # updating timestamps triggering unnecessary rebuilds on subsequent cmake runs.
+      file(WRITE ${dir}/dummy.cpp
+          "#include <Test${TagHostAccessible}_Category.hpp>\n"
+          "#include <Test${Name}.hpp>\n"
+      )
+      configure_file(${dir}/dummy.cpp ${file})
+      list(APPEND ${Tag}_SOURCES2C ${file})
+    endforeach()
+
+    set(${Tag}_SOURCES2D)
+    foreach(Name
+      SubView_c10
+      SubView_c11
+      SubView_c12
+      SubView_c13
+      SubView_c14
+      )
+      set(file ${dir}/Test${Tag}_${Name}.cpp)
+      # Write to a temporary intermediate file and call configure_file to avoid
+      # updating timestamps triggering unnecessary rebuilds on subsequent cmake runs.
+      file(WRITE ${dir}/dummy.cpp
+          "#include <Test${TagHostAccessible}_Category.hpp>\n"
+          "#include <Test${Name}.hpp>\n"
+      )
+      configure_file(${dir}/dummy.cpp ${file})
+      list(APPEND ${Tag}_SOURCES2D ${file})
+    endforeach()
+
+    SET(${Tag}_SOURCES1 ${${Tag}_SOURCES1A} ${${Tag}_SOURCES1B})
+    SET(${Tag}_SOURCES2 ${${Tag}_SOURCES2A} ${${Tag}_SOURCES2B} ${${Tag}_SOURCES2C} ${${Tag}_SOURCES2D})
     SET(${Tag}_SOURCES ${${Tag}_SOURCES1} ${${Tag}_SOURCES2})
+  endif()
+endforeach()
+
+foreach(PairDeviceSpace HIP-HostPinned;Cuda-HostPinned;Cuda-UVM;SYCL-HostUSM;SYCL-SharedUSM)
+  string(REGEX REPLACE "([^-]*)-(.*)" "\\1" DEVICE ${PairDeviceSpace})
+  string(REGEX REPLACE "([^-]*)-(.*)" "\\2" SPACE ${PairDeviceSpace})
+
+  string(TOUPPER ${DEVICE} UPPER_DEVICE)
+  string(TOLOWER ${DEVICE} dir)
+
+  if(Kokkos_ENABLE_${UPPER_DEVICE})
+    set(dir ${CMAKE_CURRENT_BINARY_DIR}/${dir})
+    file(MAKE_DIRECTORY ${dir})
+    foreach(Name
+      SharedAlloc
+      ViewAPI_a
+      ViewAPI_b
+      ViewAPI_c
+      ViewAPI_d
+      ViewAPI_e
+      ViewCopy_a
+      ViewCopy_b
+      ViewMapping_a
+      ViewMapping_b
+      ViewMapping_subview
+      )
+      set(file ${dir}/Test${DEVICE}${SPACE}_${Name}.cpp)
+      # Write to a temporary intermediate file and call configure_file to avoid
+      # updating timestamps triggering unnecessary rebuilds on subsequent cmake runs.
+      file(WRITE ${dir}/dummy.cpp
+          "#include <Test${DEVICE}${SPACE}_Category.hpp>\n"
+          "#include <Test${Name}.hpp>\n"
+      )
+      configure_file(${dir}/dummy.cpp ${file})
+      list(APPEND ${DEVICE}_SOURCES3 ${file})
+    endforeach()
+    list(APPEND ${DEVICE}_SOURCES ${${DEVICE}_SOURCES3})
   endif()
 endforeach()
 
@@ -203,29 +319,86 @@ if(Kokkos_ENABLE_OPENMPTARGET)
     ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_AtomicOperations_complexdouble.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_Crs.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_LocalDeepCopy.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_MDRange_a.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_MDRange_b.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_MDRange_c.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_MDRange_d.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_MDRange_e.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_MDRange_f.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_Other.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_Reductions_DeviceView.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_Scan.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_TeamBasic.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_TeamScratch.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_TeamReductionScan.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_TeamTeamSize.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_TeamScan.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_TeamVectorRange.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_UniqueToken.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_ViewAPI_e.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_ViewCopy_a.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_ViewCopy_b.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_ViewMapping_subview.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_ViewOfClass.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_WorkGraph.cpp
-  )
+    )
+endif()
+
+# FIXME_OPENMPTARGET - Comment non-passing tests with the NVIDIA HPC compiler nvc++
+IF(KOKKOS_ENABLE_OPENMPTARGET AND KOKKOS_CXX_COMPILER_ID STREQUAL NVHPC)
+  list(REMOVE_ITEM OpenMPTarget_SOURCES
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_int64_t_reduce.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_int64_t_reduce_dynamic.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_int64_t_reduce_dynamic_view.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_double_reduce.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_double_reduce_dynamic.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_TeamTeamSize.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_Reductions_DeviceView.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_TeamVectorRange.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_UniqueToken.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_HostSharedPtr.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_HostSharedPtrAccessOnDevice.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_TeamScratch.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_TestScan.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_TestTeamScan.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_TestTeamReductionScan.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_Atomics.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_AtomicOperations.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_AtomicOperations_float.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_AtomicOperations_int.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_AtomicOperations_longint.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_AtomicOperations_longlongint.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_AtomicOperations_double.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_AtomicOperations_unsignedint.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_AtomicOperations_unsignedlongint.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_AtomicViews.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_BlockSizeDeduction.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_Reducers_a.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_Reducers_b.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_Reducers_c.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_Reducers_d.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_ViewMapping_b.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_TeamBasic.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_Scan.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_NumericTraits.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_DeepCopyAlignment.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_MathematicalFunctions.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_b.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c01.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c02.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c03.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c04.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c05.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c06.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c07.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c08.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c09.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c10.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c11.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c12.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c13.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_MDRange_a.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_MDRange_b.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_MDRange_c.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_MDRange_d.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_ViewAPI_a.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_ViewAPI_b.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_ViewAPI_c.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_ViewAPI_d.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_ViewAPI_f.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_ViewResize.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_RangePolicyRequire.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_RangePolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/default/TestDefaultDeviceType_a1.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/default/TestDefaultDeviceType_b1.cpp
+    )
 endif()
 
 if(Kokkos_ENABLE_SERIAL)
@@ -258,14 +431,19 @@ if(Kokkos_ENABLE_PTHREAD)
   )
 endif()
 
-if(Kokkos_ENABLE_OPENMP)
+if (Kokkos_ENABLE_OPENMP)
+  set(OpenMP_EXTRA_SOURCES
+    openmp/TestOpenMP_Task.cpp
+  )
+  if (Kokkos_ENABLE_DEPRECATED_CODE_3)
+    list(APPEND OpenMP_EXTRA_SOURCES openmp/TestOpenMP_Task.cpp)
+  endif ()
   KOKKOS_ADD_EXECUTABLE_AND_TEST(
     UnitTest_OpenMP
     SOURCES
     UnitTestMainInit.cpp
     ${OpenMP_SOURCES}
-    openmp/TestOpenMP_PartitionMaster.cpp
-    openmp/TestOpenMP_Task.cpp
+    ${OpenMP_EXTRA_SOURCES}
   )
   KOKKOS_ADD_EXECUTABLE_AND_TEST(
     UnitTest_OpenMPInterOp
@@ -351,28 +529,7 @@ if(Kokkos_ENABLE_CUDA)
       UnitTestMainInit.cpp
       cuda/TestCuda_Task.cpp
       cuda/TestCuda_TeamScratchStreams.cpp
-      cuda/TestCudaHostPinned_SharedAlloc.cpp
-      cuda/TestCudaHostPinned_ViewAPI_a.cpp
-      cuda/TestCudaHostPinned_ViewAPI_b.cpp
-      cuda/TestCudaHostPinned_ViewAPI_c.cpp
-      cuda/TestCudaHostPinned_ViewAPI_d.cpp
-      cuda/TestCudaHostPinned_ViewAPI_e.cpp
-      cuda/TestCudaHostPinned_ViewCopy_a.cpp
-      cuda/TestCudaHostPinned_ViewCopy_b.cpp
-      cuda/TestCudaHostPinned_ViewMapping_a.cpp
-      cuda/TestCudaHostPinned_ViewMapping_b.cpp
-      cuda/TestCudaHostPinned_ViewMapping_subview.cpp
-      cuda/TestCudaUVM_SharedAlloc.cpp
-      cuda/TestCudaUVM_ViewAPI_a.cpp
-      cuda/TestCudaUVM_ViewAPI_b.cpp
-      cuda/TestCudaUVM_ViewAPI_c.cpp
-      cuda/TestCudaUVM_ViewAPI_d.cpp
-      cuda/TestCudaUVM_ViewAPI_e.cpp
-      cuda/TestCudaUVM_ViewCopy_a.cpp
-      cuda/TestCudaUVM_ViewCopy_b.cpp
-      cuda/TestCudaUVM_ViewMapping_a.cpp
-      cuda/TestCudaUVM_ViewMapping_b.cpp
-      cuda/TestCudaUVM_ViewMapping_subview.cpp
+      ${Cuda_SOURCES3}
       cuda/TestCuda_Spaces.cpp
   )
 
@@ -412,16 +569,8 @@ if(Kokkos_ENABLE_HIP)
       ${HIP_SOURCES}
       hip/TestHIP_ScanUnit.cpp
       hip/TestHIP_TeamScratchStreams.cpp
-      hip/TestHIPHostPinned_ViewAPI_a.cpp
-      hip/TestHIPHostPinned_ViewAPI_b.cpp
-      hip/TestHIPHostPinned_ViewAPI_c.cpp
-      hip/TestHIPHostPinned_ViewAPI_d.cpp
-      hip/TestHIPHostPinned_ViewAPI_e.cpp
-      hip/TestHIPHostPinned_ViewCopy_a.cpp
-      hip/TestHIPHostPinned_ViewCopy_b.cpp
-      hip/TestHIPHostPinned_ViewMapping_a.cpp
-      hip/TestHIPHostPinned_ViewMapping_b.cpp
-      hip/TestHIPHostPinned_ViewMapping_subview.cpp
+      hip/TestHIP_AsyncLauncher.cpp
+      hip/TestHIP_BlocksizeDeduction.cpp
   )
   KOKKOS_ADD_EXECUTABLE_AND_TEST(
     UnitTest_HIPInterOpInit
@@ -438,80 +587,111 @@ if(Kokkos_ENABLE_HIP)
 endif()
 
 if(Kokkos_ENABLE_SYCL)
-  list(REMOVE_ITEM SYCL_SOURCES
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_AtomicOperations_int.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_AtomicOperations_unsignedint.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_AtomicOperations_longint.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_AtomicOperations_unsignedlongint.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_AtomicOperations_longlongint.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_AtomicOperations_double.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_AtomicOperations_float.cpp
+  list(REMOVE_ITEM SYCL_SOURCES1A
+       # FIXME_SYCL atomic_fetch_oper for large types to be implemented
        ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_AtomicOperations_complexdouble.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_AtomicOperations_complexfloat.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_AtomicViews.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_Atomics.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_Atomics.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_AtomicViews.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_BlockSizeDeduction.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_Crs.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_DeepCopyAlignment.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_LocalDeepCopy.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_MDRange_a.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_MDRange_b.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_MDRange_c.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_MDRange_d.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_MDRange_e.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_MDRange_f.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_Other.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_Reductions.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_Reducers_a.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_Reducers_b.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_Reducers_c.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_Reducers_d.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_Reductions_DeviceView.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_SharedAlloc.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_SubView_c04.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_SubView_c05.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_SubView_c06.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_SubView_c07.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_SubView_c08.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_SubView_c09.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_SubView_c10.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_SubView_c11.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_SubView_c12.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_TeamBasic.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_TeamReductionScan.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_TeamScan.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_TeamScratch.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_TeamTeamSize.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_TeamVectorRange.cpp
-       ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_UniqueToken.cpp
+  )
+
+  list(REMOVE_ITEM SYCL_SOURCES2A
        ${CMAKE_CURRENT_BINARY_DIR}/sycl/TestSYCL_WorkGraph.cpp
   )
 
   KOKKOS_ADD_EXECUTABLE_AND_TEST(
-    UnitTest_SYCL
+    UnitTest_SYCL1A
     SOURCES
       UnitTestMainInit.cpp
-      ${SYCL_SOURCES}
+      ${SYCL_SOURCES1A}
+  )
+
+  KOKKOS_ADD_EXECUTABLE_AND_TEST(
+    UnitTest_SYCL1B
+    SOURCES
+      UnitTestMainInit.cpp
+      ${SYCL_SOURCES1B}
+  )
+
+  KOKKOS_ADD_EXECUTABLE_AND_TEST(
+    UnitTest_SYCL2A
+    SOURCES
+      UnitTestMainInit.cpp
+      ${SYCL_SOURCES2A}
+  )
+
+  KOKKOS_ADD_EXECUTABLE_AND_TEST(
+    UnitTest_SYCL2B
+    SOURCES
+      UnitTestMainInit.cpp
+      ${SYCL_SOURCES2B}
+  )
+
+  KOKKOS_ADD_EXECUTABLE_AND_TEST(
+    UnitTest_SYCL2C
+    SOURCES
+      UnitTestMainInit.cpp
+      ${SYCL_SOURCES2C}
+  )
+
+  KOKKOS_ADD_EXECUTABLE_AND_TEST(
+    UnitTest_SYCL2D
+    SOURCES
+      UnitTestMainInit.cpp
+      ${SYCL_SOURCES2D}
+  )
+
+  KOKKOS_ADD_EXECUTABLE_AND_TEST(
+    UnitTest_SYCL3
+    SOURCES
+      UnitTestMainInit.cpp
+      # FIXME_SYCL
+      sycl/TestSYCL_Task.cpp
+      sycl/TestSYCL_TeamScratchStreams.cpp
+      ${SYCL_SOURCES3}
+      sycl/TestSYCL_Spaces.cpp
+  )
+
+  KOKKOS_ADD_EXECUTABLE_AND_TEST(
+    UnitTest_SYCLInterOpInit
+    SOURCES
+      UnitTestMain.cpp
+      sycl/TestSYCL_InterOp_Init.cpp
+  )
+  KOKKOS_ADD_EXECUTABLE_AND_TEST(
+    UnitTest_SYCLInterOpInit_Context
+    SOURCES
+    UnitTestMainInit.cpp
+      sycl/TestSYCL_InterOp_Init_Context.cpp
+  )
+  KOKKOS_ADD_EXECUTABLE_AND_TEST(
+    UnitTest_SYCLInterOpStreams
+    SOURCES
+      UnitTestMain.cpp
+     sycl/TestSYCL_InterOp_Streams.cpp
   )
 endif()
 
-SET(DEFAULT_DEVICE_SOURCES
-  UnitTestMainInit.cpp
-  default/TestDefaultDeviceType.cpp
-  default/TestDefaultDeviceType_a1.cpp
-  default/TestDefaultDeviceType_b1.cpp
-  default/TestDefaultDeviceType_c1.cpp
-  default/TestDefaultDeviceType_a2.cpp
-  default/TestDefaultDeviceType_b2.cpp
-  default/TestDefaultDeviceType_c2.cpp
-  default/TestDefaultDeviceType_a3.cpp
-  default/TestDefaultDeviceType_b3.cpp
-  default/TestDefaultDeviceType_c3.cpp
-  default/TestDefaultDeviceType_d.cpp
-  default/TestDefaultDeviceTypeResize.cpp
-)
+# FIXME_OPENMPTARGET - Comment non-passing tests with the NVIDIA HPC compiler nvc++
+if (KOKKOS_ENABLE_OPENMPTARGET AND KOKKOS_CXX_COMPILER_ID STREQUAL NVHPC)
+  SET(DEFAULT_DEVICE_SOURCES
+    UnitTestMainInit.cpp
+    default/TestDefaultDeviceType.cpp
+  )
+else()
+  SET(DEFAULT_DEVICE_SOURCES
+    UnitTestMainInit.cpp
+    default/TestDefaultDeviceType.cpp
+    default/TestDefaultDeviceType_a1.cpp
+    default/TestDefaultDeviceType_b1.cpp
+    default/TestDefaultDeviceType_c1.cpp
+    default/TestDefaultDeviceType_a2.cpp
+    default/TestDefaultDeviceType_b2.cpp
+    default/TestDefaultDeviceType_c2.cpp
+    default/TestDefaultDeviceType_a3.cpp
+    default/TestDefaultDeviceType_b3.cpp
+    default/TestDefaultDeviceType_c3.cpp
+    default/TestDefaultDeviceType_d.cpp
+    default/TestDefaultDeviceTypeResize.cpp
+  )
+endif()
 
 KOKKOS_ADD_EXECUTABLE_AND_TEST(
   UnitTest_Default
@@ -553,9 +733,19 @@ KOKKOS_ADD_ADVANCED_TEST( UnitTest_PushFinalizeHook_terminate
 
   if(KOKKOS_ENABLE_TUNING)
     KOKKOS_ADD_EXECUTABLE_AND_TEST(
+      UnitTest_TuningBuiltins
+      SOURCES
+      tools/TestBuiltinTuners.cpp
+    )
+    KOKKOS_ADD_EXECUTABLE_AND_TEST(
       UnitTest_TuningBasics
       SOURCES
         tools/TestTuning.cpp
+    )
+    KOKKOS_ADD_EXECUTABLE_AND_TEST(
+      UnitTest_CategoricalTuner
+      SOURCES
+      tools/TestCategoricalTuner.cpp
     )
   endif()
   if(NOT Kokkos_ENABLE_OPENMPTARGET)
@@ -565,12 +755,21 @@ KOKKOS_ADD_ADVANCED_TEST( UnitTest_PushFinalizeHook_terminate
       tools/TestLogicalSpaces.cpp
   )
   endif()
+  KOKKOS_ADD_EXECUTABLE_AND_TEST(
+    UnitTest_EventCorrectness
+    SOURCES
+    tools/TestEventCorrectness.cpp
+  )
   if(KOKKOS_ENABLE_LIBDL)
 
     KOKKOS_ADD_TEST_LIBRARY(
       kokkosprinter-tool SHARED
       SOURCES tools/printing-tool.cpp
     )
+
+    if((NOT (Kokkos_ENABLE_CUDA AND WIN32)) AND (NOT ("${KOKKOS_CXX_COMPILER_ID}" STREQUAL "Fujitsu")))
+      TARGET_COMPILE_FEATURES(kokkosprinter-tool PUBLIC cxx_std_14)
+    endif()
 
     KOKKOS_ADD_TEST_EXECUTABLE(
       ProfilingAllCalls
@@ -582,10 +781,50 @@ KOKKOS_ADD_ADVANCED_TEST( UnitTest_PushFinalizeHook_terminate
     set(SIZE_REGEX "[0-9]*")
     set(SKIP_SCRATCH_INITIALIZATION_REGEX ".*")
 
-    KOKKOS_ADD_TEST( NAME ProfilingTestLibraryLoad
+    # check help works via environment variable
+    KOKKOS_ADD_TEST(
+      SKIP_TRIBITS
+      NAME ProfilingTestLibraryLoadHelp
       EXE  ProfilingAllCalls
       TOOL kokkosprinter-tool
-      PASS_REGULAR_EXPRESSION "kokkosp_init_library::kokkosp_allocate_data:${MEMSPACE_REGEX}:source:${ADDRESS_REGEX}:40::kokkosp_begin_parallel_for:Kokkos::View::initialization [[]source]:0:0::kokkosp_end_parallel_for:0::kokkosp_allocate_data:${MEMSPACE_REGEX}:destination:${ADDRESS_REGEX}:40::kokkosp_begin_parallel_for:Kokkos::View::initialization [[]destination]:0:0::kokkosp_end_parallel_for:0::kokkosp_begin_deep_copy:${MEMSPACE_REGEX}:destination:${ADDRESS_REGEX}:${MEMSPACE_REGEX}:source:${ADDRESS_REGEX}:40::kokkosp_end_deep_copy::kokkosp_begin_parallel_for:parallel_for:${SIZE_REGEX}:0::kokkosp_end_parallel_for:0::kokkosp_begin_parallel_reduce:parallel_reduce:${SIZE_REGEX}:1${SKIP_SCRATCH_INITIALIZATION_REGEX}::kokkosp_end_parallel_reduce:1::kokkosp_begin_parallel_scan:parallel_scan:${SIZE_REGEX}:2::kokkosp_end_parallel_scan:2::kokkosp_push_profile_region:push_region::kokkosp_pop_profile_region::kokkosp_create_profile_section:created_section:3::kokkosp_start_profile_section:3::kokkosp_stop_profile_section:3::kokkosp_destroy_profile_section:3::kokkosp_profile_event:profiling_event::kokkosp_deallocate_data:${MEMSPACE_REGEX}:destination:${ADDRESS_REGEX}:40::kokkosp_deallocate_data:${MEMSPACE_REGEX}:source:${ADDRESS_REGEX}:40::kokkosp_finalize_library::"
+      ARGS --kokkos-tools-help
+      PASS_REGULAR_EXPRESSION
+        "kokkosp_init_library::kokkosp_print_help:KokkosCore_ProfilingAllCalls::kokkosp_finalize_library::")
+
+    # check help works via direct library specification
+    KOKKOS_ADD_TEST(
+      SKIP_TRIBITS
+      NAME ProfilingTestLibraryCmdLineHelp
+      EXE  ProfilingAllCalls
+      ARGS --kokkos-tools-help
+           --kokkos-tools-library=$<TARGET_FILE:kokkosprinter-tool>
+      PASS_REGULAR_EXPRESSION
+        "kokkosp_init_library::kokkosp_print_help:KokkosCore_ProfilingAllCalls::kokkosp_finalize_library::")
+
+    KOKKOS_ADD_TEST(
+      SKIP_TRIBITS
+      NAME ProfilingTestLibraryLoad
+      EXE  ProfilingAllCalls
+      TOOL kokkosprinter-tool
+      ARGS --kokkos-tools-args="-c test delimit"
+      PASS_REGULAR_EXPRESSION "kokkosp_init_library::kokkosp_parse_args:4:KokkosCore_ProfilingAllCalls:-c:test:delimit::.*::kokkosp_allocate_data:${MEMSPACE_REGEX}:source:${ADDRESS_REGEX}:40::kokkosp_begin_parallel_for:Kokkos::View::initialization [[]source] via memset:[0-9]+:0::kokkosp_end_parallel_for:0::kokkosp_allocate_data:${MEMSPACE_REGEX}:destination:${ADDRESS_REGEX}:40::kokkosp_begin_parallel_for:Kokkos::View::initialization [[]destination] via memset:[0-9]+:0::kokkosp_end_parallel_for:0::kokkosp_begin_deep_copy:${MEMSPACE_REGEX}:destination:${ADDRESS_REGEX}:${MEMSPACE_REGEX}:source:${ADDRESS_REGEX}:40::kokkosp_end_deep_copy::kokkosp_begin_parallel_for:parallel_for:${SIZE_REGEX}:0::kokkosp_end_parallel_for:0::kokkosp_begin_parallel_reduce:parallel_reduce:${SIZE_REGEX}:1${SKIP_SCRATCH_INITIALIZATION_REGEX}::kokkosp_end_parallel_reduce:1::kokkosp_begin_parallel_scan:parallel_scan:${SIZE_REGEX}:2::kokkosp_end_parallel_scan:2::kokkosp_push_profile_region:push_region::kokkosp_pop_profile_region::kokkosp_create_profile_section:created_section:3::kokkosp_start_profile_section:3::kokkosp_stop_profile_section:3::kokkosp_destroy_profile_section:3::kokkosp_profile_event:profiling_event::kokkosp_declare_metadata:dogs:good::kokkosp_deallocate_data:${MEMSPACE_REGEX}:destination:${ADDRESS_REGEX}:40::kokkosp_deallocate_data:${MEMSPACE_REGEX}:source:${ADDRESS_REGEX}:40::kokkosp_finalize_library::"
+    )
+
+    # Above will test that leading/trailing quotes are stripped bc ctest cmd args is:
+    #       "--kokkos-tools-args="-c test delimit""
+    # The bracket argument syntax: [=[ and ]=] used below ensures it is treated as
+    # a single argument:
+    #       "--kokkos-tools-args=-c test delimit"
+    #
+    # https://cmake.org/cmake/help/latest/manual/cmake-language.7.html#bracket-argument
+    #
+    KOKKOS_ADD_TEST(
+      SKIP_TRIBITS
+      NAME ProfilingTestLibraryCmdLine
+      EXE  ProfilingAllCalls
+      ARGS [=[--kokkos-tools-args=-c test delimit]=]
+            --kokkos-tools-library=$<TARGET_FILE:kokkosprinter-tool>
+      PASS_REGULAR_EXPRESSION "kokkosp_init_library::kokkosp_parse_args:4:KokkosCore_ProfilingAllCalls:-c:test:delimit::.*::kokkosp_allocate_data:${MEMSPACE_REGEX}:source:${ADDRESS_REGEX}:40::kokkosp_begin_parallel_for:Kokkos::View::initialization [[]source] via memset:[0-9]+:0::kokkosp_end_parallel_for:0::kokkosp_allocate_data:${MEMSPACE_REGEX}:destination:${ADDRESS_REGEX}:40::kokkosp_begin_parallel_for:Kokkos::View::initialization [[]destination] via memset:[0-9]+:0::kokkosp_end_parallel_for:0::kokkosp_begin_deep_copy:${MEMSPACE_REGEX}:destination:${ADDRESS_REGEX}:${MEMSPACE_REGEX}:source:${ADDRESS_REGEX}:40::kokkosp_end_deep_copy::kokkosp_begin_parallel_for:parallel_for:${SIZE_REGEX}:0::kokkosp_end_parallel_for:0::kokkosp_begin_parallel_reduce:parallel_reduce:${SIZE_REGEX}:1${SKIP_SCRATCH_INITIALIZATION_REGEX}::kokkosp_end_parallel_reduce:1::kokkosp_begin_parallel_scan:parallel_scan:${SIZE_REGEX}:2::kokkosp_end_parallel_scan:2::kokkosp_push_profile_region:push_region::kokkosp_pop_profile_region::kokkosp_create_profile_section:created_section:3::kokkosp_start_profile_section:3::kokkosp_stop_profile_section:3::kokkosp_destroy_profile_section:3::kokkosp_profile_event:profiling_event::kokkosp_declare_metadata:dogs:good::kokkosp_deallocate_data:${MEMSPACE_REGEX}:destination:${ADDRESS_REGEX}:40::kokkosp_deallocate_data:${MEMSPACE_REGEX}:source:${ADDRESS_REGEX}:40::kokkosp_finalize_library::"
     )
   endif() #KOKKOS_ENABLE_LIBDL
 if(NOT KOKKOS_HAS_TRILINOS)
@@ -622,11 +861,6 @@ KOKKOS_ADD_EXECUTABLE_AND_TEST(
   SOURCES UnitTestMain.cpp  TestHWLOC.cpp
 )
 endif()
-
-KOKKOS_ADD_EXECUTABLE_AND_TEST(
-  UnitTest_HostBarrier
-  SOURCES UnitTestMain.cpp  TestHostBarrier.cpp
-)
 
 FUNCTION (KOKKOS_ADD_INCREMENTAL_TEST DEVICE)
   KOKKOS_OPTION( ${DEVICE}_EXCLUDE_TESTS "" STRING "Incremental test exclude list" )
@@ -689,4 +923,6 @@ KOKKOS_ADD_EXECUTABLE_AND_TEST(
   ARGS "one 2 THREE"
 )
 
-add_subdirectory(headers_self_contained)
+if (KOKKOS_ENABLE_HEADER_SELF_CONTAINMENT_TESTS AND NOT KOKKOS_HAS_TRILINOS)
+  add_subdirectory(headers_self_contained)
+endif()

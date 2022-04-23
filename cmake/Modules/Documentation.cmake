@@ -7,13 +7,13 @@ if(BUILD_DOC)
   # Sphinx 3.x requires at least Python 3.5
   if(CMAKE_VERSION VERSION_LESS 3.12)
     find_package(PythonInterp 3.5 REQUIRED)
-    set(VIRTUALENV ${PYTHON_EXECUTABLE} -m virtualenv -p ${PYTHON_EXECUTABLE})
+    set(VIRTUALENV ${PYTHON_EXECUTABLE} -m venv)
   else()
     find_package(Python3 REQUIRED COMPONENTS Interpreter)
     if(Python3_VERSION VERSION_LESS 3.5)
       message(FATAL_ERROR "Python 3.5 and up is required to build the HTML documentation")
     endif()
-    set(VIRTUALENV ${Python3_EXECUTABLE} -m virtualenv -p ${Python3_EXECUTABLE})
+    set(VIRTUALENV ${Python3_EXECUTABLE} -m venv)
   endif()
   find_package(Doxygen 1.8.10 REQUIRED)
 
@@ -55,11 +55,15 @@ if(BUILD_DOC)
     COMMAND ${DOCENV_BINARY_DIR}/pip $ENV{PIP_OPTIONS} install -r ${DOC_BUILD_DIR}/requirements.txt --upgrade
   )
 
+  set(MATHJAX_URL "https://github.com/mathjax/MathJax/archive/3.1.3.tar.gz" CACHE STRING "URL for MathJax tarball")
+  set(MATHJAX_MD5 "d1c98c746888bfd52ca8ebc10704f92f" CACHE STRING "MD5 checksum of MathJax tarball")
+  mark_as_advanced(MATHJAX_URL)
+
   # download mathjax distribution and unpack to folder "mathjax"
   if(NOT EXISTS ${DOC_BUILD_STATIC_DIR}/mathjax/es5)
-    file(DOWNLOAD "https://github.com/mathjax/MathJax/archive/3.1.2.tar.gz"
+    file(DOWNLOAD ${MATHJAX_URL}
       "${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz"
-      EXPECTED_MD5 a4a6a093a89bc2ccab1452d766b98e53)
+      EXPECTED_MD5 ${MATHJAX_MD5})
     execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf mathjax.tar.gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     file(GLOB MATHJAX_VERSION_DIR ${CMAKE_CURRENT_BINARY_DIR}/MathJax-*)
     execute_process(COMMAND ${CMAKE_COMMAND} -E rename ${MATHJAX_VERSION_DIR} ${DOC_BUILD_STATIC_DIR}/mathjax)

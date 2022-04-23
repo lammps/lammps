@@ -48,6 +48,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <iostream>
+#include <type_traits>
 
 namespace Test {
 struct SomeTag {};
@@ -290,34 +291,34 @@ class TestRangePolicyConstruction {
     using policy_t = Kokkos::RangePolicy<>;
     {
       policy_t p(5, 15);
-      ASSERT_TRUE((p.begin() == 5));
-      ASSERT_TRUE((p.end() == 15));
+      ASSERT_EQ(p.begin(), 5);
+      ASSERT_EQ(p.end(), 15);
     }
     {
       policy_t p(Kokkos::DefaultExecutionSpace(), 5, 15);
-      ASSERT_TRUE((p.begin() == 5));
-      ASSERT_TRUE((p.end() == 15));
+      ASSERT_EQ(p.begin(), 5);
+      ASSERT_EQ(p.end(), 15);
     }
     {
       policy_t p(5, 15, Kokkos::ChunkSize(10));
-      ASSERT_TRUE((p.begin() == 5));
-      ASSERT_TRUE((p.end() == 15));
-      ASSERT_TRUE((p.chunk_size() == 10));
+      ASSERT_EQ(p.begin(), 5);
+      ASSERT_EQ(p.end(), 15);
+      ASSERT_EQ(p.chunk_size(), 10);
     }
     {
       policy_t p(Kokkos::DefaultExecutionSpace(), 5, 15, Kokkos::ChunkSize(10));
-      ASSERT_TRUE((p.begin() == 5));
-      ASSERT_TRUE((p.end() == 15));
-      ASSERT_TRUE((p.chunk_size() == 10));
+      ASSERT_EQ(p.begin(), 5);
+      ASSERT_EQ(p.end(), 15);
+      ASSERT_EQ(p.chunk_size(), 10);
     }
     {
       policy_t p;
-      ASSERT_TRUE((p.begin() == 0));
-      ASSERT_TRUE((p.end() == 0));
+      ASSERT_EQ(p.begin(), 0);
+      ASSERT_EQ(p.end(), 0);
       p = policy_t(5, 15, Kokkos::ChunkSize(10));
-      ASSERT_TRUE((p.begin() == 5));
-      ASSERT_TRUE((p.end() == 15));
-      ASSERT_TRUE((p.chunk_size() == 10));
+      ASSERT_EQ(p.begin(), 5);
+      ASSERT_EQ(p.end(), 15);
+      ASSERT_EQ(p.chunk_size(), 10);
     }
   }
 };
@@ -579,7 +580,10 @@ class TestTeamPolicyConstruction {
     policy_t p1(league_size, team_size);
     ASSERT_EQ(p1.league_size(), league_size);
     ASSERT_EQ(p1.team_size(), team_size);
-    ASSERT_TRUE(p1.chunk_size() > 0);
+// FIXME_SYCL implement chunk_size
+#ifndef KOKKOS_ENABLE_SYCL
+    ASSERT_GT(p1.chunk_size(), 0);
+#endif
     ASSERT_EQ(p1.scratch_size(0), 0);
 
     policy_t p2 = p1.set_chunk_size(chunk_size);
@@ -692,10 +696,7 @@ TEST(TEST_CATEGORY, policy_construction) {
   check_semiregular<Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>>>();
 
   TestRangePolicyConstruction<TEST_EXECSPACE>();
-  // FIXME_SYCL requires Team policy
-#ifndef KOKKOS_ENABLE_SYCL
   TestTeamPolicyConstruction<TEST_EXECSPACE>();
-#endif
 }
 
 template <template <class...> class Policy, class... Args>
@@ -709,13 +710,10 @@ void check_converting_constructor_add_work_tag(Policy<Args...> const& policy) {
 TEST(TEST_CATEGORY, policy_converting_constructor_from_other_policy) {
   check_converting_constructor_add_work_tag(
       Kokkos::RangePolicy<TEST_EXECSPACE>{});
-  // FIXME_SYCL requires MDRange policy and Team policy
-#ifndef KOKKOS_ENABLE_SYCL
   check_converting_constructor_add_work_tag(
       Kokkos::TeamPolicy<TEST_EXECSPACE>{});
   check_converting_constructor_add_work_tag(
       Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>>{});
-#endif
 }
 
 #ifndef KOKKOS_ENABLE_OPENMPTARGET  // FIXME_OPENMPTARGET
@@ -767,32 +765,47 @@ void test_prefer_desired_occupancy(Policy const& policy) {
 template <class... Args>
 struct DummyPolicy : Kokkos::Impl::PolicyTraits<Args...> {
   using execution_policy = DummyPolicy;
-  using traits           = Kokkos::Impl::PolicyTraits<Args...>;
-  template <class... OtherArgs>
-  DummyPolicy(DummyPolicy<OtherArgs...> const& p) : traits(p) {}
-  DummyPolicy() = default;
+
+  using base_t = Kokkos::Impl::PolicyTraits<Args...>;
+  using base_t::base_t;
 };
 
 TEST(TEST_CATEGORY, desired_occupancy_prefer) {
   test_prefer_desired_occupancy(DummyPolicy<TEST_EXECSPACE>{});
   test_prefer_desired_occupancy(Kokkos::RangePolicy<TEST_EXECSPACE>{});
-  // FIXME_SYCL requires MDRange policy and Team policy
-#ifndef KOKKOS_ENABLE_SYCL
   test_prefer_desired_occupancy(
       Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>>{});
   test_prefer_desired_occupancy(Kokkos::TeamPolicy<TEST_EXECSPACE>{});
-#endif
 }
+
+// For a more informative static assertion:
+template <size_t>
+struct static_assert_dummy_policy_must_be_size_one;
+template <>
+struct static_assert_dummy_policy_must_be_size_one<1> {};
+template <size_t, size_t>
+struct static_assert_dummy_policy_must_be_size_of_desired_occupancy;
+template <>
+struct static_assert_dummy_policy_must_be_size_of_desired_occupancy<
+    sizeof(Kokkos::Experimental::DesiredOccupancy),
+    sizeof(Kokkos::Experimental::DesiredOccupancy)> {};
 
 TEST(TEST_CATEGORY, desired_occupancy_empty_base_optimization) {
   DummyPolicy<TEST_EXECSPACE> const policy{};
   static_assert(sizeof(decltype(policy)) == 1, "");
+  static_assert_dummy_policy_must_be_size_one<sizeof(decltype(policy))>
+      _assert1{};
+  (void)&_assert1;  // avoid unused variable warning
 
   using Kokkos::Experimental::DesiredOccupancy;
   auto policy_with_occ =
       Kokkos::Experimental::prefer(policy, DesiredOccupancy{50});
   static_assert(sizeof(decltype(policy_with_occ)) == sizeof(DesiredOccupancy),
                 "");
+  static_assert_dummy_policy_must_be_size_of_desired_occupancy<
+      sizeof(decltype(policy_with_occ)), sizeof(DesiredOccupancy)>
+      _assert2{};
+  (void)&_assert2;  // avoid unused variable warning
 }
 
 template <typename Policy>
@@ -809,16 +822,12 @@ void test_desired_occupancy_converting_constructors(Policy const& policy) {
 TEST(TEST_CATEGORY, desired_occupancy_converting_constructors) {
   test_desired_occupancy_converting_constructors(
       Kokkos::RangePolicy<TEST_EXECSPACE>{});
-  // FIXME_SYCL requires MDRange policy and Team policy
-#ifndef KOKKOS_ENABLE_SYCL
   test_desired_occupancy_converting_constructors(
       Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>>{});
   test_desired_occupancy_converting_constructors(
       Kokkos::TeamPolicy<TEST_EXECSPACE>{});
-#endif
 }
 
-#ifndef KOKKOS_ENABLE_SYCL
 template <class T>
 void more_md_range_policy_construction_test() {
   (void)Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>>{
@@ -878,6 +887,30 @@ TEST(TEST_CATEGORY, md_range_policy_construction_from_arrays) {
   more_md_range_policy_construction_test<unsigned long>();
   more_md_range_policy_construction_test<std::int64_t>();
 }
-#endif
 
+template <class WorkTag, class Policy>
+constexpr auto set_worktag(Policy const& policy) {
+  static_assert(Kokkos::is_execution_policy<Policy>::value, "");
+  using PolicyWithWorkTag =
+      Kokkos::Impl::WorkTagTrait::policy_with_trait<Policy, WorkTag>;
+  return PolicyWithWorkTag{policy};
+}
+
+TEST(TEST_CATEGORY, policy_set_worktag) {
+  struct SomeWorkTag {};
+  struct OtherWorkTag {};
+
+  Kokkos::RangePolicy<> p1;
+  static_assert(std::is_void<decltype(p1)::work_tag>::value, "");
+
+  auto p2 = set_worktag<SomeWorkTag>(p1);
+  static_assert(std::is_same<decltype(p2)::work_tag, SomeWorkTag>::value, "");
+
+  auto p3 = set_worktag<OtherWorkTag>(p2);
+  static_assert(std::is_same<decltype(p3)::work_tag, OtherWorkTag>::value, "");
+
+  // NOTE this does not currently compile
+  // auto p4 = set_worktag<void>(p3);
+  // static_assert(std::is_void<decltype(p4)::work_tag>::value, "");
+}
 }  // namespace Test

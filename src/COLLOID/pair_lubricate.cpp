@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,24 +19,24 @@
 
 #include "pair_lubricate.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
 #include "domain.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_deform.h"
 #include "fix_wall.h"
+#include "force.h"
 #include "input.h"
-#include "variable.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "variable.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -147,7 +148,7 @@ void PairLubricate::compute(int eflag, int vflag)
     // copy updated velocity/omega/angmom to the ghost particles
     // no need to do this if not shearing since comm->ghost_velocity is set
 
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
   }
 
   // This section of code adjusts R0/RT0/RS0 if necessary due to changes
@@ -535,7 +536,7 @@ void PairLubricate::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair lubricate requires ghost atoms store velocity");
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 
   // require that atom radii are identical within each type
   // require monodisperse system with same radii for all types
@@ -562,7 +563,7 @@ void PairLubricate::init_style()
   for (int i = 0; i < modify->nfix; i++) {
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       shearing = flagdeform = 1;
-      if (((FixDeform *) modify->fix[i])->remapflag != Domain::V_REMAP)
+      if ((dynamic_cast<FixDeform *>( modify->fix[i]))->remapflag != Domain::V_REMAP)
         error->all(FLERR,"Using pair lubricate with inconsistent "
                    "fix deform remap option");
     }
@@ -571,7 +572,7 @@ void PairLubricate::init_style()
         error->all(FLERR,
                    "Cannot use multiple fix wall commands with pair lubricate");
       flagwall = 1; // Walls exist
-      wallfix = (FixWall *) modify->fix[i];
+      wallfix = dynamic_cast<FixWall *>( modify->fix[i]);
       if (wallfix->xflag) flagwall = 2; // Moving walls exist
     }
   }

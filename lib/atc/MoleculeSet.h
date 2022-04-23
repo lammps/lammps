@@ -112,7 +112,7 @@ namespace ATC {
                      PerAtomQuantity<int> * numBond = nullptr);
 
     virtual ~SmallMoleculeSet();
-    
+
     /** reset all data */
     virtual void clear();
 

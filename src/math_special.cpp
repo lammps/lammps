@@ -1,10 +1,9 @@
+// clang-format off
 #include "math_special.h"
 
 #include <cmath>
 #include <cstdint> // IWYU pragma: keep
 #include <limits>
-
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

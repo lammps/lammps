@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -42,10 +42,10 @@
 #define __STDC_FORMAT_MACROS
 #endif
 
-#include <climits>    // IWYU pragma: export
-#include <cstdlib>    // IWYU pragma: export
-#include <cstdint>    // IWYU pragma: export
-#include <cinttypes>  // IWYU pragma: export
+#include <cinttypes>    // IWYU pragma: export
+#include <climits>      // IWYU pragma: export
+#include <cstdint>      // IWYU pragma: export
+#include <cstdlib>      // IWYU pragma: export
 
 // grrr - IBM Power6 does not provide this def in their system header files
 
@@ -55,11 +55,15 @@
 
 namespace LAMMPS_NS {
 
-// reserve 2 hi bits in molecular system neigh list for special bonds flag
-// max local + ghost atoms per processor = 2^30 - 1
+// reserve 2 highest bits in molecular system neigh list for special bonds flag
+// reserve 3rd highest bit in neigh list for fix neigh/history flag
+// max local + ghost atoms per processor = 2^29 - 1
 
 #define SBBITS 30
-#define NEIGHMASK 0x3FFFFFFF
+#define HISTBITS 29
+#define NEIGHMASK 0x1FFFFFFF
+#define HISTMASK 0xDFFFFFFF
+#define SPECIALMASK 0x3FFFFFFF
 
 // default to 32-bit smallint and other ints, 64-bit bigint
 
@@ -102,9 +106,9 @@ typedef int64_t bigint;
 #define ATOTAGINT atoi
 #define ATOBIGINT ATOLL
 
-#define LAMMPS_TAGINT    LAMMPS_INT
+#define LAMMPS_TAGINT LAMMPS_INT
 #define LAMMPS_TAGINT_2D LAMMPS_INT_2D
-#define LAMMPS_BIGINT    LAMMPS_INT64
+#define LAMMPS_BIGINT LAMMPS_INT64
 #define LAMMPS_BIGINT_2D LAMMPS_INT64_2D
 
 #define IMGMASK 1023
@@ -139,9 +143,9 @@ typedef int64_t bigint;
 #define ATOTAGINT ATOLL
 #define ATOBIGINT ATOLL
 
-#define LAMMPS_TAGINT    LAMMPS_INT64
+#define LAMMPS_TAGINT LAMMPS_INT64
 #define LAMMPS_TAGINT_2D LAMMPS_INT64_2D
-#define LAMMPS_BIGINT    LAMMPS_INT64
+#define LAMMPS_BIGINT LAMMPS_INT64
 #define LAMMPS_BIGINT_2D LAMMPS_INT64_2D
 
 #define IMGMASK 2097151
@@ -175,9 +179,9 @@ typedef int bigint;
 #define ATOTAGINT atoi
 #define ATOBIGINT atoi
 
-#define LAMMPS_TAGINT    LAMMPS_INT
+#define LAMMPS_TAGINT LAMMPS_INT
 #define LAMMPS_TAGINT_2D LAMMPS_INT_2D
-#define LAMMPS_BIGINT    LAMMPS_INT
+#define LAMMPS_BIGINT LAMMPS_INT
 #define LAMMPS_BIGINT_2D LAMMPS_INT_2D
 
 #define IMGMASK 1023
@@ -218,14 +222,14 @@ typedef int bigint;
 The typecasts prevent compiler warnings about possible truncation issues.
 \endverbatim
   */
-  union ubuf {
-    double  d;
-    int64_t i;
-    ubuf(const double  &arg) : d(arg) {}
-    ubuf(const int64_t &arg) : i(arg) {}
-    ubuf(const int     &arg) : i(arg) {}
-  };
-}
+union ubuf {
+  double d;
+  int64_t i;
+  ubuf(const double &arg) : d(arg) {}
+  ubuf(const int64_t &arg) : i(arg) {}
+  ubuf(const int &arg) : i(arg) {}
+};
+}    // namespace LAMMPS_NS
 
 // preprocessor macros for compiler specific settings
 // clear previous definitions to avoid redefinition warning
@@ -243,18 +247,18 @@ The typecasts prevent compiler warnings about possible truncation issues.
 // define stack variable alignment
 
 #if defined(__INTEL_COMPILER)
-#define _alignvar(expr,val) __declspec(align(val)) expr
-#elif defined(__GNUC__)
-#define _alignvar(expr,val) expr __attribute((aligned(val)))
+#define _alignvar(expr, val) __declspec(align(val)) expr
+#elif defined(__GNUC__) || defined(__PGI) || defined(__INTEL_LLVM_COMPILER)
+#define _alignvar(expr, val) expr __attribute((aligned(val)))
 #else
-#define _alignvar(expr,val) expr
+#define _alignvar(expr, val) expr
 #endif
 
 // declaration to lift aliasing restrictions
 
-#if defined(__INTEL_COMPILER)
+#if defined(__INTEL_COMPILER) || defined(__PGI)
 #define _noalias restrict
-#elif defined(__GNUC__)
+#elif defined(__GNUC__) || defined(__INTEL_LLVM_COMPILER)
 #define _noalias __restrict
 #else
 #define _noalias
@@ -265,37 +269,31 @@ The typecasts prevent compiler warnings about possible truncation issues.
 // Disable for broken -D_FORTIFY_SOURCE feature.
 
 #if defined(__clang__)
-#  define _noopt __attribute__((optnone))
-#elif defined(__INTEL_COMPILER)
-#  define _noopt
+#define _noopt __attribute__((optnone))
+#elif defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)
+#define _noopt
 #elif defined(__PGI)
-#  define _noopt
+#define _noopt
 #elif defined(__GNUC__)
-#  if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 9))
-#    if defined(_FORTIFY_SOURCE) && (_FORTIFY_SOURCE > 0)
-#      define _noopt __attribute__((optimize("no-var-tracking-assignments")))
-#    else
-#      define _noopt __attribute__((optimize("O0","no-var-tracking-assignments")))
-#    endif
-#  else
-#    if defined(_FORTIFY_SOURCE) && (_FORTIFY_SOURCE > 0)
-#      define _noopt
-#    else
-#      define _noopt __attribute__((optimize("O0")))
-#    endif
-#  endif
+#if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 9))
+#if defined(_FORTIFY_SOURCE) && (_FORTIFY_SOURCE > 0)
+#define _noopt __attribute__((optimize("no-var-tracking-assignments")))
 #else
-#  define _noopt
+#define _noopt __attribute__((optimize("O0", "no-var-tracking-assignments")))
 #endif
-
-// settings to enable LAMMPS to build under Windows
-
-#ifdef _WIN32
-#include "lmpwindows.h"
+#else
+#if defined(_FORTIFY_SOURCE) && (_FORTIFY_SOURCE > 0)
+#define _noopt
+#else
+#define _noopt __attribute__((optimize("O0")))
+#endif
+#endif
+#else
+#define _noopt
 #endif
 
 // suppress unused parameter warning
 
-#define LMP_UNUSED_PARAM(x) (void)(x)
+#define LMP_UNUSED_PARAM(x) (void) (x)
 
 #endif

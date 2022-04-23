@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(table,PairTable)
-
+// clang-format off
+PairStyle(table,PairTable);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TABLE_H
@@ -27,31 +27,31 @@ namespace LAMMPS_NS {
 class PairTable : public Pair {
  public:
   PairTable(class LAMMPS *);
-  virtual ~PairTable();
+  ~PairTable() override;
 
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  void coeff(int, char **);
-  virtual double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  virtual double single(int, int, int, int, double, double, double, double &);
-  void *extract(const char *, int &);
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  void *extract(const char *, int &) override;
 
-  enum{LOOKUP,LINEAR,SPLINE,BITMAP};
+  enum { LOOKUP, LINEAR, SPLINE, BITMAP };
 
  protected:
-  int tabstyle,tablength;
+  int tabstyle, tablength;
   struct Table {
-    int ninput,rflag,fpflag,match,ntablebits;
-    int nshiftbits,nmask;
-    double rlo,rhi,fplo,fphi,cut;
-    double *rfile,*efile,*ffile;
-    double *e2file,*f2file;
-    double innersq,delta,invdelta,deltasq6;
-    double *rsq,*drsq,*e,*de,*f,*df,*e2,*f2;
+    int ninput, rflag, fpflag, match, ntablebits;
+    int nshiftbits, nmask;
+    double rlo, rhi, fplo, fphi, cut;
+    double *rfile, *efile, *ffile;
+    double *e2file, *f2file;
+    double innersq, delta, invdelta, deltasq6;
+    double *rsq, *drsq, *e, *de, *f, *df, *e2, *f2;
   };
   int ntables;
   Table *tables;
@@ -70,7 +70,7 @@ class PairTable : public Pair {
   static double splint(double *, double *, double *, int, double);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

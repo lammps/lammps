@@ -32,7 +32,7 @@ override LDFLAGS += -lpthread
 
 include $(KOKKOS_PATH)/Makefile.kokkos
 
-KOKKOS_CXXFLAGS += -I$(GTEST_PATH) -I${KOKKOS_PATH}/core/unit_test
+KOKKOS_CXXFLAGS += -I$(GTEST_PATH) -I${KOKKOS_PATH}/core/unit_test -I${KOKKOS_PATH}/core/unit_test/category_files
 
 TEST_TARGETS =
 TARGETS =
@@ -73,6 +73,8 @@ tmp := $(foreach device, $(KOKKOS_DEVICELIST), \
   ) \
 )
 
+GPU_SPACE_TESTS = SharedAlloc ViewAPI_a ViewAPI_b ViewAPI_c ViewAPI_d ViewAPI_e ViewCopy_a ViewCopy_b ViewMapping_a ViewMapping_b ViewMapping_subview
+
 SUBVIEW_TESTS = SubView_a SubView_b SubView_c01 SubView_c02 SubView_c03 SubView_c04 SubView_c05 SubView_c06 SubView_c07 SubView_c08 SubView_c09 SubView_c10 SubView_c11 SubView_c12 SubView_c13
 
 KOKKOS_SUBVIEW_DEVICELIST := $(filter-out Cuda, $(KOKKOS_DEVICELIST))
@@ -91,6 +93,16 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
       $(if $(filter TestCuda_$(test).cpp, $(shell ls TestCuda_$(test).cpp 2>/dev/null)),,\
         $(shell echo "\#include <TestCudaUVM_Category.hpp>" > TestCuda_$(test).cpp); \
         $(shell echo "\#include <Test"$(test)".hpp>" >> TestCuda_$(test).cpp); \
+      )\
+    )
+
+    GPU_SPACES = CudaHostPinned CudaUVM
+    tmp := $(foreach space, $(GPU_SPACES), \
+      tmp2 := $(foreach test, $(GPU_SPACE_TESTS), \
+        $(if $(filter Test$(space)_$(test).cpp, $(shell ls Test$(space)_$(test).cpp 2>/dev/null)),,\
+          $(shell echo "\#include <Test$(space)_Category.hpp>" > Test$(space)_$(test).cpp); \
+          $(shell echo "\#include <Test"$(test)".hpp>" >> Test$(space)_$(test).cpp); \
+        )\
       )\
     )
 
@@ -261,6 +273,16 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMPTARGET), 1)
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_HIP), 1)
+	GPU_SPACES = HIPHostPinned
+	tmp := $(foreach space, $(GPU_SPACES), \
+	  tmp2 := $(foreach test, $(GPU_SPACE_TESTS), \
+	    $(if $(filter Test$(space)_$(test).cpp, $(shell ls Test$(space)_$(test).cpp 2>/dev/null)),,\
+	      $(shell echo "\#include <Test$(space)_Category.hpp>" > Test$(space)_$(test).cpp); \
+	      $(shell echo "\#include <Test"$(test)".hpp>" >> Test$(space)_$(test).cpp); \
+	    )\
+	  )\
+	)
+
 	OBJ_HIP = UnitTestMainInit.o gtest-all.o
 	OBJ_HIP += TestHIP_Init.o
 	OBJ_HIP += TestHIP_Reducers_a.o TestHIP_Reducers_b.o TestHIP_Reducers_c.o TestHIP_Reducers_d.o
@@ -361,10 +383,6 @@ OBJ_HWLOC = TestHWLOC.o UnitTestMain.o gtest-all.o
 TARGETS += KokkosCore_UnitTest_HWLOC
 TEST_TARGETS += test-hwloc
 
-OBJ_HOST_BARRIER = TestHostBarrier.o UnitTestMain.o gtest-all.o
-TARGETS += KokkosCore_UnitTest_HostBarrier
-TEST_TARGETS += test-host-barrier
-
 OBJ_DEFAULT = UnitTestMainInit.o gtest-all.o
 ifneq ($(KOKKOS_INTERNAL_USE_OPENMPTARGET), 1)
 ifneq ($(KOKKOS_INTERNAL_COMPILER_HCC), 1)
@@ -432,9 +450,6 @@ KokkosCore_UnitTest_HPXInterOp: UnitTestMain.o gtest-all.o TestHPX_InterOp.o $(K
 KokkosCore_UnitTest_HWLOC: $(OBJ_HWLOC) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(EXTRA_PATH) $(OBJ_HWLOC) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosCore_UnitTest_HWLOC
 
-KokkosCore_UnitTest_HostBarrier: $(OBJ_HOST_BARRIER) $(KOKKOS_LINK_DEPENDS)
-	$(LINK) $(EXTRA_PATH) $(OBJ_HOST_BARRIER) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosCore_UnitTest_HostBarrier
-
 KokkosCore_UnitTest_AllocationTracker: $(OBJ_ALLOCATIONTRACKER) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(EXTRA_PATH) $(OBJ_ALLOCATIONTRACKER) $(KOKKOS_LIBS) $(KOKKOS_LDFLAGS) $(LDFLAGS) $(LIB) -o KokkosCore_UnitTest_AllocationTracker
 
@@ -481,9 +496,6 @@ test-hpx: KokkosCore_UnitTest_HPX
 
 test-hwloc: KokkosCore_UnitTest_HWLOC
 	./KokkosCore_UnitTest_HWLOC
-
-test-host-barrier: KokkosCore_UnitTest_HostBarrier
-	./KokkosCore_UnitTest_HostBarrier
 
 test-allocationtracker: KokkosCore_UnitTest_AllocationTracker
 	./KokkosCore_UnitTest_AllocationTracker

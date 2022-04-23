@@ -70,7 +70,7 @@ command.
 
 There are also additional accelerated pair styles included in the
 LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
-The individual style names on the :ref:`Commands improper <improper>` doc page are followed by one or
+The individual style names on the :ref:`Commands improper <improper>` page are followed by one or
 more of (g,i,k,o,t) to indicate which accelerated styles exist.
 
 * :doc:`none <improper_none>` - turn off improper interactions
@@ -99,7 +99,7 @@ Improper styles can only be set for atom_style choices that allow
 impropers to be defined.
 
 Most improper styles are part of the MOLECULE package.  They are only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.  The doc pages for
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.  The doc pages for
 individual improper potentials tell if it is part of a package.
 
 Related commands

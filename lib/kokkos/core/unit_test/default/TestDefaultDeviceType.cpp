@@ -45,7 +45,7 @@
 #include <gtest/gtest.h>
 
 #include <Kokkos_Core.hpp>
-#include <default/TestDefaultDeviceType_Category.hpp>
+#include <TestDefaultDeviceType_Category.hpp>
 #include <TestHalfConversion.hpp>
 #include <TestHalfOperators.hpp>
 
@@ -59,17 +59,17 @@ TEST(TEST_CATEGORY, host_space_access) {
   using mirror_space =
       Kokkos::Impl::HostMirror<Kokkos::DefaultExecutionSpace>::Space;
 
-  static_assert(Kokkos::Impl::SpaceAccessibility<host_exec_space,
-                                                 Kokkos::HostSpace>::accessible,
+  static_assert(Kokkos::SpaceAccessibility<host_exec_space,
+                                           Kokkos::HostSpace>::accessible,
                 "");
 
-  static_assert(Kokkos::Impl::SpaceAccessibility<device_space,
-                                                 Kokkos::HostSpace>::accessible,
-                "");
+  static_assert(
+      Kokkos::SpaceAccessibility<device_space, Kokkos::HostSpace>::accessible,
+      "");
 
-  static_assert(Kokkos::Impl::SpaceAccessibility<mirror_space,
-                                                 Kokkos::HostSpace>::accessible,
-                "");
+  static_assert(
+      Kokkos::SpaceAccessibility<mirror_space, Kokkos::HostSpace>::accessible,
+      "");
 }
 
 }  // namespace Test

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(ave/atom,FixAveAtom)
-
+// clang-format off
+FixStyle(ave/atom,FixAveAtom);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_AVE_ATOM_H
@@ -27,30 +27,30 @@ namespace LAMMPS_NS {
 class FixAveAtom : public Fix {
  public:
   FixAveAtom(class LAMMPS *, int, char **);
-  ~FixAveAtom();
-  int setmask();
-  void init();
-  void setup(int);
-  void end_of_step();
+  ~FixAveAtom() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void end_of_step() override;
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
 
  private:
   int nvalues;
-  int nrepeat,irepeat;
-  bigint nvalid,nvalid_last;
-  int *which,*argindex,*value2index;
+  int nrepeat, irepeat;
+  bigint nvalid, nvalid_last;
+  int *which, *argindex, *value2index;
   char **ids;
   double **array;
 
   bigint nextvalid();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -43,7 +43,7 @@
 */
 
 #include <Kokkos_Core.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 #include <cstdio>
 
 // These two View types are both 2-D arrays of double.  However, they
@@ -68,13 +68,15 @@ struct init_view {
   ViewType a;
   init_view(ViewType a_) : a(a_) {}
 
+  using size_type = typename ViewType::size_type;
+
   KOKKOS_INLINE_FUNCTION
   void operator()(const typename ViewType::size_type i) const {
     // On CPUs this loop could be vectorized so j should do stride 1
     // access on a for optimal performance. I.e. a should be LayoutRight.
     // On GPUs threads should do coalesced loads and stores. That means
     // that i should be the stride one access for optimal performance.
-    for (typename ViewType::size_type j = 0; j < a.extent(1); ++j) {
+    for (size_type j = 0; j < static_cast<size_type>(a.extent(1)); ++j) {
       a(i, j) = 1.0 * a.extent(0) * i + 1.0 * j;
     }
   }
@@ -95,6 +97,8 @@ struct contraction {
   contraction(view_type a_, ViewType1 v1_, ViewType2 v2_)
       : a(a_), v1(v1_), v2(v2_) {}
 
+  using size_type = typename view_type::size_type;
+
   // As with the initialization functor the performance of this operator
   // depends on the architecture and the chosen data layouts.
   // On CPUs optimal would be to vectorize the inner loop, so j should be the
@@ -104,7 +108,7 @@ struct contraction {
   // LayoutLeft and v2 LayoutRight.
   KOKKOS_INLINE_FUNCTION
   void operator()(const view_type::size_type i) const {
-    for (view_type::size_type j = 0; j < v1.extent(1); ++j) {
+    for (size_type j = 0; j < static_cast<size_type>(a.extent(1)); ++j) {
       a(i) = v1(i, j) * v2(j, i);
     }
   }

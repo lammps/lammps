@@ -43,5 +43,5 @@
 //@HEADER
 */
 
-#include <cuda/TestCuda_Category.hpp>
+#include <TestCuda_Category.hpp>
 #include <TestGraph.hpp>

@@ -45,16 +45,29 @@
 #ifndef KOKKOS_SHARED_ALLOC_HPP
 #define KOKKOS_SHARED_ALLOC_HPP
 
+#include <Kokkos_Macros.hpp>
+#include <Kokkos_Core_fwd.hpp>
+#include <impl/Kokkos_Error.hpp>  // Impl::throw_runtime_exception
+
 #include <cstdint>
 #include <string>
 
-// undefined at end of file
 #if defined(KOKKOS_ENABLE_OPENMPTARGET)
+// Base function.
+static constexpr bool kokkos_omp_on_host() { return true; }
 #if defined(KOKKOS_COMPILER_PGI)
 #define KOKKOS_IMPL_IF_ON_HOST if (!__builtin_is_device_code())
 #else
 // Note: OpenMPTarget enforces C++17 at configure time
-#define KOKKOS_IMPL_IF_ON_HOST if constexpr (omp_is_initial_device())
+#pragma omp begin declare variant match(device = {kind(host)})
+static constexpr bool kokkos_omp_on_host() { return true; }
+#pragma omp end declare variant
+
+#pragma omp begin declare variant match(device = {kind(nohost)})
+static constexpr bool kokkos_omp_on_host() { return false; }
+#pragma omp end declare variant
+
+#define KOKKOS_IMPL_IF_ON_HOST if constexpr (kokkos_omp_on_host())
 #endif
 #else
 #define KOKKOS_IMPL_IF_ON_HOST if (true)
@@ -66,6 +79,9 @@ namespace Impl {
 template <class MemorySpace = void, class DestroyFunctor = void>
 class SharedAllocationRecord;
 
+template <class MemorySpace>
+class SharedAllocationRecordCommon;
+
 class SharedAllocationHeader {
  private:
   using Record = SharedAllocationRecord<void, void>;
@@ -75,6 +91,10 @@ class SharedAllocationHeader {
 
   template <class, class>
   friend class SharedAllocationRecord;
+  template <class>
+  friend class SharedAllocationRecordCommon;
+  template <class>
+  friend class HostInaccessibleSharedAllocationRecordCommon;
 
   Record* m_record;
   char m_label[maximum_label_length];
@@ -99,6 +119,10 @@ class SharedAllocationRecord<void, void> {
 
   template <class, class>
   friend class SharedAllocationRecord;
+  template <class>
+  friend class SharedAllocationRecordCommon;
+  template <class>
+  friend class HostInaccessibleSharedAllocationRecordCommon;
 
   using function_type = void (*)(SharedAllocationRecord<void, void>*);
 
@@ -227,6 +251,58 @@ class SharedAllocationRecord<void, void> {
   static void print_host_accessible_records(
       std::ostream&, const char* const space_name,
       const SharedAllocationRecord* const root, const bool detail);
+};
+
+template <class MemorySpace>
+class SharedAllocationRecordCommon : public SharedAllocationRecord<void, void> {
+ private:
+  using derived_t     = SharedAllocationRecord<MemorySpace, void>;
+  using record_base_t = SharedAllocationRecord<void, void>;
+  derived_t& self() { return *static_cast<derived_t*>(this); }
+  derived_t const& self() const { return *static_cast<derived_t const*>(this); }
+
+ protected:
+  using record_base_t::record_base_t;
+
+  void _fill_host_accessible_header_info(SharedAllocationHeader& arg_header,
+                                         std::string const& arg_label);
+
+  static void deallocate(record_base_t* arg_rec);
+
+ public:
+  static auto allocate(MemorySpace const& arg_space,
+                       std::string const& arg_label, size_t arg_alloc_size)
+      -> derived_t*;
+  /**\brief  Allocate tracked memory in the space */
+  static void* allocate_tracked(MemorySpace const& arg_space,
+                                std::string const& arg_alloc_label,
+                                size_t arg_alloc_size);
+  /**\brief  Reallocate tracked memory in the space */
+  static void deallocate_tracked(void* arg_alloc_ptr);
+  /**\brief  Deallocate tracked memory in the space */
+  static void* reallocate_tracked(void* arg_alloc_ptr, size_t arg_alloc_size);
+  static auto get_record(void* alloc_ptr) -> derived_t*;
+  std::string get_label() const;
+  static void print_records(std::ostream& s, MemorySpace const&,
+                            bool detail = false);
+};
+
+template <class MemorySpace>
+class HostInaccessibleSharedAllocationRecordCommon
+    : public SharedAllocationRecordCommon<MemorySpace> {
+ private:
+  using base_t        = SharedAllocationRecordCommon<MemorySpace>;
+  using derived_t     = SharedAllocationRecord<MemorySpace, void>;
+  using record_base_t = SharedAllocationRecord<void, void>;
+
+ protected:
+  using base_t::base_t;
+
+ public:
+  static void print_records(std::ostream& s, MemorySpace const&,
+                            bool detail = false);
+  static auto get_record(void* alloc_ptr) -> derived_t*;
+  std::string get_label() const;
 };
 
 namespace {
@@ -508,5 +584,4 @@ union SharedAllocationTracker {
 
 } /* namespace Impl */
 } /* namespace Kokkos */
-#undef KOKKOS_IMPL_IF_ON_HOST
 #endif

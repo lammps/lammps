@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -69,14 +70,14 @@ void FixFreeze::init()
 
 void FixFreeze::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    int nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    int nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
     for (int ilevel = 0; ilevel < nlevels_respa; ilevel++) {
-      ((Respa *) update->integrate)->copy_flevel_f(ilevel);
+      (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(ilevel);
       post_force_respa(vflag,ilevel,0);
-      ((Respa *) update->integrate)->copy_f_flevel(ilevel);
+      (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(ilevel);
     }
   }
 }

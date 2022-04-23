@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -28,7 +29,6 @@
 #include "variable.h"
 
 #include <cstring>
-#include <unistd.h>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -57,12 +57,11 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
   nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
 
-  int n = strlen(arg[6]) + 1;
-  idchunk = new char[n];
-  strcpy(idchunk,arg[6]);
+  idchunk = utils::strdup(arg[6]);
 
   global_freq = nfreq;
   no_change_box = 1;
+  time_depend = 1;
 
   char * group = arg[1];
 
@@ -190,9 +189,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/chunk command");
       biasflag = 1;
-      int n = strlen(arg[iarg+1]) + 1;
-      id_bias = new char[n];
-      strcpy(id_bias,arg[iarg+1]);
+      id_bias = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"adof") == 0) {
       if (iarg+2 > narg)
@@ -210,8 +207,8 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       if (comm->me == 0) {
         fp = fopen(arg[iarg+1],"w");
         if (fp == nullptr)
-          error->one(FLERR,fmt::format("Cannot open fix ave/chunk file {}: {}",
-                                       arg[iarg+1], utils::getsyserror()));
+          error->one(FLERR,"Cannot open fix ave/chunk file {}: {}",
+                                       arg[iarg+1], utils::getsyserror());
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"overwrite") == 0) {
@@ -219,32 +216,24 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       iarg += 1;
     } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
-      delete [] format_user;
-      int n = strlen(arg[iarg+1]) + 2;
-      format_user = new char[n];
-      sprintf(format_user," %s",arg[iarg+1]);
+      delete[] format_user;
+      format_user = utils::strdup(arg[iarg+1]);
       format = format_user;
       iarg += 2;
     } else if (strcmp(arg[iarg],"title1") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
-      delete [] title1;
-      int n = strlen(arg[iarg+1]) + 1;
-      title1 = new char[n];
-      strcpy(title1,arg[iarg+1]);
+      delete[] title1;
+      title1 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title2") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
-      delete [] title2;
-      int n = strlen(arg[iarg+1]) + 1;
-      title2 = new char[n];
-      strcpy(title2,arg[iarg+1]);
+      delete[] title2;
+      title2 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title3") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
-      delete [] title3;
-      int n = strlen(arg[iarg+1]) + 1;
-      title3 = new char[n];
-      strcpy(title3,arg[iarg+1]);
+      delete[] title3;
+      title3 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix ave/chunk command");
   }
@@ -320,7 +309,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   int icompute = modify->find_compute(idchunk);
   if (icompute < 0)
     error->all(FLERR,"Chunk/atom compute does not exist for fix ave/chunk");
-  cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
   if (strcmp(cchunk->style,"chunk/atom") != 0)
     error->all(FLERR,"Fix ave/chunk does not use chunk/atom compute");
 
@@ -359,18 +348,18 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
     if (ferror(fp))
       error->one(FLERR,"Error writing file header");
 
-    filepos = ftell(fp);
+    filepos = platform::ftell(fp);
   }
 
-  delete [] title1;
-  delete [] title2;
-  delete [] title3;
+  delete[] title1;
+  delete[] title2;
+  delete[] title3;
 
   // if wildcard expansion occurred, free earg memory from expand_args()
   // wait to do this until after file comment lines are printed
 
   if (expand) {
-    for (int i = 0; i < nargnew; i++) delete [] earg[i];
+    for (int i = 0; i < nargnew; i++) delete[] earg[i];
     memory->sfree(earg);
   }
 
@@ -418,11 +407,11 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 
 FixAveChunk::~FixAveChunk()
 {
-  delete [] which;
-  delete [] argindex;
-  for (int i = 0; i < nvalues; i++) delete [] ids[i];
-  delete [] ids;
-  delete [] value2index;
+  delete[] which;
+  delete[] argindex;
+  for (int i = 0; i < nvalues; i++) delete[] ids[i];
+  delete[] ids;
+  delete[] value2index;
 
   if (fp && comm->me == 0) fclose(fp);
 
@@ -443,13 +432,13 @@ FixAveChunk::~FixAveChunk()
   if (nrepeat > 1 || ave == RUNNING || ave == WINDOW) {
     int icompute = modify->find_compute(idchunk);
     if (icompute >= 0) {
-      cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+      cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
       if (ave == RUNNING || ave == WINDOW) cchunk->unlock(this);
       cchunk->lockcount--;
     }
   }
 
-  delete [] idchunk;
+  delete[] idchunk;
   which = nullptr;
   argindex = nullptr;
   ids = nullptr;
@@ -489,7 +478,7 @@ void FixAveChunk::init()
   int icompute = modify->find_compute(idchunk);
   if (icompute < 0)
     error->all(FLERR,"Chunk/atom compute does not exist for fix ave/chunk");
-  cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
 
   if (biasflag) {
     int i = modify->find_compute(id_bias);
@@ -500,7 +489,7 @@ void FixAveChunk::init()
 
   for (int m = 0; m < nvalues; m++) {
     if (which[m] == ArgInfo::COMPUTE) {
-      int icompute = modify->find_compute(ids[m]);
+      icompute = modify->find_compute(ids[m]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix ave/chunk does not exist");
       value2index[m] = icompute;
@@ -553,11 +542,8 @@ void FixAveChunk::end_of_step()
   int i,j,m,n,index;
 
   // skip if not step which requires doing something
-  // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
-  if (ntimestep < nvalid_last || ntimestep > nvalid)
-    error->all(FLERR,"Invalid timestep reset for fix ave/chunk");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
 
@@ -881,7 +867,7 @@ void FixAveChunk::end_of_step()
       if (count_sum[m] > 0.0)
         for (j = 0; j < nvalues; j++) {
           if (which[j] == ArgInfo::TEMPERATURE) {
-            values_sum[m][j] *= mvv2e / ((cdof + adof*count_sum[m]) * boltz);
+            values_sum[m][j] *= mvv2e/((repeat*cdof + adof*count_sum[m])*boltz);
           } else if (which[j] == ArgInfo::DENSITY_NUMBER) {
             if (volflag == SCALAR) values_sum[m][j] /= chunk_volume_scalar;
             else values_sum[m][j] /= chunk_volume_vec[m];
@@ -952,10 +938,10 @@ void FixAveChunk::end_of_step()
 
   if (fp && comm->me == 0) {
     clearerr(fp);
-    if (overwrite) fseek(fp,filepos,SEEK_SET);
+    if (overwrite) platform::fseek(fp,filepos);
     double count = 0.0;
     for (m = 0; m < nchunk; m++) count += count_total[m];
-    fprintf(fp,BIGINT_FORMAT " %d %g\n",ntimestep,nchunk,count);
+    fmt::print(fp,"{} {} {}\n",ntimestep,nchunk,count);
 
     int compress = cchunk->compress;
     int *chunkID = cchunk->chunkID;
@@ -996,7 +982,6 @@ void FixAveChunk::end_of_step()
         }
       }
     } else {
-      int j;
       if (ncoord == 0) {
         for (m = 0; m < nchunk; m++) {
           fprintf(fp,"  %d %d %g",m+1,chunkID[m],count_total[m]/normcount);
@@ -1039,9 +1024,9 @@ void FixAveChunk::end_of_step()
     fflush(fp);
 
     if (overwrite) {
-      long fileend = ftell(fp);
-      if ((fileend > 0) && (ftruncate(fileno(fp),fileend)))
-        perror("Error while tuncating output");
+      bigint fileend = platform::ftell(fp);
+      if ((fileend > 0) && (platform::ftruncate(fp,fileend)))
+        error->warning(FLERR,"Error while tuncating output: {}", utils::getsyserror());
     }
   }
 }

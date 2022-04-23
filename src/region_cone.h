@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef REGION_CLASS
-
-RegionStyle(cone,RegCone)
-
+// clang-format off
+RegionStyle(cone,RegCone);
+// clang-format on
 #else
 
 #ifndef LMP_REGION_CONE_H
@@ -27,22 +27,22 @@ namespace LAMMPS_NS {
 class RegCone : public Region {
  public:
   RegCone(class LAMMPS *, int, char **);
-  ~RegCone();
-  int inside(double, double, double);
-  int surface_interior(double *, double);
-  int surface_exterior(double *, double);
+  ~RegCone() override;
+  int inside(double, double, double) override;
+  int surface_interior(double *, double) override;
+  int surface_exterior(double *, double) override;
 
  private:
   char axis;
-  double c1,c2;
-  double radiuslo,radiushi;
-  double lo,hi;
+  double c1, c2;
+  double radiuslo, radiushi;
+  double lo, hi;
   double maxradius;
 
   double closest(double *, double *, double *, double);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

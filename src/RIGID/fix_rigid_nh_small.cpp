@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,22 +20,23 @@
 
 #include "fix_rigid_nh_small.h"
 
-#include <cmath>
-#include <cstring>
-#include "math_extra.h"
 #include "atom.h"
+#include "comm.h"
 #include "compute.h"
 #include "domain.h"
-#include "update.h"
-#include "modify.h"
-#include "fix_deform.h"
-#include "group.h"
-#include "comm.h"
-#include "force.h"
-#include "kspace.h"
-#include "memory.h"
 #include "error.h"
+#include "fix_deform.h"
+#include "force.h"
+#include "group.h"
+#include "kspace.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "modify.h"
 #include "rigid_const.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -182,7 +184,7 @@ FixRigidNHSmall::~FixRigidNHSmall()
     deallocate_order();
   }
 
-  if (rfix) delete [] rfix;
+  delete[] rfix;
 
   if (tcomputeflag) modify->delete_compute(id_temp);
   delete [] id_temp;
@@ -266,7 +268,7 @@ void FixRigidNHSmall::init()
 
     for (int i = 0; i < modify->nfix; i++)
       if (strcmp(modify->fix[i]->style,"deform") == 0) {
-        int *dimflag = ((FixDeform *) modify->fix[i])->dimflag;
+        int *dimflag = (dynamic_cast<FixDeform *>( modify->fix[i]))->dimflag;
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
             (p_flag[2] && dimflag[2]))
           error->all(FLERR,"Cannot use fix rigid npt/nph and fix deform on "
@@ -299,7 +301,7 @@ void FixRigidNHSmall::init()
     // rfix[] = indices to each fix rigid
     // this will include self
 
-    if (rfix) delete [] rfix;
+    delete[] rfix;
     nrigidfix = 0;
     rfix = nullptr;
 
@@ -549,7 +551,7 @@ void FixRigidNHSmall::initial_integrate(int vflag)
   // forward communicate updated info of all bodies
 
   commflag = INITIAL;
-  comm->forward_comm_fix(this,26);
+  comm->forward_comm(this,26);
 
   // accumulate translational and rotational kinetic energies
 
@@ -697,14 +699,14 @@ void FixRigidNHSmall::final_integrate()
   // forward communicate updated info of all bodies
 
   commflag = FINAL;
-  comm->forward_comm_fix(this,10);
+  comm->forward_comm(this,10);
 
   // accumulate translational and rotational kinetic energies
 
   if (pstat_flag) {
 
     akin_t = akin_r = 0.0;
-    for (int ibody = 0; ibody < nlocal_body; ibody++) {
+    for (ibody = 0; ibody < nlocal_body; ibody++) {
       Body *b = &body[ibody];
       akin_t += b->mass*(b->vcm[0]*b->vcm[0] + b->vcm[1]*b->vcm[1] +
         b->vcm[2]*b->vcm[2]);
@@ -752,6 +754,8 @@ void FixRigidNHSmall::final_integrate()
 
 void FixRigidNHSmall::nhc_temp_integrate()
 {
+  if (g_f == 0) return;
+
   int i,j,k;
   double kt,gfkt_t,gfkt_r,tmp,ms,s,s2;
 
@@ -853,7 +857,7 @@ void FixRigidNHSmall::nhc_press_integrate()
 
   double tb_mass = kt / (p_freq_max * p_freq_max);
   q_b[0] = dimension * dimension * tb_mass;
-  for (int i = 1; i < p_chain; i++) {
+  for (i = 1; i < p_chain; i++) {
     q_b[i] = tb_mass;
     f_eta_b[i] = q_b[i-1] * eta_dot_b[i-1] * eta_dot_b[i-1] - kt;
     f_eta_b[i] /= q_b[i];
@@ -938,7 +942,7 @@ double FixRigidNHSmall::compute_scalar()
   ke_t = 0.0;
   ke_q = 0.0;
 
-  for (int i = 0; i < nlocal_body; i++) {
+  for (i = 0; i < nlocal_body; i++) {
     vcm = body[i].vcm;
     quat = body[i].quat;
     ke_t += body[i].mass * (vcm[0]*vcm[0] + vcm[1]*vcm[1] +
@@ -1146,6 +1150,8 @@ void FixRigidNHSmall::compute_press_target()
 
 void FixRigidNHSmall::nh_epsilon_dot()
 {
+  if (g_f == 0) return;
+
   int i;
   double volume,scale,f_epsilon;
 
@@ -1186,13 +1192,7 @@ void FixRigidNHSmall::compute_dof()
       for (int k = 0; k < dimension; k++)
         if (fabs(b->inertia[k]) < EPSILON) nf_r--;
     }
-  } else if (dimension == 2) {
-    nf_r = nlocal_body;
-    for (int ibody = 0; ibody < nlocal_body; ibody++) {
-      Body *b = &body[ibody];
-      if (fabs(b->inertia[2]) < EPSILON) nf_r--;
-    }
-  }
+  } else if (dimension == 2) nf_r = nlocal_body;
 
   double nf[2], nfall[2];
   nf[0] = nf_t;
@@ -1202,8 +1202,6 @@ void FixRigidNHSmall::compute_dof()
   nf_r = nfall[1];
 
   g_f = nf_t + nf_r;
-  onednft = 1.0 + (double)(dimension) / (double)g_f;
-  onednfr = (double) (dimension) / (double)g_f;
 }
 
 /* ----------------------------------------------------------------------
@@ -1274,7 +1272,7 @@ void FixRigidNHSmall::write_restart(FILE *fp)
 void FixRigidNHSmall::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
   int flag = static_cast<int> (list[n++]);
 
   if (flag) {
@@ -1319,9 +1317,7 @@ int FixRigidNHSmall::modify_param(int narg, char **arg)
       tcomputeflag = 0;
     }
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0)
@@ -1353,9 +1349,7 @@ int FixRigidNHSmall::modify_param(int narg, char **arg)
       pcomputeflag = 0;
     }
     delete [] id_press;
-    int n = strlen(arg[1]) + 1;
-    id_press = new char[n];
-    strcpy(id_press,arg[1]);
+    id_press = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");

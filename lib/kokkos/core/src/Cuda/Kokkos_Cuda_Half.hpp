@@ -51,6 +51,9 @@
     !(defined(KOKKOS_ARCH_KEPLER) || defined(KOKKOS_ARCH_MAXWELL50) ||  \
       defined(KOKKOS_ARCH_MAXWELL52))
 #include <cuda_fp16.h>
+#include <iosfwd>  // istream & ostream for extraction and insertion ops
+#include <string>
+#include <Kokkos_NumericTraits.hpp>  // reduction_identity
 
 #ifndef KOKKOS_IMPL_HALF_TYPE_DEFINED
 // Make sure no one else tries to define half_t
@@ -127,7 +130,7 @@ KOKKOS_INLINE_FUNCTION
     std::enable_if_t<std::is_same<T, unsigned long long>::value, T>
         cast_from_half(half_t);
 
-class half_t {
+class alignas(2) half_t {
  public:
   using impl_type = Kokkos::Impl::half_impl_t::type;
 
@@ -137,6 +140,22 @@ class half_t {
  public:
   KOKKOS_FUNCTION
   half_t() : val(0.0F) {}
+
+  // Copy constructors
+  KOKKOS_DEFAULTED_FUNCTION
+  half_t(const half_t&) noexcept = default;
+
+  KOKKOS_INLINE_FUNCTION
+  half_t(const volatile half_t& rhs) {
+#ifdef __CUDA_ARCH__
+    val = rhs.val;
+#else
+    const volatile uint16_t* rv_ptr =
+        reinterpret_cast<const volatile uint16_t*>(&rhs.val);
+    const uint16_t rv_val = *rv_ptr;
+    val                   = reinterpret_cast<const impl_type&>(rv_val);
+#endif  // __CUDA_ARCH__
+  }
 
   // Don't support implicit conversion back to impl_type.
   // impl_type is a storage only type on host.
@@ -175,30 +194,42 @@ class half_t {
     return cast_from_half<unsigned long long>(*this);
   }
 
+  /**
+   * Conversion constructors.
+   *
+   * Support implicit conversions from impl_type, float, double -> half_t
+   * Mixed precision expressions require upcasting which is done in the
+   * "// Binary Arithmetic" operator overloads below.
+   *
+   * Support implicit conversions from integral types -> half_t.
+   * Expressions involving half_t with integral types require downcasting
+   * the integral types to half_t. Existing operator overloads can handle this
+   * with the addition of the below implicit conversion constructors.
+   */
   KOKKOS_FUNCTION
   half_t(impl_type rhs) : val(rhs) {}
   KOKKOS_FUNCTION
-  explicit half_t(float rhs) : val(cast_to_half(rhs).val) {}
+  half_t(float rhs) : val(cast_to_half(rhs).val) {}
+  KOKKOS_FUNCTION
+  half_t(double rhs) : val(cast_to_half(rhs).val) {}
   KOKKOS_FUNCTION
   explicit half_t(bool rhs) : val(cast_to_half(rhs).val) {}
   KOKKOS_FUNCTION
-  explicit half_t(double rhs) : val(cast_to_half(rhs).val) {}
+  half_t(short rhs) : val(cast_to_half(rhs).val) {}
   KOKKOS_FUNCTION
-  explicit half_t(short rhs) : val(cast_to_half(rhs).val) {}
+  half_t(int rhs) : val(cast_to_half(rhs).val) {}
   KOKKOS_FUNCTION
-  explicit half_t(int rhs) : val(cast_to_half(rhs).val) {}
+  half_t(long rhs) : val(cast_to_half(rhs).val) {}
   KOKKOS_FUNCTION
-  explicit half_t(long rhs) : val(cast_to_half(rhs).val) {}
+  half_t(long long rhs) : val(cast_to_half(rhs).val) {}
   KOKKOS_FUNCTION
-  explicit half_t(long long rhs) : val(cast_to_half(rhs).val) {}
+  half_t(unsigned short rhs) : val(cast_to_half(rhs).val) {}
   KOKKOS_FUNCTION
-  explicit half_t(unsigned short rhs) : val(cast_to_half(rhs).val) {}
+  half_t(unsigned int rhs) : val(cast_to_half(rhs).val) {}
   KOKKOS_FUNCTION
-  explicit half_t(unsigned int rhs) : val(cast_to_half(rhs).val) {}
+  half_t(unsigned long rhs) : val(cast_to_half(rhs).val) {}
   KOKKOS_FUNCTION
-  explicit half_t(unsigned long rhs) : val(cast_to_half(rhs).val) {}
-  KOKKOS_FUNCTION
-  explicit half_t(unsigned long long rhs) : val(cast_to_half(rhs).val) {}
+  half_t(unsigned long long rhs) : val(cast_to_half(rhs).val) {}
 
   // Unary operators
   KOKKOS_FUNCTION
@@ -207,7 +238,7 @@ class half_t {
 #ifdef __CUDA_ARCH__
     tmp.val = +tmp.val;
 #else
-    tmp.val   = __float2half(+__half2float(tmp.val));
+    tmp.val               = __float2half(+__half2float(tmp.val));
 #endif
     return tmp;
   }
@@ -218,7 +249,7 @@ class half_t {
 #ifdef __CUDA_ARCH__
     tmp.val = -tmp.val;
 #else
-    tmp.val   = __float2half(-__half2float(tmp.val));
+    tmp.val               = __float2half(-__half2float(tmp.val));
 #endif
     return tmp;
   }
@@ -229,7 +260,7 @@ class half_t {
 #ifdef __CUDA_ARCH__
     ++val;
 #else
-    float tmp = __half2float(val);
+    float tmp             = __half2float(val);
     ++tmp;
     val       = __float2half(tmp);
 #endif
@@ -276,6 +307,14 @@ class half_t {
     return *this;
   }
 
+  template <class T>
+  KOKKOS_FUNCTION void operator=(T rhs) volatile {
+    impl_type new_val = cast_to_half(rhs).val;
+    volatile uint16_t* val_ptr =
+        reinterpret_cast<volatile uint16_t*>(const_cast<impl_type*>(&val));
+    *val_ptr = reinterpret_cast<uint16_t&>(new_val);
+  }
+
   // Compound operators
   KOKKOS_FUNCTION
   half_t& operator+=(half_t rhs) {
@@ -284,6 +323,38 @@ class half_t {
 #else
     val     = __float2half(__half2float(val) + __half2float(rhs.val));
 #endif
+    return *this;
+  }
+
+  KOKKOS_FUNCTION
+  void operator+=(const volatile half_t& rhs) volatile {
+    half_t tmp_rhs = rhs;
+    half_t tmp_lhs = *this;
+
+    tmp_lhs += tmp_rhs;
+    *this = tmp_lhs;
+  }
+
+  // Compound operators: upcast overloads for +=
+  template <class T>
+  KOKKOS_FUNCTION std::enable_if_t<
+      std::is_same<T, float>::value || std::is_same<T, double>::value, T> friend
+  operator+=(T& lhs, half_t rhs) {
+    lhs += static_cast<T>(rhs);
+    return lhs;
+  }
+
+  KOKKOS_FUNCTION
+  half_t& operator+=(float rhs) {
+    float result = static_cast<float>(val) + rhs;
+    val          = static_cast<impl_type>(result);
+    return *this;
+  }
+
+  KOKKOS_FUNCTION
+  half_t& operator+=(double rhs) {
+    double result = static_cast<double>(val) + rhs;
+    val           = static_cast<impl_type>(result);
     return *this;
   }
 
@@ -298,6 +369,38 @@ class half_t {
   }
 
   KOKKOS_FUNCTION
+  void operator-=(const volatile half_t& rhs) volatile {
+    half_t tmp_rhs = rhs;
+    half_t tmp_lhs = *this;
+
+    tmp_lhs -= tmp_rhs;
+    *this = tmp_lhs;
+  }
+
+  // Compund operators: upcast overloads for -=
+  template <class T>
+  KOKKOS_FUNCTION std::enable_if_t<
+      std::is_same<T, float>::value || std::is_same<T, double>::value, T> friend
+  operator-=(T& lhs, half_t rhs) {
+    lhs -= static_cast<T>(rhs);
+    return lhs;
+  }
+
+  KOKKOS_FUNCTION
+  half_t& operator-=(float rhs) {
+    float result = static_cast<float>(val) - rhs;
+    val          = static_cast<impl_type>(result);
+    return *this;
+  }
+
+  KOKKOS_FUNCTION
+  half_t& operator-=(double rhs) {
+    double result = static_cast<double>(val) - rhs;
+    val           = static_cast<impl_type>(result);
+    return *this;
+  }
+
+  KOKKOS_FUNCTION
   half_t& operator*=(half_t rhs) {
 #ifdef __CUDA_ARCH__
     val *= rhs.val;
@@ -308,12 +411,76 @@ class half_t {
   }
 
   KOKKOS_FUNCTION
+  void operator*=(const volatile half_t& rhs) volatile {
+    half_t tmp_rhs = rhs;
+    half_t tmp_lhs = *this;
+
+    tmp_lhs *= tmp_rhs;
+    *this = tmp_lhs;
+  }
+
+  // Compund operators: upcast overloads for *=
+  template <class T>
+  KOKKOS_FUNCTION std::enable_if_t<
+      std::is_same<T, float>::value || std::is_same<T, double>::value, T> friend
+  operator*=(T& lhs, half_t rhs) {
+    lhs *= static_cast<T>(rhs);
+    return lhs;
+  }
+
+  KOKKOS_FUNCTION
+  half_t& operator*=(float rhs) {
+    float result = static_cast<float>(val) * rhs;
+    val          = static_cast<impl_type>(result);
+    return *this;
+  }
+
+  KOKKOS_FUNCTION
+  half_t& operator*=(double rhs) {
+    double result = static_cast<double>(val) * rhs;
+    val           = static_cast<impl_type>(result);
+    return *this;
+  }
+
+  KOKKOS_FUNCTION
   half_t& operator/=(half_t rhs) {
 #ifdef __CUDA_ARCH__
     val /= rhs.val;
 #else
     val     = __float2half(__half2float(val) / __half2float(rhs.val));
 #endif
+    return *this;
+  }
+
+  KOKKOS_FUNCTION
+  void operator/=(const volatile half_t& rhs) volatile {
+    half_t tmp_rhs = rhs;
+    half_t tmp_lhs = *this;
+
+    tmp_lhs /= tmp_rhs;
+    *this = tmp_lhs;
+  }
+
+  // Compund operators: upcast overloads for /=
+  template <class T>
+  KOKKOS_FUNCTION std::enable_if_t<
+      std::is_same<T, float>::value || std::is_same<T, double>::value, T> friend
+  operator/=(T& lhs, half_t rhs) {
+    lhs /= static_cast<T>(rhs);
+    return lhs;
+  }
+
+  KOKKOS_FUNCTION
+  half_t& operator/=(float rhs) {
+    float result = static_cast<float>(val) / rhs;
+    val          = static_cast<impl_type>(result);
+    return *this;
+  }
+
+  KOKKOS_FUNCTION
+  half_t& operator/=(double rhs) {
+    double result = static_cast<double>(val) / rhs;
+    val           = static_cast<impl_type>(result);
     return *this;
   }
 
@@ -328,6 +495,21 @@ class half_t {
     return lhs;
   }
 
+  // Binary Arithmetic upcast operators for +
+  template <class T>
+  KOKKOS_FUNCTION std::enable_if_t<
+      std::is_same<T, float>::value || std::is_same<T, double>::value, T> friend
+  operator+(half_t lhs, T rhs) {
+    return T(lhs) + rhs;
+  }
+
+  template <class T>
+  KOKKOS_FUNCTION std::enable_if_t<
+      std::is_same<T, float>::value || std::is_same<T, double>::value, T> friend
+  operator+(T lhs, half_t rhs) {
+    return lhs + T(rhs);
+  }
+
   KOKKOS_FUNCTION
   half_t friend operator-(half_t lhs, half_t rhs) {
 #ifdef __CUDA_ARCH__
@@ -336,6 +518,21 @@ class half_t {
     lhs.val = __float2half(__half2float(lhs.val) - __half2float(rhs.val));
 #endif
     return lhs;
+  }
+
+  // Binary Arithmetic upcast operators for -
+  template <class T>
+  KOKKOS_FUNCTION std::enable_if_t<
+      std::is_same<T, float>::value || std::is_same<T, double>::value, T> friend
+  operator-(half_t lhs, T rhs) {
+    return T(lhs) - rhs;
+  }
+
+  template <class T>
+  KOKKOS_FUNCTION std::enable_if_t<
+      std::is_same<T, float>::value || std::is_same<T, double>::value, T> friend
+  operator-(T lhs, half_t rhs) {
+    return lhs - T(rhs);
   }
 
   KOKKOS_FUNCTION
@@ -348,6 +545,21 @@ class half_t {
     return lhs;
   }
 
+  // Binary Arithmetic upcast operators for *
+  template <class T>
+  KOKKOS_FUNCTION std::enable_if_t<
+      std::is_same<T, float>::value || std::is_same<T, double>::value, T> friend
+  operator*(half_t lhs, T rhs) {
+    return T(lhs) * rhs;
+  }
+
+  template <class T>
+  KOKKOS_FUNCTION std::enable_if_t<
+      std::is_same<T, float>::value || std::is_same<T, double>::value, T> friend
+  operator*(T lhs, half_t rhs) {
+    return lhs * T(rhs);
+  }
+
   KOKKOS_FUNCTION
   half_t friend operator/(half_t lhs, half_t rhs) {
 #ifdef __CUDA_ARCH__
@@ -356,6 +568,21 @@ class half_t {
     lhs.val = __float2half(__half2float(lhs.val) / __half2float(rhs.val));
 #endif
     return lhs;
+  }
+
+  // Binary Arithmetic upcast operators for /
+  template <class T>
+  KOKKOS_FUNCTION std::enable_if_t<
+      std::is_same<T, float>::value || std::is_same<T, double>::value, T> friend
+  operator/(half_t lhs, T rhs) {
+    return T(lhs) / rhs;
+  }
+
+  template <class T>
+  KOKKOS_FUNCTION std::enable_if_t<
+      std::is_same<T, float>::value || std::is_same<T, double>::value, T> friend
+  operator/(T lhs, half_t rhs) {
+    return lhs / T(rhs);
   }
 
   // Logical operators
@@ -441,6 +668,62 @@ class half_t {
 #else
     return __half2float(val) >= __half2float(rhs.val);
 #endif
+  }
+
+  KOKKOS_FUNCTION
+  friend bool operator==(const volatile half_t& lhs,
+                         const volatile half_t& rhs) {
+    half_t tmp_lhs = lhs, tmp_rhs = rhs;
+    return tmp_lhs == tmp_rhs;
+  }
+
+  KOKKOS_FUNCTION
+  friend bool operator!=(const volatile half_t& lhs,
+                         const volatile half_t& rhs) {
+    half_t tmp_lhs = lhs, tmp_rhs = rhs;
+    return tmp_lhs != tmp_rhs;
+  }
+
+  KOKKOS_FUNCTION
+  friend bool operator<(const volatile half_t& lhs,
+                        const volatile half_t& rhs) {
+    half_t tmp_lhs = lhs, tmp_rhs = rhs;
+    return tmp_lhs < tmp_rhs;
+  }
+
+  KOKKOS_FUNCTION
+  friend bool operator>(const volatile half_t& lhs,
+                        const volatile half_t& rhs) {
+    half_t tmp_lhs = lhs, tmp_rhs = rhs;
+    return tmp_lhs > tmp_rhs;
+  }
+
+  KOKKOS_FUNCTION
+  friend bool operator<=(const volatile half_t& lhs,
+                         const volatile half_t& rhs) {
+    half_t tmp_lhs = lhs, tmp_rhs = rhs;
+    return tmp_lhs <= tmp_rhs;
+  }
+
+  KOKKOS_FUNCTION
+  friend bool operator>=(const volatile half_t& lhs,
+                         const volatile half_t& rhs) {
+    half_t tmp_lhs = lhs, tmp_rhs = rhs;
+    return tmp_lhs >= tmp_rhs;
+  }
+
+  // Insertion and extraction operators
+  friend std::ostream& operator<<(std::ostream& os, const half_t& x) {
+    const std::string out = std::to_string(static_cast<double>(x));
+    os << out;
+    return os;
+  }
+
+  friend std::istream& operator>>(std::istream& is, half_t& x) {
+    std::string in;
+    is >> in;
+    x = std::stod(in);
+    return is;
   }
 };
 
@@ -702,6 +985,25 @@ KOKKOS_INLINE_FUNCTION
 }
 #endif
 }  // namespace Experimental
+
+// use float as the return type for sum and prod since cuda_fp16.h
+// has no constexpr functions for casting to __half
+template <>
+struct reduction_identity<Kokkos::Experimental::half_t> {
+  KOKKOS_FORCEINLINE_FUNCTION constexpr static float sum() noexcept {
+    return 0.0F;
+  }
+  KOKKOS_FORCEINLINE_FUNCTION constexpr static float prod() noexcept {
+    return 1.0F;
+  }
+  KOKKOS_FORCEINLINE_FUNCTION constexpr static float max() noexcept {
+    return -65504.0F;
+  }
+  KOKKOS_FORCEINLINE_FUNCTION constexpr static float min() noexcept {
+    return 65504.0F;
+  }
+};
+
 }  // namespace Kokkos
 #endif  // KOKKOS_IMPL_HALF_TYPE_DEFINED
 #endif  // KOKKOS_ENABLE_CUDA

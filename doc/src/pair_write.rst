@@ -44,13 +44,13 @@ will refuse to add a table if the units are not the same.
 The energy and force values are computed at distances from inner to
 outer for 2 interacting atoms of type itype and jtype, using the
 appropriate :doc:`pair_coeff <pair_coeff>` coefficients.  If the style
-is *r*\ , then N distances are used, evenly spaced in r; if the style is
-*rsq*\ , N distances are used, evenly spaced in r\^2.
+is *r*, then N distances are used, evenly spaced in r; if the style is
+*rsq*, N distances are used, evenly spaced in r\^2.
 
-For example, for N = 7, style = *r*\ , inner = 1.0, and outer = 4.0,
+For example, for N = 7, style = *r*, inner = 1.0, and outer = 4.0,
 values are computed at r = 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0.
 
-If the style is *bitmap*\ , then 2\^N values are written to the file in a
+If the style is *bitmap*, then 2\^N values are written to the file in a
 format and order consistent with how they are read in by the
 :doc:`pair_coeff <pair_coeff>` command for pair style *table*\ .  For
 reasonable accuracy in a bitmapped table, choose N >= 12, an *inner*
@@ -76,8 +76,10 @@ must be set before this command can be invoked.
 Due to how the pairwise force is computed, an inner value > 0.0 must
 be specified even if the potential has a finite value at r = 0.0.
 
-For EAM potentials, the pair_write command only tabulates the
-pairwise portion of the potential, not the embedding portion.
+The *pair_write* command can only be used for pairwise additive
+interactions for which a `Pair::single()` function can be and has
+been implemented.  This excludes for example manybody potentials
+or TIP4P coulomb styles.
 
 Related commands
 """"""""""""""""

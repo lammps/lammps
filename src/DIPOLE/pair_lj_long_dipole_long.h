@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/long/dipole/long,PairLJLongDipoleLong)
-
+// clang-format off
+PairStyle(lj/long/dipole/long,PairLJLongDipoleLong);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_LONG_DIPOLE_LONG_H
@@ -29,18 +29,18 @@ class PairLJLongDipoleLong : public Pair {
   double cut_coul;
 
   PairLJLongDipoleLong(class LAMMPS *);
-  virtual ~PairLJLongDipoleLong();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
+  ~PairLJLongDipoleLong() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
 
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  void *extract(const char *, int &);
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  void *extract(const char *, int &) override;
 
  protected:
   double cut_lj_global;
@@ -56,7 +56,7 @@ class PairLJLongDipoleLong : public Pair {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

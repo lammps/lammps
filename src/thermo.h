@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,111 +15,109 @@
 #define LMP_THERMO_H
 
 #include "pointers.h"
+#include <map>
 
 namespace LAMMPS_NS {
 
 class Thermo : protected Pointers {
-  friend class MinCG;                  // accesses compute_pe
-  friend class DumpNetCDF;             // accesses thermo properties
-  friend class DumpNetCDFMPIIO;        // accesses thermo properties
+  friend class MinCG;              // accesses compute_pe
+  friend class DumpNetCDF;         // accesses thermo properties
+  friend class DumpNetCDFMPIIO;    // accesses thermo properties
+  friend class DumpYAML;           // accesses thermo properties
 
  public:
   char *style;
-  int normflag;          // 0 if do not normalize by atoms, 1 if normalize
-  int modified;          // 1 if thermo_modify has been used, else 0
-  int lostflag;          // IGNORE,WARN,ERROR
-  int lostbond;          // ditto for atoms in bonds
+  int normflag;    // 0 if do not normalize by atoms, 1 if normalize
+  int modified;    // 1 if thermo_modify has been used, else 0
+  int lostflag;    // IGNORE,WARN,ERROR
+  int lostbond;    // ditto for atoms in bonds
 
-  enum {IGNORE,WARN,ERROR};
+  enum { IGNORE, WARN, ERROR };
+  enum { INT, FLOAT, BIGINT };
 
   Thermo(class LAMMPS *, int, char **);
-  ~Thermo();
+  ~Thermo() override;
   void init();
   bigint lost_check();
   void modify_params(int, char **);
   void header();
+  void footer();
   void compute(int);
-  int evaluate_keyword(const char *, double *);
+  int evaluate_keyword(const std::string &, double *);
 
  private:
-  char *line;
-  char **keyword;
+  int nfield, nfield_initial;
   int *vtype;
+  std::string line;
+  std::vector<std::string> keyword, format, format_column_user, keyword_user;
+  std::string format_line_user, format_float_user, format_int_user, format_bigint_user;
+  std::map<std::string, int> key2col;
 
-  int nfield,nfield_initial;
-  int me;
-
-  char **format;
-  char *format_line_user;
-  char *format_float_user,*format_int_user,*format_bigint_user;
-  char **format_column_user;
-
-  char *format_float_one_def,*format_float_multi_def;
-  char *format_int_one_def,*format_int_multi_def;
-  char format_multi[128];
-  char format_bigint_one_def[8],format_bigint_multi_def[8];
-
-  int normvalue;         // use this for normflag unless natoms = 0
-  int normuserflag;      // 0 if user has not set, 1 if has
+  int normvalue;       // use this for normflag unless natoms = 0
+  int normuserflag;    // 0 if user has not set, 1 if has
   int normuser;
 
   int firststep;
-  int lostbefore;
-  int flushflag,lineflag;
+  int lostbefore, warnbefore;
+  int flushflag, lineflag;
 
-  double last_tpcpu,last_spcpu;
+  double last_tpcpu, last_spcpu;
   double last_time;
   bigint last_step;
 
   bigint natoms;
 
-                         // data used by routines that compute single values
-  int ivalue;            // integer value to print
-  double dvalue;         // double value to print
-  bigint bivalue;        // big integer value to print
-  int ifield;            // which field in thermo output is being computed
-  int *field2index;      // which compute,fix,variable calcs this field
-  int *argindex1;        // indices into compute,fix scalar,vector
+  // data used by routines that compute single values
+  int ivalue;          // integer value to print
+  double dvalue;       // double value to print
+  bigint bivalue;      // big integer value to print
+  int ifield;          // which field in thermo output is being computed
+  int *field2index;    // which compute,fix,variable calcs this field
+  int *argindex1;      // indices into compute,fix scalar,vector
   int *argindex2;
 
-                         // data for keyword-specific Compute objects
-                         // index = where they are in computes list
-                         // id = ID of Compute objects
-                         // Compute * = ptrs to the Compute objects
-  int index_temp,index_press_scalar,index_press_vector,index_pe;
-  char *id_temp,*id_press,*id_pe;
-  class Compute *temperature,*pressure,*pe;
+  // data for keyword-specific Compute objects
+  // index = where they are in computes list
+  // id = ID of Compute objects
+  // Compute * = ptrs to the Compute objects
+  int index_temp, index_press_scalar, index_press_vector, index_pe;
+  class Compute *temperature, *pressure, *pe;
 
   int ncompute;                // # of Compute objects called by thermo
   char **id_compute;           // their IDs
   int *compute_which;          // 0/1/2 if should call scalar,vector,array
   class Compute **computes;    // list of ptrs to the Compute objects
 
-  int nfix;                    // # of Fix objects called by thermo
-  char **id_fix;               // their IDs
-  class Fix **fixes;           // list of ptrs to the Fix objects
+  int nfix;             // # of Fix objects called by thermo
+  char **id_fix;        // their IDs
+  class Fix **fixes;    // list of ptrs to the Fix objects
 
-  int nvariable;               // # of variables evaluated by thermo
-  char **id_variable;          // list of variable names
-  int *variables;              // list of Variable indices
+  int nvariable;         // # of variables evaluated by thermo
+  char **id_variable;    // list of variable names
+  int *variables;        // list of Variable indices
 
   // private methods
 
   void allocate();
   void deallocate();
 
-  void parse_fields(char *);
+  void parse_fields(const std::string &);
   int add_compute(const char *, int);
   int add_fix(const char *);
   int add_variable(const char *);
 
+  void check_temp(const std::string &);
+  void check_pe(const std::string &);
+  void check_press_scalar(const std::string &);
+  void check_press_vector(const std::string &);
+
   typedef void (Thermo::*FnPtr)();
   void addfield(const char *, FnPtr, int);
-  FnPtr *vfunc;                // list of ptrs to functions
+  FnPtr *vfunc;    // list of ptrs to functions
   void call_vfunc(int ifield);
 
-  void compute_compute();      // functions that compute a single value
-  void compute_fix();          // via calls to  Compute,Fix,Variable classes
+  void compute_compute();    // functions that compute a single value
+  void compute_fix();        // via calls to  Compute,Fix,Variable classes
   void compute_variable();
 
   // functions that compute a single value
@@ -206,7 +204,7 @@ class Thermo : protected Pointers {
   void compute_cellgamma();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

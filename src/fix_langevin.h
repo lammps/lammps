@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(langevin,FixLangevin)
-
+// clang-format off
+FixStyle(langevin,FixLangevin);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_LANGEVIN_H
@@ -27,44 +27,44 @@ namespace LAMMPS_NS {
 class FixLangevin : public Fix {
  public:
   FixLangevin(class LAMMPS *, int, char **);
-  virtual ~FixLangevin();
-  int setmask();
-  void init();
-  void setup(int);
-  virtual void initial_integrate(int);
-  virtual void post_force(int);
-  void post_force_respa(int, int, int);
-  virtual void end_of_step();
-  void reset_target(double);
-  void reset_dt();
-  int modify_param(int, char **);
-  virtual double compute_scalar();
-  double memory_usage();
-  virtual void *extract(const char *, int &);
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
+  ~FixLangevin() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void initial_integrate(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  void end_of_step() override;
+  void reset_target(double) override;
+  void reset_dt() override;
+  int modify_param(int, char **) override;
+  double compute_scalar() override;
+  double memory_usage() override;
+  void *extract(const char *, int &) override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
 
  protected:
-  int gjfflag,nvalues,osflag,oflag,tallyflag,zeroflag,tbiasflag;
+  int gjfflag, nvalues, osflag, oflag, tallyflag, zeroflag, tbiasflag;
   int flangevin_allocated;
   double ascale;
-  double t_start,t_stop,t_period,t_target;
-  double *gfactor1,*gfactor2,*ratio;
-  double energy,energy_onestep;
+  double t_start, t_stop, t_period, t_target;
+  double *gfactor1, *gfactor2, *ratio;
+  double energy, energy_onestep;
   double tsqrt;
-  int tstyle,tvar;
-  double gjfa, gjfsib; //gjf a and gjf sqrt inverse b
+  int tstyle, tvar;
+  double gjfa, gjfsib;    //gjf a and gjf sqrt inverse b
   char *tstr;
 
   class AtomVecEllipsoid *avec;
 
-  int maxatom1,maxatom2;
+  int maxatom1, maxatom2;
   double **flangevin;
   double *tforce;
   double **franprev;
-  double **lv; //half step velocity
+  double **lv;    //half step velocity
 
   char *id_temp;
   class Compute *temperature;
@@ -73,8 +73,7 @@ class FixLangevin : public Fix {
   class RanMars *random;
   int seed;
 
-  template < int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
-             int Tp_BIAS, int Tp_RMASS, int Tp_ZERO >
+  template <int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY, int Tp_BIAS, int Tp_RMASS, int Tp_ZERO>
   void post_force_templated();
 
   void omega_thermostat();
@@ -82,7 +81,7 @@ class FixLangevin : public Fix {
   void compute_target();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

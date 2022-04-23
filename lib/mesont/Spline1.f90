@@ -1,6 +1,6 @@
 ! ------------ ----------------------------------------------------------
 !   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-!   http://lammps.sandia.gov, Sandia National Laboratories
+!   https://www.lammps.org/ Sandia National Laboratories
 !   Steve Plimpton, sjplimp@sandia.gov
 !
 !   Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -9,9 +9,9 @@
 !   the GNU General Public License.
 !
 !   See the README file in the top-level LAMMPS directory.
-!   
+!
 !   Contributing author: Alexey N. Volkov, UA, avolkov1@ua.edu
-!------------------------------------------------------------------------- 
+!-------------------------------------------------------------------------
 
 module Spline1 !************************************************************************************
 !
@@ -64,7 +64,7 @@ contains !**********************************************************************
         !-------------------------------------------------------------------------------------------
                 X(0) = F(0) / K1(0)
                 F(0) = - K2(0) / K1(0)
-                do i = 1, N - 1 
+                do i = 1, N - 1
                         D    = - ( K1(i) + F(i-1) * K0(i) )
                         X(i) = ( K0(i) * X(i-1) - F(i) ) / D
                         F(i) = K2(i) / D
@@ -85,8 +85,8 @@ contains !**********************************************************************
                         K0(i) = P(i) - P(i-1)
                         K1(i) = ( F(i) - F(i-1) ) / K0(i)
                 end do
-                select case ( CL ) 
-                        case (1) 
+                select case ( CL )
+                        case (1)
                                 K1(0) = 2.0d+00 / 3.0d+00
                                 K2(0) = 1.0d+00 / 3.0d+00
                                 D (0) = 2 * ( K1(1) - M(0) ) / K0(1)
@@ -98,14 +98,14 @@ contains !**********************************************************************
                                 K1(0) = 1.0d+00
                                 K2(0) = 0.0d+00
                                 D(0)  = 0.0d+00
-                end select 
+                end select
                 Z = K1(N-1)
-                do i = 1, N - 2 
+                do i = 1, N - 2
                         D(i)  = 6.0d+00 * ( K1(i+1) - K1(i) )
                         K2(i) = K0(i+1)
                         K1(i) = 2.0d+00 * ( K2(i) + K0(i) )
                 end do
-                select case ( CR ) 
+                select case ( CR )
                         case (1)
                                 D(N-1)  = 2.0d+00 * ( M(N-1) - Z ) / K0(N-1)
                                 K1(N-1) = 2.0d+00 / 3.0d+00
@@ -118,14 +118,14 @@ contains !**********************************************************************
                                 K1(N-1) = 1.0d+00
                                 K0(N-1) = 0.0d+00
                                 D(N-1)  = 0.0d+00
-                end select 
+                end select
                 call sprogonka3 ( N, K0, K1, K2, D, M )
         end subroutine CreateSpline1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
         real(c_double) function CalcSpline1_0 ( i, X, N, P, F, M ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         integer(c_int), intent(in)                   :: i, N
         real(c_double), intent(in)                      :: X
-        real(c_double), dimension(0:N-1), intent(in)    :: P, F, M        
+        real(c_double), dimension(0:N-1), intent(in)    :: P, F, M
         integer(c_int)                               :: j
         real(c_double)                                  :: HL, HR, H, H6, H26, HR2, HL2, HRH, HLH
         !-------------------------------------------------------------------------------------------
@@ -147,7 +147,7 @@ contains !**********************************************************************
         real(c_double), intent(out)                     :: S, S1
         integer(c_int), intent(in)                   :: i, N
         real(c_double), intent(in)                      :: X
-        real(c_double), dimension(0:N-1), intent(in)    :: P, F, M        
+        real(c_double), dimension(0:N-1), intent(in)    :: P, F, M
         integer(c_int)                               :: j
         real(c_double)                                  :: HL, HR, H, H6, H26, HR2, HL2, HRH, HLH
         !-------------------------------------------------------------------------------------------
@@ -169,7 +169,7 @@ contains !**********************************************************************
         real(c_double), intent(out)                     :: S, S1, S2
         integer(c_int), intent(in)                   :: i, N
         real(c_double), intent(in)                      :: X
-        real(c_double), dimension(0:N-1), intent(in)    :: P, F, M        
+        real(c_double), dimension(0:N-1), intent(in)    :: P, F, M
         integer(c_int)                               :: j
         real(c_double)                                  :: HL, HR, H, H6, H26, HR2, HL2, HRH, HLH
         !-------------------------------------------------------------------------------------------
@@ -185,7 +185,7 @@ contains !**********************************************************************
                 HRH = HR / H
                 S  = ( M(j) * HR2 * HRH + M(i) * HL2 * HLH ) / 6.0d+00 + ( F(j) - M(j) * H26 ) * HRH + ( F(i) - M(i) * H26 ) * HLH
                 S1 = ( ( M(i) * HL2 - M(j) * HR2 ) / 2.0d+00 + F(i) - F(j) ) / H - H6 * ( M(i) - M(j) )
-                S2 = M(j) * HRH + M(i) * HLH 
+                S2 = M(j) * HRH + M(i) * HLH
         end subroutine CalcSpline1_2 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
 end module Spline1 !********************************************************************************

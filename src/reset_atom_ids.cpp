@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -43,7 +44,7 @@ static int compare_coords(const int, const int, void *);
 
 /* ---------------------------------------------------------------------- */
 
-ResetIDs::ResetIDs(LAMMPS *lmp) : Pointers(lmp) {}
+ResetIDs::ResetIDs(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -68,9 +69,7 @@ void ResetIDs::command(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"sort") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal reset_atom_ids command");
-      if (strcmp(arg[iarg+1],"yes") == 0) sortflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) sortflag = 0;
-      else error->all(FLERR,"Illegal reset_atom_ids command");
+      sortflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal reset_atom_ids command");
   }
@@ -253,8 +252,8 @@ void ResetIDs::command(int narg, char **arg)
   int all;
   MPI_Allreduce(&badcount,&all,1,MPI_INT,MPI_SUM,world);
   if (all)
-    error->all(FLERR,fmt::format("Reset_ids missing {} bond topology atom IDs - "
-                                 "use comm_modify cutoff",all));
+    error->all(FLERR,"Reset_ids missing {} bond topology atom IDs - "
+                                 "use comm_modify cutoff",all);
 
   // reset IDs and atom map for owned atoms
 
@@ -387,8 +386,7 @@ void ResetIDs::sort()
 
   int *proclist;
   memory->create(proclist,nlocal,"special:proclist");
-  AtomRvous *atombuf = (AtomRvous *)
-    memory->smalloc((bigint) nlocal*sizeof(AtomRvous),"resetIDs:idbuf");
+  auto atombuf = (AtomRvous *) memory->smalloc((bigint) nlocal*sizeof(AtomRvous),"resetIDs:idbuf");
 
   int ibinx,ibiny,ibinz,iproc;
   bigint ibin;
@@ -414,10 +412,9 @@ void ResetIDs::sort()
   // perform rendezvous operation, send atombuf to other procs
 
   char *buf;
-  int nreturn = comm->rendezvous(1,nlocal,(char *) atombuf,sizeof(AtomRvous),
-                                 0,proclist,
+  int nreturn = comm->rendezvous(1,nlocal,(char *) atombuf,sizeof(AtomRvous),0,proclist,
                                  sort_bins,0,buf,sizeof(IDRvous),(void *) this);
-  IDRvous *outbuf = (IDRvous *) buf;
+  auto outbuf = (IDRvous *) buf;
 
   memory->destroy(proclist);
   memory->sfree(atombuf);
@@ -440,13 +437,11 @@ void ResetIDs::sort()
    outbuf = list of N IDRvous datums, sent back to sending proc
 ------------------------------------------------------------------------- */
 
-int ResetIDs::sort_bins(int n, char *inbuf,
-                        int &flag, int *&proclist, char *&outbuf,
-                        void *ptr)
+int ResetIDs::sort_bins(int n, char *inbuf, int &flag, int *&proclist, char *&outbuf, void *ptr)
 {
   int i,ibin,index;
 
-  ResetIDs *rptr = (ResetIDs *) ptr;
+  auto rptr = (ResetIDs *) ptr;
   Memory *memory = rptr->memory;
   Error *error = rptr->error;
   MPI_Comm world = rptr->world;
@@ -471,7 +466,7 @@ int ResetIDs::sort_bins(int n, char *inbuf,
     count[ibin] = 0;
   }
 
-  AtomRvous *in = (AtomRvous *) inbuf;
+  auto in = (AtomRvous *) inbuf;
 
   for (i = 0; i < n; i++) {
     if (in[i].ibin < binlo || in[i].ibin >= binhi) {
@@ -531,8 +526,7 @@ int ResetIDs::sort_bins(int n, char *inbuf,
 
   int nout = n;
   memory->create(proclist,nout,"resetIDs:proclist");
-  IDRvous *out = (IDRvous *)
-    memory->smalloc(nout*sizeof(IDRvous),"resetIDs:out");
+  auto out = (IDRvous *) memory->smalloc(nout*sizeof(IDRvous),"resetIDs:out");
 
   tagint one = nprev + 1;
   for (ibin = 0; ibin < nbins; ibin++) {
@@ -594,7 +588,7 @@ int compare_coords(const void *iptr, const void *jptr)
 
 int compare_coords(const int i, const int j, void *ptr)
 {
-  ResetIDs::AtomRvous *rvous = (ResetIDs::AtomRvous *) ptr;
+  auto rvous = (ResetIDs::AtomRvous *) ptr;
   double *xi = rvous[i].x;
   double *xj = rvous[j].x;
   if (xi[0] < xj[0]) return -1;

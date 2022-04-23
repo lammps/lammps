@@ -71,8 +71,8 @@ required in order to eliminate velocity components along the bonds
 
 In order to formulate individual constraints for SHAKE and RATTLE,
 focus on a single molecule whose bonds are constrained.  Let Ri and Vi
-be the position and velocity of atom *i* at time *n*\ , for
-*i* =1,...,\ *N*\ , where *N* is the number of sites of our reference
+be the position and velocity of atom *i* at time *n*, for
+*i* =1,...,\ *N*, where *N* is the number of sites of our reference
 molecule. The distance vector between sites *i* and *j* is given by
 
 .. math::
@@ -213,7 +213,7 @@ Restrictions
 
 These fixes are part of the RIGID package.  They are only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 For computational efficiency, there can only be one shake or rattle
 fix defined in a simulation.

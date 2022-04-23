@@ -49,7 +49,7 @@
 // the mesh.
 
 #include <Kokkos_Core.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 #include <cstdio>
 
 using mesh_type = Kokkos::View<double***, Kokkos::LayoutRight>;
@@ -78,9 +78,11 @@ struct set_boundary {
 
   set_boundary(ViewType a_, double value_) : a(a_), value(value_) {}
 
+  using size_type = typename ViewType::size_type;
+
   KOKKOS_INLINE_FUNCTION
-  void operator()(const typename ViewType::size_type i) const {
-    for (typename ViewType::size_type j = 0; j < a.extent(1); ++j) {
+  void operator()(const size_type i) const {
+    for (size_type j = 0; j < static_cast<size_type>(a.extent(1)); ++j) {
       a(i, j) = value;
     }
   }
@@ -96,11 +98,12 @@ struct set_inner {
 
   set_inner(ViewType a_, double value_) : a(a_), value(value_) {}
 
+  using size_type = typename ViewType::size_type;
+
   KOKKOS_INLINE_FUNCTION
-  void operator()(const typename ViewType::size_type i) const {
-    using size_type = typename ViewType::size_type;
-    for (size_type j = 0; j < a.extent(1); ++j) {
-      for (size_type k = 0; k < a.extent(2); ++k) {
+  void operator()(const size_type i) const {
+    for (size_type j = 0; j < static_cast<size_type>(a.extent(1)); ++j) {
+      for (size_type k = 0; k < static_cast<size_type>(a.extent(2)); ++k) {
         a(i, j, k) = value;
       }
     }
@@ -116,12 +119,13 @@ struct update {
 
   update(ViewType a_, const double dt_) : a(a_), dt(dt_) {}
 
+  using size_type = typename ViewType::size_type;
+
   KOKKOS_INLINE_FUNCTION
-  void operator()(typename ViewType::size_type i) const {
-    using size_type = typename ViewType::size_type;
+  void operator()(size_type i) const {
     i++;
-    for (size_type j = 1; j < a.extent(1) - 1; j++) {
-      for (size_type k = 1; k < a.extent(2) - 1; k++) {
+    for (size_type j = 1; j < static_cast<size_type>(a.extent(1) - 1); j++) {
+      for (size_type k = 1; k < static_cast<size_type>(a.extent(2) - 1); k++) {
         a(i, j, k) += dt * (a(i, j, k + 1) - a(i, j, k - 1) + a(i, j + 1, k) -
                             a(i, j - 1, k) + a(i + 1, j, k) - a(i - 1, j, k));
       }

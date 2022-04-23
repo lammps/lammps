@@ -228,6 +228,15 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
         m_functor(arg_functor),
         m_mdr_policy(arg_policy),
         m_policy(Policy(0, m_mdr_policy.m_num_tiles).set_chunk_size(1)) {}
+  template <typename Policy, typename Functor>
+  static int max_tile_size_product(const Policy&, const Functor&) {
+    /**
+     * 1024 here is just our guess for a reasonable max tile size,
+     * it isn't a hardware constraint. If people see a use for larger
+     * tile size products, we're happy to change this.
+     */
+    return 1024;
+  }
 };
 
 }  // namespace Impl
@@ -257,8 +266,8 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
                          FunctorType, ReducerType>;
   using ReducerTypeFwd = typename ReducerConditional::type;
   using WorkTagFwd =
-      typename Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                                  WorkTag, void>::type;
+      std::conditional_t<std::is_same<InvalidType, ReducerType>::value, WorkTag,
+                         void>;
 
   // Static Assert WorkTag void if ReducerType not InvalidType
 
@@ -430,8 +439,8 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
                          FunctorType, ReducerType>;
   using ReducerTypeFwd = typename ReducerConditional::type;
   using WorkTagFwd =
-      typename Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                                  WorkTag, void>::type;
+      std::conditional_t<std::is_same<InvalidType, ReducerType>::value, WorkTag,
+                         void>;
 
   using ValueInit = Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, WorkTagFwd>;
   using ValueJoin = Kokkos::Impl::FunctorValueJoin<ReducerTypeFwd, WorkTagFwd>;
@@ -566,6 +575,15 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
                                     , Kokkos::HostSpace >::value
       , "Reduction result on Kokkos::OpenMP must be a Kokkos::View in HostSpace"
       );*/
+  }
+  template <typename Policy, typename Functor>
+  static int max_tile_size_product(const Policy&, const Functor&) {
+    /**
+     * 1024 here is just our guess for a reasonable max tile size,
+     * it isn't a hardware constraint. If people see a use for larger
+     * tile size products, we're happy to change this.
+     */
+    return 1024;
   }
 };
 
@@ -963,8 +981,8 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
 
   using ReducerTypeFwd = typename ReducerConditional::type;
   using WorkTagFwd =
-      typename Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                                  WorkTag, void>::type;
+      std::conditional_t<std::is_same<InvalidType, ReducerType>::value, WorkTag,
+                         void>;
 
   using ValueInit = Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, WorkTagFwd>;
   using ValueJoin = Kokkos::Impl::FunctorValueJoin<ReducerTypeFwd, WorkTagFwd>;

@@ -66,7 +66,7 @@ Restrictions
 Only for be used with the specific controllers *thermal* or *momentum*.
 They are ignored if a lumped solution is requested.
 
-*control thermal* is only for be used with specific transfers: thermal (*rescale*\ , *hoover*\ , *flux*\ ), *two_temperature* (*flux*\ ).
+*control thermal* is only for be used with specific transfers: thermal (*rescale*, *hoover*, *flux*\ ), *two_temperature* (*flux*\ ).
 *rescale* not valid with time filtering activated
 
 *correction_max_iterations* is only for use with *thermal* physics using

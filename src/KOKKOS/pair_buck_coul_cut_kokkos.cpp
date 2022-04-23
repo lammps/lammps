@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,20 +17,22 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_buck_coul_cut_kokkos.h"
-#include <cmath>
-#include <cstring>
-#include "kokkos.h"
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
-#include "respa.h"
+#include "kokkos.h"
 #include "math_const.h"
 #include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -49,10 +52,6 @@ PairBuckCoulCutKokkos<DeviceType>::PairBuckCoulCutKokkos(LAMMPS *lmp):PairBuckCo
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = nullptr;
-  cut_ljsq = nullptr;
-  cut_coulsq = nullptr;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -60,23 +59,15 @@ PairBuckCoulCutKokkos<DeviceType>::PairBuckCoulCutKokkos(LAMMPS *lmp):PairBuckCo
 template<class DeviceType>
 PairBuckCoulCutKokkos<DeviceType>::~PairBuckCoulCutKokkos()
 {
+  if (copymode) return;
 
-  if (!copymode) {
+  if (allocated) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    k_cutsq = DAT::tdual_ffloat_2d();
-    k_cut_ljsq = DAT::tdual_ffloat_2d();
-    k_cut_coulsq = DAT::tdual_ffloat_2d();
-    memory->sfree(cutsq);
-    memory->sfree(cut_ljsq);
-    memory->sfree(cut_coulsq);
-    eatom = nullptr;
-    vatom = nullptr;
-    cutsq = nullptr;
-    cut_ljsq = nullptr;
-    cut_coulsq = nullptr;
+    memoryKK->destroy_kokkos(k_cutsq,cutsq);
+    memoryKK->destroy_kokkos(k_cut_ljsq,cut_ljsq);
+    memoryKK->destroy_kokkos(k_cut_coulsq,cut_coulsq);
   }
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -249,15 +240,19 @@ void PairBuckCoulCutKokkos<DeviceType>::allocate()
   PairBuckCoulCut::allocate();
 
   int n = atom->ntypes;
+
   memory->destroy(cutsq);
   memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
+
   memory->destroy(cut_ljsq);
   memoryKK->create_kokkos(k_cut_ljsq,cut_ljsq,n+1,n+1,"pair:cut_ljsq");
   d_cut_ljsq = k_cut_ljsq.template view<DeviceType>();
+
   memory->destroy(cut_coulsq);
   memoryKK->create_kokkos(k_cut_coulsq,cut_coulsq,n+1,n+1,"pair:cut_coulsq");
   d_cut_coulsq = k_cut_coulsq.template view<DeviceType>();
+
   k_params = Kokkos::DualView<params_buck_coul**,Kokkos::LayoutRight,DeviceType>("PairBuckCoulCut::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
 }
@@ -285,7 +280,7 @@ void PairBuckCoulCutKokkos<DeviceType>::init_style()
 
   // error if rRESPA with inner levels
 
-  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
+  if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
     int respa = 0;
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
@@ -293,26 +288,14 @@ void PairBuckCoulCutKokkos<DeviceType>::init_style()
       error->all(FLERR,"Cannot use Kokkos pair style with rRESPA inner/middle");
   }
 
-  // irequest = neigh request made by parent class
+  // adjust neighbor list request for KOKKOS
 
   neighflag = lmp->kokkos->neighflag;
-  int irequest = neighbor->nrequest - 1;
-
-  neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
-
-  if (neighflag == FULL) {
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->half = 0;
-  } else if (neighflag == HALF || neighflag == HALFTHREAD) {
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 1;
-  } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with buck/coul/cut/kk");
-  }
+  auto request = neighbor->find_request(this);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  if (neighflag == FULL) request->enable_full();
 }
 
 /* ----------------------------------------------------------------------

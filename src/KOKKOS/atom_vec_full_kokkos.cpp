@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +13,15 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_full_kokkos.h"
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "comm_kokkos.h"
 #include "domain.h"
-#include "modify.h"
-#include "fix.h"
-#include "atom_masks.h"
-#include "memory_kokkos.h"
 #include "error.h"
-
+#include "fix.h"
+#include "memory_kokkos.h"
+#include "modify.h"
 
 using namespace LAMMPS_NS;
 
@@ -1487,7 +1488,7 @@ void AtomVecFullKokkos::create_atom(int itype, double *coord)
 ------------------------------------------------------------------------- */
 
 void AtomVecFullKokkos::data_atom(double *coord, imageint imagetmp,
-                                       char **values)
+                                  const std::vector<std::string> &values)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
@@ -1524,10 +1525,11 @@ void AtomVecFullKokkos::data_atom(double *coord, imageint imagetmp,
    initialize other atom quantities for this sub-style
 ------------------------------------------------------------------------- */
 
-int AtomVecFullKokkos::data_atom_hybrid(int nlocal, char **values)
+int AtomVecFullKokkos::data_atom_hybrid(int nlocal, const std::vector<std::string> &values,
+                                        int offset)
 {
-  h_molecule(nlocal) = utils::inumeric(FLERR,values[0],true,lmp);
-  h_q(nlocal) = utils::numeric(FLERR,values[1],true,lmp);
+  h_molecule(nlocal) = utils::inumeric(FLERR,values[offset],true,lmp);
+  h_q(nlocal) = utils::numeric(FLERR,values[offset+1],true,lmp);
   h_num_bond(nlocal) = 0;
   h_num_angle(nlocal) = 0;
   h_num_dihedral(nlocal) = 0;

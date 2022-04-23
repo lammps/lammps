@@ -48,7 +48,7 @@ Output info
 
 This compute calculates a global scalar (the flag).  This value can be
 used by any command that uses a global scalar value from a compute as
-input.  See the :doc:`Howto output <Howto_output>` doc page for an
+input.  See the :doc:`Howto output <Howto_output>` page for an
 overview of LAMMPS output options.
 
 The scalar value calculated by this compute is "intensive".  The

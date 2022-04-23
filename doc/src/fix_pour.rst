@@ -158,10 +158,10 @@ many timesteps until the desired # of particles has been inserted.
 All other keywords are optional with defaults as shown below.
 
 The *diam* option is only used when inserting atoms and specifies the
-diameters of inserted particles.  There are 3 styles: *one*\ , *range*\ ,
-or *poly*\ .  For *one*\ , all particles will have diameter *D*\ .  For
-*range*\ , the diameter of each particle will be chosen randomly and
-uniformly between the specified *Dlo* and *Dhi* bounds.  For *poly*\ , a
+diameters of inserted particles.  There are 3 styles: *one*, *range*,
+or *poly*\ .  For *one*, all particles will have diameter *D*\ .  For
+*range*, the diameter of each particle will be chosen randomly and
+uniformly between the specified *Dlo* and *Dhi* bounds.  For *poly*, a
 series of *Npoly* diameters is specified.  For each diameter a
 percentage value from 0.0 to 1.0 is also specified.  The *Npoly*
 percentages must sum to 1.0.  For the example shown above with "diam 2
@@ -252,7 +252,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the GRANULAR package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 For 3d simulations, a gravity fix in the -z direction must be defined
 for use in conjunction with this fix.  For 2d simulations, gravity

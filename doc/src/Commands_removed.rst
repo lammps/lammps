@@ -25,23 +25,20 @@ The reset_ids command has been renamed to :doc:`reset_atom_ids <reset_atom_ids>`
 MEAM package
 ------------
 
-The MEAM package has been removed since it was superseded by the
-:ref:`USER-MEAMC package <PKG-USER-MEAMC>`. The code in
-the USER-MEAMC package is a translation of the Fortran code of MEAM into C++,
-which removes several restrictions (e.g. there can be multiple instances
-in hybrid pair styles) and allows for some optimizations leading
-to better performance.  The new pair style :doc:`meam/c <pair_meamc>` has
-the exact same syntax as the old "meam" pair style and thus pair style
-meam is an alias to the new style and backward
-compatibility of old inputs is preserved.
+The MEAM package in Fortran has been replaced by a C++ implementation.
+The code in the :ref:`MEAM package <PKG-MEAM>` is a translation of the
+Fortran code of MEAM into C++, which removes several restrictions
+(e.g. there can be multiple instances in hybrid pair styles) and allows
+for some optimizations leading to better performance.  The pair style
+:doc:`meam <pair_meam>` has the exact same syntax.
 
 REAX package
 ------------
 
 The REAX package has been removed since it was superseded by the
-:ref:`USER-REAXC package <PKG-USER-REAXC>`.  The USER-REAXC
+:ref:`REAXFF package <PKG-REAXFF>`.  The REAXFF
 package has been tested to yield equivalent results to the REAX package,
-offers better performance, supports OpenMP multi-threading via USER-OMP,
+offers better performance, supports OpenMP multi-threading via OPENMP,
 and GPU and threading parallelization through KOKKOS.  The new pair styles
 are not syntax compatible with the removed reax pair style, so input
 files will have to be adapted.

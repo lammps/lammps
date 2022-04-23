@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -36,7 +37,7 @@ void ImproperDeprecated::settings(int, char **)
   // of the list of substyles
 
   if (utils::strmatch(my_style,"^hybrid")) {
-    ImproperHybrid *hybrid = (ImproperHybrid *)force->improper;
+    auto hybrid = dynamic_cast<ImproperHybrid *>(force->improper);
     my_style = hybrid->keywords[hybrid->nstyles];
   }
 

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -74,14 +75,14 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
   nvalues = 0;
 
   for (iarg = 0; iarg < nargnew; iarg++) {
-    ArgInfo argi(arg[iarg]);
+    ArgInfo argi2(arg[iarg]);
 
-    which[nvalues] = argi.get_type();
-    argindex[nvalues] = argi.get_index1();
-    ids[nvalues] = argi.copy_name();
+    which[nvalues] = argi2.get_type();
+    argindex[nvalues] = argi2.get_index1();
+    ids[nvalues] = argi2.copy_name();
 
     if ((which[nvalues] == ArgInfo::UNKNOWN) || (which[nvalues] == ArgInfo::NONE)
-        || (argi.get_dim() > 1))
+        || (argi2.get_dim() > 1))
       error->all(FLERR,"Illegal compute slice command");
 
     nvalues++;
@@ -116,22 +117,17 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
                  "Compute global/atom compute array is accessed out-of-range");
 
   } else if (whichref == ArgInfo::FIX) {
-    int ifix = modify->find_fix(idref);
-    if (ifix < 0)
-      error->all(FLERR,"Fix ID for compute global/atom does not exist");
-    if (!modify->fix[ifix]->peratom_flag)
-      error->all(FLERR,"Compute global/atom fix does not "
-                 "calculate a per-atom vector or array");
-    if (indexref == 0 &&
-        modify->fix[ifix]->size_peratom_cols != 0)
-      error->all(FLERR,"Compute global/atom fix does not "
-                 "calculate a per-atom vector");
-    if (indexref && modify->fix[ifix]->size_peratom_cols == 0)
-      error->all(FLERR,"Compute global/atom fix does not "
-                 "calculate a per-atom array");
-    if (indexref && indexref > modify->fix[ifix]->size_peratom_cols)
-      error->all(FLERR,
-                 "Compute global/atom fix array is accessed out-of-range");
+    auto ifix = modify->get_fix_by_id(idref);
+    if (!ifix)
+      error->all(FLERR,"Fix ID {} for compute global/atom does not exist", idref);
+    if (!ifix->peratom_flag)
+      error->all(FLERR,"Compute global/atom fix {} does not calculate a per-atom vector or array", idref);
+    if (indexref == 0 && (ifix->size_peratom_cols != 0))
+      error->all(FLERR,"Compute global/atom fix {} does not calculate a per-atom vector", idref);
+    if (indexref && (ifix->size_peratom_cols == 0))
+      error->all(FLERR,"Compute global/atom fix {} does not calculate a per-atom array", idref);
+    if (indexref && indexref > ifix->size_peratom_cols)
+      error->all(FLERR, "Compute global/atom fix {} array is accessed out-of-range", idref);
 
   } else if (whichref == ArgInfo::VARIABLE) {
     int ivariable = input->variable->find(idref);
@@ -161,30 +157,25 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
       }
 
     } else if (which[i] == ArgInfo::FIX) {
-      int ifix = modify->find_fix(ids[i]);
-      if (ifix < 0)
+      auto ifix = modify->get_fix_by_id(ids[i]);
+      if (!ifix)
         error->all(FLERR,"Fix ID for compute global/atom does not exist");
       if (argindex[i] == 0) {
-        if (!modify->fix[ifix]->vector_flag)
-          error->all(FLERR,"Compute global/atom fix does not "
-                     "calculate a global vector");
+        if (!ifix->vector_flag)
+          error->all(FLERR,"Compute global/atom fix {} does not calculate a global vector", ids[i]);
       } else {
-        if (!modify->fix[ifix]->array_flag)
-          error->all(FLERR,"Compute global/atom fix does not "
-                     "calculate a global array");
-        if (argindex[i] > modify->fix[ifix]->size_array_cols)
-          error->all(FLERR,"Compute global/atom fix array is "
-                     "accessed out-of-range");
+        if (!ifix->array_flag)
+          error->all(FLERR,"Compute global/atom fix {} does not calculate a global array", ids[i]);
+        if (argindex[i] > ifix->size_array_cols)
+          error->all(FLERR,"Compute global/atom fix {} array is accessed out-of-range", ids[i]);
       }
 
     } else if (which[i] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
-        error->all(FLERR,"Variable name for compute global/atom "
-                   "does not exist");
+        error->all(FLERR,"Variable name for compute global/atom does not exist");
       if (input->variable->vectorstyle(ivariable) == 0)
-        error->all(FLERR,"Compute global/atom variable is not "
-                   "vector-style variable");
+        error->all(FLERR,"Compute global/atom variable is not vector-style variable");
     }
   }
 
@@ -367,8 +358,7 @@ void ComputeGlobalAtom::compute_peratom()
 
       } else if (which[m] == ArgInfo::FIX) {
         if (update->ntimestep % modify->fix[value2index[m]]->peratom_freq)
-          error->all(FLERR,"Fix used in compute global/atom not "
-                     "computed at compatible time");
+          error->all(FLERR,"Fix used in compute global/atom not computed at compatible time");
         Fix *fix = modify->fix[value2index[m]];
         vmax = fix->size_vector;
 

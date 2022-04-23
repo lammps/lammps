@@ -4,7 +4,7 @@ Calculate thermal conductivity
 The thermal conductivity kappa of a material can be measured in at
 least 4 ways using various options in LAMMPS.  See the examples/KAPPA
 directory for scripts that implement the 4 methods discussed here for
-a simple Lennard-Jones fluid model.  Also, see the :doc:`Howto viscosity <Howto_viscosity>` doc page for an analogous discussion
+a simple Lennard-Jones fluid model.  Also, see the :doc:`Howto viscosity <Howto_viscosity>` page for an analogous discussion
 for viscosity.
 
 The thermal conductivity tensor kappa is a measure of the propensity
@@ -58,7 +58,7 @@ between hot and cold regions of the simulation box.
 The :doc:`compute heat/flux <compute_heat_flux>` command can calculate
 the needed heat flux and describes how to implement the Green_Kubo
 formalism using additional LAMMPS commands, such as the :doc:`fix ave/correlate <fix_ave_correlate>` command to calculate the needed
-auto-correlation.  See the doc page for the :doc:`compute heat/flux <compute_heat_flux>` command for an example input script
+auto-correlation.  See the page for the :doc:`compute heat/flux <compute_heat_flux>` command for an example input script
 that calculates the thermal conductivity of solid Ar via the GK
 formalism.
 

@@ -19,7 +19,7 @@ Syntax
 
        bondmax = length of longest bond in the system (in length units)
        tlimit = elapsed CPU time (in seconds)
-       diskfree = free disk space (in megabytes)
+       diskfree = free disk space (in MBytes)
        v_name = name of :doc:`equal-style variable <variable>`
 
 * operator = "<" or "<=" or ">" or ">=" or "==" or "!=" or "\|\^"
@@ -54,7 +54,7 @@ dynamics or minimization iterations, as specified by the :doc:`run
 The specified group-ID is ignored by this fix.
 
 The specified *attribute* can be one of the options listed above, namely
-*bondmax*, *tlimit*\ , *diskfree*\ , or an :doc:`equal-style variable
+*bondmax*, *tlimit*, *diskfree*, or an :doc:`equal-style variable
 <variable>` referenced as *v_name*, where "name" is the name of a
 variable that has been defined previously in the input script.
 
@@ -81,7 +81,7 @@ the timer frequently across a large number of processors may be
 non-negligible.
 
 The *diskfree* attribute will check for available disk space (in
-megabytes) on supported operating systems. By default it will
+MBytes) on supported operating systems. By default it will
 check the file system of the current working directory.  This
 can be changed with the optional *path* keyword, which will take
 the path to a file or folder on the file system to be checked
@@ -115,6 +115,18 @@ The version with "bondmax" will just run somewhat faster, due to less
 overhead in computing bond lengths and not storing them in a separate
 compute.
 
+A variable can be used to implement a large variety of conditions,
+including to stop when a specific file exists.  Example:
+
+.. code-block:: LAMMPS
+
+   variable exit equal is_file(EXIT)
+   fix 10 all halt 100 v_exit != 0 error soft
+
+Will stop the current run command when a file ``EXIT`` is created
+in the current working directory.  The condition can be cleared
+by removing the file through the :doc:`shell <shell>` command.
+
 The choice of operators listed above are the usual comparison
 operators.  The XOR operation (exclusive or) is also included as "\|\^".
 In this context, XOR means that if either the attribute or avalue is
@@ -126,16 +138,16 @@ The specified *avalue* must be a numeric value.
 ----------
 
 The optional *error* keyword determines how the current run is halted.
-If its value is *hard*\ , then LAMMPS will stop with an error message.
+If its value is *hard*, then LAMMPS will stop with an error message.
 
-If its value is *soft*\ , LAMMPS will exit the current run, but continue
+If its value is *soft*, LAMMPS will exit the current run, but continue
 to execute subsequent commands in the input script.  However,
 additional :doc:`run <run>` or :doc:`minimize <minimize>` commands will be
 skipped.  For example, this allows a script to output the current
 state of the system, e.g. via a :doc:`write_dump <write_dump>` or
 :doc:`write_restart <write_restart>` command.
 
-If its value is *continue*\ , the behavior is the same as for *soft*\ ,
+If its value is *continue*, the behavior is the same as for *soft*,
 except subsequent :doc:`run <run>` or :doc:`minimize <minimize>` commands
 are executed.  This allows your script to remedy the condition that
 triggered the halt, if necessary.  Note that you may wish use the

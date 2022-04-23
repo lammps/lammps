@@ -102,8 +102,6 @@ struct FunctorScalar<0> {
   void operator()(const int& i, double& update) const { update += i; }
 };
 
-// FIXME_SYCL requires TeamPolicy
-#ifndef KOKKOS_ENABLE_SYCL
 template <>
 struct FunctorScalar<1> {
   using team_type = Kokkos::TeamPolicy<>::member_type;
@@ -117,7 +115,6 @@ struct FunctorScalar<1> {
     update += 1.0 / team.team_size() * team.league_rank();
   }
 };
-#endif
 
 template <int ISTEAM>
 struct FunctorScalarInit;
@@ -135,8 +132,6 @@ struct FunctorScalarInit<0> {
   void init(double& update) const { update = 0.0; }
 };
 
-// FIXME_SYCL requires TeamPolicy
-#ifndef KOKKOS_ENABLE_SYCL
 template <>
 struct FunctorScalarInit<1> {
   using team_type = Kokkos::TeamPolicy<>::member_type;
@@ -153,7 +148,6 @@ struct FunctorScalarInit<1> {
   KOKKOS_INLINE_FUNCTION
   void init(double& update) const { update = 0.0; }
 };
-#endif
 
 template <int ISTEAM>
 struct FunctorScalarFinal;
@@ -171,8 +165,6 @@ struct FunctorScalarFinal<0> {
   void final(double& update) const { result() = update; }
 };
 
-// FIXME_SYCL requires TeamPolicy
-#ifndef KOKKOS_ENABLE_SYCL
 template <>
 struct FunctorScalarFinal<1> {
   using team_type = Kokkos::TeamPolicy<>::member_type;
@@ -189,7 +181,6 @@ struct FunctorScalarFinal<1> {
   KOKKOS_INLINE_FUNCTION
   void final(double& update) const { result() = update; }
 };
-#endif
 
 template <int ISTEAM>
 struct FunctorScalarJoin;
@@ -209,8 +200,6 @@ struct FunctorScalarJoin<0> {
   }
 };
 
-// FIXME_SYCL requires TeamPolicy
-#ifndef KOKKOS_ENABLE_SYCL
 template <>
 struct FunctorScalarJoin<1> {
   using team_type = Kokkos::TeamPolicy<>::member_type;
@@ -229,7 +218,6 @@ struct FunctorScalarJoin<1> {
     dst += update;
   }
 };
-#endif
 
 template <int ISTEAM>
 struct FunctorScalarJoinFinal;
@@ -252,8 +240,6 @@ struct FunctorScalarJoinFinal<0> {
   void final(double& update) const { result() = update; }
 };
 
-// FIXME_SYCL requires TeamPolicy
-#ifndef KOKKOS_ENABLE_SYCL
 template <>
 struct FunctorScalarJoinFinal<1> {
   using team_type = Kokkos::TeamPolicy<>::member_type;
@@ -275,7 +261,6 @@ struct FunctorScalarJoinFinal<1> {
   KOKKOS_INLINE_FUNCTION
   void final(double& update) const { result() = update; }
 };
-#endif
 
 template <int ISTEAM>
 struct FunctorScalarJoinInit;
@@ -298,8 +283,6 @@ struct FunctorScalarJoinInit<0> {
   void init(double& update) const { update = 0.0; }
 };
 
-// FIXME_SYCL requires TeamPolicy
-#ifndef KOKKOS_ENABLE_SYCL
 template <>
 struct FunctorScalarJoinInit<1> {
   using team_type = Kokkos::TeamPolicy<>::member_type;
@@ -321,7 +304,6 @@ struct FunctorScalarJoinInit<1> {
   KOKKOS_INLINE_FUNCTION
   void init(double& update) const { update = 0.0; }
 };
-#endif
 
 template <int ISTEAM>
 struct FunctorScalarJoinFinalInit;
@@ -347,8 +329,6 @@ struct FunctorScalarJoinFinalInit<0> {
   void init(double& update) const { update = 0.0; }
 };
 
-// FIXME_SYCL requires TeamPolicy
-#ifndef KOKKOS_ENABLE_SYCL
 template <>
 struct FunctorScalarJoinFinalInit<1> {
   using team_type = Kokkos::TeamPolicy<>::member_type;
@@ -373,7 +353,6 @@ struct FunctorScalarJoinFinalInit<1> {
   KOKKOS_INLINE_FUNCTION
   void init(double& update) const { update = 0.0; }
 };
-#endif
 
 struct Functor1 {
   KOKKOS_INLINE_FUNCTION
@@ -460,11 +439,11 @@ struct TestReduceCombinatoricalInstantiation {
                        Test::ReduceCombinatorical::AddPlus<double>(value));
     if ((Kokkos::DefaultExecutionSpace::concurrency() > 1) &&
         (ExecSpace::concurrency() > 1) && (expected_result > 0)) {
-      ASSERT_TRUE(expected_result < value);
+      ASSERT_LT(expected_result, value);
     } else if (((Kokkos::DefaultExecutionSpace::concurrency() > 1) ||
                 (ExecSpace::concurrency() > 1)) &&
                (expected_result > 0)) {
-      ASSERT_TRUE(expected_result <= value);
+      ASSERT_LE(expected_result, value);
     } else {
       ASSERT_EQ(expected_result, value);
     }
@@ -474,11 +453,11 @@ struct TestReduceCombinatoricalInstantiation {
     CallParallelReduce(args..., add);
     if ((Kokkos::DefaultExecutionSpace::concurrency() > 1) &&
         (ExecSpace::concurrency() > 1) && (expected_result > 0)) {
-      ASSERT_TRUE(expected_result < value);
+      ASSERT_LT(expected_result, value);
     } else if (((Kokkos::DefaultExecutionSpace::concurrency() > 1) ||
                 (ExecSpace::concurrency() > 1)) &&
                (expected_result > 0)) {
-      ASSERT_TRUE(expected_result <= value);
+      ASSERT_LE(expected_result, value);
     } else {
       ASSERT_EQ(expected_result, value);
     }

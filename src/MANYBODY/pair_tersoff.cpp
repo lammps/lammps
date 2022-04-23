@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -27,11 +28,9 @@
 #include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "potential_file_reader.h"
 #include "suffix.h"
-#include "tokenizer.h"
 
 #include <cmath>
 #include <cstring>
@@ -54,12 +53,7 @@ PairTersoff::PairTersoff(LAMMPS *lmp) : Pair(lmp)
   centroidstressflag = CENTROID_NOTAVAIL;
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
-  nelements = 0;
-  elements = nullptr;
-  nparams = maxparam = 0;
   params = nullptr;
-  elem2param = nullptr;
-  map = nullptr;
 
   maxshort = 10;
   neighshort = nullptr;
@@ -73,17 +67,13 @@ PairTersoff::~PairTersoff()
 {
   if (copymode) return;
 
-  if (elements)
-    for (int i = 0; i < nelements; i++) delete [] elements[i];
-  delete [] elements;
   memory->destroy(params);
-  memory->destroy(elem2param);
+  memory->destroy(elem3param);
 
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
     memory->destroy(neighshort);
-    delete [] map;
   }
 }
 
@@ -96,10 +86,10 @@ void PairTersoff::compute(int eflag, int vflag)
   if (shift_flag) {
     if (evflag) {
       if (eflag) {
-        if (vflag_atom) eval<1,1,1,1>();
+        if (vflag_either) eval<1,1,1,1>();
         else eval<1,1,1,0>();
       } else {
-        if (vflag_atom) eval<1,1,0,1>();
+        if (vflag_either) eval<1,1,0,1>();
         else eval<1,1,0,0>();
       }
     } else eval<1,0,0,0>();
@@ -108,17 +98,17 @@ void PairTersoff::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-        if (vflag_atom) eval<0,1,1,1>();
+        if (vflag_either) eval<0,1,1,1>();
         else eval<0,1,1,0>();
       } else {
-        if (vflag_atom) eval<0,1,0,1>();
+        if (vflag_either) eval<0,1,0,1>();
         else eval<0,1,0,0>();
       }
     } else eval<0,0,0,0>();
   }
 }
 
-template <int SHIFT_FLAG, int EVFLAG, int EFLAG, int VFLAG_ATOM>
+template <int SHIFT_FLAG, int EVFLAG, int EFLAG, int VFLAG_EITHER>
 void PairTersoff::eval()
 {
   int i,j,k,ii,jj,kk,inum,jnum;
@@ -204,7 +194,7 @@ void PairTersoff::eval()
       }
 
       jtype = map[type[j]];
-      iparam_ij = elem2param[itype][jtype][jtype];
+      iparam_ij = elem3param[itype][jtype][jtype];
       if (rsq >= params[iparam_ij].cutsq) continue;
 
       repulsive(&params[iparam_ij],rsq,fpair,EFLAG,evdwl);
@@ -231,7 +221,7 @@ void PairTersoff::eval()
     for (jj = 0; jj < numshort; jj++) {
       j = neighshort[jj];
       jtype = map[type[j]];
-      iparam_ij = elem2param[itype][jtype][jtype];
+      iparam_ij = elem3param[itype][jtype][jtype];
 
       delr1[0] = x[j][0] - xtmp;
       delr1[1] = x[j][1] - ytmp;
@@ -255,7 +245,7 @@ void PairTersoff::eval()
         if (jj == kk) continue;
         k = neighshort[kk];
         ktype = map[type[k]];
-        iparam_ijk = elem2param[itype][jtype][ktype];
+        iparam_ijk = elem3param[itype][jtype][ktype];
 
         delr2[0] = x[k][0] - xtmp;
         delr2[1] = x[k][1] - ytmp;
@@ -295,7 +285,7 @@ void PairTersoff::eval()
         if (jj == kk) continue;
         k = neighshort[kk];
         ktype = map[type[k]];
-        iparam_ijk = elem2param[itype][jtype][ktype];
+        iparam_ijk = elem3param[itype][jtype][ktype];
 
         delr2[0] = x[k][0] - xtmp;
         delr2[1] = x[k][1] - ytmp;
@@ -323,7 +313,7 @@ void PairTersoff::eval()
         f[k][1] += fk[1];
         f[k][2] += fk[2];
 
-        if (VFLAG_ATOM) v_tally3(i,j,k,fj,fk,delr1,delr2);
+        if (VFLAG_EITHER) v_tally3(i,j,k,fj,fk,delr1,delr2);
       }
       f[j][0] += fjxtmp;
       f[j][1] += fjytmp;
@@ -383,70 +373,14 @@ void PairTersoff::settings(int narg, char **arg)
 
 void PairTersoff::coeff(int narg, char **arg)
 {
-  int i,j,n;
-
   if (!allocated) allocate();
 
-  if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // insure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if "NULL"
-  // nelements = # of unique elements
-  // elements = list of element names
-
-  if (elements) {
-    for (i = 0; i < nelements; i++) delete [] elements[i];
-    delete [] elements;
-  }
-  elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
-
-  nelements = 0;
-  for (i = 3; i < narg; i++) {
-    if (strcmp(arg[i],"NULL") == 0) {
-      map[i-2] = -1;
-      continue;
-    }
-    for (j = 0; j < nelements; j++)
-      if (strcmp(arg[i],elements[j]) == 0) break;
-    map[i-2] = j;
-    if (j == nelements) {
-      n = strlen(arg[i]) + 1;
-      elements[j] = new char[n];
-      strcpy(elements[j],arg[i]);
-      nelements++;
-    }
-  }
+  map_element2type(narg-3,arg+3);
 
   // read potential file and initialize potential parameters
 
   read_file(arg[2]);
   setup_params();
-
-  // clear setflag since coeff() called once with I,J = * *
-
-  n = atom->ntypes;
-  for (i = 1; i <= n; i++)
-    for (j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
-  // set setflag i,j for type pairs where both are mapped to elements
-
-  int count = 0;
-  for (i = 1; i <= n; i++)
-    for (j = i; j <= n; j++)
-      if (map[i] >= 0 && map[j] >= 0) {
-        setflag[i][j] = 1;
-        count++;
-      }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -462,9 +396,7 @@ void PairTersoff::init_style()
 
   // need a full neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this,NeighConst::REQ_FULL);
 }
 
 /* ----------------------------------------------------------------------
@@ -495,8 +427,8 @@ void PairTersoff::read_file(char *file)
     // transparently convert units for supported conversions
 
     int unit_convert = reader.get_unit_convert();
-    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
-                                                            unit_convert);
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,unit_convert);
+
     while ((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
         ValueTokenizer values(line);
@@ -524,8 +456,7 @@ void PairTersoff::read_file(char *file)
 
         if (nparams == maxparam) {
           maxparam += DELTA;
-          params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-                                              "pair:params");
+          params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
 
           // make certain all addional allocated storage is initialized
           // to avoid false positives when checking with valgrind
@@ -574,7 +505,7 @@ void PairTersoff::read_file(char *file)
           params[nparams].biga < 0.0 ||
           params[nparams].powerm - params[nparams].powermint != 0.0 ||
           (params[nparams].powermint != 3 &&
-          params[nparams].powermint != 1) ||
+           params[nparams].powermint != 1) ||
           params[nparams].gamma < 0.0)
         error->one(FLERR,"Illegal Tersoff parameter");
 
@@ -598,12 +529,12 @@ void PairTersoff::setup_params()
 {
   int i,j,k,m,n;
 
-  // set elem2param for all element triplet combinations
+  // set elem3param for all element triplet combinations
   // must be a single exact match to lines read from file
   // do not allow for ACB in place of ABC
 
-  memory->destroy(elem2param);
-  memory->create(elem2param,nelements,nelements,nelements,"pair:elem2param");
+  memory->destroy(elem3param);
+  memory->create(elem3param,nelements,nelements,nelements,"pair:elem3param");
 
   for (i = 0; i < nelements; i++)
     for (j = 0; j < nelements; j++)
@@ -617,7 +548,7 @@ void PairTersoff::setup_params()
           }
         }
         if (n < 0) error->all(FLERR,"Potential file is missing an entry");
-        elem2param[i][j][k] = n;
+        elem3param[i][j][k] = n;
       }
 
 

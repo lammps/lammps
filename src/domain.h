@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,91 +20,99 @@
 #include <map>
 
 namespace LAMMPS_NS {
-  class Region;
+class Region;
 
 class Domain : protected Pointers {
  public:
-  int box_exist;                         // 0 = not yet created, 1 = exists
-  int dimension;                         // 2 = 2d, 3 = 3d
-  int nonperiodic;                       // 0 = periodic in all 3 dims
-                                         // 1 = periodic or fixed in all 6
-                                         // 2 = shrink-wrap in any of 6
-  int xperiodic,yperiodic,zperiodic;     // 0 = non-periodic, 1 = periodic
-  int periodicity[3];                    // xyz periodicity as array
+  int box_exist;                          // 0 = not yet created, 1 = exists
+  int dimension;                          // 2 = 2d, 3 = 3d
+  int nonperiodic;                        // 0 = periodic in all 3 dims
+                                          // 1 = periodic or fixed in all 6
+                                          // 2 = shrink-wrap in any of 6
+  int xperiodic, yperiodic, zperiodic;    // 0 = non-periodic, 1 = periodic
+  int periodicity[3];                     // xyz periodicity as array
 
-  int boundary[3][2];                    // settings for 6 boundaries
-                                         // 0 = periodic
-                                         // 1 = fixed non-periodic
-                                         // 2 = shrink-wrap non-periodic
-                                         // 3 = shrink-wrap non-per w/ min
+  int boundary[3][2];    // settings for 6 boundaries
+                         // 0 = periodic
+                         // 1 = fixed non-periodic
+                         // 2 = shrink-wrap non-periodic
+                         // 3 = shrink-wrap non-per w/ min
 
-  int triclinic;                         // 0 = orthog box, 1 = triclinic
-  int tiltsmall;                         // 1 if limit tilt, else 0
+  int triclinic;    // 0 = orthog box, 1 = triclinic
+  int tiltsmall;    // 1 if limit tilt, else 0
 
-                                         // orthogonal box
-  double xprd,yprd,zprd;                 // global box dimensions
-  double xprd_half,yprd_half,zprd_half;  // half dimensions
-  double prd[3];                         // array form of dimensions
-  double prd_half[3];                    // array form of half dimensions
+  // orthogonal box
 
-                                         // triclinic box
-                                         // xprd,xprd_half,prd,prd_half =
-                                         // same as if untilted
-  double prd_lamda[3];                   // lamda box = (1,1,1)
-  double prd_half_lamda[3];              // lamda half box = (0.5,0.5,0.5)
+  double xprd, yprd, zprd;                   // global box dimensions
+  double xprd_half, yprd_half, zprd_half;    // half dimensions
+  double prd[3];                             // array form of dimensions
+  double prd_half[3];                        // array form of half dimensions
 
-  double boxlo[3],boxhi[3];              // orthogonal box global bounds
+  // triclinic box
+  // xyzprd,xyzprd_half and prd,prd_half = same as if untilted
 
-                                         // triclinic box
-                                         // boxlo/hi = same as if untilted
-  double boxlo_lamda[3],boxhi_lamda[3];  // lamda box = (0,1)
-  double boxlo_bound[3],boxhi_bound[3];  // bounding box of tilted domain
-  double corners[8][3];                  // 8 corner points
+  double prd_lamda[3];         // lamda box = (1,1,1)
+  double prd_half_lamda[3];    // lamda half box = (0.5,0.5,0.5)
 
-                                         // orthogonal box & triclinic box
-  double minxlo,minxhi;                  // minimum size of global box
-  double minylo,minyhi;                  // when shrink-wrapping
-  double minzlo,minzhi;                  // tri only possible for non-skew dims
+  // orthogonal box global bounds
 
-                                         // orthogonal box
-  double sublo[3],subhi[3];              // sub-box bounds on this proc
+  double boxlo[3], boxhi[3];
 
-                                         // triclinic box
-                                         // sublo/hi = undefined
-  double sublo_lamda[3],subhi_lamda[3];  // bounds of subbox in lamda
+  // triclinic box
+  // boxlo/hi = same as if untilted
 
-                                         // triclinic box
-  double xy,xz,yz;                       // 3 tilt factors
-  double h[6],h_inv[6];                  // shape matrix in Voigt ordering
-                                         // Voigt = xx,yy,zz,yz,xz,xy
-  double h_rate[6],h_ratelo[3];          // rate of box size/shape change
+  double boxlo_lamda[3], boxhi_lamda[3];    // lamda box = (0,1)
+  double boxlo_bound[3], boxhi_bound[3];    // bounding box of tilted domain
+  double corners[8][3];                     // 8 corner points
 
-  int box_change;                // 1 if any of next 3 flags are set, else 0
-  int box_change_size;           // 1 if box size changes, 0 if not
-  int box_change_shape;          // 1 if box shape changes, 0 if not
-  int box_change_domain;         // 1 if proc sub-domains change, 0 if not
+  // orthogonal box & triclinic box
 
-  int deform_flag;                // 1 if fix deform exist, else 0
-  int deform_vremap;              // 1 if fix deform remaps v, else 0
-  int deform_groupbit;            // atom group to perform v remap for
+  double minxlo, minxhi;    // minimum size of global box
+  double minylo, minyhi;    // when shrink-wrapping
+  double minzlo, minzhi;    // tri only possible for non-skew dims
 
-  class Lattice *lattice;                  // user-defined lattice
+  // orthogonal box
 
-  int nregion;                             // # of defined Regions
-  int maxregion;                           // max # list can hold
-  Region **regions;                        // list of defined Regions
+  double sublo[3], subhi[3];    // sub-box bounds on this proc
+
+  // triclinic box
+  // sublo/hi = undefined
+
+  double sublo_lamda[3], subhi_lamda[3];    // bounds of subbox in lamda
+
+  // triclinic box
+
+  double xy, xz, yz;                // 3 tilt factors
+  double h[6], h_inv[6];            // shape matrix in Voigt ordering
+                                    // Voigt = xx,yy,zz,yz,xz,xy
+  double h_rate[6], h_ratelo[3];    // rate of box size/shape change
+
+  int box_change;           // 1 if any of next 3 flags are set, else 0
+  int box_change_size;      // 1 if box size changes, 0 if not
+  int box_change_shape;     // 1 if box shape changes, 0 if not
+  int box_change_domain;    // 1 if proc sub-domains change, 0 if not
+
+  int deform_flag;        // 1 if fix deform exist, else 0
+  int deform_vremap;      // 1 if fix deform remaps v, else 0
+  int deform_groupbit;    // atom group to perform v remap for
+
+  class Lattice *lattice;    // user-defined lattice
+
+  int nregion;         // # of defined Regions
+  int maxregion;       // max # list can hold
+  Region **regions;    // list of defined Regions
 
   int copymode;
-  enum{NO_REMAP,X_REMAP,V_REMAP};
+  enum { NO_REMAP, X_REMAP, V_REMAP };
 
-  typedef Region *(*RegionCreator)(LAMMPS *,int,char**);
-  typedef std::map<std::string,RegionCreator> RegionCreatorMap;
+  typedef Region *(*RegionCreator)(LAMMPS *, int, char **);
+  typedef std::map<std::string, RegionCreator> RegionCreatorMap;
   RegionCreatorMap *region_map;
 
   Domain(class LAMMPS *);
-  virtual ~Domain();
+  ~Domain() override;
   virtual void init();
-  void set_initial_box(int expandflag=1);
+  void set_initial_box(int expandflag = 1);
   virtual void set_global_box();
   virtual void set_lamda_box();
   virtual void set_local_box();
@@ -117,8 +125,8 @@ class Domain : protected Pointers {
   void minimum_image(double *);
   void minimum_image_once(double *);
   int closest_image(int, int);
-  int closest_image(const double * const, int);
-  void closest_image(const double * const, const double * const, double * const);
+  int closest_image(const double *const, int);
+  void closest_image(const double *const, const double *const, double *const);
   void remap(double *, imageint &);
   void remap(double *);
   void remap_near(double *, double *);
@@ -129,8 +137,11 @@ class Domain : protected Pointers {
 
   void set_lattice(int, char **);
   void add_region(int, char **);
-  void delete_region(int, char **);
-  int find_region(char *);
+  void delete_region(int);
+  void delete_region(const std::string &);
+  int find_region(const std::string &) const;
+  Region *get_region_by_id(const std::string &) const;
+  const std::vector<Region *> get_region_by_style(const std::string &) const;
   void set_boundary(int, char **, int);
   void set_box(int, char **);
   void print_box(const std::string &);
@@ -154,7 +165,8 @@ class Domain : protected Pointers {
   //   but is a far-away image that should be treated as an unbonded neighbor
   // inline since called from neighbor build inner loop
 
-  inline int minimum_image_check(double dx, double dy, double dz) {
+  inline int minimum_image_check(double dx, double dy, double dz)
+  {
     if (xperiodic && fabs(dx) > xprd_half) return 1;
     if (yperiodic && fabs(dy) > yprd_half) return 1;
     if (zperiodic && fabs(dz) > zprd_half) return 1;
@@ -162,13 +174,10 @@ class Domain : protected Pointers {
   }
 
  protected:
-  double small[3];                  // fractions of box lengths
-
- private:
-  template <typename T> static Region *region_creator(LAMMPS *,int,char**);
+  double small[3];    // fractions of box lengths
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

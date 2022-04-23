@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -69,6 +70,7 @@ public:
 
   void grow(int nmax);
   typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors;
+  typename ArrayTypes<DeviceType>::t_neighbors_2d_lr d_neighbors_transpose;
   DAT::tdual_int_1d k_ilist;   // local indices of I atoms
   typename ArrayTypes<DeviceType>::t_int_1d d_ilist;
   typename ArrayTypes<DeviceType>::t_int_1d d_numneigh;
@@ -79,6 +81,12 @@ public:
   AtomNeighbors get_neighbors(const int &i) const {
     return AtomNeighbors(&d_neighbors(i,0),d_numneigh(i),
                          &d_neighbors(i,1)-&d_neighbors(i,0));
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  AtomNeighbors get_neighbors_transpose(const int &i) const {
+    return AtomNeighbors(&d_neighbors_transpose(i,0),d_numneigh(i),
+                         &d_neighbors_transpose(i,1)-&d_neighbors_transpose(i,0));
   }
 
   KOKKOS_INLINE_FUNCTION

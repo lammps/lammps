@@ -142,7 +142,10 @@ ucl_inline numtyp ters_fa_d(const numtyp r,
                             numtyp *ans_d)
 {
   #ifndef ONETYPE
-  if (r > param_bigr + param_bigd) return (numtyp)0.0;
+  if (r > param_bigr + param_bigd) {
+    *ans_d = (numtyp)0.0;
+    return (numtyp)0.0;
+  }
   #endif
   numtyp dfc;
   const numtyp fc=ters_fc_d(r,param_bigr,param_bigd,&dfc);

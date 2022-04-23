@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -83,7 +84,7 @@ NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
   kk2cpu = 0;
   execution_space = Host;
 
-  // USER-DPD package
+  // DPD-REACT package
 
   np = nullptr;
 
@@ -143,6 +144,7 @@ void NeighList::post_constructor(NeighRequest *nq)
   respamiddle = nq->respamiddle;
   respainner = nq->respainner;
   copy = nq->copy;
+  id = nq->id;
 
   if (nq->copy) {
     listcopy = neighbor->lists[nq->copylist];

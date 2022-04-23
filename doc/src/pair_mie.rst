@@ -82,7 +82,7 @@ pressure of the pair interaction.
 This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
-This pair style supports the use of the *inner*\ , *middle*\ , and *outer*
+This pair style supports the use of the *inner*, *middle*, and *outer*
 keywords of the :doc:`run_style respa <run_style>` command, meaning the
 pairwise forces can be partitioned by distance at different levels of
 the rRESPA hierarchy.  See the :doc:`run_style <run_style>` command for
@@ -92,7 +92,10 @@ details.
 
 Restrictions
 """"""""""""
-none
+
+This pair style is part of the EXTRA-PAIR package.  It is only enabled if
+LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

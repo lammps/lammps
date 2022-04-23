@@ -55,7 +55,6 @@ int TersoffMT::init(const int ntypes, const int nlocal, const int nall, const in
   int oldparam=-1;
   int onetype=-1;
   int onetype3=0;
-  int spq=1;
   int mtypes=0;
   #ifdef USE_OPENCL
   for (int ii=1; ii<ntypes; ii++) {
@@ -105,10 +104,7 @@ int TersoffMT::init(const int ntypes, const int nlocal, const int nall, const in
   _nparams = nparams;
   _nelements = nelements;
 
-  UCL_H_Vec<numtyp> host_write(ntypes*ntypes,*(this->ucl_device),
-                               UCL_READ_WRITE);
-  host_write.zero();
-  cutsq_pair.alloc(ntypes*ntypes,*(this->ucl_device),UCL_READ_ONLY);
+  _cutsq_max=0.0;
   for (int ii=1; ii<ntypes; ii++) {
     const int i=host_map[ii];
     for (int jj=1; jj<ntypes; jj++) {
@@ -117,12 +113,10 @@ int TersoffMT::init(const int ntypes, const int nlocal, const int nall, const in
         const int k=host_map[kk];
         if (i<0 || j<0 || k<0) continue;
         const int ijkparam = host_elem2param[i][j][k];
-        if (host_cutsq[ijkparam]>host_write[ii*ntypes+jj])
-          host_write[ii*ntypes+jj]=host_cutsq[ijkparam];
+        if (host_cutsq[ijkparam]>_cutsq_max) _cutsq_max=host_cutsq[ijkparam];
       }
     }
   }
-  ucl_copy(cutsq_pair,host_write,ntypes*ntypes);
 
   UCL_H_Vec<numtyp4> dview(nparams,*(this->ucl_device),
                            UCL_WRITE_ONLY);
@@ -229,7 +223,6 @@ void TersoffMT::clear() {
   ts3.clear();
   ts4.clear();
   ts5.clear();
-  cutsq_pair.clear();
   map.clear();
   elem2param.clear();
   _zetaij.clear();
@@ -275,7 +268,7 @@ int TersoffMT::loop(const int eflag, const int vflag, const int evatom,
   int BX=this->block_pair();
   int GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
   this->k_short_nbor.set_size(GX,BX);
-  this->k_short_nbor.run(&this->atom->x, &cutsq_pair, &_ntypes,
+  this->k_short_nbor.run(&this->atom->x, &_cutsq_max, &_ntypes,
                          &this->nbor->dev_nbor, &this->nbor->dev_packed,
                          &ainum, &nbor_pitch, &this->_threads_per_atom);
 

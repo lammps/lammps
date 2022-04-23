@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -171,13 +172,11 @@ TYPE create_kokkos(TYPE &data, typename TYPE::value_type **&array,
   bigint nbytes = ((bigint) sizeof(typename TYPE::value_type *)) * n1;
   array = (typename TYPE::value_type **) smalloc(nbytes,name);
 
-  bigint n = 0;
   for (int i = 0; i < n1; i++) {
     if (n2==0)
       array[i] = nullptr;
     else
       array[i] = &data.h_view(i,0);
-    n += n2;
   }
   return data;
 }
@@ -192,13 +191,11 @@ template <typename TYPE, typename HTYPE>
   bigint nbytes = ((bigint) sizeof(typename TYPE::value_type *)) * n1;
   array = (typename TYPE::value_type **) smalloc(nbytes,name);
 
-  bigint n = 0;
   for (int i = 0; i < n1; i++) {
     if (n2==0)
       array[i] = nullptr;
     else
       array[i] = &h_data(i,0);
-    n += n2;
   }
   return data;
 }
@@ -252,7 +249,7 @@ TYPE grow_kokkos(TYPE &data, typename TYPE::value_type **&array,
   data.resize(n1);
 
   bigint nbytes = ((bigint) sizeof(typename TYPE::value_type *)) * n1;
-  array = (typename TYPE::value_type **) smalloc(nbytes,name);
+  array = (typename TYPE::value_type **) srealloc(array,nbytes,name);
 
   for (int i = 0; i < n1; i++)
     if (data.h_view.extent(1)==0)

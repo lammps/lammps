@@ -26,7 +26,7 @@ Description
 Perform constant NVE integration to update position, velocity,
 orientation, and angular velocity for line segment particles in the
 group each timestep.  V is volume; E is energy.  This creates a system
-trajectory consistent with the microcanonical ensemble.  See :doc:`Howto spherical <Howto_spherical>` doc page for an overview of using line
+trajectory consistent with the microcanonical ensemble.  See :doc:`Howto spherical <Howto_spherical>` page for an overview of using line
 segment particles.
 
 This fix differs from the :doc:`fix nve <fix_nve>` command, which
@@ -45,7 +45,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the ASPHERE package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 This fix requires that particles be line segments as defined by the
 :doc:`atom_style line <atom_style>` command.

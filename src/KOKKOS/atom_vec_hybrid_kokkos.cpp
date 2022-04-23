@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -72,8 +73,7 @@ void AtomVecHybridKokkos::process_args(int narg, char **arg)
       if (strcmp(arg[iarg],keywords[i]) == 0)
         error->all(FLERR,"Atom style hybrid cannot use same atom style twice");
     styles[nstyles] = atom->new_avec(arg[iarg],1,dummy);
-    keywords[nstyles] = new char[strlen(arg[iarg])+1];
-    strcpy(keywords[nstyles],arg[iarg]);
+    keywords[nstyles] = utils::strdup(arg[iarg]);
     jarg = iarg + 1;
     while (jarg < narg && !known_style(arg[jarg])) jarg++;
     styles[nstyles]->process_args(jarg-iarg-1,&arg[iarg+1]);
@@ -970,7 +970,8 @@ void AtomVecHybridKokkos::create_atom(int itype, double *coord)
    grow() occurs here so arrays for all sub-styles are grown
 ------------------------------------------------------------------------- */
 
-void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp, char **values)
+void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp,
+                                    const std::vector<std::string> &values)
 {
   atomKK->sync(Host,X_MASK|TAG_MASK|TYPE_MASK|IMAGE_MASK|MASK_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
 
@@ -1009,7 +1010,7 @@ void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp, char **val
 
   int m = 5;
   for (int k = 0; k < nstyles; k++)
-    m += styles[k]->data_atom_hybrid(nlocal,&values[m]);
+    m += styles[k]->data_atom_hybrid(nlocal,values,m);
 
   atom->nlocal++;
 }
@@ -1018,21 +1019,21 @@ void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp, char **val
    unpack one line from Velocities section of data file
 ------------------------------------------------------------------------- */
 
-void AtomVecHybridKokkos::data_vel(int m, char **values)
+void AtomVecHybridKokkos::data_vel(int m, const std::vector<std::string> &values)
 {
   atomKK->sync(Host,V_MASK);
 
-  h_v(m,0) = utils::numeric(FLERR,values[0],true,lmp);
-  h_v(m,1) = utils::numeric(FLERR,values[1],true,lmp);
-  h_v(m,2) = utils::numeric(FLERR,values[2],true,lmp);
+  int ivalue = 1;
+  h_v(m,0) = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  h_v(m,1) = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  h_v(m,2) = utils::numeric(FLERR,values[ivalue++],true,lmp);
 
   atomKK->modified(Host,V_MASK);
 
   // each sub-style parses sub-style specific values
 
-  int n = 3;
   for (int k = 0; k < nstyles; k++)
-    n += styles[k]->data_vel_hybrid(m,&values[n]);
+    ivalue += styles[k]->data_vel_hybrid(m,values,ivalue);
 }
 
 /* ----------------------------------------------------------------------
@@ -1072,17 +1073,14 @@ void AtomVecHybridKokkos::write_data(FILE *fp, int n, double **buf)
   int k,m;
 
   for (int i = 0; i < n; i++) {
-    fprintf(fp,TAGINT_FORMAT " %d %-1.16e %-1.16e %-1.16e",
-            (tagint) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,
-            buf[i][2],buf[i][3],buf[i][4]);
+    fmt::print(fp,"{} {} {:.16e} {:.16e} {:.16e}", ubuf(buf[i][0]).i, ubuf(buf[i][1]).i,
+               buf[i][2], buf[i][3], buf[i][4]);
 
     m = 5;
     for (k = 0; k < nstyles; k++)
       m += styles[k]->write_data_hybrid(fp,&buf[i][m]);
 
-    fprintf(fp," %d %d %d\n",
-            (int) ubuf(buf[i][m]).i,(int) ubuf(buf[i][m+1]).i,
-            (int) ubuf(buf[i][m+2]).i);
+    fmt::print(fp," {} {} {}\n", ubuf(buf[i][m]).i, ubuf(buf[i][m+1]).i, ubuf(buf[i][m+2]).i);
   }
 }
 
@@ -1118,8 +1116,7 @@ void AtomVecHybridKokkos::write_vel(FILE *fp, int n, double **buf)
   int k,m;
 
   for (int i = 0; i < n; i++) {
-    fprintf(fp,TAGINT_FORMAT " %g %g %g",
-            (tagint) ubuf(buf[i][0]).i,buf[i][1],buf[i][2],buf[i][3]);
+    fmt::print(fp,"{} {} {} {}", (tagint) ubuf(buf[i][0]).i,buf[i][1],buf[i][2],buf[i][3]);
 
     m = 4;
     for (k = 0; k < nstyles; k++)
@@ -1135,7 +1132,7 @@ void AtomVecHybridKokkos::write_vel(FILE *fp, int n, double **buf)
    return -1 if name is unknown to any sub-styles
 ------------------------------------------------------------------------- */
 
-int AtomVecHybridKokkos::property_atom(char *name)
+int AtomVecHybridKokkos::property_atom(const std::string &name)
 {
   for (int k = 0; k < nstyles; k++) {
     int index = styles[k]->property_atom(name);
@@ -1149,8 +1146,7 @@ int AtomVecHybridKokkos::property_atom(char *name)
    index maps to data specific to this atom style
 ------------------------------------------------------------------------- */
 
-void AtomVecHybridKokkos::pack_property_atom(int multiindex, double *buf,
-                                       int nvalues, int groupbit)
+void AtomVecHybridKokkos::pack_property_atom(int multiindex, double *buf, int nvalues, int groupbit)
 {
   int k = multiindex % nstyles;
   int index = multiindex/nstyles;
@@ -1172,13 +1168,10 @@ void AtomVecHybridKokkos::build_styles()
 
   allstyles = new char*[nallstyles];
 
-  int n;
   nallstyles = 0;
 #define ATOM_CLASS
-#define AtomStyle(key,Class)                \
-  n = strlen(#key) + 1;                     \
-  allstyles[nallstyles] = new char[n];      \
-  strcpy(allstyles[nallstyles],#key);       \
+#define AtomStyle(key,Class)                   \
+  allstyles[nallstyles] = utils::strdup(#key); \
   nallstyles++;
 #include "style_atom.h"         // IWYU pragma: keep
 #undef AtomStyle

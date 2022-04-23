@@ -9,6 +9,11 @@ model a realistic problem.
 In many of the examples included here, LAMMPS must first be built as a
 library.
 
+Also see the Howto_mdi doc page in the LAMMPS manual for a description
+of how LAMMPS can be coupled to other codes in a client/server fashion
+using the MDI Library created by the MolSSI consortium.  The MDI
+package in LAMMPS has support for this style of code coupling.
+
 See these sections of the LAMMPS manual for details:
 
 Build LAMMPS as a library (doc/html/Build_basics.html)
@@ -28,15 +33,9 @@ These are the sub-directories included in this directory:
 simple              simple example of driver code calling LAMMPS as a lib
 multiple            example of driver code calling multiple instances of LAMMPS
 plugin              example for loading LAMMPS at runtime from a shared library
-lammps_mc           client/server coupling of Monte Carlo client 
-                      with LAMMPS server for energy evaluation
-lammps_nwchem       client/server coupling of LAMMPS client with 
-                      NWChem quantum DFT as server for quantum forces
 lammps_quest        MD with quantum forces, coupling to Quest DFT code
 lammps_spparks      grain-growth Monte Carlo with strain via MD,
                     coupling to SPPARKS kinetic MC code
-lammps_vasp         client/server coupling of LAMMPS client with 
-                      VASP quantum DFT as server for quantum forces
 library             collection of useful inter-code communication routines
 fortran             a simple wrapper on the LAMMPS library API that
                       can be called from Fortran

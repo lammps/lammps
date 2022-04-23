@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -25,8 +26,6 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-
-enum{INT,DOUBLE};
 
 #define ONEFIELD 32
 #define DELTA 1048576
@@ -88,41 +87,34 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   // setup format strings
 
   vformat = new char*[size_one];
-
-  format_default = new char[3*size_one+1];
-  format_default[0] = '\0';
-
+  std::string fdefault;
   for (int i = 0; i < size_one; i++) {
-    if (vtype[i] == INT) strcat(format_default,"%d ");
-    else if (vtype[i] == DOUBLE) strcat(format_default,"%g ");
+    if (vtype[i] == Dump::INT) fdefault += "%d ";
+    else if (vtype[i] == Dump::DOUBLE) fdefault += "%g ";
     vformat[i] = nullptr;
   }
+  format_default = utils::strdup(fdefault);
 
   format_column_user = new char*[size_one];
   for (int i = 0; i < size_one; i++) format_column_user[i] = nullptr;
 
   // setup column string
 
-  int n = 0;
-  for (int iarg = 0; iarg < nfield; iarg++) n += strlen(earg[iarg]) + 2;
-  columns = new char[n];
-  columns[0] = '\0';
+  std::string cols;
   for (int iarg = 0; iarg < nfield; iarg++) {
-    strcat(columns,earg[iarg]);
-    strcat(columns," ");
+    cols += earg[iarg];
+    cols += " ";
   }
+  columns = utils::strdup(cols);
 
   // setup default label string
 
-  char *str = (char *) "ENTRIES";
-  n = strlen(str) + 1;
-  label = new char[n];
-  strcpy(label,str);
+  label = utils::strdup("ENTRIES");
 
-  // if wildcard expansion occurred, free earg memory from exapnd_args()
+  // if wildcard expansion occurred, free earg memory from expand_args()
 
   if (expand) {
-    for (int i = 0; i < nfield; i++) delete [] earg[i];
+    for (int i = 0; i < nfield; i++) delete[] earg[i];
     memory->sfree(earg);
   }
 }
@@ -131,27 +123,27 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
 
 DumpLocal::~DumpLocal()
 {
-  delete [] pack_choice;
-  delete [] vtype;
-  delete [] field2index;
-  delete [] argindex;
+  delete[] pack_choice;
+  delete[] vtype;
+  delete[] field2index;
+  delete[] argindex;
 
-  for (int i = 0; i < ncompute; i++) delete [] id_compute[i];
+  for (int i = 0; i < ncompute; i++) delete[] id_compute[i];
   memory->sfree(id_compute);
-  delete [] compute;
+  delete[] compute;
 
-  for (int i = 0; i < nfix; i++) delete [] id_fix[i];
+  for (int i = 0; i < nfix; i++) delete[] id_fix[i];
   memory->sfree(id_fix);
-  delete [] fix;
+  delete[] fix;
 
-  for (int i = 0; i < size_one; i++) delete [] vformat[i];
-  delete [] vformat;
+  for (int i = 0; i < size_one; i++) delete[] vformat[i];
+  delete[] vformat;
 
-  for (int i = 0; i < size_one; i++) delete [] format_column_user[i];
-  delete [] format_column_user;
+  for (int i = 0; i < size_one; i++) delete[] format_column_user[i];
+  delete[] format_column_user;
 
-  delete [] columns;
-  delete [] label;
+  delete[] columns;
+  delete[] label;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -163,42 +155,33 @@ void DumpLocal::init_style()
 
   // format = copy of default or user-specified line format
 
-  delete [] format;
-  char *str;
-  if (format_line_user) str = format_line_user;
-  else str = format_default;
-
-  int n = strlen(str) + 1;
-  format = new char[n];
-  strcpy(format,str);
+  delete[] format;
+  if (format_line_user) format = utils::strdup(format_line_user);
+  else format = utils::strdup(format_default);
 
   // tokenize the format string and add space at end of each format element
   // if user-specified int/float format exists, use it instead
   // if user-specified column format exists, use it instead
   // lo priority = line, medium priority = int/float, hi priority = column
 
-  char *ptr;
-  for (int i = 0; i < size_one; i++) {
-    if (i == 0) ptr = strtok(format," \0");
-    else ptr = strtok(nullptr," \0");
-    if (ptr == nullptr) error->all(FLERR,"Dump_modify format line is too short");
-    delete [] vformat[i];
+  auto words = utils::split_words(format);
+  if ((int) words.size() <  size_one)
+    error->all(FLERR,"Dump_modify format line is too short");
 
-    if (format_column_user[i]) {
-      vformat[i] = new char[strlen(format_column_user[i]) + 2];
-      strcpy(vformat[i],format_column_user[i]);
-    } else if (vtype[i] == INT && format_int_user) {
-      vformat[i] = new char[strlen(format_int_user) + 2];
-      strcpy(vformat[i],format_int_user);
-    } else if (vtype[i] == DOUBLE && format_float_user) {
-      vformat[i] = new char[strlen(format_float_user) + 2];
-      strcpy(vformat[i],format_float_user);
-    } else {
-      vformat[i] = new char[strlen(ptr) + 2];
-      strcpy(vformat[i],ptr);
-    }
+  int i=0;
+  for (const auto &word : words) {
+    delete[] vformat[i];
 
-    vformat[i] = strcat(vformat[i]," ");
+    if (format_column_user[i])
+      vformat[i] = utils::strdup(std::string(format_column_user[i]) + " ");
+    else if (vtype[i] == Dump::INT && format_int_user)
+      vformat[i] = utils::strdup(std::string(format_int_user) + " ");
+    else if (vtype[i] == Dump::DOUBLE && format_float_user)
+      vformat[i] = utils::strdup(std::string(format_float_user) + " ");
+    else if (vtype[i] == Dump::BIGINT && format_bigint_user)
+      vformat[i] = utils::strdup(std::string(format_bigint_user) + " ");
+    else vformat[i] = utils::strdup(word + " ");
+    ++i;
   }
 
   // setup boundary string
@@ -213,20 +196,16 @@ void DumpLocal::init_style()
   // find current ptr for each compute,fix,variable
   // check that fix frequency is acceptable
 
-  int icompute;
-  for (int i = 0; i < ncompute; i++) {
-    icompute = modify->find_compute(id_compute[i]);
-    if (icompute < 0) error->all(FLERR,"Could not find dump local compute ID");
-    compute[i] = modify->compute[icompute];
+  for (i = 0; i < ncompute; i++) {
+    compute[i] = modify->get_compute_by_id(id_compute[i]);
+    if (!compute[i]) error->all(FLERR,"Could not find dump local compute ID {}",id_compute[i]);
   }
 
-  int ifix;
-  for (int i = 0; i < nfix; i++) {
-    ifix = modify->find_fix(id_fix[i]);
-    if (ifix < 0) error->all(FLERR,"Could not find dump local fix ID");
-    fix[i] = modify->fix[ifix];
-    if (nevery % modify->fix[ifix]->local_freq)
-      error->all(FLERR,"Dump local and fix not computed at compatible times");
+  for (i = 0; i < nfix; i++) {
+    fix[i] = modify->get_fix_by_id(id_fix[i]);
+    if (!fix[i]) error->all(FLERR,"Could not find dump local fix ID {}", id_fix[i]);
+    if (nevery % fix[i]->local_freq)
+      error->all(FLERR,"Dump local and fix {} not computed at compatible times", id_fix[i]);
   }
 
   // open single file, one time only
@@ -240,11 +219,48 @@ int DumpLocal::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"label") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    delete [] label;
-    int n = strlen(arg[1]) + 1;
-    label = new char[n];
-    strcpy(label,arg[1]);
+    delete[] label;
+    label = utils::strdup(arg[1]);
     return 2;
+  } else if (strcmp(arg[0],"format") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+
+    if (strcmp(arg[1],"none") == 0) {
+      // just clear format_column_user allocated by this dump child class
+      for (int i = 0; i < nfield; i++) {
+        delete[] format_column_user[i];
+        format_column_user[i] = nullptr;
+      }
+      return 2;
+    } else if (strcmp(arg[1],"int") == 0) {
+      delete[] format_int_user;
+      format_int_user = utils::strdup(arg[2]);
+      delete[] format_bigint_user;
+      int n = strlen(format_int_user) + 8;
+      format_bigint_user = new char[n];
+      // replace "d" in format_int_user with bigint format specifier
+      // use of &str[1] removes leading '%' from BIGINT_FORMAT string
+      char *ptr = strchr(format_int_user,'d');
+      if (ptr == nullptr)
+        error->all(FLERR, "Dump_modify int format does not contain d character");
+      char str[8];
+      sprintf(str,"%s",BIGINT_FORMAT);
+      *ptr = '\0';
+      sprintf(format_bigint_user,"%s%s%s",format_int_user,&str[1],ptr+1);
+      *ptr = 'd';
+
+    } else if (strcmp(arg[1],"float") == 0) {
+      delete[] format_float_user;
+      format_float_user = utils::strdup(arg[2]);
+
+    } else {
+      int i = utils::inumeric(FLERR,arg[1],false,lmp) - 1;
+      if (i < 0 || i >= nfield)
+        error->all(FLERR,"Illegal dump_modify command");
+      delete[] format_column_user[i];
+      format_column_user[i] = utils::strdup(arg[2]);
+    }
+    return 3;
   }
   return 0;
 }
@@ -256,26 +272,29 @@ void DumpLocal::write_header(bigint ndump)
   if (me == 0) {
     if (unit_flag && !unit_count) {
       ++unit_count;
-      fprintf(fp,"ITEM: UNITS\n%s\n",update->unit_style);
+      fmt::print(fp,"ITEM: UNITS\n{}\n",update->unit_style);
     }
-    if (time_flag) fprintf(fp,"ITEM: TIME\n%.16g\n",compute_time());
+    if (time_flag) fmt::print(fp,"ITEM: TIME\n{:.16}\n",compute_time());
 
-    fprintf(fp,"ITEM: TIMESTEP\n");
-    fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
-    fprintf(fp,"ITEM: NUMBER OF %s\n",label);
-    fprintf(fp,BIGINT_FORMAT "\n",ndump);
+    fmt::print(fp,"ITEM: TIMESTEP\n{}\n"
+               "ITEM: NUMBER OF {}\n{}\n",
+               update->ntimestep, label, ndump);
+
     if (domain->triclinic) {
-      fprintf(fp,"ITEM: BOX BOUNDS xy xz yz %s\n",boundstr);
-      fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxxlo,boxxhi,boxxy);
-      fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxylo,boxyhi,boxxz);
-      fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxzlo,boxzhi,boxyz);
+      fmt::print(fp,"ITEM: BOX BOUNDS xy xz yz {}\n"
+                 "{:>1.16e} {:>1.16e} {:>1.16e}\n"
+                 "{:>1.16e} {:>1.16e} {:>1.16e}\n"
+                 "{:>1.16e} {:>1.16e} {:>1.16e}\n",
+                 boundstr,boxxlo,boxxhi,boxxy,boxylo,boxyhi,boxxz,boxzlo,boxzhi,boxyz);
     } else {
-      fprintf(fp,"ITEM: BOX BOUNDS %s\n",boundstr);
-      fprintf(fp,"%-1.16e %-1.16e\n",boxxlo,boxxhi);
-      fprintf(fp,"%-1.16e %-1.16e\n",boxylo,boxyhi);
-      fprintf(fp,"%-1.16e %-1.16e\n",boxzlo,boxzhi);
+      fmt::print(fp,"ITEM: BOX BOUNDS {}\n"
+                 "{:>1.16e} {:>1.16e}\n"
+                 "{:>1.16e} {:>1.16e}\n"
+                 "{:>1.16e} {:>1.16e}\n",
+                 boundstr,boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi);
     }
-    fprintf(fp,"ITEM: %s %s\n",label,columns);
+
+    fmt::print(fp,"ITEM: {} {}\n", label, columns);
   }
 }
 
@@ -310,14 +329,14 @@ int DumpLocal::count()
 
   nmine = -1;
 
-  for (int i = 0; i < ncompute; i++) {
+  for (i = 0; i < ncompute; i++) {
     if (nmine < 0) nmine = compute[i]->size_local_rows;
     else if (nmine != compute[i]->size_local_rows)
       error->one(FLERR,
                  "Dump local count is not consistent across input fields");
   }
 
-  for (int i = 0; i < nfix; i++) {
+  for (i = 0; i < nfix; i++) {
     if (nmine < 0) nmine = fix[i]->size_local_rows;
     else if (nmine != fix[i]->size_local_rows)
       error->one(FLERR,
@@ -353,8 +372,12 @@ int DumpLocal::convert_string(int n, double *mybuf)
     }
 
     for (j = 0; j < size_one; j++) {
-      if (vtype[j] == INT)
+      if (vtype[j] == Dump::INT)
         offset += sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
+      else if (vtype[j] == Dump::DOUBLE)
+        offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
+      else if (vtype[j] == Dump::BIGINT)
+        offset += sprintf(&sbuf[offset],vformat[j],static_cast<bigint> (mybuf[m]));
       else
         offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
       m++;
@@ -376,7 +399,8 @@ void DumpLocal::write_data(int n, double *mybuf)
 
 void DumpLocal::write_string(int n, double *mybuf)
 {
-  fwrite(mybuf,sizeof(char),n,fp);
+  if (mybuf)
+    fwrite(mybuf,sizeof(char),n,fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -388,7 +412,9 @@ void DumpLocal::write_lines(int n, double *mybuf)
   int m = 0;
   for (i = 0; i < n; i++) {
     for (j = 0; j < size_one; j++) {
-      if (vtype[j] == INT) fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
+      if (vtype[j] == Dump::INT) fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
+      else if (vtype[j] == Dump::DOUBLE) fprintf(fp,vformat[j],mybuf[m]);
+      else if (vtype[j] == Dump::BIGINT) fprintf(fp,vformat[j],static_cast<bigint>(mybuf[m]));
       else fprintf(fp,vformat[j],mybuf[m]);
       m++;
     }
@@ -408,14 +434,16 @@ void DumpLocal::parse_fields(int narg, char **arg)
 
     if (strcmp(arg[iarg],"index") == 0) {
       pack_choice[iarg] = &DumpLocal::pack_index;
-      vtype[iarg] = INT;
+      vtype[iarg] = Dump::INT;
 
     } else {
-      int n;
       ArgInfo argi(arg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX);
       computefixflag = 1;
-      vtype[iarg] = DOUBLE;
+      vtype[iarg] = Dump::DOUBLE;
       argindex[iarg] = argi.get_index1();
+      auto name = argi.get_name();
+      Compute *icompute = nullptr;
+      Fix *ifix = nullptr;
 
       switch (argi.get_type()) {
 
@@ -425,19 +453,18 @@ void DumpLocal::parse_fields(int narg, char **arg)
       case ArgInfo::COMPUTE:
         pack_choice[iarg] = &DumpLocal::pack_compute;
 
-        n = modify->find_compute(argi.get_name());
-        if (n < 0) error->all(FLERR,"Could not find dump local compute ID");
-        if (modify->compute[n]->local_flag == 0)
-          error->all(FLERR,"Dump local compute does not compute local info");
-        if (argi.get_dim() == 0 && modify->compute[n]->size_local_cols > 0)
-          error->all(FLERR,"Dump local compute does not calculate local vector");
-        if (argi.get_index1() > 0 && modify->compute[n]->size_local_cols == 0)
-          error->all(FLERR,"Dump local compute does not calculate local array");
-        if (argi.get_index1() > 0 &&
-            argi.get_index1() > modify->compute[n]->size_local_cols)
-          error->all(FLERR,"Dump local compute vector is accessed out-of-range");
+        icompute = modify->get_compute_by_id(name);
+        if (!icompute) error->all(FLERR,"Could not find dump local compute ID {}",name);
+        if (icompute->local_flag == 0)
+          error->all(FLERR,"Dump local compute {} does not compute local info", name);
+        if (argi.get_dim() == 0 && icompute->size_local_cols > 0)
+          error->all(FLERR,"Dump local compute {} does not calculate local vector", name);
+        if (argi.get_index1() > 0 && icompute->size_local_cols == 0)
+          error->all(FLERR,"Dump local compute {} does not calculate local array", name);
+        if (argi.get_index1() > 0 && argi.get_index1() > icompute->size_local_cols)
+          error->all(FLERR,"Dump local compute {} vector is accessed out-of-range", name);
 
-        field2index[iarg] = add_compute(argi.get_name());
+        field2index[iarg] = add_compute(name);
         break;
 
         // fix value = f_ID
@@ -446,26 +473,25 @@ void DumpLocal::parse_fields(int narg, char **arg)
       case ArgInfo::FIX:
         pack_choice[iarg] = &DumpLocal::pack_fix;
 
-        n = modify->find_fix(argi.get_name());
-        if (n < 0) error->all(FLERR,"Could not find dump local fix ID");
-        if (modify->fix[n]->local_flag == 0)
-          error->all(FLERR,"Dump local fix does not compute local info");
-        if (argi.get_dim() == 0 && modify->fix[n]->size_local_cols > 0)
-          error->all(FLERR,"Dump local fix does not compute local vector");
-        if (argi.get_index1() > 0 && modify->fix[n]->size_local_cols == 0)
-          error->all(FLERR,"Dump local fix does not compute local array");
-        if (argi.get_index1() > 0 &&
-            argi.get_index1() > modify->fix[n]->size_local_cols)
-          error->all(FLERR,"Dump local fix vector is accessed out-of-range");
+        ifix = modify->get_fix_by_id(name);
+        if (!ifix) error->all(FLERR,"Could not find dump local fix ID {}", name);
+        if (ifix->local_flag == 0)
+          error->all(FLERR,"Dump local fix {} does not compute local info", name);
+        if (argi.get_dim() == 0 && ifix->size_local_cols > 0)
+          error->all(FLERR,"Dump local fix {} does not compute local vector", name);
+        if (argi.get_index1() > 0 && ifix->size_local_cols == 0)
+          error->all(FLERR,"Dump local fix {} does not compute local array", name);
+        if (argi.get_index1() > 0 && argi.get_index1() > ifix->size_local_cols)
+          error->all(FLERR,"Dump local fix {} vector is accessed out-of-range", name);
 
-        field2index[iarg] = add_fix(argi.get_name());
+        field2index[iarg] = add_fix(name);
         break;
 
       case ArgInfo::NONE:       // fallthrough
       case ArgInfo::UNKNOWN:    // fallthrough
       default:
-         error->all(FLERR,"Invalid attribute in dump local command");
-         break;
+        error->all(FLERR,"Invalid attribute {} in dump local command",arg[iarg]);
+        break;
       }
     }
   }
@@ -489,12 +515,10 @@ int DumpLocal::add_compute(const char *id)
 
   id_compute = (char **)
     memory->srealloc(id_compute,(ncompute+1)*sizeof(char *),"dump:id_compute");
-  delete [] compute;
+  delete[] compute;
   compute = new Compute*[ncompute+1];
 
-  int n = strlen(id) + 1;
-  id_compute[ncompute] = new char[n];
-  strcpy(id_compute[ncompute],id);
+  id_compute[ncompute] = utils::strdup(id);
   ncompute++;
   return ncompute-1;
 }
@@ -514,12 +538,10 @@ int DumpLocal::add_fix(const char *id)
 
   id_fix = (char **)
     memory->srealloc(id_fix,(nfix+1)*sizeof(char *),"dump:id_fix");
-  delete [] fix;
+  delete[] fix;
   fix = new Fix*[nfix+1];
 
-  int n = strlen(id) + 1;
-  id_fix[nfix] = new char[n];
-  strcpy(id_fix[nfix],id);
+  id_fix[nfix] = utils::strdup(id);
   nfix++;
   return nfix-1;
 }

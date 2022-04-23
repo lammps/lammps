@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -27,7 +28,6 @@
 #include "neighbor.h"
 #include "update.h"
 
-#include <cstring>
 #include <cmath>
 
 using namespace LAMMPS_NS;
@@ -47,7 +47,7 @@ typedef struct { double x,y,z; } dbl3_t;
 FixNHGPU::FixNHGPU(LAMMPS *lmp, int narg, char **arg) :
   FixNH(lmp, narg, arg)
 {
-  _dtfm = 0;
+  _dtfm = nullptr;
   _nlocal3 = 0;
   _nlocal_max = 0;
 }
@@ -63,7 +63,7 @@ FixNHGPU::~FixNHGPU()
 void FixNHGPU::setup(int vflag)
 {
   FixNH::setup(vflag);
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     _respa_on = 1;
   else
     _respa_on = 0;
@@ -83,7 +83,7 @@ void FixNHGPU::remap()
   double oldlo,oldhi;
   double expfac;
 
-  dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const x = (dbl3_t *) atom->x[0];
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   double *h = domain->h;
@@ -420,7 +420,7 @@ void FixNHGPU::nh_v_press()
     return;
   }
 
-  dbl3_t * _noalias const v = (dbl3_t *)atom->v[0];
+  auto * _noalias const v = (dbl3_t *)atom->v[0];
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(qeq/fire,FixQEqFire)
-
+// clang-format off
+FixStyle(qeq/fire,FixQEqFire);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_QEQ_FIRE_H
@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class FixQEqFire : public FixQEq {
  public:
   FixQEqFire(class LAMMPS *, int, char **);
-  ~FixQEqFire() {}
-  void init();
-  void pre_force(int);
 
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
+  void init() override;
+  void pre_force(int) override;
+
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
 
  private:
   double compute_eneg();
@@ -43,7 +43,7 @@ class FixQEqFire : public FixQEq {
   class PairComb3 *comb3;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

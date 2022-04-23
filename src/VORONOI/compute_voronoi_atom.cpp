@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,9 +18,6 @@
 
 #include "compute_voronoi_atom.h"
 
-#include <cmath>
-#include <cstring>
-#include <voro++.hh>
 #include "atom.h"
 #include "group.h"
 #include "update.h"
@@ -29,9 +27,10 @@
 #include "comm.h"
 #include "variable.h"
 #include "input.h"
-#include "force.h"
 
-#include <vector>
+#include <cmath>
+#include <cstring>
+#include <voro++.hh>
 
 using namespace LAMMPS_NS;
 using namespace voro;
@@ -80,9 +79,7 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[iarg], "radius") == 0) {
       if (iarg + 2 > narg || strstr(arg[iarg+1],"v_") != arg[iarg+1] )
         error->all(FLERR,"Illegal compute voronoi/atom command");
-      int n = strlen(&arg[iarg+1][2]) + 1;
-      radstr = new char[n];
-      strcpy(radstr,&arg[iarg+1][2]);
+      radstr = utils::strdup(&arg[iarg+1][2]);
       iarg += 2;
     }
     else if (strcmp(arg[iarg], "surface") == 0) {
@@ -112,15 +109,11 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg], "neighbors") == 0) {
       if (iarg + 2 > narg) error->all(FLERR,"Illegal compute voronoi/atom command");
-      if (strcmp(arg[iarg+1],"yes") == 0) faces_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) faces_flag = 0;
-      else error->all(FLERR,"Illegal compute voronoi/atom command");
+      faces_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "peratom") == 0) {
       if (iarg + 2 > narg) error->all(FLERR,"Illegal compute voronoi/atom command");
-      if (strcmp(arg[iarg+1],"yes") == 0) peratom_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) peratom_flag = 0;
-      else error->all(FLERR,"Illegal compute voronoi/atom command");
+      peratom_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     }
     else error->all(FLERR,"Illegal compute voronoi/atom command");
@@ -339,7 +332,7 @@ void ComputeVoronoi::buildCells()
     input->variable->compute_atom(radvar,0,rfield,1,0);
 
     // communicate values to ghost atoms of neighboring nodes
-    comm->forward_comm_compute(this);
+    comm->forward_comm(this);
 
     // polydisperse voro++ container
     delete con_poly;

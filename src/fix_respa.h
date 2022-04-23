@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(RESPA,FixRespa)
-
+// clang-format off
+FixStyle(RESPA,FixRespa);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_RESPA_H
@@ -31,24 +31,24 @@ class FixRespa : public Fix {
 
  public:
   FixRespa(class LAMMPS *, int, char **);
-  ~FixRespa();
-  int setmask();
-  void init() {}
+  ~FixRespa() override;
+  int setmask() override;
+  void init() override {}
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
 
  private:
   int nlevels;
-  int store_torque;  // 1 if torques should be stored in addition to forces
-  double ***f_level; // force at each rRESPA level
-  double ***t_level; // torque at each rRESPA level
+  int store_torque;     // 1 if torques should be stored in addition to forces
+  double ***f_level;    // force at each rRESPA level
+  double ***t_level;    // torque at each rRESPA level
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

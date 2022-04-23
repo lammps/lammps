@@ -50,10 +50,6 @@
 #if defined(KOKKOS_ATOMIC_HPP) && !defined(KOKKOS_ATOMIC_EXCHANGE_HPP)
 #define KOKKOS_ATOMIC_EXCHANGE_HPP
 
-#if defined(KOKKOS_ENABLE_CUDA)
-#include <Cuda/Kokkos_Cuda_Version_9_8_Compatibility.hpp>
-#endif
-
 namespace Kokkos {
 
 //----------------------------------------------------------------------------
@@ -122,13 +118,9 @@ atomic_exchange(volatile T* const dest,
   _mm_prefetch((const char*)dest, _MM_HINT_ET0);
 #endif
 
-  int done = 0;
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-  unsigned int mask   = KOKKOS_IMPL_CUDA_ACTIVEMASK;
-  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask, 1);
-#else
-  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT(1);
-#endif
+  int done                 = 0;
+  unsigned int mask        = __activemask();
+  unsigned int active      = __ballot_sync(mask, 1);
   unsigned int done_active = 0;
   while (active != done_active) {
     if (!done) {
@@ -141,11 +133,7 @@ atomic_exchange(volatile T* const dest,
         done = 1;
       }
     }
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-    done_active = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask, done);
-#else
-    done_active = KOKKOS_IMPL_CUDA_BALLOT(done);
-#endif
+    done_active = __ballot_sync(mask, done);
   }
   return return_val;
 }
@@ -191,8 +179,7 @@ inline T atomic_exchange(volatile T* const dest,
                          typename std::enable_if<sizeof(T) == sizeof(int) ||
                                                      sizeof(T) == sizeof(long),
                                                  const T&>::type val) {
-  using type =
-      typename Kokkos::Impl::if_c<sizeof(T) == sizeof(int), int, long>::type;
+  using type = std::conditional_t<sizeof(T) == sizeof(int), int, long>;
 #if defined(KOKKOS_ENABLE_RFO_PREFETCH)
   _mm_prefetch((const char*)dest, _MM_HINT_ET0);
 #endif
@@ -285,8 +272,7 @@ inline void atomic_assign(volatile T* const dest,
                           typename std::enable_if<sizeof(T) == sizeof(int) ||
                                                       sizeof(T) == sizeof(long),
                                                   const T&>::type val) {
-  using type =
-      typename Kokkos::Impl::if_c<sizeof(T) == sizeof(int), int, long>::type;
+  using type = std::conditional_t<sizeof(T) == sizeof(int), int, long>;
 
 #if defined(KOKKOS_ENABLE_RFO_PREFETCH)
   _mm_prefetch((const char*)dest, _MM_HINT_ET0);

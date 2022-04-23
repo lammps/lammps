@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -124,8 +125,8 @@ void get_kim_unit_names(
   } else if ((system_str == "lj") ||
              (system_str == "micro") ||
              (system_str == "nano")) {
-    error->all(FLERR, fmt::format("LAMMPS unit_style {} not supported "
-                                  "by KIM models", system_str));
+    error->all(FLERR, "LAMMPS unit_style {} not supported "
+                                  "by KIM models", system_str);
   } else {
     error->all(FLERR, "Unknown unit_style");
   }
@@ -162,7 +163,7 @@ void KimParam::command(int narg, char **arg)
 
   int const ifix = modify->find_fix("KIM_MODEL_STORE");
   if (ifix >= 0) {
-    FixStoreKIM *fix_store = reinterpret_cast<FixStoreKIM *>(modify->fix[ifix]);
+    auto fix_store = reinterpret_cast<FixStoreKIM *>(modify->fix[ifix]);
 
     KIM_SimulatorModel *simulatorModel =
         reinterpret_cast<KIM_SimulatorModel *>(
@@ -180,20 +181,17 @@ void KimParam::command(int narg, char **arg)
 
   std::string atom_type_list;
 
-  bool isPairStyleAssigned = force->pair ? true : false;
-  if (isPairStyleAssigned) {
+  if (force->pair) {
     Pair *pair = force->pair_match("kim", 1, 0);
     if (pair) {
-      PairKIM *pairKIM = reinterpret_cast<PairKIM *>(pair);
+      auto pairKIM = reinterpret_cast<PairKIM *>(pair);
 
       pkim = pairKIM->get_kim_model();
-      if (!pkim)
-        error->all(FLERR, "Unable to get the KIM Portable Model");
+      if (!pkim) error->all(FLERR, "Unable to get the KIM Portable Model");
 
       if (kim_param_get_set == "set") {
         atom_type_list = pairKIM->get_atom_type_list();
-        if (atom_type_list.empty())
-          error->all(FLERR, "The requested atom type list is empty");
+        if (atom_type_list.empty()) error->all(FLERR, "The requested atom type list is empty");
       }
     } else
       error->all(FLERR, "Pair style is defined, but there is "

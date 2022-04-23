@@ -158,13 +158,16 @@ inline void check_shmem_request(CudaInternal const* cuda_instance, int shmem) {
   }
 }
 
+// This function needs to be template on DriverType and LaunchBounds
+// so that the static bool is unique for each type combo
+// KernelFuncPtr does not necessarily contain that type information.
 template <class DriverType, class LaunchBounds, class KernelFuncPtr>
 inline void configure_shmem_preference(KernelFuncPtr const& func,
                                        bool prefer_shmem) {
 #ifndef KOKKOS_ARCH_KEPLER
   // On Kepler the L1 has no benefit since it doesn't cache reads
   auto set_cache_config = [&] {
-    CUDA_SAFE_CALL(cudaFuncSetCacheConfig(
+    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaFuncSetCacheConfig(
         func,
         (prefer_shmem ? cudaFuncCachePreferShared : cudaFuncCachePreferL1)));
     return prefer_shmem;
@@ -355,8 +358,7 @@ struct CudaParallelLaunchKernelInvoker<
 
     if (!Impl::is_empty_launch(grid, block)) {
       Impl::check_shmem_request(cuda_instance, shmem);
-      Impl::configure_shmem_preference<DriverType, LaunchBounds,
-                                       decltype(base_t::get_kernel_func())>(
+      Impl::configure_shmem_preference<DriverType, LaunchBounds>(
           base_t::get_kernel_func(), prefer_shmem);
 
       void const* args[] = {&driver};
@@ -370,14 +372,15 @@ struct CudaParallelLaunchKernelInvoker<
       params.kernelParams   = (void**)args;
       params.extra          = nullptr;
 
-      CUDA_SAFE_CALL(cudaGraphAddKernelNode(
+      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGraphAddKernelNode(
           &graph_node, graph, /* dependencies = */ nullptr,
           /* numDependencies = */ 0, &params));
     } else {
       // We still need an empty node for the dependency structure
-      CUDA_SAFE_CALL(cudaGraphAddEmptyNode(&graph_node, graph,
-                                           /* dependencies = */ nullptr,
-                                           /* numDependencies = */ 0));
+      KOKKOS_IMPL_CUDA_SAFE_CALL(
+          cudaGraphAddEmptyNode(&graph_node, graph,
+                                /* dependencies = */ nullptr,
+                                /* numDependencies = */ 0));
     }
     KOKKOS_ENSURES(bool(graph_node))
   }
@@ -449,8 +452,7 @@ struct CudaParallelLaunchKernelInvoker<
 
     if (!Impl::is_empty_launch(grid, block)) {
       Impl::check_shmem_request(cuda_instance, shmem);
-      Impl::configure_shmem_preference<DriverType, LaunchBounds,
-                                       decltype(base_t::get_kernel_func())>(
+      Impl::configure_shmem_preference<DriverType, LaunchBounds>(
           base_t::get_kernel_func(), prefer_shmem);
 
       auto* driver_ptr = Impl::allocate_driver_storage_for_kernel(driver);
@@ -474,14 +476,15 @@ struct CudaParallelLaunchKernelInvoker<
       params.kernelParams   = (void**)args;
       params.extra          = nullptr;
 
-      CUDA_SAFE_CALL(cudaGraphAddKernelNode(
+      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGraphAddKernelNode(
           &graph_node, graph, /* dependencies = */ nullptr,
           /* numDependencies = */ 0, &params));
     } else {
       // We still need an empty node for the dependency structure
-      CUDA_SAFE_CALL(cudaGraphAddEmptyNode(&graph_node, graph,
-                                           /* dependencies = */ nullptr,
-                                           /* numDependencies = */ 0));
+      KOKKOS_IMPL_CUDA_SAFE_CALL(
+          cudaGraphAddEmptyNode(&graph_node, graph,
+                                /* dependencies = */ nullptr,
+                                /* numDependencies = */ 0));
     }
     KOKKOS_ENSURES(bool(graph_node))
   }
@@ -537,7 +540,8 @@ struct CudaParallelLaunchKernelInvoker<
                             dim3 const& block, int shmem,
                             CudaInternal const* cuda_instance) {
     // Wait until the previous kernel that uses the constant buffer is done
-    CUDA_SAFE_CALL(cudaEventSynchronize(cuda_instance->constantMemReusable));
+    KOKKOS_IMPL_CUDA_SAFE_CALL(
+        cudaEventSynchronize(cuda_instance->constantMemReusable));
 
     // Copy functor (synchronously) to staging buffer in pinned host memory
     unsigned long* staging = cuda_instance->constantMemHostStaging;
@@ -553,8 +557,9 @@ struct CudaParallelLaunchKernelInvoker<
          get_kernel_func())<<<grid, block, shmem, cuda_instance->m_stream>>>();
 
     // Record an event that says when the constant buffer can be reused
-    CUDA_SAFE_CALL(cudaEventRecord(cuda_instance->constantMemReusable,
-                                   cudaStream_t(cuda_instance->m_stream)));
+    KOKKOS_IMPL_CUDA_SAFE_CALL(
+        cudaEventRecord(cuda_instance->constantMemReusable,
+                        cudaStream_t(cuda_instance->m_stream)));
   }
 
 #ifdef KOKKOS_CUDA_ENABLE_GRAPHS
@@ -627,9 +632,8 @@ struct CudaParallelLaunchImpl<
           get_cuda_func_attributes(), block, shmem, prefer_shmem);
 
       Impl::configure_shmem_preference<
-          DriverType, Kokkos::LaunchBounds<MaxThreadsPerBlock, MinBlocksPerSM>,
-          decltype(base_t::get_kernel_func())>(base_t::get_kernel_func(),
-                                               prefer_shmem);
+          DriverType, Kokkos::LaunchBounds<MaxThreadsPerBlock, MinBlocksPerSM>>(
+          base_t::get_kernel_func(), prefer_shmem);
 
       KOKKOS_ENSURE_CUDA_LOCK_ARRAYS_ON_DEVICE();
 
@@ -637,8 +641,9 @@ struct CudaParallelLaunchImpl<
       base_t::invoke_kernel(driver, grid, block, shmem, cuda_instance);
 
 #if defined(KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK)
-      CUDA_SAFE_CALL(cudaGetLastError());
-      cuda_instance->fence();
+      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetLastError());
+      cuda_instance->fence(
+          "Kokkos::Impl::launch_kernel: Debug Only Check for Execution Error");
 #endif
     }
   }
@@ -650,7 +655,7 @@ struct CudaParallelLaunchImpl<
     // the code and the result is visible.
     auto wrap_get_attributes = []() -> cudaFuncAttributes {
       cudaFuncAttributes attr_tmp;
-      CUDA_SAFE_CALL(
+      KOKKOS_IMPL_CUDA_SAFE_CALL(
           cudaFuncGetAttributes(&attr_tmp, base_t::get_kernel_func()));
       return attr_tmp;
     };

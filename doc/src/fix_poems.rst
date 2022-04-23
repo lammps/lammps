@@ -57,14 +57,14 @@ Each body must have a non-degenerate inertia tensor, which means if
 must contain at least 3 non-collinear atoms.  Which atoms are in which
 bodies can be defined via several options.
 
-For option *group*\ , each of the listed groups is treated as a rigid
+For option *group*, each of the listed groups is treated as a rigid
 body.  Note that only atoms that are also in the fix group are
 included in each rigid body.
 
-For option *molecule*\ , each set of atoms in the group with a different
+For option *molecule*, each set of atoms in the group with a different
 molecule ID is treated as a rigid body.
 
-For option *file*\ , sets of atoms are read from the specified file and
+For option *file*, sets of atoms are read from the specified file and
 each set is treated as a rigid body.  Each line of the file specifies
 a rigid body in the following format:
 
@@ -136,7 +136,7 @@ Restrictions
 This fix is part of the :ref:`POEMS <PKG-POEMS>` package.  It is only
 enabled if LAMMPS was built with that package, which also requires the
 POEMS library be built and linked with LAMMPS.  See the :doc:`Build
-package <Build_package>` doc page for more info.
+package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

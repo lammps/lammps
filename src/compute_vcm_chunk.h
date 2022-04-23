@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(vcm/chunk,ComputeVCMChunk)
-
+// clang-format off
+ComputeStyle(vcm/chunk,ComputeVCMChunk);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_VCM_CHUNK_H
@@ -27,32 +27,32 @@ namespace LAMMPS_NS {
 class ComputeVCMChunk : public Compute {
  public:
   ComputeVCMChunk(class LAMMPS *, int, char **);
-  ~ComputeVCMChunk();
-  void init();
-  void setup();
-  void compute_array();
+  ~ComputeVCMChunk() override;
+  void init() override;
+  void setup() override;
+  void compute_array() override;
 
-  void lock_enable();
-  void lock_disable();
-  int lock_length();
-  void lock(class Fix *, bigint, bigint);
-  void unlock(class Fix *);
+  void lock_enable() override;
+  void lock_disable() override;
+  int lock_length() override;
+  void lock(class Fix *, bigint, bigint) override;
+  void unlock(class Fix *) override;
 
-  double memory_usage();
+  double memory_usage() override;
 
  private:
-  int nchunk,maxchunk;
-  int firstflag,massneed;
+  int nchunk, maxchunk;
+  int firstflag, massneed;
   char *idchunk;
   class ComputeChunkAtom *cchunk;
 
-  double *massproc,*masstotal;
-  double **vcm,**vcmall;
+  double *massproc, *masstotal;
+  double **vcm, **vcmall;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -146,7 +146,7 @@ to effectively specify multiple values.
 
 If *index* begins with "f\_", a fix ID must follow which has been
 previously defined in the input script.  The Fix must generate
-per-atom quantities.  See the individual :doc:`fix <fix>` doc page for
+per-atom quantities.  See the individual :doc:`fix <fix>` page for
 details.  Note that some fixes only produce their values on certain
 timesteps, which must be compatible with when compute global/atom
 references the values, else an error results.  If no bracketed integer
@@ -213,7 +213,7 @@ vector.  If multiple inputs are specified, this compute produces a
 per-atom array values, where the number of columns is equal to the
 number of inputs specified.  These values can be used by any command
 that uses per-atom vector or array values from a compute as input.
-See the :doc:`Howto output <Howto_output>` doc page for an overview of
+See the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
 The per-atom vector or array values will be in whatever units the

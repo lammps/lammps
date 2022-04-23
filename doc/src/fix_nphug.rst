@@ -63,8 +63,8 @@ jump conditions for steady shocks.
 
 The compression can be performed
 either
-hydrostatically (using keyword *iso*\ , *aniso*\ , or *tri*\ ) or uniaxially
-(using keywords *x*\ , *y*\ , or *z*\ ).  In the hydrostatic case,
+hydrostatically (using keyword *iso*, *aniso*, or *tri*\ ) or uniaxially
+(using keywords *x*, *y*, or *z*\ ).  In the hydrostatic case,
 the cell dimensions change dynamically so that the average axial stress
 in all three directions converges towards the specified target value.
 In the uniaxial case, the chosen cell dimension changes dynamically
@@ -74,10 +74,10 @@ other two cell dimensions are kept fixed (zero lateral strain).
 
 This leads to the following additional restrictions on the keywords:
 
-* One and only one of the following keywords should be used: *iso*\ , *aniso*\ , *tri*\ , *x*\ , *y*\ , *z*
+* One and only one of the following keywords should be used: *iso*, *aniso*, *tri*, *x*, *y*, *z*
 * The specified initial and final target pressures must be the same.
-* The keywords *xy*\ , *xz*\ , *yz* may not be used.
-* The only admissible value for the couple keyword is *xyz*\ , which has the same effect as keyword *iso*
+* The keywords *xy*, *xz*, *yz* may not be used.
+* The only admissible value for the couple keyword is *xyz*, which has the same effect as keyword *iso*
 * The *temp* keyword must be used to specify the time constant for kinetic energy relaxation, but initial and final target temperature values are ignored.
 
 Essentially, a Hugoniostat simulation is an NPT simulation in which the
@@ -100,8 +100,8 @@ When the system reaches a stable equilibrium, the value of :math:`\Delta` should
 fluctuate about zero.
 
 The values of :math:`E_0`, :math:`V_0`, and :math:`P_0` are the instantaneous values at the start of
-the simulation. These can be overridden using the fix_modify keywords *e0*\ ,
-*v0*\ , and *p0* described below.
+the simulation. These can be overridden using the fix_modify keywords *e0*,
+*v0*, and *p0* described below.
 
 ----------
 
@@ -159,7 +159,7 @@ as well as the state of all the thermostat and barostat variables to
 script that reads a restart file, so that the operation of the fix
 continues in an uninterrupted fashion.
 
-The :doc:`fix_modify <fix_modify>` *e0*\ , *v0* and *p0* keywords can be
+The :doc:`fix_modify <fix_modify>` *e0*, *v0* and *p0* keywords can be
 used to define the values of :math:`E_0`, :math:`V_0`, and
 :math:`P_0`. Note the the values for *e0* and *v0* are extensive, and so
 must correspond to the total energy and volume of the entire system, not
@@ -205,7 +205,7 @@ Restrictions
 
 This fix style is part of the SHOCK package.  It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 All the usual restrictions for :doc:`fix npt <fix_nh>` apply, plus the
 additional ones mentioned above.

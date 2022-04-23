@@ -25,9 +25,9 @@ namespace ATC {
   class ATC_CouplingEnergy : public ATC_Coupling {
 
   public:
-  
+
     // constructor
-    ATC_CouplingEnergy(std::string groupName, 
+    ATC_CouplingEnergy(std::string groupName,
                        double ** & perAtomArray,
                        LAMMPS_NS::Fix * thisFix,
                        std::string matParamFile,
@@ -64,7 +64,7 @@ namespace ATC {
     /** physics specific filter initialization */
     void init_filter();
 
-    
+
     double compute_lambda_power(int gid);
 
     /** kinetic temperature for post-processing */
@@ -77,6 +77,6 @@ namespace ATC {
     DENS_MAT _keTemp_, _peTemp_;
 
   };
-    
+
 };
 #endif

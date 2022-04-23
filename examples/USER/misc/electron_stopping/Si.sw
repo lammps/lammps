@@ -1,1 +1,0 @@
-../../../../potentials/Si.sw

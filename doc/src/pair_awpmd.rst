@@ -52,7 +52,7 @@ Rc is the cutoff.
 The pair_style command allows for several optional keywords
 to be specified.
 
-The *hartree*\ , *dproduct*\ , and *uhf* keywords specify the form of the
+The *hartree*, *dproduct*, and *uhf* keywords specify the form of the
 initial trial wave function for the system.  If the *hartree* keyword
 is used, then a Hartree multielectron trial wave function is used.  If
 the *dproduct* keyword is used, then a trial function which is a
@@ -60,7 +60,7 @@ product of two determinants for each spin type is used.  If the *uhf*
 keyword is used, then an unrestricted Hartree-Fock trial wave function
 is used.
 
-The *free*\ , *pbc*\ , and *fix* keywords specify a width constraint on
+The *free*, *pbc*, and *fix* keywords specify a width constraint on
 the electron wave packets.  If the *free* keyword is specified, then there is no
 constraint.  If the *pbc* keyword is used and *Plen* is specified as
 -1, then the maximum width is half the shortest box length.  If *Plen*
@@ -91,7 +91,7 @@ commands, or by mixing as described below:
 
 * cutoff (distance units)
 
-For *awpmd/cut*\ , the cutoff coefficient is optional.  If it is not
+For *awpmd/cut*, the cutoff coefficient is optional.  If it is not
 used (as in some of the examples above), the default global value
 specified in the pair_style command is used.
 
@@ -108,7 +108,7 @@ to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 

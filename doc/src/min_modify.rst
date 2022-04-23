@@ -81,8 +81,8 @@ energy after) and that difference may be smaller than machine epsilon
 even if atoms could move in the gradient direction to reduce forces
 further.
 
-The choice of a norm can be modified for the min styles *cg*\ , *sd*\
-, *quickmin*\ , *fire*\ , *fire/old*\ , *spin*\ , *spin/cg* and
+The choice of a norm can be modified for the min styles *cg*, *sd*\
+, *quickmin*, *fire*, *fire/old*, *spin*, *spin/cg* and
 *spin/lbfgs* using the *norm* keyword.  The default *two* norm computes
 the 2-norm (Euclidean length) of the global force vector:
 
@@ -104,7 +104,7 @@ all atoms in the system:
 
    || \vec{F} ||_{inf} = {\rm max}\left(|F_1^1|, |F_1^2|, |F_1^3| \cdots, |F_N^1|, |F_N^2|, |F_N^3|\right)
 
-For the min styles *spin*\ , *spin/cg* and *spin/lbfgs*\ , the force
+For the min styles *spin*, *spin/cg* and *spin/lbfgs*, the force
 norm is replaced by the spin-torque norm.
 
 Keywords *alpha_damp* and *discrete_factor* only make sense when
@@ -138,8 +138,8 @@ minimization is 4fs.
 Note that parameter defaults has been chosen to be reliable in most cases,
 but one should consider adjusting :doc:`timestep <timestep>` and *tmax* to
 optimize the minimization for large or complex systems.  Other
-parameters of the *fire* minimization can be tuned (\ *tmin*\ ,
-*delaystep*\ , *dtgrow*\ , *dtshrink*\ , *alpha0*\ , and
+parameters of the *fire* minimization can be tuned (\ *tmin*,
+*delaystep*, *dtgrow*, *dtshrink*, *alpha0*, and
 *alphashrink*\ ). Please refer to the references describing the
 :doc:`min_style <min_style>` *fire*.
 An additional stopping criteria *vdfmax* is used by *fire* in order to avoid
@@ -176,7 +176,7 @@ Default
 
 The option defaults are dmax = 0.1, line = quadratic and norm = two.
 
-For the *spin*\ , *spin/cg* and *spin/lbfgs* styles, the option
+For the *spin*, *spin/cg* and *spin/lbfgs* styles, the option
 defaults are alpha_damp = 1.0, discrete_factor = 10.0, line =
 spin_none, and norm = euclidean.
 

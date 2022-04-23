@@ -7,19 +7,19 @@ namespace ATC_matrix {
 
   /**
    *  @class  DiagonalMatrix
-   *  @brief  Class for storing data as a diagonal matrix         
+   *  @brief  Class for storing data as a diagonal matrix
    */
 
 template<typename T>
 class DiagonalMatrix : public Matrix<T>
 {
- public: 
+ public:
   explicit DiagonalMatrix(INDEX nRows=0, bool zero=0);
   DiagonalMatrix(const DiagonalMatrix<T>& c);
   DiagonalMatrix(const Vector<T>& v);
   virtual ~DiagonalMatrix();
- 
-  //* resizes the matrix, ignores nCols, optionally zeros 
+
+  //* resizes the matrix, ignores nCols, optionally zeros
   void  reset(INDEX rows, INDEX cols=0, bool zero=true);
   //* resizes the matrix, ignores nCols, optionally copies what fits
   void resize(INDEX rows, INDEX cols=0, bool copy=false);
@@ -62,7 +62,7 @@ class DiagonalMatrix : public Matrix<T>
 
   INDEX size() const { return _data->size(); }
   //* computes the inverse of this matrix
-  DiagonalMatrix<T>& inv_this(); 
+  DiagonalMatrix<T>& inv_this();
   //* returns a copy of the inverse of this matrix
   DiagonalMatrix<T>  inv() const;
 
@@ -82,19 +82,19 @@ protected:
   DiagonalMatrix& operator=(const Vector<T> & /* c */) {}
   DiagonalMatrix& operator=(const Matrix<T> & /* c */) {}
 
-private: 
+private:
   void _delete();
   Vector<T> *_data;
-}; 
+};
 
 //-----------------------------------------------------------------------------
 // DiagonalMatrix-DiagonalMatrix multiplication
 //-----------------------------------------------------------------------------
 template<typename T>
-DiagonalMatrix<T> operator*(const DiagonalMatrix<T>& A, const DiagonalMatrix<T>& B) 
+DiagonalMatrix<T> operator*(const DiagonalMatrix<T>& A, const DiagonalMatrix<T>& B)
 {
   SSCK(A, B, "DiagonalMatrix-DiagonalMatrix multiplication");
-  DiagonalMatrix<T> R(A); 
+  DiagonalMatrix<T> R(A);
   for (INDEX i=0; i<R.nRows(); i++) R[i] *= B[i];
   return R;
 }
@@ -149,7 +149,7 @@ DenseVector<T> operator*(const Vector<T> &b, const DiagonalMatrix<T>& A)
 // DiagonalMatrix-SparseMatrix multiplication
 //-----------------------------------------------------------------------------
 template<typename T>
-SparseMatrix<T> operator*(const DiagonalMatrix<T> &A, const SparseMatrix<T>& B) 
+SparseMatrix<T> operator*(const DiagonalMatrix<T> &A, const SparseMatrix<T>& B)
 {
   GCK(A, B, A.nCols()!=B.nRows() ,"DiagonalMatrix-SparseMatrix multiplication");
   SparseMatrix<T> R(B);
@@ -171,7 +171,7 @@ DiagonalMatrix<T> operator*(DiagonalMatrix<T> &A, const T s)
 // Commute with DiagonalMatrix * double
 //-----------------------------------------------------------------------------
 template<typename T>
-DiagonalMatrix<T> operator*(const T s, const DiagonalMatrix<T>& A) 
+DiagonalMatrix<T> operator*(const T s, const DiagonalMatrix<T>& A)
 {
   DiagonalMatrix<T> R(A);
   R *= s;
@@ -231,10 +231,10 @@ DiagonalMatrix<T>::DiagonalMatrix(const Vector<T>& v)
 // destructor
 //-----------------------------------------------------------------------------
 template<typename T>
-DiagonalMatrix<T>::~DiagonalMatrix() 
+DiagonalMatrix<T>::~DiagonalMatrix()
 {
   _delete();
-} 
+}
 //-----------------------------------------------------------------------------
 // deletes the data stored by this matrix
 //-----------------------------------------------------------------------------
@@ -244,7 +244,7 @@ void DiagonalMatrix<T>::_delete()
   if (_data) delete _data;
 }
 //-----------------------------------------------------------------------------
-// resizes the matrix, ignores nCols, optionally zeros 
+// resizes the matrix, ignores nCols, optionally zeros
 //-----------------------------------------------------------------------------
 template<typename T>
 void DiagonalMatrix<T>::reset(INDEX rows, INDEX /* cols */, bool zero)
@@ -258,13 +258,13 @@ void DiagonalMatrix<T>::reset(INDEX rows, INDEX /* cols */, bool zero)
 template<typename T>
 void DiagonalMatrix<T>::resize(INDEX rows, INDEX /* cols */, bool copy)
 {
-  _data->resize(rows, copy);  
+  _data->resize(rows, copy);
 }
 //-----------------------------------------------------------------------------
 // changes the diagonal of the matrix to a vector v (makes a copy)
 //-----------------------------------------------------------------------------
 template<typename T>
-void DiagonalMatrix<T>::reset(const Vector<T>& v) 
+void DiagonalMatrix<T>::reset(const Vector<T>& v)
 {
   if (&v == _data) return; // check for self-reset
   _delete();
@@ -274,7 +274,7 @@ void DiagonalMatrix<T>::reset(const Vector<T>& v)
 // copys from another DiagonalMatrix
 //-----------------------------------------------------------------------------
 template<typename T>
-void DiagonalMatrix<T>::reset(const DiagonalMatrix<T>& c) 
+void DiagonalMatrix<T>::reset(const DiagonalMatrix<T>& c)
 {
   reset(*(c._data));
 }
@@ -337,41 +337,41 @@ T& DiagonalMatrix<T>::operator()(INDEX i, INDEX /* j */)
 // value indexing operator - returns 0 if i!=j
 //-----------------------------------------------------------------------------
 template<typename T>
-T DiagonalMatrix<T>::operator()(INDEX i, INDEX j)                         const 
+T DiagonalMatrix<T>::operator()(INDEX i, INDEX j)                         const
 {
-  return (i==j) ? (*_data)(i) : (T)0; 
+  return (i==j) ? (*_data)(i) : (T)0;
 }
 //-----------------------------------------------------------------------------
 // flat reference indexing operator
 //-----------------------------------------------------------------------------
 template<typename T>
-T& DiagonalMatrix<T>::operator[](INDEX i)                
+T& DiagonalMatrix<T>::operator[](INDEX i)
 {
-  return (*_data)(i); 
+  return (*_data)(i);
 }
 //-----------------------------------------------------------------------------
 // flat value indexing operator
 //-----------------------------------------------------------------------------
 template<typename T>
-T DiagonalMatrix<T>::operator[](INDEX i)                                  const          
-{ 
-  return (*_data)(i); 
+T DiagonalMatrix<T>::operator[](INDEX i)                                  const
+{
+  return (*_data)(i);
 }
 //-----------------------------------------------------------------------------
 // returns the number of rows
 //-----------------------------------------------------------------------------
 template<typename T>
-INDEX DiagonalMatrix<T>::nRows()                                          const          
-{ 
-  return _data->size(); 
+INDEX DiagonalMatrix<T>::nRows()                                          const
+{
+  return _data->size();
 }
 //-----------------------------------------------------------------------------
 // returns the number of columns (same as nCols())
 //-----------------------------------------------------------------------------
 template<typename T>
-INDEX DiagonalMatrix<T>::nCols()                                          const  
+INDEX DiagonalMatrix<T>::nCols()                                          const
 {
-  return _data->size(); 
+  return _data->size();
 }
 //-----------------------------------------------------------------------------
 // returns a pointer to the diagonal values, dangerous!
@@ -379,13 +379,13 @@ INDEX DiagonalMatrix<T>::nCols()                                          const
 template<typename T>
 T* DiagonalMatrix<T>::ptr()                                           const
 {
-  return _data->ptr(); 
-} 
+  return _data->ptr();
+}
 //-----------------------------------------------------------------------------
 // writes the diagonal to a binary data restart file
 //-----------------------------------------------------------------------------
 template<typename T>
-void DiagonalMatrix<T>::write_restart(FILE *f)                            const 
+void DiagonalMatrix<T>::write_restart(FILE *f)                            const
 {
   _data->write_restart(f);
 }
@@ -393,7 +393,7 @@ void DiagonalMatrix<T>::write_restart(FILE *f)                            const
 // sets the diagonal to a constant
 //-----------------------------------------------------------------------------
 template<typename T>
-DiagonalMatrix<T>& DiagonalMatrix<T>::operator=(const T v) 
+DiagonalMatrix<T>& DiagonalMatrix<T>::operator=(const T v)
 {
   this->set_all_elements_to(v);
   return *this;
@@ -402,7 +402,7 @@ DiagonalMatrix<T>& DiagonalMatrix<T>::operator=(const T v)
 // assignment operator with another diagonal matrix
 //-----------------------------------------------------------------------------
 template<typename T>
-DiagonalMatrix<T>& DiagonalMatrix<T>::operator=(const DiagonalMatrix<T>& C) 
+DiagonalMatrix<T>& DiagonalMatrix<T>::operator=(const DiagonalMatrix<T>& C)
 {
   reset(C);
   return *this;
@@ -411,7 +411,7 @@ DiagonalMatrix<T>& DiagonalMatrix<T>::operator=(const DiagonalMatrix<T>& C)
 // writes a matlab command to duplicate this sparse matrix
 //-----------------------------------------------------------------------------
 template<typename T>
-void DiagonalMatrix<T>::matlab(std::ostream &o, const std::string &s)               const 
+void DiagonalMatrix<T>::matlab(std::ostream &o, const std::string &s)               const
 {
   _data->matlab(o, s);
   o << s <<"=diag("<<s<<",0);\n";
@@ -422,16 +422,16 @@ void DiagonalMatrix<T>::matlab(std::ostream &o, const std::string &s)           
 template<typename T>
 DiagonalMatrix<T>& DiagonalMatrix<T>::inv_this()
 {
-  for(INDEX i=0; i<nRows(); i++) 
+  for(INDEX i=0; i<nRows(); i++)
   {
      if ((*this)[i]!=T(0)) (*this)[i] = 1.0/(*this)[i];
-     else 
+     else
      {
         std::cout<<"DiagonalMatrix::inv(): ("<<i<<","<<i<<")=0\n";
         ERROR_FOR_BACKTRACE
         exit(EXIT_FAILURE);
      }
-  }  
+  }
   // Error check info
   const double min_max = _data->minabs() / _data->maxabs();
   if (min_max > 1e-14)   return *this;
@@ -447,10 +447,10 @@ DiagonalMatrix<T> DiagonalMatrix<T>::inv() const
 {
   DiagonalMatrix<T> invA(*this); // Make copy of A to invert
 
-  for(INDEX i=0; i<invA.nRows(); i++) 
+  for(INDEX i=0; i<invA.nRows(); i++)
   {
      if ((*this)[i]!=T(0)) invA[i]=1.0/(*this)[i];
-     else 
+     else
      {
         std::cout<<"DiagonalMatrix::inv(): ("<<i<<","<<i<<")=0\n";
         ERROR_FOR_BACKTRACE
@@ -494,7 +494,7 @@ void DiagonalMatrix<T>::_set_equal(const Matrix<T> &r)
   }
 }
 //-----------------------------------------------------------------------------
-// casts a generic matrix pointer into a DiagonalMatrix pointer - null if fail 
+// casts a generic matrix pointer into a DiagonalMatrix pointer - null if fail
 //-----------------------------------------------------------------------------
 template<typename T>
 const DiagonalMatrix<T> *diag_cast(const Matrix<T> *m)

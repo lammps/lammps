@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(PERI_NEIGH,FixPeriNeigh)
-
+// clang-format off
+FixStyle(PERI_NEIGH,FixPeriNeigh);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PERI_NEIGH_H
@@ -25,6 +25,7 @@ FixStyle(PERI_NEIGH,FixPeriNeigh)
 namespace LAMMPS_NS {
 
 class FixPeriNeigh : public Fix {
+  friend class PairPeri;
   friend class PairPeriPMB;
   friend class PairPeriPMBOMP;
   friend class PairPeriLPS;
@@ -35,49 +36,48 @@ class FixPeriNeigh : public Fix {
   friend class ComputePlasticityAtom;
 
  public:
-  FixPeriNeigh(class LAMMPS *,int, char **);
-  virtual ~FixPeriNeigh();
-  int setmask();
-  void init();
-  void init_list(int, class NeighList *);
-  void setup(int);
-  void min_setup(int);
+  FixPeriNeigh(class LAMMPS *, int, char **);
+  ~FixPeriNeigh() override;
+  int setmask() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void setup(int) override;
+  void min_setup(int) override;
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  void write_restart(FILE *);
-  void restart(char *);
-  int pack_restart(int, double *);
-  void unpack_restart(int, int);
-  int size_restart(int);
-  int maxsize_restart();
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
+  int pack_restart(int, double *) override;
+  void unpack_restart(int, int) override;
+  int size_restart(int) override;
+  int maxsize_restart() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
  protected:
-  int first;                 // flag for first time initialization
-  int maxpartner;            // max # of peridynamic neighs for any atom
-  int *npartner;             // # of neighbors for each atom
-  tagint **partner;          // neighs for each atom, stored as global IDs
-  double **deviatorextention; // Deviatoric extension
-  double **deviatorBackextention; // Deviatoric back extension
-  double **deviatorPlasticextension; // Deviatoric plastic extension
+  int first;                            // flag for first time initialization
+  int maxpartner;                       // max # of peridynamic neighs for any atom
+  int *npartner;                        // # of neighbors for each atom
+  tagint **partner;                     // neighs for each atom, stored as global IDs
+  double **deviatorextention;           // Deviatoric extension
+  double **deviatorBackextention;       // Deviatoric back extension
+  double **deviatorPlasticextension;    // Deviatoric plastic extension
   double *lambdaValue;
-  double **r0;               // initial distance to partners
-  double **r1;               // instanteneous distance to partners
-  double *thetaValue;        // dilatation
-  double *vinter;            // sum of vfrac for bonded neighbors
-  double *wvolume;           // weighted volume of particle
-  int isPMB,isLPS,isVES,isEPS;  // which flavor of PD
+  double **r0;                       // initial distance to partners
+  double **r1;                       // instanteneous distance to partners
+  double *thetaValue;                // dilatation
+  double *vinter;                    // sum of vfrac for bonded neighbors
+  double *wvolume;                   // weighted volume of particle
+  int isPMB, isLPS, isVES, isEPS;    // which flavor of PD
 
   class NeighList *list;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

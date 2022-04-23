@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,12 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "../testing/core.h"
 #include "atom.h"
 #include "info.h"
 #include "input.h"
 #include "lammps.h"
 #include "molecule.h"
-#include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -26,35 +26,14 @@
 
 using namespace LAMMPS_NS;
 
-using testing::MatchesRegex;
+using testing::ContainsRegex;
 using testing::StrEq;
 
 using utils::split_words;
 
 #define test_name test_info_->name()
 
-#if defined(OMPI_MAJOR_VERSION)
-const bool have_openmpi = true;
-#else
-const bool have_openmpi = false;
-#endif
-
-#define TEST_FAILURE(errmsg, ...)                                 \
-    if (Info::has_exceptions()) {                                 \
-        ::testing::internal::CaptureStdout();                     \
-        ASSERT_ANY_THROW({__VA_ARGS__});                          \
-        auto mesg = ::testing::internal::GetCapturedStdout();     \
-        ASSERT_THAT(mesg, MatchesRegex(errmsg));                  \
-    } else {                                                      \
-        if (!have_openmpi) {                                      \
-            ::testing::internal::CaptureStdout();                 \
-            ASSERT_DEATH({__VA_ARGS__}, "");                      \
-            auto mesg = ::testing::internal::GetCapturedStdout(); \
-            ASSERT_THAT(mesg, MatchesRegex(errmsg));              \
-        }                                                         \
-    }
-
-static void create_molecule_files()
+static void create_molecule_files(const std::string &h2o_filename, const std::string &co2_filename)
 {
     // create molecule files
     const char h2o_file[] = "# Water molecule. SPC/E model.\n\n3 atoms\n2 bonds\n1 angles\n\n"
@@ -79,71 +58,62 @@ static void create_molecule_files()
                             "Special Bond Counts\n\n1 2 0 0\n2 1 1 0\n3 1 1 0\n\n"
                             "Special Bonds\n\n1 2 3\n2 1 3\n3 1 2\n\n";
 
-    FILE *fp = fopen("tmp.h2o.mol", "w");
+    FILE *fp = fopen(h2o_filename.c_str(), "w");
     if (fp) {
         fputs(h2o_file, fp);
         fclose(fp);
     }
-    rename("tmp.h2o.mol", "h2o.mol");
-    fp = fopen("tmp.co2.mol", "w");
+    fp = fopen(co2_filename.c_str(), "w");
     if (fp) {
         fputs(co2_file, fp);
         fclose(fp);
     }
-    rename("tmp.co2.mol", "co2.mol");
 }
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
-class MoleculeFileTest : public ::testing::Test {
+class MoleculeFileTest : public LAMMPSTest {
 protected:
-    LAMMPS *lmp;
+    static void SetUpTestSuite() { create_molecule_files("moltest.h2o.mol", "moltest.co2.mol"); }
+
+    static void TearDownTestSuite()
+    {
+        remove("moltest.h2o.mol");
+        remove("moltest.co2.mol");
+    }
 
     void SetUp() override
     {
-        const char *args[] = {"MoleculeFileTest", "-log", "none", "-echo", "screen", "-nocite"};
-        char **argv        = (char **)args;
-        int argc           = sizeof(args) / sizeof(char *);
-        if (!verbose) ::testing::internal::CaptureStdout();
-        lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
-        create_molecule_files();
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        testbinary = "MoleculeFileTest";
+        LAMMPSTest::SetUp();
         ASSERT_NE(lmp, nullptr);
     }
 
-    void TearDown() override
-    {
-        if (!verbose) ::testing::internal::CaptureStdout();
-        delete lmp;
-        if (!verbose) ::testing::internal::GetCapturedStdout();
-        remove("h2o.mol");
-        remove("co2.mol");
-    }
+    void TearDown() override { LAMMPSTest::TearDown(); }
 
     void run_mol_cmd(const std::string &name, const std::string &args, const std::string &content)
     {
-        std::string file = name + ".mol";
+        std::string file = fmt::format("moltest_{}.mol", name);
         FILE *fp         = fopen(file.c_str(), "w");
         fputs(content.c_str(), fp);
         fclose(fp);
 
-        lmp->input->one(fmt::format("molecule {} {} {}", name, file, args));
+        command(fmt::format("molecule {} {} {}", name, file, args));
         remove(file.c_str());
     }
 };
 
 TEST_F(MoleculeFileTest, nofile)
 {
-    TEST_FAILURE(".*Cannot open molecule file nofile.mol.*",
-                 lmp->input->one("molecule 1 nofile.mol"););
+    TEST_FAILURE(".*Cannot open molecule file nofile.mol.*", command("molecule 1 nofile.mol"););
 }
 
 TEST_F(MoleculeFileTest, badid)
 {
     TEST_FAILURE(".*Molecule template ID must have only "
                  "alphanumeric or underscore characters.*",
-                 lmp->input->one("molecule @mol nofile.mol"););
+                 command("molecule @mol nofile.mol"););
 }
 
 TEST_F(MoleculeFileTest, badargs)
@@ -200,47 +170,77 @@ TEST_F(MoleculeFileTest, nospecial)
 
 TEST_F(MoleculeFileTest, minimal)
 {
-    ::testing::internal::CaptureStdout();
+    BEGIN_CAPTURE_OUTPUT();
     run_mol_cmd(test_name, "", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n");
-    auto output = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << output;
-    ASSERT_THAT(output, MatchesRegex(".*Read molecule template.*1 molecules.*1 atoms.*0 bonds.*"));
+    auto output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*1 molecules.*\n"
+                                      ".*0 fragments.*\n.*1 atoms.*\n.*0 bonds.*"));
+}
+
+TEST_F(MoleculeFileTest, notype)
+{
+    BEGIN_CAPTURE_OUTPUT();
+    command("atom_style atomic");
+    command("region box block 0 1 0 1 0 1");
+    command("create_box 1 box");
+    run_mol_cmd(test_name, "", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n");
+    auto output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*1 molecules.*\n"
+                                      ".*0 fragments.*\n.*1 atoms.*\n.*0 bonds.*"));
+    TEST_FAILURE(".*ERROR: Create_atoms molecule must have atom types.*",
+                 command("create_atoms 0 single 0.0 0.0 0.0 mol notype 542465"););
+}
+
+TEST_F(MoleculeFileTest, extramass)
+{
+    BEGIN_CAPTURE_OUTPUT();
+    command("atom_style atomic");
+    command("region box block 0 1 0 1 0 1");
+    command("create_box 1 box");
+    run_mol_cmd(test_name, "",
+                "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"
+                " Types\n\n 1 1\n Masses\n\n 1 1.0\n");
+    command("create_atoms 0 single 0.0 0.0 0.0 mol extramass 73546");
+    auto output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(output, ContainsRegex(".*WARNING: Molecule attributes do not match "
+                                      "system attributes.*"));
 }
 
 TEST_F(MoleculeFileTest, twomols)
 {
-    ::testing::internal::CaptureStdout();
+    BEGIN_CAPTURE_OUTPUT();
     run_mol_cmd(test_name, "",
                 "Comment\n2 atoms\n\n"
                 " Coords\n\n 1 0.0 0.0 0.0\n 2 0.0 0.0 1.0\n"
                 " Molecules\n\n 1 1\n 2 2\n\n Types\n\n 1 1\n 2 2\n\n");
-    auto output = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << output;
-    ASSERT_THAT(output, MatchesRegex(".*Read molecule template.*2 molecules.*2 atoms "
-                                     "with max type 2.*0 bonds.*"));
+    auto output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*2 molecules.*\n"
+                                      ".*0 fragments.*\n.*2 atoms with max type 2.*\n.*0 bonds.*"));
 }
 
 TEST_F(MoleculeFileTest, twofiles)
 {
-    ::testing::internal::CaptureStdout();
-    lmp->input->one("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
-    auto output = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << output;
-    ASSERT_THAT(output, MatchesRegex(".*Read molecule template twomols:.*1 molecules.*3 atoms "
-                                     "with max type 2.*2 bonds with max type 1.*"
-                                     "1 angles with max type 1.*0 dihedrals.*"
-                                     ".*Read molecule template twomols:.*1 molecules.*3 atoms "
-                                     "with max type 4.*2 bonds with max type 2.*"
-                                     "1 angles with max type 2.*0 dihedrals.*"));
+    BEGIN_CAPTURE_OUTPUT();
+    command("molecule twomols moltest.h2o.mol moltest.co2.mol offset 2 1 1 0 0");
+    auto output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(
+        output,
+        ContainsRegex(".*Read molecule template twomols:.*\n.*1 molecules.*\n"
+                      ".*0 fragments.*\n.*3 atoms with max type 2.*\n.*2 bonds with max type 1.*\n"
+                      ".*1 angles with max type 1.*\n.*0 dihedrals.*\n.*0 impropers.*\n"
+                      ".*Read molecule template twomols:.*\n.*1 molecules.*\n"
+                      ".*0 fragments.*\n.*3 atoms with max type 4.*\n.*2 bonds with max type 2.*\n"
+                      ".*1 angles with max type 2.*\n.*0 dihedrals.*"));
 }
 
 TEST_F(MoleculeFileTest, bonds)
 {
-    ::testing::internal::CaptureStdout();
-    lmp->input->one("atom_style bond");
-    lmp->input->one("region box block 0 1 0 1 0 1");
-    lmp->input->one("create_box 2 box bond/types 2 extra/bond/per/atom 2 "
-                    "extra/special/per/atom 4");
+    if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
+    BEGIN_CAPTURE_OUTPUT();
+    command("atom_style bond");
+    command("region box block 0 1 0 1 0 1");
+    command("create_box 2 box bond/types 2 extra/bond/per/atom 2 "
+            "extra/special/per/atom 4");
     run_mol_cmd(test_name, "",
                 "Comment\n"
                 "4 atoms\n"
@@ -258,19 +258,18 @@ TEST_F(MoleculeFileTest, bonds)
                 " Bonds\n\n"
                 " 1 1 1 2\n"
                 " 2 2 1 3\n\n");
-    auto output = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << output;
-    ASSERT_THAT(output, MatchesRegex(".*Read molecule template.*1 molecules.*4 atoms.*type.*2.*"
-                                     "2 bonds.*type.*2.*0 angles.*"));
+    auto output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*1 molecules.*\n"
+                                      ".*0 fragments.*\n.*4 atoms.*type.*2.*\n"
+                                      ".*2 bonds.*type.*2.*\n.*0 angles.*"));
 
-    ::testing::internal::CaptureStdout();
-    lmp->input->one("mass * 2.0");
-    lmp->input->one("create_atoms 0 single 0.5 0.5 0.5 mol bonds 67235");
-    output = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << output;
-    ASSERT_THAT(output, MatchesRegex(".*Created 4 atoms.*"));
+    BEGIN_CAPTURE_OUTPUT();
+    command("mass * 2.0");
+    command("create_atoms 0 single 0.5 0.5 0.5 mol bonds 67235");
+    output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(output, ContainsRegex(".*Created 4 atoms.*"));
 
-    ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     Molecule *mol = lmp->atom->molecules[0];
     ASSERT_EQ(mol->natoms, 4);
     ASSERT_EQ(lmp->atom->natoms, 4);
@@ -282,8 +281,7 @@ TEST_F(MoleculeFileTest, bonds)
     EXPECT_DOUBLE_EQ(mol->com[2], 0.5);
     EXPECT_DOUBLE_EQ(mol->maxextent, sqrt(2));
     EXPECT_EQ(mol->comatom, 1);
-    output = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << output;
+    END_HIDE_OUTPUT();
 }
 
 int main(int argc, char **argv)
@@ -291,7 +289,7 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (have_openmpi && !LAMMPS_NS::Info::has_exceptions())
+    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. "
                      "Death tests will be skipped\n";
 

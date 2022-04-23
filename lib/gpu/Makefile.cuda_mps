@@ -1,5 +1,5 @@
 # /* ----------------------------------------------------------------------
-#  Generic Linux Makefile for CUDA
+#  Generic Linux Makefile for CUDA with the Multi-Process Service (MPS)
 #     - change CUDA_ARCH for your GPU
 # ------------------------------------------------------------------------- */
 
@@ -44,7 +44,7 @@ CUDA_INCLUDE = -I$(CUDA_HOME)/include
 CUDA_LIB = -L$(CUDA_HOME)/lib64 -L$(CUDA_HOME)/lib64/stubs
 CUDA_OPTS = -DUNIX -O3 --use_fast_math $(LMP_INC) -Xcompiler -fPIC
 CUDA_LINK = $(CUDA_LIB) -lcudart
-CUDA  = $(NVCC) $(CUDA_INCLUDE) $(CUDA_OPTS) -Icudpp_mini $(CUDA_ARCH) \
+CUDA  = $(NVCC) $(CUDA_INCLUDE) $(CUDA_OPTS) $(CUDA_ARCH) \
              $(CUDA_PRECISION)
 
 BIN2C = $(CUDA_HOME)/bin/bin2c
@@ -102,7 +102,6 @@ $(OBJ_DIR)/pppm_d_cubin.h: $(OBJ_DIR)/pppm_d.cubin
 $(OBJ_DIR)/%_cubin.h: lal_%.cu  $(ALL_H)
 	$(CUDA) --fatbin -DNV_KERNEL -o $(OBJ_DIR)/$*.cubin $(OBJ_DIR)/lal_$*.cu
 	$(BIN2C) -c -n $* $(OBJ_DIR)/$*.cubin > $@
-	@rm $(OBJ_DIR)/$*.cubin
 
 # host code compilation
 

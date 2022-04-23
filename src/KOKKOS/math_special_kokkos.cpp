@@ -1,3 +1,4 @@
+// clang-format off
 
 #include "math_special_kokkos.h"
 #include <cmath>

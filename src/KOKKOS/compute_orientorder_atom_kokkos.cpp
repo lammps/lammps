@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -84,15 +85,10 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::init()
 
   // need an occasional full neighbor list
 
-  // irequest = neigh request made by parent class
-
-  int irequest = neighbor->nrequest - 1;
-
-  neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
+  auto request = neighbor->find_request(this);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -172,8 +168,6 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::compute_peratom()
   x = atomKK->k_x.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();
 
-  Kokkos::deep_copy(d_qnm,{0.0,0.0});
-
   int vector_length_default = 1;
   int team_size_default = 1;
   if (!host_flag)
@@ -183,6 +177,8 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::compute_peratom()
 
     if (chunk_size > inum - chunk_offset)
       chunk_size = inum - chunk_offset;
+
+    Kokkos::deep_copy(d_qnm,{0.0,0.0});
 
     //Neigh
     {
@@ -285,7 +281,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::operator() (TagComputeOrientOrder
   const int i = d_ilist[ii + chunk_offset];
   const int ncount = d_ncount(ii);
 
-  // if not nnn neighbors, order parameter = 0;
+  // if not nnn neighbors, order parameter = 0
 
   if ((ncount == 0) || (ncount < nnn)) {
     for (int jj = 0; jj < ncol; jj++)
@@ -315,7 +311,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::operator() (TagComputeOrientOrder
   const int ncount = d_ncount(ii);
   if (jj >= ncount) return;
 
-  // if not nnn neighbors, order parameter = 0;
+  // if not nnn neighbors, order parameter = 0
 
   if ((ncount == 0) || (ncount < nnn))
     return;
@@ -327,6 +323,12 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void ComputeOrientOrderAtomKokkos<DeviceType>::operator() (TagComputeOrientOrderAtomBOOP2,const int& ii) const {
   const int ncount = d_ncount(ii);
+
+  // if not nnn neighbors, order parameter = 0
+
+  if ((ncount == 0) || (ncount < nnn))
+    return;
+
   calc_boop2(ncount, ii);
 }
 

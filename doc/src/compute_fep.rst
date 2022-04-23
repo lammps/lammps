@@ -48,6 +48,8 @@ Examples
    compute 1 all fep 298 pair lj/cut epsilon 1 * v_delta pair lj/cut sigma 1 * v_delta volume yes
    compute 1 all fep 300 atom charge 2 v_delta
 
+Example input scripts available: examples/PACKAGES/fep
+
 Description
 """""""""""
 
@@ -267,7 +269,7 @@ activated via the :doc:`pair_modify <pair_modify>` command. If the
 perturbation is small, the tail contribution to the energy difference
 between the reference and perturbed systems should be negligible.
 
-If the keyword *volume* = *yes*\ , then the Boltzmann term is multiplied
+If the keyword *volume* = *yes*, then the Boltzmann term is multiplied
 by the volume so that correct ensemble averaging can be performed over
 trajectories during which the volume fluctuates or changes :ref:`(Allen and Tildesley) <AllenTildesley>`:
 
@@ -293,7 +295,7 @@ unperturbed parameters. The energies include kspace terms if these
 are used in the simulation.
 
 These output results can be used by any command that uses a global
-scalar or vector from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+scalar or vector from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options. For example, the computed values can be averaged using :doc:`fix ave/time <fix_ave_time>`.
 
 The values calculated by this compute are "extensive".
@@ -301,8 +303,8 @@ The values calculated by this compute are "extensive".
 Restrictions
 """"""""""""
 
-This compute is distributed as the USER-FEP package.  It is only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is distributed as the FEP package.  It is only
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
@@ -313,7 +315,7 @@ Related commands
 Default
 """""""
 
-The option defaults are *tail* = *no*\ , *volume* = *no*\ .
+The option defaults are *tail* = *no*, *volume* = *no*\ .
 
 ----------
 

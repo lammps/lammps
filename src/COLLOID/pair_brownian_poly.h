@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(brownian/poly,PairBrownianPoly)
-
+// clang-format off
+PairStyle(brownian/poly,PairBrownianPoly);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BROWNIAN_POLY_H
@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class PairBrownianPoly : public PairBrownian {
  public:
   PairBrownianPoly(class LAMMPS *);
-  ~PairBrownianPoly() {}
-  void compute(int, int);
-  double init_one(int, int);
-  void init_style();
+
+  void compute(int, int) override;
+  double init_one(int, int) override;
+  void init_style() override;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -68,7 +68,7 @@ domain dimensions (barostatting).  In addition to basic thermostatting
 and barostatting, these fixes can also create a chain of thermostats
 coupled to the particle thermostat, and another chain of thermostats
 coupled to the barostat variables. The barostat can be coupled to the
-overall box volume, or to individual dimensions, including the *xy*\ ,
+overall box volume, or to individual dimensions, including the *xy*,
 *xz* and *yz* tilt dimensions. The external pressure of the barostat
 can be specified as either a scalar pressure (isobaric ensemble) or as
 components of a symmetric stress tensor (constant stress ensemble).
@@ -110,16 +110,16 @@ to the temperature or kinetic energy from the electron radial velocity.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-See the doc page for the :doc:`fix nvt, npt, and nph <fix_nh>` commands
+See the page for the :doc:`fix nvt, npt, and nph <fix_nh>` commands
 for details.
 
 Restrictions
 """"""""""""
 
-This fix is part of the USER-EFF package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the EFF package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
-Other restriction discussed on the doc page for the :doc:`fix nvt, npt, and nph <fix_nh>` commands also apply.
+Other restriction discussed on the page for the :doc:`fix nvt, npt, and nph <fix_nh>` commands also apply.
 
 .. note::
 

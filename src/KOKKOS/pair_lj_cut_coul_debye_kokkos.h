@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/cut/coul/debye/kk,PairLJCutCoulDebyeKokkos<LMPDeviceType>)
-PairStyle(lj/cut/coul/debye/kk/device,PairLJCutCoulDebyeKokkos<LMPDeviceType>)
-PairStyle(lj/cut/coul/debye/kk/host,PairLJCutCoulDebyeKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(lj/cut/coul/debye/kk,PairLJCutCoulDebyeKokkos<LMPDeviceType>);
+PairStyle(lj/cut/coul/debye/kk/device,PairLJCutCoulDebyeKokkos<LMPDeviceType>);
+PairStyle(lj/cut/coul/debye/kk/host,PairLJCutCoulDebyeKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_LJ_CUT_COUL_DEBYE_KOKKOS_H
 #define LMP_PAIR_LJ_CUT_COUL_DEBYE_KOKKOS_H
 
@@ -36,17 +37,15 @@ class PairLJCutCoulDebyeKokkos : public PairLJCutCoulDebye {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairLJCutCoulDebyeKokkos(class LAMMPS *);
-  ~PairLJCutCoulDebyeKokkos();
+  ~PairLJCutCoulDebyeKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
@@ -104,7 +103,7 @@ class PairLJCutCoulDebyeKokkos : public PairLJCutCoulDebye {
   double special_lj[4];
   double qqrd2e;
 
-  void allocate();
+  void allocate() override;
   friend struct PairComputeFunctor<PairLJCutCoulDebyeKokkos,FULL,true>;
   friend struct PairComputeFunctor<PairLJCutCoulDebyeKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairLJCutCoulDebyeKokkos,HALFTHREAD,true>;

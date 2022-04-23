@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(coul/cut/kk,PairCoulCutKokkos<LMPDeviceType>)
-PairStyle(coul/cut/kk/device,PairCoulCutKokkos<LMPDeviceType>)
-PairStyle(coul/cut/kk/host,PairCoulCutKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(coul/cut/kk,PairCoulCutKokkos<LMPDeviceType>);
+PairStyle(coul/cut/kk/device,PairCoulCutKokkos<LMPDeviceType>);
+PairStyle(coul/cut/kk/host,PairCoulCutKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_COUL_CUT_KOKKOS_H
 #define LMP_PAIR_COUL_CUT_KOKKOS_H
 
@@ -36,13 +37,13 @@ class PairCoulCutKokkos : public PairCoulCut {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairCoulCutKokkos(class LAMMPS *);
-  ~PairCoulCutKokkos();
+  ~PairCoulCutKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   struct params_coul{
     KOKKOS_INLINE_FUNCTION
@@ -53,8 +54,6 @@ class PairCoulCutKokkos : public PairCoulCut {
   };
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
@@ -112,7 +111,7 @@ class PairCoulCutKokkos : public PairCoulCut {
   double special_lj[4];
   double qqrd2e;
 
-  void allocate();
+  void allocate() override;
   friend struct PairComputeFunctor<PairCoulCutKokkos,FULL,true>;
   friend struct PairComputeFunctor<PairCoulCutKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairCoulCutKokkos,HALFTHREAD,true>;

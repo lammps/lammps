@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -28,15 +29,15 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{XLO,XHI,YLO,YHI,ZLO,ZHI};
-enum{NONE,EDGE,CONSTANT,VARIABLE};
+enum { XLO, XHI, YLO, YHI, ZLO, ZHI };
+enum { NONE, EDGE, CONSTANT, VARIABLE };
 
 /* ---------------------------------------------------------------------- */
 
 FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), nwall(0), fwall(nullptr), fwall_all(nullptr)
+    Fix(lmp, narg, arg), nwall(0), fwall(nullptr), fwall_all(nullptr)
 {
-  if (narg < 4) error->all(FLERR,"Illegal fix wall/srd command");
+  if (narg < 4) error->all(FLERR, "Illegal fix wall/srd command");
 
   // parse args
 
@@ -45,66 +46,72 @@ FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 3;
   while (iarg < narg) {
-    if ((strcmp(arg[iarg],"xlo") == 0) || (strcmp(arg[iarg],"xhi") == 0) ||
-        (strcmp(arg[iarg],"ylo") == 0) || (strcmp(arg[iarg],"yhi") == 0) ||
-        (strcmp(arg[iarg],"zlo") == 0) || (strcmp(arg[iarg],"zhi") == 0)) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix wall/srd command");
+    const std::string thisarg(arg[iarg]);
+    if ((thisarg == "xlo") || (thisarg == "ylo") || (thisarg == "zlo")
+        || (thisarg == "xhi") || (thisarg == "yhi") || (thisarg == "zhi")) {
+      if (iarg+2 > narg) error->all(FLERR, "Illegal fix wall/srd command");
 
       int newwall;
-      if (strcmp(arg[iarg],"xlo") == 0) newwall = XLO;
-      else if (strcmp(arg[iarg],"xhi") == 0) newwall = XHI;
-      else if (strcmp(arg[iarg],"ylo") == 0) newwall = YLO;
-      else if (strcmp(arg[iarg],"yhi") == 0) newwall = YHI;
-      else if (strcmp(arg[iarg],"zlo") == 0) newwall = ZLO;
-      else if (strcmp(arg[iarg],"zhi") == 0) newwall = ZHI;
+      if (thisarg == "xlo") newwall = XLO;
+      else if (thisarg == "xhi") newwall = XHI;
+      else if (thisarg == "ylo") newwall = YLO;
+      else if (thisarg == "yhi") newwall = YHI;
+      else if (thisarg == "zlo") newwall = ZLO;
+      else if (thisarg == "zhi") newwall = ZHI;
 
       for (int m = 0; (m < nwall) && (m < 6); m++)
         if (newwall == wallwhich[m])
-          error->all(FLERR,"Wall defined twice in fix wall/srd command");
+          error->all(FLERR, "Wall defined twice in fix wall/srd command");
 
       wallwhich[nwall] = newwall;
-      if (strcmp(arg[iarg+1],"EDGE") == 0) {
+      if (strcmp(arg[iarg+1], "EDGE") == 0) {
         wallstyle[nwall] = EDGE;
         int dim = wallwhich[nwall] / 2;
         int side = wallwhich[nwall] % 2;
-        if (side == 0) coord0[nwall] = domain->boxlo[dim];
-        else coord0[nwall] = domain->boxhi[dim];
-      } else if (utils::strmatch(arg[iarg+1],"^v_")) {
+        if (side == 0)
+          coord0[nwall] = domain->boxlo[dim];
+        else
+          coord0[nwall] = domain->boxhi[dim];
+      } else if (utils::strmatch(arg[iarg+1], "^v_")) {
         wallstyle[nwall] = VARIABLE;
-        varstr[nwall] = utils::strdup(arg[iarg+1]+2);
+        varstr[nwall] = utils::strdup(arg[iarg+1] + 2);
       } else {
         wallstyle[nwall] = CONSTANT;
-        coord0[nwall] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        coord0[nwall] = utils::numeric(FLERR, arg[iarg+1], false, lmp);
       }
 
       nwall++;
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal wall/srd command");
-      if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
-      else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all(FLERR,"Illegal fix wall/srd command");
+    } else if (thisarg == "units") {
+      if (iarg+2 > narg) error->all(FLERR, "Illegal wall/srd command");
+      if (strcmp(arg[iarg+1], "box") == 0)
+        scaleflag = 0;
+      else if (strcmp(arg[iarg+1], "lattice") == 0)
+        scaleflag = 1;
+      else
+        error->all(FLERR, "Illegal fix wall/srd command");
       iarg += 2;
-    } else error->all(FLERR,"Illegal fix wall/srd command");
+    } else
+      error->all(FLERR, "Illegal fix wall/srd command");
   }
 
   // error check
 
-  if (nwall == 0) error->all(FLERR,"Illegal fix wall command");
+  if (nwall == 0) error->all(FLERR, "Illegal fix wall command");
 
   for (int m = 0; m < nwall; m++) {
     if ((wallwhich[m] == XLO || wallwhich[m] == XHI) && domain->xperiodic)
-      error->all(FLERR,"Cannot use fix wall/srd in periodic dimension");
+      error->all(FLERR, "Cannot use fix wall/srd in periodic dimension");
     if ((wallwhich[m] == YLO || wallwhich[m] == YHI) && domain->yperiodic)
-      error->all(FLERR,"Cannot use fix wall/srd in periodic dimension");
+      error->all(FLERR, "Cannot use fix wall/srd in periodic dimension");
     if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->zperiodic)
-      error->all(FLERR,"Cannot use fix wall/srd in periodic dimension");
+      error->all(FLERR, "Cannot use fix wall/srd in periodic dimension");
   }
 
   for (int m = 0; m < nwall; m++)
     if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->dimension == 2)
-      error->all(FLERR,"Cannot use fix wall/srd zlo/zhi for a 2d simulation");
+      error->all(FLERR, "Cannot use fix wall/srd zlo/zhi for a 2d simulation");
 
   // setup wall force array
 
@@ -114,8 +121,8 @@ FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extarray = 1;
 
-  memory->create(fwall,nwall,3,"wall/srd:fwall");
-  memory->create(fwall_all,nwall,3,"wall/srd:fwall_all");
+  memory->create(fwall, nwall, 3, "wall/srd:fwall");
+  memory->create(fwall_all, nwall, 3, "wall/srd:fwall_all");
 
   // scale coord for CONSTANT walls
 
@@ -124,19 +131,22 @@ FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
     if (wallstyle[m] == CONSTANT) flag = 1;
 
   if (flag) {
-    double xscale,yscale,zscale;
+    double xscale, yscale, zscale;
     if (scaleflag) {
       xscale = domain->lattice->xlattice;
       yscale = domain->lattice->ylattice;
       zscale = domain->lattice->zlattice;
-    }
-    else xscale = yscale = zscale = 1.0;
+    } else
+      xscale = yscale = zscale = 1.0;
 
     double scale;
     for (int m = 0; m < nwall; m++) {
-      if (wallwhich[m] < YLO) scale = xscale;
-      else if (wallwhich[m] < ZLO) scale = yscale;
-      else scale = zscale;
+      if (wallwhich[m] < YLO)
+        scale = xscale;
+      else if (wallwhich[m] < ZLO)
+        scale = yscale;
+      else
+        scale = zscale;
       if (wallstyle[m] == CONSTANT) coord0[m] *= scale;
     }
   }
@@ -145,10 +155,11 @@ FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
 
   int dimflag[3];
   dimflag[0] = dimflag[1] = dimflag[2] = 0;
-  for (int m = 0; m < nwall; m++)
-    dimflag[wallwhich[m]/2] = 1;
-  if (dimflag[0] + dimflag[1] + dimflag[2] > 1) overlap = 1;
-  else overlap = 0;
+  for (int m = 0; m < nwall; m++) dimflag[wallwhich[m] / 2] = 1;
+  if (dimflag[0] + dimflag[1] + dimflag[2] > 1)
+    overlap = 1;
+  else
+    overlap = 0;
 
   // set varflag if any wall positions are variable
 
@@ -163,7 +174,7 @@ FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
 FixWallSRD::~FixWallSRD()
 {
   for (int m = 0; m < nwall; m++)
-    if (wallstyle[m] == VARIABLE) delete [] varstr[m];
+    if (wallstyle[m] == VARIABLE) delete[] varstr[m];
   memory->destroy(fwall);
   memory->destroy(fwall_all);
 }
@@ -182,16 +193,15 @@ void FixWallSRD::init()
 {
   int flag = 0;
   for (int m = 0; m < modify->nfix; m++)
-    if (strcmp(modify->fix[m]->style,"srd") == 0) flag = 1;
-  if (!flag) error->all(FLERR,"Cannot use fix wall/srd without fix srd");
+    if (utils::strmatch(modify->fix[m]->style, "^srd")) flag = 1;
+  if (!flag) error->all(FLERR, "Cannot use fix wall/srd without fix srd");
 
   for (int m = 0; m < nwall; m++) {
     if (wallstyle[m] != VARIABLE) continue;
     varindex[m] = input->variable->find(varstr[m]);
-    if (varindex[m] < 0)
-      error->all(FLERR,"Variable name for fix wall/srd does not exist");
+    if (varindex[m] < 0) error->all(FLERR, "Variable name for fix wall/srd does not exist");
     if (!input->variable->equalstyle(varindex[m]))
-      error->all(FLERR,"Variable for fix wall/srd is invalid style");
+      error->all(FLERR, "Variable for fix wall/srd is invalid style");
   }
 
   dt = update->dt;
@@ -205,9 +215,8 @@ double FixWallSRD::compute_array(int i, int j)
 {
   // only sum across procs one time
 
-  if (force_flag == 0) {
-    MPI_Allreduce(&fwall[0][0],&fwall_all[0][0],3*nwall,
-                  MPI_DOUBLE,MPI_SUM,world);
+  if (!force_flag) {
+    MPI_Allreduce(&fwall[0][0], &fwall_all[0][0], 3 * nwall, MPI_DOUBLE, MPI_SUM, world);
     force_flag = 1;
   }
   return fwall_all[i][j];
@@ -230,7 +239,8 @@ void FixWallSRD::wall_params(int flag)
   for (int m = 0; m < nwall; m++) {
     if (wallstyle[m] == VARIABLE)
       xnew = input->variable->compute_equal(varindex[m]);
-    else xnew = coord0[m];
+    else
+      xnew = coord0[m];
 
     if (laststep < 0) {
       xwall[m] = xwalllast[m] = xnew;
@@ -249,8 +259,7 @@ void FixWallSRD::wall_params(int flag)
   if (varflag) modify->addstep_compute(update->ntimestep + 1);
 
   if (flag)
-    for (int m = 0; m < nwall; m++)
-      xwallhold[m] = xwall[m];
+    for (int m = 0; m < nwall; m++) xwallhold[m] = xwall[m];
 
   force_flag = 0;
 }

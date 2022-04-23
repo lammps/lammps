@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -49,7 +50,7 @@ void FixNVETri::init()
 {
   // error checks
 
-  avec = (AtomVecTri *) atom->style_match("tri");
+  avec = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
   if (!avec) error->all(FLERR,"Fix nve/tri requires atom style tri");
 
   if (domain->dimension != 3)

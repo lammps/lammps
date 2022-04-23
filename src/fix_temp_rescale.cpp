@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -68,10 +69,8 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   // create a new compute temp
   // id = fix-ID + temp, compute group = fix group
 
-  std::string cmd = id + std::string("_temp");
-  id_temp = utils::strdup(cmd);
-  cmd += fmt::format(" {} temp",group->names[igroup]);
-  modify->add_compute(cmd);
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} {} temp",id_temp,group->names[igroup]));
   tflag = 1;
 
   energy = 0.0;
@@ -202,9 +201,7 @@ int FixTempRescale::modify_param(int narg, char **arg)
       tflag = 0;
     }
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0)
@@ -259,7 +256,7 @@ void FixTempRescale::write_restart(FILE *fp)
 void FixTempRescale::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
 
   energy = list[n++];
 }

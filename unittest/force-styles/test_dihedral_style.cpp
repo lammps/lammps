@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -33,12 +33,12 @@
 #include "lammps.h"
 #include "modify.h"
 #include "universe.h"
+#include "platform.h"
 
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <ctime>
 #include <mpi.h>
 
 #include <map>
@@ -51,16 +51,11 @@ using ::testing::StartsWith;
 
 using namespace LAMMPS_NS;
 
-static void delete_file(const std::string &filename)
-{
-    remove(filename.c_str());
-};
-
 void cleanup_lammps(LAMMPS *lmp, const TestConfig &cfg)
 {
-    delete_file(cfg.basename + ".restart");
-    delete_file(cfg.basename + ".data");
-    delete_file(cfg.basename + "-coeffs.in");
+    platform::unlink(cfg.basename + ".restart");
+    platform::unlink(cfg.basename + ".data");
+    platform::unlink(cfg.basename + "-coeffs.in");
     delete lmp;
 }
 
@@ -113,7 +108,7 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
         command(pre_command);
     }
 
-    std::string input_file = INPUT_FOLDER + PATH_SEP + cfg.input_file;
+    std::string input_file = platform::path_join(INPUT_FOLDER, cfg.input_file);
     parse_input_script(input_file);
 
     command("dihedral_style " + cfg.dihedral_style);
@@ -208,7 +203,7 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
         command("variable pair_style index 'lj/charmmfsw/coul/charmmfsh 7.0 8.0'");
     }
 
-    std::string input_file = INPUT_FOLDER + PATH_SEP + cfg.input_file;
+    std::string input_file = platform::path_join(INPUT_FOLDER, cfg.input_file);
     parse_input_script(input_file);
 
     for (auto &dihedral_coeff : cfg.dihedral_coeff) {
@@ -244,41 +239,8 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     YamlWriter writer(outfile);
 
-    // lammps_version
-    writer.emit("lammps_version", lmp->version);
-
-    // date_generated
-    std::time_t now = time(NULL);
-    block           = ctime(&now);
-    block           = block.substr(0, block.find("\n") - 1);
-    writer.emit("date_generated", block);
-
-    // epsilon
-    writer.emit("epsilon", config.epsilon);
-
-    // prerequisites
-    block.clear();
-    for (auto &prerequisite : config.prerequisites) {
-        block += prerequisite.first + " " + prerequisite.second + "\n";
-    }
-    writer.emit_block("prerequisites", block);
-
-    // pre_commands
-    block.clear();
-    for (auto &command : config.pre_commands) {
-        block += command + "\n";
-    }
-    writer.emit_block("pre_commands", block);
-
-    // post_commands
-    block.clear();
-    for (auto &command : config.post_commands) {
-        block += command + "\n";
-    }
-    writer.emit_block("post_commands", block);
-
-    // input_file
-    writer.emit("input_file", config.input_file);
+    // write yaml header
+    write_yaml_header(&writer, &test_config, lmp->version);
 
     // dihedral_style
     writer.emit("dihedral_style", config.dihedral_style);
@@ -310,8 +272,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // init_forces
     block.clear();
-    auto f   = lmp->atom->f;
-    auto tag = lmp->atom->tag;
+    auto f = lmp->atom->f;
     for (int i = 1; i <= natoms; ++i) {
         const int j = lmp->atom->map(i);
         block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, f[j][0], f[j][1], f[j][2]);
@@ -327,12 +288,11 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     // run_stress
     stress = lmp->force->dihedral->virial;
     block  = fmt::format("{:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e}", stress[0],
-                        stress[1], stress[2], stress[3], stress[4], stress[5]);
+                         stress[1], stress[2], stress[3], stress[4], stress[5]);
     writer.emit_block("run_stress", block);
 
     block.clear();
-    f   = lmp->atom->f;
-    tag = lmp->atom->tag;
+    f = lmp->atom->f;
     for (int i = 1; i <= natoms; ++i) {
         const int j = lmp->atom->map(i);
         block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, f[j][0], f[j][1], f[j][2]);
@@ -345,6 +305,8 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
 TEST(DihedralStyle, plain)
 {
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
     const char *args[] = {"DihedralStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     char **argv = (char **)args;
@@ -374,29 +336,11 @@ TEST(DihedralStyle, plain)
 
     double epsilon = test_config.epsilon;
 
-    auto f   = lmp->atom->f;
-    auto tag = lmp->atom->tag;
     ErrorStats stats;
-    stats.reset();
-    const std::vector<coord_t> &f_ref = test_config.init_forces;
-    ASSERT_EQ(nlocal + 1, f_ref.size());
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "init_forces stats, newton on: " << stats << std::endl;
-
     auto dihedral = lmp->force->dihedral;
-    auto stress   = dihedral->virial;
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, epsilon);
-    if (print_stats) std::cerr << "init_stress stats, newton on: " << stats << std::endl;
+
+    EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_STRESS("init_stress (newton on)", dihedral->virial, test_config.init_stress, epsilon);
 
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(dihedral->energy, test_config.init_energy, epsilon);
@@ -406,29 +350,8 @@ TEST(DihedralStyle, plain)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f      = lmp->atom->f;
-    tag    = lmp->atom->tag;
-    stress = dihedral->virial;
-
-    const std::vector<coord_t> &f_run = test_config.run_forces;
-    ASSERT_EQ(nlocal + 1, f_run.size());
-    stats.reset();
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 10 * epsilon);
-    }
-    if (print_stats) std::cerr << "run_forces  stats, newton on: " << stats << std::endl;
-
-    stress = dihedral->virial;
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, epsilon);
-    if (print_stats) std::cerr << "run_stress  stats, newton on: " << stats << std::endl;
+    EXPECT_FORCES("run_forces (newton on)", lmp->atom, test_config.run_forces, 10 * epsilon);
+    EXPECT_STRESS("run_stress (newton on)", dihedral->virial, test_config.run_stress, epsilon);
 
     stats.reset();
     int id        = lmp->modify->find_compute("sum");
@@ -444,27 +367,10 @@ TEST(DihedralStyle, plain)
 
     // skip over these tests if newton bond is forced to be on
     if (lmp->force->newton_bond == 0) {
-
-        f   = lmp->atom->f;
-        tag = lmp->atom->tag;
-        stats.reset();
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
-        }
-        if (print_stats) std::cerr << "init_forces stats, newton off:" << stats << std::endl;
-
         dihedral = lmp->force->dihedral;
-        stress   = dihedral->virial;
-        stats.reset();
-        EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 2 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 2 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 2 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 2 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 2 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 2 * epsilon);
-        if (print_stats) std::cerr << "init_stress stats, newton off:" << stats << std::endl;
+
+        EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
+        EXPECT_STRESS("init_stress (newton off)", dihedral->virial, test_config.init_stress, epsilon);
 
         stats.reset();
         EXPECT_FP_LE_WITH_EPS(dihedral->energy, test_config.init_energy, epsilon);
@@ -474,26 +380,8 @@ TEST(DihedralStyle, plain)
         run_lammps(lmp);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
-        f      = lmp->atom->f;
-        tag    = lmp->atom->tag;
-        stress = dihedral->virial;
-        stats.reset();
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 10 * epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 10 * epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 10 * epsilon);
-        }
-        if (print_stats) std::cerr << "run_forces  stats, newton off:" << stats << std::endl;
-
-        stress = dihedral->virial;
-        stats.reset();
-        EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, epsilon);
-        if (print_stats) std::cerr << "run_stress  stats, newton off:" << stats << std::endl;
+        EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 10 * epsilon);
+        EXPECT_STRESS("run_stress (newton off)", dihedral->virial, test_config.run_stress, epsilon);
 
         stats.reset();
         id     = lmp->modify->find_compute("sum");
@@ -507,27 +395,10 @@ TEST(DihedralStyle, plain)
     restart_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f   = lmp->atom->f;
-    tag = lmp->atom->tag;
-    stats.reset();
-    ASSERT_EQ(nlocal + 1, f_ref.size());
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "restart_forces stats:" << stats << std::endl;
-
     dihedral = lmp->force->dihedral;
-    stress   = dihedral->virial;
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, epsilon);
-    if (print_stats) std::cerr << "restart_stress stats:" << stats << std::endl;
+
+    EXPECT_FORCES("restart_forces", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_STRESS("restart_stress", dihedral->virial, test_config.init_stress, epsilon);
 
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(dihedral->energy, test_config.init_energy, epsilon);
@@ -537,27 +408,10 @@ TEST(DihedralStyle, plain)
     data_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f   = lmp->atom->f;
-    tag = lmp->atom->tag;
-    stats.reset();
-    ASSERT_EQ(nlocal + 1, f_ref.size());
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "data_forces stats:" << stats << std::endl;
-
     dihedral = lmp->force->dihedral;
-    stress   = dihedral->virial;
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, epsilon);
-    if (print_stats) std::cerr << "data_stress stats:" << stats << std::endl;
+
+    EXPECT_FORCES("data_forces", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_STRESS("data_stress", dihedral->virial, test_config.init_stress, epsilon);
 
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(dihedral->energy, test_config.init_energy, epsilon);
@@ -570,7 +424,9 @@ TEST(DihedralStyle, plain)
 
 TEST(DihedralStyle, omp)
 {
-    if (!LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
+    if (!LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
     const char *args[] = {"DihedralStyle", "-log", "none", "-echo", "screen", "-nocite",
                           "-pk",           "omp",  "4",    "-sf",   "omp"};
 
@@ -599,33 +455,14 @@ TEST(DihedralStyle, omp)
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
-    // relax error a bit for USER-OMP package
+    // relax error a bit for OPENMP package
     double epsilon = 5.0 * test_config.epsilon;
 
-    auto f   = lmp->atom->f;
-    auto tag = lmp->atom->tag;
-
-    const std::vector<coord_t> &f_ref = test_config.init_forces;
     ErrorStats stats;
-    stats.reset();
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "init_forces stats, newton on: " << stats << std::endl;
-
     auto dihedral = lmp->force->dihedral;
-    auto stress   = dihedral->virial;
 
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 10 * epsilon);
-    if (print_stats) std::cerr << "init_stress stats, newton on: " << stats << std::endl;
+    EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_STRESS("init_stress (newton on)", dihedral->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(dihedral->energy, test_config.init_energy, epsilon);
@@ -635,35 +472,14 @@ TEST(DihedralStyle, omp)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f      = lmp->atom->f;
-    tag    = lmp->atom->tag;
-    stress = dihedral->virial;
-
-    const std::vector<coord_t> &f_run = test_config.run_forces;
-    ASSERT_EQ(nlocal + 1, f_run.size());
-    stats.reset();
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 10 * epsilon);
-    }
-    if (print_stats) std::cerr << "run_forces  stats, newton on: " << stats << std::endl;
-
-    stress = dihedral->virial;
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, 10 * epsilon);
-    if (print_stats) std::cerr << "run_stress  stats, newton on: " << stats << std::endl;
+    EXPECT_FORCES("run_forces (newton on)", lmp->atom, test_config.run_forces, 10 * epsilon);
+    EXPECT_STRESS("run_stress (newton on)", dihedral->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
     int id        = lmp->modify->find_compute("sum");
     double energy = lmp->modify->compute[id]->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(dihedral->energy, test_config.run_energy, epsilon);
-    // TODO: this is currently broken for USER-OMP with dihedral style hybrid
+    // TODO: this is currently broken for OPENMP with dihedral style hybrid
     // needs to be fixed in the main code somewhere. Not sure where, though.
     if (test_config.dihedral_style.substr(0, 6) != "hybrid")
         EXPECT_FP_LE_WITH_EPS(dihedral->energy, energy, epsilon);
@@ -676,27 +492,10 @@ TEST(DihedralStyle, omp)
 
     // skip over these tests if newton bond is forced to be on
     if (lmp->force->newton_bond == 0) {
-
-        f   = lmp->atom->f;
-        tag = lmp->atom->tag;
-        stats.reset();
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
-        }
-        if (print_stats) std::cerr << "init_forces stats, newton off:" << stats << std::endl;
-
         dihedral = lmp->force->dihedral;
-        stress   = dihedral->virial;
-        stats.reset();
-        EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 10 * epsilon);
-        if (print_stats) std::cerr << "init_stress stats, newton off:" << stats << std::endl;
+
+        EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
+        EXPECT_STRESS("init_stress (newton off)", dihedral->virial, test_config.init_stress, 10 * epsilon);
 
         stats.reset();
         EXPECT_FP_LE_WITH_EPS(dihedral->energy, test_config.init_energy, epsilon);
@@ -706,31 +505,14 @@ TEST(DihedralStyle, omp)
         run_lammps(lmp);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
-        f   = lmp->atom->f;
-        tag = lmp->atom->tag;
-        stats.reset();
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 10 * epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 10 * epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 10 * epsilon);
-        }
-        if (print_stats) std::cerr << "run_forces  stats, newton off:" << stats << std::endl;
-
-        stress = dihedral->virial;
-        stats.reset();
-        EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, 10 * epsilon);
-        if (print_stats) std::cerr << "run_stress  stats, newton off:" << stats << std::endl;
+        EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 10 * epsilon);
+        EXPECT_STRESS("run_stress (newton off)", dihedral->virial, test_config.run_stress, 10 * epsilon);
 
         stats.reset();
         id     = lmp->modify->find_compute("sum");
         energy = lmp->modify->compute[id]->compute_scalar();
         EXPECT_FP_LE_WITH_EPS(dihedral->energy, test_config.run_energy, epsilon);
-        // TODO: this is currently broken for USER-OMP with dihedral style hybrid
+        // TODO: this is currently broken for OPENMP with dihedral style hybrid
         // needs to be fixed in the main code somewhere. Not sure where, though.
         if (test_config.dihedral_style.substr(0, 6) != "hybrid")
             EXPECT_FP_LE_WITH_EPS(dihedral->energy, energy, epsilon);

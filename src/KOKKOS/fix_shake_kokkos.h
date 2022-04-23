@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,19 +12,21 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(shake/kk,FixShakeKokkos<LMPDeviceType>)
-FixStyle(shake/kk/device,FixShakeKokkos<LMPDeviceType>)
-FixStyle(shake/kk/host,FixShakeKokkos<LMPHostType>)
-
+// clang-format off
+FixStyle(shake/kk,FixShakeKokkos<LMPDeviceType>);
+FixStyle(shake/kk/device,FixShakeKokkos<LMPDeviceType>);
+FixStyle(shake/kk/host,FixShakeKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_SHAKE_KOKKOS_H
 #define LMP_FIX_SHAKE_KOKKOS_H
 
 #include "fix_shake.h"
 #include "kokkos_type.h"
 #include "kokkos_base.h"
+#include <Kokkos_UnorderedMap.hpp>
 
 namespace LAMMPS_NS {
 
@@ -47,31 +49,31 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   typedef ArrayTypes<DeviceType> AT;
 
   FixShakeKokkos(class LAMMPS *, int, char **);
-  virtual ~FixShakeKokkos();
-  void init();
-  void pre_neighbor();
-  void post_force(int);
+  ~FixShakeKokkos() override;
+  void init() override;
+  void pre_neighbor() override;
+  void post_force(int) override;
 
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  void set_arrays(int);
-  void update_arrays(int, int);
-  void set_molecule(int, tagint, int, double *, double *, double *);
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
+  void update_arrays(int, int) override;
+  void set_molecule(int, tagint, int, double *, double *, double *) override;
 
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  int pack_forward_comm_fix_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
-                       int, int *);
-  void unpack_forward_comm_fix_kokkos(int, int, DAT::tdual_xfloat_1d&);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
+                       int, int *) override;
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
-  void shake_end_of_step(int vflag);
-  void correct_coordinates(int vflag);
+  void shake_end_of_step(int vflag) override;
+  void correct_coordinates(int vflag) override;
 
-  int dof(int);
+  int dof(int) override;
 
-  void unconstrained_update();
+  void unconstrained_update() override;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -149,14 +151,21 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void shake3angle(int, EV_FLOAT&) const;
 
-  typedef typename KKDevice<DeviceType>::value KKDeviceType;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_f;
-  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_eatom;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_vatom;
+  using KKDeviceType = typename KKDevice<DeviceType>::value;
 
-  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_f;
-  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_eatom;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_vatom;
+  template<typename DataType, typename Layout>
+  using DupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterDuplicated>;
+
+  template<typename DataType, typename Layout>
+  using NonDupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterNonDuplicated>;
+
+  DupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> dup_f;
+  DupScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout> dup_eatom;
+  DupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> dup_vatom;
+
+  NonDupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> ndup_f;
+  NonDupScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout> ndup_eatom;
+  NonDupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> ndup_vatom;
 
   int neighflag,need_dup;
 
@@ -171,9 +180,6 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void v_tally(EV_FLOAT&, int, int *, double, double *) const;
 
-  DAT::tdual_int_1d k_map_array;
-  typename AT::t_int_1d_randomread map_array;
-
   int iswap;
   int first;
   typename AT::t_int_2d d_sendlist;
@@ -183,6 +189,10 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   int *shake_flag_tmp;
   tagint **shake_atom_tmp;
   int **shake_type_tmp;
+
+  int map_style;
+  DAT::tdual_int_1d k_map_array;
+  dual_hash_type k_map_hash;
 
   // copied from Domain
 

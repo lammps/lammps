@@ -1,0 +1,79 @@
+# needs description
+#AtC drift diffusion Coupling
+# DESCRIPTION:
+# electric potential solved over whole domain
+# all others only over the lower half
+# temperature is fixed over whole domain
+
+# NOTE the vacuum can fully masked out by making the material 
+# have null electron_density in Ar_ddm.mat
+
+echo both
+units    metal
+
+variable s equal 100
+variable T equal 20
+variable n equal 0.000004
+variable tol equal 0.1
+variable W   equal 1000
+
+atom_style  atomic
+
+lattice   fcc 5.405 origin 0.25 0.25 0.25
+region    FE block   -8 8 -6 6 0 3
+region    MD block   -7 7 -6 0 0 3
+region    FREE block -4 4 -6 0 0 3
+
+boundary  f f p
+
+# create atoms
+create_box  1 FE
+mass    1 39.95 
+atom_modify     sort 0 1
+
+timestep  0.002
+thermo  $s
+
+#          ID  group atc PhysicsType ParameterFile
+fix        AtC all  atc drift_diffusion  Ar_ddm.mat
+
+#          ID  part keywords    nx ny nz region
+fix_modify AtC mesh  create 4 4  1  FE f f p
+
+variable a   equal $W+${tol}
+fix_modify AtC mesh create_elementset wire  -$a $a -INF ${tol} -INF INF
+fix_modify AtC mesh create_elementset gap   -$a $a -${tol} INF -INF INF
+# void is the complement of the wire nodeset
+variable a   equal $W-${tol}
+fix_modify AtC mesh create_nodeset    void -$a $a  ${tol}  INF -INF INF
+fix_modify AtC mesh output   null_material_ddmMESH binary
+
+fix_modify  AtC control thermal none
+
+# fix a temperature
+fix_modify AtC  initial temperature          all $T
+fix_modify AtC  initial electron_temperature all $T
+fix_modify AtC  initial electron_density     all $n
+fix_modify AtC  initial electric_potential   all 0.0
+fix_modify AtC  initial temperature          void 0.0
+fix_modify AtC  initial electron_density     void 0.0
+fix_modify AtC  initial electric_potential   void 0.0
+
+# create vacuum
+fix_modify AtC material gap Vacuum
+
+thermo_style custom step cpu f_AtC[1] f_AtC[2] f_AtC[3] f_AtC[4]
+fix_modify AtC  output          null_material_ddmFE $s full_text binary
+fix_modify AtC extrinsic electron_integration implicit
+
+# 
+fix_modify AtC mesh create_nodeset lbc -8.1  -7.9 -INF INF -INF INF
+fix_modify AtC mesh create_nodeset rbc  7.9   8.1 -INF INF -INF INF
+fix_modify AtC  fix electron_temperature lbc $T
+fix_modify AtC  fix electron_temperature rbc $T
+fix_modify AtC  fix electron_density     lbc $n
+fix_modify AtC  fix electric_potential lbc 0.0
+
+variable m equal $s*10
+run    $m
+

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(slice,ComputeSlice)
-
+// clang-format off
+ComputeStyle(slice,ComputeSlice);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SLICE_H
@@ -27,21 +27,21 @@ namespace LAMMPS_NS {
 class ComputeSlice : public Compute {
  public:
   ComputeSlice(class LAMMPS *, int, char **);
-  virtual ~ComputeSlice();
-  void init();
-  void compute_vector();
-  void compute_array();
+  ~ComputeSlice() override;
+  void init() override;
+  void compute_vector() override;
+  void compute_array() override;
 
  private:
   int me;
-  int nstart,nstop,nskip,nvalues;
-  int *which,*argindex,*value2index;
+  int nstart, nstop, nskip, nvalues;
+  int *which, *argindex, *value2index;
   char **ids;
 
   void extract_one(int, double *, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

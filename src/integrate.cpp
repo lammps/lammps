@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,6 +20,7 @@
 #include "kspace.h"
 #include "modify.h"
 #include "pair.h"
+#include "output.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
@@ -114,7 +116,12 @@ void Integrate::ev_setup()
 
 /* ----------------------------------------------------------------------
    set eflag,vflag for current iteration
-   based on computes that need energy/virial info on this timestep
+   based on
+     (1) computes that need energy/virial info on this timestep
+     (2) time dumps that may need per-atom compute info on this timestep
+     NOTE: inefficient to add all per-atom eng/virial computes
+             but don't know which ones the dump needs
+           see NOTE in output.cpp
    invoke matchstep() on all timestep-dependent computes to clear their arrays
    eflag: set any or no bits
      ENERGY_GLOBAL bit for global energy
@@ -132,6 +139,10 @@ void Integrate::ev_set(bigint ntimestep)
 {
   int i,flag;
 
+  int tdflag = 0;
+  if (output->any_time_dumps &&
+      output->next_time_dump_any == ntimestep) tdflag = 1;
+
   flag = 0;
   int eflag_global = 0;
   for (i = 0; i < nelist_global; i++)
@@ -142,7 +153,7 @@ void Integrate::ev_set(bigint ntimestep)
   int eflag_atom = 0;
   for (i = 0; i < nelist_atom; i++)
     if (elist_atom[i]->matchstep(ntimestep)) flag = 1;
-  if (flag) eflag_atom = ENERGY_ATOM;
+  if (flag || (tdflag && nelist_atom)) eflag_atom = ENERGY_ATOM;
 
   if (eflag_global) update->eflag_global = ntimestep;
   if (eflag_atom) update->eflag_atom = ntimestep;
@@ -158,13 +169,13 @@ void Integrate::ev_set(bigint ntimestep)
   int vflag_atom = 0;
   for (i = 0; i < nvlist_atom; i++)
     if (vlist_atom[i]->matchstep(ntimestep)) flag = 1;
-  if (flag) vflag_atom = VIRIAL_ATOM;
+  if (flag || (tdflag && nvlist_atom)) vflag_atom = VIRIAL_ATOM;
 
   flag = 0;
   int cvflag_atom = 0;
   for (i = 0; i < ncvlist_atom; i++)
     if (cvlist_atom[i]->matchstep(ntimestep)) flag = 1;
-  if (flag) cvflag_atom = VIRIAL_CENTROID;
+  if (flag || (tdflag && ncvlist_atom)) cvflag_atom = VIRIAL_CENTROID;
 
   if (vflag_global) update->vflag_global = ntimestep;
   if (vflag_atom || cvflag_atom) update->vflag_atom = ntimestep;

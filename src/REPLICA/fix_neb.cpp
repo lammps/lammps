@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -134,24 +135,24 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
   else procnext = -1;
 
   uworld = universe->uworld;
-  int *iroots = new int[nreplica];
-  MPI_Group uworldgroup,rootgroup;
   if (NEBLongRange) {
-    for (int i=0; i<nreplica; i++)
-      iroots[i] = universe->root_proc[i];
+    int *iroots = new int[nreplica];
+    MPI_Group uworldgroup,rootgroup;
+
+    for (int i=0; i<nreplica; i++) iroots[i] = universe->root_proc[i];
     MPI_Comm_group(uworld, &uworldgroup);
     MPI_Group_incl(uworldgroup, nreplica, iroots, &rootgroup);
     MPI_Comm_create(uworld, rootgroup, &rootworld);
+    if (rootgroup != MPI_GROUP_NULL) MPI_Group_free(&rootgroup);
+    if (uworldgroup != MPI_GROUP_NULL) MPI_Group_free(&uworldgroup);
+    delete [] iroots;
   }
-  delete [] iroots;
 
   // create a new compute pe style
   // id = fix-ID + pe, compute group = all
 
-  std::string cmd = id + std::string("_pe");
-  id_pe = new char[cmd.size()+1];
-  strcpy(id_pe,cmd.c_str());
-  modify->add_compute(cmd + " all pe");
+  id_pe = utils::strdup(std::string(id)+"_pe");
+  modify->add_compute(std::string(id_pe)+" all pe");
 
   // initialize local storage
 

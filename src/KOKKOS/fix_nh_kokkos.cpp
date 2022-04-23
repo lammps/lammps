@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -87,6 +88,11 @@ void FixNHKokkos<DeviceType>::init()
 template<class DeviceType>
 void FixNHKokkos<DeviceType>::setup(int /*vflag*/)
 {
+  // tdof needed by compute_temp_target()
+
+  t_current = temperature->compute_scalar();
+  tdof = temperature->dof;
+
   // t_target is needed by NPH and NPT in compute_scalar()
   // If no thermostat or using fix nphug,
   // t_target must be defined by other means.
@@ -736,4 +742,3 @@ template class FixNHKokkos<LMPDeviceType>;
 template class FixNHKokkos<LMPHostType>;
 #endif
 }
-

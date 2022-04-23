@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -53,9 +54,7 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute displace/atom command");
       refreshflag = 1;
       delete [] rvar;
-      int n = strlen(arg[iarg+1]) + 1;
-      rvar = new char[n];
-      strcpy(rvar,arg[iarg+1]);
+      rvar = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal compute displace/atom command");
   }
@@ -74,13 +73,9 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   // create a new fix STORE style
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
 
-  std::string cmd = id + std::string("_COMPUTE_STORE");
-  id_fix = new char[cmd.size()+1];
-  strcpy(id_fix,cmd.c_str());
-
-  cmd += fmt::format(" {} STORE peratom 1 3", group->names[igroup]);
-  modify->add_fix(cmd);
-  fix = (FixStore *) modify->fix[modify->nfix-1];
+  id_fix = utils::strdup(std::string(id) + "_COMPUTE_STORE");
+  fix = dynamic_cast<FixStore *>( modify->add_fix(fmt::format("{} {} STORE peratom 1 3",
+                                                 id_fix, group->names[igroup])));
 
   // calculate xu,yu,zu for fix store array
   // skip if reset from restart file
@@ -125,9 +120,8 @@ void ComputeDisplaceAtom::init()
 {
   // set fix which stores original atom coords
 
-  int ifix = modify->find_fix(id_fix);
-  if (ifix < 0) error->all(FLERR,"Could not find compute displace/atom fix ID");
-  fix = (FixStore *) modify->fix[ifix];
+  fix = dynamic_cast<FixStore *>( modify->get_fix_by_id(id_fix));
+  if (!fix) error->all(FLERR,"Could not find compute displace/atom fix with ID {}", id_fix);
 
   if (refreshflag) {
     ivar = input->variable->find(rvar);

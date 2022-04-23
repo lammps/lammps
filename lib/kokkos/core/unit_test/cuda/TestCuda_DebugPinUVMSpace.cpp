@@ -43,7 +43,7 @@
 */
 
 #include <Kokkos_Core.hpp>
-#include <cuda/TestCuda_Category.hpp>
+#include <TestCuda_Category.hpp>
 
 namespace Test {
 

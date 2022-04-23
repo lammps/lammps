@@ -93,7 +93,7 @@ The *rotate* style rotates each atom in the group by the angle *theta*
 around a rotation axis *R* = (Rx,Ry,Rz) that goes through a point *P* =
 (Px,Py,Pz).  The direction of rotation for the atoms around the
 rotation axis is consistent with the right-hand rule: if your
-right-hand thumb points along *R*\ , then your fingers wrap around the
+right-hand thumb points along *R*, then your fingers wrap around the
 axis in the direction of positive theta.
 
 If the defined :doc:`atom_style <atom_style>` assigns an orientation to

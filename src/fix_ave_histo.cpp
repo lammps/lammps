@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -24,7 +25,6 @@
 #include "variable.h"
 
 #include <cstring>
-#include <unistd.h>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -61,6 +61,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   size_array_cols = 3;
   extarray = 0;
   dynamic_group_allow = 1;
+  time_depend = 1;
 
   lo = utils::numeric(FLERR,arg[6],false,lmp);
   hi = utils::numeric(FLERR,arg[7],false,lmp);
@@ -167,7 +168,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   // if wildcard expansion occurred, free earg memory from expand_args()
 
   if (expand) {
-    for (int i = 0; i < nvalues; i++) delete [] earg[i];
+    for (int i = 0; i < nvalues; i++) delete[] earg[i];
     memory->sfree(earg);
   }
 
@@ -433,12 +434,12 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
     if (ferror(fp))
       error->one(FLERR,"Error writing file header");
 
-    filepos = ftell(fp);
+    filepos = platform::ftell(fp);
   }
 
-  delete [] title1;
-  delete [] title2;
-  delete [] title3;
+  delete[] title1;
+  delete[] title2;
+  delete[] title3;
 
   // allocate and initialize memory for averaging
 
@@ -501,18 +502,18 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
 FixAveHisto::~FixAveHisto()
 {
-  delete [] which;
-  delete [] argindex;
-  delete [] value2index;
-  for (int i = 0; i < nvalues; i++) delete [] ids[i];
-  delete [] ids;
+  delete[] which;
+  delete[] argindex;
+  delete[] value2index;
+  for (int i = 0; i < nvalues; i++) delete[] ids[i];
+  delete[] ids;
 
   if (fp && me == 0) fclose(fp);
 
-  delete [] bin;
-  delete [] bin_total;
-  delete [] bin_all;
-  delete [] coord;
+  delete[] bin;
+  delete[] bin_total;
+  delete[] bin_all;
+  delete[] coord;
   memory->destroy(stats_list);
   memory->destroy(bin_list);
   memory->destroy(vector);
@@ -579,11 +580,8 @@ void FixAveHisto::end_of_step()
   int i,j,m;
 
   // skip if not step which requires doing something
-  // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
-  if (ntimestep < nvalid_last || ntimestep > nvalid)
-    error->all(FLERR,"Invalid timestep reset for fix ave/histo");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
 
@@ -816,8 +814,8 @@ void FixAveHisto::end_of_step()
 
   if (fp && me == 0) {
     clearerr(fp);
-    if (overwrite) fseek(fp,filepos,SEEK_SET);
-    fprintf(fp,BIGINT_FORMAT " %d %g %g %g %g\n",ntimestep,nbins,
+    if (overwrite) platform::fseek(fp,filepos);
+    fmt::print(fp,"{} {} {} {} {} {}\n",ntimestep,nbins,
             stats_total[0],stats_total[1],stats_total[2],stats_total[3]);
     if (stats_total[0] != 0.0)
       for (i = 0; i < nbins; i++)
@@ -832,9 +830,9 @@ void FixAveHisto::end_of_step()
 
     fflush(fp);
     if (overwrite) {
-      long fileend = ftell(fp);
-      if ((fileend > 0) && (ftruncate(fileno(fp),fileend)))
-        perror("Error while tuncating output");
+      bigint fileend = platform::ftell(fp);
+      if ((fileend > 0) && (platform::ftruncate(fp,fileend)))
+        error->warning(FLERR,"Error while tuncating output: {}",utils::getsyserror());
     }
   }
 }
@@ -946,8 +944,8 @@ void FixAveHisto::options(int iarg, int narg, char **arg)
       if (me == 0) {
         fp = fopen(arg[iarg+1],"w");
         if (fp == nullptr)
-          error->one(FLERR,fmt::format("Cannot open fix ave/histo file {}: {}",
-                                       arg[iarg+1], utils::getsyserror()));
+          error->one(FLERR,"Cannot open fix ave/histo file {}: {}",
+                                       arg[iarg+1], utils::getsyserror());
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"kind") == 0) {
@@ -992,24 +990,18 @@ void FixAveHisto::options(int iarg, int narg, char **arg)
       iarg += 1;
     } else if (strcmp(arg[iarg],"title1") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
-      delete [] title1;
-      int n = strlen(arg[iarg+1]) + 1;
-      title1 = new char[n];
-      strcpy(title1,arg[iarg+1]);
+      delete[] title1;
+      title1 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title2") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
-      delete [] title2;
-      int n = strlen(arg[iarg+1]) + 1;
-      title2 = new char[n];
-      strcpy(title2,arg[iarg+1]);
+      delete[] title2;
+      title2 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title3") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
-      delete [] title3;
-      int n = strlen(arg[iarg+1]) + 1;
-      title3 = new char[n];
-      strcpy(title3,arg[iarg+1]);
+      delete[] title3;
+      title3 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix ave/histo command");
   }

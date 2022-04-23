@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(gran/hooke/history,PairGranHookeHistory)
-
+// clang-format off
+PairStyle(gran/hooke/history,PairGranHookeHistory);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_GRAN_HOOKE_HISTORY_H
@@ -27,32 +27,35 @@ namespace LAMMPS_NS {
 class PairGranHookeHistory : public Pair {
  public:
   PairGranHookeHistory(class LAMMPS *);
-  virtual ~PairGranHookeHistory();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  void reset_dt();
-  virtual double single(int, int, int, int, double, double, double, double &);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  double memory_usage();
+  ~PairGranHookeHistory() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  void reset_dt() override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  double memory_usage() override;
+  double atom2cut(int) override;
+  double radii2cut(double, double) override;
 
  protected:
-  double kn,kt,gamman,gammat,xmu;
+  double kn, kt, gamman, gammat, xmu;
   int dampflag;
   double dt;
   int freeze_group_bit;
   int history;
+  int limit_damping;
 
   int neighprev;
-  double *onerad_dynamic,*onerad_frozen;
-  double *maxrad_dynamic,*maxrad_frozen;
+  double *onerad_dynamic, *onerad_frozen;
+  double *maxrad_dynamic, *maxrad_frozen;
 
   int size_history;
 
@@ -68,7 +71,7 @@ class PairGranHookeHistory : public Pair {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

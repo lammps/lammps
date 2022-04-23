@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(ave/time,FixAveTime)
-
+// clang-format off
+FixStyle(ave/time,FixAveTime);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_AVE_TIME_H
@@ -27,21 +27,21 @@ namespace LAMMPS_NS {
 class FixAveTime : public Fix {
  public:
   FixAveTime(class LAMMPS *, int, char **);
-  ~FixAveTime();
-  int setmask();
-  void init();
-  void setup(int);
-  void end_of_step();
-  double compute_scalar();
-  double compute_vector(int);
-  double compute_array(int,int);
+  ~FixAveTime() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void end_of_step() override;
+  double compute_scalar() override;
+  double compute_vector(int) override;
+  double compute_array(int, int) override;
 
  private:
-  int me,nvalues;
-  int nrepeat,nfreq,irepeat;
-  bigint nvalid,nvalid_last;
-  int *which,*argindex,*value2index,*offcol;
-  int *varlen;               // 1 if value is from variable-length compute
+  int me, nvalues;
+  int nrepeat, nfreq, irepeat;
+  bigint nvalid, nvalid_last;
+  int *which, *argindex, *value2index, *offcol;
+  int *varlen;    // 1 if value is from variable-length compute
   char **ids;
   FILE *fp;
   int nrows;
@@ -49,14 +49,14 @@ class FixAveTime : public Fix {
   int all_variable_length;
   int lockforever;
 
-  int ave,nwindow,startstep,mode;
-  int noff,overwrite;
+  int ave, nwindow, startstep, mode;
+  int noff, overwrite;
   int *offlist;
-  char *format,*format_user;
-  char *title1,*title2,*title3;
-  long filepos;
+  char *format, *format_user;
+  char *title1, *title2, *title3;
+  bigint filepos;
 
-  int norm,iwindow,window_limit;
+  int norm, iwindow, window_limit;
   double *vector;
   double *vector_total;
   double **vector_list;
@@ -73,7 +73,7 @@ class FixAveTime : public Fix {
   bigint nextvalid();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

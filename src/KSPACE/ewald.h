@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(ewald,Ewald)
-
+// clang-format off
+KSpaceStyle(ewald,Ewald);
+// clang-format on
 #else
 
 #ifndef LMP_EWALD_H
@@ -27,35 +27,35 @@ namespace LAMMPS_NS {
 class Ewald : public KSpace {
  public:
   Ewald(class LAMMPS *);
-  virtual ~Ewald();
-  void init();
-  void setup();
-  virtual void settings(int, char **);
-  virtual void compute(int, int);
-  double memory_usage();
+  ~Ewald() override;
+  void init() override;
+  void setup() override;
+  void settings(int, char **) override;
+  void compute(int, int) override;
+  double memory_usage() override;
 
-  void compute_group_group(int, int, int);
+  void compute_group_group(int, int, int) override;
 
  protected:
-  int kxmax,kymax,kzmax;
-  int kcount,kmax,kmax3d,kmax_created;
-  double gsqmx,volume;
+  int kxmax, kymax, kzmax;
+  int kcount, kmax, kmax3d, kmax_created;
+  double gsqmx, volume;
   int nmax;
 
   double unitk[3];
-  int *kxvecs,*kyvecs,*kzvecs;
-  int kxmax_orig,kymax_orig,kzmax_orig;
+  int *kxvecs, *kyvecs, *kzvecs;
+  int kxmax_orig, kymax_orig, kzmax_orig;
   double *ug;
-  double **eg,**vg;
+  double **eg, **vg;
   double **ek;
-  double *sfacrl,*sfacim,*sfacrl_all,*sfacim_all;
-  double ***cs,***sn;
+  double *sfacrl, *sfacim, *sfacrl_all, *sfacim_all;
+  double ***cs, ***sn;
 
   // group-group interactions
 
   int group_allocate_flag;
-  double *sfacrl_A,*sfacim_A,*sfacrl_A_all,*sfacim_A_all;
-  double *sfacrl_B,*sfacim_B,*sfacrl_B_all,*sfacim_B_all;
+  double *sfacrl_A, *sfacim_A, *sfacrl_A_all, *sfacim_A_all;
+  double *sfacrl_B, *sfacim_B, *sfacrl_B_all, *sfacim_B_all;
 
   double rms(int, double, bigint, double);
   virtual void eik_dot_r();
@@ -72,12 +72,12 @@ class Ewald : public KSpace {
 
   // group-group interactions
 
-  void slabcorr_groups(int,int,int);
+  void slabcorr_groups(int, int, int);
   void allocate_groups();
   void deallocate_groups();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

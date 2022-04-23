@@ -40,7 +40,8 @@ class ComputeForceTally : public Compute {
   double memory_usage() override;
 
   void pair_setup_callback(int, int) override;
-  void pair_tally_callback(int, int, int, int, double, double, double, double, double, double) override;
+  void pair_tally_callback(int, int, int, int, double, double, double, double, double,
+                           double) override;
 
  private:
   bigint did_setup;

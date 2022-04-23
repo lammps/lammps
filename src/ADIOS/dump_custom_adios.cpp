@@ -146,10 +146,10 @@ void DumpCustomADIOS::write()
 
   // Now we know the global size and the local subset size and offset
   // of the atoms table
-  auto  nAtomsGlobal = static_cast<size_t>(ntotal);
-  auto  startRow = static_cast<size_t>(atomOffset);
-  auto  nAtomsLocal = static_cast<size_t>(nme);
-  auto  nColumns = static_cast<size_t>(size_one);
+  auto nAtomsGlobal = static_cast<size_t>(ntotal);
+  auto startRow = static_cast<size_t>(atomOffset);
+  auto nAtomsLocal = static_cast<size_t>(nme);
+  auto nColumns = static_cast<size_t>(size_one);
   internal->varAtoms.SetShape({nAtomsGlobal, nColumns});
   internal->varAtoms.SetSelection({{startRow, 0}, {nAtomsLocal, nColumns}});
 
@@ -221,8 +221,10 @@ void DumpCustomADIOS::init_style()
   int icol = 0;
   for (auto item : utils::split_words(columns_default)) {
     if (combined.size()) combined += " ";
-    if (keyword_user[icol].size()) combined += keyword_user[icol];
-    else combined += item;
+    if (keyword_user[icol].size())
+      combined += keyword_user[icol];
+    else
+      combined += item;
     ++icol;
   }
   columns = utils::strdup(combined);
@@ -249,34 +251,30 @@ void DumpCustomADIOS::init_style()
    */
   // find current ptr for each compute,fix,variable
   // check that fix frequency is acceptable
-  int icompute;
   for (int i = 0; i < ncompute; i++) {
-    icompute = modify->find_compute(id_compute[i]);
-    if (icompute < 0) error->all(FLERR, "Could not find dump custom compute ID");
-    compute[i] = modify->compute[icompute];
+    compute[i] = modify->get_compute_by_id(id_compute[i]);
+    if (!compute[i])
+      error->all(FLERR, "Could not find dump custom/adios compute ID {}", id_compute[i]);
   }
 
-  int ifix;
   for (int i = 0; i < nfix; i++) {
-    ifix = modify->find_fix(id_fix[i]);
-    if (ifix < 0) error->all(FLERR, "Could not find dump custom fix ID");
-    fix[i] = modify->fix[ifix];
-    if (nevery % modify->fix[ifix]->peratom_freq)
-      error->all(FLERR, "Dump custom and fix not computed at compatible times");
+    fix[i] = modify->get_fix_by_id(id_fix[i]);
+    if (!fix[i]) error->all(FLERR, "Could not find dump custom/adios fix ID {}", id_fix[i]);
+    if (nevery % fix[i]->peratom_freq)
+      error->all(FLERR, "dump custom/adios and fix {} with ID {} not computed at compatible times",
+                 fix[i]->style, id_fix[i]);
   }
 
   int ivariable;
   for (int i = 0; i < nvariable; i++) {
     ivariable = input->variable->find(id_variable[i]);
-    if (ivariable < 0) error->all(FLERR, "Could not find dump custom variable name");
+    if (ivariable < 0) error->all(FLERR, "Could not find dump custom/adios variable name");
     variable[i] = ivariable;
   }
 
   // set index and check validity of region
-  if (iregion >= 0) {
-    iregion = domain->find_region(idregion);
-    if (iregion == -1) error->all(FLERR, "Region ID for dump custom does not exist");
-  }
+  if (idregion && !domain->get_region_by_id(idregion))
+    error->all(FLERR, "Region {} for dump custom/adios does not exist", idregion);
 
   /* Define the group of variables for the atom style here since it's a fixed
    * set */
@@ -316,7 +314,7 @@ void DumpCustomADIOS::init_style()
   int *boundaryptr = reinterpret_cast<int *>(domain->boundary);
   internal->io.DefineAttribute<int>("boundary", boundaryptr, 6);
 
-  auto  nColumns = static_cast<size_t>(size_one);
+  auto nColumns = static_cast<size_t>(size_one);
   internal->io.DefineAttribute<std::string>("columns", internal->columnNames.data(), nColumns);
   internal->io.DefineAttribute<std::string>("columnstr", columns);
   internal->io.DefineAttribute<std::string>("boundarystr", boundstr);

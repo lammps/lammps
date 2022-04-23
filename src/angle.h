@@ -25,7 +25,8 @@ class Angle : protected Pointers {
  public:
   int allocated;
   int *setflag;
-  int writedata;             // 1 if writes coeffs to data file
+  int writedata;    // 1 if writes coeffs to data file
+  int born_matrix_enable;
   double energy;             // accumulated energies
   double virial[6];          // accumulated virial: xx,yy,zz,xy,xz,yz
   double *eatom, **vatom;    // accumulated per-atom energy/virial
@@ -36,8 +37,8 @@ class Angle : protected Pointers {
                              // CENTROID_AVAIL = different and implemented
                              // CENTROID_NOTAVAIL = different, not yet implemented
 
-  int reinitflag;            // 0 if not compatible with fix adapt
-                             // extract() method may still need to be added
+  int reinitflag;    // 0 if not compatible with fix adapt
+                     // extract() method may still need to be added
 
   // KOKKOS host/device flag and data masks
 
@@ -59,6 +60,12 @@ class Angle : protected Pointers {
   virtual void read_restart_settings(FILE *){};
   virtual void write_data(FILE *) {}
   virtual double single(int, int, int, int) = 0;
+  virtual void born_matrix(int /*atype*/, int /*at1*/, int /*at2*/, int /*at3*/, double &du,
+                           double &du2)
+  {
+    du = 0.0;
+    du2 = 0.0;
+  }
   virtual double memory_usage();
   virtual void *extract(const char *, int &) { return nullptr; }
   void reinit();

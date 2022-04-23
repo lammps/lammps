@@ -35,11 +35,11 @@ class FixHeat : public Fix {
   double memory_usage() override;
 
  private:
-  int iregion;
   double heat_input;
   double masstotal;
   double scale;
   char *idregion;
+  class Region *region;
   char *hstr;
   int hstyle, hvar;
 

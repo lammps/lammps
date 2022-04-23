@@ -82,7 +82,7 @@ class KimInit : protected Pointers {
   void do_init(char *, char *, char *, KIM_Model *&);
   void do_variables(const std::string &, const std::string &);
 
-  void print_dirs(struct KIM_Collections * const collections) const;
+  void print_dirs(struct KIM_Collections *const collections) const;
 };
 
 }    // namespace LAMMPS_NS

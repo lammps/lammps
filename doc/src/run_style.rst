@@ -68,7 +68,7 @@ Choose the style of time integrator used for molecular dynamics
 simulations performed by LAMMPS.
 
 The *verlet* style is the velocity form of the
-Störmer-Verlet time integration algorithm (velocity-Verlet)
+Stoermer-Verlet time integration algorithm (velocity-Verlet)
 
 ----------
 

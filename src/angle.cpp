@@ -34,6 +34,7 @@ Angle::Angle(LAMMPS *_lmp) : Pointers(_lmp)
 
   allocated = 0;
   suffix_flag = Suffix::NONE;
+  born_matrix_enable = 0;
 
   maxeatom = maxvatom = maxcvatom = 0;
   eatom = nullptr;
@@ -360,8 +361,7 @@ double Angle::memory_usage()
 
 void Angle::reinit()
 {
-  if (!reinitflag)
-    error->all(FLERR, "Fix adapt interface to this angle style not supported");
+  if (!reinitflag) error->all(FLERR, "Fix adapt interface to this angle style not supported");
 
   init();
 }

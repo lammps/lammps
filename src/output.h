@@ -33,20 +33,20 @@ class Output : protected Pointers {
   int ivar_thermo;         // variable index for thermo frequency
   class Thermo *thermo;    // Thermodynamic computations
 
-  int ndump;               // # of Dumps defined
-  int max_dump;            // max size of Dump list
-  bigint next_dump_any;    // next timestep for any dump
-  bigint next_time_dump_any; // next timestep for any time dump with computes
-  int any_time_dumps;      // 1 if any time dump defined
-  int *mode_dump;          // 0/1 if write every N timesteps or Delta in sim time
-  int *every_dump;         // dump every N timesteps, 0 if variable
-  double *every_time_dump; // dump every Delta of sim time, 0.0 if variable
-  bigint *next_dump;       // next timestep to perform dump
-  double *next_time_dump;  // next simulation time to perform dump (mode = 1)
-  bigint *last_dump;       // last timestep each snapshot was output
-  char **var_dump;         // variable name for next dump (steps or sim time)
-  int *ivar_dump;          // variable index of var_dump name
-  Dump **dump;             // list of defined Dumps
+  int ndump;                    // # of Dumps defined
+  int max_dump;                 // max size of Dump list
+  bigint next_dump_any;         // next timestep for any dump
+  bigint next_time_dump_any;    // next timestep for any time dump with computes
+  int any_time_dumps;           // 1 if any time dump defined
+  int *mode_dump;               // 0/1 if write every N timesteps or Delta in sim time
+  int *every_dump;              // dump every N timesteps, 0 if variable
+  double *every_time_dump;      // dump every Delta of sim time, 0.0 if variable
+  bigint *next_dump;            // next timestep to perform dump
+  double *next_time_dump;       // next simulation time to perform dump (mode = 1)
+  bigint *last_dump;            // last timestep each snapshot was output
+  char **var_dump;              // variable name for next dump (steps or sim time)
+  int *ivar_dump;               // variable index of var_dump name
+  Dump **dump;                  // list of defined Dumps
 
   int restart_flag;               // 1 if any restart files are written
   int restart_flag_single;        // 1 if single restart files are written

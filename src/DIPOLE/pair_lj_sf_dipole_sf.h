@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class PairLJSFDipoleSF : public Pair {
  public:
-  PairLJSFDipoleSF(class LAMMPS *_lmp) : Pair(_lmp) {};
+  PairLJSFDipoleSF(class LAMMPS *_lmp) : Pair(_lmp){};
   ~PairLJSFDipoleSF() override;
   void compute(int, int) override;
   void settings(int, char **) override;

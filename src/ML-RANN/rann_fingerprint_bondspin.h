@@ -43,9 +43,9 @@ namespace RANN {
     void write_values(FILE *) override;
     void init(int *, int) override;
     void allocate() override;
-    void compute_fingerprint(double *, double *, double *, double *, double *, double *,
-                                     double *, int, int, double *, double *, double *, int *, int,
-                                     int *) override;    //spin
+    void compute_fingerprint(double *, double *, double *, double *, double *, double *, double *,
+                             int, int, double *, double *, double *, int *, int,
+                             int *) override;    //spin
     void do3bodyfeatureset_doubleneighborloop(double *, double *, double *, double *, double *,
                                               double *, double *, int, int, double *, double *,
                                               double *, int *, int, int *);

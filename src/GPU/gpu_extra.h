@@ -78,10 +78,12 @@ inline void check_flag(int error_flag, LAMMPS_NS::Error *error, MPI_Comm &world)
     else if (all_success == -13)
       error->all(FLERR, "Invalid device configuration.");
     else if (all_success == -15)
-      error->all(FLERR, "PPPM was compiled for double precision floating point "
+      error->all(FLERR,
+                 "PPPM was compiled for double precision floating point "
                  "but GPU device supports single precision only.");
     else if (all_success == -16)
-      error->all(FLERR, "GPU library was compiled for double or mixed precision "
+      error->all(FLERR,
+                 "GPU library was compiled for double or mixed precision "
                  "floating point but GPU device supports single precision only.");
     else
       error->all(FLERR, "Unknown error in GPU library");

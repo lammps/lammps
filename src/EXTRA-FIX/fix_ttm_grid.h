@@ -48,16 +48,16 @@ class FixTTMGrid : public FixTTM {
   double memory_usage() override;
 
  private:
-  int ngridmine,ngridout;
-  int nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in;
-  int nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out;
-  double delxinv,delyinv,delzinv;
+  int ngridmine, ngridout;
+  int nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in;
+  int nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out;
+  double delxinv, delyinv, delzinv;
   double skin_original;
   FILE *FPout;
 
   class GridComm *gc;
-  int ngc_buf1,ngc_buf2;
-  double *gc_buf1,*gc_buf2;
+  int ngc_buf1, ngc_buf2;
+  double *gc_buf1, *gc_buf2;
 
   void allocate_grid() override;
   void deallocate_grid() override;

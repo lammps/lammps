@@ -49,6 +49,7 @@ Bond::Bond(LAMMPS *_lmp) : Pointers(_lmp)
 
   allocated = 0;
   suffix_flag = Suffix::NONE;
+  born_matrix_enable = 0;
   partial_flag = 0;
 
   maxeatom = maxvatom = 0;
@@ -342,8 +343,7 @@ double Bond::memory_usage()
 
 void Bond::reinit()
 {
-  if (!reinitflag)
-    error->all(FLERR, "Fix adapt interface to this bond style not supported");
+  if (!reinitflag) error->all(FLERR, "Fix adapt interface to this bond style not supported");
 
   init();
 }

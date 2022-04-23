@@ -43,10 +43,10 @@ class FixEHEX : public Fix {
   bool check_cluster(tagint *shake_atom, int n, class Region *region);
 
  private:
-  int iregion;
   double heat_input;
   double masstotal;
   double scale;
+  class Region *region;
   char *idregion;
   int me;
 

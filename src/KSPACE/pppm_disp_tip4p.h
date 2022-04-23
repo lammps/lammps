@@ -31,8 +31,8 @@ class PPPMDispTIP4P : public PPPMDisp {
   void init() override;
 
  protected:
-  void particle_map_c(double, double, double, double, int **, int, int, int, int, int, int,
-                              int, int) override;
+  void particle_map_c(double, double, double, double, int **, int, int, int, int, int, int, int,
+                      int) override;
   void make_rho_c() override;
   void fieldforce_c_ik() override;
   void fieldforce_c_ad() override;

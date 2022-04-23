@@ -25,7 +25,7 @@ PairStyle(peri/lps,PairPeriLPS);
 namespace LAMMPS_NS {
 
 class PairPeriLPS : public PairPeri {
-public:
+ public:
   PairPeriLPS(class LAMMPS *);
 
   void compute(int, int) override;

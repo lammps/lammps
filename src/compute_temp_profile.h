@@ -34,6 +34,7 @@ class ComputeTempProfile : public Compute {
   void compute_vector() override;
   void compute_array() override;
 
+  void reset_extra_dof() override;
   void remove_bias(int, double *) override;
   void remove_bias_thr(int, double *, double *) override;
   void remove_bias_all() override;
@@ -47,6 +48,7 @@ class ComputeTempProfile : public Compute {
   int nbinx, nbiny, nbinz, nbins;
   int ivx, ivy, ivz;
   double tfactor;
+  double nstreaming;
 
   int box_change, triclinic;
   int *periodicity;

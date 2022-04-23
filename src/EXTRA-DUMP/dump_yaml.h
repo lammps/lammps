@@ -28,7 +28,7 @@ class DumpYAML : public DumpCustom {
  public:
   DumpYAML(class LAMMPS *, int, char **);
 
-protected:
+ protected:
   bool thermo;
 
   void init_style() override;

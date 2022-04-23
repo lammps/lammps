@@ -159,8 +159,8 @@ class Neighbor : protected Pointers {
   int any_full();                // Check if any old requests had full neighbor lists
   void build_collection(int);    // build peratom collection array starting at the given index
 
-  bigint get_nneigh_full();     // return number of neighbors in a regular full neighbor list
-  bigint get_nneigh_half();     // return number of neighbors in a regular half neighbor list
+  bigint get_nneigh_full();    // return number of neighbors in a regular full neighbor list
+  bigint get_nneigh_half();    // return number of neighbors in a regular half neighbor list
   double memory_usage();
 
   bigint last_setup_bins;    // step of last neighbor::setup_bins() call

@@ -453,6 +453,8 @@
 /compute_basal_atom.h
 /compute_body_local.cpp
 /compute_body_local.h
+/compute_born_matrix.cpp
+/compute_born_matrix.h
 /compute_cnp_atom.cpp
 /compute_cnp_atom.h
 /compute_damage_atom.cpp
@@ -1091,6 +1093,8 @@
 /pair_hdnnp.h
 /pair_ilp_graphene_hbn.cpp
 /pair_ilp_graphene_hbn.h
+/pair_ilp_graphene_hbn_opt.cpp
+/pair_ilp_graphene_hbn_opt.h
 /pair_ilp_tmd.cpp
 /pair_ilp_tmd.h
 /pair_kolmogorov_crespi_full.cpp

@@ -221,7 +221,7 @@ bigint ReaderADIOS::read_header(double box[3][3], int &boxinfo, int &triclinic, 
   uint64_t rem = nAtomsTotal % comm->nprocs;
   nAtoms = nAtomsTotal / comm->nprocs;
   atomOffset = comm->me * nAtoms;
-  if (comm->me < (int)rem) {
+  if (comm->me < (int) rem) {
     ++nAtoms;
     atomOffset += comm->me;
   } else {
@@ -421,7 +421,7 @@ void ReaderADIOS::read_atoms(int n, int nfield, double **fields)
 
   adios2::Variable<double> varAtoms = internal->io.InquireVariable<double>("atoms");
 
-  if ((uint64_t)n != nAtoms)
+  if ((uint64_t) n != nAtoms)
     error->one(FLERR,
                "ReaderADIOS::read_atoms() expects 'n={}' equal to the number of "
                "atoms (={}) for process {} in ADIOS file {}.",

@@ -17,6 +17,7 @@
 #include "pointers.h"
 
 namespace LAMMPS_NS {
+class Region;
 
 class Variable : protected Pointers {
   friend class Info;
@@ -110,14 +111,15 @@ class Variable : protected Pointers {
     int nvector;             // length of array for vector-style variable
     int nstride;             // stride between atoms if array is a 2d array
     int selfalloc;           // 1 if array is allocated here, else 0
-    int ivalue1, ivalue2;    // extra values needed for gmask,rmask,grmask
+    int ivalue;              // extra value needed for gmask, grmask
     int nextra;              // # of additional args beyond first 2
+    Region *region;          // region pointer for rmask, grmask
     Tree *first, *second;    // ptrs further down tree for first 2 args
     Tree **extra;            // ptrs further down tree for nextra args
 
     Tree() :
-        array(nullptr), iarray(nullptr), barray(nullptr), selfalloc(0), ivalue1(0), ivalue2(0),
-        nextra(0), first(nullptr), second(nullptr), extra(nullptr)
+        array(nullptr), iarray(nullptr), barray(nullptr), selfalloc(0), ivalue(0), nextra(0),
+        region(nullptr), first(nullptr), second(nullptr), extra(nullptr)
     {
     }
   };
@@ -135,7 +137,7 @@ class Variable : protected Pointers {
   int find_matching_paren(char *, int, char *&, int);
   int math_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
   int group_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
-  int region_function(char *, int);
+  Region *region_function(char *, int);
   int special_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
   void peratom2global(int, char *, double *, int, tagint, Tree **, Tree **, int &, double *, int &);
   int is_atom_vector(char *);

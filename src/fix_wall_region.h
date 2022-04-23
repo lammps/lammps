@@ -39,13 +39,14 @@ class FixWallRegion : public Fix {
   double compute_vector(int) override;
 
  private:
-  int style, iregion;
+  int style;
   double epsilon, sigma, cutoff;
   double alpha;
   int eflag;
   double ewall[4], ewall_all[4];
   int ilevel_respa;
   char *idregion;
+  class Region *region;
 
   double coeff1, coeff2, coeff3, coeff4, offset;
   double coeff5, coeff6, coeff7;

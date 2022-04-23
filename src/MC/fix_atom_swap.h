@@ -40,8 +40,8 @@ class FixAtomSwap : public Fix {
 
  private:
   int nevery, seed;
-  int ke_flag;              // yes = conserve ke, no = do not conserve ke
-  int semi_grand_flag;     // yes = semi-grand canonical, no = constant composition
+  int ke_flag;            // yes = conserve ke, no = do not conserve ke
+  int semi_grand_flag;    // yes = semi-grand canonical, no = constant composition
   int ncycles;
   int niswap, njswap;                  // # of i,j swap atoms on all procs
   int niswap_local, njswap_local;      // # of swap atoms on this proc
@@ -49,8 +49,7 @@ class FixAtomSwap : public Fix {
   int nswap;                           // # of swap atoms on all procs
   int nswap_local;                     // # of swap atoms on this proc
   int nswap_before;                    // # of swap atoms on procs < this proc
-  int regionflag;                      // 0 = anywhere in box, 1 = specific region
-  int iregion;                         // swap region
+  class Region *region;                // swap region
   char *idregion;                      // swap region id
 
   int nswaptypes, nmutypes;

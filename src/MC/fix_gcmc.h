@@ -65,17 +65,16 @@ class FixGCMC : public Fix {
   int ngcmc_type, nevery, seed;
   int ncycles, nexchanges, nmcmoves;
   double patomtrans, pmoltrans, pmolrotate, pmctot;
-  int ngas;              // # of gas atoms on all procs
-  int ngas_local;        // # of gas atoms on this proc
-  int ngas_before;       // # of gas atoms on procs < this proc
-  int exchmode;          // exchange ATOM or MOLECULE
-  int movemode;          // move ATOM or MOLECULE
-  int regionflag;        // 0 = anywhere in box, 1 = specific region
-  int iregion;           // gcmc region
-  char *idregion;        // gcmc region id
-  bool pressure_flag;    // true if user specified reservoir pressure
-  bool charge_flag;      // true if user specified atomic charge
-  bool full_flag;        // true if doing full system energy calculations
+  int ngas;                // # of gas atoms on all procs
+  int ngas_local;          // # of gas atoms on this proc
+  int ngas_before;         // # of gas atoms on procs < this proc
+  int exchmode;            // exchange ATOM or MOLECULE
+  int movemode;            // move ATOM or MOLECULE
+  class Region *region;    // gcmc region
+  char *idregion;          // gcmc region id
+  bool pressure_flag;      // true if user specified reservoir pressure
+  bool charge_flag;        // true if user specified atomic charge
+  bool full_flag;          // true if doing full system energy calculations
 
   int natoms_per_molecule;    // number of atoms in each inserted molecule
   int nmaxmolatoms;           // number of atoms allocated for molecule arrays

@@ -38,7 +38,8 @@ class PairLJSmoothLinear : public Pair {
   void write_restart_settings(FILE *) override;
   void read_restart_settings(FILE *) override;
   double single(int, int, int, int, double, double, double, double &) override;
-  double single_hessian(int, int, int, int, double, double[3], double, double, double &, double[6]) override;
+  double single_hessian(int, int, int, int, double, double[3], double, double, double &,
+                        double[6]) override;
 
  protected:
   double cut_global;

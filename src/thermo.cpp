@@ -637,7 +637,7 @@ void Thermo::modify_params(int narg, char **arg)
         if (iarg + 3 > narg) error->all(FLERR, "Illegal thermo_modify command");
         int icol = -1;
         if (utils::is_integer(arg[iarg + 1])) {
-          icol = utils::inumeric(FLERR,arg[iarg + 1],false,lmp);
+          icol = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
           if (icol < 0) icol = nfield_initial + icol + 1;
           icol--;
         } else {
@@ -647,8 +647,9 @@ void Thermo::modify_params(int narg, char **arg)
             icol = -1;
           }
         }
-        if ((icol < 0) || (icol >= nfield_initial)) error->all(FLERR, "Illegal thermo_modify command");
-        keyword_user[icol] = arg[iarg+2];
+        if ((icol < 0) || (icol >= nfield_initial))
+          error->all(FLERR, "Illegal thermo_modify command");
+        keyword_user[icol] = arg[iarg + 2];
         iarg += 3;
       }
     } else if (strcmp(arg[iarg], "format") == 0) {
@@ -675,7 +676,8 @@ void Thermo::modify_params(int narg, char **arg)
         found = format_int_user.find('d', found);
         if (found == std::string::npos)
           error->all(FLERR, "Thermo_modify int format does not contain a d conversion character");
-        format_bigint_user = format_int_user.replace(found, 1, std::string(BIGINT_FORMAT).substr(1));
+        format_bigint_user =
+            format_int_user.replace(found, 1, std::string(BIGINT_FORMAT).substr(1));
       } else if (strcmp(arg[iarg + 1], "float") == 0) {
         format_float_user = arg[iarg + 2];
       } else {
@@ -691,7 +693,8 @@ void Thermo::modify_params(int narg, char **arg)
             icol = -1;
           }
         }
-        if (icol < 0 || icol >= nfield_initial + 1) error->all(FLERR, "Illegal thermo_modify command");
+        if (icol < 0 || icol >= nfield_initial + 1)
+          error->all(FLERR, "Illegal thermo_modify command");
         format_column_user[icol] = arg[iarg + 2];
       }
       iarg += 3;
@@ -746,9 +749,7 @@ void Thermo::allocate()
 
   int i = 0;
   key2col.clear();
-  for (auto item : utils::split_words(line)) {
-    key2col[item] = i++;
-  }
+  for (auto item : utils::split_words(line)) { key2col[item] = i++; }
 }
 
 /* ----------------------------------------------------------------------

@@ -19,14 +19,15 @@
 namespace LAMMPS_NS {
 
 class NeighRequest : protected Pointers {
- friend class Neighbor;
- friend class NBin;
- friend class NeighList;
- friend class NPair;
- friend class NStencil;
- friend class NeighborKokkos;
- friend class NPairSkipIntel;
- friend class FixIntel;
+  friend class Neighbor;
+  friend class NBin;
+  friend class NeighList;
+  friend class NPair;
+  friend class NStencil;
+  friend class NeighborKokkos;
+  friend class NPairSkipIntel;
+  friend class FixIntel;
+
  protected:
   int index;                 // index of which neigh request this is
   void *requestor;           // class that made request

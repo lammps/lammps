@@ -145,16 +145,16 @@ void BondOxdnaFene::ev_tally_xyz(int i, int j, int nlocal, int newton_bond, doub
 ------------------------------------------------------------------------- */
 void BondOxdnaFene::compute(int eflag, int vflag)
 {
-  int a,b,in,type;
-  double delf[3],delta[3],deltb[3];    // force, torque increment;;
-  double delr[3],ebond,fbond;
-  double rsq,Deltasq,rlogarg;
-  double r,rr0,rr0sq;
+  int a, b, in, type;
+  double delf[3], delta[3], deltb[3];    // force, torque increment;;
+  double delr[3], ebond, fbond;
+  double rsq, Deltasq, rlogarg;
+  double r, rr0, rr0sq;
   // vectors COM-backbone site in lab frame
-  double ra_cs[3],rb_cs[3];
+  double ra_cs[3], rb_cs[3];
   // Cartesian unit vectors in lab frame
-  double ax[3],ay[3],az[3];
-  double bx[3],by[3],bz[3];
+  double ax[3], ay[3], az[3];
+  double bx[3], by[3], bz[3];
 
   double **x = atom->x;
   double **f = atom->f;
@@ -170,9 +170,9 @@ void BondOxdnaFene::compute(int eflag, int vflag)
 
   // n(x/y/z)_xtrct = extracted local unit vectors in lab frame from oxdna_excv
   int dim;
-  nx_xtrct = (double **) force->pair->extract("nx",dim);
-  ny_xtrct = (double **) force->pair->extract("ny",dim);
-  nz_xtrct = (double **) force->pair->extract("nz",dim);
+  nx_xtrct = (double **) force->pair->extract("nx", dim);
+  ny_xtrct = (double **) force->pair->extract("ny", dim);
+  nz_xtrct = (double **) force->pair->extract("nz", dim);
 
   // loop over FENE bonds
 

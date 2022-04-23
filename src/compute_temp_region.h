@@ -45,7 +45,7 @@ class ComputeTempRegion : public Compute {
   double memory_usage() override;
 
  protected:
-  int iregion;
+  class Region *region;
   char *idregion;
 };
 

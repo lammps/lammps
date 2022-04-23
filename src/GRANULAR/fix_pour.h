@@ -37,7 +37,7 @@ class FixPour : public Fix {
 
  private:
   int ninsert, ntype, seed;
-  int iregion, mode, idnext, dstyle, npoly, rigidflag, shakeflag;
+  int mode, idnext, dstyle, npoly, rigidflag, shakeflag;
   int ignoreflag, ignoreline, ignoretri;
   double radius_one, radius_max;
   double radius_lo, radius_hi;
@@ -52,6 +52,8 @@ class FixPour : public Fix {
   double xc, yc, rc;
   double grav;
   char *idrigid, *idshake;
+  char *idregion;
+  class Region *region;
 
   class Molecule **onemols;
   int nmol, natom_max;

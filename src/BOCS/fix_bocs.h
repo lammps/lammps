@@ -30,7 +30,7 @@ namespace LAMMPS_NS {
 class FixBocs : public Fix {
  public:
   FixBocs(class LAMMPS *, int, char **);    // MRD NJD
-  ~FixBocs() override;                       // MRD NJD
+  ~FixBocs() override;                      // MRD NJD
   int setmask() override;
   void init() override;
   void setup(int) override;

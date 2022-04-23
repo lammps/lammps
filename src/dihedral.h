@@ -25,7 +25,8 @@ class Dihedral : protected Pointers {
  public:
   int allocated;
   int *setflag;
-  int writedata;             // 1 if writes coeffs to data file
+  int writedata;    // 1 if writes coeffs to data file
+  int born_matrix_enable;
   double energy;             // accumulated energy
   double virial[6];          // accumulated virial: xx,yy,zz,xy,xz,yz
   double *eatom, **vatom;    // accumulated per-atom energy/virial
@@ -55,6 +56,12 @@ class Dihedral : protected Pointers {
   virtual void read_restart_settings(FILE *){};
   virtual void write_data(FILE *) {}
   virtual double memory_usage();
+  virtual void born_matrix(int /*dtype*/, int /*at1*/, int /*at2*/, int /*at3*/, int /*at4*/,
+                           double &du, double &du2)
+  {
+    du = 0.0;
+    du2 = 0.0;
+  }
 
  protected:
   int suffix_flag;    // suffix compatibility flag

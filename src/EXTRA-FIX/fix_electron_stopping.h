@@ -52,8 +52,9 @@ class FixElectronStopping : public Fix {
   double **elstop_ranges;    // [ 0][i]: energies
                              // [>0][i]: stopping powers per type
 
-  int iregion;     // region index if used, else -1
-  int minneigh;    // minimum number of neighbors
+  char *idregion;          // region id
+  class Region *region;    // region pointer if used, else NULL
+  int minneigh;            // minimum number of neighbors
 
   class NeighList *list;
 };

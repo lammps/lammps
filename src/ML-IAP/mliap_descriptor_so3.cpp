@@ -125,7 +125,7 @@ void MLIAPDescriptorSO3::read_paramfile(char *paramfilename)
 
     // check for keywords with one value per element
 
-    if ((skeywd == "elems") || (skeywd == "radelems") || (skeywd == "welems"))  {
+    if ((skeywd == "elems") || (skeywd == "radelems") || (skeywd == "welems")) {
 
       if (nelementsflag == 0 || nwords != nelements + 1)
         error->all(FLERR, "Incorrect SO3 parameter file");
@@ -137,7 +137,7 @@ void MLIAPDescriptorSO3::read_paramfile(char *paramfilename)
         }
 
         elementsflag = 1;
-      } else if (skeywd == "radelems")  {
+      } else if (skeywd == "radelems") {
         for (int ielem = 0; ielem < nelements; ielem++) {
           radelem[ielem] = utils::numeric(FLERR, skeyval, false, lmp);
           if (ielem < nelements - 1) skeyval = p.next();

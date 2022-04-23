@@ -4772,10 +4772,8 @@ int lammps_has_id(void *handle, const char *category, const char *name) {
       if (strcmp(name,molecule[i]->id) == 0) return 1;
     }
   } else if (strcmp(category,"region") == 0) {
-    int nregion = lmp->domain->nregion;
-    Region **region = lmp->domain->regions;
-    for (int i=0; i < nregion; ++i) {
-      if (strcmp(name,region[i]->id) == 0) return 1;
+    for (auto &reg : lmp->domain->get_region_list()) {
+      if (strcmp(name,reg->id) == 0) return 1;
     }
   } else if (strcmp(category,"variable") == 0) {
     int nvariable = lmp->input->variable->nvar;
@@ -4818,7 +4816,7 @@ int lammps_id_count(void *handle, const char *category) {
   } else if (strcmp(category,"molecule") == 0) {
     return lmp->atom->nmolecule;
   } else if (strcmp(category,"region") == 0) {
-    return lmp->domain->nregion;
+    return lmp->domain->get_region_list().size();
   } else if (strcmp(category,"variable") == 0) {
     return lmp->input->variable->nvar;
   }
@@ -4848,8 +4846,7 @@ set to an empty string, otherwise 1.
  * \param buf_size size of the provided string buffer
  * \return 1 if successful, otherwise 0
  */
-int lammps_id_name(void *handle, const char *category, int idx,
-                      char *buffer, int buf_size) {
+int lammps_id_name(void *handle, const char *category, int idx, char *buffer, int buf_size) {
   auto lmp = (LAMMPS *) handle;
 
   if (strcmp(category,"compute") == 0) {
@@ -4878,8 +4875,9 @@ int lammps_id_name(void *handle, const char *category, int idx,
       return 1;
     }
   } else if (strcmp(category,"region") == 0) {
-    if ((idx >=0) && (idx < lmp->domain->nregion)) {
-      strncpy(buffer, lmp->domain->regions[idx]->id, buf_size);
+    auto regions = lmp->domain->get_region_list();
+    if ((idx >=0) && (idx < (int) regions.size())) {
+      strncpy(buffer, regions[idx]->id, buf_size);
       return 1;
     }
   } else if (strcmp(category,"variable") == 0) {

@@ -23,7 +23,7 @@ class Bond : protected Pointers {
   friend class FixOMP;
 
  public:
-  static int instance_total; // # of Bond classes ever instantiated
+  static int instance_total;    // # of Bond classes ever instantiated
 
   int allocated;
   int *setflag;
@@ -33,12 +33,14 @@ class Bond : protected Pointers {
   double virial[6];          // accumulated virial: xx,yy,zz,xy,xz,yz
   double *eatom, **vatom;    // accumulated per-atom energy/virial
 
-  int comm_forward;          // size of forward communication (0 if none)
-  int comm_reverse;          // size of reverse communication (0 if none)
-  int comm_reverse_off;      // size of reverse comm even if newton off
+  int born_matrix_enable;
 
-  int reinitflag;            // 0 if not compatible with fix adapt
-                             // extract() method may still need to be added
+  int comm_forward;        // size of forward communication (0 if none)
+  int comm_reverse;        // size of reverse communication (0 if none)
+  int comm_reverse_off;    // size of reverse comm even if newton off
+
+  int reinitflag;    // 0 if not compatible with fix adapt
+                     // extract() method may still need to be added
 
   // KOKKOS host/device flag and data masks
 
@@ -62,12 +64,19 @@ class Bond : protected Pointers {
   virtual double single(int, double, int, int, double &) = 0;
   virtual double memory_usage();
   virtual void *extract(const char *, int &) { return nullptr; }
-  void reinit();
+  virtual void reinit();
 
-  virtual int pack_forward_comm(int, int *, double *, int, int *) {return 0;}
+  virtual int pack_forward_comm(int, int *, double *, int, int *) { return 0; }
   virtual void unpack_forward_comm(int, int, double *) {}
-  virtual int pack_reverse_comm(int, int, double *) {return 0;}
+  virtual int pack_reverse_comm(int, int, double *) { return 0; }
   virtual void unpack_reverse_comm(int, int *, double *) {}
+
+  virtual void born_matrix(int /*btype*/, double /*rsq*/, int /*at1*/, int /*at2*/, double &du,
+                           double &du2)
+  {
+    du = 0.0;
+    du2 = 0.0;
+  }
 
   void write_file(int, char **);
 

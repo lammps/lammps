@@ -143,6 +143,11 @@ void utils::fmtargs_logmesg(LAMMPS *lmp, fmt::string_view format, fmt::format_ar
   }
 }
 
+std::string utils::errorurl(int errorcode)
+{
+  return fmt::format("\nFor more information see https://docs.lammps.org/err{:04d}", errorcode);
+}
+
 void utils::flush_buffers(LAMMPS *lmp)
 {
   if (lmp->screen) fflush(lmp->screen);

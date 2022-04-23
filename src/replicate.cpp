@@ -110,7 +110,8 @@ void Replicate::command(int narg, char **arg)
   // reset image flags for bondlist option
   if (bondlist_flag)
     for (i=0; i<atom->nlocal; ++i)
-      atom->image[i] = 0;
+      atom->image[i] = ((imageint) IMGMAX << IMG2BITS) |
+        ((imageint) IMGMAX << IMGBITS) | IMGMAX;
 
   // check image flags maximum extent
   // only efficient small image flags compared to new system

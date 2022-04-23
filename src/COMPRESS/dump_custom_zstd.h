@@ -52,14 +52,3 @@ class DumpCustomZstd : public DumpCustom {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Dump custom/zstd only writes compressed files
-
-The dump custom/zstd output file name must have a .zst suffix.
-
-E: Cannot open dump file
-
-Self-explanatory.
-
-*/

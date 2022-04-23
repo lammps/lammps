@@ -99,10 +99,3 @@ class CommBrick : public Comm {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Cannot change to comm_style brick from tiled layout
-
-Self-explanatory.
-
-*/

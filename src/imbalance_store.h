@@ -39,10 +39,3 @@ class ImbalanceStore : public Imbalance {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-*/

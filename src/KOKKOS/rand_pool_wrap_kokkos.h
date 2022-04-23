@@ -83,6 +83,3 @@ class RandPoolWrap : protected Pointers {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

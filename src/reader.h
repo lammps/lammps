@@ -45,17 +45,3 @@ class Reader : protected Pointers {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Cannot open gzipped file
-
-LAMMPS was compiled without support for reading and writing gzipped
-files through a pipeline to the gzip program with -DLAMMPS_GZIP.
-
-E: Cannot open file %s
-
-The specified file cannot be opened.  Check that the path and name are
-correct. If the file is a compressed file, also check that the gzip
-executable can be found and run.
-
-*/

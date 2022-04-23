@@ -51,21 +51,3 @@ class FixStoreLocal : public Fix {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Invalid keyword in fix store/local command
-
-Self-explanatory.
-
-E: Unused instance of fix store/local
-
-Instance of fix store/local is not associated with any other LAMMPS
-class such as a bond style, pair style, etc.
-
-*/

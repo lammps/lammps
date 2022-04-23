@@ -38,10 +38,3 @@ class NPairFullBin : public NPair {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Neighbor list overflow, boost neigh_modify one
-
-UNDOCUMENTED
-
-*/

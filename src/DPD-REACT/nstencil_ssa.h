@@ -31,6 +31,3 @@ class NStencilSSA : public NStencil {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

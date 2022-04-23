@@ -41,14 +41,3 @@ class ImbalanceTime : public Imbalance {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-E: Balance weight <= 0.0
-
-UNDOCUMENTED
-
-*/

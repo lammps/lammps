@@ -72,7 +72,3 @@ class KimQuery : protected Pointers {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-
-*/

@@ -49,18 +49,3 @@ class NTopo : protected Pointers {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Bond extent > half of periodic box length
-
-UNDOCUMENTED
-
-E: Angle extent > half of periodic box length
-
-UNDOCUMENTED
-
-E: Dihedral/improper extent > half of periodic box length
-
-UNDOCUMENTED
-
-*/

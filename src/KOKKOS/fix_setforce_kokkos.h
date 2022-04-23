@@ -90,10 +90,3 @@ class FixSetForceKokkos : public FixSetForce {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Cannot (yet) use respa with Kokkos
-
-Self-explanatory.
-
-*/

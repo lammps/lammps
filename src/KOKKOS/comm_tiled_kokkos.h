@@ -55,6 +55,3 @@ class CommTiledKokkos : public CommTiled {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

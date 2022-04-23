@@ -229,23 +229,3 @@ class AtomVec : protected Pointers {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Invalid atom_style command
-
-Self-explanatory.
-
-E: KOKKOS package requires a kokkos enabled atom_style
-
-Self-explanatory.
-
-E: Per-processor system is too big
-
-The number of owned atoms plus ghost atoms on a single
-processor must fit in 32-bit integer.
-
-E: Invalid atom type in Atoms section of data file
-
-Atom types must range from 1 to specified # of types.
-
-*/

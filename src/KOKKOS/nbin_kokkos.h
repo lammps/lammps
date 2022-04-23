@@ -151,6 +151,3 @@ struct NPairKokkosBinAtomsFunctor {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

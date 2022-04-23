@@ -44,24 +44,3 @@ class PairLJSDKCoulLongGPU : public PairLJSDKCoulLong {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Pair style lj/sdk/coul/long/gpu requires atom attribute q
-
-The atom style defined does not have this attribute.
-
-E: Cannot use newton pair with lj/sdk/coul/long/gpu pair style
-
-Self-explanatory.
-
-E: Pair style is incompatible with KSpace style
-
-If a pair style with a long-range Coulombic component is selected,
-then a kspace style must also be used.
-
-*/

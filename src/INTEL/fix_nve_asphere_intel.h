@@ -50,14 +50,3 @@ class FixNVEAsphereIntel : public FixNVE {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Compute nve/asphere requires atom style ellipsoid
-
-Self-explanatory.
-
-E: Fix nve/asphere requires extended particles
-
-This fix can only be used for particles with a shape setting.
-
-*/

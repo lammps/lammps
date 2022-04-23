@@ -69,6 +69,3 @@ class Scafacos : public KSpace {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

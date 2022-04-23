@@ -61,6 +61,3 @@ class ComputeAveSphereAtomKokkos : public ComputeAveSphereAtom {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

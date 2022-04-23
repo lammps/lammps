@@ -39,6 +39,3 @@ class KSpaceDeprecated : public KSpace {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

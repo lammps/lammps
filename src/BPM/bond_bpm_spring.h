@@ -51,18 +51,3 @@ class BondBPMSpring : public BondBPM {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Atom missing in BPM bond
-
-Bonded atom cannot be found
-
-E: Incorrect args for bond coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Bond style bpm requires 1-3 and 1-4 special weights of 1.0
-
-Self-explanatory.
-
-*/

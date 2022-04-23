@@ -86,10 +86,3 @@ class PairLJCutIntel : public PairLJCut {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: The 'package intel' command is required for /intel styles
-
-Self-explanatory.
-
-*/

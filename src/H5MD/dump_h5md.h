@@ -73,39 +73,3 @@ class DumpH5MD : public Dump {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Invalid number of arguments in dump h5md
-
-Make sure that each data item (position, etc.) is followed by a dump
-interval.
-
-E: Dump h5md requires sorting by atom ID
-
-Use the dump_modify sort command to enable this.
-
-E: Too many atoms for dump h5md
-
-The system size must fit in a 32-bit integer to use this dump
-style.
-
-E: Cannot use variable every setting for dump xtc
-
-The format of this file requires snapshots at regular intervals.
-
-E: Cannot change dump_modify every for dump xtc
-
-The frequency of writing dump xtc snapshots cannot be changed.
-
-E: Cannot set file_from in dump h5md after box or create_group
-
-The file_from option modifies the box and create_group options and
-they must appear after file_from if used.
-
-*/

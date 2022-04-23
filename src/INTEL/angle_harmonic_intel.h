@@ -78,6 +78,3 @@ class AngleHarmonicIntel : public AngleHarmonic {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

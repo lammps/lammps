@@ -74,14 +74,3 @@ class ReaderNative : public Reader {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Dump file is incorrectly formatted
-
-Self-explanatory.
-
-E: Unexpected end of dump file
-
-A read operation from the file failed.
-
-*/

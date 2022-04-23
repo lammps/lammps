@@ -242,6 +242,3 @@ struct NPairSSAKokkosBinIDGhostsFunctor {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

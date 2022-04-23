@@ -40,6 +40,3 @@ class ImproperDeprecated : public Improper {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

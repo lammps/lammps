@@ -38,6 +38,3 @@ class NPairFullBinGhostOmp : public NPair {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

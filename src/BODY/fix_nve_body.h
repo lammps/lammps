@@ -40,14 +40,3 @@ class FixNVEBody : public FixNVE {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Fix nve/body requires atom style body
-
-Self-explanatory.
-
-E: Fix nve/body requires bodies
-
-This fix can only be used for particles that are bodies.
-
-*/

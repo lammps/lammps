@@ -44,15 +44,3 @@ class PairLJClass2GPU : public PairLJClass2 {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Cannot use newton pair with lj/class2/gpu pair style
-
-Self-explanatory.
-
-*/

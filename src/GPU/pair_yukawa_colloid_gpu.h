@@ -44,19 +44,3 @@ class PairYukawaColloidGPU : public PairYukawaColloid {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Pair yukawa/colloid/gpu requires atom style sphere
-
-Self-explanatory.
-
-E: Cannot use newton pair with yukawa/colloid/gpu pair style
-
-Self-explanatory.
-
-*/

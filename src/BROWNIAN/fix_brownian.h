@@ -39,22 +39,3 @@ class FixBrownian : public FixBrownianBase {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal fix brownian command.
-
-Wrong number/type of input arguments.
-
-E: Fix brownian viscous drag coefficient must be > 0.
-
-Self-explanatory.
-
-E: Fix brownian diffusion coefficient must be > 0.
-
-Self-explanatory.
-
-E: Fix brownian seed must be > 0.
-
-Self-explanatory.
-
-*/

@@ -36,14 +36,3 @@ class FixNHBody : public FixNH {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Compute nvt/nph/npt body requires atom style body
-
-Self-explanatory.
-
-E: Fix nvt/nph/npt body requires bodies
-
-Self-explanatory.
-
-*/

@@ -39,6 +39,3 @@ class PairDeprecated : public Pair {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

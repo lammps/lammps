@@ -40,14 +40,3 @@ class ImbalanceGroup : public Imbalance {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-E: Unknown group in balance weight command
-
-UNDOCUMENTED
-
-*/

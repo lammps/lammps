@@ -64,6 +64,3 @@ class PairSRP : public Pair {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

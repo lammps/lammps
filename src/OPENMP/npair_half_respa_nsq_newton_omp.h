@@ -38,6 +38,3 @@ class NPairHalfRespaNsqNewtonOmp : public NPair {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

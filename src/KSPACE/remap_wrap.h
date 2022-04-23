@@ -34,10 +34,3 @@ class Remap : protected Pointers {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Could not create 3d remap plan
-
-The FFT setup in pppm failed.
-
-*/

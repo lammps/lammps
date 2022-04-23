@@ -37,6 +37,3 @@ class NStencilFullGhostBin2d : public NStencil {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

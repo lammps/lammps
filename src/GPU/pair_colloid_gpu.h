@@ -44,23 +44,3 @@ class PairColloidGPU : public PairColloid {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Cannot use newton pair with colloid/gpu pair style
-
-Self-explanatory.
-
-E: Overlapping small/large in pair colloid
-
-This potential is infinite when there is an overlap.
-
-E: Overlapping large/large in pair colloid
-
-This potential is infinite when there is an overlap.
-
-*/

@@ -70,6 +70,3 @@ class KimProperty : protected Pointers {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

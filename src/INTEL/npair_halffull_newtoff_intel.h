@@ -43,6 +43,3 @@ NPairStyle(halffull/newtoff/skip/ghost/intel,
 // clang-format on
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

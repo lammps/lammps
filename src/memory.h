@@ -751,21 +751,3 @@ class Memory : protected Pointers {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Failed to allocate %ld bytes for array %s
-
-Your LAMMPS simulation has run out of memory.  You need to run a
-smaller simulation or on more processors.
-
-E: Failed to reallocate %ld bytes for array %s
-
-Your LAMMPS simulation has run out of memory.  You need to run a
-smaller simulation or on more processors.
-
-E: Cannot create/grow a vector/array of pointers for %s
-
-LAMMPS code is making an illegal call to the templated memory
-allocators, to create a vector or array of pointers.
-
-*/

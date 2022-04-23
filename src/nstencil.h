@@ -122,6 +122,3 @@ class NStencil : protected Pointers {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

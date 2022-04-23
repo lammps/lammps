@@ -77,18 +77,3 @@ class FixBondHistory : public Fix {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-E: Index exceeded in fix bond history
-
-Bond requested non-existant data
-
-E: Cannot store bond variables without any bonds
-
-Atoms must have a nonzero number of bonds to store data
-
-*/

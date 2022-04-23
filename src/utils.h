@@ -660,6 +660,3 @@ namespace utils {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

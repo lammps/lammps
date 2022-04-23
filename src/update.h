@@ -78,31 +78,3 @@ class Update : protected Pointers {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Illegal integrate style
-
-Self-explanatory.
-
-E: Timestep must be >= 0
-
-Specified timestep is invalid.
-
-E: Cannot reset timestep with a time-dependent fix defined
-
-You cannot reset the timestep when a fix that keeps track of elapsed
-time is in place.
-
-E: Cannot reset timestep with a dynamic region defined
-
-Dynamic regions (see the region command) have a time dependence.
-Thus you cannot change the timestep when one or more of these
-are defined.
-
-*/

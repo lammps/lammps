@@ -100,10 +100,3 @@ class NBin : protected Pointers {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Non-numeric positions - simulation unstable
-
-UNDOCUMENTED
-
-*/

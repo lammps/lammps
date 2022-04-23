@@ -88,6 +88,3 @@ class Error : protected Pointers {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

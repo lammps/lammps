@@ -41,6 +41,3 @@ class AtomVecSpin : public AtomVec {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

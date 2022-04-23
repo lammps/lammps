@@ -187,10 +187,3 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Cannot use chosen neighbor list style with pair eam/kk
-
-That style is not supported by Kokkos.
-
-*/

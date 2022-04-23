@@ -77,7 +77,3 @@ class KimCommand : public Command {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-
-*/

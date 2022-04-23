@@ -262,31 +262,3 @@ namespace LAMMPS_NS {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Fix langevin omega is not yet implemented with kokkos
-
-This option is not yet available.
-
-E: Fix langevin angmom is not yet implemented with kokkos
-
-This option is not yet available.
-
-E: Cannot zero Langevin force of 0 atoms
-
-The group has zero atoms, so you cannot request its force
-be zeroed.
-
-E: Fix langevin variable returned negative temperature
-
-Self-explanatory.
-
-E: Fix langevin gjf with tbias is not yet implemented with kokkos
-
-This option is not yet available.
-
-W: Fix langevin gjf using random gaussians is not implemented with kokkos
-
-This will most likely cause errors in kinetic fluctuations.
-
-*/

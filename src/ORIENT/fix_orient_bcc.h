@@ -89,27 +89,3 @@ class FixOrientBCC : public Fix {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix orient/bcc file open failed
-
-The fix orient/bcc command could not open a specified file.
-
-E: Fix orient/bcc file read failed
-
-The fix orient/bcc command could not read the needed parameters from a
-specified file.
-
-E: Fix orient/bcc found self twice
-
-The neighbor lists used by fix orient/bcc are messed up.  If this
-error occurs, it is likely a bug, so send an email to the
-"developers"_https://www.lammps.org/authors.html.
-
-*/

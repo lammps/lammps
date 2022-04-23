@@ -39,6 +39,3 @@ class NStencilHalfMulti3dTri : public NStencil {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

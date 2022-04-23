@@ -101,10 +101,3 @@ class PairDPDIntel : public PairDPD {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: The 'package intel' command is required for /intel styles
-
-Self-explanatory.
-
-*/

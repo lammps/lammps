@@ -43,6 +43,3 @@ class NPairFullBinIntel : public NPairIntel {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

@@ -72,6 +72,3 @@ class KimParam : protected Pointers {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

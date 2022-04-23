@@ -178,10 +178,3 @@ class ColorMap : protected Pointers {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Invalid image up vector
-
-Up vector cannot be (0,0,0).
-
-*/

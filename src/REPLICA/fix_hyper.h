@@ -39,6 +39,3 @@ class FixHyper : public Fix {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

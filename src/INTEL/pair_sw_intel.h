@@ -103,18 +103,3 @@ class PairSWIntel : public PairSW {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: The 'package intel' command is required for /intel styles
-
-Self-explanatory.
-
-E: The 'ghost no' option cannot be used with sw/intel.
-
-Self-explanatory.
-
-E: Intel compiler versions before 15 Update 1 not supported for sw/intel.
-
-Self-explanatory.
-
-*/

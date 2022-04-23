@@ -24,21 +24,23 @@ PairStyle(ilp/graphene/hbn/opt,PairILPGrapheneHBNOpt);
 
 namespace LAMMPS_NS {
 
-class PairILPGrapheneHBNOpt : public PairILPGrapheneHBN {
+class PairILPGrapheneHBNOpt : virtual public PairILPGrapheneHBN {
  public:
   PairILPGrapheneHBNOpt(class LAMMPS *);
+  ~PairILPGrapheneHBNOpt() override;
 
   void compute(int, int) override;
   void init_style() override;
 
  protected:
-  void computeILP(int, int);
-  inline void cross_deriv(double *pv, double (*dpv)[3][3], double (*vet)[3], int j, int k, int l);
-  inline void calc_dnormal(double (*dnormal)[3][3], double (*dn1)[3][3], double *n1, double nn,
-                           double nn2);
-  inline void ev_tally_buffer(int i, int j, double *ei, double *vi, double *ej, double *vj,
-                              int nlocal, int newton_pair, double evdwl, double ecoul, double fx,
-                              double fy, double fz, double delx, double dely, double delz);
+  void calc_single_normal(int i, int *ILP_neigh, int nneigh, double *normal, double (*dnormdri)[3],
+                          double (*dnormdrk)[3][3]);
+  void update_internal_list();
+  template <int, int, int> void eval();
+  int *layered_neigh;
+  int **first_layered_neigh;
+  int *num_intra, *num_inter, *num_vdw;
+  int inum_max, jnum_max;
 };
 
 }    // namespace LAMMPS_NS

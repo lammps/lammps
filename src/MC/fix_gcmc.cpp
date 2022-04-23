@@ -2316,7 +2316,7 @@ double FixGCMC::energy_full()
   // but Modify::pre_reverse() is needed for INTEL
 
   if (modify->n_pre_reverse) modify->pre_reverse(eflag,vflag);
-  if (modify->n_post_force) modify->post_force(vflag);
+  if (modify->n_post_force_any) modify->post_force(vflag);
 
   // NOTE: all fixes with energy_global_flag set and which
   //   operate at pre_force() or post_force()

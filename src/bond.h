@@ -33,6 +33,8 @@ class Bond : protected Pointers {
   double virial[6];          // accumulated virial: xx,yy,zz,xy,xz,yz
   double *eatom, **vatom;    // accumulated per-atom energy/virial
 
+  int born_matrix_enable;
+
   int comm_forward;        // size of forward communication (0 if none)
   int comm_reverse;        // size of reverse communication (0 if none)
   int comm_reverse_off;    // size of reverse comm even if newton off
@@ -68,6 +70,13 @@ class Bond : protected Pointers {
   virtual void unpack_forward_comm(int, int, double *) {}
   virtual int pack_reverse_comm(int, int, double *) { return 0; }
   virtual void unpack_reverse_comm(int, int *, double *) {}
+
+  virtual void born_matrix(int /*btype*/, double /*rsq*/, int /*at1*/, int /*at2*/, double &du,
+                           double &du2)
+  {
+    du = 0.0;
+    du2 = 0.0;
+  }
 
   void write_file(int, char **);
 

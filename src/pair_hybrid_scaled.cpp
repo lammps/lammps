@@ -413,7 +413,7 @@ double PairHybridScaled::single(int i, int j, int itype, int jtype, double rsq, 
           (special_coul[map[itype][jtype][m]] != nullptr))
         error->one(FLERR, "Pair hybrid single() does not support per sub-style special_bond");
 
-      scale = scaleval[map[itype][jtype][m]];
+      double scale = scaleval[map[itype][jtype][m]];
       esum += scale * pstyle->single(i, j, itype, jtype, rsq, factor_coul, factor_lj, fone);
       fforce += scale * fone;
     }
@@ -421,6 +421,57 @@ double PairHybridScaled::single(int i, int j, int itype, int jtype, double rsq, 
 
   if (single_extra) copy_svector(itype, jtype);
   return esum;
+}
+
+/* ----------------------------------------------------------------------
+   call sub-style to compute born matrix interaction
+   error if sub-style does not support born_matrix call
+   since overlay could have multiple sub-styles, sum results explicitly
+------------------------------------------------------------------------- */
+
+void PairHybridScaled::born_matrix(int i, int j, int itype, int jtype, double rsq,
+                                   double factor_coul, double factor_lj, double &dupair,
+                                   double &du2pair)
+{
+  if (nmap[itype][jtype] == 0) error->one(FLERR, "Invoked pair born_matrix on pair style none");
+
+  // update scale values from variables where needed
+
+  const int nvars = scalevars.size();
+  if (nvars > 0) {
+    double *vals = new double[nvars];
+    for (int k = 0; k < nvars; ++k) {
+      int m = input->variable->find(scalevars[k].c_str());
+      if (m < 0)
+        error->all(FLERR, "Variable '{}' not found when updating scale factors", scalevars[k]);
+      vals[k] = input->variable->compute_equal(m);
+    }
+    for (int k = 0; k < nstyles; ++k) {
+      if (scaleidx[k] >= 0) scaleval[k] = vals[scaleidx[k]];
+    }
+    delete[] vals;
+  }
+
+  double du, du2, scale;
+  dupair = du2pair = scale = 0.0;
+
+  for (int m = 0; m < nmap[itype][jtype]; m++) {
+    auto pstyle = styles[map[itype][jtype][m]];
+    if (rsq < pstyle->cutsq[itype][jtype]) {
+      if (pstyle->born_matrix_enable == 0)
+        error->one(FLERR, "Pair hybrid sub-style does not support born_matrix call");
+
+      if ((special_lj[map[itype][jtype][m]] != nullptr) ||
+          (special_coul[map[itype][jtype][m]] != nullptr))
+        error->one(FLERR, "Pair hybrid born_matrix() does not support per sub-style special_bond");
+
+      du = du2 = 0.0;
+      scale = scaleval[map[itype][jtype][m]];
+      pstyle->born_matrix(i, j, itype, jtype, rsq, factor_coul, factor_lj, du, du2);
+      dupair += scale * du;
+      du2pair += scale * du2;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

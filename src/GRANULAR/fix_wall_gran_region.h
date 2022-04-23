@@ -46,7 +46,6 @@ class FixWallGranRegion : public FixWallGran {
 
  private:
   class Region *region;
-  char *region_style;
   int nregion;
 
   // shear history for multiple contacts per particle

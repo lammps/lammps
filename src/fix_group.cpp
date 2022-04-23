@@ -43,6 +43,8 @@ FixGroup::FixGroup(LAMMPS *lmp, int narg, char **arg) :
   gbit = group->bitmask[group->find(dgroupid)];
   gbitinverse = group->inversemask[group->find(dgroupid)];
 
+  comm_forward = 1;
+
   // process optional args
 
   regionflag = 0;
@@ -107,8 +109,6 @@ FixGroup::~FixGroup()
 int FixGroup::setmask()
 {
   int mask = 0;
-  mask |= POST_INTEGRATE;
-  mask |= POST_INTEGRATE_RESPA;
   return mask;
 }
 
@@ -144,31 +144,6 @@ void FixGroup::init()
     if (iprop < 0 || cols)
       error->all(FLERR, "Group dynamic command custom property vector does not exist");
   }
-
-  // warn if any FixGroup is not at tail end of all post_integrate fixes
-
-  Fix **fix = modify->fix;
-  int *fmask = modify->fmask;
-  int nfix = modify->nfix;
-
-  int n = 0;
-  for (int i = 0; i < nfix; i++)
-    if (POST_INTEGRATE & fmask[i]) n++;
-  int warn = 0;
-  for (int i = 0; i < nfix; i++) {
-    if (POST_INTEGRATE & fmask[i]) {
-      for (int j = i + 1; j < nfix; j++) {
-        if (POST_INTEGRATE & fmask[j]) {
-          if (strstr(fix[j]->id, "GROUP_") != fix[j]->id) warn = 1;
-        }
-      }
-    }
-  }
-
-  if (warn && comm->me == 0)
-    error->warning(FLERR,
-                   "One or more dynamic groups may not be "
-                   "updated at correct point in timestep");
 }
 
 /* ----------------------------------------------------------------------
@@ -182,7 +157,7 @@ void FixGroup::setup(int /*vflag*/)
 
 /* ---------------------------------------------------------------------- */
 
-void FixGroup::post_integrate()
+void FixGroup::post_force(int /*vflag*/)
 {
   // only assign atoms to group on steps that are multiples of nevery
 
@@ -191,9 +166,9 @@ void FixGroup::post_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixGroup::post_integrate_respa(int ilevel, int /*iloop*/)
+void FixGroup::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
-  if (ilevel == nlevels_respa - 1) post_integrate();
+  if (ilevel == nlevels_respa - 1) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -203,22 +178,20 @@ void FixGroup::set_group()
   int nlocal = atom->nlocal;
 
   // invoke atom-style variable if defined
-  // set post_integrate flag to 1, then unset after
-  // this is for any compute to check if it needs to
-  //   operate differently due to invocation this early in timestep
-  // e.g. perform ghost comm update due to atoms having just moved
+  // NOTE: after variable invocation could reset invoked computes to not-invoked
+  //   this would avoid an issue where other post-force fixes
+  //   change the compute result since it will not be re-invoked at end-of-step,
+  //   e.g. if compute pe/atom includes pe contributions from fixes
 
   double *var = nullptr;
   int *ivector = nullptr;
   double *dvector = nullptr;
 
   if (varflag) {
-    update->post_integrate = 1;
     modify->clearstep_compute();
-    memory->create(var, nlocal, "fix/group:varvalue");
+    memory->create(var, nlocal, "fix/group:var");
     input->variable->compute_atom(ivar, igroup, var, 1, 0);
     modify->addstep_compute(update->ntimestep + nevery);
-    update->post_integrate = 0;
   }
 
   // set ptr to custom atom vector
@@ -232,8 +205,6 @@ void FixGroup::set_group()
 
   // set mask for each atom
   // only in group if in parent group, in region, variable is non-zero
-  // if compute, fix, etc needs updated masks of ghost atoms,
-  // it must do forward_comm() to update them
 
   double **x = atom->x;
   int *mask = atom->mask;
@@ -258,6 +229,41 @@ void FixGroup::set_group()
   }
 
   if (varflag) memory->destroy(var);
+
+  // insure ghost atom masks are also updated
+
+  comm->forward_comm(this);
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixGroup::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
+{
+  int i, j, m;
+
+  int *mask = atom->mask;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = ubuf(mask[j]).d;
+  }
+
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixGroup::unpack_forward_comm(int n, int first, double *buf)
+{
+  int i, m, last;
+
+  m = 0;
+  last = first + n;
+
+  int *mask = atom->mask;
+
+  for (i = first; i < last; i++) mask[i] = (int) ubuf(buf[m++]).i;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -240,7 +240,7 @@ double AngleCosine::single(int type, int i1, int i2, int i3)
 
 /* ---------------------------------------------------------------------- */
 
-void AngleCosine::born_matrix(int type, int i1, int i2, int i3, double &du, double &du2)
+void AngleCosine::born_matrix(int type, int /*i1*/, int /*i2*/, int /*i3*/, double &du, double &du2)
 {
   du2 = 0;
   du = k[type];

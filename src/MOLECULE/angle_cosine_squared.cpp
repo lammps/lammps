@@ -288,7 +288,6 @@ void AngleCosineSquared::born_matrix(int type, int i1, int i2, int i3, double& d
   if (c < -1.0) c = -1.0;
 
   double dcostheta = c - cos(theta0[type]);
-  double tk = k[type] * dcostheta;
   du2 = 2*k[type];
   du = du2*dcostheta;
 }

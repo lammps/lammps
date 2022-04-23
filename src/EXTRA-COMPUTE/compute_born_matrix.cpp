@@ -388,10 +388,8 @@ void ComputeBornMatrix::compute_pairs()
 
   int *type = atom->type;
   int *mask = atom->mask;
-  int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
-  int newton_pair = force->newton_pair;
 
   // invoke half neighbor list (will copy or build if necessary)
   neighbor->build_one(list);
@@ -410,7 +408,6 @@ void ComputeBornMatrix::compute_pairs()
 
   int a, b, c, d;
   double xi1, xi2, xi3;
-  double fi1, fi2, fi3;
   double xj1, xj2, xj3;
   double rij[3];
   double pair_pref;
@@ -474,7 +471,6 @@ void ComputeBornMatrix::compute_pairs()
 
 void ComputeBornMatrix::compute_numdiff()
 {
-  double energy;
   int vec_index;
 
   // grow arrays if necessary
@@ -495,8 +491,6 @@ void ComputeBornMatrix::compute_numdiff()
 
   // loop over 6 strain directions
   // compute stress finite difference in each direction
-
-  int flag, allflag;
 
   for (int idir = 0; idir < NDIR_VIRIAL; idir++) {
 
@@ -630,10 +624,6 @@ void ComputeBornMatrix::update_virial()
 
 void ComputeBornMatrix::virial_addon()
 {
-
-  int kd, nd, id, jd;
-  int m;
-
   double *sigv = compute_virial->vector;
 
   // This way of doing is not very elegant but is correct.
@@ -723,13 +713,11 @@ double ComputeBornMatrix::memory_usage()
 
 void ComputeBornMatrix::compute_bonds()
 {
-  int i, m, n, nb, atom1, atom2, imol, iatom, btype, ivar;
+  int i, m, nb, atom1, atom2, imol, iatom, btype;
   tagint tagprev;
   double dx, dy, dz, rsq;
 
   double **x = atom->x;
-  double **v = atom->v;
-  int *type = atom->type;
   tagint *tag = atom->tag;
   int *num_bond = atom->num_bond;
   tagint **bond_atom = atom->bond_atom;
@@ -817,13 +805,12 @@ void ComputeBornMatrix::compute_bonds()
 
 void ComputeBornMatrix::compute_angles()
 {
-  int i, m, n, na, atom1, atom2, atom3, imol, iatom, atype, ivar;
+  int i, m, na, atom1, atom2, atom3, imol, iatom, atype;
   tagint tagprev;
   double delx1, dely1, delz1, delx2, dely2, delz2;
   double rsq1, rsq2, r1, r2, cost;
   double r1r2, r1r2inv;
   double rsq1inv, rsq2inv, cinv;
-  double *ptr;
 
   double **x = atom->x;
   tagint *tag = atom->tag;
@@ -982,12 +969,11 @@ void ComputeBornMatrix::compute_angles()
 
 void ComputeBornMatrix::compute_dihedrals()
 {
-  int i, m, n, nd, atom1, atom2, atom3, atom4, imol, iatom, dtype, ivar;
+  int i, m, nd, atom1, atom2, atom3, atom4, imol, iatom;
   tagint tagprev;
-  double vb1x, vb1y, vb1z, vb2x, vb2y, vb2z, vb3x, vb3y, vb3z, vb2xm, vb2ym, vb2zm;
-  double ax, ay, az, bx, by, bz, rasq, rbsq, dotab, rgsq, rg, ra2inv, rb2inv, dotabinv, rabinv;
-  double si, co, phi;
-  double *ptr;
+  double vb1x, vb1y, vb1z, vb2x, vb2y, vb2z, vb3x, vb3y, vb3z;
+  double ax, ay, az, bx, by, bz, rasq, rbsq, dotab, rgsq, ra2inv, rb2inv, dotabinv, rabinv;
+  double si, co;
 
   double **x = atom->x;
   tagint *tag = atom->tag;

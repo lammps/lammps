@@ -401,7 +401,6 @@ double PairHybridScaled::single(int i, int j, int itype, int jtype, double rsq, 
   double fone;
   fforce = 0.0;
   double esum = 0.0;
-  double scale;
 
   for (int m = 0; m < nmap[itype][jtype]; m++) {
     auto pstyle = styles[map[itype][jtype][m]];

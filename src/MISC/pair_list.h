@@ -57,18 +57,18 @@ class PairList : public Pair {
   };
 
   struct list_param {
-    int style;            // potential style indicator
-    tagint id1, id2;      // global atom ids
-    double cutsq;         // cutoff**2 for this pair
-    double offset;        // energy offset
-    union param_u param;  // parameters for style
+    int style;              // potential style indicator
+    tagint id1, id2;        // global atom ids
+    double cutsq;           // cutoff**2 for this pair
+    double offset;          // energy offset
+    union param_u param;    // parameters for style
   };
 
  protected:
-  double cut_global;      // global cutoff distance
-  list_param *params;     // lisf of pair interaction parameters
-  int npairs;             // # of atom pairs in global list
-  int check_flag;         // 1 if checking for missing pairs
+  double cut_global;     // global cutoff distance
+  list_param *params;    // lisf of pair interaction parameters
+  int npairs;            // # of atom pairs in global list
+  int check_flag;        // 1 if checking for missing pairs
 };
 
 }    // namespace LAMMPS_NS

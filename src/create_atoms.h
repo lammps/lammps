@@ -30,8 +30,7 @@ class CreateAtoms : public Command {
   void command(int, char **) override;
 
  private:
-  int me, nprocs;
-  int ntype, style, mode, nregion, nbasis, nrandom, seed;
+  int ntype, style, mode, nbasis, nrandom, seed;
   int remapflag;
   int subsetflag;
   bigint nsubset;
@@ -51,6 +50,7 @@ class CreateAtoms : public Command {
   int *flag;    // flag subset of particles to insert on lattice
   int *next;
 
+  class Region *region;
   class Molecule *onemol;
   class RanMars *ranmol;
   class RanMars *ranlatt;

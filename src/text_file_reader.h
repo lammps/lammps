@@ -18,7 +18,7 @@
 #ifndef LMP_TEXT_FILE_READER_H
 #define LMP_TEXT_FILE_READER_H
 
-#include "tokenizer.h"          // IWYU pragma: export
+#include "tokenizer.h"    // IWYU pragma: export
 
 #include <cstdio>
 

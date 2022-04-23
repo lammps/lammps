@@ -130,7 +130,7 @@ void PairHybridScaled::compute(int eflag, int vflag)
   Respa *respa = nullptr;
   respaflag = 0;
   if (utils::strmatch(update->integrate_style, "^respa")) {
-    respa = dynamic_cast<Respa *>( update->integrate);
+    respa = dynamic_cast<Respa *>(update->integrate);
     if (respa->nhybrid_styles > 0) respaflag = 1;
   }
 
@@ -401,7 +401,6 @@ double PairHybridScaled::single(int i, int j, int itype, int jtype, double rsq, 
   double fone;
   fforce = 0.0;
   double esum = 0.0;
-  double scale;
 
   for (int m = 0; m < nmap[itype][jtype]; m++) {
     auto pstyle = styles[map[itype][jtype][m]];
@@ -430,8 +429,8 @@ double PairHybridScaled::single(int i, int j, int itype, int jtype, double rsq, 
 ------------------------------------------------------------------------- */
 
 void PairHybridScaled::born_matrix(int i, int j, int itype, int jtype, double rsq,
-                                   double factor_coul, double factor_lj,
-                                   double &dupair, double &du2pair)
+                                   double factor_coul, double factor_lj, double &dupair,
+                                   double &du2pair)
 {
   if (nmap[itype][jtype] == 0) error->one(FLERR, "Invoked pair born_matrix on pair style none");
 
@@ -468,8 +467,8 @@ void PairHybridScaled::born_matrix(int i, int j, int itype, int jtype, double rs
       du = du2 = 0.0;
       scale = scaleval[map[itype][jtype][m]];
       pstyle->born_matrix(i, j, itype, jtype, rsq, factor_coul, factor_lj, du, du2);
-      dupair += scale*du;
-      du2pair += scale*du2;
+      dupair += scale * du;
+      du2pair += scale * du2;
     }
   }
 }
@@ -528,8 +527,8 @@ void PairHybridScaled::coeff(int narg, char **arg)
   // ensure that one_coeff flag is honored
 
   if (!none && styles[m]->one_coeff)
-    if ((strcmp(arg[0],"*") != 0) || (strcmp(arg[1],"*") != 0))
-      error->all(FLERR,"Incorrect args for pair coefficients");
+    if ((strcmp(arg[0], "*") != 0) || (strcmp(arg[1], "*") != 0))
+      error->all(FLERR, "Incorrect args for pair coefficients");
 
   // invoke sub-style coeff() starting with 1st remaining arg
 

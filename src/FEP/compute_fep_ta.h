@@ -30,7 +30,7 @@ namespace LAMMPS_NS {
 
 class ComputeFEPTA : public Compute {
  public:
-  ComputeFEPTA(class LAMMPS *, int, char **); // compute ID groupID fep/ta temp xy/xz/yz scale_factor
+  ComputeFEPTA(class LAMMPS *, int, char **);
   ~ComputeFEPTA() override;
   void init() override;
   void compute_vector() override;

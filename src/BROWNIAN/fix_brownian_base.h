@@ -48,9 +48,9 @@ class FixBrownianBase : public Fix {
   int noise_flag;             // 0/1 for noise off/on
   int gaussian_noise_flag;    // 0/1 for uniform/gaussian noise
 
-  double temp;      // temperature
-  double rot_temp;      // temperature
-  double g1, g2;    // prefactors in time stepping
+  double temp;        // temperature
+  double rot_temp;    // temperature
+  double g1, g2;      // prefactors in time stepping
 
   class RanMars *rng;
 };

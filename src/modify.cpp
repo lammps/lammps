@@ -457,13 +457,11 @@ void Modify::pre_reverse(int eflag, int vflag)
 void Modify::post_force(int vflag)
 {
   if (n_post_force_group) {
-    for (int i = 0; i < n_post_force_group; i++)
-      fix[list_post_force_group[i]]->post_force(vflag);
+    for (int i = 0; i < n_post_force_group; i++) fix[list_post_force_group[i]]->post_force(vflag);
   }
 
   if (n_post_force) {
-    for (int i = 0; i < n_post_force; i++)
-      fix[list_post_force[i]]->post_force(vflag);
+    for (int i = 0; i < n_post_force; i++) fix[list_post_force[i]]->post_force(vflag);
   }
 }
 
@@ -886,7 +884,7 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
         fix[ifix]->style = utils::strdup(estyle);
       }
     }
-    if (fix[ifix] == nullptr && lmp->suffix2) {
+    if ((fix[ifix] == nullptr) && lmp->suffix2) {
       std::string estyle = arg[2] + std::string("/") + lmp->suffix2;
       if (fix_map->find(estyle) != fix_map->end()) {
         FixCreator &fix_creator = (*fix_map)[estyle];
@@ -897,7 +895,7 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
     }
   }
 
-  if (fix[ifix] == nullptr && fix_map->find(arg[2]) != fix_map->end()) {
+  if ((fix[ifix] == nullptr) && (fix_map->find(arg[2]) != fix_map->end())) {
     FixCreator &fix_creator = (*fix_map)[arg[2]];
     fix[ifix] = fix_creator(lmp, narg, arg);
   }
@@ -1754,13 +1752,12 @@ void Modify::list_init_post_force_group(int &n, int *&list)
 
   n = 0;
   for (int i = 0; i < nfix; i++)
-    if (strcmp(fix[i]->style,"GROUP") == 0) n++;
+    if (strcmp(fix[i]->style, "GROUP") == 0) n++;
   list = new int[n];
 
   n = 0;
   for (int i = 0; i < nfix; i++)
-    if (strcmp(fix[i]->style,"GROUP") == 0)
-      list[n++] = i;
+    if (strcmp(fix[i]->style, "GROUP") == 0) list[n++] = i;
 }
 
 /* ----------------------------------------------------------------------

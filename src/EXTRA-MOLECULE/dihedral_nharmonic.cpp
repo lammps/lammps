@@ -345,13 +345,11 @@ void DihedralNHarmonic::born_matrix(int nd, int i1, int i2, int i3, int i4,
                              double &dudih, double &du2dih) {
   int i,type;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
-  double ax,ay,az,bx,by,bz,rasq,rbsq,rgsq,rg,rginv,ra2inv,rb2inv,rabinv;
-  double c,s,kf;
+  double c,ax,ay,az,bx,by,bz,rasq,rbsq,ra2inv,rb2inv,rabinv;
 
   int **dihedrallist = neighbor->dihedrallist;
   double **x = atom->x;
 
-  int ndihedrallist = neighbor->ndihedrallist;
   type = dihedrallist[nd][4];
 
   vb1x = x[i1][0] - x[i2][0];

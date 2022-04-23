@@ -41,12 +41,12 @@ class FixWallRegionEES : public Fix {
  private:
   class AtomVecEllipsoid *avec;
 
-  int iregion;
   double epsilon, sigma, cutoff;
   int eflag;
   double ewall[4], ewall_all[4];
   int nlevels_respa;
   char *idregion;
+  class Region *region;
 
   double coeff1, coeff2, coeff3, coeff4, offset;
   double coeff5, coeff6;

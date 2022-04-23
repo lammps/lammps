@@ -62,7 +62,9 @@ MLIAPModelPython::MLIAPModelPython(LAMMPS *lmp, char *coefffilename) :
 
   // if LAMMPS_POTENTIALS environment variable is set, add it to PYTHONPATH as well
   const char *potentials_path = getenv("LAMMPS_POTENTIALS");
-  if (potentials_path != nullptr) { PyList_Append(py_path, PY_STRING_FROM_STRING(potentials_path)); }
+  if (potentials_path != nullptr) {
+    PyList_Append(py_path, PY_STRING_FROM_STRING(potentials_path));
+  }
   PyGILState_Release(gstate);
 
   if (coefffilename) read_coeffs(coefffilename);

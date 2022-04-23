@@ -81,8 +81,6 @@ class FixSetForceKokkos : public FixSetForce {
   typename AT::t_x_array_randomread x;
   typename AT::t_f_array f;
   typename AT::t_int_1d_randomread mask;
-
-  class Region* region;
 };
 
 }

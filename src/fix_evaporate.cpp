@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -35,32 +34,31 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixEvaporate::FixEvaporate(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), idregion(nullptr), list(nullptr), mark(nullptr), random(nullptr)
+    Fix(lmp, narg, arg), idregion(nullptr), region(nullptr), list(nullptr), mark(nullptr),
+    random(nullptr)
 {
-  if (narg < 7) error->all(FLERR,"Illegal fix evaporate command");
+  if (narg < 7) error->all(FLERR, "Illegal fix evaporate command");
 
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 0;
 
-  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  nflux = utils::inumeric(FLERR,arg[4],false,lmp);
-  iregion = domain->find_region(arg[5]);
+  nevery = utils::inumeric(FLERR, arg[3], false, lmp);
+  nflux = utils::inumeric(FLERR, arg[4], false, lmp);
+  region = domain->get_region_by_id(arg[5]);
   idregion = utils::strdup(arg[5]);
-  int seed = utils::inumeric(FLERR,arg[6],false,lmp);
+  int seed = utils::inumeric(FLERR, arg[6], false, lmp);
 
-  if (nevery <= 0 || nflux <= 0)
-    error->all(FLERR,"Illegal fix evaporate command");
-  if (iregion == -1)
-    error->all(FLERR,"Region ID for fix evaporate does not exist");
-  if (seed <= 0) error->all(FLERR,"Illegal fix evaporate command");
+  if (nevery <= 0 || nflux <= 0) error->all(FLERR, "Illegal fix evaporate command");
+  if (!region) error->all(FLERR, "Region {} for fix evaporate does not exist", idregion);
+  if (seed <= 0) error->all(FLERR, "Illegal fix evaporate command");
 
   // random number generator, same for all procs
   // warm up the generator 30x to avoid correlations in first-particle
   // positions if runs are repeated with consecutive seeds
 
-  random = new RanPark(lmp,seed);
-  for (int ii=0; ii < 30; ii++) random->uniform();
+  random = new RanPark(lmp, seed);
+  for (int ii = 0; ii < 30; ii++) random->uniform();
 
   // optional args
 
@@ -68,17 +66,18 @@ FixEvaporate::FixEvaporate(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 7;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"molecule") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix evaporate command");
-      molflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+    if (strcmp(arg[iarg], "molecule") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix evaporate command");
+      molflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else error->all(FLERR,"Illegal fix evaporate command");
+    } else
+      error->all(FLERR, "Illegal fix evaporate command");
   }
 
   // set up reneighboring
 
   force_reneighbor = 1;
-  next_reneighbor = (update->ntimestep/nevery)*nevery + nevery;
+  next_reneighbor = (update->ntimestep / nevery) * nevery + nevery;
   ndeleted = 0;
 
   nmax = 0;
@@ -90,7 +89,7 @@ FixEvaporate::FixEvaporate(LAMMPS *lmp, int narg, char **arg) :
 
 FixEvaporate::~FixEvaporate()
 {
-  delete [] idregion;
+  delete[] idregion;
   delete random;
   memory->destroy(list);
   memory->destroy(mark);
@@ -111,9 +110,8 @@ void FixEvaporate::init()
 {
   // set index and check validity of region
 
-  iregion = domain->find_region(idregion);
-  if (iregion == -1)
-    error->all(FLERR,"Region ID for fix evaporate does not exist");
+  region = domain->get_region_by_id(idregion);
+  if (!region) error->all(FLERR, "Region {} for fix evaporate does not exist", idregion);
 
   // check that no deletable atoms are in atom->firstgroup
   // deleting such an atom would not leave firstgroup atoms first
@@ -128,10 +126,9 @@ void FixEvaporate::init()
       if ((mask[i] & groupbit) && (mask[i] && firstgroupbit)) flag = 1;
 
     int flagall;
-    MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+    MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
 
-    if (flagall)
-      error->all(FLERR,"Cannot evaporate atoms in atom_modify first group");
+    if (flagall) error->all(FLERR, "Cannot evaporate atoms in atom_modify first group");
   }
 
   // if molflag not set, warn if any deletable atom has a mol ID
@@ -145,15 +142,13 @@ void FixEvaporate::init()
       if (mask[i] & groupbit)
         if (molecule[i]) flag = 1;
     int flagall;
-    MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+    MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
     if (flagall && comm->me == 0)
-      error->warning(FLERR,
-                     "Fix evaporate may delete atom with non-zero molecule ID");
+      error->warning(FLERR, "Fix evaporate may delete atom with non-zero molecule ID");
   }
 
   if (molflag && atom->molecule_flag == 0)
-      error->all(FLERR,
-                 "Fix evaporate molecule requires atom attribute molecule");
+    error->all(FLERR, "Fix evaporate molecule requires atom attribute molecule");
 }
 
 /* ----------------------------------------------------------------------
@@ -164,8 +159,8 @@ void FixEvaporate::init()
 
 void FixEvaporate::pre_exchange()
 {
-  int i,j,m,iwhichglobal,iwhichlocal;
-  int ndel,ndeltopo[4];
+  int i, j, m, iwhichglobal, iwhichlocal;
+  int ndel, ndeltopo[4];
 
   if (update->ntimestep != next_reneighbor) return;
 
@@ -175,8 +170,8 @@ void FixEvaporate::pre_exchange()
     memory->destroy(list);
     memory->destroy(mark);
     nmax = atom->nmax;
-    memory->create(list,nmax,"evaporate:list");
-    memory->create(mark,nmax,"evaporate:mark");
+    memory->create(list, nmax, "evaporate:list");
+    memory->create(mark, nmax, "evaporate:mark");
   }
 
   // ncount = # of deletable atoms in region that I own
@@ -184,7 +179,6 @@ void FixEvaporate::pre_exchange()
   // nbefore = # on procs before me
   // list[ncount] = list of local indices of atoms I can delete
 
-  Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
@@ -195,11 +189,11 @@ void FixEvaporate::pre_exchange()
   int ncount = 0;
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
-      if (region->match(x[i][0],x[i][1],x[i][2])) list[ncount++] = i;
+      if (region->match(x[i][0], x[i][1], x[i][2])) list[ncount++] = i;
 
-  int nall,nbefore;
-  MPI_Allreduce(&ncount,&nall,1,MPI_INT,MPI_SUM,world);
-  MPI_Scan(&ncount,&nbefore,1,MPI_INT,MPI_SUM,world);
+  int nall, nbefore;
+  MPI_Allreduce(&ncount, &nall, 1, MPI_INT, MPI_SUM, world);
+  MPI_Scan(&ncount, &nbefore, 1, MPI_INT, MPI_SUM, world);
   nbefore -= ncount;
 
   // ndel = total # of atom deletions, in or out of region
@@ -216,27 +210,28 @@ void FixEvaporate::pre_exchange()
 
   if (molflag == 0) {
     while (nall && ndel < nflux) {
-      iwhichglobal = static_cast<int> (nall*random->uniform());
-      if (iwhichglobal < nbefore) nbefore--;
+      iwhichglobal = static_cast<int>(nall * random->uniform());
+      if (iwhichglobal < nbefore)
+        nbefore--;
       else if (iwhichglobal < nbefore + ncount) {
         iwhichlocal = iwhichglobal - nbefore;
         mark[list[iwhichlocal]] = 1;
-        list[iwhichlocal] = list[ncount-1];
+        list[iwhichlocal] = list[ncount - 1];
         ncount--;
       }
       ndel++;
       nall--;
     }
 
-  // molecule deletions
-  // choose one atom in one molecule randomly across all procs
-  // bcast mol ID and delete all atoms in that molecule on any proc
-  // update deletion count by total # of atoms in molecule
-  // shrink list of eligible candidates as any of my atoms get marked
-  // keep ndel,ndeltopo,ncount,nall,nbefore current after each mol deletion
+    // molecule deletions
+    // choose one atom in one molecule randomly across all procs
+    // bcast mol ID and delete all atoms in that molecule on any proc
+    // update deletion count by total # of atoms in molecule
+    // shrink list of eligible candidates as any of my atoms get marked
+    // keep ndel,ndeltopo,ncount,nall,nbefore current after each mol deletion
 
   } else {
-    int me,proc,iatom,ndelone,ndelall,index;
+    int me, proc, iatom, ndelone, ndelall, index;
     tagint imolecule;
     tagint *molecule = atom->molecule;
     int *molindex = atom->molindex;
@@ -250,13 +245,14 @@ void FixEvaporate::pre_exchange()
 
       // pick an iatom,imolecule on proc me to delete
 
-      iwhichglobal = static_cast<int> (nall*random->uniform());
+      iwhichglobal = static_cast<int>(nall * random->uniform());
       if (iwhichglobal >= nbefore && iwhichglobal < nbefore + ncount) {
         iwhichlocal = iwhichglobal - nbefore;
         iatom = list[iwhichlocal];
         imolecule = molecule[iatom];
         me = comm->me;
-      } else me = -1;
+      } else
+        me = -1;
 
       // bcast mol ID to delete all atoms from
       // if mol ID > 0, delete any atom in molecule and decrement counters
@@ -265,8 +261,8 @@ void FixEvaporate::pre_exchange()
       // for atom->molecular = Atom::MOLECULAR, do this for each deleted atom in molecule
       // for atom->molecular = Atom::TEMPLATE, use Molecule counts for just 1st atom in mol
 
-      MPI_Allreduce(&me,&proc,1,MPI_INT,MPI_MAX,world);
-      MPI_Bcast(&imolecule,1,MPI_LMP_TAGINT,proc,world);
+      MPI_Allreduce(&me, &proc, 1, MPI_INT, MPI_MAX, world);
+      MPI_Bcast(&imolecule, 1, MPI_LMP_TAGINT, proc, world);
       ndelone = 0;
       for (i = 0; i < nlocal; i++) {
         if (imolecule && molecule[i] == imolecule) {
@@ -275,7 +271,8 @@ void FixEvaporate::pre_exchange()
 
           if (molecular == Atom::MOLECULAR) {
             if (atom->avec->bonds_allow) {
-              if (force->newton_bond) ndeltopo[0] += atom->num_bond[i];
+              if (force->newton_bond)
+                ndeltopo[0] += atom->num_bond[i];
               else {
                 for (j = 0; j < atom->num_bond[i]; j++) {
                   if (tag[i] < atom->bond_atom[i][j]) ndeltopo[0]++;
@@ -283,7 +280,8 @@ void FixEvaporate::pre_exchange()
               }
             }
             if (atom->avec->angles_allow) {
-              if (force->newton_bond) ndeltopo[1] += atom->num_angle[i];
+              if (force->newton_bond)
+                ndeltopo[1] += atom->num_angle[i];
               else {
                 for (j = 0; j < atom->num_angle[i]; j++) {
                   m = atom->map(atom->angle_atom2[i][j]);
@@ -292,7 +290,8 @@ void FixEvaporate::pre_exchange()
               }
             }
             if (atom->avec->dihedrals_allow) {
-              if (force->newton_bond) ndeltopo[2] += atom->num_dihedral[i];
+              if (force->newton_bond)
+                ndeltopo[2] += atom->num_dihedral[i];
               else {
                 for (j = 0; j < atom->num_dihedral[i]; j++) {
                   m = atom->map(atom->dihedral_atom2[i][j]);
@@ -301,7 +300,8 @@ void FixEvaporate::pre_exchange()
               }
             }
             if (atom->avec->impropers_allow) {
-              if (force->newton_bond) ndeltopo[3] += atom->num_improper[i];
+              if (force->newton_bond)
+                ndeltopo[3] += atom->num_improper[i];
               else {
                 for (j = 0; j < atom->num_improper[i]; j++) {
                   m = atom->map(atom->improper_atom2[i][j]);
@@ -331,19 +331,20 @@ void FixEvaporate::pre_exchange()
       i = 0;
       while (i < ncount) {
         if (mark[list[i]]) {
-          list[i] = list[ncount-1];
+          list[i] = list[ncount - 1];
           ncount--;
-        } else i++;
+        } else
+          i++;
       }
 
       // update ndel,ncount,nall,nbefore
       // ndelall is total atoms deleted on this iteration
       // ncount is already correct, so resum to get nall and nbefore
 
-      MPI_Allreduce(&ndelone,&ndelall,1,MPI_INT,MPI_SUM,world);
+      MPI_Allreduce(&ndelone, &ndelall, 1, MPI_INT, MPI_SUM, world);
       ndel += ndelall;
-      MPI_Allreduce(&ncount,&nall,1,MPI_INT,MPI_SUM,world);
-      MPI_Scan(&ncount,&nbefore,1,MPI_INT,MPI_SUM,world);
+      MPI_Allreduce(&ncount, &nall, 1, MPI_INT, MPI_SUM, world);
+      MPI_Scan(&ncount, &nbefore, 1, MPI_INT, MPI_SUM, world);
       nbefore -= ncount;
     }
   }
@@ -353,9 +354,9 @@ void FixEvaporate::pre_exchange()
 
   AtomVec *avec = atom->avec;
 
-  for (i = nlocal-1; i >= 0; i--) {
+  for (i = nlocal - 1; i >= 0; i--) {
     if (mark[i]) {
-      avec->copy(atom->nlocal-1,i,1);
+      avec->copy(atom->nlocal - 1, i, 1);
       atom->nlocal--;
     }
   }
@@ -367,7 +368,7 @@ void FixEvaporate::pre_exchange()
   atom->natoms -= ndel;
   if (molflag) {
     int all[4];
-    MPI_Allreduce(ndeltopo,all,4,MPI_INT,MPI_SUM,world);
+    MPI_Allreduce(ndeltopo, all, 4, MPI_INT, MPI_SUM, world);
     atom->nbonds -= all[0];
     atom->nangles -= all[1];
     atom->ndihedrals -= all[2];
@@ -392,7 +393,7 @@ void FixEvaporate::pre_exchange()
 
 double FixEvaporate::compute_scalar()
 {
-  return 1.0*ndeleted;
+  return 1.0 * ndeleted;
 }
 
 /* ----------------------------------------------------------------------
@@ -401,6 +402,6 @@ double FixEvaporate::compute_scalar()
 
 double FixEvaporate::memory_usage()
 {
-  double bytes = 2*nmax * sizeof(int);
+  double bytes = 2 * nmax * sizeof(int);
   return bytes;
 }

@@ -41,9 +41,10 @@ class FixAddForce : public Fix {
 
  private:
   double xvalue, yvalue, zvalue;
-  int varflag, iregion;
+  int varflag;
   char *xstr, *ystr, *zstr, *estr;
   char *idregion;
+  class Region *region;
   int xvar, yvar, zvar, evar, xstyle, ystyle, zstyle, estyle;
   double foriginal[4], foriginal_all[4];
   int force_flag;

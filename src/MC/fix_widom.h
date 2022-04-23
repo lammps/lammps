@@ -53,15 +53,14 @@ class FixWidom : public Fix {
   int exclusion_group, exclusion_group_bit;
   int nwidom_type, nevery, seed;
   int ninsertions;
-  int ngas;            // # of gas atoms on all procs
-  int ngas_local;      // # of gas atoms on this proc
-  int exchmode;        // exchange ATOM or MOLECULE
-  int movemode;        // move ATOM or MOLECULE
-  int regionflag;      // 0 = anywhere in box, 1 = specific region
-  int iregion;         // widom region
-  char *idregion;      // widom region id
-  bool charge_flag;    // true if user specified atomic charge
-  bool full_flag;      // true if doing full system energy calculations
+  int ngas;                // # of gas atoms on all procs
+  int ngas_local;          // # of gas atoms on this proc
+  int exchmode;            // exchange ATOM or MOLECULE
+  int movemode;            // move ATOM or MOLECULE
+  class Region *region;    // widom region
+  char *idregion;          // widom region id
+  bool charge_flag;        // true if user specified atomic charge
+  bool full_flag;          // true if doing full system energy calculations
 
   int natoms_per_molecule;    // number of atoms in each inserted molecule
   int nmaxmolatoms;           // number of atoms allocated for molecule arrays

@@ -26,6 +26,7 @@ namespace LAMMPS_NS {
 
 class FixEfield : public Fix {
   friend class FixQEqReaxFF;
+
  public:
   FixEfield(class LAMMPS *, int, char **);
   ~FixEfield() override;
@@ -44,9 +45,10 @@ class FixEfield : public Fix {
 
  protected:
   double ex, ey, ez;
-  int varflag, iregion;
+  int varflag;
   char *xstr, *ystr, *zstr, *estr;
   char *idregion;
+  class Region *region;
   int xvar, yvar, zvar, evar, xstyle, ystyle, zstyle, estyle;
   int ilevel_respa;
   double qe2f;

@@ -354,7 +354,6 @@ void ComputeBornMatrix::compute_vector()
     if (angleflag) compute_angles();
     if (dihedflag) compute_dihedrals();
 
-
     // sum Born contributions over all procs
 
     MPI_Allreduce(values_local, values_global, nvalues, MPI_DOUBLE, MPI_SUM, world);
@@ -373,7 +372,6 @@ void ComputeBornMatrix::compute_vector()
   }
 
   for (int m = 0; m < nvalues; m++) vector[m] = values_global[m];
-
 }
 
 /* ----------------------------------------------------------------------
@@ -390,10 +388,8 @@ void ComputeBornMatrix::compute_pairs()
 
   int *type = atom->type;
   int *mask = atom->mask;
-  int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
-  int newton_pair = force->newton_pair;
 
   // invoke half neighbor list (will copy or build if necessary)
   neighbor->build_one(list);
@@ -412,7 +408,6 @@ void ComputeBornMatrix::compute_pairs()
 
   int a, b, c, d;
   double xi1, xi2, xi3;
-  double fi1, fi2, fi3;
   double xj1, xj2, xj3;
   double rij[3];
   double pair_pref;
@@ -454,7 +449,7 @@ void ComputeBornMatrix::compute_pairs()
 
       pair_pref = dupair = du2pair = 0.0;
       pair->born_matrix(i, j, itype, jtype, rsq, factor_coul, factor_lj, dupair, du2pair);
-      pair_pref = 0.5*du2pair - dupair * rinv;
+      pair_pref = 0.5 * du2pair - dupair * rinv;
 
       // See albemunu in compute_born_matrix.h for indices order.
 
@@ -476,7 +471,6 @@ void ComputeBornMatrix::compute_pairs()
 
 void ComputeBornMatrix::compute_numdiff()
 {
-  double energy;
   int vec_index;
 
   // grow arrays if necessary
@@ -497,8 +491,6 @@ void ComputeBornMatrix::compute_numdiff()
 
   // loop over 6 strain directions
   // compute stress finite difference in each direction
-
-  int flag, allflag;
 
   for (int idir = 0; idir < NDIR_VIRIAL; idir++) {
 
@@ -528,8 +520,7 @@ void ComputeBornMatrix::compute_numdiff()
   // apply derivative factor
 
   double denominator = -0.5 / numdelta;
-  for (int m = 0; m < nvalues; m++)
-    values_global[m] *= denominator;
+  for (int m = 0; m < nvalues; m++) values_global[m] *= denominator;
 
   // recompute virial so all virial and energy contributions are as before
   // also needed for virial stress addon contributions to Born matrix
@@ -633,11 +624,7 @@ void ComputeBornMatrix::update_virial()
 
 void ComputeBornMatrix::virial_addon()
 {
-
-  int kd, nd, id, jd;
-  int m;
-
-  double* sigv = compute_virial->vector;
+  double *sigv = compute_virial->vector;
 
   // This way of doing is not very elegant but is correct.
   // The complete Cijkl terms are the sum of symmetric terms
@@ -678,7 +665,6 @@ void ComputeBornMatrix::virial_addon()
   values_global[18] += 0.5 * sigv[3];
   values_global[19] += 0.5 * sigv[4];
   values_global[20] += 0.5 * sigv[5];
-
 }
 
 /* ----------------------------------------------------------------------
@@ -727,13 +713,11 @@ double ComputeBornMatrix::memory_usage()
 
 void ComputeBornMatrix::compute_bonds()
 {
-  int i, m, n, nb, atom1, atom2, imol, iatom, btype, ivar;
+  int i, m, nb, atom1, atom2, imol, iatom, btype;
   tagint tagprev;
   double dx, dy, dz, rsq;
 
   double **x = atom->x;
-  double **v = atom->v;
-  int *type = atom->type;
   tagint *tag = atom->tag;
   int *num_bond = atom->num_bond;
   tagint **bond_atom = atom->bond_atom;
@@ -821,13 +805,12 @@ void ComputeBornMatrix::compute_bonds()
 
 void ComputeBornMatrix::compute_angles()
 {
-  int i, m, n, na, atom1, atom2, atom3, imol, iatom, atype, ivar;
+  int i, m, na, atom1, atom2, atom3, imol, iatom, atype;
   tagint tagprev;
   double delx1, dely1, delz1, delx2, dely2, delz2;
   double rsq1, rsq2, r1, r2, cost;
   double r1r2, r1r2inv;
   double rsq1inv, rsq2inv, cinv;
-  double *ptr;
 
   double **x = atom->x;
   tagint *tag = atom->tag;
@@ -920,18 +903,18 @@ void ComputeBornMatrix::compute_angles()
         // Worst case scenario. A 0 cosine has an undefined logarithm.
         // We then add a small amount of the third bond to the first one
         // so they are not orthogonal anymore and recompute.
-        del1[0] += SMALL*del2[0];
-        del1[1] += SMALL*del2[1];
-        del1[2] += SMALL*del2[2];
+        del1[0] += SMALL * del2[0];
+        del1[1] += SMALL * del2[1];
+        del1[2] += SMALL * del2[2];
         r1r2 = del1[0] * del2[0] + del1[1] * del2[1] + del1[2] * del2[2];
-        r1r2inv = 1/r1r2;
+        r1r2inv = 1 / r1r2;
 
         // cost = cosine of angle
-        cost = r1r2/(r1 * r2);
+        cost = r1r2 / (r1 * r2);
 
       } else {
-        r1r2inv = 1/r1r2;
-        cost = r1r2/(r1 * r2);
+        r1r2inv = 1 / r1r2;
+        cost = r1r2 / (r1 * r2);
       }
 
       if (cost > 1.0) cost = 1.0;
@@ -986,12 +969,11 @@ void ComputeBornMatrix::compute_angles()
 
 void ComputeBornMatrix::compute_dihedrals()
 {
-  int i, m, n, nd, atom1, atom2, atom3, atom4, imol, iatom, dtype, ivar;
+  int i, m, nd, atom1, atom2, atom3, atom4, imol, iatom;
   tagint tagprev;
-  double vb1x, vb1y, vb1z, vb2x, vb2y, vb2z, vb3x, vb3y, vb3z, vb2xm, vb2ym, vb2zm;
-  double ax, ay, az, bx, by, bz, rasq, rbsq, dotab, rgsq, rg, ra2inv, rb2inv, dotabinv, rabinv;
-  double si, co, phi;
-  double *ptr;
+  double vb1x, vb1y, vb1z, vb2x, vb2y, vb2z, vb3x, vb3y, vb3z;
+  double ax, ay, az, bx, by, bz, rasq, rbsq, dotab, ra2inv, rb2inv, dotabinv, rabinv;
+  double co;
 
   double **x = atom->x;
   tagint *tag = atom->tag;
@@ -1013,28 +995,15 @@ void ComputeBornMatrix::compute_dihedrals()
 
   Dihedral *dihedral = force->dihedral;
 
-  double dudih, du2dih;
   int al, be, mu, nu, e, f;
-  double b1sq;
-  double b2sq;
-  double b3sq;
-  double b1b2;
-  double b1b3;
-  double b2b3;
-  double b1[3];
-  double b2[3];
-  double b3[3];
+  double dudih, du2dih, b1sq, b2sq, b3sq, b1b2, b1b3, b2b3;
+  double b1[3], b2[3], b3[3];
 
   // 1st and 2nd order derivatives of the dot products
-  double dab[6];
-  double daa[6];
-  double dbb[6];
-  double d2ab;
-  double d2aa;
-  double d2bb;
+  double dab[6], daa[6], dbb[6];
+  double d2ab, d2aa, d2bb;
 
-  double dcos[6];
-  double d2cos;
+  double dcos[6], d2cos;
 
   for (i = 0; i < 6; i++) dab[i] = daa[i] = dbb[i] = dcos[i] = 0;
 
@@ -1043,7 +1012,8 @@ void ComputeBornMatrix::compute_dihedrals()
 
     // if (molecular == 1)
     //   nd = num_dihedral[atom2];
-    if (molecular == Atom::MOLECULAR) nd = num_dihedral[atom2];
+    if (molecular == Atom::MOLECULAR)
+      nd = num_dihedral[atom2];
     else {
       if (molindex[atom2] < 0) continue;
       imol = molindex[atom2];
@@ -1120,26 +1090,23 @@ void ComputeBornMatrix::compute_dihedrals()
 
       rasq = ax * ax + ay * ay + az * az;
       rbsq = bx * bx + by * by + bz * bz;
-      rgsq = vb2x * vb2x + vb2y * vb2y + vb2z * vb2z;
-      dotab = ax*bx + ay*by + az*bz;
-      rg = sqrt(rgsq);
+      dotab = ax * bx + ay * by + az * bz;
 
       ra2inv = rb2inv = rabinv = dotabinv = 0.0;
       if (rasq > 0) ra2inv = 1.0 / rasq;
       if (rbsq > 0) rb2inv = 1.0 / rbsq;
-      if (dotab != 0.) dotabinv = 1.0/dotab;
+      if (dotab != 0.) dotabinv = 1.0 / dotab;
       rabinv = sqrt(ra2inv * rb2inv);
 
       co = (ax * bx + ay * by + az * bz) * rabinv;
-      si = sqrt(b2sq) * rabinv * (ax * vb3x + ay * vb3y + az * vb3z);
 
-      if (co == 0.) {
+      if (co == 0.0) {
         // Worst case scenario. A 0 cosine has an undefined logarithm.
         // We then add a small amount of the third bond to the first one
         // so they are not orthogonal anymore and recompute.
-        b1[0] += SMALL*b3[0];
-        b1[1] += SMALL*b3[1];
-        b1[2] += SMALL*b3[2];
+        b1[0] += SMALL * b3[0];
+        b1[1] += SMALL * b3[1];
+        b1[2] += SMALL * b3[2];
         b1sq = b1[0] * b1[0] + b1[1] * b1[1] + b1[2] * b1[2];
         b3sq = b3[0] * b3[0] + b3[1] * b3[1] + b3[2] * b3[2];
         b1b2 = b1[0] * b2[0] + b1[1] * b2[1] + b1[2] * b2[2];
@@ -1153,19 +1120,16 @@ void ComputeBornMatrix::compute_dihedrals()
         bz = b2[0] * b3[1] - b2[1] * b3[0];
         rasq = ax * ax + ay * ay + az * az;
         rbsq = bx * bx + by * by + bz * bz;
-        dotab = ax*bx + ay*by + az*bz;
+        dotab = ax * bx + ay * by + az * bz;
         ra2inv = rb2inv = rabinv = dotabinv = 0.0;
         if (rasq > 0) ra2inv = 1.0 / rasq;
         if (rbsq > 0) rb2inv = 1.0 / rbsq;
-        if (dotab != 0.) dotabinv = 1.0/dotab;
+        if (dotab != 0.) dotabinv = 1.0 / dotab;
         rabinv = sqrt(ra2inv * rb2inv);
         co = (ax * bx + ay * by + az * bz) * rabinv;
-        si = sqrt(b2sq) * rabinv * (ax * vb3x + ay * vb3y + az * vb3z);
       }
       if (co > 1.0) co = 1.0;
       if (co < -1.0) co = -1.0;
-
-      phi = atan2(si, co);
 
       al = be = mu = nu = e = f = 0;
       // clang-format off

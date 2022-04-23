@@ -46,7 +46,8 @@ namespace RANN {
     void allocate() override;
     void compute_fingerprint(double *, double *, double *, double *, double *, double *, double *,
                              double *, double *, double *, double *, double *, double *, double *,
-                             bool *, int, int, double *, double *, double *, int *, int, int *) override;
+                             bool *, int, int, double *, double *, double *, int *, int,
+                             int *) override;
     void do3bodyfeatureset_doubleneighborloop(double *, double *, double *, double *, double *,
                                               double *, double *, double *, double *, double *,
                                               double *, double *, double *, double *, bool *, int,

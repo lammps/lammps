@@ -14,7 +14,7 @@
 #ifndef LMP_FFT3D_WRAP_H
 #define LMP_FFT3D_WRAP_H
 
-#include "fft3d.h"              // IWYU pragma: export
+#include "fft3d.h"    // IWYU pragma: export
 #include "pointers.h"
 
 namespace LAMMPS_NS {

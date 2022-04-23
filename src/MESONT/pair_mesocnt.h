@@ -64,8 +64,7 @@ class PairMesoCNT : public Pair {
   void sort(int *, int);
   void read_file(const char *);
   void read_data(PotentialFileReader &, double *, double &, double &, int);
-  void read_data(PotentialFileReader &, double **, double &, double &, double &, double &,
-                 int);
+  void read_data(PotentialFileReader &, double **, double &, double &, double &, double &, int);
 
   void spline_coeff(double *, double **, double, int);
   void spline_coeff(double **, double ****, double, double, int);

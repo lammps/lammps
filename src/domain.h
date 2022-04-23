@@ -18,6 +18,8 @@
 
 #include <cmath>
 #include <map>
+#include <unordered_set>
+#include <vector>
 
 namespace LAMMPS_NS {
 class Region;
@@ -98,10 +100,6 @@ class Domain : protected Pointers {
 
   class Lattice *lattice;    // user-defined lattice
 
-  int nregion;         // # of defined Regions
-  int maxregion;       // max # list can hold
-  Region **regions;    // list of defined Regions
-
   int copymode;
   enum { NO_REMAP, X_REMAP, V_REMAP };
 
@@ -137,11 +135,11 @@ class Domain : protected Pointers {
 
   void set_lattice(int, char **);
   void add_region(int, char **);
-  void delete_region(int);
+  void delete_region(Region *);
   void delete_region(const std::string &);
-  int find_region(const std::string &) const;
   Region *get_region_by_id(const std::string &) const;
   const std::vector<Region *> get_region_by_style(const std::string &) const;
+  const std::vector<Region *> get_region_list();
   void set_boundary(int, char **, int);
   void set_box(int, char **);
   void print_box(const std::string &);
@@ -175,6 +173,7 @@ class Domain : protected Pointers {
 
  protected:
   double small[3];    // fractions of box lengths
+  std::unordered_set<Region *> regions;
 };
 
 }    // namespace LAMMPS_NS

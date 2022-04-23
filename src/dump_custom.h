@@ -35,8 +35,7 @@ class DumpCustom : public Dump {
 
  protected:
   int nevery;        // dump frequency for output
-  int iregion;       // -1 if no region, else which region
-  char *idregion;    // region ID
+  char *idregion;    // region ID, nullptr if no region
 
   int nthresh;                    // # of defined thresholds
   int nthreshlast;                // # of defined thresholds with value = LAST
@@ -52,16 +51,16 @@ class DumpCustom : public Dump {
   char **thresh_fixID;            // IDs of thresh_fixes
   int *thresh_first;              // 1 the first time a FixStore values accessed
 
-  int expand;         // flag for whether field args were expanded
-  char **earg;        // field names with wildcard expansion
-  int nargnew;        // size of earg
-                      //
-  int *vtype;         // type of each vector (INT, DOUBLE)
-  char **vformat;     // format string for each vector element
-                      //
-  char *columns;      // column labels
+  int expand;        // flag for whether field args were expanded
+  char **earg;       // field names with wildcard expansion
+  int nargnew;       // size of earg
+                     //
+  int *vtype;        // type of each vector (INT, DOUBLE)
+  char **vformat;    // format string for each vector element
+                     //
+  char *columns;     // column labels
   char *columns_default;
-                      //
+  //
   int nchoose;        // # of selected atoms
   int maxlocal;       // size of atom selection and variable arrays
   int *choose;        // local indices of selected atoms

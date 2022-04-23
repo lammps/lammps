@@ -184,8 +184,8 @@ class Modify : protected Pointers {
   int index_permanent;    // fix/compute index returned to library call
 
   // vectors to be used for new-API accessors as wrapper
-  std::vector<Fix *>fix_list;
-  std::vector<Compute *>compute_list;
+  std::vector<Fix *> fix_list;
+  std::vector<Compute *> compute_list;
 
   void list_init(int, int &, int *&);
   void list_init_end_of_step(int, int &, int *&);

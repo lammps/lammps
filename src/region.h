@@ -21,6 +21,7 @@ namespace LAMMPS_NS {
 class Region : protected Pointers {
  public:
   char *id, *style;
+  Region **reglist;
   int interior;                     // 1 for interior, 0 for exterior
   int scaleflag;                    // 1 for lattice, 0 for box
   double xscale, yscale, zscale;    // scale factors for box/lattice units
@@ -66,7 +67,6 @@ class Region : protected Pointers {
                         //   prevents multiple fix/wall/gran/region calls
   int nregion;          // For union and intersect
   int size_restart;
-  int *list;
 
   Region(class LAMMPS *, int, char **);
   ~Region() override;

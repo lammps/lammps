@@ -70,7 +70,8 @@ class FixOrientFCC : public Fix {
 
   bool use_xismooth;
   static constexpr int half_fcc_nn = 6;
-  double Rxi[half_fcc_nn][3] = {}, Rchi[half_fcc_nn][3] = {}, half_xi_chi_vec[2][half_fcc_nn][3] = {};
+  double Rxi[half_fcc_nn][3] = {}, Rchi[half_fcc_nn][3] = {},
+         half_xi_chi_vec[2][half_fcc_nn][3] = {};
   double xiid, xi0, xi1, xicutoffsq, cutsq, added_energy;
 
   int nmax;          // expose 2 per-atom quantities

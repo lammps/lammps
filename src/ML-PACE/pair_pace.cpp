@@ -221,7 +221,7 @@ void PairPACE::compute(int eflag, int vflag)
     // tally energy contribution
     if (eflag) {
       // evdwl = energy of atom I
-      evdwl = scale[itype][itype]*aceimpl->ace->e_atom;
+      evdwl = scale[itype][itype] * aceimpl->ace->e_atom;
       ev_tally_full(i, 2.0 * evdwl, 0.0, 0.0, 0.0, 0.0, 0.0);
     }
   }

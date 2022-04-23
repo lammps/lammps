@@ -416,7 +416,7 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
     if ((keywd == "elems") || (keywd == "radelems") || (keywd == "welems") ||
         (keywd == "rinnerelems") || (keywd == "drinnerelems")) {
 
-      if ((nelementsflag == 0) || ((int)words.count() != nelements + 1))
+      if ((nelementsflag == 0) || ((int) words.count() != nelements + 1))
         error->all(FLERR, "Incorrect SNAP parameter file");
 
       if (comm->me == 0) utils::logmesg(lmp, "SNAP keyword {} \n", utils::trim(line));

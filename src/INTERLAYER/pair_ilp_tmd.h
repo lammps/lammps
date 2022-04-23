@@ -49,4 +49,3 @@ class PairILPTMD : public PairILPGrapheneHBN {
 
 #endif
 #endif
-

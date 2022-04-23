@@ -54,4 +54,3 @@ class PairEAMFSGPU : public PairEAM {
 
 #endif
 #endif
-

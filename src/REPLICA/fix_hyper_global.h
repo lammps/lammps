@@ -103,4 +103,3 @@ class FixHyperGlobal : public FixHyper {
 
 #endif
 #endif
-

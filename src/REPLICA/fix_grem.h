@@ -50,4 +50,3 @@ class FixGrem : public Fix {
 
 #endif
 #endif
-

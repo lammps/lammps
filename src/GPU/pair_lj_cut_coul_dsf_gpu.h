@@ -43,4 +43,3 @@ class PairLJCutCoulDSFGPU : public PairLJCutCoulDSF {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

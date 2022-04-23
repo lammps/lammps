@@ -51,4 +51,3 @@ class ComputeGyrationShapeChunk : public Compute {
 
 #endif
 #endif
-

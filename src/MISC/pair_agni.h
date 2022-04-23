@@ -55,4 +55,3 @@ class PairAGNI : public Pair {
 
 #endif
 #endif
-

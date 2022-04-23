@@ -69,4 +69,3 @@ class FixGLD : public Fix {
 
 #endif
 #endif
-

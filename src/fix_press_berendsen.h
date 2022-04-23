@@ -60,4 +60,3 @@ class FixPressBerendsen : public Fix {
 
 #endif
 #endif
-

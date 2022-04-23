@@ -57,4 +57,3 @@ class ComputeSNAVAtom : public Compute {
 
 #endif
 #endif
-

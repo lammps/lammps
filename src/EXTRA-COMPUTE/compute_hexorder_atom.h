@@ -51,4 +51,3 @@ class ComputeHexOrderAtom : public Compute {
 
 #endif
 #endif
-

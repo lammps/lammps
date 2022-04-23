@@ -70,4 +70,3 @@ class CreateAtoms : public Command {
 
 #endif
 #endif
-

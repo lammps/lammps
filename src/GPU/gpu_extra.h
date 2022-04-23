@@ -98,4 +98,3 @@ inline void gpu_ready(LAMMPS_NS::Modify *modify, LAMMPS_NS::Error *error)
 }    // namespace GPU_EXTRA
 
 #endif
-

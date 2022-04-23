@@ -44,4 +44,3 @@ class PairBuckGPU : public PairBuck {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

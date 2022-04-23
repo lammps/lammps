@@ -59,4 +59,3 @@ class Hyper : public Command {
 
 #endif
 #endif
-

@@ -45,4 +45,3 @@ class FixViscous : public Fix {
 
 #endif
 #endif
-

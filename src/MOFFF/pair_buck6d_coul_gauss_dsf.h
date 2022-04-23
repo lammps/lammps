@@ -59,4 +59,3 @@ class PairBuck6dCoulGaussDSF : public Pair {
 
 #endif
 #endif
-

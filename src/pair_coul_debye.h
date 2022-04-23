@@ -41,4 +41,3 @@ class PairCoulDebye : public PairCoulCut {
 
 #endif
 #endif
-

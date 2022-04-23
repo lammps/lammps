@@ -43,4 +43,3 @@ class PairYukawaGPU : public PairYukawa {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

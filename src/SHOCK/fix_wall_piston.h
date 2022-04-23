@@ -47,4 +47,3 @@ class FixWallPiston : public Fix {
 
 #endif
 #endif
-

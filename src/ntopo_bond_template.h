@@ -34,4 +34,3 @@ class NTopoBondTemplate : public NTopo {
 
 #endif
 #endif
-

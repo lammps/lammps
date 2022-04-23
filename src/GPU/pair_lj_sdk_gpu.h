@@ -43,4 +43,3 @@ class PairLJSDKGPU : public PairLJSDK {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

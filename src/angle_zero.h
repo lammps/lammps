@@ -50,4 +50,3 @@ class AngleZero : public Angle {
 
 #endif
 #endif
-

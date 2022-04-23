@@ -185,4 +185,3 @@ class PairAIREBO : public Pair {
 
 #endif
 #endif
-

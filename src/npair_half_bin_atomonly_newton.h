@@ -36,4 +36,3 @@ class NPairHalfBinAtomonlyNewton : public NPair {
 
 #endif
 #endif
-

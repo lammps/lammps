@@ -43,4 +43,3 @@ class ComputePair : public Compute {
 
 #endif
 #endif
-

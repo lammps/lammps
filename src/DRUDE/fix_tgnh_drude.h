@@ -160,4 +160,3 @@ class FixTGNHDrude : public Fix {
 }    // namespace LAMMPS_NS
 
 #endif
-

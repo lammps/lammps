@@ -42,4 +42,3 @@ class ComputeDamageAtom : public Compute {
 
 #endif
 #endif
-

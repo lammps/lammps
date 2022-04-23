@@ -88,4 +88,3 @@ class PairILPGrapheneHBN : public Pair {
 
 #endif
 #endif
-

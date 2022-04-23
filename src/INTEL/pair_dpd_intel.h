@@ -100,4 +100,3 @@ class PairDPDIntel : public PairDPD {
 
 #endif
 #endif
-

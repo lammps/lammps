@@ -33,4 +33,3 @@ class FixNVTAsphere : public FixNHAsphere {
 
 #endif
 #endif
-

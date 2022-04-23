@@ -49,4 +49,3 @@ class ComputeBodyLocal : public Compute {
 
 #endif
 #endif
-

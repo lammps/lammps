@@ -43,4 +43,3 @@ class PairLJClass2GPU : public PairLJClass2 {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

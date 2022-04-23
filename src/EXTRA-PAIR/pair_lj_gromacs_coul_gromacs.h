@@ -56,4 +56,3 @@ class PairLJGromacsCoulGromacs : public Pair {
 
 #endif
 #endif
-

@@ -89,4 +89,3 @@ class PairReaxFF : public Pair {
 
 #endif
 #endif
-

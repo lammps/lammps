@@ -54,4 +54,3 @@ class PairOxdna2Dh : public Pair {
 
 #endif
 #endif
-

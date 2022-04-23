@@ -86,4 +86,3 @@ class DumpAtom : public Dump {
 
 #endif
 #endif
-

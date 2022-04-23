@@ -100,4 +100,3 @@ class FixNVESpin : public Fix {
 
 #endif
 #endif
-

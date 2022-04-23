@@ -148,4 +148,3 @@ class FixNH : public Fix {
 }    // namespace LAMMPS_NS
 
 #endif
-

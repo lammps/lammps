@@ -42,4 +42,3 @@ class FixLineForce : public Fix {
 
 #endif
 #endif
-

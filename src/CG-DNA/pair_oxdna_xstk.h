@@ -68,4 +68,3 @@ class PairOxdnaXstk : public Pair {
 
 #endif
 #endif
-

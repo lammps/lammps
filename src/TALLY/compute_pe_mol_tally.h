@@ -47,4 +47,3 @@ class ComputePEMolTally : public Compute {
 
 #endif
 #endif
-

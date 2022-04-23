@@ -48,4 +48,3 @@ class AtomVecSphere : public AtomVec {
 
 #endif
 #endif
-

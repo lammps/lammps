@@ -50,4 +50,3 @@ class ComputeTempCOM : public Compute {
 
 #endif
 #endif
-

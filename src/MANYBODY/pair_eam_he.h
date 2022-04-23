@@ -36,4 +36,3 @@ class PairEAMHE : public PairEAMFS {
 
 #endif
 #endif
-

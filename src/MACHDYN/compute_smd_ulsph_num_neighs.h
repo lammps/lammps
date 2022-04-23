@@ -52,4 +52,3 @@ class ComputeSMDULSPHNumNeighs : public Compute {
 
 #endif
 #endif
-

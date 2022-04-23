@@ -58,4 +58,3 @@ class ComputeCOMChunk : public Compute {
 
 #endif
 #endif
-

@@ -58,4 +58,3 @@ class ComputeRDF : public Compute {
 
 #endif
 #endif
-

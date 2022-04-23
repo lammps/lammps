@@ -53,4 +53,3 @@ class PairLJCutDipoleCut : public Pair {
 
 #endif
 #endif
-

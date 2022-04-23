@@ -57,4 +57,3 @@ class BodyRoundedPolygon : public Body {
 
 #endif
 #endif
-

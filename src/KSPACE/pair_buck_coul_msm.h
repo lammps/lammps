@@ -41,4 +41,3 @@ class PairBuckCoulMSM : public PairBuckCoulLong {
 
 #endif
 #endif
-

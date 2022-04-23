@@ -44,4 +44,3 @@ class PairLJSmoothGPU : public PairLJSmooth {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

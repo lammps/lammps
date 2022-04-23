@@ -47,4 +47,3 @@ class BondQuartic : public Bond {
 
 #endif
 #endif
-

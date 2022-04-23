@@ -56,4 +56,3 @@ class FixSpringChunk : public Fix {
 
 #endif
 #endif
-

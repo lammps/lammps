@@ -36,4 +36,3 @@ class NPairHalfBinNewtonTriOmp : public NPair {
 
 #endif
 #endif
-

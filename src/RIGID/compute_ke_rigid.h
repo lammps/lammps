@@ -40,4 +40,3 @@ class ComputeKERigid : public Compute {
 
 #endif
 #endif
-

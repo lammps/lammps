@@ -39,4 +39,3 @@ class FixNVEBody : public FixNVE {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

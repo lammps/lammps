@@ -55,4 +55,3 @@ class RegCylinder : public Region {
 
 #endif
 #endif
-

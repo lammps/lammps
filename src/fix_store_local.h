@@ -50,4 +50,3 @@ class FixStoreLocal : public Fix {
 
 #endif
 #endif
-

@@ -177,4 +177,3 @@ class FixShake : public Fix {
 
 #endif
 #endif
-

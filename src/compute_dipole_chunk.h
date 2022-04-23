@@ -57,4 +57,3 @@ class ComputeDipoleChunk : public Compute {
 
 #endif
 #endif
-

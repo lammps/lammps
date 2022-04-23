@@ -70,4 +70,3 @@ class FixAdaptFEP : public Fix {
 
 #endif
 #endif
-

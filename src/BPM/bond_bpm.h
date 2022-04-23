@@ -70,4 +70,3 @@ class BondBPM : public Bond {
 }    // namespace LAMMPS_NS
 
 #endif
-

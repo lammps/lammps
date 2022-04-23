@@ -38,4 +38,3 @@ class ComputeKE : public Compute {
 
 #endif
 #endif
-

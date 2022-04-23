@@ -39,4 +39,3 @@ class FixWallColloid : public FixWall {
 
 #endif
 #endif
-

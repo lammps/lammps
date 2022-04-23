@@ -55,4 +55,3 @@ class ComputeSpin : public Compute {
 
 #endif
 #endif
-

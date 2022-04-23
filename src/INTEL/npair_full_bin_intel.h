@@ -42,4 +42,3 @@ class NPairFullBinIntel : public NPairIntel {
 
 #endif
 #endif
-

@@ -162,4 +162,3 @@ class PairBodyRoundedPolyhedron : public Pair {
 
 #endif
 #endif
-

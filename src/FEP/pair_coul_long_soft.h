@@ -56,4 +56,3 @@ class PairCoulLongSoft : public Pair {
 
 #endif
 #endif
-

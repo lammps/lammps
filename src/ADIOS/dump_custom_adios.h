@@ -43,4 +43,3 @@ class DumpCustomADIOS : public DumpCustom {
 
 #endif
 #endif
-

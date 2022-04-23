@@ -60,4 +60,3 @@ class PairLJ96Cut : public Pair {
 
 #endif
 #endif
-

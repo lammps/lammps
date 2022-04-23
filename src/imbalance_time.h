@@ -40,4 +40,3 @@ class ImbalanceTime : public Imbalance {
 }    // namespace LAMMPS_NS
 
 #endif
-

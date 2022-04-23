@@ -78,4 +78,3 @@ class ImproperHarmonicIntel : public ImproperHarmonic {
 
 #endif
 #endif
-

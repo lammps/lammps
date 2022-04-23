@@ -64,4 +64,3 @@ class ComputeOrientOrderAtom : public Compute {
 
 #endif
 #endif
-

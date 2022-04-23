@@ -153,4 +153,3 @@ void factor(int, int *, int *);
 void bifactor(int, int *, int *);
 void fft_1d_only(FFT_DATA *, int, int, struct fft_plan_3d *);
 }
-

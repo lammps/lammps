@@ -54,4 +54,3 @@ class ComputePETally : public Compute {
 
 #endif
 #endif
-

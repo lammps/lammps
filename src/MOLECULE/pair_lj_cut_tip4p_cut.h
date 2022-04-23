@@ -67,4 +67,3 @@ class PairLJCutTIP4PCut : public Pair {
 
 #endif
 #endif
-

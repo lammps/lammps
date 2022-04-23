@@ -34,4 +34,3 @@ class PairBuckCoulLongCS : public PairBuckCoulLong {
 
 #endif
 #endif
-

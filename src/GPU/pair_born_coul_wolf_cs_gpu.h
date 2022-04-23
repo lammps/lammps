@@ -43,4 +43,3 @@ class PairBornCoulWolfCSGPU : public PairBornCoulWolfCS {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

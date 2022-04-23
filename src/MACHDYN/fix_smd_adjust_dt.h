@@ -57,4 +57,3 @@ class FixSMDTlsphDtReset : public Fix {
 
 #endif
 #endif
-

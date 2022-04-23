@@ -94,4 +94,3 @@ class AtomVecBody : public AtomVec {
 
 #endif
 #endif
-

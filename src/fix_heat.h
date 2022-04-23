@@ -52,4 +52,3 @@ class FixHeat : public Fix {
 
 #endif
 #endif
-

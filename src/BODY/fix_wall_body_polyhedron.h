@@ -104,4 +104,3 @@ class FixWallBodyPolyhedron : public Fix {
 
 #endif
 #endif
-

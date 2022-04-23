@@ -44,4 +44,3 @@ class DihedralHelix : public Dihedral {
 
 #endif
 #endif
-

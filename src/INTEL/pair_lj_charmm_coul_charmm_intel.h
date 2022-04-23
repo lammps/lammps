@@ -86,4 +86,3 @@ class PairLJCharmmCoulCharmmIntel : public PairLJCharmmCoulCharmm {
 
 #endif
 #endif
-

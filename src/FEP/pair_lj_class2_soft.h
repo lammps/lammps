@@ -53,4 +53,3 @@ class PairLJClass2Soft : public Pair {
 
 #endif
 #endif
-

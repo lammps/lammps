@@ -59,4 +59,3 @@ class AtomVecBPMSphere : public AtomVec {
 
 #endif
 #endif
-

@@ -41,4 +41,3 @@ class NPairHalfBinNewtonTriIntel : public NPairIntel {
 
 #endif
 #endif
-

@@ -44,4 +44,3 @@ class DihedralOPLS : public Dihedral {
 
 #endif
 #endif
-

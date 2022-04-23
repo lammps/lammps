@@ -57,4 +57,3 @@ class PairColloid : public Pair {
 
 #endif
 #endif
-

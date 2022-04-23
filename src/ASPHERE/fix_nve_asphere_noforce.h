@@ -39,4 +39,3 @@ class FixNVEAsphereNoforce : public FixNVENoforce {
 
 #endif
 #endif
-

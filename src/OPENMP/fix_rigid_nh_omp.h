@@ -36,4 +36,3 @@ class FixRigidNHOMP : public FixRigidNH {
 }    // namespace LAMMPS_NS
 
 #endif
-

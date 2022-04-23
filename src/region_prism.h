@@ -54,4 +54,3 @@ class RegPrism : public Region {
 
 #endif
 #endif
-

@@ -128,4 +128,3 @@ class FixPrecessionSpin : public Fix {
 
 #endif
 #endif
-

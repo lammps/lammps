@@ -45,4 +45,3 @@ class ComputePEAtom : public Compute {
 
 #endif
 #endif
-

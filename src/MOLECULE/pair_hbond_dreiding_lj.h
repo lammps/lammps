@@ -64,4 +64,3 @@ class PairHbondDreidingLJ : public Pair {
 
 #endif
 #endif
-

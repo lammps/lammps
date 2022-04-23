@@ -33,4 +33,3 @@ class PairOxrna2Hbond : public PairOxdnaHbond {
 
 #endif
 #endif
-

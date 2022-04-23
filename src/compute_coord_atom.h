@@ -59,4 +59,3 @@ class ComputeCoordAtom : public Compute {
 
 #endif
 #endif
-

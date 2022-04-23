@@ -77,4 +77,3 @@ class FixBondBreak : public Fix {
 
 #endif
 #endif
-

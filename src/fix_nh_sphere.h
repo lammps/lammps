@@ -35,4 +35,3 @@ class FixNHSphere : public FixNH {
 }    // namespace LAMMPS_NS
 
 #endif
-

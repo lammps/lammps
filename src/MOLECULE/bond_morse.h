@@ -47,4 +47,3 @@ class BondMorse : public Bond {
 
 #endif
 #endif
-

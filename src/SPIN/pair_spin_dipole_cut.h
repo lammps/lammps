@@ -68,4 +68,3 @@ class PairSpinDipoleCut : public PairSpin {
 
 #endif
 #endif
-

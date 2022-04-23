@@ -43,4 +43,3 @@ class PairMorseGPU : public PairMorse {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

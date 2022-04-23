@@ -44,4 +44,3 @@ class PairBornGPU : public PairBorn {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

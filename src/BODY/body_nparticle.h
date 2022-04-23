@@ -53,4 +53,3 @@ class BodyNparticle : public Body {
 
 #endif
 #endif
-

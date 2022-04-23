@@ -55,4 +55,3 @@ class PairLJExpand : public Pair {
 
 #endif
 #endif
-

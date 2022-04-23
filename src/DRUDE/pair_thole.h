@@ -54,4 +54,3 @@ class PairThole : public Pair {
 
 #endif
 #endif
-

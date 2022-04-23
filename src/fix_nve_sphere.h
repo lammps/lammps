@@ -42,4 +42,3 @@ class FixNVESphere : public FixNVE {
 
 #endif
 #endif
-

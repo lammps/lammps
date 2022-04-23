@@ -57,4 +57,3 @@ class ComputePressure : public Compute {
 
 #endif
 #endif
-

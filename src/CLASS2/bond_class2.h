@@ -47,4 +47,3 @@ class BondClass2 : public Bond {
 
 #endif
 #endif
-

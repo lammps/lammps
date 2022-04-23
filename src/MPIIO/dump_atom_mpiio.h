@@ -70,4 +70,3 @@ class DumpAtomMPIIO : public DumpAtom {
 
 #endif
 #endif
-

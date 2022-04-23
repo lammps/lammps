@@ -71,4 +71,3 @@ class FixManifoldForce : public Fix {
 
 #endif
 #endif
-

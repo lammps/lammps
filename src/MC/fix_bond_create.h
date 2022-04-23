@@ -94,4 +94,3 @@ class FixBondCreate : public Fix {
 
 #endif
 #endif
-

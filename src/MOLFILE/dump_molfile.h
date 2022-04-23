@@ -59,4 +59,3 @@ class DumpMolfile : public Dump {
 
 #endif
 #endif
-

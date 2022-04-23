@@ -79,4 +79,3 @@ class ImproperCvffIntel : public ImproperCvff {
 
 #endif
 #endif
-

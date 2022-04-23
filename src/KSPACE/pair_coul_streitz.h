@@ -77,4 +77,3 @@ class PairCoulStreitz : public Pair {
 
 #endif
 #endif
-

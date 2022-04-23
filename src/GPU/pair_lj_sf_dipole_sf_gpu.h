@@ -43,4 +43,3 @@ class PairLJSFDipoleSFGPU : public PairLJSFDipoleSF {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

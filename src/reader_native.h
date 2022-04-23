@@ -73,4 +73,3 @@ class ReaderNative : public Reader {
 
 #endif
 #endif
-

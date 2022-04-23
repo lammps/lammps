@@ -78,4 +78,3 @@ class PairLubricateU : public Pair {
 
 #endif
 #endif
-

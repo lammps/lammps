@@ -37,4 +37,3 @@ class FixNVTGPU : public FixNHGPU {
 
 #endif
 #endif
-

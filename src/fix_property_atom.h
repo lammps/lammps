@@ -67,4 +67,3 @@ class FixPropertyAtom : public Fix {
 
 #endif
 #endif
-

@@ -47,4 +47,3 @@ class FixNVK : public Fix {
 
 #endif
 #endif
-

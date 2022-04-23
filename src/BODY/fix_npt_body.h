@@ -33,4 +33,3 @@ class FixNPTBody : public FixNHBody {
 
 #endif
 #endif
-

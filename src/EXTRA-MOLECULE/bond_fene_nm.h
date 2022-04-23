@@ -46,4 +46,3 @@ class BondFENENM : public BondFENE {
 
 #endif
 #endif
-

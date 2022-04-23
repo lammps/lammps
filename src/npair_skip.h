@@ -44,4 +44,3 @@ class NPairSkip : public NPair {
 
 #endif
 #endif
-

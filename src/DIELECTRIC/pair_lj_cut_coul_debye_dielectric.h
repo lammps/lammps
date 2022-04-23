@@ -44,4 +44,3 @@ class PairLJCutCoulDebyeDielectric : public PairLJCutCoulDebye {
 
 #endif
 #endif
-

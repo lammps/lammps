@@ -56,4 +56,3 @@ class PairSoft : public Pair {
 
 #endif
 #endif
-

@@ -41,4 +41,3 @@ class PairSWMOD : public PairSW {
 
 #endif
 #endif
-

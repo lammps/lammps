@@ -90,4 +90,3 @@ class FixAtomSwap : public Fix {
 
 #endif
 #endif
-

@@ -43,4 +43,3 @@ class PairTableGPU : public PairTable {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

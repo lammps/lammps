@@ -59,4 +59,3 @@ class NPairSkipIntel : public NPair {
 
 #endif
 #endif
-

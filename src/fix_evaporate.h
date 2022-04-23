@@ -51,4 +51,3 @@ class FixEvaporate : public Fix {
 
 #endif
 #endif
-

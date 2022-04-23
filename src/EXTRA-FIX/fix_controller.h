@@ -52,4 +52,3 @@ class FixController : public Fix {
 
 #endif
 #endif
-

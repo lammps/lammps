@@ -63,4 +63,3 @@ class PairSpinNeel : public PairSpin {
 
 #endif
 #endif
-

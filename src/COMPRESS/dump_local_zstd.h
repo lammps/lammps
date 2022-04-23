@@ -51,4 +51,3 @@ class DumpLocalZstd : public DumpLocal {
 #endif
 #endif
 #endif
-

@@ -64,4 +64,3 @@ class PairAIREBOIntel : public PairAIREBO {
 
 #endif
 #endif
-

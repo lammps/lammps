@@ -67,4 +67,3 @@ class FixShardlow : public Fix {
 
 #endif
 #endif
-

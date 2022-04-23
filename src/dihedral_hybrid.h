@@ -54,4 +54,3 @@ class DihedralHybrid : public Dihedral {
 
 #endif
 #endif
-

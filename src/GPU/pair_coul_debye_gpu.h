@@ -44,4 +44,3 @@ class PairCoulDebyeGPU : public PairCoulDebye {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

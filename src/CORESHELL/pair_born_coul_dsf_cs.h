@@ -34,4 +34,3 @@ class PairBornCoulDSFCS : public PairBornCoulDSF {
 
 #endif
 #endif
-

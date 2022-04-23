@@ -43,4 +43,3 @@ class FixPythonInvoke : public Fix {
 
 #endif
 #endif
-

@@ -64,4 +64,3 @@ class FixWallRegion : public Fix {
 
 #endif
 #endif
-

@@ -73,4 +73,3 @@ class ComputeTempChunk : public Compute {
 
 #endif
 #endif
-

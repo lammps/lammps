@@ -43,4 +43,3 @@ class DisplaceAtoms : public Command {
 
 #endif
 #endif
-

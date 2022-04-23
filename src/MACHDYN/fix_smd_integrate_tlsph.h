@@ -60,4 +60,3 @@ class FixSMDIntegrateTlsph : public Fix {
 
 #endif
 #endif
-

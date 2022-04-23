@@ -48,4 +48,3 @@ class ComputeChunkSpreadAtom : public Compute {
 
 #endif
 #endif
-

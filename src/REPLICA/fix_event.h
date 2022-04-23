@@ -54,4 +54,3 @@ class FixEvent : public Fix {
 }    // namespace LAMMPS_NS
 
 #endif
-

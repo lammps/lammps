@@ -44,4 +44,3 @@ class FixNVTSllodIntel : public FixNHIntel {
 
 #endif
 #endif
-

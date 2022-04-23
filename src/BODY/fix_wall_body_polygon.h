@@ -93,4 +93,3 @@ class FixWallBodyPolygon : public Fix {
 
 #endif
 #endif
-

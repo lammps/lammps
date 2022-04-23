@@ -40,4 +40,3 @@ class FixNVTSllod : public FixNH {
 
 #endif
 #endif
-

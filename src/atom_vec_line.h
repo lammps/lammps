@@ -83,4 +83,3 @@ class AtomVecLine : public AtomVec {
 
 #endif
 #endif
-

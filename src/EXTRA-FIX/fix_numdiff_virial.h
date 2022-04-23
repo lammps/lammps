@@ -68,4 +68,3 @@ class FixNumDiffVirial : public Fix {
 
 #endif
 #endif
-

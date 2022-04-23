@@ -55,4 +55,3 @@ class FixAppendAtoms : public Fix {
 
 #endif
 #endif
-

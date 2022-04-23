@@ -41,4 +41,3 @@ class RegPlane : public Region {
 
 #endif
 #endif
-

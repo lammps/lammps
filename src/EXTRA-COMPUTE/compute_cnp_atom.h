@@ -53,4 +53,3 @@ class ComputeCNPAtom : public Compute {
 
 #endif
 #endif
-

@@ -56,4 +56,3 @@ class ComputeViscosityCos : public Compute {
 
 #endif
 #endif
-

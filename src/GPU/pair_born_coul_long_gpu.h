@@ -43,4 +43,3 @@ class PairBornCoulLongGPU : public PairBornCoulLong {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

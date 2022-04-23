@@ -45,4 +45,3 @@ class FixNHGPU : public FixNH {
 }    // namespace LAMMPS_NS
 
 #endif
-

@@ -35,4 +35,3 @@ class ComputeDeprecated : public Compute {
 
 #endif
 #endif
-

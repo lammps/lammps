@@ -54,4 +54,3 @@ class PairTIP4PLongSoft : public PairCoulLongSoft {
 
 #endif
 #endif
-

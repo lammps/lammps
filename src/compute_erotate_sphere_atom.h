@@ -42,4 +42,3 @@ class ComputeErotateSphereAtom : public Compute {
 
 #endif
 #endif
-

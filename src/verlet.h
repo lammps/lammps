@@ -45,4 +45,3 @@ class Verlet : public Integrate {
 
 #endif
 #endif
-

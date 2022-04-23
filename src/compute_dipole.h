@@ -40,4 +40,3 @@ class ComputeDipole : public Compute {
 
 #endif
 #endif
-

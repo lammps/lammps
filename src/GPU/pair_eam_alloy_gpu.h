@@ -54,4 +54,3 @@ class PairEAMAlloyGPU : public PairEAM {
 
 #endif
 #endif
-

@@ -40,4 +40,3 @@ class AtomVecSpin : public AtomVec {
 
 #endif
 #endif
-

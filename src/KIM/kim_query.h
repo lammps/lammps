@@ -71,4 +71,3 @@ class KimQuery : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

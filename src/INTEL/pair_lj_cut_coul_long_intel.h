@@ -96,4 +96,3 @@ class PairLJCutCoulLongIntel : public PairLJCutCoulLong {
 
 #endif
 #endif
-

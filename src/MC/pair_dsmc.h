@@ -109,4 +109,3 @@ class PairDSMC : public Pair {
 
 #endif
 #endif
-

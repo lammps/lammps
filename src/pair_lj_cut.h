@@ -61,4 +61,3 @@ class PairLJCut : public Pair {
 
 #endif
 #endif
-

@@ -69,4 +69,3 @@ class FixTTMGrid : public FixTTM {
 
 #endif
 #endif
-

@@ -47,4 +47,3 @@ class FixEventHyper : public FixEvent {
 
 #endif
 #endif
-

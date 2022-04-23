@@ -56,4 +56,3 @@ class Body : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

@@ -112,4 +112,3 @@ class FixMSST : public Fix {
 
 #endif
 #endif
-

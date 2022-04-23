@@ -39,4 +39,3 @@ class DumpDeprecated : public Dump {
 
 #endif
 #endif
-

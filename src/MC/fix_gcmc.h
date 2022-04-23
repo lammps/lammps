@@ -146,4 +146,3 @@ class FixGCMC : public Fix {
 
 #endif
 #endif
-

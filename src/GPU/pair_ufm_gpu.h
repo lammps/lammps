@@ -50,4 +50,3 @@ class PairUFMGPU : public PairUFM {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

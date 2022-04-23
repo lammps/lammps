@@ -220,4 +220,3 @@ class FixRigidSmall : public Fix {
 
 #endif
 #endif
-

@@ -46,4 +46,3 @@ class ComputeMSD : public Compute {
 
 #endif
 #endif
-

@@ -75,4 +75,3 @@ class PairGranHookeHistory : public Pair {
 
 #endif
 #endif
-

@@ -84,4 +84,3 @@ class AtomVecHybrid : public AtomVec {
 
 #endif
 #endif
-

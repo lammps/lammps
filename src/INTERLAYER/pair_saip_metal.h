@@ -37,4 +37,3 @@ class PairSAIPMETAL : public PairILPGrapheneHBN {
 
 #endif
 #endif
-

@@ -317,4 +317,3 @@ namespace FixConst {
 }    // namespace LAMMPS_NS
 
 #endif
-

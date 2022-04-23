@@ -50,4 +50,3 @@ class BondBPMSpring : public BondBPM {
 
 #endif
 #endif
-

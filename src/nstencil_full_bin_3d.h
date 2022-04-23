@@ -36,4 +36,3 @@ class NStencilFullBin3d : public NStencil {
 
 #endif
 #endif
-

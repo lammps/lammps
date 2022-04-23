@@ -70,4 +70,3 @@ class ComputeVoronoi : public Compute {
 
 #endif
 #endif
-

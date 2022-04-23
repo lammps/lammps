@@ -48,4 +48,3 @@ class MSMCG : public MSM {
 
 #endif
 #endif
-

@@ -33,4 +33,3 @@ class FixNPT : public FixNH {
 
 #endif
 #endif
-

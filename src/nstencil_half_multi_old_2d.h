@@ -35,4 +35,3 @@ class NStencilHalfMultiOld2d : public NStencil {
 
 #endif
 #endif
-

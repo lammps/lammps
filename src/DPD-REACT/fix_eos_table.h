@@ -66,4 +66,3 @@ class FixEOStable : public Fix {
 
 #endif
 #endif
-

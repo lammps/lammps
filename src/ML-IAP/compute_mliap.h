@@ -60,4 +60,3 @@ class ComputeMLIAP : public Compute {
 
 #endif
 #endif
-

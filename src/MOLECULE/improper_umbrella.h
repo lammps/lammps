@@ -44,4 +44,3 @@ class ImproperUmbrella : public Improper {
 
 #endif
 #endif
-

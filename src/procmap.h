@@ -54,4 +54,3 @@ class ProcMap : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

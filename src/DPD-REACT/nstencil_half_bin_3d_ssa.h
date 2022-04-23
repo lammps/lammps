@@ -36,4 +36,3 @@ class NStencilHalfBin3dSSA : public NStencilSSA {
 
 #endif
 #endif
-

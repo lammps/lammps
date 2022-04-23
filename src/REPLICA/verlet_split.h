@@ -54,4 +54,3 @@ class VerletSplit : public Verlet {
 
 #endif
 #endif
-

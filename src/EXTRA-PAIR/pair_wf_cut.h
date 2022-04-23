@@ -56,4 +56,3 @@ class PairWFCut : public Pair {
 
 #endif
 #endif
-

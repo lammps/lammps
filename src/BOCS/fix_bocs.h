@@ -169,4 +169,3 @@ class FixBocs : public Fix {
 
 #endif
 #endif
-

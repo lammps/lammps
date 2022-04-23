@@ -40,4 +40,3 @@ class Ndx2Group : public Command {
 
 #endif
 #endif
-

@@ -44,4 +44,3 @@ class DumpLocalGZ : public DumpLocal {
 
 #endif
 #endif
-

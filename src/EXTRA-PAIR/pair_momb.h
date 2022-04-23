@@ -56,4 +56,3 @@ class PairMomb : public Pair {
 
 #endif
 #endif
-

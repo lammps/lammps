@@ -114,4 +114,3 @@ class PairGW : public Pair {
 
 #endif
 #endif
-

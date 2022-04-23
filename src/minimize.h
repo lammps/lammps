@@ -34,4 +34,3 @@ class Minimize : public Command {
 
 #endif
 #endif
-

@@ -64,4 +64,3 @@ class PairSpinExchangeBiquadratic : public PairSpin {
 
 #endif
 #endif
-

@@ -53,4 +53,3 @@ class ComputeHeatFluxVirialTally : public Compute {
 
 #endif
 #endif
-

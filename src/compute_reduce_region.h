@@ -37,4 +37,3 @@ class ComputeReduceRegion : public ComputeReduce {
 
 #endif
 #endif
-

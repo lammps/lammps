@@ -49,4 +49,3 @@ class PairTersoffZBL : public PairTersoff {
 
 #endif
 #endif
-

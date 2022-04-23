@@ -47,4 +47,3 @@ class ComputePressureUef : public ComputePressure {
 
 #endif
 #endif
-

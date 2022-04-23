@@ -43,4 +43,3 @@ class PairLJGromacsGPU : public PairLJGromacs {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

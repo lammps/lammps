@@ -95,4 +95,3 @@ class EwaldDisp : public KSpace {
 
 #endif
 #endif
-

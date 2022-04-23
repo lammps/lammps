@@ -47,4 +47,3 @@ class AngleHarmonic : public Angle {
 
 #endif
 #endif
-

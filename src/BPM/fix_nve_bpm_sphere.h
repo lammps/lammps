@@ -42,4 +42,3 @@ class FixNVEBPMSphere : public FixNVE {
 
 #endif
 #endif
-

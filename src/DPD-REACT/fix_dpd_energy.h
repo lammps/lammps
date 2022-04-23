@@ -39,4 +39,3 @@ class FixDPDenergy : public Fix {
 
 #endif
 #endif
-

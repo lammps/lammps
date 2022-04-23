@@ -49,4 +49,3 @@ class AtomVecAngle : public AtomVec {
 
 #endif
 #endif
-

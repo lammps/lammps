@@ -60,4 +60,3 @@ class FixWall : public Fix {
 }    // namespace LAMMPS_NS
 
 #endif
-

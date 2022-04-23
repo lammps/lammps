@@ -51,4 +51,3 @@ class FixViscosity : public Fix {
 
 #endif
 #endif
-

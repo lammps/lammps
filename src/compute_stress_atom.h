@@ -48,4 +48,3 @@ class ComputeStressAtom : public Compute {
 
 #endif
 #endif
-

@@ -36,4 +36,3 @@ class NPairFullMultiOld : public NPair {
 
 #endif
 #endif
-

@@ -35,4 +35,3 @@ class AtomVecMesoNT : public AtomVec {
 
 #endif
 #endif
-

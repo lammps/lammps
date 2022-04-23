@@ -42,4 +42,3 @@ class PairEAMFS : virtual public PairEAM {
 
 #endif
 #endif
-

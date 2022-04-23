@@ -54,4 +54,3 @@ class FixTempBerendsen : public Fix {
 
 #endif
 #endif
-

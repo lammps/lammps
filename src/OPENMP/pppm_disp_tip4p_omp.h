@@ -68,4 +68,3 @@ class PPPMDispTIP4POMP : public PPPMDispTIP4P, public ThrOMP {
 
 #endif
 #endif
-

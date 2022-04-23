@@ -52,4 +52,3 @@ class PPPMDipoleSpin : public PPPMDipole {
 
 #endif
 #endif
-

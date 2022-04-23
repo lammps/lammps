@@ -54,4 +54,3 @@ class ComputeTempPartial : public Compute {
 
 #endif
 #endif
-

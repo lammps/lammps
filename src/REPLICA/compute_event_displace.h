@@ -45,4 +45,3 @@ class ComputeEventDisplace : public Compute {
 
 #endif
 #endif
-

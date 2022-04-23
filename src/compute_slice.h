@@ -45,4 +45,3 @@ class ComputeSlice : public Compute {
 
 #endif
 #endif
-

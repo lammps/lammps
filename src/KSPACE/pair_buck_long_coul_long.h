@@ -68,4 +68,3 @@ class PairBuckLongCoulLong : public Pair {
 
 #endif
 #endif
-

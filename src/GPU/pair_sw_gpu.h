@@ -45,4 +45,3 @@ class PairSWGPU : public PairSW {
 
 #endif
 #endif
-

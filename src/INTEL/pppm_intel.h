@@ -110,4 +110,3 @@ class PPPMIntel : public PPPM {
 
 #endif
 #endif
-

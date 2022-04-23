@@ -71,4 +71,3 @@ class WriteRestart : public Command {
 
 #endif
 #endif
-

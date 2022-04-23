@@ -63,4 +63,3 @@ class PairLJCharmmfswCoulCharmmfsh : public Pair {
 
 #endif
 #endif
-

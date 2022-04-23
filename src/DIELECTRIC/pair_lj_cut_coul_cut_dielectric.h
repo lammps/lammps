@@ -44,4 +44,3 @@ class PairLJCutCoulCutDielectric : public PairLJCutCoulCut {
 
 #endif
 #endif
-

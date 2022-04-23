@@ -141,4 +141,3 @@ class ComputePropertyAtom : public Compute {
 
 #endif
 #endif
-

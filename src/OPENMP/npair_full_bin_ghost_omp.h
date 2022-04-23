@@ -37,4 +37,3 @@ class NPairFullBinGhostOmp : public NPair {
 
 #endif
 #endif
-

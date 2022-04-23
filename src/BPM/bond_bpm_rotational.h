@@ -57,4 +57,3 @@ class BondBPMRotational : public BondBPM {
 
 #endif
 #endif
-

@@ -41,4 +41,3 @@ class PairPeriLPS : public PairPeri {
 
 #endif
 #endif
-

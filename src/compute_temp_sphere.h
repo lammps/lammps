@@ -51,4 +51,3 @@ class ComputeTempSphere : public Compute {
 
 #endif
 #endif
-

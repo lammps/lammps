@@ -62,4 +62,3 @@ class PairMM3Switch3CoulGaussLong : public Pair {
 
 #endif
 #endif
-

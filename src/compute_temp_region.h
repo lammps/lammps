@@ -53,4 +53,3 @@ class ComputeTempRegion : public Compute {
 
 #endif
 #endif
-

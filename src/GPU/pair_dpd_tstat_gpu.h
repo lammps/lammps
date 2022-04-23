@@ -43,4 +43,3 @@ class PairDPDTstatGPU : public PairDPDTstat {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

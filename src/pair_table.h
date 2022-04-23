@@ -74,4 +74,3 @@ class PairTable : public Pair {
 
 #endif
 #endif
-

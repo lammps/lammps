@@ -83,4 +83,3 @@ class FixAveCorrelateLong : public Fix {
 
 #endif
 #endif
-

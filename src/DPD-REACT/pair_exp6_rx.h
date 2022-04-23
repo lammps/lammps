@@ -84,4 +84,3 @@ class PairExp6rx : public Pair {
 
 #endif
 #endif
-

@@ -45,4 +45,3 @@ class DihedralHarmonic : public Dihedral {
 
 #endif
 #endif
-

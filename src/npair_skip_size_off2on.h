@@ -38,4 +38,3 @@ class NPairSkipSizeOff2on : public NPair {
 
 #endif
 #endif
-

@@ -54,4 +54,3 @@ class PairLJCutCoulWolf : public Pair {
 
 #endif
 #endif
-

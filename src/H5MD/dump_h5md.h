@@ -72,4 +72,3 @@ class DumpH5MD : public Dump {
 
 #endif
 #endif
-

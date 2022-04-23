@@ -55,4 +55,3 @@ class PairHybridScaled : public PairHybrid {
 
 #endif
 #endif
-

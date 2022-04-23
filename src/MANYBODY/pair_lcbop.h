@@ -151,4 +151,3 @@ class PairLCBOP : public Pair {
 
 #endif
 #endif
-

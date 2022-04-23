@@ -671,4 +671,3 @@ namespace utils {
 }    // namespace LAMMPS_NS
 
 #endif
-

@@ -43,4 +43,3 @@ class PairBuckCoulLongGPU : public PairBuckCoulLong {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

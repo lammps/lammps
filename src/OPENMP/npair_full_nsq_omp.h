@@ -37,4 +37,3 @@ class NPairFullNsqOmp : public NPair {
 
 #endif
 #endif
-

@@ -54,4 +54,3 @@ class FixAveAtom : public Fix {
 
 #endif
 #endif
-

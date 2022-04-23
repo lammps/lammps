@@ -57,4 +57,3 @@ class DeleteAtoms : public Command {
 
 #endif
 #endif
-

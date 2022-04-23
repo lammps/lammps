@@ -39,4 +39,3 @@ class ComputeERotateSphere : public Compute {
 
 #endif
 #endif
-

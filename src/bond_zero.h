@@ -51,4 +51,3 @@ class BondZero : public Bond {
 
 #endif
 #endif
-

@@ -44,4 +44,3 @@ class Reader : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

@@ -44,4 +44,3 @@ class FixQEqDynamic : public FixQEq {
 
 #endif
 #endif
-

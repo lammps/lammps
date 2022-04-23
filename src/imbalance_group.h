@@ -39,4 +39,3 @@ class ImbalanceGroup : public Imbalance {
 }    // namespace LAMMPS_NS
 
 #endif
-

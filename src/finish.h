@@ -30,4 +30,3 @@ class Finish : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

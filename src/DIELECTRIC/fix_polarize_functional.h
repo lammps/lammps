@@ -121,4 +121,3 @@ class FixPolarizeFunctional : public Fix {
 
 #endif
 #endif
-

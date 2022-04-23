@@ -48,4 +48,3 @@ class PairBPMSpring : public Pair {
 
 #endif
 #endif
-

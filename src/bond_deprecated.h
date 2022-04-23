@@ -41,4 +41,3 @@ class BondDeprecated : public Bond {
 
 #endif
 #endif
-

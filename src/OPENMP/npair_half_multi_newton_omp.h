@@ -36,4 +36,3 @@ class NPairHalfMultiNewtonOmp : public NPair {
 
 #endif
 #endif
-

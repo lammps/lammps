@@ -48,4 +48,3 @@ class FixDampingCundall : public Fix {
 
 #endif
 #endif
-

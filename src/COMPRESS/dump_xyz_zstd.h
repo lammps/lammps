@@ -51,4 +51,3 @@ class DumpXYZZstd : public DumpXYZ {
 #endif
 #endif
 #endif
-

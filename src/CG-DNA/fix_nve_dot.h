@@ -54,4 +54,3 @@ class FixNVEDot : public FixNVE {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

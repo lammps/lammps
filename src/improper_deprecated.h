@@ -39,4 +39,3 @@ class ImproperDeprecated : public Improper {
 
 #endif
 #endif
-

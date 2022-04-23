@@ -37,4 +37,3 @@ class NPairFullMultiOmp : public NPair {
 
 #endif
 #endif
-

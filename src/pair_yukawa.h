@@ -53,4 +53,3 @@ class PairYukawa : public Pair {
 
 #endif
 #endif
-

@@ -169,4 +169,3 @@ void es_genNextParallelState(es_RNG_t &serial_state, es_RNG_t &new_state)
 }    // namespace random_external_state
 
 #endif
-

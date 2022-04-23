@@ -34,4 +34,3 @@ class NTopoDihedralTemplate : public NTopo {
 
 #endif
 #endif
-

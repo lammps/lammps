@@ -34,4 +34,3 @@ class NTopoBondPartial : public NTopo {
 
 #endif
 #endif
-

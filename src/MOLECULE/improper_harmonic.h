@@ -44,4 +44,3 @@ class ImproperHarmonic : public Improper {
 
 #endif
 #endif
-

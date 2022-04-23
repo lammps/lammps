@@ -51,4 +51,3 @@ class ComputeTempDeform : public Compute {
 
 #endif
 #endif
-

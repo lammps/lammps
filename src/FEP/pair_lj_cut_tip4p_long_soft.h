@@ -54,4 +54,3 @@ class PairLJCutTIP4PLongSoft : public PairLJCutCoulLongSoft {
 
 #endif
 #endif
-

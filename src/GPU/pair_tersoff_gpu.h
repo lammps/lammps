@@ -46,4 +46,3 @@ class PairTersoffGPU : public PairTersoff {
 
 #endif
 #endif
-

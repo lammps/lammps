@@ -34,4 +34,3 @@ class BondOxdna2Fene : public BondOxdnaFene {
 
 #endif
 #endif
-

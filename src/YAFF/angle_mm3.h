@@ -46,4 +46,3 @@ class AngleMM3 : public Angle {
 
 #endif
 #endif
-

@@ -57,4 +57,3 @@ class ComputeOmegaChunk : public Compute {
 
 #endif
 #endif
-

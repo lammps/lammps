@@ -33,4 +33,3 @@ class FixNPTAsphereOMP : public FixNHAsphereOMP {
 
 #endif
 #endif
-

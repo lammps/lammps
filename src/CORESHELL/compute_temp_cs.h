@@ -64,4 +64,3 @@ class ComputeTempCS : public Compute {
 
 #endif
 #endif
-

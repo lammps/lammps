@@ -50,4 +50,3 @@ class DumpXYZ : public Dump {
 
 #endif
 #endif
-

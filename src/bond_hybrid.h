@@ -58,4 +58,3 @@ class BondHybrid : public Bond {
 
 #endif
 #endif
-

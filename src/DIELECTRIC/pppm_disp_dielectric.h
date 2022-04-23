@@ -50,4 +50,3 @@ class PPPMDispDielectric : public PPPMDisp {
 
 #endif
 #endif
-

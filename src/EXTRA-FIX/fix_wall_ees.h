@@ -40,4 +40,3 @@ class FixWallEES : public FixWall {
 
 #endif
 #endif
-

@@ -176,4 +176,3 @@ class PairKIM : public Pair {
 
 #endif
 #endif
-

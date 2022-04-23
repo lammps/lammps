@@ -55,4 +55,3 @@ class ComputeTorqueChunk : public Compute {
 
 #endif
 #endif
-

@@ -60,4 +60,3 @@ class PairBuck6dCoulGaussLong : public Pair {
 
 #endif
 #endif
-

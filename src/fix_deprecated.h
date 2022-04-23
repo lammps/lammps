@@ -42,4 +42,3 @@ class FixDeprecated : public Fix {
 
 #endif
 #endif
-

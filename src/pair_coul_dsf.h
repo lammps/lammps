@@ -52,4 +52,3 @@ class PairCoulDSF : public Pair {
 
 #endif
 #endif
-

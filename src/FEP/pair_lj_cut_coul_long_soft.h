@@ -64,4 +64,3 @@ class PairLJCutCoulLongSoft : public Pair {
 
 #endif
 #endif
-

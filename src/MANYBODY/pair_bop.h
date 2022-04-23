@@ -155,4 +155,3 @@ class PairBOP : public Pair {
 
 #endif
 #endif
-

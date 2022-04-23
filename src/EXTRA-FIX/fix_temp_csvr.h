@@ -61,4 +61,3 @@ class FixTempCSVR : public Fix {
 
 #endif
 #endif
-

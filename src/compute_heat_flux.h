@@ -40,4 +40,3 @@ class ComputeHeatFlux : public Compute {
 
 #endif
 #endif
-

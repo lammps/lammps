@@ -68,4 +68,3 @@ class VerletLRTIntel : public Verlet {
 
 #endif
 #endif
-

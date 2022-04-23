@@ -63,4 +63,3 @@ class FixElectronStopping : public Fix {
 
 #endif
 #endif
-

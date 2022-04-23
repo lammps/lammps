@@ -34,4 +34,3 @@ class ComputeMSDNonGauss : public ComputeMSD {
 
 #endif
 #endif
-

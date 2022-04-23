@@ -49,4 +49,3 @@ class AtomVecBond : public AtomVec {
 
 #endif
 #endif
-

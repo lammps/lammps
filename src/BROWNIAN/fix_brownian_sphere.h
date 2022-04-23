@@ -39,4 +39,3 @@ class FixBrownianSphere : public FixBrownianBase {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

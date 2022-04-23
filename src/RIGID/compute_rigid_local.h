@@ -52,4 +52,3 @@ class ComputeRigidLocal : public Compute {
 
 #endif
 #endif
-

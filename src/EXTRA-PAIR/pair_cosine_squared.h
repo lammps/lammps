@@ -65,4 +65,3 @@ class PairCosineSquared : public Pair {
 
 #endif
 #endif
-

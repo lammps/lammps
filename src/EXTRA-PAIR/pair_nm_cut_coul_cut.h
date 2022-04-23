@@ -57,4 +57,3 @@ class PairNMCutCoulCut : public Pair {
 
 #endif
 #endif
-

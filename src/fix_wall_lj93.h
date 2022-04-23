@@ -38,4 +38,3 @@ class FixWallLJ93 : public FixWall {
 
 #endif
 #endif
-

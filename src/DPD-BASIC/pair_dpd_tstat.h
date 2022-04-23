@@ -45,4 +45,3 @@ class PairDPDTstat : public PairDPD {
 
 #endif
 #endif
-

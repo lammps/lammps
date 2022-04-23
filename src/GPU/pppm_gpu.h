@@ -59,4 +59,3 @@ class PPPMGPU : public PPPM {
 
 #endif
 #endif
-

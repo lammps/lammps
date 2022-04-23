@@ -42,4 +42,3 @@ class ComputePressureGrem : public ComputePressure {
 
 #endif
 #endif
-

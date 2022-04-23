@@ -56,4 +56,3 @@ class FixQEQComb : public Fix {
 
 #endif
 #endif
-

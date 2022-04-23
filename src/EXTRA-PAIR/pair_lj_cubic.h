@@ -50,4 +50,3 @@ class PairLJCubic : public Pair {
 
 #endif
 #endif
-

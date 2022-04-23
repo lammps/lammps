@@ -69,4 +69,3 @@ class KimProperty : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

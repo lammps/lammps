@@ -89,4 +89,3 @@ class FixOrientFCC : public Fix {
 
 #endif
 #endif
-

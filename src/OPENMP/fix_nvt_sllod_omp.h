@@ -39,4 +39,3 @@ class FixNVTSllodOMP : public FixNHOMP {
 
 #endif
 #endif
-

@@ -64,4 +64,3 @@ class PairLJExpandCoulLong : public Pair {
 
 #endif
 #endif
-

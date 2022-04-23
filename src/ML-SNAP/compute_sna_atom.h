@@ -56,4 +56,3 @@ class ComputeSNAAtom : public Compute {
 
 #endif
 #endif
-

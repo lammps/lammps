@@ -51,4 +51,3 @@ class PairATM : public Pair {
 
 #endif
 #endif
-

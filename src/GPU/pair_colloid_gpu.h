@@ -43,4 +43,3 @@ class PairColloidGPU : public PairColloid {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

@@ -38,4 +38,3 @@ class ImbalanceStore : public Imbalance {
 }    // namespace LAMMPS_NS
 
 #endif
-

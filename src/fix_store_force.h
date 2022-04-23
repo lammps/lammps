@@ -47,4 +47,3 @@ class FixStoreForce : public Fix {
 
 #endif
 #endif
-

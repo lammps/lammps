@@ -77,4 +77,3 @@ class FixAveTime : public Fix {
 
 #endif
 #endif
-

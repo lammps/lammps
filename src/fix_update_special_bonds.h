@@ -47,4 +47,3 @@ class FixUpdateSpecialBonds : public Fix {
 
 #endif
 #endif
-

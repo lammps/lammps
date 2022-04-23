@@ -48,4 +48,3 @@ class FixDrag : public Fix {
 
 #endif
 #endif
-

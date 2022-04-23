@@ -61,4 +61,3 @@ class FixLatte : public Fix {
 
 #endif
 #endif
-

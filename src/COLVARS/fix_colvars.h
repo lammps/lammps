@@ -97,4 +97,3 @@ class FixColvars : public Fix {
 
 #endif
 #endif
-

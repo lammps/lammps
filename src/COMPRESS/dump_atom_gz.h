@@ -44,4 +44,3 @@ class DumpAtomGZ : public DumpAtom {
 
 #endif
 #endif
-

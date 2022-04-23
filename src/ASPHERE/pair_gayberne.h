@@ -72,4 +72,3 @@ class PairGayBerne : public Pair {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

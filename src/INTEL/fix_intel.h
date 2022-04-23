@@ -466,4 +466,3 @@ void FixIntel::set_neighbor_host_sizes()
 
 #endif
 #endif
-

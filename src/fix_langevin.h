@@ -85,4 +85,3 @@ class FixLangevin : public Fix {
 
 #endif
 #endif
-

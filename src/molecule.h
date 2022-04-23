@@ -169,4 +169,3 @@ class Molecule : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

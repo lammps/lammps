@@ -40,4 +40,3 @@ class PairLJCutCoulCutDielectricOMP : public PairLJCutCoulCutDielectric, public 
 
 #endif
 #endif
-

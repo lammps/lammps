@@ -52,4 +52,3 @@ class ComputeDihedralLocal : public Compute {
 
 #endif
 #endif
-

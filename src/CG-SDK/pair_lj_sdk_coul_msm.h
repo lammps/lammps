@@ -43,4 +43,3 @@ class PairLJSDKCoulMSM : public PairLJSDKCoulLong {
 
 #endif
 #endif
-

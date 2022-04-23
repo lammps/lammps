@@ -56,4 +56,3 @@ class PairCoulCutSoft : public Pair {
 
 #endif
 #endif
-

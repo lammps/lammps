@@ -54,4 +54,3 @@ class ComputeStressTally : public Compute {
 
 #endif
 #endif
-

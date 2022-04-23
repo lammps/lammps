@@ -91,4 +91,3 @@ class PairLJCharmmCoulLongIntel : public PairLJCharmmCoulLong {
 
 #endif
 #endif
-

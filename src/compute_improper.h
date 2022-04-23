@@ -41,4 +41,3 @@ class ComputeImproper : public Compute {
 
 #endif
 #endif
-

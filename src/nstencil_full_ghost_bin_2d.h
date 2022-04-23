@@ -36,4 +36,3 @@ class NStencilFullGhostBin2d : public NStencil {
 
 #endif
 #endif
-

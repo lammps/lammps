@@ -262,7 +262,6 @@ int lammps_get_last_error_message(void *handle, char *buffer, int buf_size);
 
 #endif /* LAMMPS_LIBRARY_H */
 
-
 /* Local Variables:
  * fill-column: 72
  * End: */

@@ -69,4 +69,3 @@ class FixDeposit : public Fix {
 
 #endif
 #endif
-

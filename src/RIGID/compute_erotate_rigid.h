@@ -40,4 +40,3 @@ class ComputeERotateRigid : public Compute {
 
 #endif
 #endif
-

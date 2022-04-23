@@ -34,4 +34,3 @@ class PairCoulWolfCS : public PairCoulWolf {
 
 #endif
 #endif /* LMP_PAIR_COUL_WOLF_CS_H_ */
-

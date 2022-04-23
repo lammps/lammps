@@ -48,4 +48,3 @@ class PairSpin : public Pair {
 }    // namespace LAMMPS_NS
 
 #endif
-

@@ -45,4 +45,3 @@ class FixSpringRG : public Fix {
 
 #endif
 #endif
-

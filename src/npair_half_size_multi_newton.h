@@ -36,4 +36,3 @@ class NPairHalfSizeMultiNewton : public NPair {
 
 #endif
 #endif
-

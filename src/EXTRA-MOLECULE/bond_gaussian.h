@@ -48,4 +48,3 @@ class BondGaussian : public Bond {
 
 #endif
 #endif
-

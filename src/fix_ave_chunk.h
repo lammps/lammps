@@ -82,4 +82,3 @@ class FixAveChunk : public Fix {
 
 #endif
 #endif
-

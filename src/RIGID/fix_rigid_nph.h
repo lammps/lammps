@@ -33,4 +33,3 @@ class FixRigidNPH : public FixRigidNH {
 
 #endif
 #endif
-

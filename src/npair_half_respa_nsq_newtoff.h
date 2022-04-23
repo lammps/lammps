@@ -36,4 +36,3 @@ class NPairHalfRespaNsqNewtoff : public NPair {
 
 #endif
 #endif
-

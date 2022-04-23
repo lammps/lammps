@@ -55,4 +55,3 @@ class PairCoulTT : public Pair {
 
 #endif
 #endif
-

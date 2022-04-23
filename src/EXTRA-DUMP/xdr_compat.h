@@ -203,4 +203,3 @@ extern void xdr_free(xdrproc_t __proc, char *__objp);
 #endif
 
 #endif /* XDR_COMPAT_H */
-

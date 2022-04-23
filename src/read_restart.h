@@ -69,4 +69,3 @@ class ReadRestart : public Command {
 
 #endif
 #endif
-

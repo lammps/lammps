@@ -55,4 +55,3 @@ class PairLJSmoothLinear : public Pair {
 
 #endif
 #endif
-

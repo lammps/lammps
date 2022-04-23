@@ -60,4 +60,3 @@ class PairUFM : public Pair {
 
 #endif
 #endif
-

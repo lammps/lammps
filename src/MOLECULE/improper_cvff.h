@@ -45,4 +45,3 @@ class ImproperCvff : public Improper {
 
 #endif
 #endif
-

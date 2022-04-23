@@ -92,4 +92,3 @@ class PairEAMIntel : public PairEAM {
 
 #endif
 #endif
-

@@ -52,4 +52,3 @@ class FixVector : public Fix {
 
 #endif
 #endif
-

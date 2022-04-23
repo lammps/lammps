@@ -65,4 +65,3 @@ class ComputeReduceChunk : public Compute {
 
 #endif
 #endif
-

@@ -61,4 +61,3 @@ class PairDPDfdtEnergy : public Pair {
 
 #endif
 #endif
-

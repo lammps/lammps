@@ -49,4 +49,3 @@ class ComputeCentroAtom : public Compute {
 
 #endif
 #endif
-

@@ -34,4 +34,3 @@ class NTopoAnglePartial : public NTopo {
 
 #endif
 #endif
-

@@ -35,4 +35,3 @@ class PairCoulCutGlobal : public PairCoulCut {
 
 #endif
 #endif
-

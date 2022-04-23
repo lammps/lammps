@@ -50,4 +50,3 @@ class FixHalt : public Fix {
 
 #endif
 #endif
-

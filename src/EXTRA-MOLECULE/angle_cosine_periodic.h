@@ -47,4 +47,3 @@ class AngleCosinePeriodic : public Angle {
 
 #endif
 #endif
-

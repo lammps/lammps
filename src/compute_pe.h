@@ -38,4 +38,3 @@ class ComputePE : public Compute {
 
 #endif
 #endif
-

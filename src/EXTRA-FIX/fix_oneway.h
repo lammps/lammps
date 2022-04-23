@@ -42,4 +42,3 @@ class FixOneWay : public Fix {
 
 #endif
 #endif
-

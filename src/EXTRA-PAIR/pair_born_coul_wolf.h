@@ -55,4 +55,3 @@ class PairBornCoulWolf : public Pair {
 
 #endif
 #endif
-

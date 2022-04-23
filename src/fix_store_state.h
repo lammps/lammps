@@ -118,4 +118,3 @@ class FixStoreState : public Fix {
 
 #endif
 #endif
-

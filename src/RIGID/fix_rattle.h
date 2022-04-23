@@ -75,4 +75,3 @@ class FixRattle : public FixShake {
 
 #endif
 #endif
-

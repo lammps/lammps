@@ -41,4 +41,3 @@ class ComputeDpdAtom : public Compute {
 
 #endif
 #endif
-

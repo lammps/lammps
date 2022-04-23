@@ -35,4 +35,3 @@ class PairOxrna2Excv : public PairOxdnaExcv {
 
 #endif
 #endif
-

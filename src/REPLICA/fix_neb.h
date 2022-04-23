@@ -75,4 +75,3 @@ class FixNEB : public Fix {
 
 #endif
 #endif
-

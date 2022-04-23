@@ -60,4 +60,3 @@ class PairNMCutCoulLong : public Pair {
 
 #endif
 #endif
-

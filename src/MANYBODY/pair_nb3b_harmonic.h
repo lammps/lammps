@@ -58,4 +58,3 @@ class PairNb3bHarmonic : public Pair {
 
 #endif
 #endif
-

@@ -84,4 +84,3 @@ class DumpLocal : public Dump {
 
 #endif
 #endif
-

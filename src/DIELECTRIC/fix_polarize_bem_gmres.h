@@ -109,4 +109,3 @@ class FixPolarizeBEMGMRES : public Fix {
 
 #endif
 #endif
-

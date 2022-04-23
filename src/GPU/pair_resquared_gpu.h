@@ -45,4 +45,3 @@ class PairRESquaredGPU : public PairRESquared {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

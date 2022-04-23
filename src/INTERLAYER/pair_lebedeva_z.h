@@ -55,4 +55,3 @@ class PairLebedevaZ : public Pair {
 
 #endif
 #endif
-

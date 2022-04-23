@@ -66,4 +66,3 @@ class PairSW : public Pair {
 
 #endif
 #endif
-

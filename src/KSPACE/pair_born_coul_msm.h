@@ -41,4 +41,3 @@ class PairBornCoulMSM : public PairBornCoulLong {
 
 #endif
 #endif
-

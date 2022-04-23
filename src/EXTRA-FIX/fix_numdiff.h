@@ -64,4 +64,3 @@ class FixNumDiff : public Fix {
 
 #endif
 #endif
-

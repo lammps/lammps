@@ -35,4 +35,3 @@ class FixWallHarmonic : public FixWall {
 
 #endif
 #endif
-

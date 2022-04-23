@@ -35,4 +35,3 @@ class FixNHBody : public FixNH {
 }    // namespace LAMMPS_NS
 
 #endif
-

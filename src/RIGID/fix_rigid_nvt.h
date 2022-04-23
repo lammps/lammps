@@ -33,4 +33,3 @@ class FixRigidNVT : public FixRigidNH {
 
 #endif
 #endif
-

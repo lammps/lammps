@@ -47,4 +47,3 @@ class FixQEqFire : public FixQEq {
 
 #endif
 #endif
-

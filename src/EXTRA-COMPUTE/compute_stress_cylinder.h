@@ -54,4 +54,3 @@ class ComputeStressCylinder : public Compute {
 
 #endif
 #endif
-

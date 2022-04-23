@@ -54,4 +54,3 @@ class PairGauss : public Pair {
 
 #endif
 #endif
-

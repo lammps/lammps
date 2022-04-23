@@ -38,4 +38,3 @@ class RestartMPIIO : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

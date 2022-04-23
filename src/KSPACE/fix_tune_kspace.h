@@ -83,4 +83,3 @@ class FixTuneKspace : public Fix {
 
 #endif
 #endif
-

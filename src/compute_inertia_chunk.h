@@ -55,4 +55,3 @@ class ComputeInertiaChunk : public Compute {
 
 #endif
 #endif
-

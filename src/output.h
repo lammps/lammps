@@ -99,4 +99,3 @@ class Output : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

@@ -68,4 +68,3 @@ class Special : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

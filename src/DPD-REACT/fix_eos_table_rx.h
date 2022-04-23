@@ -82,4 +82,3 @@ class FixEOStableRX : public Fix {
 
 #endif
 #endif
-

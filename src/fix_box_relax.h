@@ -96,4 +96,3 @@ class FixBoxRelax : public Fix {
 
 #endif
 #endif
-

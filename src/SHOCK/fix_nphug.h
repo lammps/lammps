@@ -59,4 +59,3 @@ class FixNPHug : public FixNH {
 
 #endif
 #endif
-

@@ -59,4 +59,3 @@ class DumpXYZMPIIO : public DumpXYZ {
 
 #endif
 #endif
-

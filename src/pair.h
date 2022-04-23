@@ -293,4 +293,3 @@ class Pair : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

@@ -47,4 +47,3 @@ class ComputeStressSpherical : public Compute {
 
 #endif
 #endif
-

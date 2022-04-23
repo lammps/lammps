@@ -56,4 +56,3 @@ class ChangeBox : public Command {
 
 #endif
 #endif
-

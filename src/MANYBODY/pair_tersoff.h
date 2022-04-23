@@ -110,4 +110,3 @@ class PairTersoff : public Pair {
 
 #endif
 #endif
-

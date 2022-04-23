@@ -131,4 +131,3 @@ class ComputeChunkAtom : public Compute {
 
 #endif
 #endif
-

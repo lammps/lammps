@@ -38,4 +38,3 @@ class FixNVTIntel : public FixNHIntel {
 
 #endif
 #endif
-

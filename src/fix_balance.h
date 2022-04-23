@@ -64,4 +64,3 @@ class FixBalance : public Fix {
 
 #endif
 #endif
-

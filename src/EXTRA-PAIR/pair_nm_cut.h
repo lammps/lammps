@@ -55,4 +55,3 @@ class PairNMCut : public Pair {
 
 #endif
 #endif
-

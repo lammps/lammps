@@ -52,4 +52,3 @@ class FixAveForce : public Fix {
 
 #endif
 #endif
-

@@ -59,4 +59,3 @@ class BodyRoundedPolyhedron : public Body {
 
 #endif
 #endif
-

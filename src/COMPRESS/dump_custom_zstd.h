@@ -51,4 +51,3 @@ class DumpCustomZstd : public DumpCustom {
 #endif
 #endif
 #endif
-

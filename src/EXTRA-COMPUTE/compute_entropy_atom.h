@@ -49,4 +49,3 @@ class ComputeEntropyAtom : public Compute {
 
 #endif
 #endif
-

@@ -62,4 +62,3 @@ class FixStore : public Fix {
 
 #endif
 #endif
-

@@ -101,4 +101,3 @@ class FixNeighHistory : public Fix {
 
 #endif
 #endif
-

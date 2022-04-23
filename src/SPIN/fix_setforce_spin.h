@@ -36,4 +36,3 @@ class FixSetForceSpin : public FixSetForce {
 
 #endif
 #endif
-

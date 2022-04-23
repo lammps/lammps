@@ -72,4 +72,3 @@ class FixMDIAimd : public Fix {
 
 #endif
 #endif
-

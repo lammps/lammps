@@ -58,4 +58,3 @@ class PairZBL : public Pair {
 
 #endif
 #endif
-

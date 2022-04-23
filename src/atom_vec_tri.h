@@ -84,4 +84,3 @@ class AtomVecTri : public AtomVec {
 
 #endif
 #endif
-

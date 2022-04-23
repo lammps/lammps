@@ -43,4 +43,3 @@ class ComputeNBondAtom : public Compute {
 
 #endif
 #endif
-

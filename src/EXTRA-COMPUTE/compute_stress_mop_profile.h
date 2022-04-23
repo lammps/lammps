@@ -58,4 +58,3 @@ class ComputeStressMopProfile : public Compute {
 
 #endif
 #endif
-

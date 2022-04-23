@@ -52,4 +52,3 @@ class PairBuckMDF : public Pair {
 
 #endif
 #endif
-

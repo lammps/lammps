@@ -64,4 +64,3 @@ class FixGravity : public Fix {
 
 #endif
 #endif
-

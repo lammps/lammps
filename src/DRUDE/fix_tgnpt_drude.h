@@ -33,4 +33,3 @@ class FixTGNPTDrude : public FixTGNHDrude {
 
 #endif
 #endif
-

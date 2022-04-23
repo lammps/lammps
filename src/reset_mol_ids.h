@@ -48,4 +48,3 @@ class ResetMolIDs : public Command {
 
 #endif
 #endif
-

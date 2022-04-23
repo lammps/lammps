@@ -42,4 +42,3 @@ class PairLJCharmmCoulMSM : public PairLJCharmmCoulLong {
 
 #endif
 #endif
-

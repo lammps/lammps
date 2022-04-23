@@ -41,4 +41,3 @@ class FixDummy : public Fix {
 
 #endif
 #endif
-

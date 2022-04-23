@@ -64,4 +64,3 @@ class PairMESONTTPM : public Pair {
 
 #endif
 #endif
-

@@ -48,4 +48,3 @@ class AngleGaussian : public Angle {
 
 #endif
 #endif
-

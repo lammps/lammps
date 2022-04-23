@@ -49,4 +49,3 @@ class FixNVEAsphereIntel : public FixNVE {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

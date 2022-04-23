@@ -41,4 +41,3 @@ class ComputeAngle : public Compute {
 
 #endif
 #endif
-

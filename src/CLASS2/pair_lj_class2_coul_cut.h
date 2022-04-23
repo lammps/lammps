@@ -56,4 +56,3 @@ class PairLJClass2CoulCut : public Pair {
 
 #endif
 #endif
-

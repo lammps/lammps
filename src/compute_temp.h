@@ -43,4 +43,3 @@ class ComputeTemp : public Compute {
 
 #endif
 #endif
-

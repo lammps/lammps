@@ -94,4 +94,3 @@ class Angle : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

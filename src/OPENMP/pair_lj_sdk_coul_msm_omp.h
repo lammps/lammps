@@ -46,4 +46,3 @@ class PairLJSDKCoulMSMOMP : public PairLJSDKCoulMSM, public ThrOMP {
 
 #endif
 #endif
-

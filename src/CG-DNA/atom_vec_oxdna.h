@@ -40,4 +40,3 @@ class AtomVecOxdna : public AtomVec {
 
 #endif
 #endif
-

@@ -50,4 +50,3 @@ class DumpCFG : public DumpCustom {
 
 #endif
 #endif
-

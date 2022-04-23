@@ -43,4 +43,3 @@ class PairBeckGPU : public PairBeck {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

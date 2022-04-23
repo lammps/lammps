@@ -37,4 +37,3 @@ class PairCoulMSM : public PairCoulLong {
 
 #endif
 #endif
-

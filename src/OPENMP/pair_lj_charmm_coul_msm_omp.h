@@ -46,4 +46,3 @@ class PairLJCharmmCoulMSMOMP : public PairLJCharmmCoulMSM, public ThrOMP {
 
 #endif
 #endif
-

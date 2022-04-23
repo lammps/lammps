@@ -46,4 +46,3 @@ class ComputeCNAAtom : public Compute {
 
 #endif
 #endif
-

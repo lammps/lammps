@@ -83,4 +83,3 @@ class FixNEBSpin : public Fix {
 
 #endif
 #endif
-

@@ -44,4 +44,3 @@ class PairGaussGPU : public PairGauss {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

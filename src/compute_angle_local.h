@@ -52,4 +52,3 @@ class ComputeAngleLocal : public Compute {
 
 #endif
 #endif
-

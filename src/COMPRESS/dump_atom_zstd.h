@@ -51,4 +51,3 @@ class DumpAtomZstd : public DumpAtom {
 #endif
 #endif
 #endif
-

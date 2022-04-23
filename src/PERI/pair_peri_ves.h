@@ -41,4 +41,3 @@ class PairPeriVES : public PairPeri {
 
 #endif
 #endif
-

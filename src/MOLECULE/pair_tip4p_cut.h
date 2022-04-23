@@ -61,4 +61,3 @@ class PairTIP4PCut : public Pair {
 
 #endif
 #endif
-

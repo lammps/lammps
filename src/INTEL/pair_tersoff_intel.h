@@ -111,4 +111,3 @@ class PairTersoffIntel : public PairTersoff {
 
 #endif
 #endif
-

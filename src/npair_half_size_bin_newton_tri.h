@@ -36,4 +36,3 @@ class NPairHalfSizeBinNewtonTri : public NPair {
 
 #endif
 #endif
-

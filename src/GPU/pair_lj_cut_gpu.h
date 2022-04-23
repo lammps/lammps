@@ -44,4 +44,3 @@ class PairLJCutGPU : public PairLJCut {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

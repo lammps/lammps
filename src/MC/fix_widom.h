@@ -106,4 +106,3 @@ class FixWidom : public Fix {
 
 #endif
 #endif
-

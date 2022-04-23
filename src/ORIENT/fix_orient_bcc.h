@@ -89,4 +89,3 @@ class FixOrientBCC : public Fix {
 
 #endif
 #endif
-

@@ -46,4 +46,3 @@ class PairLJCutCoulMSMOMP : public PairLJCutCoulMSM, public ThrOMP {
 
 #endif
 #endif
-

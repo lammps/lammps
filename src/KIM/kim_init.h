@@ -88,4 +88,3 @@ class KimInit : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

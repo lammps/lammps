@@ -351,4 +351,3 @@ class PPPMDisp : public KSpace {
 
 #endif
 #endif
-

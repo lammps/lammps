@@ -126,4 +126,3 @@ class Timer : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

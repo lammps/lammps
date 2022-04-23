@@ -41,4 +41,3 @@ class ComputeDihedral : public Compute {
 
 #endif
 #endif
-

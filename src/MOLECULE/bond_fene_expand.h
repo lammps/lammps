@@ -47,4 +47,3 @@ class BondFENEExpand : public Bond {
 
 #endif
 #endif
-

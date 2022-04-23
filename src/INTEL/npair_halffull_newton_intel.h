@@ -59,4 +59,3 @@ class NPairHalffullNewtonIntel : public NPair {
 
 #endif
 #endif
-

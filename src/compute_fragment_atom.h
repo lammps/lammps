@@ -44,4 +44,3 @@ class ComputeFragmentAtom : public Compute {
 
 #endif
 #endif
-

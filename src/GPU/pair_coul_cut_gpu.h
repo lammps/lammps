@@ -44,4 +44,3 @@ class PairCoulCutGPU : public PairCoulCut {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

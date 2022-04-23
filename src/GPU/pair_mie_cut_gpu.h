@@ -43,4 +43,3 @@ class PairMIECutGPU : public PairMIECut {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

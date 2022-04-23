@@ -95,4 +95,3 @@ class PPPMDipole : public PPPM {
 
 #endif
 #endif
-

@@ -34,4 +34,3 @@ class PairBornCoulWolfCS : public PairBornCoulWolf {
 
 #endif
 #endif
-

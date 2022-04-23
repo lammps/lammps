@@ -32,4 +32,3 @@ class MDIPlugin : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

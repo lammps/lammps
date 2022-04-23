@@ -40,4 +40,3 @@ class FixAveHistoWeight : public FixAveHisto {
 
 #endif
 #endif
-

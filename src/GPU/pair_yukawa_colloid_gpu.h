@@ -43,4 +43,3 @@ class PairYukawaColloidGPU : public PairYukawaColloid {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

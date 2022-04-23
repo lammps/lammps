@@ -49,4 +49,3 @@ class BondSpecial : public Bond {
 
 #endif
 #endif
-

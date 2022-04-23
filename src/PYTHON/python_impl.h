@@ -61,4 +61,3 @@ class PythonImpl : protected Pointers, public PythonInterface {
 }    // namespace LAMMPS_NS
 
 #endif
-

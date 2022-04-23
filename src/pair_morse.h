@@ -56,4 +56,3 @@ class PairMorse : public Pair {
 
 #endif
 #endif
-

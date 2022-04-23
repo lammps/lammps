@@ -52,4 +52,3 @@ class NPairHalfBinNewtonSSA : public NPair {
 
 #endif
 #endif
-

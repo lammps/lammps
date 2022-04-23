@@ -34,4 +34,3 @@ class PairAIREBOMorse : public PairAIREBO {
 
 #endif
 #endif
-

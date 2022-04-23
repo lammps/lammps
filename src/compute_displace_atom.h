@@ -49,4 +49,3 @@ class ComputeDisplaceAtom : public Compute {
 
 #endif
 #endif
-

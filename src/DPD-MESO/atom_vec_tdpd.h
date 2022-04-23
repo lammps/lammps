@@ -45,4 +45,3 @@ class AtomVecTDPD : public AtomVec {
 
 #endif
 #endif
-

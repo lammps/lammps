@@ -52,4 +52,3 @@ class ReaderXYZ : public Reader {
 
 #endif
 #endif
-

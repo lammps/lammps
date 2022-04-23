@@ -172,4 +172,3 @@ class Dump : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

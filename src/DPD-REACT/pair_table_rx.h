@@ -46,4 +46,3 @@ class PairTableRX : public PairTable {
 
 #endif
 #endif
-

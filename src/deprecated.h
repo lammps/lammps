@@ -42,4 +42,3 @@ class Deprecated : public Command {
 
 #endif
 #endif
-

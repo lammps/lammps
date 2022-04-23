@@ -45,4 +45,3 @@ class PairLJCutCoulMSMDielectric : public PairLJCutCoulLong {
 
 #endif
 #endif
-

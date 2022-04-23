@@ -58,4 +58,3 @@ class PairSpinMagelec : public PairSpin {
 
 #endif
 #endif
-

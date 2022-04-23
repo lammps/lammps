@@ -57,4 +57,3 @@ class PairLJCutCoulDSF : public Pair {
 
 #endif
 #endif
-

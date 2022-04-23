@@ -102,4 +102,3 @@ class PairSWIntel : public PairSW {
 
 #endif
 #endif
-

@@ -56,4 +56,3 @@ class PairBuckCoulCut : public Pair {
 
 #endif
 #endif
-

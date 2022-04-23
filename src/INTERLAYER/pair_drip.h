@@ -95,4 +95,3 @@ class PairDRIP : public Pair {
 
 #endif
 #endif
-

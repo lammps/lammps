@@ -36,4 +36,3 @@ class MDICommand : public Command {
 
 #endif
 #endif
-

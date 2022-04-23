@@ -58,4 +58,3 @@ class PairLJRelRes : public Pair {
 
 #endif
 #endif
-

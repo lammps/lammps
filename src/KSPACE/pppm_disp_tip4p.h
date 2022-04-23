@@ -46,4 +46,3 @@ class PPPMDispTIP4P : public PPPMDisp {
 
 #endif
 #endif
-

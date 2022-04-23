@@ -80,4 +80,3 @@ class FixAdapt : public Fix {
 
 #endif
 #endif
-

@@ -48,4 +48,3 @@ class MSMCGOMP : public MSMOMP {
 
 #endif
 #endif
-

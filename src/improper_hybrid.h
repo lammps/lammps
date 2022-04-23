@@ -54,4 +54,3 @@ class ImproperHybrid : public Improper {
 
 #endif
 #endif
-

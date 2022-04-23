@@ -77,4 +77,3 @@ class BondFENEIntel : public BondFENE {
 
 #endif
 #endif
-

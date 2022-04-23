@@ -38,4 +38,3 @@ class PairLJCutCoulLongCS : public PairLJCutCoulLong {
 
 #endif
 #endif
-

@@ -75,4 +75,3 @@ class PairKolmogorovCrespiFull : public Pair {
 
 #endif
 #endif
-

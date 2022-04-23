@@ -50,4 +50,3 @@ class FixThermalConductivity : public Fix {
 
 #endif
 #endif
-

@@ -38,4 +38,3 @@ class KSpaceDeprecated : public KSpace {
 
 #endif
 #endif
-

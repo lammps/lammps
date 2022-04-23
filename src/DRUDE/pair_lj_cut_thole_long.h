@@ -64,4 +64,3 @@ class PairLJCutTholeLong : public Pair {
 
 #endif
 #endif
-

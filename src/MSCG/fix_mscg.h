@@ -50,4 +50,3 @@ class FixMSCG : public Fix {
 
 #endif
 #endif
-

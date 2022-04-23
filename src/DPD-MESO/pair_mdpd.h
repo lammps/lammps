@@ -55,4 +55,3 @@ class PairMDPD : public Pair {
 
 #endif
 #endif
-

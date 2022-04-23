@@ -87,4 +87,3 @@ class ComputePropertyLocal : public Compute {
 
 #endif
 #endif
-

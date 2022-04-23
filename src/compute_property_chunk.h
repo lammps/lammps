@@ -66,4 +66,3 @@ class ComputePropertyChunk : public Compute {
 
 #endif
 #endif
-

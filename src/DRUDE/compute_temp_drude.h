@@ -49,4 +49,3 @@ class ComputeTempDrude : public Compute {
 
 #endif
 #endif
-

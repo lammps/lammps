@@ -55,4 +55,3 @@ class Velocity : public Command {
 
 #endif
 #endif
-

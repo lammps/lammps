@@ -48,4 +48,3 @@ class ComputeEfieldAtom : public Compute {
 
 #endif
 #endif
-

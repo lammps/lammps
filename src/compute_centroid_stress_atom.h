@@ -48,4 +48,3 @@ class ComputeCentroidStressAtom : public Compute {
 
 #endif
 #endif
-

@@ -46,4 +46,3 @@ class PairCoulMSMOMP : public PairCoulMSM, public ThrOMP {
 
 #endif
 #endif
-

@@ -36,4 +36,3 @@ class PairLubricatePoly : public PairLubricate {
 
 #endif
 #endif
-

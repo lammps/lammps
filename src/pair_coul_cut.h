@@ -53,4 +53,3 @@ class PairCoulCut : public Pair {
 
 #endif
 #endif
-

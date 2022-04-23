@@ -47,4 +47,3 @@ class AngleDipole : public Angle {
 
 #endif
 #endif
-

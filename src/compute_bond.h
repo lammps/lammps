@@ -41,4 +41,3 @@ class ComputeBond : public Compute {
 
 #endif
 #endif
-

@@ -62,4 +62,3 @@ class PairLineLJ : public Pair {
 
 #endif
 #endif
-

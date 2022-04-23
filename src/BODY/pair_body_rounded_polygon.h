@@ -108,4 +108,3 @@ class PairBodyRoundedPolygon : public Pair {
 
 #endif
 #endif
-

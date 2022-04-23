@@ -52,4 +52,3 @@ class PairBuckLongCoulLongOMP : public PairBuckLongCoulLong, public ThrOMP {
 
 #endif
 #endif
-

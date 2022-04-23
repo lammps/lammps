@@ -45,4 +45,3 @@ class FixEnforce2D : public Fix {
 
 #endif
 #endif
-

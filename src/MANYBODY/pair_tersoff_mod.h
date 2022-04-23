@@ -79,4 +79,3 @@ class PairTersoffMOD : public PairTersoff {
 
 #endif
 #endif
-

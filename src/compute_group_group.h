@@ -52,4 +52,3 @@ class ComputeGroupGroup : public Compute {
 
 #endif
 #endif
-

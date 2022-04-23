@@ -41,4 +41,3 @@ class ComputeGyrationShape : public Compute {
 
 #endif
 #endif
-

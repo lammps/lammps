@@ -58,4 +58,3 @@ class PairLJCutDipoleLong : public Pair {
 
 #endif
 #endif
-

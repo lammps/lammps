@@ -45,4 +45,3 @@ class ComputeContactAtom : public Compute {
 
 #endif
 #endif
-

@@ -47,4 +47,3 @@ class ComputeAveSphereAtom : public Compute {
 
 #endif
 #endif
-

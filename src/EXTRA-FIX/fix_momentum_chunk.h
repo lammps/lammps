@@ -46,4 +46,3 @@ class FixMomentumChunk : public Fix {
 
 #endif
 #endif
-

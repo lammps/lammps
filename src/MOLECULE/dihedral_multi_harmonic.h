@@ -44,4 +44,3 @@ class DihedralMultiHarmonic : public Dihedral {
 
 #endif
 #endif
-

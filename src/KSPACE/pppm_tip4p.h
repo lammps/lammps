@@ -44,4 +44,3 @@ class PPPMTIP4P : public PPPM {
 
 #endif
 #endif
-

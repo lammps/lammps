@@ -35,4 +35,3 @@ class PairCoulCutGlobalOMP : public PairCoulCutOMP {
 
 #endif
 #endif
-

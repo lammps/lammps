@@ -52,4 +52,3 @@ class PairCoulExclude : public Pair {
 
 #endif
 #endif
-

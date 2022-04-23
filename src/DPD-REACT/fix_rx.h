@@ -147,4 +147,3 @@ class FixRX : public Fix {
 
 #endif
 #endif
-

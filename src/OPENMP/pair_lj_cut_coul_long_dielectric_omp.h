@@ -41,4 +41,3 @@ class PairLJCutCoulLongDielectricOMP : public PairLJCutCoulLongDielectric, publi
 
 #endif
 #endif
-

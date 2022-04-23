@@ -68,4 +68,3 @@ class FixWallGranRegion : public FixWallGran {
 
 #endif
 #endif
-

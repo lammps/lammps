@@ -42,4 +42,3 @@ class FixNVENoforce : public Fix {
 
 #endif
 #endif
-

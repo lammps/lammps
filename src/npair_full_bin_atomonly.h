@@ -37,4 +37,3 @@ class NPairFullBinAtomonly : public NPair {
 
 #endif
 #endif
-

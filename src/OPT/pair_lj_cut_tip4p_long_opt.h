@@ -40,4 +40,3 @@ class PairLJCutTIP4PLongOpt : public PairLJCutTIP4PLong {
 
 #endif
 #endif
-

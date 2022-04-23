@@ -60,4 +60,3 @@ class PairEDPD : public Pair {
 
 #endif
 #endif
-

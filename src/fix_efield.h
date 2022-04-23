@@ -65,4 +65,3 @@ class FixEfield : public Fix {
 
 #endif
 #endif
-

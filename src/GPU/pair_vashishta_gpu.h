@@ -45,4 +45,3 @@ class PairVashishtaGPU : public PairVashishta {
 
 #endif
 #endif
-

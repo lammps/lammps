@@ -45,4 +45,3 @@ class FixRigidMeso : public FixRigid {
 
 #endif
 #endif
-

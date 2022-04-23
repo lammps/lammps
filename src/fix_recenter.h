@@ -46,4 +46,3 @@ class FixRecenter : public Fix {
 
 #endif
 #endif
-

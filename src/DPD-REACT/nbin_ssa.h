@@ -95,4 +95,3 @@ class NBinSSA : public NBinStandard {
 
 #endif
 #endif
-

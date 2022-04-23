@@ -36,4 +36,3 @@ class NPairHalfBinNewtoff : public NPair {
 
 #endif
 #endif
-

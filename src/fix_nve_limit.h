@@ -47,4 +47,3 @@ class FixNVELimit : public Fix {
 
 #endif
 #endif
-

@@ -63,4 +63,3 @@ class PairMEAM : public Pair {
 
 #endif
 #endif
-

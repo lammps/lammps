@@ -77,4 +77,3 @@ class FixTISpring : public Fix {
 
 #endif
 #endif
-

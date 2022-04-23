@@ -48,4 +48,3 @@ class ComputeAggregateAtom : public Compute {
 
 #endif
 #endif
-

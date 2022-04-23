@@ -47,4 +47,3 @@ class FixEventTAD : public FixEvent {
 
 #endif
 #endif
-

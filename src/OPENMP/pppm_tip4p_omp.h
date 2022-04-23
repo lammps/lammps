@@ -59,4 +59,3 @@ class PPPMTIP4POMP : public PPPMTIP4P, public ThrOMP {
 
 #endif
 #endif
-

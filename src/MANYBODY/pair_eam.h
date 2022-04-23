@@ -113,4 +113,3 @@ class PairEAM : public Pair {
 
 #endif
 #endif
-

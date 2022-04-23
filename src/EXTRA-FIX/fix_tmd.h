@@ -59,4 +59,3 @@ class FixTMD : public Fix {
 
 #endif
 #endif
-

@@ -55,4 +55,3 @@ class PairLJMDF : public Pair {
 
 #endif
 #endif
-

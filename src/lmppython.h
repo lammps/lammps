@@ -55,4 +55,3 @@ class Python : protected Pointers {
 
 }    // namespace LAMMPS_NS
 #endif
-

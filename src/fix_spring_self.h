@@ -58,4 +58,3 @@ class FixSpringSelf : public Fix {
 
 #endif
 #endif
-

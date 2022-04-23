@@ -62,4 +62,3 @@ class FixRestrain : public Fix {
 
 #endif
 #endif
-

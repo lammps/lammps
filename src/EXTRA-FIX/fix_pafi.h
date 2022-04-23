@@ -71,4 +71,3 @@ class FixPAFI : public Fix {
 
 #endif
 #endif
-

@@ -43,4 +43,3 @@ class PairDPDGPU : public PairDPD {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

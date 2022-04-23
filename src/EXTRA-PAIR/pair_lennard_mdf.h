@@ -55,4 +55,3 @@ class PairLennardMDF : public Pair {
 
 #endif
 #endif
-

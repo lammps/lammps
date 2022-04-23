@@ -59,4 +59,3 @@ class PairMIECut : public Pair {
 
 #endif
 #endif
-

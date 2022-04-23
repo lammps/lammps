@@ -54,4 +54,3 @@ class FixTempRescale : public Fix {
 
 #endif
 #endif
-

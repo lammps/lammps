@@ -98,4 +98,3 @@ class CommBrick : public Comm {
 }    // namespace LAMMPS_NS
 
 #endif
-

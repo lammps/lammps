@@ -38,4 +38,3 @@ class PairYukawaColloid : public PairYukawa {
 
 #endif
 #endif
-

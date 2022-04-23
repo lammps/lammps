@@ -42,4 +42,3 @@ class PairCoulLongDielectric : public PairCoulLong {
 
 #endif
 #endif
-

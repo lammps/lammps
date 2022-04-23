@@ -46,4 +46,3 @@ class FixNVE : public Fix {
 
 #endif
 #endif
-

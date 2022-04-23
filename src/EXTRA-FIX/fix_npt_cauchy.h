@@ -180,4 +180,3 @@ class FixNPTCauchy : public Fix {
 
 #endif
 #endif
-

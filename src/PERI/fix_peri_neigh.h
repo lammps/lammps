@@ -81,4 +81,3 @@ class FixPeriNeigh : public Fix {
 
 #endif
 #endif
-

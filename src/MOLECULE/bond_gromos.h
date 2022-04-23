@@ -47,4 +47,3 @@ class BondGromos : public Bond {
 
 #endif
 #endif
-

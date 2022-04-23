@@ -69,4 +69,3 @@ class PairSpinDipoleLong : public PairSpin {
 
 #endif
 #endif
-

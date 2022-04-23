@@ -41,4 +41,3 @@ class ComputeKEAtom : public Compute {
 
 #endif
 #endif
-

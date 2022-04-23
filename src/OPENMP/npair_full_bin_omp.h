@@ -37,4 +37,3 @@ class NPairFullBinOmp : public NPair {
 
 #endif
 #endif
-

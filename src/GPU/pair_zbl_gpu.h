@@ -43,4 +43,3 @@ class PairZBLGPU : public PairZBL {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

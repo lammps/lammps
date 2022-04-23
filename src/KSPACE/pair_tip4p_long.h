@@ -54,4 +54,3 @@ class PairTIP4PLong : public PairCoulLong {
 
 #endif
 #endif
-

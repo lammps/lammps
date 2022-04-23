@@ -99,4 +99,3 @@ class NBin : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

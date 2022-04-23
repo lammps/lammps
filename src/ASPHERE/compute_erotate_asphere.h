@@ -41,4 +41,3 @@ class ComputeERotateAsphere : public Compute {
 
 #endif
 #endif
-

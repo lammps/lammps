@@ -52,4 +52,3 @@ class NPairHalffullNewtoff : public NPair {
 
 #endif
 #endif
-

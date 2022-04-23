@@ -43,4 +43,3 @@ class PairCoulCutDielectric : public PairCoulCut {
 
 #endif
 #endif
-

@@ -53,4 +53,3 @@ class PairCoulSlaterLong : public Pair {
 
 #endif
 #endif
-

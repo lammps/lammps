@@ -51,4 +51,3 @@ class FixGPU : public Fix {
 
 #endif
 #endif
-

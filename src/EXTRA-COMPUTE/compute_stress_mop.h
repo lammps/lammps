@@ -52,4 +52,3 @@ class ComputeStressMop : public Compute {
 
 #endif
 #endif
-

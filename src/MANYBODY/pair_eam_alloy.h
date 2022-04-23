@@ -40,4 +40,3 @@ class PairEAMAlloy : virtual public PairEAM {
 
 #endif
 #endif
-

@@ -106,4 +106,3 @@ class PairGranular : public Pair {
 
 #endif
 #endif
-

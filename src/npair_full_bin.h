@@ -37,4 +37,3 @@ class NPairFullBin : public NPair {
 
 #endif
 #endif
-

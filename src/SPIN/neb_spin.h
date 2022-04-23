@@ -64,4 +64,3 @@ class NEBSpin : public Command {
 
 #endif
 #endif
-

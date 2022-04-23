@@ -42,4 +42,3 @@ class AtomVecDPD : public AtomVec {
 
 #endif
 #endif
-

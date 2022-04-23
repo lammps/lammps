@@ -43,4 +43,3 @@ class DumpYAML : public DumpCustom {
 
 #endif
 #endif
-

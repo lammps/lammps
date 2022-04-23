@@ -44,4 +44,3 @@ class PairLJLongCoulLongDielectric : public PairLJLongCoulLong {
 
 #endif
 #endif
-

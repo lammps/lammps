@@ -75,4 +75,3 @@ class AngleTable : public Angle {
 
 #endif
 #endif
-

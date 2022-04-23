@@ -46,4 +46,3 @@ class ComputeClusterAtom : public Compute {
 
 #endif
 #endif
-

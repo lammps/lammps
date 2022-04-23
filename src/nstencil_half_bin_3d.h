@@ -36,4 +36,3 @@ class NStencilHalfBin3d : public NStencil {
 
 #endif
 #endif
-

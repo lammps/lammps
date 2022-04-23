@@ -46,4 +46,3 @@ class PairTersoffMODGPU : public PairTersoffMOD {
 
 #endif
 #endif
-

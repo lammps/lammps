@@ -88,4 +88,3 @@ class Dihedral : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

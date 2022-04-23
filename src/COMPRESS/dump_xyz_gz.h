@@ -44,4 +44,3 @@ class DumpXYZGZ : public DumpXYZ {
 
 #endif
 #endif
-

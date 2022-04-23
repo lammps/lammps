@@ -43,4 +43,3 @@ class MSMDielectric : public MSM {
 
 #endif
 #endif
-

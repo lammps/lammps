@@ -34,4 +34,3 @@ class WriteCoeff : public Command {
 
 #endif
 #endif
-

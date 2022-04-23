@@ -58,4 +58,3 @@ class PairLJCharmmCoulCharmm : public Pair {
 
 #endif
 #endif
-

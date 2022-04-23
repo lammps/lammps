@@ -48,4 +48,3 @@ class RegIntersect : public Region {
 
 #endif
 #endif
-

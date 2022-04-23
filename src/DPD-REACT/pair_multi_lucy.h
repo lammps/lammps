@@ -79,4 +79,3 @@ class PairMultiLucy : public Pair {
 
 #endif
 #endif
-

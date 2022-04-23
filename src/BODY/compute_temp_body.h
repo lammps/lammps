@@ -50,4 +50,3 @@ class ComputeTempBody : public Compute {
 
 #endif
 #endif
-

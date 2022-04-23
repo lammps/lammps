@@ -44,4 +44,3 @@ class FixMDIEngine : public Fix {
 
 #endif
 #endif
-

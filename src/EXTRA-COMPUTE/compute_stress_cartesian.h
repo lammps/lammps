@@ -49,4 +49,3 @@ class ComputeStressCartesian : public Compute {
 
 #endif
 #endif
-

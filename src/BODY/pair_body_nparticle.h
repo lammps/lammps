@@ -58,4 +58,3 @@ class PairBodyNparticle : public Pair {
 
 #endif
 #endif
-

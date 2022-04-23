@@ -57,4 +57,3 @@ class FixWallSRD : public Fix {
 
 #endif
 #endif
-

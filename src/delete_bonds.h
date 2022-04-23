@@ -34,4 +34,3 @@ class DeleteBonds : public Command {
 
 #endif
 #endif
-

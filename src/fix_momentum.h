@@ -41,4 +41,3 @@ class FixMomentum : public Fix {
 
 #endif
 #endif
-

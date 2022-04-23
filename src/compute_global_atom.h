@@ -50,4 +50,3 @@ class ComputeGlobalAtom : public Compute {
 
 #endif
 #endif
-

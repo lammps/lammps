@@ -52,4 +52,3 @@ class ComputeTempAsphere : public Compute {
 
 #endif
 #endif
-

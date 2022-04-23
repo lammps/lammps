@@ -60,4 +60,3 @@ class PairLJLongDipoleLong : public Pair {
 
 #endif
 #endif
-

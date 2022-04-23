@@ -48,4 +48,3 @@ class BondFENE : public Bond {
 
 #endif
 #endif
-

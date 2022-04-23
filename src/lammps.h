@@ -99,4 +99,3 @@ class LAMMPS {
 }    // namespace LAMMPS_NS
 
 #endif
-

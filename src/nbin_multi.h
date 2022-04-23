@@ -40,4 +40,3 @@ class NBinMulti : public NBin {
 
 #endif
 #endif
-

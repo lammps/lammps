@@ -50,4 +50,3 @@ class DumpCFGZstd : public DumpCFG {
 #endif
 #endif
 #endif
-

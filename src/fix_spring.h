@@ -57,4 +57,3 @@ class FixSpring : public Fix {
 
 #endif
 #endif
-

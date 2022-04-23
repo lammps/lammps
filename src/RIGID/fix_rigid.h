@@ -154,4 +154,3 @@ class FixRigid : public Fix {
 
 #endif
 #endif
-

@@ -104,4 +104,3 @@ class Bond : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

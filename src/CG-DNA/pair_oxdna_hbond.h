@@ -70,4 +70,3 @@ class PairOxdnaHbond : public Pair {
 
 #endif
 #endif
-

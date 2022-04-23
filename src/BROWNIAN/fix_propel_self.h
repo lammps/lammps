@@ -46,4 +46,3 @@ class FixPropelSelf : public Fix {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

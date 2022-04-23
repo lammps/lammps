@@ -57,4 +57,3 @@ class Temper : public Command {
 
 #endif
 #endif
-

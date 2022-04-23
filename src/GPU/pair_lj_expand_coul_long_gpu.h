@@ -44,4 +44,3 @@ class PairLJExpandCoulLongGPU : public PairLJExpandCoulLong {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

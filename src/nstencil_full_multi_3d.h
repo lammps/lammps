@@ -38,4 +38,3 @@ class NStencilFullMulti3d : public NStencil {
 
 #endif
 #endif
-

@@ -43,4 +43,3 @@ class PairLJCutCoulMSMGPU : public PairLJCutCoulMSM {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

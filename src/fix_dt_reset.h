@@ -47,4 +47,3 @@ class FixDtReset : public Fix {
 
 #endif
 #endif
-

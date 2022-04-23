@@ -55,4 +55,3 @@ class FixPythonMove : public Fix {
 
 #endif
 #endif
-

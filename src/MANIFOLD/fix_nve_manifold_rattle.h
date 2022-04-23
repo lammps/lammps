@@ -111,4 +111,3 @@ class FixNVEManifoldRattle : public Fix {
 
 #endif    // LMP_FIX_NVE_MANIFOLD_RATTLE_H
 #endif
-

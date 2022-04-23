@@ -43,4 +43,3 @@ class PairLJCharmmCoulCharmmGPU : public PairLJCharmmCoulCharmm {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

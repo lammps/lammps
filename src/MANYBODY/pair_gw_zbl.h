@@ -49,4 +49,3 @@ class PairGWZBL : public PairGW {
 
 #endif
 #endif
-

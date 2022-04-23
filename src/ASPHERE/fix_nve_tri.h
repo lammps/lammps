@@ -41,4 +41,3 @@ class FixNVETri : public FixNVE {
 
 #endif
 #endif
-

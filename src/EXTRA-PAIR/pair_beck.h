@@ -51,4 +51,3 @@ class PairBeck : public Pair {
 
 #endif
 #endif
-

@@ -33,4 +33,3 @@ class FixNHOMP : public FixNH {
 }    // namespace LAMMPS_NS
 
 #endif
-

@@ -34,4 +34,3 @@ class NTopoImproperAll : public NTopo {
 
 #endif
 #endif
-

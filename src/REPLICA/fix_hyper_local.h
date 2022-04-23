@@ -204,4 +204,3 @@ class FixHyperLocal : public FixHyper {
 
 #endif
 #endif
-

@@ -47,4 +47,3 @@ class PairLubricateUPoly : public PairLubricateU {
 
 #endif
 #endif
-

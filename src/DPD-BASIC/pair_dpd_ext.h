@@ -57,4 +57,3 @@ class PairDPDExt : public Pair {
 
 #endif
 #endif
-

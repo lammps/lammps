@@ -47,4 +47,3 @@ class ComputeFabric : public Compute {
 
 #endif
 #endif
-

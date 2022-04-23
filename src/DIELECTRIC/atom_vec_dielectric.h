@@ -53,4 +53,3 @@ class AtomVecDielectric : public AtomVec {
 
 #endif
 #endif
-

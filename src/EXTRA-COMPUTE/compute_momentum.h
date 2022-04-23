@@ -37,4 +37,3 @@ class ComputeMomentum : public Compute {
 
 #endif
 #endif
-

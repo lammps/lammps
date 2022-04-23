@@ -41,4 +41,3 @@ class ComputeDilatationAtom : public Compute {
 
 #endif
 #endif
-

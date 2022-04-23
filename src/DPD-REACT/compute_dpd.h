@@ -39,4 +39,3 @@ class ComputeDpd : public Compute {
 
 #endif
 #endif
-

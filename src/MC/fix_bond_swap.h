@@ -60,4 +60,3 @@ class FixBondSwap : public Fix {
 
 #endif
 #endif
-

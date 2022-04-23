@@ -70,4 +70,3 @@ class ComputeTempProfile : public Compute {
 
 #endif
 #endif
-

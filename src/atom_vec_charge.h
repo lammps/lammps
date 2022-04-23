@@ -33,4 +33,3 @@ class AtomVecCharge : public AtomVec {
 
 #endif
 #endif
-

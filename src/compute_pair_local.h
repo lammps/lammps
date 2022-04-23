@@ -54,4 +54,3 @@ class ComputePairLocal : public Compute {
 
 #endif
 #endif
-

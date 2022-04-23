@@ -38,4 +38,3 @@ class PairHybridOverlay : public PairHybrid {
 
 #endif
 #endif
-

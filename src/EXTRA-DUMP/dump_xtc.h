@@ -54,4 +54,3 @@ class DumpXTC : public Dump {
 
 #endif
 #endif
-

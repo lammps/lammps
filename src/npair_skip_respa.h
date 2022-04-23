@@ -38,4 +38,3 @@ class NPairSkipRespa : public NPair {
 
 #endif
 #endif
-

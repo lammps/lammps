@@ -33,4 +33,3 @@ class Remap : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

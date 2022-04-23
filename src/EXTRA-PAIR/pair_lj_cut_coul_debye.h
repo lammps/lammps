@@ -42,4 +42,3 @@ class PairLJCutCoulDebye : public PairLJCutCoulCut {
 
 #endif
 #endif
-

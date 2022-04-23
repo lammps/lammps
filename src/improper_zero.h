@@ -46,4 +46,3 @@ class ImproperZero : public Improper {
 
 #endif
 #endif
-

@@ -59,4 +59,3 @@ class PairSpinDmi : public PairSpin {
 
 #endif
 #endif
-

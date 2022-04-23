@@ -37,4 +37,3 @@ class PairBrownianPoly : public PairBrownian {
 
 #endif
 #endif
-

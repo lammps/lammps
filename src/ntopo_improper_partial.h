@@ -34,4 +34,3 @@ class NTopoImproperPartial : public NTopo {
 
 #endif
 #endif
-

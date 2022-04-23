@@ -36,4 +36,3 @@ class FixNHAsphereOMP : public FixNHOMP {
 }    // namespace LAMMPS_NS
 
 #endif
-

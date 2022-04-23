@@ -33,4 +33,3 @@ class FixRigidNPHSmall : public FixRigidNHSmall {
 
 #endif
 #endif
-

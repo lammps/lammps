@@ -43,4 +43,3 @@ class PairLJCutDipoleCutGPU : public PairLJCutDipoleCut {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

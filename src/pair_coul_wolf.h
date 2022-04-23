@@ -49,4 +49,3 @@ class PairCoulWolf : public Pair {
 
 #endif
 #endif
-

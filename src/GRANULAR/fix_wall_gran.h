@@ -119,4 +119,3 @@ class FixWallGran : public Fix {
 
 #endif
 #endif
-

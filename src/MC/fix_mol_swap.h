@@ -69,4 +69,3 @@ class FixMolSwap : public Fix {
 
 #endif
 #endif
-

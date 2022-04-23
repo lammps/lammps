@@ -36,4 +36,3 @@ class FixNVEOMP : public FixNVE {
 
 #endif
 #endif
-

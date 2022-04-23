@@ -50,4 +50,3 @@ class EwaldDipole : public Ewald {
 
 #endif
 #endif
-

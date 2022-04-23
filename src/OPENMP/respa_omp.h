@@ -41,4 +41,3 @@ class RespaOMP : public Respa, public ThrOMP {
 
 #endif
 #endif
-

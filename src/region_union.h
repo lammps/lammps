@@ -48,4 +48,3 @@ class RegUnion : public Region {
 
 #endif
 #endif
-

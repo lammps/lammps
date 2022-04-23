@@ -59,4 +59,3 @@ class ComputeMSDChunk : public Compute {
 
 #endif
 #endif
-

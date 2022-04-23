@@ -72,4 +72,3 @@ class FixExternal : public Fix {
 
 #endif
 #endif
-

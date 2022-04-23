@@ -67,4 +67,3 @@ class FixPolarizeBEMICC : public Fix {
 
 #endif
 #endif
-

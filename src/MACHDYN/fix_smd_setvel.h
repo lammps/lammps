@@ -66,4 +66,3 @@ class FixSMDSetVel : public Fix {
 
 #endif
 #endif
-

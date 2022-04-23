@@ -47,4 +47,3 @@ class FixPrint : public Fix {
 
 #endif
 #endif
-

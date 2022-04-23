@@ -46,4 +46,3 @@ class PairTersoffZBLGPU : public PairTersoffZBL {
 
 #endif
 #endif
-

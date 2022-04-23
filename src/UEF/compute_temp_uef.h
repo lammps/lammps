@@ -45,4 +45,3 @@ class ComputeTempUef : public ComputeTemp {
 
 #endif
 #endif
-

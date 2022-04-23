@@ -42,4 +42,3 @@ class FixPlaneForce : public Fix {
 
 #endif
 #endif
-

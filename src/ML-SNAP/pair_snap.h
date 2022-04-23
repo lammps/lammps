@@ -72,4 +72,3 @@ class PairSNAP : public Pair {
 
 #endif
 #endif
-

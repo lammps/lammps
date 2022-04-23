@@ -49,4 +49,3 @@ class PPPMDielectric : public PPPM {
 
 #endif
 #endif
-

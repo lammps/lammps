@@ -68,4 +68,3 @@ class ComputeADF : public Compute {
 
 #endif
 #endif
-

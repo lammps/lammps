@@ -42,4 +42,3 @@ class PairPeriEPS : public PairPeri {
 
 #endif
 #endif
-

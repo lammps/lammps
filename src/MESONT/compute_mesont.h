@@ -49,4 +49,3 @@ class ComputeMesoNT : public Compute {
 
 #endif
 #endif
-

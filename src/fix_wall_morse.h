@@ -38,4 +38,3 @@ class FixWallMorse : public FixWall {
 
 #endif
 #endif
-

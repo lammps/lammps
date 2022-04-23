@@ -72,4 +72,3 @@ class FixAveHisto : public Fix {
 
 #endif
 #endif
-

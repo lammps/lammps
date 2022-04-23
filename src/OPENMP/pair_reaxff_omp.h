@@ -113,4 +113,3 @@ class PairReaxFFOMP : public PairReaxFF, public ThrOMP {
 
 #endif
 #endif
-

@@ -42,4 +42,3 @@ class DumpMovie : public DumpImage {
 
 #endif
 #endif
-

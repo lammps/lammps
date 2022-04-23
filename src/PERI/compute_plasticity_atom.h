@@ -42,4 +42,3 @@ class ComputePlasticityAtom : public Compute {
 
 #endif
 #endif
-

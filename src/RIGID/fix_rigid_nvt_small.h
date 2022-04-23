@@ -33,4 +33,3 @@ class FixRigidNVTSmall : public FixRigidNHSmall {
 
 #endif
 #endif
-

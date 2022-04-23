@@ -36,4 +36,3 @@ class NPairHalfMultiNewtoff : public NPair {
 
 #endif
 #endif
-

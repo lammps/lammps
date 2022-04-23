@@ -230,4 +230,3 @@ class PairComb3 : public Pair {
 
 #endif
 #endif
-

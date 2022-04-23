@@ -41,4 +41,3 @@ class DihedralTableCut : public DihedralTable {
 
 #endif
 #endif
-

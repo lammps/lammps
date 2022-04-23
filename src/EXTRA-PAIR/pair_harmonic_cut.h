@@ -51,4 +51,3 @@ class PairHarmonicCut : public Pair {
 
 #endif
 #endif
-

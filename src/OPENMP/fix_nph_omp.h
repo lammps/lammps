@@ -33,4 +33,3 @@ class FixNPHOMP : public FixNHOMP {
 
 #endif
 #endif
-

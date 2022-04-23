@@ -40,4 +40,3 @@ class PairLJCutTholeLongOMP : public PairLJCutTholeLong, public ThrOMP {
 
 #endif
 #endif
-

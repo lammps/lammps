@@ -43,4 +43,3 @@ class FixWallReflectStochastic : public FixWallReflect {
 
 #endif
 #endif
-

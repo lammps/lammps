@@ -71,4 +71,3 @@ class PairLJCharmmCoulLong : public Pair {
 
 #endif
 #endif
-

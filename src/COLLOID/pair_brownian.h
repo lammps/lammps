@@ -62,4 +62,3 @@ class PairBrownian : public Pair {
 
 #endif
 #endif
-

@@ -46,4 +46,3 @@ class AngleCharmm : public Angle {
 
 #endif
 #endif
-

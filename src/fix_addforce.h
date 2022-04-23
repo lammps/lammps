@@ -58,4 +58,3 @@ class FixAddForce : public Fix {
 
 #endif
 #endif
-

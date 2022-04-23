@@ -47,4 +47,3 @@ class BondNonlinear : public Bond {
 
 #endif
 #endif
-

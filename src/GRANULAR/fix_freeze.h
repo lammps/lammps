@@ -43,4 +43,3 @@ class FixFreeze : public Fix {
 
 #endif
 #endif
-

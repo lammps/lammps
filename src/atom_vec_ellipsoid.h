@@ -82,4 +82,3 @@ class AtomVecEllipsoid : public AtomVec {
 
 #endif
 #endif
-

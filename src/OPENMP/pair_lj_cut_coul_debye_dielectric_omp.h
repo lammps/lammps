@@ -40,4 +40,3 @@ class PairLJCutCoulDebyeDielectricOMP : public PairLJCutCoulDebyeDielectric, pub
 
 #endif
 #endif
-

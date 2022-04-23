@@ -55,4 +55,3 @@ class AtomVecSMD : public AtomVec {
 
 #endif
 #endif
-

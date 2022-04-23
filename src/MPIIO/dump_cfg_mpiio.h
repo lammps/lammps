@@ -58,4 +58,3 @@ class DumpCFGMPIIO : public DumpCFG {
 
 #endif
 #endif
-

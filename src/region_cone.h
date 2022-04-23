@@ -46,4 +46,3 @@ class RegCone : public Region {
 
 #endif
 #endif
-

@@ -32,4 +32,3 @@ class PairNMCutSplit : public PairNMCut {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

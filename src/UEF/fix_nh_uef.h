@@ -71,4 +71,3 @@ class FixNHUef : public FixNH {
 }    // namespace LAMMPS_NS
 
 #endif
-

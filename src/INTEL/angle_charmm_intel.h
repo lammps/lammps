@@ -77,4 +77,3 @@ class AngleCharmmIntel : public AngleCharmm {
 
 #endif
 #endif
-

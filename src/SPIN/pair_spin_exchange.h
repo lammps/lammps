@@ -61,4 +61,3 @@ class PairSpinExchange : public PairSpin {
 
 #endif
 #endif
-

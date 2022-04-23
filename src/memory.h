@@ -749,4 +749,3 @@ class Memory : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

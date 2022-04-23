@@ -68,4 +68,3 @@ class Scafacos : public KSpace {
 
 #endif
 #endif
-

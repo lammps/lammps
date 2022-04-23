@@ -159,4 +159,3 @@ class CommTiled : public Comm {
 }    // namespace LAMMPS_NS
 
 #endif
-

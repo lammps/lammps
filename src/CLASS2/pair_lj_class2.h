@@ -58,4 +58,3 @@ class PairLJClass2 : public Pair {
 
 #endif
 #endif
-

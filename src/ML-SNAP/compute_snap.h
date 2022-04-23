@@ -65,4 +65,3 @@ class ComputeSnap : public Compute {
 
 #endif
 #endif
-

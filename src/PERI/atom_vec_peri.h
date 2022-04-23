@@ -43,4 +43,3 @@ class AtomVecPeri : public AtomVec {
 
 #endif
 #endif
-

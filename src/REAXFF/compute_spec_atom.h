@@ -82,4 +82,3 @@ class ComputeSpecAtom : public Compute {
 
 #endif
 #endif
-

@@ -39,4 +39,3 @@ class PairTersoffMODC : public PairTersoffMOD {
 
 #endif
 #endif
-

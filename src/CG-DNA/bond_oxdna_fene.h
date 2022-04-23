@@ -50,4 +50,3 @@ class BondOxdnaFene : public Bond {
 
 #endif
 #endif
-

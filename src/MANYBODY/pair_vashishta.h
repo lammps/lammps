@@ -66,4 +66,3 @@ class PairVashishta : public Pair {
 
 #endif
 #endif
-

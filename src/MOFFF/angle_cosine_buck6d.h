@@ -51,4 +51,3 @@ class AngleCosineBuck6d : public Angle {
 
 #endif
 #endif
-

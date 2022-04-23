@@ -37,4 +37,3 @@ class NPairHalfSizeNsqNewtoffOmp : public NPair {
 
 #endif
 #endif
-

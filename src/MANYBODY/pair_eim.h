@@ -149,4 +149,3 @@ class EIMPotentialFileReader : protected Pointers {
 
 #endif
 #endif
-

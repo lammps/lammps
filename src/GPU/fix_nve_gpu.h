@@ -48,4 +48,3 @@ class FixNVEGPU : public FixNVE {
 
 #endif
 #endif
-

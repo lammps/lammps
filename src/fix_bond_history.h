@@ -76,4 +76,3 @@ class FixBondHistory : public Fix {
 
 #endif
 #endif
-

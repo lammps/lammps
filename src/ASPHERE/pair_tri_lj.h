@@ -60,4 +60,3 @@ class PairTriLJ : public Pair {
 
 #endif
 #endif
-

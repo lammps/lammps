@@ -56,4 +56,3 @@ class FixIndent : public Fix {
 
 #endif
 #endif
-

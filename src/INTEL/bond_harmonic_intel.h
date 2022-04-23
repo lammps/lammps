@@ -77,4 +77,3 @@ class BondHarmonicIntel : public BondHarmonic {
 
 #endif
 #endif
-

@@ -144,4 +144,3 @@ class MSM : public KSpace {
 
 #endif
 #endif
-

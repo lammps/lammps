@@ -41,4 +41,3 @@ class PairMorseSmoothLinearOMP : public PairMorseSmoothLinear, public ThrOMP {
 
 #endif
 #endif
-

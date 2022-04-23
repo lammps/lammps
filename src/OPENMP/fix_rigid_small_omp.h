@@ -47,4 +47,3 @@ class FixRigidSmallOMP : public FixRigidSmall {
 
 #endif
 #endif
-

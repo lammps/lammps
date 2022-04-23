@@ -62,4 +62,3 @@ class PairLJClass2CoulLong : public Pair {
 
 #endif
 #endif
-

@@ -42,4 +42,3 @@ class ComputeVACF : public Compute {
 
 #endif
 #endif
-

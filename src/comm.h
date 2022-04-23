@@ -174,4 +174,3 @@ class Comm : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

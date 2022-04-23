@@ -80,4 +80,3 @@ class FixSAEDVTK : public Fix {
 
 #endif
 #endif
-

@@ -92,4 +92,3 @@ class PairRESquared : public Pair {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

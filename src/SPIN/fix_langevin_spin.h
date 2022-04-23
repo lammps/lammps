@@ -53,4 +53,3 @@ class FixLangevinSpin : public Fix {
 
 #endif
 #endif
-

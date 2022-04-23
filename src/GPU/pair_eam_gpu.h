@@ -50,4 +50,3 @@ class PairEAMGPU : public PairEAM {
 
 #endif
 #endif
-

@@ -52,4 +52,3 @@ class DihedralCharmmfsw : public Dihedral {
 
 #endif
 #endif
-

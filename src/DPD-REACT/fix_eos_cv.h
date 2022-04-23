@@ -40,4 +40,3 @@ class FixEOScv : public Fix {
 
 #endif
 #endif
-

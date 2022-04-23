@@ -77,4 +77,3 @@ class KimInteractions : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

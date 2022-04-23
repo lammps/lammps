@@ -48,4 +48,3 @@ class ComputeImproperLocal : public Compute {
 
 #endif
 #endif
-

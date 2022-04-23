@@ -65,4 +65,3 @@ class FixAveCorrelate : public Fix {
 
 #endif
 #endif
-

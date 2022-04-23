@@ -41,4 +41,3 @@ class FixQEqShielded : public FixQEq {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

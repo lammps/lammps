@@ -48,4 +48,3 @@ class FixTFMC : public Fix {
 
 #endif
 #endif
-

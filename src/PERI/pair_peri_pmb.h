@@ -44,4 +44,3 @@ class PairPeriPMB : public PairPeri {
 
 #endif
 #endif
-

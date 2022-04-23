@@ -39,4 +39,3 @@ class AtomVecDipole : public AtomVec {
 
 #endif
 #endif
-

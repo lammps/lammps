@@ -39,4 +39,3 @@ class RegionDeprecated : public Region {
 
 #endif
 #endif
-

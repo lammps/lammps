@@ -112,4 +112,3 @@ class FixChargeRegulation : public Fix {
 
 #endif
 #endif
-

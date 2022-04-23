@@ -42,4 +42,3 @@ class NPairHalffullNewton : public NPair {
 
 #endif
 #endif
-

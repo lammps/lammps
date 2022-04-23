@@ -85,4 +85,3 @@ class PairLJCutIntel : public PairLJCut {
 
 #endif
 #endif
-

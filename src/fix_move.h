@@ -83,4 +83,3 @@ class FixMove : public Fix {
 
 #endif
 #endif
-

@@ -46,4 +46,3 @@ class BondMM3 : public Bond {
 
 #endif
 #endif
-

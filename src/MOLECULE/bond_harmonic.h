@@ -48,4 +48,3 @@ class BondHarmonic : public Bond {
 
 #endif
 #endif
-

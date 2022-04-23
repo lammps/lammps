@@ -49,4 +49,3 @@ class NPairFullBinGhostIntel : public NPairIntel {
 
 #endif
 #endif
-

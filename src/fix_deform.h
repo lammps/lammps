@@ -74,4 +74,3 @@ class FixDeform : public Fix {
 
 #endif
 #endif
-

@@ -106,4 +106,3 @@ class DumpImage : public DumpCustom {
 
 #endif
 #endif
-

@@ -53,4 +53,3 @@ class FixGroup : public Fix {
 
 #endif
 #endif
-

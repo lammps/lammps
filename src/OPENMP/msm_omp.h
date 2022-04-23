@@ -42,4 +42,3 @@ class MSMOMP : public MSM, public ThrOMP {
 
 #endif
 #endif
-

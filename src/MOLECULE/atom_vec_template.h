@@ -43,4 +43,3 @@ class AtomVecTemplate : public AtomVec {
 
 #endif
 #endif
-

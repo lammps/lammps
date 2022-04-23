@@ -52,4 +52,3 @@ class RegSphere : public Region {
 
 #endif
 #endif
-

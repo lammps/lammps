@@ -49,4 +49,3 @@ class ImproperClass2 : public Improper {
 
 #endif
 #endif
-

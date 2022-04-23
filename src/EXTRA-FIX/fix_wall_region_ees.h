@@ -60,4 +60,3 @@ class FixWallRegionEES : public Fix {
 
 #endif
 #endif
-

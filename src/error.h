@@ -87,4 +87,3 @@ class Error : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

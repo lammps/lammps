@@ -38,4 +38,3 @@ class PairHbondDreidingMorse : public PairHbondDreidingLJ {
 
 #endif
 #endif
-

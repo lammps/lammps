@@ -55,4 +55,3 @@ class ComputeBondLocal : public Compute {
 
 #endif
 #endif
-

@@ -43,4 +43,3 @@ class PairCoulDSFGPU : public PairCoulDSF {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

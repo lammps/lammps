@@ -127,4 +127,3 @@ class FixCMAP : public Fix {
 
 #endif
 #endif
-

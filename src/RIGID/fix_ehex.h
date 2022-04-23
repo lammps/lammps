@@ -69,4 +69,3 @@ class FixEHEX : public Fix {
 
 #endif
 #endif
-

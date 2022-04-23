@@ -37,4 +37,3 @@ class NPairSkipSize : public NPair {
 
 #endif
 #endif
-

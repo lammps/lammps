@@ -88,4 +88,3 @@ class FixStoreKIM : public Fix {
 
 #endif
 #endif
-

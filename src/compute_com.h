@@ -39,4 +39,3 @@ class ComputeCOM : public Compute {
 
 #endif
 #endif
-

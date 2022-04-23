@@ -34,4 +34,3 @@ class WriteDump : public Command {
 
 #endif
 #endif
-

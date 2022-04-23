@@ -56,4 +56,3 @@ class ComputeTempRamp : public Compute {
 
 #endif
 #endif
-

@@ -45,4 +45,3 @@ class FixAccelerateCos : public Fix {
 
 #endif
 #endif
-

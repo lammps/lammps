@@ -44,4 +44,3 @@ class DumpAtomADIOS : public DumpAtom {
 
 #endif
 #endif
-

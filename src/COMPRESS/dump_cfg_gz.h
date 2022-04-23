@@ -44,4 +44,3 @@ class DumpCFGGZ : public DumpCFG {
 
 #endif
 #endif
-

@@ -48,4 +48,3 @@ class FixNVEIntel : public FixNVE {
 
 #endif
 #endif
-

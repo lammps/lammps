@@ -36,4 +36,3 @@ class PairGranHertzHistory : public PairGranHookeHistory {
 
 #endif
 #endif
-

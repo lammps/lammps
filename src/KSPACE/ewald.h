@@ -81,4 +81,3 @@ class Ewald : public KSpace {
 
 #endif
 #endif
-

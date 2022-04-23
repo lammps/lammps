@@ -55,4 +55,3 @@ class ComputeAngmomChunk : public Compute {
 
 #endif
 #endif
-

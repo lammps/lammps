@@ -59,4 +59,3 @@ class PairMorseSmoothLinear : public Pair {
 
 #endif
 #endif
-

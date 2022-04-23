@@ -98,4 +98,3 @@ inline double FixRigidNH::maclaurin_series(double x)
 }    // namespace LAMMPS_NS
 
 #endif
-

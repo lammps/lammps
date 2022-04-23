@@ -36,4 +36,3 @@ class NPairHalfRespaBinNewton : public NPair {
 
 #endif
 #endif
-

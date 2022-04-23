@@ -42,4 +42,3 @@ class NPairHalffullNewtoffOmp : public NPair {
 
 #endif
 #endif
-

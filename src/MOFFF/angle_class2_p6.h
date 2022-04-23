@@ -49,4 +49,3 @@ class AngleClass2P6 : public Angle {
 
 #endif
 #endif
-

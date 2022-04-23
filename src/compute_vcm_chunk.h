@@ -56,4 +56,3 @@ class ComputeVCMChunk : public Compute {
 
 #endif
 #endif
-

@@ -66,4 +66,3 @@ class PairOxdnaCoaxstk : public Pair {
 
 #endif
 #endif
-

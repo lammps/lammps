@@ -82,4 +82,3 @@ class FixTTM : public Fix {
 
 #endif
 #endif
-

@@ -33,4 +33,3 @@ class FixNVTSphere : public FixNHSphere {
 
 #endif
 #endif
-

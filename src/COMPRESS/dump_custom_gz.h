@@ -44,4 +44,3 @@ class DumpCustomGZ : public DumpCustom {
 
 #endif
 #endif
-

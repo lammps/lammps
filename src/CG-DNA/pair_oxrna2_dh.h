@@ -35,4 +35,3 @@ class PairOxrna2Dh : public PairOxdna2Dh {
 
 #endif
 #endif
-

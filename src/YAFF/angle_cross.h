@@ -46,4 +46,3 @@ class AngleCross : public Angle {
 
 #endif
 #endif
-

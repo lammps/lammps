@@ -36,4 +36,3 @@ class FFT3d : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

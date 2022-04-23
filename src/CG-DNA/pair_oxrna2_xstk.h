@@ -65,4 +65,3 @@ class PairOxrna2Xstk : public Pair {
 
 #endif
 #endif
-

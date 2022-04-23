@@ -340,4 +340,3 @@ namespace NeighConst {
 }    // namespace LAMMPS_NS
 
 #endif
-

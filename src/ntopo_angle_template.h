@@ -34,4 +34,3 @@ class NTopoAngleTemplate : public NTopo {
 
 #endif
 #endif
-

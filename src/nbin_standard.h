@@ -40,4 +40,3 @@ class NBinStandard : public NBin {
 
 #endif
 #endif
-

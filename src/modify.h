@@ -213,4 +213,3 @@ class Modify : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-

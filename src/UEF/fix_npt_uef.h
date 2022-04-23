@@ -35,4 +35,3 @@ class FixNPTUef : public FixNHUef {
 
 #endif
 #endif
-

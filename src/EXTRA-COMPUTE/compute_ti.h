@@ -45,4 +45,3 @@ class ComputeTI : public Compute {
 
 #endif
 #endif
-

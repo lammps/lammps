@@ -64,4 +64,3 @@ class ComputeReduce : public Compute {
 
 #endif
 #endif
-

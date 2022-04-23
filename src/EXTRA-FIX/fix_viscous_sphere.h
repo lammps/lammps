@@ -48,4 +48,3 @@ class FixViscousSphere : public Fix {
 
 #endif
 #endif
-

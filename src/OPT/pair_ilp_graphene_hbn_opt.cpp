@@ -98,9 +98,9 @@ void PairILPGrapheneHBNOpt::init_style()
   if (!atom->molecule_flag)
     error->all(FLERR, "Pair style ilp/graphene/hbn requires atom attribute molecule");
 
-  // need a full neighbor list, including neighbors of ghosts
+  // It seems that ghost neighbors is required for some historical reason, and it is not needed now
 
-  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 }
 
 /* ---------------------------------------------------------------------- */

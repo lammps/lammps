@@ -41,7 +41,7 @@ time integration options can be invoked using the :doc:`run_style <run_style>` c
 
 ----------
 
-.. Include:: accel_styles.rst
+.. include:: accel_styles.rst
 
 ----------
 

@@ -200,18 +200,16 @@ double BondHarmonic::single(int type, double rsq, int /*i*/, int /*j*/, double &
   return rk * dr;
 }
 
-
 /* ---------------------------------------------------------------------- */
 
-void BondHarmonic::born_matrix(int type, double rsq, int /*i*/, int /*j*/,
-                            double &du, double& du2)
+void BondHarmonic::born_matrix(int type, double rsq, int /*i*/, int /*j*/, double &du, double &du2)
 {
   double r = sqrt(rsq);
   double dr = r - r0[type];
   du2 = 0.0;
   du = 0.0;
-  du2 = 2*k[type];
-  if (r > 0.0) du = du2*dr;
+  du2 = 2 * k[type];
+  if (r > 0.0) du = du2 * dr;
 }
 
 /* ----------------------------------------------------------------------

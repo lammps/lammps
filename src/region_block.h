@@ -47,18 +47,3 @@ class RegBlock : public Region {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Cannot use region INF or EDGE when box does not exist
-
-Regions that extend to the box boundaries can only be used after the
-create_box command has been used.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

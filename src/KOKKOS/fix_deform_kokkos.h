@@ -44,10 +44,3 @@ class FixDeformKokkos : public FixDeform {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Cannot (yet) use rigid bodies with fix deform and Kokkos
-
-Self-explanatory.
-
-*/

@@ -671,7 +671,3 @@ namespace utils {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

@@ -84,28 +84,3 @@ class AtomVecHybrid : public AtomVec {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Atom style hybrid cannot have hybrid as an argument
-
-Self-explanatory.
-
-E: Atom style hybrid cannot use same atom style twice
-
-Self-explanatory.
-
-E: Cannot mix molecular and molecule template atom styles
-
-Self-explanatory.
-
-E: Per-processor system is too big
-
-The number of owned atoms plus ghost atoms on a single
-processor must fit in 32-bit integer.
-
-E: Invalid atom type in Atoms section of data file
-
-Atom types must range from 1 to specified # of types.
-
-*/

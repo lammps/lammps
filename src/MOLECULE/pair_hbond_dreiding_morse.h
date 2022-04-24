@@ -38,35 +38,3 @@ class PairHbondDreidingMorse : public PairHbondDreidingLJ {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair inner cutoff >= Pair outer cutoff
-
-The specified cutoffs for the pair style are inconsistent.
-
-E: Pair style hbond/dreiding requires molecular system
-
-Self-explanatory.
-
-E: Pair style hbond/dreiding requires atom IDs
-
-Self-explanatory.
-
-E: Pair style hbond/dreiding requires an atom map, see atom_modify
-
-Self-explanatory.
-
-E: Pair style hbond/dreiding requires newton pair on
-
-See the newton command for details.
-
-E: No pair hbond/dreiding coefficients set
-
-Self-explanatory.
-
-*/

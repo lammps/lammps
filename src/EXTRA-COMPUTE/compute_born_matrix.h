@@ -81,17 +81,3 @@ class ComputeBornMatrix : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
- E: Illegal ... command
-
- Self-explanatory.  Check the input script syntax and compare to the
- documentation for the command.  You can use -echo screen as a
- command-line option when running LAMMPS to see the offending line.
-
- E: ... style does not support compute born/matrix
-
- Some component of the force field (pair, bond, angle...) does not provide
- a function to return the Born term contribution.
- */

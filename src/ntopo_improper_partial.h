@@ -34,15 +34,3 @@ class NTopoImproperPartial : public NTopo {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Improper atoms %d %d %d %d missing on proc %d at step %ld
-
-UNDOCUMENTED
-
-W: Improper atoms missing at step %ld
-
-UNDOCUMENTED
-
-*/

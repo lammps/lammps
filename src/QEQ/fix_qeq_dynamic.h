@@ -44,29 +44,3 @@ class FixQEqDynamic : public FixQEq {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix qeq/dynamic requires atom attribute q
-
-Self-explanatory.
-
-E: Fix qeq/dynamic group has no atoms
-
-Self-explanatory.
-
-W: Fix qeq/dynamic tolerance may be too small for damped dynamics
-
-Self-explanatory.
-
-W: Charges did not converge at step %ld: %lg
-
-Self-explanatory.
-
-*/

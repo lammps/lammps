@@ -46,7 +46,6 @@ class FixWallGranRegion : public FixWallGran {
 
  private:
   class Region *region;
-  char *region_style;
   int nregion;
 
   // shear history for multiple contacts per particle
@@ -68,54 +67,3 @@ class FixWallGranRegion : public FixWallGran {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Region ID for fix wall/gran/region does not exist
-
-UNDOCUMENTED
-
-W: Region properties for region %s changed between runs, resetting its motion
-
-UNDOCUMENTED
-
-W: Region properties for region %s are inconsistent with restart file, resetting its motion
-
-UNDOCUMENTED
-
-E: Too many wall/gran/region contacts for one particle
-
-UNDOCUMENTED
-
-U: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-U: Fix wall/gran requires atom style sphere
-
-Self-explanatory.
-
-U: Cannot use wall in periodic dimension
-
-Self-explanatory.
-
-U: Cannot wiggle and shear fix wall/gran
-
-Cannot specify both options at the same time.
-
-U: Invalid wiggle direction for fix wall/gran
-
-Self-explanatory.
-
-U: Invalid shear direction for fix wall/gran
-
-Self-explanatory.
-
-U: Fix wall/gran is incompatible with Pair style
-
-Must use a granular pair style to define the parameters needed for
-this fix.
-
-*/

@@ -94,17 +94,3 @@ class Angle : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Angle coeffs are not set
-
-No angle coefficients have been assigned in the data file or via the
-angle_coeff command.
-
-E: All angle coeffs are not set
-
-All angle coefficients must be set in the data file or by the
-angle_coeff command before running a simulation.
-
-*/

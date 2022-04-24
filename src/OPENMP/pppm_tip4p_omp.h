@@ -59,11 +59,3 @@ class PPPMTIP4POMP : public PPPMTIP4P, public ThrOMP {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Kspace style pppm/tip4p/omp requires newton on
-
-Self-explanatory.
-
-*/

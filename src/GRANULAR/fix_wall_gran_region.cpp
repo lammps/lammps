@@ -70,7 +70,6 @@ FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
 FixWallGranRegion::~FixWallGranRegion()
 {
   delete[] c2r;
-  delete[] region_style;
 
   memory->destroy(ncontact);
   memory->destroy(walls);

@@ -1,5 +1,5 @@
-Detailed discussion of errors and warnings
-==========================================
+Error and warning details
+=========================
 
 Many errors or warnings are self-explanatory and thus straightforward to
 resolve.  However, there are also cases, where there is no single cause

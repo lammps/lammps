@@ -55,6 +55,3 @@ class VerletKokkos : public Verlet {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

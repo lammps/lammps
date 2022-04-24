@@ -89,28 +89,3 @@ class FixOrientFCC : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix orient/fcc file open failed
-
-The fix orient/fcc command could not open a specified file.
-
-E: Fix orient/fcc file read failed
-
-The fix orient/fcc command could not read the needed parameters from a
-specified file.
-
-E: Fix orient/fcc found self twice
-
-The neighbor lists used by fix orient/fcc are messed up.  If this
-error occurs, it is likely a bug, so send an email to the
-"developers"_https://www.lammps.org/authors.html.
-
-*/

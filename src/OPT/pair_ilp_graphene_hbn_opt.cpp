@@ -279,8 +279,8 @@ template <int EFLAG, int VFLAG_EITHER, int TAP_FLAG> void PairILPGrapheneHBNOpt:
           ev_tally_xyz(i, j, nlocal, newton_pair, evdwl, 0.0, fkcx, fkcy, fkcz, delx, dely, delz);
 
         /* ----------------------------------------------------------------------
-	   van der Waals forces and energy
-	   ------------------------------------------------------------------------- */
+           van der Waals forces and energy
+           ------------------------------------------------------------------------- */
         if (jj >= jnum_vdw) continue;
         double r6inv = r2inv * r2inv * r2inv;
         double r8inv = r6inv * r2inv;

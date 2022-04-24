@@ -47,27 +47,3 @@ class FixUpdateSpecialBonds : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal fix censor/bonded/pairs command
-
-Self-explanatory.
-
-E: Fix censor/bonded/pairs requires Newton bond off
-
-Self-explanatory.
-
-E: Fix censor/bonded/pairs requires atom bonds
-
-Self-explanatory.
-
-E: Fix censor/bonded/pairs must be used without special bonds
-
-Self-explanatory. Look at the atom modify special command.
-
-E: Fix censor/bonded/pairs requires special_bonds = 0,0,0
-
-Self-explanatory.
-
-*/

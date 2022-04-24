@@ -88,17 +88,3 @@ class Improper : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Improper coeffs are not set
-
-No improper coefficients have been assigned in the data file or via
-the improper_coeff command.
-
-E: All improper coeffs are not set
-
-All improper coefficients must be set in the data file or by the
-improper_coeff command before running a simulation.
-
-*/

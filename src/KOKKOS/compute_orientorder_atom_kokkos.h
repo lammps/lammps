@@ -136,6 +136,3 @@ class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

@@ -57,25 +57,3 @@ class FixSpring : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: R0 < 0 for fix spring command
-
-Equilibrium spring length is invalid.
-
-E: Fix spring couple group ID does not exist
-
-Self-explanatory.
-
-E: Two groups cannot be the same in fix spring couple
-
-Self-explanatory.
-
-*/

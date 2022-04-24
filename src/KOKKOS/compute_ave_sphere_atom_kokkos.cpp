@@ -25,14 +25,11 @@
 #include "neighbor_kokkos.h"
 #include "pair.h"
 #include "update.h"
-#include "math_const.h"
 
 #include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
-
 
 /* ---------------------------------------------------------------------- */
 

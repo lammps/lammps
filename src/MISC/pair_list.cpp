@@ -24,12 +24,11 @@
 #include "force.h"
 #include "memory.h"
 #include "text_file_reader.h"
-#include "tokenizer.h"
 
 #include <cstring>
 #include <cmath>
+#include <exception>
 #include <map>
-#include <vector>
 
 using namespace LAMMPS_NS;
 
@@ -90,7 +89,7 @@ void PairList::compute(int eflag, int vflag)
   const int nlocal = atom->nlocal;
   const int newton_pair = force->newton_pair;
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
+  dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];       // NOLINT
 
   double fpair,epair;
   int i,j;
@@ -232,6 +231,7 @@ void PairList::settings(int narg, char **arg)
       while ((line = reader.next_line())) {
         ValueTokenizer values(line);
         list_param oneparam;
+        oneparam.offset = 0.0;
         oneparam.id1 = values.next_tagint();
         oneparam.id2 = values.next_tagint();
         oneparam.style = stylename[values.next_string()];

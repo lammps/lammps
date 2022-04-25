@@ -87,9 +87,7 @@ void FixSetForceKokkos<DeviceType>::post_force(int /*vflag*/)
 
   // update region if necessary
 
-  region = nullptr;
-  if (iregion >= 0) {
-    region = domain->regions[iregion];
+  if (region) {
     region->prematch();
     DAT::tdual_int_1d k_match = DAT::tdual_int_1d("setforce:k_match",nlocal);
     KokkosBase* regionKKBase = dynamic_cast<KokkosBase*>(region);

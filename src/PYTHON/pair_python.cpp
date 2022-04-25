@@ -106,7 +106,7 @@ void PairPython::compute(int eflag, int vflag)
   // prepare access to compute_force and compute_energy functions
 
   PyUtils::GIL lock;
-  PyObject *py_pair_instance = (PyObject *) py_potential;
+  auto py_pair_instance = (PyObject *) py_potential;
   PyObject *py_compute_force = PyObject_GetAttrString(py_pair_instance,"compute_force");
   if (!py_compute_force) {
     PyUtils::Print_Errors();
@@ -347,8 +347,8 @@ double PairPython::single(int /* i */, int /* j */, int itype, int jtype,
   // prepare access to compute_force and compute_energy functions
 
   PyUtils::GIL lock;
-  PyObject *py_compute_force = (PyObject *) get_member_function("compute_force");
-  PyObject *py_compute_energy = (PyObject *) get_member_function("compute_energy");
+  auto py_compute_force = (PyObject *) get_member_function("compute_force");
+  auto py_compute_energy = (PyObject *) get_member_function("compute_energy");
   PyObject *py_compute_args = Py_BuildValue("(dii)", rsq, itype, jtype);
 
   if (!py_compute_args) {
@@ -383,7 +383,7 @@ double PairPython::single(int /* i */, int /* j */, int itype, int jtype,
 void * PairPython::get_member_function(const char * name)
 {
   PyUtils::GIL lock;
-  PyObject *py_pair_instance = (PyObject *) py_potential;
+  auto py_pair_instance = (PyObject *) py_potential;
   PyObject * py_mfunc = PyObject_GetAttrString(py_pair_instance, name);
   if (!py_mfunc) {
     PyUtils::Print_Errors();

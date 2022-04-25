@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -28,35 +27,36 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{NONE=-1,X=0,Y=1,Z=2,XYZMASK=3,MINUS=4,PLUS=0};
+enum { NONE = -1, X = 0, Y = 1, Z = 2, XYZMASK = 3, MINUS = 4, PLUS = 0 };
 
 /* ---------------------------------------------------------------------- */
 
-FixOneWay::FixOneWay(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixOneWay::FixOneWay(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), region(nullptr), idregion(nullptr)
 {
   direction = NONE;
-  regionidx = 0;
-  regionstr = nullptr;
 
-  if (narg < 6) error->all(FLERR,"Illegal fix oneway command");
+  if (narg < 6) error->all(FLERR, "Illegal fix oneway command");
 
-  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery < 1) error->all(FLERR,"Illegal fix oneway command");
+  nevery = utils::inumeric(FLERR, arg[3], false, lmp);
+  if (nevery < 1) error->all(FLERR, "Illegal fix oneway command");
 
-  regionstr = utils::strdup(arg[4]);
+  idregion = utils::strdup(arg[4]);
+  if (!domain->get_region_by_id(idregion))
+    error->all(FLERR, "Region {} for fix oneway does not exist", idregion);
 
-  if (strcmp(arg[5], "x") == 0) direction = X|PLUS;
-  if (strcmp(arg[5], "X") == 0) direction = X|PLUS;
-  if (strcmp(arg[5], "y") == 0) direction = Y|PLUS;
-  if (strcmp(arg[5], "Y") == 0) direction = Y|PLUS;
-  if (strcmp(arg[5], "z") == 0) direction = Z|PLUS;
-  if (strcmp(arg[5], "Z") == 0) direction = Z|PLUS;
-  if (strcmp(arg[5],"-x") == 0) direction = X|MINUS;
-  if (strcmp(arg[5],"-X") == 0) direction = X|MINUS;
-  if (strcmp(arg[5],"-y") == 0) direction = Y|MINUS;
-  if (strcmp(arg[5],"-Y") == 0) direction = Y|MINUS;
-  if (strcmp(arg[5],"-z") == 0) direction = Z|MINUS;
-  if (strcmp(arg[5],"-Z") == 0) direction = Z|MINUS;
+  if (strcmp(arg[5], "x") == 0) direction = X | PLUS;
+  if (strcmp(arg[5], "X") == 0) direction = X | PLUS;
+  if (strcmp(arg[5], "y") == 0) direction = Y | PLUS;
+  if (strcmp(arg[5], "Y") == 0) direction = Y | PLUS;
+  if (strcmp(arg[5], "z") == 0) direction = Z | PLUS;
+  if (strcmp(arg[5], "Z") == 0) direction = Z | PLUS;
+  if (strcmp(arg[5], "-x") == 0) direction = X | MINUS;
+  if (strcmp(arg[5], "-X") == 0) direction = X | MINUS;
+  if (strcmp(arg[5], "-y") == 0) direction = Y | MINUS;
+  if (strcmp(arg[5], "-Y") == 0) direction = Y | MINUS;
+  if (strcmp(arg[5], "-z") == 0) direction = Z | MINUS;
+  if (strcmp(arg[5], "-Z") == 0) direction = Z | MINUS;
 
   global_freq = nevery;
 }
@@ -65,7 +65,7 @@ FixOneWay::FixOneWay(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
 FixOneWay::~FixOneWay()
 {
-  if (regionstr) delete[] regionstr;
+  delete[] idregion;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -79,26 +79,24 @@ int FixOneWay::setmask()
 
 void FixOneWay::init()
 {
-  regionidx = domain->find_region(regionstr);
-  if (regionidx < 0)
-    error->all(FLERR,"Region for fix oneway does not exist");
+  region = domain->get_region_by_id(idregion);
+  if (!region) error->all(FLERR, "Region {} for fix oneway does not exist", idregion);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixOneWay::end_of_step()
 {
-  Region *region = domain->regions[regionidx];
   region->prematch();
 
   const int idx = direction & XYZMASK;
-  const double * const * const x = atom->x;
-  double * const * const v = atom->v;
+  const double *const *const x = atom->x;
+  double *const *const v = atom->v;
   const int *mask = atom->mask;
   const int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; ++i) {
-    if ((mask[i] & groupbit) && region->match(x[i][0],x[i][1],x[i][2])) {
+    if ((mask[i] & groupbit) && region->match(x[i][0], x[i][1], x[i][2])) {
       if (direction & MINUS) {
         if (v[i][idx] > 0.0) v[i][idx] = -v[i][idx];
       } else {
@@ -107,4 +105,3 @@ void FixOneWay::end_of_step()
     }
   }
 }
-

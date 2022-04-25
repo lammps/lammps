@@ -181,7 +181,7 @@ void CreateAtoms::command(int narg, char **arg)
     } else if (strcmp(arg[iarg], "var") == 0) {
       if (style == SINGLE) error->all(FLERR, "Illegal create_atoms command: "
           "can't combine 'var' keyword with 'single' style!");
-      if (iarg + 2 > narg) error->all(FLERR,"Illegal create_atoms command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
       delete[] vstr;
       vstr = utils::strdup(arg[iarg + 1]);
       varflag = 1;
@@ -231,38 +231,39 @@ void CreateAtoms::command(int narg, char **arg)
       subsetseed = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       if (nsubset <= 0 || subsetseed <= 0) error->all(FLERR, "Illegal create_atoms command");
       iarg += 3;
-    } else if (strcmp(arg[iarg],"maxtries") == 0) {
-      if (style != RANDOM) error->all(FLERR,"Illegal create_atoms command: "
+    } else if (strcmp(arg[iarg], "maxtries") == 0) {
+      if (style != RANDOM) error->all(FLERR, "Illegal create_atoms command: "
           "'maxtries' can only be combined with 'random' style!");
-      if (iarg+2 > narg) error->all(FLERR,"Illegal create_atoms command");
-      maxtries = utils::inumeric(FLERR,arg[iarg+1],false, lmp);
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
+      maxtries = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       if (maxtries <= 0)
         error->all(FLERR,"Illegal create_atoms command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"overlap") == 0) {
-      if (style != RANDOM) error->all(FLERR,"Illegal create_atoms command: "
+    } else if (strcmp(arg[iarg], "overlap") == 0) {
+      if (style != RANDOM) error->all(FLERR, "Illegal create_atoms command: "
           "'overlap' can only be combined with 'random' style!");
-      if (iarg+2 > narg) error->all(FLERR,"Illegal create_atoms command");
-      overlap_radius = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
+      overlap_radius = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       if (overlap_radius <= 0)
-        error->all(FLERR,"Illegal create_atoms command");
+        error->all(FLERR, "Illegal create_atoms command");
       overlapflag = 1;
       iarg += 2;
-    } else error->all(FLERR,"Illegal create_atoms command");
+    } else
+      error->all(FLERR, "Illegal create_atoms command");
   }
 
   // error checks and further setup for mode = MOLECULE
 
   if (mode == ATOM) {
     if (ntype <= 0 || ntype > atom->ntypes)
-      error->all(FLERR,"Invalid atom type in create_atoms command");
+      error->all(FLERR, "Invalid atom type in create_atoms command");
   } else if (mode == MOLECULE) {
     if (onemol->xflag == 0)
-      error->all(FLERR,"Create_atoms molecule must have coordinates");
+      error->all(FLERR, "Create_atoms molecule must have coordinates");
     if (onemol->typeflag == 0)
-      error->all(FLERR,"Create_atoms molecule must have atom types");
+      error->all(FLERR, "Create_atoms molecule must have atom types");
     if (ntype+onemol->ntypes <= 0 || ntype+onemol->ntypes > atom->ntypes)
-      error->all(FLERR,"Invalid atom type in create_atoms mol command");
+      error->all(FLERR, "Invalid atom type in create_atoms mol command");
     if (onemol->tag_require && !atom->tag_enable)
       error->all(FLERR, "Create_atoms molecule has atom IDs, but system does not");
     onemol->check_attributes(0);
@@ -741,6 +742,7 @@ void CreateAtoms::add_random()
       tries++;
       if (tries > maxtries)
         error->all(FLERR, "Exceeded max number of tries in create_atoms");
+      
       xone[0] = xlo + random->uniform() * (xhi - xlo);
       xone[1] = ylo + random->uniform() * (yhi - ylo);
       xone[2] = zlo + random->uniform() * (zhi - zlo);
@@ -758,9 +760,8 @@ void CreateAtoms::add_random()
       if (triclinic) {
         domain->x2lamda(xone, lamda);
         coord = lamda;
-        if (coord[0] < boxlo[0] || coord[0] >= boxhi[0] ||
-            coord[1] < boxlo[1] || coord[1] >= boxhi[1] ||
-            coord[2] < boxlo[2] || coord[2] >= boxhi[2])
+        if (coord[0] < boxlo[0] || coord[0] >= boxhi[0] || coord[1] < boxlo[1] ||
+            coord[1] >= boxhi[1] || coord[2] < boxlo[2] || coord[2] >= boxhi[2])
           continue;
       } else {
         coord = xone;
@@ -791,12 +792,11 @@ void CreateAtoms::add_random()
     }
 
     // if triclinic, coord is now in lamda units
-    
-    if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
-        coord[1] >= sublo[1] && coord[1] < subhi[1] &&
-        coord[2] >= sublo[2] && coord[2] < subhi[2]) {
+
+    if (coord[0] >= sublo[0] && coord[0] < subhi[0] && coord[1] >= sublo[1] &&
+        coord[1] < subhi[1] && coord[2] >= sublo[2] && coord[2] < subhi[2]) {
       if (mode == ATOM) {
-        atom->avec->create_atom(ntype,xone);
+        atom->avec->create_atom(ntype, xone);
       } else {
         create_mol();
       }

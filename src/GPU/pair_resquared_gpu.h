@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class PairRESquaredGPU : public PairRESquared {
  public:
   PairRESquaredGPU(LAMMPS *lmp);
-  ~PairRESquaredGPU();
+  ~PairRESquaredGPU() override;
   void cpu_compute(int, int, int, int, int *, int *, int **);
-  void compute(int, int);
-  void init_style();
-  double memory_usage();
+  void compute(int, int) override;
+  void init_style() override;
+  double memory_usage() override;
 
   enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
@@ -45,24 +45,3 @@ class PairRESquaredGPU : public PairRESquared {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Pair resquared/gpu requires atom style ellipsoid
-
-Self-explanatory.
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Cannot use newton pair with resquared/gpu pair style
-
-Self-explanatory.
-
-E: Pair resquared/gpu requires atoms with same type have same shape
-
-Self-explanatory.
-
-*/

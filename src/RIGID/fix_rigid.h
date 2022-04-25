@@ -27,38 +27,38 @@ namespace LAMMPS_NS {
 class FixRigid : public Fix {
  public:
   FixRigid(class LAMMPS *, int, char **);
-  virtual ~FixRigid();
-  virtual int setmask();
-  virtual void init();
-  virtual void setup(int);
-  virtual void initial_integrate(int);
-  void post_force(int);
-  virtual void final_integrate();
-  void initial_integrate_respa(int, int, int);
-  void final_integrate_respa(int, int);
-  void write_restart_file(const char *);
-  virtual double compute_scalar();
+  ~FixRigid() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void initial_integrate(int) override;
+  void post_force(int) override;
+  void final_integrate() override;
+  void initial_integrate_respa(int, int, int) override;
+  void final_integrate_respa(int, int) override;
+  void write_restart_file(const char *) override;
+  double compute_scalar() override;
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  void set_arrays(int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
 
-  void setup_pre_neighbor();
-  void pre_neighbor();
-  int dof(int);
-  void deform(int);
-  void enforce2d();
-  void reset_dt();
-  void zero_momentum();
-  void zero_rotation();
-  virtual int modify_param(int, char **);
-  virtual void *extract(const char *, int &);
+  void setup_pre_neighbor() override;
+  void pre_neighbor() override;
+  int dof(int) override;
+  void deform(int) override;
+  void enforce2d() override;
+  void reset_dt() override;
+  void zero_momentum() override;
+  void zero_rotation() override;
+  int modify_param(int, char **) override;
+  void *extract(const char *, int &) override;
   double extract_ke();
   double extract_erotational();
-  double compute_array(int, int);
+  double compute_array(int, int) override;
 
  protected:
   int me, nprocs;
@@ -154,137 +154,3 @@ class FixRigid : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix rigid custom requires previously defined property/atom
-
-UNDOCUMENTED
-
-E: Fix rigid custom requires integer-valued property/atom
-
-UNDOCUMENTED
-
-E: Variable name for fix rigid custom does not exist
-
-UNDOCUMENTED
-
-E: Fix rigid custom variable is no atom-style variable
-
-UNDOCUMENTED
-
-E: Unsupported fix rigid custom property
-
-UNDOCUMENTED
-
-E: Fix rigid molecule requires atom attribute molecule
-
-Self-explanatory.
-
-E: Too many molecules for fix rigid
-
-The limit is 2^31 = ~2 billion molecules.
-
-E: Could not find fix rigid group ID
-
-A group ID used in the fix rigid command does not exist.
-
-E: One or more atoms belong to multiple rigid bodies
-
-Two or more rigid bodies defined by the fix rigid command cannot
-contain the same atom.
-
-E: No rigid bodies defined
-
-The fix specification did not end up defining any rigid bodies.
-
-E: Fix rigid z force cannot be on for 2d simulation
-
-Self-explanatory.
-
-E: Fix rigid xy torque cannot be on for 2d simulation
-
-Self-explanatory.
-
-E: Fix rigid langevin period must be > 0.0
-
-Self-explanatory.
-
-E: Fix rigid npt/nph dilate group ID does not exist
-
-Self-explanatory.
-
-E: One or zero atoms in rigid body
-
-Any rigid body defined by the fix rigid command must contain 2 or more
-atoms.
-
-W: More than one fix rigid
-
-It is not efficient to use fix rigid more than once.
-
-E: Rigid fix must come before NPT/NPH fix
-
-NPT/NPH fix must be defined in input script after all rigid fixes,
-else the rigid fix contribution to the pressure virial is
-incorrect.
-
-W: Cannot count rigid body degrees-of-freedom before bodies are initialized
-
-This means the temperature associated with the rigid bodies may be
-incorrect on this timestep.
-
-W: Computing temperature of portions of rigid bodies
-
-The group defined by the temperature compute does not encompass all
-the atoms in one or more rigid bodies, so the change in
-degrees-of-freedom for the atoms in those partial rigid bodies will
-not be accounted for.
-
-E: Fix rigid atom has non-zero image flag in a non-periodic dimension
-
-Image flags for non-periodic dimensions should not be set.
-
-E: Insufficient Jacobi rotations for rigid body
-
-Eigensolve for rigid body was not sufficiently accurate.
-
-E: Fix rigid: Bad principal moments
-
-The principal moments of inertia computed for a rigid body
-are not within the required tolerances.
-
-E: Cannot open fix rigid inpfile %s
-
-The specified file cannot be opened.  Check that the path and name are
-correct.
-
-E: Unexpected end of fix rigid file
-
-A read operation from the file failed.
-
-E: Fix rigid file has no lines
-
-Self-explanatory.
-
-E: Incorrect rigid body format in fix rigid file
-
-The number of fields per line is not what expected.
-
-E: Invalid rigid body ID in fix rigid file
-
-The ID does not match the number of an existing ID of rigid bodies
-that are defined by the fix rigid command.
-
-E: Cannot open fix rigid restart file %s
-
-The specified file cannot be opened.  Check that the path and name are
-correct.
-
-*/

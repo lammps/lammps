@@ -29,19 +29,10 @@ namespace LAMMPS_NS {
 class NPairHalfMultiOldNewtoff : public NPair {
  public:
   NPairHalfMultiOldNewtoff(class LAMMPS *);
-  ~NPairHalfMultiOldNewtoff() {}
-  void build(class NeighList *);
+  void build(class NeighList *) override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Neighbor list overflow, boost neigh_modify one
-
-UNDOCUMENTED
-
-*/

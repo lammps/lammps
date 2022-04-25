@@ -67,8 +67,8 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   // this is so final order of Modify:fix will conform to input script
 
   fix_history = nullptr;
-  fix_dummy = (FixDummy *) modify->add_fix("NEIGH_HISTORY_HH_DUMMY" + std::to_string(instance_me) +
-                                           " all DUMMY");
+  fix_dummy = dynamic_cast<FixDummy *>(
+      modify->add_fix("NEIGH_HISTORY_HH_DUMMY" + std::to_string(instance_me) + " all DUMMY"));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -103,7 +103,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
 {
   int i, j, ii, jj, inum, jnum;
   double xtmp, ytmp, ztmp, delx, dely, delz, fx, fy, fz;
-  double radi, radj, radsum, rsq, r, rinv, rsqinv;
+  double radi, radj, radsum, rsq, r, rinv, rsqinv, factor_lj;
   double vr1, vr2, vr3, vnnr, vn1, vn2, vn3, vt1, vt2, vt3;
   double wr1, wr2, wr3;
   double vtr1, vtr2, vtr3, vrel;
@@ -126,7 +126,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
   if (fix_rigid && neighbor->ago == 0) {
     int tmp;
     int *body = (int *) fix_rigid->extract("body", tmp);
-    double *mass_body = (double *) fix_rigid->extract("masstotal", tmp);
+    auto mass_body = (double *) fix_rigid->extract("masstotal", tmp);
     if (atom->nmax > nmax) {
       memory->destroy(mass_rigid);
       nmax = atom->nmax;
@@ -138,7 +138,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
         mass_rigid[i] = mass_body[body[i]];
       else
         mass_rigid[i] = 0.0;
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
   }
 
   double **x = atom->x;
@@ -151,6 +151,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
+  double *special_lj = force->special_lj;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -174,7 +175,10 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      factor_lj = special_lj[sbmask(j)];
       j &= NEIGHMASK;
+
+      if (factor_lj == 0) continue;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -264,11 +268,12 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
         }
         shrmag = sqrt(shear[0] * shear[0] + shear[1] * shear[1] + shear[2] * shear[2]);
 
-        // rotate shear displacements
-
-        rsht = shear[0] * delx + shear[1] * dely + shear[2] * delz;
-        rsht *= rsqinv;
         if (shearupdate) {
+
+          // rotate shear displacements
+
+          rsht = shear[0] * delx + shear[1] * dely + shear[2] * delz;
+          rsht *= rsqinv;
           shear[0] -= rsht * delx;
           shear[1] -= rsht * dely;
           shear[2] -= rsht * delz;
@@ -305,6 +310,9 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
         fx = delx * ccel + fs1;
         fy = dely * ccel + fs2;
         fz = delz * ccel + fs3;
+        fx *= factor_lj;
+        fy *= factor_lj;
+        fz *= factor_lj;
         f[i][0] += fx;
         f[i][1] += fy;
         f[i][2] += fz;
@@ -312,6 +320,9 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
         tor1 = rinv * (dely * fs3 - delz * fs2);
         tor2 = rinv * (delz * fs1 - delx * fs3);
         tor3 = rinv * (delx * fs2 - dely * fs1);
+        tor1 *= factor_lj;
+        tor2 *= factor_lj;
+        tor3 *= factor_lj;
         torque[i][0] -= radi * tor1;
         torque[i][1] -= radi * tor2;
         torque[i][2] -= radi * tor3;
@@ -430,11 +441,12 @@ void PairGranHookeHistory::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR, "Pair granular requires ghost atoms store velocity");
 
-  // need a granular neigh list
+  // need a granular neighbor list
 
-  int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->size = 1;
-  if (history) neighbor->requests[irequest]->history = 1;
+  if (history)
+    neighbor->add_request(this, NeighConst::REQ_SIZE | NeighConst::REQ_HISTORY);
+  else
+    neighbor->add_request(this, NeighConst::REQ_SIZE);
 
   dt = update->dt;
 
@@ -444,8 +456,8 @@ void PairGranHookeHistory::init_style()
 
   if (history && (fix_history == nullptr)) {
     auto cmd = fmt::format("NEIGH_HISTORY_HH{} all NEIGH_HISTORY {}", instance_me, size_history);
-    fix_history = (FixNeighHistory *) modify->replace_fix(
-        "NEIGH_HISTORY_HH_DUMMY" + std::to_string(instance_me), cmd, 1);
+    fix_history = dynamic_cast<FixNeighHistory *>(
+        modify->replace_fix("NEIGH_HISTORY_HH_DUMMY" + std::to_string(instance_me), cmd, 1));
     fix_history->pair = this;
   }
 
@@ -466,7 +478,8 @@ void PairGranHookeHistory::init_style()
     if (ifix->rigid_flag) {
       if (fix_rigid)
         error->all(FLERR, "Only one fix rigid command at a time allowed");
-      else fix_rigid = ifix;
+      else
+        fix_rigid = ifix;
     }
   }
 
@@ -511,8 +524,9 @@ void PairGranHookeHistory::init_style()
   // set fix which stores history info
 
   if (history) {
-    fix_history = (FixNeighHistory *) modify->get_fix_by_id("NEIGH_HISTORY_HH" + std::to_string(instance_me));
-    if (!fix_history) error->all(FLERR,"Could not find pair fix neigh history ID");
+    fix_history = dynamic_cast<FixNeighHistory *>(
+        modify->get_fix_by_id("NEIGH_HISTORY_HH" + std::to_string(instance_me)));
+    if (!fix_history) error->all(FLERR, "Could not find pair fix neigh history ID");
   }
 }
 
@@ -616,7 +630,7 @@ double PairGranHookeHistory::single(int i, int j, int /*itype*/, int /*jtype*/, 
   double r, rinv, rsqinv, delx, dely, delz;
   double vr1, vr2, vr3, vnnr, vn1, vn2, vn3, vt1, vt2, vt3, wr1, wr2, wr3;
   double mi, mj, meff, damp, ccel;
-  double vtr1, vtr2, vtr3, vrel, shrmag, rsht;
+  double vtr1, vtr2, vtr3, vrel, shrmag;
   double fs1, fs2, fs3, fs, fn;
 
   double *radius = atom->radius;
@@ -717,11 +731,6 @@ double PairGranHookeHistory::single(int i, int j, int /*itype*/, int /*jtype*/, 
 
   double *shear = &allshear[3 * neighprev];
   shrmag = sqrt(shear[0] * shear[0] + shear[1] * shear[1] + shear[2] * shear[2]);
-
-  // rotate shear displacements
-
-  rsht = shear[0] * delx + shear[1] * dely + shear[2] * delz;
-  rsht *= rsqinv;
 
   // tangential forces = shear + tangential velocity damping
 

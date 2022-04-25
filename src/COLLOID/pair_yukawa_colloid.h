@@ -27,26 +27,14 @@ namespace LAMMPS_NS {
 class PairYukawaColloid : public PairYukawa {
  public:
   PairYukawaColloid(class LAMMPS *);
-  virtual ~PairYukawaColloid() {}
-  virtual void compute(int, int);
-  void init_style();
-  double init_one(int, int);
-  double single(int, int, int, int, double, double, double, double &);
+
+  void compute(int, int) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  double single(int, int, int, int, double, double, double, double &) override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Pair yukawa/colloid requires atom style sphere
-
-Self-explanatory.
-
-E: Pair yukawa/colloid requires atoms with same type have same radius
-
-Self-explanatory.
-
-*/

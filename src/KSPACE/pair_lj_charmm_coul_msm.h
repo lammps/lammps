@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class PairLJCharmmCoulMSM : public PairLJCharmmCoulLong {
  public:
   PairLJCharmmCoulMSM(class LAMMPS *);
-  virtual ~PairLJCharmmCoulMSM();
-  virtual void compute(int, int);
-  virtual double single(int, int, int, int, double, double, double, double &);
-  virtual void compute_outer(int, int);
-  virtual void *extract(const char *, int &);
+  ~PairLJCharmmCoulMSM() override;
+  void compute(int, int) override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  void compute_outer(int, int) override;
+  void *extract(const char *, int &) override;
 
  protected:
   int nmax;
@@ -42,15 +42,3 @@ class PairLJCharmmCoulMSM : public PairLJCharmmCoulLong {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Must use 'kspace_modify pressure/scalar no' to obtain per-atom virial with kspace_style MSM
-
-The kspace scalar pressure option cannot be used to obtain per-atom virial.
-
-E: Must use 'kspace_modify pressure/scalar no' for rRESPA with kspace_style MSM
-
-The kspace scalar pressure option cannot (yet) be used with rRESPA.
-
-*/

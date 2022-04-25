@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class PPPMDielectric : public PPPM {
  public:
   PPPMDielectric(class LAMMPS *);
-  virtual ~PPPMDielectric();
-  virtual void compute(int, int);
+  ~PPPMDielectric() override;
+  void compute(int, int) override;
 
   double **efield;
   double *phi;
@@ -37,10 +37,10 @@ class PPPMDielectric : public PPPM {
   void qsum_qsq();
 
  protected:
-  void slabcorr();
+  void slabcorr() override;
 
-  void fieldforce_ik();
-  void fieldforce_ad();
+  void fieldforce_ik() override;
+  void fieldforce_ad() override;
 
   class AtomVecDielectric *avec;
 };
@@ -49,13 +49,3 @@ class PPPMDielectric : public PPPM {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

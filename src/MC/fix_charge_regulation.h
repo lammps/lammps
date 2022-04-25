@@ -31,10 +31,10 @@ namespace LAMMPS_NS {
 class FixChargeRegulation : public Fix {
  public:
   FixChargeRegulation(class LAMMPS *, int, char **);
-  ~FixChargeRegulation();
-  int setmask();
-  void init();
-  void pre_exchange();
+  ~FixChargeRegulation() override;
+  int setmask() override;
+  void init() override;
+  void pre_exchange() override;
   void forward_acid();
   void backward_acid();
   void forward_base();
@@ -48,13 +48,13 @@ class FixChargeRegulation : public Fix {
   double energy_full();
   int particle_number(int, double);
   int particle_number_xrd(int, double, double, double *);
-  double compute_vector(int n);
+  double compute_vector(int n) override;
   void assign_tags();
   void options(int, char **);
   void setThermoTemperaturePointer();
-  double memory_usage();
-  void write_restart(FILE *);
-  void restart(char *);
+  double memory_usage() override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
 
  private:
   int exclusion_group, exclusion_group_bit;
@@ -112,15 +112,3 @@ class FixChargeRegulation : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-Self-explanatory.
-
-*/

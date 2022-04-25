@@ -38,16 +38,16 @@ namespace RANN {
   class Fingerprint_radialscreenedspin : public Fingerprint {
    public:
     Fingerprint_radialscreenedspin(PairRANN *);
-    ~Fingerprint_radialscreenedspin();
-    bool parse_values(std::string, std::vector<std::string>);
-    void write_values(FILE *);
-    void init(int *, int);
-    void allocate();
-    virtual void compute_fingerprint(double *, double *, double *, double *, double *, double *,
-                                     double *, double *, double *, double *, double *, double *,
-                                     double *, double *, bool *, int, int, double *, double *,
-                                     double *, int *, int, int *);    //spin,screen
-    int get_length();
+    ~Fingerprint_radialscreenedspin() override;
+    bool parse_values(std::string, std::vector<std::string>) override;
+    void write_values(FILE *) override;
+    void init(int *, int) override;
+    void allocate() override;
+    void compute_fingerprint(double *, double *, double *, double *, double *, double *, double *,
+                             double *, double *, double *, double *, double *, double *, double *,
+                             bool *, int, int, double *, double *, double *, int *, int,
+                             int *) override;    //spin,screen
+    int get_length() override;
 
     double *radialtable;
     double *dfctable;

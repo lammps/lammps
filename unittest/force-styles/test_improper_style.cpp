@@ -33,6 +33,7 @@
 #include "lammps.h"
 #include "modify.h"
 #include "universe.h"
+#include "platform.h"
 
 #include <cctype>
 #include <cstdio>
@@ -50,16 +51,11 @@ using ::testing::StartsWith;
 
 using namespace LAMMPS_NS;
 
-static void delete_file(const std::string &filename)
-{
-    remove(filename.c_str());
-};
-
 void cleanup_lammps(LAMMPS *lmp, const TestConfig &cfg)
 {
-    delete_file(cfg.basename + ".restart");
-    delete_file(cfg.basename + ".data");
-    delete_file(cfg.basename + "-coeffs.in");
+    platform::unlink(cfg.basename + ".restart");
+    platform::unlink(cfg.basename + ".data");
+    platform::unlink(cfg.basename + "-coeffs.in");
     delete lmp;
 }
 
@@ -112,7 +108,7 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
         command(pre_command);
     }
 
-    std::string input_file = INPUT_FOLDER + PATH_SEP + cfg.input_file;
+    std::string input_file = platform::path_join(INPUT_FOLDER, cfg.input_file);
     parse_input_script(input_file);
 
     command("improper_style " + cfg.improper_style);
@@ -198,7 +194,7 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
     command("variable improper_style index '" + cfg.improper_style + "'");
     command("variable data_file index " + cfg.basename + ".data");
 
-    std::string input_file = INPUT_FOLDER + PATH_SEP + cfg.input_file;
+    std::string input_file = platform::path_join(INPUT_FOLDER, cfg.input_file);
     parse_input_script(input_file);
 
     for (auto &improper_coeff : cfg.improper_coeff) {
@@ -283,7 +279,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     // run_stress
     stress = lmp->force->improper->virial;
     block  = fmt::format("{:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e}", stress[0],
-                        stress[1], stress[2], stress[3], stress[4], stress[5]);
+                         stress[1], stress[2], stress[3], stress[4], stress[5]);
     writer.emit_block("run_stress", block);
 
     block.clear();
@@ -331,29 +327,11 @@ TEST(ImproperStyle, plain)
 
     double epsilon = test_config.epsilon;
 
-    auto f   = lmp->atom->f;
-    auto tag = lmp->atom->tag;
     ErrorStats stats;
-    stats.reset();
-    const std::vector<coord_t> &f_ref = test_config.init_forces;
-    ASSERT_EQ(nlocal + 1, f_ref.size());
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "init_forces stats, newton on: " << stats << std::endl;
-
     auto improper = lmp->force->improper;
-    auto stress   = improper->virial;
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, epsilon);
-    if (print_stats) std::cerr << "init_stress stats, newton on: " << stats << std::endl;
+
+    EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_STRESS("init_stress (newton on)", improper->virial, test_config.init_stress, epsilon);
 
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.init_energy, epsilon);
@@ -363,29 +341,8 @@ TEST(ImproperStyle, plain)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f      = lmp->atom->f;
-    tag    = lmp->atom->tag;
-    stress = improper->virial;
-
-    const std::vector<coord_t> &f_run = test_config.run_forces;
-    ASSERT_EQ(nlocal + 1, f_run.size());
-    stats.reset();
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 10 * epsilon);
-    }
-    if (print_stats) std::cerr << "run_forces  stats, newton on: " << stats << std::endl;
-
-    stress = improper->virial;
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, epsilon);
-    if (print_stats) std::cerr << "run_stress  stats, newton on: " << stats << std::endl;
+    EXPECT_FORCES("run_forces (newton on)", lmp->atom, test_config.run_forces, 10 * epsilon);
+    EXPECT_STRESS("run_stress (newton on)", improper->virial, test_config.run_stress, epsilon);
 
     stats.reset();
     int id        = lmp->modify->find_compute("sum");
@@ -401,27 +358,10 @@ TEST(ImproperStyle, plain)
 
     // skip over these tests if newton bond is forced to be on
     if (lmp->force->newton_bond == 0) {
-
-        f   = lmp->atom->f;
-        tag = lmp->atom->tag;
-        stats.reset();
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
-        }
-        if (print_stats) std::cerr << "init_forces stats, newton off:" << stats << std::endl;
-
         improper = lmp->force->improper;
-        stress   = improper->virial;
-        stats.reset();
-        EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 2 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 2 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 2 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 2 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 2 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 2 * epsilon);
-        if (print_stats) std::cerr << "init_stress stats, newton off:" << stats << std::endl;
+
+        EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
+        EXPECT_STRESS("init_stress (newton off)", improper->virial, test_config.init_stress, 2 * epsilon);
 
         stats.reset();
         EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.init_energy, epsilon);
@@ -431,26 +371,8 @@ TEST(ImproperStyle, plain)
         run_lammps(lmp);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
-        f      = lmp->atom->f;
-        tag    = lmp->atom->tag;
-        stress = improper->virial;
-        stats.reset();
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 10 * epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 10 * epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 10 * epsilon);
-        }
-        if (print_stats) std::cerr << "run_forces  stats, newton off:" << stats << std::endl;
-
-        stress = improper->virial;
-        stats.reset();
-        EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, epsilon);
-        if (print_stats) std::cerr << "run_stress  stats, newton off:" << stats << std::endl;
+        EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 10 * epsilon);
+        EXPECT_STRESS("run_stress (newton off)", improper->virial, test_config.run_stress, epsilon);
 
         stats.reset();
         id     = lmp->modify->find_compute("sum");
@@ -464,27 +386,10 @@ TEST(ImproperStyle, plain)
     restart_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f   = lmp->atom->f;
-    tag = lmp->atom->tag;
-    stats.reset();
-    ASSERT_EQ(nlocal + 1, f_ref.size());
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "restart_forces stats:" << stats << std::endl;
-
     improper = lmp->force->improper;
-    stress   = improper->virial;
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, epsilon);
-    if (print_stats) std::cerr << "restart_stress stats:" << stats << std::endl;
+
+    EXPECT_FORCES("restart_forces", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_STRESS("restart_stress", improper->virial, test_config.init_stress, epsilon);
 
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.init_energy, epsilon);
@@ -494,27 +399,10 @@ TEST(ImproperStyle, plain)
     data_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f   = lmp->atom->f;
-    tag = lmp->atom->tag;
-    stats.reset();
-    ASSERT_EQ(nlocal + 1, f_ref.size());
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "data_forces stats:" << stats << std::endl;
-
     improper = lmp->force->improper;
-    stress   = improper->virial;
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, epsilon);
-    if (print_stats) std::cerr << "data_stress stats:" << stats << std::endl;
+
+    EXPECT_FORCES("data_forces", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_STRESS("data_stress", improper->virial, test_config.init_stress, epsilon);
 
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.init_energy, epsilon);
@@ -561,30 +449,11 @@ TEST(ImproperStyle, omp)
     // relax error a bit for OPENMP package
     double epsilon = 5.0 * test_config.epsilon;
 
-    auto f   = lmp->atom->f;
-    auto tag = lmp->atom->tag;
-
-    const std::vector<coord_t> &f_ref = test_config.init_forces;
     ErrorStats stats;
-    stats.reset();
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "init_forces stats, newton on: " << stats << std::endl;
-
     auto improper = lmp->force->improper;
-    auto stress   = improper->virial;
 
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 10 * epsilon);
-    if (print_stats) std::cerr << "init_stress stats, newton on: " << stats << std::endl;
+    EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_STRESS("init_stress (newton on)", improper->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.init_energy, epsilon);
@@ -594,29 +463,8 @@ TEST(ImproperStyle, omp)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f      = lmp->atom->f;
-    tag    = lmp->atom->tag;
-    stress = improper->virial;
-
-    const std::vector<coord_t> &f_run = test_config.run_forces;
-    ASSERT_EQ(nlocal + 1, f_run.size());
-    stats.reset();
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 10 * epsilon);
-    }
-    if (print_stats) std::cerr << "run_forces  stats, newton on: " << stats << std::endl;
-
-    stress = improper->virial;
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, 10 * epsilon);
-    if (print_stats) std::cerr << "run_stress  stats, newton on: " << stats << std::endl;
+    EXPECT_FORCES("run_forces (newton on)", lmp->atom, test_config.run_forces, 10 * epsilon);
+    EXPECT_STRESS("run_stress (newton on)", improper->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
     int id        = lmp->modify->find_compute("sum");
@@ -635,27 +483,10 @@ TEST(ImproperStyle, omp)
 
     // skip over these tests if newton bond is forced to be on
     if (lmp->force->newton_bond == 0) {
-
-        f   = lmp->atom->f;
-        tag = lmp->atom->tag;
-        stats.reset();
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
-        }
-        if (print_stats) std::cerr << "init_forces stats, newton off:" << stats << std::endl;
-
         improper = lmp->force->improper;
-        stress   = improper->virial;
-        stats.reset();
-        EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 10 * epsilon);
-        if (print_stats) std::cerr << "init_stress stats, newton off:" << stats << std::endl;
+
+        EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
+        EXPECT_STRESS("init_stress (newton off)", improper->virial, test_config.init_stress, 10 * epsilon);
 
         stats.reset();
         EXPECT_FP_LE_WITH_EPS(improper->energy, test_config.init_energy, epsilon);
@@ -665,25 +496,8 @@ TEST(ImproperStyle, omp)
         run_lammps(lmp);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
-        f   = lmp->atom->f;
-        tag = lmp->atom->tag;
-        stats.reset();
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 10 * epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 10 * epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 10 * epsilon);
-        }
-        if (print_stats) std::cerr << "run_forces  stats, newton off:" << stats << std::endl;
-
-        stress = improper->virial;
-        stats.reset();
-        EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, 10 * epsilon);
-        if (print_stats) std::cerr << "run_stress  stats, newton off:" << stats << std::endl;
+        EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 10 * epsilon);
+        EXPECT_STRESS("run_stress (newton off)", improper->virial, test_config.run_stress, 10 * epsilon);
 
         stats.reset();
         id     = lmp->modify->find_compute("sum");

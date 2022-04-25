@@ -78,10 +78,11 @@ folder.  The following ``make`` commands are available:
 
    make html          # generate HTML in html dir using Sphinx
    make pdf           # generate PDF  as Manual.pdf using Sphinx and PDFLaTeX
-   make fetch         # fetch HTML pages and PDF files from LAMMPS website
-                      #  and unpack into the html_www folder and Manual_www.pdf
    make epub          # generate LAMMPS.epub in ePUB format using Sphinx
    make mobi          # generate LAMMPS.mobi in MOBI format using ebook-convert
+
+   make fasthtml      # generate approximate HTML in fasthtml dir using Sphinx
+                      # some Sphinx extensions do not work correctly with this
 
    make clean         # remove intermediate RST files created by HTML build
    make clean-all     # remove entire build folder and any cached data
@@ -193,8 +194,13 @@ folder need to be updated or new files added. These files are written in
 `reStructuredText <rst_>`_ markup for translation with the Sphinx tool.
 
 Before contributing any documentation, please check that both the HTML
-and the PDF format documentation can translate without errors. Please also
-check the output to the console for any warnings or problems.  There will
+and the PDF format documentation can translate without errors.  During
+testing the html translation, you may use the ``make fasthtml`` command
+which does an approximate translation (i.e. not all Sphinx features and
+extensions will work), but runs very fast because it will only translate
+files that have been changed since the last ``make fasthtml`` command.
+
+Please also check the output to the console for any warnings or problems.  There will
 be multiple tests run automatically:
 
 - A test for correctness of all anchor labels and their references

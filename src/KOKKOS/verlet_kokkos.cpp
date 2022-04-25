@@ -271,7 +271,7 @@ void VerletKokkos::run(int n)
   int n_post_neighbor = modify->n_post_neighbor;
   int n_pre_force = modify->n_pre_force;
   int n_pre_reverse = modify->n_pre_reverse;
-  int n_post_force = modify->n_post_force;
+  int n_post_force = modify->n_post_force_any;
   int n_end_of_step = modify->n_end_of_step;
 
   lmp->kokkos->auto_sync = 0;
@@ -492,7 +492,7 @@ void VerletKokkos::run(int n)
       timer->stamp(Timer::KSPACE);
     }
 
-    if (execute_on_host && !std::is_same<LMPHostType,LMPDeviceType>::value) {
+    if (execute_on_host && atomKK->k_f.h_view.data() != atomKK->k_f.d_view.data()) {
       if (f_merge_copy.extent(0)<atomKK->k_f.extent(0)) {
         f_merge_copy = DAT::t_f_array("VerletKokkos::f_merge_copy",atomKK->k_f.extent(0));
       }

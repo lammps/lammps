@@ -35,7 +35,6 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
 
@@ -197,7 +196,6 @@ void PairPACE::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      const int jtype = type[j];
       j &= NEIGHMASK;
       delx = x[j][0] - xtmp;
       dely = x[j][1] - ytmp;
@@ -223,7 +221,7 @@ void PairPACE::compute(int eflag, int vflag)
     // tally energy contribution
     if (eflag) {
       // evdwl = energy of atom I
-      evdwl = scale[itype][itype]*aceimpl->ace->e_atom;
+      evdwl = scale[itype][itype] * aceimpl->ace->e_atom;
       ev_tally_full(i, 2.0 * evdwl, 0.0, 0.0, 0.0, 0.0, 0.0);
     }
   }
@@ -354,9 +352,7 @@ void PairPACE::init_style()
   if (force->newton_pair == 0) error->all(FLERR, "Pair style pACE requires newton pair on");
 
   // request a full neighbor list
-  int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 }
 
 /* ----------------------------------------------------------------------

@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class ComputeTDPDCCAtom : public Compute {
  public:
   ComputeTDPDCCAtom(class LAMMPS *, int, char **);
-  ~ComputeTDPDCCAtom();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeTDPDCCAtom() override;
+  void init() override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nmax;

@@ -21,30 +21,17 @@ namespace LAMMPS_NS {
 class FixNHBody : public FixNH {
  public:
   FixNHBody(class LAMMPS *, int, char **);
-  virtual ~FixNHBody() {}
-  void init();
+  void init() override;
 
  protected:
   double dtq;
   class AtomVecBody *avec;
 
-  void nve_v();
-  void nve_x();
-  void nh_v_temp();
+  void nve_v() override;
+  void nve_x() override;
+  void nh_v_temp() override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Compute nvt/nph/npt body requires atom style body
-
-Self-explanatory.
-
-E: Fix nvt/nph/npt body requires bodies
-
-Self-explanatory.
-
-*/

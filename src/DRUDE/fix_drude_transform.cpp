@@ -43,7 +43,7 @@ FixDrudeTransform<inverse>::FixDrudeTransform(LAMMPS *lmp, int narg, char **arg)
 template <bool inverse>
 FixDrudeTransform<inverse>::~FixDrudeTransform()
 {
-  if (mcoeff) delete [] mcoeff;
+  delete[] mcoeff;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -79,7 +79,7 @@ void FixDrudeTransform<inverse>::setup(int) {
 
   if (!rmass) {
     if (!mcoeff) mcoeff = new double[ntypes+1];
-    double *mcoeff_loc = new double[ntypes+1];
+    auto mcoeff_loc = new double[ntypes+1];
     for (int itype=0; itype<=ntypes; itype++) mcoeff_loc[itype] = 2.; // an impossible value: mcoeff is at most 1.
     for (int i=0; i<nlocal; i++) {
       if (drudetype[type[i]] == DRUDE_TYPE) {
@@ -107,30 +107,30 @@ void FixDrudeTransform<inverse>::setup(int) {
 namespace LAMMPS_NS { // required for specialization
 template <>
 void FixDrudeTransform<false>::initial_integrate(int) {
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
   real_to_reduced();
-  //comm->forward_comm_fix(this); // Normally not needed
+  //comm->forward_comm(this); // Normally not needed
 }
 
 template <>
 void FixDrudeTransform<false>::final_integrate() {
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
   real_to_reduced();
-  //comm->forward_comm_fix(this); // Normally not needed
+  //comm->forward_comm(this); // Normally not needed
 }
 
 template <>
 void FixDrudeTransform<true>::initial_integrate(int) {
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
   reduced_to_real();
-  //comm->forward_comm_fix(this); // Normally not needed
+  //comm->forward_comm(this); // Normally not needed
 }
 
 template <>
 void FixDrudeTransform<true>::final_integrate() {
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
   reduced_to_real();
-  //comm->forward_comm_fix(this); // Normally not needed
+  //comm->forward_comm(this); // Normally not needed
 }
 
 } // end of namespace

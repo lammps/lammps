@@ -29,15 +29,10 @@ namespace LAMMPS_NS {
 class NStencilFullGhostBin3d : public NStencil {
  public:
   NStencilFullGhostBin3d(class LAMMPS *);
-  ~NStencilFullGhostBin3d() {}
-  void create();
+  void create() override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

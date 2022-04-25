@@ -24,21 +24,21 @@ ReaderStyle(native,ReaderNative);
 
 #include "reader.h"
 
-#include <string>
 #include <map>
+#include <string>
 
 namespace LAMMPS_NS {
 
 class ReaderNative : public Reader {
  public:
   ReaderNative(class LAMMPS *);
-  ~ReaderNative();
+  ~ReaderNative() override;
 
-  int read_time(bigint &);
-  void skip();
+  int read_time(bigint &) override;
+  void skip() override;
   bigint read_header(double[3][3], int &, int &, int, int, int *, char **, int, int, int &, int &,
-                     int &, int &);
-  void read_atoms(int, int, double **);
+                     int &, int &) override;
+  void read_atoms(int, int, double **) override;
 
  private:
   int revision;
@@ -73,15 +73,3 @@ class ReaderNative : public Reader {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Dump file is incorrectly formatted
-
-Self-explanatory.
-
-E: Unexpected end of dump file
-
-A read operation from the file failed.
-
-*/

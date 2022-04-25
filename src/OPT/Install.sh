@@ -48,3 +48,5 @@ action pair_morse_opt.cpp
 action pair_morse_opt.h
 action pair_ufm_opt.cpp pair_ufm.cpp
 action pair_ufm_opt.h pair_ufm.h
+action pair_ilp_graphene_hbn_opt.cpp pair_ilp_graphene_hbn.cpp
+action pair_ilp_graphene_hbn_opt.h pair_ilp_graphene_hbn.h

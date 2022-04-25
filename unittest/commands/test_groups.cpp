@@ -34,7 +34,6 @@ using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
 using ::testing::ExitedWithCode;
-using ::testing::MatchesRegex;
 using ::testing::StrEq;
 
 class GroupTest : public LAMMPSTest {
@@ -152,7 +151,8 @@ TEST_F(GroupTest, RegionClear)
     ASSERT_EQ(group->count_all(), lmp->atom->natoms);
 
     TEST_FAILURE(".*ERROR: Illegal group command.*", command("group three region left xxx"););
-    TEST_FAILURE(".*ERROR: Group region ID does not exist.*", command("group four region dummy"););
+    TEST_FAILURE(".*ERROR: Group region dummy does not exist.*",
+                 command("group four region dummy"););
 
     BEGIN_HIDE_OUTPUT();
     command("group one clear");
@@ -197,8 +197,8 @@ TEST_F(GroupTest, SelectRestart)
     ASSERT_EQ(group->count(group->find("four")), 32);
     ASSERT_EQ(group->count(group->find("five")), 16);
     ASSERT_EQ(group->count(group->find("six")), 8);
-    ASSERT_EQ(group->count(group->find("half"), domain->find_region("top")), 8);
-    ASSERT_DOUBLE_EQ(group->mass(group->find("half"), domain->find_region("top")), 8.0);
+    ASSERT_EQ(group->count(group->find("half"), domain->get_region_by_id("top")), 8);
+    ASSERT_DOUBLE_EQ(group->mass(group->find("half"), domain->get_region_by_id("top")), 8.0);
 
     BEGIN_HIDE_OUTPUT();
     command("write_restart group.restart");
@@ -244,9 +244,9 @@ TEST_F(GroupTest, Molecular)
     ASSERT_EQ(group->count(group->find("two")), 16);
     ASSERT_EQ(group->count(group->find("three")), 15);
     ASSERT_DOUBLE_EQ(group->mass(group->find("half")), 40);
-    ASSERT_DOUBLE_EQ(group->mass(group->find("half"), domain->find_region("top")), 10);
+    ASSERT_DOUBLE_EQ(group->mass(group->find("half"), domain->get_region_by_id("top")), 10);
     ASSERT_NEAR(group->charge(group->find("top")), 0, 1.0e-14);
-    ASSERT_NEAR(group->charge(group->find("right"), domain->find_region("top")), 0, 1.0e-14);
+    ASSERT_NEAR(group->charge(group->find("right"), domain->get_region_by_id("top")), 0, 1.0e-14);
 
     TEST_FAILURE(".*ERROR: Illegal group command.*", command("group three include xxx"););
 }

@@ -37,14 +37,14 @@ class PairLJCharmmCoulCharmmImplicitKokkos : public PairLJCharmmCoulCharmmImplic
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairLJCharmmCoulCharmmImplicitKokkos(class LAMMPS *);
-  ~PairLJCharmmCoulCharmmImplicitKokkos();
+  ~PairLJCharmmCoulCharmmImplicitKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_tables(double cut_coul, double *cut_respa);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_tables(double cut_coul, double *cut_respa) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
 
  protected:
@@ -108,7 +108,7 @@ class PairLJCharmmCoulCharmmImplicitKokkos : public PairLJCharmmCoulCharmmImplic
   double special_lj[4];
   double qqrd2e;
 
-  void allocate();
+  void allocate() override;
 
   friend struct PairComputeFunctor<PairLJCharmmCoulCharmmImplicitKokkos,FULL,true,CoulLongTable<1> >;
   friend struct PairComputeFunctor<PairLJCharmmCoulCharmmImplicitKokkos,HALF,true,CoulLongTable<1> >;
@@ -141,20 +141,3 @@ class PairLJCharmmCoulCharmmImplicitKokkos : public PairLJCharmmCoulCharmmImplic
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot use Kokkos pair style with rRESPA inner/middle
-
-Self-explanatory.
-
-E: Cannot use chosen neighbor list style with lj/charmm/coul/charmm/implicit/kk
-
-Self-explanatory.
-
-*/

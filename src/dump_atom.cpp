@@ -38,6 +38,9 @@ DumpAtom::DumpAtom(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   buffer_allow = 1;
   buffer_flag = 1;
   format_default = nullptr;
+  key2col = { { "id", 0 }, { "type", 1 }, { "x", 2 }, { "y", 3 },
+              { "z", 4 }, { "ix", 5 }, { "iy", 6 }, { "iz", 7 } };
+  keyword_user = { "", "", "", "", "", "", "", "" };
 }
 
 /* ---------------------------------------------------------------------- */
@@ -64,14 +67,25 @@ void DumpAtom::init_style()
 
   // setup column string
 
+  std::string default_columns;
+
   if (scale_flag == 0 && image_flag == 0)
-    columns = (char *) "id type x y z";
+    default_columns = "id type x y z";
   else if (scale_flag == 0 && image_flag == 1)
-    columns = (char *) "id type x y z ix iy iz";
+    default_columns = "id type x y z ix iy iz";
   else if (scale_flag == 1 && image_flag == 0)
-    columns = (char *) "id type xs ys zs";
+    default_columns = "id type xs ys zs";
   else if (scale_flag == 1 && image_flag == 1)
-    columns = (char *) "id type xs ys zs ix iy iz";
+    default_columns = "id type xs ys zs ix iy iz";
+
+  int icol = 0;
+  columns.clear();
+  for (auto item : utils::split_words(default_columns)) {
+    if (columns.size()) columns += " ";
+    if (keyword_user[icol].size()) columns += keyword_user[icol];
+    else columns += item;
+    ++icol;
+  }
 
   // setup function ptrs
 
@@ -201,9 +215,9 @@ void DumpAtom::header_unit_style_binary()
 
 void DumpAtom::header_columns_binary()
 {
-  int len = strlen(columns);
+  int len = columns.size();
   fwrite(&len, sizeof(int), 1, fp);
-  fwrite(columns, sizeof(char), len, fp);
+  fwrite(columns.c_str(), sizeof(char), len, fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -289,19 +303,19 @@ void DumpAtom::header_item(bigint ndump)
 {
   if (unit_flag && !unit_count) {
     ++unit_count;
-    fprintf(fp,"ITEM: UNITS\n%s\n",update->unit_style);
+    fmt::print(fp,"ITEM: UNITS\n{}\n",update->unit_style);
   }
-  if (time_flag) fprintf(fp,"ITEM: TIME\n%.16g\n",compute_time());
+  if (time_flag) fmt::print(fp,"ITEM: TIME\n{:.16}\n",compute_time());
 
-  fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
-  fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
-  fprintf(fp,BIGINT_FORMAT "\n",ndump);
-  fprintf(fp,"ITEM: BOX BOUNDS %s\n",boundstr);
-  fprintf(fp,"%-1.16e %-1.16e\n",boxxlo,boxxhi);
-  fprintf(fp,"%-1.16e %-1.16e\n",boxylo,boxyhi);
-  fprintf(fp,"%-1.16e %-1.16e\n",boxzlo,boxzhi);
-  fprintf(fp,"ITEM: ATOMS %s\n",columns);
+  fmt::print(fp, "ITEM: TIMESTEP\n{}\nITEM: NUMBER OF ATOMS\n{}\n", update->ntimestep, ndump);
+
+  fmt::print(fp,"ITEM: BOX BOUNDS {}\n"
+             "{:>1.16e} {:>1.16e}\n"
+             "{:>1.16e} {:>1.16e}\n"
+             "{:>1.16e} {:>1.16e}\n",
+             boundstr,boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi);
+
+  fmt::print(fp,"ITEM: ATOMS {}\n",columns);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -310,19 +324,19 @@ void DumpAtom::header_item_triclinic(bigint ndump)
 {
   if (unit_flag && !unit_count) {
     ++unit_count;
-    fprintf(fp,"ITEM: UNITS\n%s\n",update->unit_style);
+    fmt::print(fp,"ITEM: UNITS\n{}\n",update->unit_style);
   }
-  if (time_flag) fprintf(fp,"ITEM: TIME\n%.16g\n",compute_time());
+  if (time_flag) fmt::print(fp,"ITEM: TIME\n{:.16}\n",compute_time());
 
-  fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
-  fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
-  fprintf(fp,BIGINT_FORMAT "\n",ndump);
-  fprintf(fp,"ITEM: BOX BOUNDS xy xz yz %s\n",boundstr);
-  fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxxlo,boxxhi,boxxy);
-  fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxylo,boxyhi,boxxz);
-  fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxzlo,boxzhi,boxyz);
-  fprintf(fp,"ITEM: ATOMS %s\n",columns);
+  fmt::print(fp, "ITEM: TIMESTEP\n{}\nITEM: NUMBER OF ATOMS\n{}\n", update->ntimestep, ndump);
+
+  fmt::print(fp,"ITEM: BOX BOUNDS xy xz yz {}\n"
+             "{:>1.16e} {:>1.16e} {:>1.16e}\n"
+             "{:>1.16e} {:>1.16e} {:>1.16e}\n"
+             "{:>1.16e} {:>1.16e} {:>1.16e}\n",
+             boundstr,boxxlo,boxxhi,boxxy,boxylo,boxyhi,boxxz,boxzlo,boxzhi,boxyz);
+
+  fmt::print(fp,"ITEM: ATOMS {}\n",columns);
 }
 
 /* ---------------------------------------------------------------------- */

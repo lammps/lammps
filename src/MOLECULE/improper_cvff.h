@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class ImproperCvff : public Improper {
  public:
   ImproperCvff(class LAMMPS *);
-  virtual ~ImproperCvff();
-  virtual void compute(int, int);
-  void coeff(int, char **);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
+  ~ImproperCvff() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
 
  protected:
   double *k;
@@ -45,16 +45,3 @@ class ImproperCvff : public Improper {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-W: Improper problem: %d %ld %d %d %d %d
-
-Conformation of the 4 listed improper atoms is extreme; you may want
-to check your simulation geometry.
-
-E: Incorrect args for improper coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

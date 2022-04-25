@@ -27,17 +27,17 @@ namespace LAMMPS_NS {
 class AngleZero : public Angle {
  public:
   AngleZero(class LAMMPS *);
-  virtual ~AngleZero();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
-  virtual void settings(int, char **);
+  ~AngleZero() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void settings(int, char **) override;
 
-  double equilibrium_angle(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
+  double equilibrium_angle(int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
 
-  double single(int, int, int, int);
+  double single(int, int, int, int) override;
 
  protected:
   double *theta0;
@@ -50,15 +50,3 @@ class AngleZero : public Angle {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-E: Incorrect args for angle coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

@@ -27,22 +27,9 @@ namespace LAMMPS_NS {
 class FixRigidNPH : public FixRigidNH {
  public:
   FixRigidNPH(class LAMMPS *, int, char **);
-  ~FixRigidNPH() {}
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Did not set pressure for fix rigid/nph
-
-The press keyword must be specified.
-
-E: Cannot set temperature for fix rigid/nph
-
-The temp keyword cannot be specified.
-
-*/

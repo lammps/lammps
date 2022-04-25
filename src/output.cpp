@@ -44,6 +44,15 @@ using namespace LAMMPS_NS;
 enum {SETUP, WRITE, RESET_DT};
 
 /* ----------------------------------------------------------------------
+   one instance per dump style in style_dump.h
+------------------------------------------------------------------------- */
+
+template <typename T> static Dump *dump_creator(LAMMPS *lmp, int narg, char ** arg)
+{
+  return new T(lmp, narg, arg);
+}
+
+/* ----------------------------------------------------------------------
    initialize all output
 ------------------------------------------------------------------------- */
 
@@ -57,10 +66,10 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
 
   // create default Thermo class
 
-  char **newarg = new char*[1];
+  auto newarg = new char*[1];
   newarg[0] = (char *) "one";
   thermo = new Thermo(lmp,1,newarg);
-  delete [] newarg;
+  delete[] newarg;
 
   thermo_every = 0;
   var_thermo = nullptr;
@@ -101,7 +110,7 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
 Output::~Output()
 {
   if (thermo) delete thermo;
-  delete [] var_thermo;
+  delete[] var_thermo;
 
   memory->destroy(mode_dump);
   memory->destroy(every_dump);
@@ -109,17 +118,17 @@ Output::~Output()
   memory->destroy(next_dump);
   memory->destroy(next_time_dump);
   memory->destroy(last_dump);
-  for (int i = 0; i < ndump; i++) delete [] var_dump[i];
+  for (int i = 0; i < ndump; i++) delete[] var_dump[i];
   memory->sfree(var_dump);
   memory->destroy(ivar_dump);
   for (int i = 0; i < ndump; i++) delete dump[i];
   memory->sfree(dump);
 
-  delete [] restart1;
-  delete [] restart2a;
-  delete [] restart2b;
-  delete [] var_restart_single;
-  delete [] var_restart_double;
+  delete[] restart1;
+  delete[] restart2a;
+  delete[] restart2b;
+  delete[] var_restart_single;
+  delete[] var_restart_double;
   delete restart;
 
   delete dump_map;
@@ -183,7 +192,7 @@ void Output::setup(int memflag)
   // decide whether to write snapshot and/or calculate next step for dump
 
   if (ndump && update->restrict_output == 0) {
-    next_time_dump_any = MAXBIGINT;
+    next_dump_any = next_time_dump_any = MAXBIGINT;
 
     for (int idump = 0; idump < ndump; idump++) {
 
@@ -247,8 +256,7 @@ void Output::setup(int memflag)
 
       if (mode_dump[idump] && (dump[idump]->clearstep || var_dump[idump]))
         next_time_dump_any = MIN(next_time_dump_any,next_dump[idump]);
-      if (idump) next_dump_any = MIN(next_dump_any,next_dump[idump]);
-      else next_dump_any = next_dump[0];
+      next_dump_any = MIN(next_dump_any,next_dump[idump]);
     }
 
   // if no dumps, set next_dump_any to last+1 so will not influence next
@@ -267,7 +275,7 @@ void Output::setup(int memflag)
            (ntimestep/restart_every_single)*restart_every_single +
            restart_every_single;
        else {
-         bigint nextrestart = static_cast<bigint>
+         auto  nextrestart = static_cast<bigint>
            (input->variable->compute_equal(ivar_restart_single));
          if (nextrestart <= ntimestep)
            error->all(FLERR,"Restart variable returned a bad timestep");
@@ -280,7 +288,7 @@ void Output::setup(int memflag)
            (ntimestep/restart_every_double)*restart_every_double +
            restart_every_double;
        else {
-         bigint nextrestart = static_cast<bigint>
+         auto  nextrestart = static_cast<bigint>
            (input->variable->compute_equal(ivar_restart_double));
          if (nextrestart <= ntimestep)
            error->all(FLERR,"Restart variable returned a bad timestep");
@@ -347,9 +355,9 @@ void Output::setup(int memflag)
    //     what other command may have added it
 
    if (next_dump_any == ntimestep) {
+     next_dump_any = next_time_dump_any = MAXBIGINT;
 
      for (int idump = 0; idump < ndump; idump++) {
-       next_time_dump_any = MAXBIGINT;
 
        if (next_dump[idump] == ntimestep) {
          if (last_dump[idump] == ntimestep) continue;
@@ -372,8 +380,7 @@ void Output::setup(int memflag)
 
        if (mode_dump[idump] && (dump[idump]->clearstep || var_dump[idump]))
          next_time_dump_any = MIN(next_time_dump_any,next_dump[idump]);
-       if (idump) next_dump_any = MIN(next_dump_any,next_dump[idump]);
-       else next_dump_any = next_dump[0];
+       next_dump_any = MIN(next_dump_any,next_dump[idump]);
      }
    }
 
@@ -394,7 +401,7 @@ void Output::setup(int memflag)
        if (restart_every_single) next_restart_single += restart_every_single;
        else {
          modify->clearstep_compute();
-         bigint nextrestart = static_cast<bigint>
+         auto  nextrestart = static_cast<bigint>
            (input->variable->compute_equal(ivar_restart_single));
          if (nextrestart <= ntimestep)
            error->all(FLERR,"Restart variable returned a bad timestep");
@@ -415,7 +422,7 @@ void Output::setup(int memflag)
        if (restart_every_double) next_restart_double += restart_every_double;
        else {
          modify->clearstep_compute();
-         bigint nextrestart = static_cast<bigint>
+         auto  nextrestart = static_cast<bigint>
            (input->variable->compute_equal(ivar_restart_double));
          if (nextrestart <= ntimestep)
            error->all(FLERR,"Restart variable returned a bad timestep");
@@ -536,8 +543,7 @@ void Output::calculate_next_dump(int which, int idump, bigint ntimestep)
        }
 
        nextdump = ntimestep +
-         static_cast<bigint> ((nexttime - tcurrent - EPSDT*update->dt) /
-                              update->dt) + 1;
+         static_cast<bigint> ((nexttime - tcurrent - EPSDT*update->dt) / update->dt) + 1;
 
        // if delta is too small to reach next timestep, use multiple of delta
 
@@ -548,8 +554,7 @@ void Output::calculate_next_dump(int which, int idump, bigint ntimestep)
            ((tnext - nexttime) / every_time_dump[idump]);
          nexttime = nexttime + (multiple+1)*every_time_dump[idump];
          nextdump = ntimestep +
-           static_cast<bigint> ((nexttime - tcurrent - EPSDT*update->dt) /
-                                update->dt) + 1;
+           static_cast<bigint> ((nexttime - tcurrent - EPSDT*update->dt) / update->dt) + 1;
        }
 
      } else {
@@ -566,8 +571,7 @@ void Output::calculate_next_dump(int which, int idump, bigint ntimestep)
          error->all(FLERR,"Dump every/time variable returned a bad time");
 
        nextdump = ntimestep +
-         static_cast<bigint> ((nexttime - tcurrent - EPSDT*update->dt) /
-                              update->dt) + 1;
+         static_cast<bigint> ((nexttime - tcurrent - EPSDT*update->dt) / update->dt) + 1;
        if (nextdump <= ntimestep)
          error->all(FLERR,"Dump every/time variable too small for next timestep");
      }
@@ -644,7 +648,7 @@ int Output::check_time_dumps(bigint ntimestep)
      } else {
        modify->clearstep_compute();
        update->ntimestep--;
-       bigint nextrestart = static_cast<bigint>
+       auto  nextrestart = static_cast<bigint>
          (input->variable->compute_equal(ivar_restart_single));
        if (nextrestart < ntimestep)
          error->all(FLERR,"Restart variable returned a bad timestep");
@@ -663,7 +667,7 @@ int Output::check_time_dumps(bigint ntimestep)
      } else {
        modify->clearstep_compute();
        update->ntimestep--;
-       bigint nextrestart = static_cast<bigint>
+       auto  nextrestart = static_cast<bigint>
          (input->variable->compute_equal(ivar_restart_double));
        if (nextrestart < ntimestep)
          error->all(FLERR,"Restart variable returned a bad timestep");
@@ -785,16 +789,6 @@ void Output::add_dump(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   one instance per dump style in style_dump.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-Dump *Output::dump_creator(LAMMPS *lmp, int narg, char ** arg)
-{
-  return new T(lmp, narg, arg);
-}
-
-/* ----------------------------------------------------------------------
    modify parameters of a Dump
 ------------------------------------------------------------------------- */
 
@@ -826,7 +820,7 @@ void Output::delete_dump(char *id)
   if (idump == ndump) error->all(FLERR,"Could not find undump ID");
 
   delete dump[idump];
-  delete [] var_dump[idump];
+  delete[] var_dump[idump];
 
   // move other dumps down in list one slot
 
@@ -870,7 +864,7 @@ void Output::set_thermo(int narg, char **arg)
   // always reset var_thermo, so it is possible to switch back from
   // variable spaced thermo outputs to constant spaced ones.
 
-  delete [] var_thermo;
+  delete[] var_thermo;
   var_thermo = nullptr;
 
   if (utils::strmatch(arg[0],"^v_")) {
@@ -930,12 +924,12 @@ void Output::create_restart(int narg, char **arg)
 
     delete restart;
     restart = nullptr;
-    delete [] restart1;
-    delete [] restart2a;
-    delete [] restart2b;
+    delete[] restart1;
+    delete[] restart2a;
+    delete[] restart2b;
     restart1 = restart2a = restart2b = nullptr;
-    delete [] var_restart_single;
-    delete [] var_restart_double;
+    delete[] var_restart_single;
+    delete[] var_restart_double;
     var_restart_single = var_restart_double = nullptr;
 
     return;
@@ -951,13 +945,13 @@ void Output::create_restart(int narg, char **arg)
     restart_flag = restart_flag_single = 1;
 
     if (varflag) {
-      delete [] var_restart_single;
+      delete[] var_restart_single;
       var_restart_single = utils::strdup(arg[0]+2);
       restart_every_single = 0;
     } else restart_every_single = every;
 
     int n = strlen(arg[1]) + 3;
-    delete [] restart1;
+    delete[] restart1;
     restart1 = new char[n];
     strcpy(restart1,arg[1]);
     if (strchr(restart1,'*') == nullptr) strcat(restart1,".*");
@@ -967,13 +961,13 @@ void Output::create_restart(int narg, char **arg)
     restart_flag = restart_flag_double = 1;
 
     if (varflag) {
-      delete [] var_restart_double;
+      delete[] var_restart_double;
       var_restart_double = utils::strdup(arg[0]+2);
       restart_every_double = 0;
     } else restart_every_double = every;
 
-    delete [] restart2a;
-    delete [] restart2b;
+    delete[] restart2a;
+    delete[] restart2b;
     restart_toggle = 0;
     restart2a = utils::strdup(arg[1]);
     restart2b = utils::strdup(arg[2]);

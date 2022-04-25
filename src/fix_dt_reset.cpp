@@ -14,9 +14,7 @@
 #include "fix_dt_reset.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "domain.h"
-#include "dump.h"
 #include "error.h"
 #include "fix.h"
 #include "force.h"

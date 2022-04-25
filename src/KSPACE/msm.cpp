@@ -150,7 +150,7 @@ void MSM::init()
   pair_check();
 
   int itmp;
-  double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
@@ -820,15 +820,8 @@ void MSM::deallocate_levels()
 {
   if (world_levels) {
     for (int n=0; n < levels; ++n) {
-      if (qgrid[n]) {
-        memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
-        qgrid[n] = nullptr;
-      }
-
-      if (egrid[n]) {
-        memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
-        egrid[n] = nullptr;
-      }
+      memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
+      memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
 
       if (gc) {
         if (gc[n]) {
@@ -1071,7 +1064,7 @@ void MSM::set_grid_global()
 
     cutoff = pow(k*k*sum/3.0,1.0/(2.0*p));
     int itmp;
-    double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+    auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
     *p_cutoff = cutoff;
 
     if (me == 0)
@@ -1093,6 +1086,8 @@ void MSM::set_grid_global()
     h_z = 1.0/tmp[2];
   }
 
+  deallocate_levels();
+
   // find maximum number of levels
 
   levels = MAX(xlevels,ylevels);
@@ -1106,15 +1101,13 @@ void MSM::set_grid_global()
     levels = xlevels = ylevels = zlevels = 2;
     nx_max = ny_max = nz_max = 2;
     if (gridflag)
-      error->warning(FLERR,
-             "MSM mesh too small, increasing to 2 points in each direction");
+      error->warning(FLERR,"MSM mesh too small, increasing to 2 points in each direction");
   }
 
   // omit top grid level for periodic systems
 
   if (!domain->nonperiodic) levels -= 1;
 
-  deallocate_levels();
   allocate_levels();
 
   // find number of grid levels in each direction
@@ -1141,33 +1134,19 @@ void MSM::set_grid_global()
     error->all(FLERR,"MSM grid is too large");
 
   // compute number of extra grid points needed for non-periodic boundary conditions
+  // need to always do this, so we can handle the case of switching from periodic
+  // to non-periodic.
 
-  if (domain->nonperiodic) {
-    alpha[0] = -(order/2 - 1);
-    betax[0] = nx_msm[0] + (order/2 - 1);
-    betay[0] = ny_msm[0] + (order/2 - 1);
-    betaz[0] = nz_msm[0] + (order/2 - 1);
-    for (int n = 1; n < levels; n++) {
-      alpha[n] = -((-alpha[n-1]+1)/2) - (order/2 - 1);
-      betax[n] = ((betax[n-1]+1)/2) + (order/2 - 1);
-      betay[n] = ((betay[n-1]+1)/2) + (order/2 - 1);
-      betaz[n] = ((betaz[n-1]+1)/2) + (order/2 - 1);
-    }
+  alpha[0] = -(order/2 - 1);
+  betax[0] = nx_msm[0] + (order/2 - 1);
+  betay[0] = ny_msm[0] + (order/2 - 1);
+  betaz[0] = nz_msm[0] + (order/2 - 1);
+  for (int n = 1; n < levels; n++) {
+    alpha[n] = -((-alpha[n-1]+1)/2) - (order/2 - 1);
+    betax[n] = ((betax[n-1]+1)/2) + (order/2 - 1);
+    betay[n] = ((betay[n-1]+1)/2) + (order/2 - 1);
+    betaz[n] = ((betaz[n-1]+1)/2) + (order/2 - 1);
   }
-
-  if (domain->nonperiodic) {
-    alpha[0] = -(order/2 - 1);
-    betax[0] = nx_msm[0] + (order/2 - 1);
-    betay[0] = ny_msm[0] + (order/2 - 1);
-    betaz[0] = nz_msm[0] + (order/2 - 1);
-    for (int n = 1; n < levels; n++) {
-      alpha[n] = -((-alpha[n-1]+1)/2) - (order/2 - 1);
-      betax[n] = ((betax[n-1]+1)/2) + (order/2 - 1);
-      betay[n] = ((betay[n-1]+1)/2) + (order/2 - 1);
-      betaz[n] = ((betaz[n-1]+1)/2) + (order/2 - 1);
-    }
-  }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1181,6 +1160,10 @@ void MSM::set_grid_local()
   // loop over grid levels
 
   for (int n=0; n<levels; n++) {
+
+    // deleted and nullify grid arrays since the number or offset of gridpoints may change
+    memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
+    memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
 
     // partition global grid across procs
     // n xyz lo/hi in[] = lower/upper bounds of global grid this proc owns
@@ -2523,7 +2506,7 @@ void MSM::grid_swap_reverse(int n, double*** &gridn)
 
 void MSM::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  double *buf = (double *) vbuf;
+  auto buf = (double *) vbuf;
 
   int n = current_level;
   int k = 0;
@@ -2569,7 +2552,7 @@ void MSM::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void MSM::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  double *buf = (double *) vbuf;
+  auto buf = (double *) vbuf;
 
   int n = current_level;
   int k = 0;
@@ -2615,7 +2598,7 @@ void MSM::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void MSM::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  double *buf = (double *) vbuf;
+  auto buf = (double *) vbuf;
 
   int n = current_level;
   int k = 0;
@@ -2661,7 +2644,7 @@ void MSM::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 
 void MSM::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  double *buf = (double *) vbuf;
+  auto buf = (double *) vbuf;
 
   int n = current_level;
   int k = 0;
@@ -3267,7 +3250,7 @@ void MSM::get_g_direct_top(int n)
 
   int nmax_top = 8*(nx+1)*(ny*1)*(nz+1);
 
-  if (g_direct_top) memory->destroy(g_direct_top);
+  memory->destroy(g_direct_top);
   memory->create(g_direct_top,nmax_top,"msm:g_direct_top");
 
   double a = cutoff;

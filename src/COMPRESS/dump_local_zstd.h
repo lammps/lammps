@@ -34,17 +34,16 @@ namespace LAMMPS_NS {
 class DumpLocalZstd : public DumpLocal {
  public:
   DumpLocalZstd(class LAMMPS *, int, char **);
-  virtual ~DumpLocalZstd() = default;
 
  protected:
   ZstdFileWriter writer;
 
-  virtual void openfile();
-  virtual void write_header(bigint);
-  virtual void write_data(int, double *);
-  virtual void write();
+  void openfile() override;
+  void write_header(bigint) override;
+  void write_data(int, double *) override;
+  void write() override;
 
-  virtual int modify_param(int, char **);
+  int modify_param(int, char **) override;
 };
 
 }    // namespace LAMMPS_NS
@@ -52,15 +51,3 @@ class DumpLocalZstd : public DumpLocal {
 #endif
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Dump local/zstd only writes compressed files
-
-The dump local/zstd output file name must have a .zst suffix.
-
-E: Cannot open dump file
-
-Self-explanatory.
-
-*/

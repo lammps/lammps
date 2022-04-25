@@ -19,9 +19,9 @@
 #include "text_file_reader.h"
 #include "utils.h"
 
-#if HAVE_MPI
+#include <deque>
+#include <exception>
 #include <mpi.h>
-#endif
 
 ////////////////////////////////////////////////////////////////////////
 // include system headers and tweak system settings
@@ -50,7 +50,6 @@
 #include <dlfcn.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
-#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
 #include <unistd.h>
@@ -72,11 +71,11 @@
 struct compress_info {
   /// identifier for the different compression algorithms
   enum styles { NONE, GZIP, BZIP2, ZSTD, XZ, LZMA, LZ4 };
-  const std::string extension;     ///< filename extension for the current algorithm
-  const std::string command;       ///< command to perform compression or decompression
+  const std::string extension;          ///< filename extension for the current algorithm
+  const std::string command;            ///< command to perform compression or decompression
   const std::string compressflags;      ///< flags to append to compress from stdin to stdout
   const std::string uncompressflags;    ///< flags to decompress file to stdout
-  const int style;                 ///< compression style flag
+  const int style;                      ///< compression style flag
 };
 
 // clang-format off
@@ -152,7 +151,8 @@ double platform::cputime()
 
   return rv;
 }
-#if defined(_MSC_VER)
+#if defined(__clang__)
+#elif defined(_MSC_VER)
 #pragma optimize("", on)
 #endif
 
@@ -230,16 +230,16 @@ std::string platform::os_info()
 
   if (platform::file_is_readable("/etc/os-release")) {
     try {
-        TextFileReader reader("/etc/os-release","");
-        while (true) {
-          auto words = reader.next_values(0,"=");
-          if ((words.count() > 1) && (words.next_string() == "PRETTY_NAME")) {
-            buf += " " + utils::trim(words.next_string());
-            break;
-          }
+      TextFileReader reader("/etc/os-release", "");
+      while (true) {
+        auto words = reader.next_values(0, "=");
+        if ((words.count() > 1) && (words.next_string() == "PRETTY_NAME")) {
+          buf += " " + utils::trim(words.next_string());
+          break;
         }
+      }
     } catch (std::exception &e) {
-      ; // EOF but keyword not found
+      ;    // EOF but keyword not found
     }
   }
 
@@ -395,8 +395,8 @@ std::string platform::mpi_vendor()
 
 std::string platform::mpi_info(int &major, int &minor)
 {
-  int len = 0;
 #if (defined(MPI_VERSION) && (MPI_VERSION > 2)) || defined(MPI_STUBS)
+  int len = 0;
   static char version[MPI_MAX_LIBRARY_VERSION_STRING];
   MPI_Get_library_version(version, &len);
   if (len > 80) {
@@ -427,11 +427,11 @@ std::string platform::compress_info()
   std::string buf = "Available compression formats:\n\n";
   bool none_found = true;
   for (const auto &cmpi : compress_styles) {
-     if (cmpi.style == ::compress_info::NONE) continue;
-     if (find_exe_path(cmpi.command).size()) {
-       none_found = false;
-       buf += fmt::format("Extension: .{:6} Command: {}\n", cmpi.extension, cmpi.command);
-     }
+    if (cmpi.style == ::compress_info::NONE) continue;
+    if (find_exe_path(cmpi.command).size()) {
+      none_found = false;
+      buf += fmt::format("Extension: .{:6} Command: {}\n", cmpi.extension, cmpi.command);
+    }
   }
   if (none_found) buf += "None\n";
   return buf;
@@ -450,7 +450,7 @@ int platform::putenv(const std::string &vardef)
   if (found == std::string::npos)
     return _putenv_s(vardef.c_str(), "1");
   else
-    return _putenv_s(vardef.substr(0, found).c_str(), vardef.substr(found+1).c_str());
+    return _putenv_s(vardef.substr(0, found).c_str(), vardef.substr(found + 1).c_str());
 #else
   if (found == std::string::npos)
     return setenv(vardef.c_str(), "", 1);
@@ -472,7 +472,7 @@ int platform::unsetenv(const std::string &variable)
   const char *ptr = getenv(variable.c_str());
   if (!ptr) return -1;
   // empty _putenv_s() definition deletes variable
-  return _putenv_s(variable.c_str(),"");
+  return _putenv_s(variable.c_str(), "");
 #else
   return ::unsetenv(variable.c_str());
 #endif
@@ -579,8 +579,10 @@ void *platform::dlopen(const std::string &fname)
 std::string platform::dlerror()
 {
   const char *errmesg = ::dlerror();
-  if (errmesg) return {errmesg};
-  else return {""};
+  if (errmesg)
+    return {errmesg};
+  else
+    return {""};
 }
 
 // close a shared object
@@ -678,7 +680,7 @@ std::string platform::current_directory()
   if (_getcwd(buf, MAX_PATH)) { cwd = buf; }
   delete[] buf;
 #else
-  char *buf = new char[PATH_MAX];
+  auto buf = new char[PATH_MAX];
   if (::getcwd(buf, PATH_MAX)) { cwd = buf; }
   delete[] buf;
 #endif
@@ -753,16 +755,31 @@ int platform::chdir(const std::string &path)
 }
 
 /* ----------------------------------------------------------------------
-   Create a directory
+   Create a directory. Create entire path if necessary.
 ------------------------------------------------------------------------- */
 
 int platform::mkdir(const std::string &path)
 {
+  std::deque<std::string> dirlist = {path};
+  std::string dirname = path_dirname(path);
+
+  while ((dirname != ".") && (dirname != "")) {
+    dirlist.push_front(dirname);
+    dirname = path_dirname(dirname);
+  }
+
+  int rv;
+  for (const auto &dir : dirlist) {
+    if (!path_is_directory(dir)) {
 #if defined(_WIN32)
-  return ::_mkdir(path.c_str());
+      rv = ::_mkdir(dir.c_str());
 #else
-  return ::mkdir(path.c_str(), S_IRWXU | S_IRGRP | S_IXGRP);
+      rv = ::mkdir(dir.c_str(), S_IRWXU | S_IRGRP | S_IXGRP);
 #endif
+      if (rv != 0) return rv;
+    }
+  }
+  return 0;
 }
 
 /* ----------------------------------------------------------------------

@@ -57,7 +57,7 @@ void ComputePressureUef::init()
   if (i==modify->nfix)
     error->all(FLERR,"Can't use compute pressure/uef without defining a fix nvt/npt/uef");
   ifix_uef=i;
-  ((FixNHUef*) modify->fix[ifix_uef])->get_ext_flags(ext_flags);
+  (dynamic_cast<FixNHUef*>( modify->fix[ifix_uef]))->get_ext_flags(ext_flags);
 
   if (strcmp(temperature->style,"temp/uef") != 0)
     error->warning(FLERR,"The temperature used in compute pressure/ued is not of style temp/uef");
@@ -127,7 +127,7 @@ void ComputePressureUef::compute_vector()
     else
     {
       double r[3][3];
-      ( (FixNHUef*) modify->fix[ifix_uef])->get_rot(r);
+      ( dynamic_cast<FixNHUef*>( modify->fix[ifix_uef]))->get_rot(r);
       virial_rot(virial,r);
     }
     if (keflag) {
@@ -158,7 +158,7 @@ void ComputePressureUef::compute_vector()
 ------------------------------------------------------------------------- */
 void ComputePressureUef::update_rot()
 {
-    ( (FixNHUef*) modify->fix[ifix_uef])->get_rot(rot);
+    ( dynamic_cast<FixNHUef*>( modify->fix[ifix_uef]))->get_rot(rot);
 }
 
 /* ----------------------------------------------------------------------

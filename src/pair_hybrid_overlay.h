@@ -27,26 +27,14 @@ namespace LAMMPS_NS {
 class PairHybridOverlay : public PairHybrid {
  public:
   PairHybridOverlay(class LAMMPS *);
-  virtual ~PairHybridOverlay() {}
-  void coeff(int, char **);
 
-  void init_svector();
-  void copy_svector(int, int);
+  void coeff(int, char **) override;
+
+  void init_svector() override;
+  void copy_svector(int, int) override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair coeff for hybrid has invalid style
-
-Style in pair coeff must have been listed in pair_style command.
-
-*/

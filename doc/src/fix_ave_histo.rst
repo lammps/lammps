@@ -144,8 +144,9 @@ asterisk means all indices from m to n (inclusive).
 
 Using a wildcard is the same as if the individual elements of the
 vector or columns of the array had been listed one by one.  E.g. these
-2 fix ave/histo commands are equivalent, since the :doc:`compute com/chunk <compute_com_chunk>` command creates a global array with
-3 columns:
+2 fix ave/histo commands are equivalent, since the :doc:`compute
+com/chunk <compute_com_chunk>` command creates a global array with 3
+columns:
 
 .. code-block:: LAMMPS
 
@@ -158,9 +159,8 @@ vector or columns of the array had been listed one by one.  E.g. these
    For a vector-style variable, only the wildcard forms "\*n" or
    "m\*n" are allowed.  You must specify the upper bound, because
    vector-style variable lengths are not determined until the variable
-   is evaluated.  If n is specified larger than the vector length"\*n"
-   or "n\*" or "m\*n".  turns out to be, zeroes are output for missing
-   vector values.
+   is evaluated.  If n is specified larger than the vector length
+   turns out to be, zeroes are output for missing vector values.
 
 ----------
 

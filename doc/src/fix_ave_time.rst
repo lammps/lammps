@@ -127,8 +127,9 @@ asterisk means all indices from m to n (inclusive).
 
 Using a wildcard is the same as if the individual elements of the
 vector or columns of the array had been listed one by one.  E.g. these
-2 fix ave/time commands are equivalent, since the :doc:`compute rdf <compute_rdf>` command creates, in this case, a global array
-with 3 columns, each of length 50:
+2 fix ave/time commands are equivalent, since the :doc:`compute rdf
+<compute_rdf>` command creates, in this case, a global array with 3
+columns, each of length 50:
 
 .. code-block:: LAMMPS
 
@@ -141,9 +142,8 @@ with 3 columns, each of length 50:
    For a vector-style variable, only the wildcard forms "\*n" or
    "m\*n" are allowed.  You must specify the upper bound, because
    vector-style variable lengths are not determined until the variable
-   is evaluated.  If n is specified larger than the vector length"\*n"
-   or "n\*" or "m\*n".  turns out to be, zeroes are output for missing
-   vector values.
+   is evaluated.  If n is specified larger than the vector length
+   turns out to be, zeroes are output for missing vector values.
 
 ----------
 
@@ -180,9 +180,12 @@ asterisk to effectively specify multiple values.
 Note that there is a :doc:`compute reduce <compute_reduce>` command
 which can sum per-atom quantities into a global scalar or vector which
 can thus be accessed by fix ave/time.  Or it can be a compute defined
-not in your input script, but by :doc:`thermodynamic output <thermo_style>` or other fixes such as :doc:`fix nvt <fix_nh>` or :doc:`fix temp/rescale <fix_temp_rescale>`.  See
-the doc pages for these commands which give the IDs of these computes.
-Users can also write code for their own compute styles and :doc:`add them to LAMMPS <Modify>`.
+not in your input script, but by :doc:`thermodynamic output
+<thermo_style>` or other fixes such as :doc:`fix nvt <fix_nh>` or
+:doc:`fix temp/rescale <fix_temp_rescale>`.  See the doc pages for
+these commands which give the IDs of these computes.  Users can also
+write code for their own compute styles and :doc:`add them to LAMMPS
+<Modify>`.
 
 If a value begins with "f\_", a fix ID must follow which has been
 previously defined in the input script.  If *mode* = scalar, then if

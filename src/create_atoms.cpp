@@ -732,7 +732,7 @@ void CreateAtoms::add_random()
   int tries;
   for (int i = 0; i < nrandom; i++) {
     tries = 0;
-    while (1) {
+    while (true) {
       tries++;
       if (tries > maxtries)
         error->all(FLERR, "Exceeded max number of tries in create_atoms");
@@ -751,21 +751,6 @@ void CreateAtoms::add_random()
       if (mode == MOLECULE)
         gen_mol_coords(xone, quatone);
 
-      if (overlapflag) {
-        int reject = 0;
-        for (int i = 0; i < nlocal; i++){
-          delx = xone[0] - x[i][0];
-          dely = xone[1] - x[i][1];
-          delz = xone[2] - x[i][2];
-          distsq = delx*delx + dely*dely + delz*delz;
-          if (distsq < ocutsq){
-            reject = 1;
-            break;
-          }
-        }
-        if (reject) continue;
-      }
-
       if (triclinic) {
         domain->x2lamda(xone,lamda);
         coord = lamda;
@@ -773,8 +758,30 @@ void CreateAtoms::add_random()
             coord[1] < boxlo[1] || coord[1] >= boxhi[1] ||
             coord[2] < boxlo[2] || coord[2] >= boxhi[2])
           continue;
-      } else
+      } else {
         coord = xone;
+      }
+
+      if (overlapflag) {
+        int reject_local = 0;
+        //TODO this could be done only on the proc where coords are
+        // (using local + ghost atoms), BUT it is possible that
+        // ocutsq > skin^2 (although highly unlikely... warning?)
+        // This is only relevant for highly inhomogeous systems... ?
+        for (int i = 0; i < nlocal; i++) {
+          delx = xone[0] - x[i][0];
+          dely = xone[1] - x[i][1];
+          delz = xone[2] - x[i][2];
+          distsq = delx*delx + dely*dely + delz*delz;
+          if (distsq < ocutsq) {
+            reject_local = 1;
+            break;
+          }
+        }
+        int reject = 0;
+        MPI_Allreduce(&reject_local, &reject, 1, MPI_INT, MPI_MAX, world);
+        if (reject) continue;
+      }
 
       break; //if survived to here means it succeeded
     }

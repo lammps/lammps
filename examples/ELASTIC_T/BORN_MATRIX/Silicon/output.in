@@ -136,5 +136,6 @@ variable C46 equal v_F46+v_B[20]
 variable C56 equal v_F56+v_B[21]
 
 thermo		${nthermo}
-thermo_style custom step temp pe press density f_avt f_avp f_avpe v_F11 v_F22 v_F33 v_F44 v_F55 v_F66 v_F12 v_F13 v_F23 v_B[1] v_B[2] v_B[3] v_B[4] v_B[5] v_B[6] v_B[7] v_B[8] v_B[12]
+thermo_style custom step temp pe press density f_avt f_avp f_avpe v_F11 v_F22 v_F33 v_F44 v_F55 v_F66 v_F12 v_F13 v_F23 v_B[*8] v_B[12]
+
 thermo_modify norm no

@@ -352,10 +352,9 @@ For output values from a compute or fix or variable, the bracketed
 index I used to index a vector, as in *c_ID[I]* or *f_ID[I]* or
 *v_name[I]*, can be specified using a wildcard asterisk with the index
 to effectively specify multiple values.  This takes the form "\*" or
-"\*n" or "n\*" or "m\*n".  If N = the size of the vector (for *mode* =
-scalar) or the number of columns in the array (for *mode* = vector),
-then an asterisk with no numeric values means all indices from 1 to N.
-A leading asterisk means all indices from 1 to n (inclusive).  A
+"\*n" or "n\*" or "m\*n".  If N = the size of the vector, then an
+asterisk with no numeric values means all indices from 1 to N.  A
+leading asterisk means all indices from 1 to n (inclusive).  A
 trailing asterisk means all indices from n to N (inclusive).  A middle
 asterisk means all indices from m to n (inclusive).
 

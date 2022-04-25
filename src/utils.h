@@ -56,8 +56,7 @@ namespace utils {
    *  \param cmd      name of the failing command
    *  \param error    pointer to Error class instance (for abort) or nullptr */
 
-  [[noreturn]] void missing_cmd_args(const std::string &file, int line, const std::string &cmd,
-                                     Error *error);
+  void missing_cmd_args(const std::string &file, int line, const std::string &cmd, Error *error);
 
   /* Internal function handling the argument list for logmesg(). */
 

@@ -1009,6 +1009,7 @@ void FixAveTime::options(int iarg, int narg, char **arg)
   noff = 0;
   offlist = nullptr;
   overwrite = 0;
+  yaml_flag = false;
   format_user = nullptr;
   format = (char *) " %g";
   title1 = nullptr;
@@ -1020,11 +1021,12 @@ void FixAveTime::options(int iarg, int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
+      yaml_flag = utils::strmatch(arg[iarg+1],"\\.[yY][aA]?[mM][lL]$");
       if (me == 0) {
         fp = fopen(arg[iarg+1],"w");
         if (fp == nullptr)
           error->one(FLERR,"Cannot open fix ave/time file {}: {}",
-                                       arg[iarg+1], utils::getsyserror());
+                     arg[iarg+1], utils::getsyserror());
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {

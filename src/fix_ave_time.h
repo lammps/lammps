@@ -48,6 +48,7 @@ class FixAveTime : public Fix {
   int any_variable_length;
   int all_variable_length;
   int lockforever;
+  bool yaml_flag;
 
   int ave, nwindow, startstep, mode;
   int noff, overwrite;

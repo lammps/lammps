@@ -124,54 +124,51 @@ TEST_F(Advanced_utils, expand_args)
     auto output = END_CAPTURE_OUTPUT();
 
     char **args, **earg;
-    args    = new char *[9];
+    constexpr int oarg = 9;
+    args    = new char *[oarg];
     args[0] = utils::strdup("v_step");
     args[1] = utils::strdup("c_temp");
-    args[2] = utils::strdup("f_1[*]");
-    args[3] = utils::strdup("c_temp[*]");
-    args[4] = utils::strdup("v_temp[*]");
+    args[2] = utils::strdup("f_1[2*]");
+    args[3] = utils::strdup("c_temp[2*4]");
+    args[4] = utils::strdup("v_temp[*4]");
     args[5] = utils::strdup("c_rdf[*]");
     args[6] = utils::strdup("c_rdf[1][*]");
     args[7] = utils::strdup("c_rdf[*][2]");
     args[8] = utils::strdup("c_rdf[*][*]");
 
-    auto narg = utils::expand_args(FLERR, 9, args, 0, earg, lmp);
-    EXPECT_EQ(narg, 16);
+    auto narg = utils::expand_args(FLERR, oarg, args, 0, earg, lmp);
+    EXPECT_EQ(narg, 12);
     EXPECT_STREQ(earg[0], "v_step");
     EXPECT_STREQ(earg[1], "c_temp");
-    EXPECT_STREQ(earg[2], "f_1[1]");
-    EXPECT_STREQ(earg[3], "f_1[2]");
-    EXPECT_STREQ(earg[4], "f_1[3]");
-    EXPECT_STREQ(earg[5], "c_temp[1]");
-    EXPECT_STREQ(earg[6], "c_temp[2]");
-    EXPECT_STREQ(earg[7], "c_temp[3]");
-    EXPECT_STREQ(earg[8], "c_temp[4]");
-    EXPECT_STREQ(earg[9], "c_temp[5]");
-    EXPECT_STREQ(earg[10], "c_temp[6]");
-    EXPECT_STREQ(earg[11], "v_temp[*]");
-    EXPECT_STREQ(earg[12], "c_rdf[*]");
-    EXPECT_STREQ(earg[13], "c_rdf[1][*]");
-    EXPECT_STREQ(earg[14], "c_rdf[*][2]");
-    EXPECT_STREQ(earg[15], "c_rdf[*][*]");
+    EXPECT_STREQ(earg[2], "f_1[2]");
+    EXPECT_STREQ(earg[3], "f_1[3]");
+    EXPECT_STREQ(earg[4], "c_temp[2]");
+    EXPECT_STREQ(earg[5], "c_temp[3]");
+    EXPECT_STREQ(earg[6], "c_temp[4]");
+    EXPECT_STREQ(earg[7], "v_temp[*4]");
+    EXPECT_STREQ(earg[8], "c_rdf[*]");
+    EXPECT_STREQ(earg[9], "c_rdf[1][*]");
+    EXPECT_STREQ(earg[10], "c_rdf[*][2]");
+    EXPECT_STREQ(earg[11], "c_rdf[*][*]");
 
     for (int i = 0; i < narg; ++i)
         delete[] earg[i];
     lmp->memory->sfree(earg);
 
-    narg = utils::expand_args(FLERR, 9, args, 1, earg, lmp);
-    EXPECT_EQ(narg, 9);
+    narg = utils::expand_args(FLERR, oarg, args, 1, earg, lmp);
+    EXPECT_EQ(narg, oarg);
     EXPECT_NE(args, earg);
     EXPECT_STREQ(earg[0], "v_step");
     EXPECT_STREQ(earg[1], "c_temp");
-    EXPECT_STREQ(earg[2], "f_1[*]");
-    EXPECT_STREQ(earg[3], "c_temp[*]");
-    EXPECT_STREQ(earg[4], "v_temp[*]");
+    EXPECT_STREQ(earg[2], "f_1[2*]");
+    EXPECT_STREQ(earg[3], "c_temp[2*4]");
+    EXPECT_STREQ(earg[4], "v_temp[*4]");
     EXPECT_STREQ(earg[5], "c_rdf[*]");
     EXPECT_STREQ(earg[6], "c_rdf[1][*]");
     EXPECT_STREQ(earg[7], "c_rdf[*][2]");
     EXPECT_STREQ(earg[8], "c_rdf[*][*]");
 
-    for (int i = 0; i < 9; ++i)
+    for (int i = 0; i < oarg; ++i)
         delete[] args[i];
     delete[] args;
     for (int i = 0; i < narg; ++i)

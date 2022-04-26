@@ -890,8 +890,8 @@ void PairMesoCNT::read_file(const char *file)
 
   MPI_Bcast(uinf_data, uinf_points, MPI_DOUBLE, 0, world);
   MPI_Bcast(gamma_data, gamma_points, MPI_DOUBLE, 0, world);
-  MPI_Bcast(&phi_data[0][0], phi_points*phi_points, MPI_DOUBLE, 0, world);
-  MPI_Bcast(&usemi_data[0][0], usemi_points*usemi_points, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&phi_data[0][0], phi_points * phi_points, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&usemi_data[0][0], usemi_points * usemi_points, MPI_DOUBLE, 0, world);
 }
 
 /* ----------------------------------------------------------------------

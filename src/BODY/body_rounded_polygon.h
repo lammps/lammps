@@ -57,32 +57,3 @@ class BodyRoundedPolygon : public Body {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Invalid body rounded/polygon command
-
-Arguments in atom-style command are not correct.
-
-E: Invalid format in Bodies section of data file
-
-The specified number of integer or floating point values does not
-appear.
-
-E: Incorrect # of integer values in Bodies section of data file
-
-See doc page for body style.
-
-E: Incorrect integer value in Bodies section of data file
-
-See doc page for body style.
-
-E: Incorrect # of floating-point values in Bodies section of data file
-
-See doc page for body style.
-
-E: Insufficient Jacobi rotations for body nparticle
-
-Eigensolve for rigid body was not sufficiently accurate.
-
-*/

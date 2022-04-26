@@ -86,6 +86,3 @@ class AngleCosineKokkos : public AngleCosine {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

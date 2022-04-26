@@ -36,7 +36,3 @@ class NStencilHalfBin2d : public NStencil {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

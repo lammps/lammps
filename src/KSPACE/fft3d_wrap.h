@@ -14,7 +14,7 @@
 #ifndef LMP_FFT3D_WRAP_H
 #define LMP_FFT3D_WRAP_H
 
-#include "fft3d.h"              // IWYU pragma: export
+#include "fft3d.h"    // IWYU pragma: export
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -36,13 +36,3 @@ class FFT3d : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Could not create 3d FFT plan
-
-The FFT setup for the PPPM solver failed, typically due
-to lack of memory.  This is an unusual error.  Check the
-size of the FFT grid you are requesting.
-
-*/

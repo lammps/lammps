@@ -49,19 +49,3 @@ class ComputeMesoNT : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal compute mesont command
-
-Incorrect argument list in the compute init.
-
-E: Per-atom energy was not tallied on needed timestep
-
-UNSPECIFIED.
-
-E: compute mesont is allowed only with mesont/tpm pair style
-
-Use mesont pair style.
-
-*/

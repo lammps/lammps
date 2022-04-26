@@ -51,15 +51,3 @@ class DumpAtomZstd : public DumpAtom {
 #endif
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Dump atom/zstd only writes compressed files
-
-The dump atom/zstd output file name must have a .zst suffix.
-
-E: Cannot open dump file
-
-Self-explanatory.
-
-*/

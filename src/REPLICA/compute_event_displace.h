@@ -45,26 +45,3 @@ class ComputeEventDisplace : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Distance must be > 0 for compute event/displace
-
-Self-explanatory.
-
-E: Could not find compute event/displace fix ID
-
-Self-explanatory.
-
-E: Compute event/displace has invalid fix event assigned
-
-This is an internal LAMMPS error.  Please report it to the
-developers.
-
-*/

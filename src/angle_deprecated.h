@@ -41,7 +41,3 @@ class AngleDeprecated : public Angle {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

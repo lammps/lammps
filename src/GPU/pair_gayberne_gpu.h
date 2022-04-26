@@ -45,24 +45,3 @@ class PairGayBerneGPU : public PairGayBerne {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Pair gayberne/gpu requires atom style ellipsoid
-
-Self-explanatory.
-
-E: Cannot use newton pair with gayberne/gpu pair style
-
-Self-explanatory.
-
-E: Pair gayberne/gpu requires atoms with same type have same shape
-
-Self-explanatory.
-
-*/

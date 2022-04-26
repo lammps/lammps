@@ -50,24 +50,3 @@ class DumpCFG : public DumpCustom {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Dump cfg arguments must start with 'mass type xs ys zs' or 'mass type xsu ysu zsu'
-
-This is a requirement of the CFG output format.  See the dump cfg doc
-page for more details.
-
-E: Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu
-
-Self-explanatory.
-
-E: Dump cfg requires one snapshot per file
-
-Use the wildcard "*" character in the filename.
-
-U: Invalid keyword in dump cfg command
-
-Self-explanatory.
-
-*/

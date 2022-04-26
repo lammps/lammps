@@ -435,7 +435,7 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist, int ncount, double qn[], 
 
   for (int ineigh = 0; ineigh < ncount; ineigh++) {
     const double *const r = rlist[ineigh];
-    double rmag =  sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2]);
+    double rmag = sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2]);
     if (rmag <= MY_EPSILON) { return; }
 
     double costheta = r[2] / rmag;

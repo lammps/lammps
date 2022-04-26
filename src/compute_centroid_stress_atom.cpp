@@ -162,7 +162,7 @@ void ComputeCentroidStressAtom::init()
   if (id_temp) {
     temperature = modify->get_compute_by_id(id_temp);
     if (!temperature)
-      error->all(FLERR, "Could not find compute centroid/stress/atom temperature ID {}",id_temp);
+      error->all(FLERR, "Could not find compute centroid/stress/atom temperature ID {}", id_temp);
     if (temperature->tempbias)
       biasflag = BIAS;
     else

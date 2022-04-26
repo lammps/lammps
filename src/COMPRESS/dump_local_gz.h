@@ -44,15 +44,3 @@ class DumpLocalGZ : public DumpLocal {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Dump local/gz only writes compressed files
-
-The dump local/gz output file name must have a .gz suffix.
-
-E: Cannot open dump file
-
-Self-explanatory.
-
-*/

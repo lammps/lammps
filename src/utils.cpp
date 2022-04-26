@@ -22,8 +22,8 @@
 #include "memory.h"
 #include "modify.h"
 #include "text_file_reader.h"
-#include "update.h"
 #include "universe.h"
+#include "update.h"
 
 #include <cctype>
 #include <cerrno>
@@ -120,6 +120,12 @@ std::string utils::strfind(const std::string &text, const std::string &pattern)
     return "";
 }
 
+void utils::missing_cmd_args(const std::string &file, int line, const std::string &cmd,
+                             Error *error)
+{
+  if (error) error->all(file, line, "Illegal {} command: missing argument(s)", cmd);
+}
+
 /* specialization for the case of just a single string argument */
 
 void utils::logmesg(LAMMPS *lmp, const std::string &mesg)
@@ -137,11 +143,16 @@ void utils::fmtargs_logmesg(LAMMPS *lmp, fmt::string_view format, fmt::format_ar
   }
 }
 
+std::string utils::errorurl(int errorcode)
+{
+  return fmt::format("\nFor more information see https://docs.lammps.org/err{:04d}", errorcode);
+}
+
 void utils::flush_buffers(LAMMPS *lmp)
 {
   if (lmp->screen) fflush(lmp->screen);
   if (lmp->logfile) fflush(lmp->logfile);
-  if (lmp->universe->uscreen)  fflush(lmp->universe->uscreen);
+  if (lmp->universe->uscreen) fflush(lmp->universe->uscreen);
   if (lmp->universe->ulogfile) fflush(lmp->universe->ulogfile);
 }
 
@@ -566,14 +577,14 @@ void utils::bounds(const char *file, int line, const std::string &str,
       error->all(file, line, fmt::format("Invalid range string: {}", str));
 
     if (nlo < nmin)
-      error->all(file, line, fmt::format("Numeric index {} is out of bounds "
-                             "({}-{})", nlo, nmin, nmax));
+      error->all(file, line, fmt::format("Numeric index {} is out of bounds ({}-{})",
+                                         nlo, nmin, nmax));
     else if (nhi > nmax)
-      error->all(file, line, fmt::format("Numeric index {} is out of bounds "
-                             "({}-{})", nhi, nmin, nmax));
+      error->all(file, line, fmt::format("Numeric index {} is out of bounds ({}-{})",
+                                         nhi, nmin, nmax));
     else if (nlo > nhi)
-      error->all(file, line, fmt::format("Numeric index {} is out of bounds "
-                             "({}-{})", nlo, nmin, nhi));
+      error->all(file, line, fmt::format("Numeric index {} is out of bounds ({}-{})",
+                                         nlo, nmin, nhi));
   }
 }
 
@@ -805,7 +816,7 @@ std::string utils::star_subst(const std::string &name, bigint step, int pad)
   auto star = name.find('*');
   if (star == std::string::npos) return name;
 
-  return fmt::format("{}{:0{}}{}",name.substr(0,star),step,pad,name.substr(star+1));
+  return fmt::format("{}{:0{}}{}", name.substr(0, star), step, pad, name.substr(star + 1));
 }
 
 /* ----------------------------------------------------------------------

@@ -60,7 +60,7 @@ class PairOxdnaHbond : public Pair {
   double **b_hb7, **dtheta_hb7_c;
   double **a_hb8, **theta_hb8_0, **dtheta_hb8_ast;
   double **b_hb8, **dtheta_hb8_c;
-  double **nx_xtrct, **ny_xtrct, **nz_xtrct; // per-atom arrays for local unit vectors
+  double **nx_xtrct, **ny_xtrct, **nz_xtrct;    // per-atom arrays for local unit vectors
   int seqdepflag;
 
   virtual void allocate();
@@ -70,17 +70,3 @@ class PairOxdnaHbond : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

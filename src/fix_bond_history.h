@@ -41,7 +41,7 @@ class FixBondHistory : public Fix {
   double memory_usage() override;
   void write_restart(FILE *fp) override;
   void restart(char *buf) override;
-  void set_arrays(int);
+  void set_arrays(int) override;
 
   void update_atom_value(int, int, int, double);
   double get_atom_value(int, int, int);
@@ -76,19 +76,3 @@ class FixBondHistory : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-E: Index exceeded in fix bond history
-
-Bond requested non-existant data
-
-E: Cannot store bond variables without any bonds
-
-Atoms must have a nonzero number of bonds to store data
-
-*/

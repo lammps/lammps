@@ -24,8 +24,8 @@ ReaderStyle(native,ReaderNative);
 
 #include "reader.h"
 
-#include <string>
 #include <map>
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -73,15 +73,3 @@ class ReaderNative : public Reader {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Dump file is incorrectly formatted
-
-Self-explanatory.
-
-E: Unexpected end of dump file
-
-A read operation from the file failed.
-
-*/

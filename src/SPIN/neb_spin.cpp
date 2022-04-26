@@ -172,7 +172,7 @@ void NEBSpin::run()
   if (fixes.size() != 1)
     error->all(FLERR,"NEBSpin requires use of exactly one fix neb/spin instance");
 
-  fneb = (FixNEBSpin *) fixes[0];
+  fneb = dynamic_cast<FixNEBSpin *>( fixes[0]);
   if (verbose) numall =7;
   else  numall = 4;
   memory->create(all,nreplica,numall,"neb:all");
@@ -418,7 +418,7 @@ void NEBSpin::readfile(char *file, int flag)
       error->all(FLERR,"Incorrectly formatted NEB file");
   }
 
-  char *buffer = new char[CHUNK*MAXLINE];
+  auto buffer = new char[CHUNK*MAXLINE];
   double fraction = ireplica/(nreplica-1.0);
   double **x = atom->x;
   double **sp = atom->sp;

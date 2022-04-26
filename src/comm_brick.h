@@ -22,6 +22,7 @@ class CommBrick : public Comm {
  public:
   CommBrick(class LAMMPS *);
   CommBrick(class LAMMPS *, class Comm *);
+
   ~CommBrick() override;
 
   void init() override;
@@ -33,6 +34,8 @@ class CommBrick : public Comm {
 
   void forward_comm(class Pair *) override;                 // forward comm from a Pair
   void reverse_comm(class Pair *) override;                 // reverse comm from a Pair
+  void forward_comm(class Bond *) override;                 // forward comm from a Bond
+  void reverse_comm(class Bond *) override;                 // reverse comm from a Bond
   void forward_comm(class Fix *, int size = 0) override;    // forward comm from a Fix
   void reverse_comm(class Fix *, int size = 0) override;    // reverse comm from a Fix
   void reverse_comm_variable(class Fix *) override;         // variable size reverse comm from a Fix
@@ -95,11 +98,3 @@ class CommBrick : public Comm {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Cannot change to comm_style brick from tiled layout
-
-Self-explanatory.
-
-*/

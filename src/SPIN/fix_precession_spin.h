@@ -128,16 +128,3 @@ class FixPrecessionSpin : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal precession/spin command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-precession/spin fix command has 7 arguments:
-fix  ID  group  precession/spin  magnitude (T or eV)  style (zeeman or anisotropy)
-direction (3 cartesian coordinates)
-*/

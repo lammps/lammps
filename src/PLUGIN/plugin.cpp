@@ -135,7 +135,7 @@ int plugin_load(const char *file, LAMMPS *lmp)
 void plugin_register(lammpsplugin_t *plugin, void *ptr)
 {
 #if defined(LMP_PLUGIN)
-  LAMMPS *lmp = (LAMMPS *) ptr;
+  auto lmp = (LAMMPS *) ptr;
   int me = lmp->comm->me;
 
   if (plugin == nullptr) return;
@@ -388,8 +388,7 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
     auto found = region_map->find(name);
     if (found != region_map->end()) region_map->erase(name);
 
-    for (auto iregion : lmp->domain->get_region_by_style(name))
-      lmp->domain->delete_region(iregion->id);
+    for (auto iregion : lmp->domain->get_region_by_style(name)) lmp->domain->delete_region(iregion);
 
   } else if (pstyle == "command") {
 

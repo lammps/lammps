@@ -270,12 +270,12 @@ void Dump::init()
         reorderflag = 1;
         double range = maxall-minall + EPSILON;
         idlo = static_cast<tagint> (range*me/nprocs + minall);
-        tagint idhi = static_cast<tagint> (range*(me+1)/nprocs + minall);
+        auto  idhi = static_cast<tagint> (range*(me+1)/nprocs + minall);
 
-        tagint lom1 = static_cast<tagint> ((idlo-1-minall)/range * nprocs);
-        tagint lo = static_cast<tagint> ((idlo-minall)/range * nprocs);
-        tagint him1 = static_cast<tagint> ((idhi-1-minall)/range * nprocs);
-        tagint hi = static_cast<tagint> ((idhi-minall)/range * nprocs);
+        auto  lom1 = static_cast<tagint> ((idlo-1-minall)/range * nprocs);
+        auto  lo = static_cast<tagint> ((idlo-minall)/range * nprocs);
+        auto  him1 = static_cast<tagint> ((idhi-1-minall)/range * nprocs);
+        auto  hi = static_cast<tagint> ((idhi-minall)/range * nprocs);
         if (me && me == lom1) idlo--;
         else if (me && me != lo) idlo++;
         if (me+1 == him1) idhi--;
@@ -841,7 +841,7 @@ int Dump::idcompare(const int i, const int j, void *ptr)
 
 int Dump::bufcompare(const int i, const int j, void *ptr)
 {
-  Dump *dptr = (Dump *) ptr;
+  auto dptr = (Dump *) ptr;
   double *bufsort     = dptr->bufsort;
   const int size_one  = dptr->size_one;
   const int sortcolm1 = dptr->sortcolm1;
@@ -862,7 +862,7 @@ int Dump::bufcompare(const int i, const int j, void *ptr)
 
 int Dump::bufcompare_reverse(const int i, const int j, void *ptr)
 {
-  Dump *dptr = (Dump *) ptr;
+  auto dptr = (Dump *) ptr;
   double *bufsort     = dptr->bufsort;
   const int size_one  = dptr->size_one;
   const int sortcolm1 = dptr->sortcolm1;
@@ -938,7 +938,7 @@ void Dump::balance()
   // post recvs first
 
   int nswap = 0;
-  MPI_Request *request = new MPI_Request[nprocs];
+  auto request = new MPI_Request[nprocs];
 
   // find which proc starting atom belongs to
 
@@ -1181,7 +1181,7 @@ void Dump::modify_params(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"header") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
-      header_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      write_header_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"maxfiles") == 0) {

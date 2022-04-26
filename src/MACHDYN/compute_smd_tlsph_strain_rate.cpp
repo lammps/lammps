@@ -89,7 +89,7 @@ void ComputeSMDTLSPHStrainRate::compute_peratom() {
         }
 
         int itmp = 0;
-        Matrix3d *D = (Matrix3d *) force->pair->extract("smd/tlsph/strain_rate_ptr", itmp);
+        auto D = (Matrix3d *) force->pair->extract("smd/tlsph/strain_rate_ptr", itmp);
         if (D == nullptr) {
                 error->all(FLERR,
                                 "compute smd/tlsph_strain_rate could not access strain rate. Are the matching pair styles present?");

@@ -78,7 +78,7 @@ void ReaderMolfile::settings(int narg, char **arg)
   if (me == 0) {
     mf = new MolfileInterface(arg[0],MFI::M_READ);
 
-    const char *path = (const char *) ".";
+    const char *path = (const char *) "."; // NOLINT
     if (narg > 1)
       path=arg[1];
 
@@ -220,12 +220,12 @@ bigint ReaderMolfile::read_header(double box[3][3], int &boxinfo, int &triclinic
 
       triclinic = 1;
 
-      const double la = static_cast<double>(cell[0]);
-      const double lb = static_cast<double>(cell[1]);
-      const double lc = static_cast<double>(cell[2]);
-      const double alpha = static_cast<double>(cell[3]);
-      const double beta  = static_cast<double>(cell[4]);
-      const double gamma = static_cast<double>(cell[5]);
+      const auto  la = static_cast<double>(cell[0]);
+      const auto  lb = static_cast<double>(cell[1]);
+      const auto  lc = static_cast<double>(cell[2]);
+      const auto  alpha = static_cast<double>(cell[3]);
+      const auto  beta  = static_cast<double>(cell[4]);
+      const auto  gamma = static_cast<double>(cell[5]);
 
       const double lx = la;
       const double xy = lb * cos(gamma/90.0*MY_PI2);

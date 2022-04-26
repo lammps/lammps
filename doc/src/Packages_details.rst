@@ -32,6 +32,7 @@ page gives those details.
    * :ref:`AWPMD <PKG-AWPMD>`
    * :ref:`BOCS <PKG-BOCS>`
    * :ref:`BODY <PKG-BODY>`
+   * :ref:`BPM <PKG-BPM>`
    * :ref:`BROWNIAN <PKG-BROWNIAN>`
    * :ref:`CG-DNA <PKG-CG-DNA>`
    * :ref:`CG-SDK <PKG-CG-SDK>`
@@ -284,6 +285,33 @@ overview.
 
 ----------
 
+.. _PKG-BPM:
+
+BPM package
+------------
+
+**Contents:**
+
+Pair styles, bond styles, fixes, and computes for bonded particle
+models for mesoscale simulations of solids and fracture.  See the
+:doc:`Howto bpm <Howto_bpm>` page for an overview.
+
+**Authors:** Joel T. Clemmer (Sandia National Labs)
+
+**Supporting info:**
+
+* src/BPM filenames -> commands
+* :doc:`Howto_bpm <Howto_bpm>`
+* :doc:`atom_style bpm/sphere <atom_style>`
+* :doc:`bond_style bpm/rotational <bond_bpm_rotational>`
+* :doc:`bond_style bpm/spring <bond_bpm_spring>`
+* :doc:`compute nbond/atom <compute_nbond_atom>`
+* :doc:`fix nve/bpm/sphere <fix_nve_bpm_sphere>`
+* :doc:`pair_style bpm/spring <pair_bpm_spring>`
+* examples/bpm
+
+----------
+
 .. _PKG-BROWNIAN:
 
 BROWNIAN package
@@ -529,8 +557,20 @@ To use this package, also the :ref:`KSPACE <PKG-KSPACE>` and
 **Supporting info:**
 
 * src/DIELECTRIC: filenames -> commands
+* :doc:`atom_style dielectric <atom_style>`
+* :doc:`pair_style coul/cut/dielectric <pair_dielectric>`
+* :doc:`pair_style coul/long/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/cut/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/debye/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/long/dielectric <pair_dielectric>`
+* :doc:`pair_style lj/cut/coul/msm/dielectric <pair_dielectric>`
+* :doc:`pair_style pppm/dielectric <kspace_style>`
+* :doc:`pair_style pppm/disp/dielectric <kspace_style>`
+* :doc:`pair_style msm/dielectric <kspace_style>`
+* :doc:`fix_style polarize/bem/icc <fix_polarize>`
+* :doc:`fix_style polarize/bem/gmres <fix_polarize>`
+* :doc:`fix_style polarize/functional <fix_polarize>`
 * :doc:`compute efield/atom  <compute_efield_atom>`
-* TODO: add all styles
 * examples/PACKAGES/dielectric
 
 ----------
@@ -1571,7 +1611,6 @@ listing, "ls src/MISC", to see the list of commands.
 * :doc:`pair_style list <pair_list>`
 * :doc:`pair_style srp <pair_srp>`
 * :doc:`pair_style tracker <pair_tracker>`
-* :doc:`fix pair/tracker <fix_pair_tracker>`
 
 ----------
 

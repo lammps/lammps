@@ -402,7 +402,7 @@ void PairLineLJ::coeff(int narg, char **arg)
 
 void PairLineLJ::init_style()
 {
-  avec = (AtomVecLine *) atom->style_match("line");
+  avec = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
   if (!avec) error->all(FLERR,"Pair line/lj requires atom style line");
 
   neighbor->add_request(this,NeighConst::REQ_DEFAULT);

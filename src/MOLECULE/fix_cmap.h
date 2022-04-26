@@ -127,39 +127,3 @@ class FixCMAP : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-E: CMAP atoms %d %d %d %d %d missing on proc %d at step %ld
-
-UNDOCUMENTED
-
-E: Invalid CMAP crossterm_type
-
-UNDOCUMENTED
-
-E: Cannot open fix cmap file %s
-
-UNDOCUMENTED
-
-E: CMAP: atan2 function cannot take 2 zero arguments
-
-UNDOCUMENTED
-
-E: Invalid read data header line for fix cmap
-
-UNDOCUMENTED
-
-E: Incorrect %s format in data file
-
-UNDOCUMENTED
-
-E: Too many CMAP crossterms for one atom
-
-UNDOCUMENTED
-
-*/

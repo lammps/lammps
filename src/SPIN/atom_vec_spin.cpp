@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
 
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
@@ -25,9 +24,10 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_spin.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -46,18 +46,18 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *) "sp fm fm_long";
-  fields_copy = (char *) "sp";
-  fields_comm = (char *) "sp";
-  fields_comm_vel = (char *) "sp";
-  fields_reverse = (char *) "fm fm_long";
-  fields_border = (char *) "sp";
-  fields_border_vel = (char *) "sp";
-  fields_exchange = (char *) "sp";
-  fields_restart = (char *) "sp";
-  fields_create = (char *) "sp";
-  fields_data_atom = (char *) "id type x sp";
-  fields_data_vel = (char *) "id v";
+  fields_grow = {"sp", "fm", "fm_long"};
+  fields_copy = {"sp"};
+  fields_comm = {"sp"};
+  fields_comm_vel = {"sp"};
+  fields_reverse = {"fm", "fm_long"};
+  fields_border = {"sp"};
+  fields_border_vel = {"sp"};
+  fields_exchange = {"sp"};
+  fields_restart = {"sp"};
+  fields_create = {"sp"};
+  fields_data_atom = {"id", "type", "x", "sp"};
+  fields_data_vel = {"id", "v"};
 
   setup_fields();
 }
@@ -82,8 +82,8 @@ void AtomVecSpin::grow_pointers()
 
 void AtomVecSpin::force_clear(int n, size_t nbytes)
 {
-  memset(&fm[n][0],0,3*nbytes);
-  memset(&fm_long[n][0],0,3*nbytes);
+  memset(&fm[n][0], 0, 3 * nbytes);
+  memset(&fm_long[n][0], 0, 3 * nbytes);
 }
 
 /* ----------------------------------------------------------------------
@@ -94,8 +94,7 @@ void AtomVecSpin::force_clear(int n, size_t nbytes)
 void AtomVecSpin::data_atom_post(int ilocal)
 {
   double *sp_one = sp[ilocal];
-  double norm =
-    1.0/sqrt(sp_one[0]*sp_one[0] + sp_one[1]*sp_one[1] + sp_one[2]*sp_one[2]);
+  double norm = 1.0 / sqrt(sp_one[0] * sp_one[0] + sp_one[1] * sp_one[1] + sp_one[2] * sp_one[2]);
   sp_one[0] *= norm;
   sp_one[1] *= norm;
   sp_one[2] *= norm;

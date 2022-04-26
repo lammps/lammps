@@ -55,6 +55,3 @@ class MinKokkos : public Min {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

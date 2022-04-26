@@ -141,7 +141,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  reaxff = (PairReaxFF *) force->pair_match("^reax..",0);
+  reaxff = dynamic_cast<PairReaxFF *>( force->pair_match("^reax..",0));
 
   s_hist = t_hist = nullptr;
   atom->add_callback(Atom::GROW);
@@ -395,7 +395,7 @@ void FixQEqReaxFF::init()
 
   efield = nullptr;
   auto fixes = modify->get_fix_by_style("^efield");
-  if (fixes.size() == 1) efield = (FixEfield *) fixes.front();
+  if (fixes.size() == 1) efield = dynamic_cast<FixEfield *>( fixes.front());
   else if (fixes.size() > 1)
     error->all(FLERR, "There may be only one fix efield instance used with fix {}", style);
 
@@ -423,7 +423,7 @@ void FixQEqReaxFF::init()
   init_taper();
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1088,7 +1088,7 @@ void FixQEqReaxFF::get_chi_field()
   memset(&chi_field[0],0,atom->nmax*sizeof(double));
   if (!efield) return;
 
-  const double * const *x = (const double * const *)atom->x;
+  const auto x = (const double * const *)atom->x;
   const int *mask = atom->mask;
   const imageint *image = atom->image;
   const int nlocal = atom->nlocal;
@@ -1096,11 +1096,8 @@ void FixQEqReaxFF::get_chi_field()
 
   // update electric field region if necessary
 
-  Region *region = nullptr;
-  if (efield->iregion >= 0) {
-    region = domain->regions[efield->iregion];
-    region->prematch();
-  }
+  Region *region = efield->region;
+  if (region) region->prematch();
 
   // efield energy is in real units of kcal/mol/angstrom, need to convert to eV
 

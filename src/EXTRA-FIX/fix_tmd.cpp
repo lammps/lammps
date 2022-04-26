@@ -167,7 +167,7 @@ void FixTMD::init()
   dtv = update->dt;
   dtf = update->dt * force->ftm2v;
   if (utils::strmatch(update->integrate_style,"^respa"))
-    step_respa = ((Respa *) update->integrate)->step;
+    step_respa = (dynamic_cast<Respa *>( update->integrate))->step;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -389,7 +389,7 @@ void FixTMD::readfile(char *file)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  char *buffer = new char[CHUNK*MAXLINE];
+  auto buffer = new char[CHUNK*MAXLINE];
   char *next,*bufptr;
   int i,m,nlines,imageflag,ix,iy,iz;
   tagint itag;

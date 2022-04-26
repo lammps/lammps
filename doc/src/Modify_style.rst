@@ -223,6 +223,13 @@ and readable by all and no executable permissions.  Executable
 permissions (0755) should only be on shell scripts or python or similar
 scripts for interpreted script languages.
 
+You can check for these issues with the python scripts in the
+:ref:`"tools/coding_standard" <coding_standard>` folder.  When run
+normally with a source file or a source folder as argument, they will
+list all non-conforming lines.  By adding the `-f` flag to the command
+line, they will modify the flagged files to try removing the detected
+issues.
+
 Indentation and Placement of Braces (strongly preferred)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -239,6 +246,53 @@ code or before a pull request is submitted.  Blocks of code where the
 reformatting from clang-format yields undesirable output may be
 protected with placing a pair `// clang-format off` and `// clang-format
 on` comments around that block.
+
+Error or warning messages and explanations (preferred)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionchanged:: 27Apr2022
+
+Starting with LAMMPS version 27 April 2022 the LAMMPS developers have
+agreed on a new policy for error and warning messages.
+
+Previously, all error and warning strings were supposed to be listed in
+the class header files with an explanation.  Those would then be
+regularly "harvested" and transferred to alphabetically sorted lists in
+the manual.  To avoid excessively long lists and to reduce effort, this
+came with a requirement to have rather generic error messages (e.g.
+"Illegal ... command").  To identify the specific cause, the name of the
+source file and the line number of the error location would be printed,
+so that one could look up the cause by reading the source code.
+
+The new policy encourages more specific error messages that ideally
+indicate the cause directly and no further lookup would be needed.
+This is aided by using the `{fmt} library <https://fmt.dev>`_ to convert
+the Error class commands so that they take a variable number of arguments
+and error text will be treated like a {fmt} syntax format string.
+Error messages should still kept to a single line or two lines at the most.
+
+For more complex explanations or errors that have multiple possible
+reasons, a paragraph should be added to the `Error_details` page with an
+error code reference (e.g. ``.. _err0001:``) then the utility function
+:cpp:func:`utils::errorurl() <LAMMPS_NS::utils::errorurl>` can be used
+to generate an URL that will directly lead to that paragraph.  An error
+for missing arguments can be easily generated using the
+:cpp:func:`utils::missing_cmd_args()
+<LAMMPS_NS::utils::missing_cmd_args>` convenience function.
+
+The transformation of existing LAMMPS code to this new scheme is ongoing
+and - given the size of the LAMMPS source code - will take a significant
+amount of time until completion.  However, for new code following the
+new approach is strongly preferred.  The expectation is that the new
+scheme will make it easier for LAMMPS users, developers, and
+maintainers.
+
+An example for this approach would be the
+``src/read_data.cpp`` and ``src/atom.cpp`` files that implement the
+:doc:`read_data <read_data>` and :doc:`atom_modify <atom_modify>`
+commands and that may create :ref:`"Unknown identifier in data file" <err0001>`
+errors that seem difficult to debug for users because they may have
+one of multiple possible reasons, and thus require some additional explanations.
 
 Programming language standards (required)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

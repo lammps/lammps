@@ -54,6 +54,7 @@ PACKAGE = \
 	awpmd \
 	bocs \
 	body \
+        bpm \
 	brownian \
 	cg-dna \
 	cg-sdk \
@@ -148,7 +149,8 @@ PACKMOST = \
 	asphere \
 	bocs \
 	body \
-	brownian \
+	bpm \
+        brownian \
 	cg-dna \
 	cg-sdk \
 	class2 \
@@ -472,6 +474,8 @@ tar:
 	@cd STUBS; $(MAKE)
 	@echo "Created $(ROOT)_src.tar.gz"
 
+check: check-whitespace check-permissions check-homepage check-errordocs
+
 check-whitespace:
 	$(PYTHON) ../tools/coding_standard/whitespace.py ..
 
@@ -489,6 +493,12 @@ check-homepage:
 
 fix-homepage:
 	$(PYTHON) ../tools/coding_standard/homepage.py .. -f
+
+check-errordocs:
+	$(PYTHON) ../tools/coding_standard/errordocs.py ..
+
+fix-errordocs:
+	$(PYTHON) ../tools/coding_standard/errordocs.py .. -f
 
 format-src:
 	clang-format -i --verbose --style=file *.cpp *.h */*.cpp */*.h

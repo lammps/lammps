@@ -321,9 +321,9 @@ void FixPlumed::post_force(int /* vflag */)
 
   if (nlocal != atom->nlocal) {
 
-    if (charges) delete [] charges;
-    if (masses) delete [] masses;
-    if (gatindex) delete [] gatindex;
+    delete[] charges;
+    delete[] masses;
+    delete[] gatindex;
 
     nlocal=atom->nlocal;
     gatindex=new int [nlocal];

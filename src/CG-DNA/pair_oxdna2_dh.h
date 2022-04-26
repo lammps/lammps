@@ -45,7 +45,7 @@ class PairOxdna2Dh : public Pair {
  protected:
   double **qeff_dh_pf, **kappa_dh;
   double **b_dh, **cut_dh_ast, **cutsq_dh_ast, **cut_dh_c, **cutsq_dh_c;
-  double **nx_xtrct, **ny_xtrct, **nz_xtrct; // per-atom arrays for local unit vectors
+  double **nx_xtrct, **ny_xtrct, **nz_xtrct;    // per-atom arrays for local unit vectors
 
   virtual void allocate();
 };
@@ -54,17 +54,3 @@ class PairOxdna2Dh : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

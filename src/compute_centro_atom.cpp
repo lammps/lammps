@@ -151,7 +151,7 @@ void ComputeCentroAtom::compute_peratom()
 
   int nhalf = nnn / 2;
   int npairs = nnn * (nnn - 1) / 2;
-  double *pairs = new double[npairs];
+  auto pairs = new double[npairs];
 
   // compute centro-symmetry parameter for each atom in group
   // use full neighbor list

@@ -58,25 +58,3 @@ class PairLJClass2CoulLongSoft : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair style lj/class2/coul/long/soft requires atom attribute q
-
-The atom style defined does not have this attribute.
-
-E: Pair style requires a KSpace style
-
-No kspace style is defined.
-
-*/

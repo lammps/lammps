@@ -21,7 +21,7 @@
 
 #include <mpi.h>
 
-#include <vector> // IWYU pragma: export
+#include <vector>    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -46,6 +46,18 @@ namespace utils {
    *  \return the string that matches the pattern or an empty one */
 
   std::string strfind(const std::string &text, const std::string &pattern);
+
+  /*! Print error message about missing arguments for command
+   *
+   * This function simplifies the repetitive reporting missing arguments to a command.
+   *
+   *  \param file     name of source file for error message
+   *  \param line     line number in source file for error message
+   *  \param cmd      name of the failing command
+   *  \param error    pointer to Error class instance (for abort) or nullptr */
+
+  [[noreturn]] void missing_cmd_args(const std::string &file, int line, const std::string &cmd,
+                                     Error *error);
 
   /* Internal function handling the argument list for logmesg(). */
 
@@ -73,6 +85,18 @@ namespace utils {
    *  \param mesg   string with message to be printed */
 
   void logmesg(LAMMPS *lmp, const std::string &mesg);
+
+  /*! Return text redirecting the user to a specific paragraph in the manual
+   *
+   * The LAMMPS manual contains detailed detailed explanations for errors and
+   * warnings where a simple error message may not be sufficient.  These can
+   * be reached through URLs with a numeric code.  This function creates the
+   * corresponding text to be included into the error message that redirects
+   * the user to that URL.
+   *
+   *  \param errorcode   number pointing to a paragraph in the manual */
+
+  std::string errorurl(int errorcode);
 
   /*! Flush output buffers
    *
@@ -647,7 +671,3 @@ namespace utils {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

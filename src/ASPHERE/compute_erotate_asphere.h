@@ -41,21 +41,3 @@ class ComputeERotateAsphere : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute erotate/asphere requires atom style ellipsoid or line or tri
-
-Self-explanatory.
-
-E: Compute erotate/asphere requires extended particles
-
-This compute cannot be used with point particles.
-
-*/

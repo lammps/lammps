@@ -354,6 +354,3 @@ class NPairSSAKokkosExecute
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

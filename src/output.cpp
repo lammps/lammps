@@ -66,7 +66,7 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
 
   // create default Thermo class
 
-  char **newarg = new char*[1];
+  auto newarg = new char*[1];
   newarg[0] = (char *) "one";
   thermo = new Thermo(lmp,1,newarg);
   delete[] newarg;
@@ -275,7 +275,7 @@ void Output::setup(int memflag)
            (ntimestep/restart_every_single)*restart_every_single +
            restart_every_single;
        else {
-         bigint nextrestart = static_cast<bigint>
+         auto  nextrestart = static_cast<bigint>
            (input->variable->compute_equal(ivar_restart_single));
          if (nextrestart <= ntimestep)
            error->all(FLERR,"Restart variable returned a bad timestep");
@@ -288,7 +288,7 @@ void Output::setup(int memflag)
            (ntimestep/restart_every_double)*restart_every_double +
            restart_every_double;
        else {
-         bigint nextrestart = static_cast<bigint>
+         auto  nextrestart = static_cast<bigint>
            (input->variable->compute_equal(ivar_restart_double));
          if (nextrestart <= ntimestep)
            error->all(FLERR,"Restart variable returned a bad timestep");
@@ -401,7 +401,7 @@ void Output::setup(int memflag)
        if (restart_every_single) next_restart_single += restart_every_single;
        else {
          modify->clearstep_compute();
-         bigint nextrestart = static_cast<bigint>
+         auto  nextrestart = static_cast<bigint>
            (input->variable->compute_equal(ivar_restart_single));
          if (nextrestart <= ntimestep)
            error->all(FLERR,"Restart variable returned a bad timestep");
@@ -422,7 +422,7 @@ void Output::setup(int memflag)
        if (restart_every_double) next_restart_double += restart_every_double;
        else {
          modify->clearstep_compute();
-         bigint nextrestart = static_cast<bigint>
+         auto  nextrestart = static_cast<bigint>
            (input->variable->compute_equal(ivar_restart_double));
          if (nextrestart <= ntimestep)
            error->all(FLERR,"Restart variable returned a bad timestep");
@@ -648,7 +648,7 @@ int Output::check_time_dumps(bigint ntimestep)
      } else {
        modify->clearstep_compute();
        update->ntimestep--;
-       bigint nextrestart = static_cast<bigint>
+       auto  nextrestart = static_cast<bigint>
          (input->variable->compute_equal(ivar_restart_single));
        if (nextrestart < ntimestep)
          error->all(FLERR,"Restart variable returned a bad timestep");
@@ -667,7 +667,7 @@ int Output::check_time_dumps(bigint ntimestep)
      } else {
        modify->clearstep_compute();
        update->ntimestep--;
-       bigint nextrestart = static_cast<bigint>
+       auto  nextrestart = static_cast<bigint>
          (input->variable->compute_equal(ivar_restart_double));
        if (nextrestart < ntimestep)
          error->all(FLERR,"Restart variable returned a bad timestep");

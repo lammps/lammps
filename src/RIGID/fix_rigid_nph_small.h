@@ -33,19 +33,3 @@ class FixRigidNPHSmall : public FixRigidNHSmall {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Pressure control must be used with fix nph/small
-
-Self-explanatory.
-
-E: Temperature control must not be used with fix nph/small
-
-Self-explanatory.
-
-E: Target pressure for fix rigid/nph cannot be < 0.0
-
-Self-explanatory.
-
-*/

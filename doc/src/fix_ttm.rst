@@ -214,10 +214,10 @@ generate an error. LAMMPS will check if a "UNITS:" tag is in the first
 line and stop with an error, if there is a mismatch with the current
 units used.
 
-..note::
+.. note::
 
   The electronic temperature at each grid point must be a non-zero
-  positive value, both initially, and as the temperature evovles over
+  positive value, both initially, and as the temperature evolves over
   time.  Thus you must use either the *set* or *infile* keyword or be
   restarting a simulation that used this fix previously.
 

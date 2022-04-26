@@ -41,7 +41,7 @@ DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
   sort_flag = 1;
   sortcol = 0;
 
-  if (format_default) delete [] format_default;
+  delete[] format_default;
 
   format_default = utils::strdup("%s %g %g %g");
 

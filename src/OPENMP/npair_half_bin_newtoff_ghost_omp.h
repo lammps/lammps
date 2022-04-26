@@ -37,7 +37,3 @@ class NPairHalfBinNewtoffGhostOmp : public NPair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

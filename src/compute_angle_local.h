@@ -52,25 +52,3 @@ class ComputeAngleLocal : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute angle/local used when angles are not allowed
-
-The atom style does not support angles.
-
-E: Invalid keyword in compute angle/local command
-
-Self-explanatory.
-
-E: No angle style is defined for compute angle/local
-
-Self-explanatory.
-
-*/

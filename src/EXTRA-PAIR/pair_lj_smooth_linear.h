@@ -38,7 +38,8 @@ class PairLJSmoothLinear : public Pair {
   void write_restart_settings(FILE *) override;
   void read_restart_settings(FILE *) override;
   double single(int, int, int, int, double, double, double, double &) override;
-  double single_hessian(int, int, int, int, double, double[3], double, double, double &, double[6]) override;
+  double single_hessian(int, int, int, int, double, double[3], double, double, double &,
+                        double[6]) override;
 
  protected:
   double cut_global;
@@ -54,17 +55,3 @@ class PairLJSmoothLinear : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

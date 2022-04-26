@@ -92,37 +92,3 @@ class PairRESquared : public Pair {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair resquared requires atom style ellipsoid
-
-Self-explanatory.
-
-E: Pair resquared requires atoms with same type have same shape
-
-Self-explanatory.
-
-E: Pair resquared epsilon a,b,c coeffs are not all set
-
-Self-explanatory.
-
-E: Pair resquared epsilon and sigma coeffs are not all set
-
-Self-explanatory.
-
-E: Bad matrix inversion in mldivide3
-
-This error should not occur unless the matrix is badly formed.
-
-*/

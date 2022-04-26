@@ -101,7 +101,7 @@ void FixReaxFFBonds::setup(int /*vflag*/)
 
 void FixReaxFFBonds::init()
 {
-  reaxff = (PairReaxFF *) force->pair_match("^reax..",0);
+  reaxff = dynamic_cast<PairReaxFF *>( force->pair_match("^reax..",0));
   if (reaxff == nullptr) error->all(FLERR,"Cannot use fix reaxff/bonds without "
                                 "pair_style reaxff, reaxff/kk, or reaxff/omp");
 }
@@ -240,10 +240,10 @@ void FixReaxFFBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
 {
   int i, j, k, itype;
   int inode, nlocal_tmp, numbonds;
-  tagint itag,jtag;
+  tagint itag;
   int nlocal = atom->nlocal;
   bigint ntimestep = update->ntimestep;
-  double sbotmp, nlptmp, avqtmp, abotmp;
+  double sbotmp, nlptmp, avqtmp;
 
   double cutof3 = reaxff->api->control->bg_cut;
   MPI_Request irequest, irequest2;

@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
@@ -39,10 +38,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeEfieldAtom::ComputeEfieldAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), efield(nullptr)
+ComputeEfieldAtom::ComputeEfieldAtom(LAMMPS *_lmp, int narg, char **arg) :
+    Compute(_lmp, narg, arg), efield(nullptr)
 {
-  if (narg < 3) error->all(FLERR,"Illegal compute efield/atom command");
+  if (narg < 3) error->all(FLERR, "Illegal compute efield/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 3;
@@ -58,9 +57,12 @@ ComputeEfieldAtom::ComputeEfieldAtom(LAMMPS *lmp, int narg, char **arg) :
   } else {
     int iarg = 3;
     while (iarg < narg) {
-      if (strcmp(arg[iarg],"pair") == 0) pairflag = 1;
-      else if (strcmp(arg[iarg],"kspace") == 0) kspaceflag = 1;
-      else error->all(FLERR,"Illegal compute efield/atom command");
+      if (strcmp(arg[iarg], "pair") == 0)
+        pairflag = 1;
+      else if (strcmp(arg[iarg], "kspace") == 0)
+        kspaceflag = 1;
+      else
+        error->all(FLERR, "Illegal compute efield/atom command");
       iarg++;
     }
   }
@@ -81,7 +83,7 @@ ComputeEfieldAtom::~ComputeEfieldAtom()
 
 void ComputeEfieldAtom::init()
 {
-  if (!atom->q_flag) error->all(FLERR,"compute efield/atom requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR, "compute efield/atom requires atom attribute q");
   if (!force->kspace) kspaceflag = 0;
 }
 
@@ -89,28 +91,30 @@ void ComputeEfieldAtom::init()
 
 void ComputeEfieldAtom::setup()
 {
-  if (strcmp(force->pair_style,"lj/cut/coul/long/dielectric") == 0)
-    efield_pair = ((PairLJCutCoulLongDielectric*)force->pair)->efield;
-  else if (strcmp(force->pair_style,"lj/cut/coul/long/dielectric/omp") == 0)
-    efield_pair = ((PairLJCutCoulMSMDielectric*)force->pair)->efield;
-  else if (strcmp(force->pair_style,"lj/cut/coul/msm/dielectric") == 0)
-    efield_pair = ((PairLJCutCoulMSMDielectric*)force->pair)->efield;
-  else if (strcmp(force->pair_style,"lj/cut/coul/cut/dielectric") == 0)
-    efield_pair = ((PairLJCutCoulCutDielectric*)force->pair)->efield;
-  else if (strcmp(force->pair_style,"lj/cut/coul/cut/dielectric/omp") == 0)
-    efield_pair = ((PairLJCutCoulCutDielectric*)force->pair)->efield;
-  else if (strcmp(force->pair_style,"coul/long/dielectric") == 0)
-    efield_pair = ((PairCoulLongDielectric*)force->pair)->efield;
-  else if (strcmp(force->pair_style,"coul/cut/dielectric") == 0)
-    efield_pair = ((PairCoulCutDielectric*)force->pair)->efield;
-  else error->all(FLERR,"Compute efield/atom not supported by pair style");
+  if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric") == 0)
+    efield_pair = (dynamic_cast<PairLJCutCoulLongDielectric *>(force->pair))->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric/omp") == 0)
+    efield_pair = (dynamic_cast<PairLJCutCoulMSMDielectric *>(force->pair))->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/msm/dielectric") == 0)
+    efield_pair = (dynamic_cast<PairLJCutCoulMSMDielectric *>(force->pair))->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric") == 0)
+    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric/omp") == 0)
+    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
+  else if (strcmp(force->pair_style, "coul/long/dielectric") == 0)
+    efield_pair = (dynamic_cast<PairCoulLongDielectric *>(force->pair))->efield;
+  else if (strcmp(force->pair_style, "coul/cut/dielectric") == 0)
+    efield_pair = (dynamic_cast<PairCoulCutDielectric *>(force->pair))->efield;
+  else
+    error->all(FLERR, "Compute efield/atom not supported by pair style");
 
   if (force->kspace) {
-    if (strcmp(force->kspace_style,"pppm/dielectric") == 0)
-      efield_kspace = ((PPPMDielectric*)force->kspace)->efield;
-    else if (strcmp(force->kspace_style,"msm/dielectric") == 0)
-      efield_kspace = ((MSMDielectric*)force->kspace)->efield;
-    else error->all(FLERR,"Compute efield/atom not supported by kspace style");
+    if (strcmp(force->kspace_style, "pppm/dielectric") == 0)
+      efield_kspace = (dynamic_cast<PPPMDielectric *>(force->kspace))->efield;
+    else if (strcmp(force->kspace_style, "msm/dielectric") == 0)
+      efield_kspace = (dynamic_cast<MSMDielectric *>(force->kspace))->efield;
+    else
+      error->all(FLERR, "Compute efield/atom not supported by kspace style");
     kspaceflag = 1;
   }
 
@@ -122,11 +126,11 @@ void ComputeEfieldAtom::setup()
 
 void ComputeEfieldAtom::compute_peratom()
 {
-  int i,j;
+  int i, j;
 
   invoked_peratom = update->ntimestep;
   if (update->vflag_atom != invoked_peratom)
-    error->all(FLERR,"Per-atom virial was not tallied on needed timestep");
+    error->all(FLERR, "Per-atom virial was not tallied on needed timestep");
 
   // grow local stress array if necessary
   // needs to be atom->nmax in length
@@ -134,7 +138,7 @@ void ComputeEfieldAtom::compute_peratom()
   if (atom->nmax > nmax) {
     memory->destroy(efield);
     nmax = atom->nmax;
-    memory->create(efield,nmax,3,"stress/atom:efield");
+    memory->create(efield, nmax, 3, "stress/atom:efield");
     array_atom = efield;
   }
 
@@ -144,7 +148,7 @@ void ComputeEfieldAtom::compute_peratom()
   // ntotal includes ghosts if either newton flag is set
   // KSpace includes ghosts if tip4pflag is set
 
-  double* q = atom->q;
+  double *q = atom->q;
   int nlocal = atom->nlocal;
   int npair = nlocal;
   int ntotal = nlocal;
@@ -156,8 +160,7 @@ void ComputeEfieldAtom::compute_peratom()
   // clear local stress array
 
   for (i = 0; i < ntotal; i++)
-    for (j = 0; j < 3; j++)
-      efield[i][j] = 0.0;
+    for (j = 0; j < 3; j++) efield[i][j] = 0.0;
 
   // add in per-atom contributions from each force
 
@@ -170,14 +173,12 @@ void ComputeEfieldAtom::compute_peratom()
 
   if (kspaceflag && force->kspace) {
     for (i = 0; i < nkspace; i++)
-      for (j = 0; j < 3; j++)
-        efield[i][j] += efield_kspace[i][j];
+      for (j = 0; j < 3; j++) efield[i][j] += efield_kspace[i][j];
   }
 
   // communicate ghost efield between neighbor procs
 
-  if (force->newton || (force->kspace && force->kspace->tip4pflag))
-    comm->reverse_comm(this);
+  if (force->newton || (force->kspace && force->kspace->tip4pflag)) comm->reverse_comm(this);
 
   // zero efield of atoms not in group
   // only do this after comm since ghost contributions must be included
@@ -192,12 +193,11 @@ void ComputeEfieldAtom::compute_peratom()
     }
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 int ComputeEfieldAtom::pack_reverse_comm(int n, int first, double *buf)
 {
-  int i,m,last;
+  int i, m, last;
 
   m = 0;
   last = first + n;
@@ -213,7 +213,7 @@ int ComputeEfieldAtom::pack_reverse_comm(int n, int first, double *buf)
 
 void ComputeEfieldAtom::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  int i,j,m;
+  int i, j, m;
 
   m = 0;
   for (i = 0; i < n; i++) {
@@ -230,6 +230,6 @@ void ComputeEfieldAtom::unpack_reverse_comm(int n, int *list, double *buf)
 
 double ComputeEfieldAtom::memory_usage()
 {
-  double bytes = nmax*3 * sizeof(double);
+  double bytes = nmax * 3 * sizeof(double);
   return bytes;
 }

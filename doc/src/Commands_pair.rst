@@ -53,6 +53,7 @@ OPT.
    * :doc:`born/coul/msm (o) <pair_born>`
    * :doc:`born/coul/wolf (go) <pair_born>`
    * :doc:`born/coul/wolf/cs (g) <pair_cs>`
+   * :doc:`bpm/spring <pair_bpm_spring>`
    * :doc:`brownian (o) <pair_brownian>`
    * :doc:`brownian/poly (o) <pair_brownian>`
    * :doc:`buck (giko) <pair_buck>`
@@ -123,7 +124,7 @@ OPT.
    * :doc:`hbond/dreiding/lj (o) <pair_hbond_dreiding>`
    * :doc:`hbond/dreiding/morse (o) <pair_hbond_dreiding>`
    * :doc:`hdnnp <pair_hdnnp>`
-   * :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>`
+   * :doc:`ilp/graphene/hbn (t) <pair_ilp_graphene_hbn>`
    * :doc:`ilp/tmd <pair_ilp_tmd>`
    * :doc:`kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`
    * :doc:`kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`
@@ -151,7 +152,7 @@ OPT.
    * :doc:`lj/cut/coul/cut/dielectric (o) <pair_dielectric>`
    * :doc:`lj/cut/coul/cut/soft (o) <pair_fep_soft>`
    * :doc:`lj/cut/coul/debye (gko) <pair_lj_cut_coul>`
-   * :doc:`lj/cut/coul/debye/dielectric <pair_dielectric>`
+   * :doc:`lj/cut/coul/debye/dielectric (o) <pair_dielectric>`
    * :doc:`lj/cut/coul/dsf (gko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/long (gikot) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/long/cs <pair_cs>`

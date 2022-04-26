@@ -178,7 +178,7 @@ void NEB::run()
   if (fixes.size() != 1)
     error->all(FLERR,"NEB requires use of exactly one fix neb instance");
 
-  fneb = (FixNEB *) fixes[0];
+  fneb = dynamic_cast<FixNEB *>( fixes[0]);
   if (verbose) numall =7;
   else  numall = 4;
   memory->create(all,nreplica,numall,"neb:all");
@@ -423,7 +423,7 @@ void NEB::readfile(char *file, int flag)
       error->all(FLERR,"Incorrectly formatted NEB file");
   }
 
-  char *buffer = new char[CHUNK*MAXLINE];
+  auto buffer = new char[CHUNK*MAXLINE];
   double fraction = ireplica/(nreplica-1.0);
   double **x = atom->x;
   int nlocal = atom->nlocal;

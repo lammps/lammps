@@ -30,14 +30,12 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-
 /* ---------------------------------------------------------------------- */
 
 ComputeAveSphereAtom::ComputeAveSphereAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  result(nullptr)
+    Compute(lmp, narg, arg), result(nullptr)
 {
-  if (narg < 3 || narg > 5) error->all(FLERR,"Illegal compute ave/sphere/atom command");
+  if (narg < 3 || narg > 5) error->all(FLERR, "Illegal compute ave/sphere/atom command");
 
   // process optional args
 
@@ -45,12 +43,13 @@ ComputeAveSphereAtom::ComputeAveSphereAtom(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 3;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"cutoff") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal compute ave/sphere/atom command");
-      cutoff = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      if (cutoff <= 0.0) error->all(FLERR,"Illegal compute ave/sphere/atom command");
+    if (strcmp(arg[iarg], "cutoff") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute ave/sphere/atom command");
+      cutoff = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      if (cutoff <= 0.0) error->all(FLERR, "Illegal compute ave/sphere/atom command");
       iarg += 2;
-    } else error->all(FLERR,"Illegal compute ave/sphere/atom command");
+    } else
+      error->all(FLERR, "Illegal compute ave/sphere/atom command");
   }
 
   peratom_flag = 1;
@@ -74,32 +73,32 @@ ComputeAveSphereAtom::~ComputeAveSphereAtom()
 void ComputeAveSphereAtom::init()
 {
   if (!force->pair && cutoff == 0.0)
-    error->all(FLERR,"Compute ave/sphere/atom requires a cutoff be specified "
+    error->all(FLERR,
+               "Compute ave/sphere/atom requires a cutoff be specified "
                "or a pair style be defined");
 
   double skin = neighbor->skin;
   if (cutoff != 0.0) {
-    double cutghost;            // as computed by Neighbor and Comm
+    double cutghost;    // as computed by Neighbor and Comm
     if (force->pair)
-      cutghost = MAX(force->pair->cutforce+skin,comm->cutghostuser);
+      cutghost = MAX(force->pair->cutforce + skin, comm->cutghostuser);
     else
       cutghost = comm->cutghostuser;
 
     if (cutoff > cutghost)
-      error->all(FLERR,"Compute ave/sphere/atom cutoff exceeds ghost atom range - "
+      error->all(FLERR,
+                 "Compute ave/sphere/atom cutoff exceeds ghost atom range - "
                  "use comm_modify cutoff command");
   }
 
   int cutflag = 1;
   if (force->pair) {
-    if (cutoff == 0.0) {
-      cutoff = force->pair->cutforce;
-    }
-    if (cutoff <= force->pair->cutforce+skin) cutflag = 0;
+    if (cutoff == 0.0) { cutoff = force->pair->cutforce; }
+    if (cutoff <= force->pair->cutforce + skin) cutflag = 0;
   }
 
-  cutsq = cutoff*cutoff;
-  sphere_vol = 4.0/3.0*MY_PI*cutsq*cutoff;
+  cutsq = cutoff * cutoff;
+  sphere_vol = 4.0 / 3.0 * MY_PI * cutsq * cutoff;
 
   // need an occasional full neighbor list
 
@@ -118,11 +117,11 @@ void ComputeAveSphereAtom::init_list(int /*id*/, NeighList *ptr)
 
 void ComputeAveSphereAtom::compute_peratom()
 {
-  int i,j,ii,jj,inum,jnum;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i, j, ii, jj, inum, jnum;
+  double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
+  int *ilist, *jlist, *numneigh, **firstneigh;
   int count;
-  double vsum[3],vavg[3],vnet[3];
+  double vsum[3], vavg[3], vnet[3];
 
   invoked_peratom = update->ntimestep;
 
@@ -131,7 +130,7 @@ void ComputeAveSphereAtom::compute_peratom()
   if (atom->nmax > nmax) {
     memory->destroy(result);
     nmax = atom->nmax;
-    memory->create(result,nmax,2,"ave/sphere/atom:result");
+    memory->create(result, nmax, 2, "ave/sphere/atom:result");
     array_atom = result;
   }
 
@@ -179,7 +178,7 @@ void ComputeAveSphereAtom::compute_peratom()
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
-        rsq = delx*delx + dely*dely + delz*delz;
+        rsq = delx * delx + dely * dely + delz * delz;
         if (rsq < cutsq) {
           count++;
           vsum[0] += v[j][0];
@@ -188,9 +187,9 @@ void ComputeAveSphereAtom::compute_peratom()
         }
       }
 
-      vavg[0] = vsum[0]/count;
-      vavg[1] = vsum[1]/count;
-      vavg[2] = vsum[2]/count;
+      vavg[0] = vsum[0] / count;
+      vavg[1] = vsum[1] / count;
+      vavg[2] = vsum[2] / count;
 
       // i atom contribution
 
@@ -198,7 +197,7 @@ void ComputeAveSphereAtom::compute_peratom()
       vnet[0] = v[i][0] - vavg[0];
       vnet[1] = v[i][1] - vavg[1];
       vnet[2] = v[i][2] - vavg[2];
-      double ke_sum = vnet[0]*vnet[0] + vnet[1]*vnet[1] + vnet[2]*vnet[2];
+      double ke_sum = vnet[0] * vnet[0] + vnet[1] * vnet[1] + vnet[2] * vnet[2];
 
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
@@ -207,17 +206,17 @@ void ComputeAveSphereAtom::compute_peratom()
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
-        rsq = delx*delx + dely*dely + delz*delz;
+        rsq = delx * delx + dely * dely + delz * delz;
         if (rsq < cutsq) {
           count++;
           vnet[0] = v[j][0] - vavg[0];
           vnet[1] = v[j][1] - vavg[1];
           vnet[2] = v[j][2] - vavg[2];
-          ke_sum += vnet[0]*vnet[0] + vnet[1]*vnet[1] + vnet[2]*vnet[2];
+          ke_sum += vnet[0] * vnet[0] + vnet[1] * vnet[1] + vnet[2] * vnet[2];
         }
       }
-      double density = count/sphere_vol;
-      double temp = ke_sum/3.0/count;
+      double density = count / sphere_vol;
+      double temp = ke_sum / 3.0 / count;
       result[i][0] = density;
       result[i][1] = temp;
     }
@@ -226,12 +225,12 @@ void ComputeAveSphereAtom::compute_peratom()
 
 /* ---------------------------------------------------------------------- */
 
-int ComputeAveSphereAtom::pack_forward_comm(int n, int *list, double *buf,
-                                        int /*pbc_flag*/, int * /*pbc*/)
+int ComputeAveSphereAtom::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/,
+                                            int * /*pbc*/)
 {
   double **v = atom->v;
 
-  int i,m=0;
+  int i, m = 0;
   for (i = 0; i < n; ++i) {
     buf[m++] = v[list[i]][0];
     buf[m++] = v[list[i]][1];
@@ -247,7 +246,7 @@ void ComputeAveSphereAtom::unpack_forward_comm(int n, int first, double *buf)
 {
   double **v = atom->v;
 
-  int i,last,m=0;
+  int i, last, m = 0;
   last = first + n;
   for (i = first; i < last; ++i) {
     v[i][0] = buf[m++];
@@ -262,6 +261,6 @@ void ComputeAveSphereAtom::unpack_forward_comm(int n, int first, double *buf)
 
 double ComputeAveSphereAtom::memory_usage()
 {
-  double bytes = (double)2*nmax * sizeof(double);
+  double bytes = (double) 2 * nmax * sizeof(double);
   return bytes;
 }

@@ -39,11 +39,3 @@ class DumpDeprecated : public Dump {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: This dump style has been removed from LAMMPS
-
-UNDOCUMENTED
-
-*/

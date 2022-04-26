@@ -101,6 +101,10 @@ if (test $1 = "GRANULAR") then
   depend OPENMP
 fi
 
+if (test $1 = "INTERLAYER") then
+  depend OPT
+fi
+
 if (test $1 = "KSPACE") then
   depend CG-SDK
   depend CORESHELL

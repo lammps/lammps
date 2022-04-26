@@ -781,7 +781,7 @@ void FixQMMM::setup(int)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQMMM::post_force(int vflag)
+void FixQMMM::post_force(int /*vflag*/)
 {
   exchange_forces();
 }

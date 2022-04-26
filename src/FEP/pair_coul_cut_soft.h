@@ -56,25 +56,3 @@ class PairCoulCutSoft : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair style coul/cut/soft requires atom attribute q
-
-The atom style defined does not have these attributes.
-
-E: Pair coul/cut/soft different lambda values in mix
-
-The value of lambda has to be the same for I J pairs.
-
-*/

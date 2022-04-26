@@ -95,16 +95,3 @@ class NeighborKokkos : public Neighbor {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: KOKKOS package only supports 'bin' neighbor lists
-
-Self-explanatory.
-
-E: Too many local+ghost atoms for neighbor list
-
-The number of nlocal + nghost atoms on a processor
-is limited by the size of a 32-bit integer with 2 bits
-removed for masking 1-2, 1-3, 1-4 neighbors.
-
-*/

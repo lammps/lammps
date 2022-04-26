@@ -317,10 +317,10 @@ void PairRESquared::coeff(int narg, char **arg)
 
 void PairRESquared::init_style()
 {
-  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
   if (!avec) error->all(FLERR, "Pair resquared requires atom style ellipsoid");
 
-  neighbor->add_request(this,NeighConst::REQ_DEFAULT);
+  neighbor->add_request(this, NeighConst::REQ_DEFAULT);
 
   // per-type shape precalculations
   // require that atom shapes are identical within each type

@@ -92,7 +92,7 @@ void ComputeSMDTLSPHstrain::compute_peratom() {
 
         // copy data to output array
         int itmp = 0;
-        Matrix3d *Fincr = (Matrix3d *) force->pair->extract("smd/tlsph/Fincr_ptr", itmp);
+        auto Fincr = (Matrix3d *) force->pair->extract("smd/tlsph/Fincr_ptr", itmp);
         if (Fincr == nullptr) {
                 error->all(FLERR, "compute smd/tlsph_strain failed to access Fincr array");
         }

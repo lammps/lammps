@@ -843,6 +843,3 @@ void pair_virial_fdotr_compute(PairStyle* fpair) {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

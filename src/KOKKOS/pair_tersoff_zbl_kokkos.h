@@ -224,14 +224,3 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Pair tersoff/zbl/kk requires metal or real units
-
-This is a current restriction of this pair potential.
-
-E: Must use half neighbor list style with pair tersoff/zlb/kk
-
-Self-explanatory.
-
-*/

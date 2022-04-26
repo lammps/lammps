@@ -275,7 +275,7 @@ void FixReaxFFSpecies::init()
   if (atom->tag_enable == 0)
     error->all(FLERR, "Cannot use fix reaxff/species unless atoms have IDs");
 
-  reaxff = dynamic_cast<PairReaxFF *>( force->pair_match("^reax..", 0));
+  reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reax..", 0));
   if (reaxff == nullptr)
     error->all(FLERR,
                "Cannot use fix reaxff/species without "
@@ -297,7 +297,7 @@ void FixReaxFFSpecies::init()
     // create a fix to point to fix_ave_atom for averaging stored properties
     auto fixcmd = fmt::format("SPECBOND_{} all ave/atom {} {} {}", id, nevery, nrepeat, nfreq);
     for (int i = 1; i < 32; ++i) fixcmd += fmt::format(" c_SPECATOM_{}[{}]", id, i);
-    f_SPECBOND = dynamic_cast<FixAveAtom *>( modify->add_fix(fixcmd));
+    f_SPECBOND = dynamic_cast<FixAveAtom *>(modify->add_fix(fixcmd));
     setupflag = 1;
   }
 }

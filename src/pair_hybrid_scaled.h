@@ -38,6 +38,7 @@ class PairHybridScaled : public PairHybrid {
   void write_restart(FILE *) override;
   void read_restart(FILE *) override;
   double single(int, int, int, int, double, double, double, double &) override;
+  void born_matrix(int, int, int, int, double, double, double, double &, double &) override;
 
   void init_svector() override;
   void copy_svector(int, int) override;
@@ -54,15 +55,3 @@ class PairHybridScaled : public PairHybrid {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair coeff for hybrid has invalid style
-
-Style in pair coeff must have been listed in pair_style command.
-
-*/

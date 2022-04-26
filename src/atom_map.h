@@ -10,11 +10,3 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-
-/* ERROR/WARNING messages:
-
-E: Cannot create an atom map unless atoms have IDs
-
-UNDOCUMENTED
-
-*/

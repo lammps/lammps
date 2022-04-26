@@ -52,8 +52,9 @@ class FixElectronStopping : public Fix {
   double **elstop_ranges;    // [ 0][i]: energies
                              // [>0][i]: stopping powers per type
 
-  int iregion;     // region index if used, else -1
-  int minneigh;    // minimum number of neighbors
+  char *idregion;          // region id
+  class Region *region;    // region pointer if used, else NULL
+  int minneigh;            // minimum number of neighbors
 
   class NeighList *list;
 };
@@ -62,43 +63,3 @@ class FixElectronStopping : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Region ID for fix electron/stopping does not exist
-
-Self-explanatory.
-
-E: Atom kinetic energy too high for fix electron/stopping
-
-The group given in the fix electron/stopping command includes an atom
-that has a kinetic energy higher than the largest energy in the stopping
-table. Reconsider whether the table is physically applicable to your system.
-
-E: Cannot open stopping range table ...
-
-The file containing the electronic stopping table could not be opened.
-Check the given path and the file's permissions.
-
-E: fix electron/stopping: Invalid table line
-
-A line in the stopping table file contained too many or too few columns.
-
-E: fix electron/stopping: Energies must be in ascending order
-
-The first column in the stopping table must be sorted from the smallest
-energy to the largest.
-
-E: Did not find any data in electronic stopping table file
-
-Parsing the stopping table file produced no lines that were identifiable
-as energies/stopping powers. Most likely the file is empty or contains
-only comments.
-
-*/

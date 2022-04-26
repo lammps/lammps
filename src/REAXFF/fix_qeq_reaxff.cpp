@@ -1096,11 +1096,8 @@ void FixQEqReaxFF::get_chi_field()
 
   // update electric field region if necessary
 
-  Region *region = nullptr;
-  if (efield->iregion >= 0) {
-    region = domain->regions[efield->iregion];
-    region->prematch();
-  }
+  Region *region = efield->region;
+  if (region) region->prematch();
 
   // efield energy is in real units of kcal/mol/angstrom, need to convert to eV
 

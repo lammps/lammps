@@ -160,10 +160,3 @@ class PairVashishtaKokkos : public PairVashishta {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Cannot use chosen neighbor list style with pair vashishta/kk
-
-Self-explanatory.
-
-*/

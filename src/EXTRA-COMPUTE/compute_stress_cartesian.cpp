@@ -452,7 +452,8 @@ void ComputeStressCartesian::compute_pressure_1d(double fpair, double xi, double
 }
 
 void ComputeStressCartesian::compute_pressure_2d(double fpair, double xi, double yi, double /*xj*/,
-                                                 double /*yj*/, double delx, double dely, double delz)
+                                                 double /*yj*/, double delx, double dely,
+                                                 double delz)
 {
   int bin1, bin2, next_bin1, next_bin2;
   double la = 0.0, lb = 0.0, l_sum = 0.0;

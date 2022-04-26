@@ -50,15 +50,3 @@ class DumpCFGZstd : public DumpCFG {
 #endif
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Dump cfg/zstd only writes compressed files
-
-The dump cfg/zstd output file name must have a .zstd suffix.
-
-E: Cannot open dump file
-
-Self-explanatory.
-
-*/

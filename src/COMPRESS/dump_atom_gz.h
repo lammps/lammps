@@ -44,15 +44,3 @@ class DumpAtomGZ : public DumpAtom {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Dump atom/gz only writes compressed files
-
-The dump atom/gz output file name must have a .gz suffix.
-
-E: Cannot open dump file
-
-Self-explanatory.
-
-*/

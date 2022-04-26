@@ -1,0 +1,18 @@
+# DATE: 2007-10-25 UNITS: metal CONTRIBUTOR: Aidan Thompson, athomps@sandia.gov CITATION: Tersoff, Phys Rev B, 37, 6991 (1988) 
+
+# Tersoff parameters for various elements and mixtures
+# multiple entries can be added to this file, LAMMPS reads the ones it needs
+# these entries are in LAMMPS "metal" units:
+#   A,B = eV; lambda1,lambda2,lambda3 = 1/Angstroms; R,D = Angstroms
+#   other quantities are unitless
+
+# This is the Si parameterization from a particular Tersoff paper:
+# J. Tersoff, PRB, 37, 6991 (1988) 
+# See the SiCGe.tersoff file for different Si variants.
+
+# format of a single entry (one or more lines):
+#   element 1, element 2, element 3, 
+#   m, gamma, lambda3, c, d, costheta0, n, beta, lambda2, B, R, D, lambda1, A
+
+Si  Si   Si  3.0 1.0 1.3258 4.8381 2.0417 0.0000 22.956
+             0.33675  1.3258  95.373  3.0  0.2  3.2394  3264.7

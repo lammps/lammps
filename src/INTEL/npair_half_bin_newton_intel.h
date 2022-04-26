@@ -41,7 +41,3 @@ class NPairHalfBinNewtonIntel : public NPairIntel {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

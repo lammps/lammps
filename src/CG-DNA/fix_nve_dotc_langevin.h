@@ -64,15 +64,3 @@ class FixNVEDotcLangevin : public FixNVE {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Compute nve/dotc/langevin requires atom style ellipsoid
-
-Self-explanatory.
-
-E: Fix nve/dotc/langevin requires extended particles
-
-This fix can only be used for particles with a shape setting.
-
-*/

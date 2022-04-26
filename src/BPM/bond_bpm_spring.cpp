@@ -29,7 +29,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondBPMSpring::BondBPMSpring(LAMMPS *_lmp) : BondBPM(_lmp), k(nullptr), ecrit(nullptr), gamma(nullptr)
+BondBPMSpring::BondBPMSpring(LAMMPS *_lmp) :
+    BondBPM(_lmp), k(nullptr), ecrit(nullptr), gamma(nullptr)
 {
   partial_flag = 1;
   smooth_flag = 1;

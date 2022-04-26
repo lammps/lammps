@@ -64,29 +64,3 @@ class FixBalance : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix balance shift string is invalid
-
-The string can only contain the characters "x", "y", or "z".
-
-E: Fix balance rcb cannot be used with comm_style brick
-
-Comm_style tiled must be used instead.
-
-E: Fix balance nevery = 0 cannot be used with weight var
-
-UNDOCUMENTED
-
-U: Cannot open fix balance output file
-
-Self-explanatory.
-
-*/

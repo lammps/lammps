@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -33,18 +32,16 @@ AtomVecMesoNT::AtomVecMesoNT(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *) "rmass radius length buckling bond_nt molecule";
-  fields_copy = (char *) "rmass radius length buckling bond_nt molecule";
-  fields_comm = (char *) "";
-  fields_comm_vel = (char *) "";
-  fields_reverse = (char *) "";
-  fields_border = (char *) "rmass radius length buckling bond_nt molecule";
-  fields_border_vel = (char *) "rmass radius length buckling bond_nt molecule";
-  fields_exchange = (char *) "rmass radius length buckling bond_nt molecule";
-  fields_restart = (char *) "rmass radius length buckling bond_nt molecule";
-  fields_create = (char *) "rmass radius length buckling bond_nt molecule";
-  fields_data_atom = (char *) "id molecule type bond_nt rmass radius length buckling x";
-  fields_data_vel = (char *) "id v";
+  fields_grow = {"rmass", "radius", "length", "buckling", "bond_nt", "molecule"};
+  fields_copy = {"rmass", "radius", "length", "buckling", "bond_nt", "molecule"};
+  fields_border = {"rmass", "radius", "length", "buckling", "bond_nt", "molecule"};
+  fields_border_vel = {"rmass", "radius", "length", "buckling", "bond_nt", "molecule"};
+  fields_exchange = {"rmass", "radius", "length", "buckling", "bond_nt", "molecule"};
+  fields_restart = {"rmass", "radius", "length", "buckling", "bond_nt", "molecule"};
+  fields_create = {"rmass", "radius", "length", "buckling", "bond_nt", "molecule"};
+  fields_data_atom = {"id",     "molecule", "type",     "bond_nt", "rmass",
+                      "radius", "length",   "buckling", "x"};
+  fields_data_vel = {"id", "v"};
 
   setup_fields();
 }

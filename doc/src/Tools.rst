@@ -87,7 +87,7 @@ Miscellaneous tools
 .. table_from_list::
    :columns: 6
 
-   * :ref:`CMake <cmake>`
+   * :ref:`LAMMPS coding standards <coding_standard>`
    * :ref:`emacs <emacs>`
    * :ref:`i-pi <ipi>`
    * :ref:`kate <kate>`
@@ -189,27 +189,32 @@ for the :doc:`chain benchmark <Speed_bench>`.
 
 ----------
 
-.. _cmake:
+.. _coding_standard:
 
-CMake tools
------------
+LAMMPS coding standard
+----------------------
 
-The ``cmbuild`` script is a wrapper around using ``cmake --build <dir>
---target`` and allows compiling LAMMPS in a :ref:`CMake build folder
-<cmake_build>` with a make-like syntax regardless of the actual build
-tool and the specific name of the program used (e.g. ``ninja-v1.10`` or
-``gmake``) when using ``-D CMAKE_MAKE_PROGRAM=<name>``.
+The ``coding_standard`` folder contains multiple python scripts to
+check for and apply some LAMMPS coding conventions.  The following
+scripts are available:
 
 .. parsed-literal::
 
-  Usage: cmbuild [-v] [-h] [-C <dir>] [-j <num>] [<target>]
+   permissions.py   # detects if sources have executable permissions and scripts have not
+   whitespace.py    # detects TAB characters and trailing whitespace
+   homepage.py      # detects outdated LAMMPS homepage URLs (pointing to sandia.gov instead of lammps.org)
+   errordocs.py     # detects deprecated error docs in header files
 
-  Options:
-    -h                print this message
-    -j <NUM>          allow processing of NUM concurrent tasks
-    -C DIRECTORY      execute build in folder DIRECTORY
-    -v                produce verbose output
+The tools need to be given the main folder of the LAMMPS distribution
+or individual file names as argument and will by default check them
+and report any non-compliance.  With the optional ``-f`` argument the
+corresponding script will try to change the non-compliant file(s) to
+match the conventions.
 
+For convenience this scripts can also be invoked by the make file in
+the ``src`` folder with, `make check-whitespace` or `make fix-whitespace`
+to either detect or edit the files.  Correspondingly for the other python
+scripts. `make check` will run all checks.
 
 ----------
 

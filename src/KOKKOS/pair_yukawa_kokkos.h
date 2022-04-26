@@ -119,24 +119,3 @@ class PairYukawaKokkos : public PairYukawa {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Cannot use Kokkos pair style with rRESPA inner/middle
-
-UNDOCUMENTED
-
-E: Cannot use chosen neighbor list style with yukawa/kk
-
-That style is not supported by Kokkos.
-
-U: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-U: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

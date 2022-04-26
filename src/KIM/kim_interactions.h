@@ -77,35 +77,3 @@ class KimInteractions : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal kim_interactions command
-
-Incorrect number or kind of arguments to kim_interactions.
-
-E: Must use 'kim_interactions' command after simulation box is defined
-
-Self-explanatory.
-
-E: Must use 'kim_init' command before 'kim_interactions'
-
-Self-explanatory.
-
-E: Species XXX is not supported by this KIM Simulator Model
-
-The kim_interactions command was referencing a species that is not
-present in the requested KIM Simulator Model.
-
-E: Incompatible units for KIM Simulator Model
-
-The selected unit style is not compatible with the requested KIM
-Simulator Model.
-
-E: KIM Simulator Model has no Model definition
-
-There is no model definition (key: model-defn) in the KIM Simulator
-Model.  Please contact the OpenKIM database maintainers to verify
-and potentially correct this.
-
-*/

@@ -46,15 +46,3 @@ class ImproperZero : public Improper {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-E: Incorrect args for improper coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

@@ -746,6 +746,12 @@ TEST(Utils, boundsbig_case3)
     ASSERT_EQ(nhi, -1);
 }
 
+TEST(Utils, errorurl)
+{
+    auto errmesg = utils::errorurl(10);
+    ASSERT_THAT(errmesg, Eq("\nFor more information see https://docs.lammps.org/err0010"));
+}
+
 TEST(Utils, getsyserror)
 {
 #if defined(__linux__)

@@ -769,10 +769,7 @@ void CreateAtoms::add_random()
 
       if (overlapflag) {
         int reject_local = 0;
-        //TODO this could be done only on the proc where coords are
-        // (using local + ghost atoms), BUT it is possible that
-        // ocutsq > skin^2 (although highly unlikely... warning?)
-        // This is only relevant for highly inhomogeous systems... ?
+        // Could be done more efficiently... (only on proc where coords are?)
         for (int i = 0; i < nlocal; i++) {
           delx = xone[0] - x[i][0];
           dely = xone[1] - x[i][1];

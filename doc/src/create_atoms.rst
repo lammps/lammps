@@ -314,6 +314,16 @@ radius is taken into account so that all new molecules will be created
 at locations not closer than (*radius* + molecule radius) from the location
 of any existing atom in the system.
 
+.. note::
+
+   Checking for overlaps is a very costly operation (O(N) for each new atom/molecule,
+   where N is the number of existing atoms) and the intended use of this keyword is,
+   for example, adding small amounts of new atoms/molecules to relatively sparse systems
+   mid simulation (between consecutive runs), i.e. where running an energy minimization
+   procedure isn't an option.  
+   In any case, the use of the *maxtries* keyword in combination with *overlap* is
+   highly recommended.
+
 The *units* keyword determines the meaning of the distance units used
 to specify the coordinates of the one particle created by the *single*
 style.  A *box* value selects standard distance units as defined by

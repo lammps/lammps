@@ -957,7 +957,7 @@ void EwaldElectrode::compute_vector_corr(double *vec, int sensor_grpbit, int sou
    obtained.
  ------------------------------------------------------------------------- */
 
-void EwaldElectrode::compute_matrix(bigint *imat, double **matrix)
+void EwaldElectrode::compute_matrix(bigint *imat, double **matrix, bool /* timer_flag */)
 {
   update_eikr(false);
   int nlocal = atom->nlocal;

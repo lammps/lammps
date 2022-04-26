@@ -25,7 +25,7 @@ class ElectrodeVector : protected Pointers {
  public:
   ElectrodeVector(class LAMMPS *, int, int, double, bool);
   ~ElectrodeVector() override;
-  void setup(class Pair *, class NeighList *);
+  void setup(class Pair *, class NeighList *, bool);
   void compute_vector(double *);
   int igroup, source_group;
 
@@ -39,7 +39,6 @@ class ElectrodeVector : protected Pointers {
   class NeighList *list;
   class ElectrodeKSpace *electrode_kspace;
 
-
   void pair_contribution(double *);
   double calc_erfc(double);
 
@@ -47,6 +46,8 @@ class ElectrodeVector : protected Pointers {
   double pair_time_total;
   double boundary_time_total;
   double b_time_total;
+
+  bool timer_flag;
 };
 
 }    // namespace LAMMPS_NS

@@ -27,7 +27,7 @@ class ElectrodeMatrix : protected Pointers {
   ElectrodeMatrix(class LAMMPS *, int, double);
   void setup(const std::unordered_map<tagint, int> &, class Pair *, class NeighList *);
   void setup_tf(const std::map<int, double> &);
-  void compute_array(double **);
+  void compute_array(double **, bool);
   int igroup;
 
  private:

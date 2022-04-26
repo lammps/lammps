@@ -91,6 +91,8 @@ void PPPMElectrodeIntel::init()
   PPPMIntel::init();
 
   // PPPM/electrode/intel - specific checks
+  if (slabflag == 3)
+    error->all(FLERR, "Cannot (yet) use PPPM/electrode/intel with 'kspace_modify slab ew2d'");
 
   triclinic_check();
   triclinic = domain->triclinic;
@@ -496,9 +498,8 @@ void PPPMElectrodeIntel::project_psi(IntelBuffers<flt_t, acc_t> *buffers, double
   }
 }
 /* ----------------------------------------------------------------------
-  -------------------------------------------------------------------------
-  */
-void PPPMElectrodeIntel::compute_matrix(bigint *imat, double **matrix)
+  ---------------------------------------------------------------------  */
+void PPPMElectrodeIntel::compute_matrix(bigint *imat, double **matrix, bool timer_flag)
 {
   // TODO replace compute with required setup
   compute(1, 0);
@@ -535,16 +536,17 @@ void PPPMElectrodeIntel::compute_matrix(bigint *imat, double **matrix)
   MPI_Allreduce(MPI_IN_PLACE, &(x_ele[0][0]), nmat * 3, MPI_DOUBLE, MPI_SUM, world);
 
   if (conp_one_step)
-    one_step_multiplication(imat, greens_real, x_ele, matrix, nmat);
+    one_step_multiplication(imat, greens_real, x_ele, matrix, nmat, timer_flag);
   else
-    two_step_multiplication(imat, greens_real, x_ele, matrix, nmat);
+    two_step_multiplication(imat, greens_real, x_ele, matrix, nmat, timer_flag);
   memory->destroy(x_ele);
 }
 
 /* ----------------------------------------------------------------------*/
 
 void PPPMElectrodeIntel::one_step_multiplication(bigint *imat, vector<double> greens_real,
-                                                 double **x_ele, double **matrix, int const nmat)
+                                                 double **x_ele, double **matrix, int const nmat,
+                                                 bool timer_flag)
 {
   // map green's function in real space from mesh to particle positions
   // with matrix multiplication 'W^T G W' in one steps. Uses less memory than
@@ -695,14 +697,15 @@ void PPPMElectrodeIntel::one_step_multiplication(bigint *imat, vector<double> gr
     }
   }
   MPI_Barrier(world);
-  if (comm->me == 0)
-    utils::logmesg(lmp, fmt::format("Single step time: {}\n", MPI_Wtime() - step1_time));
+  if (timer_flag && (comm->me == 0))
+    utils::logmesg(lmp, fmt::format("Single step time: {:.4g} s\n", MPI_Wtime() - step1_time));
 }
 
 /* ----------------------------------------------------------------------*/
 
 void PPPMElectrodeIntel::two_step_multiplication(bigint *imat, vector<double> greens_real,
-                                                 double **x_ele, double **matrix, int const nmat)
+                                                 double **x_ele, double **matrix, int const nmat,
+                                                 bool timer_flag)
 {
   // map green's function in real space from mesh to particle positions
   // with matrix multiplication 'W^T G W' in two steps. gw is result of
@@ -791,8 +794,8 @@ void PPPMElectrodeIntel::two_step_multiplication(bigint *imat, vector<double> gr
     }
   }
   MPI_Barrier(world);
-  if (comm->me == 0)
-    utils::logmesg(lmp, fmt::format("step 1 time: {}\n", MPI_Wtime() - step1_time));
+  if (timer_flag && (comm->me == 0))
+    utils::logmesg(lmp, fmt::format("step 1 time: {:.4g} s\n", MPI_Wtime() - step1_time));
 
   // nested loop over electrode atoms i and j and stencil of i
   double step2_time = MPI_Wtime();
@@ -861,8 +864,8 @@ void PPPMElectrodeIntel::two_step_multiplication(bigint *imat, vector<double> gr
     }
   }
   MPI_Barrier(world);
-  if (comm->me == 0)
-    utils::logmesg(lmp, fmt::format("step 2 time: {}\n", MPI_Wtime() - step2_time));
+  if (timer_flag && (comm->me == 0))
+    utils::logmesg(lmp, fmt::format("step 2 time: {:.4g} s\n", MPI_Wtime() - step2_time));
 }
 
 template <class flt_t, class acc_t, int use_table>

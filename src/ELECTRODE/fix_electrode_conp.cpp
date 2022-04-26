@@ -483,7 +483,7 @@ void FixElectrodeConp::setup_post_neighbor()
   // pair and list setups:
 
   evscale = force->qe2f / force->qqrd2e;
-  ele_vector->setup(pair, vec_neighlist);
+  ele_vector->setup(pair, vec_neighlist, timer_flag);
   if (!(read_mat || read_inv)) {
     if (etypes_neighlists) neighbor->build_one(mat_neighlist, 0);
     array_compute->setup(tag_to_iele, pair, mat_neighlist);
@@ -519,7 +519,7 @@ void FixElectrodeConp::setup_post_neighbor()
     if (read_mat)
       read_from_file(input_file_mat, capacitance, "elastance");
     else
-      array_compute->compute_array(capacitance);
+      array_compute->compute_array(capacitance, timer_flag);
     if (f_mat && !(read_inv))
       write_to_file(f_mat, taglist_bygroup, order_matrix(group_idx, capacitance));
     invert();    // TODO  uncommented lots of stuff here
@@ -538,7 +538,7 @@ void FixElectrodeConp::setup_post_neighbor()
   MPI_Barrier(world);
   if (timer_flag && (comm->me == 0))
     utils::logmesg(lmp,
-                   fmt::format("SD-vector and macro matrices time: {}\n", MPI_Wtime() - start));
+                   fmt::format("SD-vector and macro matrices time: {:.4g} s\n", MPI_Wtime() - start));
 
   // initial charges and b vector
   update_charges();
@@ -574,7 +574,7 @@ void FixElectrodeConp::invert()
 {
   MPI_Barrier(world);
   double invert_time = MPI_Wtime();
-  if (comm->me == 0) utils::logmesg(lmp, "CONP inverting matrix\n");
+  if (timer_flag && (comm->me == 0)) utils::logmesg(lmp, "CONP inverting matrix\n");
   int m = ngroup, n = ngroup, lda = ngroup;
   std::vector<int> ipiv(ngroup);
   int const lwork = ngroup * ngroup;
@@ -586,7 +586,7 @@ void FixElectrodeConp::invert()
   if (info_rf != 0 || info_ri != 0) error->all(FLERR, "CONP matrix inversion failed!");
   MPI_Barrier(world);
   if (timer_flag && (comm->me == 0))
-    utils::logmesg(lmp, fmt::format("Invert time: {}\n", MPI_Wtime() - invert_time));
+    utils::logmesg(lmp, fmt::format("Invert time: {:.4g} s\n", MPI_Wtime() - invert_time));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1056,8 +1056,8 @@ double FixElectrodeConp::gausscorr(int eflag, bool fflag)
 FixElectrodeConp::~FixElectrodeConp()
 {
   if (timer_flag && (comm->me == 0)) {
-    utils::logmesg(lmp, fmt::format("Multiplication time: {}\n", mult_time));
-    utils::logmesg(lmp, fmt::format("Update time: {}\n", update_time));
+    utils::logmesg(lmp, fmt::format("Multiplication time: {:.4g} s\n", mult_time));
+    utils::logmesg(lmp, fmt::format("Update time: {:.4g} s\n", update_time));
   }
   if (modify->find_fix(id) != -1)             // avoid segfault if derived fixes' ctor throws err
     atom->delete_callback(id, Atom::GROW);    // atomvec track local electrode atoms

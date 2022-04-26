@@ -112,7 +112,8 @@ moderate mesh size but requires more memory.
    kspace_modify amat onestep/twostep
 
 
-The *fix_modify tf* option allows to specify Thomas-Fermi parameters (:ref:`Scalfi <Scalfi>`) for each atom type.
+The *fix_modify tf* option enables the Thomas-Fermi metallicity model
+(:ref:`Scalfi <Scalfi>`) and allows parameters to be set for each atom type.
 
 .. code-block:: LAMMPS
 
@@ -121,13 +122,67 @@ The *fix_modify tf* option allows to specify Thomas-Fermi parameters (:ref:`Scal
 
 If this option is used parameters must be set for all atom types of the electrode.
 
+The *fix_modify timer* option turns on (off) additional timer outputs in the log
+file, for code developers to track optimization.
+
+.. code-block:: LAMMPS
+
+   fix_modify ID timer on/off
+
+The *fix_modify set* options allow calculated quantities to be accessed via
+internal variables. Currently four types of quantities can be accessed:
+
+.. code-block:: LAMMPS
+
+   fix-modify ID set v group-ID variablename
+   fix-modify ID set qsb group-ID variablename
+   fix-modify ID set mc group-ID1 group-ID2 variablename
+   fix-modify ID set me group-ID1 group-ID2 variablename
+
+One use case is to output the potential that is internally calculated and
+applied to each electrode group by *fix electrode/conq* or *fix electrode/thermo*.
+For that case the *v* option makes *fix electrode* update the variable
+*variablename* with the potential applied to group *group-ID*, where *group-ID*
+must be a group whose charges are updated by *fix electrode* and *variablename*
+must be an internal-style variable:
+
+.. code-block:: LAMMPS
+
+   fix conq bot electrode/conq -1.0 1.979 couple top 1.0
+   variable vbot internal 0.0
+   fix_modify conq set v bot vbot
+
+The *qsb* option similarly outputs the total updated charge of the group if its
+potential were 0.0V. The *mc* option requires two *group-IDs*, and outputs the
+entry \{*group-ID1*, *group-ID2*\} of the (symmetric) *macro-capacitance* matrix
+(MC) which relates the electrodes' applied potentials (V), total charges (Q), and
+total charges at 0.0 V (Qsb):
+
+.. math::
+
+   \mathbf{Q} = \mathbf{Q}_{SB} + \mathbf{MC} \cdot \mathbf{V}
+
+Lastly, the *me* option also requires two *group-IDs* and outputs the entry
+\{*group-ID1*, *group-ID2*\} of the *macro-elastance* matrix, which is the
+inverse of the macro-capacitance matrix. (As the names denote, the
+macro-capacitance matrix gives electrode charges from potentials, and the
+macro-elastance matrix gives electrode potentials from charges).
+
 .. warning::
 
    Positions of electrode particles have to be immobilized at all times.
 
 The parallelization for the fix works best if electrode atoms are evenly
 distributed across processors. For a system with two electrodes at the bottom
-and top of the cell this can be achieved with *processors * * 2*.
+and top of the cell this can be achieved with *processors * * 2*, or with the
+line
+
+.. code-block:: LAMMPS
+
+   if "$(extract_setting(world_size) % 2) == 0" then "processors * * 2"
+
+which avoids an error if the script is run on an odd number of processors (such
+as on just one processor for testing).
 
 ----------
 

@@ -47,9 +47,9 @@ class PPPMElectrodeIntel : public PPPMIntel, public ElectrodeKSpace {
   void compute(int, int);
 
   void compute_vector(double *, int, int, bool) override;
-  void compute_vector_corr(double*, int, int, bool) override;
-  void compute_matrix(bigint *, double **);
-  void compute_matrix_corr(bigint *, double **);
+  void compute_vector_corr(double *, int, int, bool) override;
+  void compute_matrix(bigint *, double **, bool) override;
+  void compute_matrix_corr(bigint *, double **) override;
 
   void compute_group_group(int, int, int);
 
@@ -89,8 +89,10 @@ class PPPMElectrodeIntel : public PPPMIntel, public ElectrodeKSpace {
       project_psi<flt_t, acc_t, 0>(buffers, vec, sensor_grpbit);
   }
 
-  void one_step_multiplication(bigint *, std::vector<double>, double **, double **, int const);
-  void two_step_multiplication(bigint *, std::vector<double>, double **, double **, int const);
+  void one_step_multiplication(bigint *, std::vector<double>, double **, double **, int const,
+                               bool);
+  void two_step_multiplication(bigint *, std::vector<double>, double **, double **, int const,
+                               bool);
   bool compute_vector_called;
 };
 

@@ -25,7 +25,7 @@ class ElectrodeKSpace {
  public:
   virtual void compute_vector(double *, int, int, bool) = 0;
   virtual void compute_vector_corr(double*, int, int, bool) = 0;
-  virtual void compute_matrix(bigint *, double **) = 0;
+  virtual void compute_matrix(bigint *, double **, bool) = 0;
   virtual void compute_matrix_corr(bigint *, double **) = 0;
 };
 }    // namespace LAMMPS_NS

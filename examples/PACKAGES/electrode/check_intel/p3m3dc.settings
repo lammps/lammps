@@ -1,5 +1,0 @@
-kspace_style  pppm/electrode 1.0e-7
-kspace_modify gewald 0.21
-kspace_modify slab 3.0
-kspace_modify mesh 32 32 200
-kspace_modify order 5

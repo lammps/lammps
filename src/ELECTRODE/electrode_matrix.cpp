@@ -76,7 +76,7 @@ void ElectrodeMatrix::setup_tf(const std::map<int, double> &tf_types)
 
 /* ---------------------------------------------------------------------- */
 
-void ElectrodeMatrix::compute_array(double **array)
+void ElectrodeMatrix::compute_array(double **array, bool timer_flag)
 {
   // setting all entries of coulomb matrix to zero
   size_t nbytes = sizeof(double) * ngroup * ngroup;
@@ -85,10 +85,10 @@ void ElectrodeMatrix::compute_array(double **array)
   MPI_Barrier(world);
   double kspace_time = MPI_Wtime();
   update_mpos();
-  electrode_kspace->compute_matrix(&mpos[0], array);
+  electrode_kspace->compute_matrix(&mpos[0], array, timer_flag);
   MPI_Barrier(world);
-  if (comm->me == 0)
-    utils::logmesg(lmp, fmt::format("KSpace time: {}\n", MPI_Wtime() - kspace_time));
+  if (timer_flag && (comm->me == 0))
+    utils::logmesg(lmp, fmt::format("KSpace time: {:.4g} s\n", MPI_Wtime() - kspace_time));
   pair_contribution(array);
   self_contribution(array);
   electrode_kspace->compute_matrix_corr(&mpos[0], array);

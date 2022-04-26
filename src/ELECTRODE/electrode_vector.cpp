@@ -58,22 +58,22 @@ ElectrodeVector::ElectrodeVector(LAMMPS *lmp, int sensor_group, int source_group
 
 ElectrodeVector::~ElectrodeVector()
 {
-  if (comm->me == 0) {
-    utils::logmesg(lmp, fmt::format("B time: {}\n", b_time_total));
-    utils::logmesg(lmp, fmt::format("B kspace time: {}\n", kspace_time_total));
-    utils::logmesg(lmp, fmt::format("B pair time: {}\n", pair_time_total));
-    utils::logmesg(lmp, fmt::format("B boundary time: {}\n", boundary_time_total));
+  if (timer_flag && (comm->me == 0)) {
+    utils::logmesg(lmp, fmt::format("B time: {:.4g} s\n", b_time_total));
+    utils::logmesg(lmp, fmt::format("B kspace time: {:.4g} s\n", kspace_time_total));
+    utils::logmesg(lmp, fmt::format("B pair time: {:.4g} s\n", pair_time_total));
+    utils::logmesg(lmp, fmt::format("B boundary time: {:.4g} s\n", boundary_time_total));
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ElectrodeVector::setup(class Pair *fix_pair,
-                            class NeighList *fix_neighlist)
+void ElectrodeVector::setup(class Pair *fix_pair, class NeighList *fix_neighlist, bool timer_flag)
 {
   pair = fix_pair;
   cutsq = pair->cutsq;
   list = fix_neighlist;
+  this->timer_flag = timer_flag;
 
   electrode_kspace = dynamic_cast<ElectrodeKSpace *>(force->kspace);
   if (electrode_kspace == nullptr) error->all(FLERR, "KSpace does not implement ElectrodeKSpace");

@@ -1,7 +1,0 @@
-*.dat
-*.xyz
-log.lammps
-mat.csv
-final.inp
-random.inp
-nohup.out

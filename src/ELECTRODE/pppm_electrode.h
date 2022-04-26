@@ -61,7 +61,7 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
 
   void compute_vector(double *, int, int, bool) override;
   void compute_vector_corr(double*, int, int, bool) override;
-  void compute_matrix(bigint *, double **) override;
+  void compute_matrix(bigint *, double **, bool) override;
   void compute_matrix_corr(bigint *, double **) override;
 
   void compute_group_group(int, int, int) override;
@@ -115,9 +115,9 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
   void make_rho_in_brick(int, FFT_SCALAR ***, bool);
   void project_psi(double *, int);
   void one_step_multiplication(bigint *, const std::vector<double> &, double **, double **,
-                               int const);
+                               int const, bool);
   void two_step_multiplication(bigint *, const std::vector<double> &, double **, double **,
-                               int const);
+                               int const, bool);
   bool compute_vector_called;
 };
 

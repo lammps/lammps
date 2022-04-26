@@ -27,7 +27,7 @@ Syntax
 
    fix ID group-ID electrode/conp potential eta keyword values ...
    fix ID group-ID electrode/conq charge eta keyword values ...
-   fix ID group-ID electrode/thermo potential eta temp T_v tau_v keyword values ...
+   fix ID group-ID electrode/thermo potential eta temp T_v tau_v rng_v keyword values ...
 
 * ID, group-ID are documented in fix command
 * mode = electrode/conp or electrode/conq or electrode/thermo
@@ -36,6 +36,7 @@ Syntax
 * eta = reciprocal width of electrode charge smearing
 * T_v = temperature of thermo-potentiostat
 * tau_v = time constant of thermo-potentiostat
+* rng_v = integer used to initialize random number generator
 
 .. parsed-literal::
 

@@ -45,7 +45,7 @@ FixElectrodeThermo::FixElectrodeThermo(LAMMPS *lmp, int narg, char **arg) :
   if (symm) error->all(FLERR, "Keyword symm on not allowed in electrode/thermo");
   if (thermo_time < SMALL) error->all(FLERR, "Keyword temp not set or zero in electrode/thermo");
 
-  thermo_random = new RanMars(lmp, 7);
+  thermo_random = new RanMars(lmp, thermo_init);
   if (group_psi_var_styles[0] == CONST) delta_psi_0 = group_psi[1] - group_psi[0];
 }
 

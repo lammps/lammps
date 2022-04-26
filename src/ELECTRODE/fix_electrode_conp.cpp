@@ -172,11 +172,12 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
       for (int i = ilo; i <= ihi; ++i) etypes.push_back(i);
       etypes_neighlists = true;
     } else if ((strcmp(arg[iarg], "temp") == 0)) {
-      if (iarg + 3 > narg) error->all(FLERR, "Need two arguments after temp command");
+      if (iarg + 4 > narg) error->all(FLERR, "Need three arguments after temp command");
       if (strcmp(this->style, "electrode/thermo") != 0)
         error->all(FLERR, "temp keyword not available for this electrode fix");
       thermo_temp = force->boltz / force->qe2f * utils::numeric(FLERR, arg[++iarg], false, lmp);
       thermo_time = utils::numeric(FLERR, arg[++iarg], false, lmp);
+      thermo_init = utils::inumeric(FLERR, arg[++iarg], false, lmp);
     } else if ((strcmp(arg[iarg], "ffield") == 0)) {
       if (iarg + 2 > narg) error->all(FLERR, "Need yes/no command after ffield keyword");
       char *ffield_arg = arg[++iarg];

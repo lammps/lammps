@@ -77,6 +77,7 @@ class FixElectrodeConp : public Fix {
   std::vector<std::vector<double>> macro_elastance;    // used by conq
   std::vector<std::vector<double>> macro_capacitance;    // used by thermo
   double thermo_temp, thermo_time;                       // used by electrode/thermo only
+  int thermo_init;                                       // initializer for rng in electrode/thermo
   bool ffield;                                           // possibly tweak electrode/conq's version
   std::string fixname;    // used by electrode/ffield to set up internal efield
   bool intelflag;

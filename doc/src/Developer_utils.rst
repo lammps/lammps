@@ -246,6 +246,23 @@ Customized standard functions
 
 ---------------------------
 
+Special Math functions
+----------------------
+
+The ``MathSpecial`` namespace implements a selection of custom and optimized
+mathematical functions for a variety of applications.
+
+.. doxygenfunction:: factorial
+   :project: progguide
+
+.. doxygenfunction:: exp2_x86
+   :project: progguide
+
+.. doxygenfunction:: fm_exp
+   :project: progguide
+
+---------------------------
+
 Tokenizer classes
 -----------------
 

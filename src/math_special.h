@@ -20,19 +20,49 @@ namespace LAMMPS_NS {
 
 namespace MathSpecial {
 
-  // tabulated factorial function
+  /*! Fast tabulated factorial function
+   *
+   *  This function looks up precomputed factorial values for arguments of n = 0
+   *  to a maximum of 167, which is the maximal value representable by a double
+   *  precision floating point number.  For other values of n a NaN value is returned.
+   *
+   *  \param   n  argument (valid: 0 <= n <= 167)
+   *  \return  value of n! as double precision number or NaN */
 
-  extern double factorial(const int);
+  extern double factorial(const int n);
+
+  /*! Fast implementation of 2^x without argument checks for little endian CPUs
+   *
+   *  This function implements an optimized version of pow(2.0, x) that does not
+   *  check for valid arguments and thus may only be used where arguments are well
+   *  behaved.  The implementation makes assumptions about the layout of double
+   *  precision floating point numbers in memory and thus will only work on little
+   *  endian CPUs.  If little endian cannot be safely detected, the result of
+   *  calling pow(2.0, x) will be returned.  This function also is the basis for
+   *  the fast exponential fm_exp(x).
+   *
+   *  \param   x argument
+   *  \return  value of 2^x as double precision number */
+
+  extern double exp2_x86(double x);
+
+  /*! Fast implementation of exp(x) for little endian CPUs
+   *
+   *  This function implements an optimized version of exp(x) for little endian CPUs.
+   *  It calls the exp2_x86(x) function with a suitable prefactor to x to return exp(x).
+   *  The implementation makes assumptions about the layout of double
+   *  precision floating point numbers in memory and thus will only work on little
+   *  endian CPUs.  If little endian cannot be safely detected, the result of
+   *  calling the exp(x) implementation in the libm math library will be returned.
+   *
+   *  \param   x argument
+   *  \return  value of e^x as double precision number */
+
+  extern double fm_exp(double x);
 
   // support function for scaled error function complement
 
   extern double erfcx_y100(const double y100);
-
-  // fast 2**x function without argument checks for little endian CPUs
-  extern double exp2_x86(double x);
-
-  // fast e**x function for little endian CPUs, falls back to libc on other platforms
-  extern double fm_exp(double x);
 
   // scaled error function complement exp(x*x)*erfc(x) for coul/long styles
 

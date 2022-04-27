@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -9,8 +9,6 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-
-   This style is written by Daniele Rapetti (iximiel@gmail.com)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -19,7 +17,7 @@ This pair style is written by Daniele Rapetti (iximiel@gmail.com)
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(smatb,PairSMATB)
+PairStyle(smatb,PairSMATB);
 // clang-format on
 #else
 
@@ -54,52 +52,28 @@ class PairSMATB : public Pair {
   // allocated size of per-atom arrays
   int nmax;
   //allocated to store up calculation values
-  double *on_eb{nullptr};
+  double *on_eb;
   // interaction radius, user-given
-  double **r0{nullptr};
+  double **r0;
   // parameters user-given
-  double **p{nullptr};
-  double **A{nullptr};
-  double **q{nullptr};
-  double **QSI{nullptr};
+  double **p;
+  double **A;
+  double **q;
+  double **QSI;
   //extremes of the cut off, user given
-  double **cutOffStart{nullptr};
-  double **cutOffEnd{nullptr};
+  double **cutOffStart;
+  double **cutOffEnd;
   //squared cut off end, calculated
-  double **cutOffEnd2{nullptr};
+  double **cutOffEnd2;
   //polynomial for cutoff linking to zero:   Ae^p substitution
-  double **a3{nullptr};
-  double **a4{nullptr};
-  double **a5{nullptr};
+  double **a3;
+  double **a4;
+  double **a5;
   //polynomial for cutoff linking to zero: QSIe^q substitution
-  double **x3{nullptr};
-  double **x4{nullptr};
-  double **x5{nullptr};
-  /* latex form of the potential (R_c is cutOffEnd, \Xi is QSI):
-
-       E_i =
-       \sum_{j,R_{ij}\leq R_c} A  e^{-p \left(\frac{R_{ij}}{R_{0}}-1\right)}
-       -\sqrt{\sum_{j,R_{ij}\leq R_c}\Xi^2 e^{-2q\left(\frac{R_{ij}}{R_{0}}-1\right)}}.
-
-       NB::this form does not have the polynomial link to 0 for the cut off
-     */
+  double **x3;
+  double **x4;
+  double **x5;
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif
-
-    /* ERROR/WARNING messages:
-
-   E: Illegal ... command
-
-   Self-explanatory.  Check the input script syntax and compare to the
-   documentation for the command.  You can use -echo screen as a
-   command-line option when running LAMMPS to see the offending line.
-
-   E: Incorrect args for pair coefficients
-
-   Self-explanatory.  Check the input script or data file.
-
-*/

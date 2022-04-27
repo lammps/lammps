@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -9,8 +9,6 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-
-   This pair style is written by Daniele Rapetti (iximiel@gmail.com)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -19,12 +17,12 @@ This pair style is written by Daniele Rapetti (iximiel@gmail.com)
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(smatb/single,PairSMATBSingle)
+PairStyle(smatb/single,PairSMATBSingle);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_SMATBSINGLE_H
-#define LMP_PAIR_SMATBSINGLE_H
+#ifndef LMP_PAIR_SMATB_SINGLE_H
+#define LMP_PAIR_SMATB_SINGLE_H
 
 #include "pair.h"
 
@@ -76,21 +74,6 @@ class PairSMATBSingle : public Pair {
   double x4;
   double x5;
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif
-
-    /* ERROR/WARNING messages:
-
-   E: Illegal ... command
-
-   Self-explanatory.  Check the input script syntax and compare to the
-   documentation for the command.  You can use -echo screen as a
-   command-line option when running LAMMPS to see the offending line.
-
-   E: Incorrect args for pair coefficients
-
-   Self-explanatory.  Check the input script or data file.
-*/

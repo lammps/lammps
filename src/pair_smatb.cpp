@@ -12,9 +12,11 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-This pair style is written by Daniele Rapetti (iximiel@gmail.com)
+   Contributing author: Daniele Rapetti (iximiel@gmail.com)
 ------------------------------------------------------------------------- */
+
 #include "pair_smatb.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
@@ -22,15 +24,15 @@ This pair style is written by Daniele Rapetti (iximiel@gmail.com)
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
-PairSMATB::PairSMATB(LAMMPS *lmp) :
-    Pair(lmp), nmax(0), on_eb(nullptr), r0(nullptr), p(nullptr), A(nullptr), q(nullptr),
+/* ---------------------------------------------------------------------- */
+
+PairSMATB::PairSMATB(LAMMPS *_lmp) :
+    Pair(_lmp), nmax(0), on_eb(nullptr), r0(nullptr), p(nullptr), A(nullptr), q(nullptr),
     QSI(nullptr), cutOffStart(nullptr), cutOffEnd(nullptr), cutOffEnd2(nullptr), a3(nullptr),
     a4(nullptr), a5(nullptr), x3(nullptr), x4(nullptr), x5(nullptr)
 {
@@ -47,6 +49,8 @@ PairSMATB::PairSMATB(LAMMPS *lmp) :
   comm_forward = 1;
   comm_reverse = 1;
 }
+
+/* ---------------------------------------------------------------------- */
 
 PairSMATB::~PairSMATB()
 {
@@ -73,16 +77,16 @@ PairSMATB::~PairSMATB()
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 void PairSMATB::compute(int eflag, int vflag)
-{    //workhorse routine that computes pairwise interactions
-  //eflag means compute energy
-  //vflag means compute virial
+{
   int i, j, ii, jj, jnum, itype, jtype;
   double xtmp, ytmp, ztmp, del[3], fpair;
   double dijsq, dij;
   double espo, aexpp, qsiexpq, eb_i, Fb, Fr;
   double polyval, polyval2, polyval3, polyval4, polyval5;
-  //sets up the flags for energy calculations
+
   if (eflag || vflag) {
     ev_setup(eflag, vflag);
     eng_vdwl = 0;
@@ -91,7 +95,6 @@ void PairSMATB::compute(int eflag, int vflag)
   }
 
   // grow on_eb array if necessary
-  // need to be atom->nmax in length
 
   if (atom->nmax > nmax) {
     nmax = atom->nmax;
@@ -119,7 +122,7 @@ void PairSMATB::compute(int eflag, int vflag)
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
 
-  //FIRST LOOP: CALCULATES the squared bounding energy and accumulate it in on_eb for each atom
+  // FIRST LOOP: CALCULATES the squared bonding energy and accumulate it in on_eb for each atom
   for (ii = 0; ii < inum; ++ii) {
     i = ilist[ii];
     xtmp = x[i][0];
@@ -153,19 +156,18 @@ void PairSMATB::compute(int eflag, int vflag)
           qsiexpq = qsiexpq * qsiexpq;
         }
         on_eb[i] += qsiexpq;
-        //if (newton_pair || j < nlocal) {
         on_eb[j] += qsiexpq;
-        //}
       }
     }
   }
 
-  //communicate the squared bounding energy between the various bins
+  // communicate the squared bonding energy between the various bins
 
-  comm->reverse_comm_pair(this);
+  comm->reverse_comm(this);
 
-  //Support Loop: take the square root of the bounding energy and accumulate it in the energy accumulator if needed
-  // the store the reciprocal in on_eb in order to not do it in the SECOND LOOP
+  // Support Loop: take the square root of the bonding energy and
+  // accumulate it in the energy accumulator if needed the store the
+  // reciprocal in on_eb in order to not do it in the SECOND LOOP
 
   for (ii = 0; ii < inum; ++ii) {
     i = ilist[ii];
@@ -176,17 +178,18 @@ void PairSMATB::compute(int eflag, int vflag)
       } else {
         on_eb[i] = 0.0;
       }
-      //if needed the bounding energy is accumulated:
+      //if needed the bonding energy is accumulated:
       if (eflag_either) {
         if (eflag_atom) { eatom[i] -= eb_i; }
         if (eflag_global) { eng_vdwl -= eb_i; }
       }
     }
   }
-  //this communication stores the denominators in the ghosts atoms, this is needed because of how forces are calculated
-  comm->forward_comm_pair(this);
+  // this communication stores the denominators in the ghosts atoms,
+  // this is needed because of how forces are calculated
+  comm->forward_comm(this);
 
-  //SECOND LOOP: given on_eb[i] calculates forces and energies
+  // SECOND LOOP: given on_eb[i] calculates forces and energies
   for (ii = 0; ii < inum; ++ii) {
     i = ilist[ii];
     xtmp = x[i][0];
@@ -230,7 +233,7 @@ void PairSMATB::compute(int eflag, int vflag)
                  3.0 * x3[itype][jtype] * polyval2)) *
               qsiexpq;
         }
-        //if needed the repulsive energy is accumulated:
+        // if needed the repulsive energy is accumulated:
         if (eflag_either) {
           if (eflag_atom) {
             eatom[i] += aexpp;
@@ -244,7 +247,7 @@ void PairSMATB::compute(int eflag, int vflag)
             }
           }
         }
-        //calculates the module of the pair energy between i and j
+        // calculates the module of the pair energy between i and j
         fpair = (Fb * (on_eb[i] + on_eb[j]) + Fr) / dij;
 
         f[i][0] += del[0] * fpair;
@@ -271,7 +274,7 @@ void PairSMATB::compute(int eflag, int vflag)
    ------------------------------------------------------------------------- */
 
 void PairSMATB::settings(int narg, char **)
-{    //reads the input script line with arguments you define
+{
   if (narg > 0) error->all(FLERR, "Illegal pair_style command: smatb accepts no options");
 }
 
@@ -281,31 +284,27 @@ void PairSMATB::settings(int narg, char **)
 
 void PairSMATB::allocate()
 {
-  int n = atom->ntypes;
-  int natoms = atom->natoms;
+  const int np1 = atom->ntypes + 1;
 
-  memory->create(setflag, n + 1, n + 1, "pair_smatb:setflag");
-  for (int i = 1; i <= n; i++) {
-    for (int j = i; j <= n; j++) { setflag[i][j] = 0; }
-  }
+  memory->create(setflag, np1, np1, "pair_smatb:setflag");
+  for (int i = 1; i < np1; i++)
+    for (int j = i; j < np1; j++) setflag[i][j] = 0;
 
-  memory->create(cutsq, n + 1, n + 1, "pair_smatb:cutsq");
-
-  //memory->create is needed to make a false nxn array on a n^2x1 line of data
-  memory->create(r0, n + 1, n + 1, "pair_smatb:r0");
-  memory->create(p, n + 1, n + 1, "pair_smatb:p");
-  memory->create(A, n + 1, n + 1, "pair_smatb:A");
-  memory->create(q, n + 1, n + 1, "pair_smatb:q");
-  memory->create(QSI, n + 1, n + 1, "pair_smatb:QSI");
-  memory->create(cutOffStart, n + 1, n + 1, "pair_smatb:cutOffStart");
-  memory->create(cutOffEnd, n + 1, n + 1, "pair_smatb:cutOffEnd");
-  memory->create(cutOffEnd2, n + 1, n + 1, "pair_smatb:cutOffEnd2");
-  memory->create(a3, n + 1, n + 1, "pair_smatb:a1");
-  memory->create(a4, n + 1, n + 1, "pair_smatb:a2");
-  memory->create(a5, n + 1, n + 1, "pair_smatb:a5");
-  memory->create(x3, n + 1, n + 1, "pair_smatb:x1");
-  memory->create(x4, n + 1, n + 1, "pair_smatb:x2");
-  memory->create(x5, n + 1, n + 1, "pair_smatb:x3");
+  memory->create(cutsq, np1, np1, "pair_smatb:cutsq");
+  memory->create(r0, np1, np1, "pair_smatb:r0");
+  memory->create(p, np1, np1, "pair_smatb:p");
+  memory->create(A, np1, np1, "pair_smatb:A");
+  memory->create(q, np1, np1, "pair_smatb:q");
+  memory->create(QSI, np1, np1, "pair_smatb:QSI");
+  memory->create(cutOffStart, np1, np1, "pair_smatb:cutOffStart");
+  memory->create(cutOffEnd, np1, np1, "pair_smatb:cutOffEnd");
+  memory->create(cutOffEnd2, np1, np1, "pair_smatb:cutOffEnd2");
+  memory->create(a3, np1, np1, "pair_smatb:a1");
+  memory->create(a4, np1, np1, "pair_smatb:a2");
+  memory->create(a5, np1, np1, "pair_smatb:a5");
+  memory->create(x3, np1, np1, "pair_smatb:x1");
+  memory->create(x4, np1, np1, "pair_smatb:x2");
+  memory->create(x5, np1, np1, "pair_smatb:x3");
 
   allocated = 1;
 }
@@ -315,26 +314,23 @@ void PairSMATB::allocate()
    ------------------------------------------------------------------------- */
 
 void PairSMATB::coeff(int narg, char **arg)
-{    //set coefficients for one i,j type pair
+{
   if (!allocated) { allocate(); }
-  if (narg != 9) {
-    error->all(
-        FLERR,
-        "Incorrect args for pair coefficients:\n SMATB needs \"i j r0 p q A QSI CO_start CO_end\"");
-  }
+  if (narg != 9) utils::missing_cmd_args(FLERR, "pair_style smatb", error);
+
   int ilo, ihi, jlo, jhi;
   utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi, error);
   utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
-  //reading parameters from input
-  double myr0 = utils::numeric(FLERR, arg[2], false, lmp),
-         myp = utils::numeric(FLERR, arg[3], false, lmp),
-         myq = utils::numeric(FLERR, arg[4], false, lmp),
-         myA = utils::numeric(FLERR, arg[5], false, lmp),
-         myQSI = utils::numeric(FLERR, arg[6], false, lmp),
-         mycutOffStart = utils::numeric(FLERR, arg[7], false, lmp),
-         mycutOffEnd = utils::numeric(FLERR, arg[8], false, lmp);
-  int count = 0;
 
+  double myr0 = utils::numeric(FLERR, arg[2], false, lmp);
+  double myp = utils::numeric(FLERR, arg[3], false, lmp);
+  double myq = utils::numeric(FLERR, arg[4], false, lmp);
+  double myA = utils::numeric(FLERR, arg[5], false, lmp);
+  double myQSI = utils::numeric(FLERR, arg[6], false, lmp);
+  double mycutOffStart = utils::numeric(FLERR, arg[7], false, lmp);
+  double mycutOffEnd = utils::numeric(FLERR, arg[8], false, lmp);
+
+  int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo, i); j <= jhi; j++) {
       r0[i][j] = myr0;
@@ -355,20 +351,11 @@ void PairSMATB::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   init specific to this pair style
-   ------------------------------------------------------------------------- */
-/*
-  void PairSMATB::init_style() {//initialization specific to this pair style
-  neighbor->request(this,instance_me);
-  }
-*/
-
-/* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
    ------------------------------------------------------------------------- */
 
 double PairSMATB::init_one(int i, int j)
-{    //perform initialization for one i,j type pair
+{
   if (setflag[i][j] == 0) {
     ///@todo implement smatb mixing rules
     cutOffStart[i][j] = MIN(cutOffStart[i][i], cutOffStart[j][j]);
@@ -376,12 +363,12 @@ double PairSMATB::init_one(int i, int j)
 
     error->all(FLERR, "All pair coeffs are not set");
   }
-  //calculating the polynomial linking to zero
+
   double es = cutOffEnd[i][j] - cutOffStart[i][j];
   double es2 = es * es;
   double es3 = es2 * es;
 
-  //variables for poly for p and A
+  // variables for poly for p and A
   double expp = A[i][j] * exp(p[i][j] * (1. - cutOffStart[i][j] / r0[i][j]));
   double ap = -1. / es3;
   double bp = p[i][j] / (r0[i][j] * es2);
@@ -391,7 +378,7 @@ double PairSMATB::init_one(int i, int j)
   a4[i][j] = expp * (15. * ap + 7. * bp + cp) / es;
   a3[i][j] = expp * (20. * ap + 8. * bp + cp) / 2.;
 
-  //variables for poly for q and qsi
+  // variables for poly for q and qsi
   double expq = QSI[i][j] * exp(q[i][j] * (1. - cutOffStart[i][j] / r0[i][j]));
   double aq = -1 / es3;
   double bq = q[i][j] / (es2 * r0[i][j]);
@@ -421,7 +408,7 @@ double PairSMATB::init_one(int i, int j)
     x4[j][i] = x4[i][j];
     x5[j][i] = x5[i][j];
   }
-  //returns cutOffEnd to calculate cutforce and cutsq
+
   return cutOffEnd[i][j];
 }
 
@@ -474,13 +461,16 @@ void PairSMATB::unpack_reverse_comm(int n, int *list, double *buf)
   }
 }
 
-//write binary data of this simulation:
+/* ---------------------------------------------------------------------- */
+
 void PairSMATB::write_restart_settings(FILE *fp)
 {
   fwrite(&offset_flag, sizeof(int), 1, fp);
   fwrite(&mix_flag, sizeof(int), 1, fp);
   fwrite(&tail_flag, sizeof(int), 1, fp);
 }
+
+/* ---------------------------------------------------------------------- */
 
 void PairSMATB::read_restart_settings(FILE *fp)
 {
@@ -496,12 +486,14 @@ void PairSMATB::read_restart_settings(FILE *fp)
   MPI_Bcast(&tail_flag, 1, MPI_INT, 0, world);
 }
 
+/* ---------------------------------------------------------------------- */
+
 void PairSMATB::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
-  //"I J r0 p q A QSI CO_start CO_end"
+
   int i, j;
-  for (i = 1; i <= atom->ntypes; i++)
+  for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j], sizeof(int), 1, fp);
       if (setflag[i][j]) {
@@ -514,12 +506,15 @@ void PairSMATB::write_restart(FILE *fp)
         fwrite(&cutOffEnd[i][j], sizeof(double), 1, fp);
       }
     }
-  //maybe we need to save also the values of the various polynomials
+  }
 }
+
+/* ---------------------------------------------------------------------- */
 
 void PairSMATB::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
+
   allocate();
   size_t result;
 
@@ -531,13 +526,13 @@ void PairSMATB::read_restart(FILE *fp)
       MPI_Bcast(&setflag[i][j], 1, MPI_INT, 0, world);
       if (setflag[i][j]) {
         if (me == 0) {
-          result = fread(&r0[i][j], sizeof(double), 1, fp);
-          result = fread(&p[i][j], sizeof(double), 1, fp);
-          result = fread(&q[i][j], sizeof(double), 1, fp);
-          result = fread(&A[i][j], sizeof(double), 1, fp);
-          result = fread(&QSI[i][j], sizeof(double), 1, fp);
-          result = fread(&cutOffStart[i][j], sizeof(double), 1, fp);
-          result = fread(&cutOffEnd[i][j], sizeof(double), 1, fp);
+          utils::sfread(FLERR, &r0[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &p[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &q[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &A[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &QSI[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &cutOffStart[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &cutOffEnd[i][j], sizeof(double), 1, fp, nullptr, error);
         }
         MPI_Bcast(&r0[i][j], 1, MPI_DOUBLE, 0, world);
         MPI_Bcast(&p[i][j], 1, MPI_DOUBLE, 0, world);
@@ -550,14 +545,17 @@ void PairSMATB::read_restart(FILE *fp)
     }
 }
 
+/* ---------------------------------------------------------------------- */
+
 void PairSMATB::write_data(FILE *fp)
 {
-  //smatb needs I J r0 p q A QSI CO_start CO_end
   for (int i = 1; i <= atom->ntypes; i++) {
     fprintf(fp, "%d %g %g %g %g %g %g %g\n", i, r0[i][i], p[i][i], q[i][i], A[i][i], QSI[i][i],
             cutOffStart[i][i], cutOffEnd[i][i]);
   }
 }
+
+/* ---------------------------------------------------------------------- */
 
 void PairSMATB::write_data_all(FILE *fp)
 {

@@ -67,11 +67,6 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
     cudaDeviceGetLimit(&stack_size,cudaLimitStackSize);
     if (stack_size < 2048)
       cudaDeviceSetLimit(cudaLimitStackSize,2048);
-//  #elif defined (KOKKOS_ENABLE_HIP)
-//    size_t stack_size;
-//    hipDeviceGetLimit(&stack_size,hipLimitStackSize);
-//    if (stack_size < 2048)
-//      hipDeviceSetLimit(hipLimitStackSize,2048);
   #endif
 #endif
 

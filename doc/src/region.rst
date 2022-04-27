@@ -32,7 +32,7 @@ Syntax
        *ellipsoid* args = x y z a b c
          x,y,z = center of ellipsoid (distance units)
          a,b,c = half the length of the principal axes of the ellipsoid (distance units)
-           x,y,z,a,b and c can be a variable (see below)  
+           x,y,z,a,b and c can be a variable (see below)
        *plane* args = px py pz nx ny nz
          px,py,pz = point on the plane (distance units)
          nx,ny,nz = direction normal to plane (distance units)

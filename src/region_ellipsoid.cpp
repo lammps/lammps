@@ -188,12 +188,12 @@ int RegEllipsoid::surface_interior(double *x, double cutoff)
     double c_r = c - cutoff;
     double delx_r = b_r*c_r*(x[0] - xc);
     double dely_r = a_r*c_r*(x[1] - xc);
-    double delz_r = a_r*b_r*(x[2] - xc); 
+    double delz_r = a_r*b_r*(x[2] - xc);
     double r_r = delx_r*delx_r + dely_r*dely_r + delz_r*delz_r;
     double rc_r = a_r*a_r*b_r*b_r*c_r*c_r;
 
     if (r_r > rc_r) {
-      // sort the values 
+      // sort the values
       int sorting[3] = {0, 1, 2};
       double axes[3] = {c, b, a};
       double coords[3] = {fabs(x[2]-zc), fabs(x[1]-yc), fabs(x[0]-xc)};
@@ -205,7 +205,7 @@ int RegEllipsoid::surface_interior(double *x, double cutoff)
         axes[0] = b;
         axes[1] = c;
       }
- 
+
       if (axes[2] < axes[1])
       {
         int ti = sorting[2];
@@ -228,13 +228,13 @@ int RegEllipsoid::surface_interior(double *x, double cutoff)
       contact[0].delx = copysign(x0[sorting[2]], x[0]-xc) + xc;
       contact[0].dely = copysign(x0[sorting[1]], x[1]-yc) + yc;
       contact[0].delz = copysign(x0[sorting[0]], x[2]-zc) + zc;
-//      contact[0].radius = -radius; 
+//      contact[0].radius = -radius;
       contact[0].iwall = 0;
       contact[0].varflag = 1;
       return 1;
     }
     return 0;
-  } else { 
+  } else {
     double delx = b*(x[0] - xc);
     double dely = a*(x[1] - yc);
     double r = delx*delx + dely*dely;
@@ -260,7 +260,7 @@ int RegEllipsoid::surface_interior(double *x, double cutoff)
         contact[0].dely = copysign(x0, x[1]-yc) + yc;
       }
       contact[0].delz = 0;
- //     contact[0].radius = -radius; 
+ //     contact[0].radius = -radius;
       contact[0].iwall = 0;
       contact[0].varflag = 1;
       return 1;
@@ -632,7 +632,7 @@ double RegEllipsoid::DistancePointEllipsoid(double e0, double e1, double e2, dou
       double xde0sqr = xde0*xde0;
       double xde1sqr = xde1*xde1;
       double discr = 1 - xde0sqr - xde1sqr;
-      if (discr > 0) 
+      if (discr > 0)
       {
         x0 = e0*xde0;
         x1 = e1*xde1;

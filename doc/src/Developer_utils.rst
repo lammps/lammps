@@ -261,6 +261,27 @@ mathematical functions for a variety of applications.
 .. doxygenfunction:: fm_exp
    :project: progguide
 
+.. doxygenfunction:: my_erfcx
+   :project: progguide
+
+.. doxygenfunction:: expmsq
+   :project: progguide
+
+.. doxygenfunction:: square
+   :project: progguide
+
+.. doxygenfunction:: cube
+   :project: progguide
+
+.. doxygenfunction:: powsign
+   :project: progguide
+
+.. doxygenfunction:: powint
+   :project: progguide
+
+.. doxygenfunction:: powsinxx
+   :project: progguide
+
 ---------------------------
 
 Tokenizer classes

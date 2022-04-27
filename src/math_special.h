@@ -22,7 +22,7 @@ namespace MathSpecial {
 
   /*! Fast tabulated factorial function
    *
-   *  This function looks up precomputed factorial values for arguments of n = 0
+   *  This function looks up pre-computed factorial values for arguments of n = 0
    *  to a maximum of 167, which is the maximal value representable by a double
    *  precision floating point number.  For other values of n a NaN value is returned.
    *
@@ -53,7 +53,7 @@ namespace MathSpecial {
    *  The implementation makes assumptions about the layout of double
    *  precision floating point numbers in memory and thus will only work on little
    *  endian CPUs.  If little endian cannot be safely detected, the result of
-   *  calling the exp(x) implementation in the libm math library will be returned.
+   *  calling the exp(x) implementation in the standard math library will be returned.
    *
    *  \param   x argument
    *  \return  value of e^x as double precision number */
@@ -64,7 +64,17 @@ namespace MathSpecial {
 
   extern double erfcx_y100(const double y100);
 
-  // scaled error function complement exp(x*x)*erfc(x) for coul/long styles
+  /*! Fast scaled error function complement exp(x*x)*erfc(x) for coul/long styles
+   *
+   *  This is a portable fast implementation of exp(x*x)*erfc(x) that can be used
+   *  in coul/long pair styles as a replacement for the polynomial expansion that
+   *  is/was widely used.  Unlike the polynomial expansion, that is only accurate
+   *  at the level of single precision floating point it provides full double precision
+   *  accuracy, but at comparable speed (unlike the erfc() implementation shipped
+   *  with GNU standard math library).
+   *
+   *  \param   x argument
+   *  \return  value of e^(x*x)*erfc(x) */
 
   static inline double my_erfcx(const double x)
   {
@@ -74,7 +84,15 @@ namespace MathSpecial {
       return 2.0 * exp(x * x) - erfcx_y100(400.0 / (4.0 - x));
   }
 
-  // exp(-x*x) for coul/long styles
+  /*! Fast implementation of exp(-x*x) for little endian CPUs for coul/long styles
+   *
+   *  This function implements an optimized version of exp(-x*x) based on exp2_x86()
+   *  for use with little endian CPUs. If little endian cannot be safely detected,
+   *  the result of calling the exp(-x*x) implementation in the standard math
+   *  library will be returned.
+   *
+   *  \param   x argument
+   *  \return  value of e^(-x*x) as double precision number */
 
   static inline double expmsq(double x)
   {
@@ -87,18 +105,34 @@ namespace MathSpecial {
 #endif
   }
 
-  // x**2, use instead of pow(x,2.0)
+  /*! Fast inline version of pow(x, 2.0)
+   *
+   *  \param   x argument
+   *  \return  x*x */
 
   static inline double square(const double &x) { return x * x; }
 
-  // x**3, use instead of pow(x,3.0)
+  /*! Fast inline version of pow(x, 3.0)
+   *
+   *  \param   x argument
+   *  \return  x*x */
+
   static inline double cube(const double &x) { return x * x * x; }
 
-  // return -1.0 for odd n, 1.0 for even n, like pow(-1.0,n)
+  /* Fast inline version of pow(-1.0, n)
+   *
+   *  \param   n argument (integer)
+   *  \return  -1 if n is odd, 1.0 if n is even */
+
   static inline double powsign(const int n) { return (n & 1) ? -1.0 : 1.0; }
 
-  // optimized version of pow(x,n) with n being integer
-  // up to 10x faster than pow(x,y)
+  /* Fast inline version of pow(x,n) for integer n
+   *
+   * This is a version of pow(x,n) optimized for n being integer.
+   * Speedups of up to 10x faster than pow(x,y) have been measured.
+   *
+   *  \param   n argument (integer)
+   *  \return  value of x^n */
 
   static inline double powint(const double &x, const int n)
   {
@@ -114,7 +148,12 @@ namespace MathSpecial {
     return (n > 0) ? yy : 1.0 / yy;
   }
 
-  // optimized version of (sin(x)/x)**n with n being a _positive_ integer
+  /* Fast inline version of (sin(x)/x)^n as used by PPPM kspace styles
+   *
+   * This is an optimized function to compute (sin(x)/x)^n as frequently used by PPPM.
+   *
+   *  \param   n argument (integer). Expected to be positive.
+   *  \return  value of (sin(x)/x)^n */
 
   static inline double powsinxx(const double &x, int n)
   {

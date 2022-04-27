@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 class RegEllipsoid : public Region {
  public:
   RegEllipsoid(class LAMMPS *, int, char **);
-  ~RegEllipsoid();
-  void init();
-  int inside(double, double, double);
-  int surface_interior(double *, double);
-  int surface_exterior(double *, double);
-  void shape_update();
+  ~RegEllipsoid() override;
+  void init() override;
+  int inside(double, double, double) override;
+  int surface_interior(double *, double) override;
+  int surface_exterior(double *, double) override;
+  void shape_update() override;
 
  private:
   double xc, yc, zc;
-  double a, b,c;
+  double a, b, c;
   int xstyle, xvar;
   int ystyle, yvar;
   int zstyle, zvar;
@@ -50,8 +50,9 @@ class RegEllipsoid : public Region {
 
   double GetRoot2D(double r0, double z0, double z1, double g);
   double GetRoot3D(double r0, double r1, double z0, double z1, double z2, double g);
-  double DistancePointEllipse(double e0, double e1, double y0, double y1, double& x0, double& x1);
-  double DistancePointEllipsoid(double e0, double e1, double e2, double y0, double y1, double y2, double& x0, double& x1, double& x2);
+  double DistancePointEllipse(double e0, double e1, double y0, double y1, double &x0, double &x1);
+  double DistancePointEllipsoid(double e0, double e1, double e2, double y0, double y1, double y2,
+                                double &x0, double &x1, double &x2);
 };
 
 }    // namespace LAMMPS_NS

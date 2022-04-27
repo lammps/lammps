@@ -261,12 +261,12 @@ void DihedralCharmmIntel::eval(const int vflag,
       if (c > (flt_t)1.0) c = (flt_t)1.0;
       if (c < (flt_t)-1.0) c = (flt_t)-1.0;
 
-      const flt_t tcos_shift = fc.bp[type].cos_shift;
-      const flt_t tsin_shift = fc.bp[type].sin_shift;
-      const flt_t tk = fc.bp[type].k;
-      const int m = fc.bp[type].multiplicity;
+      const flt_t tcos_shift = fc.fc[type].cos_shift;
+      const flt_t tsin_shift = fc.fc[type].sin_shift;
+      const flt_t tk = fc.fc[type].k;
+      const int m = fc.fc[type].multiplicity;
 
-      flt_t p = (flt_t)1.0;
+      auto  p = (flt_t)1.0;
       flt_t ddf1, df1;
       ddf1 = df1 = (flt_t)0.0;
 
@@ -384,7 +384,7 @@ void DihedralCharmmIntel::eval(const int vflag,
       }
 
       if (EFLAG || VFLAG) {
-        flt_t ev_pre = (flt_t)0;
+        auto  ev_pre = (flt_t)0;
         if (NEWTON_BOND || i1 < nlocal)
           ev_pre += (flt_t)0.5;
         if (NEWTON_BOND || i4 < nlocal)
@@ -539,10 +539,10 @@ void DihedralCharmmIntel::eval(const int vflag,
       (int *) neighbor->dihedrallist[0];
     const flt_t * _noalias const weight = &(fc.weight[0]);
     const flt_t * _noalias const x_f = &(x[0].x);
-    const flt_t * _noalias const cos_shift = &(fc.bp[0].cos_shift);
-    const flt_t * _noalias const sin_shift = &(fc.bp[0].sin_shift);
-    const flt_t * _noalias const k = &(fc.bp[0].k);
-    const int * _noalias const multiplicity = &(fc.bp[0].multiplicity);
+    const flt_t * _noalias const cos_shift = &(fc.fc[0].cos_shift);
+    const flt_t * _noalias const sin_shift = &(fc.fc[0].sin_shift);
+    const flt_t * _noalias const k = &(fc.fc[0].k);
+    const int * _noalias const multiplicity = &(fc.fc[0].multiplicity);
     const flt_t * _noalias const plj1 = &(fc.ljp[0][0].lj1);
     const flt_t * _noalias const plj2 = &(fc.ljp[0][0].lj2);
     const flt_t * _noalias const plj3 = &(fc.ljp[0][0].lj3);
@@ -905,11 +905,8 @@ void DihedralCharmmIntel::init_style()
 {
   DihedralCharmm::init_style();
 
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   #ifdef _LMP_INTEL_OFFLOAD
   _use_base = 0;
@@ -937,8 +934,8 @@ void DihedralCharmmIntel::pack_force_const(ForceConst<flt_t> &fc,
 {
 
   const int tp1 = atom->ntypes + 1;
-  const int bp1 = atom->ndihedraltypes + 1;
-  fc.set_ntypes(tp1,bp1,memory);
+  const int dp1 = atom->ndihedraltypes + 1;
+  fc.set_ntypes(tp1,dp1,memory);
   buffers->set_ntypes(tp1);
 
   if (weightflag) {
@@ -952,11 +949,11 @@ void DihedralCharmmIntel::pack_force_const(ForceConst<flt_t> &fc,
     }
   }
 
-  for (int i = 1; i < bp1; i++) {
-    fc.bp[i].multiplicity = multiplicity[i];
-    fc.bp[i].cos_shift = cos_shift[i];
-    fc.bp[i].sin_shift = sin_shift[i];
-    fc.bp[i].k = k[i];
+  for (int i = 1; i < dp1; i++) {
+    fc.fc[i].multiplicity = multiplicity[i];
+    fc.fc[i].cos_shift = cos_shift[i];
+    fc.fc[i].sin_shift = sin_shift[i];
+    fc.fc[i].k = k[i];
     fc.weight[i] = weight[i];
   }
 }
@@ -965,27 +962,24 @@ void DihedralCharmmIntel::pack_force_const(ForceConst<flt_t> &fc,
 
 template <class flt_t>
 void DihedralCharmmIntel::ForceConst<flt_t>::set_ntypes(const int npairtypes,
-                                                        const int nbondtypes,
+                                                        const int ndihderaltypes,
                                                         Memory *memory) {
+  if (memory != nullptr) _memory = memory;
   if (npairtypes != _npairtypes) {
-    if (_npairtypes > 0)
-      _memory->destroy(ljp);
+    _memory->destroy(ljp);
     if (npairtypes > 0)
-      memory->create(ljp,npairtypes,npairtypes,"fc.ljp");
+      _memory->create(ljp,npairtypes,npairtypes,"fc.ljp");
   }
 
-  if (nbondtypes != _nbondtypes) {
-    if (_nbondtypes > 0) {
-      _memory->destroy(bp);
-      _memory->destroy(weight);
-    }
+  if (ndihderaltypes != _ndihderaltypes) {
+    _memory->destroy(fc);
+    _memory->destroy(weight);
 
-    if (nbondtypes > 0) {
-      _memory->create(bp,nbondtypes,"dihedralcharmmintel.bp");
-      _memory->create(weight,nbondtypes,"dihedralcharmmintel.weight");
+    if (ndihderaltypes > 0) {
+      _memory->create(fc,ndihderaltypes,"dihedralcharmmintel.fc");
+      _memory->create(weight,ndihderaltypes,"dihedralcharmmintel.weight");
     }
   }
   _npairtypes = npairtypes;
-  _nbondtypes = nbondtypes;
-  _memory = memory;
+  _ndihderaltypes = ndihderaltypes;
 }

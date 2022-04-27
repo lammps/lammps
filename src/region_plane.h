@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class RegPlane : public Region {
  public:
   RegPlane(class LAMMPS *, int, char **);
-  ~RegPlane();
-  int inside(double, double, double);
-  int surface_interior(double *, double);
-  int surface_exterior(double *, double);
+  ~RegPlane() override;
+  int inside(double, double, double) override;
+  int surface_interior(double *, double) override;
+  int surface_exterior(double *, double) override;
 
  private:
   double xp, yp, zp;
@@ -41,13 +41,3 @@ class RegPlane : public Region {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

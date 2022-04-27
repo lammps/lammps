@@ -121,7 +121,7 @@ void KimInteractions::do_setup(int narg, char **arg)
 
   int ifix = modify->find_fix("KIM_MODEL_STORE");
   if (ifix >= 0) {
-    FixStoreKIM *fix_store = (FixStoreKIM *) modify->fix[ifix];
+    auto fix_store = dynamic_cast<FixStoreKIM *>( modify->fix[ifix]);
     model_name = (char *)fix_store->getptr("model_name");
     simulatorModel = (KIM_SimulatorModel *)fix_store->getptr("simulator_model");
   } else error->all(FLERR, "Must use 'kim init' before 'kim interactions'");
@@ -293,7 +293,7 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
   char line[MAXLINE], *ptr;
   int n, eof = 0;
 
-  while (1) {
+  while (true) {
     if (comm->me == 0) {
       ptr = fgets(line, MAXLINE,fp);
       if (ptr == nullptr) {

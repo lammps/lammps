@@ -36,7 +36,7 @@ class FixWallReflectKokkos : public FixWallReflect {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   FixWallReflectKokkos(class LAMMPS *, int, char **);
-  void post_integrate();
+  void post_integrate() override;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixWallReflectPostIntegrate, const int&) const;
@@ -56,6 +56,3 @@ class FixWallReflectKokkos : public FixWallReflect {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

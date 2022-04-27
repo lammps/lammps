@@ -29,13 +29,13 @@ namespace LAMMPS_NS {
 class PairLCBOP : public Pair {
  public:
   PairLCBOP(class LAMMPS *);
-  virtual ~PairLCBOP();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  double memory_usage();
+  ~PairLCBOP() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  double memory_usage() override;
 
  protected:
   int **pages;    // neighbor list pages
@@ -151,42 +151,3 @@ class PairLCBOP : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair style LCBOP requires atom IDs
-
-This is a requirement to use the LCBOP potential.
-
-E: Pair style LCBOP requires newton pair on
-
-See the newton command.  This is a restriction to use the Tersoff
-potential.
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-E: Neighbor list overflow, boost neigh_modify one
-
-There are too many neighbors of a single atom.  Use the neigh_modify
-command to increase the max number of neighbors allowed for one atom.
-You may also want to boost the page size.
-
-E: Cannot open LCBOP potential file %s
-
-The specified LCBOP potential file cannot be opened.  Check that the
-path and name are correct.
-
-*/

@@ -2018,7 +2018,7 @@ void FixDPPimd::nmpimd_init()
 void FixDPPimd::nmpimd_fill(double **ptr)
 {
   comm_ptr = ptr;
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 }
 
 /* ---------------------------------------------------------------------- */

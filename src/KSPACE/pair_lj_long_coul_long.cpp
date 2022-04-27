@@ -28,7 +28,6 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "respa.h"
 #include "update.h"
@@ -231,7 +230,7 @@ void PairLJLongCoulLong::init_style()
 
   if (!atom->q_flag && (ewald_order&(1<<1)))
     error->all(FLERR,
-        "Invoking coulombic in pair style lj/long/coul/long requires atom attribute q");
+               "Invoking coulombic in pair style lj/long/coul/long requires atom attribute q");
 
   // ensure use of KSpace long-range solver, set two g_ewalds
 
@@ -243,8 +242,8 @@ void PairLJLongCoulLong::init_style()
   // set rRESPA cutoffs
 
   if (utils::strmatch(update->integrate_style,"^respa") &&
-      ((Respa *) update->integrate)->level_inner >= 0)
-    cut_respa = ((Respa *) update->integrate)->cutoff;
+      (dynamic_cast<Respa *>( update->integrate))->level_inner >= 0)
+    cut_respa = (dynamic_cast<Respa *>( update->integrate))->cutoff;
   else cut_respa = nullptr;
 
   // setup force tables
@@ -255,21 +254,14 @@ void PairLJLongCoulLong::init_style()
   // request regular or rRESPA neighbor lists if neighrequest_flag != 0
 
   if (force->kspace->neighrequest_flag) {
-    int irequest;
-    int respa = 0;
+    int list_style = NeighConst::REQ_DEFAULT;
 
-    if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
-      if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
-      if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
+    if (update->whichflag == 1 && utils::strmatch(update->integrate_style, "^respa")) {
+      auto respa = dynamic_cast<Respa *>( update->integrate);
+      if (respa->level_inner >= 0) list_style = NeighConst::REQ_RESPA_INOUT;
+      if (respa->level_middle >= 0) list_style = NeighConst::REQ_RESPA_ALL;
     }
-
-    irequest = neighbor->request(this,instance_me);
-
-    if (respa >= 1) {
-      neighbor->requests[irequest]->respaouter = 1;
-      neighbor->requests[irequest]->respainner = 1;
-    }
-    if (respa == 2) neighbor->requests[irequest]->respamiddle = 1;
+    neighbor->add_request(this, list_style);
   }
 
   cut_coulsq = cut_coul * cut_coul;

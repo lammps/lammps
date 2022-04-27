@@ -27,22 +27,9 @@ namespace LAMMPS_NS {
 class FixNPTSphere : public FixNHSphere {
  public:
   FixNPTSphere(class LAMMPS *, int, char **);
-  ~FixNPTSphere() {}
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Temperature control must be used with fix npt/sphere
-
-Self-explanatory.
-
-E: Pressure control must be used with fix npt/sphere
-
-Self-explanatory.
-
-*/

@@ -27,42 +27,15 @@ namespace LAMMPS_NS {
 class PairTersoffMODC : public PairTersoffMOD {
  public:
   PairTersoffMODC(class LAMMPS *lmp) : PairTersoffMOD(lmp){};
-  ~PairTersoffMODC() {}
 
   static constexpr int NPARAMS_PER_LINE = 21;
 
  protected:
-  void read_file(char *);
-  void repulsive(Param *, double, double &, int, double &);
+  void read_file(char *) override;
+  void repulsive(Param *, double, double &, int, double &) override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Cannot open Tersoff potential file %s
-
-The specified potential file cannot be opened.  Check that the path
-and name are correct.
-
-E: Incorrect format in Tersoff potential file
-
-Incorrect number of words per line in the potential file.
-
-E: Illegal Tersoff parameter
-
-One or more of the coefficients defined in the potential file is
-invalid.
-
-U: Potential file has duplicate entry
-
-The potential file has more than one entry for the same element.
-
-U: Potential file is missing an entry
-
-The potential file does not have a needed entry.
-
-*/

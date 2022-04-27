@@ -30,12 +30,12 @@ namespace LAMMPS_NS {
 class PairExTeP : public Pair {
  public:
   PairExTeP(class LAMMPS *);
-  virtual ~PairExTeP();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
+  ~PairExTeP() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
  protected:
   struct Param {
@@ -70,7 +70,7 @@ class PairExTeP : public Pair {
   void allocate();
   void spline_init();
   virtual void read_file(char *);
-  virtual void setup();
+  void setup() override;
   virtual void repulsive(Param *, double, double &, int, double &);
   virtual double zeta(Param *, double, double, double *, double *);
   virtual void force_zeta(Param *, double, double, double &, double &, int, double &);
@@ -128,55 +128,3 @@ class PairExTeP : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair style ExTeP requires atom IDs
-
-This is a requirement to use the ExTeP potential.
-
-E: Pair style ExTeP requires newton pair on
-
-See the newton command.  This is a restriction to use the ExTeP
-potential.
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-E: Cannot open ExTeP potential file %s
-
-The specified potential file cannot be opened.  Check that the path
-and name are correct.
-
-E: Incorrect format in ExTeP potential file
-
-Incorrect number of words per line in the potential file.
-
-E: Illegal ExTeP parameter
-
-One or more of the coefficients defined in the potential file is
-invalid.
-
-E: Potential file has duplicate entry
-
-The potential file for a SW or ExTeP potential has more than
-one entry for the same 3 ordered elements.
-
-E: Potential file is missing an entry
-
-The potential file for a SW or ExTeP potential does not have a
-needed entry.
-
-*/

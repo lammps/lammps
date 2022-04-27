@@ -1,0 +1,124 @@
+LAMMPS (29 Sep 2021)
+# ACKS2 Water, CITE: Achtyl et al., Nat. Comm., 6 6539 (2015)
+
+boundary        p p p
+units           real
+atom_style      charge
+
+read_data       data.water
+Reading data file ...
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (31.043046 31.043046 31.043046)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  3000 atoms
+  read_data CPU = 0.013 seconds
+
+variable        x index 1
+variable        y index 1
+variable        z index 1
+
+replicate       $x $y $z
+replicate       1 $y $z
+replicate       1 1 $z
+replicate       1 1 1
+Replicating atoms ...
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (31.043046 31.043046 31.043046)
+  1 by 2 by 2 MPI processor grid
+  3000 atoms
+  replicate CPU = 0.002 seconds
+
+pair_style      reaxff NULL safezone 3.0 mincap 150
+pair_coeff      * * acks2_ff.water O H
+Reading potential file acks2_ff.water with DATE: 2021-09-21
+WARNING: Changed valency_val to valency_boc for X (../reaxff_ffield.cpp:296)
+neighbor        0.5 bin
+neigh_modify    every 1 delay 0 check yes
+
+velocity all create 300.0 4928459 rot yes dist gaussian
+
+fix             1 all acks2/reaxff 1 0.0 10.0 1.0e-6 reaxff maxiter 1000
+fix             2 all nvt temp 300 300 50.0
+
+timestep        0.5
+thermo          10
+thermo_style    custom step temp press density vol
+
+run 20
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- pair reaxff command:
+
+@Article{Aktulga12,
+ author = {H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama},
+ title = {Parallel reactive molecular dynamics: Numerical methods and algorithmic techniques},
+ journal = {Parallel Computing},
+ year =    2012,
+ volume =  38,
+ pages =   {245--259}
+}
+
+- fix acks2/reaxff command:
+
+@Article{O'Hearn2020,
+ author = {K. A. O'Hearn, A. Alperen, and H. M. Aktulga},
+ title = {Fast Solvers for Charge Distribution Models on Shared Memory Platforms},
+ journal = {SIAM J. Sci. Comput.},
+ year =    2020,
+ volume =  42,
+ pages =   {1--22}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10.5
+  ghost atom cutoff = 10.5
+  binsize = 5.25, bins = 6 6 6
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reaxff, perpetual
+      attributes: half, newton off, ghost
+      pair build: half/bin/newtoff/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+  (2) fix acks2/reaxff, perpetual, copy from (1)
+      attributes: half, newton off, ghost
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 271.9 | 273.6 | 275.1 Mbytes
+Step Temp Press Density Volume 
+       0          300    1572.3807            1    29915.273 
+      10     300.6152    8252.4834            1    29915.273 
+      20    294.73868    2502.5661            1    29915.273 
+Loop time of 11.1133 on 4 procs for 20 steps with 3000 atoms
+
+Performance: 0.078 ns/day, 308.702 hours/ns, 1.800 timesteps/s
+92.7% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 4.3609     | 4.7715     | 5.4812     |  19.5 | 42.94
+Neigh   | 0.15797    | 0.17176    | 0.19405    |   3.5 |  1.55
+Comm    | 0.21014    | 0.922      | 1.3353     |  44.6 |  8.30
+Output  | 8.815e-05  | 0.0002     | 0.00030501 |   0.0 |  0.00
+Modify  | 5.2267     | 5.2468     | 5.2584     |   0.5 | 47.21
+Other   |            | 0.001074   |            |       |  0.01
+
+Nlocal:        750.000 ave         760 max         735 min
+Histogram: 1 0 0 0 1 0 0 0 0 2
+Nghost:        6231.50 ave        6255 max        6192 min
+Histogram: 1 0 0 0 0 1 0 0 0 2
+Neighs:        277006.0 ave      280567 max      271394 min
+Histogram: 1 0 0 0 0 1 0 0 0 2
+
+Total # of neighbors = 1108026
+Ave neighs/atom = 369.34200
+Neighbor list builds = 2
+Dangerous builds = 0
+Total wall time: 0:00:12

@@ -34,7 +34,7 @@ class FixMomentumKokkos : public FixMomentum {
   typedef ArrayTypes<DeviceType> AT;
 
   FixMomentumKokkos(class LAMMPS *, int, char **);
-  void end_of_step();
+  void end_of_step() override;
 };
 
 }
@@ -42,6 +42,3 @@ class FixMomentumKokkos : public FixMomentum {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

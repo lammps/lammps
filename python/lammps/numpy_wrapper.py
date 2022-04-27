@@ -92,7 +92,7 @@ class numpy_wrapper:
     if dim == LAMMPS_AUTODETECT:
       if dtype in (LAMMPS_INT_2D, LAMMPS_DOUBLE_2D, LAMMPS_INT64_2D):
         # TODO add other fields
-        if name in ("x", "v", "f", "x0", "omega", "angmom", "torque", "vforce", "vest"):
+        if name in ("x", "v", "f", "x0","omega", "angmom", "torque", "csforce", "vforce", "vest"):
           dim = 3
         elif name == "smd_data_9":
           dim = 9

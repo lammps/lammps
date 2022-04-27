@@ -200,22 +200,10 @@ FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) :
   hasdata = bsize = 0;
 
   // creates a temperature compute for all atoms
-  char** newarg = new char*[3];
-  newarg[0] = (char *) "IPI_TEMP";
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "temp";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  modify->add_compute("IPI_TEMP all temp");
 
   // creates a  pressure compute to extract the virial
-  newarg = new char*[5];
-  newarg[0] = (char *) "IPI_PRESS";
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pressure";
-  newarg[3] = (char *) "IPI_TEMP";
-  newarg[4] = (char *) "virial";
-  modify->add_compute(5,newarg);
-  delete [] newarg;
+  modify->add_compute("IPI_PRESS all pressure IPI_TEMP virial");
 
   // create instance of Irregular class
   irregular = new Irregular(lmp);
@@ -428,7 +416,7 @@ void FixIPI::final_integrate()
 
   int nat=bsize/3;
   double **f= atom->f;
-  double *lbuf = new double[bsize];
+  auto lbuf = new double[bsize];
 
   // reassembles the force vector from the local arrays
   int nlocal = atom->nlocal;

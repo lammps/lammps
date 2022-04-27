@@ -58,6 +58,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`Howto body <Howto_body>`
      - body
      - no
+   * - :ref:`BPM <PKG-BPM>`
+     - bonded particle models
+     - :doc:`Howto bpm <Howto_bpm>`
+     - bpm
+     - no
    * - :ref:`BROWNIAN <PKG-BROWNIAN>`
      - Brownian dynamics, self-propelled particles
      - :doc:`fix brownian <fix_brownian>`, :doc:`fix propel/self <fix_propel_self>`
@@ -244,7 +249,7 @@ whether an extra library is needed to build and use the package:
      - n/a
      - no
    * - :ref:`MDI <PKG-MDI>`
-     - client-server coupling
+     - client-server code coupling
      - :doc:`MDI Howto <Howto_mdi>`
      - PACKAGES/mdi
      - ext
@@ -257,11 +262,6 @@ whether an extra library is needed to build and use the package:
      - mesoscopic tubular potential model
      - pair styles :doc:`mesont/tpm <pair_mesont_tpm>`, :doc:`mesocnt <pair_mesocnt>`
      - PACKAGES/mesont
-     - int
-   * - :ref:`MESSAGE <PKG-MESSAGE>`
-     - client/server messaging
-     - :doc:`message <message>`
-     - message
      - int
    * - :ref:`MGPT <PKG-MGPT>`
      - fast MGPT multi-ion potentials

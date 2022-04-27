@@ -28,6 +28,11 @@ HIP_HOST_INCLUDE += -I./
 # path to hipcub
 HIP_HOST_INCLUDE += -I$(HIP_PATH)/../include
 
+ifeq (amd,$(HIP_PLATFORM))
+	# newer version of ROCm (5.1+) require c++14 for rocprim
+	HIP_OPTS += -std=c++14
+endif
+
 # use mpi
 HIP_HOST_OPTS += -DMPI_GERYON -DUCL_NO_EXIT
 # this settings should match LAMMPS Makefile
@@ -39,11 +44,9 @@ HIP_PLATFORM=$(shell $(HIP_PATH)/bin/hipconfig --platform)
 HIP_COMPILER=$(shell $(HIP_PATH)/bin/hipconfig --compiler)
 
 ifeq (hcc,$(HIP_PLATFORM))
-	HIP_OPTS  += -ffast-math
 	# possible values: gfx803,gfx900,gfx906
 	HIP_ARCH = gfx906
 else ifeq (amd,$(HIP_PLATFORM))
-	HIP_OPTS  += -ffast-math
 	# possible values: gfx803,gfx900,gfx906
 	HIP_ARCH = gfx906
 else ifeq (nvcc,$(HIP_PLATFORM))

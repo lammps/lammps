@@ -15,6 +15,14 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Ray Shan (SNL), Stan Moore (SNL),
                           Kamesh Arumugam (NVIDIA)
+
+   Nicholas Curtis (AMD), Leopold Grinberd (AMD), and Gina Sitaraman (AMD):
+     - Reduced math overhead: enabled specialized calls (e.g., cbrt for a
+         cube root instead of pow) and use power/exponential laws to reduce the
+         number of exponentials evaluated, etc.
+     - Fused the CG solve for "S" and "T" matrices
+     - Improved the SpMV algorithm by using vector instead of team level
+         parallelism on GPUs
 ------------------------------------------------------------------------- */
 
 #include "fix_qeq_reaxff_kokkos.h"
@@ -48,7 +56,8 @@ FixQEqReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixQEqReaxFF(lmp, narg, arg)
 {
   kokkosable = 1;
-  forward_comm_device = 1;
+  comm_forward = comm_reverse = 2; // fused
+  forward_comm_device = 2;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
@@ -64,6 +73,8 @@ FixQEqReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
   grow_arrays(atom->nmax);
 
   d_mfill_offset = typename AT::t_int_scalar("qeq/kk:mfill_offset");
+
+  converged = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -75,6 +86,7 @@ FixQEqReaxFFKokkos<DeviceType>::~FixQEqReaxFFKokkos()
 
   memoryKK->destroy_kokkos(k_s_hist,s_hist);
   memoryKK->destroy_kokkos(k_t_hist,t_hist);
+  memoryKK->destroy_kokkos(k_chi_field,chi_field);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -86,27 +98,14 @@ void FixQEqReaxFFKokkos<DeviceType>::init()
 
   FixQEqReaxFF::init();
 
+  // adjust neighbor list request for KOKKOS
+
   neighflag = lmp->kokkos->neighflag_qeq;
-  int irequest = neighbor->nrequest - 1;
-
-  neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
-
-  if (neighflag == FULL) {
-    neighbor->requests[irequest]->fix = 1;
-    neighbor->requests[irequest]->pair = 0;
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->half = 0;
-  } else { //if (neighflag == HALF || neighflag == HALFTHREAD)
-    neighbor->requests[irequest]->fix = 1;
-    neighbor->requests[irequest]->pair = 0;
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 1;
-    neighbor->requests[irequest]->ghost = 1;
-  }
+  auto request = neighbor->find_request(this);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  if (neighflag == FULL) request->enable_full();
 
   int ntypes = atom->ntypes;
   k_params = Kokkos::DualView<params_qeq*,Kokkos::LayoutRight,DeviceType>
@@ -208,8 +207,7 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
-  inum = list->inum;
-  ignum = inum + list->gnum;
+  nn = list->inum;
 
   copymode = 1;
 
@@ -229,17 +227,18 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
   if (execution_space == Host) { // CPU
     if (neighflag == FULL) {
       FixQEqReaxFFKokkosComputeHFunctor<DeviceType, FULL> computeH_functor(this);
-      Kokkos::parallel_scan(inum,computeH_functor);
+      Kokkos::parallel_scan(nn,computeH_functor);
     } else { // HALF and HALFTHREAD are the same
       FixQEqReaxFFKokkosComputeHFunctor<DeviceType, HALF> computeH_functor(this);
-      Kokkos::parallel_scan(inum,computeH_functor);
+      Kokkos::parallel_scan(nn,computeH_functor);
     }
   } else { // GPU, use teams
     Kokkos::deep_copy(d_mfill_offset,0);
 
-    int vector_length = 32;
-    int atoms_per_team = 4;
-    int num_teams = inum / atoms_per_team + (inum % atoms_per_team ? 1 : 0);
+    int atoms_per_team = FixQEqReaxFFKokkos<DeviceType>::compute_h_teamsize;
+    int vector_length = FixQEqReaxFFKokkos<DeviceType>::compute_h_vectorsize;
+
+    int num_teams = nn / atoms_per_team + (nn % atoms_per_team ? 1 : 0);
 
     Kokkos::TeamPolicy<DeviceType> policy(num_teams, atoms_per_team,
                                           vector_length);
@@ -256,37 +255,27 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 
   // init_matvec
 
+  if (efield) get_chi_field();
+
   k_s_hist.template sync<DeviceType>();
   k_t_hist.template sync<DeviceType>();
-  FixQEqReaxFFKokkosMatVecFunctor<DeviceType> matvec_functor(this);
-  Kokkos::parallel_for(inum,matvec_functor);
 
-  // comm->forward_comm_fix(this); //Dist_vector(s);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqInitMatvec>(0,nn),*this);
+
   pack_flag = 2;
-  k_s.template modify<DeviceType>();
-  comm->forward_comm_fix(this);
-  k_s.template sync<DeviceType>();
-
-  // comm->forward_comm_fix(this); //Dist_vector(t);
-  pack_flag = 3;
-  k_t.template modify<DeviceType>();
-  comm->forward_comm_fix(this);
-  k_t.template sync<DeviceType>();
+  k_st.template modify<DeviceType>();
+  comm->forward_comm(this);
+  k_st.template sync<DeviceType>();
 
   need_dup = lmp->kokkos->need_dup<DeviceType>();
-
   if (need_dup)
-    dup_o = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated> (d_o); // allocate duplicated memory
+    dup_o = Kokkos::Experimental::create_scatter_view<KKScatterSum, KKScatterDuplicated>(d_o); // allocate duplicated memory
   else
-    ndup_o = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated> (d_o);
+    ndup_o = Kokkos::Experimental::create_scatter_view<KKScatterSum, KKScatterNonDuplicated>(d_o);
 
-  // 1st cg solve over b_s, s
+  //  cg solve over b_s, s & b_t, t
 
-  matvecs = cg_solve1();
-
-  // 2nd cg solve over b_t, t
-
-  matvecs += cg_solve2();
+  matvecs = cg_solve();
 
   // calculate_Q();
 
@@ -307,6 +296,8 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
     dup_o = decltype(dup_o)();
 
   atomKK->modified(execution_space,datamask_modify);
+
+  d_neighbors = typename AT::t_neighbors_2d();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -324,15 +315,24 @@ void FixQEqReaxFFKokkos<DeviceType>::num_neigh_item(int ii, int &maxneigh) const
 template<class DeviceType>
 void FixQEqReaxFFKokkos<DeviceType>::allocate_matrix()
 {
-  const int inum = list->inum;
-
   nmax = atom->nmax;
 
   // determine the total space for the H matrix
 
   m_cap = 0;
-  FixQEqReaxFFKokkosNumNeighFunctor<DeviceType> neigh_functor(this);
-  Kokkos::parallel_reduce(inum,neigh_functor,m_cap);
+
+  // limit scope of functor to allow deallocation of views
+  {
+    FixQEqReaxFFKokkosNumNeighFunctor<DeviceType> neigh_functor(this);
+    Kokkos::parallel_reduce(nn,neigh_functor,m_cap);
+  }
+
+  // deallocate first to reduce memory overhead
+
+  d_firstnbr = typename AT::t_int_1d();
+  d_numnbrs = typename AT::t_int_1d();
+  d_jlist = typename AT::t_int_1d();
+  d_val = typename AT::t_ffloat_1d();
 
   d_firstnbr = typename AT::t_int_1d("qeq/kk:firstnbr",nmax);
   d_numnbrs = typename AT::t_int_1d("qeq/kk:numnbrs",nmax);
@@ -348,60 +348,59 @@ void FixQEqReaxFFKokkos<DeviceType>::allocate_array()
   if (atom->nmax > nmax) {
     nmax = atom->nmax;
 
-    k_o = DAT::tdual_ffloat_1d("qeq/kk:o",nmax);
+    k_o = DAT::tdual_ffloat2_1d("qeq/kk:o",nmax);
     d_o = k_o.template view<DeviceType>();
     h_o = k_o.h_view;
 
-    d_Hdia_inv = typename AT::t_ffloat_1d("qeq/kk:Hdia_inv",nmax);
-
-    d_b_s = typename AT::t_ffloat_1d("qeq/kk:b_s",nmax);
-
-    d_b_t = typename AT::t_ffloat_1d("qeq/kk:b_t",nmax);
-
-    k_s = DAT::tdual_ffloat_1d("qeq/kk:s",nmax);
-    d_s = k_s.template view<DeviceType>();
-    h_s = k_s.h_view;
-
-    k_t = DAT::tdual_ffloat_1d("qeq/kk:t",nmax);
-    d_t = k_t.template view<DeviceType>();
-    h_t = k_t.h_view;
-
-    d_p = typename AT::t_ffloat_1d("qeq/kk:p",nmax);
-
-    d_r = typename AT::t_ffloat_1d("qeq/kk:r",nmax);
-
-    k_d = DAT::tdual_ffloat_1d("qeq/kk:d",nmax);
+    d_p = typename AT::t_ffloat2_1d("qeq/kk:p",nmax);
+    d_r = typename AT::t_ffloat2_1d("qeq/kk:r",nmax);
+    k_d = DAT::tdual_ffloat2_1d("qeq/kk:d",nmax);
     d_d = k_d.template view<DeviceType>();
     h_d = k_d.h_view;
+
+    d_Hdia_inv = typename AT::t_ffloat_1d("qeq/kk:Hdia_inv",nmax);
+
+    d_b_st = typename AT::t_ffloat2_1d("qeq/kk:b_st",nmax);
+
+    k_st = DAT::tdual_ffloat2_1d("qeq/kk:st",nmax);
+    d_st = k_st.template view<DeviceType>();
+    h_st = k_st.h_view;
+
+    memoryKK->create_kokkos(k_chi_field,chi_field,nmax,"qeq/kk:chi_field");
+    d_chi_field = k_chi_field.template view<DeviceType>();
   }
 
   // init_storage
 
-  FixQEqReaxFFKokkosZeroFunctor<DeviceType> zero_functor(this);
-  Kokkos::parallel_for(ignum,zero_functor);
+  if (efield) get_chi_field();
+
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqZero>(0,nn),*this);
 
 }
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::zero_item(int ii) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqZero, const int &ii) const
 {
   const int i = d_ilist[ii];
   const int itype = type(i);
 
   if (mask[i] & groupbit) {
     d_Hdia_inv[i] = 1.0 / params(itype).eta;
-    d_b_s[i] = -params(itype).chi;
-    d_b_t[i] = -1.0;
-    d_s[i] = 0.0;
-    d_t[i] = 0.0;
-    d_p[i] = 0.0;
-    d_o[i] = 0.0;
-    d_r[i] = 0.0;
-    d_d[i] = 0.0;
+    d_b_st(i,0) = -params(itype).chi - d_chi_field[i];
+    d_b_st(i,1) = -1.0;
+    d_st(i,0) = 0.0;
+    d_st(i,1) = 0.0;
+    d_p(i,0) = 0.0;
+    d_p(i,1) = 0.0;
+    d_o(i,0) = 0.0;
+    d_o(i,1) = 0.0;
+    d_r(i,0) = 0.0;
+    d_r(i,1) = 0.0;
+    d_d(i,0) = 0.0;
+    d_d(i,1) = 0.0;
   }
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -505,7 +504,7 @@ void FixQEqReaxFFKokkos<DeviceType>::compute_h_team(
   // team of threads work on atoms with index in [firstatom, lastatom)
   int firstatom = team.league_rank() * atoms_per_team;
   int lastatom =
-      (firstatom + atoms_per_team < inum) ? (firstatom + atoms_per_team) : inum;
+      (firstatom + atoms_per_team < nn) ? (firstatom + atoms_per_team) : nn;
 
   // kokkos-thread-0 is used to load info from global memory into scratch space
   if (team.team_rank() == 0) {
@@ -519,7 +518,7 @@ void FixQEqReaxFFKokkos<DeviceType>::compute_h_team(
                           [&](const int &idx, int &totalnbrs, bool final) {
                             int ii = firstatom + idx;
 
-                            if (ii < inum) {
+                            if (ii < nn) {
                               const int i = d_ilist[ii];
                               int jnum = d_numneigh[i];
 
@@ -557,7 +556,7 @@ void FixQEqReaxFFKokkos<DeviceType>::compute_h_team(
       Kokkos::TeamThreadRange(team, atoms_per_team), [&](const int &idx) {
         int ii = firstatom + idx;
 
-        if (ii < inum) {
+        if (ii < nn) {
           const int i = s_ilist[idx];
 
           if (mask[i] & groupbit) {
@@ -695,7 +694,7 @@ double FixQEqReaxFFKokkos<DeviceType>::calculate_H_k(const F_FLOAT &r, const F_F
   taper = taper * r + d_tap[0];
 
   denom = r * r * r + shld;
-  denom = pow(denom,1.0/3.0);
+  denom = cbrt(denom);
 
   return taper * EV_TO_KCAL_PER_MOL / denom;
 }
@@ -704,276 +703,123 @@ double FixQEqReaxFFKokkos<DeviceType>::calculate_H_k(const F_FLOAT &r, const F_F
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::matvec_item(int ii) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqInitMatvec, const int &ii) const
 {
   const int i = d_ilist[ii];
   const int itype = type(i);
 
   if (mask[i] & groupbit) {
     d_Hdia_inv[i] = 1.0 / params(itype).eta;
-    d_b_s[i] = -params(itype).chi;
-    d_b_t[i] = -1.0;
-    d_t[i] = d_t_hist(i,2) + 3*(d_t_hist(i,0) - d_t_hist(i,1));
-    d_s[i] = 4*(d_s_hist(i,0)+d_s_hist(i,2))-(6*d_s_hist(i,1)+d_s_hist(i,3));
+    d_b_st(i,0) = -params(itype).chi - d_chi_field[i];
+    d_b_st(i,1) = -1.0;
+    d_st(i,0) = 4*(d_s_hist(i,0)+d_s_hist(i,2))-(6*d_s_hist(i,1)+d_s_hist(i,3));
+    d_st(i,1) = d_t_hist(i,2) + 3*(d_t_hist(i,0) - d_t_hist(i,1));
   }
-
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixQEqReaxFFKokkos<DeviceType>::cg_solve1()
-// b = b_s, x = s;
+int FixQEqReaxFFKokkos<DeviceType>::cg_solve()
+// b = b_st, x = st;
 {
-  const int inum = list->inum;
-  F_FLOAT tmp, sig_old, b_norm;
+  converged = 0;
 
-  int teamsize;
-  if (execution_space == Host) teamsize = 1;
-  else teamsize = 128;
+  F_FLOAT2 tmp;
+  F_FLOAT2 sig_old;
+  F_FLOAT2 b_norm;
 
   // sparse_matvec(&H, x, q);
-  FixQEqReaxFFKokkosSparse12Functor<DeviceType> sparse12_functor(this);
-  Kokkos::parallel_for(inum,sparse12_functor);
-  if (neighflag != FULL) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(inum,ignum),*this);
-    if (neighflag == HALF) {
-      FixQEqReaxFFKokkosSparse13Functor<DeviceType,HALF> sparse13_functor(this);
-      Kokkos::parallel_for(inum,sparse13_functor);
-    } else if (neighflag == HALFTHREAD) {
-      FixQEqReaxFFKokkosSparse13Functor<DeviceType,HALFTHREAD> sparse13_functor(this);
-      Kokkos::parallel_for(inum,sparse13_functor);
-    }
-    if (need_dup)
-      Kokkos::Experimental::contribute(d_o, dup_o);
-  } else {
-    Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec1> (inum, teamsize), *this);
-  }
+  sparse_matvec_kokkos(d_st);
 
   if (neighflag != FULL) {
     k_o.template modify<DeviceType>();
-    comm->reverse_comm_fix(this); //Coll_vector(q);
+    comm->reverse_comm(this); //Coll_vector(q);
     k_o.template sync<DeviceType>();
   }
 
   // vector_sum(r , 1.,  b, -1., q, nn);
   // preconditioning: d[j] = r[j] * Hdia_inv[j];
   // b_norm = parallel_norm(b, nn);
-  F_FLOAT my_norm = 0.0;
-  FixQEqReaxFFKokkosNorm1Functor<DeviceType> norm1_functor(this);
-  Kokkos::parallel_reduce(inum,norm1_functor,my_norm);
-  F_FLOAT norm_sqr = 0.0;
-  MPI_Allreduce(&my_norm, &norm_sqr, 1, MPI_DOUBLE, MPI_SUM, world);
-  b_norm = sqrt(norm_sqr);
+  F_FLOAT2 my_norm;
+  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagQEqNorm1>(0,nn),*this,my_norm);
+  F_FLOAT2 norm_sqr;
+  MPI_Allreduce(&my_norm.v, &norm_sqr.v, 2, MPI_DOUBLE, MPI_SUM, world);
+  b_norm.v[0] = sqrt(norm_sqr.v[0]);
+  b_norm.v[1] = sqrt(norm_sqr.v[1]);
 
   // sig_new = parallel_dot(r, d, nn);
-  F_FLOAT my_dot = 0.0;
-  FixQEqReaxFFKokkosDot1Functor<DeviceType> dot1_functor(this);
-  Kokkos::parallel_reduce(inum,dot1_functor,my_dot);
-  F_FLOAT dot_sqr = 0.0;
-  MPI_Allreduce(&my_dot, &dot_sqr, 1, MPI_DOUBLE, MPI_SUM, world);
-  F_FLOAT sig_new = dot_sqr;
+  F_FLOAT2 my_dot;
+  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagQEqDot1>(0,nn),*this,my_dot);
+  F_FLOAT2 dot_sqr;
+  MPI_Allreduce(&my_dot.v, &dot_sqr.v, 2, MPI_DOUBLE, MPI_SUM, world);
+  F_FLOAT2 sig_new;
+  sig_new = dot_sqr;
 
+  F_FLOAT residual[2] = {0.0, 0.0};
   int loop;
-  for (loop = 1; (loop < imax) && (sqrt(sig_new)/b_norm > tolerance); loop++) {
+  for (loop = 1; (loop < imax); loop++) {
+    if (!(converged & 1))
+      residual[0] = sqrt(sig_new.v[0]) / b_norm.v[0];
+    if (!(converged & 2))
+      residual[1] = sqrt(sig_new.v[1]) / b_norm.v[1];
+    converged = static_cast<int>(residual[0] <= tolerance) | (static_cast<int>(residual[1] <= tolerance) << 1);
 
-    // comm->forward_comm_fix(this); //Dist_vector(d);
+    if (converged == 3) {
+      // both cg solves have converged
+      break;
+    }
+
+    // comm->forward_comm(this); //Dist_vector(d);
     pack_flag = 1;
+    // mark size 2 for
     k_d.template modify<DeviceType>();
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this, 2);
     k_d.template sync<DeviceType>();
 
     // sparse_matvec(&H, d, q);
-    FixQEqReaxFFKokkosSparse22Functor<DeviceType> sparse22_functor(this);
-    Kokkos::parallel_for(inum,sparse22_functor);
-    if (neighflag != FULL) {
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(inum,ignum),*this);
-      if (need_dup)
-        dup_o.reset_except(d_o);
-      if (neighflag == HALF) {
-        FixQEqReaxFFKokkosSparse23Functor<DeviceType,HALF> sparse23_functor(this);
-        Kokkos::parallel_for(inum,sparse23_functor);
-      } else if (neighflag == HALFTHREAD) {
-        FixQEqReaxFFKokkosSparse23Functor<DeviceType,HALFTHREAD> sparse23_functor(this);
-        Kokkos::parallel_for(inum,sparse23_functor);
-      }
-      if (need_dup)
-        Kokkos::Experimental::contribute(d_o, dup_o);
-    } else {
-      Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2> (inum, teamsize), *this);
-    }
+    sparse_matvec_kokkos(d_d);
 
     if (neighflag != FULL) {
       k_o.template modify<DeviceType>();
-      comm->reverse_comm_fix(this); //Coll_vector(q);
+      comm->reverse_comm(this); //Coll_vector(q);
       k_o.template sync<DeviceType>();
     }
 
     // tmp = parallel_dot(d, q, nn);
-    my_dot = dot_sqr = 0.0;
-    FixQEqReaxFFKokkosDot2Functor<DeviceType> dot2_functor(this);
-    Kokkos::parallel_reduce(inum,dot2_functor,my_dot);
-    MPI_Allreduce(&my_dot, &dot_sqr, 1, MPI_DOUBLE, MPI_SUM, world);
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagQEqDot2>(0,nn),*this,my_dot);
+    MPI_Allreduce(&my_dot.v, &dot_sqr.v, 2, MPI_DOUBLE, MPI_SUM, world);
     tmp = dot_sqr;
-
-    alpha = sig_new / tmp;
+    if (!(converged & 1))
+      alpha[0] = sig_new.v[0] / tmp.v[0];
+    if (!(converged & 2))
+      alpha[1] = sig_new.v[1] / tmp.v[1];
 
     sig_old = sig_new;
 
     // vector_add(s, alpha, d, nn);
     // vector_add(r, -alpha, q, nn);
-    my_dot = dot_sqr = 0.0;
-    FixQEqReaxFFKokkosPrecon1Functor<DeviceType> precon1_functor(this);
-    Kokkos::parallel_for(inum,precon1_functor);
     // preconditioning: p[j] = r[j] * Hdia_inv[j];
     // sig_new = parallel_dot(r, p, nn);
-    FixQEqReaxFFKokkosPreconFunctor<DeviceType> precon_functor(this);
-    Kokkos::parallel_reduce(inum,precon_functor,my_dot);
-    MPI_Allreduce(&my_dot, &dot_sqr, 1, MPI_DOUBLE, MPI_SUM, world);
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagQEqDot3>(0,nn),*this,my_dot);
+    MPI_Allreduce(&my_dot.v, &dot_sqr.v, 2, MPI_DOUBLE, MPI_SUM, world);
     sig_new = dot_sqr;
 
-    beta = sig_new / sig_old;
+    if (!(converged & 1))
+      beta[0] = sig_new.v[0] / sig_old.v[0];
+    if (!(converged & 2))
+      beta[1] = sig_new.v[1] / sig_old.v[1];
 
     // vector_sum(d, 1., p, beta, d, nn);
-    FixQEqReaxFFKokkosVecSum2Functor<DeviceType> vecsum2_functor(this);
-    Kokkos::parallel_for(inum,vecsum2_functor);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqSum1>(0,nn),*this);
   }
 
-  if ((loop >= imax) && maxwarn && (comm->me == 0))
-    error->warning(FLERR,fmt::format("Fix qeq/reaxff/kk cg_solve1 convergence "
+  if (loop >= imax && comm->me == 0)
+    error->warning(FLERR,fmt::format("Fix qeq/reaxff/kk cg_solve convergence "
                                      "failed after {} iterations at step {}: "
-                                     "{}", loop, update->ntimestep,
-                                     sqrt(sig_new)/b_norm));
-  return loop;
-}
+                                     "({}, {})", loop, update->ntimestep,
+                                     (sqrt(sig_new.v[0])/b_norm.v[0]), (sqrt(sig_new.v[1])/b_norm.v[1])));
 
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-int FixQEqReaxFFKokkos<DeviceType>::cg_solve2()
-// b = b_t, x = t;
-{
-  const int inum = list->inum;
-  F_FLOAT tmp, sig_old, b_norm;
-
-  int teamsize;
-  if (execution_space == Host) teamsize = 1;
-  else teamsize = 128;
-
-  // sparse_matvec(&H, x, q);
-  FixQEqReaxFFKokkosSparse32Functor<DeviceType> sparse32_functor(this);
-  Kokkos::parallel_for(inum,sparse32_functor);
-  if (neighflag != FULL) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(inum,ignum),*this);
-    if (need_dup)
-      dup_o.reset_except(d_o);
-    if (neighflag == HALF) {
-      FixQEqReaxFFKokkosSparse33Functor<DeviceType,HALF> sparse33_functor(this);
-      Kokkos::parallel_for(inum,sparse33_functor);
-    } else if (neighflag == HALFTHREAD) {
-      FixQEqReaxFFKokkosSparse33Functor<DeviceType,HALFTHREAD> sparse33_functor(this);
-      Kokkos::parallel_for(inum,sparse33_functor);
-    }
-    if (need_dup)
-      Kokkos::Experimental::contribute(d_o, dup_o);
-  } else {
-    Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec3> (inum, teamsize), *this);
-  }
-
-  if (neighflag != FULL) {
-    k_o.template modify<DeviceType>();
-    comm->reverse_comm_fix(this); //Coll_vector(q);
-    k_o.template sync<DeviceType>();
-  }
-
-  // vector_sum(r , 1.,  b, -1., q, nn);
-  // preconditioning: d[j] = r[j] * Hdia_inv[j];
-  // b_norm = parallel_norm(b, nn);
-  F_FLOAT my_norm = 0.0;
-  FixQEqReaxFFKokkosNorm2Functor<DeviceType> norm2_functor(this);
-  Kokkos::parallel_reduce(inum,norm2_functor,my_norm);
-  F_FLOAT norm_sqr = 0.0;
-  MPI_Allreduce(&my_norm, &norm_sqr, 1, MPI_DOUBLE, MPI_SUM, world);
-  b_norm = sqrt(norm_sqr);
-
-  // sig_new = parallel_dot(r, d, nn);
-  F_FLOAT my_dot = 0.0;
-  FixQEqReaxFFKokkosDot1Functor<DeviceType> dot1_functor(this);
-  Kokkos::parallel_reduce(inum,dot1_functor,my_dot);
-  F_FLOAT dot_sqr = 0.0;
-  MPI_Allreduce(&my_dot, &dot_sqr, 1, MPI_DOUBLE, MPI_SUM, world);
-  F_FLOAT sig_new = dot_sqr;
-
-  int loop;
-  for (loop = 1; (loop < imax) && (sqrt(sig_new)/b_norm > tolerance); loop++) {
-
-    // comm->forward_comm_fix(this); //Dist_vector(d);
-    pack_flag = 1;
-    k_d.template modify<DeviceType>();
-    comm->forward_comm_fix(this);
-    k_d.template sync<DeviceType>();
-
-    // sparse_matvec(&H, d, q);
-    FixQEqReaxFFKokkosSparse22Functor<DeviceType> sparse22_functor(this);
-    Kokkos::parallel_for(inum,sparse22_functor);
-    if (neighflag != FULL) {
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(inum,ignum),*this);
-      if (need_dup)
-        dup_o.reset_except(d_o);
-      if (neighflag == HALF) {
-        FixQEqReaxFFKokkosSparse23Functor<DeviceType,HALF> sparse23_functor(this);
-        Kokkos::parallel_for(inum,sparse23_functor);
-      } else if (neighflag == HALFTHREAD) {
-        FixQEqReaxFFKokkosSparse23Functor<DeviceType,HALFTHREAD> sparse23_functor(this);
-        Kokkos::parallel_for(inum,sparse23_functor);
-      }
-      if (need_dup)
-        Kokkos::Experimental::contribute(d_o, dup_o);
-    } else {
-      Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2> (inum, teamsize), *this);
-    }
-
-    if (neighflag != FULL) {
-      k_o.template modify<DeviceType>();
-      comm->reverse_comm_fix(this); //Coll_vector(q);
-      k_o.template sync<DeviceType>();
-    }
-
-    // tmp = parallel_dot(d, q, nn);
-    my_dot = dot_sqr = 0.0;
-    FixQEqReaxFFKokkosDot2Functor<DeviceType> dot2_functor(this);
-    Kokkos::parallel_reduce(inum,dot2_functor,my_dot);
-    MPI_Allreduce(&my_dot, &dot_sqr, 1, MPI_DOUBLE, MPI_SUM, world);
-    tmp = dot_sqr;
-
-    alpha = sig_new / tmp;
-
-    sig_old = sig_new;
-
-    // vector_add(t, alpha, d, nn);
-    // vector_add(r, -alpha, q, nn);
-    my_dot = dot_sqr = 0.0;
-    FixQEqReaxFFKokkosPrecon2Functor<DeviceType> precon2_functor(this);
-    Kokkos::parallel_for(inum,precon2_functor);
-    // preconditioning: p[j] = r[j] * Hdia_inv[j];
-    // sig_new = parallel_dot(r, p, nn);
-    FixQEqReaxFFKokkosPreconFunctor<DeviceType> precon_functor(this);
-    Kokkos::parallel_reduce(inum,precon_functor,my_dot);
-    MPI_Allreduce(&my_dot, &dot_sqr, 1, MPI_DOUBLE, MPI_SUM, world);
-    sig_new = dot_sqr;
-
-    beta = sig_new / sig_old;
-
-    // vector_sum(d, 1., p, beta, d, nn);
-    FixQEqReaxFFKokkosVecSum2Functor<DeviceType> vecsum2_functor(this);
-    Kokkos::parallel_for(inum,vecsum2_functor);
-  }
-
-  if ((loop >= imax) && maxwarn && (comm->me == 0))
-    error->warning(FLERR,fmt::format("Fix qeq/reaxff/kk cg_solve2 convergence "
-                                     "failed after {} iterations at step {}: "
-                                     "{}", loop, update->ntimestep,
-                                     sqrt(sig_new)/b_norm));
   return loop;
 }
 
@@ -982,46 +828,94 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve2()
 template<class DeviceType>
 void FixQEqReaxFFKokkos<DeviceType>::calculate_q()
 {
-  F_FLOAT sum, sum_all;
-  const int inum = list->inum;
+  F_FLOAT2 sum, sum_all;
 
-  // s_sum = parallel_vector_acc(s, nn);
-  sum = sum_all = 0.0;
-  FixQEqReaxFFKokkosVecAcc1Functor<DeviceType> vecacc1_functor(this);
-  Kokkos::parallel_reduce(inum,vecacc1_functor,sum);
-  MPI_Allreduce(&sum, &sum_all, 1, MPI_DOUBLE, MPI_SUM, world);
-  const F_FLOAT s_sum = sum_all;
-
-  // t_sum = parallel_vector_acc(t, nn);
-  sum = sum_all = 0.0;
-  FixQEqReaxFFKokkosVecAcc2Functor<DeviceType> vecacc2_functor(this);
-  Kokkos::parallel_reduce(inum,vecacc2_functor,sum);
-  MPI_Allreduce(&sum, &sum_all, 1, MPI_DOUBLE, MPI_SUM, world);
-  const F_FLOAT t_sum = sum_all;
+  // st_sum = parallel_vector_acc(st, nn);
+  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagQEqSum2>(0,nn),*this,sum);
+  MPI_Allreduce(&sum.v, &sum_all.v, 2, MPI_DOUBLE, MPI_SUM, world);
+  const F_FLOAT s_sum = sum_all.v[0];
+  const F_FLOAT t_sum = sum_all.v[1];
 
   // u = s_sum / t_sum;
   delta = s_sum/t_sum;
 
   // q[i] = s[i] - u * t[i];
-  FixQEqReaxFFKokkosCalculateQFunctor<DeviceType> calculateQ_functor(this);
-  Kokkos::parallel_for(inum,calculateQ_functor);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqCalculateQ>(0,nn),*this);
   atomKK->modified(execution_space,Q_MASK);
 
-  pack_flag = 4;
-  //comm->forward_comm_fix(this); //Dist_vector(atom->q);
-  comm->forward_comm_fix(this);
+  pack_flag = 3;
+  //comm->forward_comm(this); //Dist_vector(atom->q);
+  comm->forward_comm(this);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixQEqReaxFFKokkos<DeviceType>::sparse_matvec_kokkos(typename AT::t_ffloat2_1d &d_xx_in)
+{
+  d_xx = d_xx_in;
+
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqSparseMatvec1>(0,nn),*this);
+
+  int teamsize;
+  int vectorsize;
+  int leaguesize;
+  if (execution_space == Host) {
+    teamsize = 1;
+    vectorsize = 1;
+    leaguesize = nn;
+  } else {
+    teamsize = FixQEqReaxFFKokkos<DeviceType>::spmv_teamsize;
+    vectorsize = FixQEqReaxFFKokkos<DeviceType>::vectorsize;
+    leaguesize = (nn + teamsize - 1) / (teamsize);
+  }
+
+  if (neighflag != FULL) {
+    int nall = nlocal + atomKK->nghost;
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqZeroQGhosts>(atom->nlocal,nall),*this);
+
+    if (need_dup)
+      dup_o.reset_except(d_o);
+
+    if (neighflag == HALF)
+      Kokkos::parallel_for(Kokkos::TeamPolicy<DeviceType, TagQEqSparseMatvec2_Half<HALF>>(leaguesize, teamsize, vectorsize), *this);
+    else if (neighflag == HALFTHREAD)
+      Kokkos::parallel_for(Kokkos::TeamPolicy<DeviceType, TagQEqSparseMatvec2_Half<HALFTHREAD>>(leaguesize, teamsize, vectorsize), *this);
+
+    if (need_dup)
+      Kokkos::Experimental::contribute(d_o, dup_o);
+  } else // FULL
+    Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagQEqSparseMatvec2_Full>(leaguesize, teamsize, vectorsize), *this);
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::sparse12_item(int ii) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSparseMatvec1, const int &ii) const
 {
   const int i = d_ilist[ii];
   const int itype = type(i);
+  const auto params_eta = params(itype).eta;
   if (mask[i] & groupbit) {
-    d_o[i] = params(itype).eta * d_s[i];
+    if (!(converged & 1))
+      d_o(i,0) = params_eta * d_xx(i,0);
+    if (!(converged & 2))
+      d_o(i,1) = params_eta * d_xx(i,1);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqZeroQGhosts, const int &i) const
+{
+  if (mask[i] & groupbit) {
+    if (!(converged & 1))
+      d_o(i,0) = 0.0;
+    if (!(converged & 2))
+      d_o(i,1) = 0.0;
   }
 }
 
@@ -1030,21 +924,39 @@ void FixQEqReaxFFKokkos<DeviceType>::sparse12_item(int ii) const
 template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::sparse13_item(int ii) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSparseMatvec2_Half<NEIGHFLAG>, const typename Kokkos::TeamPolicy<DeviceType, TagQEqSparseMatvec2_Half<NEIGHFLAG>>::member_type &team) const
 {
-  // The q array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
-  auto v_o = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_o),decltype(ndup_o)>::get(dup_o,ndup_o);
-  auto a_o = v_o.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  int k = team.league_rank() * team.team_size() + team.team_rank();
+  if (k < nn) {
+    // The q array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+    auto v_o = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_o),decltype(ndup_o)>::get(dup_o,ndup_o);
+    auto a_o = v_o.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
-  const int i = d_ilist[ii];
-  if (mask[i] & groupbit) {
-    F_FLOAT tmp = 0.0;
-    for (int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
-      const int j = d_jlist(jj);
-      tmp += d_val(jj) * d_s[j];
-      a_o[j] += d_val(jj) * d_s[i];
+    const int i = d_ilist[k];
+    if (mask[i] & groupbit) {
+      F_FLOAT2 doitmp;
+      const double d_xx_i0 = d_xx(i,0);
+      const double d_xx_i1 = d_xx(i,1);
+
+      Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, d_firstnbr[i], d_firstnbr[i] + d_numnbrs[i]), [&] (const int &jj, F_FLOAT2& doi) {
+        const int j = d_jlist(jj);
+        const auto d_val_jj = d_val(jj);
+        if (!(converged & 1)) {
+          doi.v[0] += d_val_jj * d_xx(j,0);
+          a_o(j,0) += d_val_jj * d_xx_i0;
+        }
+        if (!(converged & 2)) {
+          doi.v[1] += d_val_jj * d_xx(j,1);
+          a_o(j,1) += d_val_jj * d_xx_i1;
+        }
+      }, doitmp);
+      Kokkos::single(Kokkos::PerThread(team), [&] () {
+        if (!(converged & 1))
+          a_o(i,0) += doitmp.v[0];
+        if (!(converged & 2))
+          a_o(i,1) += doitmp.v[1];
+      });
     }
-    a_o[i] += tmp;
   }
 }
 
@@ -1052,52 +964,28 @@ void FixQEqReaxFFKokkos<DeviceType>::sparse13_item(int ii) const
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::operator() (TagSparseMatvec1, const membertype1 &team) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSparseMatvec2_Full, const membertype_vec &team) const
 {
-  const int i = d_ilist[team.league_rank()];
-  if (mask[i] & groupbit) {
-    F_FLOAT doitmp;
-    Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, d_firstnbr[i], d_firstnbr[i] + d_numnbrs[i]), [&] (const int &jj, F_FLOAT &doi) {
-      const int j = d_jlist(jj);
-      doi += d_val(jj) * d_s[j];
-    }, doitmp);
-    Kokkos::single(Kokkos::PerTeam(team), [&] () {d_o[i] += doitmp;});
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::sparse22_item(int ii) const
-{
-  const int i = d_ilist[ii];
-  const int itype = type(i);
-  if (mask[i] & groupbit) {
-    d_o[i] = params(itype).eta * d_d[i];
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-template<int NEIGHFLAG>
-KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::sparse23_item(int ii) const
-{
-  // The q array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
-  auto v_o = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_o),decltype(ndup_o)>::get(dup_o,ndup_o);
-  auto a_o = v_o.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
-
-  const int i = d_ilist[ii];
-  if (mask[i] & groupbit) {
-    F_FLOAT tmp = 0.0;
-    for (int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
-      const int j = d_jlist(jj);
-      tmp += d_val(jj) * d_d[j];
-      a_o[j] += d_val(jj) * d_d[i];
+  int k = team.league_rank() * team.team_size() + team.team_rank();
+  if (k < nn) {
+    const int i = d_ilist[k];
+    if (mask[i] & groupbit) {
+      F_FLOAT2 doitmp;
+      Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, d_firstnbr[i], d_firstnbr[i] + d_numnbrs[i]), [&] (const int &jj, F_FLOAT2& doi) {
+        const int j = d_jlist(jj);
+        const auto d_val_jj = d_val(jj);
+        if (!(converged & 1))
+          doi.v[0] += d_val_jj * d_xx(j,0);
+        if (!(converged & 2))
+          doi.v[1] += d_val_jj * d_xx(j,1);
+      }, doitmp);
+      Kokkos::single(Kokkos::PerThread(team), [&] () {
+        if (!(converged & 1))
+          d_o(i,0) += doitmp.v[0];
+        if (!(converged & 2))
+          d_o(i,1) += doitmp.v[1];
+      });
     }
-    a_o[i] += tmp;
   }
 }
 
@@ -1105,59 +993,22 @@ void FixQEqReaxFFKokkos<DeviceType>::sparse23_item(int ii) const
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::operator() (TagSparseMatvec2, const membertype2 &team) const
-{
-  const int i = d_ilist[team.league_rank()];
-  if (mask[i] & groupbit) {
-    F_FLOAT doitmp;
-    Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, d_firstnbr[i], d_firstnbr[i] + d_numnbrs[i]), [&] (const int &jj, F_FLOAT &doi) {
-      const int j = d_jlist(jj);
-      doi += d_val(jj) * d_d[j];
-    }, doitmp);
-    Kokkos::single(Kokkos::PerTeam(team), [&] () {d_o[i] += doitmp; });
-  }
-}
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::operator() (TagZeroQGhosts, const int &i) const
-{
-  if (mask[i] & groupbit)
-    d_o[i] = 0.0;
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::sparse32_item(int ii) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqNorm1, const int &ii, F_FLOAT2& out) const
 {
   const int i = d_ilist[ii];
-  const int itype = type(i);
-  if (mask[i] & groupbit)
-    d_o[i] = params(itype).eta * d_t[i];
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-template<int NEIGHFLAG>
-KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::sparse33_item(int ii) const
-{
-  // The q array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
-  auto v_o = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_o),decltype(ndup_o)>::get(dup_o,ndup_o);
-  auto a_o = v_o.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
-
-  const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
-    F_FLOAT tmp = 0.0;
-    for (int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
-      const int j = d_jlist(jj);
-      tmp += d_val(jj) * d_t[j];
-      a_o[j] += d_val(jj) * d_t[i];
+    const auto d_Hdia_inv_i = d_Hdia_inv[i];
+    if (!(converged & 1)) {
+      d_r(i,0) = 1.0*d_b_st(i,0) + -1.0*d_o(i,0);
+      d_d(i,0) = d_r(i,0) * d_Hdia_inv_i;
+      out.v[0] += d_b_st(i,0) * d_b_st(i,0);
     }
-    a_o[i] += tmp;
+
+    if (!(converged & 2)) {
+      d_r(i,1) = 1.0*d_b_st(i,1) + -1.0*d_o(i,1);
+      d_d(i,1) = d_r(i,1) * d_Hdia_inv_i;
+      out.v[1] += d_b_st(i,1) * d_b_st(i,1);
+    }
   }
 }
 
@@ -1165,16 +1016,14 @@ void FixQEqReaxFFKokkos<DeviceType>::sparse33_item(int ii) const
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::operator() (TagSparseMatvec3, const membertype3 &team) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqDot1, const int &ii, F_FLOAT2& out) const
 {
-  const int i = d_ilist[team.league_rank()];
+  const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
-    F_FLOAT doitmp;
-    Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, d_firstnbr[i], d_firstnbr[i] + d_numnbrs[i]), [&] (const int &jj, F_FLOAT &doi) {
-      const int j = d_jlist(jj);
-      doi += d_val(jj) * d_t[j];
-    }, doitmp);
-    Kokkos::single(Kokkos::PerTeam(team), [&] () {d_o[i] += doitmp;});
+    if (!(converged & 1))
+      out.v[0] += d_r(i,0) * d_d(i,0);
+    if (!(converged & 2))
+      out.v[1] += d_r(i,1) * d_d(i,1);
   }
 }
 
@@ -1182,82 +1031,14 @@ void FixQEqReaxFFKokkos<DeviceType>::operator() (TagSparseMatvec3, const membert
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::vecsum2_item(int ii) const
-{
-  const int i = d_ilist[ii];
-  if (mask[i] & groupbit)
-    d_d[i] = 1.0 * d_p[i] + beta * d_d[i];
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-double FixQEqReaxFFKokkos<DeviceType>::norm1_item(int ii) const
-{
-  F_FLOAT tmp = 0;
-  const int i = d_ilist[ii];
-  if (mask[i] & groupbit) {
-    d_r[i] = 1.0*d_b_s[i] + -1.0*d_o[i];
-    d_d[i] = d_r[i] * d_Hdia_inv[i];
-    tmp = d_b_s[i] * d_b_s[i];
-  }
-  return tmp;
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-double FixQEqReaxFFKokkos<DeviceType>::norm2_item(int ii) const
-{
-  F_FLOAT tmp = 0;
-  const int i = d_ilist[ii];
-  if (mask[i] & groupbit) {
-    d_r[i] = 1.0*d_b_t[i] + -1.0*d_o[i];
-    d_d[i] = d_r[i] * d_Hdia_inv[i];
-    tmp = d_b_t[i] * d_b_t[i];
-  }
-  return tmp;
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-double FixQEqReaxFFKokkos<DeviceType>::dot1_item(int ii) const
-{
-  F_FLOAT tmp = 0.0;
-  const int i = d_ilist[ii];
-  if (mask[i] & groupbit)
-    tmp = d_r[i] * d_d[i];
-  return tmp;
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-double FixQEqReaxFFKokkos<DeviceType>::dot2_item(int ii) const
-{
-  double tmp = 0.0;
-  const int i = d_ilist[ii];
-  if (mask[i] & groupbit) {
-    tmp = d_d[i] * d_o[i];
-  }
-  return tmp;
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::precon1_item(int ii) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqDot2, const int &ii, F_FLOAT2& out) const
 {
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
-    d_s[i] += alpha * d_d[i];
-    d_r[i] += -alpha * d_o[i];
+    if (!(converged & 1))
+      out.v[0] += d_d(i,0) * d_o(i,0);
+    if (!(converged & 2))
+      out.v[1] += d_d(i,1) * d_o(i,1);
   }
 }
 
@@ -1265,12 +1046,25 @@ void FixQEqReaxFFKokkos<DeviceType>::precon1_item(int ii) const
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::precon2_item(int ii) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqDot3, const int &ii, F_FLOAT2& out) const
 {
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
-    d_t[i] += alpha * d_d[i];
-    d_r[i] += -alpha * d_o[i];
+    const auto d_Hdia_inv_i = d_Hdia_inv[i];
+    if (!(converged & 1)) {
+      const auto alpha_0 = alpha[0];
+      d_st(i,0) += alpha_0 * d_d(i,0);
+      d_r(i,0) += -alpha_0 * d_o(i,0);
+      d_p(i,0) = d_r(i,0) * d_Hdia_inv_i;
+      out.v[0] += d_r(i,0) * d_p(i,0);
+    }
+    if (!(converged & 2)) {
+      const auto alpha_1 = alpha[1];
+      d_st(i,1) += alpha_1 * d_d(i,1);
+      d_r(i,1) += -alpha_1 * d_o(i,1);
+      d_p(i,1) = d_r(i,1) * d_Hdia_inv_i;
+      out.v[1] += d_r(i,1) * d_p(i,1);
+    }
   }
 }
 
@@ -1278,118 +1072,109 @@ void FixQEqReaxFFKokkos<DeviceType>::precon2_item(int ii) const
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double FixQEqReaxFFKokkos<DeviceType>::precon_item(int ii) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSum1, const int &ii) const
 {
-  F_FLOAT tmp = 0.0;
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
-    d_p[i] = d_r[i] * d_Hdia_inv[i];
-    tmp = d_r[i] * d_p[i];
+    if (!(converged & 1))
+      d_d(i,0) = 1.0 * d_p(i,0) + beta[0] * d_d(i,0);
+    if (!(converged & 2))
+      d_d(i,1) = 1.0 * d_p(i,1) + beta[1] * d_d(i,1);
   }
-  return tmp;
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double FixQEqReaxFFKokkos<DeviceType>::vecacc1_item(int ii) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSum2, const int &ii, F_FLOAT2& out) const
 {
-  F_FLOAT tmp = 0.0;
-  const int i = d_ilist[ii];
-  if (mask[i] & groupbit)
-    tmp = d_s[i];
-  return tmp;
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-double FixQEqReaxFFKokkos<DeviceType>::vecacc2_item(int ii) const
-{
-  F_FLOAT tmp = 0.0;
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
-    tmp = d_t[i];
+    out.v[0] += d_st(i,0);
+    out.v[1] += d_st(i,1);
   }
-  return tmp;
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::calculate_q_item(int ii) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqCalculateQ, const int &ii) const
 {
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
-    q(i) = d_s[i] - delta * d_t[i];
+    q(i) = d_st(i,0) - delta * d_st(i,1);
 
     for (int k = nprev-1; k > 0; --k) {
       d_s_hist(i,k) = d_s_hist(i,k-1);
       d_t_hist(i,k) = d_t_hist(i,k-1);
     }
-    d_s_hist(i,0) = d_s[i];
-    d_t_hist(i,0) = d_t[i];
+    d_s_hist(i,0) = d_st(i,0);
+    d_t_hist(i,0) = d_st(i,1);
   }
-
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixQEqReaxFFKokkos<DeviceType>::pack_forward_comm_fix_kokkos(int n, DAT::tdual_int_2d k_sendlist,
+int FixQEqReaxFFKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist,
                                                         int iswap_in, DAT::tdual_xfloat_1d &k_buf,
                                                         int /*pbc_flag*/, int * /*pbc*/)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
   iswap = iswap_in;
   d_buf = k_buf.view<DeviceType>();
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixQEqReaxFFPackForwardComm>(0,n),*this);
-  return n;
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagQEqPackForwardComm>(0,n),*this);
+  if (pack_flag == 3) return n;
+  else return n*2;
 }
+
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::operator()(TagFixQEqReaxFFPackForwardComm, const int &i) const {
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqPackForwardComm, const int &i) const {
   int j = d_sendlist(iswap, i);
 
-  if (pack_flag == 1)
-    d_buf[i] = d_d[j];
-  else if (pack_flag == 2)
-    d_buf[i] = d_s[j];
-  else if (pack_flag == 3)
-    d_buf[i] = d_t[j];
-  else if (pack_flag == 4)
+  if (pack_flag == 1) {
+    if (!(converged & 1))
+      d_buf[i*2] = d_d(j,0);
+    if (!(converged & 2))
+      d_buf[i*2+1] = d_d(j,1);
+  } else if (pack_flag == 2) {
+    d_buf[i*2] = d_st(j,0);
+    d_buf[i*2+1] = d_st(j,1);
+  } else if (pack_flag == 3)
     d_buf[i] = q[j];
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixQEqReaxFFKokkos<DeviceType>::unpack_forward_comm_fix_kokkos(int n, int first_in, DAT::tdual_xfloat_1d &buf)
+void FixQEqReaxFFKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in, DAT::tdual_xfloat_1d &buf)
 {
   first = first_in;
   d_buf = buf.view<DeviceType>();
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixQEqReaxFFUnpackForwardComm>(0,n),*this);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagQEqUnpackForwardComm>(0,n),*this);
 
-  if (pack_flag == 4)
+  if (pack_flag == 3)
     atomKK->modified(execution_space,Q_MASK); // needed for auto_sync
 }
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::operator()(TagFixQEqReaxFFUnpackForwardComm, const int &i) const {
-  if (pack_flag == 1)
-    d_d[i + first] = d_buf[i];
-  else if (pack_flag == 2)
-    d_s[i + first] = d_buf[i];
-  else if (pack_flag == 3)
-    d_t[i + first] = d_buf[i];
-  else if (pack_flag == 4)
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqUnpackForwardComm, const int &i) const {
+  if (pack_flag == 1) {
+    if (!(converged & 1))
+      d_d(i+first,0) = d_buf[i*2];
+    if (!(converged & 2))
+      d_d(i+first,1) = d_buf[i*2+1];
+  } else if (pack_flag == 2) {
+    d_st(i+first,0) = d_buf[i*2];
+    d_st(i+first,1) = d_buf[i*2+1];
+  } else if (pack_flag == 3)
     q[i + first] = d_buf[i];
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1400,21 +1185,28 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *
 {
   int m;
 
+  k_d.sync_host();
   if (pack_flag == 1) {
     k_d.sync_host();
-    for (m = 0; m < n; m++) buf[m] = h_d[list[m]];
+    for (m = 0; m < n; m++) {
+      if (!(converged & 1))
+        buf[m*2] = h_d(list[m],0);
+      if (!(converged & 2))
+        buf[m*2+1] = h_d(list[m],1);
+    }
   } else if (pack_flag == 2) {
-    k_s.sync_host();
-    for (m = 0; m < n; m++) buf[m] = h_s[list[m]];
+    k_st.sync_host();
+    for (m = 0; m < n; m++) {
+      buf[m*2] = h_st(list[m],0);
+      buf[m*2+1] = h_st(list[m],1);
+    }
   } else if (pack_flag == 3) {
-    k_t.sync_host();
-    for (m = 0; m < n; m++) buf[m] = h_t[list[m]];
-  } else if (pack_flag == 4) {
     atomKK->sync(Host,Q_MASK);
     for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
   }
 
-  return n;
+  if (pack_flag == 3) return n;
+  else return n*2;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1426,17 +1218,21 @@ void FixQEqReaxFFKokkos<DeviceType>::unpack_forward_comm(int n, int first, doubl
 
   if (pack_flag == 1) {
     k_d.sync_host();
-    for (m = 0, i = first; m < n; m++, i++) h_d[i] = buf[m];
+    for (m = 0, i = first; m < n; m++, i++) {
+      if (!(converged & 1))
+        h_d(i,0) = buf[m*2];
+      if (!(converged & 2))
+        h_d(i,1) = buf[m*2+1];
+    }
     k_d.modify_host();
   } else if (pack_flag == 2) {
-    k_s.sync_host();
-    for (m = 0, i = first; m < n; m++, i++) h_s[i] = buf[m];
-    k_s.modify_host();
+    k_st.sync_host();
+    for (m = 0, i = first; m < n; m++, i++) {
+      h_st(i,0) = buf[m*2];
+      h_st(i,1) = buf[m*2+1];
+    }
+    k_st.modify_host();
   } else if (pack_flag == 3) {
-    k_t.sync_host();
-    for (m = 0, i = first; m < n; m++, i++) h_t[i] = buf[m];
-    k_t.modify_host();
-  } else if (pack_flag == 4) {
     atomKK->sync(Host,Q_MASK);
     for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
     atomKK->modified(Host,Q_MASK);
@@ -1448,13 +1244,15 @@ void FixQEqReaxFFKokkos<DeviceType>::unpack_forward_comm(int n, int first, doubl
 template<class DeviceType>
 int FixQEqReaxFFKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
 {
-  k_o.sync_host();
-
   int i, m;
+  k_o.sync_host();
   for (m = 0, i = first; m < n; m++, i++) {
-    buf[m] = h_o[i];
+    if (!(converged & 1))
+      buf[m*2] = h_o(i,0);
+    if (!(converged & 2))
+      buf[m*2+1] = h_o(i,1);
   }
-  return n;
+  return n*2;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1463,11 +1261,12 @@ template<class DeviceType>
 void FixQEqReaxFFKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)
 {
   k_o.sync_host();
-
-  for(int m = 0; m < n; m++) {
-    h_o[list[m]] += buf[m];
+  for (int m = 0; m < n; m++) {
+    if (!(converged & 1))
+      h_o(list[m],0) += buf[m*2];
+    if (!(converged & 2))
+      h_o(list[m],1) += buf[m*2+1];
   }
-
   k_o.modify_host();
 }
 
@@ -1571,6 +1370,17 @@ int FixQEqReaxFFKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
   k_t_hist.template modify<LMPHostType>();
 
   return nprev*2;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixQEqReaxFFKokkos<DeviceType>::get_chi_field()
+{
+  atomKK->sync(Host,X_MASK|MASK_MASK|IMAGE_MASK);
+  FixQEqReaxFF::get_chi_field();
+  k_chi_field.modify_host();
+  k_chi_field.sync_device();
 }
 
 /* ---------------------------------------------------------------------- */

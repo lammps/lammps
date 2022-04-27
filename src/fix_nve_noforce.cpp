@@ -49,7 +49,7 @@ void FixNVENoforce::init()
   dtv = update->dt;
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    step_respa = ((Respa *) update->integrate)->step;
+    step_respa = (dynamic_cast<Respa *>( update->integrate))->step;
 }
 
 /* ---------------------------------------------------------------------- */

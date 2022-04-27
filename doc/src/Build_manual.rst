@@ -33,12 +33,15 @@ various tools and files.  Some of them have to be installed (see below).  For
 the rest the build process will attempt to download and install them into
 a python virtual environment and local folders.
 
-A current version of the manual (latest patch release, aka unstable
-branch) is is available online at:
-`https://docs.lammps.org/Manual.html <https://docs.lammps.org/Manual.html>`_.
-A version of the manual corresponding to the ongoing development (aka master branch)
-is available online at: `https://docs.lammps.org/latest/
-<https://docs.lammps.org/latest/>`_
+A current version of the manual (latest patch release, that is the state
+of the *release* branch) is is available online at:
+`https://docs.lammps.org/ <https://docs.lammps.org/>`_.
+A version of the manual corresponding to the ongoing development (that is
+the state of the *develop* branch) is available online at:
+`https://docs.lammps.org/latest/ <https://docs.lammps.org/latest/>`_
+A version of the manual corresponding to the latest stable LAMMPS release
+(that is the state of the *stable* branch) is available online at:
+`https://docs.lammps.org/stable/ <https://docs.lammps.org/stable/>`_
 
 Build using GNU make
 --------------------
@@ -75,10 +78,11 @@ folder.  The following ``make`` commands are available:
 
    make html          # generate HTML in html dir using Sphinx
    make pdf           # generate PDF  as Manual.pdf using Sphinx and PDFLaTeX
-   make fetch         # fetch HTML pages and PDF files from LAMMPS website
-                      #  and unpack into the html_www folder and Manual_www.pdf
    make epub          # generate LAMMPS.epub in ePUB format using Sphinx
    make mobi          # generate LAMMPS.mobi in MOBI format using ebook-convert
+
+   make fasthtml      # generate approximate HTML in fasthtml dir using Sphinx
+                      # some Sphinx extensions do not work correctly with this
 
    make clean         # remove intermediate RST files created by HTML build
    make clean-all     # remove entire build folder and any cached data
@@ -190,8 +194,13 @@ folder need to be updated or new files added. These files are written in
 `reStructuredText <rst_>`_ markup for translation with the Sphinx tool.
 
 Before contributing any documentation, please check that both the HTML
-and the PDF format documentation can translate without errors. Please also
-check the output to the console for any warnings or problems.  There will
+and the PDF format documentation can translate without errors.  During
+testing the html translation, you may use the ``make fasthtml`` command
+which does an approximate translation (i.e. not all Sphinx features and
+extensions will work), but runs very fast because it will only translate
+files that have been changed since the last ``make fasthtml`` command.
+
+Please also check the output to the console for any warnings or problems.  There will
 be multiple tests run automatically:
 
 - A test for correctness of all anchor labels and their references

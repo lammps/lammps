@@ -16,12 +16,13 @@ source code design, the program structure, the spatial decomposition
 approach, the neighbor finding, basic communications algorithms, and how
 users and developers have contributed to LAMMPS is:
 
-  `LAMMPS - A flexible simulation tool for particle-based materials modeling at the atomic, meso, and continuum scales, Comp. Phys. Comm. (accepted 09/2021), DOI:10.1016/j.cpc.2021.108171 <https://doi.org/10.1016/j.cpc.2021.108171>`_
+  `LAMMPS - A flexible simulation tool for particle-based materials modeling at the atomic, meso, and continuum scales, Comp. Phys. Comm. 271, 108171 (2022) <https://doi.org/10.1016/j.cpc.2021.108171>`_
 
 So a project using LAMMPS or a derivative application that uses LAMMPS
 as a simulation engine should cite this paper.  The paper is expected to
 be published in its final form under the same DOI in the first half
-of 2022.
+of 2022.  Please also give the URL of the LAMMPS website in your paper,
+namely https://www.lammps.org.
 
 The original publication describing the parallel algorithms used in the
 initial versions of LAMMPS is:
@@ -45,7 +46,7 @@ In addition there are DOIs for individual stable releases. Currently there are:
 
 - 3 March 2020 version: `DOI:10.5281/zenodo.3726417 <https://dx.doi.org/10.5281/zenodo.3726417>`_
 - 29 October 2020 version: `DOI:10.5281/zenodo.4157471 <https://dx.doi.org/10.5281/zenodo.4157471>`_
-
+- 29 September 2021 version: `DOI:10.5281/zenodo.6386596 <https//dx.doi.org/10.5281/zenodo.6386596>`_
 
 Home page
 ^^^^^^^^^

@@ -317,10 +317,10 @@ struct TestRange {
           if (count(t) < min) min = count(t);
           if (count(t) > max) max = count(t);
         }
-        ASSERT_TRUE(min < max);
+        ASSERT_LT(min, max);
 
         // if ( ExecSpace::concurrency() > 2 ) {
-        //  ASSERT_TRUE( 2 * min < max );
+        //  ASSERT_LT( 2 * min, max );
         //}
       }
     }
@@ -361,10 +361,10 @@ struct TestRange {
           if (count(t) < min) min = count(t);
           if (count(t) > max) max = count(t);
         }
-        ASSERT_TRUE(min < max);
+        ASSERT_LT(min, max);
 
         // if ( ExecSpace::concurrency() > 2 ) {
-        //  ASSERT_TRUE( 2 * min < max );
+        //  ASSERT_LT( 2 * min, max );
         //}
       }
     }

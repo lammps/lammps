@@ -27,25 +27,25 @@ namespace LAMMPS_NS {
 class FixPAFI : public Fix {
  public:
   FixPAFI(class LAMMPS *, int, char **);
-  virtual ~FixPAFI();
-  int setmask();
-  virtual void init();
+  ~FixPAFI() override;
+  int setmask() override;
+  void init() override;
 
-  void setup(int);
-  void min_setup(int);
-  virtual void post_force(int);
+  void setup(int) override;
+  void min_setup(int) override;
+  void post_force(int) override;
 
-  void post_force_respa(int, int, int);
-  void min_post_force(int);
-  double compute_vector(int);
+  void post_force_respa(int, int, int) override;
+  void min_post_force(int) override;
+  double compute_vector(int) override;
   // nve
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
-  virtual void initial_integrate_respa(int, int, int);
-  virtual void final_integrate_respa(int, int);
-  virtual void reset_dt();
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  void initial_integrate_respa(int, int, int) override;
+  void final_integrate_respa(int, int) override;
+  void reset_dt() override;
 
-  double memory_usage();
+  double memory_usage() override;
 
  protected:
   int varflag, icompute;
@@ -71,29 +71,3 @@ class FixPAFI : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute ID for fix pafi does not exist
-
-Self-explanatory.
-
-E: Compute for fix pafi does not calculate a local array
-
-Self-explanatory.
-
-E: Compute for fix pafi has < 3*DIM fields per atom
-
-Self-explanatory.
-
-E: Fix pafi requires a damped dynamics minimizer
-
-Use a different minimization style.
-
-*/

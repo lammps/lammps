@@ -254,7 +254,9 @@ the fix defines the syntax of the header line(s) and section that it
 reads from the data file.  Note that the *header-string* can be
 specified as NULL, in which case no header lines are passed to the
 fix.  This means the fix can infer the length of its Section from
-standard header settings, such as the number of atoms.
+standard header settings, such as the number of atoms.  Also the
+*section-string* may be specified as NULL, and in that case the fix
+ID is used as section name.
 
 The formatting of individual lines in the data file (indentation,
 spacing between words and numbers) is not important except that header
@@ -648,6 +650,8 @@ of analysis.
      - atom-ID atom-type rho esph cv x y z
    * - sphere
      - atom-ID atom-type diameter density x y z
+   * - bpm/sphere
+     - atom-ID molecule-ID atom-type diameter density x y z
    * - spin
      - atom-ID atom-type x y z spx spy spz sp
    * - tdpd

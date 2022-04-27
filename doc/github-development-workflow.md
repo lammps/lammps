@@ -33,9 +33,9 @@ when necessary.
 ## Pull Requests
 
 ALL changes to the LAMMPS code and documentation, however trivial, MUST
-be submitted as a pull request to GitHub. All changes to the "master"
+be submitted as a pull request to GitHub. All changes to the "develop"
 branch must be made exclusively through merging pull requests. The
-"unstable" and "stable" branches, respectively are only to be updated
+"release" and "stable" branches, respectively are only to be updated
 upon patch or stable releases with fast-forward merges based on the
 associated tags. Pull requests may also be submitted to (long-running)
 feature branches created by LAMMPS developers inside the LAMMPS project,
@@ -123,16 +123,16 @@ and thus were this comment should be placed.
 
 LAMMPS uses a continuous release development model with incremental
 changes, i.e. significant effort is made - including automated pre-merge
-testing - that the code in the branch "master" does not get easily
+testing - that the code in the branch "develop" does not get easily
 broken.  These tests are run after every update to a pull request.  More
 extensive and time consuming tests (including regression testing) are
-performed after code is merged to the "master" branch. There are patch
+performed after code is merged to the "develop" branch. There are patch
 releases of LAMMPS every 3-5 weeks at a point, when the LAMMPS
 developers feel, that a sufficient amount of changes have happened, and
 the post-merge testing has been successful. These patch releases are
-marked with a `patch_<version date>` tag and the "unstable" branch
+marked with a `patch_<version date>` tag and the "release" branch
 follows only these versions (and thus is always supposed to be of
-production quality, unlike "master", which may be temporary broken, in
+production quality, unlike "develop", which may be temporary broken, in
 the case of larger change sets or unexpected incompatibilities or side
 effects.
 

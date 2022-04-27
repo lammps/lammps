@@ -44,17 +44,17 @@ class FixOrientFCC : public Fix {
   };
 
   FixOrientFCC(class LAMMPS *, int, char **);
-  ~FixOrientFCC();
-  int setmask();
-  void init();
-  void init_list(int, class NeighList *);
-  void setup(int);
-  void post_force(int);
-  void post_force_respa(int, int, int);
-  double compute_scalar();
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  double memory_usage();
+  ~FixOrientFCC() override;
+  int setmask() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  double compute_scalar() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  double memory_usage() override;
 
  private:
   int me;
@@ -69,9 +69,10 @@ class FixOrientFCC : public Fix {
   char *xifilename, *chifilename;    // file names for 2 crystal orientations
 
   bool use_xismooth;
-  double Rxi[12][3], Rchi[12][3], half_xi_chi_vec[2][6][3];
+  static constexpr int half_fcc_nn = 6;
+  double Rxi[half_fcc_nn][3] = {}, Rchi[half_fcc_nn][3] = {},
+         half_xi_chi_vec[2][half_fcc_nn][3] = {};
   double xiid, xi0, xi1, xicutoffsq, cutsq, added_energy;
-  int half_fcc_nn;
 
   int nmax;          // expose 2 per-atom quantities
   double **order;    // order param and normalized order param
@@ -88,28 +89,3 @@ class FixOrientFCC : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix orient/fcc file open failed
-
-The fix orient/fcc command could not open a specified file.
-
-E: Fix orient/fcc file read failed
-
-The fix orient/fcc command could not read the needed parameters from a
-specified file.
-
-E: Fix orient/fcc found self twice
-
-The neighbor lists used by fix orient/fcc are messed up.  If this
-error occurs, it is likely a bug, so send an email to the
-"developers"_https://www.lammps.org/authors.html.
-
-*/

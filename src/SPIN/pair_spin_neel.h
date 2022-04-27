@@ -27,23 +27,23 @@ namespace LAMMPS_NS {
 class PairSpinNeel : public PairSpin {
  public:
   PairSpinNeel(LAMMPS *lmp) : PairSpin(lmp) {}
-  virtual ~PairSpinNeel();
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void *extract(const char *, int &);
+  ~PairSpinNeel() override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void *extract(const char *, int &) override;
 
-  void compute(int, int);
-  void compute_single_pair(int, double *);
+  void compute(int, int) override;
+  void compute_single_pair(int, double *) override;
 
   void compute_neel(int, int, double, double *, double *, double *, double *);
   void compute_neel_mech(int, int, double, double *, double *, double *, double *);
   double compute_neel_energy(int, int, double, double *, double *, double *);
 
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
 
   double cut_spin_neel_global;    // global neel cutoff distance
 
@@ -56,30 +56,10 @@ class PairSpinNeel : public PairSpin {
   double **q2, **q3;         // q1 in eV, q2 adim, q3 in Ang
   double **cut_spin_neel;    // cutoff distance exchange
 
-  void allocate();
+  void allocate() override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args in pair_spin command
-
-Self-explanatory.
-
-E: Spin simulations require metal unit style
-
-Self-explanatory.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair spin requires atom attribute spin
-
-The atom style defined does not have these attributes.
-
-*/

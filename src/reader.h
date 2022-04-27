@@ -23,7 +23,6 @@ namespace LAMMPS_NS {
 class Reader : protected Pointers {
  public:
   Reader(class LAMMPS *);
-  virtual ~Reader() {}
 
   virtual void settings(int, char **);
 
@@ -33,29 +32,15 @@ class Reader : protected Pointers {
                              int &, int &, int &) = 0;
   virtual void read_atoms(int, int, double **) = 0;
 
-  virtual void open_file(const char *);
+  virtual void open_file(const std::string &);
   virtual void close_file();
 
  protected:
-  FILE *fp;          // pointer to opened file or pipe
-  int compressed;    // flag for dump file compression
+  FILE *fp;           // pointer to opened file or pipe
+  bool compressed;    // flag for dump file compression
+  bool binary;        // flag for (native) binary files
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Cannot open gzipped file
-
-LAMMPS was compiled without support for reading and writing gzipped
-files through a pipeline to the gzip program with -DLAMMPS_GZIP.
-
-E: Cannot open file %s
-
-The specified file cannot be opened.  Check that the path and name are
-correct. If the file is a compressed file, also check that the gzip
-executable can be found and run.
-
-*/

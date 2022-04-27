@@ -34,7 +34,7 @@ simple example demonstrating its use:
      int lmpargc = sizeof(lmpargv)/sizeof(const char *);
 
      /* create LAMMPS instance */
-     handle = lammps_open_no_mpi(lmpargc, lmpargv, NULL);
+     handle = lammps_open_no_mpi(lmpargc, (char **)lmpargv, NULL);
      if (handle == NULL) {
        printf("LAMMPS initialization failed");
        lammps_mpi_finalize();

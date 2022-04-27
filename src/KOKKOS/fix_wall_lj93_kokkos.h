@@ -36,7 +36,7 @@ class FixWallLJ93Kokkos : public FixWallLJ93 {
   typedef double value_type[];
 
   FixWallLJ93Kokkos(class LAMMPS *, int, char **);
-  void wall_particle(int, int, double);
+  void wall_particle(int, int, double) override;
 
   int m;
 
@@ -73,11 +73,3 @@ struct FixWallLJ93KokkosFunctor  {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Particle on or inside fix wall surface
-
-Particles must be "exterior" to the wall in order for energy/force to
-be calculated.
-
-*/

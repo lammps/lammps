@@ -231,9 +231,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"com") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix store/state command");
-      if (strcmp(arg[iarg+1],"no") == 0) comflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) comflag = 1;
-      else error->all(FLERR,"Illegal fix store/state command");
+      comflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix store/state command");
   }
@@ -246,16 +244,13 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix store/state does not exist");
       if (modify->compute[icompute]->peratom_flag == 0)
-        error->all(FLERR,"Fix store/state compute "
-                   "does not calculate per-atom values");
+        error->all(FLERR,"Fix store/state compute does not calculate per-atom values");
       if (argindex[i] == 0 &&
           modify->compute[icompute]->size_peratom_cols != 0)
-        error->all(FLERR,"Fix store/state compute does not "
-                   "calculate a per-atom vector");
+        error->all(FLERR,"Fix store/state compute does not calculate a per-atom vector");
       if (argindex[i] && modify->compute[icompute]->size_peratom_cols == 0)
         error->all(FLERR,
-                   "Fix store/state compute does not "
-                   "calculate a per-atom array");
+                   "Fix store/state compute does not calculate a per-atom array");
       if (argindex[i] &&
           argindex[i] > modify->compute[icompute]->size_peratom_cols)
         error->all(FLERR,

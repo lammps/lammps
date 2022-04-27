@@ -39,18 +39,18 @@ namespace LAMMPS_NS {
 class PairULSPH : public Pair {
  public:
   PairULSPH(class LAMMPS *);
-  virtual ~PairULSPH();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void init_style();
-  void init_list(int, class NeighList *);
-  virtual double memory_usage();
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  ~PairULSPH() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void init_style() override;
+  void init_list(int, class NeighList *) override;
+  double memory_usage() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
   void AssembleStressTensor();
-  void *extract(const char *, int &);
+  void *extract(const char *, int &) override;
   void PreCompute();
   void PreCompute_DensitySummation();
   double effective_shear_modulus(const Eigen::Matrix3d d_dev, const Eigen::Matrix3d deltaStressDev,

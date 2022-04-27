@@ -28,7 +28,8 @@ inline TileSizeProperties get_tile_size_properties<Kokkos::Experimental::HIP>(
       space.impl_internal_space_instance()->m_maxThreadsPerSM;
   properties.default_largest_tile_size = 16;
   properties.default_tile_size         = 4;
-  properties.max_total_tile_size       = 1024;
+  properties.max_total_tile_size =
+      Kokkos::Experimental::Impl::HIPTraits::MaxThreadsPerBlock;
   return properties;
 }
 

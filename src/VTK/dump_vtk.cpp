@@ -31,6 +31,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
+#include "fix_store.h"
 #include "force.h"
 #include "group.h"
 #include "input.h"
@@ -87,16 +88,16 @@ enum{X,Y,Z, // required for vtk, must come first
      Q,MUX,MUY,MUZ,MU,RADIUS,DIAMETER,
      OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
      TQX,TQY,TQZ,
-     VARIABLE,COMPUTE,FIX,INAME,DNAME,
+     COMPUTE,FIX,VARIABLE,IVEC,DVEC,IARRAY,DARRAY,
      ATTRIBUTES}; // must come last
-enum{LT,LE,GT,GE,EQ,NEQ};
+enum{LT,LE,GT,GE,EQ,NEQ,XOR};
 enum{VTK,VTP,VTU,PVTP,PVTU}; // file formats
 
 #define ONEFIELD 32
 #define DELTA 1048576
 
-#if (VTK_MAJOR_VERSION < 5) || (VTK_MAJOR_VERSION > 8)
-#error This code has only been tested with VTK 5, 6, 7, and 8
+#if (VTK_MAJOR_VERSION < 5) || (VTK_MAJOR_VERSION > 9)
+#error This code has only been tested with VTK 5, 6, 7, 8, and 9
 #elif VTK_MAJOR_VERSION > 6
 #define InsertNextTupleValue InsertNextTypedTuple
 #endif
@@ -119,11 +120,10 @@ DumpVTK::DumpVTK(LAMMPS *lmp, int narg, char **arg) :
   // ioptional = start of additional optional args
   // only dump image and dump movie styles process optional args
 
-  ioptional = parse_fields(narg,arg);
+  ioptional = parse_fields(nargnew,earg);
 
-  if (ioptional < narg &&
-      strcmp(style,"image") != 0 && strcmp(style,"movie") != 0)
-    error->all(FLERR,"Invalid attribute in dump vtk command");
+  if (ioptional < nargnew)
+    error->all(FLERR,"Invalid attribute {} in dump vtk command", earg[ioptional]);
   size_one = pack_choice.size();
   current_pack_choice_key = -1;
 
@@ -210,46 +210,47 @@ void DumpVTK::init_style()
   else
     write_choice = &DumpVTK::write_vtk;
 
-  // find current ptr for each compute,fix,variable
+  // find current ptr for each compute,fix,variable and custom atom property
   // check that fix frequency is acceptable
 
-  int icompute;
   for (int i = 0; i < ncompute; i++) {
-    icompute = modify->find_compute(id_compute[i]);
+    int icompute = modify->find_compute(id_compute[i]);
     if (icompute < 0) error->all(FLERR,"Could not find dump vtk compute ID");
     compute[i] = modify->compute[icompute];
   }
 
-  int ifix;
   for (int i = 0; i < nfix; i++) {
-    ifix = modify->find_fix(id_fix[i]);
+    int ifix = modify->find_fix(id_fix[i]);
     if (ifix < 0) error->all(FLERR,"Could not find dump vtk fix ID");
     fix[i] = modify->fix[ifix];
     if (nevery % modify->fix[ifix]->peratom_freq)
       error->all(FLERR,"Dump vtk and fix not computed at compatible times");
   }
 
-  int ivariable;
   for (int i = 0; i < nvariable; i++) {
-    ivariable = input->variable->find(id_variable[i]);
+    int ivariable = input->variable->find(id_variable[i]);
     if (ivariable < 0)
       error->all(FLERR,"Could not find dump vtk variable name");
     variable[i] = ivariable;
   }
 
-  int icustom;
+  int icustom,flag,cols;
   for (int i = 0; i < ncustom; i++) {
-    icustom = atom->find_custom(id_custom[i],flag_custom[i]);
+    icustom = atom->find_custom(id_custom[i],flag,cols);
     if (icustom < 0)
       error->all(FLERR,"Could not find custom per-atom property ID");
+    custom[i] = icustom;
+    if (!flag && !cols) custom_flag[i] = IVEC;
+    else if (flag && !cols) custom_flag[i] = DVEC;
+    else if (!flag && cols) custom_flag[i] = IARRAY;
+    else if (flag && cols) custom_flag[i] = DARRAY;
   }
 
-  // set index and check validity of region
+  // check validity of region
 
-  if (iregion >= 0) {
-    iregion = domain->find_region(idregion);
-    if (iregion == -1)
-      error->all(FLERR,"Region ID for dump vtk does not exist");
+  if (idregion) {
+    if (!domain->get_region_by_id(idregion))
+      error->all(FLERR,"Region {} for dump vtk does not exist",idregion);
   }
 }
 
@@ -275,7 +276,7 @@ int DumpVTK::count()
 
   // grow choose and variable vbuf arrays if needed
 
-  int nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   if (atom->nmax > maxlocal) {
     maxlocal = atom->nmax;
 
@@ -333,8 +334,8 @@ int DumpVTK::count()
 
   // un-choose if not in region
 
-  if (iregion >= 0) {
-    Region *region = domain->regions[iregion];
+  auto region = domain->get_region_by_id(idregion);
+  if (region) {
     region->prematch();
     double **x = atom->x;
     for (i = 0; i < nlocal; i++)
@@ -345,10 +346,10 @@ int DumpVTK::count()
   // un-choose if any threshold criterion isn't met
 
   if (nthresh) {
-    double *ptr;
+    double *ptr,*ptrhold;
+    double *values;
     double value;
-    int nstride;
-    int nlocal = atom->nlocal;
+    int nstride,lastflag;
 
     for (int ithresh = 0; ithresh < nthresh; ithresh++) {
 
@@ -635,26 +636,22 @@ int DumpVTK::count()
         nstride = 1;
       } else if (thresh_array[ithresh] == MUX) {
         if (!atom->mu_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
+          error->all(FLERR,"Threshold for an atom property that isn't allocated");
         ptr = &atom->mu[0][0];
         nstride = 4;
       } else if (thresh_array[ithresh] == MUY) {
         if (!atom->mu_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
+          error->all(FLERR,"Threshold for an atom property that isn't allocated");
         ptr = &atom->mu[0][1];
         nstride = 4;
       } else if (thresh_array[ithresh] == MUZ) {
         if (!atom->mu_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
+          error->all(FLERR,"Threshold for an atom property that isn't allocated");
         ptr = &atom->mu[0][2];
         nstride = 4;
       } else if (thresh_array[ithresh] == MU) {
         if (!atom->mu_flag)
-          error->all(FLERR,
-                     "Threshold for an atom property that isn't allocated");
+          error->all(FLERR,"Threshold for an atom property that isn't allocated");
         ptr = &atom->mu[0][3];
         nstride = 4;
 
@@ -753,9 +750,8 @@ int DumpVTK::count()
         nstride = 1;
 
       } else if (thresh_array[ithresh] == IVEC) {
-        int iwhich,flag,cols
         i = ATTRIBUTES + nfield + ithresh;
-        iwhich = atom->find_custom(id_custom[field2index[i]],flag,cols);
+        int iwhich = custom[field2index[i]];
         int *ivector = atom->ivector[iwhich];
         for (i = 0; i < nlocal; i++)
           dchoose[i] = ivector[i];
@@ -763,16 +759,14 @@ int DumpVTK::count()
         nstride = 1;
 
       } else if (thresh_array[ithresh] == DVEC) {
-        int iwhich,flag,cols;
         i = ATTRIBUTES + nfield + ithresh;
-        iwhich = atom->find_custom(id_custom[field2index[i]],flag,cols);
+        int iwhich = custom[field2index[i]];
         ptr = atom->dvector[iwhich];
         nstride = 1;
 
       } else if (thresh_array[ithresh] == IARRAY) {
-        int iwhich,flag,cols;
         i = ATTRIBUTES + nfield + ithresh;
-        iwhich = atom->find_custom(id_custom[field2index[i]],flag,cols);
+        int iwhich = custom[field2index[i]];
         int **iarray = atom->iarray[iwhich];
         int icol = argindex[i] - 1;
         for (i = 0; i < nlocal; i++)
@@ -781,43 +775,99 @@ int DumpVTK::count()
         nstride = 1;
 
       } else if (thresh_array[ithresh] == DARRAY) {
-        int iwhich,flag,cols;
         i = ATTRIBUTES + nfield + ithresh;
-        iwhich = atom->find_custom(id_custom[field2index[i]],flag,cols)
+        int iwhich = custom[field2index[i]];
         double **darray = atom->darray[iwhich];
         ptr = &darray[0][argindex[i]-1];
         nstride = atom->dcols[iwhich];
       }
 
       // unselect atoms that don't meet threshold criterion
+      // compare to single value or values stored in threshfix
+      // copy ptr attribute into thresh_fix if this is first comparison
 
-      value = thresh_value[ithresh];
+      if (thresh_last[ithresh] < 0) {
+        lastflag = 0;
+        value = thresh_value[ithresh];
+      } else {
+        lastflag = 1;
+        int ilast = thresh_last[ithresh];
+        values = thresh_fix[ilast]->vstore;
+        ptrhold = ptr;
+        if (thresh_first[ilast]) {
+          thresh_first[ilast] = 0;
+          for (i = 0; i < nlocal; i++, ptr += nstride) values[i] = *ptr;
+          ptr = ptrhold;
+        }
+      }
 
-      switch (thresh_op[ithresh]) {
-      case LT:
-        for (i = 0; i < nlocal; i++, ptr += nstride)
-          if (choose[i] && *ptr >= value) choose[i] = 0;
-        break;
-      case LE:
-        for (i = 0; i < nlocal; i++, ptr += nstride)
-          if (choose[i] && *ptr > value) choose[i] = 0;
-        break;
-      case GT:
-        for (i = 0; i < nlocal; i++, ptr += nstride)
-          if (choose[i] && *ptr <= value) choose[i] = 0;
-        break;
-      case GE:
-        for (i = 0; i < nlocal; i++, ptr += nstride)
-          if (choose[i] && *ptr < value) choose[i] = 0;
-        break;
-      case EQ:
-        for (i = 0; i < nlocal; i++, ptr += nstride)
-          if (choose[i] && *ptr != value) choose[i] = 0;
-        break;
-      case NEQ:
-        for (i = 0; i < nlocal; i++, ptr += nstride)
-          if (choose[i] && *ptr == value) choose[i] = 0;
-        break;
+      if (thresh_op[ithresh] == LT) {
+        if (lastflag) {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr >= values[i]) choose[i] = 0;
+        } else {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr >= value) choose[i] = 0;
+        }
+      } else if (thresh_op[ithresh] == LE) {
+        if (lastflag) {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr > values[i]) choose[i] = 0;
+        } else {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr > value) choose[i] = 0;
+        }
+      } else if (thresh_op[ithresh] == GT) {
+        if (lastflag) {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr <= values[i]) choose[i] = 0;
+        } else {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr <= value) choose[i] = 0;
+        }
+      } else if (thresh_op[ithresh] == GE) {
+        if (lastflag) {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr < values[i]) choose[i] = 0;
+        } else {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr < value) choose[i] = 0;
+        }
+      } else if (thresh_op[ithresh] == EQ) {
+        if (lastflag) {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr != values[i]) choose[i] = 0;
+        } else {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr != value) choose[i] = 0;
+        }
+      } else if (thresh_op[ithresh] == NEQ) {
+        if (lastflag) {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr == values[i]) choose[i] = 0;
+        } else {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if (choose[i] && *ptr == value) choose[i] = 0;
+        }
+      } else if (thresh_op[ithresh] == XOR) {
+        if (lastflag) {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if ((choose[i] && *ptr == 0.0 && values[i] == 0.0) ||
+                (*ptr != 0.0 && values[i] != 0.0))
+              choose[i] = 0;
+        } else {
+          for (i = 0; i < nlocal; i++, ptr += nstride)
+            if ((choose[i] && *ptr == 0.0 && value == 0.0) ||
+                (*ptr != 0.0 && value != 0.0))
+              choose[i] = 0;
+        }
+      }
+
+      // update values stored in threshfix
+
+      if (lastflag) {
+        ptr = ptrhold;
+        for (i = 0; i < nlocal; i++, ptr += nstride) values[i] = *ptr;
       }
     }
   }
@@ -958,13 +1008,13 @@ void DumpVTK::write_data(int n, double *mybuf)
 /* ---------------------------------------------------------------------- */
 
 void DumpVTK::setFileCurrent() {
-  delete [] filecurrent;
+  delete[] filecurrent;
   filecurrent = nullptr;
 
   char *filestar = filename;
   if (multiproc) {
     if (multiproc > 1) { // if dump_modify fileper or nfile was used
-      delete [] multiname_ex;
+      delete[] multiname_ex;
       multiname_ex = nullptr;
       char *ptr = strchr(filename,'%');
       if (ptr) {
@@ -983,26 +1033,13 @@ void DumpVTK::setFileCurrent() {
   }
 
   if (multifile == 0) {
-    filecurrent = new char[strlen(filestar) + 1];
-    strcpy(filecurrent, filestar);
+    filecurrent = utils::strdup(filestar);
   } else {
-    filecurrent = new char[strlen(filestar) + 16];
-    char *ptr = strchr(filestar,'*');
-    *ptr = '\0';
-    if (padflag == 0) {
-      sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
-              filestar,update->ntimestep,ptr+1);
-    } else {
-      char bif[8],pad[16];
-      strcpy(bif,BIGINT_FORMAT);
-      sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
-      sprintf(filecurrent,pad,filestar,update->ntimestep,ptr+1);
-    }
-    *ptr = '*';
+    filecurrent = utils::strdup(utils::star_subst(filestar, update->ntimestep, padflag));
   }
 
   // filename of domain box data file
-  delete [] domainfilecurrent;
+  delete[] domainfilecurrent;
   domainfilecurrent = nullptr;
   if (multiproc) {
     // remove '%' character
@@ -1023,21 +1060,9 @@ void DumpVTK::setFileCurrent() {
       domainfilecurrent = new char[strlen(filestar) + 1];
       strcpy(domainfilecurrent, filestar);
     } else {
-      domainfilecurrent = new char[strlen(filestar) + 16];
-      char *ptr = strchr(filestar,'*');
-      *ptr = '\0';
-      if (padflag == 0) {
-        sprintf(domainfilecurrent,"%s" BIGINT_FORMAT "%s",
-                filestar,update->ntimestep,ptr+1);
-      } else {
-        char bif[8],pad[16];
-        strcpy(bif,BIGINT_FORMAT);
-        sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
-        sprintf(domainfilecurrent,pad,filestar,update->ntimestep,ptr+1);
-      }
-      *ptr = '*';
+      domainfilecurrent = utils::strdup(utils::star_subst(filestar, update->ntimestep, padflag));
     }
-    delete [] filestar;
+    delete[] filestar;
     filestar = nullptr;
   } else {
     domainfilecurrent = new char[strlen(filecurrent) + 16];
@@ -1049,7 +1074,7 @@ void DumpVTK::setFileCurrent() {
 
   // filename of parallel file
   if (multiproc && me == 0) {
-    delete [] parallelfilecurrent;
+    delete[] parallelfilecurrent;
     parallelfilecurrent = nullptr;
 
     // remove '%' character and add 'p' to file extension
@@ -1068,24 +1093,11 @@ void DumpVTK::setFileCurrent() {
     *ptr++= 0;
 
     if (multifile == 0) {
-      parallelfilecurrent = new char[strlen(filestar) + 1];
-      strcpy(parallelfilecurrent, filestar);
+      parallelfilecurrent = utils::strdup(filestar);
     } else {
-      parallelfilecurrent = new char[strlen(filestar) + 16];
-      char *ptr = strchr(filestar,'*');
-      *ptr = '\0';
-      if (padflag == 0) {
-        sprintf(parallelfilecurrent,"%s" BIGINT_FORMAT "%s",
-                filestar,update->ntimestep,ptr+1);
-      } else {
-        char bif[8],pad[16];
-        strcpy(bif,BIGINT_FORMAT);
-        sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
-        sprintf(parallelfilecurrent,pad,filestar,update->ntimestep,ptr+1);
-      }
-      *ptr = '*';
+      parallelfilecurrent = utils::strdup(utils::star_subst(filestar, update->ntimestep, padflag));
     }
-    delete [] filestar;
+    delete[] filestar;
     filestar = nullptr;
   }
 }
@@ -1754,15 +1766,16 @@ int DumpVTK::parse_fields(int narg, char **arg)
 
     } else {
 
-      int n,tmp;
+      int n,flag,cols;
       ArgInfo argi(arg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE
-                   |ArgInfo::DVEC|ArgInfo::IVEC);
+                   |ArgInfo::DNAME|ArgInfo::INAME);
       argindex[ATTRIBUTES+i] = argi.get_index1();
+      auto aname = argi.get_name();
 
       switch (argi.get_type()) {
 
       case ArgInfo::UNKNOWN:
-        error->all(FLERR,"Invalid attribute in dump vtk command");
+        error->all(FLERR,"Invalid attribute in dump vtk command: {}",arg[iarg]);
         break;
 
       // compute value = c_ID
@@ -1772,21 +1785,19 @@ int DumpVTK::parse_fields(int narg, char **arg)
         pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_compute;
         vtype[ATTRIBUTES+i] = Dump::DOUBLE;
 
-        n = modify->find_compute(argi.get_name());
-        if (n < 0) error->all(FLERR,"Could not find dump vtk compute ID");
+        n = modify->find_compute(aname);
+        if (n < 0) error->all(FLERR,"Could not find dump vtk compute ID: {}",aname);
         if (modify->compute[n]->peratom_flag == 0)
-          error->all(FLERR,"Dump vtk compute does not compute per-atom info");
+          error->all(FLERR,"Dump vtk compute {} does not compute per-atom info",aname);
         if (argi.get_dim() == 0 && modify->compute[n]->size_peratom_cols > 0)
-          error->all(FLERR,
-                     "Dump vtk compute does not calculate per-atom vector");
+          error->all(FLERR,"Dump vtk compute {} does not calculate per-atom vector",aname);
         if (argi.get_dim() > 0 && modify->compute[n]->size_peratom_cols == 0)
-          error->all(FLERR,
-                     "Dump vtk compute does not calculate per-atom array");
+          error->all(FLERR,"Dump vtk compute {} does not calculate per-atom array",aname);
         if (argi.get_dim() > 0 &&
             argi.get_index1() > modify->compute[n]->size_peratom_cols)
-          error->all(FLERR,"Dump vtk compute vector is accessed out-of-range");
+          error->all(FLERR,"Dump vtk compute {} vector is accessed out-of-range",aname);
 
-        field2index[ATTRIBUTES+i] = add_compute(argi.get_name());
+        field2index[ATTRIBUTES+i] = add_compute(aname);
         name[ATTRIBUTES+i] = arg[iarg];
         break;
 
@@ -1797,19 +1808,19 @@ int DumpVTK::parse_fields(int narg, char **arg)
         pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_fix;
         vtype[ATTRIBUTES+i] = Dump::DOUBLE;
 
-        n = modify->find_fix(argi.get_name());
-        if (n < 0) error->all(FLERR,"Could not find dump vtk fix ID");
+        n = modify->find_fix(aname);
+        if (n < 0) error->all(FLERR,"Could not find dump vtk fix ID: {}",aname);
         if (modify->fix[n]->peratom_flag == 0)
-          error->all(FLERR,"Dump vtk fix does not compute per-atom info");
+          error->all(FLERR,"Dump vtk fix {} does not compute per-atom info",aname);
         if (argi.get_dim() == 0 && modify->fix[n]->size_peratom_cols > 0)
-          error->all(FLERR,"Dump vtk fix does not compute per-atom vector");
+          error->all(FLERR,"Dump vtk fix {} does not compute per-atom vector",aname);
         if (argi.get_dim() > 0 && modify->fix[n]->size_peratom_cols == 0)
-          error->all(FLERR,"Dump vtk fix does not compute per-atom array");
+          error->all(FLERR,"Dump vtk fix {} does not compute per-atom array",aname);
         if (argi.get_dim() > 0 &&
             argi.get_index1() > modify->fix[n]->size_peratom_cols)
-          error->all(FLERR,"Dump vtk fix vector is accessed out-of-range");
+          error->all(FLERR,"Dump vtk fix {} vector is accessed out-of-range",aname);
 
-        field2index[ATTRIBUTES+i] = add_fix(argi.get_name());
+        field2index[ATTRIBUTES+i] = add_fix(aname);
         name[ATTRIBUTES+i] = arg[iarg];
         break;
 
@@ -1819,61 +1830,62 @@ int DumpVTK::parse_fields(int narg, char **arg)
         pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_variable;
         vtype[ATTRIBUTES+i] = Dump::DOUBLE;
 
-        n = input->variable->find(argi.get_name());
-        if (n < 0) error->all(FLERR,"Could not find dump vtk variable name");
+        n = input->variable->find(aname);
+        if (n < 0) error->all(FLERR,"Could not find dump vtk variable name {}",aname);
         if (input->variable->atomstyle(n) == 0)
-          error->all(FLERR,"Dump vtk variable is not atom-style variable");
+          error->all(FLERR,"Dump vtk variable {} is not atom-style variable",aname);
 
-        field2index[ATTRIBUTES+i] = add_variable(argi.get_name());
+        field2index[ATTRIBUTES+i] = add_variable(aname);
         name[ATTRIBUTES+i] = arg[iarg];
         break;
 
-      // custom per-atom integer vector = i_ID
-
-      case ArgInfo::INAME:
-        pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_custom;
-        vtype[ATTRIBUTES+i] = Dump::INT;
-
-        tmp = -1;
-        n = atom->find_custom(argi.get_name(),tmp);
-        if (n < 0)
-          error->all(FLERR,"Could not find custom per-atom property ID");
-
-        if (tmp != 0)
-          error->all(FLERR,"Custom per-atom property ID is not integer");
-
-        field2index[ATTRIBUTES+i] = add_custom(argi.get_name(),0);
-        name[ATTRIBUTES+i] = arg[iarg];
-        break;
-
-      // custom per-atom floating point vector = d_ID
+      // custom per-atom floating point vector or array = d_ID d2_ID
 
       case ArgInfo::DNAME:
         pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_custom;
         vtype[ATTRIBUTES+i] = Dump::DOUBLE;
 
-        tmp = -1;
-        n = atom->find_custom(argi.get_name(),tmp);
+        n = atom->find_custom(aname,flag,cols);
+
         if (n < 0)
-          error->all(FLERR,"Could not find custom per-atom property ID");
-
-        if (tmp != 1)
-          error->all(FLERR,"Custom per-atom property ID is not floating point");
-
-        field2index[ATTRIBUTES+i] = add_custom(argi.get_name(),1);
+          error->all(FLERR,"Could not find custom per-atom property ID: {}", aname);
+        if (argindex[ATTRIBUTES+i] == 0) {
+          if (!flag || cols)
+            error->all(FLERR,"Property double vector {} for dump vtk does not exist",aname);
+        } else {
+          if (!flag || !cols)
+            error->all(FLERR,"Property double array {} for dump vtk does not exist",aname);
+          if (argindex[ATTRIBUTES+i] > atom->dcols[n])
+            error->all(FLERR,"Dump vtk property array {} is accessed out-of-range",aname);
+        }
+        field2index[ATTRIBUTES+i] = add_custom(aname,1);
         name[ATTRIBUTES+i] = arg[iarg];
         break;
 
-      // NEWSTYLE
-      // custom per-atom integer array = i2_ID
+      // custom per-atom integer vector or array = i_ID or i2_ID
 
-      case ArgInfo::IARRAY:
-        return iarg;
+      case ArgInfo::INAME:
+        pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_custom;
+        vtype[ATTRIBUTES+i] = Dump::INT;
 
-      // custom per-atom floating point array = d2_ID
+        n = atom->find_custom(aname,flag,cols);
 
-      case ArgInfo::DARRAY:
-        return iarg;
+        if (n < 0)
+          error->all(FLERR,"Could not find custom per-atom property ID: {}", aname);
+        if (argindex[ATTRIBUTES+i] == 0) {
+          if (flag || cols)
+            error->all(FLERR,"Property integer vector {} for dump vtk does not exist",aname);
+        } else {
+          if (flag || !cols)
+            error->all(FLERR,"Property integer array {} for dump vtk does not exist",aname);
+          if (argindex[ATTRIBUTES+i] > atom->icols[n])
+            error->all(FLERR,"Dump vtk property array {} is accessed out-of-range",aname);
+        }
+        field2index[ATTRIBUTES+i] = add_custom(aname,0);
+        name[ATTRIBUTES+i] = arg[iarg];
+        break;
+
+      // no match
 
       default:
         return iarg;
@@ -1903,7 +1915,12 @@ void DumpVTK::identify_vectors()
        name.count(vector3_starts[v3s]+2) )
     {
       std::string vectorName = name[vector3_starts[v3s]];
-      vectorName.erase(vectorName.find_first_of('x'));
+      std::string::size_type erase_start = vectorName.find_first_of('x');
+      if (erase_start == 0) {
+        vectorName.erase(0,1);
+      } else {
+        vectorName.erase(erase_start);
+      }
       name[vector3_starts[v3s]] = vectorName;
       vector_set.insert(vector3_starts[v3s]);
     }
@@ -1948,12 +1965,10 @@ int DumpVTK::add_compute(const char *id)
 
   id_compute = (char **)
     memory->srealloc(id_compute,(ncompute+1)*sizeof(char *),"dump:id_compute");
-  delete [] compute;
+  delete[] compute;
   compute = new Compute*[ncompute+1];
 
-  int n = strlen(id) + 1;
-  id_compute[ncompute] = new char[n];
-  strcpy(id_compute[ncompute],id);
+  id_compute[ncompute] = utils::strdup(id);
   ncompute++;
   return ncompute-1;
 }
@@ -1973,12 +1988,10 @@ int DumpVTK::add_fix(const char *id)
 
   id_fix = (char **)
     memory->srealloc(id_fix,(nfix+1)*sizeof(char *),"dump:id_fix");
-  delete [] fix;
+  delete[] fix;
   fix = new Fix*[nfix+1];
 
-  int n = strlen(id) + 1;
-  id_fix[nfix] = new char[n];
-  strcpy(id_fix[nfix],id);
+  id_fix[nfix] = utils::strdup(id);
   nfix++;
   return nfix-1;
 }
@@ -1999,22 +2012,20 @@ int DumpVTK::add_variable(const char *id)
   id_variable = (char **)
     memory->srealloc(id_variable,(nvariable+1)*sizeof(char *),
                      "dump:id_variable");
-  delete [] variable;
+  delete[] variable;
   variable = new int[nvariable+1];
-  delete [] vbuf;
+  delete[] vbuf;
   vbuf = new double*[nvariable+1];
   for (int i = 0; i <= nvariable; i++) vbuf[i] = nullptr;
 
-  int n = strlen(id) + 1;
-  id_variable[nvariable] = new char[n];
-  strcpy(id_variable[nvariable],id);
+  id_variable[nvariable] = utils::strdup(id);
   nvariable++;
   return nvariable-1;
 }
 
 /* ----------------------------------------------------------------------
    add custom atom property to list used by dump
-   return index of where this property is in list
+   return index of where this property is in Atom class custom lists
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
@@ -2022,21 +2033,17 @@ int DumpVTK::add_custom(const char *id, int flag)
 {
   int icustom;
   for (icustom = 0; icustom < ncustom; icustom++)
-    if ((strcmp(id,id_custom[icustom]) == 0)
-        && (flag == flag_custom[icustom])) break;
+    if (strcmp(id,id_custom[icustom]) == 0) break;
   if (icustom < ncustom) return icustom;
 
-  id_custom = (char **)
-    memory->srealloc(id_custom,(ncustom+1)*sizeof(char *),"dump:id_custom");
-  flag_custom = (int *)
-    memory->srealloc(flag_custom,(ncustom+1)*sizeof(int),"dump:flag_custom");
+  id_custom = (char **) memory->srealloc(id_custom,(ncustom+1)*sizeof(char *),"dump:id_custom");
+  custom = (int *) memory->srealloc(custom,(ncustom+1)*sizeof(int),"dump:custom");
+  custom_flag = (int *) memory->srealloc(custom_flag,(ncustom+1)*sizeof(int),"dump:custom_flag");
 
-  int n = strlen(id) + 1;
-  id_custom[ncustom] = new char[n];
-  strcpy(id_custom[ncustom],id);
-  flag_custom[ncustom] = flag;
-
+  id_custom[ncustom] = utils::strdup(id);
+  custom_flag[ncustom] = flag;
   ncustom++;
+
   return ncustom-1;
 }
 
@@ -2046,53 +2053,54 @@ int DumpVTK::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"region") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    if (strcmp(arg[1],"none") == 0) iregion = -1;
-    else {
-      iregion = domain->find_region(arg[1]);
-      if (iregion == -1)
-        error->all(FLERR,"Dump_modify region ID does not exist");
-      delete [] idregion;
-      int n = strlen(arg[1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[1]);
+    if (strcmp(arg[1],"none") == 0) {
+      delete[] idregion;
+      idregion = nullptr;
+    } else {
+      if (!domain->get_region_by_id(arg[1]))
+        error->all(FLERR,"Dump_modify region {} does not exist",arg[1]);
+      delete[] idregion;
+      idregion = utils::strdup(arg[1]);
     }
     return 2;
   }
 
   if (strcmp(arg[0],"label") == 0) {
      if (narg < 2) error->all(FLERR,"Illegal dump_modify command [label]");
-     delete [] label;
-     int n = strlen(arg[1]) + 1;
-     label = new char[n];
-     strcpy(label,arg[1]);
+     delete[] label;
+     label = utils::strdup(arg[1]);
      return 2;
    }
 
   if (strcmp(arg[0],"binary") == 0) {
      if (narg < 2) error->all(FLERR,"Illegal dump_modify command [binary]");
-     if (strcmp(arg[1],"yes") == 0) binary = 1;
-     else if (strcmp(arg[1],"no") == 0) binary = 0;
-     else error->all(FLERR,"Illegal dump_modify command [binary]");
+     binary = utils::logical(FLERR,arg[1],false,lmp);
      return 2;
   }
 
   if (strcmp(arg[0],"element") == 0) {
     if (narg < ntypes+1)
-      error->all(FLERR,"Dump modify: number of element names do not match atom types");
+      error->all(FLERR,"Number of dump_modify element names does not match number of atom types");
 
-    if (typenames) {
-      for (int i = 1; i <= ntypes; i++) delete [] typenames[i];
-      delete [] typenames;
-      typenames = nullptr;
-    }
-
+    for (int i = 1; i <= ntypes; i++) delete[] typenames[i];
+    delete[] typenames;
     typenames = new char*[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) {
-      int n = strlen(arg[itype]) + 1;
-      typenames[itype] = new char[n];
-      strcpy(typenames[itype],arg[itype]);
+      typenames[itype] = utils::strdup(arg[itype]);
     }
     return ntypes+1;
+  }
+
+  if (strcmp(arg[0],"refresh") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+    ArgInfo argi(arg[1],ArgInfo::COMPUTE);
+    if ((argi.get_type() != ArgInfo::COMPUTE) || (argi.get_dim() != 0))
+      error->all(FLERR,"Illegal dump_modify command");
+    if (refreshflag) error->all(FLERR,"Dump_modify can only have one refresh");
+
+    refreshflag = 1;
+    refresh = argi.copy_name();
+    return 2;
   }
 
   if (strcmp(arg[0],"thresh") == 0) {
@@ -2105,8 +2113,16 @@ int DumpVTK::modify_param(int narg, char **arg)
         thresh_array = nullptr;
         thresh_op = nullptr;
         thresh_value = nullptr;
+        thresh_last = nullptr;
+        for (int i = 0; i < nthreshlast; i++) {
+          modify->delete_fix(thresh_fixID[i]);
+          delete[] thresh_fixID[i];
+        }
+        thresh_fix = nullptr;
+        thresh_fixID = nullptr;
+        thresh_first = nullptr;
       }
-      nthresh = 0;
+      nthresh = nthreshlast = 0;
       return 2;
     }
 
@@ -2117,6 +2133,7 @@ int DumpVTK::modify_param(int narg, char **arg)
     memory->grow(thresh_array,nthresh+1,"dump:thresh_array");
     memory->grow(thresh_op,(nthresh+1),"dump:thresh_op");
     memory->grow(thresh_value,(nthresh+1),"dump:thresh_value");
+    memory->grow(thresh_last,(nthresh+1),"dump:thresh_last");
 
     // set attribute type of threshold
     // customize by adding to if statement
@@ -2199,98 +2216,125 @@ int DumpVTK::modify_param(int narg, char **arg)
     else if (strcmp(arg[1],"tqy") == 0) thresh_array[nthresh] = TQY;
     else if (strcmp(arg[1],"tqz") == 0) thresh_array[nthresh] = TQZ;
 
-    // compute value = c_ID
-    // if no trailing [], then arg is set to 0, else arg is between []
+    // compute or fix or variable or custom vector/array
 
-    else if (strncmp(arg[1],"c_",2) == 0) {
-      thresh_array[nthresh] = COMPUTE;
-      int n = strlen(arg[1]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[1][2]);
+    else {
+      int n,flag,cols;
+      ArgInfo argi(arg[1],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE
+                   |ArgInfo::DNAME|ArgInfo::INAME);
+      argindex[ATTRIBUTES+nfield+nthresh] = argi.get_index1();
+      auto aname = argi.get_name();
 
-      char *ptr = strchr(suffix,'[');
-      if (ptr) {
-        if (suffix[strlen(suffix)-1] != ']')
-          error->all(FLERR,"Invalid attribute in dump modify command");
-        argindex[ATTRIBUTES+nfield+nthresh] = atoi(ptr+1);
-        *ptr = '\0';
-      } else argindex[ATTRIBUTES+nfield+nthresh] = 0;
+      switch (argi.get_type()) {
 
-      n = modify->find_compute(suffix);
-      if (n < 0) error->all(FLERR,"Could not find dump modify compute ID");
+      case ArgInfo::UNKNOWN:
+        error->all(FLERR,"Invalid attribute in dump modify command");
+        break;
 
-      if (modify->compute[n]->peratom_flag == 0)
-        error->all(FLERR,
-                   "Dump modify compute ID does not compute per-atom info");
-      if (argindex[ATTRIBUTES+nfield+nthresh] == 0 &&
-          modify->compute[n]->size_peratom_cols > 0)
-        error->all(FLERR,
-                   "Dump modify compute ID does not compute per-atom vector");
-      if (argindex[ATTRIBUTES+nfield+nthresh] > 0 &&
-          modify->compute[n]->size_peratom_cols == 0)
-        error->all(FLERR,
-                   "Dump modify compute ID does not compute per-atom array");
-      if (argindex[ATTRIBUTES+nfield+nthresh] > 0 &&
-          argindex[ATTRIBUTES+nfield+nthresh] > modify->compute[n]->size_peratom_cols)
-        error->all(FLERR,"Dump modify compute ID vector is not large enough");
+      // compute value = c_ID
+      // if no trailing [], then arg is set to 0, else arg is between []
 
-      field2index[ATTRIBUTES+nfield+nthresh] = add_compute(suffix);
-      delete [] suffix;
+      case ArgInfo::COMPUTE:
+        thresh_array[nthresh] = COMPUTE;
+        n = modify->find_compute(aname);
+        if (n < 0) error->all(FLERR,"Could not find dump modify compute ID: {}",aname);
 
-    // fix value = f_ID
-    // if no trailing [], then arg is set to 0, else arg is between []
+        if (modify->compute[n]->peratom_flag == 0)
+          error->all(FLERR,"Dump modify compute ID {} does not compute per-atom info",aname);
+        if (argi.get_dim() == 0 && modify->compute[n]->size_peratom_cols > 0)
+          error->all(FLERR,"Dump modify compute ID {} does not compute per-atom vector",aname);
+        if (argi.get_index1() > 0 && modify->compute[n]->size_peratom_cols == 0)
+          error->all(FLERR,"Dump modify compute ID {} does not compute per-atom array",aname);
+        if (argi.get_index1() > 0 &&
+            argi.get_index1() > modify->compute[n]->size_peratom_cols)
+          error->all(FLERR,"Dump modify compute ID {} vector is not large enough",aname);
 
-    } else if (strncmp(arg[1],"f_",2) == 0) {
-      thresh_array[nthresh] = FIX;
-      int n = strlen(arg[1]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[1][2]);
+        field2index[ATTRIBUTES+nfield+nthresh] = add_compute(aname);
+        break;
 
-      char *ptr = strchr(suffix,'[');
-      if (ptr) {
-        if (suffix[strlen(suffix)-1] != ']')
-          error->all(FLERR,"Invalid attribute in dump modify command");
-        argindex[ATTRIBUTES+nfield+nthresh] = atoi(ptr+1);
-        *ptr = '\0';
-      } else argindex[ATTRIBUTES+nfield+nthresh] = 0;
+      // fix value = f_ID
+      // if no trailing [], then arg is set to 0, else arg is between []
 
-      n = modify->find_fix(suffix);
-      if (n < 0) error->all(FLERR,"Could not find dump modify fix ID");
+      case ArgInfo::FIX:
+        thresh_array[nthresh] = FIX;
+        n = modify->find_fix(aname);
+        if (n < 0) error->all(FLERR,"Could not find dump modify fix ID: {}",aname);
 
-      if (modify->fix[n]->peratom_flag == 0)
-        error->all(FLERR,"Dump modify fix ID does not compute per-atom info");
-      if (argindex[ATTRIBUTES+nfield+nthresh] == 0 &&
-          modify->fix[n]->size_peratom_cols > 0)
-        error->all(FLERR,"Dump modify fix ID does not compute per-atom vector");
-      if (argindex[ATTRIBUTES+nfield+nthresh] > 0 &&
-          modify->fix[n]->size_peratom_cols == 0)
-        error->all(FLERR,"Dump modify fix ID does not compute per-atom array");
-      if (argindex[ATTRIBUTES+nfield+nthresh] > 0 &&
-          argindex[ATTRIBUTES+nfield+nthresh] > modify->fix[n]->size_peratom_cols)
-        error->all(FLERR,"Dump modify fix ID vector is not large enough");
+        if (modify->fix[n]->peratom_flag == 0)
+          error->all(FLERR,"Dump modify fix ID {} does not compute per-atom info",aname);
+        if (argi.get_dim() == 0 && modify->fix[n]->size_peratom_cols > 0)
+          error->all(FLERR,"Dump modify fix ID {} does not compute per-atom vector",aname);
+        if (argi.get_index1() > 0 && modify->fix[n]->size_peratom_cols == 0)
+          error->all(FLERR,"Dump modify fix ID {} does not compute per-atom array",aname);
+        if (argi.get_index1() > 0 && argi.get_index1() > modify->fix[n]->size_peratom_cols)
+          error->all(FLERR,"Dump modify fix ID {} vector is not large enough",aname);
 
-      field2index[ATTRIBUTES+nfield+nthresh] = add_fix(suffix);
-      delete [] suffix;
+        field2index[ATTRIBUTES+nfield+nthresh] = add_fix(aname);
+        break;
 
-    // variable value = v_ID
+      // variable value = v_ID
 
-    } else if (strncmp(arg[1],"v_",2) == 0) {
-      thresh_array[nthresh] = VARIABLE;
-      int n = strlen(arg[1]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[1][2]);
+      case ArgInfo::VARIABLE:
+        thresh_array[nthresh] = VARIABLE;
+        n = input->variable->find(aname);
+        if (n < 0) error->all(FLERR,"Could not find dump modify variable name: {}",aname);
+        if (input->variable->atomstyle(n) == 0)
+          error->all(FLERR,"Dump modify variable {} is not atom-style variable",aname);
 
-      argindex[ATTRIBUTES+nfield+nthresh] = 0;
+        field2index[ATTRIBUTES+nfield+nthresh] = add_variable(aname);
+        break;
 
-      n = input->variable->find(suffix);
-      if (n < 0) error->all(FLERR,"Could not find dump modify variable name");
-      if (input->variable->atomstyle(n) == 0)
-        error->all(FLERR,"Dump modify variable is not atom-style variable");
+      // custom per atom floating point vector or array
 
-      field2index[ATTRIBUTES+nfield+nthresh] = add_variable(suffix);
-      delete [] suffix;
+      case ArgInfo::DNAME:
+        n = atom->find_custom(aname,flag,cols);
 
-    } else error->all(FLERR,"Invalid dump_modify threshold operator");
+        if (n < 0)
+          error->all(FLERR,"Could not find custom per-atom property ID: {}", aname);
+        if (argindex[ATTRIBUTES+nfield+nthresh] == 0) {
+          if (!flag || cols)
+            error->all(FLERR,"Property double vector for dump custom does not exist");
+          thresh_array[nthresh] = DVEC;
+        } else {
+          if (!flag || !cols)
+            error->all(FLERR,"Property double array for dump custom does not exist");
+          if (argindex[ATTRIBUTES+nfield+nthresh] > atom->dcols[n])
+            error->all(FLERR,"Dump custom property array is accessed out-of-range");
+          thresh_array[nthresh] = DARRAY;
+        }
+
+        field2index[ATTRIBUTES+nfield+nthresh] = add_custom(aname,thresh_array[nthresh]);
+        break;
+
+      // custom per atom integer vector or array
+
+      case ArgInfo::INAME:
+        n = atom->find_custom(aname,flag,cols);
+
+        if (n < 0)
+          error->all(FLERR,"Could not find custom per-atom property ID: {}", aname);
+        if (argindex[ATTRIBUTES+nfield+nthresh] == 0) {
+          if (flag || cols)
+            error->all(FLERR,"Property integer vector for dump custom does not exist");
+          thresh_array[nthresh] = IVEC;
+        } else {
+          if (flag || !cols)
+            error->all(FLERR,"Property integer array for dump custom does not exist");
+          if (argindex[ATTRIBUTES+nfield+nthresh] > atom->icols[n])
+            error->all(FLERR,"Dump custom property array is accessed out-of-range");
+          thresh_array[nthresh] = IARRAY;
+        }
+
+        field2index[ATTRIBUTES+nfield+nthresh] = add_custom(aname,thresh_array[nthresh]);
+        break;
+
+      // no match
+
+      default:
+        error->all(FLERR,"Invalid dump_modify thresh attribute: {}",aname);
+        break;
+      }
+    }
 
     // set operation type of threshold
 
@@ -2300,11 +2344,32 @@ int DumpVTK::modify_param(int narg, char **arg)
     else if (strcmp(arg[2],">=") == 0) thresh_op[nthresh] = GE;
     else if (strcmp(arg[2],"==") == 0) thresh_op[nthresh] = EQ;
     else if (strcmp(arg[2],"!=") == 0) thresh_op[nthresh] = NEQ;
-    else error->all(FLERR,"Invalid dump_modify threshold operator");
+    else if (strcmp(arg[2],"|^") == 0) thresh_op[nthresh] = XOR;
+    else error->all(FLERR,"Invalid dump_modify thresh operator");
 
-    // set threshold value
+    // set threshold value as number or special LAST keyword
+    // create FixStore to hold LAST values, should work with restart
+    // id = dump-ID + nthreshlast + DUMP_STORE, fix group = dump group
 
-    thresh_value[nthresh] = utils::numeric(FLERR,arg[3],false,lmp);
+    if (strcmp(arg[3],"LAST") != 0) {
+      thresh_value[nthresh] = utils::numeric(FLERR,arg[3],false,lmp);
+      thresh_last[nthresh] = -1;
+    } else {
+      thresh_fix = (FixStore **)
+        memory->srealloc(thresh_fix,(nthreshlast+1)*sizeof(FixStore *),"dump:thresh_fix");
+      thresh_fixID = (char **)
+        memory->srealloc(thresh_fixID,(nthreshlast+1)*sizeof(char *),"dump:thresh_fixID");
+      memory->grow(thresh_first,(nthreshlast+1),"dump:thresh_first");
+
+      std::string threshid = fmt::format("{}{}_DUMP_STORE",id,nthreshlast);
+      thresh_fixID[nthreshlast] = utils::strdup(threshid);
+      threshid += fmt::format(" {} STORE peratom 1 1", group->names[igroup]);
+      thresh_fix[nthreshlast] = (FixStore *) modify->add_fix(threshid);
+
+      thresh_last[nthreshlast] = nthreshlast;
+      thresh_first[nthreshlast] = 1;
+      nthreshlast++;
+    }
 
     nthresh++;
     return 4;
@@ -2389,24 +2454,34 @@ void DumpVTK::pack_variable(int n)
 
 void DumpVTK::pack_custom(int n)
 {
-  int index = field2index[n];
+  int flag = custom_flag[field2index[current_pack_choice_key]];
+  int iwhich = custom[field2index[current_pack_choice_key]];
+  int index = argindex[current_pack_choice_key];
 
-  if (flag_custom[index] == 0) { // integer
-    int iwhich,tmp;
-    iwhich = atom->find_custom(id_custom[index],tmp);
-
+  if (flag == IVEC) {
     int *ivector = atom->ivector[iwhich];
     for (int i = 0; i < nchoose; i++) {
       buf[n] = ivector[clist[i]];
       n += size_one;
     }
-  } else if (flag_custom[index] == 1) { // double
-    int iwhich,tmp;
-    iwhich = atom->find_custom(id_custom[index],tmp);
-
+  } else if (flag == DVEC) {
     double *dvector = atom->dvector[iwhich];
     for (int i = 0; i < nchoose; i++) {
       buf[n] = dvector[clist[i]];
+      n += size_one;
+    }
+  } else if (flag == IARRAY) {
+    index--;
+    int **iarray = atom->iarray[iwhich];
+    for (int i = 0; i < nchoose; i++) {
+      buf[n] = iarray[clist[i]][index];
+      n += size_one;
+    }
+  } else if (flag == DARRAY) {
+    index--;
+    double **darray = atom->darray[iwhich];
+    for (int i = 0; i < nchoose; i++) {
+      buf[n] = darray[clist[i]][index];
       n += size_one;
     }
   }

@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class PairBornCoulLongGPU : public PairBornCoulLong {
  public:
   PairBornCoulLongGPU(LAMMPS *lmp);
-  ~PairBornCoulLongGPU();
+  ~PairBornCoulLongGPU() override;
   void cpu_compute(int, int, int, int, int *, int *, int **);
-  void compute(int, int);
-  void init_style();
-  double memory_usage();
+  void compute(int, int) override;
+  void init_style() override;
+  double memory_usage() override;
 
   enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
@@ -43,24 +43,3 @@ class PairBornCoulLongGPU : public PairBornCoulLong {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Pair style born/coul/long/gpu requires atom attribute q
-
-The atom style defined does not have this attribute.
-
-E: Cannot use newton pair with born/coul/long/gpu pair style
-
-Self-explanatory.
-
-E: Pair style requires a KSpace style
-
-No kspace style is defined.
-
-*/

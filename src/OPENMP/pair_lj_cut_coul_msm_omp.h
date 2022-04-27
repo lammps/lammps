@@ -34,8 +34,8 @@ class PairLJCutCoulMSMOMP : public PairLJCutCoulMSM, public ThrOMP {
  public:
   PairLJCutCoulMSMOMP(class LAMMPS *);
 
-  virtual void compute(int, int);
-  virtual double memory_usage();
+  void compute(int, int) override;
+  double memory_usage() override;
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
@@ -46,11 +46,3 @@ class PairLJCutCoulMSMOMP : public PairLJCutCoulMSM, public ThrOMP {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Must use 'kspace_modify pressure/scalar no' with OMP MSM Pair styles
-
-The kspace scalar pressure option is not (yet) compatible with OMP MSM Pair styles.
-
-*/

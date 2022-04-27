@@ -31,19 +31,10 @@ namespace LAMMPS_NS {
 class NPairSkipSizeOff2on : public NPair {
  public:
   NPairSkipSizeOff2on(class LAMMPS *);
-  ~NPairSkipSizeOff2on() {}
-  void build(class NeighList *);
+  void build(class NeighList *) override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Neighbor list overflow, boost neigh_modify one
-
-UNDOCUMENTED
-
-*/

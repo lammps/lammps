@@ -3,7 +3,7 @@ name: "CodeQL Code Analysis"
 
 on:
   push:
-    branches: [master]
+    branches: [develop]
 
 jobs:
   analyze:

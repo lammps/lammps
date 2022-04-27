@@ -27,22 +27,9 @@ namespace LAMMPS_NS {
 class FixNPHAsphere : public FixNHAsphere {
  public:
   FixNPHAsphere(class LAMMPS *, int, char **);
-  ~FixNPHAsphere() {}
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Temperature control can not be used with fix nph/asphere
-
-Self-explanatory.
-
-E: Pressure control must be used with fix nph/asphere
-
-Self-explanatory.
-
-*/

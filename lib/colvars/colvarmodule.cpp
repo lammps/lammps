@@ -1476,7 +1476,9 @@ int colvarmodule::write_output_files()
        bi != biases.end();
        bi++) {
     // Only write output files if they have not already been written this time step
-    if ((*bi)->output_freq == 0 || (cvm::step_absolute() % (*bi)->output_freq) != 0) {
+    if ((*bi)->output_freq == 0    ||
+        cvm::step_relative() == 0  ||
+        (cvm::step_absolute() % (*bi)->output_freq) != 0) {
       error_code |= (*bi)->write_output_files();
     }
     error_code |= (*bi)->write_state_to_replicas();

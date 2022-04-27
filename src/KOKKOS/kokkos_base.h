@@ -44,6 +44,3 @@ class KokkosBase {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

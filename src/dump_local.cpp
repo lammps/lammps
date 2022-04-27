@@ -197,17 +197,15 @@ void DumpLocal::init_style()
   // check that fix frequency is acceptable
 
   for (i = 0; i < ncompute; i++) {
-    int icompute = modify->find_compute(id_compute[i]);
-    if (icompute < 0) error->all(FLERR,"Could not find dump local compute ID");
-    compute[i] = modify->compute[icompute];
+    compute[i] = modify->get_compute_by_id(id_compute[i]);
+    if (!compute[i]) error->all(FLERR,"Could not find dump local compute ID {}",id_compute[i]);
   }
 
   for (i = 0; i < nfix; i++) {
-    int ifix = modify->find_fix(id_fix[i]);
-    if (ifix < 0) error->all(FLERR,"Could not find dump local fix ID");
-    fix[i] = modify->fix[ifix];
-    if (nevery % modify->fix[ifix]->local_freq)
-      error->all(FLERR,"Dump local and fix not computed at compatible times");
+    fix[i] = modify->get_fix_by_id(id_fix[i]);
+    if (!fix[i]) error->all(FLERR,"Could not find dump local fix ID {}", id_fix[i]);
+    if (nevery % fix[i]->local_freq)
+      error->all(FLERR,"Dump local and fix {} not computed at compatible times", id_fix[i]);
   }
 
   // open single file, one time only
@@ -244,8 +242,7 @@ int DumpLocal::modify_param(int narg, char **arg)
       // use of &str[1] removes leading '%' from BIGINT_FORMAT string
       char *ptr = strchr(format_int_user,'d');
       if (ptr == nullptr)
-        error->all(FLERR,
-                   "Dump_modify int format does not contain d character");
+        error->all(FLERR, "Dump_modify int format does not contain d character");
       char str[8];
       sprintf(str,"%s",BIGINT_FORMAT);
       *ptr = '\0';
@@ -260,7 +257,7 @@ int DumpLocal::modify_param(int narg, char **arg)
       int i = utils::inumeric(FLERR,arg[1],false,lmp) - 1;
       if (i < 0 || i >= nfield)
         error->all(FLERR,"Illegal dump_modify command");
-      if (format_column_user[i]) delete[] format_column_user[i];
+      delete[] format_column_user[i];
       format_column_user[i] = utils::strdup(arg[2]);
     }
     return 3;
@@ -275,26 +272,29 @@ void DumpLocal::write_header(bigint ndump)
   if (me == 0) {
     if (unit_flag && !unit_count) {
       ++unit_count;
-      fprintf(fp,"ITEM: UNITS\n%s\n",update->unit_style);
+      fmt::print(fp,"ITEM: UNITS\n{}\n",update->unit_style);
     }
-    if (time_flag) fprintf(fp,"ITEM: TIME\n%.16g\n",compute_time());
+    if (time_flag) fmt::print(fp,"ITEM: TIME\n{:.16}\n",compute_time());
 
-    fprintf(fp,"ITEM: TIMESTEP\n");
-    fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
-    fprintf(fp,"ITEM: NUMBER OF %s\n",label);
-    fprintf(fp,BIGINT_FORMAT "\n",ndump);
+    fmt::print(fp,"ITEM: TIMESTEP\n{}\n"
+               "ITEM: NUMBER OF {}\n{}\n",
+               update->ntimestep, label, ndump);
+
     if (domain->triclinic) {
-      fprintf(fp,"ITEM: BOX BOUNDS xy xz yz %s\n",boundstr);
-      fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxxlo,boxxhi,boxxy);
-      fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxylo,boxyhi,boxxz);
-      fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxzlo,boxzhi,boxyz);
+      fmt::print(fp,"ITEM: BOX BOUNDS xy xz yz {}\n"
+                 "{:>1.16e} {:>1.16e} {:>1.16e}\n"
+                 "{:>1.16e} {:>1.16e} {:>1.16e}\n"
+                 "{:>1.16e} {:>1.16e} {:>1.16e}\n",
+                 boundstr,boxxlo,boxxhi,boxxy,boxylo,boxyhi,boxxz,boxzlo,boxzhi,boxyz);
     } else {
-      fprintf(fp,"ITEM: BOX BOUNDS %s\n",boundstr);
-      fprintf(fp,"%-1.16e %-1.16e\n",boxxlo,boxxhi);
-      fprintf(fp,"%-1.16e %-1.16e\n",boxylo,boxyhi);
-      fprintf(fp,"%-1.16e %-1.16e\n",boxzlo,boxzhi);
+      fmt::print(fp,"ITEM: BOX BOUNDS {}\n"
+                 "{:>1.16e} {:>1.16e}\n"
+                 "{:>1.16e} {:>1.16e}\n"
+                 "{:>1.16e} {:>1.16e}\n",
+                 boundstr,boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi);
     }
-    fprintf(fp,"ITEM: %s %s\n",label,columns);
+
+    fmt::print(fp,"ITEM: {} {}\n", label, columns);
   }
 }
 
@@ -399,7 +399,8 @@ void DumpLocal::write_data(int n, double *mybuf)
 
 void DumpLocal::write_string(int n, double *mybuf)
 {
-  fwrite(mybuf,sizeof(char),n,fp);
+  if (mybuf)
+    fwrite(mybuf,sizeof(char),n,fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -436,11 +437,13 @@ void DumpLocal::parse_fields(int narg, char **arg)
       vtype[iarg] = Dump::INT;
 
     } else {
-      int n;
       ArgInfo argi(arg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX);
       computefixflag = 1;
       vtype[iarg] = Dump::DOUBLE;
       argindex[iarg] = argi.get_index1();
+      auto name = argi.get_name();
+      Compute *icompute = nullptr;
+      Fix *ifix = nullptr;
 
       switch (argi.get_type()) {
 
@@ -450,19 +453,18 @@ void DumpLocal::parse_fields(int narg, char **arg)
       case ArgInfo::COMPUTE:
         pack_choice[iarg] = &DumpLocal::pack_compute;
 
-        n = modify->find_compute(argi.get_name());
-        if (n < 0) error->all(FLERR,"Could not find dump local compute ID");
-        if (modify->compute[n]->local_flag == 0)
-          error->all(FLERR,"Dump local compute does not compute local info");
-        if (argi.get_dim() == 0 && modify->compute[n]->size_local_cols > 0)
-          error->all(FLERR,"Dump local compute does not calculate local vector");
-        if (argi.get_index1() > 0 && modify->compute[n]->size_local_cols == 0)
-          error->all(FLERR,"Dump local compute does not calculate local array");
-        if (argi.get_index1() > 0 &&
-            argi.get_index1() > modify->compute[n]->size_local_cols)
-          error->all(FLERR,"Dump local compute vector is accessed out-of-range");
+        icompute = modify->get_compute_by_id(name);
+        if (!icompute) error->all(FLERR,"Could not find dump local compute ID {}",name);
+        if (icompute->local_flag == 0)
+          error->all(FLERR,"Dump local compute {} does not compute local info", name);
+        if (argi.get_dim() == 0 && icompute->size_local_cols > 0)
+          error->all(FLERR,"Dump local compute {} does not calculate local vector", name);
+        if (argi.get_index1() > 0 && icompute->size_local_cols == 0)
+          error->all(FLERR,"Dump local compute {} does not calculate local array", name);
+        if (argi.get_index1() > 0 && argi.get_index1() > icompute->size_local_cols)
+          error->all(FLERR,"Dump local compute {} vector is accessed out-of-range", name);
 
-        field2index[iarg] = add_compute(argi.get_name());
+        field2index[iarg] = add_compute(name);
         break;
 
         // fix value = f_ID
@@ -471,26 +473,25 @@ void DumpLocal::parse_fields(int narg, char **arg)
       case ArgInfo::FIX:
         pack_choice[iarg] = &DumpLocal::pack_fix;
 
-        n = modify->find_fix(argi.get_name());
-        if (n < 0) error->all(FLERR,"Could not find dump local fix ID");
-        if (modify->fix[n]->local_flag == 0)
-          error->all(FLERR,"Dump local fix does not compute local info");
-        if (argi.get_dim() == 0 && modify->fix[n]->size_local_cols > 0)
-          error->all(FLERR,"Dump local fix does not compute local vector");
-        if (argi.get_index1() > 0 && modify->fix[n]->size_local_cols == 0)
-          error->all(FLERR,"Dump local fix does not compute local array");
-        if (argi.get_index1() > 0 &&
-            argi.get_index1() > modify->fix[n]->size_local_cols)
-          error->all(FLERR,"Dump local fix vector is accessed out-of-range");
+        ifix = modify->get_fix_by_id(name);
+        if (!ifix) error->all(FLERR,"Could not find dump local fix ID {}", name);
+        if (ifix->local_flag == 0)
+          error->all(FLERR,"Dump local fix {} does not compute local info", name);
+        if (argi.get_dim() == 0 && ifix->size_local_cols > 0)
+          error->all(FLERR,"Dump local fix {} does not compute local vector", name);
+        if (argi.get_index1() > 0 && ifix->size_local_cols == 0)
+          error->all(FLERR,"Dump local fix {} does not compute local array", name);
+        if (argi.get_index1() > 0 && argi.get_index1() > ifix->size_local_cols)
+          error->all(FLERR,"Dump local fix {} vector is accessed out-of-range", name);
 
-        field2index[iarg] = add_fix(argi.get_name());
+        field2index[iarg] = add_fix(name);
         break;
 
       case ArgInfo::NONE:       // fallthrough
       case ArgInfo::UNKNOWN:    // fallthrough
       default:
-         error->all(FLERR,"Invalid attribute in dump local command");
-         break;
+        error->all(FLERR,"Invalid attribute {} in dump local command",arg[iarg]);
+        break;
       }
     }
   }

@@ -67,33 +67,7 @@ MSM::MSM(LAMMPS *lmp)
   factors[0] = 2;
 
   MPI_Comm_rank(world,&me);
-
-  phi1d = dphi1d = nullptr;
-
   nmax = 0;
-  part2grid = nullptr;
-
-  g_direct = nullptr;
-  g_direct_top = nullptr;
-
-  v0_direct = v1_direct = v2_direct = nullptr;
-  v3_direct = v4_direct = v5_direct = nullptr;
-
-  v0_direct_top = v1_direct_top = v2_direct_top = nullptr;
-  v3_direct_top = v4_direct_top = v5_direct_top = nullptr;
-
-  ngrid = nullptr;
-
-  alpha = betax = betay = betaz = nullptr;
-  nx_msm = ny_msm = nz_msm = nullptr;
-  nxlo_in = nylo_in = nzlo_in = nullptr;
-  nxhi_in = nyhi_in = nzhi_in = nullptr;
-  nxlo_out = nylo_out = nzlo_out = nullptr;
-  nxhi_out = nyhi_out = nzhi_out = nullptr;
-  delxinv = delyinv = delzinv = nullptr;
-  qgrid = nullptr;
-  egrid = nullptr;
-  v0grid = v1grid = v2grid = v3grid = v4grid = v5grid = nullptr;
 
   peratom_allocate_flag = 0;
   scalar_pressure_flag = 1;
@@ -116,7 +90,7 @@ void MSM::settings(int narg, char **arg)
 
 MSM::~MSM()
 {
-  delete [] factors;
+  delete[] factors;
   deallocate();
   if (peratom_allocate_flag) deallocate_peratom();
   deallocate_levels();
@@ -176,7 +150,7 @@ void MSM::init()
   pair_check();
 
   int itmp;
-  double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
@@ -311,6 +285,11 @@ double MSM::estimate_total_error()
 
 void MSM::setup()
 {
+  // change_box may trigger MSM::setup() before MSM::init() was called
+  // error out and request full initialization.
+
+  if (!delxinv) error->all(FLERR, "MSM must be fully initialized for this operation");
+
   double *prd;
   double a = cutoff;
 
@@ -626,15 +605,19 @@ void MSM::allocate()
 
   gcall->setup(ngcall_buf1,ngcall_buf2);
   npergrid = 1;
+  memory->destroy(gcall_buf1);
+  memory->destroy(gcall_buf2);
   memory->create(gcall_buf1,npergrid*ngcall_buf1,"msm:gcall_buf1");
   memory->create(gcall_buf2,npergrid*ngcall_buf2,"msm:gcall_buf2");
 
   // allocate memory for each grid level
 
   for (int n=0; n<levels; n++) {
+    memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
     memory->create3d_offset(qgrid[n],nzlo_out[n],nzhi_out[n],
             nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:qgrid");
 
+    memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
     memory->create3d_offset(egrid[n],nzlo_out[n],nzhi_out[n],
             nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:egrid");
 
@@ -654,6 +637,8 @@ void MSM::allocate()
 
       gc[n]->setup(ngc_buf1[n],ngc_buf2[n]);
       npergrid = 1;
+      memory->destroy(gc_buf1[n]);
+      memory->destroy(gc_buf2[n]);
       memory->create(gc_buf1[n],npergrid*ngc_buf1[n],"msm:gc_buf1");
       memory->create(gc_buf2[n],npergrid*ngc_buf2[n],"msm:gc_buf2");
     } else {
@@ -835,11 +820,8 @@ void MSM::deallocate_levels()
 {
   if (world_levels) {
     for (int n=0; n < levels; ++n) {
-      if (qgrid[n])
-        memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
-
-      if (egrid[n])
-        memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
+      memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
+      memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
 
       if (gc) {
         if (gc[n]) {
@@ -857,57 +839,57 @@ void MSM::deallocate_levels()
     }
   }
 
-  delete [] ngrid;
+  delete[] ngrid;
   ngrid = nullptr;
 
   memory->destroy(procneigh_levels);
-  delete [] world_levels;
-  delete [] active_flag;
+  delete[] world_levels;
+  delete[] active_flag;
 
-  delete [] gc;
-  delete [] gc_buf1;
-  delete [] gc_buf2;
-  delete [] ngc_buf1;
-  delete [] ngc_buf2;
+  delete[] gc;
+  delete[] gc_buf1;
+  delete[] gc_buf2;
+  delete[] ngc_buf1;
+  delete[] ngc_buf2;
 
-  delete [] alpha;
-  delete [] betax;
-  delete [] betay;
-  delete [] betaz;
+  delete[] alpha;
+  delete[] betax;
+  delete[] betay;
+  delete[] betaz;
 
-  delete [] nx_msm;
-  delete [] ny_msm;
-  delete [] nz_msm;
+  delete[] nx_msm;
+  delete[] ny_msm;
+  delete[] nz_msm;
 
-  delete [] nxlo_in;
-  delete [] nylo_in;
-  delete [] nzlo_in;
+  delete[] nxlo_in;
+  delete[] nylo_in;
+  delete[] nzlo_in;
 
-  delete [] nxhi_in;
-  delete [] nyhi_in;
-  delete [] nzhi_in;
+  delete[] nxhi_in;
+  delete[] nyhi_in;
+  delete[] nzhi_in;
 
-  delete [] nxlo_out;
-  delete [] nylo_out;
-  delete [] nzlo_out;
+  delete[] nxlo_out;
+  delete[] nylo_out;
+  delete[] nzlo_out;
 
-  delete [] nxhi_out;
-  delete [] nyhi_out;
-  delete [] nzhi_out;
+  delete[] nxhi_out;
+  delete[] nyhi_out;
+  delete[] nzhi_out;
 
-  delete [] delxinv;
-  delete [] delyinv;
-  delete [] delzinv;
+  delete[] delxinv;
+  delete[] delyinv;
+  delete[] delzinv;
 
-  delete [] qgrid;
-  delete [] egrid;
+  delete[] qgrid;
+  delete[] egrid;
 
-  delete [] v0grid;
-  delete [] v1grid;
-  delete [] v2grid;
-  delete [] v3grid;
-  delete [] v4grid;
-  delete [] v5grid;
+  delete[] v0grid;
+  delete[] v1grid;
+  delete[] v2grid;
+  delete[] v3grid;
+  delete[] v4grid;
+  delete[] v5grid;
 
   world_levels = nullptr;
   active_flag = nullptr;
@@ -1060,8 +1042,7 @@ void MSM::set_grid_global()
   }
 
   if (flag && gridflag && me == 0)
-    error->warning(FLERR,
-                   "Number of MSM mesh points changed to be a multiple of 2");
+    error->warning(FLERR, "Number of MSM mesh points changed to be a multiple of 2");
 
   // adjust Coulombic cutoff to give desired error (if requested)
 
@@ -1083,12 +1064,11 @@ void MSM::set_grid_global()
 
     cutoff = pow(k*k*sum/3.0,1.0/(2.0*p));
     int itmp;
-    double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+    auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
     *p_cutoff = cutoff;
 
     if (me == 0)
-      error->warning(FLERR,"Adjusting Coulombic cutoff for "
-                     "MSM, new cutoff = {:.8}", cutoff);
+      error->warning(FLERR,"Adjusting Coulombic cutoff for MSM, new cutoff = {:.8}", cutoff);
   }
 
   if (triclinic == 0) {
@@ -1106,6 +1086,8 @@ void MSM::set_grid_global()
     h_z = 1.0/tmp[2];
   }
 
+  deallocate_levels();
+
   // find maximum number of levels
 
   levels = MAX(xlevels,ylevels);
@@ -1119,15 +1101,13 @@ void MSM::set_grid_global()
     levels = xlevels = ylevels = zlevels = 2;
     nx_max = ny_max = nz_max = 2;
     if (gridflag)
-      error->warning(FLERR,
-             "MSM mesh too small, increasing to 2 points in each direction");
+      error->warning(FLERR,"MSM mesh too small, increasing to 2 points in each direction");
   }
 
   // omit top grid level for periodic systems
 
   if (!domain->nonperiodic) levels -= 1;
 
-  deallocate_levels();
   allocate_levels();
 
   // find number of grid levels in each direction
@@ -1154,33 +1134,19 @@ void MSM::set_grid_global()
     error->all(FLERR,"MSM grid is too large");
 
   // compute number of extra grid points needed for non-periodic boundary conditions
+  // need to always do this, so we can handle the case of switching from periodic
+  // to non-periodic.
 
-  if (domain->nonperiodic) {
-    alpha[0] = -(order/2 - 1);
-    betax[0] = nx_msm[0] + (order/2 - 1);
-    betay[0] = ny_msm[0] + (order/2 - 1);
-    betaz[0] = nz_msm[0] + (order/2 - 1);
-    for (int n = 1; n < levels; n++) {
-      alpha[n] = -((-alpha[n-1]+1)/2) - (order/2 - 1);
-      betax[n] = ((betax[n-1]+1)/2) + (order/2 - 1);
-      betay[n] = ((betay[n-1]+1)/2) + (order/2 - 1);
-      betaz[n] = ((betaz[n-1]+1)/2) + (order/2 - 1);
-    }
+  alpha[0] = -(order/2 - 1);
+  betax[0] = nx_msm[0] + (order/2 - 1);
+  betay[0] = ny_msm[0] + (order/2 - 1);
+  betaz[0] = nz_msm[0] + (order/2 - 1);
+  for (int n = 1; n < levels; n++) {
+    alpha[n] = -((-alpha[n-1]+1)/2) - (order/2 - 1);
+    betax[n] = ((betax[n-1]+1)/2) + (order/2 - 1);
+    betay[n] = ((betay[n-1]+1)/2) + (order/2 - 1);
+    betaz[n] = ((betaz[n-1]+1)/2) + (order/2 - 1);
   }
-
-  if (domain->nonperiodic) {
-    alpha[0] = -(order/2 - 1);
-    betax[0] = nx_msm[0] + (order/2 - 1);
-    betay[0] = ny_msm[0] + (order/2 - 1);
-    betaz[0] = nz_msm[0] + (order/2 - 1);
-    for (int n = 1; n < levels; n++) {
-      alpha[n] = -((-alpha[n-1]+1)/2) - (order/2 - 1);
-      betax[n] = ((betax[n-1]+1)/2) + (order/2 - 1);
-      betay[n] = ((betay[n-1]+1)/2) + (order/2 - 1);
-      betaz[n] = ((betaz[n-1]+1)/2) + (order/2 - 1);
-    }
-  }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1194,6 +1160,10 @@ void MSM::set_grid_local()
   // loop over grid levels
 
   for (int n=0; n<levels; n++) {
+
+    // deleted and nullify grid arrays since the number or offset of gridpoints may change
+    memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
+    memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
 
     // partition global grid across procs
     // n xyz lo/hi in[] = lower/upper bounds of global grid this proc owns
@@ -2536,7 +2506,7 @@ void MSM::grid_swap_reverse(int n, double*** &gridn)
 
 void MSM::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  double *buf = (double *) vbuf;
+  auto buf = (double *) vbuf;
 
   int n = current_level;
   int k = 0;
@@ -2582,7 +2552,7 @@ void MSM::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void MSM::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  double *buf = (double *) vbuf;
+  auto buf = (double *) vbuf;
 
   int n = current_level;
   int k = 0;
@@ -2628,7 +2598,7 @@ void MSM::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void MSM::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  double *buf = (double *) vbuf;
+  auto buf = (double *) vbuf;
 
   int n = current_level;
   int k = 0;
@@ -2674,7 +2644,7 @@ void MSM::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 
 void MSM::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  double *buf = (double *) vbuf;
+  auto buf = (double *) vbuf;
 
   int n = current_level;
   int k = 0;
@@ -3280,7 +3250,7 @@ void MSM::get_g_direct_top(int n)
 
   int nmax_top = 8*(nx+1)*(ny*1)*(nz+1);
 
-  if (g_direct_top) memory->destroy(g_direct_top);
+  memory->destroy(g_direct_top);
   memory->create(g_direct_top,nmax_top,"msm:g_direct_top");
 
   double a = cutoff;

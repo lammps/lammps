@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class FixGrem : public Fix {
  public:
   FixGrem(class LAMMPS *, int, char **);
-  ~FixGrem();
-  int setmask();
-  void init();
-  void setup(int);
-  void min_setup(int);
-  void post_force(int);
-  void *extract(const char *, int &);
-  double compute_scalar();
+  ~FixGrem() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void min_setup(int) override;
+  void post_force(int) override;
+  void *extract(const char *, int &) override;
+  double compute_scalar() override;
   double scale_grem, lambda, eta, h0;
   int pressflag;
 
@@ -50,35 +50,3 @@ class FixGrem : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Region ID for fix grem does not exist
-
-Self-explanatory.
-
-E: Variable name for fix grem does not exist
-
-Self-explanatory.
-
-E: Variable for fix grem is invalid style
-
-Self-explanatory.
-
-E: Cannot use variable energy with constant force in fix grem
-
-This is because for constant force, LAMMPS can compute the change
-in energy directly.
-
-E: Must use variable energy with fix grem
-
-Must define an energy variable when applying a dynamic
-force during minimization.
-
-*/

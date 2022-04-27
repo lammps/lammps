@@ -33,9 +33,9 @@ namespace LAMMPS_NS {
 class BondHarmonicIntel : public BondHarmonic {
  public:
   BondHarmonicIntel(class LAMMPS *);
-  virtual ~BondHarmonicIntel();
-  virtual void compute(int, int);
-  virtual void init_style();
+  ~BondHarmonicIntel() override;
+  void compute(int, int) override;
+  void init_style() override;
 
  protected:
   FixIntel *fix;
@@ -60,7 +60,7 @@ class BondHarmonicIntel : public BondHarmonic {
     } fc_packed1;
     fc_packed1 *fc;
 
-    ForceConst() : _nbondtypes(0) {}
+    ForceConst() : fc(nullptr), _nbondtypes(0) {}
     ~ForceConst() { set_ntypes(0, nullptr); }
 
     void set_ntypes(const int nbondtypes, Memory *memory);
@@ -77,11 +77,3 @@ class BondHarmonicIntel : public BondHarmonic {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args for bond coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

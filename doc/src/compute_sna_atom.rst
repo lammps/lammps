@@ -33,7 +33,7 @@ Syntax
 * R_1, R_2,... = list of cutoff radii, one for each type (distance units)
 * w_1, w_2,... = list of neighbor weights, one for each type
 * zero or more keyword/value pairs may be appended
-* keyword = *rmin0* or *switchflag* or *bzeroflag* or *quadraticflag* or *chem* or *bnormflag* or *wselfallflag*
+* keyword = *rmin0* or *switchflag* or *bzeroflag* or *quadraticflag* or *chem* or *bnormflag* or *wselfallflag* or *bikflag* or *switchinnerflag*
 
   .. parsed-literal::
 
@@ -56,6 +56,12 @@ Syntax
        *wselfallflag* value = *0* or *1*
           *0* = self-contribution only for element of central atom
           *1* = self-contribution for all elements
+       *bikflag* value = *0* or *1* (only implemented for compute snap)
+          *0* = per-atom bispectrum descriptors are summed over atoms
+          *1* = per-atom bispectrum descriptors are not summed over atoms
+       *switchinnerflag* values = *rinnerlist* *drinnerlist*
+          *rinnerlist* = *ntypes* values of rinner (distance units)
+          *drinnerlist* = *ntypes* values of drinner (distance units)
 
 Examples
 """"""""
@@ -67,6 +73,7 @@ Examples
    compute vb all sna/atom 1.4 0.95 6 2.0 1.0
    compute snap all snap 1.4 0.95 6 2.0 1.0
    compute snap all snap 1.0 0.99363 6 3.81 3.83 1.0 0.93 chem 2 0 1
+   compute snap all snap 1.0 0.99363 6 3.81 3.83 1.0 0.93 switchinnerflag 1.1 1.3 0.5 0.6
 
 Description
 """""""""""
@@ -295,6 +302,35 @@ following symmetry relation
 This option is typically used in conjunction with the *chem* keyword,
 and LAMMPS will generate a warning if both *chem* and *bnormflag*
 are not both set or not both unset.
+
+The keyword *bikflag* determines whether or not to expand the bispectrum
+rows of the global array returned by compute snap. If *bikflag* is set
+to *1* then the bispectrum row, which is typically the per-atom bispectrum
+descriptors :math:`B_{i,k}` summed over all atoms *i* to produce
+:math:`B_k`, becomes bispectrum rows equal to the number of atoms. Thus,
+the resulting bispectrum rows are :math:`B_{i,k}` instead of just
+:math:`B_k`. In this case, the entries in the final column for these rows
+are set to zero.
+
+The keyword *switchinnerflag* activates an additional radial switching
+function similar to :math:`f_c(r)` above, but acting to switch off
+smoothly contributions from neighbor atoms at short separation distances.
+This is useful when SNAP is used in combination with a simple
+repulsive potential. The keyword is followed by the *ntypes*
+values for :math:`r_{inner}` and the *ntypes*
+values for :math:`\Delta r_{inner}`. For a neighbor atom at
+distance :math:`r`, its contribution is scaled by a multiplicative
+factor :math:`f_{inner}(r)` defined as follows:
+
+.. math::
+
+               = & 0,  r \leq r_{inner} \\
+  f_{inner}(r) = & \frac{1}{2}(1 - \cos(\pi \frac{r-r_{inner}}{\Delta r_{inner}})), r_{inner} < r \leq r_{inner} + \Delta r_{inner} \\
+               = & 1,  r > r_{inner} + \Delta r_{inner}
+
+The values of :math:`r_{inner}` and :math:`\Delta r_{inner}` are
+the arithmetic means of the values for the central atom of type I
+and the neighbor atom of type J.
 
 .. note::
 

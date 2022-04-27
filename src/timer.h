@@ -54,7 +54,7 @@ class Timer : protected Pointers {
   enum tlevel { OFF = 0, LOOP, NORMAL, FULL };
 
   Timer(class LAMMPS *);
-  ~Timer(){};
+
   void init();
 
   // inline function to reduce overhead if we want no detailed timings
@@ -136,17 +136,3 @@ class Timer : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-W: Wall time limit reached
-
-UNDOCUMENTED
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

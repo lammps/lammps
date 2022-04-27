@@ -21,26 +21,14 @@ namespace LAMMPS_NS {
 class FixNHSphereOMP : public FixNHOMP {
  public:
   FixNHSphereOMP(class LAMMPS *, int, char **);
-  virtual ~FixNHSphereOMP() {}
-  virtual void init();
+
+  void init() override;
 
  protected:
-  virtual void nve_v();
-  virtual void nh_v_temp();
+  void nve_v() override;
+  void nh_v_temp() override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Fix nvt/nph/npt sphere requires atom style sphere
-
-Self-explanatory.
-
-E: Fix nvt/sphere requires extended particles
-
-This fix can only be used for particles of a finite size.
-
-*/

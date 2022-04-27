@@ -54,8 +54,8 @@ if(DOWNLOAD_PLUMED)
     set(PLUMED_BUILD_BYPRODUCTS "<INSTALL_DIR>/lib/libplumedWrapper.a")
   endif()
 
-  set(PLUMED_URL "https://github.com/plumed/plumed2/releases/download/v2.7.2/plumed-src-2.7.2.tgz" CACHE STRING "URL for PLUMED tarball")
-  set(PLUMED_MD5 "cfa0b4dd90a81c25d3302e8d97bfeaea" CACHE STRING "MD5 checksum of PLUMED tarball")
+  set(PLUMED_URL "https://github.com/plumed/plumed2/releases/download/v2.7.4/plumed-src-2.7.4.tgz" CACHE STRING "URL for PLUMED tarball")
+  set(PLUMED_MD5 "858e0b6aed173748fc85b6bc8a9dcb3e" CACHE STRING "MD5 checksum of PLUMED tarball")
 
   mark_as_advanced(PLUMED_URL)
   mark_as_advanced(PLUMED_MD5)

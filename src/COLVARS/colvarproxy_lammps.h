@@ -49,9 +49,9 @@ class colvarproxy_lammps : public colvarproxy {
   friend class cvm::atom;
   colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp, const char *, const char *, const int, const double,
                      MPI_Comm);
-  virtual ~colvarproxy_lammps();
+  ~colvarproxy_lammps() override;
   void init(const char *);
-  virtual int setup();
+  int setup() override;
 
   // disable default and copy constructor
  private:
@@ -61,8 +61,8 @@ class colvarproxy_lammps : public colvarproxy {
   // methods for lammps to move data or trigger actions in the proxy
  public:
   void set_temperature(double t) { t_target = t; };
-  bool total_forces_enabled() const { return total_force_requested; };
-  bool total_forces_same_step() const { return true; };
+  bool total_forces_enabled() const override { return total_force_requested; };
+  bool total_forces_same_step() const override { return true; };
   bool want_exit() const { return do_exit; };
 
   // perform colvars computation. returns biasing energy
@@ -84,41 +84,42 @@ class colvarproxy_lammps : public colvarproxy {
   int read_state_file(char const *state_filename);
 
   // Request to set the units used internally by Colvars
-  int set_unit_system(std::string const &units_in, bool check_only);
+  int set_unit_system(std::string const &units_in, bool check_only) override;
 
-  inline cvm::real backend_angstrom_value() { return my_angstrom; };
+  inline cvm::real backend_angstrom_value() override { return my_angstrom; };
 
-  inline cvm::real boltzmann() { return my_boltzmann; };
-  inline cvm::real temperature() { return t_target; };
-  inline cvm::real dt()
+  inline cvm::real boltzmann() override { return my_boltzmann; };
+  inline cvm::real temperature() override { return t_target; };
+  inline cvm::real dt() override
   {
     return my_timestep;
   };    // return _lmp->update->dt * _lmp->force->femtosecond; };
 
-  void add_energy(cvm::real energy) { bias_energy += energy; };
-  void request_total_force(bool yesno) { total_force_requested = yesno; };
+  void add_energy(cvm::real energy) override { bias_energy += energy; };
+  void request_total_force(bool yesno) override { total_force_requested = yesno; };
 
-  void log(std::string const &message);
-  void error(std::string const &message);
+  void log(std::string const &message) override;
+  void error(std::string const &message) override;
 
-  cvm::rvector position_distance(cvm::atom_pos const &pos1, cvm::atom_pos const &pos2) const;
+  cvm::rvector position_distance(cvm::atom_pos const &pos1,
+                                 cvm::atom_pos const &pos2) const override;
 
-  int backup_file(char const *filename);
+  int backup_file(char const *filename) override;
 
-  cvm::real rand_gaussian(void) { return _random->gaussian(); };
+  cvm::real rand_gaussian(void) override { return _random->gaussian(); };
 
-  int init_atom(int atom_number);
-  int check_atom_id(int atom_number);
+  int init_atom(int atom_number) override;
+  int check_atom_id(int atom_number) override;
 
   inline std::vector<int> *modify_atom_types() { return &atoms_types; }
 
-  virtual int replica_enabled();
-  virtual int replica_index();
-  virtual int num_replicas();
+  int replica_enabled() override;
+  int replica_index() override;
+  int num_replicas() override;
 
-  virtual void replica_comm_barrier();
-  virtual int replica_comm_recv(char *msg_data, int buf_len, int src_rep);
-  virtual int replica_comm_send(char *msg_data, int msg_len, int dest_rep);
+  void replica_comm_barrier() override;
+  int replica_comm_recv(char *msg_data, int buf_len, int src_rep) override;
+  int replica_comm_send(char *msg_data, int msg_len, int dest_rep) override;
 };
 
 #endif

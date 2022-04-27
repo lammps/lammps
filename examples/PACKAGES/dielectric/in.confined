@@ -4,6 +4,8 @@
 # top interface:    n = (0, 0, -1)
 # so that ed's are the same for both interfaces
 
+# Dielectric constants can be set to be different from the input data file
+
 variable epsilon1 index 20
 variable epsilon2 index 8
 
@@ -21,6 +23,8 @@ variable    method index gmres  # gmres = BEM/GMRES
                                 # dof   = Direct optimization of the functional
                                 # none
 
+# compute the relevant values for the interface particles
+
 variable ed      equal "v_epsilon2 - v_epsilon1"
 variable em      equal "(v_epsilon2 + v_epsilon1)/2"
 variable epsilon equal 1.0                             # epsilon at the patch, not used for now
@@ -34,12 +38,10 @@ group ions type 2 3
 group cations type 2
 group anions  type 3
 
-# 1.0 = q * epsilon2 = qreal for cations
-# -1.0 = q * epsilon2 = qreal for anions
-variable qscale equal "1.0 / v_epsilon2"
-set group cations charge ${qscale}
-variable qscale equal "-1.0 / v_epsilon2"
-set group anions charge ${qscale}
+# set the dielectric constant of the medium where the ions reside
+
+set group cations epsilon ${epsilon2}
+set group anions  epsilon ${epsilon2}
 
 pair_style      lj/cut/coul/long/dielectric 1.122 10.0
 pair_coeff      * * 1.0 1.0
@@ -58,6 +60,8 @@ dump_modify     1 sort id
 dump            3 ions custom 100 ions.dump id mol type q x y z fx fy fz #c_ef[1] c_ef[2] c_ef[3]
 
 fix             1 ions nve
+
+# fix modify is used to set the properties of the interface particle group
 
 if "${method} == gmres" then &
   "fix             3 interface polarize/bem/gmres 1 1.0e-4" &

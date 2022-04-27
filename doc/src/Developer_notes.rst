@@ -7,6 +7,215 @@ typically document what a variable stores, what a small section of
 code does, or what a function does and its input/outputs.  The topics
 on this page are intended to document code functionality at a higher level.
 
+Available topics are:
+
+- `Reading and parsing of text and text files`_
+- `Requesting and accessing neighbor lists`_
+- `Fix contributions to instantaneous energy, virial, and cumulative energy`_
+- `KSpace PPPM FFT grids`_
+
+----
+
+Reading and parsing of text and text files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+It is frequently required for a class in LAMMPS to read in additional
+data from a file, e.g. potential parameters from a potential file for
+manybody potentials.  LAMMPS provides several custom classes and
+convenience functions to simplify the process.  They offer the
+following benefits:
+
+- better code reuse and fewer lines of code needed to implement reading
+  and parsing data from a file
+- better detection of format errors, incompatible data, and better error messages
+- exit with an error message instead of silently converting only part of the
+  text to a number or returning a 0 on unrecognized text and thus reading incorrect values
+- re-entrant code through avoiding global static variables (as used by ``strtok()``)
+- transparent support for translating unsupported UTF-8 characters to their ASCII equivalents
+  (the text-to-value conversion functions **only** accept ASCII characters)
+
+In most cases (e.g. potential files) the same data is needed on all MPI
+ranks.  Then it is best to do the reading and parsing only on MPI rank
+0, and communicate the data later with one or more ``MPI_Bcast()``
+calls.  For reading generic text and potential parameter files the
+custom classes :cpp:class:`TextFileReader <LAMMPS_NS::TextFileReader>`
+and :cpp:class:`PotentialFileReader <LAMMPS_NS::PotentialFileReader>`
+are available. They allow reading the file as individual lines for which
+they can return a tokenizer class (see below) for parsing the line.  Or
+they can return blocks of numbers as a vector directly.  The
+documentation on :ref:`File reader classes <file-reader-classes>`
+contains an example for a typical case.
+
+When reading per-atom data, the data on each line of the file usually
+needs to include an atom ID so it can be associated with a particular
+atom.  In that case the data can be read in multi-line chunks and
+broadcast to all MPI ranks with
+:cpp:func:`utils::read_lines_from_file()
+<LAMMPS_NS::utils::read_lines_from_file>`.  Those chunks are then
+split into lines, parsed, and applied only to atoms the MPI rank
+"owns".
+
+For splitting a string (incrementally) into words and optionally
+converting those to numbers, the :cpp:class:`Tokenizer
+<LAMMPS_NS::Tokenizer>` and :cpp:class:`ValueTokenizer
+<LAMMPS_NS::ValueTokenizer>` can be used.  Those provide a superset of
+the functionality of ``strtok()`` from the C-library and the latter
+also includes conversion to different types.  Any errors while
+processing the string in those classes will result in an exception,
+which can be caught and the error processed as needed.  Unlike the
+C-library functions ``atoi()``, ``atof()``, ``strtol()``, or
+``strtod()`` the conversion will check if the converted text is a
+valid integer or floating point number and will not silently return an
+unexpected or incorrect value.  For example, ``atoi()`` will return 12
+when converting "12.5", while the ValueTokenizer class will throw an
+:cpp:class:`InvalidIntegerException
+<LAMMPS_NS::InvalidIntegerException>` if
+:cpp:func:`ValueTokenizer::next_int()
+<LAMMPS_NS::ValueTokenizer::next_int>` is called on the same string.
+
+Requesting and accessing neighbor lists
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LAMMPS uses Verlet-style neighbor lists to avoid having to loop over
+*all* pairs of *all* atoms when computing pairwise properties with a
+cutoff (e.g. pairwise forces or radial distribution functions).  There
+are three main algorithms that can be selected by the :doc:`neighbor
+command <neighbor>`: `bin` (the default, uses binning to achieve linear
+scaling with system size), `nsq` (without binning, quadratic scaling),
+`multi` (with binning, optimized for varying cutoffs or polydisperse
+granular particles).  In addition to how the neighbor lists are
+constructed a number of different variants of neighbor lists need to be
+created (e.g. "full" or "half") for different purposes and styles and
+those may be required in every time step ("perpetual") or on some steps
+("occasional").
+
+The neighbor list creation is managed by the ``Neighbor`` class.
+Individual classes can obtain a neighbor list by creating an instance of
+a ``NeighRequest`` class which is stored in a list inside the
+``Neighbor`` class.  The ``Neighbor`` class will then analyze the
+various requests and apply optimizations where neighbor lists that have
+the same settings will be created only once and then copied, or a list
+may be constructed by processing a neighbor list from a different
+request that is a superset of the requested list.  The neighbor list
+build is then :doc:`processed in parallel <Developer_par_neigh>`.
+
+The most commonly required neighbor list is a so-called "half" neighbor
+list, where each pair of atoms is listed only once (except when the
+:doc:`newton command setting <newton>` for pair is off; in that case
+pairs straddling sub-domains or periodic boundaries will be listed twice).
+Thus these are the default settings when a neighbor list request is created in:
+
+.. code-block:: C++
+
+   void Pair::init_style()
+   {
+     neighbor->add_request(this);
+   }
+
+   void Pair::init_list(int /*id*/, NeighList *ptr)
+   {
+     list = ptr;
+   }
+
+The ``this`` pointer argument is required so the neighbor list code can
+access the requesting class instance to store the assembled neighbor
+list with that instance by calling its ``init_list()`` member function.
+The optional second argument (omitted here) contains a bitmask of flags
+that determines the kind of neighbor list requested.  The default value
+used here asks for a perpetual "half" neighbor list.
+
+Non-default values of the second argument need to be used to adjust a
+neighbor list request to the specific needs of a style an additional
+request flag is needed.  The :doc:`tersoff <pair_tersoff>` pair style,
+for example, needs a "full" neighbor list:
+
+.. code-block:: C++
+
+   void PairTersoff::init_style()
+   {
+     // [...]
+     neighbor->add_request(this, NeighConst::REQ_FULL);
+   }
+
+When a pair style supports r-RESPA time integration with different cutoff regions,
+the request flag may depend on the corresponding r-RESPA settings. Here an example
+from pair style lj/cut:
+
+.. code-block:: C++
+
+   void PairLJCut::init_style()
+   {
+     int list_style = NeighConst::REQ_DEFAULT;
+
+     if (update->whichflag == 1 && utils::strmatch(update->integrate_style, "^respa")) {
+       auto respa = (Respa *) update->integrate;
+       if (respa->level_inner >= 0) list_style = NeighConst::REQ_RESPA_INOUT;
+       if (respa->level_middle >= 0) list_style = NeighConst::REQ_RESPA_ALL;
+     }
+     neighbor->add_request(this, list_style);
+     // [...]
+   }
+
+Granular pair styles need neighbor lists based on particle sizes and not cutoff
+and also may require to have the list of previous neighbors available ("history").
+For example with:
+
+.. code-block:: C++
+
+   if (use_history) neighbor->add_request(this, NeighConst::REQ_SIZE | NeighConst::REQ_HISTORY);
+   else neighbor->add_request(this, NeighConst::REQ_SIZE);
+
+In case a class would need to make multiple neighbor list requests with different
+settings each request can set an id which is then used in the corresponding
+``init_list()`` function to assign it to the suitable pointer variable. This is
+done for example by the :doc:`pair style meam <pair_meam>`:
+
+.. code-block:: C++
+
+   void PairMEAM::init_style()
+   {
+   // [...]
+     neighbor->add_request(this, NeighConst::REQ_FULL)->set_id(1);
+     neighbor->add_request(this)->set_id(2);
+   }
+   void PairMEAM::init_list(int id, NeighList *ptr)
+   {
+     if (id == 1) listfull = ptr;
+     else if (id == 2) listhalf = ptr;
+   }
+
+Fixes may require a neighbor list that is only build occasionally (or
+just once) and this can also be indicated by a flag.  As an example here
+is the request from the ``FixPeriNeigh`` class which is created
+internally by :doc:`Peridynamics pair styles <pair_peri>`:
+
+.. code-block:: C++
+
+   neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
+
+It is also possible to request a neighbor list that uses a different cutoff
+than what is usually inferred from the pair style settings (largest cutoff of
+all pair styles plus neighbor list skin).  The following is used in the
+:doc:`compute rdf <compute_rdf>` command implementation:
+
+.. code-block:: C++
+
+  if (cutflag)
+    neighbor->add_request(this, NeighConst::REQ_OCCASIONAL)->set_cutoff(mycutneigh);
+  else
+    neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
+
+The neighbor list request function has a slightly different set of arguments
+when created by a command style.  In this case the neighbor list is
+*always* an occasional neighbor list, so that flag is not needed. However
+for printing the neighbor list summary the name of the requesting command
+should be set.  Below is the request from the :doc:`delete atoms <delete_atoms>`
+command:
+
+.. code-block:: C++
+
+   neighbor->add_request(this, "delete_atoms", NeighConst::REQ_FULL);
+
 Fix contributions to instantaneous energy, virial, and cumulative energy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

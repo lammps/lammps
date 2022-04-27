@@ -3,18 +3,34 @@
 .. index:: pair_style sw/intel
 .. index:: pair_style sw/kk
 .. index:: pair_style sw/omp
+.. index:: pair_style sw/mod
+.. index:: pair_style sw/mod/omp
 
 pair_style sw command
 =====================
 
 Accelerator Variants: *sw/gpu*, *sw/intel*, *sw/kk*, *sw/omp*
 
+pair_style sw/mod command
+=========================
+
+Accelerator Variants: *sw/mod/omp*
+
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
-   pair_style sw
+   pair_style style keyword values
+
+* style = *sw* or *sw/mod*
+* keyword = *maxdelcs*
+
+  .. parsed-literal::
+
+       *maxdelcs* value = delta1 delta2 (optional)
+         delta1 = The minimum thershold for the variation of cosine of three-body angle
+         delta2 = The maximum threshold for the variation of cosine of three-body angle
 
 Examples
 """"""""
@@ -24,6 +40,9 @@ Examples
    pair_style sw
    pair_coeff * * si.sw Si
    pair_coeff * * GaN.sw Ga N Ga
+
+   pair_style sw/mod maxdelcs 0.25 0.35
+   pair_coeff * * tmd.sw.mod Mo S S
 
 Description
 """""""""""
@@ -48,8 +67,52 @@ where :math:`\phi_2` is a two-body term and :math:`\phi_3` is a
 three-body term.  The summations in the formula are over all neighbors J
 and K of atom I within a cutoff distance :math:`a `\sigma`.
 
-Only a single pair_coeff command is used with the *sw* style which
-specifies a Stillinger-Weber potential file with parameters for all
+The *sw/mod* style is designed for simulations of materials when
+distinguishing three-body angles are necessary, such as borophene
+and transition metal dichalcogenides, which cannot be described
+by the original code for the Stillinger-Weber potential.
+For instance, there are several types of angles around each Mo atom in `MoS_2`,
+and some unnecessary angle types should be excluded in the three-body interaction.
+Such exclusion may be realized by selecting proper angle types directly.
+The exclusion of unnecessary angles is achieved here by the cut-off function (`f_C(\delta)`),
+which induces only minimum modifications for LAMMPS.
+
+Validation, benchmark tests, and applications of the *sw/mod* style
+can be found in :ref:`(Jiang2) <Jiang2>` and :ref:`(Jiang3) <Jiang3>`.
+
+The *sw/mod* style computes the energy E of a system of atoms, whose potential
+function is mostly the same as the Stillinger-Weber potential. The only modification
+is in the three-body term, where the value of :math:`\delta = \cos \theta_{ijk} - \cos \theta_{0ijk}`
+used in the original energy and force expression is scaled by a switching factor :math:`f_C(\delta)`:
+
+.. math::
+
+  f_C(\delta) & = \left\{ \begin{array} {r@{\quad:\quad}l}
+    1 & \left| \delta \right| < \delta_1 \\
+    \frac{1}{2} + \frac{1}{2} \cos \left( \pi \frac{\left| \delta \right| - \delta_1}{\delta_2 - \delta_1} \right) &
+      \delta_1 < \left| \delta \right| < \delta_2 \\
+    0 & \left| \delta \right| > \delta_2
+    \end{array} \right. \\
+
+This cut-off function decreases smoothly from 1 to 0 over the range :math:`[\delta_1, \delta_2]`.
+This smoothly turns off the energy and force contributions for :math:`\left| \delta \right| > \delta_2`.
+It is suggested that :math:`\delta 1` and :math:`\delta_2` to be the value around
+:math:`0.5 \left| \cos \theta_1 - \cos \theta_2 \right|`, with
+:math:`\theta_1` and :math:`\theta_2` as the different types of angles around an atom.
+For borophene and transition metal dichalcogenides, :math:`\delta_1 = 0.25` and :math:`\delta_2 = 0.35`.
+This value enables the cut-off function to exclude unnecessary angles in the three-body SW terms.
+
+.. note::
+
+   The cut-off function is just to be used as a technique to exclude some unnecessary angles,
+   and it has no physical meaning. It should be noted that the force and potential are inconsistent
+   with each other in the decaying range of the cut-off function, as the angle dependence for the
+   cut-off function is not implemented in the force (first derivation of potential).
+   However, the angle variation is much smaller than the given threshold value for actual simulations,
+   so the inconsistency between potential and force can be neglected in actual simulations.
+
+Only a single pair_coeff command is used with the *sw* and *sw/mod* styles
+which specifies a Stillinger-Weber potential file with parameters for all
 needed elements.  These are mapped to LAMMPS atom types by specifying
 N additional arguments after the filename in the pair_coeff command,
 where N is the number of LAMMPS atom types:
@@ -139,7 +202,7 @@ elements are the same.  Thus the two-body parameters for Si
 interacting with C, comes from the SiCC entry.  The three-body
 parameters can in principle be specific to the three elements of the
 configuration. In the literature, however, the three-body parameters
-are usually defined by simple formulas involving two sets of pair-wise
+are usually defined by simple formulas involving two sets of pairwise
 parameters, corresponding to the ij and ik pairs, where i is the
 center atom. The user must ensure that the correct combining rule is
 used to calculate the values of the three-body parameters for
@@ -159,28 +222,14 @@ taken from the ij and ik pairs (:math:`\sigma`, *a*, :math:`\gamma`)
 
 ----------
 
-Styles with a *gpu*, *intel*, *kk*, *omp*, or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
+.. include:: accel_styles.rst
 
-These accelerated styles are part of the GPU, INTEL, KOKKOS,
-OPENMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` page for more info.
+.. note::
 
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-When using the INTEL package with this style, there is an
-additional 5 to 10 percent performance improvement when the
-Stillinger-Weber parameters p and q are set to 4 and 0 respectively.
-These parameters are common for modeling silicon and water.
-
-See the :doc:`Speed packages <Speed_packages>` page for more
-instructions on how to use the accelerated styles effectively.
+  When using the INTEL package with this style, there is an additional
+  5 to 10 percent performance improvement when the Stillinger-Weber
+  parameters p and q are set to 4 and 0 respectively.  These
+  parameters are common for modeling silicon and water.
 
 ----------
 
@@ -227,10 +276,19 @@ Related commands
 Default
 """""""
 
-none
+The default values for the *maxdelcs* setting of the *sw/mod* pair
+style are *delta1* = 0.25 and *delta2* = 0.35`.
 
 ----------
 
 .. _Stillinger2:
 
 **(Stillinger)** Stillinger and Weber, Phys Rev B, 31, 5262 (1985).
+
+.. _Jiang2:
+
+**(Jiang2)** J.-W. Jiang, Nanotechnology 26, 315706 (2015).
+
+.. _Jiang3:
+
+**(Jiang3)** J.-W. Jiang, Acta Mech. Solida. Sin 32, 17 (2019).

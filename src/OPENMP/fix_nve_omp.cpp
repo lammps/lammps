@@ -34,9 +34,9 @@ void FixNVEOMP::initial_integrate(int /* vflag */)
 {
   // update v and x of atoms in group
 
-  dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
-  const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
+  auto * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const v = (dbl3_t *) atom->v[0];
+  const auto * _noalias const f = (dbl3_t *) atom->f[0];
   const int * const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
 
@@ -81,8 +81,8 @@ void FixNVEOMP::final_integrate()
 {
   // update v of atoms in group
 
-  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
-  const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
+  auto * _noalias const v = (dbl3_t *) atom->v[0];
+  const auto * _noalias const f = (dbl3_t *) atom->f[0];
   const int * const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
 

@@ -31,7 +31,6 @@ template<class DeviceType>
 class FixNPTKokkos : public FixNHKokkos<DeviceType> {
  public:
   FixNPTKokkos(class LAMMPS *, int, char **);
-  ~FixNPTKokkos() {}
 };
 
 }
@@ -39,14 +38,3 @@ class FixNPTKokkos : public FixNHKokkos<DeviceType> {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Temperature control must be used with fix npt
-
-Self-explanatory.
-
-E: Pressure control must be used with fix npt
-
-Self-explanatory.
-
-*/

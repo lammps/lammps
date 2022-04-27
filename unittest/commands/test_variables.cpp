@@ -22,9 +22,9 @@
 #include "region.h"
 #include "variable.h"
 
+#include "../testing/core.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "../testing/core.h"
 
 #include <cstring>
 #include <vector>
@@ -36,10 +36,9 @@ using LAMMPS_NS::MathConst::MY_PI;
 using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
+using ::testing::ContainsRegex;
 using ::testing::ExitedWithCode;
-using ::testing::MatchesRegex;
 using ::testing::StrEq;
-
 
 class VariableTest : public LAMMPSTest {
 protected:
@@ -50,7 +49,7 @@ protected:
     void SetUp() override
     {
         testbinary = "VariableTest";
-        args = {"-log", "none", "-echo", "screen", "-nocite", "-v",   "num",  "1"};
+        args       = {"-log", "none", "-echo", "screen", "-nocite", "-v", "num", "1"};
         LAMMPSTest::SetUp();
         group    = lmp->group;
         domain   = lmp->domain;
@@ -60,8 +59,8 @@ protected:
     void TearDown() override
     {
         LAMMPSTest::TearDown();
-        unlink("test_variable.file");
-        unlink("test_variable.atomfile");
+        platform::unlink("test_variable.file");
+        platform::unlink("test_variable.atomfile");
     }
 
     void atomic_system()
@@ -162,11 +161,11 @@ TEST_F(VariableTest, CreateDelete)
     variable->internal_set(variable->find("ten"), 2.5);
     ASSERT_THAT(variable->retrieve("ten"), StrEq("2.5"));
     ASSERT_THAT(variable->retrieve("file"), StrEq("0"));
-    FILE *fp = fopen("MYFILE","w");
-    fputs(" ",fp);
+    FILE *fp = fopen("MYFILE", "w");
+    fputs(" ", fp);
     fclose(fp);
     ASSERT_THAT(variable->retrieve("file"), StrEq("1"));
-    unlink("MYFILE");
+    platform::unlink("MYFILE");
     ASSERT_THAT(variable->retrieve("file"), StrEq("0"));
 
     BEGIN_HIDE_OUTPUT();
@@ -208,7 +207,7 @@ TEST_F(VariableTest, CreateDelete)
                  command("variable ten4   uloop     2"););
     TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
                  command("variable ten11  format    two \"%08f\""););
-    TEST_FAILURE(".*ERROR: Variable name 'ten@12' must have only alphanumeric characters or.*",
+    TEST_FAILURE(".*ERROR: Variable name 'ten@12' must have only letters, numbers, or undersc.*",
                  command("variable ten@12  index    one two three"););
     TEST_FAILURE(".*ERROR: Variable evaluation before simulation box is defined.*",
                  variable->compute_equal("c_thermo_press"););
@@ -218,7 +217,9 @@ TEST_F(VariableTest, CreateDelete)
 
 TEST_F(VariableTest, AtomicSystem)
 {
-    HIDE_OUTPUT([&] { command("atom_modify map array"); });
+    HIDE_OUTPUT([&] {
+        command("atom_modify map array");
+    });
     atomic_system();
     file_vars();
 
@@ -316,7 +317,7 @@ TEST_F(VariableTest, Expressions)
     ASSERT_TRUE(variable->equalstyle(ivar));
     ASSERT_DOUBLE_EQ(variable->compute_equal(ivar), 2.0);
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_three"), 3.0);
-    ASSERT_FLOAT_EQ(variable->compute_equal("v_four"), MY_PI);
+    ASSERT_NEAR(variable->compute_equal("v_four"), MY_PI, 1.0e-14);
     ASSERT_GE(variable->compute_equal("v_five"), 20210310);
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_seven"), -1);
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_eight"), 2.5);
@@ -393,58 +394,58 @@ TEST_F(VariableTest, IfCommand)
     BEGIN_CAPTURE_OUTPUT();
     command("if 1>0 then 'print \"bingo!\"'");
     auto text = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("if 1>2 then 'print \"bingo!\"' else 'print \"nope?\"'");
     text = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(text, MatchesRegex(".*nope\?.*"));
+    ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("if (1<=0) then 'print \"bingo!\"' else 'print \"nope?\"'");
     text = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(text, MatchesRegex(".*nope\?.*"));
+    ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("if (-1.0e-1<0.0E+0)|^(1<0) then 'print \"bingo!\"'");
     text = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("if (${one}==1.0)&&(2>=1) then 'print \"bingo!\"'");
     text = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("if !((${one}!=1.0)||(2|^1)) then 'print \"missed\"' else 'print \"bingo!\"'");
     text = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("if (1>=2)&&(0&&1) then 'print \"missed\"' else 'print \"bingo!\"'");
     text = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("if !1 then 'print \"missed\"' else 'print \"bingo!\"'");
     text = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("if !(a==b) then 'print \"bingo!\"'");
     text = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("if x==x|^1==0 then 'print \"bingo!\"'");
     text = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("if x!=x|^a!=b then 'print \"bingo!\"'");
     text = END_CAPTURE_OUTPUT();
-    
-    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
                  command("if () then 'print \"bingo!\"'"););
@@ -516,7 +517,7 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (Info::get_mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
+    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. "
                      "Death tests will be skipped\n";
 

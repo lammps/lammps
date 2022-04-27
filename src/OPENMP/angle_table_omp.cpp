@@ -16,15 +16,16 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "angle_table_omp.h"
-#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 
+#include <cmath>
 
+#include "omp_compat.h"
 #include "suffix.h"
 using namespace LAMMPS_NS;
 
@@ -87,8 +88,8 @@ void AngleTableOMP::eval(int nfrom, int nto, ThrData * const thr)
   double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22;
   double theta,u,mdu; //mdu: minus du, -du/dx=f
 
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const auto * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const int4_t * _noalias const anglelist = (int4_t *) neighbor->anglelist[0];
   const int nlocal = atom->nlocal;
   eangle = 0.0;

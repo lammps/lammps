@@ -20,13 +20,11 @@
 
 #include <string>
 
-
 using ::testing::Eq;
 
 class DumpCustomCompressTest : public CompressedDumpTest {
 public:
-    DumpCustomCompressTest() : CompressedDumpTest("custom") {
-    }
+    DumpCustomCompressTest() : CompressedDumpTest("custom") {}
 };
 
 TEST_F(DumpCustomCompressTest, compressed_run1)
@@ -38,8 +36,9 @@ TEST_F(DumpCustomCompressTest, compressed_run1)
     auto compressed_file = compressed_dump_filename(base_name);
     auto fields = "id type proc x y z ix iy iz xs ys zs xu yu zu xsu ysu zsu vx vy vz fx fy fz";
 
-    if(compression_style == "custom/zstd") {
-        generate_text_and_compressed_dump(text_file, compressed_file, fields, fields, "units yes", "units yes checksum yes", 1);
+    if (compression_style == "custom/zstd") {
+        generate_text_and_compressed_dump(text_file, compressed_file, fields, fields, "units yes",
+                                          "units yes checksum yes", 1);
     } else {
         generate_text_and_compressed_dump(text_file, compressed_file, fields, "units yes", 1);
     }
@@ -67,8 +66,9 @@ TEST_F(DumpCustomCompressTest, compressed_with_time_run1)
     auto compressed_file = compressed_dump_filename(base_name);
     auto fields = "id type proc x y z ix iy iz xs ys zs xu yu zu xsu ysu zsu vx vy vz fx fy fz";
 
-    if(compression_style == "custom/zstd") {
-        generate_text_and_compressed_dump(text_file, compressed_file, fields, fields, "time yes", "time yes checksum yes", 1);
+    if (compression_style == "custom/zstd") {
+        generate_text_and_compressed_dump(text_file, compressed_file, fields, fields, "time yes",
+                                          "time yes checksum yes", 1);
     } else {
         generate_text_and_compressed_dump(text_file, compressed_file, fields, "time yes", 1);
     }
@@ -96,8 +96,9 @@ TEST_F(DumpCustomCompressTest, compressed_no_buffer_run1)
     auto compressed_file = compressed_dump_filename(base_name);
     auto fields = "id type proc x y z ix iy iz xs ys zs xu yu zu xsu ysu zsu vx vy vz fx fy fz";
 
-    if(compression_style == "custom/zstd") {
-        generate_text_and_compressed_dump(text_file, compressed_file, fields, fields, "buffer no", "buffer no checksum yes", 1);
+    if (compression_style == "custom/zstd") {
+        generate_text_and_compressed_dump(text_file, compressed_file, fields, fields, "buffer no",
+                                          "buffer no checksum yes", 1);
     } else {
         generate_text_and_compressed_dump(text_file, compressed_file, fields, "buffer no", 1);
     }
@@ -158,8 +159,9 @@ TEST_F(DumpCustomCompressTest, compressed_multi_file_run1)
     auto compressed_file_1 = compressed_dump_filename(base_name_1);
     auto fields = "id type proc x y z ix iy iz xs ys zs xu yu zu xsu ysu zsu vx vy vz fx fy fz";
 
-    if(compression_style == "custom/zstd") {
-        generate_text_and_compressed_dump(text_file, compressed_file, fields, fields, "", "checksum no", 1);
+    if (compression_style == "custom/zstd") {
+        generate_text_and_compressed_dump(text_file, compressed_file, fields, fields, "",
+                                          "checksum no", 1);
     } else {
         generate_text_and_compressed_dump(text_file, compressed_file, fields, "", 1);
     }
@@ -278,11 +280,12 @@ TEST_F(DumpCustomCompressTest, compressed_modify_bad_param)
     if (compression_style != "custom/gz") GTEST_SKIP();
 
     auto fields = "id type proc x y z ix iy iz xs ys zs xu yu zu xsu ysu zsu vx vy vz fx fy fz";
-    command(fmt::format("dump id1 all {} 1 {} {}", compression_style, compressed_dump_filename("modify_bad_param_run0_*.melt.custom"), fields));
+    command(fmt::format("dump id1 all {} 1 {} {}", compression_style,
+                        compressed_dump_filename("modify_bad_param_run0_*.melt.custom"), fields));
 
-    TEST_FAILURE(".*ERROR on proc 0: Illegal dump_modify command: Compression level must in the range of.*",
-        command("dump_modify id1 compression_level 12");
-    );
+    TEST_FAILURE(
+        ".*ERROR on proc 0: Illegal dump_modify command: Compression level must in the range of.*",
+        command("dump_modify id1 compression_level 12"););
 }
 
 TEST_F(DumpCustomCompressTest, compressed_modify_multi_bad_param)
@@ -290,11 +293,13 @@ TEST_F(DumpCustomCompressTest, compressed_modify_multi_bad_param)
     if (compression_style != "custom/gz") GTEST_SKIP();
 
     auto fields = "id type proc x y z ix iy iz xs ys zs xu yu zu xsu ysu zsu vx vy vz fx fy fz";
-    command(fmt::format("dump id1 all {} 1 {} {}", compression_style, compressed_dump_filename("modify_multi_bad_param_run0_*.melt.custom"), fields));
+    command(fmt::format("dump id1 all {} 1 {} {}", compression_style,
+                        compressed_dump_filename("modify_multi_bad_param_run0_*.melt.custom"),
+                        fields));
 
-    TEST_FAILURE(".*ERROR on proc 0: Illegal dump_modify command: Compression level must in the range of.*",
-        command("dump_modify id1 pad 3 compression_level 12");
-    );
+    TEST_FAILURE(
+        ".*ERROR on proc 0: Illegal dump_modify command: Compression level must in the range of.*",
+        command("dump_modify id1 pad 3 compression_level 12"););
 }
 
 TEST_F(DumpCustomCompressTest, compressed_modify_clevel_run0)
@@ -306,7 +311,8 @@ TEST_F(DumpCustomCompressTest, compressed_modify_clevel_run0)
     auto compressed_file = compressed_dump_filename(base_name);
 
     auto fields = "id type proc x y z ix iy iz xs ys zs xu yu zu xsu ysu zsu vx vy vz fx fy fz";
-    generate_text_and_compressed_dump(text_file, compressed_file, fields, fields, "", "compression_level 3", 0);
+    generate_text_and_compressed_dump(text_file, compressed_file, fields, fields, "",
+                                      "compression_level 3", 0);
 
     TearDown();
 

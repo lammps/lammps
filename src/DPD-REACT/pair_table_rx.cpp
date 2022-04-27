@@ -330,7 +330,7 @@ void PairTableRX::coeff(int narg, char **arg)
 
   int ispecies;
   for (ispecies = 0; ispecies < nspecies; ispecies++) {
-    if (strcmp(site1,&atom->dname[ispecies][0]) == 0) break;
+    if (strcmp(site1,&atom->dvname[ispecies][0]) == 0) break;
   }
   if (ispecies == nspecies && strcmp(site1,"1fluid") != 0)
     error->all(FLERR,"Site1 name not recognized in pair coefficients");
@@ -338,7 +338,7 @@ void PairTableRX::coeff(int narg, char **arg)
   site2 = utils::strdup(arg[5]);
 
   for (ispecies = 0; ispecies < nspecies; ispecies++) {
-    if (strcmp(site2,&atom->dname[ispecies][0]) == 0) break;
+    if (strcmp(site2,&atom->dvname[ispecies][0]) == 0) break;
   }
   if (ispecies == nspecies && strcmp(site2,"1fluid") != 0)
     error->all(FLERR,"Site2 name not recognized in pair coefficients");
@@ -405,7 +405,7 @@ void PairTableRX::coeff(int narg, char **arg)
        isite1 = nspecies;
 
        for (int k = 0; k < nspecies; k++) {
-         if (strcmp(site1, atom->dname[k]) == 0) {
+         if (strcmp(site1, atom->dvname[k]) == 0) {
            isite1 = k;
            break;
          }
@@ -420,7 +420,7 @@ void PairTableRX::coeff(int narg, char **arg)
        isite2 = nspecies;
 
        for (int k = 0; k < nspecies; k++) {
-         if (strcmp(site2, atom->dname[k]) == 0) {
+         if (strcmp(site2, atom->dvname[k]) == 0) {
            isite2 = ispecies;
            break;
          }

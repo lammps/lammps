@@ -148,10 +148,10 @@ class ScratchMemorySpace {
                                             const IntType& size_L0,
                                             void* ptr_L1           = nullptr,
                                             const IntType& size_L1 = 0)
-      : m_iter_L0((char*)ptr_L0),
-        m_iter_L1((char*)ptr_L1),
-        m_end_L0((char*)ptr_L0 + size_L0),
-        m_end_L1((char*)ptr_L1 + size_L1),
+      : m_iter_L0(static_cast<char*>(ptr_L0)),
+        m_iter_L1(static_cast<char*>(ptr_L1)),
+        m_end_L0(static_cast<char*>(ptr_L0) + size_L0),
+        m_end_L1(static_cast<char*>(ptr_L1) + size_L1),
         m_multiplier(1),
         m_offset(0),
         m_default_level(0) {}

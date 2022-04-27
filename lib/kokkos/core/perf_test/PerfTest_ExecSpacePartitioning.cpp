@@ -205,7 +205,7 @@ TEST(default_exec, overlap_range_policy) {
   double time_end = timer.seconds();
 
   if (SpaceInstance<TEST_EXECSPACE>::overlap()) {
-    ASSERT_TRUE((time_end > 1.5 * time_overlap));
+    ASSERT_GT(time_end, 1.5 * time_overlap);
   }
   printf("Time RangePolicy: NonOverlap: %lf Time Overlap: %lf\n", time_end,
          time_overlap);
@@ -238,7 +238,7 @@ TEST(default_exec, overlap_range_policy) {
   double time_not_fenced = timer.seconds();
   Kokkos::fence();
   if (SpaceInstance<TEST_EXECSPACE>::overlap()) {
-    ASSERT_TRUE(time_fenced > 2.0 * time_not_fenced);
+    ASSERT_GT(time_fenced, 2.0 * time_not_fenced);
   }
 
   timer.reset();
@@ -280,7 +280,7 @@ TEST(default_exec, overlap_range_policy) {
   ASSERT_EQ(h_result2(), h_result());
 
   if (SpaceInstance<TEST_EXECSPACE>::overlap()) {
-    ASSERT_TRUE(time_overlapped_reduce < 1.5 * time_no_overlapped_reduce);
+    ASSERT_LT(time_overlapped_reduce, 1.5 * time_no_overlapped_reduce);
   }
   printf("Time RangePolicy Reduce: NonOverlap: %lf Time Overlap: %lf\n",
          time_no_overlapped_reduce, time_overlapped_reduce);
@@ -378,7 +378,7 @@ TEST(default_exec, overlap_mdrange_policy) {
   double time_end = timer.seconds();
 
   if (SpaceInstance<TEST_EXECSPACE>::overlap()) {
-    ASSERT_TRUE((time_end > 1.5 * time_overlap));
+    ASSERT_GT(time_end, 1.5 * time_overlap);
   }
   printf("Time MDRangePolicy: NonOverlap: %lf Time Overlap: %lf\n", time_end,
          time_overlap);
@@ -413,7 +413,7 @@ TEST(default_exec, overlap_mdrange_policy) {
   double time_not_fenced = timer.seconds();
   Kokkos::fence();
   if (SpaceInstance<TEST_EXECSPACE>::overlap()) {
-    ASSERT_TRUE(time_fenced > 2.0 * time_not_fenced);
+    ASSERT_GT(time_fenced, 2.0 * time_not_fenced);
   }
 
   timer.reset();
@@ -459,7 +459,7 @@ TEST(default_exec, overlap_mdrange_policy) {
   ASSERT_EQ(h_result2(), h_result());
 
   if (SpaceInstance<TEST_EXECSPACE>::overlap()) {
-    ASSERT_TRUE(time_overlapped_reduce < 1.5 * time_no_overlapped_reduce);
+    ASSERT_LT(time_overlapped_reduce, 1.5 * time_no_overlapped_reduce);
   }
   printf("Time MDRangePolicy Reduce: NonOverlap: %lf Time Overlap: %lf\n",
          time_no_overlapped_reduce, time_overlapped_reduce);
@@ -548,7 +548,7 @@ TEST(default_exec, overlap_team_policy) {
   double time_end = timer.seconds();
 
   if (SpaceInstance<TEST_EXECSPACE>::overlap()) {
-    ASSERT_TRUE((time_end > 1.5 * time_overlap));
+    ASSERT_GT(time_end, 1.5 * time_overlap);
   }
   printf("Time TeamPolicy: NonOverlap: %lf Time Overlap: %lf\n", time_end,
          time_overlap);
@@ -581,7 +581,7 @@ TEST(default_exec, overlap_team_policy) {
   double time_not_fenced = timer.seconds();
   Kokkos::fence();
   if (SpaceInstance<TEST_EXECSPACE>::overlap()) {
-    ASSERT_TRUE(time_fenced > 2.0 * time_not_fenced);
+    ASSERT_GT(time_fenced, 2.0 * time_not_fenced);
   }
   timer.reset();
   Kokkos::parallel_reduce(
@@ -622,7 +622,7 @@ TEST(default_exec, overlap_team_policy) {
   ASSERT_EQ(h_result2(), h_result());
 
   if (SpaceInstance<TEST_EXECSPACE>::overlap()) {
-    ASSERT_TRUE(time_overlapped_reduce < 1.5 * time_no_overlapped_reduce);
+    ASSERT_LT(time_overlapped_reduce, 1.5 * time_no_overlapped_reduce);
   }
   printf("Time TeamPolicy Reduce: NonOverlap: %lf Time Overlap: %lf\n",
          time_no_overlapped_reduce, time_overlapped_reduce);

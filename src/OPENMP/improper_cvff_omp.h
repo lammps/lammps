@@ -33,7 +33,7 @@ class ImproperCvffOMP : public ImproperCvff, public ThrOMP {
 
  public:
   ImproperCvffOMP(class LAMMPS *lmp);
-  virtual void compute(int, int);
+  void compute(int, int) override;
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>

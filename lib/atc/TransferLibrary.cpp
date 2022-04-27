@@ -37,7 +37,7 @@ namespace ATC {
     shapeFunction_(shapeFunction),
     lammpsInterface_(atc->lammps_interface()),
     feEngine_(atc->fe_engine()),
-    tol_(1.e-10) 
+    tol_(1.e-10)
   {
     shapeFunction_->register_dependence(this);
   }
@@ -65,7 +65,7 @@ namespace ATC {
 
     _scale_.resize(nNodes);
     for (int i = 0; i < nNodes; i++) {
-      if ((abs(lhs(i,i)) > 0.))  
+      if ((abs(lhs(i,i)) > 0.))
         _scale_(i) = 1.;
       else
         _scale_(i) = 0.;
@@ -78,7 +78,7 @@ namespace ATC {
       }
     }
     lhs.compress();
-    
+
     // solve equation
     LinearSolver solver(lhs, ATC::LinearSolver::ITERATIVE_SOLVE_SYMMETRIC, true);
     solver.set_max_iterations(lhs.nRows());
@@ -146,7 +146,7 @@ namespace ATC {
     shapeFunction_(shapeFunction),
     atomElement_(atomElement),
     feEngine_(atc->fe_engine()),
-    tol_(1.e-10) 
+    tol_(1.e-10)
   {
     shapeFunction_->register_dependence(this);
     if (!atomElement_) {
@@ -162,7 +162,7 @@ namespace ATC {
   void NodalAtomVolumeElement::reset_quantity() const
   {
     // Using analyses by G. Wagner and J. Templeton, weights ~ phi*M^{-1}*V
-    //  where phi are the dimensionless shape/weighting functions, 
+    //  where phi are the dimensionless shape/weighting functions,
     //  M is the "mass" matrix M_IJ,
     //  V is the vector of nodal and element volumes
     //
@@ -185,11 +185,11 @@ namespace ATC {
       int thisCol = nNodes+atomElement(a,0);
       nodEltShpFcnMatrix.set(a,thisCol,1);
     }
-      
+
     SPAR_MAT neMassMatrix(neSize,neSize);
     atc_->compute_consistent_md_mass_matrix(nodEltShpFcnMatrix,neMassMatrix);
-      
-    // form vector of nodal and elemental volumes 
+
+    // form vector of nodal and elemental volumes
     _nodeVolumesMatrix_.resize(nNodes,nNodes);
     feEngine_->compute_lumped_mass_matrix(_nodeVolumesMatrix_);
     _nodeVolumes_.resize(nNodes);
@@ -217,13 +217,13 @@ namespace ATC {
       averageEltVolume += (maxx-minx)*(maxy-miny)*(maxz-minz);
     }
     averageEltVolume /= nElts;
-      
+
     // correct entries of mass matrix if no atoms in shape function support
     double totalNodalVolume = _nodeVolumes_.sum();
     double averageNodalVolume = totalNodalVolume/nNodes;
     _scale_.resize(neSize);
     for (int i = 0; i < neSize; i++) {
-      if ((abs(neMassMatrix(i,i)) > 0.)) { 
+      if ((abs(neMassMatrix(i,i)) > 0.)) {
         _scale_(i) = 1.;
       } else {
         printf("No atoms are in support of node/element %i\n",i);
@@ -234,7 +234,7 @@ namespace ATC {
     for (int i = 0; i < neSize; i++) {
       if (_scale_(i) < 0.5) {
         neMassMatrix.set(i,i,1.);
-        if (i < nNodes) { 
+        if (i < nNodes) {
           _nodeElementVolumes_(i) = averageNodalVolume;
         } else {
           _nodeElementVolumes_(i) = averageEltVolume;
@@ -242,11 +242,11 @@ namespace ATC {
       }
     }
     neMassMatrix.compress();
-      
+
     // solve equation
     LinearSolver solver(neMassMatrix, ATC::LinearSolver::ITERATIVE_SOLVE_SYMMETRIC, true);
     solver.set_max_iterations(neMassMatrix.nRows());
-    double myTol = 1.e-10; 
+    double myTol = 1.e-10;
     solver.set_tolerance(myTol);
     quantity_.resize(neSize,0);
     CLON_VEC tempQuantity(quantity_,CLONE_COL,0);
@@ -329,7 +329,7 @@ namespace ATC {
     if (!hasGhost_) {
       hasGhost_ = (atc->interscale_manager()).dense_matrix_int("ElementHasGhost");
     }
-    
+
     hasInternal_->register_dependence(this);
     if (hasGhost_) hasGhost_->register_dependence(this);
   }
@@ -354,7 +354,7 @@ namespace ATC {
         quantity_(i,0) = !hasInternal(i,0);
       }
     }
-      
+
     const set<int> & nullElements = feEngine_->null_elements();
     set<int>::const_iterator iset;
     for (iset = nullElements.begin(); iset != nullElements.end(); iset++) {
@@ -421,7 +421,7 @@ namespace ATC {
                                          SetDependencyManager<int> * nodeSet) :
     nodeSet_(nodeSet),
     feMesh_((atc->fe_engine())->fe_mesh())
-  { 
+  {
     nodeSet_->register_dependence(this);
   }
 
@@ -483,15 +483,15 @@ namespace ATC {
     _nodesGhost_.reset(nNodes_);
     _nodesGhost_ = 0;
     Array<int> nodes;
-    
-    
-    
+
+
+
     vector<int> myElems = feEngine_->fe_mesh()->owned_elts();
     if (hasGhost_) {
       const INT_ARRAY & hasGhost(hasGhost_->quantity()) ;
       // iterate through all elements owned by this processor
-      
-      
+
+
       for (vector<int>::iterator elemsIter = myElems.begin();
            elemsIter != myElems.end();
            ++elemsIter)
@@ -510,7 +510,7 @@ namespace ATC {
         }
       }
       // sum up partial result arrays
-      
+
       lammpsInterface_->logical_or(MPI_IN_PLACE, _nodesInternal_.ptr(), _nodesInternal_.size());
       lammpsInterface_->logical_or(MPI_IN_PLACE, _nodesGhost_.ptr(), _nodesGhost_.size());
     }
@@ -582,9 +582,9 @@ namespace ATC {
     _nodesGhost_.reset(nNodes_);
     _nodesGhost_ = 0;
     Array<int> nodes;
-    
-    
-    
+
+
+
     vector<int> myElems = feEngine_->fe_mesh()->owned_elts();
     // iterate through all elements owned by this processor
     for (vector<int>::iterator elemsIter = myElems.begin();
@@ -605,7 +605,7 @@ namespace ATC {
           }
         }
       }
-    
+
     // sum up partial result arrays
     lammpsInterface_->logical_or(MPI_IN_PLACE, _nodesInternal_.ptr(), _nodesInternal_.size());
     lammpsInterface_->logical_or(MPI_IN_PLACE, _nodesGhost_.ptr(), _nodesGhost_.size());
@@ -882,7 +882,7 @@ namespace ATC {
       }
     }
   }
-  
+
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class MappedQuantity
@@ -967,7 +967,7 @@ namespace ATC {
   {
     const INT_ARRAY & nodeType(nodalGeometryType_->quantity());
     quantity_.clear();
-    
+
     for (int i = 0; i < nodeType.size(); ++i) {
       if (nodeType(i,0) != FE_ONLY) {
         quantity_.insert(i);
@@ -981,7 +981,7 @@ namespace ATC {
   void RegulatedNodes::insert_boundary_nodes() const
   {
     const INT_ARRAY & nodeType(nodalGeometryType_->quantity());
-    
+
     for (int i = 0; i < nodeType.size(); ++i) {
       if (nodeType(i,0) == BOUNDARY) {
         quantity_.insert(i);
@@ -1012,7 +1012,7 @@ namespace ATC {
   //--------------------------------------------------------
   void RegulatedNodes::insert_fixed_nodes() const
   {
-    
+
     const INT_ARRAY & nodeType(nodalGeometryType_->quantity());
     map<FieldName,int>::const_iterator fs_iter;
 
@@ -1038,7 +1038,7 @@ namespace ATC {
     const INT_ARRAY & nodeType(nodalGeometryType_->quantity());
     set<int>::const_iterator inode;
     map<FieldName,int>::const_iterator fs_iter;
-    
+
     for (fs_iter = fieldSizes_.begin(); fs_iter != fieldSizes_.end(); fs_iter++) {
       for (int j = 0; j < fs_iter->second; j++) {
         set<int> faceFluxNodes = prescribedDataManager_->flux_face_nodes(fs_iter->first,j);
@@ -1104,7 +1104,7 @@ namespace ATC {
   void FluxNodes::reset_quantity() const
   {
     quantity_.clear();
-    
+
     // a) they have a fixed face flux
     RegulatedNodes::insert_face_fluxes();
 
@@ -1161,7 +1161,7 @@ namespace ATC {
   void FixedNodes::reset_quantity() const
   {
     quantity_.clear();
-    
+
     // a) they are a fixed node
     RegulatedNodes::insert_fixed_nodes();
   }
@@ -1533,7 +1533,7 @@ namespace ATC {
                                                          DENS_MAN* atomCoarseGrainingPositions):
     atc_(atc),
     source_(source),
-    kernelFunction_(kernelFunction), 
+    kernelFunction_(kernelFunction),
     atomCoarseGrainingPositions_(atomCoarseGrainingPositions),
     feMesh_((atc_->fe_engine())->fe_mesh())
   {
@@ -1551,7 +1551,7 @@ namespace ATC {
     int nNodes = feMesh_->num_nodes_unique();
     quantity_.resize(nNodes,source.nCols());
     _quantityLocal_.reset(nNodes,source.nCols());
-    
+
     if (source.nRows()>0) {
       DENS_VEC xI(positions.nCols()),xa(positions.nCols()),xaI(positions.nCols());
       double val;
@@ -1696,7 +1696,7 @@ namespace ATC {
       _localWeights_ = (accumulant_->quantity()).col_sum();
     }
     lammpsInterface_->allsum(_localWeights_.ptr(),_weights_.ptr(),nNodes);
-    
+
     // assign weights
     quantity_.resize(nNodes,nNodes);
     for (int i = 0; i < nNodes; i++) {
@@ -1732,7 +1732,7 @@ namespace ATC {
   {
     const DENS_MAT & weights(weights_->quantity());
     int nNodes = weights.nRows();
-    
+
     // assign weights
     quantity_.resize(nNodes,nNodes);
     for (int i = 0; i < nNodes; i++) {
@@ -1756,7 +1756,7 @@ namespace ATC {
   //--------------------------------------------------------
   KernelInverseVolumes::KernelInverseVolumes(ATC_Method * atc,
                                              KernelFunction* kernelFunction):
-    kernelFunction_(kernelFunction), 
+    kernelFunction_(kernelFunction),
     feMesh_((atc->fe_engine())->fe_mesh())
   {
     // do nothing
@@ -1807,7 +1807,7 @@ namespace ATC {
     quantity_.resize(nNodes,source.nCols());
     _quantityLocal_.reset(nNodes,source.nCols());
     DENS_VEC xj(atc_->nsd());
-    
+
     if (source.nRows()>0) {
       for (int j = 0; j < source.nRows(); j++) {
         for (int k = 0; k < atc_->nsd(); k++) {
@@ -1820,7 +1820,7 @@ namespace ATC {
             //quantity_(inode,k) += shp(I)*source(j,k);
             _quantityLocal_(inode,k) += shp(I)*source(j,k);
           }
-        } 
+        }
       }
     }
     // accumulate across processors
@@ -1946,7 +1946,7 @@ namespace ATC {
   //--------------------------------------------------------
   void NativeShapeFunctionGradient::reset_quantity() const
   {
-    feEngine_->compute_gradient_matrix(quantity_); 
+    feEngine_->compute_gradient_matrix(quantity_);
   }
 
   //--------------------------------------------------------
@@ -1971,7 +1971,7 @@ namespace ATC {
   //--------------------------------------------------------
   // destructor
   //--------------------------------------------------------
-  OnTheFlyShapeFunctionProlongation::~OnTheFlyShapeFunctionProlongation() 
+  OnTheFlyShapeFunctionProlongation::~OnTheFlyShapeFunctionProlongation()
   {
     atomCoarseGrainingPositions_->remove_dependence(this);
   };

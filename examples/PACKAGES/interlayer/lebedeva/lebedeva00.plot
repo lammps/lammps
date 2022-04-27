@@ -28,7 +28,7 @@ set yrange [-0.002:0.001]
 #set yrange [*:*]
 
 plot \
-	"LamppsResult.dat" u 2:5 t "Leb LAMMPS",\
+	"LammpsResult.dat" u 2:5 t "Leb LAMMPS",\
 	"PerlResult.dat" u 1:($4*0.001/2.) w l t "Leb Perl"
 
 exit

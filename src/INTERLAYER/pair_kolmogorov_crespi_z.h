@@ -27,16 +27,17 @@ namespace LAMMPS_NS {
 class PairKolmogorovCrespiZ : public Pair {
  public:
   PairKolmogorovCrespiZ(class LAMMPS *);
-  virtual ~PairKolmogorovCrespiZ();
+  ~PairKolmogorovCrespiZ() override;
 
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+
+  static constexpr int NPARAMS_PER_LINE = 11;
 
  protected:
-  int me;
-
   struct Param {
     double z0, C0, C2, C4, C, delta, lambda, A, S;
     double delta2inv, z06;
@@ -45,7 +46,6 @@ class PairKolmogorovCrespiZ : public Pair {
   Param *params;    // parameter set for I-J interactions
 
   double cut_global;
-  double **cut;
   double **offset;
   void read_file(char *);
   void allocate();
@@ -55,22 +55,3 @@ class PairKolmogorovCrespiZ : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-*/

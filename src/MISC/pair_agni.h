@@ -28,12 +28,12 @@ class PairAGNI : public Pair {
  public:
   enum { AGNI_VERSION_UNKNOWN, AGNI_VERSION_1, AGNI_VERSION_2 };
   PairAGNI(class LAMMPS *);
-  virtual ~PairAGNI();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  virtual void coeff(int, char **);
-  virtual double init_one(int, int);
-  virtual void init_style();
+  ~PairAGNI() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void init_style() override;
 
   struct Param {
     double cut, cutsq;
@@ -55,27 +55,3 @@ class PairAGNI : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Cannot open AGNI potential file %s
-
-The specified AGNI potential file cannot be opened.  Check that the path
-and name are correct.
-
-E: Incorrect format in AGNI potential file
-
-The potential file is not compatible with the AGNI pair style
-implementation in this LAMMPS version.
-
-*/

@@ -229,6 +229,11 @@ but you would need to create your own AIREBO or AIREBO-M potential file
 with coefficients listed in the appropriate units, if your simulation
 does not use "metal" units.
 
+The pair styles provided here **only** support potential files parameterized
+for the elements carbon and hydrogen (designated with "C" and "H" in the
+*pair_coeff* command.  Using potential files for other elements will trigger
+an error.
+
 Related commands
 """"""""""""""""
 

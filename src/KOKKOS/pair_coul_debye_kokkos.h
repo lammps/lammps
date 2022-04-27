@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -20,6 +19,7 @@ PairStyle(coul/debye/kk/host,PairCoulDebyeKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_COUL_DEBYE_KOKKOS_H
 #define LMP_PAIR_COUL_DEBYE_KOKKOS_H
 
@@ -37,13 +37,13 @@ class PairCoulDebyeKokkos : public PairCoulDebye {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairCoulDebyeKokkos(class LAMMPS *);
-  ~PairCoulDebyeKokkos();
+  ~PairCoulDebyeKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   struct params_coul{
     KOKKOS_INLINE_FUNCTION
@@ -111,7 +111,7 @@ class PairCoulDebyeKokkos : public PairCoulDebye {
   double special_lj[4];
   double qqrd2e;
 
-  void allocate();
+  void allocate() override;
   friend struct PairComputeFunctor<PairCoulDebyeKokkos,FULL,true>;
   friend struct PairComputeFunctor<PairCoulDebyeKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairCoulDebyeKokkos,HALFTHREAD,true>;
@@ -132,20 +132,3 @@ class PairCoulDebyeKokkos : public PairCoulDebye {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot use Kokkos pair style with rRESPA inner/middle
-
-Self-explanatory.
-
-E: Cannot use chosen neighbor list style with coul/debye/kk
-
-Self-explanatory.
-
-*/

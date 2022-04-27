@@ -20,15 +20,14 @@
 
 #include <string>
 
-
 using ::testing::Eq;
 
 class DumpLocalCompressTest : public CompressedDumpTest {
 public:
-    DumpLocalCompressTest() : CompressedDumpTest("local") {
-    }
+    DumpLocalCompressTest() : CompressedDumpTest("local") {}
 
-    void SetUp() override {
+    void SetUp() override
+    {
         CompressedDumpTest::SetUp();
 
         BEGIN_HIDE_OUTPUT();
@@ -49,8 +48,9 @@ TEST_F(DumpLocalCompressTest, compressed_run0)
     auto compressed_file_0 = compressed_dump_filename(base_name_0);
     auto fields            = "index c_comp[1]";
 
-    if(compression_style == "local/zstd") {
-        generate_text_and_compressed_dump(text_files, compressed_files, fields, fields, "", "checksum yes", 0);
+    if (compression_style == "local/zstd") {
+        generate_text_and_compressed_dump(text_files, compressed_files, fields, fields, "",
+                                          "checksum yes", 0);
     } else {
         generate_text_and_compressed_dump(text_files, compressed_files, fields, "", 0);
     }
@@ -81,8 +81,9 @@ TEST_F(DumpLocalCompressTest, compressed_no_buffer_run0)
     auto compressed_file_0 = compressed_dump_filename(base_name_0);
     auto fields            = "index c_comp[1]";
 
-    if(compression_style == "local/zstd") {
-        generate_text_and_compressed_dump(text_files, compressed_files, fields, fields, "buffer no", "buffer no checksum yes", 0);
+    if (compression_style == "local/zstd") {
+        generate_text_and_compressed_dump(text_files, compressed_files, fields, fields, "buffer no",
+                                          "buffer no checksum yes", 0);
     } else {
         generate_text_and_compressed_dump(text_files, compressed_files, fields, "buffer no", 0);
     }
@@ -113,8 +114,9 @@ TEST_F(DumpLocalCompressTest, compressed_with_time_run0)
     auto compressed_file_0 = compressed_dump_filename(base_name_0);
     auto fields            = "index c_comp[1]";
 
-    if(compression_style == "local/zstd") {
-        generate_text_and_compressed_dump(text_files, compressed_files, fields, fields, "time yes", "time yes checksum yes", 0);
+    if (compression_style == "local/zstd") {
+        generate_text_and_compressed_dump(text_files, compressed_files, fields, fields, "time yes",
+                                          "time yes checksum yes", 0);
     } else {
         generate_text_and_compressed_dump(text_files, compressed_files, fields, "time yes", 0);
     }
@@ -145,8 +147,9 @@ TEST_F(DumpLocalCompressTest, compressed_with_units_run0)
     auto compressed_file_0 = compressed_dump_filename(base_name_0);
     auto fields            = "index c_comp[1]";
 
-    if(compression_style == "local/zstd") {
-        generate_text_and_compressed_dump(text_files, compressed_files, fields, fields, "units yes", "units yes checksum yes", 0);
+    if (compression_style == "local/zstd") {
+        generate_text_and_compressed_dump(text_files, compressed_files, fields, fields, "units yes",
+                                          "units yes checksum yes", 0);
     } else {
         generate_text_and_compressed_dump(text_files, compressed_files, fields, "units yes", 0);
     }
@@ -178,8 +181,9 @@ TEST_F(DumpLocalCompressTest, compressed_triclinic_run0)
     auto compressed_file_0 = compressed_dump_filename(base_name_0);
     auto fields            = "index c_comp[1]";
 
-    if(compression_style == "local/zstd") {
-        generate_text_and_compressed_dump(text_files, compressed_files, fields, fields, "", "checksum yes", 0);
+    if (compression_style == "local/zstd") {
+        generate_text_and_compressed_dump(text_files, compressed_files, fields, fields, "",
+                                          "checksum yes", 0);
     } else {
         generate_text_and_compressed_dump(text_files, compressed_files, fields, "", 0);
     }
@@ -213,8 +217,9 @@ TEST_F(DumpLocalCompressTest, compressed_multi_file_run1)
     auto compressed_file_1 = compressed_dump_filename(base_name_1);
     auto fields            = "index c_comp[1]";
 
-    if(compression_style == "local/zstd") {
-        generate_text_and_compressed_dump(text_file, compressed_file, fields, fields, "", "checksum no", 1);
+    if (compression_style == "local/zstd") {
+        generate_text_and_compressed_dump(text_file, compressed_file, fields, fields, "",
+                                          "checksum no", 1);
     } else {
         generate_text_and_compressed_dump(text_file, compressed_file, fields, "", 1);
     }
@@ -332,30 +337,33 @@ TEST_F(DumpLocalCompressTest, compressed_modify_bad_param)
 {
     if (compression_style != "local/gz") GTEST_SKIP();
 
-    auto fields            = "index c_comp[1]";
+    auto fields = "index c_comp[1]";
 
     BEGIN_HIDE_OUTPUT();
-    command(fmt::format("dump id1 all {} 1 {} {}", compression_style, compressed_dump_filename("modify_bad_param_run0_*.melt.local"), fields));
+    command(fmt::format("dump id1 all {} 1 {} {}", compression_style,
+                        compressed_dump_filename("modify_bad_param_run0_*.melt.local"), fields));
     END_HIDE_OUTPUT();
 
-    TEST_FAILURE(".*ERROR on proc 0: Illegal dump_modify command: Compression level must in the range of.*",
-        command("dump_modify id1 compression_level 12");
-    );
+    TEST_FAILURE(
+        ".*ERROR on proc 0: Illegal dump_modify command: Compression level must in the range of.*",
+        command("dump_modify id1 compression_level 12"););
 }
 
 TEST_F(DumpLocalCompressTest, compressed_modify_multi_bad_param)
 {
     if (compression_style != "local/gz") GTEST_SKIP();
 
-    auto fields            = "index c_comp[1]";
+    auto fields = "index c_comp[1]";
 
     BEGIN_HIDE_OUTPUT();
-    command(fmt::format("dump id1 all {} 1 {} {}", compression_style, compressed_dump_filename("modify_multi_bad_param_run0_*.melt.local"), fields));
+    command(fmt::format("dump id1 all {} 1 {} {}", compression_style,
+                        compressed_dump_filename("modify_multi_bad_param_run0_*.melt.local"),
+                        fields));
     END_HIDE_OUTPUT();
 
-    TEST_FAILURE(".*ERROR on proc 0: Illegal dump_modify command: Compression level must in the range of.*",
-        command("dump_modify id1 pad 3 compression_level 12");
-    );
+    TEST_FAILURE(
+        ".*ERROR on proc 0: Illegal dump_modify command: Compression level must in the range of.*",
+        command("dump_modify id1 pad 3 compression_level 12"););
 }
 
 TEST_F(DumpLocalCompressTest, compressed_modify_clevel_run0)
@@ -365,9 +373,10 @@ TEST_F(DumpLocalCompressTest, compressed_modify_clevel_run0)
     auto base_name       = "modify_clevel_run0.melt.local";
     auto text_file       = text_dump_filename(base_name);
     auto compressed_file = compressed_dump_filename(base_name);
-    auto fields            = "index c_comp[1]";
+    auto fields          = "index c_comp[1]";
 
-    generate_text_and_compressed_dump(text_file, compressed_file, fields, fields, "", "compression_level 3", 0);
+    generate_text_and_compressed_dump(text_file, compressed_file, fields, fields, "",
+                                      "compression_level 3", 0);
 
     TearDown();
 

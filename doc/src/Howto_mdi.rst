@@ -1,132 +1,144 @@
 Using LAMMPS with the MDI library for code coupling
 ===================================================
 
-.. note::
-
-  This Howto page will eventually replace the
-  :doc:`Howto client/server <Howto_client_server>` doc page.
-
-Client/server coupling of two codes is where one code is the "client"
-and sends request messages (data) to a "server" code.  The server
-responds to each request with a reply message.  This enables the two
-codes to work in tandem to perform a simulation.  LAMMPS can act as
-either a client or server code; it does this by using the `MolSSI
-Driver Interface (MDI) library
+Client/server coupling of two (or more) codes is where one code is the
+"client" and sends request messages (data) to one (or more) "server"
+code(s).  A server responds to each request with a reply message
+(data).  This enables two (or more) codes to work in tandem to perform
+a simulation.  LAMMPS can act as either a client or server code; it
+does this by using the `MolSSI Driver Interface (MDI) library
 <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_,
 developed by the `Molecular Sciences Software Institute (MolSSI)
-<https://molssi.org>`_.
+<https://molssi.org>`_, which is supported by the :ref:`MDI <PKG-MDI>`
+package.
 
 Alternate methods for code coupling with LAMMPS are described on the
 :doc:`Howto couple <Howto_couple>` doc page.
 
-Some advantages of client/server coupling are that the two codes can run
+Some advantages of client/server coupling are that the codes can run
 as stand-alone executables; they need not be linked together.  Thus
-neither code needs to have a library interface.  This also makes it easy
-to run the two codes on different numbers of processors.  If a message
-protocol (format and content) is defined for a particular kind of
-simulation, then in principle any code which implements the client-side
-protocol can be used in tandem with any code which implements the
-server-side protocol.  Neither code needs to know what specific other
-code it is working with.
+neither code needs to have a library interface.  This also makes it
+easy to run the two codes on different numbers of processors.  If a
+message protocol (format and content) is defined for a particular kind
+of simulation, then in principle any code which implements the
+client-side protocol can be used in tandem with any code which
+implements the server-side protocol.  Neither code needs to know what
+specific other code it is working with.
 
 In MDI nomenclature, a client code is the "driver", and a server code is
 an "engine".  One driver code can communicate with one or more instances
 of one or more engine codes.  Driver and engine codes can be written in
 any language: C, C++, Fortran, Python, etc.
 
-In addition to allowing driver and engine(s) running to run as
-stand-alone executables, MDI also enables a server code to be a
-"plugin" to the client code.  In this scenario, server code(s) are
-compiled as shared libraries, and one (or more) instances of the
-server are instantiated by the driver code.  If the driver code runs
-in parallel, it can split its MPI communicator into multiple
-sub-communicators, and launch each plugin engine instance on a
-sub-communicator.  Driver processors in that sub-communicator exchange
-messages with that engine instance, and can also send MPI messages to
-other processors in the driver.  The driver code can also destroy
-engine instances and re-instantiate them.
+In addition to allowing driver and engine(s) to run as stand-alone
+executables, MDI also enables an engine to be a *plugin* to the client
+code.  In this scenario, server code(s) are compiled as shared
+libraries, and one (or more) instances of the server are instantiated
+by the driver code.  If the driver code runs in parallel, it can split
+its MPI communicator into multiple sub-communicators, and launch each
+plugin engine instance on a sub-communicator.  Driver processors
+within that sub-communicator exchange messages with the corresponding
+engine instance, and can also send MPI messages to other processors in
+the driver.  The driver code can also destroy engine instances and
+re-instantiate them.  LAMMPS can operate as either a stand-alone or
+plugin MDI engine.  When it operates as a driver, if can use either
+stand-alone or plugin MDI engines.
 
-The way that a driver communicates with an engine is by making
-MDI_Send() and MDI_Recv() calls, which are conceptually similar to
-MPI_Send() and MPI_Recv() calls.  Each send or receive has a string
-which identifies the command name, and optionally some data, which can
-be a single value or vector of values of any data type.  Inside the
-MDI library, data is exchanged between the driver and engine via MPI
-calls or sockets.  This a run-time choice by the user.
+The way in which an MDI driver communicates with an MDI engine is by
+making MDI_Send() and MDI_Recv() calls, which are conceptually similar
+to MPI_Send() and MPI_Recv() calls.  Each send or receive operation
+uses a string to identify the command name, and optionally some data,
+which can be a single value or vector of values of any data type.
+Inside the MDI library, data is exchanged between the driver and
+engine via MPI calls or sockets.  This a run-time choice by the user.
+
+----------
+
+The :ref:`MDI <PKG-MDI>` package provides a :doc:`mdi engine <mdi>`
+command which enables LAMMPS to operate as an MDI engine.  Its doc
+page explains the variety of standard and custom MDI commands which
+the LAMMPS engine recognizes and can respond to.
+
+The package also provides a :doc:`mdi plugin <mdi>` command which
+enables LAMMPS to operate as an MDI driver and load an MDI engine as a
+plugin library.
+
+The package also has a `fix mdi/aimd <fix_mdi_aimd>` command in which
+LAMMPS operates as an MDI driver to perform *ab initio* MD simulations
+in conjunction with a quantum mechanics code.  Its post_force() method
+illustrates how a driver issues MDI commands to another code.  This
+command can be used to couple to an MDI engine which is either a
+stand-alone code or a plugin library.
+
+----------
+
+The examples/mdi directory contains Python scripts and LAMMPS input
+script which use LAMMPS as either an MDI driver or engine or both.
+Three example use cases are provided:
+
+* Run ab initio MD (AIMD) using 2 instances of LAMMPS, one as driver
+  and one as an engine.  As an engine, LAMMPS is a surrogate for a
+  quantum code.
+
+* A Python script driver invokes a sequence of unrelated LAMMPS
+  calculations.  Calculations can be single-point energy/force
+  evaluations, MD runs, or energy minimizations.
+
+* Run AIMD with a Python driver code and 2 LAMMPS instances as
+  engines.  The first LAMMPS instance performs MD timestepping.  The
+  second LAMMPS instance acts as a surrogate QM code to compute
+  forces.
+
+Note that in any of these example where LAMMPS is used as an engine,
+an actual QM code (which supports MDI) could be used in its place,
+without modifying other code or scripts, except to specify the name of
+the QM code.
+
+The examples/mdi/README file explains how to launch both driver and
+engine codes so that they communicate using the MDI library via either
+MPI or sockets.
 
 -------------
 
-As an example, LAMMPS and the ``pw.x`` command from Quantum Espresso (a
-suite of quantum DFT codes), can work together via the MDI library to
-perform an ab initio MD (AIMD) simulation, where LAMMPS runs an MD
-simulation and sends a message each timestep to ``pw.x`` asking it to
-compute quantum forces on the current configuration of atoms.  Here is
-how the 2 codes are launched to communicate by MPI:
+Currently there are two quantum DFT codes which have direct MDI
+support, `Quantum ESPRESSO (QE) <https://www.quantum-espresso.org/>`_
+and `INQ <https://qsg.llnl.gov/node/101.html>`_.  There are also
+several QM codes which have indirect support through QCEngine or i-PI.
+The former means they require a wrapper program (QCEngine) with MDI
+support which writes/read files to pass data to the quantum code
+itself.  The list of QCEngine-supported and i-PI-supported quantum
+codes is on the `MDI webpage
+<https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
+
+Here is how to build QE as a stand-alone ``pw.x`` file which can be
+used in stand-alone mode:
 
 .. code-block:: bash
 
-   % mpirun -np 2 lmp_mpi -mdi "-role DRIVER -name d -method MPI" \
-     -in in.aimd : -np 16 pw.x -in qe.in -mdi "-role ENGINE -name e -method MPI"
+   % git clone --branch mdi_plugin https://github.com/MolSSI-MDI/q-e.git <base_path>/q-e
+   % build the executable pw.x, following the `QE build guide <https://gitlab.com/QEF/q-e/-/wikis/Developers/CMake-build-system>`_
 
-In this case LAMMPS runs on 2 processors (MPI tasks), ``pw.x`` runs on 16
-processors.
-
-Here is how the 2 codes are launched to communicate by sockets:
+Here is how to build QE as a shared library which can be used in plugin mode,
+which results in a libqemdi.so file in <base_path>/q-e/MDI/src:
 
 .. code-block:: bash
 
-   % mpirun -np 2 lmp_mpi -mdi "-role DRIVER -name d -method TCP -port 8021" -in in.aimd
-   % mpirun -np 16 pw.x -in qe.in -mdi "-role ENGINE -name e -method TCP -port 8021 -hostname localhost"
+   % git clone --branch mdi_plugin https://github.com/MolSSI-MDI/q-e.git <base_path>/q-e
+   % cd <base_path>/q-e
+   % ./configure --enable-parallel --enable-openmp --enable-shared FFLAGS="-fPIC" FCFLAGS="-fPIC" CFLAGS="-fPIC" foxflags="-fPIC" try_foxflags="-fPIC"
+   % make -j 4 mdi
 
-These commands could be issued in different windows on a desktop
-machine.  Or in the same window, if the first command is ended with
-"&" so as to run in the background.  If "localhost" is replaced by an
-IP address, ``pw.x`` could be run on another machine on the same network, or
-even on another machine across the country.
+INQ cannot be built as a stand-alone code; it is by design a library.
+Here is how to build INQ as a shared library which can be used in
+plugin mode, which results in a libinqmdi.so file in
+<base_path>/inq/build/examples:
 
-After both codes initialize themselves to model the same system, this is
-what occurs each timestep:
+.. code-block:: bash
 
-* LAMMPS send a ">COORDS" message to ``pw.x`` with a 3*N vector of current atom coords
-* ``pw.x`` receives the message/coords and computes quantum forces on all the atoms
-* LAMMPS send a "<FORCES" message to ``pw.x`` and waits for the result
-* ``pw.x`` receives the message (after its computation finishes) and sends a 3*N vector of forces
-* LAMMPS receives the forces and time integrates to complete a single timestep
-
--------------
-
-Examples scripts for using LAMMPS as an MDI engine are in the
-examples/mdi directory.  See the README file in that directory for
-instructions on how to run the examples.
-
-.. note::
-
-  Work is underway to add commands that allow LAMMPS to be used as an
-  MDI driver, e.g. for the AIMD example discussed above.  Example
-  scripts for this usage mode will be added the same directory when
-  available.
-
-If LAMMPS is used as a stand-alone engine it should set up the system
-it will be modeling in its input script, then invoke the
-:doc:`mdi/engine <mdi_engine>` command.  This will put LAMMPS into
-"engine mode" where it waits for messages and data from the driver.
-When the driver sends an "EXIT" command, LAMMPS will exit engine mode
-and the input script will continue.
-
-If LAMMPS is used as a plugin engine it operates the same way, except
-that the driver will pass LAMMPS an input script to initialize itself.
-Upon receiving the "EXIT" command, LAMMPS will exit engine mode and the
-input script will continue.  After finishing execution of the input
-script, the instance of LAMMPS will be destroyed.
-
-LAMMPS supports the full set of MD-appropriate engine commands defined
-by the MDI library.  See the :doc:`mdi/engine <mdi_engine>` page for
-a list of these.
-
-If those commands are not sufficient for a user-developed driver to use
-LAMMPS as an engine, then new commands can be easily added.  See these
-two files which implement the definition of MDI commands and the logic
-for responding to them:
-
-* src/MDI/mdi_engine.cpp
-* src/MDI/fix_mdi_engine.cpp
+   % git clone --branch mdi --recurse-submodules https://gitlab.com/taylor-a-barnes/inq.git <base_path>/inq
+   % cd <base_path>/inq
+   % mkdir -p build
+   % cd build
+   % ../configure --prefix=<install_path>/install
+   % make -j 4
+   % make install

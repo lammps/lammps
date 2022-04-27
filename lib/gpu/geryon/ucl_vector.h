@@ -164,7 +164,7 @@ class UCL_Vector {
   inline void sync() { host.sync(); }
   /// Assert that any ops in associate command queue have been issued to device
   inline void flush() { ucl_flush(host.cq()); }
-  
+
   ///Get the size of a row on the host (including any padding) in elements
   inline size_t row_size() const { return host.row_size(); }
   /// Get the size of a row on the host(including any padding) in bytes

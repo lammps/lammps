@@ -153,7 +153,7 @@ namespace ATC {
   //    be initialized.
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   class ComputedAtomQuantity : public ShallowAtomQuantity<double> {
 
   public:
@@ -220,7 +220,7 @@ namespace ATC {
   protected:
 
     /** pointer to Lammps compute, meant as rapid indexing only (do not use!) */
-    COMPUTE_POINTER computePointer_;  
+    COMPUTE_POINTER computePointer_;
 
     /** tag for Lammps compute */
     std::string computeTag_;

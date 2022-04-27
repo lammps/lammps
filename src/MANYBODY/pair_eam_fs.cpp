@@ -23,7 +23,6 @@
 #include "error.h"
 #include "memory.h"
 #include "potential_file_reader.h"
-#include "tokenizer.h"
 
 #include <cstring>
 
@@ -122,8 +121,6 @@ void PairEAMFS::read_file(char *filename)
   if (comm->me == 0) {
     PotentialFileReader reader(lmp, filename, he_flag ? "eam/he" : "eam/fs",
                                unit_convert_flag);
-
-    // transparently convert units for supported conversions
 
     // transparently convert units for supported conversions
 

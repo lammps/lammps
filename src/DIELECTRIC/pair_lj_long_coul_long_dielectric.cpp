@@ -19,38 +19,26 @@
 
 #include "atom.h"
 #include "atom_vec_dielectric.h"
-#include "comm.h"
 #include "error.h"
+#include "ewald_const.h"
 #include "force.h"
-#include "integrate.h"
-#include "kspace.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
-#include "respa.h"
-#include "update.h"
 
 #include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using namespace EwaldConst;
+using MathConst::MY_PIS;
 using namespace MathExtra;
-
-#define EWALD_F 1.12837917
-#define EWALD_P 0.3275911
-#define A1 0.254829592
-#define A2 -0.284496736
-#define A3 1.421413741
-#define A4 -1.453152027
-#define A5 1.061405429
 
 /* ---------------------------------------------------------------------- */
 
-PairLJLongCoulLongDielectric::PairLJLongCoulLongDielectric(LAMMPS *lmp) : PairLJLongCoulLong(lmp)
+PairLJLongCoulLongDielectric::PairLJLongCoulLongDielectric(LAMMPS *_lmp) : PairLJLongCoulLong(_lmp)
 {
   respa_enable = 0;
   cut_respa = nullptr;
@@ -77,12 +65,10 @@ void PairLJLongCoulLongDielectric::init_style()
 {
   PairLJLongCoulLong::init_style();
 
-  avec = (AtomVecDielectric *) atom->style_match("dielectric");
+  avec = dynamic_cast<AtomVecDielectric *>(atom->style_match("dielectric"));
   if (!avec) error->all(FLERR, "Pair lj/long/coul/long/dielectric requires atom style dielectric");
 
-  int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 }
 
 /* ----------------------------------------------------------------------
@@ -267,7 +253,8 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
             if (eflag) evdwl = f * (rn * (rn * lj3i[jtype] - lj4i[jtype]) - offseti[jtype]);
           }
         }
-      } else force_lj = evdwl = 0.0;
+      } else
+        force_lj = evdwl = 0.0;
 
       fpair_i = (force_coul * etmp + force_lj) * r2inv;
       f[i][0] += delx * fpair_i;

@@ -2,4 +2,6 @@ These Python scripts help to detect whether files in the repository
 conform to LAMMPS coding conventions or not, and can fix those issues, too.
 
 permissions.py   detects if sources have executable permissions and scripts have not
-whitespace.py    (currently) detects trailing whitespace
+whitespace.py    detects TAB characters and trailing whitespace
+homepage.py      detects outdated LAMMPS homepage URLs (pointing to sandia.gov instead of lammps.org)
+errordocs.py     detects deprecated error docs in header files

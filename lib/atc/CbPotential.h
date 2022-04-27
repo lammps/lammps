@@ -29,10 +29,10 @@ namespace ATC
   protected:
     //! CbPotential base constructor:
     //! Initializes which terms are included in energy computation.
-    //@param potential_terms Switches for atomic interaction terms. 
+    //@param potential_terms Switches for atomic interaction terms.
     CbPotential(Interactions interaction_terms) : terms(interaction_terms) {}
   public:
-    virtual ~CbPotential() {}   
+    virtual ~CbPotential() {}
     const Interactions terms;  //!< switches for types of potential terms.
 
     //! Returns the minimum distance that all interactions get neglected.

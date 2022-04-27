@@ -13,20 +13,22 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_balance.h"
-#include <cstring>
-#include "balance.h"
-#include "update.h"
+
 #include "atom.h"
+#include "balance.h"
 #include "comm.h"
 #include "domain.h"
-#include "neighbor.h"
-#include "irregular.h"
+#include "error.h"
+#include "fix_store.h"
 #include "force.h"
+#include "irregular.h"
 #include "kspace.h"
 #include "modify.h"
-#include "fix_store.h"
+#include "neighbor.h"
 #include "rcb.h"
-#include "error.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -64,14 +66,15 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 5;
   if (lbstyle == SHIFT) {
     if (iarg+4 > narg) error->all(FLERR,"Illegal fix balance command");
-    if (strlen(arg[iarg+1]) > 3)
+    if (strlen(arg[iarg+1]) > Balance::BSTR_SIZE)
       error->all(FLERR,"Illegal fix balance command");
-    strcpy(bstr,arg[iarg+1]);
+    strncpy(bstr,arg[iarg+1], Balance::BSTR_SIZE+1);
     nitermax = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
     if (nitermax <= 0) error->all(FLERR,"Illegal fix balance command");
     stopthresh = utils::numeric(FLERR,arg[iarg+3],false,lmp);
     if (stopthresh < 1.0) error->all(FLERR,"Illegal fix balance command");
     iarg += 4;
+
   } else if (lbstyle == BISECTION) {
     iarg++;
   }

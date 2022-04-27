@@ -383,7 +383,7 @@ multiple groups, its weight is the product of the weight factors.
 
 This weight style is useful in combination with pair style
 :doc:`hybrid <pair_hybrid>`, e.g. when combining a more costly many-body
-potential with a fast pair-wise potential.  It is also useful when
+potential with a fast pairwise potential.  It is also useful when
 using :doc:`run_style respa <run_style>` where some portions of the
 system have many bonded interactions and others none.  It assumes that
 the computational cost for each group remains constant over time.
@@ -477,12 +477,18 @@ atom-style variables can reference the position of a particle, its
 velocity, the volume of its Voronoi cell, etc.
 
 The *store* weight style does not compute a weight factor.  Instead it
-stores the current accumulated weights in a custom per-atom property
-specified by *name*\ .  This must be a property defined as *d_name* via
-the :doc:`fix property/atom <fix_property_atom>` command.  Note that
-these custom per-atom properties can be output in a :doc:`dump <dump>`
-file, so this is a way to examine, debug, or visualize the
-per-particle weights computed during the load-balancing operation.
+stores the current accumulated weights in a custom per-atom vector
+specified by *name*\ .  This must be a vector defined as *d_name* via
+the :doc:`fix property/atom <fix_property_atom>` command.  This means
+the values in the vector can be read as part of a data file with the
+:doc:`read_data <read_data>` command or specified with the :doc:`set
+<set>` command.  These weights can also be output in a :doc:`dump
+<dump>` file, so this is a way to examine, debug, or visualize the
+per-particle weights used during the load-balancing operation.
+
+Note that the name of the custom per-atom vector is specified just
+as *name*, not as *d_name* as it is for other commands that use
+different kinds of custom atom vectors or arrays as arguments.
 
 ----------
 

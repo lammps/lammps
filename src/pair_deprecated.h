@@ -28,18 +28,13 @@ namespace LAMMPS_NS {
 class PairDeprecated : public Pair {
  public:
   PairDeprecated(class LAMMPS *lmp) : Pair(lmp) {}
-  virtual ~PairDeprecated() {}
 
-  virtual void compute(int, int) {}
-  virtual void settings(int, char **);
-  virtual void coeff(int, char **) {}
+  void compute(int, int) override {}
+  void settings(int, char **) override;
+  void coeff(int, char **) override {}
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

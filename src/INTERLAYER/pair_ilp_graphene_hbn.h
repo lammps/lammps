@@ -27,21 +27,23 @@ namespace LAMMPS_NS {
 class PairILPGrapheneHBN : public Pair {
  public:
   PairILPGrapheneHBN(class LAMMPS *);
-  virtual ~PairILPGrapheneHBN();
+  ~PairILPGrapheneHBN() override;
 
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void init_style();
-  void ILP_neigh();
-  void calc_normal();
-  void calc_FRep(int, int);
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void init_style() override;
   void calc_FvdW(int, int);
-  double single(int, int, int, int, double, double, double, double &);
+  double single(int, int, int, int, double, double, double, double &) override;
+
+  static constexpr int NPARAMS_PER_LINE = 13;
+
+  enum { ILP_GrhBN, ILP_TMD, SAIP_METAL };    // for telling class variants apart in shared code
 
  protected:
   int me;
+  int variant;
   int maxlocal;            // size of numneigh, firstneigh arrays
   int pgsize;              // size of neighbor page
   int oneatom;             // max # of neighbors for one atom
@@ -60,79 +62,29 @@ class PairILPGrapheneHBN : public Pair {
 
   double cut_global;
   double cut_normal;
-  double **cut;
   double **cutILPsq;    // mapping the cutoff from element pairs to parameters
   double **offset;
   double **normal;
   double ***dnormdri;
   double ****dnormal;
 
+  // adds for ilp/tmd
+  int Nnei;    // max # of nearest neighbors for one atom
+  double **dnn;
+  double **vect;
+  double **pvet;
+  double ***dpvet1;
+  double ***dpvet2;
+  double ***dNave;
+
+  virtual void ILP_neigh();
+  virtual void calc_normal();
+  virtual void calc_FRep(int, int);
   void read_file(char *);
   void allocate();
-
-  /* ----Calculate the long-range cutoff term */
-  inline double calc_Tap(double r_ij, double Rcut)
-  {
-    double Tap, r;
-    double Tap_coeff[8] = {1.0, 0.0, 0.0, 0.0, -35.0, 84.0, -70.0, 20.0};
-
-    r = r_ij / Rcut;
-    if (r >= 1.0) {
-      Tap = 0.0;
-    } else {
-      Tap = Tap_coeff[7] * r + Tap_coeff[6];
-      Tap = Tap * r + Tap_coeff[5];
-      Tap = Tap * r + Tap_coeff[4];
-      Tap = Tap * r + Tap_coeff[3];
-      Tap = Tap * r + Tap_coeff[2];
-      Tap = Tap * r + Tap_coeff[1];
-      Tap = Tap * r + Tap_coeff[0];
-    }
-    return (Tap);
-  }
-
-  /* ----Calculate the derivatives of long-range cutoff term */
-  inline double calc_dTap(double r_ij, double Rcut)
-  {
-    double dTap, r;
-    double Tap_coeff[8] = {1.0, 0.0, 0.0, 0.0, -35.0, 84.0, -70.0, 20.0};
-
-    r = r_ij / Rcut;
-    if (r >= 1.0) {
-      dTap = 0.0;
-    } else {
-      dTap = 7.0 * Tap_coeff[7] * r + 6.0 * Tap_coeff[6];
-      dTap = dTap * r + 5.0 * Tap_coeff[5];
-      dTap = dTap * r + 4.0 * Tap_coeff[4];
-      dTap = dTap * r + 3.0 * Tap_coeff[3];
-      dTap = dTap * r + 2.0 * Tap_coeff[2];
-      dTap = dTap * r + Tap_coeff[1];
-      dTap = dTap / Rcut;
-    }
-    return (dTap);
-  }
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-*/

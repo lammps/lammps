@@ -4,11 +4,6 @@
 # availability of the PYTHON package is tested for inside the tester.
 
 set(TEST_INPUT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR})
-add_executable(test_python_package test_python_package.cpp)
-target_link_libraries(test_python_package PRIVATE lammps GTest::GMock GTest::GTest)
-target_compile_definitions(test_python_package PRIVATE -DTEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
-add_test(NAME PythonPackage COMMAND test_python_package WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-set_tests_properties(PythonPackage PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${LAMMPS_PYTHON_DIR}:$ENV{PYTHONPATH};PYTHONUNBUFFERED=1")
 
 # we must have shared libraries enabled for testing the python module
 if(NOT BUILD_SHARED_LIBS)
@@ -17,24 +12,50 @@ if(NOT BUILD_SHARED_LIBS)
 endif()
 
 if(CMAKE_VERSION VERSION_LESS 3.12)
-  find_package(PythonInterp 3.5) # Deprecated since version 3.12
+  find_package(PythonInterp 3.6) # Deprecated since version 3.12
   if(PYTHONINTERP_FOUND)
     set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
   endif()
 else()
-  find_package(Python3 COMPONENTS Interpreter)
+  find_package(Python COMPONENTS Interpreter Development)
 endif()
 
-if(Python_EXECUTABLE)
-  # prepare to augment the environment so that the LAMMPS python module and the shared library is found.
+add_executable(test_python_package test_python_package.cpp)
+target_link_libraries(test_python_package PRIVATE lammps GTest::GMock)
+target_compile_definitions(test_python_package PRIVATE -DTEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
+# this requires CMake 3.12. don't care to add backward compatibility for this.
+if(Python_Development_FOUND)
+  target_compile_definitions(test_python_package PRIVATE -DTEST_HAVE_PYTHON_DEVELOPMENT=1)
+  target_link_libraries(test_python_package PRIVATE Python::Python)
+endif()
+add_test(NAME PythonPackage COMMAND test_python_package)
+
+# build list of environment variables for testing python functionality
+if(WIN32)
+  set(PYTHON_TEST_ENVIRONMENT PYTHONPATH=${LAMMPS_PYTHON_DIR})
+else()
   set(PYTHON_TEST_ENVIRONMENT PYTHONPATH=${LAMMPS_PYTHON_DIR}:$ENV{PYTHONPATH})
-  list(APPEND PYTHON_TEST_ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+endif()
+get_property(BUILD_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(BUILD_IS_MULTI_CONFIG)
+  set(LAMMPS_LIB_PATH ${CMAKE_BINARY_DIR}/$<CONFIG>)
+else()
+  set(LAMMPS_LIB_PATH ${CMAKE_BINARY_DIR})
+endif()
+list(APPEND PYTHON_TEST_ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+list(APPEND PYTHON_TEST_ENVIRONMENT "PYTHONUNBUFFERED=1")
+if(APPLE)
+  list(APPEND PYTHON_TEST_ENVIRONMENT "DYLD_LIBRARY_PATH=${LAMMPS_LIB_PATH}:$ENV{DYLD_LIBRARY_PATH}")
+elseif(WIN32)
+  list(APPEND PYTHON_TEST_ENVIRONMENT "LAMMPSDLLPATH=${LAMMPS_LIB_PATH}")
+else()
+  list(APPEND PYTHON_TEST_ENVIRONMENT "LD_LIBRARY_PATH=${LAMMPS_LIB_PATH}:$ENV{LD_LIBRARY_PATH}")
+endif()
+set_tests_properties(PythonPackage PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
+
+if(Python_EXECUTABLE)
   list(APPEND PYTHON_TEST_ENVIRONMENT "TEST_INPUT_DIR=${CMAKE_CURRENT_SOURCE_DIR}")
-  if(APPLE)
-    list(APPEND PYTHON_TEST_ENVIRONMENT "DYLD_LIBRARY_PATH=${CMAKE_BINARY_DIR}:$ENV{DYLD_LIBRARY_PATH};LAMMPS_CMAKE_CACHE=${CMAKE_BINARY_DIR}/CMakeCache.txt")
-  else()
-    list(APPEND PYTHON_TEST_ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}:$ENV{LD_LIBRARY_PATH};LAMMPS_CMAKE_CACHE=${CMAKE_BINARY_DIR}/CMakeCache.txt")
-  endif()
+  list(APPEND PYTHON_TEST_ENVIRONMENT "LAMMPS_CMAKE_CACHE=${CMAKE_BINARY_DIR}/CMakeCache.txt")
   if(LAMMPS_MACHINE)
     # convert from '_machine' to 'machine'
     string(SUBSTRING ${LAMMPS_MACHINE} 1 -1 LAMMPS_MACHINE_NAME)
@@ -46,7 +67,7 @@ if(Python_EXECUTABLE)
     find_package_handle_standard_args(COVERAGE DEFAULT_MSG COVERAGE_BINARY)
 
     if(COVERAGE_FOUND)
-        set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE} -u ${COVERAGE_BINARY} run --parallel-mode --include=${LAMMPS_PYTHON_DIR}/lammps/*.py --omit=${LAMMPS_PYTHON_DIR}/install.py)
+        set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE} -u ${COVERAGE_BINARY} run --rcfile=${CMAKE_BINARY_DIR}/.coveragerc)
     else()
         set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE} -u)
     endif()

@@ -18,13 +18,11 @@
 
 #include "fix_python_move.h"
 
-#include "comm.h"
 #include "error.h"
 #include "lmppython.h"
 #include "python_compat.h"
 #include "python_utils.h"
 
-#include <string>
 #include <Python.h>   // IWYU pragma: export
 
 using namespace LAMMPS_NS;

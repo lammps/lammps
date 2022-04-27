@@ -64,7 +64,7 @@ vstore(nullptr), astore(nullptr), rbuf(nullptr)
   if (flavor == PERATOM) {
     restart_peratom = utils::inumeric(FLERR,arg[4],false,lmp);
     nvalues = utils::inumeric(FLERR,arg[5],false,lmp);
-    if (restart_peratom < 0 or restart_peratom > 1 || nvalues <= 0)
+    if ((restart_peratom < 0) || (restart_peratom > 1) || (nvalues <= 0))
       error->all(FLERR,"Illegal fix store command");
     vecflag = 0;
     if (nvalues == 1) vecflag = 1;
@@ -82,7 +82,7 @@ vstore(nullptr), astore(nullptr), rbuf(nullptr)
     memory->create(rbuf,nrow*ncol+2,"fix/store:rbuf");
   }
   if (flavor == PERATOM) {
-    grow_arrays(atom->nmax);
+    FixStore::grow_arrays(atom->nmax);
     atom->add_callback(Atom::GROW);
     if (restart_peratom) atom->add_callback(Atom::RESTART);
     rbuf = nullptr;
@@ -187,7 +187,7 @@ void FixStore::restart(char *buf)
 {
   // first 2 values in buf are vec/array sizes
 
-  double *dbuf = (double *) buf;
+  auto dbuf = (double *) buf;
   int nrow_restart = dbuf[0];
   int ncol_restart = dbuf[1];
 

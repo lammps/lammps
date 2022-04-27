@@ -10,13 +10,13 @@
 namespace ATC_matrix {
 
   /**
-   *  @class  ParSparseMatrix 
+   *  @class  ParSparseMatrix
    *  @brief  Parallelized version of SparseMatrix class.
-   *  
+   *
    *  ParSparseMatrix<double>::MultMv is used in LinearSolver, which is then
    *  used in NonLinearSolver, PoissonSolver, and SchrodingerSolver. These
    *  parallelized solvers are used in the following locations:
-   *  
+   *
    *  - LinearSolver
    *    - ExtrinsicModelDriftDiffusion.cpp (lines 511 and 522)
    *    - AtomicRegulator.cpp (line 926)
@@ -55,7 +55,7 @@ namespace ATC_matrix {
     template<typename U>
     friend void ParMultAB(MPI_Comm comm, const SparseMatrix<U>& A,
                           const Matrix<U>& B, DenseMatrix<U>& C);
-    
+
     private:
         MPI_Comm _comm;
   };
@@ -99,7 +99,7 @@ namespace ATC_matrix {
   void ParMultAB(MPI_Comm comm, const SparseMatrix<T>& A, const Matrix<T>& B, DenseMatrix<T>& C)
   {
     SparseMatrix<T>::compress(A);
-    
+
     INDEX M = A.nRows(), N = B.nCols();
     if (!C.is_size(M, N))
     {

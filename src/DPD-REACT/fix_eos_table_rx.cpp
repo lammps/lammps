@@ -203,7 +203,7 @@ void FixEOStableRX::setup(int /*vflag*/)
   }
 
   // Communicate the updated momenta and velocities to all nodes
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
@@ -274,7 +274,7 @@ void FixEOStableRX::end_of_step()
   double *uCGnew = atom->uCGnew;
 
   // Communicate the ghost uCGnew
-  comm->reverse_comm_fix(this);
+  comm->reverse_comm(this);
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -285,7 +285,7 @@ void FixEOStableRX::end_of_step()
     }
 
   // Communicate the updated momenta and velocities to all nodes
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -301,7 +301,7 @@ void FixEOStableRX::read_file(char *file)
 {
   int min_params_per_line = 2;
   int max_params_per_line = 5;
-  char **words = new char*[max_params_per_line+1];
+  auto words = new char*[max_params_per_line+1];
 
   // open file on proc 0
 
@@ -321,7 +321,7 @@ void FixEOStableRX::read_file(char *file)
   char line[MAXLINE],*ptr;
   int eof = 0;
 
-  while (1) {
+  while (true) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == nullptr) {
@@ -369,7 +369,7 @@ void FixEOStableRX::read_file(char *file)
     while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
 
     for (ispecies = 0; ispecies < nspecies; ispecies++)
-      if (strcmp(words[0],&atom->dname[ispecies][0]) == 0) break;
+      if (strcmp(words[0],&atom->dvname[ispecies][0]) == 0) break;
 
     if (ispecies < nspecies) {
       dHf[ispecies] = atof(words[1]);
@@ -427,7 +427,7 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
 
   // loop until section found with matching keyword
 
-  while (1) {
+  while (true) {
     if (fgets(line,MAXLINE,fp) == nullptr)
       error->one(FLERR,"Did not find keyword in table file");
     if (strspn(line," \t\n\r") == strlen(line)) continue;    // blank line
@@ -583,7 +583,7 @@ void FixEOStableRX::param_extract(Table *tb, char *line)
   if (rx_flag) {
     while (word) {
       for (ispecies = 0; ispecies < nspecies; ispecies++)
-        if (strcmp(word,&atom->dname[ispecies][0]) == 0) {
+        if (strcmp(word,&atom->dvname[ispecies][0]) == 0) {
           eosSpecies[ncolumn] =  ispecies;
           ncolumn++;
           break;
@@ -641,7 +641,7 @@ void FixEOStableRX::spline(double *x, double *y, int n,
 {
   int i,k;
   double p,qn,sig,un;
-  double *u = new double[n];
+  auto u = new double[n];
 
   if (yp1 > 0.99e30) y2[0] = u[0] = 0.0;
   else {

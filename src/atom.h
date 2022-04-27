@@ -79,6 +79,7 @@ class Atom : protected Pointers {
   double *radius;
   double **omega, **angmom, **torque;
   int *ellipsoid, *line, *tri, *body;
+  double **quat;
 
   // molecular systems
 
@@ -163,7 +164,7 @@ class Atom : protected Pointers {
 
   // DIELECTRIC package
 
-  double *area,*ed,*em,*epsilon,*curvature,*q_unscaled;
+  double *area, *ed, *em, *epsilon, *curvature, *q_unscaled;
 
   // end of customization section
   // --------------------------------------------------------------------
@@ -180,7 +181,7 @@ class Atom : protected Pointers {
 
   int molecule_flag, molindex_flag, molatom_flag;
   int q_flag, mu_flag;
-  int rmass_flag, radius_flag, omega_flag, torque_flag, angmom_flag;
+  int rmass_flag, radius_flag, omega_flag, torque_flag, angmom_flag, quat_flag;
   int vfrac_flag, spin_flag, eradius_flag, ervel_flag, erforce_flag;
   int cs_flag, csforce_flag, vforce_flag, ervelforce_flag, etag_flag;
   int rho_flag, esph_flag, cv_flag, vest_flag;
@@ -202,13 +203,17 @@ class Atom : protected Pointers {
 
   double pdscale;
 
+  // DIELECTRIC package
+
+  int dielectric_flag;
+
   // end of customization section
   // --------------------------------------------------------------------
 
   // per-atom data struct describing all per-atom vectors/arrays
 
   struct PerAtom {
-    char *name;
+    std::string name;
     void *address;
     void *address_length;
     int *address_maxcols;
@@ -218,15 +223,15 @@ class Atom : protected Pointers {
     int threadflag;
   };
 
-  PerAtom *peratom;
-  int nperatom, maxperatom;
+  std::vector<PerAtom> peratom;
 
-  // custom arrays used by fix property/atom
+  // custom vectors and arrays used by fix property/atom
 
-  int **ivector;
-  double **dvector;
-  char **iname, **dname;
-  int nivector, ndvector;
+  int **ivector, ***iarray;
+  double **dvector, ***darray;
+  int *icols, *dcols;
+  char **ivname, **dvname, **ianame, **daname;
+  int nivector, ndvector, niarray, ndarray;
 
   // molecule templates
   // each template can be a set of consecutive molecules
@@ -269,6 +274,10 @@ class Atom : protected Pointers {
 
   int *sametag;    // sametag[I] = next atom with same ID, -1 if no more
 
+  // true if image flags were reset to 0 during data_atoms()
+
+  bool reset_image_flag[3];
+
   // AtomVec factory types and map
 
   typedef AtomVec *(*AtomVecCreator)(LAMMPS *);
@@ -279,13 +288,13 @@ class Atom : protected Pointers {
   // functions
 
   Atom(class LAMMPS *);
-  virtual ~Atom();
+  ~Atom() override;
 
   void settings(class Atom *);
   void peratom_create();
-  void add_peratom(const char *, void *, int, int, int threadflag = 0);
-  void add_peratom_change_columns(const char *, int);
-  void add_peratom_vary(const char *, void *, int, int *, void *, int collength = 0);
+  void add_peratom(const std::string &, void *, int, int, int threadflag = 0);
+  void add_peratom_change_columns(const std::string &, int);
+  void add_peratom_vary(const std::string &, void *, int, int *, void *, int collength = 0);
   void create_avec(const std::string &, int, char **, int);
   virtual AtomVec *new_avec(const std::string &, int, int &);
 
@@ -335,9 +344,9 @@ class Atom : protected Pointers {
   void delete_callback(const char *, int);
   void update_callback(int);
 
-  int find_custom(const char *, int &);
-  virtual int add_custom(const char *, int);
-  virtual void remove_custom(int, int);
+  int find_custom(const char *, int &, int &);
+  virtual int add_custom(const char *, int, int);
+  virtual void remove_custom(int, int, int);
 
   virtual void sync_modify(ExecutionSpace, unsigned int, unsigned int) {}
 
@@ -411,195 +420,8 @@ class Atom : protected Pointers {
   void set_atomflag_defaults();
   void setup_sort_bins();
   int next_prime(int);
-
- private:
-  template <typename T> static AtomVec *avec_creator(LAMMPS *);
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Atom IDs must be used for molecular systems
-
-Atom IDs are used to identify and find partner atoms in bonds.
-
-E: Unrecognized atom style
-
-The choice of atom style is unknown.
-
-E: Could not find atom_modify first group ID
-
-Self-explanatory.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Atom_modify id command after simulation box is defined
-
-The atom_modify id command cannot be used after a read_data,
-read_restart, or create_box command.
-
-E: Atom_modify map command after simulation box is defined
-
-The atom_modify map command cannot be used after a read_data,
-read_restart, or create_box command.
-
-E: Atom_modify sort and first options cannot be used together
-
-Self-explanatory.
-
-E: One or more Atom IDs is negative
-
-Atom IDs must be positive integers.
-
-E: One or more atom IDs is too big
-
-The limit on atom IDs is set by the SMALLBIG, BIGBIG, SMALLSMALL
-setting in your Makefile.  See Section_start 2.2 of the manual for
-more details.
-
-E: One or more atom IDs is zero
-
-Either all atoms IDs must be zero or none of them.
-
-E: Non-zero atom IDs with atom_modify id = no
-
-Self-explanatory.
-
-E: All atom IDs = 0 but atom_modify id = yes
-
-Self-explanatory.
-
-E: Duplicate atom IDs exist
-
-Self-explanatory.
-
-E: New atom IDs exceed maximum allowed ID
-
-See the setting for tagint in the src/lmptype.h file.
-
-E: Incorrect atom format in data file
-
-Number of values per atom line in the data file is not consistent with
-the atom style.
-
-E: Incorrect format of ... section in data file
-
-Number or type of values per line in the given section of the data file
-is not consistent with the requirements for this section.
-
-E: Invalid atom type in Atoms section of data file
-
-Atom types must range from 1 to specified # of types.
-
-E: Incorrect velocity format in data file
-
-Each atom style defines a format for the Velocity section
-of the data file.  The read-in lines do not match.
-
-E: Invalid atom ID in Velocities section of data file
-
-Atom IDs must be positive integers and within range of defined
-atoms.
-
-E: Invalid atom ID in Bonds section of data file
-
-Atom IDs must be positive integers and within range of defined
-atoms.
-
-E: Invalid bond type in Bonds section of data file
-
-Bond type must be positive integer and within range of specified bond
-types.
-
-E: Invalid atom ID in Angles section of data file
-
-Atom IDs must be positive integers and within range of defined
-atoms.
-
-E: Invalid angle type in Angles section of data file
-
-Angle type must be positive integer and within range of specified angle
-types.
-
-E: Invalid atom ID in Dihedrals section of data file
-
-Atom IDs must be positive integers and within range of defined
-atoms.
-
-E: Invalid dihedral type in Dihedrals section of data file
-
-Dihedral type must be positive integer and within range of specified
-dihedral types.
-
-E: Invalid atom ID in Impropers section of data file
-
-Atom IDs must be positive integers and within range of defined
-atoms.
-
-E: Invalid improper type in Impropers section of data file
-
-Improper type must be positive integer and within range of specified
-improper types.
-
-E: Incorrect bonus data format in data file
-
-See the read_data doc page for a description of how various kinds of
-bonus data must be formatted for certain atom styles.
-
-E: Invalid atom ID in Bonus section of data file
-
-Atom IDs must be positive integers and within range of defined
-atoms.
-
-E: Invalid atom ID in Bodies section of data file
-
-Atom IDs must be positive integers and within range of defined
-atoms.
-
-E: Reuse of molecule template ID
-
-The template IDs must be unique.
-
-E: Atom sort did not operate correctly
-
-This is an internal LAMMPS error.  Please report it to the
-developers.
-
-E: Too many atom sorting bins
-
-This is likely due to an immense simulation box that has blown up
-to a large size.
-
-U: Cannot set mass for this atom style
-
-This atom style does not support mass settings for each atom type.
-Instead they are defined on a per-atom basis in the data file.
-
-U: Invalid mass line in data file
-
-Self-explanatory.
-
-U: Invalid type for mass set
-
-Mass command must set a type from 1-N where N is the number of atom
-types.
-
-U: Invalid mass value
-
-Self-explanatory.
-
-U: All masses are not set
-
-For atom styles that define masses for each atom type, all masses must
-be set in the data file or by the mass command before running a
-simulation.  They must also be set before using the velocity
-command.
-
-*/

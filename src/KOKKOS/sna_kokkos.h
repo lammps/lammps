@@ -45,12 +45,12 @@ struct WignerWrapper {
   { ; }
 
   KOKKOS_INLINE_FUNCTION
-  complex get(const int& ma) {
+  complex get(const int& ma) const {
     return complex(buffer[offset + 2 * vector_length * ma], buffer[offset + vector_length + 2 * vector_length * ma]);
   }
 
   KOKKOS_INLINE_FUNCTION
-  void set(const int& ma, const complex& store) {
+  void set(const int& ma, const complex& store) const {
     buffer[offset + 2 * vector_length * ma] = store.re;
     buffer[offset + vector_length + 2 * vector_length * ma] = store.im;
   }
@@ -69,9 +69,11 @@ public:
   using complex = SNAComplex<real_type>;
   static constexpr int vector_length = vector_length_;
 
+  using KKDeviceType = typename KKDevice<DeviceType>::value;
+
   typedef Kokkos::View<int*, DeviceType> t_sna_1i;
   typedef Kokkos::View<real_type*, DeviceType> t_sna_1d;
-  typedef Kokkos::View<real_type*, typename KKDevice<DeviceType>::value, Kokkos::MemoryTraits<Kokkos::Atomic> > t_sna_1d_atomic;
+  typedef Kokkos::View<real_type*, KKDeviceType, Kokkos::MemoryTraits<Kokkos::Atomic>> t_sna_1d_atomic;
   typedef Kokkos::View<int**, DeviceType> t_sna_2i;
   typedef Kokkos::View<real_type**, DeviceType> t_sna_2d;
   typedef Kokkos::View<real_type**, Kokkos::LayoutLeft, DeviceType> t_sna_2d_ll;
@@ -83,7 +85,7 @@ public:
   typedef Kokkos::View<real_type*****, DeviceType> t_sna_5d;
 
   typedef Kokkos::View<complex*, DeviceType> t_sna_1c;
-  typedef Kokkos::View<complex*, typename KKDevice<DeviceType>::value, Kokkos::MemoryTraits<Kokkos::Atomic> > t_sna_1c_atomic;
+  typedef Kokkos::View<complex*, KKDeviceType, Kokkos::MemoryTraits<Kokkos::Atomic>> t_sna_1c_atomic;
   typedef Kokkos::View<complex**, DeviceType> t_sna_2c;
   typedef Kokkos::View<complex**, Kokkos::LayoutLeft, DeviceType> t_sna_2c_ll;
   typedef Kokkos::View<complex**, Kokkos::LayoutRight, DeviceType> t_sna_2c_lr;
@@ -122,8 +124,14 @@ inline
   void compute_cayley_klein(const int&, const int&, const int&);
   KOKKOS_INLINE_FUNCTION
   void pre_ui(const int&, const int&, const int&, const int&); // ForceSNAP
+
+  // version of the code with parallelism over j_bend
   KOKKOS_INLINE_FUNCTION
-  void compute_ui(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int, const int, const int, const int); // ForceSNAP
+  void compute_ui_small(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int, const int, const int, const int); // ForceSNAP
+  // version of the code without parallelism over j_bend
+  KOKKOS_INLINE_FUNCTION
+  void compute_ui_large(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int, const int, const int); // ForceSNAP
+
   KOKKOS_INLINE_FUNCTION
   void compute_zi(const int&, const int&, const int&);    // ForceSNAP
   KOKKOS_INLINE_FUNCTION
@@ -134,6 +142,35 @@ inline
    const Kokkos::View<real_type***, Kokkos::LayoutLeft, DeviceType> &beta_pack); // ForceSNAP
   KOKKOS_INLINE_FUNCTION
   void compute_bi(const int&, const int&, const int&);    // ForceSNAP
+
+  // functions for derivatives, GPU only
+  // version of the code with parallelism over j_bend
+  template<int dir>
+  KOKKOS_INLINE_FUNCTION
+  void compute_fused_deidrj_small(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int, const int, const int, const int); //ForceSNAP
+  // version of the code without parallelism over j_bend
+  template<int dir>
+  KOKKOS_INLINE_FUNCTION
+  void compute_fused_deidrj_large(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int, const int, const int); //ForceSNAP
+
+  // core "evaluation" functions that get plugged into "compute" functions
+  // plugged into compute_ui_small, compute_ui_large
+  KOKKOS_FORCEINLINE_FUNCTION
+  void evaluate_ui_jbend(const WignerWrapper<real_type, vector_length>&, const complex&, const complex&, const real_type&, const int&,
+                        const int&, const int&, const int&);
+  // plugged into compute_zi, compute_yi
+  KOKKOS_FORCEINLINE_FUNCTION
+  complex evaluate_zi(const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&,
+                        const int&, const int&, const int&, const int&, const real_type*);
+  // plugged into compute_yi, compute_yi_with_zlist
+  KOKKOS_FORCEINLINE_FUNCTION
+  real_type evaluate_beta_scaled(const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&,
+                        const Kokkos::View<real_type***, Kokkos::LayoutLeft, DeviceType> &);
+  // plugged into compute_fused_deidrj_small, compute_fused_deidrj_large
+  KOKKOS_FORCEINLINE_FUNCTION
+  real_type evaluate_duidrj_jbend(const WignerWrapper<real_type, vector_length>&, const complex&, const complex&, const real_type&,
+                        const WignerWrapper<real_type, vector_length>&, const complex&, const complex&, const real_type&,
+                        const int&, const int&, const int&, const int&);
 
   // functions for bispectrum coefficients, CPU only
   KOKKOS_INLINE_FUNCTION
@@ -147,11 +184,6 @@ inline
    const Kokkos::View<real_type**, DeviceType> &beta); // ForceSNAP
     KOKKOS_INLINE_FUNCTION
   void compute_bi_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int);    // ForceSNAP
-
-  // functions for derivatives, GPU only
-  template<int dir>
-  KOKKOS_INLINE_FUNCTION
-  void compute_fused_deidrj(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int, const int, const int, const int); //ForceSNAP
 
   // functions for derivatives, CPU only
   KOKKOS_INLINE_FUNCTION
@@ -167,23 +199,6 @@ inline
 
   KOKKOS_INLINE_FUNCTION
   void compute_s_dsfac(const real_type, const real_type, real_type&, real_type&); // compute_cayley_klein
-
-  static KOKKOS_FORCEINLINE_FUNCTION
-  void sincos_wrapper(double x, double* sin_, double *cos_) {
-#ifdef __SYCL_DEVICE_ONLY__
-    *sin_ = sycl::sincos(x, cos_);
-#else
-    sincos(x, sin_, cos_);
-#endif
-  }
-  static KOKKOS_FORCEINLINE_FUNCTION
-  void sincos_wrapper(float x, float* sin_, float *cos_) {
-#ifdef __SYCL_DEVICE_ONLY__
-    *sin_ = sycl::sincos(x, cos_);
-#else
-    sincosf(x, sin_, cos_);
-#endif
-  }
 
 #ifdef TIMING_INFO
   double* timers;
@@ -207,7 +222,7 @@ inline
 
   int twojmax, diagonalstyle;
 
-  t_sna_3d_ll blist;
+  t_sna_3d blist;
   t_sna_3c_ll ulisttot;
   t_sna_3c_ll ulisttot_full; // un-folded ulisttot, cpu only
   t_sna_3c_ll zlist;
@@ -322,11 +337,3 @@ inline
 #include "sna_kokkos_impl.h"
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Invalid argument to factorial %d
-
-N must be >= 0 and <= 167, otherwise the factorial result is too
-large.
-
-*/

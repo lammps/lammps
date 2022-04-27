@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class PairBornGPU : public PairBorn {
  public:
   PairBornGPU(LAMMPS *lmp);
-  ~PairBornGPU();
+  ~PairBornGPU() override;
   void cpu_compute(int, int, int, int, int *, int *, int **);
-  void compute(int, int);
-  void init_style();
-  void reinit();
-  double memory_usage();
+  void compute(int, int) override;
+  void init_style() override;
+  void reinit() override;
+  double memory_usage() override;
 
   enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
@@ -44,16 +44,3 @@ class PairBornGPU : public PairBorn {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Cannot use newton pair with born/gpu pair style
-
-Self-explanatory.
-
-*/

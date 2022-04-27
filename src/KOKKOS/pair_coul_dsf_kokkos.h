@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -20,6 +19,7 @@ PairStyle(coul/dsf/kk/host,PairCoulDSFKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_COUL_DSF_KOKKOS_H
 #define LMP_PAIR_COUL_DSF_KOKKOS_H
 
@@ -41,10 +41,10 @@ class PairCoulDSFKokkos : public PairCoulDSF {
   typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT value_type;
   PairCoulDSFKokkos(class LAMMPS *);
-  ~PairCoulDSFKokkos();
+  ~PairCoulDSFKokkos() override;
 
-  void compute(int, int);
-  void init_style();
+  void compute(int, int) override;
+  void init_style() override;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -95,10 +95,3 @@ class PairCoulDSFKokkos : public PairCoulDSF {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Cannot use chosen neighbor list style with coul/dsf/kk
-
-That style is not supported by Kokkos.
-
-*/

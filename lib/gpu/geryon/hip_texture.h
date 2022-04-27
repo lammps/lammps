@@ -17,7 +17,7 @@ namespace ucl_hip {
 
 #ifdef __HIP_PLATFORM_NVCC__
 inline hipError_t hipModuleGetTexRef(CUtexref* texRef, hipModule_t hmod, const char* name){
-  return hipCUResultTohipError(cuModuleGetTexRef(texRef, hmod, name)); 
+  return hipCUResultTohipError(cuModuleGetTexRef(texRef, hmod, name));
 }
 inline hipError_t hipTexRefSetFormat(CUtexref tex, hipArray_Format fmt, int NumPackedComponents) {
     return hipCUResultTohipError(cuTexRefSetFormat(tex, (CUarray_format)fmt, NumPackedComponents ));
@@ -37,9 +37,9 @@ class UCL_Texture {
     { get_texture(prog,texture_name); }
   /// Set the texture reference for this object
   inline void get_texture(UCL_Program &prog, const char *texture_name)
-    { 
+    {
   #ifdef __HIP_PLATFORM_NVCC__
-      CU_SAFE_CALL(hipModuleGetTexRef(&_tex, prog._module, texture_name)); 
+      CU_SAFE_CALL(hipModuleGetTexRef(&_tex, prog._module, texture_name));
   #else
       size_t _global_var_size;
       CU_SAFE_CALL(hipModuleGetGlobal(&_device_ptr_to_global_var, &_global_var_size, prog._module, texture_name));
@@ -70,10 +70,7 @@ class UCL_Texture {
   inline void unbind() { }
 
   /// Make a texture reference available to kernel
-  inline void allow(UCL_Kernel &kernel) {
-    //#if CUDA_VERSION < 4000
-    //CU_SAFE_CALL(cuParamSetTexRef(kernel._kernel, CU_PARAM_TR_DEFAULT, _tex));
-    //#endif
+  inline void allow(UCL_Kernel &) {
   }
 
  private:
@@ -119,13 +116,13 @@ class UCL_Const {
   inline void get_global(UCL_Program &prog, const char *global_name) {
     _cq=prog.cq();
     CU_SAFE_CALL(hipModuleGetGlobal(&_global, &_global_bytes, prog._module,
-				    global_name)); 
+                                    global_name));
   }
   /// Copy from array on host to const memory
   template <class numtyp>
   inline void update_device(UCL_H_Vec<numtyp> &src, const int numel) {
     CU_SAFE_CALL(hipMemcpyHtoDAsync(_global, src.begin(), numel*sizeof(numtyp),
-				    _cq));
+                                    _cq));
   }
   /// Get device ptr associated with object
   inline const hipDeviceptr_t * begin() const { return &_global; }

@@ -7,8 +7,9 @@ endif()
 option(DOWNLOAD_EIGEN3 "Download Eigen3 instead of using an already installed one)" ${DOWNLOAD_EIGEN3_DEFAULT})
 if(DOWNLOAD_EIGEN3)
   message(STATUS "Eigen3 download requested - we will build our own")
-  set(EIGEN3_URL "https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.gz" CACHE STRING "URL for Eigen3 tarball")
-  set(EIGEN3_MD5 "9e30f67e8531477de4117506fe44669b" CACHE STRING "MD5 checksum of Eigen3 tarball")
+
+  set(EIGEN3_URL "${LAMMPS_THIRDPARTY_URL}/eigen-3.4.0.tar.gz" CACHE STRING "URL for Eigen3 tarball")
+  set(EIGEN3_MD5 "4c527a9171d71a72a9d4186e65bea559" CACHE STRING "MD5 checksum of Eigen3 tarball")
   mark_as_advanced(EIGEN3_URL)
   mark_as_advanced(EIGEN3_MD5)
   include(ExternalProject)
@@ -30,3 +31,10 @@ else()
   endif()
   target_link_libraries(lammps PRIVATE Eigen3::Eigen)
 endif()
+
+# PGI/Nvidia compiler internals collide with vector intrinsics support in Eigen3
+if((CMAKE_CXX_COMPILER_ID STREQUAL "PGI") OR (CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC"))
+  target_compile_definitions(lammps PRIVATE -DEIGEN_DONT_VECTORIZE)
+endif()
+
+target_compile_definitions(lammps PRIVATE -DEIGEN_NO_CUDA)

@@ -5,17 +5,17 @@
 
 
 
-// Voigt indexing puts a symmetric 3x3 matrix into a 
+// Voigt indexing puts a symmetric 3x3 matrix into a
 // vector form: [0 1 2 3 4 5]
 //
-// matrix form: [[ 0 5 4 ] 
+// matrix form: [[ 0 5 4 ]
 //               [ 5 1 3 ]
 //               [ 4 3 2 ]]
 //
 // unsymmetric  version
 // vector form: [0 1 2 3 4 5 6 7 8]
 //
-// matrix form: [[ 0 5 4 ] 
+// matrix form: [[ 0 5 4 ]
 //               [ 8 1 3 ]
 //               [ 7 6 2 ]]
 
@@ -34,10 +34,10 @@ namespace voigt3 {
   //* Inputs 6-length vectors A, B
   inline DENS_VEC dsymm(const DENS_VEC &A, const DENS_VEC &B)
   {
-    DENS_VEC C(6,false); 
+    DENS_VEC C(6,false);
     C(0) = A(0)*B(0)+A(5)*B(5)+A(4)*B(4);
     C(1) = A(5)*B(5)+A(1)*B(1)+A(3)*B(3);
-    C(2) = A(4)*B(4)+A(3)*B(3)+A(2)*B(2);  
+    C(2) = A(4)*B(4)+A(3)*B(3)+A(2)*B(2);
     C(3) = A(5)*B(4)+A(1)*B(3)+A(3)*B(2);
     C(4) = A(0)*B(4)+A(5)*B(3)+A(4)*B(2);
     C(5) = A(0)*B(5)+A(5)*B(1)+A(4)*B(3);
@@ -62,21 +62,21 @@ namespace voigt3 {
   inline DENS_MAT derivative_of_square(const DENS_VEC &C)
   {
     DENS_MAT D(6,6);
-    D(0,0)=2.0*C(0);  D(0,1)=0.0;       D(0,2)=0.0; 
-    D(1,0)=0.0;       D(1,1)=2.0*C(1);  D(1,2)=0.0; 
-    D(2,0)=0.0;       D(2,1)=0.0;       D(2,2)=2.0*C(2); 
+    D(0,0)=2.0*C(0);  D(0,1)=0.0;       D(0,2)=0.0;
+    D(1,0)=0.0;       D(1,1)=2.0*C(1);  D(1,2)=0.0;
+    D(2,0)=0.0;       D(2,1)=0.0;       D(2,2)=2.0*C(2);
 
     D(0,3)=0.0;       D(0,4)=2.0*C(4);  D(0,5)=2.0*C(5);
     D(1,3)=2.0*C(3);  D(1,4)=0.0;       D(1,5)=2.0*C(5);
     D(2,3)=2.0*C(3);  D(2,4)=2.0*C(4);  D(2,5)=0.0;
 
-    D(3,0)=0.0;       D(3,1)=C(3);      D(3,2)=C(3); 
-    D(4,0)=C(4);      D(4,1)=0.0;       D(4,2)=C(4); 
-    D(5,0)=C(5);      D(5,1)=C(5);      D(5,2)=0.0; 
-   
+    D(3,0)=0.0;       D(3,1)=C(3);      D(3,2)=C(3);
+    D(4,0)=C(4);      D(4,1)=0.0;       D(4,2)=C(4);
+    D(5,0)=C(5);      D(5,1)=C(5);      D(5,2)=0.0;
+
     D(3,3)=C(1)+C(2); D(3,4)=C(5);      D(3,5)=C(4);
     D(4,3)=C(5);      D(4,4)=C(0)+C(2); D(4,5)=C(3);
-    D(5,3)=C(4);      D(5,4)=C(3);      D(5,5)=C(0)+C(1); 
+    D(5,3)=C(4);      D(5,4)=C(3);      D(5,5)=C(0)+C(1);
     return D;
   }
 
@@ -102,9 +102,9 @@ namespace voigt3 {
     DENS_VEC I(voigt_size,false);
     for (INDEX i=0; i<voigt_size; i++) I(i) = dij[i<N];
     return I;
-  } 
+  }
 
-  
+
   //* Returns the voigt form of a symmetric matrix.
   // consistent with voigt_idx1,2
   inline DENS_VEC to_voigt(const DENS_MAT &C)
@@ -114,11 +114,11 @@ namespace voigt3 {
     B(1)=C(1,1);
     B(2)=C(2,2);
     B(3)=C(1,2); // take upper triangle entries
-    B(4)=C(0,2); 
-    B(5)=C(0,1);  
-    return B; 
+    B(4)=C(0,2);
+    B(5)=C(0,1);
+    return B;
   }
-  
+
   //* Returns a symmetric matrix form a voigt form.
   // consistent with voigt_idx1,2
   inline DENS_MAT from_voigt(const DENS_VEC &B)
@@ -139,14 +139,14 @@ namespace voigt3 {
     B(1)=C(1,1);
     B(2)=C(2,2);
     B(3)=C(1,2); // upper triangle entries
-    B(4)=C(0,2); 
-    B(5)=C(0,1);  
+    B(4)=C(0,2);
+    B(5)=C(0,1);
     B(6)=C(2,1); // lower triangle entries
-    B(7)=C(2,0); 
-    B(8)=C(1,0);  
-    return B; 
+    B(7)=C(2,0);
+    B(8)=C(1,0);
+    return B;
   }
-  
+
   //* Returns a symmetric matrix form a voigt form.
   // consistent with voigt_idx1,2
   inline DENS_MAT from_voigt_unsymmetric(const DENS_VEC &B)
@@ -158,21 +158,21 @@ namespace voigt3 {
     return C;
   }
 
-  //* adds the identity to an unsymmetric matrix form 
+  //* adds the identity to an unsymmetric matrix form
   inline void add_identity_voigt_unsymmetric(DENS_VEC &B)
   {
-    B(0) +=1; 
-    B(1) +=1; 
-    B(2) +=1; 
+    B(0) +=1;
+    B(1) +=1;
+    B(2) +=1;
   }
 
   //* Converts voigt vector form to 3x3 matrix for non-symmetric tensor at specified node.
   inline void vector_to_matrix(const int i, const DENS_MAT & IN, DENS_MAT & OUT)
   {
    OUT.reset(3,3);
-   OUT(0,0)=IN(i,0); OUT(0,1)=IN(i,1); OUT(0,2)=IN(i,2);  
-   OUT(1,0)=IN(i,3); OUT(1,1)=IN(i,4); OUT(1,2)=IN(i,5);  
-   OUT(2,0)=IN(i,6); OUT(2,1)=IN(i,7); OUT(2,2)=IN(i,8);  
+   OUT(0,0)=IN(i,0); OUT(0,1)=IN(i,1); OUT(0,2)=IN(i,2);
+   OUT(1,0)=IN(i,3); OUT(1,1)=IN(i,4); OUT(1,2)=IN(i,5);
+   OUT(2,0)=IN(i,6); OUT(2,1)=IN(i,7); OUT(2,2)=IN(i,8);
    return;
   }
 
@@ -195,7 +195,7 @@ namespace voigt3 {
   inline void vector_to_symm_matrix(const int i, const DENS_MAT & IN, DENS_MAT & OUT)
   {
    OUT.reset(3,3);
-   OUT(0,0)=IN(i,0); OUT(0,1)=IN(i,5); OUT(0,2)=IN(i,4);    
+   OUT(0,0)=IN(i,0); OUT(0,1)=IN(i,5); OUT(0,2)=IN(i,4);
    OUT(1,0)=IN(i,5); OUT(1,1)=IN(i,1); OUT(1,2)=IN(i,3);
    OUT(2,0)=IN(i,4); OUT(2,1)=IN(i,3); OUT(2,2)=IN(i,2);
    return;
@@ -217,7 +217,7 @@ namespace voigt3 {
   inline DENS_VEC global_vector_to_vector(const int i, const DENS_MAT & IN)
   {
    DENS_VEC OUT(9);
-   OUT(0)=IN(i,0); OUT(5)=IN(i,1); OUT(4)=IN(i,2);    
+   OUT(0)=IN(i,0); OUT(5)=IN(i,1); OUT(4)=IN(i,2);
    OUT(8)=IN(i,3); OUT(1)=IN(i,4); OUT(3)=IN(i,5);
    OUT(7)=IN(i,6); OUT(6)=IN(i,7); OUT(2)=IN(i,8);
    return OUT;
@@ -236,7 +236,7 @@ namespace voigt3 {
    return;
   }
 
-  //* Converts vector to DENS_MAT_VEC 
+  //* Converts vector to DENS_MAT_VEC
   inline void vector_to_dens_mat_vec(const DENS_MAT & IN, DENS_MAT_VEC & OUT)
   {
     for (int i=0; i<IN.nRows(); i++) {

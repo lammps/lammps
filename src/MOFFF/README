@@ -20,7 +20,7 @@ charges (dsf and long-range treatment of charges)
 out-of-plane angle
 
 See the file doc/drude_tutorial.html for getting started.
-See the doc pages for "pair_style buck6d/coul/gauss", "anlge_style class2",
+See the doc pages for "pair_style buck6d/coul/gauss", "angle_style class2",
 "angle_style cosine/buck6d", and "improper_style inversion/harmonic"
 commands to get started. Also see the above mentioned website and
 literature for further documentation about the force field.

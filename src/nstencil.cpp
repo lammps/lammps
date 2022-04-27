@@ -21,6 +21,8 @@
 #include "domain.h"
 #include "memory.h"
 
+#include <cmath>
+
 using namespace LAMMPS_NS;
 
 /* ----------------------------------------------------------------------
@@ -335,7 +337,7 @@ void NStencil::create_setup()
       for (i = 0; i < n; ++i) {
         stencil_multi[i] = new int*[n]();
         for (j = 0; j < n; ++j) {
-	      maxstencil_multi[i][j] = 0;
+              maxstencil_multi[i][j] = 0;
           nstencil_multi[i][j] = 0;
           stencil_multi[i][j] = nullptr;
         }
@@ -346,7 +348,7 @@ void NStencil::create_setup()
     // Skip all stencils by default, initialize smax
     for (i = 0; i < n; i++) {
       for (j = 0; j < n; j++) {
-        flag_skip_multi[i][j] = 1;
+        flag_skip_multi[i][j] = true;
       }
     }
 
@@ -390,7 +392,7 @@ void NStencil::create_setup()
           if(stencil_multi[i][j])
             memory->destroy(stencil_multi[i][j]);
           memory->create(stencil_multi[i][j], smax,
-	  	                 "neighstencil::stencil_multi");
+                                 "neighstencil::stencil_multi");
         }
       }
     }

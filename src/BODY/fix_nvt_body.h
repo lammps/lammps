@@ -27,22 +27,9 @@ namespace LAMMPS_NS {
 class FixNVTBody : public FixNHBody {
  public:
   FixNVTBody(class LAMMPS *, int, char **);
-  ~FixNVTBody() {}
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Temperature control must be used with fix nvt/body
-
-Self-explanatory.
-
-E: Pressure control can not be used with fix nvt/body
-
-Self-explanatory.
-
-*/

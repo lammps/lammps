@@ -69,9 +69,6 @@ class UCL_Texture {
 
   /// Make a texture reference available to kernel
   inline void allow(UCL_Kernel &kernel) {
-    #if CUDA_VERSION < 4000
-    CU_SAFE_CALL(cuParamSetTexRef(kernel._kernel, CU_PARAM_TR_DEFAULT, _tex));
-    #endif
   }
 
  private:
@@ -113,13 +110,13 @@ class UCL_Const {
   inline void get_global(UCL_Program &prog, const char *global_name) {
     _cq=prog.cq();
     CU_SAFE_CALL(cuModuleGetGlobal(&_global, &_global_bytes, prog._module,
-				   global_name)); 
+                                   global_name));
   }
   /// Copy from array on host to const memory
   template <class numtyp>
   inline void update_device(UCL_H_Vec<numtyp> &src, const int numel) {
     CU_SAFE_CALL(cuMemcpyHtoDAsync(_global, src.begin(), numel*sizeof(numtyp),
-				   _cq));
+                                   _cq));
   }
   /// Get device ptr associated with object
   inline const CUdeviceptr * begin() const { return &_global; }

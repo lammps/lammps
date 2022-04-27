@@ -32,7 +32,7 @@ enum vbLEVELS{
   vblMESS3  = 0x20, ///< report messages of level 3 (not important)
   vblMESS4  = 0x40, ///< report messages of level 4 (anything possible)
   vblALLMESS = vblMESS1|vblMESS2|vblMESS3|vblMESS4, ///< report all messages
-  vblPROGR  = 0x80,           ///< report progress 
+  vblPROGR  = 0x80,           ///< report progress
   vblALL    = 0xffff
 };
 
@@ -43,7 +43,7 @@ enum vbLEVELS{
 template<class exc_t>
 struct log_exception_traits{
   /// exception level according to the vbLEVELS
-  static int level(const exc_t & /* signal */){ return vblFATAL; } 
+  static int level(const exc_t & /* signal */){ return vblFATAL; }
   /// the string name of exception category
   static string name(const exc_t & /* signal */){ return typeid(exc_t).name();}
   /// adds some more explanations to the description
@@ -60,9 +60,9 @@ struct log_exception_traits{
 template<>
 struct log_exception_traits<int>{
   /// exception level according to the vbLEVELS
-  static int level(const int &signal){ return signal; } 
+  static int level(const int &signal){ return signal; }
   /// the string name of exception category
-  static string name(const int &signal){ 
+  static string name(const int &signal){
     if(signal&vblFATAL)
       return "fatal error";
     else if(signal&vblOERR)
@@ -88,8 +88,8 @@ struct log_exception_traits<int>{
 /// vbLEVELS exceptions act as integers
 template<>
 struct log_exception_traits<enum vbLEVELS>{
-  static int level(const enum vbLEVELS &signal){ return log_exception_traits<int>::level(signal); } 
-  static string name(const enum vbLEVELS &signal){ return log_exception_traits<int>::name(signal); } 
+  static int level(const enum vbLEVELS &signal){ return log_exception_traits<int>::level(signal); }
+  static string name(const enum vbLEVELS &signal){ return log_exception_traits<int>::name(signal); }
   static enum vbLEVELS add_words(const enum vbLEVELS &orig, const char * /* words */){
     return orig;
   }
@@ -99,7 +99,7 @@ struct log_exception_traits<enum vbLEVELS>{
 /// message(signal,errcode, text) is used to either throw an exception or return errorcode
 /// At first, the the level of error is determined via log_exception_traits<>::level(signal)
 /// For integer (enum) signals the level is the signal itself.
-/// Then text is printed, if signal level is listed in output levels or (or in extra outlevels, if they are set) 
+/// Then text is printed, if signal level is listed in output levels or (or in extra outlevels, if they are set)
 /// via log_text() function.
 /// If level has vblERR bit, the behaviour is controlled by the flag specified in set_throw(flag):
 /// flag=0:   nothing done;
@@ -121,13 +121,13 @@ protected:
   int throw_ex;
   int outlevel, eoutlevel;
   int stoplevel, estoplevel;
-  
+
   static message_logger *glogp;
   /// used to restore the previous global logger
   message_logger *prev, *next;
 public:
-  
-  message_logger(const string &descriptor_="", int out_level=vblALLBAD|vblMESS1, 
+
+  message_logger(const string &descriptor_="", int out_level=vblALLBAD|vblMESS1,
                  int stop_level=vblFATAL, int throw_exceptions=0, int use_globally=0)
     :descriptor(descriptor_),prev(nullptr),next(nullptr){
     set_throw(throw_exceptions);
@@ -137,11 +137,11 @@ public:
       set_global(true);
     }
   }
-  
+
   /// returns a reference to global logger
   /// if not set, links with default message_logger
   static message_logger &global();
-  
+
   /// sets/unsets this logger as the global logger
   int set_global(bool set){
     if(set){
@@ -154,7 +154,7 @@ public:
     }
     else{
       if(glogp!=this) // was not set as the global
-        return -1; 
+        return -1;
       glogp=prev;
       if(glogp)
         glogp->next=nullptr;
@@ -162,7 +162,7 @@ public:
     }
     return 1;
   }
-  
+
   virtual void set_throw(int throw_exceptions){
     throw_ex=throw_exceptions;
   }
@@ -177,7 +177,7 @@ public:
     eoutlevel=out_level;
     estoplevel=stop_level;
   }
-  
+
   template<class exc_t>
   int message(const exc_t &signal, int errcode, const char *what, ...){
     int level=log_exception_traits<exc_t>::level(signal);
@@ -189,15 +189,15 @@ public:
       log_text(level,log_exception_traits<exc_t>::name(signal).c_str(),buff);
     }
     if(level&vblERR){
-      if(throw_ex==1) // throws exc_t exception 
+      if(throw_ex==1) // throws exc_t exception
         throw log_exception_traits<exc_t>::add_words(signal,buff);
-      else if(throw_ex==2) // throws pair<>(int,const char*) exception 
+      else if(throw_ex==2) // throws pair<>(int,const char*) exception
         throw make_pair(errcode,what);
-      else if(throw_ex==3) // throws int exception 
+      else if(throw_ex==3) // throws int exception
         throw errcode;
-    } 
+    }
     if(level&(estoplevel ? estoplevel: stoplevel) ){ // needs to stop
-      exit(errcode); 
+      exit(errcode);
     }
     return errcode;
   }
@@ -210,7 +210,7 @@ public:
     printf("%s\n",messtext);
   }
 
-  /// checks that the deleted one is not in global logger chain 
+  /// checks that the deleted one is not in global logger chain
   ~message_logger(){
     if(prev){
       prev->next=next;
@@ -231,7 +231,7 @@ int message(const exc_t &signal, int errcode, const char *what, ...){
     vsnprintf(buff,1024,what,args);
     return message_logger::glogp->message(signal,errcode,buff);
   }
-  else 
+  else
     return -1;
 }
 
@@ -240,8 +240,8 @@ class stdfile_logger: public message_logger {
 protected:
   FILE *fout, *ferr;
 public:
-  stdfile_logger(const string &descriptor_="", int throw_exceptions=0, 
-                  FILE *out=stdout, FILE *err=stderr, 
+  stdfile_logger(const string &descriptor_="", int throw_exceptions=0,
+                  FILE *out=stdout, FILE *err=stderr,
                   int out_level=vblALLBAD|vblMESS1,int stop_level=vblFATAL,
                   int use_globally=0)
                   : message_logger(descriptor_,out_level,stop_level,throw_exceptions,use_globally),fout(nullptr), ferr(nullptr){
@@ -253,7 +253,7 @@ public:
       fclose(fout);
     fout=out;
   }
-  
+
   virtual void set_err(FILE *err, int close_prev=0){
     if(close_prev && ferr && ferr!=stderr && ferr !=stdout)
       fclose(ferr);
@@ -272,7 +272,7 @@ public:
   }
 };
 
-/// format a string 
+/// format a string
 const char *logfmt(const char *format,...);
 
 /// macros with common usage
@@ -295,7 +295,7 @@ const char *logfmt(const char *format,...);
 /// where level and name are defined whithin a class
 struct log_exception {
    /// exception level according to the vbLEVELS
-  static int level(const log_exception &signal){ return vblFATAL; } 
+  static int level(const log_exception &signal){ return vblFATAL; }
   /// the string name of exception category
   static string name(const log_exception &signal){ return "undefined exception";}
 };
@@ -303,8 +303,8 @@ struct log_exception {
 /// log_exceptions act as themselves
 template<>
 struct log_exception_traits<log_exception>{
-  static int level(const log_exception &signal){ return log_exception::level(signal); } 
-  static string name(const log_exception &signal){ return log_exception::name(signal); } 
+  static int level(const log_exception &signal){ return log_exception::level(signal); }
+  static string name(const log_exception &signal){ return log_exception::name(signal); }
 };
 
 # endif

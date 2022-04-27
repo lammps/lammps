@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -20,6 +19,7 @@ PairStyle(lj/class2/kk/host,PairLJClass2Kokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_LJ_CLASS2_KOKKOS_H
 #define LMP_PAIR_LJ_CLASS2_KOKKOS_H
 
@@ -37,13 +37,13 @@ class PairLJClass2Kokkos : public PairLJClass2 {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairLJClass2Kokkos(class LAMMPS *);
-  ~PairLJClass2Kokkos();
+  ~PairLJClass2Kokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   struct params_lj{
     KOKKOS_INLINE_FUNCTION
@@ -96,7 +96,7 @@ class PairLJClass2Kokkos : public PairLJClass2 {
   int neighflag;
   int nlocal,nall,eflag,vflag;
 
-  void allocate();
+  void allocate() override;
   friend struct PairComputeFunctor<PairLJClass2Kokkos,FULL,true>;
   friend struct PairComputeFunctor<PairLJClass2Kokkos,HALF,true>;
   friend struct PairComputeFunctor<PairLJClass2Kokkos,HALFTHREAD,true>;
@@ -115,20 +115,3 @@ class PairLJClass2Kokkos : public PairLJClass2 {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot use Kokkos pair style with rRESPA inner/middle
-
-Self-explanatory.
-
-E: Cannot use chosen neighbor list style with lj/class2/kk
-
-Self-explanatory.
-
-*/

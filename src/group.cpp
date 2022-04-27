@@ -37,12 +37,11 @@
 #include <cstring>
 #include <map>
 #include <utility>
-#include <vector>
 
 using namespace LAMMPS_NS;
 
-#define MAX_GROUP 32
-#define EPSILON 1.0e-6
+static constexpr int MAX_GROUP = 32;
+static constexpr double EPSILON = 1.0e-6;
 
 enum{NONE,TYPE,MOLECULE,ID};
 enum{LT,LE,GT,GE,EQ,NEQ,BETWEEN};
@@ -106,8 +105,8 @@ void Group::assign(int narg, char **arg)
     int igroup = find(arg[0]);
     if (igroup == -1) error->all(FLERR,"Could not find group delete group ID");
     if (igroup == 0) error->all(FLERR,"Cannot delete group all");
-    for (i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->igroup == igroup)
+    for (const auto &fix : modify->get_fix_list())
+      if (fix->igroup == igroup)
         error->all(FLERR,"Cannot delete group currently used by a fix");
     for (i = 0; i < modify->ncompute; i++)
       if (modify->compute[i]->igroup == igroup)
@@ -177,13 +176,13 @@ void Group::assign(int narg, char **arg)
 
       if (narg != 3) error->all(FLERR,"Illegal group command");
 
-      int iregion = domain->find_region(arg[2]);
-      if (iregion == -1) error->all(FLERR,"Group region ID does not exist");
-      domain->regions[iregion]->init();
-      domain->regions[iregion]->prematch();
+      auto region = domain->get_region_by_id(arg[2]);
+      if (!region) error->all(FLERR,"Group region {} does not exist", arg[2]);
+      region->init();
+      region->prematch();
 
       for (i = 0; i < nlocal; i++)
-        if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+        if (region->match(x[i][0],x[i][1],x[i][2]))
           mask[i] |= bit;
 
     // create an empty group
@@ -676,8 +675,8 @@ void Group::add_molecules(int /*igroup*/, int bit)
 
 void Group::molring(int n, char *cbuf, void *ptr)
 {
-  Group *gptr = (Group *) ptr;
-  tagint *list = (tagint *) cbuf;
+  auto gptr = (Group *) ptr;
+  auto list = (tagint *) cbuf;
   std::map<tagint,int> *hash = gptr->hash;
   int nlocal = gptr->atom->nlocal;
   tagint *molecule = gptr->atom->molecule;
@@ -795,15 +794,14 @@ bigint Group::count(int igroup)
    count atoms in group and region
 ------------------------------------------------------------------------- */
 
-bigint Group::count(int igroup, int iregion)
+bigint Group::count(int igroup, Region *region)
 {
-  int groupbit = bitmask[igroup];
-  Region *region = domain->regions[iregion];
   region->prematch();
 
+  const int groupbit = bitmask[igroup];
   double **x = atom->x;
   int *mask = atom->mask;
-  int nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
 
   int n = 0;
   for (int i = 0; i < nlocal; i++)
@@ -850,10 +848,9 @@ double Group::mass(int igroup)
    use either per-type mass or per-atom rmass
 ------------------------------------------------------------------------- */
 
-double Group::mass(int igroup, int iregion)
+double Group::mass(int igroup, Region *region)
 {
   int groupbit = bitmask[igroup];
-  Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
@@ -905,10 +902,9 @@ double Group::charge(int igroup)
    compute the total charge of group of atoms in region
 ------------------------------------------------------------------------- */
 
-double Group::charge(int igroup, int iregion)
+double Group::charge(int igroup, Region *region)
 {
   int groupbit = bitmask[igroup];
-  Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
@@ -974,10 +970,9 @@ void Group::bounds(int igroup, double *minmax)
    periodic images are not considered, so atoms are NOT unwrapped
 ------------------------------------------------------------------------- */
 
-void Group::bounds(int igroup, double *minmax, int iregion)
+void Group::bounds(int igroup, double *minmax, Region *region)
 {
   int groupbit = bitmask[igroup];
-  Region *region = domain->regions[iregion];
   region->prematch();
 
   double extent[6];
@@ -1074,10 +1069,9 @@ void Group::xcm(int igroup, double masstotal, double *cm)
    must unwrap atoms to compute center-of-mass correctly
 ------------------------------------------------------------------------- */
 
-void Group::xcm(int igroup, double masstotal, double *cm, int iregion)
+void Group::xcm(int igroup, double masstotal, double *cm, Region *region)
 {
   int groupbit = bitmask[igroup];
-  Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
@@ -1174,10 +1168,9 @@ void Group::vcm(int igroup, double masstotal, double *cm)
    return center-of-mass velocity in cm[]
 ------------------------------------------------------------------------- */
 
-void Group::vcm(int igroup, double masstotal, double *cm, int iregion)
+void Group::vcm(int igroup, double masstotal, double *cm, Region *region)
 {
   int groupbit = bitmask[igroup];
-  Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
@@ -1246,10 +1239,9 @@ void Group::fcm(int igroup, double *cm)
    compute the total force on group of atoms in region
 ------------------------------------------------------------------------- */
 
-void Group::fcm(int igroup, double *cm, int iregion)
+void Group::fcm(int igroup, double *cm, Region *region)
 {
   int groupbit = bitmask[igroup];
-  Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
@@ -1309,10 +1301,9 @@ double Group::ke(int igroup)
    compute the total kinetic energy of group of atoms in region and return it
 ------------------------------------------------------------------------- */
 
-double Group::ke(int igroup, int iregion)
+double Group::ke(int igroup, Region *region)
 {
   int groupbit = bitmask[igroup];
-  Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
@@ -1388,10 +1379,9 @@ double Group::gyration(int igroup, double masstotal, double *cm)
    must unwrap atoms to compute Rg correctly
 ------------------------------------------------------------------------- */
 
-double Group::gyration(int igroup, double masstotal, double *cm, int iregion)
+double Group::gyration(int igroup, double masstotal, double *cm, Region *region)
 {
   int groupbit = bitmask[igroup];
-  Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
@@ -1470,10 +1460,9 @@ void Group::angmom(int igroup, double *cm, double *lmom)
    must unwrap atoms to compute L correctly
 ------------------------------------------------------------------------- */
 
-void Group::angmom(int igroup, double *cm, double *lmom, int iregion)
+void Group::angmom(int igroup, double *cm, double *lmom, Region *region)
 {
   int groupbit = bitmask[igroup];
-  Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
@@ -1549,10 +1538,9 @@ void Group::torque(int igroup, double *cm, double *tq)
    must unwrap atoms to compute T correctly
 ------------------------------------------------------------------------- */
 
-void Group::torque(int igroup, double *cm, double *tq, int iregion)
+void Group::torque(int igroup, double *cm, double *tq, Region *region)
 {
   int groupbit = bitmask[igroup];
-  Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;
@@ -1635,12 +1623,11 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3])
    must unwrap atoms to compute itensor correctly
 ------------------------------------------------------------------------- */
 
-void Group::inertia(int igroup, double *cm, double itensor[3][3], int iregion)
+void Group::inertia(int igroup, double *cm, double itensor[3][3], Region *region)
 {
   int i,j;
 
   int groupbit = bitmask[igroup];
-  Region *region = domain->regions[iregion];
   region->prematch();
 
   double **x = atom->x;

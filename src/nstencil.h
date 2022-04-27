@@ -14,7 +14,7 @@
 #ifndef LMP_NSTENCIL_H
 #define LMP_NSTENCIL_H
 
-#include "pointers.h"
+#include "pointers.h"    // IWYU pragma: keep
 
 namespace LAMMPS_NS {
 
@@ -48,7 +48,7 @@ class NStencil : protected Pointers {
   int **bin_collection_multi;    // what collection to use for bin information
 
   NStencil(class LAMMPS *);
-  virtual ~NStencil();
+  ~NStencil() override;
   void post_constructor(class NeighRequest *);
   void copy_neighbor_info();
   virtual void create_setup();
@@ -121,7 +121,3 @@ class NStencil : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

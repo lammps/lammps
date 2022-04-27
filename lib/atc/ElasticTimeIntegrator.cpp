@@ -15,7 +15,7 @@ namespace ATC {
 
   //--------------------------------------------------------
   //  Constructor
-  //-------------------------------------------------------- 
+  //--------------------------------------------------------
   MomentumTimeIntegrator::MomentumTimeIntegrator(ATC_Coupling * atc,
                                                  TimeIntegrationType timeIntegrationType) :
     TimeIntegrator(atc, timeIntegrationType)
@@ -36,7 +36,7 @@ namespace ATC {
       \section syntax
       fix_modify AtC time_integration <descriptor> \n
       - descriptor (string) = time integration type  \n
-      
+
       various time integration methods for the finite elements\n
       \section description
       verlet - atomic velocity update with 2nd order Verlet, nodal temperature update with 2nd order Verlet, kinetostats based on controlling force \n
@@ -49,7 +49,7 @@ namespace ATC {
       \section related
       see \ref man_fix_atc
       \section default
-      none 
+      none
     */
     if (strcmp(arg[argIndex],"verlet")==0) {
       timeIntegrationType_ = VERLET;
@@ -78,7 +78,7 @@ namespace ATC {
     if (atc_->reset_methods()) {
       if (timeIntegrationMethod_)
         delete timeIntegrationMethod_;
-          
+
       if (timeFilterManager_->need_reset()) {
         switch (timeIntegrationType_) {
           case VERLET:
@@ -122,7 +122,7 @@ namespace ATC {
         default:
           throw ATC_Error("Unknown time integration type in MomentumTimeIntegrator::Initialize()");
         }
-      }   
+      }
     }
   }
 
@@ -146,7 +146,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  Constructor
   //        Grab data from ATC
-  //-------------------------------------------------------- 
+  //--------------------------------------------------------
   MomentumIntegrationMethod::MomentumIntegrationMethod(MomentumTimeIntegrator * momentumTimeIntegrator) :
     TimeIntegrationMethod(momentumTimeIntegrator),
     timeFilter_(timeIntegrator_->time_filter()),
@@ -178,7 +178,7 @@ namespace ATC {
 
   //--------------------------------------------------------
   //  Constructor
-  //-------------------------------------------------------- 
+  //--------------------------------------------------------
   ElasticTimeIntegratorVerlet::ElasticTimeIntegratorVerlet(MomentumTimeIntegrator * momentumTimeIntegrator) :
     MomentumIntegrationMethod(momentumTimeIntegrator),
     displacement_(atc_->field(DISPLACEMENT)),
@@ -217,7 +217,7 @@ namespace ATC {
     if (timeFilterManager->need_reset()) {
       timeFilter_->initialize(nodalAtomicForce_->quantity());
     }
-    
+
     if (!(timeFilterManager->end_equilibrate())) {
       nodalAtomicForceFiltered_.reset(atc_->num_nodes(),atc_->nsd());
     }
@@ -238,14 +238,14 @@ namespace ATC {
     explicit_1(velocity_.set_quantity(),acceleration_.quantity(),.5*dt);
   }
 
-  
+
   //--------------------------------------------------------
   //  post_initial_integrate1
   //    time integration after Verlet step 1
   //--------------------------------------------------------
   void ElasticTimeIntegratorVerlet::post_initial_integrate1(double dt)
   {
-    
+
     //      for improved accuracy, but this would be inconsistent with
     //      the atomic integration scheme
     explicit_1(displacement_.set_quantity(),velocity_.quantity(),dt);
@@ -253,7 +253,7 @@ namespace ATC {
 
   //--------------------------------------------------------
   //  pre_final_integrate1
-  //    first time integration computations 
+  //    first time integration computations
   //    before Verlet step 2
   //--------------------------------------------------------
   void ElasticTimeIntegratorVerlet::pre_final_integrate1(double dt)
@@ -325,7 +325,7 @@ namespace ATC {
 
   //--------------------------------------------------------
   //  Constructor
-  //-------------------------------------------------------- 
+  //--------------------------------------------------------
   ElasticTimeIntegratorVerletFiltered::ElasticTimeIntegratorVerletFiltered(MomentumTimeIntegrator * momentumTimeIntegrator) :
     ElasticTimeIntegratorVerlet(momentumTimeIntegrator),
     nodalAtomicAcceleration_(atc_->nodal_atomic_field_roc(VELOCITY))
@@ -349,7 +349,7 @@ namespace ATC {
   //--------------------------------------------------------
   void ElasticTimeIntegratorVerletFiltered::post_initial_integrate1(double dt)
   {
-    
+
     //      for improved accuracy, but this would be inconsistent with
     //      the atomic integration scheme
     explicit_1(displacement_.set_quantity(),velocity_.quantity(),dt);
@@ -367,7 +367,7 @@ namespace ATC {
                                     acceleration_.set_quantity(),
                                     VELOCITY);
     explicit_1(velocity_.set_quantity(),acceleration_.quantity(),.5*dt);
-    
+
     atc_->apply_inverse_md_mass_matrix(nodalAtomicForceFiltered_.quantity(),
                                        nodalAtomicAcceleration_.set_quantity(),
                                        VELOCITY);
@@ -404,7 +404,7 @@ namespace ATC {
 
   //--------------------------------------------------------
   //  Constructor
-  //-------------------------------------------------------- 
+  //--------------------------------------------------------
   ElasticTimeIntegratorFractionalStep::ElasticTimeIntegratorFractionalStep(MomentumTimeIntegrator * momentumTimeIntegrator) :
     MomentumIntegrationMethod(momentumTimeIntegrator),
     displacement_(atc_->field(DISPLACEMENT)),
@@ -413,7 +413,7 @@ namespace ATC {
     nodalAtomicMomentum_(nullptr),
     nodalAtomicMomentumFiltered_(momentumTimeIntegrator->nodal_atomic_momentum_filtered()),
     nodalAtomicDisplacement_(nullptr),
-    nodalAtomicMomentumOld_(atc_->num_nodes(),atc_->nsd()), 
+    nodalAtomicMomentumOld_(atc_->num_nodes(),atc_->nsd()),
     nodalAtomicVelocityOld_(atc_->num_nodes(),atc_->nsd())
   {
     // do nothing
@@ -450,7 +450,7 @@ namespace ATC {
       // the form of this integrator implies no time filters that require history data can be used
       timeFilter_->initialize();
     }
-    
+
     // sets up time filter for post-processing the filtered power
     // this time integrator should use an explicit-implicit filter
     // to mirror the 2nd order Verlet integration scheme
@@ -513,7 +513,7 @@ namespace ATC {
                                     atomicVelocityDelta,
                                     VELOCITY);
     velocity_ += atomicVelocityDelta;
- 
+
     // approximation to force for output
     nodalAtomicForce_ /= 0.5*dt;
     timeFilter_->apply_post_step1(nodalAtomicForceFiltered_.set_quantity(),
@@ -549,16 +549,16 @@ namespace ATC {
     // atomic contributions to change in momentum
     // compute change in restricted atomic momentum
     nodalAtomicForce_ += nodalAtomicMomentum_->quantity();
-    
+
     // update FE temperature with change in temperature from MD
     compute_velocity_delta(nodalAtomicForce_,dt);
     velocity_ += atomicVelocityDelta_.quantity();
-    
+
     // approximation to power for output
     nodalAtomicForce_ /= 0.5*dt;
     timeFilter_->apply_post_step1(nodalAtomicForceFiltered_.set_quantity(),
                                   nodalAtomicForce_,dt);
-    
+
     // change to velocity from FE dynamics
     atc_->apply_inverse_mass_matrix(velocityRhs_.quantity(),
                                     acceleration_.set_quantity(),
@@ -681,7 +681,7 @@ namespace ATC {
     if (!timeFilterManager->end_equilibrate()) {
       // implies an initial condition of the instantaneous atomic energy
       // for the corresponding filtered variable, consistent with the temperature
-      nodalAtomicMomentumFiltered_ = nodalAtomicMomentum_->quantity();  
+      nodalAtomicMomentumFiltered_ = nodalAtomicMomentum_->quantity();
       nodalAtomicForceFiltered_.reset(atc_->num_nodes(),atc_->nsd());
     }
   }
@@ -709,7 +709,7 @@ namespace ATC {
     apply_gear_predictor(dt);
 
     // update filtered nodal atomic force
-    
+
     //      that way kinetostat and integrator can be consistent
     timeFilter_->apply_pre_step1(nodalAtomicForceFiltered_.set_quantity(),
                                  nodalAtomicForce_,dt);
@@ -724,15 +724,15 @@ namespace ATC {
   //--------------------------------------------------------
   void FluidsTimeIntegratorGear::pre_final_integrate1(double dt)
   {
-    
+
     //      before the new rhs is computed but after atomic velocity is updated.
     // compute change in restricted atomic momentum
     nodalAtomicForce_ += nodalAtomicMomentum_->quantity();
-    
+
     // update FE velocity with change in velocity from MD
     compute_velocity_delta(nodalAtomicForce_,dt);
     velocity_ += atomicVelocityDelta_.quantity();
-    
+
     // approximation to force for output
     nodalAtomicForce_ /= dt;
     timeFilter_->apply_post_step1(nodalAtomicForceFiltered_.set_quantity(),

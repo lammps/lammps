@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -20,6 +19,7 @@ DihedralStyle(charmm/kk/host,DihedralCharmmKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_DIHEDRAL_CHARMM_KOKKOS_H
 #define LMP_DIHEDRAL_CHARMM_KOKKOS_H
 
@@ -96,11 +96,11 @@ class DihedralCharmmKokkos : public DihedralCharmm {
   typedef ArrayTypes<DeviceType> AT;
 
   DihedralCharmmKokkos(class LAMMPS *);
-  virtual ~DihedralCharmmKokkos();
-  void compute(int, int);
-  void coeff(int, char **);
-  void init_style();
-  void read_restart(FILE *);
+  ~DihedralCharmmKokkos() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  void read_restart(FILE *) override;
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -164,7 +164,7 @@ class DihedralCharmmKokkos : public DihedralCharmm {
   typename AT::t_ffloat_1d d_cos_shift;
   typename AT::t_ffloat_1d d_weight;
 
-  void allocate();
+  void allocate() override;
 };
 
 }
@@ -172,11 +172,3 @@ class DihedralCharmmKokkos : public DihedralCharmm {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-W: Dihedral problem
-
-Conformation of the 4 listed dihedral atoms is extreme; you may want
-to check your simulation geometry.
-
-*/

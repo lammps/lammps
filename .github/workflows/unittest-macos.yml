@@ -3,7 +3,7 @@ name: "Unittest for MacOS"
 
 on:
   push:
-    branches: [master]
+    branches: [develop]
 
 jobs:
   build:
@@ -37,6 +37,7 @@ jobs:
       working-directory: build
       run: |
         ccache -z
+        python3 -m pip install pyyaml
         cmake -C ../cmake/presets/clang.cmake \
               -C ../cmake/presets/most.cmake \
               -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \

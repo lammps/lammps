@@ -12,8 +12,8 @@ const double tol = 1.e-8;
 namespace ATC {
 
   /**
-   *  @class  ElectronChargeDensity 
-   *  @brief  Base class for models of extrinsic electric charges 
+   *  @class  ElectronChargeDensity
+   *  @brief  Base class for models of extrinsic electric charges
    */
 
   class ElectronChargeDensity
@@ -24,10 +24,10 @@ namespace ATC {
       virtual bool electron_charge_density(const FIELD_MATS & /* fields */,
                                            DENS_MAT & /* flux */) const { return false; };
 
-      
-      virtual void D_electron_charge_density(const FieldName /* fieldName */, 
+
+      virtual void D_electron_charge_density(const FieldName /* fieldName */,
                                              const FIELD_MATS & /* fields */,
-                                             DENS_MAT & /* flux */) const 
+                                             DENS_MAT & /* flux */) const
         { throw ATC_Error("Charge density D_electron_charge_density unimplemented function");}
 
       virtual void band_edge_potential(const FIELD_MATS & /* fields */,
@@ -51,13 +51,13 @@ namespace ATC {
         FIELD_MATS::const_iterator phi_field = fields.find(ELECTRIC_POTENTIAL);
         const DENS_MAT & phi = phi_field->second;
         int nNodes  = phi.nRows();
-        flux.reset(nNodes,1,false); 
+        flux.reset(nNodes,1,false);
         for (int i = 0; i < nNodes; i++) {  // a mapping of a vector
-          flux(i,0) = n_.f(phi(i,0));  
+          flux(i,0) = n_.f(phi(i,0));
         }
         flux *= -1.;
         return true;
-      }; 
+      };
       virtual void D_electron_charge_density(const FieldName /* field */,
                                              const FIELD_MATS &fields,
                                              DENS_MAT &coef) const
@@ -65,10 +65,10 @@ namespace ATC {
         FIELD_MATS::const_iterator phi_field = fields.find(ELECTRIC_POTENTIAL);
         const DENS_MAT & phi = phi_field->second;
         int nNodes  = phi.nRows();
-        coef.reset(nNodes,1,false); 
-        for (int i = 0; i < nNodes; i++) { 
-          coef(i,0) = n_.dfdt(phi(i,0)); 
-          coef(i,0) = n_.dfdt(phi(i,0)); 
+        coef.reset(nNodes,1,false);
+        for (int i = 0; i < nNodes; i++) {
+          coef(i,0) = n_.dfdt(phi(i,0));
+          coef(i,0) = n_.dfdt(phi(i,0));
         }
         coef *= -1.;
       }
@@ -93,7 +93,7 @@ namespace ATC {
         flux = phi_field->second;
         flux *= -C_;
         return true;
-      }; 
+      };
       virtual void D_electron_charge_density(const FieldName /* field */,
                                              const FIELD_MATS &fields,
                                              DENS_MAT &coef) const
@@ -111,7 +111,7 @@ namespace ATC {
   /**
    *  @class  ElectronChargeDensityExponential
    *  @brief  Class for models of electron charge density dependent on difference between electric potential and the Fermi level n = n_i exp ( (phi-E_i) / kB T)
-   */ 
+   */
 
   class ElectronChargeDensityExponential : public ElectronChargeDensity
   {
@@ -121,13 +121,13 @@ namespace ATC {
 
       double n(const double phi, double T)  const
       {
-        return -intrinsicConcentration_*exp((phi-intrinsicEnergy_)/(kBeV_*T)); 
+        return -intrinsicConcentration_*exp((phi-intrinsicEnergy_)/(kBeV_*T));
       }
       double dndphi(const double phi, double T)  const
       {
         return n(phi,T)/(kBeV_*T);
       }
-      virtual bool electron_charge_density(const FIELD_MATS &fields, 
+      virtual bool electron_charge_density(const FIELD_MATS &fields,
                      DENS_MAT &density) const
       {
         FIELD_MATS::const_iterator phi_field = fields.find(ELECTRIC_POTENTIAL);
@@ -139,17 +139,17 @@ namespace ATC {
         density.resize(nNodes,1);
         if (hasTref) {
           T = referenceTemperature_;
-          for (int i = 0; i < nNodes; i++) { 
+          for (int i = 0; i < nNodes; i++) {
             density(i,0) = n(phi(i,0),T); }
         }
         else {
           const DENS_MAT & temp = T_field->second;
-          for (int i = 0; i < nNodes; i++) { 
+          for (int i = 0; i < nNodes; i++) {
             density(i,0) = n(phi(i,0),temp(i,0)); }
         }
         density *= -1.;
         return true;
-      }; 
+      };
       virtual void D_electron_charge_density(const FieldName /* field */,
                                              const FIELD_MATS &fields,
                                              DENS_MAT &coef) const
@@ -163,16 +163,16 @@ namespace ATC {
         coef.resize(nNodes,1);
         if (hasTref) {
           T = referenceTemperature_;
-          for (int i = 0; i < nNodes; i++) { 
+          for (int i = 0; i < nNodes; i++) {
             coef(i,0) = dndphi(phi(i,0),T); }
         }
         else {
           const DENS_MAT & temp = T_field->second;
-          for (int i = 0; i < nNodes; i++) { 
+          for (int i = 0; i < nNodes; i++) {
             coef(i,0) = dndphi(phi(i,0),temp(i,0)); }
         }
         coef *= -1.;
-      }; 
+      };
     protected:
       double intrinsicConcentration_,intrinsicEnergy_;
       double referenceTemperature_;
@@ -181,8 +181,8 @@ namespace ATC {
   //-----------------------------------------------------------------------
   /**
    *  @class  ElectronChargeDensityFermiDirac
-   *  @brief  Class for models of electron charge density based on Fermi-Dirac statistics 
-   */ 
+   *  @brief  Class for models of electron charge density based on Fermi-Dirac statistics
+   */
 
   class ElectronChargeDensityFermiDirac : public ElectronChargeDensity
   {
@@ -195,7 +195,7 @@ namespace ATC {
         if      (T > 0)   f = 1.0 / ( exp((E-Ef_)/kBeV_/T)+1.0 );
         else if (E > Ef_) f = 0;
         return f;
-      }; 
+      };
       virtual bool electron_charge_density(const FIELD_MATS &fields,
                                            DENS_MAT &density) const
       {
@@ -215,34 +215,34 @@ namespace ATC {
         const DENS_MAT & phi = phi_field->second;
 
         int nNodes = psi.nRows();
-        density.reset(nNodes,1);  
+        density.reset(nNodes,1);
         double T  = referenceTemperature_;
         int count = 0;
         for (int i = 0; i < nNodes; i++) {
           if (!hasReferenceTemperature_) { T = Ts(i,0); }
           int j = 0;
           for (j = 0; j < psis.nCols(); j++) {
-            double E = Es(j,0); // Eigenvalue  
+            double E = Es(j,0); // Eigenvalue
             double f = fermi_dirac(E,T);
             if (f < tol) break;
             else  count++;
             density(i,0) -= psis(i,j)*psis(i,j)*f;  // < 0
           }
-          if (donorIonization_) { 
+          if (donorIonization_) {
             double E = -1.0* phi(i,0);// units [eV] E = - |e| phi
             if ( E + Eb_ > Ef_+Ed_) density(i,0) += Nd_;  // > 0
           }
         }
         return true;
-      }; 
-      virtual void D_electron_charge_density(const FieldName /* fieldName */, 
+      };
+      virtual void D_electron_charge_density(const FieldName /* fieldName */,
                                              const FIELD_MATS &fields,
                                              DENS_MAT &coef) const
       {
         FIELD_MATS::const_iterator phi_field = fields.find(ELECTRIC_POTENTIAL);
         const DENS_MAT & phi = phi_field->second;
         int nNodes  = phi.nRows();
-        coef.reset(nNodes,1,false); 
+        coef.reset(nNodes,1,false);
       }
 
       virtual void band_edge_potential(const FIELD_MATS &fields,
@@ -251,7 +251,7 @@ namespace ATC {
         FIELD_MATS::const_iterator p_field   = fields.find(ELECTRIC_POTENTIAL);
         const DENS_MAT & phi = p_field->second;
         int nNodes  = phi.nRows();
-        density.reset(nNodes,1,false);  
+        density.reset(nNodes,1,false);
         density = Eb_;
       };
 
@@ -264,6 +264,6 @@ namespace ATC {
   };
 }
 
-#endif 
+#endif
 
 

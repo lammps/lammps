@@ -25,46 +25,43 @@ PairStyle(sw/intel,PairSWIntel);
 #ifndef LMP_PAIR_SW_INTEL_H
 #define LMP_PAIR_SW_INTEL_H
 
-#include "pair_sw.h"
 #include "fix_intel.h"
+#include "pair_sw.h"
 
 namespace LAMMPS_NS {
 
 class PairSWIntel : public PairSW {
  public:
   PairSWIntel(class LAMMPS *);
-  virtual ~PairSWIntel();
-  virtual void compute(int, int);
-  virtual void init_style();
+  ~PairSWIntel() override;
+  void compute(int, int) override;
+  void init_style() override;
 
  protected:
   FixIntel *fix;
   int _cop;
   template <class flt_t> class ForceConst;
 
-  virtual void allocate();
+  void allocate() override;
 
   template <class flt_t, class acc_t>
-  void compute(int eflag, int vflag, IntelBuffers<flt_t,acc_t> *buffers,
+  void compute(int eflag, int vflag, IntelBuffers<flt_t, acc_t> *buffers,
                const ForceConst<flt_t> &fc);
   template <int SPQ, int ONETYPE, int EFLAG, class flt_t, class acc_t>
-  void eval(const int offload, const int vflag,
-            IntelBuffers<flt_t,acc_t> * buffers, const ForceConst<flt_t> &fc,
-            const int astart, const int aend);
+  void eval(const int offload, const int vflag, IntelBuffers<flt_t, acc_t> *buffers,
+            const ForceConst<flt_t> &fc, const int astart, const int aend);
 
   template <class flt_t, class acc_t>
-  void pack_force_const(ForceConst<flt_t> &fc,
-                        IntelBuffers<flt_t, acc_t> *buffers);
+  void pack_force_const(ForceConst<flt_t> &fc, IntelBuffers<flt_t, acc_t> *buffers);
 
   int _ccache_stride, _spq, _onetype, _onetype3;
-  #ifdef LMP_USE_AVXCD
+#ifdef LMP_USE_AVXCD
   int _ccache_stride3;
-  #endif
+#endif
 
   // ----------------------------------------------------------------------
 
-  template <class flt_t>
-  class ForceConst {
+  template <class flt_t> class ForceConst {
    public:
     typedef struct {
       flt_t cutsq, cut, sigma_gamma, pad;
@@ -88,7 +85,7 @@ class PairSWIntel : public PairSW {
     fc_packed2 **p2e;
     fc_packed3 ***p3;
 
-    ForceConst() : p2(0), p2f(0), p2f2(0), p2e(0), p3(0), _ntypes(0)  {}
+    ForceConst() : p2(0), p2f(0), p2f2(0), p2e(0), p3(0), _ntypes(0) {}
     ~ForceConst() { set_ntypes(0, nullptr, _cop); }
 
     void set_ntypes(const int ntypes, Memory *memory, const int cop);
@@ -101,23 +98,7 @@ class PairSWIntel : public PairSW {
   ForceConst<double> force_const_double;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: The 'package intel' command is required for /intel styles
-
-Self-explanatory.
-
-E: The 'ghost no' option cannot be used with sw/intel.
-
-Self-explanatory.
-
-E: Intel compiler versions before 15 Update 1 not supported for sw/intel.
-
-Self-explanatory.
-
-*/

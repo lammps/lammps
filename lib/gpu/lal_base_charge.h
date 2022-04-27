@@ -44,6 +44,7 @@ class BaseCharge {
     * \param cell_size cutoff + skin
     * \param gpu_split fraction of particles handled by device
     * \param k_name name for the kernel for force calculation
+    * \param disable_fast_math override any fast math opts for kernel JIT
     *
     * Returns:
     * -  0 if successful
@@ -54,7 +55,8 @@ class BaseCharge {
   int init_atomic(const int nlocal, const int nall, const int max_nbors,
                   const int maxspecial, const double cell_size,
                   const double gpu_split, FILE *screen,
-                  const void *pair_program, const char *k_name);
+                  const void *pair_program, const char *k_name,
+                  const int disable_fast_math = 0);
 
   /// Estimate the overhead for GPU context changes and CPU driver
   void estimate_gpu_overhead(const int add_kernels=0);
@@ -198,7 +200,8 @@ class BaseCharge {
   double _gpu_overhead, _driver_overhead;
   UCL_D_Vec<int> *_nbor_data;
 
-  void compile_kernels(UCL_Device &dev, const void *pair_string, const char *k);
+  void compile_kernels(UCL_Device &dev, const void *pair_string,
+                       const char *k, const int disable_fast_math);
 
   virtual int loop(const int eflag, const int vflag) = 0;
 };

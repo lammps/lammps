@@ -39,40 +39,52 @@ extern "C" {
 
 #if defined(LAMMPS_BIGBIG)
 typedef void (*FixExternalFnPtr)(void *, int64_t, int, int64_t *, double **, double **);
-#elif defined(LAMMPS_SMALLBIG)
-typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
-#else
+#elif defined(LAMMPS_SMALLSMALL)
 typedef void (*FixExternalFnPtr)(void *, int, int, int *, double **, double **);
+#else
+typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
 #endif
 
-  
 struct _liblammpsplugin {
   int abiversion;
   int has_exceptions;
   void *handle;
-  void (*open)(int, char **, MPI_Comm, void **);
-  void (*open_no_mpi)(int, char **, void **);
+  void *(*open)(int, char **, MPI_Comm, void **);
+  void *(*open_no_mpi)(int, char **, void **);
+  void *(*open_fortran)(int, char **, void **, int);
   void (*close)(void *);
-  int  (*version)(void *);
+
+  void (*mpi_init)();
+  void (*mpi_finalize)();
+  void (*kokkos_finalize)();
+  void (*python_finalize)();
+
   void (*file)(void *, char *);
-  char *(*command)(void *, char *);
-  void (*commands_list)(void *, int, char **);
-  void (*commands_string)(void *, char *);
-  void (*free)(void *);
-  int (*extract_setting)(void *, char *);
-  void *(*extract_global)(void *, char *);
-  void (*extract_box)(void *, double *, double *,
-		      double *, double *, double *, int *, int *);
-  void *(*extract_atom)(void *, char *);
-  void *(*extract_compute)(void *, char *, int, int);
-  void *(*extract_fix)(void *, char *, int, int, int, int);
-  void *(*extract_variable)(void *, char *, char *);
+  char *(*command)(void *, const char *);
+  void (*commands_list)(void *, int, const char **);
+  void (*commands_string)(void *, const char *);
 
+  double (*get_natoms)(void *);
   double (*get_thermo)(void *, char *);
-  int (*get_natoms)(void *);
 
-  int (*set_variable)(void *, char *, char *);
+  void (*extract_box)(void *, double *, double *,
+                      double *, double *, double *, int *, int *);
   void (*reset_box)(void *, double *, double *, double, double, double);
+
+  void (*memory_usage)(void *, double *);
+  int (*get_mpi_comm)(void *);
+
+  int (*extract_setting)(void *, const char *);
+  int *(*extract_global_datatype)(void *, const char *);
+  void *(*extract_global)(void *, const char *);
+
+  void *(*extract_atom_datatype)(void *, const char *);
+  void *(*extract_atom)(void *, const char *);
+
+  void *(*extract_compute)(void *, const char *, int, int);
+  void *(*extract_fix)(void *, const char *, int, int, int, int);
+  void *(*extract_variable)(void *, const char *, char *);
+  int (*set_variable)(void *, char *, char *);
 
   void (*gather_atoms)(void *, char *, int, int, void *);
   void (*gather_atoms_concat)(void *, char *, int, int, void *);
@@ -80,34 +92,68 @@ struct _liblammpsplugin {
   void (*scatter_atoms)(void *, char *, int, int, void *);
   void (*scatter_atoms_subset)(void *, char *, int, int, int, int *, void *);
 
-  void (*set_fix_external_callback)(void *, char *, FixExternalFnPtr, void*);
+  void (*gather_bonds)(void *, void *);
+  
+// lammps_create_atoms() takes tagint and imageint as args
+// ifdef insures they are compatible with rest of LAMMPS
+// caller must match to how LAMMPS library is built
 
-  int (*config_has_package)(char * package_name);
-  int (*config_package_count)();
-  int (*config_package_name)(int index, char * buffer, int max_size);
+#ifndef LAMMPS_BIGBIG
+ void (*create_atoms)(void *, int, int *, int *, double *,
+                      double *, int *, int);
+#else
+  void (*create_atoms)(void *, int, int64_t *, int *, double *,
+                       double *, int64_t *, int);
+#endif
+
+  int (*find_pair_neighlist)(void *, const char *, int, int, int);
+  int (*find_fix_neighlist)(void *, const char *, int);
+  int (*find_compute_neighlist)(void *, char *, int);
+  int (*neighlist_num_elements)(void *, int);
+  void (*neighlist_element_neighbors)(void *, int, int, int *, int *, int **);
+
+  int (*version)(void *);
+  void (*get_os_info)(char *, int);
+
+  int (*config_has_mpi_support)();
   int (*config_has_gzip_support)();
   int (*config_has_png_support)();
   int (*config_has_jpeg_support)();
   int (*config_has_ffmpeg_support)();
   int (*config_has_exceptions)();
 
-  int (*find_pair_neighlist)(void* ptr, char * style, int exact, int nsub, int request);
-  int (*find_fix_neighlist)(void* ptr, char * id, int request);
-  int (*find_compute_neighlist)(void* ptr, char * id, int request);
-  int (*neighlist_num_elements)(void* ptr, int idx);
-  void (*neighlist_element_neighbors)(void * ptr, int idx, int element, int * iatom, int * numneigh, int ** neighbors);
+  int (*config_has_package)(const char *);
+  int (*config_package_count)();
+  int (*config_package_name)(int, char *, int);
 
-// lammps_create_atoms() takes tagint and imageint as args
-// ifdef insures they are compatible with rest of LAMMPS
-// caller must match to how LAMMPS library is built
+  int (*config_accelerator)(const char *, const char *, const char *);
+  int (*has_gpu_device)();
+  void (*get_gpu_device_info)(char *, int);
 
-#ifdef LAMMPS_BIGBIG
-  void (*create_atoms)(void *, int, int64_t *, int *,
-                         double *, double *, int64_t *, int);
-#else
-  void (*create_atoms)(void *, int, int *, int *,
-                         double *, double *, int *, int);
-#endif
+  int (*has_style)(void *, const char *, const char *);
+  int (*style_count)(void *, const char *);
+  int (*style_name)(void *, const char *, int, char *, int);
+
+  int (*has_id)(void *, const char *, const char *);
+  int (*id_count)(void *, const char *);
+  int (*id_name)(void *, const char *, int, char *, int);
+
+  int (*plugin_count)();
+  int (*plugin_name)(int, char *, char *, int);
+
+  void (*set_fix_external_callback)(void *, const char *, FixExternalFnPtr, void*);
+  void (*fix_external_get_force)(void *, const char *);
+  void (*fix_external_set_energy_global)(void *, const char *, double);
+  void (*fix_external_set_energy_peratom)(void *, const char *, double *);
+  void (*fix_external_set_virial_global)(void *, const char *, double *);
+  void (*fix_external_set_virial_peratom)(void *, const char *, double **);
+  void (*fix_external_set_vector_length)(void *, const char *, int);
+  void (*fix_external_set_vector)(void *, const char *, int, double);
+
+  void (*free)(void *);
+
+  void (*is_running)(void *);
+  void (*force_timeout)(void *);
 
   int (*has_error)(void *);
   int (*get_last_error_message)(void *, char *, int);
@@ -117,7 +163,7 @@ typedef struct _liblammpsplugin liblammpsplugin_t;
 
 liblammpsplugin_t *liblammpsplugin_load(const char *);
 int liblammpsplugin_release(liblammpsplugin_t *);
-  
+
 #undef LAMMPS
 #ifdef __cplusplus
 }

@@ -16,17 +16,18 @@
    Contributing author: Paul Coffman (IBM)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "dump_xyz_mpiio.h"
-#include <cmath>
 
-#include <cstring>
-#include "domain.h"
-#include "update.h"
 #include "compute.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
+#include "memory.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
+
+#include "omp_compat.h"
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
@@ -37,21 +38,13 @@ using namespace LAMMPS_NS;
 #define DUMP_BUF_CHUNK_SIZE 16384
 #define DUMP_BUF_INCREMENT_SIZE 4096
 
-enum{ID,MOL,TYPE,ELEMENT,MASS,
-     X,Y,Z,XS,YS,ZS,XSTRI,YSTRI,ZSTRI,XU,YU,ZU,XUTRI,YUTRI,ZUTRI,
-     XSU,YSU,ZSU,XSUTRI,YSUTRI,ZSUTRI,
-     IX,IY,IZ,
-     VX,VY,VZ,FX,FY,FZ,
-     Q,MUX,MUY,MUZ,MU,RADIUS,DIAMETER,
-     OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
-     TQX,TQY,TQZ,SPIN,ERADIUS,ERVEL,ERFORCE,
-     COMPUTE,FIX,VARIABLE};
-enum{LT,LE,GT,GE,EQ,NEQ};
-
 /* ---------------------------------------------------------------------- */
 
 DumpXYZMPIIO::DumpXYZMPIIO(LAMMPS *lmp, int narg, char **arg) :
-  DumpXYZ(lmp, narg, arg) {}
+  DumpXYZ(lmp, narg, arg) {
+  if (me == 0)
+    error->warning(FLERR,"MPI-IO output is unmaintained and unreliable. Use with caution.");
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -77,20 +70,7 @@ void DumpXYZMPIIO::openfile()
   filecurrent = filename;
 
   if (multifile) {
-    char *filestar = filecurrent;
-    filecurrent = new char[strlen(filestar) + 16];
-    char *ptr = strchr(filestar,'*');
-    *ptr = '\0';
-    if (padflag == 0)
-      sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
-          filestar,update->ntimestep,ptr+1);
-    else {
-      char bif[8],pad[16];
-      strcpy(bif,BIGINT_FORMAT);
-      sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
-      sprintf(filecurrent,pad,filestar,update->ntimestep,ptr+1);
-    }
-    *ptr = '*';
+    filecurrent = utils::strdup(utils::star_subst(filecurrent, update->ntimestep, padflag));
     if (maxfiles > 0) {
       if (numfiles < maxfiles) {
         nameslist[numfiles] = new char[strlen(filecurrent)+1];
@@ -107,33 +87,25 @@ void DumpXYZMPIIO::openfile()
   }
 
   if (append_flag) { // append open
-    int err = MPI_File_open( world, filecurrent, MPI_MODE_CREATE | MPI_MODE_APPEND | MPI_MODE_WRONLY  , MPI_INFO_NULL, &mpifh);
-    if (err != MPI_SUCCESS) {
-      char str[128];
-      sprintf(str,"Cannot open dump file %s",filecurrent);
-      error->one(FLERR,str);
-    }
+    int err = MPI_File_open( world, filecurrent, MPI_MODE_CREATE | MPI_MODE_APPEND |
+                             MPI_MODE_WRONLY  , MPI_INFO_NULL, &mpifh);
+    if (err != MPI_SUCCESS) error->one(FLERR, "Cannot open dump file {}", filecurrent);
+
     int myrank;
     MPI_Comm_rank(world,&myrank);
-    if (myrank == 0)
-      MPI_File_get_size(mpifh,&mpifo);
+    if (myrank == 0) MPI_File_get_size(mpifh,&mpifo);
     MPI_Bcast(&mpifo, 1, MPI_LMP_BIGINT, 0, world);
     MPI_File_set_size(mpifh,mpifo+headerSize+sumFileSize);
     currentFileSize = mpifo+headerSize+sumFileSize;
-  }
-  else { // replace open
+  } else { // replace open
 
-    int err = MPI_File_open( world, filecurrent, MPI_MODE_CREATE |  MPI_MODE_WRONLY  , MPI_INFO_NULL, &mpifh);
-    if (err != MPI_SUCCESS) {
-      char str[128];
-      sprintf(str,"Cannot open dump file %s",filecurrent);
-      error->one(FLERR,str);
-    }
+    int err = MPI_File_open( world, filecurrent, MPI_MODE_CREATE |  MPI_MODE_WRONLY,
+                             MPI_INFO_NULL, &mpifh);
+    if (err != MPI_SUCCESS) error->one(FLERR, "Cannot open dump file {}",filecurrent);
     mpifo = 0;
 
     MPI_File_set_size(mpifh,(MPI_Offset) (headerSize+sumFileSize));
     currentFileSize = (headerSize+sumFileSize);
-
   }
 }
 
@@ -217,8 +189,8 @@ void DumpXYZMPIIO::write()
   performEstimate = 0;
   write_data(nme,buf);
 
-  if (multifile)    MPI_File_close(&mpifh);
-  if (multifile) delete [] filecurrent;
+  if (multifile) MPI_File_close(&mpifh);
+  if (multifile) delete[] filecurrent;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -227,7 +199,7 @@ void DumpXYZMPIIO::init_style()
 {
   // format = copy of default or user-specified line format
 
-  delete [] format;
+  delete[] format;
   char *str;
   if (format_line_user) str = format_line_user;
   else str = format_default;
@@ -242,10 +214,8 @@ void DumpXYZMPIIO::init_style()
 
   if (typenames == nullptr) {
     typenames = new char*[ntypes+1];
-    for (int itype = 1; itype <= ntypes; itype++) {
-      typenames[itype] = new char[12];
-      sprintf(typenames[itype],"%d",itype);
-    }
+    for (int itype = 1; itype <= ntypes; itype++)
+      typenames[itype] = utils::strdup(std::to_string(itype));
   }
 
   // setup function ptr
@@ -256,20 +226,16 @@ void DumpXYZMPIIO::init_style()
 
 void DumpXYZMPIIO::write_header(bigint n)
 {
+  auto header = fmt::format("{}\n Atoms. Timestep: {}", n, update->ntimestep);
+  if (time_flag) header += fmt::format(" Time: {:.6f}", compute_time());
+  header += "\n";
+
   if (performEstimate) {
-
-    headerBuffer = (char *) malloc(MAX_TEXT_HEADER_SIZE);
-
-    headerSize = 0;
-    headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),BIGINT_FORMAT "\n",n);
-    headerSize += sprintf(&((char*)headerBuffer)[headerSize],"Atoms. Timestep: " BIGINT_FORMAT "\n",update->ntimestep);
-  }
-  else { // write data
-
+    headerSize = header.size();
+  } else { // write data
     if (me == 0)
-      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_CHAR,MPI_STATUS_IGNORE);
-    mpifo += headerSize;
-    free(headerBuffer);
+      MPI_File_write_at(mpifh,mpifo,(void *)header.c_str(),header.size(),MPI_CHAR,MPI_STATUS_IGNORE);
+    mpifo += header.size();
   }
 }
 

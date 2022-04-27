@@ -24,7 +24,7 @@ namespace ATC {
                                       const GRAD_FIELD_MATS & /* gradFields */,
                                             DENS_MAT_VEC &flux)
       {
-         
+
         FIELD_MATS::const_iterator etField = fields.find(ELECTRON_TEMPERATURE);
         const DENS_MAT & Te = etField->second;
         zeroWorkspace_.reset(Te.nRows(),Te.nCols());
@@ -47,7 +47,7 @@ namespace ATC {
         flux[0] = vx;
         flux[1] = vy;
         flux[2] = vz;
-        // scale by thermal energy 
+        // scale by thermal energy
         flux[0] *= cpTeWorkspace_;
         flux[1] *= cpTeWorkspace_;
         flux[2] *= cpTeWorkspace_;
@@ -58,12 +58,12 @@ namespace ATC {
       DENS_MAT cpTeWorkspace_; // hopefully avoid resizing
   };
   //-----------------------------------------------------------------------
-  
+
   /**
    *  @class  ElectronHeatFluxLinear
    *  @brief  Class for an electron heat flux proportional to the temperature gradient with constant conductivity
-   */  
-  
+   */
+
   class ElectronHeatFluxLinear : public ElectronHeatFlux
   {
     public:
@@ -80,17 +80,17 @@ namespace ATC {
          flux[0] = -conductivity_ * dT[0];
          flux[1] = -conductivity_ * dT[1];
          flux[2] = -conductivity_ * dT[2];
-      }; 
+      };
     protected:
       double conductivity_;
   };
   //-----------------------------------------------------------------------
-  
+
   /**
    *  @class  ElectronHeatFluxPowerLaw
    *  @brief  Class for an electron heat flux proportional to the temperature gradient but with a conductivity proportional to the ratio of the electron and phonon temperatures
-   */  
-  
+   */
+
   class ElectronHeatFluxPowerLaw : public ElectronHeatFlux
   {
     public:
@@ -116,23 +116,23 @@ namespace ATC {
         flux[0] *= electronConductivity_;
         flux[1] *= electronConductivity_;
         flux[2] *= electronConductivity_;
-      }; 
+      };
     protected:
       double conductivity_;
       DENS_MAT electronConductivity_; // hopefully avoid resizing
   };
   //-----------------------------------------------------------------------
-  
+
   /**
    *  @class  ElectronHeatFluxThermopower
    *  @brief  Class for an electron heat flux proportional to the temperature gradient but with a condu
 ctivity proportional to the ratio of the electron and phonon temperatures with the thermopower from the electric current included
-   */  
-  
+   */
+
   class ElectronHeatFluxThermopower : public ElectronHeatFlux
   {
     public:
-      ElectronHeatFluxThermopower(std::fstream &matfile, 
+      ElectronHeatFluxThermopower(std::fstream &matfile,
                                   std::map<std::string,double> & parameters,
                                   /*const*/ ElectronFlux * electronFlux = nullptr,
                                   /*const*/ ElectronHeatCapacity * electronHeatCapacity = nullptr);
@@ -147,7 +147,7 @@ ctivity proportional to the ratio of the electron and phonon temperatures with t
         const DENS_MAT_VEC & dT = dEtField->second;
         const DENS_MAT & T = tField->second;
         const DENS_MAT & Te = etField->second;
-        
+
         // flux = -ke * ( Te / T ) dT + pi J_e;
         flux[0] = dT[0];
         flux[1] = dT[1];
@@ -163,16 +163,16 @@ ctivity proportional to the ratio of the electron and phonon temperatures with t
         tmp_[2] *=  Te;
         flux[0] += seebeckCoef_*tmp_[0];
         flux[1] += seebeckCoef_*tmp_[1];
-        flux[2] += seebeckCoef_*tmp_[2]; 
-      }; 
+        flux[2] += seebeckCoef_*tmp_[2];
+      };
     protected:
       double conductivity_,seebeckCoef_;
       ElectronFlux * electronFlux_;
       DENS_MAT elecCondWorkspace_; // hopefully avoid resizing
-      DENS_MAT_VEC tmp_; 
+      DENS_MAT_VEC tmp_;
   };
 }
 
-#endif 
+#endif
 
 

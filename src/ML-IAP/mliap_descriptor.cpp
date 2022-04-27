@@ -47,9 +47,9 @@ MLIAPDescriptor::~MLIAPDescriptor()
 
 double MLIAPDescriptor::memory_usage()
 {
-  double bytes = (double)nelements*sizeof(double);      // radelem
-  bytes += (double)nelements*sizeof(double);            // welem
-  bytes += (double)nelements*nelements*sizeof(double);  // cutsq
+  double bytes = (double) nelements * sizeof(double);          // radelem
+  bytes += (double) nelements * sizeof(double);                // welem
+  bytes += (double) nelements * nelements * sizeof(double);    // cutsq
 
   return bytes;
 }

@@ -9,9 +9,9 @@
 !   the GNU General Public License.
 !
 !   See the README file in the top-level LAMMPS directory.
-!   
+!
 !   Contributing author: Alexey N. Volkov, UA, avolkov1@ua.edu
-!------------------------------------------------------------------------- 
+!-------------------------------------------------------------------------
 
 module Spline2 !************************************************************************************
 !
@@ -79,7 +79,7 @@ contains !**********************************************************************
                 Fxx = 0.0d+00
                 Fyy = 0.0d+00
                 Fxxyy = 0.0d+00
-                
+
                 do II = 0, N2A
                         FF(0:N1-1) = F(0:N1-1,II)
                         MM(0)    = Fxx(0,II)
@@ -87,7 +87,7 @@ contains !**********************************************************************
                         call CreateSpline1 ( CL, CR, N1, P1, FF, MM, DD, K0, K1, K2 )
                         Fxx(0:N1-1,II) = MM(0:N1-1)
                 end do
-                
+
                 do II = N2A + 1, N2 - 1
                         FF(0:N1-N1A-1) = F(N1A:N1-1,II)
                         MM(0) = Fxx(N1A,II)
@@ -103,7 +103,7 @@ contains !**********************************************************************
                         call CreateSpline1 ( CD, CU, N2A + 1, P2, FF, MM, DD, K0, K1, K2 )
                         Fyy(II,0:N2A) = MM(0:N2A)
                 end do
-                
+
                 do II = N1A, N1 - 1
                         MM(0) = Fyy(II,0)
                         MM(N-1) = Fyy(II,N2-1)
@@ -111,19 +111,19 @@ contains !**********************************************************************
                         call CreateSpline1 ( CD, CU, N2, P2, FF, MM, DD, K0, K1, K2 )
                         Fyy(II,0:N2-1) = MM(0:N2-1)
                 end do
-                
+
                 FF(0:N1-1) = Fyy(0:N1-1,0)
                 call CreateSpline1 ( 3, 3, N1, P1, FF, MM, DD, K0, K1, K2 )
                 Fxxyy(0:N1-1,0) = MM(0:N1-1)
-                
+
                 FF(0:N1A) = Fyy(0:N1A,N2A)
                 call CreateSpline1 ( 3, 3, N1A + 1, P1, FF, MM, DD, K0, K1, K2 )
                 Fxxyy(0:N1A,N2A) = MM(0:N1A)
-                
+
                 FF(0:N1-N1A-1) = Fyy(N1A:N1-1,N2-1 )
                 call CreateSpline1 ( 3, 3, N1-N1A, P1, FF, MM, DD, K0, K1, K2 )
                 Fxxyy(N1A:N1-1,N2-1) = MM(0:N1-N1A-1)
-                
+
                 do II = 1, N1A
                         MM(0) = Fxxyy(II,0)
                         MM(N2A) = Fxxyy(II,N2A)
@@ -131,7 +131,7 @@ contains !**********************************************************************
                         call CreateSpline1 ( 2 , 2, N2A + 1, P2, FF, MM, DD, K0, K1, K2 )
                         Fxxyy(II,0:N2A) = MM(0:N2A)
                 end do
-                
+
                 do II = N1A + 1, N1 - 2
                         MM(0) = Fxxyy(II,0)
                         MM(N-1) = Fxxyy(II,N2-1)
@@ -139,9 +139,9 @@ contains !**********************************************************************
                         call CreateSpline1 ( 2 , 2, N2, P2, FF, MM, DD, K0, K1, K2 )
                         Fxxyy(II,0:N2-1) = MM(0:N2-1)
                 end do
-                
+
         end subroutine CreateSpline2Ext !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
         real(c_double) function CalcSpline2_0 ( i, j, X, Y, N1, N2, P1, P2, F, Fxx, Fyy, Fxxyy ) !!!
         integer(c_int), intent(in)                              :: i, j, N1, N2
         real(c_double), intent(in)                              :: X, Y
@@ -182,5 +182,5 @@ contains !**********************************************************************
                 call ValueSpline1_1 ( S, Sx1, X, P1(i), P1(i1), Gy_0, Gy_1,Gxxy_0, Gxxy_1, P1(i) - P1(i1) )
                 Sy1 = ValueSpline1_0 ( X, P1(i), P1(i1), Gyy_0, Gyy_1,Gxxyy_0, Gxxyy_1, P1(i) - P1(i1) )
         end subroutine CalcSpline2_1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
 end module Spline2 !********************************************************************************

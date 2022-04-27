@@ -16,7 +16,6 @@
 #include "pair_mesont_tpm.h"
 #include "export_mesont.h"
 
-
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -24,15 +23,12 @@
 #include "error.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 
 #include <cstring>
-#include <vector>
 #include <cmath>
-#include <array>
 
+#include <array>
 #include <fstream>
-#include <sstream>
 #include <algorithm>
 
 using namespace LAMMPS_NS;
@@ -40,7 +36,7 @@ using namespace LAMMPS_NS;
 class MESONTList {
 public:
   MESONTList(const Atom* atom, const NeighList* nblist);
-  ~MESONTList() {};
+  ~MESONTList() = default;;
   //list of segments
   const std::vector<std::array<int,2>>& get_segments() const;
   //list of triplets
@@ -199,7 +195,7 @@ MESONTList::MESONTList(const Atom* atom, const NeighList* nblist) {
       index_list.push_back(i);
       index_list_b[i] = index_list.size() - 1;
       int idx = i;
-      while (1) {
+      while (true) {
         idx = chain_list[idx][1];
         if (idx == cnt_end || idx == domain_end) break;
         else index_list.push_back(idx);
@@ -354,14 +350,11 @@ void PairMESONTTPM::compute(int eflag, int vflag) {
     int i = list->ilist[ii];
     if (Lmax < l[i]) Lmax = l[i];
   }
-  double Rcut_min = std::max(2.0*Lmax, std::sqrt(0.5*Lmax*Lmax +
-   std::pow((2.0*RT + TPBRcutoff),2)));
+  double Rcut_min = std::max(2.0*Lmax, std::sqrt(0.5*Lmax*Lmax + std::pow((2.0*RT + TPBRcutoff),2)));
   if (cut_global < Rcut_min) {
-    std::stringstream err;
-    err << "The selected cutoff is too small for the current system : " <<
-     "L_max = " << Lmax << ", R_max = " << RT << ", Rc = " << cut_global <<
-     ", Rcut_min = " << Rcut_min;
-    error->all(FLERR, err.str().c_str());
+    error->all(FLERR, "The selected cutoff is too small for the current system : "
+               "L_max = {:.8}, R_max = {:.8}, Rc = {:.8}, Rcut_min = {:.8}",
+               Lmax, RT, cut_global, Rcut_min);
   }
 
   //generate bonds and chain nblist
@@ -413,7 +406,7 @@ void PairMESONTTPM::compute(int eflag, int vflag) {
       int idx = ntlist.get_idx(i);
       buckling[idx] = b_sort[i];
     }
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
     for (int i = 0; i < nall; i++) {
       int idx = ntlist.get_idx(i);
       b_sort[i] = buckling[idx];
@@ -494,14 +487,11 @@ void PairMESONTTPM::compute(int eflag, int vflag) {
   }
 
   //check if cutoff is chosen correctly
-  Rcut_min = std::max(2.0*Lmax, std::sqrt(0.5*Lmax*Lmax +
-   std::pow((2.0*Rmax + TPBRcutoff),2)));
+  Rcut_min = std::max(2.0*Lmax, std::sqrt(0.5*Lmax*Lmax + std::pow((2.0*Rmax + TPBRcutoff),2)));
   if (cut_global < Rcut_min) {
-    std::stringstream err;
-    err << "The selected cutoff is too small for the current system : " <<
-     "L_max = " << Lmax << ", R_max = " << RT << ", Rc = " << cut_global <<
-     ", Rcut_min = " << Rcut_min;
-    error->all(FLERR, err.str().c_str());
+    error->all(FLERR, "The selected cutoff is too small for the current system : "
+               "L_max = {:.8}, R_max = {:.8}, Rc = {:.8}, Rcut_min = {:.8}",
+               Lmax, RT, cut_global, Rcut_min);
   }
 
   //convert from sorted representation
@@ -773,10 +763,7 @@ void PairMESONTTPM::write_data_all(FILE *fp) {
 
 void PairMESONTTPM::init_style() {
   //make sure that a full list is created (including ghost nodes)
-  int r = neighbor->request(this,instance_me);
-  neighbor->requests[r]->half = false;
-  neighbor->requests[r]->full = true;
-  neighbor->requests[r]->ghost = true;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
 }
 
 void* PairMESONTTPM::extract(const char *str, int &) {

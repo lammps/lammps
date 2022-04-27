@@ -27,26 +27,26 @@ namespace LAMMPS_NS {
 class FixWallRegionEES : public Fix {
  public:
   FixWallRegionEES(class LAMMPS *, int, char **);
-  ~FixWallRegionEES();
-  int setmask();
-  void init();
-  void setup(int);
-  void min_setup(int);
-  void post_force(int);
-  void post_force_respa(int, int, int);
-  void min_post_force(int);
-  double compute_scalar();
-  double compute_vector(int);
+  ~FixWallRegionEES() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void min_setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  void min_post_force(int) override;
+  double compute_scalar() override;
+  double compute_vector(int) override;
 
  private:
   class AtomVecEllipsoid *avec;
 
-  int iregion;
   double epsilon, sigma, cutoff;
   int eflag;
   double ewall[4], ewall_all[4];
   int nlevels_respa;
   char *idregion;
+  class Region *region;
 
   double coeff1, coeff2, coeff3, coeff4, offset;
   double coeff5, coeff6;
@@ -60,34 +60,3 @@ class FixWallRegionEES : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Region ID for fix wall/region/ees does not exist
-
-Self-explanatory.
-
-E: Fix wall/region/ees cutoff <= 0.0
-
-Self-explanatory.
-
-E: Fix wall/region/ees colloid requires atom style sphere
-
-Self-explanatory.
-
-E: Fix wall/region/ees colloid requires extended particles
-
-One of the particles has radius 0.0.
-
-E: Particle on or inside surface of region used in fix wall/region
-
-Particles must be "exterior" to the region surface in order for
-energy/force to be calculated.
-
-*/

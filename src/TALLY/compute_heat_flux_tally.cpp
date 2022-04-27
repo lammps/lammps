@@ -210,7 +210,7 @@ void ComputeHeatFluxTally::compute_vector()
   // collect contributions from ghost atoms
 
   if (force->newton_pair) {
-    comm->reverse_comm_compute(this);
+    comm->reverse_comm(this);
 
     const int nall = atom->nlocal + atom->nghost;
     for (int i = atom->nlocal; i < nall; ++i) {
@@ -281,6 +281,6 @@ void ComputeHeatFluxTally::compute_vector()
 
 double ComputeHeatFluxTally::memory_usage()
 {
-  double bytes = (nmax < 0) ? 0 : nmax * (double)comm_reverse * sizeof(double);
+  double bytes = (nmax < 0) ? 0 : nmax * (double) comm_reverse * sizeof(double);
   return bytes;
 }

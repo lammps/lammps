@@ -21,21 +21,14 @@
 #include "angle.h"
 #include "atom.h"
 #include "atom_vec_dielectric.h"
-#include "bond.h"
-#include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fft3d_wrap.h"
 #include "force.h"
 #include "gridcomm.h"
 #include "math_const.h"
 #include "memory.h"
-#include "neighbor.h"
-#include "pair.h"
-#include "remap_wrap.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -65,7 +58,7 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM,
 
 /* ---------------------------------------------------------------------- */
 
-PPPMDispDielectric::PPPMDispDielectric(LAMMPS *lmp) : PPPMDisp(lmp)
+PPPMDispDielectric::PPPMDispDielectric(LAMMPS *_lmp) : PPPMDisp(_lmp)
 {
   dipoleflag = 0; // turned off for now, until dipole works
   group_group_enable = 0;
@@ -76,7 +69,7 @@ PPPMDispDielectric::PPPMDispDielectric(LAMMPS *lmp) : PPPMDisp(lmp)
   phi = nullptr;
   potflag = 0;
 
-  avec = (AtomVecDielectric *) atom->style_match("dielectric");
+  avec = dynamic_cast<AtomVecDielectric *>( atom->style_match("dielectric"));
   if (!avec) error->all(FLERR,"pppm/dielectric requires atom style dielectric");
 }
 
@@ -152,8 +145,8 @@ void PPPMDispDielectric::compute(int eflag, int vflag)
 
     make_rho_c();
 
-    gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
-                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+                     REVERSE_RHO,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
     brick2fft(nxlo_in,nylo_in,nzlo_in,nxhi_in,nyhi_in,nzhi_in,
               density_brick,density_fft,work1,remap);
@@ -167,14 +160,14 @@ void PPPMDispDielectric::compute(int eflag, int vflag)
                  virial_1,vg,vg2,
                  u_brick,v0_brick,v1_brick,v2_brick,v3_brick,v4_brick,v5_brick);
 
-      gc->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD,
-                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),FORWARD_AD,
+                       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
       fieldforce_c_ad();
 
       if (vflag_atom)
-        gc->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM,
-                                gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+        gc->forward_comm(GridComm::KSPACE,this,6,sizeof(FFT_SCALAR),
+                         FORWARD_AD_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
     } else {
       poisson_ik(work1,work2,density_fft,fft1,fft2,
@@ -186,14 +179,14 @@ void PPPMDispDielectric::compute(int eflag, int vflag)
                  vdx_brick,vdy_brick,vdz_brick,virial_1,vg,vg2,
                  u_brick,v0_brick,v1_brick,v2_brick,v3_brick,v4_brick,v5_brick);
 
-      gc->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK,
-                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),FORWARD_IK,
+                       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
       fieldforce_c_ik();
 
       if (evflag_atom)
-        gc->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM,
-                                gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+        gc->forward_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
+                         FORWARD_IK_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     }
 
     if (evflag_atom) fieldforce_c_peratom();
@@ -210,8 +203,8 @@ void PPPMDispDielectric::compute(int eflag, int vflag)
 
     make_rho_g();
 
-    gc6->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO_GEOM,
-                             gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+    gc6->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+                      REVERSE_RHO_GEOM,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     brick2fft(nxlo_in_6,nylo_in_6,nzlo_in_6,nxhi_in_6,nyhi_in_6,nzhi_in_6,
               density_brick_g,density_fft_g,work1_6,remap_6);
@@ -226,14 +219,15 @@ void PPPMDispDielectric::compute(int eflag, int vflag)
                  u_brick_g,v0_brick_g,v1_brick_g,v2_brick_g,
                  v3_brick_g,v4_brick_g,v5_brick_g);
 
-      gc6->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD_GEOM,
-                               gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      gc6->forward_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+                        FORWARD_AD_GEOM,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_g_ad();
 
       if (vflag_atom)
-        gc6->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM_GEOM,
-                                 gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm(GridComm::KSPACE,this,6,sizeof(FFT_SCALAR),
+                          FORWARD_AD_PERATOM_GEOM,
+                          gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     } else {
       poisson_ik(work1_6,work2_6,density_fft_g,fft1_6,fft2_6,
@@ -246,14 +240,15 @@ void PPPMDispDielectric::compute(int eflag, int vflag)
                  u_brick_g,v0_brick_g,v1_brick_g,v2_brick_g,
                  v3_brick_g,v4_brick_g,v5_brick_g);
 
-      gc6->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK_GEOM,
-                               gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      gc6->forward_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),
+                        FORWARD_IK_GEOM,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_g_ik();
 
       if (evflag_atom)
-        gc6->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM_GEOM,
-                                 gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
+                          FORWARD_IK_PERATOM_GEOM,
+                          gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
     }
 
     if (evflag_atom) fieldforce_g_peratom();
@@ -270,8 +265,8 @@ void PPPMDispDielectric::compute(int eflag, int vflag)
 
     make_rho_a();
 
-    gc6->reverse_comm_kspace(this,7,sizeof(FFT_SCALAR),REVERSE_RHO_ARITH,
-                             gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+    gc6->reverse_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
+                      REVERSE_RHO_ARITH,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     brick2fft_a();
 
@@ -300,14 +295,15 @@ void PPPMDispDielectric::compute(int eflag, int vflag)
                     u_brick_a4,v0_brick_a4,v1_brick_a4,v2_brick_a4,
                     v3_brick_a4,v4_brick_a4,v5_brick_a4);
 
-      gc6->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_AD_ARITH,
-                               gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      gc6->forward_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
+                        FORWARD_AD_ARITH,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_a_ad();
 
       if (evflag_atom)
-        gc6->forward_comm_kspace(this,42,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM_ARITH,
-                                 gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm(GridComm::KSPACE,this,42,sizeof(FFT_SCALAR),
+                          FORWARD_AD_PERATOM_ARITH,
+                          gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     }  else {
       poisson_ik(work1_6,work2_6,density_fft_a3,fft1_6,fft2_6,
@@ -341,14 +337,15 @@ void PPPMDispDielectric::compute(int eflag, int vflag)
                     u_brick_a4,v0_brick_a4,v1_brick_a4,v2_brick_a4,
                     v3_brick_a4,v4_brick_a4,v5_brick_a4);
 
-      gc6->forward_comm_kspace(this,21,sizeof(FFT_SCALAR),FORWARD_IK_ARITH,
-                               gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      gc6->forward_comm(GridComm::KSPACE,this,21,sizeof(FFT_SCALAR),
+                        FORWARD_IK_ARITH,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_a_ik();
 
       if (evflag_atom)
-        gc6->forward_comm_kspace(this,49,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM_ARITH,
-                                 gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm(GridComm::KSPACE,this,49,sizeof(FFT_SCALAR),
+                          FORWARD_IK_PERATOM_ARITH,
+                          gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
     }
 
     if (evflag_atom) fieldforce_a_peratom();
@@ -365,8 +362,8 @@ void PPPMDispDielectric::compute(int eflag, int vflag)
 
     make_rho_none();
 
-    gc6->reverse_comm_kspace(this,nsplit_alloc,sizeof(FFT_SCALAR),REVERSE_RHO_NONE,
-                             gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+    gc6->reverse_comm(GridComm::KSPACE,this,nsplit_alloc,sizeof(FFT_SCALAR),
+                      REVERSE_RHO_NONE,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     brick2fft_none();
 
@@ -380,16 +377,15 @@ void PPPMDispDielectric::compute(int eflag, int vflag)
         n += 2;
       }
 
-      gc6->forward_comm_kspace(this,1*nsplit_alloc,sizeof(FFT_SCALAR),
-                               FORWARD_AD_NONE,
-                               gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      gc6->forward_comm(GridComm::KSPACE,this,1*nsplit_alloc,sizeof(FFT_SCALAR),
+                        FORWARD_AD_NONE,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_none_ad();
 
       if (vflag_atom)
-        gc6->forward_comm_kspace(this,6*nsplit_alloc,sizeof(FFT_SCALAR),
-                                 FORWARD_AD_PERATOM_NONE,
-                                 gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm(GridComm::KSPACE,this,6*nsplit_alloc,sizeof(FFT_SCALAR),
+                          FORWARD_AD_PERATOM_NONE,
+                          gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     } else {
       int n = 0;
@@ -402,16 +398,15 @@ void PPPMDispDielectric::compute(int eflag, int vflag)
         n += 2;
       }
 
-      gc6->forward_comm_kspace(this,3*nsplit_alloc,sizeof(FFT_SCALAR),
-                               FORWARD_IK_NONE,
-                               gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      gc6->forward_comm(GridComm::KSPACE,this,3*nsplit_alloc,sizeof(FFT_SCALAR),
+                        FORWARD_IK_NONE,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_none_ik();
 
       if (evflag_atom)
-        gc6->forward_comm_kspace(this,7*nsplit_alloc,sizeof(FFT_SCALAR),
-                                 FORWARD_IK_PERATOM_NONE,
-                                 gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm(GridComm::KSPACE,this,7*nsplit_alloc,sizeof(FFT_SCALAR),
+                          FORWARD_IK_PERATOM_NONE,
+                          gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
     }
 
     if (evflag_atom) fieldforce_none_peratom();

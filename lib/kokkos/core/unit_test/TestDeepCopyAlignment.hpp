@@ -296,7 +296,7 @@ struct TestDeepCopyScalarConversion {
 
     int64_t errors = 0;
     Kokkos::deep_copy(errors, error_count);
-    ASSERT_TRUE(errors == 0);
+    ASSERT_EQ(errors, 0);
 
     Kokkos::deep_copy(view_s1_1d, static_cast<Scalar1>(0));
     Kokkos::deep_copy(view_s1_2d, static_cast<Scalar1>(0));
@@ -306,7 +306,7 @@ struct TestDeepCopyScalarConversion {
                                              Kokkos::IndexType<int64_t>>(0, N0),
                          *this);
     Kokkos::deep_copy(errors, error_count);
-    ASSERT_TRUE(errors > 0);
+    ASSERT_GT(errors, 0);
 
     Kokkos::deep_copy(error_count, 0);
     Kokkos::deep_copy(TEST_EXECSPACE(), view_s1_1d, view_s2_1d);
@@ -318,7 +318,7 @@ struct TestDeepCopyScalarConversion {
                          *this);
 
     Kokkos::deep_copy(errors, error_count);
-    ASSERT_TRUE(errors == 0);
+    ASSERT_EQ(errors, 0);
   }
 };
 }  // namespace Impl

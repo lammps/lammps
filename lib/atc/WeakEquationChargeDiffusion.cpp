@@ -19,7 +19,7 @@ WeakEquationChargeDiffusion::WeakEquationChargeDiffusion()
 //--------------------------------------------------------------
 //  Destructor
 //--------------------------------------------------------------
-WeakEquationChargeDiffusion::~WeakEquationChargeDiffusion(void)
+WeakEquationChargeDiffusion::~WeakEquationChargeDiffusion()
 {}
 //---------------------------------------------------------------------
 //   compute capacity
@@ -36,4 +36,4 @@ void WeakEquationChargeDiffusion::M_integrand(
 }
 }; // end namespace
 
-  
+

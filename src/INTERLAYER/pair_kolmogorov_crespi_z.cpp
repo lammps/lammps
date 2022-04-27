@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -30,6 +29,8 @@
 #include "force.h"
 #include "memory.h"
 #include "neigh_list.h"
+#include "neighbor.h"
+#include "potential_file_reader.h"
 
 #include <cmath>
 #include <cstring>
@@ -45,14 +46,15 @@ PairKolmogorovCrespiZ::PairKolmogorovCrespiZ(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   restartinfo = 0;
+  manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
+  unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
   // initialize element to parameter maps
   nelements = 0;
   elements = nullptr;
   nparams = maxparam = 0;
   params = nullptr;
-  elem2param = nullptr;
-  map = nullptr;
 
   // always compute energy offset
   offset_flag = 1;
@@ -65,7 +67,6 @@ PairKolmogorovCrespiZ::~PairKolmogorovCrespiZ()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    memory->destroy(cut);
     memory->destroy(offset);
   }
 
@@ -77,14 +78,14 @@ PairKolmogorovCrespiZ::~PairKolmogorovCrespiZ()
 
 void PairKolmogorovCrespiZ::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair, fpair1;
-  double rsq,r,rhosq,exp1,exp2,r6,r8;
-  double frho,sumC,sumC2,sumCff,fsum,rdsq;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i, j, ii, jj, inum, jnum, itype, jtype;
+  double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair, fpair1;
+  double rsq, r, rhosq, exp1, exp2, r6, r8;
+  double frho, sumC, sumC2, sumCff, fsum, rdsq;
+  int *ilist, *jlist, *numneigh, **firstneigh;
 
   evdwl = 0.0;
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -115,52 +116,60 @@ void PairKolmogorovCrespiZ::compute(int eflag, int vflag)
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
       // rho^2 = r^2 - (n,r) = r^2 - z^2
-      rhosq = delx*delx + dely*dely;
-      rsq = rhosq + delz*delz;
+      rhosq = delx * delx + dely * dely;
+      rsq = rhosq + delz * delz;
 
       if (rsq < cutsq[itype][jtype]) {
 
         int iparam_ij = elem2param[map[itype]][map[jtype]];
-        Param& p = params[iparam_ij];
+        Param &p = params[iparam_ij];
 
         r = sqrt(rsq);
-        r6 = rsq*rsq*rsq;
-        r8 = r6*rsq;
-        rdsq = rhosq*p.delta2inv; // (rho/delta)^2
+        r6 = rsq * rsq * rsq;
+        r8 = r6 * rsq;
+        rdsq = rhosq * p.delta2inv;    // (rho/delta)^2
 
         // store exponents
-        exp1 = exp(-p.lambda*(r-p.z0));
+        exp1 = exp(-p.lambda * (r - p.z0));
         exp2 = exp(-rdsq);
 
         // note that f(rho_ij) equals f(rho_ji) as normals are all along z
-        sumC = p.C0+p.C2*rdsq+p.C4*rdsq*rdsq;
-        sumC2 = (2*p.C2+4*p.C4*rdsq)*p.delta2inv;
-        frho = exp2*sumC;
-        sumCff = p.C + 2*frho;
+        sumC = p.C0 + p.C2 * rdsq + p.C4 * rdsq * rdsq;
+        sumC2 = (2 * p.C2 + 4 * p.C4 * rdsq) * p.delta2inv;
+        frho = exp2 * sumC;
+        sumCff = p.C + 2 * frho;
 
         // derivatives
-        fpair = -6.0*p.A*p.z06/r8+p.lambda*exp1/r*sumCff;
-        fpair1 = exp1*exp2*(4.0*p.delta2inv*sumC-2.0*sumC2);
+        fpair = -6.0 * p.A * p.z06 / r8 + p.lambda * exp1 / r * sumCff;
+        fpair1 = exp1 * exp2 * (4.0 * p.delta2inv * sumC - 2.0 * sumC2);
         fsum = fpair + fpair1;
 
-        f[i][0] += delx*fsum;
-        f[i][1] += dely*fsum;
+        f[i][0] += delx * fsum;
+        f[i][1] += dely * fsum;
         // fi_z does not contain contributions from df/dr
         // because rho_ij does not depend on z_i or z_j
-        f[i][2] += delz*fpair;
+        f[i][2] += delz * fpair;
         if (newton_pair || j < nlocal) {
-          f[j][0] -= delx*fsum;
-          f[j][1] -= dely*fsum;
-          f[j][2] -= delz*fpair;
+          f[j][0] -= delx * fsum;
+          f[j][1] -= dely * fsum;
+          f[j][2] -= delz * fpair;
         }
 
-        if (eflag) {
-          evdwl = -p.A*p.z06/r6+ exp1*sumCff - offset[itype][jtype];
-        }
+        if (eflag) { evdwl = -p.A * p.z06 / r6 + exp1 * sumCff - offset[itype][jtype]; }
 
         if (evflag) {
-          ev_tally_xyz(i,j,nlocal,newton_pair,evdwl,0,
-                       fsum,fsum,fpair,delx,dely,delz);
+          ev_tally(i, j, nlocal, newton_pair, evdwl, 0.0, fpair, delx, dely, delz);
+          if (vflag_either) {
+            double fi[3], fj[3];
+            fi[0] = delx * fpair1;
+            fi[1] = dely * fpair1;
+            fi[2] = 0;
+            fj[0] = -delx * fpair1;
+            fj[1] = -dely * fpair1;
+            fj[2] = 0;
+            v_tally2_newton(i, fi, x[i]);
+            v_tally2_newton(j, fj, x[j]);
+          }
         }
       }
     }
@@ -176,17 +185,15 @@ void PairKolmogorovCrespiZ::compute(int eflag, int vflag)
 void PairKolmogorovCrespiZ::allocate()
 {
   allocated = 1;
-  int n = atom->ntypes;
+  int n = atom->ntypes + 1;
 
-  memory->create(setflag,n+1,n+1,"pair:setflag");
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
+  memory->create(setflag, n, n, "pair:setflag");
+  for (int i = 1; i < n; i++)
+    for (int j = i; j < n; j++) setflag[i][j] = 0;
 
-  memory->create(cutsq,n+1,n+1,"pair:cutsq");
-  memory->create(cut,n+1,n+1,"pair:cut");
-  memory->create(offset,n+1,n+1,"pair:offset");
-  map = new int[atom->ntypes+1];
+  memory->create(cutsq, n, n, "pair:cutsq");
+  memory->create(offset, n, n, "pair:offset");
+  map = new int[n];
 }
 
 /* ----------------------------------------------------------------------
@@ -195,20 +202,11 @@ void PairKolmogorovCrespiZ::allocate()
 
 void PairKolmogorovCrespiZ::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
-  if (strcmp(force->pair_style,"hybrid/overlay")!=0)
-    error->all(FLERR,"ERROR: requires hybrid/overlay pair_style");
+  if (narg != 1) error->all(FLERR, "Illegal pair_style command");
+  if (strcmp(force->pair_style, "hybrid/overlay") != 0)
+    error->all(FLERR, "ERROR: requires hybrid/overlay pair_style");
 
-  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
-
-  // reset cutoffs that have been explicitly set
-
-  if (allocated) {
-    int i,j;
-    for (i = 1; i <= atom->ntypes; i++)
-      for (j = i; j <= atom->ntypes; j++)
-        if (setflag[i][j]) cut[i][j] = cut_global;
-  }
+  cut_global = utils::numeric(FLERR, arg[0], false, lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -219,29 +217,39 @@ void PairKolmogorovCrespiZ::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
 
-  int ilo,ihi,jlo,jhi;
-  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
-  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
+  int ilo, ihi, jlo, jhi;
+  utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi, error);
+  utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
 
-  map_element2type(narg-3,arg+3,false);
+  map_element2type(narg - 3, arg + 3, false);
   read_file(arg[2]);
 
   // set setflag only for i,j pairs where both are mapped to elements
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
-    for (int j = MAX(jlo,i); j <= jhi; j++) {
-      if ((map[i] >=0) && (map[j] >= 0)) {
-        cut[i][j] = cut_global;
+    for (int j = MAX(jlo, i); j <= jhi; j++) {
+      if ((map[i] >= 0) && (map[j] >= 0)) {
         setflag[i][j] = 1;
         count++;
       }
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
 }
 
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairKolmogorovCrespiZ::init_style()
+{
+  if (force->newton_pair == 0)
+    error->all(FLERR, "Pair style kolmogorov/crespi/z requires newton pair on");
+
+  neighbor->add_request(this);
+}
 
 /* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
@@ -249,18 +257,18 @@ void PairKolmogorovCrespiZ::coeff(int narg, char **arg)
 
 double PairKolmogorovCrespiZ::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
-  if (!offset_flag)
-    error->all(FLERR,"Must use 'pair_modify shift yes' with this pair style");
+  if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
+  if (!offset_flag) error->all(FLERR, "Must use 'pair_modify shift yes' with this pair style");
 
-  if (offset_flag && (cut[i][j] > 0.0)) {
+  if (offset_flag && (cut_global > 0.0)) {
     int iparam_ij = elem2param[map[i]][map[j]];
-    Param& p = params[iparam_ij];
-    offset[i][j] = -p.A*pow(p.z0/cut[i][j],6);
-  } else offset[i][j] = 0.0;
+    Param &p = params[iparam_ij];
+    offset[i][j] = -p.A * pow(p.z0 / cut_global, 6);
+  } else
+    offset[i][j] = 0.0;
   offset[j][i] = offset[i][j];
 
-  return cut[i][j];
+  return cut_global;
 }
 
 /* ----------------------------------------------------------------------
@@ -269,143 +277,116 @@ double PairKolmogorovCrespiZ::init_one(int i, int j)
 
 void PairKolmogorovCrespiZ::read_file(char *filename)
 {
-  int params_per_line = 11;
-  char **words = new char*[params_per_line+1];
   memory->sfree(params);
   params = nullptr;
   nparams = maxparam = 0;
 
   // open file on proc 0
 
-  FILE *fp;
   if (comm->me == 0) {
-    fp = utils::open_potential(filename,lmp,nullptr);
-    if (fp == nullptr)
-      error->one(FLERR,"Cannot open KC potential file {}: {}",filename, utils::getsyserror());
-  }
+    PotentialFileReader reader(lmp, filename, "kolmogorov/crespi/z", unit_convert_flag);
+    char *line;
 
-  // read each line out of file, skipping blank lines or leading '#'
-  // store line of params if all 3 element tags are in element list
+    // transparently convert units for supported conversions
 
-  int i,j,n,m,nwords,ielement,jelement;
-  char line[MAXLINE],*ptr;
-  int eof = 0;
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY, unit_convert);
 
-  while (1) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == nullptr) {
-        eof = 1;
-        fclose(fp);
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
+    while ((line = reader.next_line(NPARAMS_PER_LINE))) {
 
-    // strip comment, skip line if blank
+      try {
+        ValueTokenizer values(line);
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
+        std::string iname = values.next_string();
+        std::string jname = values.next_string();
 
-    // concatenate additional lines until have params_per_line words
+        // ielement,jelement = 1st args
+        // if both args are in element list, then parse this line
+        // else skip to next entry in file
+        int ielement, jelement;
 
-    while (nwords < params_per_line) {
-      n = strlen(line);
-      if (comm->me == 0) {
-        ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == nullptr) {
-          eof = 1;
-          fclose(fp);
-        } else n = strlen(line) + 1;
+        for (ielement = 0; ielement < nelements; ielement++)
+          if (iname == elements[ielement]) break;
+        if (ielement == nelements) continue;
+        for (jelement = 0; jelement < nelements; jelement++)
+          if (jname == elements[jelement]) break;
+        if (jelement == nelements) continue;
+
+        // expand storage, if needed
+
+        if (nparams == maxparam) {
+          maxparam += DELTA;
+          params = (Param *) memory->srealloc(params, maxparam * sizeof(Param), "pair:params");
+
+          // make certain all addional allocated storage is initialized
+          // to avoid false positives when checking with valgrind
+
+          memset(params + nparams, 0, DELTA * sizeof(Param));
+        }
+
+        // load up parameter settings and error check their values
+
+        params[nparams].ielement = ielement;
+        params[nparams].jelement = jelement;
+        params[nparams].z0 = values.next_double();
+        params[nparams].C0 = values.next_double();
+        params[nparams].C2 = values.next_double();
+        params[nparams].C4 = values.next_double();
+        params[nparams].C = values.next_double();
+        params[nparams].delta = values.next_double();
+        params[nparams].lambda = values.next_double();
+        params[nparams].A = values.next_double();
+        // S provides a convenient scaling of all energies
+        params[nparams].S = values.next_double();
+
+      } catch (TokenizerException &e) {
+        error->one(FLERR, e.what());
       }
-      MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof) break;
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = utils::count_words(line);
+
+      // energies in meV further scaled by S
+      // S = 43.3634 meV = 1 kcal/mol
+
+      double meV = 1e-3 * params[nparams].S;
+      if (unit_convert) meV *= conversion_factor;
+
+      params[nparams].C *= meV;
+      params[nparams].A *= meV;
+      params[nparams].C0 *= meV;
+      params[nparams].C2 *= meV;
+      params[nparams].C4 *= meV;
+
+      // precompute some quantities
+      params[nparams].delta2inv = pow(params[nparams].delta, -2);
+      params[nparams].z06 = pow(params[nparams].z0, 6);
+
+      nparams++;
+      if (nparams >= pow(atom->ntypes, 3)) break;
     }
-
-    if (nwords != params_per_line)
-      error->all(FLERR,"Insufficient format in KC potential file");
-
-    // words = ptrs to all words in line
-
-    nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
-
-    // ielement,jelement = 1st args
-    // if these 2 args are in element list, then parse this line
-    // else skip to next line (continue)
-
-    for (ielement = 0; ielement < nelements; ielement++)
-      if (strcmp(words[0],elements[ielement]) == 0) break;
-    if (ielement == nelements) continue;
-    for (jelement = 0; jelement < nelements; jelement++)
-      if (strcmp(words[1],elements[jelement]) == 0) break;
-    if (jelement == nelements) continue;
-
-    // load up parameter settings and error check their values
-
-    if (nparams == maxparam) {
-      maxparam += DELTA;
-      params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-                                          "pair:params");
-
-      // make certain all addional allocated storage is initialized
-      // to avoid false positives when checking with valgrind
-
-      memset(params + nparams, 0, DELTA*sizeof(Param));
-    }
-
-    params[nparams].ielement = ielement;
-    params[nparams].jelement = jelement;
-    params[nparams].z0       = atof(words[2]);
-    params[nparams].C0       = atof(words[3]);
-    params[nparams].C2       = atof(words[4]);
-    params[nparams].C4       = atof(words[5]);
-    params[nparams].C        = atof(words[6]);
-    params[nparams].delta    = atof(words[7]);
-    params[nparams].lambda   = atof(words[8]);
-    params[nparams].A        = atof(words[9]);
-    // S provides a convenient scaling of all energies
-    params[nparams].S        = atof(words[10]);
-
-    // energies in meV further scaled by S
-    double meV = 1.0e-3*params[nparams].S;
-    params[nparams].C *= meV;
-    params[nparams].A *= meV;
-    params[nparams].C0 *= meV;
-    params[nparams].C2 *= meV;
-    params[nparams].C4 *= meV;
-
-    // precompute some quantities
-    params[nparams].delta2inv = pow(params[nparams].delta,-2);
-    params[nparams].z06 = pow(params[nparams].z0,6);
-
-    nparams++;
-    if (nparams >= pow(atom->ntypes,3)) break;
   }
+  MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
+  MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
+
+  if (comm->me != 0) {
+    params = (Param *) memory->srealloc(params, maxparam * sizeof(Param), "pair:params");
+  }
+
+  MPI_Bcast(params, maxparam * sizeof(Param), MPI_BYTE, 0, world);
+
   memory->destroy(elem2param);
-  memory->create(elem2param,nelements,nelements,"pair:elem2param");
-  for (i = 0; i < nelements; i++) {
-    for (j = 0; j < nelements; j++) {
-      n = -1;
-      for (m = 0; m < nparams; m++) {
+  memory->create(elem2param, nelements, nelements, "pair:elem2param");
+  for (int i = 0; i < nelements; i++) {
+    for (int j = 0; j < nelements; j++) {
+      int n = -1;
+      for (int m = 0; m < nparams; m++) {
         if (i == params[m].ielement && j == params[m].jelement) {
-          if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
+          if (n >= 0) error->all(FLERR, "Potential file has duplicate entry");
           n = m;
         }
       }
-      if (n < 0) error->all(FLERR,"Potential file is missing an entry");
+      if (n < 0) error->all(FLERR, "Potential file is missing an entry");
       elem2param[i][j] = n;
     }
   }
-  delete [] words;
 }
 
 /* ---------------------------------------------------------------------- */

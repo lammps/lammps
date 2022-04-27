@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -17,14 +16,14 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_lb_viscous.h"
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "respa.h"
 #include "error.h"
 #include "fix_lb_fluid.h"
-#include "modify.h"
 #include "group.h"
+#include "modify.h"
+#include "respa.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -32,36 +31,26 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixLbViscous::FixLbViscous(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+    Fix(lmp, narg, arg), fix_lb_fluid(nullptr)
 {
-  if (narg < 3) error->all(FLERR,"Illegal fix lb/viscous command");
+  if (narg < 3) error->all(FLERR, "Illegal fix lb/viscous command");
 
   int groupbit_lb_fluid = 0;
 
-  for (int ifix=0; ifix<modify->nfix; ifix++)
-    if (strcmp(modify->fix[ifix]->style,"lb/fluid")==0) {
-      fix_lb_fluid = (FixLbFluid *)modify->fix[ifix];
-      groupbit_lb_fluid = group->bitmask[modify->fix[ifix]->igroup];
-    }
-
-  if (groupbit_lb_fluid == 0)
-    error->all(FLERR,"the lb/fluid fix must also be used if using the lb/viscous fix");
+  auto ifix = modify->get_fix_by_style("lb/fluid");
+  if (ifix.size() > 0) {
+    fix_lb_fluid = (FixLbFluid *) ifix[0];
+    groupbit_lb_fluid = group->bitmask[ifix[0]->igroup];
+  } else {
+    error->all(FLERR, "the lb/fluid fix must also be used if using the lb/viscous fix");
+  }
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  for (int j=0; j<nlocal; j++) {
+  for (int j = 0; j < nlocal; j++) {
     if ((mask[j] & groupbit) && !(mask[j] & groupbit_lb_fluid))
-      error->one(FLERR,"to apply a fluid force onto an atom, the lb/fluid fix must be used for that atom.");
+      error->one(FLERR, "Atoms must be in the fix lb/fluid group to apply a fluid force to them");
   }
-
-
-}
-
-/* ---------------------------------------------------------------------- */
-
-FixLbViscous::~FixLbViscous()
-{
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -79,24 +68,21 @@ int FixLbViscous::setmask()
 
 void FixLbViscous::init()
 {
-
-  if (utils::strmatch(update->integrate_style,"^respa"))
+  if (utils::strmatch(update->integrate_style, "^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
-
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixLbViscous::setup(int vflag)
 {
-  if (utils::strmatch(update->integrate_style,"^verlet"))
+  if (utils::strmatch(update->integrate_style, "^verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
-    post_force_respa(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa - 1);
+    post_force_respa(vflag, nlevels_respa - 1, 0);
+    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa - 1);
   }
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -115,25 +101,43 @@ void FixLbViscous::post_force(int /*vflag*/)
   // magnitude depends on atom type
 
   double **f = atom->f;
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
+  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+  double *massp = fix_lb_fluid->massp;
+  double massfactor;
   double **hydroF = fix_lb_fluid->hydroF;
 
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
-      f[i][0] += hydroF[i][0];
-      f[i][1] += hydroF[i][1];
-      f[i][2] += hydroF[i][2];
+  if (rmass) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+        massfactor = rmass[i] / (rmass[i] + massp[i]);
 
-    }
+        f[i][0] = hydroF[i][0] + massfactor * f[i][0];
+        f[i][1] = hydroF[i][1] + massfactor * f[i][1];
+        f[i][2] = hydroF[i][2] + massfactor * f[i][2];
+      }
 
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+        massfactor = mass[type[i]] / (mass[type[i]] + massp[i]);
+
+        f[i][0] = hydroF[i][0] + massfactor * f[i][0];
+        f[i][1] = hydroF[i][1] + massfactor * f[i][1];
+        f[i][2] = hydroF[i][2] + massfactor * f[i][2];
+      }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixLbViscous::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
-  if (ilevel == nlevels_respa-1) post_force(vflag);
+  if (ilevel == nlevels_respa - 1) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -142,4 +146,3 @@ void FixLbViscous::min_post_force(int vflag)
 {
   post_force(vflag);
 }
-

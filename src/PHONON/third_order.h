@@ -18,8 +18,8 @@ namespace LAMMPS_NS {
 class ThirdOrder : public Command {
  public:
   ThirdOrder(class LAMMPS *);
-  virtual ~ThirdOrder();
-  void command(int, char **);
+  ~ThirdOrder() override;
+  void command(int, char **) override;
   void setup();
 
  protected:
@@ -34,17 +34,18 @@ class ThirdOrder : public Command {
 
   int nvec;    // local atomic dof = length of xvec
 
-  void update_force();
-  void force_clear();
+  virtual void update_force();
+  virtual void force_clear();
   virtual void openfile(const char *filename);
 
- private:
+ protected:
   void options(int, char **);
   void create_groupmap();
   void calculateMatrix();
   void convert_units(const char *style);
   void displace_atom(int local_idx, int direction, int magnitude);
   void writeMatrix(double *, bigint, int, bigint, int);
+  void getNeighbortags();
 
   double conversion;
   double conv_energy;
@@ -53,6 +54,7 @@ class ThirdOrder : public Command {
   double del;
   int igroup, groupbit;
   bigint dynlen;
+  bigint dynlenb;
   int scaleflag;
   int me;
   bigint gcount;    // number of atoms in group
@@ -62,6 +64,11 @@ class ThirdOrder : public Command {
   int binaryflag;     // 1 if dump file is written binary, 0 no
   int file_opened;    // 1 if openfile method has been called, 0 no
   int file_flag;      // 1 custom file name, 0 dynmat.dat
+  int folded;         // 1 if system is folded, 0 no
+
+  class NeighList *list;
+  int *ijnum;
+  bigint **neighbortags;
 
   FILE *fp;
 };

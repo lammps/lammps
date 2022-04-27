@@ -38,7 +38,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{NONE,FINAL,DELTA,SCALE,VEL,ERATE,TRATE,VOLUME,WIGGLE,VARIABLE};
+enum{NONE=0,FINAL,DELTA,SCALE,VEL,ERATE,TRATE,VOLUME,WIGGLE,VARIABLE};
 enum{ONE_FROM_ONE,ONE_FROM_TWO,TWO_FROM_ONE};
 
 /* ---------------------------------------------------------------------- */
@@ -143,7 +143,7 @@ void FixDeformKokkos::end_of_step()
   // set new box size for VOLUME dims that are linked to other dims
   // NOTE: still need to set h_rate for these dims
 
-  for (int i = 0; i < 3; i++) {
+  for (i = 0; i < 3; i++) {
     if (set[i].style != VOLUME) continue;
 
     if (set[i].substyle == ONE_FROM_ONE) {
@@ -227,7 +227,7 @@ void FixDeformKokkos::end_of_step()
       // tilt_target can be large positive or large negative value
       // add/subtract box lengths until tilt_target is closest to current value
 
-      int idenom;
+      int idenom = 0;
       if (i == 5) idenom = 0;
       else if (i == 4) idenom = 0;
       else if (i == 3) idenom = 1;
@@ -319,7 +319,7 @@ void FixDeformKokkos::end_of_step()
     //  if (mask[i] & groupbit)
     //    domain->x2lamda(x[i],x[i]);
 
-    if (nrigid)
+    if (rfix.size() > 0)
       error->all(FLERR,"Cannot (yet) use rigid bodies with fix deform and Kokkos");
       //for (i = 0; i < nrigid; i++)
       //  modify->fix[rfix[i]]->deform(0);

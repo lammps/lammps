@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -20,6 +19,7 @@ PairStyle(yukawa/kk/host,PairYukawaKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_YUKAWA_KOKKOS_H
 #define LMP_PAIR_YUKAWA_KOKKOS_H
 
@@ -38,11 +38,11 @@ class PairYukawaKokkos : public PairYukawa {
   typedef ArrayTypes<DeviceType> AT;
 
   PairYukawaKokkos(class LAMMPS *);
-  virtual ~PairYukawaKokkos();
+  ~PairYukawaKokkos() override;
 
-  void compute(int, int);
-  void init_style();
-  double init_one(int,int);
+  void compute(int, int) override;
+  void init_style() override;
+  double init_one(int,int) override;
 
   struct params_yukawa {
     KOKKOS_INLINE_FUNCTION
@@ -95,7 +95,7 @@ class PairYukawaKokkos : public PairYukawa {
   int neighflag;
   int nlocal,nall,eflag,vflag;
 
-  void allocate();
+  void allocate() override;
   friend struct PairComputeFunctor<PairYukawaKokkos,FULL,true>;
   friend struct PairComputeFunctor<PairYukawaKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairYukawaKokkos,HALFTHREAD,true>;
@@ -119,24 +119,3 @@ class PairYukawaKokkos : public PairYukawa {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Cannot use Kokkos pair style with rRESPA inner/middle
-
-UNDOCUMENTED
-
-E: Cannot use chosen neighbor list style with yukawa/kk
-
-That style is not supported by Kokkos.
-
-U: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-U: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

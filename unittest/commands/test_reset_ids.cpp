@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "../testing/core.h"
 #include "atom.h"
 #include "fmt/format.h"
 #include "info.h"
@@ -21,7 +22,6 @@
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "../testing/core.h"
 
 #include <cstdio>
 #include <mpi.h>
@@ -32,10 +32,8 @@ bool verbose = false;
 using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
-using ::testing::MatchesRegex;
 
 #define GETIDX(i) lmp->atom->map(i)
-
 
 #define STRINGIFY(val) XSTR(val)
 #define XSTR(val) #val
@@ -48,8 +46,8 @@ protected:
         LAMMPSTest::SetUp();
         if (info->has_style("atom", "full")) {
             BEGIN_HIDE_OUTPUT();
-            command("variable input_dir index " STRINGIFY(TEST_INPUT_FOLDER));
-            command("include ${input_dir}/in.fourmol");
+            command("variable input_dir index \"" STRINGIFY(TEST_INPUT_FOLDER) "\"");
+            command("include \"${input_dir}/in.fourmol\"");
             END_HIDE_OUTPUT();
         }
     }
@@ -638,10 +636,10 @@ TEST_F(ResetIDsTest, DeathTests)
     TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
                  command("reset_mol_ids all compress"););
 
-    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
+    TEST_FAILURE(".*ERROR: Expected boolean parameter instead of 'xxx'.*",
                  command("reset_mol_ids all compress xxx"););
     TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*", command("reset_mol_ids all single"););
-    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
+    TEST_FAILURE(".*ERROR: Expected boolean parameter instead of 'xxx'.*",
                  command("reset_mol_ids all single xxx"););
 }
 
@@ -687,7 +685,7 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (Info::get_mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
+    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. "
                      "Death tests will be skipped\n";
 

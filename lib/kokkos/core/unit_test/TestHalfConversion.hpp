@@ -53,7 +53,7 @@ void test_half_conversion_type() {
   T base                         = static_cast<T>(3.3);
   Kokkos::Experimental::half_t a = Kokkos::Experimental::cast_to_half(base);
   T b                            = Kokkos::Experimental::cast_from_half<T>(a);
-  ASSERT_TRUE((double(b - base) / double(base)) < epsilon);
+  ASSERT_LT((double(b - base) / double(base)), epsilon);
 
 // TODO: Remove ifndef once https://github.com/kokkos/kokkos/pull/3480 merges
 #ifndef KOKKOS_ENABLE_SYCL
@@ -67,7 +67,7 @@ void test_half_conversion_type() {
       });
 
   Kokkos::deep_copy(b, b_v);
-  ASSERT_TRUE((double(b - base) / double(base)) < epsilon);
+  ASSERT_LT((double(b - base) / double(base)), epsilon);
 #endif  // KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
 #endif  // KOKKOS_ENABLE_SYCL
 }

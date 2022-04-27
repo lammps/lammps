@@ -90,7 +90,7 @@ void FixRigidSmallOMP::initial_integrate(int vflag)
   // forward communicate updated info of all bodies
 
   commflag = INITIAL;
-  comm->forward_comm_fix(this,26);
+  comm->forward_comm(this,26);
 
   // set coords/orient and velocity/rotation of atoms in rigid bodies
 
@@ -111,7 +111,7 @@ void FixRigidSmallOMP::initial_integrate(int vflag)
 void FixRigidSmallOMP::compute_forces_and_torques()
 {
   double * const * _noalias const x = atom->x;
-  const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
+  const auto * _noalias const f = (dbl3_t *) atom->f[0];
   const double * const * const torque_one = atom->torque;
   const int nlocal = atom->nlocal;
   const int nthreads=comm->nthreads;
@@ -177,7 +177,7 @@ void FixRigidSmallOMP::compute_forces_and_torques()
   // reverse communicate fcm, torque of all bodies
 
   commflag = FORCE_TORQUE;
-  comm->reverse_comm_fix(this,6);
+  comm->reverse_comm(this,6);
 
   // include Langevin thermostat forces and torques
 
@@ -247,7 +247,7 @@ void FixRigidSmallOMP::final_integrate()
   // forward communicate updated info of all bodies
 
   commflag = FINAL;
-  comm->forward_comm_fix(this,10);
+  comm->forward_comm(this,10);
 
   // set velocity/rotation of atoms in rigid bodies
   // virial is already setup from initial_integrate
@@ -273,9 +273,9 @@ void FixRigidSmallOMP::final_integrate()
 template <int TRICLINIC, int EVFLAG>
 void FixRigidSmallOMP::set_xv_thr()
 {
-  dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
-  const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
+  auto * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const v = (dbl3_t *) atom->v[0];
+  const auto * _noalias const f = (dbl3_t *) atom->f[0];
   const double * _noalias const rmass = atom->rmass;
   const double * _noalias const mass = atom->mass;
   const int * _noalias const type = atom->type;
@@ -468,9 +468,9 @@ void FixRigidSmallOMP::set_xv_thr()
 template <int TRICLINIC, int EVFLAG>
 void FixRigidSmallOMP::set_v_thr()
 {
-  dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
-  const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
+  auto * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const v = (dbl3_t *) atom->v[0];
+  const auto * _noalias const f = (dbl3_t *) atom->f[0];
   const double * _noalias const rmass = atom->rmass;
   const double * _noalias const mass = atom->mass;
   const int * _noalias const type = atom->type;

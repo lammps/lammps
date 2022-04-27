@@ -22,14 +22,11 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "group.h"
 #include "kspace.h"
 #include "math_const.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
-#include "respa.h"
 #include "update.h"
 
 #include <cmath>
@@ -55,9 +52,7 @@ FixQEqSlater::FixQEqSlater(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"warn") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qeq/slater command");
-      if (strcmp(arg[iarg+1],"no") == 0) maxwarn = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) maxwarn = 1;
-      else error->all(FLERR,"Illegal fix qeq/slater command");
+      maxwarn = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix qeq/slater command");
   }
@@ -69,26 +64,15 @@ FixQEqSlater::FixQEqSlater(LAMMPS *lmp, int narg, char **arg) :
 
 void FixQEqSlater::init()
 {
-  if (!atom->q_flag)
-    error->all(FLERR,"Fix qeq/slater requires atom attribute q");
+  FixQEq::init();
 
-  ngroup = group->count(igroup);
-  if (ngroup == 0) error->all(FLERR,"Fix qeq/slater group has no atoms");
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix  = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 
   int ntypes = atom->ntypes;
   for (int i = 1; i <= ntypes; i++) {
     if (zeta[i] == 0.0)
       error->all(FLERR,"Invalid param file for fix qeq/slater");
   }
-
-  if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -157,9 +141,9 @@ void FixQEqSlater::init_matvec()
   }
 
   pack_flag = 2;
-  comm->forward_comm_fix(this); //Dist_vector(s);
+  comm->forward_comm(this); //Dist_vector(s);
   pack_flag = 3;
-  comm->forward_comm_fix(this); //Dist_vector(t);
+  comm->forward_comm(this); //Dist_vector(t);
 }
 
 /* ---------------------------------------------------------------------- */

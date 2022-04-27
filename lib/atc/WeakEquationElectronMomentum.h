@@ -12,9 +12,9 @@ namespace ATC{
 
  /**
    *  @class  WeakEquationElectronMomentum
-   *  @brief  Electron momentum 
+   *  @brief  Electron momentum
    *  rho v,t = div P  -->
-   *  int M rho v,t = int B P 
+   *  int M rho v,t = int B P
    */
 
   class WeakEquationElectronMomentum : public WeakEquation {
@@ -25,7 +25,7 @@ namespace ATC{
 
     // destructor
     virtual ~WeakEquationElectronMomentum();
-    
+
     /** density that used to form the mass matrix */
     virtual bool has_M_integrand(void) const {return true;}
     virtual void M_integrand(const FIELD_MATS &fields,
@@ -38,7 +38,7 @@ namespace ATC{
                              const GRAD_FIELD_MATS &grad_fields,
                              const Material * material,
                              DENS_MAT_VEC &flux) const ;
-    
+
     /** necessary interfaces */
     virtual std::set<std::string> needs_material_functions(void) const
     {
@@ -59,7 +59,7 @@ namespace ATC{
    *  @class  WeakEquationElectronMomentumDDM
    *  @brief  Electron momentum - drift diffusion
    *  rho v,t = div P  -->
-   *  int M rho v,t = int B P 
+   *  int M rho v,t = int B P
    */
 
   class WeakEquationElectronMomentumDDM : public WeakEquationElectronMomentum {
@@ -67,29 +67,29 @@ namespace ATC{
   public:
     // constructor
     WeakEquationElectronMomentumDDM();
-    
+
     // destructor
     virtual ~WeakEquationElectronMomentumDDM();
-    
+
     /** density that used to form the mass matrix */
     virtual void M_integrand(const FIELD_MATS &fields,
                              const Material * material,
                              DENS_MAT &density ) const ;
-    
+
     /** flux that is integrated with grad N as its weight */
     virtual bool has_B_integrand(void) const {return false;}
     virtual void B_integrand(const FIELD_MATS & /* fields */,
                              const GRAD_FIELD_MATS & /* grad_fields */,
                              const Material * /* material */,
                              DENS_MAT_VEC &/* flux */) const {};
-    
+
     /** flux that is integrated with N as its weight */
     virtual bool has_N_integrand(void) const {return true;}
     virtual bool N_integrand(const FIELD_MATS &fields,
                              const GRAD_FIELD_MATS &grad_fields,
                              const Material * material,
                              DENS_MAT &flux) const ;
-    
+
     /** necessary interfaces */
     virtual std::set<std::string> needs_material_functions(void) const
     {
@@ -100,7 +100,7 @@ namespace ATC{
       needs.insert("electric_displacement");
       return needs;
     }
-    
+
   protected:
     /** computes thermal stresses arising from convection */
     virtual void thermal_stress(const FIELD_MATS &fields,
@@ -112,6 +112,6 @@ namespace ATC{
     mutable DENS_MAT_VEC _dnCp_;
     mutable DENS_MAT_VEC _electricForce_;
   };
-  
+
 };
 #endif

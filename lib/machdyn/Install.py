@@ -17,11 +17,13 @@ parser = ArgumentParser(prog='Install.py',
 
 # settings
 
-version = '3.3.7'
+version = '3.4.0'
 tarball = "eigen.tar.gz"
 
 # known checksums for different Eigen versions. used to validate the download.
 checksums = { \
+              '3.4.0' : '4c527a9171d71a72a9d4186e65bea559', \
+              '3.3.9' : '609286804b0f79be622ccf7f9ff2b660', \
               '3.3.7' : '9e30f67e8531477de4117506fe44669b' \
 }
 
@@ -34,7 +36,7 @@ Syntax from src dir: make lib-smd args="-b"
 
 Syntax from lib dir: python Install.py -b
                  or: python Install.py -p /usr/include/eigen3"
-                 or: python Install.py -v 3.3.7 -b
+                 or: python Install.py -v 3.4.0 -b
 
 Example:
 
@@ -76,7 +78,7 @@ if pathflag:
 if buildflag:
   print("Downloading Eigen ...")
   eigentar = os.path.join(homepath, tarball)
-  url = "https://gitlab.com/libeigen/eigen/-/archive/%s/eigen-%s.tar.gz" %  (version,version)
+  url = "https://download.lammps.org/thirdparty/eigen-%s.tar.gz" %  version
   geturl(url, eigentar)
 
   # verify downloaded archive integrity via md5 checksum, if known.

@@ -14,34 +14,39 @@
 #include "atom.h"
 #include "info.h"
 #include "input.h"
-#include "variable.h"
 #include "library.h"
+#include "variable.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 #include <cmath>
 #include <cstring>
-#include <vector>
 #include <functional>
+#include <vector>
 
 #include "../testing/core.h"
 #include "../testing/systems/melt.h"
+
+#if defined(TEST_HAVE_PYTHON_DEVELOPMENT)
+#include <Python.h>
+#endif
 
 // location of '*.py' files required by tests
 #define STRINGIFY(val) XSTR(val)
 #define XSTR(val) #val
 std::string INPUT_FOLDER = STRINGIFY(TEST_INPUT_FOLDER);
 
-const char * LOREM_IPSUM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent metus.";
+const char *LOREM_IPSUM =
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent metus.";
 bool verbose = false;
 
 using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
-using ::testing::MatchesRegex;
-using ::testing::StrEq;
+using ::testing::ContainsRegex;
 using ::testing::Eq;
 using ::testing::HasSubstr;
+using ::testing::StrEq;
 
 class PythonPackageTest : public LAMMPSTest {
 protected:
@@ -84,8 +89,25 @@ TEST_F(PythonPackageTest, InvokeFunctionFromFile)
     auto output = CAPTURE_OUTPUT([&]() {
         command("python printnum invoke");
     });
-    ASSERT_THAT(output, HasSubstr("2.25\n"));
+    ASSERT_THAT(output, HasSubstr("2.25"));
 }
+
+#if defined(TEST_HAVE_PYTHON_DEVELOPMENT)
+TEST_F(PythonPackageTest, InvokeInitialized)
+{
+    // execute python function from file
+    HIDE_OUTPUT([&] {
+        command("python printnum file ${input_dir}/func.py");
+    });
+    ASSERT_TRUE(Py_IsInitialized());
+    HIDE_OUTPUT([&] {
+        command("clear");
+    });
+    ASSERT_TRUE(Py_IsInitialized());
+    lammps_python_finalize();
+    ASSERT_FALSE(Py_IsInitialized());
+}
+#endif
 
 TEST_F(PythonPackageTest, InvokeFunctionPassInt)
 {
@@ -115,7 +137,8 @@ TEST_F(PythonPackageTest, InvokeFunctionPassString)
     // execute python function, passing string as argument
     HIDE_OUTPUT([&] {
         command("variable val python bool_to_val");
-        command("python bool_to_val input 1 \"true\" format sf return v_val file ${input_dir}/func.py");
+        command(
+            "python bool_to_val input 1 \"true\" format sf return v_val file ${input_dir}/func.py");
     });
 
     ASSERT_EQ(get_variable_value("val"), 1.0);
@@ -126,7 +149,8 @@ TEST_F(PythonPackageTest, InvokeFunctionPassStringVariable)
     // execute python function, passing string variable as argument
     HIDE_OUTPUT([&] {
         command("variable val python bool_to_val");
-        command("python bool_to_val input 1 v_str format sf return v_val file ${input_dir}/func.py");
+        command(
+            "python bool_to_val input 1 v_str format sf return v_val file ${input_dir}/func.py");
     });
 
     HIDE_OUTPUT([&] {
@@ -147,7 +171,8 @@ TEST_F(PythonPackageTest, InvokeStringFunction)
     // execute python function, passing string variable as argument
     HIDE_OUTPUT([&] {
         command("variable str python val_to_bool");
-        command("python val_to_bool input 1 v_val format is return v_str file ${input_dir}/func.py");
+        command(
+            "python val_to_bool input 1 v_val format is return v_str file ${input_dir}/func.py");
     });
 
     HIDE_OUTPUT([&] {
@@ -185,7 +210,7 @@ TEST_F(PythonPackageTest, InvokeOtherFunctionFromFile)
     auto output = CAPTURE_OUTPUT([&] {
         command("python printtxt invoke");
     });
-    ASSERT_THAT(output, HasSubstr("sometext\n"));
+    ASSERT_THAT(output, HasSubstr("sometext"));
 }
 
 TEST_F(PythonPackageTest, InvokeFunctionThatUsesLAMMPSModule)
@@ -199,7 +224,7 @@ TEST_F(PythonPackageTest, InvokeFunctionThatUsesLAMMPSModule)
     auto output = CAPTURE_OUTPUT([&] {
         command("python getidxvar invoke");
     });
-    ASSERT_THAT(output, HasSubstr("2.25\n"));
+    ASSERT_THAT(output, HasSubstr("2.25"));
 }
 
 TEST_F(PythonPackageTest, python_variable)
@@ -213,7 +238,7 @@ TEST_F(PythonPackageTest, python_variable)
     std::string output = CAPTURE_OUTPUT([&] {
         command("print \"${sq}\"");
     });
-    ASSERT_THAT(output, MatchesRegex("print.*2.25.*"));
+    ASSERT_THAT(output, ContainsRegex("print.*\n.*2.25.*"));
 }
 
 TEST_F(PythonPackageTest, InlineFunction)
@@ -264,8 +289,7 @@ TEST_F(PythonPackageTest, RunSourceInline)
         command("python xyz source \"\"\"\n"
                 "from __future__ import print_function\n"
                 "print(2+2)\n"
-                "\"\"\""
-        );
+                "\"\"\"");
     });
 
     ASSERT_THAT(output, HasSubstr("4"));
@@ -285,11 +309,11 @@ TEST_F(FixPythonInvokeTest, end_of_step)
     auto output = CAPTURE_OUTPUT([&] {
         command("run 50");
     });
-
+    fprintf(stderr,"lines: %s\n",output.c_str());
     auto lines = utils::split_lines(output);
-    int count = 0;
+    int count  = 0;
 
-    for(auto & line : lines) {
+    for (auto &line : lines) {
         if (line == "PYTHON_END_OF_STEP") ++count;
     }
 
@@ -312,9 +336,9 @@ TEST_F(FixPythonInvokeTest, post_force)
     });
 
     auto lines = utils::split_lines(output);
-    int count = 0;
+    int count  = 0;
 
-    for(auto & line : lines) {
+    for (auto &line : lines) {
         if (line == "PYTHON_POST_FORCE") ++count;
     }
 

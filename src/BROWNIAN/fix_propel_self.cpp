@@ -23,14 +23,11 @@
 
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
-#include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "math_extra.h"
-#include "memory.h"
-#include "update.h"
 
+#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -103,7 +100,7 @@ void FixPropelSelf::init()
     error->all(FLERR, "Fix propel/self requires atom attribute mu with option dipole");
 
   if (mode == QUAT) {
-    avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+    avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
     if (!avec) error->all(FLERR, "Fix propel/self requires atom style ellipsoid with option quat");
 
     // check that all particles are finite-size ellipsoids

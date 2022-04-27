@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -23,6 +22,7 @@ FixStyle(reax/c/species/kk/host,FixReaxFFSpeciesKokkos);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_REAXFF_SPECIES_KOKKOS_H
 #define LMP_FIX_REAXFF_SPECIES_KOKKOS_H
 
@@ -35,11 +35,12 @@ namespace LAMMPS_NS {
 class FixReaxFFSpeciesKokkos : public FixReaxFFSpecies {
  public:
   FixReaxFFSpeciesKokkos(class LAMMPS *, int, char **);
-  virtual ~FixReaxFFSpeciesKokkos();
-  void init();
+  ~FixReaxFFSpeciesKokkos() override;
+
+  void init() override;
 
  private:
-  void FindMolecule();
+  void FindMolecule() override;
 };
 }
 

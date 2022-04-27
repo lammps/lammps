@@ -3,6 +3,7 @@
 #include "lammps.h"
 #include "library.h"
 #include "lmptype.h"
+#include "platform.h"
 #include <string>
 
 #include "gmock/gmock.h"
@@ -13,6 +14,7 @@
 #define STRINGIFY(val) XSTR(val)
 #define XSTR(val) #val
 
+using ::LAMMPS_NS::platform::path_join;
 using ::LAMMPS_NS::tagint;
 using ::testing::HasSubstr;
 using ::testing::StartsWith;
@@ -23,8 +25,8 @@ protected:
     void *lmp;
     std::string INPUT_DIR = STRINGIFY(TEST_INPUT_FOLDER);
 
-    LibraryProperties(){};
-    ~LibraryProperties() override{};
+    LibraryProperties()           = default;
+    ~LibraryProperties() override = default;
 
     void SetUp() override
     {
@@ -36,7 +38,7 @@ protected:
         int argc    = sizeof(args) / sizeof(char *);
 
         ::testing::internal::CaptureStdout();
-        lmp                = lammps_open_no_mpi(argc, argv, NULL);
+        lmp                = lammps_open_no_mpi(argc, argv, nullptr);
         std::string output = ::testing::internal::GetCapturedStdout();
         if (verbose) std::cout << output;
         EXPECT_THAT(output, StartsWith("LAMMPS ("));
@@ -65,7 +67,7 @@ TEST_F(LibraryProperties, memory_usage)
 #if defined(__linux__) || defined(_WIN32)
     EXPECT_GE(meminfo[1], 0.0);
 #endif
-#if !defined(__INTEL_LLVM_COMPILER)
+#if (defined(__linux__) || defined(__APPLE__) || defined(_WIN32)) && !defined(__INTEL_LLVM_COMPILER)
     EXPECT_GT(meminfo[2], 0.0);
 #endif
 };
@@ -82,7 +84,7 @@ TEST_F(LibraryProperties, get_mpi_comm)
 TEST_F(LibraryProperties, natoms)
 {
     if (!lammps_has_style(lmp, "atom", "full")) GTEST_SKIP();
-    std::string input = INPUT_DIR + PATH_SEP + "in.fourmol";
+    std::string input = path_join(INPUT_DIR, "in.fourmol");
     if (!verbose) ::testing::internal::CaptureStdout();
     lammps_file(lmp, input.c_str());
     if (!verbose) ::testing::internal::GetCapturedStdout();
@@ -92,7 +94,7 @@ TEST_F(LibraryProperties, natoms)
 TEST_F(LibraryProperties, thermo)
 {
     if (!lammps_has_style(lmp, "atom", "full")) GTEST_SKIP();
-    std::string input = INPUT_DIR + PATH_SEP + "in.fourmol";
+    std::string input = path_join(INPUT_DIR, "in.fourmol");
     ::testing::internal::CaptureStdout();
     lammps_file(lmp, input.c_str());
     lammps_command(lmp, "run 2 post no");
@@ -108,7 +110,7 @@ TEST_F(LibraryProperties, thermo)
 TEST_F(LibraryProperties, box)
 {
     if (!lammps_has_style(lmp, "atom", "full")) GTEST_SKIP();
-    std::string input = INPUT_DIR + PATH_SEP + "in.fourmol";
+    std::string input = path_join(INPUT_DIR, "in.fourmol");
     ::testing::internal::CaptureStdout();
     lammps_file(lmp, input.c_str());
     lammps_command(lmp, "run 2 post no");
@@ -248,7 +250,7 @@ TEST_F(LibraryProperties, setting)
     EXPECT_EQ(lammps_extract_setting(lmp, "UNKNOWN"), -1);
 
     if (lammps_has_style(lmp, "atom", "full")) {
-        std::string input = INPUT_DIR + PATH_SEP + "in.fourmol";
+        std::string input = path_join(INPUT_DIR, "in.fourmol");
         if (!verbose) ::testing::internal::CaptureStdout();
         lammps_file(lmp, input.c_str());
         lammps_command(lmp, "run 2 post no");
@@ -289,7 +291,7 @@ TEST_F(LibraryProperties, global)
 {
     if (!lammps_has_style(lmp, "atom", "full")) GTEST_SKIP();
 
-    std::string input = INPUT_DIR + PATH_SEP + "in.fourmol";
+    std::string input = path_join(INPUT_DIR, "in.fourmol");
     if (!verbose) ::testing::internal::CaptureStdout();
     lammps_file(lmp, input.c_str());
     lammps_command(lmp, "run 2 post no");
@@ -436,8 +438,10 @@ class AtomProperties : public ::testing::Test {
 protected:
     void *lmp;
 
-    AtomProperties(){};
-    ~AtomProperties() override{};
+    AtomProperties() = default;
+    ;
+    ~AtomProperties() override = default;
+    ;
 
     void SetUp() override
     {
@@ -447,7 +451,7 @@ protected:
         int argc    = sizeof(args) / sizeof(char *);
 
         ::testing::internal::CaptureStdout();
-        lmp                = lammps_open_no_mpi(argc, argv, NULL);
+        lmp                = lammps_open_no_mpi(argc, argv, nullptr);
         std::string output = ::testing::internal::GetCapturedStdout();
         if (verbose) std::cout << output;
         EXPECT_THAT(output, StartsWith("LAMMPS ("));

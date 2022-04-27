@@ -67,21 +67,23 @@ void RespaOMP::init()
 void RespaOMP::setup(int flag)
 {
   if (comm->me == 0 && screen) {
-    fprintf(screen,"Setting up r-RESPA/omp run ...\n");
+    std::string mesg = "Setting up r-RESPA/omp run ...\n";
     if (flag) {
-      fprintf(screen,"  Unit style    : %s\n", update->unit_style);
-      fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n", update->ntimestep);
-      fprintf(screen,"  Time steps    :");
-      for (int ilevel=0; ilevel < nlevels; ++ilevel)
-        fprintf(screen," %d:%g",ilevel+1, step[ilevel]);
-      fprintf(screen,"\n  r-RESPA fixes :");
-      for (int l=0; l < modify->n_post_force_respa; ++l) {
-        Fix *f = modify->fix[modify->list_post_force_respa[l]];
+      mesg += fmt::format("  Unit style    : {}\n", update->unit_style);
+      mesg += fmt::format("  Current step  : {}\n", update->ntimestep);
+
+      mesg += "  Time steps    :";
+      for (int ilevel = 0; ilevel < nlevels; ++ilevel)
+        mesg += fmt::format(" {}:{}", ilevel + 1, step[ilevel]);
+
+      mesg += "\n  r-RESPA fixes :";
+      for (int l = 0; l < modify->n_post_force_respa_any; ++l) {
+        Fix *f = modify->get_fix_by_index(modify->list_post_force_respa[l]);
         if (f->respa_level >= 0)
-          fprintf(screen," %d:%s[%s]",
-                  MIN(f->respa_level+1,nlevels),f->style,f->id);
+          mesg += fmt::format(" {}:{}[{}]", MIN(f->respa_level + 1, nlevels), f->style, f->id);
       }
-      fprintf(screen,"\n");
+      mesg += "\n";
+      fputs(mesg.c_str(), screen);
       timer->print_timeout(screen);
     }
   }
@@ -418,7 +420,7 @@ void RespaOMP::recurse(int ilevel)
       timer->stamp(Timer::COMM);
     }
     timer->stamp();
-    if (modify->n_post_force_respa)
+    if (modify->n_post_force_respa_any)
       modify->post_force_respa(vflag,ilevel,iloop);
     modify->final_integrate_respa(ilevel,iloop);
     timer->stamp(Timer::MODIFY);

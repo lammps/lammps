@@ -2,8 +2,16 @@
 # Utility for detecting incorrect LAMMPS homepage URLs
 #
 # Written by Richard Berger (Temple University)
-import os
+from __future__ import print_function
 import sys
+
+if sys.version_info.major < 3:
+    sys.exit('This script must be run with Python 3.5 or later')
+
+if sys.version_info.minor < 5:
+    sys.exit('This script must be run with Python 3.5 or later')
+
+import os
 import glob
 import re
 import yaml
@@ -119,6 +127,7 @@ def main():
     parser.add_argument('-v', '--verbose', action='store_true', help='verbose output')
     parser.add_argument('DIRECTORY', help='directory (or file) that should be checked')
     args = parser.parse_args()
+    lammpsdir = os.path.abspath(os.path.expanduser(args.DIRECTORY))
 
     if args.config:
         with open(args.config, 'r') as cfile:
@@ -126,12 +135,12 @@ def main():
     else:
         config = yaml.load(DEFAULT_CONFIG, Loader=yaml.FullLoader)
 
-    if os.path.isdir(args.DIRECTORY):
-        if not check_folder(args.DIRECTORY, config, args.fix, args.verbose):
+    if os.path.isdir(lammpsdir):
+        if not check_folder(lammpsdir, config, args.fix, args.verbose):
            sys.exit(1)
     else:
         success = True
-        path = os.path.normpath(args.DIRECTORY)
+        path = os.path.normpath(lammpsdir)
 
         if args.verbose:
             print("Checking file:", path)

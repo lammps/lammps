@@ -30,7 +30,9 @@
 #include "error.h"
 #include "force.h"
 #include "memory.h"
+#include "neighbor.h"
 #include "neigh_list.h"
+#include "potential_file_reader.h"
 
 #include <cmath>
 #include <cstring>
@@ -46,6 +48,9 @@ PairLebedevaZ::PairLebedevaZ(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   restartinfo = 0;
+  manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
+  unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
   // initialize element to parameter maps
   params = nullptr;
@@ -61,7 +66,6 @@ PairLebedevaZ::~PairLebedevaZ()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    memory->destroy(cut);
     memory->destroy(offset);
   }
 
@@ -133,16 +137,16 @@ void PairLebedevaZ::compute(int eflag, int vflag)
         // derivatives
         fpair = -6.0*p.A*p.z06/r8+p.B*p.alpha*exp1/r; // used for x,y,z
         der   = p.D1+2*p.D2*rhosq-p.lambda1*sumD; // used for x,y
-        fxy   = fpair - 2*p.C*exp2*exp3*der;
-        fz    = fpair + 2*p.C*p.lambda2*sumD*exp2*exp3;
+        fxy   = 2*p.C*exp2*exp3*der;
+        fz    = 2*p.C*p.lambda2*sumD*exp2*exp3;
 
-        f[i][0] += delx*fxy;
-        f[i][1] += dely*fxy;
-        f[i][2] += delz*fz;
+        f[i][0] += delx*(fpair-fxy);
+        f[i][1] += dely*(fpair-fxy);
+        f[i][2] += delz*(fpair+fz);
         if (newton_pair || j < nlocal) {
-          f[j][0] -= delx*fxy;
-          f[j][1] -= dely*fxy;
-          f[j][2] -= delz*fz;
+          f[j][0] -= delx*(fpair-fxy);
+          f[j][1] -= dely*(fpair-fxy);
+          f[j][2] -= delz*(fpair+fz);
         }
 
         if (eflag) {
@@ -150,8 +154,18 @@ void PairLebedevaZ::compute(int eflag, int vflag)
         }
 
         if (evflag) {
-          ev_tally_xyz(i,j,nlocal,newton_pair,evdwl,0,
-                       -fxy,-fxy,-fz,delx,dely,delz);
+          ev_tally(i, j, nlocal, newton_pair, evdwl, 0.0, fpair, delx, dely, delz);
+          if (vflag_either) {
+            double fi[3],fj[3];
+            fi[0] = -delx * fxy;
+            fi[1] = -dely * fxy;
+            fi[2] =  delz * fz;
+            fj[0] =  delx * fxy;
+            fj[1] =  dely * fxy;
+            fj[2] = -delz * fz;
+            v_tally2_newton(i,fi,x[i]);
+            v_tally2_newton(j,fj,x[j]);
+          }
         }
       }
     }
@@ -167,17 +181,16 @@ void PairLebedevaZ::compute(int eflag, int vflag)
 void PairLebedevaZ::allocate()
 {
   allocated = 1;
-  int n = atom->ntypes;
+  int n = atom->ntypes+1;
 
-  memory->create(setflag,n+1,n+1,"pair:setflag");
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
+  memory->create(setflag,n,n,"pair:setflag");
+  for (int i = 1; i < n; i++)
+    for (int j = i; j < n; j++)
       setflag[i][j] = 0;
 
-  memory->create(cutsq,n+1,n+1,"pair:cutsq");
-  memory->create(cut,n+1,n+1,"pair:cut");
-  memory->create(offset,n+1,n+1,"pair:offset");
-  map = new int[atom->ntypes+1];
+  memory->create(cutsq,n,n,"pair:cutsq");
+  memory->create(offset,n,n,"pair:offset");
+  map = new int[n];
 }
 
 /* ----------------------------------------------------------------------
@@ -191,15 +204,6 @@ void PairLebedevaZ::settings(int narg, char **arg)
     error->all(FLERR,"Pair style lebedeva/z requires using hybrid/overlay");
 
   cut_global = utils::numeric(FLERR,arg[0],false,lmp);
-
-  // reset cutoffs that have been explicitly set
-
-  if (allocated) {
-    int i,j;
-    for (i = 1; i <= atom->ntypes; i++)
-      for (j = i; j <= atom->ntypes; j++)
-        if (setflag[i][j]) cut[i][j] = cut_global;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -223,7 +227,6 @@ void PairLebedevaZ::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
       if ((map[i] >= 0) && (map[j] >= 0)) {
-        cut[i][j] = cut_global;
         setflag[i][j] = 1;
         count++;
       }
@@ -233,6 +236,17 @@ void PairLebedevaZ::coeff(int narg, char **arg)
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairLebedevaZ::init_style()
+{
+  if (force->newton_pair == 0)
+    error->all(FLERR,"Pair style lebedeva/z requires newton pair on");
+
+  neighbor->add_request(this);
+}
 
 /* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
@@ -244,14 +258,14 @@ double PairLebedevaZ::init_one(int i, int j)
   if (!offset_flag)
     error->all(FLERR,"Must use 'pair_modify shift yes' with this pair style");
 
-  if (offset_flag && (cut[i][j] > 0.0)) {
+  if (offset_flag && (cut_global > 0.0)) {
     int iparam_ij = elem2param[map[i]][map[j]];
     Param& p = params[iparam_ij];
-    offset[i][j] = -p.A*pow(p.z0/cut[i][j],6);
+    offset[i][j] = -p.A*pow(p.z0/cut_global,6);
   } else offset[i][j] = 0.0;
   offset[j][i] = offset[i][j];
 
-  return cut[i][j];
+  return cut_global;
 }
 
 /* ----------------------------------------------------------------------
@@ -260,134 +274,107 @@ double PairLebedevaZ::init_one(int i, int j)
 
 void PairLebedevaZ::read_file(char *filename)
 {
-  int params_per_line = 12;
-  char **words = new char*[params_per_line+1];
   memory->sfree(params);
   params = nullptr;
   nparams = maxparam = 0;
 
   // open file on proc 0
 
-  FILE *fp;
   if (comm->me == 0) {
-    fp = utils::open_potential(filename,lmp,nullptr);
-    if (fp == nullptr) {
-      char str[128];
-      sprintf(str,"Cannot open Lebedeva potential file %s",filename);
-      error->one(FLERR,str);
-    }
-  }
+    PotentialFileReader reader(lmp, filename, "lebedeva/z", unit_convert_flag);
+    char *line;
 
-  // read each line out of file, skipping blank lines or leading '#'
-  // store line of params if all 3 element tags are in element list
+    // transparently convert units for supported conversions
 
-  int i,j,n,m,nwords,ielement,jelement;
-  char line[MAXLINE],*ptr;
-  int eof = 0;
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY, unit_convert);
 
-  while (1) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == nullptr) {
-        eof = 1;
-        fclose(fp);
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
+    while ((line = reader.next_line(NPARAMS_PER_LINE))) {
 
-    // strip comment, skip line if blank
+      try {
+        ValueTokenizer values(line);
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
+        std::string iname = values.next_string();
+        std::string jname = values.next_string();
 
-    // concatenate additional lines until have params_per_line words
+        // ielement,jelement = 1st args
+        // if both args are in element list, then parse this line
+        // else skip to next entry in file
+        int ielement, jelement;
 
-    while (nwords < params_per_line) {
-      n = strlen(line);
-      if (comm->me == 0) {
-        ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == nullptr) {
-          eof = 1;
-          fclose(fp);
-        } else n = strlen(line) + 1;
+        for (ielement = 0; ielement < nelements; ielement++)
+          if (iname == elements[ielement]) break;
+        if (ielement == nelements) continue;
+        for (jelement = 0; jelement < nelements; jelement++)
+          if (jname == elements[jelement]) break;
+        if (jelement == nelements) continue;
+
+        // expand storage, if needed
+
+        if (nparams == maxparam) {
+          maxparam += DELTA;
+          params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
+
+          // make certain all addional allocated storage is initialized
+          // to avoid false positives when checking with valgrind
+
+          memset(params + nparams, 0, DELTA*sizeof(Param));
+        }
+
+        // load up parameter settings and error check their values
+
+        params[nparams].ielement = ielement;
+        params[nparams].jelement = jelement;
+        params[nparams].A        = values.next_double();
+        params[nparams].B        = values.next_double();
+        params[nparams].C        = values.next_double();
+        params[nparams].z0       = values.next_double();
+        params[nparams].alpha    = values.next_double();
+        params[nparams].D1       = values.next_double();
+        params[nparams].D2       = values.next_double();
+        params[nparams].lambda1  = values.next_double();
+        params[nparams].lambda2  = values.next_double();
+        // S provides a convenient scaling of all energies
+        params[nparams].S        = values.next_double();
+
+      } catch (TokenizerException &e) {
+        error->one(FLERR, e.what());
       }
-      MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof) break;
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = utils::count_words(line);
+
+      // energies in meV further scaled by S
+      // S = 43.3634 meV = 1 kcal/mol
+
+      double meV = 1e-3*params[nparams].S;
+      if (unit_convert) meV *= conversion_factor;
+
+      params[nparams].A *= meV;
+      params[nparams].B *= meV;
+      params[nparams].C *= meV;
+
+      // precompute some quantities. That speeds up later process
+      params[nparams].z02 = pow(params[nparams].z0,2);
+      params[nparams].z06 = pow(params[nparams].z0,6);
+
+      nparams++;
+      if (nparams >= pow(atom->ntypes,3)) break;
     }
-
-    if (nwords != params_per_line)
-      error->all(FLERR,"Insufficient format in Lebedeva potential file");
-
-    // words = ptrs to all words in line
-
-    nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
-
-    // ielement,jelement = 1st args
-    // if these 2 args are in element list, then parse this line
-    // else skip to next line (continue)
-
-    for (ielement = 0; ielement < nelements; ielement++)
-      if (strcmp(words[0],elements[ielement]) == 0) break;
-    if (ielement == nelements) continue;
-    for (jelement = 0; jelement < nelements; jelement++)
-      if (strcmp(words[1],elements[jelement]) == 0) break;
-    if (jelement == nelements) continue;
-
-    // load up parameter settings and error check their values
-
-    if (nparams == maxparam) {
-      maxparam += DELTA;
-      params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-                                          "pair:params");
-
-      // make certain all addional allocated storage is initialized
-      // to avoid false positives when checking with valgrind
-
-      memset(params + nparams, 0, DELTA*sizeof(Param));
-    }
-    params[nparams].ielement = ielement;
-    params[nparams].jelement = jelement;
-    params[nparams].A        = atof(words[2]);
-    params[nparams].B        = atof(words[3]);
-    params[nparams].C        = atof(words[4]);
-    params[nparams].z0       = atof(words[5]);
-    params[nparams].alpha    = atof(words[6]);
-    params[nparams].D1       = atof(words[7]);
-    params[nparams].D2       = atof(words[8]);
-    params[nparams].lambda1  = atof(words[9]);
-    params[nparams].lambda2  = atof(words[10]);
-    // S provides a convenient scaling of all energies
-    params[nparams].S        = atof(words[11]);
-
-    // energies in meV further scaled by S
-    double meV = 1.0e-3*params[nparams].S;
-    params[nparams].A *= meV;
-    params[nparams].B *= meV;
-    params[nparams].C *= meV;
-
-    // precompute some quantities. That speeds up later process
-    params[nparams].z02 = pow(params[nparams].z0,2);
-    params[nparams].z06 = pow(params[nparams].z0,6);
-
-    nparams++;
-    if (nparams >= pow(atom->ntypes,3)) break;
   }
+
+  MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
+  MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
+
+  if (comm->me != 0) {
+    params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
+  }
+
+  MPI_Bcast(params, maxparam*sizeof(Param), MPI_BYTE, 0, world);
+
   memory->destroy(elem2param);
   memory->create(elem2param,nelements,nelements,"pair:elem2param");
-  for (i = 0; i < nelements; i++) {
-    for (j = 0; j < nelements; j++) {
-      n = -1;
-      for (m = 0; m < nparams; m++) {
+  for (int i = 0; i < nelements; i++) {
+    for (int j = 0; j < nelements; j++) {
+      int n = -1;
+      for (int m = 0; m < nparams; m++) {
         if (i == params[m].ielement && j == params[m].jelement) {
           if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
           n = m;
@@ -397,7 +384,6 @@ void PairLebedevaZ::read_file(char *filename)
       elem2param[i][j] = n;
     }
   }
-  delete [] words;
 }
 
 /* ---------------------------------------------------------------------- */

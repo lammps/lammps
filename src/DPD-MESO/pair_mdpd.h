@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class PairMDPD : public Pair {
  public:
   PairMDPD(class LAMMPS *);
-  virtual ~PairMDPD();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  virtual void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  virtual void write_restart(FILE *);
-  virtual void read_restart(FILE *);
-  virtual void write_restart_settings(FILE *);
-  virtual void read_restart_settings(FILE *);
-  virtual void write_data(FILE *);
-  virtual void write_data_all(FILE *);
+  ~PairMDPD() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  void write_data(FILE *) override;
+  void write_data_all(FILE *) override;
 
  protected:
   double cut_global, temperature;
@@ -55,30 +55,3 @@ class PairMDPD : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair dpd requires ghost atoms store velocity
-
-Use the comm_modify vel yes command to enable this.
-
-W: Pair dpd needs newton pair on for momentum conservation
-
-Self-explanatory.
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-*/

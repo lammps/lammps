@@ -19,17 +19,18 @@
 
 #include "fix_gld.h"
 
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "group.h"
+#include "memory.h"
+#include "random_mars.h"
+#include "respa.h"
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "respa.h"
-#include "comm.h"
-#include "random_mars.h"
-#include "memory.h"
-#include "error.h"
-#include "group.h"
 
 #define GLD_UNIFORM_DISTRO
 
@@ -91,7 +92,7 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
   memory->create(prony_tau, prony_terms, "gld:prony_tau");
   // allocate memory for Prony series extended variables
   s_gld = nullptr;
-  grow_arrays(atom->nmax);
+  FixGLD::grow_arrays(atom->nmax);
   // add callbacks to enable restarts
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
@@ -128,24 +129,14 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"zero") == 0) {
-      if (iarg+2 > narg) {
-        error->all(FLERR, "Illegal fix gld command");
-      }
-      if (strcmp(arg[iarg+1],"no") == 0) {
-      } else if (strcmp(arg[iarg+1],"yes") == 0) {
-        zeroflag = 1;
-      } else {
-        error->all(FLERR,"Illegal fix gld command");
-      }
+      if (iarg+2 > narg) error->all(FLERR, "Illegal fix gld command");
+      zeroflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     }
     else if (strcmp(arg[iarg],"frozen") == 0) {
-       if (iarg+2 > narg) {
-          error->all(FLERR, "Illegal fix gld command");
-       }
-       if (strcmp(arg[iarg+1],"no") == 0) {
-       } else if (strcmp(arg[iarg+1],"yes") == 0) {
-         freezeflag = 1;
+       if (iarg+2 > narg) error->all(FLERR, "Illegal fix gld command");
+       freezeflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+       if (freezeflag) {
          for (int i = 0; i < atom->nlocal; i++) {
            if (atom->mask[i] & groupbit) {
              for (int k = 0; k < 3*prony_terms; k=k+3)
@@ -156,8 +147,6 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
              }
            }
          }
-       } else {
-          error->all(FLERR, "Illegal fix gld command");
        }
        iarg += 2;
     }
@@ -208,7 +197,7 @@ void FixGLD::init()
   dtf = 0.5 * update->dt * force->ftm2v;
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    step_respa = ((Respa *) update->integrate)->step;
+    step_respa = (dynamic_cast<Respa *>( update->integrate))->step;
 }
 
 /* ----------------------------------------------------------------------

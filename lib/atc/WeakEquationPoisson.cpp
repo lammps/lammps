@@ -10,9 +10,9 @@ namespace ATC {
 //==============================================================
 
 // R = B^T flux       + N source = 0
-// 0 = B^T perm B phi - N rho_+ 
+// 0 = B^T perm B phi - N rho_+
 
-  
+
 //--------------------------------------------------------------
 //  Constructor
 //--------------------------------------------------------------
@@ -86,7 +86,7 @@ bool WeakEquationPoissonConstantRHS::N_integrand(
   FIELD_MATS::const_iterator   nIter = fields.find(ELECTRON_DENSITY);
   if (nIter != fields.end()) {
     const DENS_MAT &  n = nIter->second;
-    flux = -1.0*n; 
+    flux = -1.0*n;
     return true;
   }
   return false;

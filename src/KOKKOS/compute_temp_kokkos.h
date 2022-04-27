@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -20,6 +19,7 @@ ComputeStyle(temp/kk/host,ComputeTempKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_COMPUTE_TEMP_KOKKOS_H
 #define LMP_COMPUTE_TEMP_KOKKOS_H
 
@@ -27,6 +27,16 @@ ComputeStyle(temp/kk/host,ComputeTempKokkos<LMPHostType>);
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
+
+template<int RMASS>
+struct TagComputeTempScalar{};
+
+template<int RMASS>
+struct TagComputeTempVector{};
+
+template<class DeviceType>
+class ComputeTempKokkos : public ComputeTemp {
+ public:
 
   struct s_CTEMP {
     double t0, t1, t2, t3, t4, t5;
@@ -55,25 +65,16 @@ namespace LAMMPS_NS {
       t5 += rhs.t5;
     }
   };
+
   typedef s_CTEMP CTEMP;
-
-template<int RMASS>
-struct TagComputeTempScalar{};
-
-template<int RMASS>
-struct TagComputeTempVector{};
-
-template<class DeviceType>
-class ComputeTempKokkos : public ComputeTemp {
- public:
   typedef DeviceType device_type;
   typedef CTEMP value_type;
   typedef ArrayTypes<DeviceType> AT;
 
   ComputeTempKokkos(class LAMMPS *, int, char **);
-  virtual ~ComputeTempKokkos() {}
-  double compute_scalar();
-  void compute_vector();
+
+  double compute_scalar() override;
+  void compute_vector() override;
 
   template<int RMASS>
   KOKKOS_INLINE_FUNCTION
@@ -96,11 +97,3 @@ class ComputeTempKokkos : public ComputeTemp {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Temperature compute degrees of freedom < 0
-
-This should not happen if you are calculating the temperature
-on a valid set of atoms.
-
-*/

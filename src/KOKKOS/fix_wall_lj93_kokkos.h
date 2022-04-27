@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -20,6 +19,7 @@ FixStyle(wall/lj93/kk/host,FixWallLJ93Kokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_WALL_LJ93_KOKKOS_H
 #define LMP_FIX_WALL_LJ93_KOKKOS_H
 
@@ -36,7 +36,7 @@ class FixWallLJ93Kokkos : public FixWallLJ93 {
   typedef double value_type[];
 
   FixWallLJ93Kokkos(class LAMMPS *, int, char **);
-  void wall_particle(int, int, double);
+  void wall_particle(int, int, double) override;
 
   int m;
 
@@ -73,11 +73,3 @@ struct FixWallLJ93KokkosFunctor  {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Particle on or inside fix wall surface
-
-Particles must be "exterior" to the wall in order for energy/force to
-be calculated.
-
-*/

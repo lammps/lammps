@@ -99,7 +99,7 @@ void ComputeSMDTLSPHStress::compute_peratom() {
         }
 
         int itmp = 0;
-        Matrix3d *T = (Matrix3d *) force->pair->extract("smd/tlsph/stressTensor_ptr", itmp);
+        auto T = (Matrix3d *) force->pair->extract("smd/tlsph/stressTensor_ptr", itmp);
         if (T == nullptr) {
                 error->all(FLERR, "compute smd/tlsph_stress could not access stress tensors. Are the matching pair styles present?");
         }

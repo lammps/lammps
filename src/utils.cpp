@@ -13,23 +13,24 @@
 
 #include "utils.h"
 
+#include "atom.h"
 #include "comm.h"
 #include "compute.h"
 #include "error.h"
 #include "fix.h"
+#include "fmt/chrono.h"
+#include "input.h"
 #include "memory.h"
 #include "modify.h"
 #include "text_file_reader.h"
-#include "tokenizer.h"
+#include "universe.h"
 #include "update.h"
+#include "variable.h"
 
 #include <cctype>
 #include <cerrno>
 #include <cstring>
-
-#if defined(__linux__)
-#include <unistd.h>    // for readlink
-#endif
+#include <ctime>
 
 /*! \file utils.cpp */
 
@@ -121,6 +122,12 @@ std::string utils::strfind(const std::string &text, const std::string &pattern)
     return "";
 }
 
+void utils::missing_cmd_args(const std::string &file, int line, const std::string &cmd,
+                             Error *error)
+{
+  if (error) error->all(file, line, "Illegal {} command: missing argument(s)", cmd);
+}
+
 /* specialization for the case of just a single string argument */
 
 void utils::logmesg(LAMMPS *lmp, const std::string &mesg)
@@ -138,33 +145,25 @@ void utils::fmtargs_logmesg(LAMMPS *lmp, fmt::string_view format, fmt::format_ar
   }
 }
 
+std::string utils::errorurl(int errorcode)
+{
+  return fmt::format("\nFor more information see https://docs.lammps.org/err{:04d}", errorcode);
+}
+
+void utils::flush_buffers(LAMMPS *lmp)
+{
+  if (lmp->screen) fflush(lmp->screen);
+  if (lmp->logfile) fflush(lmp->logfile);
+  if (lmp->universe->uscreen) fflush(lmp->universe->uscreen);
+  if (lmp->universe->ulogfile) fflush(lmp->universe->ulogfile);
+}
+
 /* define this here, so we won't have to include the headers
    everywhere and utils.h will more likely be included anyway. */
 
 std::string utils::getsyserror()
 {
-  return std::string(strerror(errno));
-}
-
-/** On Linux the folder /proc/self/fd holds symbolic links to the actual
- * pathnames associated with each open file descriptor of the current process.
- *
- * This function is used to provide a filename with error messages in functions
- * where the filename is not passed as an argument, but the FILE * pointer.
- */
-const char *utils::guesspath(char *buf, int len, FILE *fp)
-{
-  memset(buf, 0, len);
-
-#if defined(__linux__)
-  int fd = fileno(fp);
-  // get pathname from /proc or copy (unknown)
-  if (readlink(fmt::format("/proc/self/fd/{}", fd).c_str(), buf, len - 1) <= 0)
-    strncpy(buf, "(unknown)", len - 1);
-#else
-  strncpy(buf, "(unknown)", len - 1);
-#endif
-  return buf;
+  return {strerror(errno)};
 }
 
 // read line into buffer. if line is too long keep reading until EOL or EOF
@@ -176,20 +175,23 @@ char *utils::fgets_trunc(char *buf, int size, FILE *fp)
   char dummy[MAXDUMMY];
   char *ptr = fgets(buf, size, fp);
 
-  // EOF
+  // EOF?
   if (!ptr) return nullptr;
 
   int n = strlen(buf);
 
-  // line is shorter than buffer, append newline if needed,
-  if (n < size - 2) {
+  // check the string being read in:
+  // - if string is shorter than the buffer make sure it has a final newline and return
+  // - if string is exactly the size of the buffer and has a final newline return
+  // - otherwise truncate with final newline and read into dummy buffer until EOF or newline is found
+  if (n < size - 1) {
     if (buf[n - 1] != '\n') {
       buf[n] = '\n';
       buf[n + 1] = '\0';
     }
     return buf;
-
-    // line fits exactly. overwrite last but one character.
+  } else if (buf[n - 1] == '\n') {
+    return buf;
   } else
     buf[size - 2] = '\n';
 
@@ -202,22 +204,22 @@ char *utils::fgets_trunc(char *buf, int size, FILE *fp)
       n = 0;
   } while (n == MAXDUMMY - 1 && ptr[MAXDUMMY - 1] != '\n');
 
-  // return first chunk
+  // return truncated chunk
   return buf;
 }
 
-#define MAXPATHLENBUF 1024
 /* like fgets() but aborts with an error or EOF is encountered */
 void utils::sfgets(const char *srcname, int srcline, char *s, int size, FILE *fp,
                    const char *filename, Error *error)
 {
+  constexpr int MAXPATHLENBUF = 1024;
   char *rv = fgets(s, size, fp);
   if (rv == nullptr) {    // something went wrong
     char buf[MAXPATHLENBUF];
     std::string errmsg;
 
     // try to figure out the file name from the file pointer
-    if (!filename) filename = guesspath(buf, MAXPATHLENBUF, fp);
+    if (!filename) filename = platform::guesspath(fp, buf, MAXPATHLENBUF);
 
     if (feof(fp)) {
       errmsg = "Unexpected end of file while reading file '";
@@ -239,13 +241,14 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size, FILE *fp
 void utils::sfread(const char *srcname, int srcline, void *s, size_t size, size_t num, FILE *fp,
                    const char *filename, Error *error)
 {
+  constexpr int MAXPATHLENBUF = 1024;
   size_t rv = fread(s, size, num, fp);
   if (rv != num) {    // something went wrong
     char buf[MAXPATHLENBUF];
     std::string errmsg;
 
     // try to figure out the file name from the file pointer
-    if (!filename) filename = guesspath(buf, MAXPATHLENBUF, fp);
+    if (!filename) filename = platform::guesspath(fp, buf, MAXPATHLENBUF);
 
     if (feof(fp)) {
       errmsg = "Unexpected end of file while reading file '";
@@ -309,17 +312,65 @@ std::string utils::check_packages_for_style(const std::string &style, const std:
 }
 
 /* ----------------------------------------------------------------------
+   read a boolean value from a string
+   transform to lower case before checking
+   generate an error if is not a legitimate boolean
+   called by various commands to check validity of their arguments
+------------------------------------------------------------------------- */
+
+int utils::logical(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp)
+{
+  if (str.empty()) {
+    const char msg[] = "Expected boolean parameter instead of NULL or empty string "
+                       "in input script or data file";
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
+  }
+
+  // convert to ascii
+  std::string buf(str);
+  if (has_utf8(buf)) buf = utf8_subst(buf);
+
+  int rv = 0;
+  if ((buf == "yes") || (buf == "on") || (buf == "true") || (buf == "1")) {
+    rv = 1;
+  } else if ((buf == "no") || (buf == "off") || (buf == "false") || (buf == "0")) {
+    rv = 0;
+  } else {
+    std::string msg("Expected boolean parameter instead of '");
+    msg += buf + "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
+  }
+  return rv;
+}
+
+/* ----------------------------------------------------------------------
+   wrapper for logical() that accepts a char pointer instead of a string
+------------------------------------------------------------------------- */
+
+int utils::logical(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+{
+  if (str)
+    return logical(file, line, std::string(str), do_abort, lmp);
+  else
+    return logical(file, line, std::string(""), do_abort, lmp);
+}
+
+/* ----------------------------------------------------------------------
    read a floating point value from a string
    generate an error if not a legitimate floating point value
    called by various commands to check validity of their arguments
 ------------------------------------------------------------------------- */
 
-double utils::numeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+double utils::numeric(const char *file, int line, const std::string &str, bool do_abort,
+                      LAMMPS *lmp)
 {
-  int n = 0;
-
-  if (str) n = strlen(str);
-  if (n == 0) {
+  if (str.empty()) {
     const char msg[] = "Expected floating point parameter instead of"
                        " NULL or empty string in input script or data file";
     if (do_abort)
@@ -344,17 +395,26 @@ double utils::numeric(const char *file, int line, const char *str, bool do_abort
 }
 
 /* ----------------------------------------------------------------------
+   wrapper for numeric() that accepts a char pointer instead of a string
+------------------------------------------------------------------------- */
+
+double utils::numeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+{
+  if (str)
+    return numeric(file, line, std::string(str), do_abort, lmp);
+  else
+    return numeric(file, line, std::string(""), do_abort, lmp);
+}
+
+/* ----------------------------------------------------------------------
    read an integer value from a string
    generate an error if not a legitimate integer value
    called by various commands to check validity of their arguments
 ------------------------------------------------------------------------- */
 
-int utils::inumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+int utils::inumeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp)
 {
-  int n = 0;
-
-  if (str) n = strlen(str);
-  if (n == 0) {
+  if (str.empty()) {
     const char msg[] = "Expected integer parameter instead of"
                        " NULL or empty string in input script or data file";
     if (do_abort)
@@ -379,17 +439,27 @@ int utils::inumeric(const char *file, int line, const char *str, bool do_abort, 
 }
 
 /* ----------------------------------------------------------------------
+   wrapper for inumeric() that accepts a char pointer instead of a string
+------------------------------------------------------------------------- */
+
+int utils::inumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+{
+  if (str)
+    return inumeric(file, line, std::string(str), do_abort, lmp);
+  else
+    return inumeric(file, line, std::string(""), do_abort, lmp);
+}
+
+/* ----------------------------------------------------------------------
    read a big integer value from a string
    generate an error if not a legitimate integer value
    called by various commands to check validity of their arguments
 ------------------------------------------------------------------------- */
 
-bigint utils::bnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+bigint utils::bnumeric(const char *file, int line, const std::string &str, bool do_abort,
+                       LAMMPS *lmp)
 {
-  int n = 0;
-
-  if (str) n = strlen(str);
-  if (n == 0) {
+  if (str.empty()) {
     const char msg[] = "Expected integer parameter instead of"
                        " NULL or empty string in input script or data file";
     if (do_abort)
@@ -414,17 +484,27 @@ bigint utils::bnumeric(const char *file, int line, const char *str, bool do_abor
 }
 
 /* ----------------------------------------------------------------------
+   wrapper for bnumeric() that accepts a char pointer instead of a string
+------------------------------------------------------------------------- */
+
+bigint utils::bnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+{
+  if (str)
+    return bnumeric(file, line, std::string(str), do_abort, lmp);
+  else
+    return bnumeric(file, line, std::string(""), do_abort, lmp);
+}
+
+/* ----------------------------------------------------------------------
    read a tag integer value from a string
    generate an error if not a legitimate integer value
    called by various commands to check validity of their arguments
 ------------------------------------------------------------------------- */
 
-tagint utils::tnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+tagint utils::tnumeric(const char *file, int line, const std::string &str, bool do_abort,
+                       LAMMPS *lmp)
 {
-  int n = 0;
-
-  if (str) n = strlen(str);
-  if (n == 0) {
+  if (str.empty()) {
     const char msg[] = "Expected integer parameter instead of"
                        " NULL or empty string in input script or data file";
     if (do_abort)
@@ -449,6 +529,18 @@ tagint utils::tnumeric(const char *file, int line, const char *str, bool do_abor
 }
 
 /* ----------------------------------------------------------------------
+   wrapper for tnumeric() that accepts a char pointer instead of a string
+------------------------------------------------------------------------- */
+
+tagint utils::tnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+{
+  if (str)
+    return tnumeric(file, line, std::string(str), do_abort, lmp);
+  else
+    return tnumeric(file, line, std::string(""), do_abort, lmp);
+}
+
+/* ----------------------------------------------------------------------
    compute bounds implied by numeric str with a possible wildcard asterisk
 ------------------------------------------------------------------------- */
 // clang-format off
@@ -465,7 +557,7 @@ void utils::bounds(const char *file, int line, const std::string &str,
     return;
   }
 
-  found = str.find_first_of("*");
+  found = str.find_first_of('*');
   if (found == std::string::npos) {    // contains no '*'
     nlo = nhi = strtol(str.c_str(), nullptr, 10);
   } else if (str.size() == 1) {    // is only '*'
@@ -487,14 +579,14 @@ void utils::bounds(const char *file, int line, const std::string &str,
       error->all(file, line, fmt::format("Invalid range string: {}", str));
 
     if (nlo < nmin)
-      error->all(file, line, fmt::format("Numeric index {} is out of bounds "
-                             "({}-{})", nlo, nmin, nmax));
+      error->all(file, line, fmt::format("Numeric index {} is out of bounds ({}-{})",
+                                         nlo, nmin, nmax));
     else if (nhi > nmax)
-      error->all(file, line, fmt::format("Numeric index {} is out of bounds "
-                             "({}-{})", nhi, nmin, nmax));
+      error->all(file, line, fmt::format("Numeric index {} is out of bounds ({}-{})",
+                                         nhi, nmin, nmax));
     else if (nlo > nhi)
-      error->all(file, line, fmt::format("Numeric index {} is out of bounds "
-                             "({}-{})", nlo, nmin, nhi));
+      error->all(file, line, fmt::format("Numeric index {} is out of bounds ({}-{})",
+                                         nlo, nmin, nhi));
   }
 }
 
@@ -538,25 +630,32 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
     std::string word(arg[iarg]);
     expandflag = 0;
 
-    // only match compute/fix reference with a '*' wildcard
+    // match compute, fix, or custom property array reference with a '*' wildcard
     // number range in the first pair of square brackets
 
-    if (strmatch(word, "^[cf]_\\w+\\[\\d*\\*\\d*\\]")) {
+    if (strmatch(word, "^[cfv]_\\w+\\[\\d*\\*\\d*\\]") ||
+        strmatch(word, "^[id]2_\\w+\\[\\d*\\*\\d*\\]")) {
 
-      // split off the compute/fix ID, the wildcard and trailing text
-      size_t first = word.find("[");
-      size_t second = word.find("]", first + 1);
-      id = word.substr(2, first - 2);
+      // split off the compute/fix/property ID, the wildcard and trailing text
+
+      size_t first = word.find('[');
+      size_t second = word.find(']', first + 1);
+      if (word[1] == '2')
+        id = word.substr(3, first - 3);
+      else
+        id = word.substr(2, first - 2);
+
       wc = word.substr(first + 1, second - first - 1);
       tail = word.substr(second + 1);
 
+      // compute
+
       if (word[0] == 'c') {
-        int icompute = lmp->modify->find_compute(id);
+        auto compute = lmp->modify->get_compute_by_id(id);
 
         // check for global vector/array, peratom array, local array
 
-        if (icompute >= 0) {
-          Compute *compute = lmp->modify->compute[icompute];
+        if (compute) {
           if (mode == 0 && compute->vector_flag) {
             nmax = compute->size_vector;
             expandflag = 1;
@@ -571,14 +670,15 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
             expandflag = 1;
           }
         }
+
+      // fix
+
       } else if (word[0] == 'f') {
-        int ifix = lmp->modify->find_fix(id);
+        auto fix = lmp->modify->get_fix_by_id(id);
 
         // check for global vector/array, peratom array, local array
 
-        if (ifix >= 0) {
-          Fix *fix = lmp->modify->fix[ifix];
-
+        if (fix) {
           if (mode == 0 && fix->vector_flag) {
             nmax = fix->size_vector;
             expandflag = 1;
@@ -593,12 +693,49 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
             expandflag = 1;
           }
         }
+
+      // vector variable
+
+      } else if (word[0] == 'v') {
+        int index = lmp->input->variable->find(id.c_str());
+
+        // check for global vector/array, peratom array, local array
+
+        if (index >= 0) {
+          if (mode == 0 && lmp->input->variable->vectorstyle(index)) {
+            utils::bounds(file, line, wc, 1, MAXSMALLINT, nlo, nhi, lmp->error);
+            if (nhi < MAXSMALLINT) {
+              nmax = nhi;
+              expandflag = 1;
+            }
+          }
+        }
+
+      // only match custom array reference with a '*' wildcard
+      // number range in the first pair of square brackets
+
+      } else if ((word[0] == 'i') || (word[0] == 'd')) {
+        int flag, cols;
+        int icustom = lmp->atom->find_custom(id.c_str(), flag, cols);
+
+        if ((icustom >= 0) && (mode == 1) && (cols > 0)) {
+
+          // check for custom per-atom array
+
+          if (((word[0] == 'i') && (flag == 0)) || ((word[0] == 'd') && (flag == 1))) {
+            nmax = cols;
+            expandflag = 1;
+          }
+        }
       }
     }
+
+    // expansion will take place
 
     if (expandflag) {
 
       // expand wild card string to nlo/nhi numbers
+
       utils::bounds(file, line, wc, 1, nmax, nlo, nhi, lmp->error);
 
       if (newarg + nhi - nlo + 1 > maxarg) {
@@ -607,11 +744,12 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
       }
 
       for (int index = nlo; index <= nhi; index++) {
-        // assemble and duplicate expanded string
-        earg[newarg] = utils::strdup(fmt::format("{}_{}[{}]{}", word[0], id, index, tail));
+        if (word[1] == '2')
+          earg[newarg] = utils::strdup(fmt::format("{}2_{}[{}]{}", word[0], id, index, tail));
+        else
+          earg[newarg] = utils::strdup(fmt::format("{}_{}[{}]{}", word[0], id, index, tail));
         newarg++;
       }
-
     } else {
       // no expansion: duplicate original string
       if (newarg == maxarg) {
@@ -637,9 +775,31 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
 
 char *utils::strdup(const std::string &text)
 {
-  char *tmp = new char[text.size() + 1];
+  auto tmp = new char[text.size() + 1];
   strcpy(tmp, text.c_str());    // NOLINT
   return tmp;
+}
+
+/* ----------------------------------------------------------------------
+   Return string converted to lowercase
+------------------------------------------------------------------------- */
+
+std::string utils::lowercase(const std::string &text)
+{
+  std::string converted(text);
+  for (auto &c : converted) c = ::tolower(c);
+  return converted;
+}
+
+/* ----------------------------------------------------------------------
+   Return string converted to uppercase
+------------------------------------------------------------------------- */
+
+std::string utils::uppercase(const std::string &text)
+{
+  std::string converted(text);
+  for (auto &c : converted) c = ::toupper(c);
+  return converted;
 }
 
 /* ----------------------------------------------------------------------
@@ -662,9 +822,21 @@ std::string utils::trim(const std::string &line)
 
 std::string utils::trim_comment(const std::string &line)
 {
-  auto end = line.find_first_of("#");
+  auto end = line.find('#');
   if (end != std::string::npos) { return line.substr(0, end); }
-  return std::string(line);
+  return {line};
+}
+
+/* ----------------------------------------------------------------------
+   Replace '*' with number and optional zero-padding
+------------------------------------------------------------------------- */
+
+std::string utils::star_subst(const std::string &name, bigint step, int pad)
+{
+  auto star = name.find('*');
+  if (star == std::string::npos) return name;
+
+  return fmt::format("{}{:0{}}{}", name.substr(0, star), step, pad, name.substr(star + 1));
 }
 
 /* ----------------------------------------------------------------------
@@ -673,7 +845,7 @@ std::string utils::trim_comment(const std::string &line)
 
 std::string utils::utf8_subst(const std::string &line)
 {
-  const unsigned char *const in = (const unsigned char *) line.c_str();
+  const auto *const in = (const unsigned char *) line.c_str();
   const int len = line.size();
   std::string out;
 
@@ -811,7 +983,7 @@ size_t utils::count_words(const std::string &text, const std::string &separators
 
 size_t utils::trim_and_count_words(const std::string &text, const std::string &separators)
 {
-  return utils::count_words(utils::trim_comment(text), separators);
+  return utils::count_words(trim_comment(text), separators);
 }
 
 /* ----------------------------------------------------------------------
@@ -880,7 +1052,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
     }
 
     // unquoted
-    while (1) {
+    while (true) {
       if ((c == '\'') || (c == '"')) goto quoted;
       // skip escaped quote
       if ((c == '\\') && ((buf[1] == '\'') || (buf[1] == '"'))) {
@@ -906,7 +1078,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
 ------------------------------------------------------------------------- */
 std::vector<std::string> utils::split_lines(const std::string &text)
 {
-  return Tokenizer(text, "\n").as_vector();
+  return Tokenizer(text, "\r\n").as_vector();
 }
 
 /* ----------------------------------------------------------------------
@@ -957,107 +1129,24 @@ bool utils::is_id(const std::string &str)
 }
 
 /* ----------------------------------------------------------------------
-   strip off leading part of path, return just the filename
-------------------------------------------------------------------------- */
-
-std::string utils::path_basename(const std::string &path)
-{
-#if defined(_WIN32)
-  size_t start = path.find_last_of("/\\");
-#else
-  size_t start = path.find_last_of("/");
-#endif
-
-  if (start == std::string::npos) {
-    start = 0;
-  } else {
-    start += 1;
-  }
-
-  return path.substr(start);
-}
-
-/* ----------------------------------------------------------------------
-   Return only the leading part of a path, return just the directory
-------------------------------------------------------------------------- */
-
-std::string utils::path_dirname(const std::string &path)
-{
-#if defined(_WIN32)
-  size_t start = path.find_last_of("/\\");
-#else
-  size_t start = path.find_last_of("/");
-#endif
-
-  if (start == std::string::npos) return ".";
-
-  return path.substr(0, start);
-}
-
-/* ----------------------------------------------------------------------
-   join two paths
-------------------------------------------------------------------------- */
-
-std::string utils::path_join(const std::string &a, const std::string &b)
-{
-#if defined(_WIN32)
-  return fmt::format("{}\\{}", a, b);
-#else
-  return fmt::format("{}/{}", a, b);
-#endif
-}
-
-/* ----------------------------------------------------------------------
-   try to open file for reading
-------------------------------------------------------------------------- */
-
-bool utils::file_is_readable(const std::string &path)
-{
-  FILE *fp = fopen(path.c_str(), "r");
-  if (fp) {
-    fclose(fp);
-    return true;
-  }
-  return false;
-}
-
-/* ----------------------------------------------------------------------
    try to find potential file as specified by name
    search current directory and the LAMMPS_POTENTIALS directory if
    specified
 ------------------------------------------------------------------------- */
-#if defined(_WIN32)
-#define OS_PATH_VAR_SEP ";"
-#else
-#define OS_PATH_VAR_SEP ":"
-#endif
 
 std::string utils::get_potential_file_path(const std::string &path)
 {
-  std::string filepath = path;
-  std::string filename = utils::path_basename(path);
-
-  if (utils::file_is_readable(filepath)) {
-    return filepath;
+  if (platform::file_is_readable(path)) {
+    return path;
   } else {
-    // try the environment variable directory
-    const char *var = getenv("LAMMPS_POTENTIALS");
-
-    if (var != nullptr) {
-      Tokenizer dirs(var, OS_PATH_VAR_SEP);
-
-      while (dirs.has_next()) {
-        auto pot = utils::path_basename(filepath);
-        auto dir = dirs.next();
-        filepath = utils::path_join(dir, pot);
-
-        if (utils::file_is_readable(filepath)) { return filepath; }
-      }
+    for (const auto &dir : platform::list_pathenv("LAMMPS_POTENTIALS")) {
+      auto pot = platform::path_basename(path);
+      auto filepath = platform::path_join(dir, pot);
+      if (platform::file_is_readable(filepath)) return filepath;
     }
   }
   return "";
 }
-#undef OS_PATH_VAR_SEP
 
 /* ----------------------------------------------------------------------
    read first line of potential file
@@ -1203,7 +1292,7 @@ double utils::timespec2seconds(const std::string &timespec)
       if (!values.has_next()) break;
       vals[i] = values.next_int();
     }
-  } catch (TokenizerException &e) {
+  } catch (TokenizerException &) {
     return -1.0;
   }
 
@@ -1252,6 +1341,44 @@ int utils::date2num(const std::string &date)
   else if (strmatch(month, "^Dec"))
     num += 1200;
   return num;
+}
+
+/* ----------------------------------------------------------------------
+   get formatted string of current date from fmtlib
+------------------------------------------------------------------------- */
+
+std::string utils::current_date()
+{
+  time_t tv = time(nullptr);
+  std::tm today = fmt::localtime(tv);
+  return fmt::format("{:%Y-%m-%d}", today);
+}
+
+/* ----------------------------------------------------------------------
+   binary search in vector of ascending doubles
+------------------------------------------------------------------------- */
+
+int utils::binary_search(const double needle, const int n, const double *haystack)
+{
+  int lo = 0;
+  int hi = n - 1;
+
+  if (needle < haystack[lo]) return lo;
+  if (needle >= haystack[hi]) return hi;
+
+  // insure haystack[lo] <= needle < haystack[hi] at every iteration
+  // done when lo,hi are adjacent
+
+  int index = (lo + hi) / 2;
+  while (lo < hi - 1) {
+    if (needle < haystack[index])
+      hi = index;
+    else if (needle >= haystack[index])
+      lo = index;
+    index = (lo + hi) / 2;
+  }
+
+  return index;
 }
 
 /* ----------------------------------------------------------------------
@@ -1382,26 +1509,26 @@ static int re_matchp(const char *text, re_t pattern, int *matchlen);
 #define MAX_CHAR_CLASS_LEN 40 /* Max length of character-class buffer in.   */
 
 enum {
-  UNUSED,
-  DOT,
-  BEGIN,
-  END,
-  QUESTIONMARK,
-  STAR,
-  PLUS,
-  CHAR,
-  CHAR_CLASS,
-  INV_CHAR_CLASS,
-  DIGIT,
-  NOT_DIGIT,
-  INTEGER,
-  NOT_INTEGER,
-  FLOAT,
-  NOT_FLOAT,
-  ALPHA,
-  NOT_ALPHA,
-  WHITESPACE,
-  NOT_WHITESPACE /*, BRANCH */
+  RX_UNUSED,
+  RX_DOT,
+  RX_BEGIN,
+  RX_END,
+  RX_QUESTIONMARK,
+  RX_STAR,
+  RX_PLUS,
+  RX_CHAR,
+  RX_CHAR_CLASS,
+  RX_INV_CHAR_CLASS,
+  RX_DIGIT,
+  RX_NOT_DIGIT,
+  RX_INTEGER,
+  RX_NOT_INTEGER,
+  RX_FLOAT,
+  RX_NOT_FLOAT,
+  RX_ALPHA,
+  RX_NOT_ALPHA,
+  RX_WHITESPACE,
+  RX_NOT_WHITESPACE /*, BRANCH */
 };
 
 typedef struct regex_t {
@@ -1452,8 +1579,8 @@ static int ismetachar(char c);
 int re_matchp(const char *text, re_t pattern, int *matchlen)
 {
   *matchlen = 0;
-  if (pattern != 0) {
-    if (pattern[0].type == BEGIN) {
+  if (pattern != nullptr) {
+    if (pattern[0].type == RX_BEGIN) {
       return ((matchpattern(&pattern[1], text, matchlen)) ? 0 : -1);
     } else {
       int idx = -1;
@@ -1488,22 +1615,22 @@ re_t re_compile(re_ctx_t context, const char *pattern)
     switch (c) {
         /* Meta-characters: */
       case '^': {
-        re_compiled[j].type = BEGIN;
+        re_compiled[j].type = RX_BEGIN;
       } break;
       case '$': {
-        re_compiled[j].type = END;
+        re_compiled[j].type = RX_END;
       } break;
       case '.': {
-        re_compiled[j].type = DOT;
+        re_compiled[j].type = RX_DOT;
       } break;
       case '*': {
-        re_compiled[j].type = STAR;
+        re_compiled[j].type = RX_STAR;
       } break;
       case '+': {
-        re_compiled[j].type = PLUS;
+        re_compiled[j].type = RX_PLUS;
       } break;
       case '?': {
-        re_compiled[j].type = QUESTIONMARK;
+        re_compiled[j].type = RX_QUESTIONMARK;
       } break;
 
         /* Escaped character-classes (\s \w ...): */
@@ -1515,39 +1642,39 @@ re_t re_compile(re_ctx_t context, const char *pattern)
           switch (pattern[i]) {
               /* Meta-character: */
             case 'd': {
-              re_compiled[j].type = DIGIT;
+              re_compiled[j].type = RX_DIGIT;
             } break;
             case 'D': {
-              re_compiled[j].type = NOT_DIGIT;
+              re_compiled[j].type = RX_NOT_DIGIT;
             } break;
             case 'i': {
-              re_compiled[j].type = INTEGER;
+              re_compiled[j].type = RX_INTEGER;
             } break;
             case 'I': {
-              re_compiled[j].type = NOT_INTEGER;
+              re_compiled[j].type = RX_NOT_INTEGER;
             } break;
             case 'f': {
-              re_compiled[j].type = FLOAT;
+              re_compiled[j].type = RX_FLOAT;
             } break;
             case 'F': {
-              re_compiled[j].type = NOT_FLOAT;
+              re_compiled[j].type = RX_NOT_FLOAT;
             } break;
             case 'w': {
-              re_compiled[j].type = ALPHA;
+              re_compiled[j].type = RX_ALPHA;
             } break;
             case 'W': {
-              re_compiled[j].type = NOT_ALPHA;
+              re_compiled[j].type = RX_NOT_ALPHA;
             } break;
             case 's': {
-              re_compiled[j].type = WHITESPACE;
+              re_compiled[j].type = RX_WHITESPACE;
             } break;
             case 'S': {
-              re_compiled[j].type = NOT_WHITESPACE;
+              re_compiled[j].type = RX_NOT_WHITESPACE;
             } break;
 
               /* Escaped character, e.g. '.' or '$' */
             default: {
-              re_compiled[j].type = CHAR;
+              re_compiled[j].type = RX_CHAR;
               re_compiled[j].u.ch = pattern[i];
             } break;
           }
@@ -1562,34 +1689,34 @@ re_t re_compile(re_ctx_t context, const char *pattern)
 
         /* Look-ahead to determine if negated */
         if (pattern[i + 1] == '^') {
-          re_compiled[j].type = INV_CHAR_CLASS;
+          re_compiled[j].type = RX_INV_CHAR_CLASS;
           i += 1;                  /* Increment i to avoid including '^' in the char-buffer */
           if (pattern[i + 1] == 0) /* incomplete pattern, missing non-zero char after '^' */
           {
-            return 0;
+            return nullptr;
           }
         } else {
-          re_compiled[j].type = CHAR_CLASS;
+          re_compiled[j].type = RX_CHAR_CLASS;
         }
 
         /* Copy characters inside [..] to buffer */
         while ((pattern[++i] != ']') && (pattern[i] != '\0')) {
           /* Missing ] */
           if (pattern[i] == '\\') {
-            if (ccl_bufidx >= MAX_CHAR_CLASS_LEN - 1) { return 0; }
+            if (ccl_bufidx >= MAX_CHAR_CLASS_LEN - 1) { return nullptr; }
             if (pattern[i + 1] == 0) /* incomplete pattern, missing non-zero char after '\\' */
             {
-              return 0;
+              return nullptr;
             }
             ccl_buf[ccl_bufidx++] = pattern[i++];
           } else if (ccl_bufidx >= MAX_CHAR_CLASS_LEN) {
-            return 0;
+            return nullptr;
           }
           ccl_buf[ccl_bufidx++] = pattern[i];
         }
         if (ccl_bufidx >= MAX_CHAR_CLASS_LEN) {
           /* Catches cases such as [00000000000000000000000000000000000000][ */
-          return 0;
+          return nullptr;
         }
         /* Null-terminate string end */
         ccl_buf[ccl_bufidx++] = 0;
@@ -1598,19 +1725,19 @@ re_t re_compile(re_ctx_t context, const char *pattern)
 
         /* Other characters: */
       default: {
-        re_compiled[j].type = CHAR;
+        re_compiled[j].type = RX_CHAR;
         re_compiled[j].u.ch = c;
       } break;
     }
     /* no buffer-out-of-bounds access on invalid patterns -
      * see https://github.com/kokke/tiny-regex-c/commit/1a279e04014b70b0695fba559a7c05d55e6ee90b */
-    if (pattern[i] == 0) { return 0; }
+    if (pattern[i] == 0) { return nullptr; }
 
     i += 1;
     j += 1;
   }
-  /* 'UNUSED' is a sentinel used to indicate end-of-pattern */
-  re_compiled[j].type = UNUSED;
+  /* 'RX_UNUSED' is a sentinel used to indicate end-of-pattern */
+  re_compiled[j].type = RX_UNUSED;
 
   return (re_t) re_compiled;
 }
@@ -1723,31 +1850,31 @@ static int matchcharclass(char c, const char *str)
 static int matchone(regex_t p, char c)
 {
   switch (p.type) {
-    case DOT:
+    case RX_DOT:
       return matchdot(c);
-    case CHAR_CLASS:
+    case RX_CHAR_CLASS:
       return matchcharclass(c, (const char *) p.u.ccl);
-    case INV_CHAR_CLASS:
+    case RX_INV_CHAR_CLASS:
       return !matchcharclass(c, (const char *) p.u.ccl);
-    case DIGIT:
+    case RX_DIGIT:
       return matchdigit(c);
-    case NOT_DIGIT:
+    case RX_NOT_DIGIT:
       return !matchdigit(c);
-    case INTEGER:
+    case RX_INTEGER:
       return matchint(c);
-    case NOT_INTEGER:
+    case RX_NOT_INTEGER:
       return !matchint(c);
-    case FLOAT:
+    case RX_FLOAT:
       return matchfloat(c);
-    case NOT_FLOAT:
+    case RX_NOT_FLOAT:
       return !matchfloat(c);
-    case ALPHA:
+    case RX_ALPHA:
       return matchalphanum(c);
-    case NOT_ALPHA:
+    case RX_NOT_ALPHA:
       return !matchalphanum(c);
-    case WHITESPACE:
+    case RX_WHITESPACE:
       return matchwhitespace(c);
-    case NOT_WHITESPACE:
+    case RX_NOT_WHITESPACE:
       return !matchwhitespace(c);
     default:
       return (p.u.ch == c);
@@ -1787,7 +1914,7 @@ static int matchplus(regex_t p, regex_t *pattern, const char *text, int *matchle
 
 static int matchquestion(regex_t p, regex_t *pattern, const char *text, int *matchlen)
 {
-  if (p.type == UNUSED) return 1;
+  if (p.type == RX_UNUSED) return 1;
   if (matchpattern(pattern, text, matchlen)) return 1;
   if (*text && matchone(p, *text++)) {
     if (matchpattern(pattern, text, matchlen)) {
@@ -1803,13 +1930,13 @@ static int matchpattern(regex_t *pattern, const char *text, int *matchlen)
 {
   int pre = *matchlen;
   do {
-    if ((pattern[0].type == UNUSED) || (pattern[1].type == QUESTIONMARK)) {
+    if ((pattern[0].type == RX_UNUSED) || (pattern[1].type == RX_QUESTIONMARK)) {
       return matchquestion(pattern[0], &pattern[2], text, matchlen);
-    } else if (pattern[1].type == STAR) {
+    } else if (pattern[1].type == RX_STAR) {
       return matchstar(pattern[0], &pattern[2], text, matchlen);
-    } else if (pattern[1].type == PLUS) {
+    } else if (pattern[1].type == RX_PLUS) {
       return matchplus(pattern[0], &pattern[2], text, matchlen);
-    } else if ((pattern[0].type == END) && pattern[1].type == UNUSED) {
+    } else if ((pattern[0].type == RX_END) && pattern[1].type == RX_UNUSED) {
       return (text[0] == '\0');
     }
     (*matchlen)++;

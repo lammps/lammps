@@ -23,27 +23,21 @@ NPairStyle(half/bin/newton/tri/intel,
 #ifndef LMP_NPAIR_HALF_BIN_NEWTON_INTEL_TRI_H
 #define LMP_NPAIR_HALF_BIN_NEWTON_INTEL_TRI_H
 
-#include "npair_intel.h"
 #include "fix_intel.h"
+#include "npair_intel.h"
 
 namespace LAMMPS_NS {
 
 class NPairHalfBinNewtonTriIntel : public NPairIntel {
  public:
   NPairHalfBinNewtonTriIntel(class LAMMPS *);
-  ~NPairHalfBinNewtonTriIntel() {}
-  void build(class NeighList *);
+  void build(class NeighList *) override;
 
  private:
-  template <class flt_t, class acc_t>
-  void hbnti(NeighList *, IntelBuffers<flt_t,acc_t> *);
+  template <class flt_t, class acc_t> void hbnti(NeighList *, IntelBuffers<flt_t, acc_t> *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

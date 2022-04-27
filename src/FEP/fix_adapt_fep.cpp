@@ -138,21 +138,15 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"reset") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt/fep command");
-      if (strcmp(arg[iarg+1],"no") == 0) resetflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) resetflag = 1;
-      else error->all(FLERR,"Illegal fix adapt/fep command");
+      resetflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"scale") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt/fep command");
-      if (strcmp(arg[iarg+1],"no") == 0) scaleflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) scaleflag = 1;
-      else error->all(FLERR,"Illegal fix adapt/fep command");
+      scaleflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"after") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt/fep command");
-      if (strcmp(arg[iarg+1],"no") == 0) afterflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) afterflag = 1;
-      else error->all(FLERR,"Illegal fix adapt/fep command");
+      afterflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix adapt/fep command");
   }
@@ -216,10 +210,8 @@ void FixAdaptFEP::post_constructor()
   id_fix_chg = nullptr;
 
   if (diamflag) {
-    auto cmd = fmt::format("{}_FIX_STORE_DIAM {} STORE peratom 1 1",
-                           group->names[igroup]);
-    modify->add_fix(cmd);
-    fix_diam = (FixStore *) modify->fix[modify->nfix-1];
+    auto cmd = fmt::format("{}_FIX_STORE_DIAM {} STORE peratom 1 1", group->names[igroup]);
+    fix_diam = dynamic_cast<FixStore *>( modify->add_fix(cmd));
 
     if (fix_diam->restart_reset) fix_diam->restart_reset = 0;
     else {
@@ -236,10 +228,8 @@ void FixAdaptFEP::post_constructor()
   }
 
   if (chgflag) {
-    auto cmd = fmt::format("{}_FIX_STORE_CHG {} STORE peratom 1 1",
-                           group->names[igroup]);
-    modify->add_fix(cmd);
-    fix_chg = (FixStore *) modify->fix[modify->nfix-1];
+    auto cmd = fmt::format("{}_FIX_STORE_CHG {} STORE peratom 1 1", group->names[igroup]);
+    fix_chg = dynamic_cast<FixStore *>( modify->add_fix(cmd));
 
     if (fix_chg->restart_reset) fix_chg->restart_reset = 0;
     else {
@@ -286,13 +276,9 @@ void FixAdaptFEP::init()
       anypair = 1;
       Pair *pair = nullptr;
 
-      if (lmp->suffix_enable) {
-        char psuffix[128];
-        strcpy(psuffix,ad->pstyle);
-        strcat(psuffix,"/");
-        strcat(psuffix,lmp->suffix);
-        pair = force->pair_match(psuffix,1);
-      }
+      if (lmp->suffix_enable)
+        pair = force->pair_match(std::string(ad->pstyle)+"/"+lmp->suffix,1);
+
       if (pair == nullptr) pair = force->pair_match(ad->pstyle,1);
       if (pair == nullptr)
         error->all(FLERR, "Fix adapt/fep pair style does not exist");
@@ -308,7 +294,7 @@ void FixAdaptFEP::init()
 
       if (ad->pdim == 2 && (strcmp(force->pair_style,"hybrid") == 0 ||
                             strcmp(force->pair_style,"hybrid/overlay") == 0)) {
-        PairHybrid *pair = (PairHybrid *) force->pair;
+        auto pair = dynamic_cast<PairHybrid *>( force->pair);
         for (i = ad->ilo; i <= ad->ihi; i++)
           for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
             if (!pair->check_ijtype(i,j,ad->pstyle))
@@ -349,16 +335,16 @@ void FixAdaptFEP::init()
   if (id_fix_diam) {
     int ifix = modify->find_fix(id_fix_diam);
     if (ifix < 0) error->all(FLERR,"Could not find fix adapt storage fix ID");
-    fix_diam = (FixStore *) modify->fix[ifix];
+    fix_diam = dynamic_cast<FixStore *>( modify->fix[ifix]);
   }
   if (id_fix_chg) {
     int ifix = modify->find_fix(id_fix_chg);
     if (ifix < 0) error->all(FLERR,"Could not find fix adapt storage fix ID");
-    fix_chg = (FixStore *) modify->fix[ifix];
+    fix_chg = dynamic_cast<FixStore *>( modify->fix[ifix]);
   }
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */

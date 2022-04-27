@@ -20,7 +20,7 @@ namespace ATC {
   //  Class ATC_CouplingEnergy
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -33,18 +33,18 @@ namespace ATC {
       nodalAtomicKineticTemperature_(nullptr),
       nodalAtomicConfigurationalTemperature_(nullptr)
   {
-    // Allocate PhysicsModel 
+    // Allocate PhysicsModel
     create_physics_model(THERMAL, matParamFile);
 
     // create extrinsic physics model
     if (extrinsicModel != NO_MODEL) {
-      extrinsicModelManager_.create_model(extrinsicModel,matParamFile);  
+      extrinsicModelManager_.create_model(extrinsicModel,matParamFile);
     }
 
     // Defaults
     set_time();
     bndyIntType_ = FE_INTERPOLATION;
-  
+
     // set up field data based on physicsModel
     physicsModel_->num_fields(fieldSizes_,fieldMask_);
 
@@ -182,16 +182,16 @@ namespace ATC {
     // register the per-atom quantity for the temperature definition
     interscaleManager_.add_per_atom_quantity(atomEnergyForTemperature,
                                              "AtomicEnergyForTemperature");
-    
+
     // nodal restriction of the atomic energy quantity for the temperature definition
     AtfShapeFunctionRestriction * nodalAtomicEnergy = new AtfShapeFunctionRestriction(this,
                                                                                       atomEnergyForTemperature,
                                                                                       shpFcn_);
     interscaleManager_.add_dense_matrix(nodalAtomicEnergy,
                                         "NodalAtomicEnergy");
-    
+
     // nodal atomic temperature field
-    
+
     AtfShapeFunctionMdProjection * nodalAtomicTemperature = new AtfShapeFunctionMdProjection(this,
                                                                                              nodalAtomicEnergy,
                                                                                              TEMPERATURE);
@@ -210,18 +210,18 @@ namespace ATC {
   //---------------------------------------------------------
   void ATC_CouplingEnergy::init_filter()
   {
-    
+
     TimeIntegrator::TimeIntegrationType timeIntegrationType = timeIntegrators_[TEMPERATURE]->time_integration_type();
-    
-    
-    
-    
-    if (timeFilterManager_.end_equilibrate()) { 
+
+
+
+
+    if (timeFilterManager_.end_equilibrate()) {
       if (timeIntegrationType==TimeIntegrator::GEAR) {
         if (equilibriumStart_) {
-          
-          
-          
+
+
+
           if (atomicRegulator_->regulator_target()==AtomicRegulator::DYNAMICS) { // based on FE equation
             DENS_MAT vdotflamMat(-2.*(nodalAtomicFields_[TEMPERATURE].quantity())); // note 2 is for 1/2 vdotflam addition
             atomicRegulator_->reset_lambda_contribution(vdotflamMat);
@@ -249,7 +249,7 @@ namespace ATC {
   {
     bool foundMatch = false;
     int argIndx = 0;
-    
+
     // check to see if input is a transfer class command
     // check derived class before base class
 
@@ -311,19 +311,19 @@ namespace ATC {
     // output[2] = average temperature
 
     double mvv2e = lammpsInterface_->mvv2e(); // convert to lammps energy units
-  
+
     if (n == 0) {
       Array<FieldName> mask(1);
       FIELD_MATS energy;
       mask(0) = TEMPERATURE;
-      
-      feEngine_->compute_energy(mask, 
+
+      feEngine_->compute_energy(mask,
                                 fields_,
                                 physicsModel_,
                                 elementToMaterialMap_,
                                 energy,
                                 &(elementMask_->quantity()));
-      
+
       double phononEnergy = mvv2e * energy[TEMPERATURE].col_sum();
       return phononEnergy;
     }
@@ -353,9 +353,9 @@ namespace ATC {
         _keTemp_ = nodalAtomicKineticTemperature_->quantity();
       if (nodalAtomicConfigurationalTemperature_)
       _peTemp_ = nodalAtomicConfigurationalTemperature_->quantity();
-      
+
       OUTPUT_LIST outputData;
-        
+
       // base class output
       ATC_Method::output();
 
@@ -370,7 +370,7 @@ namespace ATC {
       }
       atomicRegulator_->output(outputData);
       extrinsicModelManager_.output(outputData);
-      
+
       DENS_MAT & temperature(nodalAtomicFields_[TEMPERATURE].set_quantity());
       DENS_MAT & dotTemperature(dot_fields_[TEMPERATURE].set_quantity());
       DENS_MAT & ddotTemperature(ddot_fields_[TEMPERATURE].set_quantity());
@@ -384,18 +384,18 @@ namespace ATC {
         feEngine_->add_global("temperature_std_dev",  T_stddev);
         double Ta_mean =  (nodalAtomicFields_[TEMPERATURE].quantity()).col_sum(0)/nNodes_;
         feEngine_->add_global("atomic_temperature_mean",  Ta_mean);
-        double Ta_stddev =  (nodalAtomicFields_[TEMPERATURE].quantity()).col_stdev(0); 
+        double Ta_stddev =  (nodalAtomicFields_[TEMPERATURE].quantity()).col_stdev(0);
         feEngine_->add_global("atomic_temperature_std_dev",  Ta_stddev);
 
         // different temperature measures, if appropriate
         if (nodalAtomicKineticTemperature_)
           outputData["kinetic_temperature"] = & _keTemp_;
-        
+
         if (nodalAtomicConfigurationalTemperature_) {
           _peTemp_ *= 2; // account for full temperature
           outputData["configurational_temperature"] = & _peTemp_;
         }
-        
+
         // mesh data
         outputData["NodalAtomicTemperature"] = &temperature;
         outputData["dot_temperature"] = &dotTemperature;

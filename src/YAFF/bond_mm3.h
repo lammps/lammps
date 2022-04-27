@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class BondMM3 : public Bond {
  public:
   BondMM3(class LAMMPS *);
-  virtual ~BondMM3();
-  virtual void compute(int, int);
-  void coeff(int, char **);
-  double equilibrium_distance(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
-  double single(int, double, int, int, double &);
+  ~BondMM3() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  double equilibrium_distance(int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
+  double single(int, double, int, int, double &) override;
 
  protected:
   double *r0, *k2;
@@ -46,11 +46,3 @@ class BondMM3 : public Bond {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args for bond coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

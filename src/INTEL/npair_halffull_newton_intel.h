@@ -33,41 +33,29 @@ NPairStyle(halffull/newton/skip/intel,
 #ifndef LMP_NPAIR_HALFFULL_NEWTON_INTEL_H
 #define LMP_NPAIR_HALFFULL_NEWTON_INTEL_H
 
-#include "npair.h"
 #include "fix_intel.h"
+#include "npair.h"
 
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
-
 
 namespace LAMMPS_NS {
 
 class NPairHalffullNewtonIntel : public NPair {
  public:
   NPairHalffullNewtonIntel(class LAMMPS *);
-  ~NPairHalffullNewtonIntel() {}
-  void build(class NeighList *);
+  void build(class NeighList *) override;
 
  protected:
   FixIntel *_fix;
 
-  template<class flt_t, class acc_t>
-  void build_t(NeighList *, IntelBuffers<flt_t,acc_t> *);
+  template <class flt_t, class acc_t> void build_t(NeighList *, IntelBuffers<flt_t, acc_t> *);
 
-  template<class flt_t>
-  void build_t3(NeighList *, int *);
+  template <class flt_t> void build_t3(NeighList *, int *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: The 'package intel' command is required for /intel styles
-
-Self explanatory.
-
-*/

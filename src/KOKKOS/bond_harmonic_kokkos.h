@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -20,6 +19,7 @@ BondStyle(harmonic/kk/host,BondHarmonicKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_BOND_HARMONIC_KOKKOS_H
 #define LMP_BOND_HARMONIC_KOKKOS_H
 
@@ -39,10 +39,10 @@ class BondHarmonicKokkos : public BondHarmonic {
   typedef EV_FLOAT value_type;
 
   BondHarmonicKokkos(class LAMMPS *);
-  virtual ~BondHarmonicKokkos();
-  void compute(int, int);
-  void coeff(int, char **);
-  void read_restart(FILE *);
+  ~BondHarmonicKokkos() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void read_restart(FILE *) override;
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -79,7 +79,7 @@ class BondHarmonicKokkos : public BondHarmonic {
   typename AT::t_ffloat_1d d_k;
   typename AT::t_ffloat_1d d_r0;
 
-  void allocate();
+  void allocate() override;
 };
 
 }
@@ -87,6 +87,3 @@ class BondHarmonicKokkos : public BondHarmonic {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

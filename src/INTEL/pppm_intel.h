@@ -28,25 +28,25 @@ KSpaceStyle(pppm/intel,PPPMIntel);
 #ifndef LMP_PPPMINTEL_H
 #define LMP_PPPMINTEL_H
 
-#include "pppm.h"
 #include "fix_intel.h"
+#include "pppm.h"
 
 namespace LAMMPS_NS {
 
 class PPPMIntel : public PPPM {
  public:
   PPPMIntel(class LAMMPS *);
-  virtual ~PPPMIntel();
-  virtual void init();
-  virtual void compute(int, int);
-  virtual double memory_usage();
+  ~PPPMIntel() override;
+  void init() override;
+  void compute(int, int) override;
+  double memory_usage() override;
   void compute_first(int, int);
   void compute_second(int, int);
   void pack_buffers();
 
-  #ifdef _LMP_INTEL_OFFLOAD
+#ifdef _LMP_INTEL_OFFLOAD
   int use_base();
-  #endif
+#endif
 
  protected:
   FixIntel *fix;
@@ -63,62 +63,50 @@ class PPPMIntel : public PPPM {
   FFT_SCALAR **drho_lookup;
   FFT_SCALAR half_rho_scale, half_rho_scale_plus;
 
-  #ifdef _LMP_INTEL_OFFLOAD
+#ifdef _LMP_INTEL_OFFLOAD
   int _use_base;
-  #endif
+#endif
 
-  virtual void allocate();
+  void allocate() override;
 
-  template<class flt_t, class acc_t>
-  void test_function(IntelBuffers<flt_t,acc_t> *buffers);
+  template <class flt_t, class acc_t> void test_function(IntelBuffers<flt_t, acc_t> *buffers);
 
   void precompute_rho();
-  template<class flt_t, class acc_t>
-  void particle_map(IntelBuffers<flt_t,acc_t> *buffers);
-  template<class flt_t, class acc_t, int use_table>
-  void make_rho(IntelBuffers<flt_t,acc_t> *buffers);
-  template<class flt_t, class acc_t>
-  void make_rho(IntelBuffers<flt_t,acc_t> *buffers) {
+  template <class flt_t, class acc_t> void particle_map(IntelBuffers<flt_t, acc_t> *buffers);
+  template <class flt_t, class acc_t, int use_table>
+  void make_rho(IntelBuffers<flt_t, acc_t> *buffers);
+  template <class flt_t, class acc_t> void make_rho(IntelBuffers<flt_t, acc_t> *buffers)
+  {
     if (_use_table == 1) {
-      make_rho<flt_t,acc_t,1>(buffers);
+      make_rho<flt_t, acc_t, 1>(buffers);
     } else {
-      make_rho<flt_t,acc_t,0>(buffers);
+      make_rho<flt_t, acc_t, 0>(buffers);
     }
   }
-  template<class flt_t, class acc_t, int use_table>
-  void fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers);
-  template<class flt_t, class acc_t>
-  void fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers) {
+  template <class flt_t, class acc_t, int use_table>
+  void fieldforce_ik(IntelBuffers<flt_t, acc_t> *buffers);
+  template <class flt_t, class acc_t> void fieldforce_ik(IntelBuffers<flt_t, acc_t> *buffers)
+  {
     if (_use_table == 1) {
       fieldforce_ik<flt_t, acc_t, 1>(buffers);
     } else {
       fieldforce_ik<flt_t, acc_t, 0>(buffers);
     }
   }
-  template<class flt_t, class acc_t, int use_table>
-  void fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers);
-  template<class flt_t, class acc_t>
-  void fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers) {
+  template <class flt_t, class acc_t, int use_table>
+  void fieldforce_ad(IntelBuffers<flt_t, acc_t> *buffers);
+  template <class flt_t, class acc_t> void fieldforce_ad(IntelBuffers<flt_t, acc_t> *buffers)
+  {
     if (_use_table == 1) {
-      fieldforce_ad<flt_t,acc_t,1>(buffers);
+      fieldforce_ad<flt_t, acc_t, 1>(buffers);
     } else {
-      fieldforce_ad<flt_t,acc_t,0>(buffers);
+      fieldforce_ad<flt_t, acc_t, 0>(buffers);
     }
   }
-  FFT_SCALAR ***create3d_offset(FFT_SCALAR ***&, int, int, int,
-                                int, int, int, const char *name);
+  FFT_SCALAR ***create3d_offset(FFT_SCALAR ***&, int, int, int, int, int, int, const char *name);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: PPPM order greater than supported by INTEL
-
-There is a compile time limit on the maximum order for PPPM
-in the INTEL package that might be different from LAMMPS
-
-*/

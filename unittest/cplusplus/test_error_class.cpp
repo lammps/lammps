@@ -1,4 +1,4 @@
-// unit tests for issuing command to a LAMMPS instance through the Input class
+// unit tests for public member functions of the Error class
 
 #include "error.h"
 #include "info.h"
@@ -17,7 +17,7 @@ bool verbose = false;
 
 namespace LAMMPS_NS {
 
-using ::testing::MatchesRegex;
+using ::testing::ContainsRegex;
 using utils::split_words;
 
 class Error_class : public LAMMPSTest {
@@ -39,7 +39,7 @@ TEST_F(Error_class, message)
     auto output = CAPTURE_OUTPUT([&] {
         error->message(FLERR, "one message");
     });
-    ASSERT_THAT(output, MatchesRegex("one message .*test_error_class.cpp:.*"));
+    ASSERT_THAT(output, ContainsRegex("one message .*test_error_class.cpp:.*"));
 };
 
 TEST_F(Error_class, warning)
@@ -48,7 +48,7 @@ TEST_F(Error_class, warning)
     auto output = CAPTURE_OUTPUT([&] {
         error->warning(FLERR, "one warning");
     });
-    ASSERT_THAT(output, MatchesRegex("WARNING: one warning .*test_error_class.cpp:.*"));
+    ASSERT_THAT(output, ContainsRegex("WARNING: one warning .*test_error_class.cpp:.*"));
     ASSERT_THAT(error->get_maxwarn(), 100);
 
     // warnings disabled
@@ -72,7 +72,7 @@ TEST_F(Error_class, warning)
     output = CAPTURE_OUTPUT([&] {
         thermo->lost_check();
     });
-    ASSERT_THAT(output, MatchesRegex("WARNING: Too many warnings: 5 vs 2. All future.*"));
+    ASSERT_THAT(output, ContainsRegex("WARNING: Too many warnings: 5 vs 2. All future.*"));
 
     output = CAPTURE_OUTPUT([&] {
         error->warning(FLERR, "one warning");
@@ -91,7 +91,7 @@ TEST_F(Error_class, warning)
     output = CAPTURE_OUTPUT([&] {
         error->warning(FLERR, "one warning");
     });
-    ASSERT_THAT(output, MatchesRegex("WARNING: one warning.*"));
+    ASSERT_THAT(output, ContainsRegex("WARNING: one warning.*"));
 
     BEGIN_HIDE_OUTPUT();
     command("thermo_modify warn default");
@@ -128,9 +128,8 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (Info::get_mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. "
-                     "Death tests will be skipped\n";
+    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
+        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

@@ -33,25 +33,21 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "group.h"
 #include "kspace.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "math_special.h"
 #include "memory.h"
-#include "modify.h"
 #include "msm_dielectric.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair_coul_cut_dielectric.h"
 #include "pair_coul_long_dielectric.h"
 #include "pair_lj_cut_coul_cut_dielectric.h"
+#include "pair_lj_cut_coul_debye_dielectric.h"
 #include "pair_lj_cut_coul_long_dielectric.h"
 #include "pair_lj_cut_coul_msm_dielectric.h"
 #include "pppm_dielectric.h"
-#include "random_park.h"
-#include "timer.h"
 #include "update.h"
 
 #include <cmath>
@@ -65,18 +61,16 @@ using namespace MathSpecial;
 
 enum { REAL2SCALED = 0, SCALED2REAL = 1 };
 
-#define EPSILON 1e-6
-
-//#define _POLARIZE_DEBUG
+static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-FixPolarizeFunctional::FixPolarizeFunctional(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg)
+FixPolarizeFunctional::FixPolarizeFunctional(LAMMPS *_lmp, int narg, char **arg) :
+    Fix(_lmp, narg, arg)
 {
   if (narg < 4) error->all(FLERR, "Illegal fix polarize/functional command");
 
-  avec = (AtomVecDielectric *) atom->style_match("dielectric");
+  avec = dynamic_cast<AtomVecDielectric *>(atom->style_match("dielectric"));
   if (!avec) error->all(FLERR, "Fix polarize/functional requires atom style dielectric");
 
   nevery = utils::inumeric(FLERR, arg[3], false, lmp);
@@ -131,7 +125,7 @@ FixPolarizeFunctional::FixPolarizeFunctional(LAMMPS *lmp, int narg, char **arg) 
   cg_r = cg_p = cg_Ap = nullptr;
   cg_A = nullptr;
 
-  grow_arrays(atom->nmax);
+  FixPolarizeFunctional::grow_arrays(atom->nmax);
   atom->add_callback(0);    // to ensure to work with atom->sort()
 }
 
@@ -269,12 +263,7 @@ void FixPolarizeFunctional::init()
   // need a full neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
 
-  int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 0;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
   if (force->kspace)
     g_ewald = force->kspace->g_ewald;
@@ -300,19 +289,23 @@ void FixPolarizeFunctional::setup(int /*vflag*/)
   // check if the pair styles in use are compatible
 
   if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric") == 0)
-    efield_pair = ((PairLJCutCoulLongDielectric *) force->pair)->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulLongDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric/omp") == 0)
-    efield_pair = ((PairLJCutCoulLongDielectric *) force->pair)->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulLongDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/msm/dielectric") == 0)
-    efield_pair = ((PairLJCutCoulMSMDielectric *) force->pair)->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulMSMDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric") == 0)
-    efield_pair = ((PairLJCutCoulCutDielectric *) force->pair)->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric/omp") == 0)
-    efield_pair = ((PairLJCutCoulCutDielectric *) force->pair)->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/debye/dielectric") == 0)
+    efield_pair = (dynamic_cast<PairLJCutCoulDebyeDielectric *>(force->pair))->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/debye/dielectric/omp") == 0)
+    efield_pair = (dynamic_cast<PairLJCutCoulDebyeDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "coul/long/dielectric") == 0)
-    efield_pair = ((PairCoulLongDielectric *) force->pair)->efield;
+    efield_pair = (dynamic_cast<PairCoulLongDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "coul/cut/dielectric") == 0)
-    efield_pair = ((PairCoulCutDielectric *) force->pair)->efield;
+    efield_pair = (dynamic_cast<PairCoulCutDielectric *>(force->pair))->efield;
   else
     error->all(FLERR, "Pair style not compatible with fix polarize/functional");
 
@@ -320,9 +313,9 @@ void FixPolarizeFunctional::setup(int /*vflag*/)
 
     kspaceflag = 1;
     if (strcmp(force->kspace_style, "pppm/dielectric") == 0)
-      efield_kspace = ((PPPMDielectric *) force->kspace)->efield;
+      efield_kspace = (dynamic_cast<PPPMDielectric *>(force->kspace))->efield;
     else if (strcmp(force->kspace_style, "msm/dielectric") == 0)
-      efield_kspace = ((MSMDielectric *) force->kspace)->efield;
+      efield_kspace = (dynamic_cast<MSMDielectric *>(force->kspace))->efield;
     else
       error->all(FLERR, "Kspace style not compatible with fix polarize/functional");
 
@@ -416,7 +409,7 @@ void FixPolarizeFunctional::charge_rescaled(int scaled2real)
       if (induced_charge_idx[i] < 0) q[i] = q_real[i] / epsilon[i];
   }
 
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -482,12 +475,7 @@ int FixPolarizeFunctional::modify_param(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg], "kspace") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix_modify command");
-      if (strcmp(arg[iarg + 1], "yes") == 0)
-        kspaceflag = 1;
-      else if (strcmp(arg[iarg + 1], "no") == 0)
-        kspaceflag = 0;
-      else
-        error->all(FLERR, "Illegal fix_modify command for fix polarize/functional");
+      kspaceflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "dielectrics") == 0) {
       if (iarg + 6 > narg) error->all(FLERR, "Illegal fix_modify command");
@@ -538,7 +526,8 @@ int FixPolarizeFunctional::unpack_exchange(int nlocal, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int FixPolarizeFunctional::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
+int FixPolarizeFunctional::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/,
+                                             int * /*pbc*/)
 {
   int m;
   for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
@@ -591,21 +580,21 @@ void FixPolarizeFunctional::set_arrays(int i)
 double FixPolarizeFunctional::memory_usage()
 {
   double bytes = 0;
-  bytes += square(num_induced_charges) * sizeof(double);            // inverse_matrix
-  bytes += square(num_induced_charges) * sizeof(double);            // Rww
-  bytes += square(num_induced_charges) * sizeof(double);            // G1ww
-  bytes += square(num_induced_charges) * sizeof(double);            // ndotGww
-  bytes += square(num_induced_charges) * sizeof(double);            // G2ww
-  bytes += square(num_induced_charges) * sizeof(double);            // G3ww
-  bytes += num_induced_charges * sizeof(double);                    // qiRqwVector
-  bytes += num_induced_charges * sizeof(double);                    // sum2G2wq
-  bytes += num_induced_charges * sizeof(double);                    // sum1G2qw
-  bytes += num_induced_charges * sizeof(double);                    // sum1G1qw_epsilon
-  bytes += num_induced_charges * sizeof(double);                    // sum2ndotGwq_epsilon
-  bytes += (double)num_ions * num_induced_charges * sizeof(double); // G1qw_real
-  bytes += nmax * sizeof(int);                                      // induced_charge_idx
-  bytes += nmax * sizeof(int);                                      // ion_idx
-  bytes += num_induced_charges * sizeof(double);                    // induced_charges
+  bytes += square(num_induced_charges) * sizeof(double);                // inverse_matrix
+  bytes += square(num_induced_charges) * sizeof(double);                // Rww
+  bytes += square(num_induced_charges) * sizeof(double);                // G1ww
+  bytes += square(num_induced_charges) * sizeof(double);                // ndotGww
+  bytes += square(num_induced_charges) * sizeof(double);                // G2ww
+  bytes += square(num_induced_charges) * sizeof(double);                // G3ww
+  bytes += num_induced_charges * sizeof(double);                        // qiRqwVector
+  bytes += num_induced_charges * sizeof(double);                        // sum2G2wq
+  bytes += num_induced_charges * sizeof(double);                        // sum1G2qw
+  bytes += num_induced_charges * sizeof(double);                        // sum1G1qw_epsilon
+  bytes += num_induced_charges * sizeof(double);                        // sum2ndotGwq_epsilon
+  bytes += (double) num_ions * num_induced_charges * sizeof(double);    // G1qw_real
+  bytes += nmax * sizeof(int);                                          // induced_charge_idx
+  bytes += nmax * sizeof(int);                                          // ion_idx
+  bytes += num_induced_charges * sizeof(double);                        // induced_charges
   return bytes;
 }
 
@@ -818,16 +807,6 @@ void FixPolarizeFunctional::calculate_Rww_cutoff()
 
   MPI_Allreduce(buffer1[0], Rww[0], num_induced_charges * num_induced_charges, MPI_DOUBLE, MPI_SUM,
                 world);
-
-#ifdef _POLARIZE_DEBUG
-  if (comm->me == 0) {
-    FILE *fp = fopen("Rww-functional.txt", "w");
-    for (int i = 0; i < num_induced_charges; i++)
-      fprintf(fp, "%d %g %g %g\n", i, Rww[i][i], Rww[i][num_induced_charges / 2],
-              Rww[num_induced_charges / 2][i]);
-    fclose(fp);
-  }
-#endif
 }
 
 /* ---------------------------------------------------------------------- */

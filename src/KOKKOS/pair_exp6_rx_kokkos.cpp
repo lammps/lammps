@@ -17,9 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_exp6_rx_kokkos.h"
-#include <cmath>
 
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -28,12 +26,14 @@
 #include "memory_kokkos.h"
 #include "error.h"
 #include "fix.h"
-#include <cfloat>
 #include "atom_masks.h"
 #include "neigh_request.h"
 #include "atom_kokkos.h"
 #include "kokkos.h"
 
+#include <cmath>
+#include <cfloat>
+#include <cstring>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -56,22 +56,6 @@ using namespace MathSpecialKokkos;
 
 #define exp6PotentialType (1)
 #define isExp6PotentialType(_type) ( (_type) == exp6PotentialType )
-
-namespace /* anonymous */
-{
-
-//typedef double TimerType;
-//TimerType getTimeStamp(void) { return MPI_Wtime(); }
-//double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0; }
-
-typedef struct timespec TimerType;
-TimerType getTimeStamp(void) { TimerType tick; clock_gettime( CLOCK_MONOTONIC, &tick); return tick; }
-double getElapsedTime( const TimerType &t0, const TimerType &t1)
-{
-   return (t1.tv_sec - t0.tv_sec) + 1e-9*(t1.tv_nsec - t0.tv_nsec);
-}
-
-} // end namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -115,26 +99,14 @@ void PairExp6rxKokkos<DeviceType>::init_style()
 {
   PairExp6rx::init_style();
 
-  // irequest = neigh request made by parent class
+  // adjust neighbor list request for KOKKOS
 
   neighflag = lmp->kokkos->neighflag;
-  int irequest = neighbor->nrequest - 1;
-
-  neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
-
-  if (neighflag == FULL) {
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->half = 0;
-  } else if (neighflag == HALF || neighflag == HALFTHREAD) {
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 1;
-  } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with exp6/rx/kk");
-  }
+  auto request = neighbor->find_request(this);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  if (neighflag == FULL) request->enable_full();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -142,8 +114,6 @@ void PairExp6rxKokkos<DeviceType>::init_style()
 template<class DeviceType>
 void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
-  //TimerType t_start = getTimeStamp();
-
   copymode = 1;
 
   eflag = eflag_in;
@@ -187,7 +157,6 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // and ghost atoms. Make the parameter data persistent
   // and exchange like any other atom property later.
 
-  //TimerType t_mix_start = getTimeStamp();
   {
      const int np_total = nlocal + atom->nghost;
 
@@ -260,7 +229,6 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
        error->all(FLERR,"Computed fraction less than -10*DBL_EPSILON");
 #endif
   }
-  //TimerType t_mix_stop = getTimeStamp();
 
   k_error_flag.template modify<DeviceType>();
   k_error_flag.template sync<LMPHostType>();
@@ -377,9 +345,6 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   copymode = 0;
-
-  //TimerType t_stop = getTimeStamp();
-  //printf("PairExp6rxKokkos::compute %f %f\n", getElapsedTime(t_start, t_stop), getElapsedTime(t_mix_start, t_mix_stop));
 }
 
 template<class DeviceType>
@@ -1788,7 +1753,7 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
     while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
 
     for (ispecies = 0; ispecies < nspecies; ispecies++)
-      if (strcmp(words[0],&atom->dname[ispecies][0]) == 0) break;
+      if (strcmp(words[0],&atom->dvname[ispecies][0]) == 0) break;
     if (ispecies == nspecies) continue;
 
     // load up parameter settings and error check their values
@@ -1801,8 +1766,9 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
     }
 
     params[nparams].ispecies = ispecies;
-    params[nparams].name = utils::strdup(&atom->dname[ispecies][0]);
+    params[nparams].name = utils::strdup(&atom->dvname[ispecies][0]);
     params[nparams].potential = utils::strdup(words[1]);
+
     if (strcmp(params[nparams].potential,"exp6") == 0) {
       params[nparams].alpha = atof(words[2]);
       params[nparams].epsilon = atof(words[3]);

@@ -14,18 +14,17 @@
 
 #include "compute_msd_chunk.h"
 
-#include <cstring>
-
 #include "atom.h"
-#include "group.h"
-#include "update.h"
-#include "modify.h"
 #include "compute_chunk_atom.h"
 #include "domain.h"
-#include "fix_store.h"
-#include "memory.h"
 #include "error.h"
+#include "fix_store.h"
+#include "group.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
 
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -52,16 +51,14 @@ ComputeMSDChunk::ComputeMSDChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // create a new fix STORE style for reference positions
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
-  // do not know size of array at this point, just allocate 1x3 array
+  // do not know size of array at this point, just allocate 1x1 array
   // fix creation must be done now so that a restart run can
   //   potentially re-populate the fix array (and change it to correct size)
   // otherwise size reset and init will be done in setup()
 
   id_fix = utils::strdup(std::string(id) + "_COMPUTE_STORE");
-  std::string fixcmd = id_fix
-    + fmt::format(" {} STORE global 1 1",group->names[igroup]);
-  modify->add_fix(fixcmd);
-  fix = (FixStore *) modify->fix[modify->nfix-1];
+  fix = dynamic_cast<FixStore *>( modify->add_fix(fmt::format("{} {} STORE global 1 1",
+                                                 id_fix,group->names[igroup])));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -72,8 +69,8 @@ ComputeMSDChunk::~ComputeMSDChunk()
 
   if (modify->nfix) modify->delete_fix(id_fix);
 
-  delete [] id_fix;
-  delete [] idchunk;
+  delete[] id_fix;
+  delete[] idchunk;
   memory->destroy(massproc);
   memory->destroy(masstotal);
   memory->destroy(com);
@@ -88,7 +85,7 @@ void ComputeMSDChunk::init()
   int icompute = modify->find_compute(idchunk);
   if (icompute < 0)
     error->all(FLERR,"Chunk/atom compute does not exist for compute msd/chunk");
-  cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
   if (strcmp(cchunk->style,"chunk/atom") != 0)
     error->all(FLERR,"Compute msd/chunk does not use chunk/atom compute");
 
@@ -96,9 +93,8 @@ void ComputeMSDChunk::init()
   // if firstflag, will be created in setup()
 
   if (!firstflag) {
-    int ifix = modify->find_fix(id_fix);
-    if (ifix < 0) error->all(FLERR,"Could not find compute msd/chunk fix ID");
-    fix = (FixStore *) modify->fix[ifix];
+    fix = dynamic_cast<FixStore *>( modify->get_fix_by_id(id_fix));
+    if (!fix) error->all(FLERR,"Could not find compute msd/chunk fix with ID {}", id_fix);
   }
 }
 
@@ -239,7 +235,7 @@ void ComputeMSDChunk::lock_disable()
 {
   int icompute = modify->find_compute(idchunk);
   if (icompute >= 0) {
-    cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+    cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
     cchunk->lockcount--;
   }
 }

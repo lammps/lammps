@@ -22,8 +22,6 @@
 #include "pair.h"
 #include "update.h"
 
-#include <cmath>
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -218,7 +216,7 @@ void ComputeHeatFluxVirialTally::compute_peratom()
   // collect contributions from ghost atoms
 
   if (force->newton_pair) {
-    comm->reverse_comm_compute(this);
+    comm->reverse_comm(this);
 
     // clear out ghost atom data after it has been collected to local atoms
     const int nall = atom->nlocal + atom->nghost;
@@ -233,6 +231,6 @@ void ComputeHeatFluxVirialTally::compute_peratom()
 
 double ComputeHeatFluxVirialTally::memory_usage()
 {
-  double bytes = (nmax < 0) ? 0 : nmax * (double)size_peratom_cols * sizeof(double);
+  double bytes = (nmax < 0) ? 0 : nmax * (double) size_peratom_cols * sizeof(double);
   return bytes;
 }

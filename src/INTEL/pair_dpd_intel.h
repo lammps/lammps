@@ -26,8 +26,8 @@ PairStyle(dpd/intel,PairDPDIntel);
 #ifndef LMP_PAIR_DPD_INTEL_H
 #define LMP_PAIR_DPD_INTEL_H
 
-#include "pair_dpd.h"
 #include "fix_intel.h"
+#include "pair_dpd.h"
 
 #ifdef LMP_USE_MKL_RNG
 #include "mkl_vsl.h"
@@ -41,53 +41,52 @@ class PairDPDIntel : public PairDPD {
 
  public:
   PairDPDIntel(class LAMMPS *);
-  ~PairDPDIntel();
+  ~PairDPDIntel() override;
 
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void init_style();
-  void read_restart_settings(FILE *);
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void init_style() override;
+  void read_restart_settings(FILE *) override;
 
  private:
   FixIntel *fix;
   int _cop, _onetype, _nrandom_thread;
 
-  #ifdef LMP_USE_MKL_RNG
+#ifdef LMP_USE_MKL_RNG
   VSLStreamStatePtr *random_thread;
-  #else
+#else
   RanMars **random_thread;
-  #endif
+#endif
 
   template <class flt_t> class ForceConst;
   template <class flt_t, class acc_t>
-  void compute(int eflag, int vflag, IntelBuffers<flt_t,acc_t> *buffers,
+  void compute(int eflag, int vflag, IntelBuffers<flt_t, acc_t> *buffers,
                const ForceConst<flt_t> &fc);
   template <int ONETYPE, int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
-  void eval(const int offload, const int vflag,
-            IntelBuffers<flt_t,acc_t> * buffers,
+  void eval(const int offload, const int vflag, IntelBuffers<flt_t, acc_t> *buffers,
             const ForceConst<flt_t> &fc, const int astart, const int aend);
 
   template <class flt_t, class acc_t>
-  void pack_force_const(ForceConst<flt_t> &fc,
-                        IntelBuffers<flt_t, acc_t> *buffers);
+  void pack_force_const(ForceConst<flt_t> &fc, IntelBuffers<flt_t, acc_t> *buffers);
 
   // ----------------------------------------------------------------------
 
-  template <class flt_t>
-  class ForceConst {
+  template <class flt_t> class ForceConst {
    public:
-    typedef struct { flt_t icut, a0, gamma, sigma; } fc_packed1;
+    typedef struct {
+      flt_t icut, a0, gamma, sigma;
+    } fc_packed1;
 
-    _alignvar(flt_t special_lj[4],64);
+    _alignvar(flt_t special_lj[4], 64);
     fc_packed1 **param;
     flt_t **rand_buffer_thread;
     int *rngi;
 
-    ForceConst() : _ntypes(0)  {}
+    ForceConst() : _ntypes(0) {}
     ~ForceConst() { set_ntypes(0, 0, 0, nullptr, _cop); }
 
-    void set_ntypes(const int ntypes, const int nthreads, const int max_nbors,
-                    Memory *memory, const int cop);
+    void set_ntypes(const int ntypes, const int nthreads, const int max_nbors, Memory *memory,
+                    const int cop);
 
    private:
     int _ntypes, _cop;
@@ -97,15 +96,7 @@ class PairDPDIntel : public PairDPD {
   ForceConst<double> force_const_double;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: The 'package intel' command is required for /intel styles
-
-Self-explanatory.
-
-*/

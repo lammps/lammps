@@ -175,8 +175,8 @@ struct potdata2 {
     p = strchr(s,'{');
     if(p != nullptr) {
       if(sscanf(p+1,"%d:%d:%d",i0,stride,i1) != 3) {
-	fprintf(stderr,"Error in template (\'%s\'), can not parse range.\n",nametemplate);
-	exit(1);
+        fprintf(stderr,"Error in template (\'%s\'), can not parse range.\n",nametemplate);
+        exit(1);
       }
       *p = '\0';
     } else {
@@ -205,13 +205,13 @@ struct potdata2 {
 
     if(i0x != i0 || i1x != i1 || stridex != stride) {
       fprintf(stderr,"Inconsistent templates. parmin_template=\'%s\', potin_template=\'%s\'\n",
-	      parmin_template,potin_template);
+              parmin_template,potin_template);
       exit(1);
     }
     if(i0 < 0 || i1 < i0 || stride <= 0 || (i1-i0)/stride+1 < 4) {
       fprintf(stderr,"Improper temperature range. Need at least 4 temperature samples. "
-	      "i0=%d,i1=%d,stride=%d,basename=\'%s\'\n",
-	      i0,i1,stride,parmin_file);
+              "i0=%d,i1=%d,stride=%d,basename=\'%s\'\n",
+              i0,i1,stride,parmin_file);
       exit(1);
     }
 
@@ -220,20 +220,20 @@ struct potdata2 {
 
     if(parmin_suffix-1 == nullptr) {
       fprintf(stderr,"No closing }. parmin_template=\'%s\'\n",
-	      parmin_template);
+              parmin_template);
       exit(1);
     }
     if(potin_suffix-1 == nullptr) {
       fprintf(stderr,"No closing }. potin_template=\'%s\'\n",
-	      potin_template);
+              potin_template);
       exit(1);
     }
 
     printf("parmin_template = %s\n"
-	   "parmin_file = %s\n"
-	   "parmin_suffix = %s\n"
-	   "T0=%d , T1=%d , stride=%d\n",
-	   parmin_template,parmin_file,parmin_suffix,i0,i1,stride);
+           "parmin_file = %s\n"
+           "parmin_suffix = %s\n"
+           "T0=%d , T1=%d , stride=%d\n",
+           parmin_template,parmin_file,parmin_suffix,i0,i1,stride);
 
     ntemp = (i1-i0)/stride + 1;
     /*potdata **/potlist = new potdata[ntemp];
@@ -245,27 +245,27 @@ struct potdata2 {
 
 
       printf("Calling readpot(%s,%s,%.3f)\n",
-	     parmin_file,potin_file,vol);
+             parmin_file,potin_file,vol);
       potlist[k].readpot(parmin_file,potin_file,vol);
 
       if(k > 0) {
-	if(potlist[k].nr != potlist[k-1].nr) {
-	  fprintf(stderr,"nr differs between file %d and %d. Exiting.\n",
-		  k,k-1);
-	  exit(1);
-	}
+        if(potlist[k].nr != potlist[k-1].nr) {
+          fprintf(stderr,"nr differs between file %d and %d. Exiting.\n",
+                  k,k-1);
+          exit(1);
+        }
 
-	if(potlist[k].r0 != potlist[k-1].r0) {
-	  fprintf(stderr,"r0 differs between file %d and %d. Exiting.\n",
-		  k,k-1);
-	  exit(1);
-	}
+        if(potlist[k].r0 != potlist[k-1].r0) {
+          fprintf(stderr,"r0 differs between file %d and %d. Exiting.\n",
+                  k,k-1);
+          exit(1);
+        }
 
-	if(potlist[k].r1 != potlist[k-1].r1) {
-	  fprintf(stderr,"r1 differs between file %d and %d. Exiting.\n",
-		  k,k-1);
-	  exit(1);
-	}
+        if(potlist[k].r1 != potlist[k-1].r1) {
+          fprintf(stderr,"r1 differs between file %d and %d. Exiting.\n",
+                  k,k-1);
+          exit(1);
+        }
       }
     }
     tdeppot.r0 = potlist[0].r0;
@@ -320,7 +320,7 @@ struct potdata2 {
     tdeppot.devol0 = maketempspline(ntemp,potlist,&(potlist[0].devol0));
 
 
-    tdeppot.ddl[0] = 0;
+    tdeppot.ddl[0] = nullptr;
     for(int k = 1; k<=4; k++)
       tdeppot.ddl[k] = maketempspline(ntemp,potlist,&(potlist[0].ddl[k]));
 
@@ -334,39 +334,39 @@ struct potdata2 {
       tdeppot.dvpair = new double[sz][4][4];
       /*
       printf("vpair = %llx , dvpair = %llx",
-	     (unsigned long long int) tdeppot.vpair,
-	     (unsigned long long int) tdeppot.dvpair);
+             (unsigned long long int) tdeppot.vpair,
+             (unsigned long long int) tdeppot.dvpair);
       printf("   @@@@@@@@@@@@@@ nr = %d\n",nr);
       */
       for(int i = 0; i<nr-1; i++)
-	for(int j = 0; j<4; j++) {
-	  /*
-	  if(j == 5)
-	    printf("    ############### i=%d\n",i);
-	  */
+        for(int j = 0; j<4; j++) {
+          /*
+          if(j == 5)
+            printf("    ############### i=%d\n",i);
+          */
 
-	  /* Make pair interaction interpolation functions */
-	  for(int k = 0; k<ntemp; k++) {
-	    if(0) if(i >= potlist[k].nr-1)
-	      printf("Index error, local_nr=%d, k=%d, i=%d, nr=%d\n",nr,k,i,potlist[k].nr);
-	    v[k] = potlist[k].vpair_spline[i][j];
-	  }
-	  makespline(ntemp,1,v,C);
+          /* Make pair interaction interpolation functions */
+          for(int k = 0; k<ntemp; k++) {
+            if(0) if(i >= potlist[k].nr-1)
+              printf("Index error, local_nr=%d, k=%d, i=%d, nr=%d\n",nr,k,i,potlist[k].nr);
+            v[k] = potlist[k].vpair_spline[i][j];
+          }
+          makespline(ntemp,1,v,C);
 
-	  for(int k = 0; k<ntemp-1; k++)
-	    for(int m = 0; m<4; m++)
-	      tdeppot.vpair[k*(nr-1) + i][j][m] = C[k][m];
+          for(int k = 0; k<ntemp-1; k++)
+            for(int m = 0; m<4; m++)
+              tdeppot.vpair[k*(nr-1) + i][j][m] = C[k][m];
 
-	  /* Make pair virial interpolation functions */
-	  for(int k = 0; k<ntemp; k++)
-	    v[k] = potlist[k].dvpair_spline[i][j];
-	  makespline(ntemp,1,v,C);
+          /* Make pair virial interpolation functions */
+          for(int k = 0; k<ntemp; k++)
+            v[k] = potlist[k].dvpair_spline[i][j];
+          makespline(ntemp,1,v,C);
 
-	  for(int k = 0; k<ntemp-1; k++)
-	    for(int m = 0; m<4; m++)
-	      tdeppot.dvpair[k*(nr-1) + i][j][m] = C[k][m];
+          for(int k = 0; k<ntemp-1; k++)
+            for(int m = 0; m<4; m++)
+              tdeppot.dvpair[k*(nr-1) + i][j][m] = C[k][m];
 
-	}
+        }
 
       delete[] C;
       delete[] v;
@@ -391,7 +391,7 @@ struct potdata2 {
     /*
     printf("eval_pot nr=%d  nt=%d\n",nr,nt);
     printf("eval_pot r=%.3f  T=%.3f  k=%d  i=%d\n",
-	   r,T,k,i);
+           r,T,k,i);
     printf("Tfrac=%.3f  Tfrac-k=%.3f\n",Tfrac,Tfrac-k);
     printf("rfrac=%.3f  rfrac-i=%.3f\n",rfrac,rfrac-i);
     */
@@ -401,7 +401,7 @@ struct potdata2 {
     }
     /*
     printf("C coeff: %.3e  %.3e  %.3e  %.3e\n",
-	   C[0],C[1],C[2],C[3]);
+           C[0],C[1],C[2],C[3]);
     */
     evalcubic(C,rfrac-i,e_p,f_p,&dd);
     evalcubic(dC,rfrac-i,dedT_p,&dd,&dd);

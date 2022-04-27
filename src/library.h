@@ -35,7 +35,7 @@
 #endif
 
 #if defined(LAMMPS_BIGBIG) || defined(LAMMPS_SMALLBIG)
-#include <inttypes.h> /* for int64_t */
+#include <stdint.h> /* for int64_t */
 #endif
 
 /** Data type constants for extracting data from atoms, computes and fixes
@@ -95,6 +95,7 @@ void lammps_close(void *handle);
 void lammps_mpi_init();
 void lammps_mpi_finalize();
 void lammps_kokkos_finalize();
+void lammps_python_finalize();
 
 /* ----------------------------------------------------------------------
  * Library functions to process commands
@@ -228,7 +229,8 @@ void lammps_decode_image_flags(int64_t image, int *flags);
 
 #if defined(LAMMPS_BIGBIG)
 typedef void (*FixExternalFnPtr)(void *, int64_t, int, int64_t *, double **, double **);
-void lammps_set_fix_external_callback(void *handle, const char *id, FixExternalFnPtr funcptr, void *ptr);
+void lammps_set_fix_external_callback(void *handle, const char *id, FixExternalFnPtr funcptr,
+                                      void *ptr);
 #elif defined(LAMMPS_SMALLBIG)
 typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
 void lammps_set_fix_external_callback(void *, const char *, FixExternalFnPtr, void *);
@@ -244,6 +246,8 @@ void lammps_fix_external_set_virial_peratom(void *handle, const char *id, double
 void lammps_fix_external_set_vector_length(void *handle, const char *id, int len);
 void lammps_fix_external_set_vector(void *handle, const char *id, int idx, double val);
 
+void lammps_flush_buffers(void *ptr);
+
 void lammps_free(void *ptr);
 
 int lammps_is_running(void *handle);
@@ -257,57 +261,6 @@ int lammps_get_last_error_message(void *handle, char *buffer, int buf_size);
 #endif
 
 #endif /* LAMMPS_LIBRARY_H */
-
-/* ERROR/WARNING messages:
-
-E: Library error: issuing LAMMPS command during run
-
-UNDOCUMENTED
-
-W: Library error in lammps_gather_atoms
-
-This library function cannot be used if atom IDs are not defined
-or are not consecutively numbered.
-
-W: lammps_gather_atoms: unknown property name
-
-UNDOCUMENTED
-
-W: Library error in lammps_gather_atoms_subset
-
-UNDOCUMENTED
-
-W: lammps_gather_atoms_subset: unknown property name
-
-UNDOCUMENTED
-
-W: Library error in lammps_scatter_atoms
-
-This library function cannot be used if atom IDs are not defined or
-are not consecutively numbered, or if no atom map is defined.  See the
-atom_modify command for details about atom maps.
-
-W: lammps_scatter_atoms: unknown property name
-
-UNDOCUMENTED
-
-W: Library error in lammps_scatter_atoms_subset
-
-UNDOCUMENTED
-
-W: lammps_scatter_atoms_subset: unknown property name
-
-UNDOCUMENTED
-
-W: Library error in lammps_create_atoms
-
-UNDOCUMENTED
-
-W: Library warning in lammps_create_atoms, invalid total atoms %ld %ld
-
-UNDOCUMENTED
-
-*/
 
 /* Local Variables:
  * fill-column: 72

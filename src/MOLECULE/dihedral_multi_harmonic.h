@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class DihedralMultiHarmonic : public Dihedral {
  public:
   DihedralMultiHarmonic(class LAMMPS *);
-  virtual ~DihedralMultiHarmonic();
-  virtual void compute(int, int);
-  void coeff(int, char **);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
+  ~DihedralMultiHarmonic() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
 
  protected:
   double *a1, *a2, *a3, *a4, *a5;
@@ -44,16 +44,3 @@ class DihedralMultiHarmonic : public Dihedral {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-W: Dihedral problem: %d %ld %d %d %d %d
-
-Conformation of the 4 listed dihedral atoms is extreme; you may want
-to check your simulation geometry.
-
-E: Incorrect args for dihedral coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

@@ -53,7 +53,7 @@ action thr_data.cpp
 if (test $mode = 1) then
 
   if (test -e ../Makefile.package) then
-    sed -i -e 's/[^ \t]*OMP[^ \t]* //' ../Makefile.package
+    sed -i -e 's/[^ \t]*OPENMP[^ \t]* //' ../Makefile.package
     sed -i -e 's|^PKG_INC =[ \t]*|&-DLMP_OPENMP |' ../Makefile.package
   fi
 
@@ -72,7 +72,7 @@ if (test $mode = 1) then
 elif (test $mode = 0) then
 
   if (test -e ../Makefile.package) then
-    sed -i -e 's/[^ \t]*OMP[^ \t]* //' ../Makefile.package
+    sed -i -e 's/[^ \t]*OPENMP[^ \t]* //' ../Makefile.package
   fi
 
   # need to delete a bunch of dependency files because they

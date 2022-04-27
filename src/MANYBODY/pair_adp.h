@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class PairADP : public Pair {
  public:
   PairADP(class LAMMPS *);
-  virtual ~PairADP();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
+  ~PairADP() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  double memory_usage();
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
 
  protected:
   int nmax;    // allocated size of per-atom arrays
@@ -89,31 +89,3 @@ class PairADP : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: No matching element in ADP potential file
-
-The ADP potential file does not contain elements that match the
-requested elements.
-
-E: Cannot open ADP potential file %s
-
-The specified ADP potential file cannot be opened.  Check that the
-path and name are correct.
-
-E: Incorrect element names in ADP potential file
-
-The element names in the ADP file do not match those requested.
-
-*/

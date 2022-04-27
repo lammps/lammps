@@ -201,8 +201,9 @@ void Comm::init()
   if (ghost_velocity) size_forward += atom->avec->size_velocity;
   if (ghost_velocity) size_border += atom->avec->size_velocity;
 
-  for (int i = 0; i < modify->nfix; i++)
-    size_border += modify->fix[i]->comm_border;
+  const auto &fix_list = modify->get_fix_list();
+  for (const auto &fix : fix_list)
+    size_border += fix->comm_border;
 
   // per-atom limits for communication
   // maxexchange = max # of datums in exchange comm, set in exchange()
@@ -217,9 +218,12 @@ void Comm::init()
   if (force->pair) maxforward = MAX(maxforward,force->pair->comm_forward);
   if (force->pair) maxreverse = MAX(maxreverse,force->pair->comm_reverse);
 
-  for (int i = 0; i < modify->nfix; i++) {
-    maxforward = MAX(maxforward,modify->fix[i]->comm_forward);
-    maxreverse = MAX(maxreverse,modify->fix[i]->comm_reverse);
+  if (force->bond) maxforward = MAX(maxforward,force->bond->comm_forward);
+  if (force->bond) maxreverse = MAX(maxreverse,force->bond->comm_reverse);
+
+  for (const auto &fix : fix_list) {
+    maxforward = MAX(maxforward,fix->comm_forward);
+    maxreverse = MAX(maxreverse,fix->comm_reverse);
   }
 
   for (int i = 0; i < modify->ncompute; i++) {
@@ -234,6 +238,7 @@ void Comm::init()
 
   if (force->newton == 0) maxreverse = 0;
   if (force->pair) maxreverse = MAX(maxreverse,force->pair->comm_reverse_off);
+  if (force->bond) maxreverse = MAX(maxreverse,force->bond->comm_reverse_off);
 
   // maxexchange_atom = size of an exchanged atom, set by AtomVec
   //   only needs to be set if size > BUFEXTRA
@@ -241,12 +246,9 @@ void Comm::init()
 
   maxexchange_atom = atom->avec->maxexchange;
 
-  int nfix = modify->nfix;
-  Fix **fix = modify->fix;
-
   maxexchange_fix_dynamic = 0;
-  for (int i = 0; i < nfix; i++)
-    if (fix[i]->maxexchange_dynamic) maxexchange_fix_dynamic = 1;
+  for (const auto &fix : fix_list)
+    if (fix->maxexchange_dynamic) maxexchange_fix_dynamic = 1;
 
   if ((mode == Comm::MULTI) && (neighbor->style != Neighbor::MULTI))
     error->all(FLERR,"Cannot use comm mode multi without multi-style neighbor lists");
@@ -267,12 +269,9 @@ void Comm::init()
 
 void Comm::init_exchange()
 {
-  int nfix = modify->nfix;
-  Fix **fix = modify->fix;
-
   maxexchange_fix = 0;
-  for (int i = 0; i < nfix; i++)
-    maxexchange_fix += fix[i]->maxexchange;
+  for (const auto &fix : modify->get_fix_list())
+    maxexchange_fix += fix->maxexchange;
 
   maxexchange = maxexchange_atom + maxexchange_fix;
   bufextra = maxexchange + BUFEXTRA;
@@ -395,9 +394,7 @@ void Comm::modify_params(int narg, char **arg)
       iarg += 1;
     } else if (strcmp(arg[iarg],"vel") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) ghost_velocity = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) ghost_velocity = 0;
-      else error->all(FLERR,"Illegal comm_modify command");
+      ghost_velocity = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal comm_modify command");
   }
@@ -557,7 +554,7 @@ void Comm::set_proc_grid(int outflag)
 
   // create ProcMap class to create 3d grid and map procs to it
 
-  ProcMap *pmap = new ProcMap(lmp);
+  auto pmap = new ProcMap(lmp);
 
   // create 3d grid of processors
   // produces procgrid and coregrid (if relevant)
@@ -739,7 +736,8 @@ double Comm::get_comm_cutoff()
       error->warning(FLERR,"Communication cutoff adjusted to {}",maxcommcutoff);
   }
 
-  // Check maximum interval size for neighbor multi
+  // check maximum interval size for neighbor multi
+
   if (neighbor->interval_collection_flag) {
     for (int i = 0; i < neighbor->ncollections; i++){
       maxcommcutoff = MAX(maxcommcutoff, neighbor->collection2cut[i]);
@@ -782,13 +780,13 @@ int Comm::coord2proc(double *x, int &igx, int &igy, int &igz)
 
   } else if (layout == Comm::LAYOUT_NONUNIFORM) {
     if (triclinic == 0) {
-      igx = binary((x[0]-boxlo[0])/prd[0],procgrid[0],xsplit);
-      igy = binary((x[1]-boxlo[1])/prd[1],procgrid[1],ysplit);
-      igz = binary((x[2]-boxlo[2])/prd[2],procgrid[2],zsplit);
+      igx = utils::binary_search((x[0]-boxlo[0])/prd[0],procgrid[0],xsplit);
+      igy = utils::binary_search((x[1]-boxlo[1])/prd[1],procgrid[1],ysplit);
+      igz = utils::binary_search((x[2]-boxlo[2])/prd[2],procgrid[2],zsplit);
     } else {
-      igx = binary(x[0],procgrid[0],xsplit);
-      igy = binary(x[1],procgrid[1],ysplit);
-      igz = binary(x[2],procgrid[2],zsplit);
+      igx = utils::binary_search(x[0],procgrid[0],xsplit);
+      igy = utils::binary_search(x[1],procgrid[1],ysplit);
+      igz = utils::binary_search(x[2],procgrid[2],zsplit);
     }
   }
 
@@ -803,33 +801,100 @@ int Comm::coord2proc(double *x, int &igx, int &igy, int &igz)
 }
 
 /* ----------------------------------------------------------------------
-   binary search for value in N-length ascending vec
-   value may be outside range of vec limits
-   always return index from 0 to N-1 inclusive
-   return 0 if value < vec[0]
-   reutrn N-1 if value >= vec[N-1]
-   return index = 1 to N-2 if vec[index] <= value < vec[index+1]
+   partition a global regular grid into one brick-shaped sub-grid per proc
+   if grid point is inside my sub-domain I own it,
+     this includes sub-domain lo boundary but excludes hi boundary
+   nx,ny,nz = extent of global grid
+     indices into the global grid range from 0 to N-1 in each dim
+   zfactor = 0.0 if the grid exactly covers the simulation box
+   zfactor > 1.0 if the grid extends beyond the +z boundary by this factor
+     used by 2d slab-mode PPPM
+     this effectively maps proc sub-grids to a smaller subset of the grid
+   nxyz lo/hi = inclusive lo/hi bounds of global grid sub-brick I own
+   if proc owns no grid cells in a dim, then nlo > nhi
+   special case: 2 procs share boundary which a grid point is exactly on
+     2 equality if tests insure a consistent decision as to which proc owns it
 ------------------------------------------------------------------------- */
 
-int Comm::binary(double value, int n, double *vec)
+void Comm::partition_grid(int nx, int ny, int nz, double zfactor,
+                          int &nxlo, int &nxhi, int &nylo, int &nyhi,
+                          int &nzlo, int &nzhi)
 {
-  int lo = 0;
-  int hi = n-1;
+  double xfraclo,xfrachi,yfraclo,yfrachi,zfraclo,zfrachi;
 
-  if (value < vec[lo]) return lo;
-  if (value >= vec[hi]) return hi;
-
-  // insure vec[lo] <= value < vec[hi] at every iteration
-  // done when lo,hi are adjacent
-
-  int index = (lo+hi)/2;
-  while (lo < hi-1) {
-    if (value < vec[index]) hi = index;
-    else if (value >= vec[index]) lo = index;
-    index = (lo+hi)/2;
+  if (layout != LAYOUT_TILED) {
+    xfraclo = xsplit[myloc[0]];
+    xfrachi = xsplit[myloc[0]+1];
+    yfraclo = ysplit[myloc[1]];
+    yfrachi = ysplit[myloc[1]+1];
+    zfraclo = zsplit[myloc[2]];
+    zfrachi = zsplit[myloc[2]+1];
+  } else {
+    xfraclo = mysplit[0][0];
+    xfrachi = mysplit[0][1];
+    yfraclo = mysplit[1][0];
+    yfrachi = mysplit[1][1];
+    zfraclo = mysplit[2][0];
+    zfrachi = mysplit[2][1];
   }
 
-  return index;
+  nxlo = static_cast<int> (xfraclo * nx);
+  if (1.0*nxlo != xfraclo*nx) nxlo++;
+  nxhi = static_cast<int> (xfrachi * nx);
+  if (1.0*nxhi == xfrachi*nx) nxhi--;
+
+  nylo = static_cast<int> (yfraclo * ny);
+  if (1.0*nylo != yfraclo*ny) nylo++;
+  nyhi = static_cast<int> (yfrachi * ny);
+  if (1.0*nyhi == yfrachi*ny) nyhi--;
+
+  if (zfactor == 0.0) {
+    nzlo = static_cast<int> (zfraclo * nz);
+    if (1.0*nzlo != zfraclo*nz) nzlo++;
+    nzhi = static_cast<int> (zfrachi * nz);
+    if (1.0*nzhi == zfrachi*nz) nzhi--;
+  } else {
+    nzlo = static_cast<int> (zfraclo * nz/zfactor);
+    if (1.0*nzlo != zfraclo*nz) nzlo++;
+    nzhi = static_cast<int> (zfrachi * nz/zfactor);
+    if (1.0*nzhi == zfrachi*nz) nzhi--;
+  }
+
+  // OLD code
+  // could sometimes map grid points slightly outside a proc to the proc
+
+  /*
+  if (layout != LAYOUT_TILED) {
+    nxlo = static_cast<int> (xsplit[myloc[0]] * nx);
+    nxhi = static_cast<int> (xsplit[myloc[0]+1] * nx) - 1;
+
+    nylo = static_cast<int> (ysplit[myloc[1]] * ny);
+    nyhi = static_cast<int> (ysplit[myloc[1]+1] * ny) - 1;
+
+    if (zfactor == 0.0) {
+      nzlo = static_cast<int> (zsplit[myloc[2]] * nz);
+      nzhi = static_cast<int> (zsplit[myloc[2]+1] * nz) - 1;
+    } else {
+      nzlo = static_cast<int> (zsplit[myloc[2]] * nz/zfactor);
+      nzhi = static_cast<int> (zsplit[myloc[2]+1] * nz/zfactor) - 1;
+    }
+
+  } else {
+    nxlo = static_cast<int> (mysplit[0][0] * nx);
+    nxhi = static_cast<int> (mysplit[0][1] * nx) - 1;
+
+    nylo = static_cast<int> (mysplit[1][0] * ny);
+    nyhi = static_cast<int> (mysplit[1][1] * ny) - 1;
+
+    if (zfactor == 0.0) {
+      nzlo = static_cast<int> (mysplit[2][0] * nz);
+      nzhi = static_cast<int> (mysplit[2][1] * nz) - 1;
+    } else {
+      nzlo = static_cast<int> (mysplit[2][0] * nz/zfactor);
+      nzhi = static_cast<int> (mysplit[2][1] * nz/zfactor) - 1;
+    }
+  }
+  */
 }
 
 /* ----------------------------------------------------------------------
@@ -950,7 +1015,7 @@ rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
 {
   // irregular comm of inbuf from caller decomp to rendezvous decomp
 
-  Irregular *irregular = new Irregular(lmp);
+  auto irregular = new Irregular(lmp);
 
   int nrvous;
   if (inorder) nrvous = irregular->create_data_grouped(n,procs);
@@ -958,8 +1023,7 @@ rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
 
   // add 1 item to the allocated buffer size, so the returned pointer is not a null pointer
 
-  char *inbuf_rvous = (char *) memory->smalloc((bigint) nrvous*insize+1,
-                                               "rendezvous:inbuf");
+  auto inbuf_rvous = (char *) memory->smalloc((bigint) nrvous*insize+1, "rendezvous:inbuf");
   irregular->exchange_data(inbuf,insize,inbuf_rvous);
 
   bigint irregular1_bytes = irregular->memory_usage();
@@ -972,14 +1036,12 @@ rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
   int flag;
   int *procs_rvous;
   char *outbuf_rvous;
-  int nrvous_out = callback(nrvous,inbuf_rvous,flag,
-                            procs_rvous,outbuf_rvous,ptr);
+  int nrvous_out = callback(nrvous,inbuf_rvous,flag, procs_rvous,outbuf_rvous,ptr);
 
   if (flag != 1) memory->sfree(inbuf_rvous);  // outbuf_rvous = inbuf_vous
   if (flag == 0) {
     if (statflag) rendezvous_stats(n,0,nrvous,nrvous_out,insize,outsize,
-                                   (bigint) nrvous_out*sizeof(int) +
-                                   irregular1_bytes);
+                                   (bigint) nrvous_out*sizeof(int) + irregular1_bytes);
     return 0;    // all nout_rvous are 0, no 2nd comm stage
   }
 
@@ -989,14 +1051,12 @@ rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
   irregular = new Irregular(lmp);
 
   int nout;
-  if (outorder)
-    nout = irregular->create_data_grouped(nrvous_out,procs_rvous);
+  if (outorder) nout = irregular->create_data_grouped(nrvous_out,procs_rvous);
   else nout = irregular->create_data(nrvous_out,procs_rvous);
 
   // add 1 item to the allocated buffer size, so the returned pointer is not a null pointer
 
-  outbuf = (char *) memory->smalloc((bigint) nout*outsize+1,
-                                    "rendezvous:outbuf");
+  outbuf = (char *) memory->smalloc((bigint) nout*outsize+1, "rendezvous:outbuf");
   irregular->exchange_data(outbuf_rvous,outsize,outbuf);
 
   bigint irregular2_bytes = irregular->memory_usage();
@@ -1103,8 +1163,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   // all2all comm of inbuf from caller decomp to rendezvous decomp
   // add 1 item to the allocated buffer size, so the returned pointer is not a null pointer
 
-  char *inbuf_rvous = (char *) memory->smalloc((bigint) nrvous*insize+1,
-                                               "rendezvous:inbuf");
+  auto inbuf_rvous = (char *) memory->smalloc((bigint) nrvous*insize+1, "rendezvous:inbuf");
   memset(inbuf_rvous,0,(bigint) nrvous*insize*sizeof(char));
 
   MPI_Alltoallv(inbuf_a2a,sendcount,sdispls,MPI_CHAR,
@@ -1123,8 +1182,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   int *procs_rvous;
   char *outbuf_rvous;
 
-  int nrvous_out = callback(nrvous,inbuf_rvous,flag,
-                            procs_rvous,outbuf_rvous,ptr);
+  int nrvous_out = callback(nrvous,inbuf_rvous,flag, procs_rvous,outbuf_rvous,ptr);
 
   if (flag != 1) memory->sfree(inbuf_rvous);  // outbuf_rvous = inbuf_vous
   if (flag == 0) {
@@ -1145,8 +1203,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
 
     // add 1 item to the allocated buffer size, so the returned pointer is not a null pointer
 
-    outbuf_a2a = (char *) memory->smalloc((bigint) nrvous_out*outsize+1,
-                                          "rendezvous:outbuf");
+    outbuf_a2a = (char *) memory->smalloc((bigint) nrvous_out*outsize+1, "rendezvous:outbuf");
     memory->create(offsets,nprocs,"rendezvous:offsets");
 
     for (int i = 0; i < nprocs; i++) procs_a2a[i] = 0;
@@ -1164,8 +1221,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
       offset += outsize;
     }
 
-    all2all2_bytes = nprocs*sizeof(int) + nprocs*sizeof(bigint) +
-      (bigint)nrvous_out*outsize;
+    all2all2_bytes = nprocs*sizeof(int) + nprocs*sizeof(bigint) + (bigint)nrvous_out*outsize;
 
   } else {
     procs_a2a = procs_rvous;

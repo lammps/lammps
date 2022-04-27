@@ -191,6 +191,9 @@ void HPXSpaceInitializer::finalize(const bool all_spaces) {
 }
 
 void HPXSpaceInitializer::fence() { Kokkos::Experimental::HPX().fence(); }
+void HPXSpaceInitializer::fence(const std::string &name) {
+  Kokkos::Experimental::HPX().fence(name);
+}
 
 void HPXSpaceInitializer::print_configuration(std::ostream &msg,
                                               const bool detail) {

@@ -113,10 +113,10 @@ A simple python setup tool which creates single straight or helical DNA strands,
 DNA duplexes or arrays of DNA duplexes can be found in examples/PACKAGES/cgdna/util/.
 
 Please cite :ref:`(Henrich) <Henrich2>` in any publication that uses
-this implementation.  The article contains general information
+this implementation. An updated documentation that contains general information
 on the model, its implementation and performance as well as the structure of
-the data and input file. The preprint version of the article can be found
-`here <PDF/CG-DNA.pdf>`_.
+the data and input file can be found `here <PDF/CG-DNA.pdf>`_.
+
 Please cite also the relevant oxDNA2 publications
 :ref:`(Snodin) <Snodin2>` and :ref:`(Sulc) <Sulc2>`.
 

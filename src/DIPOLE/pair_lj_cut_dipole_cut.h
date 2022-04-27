@@ -27,16 +27,17 @@ namespace LAMMPS_NS {
 class PairLJCutDipoleCut : public Pair {
  public:
   PairLJCutDipoleCut(class LAMMPS *);
-  virtual ~PairLJCutDipoleCut();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
+  ~PairLJCutDipoleCut() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  void *extract(const char *, int &) override;
 
  protected:
   double cut_lj_global, cut_coul_global;
@@ -52,23 +53,3 @@ class PairLJCutDipoleCut : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args in pair_style command
-
-Self-explanatory.
-
-E: Cannot (yet) use 'electron' units with dipoles
-
-This feature is not yet supported.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair dipole/cut requires atom attributes q, mu, torque
-
-The atom style defined does not have these attributes.
-
-*/

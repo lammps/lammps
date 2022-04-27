@@ -68,7 +68,7 @@ PairSMATB::~PairSMATB()
     memory->destroy(cutOffStart);
     memory->destroy(cutOffEnd);
     memory->destroy(cutOffEnd2);
-    memory->destroy(a5);
+    memory->destroy(a3);
     memory->destroy(a4);
     memory->destroy(a5);
     memory->destroy(x5);

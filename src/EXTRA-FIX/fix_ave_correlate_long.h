@@ -27,15 +27,15 @@ namespace LAMMPS_NS {
 class FixAveCorrelateLong : public Fix {
  public:
   FixAveCorrelateLong(class LAMMPS *, int, char **);
-  ~FixAveCorrelateLong();
-  int setmask();
-  void init();
-  void setup(int);
-  void end_of_step();
+  ~FixAveCorrelateLong() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void end_of_step() override;
 
-  void write_restart(FILE *);
-  void restart(char *);
-  double memory_usage();
+  void write_restart(FILE *) override;
+  void restart(char *) override;
+  double memory_usage() override;
 
   double *t;     // Time steps for result arrays
   double **f;    // Result arrays
@@ -83,68 +83,3 @@ class FixAveCorrelateLong : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot open fix ave/correlate/long file %s
-
-The specified file cannot be opened.  Check that the path and name are
-correct.
-
-E: Compute ID for fix ave/correlate/long does not exist
-
-Self-explanatory.
-
-E: Fix ave/correlate/long compute does not calculate a scalar
-
-Self-explanatory.
-
-E: Fix ave/correlate/long compute does not calculate a vector
-
-Self-explanatory.
-
-E: Fix ave/correlate/long compute vector is accessed out-of-range
-
-The index for the vector is out of bounds.
-
-E: Fix ID for fix ave/correlate/long does not exist
-
-Self-explanatory.
-
-E: Fix ave/correlate/long fix does not calculate a scalar
-
-Self-explanatory.
-
-E: Fix ave/correlate/long fix does not calculate a vector
-
-Self-explanatory.
-
-E: Fix ave/correlate/long fix vector is accessed out-of-range
-
-The index for the vector is out of bounds.
-
-E: Fix for fix ave/correlate/long not computed at compatible time
-
-Fixes generate their values on specific timesteps.  Fix ave/correlate/long
-is requesting a value on a non-allowed timestep.
-
-E: Variable name for fix ave/correlate/long does not exist
-
-Self-explanatory.
-
-E: Fix ave/correlate/long variable is not equal-style variable
-
-Self-explanatory.
-
-E: Invalid timestep reset for fix ave/correlate/long
-
-Resetting the timestep has invalidated the sequence of timesteps this
-fix needs to process.
-
-*/

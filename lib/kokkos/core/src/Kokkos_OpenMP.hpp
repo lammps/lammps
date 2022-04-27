@@ -62,7 +62,6 @@
 #include <Kokkos_Parallel.hpp>
 #include <Kokkos_TaskScheduler.hpp>
 #include <Kokkos_Layout.hpp>
-#include <impl/Kokkos_Tags.hpp>
 #include <impl/Kokkos_Profiling_Interface.hpp>
 #include <impl/Kokkos_ExecSpaceInitializer.hpp>
 
@@ -105,9 +104,11 @@ class OpenMP {
   /// \brief Wait until all dispatched functors complete on the given instance
   ///
   ///  This is a no-op on OpenMP
-  static void impl_static_fence(OpenMP const& = OpenMP()) noexcept;
+  static void impl_static_fence(OpenMP const&           = OpenMP(),
+                                const std::string& name = "") noexcept;
 
   void fence() const;
+  void fence(const std::string& name) const;
 
   /// \brief Does the given instance return immediately after launching
   /// a parallel algorithm
@@ -167,7 +168,7 @@ class OpenMP {
   static int impl_get_current_max_threads() noexcept;
 
   static constexpr const char* name() noexcept { return "OpenMP"; }
-  uint32_t impl_instance_id() const noexcept { return 0; }
+  uint32_t impl_instance_id() const noexcept { return 1; }
 };
 
 namespace Tools {
@@ -188,6 +189,7 @@ class OpenMPSpaceInitializer : public ExecSpaceInitializerBase {
   void initialize(const InitArguments& args) final;
   void finalize(const bool) final;
   void fence() final;
+  void fence(const std::string&) final;
   void print_configuration(std::ostream& msg, const bool detail) final;
 };
 

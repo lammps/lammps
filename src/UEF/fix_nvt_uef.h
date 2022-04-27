@@ -29,22 +29,9 @@ namespace LAMMPS_NS {
 class FixNVTUef : public FixNHUef {
  public:
   FixNVTUef(class LAMMPS *, int, char **);
-  ~FixNVTUef() {}
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Temperature control must be used with fix npt uef
-
-Self-explanatory.
-
-E: Pressure control must be used with fix npt uef
-
-Self-explanatory.
-
-*/

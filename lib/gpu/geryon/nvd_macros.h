@@ -5,11 +5,7 @@
 #include <cassert>
 #include <cuda.h>
 
-#if CUDA_VERSION >= 3020
 #define CUDA_INT_TYPE size_t
-#else
-#define CUDA_INT_TYPE unsigned
-#endif
 
 #ifdef MPI_GERYON
 #include "mpi.h"

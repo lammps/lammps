@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class FixWallMorse : public FixWall {
  public:
   FixWallMorse(class LAMMPS *, int, char **);
-  void precompute(int);
-  void wall_particle(int, int, double);
+  void precompute(int) override;
+  void wall_particle(int, int, double) override;
 
  private:
   double coeff1[6], offset[6];
@@ -38,12 +38,3 @@ class FixWallMorse : public FixWall {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Particle on or inside fix wall surface
-
-Particles must be "exterior" to the wall in order for energy/force to
-be calculated.
-
-*/

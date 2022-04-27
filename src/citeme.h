@@ -22,7 +22,7 @@ namespace LAMMPS_NS {
 class CiteMe : protected Pointers {
  public:
   CiteMe(class LAMMPS *, int, int, const char *);
-  virtual ~CiteMe();
+  ~CiteMe() override;
   void add(const std::string &);    // register publication for output
   void flush();                     // flush buffers to screen and logfile
   enum { VERBOSE, TERSE };
@@ -40,14 +40,3 @@ class CiteMe : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Cannot open citation file
-
-This file is created when you use some LAMMPS features, to indicate
-what paper you should cite on behalf of those who implemented
-the feature.  Check that you have write privileges in the directory
-you are running in.
-
-*/

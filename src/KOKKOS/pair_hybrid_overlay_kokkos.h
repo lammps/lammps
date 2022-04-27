@@ -28,8 +28,10 @@ namespace LAMMPS_NS {
 class PairHybridOverlayKokkos : public PairHybridKokkos {
  public:
   PairHybridOverlayKokkos(class LAMMPS *);
-  virtual ~PairHybridOverlayKokkos() {}
-  void coeff(int, char **);
+  void coeff(int, char **) override;
+
+  void init_svector() override;
+  void copy_svector(int, int) override;
 };
 
 }
@@ -37,14 +39,3 @@ class PairHybridOverlayKokkos : public PairHybridKokkos {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair coeff for hybrid has invalid style
-
-Style in pair coeff must have been listed in pair_style command.
-
-*/

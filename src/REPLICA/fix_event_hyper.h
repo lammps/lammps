@@ -34,10 +34,9 @@ class FixEventHyper : public FixEvent {
   int ncoincident;          // # of simultaneous events on different replicas
 
   FixEventHyper(class LAMMPS *, int, char **);
-  ~FixEventHyper() {}
 
-  void write_restart(FILE *);
-  void restart(char *);
+  void write_restart(FILE *) override;
+  void restart(char *) override;
 
   // methods specific to FixEventHyper, invoked by hyper
 
@@ -48,13 +47,3 @@ class FixEventHyper : public FixEvent {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

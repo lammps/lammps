@@ -67,7 +67,8 @@ Description
 Choose the style of time integrator used for molecular dynamics
 simulations performed by LAMMPS.
 
-The *verlet* style is a standard velocity-Verlet integrator.
+The *verlet* style is the velocity form of the
+Stoermer-Verlet time integration algorithm (velocity-Verlet)
 
 ----------
 
@@ -89,7 +90,7 @@ in its 3d FFTs.  In this scenario, splitting your P total processors
 into 2 subsets of processors, P1 in the first partition and P2 in the
 second partition, can enable your simulation to run faster.  This is
 because the long-range forces in PPPM can be calculated at the same
-time as pair-wise and bonded forces are being calculated, and the FFTs
+time as pairwise and bonded forces are being calculated, and the FFTs
 can actually speed up when running on fewer processors.
 
 To use this style, you must define 2 partitions where P1 is a multiple

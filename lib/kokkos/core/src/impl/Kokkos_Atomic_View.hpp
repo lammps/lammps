@@ -339,9 +339,8 @@ class AtomicDataElement {
   }
 
   KOKKOS_INLINE_FUNCTION
-  operator volatile non_const_value_type() volatile const {
-    // return Kokkos::atomic_load(ptr);
-    return *ptr;
+  operator non_const_value_type() volatile const {
+    return Kokkos::Impl::atomic_load(ptr);
   }
 };
 

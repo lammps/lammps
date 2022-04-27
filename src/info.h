@@ -29,7 +29,7 @@ namespace LAMMPS_NS {
 class Info : public Command {
  public:
   Info(class LAMMPS *lmp) : Command(lmp){};
-  void command(int, char **);
+  void command(int, char **) override;
 
   bool is_active(const char *, const char *);
   bool is_defined(const char *, const char *);
@@ -77,36 +77,3 @@ class Info : public Command {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-W: Ignoring unknown or incorrect info command flag
-
-Self-explanatory.  An unknown argument was given to the info command.
-Compare your input with the documentation.
-
-E: Unknown name for info package category
-
-Self-explanatory.
-
-E: Unknown name for info newton category
-
-Self-explanatory.
-
-E: Unknown name for info pair category
-
-Self-explanatory.
-
-E: Unknown category for info is_active()
-
-Self-explanatory.
-
-E: Unknown category for info is_available()
-
-Self-explanatory.
-
-E: Unknown category for info is_defined()
-
-Self-explanatory.
-
-*/

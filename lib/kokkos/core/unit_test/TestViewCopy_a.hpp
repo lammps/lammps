@@ -96,10 +96,10 @@ TEST(TEST_CATEGORY, view_copy_tests) {
   auto host = Kokkos::DefaultHostExecutionSpace();
 
   constexpr bool DevExecCanAccessHost =
-      Kokkos::Impl::SpaceAccessibility<typename TEST_EXECSPACE::execution_space,
-                                       Kokkos::HostSpace>::accessible;
+      Kokkos::SpaceAccessibility<typename TEST_EXECSPACE::execution_space,
+                                 Kokkos::HostSpace>::accessible;
 
-  constexpr bool HostExecCanAccessDev = Kokkos::Impl::SpaceAccessibility<
+  constexpr bool HostExecCanAccessDev = Kokkos::SpaceAccessibility<
       typename Kokkos::HostSpace::execution_space,
       typename TEST_EXECSPACE::memory_space>::accessible;
 

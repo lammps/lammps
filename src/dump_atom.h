@@ -36,14 +36,14 @@ class DumpAtom : public Dump {
   int scale_flag;    // 1 if atom coords are scaled, 0 if no
   int image_flag;    // 1 if append box count to atom coords, 0 if no
 
-  char *columns;    // column labels
+  std::string columns;    // column labels
 
-  void init_style();
-  int modify_param(int, char **);
-  void write_header(bigint);
-  void pack(tagint *);
-  int convert_string(int, double *);
-  void write_data(int, double *);
+  void init_style() override;
+  int modify_param(int, char **) override;
+  void write_header(bigint) override;
+  void pack(tagint *) override;
+  int convert_string(int, double *) override;
+  void write_data(int, double *) override;
 
   void header_format_binary();
   void header_unit_style_binary();
@@ -86,13 +86,3 @@ class DumpAtom : public Dump {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

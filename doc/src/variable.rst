@@ -65,8 +65,8 @@ Syntax
                            bound(group,dir,region), gyration(group,region), ke(group,reigon),
                            angmom(group,dim,region), torque(group,dim,region),
                            inertia(group,dimdim,region), omega(group,dim,region)
-         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name)
-         feature functions = is_available(category,feature), is_active(category,feature), is_defined(category,id)
+         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), extract_setting(name)
+         feature functions = is_active(category,feature), is_available(category,feature), is_defined(category,id)
          atom value = id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]
          atom vector = id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q
          compute references = c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]
@@ -823,9 +823,14 @@ Special Functions
 Special functions take specific kinds of arguments, meaning their
 arguments cannot be formulas themselves.
 
-The is_file(x) function is a test whether 'x' is a (readable) file
-and returns 1 in this case, otherwise it returns 0.  For that 'x'
+The is_file(name) function is a test whether *name* is a (readable) file
+and returns 1 in this case, otherwise it returns 0.  For that *name*
 is taken as a literal string and must not have any blanks in it.
+
+The extract_setting(name) function allows to access some basic settings
+through calling the :cpp:func:`lammps_extract_setting` library function.
+For available keywords *name* and their meaning, please see the
+documentation of that function.
 
 The sum(x), min(x), max(x), ave(x), trap(x), and slope(x) functions
 each take 1 argument which is of the form "c_ID" or "c_ID[N]" or
@@ -911,30 +916,30 @@ Feature Functions
 -----------------
 
 Feature functions allow to probe the running LAMMPS executable for
-whether specific features are either active, defined, or available.
-The functions take two arguments, a *category* and a corresponding
-*argument*\ . The arguments are strings thus cannot be formulas
-themselves (only $-style immediate variable expansion is possible).
+whether specific features are either active, defined, or available.  The
+functions take two arguments, a *category* and a corresponding
+*argument*\ . The arguments are strings and thus cannot be formulas
+themselves; only $-style immediate variable expansion is possible.
 Return value is either 1.0 or 0.0 depending on whether the function
 evaluates to true or false, respectively.
 
-The *is_active()* function allows to query for active settings which
-are grouped by categories. Currently supported categories and
-arguments are:
+The *is_active(category,feature)* function allows to query for active
+settings which are grouped by categories. Currently supported categories
+and arguments are:
 
-* *package* (argument = *gpu* or *intel* or *kokkos* or *omp*\ )
-* *newton* (argument = *pair* or *bond* or *any*\ )
-* *pair* (argument = *single* or *respa* or *manybody* or *tail* or *shift*\ )
-* *comm_style* (argument = *brick* or *tiled*\ )
-* *min_style* (argument = any of the compiled in minimizer styles)
-* *run_style* (argument = any of the compiled in run styles)
-* *atom_style* (argument = any of the compiled in atom styles)
-* *pair_style* (argument = any of the compiled in pair styles)
-* *bond_style* (argument = any of the compiled in bond styles)
-* *angle_style* (argument = any of the compiled in angle styles)
-* *dihedral_style* (argument = any of the compiled in dihedral styles)
-* *improper_style* (argument = any of the compiled in improper styles)
-* *kspace_style* (argument = any of the compiled in kspace styles)
+* *package*\ : argument = *gpu* or *intel* or *kokkos* or *omp*
+* *newton*\ : argument = *pair* or *bond* or *any*
+* *pair*\ : argument = *single* or *respa* or *manybody* or *tail* or *shift*
+* *comm_style*\ : argument = *brick* or *tiled*
+* *min_style*\ : argument = any of the compiled in minimizer styles
+* *run_style*\ : argument = any of the compiled in run styles
+* *atom_style*\ : argument = any of the compiled in atom style)
+* *pair_style*\ : argument = any of the compiled in pair styles
+* *bond_style*\ : argument = any of the compiled in bond styles
+* *angle_style*\ : argument = any of the compiled in angle styles
+* *dihedral_style*\ : argument = any of the compiled in dihedral styles
+* *improper_style*\ : argument = any of the compiled in improper styles
+* *kspace_style*\ : argument = any of the compiled in kspace styles
 
 Most of the settings are self-explanatory, the *single* argument in the
 *pair* category allows to check whether a pair style supports a
@@ -943,7 +948,9 @@ features or LAMMPS, *respa* allows to check whether the inner/middle/outer
 mode of r-RESPA is supported. In the various style categories,
 the checking is also done using suffix flags, if available and enabled.
 
-Example 1: disable use of suffix for pppm when using GPU package (i.e. run it on the CPU concurrently to running the pair style on the GPU), but do use the suffix otherwise (e.g. with OPENMP).
+Example 1: disable use of suffix for pppm when using GPU package
+(i.e. run it on the CPU concurrently to running the pair style on the
+GPU), but do use the suffix otherwise (e.g. with OPENMP).
 
 .. code-block:: LAMMPS
 
@@ -951,16 +958,14 @@ Example 1: disable use of suffix for pppm when using GPU package (i.e. run it on
    if $(is_active(package,gpu)) then "suffix off"
    kspace_style pppm
 
-Example 2: use r-RESPA with inner/outer cutoff, if supported by pair style, otherwise fall back to using pair and reducing the outer time step
+Example 2: use r-RESPA with inner/outer cutoff, if supported by pair
+style, otherwise fall back to using pair and reducing the outer time
+step
 
 .. code-block:: LAMMPS
 
    timestep $(2.0*(1.0+2.0*is_active(pair,respa))
    if $(is_active(pair,respa)) then "run_style respa 4 3 2 2  improper 1 inner 2 5.5 7.0 outer 3 kspace 4" else "run_style respa 3 3 2  improper 1 pair 2 kspace 3"
-
-The *is_defined()* function allows to query categories like *compute*,
-*dump*, *fix*, *group*, *region*, and *variable* whether an entry
-with the provided name or id is defined.
 
 The *is_available(category,name)* function allows to query whether
 a specific optional feature is available, i.e. compiled in.
@@ -982,6 +987,10 @@ the compiled binary supports it.
    if "$(is_available(feature,png))" then "print 'PNG supported'" else "print 'PNG not supported'"
 
    if "$(is_available(feature,ffmpeg)" then "dump 3 all movie 25 movie.mp4 type type zoom 1.6 adiam 1.0"
+
+The *is_defined(categoy,id)* function allows to query categories like
+*compute*, *dump*, *fix*, *group*, *region*, and *variable* whether an
+entry with the provided name or id is defined.
 
 ----------
 

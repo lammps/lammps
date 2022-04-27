@@ -514,7 +514,7 @@ void PPPMGPU::poisson_ik()
 
 void PPPMGPU::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -574,7 +574,7 @@ void PPPMGPU::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMGPU::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -634,7 +634,7 @@ void PPPMGPU::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMGPU::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   if (flag == REVERSE_RHO_GPU) {
     FFT_SCALAR *src = &density_brick_gpu[nzlo_out][nylo_out][nxlo_out];
@@ -653,7 +653,7 @@ void PPPMGPU::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMGPU::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   if (flag == REVERSE_RHO_GPU) {
     FFT_SCALAR *dest = &density_brick_gpu[nzlo_out][nylo_out][nxlo_out];
@@ -679,9 +679,9 @@ FFT_SCALAR ***PPPMGPU::create_3d_offset(int n1lo, int n1hi, int n2lo, int n2hi,
   int n2 = n2hi - n2lo + 1;
   int n3 = n3hi - n3lo + 1;
 
-  FFT_SCALAR **plane = (FFT_SCALAR **)
+  auto plane = (FFT_SCALAR **)
     memory->smalloc(n1*n2*sizeof(FFT_SCALAR *),name);
-  FFT_SCALAR ***array = (FFT_SCALAR ***)
+  auto array = (FFT_SCALAR ***)
     memory->smalloc(n1*sizeof(FFT_SCALAR **),name);
 
   int n = 0;

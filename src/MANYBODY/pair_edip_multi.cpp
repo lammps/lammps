@@ -28,11 +28,12 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
+#include "potential_file_reader.h"
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace MathExtra;
@@ -118,8 +119,8 @@ void PairEDIPMulti::compute(int eflag, int vflag)
   double costheta;
   double dpairZ,dtripleZ;
 
- // eflag != 0 means compute energy contributions in this step
- // vflag != 0 means compute virial contributions in this step
+  // eflag != 0 means compute energy contributions in this step
+  // vflag != 0 means compute virial contributions in this step
 
   evdwl = 0.0;
   ev_init(eflag,vflag);
@@ -155,39 +156,40 @@ void PairEDIPMulti::compute(int eflag, int vflag)
     // pre-loop to compute environment coordination f(Z)
 
     for (jj = 0; jj < jnum; jj++) {
-        j = jlist[jj];
-        j &= NEIGHMASK;
+      j = jlist[jj];
+      j &= NEIGHMASK;
 
-        double delx, dely, delz, r_ij;
+      double delx, dely, delz, r_ij;
 
-        delx = x[j][0] - xtmp;
-        dely = x[j][1] - ytmp;
-        delz = x[j][2] - ztmp;
-        r_ij = delx * delx + dely * dely + delz * delz;
+      delx = x[j][0] - xtmp;
+      dely = x[j][1] - ytmp;
+      delz = x[j][2] - ztmp;
+      r_ij = delx * delx + dely * dely + delz * delz;
 
-        jtype = map[type[j]];
-        ijparam = elem3param[itype][jtype][jtype];
-        if (r_ij > params[ijparam].cutsq) continue;
+      jtype = map[type[j]];
+      const Param &param = params[elem3param[itype][jtype][jtype]];
 
-        r_ij = sqrt(r_ij);
+      if (r_ij > param.cutsq) continue;
 
-        // zeta and its derivative dZ/dr
+      r_ij = sqrt(r_ij);
 
-        if (r_ij < params[ijparam].cutoffC) zeta_i += 1.0;
-        else {
-            double f, fdr;
-            edip_fc(r_ij, &params[ijparam], f, fdr);
-            zeta_i += f;
-            dzetair = -fdr / r_ij;
+      // zeta and its derivative dZ/dr
 
-            preForceCoord_counter=numForceCoordPairs*5;
-            preForceCoord[preForceCoord_counter+0]=dzetair;
-            preForceCoord[preForceCoord_counter+1]=delx;
-            preForceCoord[preForceCoord_counter+2]=dely;
-            preForceCoord[preForceCoord_counter+3]=delz;
-            preForceCoord[preForceCoord_counter+4]=j;
-            numForceCoordPairs++;
-        }
+      if (r_ij < param.cutoffC) zeta_i += 1.0;
+      else {
+        double f, fdr;
+        edip_fc(r_ij, param, f, fdr);
+        zeta_i += f;
+        dzetair = -fdr / r_ij;
+
+        preForceCoord_counter=numForceCoordPairs*5;
+        preForceCoord[preForceCoord_counter+0]=dzetair;
+        preForceCoord[preForceCoord_counter+1]=delx;
+        preForceCoord[preForceCoord_counter+2]=dely;
+        preForceCoord[preForceCoord_counter+3]=delz;
+        preForceCoord[preForceCoord_counter+4]=j;
+        numForceCoordPairs++;
+      }
     }
 
     // two-body interactions
@@ -217,7 +219,7 @@ void PairEDIPMulti::compute(int eflag, int vflag)
       // already considered in constructing the potential
 
       double fdr, fdZ;
-      edip_pair(r_ij, zeta_i, &params[ijparam], evdwl, fdr, fdZ);
+      edip_pair(r_ij, zeta_i, params[ijparam], evdwl, fdr, fdZ);
       fpair = -fdr / r_ij;
       dpairZ += fdZ;
 
@@ -234,102 +236,102 @@ void PairEDIPMulti::compute(int eflag, int vflag)
       // three-body Forces
 
       for (kk = jj + 1; kk < jnum; kk++) {
-          double dr_ik[3], r_ik, f_ik[3];
+        double dr_ik[3], r_ik, f_ik[3];
 
-          k = jlist[kk];
-          k &= NEIGHMASK;
-          ktype = map[type[k]];
-          ikparam = elem3param[itype][ktype][ktype];
-          ijkparam = elem3param[itype][jtype][ktype];
+        k = jlist[kk];
+        k &= NEIGHMASK;
+        ktype = map[type[k]];
+        ikparam = elem3param[itype][ktype][ktype];
+        ijkparam = elem3param[itype][jtype][ktype];
 
-          dr_ik[0] = x[k][0] - xtmp;
-          dr_ik[1] = x[k][1] - ytmp;
-          dr_ik[2] = x[k][2] - ztmp;
-          r_ik = dr_ik[0]*dr_ik[0] + dr_ik[1]*dr_ik[1] + dr_ik[2]*dr_ik[2];
+        dr_ik[0] = x[k][0] - xtmp;
+        dr_ik[1] = x[k][1] - ytmp;
+        dr_ik[2] = x[k][2] - ztmp;
+        r_ik = dr_ik[0]*dr_ik[0] + dr_ik[1]*dr_ik[1] + dr_ik[2]*dr_ik[2];
 
-          if (r_ik > params[ikparam].cutsq) continue;
+        if (r_ik > params[ikparam].cutsq) continue;
 
-          r_ik = sqrt(r_ik);
+        r_ik = sqrt(r_ik);
 
-          costheta=dot3(dr_ij, dr_ik) / r_ij / r_ik;
+        costheta=dot3(dr_ij, dr_ik) / r_ij / r_ik;
 
-          double v1, v2, v3, v4, v5, v6, v7;
+        double v1, v2, v3, v4, v5, v6, v7;
 
-          edip_fcut3(r_ij, &params[ijparam], v1, v2);
-          edip_fcut3(r_ik, &params[ikparam], v3, v4);
-          edip_h(costheta, zeta_i, &params[ijkparam], v5, v6, v7);
+        edip_fcut3(r_ij, params[ijparam], v1, v2);
+        edip_fcut3(r_ik, params[ikparam], v3, v4);
+        edip_h(costheta, zeta_i, params[ijkparam], v5, v6, v7);
 
-          // potential energy and forces
-          evdwl = v1 * v3 * v5;
-          dtripleZ += v1 * v3 * v7;
+        // potential energy and forces
+        evdwl = v1 * v3 * v5;
+        dtripleZ += v1 * v3 * v7;
 
-          double dri[3], drj[3], drk[3];
-          double dhl, dfr;
+        double dri[3], drj[3], drk[3];
+        double dhl, dfr;
 
-          dhl = v1 * v3 * v6;
+        dhl = v1 * v3 * v6;
 
-          costheta_d(dr_ij, r_ij, dr_ik, r_ik, dri, drj, drk);
+        costheta_d(dr_ij, r_ij, dr_ik, r_ik, dri, drj, drk);
 
-          f_ij[0] = -dhl * drj[0];
-          f_ij[1] = -dhl * drj[1];
-          f_ij[2] = -dhl * drj[2];
-          f_ik[0] = -dhl * drk[0];
-          f_ik[1] = -dhl * drk[1];
-          f_ik[2] = -dhl * drk[2];
+        f_ij[0] = -dhl * drj[0];
+        f_ij[1] = -dhl * drj[1];
+        f_ij[2] = -dhl * drj[2];
+        f_ik[0] = -dhl * drk[0];
+        f_ik[1] = -dhl * drk[1];
+        f_ik[2] = -dhl * drk[2];
 
-          dfr = v2 * v3 * v5;
-          fpair = -dfr / r_ij;
+        dfr = v2 * v3 * v5;
+        fpair = -dfr / r_ij;
 
-          f_ij[0] += fpair * dr_ij[0];
-          f_ij[1] += fpair * dr_ij[1];
-          f_ij[2] += fpair * dr_ij[2];
+        f_ij[0] += fpair * dr_ij[0];
+        f_ij[1] += fpair * dr_ij[1];
+        f_ij[2] += fpair * dr_ij[2];
 
-          dfr = v1 * v4 * v5;
-          fpair = -dfr / r_ik;
+        dfr = v1 * v4 * v5;
+        fpair = -dfr / r_ik;
 
-          f_ik[0] += fpair * dr_ik[0];
-          f_ik[1] += fpair * dr_ik[1];
-          f_ik[2] += fpair * dr_ik[2];
+        f_ik[0] += fpair * dr_ik[0];
+        f_ik[1] += fpair * dr_ik[1];
+        f_ik[2] += fpair * dr_ik[2];
 
-          f[j][0] += f_ij[0];
-          f[j][1] += f_ij[1];
-          f[j][2] += f_ij[2];
+        f[j][0] += f_ij[0];
+        f[j][1] += f_ij[1];
+        f[j][2] += f_ij[2];
 
-          f[k][0] += f_ik[0];
-          f[k][1] += f_ik[1];
-          f[k][2] += f_ik[2];
+        f[k][0] += f_ik[0];
+        f[k][1] += f_ik[1];
+        f[k][2] += f_ik[2];
 
-          f[i][0] -= f_ij[0] + f_ik[0];
-          f[i][1] -= f_ij[1] + f_ik[1];
-          f[i][2] -= f_ij[2] + f_ik[2];
+        f[i][0] -= f_ij[0] + f_ik[0];
+        f[i][1] -= f_ij[1] + f_ik[1];
+        f[i][2] -= f_ij[2] + f_ik[2];
 
-          if (evflag) ev_tally3(i,j,k,evdwl,0.0,f_ij,f_ik,dr_ij,dr_ik);
+        if (evflag) ev_tally3(i,j,k,evdwl,0.0,f_ij,f_ik,dr_ij,dr_ik);
       }
     }
 
     // forces due to environment coordination f(Z)
     for (int idx = 0; idx < numForceCoordPairs; idx++) {
-        double delx, dely, delz;
+      double delx, dely, delz;
 
-        preForceCoord_counter = idx * 5;
-        dzetair = preForceCoord[preForceCoord_counter+0];
-        delx = preForceCoord[preForceCoord_counter+1];
-        dely = preForceCoord[preForceCoord_counter+2];
-        delz = preForceCoord[preForceCoord_counter+3];
-        j = static_cast<int> (preForceCoord[preForceCoord_counter+4]);
+      preForceCoord_counter = idx * 5;
+      dzetair = preForceCoord[preForceCoord_counter+0];
+      delx = preForceCoord[preForceCoord_counter+1];
+      dely = preForceCoord[preForceCoord_counter+2];
+      delz = preForceCoord[preForceCoord_counter+3];
+      j = static_cast<int> (preForceCoord[preForceCoord_counter+4]);
 
-        dzetair *= (dpairZ + dtripleZ);
+      dzetair *= (dpairZ + dtripleZ);
 
-        f[j][0] += dzetair * delx;
-        f[j][1] += dzetair * dely;
-        f[j][2] += dzetair * delz;
+      f[j][0] += dzetair * delx;
+      f[j][1] += dzetair * dely;
+      f[j][2] += dzetair * delz;
 
-        f[i][0] -= dzetair * delx;
-        f[i][1] -= dzetair * dely;
-        f[i][2] -= dzetair * delz;
+      f[i][0] -= dzetair * delx;
+      f[i][1] -= dzetair * dely;
+      f[i][2] -= dzetair * delz;
 
-        evdwl = 0.0;
-        if (evflag) ev_tally(i, j, nlocal, newton_pair, evdwl, 0.0, dzetair, -delx, -dely, -delz);
+      evdwl = 0.0;
+      if (evflag) ev_tally(i, j, nlocal, newton_pair, evdwl, 0.0, dzetair, -delx, -dely, -delz);
     }
   }
 
@@ -342,13 +344,13 @@ double sqr(double x)
 }
 
 //pair Vij, partial derivatives dVij(r,Z)/dr and dVij(r,Z)/dZ
-void PairEDIPMulti::edip_pair(double r, double z, Param *param, double &eng,
+void PairEDIPMulti::edip_pair(double r, double z, const Param &param, double &eng,
                          double &fdr, double &fZ)
 {
-  double A = param->A;
-  double B = param->B;
-  double rho = param->rho;
-  double beta = param->beta;
+  double A = param.A;
+  double B = param.B;
+  double rho = param.rho;
+  double beta = param.beta;
   double v1,v2,v3,v4;
 
   v1 = pow(B / r, rho);
@@ -361,11 +363,11 @@ void PairEDIPMulti::edip_pair(double r, double z, Param *param, double &eng,
 }
 
 //function fc(r) in calculating coordination Z and derivative fc'(r)
-void PairEDIPMulti::edip_fc(double r, Param *param, double &f, double &fdr)
+void PairEDIPMulti::edip_fc(double r, const Param &param, double &f, double &fdr)
 {
-  double a = param->cutoffA;
-  double c = param->cutoffC;
-  double alpha = param->alpha;
+  double a = param.cutoffA;
+  double c = param.cutoffC;
+  double alpha = param.alpha;
   double x;
   double v1, v2;
 
@@ -392,10 +394,10 @@ void PairEDIPMulti::edip_fc(double r, Param *param, double &f, double &fdr)
 }
 
 //cut-off function for Vij and its derivative fcut2'(r)
-void PairEDIPMulti::edip_fcut2(double r, Param *param, double &f, double &fdr)
+void PairEDIPMulti::edip_fcut2(double r, const Param &param, double &f, double &fdr)
 {
-  double sigma = param->sigma;
-  double a = param->cutoffA;
+  double sigma = param.sigma;
+  double a = param.cutoffA;
   double v1;
 
   if (r > a - 1E-6)
@@ -411,12 +413,12 @@ void PairEDIPMulti::edip_fcut2(double r, Param *param, double &f, double &fdr)
 }
 
 //function tau(Z) and its derivative tau'(Z)
-void PairEDIPMulti::edip_tau(double z, Param *param, double &f, double &fdZ)
+void PairEDIPMulti::edip_tau(double z, const Param &param, double &f, double &fdZ)
 {
-  double u1 = param->u1;
-  double u2 = param->u2;
-  double u3 = param->u3;
-  double u4 = param->u4;
+  double u1 = param.u1;
+  double u2 = param.u2;
+  double u3 = param.u3;
+  double u4 = param.u4;
   double v1, v2;
 
   v1 = exp(-u4 * z);
@@ -427,13 +429,13 @@ void PairEDIPMulti::edip_tau(double z, Param *param, double &f, double &fdZ)
 }
 
 //function h(l,Z) and its partial derivatives dh(l,Z)/dl and dh(l,Z)/dZ
-void PairEDIPMulti::edip_h(double l, double z, Param *param, double &f,
+void PairEDIPMulti::edip_h(double l, double z, const Param &param, double &f,
                       double &fdl, double &fdZ)
 {
-  double lambda = param->lambda;
-  double eta = param->eta;
-  double Q0 = param->Q0;
-  double mu = param->mu;
+  double lambda = param.lambda;
+  double eta = param.eta;
+  double Q0 = param.Q0;
+  double mu = param.mu;
   double Q, QdZ, Tau, TaudZ;
   double u2, du2l, du2Z;
   double v1, v2, v3;
@@ -464,10 +466,10 @@ void PairEDIPMulti::edip_h(double l, double z, Param *param, double &f,
 }
 
 //cut-off function for Vijk and its derivative fcut3'(r)
-void PairEDIPMulti::edip_fcut3(double r, Param *param, double &f, double &fdr)
+void PairEDIPMulti::edip_fcut3(double r, const Param &param, double &f, double &fdr)
 {
-  double gamma = param->gamma;
-  double a = param->cutoffA;
+  double gamma = param.gamma;
+  double a = param.cutoffA;
   double v1;
 
   if (r > a - 1E-6)
@@ -558,9 +560,7 @@ void PairEDIPMulti::init_style()
 
   // need a full neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 }
 
 /* ----------------------------------------------------------------------
@@ -578,137 +578,92 @@ double PairEDIPMulti::init_one(int i, int j)
 
 void PairEDIPMulti::read_file(char *file)
 {
-  int params_per_line = 20;
-  char **words = new char*[params_per_line+1];
-
   memory->sfree(params);
   params = nullptr;
   nparams = maxparam = 0;
 
   // open file on proc 0
 
-  FILE *fp;
   if (comm->me == 0) {
-    fp = utils::open_potential(file,lmp,nullptr);
-    if (fp == nullptr)
-      error->one(FLERR,"Cannot open EDIP potential file {}: {}",file,utils::getsyserror());
-  }
+    PotentialFileReader reader(lmp, file, "edip");
+    char *line;
 
-  // read each set of params from potential file
-  // one set of params can span multiple lines
-  // store params if all 3 element tags are in element list
+    while ((line = reader.next_line(NPARAMS_PER_LINE))) {
+      try {
+        ValueTokenizer values(line);
+        std::string iname = values.next_string();
+        std::string jname = values.next_string();
+        std::string kname = values.next_string();
 
-  int n,nwords,ielement,jelement,kelement;
-  char line[MAXLINE],*ptr;
-  int eof = 0;
+        // ielement,jelement,kelement = 1st args
+        // if all 3 args are in element list, then parse this line
+        // else skip to next entry in file
+        int ielement, jelement, kelement;
 
-  while (true) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == nullptr) {
-        eof = 1;
-        fclose(fp);
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
+        for (ielement = 0; ielement < nelements; ielement++)
+          if (iname == elements[ielement]) break;
+        if (ielement == nelements) continue;
+        for (jelement = 0; jelement < nelements; jelement++)
+          if (jname == elements[jelement]) break;
+        if (jelement == nelements) continue;
+        for (kelement = 0; kelement < nelements; kelement++)
+          if (kname == elements[kelement]) break;
+        if (kelement == nelements) continue;
 
-    // strip comment, skip line if blank
+        // load up parameter settings and error check their values
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
+        if (nparams == maxparam) {
+          maxparam += DELTA;
+          params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
+                                              "pair:params");
 
-    // concatenate additional lines until have params_per_line words
+          // make certain all addional allocated storage is initialized
+          // to avoid false positives when checking with valgrind
 
-    while (nwords < params_per_line) {
-      n = strlen(line);
-      if (comm->me == 0) {
-        ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == nullptr) {
-          eof = 1;
-          fclose(fp);
-        } else n = strlen(line) + 1;
+          memset(params + nparams, 0, DELTA*sizeof(Param));
+        }
+
+        params[nparams].ielement = ielement;
+        params[nparams].jelement = jelement;
+        params[nparams].kelement = kelement;
+        params[nparams].A = values.next_double();
+        params[nparams].B = values.next_double();
+        params[nparams].cutoffA = values.next_double();
+        params[nparams].cutoffC = values.next_double();
+        params[nparams].alpha = values.next_double();
+        params[nparams].beta = values.next_double();
+        params[nparams].eta = values.next_double();
+        params[nparams].gamma = values.next_double();
+        params[nparams].lambda = values.next_double();
+        params[nparams].mu = values.next_double();
+        params[nparams].rho = values.next_double();
+        params[nparams].sigma = values.next_double();
+        params[nparams].Q0 = values.next_double();
+        params[nparams].u1 = values.next_double();
+        params[nparams].u2 = values.next_double();
+        params[nparams].u3 = values.next_double();
+        params[nparams].u4 = values.next_double();
+      } catch (std::exception &e) {
+        error->one(FLERR, "Error reading EDIP potential file: {}", e.what());
       }
-      MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof) break;
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = utils::count_words(line);
+
+      if (params[nparams].A < 0.0 || params[nparams].B < 0.0 || params[nparams].cutoffA < 0.0 ||
+          params[nparams].cutoffC < 0.0 || params[nparams].alpha < 0.0 ||
+          params[nparams].beta < 0.0 || params[nparams].eta < 0.0 || params[nparams].gamma < 0.0 ||
+          params[nparams].lambda < 0.0 || params[nparams].mu < 0.0 || params[nparams].rho < 0.0 ||
+          params[nparams].sigma < 0.0)
+        error->all(FLERR, "Illegal EDIP parameter");
+
+      nparams++;
     }
-
-    if (nwords != params_per_line)
-      error->all(FLERR,"Incorrect format in EDIP potential file");
-
-    // words = ptrs to all words in line
-
-    nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
-
-    // ielement,jelement,kelement = 1st args
-    // if all 3 args are in element list, then parse this line
-    // else skip to next entry in file
-
-    for (ielement = 0; ielement < nelements; ielement++)
-      if (strcmp(words[0],elements[ielement]) == 0) break;
-    if (ielement == nelements) continue;
-    for (jelement = 0; jelement < nelements; jelement++)
-      if (strcmp(words[1],elements[jelement]) == 0) break;
-    if (jelement == nelements) continue;
-    for (kelement = 0; kelement < nelements; kelement++)
-      if (strcmp(words[2],elements[kelement]) == 0) break;
-    if (kelement == nelements) continue;
-
-    // load up parameter settings and error check their values
-
-    if (nparams == maxparam) {
-      maxparam += DELTA;
-      params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-                                          "pair:params");
-
-      // make certain all addional allocated storage is initialized
-      // to avoid false positives when checking with valgrind
-
-      memset(params + nparams, 0, DELTA*sizeof(Param));
-    }
-
-    params[nparams].ielement = ielement;
-    params[nparams].jelement = jelement;
-    params[nparams].kelement = kelement;
-    params[nparams].A = atof(words[3]);
-    params[nparams].B = atof(words[4]);
-    params[nparams].cutoffA = atof(words[5]);
-    params[nparams].cutoffC = atof(words[6]);
-    params[nparams].alpha = atof(words[7]);
-    params[nparams].beta = atof(words[8]);
-    params[nparams].eta = atof(words[9]);
-    params[nparams].gamma = atof(words[10]);
-    params[nparams].lambda = atof(words[11]);
-    params[nparams].mu = atof(words[12]);
-    params[nparams].rho = atof(words[13]);
-    params[nparams].sigma = atof(words[14]);
-    params[nparams].Q0 = atof(words[15]);
-    params[nparams].u1 = atof(words[16]);
-    params[nparams].u2 = atof(words[17]);
-    params[nparams].u3 = atof(words[18]);
-    params[nparams].u4 = atof(words[19]);
-
-    if (params[nparams].A < 0.0 || params[nparams].B < 0.0 ||
-        params[nparams].cutoffA < 0.0 || params[nparams].cutoffC < 0.0 ||
-        params[nparams].alpha < 0.0 || params[nparams].beta < 0.0 ||
-        params[nparams].eta < 0.0 || params[nparams].gamma < 0.0 ||
-        params[nparams].lambda < 0.0 || params[nparams].mu < 0.0 ||
-        params[nparams].rho < 0.0 || params[nparams].sigma < 0.0)
-      error->all(FLERR,"Illegal EDIP parameter");
-
-    nparams++;
   }
+  MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
+  MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
 
-  delete [] words;
+  if (comm->me != 0)
+    params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
+
+  MPI_Bcast(params, maxparam*sizeof(Param), MPI_BYTE, 0, world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -753,5 +708,4 @@ void PairEDIPMulti::setup()
     rtmp = sqrt(params[m].cutsq);
     if (rtmp > cutmax) cutmax = rtmp;
   }
-
 }

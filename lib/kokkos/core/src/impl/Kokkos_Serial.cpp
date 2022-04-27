@@ -58,28 +58,59 @@
 
 namespace Kokkos {
 namespace Impl {
-namespace {
 
-HostThreadTeamData g_serial_thread_team_data;
+bool SerialInternal::is_initialized() { return m_is_initialized; }
 
-bool g_serial_is_initialized = false;
+void SerialInternal::initialize() {
+  if (is_initialized()) return;
 
-}  // namespace
+  Impl::SharedAllocationRecord<void, void>::tracking_enable();
+
+  // Init the array of locks used for arbitrarily sized atomics
+  Impl::init_lock_array_host_space();
+
+  m_is_initialized = true;
+}
+
+void SerialInternal::finalize() {
+  if (m_thread_team_data.scratch_buffer()) {
+    m_thread_team_data.disband_team();
+    m_thread_team_data.disband_pool();
+
+    Kokkos::HostSpace space;
+
+    space.deallocate(m_thread_team_data.scratch_buffer(),
+                     m_thread_team_data.scratch_bytes());
+
+    m_thread_team_data.scratch_assign(nullptr, 0, 0, 0, 0, 0);
+  }
+
+  Kokkos::Profiling::finalize();
+
+  m_is_initialized = false;
+}
+
+SerialInternal& SerialInternal::singleton() {
+  static SerialInternal* self = nullptr;
+  if (!self) {
+    self = new SerialInternal();
+  }
+  return *self;
+}
 
 // Resize thread team data scratch memory
-void serial_resize_thread_team_data(size_t pool_reduce_bytes,
-                                    size_t team_reduce_bytes,
-                                    size_t team_shared_bytes,
-                                    size_t thread_local_bytes) {
+void SerialInternal::resize_thread_team_data(size_t pool_reduce_bytes,
+                                             size_t team_reduce_bytes,
+                                             size_t team_shared_bytes,
+                                             size_t thread_local_bytes) {
   if (pool_reduce_bytes < 512) pool_reduce_bytes = 512;
   if (team_reduce_bytes < 512) team_reduce_bytes = 512;
 
-  const size_t old_pool_reduce = g_serial_thread_team_data.pool_reduce_bytes();
-  const size_t old_team_reduce = g_serial_thread_team_data.team_reduce_bytes();
-  const size_t old_team_shared = g_serial_thread_team_data.team_shared_bytes();
-  const size_t old_thread_local =
-      g_serial_thread_team_data.thread_local_bytes();
-  const size_t old_alloc_bytes = g_serial_thread_team_data.scratch_bytes();
+  const size_t old_pool_reduce  = m_thread_team_data.pool_reduce_bytes();
+  const size_t old_team_reduce  = m_thread_team_data.team_reduce_bytes();
+  const size_t old_team_shared  = m_thread_team_data.team_shared_bytes();
+  const size_t old_thread_local = m_thread_team_data.thread_local_bytes();
+  const size_t old_alloc_bytes  = m_thread_team_data.scratch_bytes();
 
   // Allocate if any of the old allocation is tool small:
 
@@ -92,12 +123,12 @@ void serial_resize_thread_team_data(size_t pool_reduce_bytes,
     Kokkos::HostSpace space;
 
     if (old_alloc_bytes) {
-      g_serial_thread_team_data.disband_team();
-      g_serial_thread_team_data.disband_pool();
+      m_thread_team_data.disband_team();
+      m_thread_team_data.disband_pool();
 
       space.deallocate("Kokkos::Serial::scratch_mem",
-                       g_serial_thread_team_data.scratch_buffer(),
-                       g_serial_thread_team_data.scratch_bytes());
+                       m_thread_team_data.scratch_buffer(),
+                       m_thread_team_data.scratch_bytes());
     }
 
     if (pool_reduce_bytes < old_pool_reduce) {
@@ -125,56 +156,37 @@ void serial_resize_thread_team_data(size_t pool_reduce_bytes,
       Kokkos::Impl::throw_runtime_exception(failure.get_error_message());
     }
 
-    g_serial_thread_team_data.scratch_assign(
-        ((char*)ptr), alloc_bytes, pool_reduce_bytes, team_reduce_bytes,
-        team_shared_bytes, thread_local_bytes);
+    m_thread_team_data.scratch_assign(static_cast<char*>(ptr), alloc_bytes,
+                                      pool_reduce_bytes, team_reduce_bytes,
+                                      team_shared_bytes, thread_local_bytes);
 
-    HostThreadTeamData* pool[1] = {&g_serial_thread_team_data};
+    HostThreadTeamData* pool[1] = {&m_thread_team_data};
 
-    g_serial_thread_team_data.organize_pool(pool, 1);
-    g_serial_thread_team_data.organize_team(1);
+    m_thread_team_data.organize_pool(pool, 1);
+    m_thread_team_data.organize_team(1);
   }
 }
-
-HostThreadTeamData* serial_get_thread_team_data() {
-  return &g_serial_thread_team_data;
-}
-
 }  // namespace Impl
-}  // namespace Kokkos
 
-/*--------------------------------------------------------------------------*/
+Serial::Serial()
+#ifdef KOKKOS_IMPL_WORKAROUND_ICE_IN_TRILINOS_WITH_OLD_INTEL_COMPILERS
+    : m_space_instance(&Impl::SerialInternal::singleton()) {
+}
+#else
+    : m_space_instance(&Impl::SerialInternal::singleton(),
+                       [](Impl::SerialInternal*) {}) {
+}
+#endif
 
-namespace Kokkos {
-
-bool Serial::impl_is_initialized() { return Impl::g_serial_is_initialized; }
+bool Serial::impl_is_initialized() {
+  return Impl::SerialInternal::singleton().is_initialized();
+}
 
 void Serial::impl_initialize() {
-  Impl::SharedAllocationRecord<void, void>::tracking_enable();
-
-  // Init the array of locks used for arbitrarily sized atomics
-  Impl::init_lock_array_host_space();
-
-  Impl::g_serial_is_initialized = true;
+  Impl::SerialInternal::singleton().initialize();
 }
 
-void Serial::impl_finalize() {
-  if (Impl::g_serial_thread_team_data.scratch_buffer()) {
-    Impl::g_serial_thread_team_data.disband_team();
-    Impl::g_serial_thread_team_data.disband_pool();
-
-    Kokkos::HostSpace space;
-
-    space.deallocate(Impl::g_serial_thread_team_data.scratch_buffer(),
-                     Impl::g_serial_thread_team_data.scratch_bytes());
-
-    Impl::g_serial_thread_team_data.scratch_assign(nullptr, 0, 0, 0, 0, 0);
-  }
-
-  Kokkos::Profiling::finalize();
-
-  Impl::g_serial_is_initialized = false;
-}
+void Serial::impl_finalize() { Impl::SerialInternal::singleton().finalize(); }
 
 const char* Serial::name() { return "Serial"; }
 
@@ -198,6 +210,9 @@ void SerialSpaceInitializer::finalize(const bool) {
 }
 
 void SerialSpaceInitializer::fence() { Kokkos::Serial::impl_static_fence(); }
+void SerialSpaceInitializer::fence(const std::string& name) {
+  Kokkos::Serial::impl_static_fence(name);
+}
 
 void SerialSpaceInitializer::print_configuration(std::ostream& msg,
                                                  const bool detail) {

@@ -71,8 +71,8 @@ namespace LAMMPS_NS {
 class FixStoreKIM : public Fix {
  public:
   FixStoreKIM(class LAMMPS *, int, char **);
-  ~FixStoreKIM();
-  int setmask();
+  ~FixStoreKIM() override;
+  int setmask() override;
 
   void setptr(const std::string &, void *);
   void *getptr(const std::string &);
@@ -88,13 +88,3 @@ class FixStoreKIM : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

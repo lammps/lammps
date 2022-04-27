@@ -45,8 +45,7 @@ namespace LAMMPS_NS {
 class NPairHalffullNewtonIntel : public NPair {
  public:
   NPairHalffullNewtonIntel(class LAMMPS *);
-  ~NPairHalffullNewtonIntel() {}
-  void build(class NeighList *);
+  void build(class NeighList *) override;
 
  protected:
   FixIntel *_fix;
@@ -60,11 +59,3 @@ class NPairHalffullNewtonIntel : public NPair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: The 'package intel' command is required for /intel styles
-
-Self explanatory.
-
-*/

@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class DumpCustomMPIIO : public DumpCustom {
  public:
   DumpCustomMPIIO(class LAMMPS *, int, char **);
-  virtual ~DumpCustomMPIIO();
+  ~DumpCustomMPIIO() override;
 
  protected:
   bigint
@@ -43,12 +43,12 @@ class DumpCustomMPIIO : public DumpCustom {
   int convert_string_omp(int, double *);    // multithreaded version of convert_string
 #endif
 
-  virtual void openfile();
-  virtual void write_header(bigint);
-  virtual void write();
-  virtual void write_data(int, double *);
+  void openfile() override;
+  void write_header(bigint) override;
+  void write() override;
+  void write_data(int, double *) override;
 
-  virtual void init_style();
+  void init_style() override;
   typedef void (DumpCustomMPIIO::*FnPtrHeader)(bigint);
   FnPtrHeader header_choice;    // ptr to write header functions
   void header_binary(bigint);
@@ -66,47 +66,3 @@ class DumpCustomMPIIO : public DumpCustom {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Cannot open dump file %s
-
-The output file for the dump command cannot be opened.  Check that the
-path and name are correct.
-
-E: Too much per-proc info for dump
-
-Number of local atoms times number of columns must fit in a 32-bit
-integer for dump.
-
-E: Dump_modify format line is too short
-
-UNDOCUMENTED
-
-E: Could not find dump custom compute ID
-
-Self-explanatory.
-
-E: Could not find dump custom fix ID
-
-Self-explanatory.
-
-E: Dump custom and fix not computed at compatible times
-
-The fix must produce per-atom quantities on timesteps that dump custom
-needs them.
-
-E: Could not find dump custom variable name
-
-Self-explanatory.
-
-E: Region ID for dump custom does not exist
-
-Self-explanatory.
-
-U: Dump_modify format string is too short
-
-There are more fields to be dumped in a line of output than your
-format string specifies.
-
-*/

@@ -1,20 +1,22 @@
 .. index:: pair_style dpd
 .. index:: pair_style dpd/gpu
 .. index:: pair_style dpd/intel
+.. index:: pair_style dpd/kk
 .. index:: pair_style dpd/omp
 .. index:: pair_style dpd/tstat
 .. index:: pair_style dpd/tstat/gpu
+.. index:: pair_style dpd/tstat/kk
 .. index:: pair_style dpd/tstat/omp
 
 pair_style dpd command
 ======================
 
-Accelerator Variants: *dpd/gpu*, *dpd/intel*, *dpd/omp*
+Accelerator Variants: *dpd/gpu*, *dpd/intel*, *dpd/kk*, *dpd/omp*
 
 pair_style dpd/tstat command
 ============================
 
-Accelerator Variants: *dpd/tstat/gpu*, *dpd/tstat/omp*
+Accelerator Variants: *dpd/tstat/gpu*, *dpd/tstat/kk*, *dpd/tstat/omp*
 
 Syntax
 """"""
@@ -50,7 +52,7 @@ Style *dpd* computes a force field for dissipative particle dynamics
 
 Style *dpd/tstat* invokes a DPD thermostat on pairwise interactions,
 which is equivalent to the non-conservative portion of the DPD force
-field.  This pair-wise thermostat can be used in conjunction with any
+field.  This pairwise thermostat can be used in conjunction with any
 :doc:`pair style <pair_style>`, and in leiu of per-particle thermostats
 like :doc:`fix langevin <fix_langevin>` or ensemble thermostats like
 Nose Hoover as implemented by :doc:`fix nvt <fix_nh>`.  To use

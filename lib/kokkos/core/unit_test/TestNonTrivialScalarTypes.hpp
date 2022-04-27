@@ -48,7 +48,7 @@
 
 #include <Kokkos_Core.hpp>
 
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 #include <iostream>
 #include <cstdlib>
 #include <cstdint>
@@ -310,6 +310,46 @@ struct array_reduce {
     return lsum;
   }
 };
+
+struct point_t {
+  uint8_t x, y, z;
+
+  KOKKOS_FUNCTION
+  point_t() : x(1), y(1), z(1){};
+
+  KOKKOS_FUNCTION
+  point_t(const point_t &val) : x(val.x), y(val.y), z(val.z){};
+
+  KOKKOS_FUNCTION
+  point_t(const volatile point_t &val) : x(val.x), y(val.y), z(val.z){};
+
+  KOKKOS_FUNCTION
+  point_t(const int rhs) { x = y = z = static_cast<uint8_t>(rhs); }
+
+  KOKKOS_FUNCTION
+  explicit operator int() const { return static_cast<int>(x + y + z); }
+
+  KOKKOS_FUNCTION
+  bool operator==(const volatile point_t rhs) const volatile {
+    return (x == rhs.x && y == rhs.y && z == rhs.z);
+  }
+
+  KOKKOS_FUNCTION
+  void operator=(point_t rhs) volatile {
+    x = rhs.x;
+    y = rhs.y;
+    z = rhs.z;
+  }
+
+  KOKKOS_FUNCTION
+  volatile point_t operator+=(const volatile point_t rhs) volatile {
+    x += rhs.x;
+    y += rhs.y;
+    z += rhs.z;
+    return *this;
+  }
+};
+
 }  // namespace Test
 
 namespace Kokkos {
@@ -332,6 +372,22 @@ struct reduction_identity<Test::array_reduce<scalar_t, N>> {
   }
   KOKKOS_FORCEINLINE_FUNCTION static Test::array_reduce<scalar_t, N> prod() {
     return Test::array_reduce<scalar_t, N>(t_red_ident::prod());
+  }
+};
+
+template <>
+struct reduction_identity<Test::point_t> {
+  KOKKOS_FORCEINLINE_FUNCTION constexpr static uint8_t sum() noexcept {
+    return 0;
+  }
+  KOKKOS_FORCEINLINE_FUNCTION constexpr static uint8_t prod() noexcept {
+    return 1;
+  }
+  KOKKOS_FORCEINLINE_FUNCTION constexpr static uint8_t max() noexcept {
+    return 0xff;
+  }
+  KOKKOS_FORCEINLINE_FUNCTION constexpr static uint8_t min() noexcept {
+    return 0x0;
   }
 };
 }  // namespace Kokkos

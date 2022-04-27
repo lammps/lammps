@@ -39,10 +39,10 @@ class AngleCosineKokkos : public AngleCosine {
   typedef EV_FLOAT value_type;
 
   AngleCosineKokkos(class LAMMPS *);
-  virtual ~AngleCosineKokkos();
-  void compute(int, int);
-  void coeff(int, char **);
-  void read_restart(FILE *);
+  ~AngleCosineKokkos() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void read_restart(FILE *) override;
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -78,7 +78,7 @@ class AngleCosineKokkos : public AngleCosine {
   typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_k;
   typename ArrayTypes<DeviceType>::t_ffloat_1d d_k;
 
-  void allocate();
+  void allocate() override;
 };
 
 }
@@ -86,6 +86,3 @@ class AngleCosineKokkos : public AngleCosine {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

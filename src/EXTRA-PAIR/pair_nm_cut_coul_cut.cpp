@@ -18,17 +18,17 @@
 
 #include "pair_nm_cut_coul_cut.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -267,7 +267,7 @@ void PairNMCutCoulCut::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style nm/cut/coul/cut requires atom attribute q");
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

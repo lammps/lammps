@@ -33,17 +33,16 @@ namespace LAMMPS_NS {
 class DumpCFGZstd : public DumpCFG {
  public:
   DumpCFGZstd(class LAMMPS *, int, char **);
-  virtual ~DumpCFGZstd() = default;
 
  protected:
   ZstdFileWriter writer;
 
-  virtual void openfile();
-  virtual void write_header(bigint);
-  virtual void write_data(int, double *);
-  virtual void write();
+  void openfile() override;
+  void write_header(bigint) override;
+  void write_data(int, double *) override;
+  void write() override;
 
-  virtual int modify_param(int, char **);
+  int modify_param(int, char **) override;
 };
 
 }    // namespace LAMMPS_NS
@@ -51,15 +50,3 @@ class DumpCFGZstd : public DumpCFG {
 #endif
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Dump cfg/zstd only writes compressed files
-
-The dump cfg/zstd output file name must have a .zstd suffix.
-
-E: Cannot open dump file
-
-Self-explanatory.
-
-*/

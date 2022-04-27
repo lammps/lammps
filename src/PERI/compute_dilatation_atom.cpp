@@ -27,8 +27,6 @@
 #include "pair.h"
 #include "update.h"
 
-#include <cstring>
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -85,7 +83,7 @@ void ComputeDilatationAtom::compute_peratom()
 
   int tmp;
   auto anypair = force->pair_match("^peri",0);
-  double *theta = (double *)anypair->extract("theta",tmp);
+  auto theta = (double *)anypair->extract("theta",tmp);
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;

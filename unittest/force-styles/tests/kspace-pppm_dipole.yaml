@@ -1,5 +1,6 @@
 ---
 lammps_version: 30 Jul 2021
+tags: slow
 date_generated: Sat Aug 21 20:49:01 2021
 epsilon: 5e-12
 skip_tests: extract gpu single

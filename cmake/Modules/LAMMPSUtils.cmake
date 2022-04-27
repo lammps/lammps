@@ -25,7 +25,7 @@ function(validate_option name values)
 endfunction(validate_option)
 
 function(get_lammps_version version_header variable)
-    file(READ ${version_header} line)
+    file(STRINGS ${version_header} line REGEX LAMMPS_VERSION)
     set(MONTHS x Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec)
     string(REGEX REPLACE "#define LAMMPS_VERSION \"([0-9]+) ([A-Za-z]+) ([0-9]+)\"" "\\1" day "${line}")
     string(REGEX REPLACE "#define LAMMPS_VERSION \"([0-9]+) ([A-Za-z]+) ([0-9]+)\"" "\\2" month "${line}")

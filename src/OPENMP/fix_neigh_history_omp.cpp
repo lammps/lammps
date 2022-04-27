@@ -268,7 +268,7 @@ void FixNeighHistoryOMP::pre_exchange_newton()
 #endif
     {
       commflag = NPARTNER;
-      comm->reverse_comm_fix(this,0);
+      comm->reverse_comm(this,0);
     }
 
     // get page chunks to store atom IDs and shear history for my atoms
@@ -345,7 +345,7 @@ void FixNeighHistoryOMP::pre_exchange_newton()
       //   if many touching neighbors for large particle
 
       commflag = PERPARTNER;
-      comm->reverse_comm_fix_variable(this);
+      comm->reverse_comm_variable(this);
     }
 
     // set maxpartner = max # of partners of any owned atom
@@ -578,7 +578,7 @@ void FixNeighHistoryOMP::post_neighbor()
 
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
-        rflag = sbmask(j);
+        rflag = histmask(j);
         j &= NEIGHMASK;
         jlist[jj] = j;
 

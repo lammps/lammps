@@ -17,6 +17,8 @@ parser = ArgumentParser(prog='Install.py',
 
 # settings
 
+CMAKE = os.environ.get('CMAKE') or 'cmake'
+
 thisdir = fullpath('.')
 version = "2.2.1"
 
@@ -141,7 +143,7 @@ if buildflag:
   # configure kim-api
 
   print("Configuring kim-api ...")
-  cmd = 'cd "%s/kim-api-%s" && mkdir build && cd build && cmake .. -DCMAKE_INSTALL_PREFIX="%s" -DCMAKE_BUILD_TYPE=Release' % (thisdir,version,kimdir)
+  cmd = 'cd "%s/kim-api-%s" && mkdir build && cd build && %s .. -DCMAKE_INSTALL_PREFIX="%s" -DCMAKE_BUILD_TYPE=Release' % (thisdir,version,CMAKE,kimdir)
   txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   if verboseflag: print(txt.decode("UTF-8"))
 

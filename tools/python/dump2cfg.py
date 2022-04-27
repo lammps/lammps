@@ -16,7 +16,7 @@ from dump import dump
 from cfg import cfg
 
 if len(sys.argv) != 8:
-  raise StandardError, "Syntax: dump2cfg.py dumpfile Nid Ntype Nx Ny Nz cfgfile"
+  sys.exit("Syntax: dump2cfg.py dumpfile Nid Ntype Nx Ny Nz cfgfile")
 
 dumpfile = sys.argv[1]
 nid = int(sys.argv[2])

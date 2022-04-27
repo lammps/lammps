@@ -27,22 +27,22 @@ namespace LAMMPS_NS {
 class ComputeTempRegionEff : public Compute {
  public:
   ComputeTempRegionEff(class LAMMPS *, int, char **);
-  virtual ~ComputeTempRegionEff();
-  void init();
-  void setup();
-  virtual double compute_scalar();
-  virtual void compute_vector();
+  ~ComputeTempRegionEff() override;
+  void init() override;
+  void setup() override;
+  double compute_scalar() override;
+  void compute_vector() override;
 
-  void dof_remove_pre();
-  int dof_remove(int);
-  void remove_bias(int, double *);
-  void remove_bias_all();
-  void restore_bias(int, double *);
-  void restore_bias_all();
-  double memory_usage();
+  void dof_remove_pre() override;
+  int dof_remove(int) override;
+  void remove_bias(int, double *) override;
+  void remove_bias_all() override;
+  void restore_bias(int, double *) override;
+  void restore_bias_all() override;
+  double memory_usage() override;
 
  protected:
-  int iregion;
+  class Region *region;
   char *idregion;
 };
 

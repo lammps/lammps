@@ -29,11 +29,10 @@ namespace LAMMPS_NS {
 
 class FixDeformKokkos : public FixDeform {
  public:
-
   FixDeformKokkos(class LAMMPS *, int, char **);
-  virtual ~FixDeformKokkos() {}
-  void pre_exchange();
-  void end_of_step();
+
+  void pre_exchange() override;
+  void end_of_step() override;
 
  private:
   class DomainKokkos *domainKK;
@@ -45,10 +44,3 @@ class FixDeformKokkos : public FixDeform {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Cannot (yet) use rigid bodies with fix deform and Kokkos
-
-Self-explanatory.
-
-*/

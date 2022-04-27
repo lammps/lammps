@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class PairCoulLongSoft : public Pair {
  public:
   PairCoulLongSoft(class LAMMPS *);
-  virtual ~PairCoulLongSoft();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  void coeff(int, char **);
-  virtual void init_style();
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  virtual void write_restart_settings(FILE *);
-  virtual void read_restart_settings(FILE *);
-  virtual double single(int, int, int, int, double, double, double, double &);
-  virtual void *extract(const char *, int &);
+  ~PairCoulLongSoft() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  void *extract(const char *, int &) override;
 
  protected:
   double cut_coul, cut_coulsq;
@@ -56,25 +56,3 @@ class PairCoulLongSoft : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair style lj/cut/coul/long requires atom attribute q
-
-The atom style defined does not have this attribute.
-
-E: Pair style requires a KSpace style
-
-No kspace style is defined.
-
-*/

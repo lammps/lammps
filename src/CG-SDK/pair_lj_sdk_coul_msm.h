@@ -31,10 +31,9 @@ namespace LAMMPS_NS {
 class PairLJSDKCoulMSM : public PairLJSDKCoulLong {
  public:
   PairLJSDKCoulMSM(class LAMMPS *);
-  virtual ~PairLJSDKCoulMSM(){};
-  virtual void compute(int, int);
-  virtual double single(int, int, int, int, double, double, double, double &);
-  virtual void *extract(const char *, int &);
+  void compute(int, int) override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  void *extract(const char *, int &) override;
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval_msm();
@@ -44,12 +43,3 @@ class PairLJSDKCoulMSM : public PairLJSDKCoulLong {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Must use 'kspace_modify pressure/scalar no' with Pair style
-
-The kspace scalar pressure option is not (yet) compatible with at least one of
-the defined Pair styles.
-
-*/

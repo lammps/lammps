@@ -59,11 +59,10 @@ class NPairSSAKokkos : public NPair {
   typename AT::t_int_2d ssa_gitemLen;
 
   NPairSSAKokkos(class LAMMPS *);
-  ~NPairSSAKokkos() {}
-  void copy_neighbor_info();
-  void copy_bin_info();
-  void copy_stencil_info();
-  void build(class NeighList *);
+  void copy_neighbor_info() override;
+  void copy_bin_info() override;
+  void copy_stencil_info() override;
+  void build(class NeighList *) override;
  private:
   // data from Neighbor class
 
@@ -355,6 +354,3 @@ class NPairSSAKokkosExecute
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

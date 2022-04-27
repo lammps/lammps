@@ -62,7 +62,7 @@ void FixNVK::init()
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
     error->all(FLERR,"Fix nvk not yet enabled for RESPA");
-    step_respa = ((Respa *) update->integrate)->step;
+    step_respa = (dynamic_cast<Respa *>( update->integrate))->step;
   }
 
   // compute initial kinetic energy

@@ -226,15 +226,6 @@ other executable(s) perform an MPI_Comm_split() with their own colors
 to shrink the MPI_COMM_WORLD communication to be the subset of
 processors they are actually running on.
 
-Currently, this is only used in LAMMPS to perform client/server
-messaging with another application.  LAMMPS can act as either a client
-or server (or both).  More details are given on the :doc:`Howto client/server <Howto_client_server>` doc page.
-
-Specifically, this refers to the "mpi/one" mode of messaging provided
-by the :doc:`message <message>` command and the CSlib library LAMMPS
-links with from the lib/message directory.  See the
-:doc:`message <message>` command for more details.
-
 ----------
 
 .. _cite:

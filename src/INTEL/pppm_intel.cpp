@@ -93,11 +93,8 @@ PPPMIntel::~PPPMIntel()
 void PPPMIntel::init()
 {
   PPPM::init();
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   #ifdef _LMP_INTEL_OFFLOAD
   _use_base = 0;
@@ -1122,9 +1119,9 @@ FFT_SCALAR *** PPPMIntel::create3d_offset(FFT_SCALAR ***&array, int n1lo,
 
   bigint nbytes = ((bigint) sizeof(FFT_SCALAR)) * n1*n2*n3 +
     INTEL_P3M_ALIGNED_MAXORDER*2;
-  FFT_SCALAR *data = (FFT_SCALAR *) memory->smalloc(nbytes,name);
+  auto data = (FFT_SCALAR *) memory->smalloc(nbytes,name);
   nbytes = ((bigint) sizeof(FFT_SCALAR *)) * n1*n2;
-  FFT_SCALAR **plane = (FFT_SCALAR **) memory->smalloc(nbytes,name);
+  auto plane = (FFT_SCALAR **) memory->smalloc(nbytes,name);
   nbytes = ((bigint) sizeof(FFT_SCALAR **)) * n1;
   array = (FFT_SCALAR ***) memory->smalloc(nbytes,name);
 

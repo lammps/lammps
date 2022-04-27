@@ -39,8 +39,8 @@ class FixNVTSllodKokkos : public FixNHKokkos<DeviceType> {
   typedef ArrayTypes<DeviceType> AT;
 
   FixNVTSllodKokkos(class LAMMPS *, int, char **);
-  ~FixNVTSllodKokkos() {}
-  void init();
+
+  void init() override;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixNVTSllod_temp1, const int& i) const;
@@ -51,7 +51,7 @@ class FixNVTSllodKokkos : public FixNHKokkos<DeviceType> {
  private:
   int nondeformbias;
 
-  void nh_v_temp();
+  void nh_v_temp() override;
 
  protected:
   typename AT::t_x_array x;
@@ -74,27 +74,3 @@ class FixNVTSllodKokkos : public FixNHKokkos<DeviceType> {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Temperature control must be used with fix nvt/sllod
-
-Self-explanatory.
-
-E: Pressure control can not be used with fix nvt/sllod
-
-Self-explanatory.
-
-E: Temperature for fix nvt/sllod does not have a bias
-
-The specified compute must compute temperature with a bias.
-
-E: Using fix nvt/sllod with inconsistent fix deform remap option
-
-Fix nvt/sllod requires that deforming atoms have a velocity profile
-provided by "remap v" as a fix deform option.
-
-E: Using fix nvt/sllod with no fix deform defined
-
-Self-explanatory.
-
-*/

@@ -179,13 +179,13 @@ void FixWallBodyPolygon::init()
 {
   dt = update->dt;
 
-  avec = (AtomVecBody *) atom->style_match("body");
+  avec = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
   if (!avec)
     error->all(FLERR,"Pair body/rounded/polygon requires atom style body");
   if (strcmp(avec->bptr->style,"rounded/polygon") != 0)
     error->all(FLERR,"Pair body/rounded/polygon requires "
                "body style rounded/polygon");
-  bptr = (BodyRoundedPolygon *) avec->bptr;
+  bptr = dynamic_cast<BodyRoundedPolygon *>( avec->bptr);
 
   // set pairstyle from body/polygonular pair style
 

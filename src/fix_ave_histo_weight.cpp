@@ -94,11 +94,8 @@ void FixAveHistoWeight::end_of_step()
   int i,j,m;
 
   // skip if not step which requires doing something
-  // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
-  if (ntimestep < nvalid_last || ntimestep > nvalid)
-    error->all(FLERR,"Invalid timestep reset for fix ave/histo");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
 
@@ -471,7 +468,7 @@ void FixAveHistoWeight::end_of_step()
   if (fp && me == 0) {
     clearerr(fp);
     if (overwrite) platform::fseek(fp,filepos);
-    fprintf(fp,BIGINT_FORMAT " %d %g %g %g %g\n",ntimestep,nbins,
+    fmt::print(fp,"{} {} {} {} {} {}\n",ntimestep,nbins,
             stats_total[0],stats_total[1],stats_total[2],stats_total[3]);
     if (stats_total[0] != 0.0)
       for (i = 0; i < nbins; i++)

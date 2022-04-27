@@ -34,10 +34,10 @@ class PairLJCharmmCoulCharmmIntel : public PairLJCharmmCoulCharmm {
 
  public:
   PairLJCharmmCoulCharmmIntel(class LAMMPS *);
-  virtual ~PairLJCharmmCoulCharmmIntel();
+  ~PairLJCharmmCoulCharmmIntel() override;
 
-  virtual void compute(int, int);
-  void init_style();
+  void compute(int, int) override;
+  void init_style() override;
 
   typedef struct {
     float x, y, z;
@@ -86,16 +86,3 @@ class PairLJCharmmCoulCharmmIntel : public PairLJCharmmCoulCharmm {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: The 'package intel' command is required for /intel styles
-
-Self-explanatory.
-
-E: Intel variant of lj/charmm/coul/charmm expects lj cutoff<=coulombic
-
-The intel accelerated version of the CHARMM style requires that the
-Lennard-Jones cutoff is not greater than the coulombic cutoff.
-
-*/

@@ -262,7 +262,7 @@ void DihedralCharmmKokkos<DeviceType>::operator()(TagDihedralCharmmCompute<NEWTO
     // error check
 
   if ((c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) && !d_warning_flag())
-    Kokkos::atomic_fetch_add(&d_warning_flag(),1);
+    d_warning_flag() = 1;
 
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;

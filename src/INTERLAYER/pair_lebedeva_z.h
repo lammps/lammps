@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class PairLebedevaZ : public Pair {
  public:
   PairLebedevaZ(class LAMMPS *);
-  virtual ~PairLebedevaZ();
+  ~PairLebedevaZ() override;
 
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   static constexpr int NPARAMS_PER_LINE = 12;
 
@@ -55,22 +55,3 @@ class PairLebedevaZ : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-*/

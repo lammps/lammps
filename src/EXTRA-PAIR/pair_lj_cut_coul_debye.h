@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class PairLJCutCoulDebye : public PairLJCutCoulCut {
  public:
   PairLJCutCoulDebye(class LAMMPS *);
-  virtual ~PairLJCutCoulDebye() {}
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
+
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  double single(int, int, int, int, double, double, double, double &) override;
 
  protected:
   double kappa;
@@ -42,13 +42,3 @@ class PairLJCutCoulDebye : public PairLJCutCoulCut {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

@@ -30,11 +30,3 @@ class Finish : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-W: Timing breakdown may not be accurate since GPU/CPU overlap is enabled\nUsing 'export CUDA_LAUNCH_BLOCKING=1' will give an accurate timing breakdown but will reduce performance
-
-UNDOCUMENTED
-
-*/

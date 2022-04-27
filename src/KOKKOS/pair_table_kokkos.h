@@ -48,17 +48,17 @@ class PairTableKokkos : public PairTable {
   typedef ArrayTypes<DeviceType> AT;
 
   PairTableKokkos(class LAMMPS *);
-  virtual ~PairTableKokkos();
+  ~PairTableKokkos() override;
 
-  virtual void compute(int, int);
+  void compute(int, int) override;
 
   template<int TABSTYLE>
   void compute_style(int, int);
 
-  void settings(int, char **);
-  double init_one(int, int);
+  void settings(int, char **) override;
+  double init_one(int, int) override;
 
-  void init_style();
+  void init_style() override;
 
 
  protected:
@@ -103,8 +103,8 @@ class PairTableKokkos : public PairTable {
 
   typename AT::t_ffloat_2d d_cutsq;
 
-  virtual void allocate();
-  void compute_table(Table *);
+  void allocate() override;
+  void compute_table(Table *) override;
 
   typename AT::t_x_array_randomread x;
   typename AT::t_x_array_const c_x;
@@ -176,78 +176,3 @@ class PairTableKokkos : public PairTable {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Unknown table style in pair_style command
-
-Style of table is invalid for use with pair_style table command.
-
-E: Illegal number of pair table entries
-
-There must be at least 2 table entries.
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-E: Cannot use chosen neighbor list style with lj/cut/kk
-
-That style is not supported by Kokkos.
-
-U: Pair distance < table inner cutoff
-
-Two atoms are closer together than the pairwise table allows.
-
-U: Pair distance > table outer cutoff
-
-Two atoms are further apart than the pairwise table allows.
-
-U: Invalid pair table length
-
-Length of read-in pair table is invalid
-
-U: Invalid pair table cutoff
-
-Cutoffs in pair_coeff command are not valid with read-in pair table.
-
-U: Bitmapped table in file does not match requested table
-
-Setting for bitmapped table in pair_coeff command must match table
-in file exactly.
-
-U: Cannot open file %s
-
-The specified file cannot be opened.  Check that the path and name are
-correct. If the file is a compressed file, also check that the gzip
-executable can be found and run.
-
-U: Did not find keyword in table file
-
-Keyword used in pair_coeff command was not found in table file.
-
-U: Bitmapped table is incorrect length in table file
-
-Number of table entries is not a correct power of 2.
-
-U: Invalid keyword in pair table parameters
-
-Keyword used in list of table parameters is not recognized.
-
-U: Pair table parameters did not set N
-
-List of pair table parameters must include N setting.
-
-U: Pair table cutoffs must all be equal to use with KSpace
-
-When using pair style table with a long-range KSpace solver, the
-cutoffs for all atom type pairs must all be the same, since the
-long-range solver starts at that cutoff.
-
-*/

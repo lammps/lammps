@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class ComputeMLIAP : public Compute {
  public:
   ComputeMLIAP(class LAMMPS *, int, char **);
-  ~ComputeMLIAP();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_array();
+  ~ComputeMLIAP() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_array() override;
   void generate_neigharrays();
   void grow_neigharrays();
-  double memory_usage();
+  double memory_usage() override;
 
  private:
   double **mliaparray, **mliaparrayall;
@@ -60,25 +60,3 @@ class ComputeMLIAP : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute snap requires a pair style be defined
-
-Self-explanatory.
-
-E: Compute snap cutoff is longer than pairwise cutoff
-
-UNDOCUMENTED
-
-W: More than one compute snad/atom
-
-Self-explanatory.
-
-*/

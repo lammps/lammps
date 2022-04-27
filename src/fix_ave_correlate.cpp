@@ -52,6 +52,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
   nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
 
+  time_depend = 1;
   global_freq = nfreq;
 
   // expand args if any have wildcard character "*"
@@ -390,11 +391,8 @@ void FixAveCorrelate::end_of_step()
   double scalar;
 
   // skip if not step which requires doing something
-  // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
-  if (ntimestep < nvalid_last || ntimestep > nvalid)
-    error->all(FLERR,"Invalid timestep reset for fix ave/correlate");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
 
@@ -489,7 +487,7 @@ void FixAveCorrelate::end_of_step()
   if (fp && me == 0) {
     clearerr(fp);
     if (overwrite) platform::fseek(fp,filepos);
-    fprintf(fp,BIGINT_FORMAT " %d\n",ntimestep,nrepeat);
+    fmt::print(fp,"{} {}\n",ntimestep,nrepeat);
     for (i = 0; i < nrepeat; i++) {
       fprintf(fp,"%d %d %d",i+1,i*nevery,count[i]);
       if (count[i])

@@ -1,0 +1,68 @@
+# Average moduli for cubic crystals
+
+variable C11cubic equal (${C11}+${C22}+${C33})/3.0
+variable C12cubic equal (${C12}+${C13}+${C23})/3.0
+variable C44cubic equal (${C44}+${C55}+${C66})/3.0
+
+variable bulkmodulus equal (${C11cubic}+2*${C12cubic})/3.0
+variable shearmodulus1 equal ${C44cubic}
+variable shearmodulus2 equal (${C11cubic}-${C12cubic})/2.0
+variable poissonratio equal 1.0/(1.0+${C11cubic}/${C12cubic})
+  
+# For Stillinger-Weber silicon, the analytical results
+# are known to be (E. R. Cowley, 1988):
+#               C11 = 151.4 GPa
+#               C12 = 76.4 GPa
+#               C44 = 56.4 GPa
+
+#print "========================================="
+#print "Components of the Elastic Constant Tensor"
+#print "========================================="
+
+print "Elastic Constant C11 = ${C11} ${cunits}"
+print "Elastic Constant C22 = ${C22} ${cunits}"
+print "Elastic Constant C33 = ${C33} ${cunits}"
+
+print "Elastic Constant C12 = ${C12} ${cunits}"
+print "Elastic Constant C13 = ${C13} ${cunits}"
+print "Elastic Constant C23 = ${C23} ${cunits}"
+
+print "Elastic Constant C44 = ${C44} ${cunits}"
+print "Elastic Constant C55 = ${C55} ${cunits}"
+print "Elastic Constant C66 = ${C66} ${cunits}"
+
+print "Elastic Constant C14 = ${C14} ${cunits}"
+print "Elastic Constant C15 = ${C15} ${cunits}"
+print "Elastic Constant C16 = ${C16} ${cunits}"
+
+print "Elastic Constant C24 = ${C24} ${cunits}"
+print "Elastic Constant C25 = ${C25} ${cunits}"
+print "Elastic Constant C26 = ${C26} ${cunits}"
+
+print "Elastic Constant C34 = ${C34} ${cunits}"
+print "Elastic Constant C35 = ${C35} ${cunits}"
+print "Elastic Constant C36 = ${C36} ${cunits}"
+
+print "Elastic Constant C45 = ${C45} ${cunits}"
+print "Elastic Constant C46 = ${C46} ${cunits}"
+print "Elastic Constant C56 = ${C56} ${cunits}"
+
+print "========================================="
+print "Average properties for a cubic crystal"
+print "========================================="
+
+print "Bulk Modulus = ${bulkmodulus} ${cunits}"
+print "Shear Modulus 1 = ${shearmodulus1} ${cunits}"
+print "Shear Modulus 2 = ${shearmodulus2} ${cunits}"
+print "Poisson Ratio = ${poissonratio}"
+
+# summarize sampling protocol
+
+variable tmp equal atoms
+print "Number of atoms = ${tmp}"
+print "Stress sampling interval = ${nevery}"
+variable tmp equal ${nrun}/${nevery}
+print "Stress sample count = ${tmp}"
+print "Born sampling interval = ${neveryborn}"
+variable tmp equal ${nrun}/${neveryborn}
+print "Born sample count = ${tmp}"

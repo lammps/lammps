@@ -60,10 +60,11 @@ And the two functions :math:`\alpha\left(r\right)` and :math:`\Xi\left(r\right)`
       \right.
 
 
-The polynomial coefficients :math:`a_3`, :math:`a_4`, :math:`a_5`, :math:`x_3`,
-:math:`x_4`, :math:`x_5` are computed by LAMMPS: the two exponentials and their
-first and second order derivatives are smoothly linked to zero, 
-from the inner cutoff :math:`R_{sc}` to the outer cutoff :math:`R_{c}`. 
+The polynomial coefficients :math:`a_3`, :math:`a_4`, :math:`a_5`,
+:math:`x_3`, :math:`x_4`, :math:`x_5` are computed by LAMMPS: the two
+exponential terms and their first and second derivatives are smoothly
+reduced to zero, from the inner cutoff :math:`R_{sc}` to the outer
+cutoff :math:`R_{c}`.
 
 Coefficients
 """"""""""""
@@ -78,11 +79,11 @@ file or restart files read by the :doc:`read_data <read_data>` or
 * :math:`q` (dimensionless)
 * :math:`A` (energy units)
 * :math:`\xi` (energy units)
-* :math:`R_{cs}` (distance units) 
+* :math:`R_{cs}` (distance units)
 * :math:`R_{c}` (distance units)
 
 
-Note that: :math:`R_{0}` is the nearest neighbour distance, usually coincides
+Note that: :math:`R_{0}` is the nearest neighbor distance, usually coincides
 with the diameter of the atoms
 
 See the :doc:`run_style <run_style>` command for details.
@@ -99,7 +100,8 @@ For atom type pairs I,J and I != J the coefficients are not automatically mixed.
 Restrictions
 """"""""""""
 
-none
+This pair style is part of the SMTBQ package and is only enabled
+if LAMMPS is built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

@@ -103,6 +103,8 @@ Restrictions
 This pair style is part of the SMTBQ package and is only enabled
 if LAMMPS is built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
+These pair potentials require the :doc:`newton <newton>` setting to be "on" for pair interactions.
+
 Related commands
 """"""""""""""""
 

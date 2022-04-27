@@ -110,11 +110,7 @@ void PairSMATB::compute(int eflag, int vflag)
   int newton_pair = force->newton_pair;
 
   // zero out on_eb
-  if (newton_pair) {
-    memset(on_eb, 0, nall * sizeof(on_eb[0]));
-  } else {
-    memset(on_eb, 0, nlocal * sizeof(on_eb[0]));
-  }
+  memset(on_eb, 0, nall * sizeof(double));
 
   int inum = list->inum;
   int *ilist = list->ilist;
@@ -156,14 +152,14 @@ void PairSMATB::compute(int eflag, int vflag)
           qsiexpq = qsiexpq * qsiexpq;
         }
         on_eb[i] += qsiexpq;
-        on_eb[j] += qsiexpq;
+        if (newton_pair) on_eb[j] += qsiexpq;
       }
     }
   }
 
   // communicate the squared bonding energy between the various bins
 
-  comm->reverse_comm(this);
+  if (newton_pair) comm->reverse_comm(this);
 
   // Support Loop: take the square root of the bonding energy and
   // accumulate it in the energy accumulator if needed the store the
@@ -178,7 +174,7 @@ void PairSMATB::compute(int eflag, int vflag)
       } else {
         on_eb[i] = 0.0;
       }
-      //if needed the bonding energy is accumulated:
+      // if needed the bonding energy is accumulated:
       if (eflag_either) {
         if (eflag_atom) { eatom[i] -= eb_i; }
         if (eflag_global) { eng_vdwl -= eb_i; }
@@ -233,20 +229,7 @@ void PairSMATB::compute(int eflag, int vflag)
                  3.0 * x3[itype][jtype] * polyval2)) *
               qsiexpq;
         }
-        // if needed the repulsive energy is accumulated:
-        if (eflag_either) {
-          if (eflag_atom) {
-            eatom[i] += aexpp;
-            if (newton_pair || j < nlocal) { eatom[j] += aexpp; }
-          }
-          if (eflag_global) {
-            if (newton_pair || j < nlocal) {
-              eng_vdwl += 2.0 * (aexpp);
-            } else {
-              eng_vdwl += aexpp;
-            }
-          }
-        }
+
         // calculates the module of the pair energy between i and j
         fpair = (Fb * (on_eb[i] + on_eb[j]) + Fr) / dij;
 
@@ -258,10 +241,8 @@ void PairSMATB::compute(int eflag, int vflag)
           f[j][1] -= del[1] * fpair;
           f[j][2] -= del[2] * fpair;
         }
-        if (vflag_atom) {
-          ev_tally(i, j, nlocal, newton_pair, 0.0,
-                   0.0,    //Energy is tally'd in the other parts of the potential
-                   fpair, del[0], del[1], del[2]);
+        if (evflag) {
+          ev_tally(i, j, nlocal, newton_pair, 2.0 * aexpp, 0.0, fpair, del[0], del[1], del[2]);
         }
       }
     }
@@ -348,6 +329,15 @@ void PairSMATB::coeff(int narg, char **arg)
   }
 
   if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
+}
+
+/* ------------------------------------------------------------------------ */
+
+void PairSMATB::init_style()
+{
+  if (force->newton_pair == 0) error->all(FLERR, "Pair style smatb requires newton pair on");
+
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

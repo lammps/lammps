@@ -555,12 +555,12 @@ void FixAmoebaPiTorsion::post_force(int vflag)
       vxterm = dedxid + dedxia + dedxib;
       vyterm = dedyid + dedyia + dedyib;
       vzterm = dedzid + dedzia + dedzib;
-      v[0] = xdc*vxterm + xcp*dedxip - xqd*dedxiq;
-      v[1] = ydc*vyterm + ycp*dedyip - yqd*dedyiq;
-      v[2] = zdc*vzterm + zcp*dedzip - zqd*dedziq;
-      v[3] = ydc*vxterm + ycp*dedxip - yqd*dedxiq;
-      v[4] = zdc*vxterm + zcp*dedxip - zqd*dedxiq;
-      v[5] = zdc*vyterm + zcp*dedyip - zqd*dedyiq;
+      v[0] = -xdc*vxterm - xcp*dedxip + xqd*dedxiq;
+      v[1] = -ydc*vyterm - ycp*dedyip + yqd*dedyiq;
+      v[2] = -zdc*vzterm - zcp*dedzip + zqd*dedziq;
+      v[3] = -ydc*vxterm - ycp*dedxip + yqd*dedxiq;
+      v[4] = -zdc*vxterm - zcp*dedxip + zqd*dedxiq;
+      v[5] = -zdc*vyterm - zcp*dedyip + zqd*dedyiq;
 
       ev_tally(nlist,list,6.0,e,v);
     }

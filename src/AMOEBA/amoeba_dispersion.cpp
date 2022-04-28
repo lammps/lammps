@@ -219,12 +219,12 @@ void PairAmoeba::dispersion_real()
       vzy = zr * dedy;
       vzz = zr * dedz;
 
-      virdisp[0] += vxx;
-      virdisp[1] += vyy;
-      virdisp[2] += vzz;
-      virdisp[3] += vyx;
-      virdisp[4] += vzx;
-      virdisp[5] += vzy;
+      virdisp[0] -= vxx;
+      virdisp[1] -= vyy;
+      virdisp[2] -= vzz;
+      virdisp[3] -= vyx;
+      virdisp[4] -= vzx;
+      virdisp[5] -= vzy;
 
       // energy = e
       // virial = 6-vec vir
@@ -418,8 +418,8 @@ void PairAmoeba::dispersion_kspace()
 
   if (me == 0) {
     edisp -= term;
-    virdisp[0] += term;
-    virdisp[1] += term;
-    virdisp[2] += term;
+    virdisp[0] -= term;
+    virdisp[1] -= term;
+    virdisp[2] -= term;
   }
 }

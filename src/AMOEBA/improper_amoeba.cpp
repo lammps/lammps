@@ -227,9 +227,13 @@ void ImproperAmoeba::compute(int eflag, int vflag)
       f[ic][2] -= fc[2];
     }
 
-    if (evflag)
+    if (evflag) {
+      fd[0] = -fd[0]; fd[1] = -fd[1]; fd[2] = -fd[2]; 
+      fa[0] = -fa[0]; fa[1] = -fa[1]; fa[2] = -fa[2]; 
+      fc[0] = -fc[0]; fc[1] = -fc[1]; fc[2] = -fc[2]; 
       ev_tally(id,ib,ia,ic,nlocal,newton_bond,e,fd,fa,fc,
                xdb,ydb,zdb,xab,yab,zab,xic-xia,yic-yia,zic-zia);
+    }
   }
 }
 

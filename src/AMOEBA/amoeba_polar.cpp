@@ -129,12 +129,12 @@ void PairAmoeba::polar()
     vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
 
-    virpolar[0] += vxx;
-    virpolar[1] += vyy;
-    virpolar[2] += vzz;
-    virpolar[3] += vxy;
-    virpolar[4] += vxz;
-    virpolar[5] += vyz;
+    virpolar[0] -= vxx;
+    virpolar[1] -= vyy;
+    virpolar[2] -= vzz;
+    virpolar[3] -= vxy;
+    virpolar[4] -= vxz;
+    virpolar[5] -= vyz;
   }
 
   // clean up
@@ -1155,12 +1155,12 @@ void PairAmoeba::polar_real()
       vyz = 0.5 * (zr*frcy+yr*frcz);
       vzz = zr * frcz;
 
-      virpolar[0] += vxx;
-      virpolar[1] += vyy;
-      virpolar[2] += vzz;
-      virpolar[3] += vxy;
-      virpolar[4] += vxz;
-      virpolar[5] += vyz;
+      virpolar[0] -= vxx;
+      virpolar[1] -= vyy;
+      virpolar[2] -= vzz;
+      virpolar[3] -= vxy;
+      virpolar[4] -= vxz;
+      virpolar[5] -= vyz;
 
       // energy = e
       // virial = 6-vec vir
@@ -1224,12 +1224,12 @@ void PairAmoeba::polar_real()
     vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
 
-    virpolar[0] += vxx;
-    virpolar[1] += vyy;
-    virpolar[2] += vzz;
-    virpolar[3] += vxy;
-    virpolar[4] += vxz;
-    virpolar[5] += vyz;
+    virpolar[0] -= vxx;
+    virpolar[1] -= vyy;
+    virpolar[2] -= vzz;
+    virpolar[3] -= vxy;
+    virpolar[4] -= vxz;
+    virpolar[5] -= vyz;
   }
 }
 
@@ -2125,12 +2125,12 @@ void PairAmoeba::polar_kspace()
             qgrid[k3][k2][k1][1]*qgrip[k3][k2][k1][1];
           eterm = 0.5 * felec * expterm * struc2;
           vterm = (2.0/hsq) * (1.0-term) * eterm;
-          virpolar[0] += h1*h1*vterm - eterm;
-          virpolar[1] += h2*h2*vterm - eterm;
-          virpolar[2] += h3*h3*vterm - eterm;
-          virpolar[3] += h1*h2*vterm;
-          virpolar[4] += h1*h3*vterm;
-          virpolar[5] += h2*h3*vterm;
+          virpolar[0] -= h1*h1*vterm - eterm;
+          virpolar[1] -= h2*h2*vterm - eterm;
+          virpolar[2] -= h3*h3*vterm - eterm;
+          virpolar[3] -= h1*h2*vterm;
+          virpolar[4] -= h1*h3*vterm;
+          virpolar[5] -= h2*h3*vterm;
         }
       }
 
@@ -2189,12 +2189,12 @@ void PairAmoeba::polar_kspace()
             qgrid[k3][k2][k1][1]*qgrip[k3][k2][k1][1];
           eterm = 0.5 * felec * expterm * struc2;
           vterm = (2.0/hsq) * (1.0-term) * eterm;
-          virpolar[0] += h1*h1*vterm - eterm;
-          virpolar[1] += h2*h2*vterm - eterm;
-          virpolar[2] += h3*h3*vterm - eterm;
-          virpolar[3] += h1*h2*vterm;
-          virpolar[4] += h1*h3*vterm;
-          virpolar[5] += h2*h3*vterm;
+          virpolar[0] -= h1*h1*vterm - eterm;
+          virpolar[1] -= h2*h2*vterm - eterm;
+          virpolar[2] -= h3*h3*vterm - eterm;
+          virpolar[3] -= h1*h2*vterm;
+          virpolar[4] -= h1*h3*vterm;
+          virpolar[5] -= h2*h3*vterm;
         }
       }
     }
@@ -2203,12 +2203,12 @@ void PairAmoeba::polar_kspace()
 
   // increment the total internal virial tensor components
 
-  virpolar[0] += vxx;
-  virpolar[1] += vyy;
-  virpolar[2] += vzz;
-  virpolar[3] += vxy;
-  virpolar[4] += vxz;
-  virpolar[5] += vyz;
+  virpolar[0] -= vxx;
+  virpolar[1] -= vyy;
+  virpolar[2] -= vzz;
+  virpolar[3] -= vxy;
+  virpolar[4] -= vxz;
+  virpolar[5] -= vyz;
 
   // deallocation of local arrays, some from induce
 

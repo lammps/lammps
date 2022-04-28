@@ -361,12 +361,12 @@ void PairAmoeba::repulsion()
       vyz = -0.5 * (zr*frcy+yr*frcz);
       vzz = -zr * frcz;
 
-      virrepulse[0] += vxx;
-      virrepulse[1] += vyy;
-      virrepulse[2] += vzz;
-      virrepulse[3] += vxy;
-      virrepulse[4] += vxz;
-      virrepulse[5] += vyz;
+      virrepulse[0] -= vxx;
+      virrepulse[1] -= vyy;
+      virrepulse[2] -= vzz;
+      virrepulse[3] -= vxy;
+      virrepulse[4] -= vxz;
+      virrepulse[5] -= vyz;
 
       // energy = e
       // virial = 6-vec vir
@@ -414,12 +414,12 @@ void PairAmoeba::repulsion()
     vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
 
-    virrepulse[0] += vxx;
-    virrepulse[1] += vyy;
-    virrepulse[2] += vzz;
-    virrepulse[3] += vxy;
-    virrepulse[4] += vxz;
-    virrepulse[5] += vyz;
+    virrepulse[0] -= vxx;
+    virrepulse[1] -= vyy;
+    virrepulse[2] -= vzz;
+    virrepulse[3] -= vxy;
+    virrepulse[4] -= vxz;
+    virrepulse[5] -= vyz;
 
     // virial = 6-vec vir
     // NOTE: add tally function

@@ -533,12 +533,12 @@ void PairAmoeba::multipole_real()
       vyz = -0.5 * (zr*frcy+yr*frcz);
       vzz = -zr * frcz;
 
-      virmpole[0] += vxx;
-      virmpole[1] += vyy;
-      virmpole[2] += vzz;
-      virmpole[3] += vxy;
-      virmpole[4] += vxz;
-      virmpole[5] += vyz;
+      virmpole[0] -= vxx;
+      virmpole[1] -= vyy;
+      virmpole[2] -= vzz;
+      virmpole[3] -= vxy;
+      virmpole[4] -= vxz;
+      virmpole[5] -= vyz;
 
       // energy = e
       // virial = 6-vec vir
@@ -583,12 +583,12 @@ void PairAmoeba::multipole_real()
                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
     vzz = zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
 
-    virmpole[0] += vxx;
-    virmpole[1] += vyy;
-    virmpole[2] += vzz;
-    virmpole[3] += vxy;
-    virmpole[4] += vxz;
-    virmpole[5] += vyz;
+    virmpole[0] -= vxx;
+    virmpole[1] -= vyy;
+    virmpole[2] -= vzz;
+    virmpole[3] -= vxy;
+    virmpole[4] -= vxz;
+    virmpole[5] -= vyz;
   }
 }
 
@@ -781,7 +781,6 @@ void PairAmoeba::multipole_kspace()
     for (k = 0; k < 20; k++)
       fphi[i][k] *= felec;
   }
-  //printf("fphi elec %e %e %e %e \n",fphi[0][0],fphi[0][1],fphi[0][2],fphi[0][3]);
 
   // convert field from fractional to Cartesian
 
@@ -811,7 +810,6 @@ void PairAmoeba::multipole_kspace()
     f[i][2] -= h3;
   }
   empole += 0.5*e;
-  //printf("mpole_force %g %g %g \n", f[0][0], f[0][1], f[0][2]);
 
   // augment the permanent multipole virial contributions
 
@@ -878,12 +876,12 @@ void PairAmoeba::multipole_kspace()
 
   // increment total internal virial tensor components
 
-  virmpole[0] += vxx;
-  virmpole[1] += vyy;
-  virmpole[2] += vzz;
-  virmpole[3] += vxy;
-  virmpole[4] += vxz;
-  virmpole[5] += vyz;
+  virmpole[0] -= vxx;
+  virmpole[1] -= vyy;
+  virmpole[2] -= vzz;
+  virmpole[3] -= vxy;
+  virmpole[4] -= vxz;
+  virmpole[5] -= vyz;
 
   // free local memory
 

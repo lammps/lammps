@@ -155,12 +155,12 @@ void PairAmoeba::charge_transfer()
       vyz = zr * frcy;
       vzz = zr * frcz;
 
-      virqxfer[0] += vxx;
-      virqxfer[1] += vyy;
-      virqxfer[2] += vzz;
-      virqxfer[3] += vxy;
-      virqxfer[4] += vxz;
-      virqxfer[5] += vyz;
+      virqxfer[0] -= vxx;
+      virqxfer[1] -= vyy;
+      virqxfer[2] -= vzz;
+      virqxfer[3] -= vxy;
+      virqxfer[4] -= vxz;
+      virqxfer[5] -= vyz;
 
       // energy = e
       // virial = 6-vec vir

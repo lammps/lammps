@@ -90,6 +90,7 @@ Packages howto
    Howto_peri
    Howto_manifold
    Howto_spins
+   Howto_cgdna
 
 Tutorials howto
 ===============

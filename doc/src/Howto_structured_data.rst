@@ -122,19 +122,18 @@ Processing/plotting extracted data with Pandas
 After extracting the YAML format data and parsing it, it can be easily
 imported for further processing with the `pandas
 <https://pandas.pydata.org/>`_ and `matplotlib
-<https://matplotlib.org/>`_ Python modules.  The JSON format parser in
-*pandas* can also process data imported from YAML files.  Because of the
-organization of the data in the YAML format thermo output, it needs to
-be told to process only the 'data' part of the imported data and
-*normalize* it, and then one needs to set the column names from the
-'keywords' entry later.  The following example Python script code
-demonstrates this, and creates the image shown on the right of a simple
-plot of various bonded energy contributions versus the timestep from a
-run of the 'peptide' example input after changing the :doc:`thermo style
-<thermo_style>` to 'yaml'.  The properties to be used for x and y values
-can be conveniently selected through the keywords.  Please note that
-those keywords can be changed to custom strings with the
-:doc:`thermo_modify colname <thermo_modify>` command.
+<https://matplotlib.org/>`_ Python modules.  Because of the organization
+of the data in the YAML format thermo output, it needs to be told to
+process only the 'data' part of the imported data to create a pandas
+dataframe, and one needs to set the column names from the 'keywords'
+entry.  The following Python script code example demonstrates this, and
+creates the image shown on the right of a simple plot of various bonded
+energy contributions versus the timestep from a run of the 'peptide'
+example input after changing the :doc:`thermo style <thermo_style>` to
+'yaml'.  The properties to be used for x and y values can be
+conveniently selected through the keywords.  Please note that those
+keywords can be changed to custom strings with the :doc:`thermo_modify
+colname <thermo_modify>` command.
 
 .. code-block:: python
 
@@ -155,9 +154,8 @@ those keywords can be changed to custom strings with the
 
    thermo = list(yaml.load_all(docs, Loader=Loader))
 
-   df = pd.json_normalize(thermo[0],'data')
-   df.columns = thermo[0]['keywords']
-   fig = df.plot(x='Step', y=['E_bond', 'E_angle', 'E_dihed', 'E_impro'])
+   df = pd.DataFrame(data=thermo[0]['data'], columns=thermo[0]['keywords'])
+   fig = df.plot(x='Step', y=['E_bond', 'E_angle', 'E_dihed', 'E_impro'], ylabel='Energy in kcal/mol')
    plt.savefig('thermo_bondeng.png')
 
 

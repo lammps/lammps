@@ -23,6 +23,7 @@
 #include "domain.h"
 #include "electrode_accel_interface.h"
 #include "electrode_matrix.h"
+#include "electrode_math.h"
 #include "electrode_vector.h"
 #include "error.h"
 #include "force.h"
@@ -1017,16 +1018,13 @@ double FixElectrodeConp::gausscorr(int eflag, bool fflag)
 
       if (rsq < force->pair->cutsq[itype][jtype]) {
         double r2inv = 1.0 / rsq;
-
         double r = sqrt(rsq);
-        double eta_r_ij = eta_ij * r;
-        double expm2 = exp(-eta_r_ij * eta_r_ij);
-        double erfc_etar = erfc(eta_r_ij);
+        double erfc_etar = 0.;
+        double derfcr = ElectrodeMath::safe_derfcr(eta_ij * r, erfc_etar);
         double prefactor = qqrd2e * qtmp * q[j] / r;
         energy_sr -= prefactor * erfc_etar;
 
-        double forcecoul = prefactor * (erfc_etar + 2 / MY_PIS * eta_r_ij * expm2);
-        double fpair = -forcecoul * r2inv;
+        double fpair = prefactor * derfcr * r2inv;
         if (fflag) {
           f[i][0] += delx * fpair;
           f[i][1] += dely * fpair;

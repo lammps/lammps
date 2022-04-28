@@ -20,6 +20,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "electrode_kspace.h"
+#include "electrode_math.h"
 #include "error.h"
 #include "force.h"
 #include "group.h"
@@ -28,13 +29,6 @@
 #include "pair.h"
 
 using namespace LAMMPS_NS;
-
-#define EWALD_P 0.3275911
-#define A1 0.254829592
-#define A2 -0.284496736
-#define A3 1.421413741
-#define A4 -1.453152027
-#define A5 1.061405429
 
 ElectrodeVector::ElectrodeVector(LAMMPS *lmp, int sensor_group, int source_group, double eta,
                                  bool invert_source) :
@@ -146,8 +140,8 @@ void ElectrodeVector::pair_contribution(double *vector)
       double const r = sqrt(rsq);
       double const rinv = 1.0 / r;
       double aij = rinv;
-      aij *= calc_erfc(g_ewald * r);
-      aij -= calc_erfc(eta * r) * rinv;
+      aij *= ElectrodeMath::safe_erfc(g_ewald * r);
+      aij -= ElectrodeMath::safe_erfc(eta * r) * rinv;
       if (i_in_sensor) {
         vector[i] += aij * q[j];
       } else if (j_in_sensor) {
@@ -155,13 +149,4 @@ void ElectrodeVector::pair_contribution(double *vector)
       }
     }
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-double ElectrodeVector::calc_erfc(double x)
-{
-  double expm2 = exp(-x * x);
-  double t = 1.0 / (1.0 + EWALD_P * x);
-  return t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
 }

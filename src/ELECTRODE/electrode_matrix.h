@@ -15,6 +15,9 @@
    Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meißner (TUHH)
 ------------------------------------------------------------------------- */
 
+#ifndef LMP_ELECTRODE_MATRIX_H
+#define LMP_ELECTRODE_MATRIX_H
+
 #include "pointers.h"
 
 #include <map>
@@ -53,3 +56,4 @@ class ElectrodeMatrix : protected Pointers {
 
 }    // namespace LAMMPS_NS
 
+#endif

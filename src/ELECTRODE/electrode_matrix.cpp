@@ -20,6 +20,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "electrode_kspace.h"
+#include "electrode_math.h"
 #include "error.h"
 #include "force.h"
 #include "group.h"
@@ -30,14 +31,6 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-
-#define EWALD_F 1.12837917
-#define EWALD_P 0.3275911
-#define A1 0.254829592
-#define A2 -0.284496736
-#define A3 1.421413741
-#define A4 -1.453152027
-#define A5 1.061405429
 
 /* ---------------------------------------------------------------------- */
 
@@ -157,19 +150,8 @@ void ElectrodeMatrix::pair_contribution(double **array)
         r = sqrt(rsq);
         rinv = 1.0 / r;
         aij = rinv;
-
-        grij = g_ewald * r;
-        expm2 = exp(-grij * grij);
-        t = 1.0 / (1.0 + EWALD_P * grij);
-        erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
-        aij *= erfc;
-
-        etarij = etaij * r;
-        expm2 = exp(-etarij * etarij);
-        t = 1.0 / (1.0 + EWALD_P * etarij);
-        erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
-        aij -= erfc * rinv;
-
+        aij *= ElectrodeMath::safe_erfc(g_ewald * r);
+        aij -= ElectrodeMath::safe_erfc(etaij * r) * rinv;
         // newton on or off?
         if (!(newton_pair || j < nlocal)) aij *= 0.5;
         bigint jpos = tag_to_iele[tag[j]];

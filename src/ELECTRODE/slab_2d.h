@@ -15,6 +15,9 @@
    Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meißner (TUHH)
 ------------------------------------------------------------------------- */
 
+#ifndef LMP_SLAB_2D_H
+#define LMP_SLAB_2D_H
+
 #include "boundary_correction.h"
 
 namespace LAMMPS_NS {
@@ -27,4 +30,6 @@ class Slab2d : public BoundaryCorrection {
   void compute_corr(double, int, int, double &, double *) override;
   void setup(double);
 };
+
 }    // namespace LAMMPS_NS
+#endif

@@ -15,9 +15,10 @@
    Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meißner (TUHH)
 ------------------------------------------------------------------------- */
 
-#include "pointers.h"
+#ifndef LMP_ELECTRODE_VECTOR_H
+#define LMP_ELECTRODE_VECTOR_H
 
-#include <map>
+#include "pointers.h"
 
 namespace LAMMPS_NS {
 
@@ -40,7 +41,6 @@ class ElectrodeVector : protected Pointers {
   class ElectrodeKSpace *electrode_kspace;
 
   void pair_contribution(double *);
-  double calc_erfc(double);
 
   double kspace_time_total;
   double pair_time_total;
@@ -51,3 +51,5 @@ class ElectrodeVector : protected Pointers {
 };
 
 }    // namespace LAMMPS_NS
+
+#endif

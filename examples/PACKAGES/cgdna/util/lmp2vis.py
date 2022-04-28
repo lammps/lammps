@@ -37,9 +37,9 @@ import sys, math, subprocess
 # converts quaternion DOF into local body reference frame
 def q_to_exyz(q1,q2,q3,q4):
 
-    q=[q1, q2, q3, q4]
-    ex= [0, 0, 0]
-    ey = [0, 0,0]
+    q = [q1, q2, q3, q4]
+    ex = [0, 0, 0]
+    ey = [0, 0, 0]
     ez = [0, 0, 0]
 
     ex[0]=q[0]*q[0]+q[1]*q[1]-q[2]*q[2]-q[3]*q[3]
@@ -57,22 +57,22 @@ def q_to_exyz(q1,q2,q3,q4):
     return ex,ey,ez
 
 # processes line by line of LAMMPS trajectory
-def transform(line): 
+def transform(line, colind): 
 
     list1 = line.split()
-    ident, mol, typ = int(list1[0]), int(list1[1]), int(list1[2])
+    ident, mol, typ = int(list1[colind[0]]), int(list1[colind[1]]), int(list1[colind[2]])
     typb = typ + 10  # defines new backbone types, here offset is 10 from atom (base) type
-    x, y, z = float(list1[3]), float(list1[4]), float(list1[5])
-    vx, vy, vz = float(list1[9]), float(list1[10]), float(list1[11])
+    x, y, z = float(list1[colind[3]]), float(list1[colind[4]]), float(list1[colind[5]])
+    vx, vy, vz = float(list1[colind[6]]), float(list1[colind[7]]), float(list1[colind[8]])
     c_quat1, c_quat2, c_quat3, c_quat4 = \
-            float(list1[12]), float(list1[13]), float(list1[14]), float(list1[15])
+            float(list1[colind[9]]), float(list1[colind[10]]), float(list1[colind[11]]), float(list1[colind[12]])
 
     ex, ey, ez = q_to_exyz(c_quat1, c_quat2, c_quat3, c_quat4)
 
     # position of sugar-phosphate backbone interaction site in oxDNA2
     x1, y1, z1 = x -0.34*ex[0]+0.3408*ey[0],y -0.34*ex[1]+0.3408*ey[1], z-0.34*ex[2]+0.3408*ey[2]
 
-    # position of base interaction site in oxDNA2
+    # position of base interaction site in oxDNA/oxDNA2
     x2, y2, z2 = x +0.4*ex[0], y + 0.4*ex[1], z+0.4*ex[2]
 
     # compose basic output data: id, molecule id, type, position, velocity quaternion
@@ -96,7 +96,7 @@ def transform(line):
     line1 += '\n'
     line2 += '\n'
 
-    line= line1 + line2
+    line = line1 + line2
     return line
 
 ### main part ###
@@ -132,24 +132,25 @@ except:
 r=open(infilename,'r')
 w=open(outfilename,'w+')
 
-line=r.readline() # read first line in file
+pass1 = 0
 
-while line != '':
+for line in r:
 
     sys.stdout.write('# Processed %3d %%\r' % (100*n/nlines))     
 
-    # find number of atoms in timestep and double
-    if line.find('NUMBER OF ATOMS') != -1: 
+    # find number of atoms in timestep
+    if line.find('ITEM: NUMBER OF ATOMS') != -1: 
         w.write(line)
         N=int(r.readline())
         # write to output file and read next line
         w.write('%d'%int(2*N)+'\n')
         line=r.readline()
+        n+=2
 
     # find beginning of atom data section
     if line.find('ITEM: ATOMS') != -1:
-        # first pass: extract column number of ID, molecule ID, type, postion, velocity, quaternion
-        if n==0:
+        # first pass: extract column number of ID, molecule ID, type, postion, velocity, quaternion in header line
+        if pass1 == 0:
             linestring=line.split()
             idindex = linestring.index('id')
             molindex = linestring.index('mol')
@@ -177,24 +178,24 @@ while line != '':
                 header += ' shape[0] shape[1] shape[2]'
             header += '\n'
 
-        ### begin processing atom data
-        i=0
+            # store column number in data line, -2 offset form header line
+            colind = [idindex-2,molindex-2,typeindex-2,xindex-2,yindex-2,zindex-2,\
+                      vxindex-2,vyindex-2,vzindex-2,qwindex-2,qxindex-2,qyindex-2,qzindex-2]
+            pass1 = 1
+
+        # begin processing atom data in timestep
         w.write(header)
-
         # tranform each atom and write to output file
-        while i<N:
+        for i in range(N):
             line=r.readline()
-            w.write(transform(line))
-            i +=1
-            n +=1
-        else:
-            line=r.readline() # read next line
-        ### end processing atom data
+            w.write(transform(line,colind))
+            n+=1
+        # end processing atom data
 
-    # duplicate all lines that are not in atom data section 
+    # duplicate all lines that are not in any other section 
     else:
         w.write(line)
-        line=r.readline()
+        n+=1
 
 print('# Done                                ')     
 

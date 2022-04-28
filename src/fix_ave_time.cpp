@@ -899,23 +899,15 @@ void FixAveTime::invoke_vector(bigint ntimestep)
     if (yaml_flag) {
       if (!yaml_header || overwrite) {
         yaml_header = true;
-        fputs("keywords:\n - Step\n", fp);
-        bool first = true;
-        for (auto k : keyword) {
-          if (first) {
-            first = false;
-            fmt::print(fp, " - - '{}'\n", k);
-          } else fmt::print(fp, "   - '{}'\n", k);
-        }
-        fputs("data:\n", fp);
+        fputs("keywords: [", fp);
+        for (auto k : keyword) fmt::print(fp, "'{}', ", k);
+        fputs("]\ndata:\n", fp);
       }
       fmt::print(fp, "  {}:\n", ntimestep);
       for (i = 0; i < nrows; i++) {
-        for (j = 0; j < nvalues; j++) {
-          if (j == 0) fputs("  - - ", fp);
-          else  fputs("    - ", fp);
-          fmt::print(fp,"{}\n",array_total[i][j]/norm);
-        }
+        fputs("  - [", fp);
+        for (j = 0; j < nvalues; j++) fmt::print(fp,"{}, ",array_total[i][j]/norm);
+        fputs("]\n", fp);
       }
     } else {
       fmt::print(fp,"{} {}\n",ntimestep,nrows);

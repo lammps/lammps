@@ -910,11 +910,11 @@ void FixAveTime::invoke_vector(bigint ntimestep)
         fputs("data:\n", fp);
       }
       fmt::print(fp, "  {}:\n", ntimestep);
-      for (i = 0; i < nvalues; i++) {
-        for (j = 0; j < nrows; j++) {
+      for (i = 0; i < nrows; i++) {
+        for (j = 0; j < nvalues; j++) {
           if (j == 0) fputs("  - - ", fp);
           else  fputs("    - ", fp);
-          fmt::print(fp,"{}\n",array_total[j][i]/norm);
+          fmt::print(fp,"{}\n",array_total[i][j]/norm);
         }
       }
     } else {

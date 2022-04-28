@@ -701,15 +701,15 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       int iword = 1;
 
       if (keywd == "sinner") {
-        keyval = words[iword];
         for (int ielem = 0; ielem < nelements; ielem++) {
+          keyval = words[iword];
           sinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
           iword++;
         }
         sinnerflag = 1;
       } else if (keywd == "dinner") {
-        keyval = words[iword];
         for (int ielem = 0; ielem < nelements; ielem++) {
+          keyval = words[iword];
           dinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
           iword++;
         }

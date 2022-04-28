@@ -112,20 +112,28 @@ of that run:
    Number of runs:  2
    TotEng  =  -4.62140097780047
 
-Processing/plotting extracted data with Pandas
-----------------------------------------------
+.. versionadded:: 4May2022
+
+YAML format output has been added to multiple commands in LAMMPS,
+for example :doc:`dump yaml <dump>` or :doc:`fix ave/time <fix_ave_time>`
+Depending on the kind of data being written, organization of the data
+or the specific syntax used may change, but the principles are very
+similar and all files should be readable with a suitable YAML parser.
+
+Processing scalar data with Pandas
+----------------------------------
 
 .. figure:: JPG/thermo_bondeng.png
             :figwidth: 33%
             :align: right
 
-After extracting the YAML format data and parsing it, it can be easily
-imported for further processing with the `pandas
+After reading and parsing the YAML format data, it can be easily
+imported for further processing and visualization with the `pandas
 <https://pandas.pydata.org/>`_ and `matplotlib
 <https://matplotlib.org/>`_ Python modules.  Because of the organization
 of the data in the YAML format thermo output, it needs to be told to
 process only the 'data' part of the imported data to create a pandas
-dataframe, and one needs to set the column names from the 'keywords'
+data frame, and one needs to set the column names from the 'keywords'
 entry.  The following Python script code example demonstrates this, and
 creates the image shown on the right of a simple plot of various bonded
 energy contributions versus the timestep from a run of the 'peptide'
@@ -157,6 +165,47 @@ colname <thermo_modify>` command.
    df = pd.DataFrame(data=thermo[0]['data'], columns=thermo[0]['keywords'])
    fig = df.plot(x='Step', y=['E_bond', 'E_angle', 'E_dihed', 'E_impro'], ylabel='Energy in kcal/mol')
    plt.savefig('thermo_bondeng.png')
+
+Processing vector data with Pandas
+----------------------------------
+
+Global *vector* data as produced by :doc:`fix ave/time <fix_ave_time>`
+uses a slightly different organization of the data. You still have the
+dictionary keys 'keywords' and 'data' for the column headers and the
+data.  But the data is a dictionary indexed by the time step and for
+each step there are multiple rows of values each with a list of the
+averaged properties.  This requires a slightly different processing,
+since the entire data cannot be directly imported into a single pandas
+DataFrame class instance.  The following Python script example
+demonstrates how to read such data.  The result will combine the data
+for the different steps into one large "multi-index" table.  The pandas
+IndexSlice class can then be used to select data from this combined data
+frame.
+
+.. code-block:: python
+
+   import re, yaml
+   import pandas as pd
+
+   try:
+       from yaml import CSafeLoader as Loader
+   except ImportError:
+       from yaml import SafeLoader as Loader
+
+   with open("ave.yaml") as f:
+       ave = yaml.load(docs, Loader=Loader)
+
+   keys = ave['keywords']
+   df = {}
+   for k in ave['data'].keys():
+       df[k] = pd.DataFrame(data=ave['data'][k], columns=keys)
+
+   # create multi-index data frame
+   df = pd.concat(df)
+
+   # output only the first 3 value for steps 200 to 300 of the column Pressure
+   idx = pd.IndexSlice
+   print(df['Pressure'].loc[idx[200:300, 0:2]])
 
 
 Writing continuous data during a simulation

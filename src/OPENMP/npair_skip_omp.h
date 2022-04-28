@@ -53,6 +53,3 @@ NPairStyle(skip/ghost/omp,
 // clang-format off
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

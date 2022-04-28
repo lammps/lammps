@@ -164,7 +164,7 @@ void ComputeTempChunk::init()
   if (icompute < 0)
     error->all(FLERR,"Chunk/atom compute does not exist for "
                "compute temp/chunk");
-  cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
   if (strcmp(cchunk->style,"chunk/atom") != 0)
     error->all(FLERR,"Compute temp/chunk does not use chunk/atom compute");
 
@@ -774,7 +774,7 @@ void ComputeTempChunk::lock_disable()
 {
   int icompute = modify->find_compute(idchunk);
   if (icompute >= 0) {
-    cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+    cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
     cchunk->lockcount--;
   }
 }

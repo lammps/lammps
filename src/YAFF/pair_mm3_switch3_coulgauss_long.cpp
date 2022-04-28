@@ -343,7 +343,7 @@ void PairMM3Switch3CoulGaussLong::init_style()
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 
   // setup force tables
 

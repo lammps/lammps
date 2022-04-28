@@ -35,6 +35,3 @@ class AngleCosineDelta : public AngleCosineSquared {
 
 #endif
 #endif
-/* ERROR/WARNING messages:
-
-*/

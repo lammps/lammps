@@ -31,17 +31,16 @@
 #include "memory.h"
 #include "my_page.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "potential_file_reader.h"
 
 #include <cmath>
 #include <cstring>
+#include <map>
 
 using namespace LAMMPS_NS;
 using namespace InterLayer;
 
-#define MAXLINE 1024
 #define DELTA 4
 #define PGDELTA 1
 
@@ -56,9 +55,15 @@ static const char cite_ilp[] =
     " year =    2018,\n"
     "}\n\n";
 
+// to indicate which potential style was used in outputs
+static std::map<int, std::string> variant_map = {
+    {PairILPGrapheneHBN::ILP_GrhBN, "ilp/graphene/hbn"},
+    {PairILPGrapheneHBN::ILP_TMD, "ilp/tmd"},
+    {PairILPGrapheneHBN::SAIP_METAL, "saip/metal"}};
+
 /* ---------------------------------------------------------------------- */
 
-PairILPGrapheneHBN::PairILPGrapheneHBN(LAMMPS *lmp) : Pair(lmp)
+PairILPGrapheneHBN::PairILPGrapheneHBN(LAMMPS *lmp) : Pair(lmp), variant(ILP_GrhBN)
 {
   restartinfo = 0;
   one_coeff = 1;
@@ -86,6 +91,14 @@ PairILPGrapheneHBN::PairILPGrapheneHBN(LAMMPS *lmp) : Pair(lmp)
   dnormal = nullptr;
   dnormdri = nullptr;
 
+  // for ilp/tmd
+  dnn = nullptr;
+  vect = nullptr;
+  pvet = nullptr;
+  dpvet1 = nullptr;
+  dpvet2 = nullptr;
+  dNave = nullptr;
+
   // always compute energy offset
   offset_flag = 1;
 
@@ -104,6 +117,13 @@ PairILPGrapheneHBN::~PairILPGrapheneHBN()
   memory->destroy(normal);
   memory->destroy(dnormal);
   memory->destroy(dnormdri);
+  // adds for ilp/tmd
+  memory->destroy(dnn);
+  memory->destroy(vect);
+  memory->destroy(pvet);
+  memory->destroy(dpvet1);
+  memory->destroy(dpvet2);
+  memory->destroy(dNave);
 
   if (allocated) {
     memory->destroy(setflag);
@@ -194,7 +214,7 @@ void PairILPGrapheneHBN::read_file(char *filename)
   // open file on proc 0
 
   if (comm->me == 0) {
-    PotentialFileReader reader(lmp, filename, "ilp/graphene/hbn", unit_convert_flag);
+    PotentialFileReader reader(lmp, filename, variant_map[variant], unit_convert_flag);
     char *line;
 
     // transparently convert units for supported conversions
@@ -292,11 +312,15 @@ void PairILPGrapheneHBN::read_file(char *filename)
       int n = -1;
       for (int m = 0; m < nparams; m++) {
         if (i == params[m].ielement && j == params[m].jelement) {
-          if (n >= 0) error->all(FLERR, "ILP potential file has duplicate entry");
+          if (n >= 0)
+            error->all(FLERR, "{} potential file {} has a duplicate entry", variant_map[variant],
+                       filename);
           n = m;
         }
       }
-      if (n < 0) error->all(FLERR, "Potential file is missing an entry");
+      if (n < 0)
+        error->all(FLERR, "{} potential file {} is missing an entry", variant_map[variant],
+                   filename);
       elem2param[i][j] = n;
       cutILPsq[i][j] = params[n].rcut * params[n].rcut;
     }
@@ -310,16 +334,13 @@ void PairILPGrapheneHBN::read_file(char *filename)
 void PairILPGrapheneHBN::init_style()
 {
   if (force->newton_pair == 0)
-    error->all(FLERR, "Pair style ilp/graphene/hbn requires newton pair on");
+    error->all(FLERR, "Pair style {} requires newton pair on", variant_map[variant]);
   if (!atom->molecule_flag)
-    error->all(FLERR, "Pair style ilp/graphene/hbn requires atom attribute molecule");
+    error->all(FLERR, "Pair style {} requires atom attribute molecule", variant_map[variant]);
 
   // need a full neighbor list, including neighbors of ghosts
 
-  int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->ghost = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
 
   // local ILP neighbor list
   // create pages if first time or if neighbor pgsize/oneatom has changed

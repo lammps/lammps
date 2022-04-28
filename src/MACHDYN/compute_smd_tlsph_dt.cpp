@@ -87,7 +87,7 @@ void ComputeSMDTlsphDt::compute_peratom() {
         }
 
         int itmp = 0;
-        double *particle_dt = (double *) force->pair->extract("smd/tlsph/particle_dt_ptr",
+        auto particle_dt = (double *) force->pair->extract("smd/tlsph/particle_dt_ptr",
                         itmp);
         if (particle_dt == nullptr) {
                 error->all(FLERR,

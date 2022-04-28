@@ -5,3 +5,5 @@ sphinx_tabs
 breathe
 Pygments
 six
+pyyaml
+wheel

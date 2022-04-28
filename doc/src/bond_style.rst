@@ -84,6 +84,8 @@ accelerated styles exist.
 * :doc:`zero <bond_zero>` - topology but no interactions
 * :doc:`hybrid <bond_hybrid>` - define multiple styles of bond interactions
 
+* :doc:`bpm/rotational <bond_bpm_rotational>` - breakable bond with forces and torques based on deviation from reference state
+* :doc:`bpm/spring <bond_bpm_spring>` - breakable bond with forces based on deviation from reference length
 * :doc:`class2 <bond_class2>` - COMPASS (class 2) bond
 * :doc:`fene <bond_fene>` - FENE (finite-extensible non-linear elastic) bond
 * :doc:`fene/expand <bond_fene_expand>` - FENE bonds with variable size particles

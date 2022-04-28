@@ -133,6 +133,9 @@ and parsing files or arguments.
 .. doxygenfunction:: trim_comment
    :project: progguide
 
+.. doxygenfunction:: star_subst
+   :project: progguide
+
 .. doxygenfunction:: has_utf8
    :project: progguide
 
@@ -206,6 +209,12 @@ Convenience functions
    :project: progguide
 
 .. doxygenfunction:: logmesg(LAMMPS *lmp, const std::string &mesg)
+   :project: progguide
+
+.. doxygenfunction:: errorurl
+   :project: progguide
+
+.. doxygenfunction:: missing_cmd_args
    :project: progguide
 
 .. doxygenfunction:: flush_buffers(LAMMPS *lmp)
@@ -396,7 +405,7 @@ A typical code segment would look like this:
 
 ----------
 
-.. file-reader-classes:
+.. _file-reader-classes:
 
 File reader classes
 -------------------

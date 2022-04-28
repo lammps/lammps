@@ -24,19 +24,18 @@
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 
 #include <cmath>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::MY_PIS;
 
-#define EPSILON 1e-6
+static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulCutDielectric::PairLJCutCoulCutDielectric(LAMMPS *lmp) : PairLJCutCoulCut(lmp)
+PairLJCutCoulCutDielectric::PairLJCutCoulCutDielectric(LAMMPS *_lmp) : PairLJCutCoulCut(_lmp)
 {
   efield = nullptr;
   epot = nullptr;
@@ -133,8 +132,8 @@ void PairLJCutCoulCutDielectric::compute(int eflag, int vflag)
         r2inv = 1.0 / rsq;
 
         if (rsq < cut_coulsq[itype][jtype] && rsq > EPSILON) {
-          efield_i = q[j] * sqrt(r2inv);
-          forcecoul = qqrd2e * qtmp * efield_i;
+          efield_i = qqrd2e * q[j] * sqrt(r2inv);
+          forcecoul = qtmp * efield_i;
           epot_i = efield_i;
         } else
           epot_i = efield_i = forcecoul = 0.0;
@@ -191,12 +190,10 @@ void PairLJCutCoulCutDielectric::compute(int eflag, int vflag)
 
 void PairLJCutCoulCutDielectric::init_style()
 {
-  avec = (AtomVecDielectric *) atom->style_match("dielectric");
+  avec = dynamic_cast<AtomVecDielectric *>(atom->style_match("dielectric"));
   if (!avec) error->all(FLERR, "Pair lj/cut/coul/cut/dielectric requires atom style dielectric");
 
-  int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 }
 
 /* ---------------------------------------------------------------------- */

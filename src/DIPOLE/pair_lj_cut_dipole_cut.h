@@ -53,23 +53,3 @@ class PairLJCutDipoleCut : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args in pair_style command
-
-Self-explanatory.
-
-E: Cannot (yet) use 'electron' units with dipoles
-
-This feature is not yet supported.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair dipole/cut requires atom attributes q, mu, torque
-
-The atom style defined does not have these attributes.
-
-*/

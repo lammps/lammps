@@ -37,7 +37,7 @@ ComputeAngle::ComputeAngle(LAMMPS *lmp, int narg, char **arg) :
 
   // check if bond style hybrid exists
 
-  angle = (AngleHybrid *) force->angle_match("hybrid");
+  angle = dynamic_cast<AngleHybrid *>( force->angle_match("hybrid"));
   if (!angle)
     error->all(FLERR,"Angle style for compute angle command is not hybrid");
   size_vector = nsub = angle->nstyles;
@@ -60,7 +60,7 @@ void ComputeAngle::init()
 {
   // recheck angle style in case it has been changed
 
-  angle = (AngleHybrid *) force->angle_match("hybrid");
+  angle = dynamic_cast<AngleHybrid *>( force->angle_match("hybrid"));
   if (!angle)
     error->all(FLERR,"Angle style for compute angle command is not hybrid");
   if (angle->nstyles != nsub)

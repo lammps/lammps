@@ -101,9 +101,7 @@ int ReaderNative::read_time(bigint &ntimestep)
       error->one(FLERR,"Dump file is incorrectly formatted");
 
     read_lines(1);
-    int rv = sscanf(line,BIGINT_FORMAT,&ntimestep);
-    if (rv != 1)
-      error->one(FLERR,"Dump file is incorrectly formatted");
+    ntimestep = utils::bnumeric(FLERR, utils::trim(line), true, lmp);
   }
   return 0;
 }
@@ -140,16 +138,12 @@ void ReaderNative::skip()
 
   } else {
     read_lines(2);
-    bigint natoms;
-    int rv = sscanf(line,BIGINT_FORMAT,&natoms);
-    if (rv != 1) error->one(FLERR,"Dump file is incorrectly formatted");
-
+    bigint nremain = utils::bnumeric(FLERR, utils::trim(line), true, lmp);
     read_lines(5);
 
     // invoke read_lines() in chunks no larger than MAXSMALLINT
 
     int nchunk;
-    bigint nremain = natoms;
     while (nremain) {
       nchunk = MIN(nremain,MAXSMALLINT);
       read_lines(nchunk);
@@ -230,16 +224,13 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
       return natoms;
     }
 
-
     if (is_known_magic_str() && revision > 0x0001) {
       // newer format includes units string, columns string
       // and time
       read_buf(&len, sizeof(int), 1);
 
-      if (len > 0) {
-        // has units
-        unit_style = read_binary_str(len);
-      }
+      // has units
+      if (len > 0) unit_style = read_binary_str(len);
 
       char flag = 0;
       read_buf(&flag, sizeof(char), 1);
@@ -259,12 +250,9 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
     ichunk = 0;
     iatom_chunk = 0;
   } else {
-    int rv;
 
     read_lines(2);
-    rv = sscanf(line,BIGINT_FORMAT,&natoms);
-    if (rv != 1)
-      error->one(FLERR,"Dump file is incorrectly formatted");
+    natoms = utils::bnumeric(FLERR, utils::trim(line), true, lmp);
 
     boxinfo = 1;
     triclinic = 0;
@@ -272,20 +260,27 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
     read_lines(1);
     if (line[strlen("ITEM: BOX BOUNDS ")] == 'x') triclinic = 1;
 
-    read_lines(1);
-    if (!triclinic) rv = 2 - sscanf(line,"%lg %lg",&box[0][0],&box[0][1]);
-    else rv = 3 - sscanf(line,"%lg %lg %lg",&box[0][0],&box[0][1],&box[0][2]);
-    if (rv != 0) error->one(FLERR,"Dump file is incorrectly formatted");
+    try {
+      read_lines(1);
+      ValueTokenizer values(line);
+      box[0][0] = values.next_double();
+      box[0][1] = values.next_double();
+      if (triclinic) box[0][2] = values.next_double();
 
-    read_lines(1);
-    if (!triclinic) rv = 2 - sscanf(line,"%lg %lg",&box[1][0],&box[1][1]);
-    else rv = 3 - sscanf(line,"%lg %lg %lg",&box[1][0],&box[1][1],&box[1][2]);
-    if (rv != 0) error->one(FLERR,"Dump file is incorrectly formatted");
+      read_lines(1);
+      values = ValueTokenizer(line);
+      box[1][0] = values.next_double();
+      box[1][1] = values.next_double();
+      if (triclinic) box[1][2] = values.next_double();
 
-    read_lines(1);
-    if (!triclinic) rv = 2 - sscanf(line,"%lg %lg",&box[2][0],&box[2][1]);
-    else rv = 3 - sscanf(line,"%lg %lg %lg",&box[2][0],&box[2][1],&box[2][2]);
-    if (rv != 0) error->one(FLERR,"Dump file is incorrectly formatted");
+      read_lines(1);
+      values = ValueTokenizer(line);
+      box[2][0] = values.next_double();
+      box[2][1] = values.next_double();
+      if (triclinic) box[2][2] = values.next_double();
+    } catch (std::exception &e) {
+      error->one(FLERR, "Dump file is incorrectly formatted: {}", e.what());
+    }
 
     read_lines(1);
 
@@ -295,7 +290,7 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
 
     // extract column labels and match to requested fields
 
-    labelline = &line[strlen("ITEM: ATOMS ")];
+    labelline = line + strlen("ITEM: ATOMS ");
   }
 
   Tokenizer tokens(labelline);

@@ -27,7 +27,7 @@ class Memory : protected Pointers {
   void sfree(void *);
   void fail(const char *);
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    create/grow/destroy vecs and multidim arrays with contiguous memory blocks
    only use with primitive data types, e.g. 1d vec of ints, 2d array of doubles
    fail() prevents use with pointers,
@@ -36,7 +36,7 @@ class Memory : protected Pointers {
    for these other cases, use smalloc/srealloc/sfree directly
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    create a 1d array
 ------------------------------------------------------------------------- */
 
@@ -56,7 +56,7 @@ class Memory : protected Pointers {
     return nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    grow or shrink 1d array
 ------------------------------------------------------------------------- */
 
@@ -81,7 +81,7 @@ class Memory : protected Pointers {
     return nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    destroy a 1d array
 ------------------------------------------------------------------------- */
 
@@ -91,7 +91,7 @@ class Memory : protected Pointers {
     array = nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    create a 1d array with index from nlo to nhi inclusive
    cannot grow it
 ------------------------------------------------------------------------- */
@@ -114,7 +114,7 @@ class Memory : protected Pointers {
     return nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    destroy a 1d array with index offset
 ------------------------------------------------------------------------- */
 
@@ -124,7 +124,7 @@ class Memory : protected Pointers {
     array = nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    create a 2d array
 ------------------------------------------------------------------------- */
 
@@ -153,7 +153,7 @@ class Memory : protected Pointers {
     return nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    grow or shrink 1st dim of a 2d array
    last dim must stay the same
 ------------------------------------------------------------------------- */
@@ -188,7 +188,7 @@ class Memory : protected Pointers {
     return nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    destroy a 2d array
 ------------------------------------------------------------------------- */
 
@@ -200,7 +200,7 @@ class Memory : protected Pointers {
     array = nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    create a 2d array with a ragged 2nd dimension
 ------------------------------------------------------------------------- */
 
@@ -226,13 +226,40 @@ class Memory : protected Pointers {
   }
 
   template <typename TYPE>
-  TYPE ***create_ragged(TYPE ***& /*array*/, int /*n1*/, int * /*n2*/, const char *name)
+  TYPE ***create_ragged(TYPE ***&array, int n1, int *n2, int **n3, const char *name)
   {
-    fail(name);
-    return nullptr;
+    bigint size, nbytes;
+    int i, j;
+
+    size = 0;
+    for (i = 0; i < n1; i++)
+      for (j = 0; j < n2[i]; j++) size += n3[i][j];
+    nbytes = ((bigint) sizeof(TYPE)) * size;
+    TYPE *data = (TYPE *) smalloc(nbytes, name);
+
+    size = 0;
+    for (i = 0; i < n1; i++) size += n2[i];
+    nbytes = ((bigint) sizeof(TYPE *)) * size;
+    TYPE **plane = (TYPE **) smalloc(nbytes, name);
+
+    nbytes = ((bigint) sizeof(TYPE **)) * n1;
+    array = (TYPE ***) smalloc(nbytes, name);
+
+    bigint m = 0;
+    bigint n = 0;
+    for (i = 0; i < n1; i++) {
+      array[i] = &plane[m];
+      for (j = 0; j < n2[i]; j++) {
+        plane[m + j] = &data[n];
+        n += n3[i][j];
+      }
+      m += n2[i];
+    }
+
+    return array;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    create a 2d array with 2nd index from n2lo to n2hi inclusive
    cannot grow it
 ------------------------------------------------------------------------- */
@@ -257,7 +284,7 @@ class Memory : protected Pointers {
     return nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    destroy a 2d array with 2nd index offset
 ------------------------------------------------------------------------- */
 
@@ -269,7 +296,7 @@ class Memory : protected Pointers {
     array = nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    create a 3d array
 ------------------------------------------------------------------------- */
 
@@ -306,7 +333,7 @@ class Memory : protected Pointers {
     return nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    grow or shrink 1st dim of a 3d array
    last 2 dims must stay the same
 ------------------------------------------------------------------------- */
@@ -349,7 +376,7 @@ class Memory : protected Pointers {
     return nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    destroy a 3d array
 ------------------------------------------------------------------------- */
 
@@ -362,7 +389,7 @@ class Memory : protected Pointers {
     array = nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    create a 3d array with 1st index from n1lo to n1hi inclusive
    cannot grow it
 ------------------------------------------------------------------------- */
@@ -386,7 +413,7 @@ class Memory : protected Pointers {
     return nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    free a 3d array with 1st index offset
 ------------------------------------------------------------------------- */
 
@@ -399,7 +426,7 @@ class Memory : protected Pointers {
     array = nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    create a 3d array with
    1st index from n1lo to n1hi inclusive,
    2nd index from n2lo to n2hi inclusive,
@@ -433,7 +460,7 @@ class Memory : protected Pointers {
     return nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    free a 3d array with all 3 indices offset
 ------------------------------------------------------------------------- */
 
@@ -447,7 +474,7 @@ class Memory : protected Pointers {
     array = nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    create a 4d array
 ------------------------------------------------------------------------- */
 
@@ -494,7 +521,7 @@ class Memory : protected Pointers {
     return nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
   grow or shrink 1st dim of a 4d array
   last 3 dims must stay the same
   ------------------------------------------------------------------------- */
@@ -547,7 +574,7 @@ class Memory : protected Pointers {
     return nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    destroy a 4d array
 ------------------------------------------------------------------------- */
 
@@ -561,7 +588,7 @@ class Memory : protected Pointers {
     array = nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    create a 4d array with indices
    2nd index from n2lo to n2hi inclusive
    3rd index from n3lo to n3hi inclusive
@@ -596,7 +623,7 @@ class Memory : protected Pointers {
     return nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    free a 4d array with indices 2,3,4 offset
 ------------------------------------------------------------------------- */
 
@@ -611,7 +638,7 @@ class Memory : protected Pointers {
     array = nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    create a 5d array
 ------------------------------------------------------------------------- */
 
@@ -665,7 +692,7 @@ class Memory : protected Pointers {
     return nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    destroy a 5d array
 ------------------------------------------------------------------------- */
 
@@ -680,7 +707,7 @@ class Memory : protected Pointers {
     array = nullptr;
   }
 
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
    memory usage of arrays, including pointers
 ------------------------------------------------------------------------- */
 
@@ -722,22 +749,3 @@ class Memory : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Failed to allocate %ld bytes for array %s
-
-Your LAMMPS simulation has run out of memory.  You need to run a
-smaller simulation or on more processors.
-
-E: Failed to reallocate %ld bytes for array %s
-
-Your LAMMPS simulation has run out of memory.  You need to run a
-smaller simulation or on more processors.
-
-E: Cannot create/grow a vector/array of pointers for %s
-
-LAMMPS code is making an illegal call to the templated memory
-allocators, to create a vector or array of pointers.
-
-*/

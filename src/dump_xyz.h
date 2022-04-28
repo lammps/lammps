@@ -50,22 +50,3 @@ class DumpXYZ : public Dump {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Invalid dump xyz filename
-
-Filenames used with the dump xyz style cannot be binary or cause files
-to be written by each processor.
-
-E: Dump modify element names do not match atom types
-
-Number of element names must equal number of atom types.
-
-*/

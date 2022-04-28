@@ -16,6 +16,7 @@ endif()
 
 project(lammps CXX)
 set(SOVERSION 0)
+get_property(BUILD_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 
 get_filename_component(LAMMPS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/.. ABSOLUTE)
 get_filename_component(LAMMPS_LIB_BINARY_DIR ${CMAKE_BINARY_DIR}/lib ABSOLUTE)
@@ -104,8 +105,28 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   endif()
 endif()
 
+# silence excessive warnings for new Intel Compilers
+if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+  set(CMAKE_TUNE_DEFAULT "-Wno-tautological-constant-compare")
+endif()
+
+# silence excessive warnings for PGI/NVHPC compilers
+if((CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC") OR (CMAKE_CXX_COMPILER_ID STREQUAL "PGI"))
+  set(CMAKE_TUNE_DEFAULT "-Minform=severe")
+endif()
+
+# silence nvcc warnings
+if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA))
+  set(CMAKE_TUNE_DEFAULT "${CMAKE_TUNE_DEFAULT} -Xcudafe --diag_suppress=unrecognized_pragma")
+endif()
+
 # we require C++11 without extensions. Kokkos requires at least C++14 (currently)
-set(CMAKE_CXX_STANDARD 11)
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 11)
+endif()
+if(CMAKE_CXX_STANDARD LESS 11)
+  message(FATAL_ERROR "C++ standard must be set to at least 11")
+endif()
 if(PKG_KOKKOS AND (CMAKE_CXX_STANDARD LESS 14))
   set(CMAKE_CXX_STANDARD 14)
 endif()
@@ -171,6 +192,7 @@ set(STANDARD_PACKAGES
   AWPMD
   BOCS
   BODY
+  BPM
   BROWNIAN
   CG-DNA
   CG-SDK
@@ -207,7 +229,6 @@ set(STANDARD_PACKAGES
   MDI
   MEAM
   MESONT
-  MESSAGE
   MGPT
   MISC
   ML-HDNNP
@@ -450,7 +471,7 @@ else()
 endif()
 
 foreach(PKG_WITH_INCL KSPACE PYTHON ML-IAP VORONOI COLVARS ML-HDNNP MDI MOLFILE NETCDF
-        PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM LATTE MESSAGE MSCG COMPRESS ML-PACE)
+        PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM LATTE MSCG COMPRESS ML-PACE)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()
@@ -467,6 +488,7 @@ set(CMAKE_TUNE_FLAGS "${CMAKE_TUNE_DEFAULT}" CACHE STRING "Compiler and machine 
 separate_arguments(CMAKE_TUNE_FLAGS)
 foreach(_FLAG ${CMAKE_TUNE_FLAGS})
   target_compile_options(lammps PRIVATE ${_FLAG})
+  target_compile_options(lmp PRIVATE ${_FLAG})
 endforeach()
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
@@ -748,13 +770,15 @@ if(BUILD_SHARED_LIBS)
   else()
     find_package(Python COMPONENTS Interpreter)
   endif()
+  if(BUILD_IS_MULTI_CONFIG)
+    set(LIBLAMMPS_SHARED_BINARY ${CMAKE_BINARY_DIR}/$<CONFIG>/liblammps${LAMMPS_MACHINE}${CMAKE_SHARED_LIBRARY_SUFFIX})
+  else()
+    set(LIBLAMMPS_SHARED_BINARY ${CMAKE_BINARY_DIR}/liblammps${LAMMPS_MACHINE}${CMAKE_SHARED_LIBRARY_SUFFIX})
+  endif()
   if(Python_EXECUTABLE)
     add_custom_target(
       install-python ${CMAKE_COMMAND} -E remove_directory build
-      COMMAND ${Python_EXECUTABLE} install.py -v ${LAMMPS_SOURCE_DIR}/version.h
-      -p ${LAMMPS_PYTHON_DIR}/lammps
-      -l ${CMAKE_BINARY_DIR}/liblammps${LAMMPS_MACHINE}${CMAKE_SHARED_LIBRARY_SUFFIX}
-      WORKING_DIRECTORY  ${LAMMPS_PYTHON_DIR}
+      COMMAND ${Python_EXECUTABLE} ${LAMMPS_PYTHON_DIR}/install.py -p ${LAMMPS_PYTHON_DIR}/lammps -l ${LIBLAMMPS_SHARED_BINARY}
       COMMENT "Installing LAMMPS Python module")
   else()
     add_custom_target(
@@ -799,7 +823,6 @@ if(ClangFormat_FOUND)
 endif()
 
 get_target_property(DEFINES lammps COMPILE_DEFINITIONS)
-get_property(BUILD_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(BUILD_IS_MULTI_CONFIG)
   set(LAMMPS_BUILD_TYPE "Multi-Config")
 else()
@@ -808,6 +831,7 @@ endif()
 include(FeatureSummary)
 feature_summary(DESCRIPTION "The following tools and libraries have been found and configured:" WHAT PACKAGES_FOUND)
 message(STATUS "<<< Build configuration >>>
+   LAMMPS Version:   ${PROJECT_VERSION}
    Operating System: ${CMAKE_SYSTEM_NAME} ${CMAKE_LINUX_DISTRO} ${CMAKE_DISTRO_VERSION}
    Build type:       ${LAMMPS_BUILD_TYPE}
    Install path:     ${CMAKE_INSTALL_PREFIX}

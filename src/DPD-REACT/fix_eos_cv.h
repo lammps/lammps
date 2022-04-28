@@ -40,25 +40,3 @@ class FixEOScv : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E:  FixEOScv requires atom_style with internal temperature and energies (e.g. dpd)
-
-Self-explanatory.
-
-E: EOS cv must be > 0.0
-
-The constant volume heat capacity must be larger than zero.
-
-E: Internal temperature < zero
-
-Self-explanatory.  EOS may not be valid under current simulation conditions.
-
-*/

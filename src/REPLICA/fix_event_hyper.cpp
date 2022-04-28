@@ -79,7 +79,7 @@ void FixEventHyper::write_restart(FILE *fp)
 void FixEventHyper::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
 
   event_number = (int) ubuf(list[n++]).i;
   event_timestep = (bigint) ubuf(list[n++]).i;

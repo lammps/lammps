@@ -53,27 +53,3 @@ class BodyNparticle : public Body {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Invalid body nparticle command
-
-Arguments in atom-style command are not correct.
-
-E: Incorrect # of integer values in Bodies section of data file
-
-See doc page for body style.
-
-E: Incorrect integer value in Bodies section of data file
-
-See doc page for body style.
-
-E: Incorrect # of floating-point values in Bodies section of data file
-
-See doc page for body style.
-
-E: Insufficient Jacobi rotations for body nparticle
-
-Eigensolve for rigid body was not sufficiently accurate.
-
-*/

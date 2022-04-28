@@ -280,7 +280,7 @@ void PairBornCoulDSF::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style born/coul/dsf requires atom attribute q");
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 
   cut_coulsq = cut_coul * cut_coul;
   double erfcc = erfc(alpha*cut_coul);

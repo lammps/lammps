@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class FixBondCreateAngle : public FixBondCreate {
  public:
-  FixBondCreateAngle(class LAMMPS *, int, char **);
+  FixBondCreateAngle(LAMMPS *_lmp, int narg, char **arg) : FixBondCreate(_lmp, narg, arg) {}
 
  private:
   int constrain(int, int, double, double) override;

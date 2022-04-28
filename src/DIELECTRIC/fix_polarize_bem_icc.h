@@ -60,19 +60,10 @@ class FixPolarizeBEMICC : public Fix {
   int randomized;             // 1 if generating random induced charges, 0 otherwise
   double ave_charge;          // average random charge
   int seed_charge;
+  double epsilon0e2q;    // convert epsilon0 times efield to unit of charge per area
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

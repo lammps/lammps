@@ -49,7 +49,3 @@ class AtomVecFull : public AtomVec {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

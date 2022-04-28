@@ -483,7 +483,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  compute_scalar : added energy = - f.x
   //--------------------------------------------------------
-  double ExtrinsicModelElectrostatic::compute_scalar(void)
+  double ExtrinsicModelElectrostatic::compute_scalar()
   {
     //((atc_->interscale_manager()).fundamental_atom_quantity(LammpsInterface::ATOM_POSITION))->force_reset();
     const DENS_MAT & atomPosition = ((atc_->interscale_manager()).fundamental_atom_quantity(LammpsInterface::ATOM_POSITION))->quantity();

@@ -47,6 +47,8 @@ PairDPDExt::PairDPDExt(LAMMPS *lmp) : Pair(lmp)
 
 PairDPDExt::~PairDPDExt()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -326,10 +328,10 @@ void PairDPDExt::init_style()
   // if newton off, forces between atoms ij will be double computed
   // using different random numbers
 
-  if (force->newton_pair == 0 && comm->me == 0) error->warning(FLERR,
-      "Pair dpd needs newton pair on for momentum conservation");
+  if (force->newton_pair == 0 && comm->me == 0)
+    error->warning(FLERR, "Pair dpd needs newton pair on for momentum conservation");
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

@@ -54,34 +54,3 @@ class PairEAMAlloyGPU : public PairEAM {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Cannot use newton pair with eam/alloy/gpu pair style
-
-Self-explanatory.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: No matching element in EAM potential file
-
-The EAM potential file does not contain elements that match the
-requested elements.
-
-E: Cannot open EAM potential file %s
-
-The specified EAM potential file cannot be opened.  Check that the
-path and name are correct.
-
-E: Incorrect element names in EAM potential file
-
-The element names in the EAM file do not match those requested.
-
-*/

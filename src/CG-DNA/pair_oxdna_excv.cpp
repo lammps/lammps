@@ -139,7 +139,7 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
   int newton_pair = force->newton_pair;
   int *alist,*blist,*numneigh,**firstneigh;
 
-  AtomVecEllipsoid *avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  auto avec = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
   int *ellipsoid = atom->ellipsoid;
 
@@ -174,7 +174,7 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
 
   }
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // loop over pair interaction neighbors of my atoms
 

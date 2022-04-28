@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class BondFENE : public Bond {
  public:
-  BondFENE(class LAMMPS *lmp) : Bond(lmp) {}
+  BondFENE(class LAMMPS *_lmp) : Bond(_lmp) {}
   ~BondFENE() override;
   void compute(int, int) override;
   void coeff(int, char **) override;
@@ -48,30 +48,3 @@ class BondFENE : public Bond {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-W: FENE bond too long: %ld %d %d %g
-
-A FENE bond has stretched dangerously far.  It's interaction strength
-will be truncated to attempt to prevent the bond from blowing up.
-
-E: Bad FENE bond
-
-Two atoms in a FENE bond have become so far apart that the bond cannot
-be computed.
-
-E: Incorrect args for bond coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-W: Use special bonds = 0,1,1 with bond style fene
-
-Most FENE models need this setting for the special_bonds command.
-
-W: FENE bond too long: %ld %g
-
-A FENE bond has stretched dangerously far.  It's interaction strength
-will be truncated to attempt to prevent the bond from blowing up.
-
-*/

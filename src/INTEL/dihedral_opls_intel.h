@@ -59,15 +59,15 @@ class DihedralOPLSIntel : public DihedralOPLS {
       flt_t k1, k2, k3, k4;
     } fc_packed1;
 
-    fc_packed1 *bp;
+    fc_packed1 *fc;
 
-    ForceConst() : _nbondtypes(0) {}
+    ForceConst() : fc(nullptr), _ndihderaltypes(0) {}
     ~ForceConst() { set_ntypes(0, nullptr); }
 
-    void set_ntypes(const int nbondtypes, Memory *memory);
+    void set_ntypes(const int ndihderaltypes, Memory *memory);
 
    private:
-    int _nbondtypes;
+    int _ndihderaltypes;
     Memory *_memory;
   };
   ForceConst<float> force_const_single;

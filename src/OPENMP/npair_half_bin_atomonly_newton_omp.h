@@ -36,7 +36,3 @@ class NPairHalfBinAtomonlyNewtonOmp : public NPair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

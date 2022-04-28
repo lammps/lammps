@@ -73,6 +73,7 @@ fi
 
 if (test $1 = "DPD-BASIC") then
   depend GPU
+  depend KOKKOS
   depend OPENMP
   depend INTEL
 fi
@@ -94,6 +95,10 @@ fi
 if (test $1 = "GRANULAR") then
   depend KOKKOS
   depend OPENMP
+fi
+
+if (test $1 = "INTERLAYER") then
+  depend OPT
 fi
 
 if (test $1 = "KSPACE") then

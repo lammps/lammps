@@ -14,9 +14,6 @@
 
 #include "fix_hyper_local.h"
 
-#include <cmath>
-#include <cstring>
-
 #include "atom.h"
 #include "update.h"
 #include "group.h"
@@ -31,6 +28,9 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -310,15 +310,9 @@ void FixHyperLocal::init()
   // NOTE: what if pair style list cutoff > Dcut
   //   or what if neigh skin is huge?
 
-  int irequest_full = neighbor->request(this,instance_me);
-  neighbor->requests[irequest_full]->id = 1;
-  neighbor->requests[irequest_full]->pair = 0;
-  neighbor->requests[irequest_full]->fix = 1;
-  neighbor->requests[irequest_full]->half = 0;
-  neighbor->requests[irequest_full]->full = 1;
-  neighbor->requests[irequest_full]->cut = 1;
-  neighbor->requests[irequest_full]->cutoff = dcut;
-  neighbor->requests[irequest_full]->occasional = 1;
+  auto req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
+  req->set_id(1);
+  req->set_cutoff(dcut);
 
   // also need occasional half neighbor list derived from pair style
   // used for building local bond list
@@ -326,11 +320,8 @@ void FixHyperLocal::init()
   // this list will also be built (or derived/copied)
   //   every time build_bond() is called
 
-  int irequest_half = neighbor->request(this,instance_me);
-  neighbor->requests[irequest_half]->id = 2;
-  neighbor->requests[irequest_half]->pair = 0;
-  neighbor->requests[irequest_half]->fix = 1;
-  neighbor->requests[irequest_half]->occasional = 1;
+  req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
+  req->set_id(2);
 
   // extra timing output
 
@@ -528,8 +519,8 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
   // forward comm acquires maxstrain of all current ghost atoms
 
   commflag = STRAIN;
-  comm->reverse_comm_fix(this);
-  comm->forward_comm_fix(this);
+  comm->reverse_comm(this);
+  comm->forward_comm(this);
 
   //time3 = platform::walltime();
 
@@ -643,8 +634,8 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
   // forward comm acquires maxstrain_domain of all current ghost atoms
 
   commflag = STRAINDOMAIN;
-  comm->reverse_comm_fix(this);
-  comm->forward_comm_fix(this);
+  comm->reverse_comm(this);
+  comm->forward_comm(this);
 
   //time5 = platform::walltime();
 
@@ -831,8 +822,8 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     // forward comm to set biasflag for all ghost atoms
 
     commflag = BIASFLAG;
-    comm->reverse_comm_fix(this);
-    comm->forward_comm_fix(this);
+    comm->reverse_comm(this);
+    comm->forward_comm(this);
 
     // loop over Dcut full neighbor list
     // I and J may be ghost atoms
@@ -1018,7 +1009,7 @@ void FixHyperLocal::build_bond_list(int natom)
     }
 
     commflag = BIASCOEFF;
-    comm->reverse_comm_fix_variable(this);
+    comm->reverse_comm_variable(this);
 
     mymax = 0;
     for (i = 0; i < nall; i++) mymax = MAX(mymax,numcoeff[i]);
@@ -1349,7 +1340,7 @@ int FixHyperLocal::pack_reverse_comm(int n, int first, double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   callback by comm->reverse_comm_fix_variable() in build_bond()
+   callback by comm->reverse_comm_variable() in build_bond()
    same logic as BIASCOEFF option in pack_reverse_comm()
    m = returned size of message
 ------------------------------------------------------------------------- */
@@ -1372,7 +1363,7 @@ void FixHyperLocal::unpack_reverse_comm(int n, int *list, double *buf)
 
   // return if n = 0
   // b/c if there are no atoms (n = 0), the message will not have
-  //   been sent by Comm::reverse_comm_fix() or reverse_comm_fix_variable()
+  //   been sent by Comm::reverse_comm() or reverse_comm_variable()
   // so must not read nonzero from first buf location (would be zero anyway)
 
   if (n == 0) return;

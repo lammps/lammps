@@ -55,6 +55,9 @@ JSON
 YAML format thermo_style output
 ===============================
 
+Extracting data from log file
+-----------------------------
+
 .. versionadded:: 24Mar2022
 
 LAMMPS supports the thermo style "yaml" and for "custom" style
@@ -66,7 +69,7 @@ the following style:
 .. code-block:: yaml
 
    ---
-   keywords: [Step, Temp, E_pair, E_mol, TotEng, Press, ]
+   keywords: ['Step', 'Temp', 'E_pair', 'E_mol', 'TotEng', 'Press', ]
    data:
      - [100, 0.757453103239935, -5.7585054860159, 0, -4.62236133677021, 0.207261053624721, ]
      - [110, 0.759322359337036, -5.7614668389562, 0, -4.62251889318624, 0.194314975399602, ]
@@ -80,9 +83,9 @@ This data can be extracted and parsed from a log file using python with:
 
    import re, yaml
    try:
-       from yaml import CSafeLoader as Loader, CSafeDumper as Dumper
+       from yaml import CSafeLoader as Loader
    except ImportError:
-       from yaml import SafeLoader as Loader, SafeDumper as Dumper
+       from yaml import SafeLoader as Loader
 
    docs = ""
    with open("log.lammps") as f:
@@ -108,6 +111,55 @@ of that run:
 
    Number of runs:  2
    TotEng  =  -4.62140097780047
+
+Processing/plotting extracted data with Pandas
+----------------------------------------------
+
+.. figure:: JPG/thermo_bondeng.png
+            :figwidth: 33%
+            :align: right
+
+After extracting the YAML format data and parsing it, it can be easily
+imported for further processing with the `pandas
+<https://pandas.pydata.org/>`_ and `matplotlib
+<https://matplotlib.org/>`_ Python modules.  The JSON format parser in
+*pandas* can also process data imported from YAML files.  Because of the
+organization of the data in the YAML format thermo output, it needs to
+be told to process only the 'data' part of the imported data and
+*normalize* it, and then one needs to set the column names from the
+'keywords' entry later.  The following example Python script code
+demonstrates this, and creates the image shown on the right of a simple
+plot of various bonded energy contributions versus the timestep from a
+run of the 'peptide' example input after changing the :doc:`thermo style
+<thermo_style>` to 'yaml'.  The properties to be used for x and y values
+can be conveniently selected through the keywords.  Please note that
+those keywords can be changed to custom strings with the
+:doc:`thermo_modify colname <thermo_modify>` command.
+
+.. code-block:: python
+
+   import re, yaml
+   import pandas as pd
+   import matplotlib.pyplot as plt
+
+   try:
+       from yaml import CSafeLoader as Loader
+   except ImportError:
+       from yaml import SafeLoader as Loader
+
+   docs = ""
+   with open("log.lammps") as f:
+       for line in f:
+           m = re.search(r"^(keywords:.*$|data:$|---$|\.\.\.$|  - \[.*\]$)", line)
+           if m: docs += m.group(0) + '\n'
+
+   thermo = list(yaml.load_all(docs, Loader=Loader))
+
+   df = pd.json_normalize(thermo[0],'data')
+   df.columns = thermo[0]['keywords']
+   fig = df.plot(x='Step', y=['E_bond', 'E_angle', 'E_dihed', 'E_impro'])
+   plt.savefig('thermo_bondeng.png')
+
 
 Writing continuous data during a simulation
 ===========================================

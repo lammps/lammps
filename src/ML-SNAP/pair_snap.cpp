@@ -694,11 +694,11 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
       if ((int)words.size() != nelements+1)
         error->all(FLERR,"Incorrect SNAP parameter file");
-       
+
       // innerlogstr collects all values of sinner or dinner for log output below
 
       std::string innerlogstr;
-       
+
       int iword = 1;
 
       if (keywd == "sinner") {
@@ -718,7 +718,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
         }
         dinnerflag = 1;
       }
-       
+
       if (comm->me == 0)
         utils::logmesg(lmp,"SNAP keyword {} {} ... \n", keywd, innerlogstr);
 

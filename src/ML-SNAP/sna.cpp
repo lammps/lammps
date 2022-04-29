@@ -1552,7 +1552,7 @@ double SNA::compute_sfac(double r, double rcut, double sinner, double dinner)
       sfac *= 0.5 * (1.0 - cos(MY_PI2 + (r - sinner) * rcutfac));
     } else sfac = 0.0;
   }
-  
+
   return sfac;
 }
 
@@ -1568,14 +1568,14 @@ double SNA::compute_dsfac(double r, double rcut, double sinner, double dinner)
     double rcutfac = MY_PI / (rcut - rmin0);
     dsfac_outer = -0.5 * sin((r - rmin0) * rcutfac) * rcutfac;
   }
-  
-  // some duplicated computation, but rarely visited 
+
+  // some duplicated computation, but rarely visited
 
   if (switch_inner_flag == 1 && r < sinner + dinner) {
     if (r > sinner - dinner) {
 
       // calculate sfac_outer
-      
+
       if (switch_flag == 0) sfac_outer = 1.0;
       else if (r <= rmin0) sfac_outer = 1.0;
       else if (r > rcut) sfac_outer = 0.0;
@@ -1585,14 +1585,14 @@ double SNA::compute_dsfac(double r, double rcut, double sinner, double dinner)
       }
 
       // calculate sfac_inner
-      
+
       double rcutfac = MY_PI2 / dinner;
       sfac_inner = 0.5 * (1.0 - cos(MY_PI2 + (r - sinner) * rcutfac));
       dsfac_inner = 0.5 * rcutfac * sin(MY_PI2 + (r - sinner) * rcutfac);
       dsfac = dsfac_outer*sfac_inner + sfac_outer*dsfac_inner;
     } else dsfac = 0.0;
   } else dsfac = dsfac_outer;
-  
+
   return dsfac;
 }
 

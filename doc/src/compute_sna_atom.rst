@@ -335,7 +335,7 @@ where the switching region is centered at :math:`S_{inner}` and it extends a dis
 to the left and to the right of this.
 With this option, additional keywords *sinner* and *dinner* must be used,
 each followed by *ntypes*
-values for :math:`S_{inner}` and :math:`D_{inner}`, respectively. 
+values for :math:`S_{inner}` and :math:`D_{inner}`, respectively.
 When the central atom and the neighbor atom have different types,
 the values of :math:`S_{inner}` and :math:`D_{inner}` are
 the arithmetic means of the values for both types.
@@ -458,7 +458,7 @@ Default
 
 The optional keyword defaults are *rmin0* = 0,
 *switchflag* = 1, *bzeroflag* = 1, *quadraticflag* = 0,
-*bnormflag* = 0, *wselfallflag* = 0, *switchinnerflag* = 0, 
+*bnormflag* = 0, *wselfallflag* = 0, *switchinnerflag* = 0,
 
 ----------
 

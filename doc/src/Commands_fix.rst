@@ -66,6 +66,9 @@ OPT.
    * :doc:`edpd/source <fix_dpd_source>`
    * :doc:`efield <fix_efield>`
    * :doc:`ehex <fix_ehex>`
+   * :doc:`electrode/conp (i) <fix_electrode_conp>`
+   * :doc:`electrode/conq (i) <fix_electrode_conp>`
+   * :doc:`electrode/thermo (i) <fix_electrode_conp>`
    * :doc:`electron/stopping <fix_electron_stopping>`
    * :doc:`electron/stopping/fit <fix_electron_stopping>`
    * :doc:`enforce2d (k) <fix_enforce2d>`

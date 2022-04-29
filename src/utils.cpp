@@ -19,11 +19,13 @@
 #include "error.h"
 #include "fix.h"
 #include "fmt/chrono.h"
+#include "input.h"
 #include "memory.h"
 #include "modify.h"
 #include "text_file_reader.h"
 #include "universe.h"
 #include "update.h"
+#include "variable.h"
 
 #include <cctype>
 #include <cerrno>
@@ -631,7 +633,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
     // match compute, fix, or custom property array reference with a '*' wildcard
     // number range in the first pair of square brackets
 
-    if (strmatch(word, "^[cf]_\\w+\\[\\d*\\*\\d*\\]") ||
+    if (strmatch(word, "^[cfv]_\\w+\\[\\d*\\*\\d*\\]") ||
         strmatch(word, "^[id]2_\\w+\\[\\d*\\*\\d*\\]")) {
 
       // split off the compute/fix/property ID, the wildcard and trailing text
@@ -669,7 +671,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
           }
         }
 
-        // fix
+      // fix
 
       } else if (word[0] == 'f') {
         auto fix = lmp->modify->get_fix_by_id(id);
@@ -692,8 +694,25 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
           }
         }
 
-        // only match custom array reference with a '*' wildcard
-        // number range in the first pair of square brackets
+      // vector variable
+
+      } else if (word[0] == 'v') {
+        int index = lmp->input->variable->find(id.c_str());
+
+        // check for global vector/array, peratom array, local array
+
+        if (index >= 0) {
+          if (mode == 0 && lmp->input->variable->vectorstyle(index)) {
+            utils::bounds(file, line, wc, 1, MAXSMALLINT, nlo, nhi, lmp->error);
+            if (nhi < MAXSMALLINT) {
+              nmax = nhi;
+              expandflag = 1;
+            }
+          }
+        }
+
+      // only match custom array reference with a '*' wildcard
+      // number range in the first pair of square brackets
 
       } else if ((word[0] == 'i') || (word[0] == 'd')) {
         int flag, cols;
@@ -716,6 +735,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
     if (expandflag) {
 
       // expand wild card string to nlo/nhi numbers
+
       utils::bounds(file, line, wc, 1, nmax, nlo, nhi, lmp->error);
 
       if (newarg + nhi - nlo + 1 > maxarg) {

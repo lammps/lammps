@@ -31,6 +31,7 @@ Angle::Angle(LAMMPS *_lmp) : Pointers(_lmp)
   energy = 0.0;
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
   writedata = 1;
+  reinitflag = 1;
 
   allocated = 0;
   suffix_flag = Suffix::NONE;

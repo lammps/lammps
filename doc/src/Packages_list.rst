@@ -434,8 +434,8 @@ whether an extra library is needed to build and use the package:
      - n/a
      - no
    * - :ref:`SMTBQ <PKG-SMTBQ>`
-     - second moment tight binding potential
-     - :doc:`pair_style smtbq <pair_smtbq>`
+     - second moment tight binding potentials
+     - :doc:`pair_style smtbq <pair_smtbq>` :doc:`pair_style smatb <pair_smatb>`
      - PACKAGES/smtbq
      - no
    * - :ref:`SPH <PKG-SPH>`

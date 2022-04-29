@@ -697,6 +697,7 @@ DFT
 dftb
 dh
 dhex
+di
 dia
 diag
 diagonalization
@@ -788,6 +789,7 @@ dtheta
 dtshrink
 du
 dU
+Ducastelle
 Dudarev
 Duin
 Dullweber
@@ -895,6 +897,7 @@ Embt
 emi
 emol
 eN
+endian
 energetics
 energyCorr
 eng
@@ -1073,6 +1076,7 @@ fld
 floralwhite
 Florez
 flv
+fm
 fmackay
 fmag
 fmass
@@ -1252,6 +1256,7 @@ Gubbins
 Guenole
 Guericke
 gui
+Guillope
 Gumbsch
 Gunsteren
 Gunzenmuller
@@ -1729,6 +1734,7 @@ lebedeva
 Lebedeva
 Lebold
 Lechman
+Legrand
 Lehoucq
 Leimkuhler
 Leite
@@ -2644,6 +2650,7 @@ Polarizable
 polarizables
 polarizer
 Politano
+Politecnico
 polyA
 polybond
 polydisperse
@@ -2803,6 +2810,7 @@ Randisi
 randomizations
 rann
 RANN
+Rapetti
 Raphson
 Rappe
 Ravelo
@@ -2948,6 +2956,7 @@ Rohart
 Ronchetti
 Ronevich
 Rosati
+Rosato
 Rosenberger
 Rossky
 rosybrown
@@ -3125,6 +3134,7 @@ smallbig
 smallint
 Smallint
 smallsmall
+smatb
 smd
 SMD
 smi
@@ -3394,6 +3404,7 @@ toolchain
 topologies
 Toporov
 Torder
+Torino
 torsions
 Tosi
 Toukmaji

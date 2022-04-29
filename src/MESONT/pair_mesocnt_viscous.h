@@ -28,13 +28,8 @@ class PairMesoCNTViscous : public PairMesoCNT {
   void compute(int, int) override;
   void coeff(int, char **) override;
 
-  double init_one(int, int) override;
-
  protected:
-  double visc;
-  double visc_cutoff, visc_cutoffsq;
-
-  void viscous();
+  double a1, a2, b2, vswitch;
 };
 
 }    // namespace LAMMPS_NS

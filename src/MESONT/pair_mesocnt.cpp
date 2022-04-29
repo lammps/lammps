@@ -1534,6 +1534,7 @@ void PairMesoCNT::geometry(const double *r1, const double *r2, const double *p1,
 
 /* ----------------------------------------------------------------------
    weight for substitute CNT chain
+   computes gradients with respect to positions
 ------------------------------------------------------------------------- */
 
 inline void PairMesoCNT::weight(const double *r1, const double *r2, const double *p1,

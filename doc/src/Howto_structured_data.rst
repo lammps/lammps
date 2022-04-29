@@ -120,7 +120,7 @@ Depending on the kind of data being written, organization of the data
 or the specific syntax used may change, but the principles are very
 similar and all files should be readable with a suitable YAML parser.
 
-Processing scalar data with Pandas
+Processing scalar data with Python
 ----------------------------------
 
 .. figure:: JPG/thermo_bondeng.png
@@ -166,7 +166,7 @@ colname <thermo_modify>` command.
    fig = df.plot(x='Step', y=['E_bond', 'E_angle', 'E_dihed', 'E_impro'], ylabel='Energy in kcal/mol')
    plt.savefig('thermo_bondeng.png')
 
-Processing vector data with Pandas
+Processing vector data with Python
 ----------------------------------
 
 Global *vector* data as produced by :doc:`fix ave/time <fix_ave_time>`
@@ -206,6 +206,39 @@ frame.
    # output only the first 3 value for steps 200 to 300 of the column Pressure
    idx = pd.IndexSlice
    print(df['Pressure'].loc[idx[200:300, 0:2]])
+
+
+Processing scalar data with Perl
+--------------------------------
+
+The ease of processing YAML data is not limited to Python. Here is an
+example for extracting and processing a LAMMPS log file with Perl instead.
+
+.. code-block:: perl
+
+   use YAML::XS;
+
+   open(LOG, "log.lammps") or die("could not open log.lammps: $!");
+   my $file = "";
+   while(my $line = <LOG>) {
+       if ($line =~ /^(keywords:.*$|data:$|---$|\.\.\.$|  - \[.*\]$)/) {
+           $file .= $line;
+       }
+   }
+   close(LOG);
+
+   # convert YAML to perl as nested hash and array references
+   my $thermo = Load $file;
+
+   # convert references to real arrays
+   my @keywords = @{$thermo->{'keywords'}};
+   my @data = @{$thermo->{'data'}};
+
+   # print first two columns
+   print("$keywords[0] $keywords[1]\n");
+   foreach (@data) {
+       print("${$_}[0]  ${$_}[1]\n");
+   }
 
 
 Writing continuous data during a simulation

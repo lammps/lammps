@@ -33,15 +33,3 @@ class FixNVTAsphere : public FixNHAsphere {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Temperature control must be used with fix nvt/asphere
-
-Self-explanatory.
-
-E: Pressure control can not be used with fix nvt/asphere
-
-Self-explanatory.
-
-*/

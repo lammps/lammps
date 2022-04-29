@@ -90,6 +90,3 @@ class AngleCharmmKokkos : public AngleCharmm {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

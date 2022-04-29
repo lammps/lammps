@@ -513,6 +513,3 @@ struct NPairKokkosBuildFunctorSize<LMPHostType,HALF_NEIGH,GHOST_NEWTON,TRI> {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

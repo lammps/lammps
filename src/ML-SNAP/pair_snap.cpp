@@ -692,7 +692,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
     if (keywd == "rinner" || keywd == "drinner") {
 
-      if (words.size() != nelements+1)
+      if ((int)words.size() != nelements+1)
         error->all(FLERR,"Incorrect SNAP parameter file");
 
       if (comm->me == 0)
@@ -703,7 +703,6 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       if (keywd == "rinner") {
         keyval = words[iword];
         for (int ielem = 0; ielem < nelements; ielem++) {
-          printf("rinnerelem = %p ielem = %d nelements = %d iword = %d nwords = %d\n",rinnerelem, ielem, nelements, iword, nwords);
           rinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
           iword++;
         }

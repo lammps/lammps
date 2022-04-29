@@ -429,8 +429,7 @@ int MPI_Group_incl(MPI_Group group, int n, int *ranks, MPI_Group *newgroup)
 
 int MPI_Group_free(MPI_Group *group)
 {
-  if (group)
-    *group = MPI_GROUP_NULL;
+  if (group) *group = MPI_GROUP_NULL;
   return 0;
 }
 

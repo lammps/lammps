@@ -280,8 +280,8 @@ class Fix : protected Pointers {
   }
   void v_setup(int);
   void v_tally(int, int *, double, double *);
-  void v_tally(int,int*,double,double*,int,int,int[][2],double*,double[][3]);
-  void v_tally(int,int*,double,double*,double[][3],double[][3],double[]);
+  void v_tally(int, int *, double, double *, int, int, int[][2], double *, double[][3]);
+  void v_tally(int, int *, double, double *, double[][3], double[][3], double[]);
   void v_tally(int, double *);
   void v_tally(int, int, double);
 };
@@ -317,21 +317,3 @@ namespace FixConst {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Fix ID must be alphanumeric or underscore characters
-
-Self-explanatory.
-
-E: Could not find fix group ID
-
-A group ID used in the fix command does not exist.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

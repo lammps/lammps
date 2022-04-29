@@ -19,6 +19,10 @@ endif()
 
 add_library(colvars STATIC ${COLVARS_SOURCES})
 target_compile_definitions(colvars PRIVATE -DCOLVARS_LAMMPS)
+separate_arguments(CMAKE_TUNE_FLAGS)
+foreach(_FLAG ${CMAKE_TUNE_FLAGS})
+  target_compile_options(colvars PRIVATE ${_FLAG})
+endforeach()
 set_target_properties(colvars PROPERTIES OUTPUT_NAME lammps_colvars${LAMMPS_MACHINE})
 target_include_directories(colvars PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/colvars)
 # The line below is needed to locate math_eigen_impl.h

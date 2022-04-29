@@ -191,7 +191,7 @@ void FixAmoebaBiTorsion::init()
   pair = force->pair_match("amoeba",1,0);
   if (!pair) pair = force->pair_match("hippo",1,0);
 
-  if (!pair) 
+  if (!pair)
     error->all(FLERR,"Cannot use fix amoeba/bitorsion w/out pair amoeba/hippo");
 
   // check if PairAmoeba or PairHippo disabled bitorsion terms
@@ -1300,7 +1300,7 @@ void FixAmoebaBiTorsion::chkttor(int ib, int ic, int id,
   vol = xac*c1 + xbc*c2 + xdc*c3;
 
   // invert the angle values if chirality has an inverted sign
-  
+
   if (vol < 0.0) {
     sign = -1.0;
     value1 = -value1;

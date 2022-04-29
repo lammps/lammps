@@ -561,6 +561,3 @@ struct PairReaxKokkosPackBondBufferFunctor  {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

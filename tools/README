@@ -16,7 +16,6 @@ amber2lmp              python scripts for using AMBER to setup LAMMPS input
 binary2txt             convert a LAMMPS dump file from binary to ASCII text
 ch2lmp                 convert CHARMM files to LAMMPS input
 chain                  create a data file of bead-spring chains
-cmake                  tools and scripts for use with CMake
 coding_standard        python scripts to detect and fix some LAMMPS conventions
 colvars                post-process output of the fix colvars command
 createatoms            generate lattices of atoms within a geometry

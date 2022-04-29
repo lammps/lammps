@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
  https://www.lammps.org/, Sandia National Laboratories
@@ -13,10 +12,12 @@
  ------------------------------------------------------------------------- */
 
 #include "atom_vec_mdpd.h"
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
 #include "error.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -36,18 +37,18 @@ AtomVecMDPD::AtomVecMDPD(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *) "rho drho vest";
-  fields_copy = (char *) "rho drho vest";
-  fields_comm = (char *) "rho vest";
-  fields_comm_vel = (char *) "rho vest";
-  fields_reverse = (char *) "drho";
-  fields_border = (char *) "rho vest";
-  fields_border_vel = (char *) "rho vest";
-  fields_exchange = (char *) "rho vest";
-  fields_restart = (char * ) "rho vest";
-  fields_create = (char *) "rho drho vest";
-  fields_data_atom = (char *) "id type rho x";
-  fields_data_vel = (char *) "id v";
+  fields_grow = {"rho", "drho", "vest"};
+  fields_copy = {"rho", "drho", "vest"};
+  fields_comm = {"rho", "vest"};
+  fields_comm_vel = {"rho", "vest"};
+  fields_reverse = {"drho"};
+  fields_border = {"rho", "vest"};
+  fields_border_vel = {"rho", "vest"};
+  fields_exchange = {"rho", "vest"};
+  fields_restart = {"rho", "vest"};
+  fields_create = {"rho", "drho", "vest"};
+  fields_data_atom = {"id", "type", "rho", "x"};
+  fields_data_vel = {"id", "v"};
 
   setup_fields();
 }
@@ -58,8 +59,7 @@ void AtomVecMDPD::init()
 {
   AtomVec::init();
 
-  if (strcmp(update->unit_style,"lj") != 0)
-    error->all(FLERR,"Atom style mdpd requires lj units");
+  if (strcmp(update->unit_style, "lj") != 0) error->all(FLERR, "Atom style mdpd requires lj units");
 }
 
 /* ----------------------------------------------------------------------
@@ -81,7 +81,7 @@ void AtomVecMDPD::grow_pointers()
 
 void AtomVecMDPD::force_clear(int n, size_t nbytes)
 {
-  memset(&drho[n],0,nbytes);
+  memset(&drho[n], 0, nbytes);
 }
 
 /* ----------------------------------------------------------------------
@@ -102,10 +102,10 @@ void AtomVecMDPD::data_atom_post(int ilocal)
    return -1 if name is unknown to this atom style
 ------------------------------------------------------------------------- */
 
-int AtomVecMDPD::property_atom(char *name)
+int AtomVecMDPD::property_atom(const std::string &name)
 {
-  if (strcmp(name,"rho") == 0) return 0;
-  if (strcmp(name,"drho") == 0) return 1;
+  if (name == "rho") return 0;
+  if (name == "drho") return 1;
   return -1;
 }
 
@@ -114,8 +114,7 @@ int AtomVecMDPD::property_atom(char *name)
    index maps to data specific to this atom style
 ------------------------------------------------------------------------- */
 
-void AtomVecMDPD::pack_property_atom(int index, double *buf,
-                                     int nvalues, int groupbit)
+void AtomVecMDPD::pack_property_atom(int index, double *buf, int nvalues, int groupbit)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -123,14 +122,18 @@ void AtomVecMDPD::pack_property_atom(int index, double *buf,
   int n = 0;
   if (index == 0) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = rho[i];
-      else buf[n] = 0.0;
+      if (mask[i] & groupbit)
+        buf[n] = rho[i];
+      else
+        buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 1) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = drho[i];
-      else buf[n] = 0.0;
+      if (mask[i] & groupbit)
+        buf[n] = drho[i];
+      else
+        buf[n] = 0.0;
       n += nvalues;
     }
   }

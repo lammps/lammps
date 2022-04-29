@@ -89,7 +89,7 @@ void BondFENENM::compute(int eflag, int vflag)
 
     fbond = -k[type] / rlogarg;
     // force from n-m term
-    if (rsq < sigma[type]*sigma[type]) {
+    if (rsq < sigma[type] * sigma[type]) {
       r = sqrt(rsq);
       fbond += epsilon[type] * (nn[type] * mm[type] / (nn[type] - mm[type])) *
           (pow(sigma[type] / r, nn[type]) - pow(sigma[type] / r, mm[type])) / rsq;
@@ -99,7 +99,7 @@ void BondFENENM::compute(int eflag, int vflag)
 
     if (eflag) {
       ebond = -0.5 * k[type] * r0sq * log(rlogarg);
-      if (rsq < sigma[type]*sigma[type])
+      if (rsq < sigma[type] * sigma[type])
         ebond += (epsilon[type] / (nn[type] - mm[type])) *
             (mm[type] * pow(sigma[type] / r, nn[type]) - nn[type] * pow(sigma[type] / r, mm[type]));
     }
@@ -257,7 +257,7 @@ double BondFENENM::single(int type, double rsq, int /*i*/, int /*j*/, double &ff
   double eng = -0.5 * k[type] * r0sq * log(rlogarg);
   fforce = -k[type] / rlogarg;
 
-  if (rsq < sigma[type]*sigma[type]) {
+  if (rsq < sigma[type] * sigma[type]) {
     r = sqrt(rsq);
     fforce += epsilon[type] * (nn[type] * mm[type] / (nn[type] - mm[type])) *
         (pow(sigma[type] / r, nn[type]) - pow(sigma[type] / r, mm[type])) / rsq;
@@ -273,7 +273,7 @@ double BondFENENM::single(int type, double rsq, int /*i*/, int /*j*/, double &ff
 void *BondFENENM::extract(const char *str, int &dim)
 {
   dim = 1;
-  if (strcmp(str, "kappa") == 0) return (void *) k;
+  if (strcmp(str, "k") == 0) return (void *) k;
   if (strcmp(str, "r0") == 0) return (void *) r0;
   return nullptr;
 }

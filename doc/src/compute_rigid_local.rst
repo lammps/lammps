@@ -127,18 +127,15 @@ The *vx*, *vy*, *vz*, *fx*, *fy*, *fz* attributes are components of
 the COM velocity and force on the COM of the body.
 
 The *omegax*, *omegay*, and *omegaz* attributes are the angular
-velocity components of the body around its COM.
+velocity components of the body in the system frame around its COM.
 
 The *angmomx*, *angmomy*, and *angmomz* attributes are the angular
-momentum components of the body around its COM.
+momentum components of the body in the system frame around its COM.
 
 The *quatw*, *quati*, *quatj*, and *quatk* attributes are the
 components of the 4-vector quaternion representing the orientation of
 the rigid body.  See the :doc:`set <set>` command for an explanation of
 the quaternion vector.
-
-The *angmomx*, *angmomy*, and *angmomz* attributes are the angular
-momentum components of the body around its COM.
 
 The *tqx*, *tqy*, *tqz* attributes are components of the torque acting
 on the body around its COM.

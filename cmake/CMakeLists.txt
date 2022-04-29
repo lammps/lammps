@@ -105,8 +105,28 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   endif()
 endif()
 
+# silence excessive warnings for new Intel Compilers
+if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+  set(CMAKE_TUNE_DEFAULT "-Wno-tautological-constant-compare")
+endif()
+
+# silence excessive warnings for PGI/NVHPC compilers
+if((CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC") OR (CMAKE_CXX_COMPILER_ID STREQUAL "PGI"))
+  set(CMAKE_TUNE_DEFAULT "-Minform=severe")
+endif()
+
+# silence nvcc warnings
+if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA))
+  set(CMAKE_TUNE_DEFAULT "${CMAKE_TUNE_DEFAULT} -Xcudafe --diag_suppress=unrecognized_pragma")
+endif()
+
 # we require C++11 without extensions. Kokkos requires at least C++14 (currently)
-set(CMAKE_CXX_STANDARD 11)
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 11)
+endif()
+if(CMAKE_CXX_STANDARD LESS 11)
+  message(FATAL_ERROR "C++ standard must be set to at least 11")
+endif()
 if(PKG_KOKKOS AND (CMAKE_CXX_STANDARD LESS 14))
   set(CMAKE_CXX_STANDARD 14)
 endif()
@@ -470,6 +490,7 @@ set(CMAKE_TUNE_FLAGS "${CMAKE_TUNE_DEFAULT}" CACHE STRING "Compiler and machine 
 separate_arguments(CMAKE_TUNE_FLAGS)
 foreach(_FLAG ${CMAKE_TUNE_FLAGS})
   target_compile_options(lammps PRIVATE ${_FLAG})
+  target_compile_options(lmp PRIVATE ${_FLAG})
 endforeach()
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #

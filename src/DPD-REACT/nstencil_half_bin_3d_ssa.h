@@ -36,7 +36,3 @@ class NStencilHalfBin3dSSA : public NStencilSSA {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

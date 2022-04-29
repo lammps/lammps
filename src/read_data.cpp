@@ -751,9 +751,9 @@ void ReadData::command(int narg, char **arg)
             break;
           }
         if (i == nfix)
-          error->all(FLERR,"Unknown identifier in data file: {}",keyword);
+          error->all(FLERR,"Unknown identifier in data file: {}{}", keyword, utils::errorurl(1));
 
-      } else error->all(FLERR,"Unknown identifier in data file: {}",keyword);
+      } else error->all(FLERR,"Unknown identifier in data file: {}{}", keyword, utils::errorurl(1));
 
       parse_keyword(0);
     }

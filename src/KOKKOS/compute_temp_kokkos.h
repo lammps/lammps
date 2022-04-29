@@ -97,11 +97,3 @@ class ComputeTempKokkos : public ComputeTemp {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Temperature compute degrees of freedom < 0
-
-This should not happen if you are calculating the temperature
-on a valid set of atoms.
-
-*/

@@ -417,10 +417,10 @@ void AngleAmoeba::tinker_anglep(int i1, int i2, int i3, int type, int eflag)
   }
 
   if (evflag) {
-    f1[0] = -f1[0]; f1[1] = -f1[1]; f1[2] = -f1[2]; 
-    f2[0] = -f2[0]; f2[1] = -f2[1]; f2[2] = -f2[2]; 
-    f3[0] = -f3[0]; f3[1] = -f3[1]; f3[2] = -f3[2]; 
-    f4[0] = -f4[0]; f4[1] = -f4[1]; f4[2] = -f4[2]; 
+    f1[0] = -f1[0]; f1[1] = -f1[1]; f1[2] = -f1[2];
+    f2[0] = -f2[0]; f2[1] = -f2[1]; f2[2] = -f2[2];
+    f3[0] = -f3[0]; f3[1] = -f3[1]; f3[2] = -f3[2];
+    f4[0] = -f4[0]; f4[1] = -f4[1]; f4[2] = -f4[2];
     ev_tally4(i1,i2,i3,14,nlocal,newton_bond,eangle,f1,f2,f3,f4);
   }
 }

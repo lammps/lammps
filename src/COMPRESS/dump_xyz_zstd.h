@@ -51,15 +51,3 @@ class DumpXYZZstd : public DumpXYZ {
 #endif
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Dump xyz/zstd only writes compressed files
-
-The dump xyz/zstd output file name must have a .zst suffix.
-
-E: Cannot open dump file
-
-Self-explanatory.
-
-*/

@@ -251,7 +251,7 @@ void FixBondHistory::post_neighbor()
 
 double FixBondHistory::memory_usage()
 {
-  return maxbond * ndata * sizeof(double);
+  return (double) maxbond * ndata * sizeof(double);
 }
 
 /* ---------------------------------------------------------------------- */

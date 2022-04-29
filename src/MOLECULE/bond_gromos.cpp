@@ -30,10 +30,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondGromos::BondGromos(LAMMPS *_lmp) : Bond(_lmp)
-{
-  reinitflag = 1;
-}
+BondGromos::BondGromos(LAMMPS *_lmp) : Bond(_lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -200,7 +197,7 @@ double BondGromos::single(int type, double rsq, int /*i*/, int /*j*/, double &ff
 void *BondGromos::extract(const char *str, int &dim)
 {
   dim = 1;
-  if (strcmp(str, "kappa") == 0) return (void *) k;
+  if (strcmp(str, "k") == 0) return (void *) k;
   if (strcmp(str, "r0") == 0) return (void *) r0;
   return nullptr;
 }

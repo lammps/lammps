@@ -77,11 +77,3 @@ class BondFENEIntel : public BondFENE {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args for bond coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

@@ -95,7 +95,7 @@ msst:     MSST shock dynamics
 nb3b:     use of nonbonded 3-body harmonic pair style
 neb:      nudged elastic band (NEB) calculation for barrier finding
 nemd:     non-equilibrium MD of 2d sheared system
-numdiff:  numerical difference computation of forces and virial
+numdiff:  numerical difference computation of forces, virial, and Born matrix
 obstacle: flow around two voids in a 2d channel
 peptide:  dynamics of a small solvated peptide chain (5-mer)
 peri:     Peridynamic model of cylinder impacted by indenter
@@ -154,12 +154,19 @@ either by itself or in tandem with another code or library.  See the
 COUPLE/README file to get started.
 
 The ELASTIC directory has an example script for computing elastic
-constants at zero temperature, using an Si example.  See the
+stiffness tensor (elastic constants)
+at zero temperature, using an Si example.  See the
 ELASTIC/in.elastic file for more info.
 
-The ELASTIC_T directory has an example script for computing elastic
-constants at finite temperature, using an Si example.  See the
-ELASTIC_T/in.elastic file for more info.
+The ELASTIC_T directory has example scripts for the computing elastic
+stiffness tensor at finite temperature. Two different methods are
+demonstrated. DEFORMATION estimates the change in the average
+stress tensor between multiple simulations
+in which small finite deformations are made to the simulation cell.
+BORN_MATRIX runs a single simulation in which the Born matrix and stress
+fluctuations are averaged. The second method
+is newer in LAMMPS and is generally more efficient and
+more reliable.
 
 The HEAT directory has example scripts for heat exchange algorithms
 (e.g. used for establishing a thermal gradient), using two different

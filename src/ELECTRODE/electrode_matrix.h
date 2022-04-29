@@ -51,7 +51,6 @@ class ElectrodeMatrix : protected Pointers {
   void pair_contribution(double **);
   void self_contribution(double **);
   void tf_contribution(double **);
-  double calc_erfc(double);
 };
 
 }    // namespace LAMMPS_NS

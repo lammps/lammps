@@ -315,8 +315,8 @@ inline
   KOKKOS_INLINE_FUNCTION
   void compute_duarray_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int,
                        const real_type&, const real_type&, const real_type&, // compute_duidrj_cpu
-			   const real_type&, const real_type&, const real_type&, const real_type&, const real_type&,
-			   const real_type&, const real_type&);
+                           const real_type&, const real_type&, const real_type&, const real_type&, const real_type&,
+                           const real_type&, const real_type&);
 
   // Sets the style for the switching function
   // 0 = none

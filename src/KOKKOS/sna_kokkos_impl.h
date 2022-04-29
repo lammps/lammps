@@ -31,7 +31,7 @@ template<class DeviceType, typename real_type, int vector_length>
 inline
 SNAKokkos<DeviceType, real_type, vector_length>::SNAKokkos(real_type rfac0_in,
          int twojmax_in, real_type rmin0_in, int switch_flag_in, int bzero_flag_in,
-	 int chem_flag_in, int bnorm_flag_in, int wselfall_flag_in, int nelements_in, int switch_inner_flag_in)
+         int chem_flag_in, int bnorm_flag_in, int wselfall_flag_in, int nelements_in, int switch_inner_flag_in)
 {
   LAMMPS_NS::ExecutionSpace execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   host_flag = (execution_space == LAMMPS_NS::Host);
@@ -1753,8 +1753,8 @@ KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, vector_length>::compute_duarray_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int iatom, int jnbor,
                           const real_type& x, const real_type& y, const real_type& z,
                           const real_type& z0, const real_type& r, const real_type& dz0dr,
-			  const real_type& wj, const real_type& rcut,
-			  const real_type& sinner, const real_type& dinner)
+                          const real_type& wj, const real_type& rcut,
+                          const real_type& sinner, const real_type& dinner)
 {
   real_type r0inv;
   real_type a_r, a_i, b_r, b_i;
@@ -2247,15 +2247,15 @@ real_type SNAKokkos<DeviceType, real_type, vector_length>::compute_sfac(real_typ
       sfac_outer = onehalf * (cos((r - rmin0) * rcutfac) + one);
     }
   }
-  
+
   if (switch_inner_flag == 0) return sfac_outer;
   if (switch_inner_flag == 1) {
-    if (r >= sinner + dinner) 
-	return sfac_outer;
+    if (r >= sinner + dinner)
+        return sfac_outer;
     else if (r > sinner - dinner) {
       real_type rcutfac = static_cast<real_type>(MY_PI2) / dinner;
-      return sfac_outer * 
-	onehalf * (one - cos(static_cast<real_type>(MY_PI2) + (r - sinner) * rcutfac));
+      return sfac_outer *
+        onehalf * (one - cos(static_cast<real_type>(MY_PI2) + (r - sinner) * rcutfac));
     } else return zero;
   }
   return zero; // dummy return
@@ -2283,7 +2283,7 @@ real_type SNAKokkos<DeviceType, real_type, vector_length>::compute_dsfac(real_ty
 
   if (switch_inner_flag == 0) return dsfac_outer;
   if (switch_inner_flag == 1) {
-    if (r >= sinner + dinner) 
+    if (r >= sinner + dinner)
       return dsfac_outer;
     else if (r > sinner - dinner) {
 
@@ -2291,12 +2291,12 @@ real_type SNAKokkos<DeviceType, real_type, vector_length>::compute_dsfac(real_ty
 
       if (switch_flag == 0) sfac_outer = one;
       if (switch_flag == 1) {
-	if (r <= rmin0) sfac_outer = one;
-	else if (r > rcut) sfac_outer = zero;
-	else {
-	  real_type rcutfac = static_cast<real_type>(MY_PI) / (rcut - rmin0);
-	  sfac_outer = onehalf * (cos((r - rmin0) * rcutfac) + one);
-	}
+        if (r <= rmin0) sfac_outer = one;
+        else if (r > rcut) sfac_outer = zero;
+        else {
+          real_type rcutfac = static_cast<real_type>(MY_PI) / (rcut - rmin0);
+          sfac_outer = onehalf * (cos((r - rmin0) * rcutfac) + one);
+        }
       }
 
       // calculate sfac_inner

@@ -92,8 +92,8 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::init_style()
   if (host_flag) {
     if (lmp->kokkos->nthreads > 1)
       if (comm->me == 0)
-	utils::logmesg(lmp,"Pair style snap/kk currently only runs on a single "
-			   "CPU thread, even if more threads are requested\n");
+        utils::logmesg(lmp,"Pair style snap/kk currently only runs on a single "
+                           "CPU thread, even if more threads are requested\n");
 
     PairSNAP::init_style();
     return;

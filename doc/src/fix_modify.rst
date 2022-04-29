@@ -12,24 +12,23 @@ Syntax
 
 * fix-ID = ID of the fix to modify
 * one or more keyword/value pairs may be appended
-* keyword = *temp* or *press* or *energy* or *virial* or *respa* or *dynamic/dof* or *bodyforces* or *colname*
+* keyword =  *bodyforces* or *colname* or *dynamic/dof* or *energy* or *press* or *respa* or *temp* or *virial*
 
   .. parsed-literal::
 
-       *temp* value = compute ID that calculates a temperature
-       *press* value = compute ID that calculates a pressure
-       *energy* value = *yes* or *no*
-       *virial* value = *yes* or *no*
-       *respa* value = *1* to *max respa level* or *0* (for outermost level)
-       *dynamic/dof* value = *yes* or *no*
-         yes/no = do or do not re-compute the number of degrees of freedom (DOF) contributing to the temperature
        *bodyforces* value = *early* or *late*
          early/late = compute rigid-body forces/torques early or late in the timestep
        *colname* values =  ID string
          string = new column header name
          ID = integer from 1 to N, or integer from -1 to -N, where N = # of quantities being output
               *or* a fix output property keyword or reference to compute, fix, property or variable.
-
+       *dynamic/dof* value = *yes* or *no*
+         yes/no = do or do not re-compute the number of degrees of freedom (DOF) contributing to the temperature
+       *energy* value = *yes* or *no*
+       *press* value = compute ID that calculates a pressure
+       *respa* value = *1* to *max respa level* or *0* (for outermost level)
+       *temp* value = compute ID that calculates a temperature
+       *virial* value = *yes* or *no*
 
 Examples
 """"""""

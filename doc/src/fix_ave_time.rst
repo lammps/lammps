@@ -261,13 +261,15 @@ column of numbers for each input value.  For *mode* = vector, an array
 of numbers is written each time output is performed.  The number of rows
 is the length of the input vectors, and the number of columns is the
 number of values.  Thus the file ends up to be a series of these array
-sections.  If the filename ends in '.yaml' or '.yml' then the output
-format is conforming to the `YAML standard <https://yaml.org/>`_ which
-allows to easily import that data into tools and scripts that support
-reading YAML files. The :doc:`structured data Howto
-<Howto_structured_data>` contains examples for parsing and plotting such
-data with very little programming effort in Python using the *pyyaml*,
-*pandas*, and *matplotlib* packages.
+sections.
+
+If the filename ends in '.yaml' or '.yml' then the output format
+conforms to the `YAML standard <https://yaml.org/>`_ which allows
+easy import that data into tools and scripts that support reading YAML
+files. The :doc:`structured data Howto <Howto_structured_data>` contains
+examples for parsing and plotting such data with very little programming
+effort in Python using the *pyyaml*, *pandas*, and *matplotlib*
+packages.
 
 The *overwrite* keyword will continuously overwrite the output file
 with the latest output, so that it only contains one timestep worth of
@@ -314,7 +316,7 @@ Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files
-<restart>`.  The :doc:`fix_modify colname <fix_modify>` options can be
+<restart>`.  The :doc:`fix_modify colname <fix_modify>` option can be
 used to change the name of the column in the output file.  When writing
 a YAML format file this name will be in the list of keywords.
 

@@ -299,52 +299,33 @@ void PairSMATBSingle::init_style()
 double PairSMATBSingle::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
+
   //calculating the polynomial linking to zero
   double es = cutOffEnd - cutOffStart;
   double es2 = es * es;
   double es3 = es2 * es;
 
   //variables for poly for p and A
-  double expp = A * exp(p * (1. - cutOffStart / r0));
-  double ap = -1. / es3;
+  double expp = A * exp(p * (1.0 - cutOffStart / r0));
+  double ap = -1.0 / es3;
   double bp = p / (r0 * es2);
   double cp = -(p * p) / (es * r0 * r0);
 
-  a5 = expp * (12. * ap + 6. * bp + cp) / (2. * es2);
-  a4 = expp * (15. * ap + 7. * bp + cp) / es;
-  a3 = expp * (20. * ap + 8. * bp + cp) / 2.;
+  a5 = expp * (12.0 * ap + 6.0 * bp + cp) / (2.0 * es2);
+  a4 = expp * (15.0 * ap + 7.0 * bp + cp) / es;
+  a3 = expp * (20.0 * ap + 8.0 * bp + cp) / 2.0;
 
   //variables for poly for q and qsi
-  double expq = QSI * exp(q * (1. - cutOffStart / r0));
+  double expq = QSI * exp(q * (1.0 - cutOffStart / r0));
   double aq = -1 / es3;
   double bq = q / (es2 * r0);
   double cq = -(q * q) / (es * r0 * r0);
 
-  x5 = expq * (12. * aq + 6. * bq + cq) / (2. * es2);
-  x4 = expq * (15. * aq + 7. * bq + cq) / es;
-  x3 = expq * (20. * aq + 8. * bq + cq) / 2.;
+  x5 = expq * (12.0 * aq + 6.0 * bq + cq) / (2.0 * es2);
+  x4 = expq * (15.0 * aq + 7.0 * bq + cq) / es;
+  x3 = expq * (20.0 * aq + 8.0 * bq + cq) / 2.0;
 
   cutOffEnd2 = cutOffEnd * cutOffEnd;
-  if (i != j) {
-    setflag[j][i] = 1;
-    cutOffEnd2 = cutOffEnd2;
-
-    r0 = r0;
-    p = p;
-    q = q;
-    A = A;
-    QSI = QSI;
-    cutOffStart = cutOffStart;
-    cutOffEnd = cutOffEnd;
-
-    a3 = a3;
-    a4 = a4;
-    a5 = a5;
-    x3 = x3;
-    x4 = x4;
-    x5 = x5;
-  }
-
   return cutOffEnd;
 }
 

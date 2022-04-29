@@ -2578,18 +2578,20 @@ SMTBQ package
 
 **Contents:**
 
-A pair style which implements a Second Moment Tight Binding model with
-QEq charge equilibration (SMTBQ) potential for the description of
-ionocovalent bonds in oxides.
+Pair styles which implement Second Moment Tight Binding models.
+One with QEq charge equilibration (SMTBQ) for the description of
+ionocovalent bonds in oxides, and two more as plain SMATB models.
 
-**Authors:** Nicolas Salles, Emile Maras, Olivier Politano, and Robert
-Tetot (LAAS-CNRS, France).
+**Authors:** SMTBQ: Nicolas Salles, Emile Maras, Olivier Politano, and Robert
+Tetot (LAAS-CNRS, France);
+SMATB: Daniele Rapetti (Politecnico di Torino)
 
 **Supporting info:**
 
 * src/SMTBQ: filenames -> commands
 * src/SMTBQ/README
 * :doc:`pair_style smtbq <pair_smtbq>`
+* :doc:`pair_style smatb <pair_smatb>`, :doc:`pair_style smatb/single <pair_smatb>`
 * examples/PACKAGES/smtbq
 
 ----------

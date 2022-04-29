@@ -1537,6 +1537,10 @@
 /pair_mgpt.h
 /pair_morse_smooth_linear.cpp
 /pair_morse_smooth_linear.h
+/pair_smatb.cpp
+/pair_smatb.h
+/pair_smatb_single.cpp
+/pair_smatb_single.h
 /pair_smtbq.cpp
 /pair_smtbq.h
 /pair_vashishta*.cpp

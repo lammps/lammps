@@ -30,17 +30,14 @@ void PairAmoeba::hal()
 {
   int i,j,ii,jj,itype,jtype,iclass,jclass,iv,jv;
   int special_which;
-  double e,de,eps,rdn;
-  double fgrp,rv,rv7;
+  double e,de,eps;
+  double rv,rv7;
   double xi,yi,zi;
   double xr,yr,zr;
   double redi,rediv;
   double redj,redjv;
   double dedx,dedy,dedz;
-  double rho,rho6,rho7;
-  double tau,tau7,scal;
-  double s1,s2,t1,t2;
-  double dt1drho,dt2drho;
+  double rho,tau,tau7;
   double dtau,gtau;
   double taper,dtaper;
   double rik,rik2,rik3;
@@ -49,7 +46,6 @@ void PairAmoeba::hal()
   double vxx,vyy,vzz;
   double vyx,vzx,vzy;
   double factor_hal;
-  double vir[6];
 
   int inum,jnum;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -60,9 +56,7 @@ void PairAmoeba::hal()
 
   // owned atoms
 
-  double **x = atom->x;
   double **f = atom->f;
-  int nlocal = atom->nlocal;
 
   // neigh list
 

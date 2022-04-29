@@ -12,8 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_amoeba.h"
-#include <cmath>
-#include <cstring>
+
 #include "amoeba_convolution.h"
 #include "atom.h"
 #include "domain.h"
@@ -22,6 +21,9 @@
 #include "fft3d_wrap.h"
 #include "math_const.h"
 #include "memory.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -44,20 +46,13 @@ enum{VDWL,REPULSE,QFER,DISP,MPOLE,POLAR,USOLV,DISP_LONG,MPOLE_LONG,POLAR_LONG};
 
 void PairAmoeba::multipole()
 {
-  int i,j,ii,itype;
-  double e,em;
+  double e;
   double felec;
-  double term,fterm,vterm;
+  double term,fterm;
   double ci;
   double dix,diy,diz;
   double qixx,qixy,qixz,qiyy,qiyz,qizz;
-  double xq,yq,zq;
-  double xv,yv,zv;
-  double xd,yd,zd;
   double cii,dii,qii;
-  double xdfield,ydfield,zdfield;
-  double tem[3];
-  double frcx[3],frcy[3],frcz[3];
 
   // set cutoffs, taper coeffs, and PME params
 
@@ -66,7 +61,6 @@ void PairAmoeba::multipole()
 
   // owned atoms
 
-  double **x = atom->x;
   int nlocal = atom->nlocal;
 
   // zero repulsion torque on owned + ghost atoms

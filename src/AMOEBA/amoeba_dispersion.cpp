@@ -12,17 +12,23 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_amoeba.h"
-#include <cmath>
+
 #include "amoeba_convolution.h"
 #include "atom.h"
 #include "domain.h"
 #include "neigh_list.h"
 #include "fft3d_wrap.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+
+using MathSpecial::cube;
+using MathSpecial::powint;
 
 enum{VDWL,REPULSE,QFER,DISP,MPOLE,POLAR,USOLV,DISP_LONG,MPOLE_LONG,POLAR_LONG};
 
@@ -58,7 +64,7 @@ void PairAmoeba::dispersion()
   for (int i = 0; i < nlocal; i++) {
     itype = amtype[i];
     iclass = amtype2class[itype];
-    term = pow(aewald,6) / 12.0;
+    term = powint(aewald,6) / 12.0;
     edisp += term*csix[iclass]*csix[iclass];
   }
 }
@@ -73,7 +79,7 @@ void PairAmoeba::dispersion_real()
   int i,j,ii,jj,itype,jtype,iclass,jclass;
   double xi,yi,zi;
   double xr,yr,zr;
-  double e,de,fgrp;
+  double e,de;
   double ci,ck;
   double r,r2,r6,r7;
   double ai,ai2;
@@ -100,7 +106,6 @@ void PairAmoeba::dispersion_real()
 
   double **x = atom->x;
   double **f = atom->f;
-  int nlocal = atom->nlocal;
 
   // neigh list
 
@@ -193,7 +198,7 @@ void PairAmoeba::dispersion_real()
       scale = factor_disp * damp*damp;
       scale = scale - 1.0;
       e = -ci * ck * (expa+scale) / r6;
-      rterm = -pow(ralpha2,3) * expterm / r;
+      rterm = -cube(ralpha2) * expterm / r;
       de = -6.0*e/r2 - ci*ck*rterm/r7 - 2.0*ci*ck*factor_disp*damp*ddamp/r7;
 
       edisp += e;
@@ -243,13 +248,9 @@ void PairAmoeba::dispersion_real()
 
 void PairAmoeba::dispersion_kspace()
 {
-  int i,j,k,m,n,ix,iy,iz,ib,jb,kb,itype,iclass;
+  int i,j,k,m,n,ib,jb,kb,itype,iclass;
   int nhalf1,nhalf2,nhalf3;
   int nxlo,nxhi,nylo,nyhi,nzlo,nzhi;
-  int i0,iatm,igrd0;
-  int it1,it2,it3;
-  int j0,jgrd0;
-  int k0,kgrd0;
   double e,fi,denom;
   double r1,r2,r3;
   double h1,h2,h3;
@@ -270,7 +271,6 @@ void PairAmoeba::dispersion_kspace()
 
   // owned atoms
 
-  double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
 
@@ -318,7 +318,7 @@ void PairAmoeba::dispersion_kspace()
 
   bfac = MY_PI / aewald;
   fac1 = 2.0*pow(MY_PI,3.5);
-  fac2 = pow(aewald,3.0);
+  fac2 = cube(aewald);
   fac3 = -2.0*aewald*MY_PI*MY_PI;
   denom0 = (6.0*volbox)/pow(MY_PI,1.5);
 

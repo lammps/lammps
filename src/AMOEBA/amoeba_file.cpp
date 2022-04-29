@@ -259,14 +259,11 @@ void PairAmoeba::read_keyfile(char *filename)
 
   int me = comm->me;
   FILE *fptr;
-  char line[MAXLINE],next[MAXLINE];
+  char line[MAXLINE];
   if (me == 0) {
     fptr = utils::open_potential(filename,lmp,nullptr);
-    if (fptr == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open AMOEBA key file %s",filename);
-      error->one(FLERR,str);
-    }
+    if (fptr == NULL)
+      error->one(FLERR,"Cannot open AMOEBA key file {}: {}",filename, utils::getsyserror());
   }
 
   // read lines, one at a time
@@ -597,7 +594,7 @@ int PairAmoeba::read_section_line(FILE *fp, char *line,
 
   char *ptr,*copy,*copy_next;
   char **words,**words_next;
-  int nwords,nwords_next;
+  int nwords_next;
 
   copy = copy_next = NULL;
   words = words_next = NULL;

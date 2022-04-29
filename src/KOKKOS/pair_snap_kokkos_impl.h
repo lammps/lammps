@@ -743,8 +743,8 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSN
         my_sna.rcutij(ii,offset) = static_cast<real_type>((radi + d_radelem[jelem])*rcutfac);
         my_sna.inside(ii,offset) = j;
         if (switchinnerflag) {
-          my_sna.sinnerij(ii,ninside) = 0.5*(d_sinnerelem[ielem] + d_sinnerelem[jelem]);
-          my_sna.dinnerij(ii,ninside) = 0.5*(d_dinnerelem[ielem] + d_dinnerelem[jelem]);
+          my_sna.sinnerij(ii,offset) = 0.5*(d_sinnerelem[ielem] + d_sinnerelem[jelem]);
+          my_sna.dinnerij(ii,offset) = 0.5*(d_dinnerelem[ielem] + d_dinnerelem[jelem]);
         }
         if (chemflag)
           my_sna.element(ii,offset) = jelem;
@@ -1106,8 +1106,8 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSN
         my_sna.rcutij(ii,offset) = static_cast<real_type>((radi + d_radelem[jelem])*rcutfac);
         my_sna.inside(ii,offset) = j;
         if (switchinnerflag) {
-          my_sna.sinnerij(ii,ninside) = 0.5*(d_sinnerelem[ielem] + d_sinnerelem[jelem]);
-          my_sna.dinnerij(ii,ninside) = 0.5*(d_dinnerelem[ielem] + d_dinnerelem[jelem]);
+          my_sna.sinnerij(ii,offset) = 0.5*(d_sinnerelem[ielem] + d_sinnerelem[jelem]);
+          my_sna.dinnerij(ii,offset) = 0.5*(d_dinnerelem[ielem] + d_dinnerelem[jelem]);
         }
         if (chemflag)
           my_sna.element(ii,offset) = jelem;

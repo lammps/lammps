@@ -22,8 +22,8 @@
 #include "compute.h"
 #include "domain.h"
 #include "electrode_accel_interface.h"
-#include "electrode_matrix.h"
 #include "electrode_math.h"
+#include "electrode_matrix.h"
 #include "electrode_vector.h"
 #include "error.h"
 #include "force.h"
@@ -539,8 +539,8 @@ void FixElectrodeConp::setup_post_neighbor()
   compute_macro_matrices();
   MPI_Barrier(world);
   if (timer_flag && (comm->me == 0))
-    utils::logmesg(lmp,
-                   fmt::format("SD-vector and macro matrices time: {:.4g} s\n", MPI_Wtime() - start));
+    utils::logmesg(
+        lmp, fmt::format("SD-vector and macro matrices time: {:.4g} s\n", MPI_Wtime() - start));
 
   // initial charges and b vector
   update_charges();
@@ -1288,4 +1288,3 @@ void FixElectrodeConp::unpack_reverse_comm(int n, int *list, double *buf)
 {
   for (int i = 0; i < n; i++) { potential_i[list[i]] += buf[i]; }
 }
-

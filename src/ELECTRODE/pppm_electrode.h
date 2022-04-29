@@ -60,7 +60,7 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
   void compute(int, int) override;
 
   void compute_vector(double *, int, int, bool) override;
-  void compute_vector_corr(double*, int, int, bool) override;
+  void compute_vector_corr(double *, int, int, bool) override;
   void compute_matrix(bigint *, double **, bool) override;
   void compute_matrix_corr(bigint *, double **) override;
 

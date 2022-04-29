@@ -688,16 +688,17 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     auto keywd = words[0];
     auto keyval = words[1];
 
-    // check for keywords with one value per element
+    // check for keywords with more than one value per element
 
     if (keywd == "sinner" || keywd == "dinner") {
 
       if ((int)words.size() != nelements+1)
         error->all(FLERR,"Incorrect SNAP parameter file");
+       
+      // innerlogstr collects all values of sinner or dinner for log output below
 
-      if (comm->me == 0)
-        utils::logmesg(lmp,"SNAP keyword {} {} ... \n", keywd, keyval);
-
+      std::string innerlogstr;
+       
       int iword = 1;
 
       if (keywd == "sinner") {
@@ -705,6 +706,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
           keyval = words[iword];
           sinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
           iword++;
+          innerlogstr += keyval + " ";
         }
         sinnerflag = 1;
       } else if (keywd == "dinner") {
@@ -712,9 +714,13 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
           keyval = words[iword];
           dinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
           iword++;
+          innerlogstr += keyval + " ";
         }
         dinnerflag = 1;
       }
+       
+      if (comm->me == 0)
+        utils::logmesg(lmp,"SNAP keyword {} {} ... \n", keywd, innerlogstr);
 
     } else {
 

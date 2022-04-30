@@ -51,7 +51,7 @@ void DeleteAtoms::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
     error->all(FLERR,"Delete_atoms command before simulation box is defined");
-  if (narg < 1) error->all(FLERR,"Illegal delete_atoms command");
+  if (narg < 1) utils::missing_cmd_args(FLERR,"delete_atoms", error);
   if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use delete_atoms unless atoms have IDs");
 
@@ -179,15 +179,12 @@ void DeleteAtoms::command(int narg, char **arg)
   bigint ndelete_impropers = nimpropers_previous - atom->nimpropers;
 
   if (comm->me == 0) {
-    std::string mesg = fmt::format("Deleted {} atoms, new total = {}\n",
-                                   ndelete,atom->natoms);
+    std::string mesg = fmt::format("Deleted {} atoms, new total = {}\n", ndelete, atom->natoms);
     if (bond_flag || mol_flag) {
       if (nbonds_previous)
-        mesg += fmt::format("Deleted {} bonds, new total = {}\n",
-                            ndelete_bonds,atom->nbonds);
+        mesg += fmt::format("Deleted {} bonds, new total = {}\n", ndelete_bonds, atom->nbonds);
       if (nangles_previous)
-        mesg += fmt::format("Deleted {} angles, new total = {}\n",
-                            ndelete_angles,atom->nangles);
+        mesg += fmt::format("Deleted {} angles, new total = {}\n", ndelete_angles, atom->nangles);
       if (ndihedrals_previous)
         mesg += fmt::format("Deleted {} dihedrals, new total = {}\n",
                             ndelete_dihedrals,atom->ndihedrals);
@@ -205,10 +202,10 @@ void DeleteAtoms::command(int narg, char **arg)
 
 void DeleteAtoms::delete_group(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR,"Illegal delete_atoms command");
+  if (narg < 2) utils::missing_cmd_args(FLERR,"delete_atoms group", error);
 
   int igroup = group->find(arg[1]);
-  if (igroup == -1) error->all(FLERR,"Could not find delete_atoms group ID");
+  if (igroup == -1) error->all(FLERR,"Could not find delete_atoms group ID {}", arg[1]);
   options(narg-2,&arg[2]);
 
   // check for special case of group = all
@@ -237,10 +234,10 @@ void DeleteAtoms::delete_group(int narg, char **arg)
 
 void DeleteAtoms::delete_region(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR,"Illegal delete_atoms command");
+  if (narg < 2) utils::missing_cmd_args(FLERR,"delete_atoms region", error);
 
   auto iregion = domain->get_region_by_id(arg[1]);
-  if (!iregion) error->all(FLERR,"Could not find delete_atoms region ID");
+  if (!iregion) error->all(FLERR,"Could not find delete_atoms region ID {}", arg[1]);
   iregion->prematch();
 
   options(narg-2,&arg[2]);
@@ -266,7 +263,7 @@ void DeleteAtoms::delete_region(int narg, char **arg)
 
 void DeleteAtoms::delete_overlap(int narg, char **arg)
 {
-  if (narg < 4) error->all(FLERR,"Illegal delete_atoms command");
+  if (narg < 4) utils::missing_cmd_args(FLERR,"delete_atoms overlap", error);
 
   // read args
 
@@ -276,7 +273,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   int igroup1 = group->find(arg[2]);
   int igroup2 = group->find(arg[3]);
   if (igroup1 < 0 || igroup2 < 0)
-    error->all(FLERR,"Could not find delete_atoms group ID");
+    error->all(FLERR,"Could not find delete_atoms group ID {}", arg[1]);
   options(narg-4,&arg[4]);
 
   int group1bit = group->bitmask[igroup1];
@@ -418,14 +415,14 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
 void DeleteAtoms::delete_porosity(int narg, char **arg)
 {
-  if (narg < 5) error->all(FLERR,"Illegal delete_atoms command");
+  if (narg < 5) utils::missing_cmd_args(FLERR,"delete_atoms porosity", error);
 
   int igroup = group->find(arg[1]);
-  if (igroup == -1) error->all(FLERR,"Could not find delete_atoms group ID");
+  if (igroup == -1) error->all(FLERR,"Could not find delete_atoms porosity group ID {}", arg[1]);
 
   auto iregion = domain->get_region_by_id(arg[2]);
   if (!iregion && (strcmp(arg[2],"NULL") != 0))
-    error->all(FLERR,"Could not find delete_atoms region ID");
+    error->all(FLERR,"Could not find delete_atoms porosity region ID {}", arg[2]);
 
   double porosity_fraction = utils::numeric(FLERR,arg[3],false,lmp);
   int seed = utils::inumeric(FLERR,arg[4],false,lmp);
@@ -776,23 +773,23 @@ void DeleteAtoms::options(int narg, char **arg)
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"compress") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal delete_atoms command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"delete_atoms compress", error);
       compress_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"bond") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal delete_atoms command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"delete_atoms bond", error);
       if (atom->molecular == Atom::ATOMIC)
-        error->all(FLERR,"Cannot delete_atoms bond yes for non-molecular systems");
+        error->all(FLERR,"Cannot use delete_atoms bond yes for non-molecular systems");
       if (atom->molecular == Atom::TEMPLATE)
         error->all(FLERR,"Cannot use delete_atoms bond yes with atom_style template");
       bond_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"mol") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal delete_atoms command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"delete_atoms mol", error);
       if (atom->molecule_flag == 0)
         error->all(FLERR,"Delete_atoms mol yes requires atom attribute molecule");
       mol_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
-    } else error->all(FLERR,"Illegal delete_atoms command");
+    } else error->all(FLERR,"Unknown delete_atoms option: {}",arg[iarg]);
   }
 }

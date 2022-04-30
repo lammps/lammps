@@ -33,12 +33,14 @@ Syntax
        *m* value = one or more mass values
 
 * zero or more keyword/value pairs may be appended
-* keyword = *mol*
+* keyword = *mol* or *kbond*
 
   .. parsed-literal::
 
        *mol* value = template-ID
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
+       *kbond* value = force constant
+         force constant = force constant used to apply a restraint force when used during minimization
 
 Examples
 """"""""
@@ -152,16 +154,22 @@ for.
 
 ----------
 
-The *mol* keyword should be used when other commands, such as :doc:`fix deposit <fix_deposit>` or :doc:`fix pour <fix_pour>`, add molecules
+The *mol* keyword should be used when other commands, such as :doc:`fix
+deposit <fix_deposit>` or :doc:`fix pour <fix_pour>`, add molecules
 on-the-fly during a simulation, and you wish to constrain the new
 molecules via SHAKE.  You specify a *template-ID* previously defined
 using the :doc:`molecule <molecule>` command, which reads a file that
 defines the molecule.  You must use the same *template-ID* that the
 command adding molecules uses.  The coordinates, atom types, special
-bond restrictions, and SHAKE info can be specified in the molecule
-file.  See the :doc:`molecule <molecule>` command for details.  The only
+bond restrictions, and SHAKE info can be specified in the molecule file.
+See the :doc:`molecule <molecule>` command for details.  The only
 settings required to be in this file (by this command) are the SHAKE
 info of atoms in the molecule.
+
+The *kbond* keyword allows to set the restraint force constant when
+fix shake or fix rattle are used during minimization. In that case
+the constraint algorithms are **not** applied and restraint
+forces are used instead to help maintaining the geometries.
 
 ----------
 
@@ -205,8 +213,10 @@ setting for this fix is :doc:`fix_modify virial yes <fix_modify>`.
 No global or per-atom quantities are stored by these fixes for access
 by various :doc:`output commands <Howto_output>`.  No parameter of
 these fixes can be used with the *start/stop* keywords of the
-:doc:`run <run>` command.  These fixes are not invoked during
-:doc:`energy minimization <minimize>`.
+:doc:`run <run>` command.
+
+When used during minimization, the SHAKE or RATTLE algorithms are **not**
+applied.  Strong restraint forces are applied instead.
 
 Restrictions
 """"""""""""
@@ -232,13 +242,14 @@ make a linear molecule rigid.
 Related commands
 """"""""""""""""
 
-none
+`fix rigid <fix_rigid>`, `fix ehex <fix_ehex>`,
+`fix nve/manifold/rattle <fix_nve_manifold_rattle>`
 
 
 Default
 """""""
 
-none
+kbond = 1.0e6
 
 ----------
 

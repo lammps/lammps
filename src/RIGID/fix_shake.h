@@ -34,9 +34,11 @@ class FixShake : public Fix {
   int setmask() override;
   void init() override;
   void setup(int) override;
+  void min_setup(int) override;
   void pre_neighbor() override;
   void post_force(int) override;
   void post_force_respa(int, int, int) override;
+  void min_post_force(int) override;
 
   double memory_usage() override;
   void grow_arrays(int) override;
@@ -61,12 +63,11 @@ class FixShake : public Fix {
  protected:
   int vflag_post_force;    // store the vflag of last post_force call
   int respa;               // 0 = vel. Verlet, 1 = respa
-  int me, nprocs;
-  int rattle;            // 0 = SHAKE, 1 = RATTLE
-  double tolerance;      // SHAKE tolerance
-  int max_iter;          // max # of SHAKE iterations
-  int output_every;      // SHAKE stat output every so often
-  bigint next_output;    // timestep for next output
+  int rattle;              // 0 = SHAKE, 1 = RATTLE
+  double tolerance;        // SHAKE tolerance
+  int max_iter;            // max # of SHAKE iterations
+  int output_every;        // SHAKE stat output every so often
+  bigint next_output;      // timestep for next output
 
   // settings from input command
   int *bond_flag, *angle_flag;    // bond/angle types to constrain
@@ -76,6 +77,7 @@ class FixShake : public Fix {
 
   int molecular;                             // copy of atom->molecular
   double *bond_distance, *angle_distance;    // constraint distances
+  double kbond;                              // force constant for restraint
 
   class FixRespa *fix_respa;    // rRESPA fix needed by SHAKE
   int nlevels_respa;            // copies of needed rRESPA variables
@@ -133,6 +135,7 @@ class FixShake : public Fix {
   void shake3(int);
   void shake4(int);
   void shake3angle(int);
+  void bond_force(tagint, tagint, double);
   void stats();
   int bondtype_findset(int, tagint, tagint, int);
   int angletype_findset(int, tagint, tagint, int);

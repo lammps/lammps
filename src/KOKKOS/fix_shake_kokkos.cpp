@@ -12,12 +12,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
 #include "fix_shake_kokkos.h"
+
 #include "fix_rattle.h"
 #include "atom_kokkos.h"
 #include "atom_vec.h"
@@ -37,6 +33,9 @@
 #include "error.h"
 #include "kokkos.h"
 #include "atom_masks.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -292,7 +291,7 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
 
   if (h_error_flag() == 1) {
     error->one(FLERR,"Shake atoms missing on proc "
-                                 "{} at step {}",me,update->ntimestep);
+                                 "{} at step {}",comm->me,update->ntimestep);
   }
 }
 
@@ -341,7 +340,7 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
   // communicate results if necessary
 
   unconstrained_update();
-  if (nprocs > 1) comm->forward_comm(this);
+  if (comm->nprocs > 1) comm->forward_comm(this);
   k_xshake.sync<DeviceType>();
 
   // virial setup
@@ -1702,7 +1701,7 @@ void FixShakeKokkos<DeviceType>::correct_coordinates(int vflag) {
 
   double **xtmp = xshake;
   xshake = x;
-  if (nprocs > 1) {
+  if (comm->nprocs > 1) {
     forward_comm_device = 0;
     comm->forward_comm(this);
     forward_comm_device = 1;

@@ -1,7 +1,10 @@
 .. index:: pair_style ilp/tmd
+.. index:: pair_style ilp/tmd/opt
 
 pair_style ilp/tmd command
 ===================================
+
+Accelerator Variant: *ilp/tmd/opt*
 
 Syntax
 """"""
@@ -100,6 +103,10 @@ headings) the following commands could be included in an input script:
    variable Evdw  equal c_0[1]
    variable Erep  equal c_0[2]
    thermo_style custom step temp epair v_Erep v_Evdw
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

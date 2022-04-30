@@ -13,36 +13,23 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(ilp/tmd,PairILPTMD);
+PairStyle(saip/metal/opt,PairSAIPMETALOpt);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_ILP_TMD_H
-#define LMP_PAIR_ILP_TMD_H
+#ifndef LMP_PAIR_SAIP_METAL_OPT_H
+#define LMP_PAIR_SAIP_METAL_OPT_H
 
-#include "pair_ilp_graphene_hbn.h"
+#include "pair_ilp_graphene_hbn_opt.h"
+#include "pair_saip_metal.h"
 
 namespace LAMMPS_NS {
-
-class PairILPTMD : virtual public PairILPGrapheneHBN {
+class PairSAIPMETALOpt : public PairSAIPMETAL, public PairILPGrapheneHBNOpt {
  public:
-  PairILPTMD(class LAMMPS *);
+  PairSAIPMETALOpt(class LAMMPS *);
+  void coeff(int narg, char **args) override;
 
  protected:
-  void settings(int, char **) override;
-  void ILP_neigh() override;
-  void calc_normal() override;
-  void calc_FRep(int, int) override;
-
-  /**************************************************************/
-  /*       modulo operation with cycling around range           */
-
-  inline int modulo(int k, int range)
-  {
-    if (k < 0) k += range;
-    return k % range;
-  }
-  /**************************************************************/
 };
 
 }    // namespace LAMMPS_NS

@@ -24,6 +24,8 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "input.h"
+#include "variable.h"
 #include "group.h"
 #include "memory.h"
 #include "modify.h"
@@ -69,7 +71,8 @@ void DeleteAtoms::command(int narg, char **arg)
   else if (strcmp(arg[0],"region") == 0) delete_region(narg,arg);
   else if (strcmp(arg[0],"overlap") == 0) delete_overlap(narg,arg);
   else if (strcmp(arg[0],"porosity") == 0) delete_porosity(narg,arg);
-  else error->all(FLERR,"Illegal delete_atoms command");
+  else if (strcmp(arg[0],"variable") == 0) delete_variable(narg,arg);
+  else error->all(FLERR,"Unknown delete_atoms sub-command: {}", arg[0]);
 
   if (allflag) {
     int igroup = group->find("all");
@@ -451,6 +454,38 @@ void DeleteAtoms::delete_porosity(int narg, char **arg)
   }
 
   delete random;
+}
+
+/* ----------------------------------------------------------------------
+   delete all as flagged by non-zero atom style variable
+------------------------------------------------------------------------- */
+
+void DeleteAtoms::delete_variable(int narg, char **arg)
+{
+  if (narg < 2) utils::missing_cmd_args(FLERR,"delete_atoms variable", error);
+
+  int ivar = input->variable->find(arg[1]);
+  if (ivar < 0) error->all(FLERR, "Variable name {} for delete_atoms does not exist", arg[1]);
+  if (!input->variable->atomstyle(ivar))
+    error->all(FLERR,"Variable {} for delete_atoms is invalid style", arg[1]);
+
+  // consume remaining options
+
+  options(narg-2,&arg[2]);
+
+  // aflag = evaluation of per-atom variable
+
+  const int nlocal = atom->nlocal;
+  double *aflag;
+  memory->create(dlist,nlocal,"delete_atoms:dlist");
+  memory->create(aflag,nlocal,"group:aflag");
+  input->variable->compute_atom(ivar,0,aflag,1,0);
+
+  // delete if per-atom variable evaluated to non-zero
+
+  for (int i = 0; i < nlocal; i++) dlist[i] = (aflag[i] == 0.0) ? 0 : 1;
+
+  memory->destroy(aflag);
 }
 
 /* ----------------------------------------------------------------------

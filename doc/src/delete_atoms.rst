@@ -10,7 +10,7 @@ Syntax
 
    delete_atoms style args keyword value ...
 
-* style = *group* or *region* or *overlap* or *porosity*
+* style = *group* or *region* or *overlap* or *porosity* or *variable*
 
   .. parsed-literal::
 
@@ -26,6 +26,7 @@ Syntax
                      or NULL to only impose the group criterion
          fraction = delete this fraction of atoms
          seed = random number seed (positive integer)
+       *variable* args = variable-name
 
 * zero or more keyword/value pairs may be appended
 * keyword = *compress* or *bond* or *mol*
@@ -47,6 +48,7 @@ Examples
    delete_atoms overlap 0.5 solvent colloid
    delete_atoms porosity all cube 0.1 482793 bond yes
    delete_atoms porosity polymer cube 0.1 482793 bond yes
+   detele_atoms variable checkers
 
 Description
 """""""""""
@@ -90,6 +92,13 @@ be deleted.  The atoms to delete are chosen randomly.  There is no
 guarantee that the exact fraction of atoms will be deleted, or that
 the same atoms will be deleted when running on different numbers of
 processors.
+
+For style *variable*, all atoms for which the atom-style variable with
+the given name evaluates to non-zero will be deleted. Additional atoms
+can be deleted if they are in a molecule for which one or more atoms
+were deleted within the region; see the *mol* keyword discussion below.
+This options allows to apply complex selections of atoms not covered
+by the options listed above.
 
 If the *compress* keyword is set to *yes*, then after atoms are
 deleted, then atom IDs are re-assigned so that they run from 1 to the

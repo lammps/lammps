@@ -87,7 +87,6 @@ void PairSMATBSingle::compute(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  int *type = atom->type;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
 
@@ -237,16 +236,14 @@ void PairSMATBSingle::settings(int narg, char **)
 
 void PairSMATBSingle::allocate()
 {
-  int n = atom->ntypes;
-  int natoms = atom->natoms;
+  int np1 = atom->ntypes + 1;
 
-  memory->create(setflag, n + 1, n + 1, "pair_smatb:setflag");
-  for (int i = 1; i <= n; i++) {
-    for (int j = i; j <= n; j++) { setflag[i][j] = 0; }
+  memory->create(setflag, np1, np1, "pair_smatb:setflag");
+  for (int i = 1; i < np1; i++) {
+    for (int j = i; j < np1; j++) { setflag[i][j] = 0; }
   }
 
-  memory->create(cutsq, n + 1, n + 1, "pair_smatb:cutsq");
-
+  memory->create(cutsq, np1, np1, "pair_smatb:cutsq");
   allocated = 1;
 }
 
@@ -331,7 +328,8 @@ double PairSMATBSingle::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-int PairSMATBSingle::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int PairSMATBSingle::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/,
+                                       int * /*pbc*/)
 {
   int i, j, m;
 
@@ -393,11 +391,10 @@ void PairSMATBSingle::write_restart_settings(FILE *fp)
 void PairSMATBSingle::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
-  size_t result;
   if (me == 0) {
-    result = fread(&offset_flag, sizeof(int), 1, fp);
-    result = fread(&mix_flag, sizeof(int), 1, fp);
-    result = fread(&tail_flag, sizeof(int), 1, fp);
+    utils::sfread(FLERR, &offset_flag, sizeof(int), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &mix_flag, sizeof(int), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &tail_flag, sizeof(int), 1, fp, nullptr, error);
   }
   MPI_Bcast(&offset_flag, 1, MPI_INT, 0, world);
   MPI_Bcast(&mix_flag, 1, MPI_INT, 0, world);
@@ -432,15 +429,13 @@ void PairSMATBSingle::write_restart(FILE *fp)
 void PairSMATBSingle::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
-
   allocate();
-  size_t result;
 
   int i, j;
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) { result = fread(&setflag[i][j], sizeof(int), 1, fp); }
+      if (me == 0) utils::sfread(FLERR, &setflag[i][j], sizeof(int), 1, fp, nullptr, error);
       MPI_Bcast(&setflag[i][j], 1, MPI_INT, 0, world);
       if (setflag[i][j]) {
         if (me == 0) {

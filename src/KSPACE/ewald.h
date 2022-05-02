@@ -59,9 +59,9 @@ class Ewald : public KSpace {
 
   double rms(int, double, bigint, double);
   virtual void eik_dot_r();
-  void coeffs();
+  virtual void coeffs();
   virtual void allocate();
-  void deallocate();
+  virtual void deallocate();
   void slabcorr();
 
   // triclinic

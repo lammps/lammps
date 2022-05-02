@@ -24,7 +24,7 @@ PairStyle(saip/metal,PairSAIPMETAL);
 
 namespace LAMMPS_NS {
 
-class PairSAIPMETAL : public PairILPGrapheneHBN {
+class PairSAIPMETAL : virtual public PairILPGrapheneHBN {
  public:
   PairSAIPMETAL(class LAMMPS *);
 

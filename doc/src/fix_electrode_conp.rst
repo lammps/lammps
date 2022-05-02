@@ -130,48 +130,49 @@ file, for code developers to track optimization.
 
    fix_modify ID timer on/off
 
-The *fix_modify set* options allow calculated quantities to be accessed via
-internal variables. Currently four types of quantities can be accessed:
+----------
 
-.. code-block:: LAMMPS
+These fixes compute a global array which can be accessed by various
+:doc:`output commands <Howto_output>`. The array has *N* rows and *2N+2*
+columns, where *N* is the number of electrode groups managed by the fix. For the
+*I*-th row of the array, the elements are:
 
-   fix-modify ID set v group-ID variablename
-   fix-modify ID set qsb group-ID variablename
-   fix-modify ID set mc group-ID1 group-ID2 variablename
-   fix-modify ID set me group-ID1 group-ID2 variablename
+* array[I][1] = potential instantaneously applied to group *I*
+* array[I][1] = total charge that group *I* would have had *if it were at 0 V
+  applied potential*
+* array[I][2 to *N* + 1] = the *N* entries of the *I*-th row of the electrode
+  capacitance matrix (definition follows)
+* array[I][*N* + 2 to *2N* + 1] = the *N* entries of the *I*-th row of the electrode
+  elastance matrix (the inverse of the electrode capacitance matrix)
 
-One use case is to output the potential that is internally calculated and
-applied to each electrode group by *fix electrode/conq* or *fix electrode/thermo*.
-For that case the *v* option makes *fix electrode* update the variable
-*variablename* with the potential applied to group *group-ID*, where *group-ID*
-must be a group whose charges are updated by *fix electrode* and *variablename*
-must be an internal-style variable:
+The first column is handy for *fix electrode/conq* and *fix
+electrode/thermo* simulations, to output the potentials dynamically calculated and
+imposed by the fix (see following formula). The potential is in units of electric field times
+distance, which gives volts for most (but not all) :doc:`units <units>` settings.
 
-.. code-block:: LAMMPS
-
-   fix conq bot electrode/conq -1.0 1.979 couple top 1.0
-   variable vbot internal 0.0
-   fix_modify conq set v bot vbot
-
-The *qsb* option similarly outputs the total updated charge of the group if its
-potential were 0.0V. The *mc* option requires two *group-IDs*, and outputs the
-entry \{*group-ID1*, *group-ID2*\} of the (symmetric) *macro-capacitance* matrix
-(MC) which relates the electrodes' applied potentials (V), total charges (Q), and
-total charges at 0.0 V (Qsb):
+The :math:`N \times N` electrode capacitance matrix, denoted :math:`\mathbf{C}`
+in the following equation, summarizes how the total charge induced on each electrode
+(:math:`\mathbf{Q}` as an *N*-vector) is related to the potential on each
+electrode, :math:`\mathbf{V}`, and the charge-at-0V :math:`\mathbf{Q}_{0V}`
+(which is influenced by the local electrolyte structure):
 
 .. math::
 
-   \mathbf{Q} = \mathbf{Q}_{SB} + \mathbf{MC} \cdot \mathbf{V}
+   \mathbf{Q} = \mathbf{Q}_{0V} + \mathbf{C} \cdot \mathbf{V}
 
-Lastly, the *me* option also requires two *group-IDs* and outputs the entry
-\{*group-ID1*, *group-ID2*\} of the *macro-elastance* matrix, which is the
-inverse of the macro-capacitance matrix. (As the names denote, the
-macro-capacitance matrix gives electrode charges from potentials, and the
-macro-elastance matrix gives electrode potentials from charges).
+The charge-at-0V, electrode capacitance and elastance matrices are internally used to
+calculate the potentials required to induce the specified total electrode charges
+in *fix electrode/conq* and *fix electrode/thermo*. With the *symm on* option,
+the electrode capacitance matrix would be singular, and thus its last row is
+replaced with *N* copies of its top-left entry (:math:`\mathbf{C}_{11}`) for
+invertibility.
 
-.. warning::
+----------
 
-   Positions of electrode particles have to be immobilized at all times.
+Restrictions
+""""""""""""
+
+Positions of electrode particles have to be immobilized at all times.
 
 The parallelization for the fix works best if electrode atoms are evenly
 distributed across processors. For a system with two electrodes at the bottom

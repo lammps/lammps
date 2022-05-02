@@ -8,6 +8,7 @@ include settings.mod # styles, groups, computes and fixes
 units real
 # distribute electrode atoms among all processors:
 if "$(extract_setting(world_size) % 2) == 0" then "processors * * 2"
+processors * * 2
 
 atom_style full
 pair_style lj/cut/coul/long 16
@@ -19,7 +20,7 @@ kspace_style pppm/electrode 1e-7
 read_data "data.graph-il"
 Reading data file ...
   orthogonal box = (0 0 -68) to (32.2 34.4 68)
-  1 by 1 by 1 MPI processor grid
+  1 by 2 by 2 MPI processor grid
   reading atoms ...
   3776 atoms
   scanning bonds ...
@@ -38,7 +39,7 @@ Finding 1-2 1-3 1-4 neighbors ...
      1 = max # of 1-4 neighbors
      2 = max # of special neighbors
   special bonds CPU = 0.001 seconds
-  read_data CPU = 0.031 seconds
+  read_data CPU = 0.019 seconds
 
 group bot molecule 641
 416 atoms in group bot
@@ -67,28 +68,14 @@ kspace_modify slab 3.0
 fix conp bot electrode/conp v_vbot 1.979 couple top v_vtop etypes 5
 832 atoms in group conp_group
 
-# get the four entries of electrode elastance matrix
-variable me00 internal 0.0
-variable me01 internal 0.0
-variable me10 internal 0.0
-variable me11 internal 0.0
-fix_modify conp set me bot bot me00
-fix_modify conp set me bot top me01
-fix_modify conp set me top bot me10
-fix_modify conp set me top top me11
-
-# get the 0V charges (qsb), and excess charge required to reach preset total charges
-variable qsb_bot internal 0.0
-variable qsb_top internal 0.0
-fix_modify conp set qsb bot qsb_bot
-fix_modify conp set qsb top qsb_top
-variable qex_bot equal -1.0-v_qsb_bot # difference between desired and 0V charge
-variable qex_top equal 1.0-v_qsb_top # difference between desired and 0V charge
+variable qex_bot equal -1.0-f_conp[1][2] # difference between desired and 0V charge
+variable qex_top equal 1.0-f_conp[2][2] # difference between desired and 0V charge
 
 # calculate imposed potential as elastance * excess charge
 # note: fix will wait until the run setup to look for its potential variables
-variable vbot equal v_me00*v_qex_bot+v_me01*v_qex_top
-variable vtop equal v_me10*v_qex_bot+v_me11*v_qex_top
+# which is why we can define variable names *after* fix conp without error
+variable vbot equal f_conp[1][5]*v_qex_bot+f_conp[1][6]*v_qex_top
+variable vtop equal f_conp[2][5]*v_qex_bot+f_conp[2][6]*v_qex_top
 
 thermo 50
 thermo_style custom step temp c_ctemp epair etotal c_qbot c_qtop v_vbot v_vtop
@@ -101,7 +88,7 @@ PPPM/electrode initialization ...
   estimated absolute RMS force accuracy = 3.7023506e-05
   estimated relative force accuracy = 1.1149519e-07
   using double precision MKL FFT
-  3d grid and FFT values/proc = 307242 204800
+  3d grid and FFT values/proc = 151593 85504
   generated 10 of 10 mixed pair_coeff terms from geometric mixing rule
 Neighbor list info ...
   update every 1 steps, delay 10 steps, check yes
@@ -125,7 +112,7 @@ Neighbor list info ...
       pair build: skip
       stencil: none
       bin: none
-Per MPI rank memory allocation (min/avg/max) = 56.89 | 56.89 | 56.89 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 23.63 | 27.46 | 31.29 Mbytes
    Step          Temp         c_ctemp         E_pair         TotEng         c_qbot         c_qtop         v_vbot         v_vtop    
          0   0              0              25136984       25136984      -1              1             -9.931852       10.097344    
         50   20.206425      72.797911      25136825       25137033      -1              1             -9.4359366      9.5964514    
@@ -138,33 +125,33 @@ Per MPI rank memory allocation (min/avg/max) = 56.89 | 56.89 | 56.89 Mbytes
        400   122.8443       442.57252      25136991       25138256      -1              1             -3.4311003      3.3941657    
        450   128.63713      463.44243      25137048       25138373      -1              1             -4.132871       3.9852959    
        500   131.18361      472.61665      25137142       25138493      -1              1             -4.5104095      4.2567261    
-Loop time of 62.9692 on 1 procs for 500 steps with 3776 atoms
+Loop time of 23.4395 on 4 procs for 500 steps with 3776 atoms
 
-Performance: 0.686 ns/day, 34.983 hours/ns, 7.940 timesteps/s
-393.7% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 1.843 ns/day, 13.022 hours/ns, 21.331 timesteps/s
+93.3% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 20.307     | 20.307     | 20.307     |   0.0 | 32.25
-Bond    | 0.0020074  | 0.0020074  | 0.0020074  |   0.0 |  0.00
-Kspace  | 23.562     | 23.562     | 23.562     |   0.0 | 37.42
-Neigh   | 0.26149    | 0.26149    | 0.26149    |   0.0 |  0.42
-Comm    | 0.059436   | 0.059436   | 0.059436   |   0.0 |  0.09
-Output  | 0.0023888  | 0.0023888  | 0.0023888  |   0.0 |  0.00
-Modify  | 18.756     | 18.756     | 18.756     |   0.0 | 29.79
-Other   |            | 0.01897    |            |       |  0.03
+Pair    | 4.1961     | 4.3786     | 4.5496     |   7.6 | 18.68
+Bond    | 0.00057323 | 0.00065148 | 0.00075008 |   0.0 |  0.00
+Kspace  | 11.998     | 12.168     | 12.35      |   4.6 | 51.91
+Neigh   | 0.064936   | 0.064967   | 0.064998   |   0.0 |  0.28
+Comm    | 0.089828   | 0.091261   | 0.092661   |   0.4 |  0.39
+Output  | 0.00082362 | 0.0010221  | 0.0015517  |   1.0 |  0.00
+Modify  | 6.7177     | 6.7195     | 6.7212     |   0.1 | 28.67
+Other   |            | 0.01535    |            |       |  0.07
 
-Nlocal:           3776 ave        3776 max        3776 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:          12510 ave       12510 max       12510 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    1.72559e+06 ave 1.72559e+06 max 1.72559e+06 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:            944 ave         948 max         940 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+Nghost:         5920.5 ave        5941 max        5899 min
+Histogram: 1 0 0 0 1 1 0 0 0 1
+Neighs:         431397 ave      442329 max      421103 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
 
 Total # of neighbors = 1725588
 Ave neighs/atom = 456.98835
 Ave special neighs/atom = 0.50847458
 Neighbor list builds = 6
 Dangerous builds = 0
-Total wall time: 0:02:26
+Total wall time: 0:00:44

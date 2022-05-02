@@ -323,7 +323,7 @@ void PairADPKokkos<DeviceType>::init_style()
   neighflag = lmp->kokkos->neighflag;
   auto request = neighbor->find_request(this);
   request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-		           !std::is_same<DeviceType,LMPDeviceType>::value);
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
   request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
   if(neighflag == FULL) request->enable_full();
 }
@@ -669,7 +669,7 @@ KOKKOS_INLINE_FUNCTION
 void PairADPKokkos<DeviceType>::operator()(TagPairADPKernelA<NEIGHFLAG,NEWTON_PAIR>, const int &ii) const {
 
   // rho = density at each atom
-  // vector mu and tensor lambda are ADP-specific 
+  // vector mu and tensor lambda are ADP-specific
   // loop over neighbors of my atoms
 
   // The rho array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
@@ -996,14 +996,14 @@ void PairADPKokkos<DeviceType>::operator()(TagPairADPKernelC<NEIGHFLAG,NEWTON_PA
       const F_FLOAT u2 = ((d_u2r_spline(d_type2u2r_ij,m,3)*p + d_u2r_spline(d_type2u2r_ij,m,4))*p +
                      d_u2r_spline(d_type2u2r_ij,m,5))*p + d_u2r_spline(d_type2u2r_ij,m,6);
 
-      
+
       const int d_type2w2r_ij = d_type2w2r(itype,jtype);
       const F_FLOAT w2p = (d_w2r_spline(d_type2w2r_ij,m,0)*p + d_w2r_spline(d_type2w2r_ij,m,1))*p +
                      d_w2r_spline(d_type2w2r_ij,m,2);
 
       const F_FLOAT w2 = ((d_w2r_spline(d_type2w2r_ij,m,3)*p + d_w2r_spline(d_type2w2r_ij,m,4))*p +
                      d_w2r_spline(d_type2w2r_ij,m,5))*p + d_w2r_spline(d_type2w2r_ij,m,6);
-      
+
 
 
       const F_FLOAT recip = 1.0/r;

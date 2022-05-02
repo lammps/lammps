@@ -583,7 +583,6 @@ void PairMesoCNT::bond_neigh()
 
   memory->create(reduced_nlist, nbondlist, "pair:reduced_nlist");
   memory->create_ragged(reduced_neighlist, nbondlist, numneigh_max, "pair:reduced_neighlist");
-  memory->destroy(numneigh_max);
 
   // reduce neighbors to common list and find longest common list size
 
@@ -615,19 +614,15 @@ void PairMesoCNT::bond_neigh()
   bool empty_neigh = true;
   for (int i = 0; i < nbondlist; i++) {
 
-    if (reduced_nlist[i] == 0) continue;
-
-    // first atom starts new chain
-    
-    chainid[i][0] = 0;
-    chainpos[i][0] = 0;
-    int nchain = 1;
+    if (reduced_nlist[i] == 0) {
+      numchainlist[i] = 0;
+      continue;
+    }
 
     empty_neigh = false;
-    
-    // assign all other atoms
+    int nchain = 0;
 
-    for (int j = 1; j < reduced_nlist[i]; j++) {
+    for (int j = 0; j < reduced_nlist[i]; j++) {
       int jj = reduced_neighlist[i][j];
       int jtag = tag[jj];
       int jbond = bond_atom[jj][0];
@@ -641,11 +636,17 @@ void PairMesoCNT::bond_neigh()
 
         // check if atoms are bonded
         
-        if (jtag == kbond || jbond == ktag) {
+        if (jtag == kbond) {
           chainid[i][j] = chainid[i][k];
-          if (chainpos[i][k] < 0) chainpos[i][j] = chainpos[i][k] - 1;
-          else chainpos[i][j] = chainpos[i][k] + 1;
-          
+          chainpos[i][j] = chainpos[i][k] + 1;
+        
+          newchain = false;
+          break;
+        }
+        else if (jbond == ktag) {
+          chainid[i][j] = chainid[i][k];
+          chainpos[i][j] = chainpos[i][k] - 1;
+        
           newchain = false;
           break;
         }
@@ -656,10 +657,10 @@ void PairMesoCNT::bond_neigh()
       if (newchain) {
         chainid[i][j] = nchain++;
         chainpos[i][j] = 0;
-
-        numchainlist[i] = nchain;
       }
     }
+
+    numchainlist[i] = nchain;
   }
   
   // count neighbor chain lengths per bond
@@ -684,7 +685,7 @@ void PairMesoCNT::bond_neigh()
     }
 
     for (int j = 0; j < numchainlist[i]; j++) {
-      int clen = chainpos_max[i][j] - chainpos_max[i][j] + 1;
+      int clen = chainpos_max[i][j] - chainpos_min[i][j] + 1;
       nchainlist[i][j] = clen;
       if (clen > nchain_max) nchain_max = clen;
     }
@@ -696,7 +697,7 @@ void PairMesoCNT::bond_neigh()
   // MEMORY: prevent zero-size array creation for chainlist
 
   memory->create_ragged(endlist, nbondlist, numchainlist, "pair:endlist");
-  if (empty_neigh > 0)
+  if (empty_neigh)
     memory->create(chainlist, 1, 1, 1, "pair:chainlist");
   else
     memory->create_ragged(chainlist, nbondlist, numchainlist, nchainlist, "pair:chainlist");
@@ -722,6 +723,19 @@ void PairMesoCNT::bond_neigh()
       else if (match_end(type[cend])) endlist[i][j] = 2;
       else endlist[i][j] = 0;
     }
+    
+    printf("bond_id: %d\n", i);
+    printf("reduced_neighlist: ");
+    for (int j = 0; j < reduced_nlist[i]; j++)
+      printf("%d ", tag[reduced_neighlist[i][j]]);
+    printf("\n");
+    for (int j = 0; j < numchainlist[i]; j++) {
+      printf("chain %d: ", j+1);
+      for (int k = 0; k < nchainlist[i][j]; k++) {
+        printf("%d ", tag[chainlist[i][j][k]]);
+      }
+      printf("\n");
+    }
   }
   
   // destroy remaining temporary arrays for chain creation
@@ -732,6 +746,8 @@ void PairMesoCNT::bond_neigh()
   memory->destroy(chainpos_min);
   memory->destroy(chainid);
   memory->destroy(chainpos);
+  
+  memory->destroy(numneigh_max);
 
   // resize potential arrays
 

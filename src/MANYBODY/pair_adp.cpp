@@ -76,6 +76,7 @@ PairADP::PairADP(LAMMPS *lmp) : Pair(lmp)
 
 PairADP::~PairADP()
 {
+  if(copymode) return;
   memory->destroy(rho);
   memory->destroy(fp);
   memory->destroy(mu);

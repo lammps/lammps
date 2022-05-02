@@ -23,7 +23,7 @@ Syntax
        *reduce/region* arg = region-ID
          region-ID = ID of region to use for choosing atoms
 
-* mode = *sum* or *min* or *max* or *ave* or *sumsq* or *avesq*
+* mode = *sum* or *min* or *max* or *ave* or *sumsq* or *avesq* or *sumabs* or *aveabs*
 * one or more inputs can be listed
 * input = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID[N], f_ID, f_ID[N], v_name
 
@@ -77,7 +77,10 @@ option sums the square of the values in the vector into a global
 total.  The *avesq* setting does the same as *sumsq*, then divides the
 sum of squares by the number of values.  The last two options can be
 useful for calculating the variance of some quantity, e.g. variance =
-sumsq - ave\^2.
+sumsq - ave\^2.  The *sumabs* option sums the absolute values in the 
+vector into a global total.  The *aveabs* setting does the same as 
+*sumabs*, then divides the sum of absolute values by the number of 
+values.
 
 Each listed input is operated on independently.  For per-atom inputs,
 the group specified with this command means only atoms within the
@@ -189,7 +192,7 @@ value.  If multiple inputs are specified, this compute produces a
 global vector of values, the length of which is equal to the number of
 inputs specified.
 
-As discussed below, for the *sum* and *sumsq* modes, the value(s)
+As discussed below, for the *sum*, *sumabs* and *sumsq* modes, the value(s)
 produced by this compute are all "extensive", meaning their value
 scales linearly with the number of atoms involved.  If normalized
 values are desired, this compute can be accessed by the :doc:`thermo_style custom <thermo_style>` command with :doc:`thermo_modify norm yes <thermo_modify>` set as an option.  Or it can be accessed by a
@@ -208,7 +211,7 @@ compute as input.  See the :doc:`Howto output <Howto_output>` doc page
 for an overview of LAMMPS output options.
 
 All the scalar or vector values calculated by this compute are
-"intensive", except when the *sum* or *sumsq* modes are used on
+"intensive", except when the *sum*, *sumabs* or *sumsq* modes are used on
 per-atom or local vectors, in which case the calculated values are
 "extensive".
 

@@ -1057,7 +1057,7 @@ void PairADPKokkos<DeviceType>::operator()(TagPairADPKernelC<NEIGHFLAG,NEWTON_PA
           ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*phi;
         }
 
-        if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,phi,fpair,delx,dely,delz);
+        if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,phi,fx,fy,fz,delx,dely,delz);
       }
 
     }
@@ -1082,7 +1082,7 @@ template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR>
 KOKKOS_INLINE_FUNCTION
 void PairADPKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
+      const F_FLOAT &epair, const F_FLOAT &fx, const F_FLOAT &fy, const F_FLOAT &fz, const F_FLOAT &delx,
                 const F_FLOAT &dely, const F_FLOAT &delz) const
 {
   const int EFLAG = eflag;
@@ -1109,12 +1109,12 @@ void PairADPKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &
   }
 
   if (VFLAG) {
-    const E_FLOAT v0 = delx*delx*fpair;
-    const E_FLOAT v1 = dely*dely*fpair;
-    const E_FLOAT v2 = delz*delz*fpair;
-    const E_FLOAT v3 = delx*dely*fpair;
-    const E_FLOAT v4 = delx*delz*fpair;
-    const E_FLOAT v5 = dely*delz*fpair;
+    const E_FLOAT v0 = delx*fx;
+    const E_FLOAT v1 = dely*fy;
+    const E_FLOAT v2 = delz*fz;
+    const E_FLOAT v3 = delx*fy;
+    const E_FLOAT v4 = delx*fz;
+    const E_FLOAT v5 = dely*fz;
 
     if (vflag_global) {
       if (NEIGHFLAG!=FULL) {

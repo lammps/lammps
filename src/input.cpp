@@ -773,6 +773,7 @@ int Input::execute_command()
   else if (!strcmp(command,"reset_timestep")) reset_timestep();
   else if (!strcmp(command,"restart")) restart();
   else if (!strcmp(command,"run_style")) run_style();
+  else if (!strcmp(command,"set_time")) set_time();
   else if (!strcmp(command,"special_bonds")) special_bonds();
   else if (!strcmp(command,"suffix")) suffix();
   else if (!strcmp(command,"thermo")) thermo();
@@ -1768,6 +1769,16 @@ void Input::run_style()
   if (domain->box_exist == 0)
     error->all(FLERR,"Run_style command before simulation box is defined");
   update->create_integrate(narg,arg,1);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::set_time()
+{
+  if (narg != 1) error->all(FLERR,"Illegal set_time command");
+
+  update->atime = utils::numeric(FLERR,arg[0],false,lmp);
+  update->atimestep = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */

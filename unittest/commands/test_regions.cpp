@@ -76,9 +76,10 @@ TEST_F(RegionTest, NoBox)
     command("region reg5 sphere 0 0 0 1");
     command("region reg6 union 3 reg1 reg2 reg3");
     command("region reg7 intersect 3 reg1 reg2 reg4");
+    command("region reg8 ellipsoid 0 0 0 2 1 2");
     END_HIDE_OUTPUT();
     list = domain->get_region_list();
-    EXPECT_EQ(list.size(), 7);
+    EXPECT_EQ(list.size(), 8);
 
     auto reg = domain->get_region_by_id("reg1");
     EXPECT_EQ(reg->interior, 1);
@@ -150,8 +151,31 @@ TEST_F(RegionTest, NoBox)
     EXPECT_EQ(reg->rotateflag, 0);
     EXPECT_EQ(reg->openflag, 0);
 
+    reg = domain->get_region_by_id("reg8");
+    EXPECT_EQ(reg->interior, 1);
+    EXPECT_EQ(reg->scaleflag, 1);
+    EXPECT_EQ(reg->bboxflag, 1);
+    EXPECT_EQ(reg->varshape, 0);
+    EXPECT_EQ(reg->dynamic, 0);
+    EXPECT_EQ(reg->moveflag, 0);
+    EXPECT_EQ(reg->rotateflag, 0);
+    EXPECT_EQ(reg->openflag, 0);
+
+    BEGIN_HIDE_OUTPUT();
+    command("region reg3 delete");
+    command("region reg5 delete");
+    command("region reg6 delete");
+    command("region reg1 delete");
+    END_HIDE_OUTPUT();
+    list = domain->get_region_list();
+    EXPECT_EQ(list.size(), 4);
+
+    reg = domain->get_region_by_id("reg7");
+    TEST_FAILURE(".*ERROR: Region intersect region reg1 does not exist.*", reg->init(););
+
     TEST_FAILURE(".*ERROR: Unrecognized region style 'xxx'.*", command("region new1 xxx"););
     TEST_FAILURE(".*ERROR: Illegal region command.*", command("region new1 block 0 1"););
+    TEST_FAILURE(".*ERROR: Delete region reg3 does not exist.*", command("region reg3 delete"););
 }
 
 TEST_F(RegionTest, Counts)
@@ -163,9 +187,12 @@ TEST_F(RegionTest, Counts)
     command("region reg2 cone y 0 0 10 0 -5 5 units box");
     command("region reg3 plane 0 0 0 0 1 0 side out");
     command("region reg4 prism -5 5 -5 5 -5 5 0.1 0.2 0.3 units box");
-    command("region reg5 sphere 0 0 0 6");
+    command("region reg5 sphere 1 0 0 6");
     command("region reg6 union 3 reg1 reg2 reg3");
     command("region reg7 intersect 3 reg1 reg2 reg4");
+    command("region reg8 ellipsoid 0 0 0 5 2 3");
+    command("region reg9 ellipsoid 1 0 0 6 6 6");           // same as sphere
+    command("region reg10 prism 0 5 0 5 -5 5 0.0 0.0 0.0"); // same as block
     END_HIDE_OUTPUT();
 
     auto x    = atom->x;
@@ -176,8 +203,11 @@ TEST_F(RegionTest, Counts)
     auto reg5 = domain->get_region_by_id("reg5");
     auto reg6 = domain->get_region_by_id("reg6");
     auto reg7 = domain->get_region_by_id("reg7");
-    int count1, count2, count3, count4, count5, count6, count7;
-    count1 = count2 = count3 = count4 = count5 = count6 = count7 = 0;
+    auto reg8 = domain->get_region_by_id("reg8");
+    auto reg9 = domain->get_region_by_id("reg9");
+    auto reg10 = domain->get_region_by_id("reg10");
+    int count1, count2, count3, count4, count5, count6, count7, count8, count9, count10;
+    count1 = count2 = count3 = count4 = count5 = count6 = count7 = count8 = count9 = count10 = 0;
     reg1->prematch();
     reg2->prematch();
     reg3->prematch();
@@ -185,6 +215,9 @@ TEST_F(RegionTest, Counts)
     reg5->prematch();
     reg6->prematch();
     reg7->prematch();
+    reg8->prematch();
+    reg9->prematch();
+    reg10->prematch();
 
     for (int i = 0; i < atom->nlocal; ++i) {
         if (reg1->match(x[i][0], x[i][1], x[i][2])) ++count1;
@@ -194,6 +227,9 @@ TEST_F(RegionTest, Counts)
         if (reg5->match(x[i][0], x[i][1], x[i][2])) ++count5;
         if (reg6->match(x[i][0], x[i][1], x[i][2])) ++count6;
         if (reg7->match(x[i][0], x[i][1], x[i][2])) ++count7;
+        if (reg8->match(x[i][0], x[i][1], x[i][2])) ++count8;
+        if (reg9->match(x[i][0], x[i][1], x[i][2])) ++count9;
+        if (reg10->match(x[i][0], x[i][1], x[i][2])) ++count10;
     }
     EXPECT_EQ(count1, 250);
     EXPECT_EQ(count2, 1132);
@@ -202,6 +238,9 @@ TEST_F(RegionTest, Counts)
     EXPECT_EQ(count5, 907);
     EXPECT_EQ(count6, 4314);
     EXPECT_EQ(count7, 86);
+    EXPECT_EQ(count8, 122);
+    EXPECT_EQ(count9, count5);
+    EXPECT_EQ(count10, count1);
 }
 } // namespace LAMMPS_NS
 

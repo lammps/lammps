@@ -606,61 +606,109 @@ void PairMesoCNT::bond_neigh()
 
   // split neighbor list into neighbor chains based on bond topology
   
-  int **chainid, **chainpos;
+  int **chainid, **chainpos, **bonded_atom1, **bonded_atom2;
   memory->create_ragged(chainid, nbondlist, reduced_nlist, "pair:chainid");
   memory->create_ragged(chainpos, nbondlist, reduced_nlist, "pair:chainpos");  
+  memory->create_ragged(bonded_atom1, nbondlist, reduced_nlist, "pair::bonded_atom1");
+  memory->create_ragged(bonded_atom2, nbondlist, reduced_nlist, "pair::bonded_atom2");
   memory->create(numchainlist, nbondlist, "pair:numchainlist");
 
   bool empty_neigh = true;
   for (int i = 0; i < nbondlist; i++) {
 
-    if (reduced_nlist[i] == 0) {
-      numchainlist[i] = 0;
-      continue;
-    }
+    numchainlist[i] = 0;
+    if (reduced_nlist[i] == 0) continue;
 
     empty_neigh = false;
-    int nchain = 0;
 
     for (int j = 0; j < reduced_nlist[i]; j++) {
       int jj = reduced_neighlist[i][j];
       int jtag = tag[jj];
-      int jbond = bond_atom[jj][0];
+      int jbond = bond_atom[atom->map(jtag)][0];
 
-      int tag1 = tag[j];
+      bonded_atom1[i][j] = -1;
+      bonded_atom2[i][j] = -1;
+      chainid[i][j] = -1;
+
       bool newchain = true;
       for (int k = 0; k < j; k++) {
         int kk = reduced_neighlist[i][k];
         int ktag = tag[kk];
-        int kbond = bond_atom[kk][0];
+        int kbond = bond_atom[atom->map(ktag)][0];
 
         // check if atoms are bonded
         
-        if (jtag == kbond) {
-          chainid[i][j] = chainid[i][k];
-          chainpos[i][j] = chainpos[i][k] + 1;
-        
-          newchain = false;
-          break;
+        if (jtag == kbond || jbond == ktag) {
+          /*
+          if (i == 0) {
+            printf("jtag: %d, jbond: %d, ktag: %d, kbond: %d\n", jtag, jbond, ktag, kbond);
+            printf("pre-assignment\n");
+            printf("bonded_atom1[i][j]: %d, bonded_atom2[i][j]: %d, bonded_atom1[i][k]: %d, bonded_atom2[i][k]: %d\n", bonded_atom1[i][j], bonded_atom2[i][j], bonded_atom1[i][k], bonded_atom2[i][k]);
+          }
+          */
+          if (bonded_atom1[i][j] == -1) bonded_atom1[i][j] = k;
+          else bonded_atom2[i][j] = k;
+          if (bonded_atom1[i][k] == -1) bonded_atom1[i][k] = j;
+          else bonded_atom2[i][k] = j;
+          /*
+          if (i == 0) {
+            printf("post-assignment\n");
+            printf("bonded_atom1[i][j]: %d, bonded_atom2[i][j]: %d, bonded_atom1[i][k]: %d, bonded_atom2[i][k]: %d\n", bonded_atom1[i][j], bonded_atom2[i][j], bonded_atom1[i][k], bonded_atom2[i][k]);
+          }
+          */
         }
-        else if (jbond == ktag) {
-          chainid[i][j] = chainid[i][k];
-          chainpos[i][j] = chainpos[i][k] - 1;
-        
-          newchain = false;
-          break;
-        }
-      }
-
-      // start new chain
-      
-      if (newchain) {
-        chainid[i][j] = nchain++;
-        chainpos[i][j] = 0;
       }
     }
+    
+    // assign chain ids and positions
 
-    numchainlist[i] = nchain;
+    for (int j = 0; j < reduced_nlist[i]; j++) {
+      
+      // skip if atom is already assigned to a chain
+
+      if (chainid[i][j] != -1) continue;
+
+      // iterate along bonded atoms in both directions
+      
+      chainid[i][j] = numchainlist[i];
+      chainpos[i][j] = 0;
+      
+      // down the chain
+
+      int current_atom = j;
+      int next_atom = bonded_atom1[i][j];
+      while (next_atom != -1) {
+        chainid[i][next_atom] = numchainlist[i];
+        chainpos[i][next_atom] = chainpos[i][current_atom] - 1;
+        if (bonded_atom1[i][next_atom] != current_atom) {
+          current_atom = next_atom;
+          next_atom = bonded_atom1[i][next_atom];
+        }
+        else {
+          current_atom = next_atom;
+          next_atom = bonded_atom2[i][next_atom];
+        }
+      }
+      
+      // up the chain
+
+      current_atom = j;
+      next_atom = bonded_atom2[i][j];
+      while (next_atom != -1) {
+        chainid[i][next_atom] = numchainlist[i];
+        chainpos[i][next_atom] = chainpos[i][current_atom] + 1;
+        if (bonded_atom1[i][next_atom] != current_atom) {
+          current_atom = next_atom;
+          next_atom = bonded_atom1[i][next_atom];
+        }
+        else {
+          current_atom = next_atom;
+          next_atom = bonded_atom2[i][next_atom];
+        }
+      }
+
+      numchainlist[i]++;
+    }
   }
   
   // count neighbor chain lengths per bond
@@ -702,6 +750,8 @@ void PairMesoCNT::bond_neigh()
   else
     memory->create_ragged(chainlist, nbondlist, numchainlist, nchainlist, "pair:chainlist");
 
+  // printf("nlocal: %d\n", nlocal);
+
   for (int i = 0; i < nbondlist; i++) {
 
     // sort atoms into chain lists
@@ -724,11 +774,37 @@ void PairMesoCNT::bond_neigh()
       else endlist[i][j] = 0;
     }
     
+    /*
     printf("bond_id: %d\n", i);
     printf("reduced_neighlist: ");
     for (int j = 0; j < reduced_nlist[i]; j++)
+      printf("%d ", reduced_neighlist[i][j]);
+    printf("\n");
+    printf("map tag reduced_neighlist: ");
+    for (int j = 0; j < reduced_nlist[i]; j++)
+      printf("%d ", atom->map(tag[reduced_neighlist[i][j]]));
+    printf("\n");
+    printf("reduced_neighlist tags: ");
+    for (int j = 0; j < reduced_nlist[i]; j++)
       printf("%d ", tag[reduced_neighlist[i][j]]);
     printf("\n");
+    printf("num_bond: ");
+    for (int j = 0; j < reduced_nlist[i]; j++)
+      printf("%d ", atom->num_bond[reduced_neighlist[i][j]]);
+    printf("\n");
+    printf("bond_atom: ");
+    for (int j = 0; j < reduced_nlist[i]; j++)
+      printf("%d ", bond_atom[reduced_neighlist[i][j]][0]);
+    printf("\n");
+    printf("map tag bond_atom: ");
+    for (int j = 0; j < reduced_nlist[i]; j++)
+      printf("%d ", bond_atom[atom->map(tag[reduced_neighlist[i][j]])][0]);
+    printf("\n");
+    printf("bonded atoms: ");
+    for (int j = 0; j < reduced_nlist[i]; j++)
+      printf("(%d, %d) ", tag[reduced_neighlist[i][bonded_atom1[i][j]]], reduced_neighlist[i][tag[bonded_atom2[i][j]]]);
+    printf("\n");
+
     for (int j = 0; j < numchainlist[i]; j++) {
       printf("chain %d: ", j+1);
       for (int k = 0; k < nchainlist[i][j]; k++) {
@@ -736,6 +812,7 @@ void PairMesoCNT::bond_neigh()
       }
       printf("\n");
     }
+    */
   }
   
   // destroy remaining temporary arrays for chain creation
@@ -746,7 +823,9 @@ void PairMesoCNT::bond_neigh()
   memory->destroy(chainpos_min);
   memory->destroy(chainid);
   memory->destroy(chainpos);
-  
+  memory->destroy(bonded_atom1);
+  memory->destroy(bonded_atom2);
+
   memory->destroy(numneigh_max);
 
   // resize potential arrays

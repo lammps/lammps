@@ -39,8 +39,10 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 extern void lammps_pspw_input(MPI_Comm, std::string &);
-extern int lammps_pspw_minimizer(MPI_Comm, double *, double *, 
-                                 double *, double *, double *);
+extern int lammps_pspw_aimd_minimizer(MPI_Comm, double *, double *, double *);
+extern int lammps_pspw_qmmm_minimizer(MPI_Comm, double *, double *, 
+                                      double *, double *, double *);
+
 //extern int nwchem_abiversion();
 
 // the ABIVERSION number here must be kept consistent
@@ -139,19 +141,19 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
 
   // setup unit conversion factors
 
-  if (strcmp(update->unit_style,"metal") != 0) { 
+  if (strcmp(update->unit_style,"metal") == 0) { 
     lmp2qm_distance = ANGSTROM_TO_BOHR;
     lmp2qm_energy = 1.0 / HARTREE_TO_EV;
     qm2lmp_force = HARTREE_TO_EV * ANGSTROM_TO_BOHR;
     qm2lmp_energy = HARTREE_TO_EV;
-  } else if (strcmp(update->unit_style,"real") != 0) {
+  } else if (strcmp(update->unit_style,"real") == 0) {
     lmp2qm_distance = ANGSTROM_TO_BOHR;
     lmp2qm_energy = 1.0 / HARTREE_TO_KCAL_MOLE;
     qm2lmp_force = HARTREE_TO_KCAL_MOLE * ANGSTROM_TO_BOHR;
     qm2lmp_energy = HARTREE_TO_KCAL_MOLE;
   }
 
-  // qflag = 1 if system stores charge/atom, else 0
+  // qflag = 1 if system stores per-atom charge, else 0
 
   qflag = atom->q_flag;
 
@@ -295,8 +297,10 @@ int FixNWChem::setmask()
   int mask = 0;
   mask |= POST_NEIGHBOR;
   mask |= MIN_POST_NEIGHBOR;
-  mask |= PRE_FORCE;
-  mask |= MIN_PRE_FORCE;
+  if (mode == QMMM) {
+    mask |= PRE_FORCE;
+    mask |= MIN_PRE_FORCE;
+  }
   mask |= POST_FORCE;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -336,7 +340,7 @@ void FixNWChem::init()
   // one-time initialization of NWChem with its input file
   // also one-time setup of qqm = atom charges for all QM atoms
   //   later calls to NWChem change it for all QM atoms
-  //   changes get copied to LAMMPS per-atom q, never changed by LAMMPS
+  //   changes get copied to LAMMPS per-atom q which is not changed by LAMMPS
   // setup of xqm needed for nwchem_initialize();
 
   if (!qm_init) {
@@ -346,6 +350,11 @@ void FixNWChem::init()
     set_tqm();
     set_xqm();
     if (comm->me == 0) nwchem_initialize();
+    MPI_Barrier(world);
+
+    std::string filename = nw_input;
+    lammps_pspw_input(world,filename);
+    //dummy_pspw_input(world,filename);
   }
 }
 
@@ -381,7 +390,7 @@ void FixNWChem::post_neighbor()
 
 void FixNWChem::pre_force(int vflag)
 {
-  if (mode == QMMM) pre_force_qmmm(vflag);
+  pre_force_qmmm(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -488,12 +497,10 @@ void FixNWChem::pre_force_qmmm(int vflag)
   //   fqm,qqm = forces & charges
   //   qmenergy = QM energy of entire system
 
-  int nwerr = lammps_pspw_minimizer(world,
-                                    &xqm[0][0],qpotential,
-                                    &fqm[0][0],qqm,&qmenergy);
-  //int nwerr = dummy_pspw_minimizer(world,
-  //                                 &xqm[0][0],qpotential,
-  //                                 &fqm[0][0],qqm,&qmenergy);
+  int nwerr = lammps_pspw_qmmm_minimizer(world,&xqm[0][0],qpotential,
+                                         &fqm[0][0],qqm,&qmenergy);
+  //int nwerr = dummy_pspw_qmmm_minimizer(world,&xqm[0][0],qpotential,
+  //                                      &fqm[0][0],qqm,&qmenergy);
 
   if (nwerr) error->all(FLERR,"Internal NWChem error");
 
@@ -538,12 +545,10 @@ void FixNWChem::post_force_aimd(int vflag)
 {
   int ilocal;
 
-  // setup 2 NWChem inputs: xqm and qpotential
+  // setup NWChem input: xqm
   // xqm = atom coords, mapped into periodic box
-  // qpotential = Coulomb potential for each atom = 0.0 for AIMD
 
   set_xqm();
-  for (int i = 0; i < nqm; i++) qpotential[i] = 0.0;
 
   // unit conversion from LAMMPS to NWChem
 
@@ -557,17 +562,11 @@ void FixNWChem::post_force_aimd(int vflag)
   // QM atoms must be in order of ascending atom ID
   // inputs:
   //   xqm = atom coords
-  //   qpotential = vector of zeroes for AIMD
   // outputs:
-  //   fqm,qqm = forces & charges
+  //   fqm = forces
   //   qmenergy = QM energy of entire system
 
-  int nwerr = lammps_pspw_minimizer(world,
-                                    &xqm[0][0],qpotential,
-                                    &fqm[0][0],qqm,&qmenergy);
-  //int nwerr = dummy_pspw_minimizer(world,
-  //                                 &xqm[0][0],qpotential,
-  //                                 &fqm[0][0],qqm,&qmenergy);
+  int nwerr = lammps_pspw_aimd_minimizer(world,&xqm[0][0],&fqm[0][0],&qmenergy);
 
   if (nwerr) error->all(FLERR,"Internal NWChem error");
 
@@ -582,11 +581,8 @@ void FixNWChem::post_force_aimd(int vflag)
   }
 
   // add QM forces to owned atoms
-  // if qflag: reset owned charges to QM values
-  //   allows user to output charges if desired
 
   double **f = atom->f;
-  double *q = atom->q;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nqm; i++) {
@@ -595,7 +591,6 @@ void FixNWChem::post_force_aimd(int vflag)
       f[ilocal][0] += fqm[i][0];
       f[ilocal][1] += fqm[i][1];
       f[ilocal][2] += fqm[i][2];
-      if (qflag) q[ilocal] = qqm[i];
     }
   }
 }
@@ -797,6 +792,8 @@ void FixNWChem::nwchem_initialize()
                nw_input,utils::getsyserror());
   
   // read nw_template file line by line and echo to nw_input file
+  // when FILEINSERT line is read:
+  //   replace it with line for filename prefix for NWChem output
   // when GEOMINSERT line is read:
   //   replace it with lines that specify the simulation box and list of atoms
   //   each atom's element ID and coords are written to file
@@ -805,56 +802,63 @@ void FixNWChem::nwchem_initialize()
     eof = fgets(line,MAXLINE,nwfile);
     if (eof == nullptr) break;
 
-    if (strcmp(line,"GEOMINSERT\n") != 0) {
-      fprintf(infile,line);
+    if (strcmp(line,"FILEINSERT\n") == 0) {
+      int n = strlen(nw_input);
+      char *fileprefix = new char[n];
+      strncpy(fileprefix,nw_input,n-3);
+      fileprefix[n-3] = '\0';
+      fprintf(infile,"start %s\n",fileprefix);
+      delete [] fileprefix;
+      continue;
+    }
+    
+    if (strcmp(line,"GEOMINSERT\n") == 0) {
+      fprintf(infile,"geometry noautosym noautoz nocenter\n");
+      fprintf(infile,"system crystal cartesian\n");
+      fprintf(infile,"lattice_vectors\n");
+
+      int *type = atom->type;
+
+      // orthogonal box
+    
+      if (!domain->triclinic) {
+        fprintf(infile,"%g %g %g\n",domain->xprd,0.0,0.0);
+        fprintf(infile,"%g %g %g\n",0.0,domain->yprd,0.0);
+        fprintf(infile,"%g %g %g\n",0.0,0.0,domain->zprd);
+        fprintf(infile,"end\n\n");
+        
+        for (int i = 0; i < nqm; i++) {
+          fprintf(infile,"%s %g %g %g\n",
+                  elements[tqm[i]-1],xqm[i][0],xqm[i][1],xqm[i][2]);
+        }
+        fprintf(infile,"end\n");
+        
+        // triclinic box
+        
+      } else {
+        fprintf(infile,"%g %g %g\n",domain->xprd,0.0,0.0);
+        fprintf(infile,"%g %g %g\n",domain->xy,domain->yprd,0.0);
+        fprintf(infile,"%g %g %g\n",domain->xz,domain->yz,domain->zprd);
+        fprintf(infile,"end\n\n");
+        
+        for (int i = 0; i < nqm; i++)
+          fprintf(infile,"%s %g %g %g\n",
+                  elements[tqm[i]-1],xqm[i][0],xqm[i][1],xqm[i][2]);
+        fprintf(infile,"end\n");
+      }
+
       continue;
     }
 
-    fprintf(infile,"geometry noautosym noautoz center\n");
-    fprintf(infile,"system crystal cartesian\n");
-    fprintf(infile,"lattice_vectors\n");
+    // just echo all other lines
 
-    int *type = atom->type;
-
-    // orthogonal box
-    
-    if (!domain->triclinic) {
-      fprintf(infile,"%g %g %g\n",domain->xprd,0.0,0.0);
-      fprintf(infile,"%g %g %g\n",0.0,domain->yprd,0.0);
-      fprintf(infile,"%g %g %g\n",0.0,0.0,domain->zprd);
-      fprintf(infile,"end\n\n");
-
-      for (int i = 0; i < nqm; i++) {
-        fprintf(infile,"%s %g %g %g\n",
-                elements[tqm[i]-1],xqm[i][0],xqm[i][1],xqm[i][2]);
-      }
-      fprintf(infile,"end\n");
-      
-    // triclinic box
-      
-    } else {
-      fprintf(infile,"%g %g %g\n",domain->xprd,0.0,0.0);
-      fprintf(infile,"%g %g %g\n",domain->xy,domain->yprd,0.0);
-      fprintf(infile,"%g %g %g\n",domain->xz,domain->yz,domain->zprd);
-      fprintf(infile,"end\n\n");
-
-      for (int i = 0; i < nqm; i++)
-        fprintf(infile,"%s %g %g %g\n",
-                elements[tqm[i]-1],xqm[i][0],xqm[i][1],xqm[i][2]);
-      fprintf(infile,"end\n");
-    }
+    fprintf(infile,line);
   }
 
   // close 2 files
 
   fclose(nwfile);
   fclose(infile);
-
-  // pass new input file to NWChem
-
-  std::string filename = nw_input;
-  lammps_pspw_input(world,filename);
-  //dummy_pspw_input(world,filename);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -917,21 +921,12 @@ void FixNWChem::set_tqm()
 
 void FixNWChem::set_xqm()
 {
-  // xctr = center of LAMMPS simulation box
-
-  double xctr[3];
-  xctr[0] = xctr[1] = xctr[2] = 0.5;
-  domain->lamda2x(xctr,xctr);
-
-  // xqm_mine = coords of QM atoms I own
-  // translate wrt NWChem origin at center of simulation box
-
   for (int i = 0; i < nqm; i++) {
     xqm_mine[i][0] = 0.0;
     xqm_mine[i][1] = 0.0;
     xqm_mine[i][2] = 0.0;
   }
-  
+
   double **x = atom->x;
   int ilocal;
 
@@ -943,10 +938,6 @@ void FixNWChem::set_xqm()
       xqm_mine[i][2] = x[ilocal][2];
 
       domain->remap(xqm_mine[i]);
-
-      xqm_mine[i][0] -= xctr[0];
-      xqm_mine[i][1] -= xctr[1];
-      xqm_mine[i][2] -= xctr[2];
     }
   }
 
@@ -958,9 +949,9 @@ void FixNWChem::set_xqm()
    for dummy test, quantities are in LAMMPS units, not NWChem units
 ------------------------------------------------------------------------- */
 
-int FixNWChem::dummy_pspw_minimizer(MPI_Comm nwworld, 
-                                    double *x, double *qp, 
-                                    double *f, double *q, double *eqm)
+int FixNWChem::dummy_pspw_qmmm_minimizer(MPI_Comm nwworld, 
+                                         double *x, double *qp, 
+                                         double *f, double *q, double *eqm)
 {
   double rsq,r2inv,rinv,fpair;
   double delta[3];

@@ -95,8 +95,8 @@ class FixNWChem : public Fix {
   void set_xqm();
 
   void dummy_pspw_input(MPI_Comm, std::string &) {}
-  int dummy_pspw_minimizer(MPI_Comm, double *, double *, 
-                           double *, double *, double *);
+  int dummy_pspw_qmmm_minimizer(MPI_Comm, double *, double *, 
+                                double *, double *, double *);
 };
 
 }    // namespace LAMMPS_NS

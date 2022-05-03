@@ -1,0 +1,22 @@
+# single conformation with NWChem
+
+units		metal
+atom_style	atomic
+atom_modify     map yes
+comm_modify     cutoff 2.0
+
+read_data       data.bcc
+
+mass		1 183.84
+
+neighbor	1.0 bin
+neigh_modify	delay 0 every 1 check yes
+
+fix             2 all nwchem template.nw w.single.nw W
+fix_modify      2 energy yes
+
+dump            1 all custom 1 dump.w.single id x y z fx fy fz
+
+timestep        0.001
+
+run		0

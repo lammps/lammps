@@ -1,0 +1,26 @@
+# AIMD with NWChem
+
+units		metal
+atom_style	atomic
+atom_modify     map yes #sort 1000 0.5
+comm_modify     cutoff 2.0
+
+read_data       data.bcc
+
+mass		1 183.84
+velocity        all create 500.0 394893
+
+neighbor	1.0 bin
+neigh_modify	delay 0 every 1 check yes
+
+fix		1 all nve
+
+fix             2 all nwchem template.nw w.aimd.nw W
+fix_modify      2 energy yes
+
+dump            1 all custom 1 dump.w.aimd id x y z vx vy vz fx fy fz
+
+timestep        0.001
+
+thermo          1
+run		10

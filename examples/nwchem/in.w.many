@@ -1,0 +1,33 @@
+# many conformations with NWChem
+
+variable        datafiles file file.list
+
+label           loop
+
+clear
+
+units		metal
+atom_style	atomic
+atom_modify     map yes
+comm_modify     cutoff 2.0
+
+log             log.${datafiles}
+
+read_data       LAMMPS/${datafiles}
+
+mass		1 183.84
+
+neighbor	1.0 bin
+neigh_modify	delay 0 every 1 check yes
+
+fix             2 all nwchem template.nw ${datafiles}.nw W
+fix_modify      2 energy yes
+
+dump            1 all custom 1 dump.${datafiles} id x y z vx vy vz fx fy fz
+
+timestep        0.001
+
+run		0
+
+next            datafiles
+jump            SELF loop

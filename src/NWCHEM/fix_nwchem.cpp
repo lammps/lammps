@@ -169,7 +169,10 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
   nqm = ngroup;
 
   if (nqm == atom->natoms) mode = AIMD;
-  else mode = QMMM;
+  else {
+    mode = QMMM;
+    error->all(FLERR,"Fix nwchem for a non-all group (QMMM) is not yet enabled");
+  }
 
   memory->create(qmIDs,nqm,"nwchem:qmIDs");
   memory->create(xqm,nqm,3,"nwchem:xqm");

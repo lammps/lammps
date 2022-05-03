@@ -96,11 +96,13 @@ def convert(vaspfile,datafile):
   d.title = "LAMMPS data file from VASP file %s\n" % vaspfile
   d.headers["atoms"] = natoms
   d.headers["atom types"] = ntypes
-  d.headers["xlo xhi"] = (0.0,avec[0])
-  d.headers["ylo yhi"] = (0.0,bvec[1])
-  d.headers["zlo zhi"] = (0.0,cvec[2])
+  d.headers["xlo xhi"] = (0.0,"%20.17g" % avec[0])
+  d.headers["ylo yhi"] = (0.0,"%20.17g" % bvec[1])
+  d.headers["zlo zhi"] = (0.0,"%20.17g" % cvec[2])
   if (bvec[0] != 0.0) or (cvec[0] != 0.0) or (cvec[1] != 0.0):
-    d.headers["xy xz yz"] = (bvec[0],cvec[0],cvec[1])
+    d.headers["xy xz yz"] = ("%20.17g" % bvec[0],
+                             "%20.17g" % cvec[0],
+                             "%20.17g" % cvec[1])
 
   id = 0
   itype = 0
@@ -111,7 +113,7 @@ def convert(vaspfile,datafile):
     if id == counts[itype] + previous:
       previous += counts[itype]
       itype += 1
-    line = "%d %d %s %s %s\n" % (id+1,itype+1,str(x),str(y),str(z))
+    line = "%d %d %20.17g %20.17g %20.17g\n" % (id+1,itype+1,x,y,z)
     atomlines.append(line)
     id += 1
 

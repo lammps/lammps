@@ -27,7 +27,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "update.h"
@@ -110,8 +109,7 @@ ComputeEntropyAtom::~ComputeEntropyAtom()
 void ComputeEntropyAtom::init()
 {
   if (force->pair == nullptr)
-    error->all(FLERR,"Compute entropy/atom requires a pair style be"
-               " defined");
+    error->all(FLERR,"Compute entropy/atom requires a pair style be defined");
 
   if ((cutoff+cutoff2) > (force->pair->cutforce  + neighbor->skin))
     {
@@ -126,23 +124,16 @@ void ComputeEntropyAtom::init()
   if (count > 1 && comm->me == 0)
     error->warning(FLERR,"More than one compute entropy/atom");
 
-  // Request neighbor list
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  // Request a full neighbor list
+  int list_flags = NeighConst::REQ_FULL;
   if (avg_flag) {
-    // need a full neighbor list with neighbors of the ghost atoms
-    neighbor->requests[irequest]->occasional = 0;
-    neighbor->requests[irequest]->ghost = 1;
+    // need neighbors of the ghost atoms
+    list_flags |= NeighConst::REQ_GHOST;
   } else {
-    // need a regular full neighbor list
-    // can build it occasionally
-    neighbor->requests[irequest]->occasional = 1;
-    neighbor->requests[irequest]->ghost = 0;
+    // may build it occasionally
+    list_flags |= NeighConst::REQ_OCCASIONAL;
   }
-
+  neighbor->add_request(this, list_flags);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -159,8 +150,8 @@ void ComputeEntropyAtom::compute_peratom()
   int i,j,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double *rbin = new double[nbin];
-  double *rbinsq = new double[nbin];
+  auto rbin = new double[nbin];
+  auto rbinsq = new double[nbin];
 
   invoked_peratom = update->ntimestep;
 
@@ -208,8 +199,8 @@ void ComputeEntropyAtom::compute_peratom()
 
   double **x = atom->x;
   int *mask = atom->mask;
-  double *gofr = new double[nbin];
-  double *integrand = new double[nbin];
+  auto gofr = new double[nbin];
+  auto integrand = new double[nbin];
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];

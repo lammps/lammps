@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class ComputeKE : public Compute {
  public:
   ComputeKE(class LAMMPS *, int, char **);
-  void init();
-  double compute_scalar();
+  void init() override;
+  double compute_scalar() override;
 
  private:
   double pfactor;
@@ -38,13 +38,3 @@ class ComputeKE : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

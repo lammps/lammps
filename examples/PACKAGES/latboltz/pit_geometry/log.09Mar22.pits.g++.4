@@ -1,0 +1,193 @@
+LAMMPS (17 Feb 2022)
+#===========================================================================#
+# Rigid sphere freely moving in a system with pressure driven flow through  #
+#   a pit geometry.                                                         #
+#                                                                           #
+# If uncommented, the example produces several output files:                #
+#   'flow.xdmf', 'flow.raw' ... xdmf and accompanying binary file for the   #
+#                               fluid density and velocity which can be read#
+#                               and plotted using Paraview.                 #
+#   'dumpatomsXX.vtp', 'dumpatomsXX_boundingBox.vtr' ... produces by the    #
+#                               dumpvtk routine (requires that lammps be    #
+#                               compiled with the vtk package).  These filed#
+#                               can also be read and plotted using Paraview.#
+#                               XX is the timestep of the dump output.      #
+#===========================================================================#
+
+units          micro
+dimension      3
+boundary       p p f
+atom_style     atomic
+
+#----------------------------------------------------------------------------
+# Need a neighbor bin size smaller than the lattice-Boltzmann grid spacing
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid.
+# The arguments for neigh_modify have been set to "delay 0 every 1", again
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid.  However, these values can likely
+#   be somewhat increased without issue.  If a problem does arise (a particle
+#   is outside of its processors LB grid) an error message is printed and
+#   the simulation is terminated.
+#----------------------------------------------------------------------------
+neighbor       1.0 bin
+neigh_modify   delay 0 every 1
+
+read_data      data.one_radius16d2
+Reading data file ...
+  orthogonal box = (-120 -100 -120) to (120 100 120)
+  2 by 1 by 2 MPI processor grid
+  reading atoms ...
+  320 atoms
+  read_data CPU = 0.012 seconds
+
+#----------------------------------------------------------------------------
+# None of the particles interact with one another.
+#----------------------------------------------------------------------------
+pair_style     lj/cut 2.45
+pair_coeff     * * 0.0 0.0 2.45
+neigh_modify   exclude type 1 1
+
+mass           * 100.0
+timestep       2.0
+
+group          sphere1 id <> 1 320
+320 atoms in group sphere1
+
+#----------------------------------------------------------------------------
+# Colloidal particle is initially stationary.
+#----------------------------------------------------------------------------
+velocity       all set 0.0 0.0 0.0 units box
+
+#----------------------------------------------------------------------------
+# Create a lattice-Boltzmann fluid covering the simulation domain.
+# All of the particles in the simulation apply a force to the fluid.
+#   (however, this fix does not explicity apply a force back on to these
+#    particles...this is accomplished through the use of the lb/viscous fix).
+# Set the fluid density = 1.0, fluid viscosity = 1.0 (water), and lattice
+#    spacing dx=4.0.
+# dumpxdmf is set to output to the xdmf file (fflow.xdmf and fflow.raw) every
+#    2500 steps, indexed by the frame number (rather than timestep).
+# The flow is generated via a pressure jump at the otherwise periodic x-
+#    boundary using the pressurebcx option.
+# The initial conditions are set as linear interpolation between boundary
+#    values using the linearInit option.
+#-----------------------------------------------------------------------------
+fix  1 all lb/fluid 1 1.0 1.0 dx 4.0 linearInit pressurebcx 0.01 npits 2 20 40 5 0 wp 30 # dumpxdmf 2500 fflow 0
+Using a lattice-Boltzmann grid of 60 by 50 by 61 total grid points. (../fix_lb_fluid.cpp:486)
+length of pits and end segments larger than system size in x-direction: truncation will occur (../fix_lb_fluid.cpp:505)
+Local Grid Geometry created. (../fix_lb_fluid.cpp:1018)
+
+#-----------------------------------------------------------------------------
+# You can get some other interesting geometries by replacing the npits options
+#   at the end of the above lb/fluid fix with one of the following:
+#-----------------------------------------------------------------------------
+# Channel with 2 pits placed symmetrically about center in x:
+#npits 2 20 20 10 5 sw
+
+# Channel with 1 pit placed at center:
+#npits 1 20 20 20 sw
+
+# Full channel with 1 "speedbump" placed in right end of the channel:
+#npits 2 20 40 5 0 sw
+
+# Channel with 2 "potholes" placed symmetrically about center in x:
+#npits 2 20 15 10 10 wp 30
+
+# Channel with T-shaped cross-section with a "speedbump" in right end:
+#npits 2 20 40 5 0 wp 30
+
+# Long rectangular channel (all pit, no slit):
+#npits 1 20 65 5 0 sw
+
+#----------------------------------------------------------------------------
+# Apply the force from the fluid to the particles, and integrate their
+#   motion, constraining them to move and rotate together as a single rigid
+#   spherical object.
+#----------------------------------------------------------------------------
+fix 2 all lb/viscous
+fix 3 all rigid group 1 sphere1
+  1 rigid bodies with 320 atoms
+
+#----------------------------------------------------------------------------
+# Create variables for the center-of-mass and angular velocities, and output
+#   these quantities to the screen.
+#----------------------------------------------------------------------------
+variable vx equal vcm(all,x)
+variable vy equal vcm(all,y)
+variable vz equal vcm(all,z)
+variable omegax equal omega(all,x)
+variable omegay equal omega(all,y)
+variable omegaz equal omega(all,z)
+
+thermo_style   custom step f_1[2] v_vx v_vy v_vz v_omegax v_omegay v_omegaz
+thermo         500
+
+#dump dumpvtk all vtk 2500 dumpatoms*.vtp vx vy vz
+
+run	       2500
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix lb/fluid command:
+
+@Article{Denniston et al.,
+ author = {C. Denniston, N. Afrasiabian, M.G. Cole-Andre,F.E. Mackay, S.T.T. Ollila, T. Whitehead},
+ title =   {LAMMPS lb/fluid fix version 2: Improved Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid}, journal = {Comp.~Phys.~Comm.},
+ year =    2022,
+ volume =  275,
+ pages =   {108318}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+  generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3.45
+  ghost atom cutoff = 3.45
+  binsize = 1.725, bins = 140 116 140
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.973 | 6.973 | 6.973 Mbytes
+Step f_1[2] v_vx v_vy v_vz v_omegax v_omegay v_omegaz 
+       0     10054461            0            0            0            0            0            0 
+     500     10055203  0.008268321 2.9442616e-05 0.0019660229 -5.0307394e-07 2.1873981e-05 2.2701522e-07 
+    1000     10055487  0.015301314 4.219514e-05 0.0029217734 -6.9936017e-07 6.8198965e-05 5.2031048e-07 
+    1500     10055663   0.02117119 2.9194379e-05  0.002365636 -7.5401298e-07 0.00011557032 4.0311183e-07 
+    2000     10055781   0.02523262 -9.149834e-06 -0.0001724854 -2.5872732e-07 0.00014864932 3.7644295e-07 
+    2500     10055866   0.02651785 -5.2469712e-05 -0.0030476651 2.9151609e-07 0.00014663544 7.8650891e-07 
+Loop time of 86.7379 on 4 procs for 2500 steps with 320 atoms
+
+Performance: 4980523049.256 ns/day, 0.000 hours/ns, 28.822 timesteps/s
+99.1% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.005625   | 0.0081021  | 0.011663   |   2.9 |  0.01
+Neigh   | 0.25946    | 0.26966    | 0.28604    |   2.0 |  0.31
+Comm    | 0.032947   | 0.047576   | 0.069872   |   7.0 |  0.05
+Output  | 0.0038996  | 0.0041104  | 0.0047328  |   0.6 |  0.00
+Modify  | 86.297     | 86.325     | 86.351     |   0.3 | 99.52
+Other   |            | 0.08361    |            |       |  0.10
+
+Nlocal:             80 ave         219 max           0 min
+Histogram: 2 0 0 0 1 0 0 0 0 1
+Nghost:          17.75 ave          36 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:              0 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 176
+Dangerous builds = 0
+Total wall time: 0:01:26

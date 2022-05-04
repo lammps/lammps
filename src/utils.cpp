@@ -19,13 +19,14 @@
 #include "error.h"
 #include "fix.h"
 #include "fmt/chrono.h"
+#include "input.h"
 #include "memory.h"
 #include "modify.h"
 #include "text_file_reader.h"
-#include "tokenizer.h"
+#include "universe.h"
 #include "update.h"
+#include "variable.h"
 
-#include <algorithm>
 #include <cctype>
 #include <cerrno>
 #include <cstring>
@@ -121,6 +122,12 @@ std::string utils::strfind(const std::string &text, const std::string &pattern)
     return "";
 }
 
+void utils::missing_cmd_args(const std::string &file, int line, const std::string &cmd,
+                             Error *error)
+{
+  if (error) error->all(file, line, "Illegal {} command: missing argument(s)", cmd);
+}
+
 /* specialization for the case of just a single string argument */
 
 void utils::logmesg(LAMMPS *lmp, const std::string &mesg)
@@ -136,6 +143,19 @@ void utils::fmtargs_logmesg(LAMMPS *lmp, fmt::string_view format, fmt::format_ar
   } catch (fmt::format_error &e) {
     logmesg(lmp, std::string(e.what()) + "\n");
   }
+}
+
+std::string utils::errorurl(int errorcode)
+{
+  return fmt::format("\nFor more information see https://docs.lammps.org/err{:04d}", errorcode);
+}
+
+void utils::flush_buffers(LAMMPS *lmp)
+{
+  if (lmp->screen) fflush(lmp->screen);
+  if (lmp->logfile) fflush(lmp->logfile);
+  if (lmp->universe->uscreen) fflush(lmp->universe->uscreen);
+  if (lmp->universe->ulogfile) fflush(lmp->universe->ulogfile);
 }
 
 /* define this here, so we won't have to include the headers
@@ -559,14 +579,14 @@ void utils::bounds(const char *file, int line, const std::string &str,
       error->all(file, line, fmt::format("Invalid range string: {}", str));
 
     if (nlo < nmin)
-      error->all(file, line, fmt::format("Numeric index {} is out of bounds "
-                             "({}-{})", nlo, nmin, nmax));
+      error->all(file, line, fmt::format("Numeric index {} is out of bounds ({}-{})",
+                                         nlo, nmin, nmax));
     else if (nhi > nmax)
-      error->all(file, line, fmt::format("Numeric index {} is out of bounds "
-                             "({}-{})", nhi, nmin, nmax));
+      error->all(file, line, fmt::format("Numeric index {} is out of bounds ({}-{})",
+                                         nhi, nmin, nmax));
     else if (nlo > nhi)
-      error->all(file, line, fmt::format("Numeric index {} is out of bounds "
-                             "({}-{})", nlo, nmin, nhi));
+      error->all(file, line, fmt::format("Numeric index {} is out of bounds ({}-{})",
+                                         nlo, nmin, nhi));
   }
 }
 
@@ -613,7 +633,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
     // match compute, fix, or custom property array reference with a '*' wildcard
     // number range in the first pair of square brackets
 
-    if (strmatch(word, "^[cf]_\\w+\\[\\d*\\*\\d*\\]") ||
+    if (strmatch(word, "^[cfv]_\\w+\\[\\d*\\*\\d*\\]") ||
         strmatch(word, "^[id]2_\\w+\\[\\d*\\*\\d*\\]")) {
 
       // split off the compute/fix/property ID, the wildcard and trailing text
@@ -651,7 +671,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
           }
         }
 
-        // fix
+      // fix
 
       } else if (word[0] == 'f') {
         auto fix = lmp->modify->get_fix_by_id(id);
@@ -674,8 +694,25 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
           }
         }
 
-        // only match custom array reference with a '*' wildcard
-        // number range in the first pair of square brackets
+      // vector variable
+
+      } else if (word[0] == 'v') {
+        int index = lmp->input->variable->find(id.c_str());
+
+        // check for global vector/array, peratom array, local array
+
+        if (index >= 0) {
+          if (mode == 0 && lmp->input->variable->vectorstyle(index)) {
+            utils::bounds(file, line, wc, 1, MAXSMALLINT, nlo, nhi, lmp->error);
+            if (nhi < MAXSMALLINT) {
+              nmax = nhi;
+              expandflag = 1;
+            }
+          }
+        }
+
+      // only match custom array reference with a '*' wildcard
+      // number range in the first pair of square brackets
 
       } else if ((word[0] == 'i') || (word[0] == 'd')) {
         int flag, cols;
@@ -698,6 +735,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
     if (expandflag) {
 
       // expand wild card string to nlo/nhi numbers
+
       utils::bounds(file, line, wc, 1, nmax, nlo, nhi, lmp->error);
 
       if (newarg + nhi - nlo + 1 > maxarg) {
@@ -737,7 +775,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
 
 char *utils::strdup(const std::string &text)
 {
-  char *tmp = new char[text.size() + 1];
+  auto tmp = new char[text.size() + 1];
   strcpy(tmp, text.c_str());    // NOLINT
   return tmp;
 }
@@ -784,9 +822,21 @@ std::string utils::trim(const std::string &line)
 
 std::string utils::trim_comment(const std::string &line)
 {
-  auto end = line.find_first_of('#');
+  auto end = line.find('#');
   if (end != std::string::npos) { return line.substr(0, end); }
   return {line};
+}
+
+/* ----------------------------------------------------------------------
+   Replace '*' with number and optional zero-padding
+------------------------------------------------------------------------- */
+
+std::string utils::star_subst(const std::string &name, bigint step, int pad)
+{
+  auto star = name.find('*');
+  if (star == std::string::npos) return name;
+
+  return fmt::format("{}{:0{}}{}", name.substr(0, star), step, pad, name.substr(star + 1));
 }
 
 /* ----------------------------------------------------------------------
@@ -795,7 +845,7 @@ std::string utils::trim_comment(const std::string &line)
 
 std::string utils::utf8_subst(const std::string &line)
 {
-  const unsigned char *const in = (const unsigned char *) line.c_str();
+  const auto *const in = (const unsigned char *) line.c_str();
   const int len = line.size();
   std::string out;
 
@@ -1028,7 +1078,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
 ------------------------------------------------------------------------- */
 std::vector<std::string> utils::split_lines(const std::string &text)
 {
-  return Tokenizer(text, "\n").as_vector();
+  return Tokenizer(text, "\r\n").as_vector();
 }
 
 /* ----------------------------------------------------------------------

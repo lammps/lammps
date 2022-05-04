@@ -33,8 +33,8 @@ namespace LAMMPS_NS {
 class DumpNetCDF : public DumpCustom {
  public:
   DumpNetCDF(class LAMMPS *, int, char **);
-  virtual ~DumpNetCDF();
-  virtual void write();
+  ~DumpNetCDF() override;
+  void write() override;
 
  private:
   static constexpr int NC_FIELD_NAME_MAX = 100;
@@ -88,12 +88,12 @@ class DumpNetCDF : public DumpCustom {
   int cell_lengths_var;
   int cell_angles_var;
 
-  virtual void openfile();
+  void openfile() override;
   void closefile();
-  virtual void write_header(bigint);
-  virtual void write_data(int, double *);
+  void write_header(bigint) override;
+  void write_data(int, double *) override;
 
-  virtual int modify_param(int, char **);
+  int modify_param(int, char **) override;
 
   void ncerr(int, const char *, int);
 };

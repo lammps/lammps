@@ -31,6 +31,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -56,8 +57,8 @@ namespace GLE {
 //"stabilized" cholesky decomposition. does a LDL^t decomposition, then sets to zero the negative diagonal elements and gets MM^t
 void StabCholesky(int n, const double* MMt, double* M)
 {
-  double *L = new double[n*n];
-  double *D = new double[n];
+  auto L = new double[n*n];
+  auto D = new double[n];
 
   int i,j,k;
   for (i=0; i<n; ++i) D[i]=0.0;
@@ -158,9 +159,9 @@ void MyPrint(int n, const double* A)
 //matrix exponential by scaling and squaring.
 void MatrixExp(int n, const double* M, double* EM, int j=8, int k=8)
 {
-  double *tc = new double[j+1];
-  double *SM = new double[n*n];
-  double *TMP = new double[n*n];
+  auto tc = new double[j+1];
+  auto SM = new double[n*n];
+  auto TMP = new double[n*n];
   double onetotwok=pow(0.5,1.0*k);
 
 
@@ -355,8 +356,8 @@ void FixGLE::init()
   }
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
-    step_respa = ((Respa *) update->integrate)->step;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
+    step_respa = (dynamic_cast<Respa *>( update->integrate))->step;
   }
 
   init_gle();
@@ -368,8 +369,8 @@ void FixGLE::init_gle()
 {
   // compute Langevin terms
 
-  double *tmp1 = new double[ns1sq];
-  double *tmp2 = new double[ns1sq];
+  auto tmp1 = new double[ns1sq];
+  auto tmp2 = new double[ns1sq];
 
   for (int i=0; i<ns1sq; ++i) {
     tmp1[i]=-A[i]*update->dt*0.5*gle_every;
@@ -405,10 +406,10 @@ void FixGLE::init_gles()
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  double *rootC  = new double[ns1sq];
-  double *rootCT = new double[ns1sq];
-  double *newg   = new double[3*(ns+1)*nlocal];
-  double *news   = new double[3*(ns+1)*nlocal];
+  auto rootC  = new double[ns1sq];
+  auto rootCT = new double[ns1sq];
+  auto newg   = new double[3*(ns+1)*nlocal];
+  auto news   = new double[3*(ns+1)*nlocal];
 
   GLE::StabCholesky(ns+1, C, rootC);
   GLE::MyTrans(ns+1,rootC,rootCT);
@@ -443,9 +444,9 @@ void FixGLE::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(nlevels_respa-1);
     post_force_respa(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(nlevels_respa-1);
   }
 }
 

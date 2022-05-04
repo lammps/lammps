@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 class FixTempCSLD : public Fix {
  public:
   FixTempCSLD(class LAMMPS *, int, char **);
-  ~FixTempCSLD();
-  int setmask();
-  void init();
-  void end_of_step();
-  int modify_param(int, char **);
-  void reset_target(double);
-  virtual double compute_scalar();
-  void write_restart(FILE *);
-  void restart(char *buf);
-  virtual void *extract(const char *, int &);
+  ~FixTempCSLD() override;
+  int setmask() override;
+  void init() override;
+  void end_of_step() override;
+  int modify_param(int, char **) override;
+  void reset_target(double) override;
+  double compute_scalar() override;
+  void write_restart(FILE *) override;
+  void restart(char *buf) override;
+  void *extract(const char *, int &) override;
 
  private:
   double t_start, t_stop, t_period, t_target;
@@ -57,51 +57,3 @@ class FixTempCSLD : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix temp/csld is not compatible with fix rattle or fix shake
-
-These two commands cannot currently be used together with fix temp/csld.
-
-E: Variable name for fix temp/csld does not exist
-
-Self-explanatory.
-
-E: Variable for fix temp/csld is invalid style
-
-Only equal-style variables can be used.
-
-E: Temperature ID for fix temp/csld does not exist
-
-Self-explanatory.
-
-W: Cannot thermostat atoms in rigid bodies
-
-UNDOCUMENTED
-
-E: Fix temp/csld variable returned negative temperature
-
-Self-explanatory.
-
-E: Could not find fix_modify temperature ID
-
-The compute ID for computing temperature does not exist.
-
-E: Fix_modify temperature ID does not compute temperature
-
-The compute ID assigned to the fix must compute temperature.
-
-W: Group for fix_modify temp != fix group
-
-The fix_modify command is specifying a temperature computation that
-computes a temperature on a different group of atoms than the fix
-itself operates on.  This is probably not what you want to do.
-
-*/

@@ -12,10 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(ave/sphere/atom/kk,ComputeAveSphereAtomKokkos<LMPDeviceType>)
-ComputeStyle(ave/sphere/atom/kk/device,ComputeAveSphereAtomKokkos<LMPDeviceType>)
-ComputeStyle(ave/sphere/atom/kk/host,ComputeAveSphereAtomKokkos<LMPHostType>)
+// clang-format off
+ComputeStyle(ave/sphere/atom/kk,ComputeAveSphereAtomKokkos<LMPDeviceType>);
+ComputeStyle(ave/sphere/atom/kk/device,ComputeAveSphereAtomKokkos<LMPDeviceType>);
+ComputeStyle(ave/sphere/atom/kk/host,ComputeAveSphereAtomKokkos<LMPHostType>);
+// clang-format on
 
 #else
 
@@ -27,21 +28,22 @@ ComputeStyle(ave/sphere/atom/kk/host,ComputeAveSphereAtomKokkos<LMPHostType>)
 
 namespace LAMMPS_NS {
 
-struct TagComputeAveSphereAtom{};
+// clang-format off
+struct TagComputeAveSphereAtom {};
+// clang-format on
 
-template<class DeviceType>
-class ComputeAveSphereAtomKokkos : public ComputeAveSphereAtom {
+template <class DeviceType> class ComputeAveSphereAtomKokkos : public ComputeAveSphereAtom {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
 
   ComputeAveSphereAtomKokkos(class LAMMPS *, int, char **);
-  virtual ~ComputeAveSphereAtomKokkos();
-  void init();
-  void compute_peratom();
+  ~ComputeAveSphereAtomKokkos() override;
+  void init() override;
+  void compute_peratom() override;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagComputeAveSphereAtom, const int&) const;
+  void operator()(TagComputeAveSphereAtom, const int &) const;
 
  private:
   typename AT::t_x_array_randomread x;
@@ -56,11 +58,7 @@ class ComputeAveSphereAtomKokkos : public ComputeAveSphereAtom {
   typename AT::t_float_2d d_result;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

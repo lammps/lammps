@@ -223,6 +223,13 @@ and readable by all and no executable permissions.  Executable
 permissions (0755) should only be on shell scripts or python or similar
 scripts for interpreted script languages.
 
+You can check for these issues with the python scripts in the
+:ref:`"tools/coding_standard" <coding_standard>` folder.  When run
+normally with a source file or a source folder as argument, they will
+list all non-conforming lines.  By adding the `-f` flag to the command
+line, they will modify the flagged files to try removing the detected
+issues.
+
 Indentation and Placement of Braces (strongly preferred)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -240,6 +247,53 @@ reformatting from clang-format yields undesirable output may be
 protected with placing a pair `// clang-format off` and `// clang-format
 on` comments around that block.
 
+Error or warning messages and explanations (preferred)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionchanged:: 4May2022
+
+Starting with LAMMPS version 4 May 2022 the LAMMPS developers have
+agreed on a new policy for error and warning messages.
+
+Previously, all error and warning strings were supposed to be listed in
+the class header files with an explanation.  Those would then be
+regularly "harvested" and transferred to alphabetically sorted lists in
+the manual.  To avoid excessively long lists and to reduce effort, this
+came with a requirement to have rather generic error messages (e.g.
+"Illegal ... command").  To identify the specific cause, the name of the
+source file and the line number of the error location would be printed,
+so that one could look up the cause by reading the source code.
+
+The new policy encourages more specific error messages that ideally
+indicate the cause directly and no further lookup would be needed.
+This is aided by using the `{fmt} library <https://fmt.dev>`_ to convert
+the Error class commands so that they take a variable number of arguments
+and error text will be treated like a {fmt} syntax format string.
+Error messages should still kept to a single line or two lines at the most.
+
+For more complex explanations or errors that have multiple possible
+reasons, a paragraph should be added to the `Error_details` page with an
+error code reference (e.g. ``.. _err0001:``) then the utility function
+:cpp:func:`utils::errorurl() <LAMMPS_NS::utils::errorurl>` can be used
+to generate an URL that will directly lead to that paragraph.  An error
+for missing arguments can be easily generated using the
+:cpp:func:`utils::missing_cmd_args()
+<LAMMPS_NS::utils::missing_cmd_args>` convenience function.
+
+The transformation of existing LAMMPS code to this new scheme is ongoing
+and - given the size of the LAMMPS source code - will take a significant
+amount of time until completion.  However, for new code following the
+new approach is strongly preferred.  The expectation is that the new
+scheme will make it easier for LAMMPS users, developers, and
+maintainers.
+
+An example for this approach would be the
+``src/read_data.cpp`` and ``src/atom.cpp`` files that implement the
+:doc:`read_data <read_data>` and :doc:`atom_modify <atom_modify>`
+commands and that may create :ref:`"Unknown identifier in data file" <err0001>`
+errors that seem difficult to debug for users because they may have
+one of multiple possible reasons, and thus require some additional explanations.
+
 Programming language standards (required)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -250,9 +304,11 @@ keep the code readable to programmers that have limited C++ programming
 experience.  C++ constructs are acceptable when they help improving the
 readability and reliability of the code, e.g. when using the
 `std::string` class instead of manipulating pointers and calling the
-string functions of the C library.  In addition and number of convenient
-:doc:`utility functions and classes <Developer_utils>` for recurring
-tasks are provided.
+string functions of the C library.  In addition a collection of
+convenient :doc:`utility functions and classes <Developer_utils>` for
+recurring tasks and a collection of
+:doc:`platform neutral functions <Developer_platform>` for improved
+portability are provided.
 
 Included Fortran code has to be compatible with the Fortran 2003
 standard.  Python code must be compatible with Python 3.5.  Large parts
@@ -261,10 +317,11 @@ compatible with Python 2.7.  Compatibility with Python 2.7 is
 desirable, but compatibility with Python 3.5 is **required**.
 
 Compatibility with these older programming language standards is very
-important to maintain portability, especially with HPC cluster
-environments, which tend to be running older software stacks and LAMMPS
-users may be required to use those older tools or not have the option to
-install newer compilers.
+important to maintain portability and availability of LAMMPS on many
+platforms.  This applies especially to HPC cluster environments, which
+tend to be running older software stacks and LAMMPS users may be
+required to use those older tools for access to advanced hardware
+features or not have the option to install newer compilers or libraries.
 
 Programming conventions (varied)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -304,6 +361,40 @@ you are uncertain, please ask.
 - Output to the screen and the logfile should be using the corresponding
   FILE pointers and only be done on MPI rank 0.  Use the :cpp:func:`utils::logmesg`
   convenience function where possible.
+
+- Usage of C++11 `virtual`, `override`, `final` keywords: Please follow the
+  `C++ Core Guideline C.128 <https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#Rh-override>`_.
+  That means, you should only use `virtual` to declare a new virtual
+  function, `override` to indicate you are overriding an existing virtual
+  function, and `final` to prevent any further overriding.
+
+- Trivial destructors: Prefer not writing destructors when they are empty and `default`.
+
+  .. code-block:: c++
+
+     // don't write destructors for A or B like this
+     class A : protected Pointers {
+      public:
+        A();
+        ~A() override {}
+     };
+
+     class B : protected Pointers {
+      public:
+        B();
+        ~B() override = default;
+     };
+
+     // instead, let the compiler create the implicit default destructor by not writing it
+     class A : protected Pointers {
+      public:
+        A();
+     };
+
+     class B : protected Pointers {
+      public:
+        B();
+     };
 
 - Header files, especially those defining a "style", should only use
   the absolute minimum number of include files and **must not** contain

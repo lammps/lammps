@@ -11,7 +11,7 @@ class MLIAP_SO3 : protected Pointers {
   MLIAP_SO3(LAMMPS *, double vrcut, int vlmax, int vnmax, double valpha);
   MLIAP_SO3(LAMMPS *lmp) : Pointers(lmp){};
 
-  ~MLIAP_SO3();
+  ~MLIAP_SO3() override;
 
   void init();
 

@@ -27,23 +27,10 @@ namespace LAMMPS_NS {
 class NTopoImproperAll : public NTopo {
  public:
   NTopoImproperAll(class LAMMPS *);
-  ~NTopoImproperAll() {}
-  void build();
+  void build() override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Improper atoms %d %d %d %d missing on proc %d at step %ld
-
-UNDOCUMENTED
-
-W: Improper atoms missing at step %ld
-
-UNDOCUMENTED
-
-*/

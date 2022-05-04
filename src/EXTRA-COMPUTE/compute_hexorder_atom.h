@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class ComputeHexOrderAtom : public Compute {
  public:
   ComputeHexOrderAtom(class LAMMPS *, int, char **);
-  ~ComputeHexOrderAtom();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeHexOrderAtom() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nmax, maxneigh, ncol, nnn, ndegree;
@@ -51,25 +51,3 @@ class ComputeHexOrderAtom : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute hexorder/atom requires a pair style be defined
-
-Self-explanatory.
-
-E: Compute hexorder/atom cutoff is longer than pairwise cutoff
-
-Cannot compute order parameter beyond cutoff.
-
-W: More than one compute hexorder/atom
-
-It is not efficient to use compute hexorder/atom more than once.
-
-*/

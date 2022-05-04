@@ -1,0 +1,199 @@
+LAMMPS (17 Feb 2022)
+#===========================================================================#
+# polymer test                                                              #
+#                                                                           #
+# Run consists of a lone 32-bead coarse-grained polymer                     #
+# undergoing Brownian motion in thermal lattice-Boltzmann fluid.            #
+#                                                                           #
+# To run this example, LAMMPS needs to be compiled with a the following     #
+# packages: MOLECULE, RIGID, LATBOTLZ                                       #
+#                                                                           #
+# If uncommented, sample output from this run can be found in the file:     #
+#   'dump.polymer.lammpstrj'                                                #
+# and viewed using, e.g., the VMD software.                                 #
+#                                                                           #
+#===========================================================================#
+
+units	   	nano
+dimension	3
+boundary	p p f
+atom_style	hybrid molecular
+special_bonds	fene
+read_data	data.polymer
+Reading data file ...
+  orthogonal box = (0 0 0) to (40 40 40)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  992 atoms
+  scanning bonds ...
+  1 = max bonds/atom
+  reading bonds ...
+  31 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        1        1       
+  special bond factors coul:  0        1        1       
+     2 = max # of 1-2 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.037 seconds
+
+#----------------------------------------------------------------------------
+# Need a neighbor bin size smaller than the lattice-Boltzmann grid spacing
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid.
+# The communcation cutoff is set to 2.5 dx to ensure that all particles in the
+#   processor ghost fluid region (of width 2dx) are known to local processor.
+#----------------------------------------------------------------------------
+neighbor 0.5 bin
+neigh_modify delay 0 every 1 check yes
+neigh_modify exclude type 2 2
+neigh_modify exclude type 2 1
+comm_modify cutoff 2.5
+
+#----------------------------------------------------------------------------
+# Implement a hard-sphere interaction between the particles at the center of
+#   each monomer (use a truncated and shifted Lennard-Jones potential).
+#----------------------------------------------------------------------------
+bond_style	fene
+bond_coeff	1 60.0 2.25 4.14195 1.5
+pair_style	lj/cut 1.68369
+pair_coeff	1 1 4.14195 1.5 1.68369
+pair_coeff	1 2 4.14195 1.5 1.68369
+pair_coeff	2 2 0 1.0
+
+# The mass is set 4/3 PI r^3 fluid_density/31 , where r=0.617, 31 is number of
+# nodes in a single monomer
+mass * 0.00000318
+timestep 0.0001
+
+#----------------------------------------------------------------------------
+# ForceAtoms are the particles at the center of each monomer which
+#   do not interact with the fluid, but are used to implement the hard-sphere
+#   interactions.
+# FluidAtoms are the particles representing the surface of the monomer
+# which do interact with the fluid.
+#----------------------------------------------------------------------------
+group ForceAtoms type 1
+32 atoms in group ForceAtoms
+group FluidAtoms type 2
+960 atoms in group FluidAtoms
+
+#----------------------------------------------------------------------------
+# Placement of a trap (similar to an 1D optical trap) for the polymer
+# Note that the addforce fix needs to go before the lb/fluid and lb/viscous
+# fix as these fixes rescale the forces to account for the added mass of the
+# fluid that gets dragged around with the particle so need prior knowledge of
+# all forces applied to the particles involved in these fixes before they are
+# called.
+#----------------------------------------------------------------------------
+variable fx atom -(x-20.0)*20.0/31.0
+fix trap all addforce v_fx 0.0 0.0  # call before fix lb/fluid and lb/viscous
+
+#---------------------------------------------------------------------------
+# Create a lattice-Boltzmann fluid covering the simulation domain.
+# This fluid feels a force due to the particles specified through FluidAtoms
+#   (however, this fix does not explicity apply a force back on to these
+#    particles. This is accomplished through the use of the lb/viscous fix).
+# We set fluid viscosity = 0.1 and fluid density = 0.00009982071 which
+#   means the kinematic viscosity is idential to that of water but the
+#   dynamic viscosity is a factor of 10 less than that of water which
+#   increases the diffusive dynamics by a corresponding factor of 10.
+#   lattice spacing dx=1.0.
+# Use a thermal lattice-Boltzmann fluid (temperature 300K, random number
+#   seed=15003).  This enables the particles to undergo Brownian motion in
+#   the fluid.
+#----------------------------------------------------------------------------
+fix 1 all lb/fluid 1 0.1 0.00009982071 dx 1.0 noise 300.0 15003
+Using a lattice-Boltzmann grid of 40 by 40 by 41 total grid points. (../fix_lb_fluid.cpp:486)
+Local Grid Geometry created. (../fix_lb_fluid.cpp:1018)
+
+#----------------------------------------------------------------------------
+# Apply the force from the fluid to the particles, and integrate their
+#   motion, constraining each monomerto move and rotate as a single rigid
+#   spherical object.
+# Since both the ForceAtoms (central atoms), and the FluidAtoms (spherical
+#   shell) should move and rotate together, this fix is applied to all of
+#   the atoms in the system.
+#----------------------------------------------------------------------------
+fix 2 all lb/viscous
+fix 3 all rigid/small molecule
+  create bodies CPU = 0.000 seconds
+  32 rigid bodies with 992 atoms
+  0.70010803 = max distance from body owner to body atom
+
+#----------------------------------------------------------------------------
+# To ensure that numerical errors do not lead to a buildup of momentum in the
+#   system, the momentum_lb fix is used every 100000 timesteps to zero out the
+#   total (particle plus fluid) momentum in the system.
+#----------------------------------------------------------------------------
+fix   4 all lb/momentum 100000 linear 1 1 1
+
+
+#dump  1 ForceAtoms custom 10 trapped_polymer.lammpstrj id x y z vx vy vz
+
+#run		2000001
+run 10000  
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix lb/fluid command:
+
+@Article{Denniston et al.,
+ author = {C. Denniston, N. Afrasiabian, M.G. Cole-Andre,F.E. Mackay, S.T.T. Ollila, T. Whitehead},
+ title =   {LAMMPS lb/fluid fix version 2: Improved Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid}, journal = {Comp.~Phys.~Comm.},
+ year =    2022,
+ volume =  275,
+ pages =   {108318}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+  generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.18369
+  ghost atom cutoff = 2.5
+  binsize = 1.091845, bins = 37 37 37
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+WARNING: Communication cutoff 2.5 is shorter than a bond length based estimate of 2.6825. This may lead to errors. (../comm.cpp:723)
+Per MPI rank memory allocation (min/avg/max) = 7.861 | 9.842 | 11.95 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -8.2758489    2790.7741    2782.4982   0.85835765 
+   10000    15.559756   -10.240592    2817.6714    2827.7319 -0.0015697449 
+Loop time of 269.705 on 4 procs for 10000 steps with 992 atoms
+
+Performance: 320.351 ns/day, 0.075 hours/ns, 37.078 timesteps/s
+99.9% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.01457    | 0.047368   | 0.1221     |  20.3 |  0.02
+Bond    | 0.010081   | 0.022047   | 0.043793   |   9.3 |  0.01
+Neigh   | 0.61943    | 0.62713    | 0.63223    |   0.7 |  0.23
+Comm    | 0.10937    | 0.33658    | 0.61517    |  39.3 |  0.12
+Output  | 3.44e-05   | 7.7575e-05 | 0.0001653  |   0.0 |  0.00
+Modify  | 268.04     | 268.34     | 268.53     |   1.2 | 99.49
+Other   |            | 0.3359     |            |       |  0.12
+
+Nlocal:            248 ave         802 max           0 min
+Histogram: 2 0 1 0 0 0 0 0 0 1
+Nghost:         113.25 ave         190 max          42 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:           4.25 ave          15 max           0 min
+Histogram: 2 1 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 17
+Ave neighs/atom = 0.017137097
+Ave special neighs/atom = 0.0625
+Neighbor list builds = 495
+Dangerous builds = 0
+Total wall time: 0:04:29

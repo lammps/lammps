@@ -357,7 +357,7 @@ namespace ATC {
   //     compute_scalar : added energy
   //        this is used in the line search
   //--------------------------------------------------------------------
-  double ATC_CouplingMomentum::compute_scalar(void)
+  double ATC_CouplingMomentum::compute_scalar()
   {
     double energy = extrinsicModelManager_.compute_scalar();
     return energy;

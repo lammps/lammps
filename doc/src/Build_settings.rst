@@ -4,15 +4,15 @@ Optional build settings
 LAMMPS can be built with several optional settings.  Each sub-section
 explain how to do this for building both with CMake and make.
 
-* :ref:`C++11 standard compliance <cxx11>` when building all of LAMMPS
-* :ref:`FFT library <fft>` for use with the :doc:`kspace_style pppm <kspace_style>` command
-* :ref:`Size of LAMMPS integer types <size>`
-* :ref:`Read or write compressed files <gzip>`
-* :ref:`Output of JPG and PNG files <graphics>` via the :doc:`dump image <dump_image>` command
-* :ref:`Output of movie files <graphics>` via the :doc:`dump_movie <dump_image>` command
-* :ref:`Memory allocation alignment <align>`
-* :ref:`Workaround for long long integers <longlong>`
-* :ref:`Error handling exceptions <exceptions>` when using LAMMPS as a library
+* `C++11 standard compliance`_ when building all of LAMMPS
+* `FFT library`_ for use with the :doc:`kspace_style pppm <kspace_style>` command
+* `Size of LAMMPS integer types and size limits`_
+* `Read or write compressed files`_
+* `Output of JPG, PNG, and move files` via the :doc:`dump image <dump_image>` or :doc:`dump movie <dump_image>` commands
+* `Memory allocation alignment`_
+* `Workaround for long long integers`_
+* `Exception handling when using LAMMPS as a library`_ to capture errors
+* `Trigger selected floating-point exceptions`_
 
 ----------
 

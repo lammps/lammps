@@ -26,11 +26,11 @@ namespace LAMMPS_NS {
 class FixPropelSelf : public Fix {
  public:
   FixPropelSelf(class LAMMPS *, int, char **);
-  virtual ~FixPropelSelf(){};
-  void init();
-  void post_force(int);
-  void setup(int);
-  int setmask();
+
+  void init() override;
+  void post_force(int) override;
+  void setup(int) override;
+  int setmask() override;
 
  private:
   double magnitude;
@@ -46,23 +46,3 @@ class FixPropelSelf : public Fix {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal fix propel/self command.
-
-Wrong number/type of input arguments.
-
-E: Fix propel/self requires atom attribute mu with option dipole.
-
-Self-explanatory.
-
-E: Fix propel/self requires atom style ellipsoid with option quat.
-
-Self-explanatory.
-
-Fix propel/self requires extended particles with option quat.
-
-Self-explanatory.
-
-*/

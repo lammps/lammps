@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class PairTableGPU : public PairTable {
  public:
   PairTableGPU(LAMMPS *lmp);
-  ~PairTableGPU();
+  ~PairTableGPU() override;
   void cpu_compute(int, int, int, int, int *, int *, int **);
-  void compute(int, int);
-  void init_style();
-  double memory_usage();
+  void compute(int, int) override;
+  void init_style() override;
+  double memory_usage() override;
 
   enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
@@ -43,24 +43,3 @@ class PairTableGPU : public PairTable {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Cannot use newton pair with table/gpu pair style
-
-Self-explanatory.
-
-E: Pair distance < table inner cutoff
-
-Two atoms are closer together than the pairwise table allows.
-
-E: Pair distance > table outer cutoff
-
-Two atoms are further apart than the pairwise table allows.
-
-*/

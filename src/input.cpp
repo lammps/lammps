@@ -50,12 +50,20 @@
 #include <cstring>
 #include <cerrno>
 #include <cctype>
-#include <sys/stat.h>
 
 using namespace LAMMPS_NS;
 
 #define DELTALINE 256
 #define DELTA 4
+
+/* ----------------------------------------------------------------------
+   one instance per command in style_command.h
+------------------------------------------------------------------------- */
+
+template <typename T> static Command *command_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -160,7 +168,7 @@ Input::~Input()
   memory->sfree(line);
   memory->sfree(copy);
   memory->sfree(work);
-  if (labelstr) delete[] labelstr;
+  delete[] labelstr;
   memory->sfree(arg);
   delete[] infiles;
   delete variable;
@@ -784,9 +792,21 @@ int Input::execute_command()
   if (flag) return 0;
 
   // invoke commands added via style_command.h
+  // try suffixed version first
 
-  if (command_map->find(command) != command_map->end()) {
-    CommandCreator &command_creator = (*command_map)[command];
+  std::string mycmd = command;
+  if (lmp->suffix_enable) {
+    mycmd = command + std::string("/") + lmp->suffix;
+    if (command_map->find(mycmd) == command_map->end()) {
+      if (lmp->suffix2) {
+        mycmd = command + std::string("/") + lmp->suffix2;
+        if (command_map->find(mycmd) == command_map->end())
+          mycmd = command;
+      } else mycmd = command;
+    }
+  }
+  if (command_map->find(mycmd) != command_map->end()) {
+    CommandCreator &command_creator = (*command_map)[mycmd];
     Command *cmd = command_creator(lmp);
     cmd->command(narg,arg);
     delete cmd;
@@ -796,16 +816,6 @@ int Input::execute_command()
   // unrecognized command
 
   return -1;
-}
-
-/* ----------------------------------------------------------------------
-   one instance per command in style_command.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-Command *Input::command_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -881,7 +891,7 @@ void Input::ifthenelse()
     int ncommands = last-first + 1;
     if (ncommands <= 0) error->all(FLERR,"Illegal if command");
 
-    char **commands = new char*[ncommands];
+    auto commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
       n = strlen(arg[i]) + 1;
@@ -934,7 +944,7 @@ void Input::ifthenelse()
     int ncommands = last-first + 1;
     if (ncommands <= 0) error->all(FLERR,"Illegal if command");
 
-    char **commands = new char*[ncommands];
+    auto commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
       n = strlen(arg[i]) + 1;
@@ -966,10 +976,15 @@ void Input::include()
     if (nfile == maxfile)
       error->one(FLERR,"Too many nested levels of input scripts");
 
-    infile = fopen(arg[0],"r");
+    // expand variables
+    int n = strlen(arg[0]) + 1;
+    if (n > maxline) reallocate(line,maxline,n);
+    strcpy(line,arg[0]);
+    substitute(line,work,maxline,maxwork,0);
+
+    infile = fopen(line,"r");
     if (infile == nullptr)
-      error->one(FLERR,"Cannot open input script {}: {}",
-                                   arg[0], utils::getsyserror());
+      error->one(FLERR,"Cannot open input script {}: {}", line, utils::getsyserror());
 
     infiles[nfile++] = infile;
   }
@@ -1011,7 +1026,7 @@ void Input::jump()
 
   if (narg == 2) {
     label_active = 1;
-    if (labelstr) delete[] labelstr;
+    delete[] labelstr;
     labelstr = utils::strdup(arg[1]);
   }
 }
@@ -1179,26 +1194,39 @@ void Input::shell()
     if (narg < 2) error->all(FLERR,"Illegal shell mkdir command");
     if (me == 0) {
       for (int i = 1; i < narg; i++) {
-        if (platform::mkdir(arg[i]) < 0)
-          error->warning(FLERR, "Shell command 'mkdir {}' failed with error '{}'",
-                         arg[i],utils::getsyserror());
+        rv = (platform::mkdir(arg[i]) < 0) ? errno : 0;
+        if (rv != 0)
+          error->warning(FLERR, "Shell command 'mkdir {}' failed with error '{}'", arg[i],
+                         utils::getsyserror());
       }
     }
   } else if (strcmp(arg[0],"mv") == 0) {
     if (narg != 3) error->all(FLERR,"Illegal shell mv command");
     if (me == 0) {
-      if (rename(arg[1],arg[2]) < 0) {
-        error->warning(FLERR, "Shell command 'mv {} {}' failed with error '{}'",
-                       arg[1],arg[2],utils::getsyserror());
+      if (platform::path_is_directory(arg[2])) {
+        if (system(fmt::format("mv {} {}", arg[1], arg[2]).c_str()))
+          error->warning(FLERR,"Shell command 'mv {} {}' returned with non-zero status", arg[1], arg[2]);
+      } else {
+        if (rename(arg[1],arg[2]) < 0) {
+          error->warning(FLERR, "Shell command 'mv {} {}' failed with error '{}'",
+                         arg[1],arg[2],utils::getsyserror());
+        }
       }
     }
   } else if (strcmp(arg[0],"rm") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal shell rm command");
     if (me == 0) {
-      for (int i = 1; i < narg; i++) {
+      int i = 1;
+      bool warn = true;
+      if (strcmp(arg[i], "-f") == 0) {
+        warn = false;
+        ++i;
+      }
+      for (;i < narg; i++) {
         if (platform::unlink(arg[i]) < 0)
-          error->warning(FLERR, "Shell command 'rm {}' failed with error '{}'",
-                         arg[i], utils::getsyserror());
+          if (warn)
+            error->warning(FLERR, "Shell command 'rm {}' failed with error '{}'",
+                           arg[i], utils::getsyserror());
       }
     }
   } else if (strcmp(arg[0],"rmdir") == 0) {
@@ -1222,23 +1250,20 @@ void Input::shell()
         error->warning(FLERR, "Shell command 'putenv {}' failed with error '{}'",
                        arg[i], utils::getsyserror());
     }
-  // use work string to concat args back into one string separated by spaces
-  // invoke string in shell via system()
+
+  // concat arguments and invoke string in shell via system()
 
   } else {
-    int n = 0;
-    for (int i = 0; i < narg; i++) n += strlen(arg[i]) + 1;
-    if (n > maxwork) reallocate(work,maxwork,n);
+    if (me == 0) {
+      std::string cmd = arg[0];
+      for (int i = 1; i < narg; i++) {
+        cmd += " ";
+        cmd += arg[i];
+      }
 
-    strcpy(work,arg[0]);
-    for (int i = 1; i < narg; i++) {
-      strcat(work," ");
-      strcat(work,arg[i]);
+      if (system(cmd.c_str()) != 0)
+        error->warning(FLERR,"Shell command {} returned with non-zero status", cmd);
     }
-
-    if (me == 0)
-      if (system(work) != 0)
-        error->warning(FLERR,"Shell command returned with non-zero status");
   }
 }
 
@@ -1855,7 +1880,7 @@ void Input::timestep()
   if (respaflag) update->integrate->reset_dt();
 
   if (force->pair) force->pair->reset_dt();
-  for (int i = 0; i < modify->nfix; i++) modify->fix[i]->reset_dt();
+  for (auto &ifix : modify->get_fix_list()) ifix->reset_dt();
   output->reset_dt();
 }
 

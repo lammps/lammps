@@ -94,10 +94,6 @@ boron nitride nanotubes.
    Atoms belonging to different CNTs need to be assigned
    different molecule IDs.
 
-A full summary of the method and LAMMPS implementation details
-is expected to soon become available in Computer Physics
-Communications.
-
 ----------
 
 Mixing, shift, table, tail correction, restart, rRESPA info

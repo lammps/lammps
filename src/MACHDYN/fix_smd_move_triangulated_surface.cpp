@@ -432,7 +432,7 @@ void FixSMDMoveTriSurf::initial_integrate(int /*vflag*/) {
         }
 
         // we changed smd_data_9, x0. perform communication to ghosts
-        comm->forward_comm_fix(this);
+        comm->forward_comm(this);
 
 }
 

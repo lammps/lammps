@@ -29,15 +29,10 @@ namespace LAMMPS_NS {
 class NPairHalfSizeMultiNewtoffOmp : public NPair {
  public:
   NPairHalfSizeMultiNewtoffOmp(class LAMMPS *);
-  ~NPairHalfSizeMultiNewtoffOmp() {}
-  void build(class NeighList *);
+  void build(class NeighList *) override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

@@ -18,6 +18,7 @@
 
 #include "lmptype.h"
 
+#include <cstdio>
 #include <string>
 #include <vector>
 
@@ -271,6 +272,11 @@ namespace platform {
 
   /*! Create a directory
    *
+   * Unlike the the ``mkdir()`` or ``_mkdir()`` functions of the
+   * C library, this function will also try to create non-existing sub-directories
+   * in case they don't exist, and thus behave like the ``mkdir -p`` command rather
+   * than plain ``mkdir`` or ``md`.
+   *
    * \param  path  directory path
    * \return -1 if unsuccessful, otherwise >= 0  */
 
@@ -278,18 +284,18 @@ namespace platform {
 
   /*! Delete a directory
    *
+   * Unlike the the ``rmdir()`` or ``_rmdir()`` functions of the
+   * C library, this function will check for the contents of the
+   * folder and recurse into any sub-folders, if necessary and
+   * delete all contained folders and their contents before
+   * deleting the folder *path*.
+   *
    * \param  path  directory path
    * \return -1 if unsuccessful, otherwise >= 0  */
 
   int rmdir(const std::string &path);
 
-  /*! Delete a directory and its contents
-   *
-   * Unlike the the ``rmdir()`` or ``_rmdir()`` function of the
-   * C library, this function will check for the contents of the
-   * folder and recurse into any sub-folders, if necessary and
-   * delete all contained folders and their contents before
-   * deleting the folder *path*.
+  /*! Delete a file
    *
    *  \param   path    path to file to be deleted
    *  \return  0 on success, -1 on error */

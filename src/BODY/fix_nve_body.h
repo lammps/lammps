@@ -27,9 +27,9 @@ namespace LAMMPS_NS {
 class FixNVEBody : public FixNVE {
  public:
   FixNVEBody(class LAMMPS *, int, char **);
-  void init();
-  void initial_integrate(int);
-  void final_integrate();
+  void init() override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
 
  private:
   double dtq;
@@ -39,15 +39,3 @@ class FixNVEBody : public FixNVE {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Fix nve/body requires atom style body
-
-Self-explanatory.
-
-E: Fix nve/body requires bodies
-
-This fix can only be used for particles that are bodies.
-
-*/

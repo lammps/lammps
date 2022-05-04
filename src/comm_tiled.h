@@ -22,35 +22,35 @@ class CommTiled : public Comm {
  public:
   CommTiled(class LAMMPS *);
   CommTiled(class LAMMPS *, class Comm *);
-  virtual ~CommTiled();
 
-  void init();
-  void setup();                                // setup comm pattern
-  virtual void forward_comm(int dummy = 0);    // forward comm of atom coords
-  virtual void reverse_comm();                 // reverse comm of forces
-  virtual void exchange();                     // move atoms to new procs
-  virtual void borders();                      // setup list of atoms to comm
+  ~CommTiled() override;
 
-  virtual void forward_comm_pair(class Pair *);    // forward comm from a Pair
-  virtual void reverse_comm_pair(class Pair *);    // reverse comm from a Pair
-  virtual void forward_comm_fix(class Fix *, int size = 0);
-  // forward comm from a Fix
-  virtual void reverse_comm_fix(class Fix *, int size = 0);
-  // reverse comm from a Fix
-  virtual void reverse_comm_fix_variable(class Fix *);
-  // variable size reverse comm from a Fix
-  virtual void forward_comm_compute(class Compute *);    // forward from a Compute
-  virtual void reverse_comm_compute(class Compute *);    // reverse from a Compute
-  virtual void forward_comm_dump(class Dump *);          // forward comm from a Dump
-  virtual void reverse_comm_dump(class Dump *);          // reverse comm from a Dump
+  void init() override;
+  void setup() override;                        // setup comm pattern
+  void forward_comm(int dummy = 0) override;    // forward comm of atom coords
+  void reverse_comm() override;                 // reverse comm of forces
+  void exchange() override;                     // move atoms to new procs
+  void borders() override;                      // setup list of atoms to comm
 
-  virtual void forward_comm_array(int, double **);            // forward comm of array
-  virtual int exchange_variable(int, double *, double *&);    // exchange on neigh stencil
+  void forward_comm(class Pair *) override;                 // forward comm from a Pair
+  void reverse_comm(class Pair *) override;                 // reverse comm from a Pair
+  void forward_comm(class Bond *) override;                 // forward comm from a Bond
+  void reverse_comm(class Bond *) override;                 // reverse comm from a Bond
+  void forward_comm(class Fix *, int size = 0) override;    // forward comm from a Fix
+  void reverse_comm(class Fix *, int size = 0) override;    // reverse comm from a Fix
+  void reverse_comm_variable(class Fix *) override;         // variable size reverse comm from a Fix
+  void forward_comm(class Compute *) override;              // forward from a Compute
+  void reverse_comm(class Compute *) override;              // reverse from a Compute
+  void forward_comm(class Dump *) override;                 // forward comm from a Dump
+  void reverse_comm(class Dump *) override;                 // reverse comm from a Dump
 
-  void coord2proc_setup();
-  int coord2proc(double *, int &, int &, int &);
+  void forward_comm_array(int, double **) override;            // forward comm of array
+  int exchange_variable(int, double *, double *&) override;    // exchange on neigh stencil
 
-  double memory_usage();
+  void coord2proc_setup() override;
+  int coord2proc(double *, int &, int &, int &) override;
+
+  double memory_usage() override;
 
  private:
   int nswap;      // # of swaps to perform = 2*dim
@@ -159,33 +159,3 @@ class CommTiled : public Comm {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Cannot yet use comm_style tiled with triclinic box
-
-Self-explanatory.
-
-E: Communication cutoff for comm_style tiled cannot exceed periodic box length
-
-Self-explanatory.
-
-E: Reverse comm fix variable not yet supported by CommTiled
-
-UNDOCUMENTED
-
-E: Comm tiled mis-match in box drop brick
-
-Internal error check in comm_style tiled which should not occur.
-Contact the developers.
-
-E: Comm tiled invalid index in box drop brick
-
-Internal error check in comm_style tiled which should not occur.
-Contact the developers.
-
-U: KOKKOS package does not yet support comm_style tiled
-
-Self-explanatory.
-
-*/

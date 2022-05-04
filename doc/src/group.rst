@@ -258,11 +258,17 @@ assignment is made at the beginning of the minimization, but not
 during the iterations of the minimizer.
 
 The point in the timestep at which atoms are assigned to a dynamic
-group is after the initial stage of velocity Verlet time integration
-has been performed, and before neighbor lists or forces are computed.
-This is the point in the timestep where atom positions have just
-changed due to the time integration, so the region criterion should be
-accurate, if applied.
+group is after interatomic forces have been computed, but before any
+fixes which alter forces or otherwise update the system have been
+invoked.  This means that atom positions have been updated, neighbor
+lists and ghost atoms are current, and both intermolecular and
+intramolecular forces have been calculated based on the new
+coordinates.  Thus the region criterion, if applied, should be
+accurate.  Also, any computes invoked by an atom-style variable should
+use updated information for that timestep, e.g. potential energy/atom
+or coordination number/atom.  Similarly, fixes or computes which are
+invoked after that point in the timestep, should operate on the new
+group of atoms.
 
 .. note::
 
@@ -294,11 +300,13 @@ group and running further.
 
 .. note::
 
-   All fixes and computes take a group ID as an argument, but they
-   do not all allow for use of a dynamic group.  If you get an error
+   All fixes and computes take a group ID as an argument, but they do
+   not all allow for use of a dynamic group.  If you get an error
    message that this is not allowed, but feel that it should be for the
    fix or compute in question, then please post your reasoning to the
-   LAMMPS mail list and we can change it.
+   `LAMMPS forum at MatSci <https://matsci.org/c/lammps-development/>`_
+   and we can look into changing it.  The same applies if you come
+   across inconsistent behavior when dynamic groups are allowed.
 
 The *static* style removes the setting for a dynamic group, converting
 it to a static group (the default).  The atoms in the static group are

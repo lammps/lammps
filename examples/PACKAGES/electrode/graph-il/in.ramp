@@ -1,0 +1,13 @@
+# electrodes with equal-style ramped (electrode-)constant potential
+# for graphene-ionic liquid supercapacitor
+
+boundary p p f # slab calculation
+include settings.mod # styles, groups, computes and fixes
+kspace_modify slab 3.0
+
+variable v equal ramp(2,4)
+fix conp bot electrode/conp 0.0 1.979 couple top v_v symm on etypes 5
+
+thermo 50
+thermo_style custom step temp c_ctemp epair etotal c_qbot c_qtop v_v
+run 500

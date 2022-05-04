@@ -34,17 +34,16 @@ namespace LAMMPS_NS {
 class DumpXYZZstd : public DumpXYZ {
  public:
   DumpXYZZstd(class LAMMPS *, int, char **);
-  virtual ~DumpXYZZstd() = default;
 
  protected:
   ZstdFileWriter writer;
 
-  virtual void openfile();
-  virtual void write_header(bigint);
-  virtual void write_data(int, double *);
-  virtual void write();
+  void openfile() override;
+  void write_header(bigint) override;
+  void write_data(int, double *) override;
+  void write() override;
 
-  virtual int modify_param(int, char **);
+  int modify_param(int, char **) override;
 };
 
 }    // namespace LAMMPS_NS
@@ -52,15 +51,3 @@ class DumpXYZZstd : public DumpXYZ {
 #endif
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Dump xyz/zstd only writes compressed files
-
-The dump xyz/zstd output file name must have a .zst suffix.
-
-E: Cannot open dump file
-
-Self-explanatory.
-
-*/

@@ -1,0 +1,170 @@
+LAMMPS (24 Mar 2022)
+# electrodes with constrained total charges imposed from dynamically computed potentials
+# for graphene-ionic liquid supercapacitor
+
+boundary p p f # slab calculation
+include settings.mod # styles, groups, computes and fixes
+# set boundary in main script because ffield is periodic
+units real
+# distribute electrode atoms among all processors:
+if "$(extract_setting(world_size) % 2) == 0" then "processors * * 2"
+
+atom_style full
+pair_style lj/cut/coul/long 16
+bond_style harmonic
+angle_style harmonic
+kspace_style pppm/electrode 1e-7
+# kspace_modify in main script because ffield is periodic
+
+read_data "data.graph-il"
+Reading data file ...
+  orthogonal box = (0 0 -68) to (32.2 34.4 68)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  3776 atoms
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  reading bonds ...
+  640 bonds
+  reading angles ...
+  320 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     1 = max # of 1-4 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.031 seconds
+
+group bot molecule 641
+416 atoms in group bot
+group top molecule 642
+416 atoms in group top
+
+group bmi type 1 2 3
+960 atoms in group bmi
+group electrolyte type 1 2 3 4
+1280 atoms in group electrolyte
+
+fix nvt electrolyte nvt temp 500.0 500.0 100
+fix shake bmi shake 1e-4 20 0 b 1 2 a 1
+       0 = # of size 2 clusters
+       0 = # of size 3 clusters
+       0 = # of size 4 clusters
+     320 = # of frozen angles
+  find clusters CPU = 0.001 seconds
+
+variable q atom q
+compute qtop top reduce sum v_q
+compute qbot bot reduce sum v_q
+compute ctemp electrolyte temp
+kspace_modify slab 3.0
+
+fix conp bot electrode/conp v_vbot 1.979 couple top v_vtop etypes 5
+832 atoms in group conp_group
+
+# get the four entries of electrode elastance matrix
+variable me00 internal 0.0
+variable me01 internal 0.0
+variable me10 internal 0.0
+variable me11 internal 0.0
+fix_modify conp set me bot bot me00
+fix_modify conp set me bot top me01
+fix_modify conp set me top bot me10
+fix_modify conp set me top top me11
+
+# get the 0V charges (qsb), and excess charge required to reach preset total charges
+variable qsb_bot internal 0.0
+variable qsb_top internal 0.0
+fix_modify conp set qsb bot qsb_bot
+fix_modify conp set qsb top qsb_top
+variable qex_bot equal -1.0-v_qsb_bot # difference between desired and 0V charge
+variable qex_top equal 1.0-v_qsb_top # difference between desired and 0V charge
+
+# calculate imposed potential as elastance * excess charge
+# note: fix will wait until the run setup to look for its potential variables
+variable vbot equal v_me00*v_qex_bot+v_me01*v_qex_top
+variable vtop equal v_me10*v_qex_bot+v_me11*v_qex_top
+
+thermo 50
+thermo_style custom step temp c_ctemp epair etotal c_qbot c_qtop v_vbot v_vtop
+run 500
+PPPM/electrode initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:342)
+  G vector (1/distance) = 0.20904498
+  grid = 32 32 200
+  stencil order = 5
+  estimated absolute RMS force accuracy = 3.7023506e-05
+  estimated relative force accuracy = 1.1149519e-07
+  using double precision MKL FFT
+  3d grid and FFT values/proc = 307242 204800
+  generated 10 of 10 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 18
+  ghost atom cutoff = 18
+  binsize = 9, bins = 4 4 16
+  3 neighbor lists, perpetual/occasional/extra = 2 1 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) fix electrode/conp, occasional, skip from (1)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (3) fix electrode/conp, perpetual, skip from (1)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 56.89 | 56.89 | 56.89 Mbytes
+   Step          Temp         c_ctemp         E_pair         TotEng         c_qbot         c_qtop         v_vbot         v_vtop    
+         0   0              0              25136984       25136984      -1              1             -9.931852       10.097344    
+        50   20.206425      72.797911      25136825       25137033      -1              1             -9.4359366      9.5964514    
+       100   55.931663      201.50563      25136587       25137163      -1              1             -8.0440112      8.1861787    
+       150   81.389273      293.22204      25136533       25137371      -1              1             -6.1113109      6.2267114    
+       200   92.867946      334.57639      25136646       25137603      -1              1             -4.1857807      4.2740694    
+       250   97.518304      351.33028      25136809       25137814      -1              1             -2.8383703      2.9101475    
+       300   102.36577      368.79431      25136933       25137987      -1              1             -2.3831643      2.4461115    
+       350   113.66597      409.50566      25136960       25138131      -1              1             -2.7083563      2.7457811    
+       400   122.8443       442.57252      25136991       25138256      -1              1             -3.4311003      3.3941657    
+       450   128.63713      463.44243      25137048       25138373      -1              1             -4.132871       3.9852959    
+       500   131.18361      472.61665      25137142       25138493      -1              1             -4.5104095      4.2567261    
+Loop time of 62.9692 on 1 procs for 500 steps with 3776 atoms
+
+Performance: 0.686 ns/day, 34.983 hours/ns, 7.940 timesteps/s
+393.7% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 20.307     | 20.307     | 20.307     |   0.0 | 32.25
+Bond    | 0.0020074  | 0.0020074  | 0.0020074  |   0.0 |  0.00
+Kspace  | 23.562     | 23.562     | 23.562     |   0.0 | 37.42
+Neigh   | 0.26149    | 0.26149    | 0.26149    |   0.0 |  0.42
+Comm    | 0.059436   | 0.059436   | 0.059436   |   0.0 |  0.09
+Output  | 0.0023888  | 0.0023888  | 0.0023888  |   0.0 |  0.00
+Modify  | 18.756     | 18.756     | 18.756     |   0.0 | 29.79
+Other   |            | 0.01897    |            |       |  0.03
+
+Nlocal:           3776 ave        3776 max        3776 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          12510 ave       12510 max       12510 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    1.72559e+06 ave 1.72559e+06 max 1.72559e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1725588
+Ave neighs/atom = 456.98835
+Ave special neighs/atom = 0.50847458
+Neighbor list builds = 6
+Dangerous builds = 0
+Total wall time: 0:02:26

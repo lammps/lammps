@@ -29,15 +29,10 @@ namespace LAMMPS_NS {
 class NStencilHalfBin3d : public NStencil {
  public:
   NStencilHalfBin3d(class LAMMPS *);
-  ~NStencilHalfBin3d() {}
-  void create();
+  void create() override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

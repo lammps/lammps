@@ -126,7 +126,7 @@ ComputePTMAtom::ComputePTMAtom(LAMMPS *lmp, int narg, char **arg)
   if (rmsd_threshold == 0)
     rmsd_threshold = INFINITY;
 
-  char* group_name = (char *)"all";
+  auto  group_name = (char *)"all";
   if (narg > 5) {
     group_name = arg[5];
   }
@@ -159,12 +159,7 @@ void ComputePTMAtom::init() {
 
   // need an occasional full neighbor list
 
-  int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -197,7 +192,7 @@ static bool sorthelper_compare(ptmnbr_t const &a, ptmnbr_t const &b) {
 
 static int get_neighbours(void* vdata, size_t central_index, size_t atom_index, int num, size_t* nbr_indices, int32_t* numbers, double (*nbr_pos)[3])
 {
-  ptmnbrdata_t* data = (ptmnbrdata_t*)vdata;
+  auto  data = (ptmnbrdata_t*)vdata;
   int *mask = data->mask;
   int group2bit = data->group2bit;
 

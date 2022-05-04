@@ -27,6 +27,7 @@
 #include "output.h"
 #include "thermo.h"
 #include "timer.h"
+#include "tokenizer.h"
 #include "universe.h"
 #include "update.h"
 
@@ -173,12 +174,11 @@ void NEB::run()
   else color = 1;
   MPI_Comm_split(uworld,color,0,&roots);
 
-  int ineb;
-  for (ineb = 0; ineb < modify->nfix; ineb++)
-    if (strcmp(modify->fix[ineb]->style,"neb") == 0) break;
-  if (ineb == modify->nfix) error->all(FLERR,"NEB requires use of fix neb");
+  auto fixes = modify->get_fix_by_style("^neb$");
+  if (fixes.size() != 1)
+    error->all(FLERR,"NEB requires use of exactly one fix neb instance");
 
-  fneb = (FixNEB *) modify->fix[ineb];
+  fneb = dynamic_cast<FixNEB *>( fixes[0]);
   if (verbose) numall =7;
   else  numall = 4;
   memory->create(all,nreplica,numall,"neb:all");
@@ -376,11 +376,11 @@ void NEB::run()
 
 void NEB::readfile(char *file, int flag)
 {
-  int i,j,m,nchunk,eofflag,nlines;
+  int i,nchunk,eofflag,nlines;
   tagint tag;
   char *eof,*start,*next,*buf;
   char line[MAXLINE];
-  double xx,yy,zz,delx,dely,delz;
+  double delx,dely,delz;
 
   if (me_universe == 0 && universe->uscreen)
     fprintf(universe->uscreen,"Reading NEB coordinate file(s) ...\n");
@@ -423,11 +423,8 @@ void NEB::readfile(char *file, int flag)
       error->all(FLERR,"Incorrectly formatted NEB file");
   }
 
-  char *buffer = new char[CHUNK*MAXLINE];
-  char **values = new char*[ATTRIBUTE_PERLINE];
-
+  auto buffer = new char[CHUNK*MAXLINE];
   double fraction = ireplica/(nreplica-1.0);
-
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
@@ -435,9 +432,7 @@ void NEB::readfile(char *file, int flag)
   // two versions of read_lines_from_file() for world vs universe bcast
   // count # of atom coords changed so can check for invalid atom IDs in file
 
-  int ncount = 0;
-
-  int nread = 0;
+  int ncount = 0, nread = 0;
   while (nread < nlines) {
     nchunk = MIN(nlines-nread,CHUNK);
     if (flag == 0)
@@ -461,49 +456,47 @@ void NEB::readfile(char *file, int flag)
 
     for (i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
+      *next = '\0';
 
-      values[0] = strtok(buf," \t\n\r\f");
-      for (j = 1; j < nwords; j++)
-        values[j] = strtok(nullptr," \t\n\r\f");
+      try {
+        ValueTokenizer values(buf," \t\n\r\f");
 
-      // adjust atom coord based on replica fraction
-      // for flag = 0, interpolate for intermediate and final replicas
-      // for flag = 1, replace existing coord with new coord
-      // ignore image flags of replica x
-      // displacement from first replica is via minimum image convention
-      // if x of some replica is across periodic boundary:
-      //   new x may be outside box
-      //   will be remapped back into box when simulation starts
-      //   its image flags will then be adjusted
+        // adjust atom coord based on replica fraction
+        // for flag = 0, interpolate for intermediate and final replicas
+        // for flag = 1, replace existing coord with new coord
+        // ignore image flags of replica x
+        // displacement from first replica is via minimum image convention
+        // if x of some replica is across periodic boundary:
+        //   new x may be outside box
+        //   will be remapped back into box when simulation starts
+        //   its image flags will then be adjusted
 
-      tag = ATOTAGINT(values[0]);
-      m = atom->map(tag);
-      if (m >= 0 && m < nlocal) {
-        ncount++;
-        xx = atof(values[1]);
-        yy = atof(values[2]);
-        zz = atof(values[3]);
+        tag = values.next_tagint();
+        int m = atom->map(tag);
+        if (m >= 0 && m < nlocal) {
+          ncount++;
 
-        delx = xx - x[m][0];
-        dely = yy - x[m][1];
-        delz = zz - x[m][2];
+          delx = values.next_double() - x[m][0];
+          dely = values.next_double() - x[m][1];
+          delz = values.next_double() - x[m][2];
 
-        domain->minimum_image(delx,dely,delz);
+          domain->minimum_image(delx,dely,delz);
 
-        if (flag == 0) {
-          x[m][0] += fraction*delx;
-          x[m][1] += fraction*dely;
-          x[m][2] += fraction*delz;
-        } else {
-          x[m][0] += delx;
-          x[m][1] += dely;
-          x[m][2] += delz;
+          if (flag == 0) {
+            x[m][0] += fraction*delx;
+            x[m][1] += fraction*dely;
+            x[m][2] += fraction*delz;
+          } else {
+            x[m][0] += delx;
+            x[m][1] += dely;
+            x[m][2] += delz;
+          }
         }
+      } catch (std::exception &e) {
+        error->universe_one(FLERR,"Incorrectly formatted NEB file: " + std::string(e.what()));
       }
-
       buf = next + 1;
     }
-
     nread += nchunk;
   }
 
@@ -522,9 +515,7 @@ void NEB::readfile(char *file, int flag)
   }
 
   // clean up
-
-  delete [] buffer;
-  delete [] values;
+  delete[] buffer;
 
   if (flag == 0) {
     if (me_universe == 0) {
@@ -634,56 +625,29 @@ void NEB::print_status()
   }
 
   if (me_universe == 0) {
-    const double todeg=180.0/MY_PI;
-    FILE *uscreen = universe->uscreen;
-    FILE *ulogfile = universe->ulogfile;
-    if (uscreen) {
-      fprintf(uscreen,BIGINT_FORMAT " %12.8g %12.8g ",
-              update->ntimestep,fmaxreplica,fmaxatom);
-      fprintf(uscreen,"%12.8g %12.8g %12.8g ",
-              gradvnorm0,gradvnorm1,gradvnormc);
-      fprintf(uscreen,"%12.8g %12.8g %12.8g ",ebf,ebr,endpt);
-      for (int i = 0; i < nreplica; i++)
-        fprintf(uscreen,"%12.8g %12.8g ",rdist[i],all[i][0]);
-      if (verbose) {
-        fprintf(uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
-                NAN,180-acos(all[0][5])*todeg,180-acos(all[0][6])*todeg,
-                all[0][3],freplica[0],fmaxatomInRepl[0]);
-        for (int i = 1; i < nreplica-1; i++)
-          fprintf(uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
-                  180-acos(all[i][4])*todeg,180-acos(all[i][5])*todeg,
-                  180-acos(all[i][6])*todeg,all[i][3],freplica[i],
-                  fmaxatomInRepl[i]);
-        fprintf(uscreen,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
-                NAN,180-acos(all[nreplica-1][5])*todeg,NAN,all[nreplica-1][3],
-                freplica[nreplica-1],fmaxatomInRepl[nreplica-1]);
-      }
-      fprintf(uscreen,"\n");
+    constexpr double todeg=180.0/MY_PI;
+    std::string mesg = fmt::format("{} {:12.8g} {:12.8g} ",update->ntimestep,fmaxreplica,fmaxatom);
+    mesg += fmt::format("{:12.8g} {:12.8g} {:12.8g} ",gradvnorm0,gradvnorm1,gradvnormc);
+    mesg += fmt::format("{:12.8g} {:12.8g} {:12.8g} ",ebf,ebr,endpt);
+    for (int i = 0; i < nreplica; i++) mesg += fmt::format("{:12.8g} {:12.8g} ",rdist[i],all[i][0]);
+    if (verbose) {
+      mesg += fmt::format("{:12.5g} {:12.5g} {:12.5g} {:12.5g} {:12.5g} {:12.5g}",
+                          NAN,180-acos(all[0][5])*todeg,180-acos(all[0][6])*todeg,
+                          all[0][3],freplica[0],fmaxatomInRepl[0]);
+      for (int i = 1; i < nreplica-1; i++)
+        mesg += fmt::format("{:12.5g} {:12.5g} {:12.5g} {:12.5g} {:12.5g} {:12.5g}",
+                            180-acos(all[i][4])*todeg,180-acos(all[i][5])*todeg,
+                            180-acos(all[i][6])*todeg,all[i][3],freplica[i],fmaxatomInRepl[i]);
+      mesg += fmt::format("{:12.5g} {:12.5g} {:12.5g} {:12.5g} {:12.5g} {:12.5g}",
+                          NAN,180-acos(all[nreplica-1][5])*todeg,NAN,all[nreplica-1][3],
+                          freplica[nreplica-1],fmaxatomInRepl[nreplica-1]);
     }
+    mesg += "\n";
 
-    if (ulogfile) {
-      fprintf(ulogfile,BIGINT_FORMAT " %12.8g %12.8g ",
-              update->ntimestep,fmaxreplica,fmaxatom);
-      fprintf(ulogfile,"%12.8g %12.8g %12.8g ",
-              gradvnorm0,gradvnorm1,gradvnormc);
-      fprintf(ulogfile,"%12.8g %12.8g %12.8g ",ebf,ebr,endpt);
-      for (int i = 0; i < nreplica; i++)
-        fprintf(ulogfile,"%12.8g %12.8g ",rdist[i],all[i][0]);
-      if (verbose) {
-        fprintf(ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
-                NAN,180-acos(all[0][5])*todeg,180-acos(all[0][6])*todeg,
-                all[0][3],freplica[0],fmaxatomInRepl[0]);
-        for (int i = 1; i < nreplica-1; i++)
-          fprintf(ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
-                  180-acos(all[i][4])*todeg,180-acos(all[i][5])*todeg,
-                  180-acos(all[i][6])*todeg,all[i][3],freplica[i],
-                  fmaxatomInRepl[i]);
-        fprintf(ulogfile,"%12.5g %12.5g %12.5g %12.5g %12.5g %12.5g",
-                NAN,180-acos(all[nreplica-1][5])*todeg,NAN,all[nreplica-1][3],
-                freplica[nreplica-1],fmaxatomInRepl[nreplica-1]);
-      }
-      fprintf(ulogfile,"\n");
-      fflush(ulogfile);
+    if (universe->uscreen) fputs(mesg.c_str(), universe->uscreen);
+    if (universe->ulogfile) {
+      fputs(mesg.c_str(), universe->ulogfile);
+      fflush(universe->ulogfile);
     }
   }
 }

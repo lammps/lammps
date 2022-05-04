@@ -443,10 +443,7 @@ void FixQMMM::exchange_positions()
       MPI_Send(isend_buf, 4, MPI_INT,    1, QMMM_TAG_SIZE, qm_comm);
       MPI_Send(celldata,  9, MPI_DOUBLE, 1, QMMM_TAG_CELL, qm_comm);
     }
-    if (verbose > 0) {
-      if (screen) fputs("QMMM: exchange positions\n",screen);
-      if (logfile) fputs("QMMM: exchange positions\n",logfile);
-    }
+    if (verbose > 0) utils::logmesg(lmp, "QMMM: exchange positions\n");
   }
 
   if (qmmm_role == QMMM_ROLE_MASTER) {
@@ -537,10 +534,7 @@ void FixQMMM::exchange_forces()
   const int nlocal = atom->nlocal;
   const int natoms = (int) atom->natoms;
 
-  if ((comm->me) == 0 && (verbose > 0)) {
-    if (screen)  fputs("QMMM: exchange forces\n",screen);
-    if (logfile) fputs("QMMM: exchange forces\n",logfile);
-  }
+  if ((comm->me) == 0 && (verbose > 0)) utils::logmesg(lmp, "QMMM: exchange forces\n");
 
   if (qmmm_role == QMMM_ROLE_MASTER) {
     struct commdata *buf = static_cast<struct commdata *>(comm_buf);
@@ -561,21 +555,14 @@ void FixQMMM::exchange_forces()
       // so we need to apply the scaling factor to get to the
       // supported internal units ("metal" or "real")
       for (int i=0; i < num_qm; ++i) {
-        if  (verbose > 1) {
-           const char fmt[] = "[" TAGINT_FORMAT "]: QM(%g %g %g) MM(%g %g %g) /\\(%g %g %g)\n";
-           if (screen) fprintf(screen, fmt, qm_remap[i],
-                qmmm_fscale*qm_force[3*i+0], qmmm_fscale*qm_force[3*i+1], qmmm_fscale*qm_force[3*i+2],
-                mm_force_on_qm_atoms[3*i+0], mm_force_on_qm_atoms[3*i+1], mm_force_on_qm_atoms[3*i+2],
-                qmmm_fscale*qm_force[3*i+0] - mm_force_on_qm_atoms[3*i+0],
-                qmmm_fscale*qm_force[3*i+1] - mm_force_on_qm_atoms[3*i+1],
-                qmmm_fscale*qm_force[3*i+2] - mm_force_on_qm_atoms[3*i+2]);
-           if (logfile) fprintf(logfile, fmt, qm_remap[i],
-                qmmm_fscale*qm_force[3*i+0], qmmm_fscale*qm_force[3*i+1], qmmm_fscale*qm_force[3*i+2],
-                mm_force_on_qm_atoms[3*i+0], mm_force_on_qm_atoms[3*i+1], mm_force_on_qm_atoms[3*i+2],
-                qmmm_fscale*qm_force[3*i+0] - mm_force_on_qm_atoms[3*i+0],
-                qmmm_fscale*qm_force[3*i+1] - mm_force_on_qm_atoms[3*i+1],
-                qmmm_fscale*qm_force[3*i+2] - mm_force_on_qm_atoms[3*i+2]);
-        }
+        if  (verbose > 1)
+          utils::logmesg(lmp, "[{}]: QM({} {} {}) MM({} {} {}) /\\({} {} {})\n", qm_remap[i],
+                         qmmm_fscale*qm_force[3*i+0], qmmm_fscale*qm_force[3*i+1], qmmm_fscale*qm_force[3*i+2],
+                         mm_force_on_qm_atoms[3*i+0], mm_force_on_qm_atoms[3*i+1], mm_force_on_qm_atoms[3*i+2],
+                         qmmm_fscale*qm_force[3*i+0] - mm_force_on_qm_atoms[3*i+0],
+                         qmmm_fscale*qm_force[3*i+1] - mm_force_on_qm_atoms[3*i+1],
+                         qmmm_fscale*qm_force[3*i+2] - mm_force_on_qm_atoms[3*i+2]);
+
         buf[i].tag = qm_remap[i];
         buf[i].x = qmmm_fscale*qm_force[3*i+0] - mm_force_on_qm_atoms[3*i+0];
         buf[i].y = qmmm_fscale*qm_force[3*i+1] - mm_force_on_qm_atoms[3*i+1];
@@ -684,21 +671,9 @@ void FixQMMM::init()
       memory->create(qm_charge,num_qm,"qmmm:qm_charge");
       memory->create(qm_force,3*num_qm,"qmmm:qm_force");
 
-      const char fmt1[] = "Initializing QM/MM master with %d QM atoms\n";
-      const char fmt2[] = "Initializing QM/MM master with %d MM atoms\n";
-      const char fmt3[] = "Electrostatic coupling with %d atoms\n";
-
-      if (screen)  {
-        fprintf(screen,fmt1,num_qm);
-        fprintf(screen,fmt2,num_mm);
-        if (qmmm_mode == QMMM_MODE_ELEC) fprintf(screen,fmt3,num_mm-num_qm);
-      }
-
-      if (logfile) {
-        fprintf(logfile,fmt1,num_qm);
-        fprintf(logfile,fmt2,num_mm);
-        if (qmmm_mode == QMMM_MODE_ELEC) fprintf(logfile,fmt3,num_mm-num_qm);
-      }
+      utils::logmesg(lmp, "Initializing QM/MM master with {} QM atoms\n", num_qm);
+      utils::logmesg(lmp, "Initializing QM/MM master with {} MM atoms\n", num_mm);
+      utils::logmesg(lmp, "Electrostatic coupling with {} atoms\n", num_mm-num_qm);
 
     } else if (qmmm_role == QMMM_ROLE_SLAVE) {
 
@@ -711,11 +686,7 @@ void FixQMMM::init()
       memory->create(qm_coord,3*num_qm,"qmmm:qm_coord");
       memory->create(qm_force,3*num_qm,"qmmm:qm_force");
 
-      const char fmt[] = "Initializing QM/MM slave with %d QM atoms\n";
-
-      if (screen)  fprintf(screen,fmt,num_qm);
-      if (logfile) fprintf(logfile,fmt,num_qm);
-
+      utils::logmesg(lmp, "Initializing QM/MM slave with {} QM atoms\n",num_qm);
     }
 
     // communication buffer
@@ -769,15 +740,10 @@ void FixQMMM::init()
       qm_remap=taginthash_keys(qm_hash);
 
       if (verbose > 1) {
-        const char fmt[] = "qm_remap[%d]=" TAGINT_FORMAT
-                           "  qm_hash[" TAGINT_FORMAT "]=" TAGINT_FORMAT "\n";
         // print hashtable and reverse mapping
-        for (i=0; i < num_qm; ++i) {
-          if (screen) fprintf(screen,fmt,i,qm_remap[i],qm_remap[i],
-                              taginthash_lookup(qm_hash, qm_remap[i]));
-          if (logfile) fprintf(logfile,fmt,i,qm_remap[i],qm_remap[i],
-                               taginthash_lookup(qm_hash, qm_remap[i]));
-        }
+        for (i=0; i < num_qm; ++i)
+          utils::logmesg(lmp, "qm_remap[{}]={} qm_hash[{}]={}\n",
+                         i,qm_remap[i],qm_remap[i],taginthash_lookup(qm_hash, qm_remap[i]));
       }
 
     } else {
@@ -815,7 +781,7 @@ void FixQMMM::setup(int)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQMMM::post_force(int vflag)
+void FixQMMM::post_force(int /*vflag*/)
 {
   exchange_forces();
 }

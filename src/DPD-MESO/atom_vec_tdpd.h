@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class AtomVecTDPD : public AtomVec {
  public:
   AtomVecTDPD(class LAMMPS *);
-  void process_args(int, char **);
-  void init();
+  void process_args(int, char **) override;
+  void init() override;
 
-  void grow_pointers();
-  void force_clear(int, size_t);
-  void data_atom_post(int);
+  void grow_pointers() override;
+  void force_clear(int, size_t) override;
+  void data_atom_post(int) override;
 
  protected:
   double **cc_flux;
@@ -45,16 +45,3 @@ class AtomVecTDPD : public AtomVec {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Per-processor system is too big
-
-The number of owned atoms plus ghost atoms on a single
-processor must fit in 32-bit integer.
-
-E: Invalid atom type in Atoms section of data file
-
-Atom types must range from 1 to specified # of types.
-
-*/

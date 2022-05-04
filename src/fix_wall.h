@@ -29,17 +29,17 @@ class FixWall : public Fix {
   char *xstr[6];
 
   FixWall(class LAMMPS *, int, char **);
-  virtual ~FixWall();
-  int setmask();
-  virtual void init();
-  void setup(int);
-  void min_setup(int);
-  void pre_force(int);
-  void post_force(int);
-  void post_force_respa(int, int, int);
-  void min_post_force(int);
-  double compute_scalar();
-  double compute_vector(int);
+  ~FixWall() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void min_setup(int) override;
+  void pre_force(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  void min_post_force(int) override;
+  double compute_scalar() override;
+  double compute_vector(int) override;
 
   virtual void precompute(int) = 0;
   virtual void wall_particle(int, int, double) = 0;
@@ -60,41 +60,3 @@ class FixWall : public Fix {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Wall defined twice in fix wall command
-
-Self-explanatory.
-
-E: Fix wall cutoff <= 0.0
-
-Self-explanatory.
-
-E: Cannot use fix wall zlo/zhi for a 2d simulation
-
-Self-explanatory.
-
-E: Cannot use fix wall in periodic dimension
-
-Self-explanatory.
-
-E: Variable name for fix wall does not exist
-
-Self-explanatory.
-
-E: Variable for fix wall is invalid style
-
-Only equal-style variables can be used.
-
-E: Variable evaluation in fix wall gave bad value
-
-The returned value for epsilon or sigma < 0.0.
-
-*/

@@ -195,14 +195,14 @@ void ComputePressure::init()
     if (improperflag && force->improper) nvirial++;
   }
   if (fixflag)
-    for (int i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->thermo_virial) nvirial++;
+    for (auto &ifix : modify->get_fix_list())
+      if (ifix->thermo_virial) nvirial++;
 
   if (nvirial) {
     vptr = new double*[nvirial];
     nvirial = 0;
     if (pairhybridflag && force->pair) {
-      PairHybrid *ph = (PairHybrid *) force->pair;
+      auto ph = dynamic_cast<PairHybrid *>( force->pair);
       ph->no_virial_fdotr_compute = 1;
       vptr[nvirial++] = pairhybrid->virial;
     }
@@ -214,9 +214,9 @@ void ComputePressure::init()
     if (improperflag && force->improper)
       vptr[nvirial++] = force->improper->virial;
     if (fixflag)
-      for (int i = 0; i < modify->nfix; i++)
-        if (modify->fix[i]->virial_global_flag && modify->fix[i]->thermo_virial)
-          vptr[nvirial++] = modify->fix[i]->virial;
+    for (auto &ifix : modify->get_fix_list())
+      if (ifix->virial_global_flag && ifix->thermo_virial)
+          vptr[nvirial++] = ifix->virial;
   }
 
   // flag Kspace contribution separately, since not summed across procs

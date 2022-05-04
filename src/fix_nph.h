@@ -27,22 +27,9 @@ namespace LAMMPS_NS {
 class FixNPH : public FixNH {
  public:
   FixNPH(class LAMMPS *, int, char **);
-  ~FixNPH() {}
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Temperature control can not be used with fix nph
-
-Self-explanatory.
-
-E: Pressure control must be used with fix nph
-
-Self-explanatory.
-
-*/

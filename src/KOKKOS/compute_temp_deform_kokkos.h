@@ -76,11 +76,11 @@ class ComputeTempDeformKokkos: public ComputeTempDeform {
   typedef ArrayTypes<DeviceType> AT;
 
   ComputeTempDeformKokkos(class LAMMPS *, int, char **);
-  ~ComputeTempDeformKokkos();
-  double compute_scalar();
-  void compute_vector();
-  void remove_bias_all();
-  void restore_bias_all();
+  ~ComputeTempDeformKokkos() override;
+  double compute_scalar() override;
+  void compute_vector() override;
+  void remove_bias_all() override;
+  void restore_bias_all() override;
 
   template<int RMASS>
   KOKKOS_INLINE_FUNCTION
@@ -116,11 +116,3 @@ class ComputeTempDeformKokkos: public ComputeTempDeform {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Temperature compute degrees of freedom < 0
-
-This should not happen if you are calculating the temperature
-on a valid set of atoms.
-
-*/

@@ -355,7 +355,7 @@ void Balance::command(int narg, char **arg)
   // set disable = 0, so weights migrate with atoms for imbfinal calculation
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
-  Irregular *irregular = new Irregular(lmp);
+  auto irregular = new Irregular(lmp);
   if (wtflag) fixstore->disable = 0;
   if (style == BISECTION) irregular->migrate_atoms(1,1,rcb->sendproc);
   else irregular->migrate_atoms(1);
@@ -496,8 +496,8 @@ void Balance::weight_storage(char *prefix)
   if (prefix) cmd = prefix;
   cmd += "IMBALANCE_WEIGHTS";
 
-  fixstore = (FixStore *) modify->get_fix_by_id(cmd);
-  if (!fixstore) fixstore = (FixStore *) modify->add_fix(cmd + " all STORE peratom 0 1");
+  fixstore = dynamic_cast<FixStore *>( modify->get_fix_by_id(cmd));
+  if (!fixstore) fixstore = dynamic_cast<FixStore *>( modify->add_fix(cmd + " all STORE peratom 0 1"));
 
   // do not carry weights with atoms during normal atom migration
 

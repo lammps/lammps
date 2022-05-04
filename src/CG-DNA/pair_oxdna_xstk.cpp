@@ -18,7 +18,6 @@
 #include "pair_oxdna_xstk.h"
 
 #include "atom.h"
-#include "atom_vec_ellipsoid.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
@@ -111,9 +110,8 @@ PairOxdnaXstk::~PairOxdnaXstk()
 
 void PairOxdnaXstk::compute(int eflag, int vflag)
 {
-
   double delf[3],delta[3],deltb[3]; // force, torque increment;
-  double evdwl,fpair,finc,tpair,factor_lj;
+  double evdwl,finc,tpair,factor_lj;
   double delr_hb[3],delr_hb_norm[3],rsq_hb,r_hb,rinv_hb;
   double theta1,t1dir[3],cost1;
   double theta2,t2dir[3],cost2;
@@ -126,10 +124,9 @@ void PairOxdnaXstk::compute(int eflag, int vflag)
   double d_chb=+0.4;
   // vectors COM-h-bonding site in lab frame
   double ra_chb[3],rb_chb[3];
-
-  // quaternions and Cartesian unit vectors in lab frame
-  double *qa,ax[3],ay[3],az[3];
-  double *qb,bx[3],by[3],bz[3];
+  // Cartesian unit vectors in lab frame
+  double ax[3],az[3];
+  double bx[3],bz[3];
 
   double **x = atom->x;
   double **f = atom->f;
@@ -140,10 +137,6 @@ void PairOxdnaXstk::compute(int eflag, int vflag)
   int newton_pair = force->newton_pair;
   int *alist,*blist,*numneigh,**firstneigh;
   double *special_lj = force->special_lj;
-
-  AtomVecEllipsoid *avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
-  int *ellipsoid = atom->ellipsoid;
 
   int a,b,ia,ib,anum,bnum,atype,btype;
 
@@ -158,6 +151,12 @@ void PairOxdnaXstk::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  // n(x/y/z)_xtrct = extracted local unit vectors from oxdna_excv
+  int dim;
+  nx_xtrct = (double **) force->pair->extract("nx",dim);
+  ny_xtrct = (double **) force->pair->extract("ny",dim);
+  nz_xtrct = (double **) force->pair->extract("nz",dim);
+
   // loop over pair interaction neighbors of my atoms
 
   for (ia = 0; ia < anum; ia++) {
@@ -165,8 +164,10 @@ void PairOxdnaXstk::compute(int eflag, int vflag)
     a = alist[ia];
     atype = type[a];
 
-    qa=bonus[ellipsoid[a]].quat;
-    MathExtra::q_to_exyz(qa,ax,ay,az);
+    ax[0] = nx_xtrct[a][0];
+    ax[1] = nx_xtrct[a][1];
+    ax[2] = nx_xtrct[a][2];
+    // a(y/z) not needed here as oxDNA(1) co-linear
 
     ra_chb[0] = d_chb*ax[0];
     ra_chb[1] = d_chb*ax[1];
@@ -183,8 +184,10 @@ void PairOxdnaXstk::compute(int eflag, int vflag)
 
       btype = type[b];
 
-      qb=bonus[ellipsoid[b]].quat;
-      MathExtra::q_to_exyz(qb,bx,by,bz);
+      bx[0] = nx_xtrct[b][0];
+      bx[1] = nx_xtrct[b][1];
+      bx[2] = nx_xtrct[b][2];
+      // b(y/z) not needed here as oxDNA(1) co-linear
 
       rb_chb[0] = d_chb*bx[0];
       rb_chb[1] = d_chb*bx[1];
@@ -242,6 +245,13 @@ void PairOxdnaXstk::compute(int eflag, int vflag)
 
       // early rejection criterium
       if (f4t3) {
+
+      az[0] = nz_xtrct[a][0];
+      az[1] = nz_xtrct[a][1];
+      az[2] = nz_xtrct[a][2];
+      bz[0] = nz_xtrct[b][0];
+      bz[1] = nz_xtrct[b][1];
+      bz[2] = nz_xtrct[b][2];
 
       cost4 = MathExtra::dot3(az,bz);
       if (cost4 >  1.0) cost4 =  1.0;
@@ -322,8 +332,6 @@ void PairOxdnaXstk::compute(int eflag, int vflag)
 
       // force, torque and virial contribution for forces between h-bonding sites
 
-      fpair = 0.0;
-
       delf[0] = 0.0;
       delf[1] = 0.0;
       delf[2] = 0.0;
@@ -338,7 +346,6 @@ void PairOxdnaXstk::compute(int eflag, int vflag)
 
       // radial force
       finc  = -df2 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8 * rinv_hb *factor_lj;
-      fpair += finc;
 
       delf[0] += delr_hb[0] * finc;
       delf[1] += delr_hb[1] * finc;
@@ -348,7 +355,6 @@ void PairOxdnaXstk::compute(int eflag, int vflag)
       if (theta2) {
 
         finc  = -f2 * f4t1 * df4t2 * f4t3 * f4t4 * f4t7 * f4t8 * rinv_hb * factor_lj;
-        fpair += finc;
 
         delf[0] += (delr_hb_norm[0]*cost2 + ax[0]) * finc;
         delf[1] += (delr_hb_norm[1]*cost2 + ax[1]) * finc;
@@ -360,7 +366,6 @@ void PairOxdnaXstk::compute(int eflag, int vflag)
       if (theta3) {
 
         finc  = -f2 * f4t1 * f4t2 * df4t3 * f4t4 * f4t7 * f4t8 * rinv_hb * factor_lj;
-        fpair += finc;
 
         delf[0] += (delr_hb_norm[0]*cost3 - bx[0]) * finc;
         delf[1] += (delr_hb_norm[1]*cost3 - bx[1]) * finc;
@@ -372,7 +377,6 @@ void PairOxdnaXstk::compute(int eflag, int vflag)
       if (theta7) {
 
         finc  = -f2 * f4t1 * f4t2 * f4t3 * f4t4 * df4t7 * f4t8 * rinv_hb * factor_lj;
-        fpair += finc;
 
         delf[0] += (delr_hb_norm[0]*cost7 + az[0]) * finc;
         delf[1] += (delr_hb_norm[1]*cost7 + az[1]) * finc;
@@ -384,7 +388,6 @@ void PairOxdnaXstk::compute(int eflag, int vflag)
       if (theta8) {
 
         finc  = -f2 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * df4t8 * rinv_hb * factor_lj;
-        fpair += finc;
 
         delf[0] += (delr_hb_norm[0]*cost8 - bz[0]) * finc;
         delf[1] += (delr_hb_norm[1]*cost8 - bz[1]) * finc;

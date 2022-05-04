@@ -30,19 +30,19 @@ enum { ODE_LAMMPS_RK4, ODE_LAMMPS_RKF45 };
 class FixRX : public Fix {
  public:
   FixRX(class LAMMPS *, int, char **);
-  ~FixRX();
-  int setmask();
-  void post_constructor();
-  virtual void init();
-  void init_list(int, class NeighList *);
-  virtual void setup_pre_force(int);
-  virtual void pre_force(int);
+  ~FixRX() override;
+  int setmask() override;
+  void post_constructor() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void setup_pre_force(int) override;
+  void pre_force(int) override;
 
  protected:
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
   class NeighList *list;
 
@@ -147,53 +147,3 @@ class FixRX : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E:  fix rx cannot be combined with fix property/atom
-
-Self-explanatory
-
-E:  Cannot open rx file %s
-
-Self-explanatory
-
-E:  Exceeded the maximum number of species permitted in fix rx
-
-Reduce the number of species in the fix rx reaction kinetics file
-
-E:  There are no rx species specified.
-
-Self-explanatory
-
-E:  Must use pair_style dpd/fdt/energy with fix rx.
-
-Self-explanatory
-
-E:  fix rx requires fix eos/table/rx to be specified.
-
-Self-explanatory
-
-W:  in FixRX::pre_force, ODE solver failed for %d atoms.
-
-Self-explanatory
-
-E:  Missing parameters in reaction kinetic equation.
-
-Self-explanatory
-
-E:  Potential file has duplicate entry.
-
-Self-explanatory
-
-E:  Computed concentration in RK4 (RKF45) solver is < -1.0e-10.
-
-Self-explanatory:  Adjust settings for the RK4 solver.
-
-*/

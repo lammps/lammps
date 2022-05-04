@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class PairEDIP : public Pair {
  public:
   PairEDIP(class LAMMPS *);
-  virtual ~PairEDIP();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void init_style();
+  ~PairEDIP() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void init_style() override;
 
   static constexpr int NPARAMS_PER_LINE = 20;
 
@@ -50,7 +50,7 @@ class PairEDIP : public Pair {
     double mu, Q0;            // coefficients for function Q(Z)
     double u1, u2, u3, u4;    // coefficients for function tau(Z)
     double cutsq;
-    int ielement, jelement, kelement, dummy; // dummy added for better alignment
+    int ielement, jelement, kelement, dummy;    // dummy added for better alignment
   };
 
   double *preInvR_ij;

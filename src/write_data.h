@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class WriteData : public Command {
  public:
   WriteData(class LAMMPS *);
-  void command(int, char **);
+  void command(int, char **) override;
   void write(const std::string &);
 
  private:
@@ -58,27 +58,3 @@ class WriteData : public Command {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Write_data command before simulation box is defined
-
-Self-explanatory.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Atom count is inconsistent, cannot write data file
-
-The sum of atoms across processors does not equal the global number
-of atoms.  Probably some atoms have been lost.
-
-E: Cannot open data file %s
-
-The specified file cannot be opened.  Check that the path and name are
-correct.
-
-*/

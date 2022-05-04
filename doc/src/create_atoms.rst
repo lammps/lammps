@@ -50,10 +50,10 @@ Syntax
        *rotate* values = theta Rx Ry Rz
          theta = rotation angle for single molecule (degrees)
          Rx,Ry,Rz = rotation vector for single molecule
+       *overlap* value = Doverlap
+         Doverlap = only insert if at least this distance from all existing atoms
        *maxtry* value = Ntry
          Ntry = number of attempts to insert a particle before failure
-       *overlap* value = radius
-         radius = only insert if at least this distance from all existing atoms
        *units* value = *lattice* or *box*
          *lattice* = the geometry is defined in lattice units
          *box* = the geometry is defined in simulation box units
@@ -68,7 +68,7 @@ Examples
    create_atoms 3 region regsphere basis 2 3 ratio 0.5 74637
    create_atoms 3 single 0 0 5
    create_atoms 1 box var v set x xpos set y ypos
-   create_atoms 2 random 50 12345 NULL maxtries 10 overlap 2.0
+   create_atoms 2 random 50 12345 NULL overlap 2.0 maxtry 50
 
 Description
 """""""""""
@@ -119,13 +119,18 @@ the specified coordinates.  This can be useful for debugging purposes
 or to create a tiny system with a handful of particles at specified
 positions.
 
-For the *random* style, N particles are added to the system at
+For the *random* style, *N* particles are added to the system at
 randomly generated coordinates, which can be useful for generating an
 amorphous system.  The particles are created one by one using the
 specified random number *seed*, resulting in the same set of particle
 coordinates, independent of how many processors are being used in the
 simulation.  Unless the *overlap* keyword is specified, particles
 created by the *random* style will typically be highly overlapped.
+Various additional criteria can be used to accept or reject a random
+particle insertion; see the keyword discussion below.  Multiple
+attempts per particle are made (see the *maxtry* keyword) until the
+insertion is either successful or fails.  If this command fails to add
+all requsted *N* particles, a warning will be output.
 
 If the *region-ID* argument is specified as NULL, then the randomly
 created particles will be anywhere in the simulation box.  If a
@@ -250,13 +255,14 @@ and no particle is created if its position is outside the box.
 
 The *var* and *set* keywords can be used together to provide a
 criterion for accepting or rejecting the addition of an individual
-atom, based on its coordinates.  The *name* specified for the *var*
-keyword is the name of an :doc:`equal-style variable <variable>` which
-should evaluate to a zero or non-zero value based on one or two or
-three variables which will store the x, y, or z coordinates of an atom
-(one variable per coordinate).  If used, these other variables must be
-:doc:`internal-style variables <variable>` defined in the input script;
-their initial numeric value can be anything.  They must be
+atom, based on its coordinates.  They apply to all styles except
+*single*.  The *name* specified for the *var* keyword is the name of
+an :doc:`equal-style variable <variable>` which should evaluate to a
+zero or non-zero value based on one or two or three variables which
+will store the x, y, or z coordinates of an atom (one variable per
+coordinate).  If used, these other variables must be
+:doc:`internal-style variables <variable>` defined in the input
+script; their initial numeric value can be anything.  They must be
 internal-style variables, because this command resets their values
 directly.  The *set* keyword is used to identify the names of these
 other variables, one variable for the x-coordinate of a created atom,
@@ -307,47 +313,37 @@ the atoms around the rotation axis is consistent with the right-hand
 rule: if your right-hand's thumb points along *R*, then your fingers
 wrap around the axis in the direction of rotation.
 
-The *overlap* keyword only applies to the *random* style.  It prevent
-the newly created particles from overlapping or being created too
-close to others. When the particles being created are **single atoms**
-the *radius* parameter passed with the keyword denotes the distance
-between particle locations/centers, meaning that all new atoms will be
-created at locations not closer than *radius* from the location of any
-other atom in the system. When the particles being created are
-**molecules** the molecule radius is taken into account so that all
-new molecules will be created at locations not closer than (*radius* +
-molecule radius) from the location of any existing atom in the system.
+The *overlap* keyword only applies to the *random* style.  It prevents
+newly created particles from being created closer than the specified
+*Doverlap* distance from any other particle.  When the particles being
+created are molecules, the radius of the molecule (from its geometric
+center) is added to *Doverlap*.  If particles have finite size (see
+:doc:`atom_style sphere <atom_style>` for example) *Doverlap* should
+be specified large enough to include the particle size in the
+non-overlapping criterion.
 
 .. note::
 
-   Checking for overlaps is a very costly operation (O(N) for each new
-   atom/molecule, where N is the number of existing atoms) and the
-   intended use of this keyword is, for example, adding small amounts
-   of new atoms/molecules to relatively sparse systems mid simulation
-   (between consecutive runs), i.e. where running an energy
-   minimization procedure isn't an option.  The use of the *maxtry*
-   keyword in combination with *overlap* is highly recommended.
-
-
-Note: does maxtry apply to var/set as well ?
+   Checking for overlaps is a costly O(N(N+M)) operation for inserting
+   *N* new particles into a system with *M* existing particles.  This
+   is because distances to all *M* existing particles are computed for
+   each new particle that is added.  Thus the intended use of this
+   keyword is to add relatively small numbers of particles to systems
+   which remain at a relatively low density even after the new
+   particles are created.  Careful use of the *maxtry* keyword in
+   combination with *overlap* is recommended.  See the discussion
+   above about systems with overlapped particles for alternate
+   strategies that allow for overlapped insertions.
 
 The *maxtry* keyword only applies to the *random* style.  It limits
 the number of attempts to generate valid coordinates for a single new
-particle that satisfies all requirements imposed by the *region*,
-*var*, and *overlap* keywords.  The default is 10 attempts per
-particle before the loop over the requested *N* particles advances to
-the next particle.  Note that setting the *maxtry* keyword to a large
-value may result in the create_atoms command running for a long time
-for
-
-before the
-command fails. This keyword is available only with the *random* style
-and the default number of tries is 1000 per particle. The use of this
-keyword is recommended when using the *overlap* keyword, otherwise it
-is usually not necessary (but can be useful).
-
-
-
+particle that satisfy all requirements imposed by the *region*, *var*,
+and *overlap* keywords.  The default is 10 attempts per particle
+before the loop over the requested *N* particles advances to the next
+particle.  Note that if insertion success is unlikely (e.g. inserting
+new particles into a dense system using the *overlap* keyword),
+setting the *maxtry* keyword to a large value may result in this
+command running for a long time.
 
 The *units* keyword determines the meaning of the distance units used
 to specify the coordinates of the one particle created by the *single*
@@ -432,4 +428,4 @@ Default
 The default for the *basis* keyword is that all created atoms are
 assigned the argument *type* as their atom type (when single atoms are
 being created).  The other defaults are *remap* = no, *rotate* =
-random, *maxtries* = 1000, and *units* = lattice.
+random, *overlap* not checked, *maxtry* = 10, and *units* = lattice.

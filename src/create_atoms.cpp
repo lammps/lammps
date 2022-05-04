@@ -97,7 +97,6 @@ void CreateAtoms::command(int narg, char **arg)
     region->init();
     region->prematch();
     iarg = 3;
-    ;
   } else if (strcmp(arg[1], "single") == 0) {
     style = SINGLE;
     if (narg < 5) error->all(FLERR, "Illegal create_atoms command");
@@ -231,13 +230,6 @@ void CreateAtoms::command(int narg, char **arg)
       subsetseed = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       if (nsubset <= 0 || subsetseed <= 0) error->all(FLERR, "Illegal create_atoms command");
       iarg += 3;
-    } else if (strcmp(arg[iarg], "maxtrr") == 0) {
-      if (style != RANDOM) 
-        error->all(FLERR, "Create_atoms maxtry can only be used with random style");
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
-      maxtry = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (maxtry <= 0) error->all(FLERR,"Illegal create_atoms command");
-      iarg += 2;
     } else if (strcmp(arg[iarg], "overlap") == 0) {
       if (style != RANDOM) 
         error->all(FLERR, "Create_atoms overlap can only be used with random style");
@@ -245,6 +237,13 @@ void CreateAtoms::command(int narg, char **arg)
       overlap = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       if (overlap <= 0) error->all(FLERR, "Illegal create_atoms command");
       overlapflag = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "maxtry") == 0) {
+      if (style != RANDOM) 
+        error->all(FLERR, "Create_atoms maxtry can only be used with random style");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
+      maxtry = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      if (maxtry <= 0) error->all(FLERR,"Illegal create_atoms command");
       iarg += 2;
     } else
       error->all(FLERR, "Illegal create_atoms command");
@@ -324,6 +323,7 @@ void CreateAtoms::command(int narg, char **arg)
     xone[0] *= domain->lattice->xlattice;
     xone[1] *= domain->lattice->ylattice;
     xone[2] *= domain->lattice->zlattice;
+    overlap *= domain->lattice->xlattice;
   }
 
   // set bounds for my proc in sublo[3] & subhi[3]
@@ -755,9 +755,9 @@ void CreateAtoms::add_random()
 
       if (mode == MOLECULE) generate_molecule(xone);
 
-      // check for overlap of new atom with all others
-      // including prior insertions
-      
+      // check for overlap of new atom with all others including prior insertions
+      // minimum_image() required to account for distances across PBC
+
       if (overlapflag) {
         double **x = atom->x;
         int nlocal = atom->nlocal;
@@ -768,6 +768,7 @@ void CreateAtoms::add_random()
             delx = xone[0] - x[i][0];
             dely = xone[1] - x[i][1];
             delz = xone[2] - x[i][2];
+            domain->minimum_image(delx,dely,delz);
             distsq = delx*delx + dely*dely + delz*delz;
             if (distsq < odistsq) {
               reject = 1;

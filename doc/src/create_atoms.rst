@@ -345,10 +345,37 @@ new particles into a dense system using the *overlap* keyword),
 setting the *maxtry* keyword to a large value may result in this
 command running for a long time.
 
+Here is an example for the *random* style using these commands
+
+.. code-block:: LAMMPS
+
+units		lj
+dimension       2
+region		box block 0 50 0 50 -0.5 0.5
+create_box	1 box
+create_atoms	1 random 2000 13487 NULL overlap 1.0 maxtry 50
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+
+to produce a system as shown in the image with 1520 particles (out of
+2000 requested) that are moderately dense and which have no overlaps
+sufficient to prevent the LJ pair_style from running properly (because
+the overlap criterion = 1.0).  The create_atoms command ran for 0.3 s
+on a single CPU core.
+
+.. image:: img/overlap.png
+   :scale: 50%
+   :align: center
+
+.. raw:: html
+
+   Click on the image for a larger version.
+
 The *units* keyword determines the meaning of the distance units used
 to specify the coordinates of the one particle created by the *single*
-style.  A *box* value selects standard distance units as defined by
-the :doc:`units <units>` command, e.g. Angstroms for units = real or
+style, or the overlap distance *Doverlap* by the *overlap* keyword.  A
+*box* value selects standard distance units as defined by the
+:doc:`units <units>` command, e.g. Angstroms for units = real or
 metal.  A *lattice* value means the distance units are in lattice
 spacings.
 

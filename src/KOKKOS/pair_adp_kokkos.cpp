@@ -34,7 +34,6 @@
 
 using namespace LAMMPS_NS;
 
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -179,6 +178,7 @@ void PairADPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
 
     // communicate and sum densities (on the host)
+
     if (newton_pair) {
       k_rho.template modify<DeviceType>();
       k_mu.template modify<DeviceType>();
@@ -325,7 +325,7 @@ void PairADPKokkos<DeviceType>::init_style()
   request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
                            !std::is_same<DeviceType,LMPDeviceType>::value);
   request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
-  if(neighflag == FULL) request->enable_full();
+  if (neighflag == FULL) request->enable_full();
 }
 
 /* ----------------------------------------------------------------------
@@ -1090,11 +1090,11 @@ void PairADPKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, const int &i, const i
 
   // The eatom and vatom arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
-  auto v_eatom = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
-  auto a_eatom = v_eatom.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_eatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
+  auto a_eatom = v_eatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
-  auto v_vatom = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
-  auto a_vatom = v_vatom.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_vatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
+  auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   if (EFLAG) {
     if (eflag_atom) {

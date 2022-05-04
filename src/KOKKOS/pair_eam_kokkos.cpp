@@ -54,10 +54,10 @@ PairEAMKokkos<DeviceType>::PairEAMKokkos(LAMMPS *lmp) : PairEAM(lmp)
 template<class DeviceType>
 PairEAMKokkos<DeviceType>::~PairEAMKokkos()
 {
-  if (!copymode) {
-    memoryKK->destroy_kokkos(k_eatom,eatom);
-    memoryKK->destroy_kokkos(k_vatom,vatom);
-  }
+  if (copymode) return;
+
+  memoryKK->destroy_kokkos(k_eatom,eatom);
+  memoryKK->destroy_kokkos(k_vatom,vatom);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -160,7 +160,7 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       }
     }
 
-    if (need_dup)
+    if (need_dup)      Kokkos::Experimental::contribute(d_rho, dup_rho);
       Kokkos::Experimental::contribute(d_rho, dup_rho);
 
     // communicate and sum densities (on the host)
@@ -640,6 +640,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>, const int 
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors(i,jj);
     j &= NEIGHMASK;
+
     const X_FLOAT delx = xtmp - x(j,0);
     const X_FLOAT dely = ytmp - x(j,1);
     const X_FLOAT delz = ztmp - x(j,2);

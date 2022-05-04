@@ -799,10 +799,8 @@ void NEBSpin::print_status()
     FILE *uscreen = universe->uscreen;
     FILE *ulogfile = universe->ulogfile;
     if (uscreen) {
-      fprintf(uscreen,BIGINT_FORMAT " %12.8g %12.8g ",
-              update->ntimestep,fmaxreplica,fmaxatom);
-      fprintf(uscreen,"%12.8g %12.8g %12.8g ",
-              gradvnorm0,gradvnorm1,gradvnormc);
+      fmt::print(uscreen,"{} {:12.8g} {:12.8g} ",update->ntimestep,fmaxreplica,fmaxatom);
+      fprintf(uscreen,"%12.8g %12.8g %12.8g ",gradvnorm0,gradvnorm1,gradvnormc);
       fprintf(uscreen,"%12.8g %12.8g %12.8g ",ebf,ebr,endpt);
       for (int i = 0; i < nreplica; i++)
         fprintf(uscreen,"%12.8g %12.8g ",rdist[i],all[i][0]);
@@ -815,10 +813,8 @@ void NEBSpin::print_status()
     }
 
     if (ulogfile) {
-      fprintf(ulogfile,BIGINT_FORMAT " %12.8g %12.8g ",
-              update->ntimestep,fmaxreplica,fmaxatom);
-      fprintf(ulogfile,"%12.8g %12.8g %12.8g ",
-              gradvnorm0,gradvnorm1,gradvnormc);
+      fmt::print(ulogfile,"{} {:12.8} {:12.8g} ",update->ntimestep,fmaxreplica,fmaxatom);
+      fprintf(ulogfile,"%12.8g %12.8g %12.8g ",gradvnorm0,gradvnorm1,gradvnormc);
       fprintf(ulogfile,"%12.8g %12.8g %12.8g ",ebf,ebr,endpt);
       for (int i = 0; i < nreplica; i++)
         fprintf(ulogfile,"%12.8g %12.8g ",rdist[i],all[i][0]);

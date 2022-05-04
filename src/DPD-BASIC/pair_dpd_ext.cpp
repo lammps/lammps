@@ -47,6 +47,8 @@ PairDPDExt::PairDPDExt(LAMMPS *lmp) : Pair(lmp)
 
 PairDPDExt::~PairDPDExt()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

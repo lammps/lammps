@@ -3942,6 +3942,7 @@ double FixSRD::distance(int i, int j)
 }
 
 /* ---------------------------------------------------------------------- */
+#ifdef SRD_DEBUG
 
 void FixSRD::print_collision(int i, int j, int ibounce, double t_remain, double dt, double *xscoll,
                              double *xbcoll, double *norm, int type)
@@ -3951,8 +3952,7 @@ void FixSRD::print_collision(int i, int j, int ibounce, double t_remain, double 
   double **v = atom->v;
 
   if (type != WALL) {
-    printf("COLLISION between SRD " TAGINT_FORMAT " and BIG " TAGINT_FORMAT "\n", atom->tag[i],
-           atom->tag[j]);
+    fmt::print("COLLISION between SRD {} and BIG {}\n", atom->tag[i], atom->tag[j]);
     printf("  bounce # = %d\n", ibounce + 1);
     printf("  local indices: %d %d\n", i, j);
     printf("  timestep = %g\n", dt);
@@ -3993,7 +3993,7 @@ void FixSRD::print_collision(int i, int j, int ibounce, double t_remain, double 
   } else {
     int dim = wallwhich[j] / 2;
 
-    printf("COLLISION between SRD " TAGINT_FORMAT " and WALL %d\n", atom->tag[i], j);
+    fmt::print("COLLISION between SRD {} and WALL {}\n", atom->tag[i], j);
     printf("  bounce # = %d\n", ibounce + 1);
     printf("  local indices: %d %d\n", i, j);
     printf("  timestep = %g\n", dt);
@@ -4025,3 +4025,6 @@ void FixSRD::print_collision(int i, int j, int ibounce, double t_remain, double 
     printf("  separation at end   = %g\n", rend);
   }
 }
+#else
+void FixSRD::print_collision(int, int, int, double, double, double *, double *, double *, int) {}
+#endif

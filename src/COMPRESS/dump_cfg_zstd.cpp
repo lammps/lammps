@@ -105,16 +105,16 @@ void DumpCFGZstd::write_header(bigint n)
     scale = UNWRAPEXPAND;
 
   std::string header = fmt::format("Number of particles = {}\n", n);
-  header += fmt::format("A = {0:g} Angstrom (basic length-scale)\n", scale);
-  header += fmt::format("H0(1,1) = {0:g} A\n", domain->xprd);
-  header += fmt::format("H0(1,2) = 0 A \n");
-  header += fmt::format("H0(1,3) = 0 A \n");
-  header += fmt::format("H0(2,1) = {0:g} A \n", domain->xy);
-  header += fmt::format("H0(2,2) = {0:g} A\n", domain->yprd);
-  header += fmt::format("H0(2,3) = 0 A \n");
-  header += fmt::format("H0(3,1) = {0:g} A \n", domain->xz);
-  header += fmt::format("H0(3,2) = {0:g} A \n", domain->yz);
-  header += fmt::format("H0(3,3) = {0:g} A\n", domain->zprd);
+  header += fmt::format("A = {:g} Angstrom (basic length-scale)\n", scale);
+  header += fmt::format("H0(1,1) = {:g} A\n", domain->xprd);
+  header += fmt::format("H0(1,2) = 0 A\n");
+  header += fmt::format("H0(1,3) = 0 A\n");
+  header += fmt::format("H0(2,1) = {:g} A\n", domain->xy);
+  header += fmt::format("H0(2,2) = {:g} A\n", domain->yprd);
+  header += fmt::format("H0(2,3) = 0 A\n");
+  header += fmt::format("H0(3,1) = {:g} A\n", domain->xz);
+  header += fmt::format("H0(3,2) = {:g} A\n", domain->yz);
+  header += fmt::format("H0(3,3) = {:g} A\n", domain->zprd);
   header += fmt::format(".NO_VELOCITY.\n");
   header += fmt::format("entry_count = {}\n", nfield - 2);
   for (int i = 0; i < nfield - 5; i++) header += fmt::format("auxiliary[{}] = {}\n", i, auxname[i]);

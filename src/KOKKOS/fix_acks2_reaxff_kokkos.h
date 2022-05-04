@@ -54,8 +54,7 @@ struct TagACKS2Precon1B{};
 struct TagACKS2Precon2{};
 struct TagACKS2Add{};
 struct TagACKS2ZeroQGhosts{};
-struct TagACKS2CalculateQ1{};
-struct TagACKS2CalculateQ2{};
+struct TagACKS2CalculateQ{};
 
 template<class DeviceType>
 class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF {
@@ -152,10 +151,7 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF {
   void operator()(TagACKS2ZeroQGhosts, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagACKS2CalculateQ1, const int&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagACKS2CalculateQ2, const int&) const;
+  void operator()(TagACKS2CalculateQ, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   double calculate_H_k(const F_FLOAT &r, const F_FLOAT &shld) const;

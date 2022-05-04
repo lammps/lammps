@@ -64,7 +64,7 @@ static bool check_vdw(tagint itag, tagint jtag, double *xi, double *xj);
 
 PairILPGrapheneHBNOpt::PairILPGrapheneHBNOpt(LAMMPS *lmp) :
     PairILPGrapheneHBN(lmp), layered_neigh(nullptr), first_layered_neigh(nullptr),
-    num_intra(nullptr), num_inter(nullptr), num_vdw(nullptr), special_type(nullptr)
+    special_type(nullptr), num_intra(nullptr), num_inter(nullptr), num_vdw(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_ilp_cur);
 

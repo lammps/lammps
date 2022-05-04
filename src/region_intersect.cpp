@@ -117,7 +117,7 @@ void RegIntersect::init()
 {
   Region::init();
 
-  // re-build list of sub-regions in case other regions were deleted
+  // re-build list of sub-regions in case regions were changed
   // error if a sub-region was deleted
 
   for (int ilist = 0; ilist < nregion; ilist++) {

@@ -670,7 +670,7 @@ void PPPMElectrode::compute_matrix(bigint *imat, double **matrix, bool timer_fla
   compute(1, 0);
 
   // fft green's function k -> r
-  std::vector<double> greens_real(nz_pppm * ny_pppm * nx_pppm, 0.);
+  std::vector<double> greens_real((std::size_t) nz_pppm * ny_pppm * nx_pppm, 0.0);
   for (int i = 0, n = 0; i < nfft; i++) {
     work2[n++] = greensfn[i];
     work2[n++] = ZEROF;

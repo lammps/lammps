@@ -105,7 +105,7 @@ class PairADPKokkos : public PairADP, public KokkosBase
 
   template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
-  void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
+  void ev_tally_xyz(EV_FLOAT &ev, const int &i, const int &j,
       const F_FLOAT &epair, const F_FLOAT &fx, const F_FLOAT &fy, const F_FLOAT &fz, const F_FLOAT &delx,
                   const F_FLOAT &dely, const F_FLOAT &delz) const;
 

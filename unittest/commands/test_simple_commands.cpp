@@ -252,7 +252,7 @@ TEST_F(SimpleCommandsTest, ResetTimestep)
     TEST_FAILURE(".*ERROR: Illegal reset_timestep .*", command("reset_timestep"););
     TEST_FAILURE(".*ERROR: Unknown reset_timestep option 10.*", command("reset_timestep 10 10"););
     TEST_FAILURE(".*ERROR: Illegal reset_timestep .*", command("reset_timestep 10 time"););
-    TEST_FAILURE(".*ERROR: Expected floating .**", command("reset_timestep 10 time xxx"););
+    TEST_FAILURE(".*ERROR: Expected floating .*", command("reset_timestep 10 time xxx"););
     TEST_FAILURE(".*ERROR: Expected integer .*", command("reset_timestep xxx"););
 }
 

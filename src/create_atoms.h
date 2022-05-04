@@ -32,7 +32,8 @@ class CreateAtoms : public Command {
  private:
   int ntype, style, mode, nbasis, nrandom, seed;
   int remapflag;
-  int maxtries;
+  int maxtry;
+  int quat_user;
   int overlapflag;
   double overlap_radius;
   int subsetflag;

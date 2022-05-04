@@ -73,16 +73,17 @@ Examples
 Description
 """""""""""
 
-This command creates atoms (or molecules) on a lattice, or a single
-atom (or molecule), or a random collection of atoms (or molecules), as
-an alternative to reading in their coordinates explicitly via a
-:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
-command.  A simulation box must already exist, which is typically
-created via the :doc:`create_box <create_box>` command.  Before using
-this command, a lattice must also be defined using the
-:doc:`lattice <lattice>` command, unless you specify the *single* style
-with units = box or the *random* style.  For the remainder of this doc
-page, a created atom or molecule is referred to as a "particle".
+This command creates atoms (or molecules) within the simulation box,
+either on a lattice, or a single atom (or molecule), or a random
+collection of atoms (or molecules).  It is an alternative to reading
+in atom coordinates explicitly via a :doc:`read_data <read_data>` or
+:doc:`read_restart <read_restart>` command.  A simulation box must
+already exist, which is typically created via the :doc:`create_box
+<create_box>` command.  Before using this command, a lattice must also
+be defined using the :doc:`lattice <lattice>` command, unless you
+specify the *single* style with units = box or the *random* style.
+For the remainder of this doc page, a created atom or molecule is
+referred to as a "particle".
 
 If created particles are individual atoms, they are assigned the
 specified atom *type*, though this can be altered via the *basis*
@@ -107,7 +108,7 @@ and also consistent with the region volume.  See the :doc:`region
 <region>` command for details.  Note that a region can be specified so
 that its "volume" is either inside or outside its geometric boundary.
 Also note that if a region is the same size as a periodic simulation
-box (in some dimension), LAMMPS does not implement the same logic
+box (in some dimension), LAMMPS does NOT implement the same logic
 described above for the *box* style, to insure exactly one particle at
 periodic boundaries.  If this is desired, you should either use the
 *box* style, or tweak the region size to get precisely the particles
@@ -121,18 +122,18 @@ positions.
 For the *random* style, N particles are added to the system at
 randomly generated coordinates, which can be useful for generating an
 amorphous system.  The particles are created one by one using the
-specified random number *seed*, resulting in the same set of particles
+specified random number *seed*, resulting in the same set of particle
 coordinates, independent of how many processors are being used in the
 simulation.  Unless the *overlap* keyword is specified, particles
 created by the *random* style will typically be highly overlapped.
 
-If the *region-ID* argument is specified as NULL, then
-the created particles will be anywhere in the simulation box.  If a
+If the *region-ID* argument is specified as NULL, then the randomly
+created particles will be anywhere in the simulation box.  If a
 *region-ID* is specified, a geometric volume is filled which is both
 inside the simulation box and is also consistent with the region
 volume.  See the :doc:`region <region>` command for details.  Note
 that a region can be specified so that its "volume" is either inside
-or outside its geometric boundary.  
+or outside its geometric boundary.
 
 Note that the create_atoms command adds particles to those that
 already exist.  This means it can be used to add particles to a system
@@ -142,16 +143,16 @@ to the simulation.  For example, grain boundaries can be created, by
 interleaving the create_atoms command with :doc:`lattice <lattice>`
 commands specifying different orientations.
 
-Whenever this command is used, care care should be taken to insure
-that the resulting system does not contain particles which are highly
+When this command is used, care should be taken to insure the
+resulting system does not contain particles which are highly
 overlapped.  Such overlaps will cause many interatomic potentials to
 compute huge energies and forces, leading to bad dynamics.  There are
 several strategies to avoid this problem:
 
 * Use the :doc:`delete_atoms overlap <delete_atoms>` command after
-create_atoms.  For example, this could be used to overlay and surround
-a large protein molecule with a volume of water molecules, then delete
-water molecules that overlap with the protein atoms.
+create_atoms.  For example, this strategy can be used to overlay and
+surround a large protein molecule with a volume of water molecules,
+then delete water molecules that overlap with the protein atoms.
 
 * For the *random* style, use the optional *overlap* keyword to avoid
 overlaps when each new particle is created.
@@ -159,7 +160,7 @@ overlaps when each new particle is created.
 * Before running dynamics on an overlapped system, perform an
 :doc:`energy minimization <minimize>`.  Or run initial dynamics with
 :doc:`pair_style soft <pair_soft>` or with :doc:`fix nve/limit
-<fix_nve_limit>` to un-overlap the system, before running normal
+<fix_nve_limit>` to un-overlap the particles, before running normal
 dynamics.
 
 .. note::
@@ -168,12 +169,13 @@ dynamics.
    that are outside the simulation box; they will just be ignored by
    LAMMPS.  This is true even if you are using shrink-wrapped box
    boundaries, as specified by the :doc:`boundary <boundary>` command.
-   However, you can first use the :doc:`change_box <change_box>` command to
-   temporarily expand the box, then add atoms via create_atoms, then
-   finally use change_box command again if needed to re-shrink-wrap the
-   new atoms.  See the :doc:`change_box <change_box>` page for an
-   example of how to do this, using the create_atoms *single* style to
-   insert a new atom outside the current simulation box.
+   However, you can first use the :doc:`change_box <change_box>`
+   command to temporarily expand the box, then add atoms via
+   create_atoms, then finally use change_box command again if needed
+   to re-shrink-wrap the new atoms.  See the :doc:`change_box
+   <change_box>` doc page for an example of how to do this, using the
+   create_atoms *single* style to insert a new atom outside the
+   current simulation box.
 
 ----------
 
@@ -192,17 +194,19 @@ Using a lattice to add molecules, e.g. via the *box* or *region* or
 points, except that entire molecules are added at each point, i.e. on
 the point defined by each basis atom in the unit cell as it tiles the
 simulation box or region.  This is done by placing the geometric
-center of the molecule at the lattice point, and giving the molecule a
-random orientation about the point.  The random *seed* specified with
-the *mol* keyword is used for this operation, and the random numbers
-generated by each processor are different.  This means the coordinates
-of individual atoms (in the molecules) will be different when running
-on different numbers of processors, unlike when atoms are being
-created in parallel.
+center of the molecule at the lattice point, and (by default) giving
+the molecule a random orientation about the point.  The random *seed*
+specified with the *mol* keyword is used for this operation, and the
+random numbers generated by each processor are different.  This means
+the coordinates of individual atoms (in the molecules) will be
+different when running on different numbers of processors, unlike when
+atoms are being created in parallel.
 
-Also note that because of the random rotations, it may be important to
-use a lattice with a large enough spacing that adjacent molecules will
-not overlap, regardless of their relative orientations.
+Note that with random rotations, it may be important to use a lattice
+with a large enough spacing that adjacent molecules will not overlap,
+regardless of their relative orientations.  See the description of the
+*rotate* keyword below, which overrides the default random orientation
+and inserts all molecules at a specified orientation.
 
 .. note::
 

@@ -202,10 +202,10 @@ void CreateAtoms::command(int narg, char **arg)
       iarg += 3;
     } else if (strcmp(arg[iarg], "rotate") == 0) {
       if (iarg + 5 > narg) error->all(FLERR, "Illegal create_atoms command");
+      quat_user = 1;
       double thetaone;
       double axisone[3];
       thetaone = utils::numeric(FLERR, arg[iarg + 1], false, lmp) / 180.0 * MY_PI;
-      ;
       axisone[0] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       axisone[1] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       axisone[2] = utils::numeric(FLERR, arg[iarg + 4], false, lmp);
@@ -397,7 +397,7 @@ void CreateAtoms::command(int narg, char **arg)
     }
   }
 
-  // Record wall time for atom creation
+  // record wall time for atom creation
 
   MPI_Barrier(world);
   double time1 = platform::walltime();
@@ -657,7 +657,7 @@ void CreateAtoms::add_single()
     if (mode == ATOM) {
       atom->avec->create_atom(ntype, xone);
     } else {
-      gen_mol_coords(xone, quatone);
+      gen_mol_coords(xone);
       create_mol();
     }
   }
@@ -755,7 +755,7 @@ void CreateAtoms::add_random()
         continue;
 
       if (mode == MOLECULE)
-        gen_mol_coords(xone, quatone);
+        gen_mol_coords(xone);
 
       if (triclinic) {
         domain->x2lamda(xone, lamda);
@@ -996,7 +996,7 @@ void CreateAtoms::loop_lattice(int action)
             if (mode == ATOM) {
               atom->avec->create_atom(basistype[m], x);
             } else {
-              gen_mol_coords(x, quatone);
+              gen_mol_coords(x);
               create_mol();
             }
           } else if (action == COUNT) {
@@ -1005,7 +1005,7 @@ void CreateAtoms::loop_lattice(int action)
             if (mode == ATOM) {
               atom->avec->create_atom(basistype[m], x);
             } else {
-              gen_mol_coords(x, quatone);
+              gen_mol_coords(x);
               create_mol();
             }
           }
@@ -1018,22 +1018,25 @@ void CreateAtoms::loop_lattice(int action)
 }
 
 /* ----------------------------------------------------------------------
-   Generate molecule atom coordinates for a given center and rotation.
-   If quat_user set use it, else generate a random quaternion.
-   The result is stored in temp_mol_coords and onemol->quat_external.
+   generate molecule atom coordinates for a given center and rotation
+   if quat_user set use it, else generate a random quaternion
+   result is stored in temp_mol_coords and onemol->quat_external
 ------------------------------------------------------------------------- */
-void CreateAtoms::gen_mol_coords(double *center, double *quat_user)
+
+void CreateAtoms::gen_mol_coords(double *center)
 {
   double r[3], quat[4], rotmat[3][3];
   int randrot = 1;
+
   if (quat_user) {
-    for (int i=0; i<4; i++) {
+    for (int i = 0; i < 4; i++) {
       if (quat_user[i] != 0) {
         randrot = 0;
         break;
       }
     }
   }
+
   if (randrot) {
     if (domain->dimension == 3) {
       r[0] = ranmol->uniform() - 0.5;
@@ -1046,12 +1049,14 @@ void CreateAtoms::gen_mol_coords(double *center, double *quat_user)
     }
     double theta = ranmol->uniform() * MY_2PI;
     MathExtra::axisangle_to_quat(r, theta, quat);
+
   } else {
     quat[0] = quat_user[0];
     quat[1] = quat_user[1];
     quat[2] = quat_user[2];
     quat[3] = quat_user[3];
   }
+
   onemol->quat_external = quat;
   MathExtra::quat_to_mat(quat, rotmat);
 
@@ -1063,7 +1068,7 @@ void CreateAtoms::gen_mol_coords(double *center, double *quat_user)
 }
 
 /* ----------------------------------------------------------------------
-   Create a molecule from temp_mol_coords.
+   create a molecule from temp_mol_coords
 ------------------------------------------------------------------------- */
 
 void CreateAtoms::create_mol()
@@ -1072,6 +1077,7 @@ void CreateAtoms::create_mol()
   // reset in caller after all molecules created by all procs
   // pass add_molecule_atom an offset of 0 since don't know
   // max tag of atoms in previous molecules at this point
+
   int n, natoms = onemol->natoms;
   for (int m = 0; m < natoms; m++) {
     atom->avec->create_atom(ntype+onemol->type[m], temp_mol_coords[m]);

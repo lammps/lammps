@@ -459,11 +459,10 @@ void Update::reset_timestep(int narg, char **arg)
 {
   if (narg < 1) utils::missing_cmd_args(FLERR, "reset_timestep", error);
 
-  if (!utils::strmatch(arg[0], "^NULL$"))
-    reset_timestep(utils::bnumeric(FLERR, arg[0], false, lmp), true);
+  reset_timestep(utils::bnumeric(FLERR, arg[0], false, lmp), true);
 
   if (narg > 1) {
-    if (utils::strmatch(arg[1], "^time$")) {
+    if (strcmp(arg[1], "time") == 0) {
       if (narg < 3) utils::missing_cmd_args(FLERR, "reset_timestep time", error);
       atimestep = ntimestep;
       atime = utils::numeric(FLERR, arg[2], false, lmp);

@@ -242,13 +242,6 @@ TEST_F(SimpleCommandsTest, ResetTimestep)
     ASSERT_DOUBLE_EQ(lmp->update->atime, 0.0);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_timestep NULL time 10.0");
-    END_HIDE_OUTPUT();
-    ASSERT_EQ(lmp->update->ntimestep, 0);
-    ASSERT_EQ(lmp->update->atimestep, 0);
-    ASSERT_DOUBLE_EQ(lmp->update->atime, 10.0);
-
-    BEGIN_HIDE_OUTPUT();
     command("reset_timestep 10 time 100.0");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->update->ntimestep, 10);

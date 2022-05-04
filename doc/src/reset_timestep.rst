@@ -10,7 +10,7 @@ Syntax
 
    reset_timestep N keyword values ...
 
-* N = timestep number (may be NULL)
+* N = timestep number
 * zero or more keyword/value pairs may be appended
 * keyword = *time*
 
@@ -27,7 +27,6 @@ Examples
    reset_timestep 0
    reset_timestep 4000000
    reset_timestep 1000 time 100.0
-   reset_timestep NULL time 200.0
 
 Description
 """""""""""
@@ -40,8 +39,7 @@ simulation run or minimization advanced the timestep.
 The optional *time* keyword allows to also set the accumulated
 simulation time.  This is usually the number of timesteps times
 the size of the timestep, but when using variable size timesteps
-with :doc:`fix dt/reset <fix_dt_reset>` it can differ.  With
-NULL as the timestep number, only the accumulated time is reset.
+with :doc:`fix dt/reset <fix_dt_reset>` it can differ.
 
 The :doc:`read_data <read_data>` and :doc:`create_box <create_box>`
 commands set the timestep to 0; the :doc:`read_restart <read_restart>`

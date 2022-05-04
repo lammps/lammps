@@ -519,8 +519,8 @@ double LammpsInterface::domain_yz() const { return lammps_->domain->yz; }
 int LammpsInterface::domain_triclinic() const { return lammps_->domain->triclinic; }
 
 void LammpsInterface::box_periodicity(int & xperiodic,
-                                          int & yperiodic,
-                                          int & zperiodic) const
+                                      int & yperiodic,
+                                      int & zperiodic) const
 {
   xperiodic = lammps_->domain->xperiodic;
   yperiodic = lammps_->domain->yperiodic;
@@ -546,6 +546,7 @@ bool LammpsInterface::region_bounds(const char * regionName,
   double & xscale, double & yscale, double & zscale) const
 {
   int iRegion = region_id(regionName);
+  if (iRegion < 0) throw ATC_Error("Unknown region " + to_string(regionName));
   xscale = region_xscale(iRegion);
   yscale = region_yscale(iRegion);
   zscale = region_zscale(iRegion);

@@ -13,7 +13,7 @@ Syntax
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * accelerate/cos = style name of this fix command
-* value = amplitude of acceleration (in unit of force/mass)
+* value = amplitude of acceleration (in unit of velocity/time)
 
 
 Examples

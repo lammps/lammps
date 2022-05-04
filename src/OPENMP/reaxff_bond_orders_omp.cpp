@@ -44,7 +44,7 @@ namespace ReaxFF {
     dbond_coefficients coef;
     int pk, k, j;
 
-    PairReaxFFOMP *pair_reax_ptr = static_cast<class PairReaxFFOMP*>(system->pair_ptr);
+    auto pair_reax_ptr = static_cast<class PairReaxFFOMP*>(system->pair_ptr);
 
     int tid = get_tid();
     ThrData *thr = pair_reax_ptr->getFixOMP()->get_thr(tid);

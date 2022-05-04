@@ -38,7 +38,3 @@ class NStencilFullMulti2d : public NStencil {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

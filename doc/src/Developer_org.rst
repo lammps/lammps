@@ -252,12 +252,6 @@ follows:
 - The Timer class logs timing information, output at the end
   of a run.
 
-.. TODO section on "Spatial decomposition and parallel operations"
-..       diagram of 3d processor grid, brick vs. tiled. local vs. ghost
-..       atoms, 6-way communication with pack/unpack functions,
-..       PBC as part of the communication, forward and reverse communication
-..       rendezvous communication, ring communication.
-
 .. TODO section on "Fixes, Computes, and Variables"
 ..      how and when data is computed and provided and how it is
 ..      referenced. flags in Fix/Compute/Variable classes tell

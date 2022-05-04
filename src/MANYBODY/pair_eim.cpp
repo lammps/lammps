@@ -185,8 +185,8 @@ void PairEIM::compute(int eflag, int vflag)
   // communicate and sum densities
 
   rhofp = 1;
-  if (newton_pair) comm->reverse_comm_pair(this);
-  comm->forward_comm_pair(this);
+  if (newton_pair) comm->reverse_comm(this);
+  comm->forward_comm(this);
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -226,8 +226,8 @@ void PairEIM::compute(int eflag, int vflag)
   // communicate and sum modified densities
 
   rhofp = 2;
-  if (newton_pair) comm->reverse_comm_pair(this);
-  comm->forward_comm_pair(this);
+  if (newton_pair) comm->reverse_comm(this);
+  comm->forward_comm(this);
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -382,7 +382,7 @@ void PairEIM::init_style()
   file2array();
   array2spline();
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

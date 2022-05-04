@@ -17,20 +17,22 @@
                          Evan Weinberg (NVIDIA)
 ------------------------------------------------------------------------- */
 
+#include "pair_snap_kokkos.h"
+
+#include "atom_kokkos.h"
+#include "atom_masks.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "kokkos.h"
+#include "memory_kokkos.h"
+#include "neighbor_kokkos.h"
+#include "neigh_request.h"
+#include "sna.h"
+
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include "pair_snap_kokkos.h"
-#include "atom_kokkos.h"
-#include "error.h"
-#include "force.h"
-#include "atom_masks.h"
-#include "memory_kokkos.h"
-#include "neigh_request.h"
-#include "neighbor_kokkos.h"
-#include "kokkos.h"
-#include "sna.h"
-#include "comm.h"
 
 #define MAXLINE 1024
 #define MAXWORD 3
@@ -100,23 +102,16 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::init_style()
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style SNAP requires newton pair on");
 
-  // irequest = neigh request made by parent class
+  // neighbor list request for KOKKOS
 
   neighflag = lmp->kokkos->neighflag;
-  int irequest = neighbor->request(this,instance_me);
 
-  neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
-
-  if (neighflag == HALF || neighflag == HALFTHREAD) { // still need atomics, even though using a full neigh list
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->half = 0;
-  } else {
+  auto request = neighbor->add_request(this, NeighConst::REQ_FULL);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  if (neighflag == FULL)
     error->all(FLERR,"Must use half neighbor list style with pair snap/kk");
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -583,15 +578,21 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::coeff(int narg, char 
   d_radelem = Kokkos::View<real_type*, DeviceType>("pair:radelem",nelements);
   d_wjelem = Kokkos::View<real_type*, DeviceType>("pair:wjelem",nelements);
   d_coeffelem = Kokkos::View<real_type**, Kokkos::LayoutRight, DeviceType>("pair:coeffelem",nelements,ncoeffall);
+  d_sinnerelem = Kokkos::View<real_type*, DeviceType>("pair:sinnerelem",nelements);
+  d_dinnerelem = Kokkos::View<real_type*, DeviceType>("pair:dinnerelem",nelements);
 
   auto h_radelem = Kokkos::create_mirror_view(d_radelem);
   auto h_wjelem = Kokkos::create_mirror_view(d_wjelem);
   auto h_coeffelem = Kokkos::create_mirror_view(d_coeffelem);
+  auto h_sinnerelem = Kokkos::create_mirror_view(d_sinnerelem);
+  auto h_dinnerelem = Kokkos::create_mirror_view(d_dinnerelem);
   auto h_map = Kokkos::create_mirror_view(d_map);
 
   for (int ielem = 0; ielem < nelements; ielem++) {
     h_radelem(ielem) = radelem[ielem];
     h_wjelem(ielem) = wjelem[ielem];
+    h_sinnerelem(ielem) = sinnerelem[ielem];
+    h_dinnerelem(ielem) = dinnerelem[ielem];
     for (int jcoeff = 0; jcoeff < ncoeffall; jcoeff++) {
       h_coeffelem(ielem,jcoeff) = coeffelem[ielem][jcoeff];
     }
@@ -604,10 +605,12 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::coeff(int narg, char 
   Kokkos::deep_copy(d_radelem,h_radelem);
   Kokkos::deep_copy(d_wjelem,h_wjelem);
   Kokkos::deep_copy(d_coeffelem,h_coeffelem);
+  Kokkos::deep_copy(d_sinnerelem,h_sinnerelem);
+  Kokkos::deep_copy(d_dinnerelem,h_dinnerelem);
   Kokkos::deep_copy(d_map,h_map);
 
   snaKK = SNAKokkos<DeviceType, real_type, vector_length>(rfac0,twojmax,
-                  rmin0,switchflag,bzeroflag,chemflag,bnormflag,wselfallflag,nelements);
+    rmin0,switchflag,bzeroflag,chemflag,bnormflag,wselfallflag,nelements,switchinnerflag);
   snaKK.grow_rij(0,0);
   snaKK.init();
 }
@@ -729,15 +732,19 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSN
         const F_FLOAT dx = x(j,0) - xtmp;
         const F_FLOAT dy = x(j,1) - ytmp;
         const F_FLOAT dz = x(j,2) - ztmp;
-        const int elem_j = d_map[jtype];
+        const int jelem = d_map[jtype];
         my_sna.rij(ii,offset,0) = static_cast<real_type>(dx);
         my_sna.rij(ii,offset,1) = static_cast<real_type>(dy);
         my_sna.rij(ii,offset,2) = static_cast<real_type>(dz);
-        my_sna.wj(ii,offset) = static_cast<real_type>(d_wjelem[elem_j]);
-        my_sna.rcutij(ii,offset) = static_cast<real_type>((radi + d_radelem[elem_j])*rcutfac);
+        my_sna.wj(ii,offset) = static_cast<real_type>(d_wjelem[jelem]);
+        my_sna.rcutij(ii,offset) = static_cast<real_type>((radi + d_radelem[jelem])*rcutfac);
         my_sna.inside(ii,offset) = j;
+        if (switchinnerflag) {
+          my_sna.sinnerij(ii,offset) = 0.5*(d_sinnerelem[ielem] + d_sinnerelem[jelem]);
+          my_sna.dinnerij(ii,offset) = 0.5*(d_dinnerelem[ielem] + d_dinnerelem[jelem]);
+        }
         if (chemflag)
-          my_sna.element(ii,offset) = elem_j;
+          my_sna.element(ii,offset) = jelem;
         else
           my_sna.element(ii,offset) = 0;
       }
@@ -1085,18 +1092,22 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSN
 
     const int jtype = type(j);
     const F_FLOAT rsq = dx*dx + dy*dy + dz*dz;
-    const int elem_j = d_map[jtype];
+    const int jelem = d_map[jtype];
 
     if (rsq < rnd_cutsq(itype,jtype)) {
       if (final) {
         my_sna.rij(ii,offset,0) = static_cast<real_type>(dx);
         my_sna.rij(ii,offset,1) = static_cast<real_type>(dy);
         my_sna.rij(ii,offset,2) = static_cast<real_type>(dz);
-        my_sna.wj(ii,offset) = static_cast<real_type>(d_wjelem[elem_j]);
-        my_sna.rcutij(ii,offset) = static_cast<real_type>((radi + d_radelem[elem_j])*rcutfac);
+        my_sna.wj(ii,offset) = static_cast<real_type>(d_wjelem[jelem]);
+        my_sna.rcutij(ii,offset) = static_cast<real_type>((radi + d_radelem[jelem])*rcutfac);
         my_sna.inside(ii,offset) = j;
+        if (switchinnerflag) {
+          my_sna.sinnerij(ii,offset) = 0.5*(d_sinnerelem[ielem] + d_sinnerelem[jelem]);
+          my_sna.dinnerij(ii,offset) = 0.5*(d_dinnerelem[ielem] + d_dinnerelem[jelem]);
+        }
         if (chemflag)
-          my_sna.element(ii,offset) = elem_j;
+          my_sna.element(ii,offset) = jelem;
         else
           my_sna.element(ii,offset) = 0;
       }

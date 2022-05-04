@@ -43,22 +43,3 @@ class FixFreeze : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix freeze requires atom attribute torque
-
-The atom style defined does not have this attribute.
-
-E: More than one fix freeze
-
-Only one of these fixes can be defined, since the granular pair
-potentials access it.
-
-*/

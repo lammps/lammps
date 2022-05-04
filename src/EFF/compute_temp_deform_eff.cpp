@@ -74,7 +74,7 @@ void ComputeTempDeformEff::init()
   int i;
   for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
-      if (((FixDeform *) modify->fix[i])->remapflag == Domain::X_REMAP &&
+      if ((dynamic_cast<FixDeform *>( modify->fix[i]))->remapflag == Domain::X_REMAP &&
           comm->me == 0)
         error->warning(FLERR,"Using compute temp/deform/eff with inconsistent "
                        "fix deform remap option");

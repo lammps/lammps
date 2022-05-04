@@ -236,7 +236,7 @@ void FixRigidNHOMP::initial_integrate(int vflag)
 void FixRigidNHOMP::compute_forces_and_torques()
 {
   double * const * _noalias const x = atom->x;
-  const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
+  const auto * _noalias const f = (dbl3_t *) atom->f[0];
   const double * const * const torque_one = atom->torque;
   const int nlocal = atom->nlocal;
 
@@ -246,12 +246,11 @@ void FixRigidNHOMP::compute_forces_and_torques()
    if (rstyle == SINGLE) {
      // we have just one rigid body. use OpenMP reduction to get sum[]
      double s0=0.0,s1=0.0,s2=0.0,s3=0.0,s4=0.0,s5=0.0;
-     int i;
 
 #if defined(_OPENMP)
-#pragma omp parallel for LMP_DEFAULT_NONE private(i) reduction(+:s0,s1,s2,s3,s4,s5)
+#pragma omp parallel for LMP_DEFAULT_NONE reduction(+:s0,s1,s2,s3,s4,s5)
 #endif
-     for (i = 0; i < nlocal; i++) {
+     for (int i = 0; i < nlocal; i++) {
        const int ibody = body[i];
        if (ibody < 0) continue;
 
@@ -285,12 +284,11 @@ void FixRigidNHOMP::compute_forces_and_torques()
 
      for (int ib = 0; ib < nbody; ++ib) {
        double s0=0.0,s1=0.0,s2=0.0,s3=0.0,s4=0.0,s5=0.0;
-       int i;
 
 #if defined(_OPENMP)
-#pragma omp parallel for LMP_DEFAULT_NONE private(i) LMP_SHARED(ib) reduction(+:s0,s1,s2,s3,s4,s5)
+#pragma omp parallel for LMP_DEFAULT_NONE LMP_SHARED(ib) reduction(+:s0,s1,s2,s3,s4,s5)
 #endif
-       for (i = 0; i < nlocal; i++) {
+       for (int i = 0; i < nlocal; i++) {
          const int ibody = body[i];
          if (ibody != ib) continue;
 
@@ -608,9 +606,9 @@ void FixRigidNHOMP::remap()
 template <int TRICLINIC, int EVFLAG>
 void FixRigidNHOMP::set_xv_thr()
 {
-  dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
-  const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
+  auto * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const v = (dbl3_t *) atom->v[0];
+  const auto * _noalias const f = (dbl3_t *) atom->f[0];
   const double * _noalias const rmass = atom->rmass;
   const double * _noalias const mass = atom->mass;
   const int * _noalias const type = atom->type;
@@ -635,9 +633,9 @@ void FixRigidNHOMP::set_xv_thr()
     const int ibody = body[i];
     if (ibody < 0) continue;
 
-    const dbl3_t &xcmi = * ((dbl3_t *) xcm[ibody]);
-    const dbl3_t &vcmi = * ((dbl3_t *) vcm[ibody]);
-    const dbl3_t &omegai = * ((dbl3_t *) omega[ibody]);
+    const auto &xcmi = * ((dbl3_t *) xcm[ibody]);
+    const auto &vcmi = * ((dbl3_t *) vcm[ibody]);
+    const auto &omegai = * ((dbl3_t *) omega[ibody]);
 
     const int xbox = (xcmimage[i] & IMGMASK) - IMGMAX;
     const int ybox = (xcmimage[i] >> IMGBITS & IMGMASK) - IMGMAX;
@@ -808,9 +806,9 @@ void FixRigidNHOMP::set_xv_thr()
 template <int TRICLINIC, int EVFLAG>
 void FixRigidNHOMP::set_v_thr()
 {
-  dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
-  const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
+  auto * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const v = (dbl3_t *) atom->v[0];
+  const auto * _noalias const f = (dbl3_t *) atom->f[0];
   const double * _noalias const rmass = atom->rmass;
   const double * _noalias const mass = atom->mass;
   const int * _noalias const type = atom->type;
@@ -835,8 +833,8 @@ void FixRigidNHOMP::set_v_thr()
     const int ibody = body[i];
     if (ibody < 0) continue;
 
-    const dbl3_t &vcmi = * ((dbl3_t *) vcm[ibody]);
-    const dbl3_t &omegai = * ((dbl3_t *) omega[ibody]);
+    const auto &vcmi = * ((dbl3_t *) vcm[ibody]);
+    const auto &omegai = * ((dbl3_t *) omega[ibody]);
     double delta[3],vx,vy,vz;
 
     MathExtra::matvec(ex_space[ibody],ey_space[ibody],

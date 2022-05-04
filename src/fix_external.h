@@ -72,21 +72,3 @@ class FixExternal : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix external callback function not set
-
-This must be done by an external program in order to use this fix.
-
-E: Invalid set_vector index in fix external
-
-UNDOCUMENTED
-
-*/

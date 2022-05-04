@@ -40,11 +40,11 @@ class ReaderADIOS : public Reader {
 
   int read_time(bigint &) override;
   void skip() override;
-  bigint read_header(double[3][3], int &, int &, int, int, int *, char **, int, int, int &,
-                     int &, int &, int &) override;
+  bigint read_header(double[3][3], int &, int &, int, int, int *, char **, int, int, int &, int &,
+                     int &, int &) override;
   void read_atoms(int, int, double **) override;
 
-  void open_file(const char *) override;
+  void open_file(const std::string &) override;
   void close_file() override;
 
  private:

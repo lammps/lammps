@@ -16,44 +16,52 @@ General remarks
 
 LAMMPS is developed and tested primarily on Linux machines.  The vast
 majority of HPC clusters and supercomputers today run on Linux as well.
-While portability to other platforms is desired, it is not always achieved.
-The LAMMPS developers are dependent on LAMMPS users giving feedback and
-providing assistance in resolving portability issues.  This is particularly
-true for compiling LAMMPS on Windows, since this platform has significant
-differences in some low-level functionality.
+While portability to other platforms is desired, it is not always
+achieved.  That is sometimes due to non-portable code in LAMMPS itself,
+but more often due to portability limitations of external libraries and
+tools required to build a specific feature or package.  The LAMMPS
+developers are dependent on LAMMPS users giving feedback and providing
+assistance in resolving portability issues.  This is particularly true
+for compiling LAMMPS on Windows, since this platform has significant
+differences in some low-level functionality.  As of LAMMPS version 14
+December 2021, large parts of LAMMPS can be compiled natively with the
+Microsoft Visual C++ Compilers.  This is largely facilitated by using
+the :doc:`Developer_platform` in the ``platform`` namespace.
+
+Before trying to build LAMMPS on Windows yourself, please consider the
+`pre-compiled Windows installer packages <https://packages.lammps.org/windows.html>`_
+and see if they are sufficient for your needs.
 
 .. _linux:
 
 Running Linux on Windows
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Before trying to build LAMMPS on Windows, please consider if the
-pre-compiled Windows binary packages are sufficient for your needs.  If
-it is necessary for you to compile LAMMPS on a Windows machine
+If it is necessary for you to compile LAMMPS on a Windows machine
 (e.g. because it is your main desktop), please also consider using a
 virtual machine software and compile and run LAMMPS in a Linux virtual
 machine, or - if you have a sufficiently up-to-date Windows 10 or
 Windows 11 installation - consider using the Windows subsystem for
 Linux.  This optional Windows feature allows you to run the bash shell
-from Ubuntu from within Windows and from there on, you can pretty much
-use that shell like you are running on an Ubuntu Linux machine
-(e.g. installing software via apt-get and more).  For more details on
-that, please see :doc:`this tutorial <Howto_wsl>`.
+of a Linux system (Ubuntu by default) from within Windows and from there
+on, you can pretty much use that shell like you are running on a regular
+Ubuntu Linux machine (e.g. installing software via apt-get and more).
+For more details on that, please see :doc:`this tutorial <Howto_wsl>`.
 
 .. _gnu:
 
 Using a GNU GCC ported to Windows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-One option for compiling LAMMPS on Windows natively that has been known
-to work in the past is to install a bash shell, unix shell utilities,
-perl, GNU make, and a GNU compiler ported to Windows.  The Cygwin
-package provides a unix/linux interface to low-level Windows functions,
-so LAMMPS can be compiled on Windows.  The necessary (minor)
-modifications to LAMMPS are included, but may not always up-to-date for
-recently added functionality and the corresponding new code.  A machine
-makefile for using cygwin for the old build system is provided. Using
-CMake for this mode of compilation is untested and not likely to work.
+One option for compiling LAMMPS on Windows natively is to install a Bash
+shell, Unix shell utilities, Perl, Python, GNU make, and a GNU compiler
+ported to Windows.  The Cygwin package provides a unix/linux interface
+to low-level Windows functions, so LAMMPS can be compiled on Windows.
+The necessary (minor) modifications to LAMMPS are included, but may not
+always up-to-date for recently added functionality and the corresponding
+new code.  A machine makefile for using cygwin for the old build system
+is provided.  Using CMake for this mode of compilation is untested and
+not likely to work.
 
 When compiling for Windows do **not** set the ``-DLAMMPS_MEMALIGN``
 define in the LMP_INC makefile variable and add ``-lwsock32 -lpsapi`` to
@@ -65,8 +73,9 @@ configuration should set this up automatically, but is untested.
 In case of problems, you are recommended to contact somebody with
 experience in using Cygwin.  If you do come across portability problems
 requiring changes to the LAMMPS source code, or figure out corrections
-yourself, please report them on the lammps-users mailing list, or file
-them as an issue or pull request on the LAMMPS GitHub project.
+yourself, please report them on the
+`LAMMPS forum at MatSci <https://matsci.org/c/lammps/lammps-development/>`_,
+or file them as an issue or pull request on the LAMMPS GitHub project.
 
 .. _msvc:
 
@@ -75,19 +84,27 @@ Using Microsoft Visual Studio
 
 Following the integration of the :doc:`platform namespace
 <Developer_platform>` into the LAMMPS code base, portability of LAMMPS
-to be compiled on Windows using Visual Studio has been significantly
-improved.  This has been tested with Visual Studio 2019 (aka version
-16).  Not all features and packages in LAMMPS are currently supported
-out of the box, but a preset ``cmake/presets/windows.cmake`` is provided
-that contains the packages that have been compiled successfully.  You
-must use the CMake based build procedure, and either use the integrated
-CMake support of Visual Studio or use an external CMake installation to
-create build files for the Visual Studio build system.  Please note that
-on launching Visual Studio it will scan the directory tree and likely
-miss the correct master ``CMakeLists.txt``.  Try to open the
-``cmake/CMakeSettings.json`` and use those CMake configurations as a
-starting point.  It is also possible to configure and compile LAMMPS
-from the command line with a CMake binary from `cmake.org <https://cmake.org>`_.
+for native compilation on Windows using Visual Studio has been
+significantly improved.  This has been tested with Visual Studio 2019
+(aka version 16) and Visual Studio 2022 (aka version 17).  We strongly
+recommend using Visual Studio 2022 version 17.1 or later.  Not all
+features and packages in LAMMPS are currently supported out of the box,
+but a preset ``cmake/presets/windows.cmake`` is provided that contains
+the packages that have been compiled successfully so far.  You **must**
+use the CMake based build procedure, since there is no support for GNU
+make or the Unix shell utilities required for the GNU make build
+procedure.
+
+It is possible to use both the integrated CMake support of the Visual
+Studio IDE or use an external CMake installation (e.g. downloaded from
+cmake.org) to create build files and compile LAMMPS from the command line.
+
+.. note::
+
+   Versions of Visual Studio before version 17.1 may scan the entire
+   LAMMPS source tree and likely miss the correct master
+   ``CMakeLists.txt`` and get confused since there are multiple files
+   of that name in different folders but none in top level folder.
 
 Please note, that for either approach CMake will create a so-called
 :ref:`"multi-configuration" build environment <cmake_multiconfig>`, and
@@ -98,9 +115,11 @@ To support running in parallel you can compile with OpenMP enabled using
 the OPENMP package or install Microsoft MPI (including the SDK) and compile
 LAMMPS with MPI enabled.
 
-This is work in progress and you should contact the LAMMPS developers
-via GitHub, the forum, or the mailing list, if you have questions or
-LAMMPS specific problems.
+.. note::
+
+   This is work in progress and you should contact the LAMMPS developers
+   via GitHub or the `LAMMPS forum at MatSci <https://matsci.org/c/lammps/lammps-development/>`_,
+   if you have questions or LAMMPS specific problems.
 
 .. _cross:
 

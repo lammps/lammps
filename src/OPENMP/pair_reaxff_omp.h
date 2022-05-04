@@ -22,7 +22,7 @@ PairStyle(reax/c/omp,PairReaxFFOMP);
 #define LMP_PAIR_REAXFF_OMP_H
 
 #include "pair_reaxff.h"
-#include "thr_omp.h"            // IWYU pragma: export
+#include "thr_omp.h"    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -113,13 +113,3 @@ class PairReaxFFOMP : public PairReaxFF, public ThrOMP {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Too many ghost atoms
-
-Number of ghost atoms has increased too much during simulation and has exceeded
-the size of reaxff arrays.  Increase safe_zone and min_cap in pair_style reaxff
-command
-
-*/

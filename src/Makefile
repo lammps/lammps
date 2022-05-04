@@ -54,6 +54,7 @@ PACKAGE = \
 	awpmd \
 	bocs \
 	body \
+        bpm \
 	brownian \
 	cg-dna \
 	cg-sdk \
@@ -70,6 +71,7 @@ PACKAGE = \
 	dpd-smooth \
 	drude \
 	eff \
+	electrode \
 	extra-compute \
 	extra-dump \
 	extra-fix \
@@ -93,7 +95,6 @@ PACKAGE = \
 	mdi \
 	meam \
 	mesont \
-	message \
 	mgpt \
 	misc \
 	ml-hdnnp \
@@ -148,7 +149,8 @@ PACKMOST = \
 	asphere \
 	bocs \
 	body \
-	brownian \
+	bpm \
+        brownian \
 	cg-dna \
 	cg-sdk \
 	class2 \
@@ -161,6 +163,7 @@ PACKMOST = \
 	dpd-react \
 	dpd-smooth \
 	drude \
+	electrode \
 	eff \
 	extra-compute \
 	extra-dump \
@@ -207,7 +210,6 @@ PACKLIB = \
 	kim \
 	kokkos \
 	latte \
-	message \
 	mpiio \
 	mscg \
 	poems \
@@ -234,7 +236,7 @@ PACKLIB = \
 
 PACKSYS = compress latboltz mpiio python
 
-PACKINT = atc awpmd colvars gpu kokkos mesont message poems
+PACKINT = atc awpmd colvars electrode gpu kokkos mesont poems
 
 PACKEXT = \
 	adios \
@@ -458,8 +460,7 @@ mpi-stubs:
 sinclude ../lib/python/Makefile.lammps
 install-python:
 	@rm -rf ../python/build
-	@$(PYTHON) ../python/install.py -v ../src/version.h \
-		-p ../python/lammps -l ../src/liblammps.so
+	@$(PYTHON) ../python/install.py -p ../python/lammps -l ../src/liblammps.so
 
 # Create a tarball of src dir and packages
 
@@ -472,6 +473,8 @@ tar:
           --exclude=*/.svn
 	@cd STUBS; $(MAKE)
 	@echo "Created $(ROOT)_src.tar.gz"
+
+check: check-whitespace check-permissions check-homepage check-errordocs
 
 check-whitespace:
 	$(PYTHON) ../tools/coding_standard/whitespace.py ..
@@ -490,6 +493,12 @@ check-homepage:
 
 fix-homepage:
 	$(PYTHON) ../tools/coding_standard/homepage.py .. -f
+
+check-errordocs:
+	$(PYTHON) ../tools/coding_standard/errordocs.py ..
+
+fix-errordocs:
+	$(PYTHON) ../tools/coding_standard/errordocs.py .. -f
 
 format-src:
 	clang-format -i --verbose --style=file *.cpp *.h */*.cpp */*.h

@@ -46,11 +46,3 @@ class PairBuckCoulMSMOMP : public PairBuckCoulMSM, public ThrOMP {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Must use 'kspace_modify pressure/scalar no' with OMP MSM Pair styles
-
-The kspace scalar pressure option is not (yet) compatible with OMP MSM Pair styles.
-
-*/

@@ -33,6 +33,8 @@ class FixBrownianBase : public Fix {
   int gamma_r_flag;          // 0/1 if isotropic rotational damping is unset/set
   int gamma_t_eigen_flag;    // 0/1 if anisotropic translational damping is unset/set
   int gamma_r_eigen_flag;    // 0/1 if anisotropic rotational damping is unset/set
+  int rot_temp_flag;         // 0/1 if rotational temperature is unset/set
+  int planar_rot_flag;       // 0/1 if rotation is constrained to 2D (xy) plane
 
   double gamma_t, gamma_r;    // translational and rotational (isotropic) damping params
   double *gamma_t_inv;        // anisotropic damping parameter eigenvalues
@@ -46,43 +48,12 @@ class FixBrownianBase : public Fix {
   int noise_flag;             // 0/1 for noise off/on
   int gaussian_noise_flag;    // 0/1 for uniform/gaussian noise
 
-  double temp;      // temperature
-  double g1, g2;    // prefactors in time stepping
+  double temp;        // temperature
+  double rot_temp;    // temperature
+  double g1, g2;      // prefactors in time stepping
 
   class RanMars *rng;
 };
 
 }    // namespace LAMMPS_NS
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal fix brownian command.
-
-Wrong number/type of input arguments.
-
-E: Fix brownian gamma_t_eigen values must be > 0.
-
-Self-explanatory.
-
-E: Fix brownian gamma_r_eigen values must be > 0.
-
-Self-explanatory.
-
-E: Fix brownian seed must be > 0.
-
-Self-explanatory.
-
-E: Fix brownian temp must be > 0.
-
-Self-explanatory.
-
-E: Fix brownian gamma_t must be > 0.
-
-Self-explanatory.
-
-E: Fix brownian gamma_r must be > 0.
-
-Self-explanatory.
-
-*/

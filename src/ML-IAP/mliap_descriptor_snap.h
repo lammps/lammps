@@ -39,7 +39,11 @@ class MLIAPDescriptorSNAP : public MLIAPDescriptor {
 
   int twojmax, switchflag, bzeroflag;
   int chemflag, bnormflag, wselfallflag;
+  int switchinnerflag;
   double rfac0, rmin0;
+
+  double* sinnerelem;
+  double* dinnerelem;
 };
 
 }    // namespace LAMMPS_NS

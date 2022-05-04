@@ -37,7 +37,3 @@ class NPairFullMultiOldOmp : public NPair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

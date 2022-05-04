@@ -33,7 +33,3 @@ class AtomVecAtomic : public AtomVec {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

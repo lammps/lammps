@@ -92,10 +92,3 @@ Few<double,3> DomainKokkos::unmap(Few<double,3> prd, Few<double,6> h,
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal simulation box
-
-The lower bound of the simulation box is greater than the upper bound.
-
-*/

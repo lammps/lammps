@@ -46,36 +46,3 @@ class Universe : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Invalid -reorder N value
-
-Self-explanatory.
-
-E: Nprocs not a multiple of N for -reorder
-
-Self-explanatory.
-
-E: Cannot open -reorder file
-
-Self-explanatory.
-
-E: Unexpected end of -reorder file
-
-Self-explanatory.
-
-E: Invalid entry in -reorder file
-
-Self-explanatory.
-
-E: Invalid command-line argument
-
-One or more command-line arguments is invalid.  Check the syntax of
-the command you are using to launch LAMMPS.
-
-E: Invalid partition string '%s'
-
-UNDOCUMENTED
-
-*/

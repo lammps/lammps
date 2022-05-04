@@ -26,7 +26,6 @@
 #include "memory.h"
 #include "min.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
 
@@ -96,10 +95,7 @@ struct cmp_x{
       else if (d>tol)
         return false;
       d=xx[left.second][2]-xx[right.second][2];
-      if (d<-tol)
-        return true;
-      else
-        return false;
+      return d < -tol;
     }
     else
       return left.first<right.first;
@@ -513,45 +509,18 @@ void PairAWPMDCut::init_style()
 
   if (!atom->q_flag || !atom->spin_flag ||
       !atom->eradius_flag || !atom->erforce_flag )  // TO DO: adjust this to match approximation used
-    error->all(FLERR,"Pair awpmd/cut requires atom attributes "
-               "q, spin, eradius, erforce");
-
-  /*
-  if (vflag_atom) { // can't compute virial per atom
-    //warning->
-    error->all(FLERR,"Pair style awpmd can't compute per atom virials");
-  }*/
+    error->all(FLERR,"Pair awpmd/cut requires atom attributes q, spin, eradius, erforce");
 
   // add hook to minimizer for eradius and erforce
 
   if (update->whichflag == 2)
     int ignore = update->minimize->request(this,1,0.01);
 
-  // make sure to use the appropriate timestep when using real units
-
-  /*if (update->whichflag == 1) {
-    if (force->qqr2e == 332.06371 && update->dt == 1.0)
-      error->all(FLERR,"You must lower the default real units timestep for pEFF ");
-  }*/
-
-  // need a half neigh list and optionally a granular history neigh list
-
-  //int irequest = neighbor->request(this,instance_me);
-
-  //if (atom->tag_enable == 0)
-  //  error->all(FLERR,"Pair style reax requires atom IDs");
-
-  //if (force->newton_pair == 0)
-    //error->all(FLERR,"Pair style awpmd requires newton pair on");
-
-  //if (strcmp(update->unit_style,"real") != 0 && comm->me == 0)
-    //error->warning(FLERR,"Not using real units with pair reax");
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->newton = 2;
+  neighbor->add_request(this, NeighConst::REQ_NEWTON_OFF);
 
   if (force->e_mass==0. || force->hhmrr2e==0. || force->mvh2r==0.)
-    error->all(FLERR,"Pair style awpmd requires e_mass and conversions hhmrr2e, mvh2r to be properly set for unit system");
+    error->all(FLERR,"Pair style awpmd requires e_mass and conversions "
+               "hhmrr2e, mvh2r to be properly set for unit system");
 
   wpmd->me=force->e_mass;
   wpmd->h2_me=force->hhmrr2e/force->e_mass;

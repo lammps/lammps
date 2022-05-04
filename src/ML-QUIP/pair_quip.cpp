@@ -25,7 +25,6 @@
 #include "force.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "potential_file_reader.h"
 #include "update.h"
@@ -308,10 +307,8 @@ void PairQUIP::init_style()
 
   if (force->newton_pair != 1) error->all(FLERR, "Pair style quip requires newton pair on");
 
-  // Initialise neighbor list
-  int irequest_full = neighbor->request(this);
-  neighbor->requests[irequest_full]->half = 0;
-  neighbor->requests[irequest_full]->full = 1;
+  // request full neighbor list
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 }
 
 /* ----------------------------------------------------------------------

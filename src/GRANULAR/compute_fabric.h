@@ -47,33 +47,3 @@ class ComputeFabric : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute fabric radius style requires atom attribute radius
-
-Self-explanatory.
-
-E: No pair style is defined for compute fabric
-
-Self-explanatory.
-
-E: Pair style does not support compute fabric normal or tangential force
-
-Pair style must be single enabled to calculate the normal or tangential force tensors
-
-E: Pair style does not calculate tangential forces for compute fabric
-
-The tangential force tensor can only be calculated for granular pair styles with tangential forces
-
-E: Compute fabric does not support pair styles that extend beyond contact
-
-Granular pair styles that extend beyond contact such as JKR or DMT are not supported
-
-*/

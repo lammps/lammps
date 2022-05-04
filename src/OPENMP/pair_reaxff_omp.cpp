@@ -45,7 +45,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
 
@@ -127,9 +126,7 @@ void PairReaxFFOMP::init_style()
   // need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->newton = 2;
-  neighbor->requests[irequest]->ghost = 1;
+  neighbor->add_request(this, NeighConst::REQ_GHOST | NeighConst::REQ_NEWTON_OFF);
 
   cutmax = MAX3(api->control->nonb_cut, api->control->hbond_cut, api->control->bond_cut);
   if ((cutmax < 2.0*api->control->bond_cut) && (comm->me == 0))
@@ -137,7 +134,7 @@ void PairReaxFFOMP::init_style()
                    "increased neighbor list skin.");
 
   if (fix_reaxff == nullptr)
-    fix_reaxff = (FixReaxFF *) modify->add_fix(fmt::format("{} all REAXFF",fix_id));
+    fix_reaxff = dynamic_cast<FixReaxFF *>( modify->add_fix(fmt::format("{} all REAXFF",fix_id)));
 
   api->control->nthreads = comm->nthreads;
 }
@@ -223,7 +220,7 @@ void PairReaxFFOMP::compute(int eflag, int vflag)
   // communicate num_bonds once every reneighboring
   // 2 num arrays stored by fix, grab ptr to them
 
-  if (neighbor->ago == 0) comm->forward_comm_fix(fix_reaxff);
+  if (neighbor->ago == 0) comm->forward_comm(fix_reaxff);
   int *num_bonds = fix_reaxff->num_bonds;
   int *num_hbonds = fix_reaxff->num_hbonds;
 
@@ -402,8 +399,7 @@ int PairReaxFFOMP::estimate_reax_lists()
 
 int PairReaxFFOMP::write_reax_lists()
 {
-  int itr_i, itr_j, i, j, num_mynbrs;
-  int *jlist;
+  int num_mynbrs;
   double d_sqr, dist, cutoff_sqr;
   rvec dvec;
 
@@ -425,19 +421,19 @@ int PairReaxFFOMP::write_reax_lists()
 
   num_nbrs = 0;
 
-  for (itr_i = 0; itr_i < numall; ++itr_i) {
-    i = ilist[itr_i];
+  for (int itr_i = 0; itr_i < numall; ++itr_i) {
+    int i = ilist[itr_i];
     num_nbrs_offset[i] = num_nbrs;
     num_nbrs += numneigh[i];
   }
 
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(dynamic,50) default(shared)           \
-  private(itr_i, itr_j, i, j, jlist, cutoff_sqr, num_mynbrs, d_sqr, dvec, dist)
+  private(cutoff_sqr, num_mynbrs, d_sqr, dvec, dist)
 #endif
-  for (itr_i = 0; itr_i < numall; ++itr_i) {
-    i = ilist[itr_i];
-    jlist = firstneigh[i];
+  for (int itr_i = 0; itr_i < numall; ++itr_i) {
+    int i = ilist[itr_i];
+    auto jlist = firstneigh[i];
     Set_Start_Index(i, num_nbrs_offset[i], far_nbrs);
 
     if (i < inum)
@@ -447,8 +443,8 @@ int PairReaxFFOMP::write_reax_lists()
 
     num_mynbrs = 0;
 
-    for (itr_j = 0; itr_j < numneigh[i]; ++itr_j) {
-      j = jlist[itr_j];
+    for (int itr_j = 0; itr_j < numneigh[i]; ++itr_j) {
+      int j = jlist[itr_j];
       j &= NEIGHMASK;
       get_distance(x[j], x[i], &d_sqr, &dvec);
 

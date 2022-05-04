@@ -38,7 +38,7 @@ lattice-Boltzmann fluid is present.
 
 Zero the total linear momentum of the system, including both the atoms
 specified by group-ID and the lattice-Boltzmann fluid every nevery
-timesteps.  This is accomplished by adjusting the particle velocities
+timesteps.  If there are no atoms specified by group-ID only the fluid momentum is affected.  This is accomplished by adjusting the particle velocities
 and the fluid velocities at each lattice site.
 
 .. note::

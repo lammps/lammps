@@ -65,35 +65,3 @@ class PairCosineSquared : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Mixing not supported in pair_style cosine/squared
-
-Self-explanatory. All coefficients need to be specified explicitly.
-
-E: pair_modify mix not supported for pair_style cosine/squared
-
-Same as above, only when calling "pair_modify" command
-
-W: pair_modify shift/tail is meaningless for pair_style cosine/squared
-
-This style by definition gets to zero at cutoff distance, so there is nothing
-to shift and there is no tail contribution
-
-W: Cosine/squared set to WCA only (cutoff = sigma)
-
-If cutoff is equal to sigma (minimum) then this pair style basically
-degenerates/reverts to only WCA. This is for convenience.
-
-*/

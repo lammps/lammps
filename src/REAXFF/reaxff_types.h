@@ -23,8 +23,8 @@
 
 #include "lmptype.h"
 
-#include "reaxff_defs.h"        // IWYU pragma: export
-#include "reaxff_inline.h"      // IWYU pragma: export
+#include "reaxff_defs.h"      // IWYU pragma: export
+#include "reaxff_inline.h"    // IWYU pragma: export
 
 // forward declarations
 namespace LAMMPS_NS {
@@ -77,7 +77,7 @@ struct single_body_parameters {
   double b_o_131;
   double b_o_132;
   double b_o_133;
-  double bcut_acks2; // ACKS2 bond cutoff
+  double bcut_acks2;    // ACKS2 bond cutoff
 
   /* Line four in the field file */
   double p_ovun2;

@@ -3,6 +3,7 @@
 .. index:: pair_style lj/cut/coul/cut/dielectric
 .. index:: pair_style lj/cut/coul/cut/dielectric/omp
 .. index:: pair_style lj/cut/coul/debye/dielectric
+.. index:: pair_style lj/cut/coul/debye/dielectric/omp
 .. index:: pair_style lj/cut/coul/long/dielectric
 .. index:: pair_style lj/cut/coul/long/dielectric/omp
 .. index:: pair_style lj/cut/coul/msm/dielectric
@@ -21,6 +22,8 @@ Accelerator Variants: *lj/cut/coul/cut/dielectric/omp*
 
 pair_style lj/cut/coul/debye/dielectric command
 ===============================================
+
+Accelerator Variants: *lj/cut/coul/debye/dielectric/omp*
 
 pair_style lj/cut/coul/long/dielectric command
 ==============================================

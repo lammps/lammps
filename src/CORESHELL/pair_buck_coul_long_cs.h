@@ -34,30 +34,3 @@ class PairBuckCoulLongCS : public PairBuckCoulLong {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-E: Pair style buck/coul/long requires atom attribute q
-
-The atom style defined does not have these attributes.
-
-E: Pair style requires a KSpace style
-
-No kspace style is defined.
-
-*/

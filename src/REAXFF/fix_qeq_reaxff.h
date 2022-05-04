@@ -59,7 +59,7 @@ class FixQEqReaxFF : public Fix {
  protected:
   int nevery, reaxflag;
   int matvecs;
-  int nn, NN, m_fill;
+  int nn, m_fill;
   int n_cap, nmax, m_cap;
   int pack_flag;
   int nlevels_respa;

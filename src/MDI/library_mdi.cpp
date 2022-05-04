@@ -13,19 +13,23 @@
 
 // ----------------------------------------------------------------------
 // MolSSI Driver Interface functions
+// these are added to LAMMPS library interface when MDI package is included
 // ----------------------------------------------------------------------
 
 #include "library_mdi.h"
 
 // needed to enable MPI support
+
 #define LAMMPS_LIB_MPI 1
 #include "library.h"
 
-#include "fix_mdi_engine.h"
+#include "mdi_engine.h"
 
 #include <cstring>
 
 using namespace LAMMPS_NS;
+
+/* ---------------------------------------------------------------------- */
 
 /** Initialize an instance of LAMMPS as an MDI plugin
  *
@@ -51,6 +55,7 @@ command-line argument, which must be provided by the MDI driver.
 int MDI_Plugin_init_lammps()
 {
   // initialize MDI
+
   int mdi_argc;
   char **mdi_argv;
   if (MDI_Plugin_get_argc(&mdi_argc)) MPI_Abort(MPI_COMM_WORLD, 1);
@@ -58,10 +63,12 @@ int MDI_Plugin_init_lammps()
   if (MDI_Init(&mdi_argc, &mdi_argv)) MPI_Abort(MPI_COMM_WORLD, 1);
 
   // get the MPI intra-communicator for this code
+
   MPI_Comm mpi_world_comm = MPI_COMM_WORLD;
   if (MDI_MPI_get_world_comm(&mpi_world_comm)) MPI_Abort(MPI_COMM_WORLD, 1);
 
   // find the -in argument
+
   int iarg = 0;
   char *filename;
   bool found_filename = false;
@@ -74,6 +81,7 @@ int MDI_Plugin_init_lammps()
       found_filename = true;
 
       // remove -in argument from the command list
+
       mdi_argc -= 2;
       for (int jarg = iarg; jarg < mdi_argc; jarg++) mdi_argv[jarg] = mdi_argv[jarg + 2];
     }
@@ -82,16 +90,28 @@ int MDI_Plugin_init_lammps()
   if (!found_filename) MPI_Abort(MPI_COMM_WORLD, 1);
 
   // create and run a LAMMPS instance
+  // lammps_open() expects a first arg (not used) which is executable name
+  // same as if called from main.cpp
+
   void *lmp = nullptr;
   if (lammps_config_has_mpi_support() > 0)
-    lmp = lammps_open(mdi_argc, mdi_argv, mpi_world_comm, nullptr);
+    lmp = lammps_open(mdi_argc + 1, &mdi_argv[-1], mpi_world_comm, nullptr);
   else
-    lmp = lammps_open_no_mpi(mdi_argc, mdi_argv, nullptr);
+    lmp = lammps_open_no_mpi(mdi_argc + 1, &mdi_argv[-1], nullptr);
+
+  // process the specified input script
+  // must contain "mdi engine" command
+
   lammps_file(lmp, filename);
+
+  // shut down the plugin
+
   lammps_close(lmp);
 
   return 0;
 }
+
+/* ---------------------------------------------------------------------- */
 
 /** Execute an MDI command
  *
@@ -106,8 +126,9 @@ The function executes a single command from an external MDI driver.
  * \param  comm      MDI communicator that can be used to communicated with the driver.
  * \param  class_obj pointer to an instance of an mdi/engine fix cast to ``void *``.
  * \return 0 on no error, 1 on error. */
+
 int lammps_execute_mdi_command(const char *command, MDI_Comm comm, void *class_obj)
 {
-  FixMDIEngine *mdi_fix = (FixMDIEngine *) class_obj;
-  return mdi_fix->execute_command(command, comm);
+  MDIEngine *mdi_engine = (MDIEngine *) class_obj;
+  return mdi_engine->execute_command(command, comm);
 }

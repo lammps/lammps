@@ -941,7 +941,7 @@ void FixAveChunk::end_of_step()
     if (overwrite) platform::fseek(fp,filepos);
     double count = 0.0;
     for (m = 0; m < nchunk; m++) count += count_total[m];
-    fprintf(fp,BIGINT_FORMAT " %d %g\n",ntimestep,nchunk,count);
+    fmt::print(fp,"{} {} {}\n",ntimestep,nchunk,count);
 
     int compress = cchunk->compress;
     int *chunkID = cchunk->chunkID;

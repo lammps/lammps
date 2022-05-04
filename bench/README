@@ -4,10 +4,8 @@ This directory contains 5 benchmark problems which are discussed in
 the Benchmark section of the LAMMPS documentation, and on the
 Benchmark page of the LAMMPS WWW site (https://www.lammps.org/bench.html).
 
-This directory also has several sub-directories:
+This directory also has one sub-directories:
 
-FERMI           benchmark scripts for desktop machine with Fermi GPUs (Tesla)
-KEPLER          benchmark scripts for GPU cluster with Kepler GPUs
 POTENTIALS      benchmarks scripts for various potentials in LAMMPS
 
 The results for all of these benchmarks are displayed and discussed on

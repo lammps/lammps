@@ -17,7 +17,7 @@ Syntax
 
      *load* file = load plugin(s) from shared object in *file*
      *unload* style name = unload plugin *name* of style *style*
-         *style* = *pair* or *bond* or *angle* or *dihedral* or *improper* or *compute* or *fix* or *region* or *command*
+         *style* = *pair* or *bond* or *angle* or *dihedral* or *improper* or *kspace* or *compute* or *fix* or *region* or *command*
      *list* = print a list of currently loaded plugins
      *clear* = unload all currently loaded plugins
 
@@ -70,12 +70,11 @@ Restrictions
 """"""""""""
 
 The *plugin* command is part of the PLUGIN package.  It is
-only enabled if LAMMPS was built with that package.
-See the :doc:`Build package <Build_package>` page for
-more info. Plugins are not available on Windows.
+only enabled if LAMMPS was built with that package.  See
+the :doc:`Build package <Build_package>` page for more info.
 
-If plugins access functions or classes from a package, LAMMPS must
-have been compiled with that package included.
+If plugins access functions or classes from a package,
+LAMMPS must have been compiled with that package included.
 
 Plugins are dependent on the LAMMPS binary interface (ABI)
 and particularly the MPI library used. So they are not guaranteed

@@ -208,6 +208,14 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
     }
     (*improper_map)[plugin->name] = (Force::ImproperCreator) plugin->creator.v1;
 
+  } else if (pstyle == "kspace") {
+    auto kspace_map = lmp->force->kspace_map;
+    if (kspace_map->find(plugin->name) != kspace_map->end()) {
+      if (lmp->comm->me == 0)
+        lmp->error->warning(FLERR, "Overriding built-in kspace style {} from plugin", plugin->name);
+    }
+    (*kspace_map)[plugin->name] = (Force::KSpaceCreator) plugin->creator.v1;
+
   } else if (pstyle == "compute") {
     auto compute_map = lmp->modify->compute_map;
     if (compute_map->find(plugin->name) != compute_map->end()) {
@@ -263,9 +271,9 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
   // ignore unload request from unsupported style categories
   if ((strcmp(style, "pair") != 0) && (strcmp(style, "bond") != 0) &&
       (strcmp(style, "angle") != 0) && (strcmp(style, "dihedral") != 0) &&
-      (strcmp(style, "improper") != 0) && (strcmp(style, "compute") != 0) &&
-      (strcmp(style, "fix") != 0) && (strcmp(style, "region") != 0) &&
-      (strcmp(style, "command") != 0)) {
+      (strcmp(style, "improper") != 0) && (strcmp(style, "kspace") != 0) &&
+      (strcmp(style, "compute") != 0) && (strcmp(style, "fix") != 0) &&
+      (strcmp(style, "region") != 0) && (strcmp(style, "command") != 0)) {
     if (me == 0)
       utils::logmesg(lmp, "Ignoring unload: {} is not a supported plugin style\n", style);
     return;
@@ -346,6 +354,12 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
 
     if ((lmp->force->improper_style != nullptr) && (lmp->force->improper_match(name) != nullptr))
       lmp->force->create_improper("none", 0);
+
+  } else if (pstyle == "kspace") {
+
+    auto kspace_map = lmp->force->kspace_map;
+    auto found = kspace_map->find(name);
+    if (found != kspace_map->end()) kspace_map->erase(name);
 
   } else if (pstyle == "compute") {
 

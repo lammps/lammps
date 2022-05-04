@@ -97,8 +97,8 @@ For style *variable*, all atoms for which the atom-style variable with
 the given name evaluates to non-zero will be deleted. Additional atoms
 can be deleted if they are in a molecule for which one or more atoms
 were deleted within the region; see the *mol* keyword discussion below.
-This options allows to apply complex selections of atoms not covered
-by the options listed above.
+This option allows complex selections of atoms not covered by the
+other options listed above.
 
 If the *compress* keyword is set to *yes*, then after atoms are
 deleted, then atom IDs are re-assigned so that they run from 1 to the

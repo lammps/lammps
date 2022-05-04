@@ -21,6 +21,10 @@ add_executable(test_groups test_groups.cpp)
 target_link_libraries(test_groups PRIVATE lammps GTest::GMock)
 add_test(NAME Groups COMMAND test_groups)
 
+add_executable(test_delete_atoms test_delete_atoms.cpp)
+target_link_libraries(test_delete_atoms PRIVATE lammps GTest::GMock)
+add_test(NAME DeleteAtoms COMMAND test_delete_atoms)
+
 add_executable(test_variables test_variables.cpp)
 target_link_libraries(test_variables PRIVATE lammps GTest::GMock)
 add_test(NAME Variables COMMAND test_variables)

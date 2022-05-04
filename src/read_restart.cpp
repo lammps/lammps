@@ -594,21 +594,18 @@ void ReadRestart::header()
     if (flag == VERSION) {
       char *version = read_string();
       if (me == 0)
-        utils::logmesg(lmp,"  restart file = {}, LAMMPS = {}\n",
-                       version,lmp->version);
+        utils::logmesg(lmp,"  restart file = {}, LAMMPS = {}\n", version, lmp->version);
       delete[] version;
 
       // we have no forward compatibility, thus exit with error
 
       if (revision > FORMAT_REVISION)
-        error->all(FLERR,"Restart file format revision incompatible "
-                   "with current LAMMPS version");
+        error->all(FLERR,"Restart file format revision incompatible with current LAMMPS version");
 
       // warn when attempting to read older format revision
 
       if ((me == 0) && (revision < FORMAT_REVISION))
-        error->warning(FLERR,"Old restart file format revision. "
-                       "Switching to compatibility mode.");
+        error->warning(FLERR,"Old restart file format revision. Switching to compatibility mode.");
 
     // check lmptype.h sizes, error if different
 
@@ -654,8 +651,8 @@ void ReadRestart::header()
     } else if (flag == NPROCS) {
       nprocs_file = read_int();
       if (nprocs_file != comm->nprocs && me == 0)
-        error->warning(FLERR,"Restart file used different # of processors: "
-                       "{} vs. {}",nprocs_file,comm->nprocs);
+        error->warning(FLERR,"Restart file used different # of processors: {} vs. {}",
+                       nprocs_file,comm->nprocs);
 
     // don't set procgrid, warn if different
 
@@ -681,16 +678,14 @@ void ReadRestart::header()
       int newton_pair_file = read_int();
       if (force->newton_pair != 1) {
         if (newton_pair_file != force->newton_pair && me == 0)
-          error->warning(FLERR,
-                         "Restart file used different newton pair setting, "
+          error->warning(FLERR, "Restart file used different newton pair setting, "
                          "using input script value");
       }
     } else if (flag == NEWTON_BOND) {
       int newton_bond_file = read_int();
       if (force->newton_bond != 1) {
         if (newton_bond_file != force->newton_bond && me == 0)
-          error->warning(FLERR,
-                         "Restart file used different newton bond setting, "
+          error->warning(FLERR, "Restart file used different newton bond setting, "
                          "using restart file value");
       }
       force->newton_bond = newton_bond_file;
@@ -721,8 +716,7 @@ void ReadRestart::header()
             boundary[2][0] != domain->boundary[2][0] ||
             boundary[2][1] != domain->boundary[2][1]) {
           if (me == 0)
-            error->warning(FLERR,
-                           "Restart file used different boundary settings, "
+            error->warning(FLERR, "Restart file used different boundary settings, "
                            "using restart file values");
         }
       }
@@ -863,6 +857,13 @@ void ReadRestart::header()
       atom->ntris = read_bigint();
     } else if (flag == NBODIES) {
       atom->nbodies = read_bigint();
+
+    } else if (flag == ATIMESTEP) {
+      update->atimestep = read_bigint();
+    } else if (flag == ATIME) {
+      update->atime = read_double();
+
+    // set dimension from restart file
 
       // for backward compatibility
     } else if (flag == EXTRA_SPECIAL_PER_ATOM) {

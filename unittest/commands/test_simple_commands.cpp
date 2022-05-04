@@ -340,7 +340,7 @@ TEST_F(SimpleCommandsTest, Thermo)
     ASSERT_EQ(lmp->output->var_thermo, nullptr);
 
     TEST_FAILURE(".*ERROR: Illegal thermo command.*", command("thermo"););
-    TEST_FAILURE(".*ERROR: Illegal thermo command.*", command("thermo -1"););
+    TEST_FAILURE(".*ERROR: Illegal thermo output frequency.*", command("thermo -1"););
     TEST_FAILURE(".*ERROR: Expected integer.*", command("thermo xxx"););
 }
 

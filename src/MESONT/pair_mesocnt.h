@@ -31,6 +31,9 @@ class PairMesoCNT : public Pair {
   void coeff(int, char **) override;
   void init_style() override;
   double init_one(int, int) override;
+  
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
  protected:
   int nend_types;

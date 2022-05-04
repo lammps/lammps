@@ -32,6 +32,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <unordered_map>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -57,6 +58,8 @@ PairMesoCNT::PairMesoCNT(LAMMPS *lmp) : Pair(lmp)
   no_virial_fdotr_compute = 0;
   writedata = 0;
   ghostneigh = 0;
+
+  comm_forward = 2;
 }
 
 /* ----------------------------------------------------------------------
@@ -557,51 +560,39 @@ void PairMesoCNT::bond_neigh()
 
   int *type = atom->type;
   tagint *tag = atom->tag;
-  tagint **bond_atom = atom->bond_atom;
-  int **nspecial = atom->nspecial;
   tagint **special = atom->special;
 
-  printf("nlocal: %d, nghost: %d\n", nlocal, nghost);
-  printf("local atoms: ");
-  for (int j = 0; j < nlocal; j++)
-    printf("%d ", tag[j]);
-  printf("\n");
-  printf("ghost atoms: ");
-  for (int j = nlocal; j < nlocal+nghost; j++)
-    if (j == nlocal-1)
-      printf("%d | ", tag[j]);
-    else
-      printf("%d ", tag[j]);
-  printf("\n");
-  printf("map(tag): ");
-  for (int j = 0; j < nlocal+nghost; j++)
-    if (j == nlocal-1)
-      printf("%d | ", atom->map(tag[j]));
-    else
-      printf("%d ", atom->map(tag[j]));
-  printf("\n");
-  printf("bond_atom: ");
-  for (int j = 0; j < nlocal+nghost; j++)
-    if (j == nlocal-1)
-      printf("%d | ", atom->map(tag[j]));
-    else
-      printf("%d ", bond_atom[j][0]);
-  printf("\n");
-  printf("nspecial: ");
-  for (int j = 0; j < nlocal+nghost; j++)
-    if (j == nlocal-1)
-      printf("(%d, %d, %d) | ", nspecial[j][0], nspecial[j][1], nspecial[j][2]);
-    else
-      printf("(%d, %d, %d) ", nspecial[j][0], nspecial[j][1], nspecial[j][2]);
-  printf("\n");
-  printf("special: ");
-  for (int j = 0; j < nlocal+nghost; j++)
-    if (j == nlocal-1)
-      printf("(%d, %d) | ", special[j][0], special[j][1]);
-    else
-      printf("(%d, %d) ", special[j][0], special[j][1]);
-  printf("\n");
+  comm->forward_comm(this);
 
+  if (comm->me == 0) {
+    printf("nlocal: %d, nghost: %d\n", nlocal, nghost);
+    printf("tag: ");
+    for (int j = 0; j < nlocal+nghost; j++)
+      if (j == nlocal-1)
+        printf("%d | ", tag[j]);
+      else
+        printf("%d ", tag[j]);
+    printf("\n");
+    printf("image: ");
+    for (int j = 0; j < nlocal+nghost; j++) {
+      
+      int i1 = (atom->image[j] & IMGMASK) - IMGMAX;
+      int i2 = (atom->image[j] >> IMGBITS & IMGMASK) - IMGMAX;
+      int i3 = (atom->image[j] >> IMG2BITS) - IMGMAX;
+      if (j == nlocal-1)
+        printf("(%d %d %d)| ", i1, i2, i3);
+      else
+        printf("(%d %d %d)", i1, i2, i3);
+    }
+    printf("\n");
+    printf("special: ");
+    for (int j = 0; j < nlocal+nghost; j++)
+      if (j == nlocal-1)
+        printf("(%d, %d) | ", special[j][0], special[j][1]);
+      else
+        printf("(%d, %d) ", special[j][0], special[j][1]);
+    printf("\n");
+  }
 
   int *numneigh = list->numneigh;
   int *numneigh_max;
@@ -651,11 +642,9 @@ void PairMesoCNT::bond_neigh()
 
   // split neighbor list into neighbor chains based on bond topology
   
-  int **chainid, **chainpos, **bonded_atom1, **bonded_atom2;
+  int **chainid, **chainpos;
   memory->create_ragged(chainid, nbondlist, reduced_nlist, "pair:chainid");
   memory->create_ragged(chainpos, nbondlist, reduced_nlist, "pair:chainpos");  
-  memory->create_ragged(bonded_atom1, nbondlist, reduced_nlist, "pair::bonded_atom1");
-  memory->create_ragged(bonded_atom2, nbondlist, reduced_nlist, "pair::bonded_atom2");
   memory->create(numchainlist, nbondlist, "pair:numchainlist");
 
   bool empty_neigh = true;
@@ -666,32 +655,16 @@ void PairMesoCNT::bond_neigh()
 
     empty_neigh = false;
 
-    for (int j = 0; j < reduced_nlist[i]; j++) {
-      int jj = reduced_neighlist[i][j];
-      int jtag = tag[jj];
-      int jbond = bond_atom[atom->map(jtag)][0];
-
-      bonded_atom1[i][j] = -1;
-      bonded_atom2[i][j] = -1;
-      chainid[i][j] = -1;
-
-      bool newchain = true;
-      for (int k = 0; k < j; k++) {
-        int kk = reduced_neighlist[i][k];
-        int ktag = tag[kk];
-        int kbond = bond_atom[atom->map(ktag)][0];
-
-        // check if atoms are bonded
-        
-        if (jtag == kbond || jbond == ktag) {
-          if (bonded_atom1[i][j] == -1) bonded_atom1[i][j] = k;
-          else bonded_atom2[i][j] = k;
-          if (bonded_atom1[i][k] == -1) bonded_atom1[i][k] = j;
-          else bonded_atom2[i][k] = j;
-        }
-      }
-    }
+    // map local ids to reduced neighbor list ids
     
+    std::unordered_map<int, int> reduced_map;
+    for (int j = 0; j < reduced_nlist[i]; j++) {
+      reduced_map[reduced_neighlist[i][j]] = j;
+      chainid[i][j] = -1;
+      printf("(%d, %d, %d) ", j, reduced_neighlist[i][j], tag[reduced_neighlist[i][j]]);
+    }
+    printf("\n");
+
     // assign chain ids and positions
 
     for (int j = 0; j < reduced_nlist[i]; j++) {
@@ -707,45 +680,82 @@ void PairMesoCNT::bond_neigh()
       
       // down the chain
 
-      int current_atom = j;
-      int next_atom = bonded_atom1[i][j];
-      while (next_atom != -1) {
-        chainid[i][next_atom] = numchainlist[i];
-        chainpos[i][next_atom] = chainpos[i][current_atom] - 1;
-        if (bonded_atom1[i][next_atom] != current_atom) {
-          current_atom = next_atom;
-          next_atom = bonded_atom1[i][next_atom];
+      int curr_local = reduced_neighlist[i][j];
+      int next_local = atom->map(special[curr_local][0]);
+      int curr_reduced, next_reduced;
+
+      printf("up: ");
+      while (next_local != -1) {
+        printf("%d %d ", curr_local, next_local);
+        try {
+          curr_reduced = reduced_map.at(curr_local);
+          next_reduced = reduced_map.at(next_local);
+        }
+        catch (const std::out_of_range& e) {
+          break;
+        }
+        printf("| ");
+
+        chainid[i][next_reduced] = numchainlist[i];
+        chainpos[i][next_reduced] = chainpos[i][curr_reduced] - 1;
+        if (special[next_local][0] != tag[curr_local]) {
+          curr_local = next_local;
+          next_local = atom->map(special[next_local][0]);
         }
         else {
-          current_atom = next_atom;
-          next_atom = bonded_atom2[i][next_atom];
+          curr_local = next_local;
+          next_local = atom->map(special[next_local][1]);
         }
       }
+      printf("\n");
       
       // up the chain
-
-      current_atom = j;
-      next_atom = bonded_atom2[i][j];
-      while (next_atom != -1) {
-        chainid[i][next_atom] = numchainlist[i];
-        chainpos[i][next_atom] = chainpos[i][current_atom] + 1;
-        if (bonded_atom1[i][next_atom] != current_atom) {
-          current_atom = next_atom;
-          next_atom = bonded_atom1[i][next_atom];
+      
+      curr_local = reduced_neighlist[i][j];
+      next_local = atom->map(special[curr_local][1]);
+      
+      printf("down: ");
+      while (next_local != -1) {
+        printf("%d %d ", curr_local, next_local);
+        try {
+          curr_reduced = reduced_map.at(curr_local);
+          next_reduced = reduced_map.at(next_local);
+        }
+        catch (const std::out_of_range& e) {
+          break;
+        }
+        printf("| ");
+        
+        chainid[i][next_reduced] = numchainlist[i];
+        chainpos[i][next_reduced] = chainpos[i][curr_reduced] + 1;
+        if (special[next_local][0] != tag[curr_local]) {
+          curr_local = next_local;
+          next_local = atom->map(special[next_local][0]);
         }
         else {
-          current_atom = next_atom;
-          next_atom = bonded_atom2[i][next_atom];
+          curr_local = next_local;
+          next_local = atom->map(special[next_local][1]);
         }
       }
+
       numchainlist[i]++;
     }
-  }
-  
-  // destroy temporary arrays
 
-  memory->destroy(bonded_atom1);
-  memory->destroy(bonded_atom2);
+    printf("bond: %d\n", i);
+    printf("tag: ");
+    for (int j = 0; j < reduced_nlist[i]; j++)
+      printf("%d ", tag[reduced_neighlist[i][j]]);
+    printf("\n");
+    printf("chainid: ");
+    for (int j = 0; j < reduced_nlist[i]; j++)
+      printf("%d ", chainid[i][j]);
+    printf("\n");
+    printf("chainpos: ");
+    for (int j = 0; j < reduced_nlist[i]; j++)
+      printf("%d ", chainpos[i][j]);
+    printf("\n");
+    fflush(stdout);
+  }
   
   // count neighbor chain lengths per bond
 
@@ -881,6 +891,37 @@ void PairMesoCNT::neigh_common(int i1, int i2, int &numred, int *redlist)
     int ind = neighlist2[j2];
     if (mol[ind] == mol[i2] && abs(tag[ind] - tag[i2]) < SELF_CUTOFF) continue;
     redlist[numred++] = ind;
+  }
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+int PairMesoCNT::pack_forward_comm(int n, int *list, double *buf,
+                               int /*pbc_flag*/, int * /*pbc*/)
+{
+  int i,j,m;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = ubuf(atom->special[j][0]).d;
+    buf[m++] = ubuf(atom->special[j][1]).d;
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairMesoCNT::unpack_forward_comm(int n, int first, double *buf)
+{
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    atom->special[i][0] = (tagint) ubuf(buf[m++]).i;
+    atom->special[i][1] = (tagint) ubuf(buf[m++]).i;
   }
 }
 

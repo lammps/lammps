@@ -224,55 +224,43 @@ TEST_F(SimpleCommandsTest, Quit)
 TEST_F(SimpleCommandsTest, ResetTimestep)
 {
     ASSERT_EQ(lmp->update->ntimestep, 0);
+    ASSERT_EQ(lmp->update->atimestep, 0);
+    ASSERT_DOUBLE_EQ(lmp->update->atime, 0.0);
 
     BEGIN_HIDE_OUTPUT();
     command("reset_timestep 10");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->update->ntimestep, 10);
+    ASSERT_EQ(lmp->update->atimestep, 10);
+    ASSERT_DOUBLE_EQ(lmp->update->atime, lmp->update->dt * 10);
 
     BEGIN_HIDE_OUTPUT();
     command("reset_timestep 0");
     END_HIDE_OUTPUT();
-    ASSERT_EQ(lmp->update->ntimestep, 0);
-
-    TEST_FAILURE(".*ERROR: Timestep must be >= 0.*", command("reset_timestep -10"););
-    TEST_FAILURE(".*ERROR: Illegal reset_timestep .*", command("reset_timestep"););
-    TEST_FAILURE(".*ERROR: Illegal reset_timestep .*", command("reset_timestep 10 10"););
-    TEST_FAILURE(".*ERROR: Expected integer .*", command("reset_timestep xxx"););
-}
-
-TEST_F(SimpleCommandsTest, SetTime)
-{
     ASSERT_EQ(lmp->update->ntimestep, 0);
     ASSERT_EQ(lmp->update->atimestep, 0);
     ASSERT_DOUBLE_EQ(lmp->update->atime, 0.0);
 
     BEGIN_HIDE_OUTPUT();
-    command("set_time 10.0");
+    command("reset_timestep NULL time 10.0");
     END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->update->ntimestep, 0);
     ASSERT_EQ(lmp->update->atimestep, 0);
     ASSERT_DOUBLE_EQ(lmp->update->atime, 10.0);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_timestep 10");
-    command("set_time 10.0");
+    command("reset_timestep 10 time 100.0");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->update->ntimestep, 10);
     ASSERT_EQ(lmp->update->atimestep, 10);
-    ASSERT_DOUBLE_EQ(lmp->update->atime, 10.0);
+    ASSERT_DOUBLE_EQ(lmp->update->atime, 100.0);
 
-    BEGIN_HIDE_OUTPUT();
-    command("reset_timestep 0");
-    command("set_time 10.0");
-    command("reset_timestep 10");
-    END_HIDE_OUTPUT();
-    ASSERT_EQ(lmp->update->ntimestep, 10);
-    ASSERT_EQ(lmp->update->atimestep, 10);
-    ASSERT_DOUBLE_EQ(lmp->update->atime, 10.0 + lmp->update->dt * 10);
-
-    TEST_FAILURE(".*ERROR: Illegal set_time .*", command("set_time"););
-    TEST_FAILURE(".*ERROR: Illegal set_time .*", command("set_time 10 10"););
-    TEST_FAILURE(".*ERROR: Expected floating .*", command("set_time xxx"););
+    TEST_FAILURE(".*ERROR: Timestep must be >= 0.*", command("reset_timestep -10"););
+    TEST_FAILURE(".*ERROR: Illegal reset_timestep .*", command("reset_timestep"););
+    TEST_FAILURE(".*ERROR: Unknown reset_timestep option 10.*", command("reset_timestep 10 10"););
+    TEST_FAILURE(".*ERROR: Illegal reset_timestep .*", command("reset_timestep 10 time"););
+    TEST_FAILURE(".*ERROR: Expected floating .**", command("reset_timestep 10 time xxx"););
+    TEST_FAILURE(".*ERROR: Expected integer .*", command("reset_timestep xxx"););
 }
 
 TEST_F(SimpleCommandsTest, Suffix)

@@ -105,7 +105,6 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`run <run>`
    * :doc:`run_style <run_style>`
    * :doc:`set <set>`
-   * :doc:`set_time <set_time>`
    * :doc:`shell <shell>`
    * :doc:`special_bonds <special_bonds>`
    * :doc:`suffix <suffix>`

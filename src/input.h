@@ -131,7 +131,6 @@ class Input : protected Pointers {
   void reset_timestep();
   void restart();
   void run_style();
-  void set_time();
   void special_bonds();
   void suffix();
   void thermo();

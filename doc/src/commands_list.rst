@@ -96,7 +96,6 @@ Commands
    run
    run_style
    set
-   set_time
    shell
    special_bonds
    suffix

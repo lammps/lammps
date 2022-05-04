@@ -457,9 +457,19 @@ void Update::new_minimize(char *style, int /* narg */, char ** /* arg */, int tr
 
 void Update::reset_timestep(int narg, char **arg)
 {
-  if (narg != 1) error->all(FLERR, "Illegal reset_timestep command");
-  bigint newstep = utils::bnumeric(FLERR, arg[0], false, lmp);
-  reset_timestep(newstep, true);
+  if (narg < 1) utils::missing_cmd_args(FLERR, "reset_timestep", error);
+
+  if (!utils::strmatch(arg[0], "^NULL$"))
+    reset_timestep(utils::bnumeric(FLERR, arg[0], false, lmp), true);
+
+  if (narg > 1) {
+    if (utils::strmatch(arg[1], "^time$")) {
+      if (narg < 3) utils::missing_cmd_args(FLERR, "reset_timestep time", error);
+      atimestep = ntimestep;
+      atime = utils::numeric(FLERR, arg[2], false, lmp);
+    } else
+      error->all(FLERR, "Unknown reset_timestep option {}", arg[1]);
+  }
 }
 
 /* ----------------------------------------------------------------------

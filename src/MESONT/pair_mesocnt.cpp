@@ -551,12 +551,57 @@ void PairMesoCNT::mesolj()
 void PairMesoCNT::bond_neigh()
 {
   int nlocal = atom->nlocal;
+  int nghost = atom->nghost;
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
 
   int *type = atom->type;
   tagint *tag = atom->tag;
   tagint **bond_atom = atom->bond_atom;
+  int **nspecial = atom->nspecial;
+  tagint **special = atom->special;
+
+  printf("nlocal: %d, nghost: %d\n", nlocal, nghost);
+  printf("local atoms: ");
+  for (int j = 0; j < nlocal; j++)
+    printf("%d ", tag[j]);
+  printf("\n");
+  printf("ghost atoms: ");
+  for (int j = nlocal; j < nlocal+nghost; j++)
+    if (j == nlocal-1)
+      printf("%d | ", tag[j]);
+    else
+      printf("%d ", tag[j]);
+  printf("\n");
+  printf("map(tag): ");
+  for (int j = 0; j < nlocal+nghost; j++)
+    if (j == nlocal-1)
+      printf("%d | ", atom->map(tag[j]));
+    else
+      printf("%d ", atom->map(tag[j]));
+  printf("\n");
+  printf("bond_atom: ");
+  for (int j = 0; j < nlocal+nghost; j++)
+    if (j == nlocal-1)
+      printf("%d | ", atom->map(tag[j]));
+    else
+      printf("%d ", bond_atom[j][0]);
+  printf("\n");
+  printf("nspecial: ");
+  for (int j = 0; j < nlocal+nghost; j++)
+    if (j == nlocal-1)
+      printf("(%d, %d, %d) | ", nspecial[j][0], nspecial[j][1], nspecial[j][2]);
+    else
+      printf("(%d, %d, %d) ", nspecial[j][0], nspecial[j][1], nspecial[j][2]);
+  printf("\n");
+  printf("special: ");
+  for (int j = 0; j < nlocal+nghost; j++)
+    if (j == nlocal-1)
+      printf("(%d, %d) | ", special[j][0], special[j][1]);
+    else
+      printf("(%d, %d) ", special[j][0], special[j][1]);
+  printf("\n");
+
 
   int *numneigh = list->numneigh;
   int *numneigh_max;
@@ -715,7 +760,7 @@ void PairMesoCNT::bond_neigh()
       chainpos_min[i][j] = 0;
       chainpos_max[i][j] = 0;
     }
-
+    
     for (int j = 0; j < reduced_nlist[i]; j++) {
       int cid = chainid[i][j];
       int cpos = chainpos[i][j];
@@ -729,9 +774,7 @@ void PairMesoCNT::bond_neigh()
       if (clen > nchain_max) nchain_max = clen;
     }
   }
-
-  memory->destroy(chainpos_max);
-  
+ 
   // create connected neighbor chains and check for ends
   // MEMORY: prevent zero-size array creation for chainlist
 
@@ -770,6 +813,7 @@ void PairMesoCNT::bond_neigh()
   memory->destroy(reduced_nlist);
 
   memory->destroy(chainpos_min);
+  memory->destroy(chainpos_max);
   memory->destroy(chainid);
   memory->destroy(chainpos);
 

@@ -659,12 +659,12 @@ void FixAmoebaBiTorsion::post_force(int vflag)
       vzy2 = zdc*(dedyid2+dedyie2) - zcb*dedyib2 + zed*dedyie2;
       vzz2 = zdc*(dedzid2+dedzie2) - zcb*dedzib2 + zed*dedzie2;
 
-      v[0] = vxx + vxx2;
-      v[1] = vyy + vyy2;
-      v[2] = vzz + vzz2;
-      v[3] = vyx + vyx2;
-      v[4] = vzx + vzx2;
-      v[5] = vzy + vzy2;
+      v[0] = -vxx - vxx2;
+      v[1] = -vyy - vyy2;
+      v[2] = -vzz - vzz2;
+      v[3] = -vyx - vyx2;
+      v[4] = -vzx - vzx2;
+      v[5] = -vzy - vzy2;
 
       ev_tally(nlist,list,5.0,e,v);
     }

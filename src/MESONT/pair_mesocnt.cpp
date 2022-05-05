@@ -575,51 +575,6 @@ void PairMesoCNT::bond_neigh()
     atom2 = atom->map(special[i][1]);
     special_local[i][0] = domain->closest_image(i, atom1);
     special_local[i][1] = domain->closest_image(i, atom2);
-    printf("atom1: %d, atom2: %d, closest1: %d, closest2: %d\n", atom1, atom2, special_local[i][0], special_local[i][1]);
-  }
-
-  if (comm->me == 0) {
-    printf("nlocal: %d, nghost: %d\n", nlocal, nghost);
-    printf("tag: ");
-    for (int j = 0; j < nlocal+nghost; j++)
-      if (j == nlocal-1)
-        printf("%d | ", tag[j]);
-      else
-        printf("%d ", tag[j]);
-    printf("\n");
-    printf("sametag: ");
-    for (int j = 0; j < nlocal+nghost; j++)
-      if (j == nlocal-1)
-        printf("%d | ", atom->sametag[j]);
-      else
-        printf("%d ", atom->sametag[j]);
-    printf("\n");
-    printf("x: ");
-    for (int j = 0; j < nlocal+nghost; j++) {
-      if (j == nlocal-1)
-        printf("%f | ", atom->x[j][0]);
-      else
-        printf("%f ", atom->x[j][0]);
-    }
-    printf("\n");
-    printf("image: ");
-    for (int j = 0; j < nlocal+nghost; j++) {
-      int i1 = (atom->image[j] & IMGMASK) - IMGMAX;
-      int i2 = (atom->image[j] >> IMGBITS & IMGMASK) - IMGMAX;
-      int i3 = (atom->image[j] >> IMG2BITS) - IMGMAX;
-      if (j == nlocal-1)
-        printf("(%d %d %d)| ", i1, i2, i3);
-      else
-        printf("(%d %d %d)", i1, i2, i3);
-    }
-    printf("\n");
-    printf("special: ");
-    for (int j = 0; j < nlocal+nghost; j++)
-      if (j == nlocal-1)
-        printf("(%d, %d) | ", special[j][0], special[j][1]);
-      else
-        printf("(%d, %d) ", special[j][0], special[j][1]);
-    printf("\n");
   }
 
   int *numneigh = list->numneigh;
@@ -689,9 +644,7 @@ void PairMesoCNT::bond_neigh()
     for (int j = 0; j < reduced_nlist[i]; j++) {
       reduced_map[reduced_neighlist[i][j]] = j;
       chainid[i][j] = -1;
-      printf("(%d, %d, %d) ", j, reduced_neighlist[i][j], tag[reduced_neighlist[i][j]]);
     }
-    printf("\n");
 
     // assign chain ids and positions
 
@@ -712,9 +665,7 @@ void PairMesoCNT::bond_neigh()
       int next_local = special_local[curr_local][0];
       int curr_reduced, next_reduced;
 
-      printf("up: ");
       while (next_local != -1) {
-        printf("%d %d ", curr_local, next_local);
         try {
           curr_reduced = reduced_map.at(curr_local);
           next_reduced = reduced_map.at(next_local);
@@ -722,7 +673,6 @@ void PairMesoCNT::bond_neigh()
         catch (const std::out_of_range& e) {
           break;
         }
-        printf("| ");
 
         chainid[i][next_reduced] = numchainlist[i];
         chainpos[i][next_reduced] = chainpos[i][curr_reduced] - 1;
@@ -735,16 +685,13 @@ void PairMesoCNT::bond_neigh()
           next_local = special_local[next_local][1];
         }
       }
-      printf("\n");
       
       // up the chain
       
       curr_local = reduced_neighlist[i][j];
       next_local = special_local[curr_local][1];
       
-      printf("down: ");
       while (next_local != -1) {
-        printf("%d %d ", curr_local, next_local);
         try {
           curr_reduced = reduced_map.at(curr_local);
           next_reduced = reduced_map.at(next_local);
@@ -752,7 +699,6 @@ void PairMesoCNT::bond_neigh()
         catch (const std::out_of_range& e) {
           break;
         }
-        printf("| ");
         
         chainid[i][next_reduced] = numchainlist[i];
         chainpos[i][next_reduced] = chainpos[i][curr_reduced] + 1;
@@ -768,21 +714,6 @@ void PairMesoCNT::bond_neigh()
 
       numchainlist[i]++;
     }
-
-    printf("bond: %d\n", i);
-    printf("tag: ");
-    for (int j = 0; j < reduced_nlist[i]; j++)
-      printf("%d ", tag[reduced_neighlist[i][j]]);
-    printf("\n");
-    printf("chainid: ");
-    for (int j = 0; j < reduced_nlist[i]; j++)
-      printf("%d ", chainid[i][j]);
-    printf("\n");
-    printf("chainpos: ");
-    for (int j = 0; j < reduced_nlist[i]; j++)
-      printf("%d ", chainpos[i][j]);
-    printf("\n");
-    fflush(stdout);
   }
   
   // count neighbor chain lengths per bond

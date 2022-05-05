@@ -750,8 +750,11 @@ void CreateAtoms::add_random()
         coord = xone;
       }
 
-      // check for overlap of new atom with all others including prior insertions
-      // minimum_image() required to account for distances across PBC
+      // check for overlap of new atom/mol with all other atoms 
+      //   including prior insertions
+      // minimum_image() needed to account for distances across PBC
+      // new molecule only checks its center pt against others
+      //   odistsq is expanded for mode=MOLECULE to account for molecule size
 
       if (overlapflag) {
         double **x = atom->x;
@@ -1023,12 +1026,14 @@ void CreateAtoms::loop_lattice(int action)
 
 /* ----------------------------------------------------------------------
    add a molecule with its center at center
-   if quat_user set use quatone, else generate a random quaternion
 ------------------------------------------------------------------------- */
 
 void CreateAtoms::add_molecule(double *center)
 {
   double r[3], rotmat[3][3];
+
+  // use quatone as-is if user set it
+  // else generate random quaternion in quatone
 
   if (!quat_user) {
     if (domain->dimension == 3) {
@@ -1045,12 +1050,14 @@ void CreateAtoms::add_molecule(double *center)
   }
 
   MathExtra::quat_to_mat(quatone, rotmat);
-  onemol->quat_external = quatone;
 
   // create atoms in molecule with atom ID = 0 and mol ID = 0
-  // reset in caller after all molecules created by all procs
+  // IDs are reset in caller after all molecules created by all procs
   // pass add_molecule_atom an offset of 0 since don't know
-  // max tag of atoms in previous molecules at this point
+  //   max tag of atoms in previous molecules at this point
+  // onemol->quat_external is used by atom->add_moleclue_atom()
+
+  onemol->quat_external = quatone;
 
   int n, natoms = onemol->natoms;
   double xnew[3];

@@ -132,6 +132,7 @@ void CreateAtoms::command(int narg, char **arg)
   ranmol = nullptr;
   varflag = 0;
   vstr = xstr = ystr = zstr = nullptr;
+  quat_user = 0;
   quatone[0] = quatone[1] = quatone[2] = quatone[3] = 0.0;
   subsetflag = NONE;
   int subsetseed;

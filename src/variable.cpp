@@ -500,6 +500,22 @@ void Variable::set(int narg, char **arg)
       strcpy(data[nvar][1],"(undefined)");
     }
 
+  // TIMER
+  // num = listed args, which = 1st value, data = copied args
+
+  } else if (strcmp(arg[1],"timer") == 0) {
+    if (narg != 2) error->all(FLERR,"Illegal variable command");
+    if (find(arg[0]) >= 0) return;
+    if (nvar == maxvar) grow();
+    style[nvar] = TIMER;
+    num[nvar] = 1;
+    which[nvar] = 0;
+    pad[nvar] = 0;
+    data[nvar] = new char*[num[nvar]];
+    copy(num[nvar],&arg[2],data[nvar]);
+
+    // NOTE: set value to MPI_Wtime() evaulated by proc 0
+
   // INTERNAL
   // replace pre-existing var if also style INTERNAL (allows it to be reset)
   // num = 1, for string representation of dvalue, set by retrieve()

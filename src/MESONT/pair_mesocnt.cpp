@@ -560,7 +560,6 @@ void PairMesoCNT::bond_neigh()
   int nbondlist = neighbor->nbondlist;
 
   int *type = atom->type;
-  tagint *tag = atom->tag;
   tagint **special = atom->special;
 
   comm->forward_comm(this);
@@ -570,6 +569,7 @@ void PairMesoCNT::bond_neigh()
   int atom1, atom2;
   int **special_local;
   memory->create(special_local, nlocal+nghost, 2, "pair:special_local");
+  
   for (int i = 0; i < nlocal+nghost; i++) {
     atom1 = atom->map(special[i][0]);
     atom2 = atom->map(special[i][1]);
@@ -580,6 +580,7 @@ void PairMesoCNT::bond_neigh()
   int *numneigh = list->numneigh;
   int *numneigh_max;
   memory->create(numneigh_max, nbondlist, "pair:numneigh_max");
+  
   for (int i = 0; i < nbondlist; i++) {
     int i1 = bondlist[i][0];
     int i2 = bondlist[i][1];
@@ -608,12 +609,7 @@ void PairMesoCNT::bond_neigh()
   for (int i = 0; i < nbondlist; i++) {
     int i1 = bondlist[i][0];
     int i2 = bondlist[i][1];
-
     neigh_common(i1, i2, reduced_nlist[i], reduced_neighlist[i]);
-
-    // sort list according to atom-id
-
-    sort(reduced_neighlist[i], reduced_nlist[i]);
   }
 
   // resize chain arrays
@@ -659,63 +655,46 @@ void PairMesoCNT::bond_neigh()
       chainid[i][j] = numchainlist[i];
       chainpos[i][j] = 0;
       
-      // down the chain
-
-      int curr_local = reduced_neighlist[i][j];
-      int next_local = special_local[curr_local][0];
+      int curr_local, next_local;
       int curr_reduced, next_reduced;
 
-      while (next_local != -1) {
-        try {
-          curr_reduced = reduced_map.at(curr_local);
-          next_reduced = reduced_map.at(next_local);
-        }
-        catch (const std::out_of_range& e) {
-          break;
-        }
+      // down the chain: k = 0; up the chain: k = 1
 
-        chainid[i][next_reduced] = numchainlist[i];
-        chainpos[i][next_reduced] = chainpos[i][curr_reduced] - 1;
-        if (special_local[next_local][0] != curr_local) {
-          curr_local = next_local;
-          next_local = special_local[next_local][0];
-        }
-        else {
-          curr_local = next_local;
-          next_local = special_local[next_local][1];
+      for (int k = 0; k < 2; k++) {
+        curr_local = reduced_neighlist[i][j];
+        next_local = special_local[curr_local][k];
+
+        while (next_local != -1) {
+          try {
+            curr_reduced = reduced_map.at(curr_local);
+            next_reduced = reduced_map.at(next_local);
+          }
+          catch (const std::out_of_range& e) {
+            break;
+          }
+
+          chainid[i][next_reduced] = numchainlist[i];
+          if (k == 0)
+            chainpos[i][next_reduced] = chainpos[i][curr_reduced] - 1;
+          else 
+            chainpos[i][next_reduced] = chainpos[i][curr_reduced] + 1;
+          if (special_local[next_local][0] != curr_local) {
+            curr_local = next_local;
+            next_local = special_local[next_local][0];
+          }
+          else {
+            curr_local = next_local;
+            next_local = special_local[next_local][1];
+          }
         }
       }
       
-      // up the chain
-      
-      curr_local = reduced_neighlist[i][j];
-      next_local = special_local[curr_local][1];
-      
-      while (next_local != -1) {
-        try {
-          curr_reduced = reduced_map.at(curr_local);
-          next_reduced = reduced_map.at(next_local);
-        }
-        catch (const std::out_of_range& e) {
-          break;
-        }
-        
-        chainid[i][next_reduced] = numchainlist[i];
-        chainpos[i][next_reduced] = chainpos[i][curr_reduced] + 1;
-        if (special_local[next_local][0] != curr_local) {
-          curr_local = next_local;
-          next_local = special_local[next_local][0];
-        }
-        else {
-          curr_local = next_local;
-          next_local = special_local[next_local][1];
-        }
-      }
-
       numchainlist[i]++;
     }
   }
   
+  memory->destroy(special_local);
+
   // count neighbor chain lengths per bond
 
   int **chainpos_min, **chainpos_max;
@@ -885,121 +864,7 @@ void PairMesoCNT::unpack_forward_comm(int n, int first, double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   count neighbor chains of given bond
-------------------------------------------------------------------------- */
-
-int PairMesoCNT::count_chains(int *redlist, int numred)
-{
-  if (numred == 0) return 0;
-
-  tagint *tag = atom->tag;
-  tagint *mol = atom->molecule;
-  int count = 1;
-
-  // split neighbor list and count chains
-
-  for (int j = 0; j < numred - 1; j++) {
-    int j1 = redlist[j];
-    int j2 = redlist[j + 1];
-    if (tag[j2] - tag[j1] != 1 || mol[j1] != mol[j2]) count++;
-  }
-
-  return count;
-}
-/* ----------------------------------------------------------------------
-   count lengths of neighbor chains of given bond
-------------------------------------------------------------------------- */
-
-void PairMesoCNT::chain_lengths(int *redlist, int numred, int *nchain)
-{
-  if (numred == 0) return;
-
-  tagint *tag = atom->tag;
-  tagint *mol = atom->molecule;
-  int clen = 0;
-  int cid = 0;
-
-  // split neighbor list into connected chains
-
-  for (int j = 0; j < numred - 1; j++) {
-    int j1 = redlist[j];
-    int j2 = redlist[j + 1];
-    clen++;
-    if (tag[j2] - tag[j1] != 1 || mol[j1] != mol[j2]) {
-      nchain[cid++] = clen;
-      clen = 0;
-    }
-  }
-  clen++;
-  nchain[cid++] = clen;
-}
-
-/* ----------------------------------------------------------------------
-   split neighbors into chains and identify ends
-------------------------------------------------------------------------- */
-
-void PairMesoCNT::chain_split(int *redlist, int numred, int *nchain, int **chain, int *end)
-{
-  if (numred == 0) return;
-
-  tagint *tag = atom->tag;
-  tagint *mol = atom->molecule;
-  int clen = 0;
-  int cid = 0;
-
-  // split neighbor list into connected chains
-
-  for (int j = 0; j < numred - 1; j++) {
-    int j1 = redlist[j];
-    int j2 = redlist[j + 1];
-    chain[cid][clen++] = j1;
-    if (tag[j2] - tag[j1] != 1 || mol[j1] != mol[j2]) {
-      cid++;
-      clen = 0;
-    }
-  }
-  chain[cid][clen++] = redlist[numred - 1];
-  cid++;
-
-  // check for chain ends
-
-  for (int j = 0; j < cid; j++) {
-    int cstart = chain[j][0];
-    int cend = chain[j][nchain[j] - 1];
-
-    if (match_end(atom->type[cstart]))
-      end[j] = 1;
-    else if (match_end(atom->type[cend]))
-      end[j] = 2;
-    else
-      end[j] = 0;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   insertion sort list according to corresponding atom ID
-------------------------------------------------------------------------- */
-
-void PairMesoCNT::sort(int *list, int size)
-{
-  int i, j, temp1, temp2;
-  tagint *tag = atom->tag;
-  for (i = 1; i < size; i++) {
-    j = i;
-    temp1 = list[j - 1];
-    temp2 = list[j];
-    while (j > 0 && tag[temp1] > tag[temp2]) {
-      list[j] = temp1;
-      list[j - 1] = temp2;
-      j--;
-      temp1 = list[j - 1];
-      temp2 = list[j];
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
-   insertion sort list according to corresponding atom ID
+   check if type is in end_types
 ------------------------------------------------------------------------- */
 
 bool PairMesoCNT::match_end(int type)

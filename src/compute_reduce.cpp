@@ -54,6 +54,8 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
     mode = SUM;
   else if (strcmp(arg[iarg], "sumsq") == 0)
     mode = SUMSQ;
+  else if (strcmp(arg[iarg], "sumabs") == 0)
+    mode = SUMABS;
   else if (strcmp(arg[iarg], "min") == 0)
     mode = MINN;
   else if (strcmp(arg[iarg], "max") == 0)
@@ -62,6 +64,8 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
     mode = AVE;
   else if (strcmp(arg[iarg], "avesq") == 0)
     mode = AVESQ;
+  else if (strcmp(arg[iarg], "aveabs") == 0)
+    mode = AVEABS;
   else
     error->all(FLERR, "Illegal compute {} operation {}", style, arg[iarg]);
   iarg++;
@@ -253,7 +257,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
 
   if (nvalues == 1) {
     scalar_flag = 1;
-    if (mode == SUM || mode == SUMSQ)
+    if (mode == SUM || mode == SUMSQ || mode == SUMABS)
       extscalar = 1;
     else
       extscalar = 0;
@@ -262,7 +266,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   } else {
     vector_flag = 1;
     size_vector = nvalues;
-    if (mode == SUM || mode == SUMSQ)
+    if (mode == SUM || mode == SUMSQ || mode == SUMABS)
       extvector = 1;
     else
       extvector = 0;
@@ -339,13 +343,13 @@ double ComputeReduce::compute_scalar()
 
   double one = compute_one(0, -1);
 
-  if (mode == SUM || mode == SUMSQ) {
+  if (mode == SUM || mode == SUMSQ || mode == SUMABS) {
     MPI_Allreduce(&one, &scalar, 1, MPI_DOUBLE, MPI_SUM, world);
   } else if (mode == MINN) {
     MPI_Allreduce(&one, &scalar, 1, MPI_DOUBLE, MPI_MIN, world);
   } else if (mode == MAXX) {
     MPI_Allreduce(&one, &scalar, 1, MPI_DOUBLE, MPI_MAX, world);
-  } else if (mode == AVE || mode == AVESQ) {
+  } else if (mode == AVE || mode == AVESQ || mode == AVEABS) {
     MPI_Allreduce(&one, &scalar, 1, MPI_DOUBLE, MPI_SUM, world);
     bigint n = count(0);
     if (n) scalar /= n;
@@ -366,7 +370,7 @@ void ComputeReduce::compute_vector()
       indices[m] = index;
     }
 
-  if (mode == SUM || mode == SUMSQ) {
+  if (mode == SUM || mode == SUMSQ || mode == AVEABS) {
     for (int m = 0; m < nvalues; m++)
       MPI_Allreduce(&onevec[m], &vector[m], 1, MPI_DOUBLE, MPI_SUM, world);
 
@@ -412,7 +416,7 @@ void ComputeReduce::compute_vector()
         }
     }
 
-  } else if (mode == AVE || mode == AVESQ) {
+  } else if (mode == AVE || mode == AVESQ || mode == AVEABS) {
     for (int m = 0; m < nvalues; m++) {
       MPI_Allreduce(&onevec[m], &vector[m], 1, MPI_DOUBLE, MPI_SUM, world);
       bigint n = count(m);
@@ -646,6 +650,8 @@ void ComputeReduce::combine(double &one, double two, int i)
     one += two;
   else if (mode == SUMSQ || mode == AVESQ)
     one += two * two;
+  else if (mode == SUMABS || mode == AVEABS)
+    one += std::fabs(two);
   else if (mode == MINN) {
     if (two < one) {
       one = two;

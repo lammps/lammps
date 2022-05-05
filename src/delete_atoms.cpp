@@ -40,6 +40,8 @@
 
 using namespace LAMMPS_NS;
 
+enum{FRACTION,COUNT};
+
 /* ---------------------------------------------------------------------- */
 
 DeleteAtoms::DeleteAtoms(LAMMPS *lmp) : Command(lmp) {}
@@ -71,8 +73,8 @@ void DeleteAtoms::command(int narg, char **arg)
     delete_region(narg, arg);
   else if (strcmp(arg[0], "overlap") == 0)
     delete_overlap(narg, arg);
-  else if (strcmp(arg[0], "porosity") == 0)
-    delete_porosity(narg, arg);
+  else if (strcmp(arg[0], "partial") == 0)
+    delete_partial(narg, arg);
   else if (strcmp(arg[0], "variable") == 0)
     delete_variable(narg, arg);
   else
@@ -412,25 +414,42 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   create porosity by deleting atoms in a specified region
+   delete specified portion of atoms within group and/or region
 ------------------------------------------------------------------------- */
 
-void DeleteAtoms::delete_porosity(int narg, char **arg)
+void DeleteAtoms::delete_partial(int narg, char **arg)
 {
-  if (narg < 5) utils::missing_cmd_args(FLERR, "delete_atoms porosity", error);
+  if (narg < 5) utils::missing_cmd_args(FLERR, "delete_atoms portion", error);
 
-  int igroup = group->find(arg[1]);
-  if (igroup == -1) error->all(FLERR, "Could not find delete_atoms porosity group ID {}", arg[1]);
+  int partial_style, exactflag;
+  bigint ncount;
+  double fraction;
 
-  auto iregion = domain->get_region_by_id(arg[2]);
-  if (!iregion && (strcmp(arg[2], "NULL") != 0))
-    error->all(FLERR, "Could not find delete_atoms porosity region ID {}", arg[2]);
+  if (strcmp(arg[1],"fraction") == 0) {
+    partial_style = FRACTION;
+    fraction = utils::numeric(FLERR, arg[2], false, lmp);
+    exactflag = 0;
+  } else if (strcmp(arg[1],"fraction/exact") == 0) {
+    partial_style = FRACTION;
+    fraction = utils::numeric(FLERR, arg[2], false, lmp);
+    exactflag = 1;
+  } else if (strcmp(arg[1],"count") == 0) {
+    partial_style = COUNT;
+    ncount = utils::bnumeric(FLERR, arg[2], false, lmp);
+    exactflag = 1;
+  }
 
-  double porosity_fraction = utils::numeric(FLERR, arg[3], false, lmp);
-  int seed = utils::inumeric(FLERR, arg[4], false, lmp);
+  int igroup = group->find(arg[3]);
+  if (igroup == -1) error->all(FLERR, "Could not find delete_atoms porosity group ID {}", arg[3]);
+
+  auto region = domain->get_region_by_id(arg[4]);
+  if (!region && (strcmp(arg[4], "NULL") != 0))
+    error->all(FLERR, "Could not find delete_atoms porosity region ID {}", arg[4]);
+
+  int seed = utils::inumeric(FLERR, arg[5], false, lmp);
   options(narg - 5, &arg[5]);
 
-  auto random = new RanMars(lmp, seed + comm->me);
+  auto ranmars = new RanMars(lmp, seed + comm->me);
 
   // allocate and initialize deletion list
 
@@ -438,21 +457,76 @@ void DeleteAtoms::delete_porosity(int narg, char **arg)
   memory->create(dlist, nlocal, "delete_atoms:dlist");
   for (int i = 0; i < nlocal; i++) dlist[i] = 0;
 
-  // delete fraction of atoms which are in both group and region
+  // setup
 
   double **x = atom->x;
   int *mask = atom->mask;
-
+  
   int groupbit = group->bitmask[igroup];
-  if (iregion) iregion->prematch();
+  if (region) region->prematch();
 
-  for (int i = 0; i < nlocal; i++) {
-    if (!(mask[i] & groupbit)) continue;
-    if (iregion && !iregion->match(x[i][0], x[i][1], x[i][2])) continue;
-    if (random->uniform() <= porosity_fraction) dlist[i] = 1;
+  // delete approximate fraction of atoms in both group and region
+
+  if (partial_style == FRACTION && !exactflag) {
+    for (int i = 0; i < nlocal; i++) {
+      if (!(mask[i] & groupbit)) continue;
+      if (region && !region->match(x[i][0], x[i][1], x[i][2])) continue;
+      if (ranmars->uniform() <= fraction) dlist[i] = 1;
+    }
+
+  // delete exact fraction or count of atoms in both group and region
+
+  } else {
+    double **x = atom->x;
+    int *mask = atom->mask;
+
+    // count = number of atoms I own in both group and region
+
+    int count = 0;
+    for (int i = 0; i < nlocal; i++) {
+      if (!(mask[i] & groupbit)) continue;
+      if (region && !region->match(x[i][0], x[i][1], x[i][2])) continue;
+      count++;
+    }
+
+    // convert specified fraction to ncount
+
+    bigint bcount = count;
+    bigint allcount;
+    MPI_Allreduce(&bcount,&allcount,1,MPI_LMP_BIGINT,MPI_SUM,world);
+
+    if (partial_style == FRACTION) {
+      ncount = static_cast<bigint> (fraction * allcount);
+    } else if (partial_style == COUNT) {
+      if (ncount > allcount)
+        error->all(FLERR,"Delete_atoms count exceeds eligible atoms");
+    }
+
+    // make selection
+
+    int *flag = memory->create(flag,count,"delete_atoms:flag");
+    int *work = memory->create(work,count,"delete_atoms:work");
+
+    ranmars->select_subset(ncount,count,flag,work);
+
+    // set dlist for atom indices in flag
+    // flag vector from select_subset() is only for eligible atoms
+
+    int j = 0;
+    for (int i = 0; i < nlocal; i++) {
+      if (!(mask[i] & groupbit)) continue;
+      if (region && !region->match(x[i][0], x[i][1], x[i][2])) continue;
+      if (flag[j]) dlist[i] = 1;
+      j++;
+    }
+
+    memory->destroy(flag);
+    memory->destroy(work);
   }
 
-  delete random;
+  // delete RN generator
+
+  delete ranmars;
 }
 
 /* ----------------------------------------------------------------------

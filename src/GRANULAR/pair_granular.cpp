@@ -188,7 +188,7 @@ void PairGranular::compute(int eflag, int vflag)
   double *history,*allhistory,**firsthistory;
 
   bool touchflag = false;
-  const bool historyupdate = update->setupflag != 0;
+  const bool historyupdate = update->setupflag == 0;
 
   ev_init(eflag,vflag);
 

@@ -1097,6 +1097,8 @@
 /pair_ilp_graphene_hbn_opt.h
 /pair_ilp_tmd.cpp
 /pair_ilp_tmd.h
+/pair_ilp_tmd_opt.cpp
+/pair_ilp_tmd_opt.h
 /pair_kolmogorov_crespi_full.cpp
 /pair_kolmogorov_crespi_full.h
 /pair_kolmogorov_crespi_z.cpp
@@ -1232,6 +1234,8 @@
 /pair_resquared.h
 /pair_saip_metal.cpp
 /pair_saip_metal.h
+/pair_saip_metal_opt.cpp
+/pair_saip_metal_opt.h
 /pair_sdpd_taitwater_isothermal.cpp
 /pair_sdpd_taitwater_isothermal.h
 /pair_sph_heatconduction.cpp
@@ -1537,6 +1541,10 @@
 /pair_mgpt.h
 /pair_morse_smooth_linear.cpp
 /pair_morse_smooth_linear.h
+/pair_smatb.cpp
+/pair_smatb.h
+/pair_smatb_single.cpp
+/pair_smatb_single.h
 /pair_smtbq.cpp
 /pair_smtbq.h
 /pair_vashishta*.cpp

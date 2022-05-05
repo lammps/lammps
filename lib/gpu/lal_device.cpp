@@ -201,9 +201,9 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
     unsigned best_cus = gpu->cus(0);
     bool type_match = (gpu->device_type(0) == type);
     for (int i = 1; i < gpu->num_devices(); i++) {
-      if (type_match && gpu->device_type(i)!=type)
+      if (type_match && (gpu->device_type(i) != type))
         continue;
-      if (type_match && gpu->device_type(i) == type) {
+      if (!type_match && (gpu->device_type(i) == type)) {
         type_match = true;
         best_cus = gpu->cus(i);
         best_device = i;

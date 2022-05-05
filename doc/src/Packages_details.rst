@@ -50,6 +50,7 @@ page gives those details.
    * :ref:`DPD-SMOOTH <PKG-DPD-SMOOTH>`
    * :ref:`DRUDE <PKG-DRUDE>`
    * :ref:`EFF <PKG-EFF>`
+   * :ref:`ELECTRODE <PKG-ELECTRODE>`
    * :ref:`EXTRA-COMPUTE <PKG-EXTRA-COMPUTE>`
    * :ref:`EXTRA-DUMP <PKG-EXTRA-DUMP>`
    * :ref:`EXTRA-FIX <PKG-EXTRA-FIX>`
@@ -808,6 +809,31 @@ tools/eff; see its README file.
 * https://www.lammps.org/movies.html#eff
 
 -------------------
+
+.. _PKG-ELECTRODE:
+
+ELECTRODE package
+-----------------
+
+**Contents:**
+
+The ELECTRODE package allows the user to enforce a constant potential method for
+groups of atoms that interact with the remaining atoms as electrolyte.
+
+**Authors:** The ELECTRODE library is written and maintained by Ludwig
+Ahrens-Iwers (TUHH, Hamburg, Germany), Shern Tee (UQ, Brisbane, Australia) and
+Robert Meissner (TUHH, Hamburg, Germany).
+
+**Install:**
+
+This package has :ref:`specific installation instructions <electrode>` on the
+:doc:`Build extras <Build_extras>` page.
+
+**Supporting info:**
+
+* :doc:`fix electrode/conp <fix_electrode_conp>`
+
+----------
 
 .. _PKG-EXTRA-COMPUTE:
 
@@ -2578,18 +2604,20 @@ SMTBQ package
 
 **Contents:**
 
-A pair style which implements a Second Moment Tight Binding model with
-QEq charge equilibration (SMTBQ) potential for the description of
-ionocovalent bonds in oxides.
+Pair styles which implement Second Moment Tight Binding models.
+One with QEq charge equilibration (SMTBQ) for the description of
+ionocovalent bonds in oxides, and two more as plain SMATB models.
 
-**Authors:** Nicolas Salles, Emile Maras, Olivier Politano, and Robert
-Tetot (LAAS-CNRS, France).
+**Authors:** SMTBQ: Nicolas Salles, Emile Maras, Olivier Politano, and Robert
+Tetot (LAAS-CNRS, France);
+SMATB: Daniele Rapetti (Politecnico di Torino)
 
 **Supporting info:**
 
 * src/SMTBQ: filenames -> commands
 * src/SMTBQ/README
 * :doc:`pair_style smtbq <pair_smtbq>`
+* :doc:`pair_style smatb <pair_smatb>`, :doc:`pair_style smatb/single <pair_smatb>`
 * examples/PACKAGES/smtbq
 
 ----------

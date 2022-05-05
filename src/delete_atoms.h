@@ -39,6 +39,7 @@ class DeleteAtoms : public Command {
   void delete_region(int, char **);
   void delete_overlap(int, char **);
   void delete_porosity(int, char **);
+  void delete_variable(int, char **);
 
   void delete_bond();
   void delete_molecule();

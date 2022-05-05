@@ -428,7 +428,7 @@ void FixAdapt::init()
       if (ad->angle == nullptr )
         error->all(FLERR,"Fix adapt angle style does not exist");
 
-      void *ptr = ad->angle->extract(ad->aparam,ad->bdim);
+      void *ptr = ad->angle->extract(ad->aparam,ad->adim);
 
       if (ptr == nullptr)
         error->all(FLERR,"Fix adapt angle style param not supported");

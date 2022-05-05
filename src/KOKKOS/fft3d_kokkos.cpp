@@ -46,16 +46,16 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
 
 #if defined(FFT_MKL)
   if (ngpus > 0 && execution_space == Device)
-    lmp->error->all(FLERR,"Cannot use the MKL library with Kokkos CUDA on GPUs");
+    lmp->error->all(FLERR,"Cannot use the MKL library with Kokkos on GPUs");
 #elif defined(FFT_FFTW3)
   if (ngpus > 0 && execution_space == Device)
-    lmp->error->all(FLERR,"Cannot use the FFTW library with Kokkos CUDA/HIP on GPUs");
+    lmp->error->all(FLERR,"Cannot use the FFTW library with Kokkos on GPUs");
 #elif defined(FFT_CUFFT)
   if (ngpus > 0 && execution_space == Host)
-    lmp->error->all(FLERR,"Cannot use the cuFFT library with Kokkos CUDA on the host CPUs");
+    lmp->error->all(FLERR,"Cannot use the cuFFT library with Kokkos on the host CPUs");
 #elif defined(FFT_HIPFFT)
   if (ngpus > 0 && execution_space == Host)
-    lmp->error->all(FLERR,"Cannot use the hipFFT library with Kokkos HIP on the host CPUs");
+    lmp->error->all(FLERR,"Cannot use the hipFFT library with Kokkos on the host CPUs");
 
 #elif defined(FFT_KISSFFT)
   // The compiler can't statically determine the stack size needed for

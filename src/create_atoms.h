@@ -58,7 +58,6 @@ class CreateAtoms : public Command {
   class Molecule *onemol;
   class RanMars *ranmol;
   class RanMars *ranlatt;
-  double **molecule_coords;
 
   int triclinic;
   double sublo[3], subhi[3];    // epsilon-extended proc sub-box for adding atoms

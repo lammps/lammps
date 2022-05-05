@@ -259,7 +259,7 @@ void CreateAtoms::command(int narg, char **arg)
       error->all(FLERR, "Create_atoms molecule must have coordinates");
     if (onemol->typeflag == 0)
       error->all(FLERR, "Create_atoms molecule must have atom types");
-    if (ntype+onemol->ntypes <= 0 || ntype+onemol->ntypes > atom->ntypes)
+    if (ntype + onemol->ntypes <= 0 || ntype + onemol->ntypes > atom->ntypes)
       error->all(FLERR, "Invalid atom type in create_atoms mol command");
     if (onemol->tag_require && !atom->tag_enable)
       error->all(FLERR, "Create_atoms molecule has atom IDs, but system does not");
@@ -268,11 +268,9 @@ void CreateAtoms::command(int narg, char **arg)
 
     // use geometric center of molecule for insertion
     // molecule random number generator, different for each proc
-    // molecule_coords = memory for atom coords in the molecule
 
     onemol->compute_center();
     ranmol = new RanMars(lmp, molseed + comm->me);
-    memory->create(molecule_coords, onemol->natoms, 3, "create_atoms:molecule_coords");
   }
 
   ranlatt = nullptr;
@@ -581,7 +579,6 @@ void CreateAtoms::command(int narg, char **arg)
 
   // clean up
 
-  if (mode == MOLECULE) memory->destroy(molecule_coords);
   delete ranmol;
   delete ranlatt;
 
@@ -653,8 +650,7 @@ void CreateAtoms::add_single()
     if (mode == ATOM) {
       atom->avec->create_atom(ntype, xone);
     } else {
-      generate_molecule(xone);
-      add_molecule();
+      add_molecule(xone);
     }
   }
 }
@@ -753,8 +749,6 @@ void CreateAtoms::add_random()
         coord = xone;
       }
 
-      if (mode == MOLECULE) generate_molecule(xone);
-
       // check for overlap of new atom with all others including prior insertions
       // minimum_image() required to account for distances across PBC
 
@@ -764,16 +758,14 @@ void CreateAtoms::add_random()
 
         int reject = 0;
         for (int i = 0; i < nlocal; i++) {
-          if (mode == ATOM) {
-            delx = xone[0] - x[i][0];
-            dely = xone[1] - x[i][1];
-            delz = xone[2] - x[i][2];
-            domain->minimum_image(delx,dely,delz);
-            distsq = delx*delx + dely*dely + delz*delz;
-            if (distsq < odistsq) {
-              reject = 1;
-              break;
-            }
+          delx = xone[0] - x[i][0];
+          dely = xone[1] - x[i][1];
+          delz = xone[2] - x[i][2];
+          domain->minimum_image(delx, dely, delz);
+          distsq = delx*delx + dely*dely + delz*delz;
+          if (distsq < odistsq) {
+            reject = 1;
+            break;
           }
         }
         int reject_any;
@@ -802,7 +794,7 @@ void CreateAtoms::add_random()
       if (mode == ATOM) {
         atom->avec->create_atom(ntype, xone);
       } else {
-        add_molecule();
+        add_molecule(xone);
       }
     }
   }
@@ -810,7 +802,7 @@ void CreateAtoms::add_random()
   // warn if did not successfully insert Nrandom atoms/molecules
 
   if (ninsert < nrandom && comm->me == 0)
-    error->warning(FLERR,"Only inserted {} particles out of {}",ninsert,nrandom);
+    error->warning(FLERR, "Only inserted {} particles out of {}", ninsert, nrandom);
     
   // clean-up
 
@@ -1009,8 +1001,7 @@ void CreateAtoms::loop_lattice(int action)
             if (mode == ATOM) {
               atom->avec->create_atom(basistype[m], x);
             } else {
-              generate_molecule(x);
-              add_molecule();
+              add_molecule(x);
             }
           } else if (action == COUNT) {
             if (nlatt == MAXSMALLINT) nlatt_overflow = 1;
@@ -1018,8 +1009,7 @@ void CreateAtoms::loop_lattice(int action)
             if (mode == ATOM) {
               atom->avec->create_atom(basistype[m], x);
             } else {
-              generate_molecule(x);
-              add_molecule();
+              add_molecule(x);
             }
           }
 
@@ -1031,12 +1021,11 @@ void CreateAtoms::loop_lattice(int action)
 }
 
 /* ----------------------------------------------------------------------
-   generate molecule atom coordinates for a given center and rotation
-   if quat_user set use it, else generate a random quaternion
-   result is stored in temp_mol_coords and onemol->quat_external
+   add a molecule with its center at center
+   if quat_user set use quatone, else generate a random quaternion
 ------------------------------------------------------------------------- */
 
-void CreateAtoms::generate_molecule(double *center)
+void CreateAtoms::add_molecule(double *center)
 {
   double r[3], rotmat[3][3];
 
@@ -1055,31 +1044,19 @@ void CreateAtoms::generate_molecule(double *center)
   }
 
   MathExtra::quat_to_mat(quatone, rotmat);
+  onemol->quat_external = quatone;
 
-  int natoms = onemol->natoms;
-  for (int m = 0; m < natoms; m++) {
-    MathExtra::matvec(rotmat, onemol->dx[m], molecule_coords[m]);
-    MathExtra::add3(molecule_coords[m], center, molecule_coords[m]);
-  }
-}
-
-/* ----------------------------------------------------------------------
-   add molecule to system
-   generated coords are in molecule_coords
-------------------------------------------------------------------------- */
-
-void CreateAtoms::add_molecule()
-{
   // create atoms in molecule with atom ID = 0 and mol ID = 0
   // reset in caller after all molecules created by all procs
   // pass add_molecule_atom an offset of 0 since don't know
   // max tag of atoms in previous molecules at this point
 
-  onemol->quat_external = quatone;
-
   int n, natoms = onemol->natoms;
+  double xnew[3];
   for (int m = 0; m < natoms; m++) {
-    atom->avec->create_atom(ntype+onemol->type[m], molecule_coords[m]);
+    MathExtra::matvec(rotmat, onemol->dx[m], xnew);
+    MathExtra::add3(xnew, center, xnew);
+    atom->avec->create_atom(ntype + onemol->type[m], xnew);
     n = atom->nlocal - 1;
     atom->add_molecule_atom(onemol, m, n, 0);
   }

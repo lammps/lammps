@@ -627,6 +627,7 @@
 /ewald.h
 /ewald_cg.cpp
 /ewald_cg.h
+/ewald_const.h
 /ewald_dipole.cpp
 /ewald_dipole.h
 /ewald_dipole_spin.cpp

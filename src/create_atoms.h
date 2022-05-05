@@ -66,8 +66,7 @@ class CreateAtoms : public Command {
   void add_random();
   void add_lattice();
   void loop_lattice(int);
-  void generate_molecule(double *);
-  void add_molecule();
+  void add_molecule(double *);
   int vartest(double *);    // evaluate a variable with new atom position
 };
 

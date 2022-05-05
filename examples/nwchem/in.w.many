@@ -23,7 +23,7 @@ neigh_modify	delay 0 every 1 check yes
 fix             2 all nwchem template.nw ${datafiles}.nw W
 fix_modify      2 energy yes
 
-dump            1 all custom 1 dump.${datafiles} id x y z vx vy vz fx fy fz
+dump            1 all custom 1 dump.${datafiles} id x y z fx fy fz
 
 timestep        0.001
 

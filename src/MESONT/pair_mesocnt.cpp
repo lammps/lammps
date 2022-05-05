@@ -20,6 +20,7 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
@@ -564,6 +565,19 @@ void PairMesoCNT::bond_neigh()
 
   comm->forward_comm(this);
 
+  // create version of atom->special with local ids and correct images
+  
+  int atom1, atom2;
+  int **special_local;
+  memory->create(special_local, nlocal+nghost, 2, "pair:special_local");
+  for (int i = 0; i < nlocal+nghost; i++) {
+    atom1 = atom->map(special[i][0]);
+    atom2 = atom->map(special[i][1]);
+    special_local[i][0] = domain->closest_image(i, atom1);
+    special_local[i][1] = domain->closest_image(i, atom2);
+    printf("atom1: %d, atom2: %d, closest1: %d, closest2: %d\n", atom1, atom2, special_local[i][0], special_local[i][1]);
+  }
+
   if (comm->me == 0) {
     printf("nlocal: %d, nghost: %d\n", nlocal, nghost);
     printf("tag: ");
@@ -573,9 +587,23 @@ void PairMesoCNT::bond_neigh()
       else
         printf("%d ", tag[j]);
     printf("\n");
+    printf("sametag: ");
+    for (int j = 0; j < nlocal+nghost; j++)
+      if (j == nlocal-1)
+        printf("%d | ", atom->sametag[j]);
+      else
+        printf("%d ", atom->sametag[j]);
+    printf("\n");
+    printf("x: ");
+    for (int j = 0; j < nlocal+nghost; j++) {
+      if (j == nlocal-1)
+        printf("%f | ", atom->x[j][0]);
+      else
+        printf("%f ", atom->x[j][0]);
+    }
+    printf("\n");
     printf("image: ");
     for (int j = 0; j < nlocal+nghost; j++) {
-      
       int i1 = (atom->image[j] & IMGMASK) - IMGMAX;
       int i2 = (atom->image[j] >> IMGBITS & IMGMASK) - IMGMAX;
       int i3 = (atom->image[j] >> IMG2BITS) - IMGMAX;
@@ -681,7 +709,7 @@ void PairMesoCNT::bond_neigh()
       // down the chain
 
       int curr_local = reduced_neighlist[i][j];
-      int next_local = atom->map(special[curr_local][0]);
+      int next_local = special_local[curr_local][0];
       int curr_reduced, next_reduced;
 
       printf("up: ");
@@ -698,13 +726,13 @@ void PairMesoCNT::bond_neigh()
 
         chainid[i][next_reduced] = numchainlist[i];
         chainpos[i][next_reduced] = chainpos[i][curr_reduced] - 1;
-        if (special[next_local][0] != tag[curr_local]) {
+        if (special_local[next_local][0] != curr_local) {
           curr_local = next_local;
-          next_local = atom->map(special[next_local][0]);
+          next_local = special_local[next_local][0];
         }
         else {
           curr_local = next_local;
-          next_local = atom->map(special[next_local][1]);
+          next_local = special_local[next_local][1];
         }
       }
       printf("\n");
@@ -712,7 +740,7 @@ void PairMesoCNT::bond_neigh()
       // up the chain
       
       curr_local = reduced_neighlist[i][j];
-      next_local = atom->map(special[curr_local][1]);
+      next_local = special_local[curr_local][1];
       
       printf("down: ");
       while (next_local != -1) {
@@ -728,13 +756,13 @@ void PairMesoCNT::bond_neigh()
         
         chainid[i][next_reduced] = numchainlist[i];
         chainpos[i][next_reduced] = chainpos[i][curr_reduced] + 1;
-        if (special[next_local][0] != tag[curr_local]) {
+        if (special_local[next_local][0] != curr_local) {
           curr_local = next_local;
-          next_local = atom->map(special[next_local][0]);
+          next_local = special_local[next_local][0];
         }
         else {
           curr_local = next_local;
-          next_local = atom->map(special[next_local][1]);
+          next_local = special_local[next_local][1];
         }
       }
 

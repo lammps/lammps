@@ -50,6 +50,7 @@
 
 namespace Test {
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
 TEST(openmp, partition_master) {
   using Mutex = Kokkos::Experimental::MasterLock<Kokkos::OpenMP>;
 
@@ -128,5 +129,6 @@ TEST(openmp, partition_master) {
   Kokkos::OpenMP::partition_master(master, 8, 8);
   ASSERT_EQ(errors, 0);
 }
+#endif
 
 }  // namespace Test

@@ -669,7 +669,7 @@ class alignas(16) RunnableTask
     // If team then only one thread calls destructor.
 
     const bool only_one_thread =
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA)
+#ifdef __CUDA_ARCH__  // FIXME_CUDA
         0 == threadIdx.x && 0 == threadIdx.y;
 #else
         0 == member->team_rank();

@@ -60,6 +60,7 @@ class CreateAtoms : public Command {
 
   void add_single();
   void add_random();
+  void add_mesh(const char *, double);
   void add_lattice();
   void loop_lattice(int);
   void add_molecule(double *, double * = nullptr);

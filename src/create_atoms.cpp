@@ -34,6 +34,7 @@
 #include "random_park.h"
 #include "region.h"
 #include "special.h"
+#include "text_file_reader.h"
 #include "variable.h"
 
 #include <cstring>
@@ -45,7 +46,7 @@ using namespace MathConst;
 #define EPSILON 1.0e-6
 #define LB_FACTOR 1.1
 
-enum { BOX, REGION, SINGLE, RANDOM };
+enum { BOX, REGION, SINGLE, RANDOM, MESH };
 enum { ATOM, MOLECULE };
 enum { COUNT, INSERT, INSERT_SELECTED };
 enum { NONE, RATIO, SUBSET };
@@ -61,9 +62,7 @@ void CreateAtoms::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all(FLERR, "Create_atoms command before simulation box is defined");
   if (modify->nfix_restart_peratom)
-    error->all(FLERR,
-               "Cannot create_atoms after "
-               "reading restart file with per-atom info");
+    error->all(FLERR, "Cannot create_atoms after reading restart file with per-atom info");
 
   // check for compatible lattice
 
@@ -79,9 +78,11 @@ void CreateAtoms::command(int narg, char **arg)
 
   // parse arguments
 
-  if (narg < 2) error->all(FLERR, "Illegal create_atoms command");
+  if (narg < 2) utils::missing_cmd_args(FLERR, "create_atoms", error);
   ntype = utils::inumeric(FLERR, arg[0], false, lmp);
 
+  const char *meshfile;
+  double radiusscale = 1.0;
   int iarg;
   if (strcmp(arg[1], "box") == 0) {
     style = BOX;
@@ -89,23 +90,22 @@ void CreateAtoms::command(int narg, char **arg)
     region = nullptr;
   } else if (strcmp(arg[1], "region") == 0) {
     style = REGION;
-    if (narg < 3) error->all(FLERR, "Illegal create_atoms command");
+    if (narg < 3) utils::missing_cmd_args(FLERR, "create_atoms region", error);
     region = domain->get_region_by_id(arg[2]);
     if (!region) error->all(FLERR, "Create_atoms region {} does not exist", arg[2]);
     region->init();
     region->prematch();
     iarg = 3;
-    ;
   } else if (strcmp(arg[1], "single") == 0) {
     style = SINGLE;
-    if (narg < 5) error->all(FLERR, "Illegal create_atoms command");
+    if (narg < 5) utils::missing_cmd_args(FLERR, "create_atoms single", error);
     xone[0] = utils::numeric(FLERR, arg[2], false, lmp);
     xone[1] = utils::numeric(FLERR, arg[3], false, lmp);
     xone[2] = utils::numeric(FLERR, arg[4], false, lmp);
     iarg = 5;
   } else if (strcmp(arg[1], "random") == 0) {
     style = RANDOM;
-    if (narg < 5) error->all(FLERR, "Illegal create_atoms command");
+    if (narg < 5) utils::missing_cmd_args(FLERR, "create_atoms random", error);
     nrandom = utils::inumeric(FLERR, arg[2], false, lmp);
     seed = utils::inumeric(FLERR, arg[3], false, lmp);
     if (strcmp(arg[4], "NULL") == 0)
@@ -117,8 +117,21 @@ void CreateAtoms::command(int narg, char **arg)
       region->prematch();
     }
     iarg = 5;
+  } else if (strcmp(arg[1], "mesh") == 0) {
+    style = MESH;
+    if (narg < 3) utils::missing_cmd_args(FLERR, "create_atoms mesh", error);
+    meshfile = arg[2];
+    if ((narg > 3) && (strcmp(arg[3], "radiusscale") == 0)) {
+      if (narg < 5) utils::missing_cmd_args(FLERR, "create_atoms mesh scale", error);
+      if (atom->radius_flag)
+        radiusscale = utils::numeric(FLERR, arg[4], false, lmp);
+      else
+        error->all(FLERR, "Must have atom attribute radius to set radiusscale factor");
+      iarg = 5;
+    } else
+      iarg = 3;
   } else
-    error->all(FLERR, "Illegal create_atoms command");
+    error->all(FLERR, "Unknown create_atoms command option {}", arg[1]);
 
   // process optional keywords
 
@@ -138,24 +151,23 @@ void CreateAtoms::command(int narg, char **arg)
 
   while (iarg < narg) {
     if (strcmp(arg[iarg], "basis") == 0) {
-      if (iarg + 3 > narg) error->all(FLERR, "Illegal create_atoms command");
+      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "create_atoms basis", error);
       int ibasis = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       int itype = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       if (ibasis <= 0 || ibasis > nbasis || itype <= 0 || itype > atom->ntypes)
-        error->all(FLERR, "Invalid basis setting in create_atoms command");
+        error->all(FLERR, "Out of range basis setting '{} {}' in create_atoms command", ibasis,
+                   itype);
       basistype[ibasis - 1] = itype;
       iarg += 3;
     } else if (strcmp(arg[iarg], "remap") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms remap", error);
       remapflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "mol") == 0) {
-      if (iarg + 3 > narg) error->all(FLERR, "Illegal create_atoms command");
+      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "create_atoms mol", error);
       int imol = atom->find_molecule(arg[iarg + 1]);
       if (imol == -1)
-        error->all(FLERR,
-                   "Molecule template ID for "
-                   "create_atoms does not exist");
+        error->all(FLERR, "Molecule template ID {} for create_atoms does not exist", arg[iarg + 1]);
       if ((atom->molecules[imol]->nset > 1) && (comm->me == 0))
         error->warning(FLERR, "Molecule template for create_atoms has multiple molecules");
       mode = MOLECULE;
@@ -163,22 +175,22 @@ void CreateAtoms::command(int narg, char **arg)
       molseed = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       iarg += 3;
     } else if (strcmp(arg[iarg], "units") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms units", error);
       if (strcmp(arg[iarg + 1], "box") == 0)
         scaleflag = 0;
       else if (strcmp(arg[iarg + 1], "lattice") == 0)
         scaleflag = 1;
       else
-        error->all(FLERR, "Illegal create_atoms command");
+        error->all(FLERR, "Unknown create_atoms units option {}", arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "var") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms var", error);
       delete[] vstr;
       vstr = utils::strdup(arg[iarg + 1]);
       varflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg], "set") == 0) {
-      if (iarg + 3 > narg) error->all(FLERR, "Illegal create_atoms command");
+      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "create_atoms set", error);
       if (strcmp(arg[iarg + 1], "x") == 0) {
         delete[] xstr;
         xstr = utils::strdup(arg[iarg + 2]);
@@ -189,10 +201,10 @@ void CreateAtoms::command(int narg, char **arg)
         delete[] zstr;
         zstr = utils::strdup(arg[iarg + 2]);
       } else
-        error->all(FLERR, "Illegal create_atoms command");
+        error->all(FLERR, "Unknown create_atoms set option {}", arg[iarg + 2]);
       iarg += 3;
     } else if (strcmp(arg[iarg], "rotate") == 0) {
-      if (iarg + 5 > narg) error->all(FLERR, "Illegal create_atoms command");
+      if (iarg + 5 > narg) utils::missing_cmd_args(FLERR, "create_atoms rotate", error);
       double thetaone;
       double axisone[3];
       thetaone = utils::numeric(FLERR, arg[iarg + 1], false, lmp) / 180.0 * MY_PI;
@@ -201,29 +213,30 @@ void CreateAtoms::command(int narg, char **arg)
       axisone[1] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       axisone[2] = utils::numeric(FLERR, arg[iarg + 4], false, lmp);
       if (axisone[0] == 0.0 && axisone[1] == 0.0 && axisone[2] == 0.0)
-        error->all(FLERR, "Illegal create_atoms command");
+        error->all(FLERR, "Illegal create_atoms rotate arguments");
       if (domain->dimension == 2 && (axisone[0] != 0.0 || axisone[1] != 0.0))
         error->all(FLERR, "Invalid create_atoms rotation vector for 2d model");
       MathExtra::norm3(axisone);
       MathExtra::axisangle_to_quat(axisone, thetaone, quatone);
       iarg += 5;
     } else if (strcmp(arg[iarg], "ratio") == 0) {
-      if (iarg + 3 > narg) error->all(FLERR, "Illegal create_atoms command");
+      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "create_atoms ratio", error);
       subsetflag = RATIO;
       subsetfrac = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       subsetseed = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       if (subsetfrac <= 0.0 || subsetfrac > 1.0 || subsetseed <= 0)
-        error->all(FLERR, "Illegal create_atoms command");
+        error->all(FLERR, "Illegal create_atoms ratio settings");
       iarg += 3;
     } else if (strcmp(arg[iarg], "subset") == 0) {
-      if (iarg + 3 > narg) error->all(FLERR, "Illegal create_atoms command");
+      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "create_atoms subset", error);
       subsetflag = SUBSET;
       nsubset = utils::bnumeric(FLERR, arg[iarg + 1], false, lmp);
       subsetseed = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
-      if (nsubset <= 0 || subsetseed <= 0) error->all(FLERR, "Illegal create_atoms command");
+      if (nsubset <= 0 || subsetseed <= 0)
+        error->all(FLERR, "Illegal create_atoms subset settings");
       iarg += 3;
     } else
-      error->all(FLERR, "Illegal create_atoms command");
+      error->all(FLERR, "Illegal create_atoms command option {}", arg[iarg]);
   }
 
   // error checks
@@ -232,8 +245,14 @@ void CreateAtoms::command(int narg, char **arg)
     error->all(FLERR, "Invalid atom type in create_atoms command");
 
   if (style == RANDOM) {
-    if (nrandom < 0) error->all(FLERR, "Illegal create_atoms command");
-    if (seed <= 0) error->all(FLERR, "Illegal create_atoms command");
+    if (nrandom < 0) error->all(FLERR, "Illegal create_atoms number of random atoms {}", nrandom);
+    if (seed <= 0) error->all(FLERR, "Illegal create_atoms random seed {}", seed);
+  }
+
+  if (style == MESH) {
+    if (mode == MOLECULE)
+      error->all(FLERR, "Create_atoms mesh is not compatible with the 'mol' option");
+    if (scaleflag) error->all(FLERR, "Create_atoms mesh must use 'units box' option");
   }
 
   // error check and further setup for mode = MOLECULE
@@ -397,6 +416,8 @@ void CreateAtoms::command(int narg, char **arg)
     add_single();
   else if (style == RANDOM)
     add_random();
+  else if (style == MESH)
+    add_mesh(meshfile, radiusscale);
   else
     add_lattice();
 
@@ -735,6 +756,106 @@ void CreateAtoms::add_random()
   // clean-up
 
   delete random;
+}
+
+/* ----------------------------------------------------------------------
+   add atoms at center of triangulated mesh
+------------------------------------------------------------------------- */
+
+void CreateAtoms::add_mesh(const char *filename, double radiusscale)
+{
+  double vert[3][3], center[3], coord[3];
+  tagint *mol = atom->molecule;
+  int nlocal_previous = atom->nlocal;
+  int ilocal = nlocal_previous;
+
+  // find next molecule ID, if available
+  tagint molid = 0;
+  if (atom->molecule_flag) {
+    tagint max = 0;
+    for (int i = 0; i < nlocal_previous; i++) max = MAX(max, mol[i]);
+    tagint maxmol;
+    MPI_Allreduce(&max, &maxmol, 1, MPI_LMP_TAGINT, MPI_MAX, world);
+    molid = maxmol + 1;
+  }
+
+  FILE *fp = fopen(filename, "r");
+  if (fp == nullptr) error->one(FLERR, "Cannot open file {}: {}", filename, utils::getsyserror());
+
+  TextFileReader reader(fp, "triangles");
+  try {
+    char *line = reader.next_line();
+    if (!line || !utils::strmatch(line, "^solid"))
+      throw TokenizerException("Invalid triangles file format", "");
+
+    if (comm->me == 0)
+      utils::logmesg(lmp, "  reading STL object '{}' from {}\n", utils::trim(line + 6), filename);
+
+    while ((line = reader.next_line())) {
+
+      // next line is facet line with 5 words
+      auto values = utils::split_words(line);
+      // otherwise stop reading
+      if ((values.size() != 5) || !utils::strmatch(values[0], "^facet")) break;
+
+      // ignore normal
+      coord[0] = utils::numeric(FLERR, values[2], false, lmp);
+      coord[1] = utils::numeric(FLERR, values[3], false, lmp);
+      coord[2] = utils::numeric(FLERR, values[4], false, lmp);
+
+      line = reader.next_line(2);
+      if (!line || !utils::strmatch(line, "^ *outer *loop"))
+        throw TokenizerException("Error reading outer loop", "");
+
+      for (int k = 0; k < 3; ++k) {
+        line = reader.next_line(4);
+        values = utils::split_words(line);
+        if ((values.size() != 4) || !utils::strmatch(values[0], "^vertex"))
+          throw TokenizerException("Error reading vertex", "");
+
+        vert[k][0] = utils::numeric(FLERR, values[1], false, lmp);
+        vert[k][1] = utils::numeric(FLERR, values[1], false, lmp);
+        vert[k][2] = utils::numeric(FLERR, values[1], false, lmp);
+      }
+
+      line = reader.next_line(1);
+      if (!line || !utils::strmatch(line, "^ *endloop"))
+        throw TokenizerException("Error reading endloop", "");
+      line = reader.next_line(1);
+      if (!line || !utils::strmatch(line, "^ *endfacet"))
+        throw TokenizerException("Error reading endfacet", "");
+
+      // now we have a normal and three vertices ... proceed with adding triangle
+
+      MathExtra::add3(vert[0], vert[1], center);
+      MathExtra::scaleadd3(1.0 / 3.0, center, vert[2], center);
+
+      MathExtra::sub3(center, vert[0], coord);
+      const double r1 = MathExtra::len3(coord);
+      MathExtra::sub3(center, vert[1], coord);
+      const double r2 = MathExtra::len3(coord);
+      MathExtra::sub3(center, vert[2], coord);
+      const double r3 = MathExtra::len3(coord);
+      const double r = MAX(MAX(r1, r2), r3) * radiusscale;
+
+      /*
+       * if atom/molecule is in my subbox, create it
+       * ... use x to hold triangle center
+       * ... radius is the mmaximal distance from triangle center to all vertices
+       */
+
+      if ((center[0] >= sublo[0]) && (center[0] < subhi[0]) && (center[1] >= sublo[1]) &&
+          (center[1] < subhi[1]) && (center[2] >= sublo[2]) && (center[2] < subhi[2])) {
+
+        atom->avec->create_atom(ntype, center);
+        if (atom->radius_flag) atom->radius[ilocal] = r * radiusscale;
+        if (atom->molecule_flag) atom->molecule[ilocal] = molid;
+        ilocal++;
+      }
+    }
+  } catch (std::exception &e) {
+    error->all(FLERR, "Error reading triangles from file {}: {}", filename, e.what());
+  }
 }
 
 /* ----------------------------------------------------------------------

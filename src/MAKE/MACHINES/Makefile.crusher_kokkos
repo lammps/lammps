@@ -9,7 +9,7 @@ SHELL = /bin/sh
 KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
 
 CC =		hipcc
-CCFLAGS =	-g -O3 -munsafe-fp-atomics -DNDEBUG
+CCFLAGS =	-g -O3 -munsafe-fp-atomics -DNDEBUG -DKOKKOS_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 

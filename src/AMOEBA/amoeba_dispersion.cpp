@@ -351,12 +351,12 @@ void PairAmoeba::dispersion_kspace()
           e = -(term1 / denom) * struc2;
           edisp += e;
           vterm = 3.0 * (fac1*erfcterm*h + fac3*expterm) * struc2/denom;
-          virdisp[0] += h1*h1*vterm - e;
-          virdisp[1] += h2*h2*vterm - e;
-          virdisp[2] += h3*h3*vterm - e;
-          virdisp[3] += h1*h2*vterm;
-          virdisp[4] += h1*h3*vterm;
-          virdisp[5] += h2*h3*vterm;
+          virdisp[0] -= h1*h1*vterm - e;
+          virdisp[1] -= h2*h2*vterm - e;
+          virdisp[2] -= h3*h3*vterm - e;
+          virdisp[3] -= h1*h2*vterm;
+          virdisp[4] -= h1*h3*vterm;
+          virdisp[5] -= h2*h3*vterm;
         } else term1 = 0.0;
         // NOTE: pre-calc this division only once
         gridfft[n] *= -(term1/denom);

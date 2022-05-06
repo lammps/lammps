@@ -11,7 +11,7 @@ Syntax
    create_atoms type style args keyword values ...
 
 * type = atom type (1-Ntypes) of atoms to create (offset for molecule creation)
-* style = *box* or *region* or *single* or *random*
+* style = *box* or *region* or *single* or *mesh* or *random*
 
   .. parsed-literal::
 
@@ -20,6 +20,8 @@ Syntax
          region-ID = particles will only be created if contained in the region
        *single* args = x y z
          x,y,z = coordinates of a single particle (distance units)
+       *mesh* args = STL-file
+         STL-file = file with triangle mesh in STL format
        *random* args = N seed region-ID
          N = number of particles to create
          seed = random # seed (positive integer)
@@ -50,6 +52,8 @@ Syntax
        *rotate* values = theta Rx Ry Rz
          theta = rotation angle for single molecule (degrees)
          Rx,Ry,Rz = rotation vector for single molecule
+       *radiusscale* value = factor
+         factor = scale factor for setting atom radius
        *overlap* value = Doverlap
          Doverlap = only insert if at least this distance from all existing atoms
        *maxtry* value = Ntry
@@ -69,21 +73,22 @@ Examples
    create_atoms 3 single 0 0 5
    create_atoms 1 box var v set x xpos set y ypos
    create_atoms 2 random 50 12345 NULL overlap 2.0 maxtry 50
+   create_atoms 1 mesh funnel.stl units box radiusscale 1.5
 
 Description
 """""""""""
 
 This command creates atoms (or molecules) within the simulation box,
-either on a lattice, or a single atom (or molecule), or a random
-collection of atoms (or molecules).  It is an alternative to reading
-in atom coordinates explicitly via a :doc:`read_data <read_data>` or
-:doc:`read_restart <read_restart>` command.  A simulation box must
-already exist, which is typically created via the :doc:`create_box
-<create_box>` command.  Before using this command, a lattice must also
-be defined using the :doc:`lattice <lattice>` command, unless you
-specify the *single* style with units = box or the *random* style.
-For the remainder of this doc page, a created atom or molecule is
-referred to as a "particle".
+either on a lattice, or a single atom (or molecule), or from a triangle
+mesh, or a random collection of atoms (or molecules).  It is an
+alternative to reading in atom coordinates explicitly via a
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
+command.  A simulation box must already exist, which is typically
+created via the :doc:`create_box <create_box>` command.  Before using
+this command, a lattice must also be defined using the :doc:`lattice
+<lattice>` command, unless you specify the *single* or *mesh* style with
+units = box or the *random* style.  For the remainder of this doc page,
+a created atom or molecule is referred to as a "particle".
 
 If created particles are individual atoms, they are assigned the
 specified atom *type*, though this can be altered via the *basis*
@@ -118,6 +123,13 @@ For the *single* style, a single particle is added to the system at
 the specified coordinates.  This can be useful for debugging purposes
 or to create a tiny system with a handful of particles at specified
 positions.
+
+For the *mesh* style, a file with a triangle mesh in `STL format
+<https://en.wikipedia.org/wiki/STL_(file_format)#ASCII_STL>`_ is read
+and a particle is placed into the center of each triangle.  If the atom
+style in use allows to set a per-atom radius this radius is set to the
+largest distance of any of the triangle vertices from its center.  The
+radius can be adjusted with the *radiussscale* option.
 
 For the *random* style, *N* particles are added to the system at
 randomly generated coordinates, which can be useful for generating an
@@ -316,6 +328,12 @@ the atoms around the rotation axis is consistent with the right-hand
 rule: if your right-hand's thumb points along *R*, then your fingers
 wrap around the axis in the direction of rotation.
 
+The *radiusscale* keyword only applies to the *mesh* style and allows to
+adjust the radius of created particles, provided this is supported by
+the atom style.  Its value is a scaling factor (default: 1.0) that is
+applied to the radius inferred from the size of the individual triangles
+in the triangle mesh that the particle corresponds to.
+
 The *overlap* keyword only applies to the *random* style.  It prevents
 newly created particles from being created closer than the specified
 *Doverlap* distance from any other particle.  When the particles being
@@ -424,9 +442,11 @@ values specified in the file read by the :doc:`molecule <molecule>`
 command.  E.g. the file typically defines bonds (angles,etc) between
 atoms in the molecule, and can optionally define charges on each atom.
 
-Note that the *sphere* atom style sets the default particle diameter
-to 1.0 as well as the density.  This means the mass for the particle
-is not 1.0, but is PI/6 \* diameter\^3 = 0.5236.
+Note that the *sphere* atom style sets the default particle diameter to
+1.0 as well as the density.  This means the mass for the particle is not
+1.0, but is PI/6 \* diameter\^3 = 0.5236.  When using the *mesh* style,
+the particle diameter is adjusted from the size of the individual
+triangles in the triangle mesh.
 
 Note that the *ellipsoid* atom style sets the default particle shape
 to (0.0 0.0 0.0) and the density to 1.0 which means it is a point
@@ -460,5 +480,6 @@ Default
 
 The default for the *basis* keyword is that all created atoms are
 assigned the argument *type* as their atom type (when single atoms are
-being created).  The other defaults are *remap* = no, *rotate* =
-random, *overlap* not checked, *maxtry* = 10, and *units* = lattice.
+being created).  The other defaults are *remap* = no, *rotate* = random,
+*radiussscale* = 1.0, *overlap* not checked, *maxtry* = 10, and *units*
+= lattice.

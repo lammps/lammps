@@ -419,35 +419,46 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
 void DeleteAtoms::delete_partial(int narg, char **arg)
 {
-  if (narg < 5) utils::missing_cmd_args(FLERR, "delete_atoms portion", error);
+  if (narg < 7) utils::missing_cmd_args(FLERR, "delete_atoms partial", error);
 
-  int partial_style, exactflag;
+  int partial_style, exactflag, errorflag;
   bigint ncount;
   double fraction;
 
   if (strcmp(arg[1],"fraction") == 0) {
     partial_style = FRACTION;
     fraction = utils::numeric(FLERR, arg[2], false, lmp);
-    exactflag = 0;
-  } else if (strcmp(arg[1],"fraction/exact") == 0) {
-    partial_style = FRACTION;
-    fraction = utils::numeric(FLERR, arg[2], false, lmp);
-    exactflag = 1;
+    exactflag = utils::inumeric(FLERR, arg[3], false, lmp);
+    if (fraction < 0.0 || fraction > 1.0)
+      error->all(FLERR,"Delete atoms partial pvalue setting is invalid");
+    if (exactflag != 0 && exactflag != 1)
+      error->all(FLERR,"Delete atoms partial pflag setting is invalid");
+        
   } else if (strcmp(arg[1],"count") == 0) {
     partial_style = COUNT;
     ncount = utils::bnumeric(FLERR, arg[2], false, lmp);
+    errorflag = utils::inumeric(FLERR, arg[3], false, lmp);
+    if (ncount < 0)
+      error->all(FLERR,"Delete atoms partial pvalue setting is invalid");
+    if (errorflag != 0 && errorflag != 1)
+      error->all(FLERR,"Delete atoms partial pflag setting is invalid");
     exactflag = 1;
+
+  } else {
+    error->all(FLERR,"Delete atoms partial pstyle setting is invalid");
   }
 
-  int igroup = group->find(arg[3]);
-  if (igroup == -1) error->all(FLERR, "Could not find delete_atoms porosity group ID {}", arg[3]);
+  int igroup = group->find(arg[4]);
+  if (igroup == -1) 
+    error->all(FLERR, "Could not find delete_atoms partial group ID {}", arg[4]);
 
-  auto region = domain->get_region_by_id(arg[4]);
-  if (!region && (strcmp(arg[4], "NULL") != 0))
-    error->all(FLERR, "Could not find delete_atoms porosity region ID {}", arg[4]);
+  auto region = domain->get_region_by_id(arg[5]);
+  if (!region && (strcmp(arg[5], "NULL") != 0))
+    error->all(FLERR, "Could not find delete_atoms partial region ID {}", arg[5]);
 
-  int seed = utils::inumeric(FLERR, arg[5], false, lmp);
-  options(narg - 5, &arg[5]);
+  int seed = utils::inumeric(FLERR, arg[6], false, lmp);
+
+  options(narg - 7, &arg[7]);
 
   auto ranmars = new RanMars(lmp, seed + comm->me);
 
@@ -480,7 +491,7 @@ void DeleteAtoms::delete_partial(int narg, char **arg)
     double **x = atom->x;
     int *mask = atom->mask;
 
-    // count = number of atoms I own in both group and region
+    // count = number of atoms this proc owns in both group and region
 
     int count = 0;
     for (int i = 0; i < nlocal; i++) {
@@ -498,8 +509,12 @@ void DeleteAtoms::delete_partial(int narg, char **arg)
     if (partial_style == FRACTION) {
       ncount = static_cast<bigint> (fraction * allcount);
     } else if (partial_style == COUNT) {
-      if (ncount > allcount)
-        error->all(FLERR,"Delete_atoms count exceeds eligible atoms");
+      if (ncount > allcount) {
+        if (errorflag == 1)
+          error->all(FLERR,"Delete_atoms count exceeds eligible atoms");
+        else if (comm->me == 0)
+          error->warning(FLERR,"Delete_atoms count exceeds eligible atoms");
+      }
     }
 
     // make selection

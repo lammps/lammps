@@ -10,7 +10,7 @@ Syntax
 
    delete_atoms style args keyword value ...
 
-* style = *group* or *region* or *overlap* or *porosity* or *variable*
+* style = *group* or *region* or *overlap* or *partial* or *variable*
 
   .. parsed-literal::
 
@@ -20,11 +20,17 @@ Syntax
          cutoff = delete one atom from pairs of atoms within the cutoff (distance units)
          group1-ID = one atom in pair must be in this group
          group2-ID = other atom in pair must be in this group
-       *porosity* args = group-ID region-ID fraction seed
+       *partial* args = pstyle pvalue pflag group-ID region-ID seed
+         pstyle = *fraction* or *count*
+           for *fraction*:
+             pvalue = fraction (0.0 to 1.0) of eligible atoms to delete
+             pflag = 0 for approximate deletion, 1 for exact deletion
+           for *count*:
+             pvalue = number of eligible atoms to delete
+             pflag = 0 for warning if count > eligible atoms, 1 for error
          group-ID = group within which to perform deletions
          region-ID = region within which to perform deletions
                      or NULL to only impose the group criterion
-         fraction = delete this fraction of atoms
          seed = random number seed (positive integer)
        *variable* args = variable-name
 
@@ -46,16 +52,17 @@ Examples
    delete_atoms region sphere compress no
    delete_atoms overlap 0.3 all all
    delete_atoms overlap 0.5 solvent colloid
-   delete_atoms porosity all cube 0.1 482793 bond yes
-   delete_atoms porosity polymer cube 0.1 482793 bond yes
+   delete_atoms partial fraction 0.1 1 all cube 482793 bond yes
+   delete_atoms partial fraction 0.3 0 polymer NULL 482793 bond yes
+   delete_atoms partial count 500 0 ions NULL 482793
    detele_atoms variable checkers
 
 Description
 """""""""""
 
-Delete the specified atoms.  This command can be used to carve out
-voids from a block of material or to delete created atoms that are too
-close to each other (e.g. at a grain boundary).
+Delete the specified atoms.  This command can be used, for example, to
+carve out voids from a block of material or to delete created atoms
+that are too close to each other (e.g. at a grain boundary).
 
 For style *group*, all atoms belonging to the group are deleted.
 
@@ -81,17 +88,32 @@ have occurred that no atom pairs within the cutoff will remain
 minimum number of atoms will be deleted, or that the same atoms will
 be deleted when running on different numbers of processors.
 
-For style *porosity* a specified *fraction* of atoms are deleted which
-are both in the specified group and within the specified region.  The
-region-ID can be specified as NULL to only impose the group criterion.
-Likewise, specifying the group-ID as *all* will only impose the region
-criterion.
+For style *partial* a subset of eligible atoms are deleted.  Which
+atoms to delete are chosen randomly using the specified random number
+*seed*.  In all cases, which atoms are deleted may vary when running
+on different numbers of processors.
 
-For example, if fraction is 0.1, then 10% of the eligible atoms will
-be deleted.  The atoms to delete are chosen randomly.  There is no
-guarantee that the exact fraction of atoms will be deleted, or that
-the same atoms will be deleted when running on different numbers of
-processors.
+For *pstyle* = *fraction*, the specified *pvalue* fraction (0.0 to
+1.0) of eligible atoms are deleted.  If *pflag* is set to 0, then the
+number deleted will be approximate.  If *pflag* is set to 1, then the
+number deleted will be exactly the requested fraction, but for very
+large systems the selection of deleted atoms may take longer to
+calculate.
+
+For *pstyle* = *count*, the specified integer *pvalue* number of
+eligible atoms are deleted.  If *pflag* is set to 0, then if the
+requested number is larger then the number of eligible atoms, a
+warning is issued.  If *pflag* is set to one, an error is triggered
+and LAMMPS will exit.  In both cases exactly the number of requested
+atoms will be deleted (unless larger than eligible count).  For very
+large systems the selection of deleted atoms will require the same
+time as *pstyle* = *fraction* with *pflag* = 1.
+
+Which atoms are eligible for deletion for style *partial* is
+determined by the specified *group-ID* and *region-ID*.  To be
+eligible, an atom must be in both the specified group and region.  If
+*group-ID* = all, there is effectively no group criterion.  If
+*region-ID* is specified as NULL, no region criterion is imposed.
 
 For style *variable*, all atoms for which the atom-style variable with
 the given name evaluates to non-zero will be deleted. Additional atoms
@@ -99,6 +121,10 @@ can be deleted if they are in a molecule for which one or more atoms
 were deleted within the region; see the *mol* keyword discussion below.
 This option allows complex selections of atoms not covered by the
 other options listed above.
+
+----------
+
+Here is the meaning of the optional keywords.
 
 If the *compress* keyword is set to *yes*, then after atoms are
 deleted, then atom IDs are re-assigned so that they run from 1 to the

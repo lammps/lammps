@@ -99,6 +99,10 @@ It is possible to use both the integrated CMake support of the Visual
 Studio IDE or use an external CMake installation (e.g. downloaded from
 cmake.org) to create build files and compile LAMMPS from the command line.
 
+Compilation via command line and unit tests are checked automatically
+for the LAMMPS development branch through
+`GitHub Actions <https://github.com/lammps/lammps/actions/workflows/compile-msvc.yml>`_.
+
 .. note::
 
    Versions of Visual Studio before version 17.1 may scan the entire
@@ -110,6 +114,10 @@ Please note, that for either approach CMake will create a so-called
 :ref:`"multi-configuration" build environment <cmake_multiconfig>`, and
 the command lines for building and testing LAMMPS must be adjusted
 accordingly.
+
+The LAMMPS cmake folder contains a ``CMakeSettings.json`` file with
+build configurations for MSVC compilers and the MS provided Clang
+compiler package in Debug and Release mode.
 
 To support running in parallel you can compile with OpenMP enabled using
 the OPENMP package or install Microsoft MPI (including the SDK) and compile
@@ -145,14 +153,3 @@ LAMMPS developers.  We instead rely on the feedback of the users
 of these pre-compiled LAMMPS packages for Windows.  We will try to resolve
 issues to the best of our abilities if we become aware of them. However
 this is subject to time constraints and focus on HPC platforms.
-
-.. _native:
-
-Native Visual C++ support
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Support for the Visual C++ compilers is currently not available. The
-CMake build system is capable of creating suitable a Visual Studio
-style build environment, but the LAMMPS source code itself is not
-ported to fully support Visual C++. Volunteers to take on this task
-are welcome.

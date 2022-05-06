@@ -163,7 +163,7 @@ void ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
   char node_name[MPI_MAX_PROCESSOR_NAME];
   MPI_Get_processor_name(node_name,&name_length);
   node_name[name_length] = '\0';
-  char *node_names = new char[MPI_MAX_PROCESSOR_NAME*nprocs];
+  auto node_names = new char[MPI_MAX_PROCESSOR_NAME*nprocs];
   MPI_Allgather(node_name,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,node_names,
                 MPI_MAX_PROCESSOR_NAME,MPI_CHAR,world);
   std::string node_string = std::string(node_name);

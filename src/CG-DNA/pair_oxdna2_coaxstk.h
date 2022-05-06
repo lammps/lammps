@@ -55,7 +55,7 @@ class PairOxdna2Coaxstk : public Pair {
   double **a_cxst6, **theta_cxst6_0, **dtheta_cxst6_ast;
   double **b_cxst6, **dtheta_cxst6_c;
   double **AA_cxst1, **BB_cxst1;
-  double **nx_xtrct, **nz_xtrct; // per-atom arrays for local unit vectors
+  double **nx_xtrct, **nz_xtrct;    // per-atom arrays for local unit vectors
 
   virtual void allocate();
 };
@@ -64,17 +64,3 @@ class PairOxdna2Coaxstk : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -22,8 +21,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "my_pool_chunk.h"
-
-#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -54,27 +51,29 @@ AtomVecBody::AtomVecBody(LAMMPS *lmp) : AtomVec(lmp)
 
   bptr = nullptr;
 
-  if (sizeof(double) == sizeof(int)) intdoubleratio = 1;
-  else if (sizeof(double) == 2*sizeof(int)) intdoubleratio = 2;
-  else error->all(FLERR,"Internal error in atom_style body");
+  if (sizeof(double) == sizeof(int))
+    intdoubleratio = 1;
+  else if (sizeof(double) == 2 * sizeof(int))
+    intdoubleratio = 2;
+  else
+    error->all(FLERR, "Internal error in atom_style body");
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *) "radius rmass angmom torque body";
-  fields_copy = (char *) "radius rmass angmom";
-  fields_comm = (char *) "";
-  fields_comm_vel = (char *) "angmom";
-  fields_reverse = (char *) "torque";
-  fields_border = (char *) "radius rmass";
-  fields_border_vel = (char *) "radius rmass angmom";
-  fields_exchange = (char *) "radius rmass angmom";
-  fields_restart = (char *) "radius rmass angmom";
-  fields_create = (char *) "radius rmass angmom body";
-  fields_data_atom = (char *) "id type body rmass x";
-  fields_data_vel = (char *) "id v angmom";
+  fields_grow = {"radius", "rmass", "angmom", "torque", "body"};
+  fields_copy = {"radius", "rmass", "angmom"};
+  fields_comm_vel = {"angmom"};
+  fields_reverse = {"torque"};
+  fields_border = {"radius", "rmass"};
+  fields_border_vel = {"radius", "rmass", "angmom"};
+  fields_exchange = {"radius", "rmass", "angmom"};
+  fields_restart = {"radius", "rmass", "angmom"};
+  fields_create = {"radius", "rmass", "angmom", "body"};
+  fields_data_atom = {"id", "type", "body", "rmass", "x"};
+  fields_data_vel = {"id", "v", "angmom"};
 }
 
 /* ---------------------------------------------------------------------- */
@@ -101,23 +100,25 @@ void AtomVecBody::process_args(int narg, char **arg)
 {
   // suppress unused parameter warning dependent on style_body.h
 
-  (void)(arg);
+  (void) (arg);
 
-  if (narg < 1) error->all(FLERR,"Invalid atom_style body command");
+  if (narg < 1) error->all(FLERR, "Invalid atom_style body command");
 
-  if (false) {
+  if (false) {    // NOLINT
     bptr = nullptr;
 
 #define BODY_CLASS
-#define BodyStyle(key,Class) \
-  } else if (strcmp(arg[0],#key) == 0) { \
-    bptr = new Class(lmp,narg,arg);
-#include "style_body.h"  // IWYU pragma: keep
+#define BodyStyle(key, Class)         \
+  }                                   \
+  else if (strcmp(arg[0], #key) == 0) \
+  {                                   \
+    bptr = new Class(lmp, narg, arg);
+#include "style_body.h"    // IWYU pragma: keep
 #undef BodyStyle
 #undef BODY_CLASS
 
-  } else error->all(FLERR,utils::
-                  check_packages_for_style("body",arg[0],lmp).c_str());
+  } else
+    error->all(FLERR, utils::check_packages_for_style("body", arg[0], lmp).c_str());
 
   bptr->avec = this;
   icp = bptr->icp;
@@ -153,11 +154,9 @@ void AtomVecBody::grow_pointers()
 void AtomVecBody::grow_bonus()
 {
   nmax_bonus = grow_nmax_bonus(nmax_bonus);
-  if (nmax_bonus < 0)
-    error->one(FLERR,"Per-processor system is too big");
+  if (nmax_bonus < 0) error->one(FLERR, "Per-processor system is too big");
 
-  bonus = (Bonus *) memory->srealloc(bonus,nmax_bonus*sizeof(Bonus),
-                                     "atom:bonus");
+  bonus = (Bonus *) memory->srealloc(bonus, nmax_bonus * sizeof(Bonus), "atom:bonus");
 }
 
 /* ----------------------------------------------------------------------
@@ -173,7 +172,7 @@ void AtomVecBody::copy_bonus(int i, int j, int delflag)
     int k = body[j];
     icp->put(bonus[k].iindex);
     dcp->put(bonus[k].dindex);
-    copy_bonus_all(nlocal_bonus-1,k);
+    copy_bonus_all(nlocal_bonus - 1, k);
     nlocal_bonus--;
   }
 
@@ -192,7 +191,7 @@ void AtomVecBody::copy_bonus(int i, int j, int delflag)
 void AtomVecBody::copy_bonus_all(int i, int j)
 {
   body[bonus[i].ilocal] = j;
-  memcpy(&bonus[j],&bonus[i],sizeof(Bonus));
+  memcpy(&bonus[j], &bonus[i], sizeof(Bonus));
 }
 
 /* ----------------------------------------------------------------------
@@ -218,7 +217,7 @@ void AtomVecBody::clear_bonus()
 
 int AtomVecBody::pack_comm_bonus(int n, int *list, double *buf)
 {
-  int i,j,m;
+  int i, j, m;
   double *quat;
 
   m = 0;
@@ -230,7 +229,7 @@ int AtomVecBody::pack_comm_bonus(int n, int *list, double *buf)
       buf[m++] = quat[1];
       buf[m++] = quat[2];
       buf[m++] = quat[3];
-      m += bptr->pack_comm_body(&bonus[body[j]],&buf[m]);
+      m += bptr->pack_comm_body(&bonus[body[j]], &buf[m]);
     }
   }
 
@@ -241,7 +240,7 @@ int AtomVecBody::pack_comm_bonus(int n, int *list, double *buf)
 
 void AtomVecBody::unpack_comm_bonus(int n, int first, double *buf)
 {
-  int i,m,last;
+  int i, m, last;
   double *quat;
 
   m = 0;
@@ -253,7 +252,7 @@ void AtomVecBody::unpack_comm_bonus(int n, int first, double *buf)
       quat[1] = buf[m++];
       quat[2] = buf[m++];
       quat[3] = buf[m++];
-      m += bptr->unpack_comm_body(&bonus[body[i]],&buf[m]);
+      m += bptr->unpack_comm_body(&bonus[body[i]], &buf[m]);
     }
   }
 }
@@ -262,13 +261,14 @@ void AtomVecBody::unpack_comm_bonus(int n, int first, double *buf)
 
 int AtomVecBody::pack_border_bonus(int n, int *list, double *buf)
 {
-  int i,j,m;
-  double *quat,*inertia;
+  int i, j, m;
+  double *quat, *inertia;
 
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
-    if (body[j] < 0) buf[m++] = ubuf(0).d;
+    if (body[j] < 0)
+      buf[m++] = ubuf(0).d;
     else {
       buf[m++] = ubuf(1).d;
       quat = bonus[body[j]].quat;
@@ -282,7 +282,7 @@ int AtomVecBody::pack_border_bonus(int n, int *list, double *buf)
       buf[m++] = inertia[2];
       buf[m++] = ubuf(bonus[body[j]].ninteger).d;
       buf[m++] = ubuf(bonus[body[j]].ndouble).d;
-      m += bptr->pack_border_body(&bonus[body[j]],&buf[m]);
+      m += bptr->pack_border_body(&bonus[body[j]], &buf[m]);
     }
   }
 
@@ -293,14 +293,15 @@ int AtomVecBody::pack_border_bonus(int n, int *list, double *buf)
 
 int AtomVecBody::unpack_border_bonus(int n, int first, double *buf)
 {
-  int i,j,m,last;
-  double *quat,*inertia;
+  int i, j, m, last;
+  double *quat, *inertia;
 
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
     body[i] = (int) ubuf(buf[m++]).i;
-    if (body[i] == 0) body[i] = -1;
+    if (body[i] == 0)
+      body[i] = -1;
     else {
       j = nlocal_bonus + nghost_bonus;
       if (j == nmax_bonus) grow_bonus();
@@ -316,9 +317,9 @@ int AtomVecBody::unpack_border_bonus(int n, int first, double *buf)
       bonus[j].ninteger = (int) ubuf(buf[m++]).i;
       bonus[j].ndouble = (int) ubuf(buf[m++]).i;
       // corresponding put() calls are in clear_bonus()
-      bonus[j].ivalue = icp->get(bonus[j].ninteger,bonus[j].iindex);
-      bonus[j].dvalue = dcp->get(bonus[j].ndouble,bonus[j].dindex);
-      m += bptr->unpack_border_body(&bonus[j],&buf[m]);
+      bonus[j].ivalue = icp->get(bonus[j].ninteger, bonus[j].iindex);
+      bonus[j].dvalue = dcp->get(bonus[j].ndouble, bonus[j].dindex);
+      m += bptr->unpack_border_body(&bonus[j], &buf[m]);
       bonus[j].ilocal = i;
       body[i] = j;
       nghost_bonus++;
@@ -337,7 +338,8 @@ int AtomVecBody::pack_exchange_bonus(int i, double *buf)
 {
   int m = 0;
 
-  if (body[i] < 0) buf[m++] = ubuf(0).d;
+  if (body[i] < 0)
+    buf[m++] = ubuf(0).d;
   else {
     buf[m++] = ubuf(1).d;
     int j = body[i];
@@ -352,10 +354,12 @@ int AtomVecBody::pack_exchange_bonus(int i, double *buf)
     buf[m++] = inertia[2];
     buf[m++] = ubuf(bonus[j].ninteger).d;
     buf[m++] = ubuf(bonus[j].ndouble).d;
-    memcpy(&buf[m],bonus[j].ivalue,bonus[j].ninteger*sizeof(int));
-    if (intdoubleratio == 1) m += bonus[j].ninteger;
-    else m += (bonus[j].ninteger+1)/2;
-    memcpy(&buf[m],bonus[j].dvalue,bonus[j].ndouble*sizeof(double));
+    memcpy(&buf[m], bonus[j].ivalue, bonus[j].ninteger * sizeof(int));
+    if (intdoubleratio == 1)
+      m += bonus[j].ninteger;
+    else
+      m += (bonus[j].ninteger + 1) / 2;
+    memcpy(&buf[m], bonus[j].dvalue, bonus[j].ndouble * sizeof(double));
     m += bonus[j].ndouble;
   }
 
@@ -369,7 +373,8 @@ int AtomVecBody::unpack_exchange_bonus(int ilocal, double *buf)
   int m = 0;
 
   body[ilocal] = (int) ubuf(buf[m++]).i;
-  if (body[ilocal] == 0) body[ilocal] = -1;
+  if (body[ilocal] == 0)
+    body[ilocal] = -1;
   else {
     if (nlocal_bonus == nmax_bonus) grow_bonus();
     double *quat = bonus[nlocal_bonus].quat;
@@ -384,16 +389,14 @@ int AtomVecBody::unpack_exchange_bonus(int ilocal, double *buf)
     bonus[nlocal_bonus].ninteger = (int) ubuf(buf[m++]).i;
     bonus[nlocal_bonus].ndouble = (int) ubuf(buf[m++]).i;
     // corresponding put() calls are in copy()
-    bonus[nlocal_bonus].ivalue = icp->get(bonus[nlocal_bonus].ninteger,
-                                          bonus[nlocal_bonus].iindex);
-    bonus[nlocal_bonus].dvalue = dcp->get(bonus[nlocal_bonus].ndouble,
-                                          bonus[nlocal_bonus].dindex);
-    memcpy(bonus[nlocal_bonus].ivalue,&buf[m],
-           bonus[nlocal_bonus].ninteger*sizeof(int));
-    if (intdoubleratio == 1) m += bonus[nlocal_bonus].ninteger;
-    else m += (bonus[nlocal_bonus].ninteger+1)/2;
-    memcpy(bonus[nlocal_bonus].dvalue,&buf[m],
-           bonus[nlocal_bonus].ndouble*sizeof(double));
+    bonus[nlocal_bonus].ivalue = icp->get(bonus[nlocal_bonus].ninteger, bonus[nlocal_bonus].iindex);
+    bonus[nlocal_bonus].dvalue = dcp->get(bonus[nlocal_bonus].ndouble, bonus[nlocal_bonus].dindex);
+    memcpy(bonus[nlocal_bonus].ivalue, &buf[m], bonus[nlocal_bonus].ninteger * sizeof(int));
+    if (intdoubleratio == 1)
+      m += bonus[nlocal_bonus].ninteger;
+    else
+      m += (bonus[nlocal_bonus].ninteger + 1) / 2;
+    memcpy(bonus[nlocal_bonus].dvalue, &buf[m], bonus[nlocal_bonus].ndouble * sizeof(double));
     m += bonus[nlocal_bonus].ndouble;
 
     bonus[nlocal_bonus].ilocal = ilocal;
@@ -416,10 +419,13 @@ int AtomVecBody::size_restart_bonus()
   for (i = 0; i < nlocal; i++) {
     if (body[i] >= 0) {
       n += size_restart_bonus_one;
-      if (intdoubleratio == 1) n += bonus[body[i]].ninteger;
-      else n += (bonus[body[i]].ninteger+1)/2;
+      if (intdoubleratio == 1)
+        n += bonus[body[i]].ninteger;
+      else
+        n += (bonus[body[i]].ninteger + 1) / 2;
       n += bonus[body[i]].ndouble;
-    } else n++;
+    } else
+      n++;
   }
 
   return n;
@@ -435,7 +441,8 @@ int AtomVecBody::pack_restart_bonus(int i, double *buf)
 {
   int m = 0;
 
-  if (body[i] < 0) buf[m++] = ubuf(0).d;
+  if (body[i] < 0)
+    buf[m++] = ubuf(0).d;
   else {
     buf[m++] = ubuf(1).d;
     int j = body[i];
@@ -450,10 +457,12 @@ int AtomVecBody::pack_restart_bonus(int i, double *buf)
     buf[m++] = inertia[2];
     buf[m++] = ubuf(bonus[j].ninteger).d;
     buf[m++] = ubuf(bonus[j].ndouble).d;
-    memcpy(&buf[m],bonus[j].ivalue,bonus[j].ninteger*sizeof(int));
-    if (intdoubleratio == 1) m += bonus[j].ninteger;
-    else m += (bonus[j].ninteger+1)/2;
-    memcpy(&buf[m],bonus[j].dvalue,bonus[j].ndouble*sizeof(double));
+    memcpy(&buf[m], bonus[j].ivalue, bonus[j].ninteger * sizeof(int));
+    if (intdoubleratio == 1)
+      m += bonus[j].ninteger;
+    else
+      m += (bonus[j].ninteger + 1) / 2;
+    memcpy(&buf[m], bonus[j].dvalue, bonus[j].ndouble * sizeof(double));
     m += bonus[j].ndouble;
   }
 
@@ -469,7 +478,8 @@ int AtomVecBody::unpack_restart_bonus(int ilocal, double *buf)
   int m = 0;
 
   body[ilocal] = (int) ubuf(buf[m++]).i;
-  if (body[ilocal] == 0) body[ilocal] = -1;
+  if (body[ilocal] == 0)
+    body[ilocal] = -1;
   else {
     if (nlocal_bonus == nmax_bonus) grow_bonus();
     double *quat = bonus[nlocal_bonus].quat;
@@ -483,16 +493,14 @@ int AtomVecBody::unpack_restart_bonus(int ilocal, double *buf)
     inertia[2] = buf[m++];
     bonus[nlocal_bonus].ninteger = (int) ubuf(buf[m++]).i;
     bonus[nlocal_bonus].ndouble = (int) ubuf(buf[m++]).i;
-    bonus[nlocal_bonus].ivalue = icp->get(bonus[nlocal_bonus].ninteger,
-                                          bonus[nlocal_bonus].iindex);
-    bonus[nlocal_bonus].dvalue = dcp->get(bonus[nlocal_bonus].ndouble,
-                                          bonus[nlocal_bonus].dindex);
-    memcpy(bonus[nlocal_bonus].ivalue,&buf[m],
-           bonus[nlocal_bonus].ninteger*sizeof(int));
-    if (intdoubleratio == 1) m += bonus[nlocal_bonus].ninteger;
-    else m += (bonus[nlocal_bonus].ninteger+1)/2;
-    memcpy(bonus[nlocal_bonus].dvalue,&buf[m],
-           bonus[nlocal_bonus].ndouble*sizeof(double));
+    bonus[nlocal_bonus].ivalue = icp->get(bonus[nlocal_bonus].ninteger, bonus[nlocal_bonus].iindex);
+    bonus[nlocal_bonus].dvalue = dcp->get(bonus[nlocal_bonus].ndouble, bonus[nlocal_bonus].dindex);
+    memcpy(bonus[nlocal_bonus].ivalue, &buf[m], bonus[nlocal_bonus].ninteger * sizeof(int));
+    if (intdoubleratio == 1)
+      m += bonus[nlocal_bonus].ninteger;
+    else
+      m += (bonus[nlocal_bonus].ninteger + 1) / 2;
+    memcpy(bonus[nlocal_bonus].dvalue, &buf[m], bonus[nlocal_bonus].ndouble * sizeof(double));
     m += bonus[nlocal_bonus].ndouble;
     bonus[nlocal_bonus].ilocal = ilocal;
     body[ilocal] = nlocal_bonus++;
@@ -521,13 +529,15 @@ void AtomVecBody::create_atom_post(int ilocal)
 void AtomVecBody::data_atom_post(int ilocal)
 {
   body_flag = body[ilocal];
-  if (body_flag == 0) body_flag = -1;
-  else if (body_flag == 1) body_flag = 0;
-  else error->one(FLERR,"Invalid body flag in Atoms section of data file");
+  if (body_flag == 0)
+    body_flag = -1;
+  else if (body_flag == 1)
+    body_flag = 0;
+  else
+    error->one(FLERR, "Invalid body flag in Atoms section of data file");
   body[ilocal] = body_flag;
 
-  if (rmass[ilocal] <= 0.0)
-    error->one(FLERR,"Invalid density in Atoms section of data file");
+  if (rmass[ilocal] <= 0.0) error->one(FLERR, "Invalid density in Atoms section of data file");
 
   radius[ilocal] = 0.5;
   angmom[ilocal][0] = 0.0;
@@ -539,14 +549,12 @@ void AtomVecBody::data_atom_post(int ilocal)
    unpack one body from Bodies section of data file
 ------------------------------------------------------------------------- */
 
-void AtomVecBody::data_body(int m, int ninteger, int ndouble,
-                            int *ivalues, double *dvalues)
+void AtomVecBody::data_body(int m, int ninteger, int ndouble, int *ivalues, double *dvalues)
 {
-  if (body[m])
-    error->one(FLERR,"Assigning body parameters to non-body atom");
+  if (body[m]) error->one(FLERR, "Assigning body parameters to non-body atom");
   if (nlocal_bonus == nmax_bonus) grow_bonus();
   bonus[nlocal_bonus].ilocal = m;
-  bptr->data_body(nlocal_bonus,ninteger,ndouble,ivalues,dvalues);
+  bptr->data_body(nlocal_bonus, ninteger, ndouble, ivalues, dvalues);
   body[m] = nlocal_bonus++;
 }
 
@@ -557,14 +565,14 @@ void AtomVecBody::data_body(int m, int ninteger, int ndouble,
 double AtomVecBody::memory_usage_bonus()
 {
   double bytes = 0;
-  bytes += (double)nmax_bonus*sizeof(Bonus);
+  bytes += (double) nmax_bonus * sizeof(Bonus);
   bytes += icp->size() + dcp->size();
 
   int nall = nlocal_bonus + nghost_bonus;
   for (int i = 0; i < nall; i++) {
     if (body[i] >= 0) {
-      bytes += (double)bonus[body[i]].ninteger * sizeof(int);
-      bytes += (double)bonus[body[i]].ndouble * sizeof(double);
+      bytes += (double) bonus[body[i]].ninteger * sizeof(int);
+      bytes += (double) bonus[body[i]].ndouble * sizeof(double);
     }
   }
 
@@ -579,8 +587,10 @@ void AtomVecBody::pack_data_pre(int ilocal)
 {
   body_flag = body[ilocal];
 
-  if (body_flag < 0) body[ilocal] = 0;
-  else body[ilocal] = 1;
+  if (body_flag < 0)
+    body[ilocal] = 0;
+  else
+    body[ilocal] = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -598,7 +608,7 @@ int AtomVecBody::pack_data_bonus(double *buf, int /*flag*/)
   int m = 0;
   for (i = 0; i < nlocal; i++) {
     if (body[i] < 0) continue;
-    int n = bptr->pack_data_body(tag[i],body[i],buf);
+    int n = bptr->pack_data_body(tag[i], body[i], buf);
     m += n;
     if (buf) buf += n;
   }
@@ -613,9 +623,7 @@ int AtomVecBody::pack_data_bonus(double *buf, int /*flag*/)
 void AtomVecBody::write_data_bonus(FILE *fp, int n, double *buf, int /*flag*/)
 {
   int i = 0;
-  while (i < n) {
-    i += bptr->write_data_body(fp,&buf[i]);
-  }
+  while (i < n) { i += bptr->write_data_body(fp, &buf[i]); }
 }
 
 /* ----------------------------------------------------------------------
@@ -631,10 +639,9 @@ void AtomVecBody::pack_data_post(int ilocal)
    body computes its size based on ivalues/dvalues and returns it
 ------------------------------------------------------------------------- */
 
-double AtomVecBody::radius_body(int ninteger, int ndouble,
-                                int *ivalues, double *dvalues)
+double AtomVecBody::radius_body(int ninteger, int ndouble, int *ivalues, double *dvalues)
 {
-  return bptr->radius_body(ninteger,ndouble,ivalues,dvalues);
+  return bptr->radius_body(ninteger, ndouble, ivalues, dvalues);
 }
 
 /* ----------------------------------------------------------------------
@@ -644,10 +651,12 @@ double AtomVecBody::radius_body(int ninteger, int ndouble,
 
 void AtomVecBody::set_quat(int m, double *quat_external)
 {
-  if (body[m] < 0) error->one(FLERR,"Assigning quat to non-body atom");
+  if (body[m] < 0) error->one(FLERR, "Assigning quat to non-body atom");
   double *quat = bonus[body[m]].quat;
-  quat[0] = quat_external[0]; quat[1] = quat_external[1];
-  quat[2] = quat_external[2]; quat[3] = quat_external[3];
+  quat[0] = quat_external[0];
+  quat[1] = quat_external[1];
+  quat[2] = quat_external[2];
+  quat[3] = quat_external[3];
 }
 
 /* ----------------------------------------------------------------------

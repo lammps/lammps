@@ -73,8 +73,9 @@ configuration should set this up automatically, but is untested.
 In case of problems, you are recommended to contact somebody with
 experience in using Cygwin.  If you do come across portability problems
 requiring changes to the LAMMPS source code, or figure out corrections
-yourself, please report them on the lammps-users mailing list, or file
-them as an issue or pull request on the LAMMPS GitHub project.
+yourself, please report them on the
+`LAMMPS forum at MatSci <https://matsci.org/c/lammps/lammps-development/>`_,
+or file them as an issue or pull request on the LAMMPS GitHub project.
 
 .. _msvc:
 
@@ -117,8 +118,8 @@ LAMMPS with MPI enabled.
 .. note::
 
    This is work in progress and you should contact the LAMMPS developers
-   via GitHub, the forum, or the mailing list, if you have questions or
-   LAMMPS specific problems.
+   via GitHub or the `LAMMPS forum at MatSci <https://matsci.org/c/lammps/lammps-development/>`_,
+   if you have questions or LAMMPS specific problems.
 
 .. _cross:
 

@@ -13,7 +13,6 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_snad_atom.h"
-#include <cstring>
 
 #include "sna.h"
 #include "atom.h"
@@ -21,23 +20,22 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "force.h"
 #include "pair.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), snad(nullptr),
-  radelem(nullptr), wjelem(nullptr)
+  radelem(nullptr), wjelem(nullptr), sinnerelem(nullptr), dinnerelem(nullptr)
 {
   double rfac0, rmin0;
   int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
-  radelem = nullptr;
-  wjelem = nullptr;
 
   int ntypes = atom->ntypes;
   int nargmin = 6+2*ntypes;
@@ -54,12 +52,13 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
   chemflag = 0;
   bnormflag = 0;
   wselfallflag = 0;
+  switchinnerflag = 0;
   nelements = 1;
 
   // process required arguments
 
-  memory->create(radelem,ntypes+1,"sna/atom:radelem"); // offset by 1 to match up with types
-  memory->create(wjelem,ntypes+1,"sna/atom:wjelem");
+  memory->create(radelem,ntypes+1,"snad/atom:radelem"); // offset by 1 to match up with types
+  memory->create(wjelem,ntypes+1,"snad/atom:wjelem");
   rcutfac = atof(arg[3]);
   rfac0 = atof(arg[4]);
   twojmax = atoi(arg[5]);
@@ -72,7 +71,7 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
 
   double cut;
   cutmax = 0.0;
-  memory->create(cutsq,ntypes+1,ntypes+1,"sna/atom:cutsq");
+  memory->create(cutsq,ntypes+1,ntypes+1,"snad/atom:cutsq");
   for (int i = 1; i <= ntypes; i++) {
     cut = 2.0*radelem[i]*rcutfac;
     if (cut > cutmax) cutmax = cut;
@@ -82,6 +81,11 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
       cutsq[i][j] = cutsq[j][i] = cut*cut;
     }
   }
+
+  // set local input checks
+
+  int sinnerflag = 0;
+  int dinnerflag = 0;
 
   // process optional args
 
@@ -131,12 +135,43 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute snad/atom command");
       wselfallflag = atoi(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"switchinnerflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute snad/atom command");
+      switchinnerflag = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"sinner") == 0) {
+      iarg++;
+      if (iarg+ntypes > narg)
+        error->all(FLERR,"Illegal compute snad/atom command");
+      memory->create(sinnerelem,ntypes+1,"snad/atom:sinnerelem");
+      for (int i = 0; i < ntypes; i++)
+        sinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+      sinnerflag = 1;
+      iarg += ntypes;
+    } else if (strcmp(arg[iarg],"dinner") == 0) {
+      iarg++;
+      if (iarg+ntypes > narg)
+        error->all(FLERR,"Illegal compute snad/atom command");
+      memory->create(dinnerelem,ntypes+1,"snad/atom:dinnerelem");
+      for (int i = 0; i < ntypes; i++)
+        dinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+      dinnerflag = 1;
+      iarg += ntypes;
     } else error->all(FLERR,"Illegal compute snad/atom command");
   }
 
+  if (switchinnerflag && !(sinnerflag && dinnerflag))
+    error->all(FLERR,"Illegal compute snad/atom command: switchinnerflag = 1, missing sinner/dinner keyword");
+
+  if (!switchinnerflag && (sinnerflag || dinnerflag))
+    error->all(FLERR,"Illegal compute snad/atom command: switchinnerflag = 0, unexpected sinner/dinner keyword");
+
+
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
-                   chemflag, bnormflag, wselfallflag, nelements);
+                   chemflag, bnormflag, wselfallflag,
+                   nelements, switchinnerflag);
 
   ncoeff = snaptr->ncoeff;
   nperdim = ncoeff;
@@ -160,6 +195,13 @@ ComputeSNADAtom::~ComputeSNADAtom()
   memory->destroy(wjelem);
   memory->destroy(cutsq);
   delete snaptr;
+
+  if (chemflag) memory->destroy(map);
+
+  if (switchinnerflag) {
+    memory->destroy(sinnerelem);
+    memory->destroy(dinnerelem);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -170,21 +212,13 @@ void ComputeSNADAtom::init()
     error->all(FLERR,"Compute snad/atom requires a pair style be defined");
 
   if (cutmax > force->pair->cutforce)
-    error->all(FLERR,"Compute sna/atom cutoff is longer than pairwise cutoff");
+    error->all(FLERR,"Compute snad/atom cutoff is longer than pairwise cutoff");
 
   // need an occasional full neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"snad/atom") == 0) count++;
-  if (count > 1 && comm->me == 0)
+  if (modify->get_compute_by_style("snad/atom").size() > 1 && comm->me == 0)
     error->warning(FLERR,"More than one compute snad/atom");
   snaptr->init();
 }
@@ -286,7 +320,11 @@ void ComputeSNADAtom::compute_peratom()
           snaptr->inside[ninside] = j;
           snaptr->wj[ninside] = wjelem[jtype];
           snaptr->rcutij[ninside] = (radi+radelem[jtype])*rcutfac;
-          snaptr->element[ninside] = jelem; // element index for multi-element snap
+          if (switchinnerflag) {
+            snaptr->sinnerij[ninside] = 0.5*(sinnerelem[itype]+sinnerelem[jtype]);
+            snaptr->dinnerij[ninside] = 0.5*(dinnerelem[itype]+dinnerelem[jtype]);
+          }
+          if (chemflag) snaptr->element[ninside] = jelem;
           ninside++;
         }
       }
@@ -299,8 +337,7 @@ void ComputeSNADAtom::compute_peratom()
 
       for (int jj = 0; jj < ninside; jj++) {
         const int j = snaptr->inside[jj];
-        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-                                    snaptr->rcutij[jj], jj, snaptr->element[jj]);
+        snaptr->compute_duidrj(jj);
         snaptr->compute_dbidrj();
 
         // Accumulate -dBi/dRi, -dBi/dRj

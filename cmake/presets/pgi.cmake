@@ -1,4 +1,4 @@
-# preset that will enable clang/clang++ with support for MPI and OpenMP (on Linux boxes)
+# preset that will enable PGI (Nvidia) compilers with support for MPI and OpenMP (on Linux boxes)
 
 set(CMAKE_CXX_COMPILER "pgc++" CACHE STRING "" FORCE)
 set(CMAKE_C_COMPILER "pgcc" CACHE STRING "" FORCE)

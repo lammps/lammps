@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -27,29 +26,27 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "update.h"
 
-#include <cstring>
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeAggregateAtom::ComputeAggregateAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  aggregateID(nullptr)
+    Compute(lmp, narg, arg), aggregateID(nullptr)
 {
-  if (narg != 4) error->all(FLERR,"Illegal compute aggregate/atom command");
+  if (narg != 4) error->all(FLERR, "Illegal compute aggregate/atom command");
 
-  double cutoff = utils::numeric(FLERR,arg[3],false,lmp);
-  cutsq = cutoff*cutoff;
+  double cutoff = utils::numeric(FLERR, arg[3], false, lmp);
+  cutsq = cutoff * cutoff;
 
   if (atom->avec->bonds_allow == 0)
-    error->all(FLERR,"Compute aggregate/atom used when bonds are not allowed");
+    error->all(FLERR, "Compute aggregate/atom used when bonds are not allowed");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -71,31 +68,24 @@ ComputeAggregateAtom::~ComputeAggregateAtom()
 void ComputeAggregateAtom::init()
 {
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Cannot use compute aggregate/atom unless atoms have IDs");
+    error->all(FLERR, "Cannot use compute aggregate/atom unless atoms have IDs");
   if (force->bond == nullptr)
-    error->all(FLERR,"Compute aggregate/atom requires a bond style to be defined");
+    error->all(FLERR, "Compute aggregate/atom requires a bond style to be defined");
 
   if (force->pair == nullptr)
-    error->all(FLERR,"Compute cluster/atom requires a pair style to be defined");
+    error->all(FLERR, "Compute cluster/atom requires a pair style to be defined");
   if (sqrt(cutsq) > force->pair->cutforce)
-    error->all(FLERR,
-               "Compute cluster/atom cutoff is longer than pairwise cutoff");
+    error->all(FLERR, "Compute cluster/atom cutoff is longer than pairwise cutoff");
 
   // need an occasional full neighbor list
   // full required so that pair of atoms on 2 procs both set their clusterID
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
   int count = 0;
   for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"aggregate/atom") == 0) count++;
-  if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute aggregate/atom");
+    if (strcmp(modify->compute[i]->style, "aggregate/atom") == 0) count++;
+  if (count > 1 && comm->me == 0) error->warning(FLERR, "More than one compute aggregate/atom");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -109,7 +99,7 @@ void ComputeAggregateAtom::init_list(int /*id*/, NeighList *ptr)
 
 void ComputeAggregateAtom::compute_peratom()
 {
-  int i,j,k;
+  int i, j, k;
 
   invoked_peratom = update->ntimestep;
 
@@ -118,15 +108,17 @@ void ComputeAggregateAtom::compute_peratom()
   if (atom->nmax > nmax) {
     memory->destroy(aggregateID);
     nmax = atom->nmax;
-    memory->create(aggregateID,nmax,"aggregate/atom:aggregateID");
+    memory->create(aggregateID, nmax, "aggregate/atom:aggregateID");
     vector_atom = aggregateID;
   }
 
   // invoke full neighbor list (will copy or build if necessary)
   // on the first step of a run, set preflag to one in neighbor->build_one(...)
 
-  if (update->firststep == update->ntimestep) neighbor->build_one(list,1);
-  else neighbor->build_one(list);
+  if (update->firststep == update->ntimestep)
+    neighbor->build_one(list, 1);
+  else
+    neighbor->build_one(list);
 
   // if group is dynamic, insure ghost atom masks are current
 
@@ -150,8 +142,10 @@ void ComputeAggregateAtom::compute_peratom()
   double **x = atom->x;
 
   for (i = 0; i < nlocal + atom->nghost; i++)
-    if (mask[i] & groupbit) aggregateID[i] = tag[i];
-    else aggregateID[i] = 0;
+    if (mask[i] & groupbit)
+      aggregateID[i] = tag[i];
+    else
+      aggregateID[i] = 0;
 
   // loop until no more changes on any proc:
   // acquire aggregateIDs of ghost atoms
@@ -164,15 +158,14 @@ void ComputeAggregateAtom::compute_peratom()
 
   commflag = 1;
 
-  int change,done,anychange;
+  int change, done, anychange;
 
   while (true) {
     comm->forward_comm(this);
 
     // reverse communication when bonds are not stored on every processor
 
-    if (force->newton_bond)
-      comm->reverse_comm(this);
+    if (force->newton_bond) comm->reverse_comm(this);
 
     change = 0;
     while (true) {
@@ -187,7 +180,7 @@ void ComputeAggregateAtom::compute_peratom()
           if (!(mask[k] & groupbit)) continue;
           if (aggregateID[i] == aggregateID[k]) continue;
 
-          aggregateID[i] = aggregateID[k] = MIN(aggregateID[i],aggregateID[k]);
+          aggregateID[i] = aggregateID[k] = MIN(aggregateID[i], aggregateID[k]);
           done = 0;
         }
       }
@@ -211,10 +204,9 @@ void ComputeAggregateAtom::compute_peratom()
           const double delx = xtmp - x[j][0];
           const double dely = ytmp - x[j][1];
           const double delz = ztmp - x[j][2];
-          const double rsq = delx*delx + dely*dely + delz*delz;
+          const double rsq = delx * delx + dely * dely + delz * delz;
           if (rsq < cutsq) {
-            aggregateID[i] = aggregateID[j]
-              = MIN(aggregateID[i],aggregateID[j]);
+            aggregateID[i] = aggregateID[j] = MIN(aggregateID[i], aggregateID[j]);
             done = 0;
           }
         }
@@ -225,17 +217,17 @@ void ComputeAggregateAtom::compute_peratom()
 
     // stop if all procs are done
 
-    MPI_Allreduce(&change,&anychange,1,MPI_INT,MPI_MAX,world);
+    MPI_Allreduce(&change, &anychange, 1, MPI_INT, MPI_MAX, world);
     if (!anychange) break;
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-int ComputeAggregateAtom::pack_forward_comm(int n, int *list, double *buf,
-                                          int /*pbc_flag*/, int * /*pbc*/)
+int ComputeAggregateAtom::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/,
+                                            int * /*pbc*/)
 {
-  int i,j,m;
+  int i, j, m;
 
   m = 0;
   if (commflag) {
@@ -258,7 +250,7 @@ int ComputeAggregateAtom::pack_forward_comm(int n, int *list, double *buf,
 
 void ComputeAggregateAtom::unpack_forward_comm(int n, int first, double *buf)
 {
-  int i,m,last;
+  int i, m, last;
 
   m = 0;
   last = first + n;
@@ -268,7 +260,7 @@ void ComputeAggregateAtom::unpack_forward_comm(int n, int first, double *buf)
 
       // only overwrite ghost IDs with values lower than current ones
 
-      aggregateID[i] = MIN(x,aggregateID[i]);
+      aggregateID[i] = MIN(x, aggregateID[i]);
     }
   else {
     int *mask = atom->mask;
@@ -280,13 +272,11 @@ void ComputeAggregateAtom::unpack_forward_comm(int n, int first, double *buf)
 
 int ComputeAggregateAtom::pack_reverse_comm(int n, int first, double *buf)
 {
-  int i,m,last;
+  int i, m, last;
 
   m = 0;
   last = first + n;
-  for (i = first; i < last; i++) {
-    buf[m++] = aggregateID[i];
-  }
+  for (i = first; i < last; i++) { buf[m++] = aggregateID[i]; }
   return m;
 }
 
@@ -294,7 +284,7 @@ int ComputeAggregateAtom::pack_reverse_comm(int n, int first, double *buf)
 
 void ComputeAggregateAtom::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  int i,j,m;
+  int i, j, m;
 
   m = 0;
   for (i = 0; i < n; i++) {
@@ -303,7 +293,7 @@ void ComputeAggregateAtom::unpack_reverse_comm(int n, int *list, double *buf)
 
     // only overwrite local IDs with values lower than current ones
 
-    aggregateID[j] = MIN(x,aggregateID[j]);
+    aggregateID[j] = MIN(x, aggregateID[j]);
   }
 }
 
@@ -313,6 +303,6 @@ void ComputeAggregateAtom::unpack_reverse_comm(int n, int *list, double *buf)
 
 double ComputeAggregateAtom::memory_usage()
 {
-  double bytes = (double)nmax * sizeof(double);
+  double bytes = (double) nmax * sizeof(double);
   return bytes;
 }

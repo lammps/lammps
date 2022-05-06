@@ -110,10 +110,10 @@ class PairMEAMSpline : public Pair {
     int numKnots() const { return N; }
 
     /// Parses the spline knots from a text file.
-    void parse(FILE *fp, Error *error, bool isNewFormat);
+    void parse(class PotentialFileReader &reader, bool isNewFormat);
 
     /// Calculates the second derivatives of the cubic spline.
-    void prepareSpline(Error *error);
+    void prepareSpline();
 
     /// Evaluates the spline function at position x.
     inline double eval(double x) const

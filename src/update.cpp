@@ -60,7 +60,6 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   beginstep = endstep = 0;
   restrict_output = 0;
   setupflag = 0;
-  post_integrate = 0;
   multireplica = 0;
 
   eflag_global = vflag_global = -1;
@@ -458,9 +457,18 @@ void Update::new_minimize(char *style, int /* narg */, char ** /* arg */, int tr
 
 void Update::reset_timestep(int narg, char **arg)
 {
-  if (narg != 1) error->all(FLERR, "Illegal reset_timestep command");
-  bigint newstep = utils::bnumeric(FLERR, arg[0], false, lmp);
-  reset_timestep(newstep);
+  if (narg < 1) utils::missing_cmd_args(FLERR, "reset_timestep", error);
+
+  reset_timestep(utils::bnumeric(FLERR, arg[0], false, lmp), true);
+
+  if (narg > 1) {
+    if (strcmp(arg[1], "time") == 0) {
+      if (narg < 3) utils::missing_cmd_args(FLERR, "reset_timestep time", error);
+      atimestep = ntimestep;
+      atime = utils::numeric(FLERR, arg[2], false, lmp);
+    } else
+      error->all(FLERR, "Unknown reset_timestep option {}", arg[1]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -468,7 +476,7 @@ void Update::reset_timestep(int narg, char **arg)
    called from input script (indirectly) or rerun command
 ------------------------------------------------------------------------- */
 
-void Update::reset_timestep(bigint newstep)
+void Update::reset_timestep(bigint newstep, bool do_check)
 {
   if (newstep < 0) error->all(FLERR, "Timestep must be >= 0");
 
@@ -490,11 +498,14 @@ void Update::reset_timestep(bigint newstep)
 
   output->reset_timestep(ntimestep);
 
-  // do not allow timestep-dependent fixes to be defined
+  // rerun will not be meaningful with this check active.
+  if (do_check) {
+    // do not allow timestep-dependent fixes to be defined
 
-  for (const auto &ifix : modify->get_fix_list())
-    if (ifix->time_depend)
-      error->all(FLERR, "Cannot reset timestep with time-dependent fix {} defined", ifix->style);
+    for (const auto &ifix : modify->get_fix_list())
+      if (ifix->time_depend)
+        error->all(FLERR, "Cannot reset timestep with time-dependent fix {} defined", ifix->style);
+  }
 
   // reset eflag/vflag global so no commands will think eng/virial are current
 

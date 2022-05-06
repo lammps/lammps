@@ -37,7 +37,3 @@ class NPairHalfSizeBinNewtoffOmp : public NPair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

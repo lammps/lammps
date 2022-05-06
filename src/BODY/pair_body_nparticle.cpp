@@ -416,13 +416,13 @@ void PairBodyNparticle::coeff(int narg, char **arg)
 
 void PairBodyNparticle::init_style()
 {
-  avec = (AtomVecBody *) atom->style_match("body");
+  avec = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
   if (!avec) error->all(FLERR,"Pair body/nparticle requires atom style body");
   if (strcmp(avec->bptr->style,"nparticle") != 0)
     error->all(FLERR,"Pair body/nparticle requires body style nparticle");
-  bptr = (BodyNparticle *) avec->bptr;
+  bptr = dynamic_cast<BodyNparticle *>( avec->bptr);
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

@@ -104,9 +104,9 @@ double PairPeri::memory_usage()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairPeri::settings(int narg, char **/*arg*/)
+void PairPeri::settings(int narg, char ** /*arg*/)
 {
-  if (narg) error->all(FLERR,"Illegal pair_style command");
+  if (narg) error->all(FLERR, "Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -130,9 +130,9 @@ void PairPeri::init_style()
   // if first init, create Fix needed for storing fixed neighbors
 
   if (!fix_peri_neigh)
-    fix_peri_neigh = (FixPeriNeigh *) modify->add_fix("PERI_NEIGH all PERI_NEIGH");
+    fix_peri_neigh = dynamic_cast<FixPeriNeigh *>(modify->add_fix("PERI_NEIGH all PERI_NEIGH"));
 
-  neighbor->request(this, instance_me);
+  neighbor->add_request(this);
 }
 
 /* ---------------------------------------------------------------------- */

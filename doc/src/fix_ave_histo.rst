@@ -32,7 +32,7 @@ Syntax
        f_ID = scalar or vector calculated by a fix with ID
        f_ID[I] = Ith component of vector or Ith column of array calculated by a fix with ID, I can include wildcard (see below)
        v_name = value(s) calculated by an equal-style or vector-style or atom-style variable with name
-       v_name[I] = value calculated by a vector-style variable with name
+       v_name[I] = value calculated by a vector-style variable with name, I can include wildcard (see below)
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *mode* or *file* or *ave* or *start* or *beyond* or *overwrite* or *title1* or *title2* or *title3*
@@ -120,27 +120,6 @@ If *mode* = vector, then the input values must be vectors, or arrays
 with a bracketed term appended, indicating the Ith column of the array
 is used.
 
-Note that for values from a compute or fix, the bracketed index I can
-be specified using a wildcard asterisk with the index to effectively
-specify multiple values.  This takes the form "\*" or "\*n" or "n\*" or
-"m\*n".  If N = the size of the vector (for *mode* = scalar) or the
-number of columns in the array (for *mode* = vector), then an asterisk
-with no numeric values means all indices from 1 to N.  A leading
-asterisk means all indices from 1 to n (inclusive).  A trailing
-asterisk means all indices from n to N (inclusive).  A middle asterisk
-means all indices from m to n (inclusive).
-
-Using a wildcard is the same as if the individual elements of the
-vector or columns of the array had been listed one by one.  E.g. these
-2 fix ave/histo commands are equivalent, since the :doc:`compute com/chunk <compute_com_chunk>` command creates a global array with
-3 columns:
-
-.. code-block:: LAMMPS
-
-   compute myCOM all com/chunk
-   fix 1 all ave/histo 100 1 100 -10.0 10.0 100 c_myCOM[*] file tmp1.com mode vector
-   fix 2 all ave/histo 100 1 100 -10.0 10.0 100 c_myCOM[1] c_myCOM[2] c_myCOM[3] file tmp2.com mode vector
-
 If the fix ave/histo/weight command is used, exactly two values must
 be specified.  If the values are vectors, they must be the same
 length.  The first value (a scalar or vector) is what is histogrammed
@@ -150,6 +129,38 @@ that instead of each value tallying a "1" to its bin, the
 corresponding weight is tallied.  E.g. The Nth entry (weight) in the
 second vector is tallied to the bin corresponding to the Nth entry in
 the first vector.
+
+----------
+
+For input values from a compute or fix or variable, the bracketed
+index I can be specified using a wildcard asterisk with the index to
+effectively specify multiple values.  This takes the form "\*" or
+"\*n" or "n\*" or "m\*n".  If N = the size of the vector (for *mode* =
+scalar) or the number of columns in the array (for *mode* = vector),
+then an asterisk with no numeric values means all indices from 1 to N.
+A leading asterisk means all indices from 1 to n (inclusive).  A
+trailing asterisk means all indices from n to N (inclusive).  A middle
+asterisk means all indices from m to n (inclusive).
+
+Using a wildcard is the same as if the individual elements of the
+vector or columns of the array had been listed one by one.  E.g. these
+2 fix ave/histo commands are equivalent, since the :doc:`compute
+com/chunk <compute_com_chunk>` command creates a global array with 3
+columns:
+
+.. code-block:: LAMMPS
+
+   compute myCOM all com/chunk
+   fix 1 all ave/histo 100 1 100 -10.0 10.0 100 c_myCOM[*] file tmp1.com mode vector
+   fix 2 all ave/histo 100 1 100 -10.0 10.0 100 c_myCOM[1] c_myCOM[2] c_myCOM[3] file tmp2.com mode vector
+
+.. note::
+
+   For a vector-style variable, only the wildcard forms "\*n" or
+   "m\*n" are allowed.  You must specify the upper bound, because
+   vector-style variable lengths are not determined until the variable
+   is evaluated.  If n is specified larger than the vector length
+   turns out to be, zeroes are output for missing vector values.
 
 ----------
 

@@ -214,6 +214,8 @@ action min_kokkos.h
 action min_linesearch_kokkos.cpp
 action min_linesearch_kokkos.h
 action pack_kokkos.h pack.h
+action pair_adp_kokkos.cpp pair_adp.cpp
+action pair_adp_kokkos.h pair_adp.h
 action pair_buck_coul_cut_kokkos.cpp
 action pair_buck_coul_cut_kokkos.h
 action pair_buck_coul_long_kokkos.cpp pair_buck_coul_long.cpp
@@ -230,6 +232,14 @@ action pair_coul_long_kokkos.cpp pair_coul_long.cpp
 action pair_coul_long_kokkos.h pair_coul_long.h
 action pair_coul_wolf_kokkos.cpp
 action pair_coul_wolf_kokkos.h
+action pair_dpd_kokkos.h pair_dpd.h
+action pair_dpd_kokkos.cpp pair_dpd.cpp
+action pair_dpd_ext_kokkos.cpp pair_dpd_ext.cpp
+action pair_dpd_ext_kokkos.h pair_dpd_ext.h
+action pair_dpd_ext_tstat_kokkos.h pair_dpd_ext_tstat.h
+action pair_dpd_ext_tstat_kokkos.cpp pair_dpd_ext_tstat.cpp
+action pair_dpd_tstat_kokkos.h pair_dpd_tstat.h
+action pair_dpd_tstat_kokkos.cpp pair_dpd_tstat.cpp
 action pair_dpd_fdt_energy_kokkos.cpp pair_dpd_fdt_energy.cpp
 action pair_dpd_fdt_energy_kokkos.h pair_dpd_fdt_energy.h
 action pair_eam_kokkos.cpp pair_eam.cpp
@@ -316,6 +326,7 @@ action sna_kokkos.h sna.h
 action sna_kokkos_impl.h sna.cpp
 action third_order_kokkos.cpp dynamical_matrix.cpp
 action third_order_kokkos.h dynamical_matrix.h
+action transpose_helper_kokkos.h
 action verlet_kokkos.cpp
 action verlet_kokkos.h
 

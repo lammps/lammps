@@ -80,10 +80,12 @@ class Comm : protected Pointers {
   virtual void exchange() = 0;                     // move atoms to new procs
   virtual void borders() = 0;                      // setup list of atoms to comm
 
-  // forward/reverse comm from a Pair, Fix, Compute, Dump
+  // forward/reverse comm from a Pair, Bond, Fix, Compute, Dump
 
   virtual void forward_comm(class Pair *) = 0;
   virtual void reverse_comm(class Pair *) = 0;
+  virtual void forward_comm(class Bond *) = 0;
+  virtual void reverse_comm(class Bond *) = 0;
   virtual void forward_comm(class Fix *, int size = 0) = 0;
   virtual void reverse_comm(class Fix *, int size = 0) = 0;
   virtual void reverse_comm_variable(class Fix *) = 0;
@@ -172,119 +174,3 @@ class Comm : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Invalid group in comm_modify command
-
-Self-explanatory.
-
-E: Comm_modify group != atom_modify first group
-
-Self-explanatory.
-
-E: Use cutoff/multi keyword to set cutoff in multi mode
-
-Mode is multi so cutoff keyword cannot be used.
-
-E: Invalid cutoff in comm_modify command
-
-Specified cutoff must be >= 0.0.
-
-E: Use cutoff keyword to set cutoff in single mode
-
-Mode is single so cutoff/multi keyword cannot be used.
-
-E: Use cutoff/bytype in mode multi only
-
-Mode is single so cutoff/bytype keyword cannot be used.
-
-E: Cannot set cutoff/multi before simulation box is defined
-
-Self-explanatory.
-
-E: Specified processors != physical processors
-
-The 3d grid of processors defined by the processors command does not
-match the number of processors LAMMPS is being run on.
-
-E: Cannot use processors part command without using partitions
-
-See the command-line -partition switch.
-
-E: Invalid partitions in processors part command
-
-Valid partitions are numbered 1 to N and the sender and receiver
-cannot be the same partition.
-
-E: Sending partition in processors part command is already a sender
-
-Cannot specify a partition to be a sender twice.
-
-E: Receiving partition in processors part command is already a receiver
-
-Cannot specify a partition to be a receiver twice.
-
-E: Processors grid numa and map style are incompatible
-
-Using numa for gstyle in the processors command requires using
-cart for the map option.
-
-E: Processors part option and grid style are incompatible
-
-Cannot use gstyle numa or custom with the part option.
-
-E: Bad grid of processors
-
-The 3d grid of processors defined by the processors command does not
-match the number of processors LAMMPS is being run on.
-
-E: Processor count in z must be 1 for 2d simulation
-
-Self-explanatory.
-
-E: Cannot use multi/tiered communication with Newton off
-
-Self-explanatory.
-
-E: Cannot put data on ring from nullptr pointer
-
-W: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost.
-
-The communication cutoff defaults to the maximum of what is inferred from pair and
-bond styles (will be zero, if none are defined) and what is specified via
-"comm_modify cutoff" (defaults to 0.0).  If this results to 0.0, no ghost atoms will
-be generated and LAMMPS may lose atoms or use incorrect periodic images of atoms in
-interaction lists.  To avoid, either define pair style zero with a suitable cutoff
-or use comm_modify cutoff.
-
-W: Communication cutoff is shorter than a bond length based estimate. This may lead to errors.
-
-Since LAMMPS stores topology data with individual atoms, all atoms comprising
-a bond, angle, dihedral or improper must be present on any sub-domain that
-"owns" the atom with the information, either as a local or a ghost atom. The
-communication cutoff is what determines up to what distance from a sub-domain
-boundary ghost atoms are created.  The communication cutoff is by default the
-largest non-bonded cutoff plus the neighbor skin distance, but for short or
-non-bonded cutoffs and/or long bonds, this may not be sufficient. This warning
-indicates that there is an increased risk of a simulation stopping unexpectedly
-because of Bond/Angle/Dihedral/Improper atoms missing.  It can be silenced by
-manually setting the communication cutoff via comm_modify cutoff.  However,
-since the heuristic used to determine the estimate is not always accurate, it
-is not changed automatically and the warning may be ignored depending on the
-specific system being simulated.
-
-UNDOCUMENTED
-
-U: OMP_NUM_THREADS environment is not set.
-
-This environment variable must be set appropriately to use the
-OPENMP package.
-
-*/

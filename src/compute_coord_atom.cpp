@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -23,7 +22,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "update.h"
@@ -33,36 +31,33 @@
 
 using namespace LAMMPS_NS;
 
-
 /* ---------------------------------------------------------------------- */
 
 ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  typelo(nullptr), typehi(nullptr), cvec(nullptr), carray(nullptr),
-  group2(nullptr), id_orientorder(nullptr), normv(nullptr)
+    Compute(lmp, narg, arg), typelo(nullptr), typehi(nullptr), cvec(nullptr), carray(nullptr),
+    group2(nullptr), id_orientorder(nullptr), normv(nullptr)
 {
-  if (narg < 5) error->all(FLERR,"Illegal compute coord/atom command");
+  if (narg < 5) error->all(FLERR, "Illegal compute coord/atom command");
 
   jgroup = group->find("all");
   jgroupbit = group->bitmask[jgroup];
   cstyle = NONE;
 
-  if (strcmp(arg[3],"cutoff") == 0) {
+  if (strcmp(arg[3], "cutoff") == 0) {
     cstyle = CUTOFF;
-    double cutoff = utils::numeric(FLERR,arg[4],false,lmp);
-    cutsq = cutoff*cutoff;
+    double cutoff = utils::numeric(FLERR, arg[4], false, lmp);
+    cutsq = cutoff * cutoff;
 
     int iarg = 5;
-    if ((narg > 6) && (strcmp(arg[5],"group") == 0)) {
+    if ((narg > 6) && (strcmp(arg[5], "group") == 0)) {
       group2 = utils::strdup(arg[6]);
       iarg += 2;
       jgroup = group->find(group2);
-      if (jgroup == -1)
-        error->all(FLERR,"Compute coord/atom group2 ID does not exist");
+      if (jgroup == -1) error->all(FLERR, "Compute coord/atom group2 ID does not exist");
       jgroupbit = group->bitmask[jgroup];
     }
 
-    ncol = narg-iarg + 1;
+    ncol = narg - iarg + 1;
     int ntypes = atom->ntypes;
     typelo = new int[ncol];
     typehi = new int[ncol];
@@ -74,29 +69,27 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
     } else {
       ncol = 0;
       while (iarg < narg) {
-        utils::bounds(FLERR,arg[iarg],1,ntypes,typelo[ncol],typehi[ncol],error);
-        if (typelo[ncol] > typehi[ncol])
-          error->all(FLERR,"Illegal compute coord/atom command");
+        utils::bounds(FLERR, arg[iarg], 1, ntypes, typelo[ncol], typehi[ncol], error);
+        if (typelo[ncol] > typehi[ncol]) error->all(FLERR, "Illegal compute coord/atom command");
         ncol++;
         iarg++;
       }
     }
 
-  } else if (strcmp(arg[3],"orientorder") == 0) {
+  } else if (strcmp(arg[3], "orientorder") == 0) {
     cstyle = ORIENT;
-    if (narg != 6) error->all(FLERR,"Illegal compute coord/atom command");
+    if (narg != 6) error->all(FLERR, "Illegal compute coord/atom command");
 
     id_orientorder = utils::strdup(arg[4]);
 
     int iorientorder = modify->find_compute(id_orientorder);
-    if (iorientorder < 0)
-      error->all(FLERR,"Could not find compute coord/atom compute ID");
-    if (!utils::strmatch(modify->compute[iorientorder]->style,"^orientorder/atom"))
-      error->all(FLERR,"Compute coord/atom compute ID is not orientorder/atom");
+    if (iorientorder < 0) error->all(FLERR, "Could not find compute coord/atom compute ID");
+    if (!utils::strmatch(modify->compute[iorientorder]->style, "^orientorder/atom"))
+      error->all(FLERR, "Compute coord/atom compute ID is not orientorder/atom");
 
-    threshold = utils::numeric(FLERR,arg[5],false,lmp);
+    threshold = utils::numeric(FLERR, arg[5], false, lmp);
     if (threshold <= -1.0 || threshold >= 1.0)
-      error->all(FLERR,"Compute coord/atom threshold not between -1 and 1");
+      error->all(FLERR, "Compute coord/atom threshold not between -1 and 1");
 
     ncol = 1;
     typelo = new int[ncol];
@@ -104,11 +97,14 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
     typelo[0] = 1;
     typehi[0] = atom->ntypes;
 
-  } else error->all(FLERR,"Invalid cstyle in compute coord/atom");
+  } else
+    error->all(FLERR, "Invalid cstyle in compute coord/atom");
 
   peratom_flag = 1;
-  if (ncol == 1) size_peratom_cols = 0;
-  else size_peratom_cols = ncol;
+  if (ncol == 1)
+    size_peratom_cols = 0;
+  else
+    size_peratom_cols = ncol;
 
   nmax = 0;
 }
@@ -119,12 +115,12 @@ ComputeCoordAtom::~ComputeCoordAtom()
 {
   if (copymode) return;
 
-  delete [] group2;
-  delete [] typelo;
-  delete [] typehi;
+  delete[] group2;
+  delete[] typelo;
+  delete[] typehi;
   memory->destroy(cvec);
   memory->destroy(carray);
-  delete [] id_orientorder;
+  delete[] id_orientorder;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -133,30 +129,24 @@ void ComputeCoordAtom::init()
 {
   if (cstyle == ORIENT) {
     int iorientorder = modify->find_compute(id_orientorder);
-    c_orientorder = (ComputeOrientOrderAtom*)(modify->compute[iorientorder]);
+    c_orientorder = dynamic_cast<ComputeOrientOrderAtom *>(modify->compute[iorientorder]);
     cutsq = c_orientorder->cutsq;
     l = c_orientorder->qlcomp;
     //  communicate real and imaginary 2*l+1 components of the normalized vector
-    comm_forward = 2*(2*l+1);
+    comm_forward = 2 * (2 * l + 1);
     if (!(c_orientorder->qlcompflag))
-      error->all(FLERR,"Compute coord/atom requires components "
-                 "option in compute orientorder/atom");
+      error->all(FLERR,
+                 "Compute coord/atom requires components option in compute orientorder/atom");
   }
 
   if (force->pair == nullptr)
-    error->all(FLERR,"Compute coord/atom requires a pair style be defined");
+    error->all(FLERR, "Compute coord/atom requires a pair style be defined");
   if (sqrt(cutsq) > force->pair->cutforce)
-    error->all(FLERR,
-               "Compute coord/atom cutoff is longer than pairwise cutoff");
+    error->all(FLERR, "Compute coord/atom cutoff is longer than pairwise cutoff");
 
   // need an occasional full neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -170,9 +160,9 @@ void ComputeCoordAtom::init_list(int /*id*/, NeighList *ptr)
 
 void ComputeCoordAtom::compute_peratom()
 {
-  int i,j,m,ii,jj,inum,jnum,jtype,n;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i, j, m, ii, jj, inum, jnum, jtype, n;
+  double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
+  int *ilist, *jlist, *numneigh, **firstneigh;
   double *count;
 
   invoked_peratom = update->ntimestep;
@@ -183,12 +173,12 @@ void ComputeCoordAtom::compute_peratom()
     if (ncol == 1) {
       memory->destroy(cvec);
       nmax = atom->nmax;
-      memory->create(cvec,nmax,"coord/atom:cvec");
+      memory->create(cvec, nmax, "coord/atom:cvec");
       vector_atom = cvec;
     } else {
       memory->destroy(carray);
       nmax = atom->nmax;
-      memory->create(carray,nmax,ncol,"coord/atom:carray");
+      memory->create(carray, nmax, ncol, "coord/atom:carray");
       array_atom = carray;
     }
   }
@@ -242,14 +232,14 @@ void ComputeCoordAtom::compute_peratom()
               delx = xtmp - x[j][0];
               dely = ytmp - x[j][1];
               delz = ztmp - x[j][2];
-              rsq = delx*delx + dely*dely + delz*delz;
-              if (rsq < cutsq && jtype >= typelo[0] && jtype <= typehi[0])
-                n++;
+              rsq = delx * delx + dely * dely + delz * delz;
+              if (rsq < cutsq && jtype >= typelo[0] && jtype <= typehi[0]) n++;
             }
           }
 
           cvec[i] = n;
-        } else cvec[i] = 0.0;
+        } else
+          cvec[i] = 0.0;
       }
 
     } else {
@@ -265,20 +255,20 @@ void ComputeCoordAtom::compute_peratom()
           jlist = firstneigh[i];
           jnum = numneigh[i];
 
-
           for (jj = 0; jj < jnum; jj++) {
             j = jlist[jj];
             j &= NEIGHMASK;
 
-            jtype = type[j];
-            delx = xtmp - x[j][0];
-            dely = ytmp - x[j][1];
-            delz = ztmp - x[j][2];
-            rsq = delx*delx + dely*dely + delz*delz;
-            if (rsq < cutsq) {
-              for (m = 0; m < ncol; m++)
-                if (jtype >= typelo[m] && jtype <= typehi[m])
-                  count[m] += 1.0;
+            if (mask[j] & jgroupbit) {
+              jtype = type[j];
+              delx = xtmp - x[j][0];
+              dely = ytmp - x[j][1];
+              delz = ztmp - x[j][2];
+              rsq = delx * delx + dely * dely + delz * delz;
+              if (rsq < cutsq) {
+                for (m = 0; m < ncol; m++)
+                  if (jtype >= typelo[m] && jtype <= typehi[m]) count[m] += 1.0;
+              }
             }
           }
         }
@@ -303,31 +293,30 @@ void ComputeCoordAtom::compute_peratom()
           delx = xtmp - x[j][0];
           dely = ytmp - x[j][1];
           delz = ztmp - x[j][2];
-          rsq = delx*delx + dely*dely + delz*delz;
+          rsq = delx * delx + dely * dely + delz * delz;
           if (rsq < cutsq) {
             double dot_product = 0.0;
-            for (m=0; m < 2*(2*l+1); m++) {
-              dot_product += normv[i][nqlist+m]*normv[j][nqlist+m];
+            for (m = 0; m < 2 * (2 * l + 1); m++) {
+              dot_product += normv[i][nqlist + m] * normv[j][nqlist + m];
             }
             if (dot_product > threshold) n++;
           }
         }
         cvec[i] = n;
-      } else cvec[i] = 0.0;
+      } else
+        cvec[i] = 0.0;
     }
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-int ComputeCoordAtom::pack_forward_comm(int n, int *list, double *buf,
-                                        int /*pbc_flag*/, int * /*pbc*/)
+int ComputeCoordAtom::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/,
+                                        int * /*pbc*/)
 {
-  int i,m=0,j;
+  int i, m = 0, j;
   for (i = 0; i < n; ++i) {
-    for (j = nqlist; j < nqlist + 2*(2*l+1); ++j) {
-      buf[m++] = normv[list[i]][j];
-    }
+    for (j = nqlist; j < nqlist + 2 * (2 * l + 1); ++j) { buf[m++] = normv[list[i]][j]; }
   }
 
   return m;
@@ -337,12 +326,10 @@ int ComputeCoordAtom::pack_forward_comm(int n, int *list, double *buf,
 
 void ComputeCoordAtom::unpack_forward_comm(int n, int first, double *buf)
 {
-  int i,last,m=0,j;
+  int i, last, m = 0, j;
   last = first + n;
   for (i = first; i < last; ++i) {
-    for (j = nqlist; j < nqlist + 2*(2*l+1); ++j) {
-      normv[i][j] = buf[m++];
-    }
+    for (j = nqlist; j < nqlist + 2 * (2 * l + 1); ++j) { normv[i][j] = buf[m++]; }
   }
 }
 
@@ -352,6 +339,6 @@ void ComputeCoordAtom::unpack_forward_comm(int n, int first, double *buf)
 
 double ComputeCoordAtom::memory_usage()
 {
-  double bytes = (double)ncol*nmax * sizeof(double);
+  double bytes = (double) ncol * nmax * sizeof(double);
   return bytes;
 }

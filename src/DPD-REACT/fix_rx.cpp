@@ -25,7 +25,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair_dpd_fdt_energy.h"
 #include "update.h"
@@ -234,7 +233,7 @@ void FixRX::post_constructor()
   int nUniqueSpecies = 0;
   bool match;
 
-  char **tmpspecies = new char*[maxspecies];
+  auto tmpspecies = new char*[maxspecies];
   for (int jj=0; jj < maxspecies; jj++)
     tmpspecies[jj] = nullptr;
 
@@ -320,9 +319,9 @@ void FixRX::post_constructor()
   newcmd1 += " ghost yes";
   newcmd2 += " ghost yes";
 
-  fix_species = (FixPropertyAtom *) modify->add_fix(newcmd1);
+  fix_species = dynamic_cast<FixPropertyAtom *>( modify->add_fix(newcmd1));
   restartFlag = fix_species->restart_reset;
-  fix_species_old = (FixPropertyAtom *) modify->add_fix(newcmd2);
+  fix_species_old = dynamic_cast<FixPropertyAtom *>( modify->add_fix(newcmd2));
 
   if (nspecies==0) error->all(FLERR,"There are no rx species specified.");
 
@@ -521,9 +520,9 @@ void FixRX::initSparse()
   }
 
   if (comm->me == 0 && Verbosity > 1) {
-    for (int i = 1; i < nu_bin.size(); ++i)
-      if (nu_bin[i] > 0)
-        printf("nu_bin[%d] = %d\n", i, nu_bin[i]);
+    for (int i = 1; i < (int)nu_bin.size(); ++i)
+      if ((nu_bin[i] > 0) && screen)
+        fprintf(screen, "nu_bin[%d] = %d\n", i, nu_bin[i]);
 
     for (int i = 0; i < nreactions; ++i) {
       std::string pstr, rstr;
@@ -559,8 +558,8 @@ void FixRX::initSparse()
           pstr += atom->dvname[k];
         }
       }
-      if (comm->me == 0 && Verbosity > 1)
-        printf("rx%3d: %s %s %s\n", i, rstr.c_str(), /*reversible[i]*/ (false) ? "<=>" : "=", pstr.c_str());
+      if (comm->me == 0 && Verbosity > 1 && screen)
+        fprintf(screen,"rx%3d: %s %s %s\n", i, rstr.c_str(), /*reversible[i]*/ (false) ? "<=>" : "=", pstr.c_str());
     }
     // end for nreactions
   }
@@ -580,9 +579,9 @@ int FixRX::setmask()
 
 void FixRX::init()
 {
-  pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy",1);
+  pairDPDE = dynamic_cast<PairDPDfdtEnergy *>( force->pair_match("dpd/fdt/energy",1));
   if (pairDPDE == nullptr)
-    pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy/kk",1);
+    pairDPDE = dynamic_cast<PairDPDfdtEnergy *>( force->pair_match("dpd/fdt/energy/kk",1));
 
   if (pairDPDE == nullptr)
     error->all(FLERR,"Must use pair_style dpd/fdt/energy with fix rx");
@@ -595,9 +594,7 @@ void FixRX::init()
   // need a half neighbor list
   // built whenever re-neighboring occurs
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
+  neighbor->add_request(this);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -628,7 +625,7 @@ void FixRX::setup_pre_force(int /*vflag*/)
     userData.kFor = new double[nreactions];
     userData.rxnRateLaw = new double[nreactions];
 
-    double *rwork = new double[8*nspecies];
+    auto rwork = new double[8*nspecies];
 
     if (localTempFlag) {
       int count = nlocal + (newton_pair ? nghost : 0);
@@ -698,7 +695,7 @@ void FixRX::pre_force(int /*vflag*/)
   }
 
   {
-    double *rwork = new double[8*nspecies];
+    auto rwork = new double[8*nspecies];
 
     UserRHSData userData;
     userData.kFor = new double[nreactions];
@@ -1578,7 +1575,7 @@ int FixRX::rhs(double t, const double *y, double *dydt, void *params)
 
 int FixRX::rhs_dense(double /*t*/, const double *y, double *dydt, void *params)
 {
-  UserRHSData *userData = (UserRHSData *) params;
+  auto userData = (UserRHSData *) params;
 
   double *rxnRateLaw = userData->rxnRateLaw;
   double *kFor       = userData->kFor;
@@ -1612,7 +1609,7 @@ int FixRX::rhs_dense(double /*t*/, const double *y, double *dydt, void *params)
 
 int FixRX::rhs_sparse(double /*t*/, const double *y, double *dydt, void *v_params) const
 {
-   UserRHSData *userData = (UserRHSData *) v_params;
+   auto userData = (UserRHSData *) v_params;
 
    const double VDPD = domain->xprd * domain->yprd * domain->zprd / atom->natoms;
 

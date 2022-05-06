@@ -447,7 +447,7 @@ thyla_part *manifold_thylakoid::make_plane_part (double a, double b, double c,
   args[3] = pt[0];
   args[4] = pt[1];
   args[5] = pt[2];
-  thyla_part *p = new thyla_part(thyla_part::THYLA_TYPE_PLANE,args,0,0,0,0,0,0);
+  auto p = new thyla_part(thyla_part::THYLA_TYPE_PLANE,args,0,0,0,0,0,0);
   return p;
 }
 
@@ -462,7 +462,7 @@ thyla_part *manifold_thylakoid::make_cyl_part   (double a, double b, double c,
   args[4] = pt[1];
   args[5] = pt[2];
   args[6] = R;
-  thyla_part *p = new thyla_part(thyla_part::THYLA_TYPE_CYL,args,0,0,0,0,0,0);
+  auto p = new thyla_part(thyla_part::THYLA_TYPE_CYL,args,0,0,0,0,0,0);
   return p;
 }
 
@@ -474,7 +474,7 @@ thyla_part *manifold_thylakoid::make_sphere_part(const std::vector<double> &pt, 
   args[1] = pt[0];
   args[2] = pt[1];
   args[3] = pt[2];
-  thyla_part *p = new thyla_part(thyla_part::THYLA_TYPE_SPHERE,args,0,0,0,0,0,0);
+  auto p = new thyla_part(thyla_part::THYLA_TYPE_SPHERE,args,0,0,0,0,0,0);
   return p;
 }
 
@@ -490,6 +490,6 @@ thyla_part *manifold_thylakoid::make_cyl_to_plane_part(double X0, double R0, dou
   args[4] = pt[1];
   args[5] = pt[2];
   args[6] = s;
-  thyla_part *p = new thyla_part(thyla_part::THYLA_TYPE_CYL_TO_PLANE,args,0,0,0,0,0,0);
+  auto p = new thyla_part(thyla_part::THYLA_TYPE_CYL_TO_PLANE,args,0,0,0,0,0,0);
   return p;
 }

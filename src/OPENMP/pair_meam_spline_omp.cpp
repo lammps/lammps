@@ -100,7 +100,7 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
   }
 
   // Allocate array for temporary bond info.
-  MEAM2Body *myTwoBodyInfo = new MEAM2Body[myMaxNeighbors];
+  auto myTwoBodyInfo = new MEAM2Body[myMaxNeighbors];
 
   const double * const * const x = atom->x;
   double * const * const forces = thr->get_f();

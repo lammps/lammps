@@ -24,7 +24,6 @@
 #include "force.h"
 #include "kspace.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair_comb.h"
 #include "pair_comb3.h"
@@ -76,18 +75,14 @@ void FixQEqFire::init()
 {
   FixQEq::init();
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix  = 1;
-  neighbor->requests[irequest]->half = 1;
-  neighbor->requests[irequest]->full = 0;
+  neighbor->add_request(this);
 
   if (tolerance < 1e-4)
     if (comm->me == 0)
       error->warning(FLERR,"Fix qeq/fire tolerance may be too small for damped fires");
 
-  comb3 = (PairComb3 *) force->pair_match("^comb3",0);
-  if (!comb3) comb = (PairComb *) force->pair_match("^comb",0);
+  comb3 = dynamic_cast<PairComb3 *>( force->pair_match("^comb3",0));
+  if (!comb3) comb = dynamic_cast<PairComb *>( force->pair_match("^comb",0));
 }
 
 /* ---------------------------------------------------------------------- */

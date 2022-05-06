@@ -28,7 +28,6 @@
 #include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "potential_file_reader.h"
 #include "suffix.h"
@@ -397,9 +396,7 @@ void PairTersoff::init_style()
 
   // need a full neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this,NeighConst::REQ_FULL);
 }
 
 /* ----------------------------------------------------------------------
@@ -431,6 +428,7 @@ void PairTersoff::read_file(char *file)
 
     int unit_convert = reader.get_unit_convert();
     double conversion_factor = utils::get_conversion_factor(utils::ENERGY,unit_convert);
+
     while ((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
         ValueTokenizer values(line);
@@ -458,8 +456,7 @@ void PairTersoff::read_file(char *file)
 
         if (nparams == maxparam) {
           maxparam += DELTA;
-          params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-                                              "pair:params");
+          params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
 
           // make certain all addional allocated storage is initialized
           // to avoid false positives when checking with valgrind
@@ -508,7 +505,7 @@ void PairTersoff::read_file(char *file)
           params[nparams].biga < 0.0 ||
           params[nparams].powerm - params[nparams].powermint != 0.0 ||
           (params[nparams].powermint != 3 &&
-          params[nparams].powermint != 1) ||
+           params[nparams].powermint != 1) ||
           params[nparams].gamma < 0.0)
         error->one(FLERR,"Illegal Tersoff parameter");
 

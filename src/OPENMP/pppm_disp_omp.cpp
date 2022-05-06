@@ -344,8 +344,8 @@ void PPPMDispOMP::particle_map(double dxinv, double dyinv,
                                int nxhi_o, int nyhi_o,
                                int nzhi_o)
 {
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  int3_t * _noalias const p2g = (int3_t *) part2grid[0];
+  const auto * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const p2g = (int3_t *) part2grid[0];
   const double boxlox = boxlo[0];
   const double boxloy = boxlo[1];
   const double boxloz = boxlo[2];
@@ -426,8 +426,8 @@ void PPPMDispOMP::make_rho_c()
 #endif
   {
     const double * _noalias const q = atom->q;
-    const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-    const int3_t * _noalias const p2g = (int3_t *) part2grid[0];
+    const auto * _noalias const x = (dbl3_t *) atom->x[0];
+    const auto * _noalias const p2g = (int3_t *) part2grid[0];
 
     const double boxlox = boxlo[0];
     const double boxloy = boxlo[1];
@@ -515,8 +515,8 @@ void PPPMDispOMP::make_rho_g()
 #pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
-    const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-    const int3_t * _noalias const p2g = (int3_t *) part2grid_6[0];
+    const auto * _noalias const x = (dbl3_t *) atom->x[0];
+    const auto * _noalias const p2g = (int3_t *) part2grid_6[0];
 
     const double boxlox = boxlo[0];
     const double boxloy = boxlo[1];
@@ -619,8 +619,8 @@ void PPPMDispOMP::make_rho_a()
 #pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
-    const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-    const int3_t * _noalias const p2g = (int3_t *) part2grid_6[0];
+    const auto * _noalias const x = (dbl3_t *) atom->x[0];
+    const auto * _noalias const p2g = (int3_t *) part2grid_6[0];
 
     const double boxlox = boxlo[0];
     const double boxloy = boxlo[1];

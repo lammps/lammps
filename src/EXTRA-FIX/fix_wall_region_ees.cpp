@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -23,6 +22,7 @@
 #include "domain.h"
 #include "error.h"
 #include "math_extra.h"
+#include "math_special.h"
 #include "region.h"
 #include "respa.h"
 #include "update.h"
@@ -31,13 +31,14 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using MathSpecial::powint;
 
 /* ---------------------------------------------------------------------- */
 
 FixWallRegionEES::FixWallRegionEES(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+    Fix(lmp, narg, arg), idregion(nullptr), region(nullptr)
 {
-  if (narg != 7) error->all(FLERR,"Illegal fix wall/region/ees command");
+  if (narg != 7) error->all(FLERR, "Illegal fix wall/region/ees command");
 
   scalar_flag = 1;
   vector_flag = 1;
@@ -49,15 +50,14 @@ FixWallRegionEES::FixWallRegionEES(LAMMPS *lmp, int narg, char **arg) :
 
   // parse args
 
-  iregion = domain->find_region(arg[3]);
-  if (iregion == -1)
-    error->all(FLERR,"Region ID for fix wall/region/ees does not exist");
+  region = domain->get_region_by_id(arg[3]);
+  if (!region) error->all(FLERR, "Region {} for fix wall/region/ees does not exist", arg[3]);
   idregion = utils::strdup(arg[3]);
-  epsilon = utils::numeric(FLERR,arg[4],false,lmp);
-  sigma = utils::numeric(FLERR,arg[5],false,lmp);
-  cutoff = utils::numeric(FLERR,arg[6],false,lmp);
+  epsilon = utils::numeric(FLERR, arg[4], false, lmp);
+  sigma = utils::numeric(FLERR, arg[5], false, lmp);
+  cutoff = utils::numeric(FLERR, arg[6], false, lmp);
 
-  if (cutoff <= 0.0) error->all(FLERR,"Fix wall/region/ees cutoff <= 0.0");
+  if (cutoff <= 0.0) error->all(FLERR, "Fix wall/region/ees cutoff <= 0.0");
 
   eflag = 0;
   ewall[0] = ewall[1] = ewall[2] = ewall[3] = 0.0;
@@ -67,7 +67,7 @@ FixWallRegionEES::FixWallRegionEES(LAMMPS *lmp, int narg, char **arg) :
 
 FixWallRegionEES::~FixWallRegionEES()
 {
-  delete [] idregion;
+  delete[] idregion;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -87,13 +87,11 @@ void FixWallRegionEES::init()
 {
   // set index and check validity of region
 
-  iregion = domain->find_region(idregion);
-  if (iregion == -1)
-    error->all(FLERR,"Region ID for fix wall/region/ees does not exist");
+  region = domain->get_region_by_id(idregion);
+  if (!region) error->all(FLERR, "Region {} for fix wall/region/ees does not exist", idregion);
 
-  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  if (!avec)
-    error->all(FLERR,"Fix wall/region/ees requires atom style ellipsoid");
+  avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  if (!avec) error->all(FLERR, "Fix wall/region/ees requires atom style ellipsoid");
 
   // check that all particles are finite-size ellipsoids
   // no point particles allowed, spherical is OK
@@ -105,33 +103,33 @@ void FixWallRegionEES::init()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (ellipsoid[i] < 0)
-        error->one(FLERR,"Fix wall/region/ees requires extended particles");
+        error->one(FLERR, "Fix wall/region/ees requires only extended particles");
 
   // setup coefficients
 
-  coeff1 = ( 2. / 4725. ) * epsilon * pow(sigma,12.0);
-  coeff2 = ( 1. / 24. ) * epsilon * pow(sigma,6.0);
-  coeff3 = ( 2. / 315. ) * epsilon * pow(sigma,12.0);
-  coeff4 = ( 1. / 3. ) * epsilon * pow(sigma,6.0);
-  coeff5 = ( 4. / 315. ) * epsilon * pow(sigma,12.0);
-  coeff6 = ( 1. / 12. )  * epsilon * pow(sigma,6.0);
+  coeff1 = (2.0 / 4725.0) * epsilon * powint(sigma, 12);
+  coeff2 = (1.0 / 24.0) * epsilon * powint(sigma, 6);
+  coeff3 = (2.0 / 315.0) * epsilon * powint(sigma, 12);
+  coeff4 = (1.0 / 3.0) * epsilon * powint(sigma, 6);
+  coeff5 = (4.0 / 315.0) * epsilon * powint(sigma, 12);
+  coeff6 = (1.0 / 12.0) * epsilon * powint(sigma, 6);
   offset = 0;
 
-
-  if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+  if (utils::strmatch(update->integrate_style, "^respa"))
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixWallRegionEES::setup(int vflag)
 {
-  if (utils::strmatch(update->integrate_style,"^verlet"))
+  if (utils::strmatch(update->integrate_style, "^respa")) {
+    auto respa = dynamic_cast<Respa *>(update->integrate);
+    respa->copy_flevel_f(nlevels_respa - 1);
+    post_force_respa(vflag, nlevels_respa - 1, 0);
+    respa->copy_f_flevel(nlevels_respa - 1);
+  } else {
     post_force(vflag);
-  else {
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
-    post_force_respa(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
   }
 }
 
@@ -139,7 +137,7 @@ void FixWallRegionEES::setup(int vflag)
 
 void FixWallRegionEES::min_setup(int vflag)
 {
-    post_force(vflag);
+  post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -149,8 +147,8 @@ void FixWallRegionEES::post_force(int /*vflag*/)
   //sth is needed here, but I dont know what
   //that is calculation of sn
 
-  int i,m,n;
-  double rinv,fx,fy,fz,sn,tooclose[3];
+  int i, m, n;
+  double rinv, fx, fy, fz, sn, tooclose[3];
 
   eflag = 0;
   ewall[0] = ewall[1] = ewall[2] = ewall[3] = 0.0;
@@ -165,7 +163,6 @@ void FixWallRegionEES::post_force(int /*vflag*/)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  Region *region = domain->regions[iregion];
   region->prematch();
 
   int onflag = 0;
@@ -176,33 +173,34 @@ void FixWallRegionEES::post_force(int /*vflag*/)
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (!region->match(x[i][0],x[i][1],x[i][2])) {
+      if (!region->match(x[i][0], x[i][1], x[i][2])) {
         onflag = 1;
         continue;
       }
 
-      double A[3][3] = {{0,0,0},{0,0,0},{0,0,0}};
-      double tempvec[3]= {0,0,0};
+      double A[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+      double tempvec[3] = {0, 0, 0};
       double sn2 = 0.0;
-      double nhat[3] = {0,0,0};
-      double* shape = bonus[ellipsoid[i]].shape;;
-      MathExtra::quat_to_mat(bonus[ellipsoid[i]].quat,A);
+      double nhat[3] = {0, 0, 0};
+      double *shape = bonus[ellipsoid[i]].shape;
+      ;
+      MathExtra::quat_to_mat(bonus[ellipsoid[i]].quat, A);
 
-      for (int which = 0 ; which < 3; which ++) {//me
-        nhat[which]=1;
-        nhat[(which+1)%3] = 0 ;
-        nhat[(which+2)%3] = 0 ;
-        sn2 = 0 ;
-        MathExtra::transpose_matvec(A,nhat,tempvec);
-        for (int k = 0; k<3; k++) {
+      for (int which = 0; which < 3; which++) {    //me
+        nhat[which] = 1;
+        nhat[(which + 1) % 3] = 0;
+        nhat[(which + 2) % 3] = 0;
+        sn2 = 0;
+        MathExtra::transpose_matvec(A, nhat, tempvec);
+        for (int k = 0; k < 3; k++) {
           tempvec[k] *= shape[k];
-          sn2 += tempvec[k]*tempvec[k];
+          sn2 += tempvec[k] * tempvec[k];
         }
         sn = sqrt(sn2);
         tooclose[which] = sn;
       }
 
-      n = region->surface(x[i][0],x[i][1],x[i][2],cutoff);
+      n = region->surface(x[i][0], x[i][1], x[i][2], cutoff);
 
       for (m = 0; m < n; m++) {
 
@@ -212,12 +210,13 @@ void FixWallRegionEES::post_force(int /*vflag*/)
         } else if (region->contact[m].dely != 0 && region->contact[m].r <= tooclose[1]) {
           onflag = 1;
           continue;
-        } else if (region->contact[m].delz !=0 && region->contact[m].r <= tooclose[2]) {
+        } else if (region->contact[m].delz != 0 && region->contact[m].r <= tooclose[2]) {
           onflag = 1;
           continue;
-        } else rinv = 1.0/region->contact[m].r;
+        } else
+          rinv = 1.0 / region->contact[m].r;
 
-        ees(m,i);
+        ees(m, i);
 
         ewall[0] += eng;
         fx = fwall * region->contact[m].delx * rinv;
@@ -237,15 +236,15 @@ void FixWallRegionEES::post_force(int /*vflag*/)
       }
     }
 
-  if (onflag) error->one(FLERR,"Particle on or inside surface of region "
-                         "used in fix wall/region/ees");
+  if (onflag)
+    error->one(FLERR, "Particle on or inside surface of region used in fix wall/region/ees");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixWallRegionEES::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
-  if (ilevel == nlevels_respa-1) post_force(vflag);
+  if (ilevel == nlevels_respa - 1) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -264,7 +263,7 @@ double FixWallRegionEES::compute_scalar()
   // only sum across procs one time
 
   if (eflag == 0) {
-    MPI_Allreduce(ewall,ewall_all,4,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(ewall, ewall_all, 4, MPI_DOUBLE, MPI_SUM, world);
     eflag = 1;
   }
   return ewall_all[0];
@@ -279,10 +278,10 @@ double FixWallRegionEES::compute_vector(int n)
   // only sum across procs one time
 
   if (eflag == 0) {
-    MPI_Allreduce(ewall,ewall_all,4,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(ewall, ewall_all, 4, MPI_DOUBLE, MPI_SUM, world);
     eflag = 1;
   }
-  return ewall_all[n+1];
+  return ewall_all[n + 1];
 }
 
 /* ----------------------------------------------------------------------
@@ -292,24 +291,23 @@ double FixWallRegionEES::compute_vector(int n)
 
 void FixWallRegionEES::ees(int m, int i)
 {
-  Region *region = domain->regions[iregion];
   region->prematch();
 
   double delta, delta2, delta3, delta4, delta5, delta6;
-  double sigman, sigman2 , sigman3, sigman4, sigman5, sigman6;
-  double hhss, hhss2, hhss4, hhss7, hhss8; //h^2 - s_n^2
-  double hps;                              //h+s_n
-  double hms;                              //h-s_n
+  double sigman, sigman2, sigman3, sigman4, sigman5, sigman6;
+  double hhss, hhss2, hhss4, hhss7, hhss8;    //h^2 - s_n^2
+  double hps;                                 //h+s_n
+  double hms;                                 //h-s_n
   double twall;
 
   double A[3][3], nhat[3], SAn[3], that[3];
 
-  double tempvec[3]= {0,0,0};
-  double tempvec2[3]= {0,0,0};
+  double tempvec[3] = {0, 0, 0};
+  double tempvec2[3] = {0, 0, 0};
 
-  double Lx[3][3] = {{0,0,0},{0,0,-1},{0,1,0}};
-  double Ly[3][3] = {{0,0,1},{0,0,0},{-1,0,0}};
-  double Lz[3][3] = {{0,-1,0},{1,0,0},{0,0,0}};
+  double Lx[3][3] = {{0, 0, 0}, {0, 0, -1}, {0, 1, 0}};
+  double Ly[3][3] = {{0, 0, 1}, {0, 0, 0}, {-1, 0, 0}};
+  double Lz[3][3] = {{0, -1, 0}, {1, 0, 0}, {0, 0, 0}};
 
   nhat[0] = region->contact[m].delx / region->contact[m].r;
   nhat[1] = region->contact[m].dely / region->contact[m].r;
@@ -318,14 +316,15 @@ void FixWallRegionEES::ees(int m, int i)
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
   int *ellipsoid = atom->ellipsoid;
 
-  double* shape = bonus[ellipsoid[i]].shape;;
-  MathExtra::quat_to_mat(bonus[ellipsoid[i]].quat,A);
+  double *shape = bonus[ellipsoid[i]].shape;
+  ;
+  MathExtra::quat_to_mat(bonus[ellipsoid[i]].quat, A);
 
   sigman2 = 0.0;
-  MathExtra::transpose_matvec(A,nhat,tempvec);
-  for (int k = 0; k<3; k++) {
+  MathExtra::transpose_matvec(A, nhat, tempvec);
+  for (int k = 0; k < 3; k++) {
     tempvec[k] *= shape[k];
-    sigman2 += tempvec[k]*tempvec[k];
+    sigman2 += tempvec[k] * tempvec[k];
     SAn[k] = tempvec[k];
   }
 
@@ -337,14 +336,14 @@ void FixWallRegionEES::ees(int m, int i)
   sigman5 = sigman4 * sigman;
   sigman6 = sigman3 * sigman3;
 
-  delta2 = delta  * delta;
+  delta2 = delta * delta;
   delta3 = delta2 * delta;
   delta4 = delta2 * delta2;
   delta5 = delta3 * delta2;
   delta6 = delta3 * delta3;
 
   hhss = delta2 - sigman2;
-  hhss2 = hhss  * hhss;
+  hhss2 = hhss * hhss;
   hhss4 = hhss2 * hhss2;
   hhss8 = hhss4 * hhss4;
   hhss7 = hhss4 * hhss2 * hhss;
@@ -352,31 +351,31 @@ void FixWallRegionEES::ees(int m, int i)
   hps = delta + sigman;
   hms = delta - sigman;
 
-  fwall =  -1*coeff4/hhss2 + coeff3
-    * (21*delta6 + 63*delta4*sigman2 + 27*delta2*sigman4 + sigman6) / hhss8;
+  fwall = -1 * coeff4 / hhss2 +
+      coeff3 * (21 * delta6 + 63 * delta4 * sigman2 + 27 * delta2 * sigman4 + sigman6) / hhss8;
 
-  eng = -1*coeff2 * (4*delta/sigman2/hhss + 2*log(hms/hps)/sigman3) +
-    coeff1 * (35*delta5 + 70*delta3*sigman2 + 15*delta*sigman4) / hhss7;
+  eng = -1 * coeff2 * (4 * delta / sigman2 / hhss + 2 * log(hms / hps) / sigman3) +
+      coeff1 * (35 * delta5 + 70 * delta3 * sigman2 + 15 * delta * sigman4) / hhss7;
 
-  twall = coeff6 * (6*delta3/sigman4/hhss2 - 10*delta/sigman2/hhss2
-                    + 3*log(hms/hps)/sigman5)
-    + coeff5 * (21.*delta5 + 30.*delta3*sigman2 + 5.*delta*sigman4) / hhss8;
+  twall = coeff6 *
+          (6 * delta3 / sigman4 / hhss2 - 10 * delta / sigman2 / hhss2 +
+           3 * log(hms / hps) / sigman5) +
+      coeff5 * (21. * delta5 + 30. * delta3 * sigman2 + 5. * delta * sigman4) / hhss8;
 
-  MathExtra::matvec(Lx,nhat,tempvec);
-  MathExtra::transpose_matvec(A,tempvec,tempvec2);
-  for (int k = 0; k<3; k++) tempvec2[k] *= shape[k];
-  that[0] = MathExtra::dot3(SAn,tempvec2);
-
-  MathExtra::matvec(Ly,nhat,tempvec);
-  MathExtra::transpose_matvec(A,tempvec,tempvec2);
-  for (int k = 0; k<3; k++) tempvec2[k] *= shape[k];
-  that[1] = MathExtra::dot3(SAn,tempvec2);
-
-  MathExtra::matvec(Lz,nhat,tempvec);
-  MathExtra::transpose_matvec(A,tempvec,tempvec2);
+  MathExtra::matvec(Lx, nhat, tempvec);
+  MathExtra::transpose_matvec(A, tempvec, tempvec2);
   for (int k = 0; k < 3; k++) tempvec2[k] *= shape[k];
-  that[2] = MathExtra::dot3(SAn,tempvec2);
+  that[0] = MathExtra::dot3(SAn, tempvec2);
 
-  for (int j = 0; j<3 ; j++)
-    torque[j] = twall * that[j];
+  MathExtra::matvec(Ly, nhat, tempvec);
+  MathExtra::transpose_matvec(A, tempvec, tempvec2);
+  for (int k = 0; k < 3; k++) tempvec2[k] *= shape[k];
+  that[1] = MathExtra::dot3(SAn, tempvec2);
+
+  MathExtra::matvec(Lz, nhat, tempvec);
+  MathExtra::transpose_matvec(A, tempvec, tempvec2);
+  for (int k = 0; k < 3; k++) tempvec2[k] *= shape[k];
+  that[2] = MathExtra::dot3(SAn, tempvec2);
+
+  for (int j = 0; j < 3; j++) torque[j] = twall * that[j];
 }

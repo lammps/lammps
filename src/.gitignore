@@ -1,6 +1,7 @@
 /Makefile.package
 /Makefile.package.settings
 /MAKE/MINE
+/ADIOS/Makefile.lammps
 /Make.py.last
 /lmp_*
 
@@ -253,6 +254,21 @@
 /pair_mesont_tpm.cpp
 /pair_mesont_tpm.h
 
+/atom_vec_bpm_sphere.cpp
+/atom_vec_bpm_sphere.h
+/bond_bpm.cpp
+/bond_bpm.h
+/bond_bpm_rotational.cpp
+/bond_bpm_rotational.h
+/bond_bpm_spring.cpp
+/bond_bpm_spring.h
+/compute_nbond_atom.cpp
+/compute_nbond_atom.h
+/fix_nve_bpm_sphere.cpp
+/fix_nve_bpm_sphere.h
+/pair_bpm_spring.cpp
+/pair_bpm_spring.h
+
 /compute_adf.cpp
 /compute_adf.h
 /compute_contact_atom.cpp
@@ -267,6 +283,8 @@
 /fix_drag.h
 /fix_numdiff.cpp
 /fix_numdiff.h
+/fix_numdiff_virial.cpp
+/fix_numdiff_virial.h
 /fix_spring_rg.cpp
 /fix_spring_rg.h
 /fix_temp_csld.cpp
@@ -435,6 +453,8 @@
 /compute_basal_atom.h
 /compute_body_local.cpp
 /compute_body_local.h
+/compute_born_matrix.cpp
+/compute_born_matrix.h
 /compute_cnp_atom.cpp
 /compute_cnp_atom.h
 /compute_damage_atom.cpp
@@ -457,6 +477,8 @@
 /compute_fabric.h
 /compute_fep.cpp
 /compute_fep.h
+/compute_fep_ta.cpp
+/compute_fep_ta.h
 /compute_force_tally.cpp
 /compute_force_tally.h
 /compute_gyration_shape.cpp
@@ -489,8 +511,6 @@
 /compute_plasticity_atom.h
 /compute_pressure_bocs.cpp
 /compute_pressure_bocs.h
-/compute_pressure_cylinder.cpp
-/compute_pressure_cylinder.h
 /compute_pressure_grem.cpp
 /compute_pressure_grem.h
 /compute_ptm_atom.cpp
@@ -501,10 +521,16 @@
 /compute_smd_triangle_vertices.h
 /compute_spec_atom.cpp
 /compute_spec_atom.h
+/compute_stress_cartesian.cpp
+/compute_stress_cartesian.h
+/compute_stress_cylinder.cpp
+/compute_stress_cylinder.h
 /compute_stress_mop.cpp
 /compute_stress_mop.h
 /compute_stress_mop_profile.cpp
 /compute_stress_mop_profile.h
+/compute_stress_spherical.cpp
+/compute_stress_spherical.h
 /compute_stress_tally.cpp
 /compute_stress_tally.h
 /compute_temp_asphere.cpp
@@ -593,12 +619,15 @@
 /dump_xyz_mpiio.h
 /dump_xyz_zstd.cpp
 /dump_xyz_zstd.h
+/dump_yaml.cpp
+/dump_yaml.h
 /dynamical_matrix.cpp
 /dynamical_matrix.h
 /ewald.cpp
 /ewald.h
 /ewald_cg.cpp
 /ewald_cg.h
+/ewald_const.h
 /ewald_dipole.cpp
 /ewald_dipole.h
 /ewald_dipole_spin.cpp
@@ -781,8 +810,6 @@
 /fix_orient_eco.h
 /fix_orient_fcc.cpp
 /fix_orient_fcc.h
-/fix_pair_tracker.cpp
-/fix_pair_tracker.h
 /fix_peri_neigh.cpp
 /fix_peri_neigh.h
 /fix_phonon.cpp
@@ -930,6 +957,8 @@
 /msm_cg.h
 /neb.cpp
 /neb.h
+/netcdf_units.cpp
+/netcdf_units.h
 /pair_adp.cpp
 /pair_adp.h
 /pair_agni.cpp
@@ -1065,6 +1094,12 @@
 /pair_hdnnp.h
 /pair_ilp_graphene_hbn.cpp
 /pair_ilp_graphene_hbn.h
+/pair_ilp_graphene_hbn_opt.cpp
+/pair_ilp_graphene_hbn_opt.h
+/pair_ilp_tmd.cpp
+/pair_ilp_tmd.h
+/pair_ilp_tmd_opt.cpp
+/pair_ilp_tmd_opt.h
 /pair_kolmogorov_crespi_full.cpp
 /pair_kolmogorov_crespi_full.h
 /pair_kolmogorov_crespi_z.cpp
@@ -1171,8 +1206,8 @@
 /pair_nm_cut_coul_cut.h
 /pair_nm_cut_coul_long.cpp
 /pair_nm_cut_coul_long.h
-/pait_nm_cut_split.cpp
-/pait_nm_cut_split.h
+/pair_nm_cut_split.cpp
+/pair_nm_cut_split.h
 /pair_oxdna_*.cpp
 /pair_oxdna_*.h
 /pair_oxdna2_*.cpp
@@ -1198,6 +1233,10 @@
 /pair_rebo.h
 /pair_resquared.cpp
 /pair_resquared.h
+/pair_saip_metal.cpp
+/pair_saip_metal.h
+/pair_saip_metal_opt.cpp
+/pair_saip_metal_opt.h
 /pair_sdpd_taitwater_isothermal.cpp
 /pair_sdpd_taitwater_isothermal.h
 /pair_sph_heatconduction.cpp
@@ -1503,7 +1542,12 @@
 /pair_mgpt.h
 /pair_morse_smooth_linear.cpp
 /pair_morse_smooth_linear.h
+/pair_smatb.cpp
+/pair_smatb.h
+/pair_smatb_single.cpp
+/pair_smatb_single.h
 /pair_smtbq.cpp
 /pair_smtbq.h
 /pair_vashishta*.cpp
 /pair_vashishta*.h
+

@@ -232,6 +232,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 #endif
   neigh_thread = 0;
   neigh_thread_set = 0;
+  neigh_transpose = 0;
   if (ngpus > 0) {
     neighflag = FULL;
     neighflag_qeq = FULL;
@@ -480,6 +481,10 @@ void KokkosLMP::accelerator(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       neigh_thread = utils::logical(FLERR,arg[iarg+1],false,lmp);
       neigh_thread_set = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"neigh/transpose") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      neigh_transpose = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal package kokkos command");
   }

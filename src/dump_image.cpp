@@ -40,7 +40,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::DEG2RAD;
 
 #define BIG 1.0e20
 
@@ -228,18 +228,15 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       if (utils::strmatch(arg[iarg+1],"^v_")) {
         thetastr = utils::strdup(arg[iarg+1]+2);
       } else {
-        double theta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        const double theta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         if (theta < 0.0 || theta > 180.0)
           error->all(FLERR,"Invalid dump image theta value");
-        theta *= MY_PI/180.0;
-        image->theta = theta;
+        image->theta = DEG2RAD * theta;
       }
       if (utils::strmatch(arg[iarg+2],"^v_")) {
         phistr = utils::strdup(arg[iarg+2]+2);
       } else {
-        double phi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-        phi *= MY_PI/180.0;
-        image->phi = phi;
+        image->phi = DEG2RAD * utils::numeric(FLERR,arg[iarg+2],false,lmp);
       }
       iarg += 3;
 
@@ -335,17 +332,17 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   // error checks and setup for lineflag, triflag, bodyflag, fixflag
 
   if (lineflag) {
-    avec_line = (AtomVecLine *) atom->style_match("line");
+    avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
     if (!avec_line)
       error->all(FLERR,"Dump image line requires atom style line");
   }
   if (triflag) {
-    avec_tri = (AtomVecTri *) atom->style_match("tri");
+    avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
     if (!avec_tri)
       error->all(FLERR,"Dump image tri requires atom style tri");
   }
   if (bodyflag) {
-    avec_body = (AtomVecBody *) atom->style_match("body");
+    avec_body = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
     if (!avec_body)
       error->all(FLERR,"Dump image body yes requires atom style body");
   }
@@ -354,9 +351,9 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   if (lineflag || triflag || bodyflag) extraflag = 1;
 
   if (fixflag) {
-    int ifix = modify->find_fix(fixID);
-    if (ifix < 0) error->all(FLERR,"Fix ID for dump image does not exist");
-    fixptr = modify->fix[ifix];
+    fixptr = modify->get_fix_by_id(fixID);
+    if (!fixptr) error->all(FLERR,"Fix ID {} for dump image does not exist", fixID);
+
   }
 
   // allocate image buffer now that image size is known
@@ -652,18 +649,13 @@ void DumpImage::view_params()
   // view direction theta and phi
 
   if (thetastr) {
-    double theta = input->variable->compute_equal(thetavar);
+    const double theta = input->variable->compute_equal(thetavar);
     if (theta < 0.0 || theta > 180.0)
       error->all(FLERR,"Invalid dump image theta value");
-    theta *= MY_PI/180.0;
-    image->theta = theta;
+    image->theta = DEG2RAD * theta;
   }
 
-  if (phistr) {
-    double phi = input->variable->compute_equal(phivar);
-    phi *= MY_PI/180.0;
-    image->phi = phi;
-  }
+  if (phistr) image->phi = DEG2RAD * input->variable->compute_equal(phivar);
 
   // up vector
 

@@ -25,7 +25,6 @@
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "respa.h"
 #include "update.h"
@@ -200,18 +199,13 @@ int FixOrientFCC::setmask()
 void FixOrientFCC::init()
 {
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
+    ilevel_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
 
-  // need a full neighbor list
-  // perpetual list, built whenever re-neighboring occurs
+  // need a full perpetual neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this,NeighConst::REQ_FULL);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -228,9 +222,9 @@ void FixOrientFCC::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
+    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(ilevel_respa);
     post_force_respa(vflag,ilevel_respa,0);
-    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
+    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(ilevel_respa);
   }
 }
 
@@ -570,8 +564,8 @@ void FixOrientFCC::find_best_ref(double *displs, int which_crystal,
 
 int FixOrientFCC::compare(const void *pi, const void *pj)
 {
-  FixOrientFCC::Sort *ineigh = (FixOrientFCC::Sort *) pi;
-  FixOrientFCC::Sort *jneigh = (FixOrientFCC::Sort *) pj;
+  auto ineigh = (FixOrientFCC::Sort *) pi;
+  auto jneigh = (FixOrientFCC::Sort *) pj;
 
   if (ineigh->rsq < jneigh->rsq) return -1;
   else if (ineigh->rsq > jneigh->rsq) return 1;

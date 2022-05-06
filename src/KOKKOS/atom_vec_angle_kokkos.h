@@ -152,15 +152,3 @@ class AtomVecAngleKokkos : public AtomVecKokkos {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Per-processor system is too big
-
-The number of owned atoms plus ghost atoms on a single
-processor must fit in 32-bit integer.
-
-E: Invalid atom type in Atoms section of data file
-
-Atom types must range from 1 to specified # of types.
-
-*/

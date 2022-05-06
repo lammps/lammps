@@ -486,14 +486,14 @@ The following options are available.
    make fix-whitespace      # correct whitespace issues in files
    make check-homepage      # search for files with old LAMMPS homepage URLs
    make fix-homepage        # correct LAMMPS homepage URLs in files
+   make check-errordocs     # search for deprecated error docs in header files
+   make fix-errordocs       # remove error docs in header files
    make check-permissions   # search for files with permissions issues
    make fix-permissions     # correct permissions issues in files
+   make check               # run all check targets from above
 
-These should help to replace all TAB characters with blanks and remove
-any trailing whitespace.  Also all LAMMPS homepage URL references can be
-updated to the location change from Sandia to the lammps.org domain.
-And the permission check can remove executable permissions from non-executable
-files (like source code).
+These should help to make source and documentation files conforming
+to some the coding style preferences of the LAMMPS developers.
 
 Clang-format support
 --------------------

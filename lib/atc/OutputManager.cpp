@@ -172,7 +172,7 @@ void OutputManager::read_restart_file(string fileName, RESTART_LIST *data)
 //-----------------------------------------------------------------------------
 //*
 //-----------------------------------------------------------------------------
-void OutputManager::write_globals(void)
+void OutputManager::write_globals()
 {
   if ( outputPrefix_ == "NULL") return;
   string file = outputPrefix_ + ".GLOBALS";
@@ -224,7 +224,7 @@ void OutputManager::write_geometry(const MATRIX *coordinates,
 //-----------------------------------------------------------------------------
 //*
 //-----------------------------------------------------------------------------
-void OutputManager::write_geometry_ensight(void)
+void OutputManager::write_geometry_ensight()
 {
   // geometry based on a reference configuration
   string geom_file_name = outputPrefix_ + ".geo";
@@ -327,7 +327,7 @@ void OutputManager::write_geometry_ensight(void)
 //-----------------------------------------------------------------------------
 //*
 //-----------------------------------------------------------------------------
-void OutputManager::write_geometry_text(void)
+void OutputManager::write_geometry_text()
 {
   if ( outputPrefix_ == "NULL") return;
   // geometry based on a reference configuration

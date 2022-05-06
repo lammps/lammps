@@ -76,6 +76,8 @@ PairADP::PairADP(LAMMPS *lmp) : Pair(lmp)
 
 PairADP::~PairADP()
 {
+  if (copymode) return;
+
   memory->destroy(rho);
   memory->destroy(fp);
   memory->destroy(mu);
@@ -512,7 +514,7 @@ void PairADP::init_style()
   file2array();
   array2spline();
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

@@ -162,7 +162,7 @@ void ComputeCentroidStressAtom::init()
   if (id_temp) {
     temperature = modify->get_compute_by_id(id_temp);
     if (!temperature)
-      error->all(FLERR, "Could not find compute centroid/stress/atom temperature ID {}",id_temp);
+      error->all(FLERR, "Could not find compute centroid/stress/atom temperature ID {}", id_temp);
     if (temperature->tempbias)
       biasflag = BIAS;
     else
@@ -194,10 +194,9 @@ void ComputeCentroidStressAtom::init()
       error->all(FLERR, "KSpace style does not support compute centroid/stress/atom");
 
   if (fixflag) {
-    for (int ifix = 0; ifix < modify->nfix; ifix++)
-      if (modify->fix[ifix]->virial_peratom_flag &&
-          modify->fix[ifix]->centroidstressflag == CENTROID_NOTAVAIL)
-        error->all(FLERR, "Fix style does not support compute centroid/stress/atom");
+    for (auto &ifix : modify->get_fix_list())
+      if (ifix->virial_peratom_flag && (ifix->centroidstressflag == CENTROID_NOTAVAIL))
+        error->all(FLERR, "Fix {} does not support compute centroid/stress/atom", ifix->style);
   }
 }
 
@@ -308,17 +307,15 @@ void ComputeCentroidStressAtom::compute_peratom()
   // fix styles are CENTROID_SAME, CENTROID_AVAIL or CENTROID_NOTAVAIL
 
   if (fixflag) {
-    Fix **fix = modify->fix;
-    int nfix = modify->nfix;
-    for (int ifix = 0; ifix < nfix; ifix++)
-      if (fix[ifix]->virial_peratom_flag && fix[ifix]->thermo_virial) {
-        if (modify->fix[ifix]->centroidstressflag == CENTROID_AVAIL) {
-          double **cvatom = modify->fix[ifix]->cvatom;
+    for (auto &ifix : modify->get_fix_list())
+      if (ifix->virial_peratom_flag && ifix->thermo_virial) {
+        if (ifix->centroidstressflag == CENTROID_AVAIL) {
+          double **cvatom = ifix->cvatom;
           if (cvatom)
             for (i = 0; i < nlocal; i++)
               for (j = 0; j < 9; j++) stress[i][j] += cvatom[i][j];
         } else {
-          double **vatom = modify->fix[ifix]->vatom;
+          double **vatom = ifix->vatom;
           if (vatom)
             for (i = 0; i < nlocal; i++) {
               for (j = 0; j < 6; j++) stress[i][j] += vatom[i][j];

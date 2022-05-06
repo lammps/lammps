@@ -60,7 +60,7 @@ class BondFENEIntel : public BondFENE {
     } fc_packed1;
     fc_packed1 *fc;
 
-    ForceConst() : _nbondtypes(0) {}
+    ForceConst() : fc(nullptr), _nbondtypes(0) {}
     ~ForceConst() { set_ntypes(0, nullptr); }
 
     void set_ntypes(const int nbondtypes, Memory *memory);
@@ -77,11 +77,3 @@ class BondFENEIntel : public BondFENE {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args for bond coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

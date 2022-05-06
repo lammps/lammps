@@ -301,7 +301,7 @@ void ComputeXRD::compute_array()
 
   double t0 = platform::walltime();
 
-  double *Fvec = new double[2*size_array_rows]; // Strct factor (real & imaginary)
+  auto Fvec = new double[2*size_array_rows]; // Strct factor (real & imaginary)
   // -- Note: array rows correspond to different RELP
 
   ntypes = atom->ntypes;
@@ -317,7 +317,7 @@ void ComputeXRD::compute_array()
     }
   }
 
-  double *xlocal = new double [3*nlocalgroup];
+  auto xlocal = new double [3*nlocalgroup];
   int *typelocal = new int [nlocalgroup];
 
   nlocalgroup = 0;
@@ -350,7 +350,7 @@ void ComputeXRD::compute_array()
 #pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(typelocal,xlocal,Fvec,m,frac,ASFXRD)
 #endif
   {
-    double *f = new double[ntypes];    // atomic structure factor by type
+    auto f = new double[ntypes];    // atomic structure factor by type
     int n,typei = 0;
 
     double Fatom1 = 0.0;               // structure factor per atom (real)
@@ -486,7 +486,7 @@ void ComputeXRD::compute_array()
     delete [] f;
   } // End of pragma omp parallel region
 
-  double *scratch = new double[2*size_array_rows];
+  auto scratch = new double[2*size_array_rows];
 
   // Sum intensity for each ang-hkl combination across processors
   MPI_Allreduce(Fvec,scratch,2*size_array_rows,MPI_DOUBLE,MPI_SUM,world);

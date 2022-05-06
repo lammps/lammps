@@ -1898,7 +1898,6 @@ void PPPMKokkos<DeviceType>::poisson_ik_triclinic()
   numz_fft = nzhi_fft-nzlo_fft + 1;
   numy_fft = nyhi_fft-nylo_fft + 1;
   numx_fft = nxhi_fft-nxlo_fft + 1;
-  const int inum_fft = numz_fft*numy_fft*numx_fft;
 
   numz_inout = (nzhi_in-nzlo_out)-(nzlo_in-nzlo_out) + 1;
   numy_inout = (nyhi_in-nylo_out)-(nylo_in-nylo_out) + 1;

@@ -33,7 +33,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
 #include "fix_acks2_reaxff.h"
@@ -263,6 +262,12 @@ void PairReaxFF::settings(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reaxff command");
       list_blocking_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"tabulate") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reaxff command");
+      api->control->tabulate = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      if (api->control->tabulate < 0)
+        error->all(FLERR,"Illegal pair_style reaxff tabulate command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal pair_style reaxff command");
   }
 }
@@ -346,7 +351,7 @@ void PairReaxFF::init_style()
 
   api->system->acks2_flag = acks2_fixes.size();
   if (api->system->acks2_flag)
-    api->workspace->s = ((FixACKS2ReaxFF *)acks2_fixes.front())->get_s();
+    api->workspace->s = (dynamic_cast<FixACKS2ReaxFF *>(acks2_fixes.front()))->get_s();
 
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
@@ -360,9 +365,7 @@ void PairReaxFF::init_style()
   // need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->newton = 2;
-  neighbor->requests[irequest]->ghost = 1;
+  neighbor->add_request(this, NeighConst::REQ_GHOST | NeighConst::REQ_NEWTON_OFF);
 
   cutmax = MAX3(api->control->nonb_cut, api->control->hbond_cut, api->control->bond_cut);
   if ((cutmax < 2.0*api->control->bond_cut) && (comm->me == 0))
@@ -370,7 +373,7 @@ void PairReaxFF::init_style()
                    "increased neighbor list skin.");
 
   if (fix_reaxff == nullptr)
-    fix_reaxff = (FixReaxFF *) modify->add_fix(fmt::format("{} all REAXFF",fix_id));
+    fix_reaxff = dynamic_cast<FixReaxFF *>( modify->add_fix(fmt::format("{} all REAXFF",fix_id)));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -464,7 +467,7 @@ void PairReaxFF::compute(int eflag, int vflag)
 
   if (api->system->acks2_flag) {
     auto ifix = modify->get_fix_by_style("^acks2/reax").front();
-    api->workspace->s = ((FixACKS2ReaxFF*) ifix)->get_s();
+    api->workspace->s = (dynamic_cast<FixACKS2ReaxFF*>( ifix))->get_s();
   }
 
   // setup data structures

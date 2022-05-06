@@ -98,7 +98,3 @@ class Irregular : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

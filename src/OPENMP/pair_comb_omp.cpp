@@ -384,7 +384,6 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
 
 double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
 {
-  int ii;
   double potal,fac11,fac11e;
 
   const double * const * const x = atom->x;
@@ -401,7 +400,7 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
   const int groupbit = group->bitmask[igroup];
 
   qf = qf_fix;
-  for (ii = 0; ii < inum; ii++) {
+  for (int ii = 0; ii < inum; ii++) {
     const int i = ilist[ii];
     if (mask[i] & groupbit)
       qf[i] = 0.0;
@@ -417,9 +416,9 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
 
   // loop over full neighbor list of my atoms
 #if defined(_OPENMP)
-#pragma omp parallel for private(ii) LMP_DEFAULT_NONE LMP_SHARED(potal,fac11e)
+#pragma omp parallel for LMP_DEFAULT_NONE LMP_SHARED(potal,fac11e)
 #endif
-  for (ii = 0; ii < inum; ii ++) {
+  for (int ii = 0; ii < inum; ii ++) {
     double fqi,fqij,fqji,fqjj,delr1[3];
     double sr1,sr2,sr3;
     int mr1,mr2,mr3;
@@ -533,7 +532,7 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
   // sum charge force on each node and return it
 
   double eneg = 0.0;
-  for (ii = 0; ii < inum; ii++) {
+  for (int ii = 0; ii < inum; ii++) {
     const int i = ilist[ii];
     if (mask[i] & groupbit)
       eneg += qf[i];

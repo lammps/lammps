@@ -32,7 +32,7 @@ class AtomVecMDPD : public AtomVec {
   void grow_pointers() override;
   void force_clear(int, size_t) override;
   void data_atom_post(int) override;
-  int property_atom(char *) override;
+  int property_atom(const std::string &) override;
   void pack_property_atom(int, double *, int, int) override;
 
  private:

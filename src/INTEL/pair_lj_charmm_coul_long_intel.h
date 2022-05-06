@@ -91,16 +91,3 @@ class PairLJCharmmCoulLongIntel : public PairLJCharmmCoulLong {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: The 'package intel' command is required for /intel styles
-
-Self-explanatory.
-
-E: Intel variant of lj/charmm/coul/long expects lj cutoff<=coulombic
-
-The intel accelerated version of the CHARMM style requires that the
-Lennard-Jones cutoff is not greater than the coulombic cutoff.
-
-*/

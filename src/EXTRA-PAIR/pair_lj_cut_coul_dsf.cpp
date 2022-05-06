@@ -19,17 +19,17 @@
 
 #include "pair_lj_cut_coul_dsf.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "math_const.h"
 #include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -273,7 +273,7 @@ void PairLJCutCoulDSF::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/cut/coul/dsf requires atom attribute q");
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 
   cut_coulsq = cut_coul * cut_coul;
   double erfcc = erfc(alpha*cut_coul);

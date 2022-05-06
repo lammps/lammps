@@ -13,7 +13,6 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_snap.h"
-#include <cstring>
 
 #include "sna.h"
 #include "atom.h"
@@ -21,12 +20,13 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "force.h"
 #include "pair.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -35,7 +35,7 @@ enum{SCALAR,VECTOR,ARRAY};
 ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), snap(nullptr),
   snapall(nullptr), snap_peratom(nullptr), radelem(nullptr), wjelem(nullptr),
-  snaptr(nullptr)
+  sinnerelem(nullptr), dinnerelem(nullptr), snaptr(nullptr)
 {
 
   array_flag = 1;
@@ -43,8 +43,6 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
 
   double rfac0, rmin0;
   int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
-  radelem = nullptr;
-  wjelem = nullptr;
 
   int ntypes = atom->ntypes;
   int nargmin = 6+2*ntypes;
@@ -61,6 +59,7 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   chemflag = 0;
   bnormflag = 0;
   wselfallflag = 0;
+  switchinnerflag = 0;
   nelements = 1;
 
   // process required arguments
@@ -90,6 +89,11 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
+  // set local input checks
+
+  int sinnerflag = 0;
+  int dinnerflag = 0;
+
   // process optional args
 
   int iarg = nargmin;
@@ -116,7 +120,7 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
       quadraticflag = atoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"chem") == 0) {
-      if (iarg+2 > narg)
+      if (iarg+2+ntypes > narg)
         error->all(FLERR,"Illegal compute snap command");
       chemflag = 1;
       memory->create(map,ntypes+1,"compute_snap:map");
@@ -143,12 +147,42 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute snap command");
       bikflag = atoi(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"switchinnerflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute snap command");
+      switchinnerflag = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"sinner") == 0) {
+      iarg++;
+      if (iarg+ntypes > narg)
+        error->all(FLERR,"Illegal compute snap command");
+      memory->create(sinnerelem,ntypes+1,"snap:sinnerelem");
+      for (int i = 0; i < ntypes; i++)
+        sinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+      sinnerflag = 1;
+      iarg += ntypes;
+    } else if (strcmp(arg[iarg],"dinner") == 0) {
+      iarg++;
+      if (iarg+ntypes > narg)
+        error->all(FLERR,"Illegal compute snap command");
+      memory->create(dinnerelem,ntypes+1,"snap:dinnerelem");
+      for (int i = 0; i < ntypes; i++)
+        dinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+      dinnerflag = 1;
+      iarg += ntypes;
     } else error->all(FLERR,"Illegal compute snap command");
   }
 
+  if (switchinnerflag && !(sinnerflag && dinnerflag))
+    error->all(FLERR,"Illegal compute snap command: switchinnerflag = 1, missing sinner/dinner keyword");
+
+  if (!switchinnerflag && (sinnerflag || dinnerflag))
+    error->all(FLERR,"Illegal compute snap command: switchinnerflag = 0, unexpected sinner/dinner keyword");
+
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
-                   chemflag, bnormflag, wselfallflag, nelements);
+                   chemflag, bnormflag, wselfallflag,
+                   nelements, switchinnerflag);
 
   ncoeff = snaptr->ncoeff;
   nperdim = ncoeff;
@@ -183,6 +217,11 @@ ComputeSnap::~ComputeSnap()
   delete snaptr;
 
   if (chemflag) memory->destroy(map);
+
+  if (switchinnerflag) {
+    memory->destroy(sinnerelem);
+    memory->destroy(dinnerelem);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -197,17 +236,9 @@ void ComputeSnap::init()
 
   // need an occasional full neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"snap") == 0) count++;
-  if (count > 1 && comm->me == 0)
+  if (modify->get_compute_by_style("snap").size() > 1 && comm->me == 0)
     error->warning(FLERR,"More than one compute snap");
   snaptr->init();
 
@@ -342,7 +373,11 @@ void ComputeSnap::compute_array()
           snaptr->inside[ninside] = j;
           snaptr->wj[ninside] = wjelem[jtype];
           snaptr->rcutij[ninside] = (radi+radelem[jtype])*rcutfac;
-          snaptr->element[ninside] = jelem; // element index for multi-element snap
+          if (switchinnerflag) {
+            snaptr->sinnerij[ninside] = 0.5*(sinnerelem[itype]+sinnerelem[jtype]);
+            snaptr->dinnerij[ninside] = 0.5*(dinnerelem[itype]+dinnerelem[jtype]);
+          }
+          if (chemflag) snaptr->element[ninside] = jelem;
           ninside++;
         }
       }
@@ -353,8 +388,7 @@ void ComputeSnap::compute_array()
 
       for (int jj = 0; jj < ninside; jj++) {
         const int j = snaptr->inside[jj];
-        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-                                    snaptr->rcutij[jj], jj, snaptr->element[jj]);
+        snaptr->compute_duidrj(jj);
         snaptr->compute_dbidrj();
 
         // Accumulate dBi/dRi, -dBi/dRj

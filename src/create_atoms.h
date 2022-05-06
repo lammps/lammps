@@ -32,6 +32,10 @@ class CreateAtoms : public Command {
  private:
   int ntype, style, mode, nbasis, nrandom, seed;
   int remapflag;
+  int maxtry;
+  int quat_user;
+  int overlapflag;
+  double overlap;
   int subsetflag;
   bigint nsubset;
   double subsetfrac;
@@ -63,7 +67,7 @@ class CreateAtoms : public Command {
   void add_mesh(const char *, double);
   void add_lattice();
   void loop_lattice(int);
-  void add_molecule(double *, double * = nullptr);
+  void add_molecule(double *);
   int vartest(double *);    // evaluate a variable with new atom position
 };
 

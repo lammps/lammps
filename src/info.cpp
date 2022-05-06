@@ -40,7 +40,6 @@
 #include "pair.h"
 #include "pair_hybrid.h"
 #include "region.h"
-#include "text_file_reader.h"
 #include "update.h"
 #include "variable.h"
 #include "fmt/chrono.h"
@@ -49,7 +48,6 @@
 #include <cmath>
 #include <cstring>
 #include <ctime>
-#include <exception>
 #include <map>
 
 #ifdef _WIN32
@@ -62,7 +60,6 @@
 #include <psapi.h>
 #else
 #include <sys/resource.h>
-#include <sys/utsname.h>
 #endif
 
 #if defined(__linux__)
@@ -278,9 +275,9 @@ void Info::command(int narg, char **arg)
     fmt::print(out,"\nLAMMPS version: {} / {}\n",
                lmp->version, lmp->num_ver);
 
-    if (lmp->has_git_info)
+    if (lmp->has_git_info())
       fmt::print(out,"Git info: {} / {} / {}\n",
-                 lmp->git_branch, lmp->git_descriptor,lmp->git_commit);
+                 lmp->git_branch(), lmp->git_descriptor(),lmp->git_commit());
 
     fmt::print(out,"\nOS information: {}\n\n",platform::os_info());
 
@@ -417,7 +414,7 @@ void Info::command(int narg, char **arg)
                atom->natoms, atom->ntypes, force->pair_style);
 
     if (force->pair && utils::strmatch(force->pair_style,"^hybrid")) {
-      PairHybrid *hybrid = (PairHybrid *)force->pair;
+      auto hybrid = dynamic_cast<PairHybrid *>(force->pair);
       fmt::print(out,"Hybrid sub-styles:");
       for (int i=0; i < hybrid->nstyles; ++i)
         fmt::print(out," {}", hybrid->keywords[i]);
@@ -549,34 +546,29 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & REGIONS) {
-    int nreg = domain->nregion;
-    Region **regs = domain->regions;
     fputs("\nRegion information:\n",out);
-    for (int i=0; i < nreg; ++i) {
+    int i=0;
+    for (auto &reg : domain->get_region_list()) {
       fmt::print(out,"Region[{:3d}]:  {:16}  style = {:16}  side = {}\n",
-                 i, std::string(regs[i]->id)+',',
-                 std::string(regs[i]->style)+',',
-                 regs[i]->interior ? "in" : "out");
-      if (regs[i]->bboxflag)
+                 i, std::string(reg->id)+',', std::string(reg->style)+',',
+                 reg->interior ? "in" : "out");
+      if (reg->bboxflag)
         fmt::print(out,"   Boundary:  lo {:.8} {:.8} {:.8}  hi {:.8} {:.8} {:.8}\n",
-                   regs[i]->extent_xlo, regs[i]->extent_ylo,
-                   regs[i]->extent_zlo, regs[i]->extent_xhi,
-                   regs[i]->extent_yhi, regs[i]->extent_zhi);
+                   reg->extent_xlo, reg->extent_ylo,
+                   reg->extent_zlo, reg->extent_xhi,
+                   reg->extent_yhi, reg->extent_zhi);
       else fputs("   No Boundary\n",out);
     }
   }
 
   if (flags & COMPUTES) {
-    int ncompute = modify->ncompute;
-    Compute **compute = modify->compute;
+    int i = 0;
     char **names = group->names;
     fputs("\nCompute information:\n",out);
-    for (int i=0; i < ncompute; ++i) {
-      fmt::print(out,"Compute[{:3d}]:  {:16}  style = {:16}  group = {}\n",
-                 i, std::string(compute[i]->id)+',',
-                 std::string(compute[i]->style)+',',
-                 names[compute[i]->igroup]);
-    }
+    for (const auto &compute : modify->get_compute_list())
+      fmt::print(out,"Compute[{:3d}]:  {:16}  style = {:16}  group = {}\n", i++,
+                 std::string(compute->id)+',',std::string(compute->style)+',',
+                 names[compute->igroup]);
   }
 
   if (flags & DUMPS) {
@@ -588,10 +580,8 @@ void Info::command(int narg, char **arg)
     fputs("\nDump information:\n",out);
     for (int i=0; i < ndump; ++i) {
       fmt::print(out,"Dump[{:3d}]:     {:16}  file = {:16}  style = {:16}  group = {:16}  ",
-                 i, std::string(dump[i]->id)+',',
-                 std::string(dump[i]->filename)+',',
-                 std::string(dump[i]->style)+',',
-                 std::string(names[dump[i]->igroup])+',');
+                 i, std::string(dump[i]->id)+',',std::string(dump[i]->filename)+',',
+                 std::string(dump[i]->style)+',',std::string(names[dump[i]->igroup])+',');
       if (nevery[i]) {
         fmt::print(out,"every = {}\n", nevery[i]);
       } else {
@@ -601,16 +591,12 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & FIXES) {
-    int nfix = modify->nfix;
-    Fix **fix = modify->fix;
+    int i = 0;
     char **names = group->names;
     fputs("\nFix information:\n",out);
-    for (int i=0; i < nfix; ++i) {
-      fmt::print(out, "Fix[{:3d}]:      {:16}  style = {:16}  group = {}\n",
-                 i,std::string(fix[i]->id)+',',
-                 std::string(fix[i]->style)+',',
-                 names[fix[i]->igroup]);
-    }
+    for (const auto &fix : modify->get_fix_list())
+      fmt::print(out, "Fix[{:3d}]:      {:16}  style = {:16}  group = {}\n",i++,
+                 std::string(fix->id)+',',std::string(fix->style)+',',names[fix->igroup]);
   }
 
   if (flags & VARIABLES) {
@@ -622,8 +608,7 @@ void Info::command(int narg, char **arg)
     for (int i=0; i < nvar; ++i) {
       int ndata = 1;
       fmt::print(out,"Variable[{:3d}]: {:16}  style = {:16}  def =",
-                 i,std::string(names[i])+',',
-                 std::string(varstyles[style[i]])+',');
+                 i,std::string(names[i])+',',std::string(varstyles[style[i]])+',');
       if (style[i] == Variable::INTERNAL) {
         fmt::print(out,"{:.8}\n",input->variable->dvalue[i]);
         continue;
@@ -798,13 +783,13 @@ bool Info::is_active(const char *category, const char *name)
 
   if (strcmp(category,"package") == 0) {
     if (strcmp(name,"gpu") == 0) {
-      return (modify->find_fix("package_gpu") >= 0) ? true : false;
+      return modify->get_fix_by_id("package_gpu") != nullptr;
     } else if (strcmp(name,"intel") == 0) {
-      return (modify->find_fix("package_intel") >= 0) ? true : false;
+      return modify->get_fix_by_id("package_intel") != nullptr;
     } else if (strcmp(name,"kokkos") == 0) {
-      return (lmp->kokkos && lmp->kokkos->kokkos_exists) ? true : false;
+      return lmp->kokkos && lmp->kokkos->kokkos_exists;
     } else if (strcmp(name,"omp") == 0) {
-      return (modify->find_fix("package_omp") >= 0) ? true : false;
+      return modify->get_fix_by_id("package_omp") != nullptr;
     } else error->all(FLERR,"Unknown name for info package category: {}", name);
 
   } else if (strcmp(category,"newton") == 0) {
@@ -917,10 +902,8 @@ bool Info::is_defined(const char *category, const char *name)
         return true;
     }
   } else if (strcmp(category,"fix") == 0) {
-    int nfix = modify->nfix;
-    Fix **fix = modify->fix;
-    for (int i=0; i < nfix; ++i) {
-      if (strcmp(fix[i]->id,name) == 0)
+    for (const auto &fix : modify->get_fix_list()) {
+      if (strcmp(fix->id,name) == 0)
         return true;
     }
   } else if (strcmp(category,"group") == 0) {
@@ -931,12 +914,8 @@ bool Info::is_defined(const char *category, const char *name)
         return true;
     }
   } else if (strcmp(category,"region") == 0) {
-    int nreg = domain->nregion;
-    Region **regs = domain->regions;
-    for (int i=0; i < nreg; ++i) {
-      if (strcmp(regs[i]->id,name) == 0)
-        return true;
-    }
+    for (auto &reg : domain->get_region_list())
+      if (strcmp(reg->id,name) == 0) return true;
   } else if (strcmp(category,"variable") == 0) {
     int nvar = input->variable->nvar;
     char **names = input->variable->names;
@@ -1024,7 +1003,7 @@ static std::vector<std::string> get_style_names(std::map<std::string, ValueType>
   std::vector<std::string> names;
 
   names.reserve(styles->size());
-  for (auto const& kv : *styles) {
+  for (auto const &kv : *styles) {
     // skip "secret" styles
     if (isupper(kv.first[0])) continue;
     names.push_back(kv.first);
@@ -1068,11 +1047,12 @@ static void print_columns(FILE *fp, std::map<std::string, ValueType> *styles)
 
   // std::map keys are already sorted
   int pos = 80;
-  for (typename std::map<std::string, ValueType>::iterator it = styles->begin(); it != styles->end(); ++it) {
+  for (auto it = styles->begin(); it != styles->end(); ++it) {
     const std::string &style_name = it->first;
 
-    // skip "secret" styles
-    if (isupper(style_name[0])) continue;
+    // skip "internal" styles
+    if (isupper(style_name[0]) || utils::strmatch(style_name,"/kk/host$")
+        || utils::strmatch(style_name,"/kk/device$")) continue;
 
     int len = style_name.length();
     if (pos + len > 80) {

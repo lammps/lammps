@@ -18,6 +18,10 @@
 
 namespace LAMMPS_NS {
 
+// forward declarations
+class NeighRequest;
+class NeighList;
+
 class Neighbor : protected Pointers {
  public:
   enum { NSQ, BIN, MULTI_OLD, MULTI };
@@ -87,9 +91,9 @@ class Neighbor : protected Pointers {
   int nrequest;        // # of requests, same as nlist
   int old_nrequest;    // # of requests for previous run
 
-  class NeighList **lists;
-  class NeighRequest **requests;        // from Pair,Fix,Compute,Command classes
-  class NeighRequest **old_requests;    // copy of requests to compare to
+  NeighList **lists;
+  NeighRequest **requests;        // from Pair,Fix,Compute,Command classes
+  NeighRequest **old_requests;    // copy of requests to compare to
 
   // data from topology neighbor lists
 
@@ -117,16 +121,31 @@ class Neighbor : protected Pointers {
   // public methods
 
   Neighbor(class LAMMPS *);
-  virtual ~Neighbor();
+  ~Neighbor() override;
   virtual void init();
+
+  // old API for creating neighbor list requests
   int request(void *, int instance = 0);
+
+  // new API for creating neighbor list requests
+  NeighRequest *add_request(class Pair *, int flags = 0);
+  NeighRequest *add_request(class Fix *, int flags = 0);
+  NeighRequest *add_request(class Compute *, int flags = 0);
+  NeighRequest *add_request(class Command *, const char *, int flags = 0);
+
+  // set neighbor list request OpenMP flag
+  void set_omp_neighbor(int);
+
+  // report if we have INTEL package neighbor lists
+  bool has_intel_request() const;
+
   int decide();                     // decide whether to build or not
   virtual int check_distance();     // check max distance moved since last build
   void setup_bins();                // setup bins based on box and cutoff
   virtual void build(int);          // build all perpetual neighbor lists
   virtual void build_topology();    // pairwise topology neighbor lists
-  void build_one(class NeighList *list, int preflag = 0);
   // create a one-time pairwise neigh list
+  void build_one(class NeighList *list, int preflag = 0);
   void set(int, char **);                     // set neighbor style and skin distance
   void reset_timestep(bigint);                // reset of timestep counter
   void modify_params(int, char **);           // modify params that control builds
@@ -134,10 +153,14 @@ class Neighbor : protected Pointers {
 
   void exclusion_group_group_delete(int, int);    // rm a group-group exclusion
   int exclude_setting();                          // return exclude value to accelerator pkg
-  class NeighRequest *find_request(void *);       // find a neighbor request
+  NeighList *find_list(void *) const;             // find a neighbor list based on requestor
+  NeighRequest *find_request(void *) const;       // find a neighbor request based on requestor
+  const std::vector<NeighRequest *> get_pair_requests() const;
   int any_full();                // Check if any old requests had full neighbor lists
   void build_collection(int);    // build peratom collection array starting at the given index
 
+  bigint get_nneigh_full();    // return number of neighbors in a regular full neighbor list
+  bigint get_nneigh_half();    // return number of neighbors in a regular half neighbor list
   double memory_usage();
 
   bigint last_setup_bins;    // step of last neighbor::setup_bins() call
@@ -231,10 +254,6 @@ class Neighbor : protected Pointers {
   int choose_stencil(class NeighRequest *);
   int choose_pair(class NeighRequest *);
 
-  template <typename T> static NBin *bin_creator(class LAMMPS *);
-  template <typename T> static NStencil *stencil_creator(class LAMMPS *);
-  template <typename T> static NPair *pair_creator(class LAMMPS *);
-
   // dummy functions provided by NeighborKokkos, called in init()
   // otherwise NeighborKokkos would have to overwrite init()
 
@@ -250,6 +269,7 @@ class Neighbor : protected Pointers {
 };
 
 namespace NeighConst {
+
   enum {
     NB_INTEL = 1 << 0,
     NB_KOKKOS_DEVICE = 1 << 1,
@@ -301,133 +321,22 @@ namespace NeighConst {
     NP_OFF2ON = 1 << 24,
     NP_MULTI_OLD = 1 << 25
   };
+
+  enum {
+    REQ_DEFAULT = 0,
+    REQ_FULL = 1 << 0,
+    REQ_GHOST = 1 << 1,
+    REQ_SIZE = 1 << 2,
+    REQ_HISTORY = 1 << 3,
+    REQ_OCCASIONAL = 1 << 4,
+    REQ_RESPA_INOUT = 1 << 5,
+    REQ_RESPA_ALL = 1 << 6,
+    REQ_NEWTON_ON = 1 << 8,
+    REQ_NEWTON_OFF = 1 << 9,
+    REQ_SSA = 1 << 10,
+  };
 }    // namespace NeighConst
 
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Neighbor delay must be 0 or multiple of every setting
-
-The delay and every parameters set via the neigh_modify command are
-inconsistent.  If the delay setting is non-zero, then it must be a
-multiple of the every setting.
-
-E: Neighbor page size must be >= 10x the one atom setting
-
-This is required to prevent wasting too much memory.
-
-E: Invalid atom type in neighbor exclusion list
-
-Atom types must range from 1 to Ntypes inclusive.
-
-W: Neighbor exclusions used with KSpace solver may give inconsistent Coulombic energies
-
-This is because excluding specific pair interactions also excludes
-them from long-range interactions which may not be the desired effect.
-The special_bonds command handles this consistently by insuring
-excluded (or weighted) 1-2, 1-3, 1-4 interactions are treated
-consistently by both the short-range pair style and the long-range
-solver.  This is not done for exclusions of charged atom pairs via the
-neigh_modify exclude command.
-
-E: Cannot request an occasional binned neighbor list with ghost info
-
-UNDOCUMENTED
-
-E: Requested neighbor bin option does not exist
-
-UNDOCUMENTED
-
-E: Requested neighbor stencil method does not exist
-
-UNDOCUMENTED
-
-E: Requested neighbor pair method does not exist
-
-UNDOCUMENTED
-
-E: Could not assign bin method to neighbor stencil
-
-UNDOCUMENTED
-
-E: Could not assign bin method to neighbor pair
-
-UNDOCUMENTED
-
-E: Could not assign stencil method to neighbor pair
-
-UNDOCUMENTED
-
-E: Neighbor include group not allowed with ghost neighbors
-
-This is a current restriction within LAMMPS.
-
-E: Too many local+ghost atoms for neighbor list
-
-The number of nlocal + nghost atoms on a processor
-is limited by the size of a 32-bit integer with 2 bits
-removed for masking 1-2, 1-3, 1-4 neighbors.
-
-E: Trying to build an occasional neighbor list before initialization completed
-
-This is not allowed.  Source code caller needs to be modified.
-
-E: Neighbor build one invoked on perpetual list
-
-UNDOCUMENTED
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Invalid group ID in neigh_modify command
-
-A group ID used in the neigh_modify command does not exist.
-
-E: Neigh_modify include group != atom_modify first group
-
-Self-explanatory.
-
-E: Neigh_modify exclude molecule requires atom attribute molecule
-
-Self-explanatory.
-
-E: Unable to find group-group exclusion
-
-UNDOCUMENTED
-
-U: Neighbor multi not yet enabled for ghost neighbors
-
-This is a current restriction within LAMMPS.
-
-U: Neighbor multi not yet enabled for granular
-
-Self-explanatory.
-
-U: Neighbor multi not yet enabled for rRESPA
-
-Self-explanatory.
-
-U: Domain too large for neighbor bins
-
-The domain has become extremely large so that neighbor bins cannot be
-used.  Most likely, one or more atoms have been blown out of the
-simulation box to a great distance.
-
-U: Cannot use neighbor bins - box size << cutoff
-
-Too many neighbor bins will be created.  This typically happens when
-the simulation box is very small in some dimension, compared to the
-neighbor cutoff.  Use the "nsq" style instead of "bin" style.
-
-U: Too many neighbor bins
-
-This is likely due to an immense simulation box that has blown up
-to a large size.
-
-*/

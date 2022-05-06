@@ -10,7 +10,7 @@ Syntax
 
    atom_style style args
 
-* style = *angle* or *atomic* or *body* or *bond* or *charge* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *molecular* or *oxdna* or *peri* or *smd* or *sph* or *sphere* or *spin* or *tdpd* or *tri* or *template* or *hybrid*
+* style = *angle* or *atomic* or *body* or *bond* or *charge* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *molecular* or *oxdna* or *peri* or *smd* or *sph* or *sphere* or *bpm/sphere* or *spin* or *tdpd* or *tri* or *template* or *hybrid*
 
   .. parsed-literal::
 
@@ -21,6 +21,7 @@ Syntax
                          see the :doc:`Howto body <Howto_body>` doc
                          page for details
          *sphere* arg = 0/1 (optional) for static/dynamic particle radii
+         *bpm/sphere* arg = 0/1 (optional) for static/dynamic particle radii
          *tdpd* arg = Nspecies
            Nspecies = # of chemical species
          *template* arg = template-ID
@@ -120,6 +121,8 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *sphere*     | diameter, mass, angular velocity                    | granular models                      |
 +--------------+-----------------------------------------------------+--------------------------------------+
+| *bpm/sphere* | diameter, mass, angular velocity, quaternion        | granular bonded particle models (BPM)|
++--------------+-----------------------------------------------------+--------------------------------------+
 | *spin*       | magnetic moment                                     | system with magnetic particles       |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *tdpd*       | chemical concentration                              | tDPD particles                       |
@@ -141,8 +144,9 @@ quantities.
    output the custom values.
 
 All of the above styles define point particles, except the *sphere*,
-*ellipsoid*, *electron*, *peri*, *wavepacket*, *line*, *tri*, and
-*body* styles, which define finite-size particles.  See the :doc:`Howto spherical <Howto_spherical>` page for an overview of using
+*bpm/sphere*, *ellipsoid*, *electron*, *peri*, *wavepacket*, *line*,
+*tri*, and *body* styles, which define finite-size particles.  See the
+:doc:`Howto spherical <Howto_spherical>` page for an overview of using
 finite-size particle models with LAMMPS.
 
 All of the point-particle styles assign mass to particles on a
@@ -150,15 +154,15 @@ per-type basis, using the :doc:`mass <mass>` command, The finite-size
 particle styles assign mass to individual particles on a per-particle
 basis.
 
-For the *sphere* style, the particles are spheres and each stores a
+For the *sphere* and *bpm/sphere* styles, the particles are spheres and each stores a
 per-particle diameter and mass.  If the diameter > 0.0, the particle
 is a finite-size sphere.  If the diameter = 0.0, it is a point
 particle.  Note that by use of the *disc* keyword with the :doc:`fix
 nve/sphere <fix_nve_sphere>`, :doc:`fix nvt/sphere <fix_nvt_sphere>`,
 :doc:`fix nph/sphere <fix_nph_sphere>`, :doc:`fix npt/sphere
-<fix_npt_sphere>` commands, spheres can be effectively treated as 2d
+<fix_npt_sphere>` commands for the *sphere* style, spheres can be effectively treated as 2d
 discs for a 2d simulation if desired.  See also the :doc:`set
-density/disc <set>` command.  The *sphere* style takes an optional 0
+density/disc <set>` command.  The *sphere* and *bpm/sphere* styles take an optional 0
 or 1 argument.  A value of 0 means the radius of each sphere is
 constant for the duration of the simulation.  A value of 1 means the
 radii may vary dynamically during the simulation, e.g. due to use of
@@ -194,6 +198,8 @@ position, which is represented by the eradius = electron size.
 
 For the *peri* style, the particles are spherical and each stores a
 per-particle mass and volume.
+
+The *bpm/sphere* style is part of the BPM package.
 
 The *oxdna* style is for coarse-grained nucleotides and stores the
 3'-to-5' polarity of the nucleotide strand, which is set through

@@ -37,13 +37,13 @@ class PairLJClass2CoulCutKokkos : public PairLJClass2CoulCut {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairLJClass2CoulCutKokkos(class LAMMPS *);
-  ~PairLJClass2CoulCutKokkos();
+  ~PairLJClass2CoulCutKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
 
  protected:
@@ -103,7 +103,7 @@ class PairLJClass2CoulCutKokkos : public PairLJClass2CoulCut {
   double special_lj[4];
   double qqrd2e;
 
-  void allocate();
+  void allocate() override;
   friend struct PairComputeFunctor<PairLJClass2CoulCutKokkos,FULL,true>;
   friend struct PairComputeFunctor<PairLJClass2CoulCutKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairLJClass2CoulCutKokkos,HALFTHREAD,true>;
@@ -124,20 +124,3 @@ class PairLJClass2CoulCutKokkos : public PairLJClass2CoulCut {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot use Kokkos pair style with rRESPA inner/middle
-
-Self-explanatory.
-
-E: Cannot use chosen neighbor list style with lj/class2/coul/cut/kk
-
-Self-explanatory.
-
-*/

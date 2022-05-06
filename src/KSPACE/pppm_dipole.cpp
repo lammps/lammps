@@ -153,7 +153,7 @@ void PPPMDipole::init()
   pair_check();
 
   int itmp = 0;
-  double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
@@ -216,8 +216,7 @@ void PPPMDipole::init()
 
   if (order < minorder) error->all(FLERR,"PPPMDipole order < minimum allowed order");
   if (!overlap_allowed && !gctmp->ghost_adjacent())
-    error->all(FLERR,"PPPMDipole grid stencil extends "
-               "beyond nearest neighbor processor");
+    error->all(FLERR,"PPPMDipole grid stencil extends beyond nearest neighbor processor");
   if (gctmp) delete gctmp;
 
   // adjust g_ewald
@@ -375,8 +374,7 @@ void PPPMDipole::setup_grid()
   allocate();
 
   if (!overlap_allowed && !gc_dipole->ghost_adjacent())
-    error->all(FLERR,"PPPMDipole grid stencil extends "
-               "beyond nearest neighbor processor");
+    error->all(FLERR,"PPPMDipole grid stencil extends beyond nearest neighbor processor");
 
   // pre-compute Green's function denomiator expansion
   // pre-compute 1d charge distribution coefficients
@@ -2190,7 +2188,7 @@ void PPPMDipole::fieldforce_peratom_dipole()
 
 void PPPMDipole::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -2263,7 +2261,7 @@ void PPPMDipole::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMDipole::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -2336,7 +2334,7 @@ void PPPMDipole::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMDipole::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
   if (flag == REVERSE_MU) {
@@ -2357,7 +2355,7 @@ void PPPMDipole::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMDipole::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
   if (flag == REVERSE_MU) {

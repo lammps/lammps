@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class PairLJCutCoulDebyeGPU : public PairLJCutCoulDebye {
  public:
   PairLJCutCoulDebyeGPU(LAMMPS *lmp);
-  ~PairLJCutCoulDebyeGPU();
+  ~PairLJCutCoulDebyeGPU() override;
   void cpu_compute(int, int, int, int, int *, int *, int **);
-  void compute(int, int);
-  void init_style();
-  double memory_usage();
+  void compute(int, int) override;
+  void init_style() override;
+  double memory_usage() override;
 
   enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
@@ -43,20 +43,3 @@ class PairLJCutCoulDebyeGPU : public PairLJCutCoulDebye {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Pair style lj/cut/coul/debye/gpu requires atom attribute q
-
-The atom style defined does not have this attribute.
-
-E: Cannot use newton pair with lj/cut/coul/debye/gpu pair style
-
-Self-explanatory.
-
-*/

@@ -86,7 +86,7 @@ void ComputeSMDHourglassError::compute_peratom() {
         }
 
         int itmp = 0;
-        double *hourglass_error = (double *) force->pair->extract("smd/tlsph/hourglass_error_ptr", itmp);
+        auto hourglass_error = (double *) force->pair->extract("smd/tlsph/hourglass_error_ptr", itmp);
         if (hourglass_error == nullptr) {
                 error->all(FLERR, "compute smd/hourglass_error failed to access hourglass_error array");
         }

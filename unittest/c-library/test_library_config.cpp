@@ -22,7 +22,7 @@ protected:
     void *lmp;
     std::string INPUT_DIR = STRINGIFY(TEST_INPUT_FOLDER);
 
-    LibraryConfig() = default;
+    LibraryConfig()           = default;
     ~LibraryConfig() override = default;
 
     void SetUp() override

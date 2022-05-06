@@ -10,8 +10,8 @@
 #include "utils.h"
 
 #include <cstring>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -33,9 +33,9 @@
 
 using namespace LAMMPS_NS;
 
-void *lmp = nullptr;
-char *omp_threads = nullptr;
-constexpr int BUFLEN  = 512;
+void *lmp            = nullptr;
+char *omp_threads    = nullptr;
+constexpr int BUFLEN = 512;
 char buf[BUFLEN];
 
 enum {
@@ -342,14 +342,13 @@ static char *plugin_generator(const char *text, int state)
 {
     const char *subcmd[] = {"load", "unload", "list", "clear", nullptr};
     const char *sub;
-    static std::size_t idx=0, len;
+    static std::size_t idx = 0, len;
     if (!state) idx = 0;
     len = strlen(text);
 
     while ((sub = subcmd[idx]) != nullptr) {
         ++idx;
-        if (strncmp(text,sub,len) == 0)
-            return dupstring(sub);
+        if (strncmp(text, sub, len) == 0) return dupstring(sub);
     }
     return nullptr;
 }
@@ -358,13 +357,12 @@ static char *plugin_style_generator(const char *text, int state)
 {
     const char *styles[] = {"pair", "fix", "command", nullptr};
     const char *s;
-    static std::size_t idx=0, len;
+    static std::size_t idx = 0, len;
     if (!state) idx = 0;
     len = strlen(text);
     while ((s = styles[idx]) != nullptr) {
         ++idx;
-        if (strncmp(text,s,len) == 0)
-            return dupstring(s);
+        if (strncmp(text, s, len) == 0) return dupstring(s);
     }
     return nullptr;
 }
@@ -376,7 +374,7 @@ static char *plugin_name_generator(const char *text, int state)
 
     static std::size_t idx, len, nmax;
     if (!state) idx = 0;
-    len = words[3].size();
+    len  = words[3].size();
     nmax = lammps_plugin_count();
 
     while (idx < nmax) {
@@ -384,8 +382,7 @@ static char *plugin_name_generator(const char *text, int state)
         lammps_plugin_name(idx, style, name, BUFLEN);
         ++idx;
         if (words[2] == style) {
-            if (strncmp(name, words[3].c_str(), len) == 0)
-                return dupstring(name);
+            if (strncmp(name, words[3].c_str(), len) == 0) return dupstring(name);
         }
     }
     return nullptr;
@@ -527,13 +524,11 @@ static char **cmd_completion(const char *text, int start, int)
         } else if (words.size() == 2) { // expand third word
 
             // these commands have a group name as 3rd word
-            if ((words[0] == "fix")
-                || (words[0] == "compute")
-                || (words[0] == "dump")) {
+            if ((words[0] == "fix") || (words[0] == "compute") || (words[0] == "dump")) {
                 matches = rl_completion_matches(text, group_generator);
             } else if (words[0] == "region") {
                 matches = rl_completion_matches(text, region_generator);
-            // plugin style is the third word
+                // plugin style is the third word
             } else if ((words[0] == "plugin") && (words[1] == "unload")) {
                 matches = rl_completion_matches(text, plugin_style_generator);
             }
@@ -546,7 +541,7 @@ static char **cmd_completion(const char *text, int start, int)
                 matches = rl_completion_matches(text, compute_generator);
             } else if (words[0] == "dump") {
                 matches = rl_completion_matches(text, dump_generator);
-            // plugin name is the fourth word
+                // plugin name is the fourth word
             } else if ((words[0] == "plugin") && (words[1] == "unload")) {
                 matches = rl_completion_matches(rl_line_buffer, plugin_name_generator);
             }
@@ -599,7 +594,7 @@ static void init_commands()
     // read saved history, but not in test mode.
     if (!test_mode) read_history(".lammps_history");
 
-    // intercept CTRL-C
+        // intercept CTRL-C
 #if defined(_WIN32)
     SetConsoleCtrlHandler(ctrl_c_handler, TRUE);
 #else
@@ -736,7 +731,7 @@ int main(int argc, char **argv)
     // switch to the user's documents directory.
 
     auto curdir = platform::current_directory();
-    if (utils::strmatch(curdir,"[Ss]ystem32")) {
+    if (utils::strmatch(curdir, "[Ss]ystem32")) {
         std::string docdir = getenv("HOMEDRIVE");
         docdir += getenv("HOMEPATH");
         docdir += "\\Documents";

@@ -27,22 +27,9 @@ namespace LAMMPS_NS {
 class FixTGNVTDrude : public FixTGNHDrude {
  public:
   FixTGNVTDrude(class LAMMPS *, int, char **);
-  ~FixTGNVTDrude() {}
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Temperature control must be used with fix nvt
-
-Self-explanatory.
-
-E: Pressure control can not be used with fix nvt
-
-Self-explanatory.
-
-*/

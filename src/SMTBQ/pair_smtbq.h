@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class PairSMTBQ : public Pair {
  public:
   PairSMTBQ(class LAMMPS *);
-  virtual ~PairSMTBQ();
-  virtual void compute(int, int);
+  ~PairSMTBQ() override;
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  double memory_usage();
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  double memory_usage() override;
 
  protected:
   struct Param {
@@ -140,16 +140,14 @@ class PairSMTBQ : public Pair {
 
   // ===========================================
   // Communication pack
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
   void forward(double *);
   void reverse(double *);
   void forward_int(int *);
   void reverse_int(int *);
-
-  int Tokenize(char *, char ***);
 
   template <class T> const T &min(const T &a, const T &b)
   {

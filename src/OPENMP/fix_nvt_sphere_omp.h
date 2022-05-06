@@ -27,22 +27,9 @@ namespace LAMMPS_NS {
 class FixNVTSphereOMP : public FixNHSphereOMP {
  public:
   FixNVTSphereOMP(class LAMMPS *, int, char **);
-  virtual ~FixNVTSphereOMP() {}
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Temperature control must be used with fix nvt/sphere
-
-Self-explanatory.
-
-E: Pressure control can not be used with fix nvt/sphere
-
-Self-explanatory.
-
-*/

@@ -180,18 +180,12 @@ void run_test_graph3(size_t B, size_t N) {
 
   std::vector<size_t> sizes(LENGTH);
 
-  size_t total_length = 0;
-
   for (size_t i = 0; i < LENGTH; ++i) {
     sizes[i] = rand() % 1000;
   }
 
   sizes[1]    = N;
   sizes[1998] = N;
-
-  for (size_t i = 0; i < LENGTH; ++i) {
-    total_length += sizes[i];
-  }
 
   int C    = 0;
   dView dx = Kokkos::create_staticcrsgraph<dView>("test", sizes);

@@ -14,21 +14,21 @@
 
 #include "fix_bond_create.h"
 
-#include <cstring>
-#include "update.h"
-#include "respa.h"
 #include "atom.h"
-#include "force.h"
-#include "modify.h"
-#include "pair.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "random_mars.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
 #include "math_const.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "random_mars.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -235,7 +235,7 @@ int FixBondCreate::setmask()
 void FixBondCreate::init()
 {
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
 
   // check cutoff for iatomtype,jatomtype
 
@@ -283,11 +283,7 @@ void FixBondCreate::init()
   }
 
   // need a half neighbor list, built every Nevery steps
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
 
   lastcheck = -1;
 }
@@ -343,7 +339,7 @@ void FixBondCreate::setup(int /*vflag*/)
   // if newton_bond is set, need to sum bondcount
 
   commflag = 1;
-  if (newton_bond) comm->reverse_comm_fix(this,1);
+  if (newton_bond) comm->reverse_comm(this,1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -374,7 +370,7 @@ void FixBondCreate::post_integrate()
   // forward comm of bondcount, so ghosts have it
 
   commflag = 1;
-  comm->forward_comm_fix(this,1);
+  comm->forward_comm(this,1);
 
   // resize bond partner list and initialize it
   // probability array overlays distsq array
@@ -411,6 +407,14 @@ void FixBondCreate::post_integrate()
   tagint **special = atom->special;
   int *mask = atom->mask;
   int *type = atom->type;
+
+  if (constrainflag) {
+    // communicate partner and 1-2 special neighbors
+    // to correctly handle angle constraints
+
+    commflag = 3;
+    comm->forward_comm(this);
+  }
 
   neighbor->build_one(list,1);
   inum = list->inum;
@@ -480,7 +484,7 @@ void FixBondCreate::post_integrate()
   // not needed if newton_pair off since I,J pair was seen by both procs
 
   commflag = 2;
-  if (force->newton_pair) comm->reverse_comm_fix(this);
+  if (force->newton_pair) comm->reverse_comm(this);
 
   // each atom now knows its winning partner
   // for prob check, generate random value for each atom with a bond partner
@@ -492,7 +496,7 @@ void FixBondCreate::post_integrate()
   }
 
   commflag = 2;
-  comm->forward_comm_fix(this,2);
+  comm->forward_comm(this,2);
 
   // create bonds for atoms I own
   // only if both atoms list each other as winning bond partner
@@ -589,7 +593,7 @@ void FixBondCreate::post_integrate()
   // 1-2 neighs already reflect created bonds
 
   commflag = 3;
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   // create list of broken bonds that influence my owned atoms
   //   even if between owned-ghost or ghost-ghost atoms
@@ -617,9 +621,6 @@ void FixBondCreate::post_integrate()
   // also add angles/dihedrals/impropers induced by created bonds
 
   update_topology();
-
-  // DEBUG
-  //print_bb();
 }
 
 /* ----------------------------------------------------------------------
@@ -680,11 +681,6 @@ void FixBondCreate::update_topology()
   ndihedrals = 0;
   nimpropers = 0;
   overflow = 0;
-
-  //printf("NCREATE %d: ",ncreate);
-  //for (i = 0; i < ncreate; i++)
-  //  printf(" %d %d,",created[i][0],created[i][1]);
-  //printf("\n");
 
   for (i = 0; i < nlocal; i++) {
     influenced = 0;
@@ -1435,54 +1431,3 @@ double FixBondCreate::memory_usage()
   return bytes;
 }
 
-/* ---------------------------------------------------------------------- */
-
-void FixBondCreate::print_bb()
-{
-  for (int i = 0; i < atom->nlocal; i++) {
-    printf("TAG " TAGINT_FORMAT ": %d nbonds: ",atom->tag[i],atom->num_bond[i]);
-    for (int j = 0; j < atom->num_bond[i]; j++) {
-      printf(" " TAGINT_FORMAT,atom->bond_atom[i][j]);
-    }
-    printf("\n");
-    printf("TAG " TAGINT_FORMAT ": %d nangles: ",atom->tag[i],atom->num_angle[i]);
-    for (int j = 0; j < atom->num_angle[i]; j++) {
-      printf(" " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT ",",
-             atom->angle_atom1[i][j], atom->angle_atom2[i][j],
-             atom->angle_atom3[i][j]);
-    }
-    printf("\n");
-    printf("TAG " TAGINT_FORMAT ": %d ndihedrals: ",atom->tag[i],atom->num_dihedral[i]);
-    for (int j = 0; j < atom->num_dihedral[i]; j++) {
-      printf(" " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " "
-             TAGINT_FORMAT ",", atom->dihedral_atom1[i][j],
-             atom->dihedral_atom2[i][j],atom->dihedral_atom3[i][j],
-             atom->dihedral_atom4[i][j]);
-    }
-    printf("\n");
-    printf("TAG " TAGINT_FORMAT ": %d nimpropers: ",atom->tag[i],atom->num_improper[i]);
-    for (int j = 0; j < atom->num_improper[i]; j++) {
-      printf(" " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " "
-             TAGINT_FORMAT ",",atom->improper_atom1[i][j],
-             atom->improper_atom2[i][j],atom->improper_atom3[i][j],
-             atom->improper_atom4[i][j]);
-    }
-    printf("\n");
-    printf("TAG " TAGINT_FORMAT ": %d %d %d nspecial: ",atom->tag[i],
-           atom->nspecial[i][0],atom->nspecial[i][1],atom->nspecial[i][2]);
-    for (int j = 0; j < atom->nspecial[i][2]; j++) {
-      printf(" " TAGINT_FORMAT,atom->special[i][j]);
-    }
-    printf("\n");
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixBondCreate::print_copy(const char *str, tagint m,
-                              int n1, int n2, int n3, int *v)
-{
-  printf("%s " TAGINT_FORMAT ": %d %d %d nspecial: ",str,m,n1,n2,n3);
-  for (int j = 0; j < n3; j++) printf(" %d",v[j]);
-  printf("\n");
-}

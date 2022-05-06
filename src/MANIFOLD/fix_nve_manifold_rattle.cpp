@@ -165,8 +165,8 @@ FixNVEManifoldRattle::~FixNVEManifoldRattle()
   }
 
   if (tvars ) delete [] tvars;
-  if (tstyle) delete [] tstyle;
-  if (is_var) delete [] is_var;
+  delete[] tstyle;
+  delete[] is_var;
 }
 
 
@@ -537,13 +537,9 @@ void FixNVEManifoldRattle::rattle_manifold_x(double *x, double *v,
     // gg = ptr_m->g(x);
   }
 
-  if (iters >= max_iter && res > tolerance) {
-    char msg[2048];
-    sprintf(msg,"Failed to constrain atom " TAGINT_FORMAT
-            " (x = (%f, %f, %f)! res = %e, iters = %d\n",
-            tagi, x[0], x[1], x[2], res, iters);
-    error->one(FLERR,msg);
-  }
+  if (iters >= max_iter && res > tolerance)
+    error->one(FLERR, "Failed to constrain atom {} (x = ({}, {}, {})! res = {}, iters = {}\n",
+               tagi, x[0], x[1], x[2], res, iters);
 
   // "sync" x and v:
   v[0] = vt[0] - l*no_dt[0];
@@ -631,13 +627,9 @@ void FixNVEManifoldRattle::rattle_manifold_v(double *v, double *f,
     ++iters;
   } while ((res > tolerance) && (iters < max_iter));
 
-  if (iters >= max_iter && res >= tolerance) {
-          char msg[2048];
-          sprintf(msg,"Failed to constrain atom " TAGINT_FORMAT
-                  " (x = (%f, %f, %f)! res = %e, iters = %d\n",
-                  tagi, x[0], x[1], x[2], res, iters);
-          error->all(FLERR,msg);
-  }
+  if (iters >= max_iter && res >= tolerance)
+    error->all(FLERR,"Failed to constrain atom {} (x = ({}, {}, {})! res = {}, iters = {}\n",
+               tagi, x[0], x[1], x[2], res, iters);
 
   stats.v_iters += iters;
 }

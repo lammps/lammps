@@ -26,10 +26,8 @@
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "potential_file_reader.h"
-#include "tokenizer.h"
 
 #include <cmath>
 #include <cstring>
@@ -144,9 +142,7 @@ void PairCoulStreitz::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style coul/streitz requires atom attribute q");
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 
   cut_coulsq = cut_coul * cut_coul;
 

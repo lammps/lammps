@@ -17,12 +17,14 @@
 ------------------------------------------------------------------------- */
 
 #include "sna.h"
-#include <cmath>
+
+#include "comm.h"
+#include "error.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
-#include "error.h"
-#include "comm.h"
+
+#include <cmath>
 
 using namespace std;
 using namespace LAMMPS_NS;
@@ -103,7 +105,7 @@ using namespace MathSpecial;
    j = |j1-j2|, |j1-j2|+2,...,j1+j2-2,j1+j2
 
    [1] Albert Bartok-Partay, "Gaussian Approximation..."
-   Doctoral Thesis, Cambrindge University, (2009)
+   Doctoral Thesis, Cambridge University, (2009)
 
    [2] D. A. Varshalovich, A. N. Moskalev, and V. K. Khersonskii,
    "Quantum Theory of Angular Momentum," World Scientific (1988)
@@ -112,13 +114,15 @@ using namespace MathSpecial;
 
 SNA::SNA(LAMMPS* lmp, double rfac0_in, int twojmax_in,
          double rmin0_in, int switch_flag_in, int bzero_flag_in,
-         int chem_flag_in, int bnorm_flag_in, int wselfall_flag_in, int nelements_in) : Pointers(lmp)
+         int chem_flag_in, int bnorm_flag_in, int wselfall_flag_in,
+         int nelements_in, int switch_inner_flag_in) : Pointers(lmp)
 {
   wself = 1.0;
 
   rfac0 = rfac0_in;
   rmin0 = rmin0_in;
   switch_flag = switch_flag_in;
+  switch_inner_flag = switch_inner_flag_in;
   bzero_flag = bzero_flag_in;
   chem_flag = chem_flag_in;
   bnorm_flag = bnorm_flag_in;
@@ -141,6 +145,8 @@ SNA::SNA(LAMMPS* lmp, double rfac0_in, int twojmax_in,
   inside = nullptr;
   wj = nullptr;
   rcutij = nullptr;
+  sinnerij = nullptr;
+  dinnerij = nullptr;
   element = nullptr;
   nmax = 0;
   idxz = nullptr;
@@ -170,7 +176,9 @@ SNA::~SNA()
   memory->destroy(inside);
   memory->destroy(wj);
   memory->destroy(rcutij);
-  memory->destroy(element);
+  memory->destroy(sinnerij);
+  memory->destroy(dinnerij);
+  if (chem_flag) memory->destroy(element);
   memory->destroy(ulist_r_ij);
   memory->destroy(ulist_i_ij);
   delete[] idxz;
@@ -307,7 +315,6 @@ void SNA::init()
   init_rootpqarray();
 }
 
-
 void SNA::grow_rij(int newnmax)
 {
   if (newnmax <= nmax) return;
@@ -318,14 +325,18 @@ void SNA::grow_rij(int newnmax)
   memory->destroy(inside);
   memory->destroy(wj);
   memory->destroy(rcutij);
-  memory->destroy(element);
+  memory->destroy(sinnerij);
+  memory->destroy(dinnerij);
+  if (chem_flag) memory->destroy(element);
   memory->destroy(ulist_r_ij);
   memory->destroy(ulist_i_ij);
   memory->create(rij, nmax, 3, "pair:rij");
   memory->create(inside, nmax, "pair:inside");
   memory->create(wj, nmax, "pair:wj");
   memory->create(rcutij, nmax, "pair:rcutij");
-  memory->create(element, nmax, "sna:element");
+  memory->create(sinnerij, nmax, "pair:sinnerij");
+  memory->create(dinnerij, nmax, "pair:dinnerij");
+  if (chem_flag) memory->create(element, nmax, "sna:element");
   memory->create(ulist_r_ij, nmax, idxu_max, "sna:ulist_ij");
   memory->create(ulist_i_ij, nmax, idxu_max, "sna:ulist_ij");
 }
@@ -358,10 +369,7 @@ void SNA::compute_ui(int jnum, int ielem)
     z0 = r / tan(theta0);
 
     compute_uarray(x, y, z, z0, r, j);
-    if (chem_flag)
-      add_uarraytot(r, wj[j], rcutij[j], j, element[j]);
-    else
-      add_uarraytot(r, wj[j], rcutij[j], j, 0);
+    add_uarraytot(r, j);
   }
 
 }
@@ -951,14 +959,15 @@ void SNA::compute_dbidrj()
    calculate derivative of Ui w.r.t. atom j
 ------------------------------------------------------------------------- */
 
-void SNA::compute_duidrj(double* rij, double wj, double rcut, int jj, int jelem)
+void SNA::compute_duidrj(int jj)
 {
   double rsq, r, x, y, z, z0, theta0, cs, sn;
   double dz0dr;
+  double rcut = rcutij[jj];
 
-  x = rij[0];
-  y = rij[1];
-  z = rij[2];
+  x = rij[jj][0];
+  y = rij[jj][1];
+  z = rij[jj][2];
   rsq = x * x + y * y + z * z;
   r = sqrt(rsq);
   double rscale0 = rfac0 * MY_PI / (rcut - rmin0);
@@ -968,8 +977,10 @@ void SNA::compute_duidrj(double* rij, double wj, double rcut, int jj, int jelem)
   z0 = r * cs / sn;
   dz0dr = z0 / r - (r*rscale0) * (rsq + z0 * z0) / rsq;
 
-  elem_duarray = jelem;
-  compute_duarray(x, y, z, z0, r, dz0dr, wj, rcut, jj);
+  if (chem_flag) elem_duarray = element[jj];
+  else elem_duarray = 0;
+
+  compute_duarray(x, y, z, z0, r, dz0dr, wj[jj], rcut, jj);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -998,13 +1009,16 @@ void SNA::zero_uarraytot(int ielem)
    add Wigner U-functions for one neighbor to the total
 ------------------------------------------------------------------------- */
 
-void SNA::add_uarraytot(double r, double wj, double rcut, int jj, int jelem)
+void SNA::add_uarraytot(double r, int jj)
 {
   double sfac;
+  int jelem;
 
-  sfac = compute_sfac(r, rcut);
+  sfac = compute_sfac(r, rcutij[jj], sinnerij[jj], dinnerij[jj]);
+  sfac *= wj[jj];
 
-  sfac *= wj;
+  if (chem_flag) jelem = element[jj];
+  else jelem = 0;
 
   double* ulist_r = ulist_r_ij[jj];
   double* ulist_i = ulist_i_ij[jj];
@@ -1245,8 +1259,8 @@ void SNA::compute_duarray(double x, double y, double z,
     }
   }
 
-  double sfac = compute_sfac(r, rcut);
-  double dsfac = compute_dsfac(r, rcut);
+  double sfac = compute_sfac(r, rcut, sinnerij[jj], dinnerij[jj]);
+  double dsfac = compute_dsfac(r, rcut, sinnerij[jj], dinnerij[jj]);
 
   sfac *= wj;
   dsfac *= wj;
@@ -1310,6 +1324,9 @@ double SNA::memory_usage()
   bytes += (double)nmax * sizeof(int);                           // inside
   bytes += (double)nmax * sizeof(double);                        // wj
   bytes += (double)nmax * sizeof(double);                        // rcutij
+  bytes += (double)nmax * sizeof(double);                      // sinnerij
+  bytes += (double)nmax * sizeof(double);                      // dinnerij
+  if (chem_flag) bytes += (double)nmax * sizeof(int);            // element
 
   return bytes;
 }
@@ -1513,33 +1530,69 @@ void SNA::compute_ncoeff()
 
 /* ---------------------------------------------------------------------- */
 
-double SNA::compute_sfac(double r, double rcut)
+double SNA::compute_sfac(double r, double rcut, double sinner, double dinner)
 {
-  if (switch_flag == 0) return 1.0;
-  if (switch_flag == 1) {
-    if (r <= rmin0) return 1.0;
-    else if (r > rcut) return 0.0;
-    else {
-      double rcutfac = MY_PI / (rcut - rmin0);
-      return 0.5 * (cos((r - rmin0) * rcutfac) + 1.0);
-    }
+  double sfac;
+
+  // calculate sfac = sfac_outer
+
+  if (switch_flag == 0) sfac = 1.0;
+  else if (r <= rmin0) sfac = 1.0;
+  else if (r > rcut) sfac = 0.0;
+  else {
+    double rcutfac = MY_PI / (rcut - rmin0);
+    sfac = 0.5 * (cos((r - rmin0) * rcutfac) + 1.0);
   }
-  return 0.0;
+
+  // calculate sfac *= sfac_inner, rarely visited
+
+  if (switch_inner_flag == 1 && r < sinner + dinner) {
+    if (r > sinner - dinner) {
+      double rcutfac = MY_PI2 / dinner;
+      sfac *= 0.5 * (1.0 - cos(MY_PI2 + (r - sinner) * rcutfac));
+    } else sfac = 0.0;
+  }
+
+  return sfac;
 }
 
 /* ---------------------------------------------------------------------- */
 
-double SNA::compute_dsfac(double r, double rcut)
+double SNA::compute_dsfac(double r, double rcut, double sinner, double dinner)
 {
-  if (switch_flag == 0) return 0.0;
-  if (switch_flag == 1) {
-    if (r <= rmin0) return 0.0;
-    else if (r > rcut) return 0.0;
-    else {
-      double rcutfac = MY_PI / (rcut - rmin0);
-      return -0.5 * sin((r - rmin0) * rcutfac) * rcutfac;
-    }
+  double dsfac, sfac_outer, dsfac_outer, sfac_inner, dsfac_inner;
+  if (switch_flag == 0) dsfac_outer = 0.0;
+  else if (r <= rmin0) dsfac_outer = 0.0;
+  else if (r > rcut) dsfac_outer = 0.0;
+  else {
+    double rcutfac = MY_PI / (rcut - rmin0);
+    dsfac_outer = -0.5 * sin((r - rmin0) * rcutfac) * rcutfac;
   }
-  return 0.0;
+
+  // some duplicated computation, but rarely visited
+
+  if (switch_inner_flag == 1 && r < sinner + dinner) {
+    if (r > sinner - dinner) {
+
+      // calculate sfac_outer
+
+      if (switch_flag == 0) sfac_outer = 1.0;
+      else if (r <= rmin0) sfac_outer = 1.0;
+      else if (r > rcut) sfac_outer = 0.0;
+      else {
+	double rcutfac = MY_PI / (rcut - rmin0);
+	sfac_outer = 0.5 * (cos((r - rmin0) * rcutfac) + 1.0);
+      }
+
+      // calculate sfac_inner
+
+      double rcutfac = MY_PI2 / dinner;
+      sfac_inner = 0.5 * (1.0 - cos(MY_PI2 + (r - sinner) * rcutfac));
+      dsfac_inner = 0.5 * rcutfac * sin(MY_PI2 + (r - sinner) * rcutfac);
+      dsfac = dsfac_outer*sfac_inner + sfac_outer*dsfac_inner;
+    } else dsfac = 0.0;
+  } else dsfac = dsfac_outer;
+
+  return dsfac;
 }
 

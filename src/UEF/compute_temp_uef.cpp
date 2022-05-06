@@ -61,7 +61,7 @@ void ComputeTempUef::compute_vector()
   ComputeTemp::compute_vector();
   if (rot_flag) {
     double rot[3][3];
-    ( (FixNHUef*) modify->fix[ifix_uef])->get_rot(rot);
+    ( dynamic_cast<FixNHUef*>( modify->fix[ifix_uef]))->get_rot(rot);
     virial_rot(vector,rot);
   }
 

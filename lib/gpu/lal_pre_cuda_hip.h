@@ -59,49 +59,6 @@
 #define PPPM_MAX_SPLINE 8
 
 // -------------------------------------------------------------------------
-//                          LEGACY DEVICE CONFIGURATION
-// -------------------------------------------------------------------------
-
-#ifdef __CUDA_ARCH__
-
-#if (__CUDA_ARCH__ < 200)
-
-#undef CONFIG_ID
-#define CONFIG_ID 101
-#define MEM_THREADS 16
-#undef THREADS_PER_ATOM
-#define THREADS_PER_ATOM 1
-#undef THREADS_PER_CHARGE
-#define THREADS_PER_CHARGE 16
-#undef BLOCK_PAIR
-#define BLOCK_PAIR 64
-#undef BLOCK_BIO_PAIR
-#define BLOCK_BIO_PAIR 64
-#undef BLOCK_NBOR_BUILD
-#define BLOCK_NBOR_BUILD 64
-#undef MAX_SHARED_TYPES
-#define MAX_SHARED_TYPES 8
-#undef SHUFFLE_AVAIL
-#define SHUFFLE_AVAIL 0
-
-#elseif (__CUDA_ARCH__ < 300)
-
-#undef CONFIG_ID
-#define CONFIG_ID 102
-#undef BLOCK_PAIR
-#define BLOCK_PAIR 128
-#undef BLOCK_BIO_PAIR
-#define BLOCK_BIO_PAIR 128
-#undef MAX_SHARED_TYPES
-#define MAX_SHARED_TYPES 8
-#undef SHUFFLE_AVAIL
-#define SHUFFLE_AVAIL 0
-
-#endif
-
-#endif
-
-// -------------------------------------------------------------------------
 //                              KERNEL MACROS
 // -------------------------------------------------------------------------
 
@@ -110,12 +67,6 @@
 #endif
 
 #define fast_mul(X,Y) (X)*(Y)
-
-#ifdef __CUDA_ARCH__
-#if (__CUDA_ARCH__ < 200)
-#define fast_mul __mul24
-#endif
-#endif
 
 #define EVFLAG 1
 #define NOUNROLL
@@ -219,14 +170,6 @@
 // -------------------------------------------------------------------------
 //                           KERNEL MACROS - MATH
 // -------------------------------------------------------------------------
-
-#ifdef CUDA_PRE_THREE
-struct __builtin_align__(16) _double4
-{
-  double x, y, z, w;
-};
-typedef struct _double4 double4;
-#endif
 
 #ifdef _DOUBLE_DOUBLE
 

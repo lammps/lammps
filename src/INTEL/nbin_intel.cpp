@@ -30,11 +30,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 NBinIntel::NBinIntel(LAMMPS *lmp) : NBinStandard(lmp) {
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  _fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  _fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!_fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
   _precision_mode = _fix->precision();
   _atombin = nullptr;
   _binpacked = nullptr;
@@ -161,10 +158,8 @@ void NBinIntel::bin_atoms(IntelBuffers<flt_t,acc_t> * buffers) {
     const flt_t dx = (INTEL_BIGP - bboxhi[0]);
     const flt_t dy = (INTEL_BIGP - bboxhi[1]);
     const flt_t dz = (INTEL_BIGP - bboxhi[2]);
-    if (dx * dx + dy * dy + dz * dz <
-        static_cast<flt_t>(neighbor->cutneighmaxsq))
-      error->one(FLERR,
-        "Intel package expects no atoms within cutoff of {1e15,1e15,1e15}.");
+    if (dx * dx + dy * dy + dz * dz < static_cast<flt_t>(neighbor->cutneighmaxsq))
+      error->one(FLERR,"INTEL package expects no atoms within cutoff of (1e15,1e15,1e15).");
   }
 
   // ---------- Grow and cast/pack buffers -------------

@@ -43,7 +43,7 @@ RESquaredT::~RESquared() {
 
 template <class numtyp, class acctyp>
 int RESquaredT::bytes_per_atom(const int max_nbors) const {
-  return this->bytes_per_atom(max_nbors);
+  return this->bytes_per_atom_ellipsoid(max_nbors);
 }
 
 template <class numtyp, class acctyp>

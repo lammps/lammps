@@ -28,8 +28,9 @@ provides `limited support for subversion clients <svn_>`_.
 
 You can follow the LAMMPS development on 3 different git branches:
 
-* **stable**   :  this branch is updated with every stable release;
-  updates are always "fast forward" merges from *develop*
+* **stable**   :  this branch is updated from the *release* branch with
+  every stable release version and also has selected bug fixes and updates
+  back-ported from the *develop* branch
 * **release**  :  this branch is updated with every patch release;
   updates are always "fast forward" merges from *develop*
 * **develop**  :  this branch follows the ongoing development and
@@ -47,20 +48,22 @@ your machine and "release" is one of the 3 branches listed above.
 (Note that you actually download all 3 branches; you can switch
 between them at any time using "git checkout <branch name>".)
 
-.. note::
+.. admonition:: Saving time and disk space when using ``git clone``
 
    The complete git history of the LAMMPS project is quite large because
    it contains the entire commit history of the project since fall 2006,
-   which includes the time when LAMMPS was managed with subversion. This
-   also includes commits that have added and removed some large files
-   (mostly by accident).  If you do not need access to the entire commit
-   history, you can speed up the "cloning" process and reduce local disk
-   space requirements by using the *--depth* git command line flag thus
-   create a "shallow clone" of the repository that contains only a
-   subset of the git history. Using a depth of 1000 is usually sufficient
-   to include the head commits of the *develop* and the *release* branches.
-   To include the head commit of the *stable* branch you may need a depth
-   of up to 10000.
+   which includes the time when LAMMPS was managed with subversion.
+   This includes a few commits that have added and removed some large
+   files (mostly by accident).  If you do not need access to the entire
+   commit history (most people don't), you can speed up the "cloning"
+   process and reduce local disk space requirements by using the
+   *--depth* git command line flag.  That will create a "shallow clone"
+   of the repository containing only a subset of the git history.  Using
+   a depth of 1000 is usually sufficient to include the head commits of
+   the *develop* and the *release* branches.  To include the head commit
+   of the *stable* branch you may need a depth of up to 10000.  If you
+   later need more of the git history, you can always convert the
+   shallow clone into a "full clone".
 
 Once the command completes, your directory will contain the same files
 as if you unpacked a current LAMMPS tarball, with the exception, that
@@ -156,11 +159,10 @@ changed.  How to do this depends on the build system you are using.
 .. admonition:: Git protocols
    :class: note
 
-   The servers at github.com support the "git://" and "https://" access
-   protocols for anonymous, read-only access.  If you have a suitably
-   configured GitHub account, you may also use SSH protocol with the
+   The servers at github.com support the "https://" access protocol for
+   anonymous, read-only access.  If you have a suitably configured GitHub
+   account, you may also use SSH protocol with the
    URL "git@github.com:lammps/lammps.git".
 
 The LAMMPS GitHub project is currently managed by Axel Kohlmeyer
-(Temple U, akohlmey at gmail.com) and Richard Berger (Temple U,
-richard.berger at temple.edu).
+(Temple U, akohlmey at gmail.com).

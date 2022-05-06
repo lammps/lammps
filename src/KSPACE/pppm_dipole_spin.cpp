@@ -138,7 +138,7 @@ void PPPMDipoleSpin::init()
   pair_check();
 
   int itmp = 0;
-  double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   // check the correct extract here
   if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
@@ -201,8 +201,7 @@ void PPPMDipoleSpin::init()
 
   if (order < minorder) error->all(FLERR,"PPPMDipoleSpin order < minimum allowed order");
   if (!overlap_allowed && !gctmp->ghost_adjacent())
-    error->all(FLERR,"PPPMDipoleSpin grid stencil extends "
-               "beyond nearest neighbor processor");
+    error->all(FLERR,"PPPMDipoleSpin grid stencil extends beyond nearest neighbor processor");
   if (gctmp) delete gctmp;
 
   // adjust g_ewald

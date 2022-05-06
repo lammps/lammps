@@ -1,7 +1,7 @@
 ---
 lammps_version: 30 Jul 2021
 date_generated: Wed Aug 25 07:37:07 2021
-epsilon: 2e-12
+epsilon: 2e-9
 skip_tests: single
 prerequisites: ! |
   pair lebedeva/z
@@ -14,7 +14,7 @@ post_commands: ! ""
 input_file: in.bilayer
 pair_style: hybrid/overlay lebedeva/z 16.0
 pair_coeff: ! |
-  * * lebedeva/z CC.Lebedeva C C C
+  * * lebedeva/z CC.Lebedeva C1 C1 C1
 extract: ! ""
 natoms: 48
 init_vdwl: 2360.887727742073

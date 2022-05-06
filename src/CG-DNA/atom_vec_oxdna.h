@@ -27,11 +27,10 @@ namespace LAMMPS_NS {
 class AtomVecOxdna : public AtomVec {
  public:
   AtomVecOxdna(class LAMMPS *);
-  ~AtomVecOxdna() = default;
 
-  void grow_pointers();
-  void data_atom_post(int);
-  void data_bonds_post(int, int, tagint, tagint, tagint);
+  void grow_pointers() override;
+  void data_atom_post(int) override;
+  void data_bonds_post(int, int, tagint, tagint, tagint) override;
 
  private:
   tagint *id5p;
@@ -41,7 +40,3 @@ class AtomVecOxdna : public AtomVec {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

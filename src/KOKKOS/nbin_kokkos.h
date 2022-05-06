@@ -38,9 +38,9 @@ class NBinKokkos : public NBinStandard {
   typedef ArrayTypes<DeviceType> AT;
 
   NBinKokkos(class LAMMPS *);
-  ~NBinKokkos() {}
-  void bin_atoms_setup(int);
-  void bin_atoms();
+
+  void bin_atoms_setup(int) override;
+  void bin_atoms() override;
 
   int atoms_per_bin;
   DAT::tdual_int_1d k_bincount;
@@ -151,6 +151,3 @@ struct NPairKokkosBinAtomsFunctor {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

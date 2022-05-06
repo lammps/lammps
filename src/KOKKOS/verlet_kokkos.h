@@ -31,10 +31,11 @@ namespace LAMMPS_NS {
 class VerletKokkos : public Verlet {
  public:
   VerletKokkos(class LAMMPS *, int, char **);
-  ~VerletKokkos() {}
-  void setup(int);
-  void setup_minimal(int);
-  void run(int);
+
+  void setup(int) override;
+  void setup_minimal(int) override;
+  void run(int) override;
+  void force_clear() override;
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
@@ -43,18 +44,11 @@ class VerletKokkos : public Verlet {
     f(i,2) += f_merge_copy(i,2);
   }
 
-
  protected:
   DAT::t_f_array f_merge_copy,f;
-
-  void force_clear();
 };
-
 }
 
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

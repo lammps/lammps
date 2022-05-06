@@ -198,7 +198,7 @@ namespace ATC {
 
 
 // nomenclature might be a bit backwark: control --> nodes that exert the control, & influence --> atoms that feel the influence
-  void ChargeRegulatorMethod::initialize(void)
+  void ChargeRegulatorMethod::initialize()
   {
     interscaleManager_ = &(atc_->interscale_manager());
 
@@ -220,7 +220,7 @@ namespace ATC {
 
   int ChargeRegulatorMethod::nlocal() { return atc_->nlocal(); }
 
-  void ChargeRegulatorMethod::set_greens_functions(void)
+  void ChargeRegulatorMethod::set_greens_functions()
   {
     // set up Green's function per node
     for (int i = 0; i < nNodes_; i++) {
@@ -272,7 +272,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  Initialize
   //--------------------------------------------------------
-  void ChargeRegulatorMethodFeedback::initialize(void)
+  void ChargeRegulatorMethodFeedback::initialize()
   {
     ChargeRegulatorMethod::initialize();
     if (surfaceType_ != ChargeRegulator::CONDUCTOR)
@@ -284,7 +284,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  Initialize
   //--------------------------------------------------------
-  void ChargeRegulatorMethodFeedback::construct_transfers(void)
+  void ChargeRegulatorMethodFeedback::construct_transfers()
   {
     ChargeRegulatorMethod::construct_transfers();
 
@@ -301,7 +301,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  find measurement atoms and nodes
   //--------------------------------------------------------
-  void ChargeRegulatorMethodFeedback::set_influence(void)
+  void ChargeRegulatorMethodFeedback::set_influence()
   {
 
     // get nodes that overlap influence atoms & compact list of influence atoms
@@ -321,7 +321,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  constuct a Green's submatrix
   //--------------------------------------------------------
-  void ChargeRegulatorMethodFeedback::set_influence_matrix(void)
+  void ChargeRegulatorMethodFeedback::set_influence_matrix()
   {
     // construct control-influence matrix bar{G}^-1: ds{p} = G{p,m}^-1 dphi{m}
 
@@ -434,7 +434,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  Initialize
   //--------------------------------------------------------
-  void ChargeRegulatorMethodImageCharge::initialize(void)
+  void ChargeRegulatorMethodImageCharge::initialize()
   {
     ChargeRegulatorMethod::initialize();
     if (surfaceType_ != ChargeRegulator::DIELECTRIC) throw ATC_Error("currently image charge can only mimic a dielectric");

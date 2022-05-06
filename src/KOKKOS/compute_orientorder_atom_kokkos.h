@@ -67,9 +67,9 @@ class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
   typedef int value_type;
 
   ComputeOrientOrderAtomKokkos(class LAMMPS *, int, char **);
-  ~ComputeOrientOrderAtomKokkos();
-  void init();
-  void compute_peratom();
+  ~ComputeOrientOrderAtomKokkos() override;
+  void init() override;
+  void compute_peratom() override;
   t_sna_1i d_qlist;
   t_sna_1d d_qnormfac,d_qnormfac2;
 
@@ -137,6 +137,3 @@ class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

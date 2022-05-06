@@ -302,7 +302,7 @@ void FixMSST::init()
   if (dftb) {
     for (int i = 0; i < modify->nfix; i++)
       if (utils::strmatch(modify->fix[i]->style,"^external$"))
-        fix_external = (FixExternal *) modify->fix[i];
+        fix_external = dynamic_cast<FixExternal *>( modify->fix[i]);
     if (fix_external == nullptr)
       error->all(FLERR,"Fix msst dftb cannot be used w/out fix external");
   }
@@ -815,7 +815,7 @@ void FixMSST::write_restart(FILE *fp)
 void FixMSST::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
   omega[direction] = list[n++];
   e0 = list[n++];
   v0 = list[n++];

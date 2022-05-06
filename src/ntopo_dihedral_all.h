@@ -27,23 +27,10 @@ namespace LAMMPS_NS {
 class NTopoDihedralAll : public NTopo {
  public:
   NTopoDihedralAll(class LAMMPS *);
-  ~NTopoDihedralAll() {}
-  void build();
+  void build() override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Dihedral atoms %d %d %d %d missing on proc %d at step %ld
-
-UNDOCUMENTED
-
-W: Dihedral atoms missing at step %ld
-
-UNDOCUMENTED
-
-*/

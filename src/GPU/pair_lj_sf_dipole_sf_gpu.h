@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class PairLJSFDipoleSFGPU : public PairLJSFDipoleSF {
  public:
   PairLJSFDipoleSFGPU(LAMMPS *lmp);
-  ~PairLJSFDipoleSFGPU();
+  ~PairLJSFDipoleSFGPU() override;
   void cpu_compute(int, int, int, int, int *, int *, int **);
-  void compute(int, int);
-  void init_style();
-  double memory_usage();
+  void compute(int, int) override;
+  void init_style() override;
+  double memory_usage() override;
 
   enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
@@ -43,24 +43,3 @@ class PairLJSFDipoleSFGPU : public PairLJSFDipoleSF {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Pair dipole/sf/gpu requires atom attributes q, mu, torque
-
-The atom style defined does not one or more of these attributes.
-
-E: Cannot use newton pair with dipole/sf/gpu pair style
-
-Self-explanatory.
-
-E: Cannot (yet) use 'electron' units with dipoles
-
-This feature is not yet supported.
-
-*/

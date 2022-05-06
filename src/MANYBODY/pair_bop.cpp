@@ -46,11 +46,9 @@
 #include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "potential_file_reader.h"
 #include "tabular_function.h"
-#include "tokenizer.h"
 
 #include <cmath>
 #include <cstring>
@@ -418,10 +416,7 @@ void PairBOP::init_style()
 
   // need a full neighbor list and neighbors of ghosts
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->ghost = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
 }
 
 /* ---------------------------------------------------------------------- */

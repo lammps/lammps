@@ -21,7 +21,7 @@
 
 #include <mpi.h>
 
-#include <vector> // IWYU pragma: export
+#include <vector>    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -46,6 +46,17 @@ namespace utils {
    *  \return the string that matches the pattern or an empty one */
 
   std::string strfind(const std::string &text, const std::string &pattern);
+
+  /*! Print error message about missing arguments for command
+   *
+   * This function simplifies the repetitive reporting missing arguments to a command.
+   *
+   *  \param file     name of source file for error message
+   *  \param line     line number in source file for error message
+   *  \param cmd      name of the failing command
+   *  \param error    pointer to Error class instance (for abort) or nullptr */
+
+  void missing_cmd_args(const std::string &file, int line, const std::string &cmd, Error *error);
 
   /* Internal function handling the argument list for logmesg(). */
 
@@ -73,6 +84,28 @@ namespace utils {
    *  \param mesg   string with message to be printed */
 
   void logmesg(LAMMPS *lmp, const std::string &mesg);
+
+  /*! Return text redirecting the user to a specific paragraph in the manual
+   *
+   * The LAMMPS manual contains detailed detailed explanations for errors and
+   * warnings where a simple error message may not be sufficient.  These can
+   * be reached through URLs with a numeric code.  This function creates the
+   * corresponding text to be included into the error message that redirects
+   * the user to that URL.
+   *
+   *  \param errorcode   number pointing to a paragraph in the manual */
+
+  std::string errorurl(int errorcode);
+
+  /*! Flush output buffers
+   *
+   *  This function calls fflush() on screen and logfile FILE pointers
+   *  if available and thus tells the operating system to output all
+   *  currently buffered data. This is local operation and independent
+   *  from buffering by a file system or an MPI library.
+   */
+
+  void flush_buffers(LAMMPS *lmp);
 
   /*! Return a string representing the current system error status
    *
@@ -169,10 +202,32 @@ namespace utils {
    *  \param lmp      pointer to top-level LAMMPS class instance
    *  \return         1 if string resolves to "true", otherwise 0 */
 
+  int logical(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp);
+
+  /*! \overload
+   *
+   *  \param file     name of source file for error message
+   *  \param line     line number in source file for error message
+   *  \param str      string to be converted to logical
+   *  \param do_abort determines whether to call Error::one() or Error::all()
+   *  \param lmp      pointer to top-level LAMMPS class instance
+   *  \return         1 if string resolves to "true", otherwise 0 */
+
   int logical(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp);
 
   /*! Convert a string to a floating point number while checking
    *  if it is a valid floating point or integer number
+   *
+   *  \param file     name of source file for error message
+   *  \param line     line number in source file for error message
+   *  \param str      string to be converted to number
+   *  \param do_abort determines whether to call Error::one() or Error::all()
+   *  \param lmp      pointer to top-level LAMMPS class instance
+   *  \return         double precision floating point number */
+
+  double numeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp);
+
+  /*! \overload
    *
    *  \param file     name of source file for error message
    *  \param line     line number in source file for error message
@@ -193,6 +248,17 @@ namespace utils {
    *  \param lmp      pointer to top-level LAMMPS class instance
    *  \return         integer number (regular int)  */
 
+  int inumeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp);
+
+  /*! \overload
+   *
+   *  \param file     name of source file for error message
+   *  \param line     line number in source file for error message
+   *  \param str      string to be converted to number
+   *  \param do_abort determines whether to call Error::one() or Error::all()
+   *  \param lmp      pointer to top-level LAMMPS class instance
+   *  \return         double precision floating point number */
+
   int inumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp);
 
   /*! Convert a string to an integer number while checking
@@ -205,6 +271,17 @@ namespace utils {
    *  \param lmp      pointer to top-level LAMMPS class instance
    *  \return         integer number (bigint) */
 
+  bigint bnumeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp);
+
+  /*! \overload
+   *
+   *  \param file     name of source file for error message
+   *  \param line     line number in source file for error message
+   *  \param str      string to be converted to number
+   *  \param do_abort determines whether to call Error::one() or Error::all()
+   *  \param lmp      pointer to top-level LAMMPS class instance
+   *  \return         double precision floating point number */
+
   bigint bnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp);
 
   /*! Convert a string to an integer number while checking
@@ -216,6 +293,17 @@ namespace utils {
    * \param do_abort determines whether to call Error::one() or Error::all()
    * \param lmp      pointer to top-level LAMMPS class instance
    * \return         integer number (tagint) */
+
+  tagint tnumeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp);
+
+  /*! \overload
+   *
+   *  \param file     name of source file for error message
+   *  \param line     line number in source file for error message
+   *  \param str      string to be converted to number
+   *  \param do_abort determines whether to call Error::one() or Error::all()
+   *  \param lmp      pointer to top-level LAMMPS class instance
+   *  \return         double precision floating point number */
 
   tagint tnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp);
 
@@ -303,12 +391,26 @@ namespace utils {
 
   std::string trim(const std::string &line);
 
-  /*! Return string with anything from '#' onward removed
+  /*! Return string with anything from the first '#' character onward removed
    *
    * \param line  string that should be trimmed
    * \return new string without comment (string) */
 
   std::string trim_comment(const std::string &line);
+
+  /*! Replace first '*' character in a string with a number, optionally zero-padded
+   *
+   * If there is no '*' character in the string, return the original string.
+   * If the number requires more characters than the value of the *pad*
+   * argument, do not add zeros; otherwise add as many zeroes as needed to
+   * the left to make the the number representation *pad* characters wide.
+   *
+   * \param name  string with file containing a '*' (or not)
+   * \param step  step number to replace the (first) '*'
+   * \param pad   zero-padding (may be zero)
+   * \return  processed string */
+
+  std::string star_subst(const std::string &name, bigint step, int pad);
 
   /*! Check if a string will likely have UTF-8 encoded characters
    *
@@ -568,7 +670,3 @@ namespace utils {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

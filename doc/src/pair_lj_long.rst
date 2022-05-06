@@ -238,7 +238,7 @@ none
 
 .. _Veld2:
 
-**(In 't Veld)** In 't Veld, Ismail, Grest, J Chem Phys (accepted) (2007).
+**(In 't Veld)** In 't Veld, Ismail, Grest, J Chem Phys, 127, 144711 (2007).
 
 .. _Jorgensen4:
 

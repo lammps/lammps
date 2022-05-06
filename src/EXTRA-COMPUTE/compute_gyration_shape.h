@@ -29,9 +29,9 @@ class ComputeGyrationShape : public Compute {
   char *id_gyration;    // fields accessed by other classes
 
   ComputeGyrationShape(class LAMMPS *, int, char **);
-  ~ComputeGyrationShape();
-  void init();
-  void compute_vector();
+  ~ComputeGyrationShape() override;
+  void init() override;
+  void compute_vector() override;
 
  private:
   class Compute *c_gyration;
@@ -41,20 +41,3 @@ class ComputeGyrationShape : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute gyration ID does not exist for compute gyration/shape
-
-Self-explanatory.  Provide a valid compute ID
-
-E: Compute gyration/shape compute ID does not point to a gyration compute
-
-Self-explanatory.  Provide an ID of a compute gyration command.
-*/

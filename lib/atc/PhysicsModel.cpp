@@ -108,7 +108,7 @@ void PhysicsModel::parse_material_file(string fileName)
   fileId.close();
 }
 
-void PhysicsModel::initialize(void)
+void PhysicsModel::initialize()
 {
   // initialize materials
   vector< Material* >::const_iterator iter;

@@ -42,7 +42,3 @@ NPairStyle(halffull/newtoff/skip/ghost/intel,
            NP_ORTHO | NP_TRI | NP_SKIP | NP_GHOST | NP_INTEL);
 // clang-format on
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

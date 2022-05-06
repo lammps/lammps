@@ -37,13 +37,13 @@ class PairCoulCutKokkos : public PairCoulCut {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairCoulCutKokkos(class LAMMPS *);
-  ~PairCoulCutKokkos();
+  ~PairCoulCutKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   struct params_coul{
     KOKKOS_INLINE_FUNCTION
@@ -111,7 +111,7 @@ class PairCoulCutKokkos : public PairCoulCut {
   double special_lj[4];
   double qqrd2e;
 
-  void allocate();
+  void allocate() override;
   friend struct PairComputeFunctor<PairCoulCutKokkos,FULL,true>;
   friend struct PairComputeFunctor<PairCoulCutKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairCoulCutKokkos,HALFTHREAD,true>;
@@ -132,16 +132,3 @@ class PairCoulCutKokkos : public PairCoulCut {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot use chosen neighbor list style with coul/cut/kk
-
-That style is not supported by Kokkos.
-
-*/

@@ -32,22 +32,9 @@ namespace LAMMPS_NS {
 class FixNPTIntel : public FixNHIntel {
  public:
   FixNPTIntel(class LAMMPS *, int, char **);
-  ~FixNPTIntel() {}
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Temperature control must be used with fix npt
-
-Self-explanatory.
-
-E: Pressure control must be used with fix npt
-
-Self-explanatory.
-
-*/

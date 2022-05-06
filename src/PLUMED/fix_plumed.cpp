@@ -77,9 +77,9 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
 
   int api_version=0;
   p->cmd("getApiVersion",&api_version);
-  if ((api_version < 5) || (api_version > 8))
+  if ((api_version < 5) || (api_version > 9))
     error->all(FLERR,"Incompatible API version for PLUMED in fix plumed. "
-               "Only Plumed 2.4.x, 2.5.x, 2.6.x, 2.7.x are tested and supported.");
+               "Only Plumed 2.4.x, 2.5.x, 2.6.x, 2.7.x, 2.8.x are tested and supported.");
 
 #if !defined(MPI_STUBS)
   // If the -partition option is activated then enable
@@ -321,9 +321,9 @@ void FixPlumed::post_force(int /* vflag */)
 
   if (nlocal != atom->nlocal) {
 
-    if (charges) delete [] charges;
-    if (masses) delete [] masses;
-    if (gatindex) delete [] gatindex;
+    delete[] charges;
+    delete[] masses;
+    delete[] gatindex;
 
     nlocal=atom->nlocal;
     gatindex=new int [nlocal];

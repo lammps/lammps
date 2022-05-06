@@ -41,8 +41,8 @@ class NPairHalfBinNewtonSSA : public NPair {
   int ssa_maxPhaseLen;
 
   NPairHalfBinNewtonSSA(class LAMMPS *);
-  ~NPairHalfBinNewtonSSA();
-  void build(class NeighList *);
+  ~NPairHalfBinNewtonSSA() override;
+  void build(class NeighList *) override;
 
  private:
   int ssa_maxPhaseCt;
@@ -52,7 +52,3 @@ class NPairHalfBinNewtonSSA : public NPair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

@@ -27,25 +27,11 @@ namespace LAMMPS_NS {
 class PairOxrna2Dh : public PairOxdna2Dh {
  public:
   PairOxrna2Dh(class LAMMPS *lmp) : PairOxdna2Dh(lmp) {}
-  virtual ~PairOxrna2Dh() {}
-  virtual void compute_interaction_sites(double *, double *, double *, double *);
+
+  void compute_interaction_sites(double *, double *, double *, double *) override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

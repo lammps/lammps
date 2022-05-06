@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 
 #ifdef LAMMPS_EXCEPTIONS
   try {
-    LAMMPS *lammps = new LAMMPS(argc, argv, lammps_comm);
+    auto lammps = new LAMMPS(argc, argv, lammps_comm);
     lammps->input->file();
     delete lammps;
   } catch (LAMMPSAbortException &ae) {
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
   }
 #else
   try {
-    LAMMPS *lammps = new LAMMPS(argc, argv, lammps_comm);
+    auto lammps = new LAMMPS(argc, argv, lammps_comm);
     lammps->input->file();
     delete lammps;
   } catch (fmt::format_error &fe) {

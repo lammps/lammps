@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class PairTriLJ : public Pair {
  public:
   PairTriLJ(class LAMMPS *);
-  virtual ~PairTriLJ();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  virtual void init_style();
-  double init_one(int, int);
+  ~PairTriLJ() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
  protected:
   double cut_global;
@@ -60,21 +60,3 @@ class PairTriLJ : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair tri/lj requires atom style tri
-
-Self-explanatory.
-
-*/

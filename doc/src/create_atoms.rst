@@ -155,18 +155,18 @@ compute huge energies and forces, leading to bad dynamics.  There are
 several strategies to avoid this problem:
 
 * Use the :doc:`delete_atoms overlap <delete_atoms>` command after
-create_atoms.  For example, this strategy can be used to overlay and
-surround a large protein molecule with a volume of water molecules,
-then delete water molecules that overlap with the protein atoms.
+  create_atoms.  For example, this strategy can be used to overlay and
+  surround a large protein molecule with a volume of water molecules,
+  then delete water molecules that overlap with the protein atoms.
 
 * For the *random* style, use the optional *overlap* keyword to avoid
-overlaps when each new particle is created.
+  overlaps when each new particle is created.
 
 * Before running dynamics on an overlapped system, perform an
-:doc:`energy minimization <minimize>`.  Or run initial dynamics with
-:doc:`pair_style soft <pair_soft>` or with :doc:`fix nve/limit
-<fix_nve_limit>` to un-overlap the particles, before running normal
-dynamics.
+  :doc:`energy minimization <minimize>`.  Or run initial dynamics with
+  :doc:`pair_style soft <pair_soft>` or with :doc:`fix nve/limit
+  <fix_nve_limit>` to un-overlap the particles, before running normal
+  dynamics.
 
 .. note::
 
@@ -268,6 +268,11 @@ directly.  The *set* keyword is used to identify the names of these
 other variables, one variable for the x-coordinate of a created atom,
 one for y, and one for z.
 
+.. figure:: img/sinusoid.jpg
+            :figwidth: 50%
+            :align: right
+            :target: _images/sinusoid.jpg
+
 When an atom is created, its x,y,z coordinates become the values for
 any *set* variable that is defined.  The *var* variable is then
 evaluated.  If the returned value is 0.0, the atom is not created.  If
@@ -281,28 +286,26 @@ the sinusoid would appear to be "smoother".  Also note the use of the
 "xlat" and "ylat" :doc:`thermo_style <thermo_style>` keywords which
 converts lattice spacings to distance.
 
+.. only:: html
+
+   (Click on the image for a larger version)
+
 .. code-block:: LAMMPS
 
-   dimension       2
-   variable        x equal 100
-   variable        y equal 25
-   lattice         hex 0.8442
-   region          box block 0 $x 0 $y -0.5 0.5
-   create_box      1 box
+   dimension   2
+   variable    x equal 100
+   variable    y equal 25
+   lattice     hex 0.8442
+   region      box block 0 $x 0 $y -0.5 0.5
+   create_box  1 box
 
-   variable        xx internal 0.0
-   variable        yy internal 0.0
-   variable        v equal "(0.2*v_y*ylat * cos(v_xx/xlat * 2.0*PI*4.0/v_x) + 0.5*v_y*ylat - v_yy) > 0.0"
-   create_atoms    1 box var v set x xx set y yy
-   write_dump      all atom sinusoid.lammpstrj
+   variable    xx internal 0.0
+   variable    yy internal 0.0
+   variable    v equal "(0.2*v_y*ylat * cos(v_xx/xlat * 2.0*PI*4.0/v_x) + 0.5*v_y*ylat - v_yy) > 0.0"
+   create_atoms  1 box var v set x xx set y yy
+   write_dump  all atom sinusoid.lammpstrj
 
-.. image:: img/sinusoid.jpg
-   :scale: 50%
-   :align: center
-
-.. raw:: html
-
-   Click on the image for a larger version.
+-----
 
 The *rotate* keyword allows specification of the orientation
 at which molecules are inserted.  The axis of rotation is
@@ -345,17 +348,22 @@ new particles into a dense system using the *overlap* keyword),
 setting the *maxtry* keyword to a large value may result in this
 command running for a long time.
 
+.. figure:: img/overlap.png
+            :figwidth: 30%
+            :align: right
+            :target: _images/overlap.png
+
 Here is an example for the *random* style using these commands
 
 .. code-block:: LAMMPS
 
-units           lj
-dimension       2
-region          box block 0 50 0 50 -0.5 0.5
-create_box      1 box
-create_atoms    1 random 2000 13487 NULL overlap 1.0 maxtry 50
-pair_style      lj/cut 2.5
-pair_coeff      1 1 1.0 1.0 2.5
+   units         lj
+   dimension     2
+   region        box block 0 50 0 50 -0.5 0.5
+   create_box    1 box
+   create_atoms  1 random 2000 13487 NULL overlap 1.0 maxtry 50
+   pair_style    lj/cut 2.5
+   pair_coeff    1 1 1.0 1.0 2.5
 
 to produce a system as shown in the image with 1520 particles (out of
 2000 requested) that are moderately dense and which have no overlaps
@@ -363,13 +371,11 @@ sufficient to prevent the LJ pair_style from running properly (because
 the overlap criterion = 1.0).  The create_atoms command ran for 0.3 s
 on a single CPU core.
 
-.. image:: img/overlap.png
-   :scale: 50%
-   :align: center
+.. only:: html
 
-.. raw:: html
+   (Click on the image for a larger version)
 
-   Click on the image for a larger version.
+-----
 
 The *units* keyword determines the meaning of the distance units used
 to specify the coordinates of the one particle created by the *single*

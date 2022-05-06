@@ -32,6 +32,8 @@
 #define LMP_FFT_LIB "MKL FFT"
 #elif defined(FFT_CUFFT)
 #define LMP_FFT_LIB "cuFFT"
+#elif defined(FFT_HIPFFT)
+#define LMP_FFT_LIB "hipFFT"
 #else
 #define LMP_FFT_LIB "KISS FFT"
 #endif

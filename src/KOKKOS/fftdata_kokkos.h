@@ -36,8 +36,8 @@
 #endif
 
 
-// with KOKKOS in CUDA mode we can only have
-// CUFFT or KISSFFT, thus undefine all other
+// with KOKKOS in CUDA or HIP mode we can only have
+// CUFFT/HIPFFT or KISSFFT, thus undefine all other
 // FFTs here, since they may be valid in fft3d.cpp
 
 #ifdef KOKKOS_ENABLE_CUDA
@@ -53,9 +53,25 @@
 # if !defined(FFT_CUFFT) && !defined(FFT_KISSFFT)
 #  define FFT_KISSFFT
 # endif
+#elif defined(KOKKOS_ENABLE_HIP)
+# if defined(FFT_FFTW)
+#  undef FFT_FFTW
+# endif
+# if defined(FFT_FFTW3)
+#  undef FFT_FFTW3
+# endif
+# if defined(FFT_MKL)
+#  undef FFT_MKL
+# endif
+# if !defined(FFT_HIPFFT) && !defined(FFT_KISSFFT)
+#  define FFT_KISSFFT
+# endif
 #else
 # if defined(FFT_CUFFT)
 #  error "Must enable CUDA with KOKKOS to use -DFFT_CUFFT"
+# endif
+# if defined(FFT_HIPFFT)
+#  error "Must enable HIP with KOKKOS to use -DFFT_HIPFFT"
 # endif
 // if user set FFTW, it means FFTW3
 # ifdef FFT_FFTW
@@ -96,6 +112,17 @@
     #define cufftExec cufftExecZ2Z
     #define CUFFT_TYPE CUFFT_Z2Z
     typedef cufftDoubleComplex FFT_DATA;
+  #endif
+#elif defined(FFT_HIPFFT)
+  #include "hipfft.h"
+  #if defined(FFT_SINGLE)
+    #define hipfftExec hipfftExecC2C
+    #define HIPFFT_TYPE HIPFFT_C2C
+    typedef hipfftComplex FFT_DATA;
+  #else
+    #define hipfftExec hipfftExecZ2Z
+    #define HIPFFT_TYPE HIPFFT_Z2Z
+    typedef hipfftDoubleComplex FFT_DATA;
   #endif
 #else
   #if defined(FFT_SINGLE)

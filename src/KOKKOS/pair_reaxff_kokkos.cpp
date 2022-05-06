@@ -794,9 +794,9 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeLJCoulomb<HALF,0>>(0,inum),*this);
     } else if (neighflag == HALFTHREAD) {
       if (evflag)
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeLJCoulomb<HALFTHREAD,1>>(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeLJCoulomb<HALFTHREAD,1>,Kokkos::LaunchBounds<256,1>>(0,inum),*this,ev);
       else
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeLJCoulomb<HALFTHREAD,0>>(0,inum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeLJCoulomb<HALFTHREAD,0>,Kokkos::LaunchBounds<256,1>>(0,inum),*this);
     }
   }
   ev_all += ev;

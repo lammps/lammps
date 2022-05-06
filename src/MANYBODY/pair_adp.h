@@ -78,11 +78,11 @@ class PairADP : public Pair {
   Setfl *setfl;
 
   void allocate();
-  void array2spline();
+  virtual void array2spline();
   void interpolate(int, double, double *, double **);
 
   void read_file(char *);
-  void file2array();
+  virtual void file2array();
 };
 
 }    // namespace LAMMPS_NS

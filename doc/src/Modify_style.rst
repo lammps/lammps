@@ -250,9 +250,9 @@ on` comments around that block.
 Error or warning messages and explanations (preferred)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. versionchanged:: 27Apr2022
+.. versionchanged:: 4May2022
 
-Starting with LAMMPS version 27 April 2022 the LAMMPS developers have
+Starting with LAMMPS version 4 May 2022 the LAMMPS developers have
 agreed on a new policy for error and warning messages.
 
 Previously, all error and warning strings were supposed to be listed in

@@ -214,6 +214,8 @@ action min_kokkos.h
 action min_linesearch_kokkos.cpp
 action min_linesearch_kokkos.h
 action pack_kokkos.h pack.h
+action pair_adp_kokkos.cpp pair_adp.cpp
+action pair_adp_kokkos.h pair_adp.h
 action pair_buck_coul_cut_kokkos.cpp
 action pair_buck_coul_cut_kokkos.h
 action pair_buck_coul_long_kokkos.cpp pair_buck_coul_long.cpp

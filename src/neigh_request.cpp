@@ -317,3 +317,9 @@ void NeighRequest::enable_ghost()
 {
   ghost = 1;
 }
+
+void NeighRequest::enable_intel()
+{
+  intel = 1;
+  omp = 0;
+}

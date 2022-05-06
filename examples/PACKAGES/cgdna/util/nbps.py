@@ -81,7 +81,7 @@ if len(sys.argv)==3:
     infilename  = sys.argv[1]
     outfilename = sys.argv[2]
 
-print('# Calculating number of base paris from LAMMPS trajectory output')     
+print('# Calculating number of base pairs from LAMMPS trajectory output')     
 
 # count lines to process for progress report
 n = 0

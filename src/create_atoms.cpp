@@ -125,15 +125,7 @@ void CreateAtoms::command(int narg, char **arg)
     style = MESH;
     if (narg < 3) utils::missing_cmd_args(FLERR, "create_atoms mesh", error);
     meshfile = arg[2];
-    if ((narg > 3) && (strcmp(arg[3], "radiusscale") == 0)) {
-      if (narg < 5) utils::missing_cmd_args(FLERR, "create_atoms mesh scale", error);
-      if (atom->radius_flag)
-        radiusscale = utils::numeric(FLERR, arg[4], false, lmp);
-      else
-        error->all(FLERR, "Must have atom attribute radius to set radiusscale factor");
-      iarg = 5;
-    } else
-      iarg = 3;
+    iarg = 3;
   } else
     error->all(FLERR, "Unknown create_atoms command option {}", arg[1]);
 
@@ -192,8 +184,9 @@ void CreateAtoms::command(int narg, char **arg)
         error->all(FLERR, "Unknown create_atoms units option {}", arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "var") == 0) {
-      if (style == SINGLE) error->all(FLERR, "Illegal create_atoms command: "
-          "can't combine 'var' keyword with 'single' style!");
+      if (style == SINGLE)
+        error->all(FLERR,
+                   "Illegal create_atoms command: cannot use 'var' keyword with 'single' style!");
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms var", error);
       delete[] vstr;
       vstr = utils::strdup(arg[iarg + 1]);
@@ -246,7 +239,8 @@ void CreateAtoms::command(int narg, char **arg)
         error->all(FLERR, "Illegal create_atoms subset settings");
       iarg += 3;
     } else if (strcmp(arg[iarg], "overlap") == 0) {
-      if (style != RANDOM) error->all(FLERR, "Create_atoms overlap can only be used with random style");
+      if (style != RANDOM)
+        error->all(FLERR, "Create_atoms overlap can only be used with random style");
       if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
       overlap = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       if (overlap <= 0) error->all(FLERR, "Illegal create_atoms overlap value: {}", overlap);
@@ -257,7 +251,15 @@ void CreateAtoms::command(int narg, char **arg)
         error->all(FLERR, "Create_atoms maxtry can only be used with random style");
       if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
       maxtry = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (maxtry <= 0) error->all(FLERR,"Illegal create_atoms command");
+      if (maxtry <= 0) error->all(FLERR, "Illegal create_atoms command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "radiusscale") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms radiusscale", error);
+      if (style != MESH)
+        error->all(FLERR, "Create_atoms radiusscale can only be used with mesh style");
+      if (!atom->radius_flag)
+        error->all(FLERR, "Must have atom attribute radius to set radiusscale factor");
+      radiusscale = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else
       error->all(FLERR, "Illegal create_atoms command option {}", arg[iarg]);
@@ -269,10 +271,8 @@ void CreateAtoms::command(int narg, char **arg)
     if ((ntype <= 0) || (ntype > atom->ntypes))
       error->all(FLERR, "Invalid atom type in create_atoms command");
   } else if (mode == MOLECULE) {
-    if (onemol->xflag == 0)
-      error->all(FLERR, "Create_atoms molecule must have coordinates");
-    if (onemol->typeflag == 0)
-      error->all(FLERR, "Create_atoms molecule must have atom types");
+    if (onemol->xflag == 0) error->all(FLERR, "Create_atoms molecule must have coordinates");
+    if (onemol->typeflag == 0) error->all(FLERR, "Create_atoms molecule must have atom types");
     if (ntype + onemol->ntypes <= 0 || ntype + onemol->ntypes > atom->ntypes)
       error->all(FLERR, "Invalid atom type in create_atoms mol command");
     if (onemol->tag_require && !atom->tag_enable)
@@ -292,7 +292,6 @@ void CreateAtoms::command(int narg, char **arg)
       error->all(FLERR, "Create_atoms mesh is not compatible with the 'mol' option");
     if (scaleflag) error->all(FLERR, "Create_atoms mesh must use 'units box' option");
   }
-
 
   ranlatt = nullptr;
   if (subsetflag != NONE) ranlatt = new RanMars(lmp, subsetseed + comm->me);
@@ -692,7 +691,7 @@ void CreateAtoms::add_random()
   if (overlapflag) {
     double odist = overlap;
     if (mode == MOLECULE) odist += onemol->molradius;
-    odistsq = odist*odist;
+    odistsq = odist * odist;
   }
 
   // random number generator, same for all procs
@@ -740,7 +739,7 @@ void CreateAtoms::add_random()
 
   // insert Nrandom new atom/molecule into simulation box
 
-  int ntry,success;
+  int ntry, success;
   int ninsert = 0;
 
   for (int i = 0; i < nrandom; i++) {
@@ -788,7 +787,7 @@ void CreateAtoms::add_random()
           dely = xone[1] - x[i][1];
           delz = xone[2] - x[i][2];
           domain->minimum_image(delx, dely, delz);
-          distsq = delx*delx + dely*dely + delz*delz;
+          distsq = delx * delx + dely * dely + delz * delz;
           if (distsq < odistsq) {
             reject = 1;
             break;
@@ -891,8 +890,8 @@ void CreateAtoms::add_mesh(const char *filename, double radiusscale)
           throw TokenizerException("Error reading vertex", "");
 
         vert[k][0] = utils::numeric(FLERR, values[1], false, lmp);
-        vert[k][1] = utils::numeric(FLERR, values[1], false, lmp);
-        vert[k][2] = utils::numeric(FLERR, values[1], false, lmp);
+        vert[k][1] = utils::numeric(FLERR, values[2], false, lmp);
+        vert[k][2] = utils::numeric(FLERR, values[3], false, lmp);
       }
 
       line = reader.next_line(1);
@@ -905,7 +904,8 @@ void CreateAtoms::add_mesh(const char *filename, double radiusscale)
       // now we have a normal and three vertices ... proceed with adding triangle
 
       MathExtra::add3(vert[0], vert[1], center);
-      MathExtra::scaleadd3(1.0 / 3.0, center, vert[2], center);
+      MathExtra::add3(center, vert[2], coord);
+      MathExtra::scale3(1.0 / 3.0, coord, center);
 
       MathExtra::sub3(center, vert[0], coord);
       const double r1 = MathExtra::len3(coord);
@@ -925,7 +925,7 @@ void CreateAtoms::add_mesh(const char *filename, double radiusscale)
           (center[1] < subhi[1]) && (center[2] >= sublo[2]) && (center[2] < subhi[2])) {
 
         atom->avec->create_atom(ntype, center);
-        if (atom->radius_flag) atom->radius[ilocal] = r * radiusscale;
+        if (atom->radius_flag) atom->radius[ilocal] = r;
         if (atom->molecule_flag) atom->molecule[ilocal] = molid;
         ilocal++;
       }
@@ -1104,8 +1104,7 @@ void CreateAtoms::loop_lattice(int action)
 
           // if variable test specified, eval variable
 
-          if (varflag && vartest(x) == 0)
-            continue;
+          if (varflag && vartest(x) == 0) continue;
 
           // test if atom/molecule position is in my subbox
 

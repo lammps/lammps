@@ -110,7 +110,7 @@ using namespace LAMMPS_NS;
 static const char *varstyles[] = {
   "index", "loop", "world", "universe", "uloop", "string", "getenv",
   "file", "atomfile", "format", "equal", "atom", "vector", "python",
-  "internal", "(unknown)"};
+  "timer", "internal", "(unknown)"};
 
 static const char *mapstyles[] = { "none", "array", "hash", "yes" };
 

@@ -501,10 +501,10 @@ void Variable::set(int narg, char **arg)
     }
 
   // TIMER
-  // stores current MPI_Wtime() as a string
+  // stores current walltime as a timestamp in seconds
   // replace pre-existing var if also style TIMER (allows reset with current time)
   // num = 1, for string representation of dvalue, set by retrieve()
-  // dvalue = numeric initialization via platform::cputime()
+  // dvalue = numeric initialization via platform::walltime()
 
   } else if (strcmp(arg[1],"timer") == 0) {
     if (narg != 2) error->all(FLERR,"Illegal variable command");
@@ -512,7 +512,7 @@ void Variable::set(int narg, char **arg)
     if (ivar >= 0) {
       if (style[ivar] != TIMER)
         error->all(FLERR,"Cannot redefine variable as a different style");
-      dvalue[ivar] = platform::cputime();
+      dvalue[ivar] = platform::walltime();
       replaceflag = 1;
     } else {
       if (nvar == maxvar) grow();
@@ -522,7 +522,7 @@ void Variable::set(int narg, char **arg)
       pad[nvar] = 0;
       data[nvar] = new char*[num[nvar]];
       data[nvar][0] = new char[VALUELENGTH];
-      dvalue[nvar] = platform::cputime();
+      dvalue[nvar] = platform::walltime();
     }
 
   // INTERNAL

@@ -425,15 +425,15 @@ python-style variable can be used in place of an equal-style variable
 anywhere in an input script, e.g. as an argument to another command
 that allows for equal-style variables.
 
-For the *timer* style no additional argument is specified.  The value
-of the variable is set by querying the current elapsed CPU time of the
-simulation.  This is done at the point in time the variable is defined
-in the input script.  If a second timer-style variable is also
-defined, then a simple formula can be used to calculate the elapsed
-time between the two timers, as in the example above.  As mentioned
-above, timer-style variables can be redefined elsewhere in the input
-script, so the same pair of variables can be used in a loop or to time
-a series of operations.
+For the *timer* style no additional argument is specified.  The value of
+the variable is set by querying the current elapsed wall time of the
+simulation.  This is done at the point in time when the variable is
+defined in the input script.  If a second timer-style variable is also
+defined, then a simple formula can be used to calculate the elapsed time
+between the two timers, as in the example at the top of this manual
+entry.  As mentioned above, timer-style variables can be redefined
+elsewhere in the input script, so the same pair of variables can be used
+in a loop or to time a series of operations.
 
 For the *internal* style a numeric value is provided.  This value will
 be assigned to the variable until a LAMMPS command sets it to a new

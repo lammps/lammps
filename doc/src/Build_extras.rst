@@ -641,6 +641,20 @@ This list was last updated for version 3.5.0 of the Kokkos library.
 
          -D CMAKE_CXX_COMPILER=${HOME}/lammps/lib/kokkos/bin/nvcc_wrapper
 
+      For AMD or NVIDIA GPUs using HIP, set these variables:
+
+      .. code-block:: bash
+
+         -D Kokkos_ARCH_HOSTARCH=yes   # HOSTARCH = HOST from list above
+         -D Kokkos_ARCH_GPUARCH=yes    # GPUARCH = GPU from list above
+         -D Kokkos_ENABLE_HIP=yes
+         -D Kokkos_ENABLE_OPENMP=yes
+
+      This will enable FFTs on the GPU, either by the internal KISSFFT library
+      or with the hipFFT wrapper library, which will call out to the
+      platform-appropriate vendor library: rocFFT on AMD GPUs or cuFFT on
+      NVIDIA GPUs.
+
       To simplify compilation, four preset files are included in the
       ``cmake/presets`` folder, ``kokkos-serial.cmake``,
       ``kokkos-openmp.cmake``, ``kokkos-cuda.cmake``, and
@@ -707,6 +721,15 @@ This list was last updated for version 3.5.0 of the Kokkos library.
          KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
          CC = mpicxx -cxx=$(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
 
+      For AMD or NVIDIA GPUs using HIP:
+
+      .. code-block:: make
+
+         KOKKOS_DEVICES = HIP
+         KOKKOS_ARCH = HOSTARCH,GPUARCH  # HOSTARCH = HOST from list above that is hosting the GPU
+                                         # GPUARCH = GPU from list above
+         FFT_INC = -DFFT_HIPFFT           # enable use of hipFFT (optional)
+         FFT_LIB = -lhipfft               # link to hipFFT library
 
 Advanced KOKKOS compilation settings
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

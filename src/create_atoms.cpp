@@ -13,6 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author (ratio and subset) : Jake Gissinger (U Colorado)
+   Contributing author (maxtry & overlap) : Eugen Rozic (IRB, Zagreb)
 ------------------------------------------------------------------------- */
 
 #include "create_atoms.h"
@@ -44,6 +45,7 @@ using namespace MathConst;
 #define BIG 1.0e30
 #define EPSILON 1.0e-6
 #define LB_FACTOR 1.1
+#define DEFAULT_MAXTRY 1000
 
 enum { BOX, REGION, SINGLE, RANDOM };
 enum { ATOM, MOLECULE };
@@ -95,7 +97,6 @@ void CreateAtoms::command(int narg, char **arg)
     region->init();
     region->prematch();
     iarg = 3;
-    ;
   } else if (strcmp(arg[1], "single") == 0) {
     style = SINGLE;
     if (narg < 5) error->all(FLERR, "Illegal create_atoms command");
@@ -107,7 +108,9 @@ void CreateAtoms::command(int narg, char **arg)
     style = RANDOM;
     if (narg < 5) error->all(FLERR, "Illegal create_atoms command");
     nrandom = utils::inumeric(FLERR, arg[2], false, lmp);
+    if (nrandom < 0) error->all(FLERR, "Illegal create_atoms command");
     seed = utils::inumeric(FLERR, arg[3], false, lmp);
+    if (seed <= 0) error->all(FLERR, "Illegal create_atoms command");
     if (strcmp(arg[4], "NULL") == 0)
       region = nullptr;
     else {
@@ -126,11 +129,15 @@ void CreateAtoms::command(int narg, char **arg)
   remapflag = 0;
   mode = ATOM;
   int molseed;
+  ranmol = nullptr;
   varflag = 0;
   vstr = xstr = ystr = zstr = nullptr;
-  quatone[0] = quatone[1] = quatone[2] = 0.0;
+  quat_user = 0;
+  quatone[0] = quatone[1] = quatone[2] = quatone[3] = 0.0;
   subsetflag = NONE;
   int subsetseed;
+  overlapflag = 0;
+  maxtry = DEFAULT_MAXTRY;
 
   nbasis = domain->lattice->nbasis;
   basistype = new int[nbasis];
@@ -172,6 +179,8 @@ void CreateAtoms::command(int narg, char **arg)
         error->all(FLERR, "Illegal create_atoms command");
       iarg += 2;
     } else if (strcmp(arg[iarg], "var") == 0) {
+      if (style == SINGLE) error->all(FLERR, "Illegal create_atoms command: "
+          "can't combine 'var' keyword with 'single' style!");
       if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
       delete[] vstr;
       vstr = utils::strdup(arg[iarg + 1]);
@@ -193,10 +202,10 @@ void CreateAtoms::command(int narg, char **arg)
       iarg += 3;
     } else if (strcmp(arg[iarg], "rotate") == 0) {
       if (iarg + 5 > narg) error->all(FLERR, "Illegal create_atoms command");
+      quat_user = 1;
       double thetaone;
       double axisone[3];
       thetaone = utils::numeric(FLERR, arg[iarg + 1], false, lmp) / 180.0 * MY_PI;
-      ;
       axisone[0] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       axisone[1] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       axisone[2] = utils::numeric(FLERR, arg[iarg + 4], false, lmp);
@@ -222,38 +231,46 @@ void CreateAtoms::command(int narg, char **arg)
       subsetseed = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       if (nsubset <= 0 || subsetseed <= 0) error->all(FLERR, "Illegal create_atoms command");
       iarg += 3;
+    } else if (strcmp(arg[iarg], "overlap") == 0) {
+      if (style != RANDOM)
+        error->all(FLERR, "Create_atoms overlap can only be used with random style");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
+      overlap = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      if (overlap <= 0) error->all(FLERR, "Illegal create_atoms command");
+      overlapflag = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "maxtry") == 0) {
+      if (style != RANDOM)
+        error->all(FLERR, "Create_atoms maxtry can only be used with random style");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
+      maxtry = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      if (maxtry <= 0) error->all(FLERR,"Illegal create_atoms command");
+      iarg += 2;
     } else
       error->all(FLERR, "Illegal create_atoms command");
   }
 
-  // error checks
+  // error checks and further setup for mode = MOLECULE
 
-  if (mode == ATOM && (ntype <= 0 || ntype > atom->ntypes))
-    error->all(FLERR, "Invalid atom type in create_atoms command");
-
-  if (style == RANDOM) {
-    if (nrandom < 0) error->all(FLERR, "Illegal create_atoms command");
-    if (seed <= 0) error->all(FLERR, "Illegal create_atoms command");
-  }
-
-  // error check and further setup for mode = MOLECULE
-
-  ranmol = nullptr;
-  if (mode == MOLECULE) {
-    if (onemol->xflag == 0) error->all(FLERR, "Create_atoms molecule must have coordinates");
-    if (onemol->typeflag == 0) error->all(FLERR, "Create_atoms molecule must have atom types");
+  if (mode == ATOM) {
+    if (ntype <= 0 || ntype > atom->ntypes)
+      error->all(FLERR, "Invalid atom type in create_atoms command");
+  } else if (mode == MOLECULE) {
+    if (onemol->xflag == 0)
+      error->all(FLERR, "Create_atoms molecule must have coordinates");
+    if (onemol->typeflag == 0)
+      error->all(FLERR, "Create_atoms molecule must have atom types");
     if (ntype + onemol->ntypes <= 0 || ntype + onemol->ntypes > atom->ntypes)
       error->all(FLERR, "Invalid atom type in create_atoms mol command");
     if (onemol->tag_require && !atom->tag_enable)
       error->all(FLERR, "Create_atoms molecule has atom IDs, but system does not");
+
     onemol->check_attributes(0);
 
-    // create_atoms uses geoemetric center of molecule for insertion
-
-    onemol->compute_center();
-
+    // use geometric center of molecule for insertion
     // molecule random number generator, different for each proc
 
+    onemol->compute_center();
     ranmol = new RanMars(lmp, molseed + comm->me);
   }
 
@@ -305,6 +322,7 @@ void CreateAtoms::command(int narg, char **arg)
     xone[0] *= domain->lattice->xlattice;
     xone[1] *= domain->lattice->ylattice;
     xone[2] *= domain->lattice->zlattice;
+    overlap *= domain->lattice->xlattice;
   }
 
   // set bounds for my proc in sublo[3] & subhi[3]
@@ -376,7 +394,7 @@ void CreateAtoms::command(int narg, char **arg)
     }
   }
 
-  // Record wall time for atom creation
+  // record wall time for atom creation
 
   MPI_Barrier(world);
   double time1 = platform::walltime();
@@ -630,12 +648,11 @@ void CreateAtoms::add_single()
 
   if (coord[0] >= sublo[0] && coord[0] < subhi[0] && coord[1] >= sublo[1] && coord[1] < subhi[1] &&
       coord[2] >= sublo[2] && coord[2] < subhi[2]) {
-    if (mode == ATOM)
+    if (mode == ATOM) {
       atom->avec->create_atom(ntype, xone);
-    else if (quatone[0] == 0.0 && quatone[1] == 0.0 && quatone[2] == 0.0)
+    } else {
       add_molecule(xone);
-    else
-      add_molecule(xone, quatone);
+    }
   }
 }
 
@@ -646,8 +663,15 @@ void CreateAtoms::add_single()
 void CreateAtoms::add_random()
 {
   double xlo, ylo, zlo, xhi, yhi, zhi, zmid;
+  double delx, dely, delz, distsq, odistsq;
   double lamda[3], *coord;
   double *boxlo, *boxhi;
+
+  if (overlapflag) {
+    double odist = overlap;
+    if (mode == MOLECULE) odist += onemol->molradius;
+    odistsq = odist*odist;
+  }
 
   // random number generator, same for all procs
   // warm up the generator 30x to avoid correlations in first-particle
@@ -689,48 +713,100 @@ void CreateAtoms::add_random()
     zhi = MIN(zhi, region->extent_zhi);
   }
 
-  // generate random positions for each new atom/molecule within bounding box
-  // iterate until atom is within region, variable, and triclinic simulation box
-  // if final atom position is in my subbox, create it
-
   if (xlo > xhi || ylo > yhi || zlo > zhi)
     error->all(FLERR, "No overlap of box and region for create_atoms");
 
-  int valid;
+  // insert Nrandom new atom/molecule into simulation box
+
+  int ntry,success;
+  int ninsert = 0;
+
   for (int i = 0; i < nrandom; i++) {
-    while (true) {
+
+    // attempt to insert an atom/molecule up to maxtry times
+    // criteria for insertion: region, variable, triclinic box, overlap
+
+    success = 0;
+    ntry = 0;
+
+    while (ntry < maxtry) {
+      ntry++;
+
       xone[0] = xlo + random->uniform() * (xhi - xlo);
       xone[1] = ylo + random->uniform() * (yhi - ylo);
       xone[2] = zlo + random->uniform() * (zhi - zlo);
       if (domain->dimension == 2) xone[2] = zmid;
 
-      valid = 1;
-      if (region && (region->match(xone[0], xone[1], xone[2]) == 0)) valid = 0;
-      if (varflag && vartest(xone) == 0) valid = 0;
+      if (region && (region->match(xone[0], xone[1], xone[2]) == 0)) continue;
+      if (varflag && vartest(xone) == 0) continue;
+
       if (triclinic) {
         domain->x2lamda(xone, lamda);
         coord = lamda;
         if (coord[0] < boxlo[0] || coord[0] >= boxhi[0] || coord[1] < boxlo[1] ||
             coord[1] >= boxhi[1] || coord[2] < boxlo[2] || coord[2] >= boxhi[2])
-          valid = 0;
-      } else
+          continue;
+      } else {
         coord = xone;
+      }
 
-      if (valid) break;
+      // check for overlap of new atom/mol with all other atoms
+      //   including prior insertions
+      // minimum_image() needed to account for distances across PBC
+      // new molecule only checks its center pt against others
+      //   odistsq is expanded for mode=MOLECULE to account for molecule size
+
+      if (overlapflag) {
+        double **x = atom->x;
+        int nlocal = atom->nlocal;
+
+        int reject = 0;
+        for (int i = 0; i < nlocal; i++) {
+          delx = xone[0] - x[i][0];
+          dely = xone[1] - x[i][1];
+          delz = xone[2] - x[i][2];
+          domain->minimum_image(delx, dely, delz);
+          distsq = delx*delx + dely*dely + delz*delz;
+          if (distsq < odistsq) {
+            reject = 1;
+            break;
+          }
+        }
+        int reject_any;
+        MPI_Allreduce(&reject, &reject_any, 1, MPI_INT, MPI_MAX, world);
+        if (reject_any) continue;
+      }
+
+      // all tests passed
+
+      success = 1;
+      break;
     }
 
+    // insertion failed, advance to next atom/molecule
+
+    if (!success) continue;
+
+    // insertion criteria were met
+    // if final atom position is in my subbox, create it
     // if triclinic, coord is now in lamda units
+
+    ninsert++;
 
     if (coord[0] >= sublo[0] && coord[0] < subhi[0] && coord[1] >= sublo[1] &&
         coord[1] < subhi[1] && coord[2] >= sublo[2] && coord[2] < subhi[2]) {
-      if (mode == ATOM)
+      if (mode == ATOM) {
         atom->avec->create_atom(ntype, xone);
-      else if (quatone[0] == 0 && quatone[1] == 0 && quatone[2] == 0)
+      } else {
         add_molecule(xone);
-      else
-        add_molecule(xone, quatone);
+      }
     }
   }
+
+  // warn if did not successfully insert Nrandom atoms/molecules
+
+  if (ninsert < nrandom && comm->me == 0)
+    error->warning(FLERR, "Only inserted {} particles out of {}", ninsert, nrandom);
 
   // clean-up
 
@@ -785,6 +861,7 @@ void CreateAtoms::add_lattice()
   xmax = ymax = zmax = -BIG;
 
   // convert to lattice coordinates and set bounding box
+
   domain->lattice->bbox(1, bboxlo[0], bboxlo[1], bboxlo[2], xmin, ymin, zmin, xmax, ymax, zmax);
   domain->lattice->bbox(1, bboxhi[0], bboxlo[1], bboxlo[2], xmin, ymin, zmin, xmax, ymax, zmax);
   domain->lattice->bbox(1, bboxlo[0], bboxhi[1], bboxlo[2], xmin, ymin, zmin, xmax, ymax, zmax);
@@ -905,7 +982,8 @@ void CreateAtoms::loop_lattice(int action)
 
           // if variable test specified, eval variable
 
-          if (varflag && vartest(x) == 0) continue;
+          if (varflag && vartest(x) == 0)
+            continue;
 
           // test if atom/molecule position is in my subbox
 
@@ -924,21 +1002,19 @@ void CreateAtoms::loop_lattice(int action)
           // add = add an atom or entire molecule to my list of atoms
 
           if (action == INSERT) {
-            if (mode == ATOM)
+            if (mode == ATOM) {
               atom->avec->create_atom(basistype[m], x);
-            else if (quatone[0] == 0 && quatone[1] == 0 && quatone[2] == 0)
+            } else {
               add_molecule(x);
-            else
-              add_molecule(x, quatone);
+            }
           } else if (action == COUNT) {
             if (nlatt == MAXSMALLINT) nlatt_overflow = 1;
           } else if (action == INSERT_SELECTED && flag[nlatt]) {
-            if (mode == ATOM)
+            if (mode == ATOM) {
               atom->avec->create_atom(basistype[m], x);
-            else if (quatone[0] == 0 && quatone[1] == 0 && quatone[2] == 0)
+            } else {
               add_molecule(x);
-            else
-              add_molecule(x, quatone);
+            }
           }
 
           nlatt++;
@@ -949,43 +1025,42 @@ void CreateAtoms::loop_lattice(int action)
 }
 
 /* ----------------------------------------------------------------------
-   add a randomly rotated molecule with its center at center
-   if quat_user set, perform requested rotation
+   add a molecule with its center at center
 ------------------------------------------------------------------------- */
 
-void CreateAtoms::add_molecule(double *center, double *quat_user)
+void CreateAtoms::add_molecule(double *center)
 {
-  int n;
-  double r[3], rotmat[3][3], quat[4], xnew[3];
+  double r[3], rotmat[3][3];
 
-  if (quat_user) {
-    quat[0] = quat_user[0];
-    quat[1] = quat_user[1];
-    quat[2] = quat_user[2];
-    quat[3] = quat_user[3];
-  } else {
+  // use quatone as-is if user set it
+  // else generate random quaternion in quatone
+
+  if (!quat_user) {
     if (domain->dimension == 3) {
       r[0] = ranmol->uniform() - 0.5;
       r[1] = ranmol->uniform() - 0.5;
       r[2] = ranmol->uniform() - 0.5;
+      MathExtra::norm3(r);
     } else {
       r[0] = r[1] = 0.0;
       r[2] = 1.0;
     }
-    MathExtra::norm3(r);
     double theta = ranmol->uniform() * MY_2PI;
-    MathExtra::axisangle_to_quat(r, theta, quat);
+    MathExtra::axisangle_to_quat(r, theta, quatone);
   }
 
-  MathExtra::quat_to_mat(quat, rotmat);
-  onemol->quat_external = quat;
+  MathExtra::quat_to_mat(quatone, rotmat);
 
   // create atoms in molecule with atom ID = 0 and mol ID = 0
-  // reset in caller after all molecules created by all procs
+  // IDs are reset in caller after all molecules created by all procs
   // pass add_molecule_atom an offset of 0 since don't know
   //   max tag of atoms in previous molecules at this point
+  // onemol->quat_external is used by atom->add_moleclue_atom()
 
-  int natoms = onemol->natoms;
+  onemol->quat_external = quatone;
+
+  int n, natoms = onemol->natoms;
+  double xnew[3];
   for (int m = 0; m < natoms; m++) {
     MathExtra::matvec(rotmat, onemol->dx[m], xnew);
     MathExtra::add3(xnew, center, xnew);

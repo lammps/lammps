@@ -1326,6 +1326,7 @@ hiID
 Hijazi
 Hilger
 Hinestrosa
+hipFFT
 histo
 histogrammed
 histogramming
@@ -1951,6 +1952,7 @@ maxsize
 maxspecial
 maxSteps
 maxstrain
+maxtry
 maxwell
 Maxwellian
 maxX
@@ -2951,6 +2953,7 @@ rnage
 rng
 rNEMD
 ro
+rocFFT
 Rochus
 Rockett
 rocksalt

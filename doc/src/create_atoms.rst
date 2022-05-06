@@ -130,7 +130,7 @@ Various additional criteria can be used to accept or reject a random
 particle insertion; see the keyword discussion below.  Multiple
 attempts per particle are made (see the *maxtry* keyword) until the
 insertion is either successful or fails.  If this command fails to add
-all requsted *N* particles, a warning will be output.
+all requested *N* particles, a warning will be output.
 
 If the *region-ID* argument is specified as NULL, then the randomly
 created particles will be anywhere in the simulation box.  If a

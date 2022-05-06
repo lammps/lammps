@@ -501,20 +501,29 @@ void Variable::set(int narg, char **arg)
     }
 
   // TIMER
-  // num = listed args, which = 1st value, data = copied args
+  // stores current MPI_Wtime() as a string
+  // replace pre-existing var if also style TIMER (allows reset with current time)
+  // num = 1, for string representation of dvalue, set by retrieve()
+  // dvalue = numeric initialization via platform::cputime()
 
   } else if (strcmp(arg[1],"timer") == 0) {
     if (narg != 2) error->all(FLERR,"Illegal variable command");
-    if (find(arg[0]) >= 0) return;
-    if (nvar == maxvar) grow();
-    style[nvar] = TIMER;
-    num[nvar] = 1;
-    which[nvar] = 0;
-    pad[nvar] = 0;
-    data[nvar] = new char*[num[nvar]];
-    copy(num[nvar],&arg[2],data[nvar]);
-
-    // NOTE: set value to MPI_Wtime() evaulated by proc 0
+    int ivar = find(arg[0]);
+    if (ivar >= 0) {
+      if (style[ivar] != TIMER)
+        error->all(FLERR,"Cannot redefine variable as a different style");
+      dvalue[ivar] = platform::cputime();
+      replaceflag = 1;
+    } else {
+      if (nvar == maxvar) grow();
+      style[nvar] = TIMER;
+      num[nvar] = 1;
+      which[nvar] = 0;
+      pad[nvar] = 0;
+      data[nvar] = new char*[num[nvar]];
+      data[nvar][0] = new char[VALUELENGTH];
+      dvalue[nvar] = platform::cputime();
+    }
 
   // INTERNAL
   // replace pre-existing var if also style INTERNAL (allows it to be reset)
@@ -539,6 +548,8 @@ void Variable::set(int narg, char **arg)
       data[nvar][0] = new char[VALUELENGTH];
       dvalue[nvar] = utils::numeric(FLERR,arg[2],false,lmp);
     }
+
+  // unrecognized variable style
 
   } else error->all(FLERR,"Illegal variable command");
 
@@ -626,13 +637,14 @@ int Variable::next(int narg, char **arg)
       error->all(FLERR,"All variables in next command must have same style");
   }
 
-  // invalid styles: STRING, EQUAL, WORLD, ATOM, VECTOR, GETENV,
-  //                 FORMAT, PYTHON, INTERNAL
+  // invalid styles: STRING, EQUAL, WORLD, GETENV, ATOM, VECTOR,
+  //                 FORMAT, PYTHON, TIMER, INTERNAL
 
   int istyle = style[find(arg[0])];
-  if (istyle == STRING || istyle == EQUAL || istyle == WORLD ||
-      istyle == GETENV || istyle == ATOM || istyle == VECTOR ||
-      istyle == FORMAT || istyle == PYTHON || istyle == INTERNAL)
+  if (istyle == STRING || istyle == EQUAL || 
+      istyle == WORLD || istyle == GETENV || istyle == ATOM || 
+      istyle == VECTOR || istyle == FORMAT || istyle == PYTHON || 
+      istyle == TIMER || istyle == INTERNAL)
     error->all(FLERR,"Invalid variable style with next command");
 
   // if istyle = UNIVERSE or ULOOP, insure all such variables are incremented
@@ -810,13 +822,15 @@ void Variable::python_command(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   return 1 if variable is EQUAL or INTERNAL or PYTHON numeric style, 0 if not
+   return 1 if variable is EQUAL style, 0 if not
+   TIMER, INTERNAL, PYTHON qualify as EQUAL style
    this is checked before call to compute_equal() to return a double
 ------------------------------------------------------------------------- */
 
 int Variable::equalstyle(int ivar)
 {
-  if (style[ivar] == EQUAL || style[ivar] == INTERNAL) return 1;
+  if (style[ivar] == EQUAL || style[ivar] == TIMER || 
+      style[ivar] == INTERNAL) return 1;
   if (style[ivar] == PYTHON) {
     int ifunc = python->variable_match(data[ivar][0],names[ivar],1);
     if (ifunc < 0) return 0;
@@ -941,7 +955,7 @@ char *Variable::retrieve(const char *name)
     // then the Python class stores the result, query it via long_string()
     char *strlong = python->long_string(ifunc);
     if (strlong) str = strlong;
-  } else if (style[ivar] == INTERNAL) {
+  } else if (style[ivar] == TIMER || style[ivar] == INTERNAL) {
     sprintf(data[ivar][0],"%.15g",dvalue[ivar]);
     str = data[ivar][0];
   } else if (style[ivar] == ATOM || style[ivar] == ATOMFILE ||
@@ -954,7 +968,7 @@ char *Variable::retrieve(const char *name)
 
 /* ----------------------------------------------------------------------
    return result of equal-style variable evaluation
-   can be EQUAL or INTERNAL style or PYTHON numeric style
+   can be EQUAL or TIMER or INTERNAL style or PYTHON numeric style
    for PYTHON, don't need to check python->variable_match() error return,
      since caller will have already checked via equalstyle()
 ------------------------------------------------------------------------- */
@@ -968,6 +982,7 @@ double Variable::compute_equal(int ivar)
 
   double value = 0.0;
   if (style[ivar] == EQUAL) value = evaluate(data[ivar][0],nullptr,ivar);
+  else if (style[ivar] == TIMER) value = dvalue[ivar];
   else if (style[ivar] == INTERNAL) value = dvalue[ivar];
   else if (style[ivar] == PYTHON) {
     int ifunc = python->find(data[ivar][0]);

@@ -20,7 +20,8 @@ Syntax
        *yaml* args = none
        *custom* args = list of keywords
          possible keywords = step, elapsed, elaplong, dt, time,
-                             cpu, tpcpu, spcpu, cpuremain, part, timeremain,
+                             cpu, tpcpu, spcpu, cpuremain, 
+                             nprocs, part, timeremain,
                              atoms, temp, press, pe, ke, etotal,
                              evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
                              emol, elong, etail,
@@ -43,8 +44,9 @@ Syntax
            tpcpu = time per CPU second
            spcpu = timesteps per CPU second
            cpuremain = estimated CPU time remaining in run
+           nprocs = # of processors (MPI tasks) simulation is running on
            part = which partition (0 to Npartition-1) this is
-           timeremain = remaining time in seconds on timer timeout.
+           timeremain = remaining time in seconds on timer timeout
            atoms = # of atoms
            temp = temperature
            press = pressure

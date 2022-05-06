@@ -54,7 +54,7 @@ using namespace MathConst;
 // CUSTOMIZATION: add a new keyword by adding it to this list:
 
 // step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu, cpuremain,
-// part, timeremain
+// nprocs, part, timeremain
 // atoms, temp, press, pe, ke, etotal
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
 // enthalpy, ecouple, econserve
@@ -810,6 +810,8 @@ void Thermo::parse_fields(const std::string &str)
       addfield("S/CPU", &Thermo::compute_spcpu, FLOAT);
     } else if (word == "cpuremain") {
       addfield("CPULeft", &Thermo::compute_cpuremain, FLOAT);
+    } else if (word == "nprocs") {
+      addfield("Nprocs", &Thermo::compute_nprocs, INT);
     } else if (word == "part") {
       addfield("Part", &Thermo::compute_part, INT);
     } else if (word == "timeremain") {
@@ -1252,6 +1254,10 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
       error->all(FLERR, "This variable thermo keyword cannot be used between runs");
     compute_cpuremain();
 
+  } else if (word == "nprocs") {
+    compute_nprocs();
+    dvalue = ivalue;
+
   } else if (word == "part") {
     compute_part();
     dvalue = ivalue;
@@ -1643,6 +1649,13 @@ void Thermo::compute_cpuremain()
   else
     dvalue = timer->elapsed(Timer::TOTAL) * (update->laststep - update->ntimestep) /
         (update->ntimestep - update->firststep);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_nprocs()
+{
+  ivalue = comm->nprocs;
 }
 
 /* ---------------------------------------------------------------------- */

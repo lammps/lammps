@@ -404,7 +404,7 @@ double PairSMATB::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-int PairSMATB::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int PairSMATB::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int i, j, m;
 
@@ -465,11 +465,10 @@ void PairSMATB::write_restart_settings(FILE *fp)
 void PairSMATB::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
-  size_t result;
   if (me == 0) {
-    result = fread(&offset_flag, sizeof(int), 1, fp);
-    result = fread(&mix_flag, sizeof(int), 1, fp);
-    result = fread(&tail_flag, sizeof(int), 1, fp);
+    utils::sfread(FLERR, &offset_flag, sizeof(int), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &mix_flag, sizeof(int), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &tail_flag, sizeof(int), 1, fp, nullptr, error);
   }
   MPI_Bcast(&offset_flag, 1, MPI_INT, 0, world);
   MPI_Bcast(&mix_flag, 1, MPI_INT, 0, world);
@@ -504,15 +503,13 @@ void PairSMATB::write_restart(FILE *fp)
 void PairSMATB::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
-
   allocate();
-  size_t result;
 
   int i, j;
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) { result = fread(&setflag[i][j], sizeof(int), 1, fp); }
+      if (me == 0) utils::sfread(FLERR, &setflag[i][j], sizeof(int), 1, fp, nullptr, error);
       MPI_Bcast(&setflag[i][j], 1, MPI_INT, 0, world);
       if (setflag[i][j]) {
         if (me == 0) {

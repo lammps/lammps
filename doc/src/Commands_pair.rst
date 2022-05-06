@@ -34,7 +34,7 @@ OPT.
    *
    *
    *
-   * :doc:`adp (o) <pair_adp>`
+   * :doc:`adp (ko) <pair_adp>`
    * :doc:`agni (o) <pair_agni>`
    * :doc:`airebo (io) <pair_airebo>`
    * :doc:`airebo/morse (io) <pair_airebo>`

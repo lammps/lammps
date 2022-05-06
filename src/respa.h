@@ -51,6 +51,7 @@ class Respa : public Integrate {
   void setup(int) override;
   void setup_minimal(int) override;
   void run(int) override;
+  void force_clear() override;
   void cleanup() override;
   void reset_dt() override;
 
@@ -65,7 +66,6 @@ class Respa : public Integrate {
   class FixRespa *fix_respa;    // Fix to store the force level array
 
   virtual void recurse(int);
-  void force_clear(int);
   void sum_flevel_f();
   void set_compute_flags(int ilevel);
 };

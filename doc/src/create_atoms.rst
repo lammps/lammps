@@ -349,13 +349,13 @@ Here is an example for the *random* style using these commands
 
 .. code-block:: LAMMPS
 
-units		lj
+units           lj
 dimension       2
-region		box block 0 50 0 50 -0.5 0.5
-create_box	1 box
-create_atoms	1 random 2000 13487 NULL overlap 1.0 maxtry 50
-pair_style	lj/cut 2.5
-pair_coeff	1 1 1.0 1.0 2.5
+region          box block 0 50 0 50 -0.5 0.5
+create_box      1 box
+create_atoms    1 random 2000 13487 NULL overlap 1.0 maxtry 50
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0 2.5
 
 to produce a system as shown in the image with 1520 particles (out of
 2000 requested) that are moderately dense and which have no overlaps

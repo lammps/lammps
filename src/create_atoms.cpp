@@ -232,7 +232,7 @@ void CreateAtoms::command(int narg, char **arg)
       if (nsubset <= 0 || subsetseed <= 0) error->all(FLERR, "Illegal create_atoms command");
       iarg += 3;
     } else if (strcmp(arg[iarg], "overlap") == 0) {
-      if (style != RANDOM) 
+      if (style != RANDOM)
         error->all(FLERR, "Create_atoms overlap can only be used with random style");
       if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
       overlap = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
@@ -240,7 +240,7 @@ void CreateAtoms::command(int narg, char **arg)
       overlapflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg], "maxtry") == 0) {
-      if (style != RANDOM) 
+      if (style != RANDOM)
         error->all(FLERR, "Create_atoms maxtry can only be used with random style");
       if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
       maxtry = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
@@ -720,7 +720,7 @@ void CreateAtoms::add_random()
 
   int ntry,success;
   int ninsert = 0;
-  
+
   for (int i = 0; i < nrandom; i++) {
 
     // attempt to insert an atom/molecule up to maxtry times
@@ -750,7 +750,7 @@ void CreateAtoms::add_random()
         coord = xone;
       }
 
-      // check for overlap of new atom/mol with all other atoms 
+      // check for overlap of new atom/mol with all other atoms
       //   including prior insertions
       // minimum_image() needed to account for distances across PBC
       // new molecule only checks its center pt against others
@@ -807,7 +807,7 @@ void CreateAtoms::add_random()
 
   if (ninsert < nrandom && comm->me == 0)
     error->warning(FLERR, "Only inserted {} particles out of {}", ninsert, nrandom);
-    
+
   // clean-up
 
   delete random;
@@ -972,19 +972,19 @@ void CreateAtoms::loop_lattice(int action)
           x[2] = k + basis[m][2];
 
           // convert from lattice coords to box coords
-          
+
           domain->lattice->lattice2box(x[0], x[1], x[2]);
-          
+
           // if a region was specified, test if atom is in it
 
           if (style == REGION)
             if (!region->match(x[0], x[1], x[2])) continue;
 
           // if variable test specified, eval variable
-          
+
           if (varflag && vartest(x) == 0)
             continue;
-            
+
           // test if atom/molecule position is in my subbox
 
           if (triclinic) {

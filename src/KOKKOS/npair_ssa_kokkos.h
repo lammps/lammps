@@ -289,6 +289,7 @@ class NPairSSAKokkosExecute
     h_new_maxneighs() = neigh_list.maxneighs;
   };
 
+  KOKKOS_INLINE_FUNCTION
   ~NPairSSAKokkosExecute() {neigh_list.copymode = 1;};
 
   KOKKOS_FUNCTION

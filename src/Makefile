@@ -547,6 +547,9 @@ yes-all:
 no-all:
 	@for p in $(PACKAGE); do $(MAKE) no-$$p; done
 
+no-installed:
+	@for p in $(PACKAGESORTED); do $(SHELL) Package.sh $$p info && $(MAKE) no-$$p || : ; done
+
 yes-standard yes-std:
 	@echo 'There are no more "standard" or "user" packages in LAMMPS'
 

@@ -71,7 +71,6 @@ PACKAGE = \
 	dpd-smooth \
 	drude \
 	eff \
-	electrode \
 	extra-compute \
 	extra-dump \
 	extra-fix \
@@ -137,6 +136,7 @@ PACKAGE = \
 	yaff \
 	atc \
 	dielectric \
+	electrode \
 	ml-iap \
 	phonon
 

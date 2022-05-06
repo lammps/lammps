@@ -130,7 +130,7 @@ class Modify : protected Pointers {
   // new API
   Compute *get_compute_by_id(const std::string &) const;
   Compute *get_compute_by_index(int idx) const {
-    return ((idx >= 0) && (idx < nfix)) ? compute[idx] : nullptr;
+    return ((idx >= 0) && (idx < ncompute)) ? compute[idx] : nullptr;
   }
   const std::vector<Compute *> get_compute_by_style(const std::string &) const;
   const std::vector<Compute *> &get_compute_list();

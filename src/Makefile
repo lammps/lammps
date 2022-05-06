@@ -163,7 +163,6 @@ PACKMOST = \
 	dpd-react \
 	dpd-smooth \
 	drude \
-	electrode \
 	eff \
 	extra-compute \
 	extra-dump \
@@ -232,7 +231,8 @@ PACKLIB = \
 	ml-quip \
 	scafacos \
 	machdyn \
-	vtk
+	vtk \
+	electrode
 
 PACKSYS = compress latboltz mpiio python
 

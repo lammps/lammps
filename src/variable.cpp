@@ -641,9 +641,9 @@ int Variable::next(int narg, char **arg)
   //                 FORMAT, PYTHON, TIMER, INTERNAL
 
   int istyle = style[find(arg[0])];
-  if (istyle == STRING || istyle == EQUAL || 
-      istyle == WORLD || istyle == GETENV || istyle == ATOM || 
-      istyle == VECTOR || istyle == FORMAT || istyle == PYTHON || 
+  if (istyle == STRING || istyle == EQUAL ||
+      istyle == WORLD || istyle == GETENV || istyle == ATOM ||
+      istyle == VECTOR || istyle == FORMAT || istyle == PYTHON ||
       istyle == TIMER || istyle == INTERNAL)
     error->all(FLERR,"Invalid variable style with next command");
 
@@ -829,7 +829,7 @@ void Variable::python_command(int narg, char **arg)
 
 int Variable::equalstyle(int ivar)
 {
-  if (style[ivar] == EQUAL || style[ivar] == TIMER || 
+  if (style[ivar] == EQUAL || style[ivar] == TIMER ||
       style[ivar] == INTERNAL) return 1;
   if (style[ivar] == PYTHON) {
     int ifunc = python->variable_match(data[ivar][0],names[ivar],1);

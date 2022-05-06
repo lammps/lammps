@@ -39,23 +39,22 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace MathSpecial;
+using MathSpecial::factorial;
 
 #ifdef DBL_EPSILON
-#define MY_EPSILON (10.0 * DBL_EPSILON)
+static constexpr double MY_EPSILON = (10.0 * DBL_EPSILON);
 #else
-#define MY_EPSILON (10.0 * 2.220446049250313e-16)
+static constexpr double MY_EPSILON = (10.0 * 2.220446049250313e-16);
 #endif
 
-#define QEPSILON 1.0e-6
+static constexpr double QEPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  qlist(nullptr), distsq(nullptr), nearest(nullptr), rlist(nullptr),
-  qnarray(nullptr), qnm_r(nullptr), qnm_i(nullptr), w3jlist(nullptr),
-  qnormfac(nullptr),qnormfac2(nullptr)
+    Compute(lmp, narg, arg), qlist(nullptr), qnormfac(nullptr), qnormfac2(nullptr), distsq(nullptr),
+    nearest(nullptr), rlist(nullptr), qnarray(nullptr), qnm_r(nullptr), qnm_i(nullptr),
+    w3jlist(nullptr)
 {
   if (narg < 3) error->all(FLERR, "Illegal compute orientorder/atom command");
 
@@ -153,12 +152,12 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
   nmax = 0;
   maxneigh = 0;
 
-  memory->create(qnormfac,nqlist,"orientorder/atom:qnormfac");
-  memory->create(qnormfac2,nqlist,"orientorder/atom:qnormfac2");
+  memory->create(qnormfac, nqlist, "orientorder/atom:qnormfac");
+  memory->create(qnormfac2, nqlist, "orientorder/atom:qnormfac2");
   for (int il = 0; il < nqlist; il++) {
     int l = qlist[il];
-    qnormfac[il] = sqrt(MY_4PI/(2*l+1));
-    qnormfac2[il] = sqrt(2*l+1);
+    qnormfac[il] = sqrt(MY_4PI / (2 * l + 1));
+    qnormfac2[il] = sqrt(2 * l + 1);
   }
 }
 
@@ -524,7 +523,7 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist, int ncount, double qn[], 
       int l = qlist[il];
       double wlsum = 0.0;
       for (int m1 = -l; m1 <= 0; m1++) {
-        const int sgn = 1 - 2 * (m1 & 1); // sgn = (-1)^m1
+        const int sgn = 1 - 2 * (m1 & 1);    // sgn = (-1)^m1
         for (int m2 = 0; m2 <= ((-m1) >> 1); m2++) {
           const int m3 = -(m1 + m2);
           // Loop enforces -L <= m1 <= 0 <= m2 <= m3 <= L, and m1 + m2 + m3 = 0
@@ -535,12 +534,13 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist, int ncount, double qn[], 
           // such symmetry (invariance) group.
 
           // m1 <= 0, and Qlm[-m] = (-1)^m * conjg(Qlm[m])
-          const double Q1Q2_r = (qnm_r[il][-m1] * qnm_r[il][m2] + qnm_i[il][-m1] * qnm_i[il][m2]) * sgn;
-          const double Q1Q2_i = (qnm_r[il][-m1] * qnm_i[il][m2] - qnm_i[il][-m1] * qnm_r[il][m2]) * sgn;
+          const double Q1Q2_r =
+              (qnm_r[il][-m1] * qnm_r[il][m2] + qnm_i[il][-m1] * qnm_i[il][m2]) * sgn;
+          const double Q1Q2_i =
+              (qnm_r[il][-m1] * qnm_i[il][m2] - qnm_i[il][-m1] * qnm_r[il][m2]) * sgn;
           const double Q1Q2Q3 = Q1Q2_r * qnm_r[il][m3] - Q1Q2_i * qnm_i[il][m3];
           const double c = w3jlist[widx_count++];
           wlsum += Q1Q2Q3 * c;
-
         }
       }
       qn[jj++] = wlsum / qnormfac2[il];
@@ -551,14 +551,14 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist, int ncount, double qn[], 
   // calculate W_l_hat
 
   if (wlhatflag) {
-    const int jptr = jj-nterms;
+    const int jptr = jj - nterms;
     if (!wlflag) jj = jptr;
     for (int il = 0; il < nqlist; il++) {
       if (qn[il] < QEPSILON)
         qn[jj++] = 0.0;
       else {
         double qnfac = qnormfac[il] / qn[il];
-        qn[jj++] = qn[jptr+il] * (qnfac*qnfac*qnfac) * qnormfac2[il];
+        qn[jj++] = qn[jptr + il] * (qnfac * qnfac * qnfac) * qnormfac2[il];
       }
     }
   }
@@ -578,8 +578,8 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist, int ncount, double qn[], 
       for (int m = -l; m < 0; m++) {
         // Computed only qnm for m>=0.
         // qnm[-m] = (-1)^m * conjg(qnm[m])
-        const int sgn = 1 - 2 * (m & 1); // sgn = (-1)^m
-        qn[jj++] =  qnm_r[il][-m] * qnfac * sgn;
+        const int sgn = 1 - 2 * (m & 1);    // sgn = (-1)^m
+        qn[jj++] = qnm_r[il][-m] * qnfac * sgn;
         qn[jj++] = -qnm_i[il][-m] * qnfac * sgn;
       }
       for (int m = 0; m < l + 1; m++) {
@@ -644,13 +644,11 @@ void ComputeOrientOrderAtom::init_wigner3j()
 {
   int widx_count = 0;
 
-  for (int il = 0; il<nqlist; il++) {
+  for (int il = 0; il < nqlist; il++) {
     const int l = qlist[il];
 
-    for (int m1 = -l; m1<=0; m1++) {
-      for (int m2 = 0; m2<=((-m1)>>1); m2++) {
-        widx_count++;
-      }
+    for (int m1 = -l; m1 <= 0; m1++) {
+      for (int m2 = 0; m2 <= ((-m1) >> 1); m2++) { widx_count++; }
     }
   }
   widx_max = widx_count;
@@ -659,11 +657,11 @@ void ComputeOrientOrderAtom::init_wigner3j()
 
   widx_count = 0;
 
-  for (int il = 0; il<nqlist; il++) {
+  for (int il = 0; il < nqlist; il++) {
     const int l = qlist[il];
 
-    for (int m1 = -l; m1<=0; m1++) {
-      for (int m2 = 0; m2<=((-m1)>>1); m2++) {
+    for (int m1 = -l; m1 <= 0; m1++) {
+      for (int m2 = 0; m2 <= ((-m1) >> 1); m2++) {
         const int m3 = -(m1 + m2);
         // Loop enforces -L<=m1<=0<=m2<=m3<=L, and m1+m2+m3=0
 
@@ -675,14 +673,16 @@ void ComputeOrientOrderAtom::init_wigner3j()
         // Determine number of elements in symmetry group of (m1,m2,m3)
         // Concise determination exploiting (m1,m2,m3) loop structure.
         int pfac;
-        if (m1 == 0) pfac = 1; // m1 = m2 = m3 = 0
+        if (m1 == 0)
+          pfac = 1;    // m1 = m2 = m3 = 0
         else if (m2 == 0 || m2 == m3) {
           // reduced group when only 3 permutations, or sign inversion
           // is equivalent to permutation
           pfac = 6;
-        } else pfac = 12; // 6 permutations * 2 signs
+        } else
+          pfac = 12;    // 6 permutations * 2 signs
 
-        w3jlist[widx_count] = w3j(l,m1,m2,m3) * pfac;
+        w3jlist[widx_count] = w3j(l, m1, m2, m3) * pfac;
         widx_count++;
       }
     }
@@ -691,38 +691,41 @@ void ComputeOrientOrderAtom::init_wigner3j()
 
 /* ---------------------------------------------------------------------- */
 
-double ComputeOrientOrderAtom::triangle_coeff(const int a, const int b, const int c) {
-  return factorial(a+b-c)*factorial(a-b+c)*factorial(-a+b+c) / factorial(a+b+c+1);
+double ComputeOrientOrderAtom::triangle_coeff(const int a, const int b, const int c)
+{
+  return factorial(a + b - c) * factorial(a - b + c) * factorial(-a + b + c) /
+      factorial(a + b + c + 1);
 }
 
 /* ---------------------------------------------------------------------- */
 
-double ComputeOrientOrderAtom::w3j(const int lmax, const int j1, const int j2, const int j3) {
+double ComputeOrientOrderAtom::w3j(const int lmax, const int j1, const int j2, const int j3)
+{
   const int a = lmax, b = lmax, c = lmax;
   const int alpha = j1, beta = j2, gamma = j3;
   struct {
-    double operator() (const int a, const int b, const int c,
-                       const int alpha, const int beta,const int gamma,
-                       const int t) {
-      return factorial(t)*factorial(c-b+t+alpha)*factorial(c-a+t-beta) * factorial(a+b-c-t)*factorial(a-t-alpha)*factorial(b-t+beta);
+    double operator()(const int a, const int b, const int c, const int alpha, const int beta,
+                      const int t)
+    {
+      return factorial(t) * factorial(c - b + t + alpha) * factorial(c - a + t - beta) *
+          factorial(a + b - c - t) * factorial(a - t - alpha) * factorial(b - t + beta);
     }
   } x;
-  const double
-    sgn = 1 - 2*((a-b-gamma)&1),
-    g = sqrt(triangle_coeff(lmax,lmax,lmax)) * sqrt(factorial(a+alpha)*factorial(a-alpha)*
-                                           factorial(b+beta)*factorial(b-beta)*
-                                           factorial(c+gamma)*factorial(c-gamma));
+  const double sgn = 1 - 2 * ((a - b - gamma) & 1);
+  const double g = sqrt(triangle_coeff(lmax, lmax, lmax)) *
+      sqrt(factorial(a + alpha) * factorial(a - alpha) * factorial(b + beta) * factorial(b - beta) *
+           factorial(c + gamma) * factorial(c - gamma));
   double s = 0;
   int t = 0;
-  while(c-b+t+alpha < 0 || c-a+t-beta < 0) t++;
+  while (c - b + t + alpha < 0 || c - a + t - beta < 0) t++;
   //     ^^ t>=-j1       ^^ t>=j2
-  while(1) {
-    if (a+b-c-t < 0) break;   // t<=lmax
-    if (a-t-alpha < 0) break; // t<=lmax-j1
-    if (b-t+beta < 0) break;  // t<=lmax+j2
-    const int m1t = 1 - 2*(t&1);
-    s += m1t/x(lmax,lmax,lmax,alpha,beta,gamma,t);
+  while (1) {
+    if (a + b - c - t < 0) break;    // t<=lmax
+    if (a - t - alpha < 0) break;    // t<=lmax-j1
+    if (b - t + beta < 0) break;     // t<=lmax+j2
+    const int m1t = 1 - 2 * (t & 1);
+    s += m1t / x(lmax, lmax, lmax, alpha, beta, t);
     t++;
   }
-  return sgn*g*s;
+  return sgn * g * s;
 }

@@ -38,16 +38,15 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace MathSpecial;
-using namespace std;
+using MathSpecial::factorial;
 
 #ifdef DBL_EPSILON
-  #define MY_EPSILON (10.0*DBL_EPSILON)
+static constexpr double MY_EPSILON = (10.0 * DBL_EPSILON);
 #else
-  #define MY_EPSILON (10.0*2.220446049250313e-16)
+static constexpr double MY_EPSILON = (10.0 * 2.220446049250313e-16);
 #endif
 
-#define QEPSILON 1.0e-6
+static constexpr double QEPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 

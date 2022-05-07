@@ -21,7 +21,7 @@ Syntax
        *single* args = x y z
          x,y,z = coordinates of a single particle (distance units)
        *mesh* args = STL-file
-         STL-file = file with triangle mesh in STL format
+         STL-file = file with triangle mesh in ASCII STL format
        *random* args = N seed region-ID
          N = number of particles to create
          seed = random # seed (positive integer)
@@ -73,7 +73,7 @@ Examples
    create_atoms 3 single 0 0 5
    create_atoms 1 box var v set x xpos set y ypos
    create_atoms 2 random 50 12345 NULL overlap 2.0 maxtry 50
-   create_atoms 1 mesh funnel.stl units box radiusscale 1.5
+   create_atoms 1 mesh funnel.stl units box radiusscale 1.1
 
 Description
 """""""""""
@@ -86,7 +86,7 @@ alternative to reading in atom coordinates explicitly via a
 command.  A simulation box must already exist, which is typically
 created via the :doc:`create_box <create_box>` command.  Before using
 this command, a lattice must also be defined using the :doc:`lattice
-<lattice>` command, unless you specify the *single* or *mesh* style with
+<lattice>` command, unless you specify the *single* style with
 units = box or the *random* style.  For the remainder of this doc page,
 a created atom or molecule is referred to as a "particle".
 
@@ -124,12 +124,20 @@ the specified coordinates.  This can be useful for debugging purposes
 or to create a tiny system with a handful of particles at specified
 positions.
 
-For the *mesh* style, a file with a triangle mesh in `STL format
+For the *mesh* style, a file with a triangle mesh in `ASCII STL format
 <https://en.wikipedia.org/wiki/STL_(file_format)#ASCII_STL>`_ is read
-and a particle is placed into the center of each triangle.  If the atom
-style in use allows to set a per-atom radius this radius is set to the
-largest distance of any of the triangle vertices from its center.  The
-radius can be adjusted with the *radiussscale* option.
+and one or more particles are placed into the area of each triangle.
+Binary STL files (e.g. as frequently offered for 3d-printing) can be
+converted to ASCII with the :ref:`stl_bin2txt tool <stlconvert>`.  The
+use of the *units box* option is required and also a :doc:`lattice
+<lattice>` must be defined.  A particle is created at the center of the
+triangle unless the average distance of the triangle vertices from its
+center is larger than the lattice spacing in x direction.  In that case
+the triangle is split into two halves along the its longest side and
+each of those two triangles considered for particle insertion.  If the
+atom style in use allows to set a per-atom radius this radius is set to
+the average distance of the triangle vertices from its center times the
+value of the *radiussscale* keyword (default: 1.0).
 
 For the *random* style, *N* particles are added to the system at
 randomly generated coordinates, which can be useful for generating an

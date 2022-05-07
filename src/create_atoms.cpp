@@ -41,12 +41,14 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::MY_2PI;
+using MathConst::MY_PI;
+using MathConst::THIRD;
 
-#define BIG 1.0e30
-#define EPSILON 1.0e-6
-#define LB_FACTOR 1.1
-#define DEFAULT_MAXTRY 1000
+static constexpr double BIG = 1.0e30;
+static constexpr double EPSILON = 1.0e-6;
+static constexpr double LB_FACTOR = 1.1;
+static constexpr int DEFAULT_MAXTRY = 1000;
 
 enum { BOX, REGION, SINGLE, RANDOM, MESH };
 enum { ATOM, MOLECULE };
@@ -846,26 +848,21 @@ int CreateAtoms::add_tricenter(const double vert[3][3], tagint molid, double rad
 
   MathExtra::add3(vert[0], vert[1], center);
   MathExtra::add3(center, vert[2], temp);
-  MathExtra::scale3(1.0 / 3.0, temp, center);
+  MathExtra::scale3(THIRD, temp, center);
 
   MathExtra::sub3(center, vert[0], temp);
-  const double r1 = MathExtra::len3(temp);
+  double ravg = MathExtra::len3(temp);
   MathExtra::sub3(center, vert[1], temp);
-  const double r2 = MathExtra::len3(temp);
+  ravg += MathExtra::len3(temp);
   MathExtra::sub3(center, vert[2], temp);
-  const double r3 = MathExtra::len3(temp);
-  const double rmin = MIN(MIN(r1, r2), r3);
-  const double rmax = MAX(MAX(r1, r2), r3);
-  const double ravg = 1.0 / 3.0 * (r1 + r2 + r3);
+  ravg += MathExtra::len3(temp);
+  ravg *= THIRD;
 
-  // if the triangle is too large, split it in half along the longest side and recurse
-  //
-  // the triangle is considered too large if either the shortest vertex distance from the
-  // center is larger than lattice parameter or the ratio between longest and shortest is
-  // larger than 2.0 *and* the longest distance from the center is larger than lattice parameter
+  // if the average distance of the vertices from the center is larger than the
+  // lattice parameter, the triangle is split it in half along its longest side
 
   int ilocal = 0;
-  if ((rmin >= xlat) || ((rmax / rmin >= 1.5) && (rmax >= xlat))) {
+  if (ravg > xlat) {
     double vert1[3][3], vert2[3][3], side[3][3];
 
     // determine side vectors and longest side

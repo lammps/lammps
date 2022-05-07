@@ -1023,17 +1023,18 @@ For more details please see the README.md file in that folder.
 stl_bin2txt tool
 ----------------
 
-The file stl_bin2txt.cpp converts binary STL files - like they are frequently
-offered for download on the web - into ASCII format STL files that LAMMPS
-can read with the :doc:`create_atoms mesh <create_atoms>` or the
-:doc:`fix smd/wall_surface` commands.  The syntax for running the tool is
+The file stl_bin2txt.cpp converts binary STL files - like they are
+frequently offered for download on the web - into ASCII format STL files
+that LAMMPS can read with the :doc:`create_atoms mesh <create_atoms>` or
+the :doc:`fix smd/wall_surface <fix_smd_wall_surface>` commands.  The syntax
+for running the tool is
 
 .. code-block:: bash
 
    stl_bin2txt infile.stl outfile.stl
 
 which creates outfile.stl from infile.stl.  This tool must be compiled
-on a platform compatible with the byteordering that was used to create
+on a platform compatible with the byte-ordering that was used to create
 the binary file.  This usually is a so-called little endian hardware
 (like x86).
 

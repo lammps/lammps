@@ -856,6 +856,7 @@ int CreateAtoms::add_tricenter(const double vert[3][3], tagint molid, double rad
   const double r3 = MathExtra::len3(temp);
   const double rmin = MIN(MIN(r1, r2), r3);
   const double rmax = MAX(MAX(r1, r2), r3);
+  const double ravg = 1.0 / 3.0 * (r1 + r2 + r3);
 
   // if the triangle is too large, split it in half along the longest side and recurse
   //
@@ -910,7 +911,7 @@ int CreateAtoms::add_tricenter(const double vert[3][3], tagint molid, double rad
         (center[1] < subhi[1]) && (center[2] >= sublo[2]) && (center[2] < subhi[2])) {
 
       atom->avec->create_atom(ntype, center);
-      if (atom->radius_flag) atom->radius[ilocal] = xlat * radiusscale;
+      if (atom->radius_flag) atom->radius[ilocal] = ravg * radiusscale;
       if (atom->molecule_flag) atom->molecule[ilocal] = molid;
       ++ilocal;
     }

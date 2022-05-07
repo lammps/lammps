@@ -335,7 +335,7 @@ void CreateAtoms::command(int narg, char **arg)
   //   lattice to box, but not consistent with other uses of units=lattice
   // triclinic remapping occurs in add_single()
 
-  if (style == BOX || style == REGION) {
+  if ((style == BOX) || (style == REGION) || (style == MESH)) {
     if (nbasis == 0) error->all(FLERR, "Cannot create atoms with undefined lattice");
   } else if (scaleflag == 1) {
     xone[0] *= domain->lattice->xlattice;
@@ -835,15 +835,99 @@ void CreateAtoms::add_random()
 }
 
 /* ----------------------------------------------------------------------
+   add atom at center of triangle
+   or split into two halves along the longest side and recurse
+------------------------------------------------------------------------- */
+
+int CreateAtoms::add_tricenter(const double vert[3][3], tagint molid, double radiusscale)
+{
+  const double xlat = domain->lattice->xlattice;
+  double center[3], temp[3];
+
+  MathExtra::add3(vert[0], vert[1], center);
+  MathExtra::add3(center, vert[2], temp);
+  MathExtra::scale3(1.0 / 3.0, temp, center);
+
+  MathExtra::sub3(center, vert[0], temp);
+  const double r1 = MathExtra::len3(temp);
+  MathExtra::sub3(center, vert[1], temp);
+  const double r2 = MathExtra::len3(temp);
+  MathExtra::sub3(center, vert[2], temp);
+  const double r3 = MathExtra::len3(temp);
+  const double rmin = MIN(MIN(r1, r2), r3);
+  const double rmax = MAX(MAX(r1, r2), r3);
+
+  // if the triangle is too large, split it in half along the longest side and recurse
+  //
+  // the triangle is considered too large if either the shortest vertex distance from the
+  // center is larger than lattice parameter or the ratio between longest and shortest is
+  // larger than 2.0 *and* the longest distance from the center is larger than lattice parameter
+
+  int ilocal = 0;
+  if ((rmin >= xlat) || ((rmax / rmin >= 1.5) && (rmax >= xlat))) {
+    double vert1[3][3], vert2[3][3], side[3][3];
+
+    // determine side vectors and longest side
+    MathExtra::sub3(vert[0], vert[1], side[0]);
+    MathExtra::sub3(vert[1], vert[2], side[1]);
+    MathExtra::sub3(vert[2], vert[0], side[2]);
+
+    const double l1 = MathExtra::len3(side[0]);
+    const double l2 = MathExtra::len3(side[1]);
+    const double l3 = MathExtra::len3(side[2]);
+
+    int isplit = 0;
+    if (l1 < l2) {
+      isplit = 1;
+      if (l2 < l3) isplit = 2;
+    } else {
+      if (l1 < l3) isplit = 2;
+    }
+
+    MathExtra::scaleadd3(-0.5, side[isplit], vert[isplit], temp);
+    int inext = (isplit + 1) % 3;
+
+    // create two new triangles
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 3; ++j) {
+        vert1[i][j] = vert2[i][j] = vert[i][j];
+        vert1[isplit][j] = temp[j];
+        vert2[inext][j] = temp[j];
+      }
+    }
+
+    ilocal = add_tricenter(vert1, molid, radiusscale);
+    ilocal += add_tricenter(vert2, molid, radiusscale);
+  } else {
+
+    /*
+     * if atom/molecule is in my subbox, create it
+     * ... use x to hold triangle center
+     * ... radius is the mmaximal distance from triangle center to all vertices
+     */
+
+    if ((center[0] >= sublo[0]) && (center[0] < subhi[0]) && (center[1] >= sublo[1]) &&
+        (center[1] < subhi[1]) && (center[2] >= sublo[2]) && (center[2] < subhi[2])) {
+
+      atom->avec->create_atom(ntype, center);
+      if (atom->radius_flag) atom->radius[ilocal] = xlat * radiusscale;
+      if (atom->molecule_flag) atom->molecule[ilocal] = molid;
+      ++ilocal;
+    }
+  }
+  return ilocal;
+}
+
+/* ----------------------------------------------------------------------
    add atoms at center of triangulated mesh
 ------------------------------------------------------------------------- */
 
 void CreateAtoms::add_mesh(const char *filename, double radiusscale)
 {
-  double vert[3][3], center[3], coord[3];
+  double vert[3][3];
   tagint *mol = atom->molecule;
   int nlocal_previous = atom->nlocal;
-  int ilocal = nlocal_previous;
+  bigint atomlocal = 0, atomall = 0, ntriangle = 0;
 
   // find next molecule ID, if available
   tagint molid = 0;
@@ -864,8 +948,9 @@ void CreateAtoms::add_mesh(const char *filename, double radiusscale)
     if (!line || !utils::strmatch(line, "^solid"))
       throw TokenizerException("Invalid triangles file format", "");
 
+    line += 6;
     if (comm->me == 0)
-      utils::logmesg(lmp, "  reading STL object '{}' from {}\n", utils::trim(line + 6), filename);
+      utils::logmesg(lmp, "Reading STL object {} from file {}\n", utils::trim(line), filename);
 
     while ((line = reader.next_line())) {
 
@@ -875,9 +960,6 @@ void CreateAtoms::add_mesh(const char *filename, double radiusscale)
       if ((values.size() != 5) || !utils::strmatch(values[0], "^facet")) break;
 
       // ignore normal
-      coord[0] = utils::numeric(FLERR, values[2], false, lmp);
-      coord[1] = utils::numeric(FLERR, values[3], false, lmp);
-      coord[2] = utils::numeric(FLERR, values[4], false, lmp);
 
       line = reader.next_line(2);
       if (!line || !utils::strmatch(line, "^ *outer *loop"))
@@ -901,37 +983,20 @@ void CreateAtoms::add_mesh(const char *filename, double radiusscale)
       if (!line || !utils::strmatch(line, "^ *endfacet"))
         throw TokenizerException("Error reading endfacet", "");
 
-      // now we have a normal and three vertices ... proceed with adding triangle
-
-      MathExtra::add3(vert[0], vert[1], center);
-      MathExtra::add3(center, vert[2], coord);
-      MathExtra::scale3(1.0 / 3.0, coord, center);
-
-      MathExtra::sub3(center, vert[0], coord);
-      const double r1 = MathExtra::len3(coord);
-      MathExtra::sub3(center, vert[1], coord);
-      const double r2 = MathExtra::len3(coord);
-      MathExtra::sub3(center, vert[2], coord);
-      const double r3 = MathExtra::len3(coord);
-      const double r = MAX(MAX(r1, r2), r3) * radiusscale;
-
-      /*
-       * if atom/molecule is in my subbox, create it
-       * ... use x to hold triangle center
-       * ... radius is the mmaximal distance from triangle center to all vertices
-       */
-
-      if ((center[0] >= sublo[0]) && (center[0] < subhi[0]) && (center[1] >= sublo[1]) &&
-          (center[1] < subhi[1]) && (center[2] >= sublo[2]) && (center[2] < subhi[2])) {
-
-        atom->avec->create_atom(ntype, center);
-        if (atom->radius_flag) atom->radius[ilocal] = r;
-        if (atom->molecule_flag) atom->molecule[ilocal] = molid;
-        ilocal++;
-      }
+      // now we have three vertices ... proceed with adding atom in center of triangle
+      // or splitting recursively into halves as needed to get the desired density
+      ++ntriangle;
+      atomlocal += add_tricenter(vert, molid, radiusscale);
     }
   } catch (std::exception &e) {
     error->all(FLERR, "Error reading triangles from file {}: {}", filename, e.what());
+  }
+
+  if (ntriangle > 0) {
+    MPI_Allreduce(&atomlocal, &atomall, 1, MPI_LMP_BIGINT, MPI_SUM, world);
+    double ratio = (double) atomall / (double) ntriangle;
+    if (comm->me == 0)
+      utils::logmesg(lmp, "  read {} triangles with {:.2f} atoms per triangle\n", ntriangle, ratio);
   }
 }
 

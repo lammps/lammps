@@ -23,20 +23,7 @@
 #ifndef LMP_FFT_DATA_KOKKOS_H
 #define LMP_FFT_DATA_KOKKOS_H
 
-// User-settable FFT precision
-
-// FFT_PRECISION = 1 is single-precision complex (4-byte real, 4-byte imag)
-// FFT_PRECISION = 2 is double-precision complex (8-byte real, 8-byte imag)
-
-#ifdef FFT_SINGLE
-#define FFT_PRECISION 1
-#define MPI_FFT_SCALAR MPI_FLOAT
-typedef float FFT_SCALAR;
-#else
-#define FFT_PRECISION 2
-#define MPI_FFT_SCALAR MPI_DOUBLE
-typedef double FFT_SCALAR;
-#endif
+#include "lmpfftsettings.h"
 
 // -------------------------------------------------------------------------
 

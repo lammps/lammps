@@ -4850,8 +4850,9 @@ int lammps_id_name(void *handle, const char *category, int idx, char *buffer, in
   auto lmp = (LAMMPS *) handle;
 
   if (strcmp(category,"compute") == 0) {
-    if ((idx >=0) && (idx < lmp->modify->ncompute)) {
-      strncpy(buffer, lmp->modify->compute[idx]->id, buf_size);
+    auto icompute = lmp->modify->get_compute_by_index(idx);
+    if (icompute) {
+      strncpy(buffer, icompute->id, buf_size);
       return 1;
     }
   } else if (strcmp(category,"dump") == 0) {
@@ -4860,8 +4861,9 @@ int lammps_id_name(void *handle, const char *category, int idx, char *buffer, in
       return 1;
     }
   } else if (strcmp(category,"fix") == 0) {
-    if ((idx >=0) && (idx < lmp->modify->nfix)) {
-      strncpy(buffer, lmp->modify->fix[idx]->id, buf_size);
+    auto ifix = lmp->modify->get_fix_by_index(idx);
+    if (ifix) {
+      strncpy(buffer, ifix->id, buf_size);
       return 1;
     }
   } else if (strcmp(category,"group") == 0) {

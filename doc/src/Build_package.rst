@@ -220,7 +220,8 @@ These commands install/un-install sets of packages:
 .. code-block:: bash
 
     make yes-all                        # install all packages
-    make no-all                         # uninstall all packages
+    make no-all                         # check for changes and uninstall all packages
+    make no-installed                   # only check and uninstall installed packages
     make yes-basic                      # install a few commonly used packages'
     make no-basic                       # remove a few commonly used packages'
     make yes-most                       # install most packages w/o libs'

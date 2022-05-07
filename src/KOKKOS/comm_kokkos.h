@@ -37,6 +37,8 @@ class CommKokkos : public CommBrick {
   ~CommKokkos() override;
   void init() override;
 
+  using CommBrick::forward_comm;
+  using CommBrick::reverse_comm;
   void forward_comm(int dummy = 0) override;    // forward comm of atom coords
   void reverse_comm() override;                 // reverse comm of atom coords
   void exchange() override;                     // move atoms to new procs

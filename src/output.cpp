@@ -495,8 +495,7 @@ void Output::calculate_next_dump(int which, int idump, bigint ntimestep)
        // which = WRITE: increment nextdump by every_dump
 
        if (which == SETUP)
-         next_dump[idump] =
-           (ntimestep/every_dump[idump])*every_dump[idump] + every_dump[idump];
+         next_dump[idump] = (ntimestep/every_dump[idump])*every_dump[idump] + every_dump[idump];
        else if (which == WRITE)
          next_dump[idump] += every_dump[idump];
 
@@ -754,16 +753,14 @@ void Output::add_dump(int narg, char **arg)
 
   if (ndump == max_dump) {
     max_dump += DELTA;
-    dump = (Dump **)
-      memory->srealloc(dump,max_dump*sizeof(Dump *),"output:dump");
+    dump = (Dump **) memory->srealloc(dump,max_dump*sizeof(Dump *),"output:dump");
     memory->grow(mode_dump,max_dump,"output:mode_dump");
     memory->grow(every_dump,max_dump,"output:every_dump");
     memory->grow(every_time_dump,max_dump,"output:every_time_dump");
     memory->grow(next_dump,max_dump,"output:next_dump");
     memory->grow(next_time_dump,max_dump,"output:next_time_dump");
     memory->grow(last_dump,max_dump,"output:last_dump");
-    var_dump = (char **)
-      memory->srealloc(var_dump,max_dump*sizeof(char *),"output:var_dump");
+    var_dump = (char **) memory->srealloc(var_dump,max_dump*sizeof(char *),"output:var_dump");
     memory->grow(ivar_dump,max_dump,"output:ivar_dump");
   }
 
@@ -784,6 +781,7 @@ void Output::add_dump(int narg, char **arg)
   last_dump[ndump] = -1;
   var_dump[ndump] = nullptr;
   ivar_dump[ndump] = -1;
+  next_dump[ndump] = 0;
 
   ndump++;
 }

@@ -77,18 +77,19 @@ LAMMPS:
    so that you do not have to define (or discard) a temporary variable,
    "X" in this case.
 
-   Additionally, the "immediate" variable expression may be followed by
-   a colon, followed by a C-style format string, e.g. ":%f" or ":%.10g".
-   The format string must be appropriate for a double-precision
-   floating-point value.  The format string is used to output the result
-   of the variable expression evaluation.  If a format string is not
-   specified a high-precision "%.20g" is used as the default.
+   Additionally, the entire "immediate" variable expression may be
+   followed by a colon, followed by a C-style format string,
+   e.g. ":%f" or ":%.10g".  The format string must be appropriate for
+   a double-precision floating-point value.  The format string is used
+   to output the result of the variable expression evaluation.  If a
+   format string is not specified, a high-precision "%.20g" is used as
+   the default format.
 
    This can be useful for formatting print output to a desired precision:
 
    .. code-block:: LAMMPS
 
-      print "Final energy per atom: $(pe/atoms:%10.3f) eV/atom"
+      print "Final energy per atom: $(v_ke_per_atom+v_pe_per_atom:%10.3f) eV/atom"
 
    Note that neither the curly-bracket or immediate form of variables
    can contain nested $ characters for other variables to substitute

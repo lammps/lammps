@@ -49,11 +49,13 @@ Syntax
        *set* values = dim name
          dim = *x* or *y* or *z*
          name = name of variable to set with x, y, or z atom position
+       *radscale* value = factor
+         factor = scale factor for setting atom radius
+       *radthresh* value = radius (distance units)
+         radius = threshold value for *mesh* to determine when to split triangles
        *rotate* values = theta Rx Ry Rz
          theta = rotation angle for single molecule (degrees)
          Rx,Ry,Rz = rotation vector for single molecule
-       *radiusscale* value = factor
-         factor = scale factor for setting atom radius
        *overlap* value = Doverlap
          Doverlap = only insert if at least this distance from all existing atoms
        *maxtry* value = Ntry
@@ -73,7 +75,7 @@ Examples
    create_atoms 3 single 0 0 5
    create_atoms 1 box var v set x xpos set y ypos
    create_atoms 2 random 50 12345 NULL overlap 2.0 maxtry 50
-   create_atoms 1 mesh funnel.stl units box radiusscale 1.1
+   create_atoms 1 mesh funnel.stl units box radscale 0.9 radthresh 4.0
 
 Description
 """""""""""
@@ -129,15 +131,18 @@ For the *mesh* style, a file with a triangle mesh in `ASCII STL format
 and one or more particles are placed into the area of each triangle.
 Binary STL files (e.g. as frequently offered for 3d-printing) can be
 converted to ASCII with the :ref:`stl_bin2txt tool <stlconvert>`.  The
-use of the *units box* option is required and also a :doc:`lattice
-<lattice>` must be defined.  A particle is created at the center of the
-triangle unless the average distance of the triangle vertices from its
-center is larger than the lattice spacing in x direction.  In that case
-the triangle is split into two halves along the its longest side and
-each of those two triangles considered for particle insertion.  If the
-atom style in use allows to set a per-atom radius this radius is set to
-the average distance of the triangle vertices from its center times the
-value of the *radiussscale* keyword (default: 1.0).
+use of the *units box* option is required. A particle is created at the
+center of the triangle unless the average distance of the triangle
+vertices from its center is larger than the *radthresh* value.  This
+value defaults to the lattice spacing in x direction, but can be set as
+an optional keyword.  In case the triangle size is over the threshold,
+it is split into two halves along the its longest side and each of those
+two triangles considered for particle insertion.  This operation is
+repeated recursively until the condition is met.  There will be at least
+one sphere per triangle.  If the atom style in use allows to set a
+per-atom radius this radius is set to the average distance of the
+triangle vertices from its center times the value of the *radscale*
+keyword (default: 1.0).
 
 For the *random* style, *N* particles are added to the system at
 randomly generated coordinates, which can be useful for generating an
@@ -489,5 +494,5 @@ Default
 The default for the *basis* keyword is that all created atoms are
 assigned the argument *type* as their atom type (when single atoms are
 being created).  The other defaults are *remap* = no, *rotate* = random,
-*radiussscale* = 1.0, *overlap* not checked, *maxtry* = 10, and *units*
-= lattice.
+*radscale* = 1.0, *radthresh* = x-lattice spacing, *overlap* not
+checked, *maxtry* = 10, and *units* = lattice.

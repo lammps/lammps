@@ -86,7 +86,7 @@ void CreateAtoms::command(int narg, char **arg)
   ntype = utils::inumeric(FLERR, arg[0], false, lmp);
 
   const char *meshfile;
-  double radiusscale = 1.0;
+  radthresh = 1.0;
   int iarg;
   if (strcmp(arg[1], "box") == 0) {
     style = BOX;
@@ -146,6 +146,8 @@ void CreateAtoms::command(int narg, char **arg)
   int subsetseed;
   overlapflag = 0;
   maxtry = DEFAULT_MAXTRY;
+  radscale = 1.0;
+  radthresh = domain->lattice->xlattice;
 
   nbasis = domain->lattice->nbasis;
   basistype = new int[nbasis];
@@ -255,13 +257,19 @@ void CreateAtoms::command(int narg, char **arg)
       maxtry = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       if (maxtry <= 0) error->all(FLERR, "Illegal create_atoms command");
       iarg += 2;
-    } else if (strcmp(arg[iarg], "radiusscale") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms radiusscale", error);
+    } else if (strcmp(arg[iarg], "radscale") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms radscale", error);
       if (style != MESH)
-        error->all(FLERR, "Create_atoms radiusscale can only be used with mesh style");
+        error->all(FLERR, "Create_atoms radscale can only be used with mesh style");
       if (!atom->radius_flag)
-        error->all(FLERR, "Must have atom attribute radius to set radiusscale factor");
-      radiusscale = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+        error->all(FLERR, "Must have atom attribute radius to set radscale factor");
+      radscale = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "radthresh") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms radthresh", error);
+      if (style != MESH)
+        error->all(FLERR, "Create_atoms radthresh can only be used with mesh style");
+      radthresh = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else
       error->all(FLERR, "Illegal create_atoms command option {}", arg[iarg]);
@@ -437,7 +445,7 @@ void CreateAtoms::command(int narg, char **arg)
   else if (style == RANDOM)
     add_random();
   else if (style == MESH)
-    add_mesh(meshfile, radiusscale);
+    add_mesh(meshfile);
   else
     add_lattice();
 
@@ -841,9 +849,8 @@ void CreateAtoms::add_random()
    or split into two halves along the longest side and recurse
 ------------------------------------------------------------------------- */
 
-int CreateAtoms::add_tricenter(const double vert[3][3], tagint molid, double radiusscale)
+int CreateAtoms::add_tricenter(const double vert[3][3], tagint molid)
 {
-  const double xlat = domain->lattice->xlattice;
   double center[3], temp[3];
 
   MathExtra::add3(vert[0], vert[1], center);
@@ -862,14 +869,15 @@ int CreateAtoms::add_tricenter(const double vert[3][3], tagint molid, double rad
   // lattice parameter, the triangle is split it in half along its longest side
 
   int ilocal = 0;
-  if (ravg > xlat) {
+  if (ravg > radthresh) {
     double vert1[3][3], vert2[3][3], side[3][3];
 
-    // determine side vectors and longest side
+    // determine side vectors
     MathExtra::sub3(vert[0], vert[1], side[0]);
     MathExtra::sub3(vert[1], vert[2], side[1]);
     MathExtra::sub3(vert[2], vert[0], side[2]);
 
+    // determine longest side
     const double l1 = MathExtra::len3(side[0]);
     const double l2 = MathExtra::len3(side[1]);
     const double l3 = MathExtra::len3(side[2]);
@@ -894,8 +902,8 @@ int CreateAtoms::add_tricenter(const double vert[3][3], tagint molid, double rad
       }
     }
 
-    ilocal = add_tricenter(vert1, molid, radiusscale);
-    ilocal += add_tricenter(vert2, molid, radiusscale);
+    ilocal = add_tricenter(vert1, molid);
+    ilocal += add_tricenter(vert2, molid);
   } else {
 
     /*
@@ -908,8 +916,8 @@ int CreateAtoms::add_tricenter(const double vert[3][3], tagint molid, double rad
         (center[1] < subhi[1]) && (center[2] >= sublo[2]) && (center[2] < subhi[2])) {
 
       atom->avec->create_atom(ntype, center);
-      int idx = atom->nlocal-1;
-      if (atom->radius_flag) atom->radius[idx] = ravg * radiusscale;
+      int idx = atom->nlocal - 1;
+      if (atom->radius_flag) atom->radius[idx] = ravg * radscale;
       if (atom->molecule_flag) atom->molecule[idx] = molid;
       ++ilocal;
     }
@@ -921,7 +929,7 @@ int CreateAtoms::add_tricenter(const double vert[3][3], tagint molid, double rad
    add atoms at center of triangulated mesh
 ------------------------------------------------------------------------- */
 
-void CreateAtoms::add_mesh(const char *filename, double radiusscale)
+void CreateAtoms::add_mesh(const char *filename)
 {
   double vert[3][3];
   tagint *mol = atom->molecule;
@@ -985,7 +993,7 @@ void CreateAtoms::add_mesh(const char *filename, double radiusscale)
       // now we have three vertices ... proceed with adding atom in center of triangle
       // or splitting recursively into halves as needed to get the desired density
       ++ntriangle;
-      atomlocal += add_tricenter(vert, molid, radiusscale);
+      atomlocal += add_tricenter(vert, molid);
     }
   } catch (std::exception &e) {
     error->all(FLERR, "Error reading triangles from file {}: {}", filename, e.what());

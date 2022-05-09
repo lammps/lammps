@@ -126,6 +126,11 @@ the specified coordinates.  This can be useful for debugging purposes
 or to create a tiny system with a handful of particles at specified
 positions.
 
+.. figure:: img/marble_race.jpg
+            :figwidth: 33%
+            :align: right
+            :target: _images/marble_race.jpg
+
 For the *mesh* style, a file with a triangle mesh in `ASCII STL format
 <https://en.wikipedia.org/wiki/STL_(file_format)#ASCII_STL>`_ is read
 and one or more particles are placed into the area of each triangle.

@@ -1,0 +1,146 @@
+LAMMPS (4 May 2022)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+
+units real
+atom_style hybrid sphere bond
+WARNING: Atom style hybrid defines both, per-type and per-atom masses; both must be set, but only per-atom masses will be used (src/atom_vec_hybrid.cpp:130)
+
+lattice         sc 5.0
+Lattice spacing in x,y,z = 5 5 5
+region          box block 50 250 50 250 50 250 units box
+create_box      2 box
+Created orthogonal box = (50 50 50) to (250 250 250)
+  1 by 1 by 1 MPI processor grid
+region particles block 110 190 110 190 110 190 units box
+create_atoms    1 region particles
+Created 4913 atoms
+  using lattice units in orthogonal box = (50 50 50) to (250 250 250)
+  create_atoms CPU = 0.001 seconds
+region          lid block 100 110 50 250 50 250 units box
+group           mobile type 1
+4913 atoms in group mobile
+set type 1 diameter 7.0
+Setting atom values ...
+  4913 settings made for diameter
+
+create_atoms    2 mesh open_box.stl units box radthresh 4.0
+Reading STL object Open Box from file open_box.stl
+  read 10 triangles with 512.00 atoms per triangle
+Created 5120 atoms
+  using box units in orthogonal box = (50 50 50) to (250 250 250)
+  create_atoms CPU = 0.001 seconds
+group           mesh type 2
+5120 atoms in group mesh
+
+pair_style lj/cut 8.76
+pair_coeff      1 1 0.2339 3.504
+pair_coeff      1 2 0.2339 7.008 $(7.008*2^(1.0/6.0))
+pair_coeff      1 2 0.2339 7.008 7.8662140345520858986
+pair_coeff      2 2 0.0    1.0
+mass *  39.95
+
+neigh_modify exclude type 2 2
+
+timestep 1.0
+
+run 0 post no
+WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10.76
+  ghost atom cutoff = 10.76
+  binsize = 5.38, bins = 38 38 38
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 5.641 | 5.641 | 5.641 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0             -1778.6527      0             -1778.6527     -27.271044    
+Loop time of 1.544e-06 on 1 procs for 0 steps with 10033 atoms
+
+
+fix dir  mobile oneway 10 lid x
+fix move mobile nve
+fix load all balance 1000 1.1 shift xyz 10 1.01 weight neigh 0.5 weight group 2 mesh 0.1 mobile 1.0
+fix rot  mesh move rotate 150.0 150.0 150.0 1.0 0.0 0.0 500000.0 units box
+
+reset_timestep 0 time 0.0
+velocity mobile create 150.0 54634234
+
+compute ptemp mobile temp
+thermo_modify temp ptemp
+WARNING: Temperature for thermo pressure is not for group all (src/thermo.cpp:520)
+
+thermo 200
+compute ke all ke/atom
+#dump 2 all movie 200 mesh.mkv c_ke radius size 960 1440 zoom 1.5 box no 0.0 view 120 180
+#dump_modify 2 bitrate 4000 framerate 12 color orange 1.0 0.5 0.0 amap min max cf 0.0 6 min blue 0.1 fuchsia 0.2 red 0.4 orange 0.6 yellow max white
+#dump 1 all custom 500 open_box.lammpstrj id type mol x y z vx vy vz
+
+
+run 5000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 6.157 | 6.157 | 6.157 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press          Volume    
+         0   150           -1778.6527      0              417.60814     -14.721534      8000000      
+       200   179.71663     -2353.7693      0              277.59468      14.591893      8000000      
+       400   181.98778     -2346.3965      0              318.22101      14.694157      8000000      
+       600   183.48983     -2373.9255      0              312.68467      15.032091      8000000      
+       800   183.99836     -2366.1103      0              327.94574      15.154418      8000000      
+      1000   186.19063     -2405.1258      0              321.02886      14.881141      8000000      
+      1200   185.74206     -2396.0437      0              323.54307      15.729931      8000000      
+      1400   188.03786     -2424.6865      0              328.5147       15.077756      8000000      
+      1600   187.4202      -2437.7998      0              306.35792      16.323387      8000000      
+      1800   186.98057     -2417.0238      0              320.69695      14.445045      8000000      
+      2000   185.81788     -2404.4322      0              316.26462      15.382214      8000000      
+      2200   185.60774     -2386.4973      0              331.12284      15.033058      8000000      
+      2400   187.14304     -2409.5005      0              330.5991       15.226519      8000000      
+      2600   186.63304     -2410.3607      0              322.27162      15.010459      8000000      
+      2800   185.96347     -2421.8039      0              301.02465      15.577503      8000000      
+      3000   185.22976     -2387.0491      0              325.03669      16.111731      8000000      
+      3200   186.32095     -2414.4926      0              313.5702       14.41138       8000000      
+      3400   186.75847     -2414.3018      0              320.16692      15.224392      8000000      
+      3600   184.82282     -2391.1485      0              314.97889      15.96507       8000000      
+      3800   185.71262     -2381.6131      0              337.54256      14.870266      8000000      
+      4000   186.58931     -2399.6637      0              332.32827      14.434356      8000000      
+      4200   185.27225     -2400.3577      0              312.35024      15.429373      8000000      
+      4400   183.90694     -2367.1261      0              325.59133      16.558529      8000000      
+      4600   185.84295     -2403.8288      0              317.23517      14.371372      8000000      
+      4800   184.58178     -2359.4293      0              343.16897      15.516075      8000000      
+      5000   186.15467     -2412.7678      0              312.86031      15.366761      8000000      
+Loop time of 9.53365 on 1 procs for 5000 steps with 10033 atoms
+
+Performance: 45.313 ns/day, 0.530 hours/ns, 524.458 timesteps/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 5.3496     | 5.3496     | 5.3496     |   0.0 | 56.11
+Bond    | 0.00036644 | 0.00036644 | 0.00036644 |   0.0 |  0.00
+Neigh   | 3.1301     | 3.1301     | 3.1301     |   0.0 | 32.83
+Comm    | 0.03837    | 0.03837    | 0.03837    |   0.0 |  0.40
+Output  | 0.0010388  | 0.0010388  | 0.0010388  |   0.0 |  0.01
+Modify  | 0.88529    | 0.88529    | 0.88529    |   0.0 |  9.29
+Other   |            | 0.1289     |            |       |  1.35
+
+Nlocal:          10033 ave       10033 max       10033 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          98536 ave       98536 max       98536 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 98536
+Ave neighs/atom = 9.8211901
+Ave special neighs/atom = 0
+Neighbor list builds = 374
+Dangerous builds = 0
+
+Total wall time: 0:00:09

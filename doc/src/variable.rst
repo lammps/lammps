@@ -847,15 +847,6 @@ Special Functions
 Special functions take specific kinds of arguments, meaning their
 arguments cannot be formulas themselves.
 
-The is_file(name) function is a test whether *name* is a (readable) file
-and returns 1 in this case, otherwise it returns 0.  For that *name*
-is taken as a literal string and must not have any blanks in it.
-
-The extract_setting(name) function allows to access some basic settings
-through calling the :cpp:func:`lammps_extract_setting` library function.
-For available keywords *name* and their meaning, please see the
-documentation of that function.
-
 The sum(x), min(x), max(x), ave(x), trap(x), and slope(x) functions
 each take 1 argument which is of the form "c_ID" or "c_ID[N]" or
 "f_ID" or "f_ID[N]" or "v_name".  The first two are computes and the
@@ -933,6 +924,18 @@ returned the first time the next() function is invoked.  If next() is
 invoked more times than there are lines or sets of lines in the file,
 the variable is deleted, similar to how the :doc:`next <next>` command
 operates.
+
+The is_file(name) function is a test whether *name* is a (readable) file
+and returns 1 in this case, otherwise it returns 0.  For that *name*
+is taken as a literal string and must not have any blanks in it.
+
+The extract_setting(name) function enables access to basic settings
+for the LAMMPS executable and the running simulation via calling the
+:cpp:func:`lammps_extract_setting` library function.  For example, the
+number of processors (MPI ranks) being used by the simulation or the
+procID (for this processor) can be queried.  For the full list of
+available keywords *name* and their meaning, see the documentation for
+extract_setting() via the link in this paragraph.
 
 ----------
 

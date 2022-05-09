@@ -929,13 +929,14 @@ The is_file(name) function is a test whether *name* is a (readable) file
 and returns 1 in this case, otherwise it returns 0.  For that *name*
 is taken as a literal string and must not have any blanks in it.
 
-The extract_setting(name) function enables access to basic settings
-for the LAMMPS executable and the running simulation via calling the
+The extract_setting(name) function enables access to basic settings for
+the LAMMPS executable and the running simulation via calling the
 :cpp:func:`lammps_extract_setting` library function.  For example, the
-number of processors (MPI ranks) being used by the simulation or the
-procID (for this processor) can be queried.  For the full list of
-available keywords *name* and their meaning, see the documentation for
-extract_setting() via the link in this paragraph.
+number of processors (MPI ranks) being used by the simulation or the MPI
+process ID (for this processor) can be queried, or the number of atom
+types, bond types and so on. For the full list of available keywords
+*name* and their meaning, see the documentation for extract_setting()
+via the link in this paragraph.
 
 ----------
 

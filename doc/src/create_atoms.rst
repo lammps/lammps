@@ -137,7 +137,7 @@ and one or more particles are placed into the area of each triangle.
 Binary STL files (e.g. as frequently offered for 3d-printing) can be
 converted to ASCII with the :ref:`stl_bin2txt tool <stlconvert>`.  The
 use of the *units box* option is required. A particle is created at the
-center of the triangle unless the average distance of the triangle
+center of each triangle unless the average distance of the triangle
 vertices from its center is larger than the *radthresh* value.  This
 value defaults to the lattice spacing in x direction, but can be set as
 an optional keyword.  In case the triangle size is over the threshold,
@@ -148,6 +148,14 @@ one sphere per triangle.  If the atom style in use allows to set a
 per-atom radius this radius is set to the average distance of the
 triangle vertices from its center times the value of the *radscale*
 keyword (default: 1.0).
+
+.. note::
+
+   The atom placement algorithms in the *mesh* style benefit from meshes
+   where triangles are close to equilateral.  It is therefore
+   recommended to pre-process STL files to optimize the mesh
+   accordingly.  There are multiple open source and commercial software
+   tools available with the capability to generate optimized meshes.
 
 For the *random* style, *N* particles are added to the system at
 randomly generated coordinates, which can be useful for generating an

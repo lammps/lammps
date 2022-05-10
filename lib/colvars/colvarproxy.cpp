@@ -7,9 +7,14 @@
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
 
+// Using access() to check if a file exists (until we can assume C++14/17)
 #if !defined(WIN32) || defined(__CYGWIN__)
 #include <unistd.h>
 #endif
+#if defined(WIN32)
+#include <io.h>
+#endif
+
 #include <cerrno>
 
 #include <sstream>
@@ -34,6 +39,9 @@ colvarproxy_system::colvarproxy_system()
   kcal_mol_value = 0.0;
   boundaries_type = boundaries_unsupported;
   total_force_requested = false;
+  indirect_lambda_biasing_force = 0.0;
+  cached_alch_lambda_changed = false;
+  cached_alch_lambda = -1.0;
   reset_pbc_lattice();
 }
 
@@ -117,7 +125,7 @@ void colvarproxy_system::update_pbc_lattice()
   if (boundaries_type == boundaries_unsupported ||
       boundaries_type == boundaries_non_periodic) {
     cvm::error("Error: setting PBC lattice with unsupported boundaries.\n",
-               BUG_ERROR);
+               COLVARS_BUG_ERROR);
     return;
   }
 
@@ -152,7 +160,7 @@ cvm::rvector colvarproxy_system::position_distance(cvm::atom_pos const &pos1,
   const
 {
   if (boundaries_type == boundaries_unsupported) {
-    cvm::error("Error: unsupported boundary conditions.\n", INPUT_ERROR);
+    cvm::error("Error: unsupported boundary conditions.\n", COLVARS_INPUT_ERROR);
   }
 
   cvm::rvector diff = (pos2 - pos1);
@@ -182,23 +190,44 @@ int colvarproxy_system::get_molid(int &)
 }
 
 
-int colvarproxy_system::get_alch_lambda(cvm::real* lambda)
+int colvarproxy_system::get_alch_lambda(cvm::real * /* lambda */)
 {
   return cvm::error("Error in get_alch_lambda: alchemical lambda dynamics is not supported by this build.",
     COLVARS_NOT_IMPLEMENTED);
 }
 
 
-int colvarproxy_system::set_alch_lambda(cvm::real* lambda)
+void colvarproxy_system::set_alch_lambda(cvm::real lambda)
+{
+  cached_alch_lambda = lambda;
+  cached_alch_lambda_changed = true;
+}
+
+
+int colvarproxy_system::send_alch_lambda()
 {
   return cvm::error("Error in set_alch_lambda: alchemical lambda dynamics is not supported by this build.",
     COLVARS_NOT_IMPLEMENTED);
 }
 
 
-int colvarproxy_system::get_dE_dLambda(cvm::real* force)
+int colvarproxy_system::get_dE_dlambda(cvm::real * /* force */)
 {
-  return cvm::error("Error in get_dE_dLambda: alchemical lambda dynamics is not supported by this build.",
+  return cvm::error("Error in get_dE_dlambda: alchemical lambda dynamics is not supported by this build.",
+    COLVARS_NOT_IMPLEMENTED);
+}
+
+
+int colvarproxy_system::apply_force_dE_dlambda(cvm::real* /* force */)
+{
+  return cvm::error("Error in apply_force_dE_dlambda: function is not implemented by this build.",
+    COLVARS_NOT_IMPLEMENTED);
+}
+
+
+int colvarproxy_system::get_d2E_dlambda2(cvm::real*)
+{
+  return cvm::error("Error in get_d2E_dlambda2: function is not implemented by this build.",
     COLVARS_NOT_IMPLEMENTED);
 }
 
@@ -278,7 +307,7 @@ void colvarproxy_atoms::clear_atom(int index)
 {
   if (((size_t) index) >= atoms_ids.size()) {
     cvm::error("Error: trying to disable an atom that was not previously requested.\n",
-               INPUT_ERROR);
+               COLVARS_INPUT_ERROR);
   }
   if (atoms_ncopies[index] > 0) {
     atoms_ncopies[index] -= 1;
@@ -396,7 +425,7 @@ void colvarproxy_atom_groups::clear_atom_group(int index)
   if (((size_t) index) >= atom_groups_ids.size()) {
     cvm::error("Error: trying to disable an atom group "
                "that was not previously requested.\n",
-               INPUT_ERROR);
+               COLVARS_INPUT_ERROR);
   }
   if (atom_groups_ncopies[index] > 0) {
     atom_groups_ncopies[index] -= 1;
@@ -424,7 +453,7 @@ colvarproxy_smp::colvarproxy_smp()
   b_smp_active = true; // May be disabled by user option
   omp_lock_state = NULL;
 #if defined(_OPENMP)
-  if (smp_thread_id() == 0) {
+  if (omp_get_thread_num() == 0) {
     omp_lock_state = reinterpret_cast<void *>(new omp_lock_t);
     omp_init_lock(reinterpret_cast<omp_lock_t *>(omp_lock_state));
   }
@@ -435,7 +464,7 @@ colvarproxy_smp::colvarproxy_smp()
 colvarproxy_smp::~colvarproxy_smp()
 {
 #if defined(_OPENMP)
-  if (smp_thread_id() == 0) {
+  if (omp_get_thread_num() == 0) {
     if (omp_lock_state) {
       delete reinterpret_cast<omp_lock_t *>(omp_lock_state);
     }
@@ -586,12 +615,17 @@ int colvarproxy_smp::smp_unlock()
 colvarproxy_script::colvarproxy_script()
 {
   script = NULL;
-  force_script_defined = false;
   have_scripts = false;
 }
 
 
-colvarproxy_script::~colvarproxy_script() {}
+colvarproxy_script::~colvarproxy_script()
+{
+  if (script != NULL) {
+    delete script;
+    script = NULL;
+  }
+}
 
 
 int colvarproxy_script::run_force_callback()
@@ -639,10 +673,35 @@ int colvarproxy_io::set_frame(long int)
 }
 
 
-int colvarproxy_io::backup_file(char const * /* filename */)
+int colvarproxy_io::backup_file(char const *filename)
 {
-  // TODO implement this using rename_file()
-  return COLVARS_NOT_IMPLEMENTED;
+  // Simplified version of NAMD_file_exists()
+  int exit_code;
+  do {
+#if defined(WIN32) && !defined(__CYGWIN__)
+    // We could use _access_s here, but it is probably too new
+    exit_code = _access(filename, 00);
+#else
+    exit_code = access(filename, F_OK);
+#endif
+  } while ((exit_code != 0) && (errno == EINTR));
+  if (exit_code != 0) {
+    if (errno == ENOENT) {
+      // File does not exist
+      return COLVARS_OK;
+    } else {
+      return cvm::error("Unknown error while checking if file \""+
+                        std::string(filename)+"\" exists.\n", COLVARS_ERROR);
+    }
+  }
+
+  // The file exists, then rename it
+  if (std::string(filename).rfind(std::string(".colvars.state")) !=
+      std::string::npos) {
+    return rename_file(filename, (std::string(filename)+".old").c_str());
+  } else {
+    return rename_file(filename, (std::string(filename)+".BAK").c_str());
+  }
 }
 
 
@@ -658,7 +717,7 @@ int colvarproxy_io::remove_file(char const *filename)
   while ((rename_exit_code = std::rename(filename,
                                          renamed_file.c_str())) != 0) {
     if (errno == EINTR) continue;
-    error_code |= FILE_ERROR;
+    error_code |= COLVARS_FILE_ERROR;
     break;
   }
   // Ask to remove filename.old, but ignore any errors raised
@@ -666,7 +725,7 @@ int colvarproxy_io::remove_file(char const *filename)
 #else
   if (std::remove(filename)) {
     if (errno != ENOENT) {
-      error_code |= FILE_ERROR;
+      error_code |= COLVARS_FILE_ERROR;
     }
   }
 #endif
@@ -692,7 +751,7 @@ int colvarproxy_io::rename_file(char const *filename, char const *newfilename)
     // Call log() instead of error to allow the next try
     cvm::log("Error: in renaming file \""+std::string(filename)+"\" to \""+
              std::string(newfilename)+"\".\n.");
-    error_code |= FILE_ERROR;
+    error_code |= COLVARS_FILE_ERROR;
     if (errno == EXDEV) continue;
     break;
   }
@@ -707,12 +766,18 @@ colvarproxy::colvarproxy()
   b_simulation_running = true;
   b_simulation_continuing = false;
   b_delete_requested = false;
+  version_int = -1;
+  features_hash = 0;
 }
 
 
 colvarproxy::~colvarproxy()
 {
   close_files();
+  if (colvars != NULL) {
+    delete colvars;
+    colvars = NULL;
+  }
 }
 
 
@@ -782,6 +847,10 @@ int colvarproxy::end_of_step()
   compute_rms_volmaps_applied_force();
   compute_max_volmaps_applied_force();
 
+  if (cached_alch_lambda_changed) {
+    send_alch_lambda();
+    cached_alch_lambda_changed = false;
+  }
   return COLVARS_OK;
 }
 
@@ -795,6 +864,82 @@ int colvarproxy::post_run()
   }
   error_code |= flush_output_streams();
   return error_code;
+}
+
+
+void colvarproxy::print_input_atomic_data()
+{
+  cvm::log(cvm::line_marker);
+
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atoms_ids = "+cvm::to_str(atoms_ids)+"\n");
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atoms_ncopies = "+cvm::to_str(atoms_ncopies)+"\n");
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atoms_masses = "+cvm::to_str(atoms_masses)+"\n");
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atoms_charges = "+cvm::to_str(atoms_charges)+"\n");
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atoms_positions = "+cvm::to_str(atoms_positions,
+                                            cvm::cv_width,
+                                            cvm::cv_prec)+"\n");
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atoms_total_forces = "+cvm::to_str(atoms_total_forces,
+                                               cvm::cv_width,
+                                               cvm::cv_prec)+"\n");
+
+  cvm::log(cvm::line_marker);
+
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atom_groups_ids = "+cvm::to_str(atom_groups_ids)+"\n");
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atom_groups_ncopies = "+cvm::to_str(atom_groups_ncopies)+"\n");
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atom_groups_masses = "+cvm::to_str(atom_groups_masses)+"\n");
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atom_groups_charges = "+cvm::to_str(atom_groups_charges)+"\n");
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atom_groups_coms = "+cvm::to_str(atom_groups_coms,
+                                             cvm::cv_width,
+                                             cvm::cv_prec)+"\n");
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atom_groups_total_forces = "+cvm::to_str(atom_groups_total_forces,
+                                                     cvm::cv_width,
+                                                     cvm::cv_prec)+"\n");
+
+  cvm::log(cvm::line_marker);
+
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "volmaps_ids = "+cvm::to_str(volmaps_ids)+"\n");
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "volmaps_values = "+cvm::to_str(volmaps_values)+"\n");
+
+  cvm::log(cvm::line_marker);
+}
+
+
+void colvarproxy::print_output_atomic_data()
+{
+  cvm::log(cvm::line_marker);
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atoms_new_colvar_forces = "+cvm::to_str(atoms_new_colvar_forces,
+                                                    colvarmodule::cv_width,
+                                                    colvarmodule::cv_prec)+"\n");
+  cvm::log(cvm::line_marker);
+
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atom_groups_new_colvar_forces = "+
+           cvm::to_str(atom_groups_new_colvar_forces,
+                       colvarmodule::cv_width,
+                       colvarmodule::cv_prec)+"\n");
+
+  cvm::log(cvm::line_marker);
+
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "volmaps_new_colvar_forces = "+
+           cvm::to_str(volmaps_new_colvar_forces)+"\n");
+
+  cvm::log(cvm::line_marker);
 }
 
 
@@ -847,7 +992,7 @@ void colvarproxy::smp_stream_error()
 {
   cvm::error("Error: trying to access an output stream from a "
              "multi-threaded region (bug).  For a quick workaround, use "
-             "\"smp off\" in the Colvars config.\n", BUG_ERROR);
+             "\"smp off\" in the Colvars config.\n", COLVARS_BUG_ERROR);
 }
 
 
@@ -867,7 +1012,7 @@ std::ostream * colvarproxy::output_stream(std::string const &output_name,
   std::ofstream *osf = new std::ofstream(output_name.c_str(), mode);
   if (!osf->is_open()) {
     cvm::error("Error: cannot write to file/channel \""+output_name+"\".\n",
-               FILE_ERROR);
+               COLVARS_FILE_ERROR);
     return NULL;
   }
   output_stream_names.push_back(output_name);
@@ -907,7 +1052,7 @@ int colvarproxy::flush_output_stream(std::ostream *os)
     }
   }
   return cvm::error("Error: trying to flush an output file/channel "
-                    "that wasn't open.\n", BUG_ERROR);
+                    "that wasn't open.\n", COLVARS_BUG_ERROR);
 }
 
 
@@ -941,5 +1086,5 @@ int colvarproxy::close_output_stream(std::string const &output_name)
     }
   }
   return cvm::error("Error: trying to close an output file/channel "
-                    "that wasn't open.\n", BUG_ERROR);
+                    "that wasn't open.\n", COLVARS_BUG_ERROR);
 }

@@ -48,6 +48,7 @@ class FixNWChem : public Fix {
  protected:
   char *nw_template;   // template file for NWChem input params
   char *nw_input;      // generated NWChem input file w/ box and coords
+  char *nw_output;     // output from NWChem, NULL if none
 
   int pbcflag;         // 1 if fully periodic, 0 if fully non-periodic
   int mode;            // AIMD or QMMM

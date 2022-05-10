@@ -111,7 +111,7 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
   // process command args
   // trailing args map atom types to element strings
 
-  if (narg != 5 + atom->ntypes) 
+  if (narg != 6 + atom->ntypes) 
     error->all(FLERR,"Illegal fix nwchem command");
 
   int n = strlen(arg[3]) + 1;
@@ -122,12 +122,16 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
   nw_input = new char[n];
   strcpy(nw_input,arg[4]);
 
-  elements = new char*[narg-5];
+  n = strlen(arg[5]) + 1;
+  nw_output = new char[n];
+  strcpy(nw_output,arg[5]);
 
-  for (int i = 5; i < narg; i++) {
+  elements = new char*[narg-6];
+
+  for (int i = 6; i < narg; i++) {
     n = strlen(arg[i]) + 1;
-    elements[i-5] = new char[n];
-    strcpy(elements[i-5],arg[i]);
+    elements[i-6] = new char[n];
+    strcpy(elements[i-6],arg[i]);
   }
 
   // settings for this fix
@@ -274,6 +278,7 @@ FixNWChem::~FixNWChem()
 {
   delete [] nw_template;
   delete [] nw_input;
+  delete [] nw_output;
 
   for (int i = 0; i < atom->ntypes; i++)
     delete [] elements[i];
@@ -812,6 +817,12 @@ void FixNWChem::nwchem_initialize()
       fileprefix[n-3] = '\0';
       fprintf(infile,"start %s\n",fileprefix);
       delete [] fileprefix;
+
+      if (strcmp(nw_output,"NULL") == 0)
+        fprintf(infile,"print off\n");
+      else
+        fprintf(infile,"redirect_filename %s\n",nw_output);
+
       continue;
     }
     
@@ -825,13 +836,13 @@ void FixNWChem::nwchem_initialize()
       // orthogonal box
     
       if (!domain->triclinic) {
-        fprintf(infile,"%g %g %g\n",domain->xprd,0.0,0.0);
-        fprintf(infile,"%g %g %g\n",0.0,domain->yprd,0.0);
-        fprintf(infile,"%g %g %g\n",0.0,0.0,domain->zprd);
+        fprintf(infile,"%20.17g %20.17g %20.17g\n",domain->xprd,0.0,0.0);
+        fprintf(infile,"%20.17g %20.17g %20.17g\n",0.0,domain->yprd,0.0);
+        fprintf(infile,"%20.17g %20.17g %20.17g\n",0.0,0.0,domain->zprd);
         fprintf(infile,"end\n\n");
         
         for (int i = 0; i < nqm; i++) {
-          fprintf(infile,"%s %g %g %g\n",
+          fprintf(infile,"%s %20.17g %20.17g %20.17g\n",
                   elements[tqm[i]-1],xqm[i][0],xqm[i][1],xqm[i][2]);
         }
         fprintf(infile,"end\n");
@@ -839,13 +850,14 @@ void FixNWChem::nwchem_initialize()
         // triclinic box
         
       } else {
-        fprintf(infile,"%g %g %g\n",domain->xprd,0.0,0.0);
-        fprintf(infile,"%g %g %g\n",domain->xy,domain->yprd,0.0);
-        fprintf(infile,"%g %g %g\n",domain->xz,domain->yz,domain->zprd);
+        fprintf(infile,"%20.17g %20.17g %20.17g\n",domain->xprd,0.0,0.0);
+        fprintf(infile,"%20.17g %20.17g %20.17g\n",domain->xy,domain->yprd,0.0);
+        fprintf(infile,"%20.17g %20.17g %20.17g\n",
+                domain->xz,domain->yz,domain->zprd);
         fprintf(infile,"end\n\n");
         
         for (int i = 0; i < nqm; i++)
-          fprintf(infile,"%s %g %g %g\n",
+          fprintf(infile,"%s %20.17g %20.17g %20.17g\n",
                   elements[tqm[i]-1],xqm[i][0],xqm[i][1],xqm[i][2]);
         fprintf(infile,"end\n");
       }

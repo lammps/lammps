@@ -537,8 +537,7 @@ void PairMEAM::read_user_meam_file(const std::string &userfile)
     for (which = 0; which < nkeywords; which++)
       if (keyword == keywords[which]) break;
     if (which == nkeywords)
-      error->all(FLERR,"Keyword {} in MEAM parameter file not "
-                                   "recognized", keyword);
+      error->all(FLERR,"Keyword {} in MEAM parameter file not recognized", keyword);
 
     nindex = nparams - 2;
     for (int i = 0; i < nindex; i++) index[i] = values.next_int() - 1;
@@ -548,8 +547,7 @@ void PairMEAM::read_user_meam_file(const std::string &userfile)
       std::string lattice_type = values.next_string();
       lattice_t latt;
       if (!MEAM::str_to_lat(lattice_type, false, latt))
-        error->all(FLERR, "Unrecognized lattice type in MEAM "
-                                      "parameter file: {}", lattice_type);
+        error->all(FLERR, "Unrecognized lattice type in MEAM parameter file: {}", lattice_type);
       value = latt;
     }
     else value = values.next_double();

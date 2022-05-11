@@ -621,9 +621,11 @@ void PairMesoCNT::bond_neigh()
 
   // split neighbor list into neighbor chains based on bond topology
   
+  int *selfid;
   int **chainid, **chainpos;
   memory->create_ragged(chainid, nbondlist, reduced_nlist, "pair:chainid");
   memory->create_ragged(chainpos, nbondlist, reduced_nlist, "pair:chainpos");  
+  memory->create(selfid, nbondlist, "pair:selfid");
   memory->create(numchainlist, nbondlist, "pair:numchainlist");
 
   bool empty_neigh = true;
@@ -642,8 +644,6 @@ void PairMesoCNT::bond_neigh()
       chainid[i][j] = -1;
     }
 
-    int selfid = -1;
-
     // assign chain ids and positions
 
     for (int j = 0; j < reduced_nlist[i]; j++) {
@@ -658,7 +658,7 @@ void PairMesoCNT::bond_neigh()
       chainpos[i][j] = 0;
 
       if (reduced_neighlist[i][j] == bondlist[i][0])
-        selfid = numchainlist[i];
+        selfid[i] = numchainlist[i];
       
       int curr_local, next_local;
       int curr_reduced, next_reduced;
@@ -692,12 +692,14 @@ void PairMesoCNT::bond_neigh()
             next_local = special_local[next_local][1];
           }
 
-          if (curr_local == bondlist[i][0]) selfid = numchainlist[i];
+          if (curr_local == bondlist[i][0]) 
+            selfid[i] = numchainlist[i];
         }
       }
       
       numchainlist[i]++;
     }
+    numchainlist[i]--;
   }
   
   memory->destroy(special_local);
@@ -718,9 +720,16 @@ void PairMesoCNT::bond_neigh()
     
     for (int j = 0; j < reduced_nlist[i]; j++) {
       int cid = chainid[i][j];
-      int cpos = chainpos[i][j];
-      if (cpos < chainpos_min[i][cid]) chainpos_min[i][cid] = cpos;
-      if (cpos > chainpos_max[i][cid]) chainpos_max[i][cid] = cpos;
+      if (cid < selfid[i]) {
+        int cpos = chainpos[i][j];
+        if (cpos < chainpos_min[i][cid]) chainpos_min[i][cid] = cpos;
+        if (cpos > chainpos_max[i][cid]) chainpos_max[i][cid] = cpos;
+      }
+      else if (cid > selfid[i]) {
+        int cpos = chainpos[i][j];
+        if (cpos < chainpos_min[i][cid - 1]) chainpos_min[i][cid - 1] = cpos;
+        if (cpos > chainpos_max[i][cid - 1]) chainpos_max[i][cid - 1] = cpos;
+      }
     }
 
     for (int j = 0; j < numchainlist[i]; j++) {
@@ -745,8 +754,14 @@ void PairMesoCNT::bond_neigh()
     
     for (int j = 0; j < reduced_nlist[i]; j++) {
       int cid = chainid[i][j];
-      int cpos = chainpos[i][j] - chainpos_min[i][cid];
-      chainlist[i][cid][cpos] = reduced_neighlist[i][j];
+      if (cid < selfid[i]) {
+        int cpos = chainpos[i][j] - chainpos_min[i][cid];
+        chainlist[i][cid][cpos] = reduced_neighlist[i][j];
+      }
+      else if (cid > selfid[i]){
+        int cpos = chainpos[i][j] - chainpos_min[i][cid - 1];
+        chainlist[i][cid - 1][cpos] = reduced_neighlist[i][j];
+      }
     }
 
     // check for ends
@@ -762,6 +777,7 @@ void PairMesoCNT::bond_neigh()
     }
   }
 
+  /*
   for (int i = 0; i < nbondlist; i++) {
     printf("bond: %d\n", i + 1);
     for (int j = 0; j < reduced_nlist[i]; j++)
@@ -774,6 +790,7 @@ void PairMesoCNT::bond_neigh()
       printf("\n");
     }
   }
+  */
   
   // destroy remaining temporary arrays for chain creation
 

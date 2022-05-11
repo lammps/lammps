@@ -419,6 +419,7 @@ style.
 .. code-block:: yaml
 
    ---
+   creator: LAMMPS
    timestep: 0
    units: lj
    time: 0

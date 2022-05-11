@@ -41,7 +41,7 @@ class CreateAtoms : public Command {
   double subsetfrac;
   int *basistype;
   double xone[3], quatone[4];
-  double radthresh, radscale;
+  double radthresh, radscale, mesh_density;
 
   int varflag, vvar, xvar, yvar, zvar;
   char *vstr, *xstr, *ystr, *zstr;
@@ -54,6 +54,7 @@ class CreateAtoms : public Command {
 
   int *flag;    // flag subset of particles to insert on lattice
   int *next;
+  int mesh_style;
 
   class Region *region;
   class Molecule *onemol;
@@ -67,6 +68,7 @@ class CreateAtoms : public Command {
   void add_random();
   void add_mesh(const char *);
   int add_tricenter(const double [3][3], tagint);
+  int add_quasirandom(const double [3][3], tagint);
   void add_lattice();
   void loop_lattice(int);
   void add_molecule(double *);

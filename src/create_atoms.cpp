@@ -48,12 +48,15 @@ using MathConst::THIRD;
 static constexpr double BIG = 1.0e30;
 static constexpr double EPSILON = 1.0e-6;
 static constexpr double LB_FACTOR = 1.1;
+static constexpr double INV_P_CONST = 0.7548777;
+static constexpr double INV_SQ_P_CONST = 0.5698403;
 static constexpr int DEFAULT_MAXTRY = 1000;
 
 enum { BOX, REGION, SINGLE, RANDOM, MESH };
 enum { ATOM, MOLECULE };
 enum { COUNT, INSERT, INSERT_SELECTED };
 enum { NONE, RATIO, SUBSET };
+enum { TRICENTER, QUASIRANDOM };
 
 /* ---------------------------------------------------------------------- */
 
@@ -135,6 +138,7 @@ void CreateAtoms::command(int narg, char **arg)
 
   int scaleflag = 1;
   remapflag = 0;
+  mesh_style = TRICENTER;
   mode = ATOM;
   int molseed;
   ranmol = nullptr;
@@ -261,6 +265,8 @@ void CreateAtoms::command(int narg, char **arg)
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms radscale", error);
       if (style != MESH)
         error->all(FLERR, "Create_atoms radscale can only be used with mesh style");
+      if (mesh_style != TRICENTER)
+        error->all(FLERR, "Create_atoms radscale can only be used with tricenter mesh style");
       if (!atom->radius_flag)
         error->all(FLERR, "Must have atom attribute radius to set radscale factor");
       radscale = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
@@ -269,7 +275,16 @@ void CreateAtoms::command(int narg, char **arg)
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms radthresh", error);
       if (style != MESH)
         error->all(FLERR, "Create_atoms radthresh can only be used with mesh style");
+      if (mesh_style != TRICENTER)
+        error->all(FLERR, "Create_atoms radthresh can only be used with tricenter mesh style");
       radthresh = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "quasirandom") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms quasirandom", error);
+      if (style != MESH)
+        error->all(FLERR, "Create_atoms quasirandom can only be used with mesh style");
+      mesh_style = QUASIRANDOM;
+      mesh_density = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else
       error->all(FLERR, "Illegal create_atoms command option {}", arg[iarg]);
@@ -926,6 +941,86 @@ int CreateAtoms::add_tricenter(const double vert[3][3], tagint molid)
 }
 
 /* ----------------------------------------------------------------------
+   add monodisperse atoms by mapping quasirandom sequence onto a triangle
+   method by Martin Roberts 2019 http://extremelearning.com.au/evenly-distributing-points-in-a-triangle/
+------------------------------------------------------------------------- */
+
+int CreateAtoms::add_quasirandom(const double vert[3][3], tagint molid)
+{
+  double ab[3], ac[3], bc[3], temp[3], point[3], ref[3];
+  double lab, lac, lbc, area, xi, yi;
+  double seed = 0.5;
+
+  // Order vertices such that a has the largest angle
+  MathExtra::sub3(vert[1], vert[0], ab);
+  MathExtra::sub3(vert[2], vert[0], ac);
+  MathExtra::sub3(vert[2], vert[1], bc);
+
+  lab = MathExtra::len3(ab);
+  lac = MathExtra::len3(ac);
+  lbc = MathExtra::len3(bc);
+
+  if (lac > lab && lac > lbc) {
+    // B has the largest angle, relabel as A
+    MathExtra::scale3(-1.0, ab);
+    MathExtra::copy3(bc, ac);
+    MathExtra::copy3(vert[1], ref);
+  } else if (lab > lac && lab > lbc) {
+    // C has the largest angle, relabel as A
+    MathExtra::scale3(-1.0, ac);
+    MathExtra::copy3(bc, ab);
+    MathExtra::scale3(-1.0, ab);
+    MathExtra::copy3(vert[2], ref);
+  } else {
+    MathExtra::copy3(vert[0], ref);
+  }
+
+  // Estimate number of particles from area, could scale by RCP
+  MathExtra::cross3(ab, ac, temp);
+  area = 0.5 * MathExtra::len3(temp);
+  int nparticles = ceil(mesh_density * area);
+
+  for (int i = 0; i < nparticles; i++) {
+    // Define point in unit square
+    xi = (i + 1) * INV_P_CONST;
+    yi = (i + 1) * INV_SQ_P_CONST; // Add seed function of vertices
+
+    xi += seed;
+    yi += seed;
+
+    xi = std::fmod(xi, 1.0);
+    yi = std::fmod(yi, 1.0);
+
+    // Map to tirangle using parallelogram method
+    if ((xi + yi) < 1) {
+      MathExtra::scale3(xi, ac, point);
+      MathExtra::scale3(yi, ab, temp);
+      MathExtra::add3(point, temp, point);
+    } else {
+      xi = 1.0 - xi;
+      yi = 1.0 - yi;
+      MathExtra::scale3(xi, ac, point);
+      MathExtra::scale3(yi, ab, temp);
+      MathExtra::add3(point, temp, point);
+    }
+
+    MathExtra::add3(point, ref, point);
+
+    // if atom/molecule is in my subbox, create it
+    if ((point[0] >= sublo[0]) && (point[0] < subhi[0]) && (point[1] >= sublo[1]) &&
+        (point[1] < subhi[1]) && (point[2] >= sublo[2]) && (point[2] < subhi[2])) {
+
+      atom->avec->create_atom(ntype, point);
+      int idx = atom->nlocal - 1;
+      if (atom->molecule_flag) atom->molecule[idx] = molid;
+    }
+
+  }
+
+  return nparticles;
+}
+
+/* ----------------------------------------------------------------------
    add atoms at center of triangulated mesh
 ------------------------------------------------------------------------- */
 
@@ -990,10 +1085,14 @@ void CreateAtoms::add_mesh(const char *filename)
       if (!line || !utils::strmatch(line, "^ *endfacet"))
         throw TokenizerException("Error reading endfacet", "");
 
-      // now we have three vertices ... proceed with adding atom in center of triangle
-      // or splitting recursively into halves as needed to get the desired density
       ++ntriangle;
-      atomlocal += add_tricenter(vert, molid);
+      if (mesh_style == TRICENTER) {
+        // now we have three vertices ... proceed with adding atom in center of triangle
+        // or splitting recursively into halves as needed to get the desired density
+        atomlocal += add_tricenter(vert, molid);
+      } else if (mesh_style == QUASIRANDOM) {
+        atomlocal += add_quasirandom(vert, molid);
+      }
     }
   } catch (std::exception &e) {
     error->all(FLERR, "Error reading triangles from file {}: {}", filename, e.what());

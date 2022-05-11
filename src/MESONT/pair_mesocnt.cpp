@@ -596,7 +596,7 @@ void PairMesoCNT::bond_neigh()
       numneigh2 = 0;
     else
       numneigh2 = numneigh[i2];
-    numneigh_max[i] = numneigh1 + numneigh2;
+    numneigh_max[i] = numneigh1 + numneigh2 + 2;
   }
 
   // create temporary arrays for chain creation
@@ -642,6 +642,8 @@ void PairMesoCNT::bond_neigh()
       chainid[i][j] = -1;
     }
 
+    int selfid = -1;
+
     // assign chain ids and positions
 
     for (int j = 0; j < reduced_nlist[i]; j++) {
@@ -654,6 +656,9 @@ void PairMesoCNT::bond_neigh()
       
       chainid[i][j] = numchainlist[i];
       chainpos[i][j] = 0;
+
+      if (reduced_neighlist[i][j] == bondlist[i][0])
+        selfid = numchainlist[i];
       
       int curr_local, next_local;
       int curr_reduced, next_reduced;
@@ -686,6 +691,8 @@ void PairMesoCNT::bond_neigh()
             curr_local = next_local;
             next_local = special_local[next_local][1];
           }
+
+          if (curr_local == bondlist[i][0]) selfid = numchainlist[i];
         }
       }
       
@@ -754,6 +761,19 @@ void PairMesoCNT::bond_neigh()
       else endlist[i][j] = 0;
     }
   }
+
+  for (int i = 0; i < nbondlist; i++) {
+    printf("bond: %d\n", i + 1);
+    for (int j = 0; j < reduced_nlist[i]; j++)
+      printf("%d ", atom->tag[reduced_neighlist[i][j]]);
+    printf("\n");
+    for (int j = 0; j < numchainlist[i]; j++) {
+      printf("chain %d: ", j + 1);
+      for (int k = 0; k < nchainlist[i][j]; k++)
+        printf("%d ", atom->tag[chainlist[i][j][k]]);
+      printf("\n");
+    }
+  }
   
   // destroy remaining temporary arrays for chain creation
 
@@ -805,19 +825,21 @@ void PairMesoCNT::neigh_common(int i1, int i2, int &numred, int *redlist)
     numneigh2 = numneigh[i2];
   }
 
-  int numneigh_max = numneigh1 + numneigh2;
   numred = 0;
-  if (numneigh_max < 2) return;
 
   for (int j = 0; j < numneigh1; j++) {
-    int ind = neighlist1[j];
-    if (mol[ind] == mol[i1] && abs(tag[ind] - tag[i1]) < SELF_CUTOFF) continue;
+    int ind = neighlist1[j] & NEIGHMASK;
     redlist[numred++] = ind;
   }
   int inflag = 0;
-  for (int j2 = 0; j2 < numneigh2; j2++) {
-    for (int j1 = 0; j1 < numneigh1; j1++) {
-      if (neighlist1[j1] == neighlist2[j2]) {
+  for (int j2 = 0; j2 < numneigh2 + 2; j2++) {
+    int ind2;
+    if (j2 == numneigh2) ind2 = i1;
+    else if (j2 == numneigh2 + 1) ind2 = i2;
+    else ind2 = neighlist2[j2] & NEIGHMASK;
+    for (int j1 = 0; j1 < numred; j1++) {
+      int ind1 = redlist[j1] & NEIGHMASK;
+      if (ind1 == ind2) {
         inflag = 1;
         break;
       }
@@ -826,9 +848,7 @@ void PairMesoCNT::neigh_common(int i1, int i2, int &numred, int *redlist)
       inflag = 0;
       continue;
     }
-    int ind = neighlist2[j2];
-    if (mol[ind] == mol[i2] && abs(tag[ind] - tag[i2]) < SELF_CUTOFF) continue;
-    redlist[numred++] = ind;
+    redlist[numred++] = ind2;
   }
 }
 

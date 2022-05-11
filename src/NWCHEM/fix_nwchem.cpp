@@ -612,12 +612,14 @@ void FixNWChem::post_force_qmmm(int vflag)
   double rsq,r2inv,rinv,fpair;
   double delta[3];
 
-  // adjust LAMMPS energy and forces for pairwise interactions between QM atoms
-  // double loop over all QM pairs
-  // if I own either or both atoms in pair, compute pairwise term
-  // subtract half or all energy from qmenergy
-  // subtract force from only owned atoms
-  // uses xqm and qqm set or computed in pre_force_qmmm() for all QM atoms
+  // subtract pairwise QM energy and forces from energy and forces
+  //   LAMMPS just computed for all atoms
+  // double loop over all QM pairs, 2nd loop starts at i+1 to include pair once
+  // if I own either or both atoms in pair, compute pairwise Coulomb term
+  //   subtract force only from owned atoms
+  //   subtract half or all energy from qmenergy
+  //   this effectively subtract energy from total = pair + kspace + fix
+  // use xqm & qqm set/computed in pre_force_qmmm() for all QM atoms
 
   double **x = atom->x;
   double **f = atom->f;
@@ -687,7 +689,8 @@ void FixNWChem::post_force_qmmm(int vflag)
 
   // add QM energy from NWChem
   // NOTE: how to calculate this quantity
-  // NOTE: for now, just letting dummy method return it as qmenergy
+
+
 
   // trigger per-atom energy computation on next step by pair/kspace
   // NOTE: is this needed ?

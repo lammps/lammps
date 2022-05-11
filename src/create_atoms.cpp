@@ -56,8 +56,9 @@ enum { BOX, REGION, SINGLE, RANDOM, MESH };
 enum { ATOM, MOLECULE };
 enum { COUNT, INSERT, INSERT_SELECTED };
 enum { NONE, RATIO, SUBSET };
-enum { TRICENTER, QUASIRANDOM };
+enum { BISECTION, QUASIRANDOM };
 
+static constexpr const char *mesh_name[] = {"recursive bisection", "quasi-random"};
 /* ---------------------------------------------------------------------- */
 
 CreateAtoms::CreateAtoms(LAMMPS *lmp) : Command(lmp), basistype(nullptr) {}
@@ -89,7 +90,6 @@ void CreateAtoms::command(int narg, char **arg)
   ntype = utils::inumeric(FLERR, arg[0], false, lmp);
 
   const char *meshfile;
-  radthresh = 1.0;
   int iarg;
   if (strcmp(arg[1], "box") == 0) {
     style = BOX;
@@ -138,7 +138,6 @@ void CreateAtoms::command(int narg, char **arg)
 
   int scaleflag = 1;
   remapflag = 0;
-  mesh_style = TRICENTER;
   mode = ATOM;
   int molseed;
   ranmol = nullptr;
@@ -152,7 +151,8 @@ void CreateAtoms::command(int narg, char **arg)
   maxtry = DEFAULT_MAXTRY;
   radscale = 1.0;
   radthresh = domain->lattice->xlattice;
-
+  mesh_style = BISECTION;
+  mesh_density = 1.0;
   nbasis = domain->lattice->nbasis;
   basistype = new int[nbasis];
   for (int i = 0; i < nbasis; i++) basistype[i] = ntype;
@@ -261,30 +261,26 @@ void CreateAtoms::command(int narg, char **arg)
       maxtry = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       if (maxtry <= 0) error->all(FLERR, "Illegal create_atoms command");
       iarg += 2;
+    } else if (strcmp(arg[iarg], "meshmode") == 0) {
+      if (style != MESH)
+        error->all(FLERR, "Create_atoms meshmode can only be used with mesh style");
+      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "create_atoms meshmode", error);
+      if (strcmp(arg[iarg + 1], "bisect") == 0) {
+        mesh_style = BISECTION;
+        radthresh = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      } else if (strcmp(arg[iarg + 1], "qrand") == 0) {
+        mesh_style = QUASIRANDOM;
+        mesh_density = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      } else
+        error->all(FLERR, "Unknown create_atoms meshmode {}", arg[iarg + 2]);
+      iarg += 3;
     } else if (strcmp(arg[iarg], "radscale") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms radscale", error);
-      if (style != MESH)
-        error->all(FLERR, "Create_atoms radscale can only be used with mesh style");
-      if (mesh_style != TRICENTER)
-        error->all(FLERR, "Create_atoms radscale can only be used with tricenter mesh style");
+      if ((style != MESH) && (mesh_style != BISECTION))
+        error->all(FLERR, "Create_atoms radscale can only be used with mesh style in bisect mode");
       if (!atom->radius_flag)
         error->all(FLERR, "Must have atom attribute radius to set radscale factor");
       radscale = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
-      iarg += 2;
-    } else if (strcmp(arg[iarg], "radthresh") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms radthresh", error);
-      if (style != MESH)
-        error->all(FLERR, "Create_atoms radthresh can only be used with mesh style");
-      if (mesh_style != TRICENTER)
-        error->all(FLERR, "Create_atoms radthresh can only be used with tricenter mesh style");
-      radthresh = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
-      iarg += 2;
-    } else if (strcmp(arg[iarg], "quasirandom") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms quasirandom", error);
-      if (style != MESH)
-        error->all(FLERR, "Create_atoms quasirandom can only be used with mesh style");
-      mesh_style = QUASIRANDOM;
-      mesh_density = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else
       error->all(FLERR, "Illegal create_atoms command option {}", arg[iarg]);
@@ -864,7 +860,7 @@ void CreateAtoms::add_random()
    or split into two halves along the longest side and recurse
 ------------------------------------------------------------------------- */
 
-int CreateAtoms::add_tricenter(const double vert[3][3], tagint molid)
+int CreateAtoms::add_bisection(const double vert[3][3], tagint molid)
 {
   double center[3], temp[3];
 
@@ -917,8 +913,8 @@ int CreateAtoms::add_tricenter(const double vert[3][3], tagint molid)
       }
     }
 
-    ilocal = add_tricenter(vert1, molid);
-    ilocal += add_tricenter(vert2, molid);
+    ilocal = add_bisection(vert1, molid);
+    ilocal += add_bisection(vert2, molid);
   } else {
 
     /*
@@ -983,7 +979,7 @@ int CreateAtoms::add_quasirandom(const double vert[3][3], tagint molid)
   for (int i = 0; i < nparticles; i++) {
     // Define point in unit square
     xi = (i + 1) * INV_P_CONST;
-    yi = (i + 1) * INV_SQ_P_CONST; // Add seed function of vertices
+    yi = (i + 1) * INV_SQ_P_CONST;    // Add seed function of vertices
 
     xi += seed;
     yi += seed;
@@ -1014,7 +1010,6 @@ int CreateAtoms::add_quasirandom(const double vert[3][3], tagint molid)
       int idx = atom->nlocal - 1;
       if (atom->molecule_flag) atom->molecule[idx] = molid;
     }
-
   }
 
   return nparticles;
@@ -1044,11 +1039,11 @@ void CreateAtoms::add_mesh(const char *filename)
   FILE *fp = fopen(filename, "r");
   if (fp == nullptr) error->one(FLERR, "Cannot open file {}: {}", filename, utils::getsyserror());
 
-  TextFileReader reader(fp, "triangles");
+  TextFileReader reader(fp, "STL mesh");
   try {
     char *line = reader.next_line();
     if (!line || !utils::strmatch(line, "^solid"))
-      throw TokenizerException("Invalid triangles file format", "");
+      throw TokenizerException("Invalid STL mesh file format", "");
 
     line += 6;
     if (comm->me == 0)
@@ -1085,12 +1080,14 @@ void CreateAtoms::add_mesh(const char *filename)
       if (!line || !utils::strmatch(line, "^ *endfacet"))
         throw TokenizerException("Error reading endfacet", "");
 
+      // now we have the three vertices ... proceed with adding atoms
       ++ntriangle;
-      if (mesh_style == TRICENTER) {
-        // now we have three vertices ... proceed with adding atom in center of triangle
-        // or splitting recursively into halves as needed to get the desired density
-        atomlocal += add_tricenter(vert, molid);
+      if (mesh_style == BISECTION) {
+        // add in center of triangle or bisecting recursively along longest edge
+        // as needed to get the desired atom density/radii
+        atomlocal += add_bisection(vert, molid);
       } else if (mesh_style == QUASIRANDOM) {
+        // add quasi-random distribution of atoms
         atomlocal += add_quasirandom(vert, molid);
       }
     }
@@ -1102,7 +1099,8 @@ void CreateAtoms::add_mesh(const char *filename)
     MPI_Allreduce(&atomlocal, &atomall, 1, MPI_LMP_BIGINT, MPI_SUM, world);
     double ratio = (double) atomall / (double) ntriangle;
     if (comm->me == 0)
-      utils::logmesg(lmp, "  read {} triangles with {:.2f} atoms per triangle\n", ntriangle, ratio);
+      utils::logmesg(lmp, "  read {} triangles with {:.2f} atoms per triangle added in {} mode\n",
+                     ntriangle, ratio, mesh_name[mesh_style]);
   }
 }
 

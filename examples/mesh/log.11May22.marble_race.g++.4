@@ -20,10 +20,10 @@ group           mobile type 1
 
 create_atoms    2 mesh race_track.stl units box
 Reading STL object Georgs Murmelbahn from file race_track.stl
-  read 9472 triangles with 1.00 atoms per triangle
+  read 9472 triangles with 1.00 atoms per triangle added in recursive bisection mode
 Created 9472 atoms
   using box units in orthogonal box = (-110 -30 -90) to (60 220 130)
-  create_atoms CPU = 0.069 seconds
+  create_atoms CPU = 0.036 seconds
 group           mesh type 2
 9472 atoms in group mesh
 
@@ -73,9 +73,9 @@ Per MPI rank memory allocation (min/avg/max) = 4.506 | 4.54 | 4.57 Mbytes
    Step          Temp          E_pair         E_mol          TotEng         Press          Volume    
          0   0              737062.81      0              737062.81      21986.781      9350000      
         67   0             -2063.91        0             -2063.91       -5.0227698      9350000      
-Loop time of 0.375696 on 4 procs for 67 steps with 13073 atoms
+Loop time of 0.373091 on 4 procs for 67 steps with 13073 atoms
 
-99.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+98.7% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = linesearch alpha is zero
@@ -89,12 +89,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0026793  | 0.10176    | 0.30773    |  39.0 | 27.09
-Neigh   | 0.0083945  | 0.011206   | 0.01705    |   3.3 |  2.98
-Comm    | 0.0076602  | 0.21941    | 0.32088    |  27.2 | 58.40
+Pair    | 0.0023911  | 0.098676   | 0.3067     |  39.6 | 26.45
+Neigh   | 0.0054604  | 0.0097001  | 0.017713   |   4.9 |  2.60
+Comm    | 0.0072159  | 0.22319    | 0.32344    |  27.2 | 59.82
 Output  | 0          | 0          | 0          |   0.0 |  0.00
-Modify  | 0.0035482  | 0.0090038  | 0.018889   |   6.2 |  2.40
-Other   |            | 0.03432    |            |       |  9.13
+Modify  | 0.003044   | 0.0084861  | 0.018696   |   6.5 |  2.27
+Other   |            | 0.03304    |            |       |  8.86
 
 Nlocal:        3268.25 ave        4314 max        2222 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -133,20 +133,20 @@ Per MPI rank memory allocation (min/avg/max) = 3.481 | 3.598 | 3.711 Mbytes
       8000   404.7304      -2144.8541      0              2198.2739      43.134332      9350000      
       9000   435.7537      -2180.3187      0              2495.7178      53.466393      9350000      
      10000   457.96586     -2194.6411      0              2719.7522      64.522003      9350000      
-Loop time of 4.62401 on 4 procs for 10000 steps with 13073 atoms
+Loop time of 4.60636 on 4 procs for 10000 steps with 13073 atoms
 
-Performance: 186.851 ns/day, 0.128 hours/ns, 2162.627 timesteps/s
-99.3% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 187.567 ns/day, 0.128 hours/ns, 2170.909 timesteps/s
+99.2% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.0661     | 2.4819     | 2.9751     |  25.5 | 53.67
-Neigh   | 0.18188    | 0.2993     | 0.52875    |  25.5 |  6.47
-Comm    | 0.40938    | 1.17       | 1.736      |  51.7 | 25.30
-Output  | 0.00028188 | 0.00049757 | 0.0006548  |   0.0 |  0.01
-Modify  | 0.22514    | 0.32517    | 0.53165    |  21.2 |  7.03
-Other   |            | 0.3472     |            |       |  7.51
+Pair    | 2.0632     | 2.4782     | 2.963      |  25.3 | 53.80
+Neigh   | 0.18255    | 0.30042    | 0.52984    |  25.5 |  6.52
+Comm    | 0.40668    | 1.1595     | 1.7224     |  51.6 | 25.17
+Output  | 0.00032705 | 0.00053493 | 0.00067573 |   0.0 |  0.01
+Modify  | 0.22563    | 0.32471    | 0.53003    |  21.1 |  7.05
+Other   |            | 0.3429     |            |       |  7.44
 
 Nlocal:        3268.25 ave        6890 max        1643 min
 Histogram: 1 2 0 0 0 0 0 0 0 1

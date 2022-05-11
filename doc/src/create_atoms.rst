@@ -51,10 +51,12 @@ Syntax
          name = name of variable to set with x, y, or z atom position
        *radscale* value = factor
          factor = scale factor for setting atom radius
-       *radthresh* value = radius (distance units)
-         radius = threshold value for *mesh* to determine when to split triangles
-       *quasirandom* value = number density (inverse distance squared units)
-         number density = minimum number density for particles placed on *mesh* triangles
+       *meshmode* values = mode arg
+         mode = *bisect* or *qrand*
+         *bisect* arg = radthresh
+           radthresh = threshold value for *mesh* to determine when to split triangles (distance units)
+         *qrand* arg = density
+           density = minimum number density for atoms place on *mesh* triangles (inverse distance squared units)
        *rotate* values = theta Rx Ry Rz
          theta = rotation angle for single molecule (degrees)
          Rx,Ry,Rz = rotation vector for single molecule
@@ -77,7 +79,8 @@ Examples
    create_atoms 3 single 0 0 5
    create_atoms 1 box var v set x xpos set y ypos
    create_atoms 2 random 50 12345 NULL overlap 2.0 maxtry 50
-   create_atoms 1 mesh funnel.stl units box radscale 0.9 radthresh 4.0
+   create_atoms 1 mesh open_box.stl meshmode qrand 0.1 units box
+   create_atoms 1 mesh funnel.stl meshmode bisect 4.0 units box radscale 0.9
 
 Description
 """""""""""
@@ -138,24 +141,28 @@ For the *mesh* style, a file with a triangle mesh in `ASCII STL format
 and one or more particles are placed into the area of each triangle.
 Binary STL files (e.g. as frequently offered for 3d-printing) can be
 converted to ASCII with the :ref:`stl_bin2txt tool <stlconvert>`.  The
-use of the *units box* option is required. A particle is created at the
-center of each triangle unless the average distance of the triangle
-vertices from its center is larger than the *radthresh* value.  This
-value defaults to the lattice spacing in x direction, but can be set as
-an optional keyword.  In case the triangle size is over the threshold,
-it is split into two halves along the its longest side and each of those
-two triangles considered for particle insertion.  This operation is
-repeated recursively until the condition is met.  There will be at least
-one sphere per triangle.  If the atom style in use allows to set a
-per-atom radius this radius is set to the average distance of the
-triangle vertices from its center times the value of the *radscale*
-keyword (default: 1.0).
-The *mesh* style also has a *quasirandom* option which uses a quasirandom
-sequence to distribute particles on mesh triangles using an approach
-by :ref:`(Roberts) <Roberts2019>`. This option takes a minimal number
-density as an argument. Particles are added to the triangle until this
-number density is met or exceeded such that every triangle will have
-at least one particle.
+use of the *units box* option is required. There are two algorithms for
+placing atoms available: *bisect* and *qrand*. They can be selected via
+the *meshmode* option; *bisect* is the default.  If the atom style allows
+to set a per-atom radius this radius is set to the average
+distance of the triangle vertices from its center times the value of the
+*radscale* keyword (default: 1.0).  If the atom style supports it, the
+atoms created from the mesh are assigned a new molecule ID.
+
+In *bisect* mode a particle is created at the center of each triangle
+unless the average distance of the triangle vertices from its center is
+larger than the *radthresh* value (default is lattice spacing in
+x-direction).  In case the average distance is over the threshold, the
+triangle is recursively split into two halves along the the longest side
+until the threshold is reached. There will be at least one sphere per
+triangle. The value of *radthresh* is set as argument to *meshmode
+bisect*.
+
+In *qrand* mode a quasirandom sequence is used to distribute particles
+on mesh triangles using an approach by :ref:`(Roberts) <Roberts2019>`.
+Particles are added to the triangle until minimum number density is met
+or exceeded such that every triangle will have at least one particle.
+The minimum number density is set as argument to the *qrand* option.
 
 .. note::
 

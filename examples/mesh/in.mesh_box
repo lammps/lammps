@@ -11,7 +11,8 @@ region          lid block 100 110 50 250 50 250 units box
 group           mobile type 1
 set type 1 diameter 7.0
 
-create_atoms    2 mesh open_box.stl units box radthresh 4.0
+# create_atoms    2 mesh open_box.stl meshmode bisect 4.0 units box
+create_atoms    2 mesh open_box.stl meshmode qrand 0.1 units box
 group           mesh type 2
 
 pair_style lj/cut 8.76

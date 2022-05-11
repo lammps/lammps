@@ -53,6 +53,8 @@ Syntax
          factor = scale factor for setting atom radius
        *radthresh* value = radius (distance units)
          radius = threshold value for *mesh* to determine when to split triangles
+       *quasirandom* value = number density (inverse distance squared units)
+         number density = minimum number density for particles placed on *mesh* triangles
        *rotate* values = theta Rx Ry Rz
          theta = rotation angle for single molecule (degrees)
          Rx,Ry,Rz = rotation vector for single molecule
@@ -148,6 +150,12 @@ one sphere per triangle.  If the atom style in use allows to set a
 per-atom radius this radius is set to the average distance of the
 triangle vertices from its center times the value of the *radscale*
 keyword (default: 1.0).
+The *mesh* style also has a *quasirandom* option which uses a quasirandom
+sequence to distribute particles on mesh triangles using an approach
+by :ref:`(Roberts) <Roberts2019>`. This option takes a minimal number
+density as an argument. Particles are added to the triangle until this
+number density is met or exceeded such that every triangle will have
+at least one particle.
 
 .. note::
 
@@ -509,3 +517,10 @@ assigned the argument *type* as their atom type (when single atoms are
 being created).  The other defaults are *remap* = no, *rotate* = random,
 *radscale* = 1.0, *radthresh* = x-lattice spacing, *overlap* not
 checked, *maxtry* = 10, and *units* = lattice.
+
+----------
+
+.. _Roberts2019:
+
+**(Roberts)** R. Roberts (2019) "Evenly Distributing Points in a Triangle." Extreme Learning.
+`<http://extremelearning.com.au/evenly-distributing-points-in-a-triangle/>`_

@@ -60,7 +60,7 @@ PairMesoCNT::PairMesoCNT(LAMMPS *lmp) : Pair(lmp)
   writedata = 0;
   ghostneigh = 0;
 
-  comm_forward = 2;
+  comm_forward = 3;
 }
 
 /* ----------------------------------------------------------------------
@@ -880,8 +880,12 @@ int PairMesoCNT::pack_forward_comm(int n, int *list, double *buf,
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
+    buf[m++] = ubuf(atom->nspecial[j][0]).d;
     buf[m++] = ubuf(atom->special[j][0]).d;
-    buf[m++] = ubuf(atom->special[j][1]).d;
+    if (atom->nspecial[j][0] == 1)
+      buf[m++] = ubuf(-1).d;
+    else
+      buf[m++] = ubuf(atom->special[j][1]).d;
   }
   return m;
 }
@@ -895,8 +899,12 @@ void PairMesoCNT::unpack_forward_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
+    atom->nspecial[i][0] = (int) ubuf(buf[m++]).i;
     atom->special[i][0] = (tagint) ubuf(buf[m++]).i;
-    atom->special[i][1] = (tagint) ubuf(buf[m++]).i;
+    if (atom->nspecial[i][0] == 1)
+      atom->special[i][1] = -1;
+    else
+      atom->special[i][1] = (tagint) ubuf(buf[m++]).i;
   }
 }
 

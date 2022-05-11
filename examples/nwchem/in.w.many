@@ -20,7 +20,8 @@ mass		1 183.84
 neighbor	1.0 bin
 neigh_modify	delay 0 every 1 check yes
 
-fix             2 all nwchem template-w.nw ${datafiles}.nw W
+fix             2 all nwchem template-w.nw ${datafiles}.nw &
+                log.pwdft.${datafiles} W
 fix_modify      2 energy yes
 
 dump            1 all custom 1 dump.${datafiles} id x y z fx fy fz

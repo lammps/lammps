@@ -1,14 +1,14 @@
 LAMMPS data file for water dimer in large box
 
 6 atoms
-4 bonds
-2 angles
+2 bonds
+1 angles
 2 atom types
 1 bond types
 1 angle types
-0.0 20.10869277621671 xlo xhi
-0.0 20.10869277621671 ylo yhi
-0.0 20.10869277621671 zlo zhi
+-5.0 5.0 xlo xhi
+-5.0 5.0 ylo yhi
+-5.0 5.0 zlo zhi
 
 Masses
 
@@ -17,11 +17,11 @@ Masses
 
 Bond Coeffs
 
-1 K r0
+1 1.0 1.0
 
 Angle Coeffs
 
-1 K theta0
+1 1.0 109.47
 
 Atoms
 
@@ -36,10 +36,7 @@ Bonds
 
 1 1 1 2
 2 1 1 3
-3 1 4 5
-4 1 4 6
 
 Angles
 
 1 1 2 1 3
-2 1 5 4 6

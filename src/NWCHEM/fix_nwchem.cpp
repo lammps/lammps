@@ -173,10 +173,10 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
   nqm = ngroup;
 
   if (nqm == atom->natoms) mode = AIMD;
-  else {
-    mode = QMMM;
-    error->all(FLERR,"Fix nwchem for a non-all group (QMMM) is not yet enabled");
-  }
+  else mode = QMMM;
+
+  //if (mode == QMMM)
+  //  error->all(FLERR,"Fix nwchem for a non-all group (QMMM) is not yet enabled");
 
   memory->create(qmIDs,nqm,"nwchem:qmIDs");
   memory->create(xqm,nqm,3,"nwchem:xqm");
@@ -347,8 +347,7 @@ void FixNWChem::init()
 
   // one-time initialization of NWChem with its input file
   // also one-time setup of qqm = atom charges for all QM atoms
-  //   later calls to NWChem change it for all QM atoms
-  //   changes get copied to LAMMPS per-atom q which is not changed by LAMMPS
+  //   later calls to NWChem change charges for QM atoms
   // setup of xqm needed for nwchem_initialize();
 
   if (!qm_init) {
@@ -409,7 +408,7 @@ void FixNWChem::pre_force_qmmm(int vflag)
   double rsq;
   double delta[3];
 
-  // invoke pair hybrid sub-style pair coul/long and Kspace directly
+  // invoke pair hybrid sub-style pair coulomb and Kspace directly
   // set eflag = 2 so they calculate per-atom energy
 
   pair_coul->compute(2,0);
@@ -450,7 +449,8 @@ void FixNWChem::pre_force_qmmm(int vflag)
   // setup 2 NWChem inputs: xqm and qpotential
   // xqm = atom coords, mapped into periodic box
   // qpotential[i] = Coulomb potential for each atom
-  //   (eatom[i] from pair_coul + kspace) / Qi
+  //   2 * (eatom[i] from pair_coul + kspace) / Qi
+  //   factor of 2 comes from need to double count energy for each atom
   //   set for owned atoms, then MPI_Allreduce
   // subtract Qj/Rij energy for QM I interacting with all other QM J atoms
   //   use xqm_mine and qqm_mine for all QM atoms
@@ -466,7 +466,7 @@ void FixNWChem::pre_force_qmmm(int vflag)
     ilocal = qm2owned[i];
     if (ilocal >= 0) {
       if (q[ilocal] == 0.0) qpotential_mine[i] = 0.0;
-      else qpotential_mine[i] = ecoul[ilocal] / q[ilocal];
+      else qpotential_mine[i] = 2.0 * ecoul[ilocal] / q[ilocal];
     }
   }
 
@@ -505,8 +505,10 @@ void FixNWChem::pre_force_qmmm(int vflag)
   //   fqm,qqm = forces & charges
   //   qmenergy = QM energy of entire system
 
+
   int nwerr = lammps_pspw_qmmm_minimizer(world,&xqm[0][0],qpotential,
                                          &fqm[0][0],qqm,&qmenergy);
+
   //int nwerr = dummy_pspw_qmmm_minimizer(world,&xqm[0][0],qpotential,
   //                                      &fqm[0][0],qqm,&qmenergy);
 
@@ -575,7 +577,6 @@ void FixNWChem::post_force_aimd(int vflag)
   //   qmenergy = QM energy of entire system
 
   int nwerr = lammps_pspw_aimd_minimizer(world,&xqm[0][0],&fqm[0][0],&qmenergy);
-
   if (nwerr) error->all(FLERR,"Internal NWChem error");
 
   // unit conversion from NWChem to LAMMPS
@@ -813,7 +814,8 @@ void FixNWChem::nwchem_initialize()
 
     if (strcmp(line,"FILEINSERT\n") == 0) {
       fprintf(infile,"start %s\n",nw_input);
-      if (strcmp(nw_output,"NULL") == 0) fprintf(infile,"print off\n");
+      if (strcmp(nw_output,"SCREEN") == 0) {
+      } else if (strcmp(nw_output,"NULL") == 0) fprintf(infile,"print off\n");
       else fprintf(infile,"redirect_filename %s\n",nw_output);
       continue;
     }

@@ -16,5 +16,4 @@ nwpw
   xc pbe96
 end
 
-task pspw energy ignore
-task pspw optimize ignore
+task pspw gradient

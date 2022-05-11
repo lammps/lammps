@@ -15,7 +15,7 @@ neigh_modify	delay 0 every 1 check yes
 
 fix		1 all nve
 
-fix             2 all nwchem template-w.nw w.aimd.nw W
+fix             2 all nwchem template-w.nw w.aimd.nw log.pwdft.w.aimd W
 fix_modify      2 energy yes
 
 dump            1 all custom 1 dump.w.aimd id x y z vx vy vz fx fy fz

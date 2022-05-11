@@ -805,24 +805,16 @@ void FixNWChem::nwchem_initialize()
   // when GEOMINSERT line is read:
   //   replace it with lines that specify the simulation box and list of atoms
   //   each atom's element ID and coords are written to file
+  // NOTE: box and coords in NWChem input file are in Angstroms, not Bohrs
 
   while (true) {
     eof = fgets(line,MAXLINE,nwfile);
     if (eof == nullptr) break;
 
     if (strcmp(line,"FILEINSERT\n") == 0) {
-      int n = strlen(nw_input);
-      char *fileprefix = new char[n];
-      strncpy(fileprefix,nw_input,n-3);
-      fileprefix[n-3] = '\0';
-      fprintf(infile,"start %s\n",fileprefix);
-      delete [] fileprefix;
-
-      if (strcmp(nw_output,"NULL") == 0)
-        fprintf(infile,"print off\n");
-      else
-        fprintf(infile,"redirect_filename %s\n",nw_output);
-
+      fprintf(infile,"start %s\n",nw_input);
+      if (strcmp(nw_output,"NULL") == 0) fprintf(infile,"print off\n");
+      else fprintf(infile,"redirect_filename %s\n",nw_output);
       continue;
     }
     

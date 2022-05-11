@@ -1,0 +1,22 @@
+# AIMD with NWChem for water dimer
+
+units		real
+atom_style	full
+comm_modify     cutoff 2.0
+
+read_data       data.water.dimer
+
+neighbor	1.0 bin
+neigh_modify	delay 0 every 1 check yes
+
+fix		1 all nve
+
+fix             2 all nwchem template.water water-dimer.nw W
+fix_modify      2 energy yes
+
+dump            1 all custom 1 dump.water.dimer id x y z vx vy vz fx fy fz
+
+timestep        0.001
+
+thermo          1
+run		0

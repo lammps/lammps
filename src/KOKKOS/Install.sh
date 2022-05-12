@@ -291,6 +291,8 @@ action pair_morse_kokkos.cpp
 action pair_morse_kokkos.h
 action pair_multi_lucy_rx_kokkos.cpp pair_multi_lucy_rx.cpp
 action pair_multi_lucy_rx_kokkos.h pair_multi_lucy_rx.h
+action pair_pace_kokkos.cpp pair_pace.cpp
+action pair_pace_kokkos.h pair_pace.h
 action pair_reaxff_kokkos.cpp pair_reaxff.cpp
 action pair_reaxff_kokkos.h pair_reaxff.h
 action pair_snap_kokkos.cpp pair_snap.cpp

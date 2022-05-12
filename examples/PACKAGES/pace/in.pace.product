@@ -14,8 +14,6 @@ create_atoms	1 box
 
 mass		1 26.98
 
-group		Al type 1
-
 pair_style 	pace product
 pair_coeff  * * Cu-PBE-core-rep.ace Cu
 

@@ -560,6 +560,7 @@ void PairMesoCNT::bond_neigh()
   int nbondlist = neighbor->nbondlist;
 
   int *type = atom->type;
+  int **nspecial = atom->nspecial;
   tagint **special = atom->special;
 
   comm->forward_comm(this);
@@ -572,9 +573,14 @@ void PairMesoCNT::bond_neigh()
   
   for (int i = 0; i < nlocal+nghost; i++) {
     atom1 = atom->map(special[i][0]);
-    atom2 = atom->map(special[i][1]);
     special_local[i][0] = domain->closest_image(i, atom1);
-    special_local[i][1] = domain->closest_image(i, atom2);
+    if (nspecial[i][0] == 1)
+      special_local[i][1] = -1;
+    else {
+      atom2 = atom->map(special[i][1]);
+      special_local[i][1] = domain->closest_image(i, atom2);
+    }
+    // printf("%d %d %d (%d) %d (%d)\n", atom->tag[i], nspecial[i][0], atom->tag[atom1], atom1, atom->tag[atom2], atom2);
   }
 
   int *numneigh = list->numneigh;
@@ -791,7 +797,7 @@ void PairMesoCNT::bond_neigh()
     }
   }
   */
-  
+
   // destroy remaining temporary arrays for chain creation
 
   memory->destroy(reduced_neighlist);
@@ -901,10 +907,9 @@ void PairMesoCNT::unpack_forward_comm(int n, int first, double *buf)
   for (i = first; i < last; i++) {
     atom->nspecial[i][0] = (int) ubuf(buf[m++]).i;
     atom->special[i][0] = (tagint) ubuf(buf[m++]).i;
-    if (atom->nspecial[i][0] == 1)
-      atom->special[i][1] = -1;
-    else
-      atom->special[i][1] = (tagint) ubuf(buf[m++]).i;
+    if (atom->nspecial[i][0] > 1)
+      atom->special[i][1] = (tagint) ubuf(buf[m]).i;
+    m++;
   }
 }
 

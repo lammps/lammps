@@ -809,6 +809,7 @@ void PairMesoCNT::bond_neigh()
   memory->destroy(chainpos);
 
   memory->destroy(numneigh_max);
+  memory->destroy(selfid);
 
   // resize potential arrays
 

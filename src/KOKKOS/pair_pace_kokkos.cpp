@@ -537,7 +537,7 @@ void PairPACEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     error->all(FLERR,"PairPACEKokkos requires 'newton on'");
 
   if (recursive)
-    error->all(FLERR,"Must use 'product' algorithm with pair pace/kk");
+    error->all(FLERR,"Must use 'product' algorithm with pair pace/kk on the GPU");
 
   atomKK->sync(execution_space,X_MASK|F_MASK|TYPE_MASK);
   x = atomKK->k_x.view<DeviceType>();

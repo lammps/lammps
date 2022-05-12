@@ -75,7 +75,7 @@ void DeleteAtoms::command(int narg, char **arg)
     delete_overlap(narg, arg);
   else if (strcmp(arg[0], "partial") == 0)
     delete_partial(narg, arg);
-  // deprecated old version of this option
+  // deprecated porosity option, now included in new partial option
   else if (strcmp(arg[0], "porosity") == 0) {
     if (comm->me == 0) {
       printf("Deprecated version: "

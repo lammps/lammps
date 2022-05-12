@@ -75,7 +75,18 @@ void DeleteAtoms::command(int narg, char **arg)
     delete_overlap(narg, arg);
   else if (strcmp(arg[0], "partial") == 0)
     delete_partial(narg, arg);
-  else if (strcmp(arg[0], "variable") == 0)
+  // deprecated old version of this option
+  else if (strcmp(arg[0], "porosity") == 0) {
+    if (comm->me == 0) {
+      printf("Deprecated version: "
+             "delete_atoms porosity group-ID region-ID frac seed\n");
+      printf("Equivalent new version: "
+             "delete_atoms partial fraction frac 0 group-ID region-ID seed\n");
+      printf("In both versions 'frac' = numeric fraction 0.0 to 1.0 \n");
+      printf("Change integer arg 0 to 1 if want exact fraction deleted\n");
+    }
+    error->all(FLERR,"Delete_atoms porosity option has been deprecated\n");
+  } else if (strcmp(arg[0], "variable") == 0)
     delete_variable(narg, arg);
   else
     error->all(FLERR, "Unknown delete_atoms sub-command: {}", arg[0]);

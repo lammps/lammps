@@ -141,6 +141,7 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   energy_global_flag = 1;
   thermo_energy = 1;
+  comm_forward = 1;
   comm_reverse = 1;
 
   // setup unit conversion factors
@@ -505,7 +506,6 @@ void FixNWChem::pre_force_qmmm(int vflag)
   //   fqm,qqm = forces & charges
   //   qmenergy = QM energy of entire system
 
-
   int nwerr = lammps_pspw_qmmm_minimizer(world,&xqm[0][0],qpotential,
                                          &fqm[0][0],qqm,&qmenergy);
 
@@ -525,11 +525,14 @@ void FixNWChem::pre_force_qmmm(int vflag)
   }
 
   // reset owned charges to QM values
+  // communicate changes to ghost atoms
 
   for (int i = 0; i < nqm; i++) {
     ilocal = qm2owned[i];
     if (ilocal >= 0) q[ilocal] = qqm[i];
   }
+
+  comm->forward_comm(this);
 
   // reset LAMMPS forces to zero
   // NOTE: what about check in force_clear() for external_force_clear = OPENMP ?
@@ -608,9 +611,9 @@ void FixNWChem::post_force_aimd(int vflag)
 
 void FixNWChem::post_force_qmmm(int vflag)
 {
-  int ilocal,jlocal;
-  double rsq,r2inv,rinv,fpair;
-  double delta[3];
+  // int ilocal,jlocal;
+  // double rsq,r2inv,rinv,fpair;
+  // double delta[3];
 
   // subtract pairwise QM energy and forces from energy and forces
   //   LAMMPS just computed for all atoms
@@ -621,6 +624,10 @@ void FixNWChem::post_force_qmmm(int vflag)
   //   this effectively subtract energy from total = pair + kspace + fix
   // use xqm & qqm set/computed in pre_force_qmmm() for all QM atoms
 
+  // NOTE: no longer needed
+  // NWChem now subtracts QM/QM contributions from its returned energy and forces
+
+  /*
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
@@ -675,8 +682,14 @@ void FixNWChem::post_force_qmmm(int vflag)
   MPI_Allreduce(&eqm_mine,&eqm,1,MPI_DOUBLE,MPI_SUM,world);
 
   qmenergy -= eqm;
+  */
 
   // add NWChem QM forces to owned QM atoms
+  // do this now, after LAMMPS forces have been re-computed with new QM charges
+
+  double **f = atom->f;
+
+  int ilocal;
 
   for (int i = 0; i < nqm; i++) {
     ilocal = qm2owned[i];
@@ -686,11 +699,6 @@ void FixNWChem::post_force_qmmm(int vflag)
       f[ilocal][2] += fqm[i][2];
     }
   }
-
-  // add QM energy from NWChem
-  // NOTE: how to calculate this quantity
-
-
 
   // trigger per-atom energy computation on next step by pair/kspace
   // NOTE: is this needed ?
@@ -726,6 +734,37 @@ void FixNWChem::min_pre_force(int vflag)
 void FixNWChem::min_post_force(int vflag)
 {
   post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixNWChem::pack_forward_comm(int n, int *list, double *buf,
+                                 int /*pbc_flag*/, int * /*pbc*/)
+{
+  int i,j,m;
+
+  double *q = atom->q;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = q[j];
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNWChem::unpack_forward_comm(int n, int first, double *buf)
+{
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+
+  double *q = atom->q;
+
+  for (i = first; i < last; i++) q[i] = buf[m++];
 }
 
 /* ---------------------------------------------------------------------- */

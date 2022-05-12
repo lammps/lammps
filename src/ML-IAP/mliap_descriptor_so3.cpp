@@ -282,25 +282,25 @@ void MLIAPDescriptorSO3::compute_force_gradients(class MLIAPData *data)
     for (int jj = 0; jj < jnum; jj++) {
       int j = data->jatoms[ij];
 
-      for (int inz = 0; inz < data->gamma_nnz; inz++){
-         const int l = data->gamma_row_index[ii][inz];
-         const int k = data->gamma_col_index[ii][inz];
+      for (int inz = 0; inz < data->gamma_nnz; inz++) {
+        const int l = data->gamma_row_index[ii][inz];
+        const int k = data->gamma_col_index[ii][inz];
 
-              data->gradforce[i][l] += data->gamma[ii][inz] * 
-                      so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3];
-              data->gradforce[i][l + data->yoffset] += data->gamma[ii][inz] * 
-                      so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3 + 1];
-              data->gradforce[i][l + data->zoffset] += data->gamma[ii][inz] * 
-                      so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3 + 2];
-              data->gradforce[j][l] -= data->gamma[ii][inz] * 
-                      so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3];
-              data->gradforce[j][l + data->yoffset] -= data->gamma[ii][inz] * 
-                      so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3 + 1];
-              data->gradforce[j][l + data->zoffset] -= data->gamma[ii][inz] * 
-                      so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3 + 2];
-         }
+        data->gradforce[i][l] +=
+            data->gamma[ii][inz] * so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3];
+        data->gradforce[i][l + data->yoffset] +=
+            data->gamma[ii][inz] * so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3 + 1];
+        data->gradforce[i][l + data->zoffset] +=
+            data->gamma[ii][inz] * so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3 + 2];
+        data->gradforce[j][l] -=
+            data->gamma[ii][inz] * so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3];
+        data->gradforce[j][l + data->yoffset] -=
+            data->gamma[ii][inz] * so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3 + 1];
+        data->gradforce[j][l + data->zoffset] -=
+            data->gamma[ii][inz] * so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3 + 2];
+      }
       ij++;
-     }
+    }
   }
 }
 
@@ -322,9 +322,9 @@ void MLIAPDescriptorSO3::compute_descriptor_gradients(class MLIAPData *data)
         data->graddesc[ij][k][0] = so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3];
         data->graddesc[ij][k][1] = so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3 + 1];
         data->graddesc[ij][k][2] = so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3 + 2];
-         }
+      }
       ij++;
-     }
+    }
   }
 }
 

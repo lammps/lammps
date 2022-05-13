@@ -33,6 +33,8 @@ using namespace LAMMPS_NS;
 
 enum { CONST, EQUAL };
 
+/* ----------------------------------------------------------------------- */
+
 //     0        1      2                3    4
 // fix fxupdate group1 electrode/thermo pot1 eta couple group2 pot2
 FixElectrodeThermo::FixElectrodeThermo(LAMMPS *lmp, int narg, char **arg) :
@@ -49,6 +51,15 @@ FixElectrodeThermo::FixElectrodeThermo(LAMMPS *lmp, int narg, char **arg) :
   if (group_psi_var_styles[0] == CONST) delta_psi_0 = group_psi[1] - group_psi[0];
 }
 
+/* ----------------------------------------------------------------------- */
+
+FixElectrodeThermo::~FixElectrodeThermo()
+{
+   delete thermo_random;
+}
+
+/* ----------------------------------------------------------------------- */
+
 void FixElectrodeThermo::compute_macro_matrices()
 {
   FixElectrodeConp::compute_macro_matrices();
@@ -56,6 +67,8 @@ void FixElectrodeThermo::compute_macro_matrices()
              macro_capacitance[0][1] * macro_capacitance[0][1]) /
       (macro_capacitance[0][0] + macro_capacitance[1][1] + 2 * macro_capacitance[0][1]);
 }
+
+/* ----------------------------------------------------------------------- */
 
 void FixElectrodeThermo::pre_update()
 {
@@ -71,6 +84,8 @@ void FixElectrodeThermo::pre_update()
   }
   MPI_Allreduce(MPI_IN_PLACE, &group_q_old, NUM_GROUPS, MPI_DOUBLE, MPI_SUM, world);
 }
+
+/* ----------------------------------------------------------------------- */
 
 void FixElectrodeThermo::update_psi()
 {

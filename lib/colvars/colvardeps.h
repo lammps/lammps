@@ -194,7 +194,7 @@ public:
 
   /// Enable a feature and recursively solve its dependencies.
   /// For accurate reference counting, do not add spurious calls to enable()
-  /// \param dry_run Recursively test if a feature is available, without enabling it
+  /// \param dry_run Recursively test whether a feature is available, without enabling it
   /// \param toplevel False if this is called as part of a chain of dependency resolution.
   /// This is used to diagnose failed dependencies by displaying the full stack:
   /// only the toplevel dependency will throw a fatal error.
@@ -251,6 +251,8 @@ public:
     f_cvb_write_ti_samples,
     /// \brief whether this bias should write the TI PMF
     f_cvb_write_ti_pmf,
+    /// \brief whether this bias uses an external grid to scale the biasing forces
+    f_cvb_scale_biasing_force,
     f_cvb_ntot
   };
 
@@ -265,6 +267,8 @@ public:
     /// \brief Collect atomic gradient data from all cvcs into vector
     /// atomic_gradient
     f_cv_collect_gradient,
+    /// \brief Build list of atoms involved in CV calculation
+    f_cv_collect_atom_ids,
     /// \brief Calculate the velocity with finite differences
     f_cv_fdiff_velocity,
     /// \brief The total force is calculated, projecting the atomic
@@ -353,7 +357,7 @@ public:
     f_cvc_upper_boundary,
     /// CVC calculates atom gradients
     f_cvc_gradient,
-    /// CVC calculates and stores explicit atom gradients
+    /// CVC calculates and stores explicit atom gradients on rank 0
     f_cvc_explicit_gradient,
     /// CVC calculates and stores inverse atom gradients (used for total force)
     f_cvc_inv_gradient,
@@ -372,6 +376,8 @@ public:
     f_cvc_scalable,
     /// Centers-of-mass used in this CVC can be computed in parallel
     f_cvc_scalable_com,
+    /// \brief Build list of atoms involved in CVC calculation
+    f_cvc_collect_atom_ids,
     /// Number of CVC features
     f_cvc_ntot
   };
@@ -391,6 +397,8 @@ public:
     f_ag_atom_forces,
     f_ag_scalable,
     f_ag_scalable_com,
+    /// \brief Build list of atoms involved in atom group
+    f_ag_collect_atom_ids,
     f_ag_ntot
   };
 
@@ -418,12 +426,12 @@ public:
   /// \brief print all enabled features and those of children, for debugging
   void print_state();
 
-  /// \brief Check that a feature is enabled, raising BUG_ERROR if not
+  /// \brief Check that a feature is enabled, raising COLVARS_BUG_ERROR if not
   inline void check_enabled(int f, std::string const &reason) const
   {
     if (! is_enabled(f)) {
       cvm::error("Error: "+reason+" requires that the feature \""+
-                 features()[f]->description+"\" is active.\n", BUG_ERROR);
+                 features()[f]->description+"\" is active.\n", COLVARS_BUG_ERROR);
     }
   }
 

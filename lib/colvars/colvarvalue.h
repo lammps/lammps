@@ -118,33 +118,21 @@ public:
 
   /// \brief Default constructor: this class defaults to a scalar
   /// number and always behaves like it unless you change its type
-  inline colvarvalue()
-    : value_type(type_scalar), real_value(0.0)
-  {}
+  colvarvalue();
 
   /// Constructor from a type specification
-  inline colvarvalue(Type const &vti)
-    : value_type(vti), real_value(0.0)
-  {
-    reset();
-  }
+  colvarvalue(Type const &vti);
 
   /// Copy constructor from real base type
-  inline colvarvalue(cvm::real const &x)
-    : value_type(type_scalar), real_value(x)
-  {}
+  colvarvalue(cvm::real const &x);
 
   /// \brief Copy constructor from rvector base type (Note: this sets
   /// by default a type \link type_3vector \endlink , if you want a
   /// \link type_unit3vector \endlink you must set it explicitly)
-  inline colvarvalue(cvm::rvector const &v, Type vti = type_3vector)
-    : value_type(vti), real_value(0.0), rvector_value(v)
-  {}
+  colvarvalue(cvm::rvector const &v, Type vti = type_3vector);
 
   /// \brief Copy constructor from quaternion base type
-  inline colvarvalue(cvm::quaternion const &q, Type vti = type_quaternion)
-    : value_type(vti), real_value(0.0), quaternion_value(q)
-  {}
+  colvarvalue(cvm::quaternion const &q, Type vti = type_quaternion);
 
   /// Copy constructor from vector1d base type
   colvarvalue(cvm::vector1d<cvm::real> const &v, Type vti = type_vector);
@@ -390,7 +378,7 @@ inline cvm::real colvarvalue::operator [] (int const i) const
   case colvarvalue::type_notset:
   default:
     cvm::error("Error: trying to access a colvar value "
-               "that is not initialized.\n", BUG_ERROR);
+               "that is not initialized.\n", COLVARS_BUG_ERROR);
     return 0.0; break;
   case colvarvalue::type_scalar:
     return real_value; break;
@@ -413,7 +401,7 @@ inline cvm::real & colvarvalue::operator [] (int const i)
   case colvarvalue::type_notset:
   default:
     cvm::error("Error: trying to access a colvar value "
-               "that is not initialized.\n", BUG_ERROR);
+               "that is not initialized.\n", COLVARS_BUG_ERROR);
     return real_value; break;
   case colvarvalue::type_scalar:
     return real_value; break;

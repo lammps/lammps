@@ -162,6 +162,14 @@ CVSCRIPT(cv_delete,
          return script->proxy()->request_deletion();
          )
 
+CVSCRIPT(cv_featurereport,
+         "Return a summary of Colvars features used so far and their citations\n"
+         "report : string - Feature report and citations",
+         0, 0,
+         "",
+         return script->set_result_str(script->module()->feature_report());
+         )
+
 CVSCRIPT(cv_frame,
          "Get or set current frame number (VMD only)\n"
          "frame : integer - Frame number",
@@ -226,9 +234,21 @@ CVSCRIPT(cv_getatomappliedforcesrms,
          return COLVARS_OK;
          )
 
+CVSCRIPT(cv_resetatomappliedforces,
+         "Reset forces applied by Colvars to atoms",
+         0, 0,
+         "",
+            size_t i;
+            std::vector<cvm::rvector> *f = script->proxy()->modify_atom_applied_forces();
+            for (i = 0; i < f->size(); i++) {
+              (*f)[i].reset();
+            }
+            return COLVARS_OK;
+         )
+
 CVSCRIPT(cv_getatomids,
          "Get the list of indices of atoms used in Colvars\n"
-         "indices : array of ints - Atomic indices",
+         "indices : array of ints - Atom indices",
          0, 0,
          "",
          script->set_result_int_vec(*(script->proxy()->get_atom_ids()));
@@ -315,6 +335,15 @@ CVSCRIPT(cv_help,
            script->set_result_str(script->get_cmdline_help_summary(colvarscript::use_module));
            return COLVARS_OK;
          }
+         )
+
+CVSCRIPT(cv_languageversion,
+         "Get the C++ language version number\n"
+         "version : string - C++ language version",
+         0, 0,
+         "",
+         script->set_result_int(__cplusplus);
+         return COLVARS_OK;
          )
 
 CVSCRIPT(cv_list,
@@ -524,7 +553,7 @@ CVSCRIPT(cv_update,
          )
 
 CVSCRIPT(cv_version,
-         "Get the Colvars Module version number\n"
+         "Get the Colvars Module version string\n"
          "version : string - Colvars version",
          0, 0,
          "",

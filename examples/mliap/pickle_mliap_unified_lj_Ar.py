@@ -1,4 +1,3 @@
-import pickle
 import lammps
 import lammps.mliap
 
@@ -17,5 +16,4 @@ if __name__ == '__main__':
     unified.sigma = 1.0
     unified.rcutfac = 1.25
 
-    with open('mliap_unified_lj_Ar.pkl', 'wb') as fp:
-        pickle.dump(unified, fp)
+    unified.pickle('mliap_unified_lj_Ar.pkl')

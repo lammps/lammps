@@ -4,7 +4,7 @@
 pair_style pace command
 =======================
 
-Accelerator Variants: *snap/kk*
+Accelerator Variants: *pace/kk*
 
 Syntax
 """"""

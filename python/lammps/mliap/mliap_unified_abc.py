@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import pickle
 
 class MLIAPUnified(ABC):
     """Abstract base class for MLIAPUnified."""
@@ -21,3 +22,7 @@ class MLIAPUnified(ABC):
     @abstractmethod
     def compute_forces(self, data):
         """Compute forces."""
+
+    def pickle(self, fname):
+        with open(fname, 'wb') as fp:
+            pickle.dump(self, fp)

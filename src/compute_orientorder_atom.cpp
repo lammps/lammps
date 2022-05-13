@@ -719,7 +719,7 @@ double ComputeOrientOrderAtom::w3j(const int lmax, const int j1, const int j2, c
   int t = 0;
   while (c - b + t + alpha < 0 || c - a + t - beta < 0) t++;
   //     ^^ t>=-j1       ^^ t>=j2
-  while (1) {
+  while (true) {
     if (a + b - c - t < 0) break;    // t<=lmax
     if (a - t - alpha < 0) break;    // t<=lmax-j1
     if (b - t + beta < 0) break;     // t<=lmax+j2

@@ -26,6 +26,8 @@ class CommTiledKokkos : public CommTiled {
   CommTiledKokkos(class LAMMPS *, class Comm *);
   ~CommTiledKokkos() override;
 
+  using CommTiled::forward_comm;
+  using CommTiled::reverse_comm;
   void forward_comm(int dummy = 0) override;    // forward comm of atom coords
   void reverse_comm() override;                 // reverse comm of forces
   void exchange() override;                     // move atoms to new procs

@@ -1086,6 +1086,7 @@ void Dump::modify_params(int narg, char **arg)
       }
       output->mode_dump[idump] = 1;
       output->every_time_dump[idump] = delta;
+      output->next_dump[idump] = update->ntimestep;
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"fileper") == 0) {

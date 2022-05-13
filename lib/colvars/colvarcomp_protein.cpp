@@ -16,17 +16,10 @@
 #include "colvarcomp.h"
 
 
-//////////////////////////////////////////////////////////////////////
-// alpha component
-//////////////////////////////////////////////////////////////////////
-
 colvar::alpha_angles::alpha_angles(std::string const &conf)
   : cvc(conf)
 {
-  if (cvm::debug())
-    cvm::log("Initializing alpha_angles object.\n");
-
-  function_type = "alpha_angles";
+  set_function_type("alpha");
   enable(f_cvc_explicit_gradient);
   x.type(colvarvalue::type_scalar);
 
@@ -110,16 +103,13 @@ colvar::alpha_angles::alpha_angles(std::string const &conf)
       cvm::log("The hBondCoeff specified will disable the hydrogen bond terms.\n");
     }
   }
-
-  if (cvm::debug())
-    cvm::log("Done initializing alpha_angles object.\n");
 }
 
 
 colvar::alpha_angles::alpha_angles()
   : cvc()
 {
-  function_type = "alpha_angles";
+  set_function_type("alphaAngles");
   enable(f_cvc_explicit_gradient);
   x.type(colvarvalue::type_scalar);
 }
@@ -297,7 +287,7 @@ colvar::dihedPC::dihedPC(std::string const &conf)
   if (cvm::debug())
     cvm::log("Initializing dihedral PC object.\n");
 
-  function_type = "dihedPC";
+  set_function_type("dihedPC");
   // Supported through references to atom groups of children cvcs
   enable(f_cvc_explicit_gradient);
   x.type(colvarvalue::type_scalar);
@@ -428,7 +418,7 @@ colvar::dihedPC::dihedPC(std::string const &conf)
 colvar::dihedPC::dihedPC()
   : cvc()
 {
-  function_type = "dihedPC";
+  set_function_type("dihedPC");
   // Supported through references to atom groups of children cvcs
   enable(f_cvc_explicit_gradient);
   x.type(colvarvalue::type_scalar);

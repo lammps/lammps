@@ -28,6 +28,7 @@
 #if (__cplusplus >= 201103L)
 // C++11-only functions
 #include "colvar_geometricpath.h"
+#include <memory>
 #include <functional>
 #endif
 
@@ -109,6 +110,9 @@ public:
   ///
   /// Calls the init() function of the class
   cvc(std::string const &conf);
+
+  /// Set the value of \link function_type \endlink and its dependencies
+  int set_function_type(std::string const &type);
 
   /// An init function should be defined for every class inheriting from cvc
   /// \param conf Contents of the configuration file pertaining to this \link
@@ -279,6 +283,9 @@ public:
 
 protected:
 
+  /// Record the type of this class as well as those it is derived from
+  std::vector<std::string> function_types;
+
   /// \brief Cached value
   colvarvalue x;
 
@@ -298,8 +305,11 @@ protected:
   /// \brief Set data types for a scalar distance (convenience function)
   void init_as_distance();
 
-  /// \brief Set data types for a bounded angle (convenience function)
+  /// \brief Set data types for a bounded angle (0° to 180°)
   void init_as_angle();
+
+  /// \brief Set data types for a periodic angle (-180° to 180°)
+  void init_as_periodic_angle();
 
   /// \brief Set two scalar boundaries (convenience function)
   void init_scalar_boundaries(cvm::real lb, cvm::real ub);
@@ -347,8 +357,6 @@ protected:
   cvm::atom_group  *group2;
   /// Vector distance, cached to be recycled
   cvm::rvector     dist_v;
-  /// Use absolute positions, ignoring PBCs when present
-  bool b_no_PBC;
 public:
   distance(std::string const &conf);
   distance();
@@ -432,8 +440,6 @@ protected:
   cvm::atom_group  *ref1;
   /// Optional, second ref atom group
   cvm::atom_group  *ref2;
-  /// Use absolute positions, ignoring PBCs when present
-  bool b_no_PBC;
   /// Vector on which the distance vector is projected
   cvm::rvector axis;
   /// Norm of the axis
@@ -560,8 +566,6 @@ protected:
   cvm::atom_group  *group2;
   /// Components of the distance vector orthogonal to the axis
   int exponent;
-  /// Use absolute positions, ignoring PBCs when present
-  bool b_no_PBC;
 public:
   distance_inv(std::string const &conf);
   virtual ~distance_inv() {}
@@ -588,8 +592,6 @@ protected:
   cvm::atom_group  *group1;
   /// Second atom group
   cvm::atom_group  *group2;
-  /// Use absolute positions, ignoring PBCs when present
-  bool b_no_PBC;
 public:
   distance_pairs(std::string const &conf);
   distance_pairs();
@@ -1500,6 +1502,29 @@ public:
 };
 
 
+// \brief Colvar component: alch_Flambda
+// To communicate force on lambda with back-end in lambda-dynamics
+class colvar::alch_Flambda
+  : public colvar::cvc
+{
+protected:
+  // No atom groups needed
+public:
+  alch_Flambda(std::string const &conf);
+  alch_Flambda();
+  virtual ~alch_Flambda() {}
+  virtual void calc_value();
+  virtual void calc_gradients();
+  virtual void apply_force(colvarvalue const &force);
+  virtual cvm::real dist2(colvarvalue const &x1,
+                          colvarvalue const &x2) const;
+  virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
+                                  colvarvalue const &x2) const;
+  virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
+                                  colvarvalue const &x2) const;
+};
+
+
 class colvar::componentDisabled
   : public colvar::cvc
 {
@@ -1601,6 +1626,32 @@ public:
 };
 
 
+/// custom expression of colvars
+class colvar::customColvar
+  : public colvar::linearCombination
+{
+protected:
+    bool use_custom_function;
+#ifdef LEPTON
+    /// Vector of evaluators for custom functions using Lepton
+    std::vector<Lepton::CompiledExpression *> value_evaluators;
+    /// Vector of evaluators for gradients of custom functions
+    std::vector<Lepton::CompiledExpression *> gradient_evaluators;
+    /// Vector of references to cvc values to be passed to Lepton evaluators
+    std::vector<double *> value_eval_var_refs;
+    std::vector<double *> grad_eval_var_refs;
+    /// Unused value that is written to when a variable simplifies out of a Lepton expression
+    double dev_null;
+#endif
+public:
+    customColvar(std::string const &conf);
+    virtual ~customColvar();
+    virtual void calc_value();
+    virtual void calc_gradients();
+    virtual void apply_force(colvarvalue const &force);
+};
+
+
 class colvar::CVBasedPath
   : public colvar::cvc
 {
@@ -1689,6 +1740,27 @@ public:
     virtual void apply_force(colvarvalue const &force);
 };
 
+// forward declaration
+namespace neuralnetworkCV {
+    class neuralNetworkCompute;
+}
+
+class colvar::neuralNetwork
+  : public linearCombination
+{
+protected:
+    /// actual computation happens in neuralnetworkCV::neuralNetworkCompute
+    std::unique_ptr<neuralnetworkCV::neuralNetworkCompute> nn;
+    /// the index of nn output components
+    size_t m_output_index;
+public:
+    neuralNetwork(std::string const &conf);
+    virtual ~neuralNetwork();
+    virtual void calc_value();
+    virtual void calc_gradients();
+    virtual void apply_force(colvarvalue const &force);
+};
+
 #else // if the compiler doesn't support C++11
 
 class colvar::linearCombination
@@ -1752,6 +1824,13 @@ class colvar::azpathCV
 {
 public:
     azpathCV(std::string const &conf) : componentDisabled(conf) {}
+};
+
+class colvar::neuralNetwork
+  : public colvar::componentDisabled
+{
+public:
+    neuralNetwork(std::string const &conf) : componentDisabled(conf) {}
 };
 
 #endif // C++11 checking

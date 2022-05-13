@@ -21,7 +21,7 @@ Syntax
        *single* args = x y z
          x,y,z = coordinates of a single particle (distance units)
        *mesh* args = STL-file
-         STL-file = file with triangle mesh in ASCII STL format
+         STL-file = file with triangle mesh in STL format
        *random* args = N seed region-ID
          N = number of particles to create
          seed = random # seed (positive integer)
@@ -136,18 +136,20 @@ positions.
             :align: right
             :target: _images/marble_race.jpg
 
-For the *mesh* style, a file with a triangle mesh in `ASCII STL format
-<https://en.wikipedia.org/wiki/STL_(file_format)#ASCII_STL>`_ is read
-and one or more particles are placed into the area of each triangle.
-Binary STL files (e.g. as frequently offered for 3d-printing) can be
-converted to ASCII with the :ref:`stl_bin2txt tool <stlconvert>`.  The
-use of the *units box* option is required. There are two algorithms for
-placing atoms available: *bisect* and *qrand*. They can be selected via
-the *meshmode* option; *bisect* is the default.  If the atom style allows
-to set a per-atom radius this radius is set to the average
-distance of the triangle vertices from its center times the value of the
-*radscale* keyword (default: 1.0).  If the atom style supports it, the
-atoms created from the mesh are assigned a new molecule ID.
+For the *mesh* style, a file with a triangle mesh in `STL format
+<https://en.wikipedia.org/wiki/STL_(file_format)>`_ is read and one or
+more particles are placed into the area of each triangle.  The reader
+supports both ASCII and binary files conforming to the format on the
+Wikipedia page.  Binary STL files (e.g. as frequently offered for
+3d-printing) also be first converted to ASCII for editing with the
+:ref:`stl_bin2txt tool <stlconvert>`.  The use of the *units box* option
+is required. There are two algorithms for placing atoms available:
+*bisect* and *qrand*. They can be selected via the *meshmode* option;
+*bisect* is the default.  If the atom style allows to set a per-atom
+radius this radius is set to the average distance of the triangle
+vertices from its center times the value of the *radscale* keyword
+(default: 1.0).  If the atom style supports it, the atoms created from
+the mesh are assigned a new molecule ID.
 
 In *bisect* mode a particle is created at the center of each triangle
 unless the average distance of the triangle vertices from its center is

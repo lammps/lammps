@@ -1036,8 +1036,10 @@ void CreateAtoms::add_mesh(const char *filename)
     molid = maxmol + 1;
   }
 
-  FILE *fp = fopen(filename, "r");
+  FILE *fp = fopen(filename, "rb");
   if (fp == nullptr) error->one(FLERR, "Cannot open file {}: {}", filename, utils::getsyserror());
+
+  // first try reading the file in ASCII format
 
   TextFileReader reader(fp, "STL mesh");
   try {
@@ -1047,7 +1049,7 @@ void CreateAtoms::add_mesh(const char *filename)
 
     line += 6;
     if (comm->me == 0)
-      utils::logmesg(lmp, "Reading STL object {} from file {}\n", utils::trim(line), filename);
+      utils::logmesg(lmp, "Reading STL object {} from text file {}\n", utils::trim(line), filename);
 
     while ((line = reader.next_line())) {
 
@@ -1092,7 +1094,49 @@ void CreateAtoms::add_mesh(const char *filename)
       }
     }
   } catch (std::exception &e) {
-    error->all(FLERR, "Error reading triangles from file {}: {}", filename, e.what());
+
+    // if ASCII failed for the first line, try reading as binary
+    if (utils::strmatch(e.what(), "^Invalid STL mesh file format")) {
+      char title[80];
+      float triangle[12];
+      uint32_t ntri;
+      uint16_t attr;
+      size_t count;
+
+      rewind(fp);
+      count = fread(title, sizeof(char), 80, fp);
+      title[79] = '\0';
+      count = fread(&ntri, sizeof(ntri), 1, fp);
+      if (count <= 0) {
+        error->all(FLERR, "Error reading STL file {}: {}", filename, utils::getsyserror());
+      } else {
+        if (comm->me == 0)
+          utils::logmesg(lmp, "Reading STL object {} from binary file {}\n", utils::trim(title),
+                         filename);
+      }
+
+      for (uint32_t i = 0U; i < ntri; ++i) {
+        count = fread(triangle, sizeof(float), 12, fp);
+        if (count != 12)
+          error->all(FLERR, "Error reading STL file {}: {}", filename, utils::getsyserror());
+        count = fread(&attr, sizeof(attr), 1, fp);
+
+        for (int j = 0; j < 3; ++j)
+          for (int k = 0; k < 3; ++k) vert[j][k] = triangle[3 * j + 3 + k];
+
+        ++ntriangle;
+        if (mesh_style == BISECTION) {
+          // add in center of triangle or bisecting recursively along longest edge
+          // as needed to get the desired atom density/radii
+          atomlocal += add_bisection(vert, molid);
+        } else if (mesh_style == QUASIRANDOM) {
+          // add quasi-random distribution of atoms
+          atomlocal += add_quasirandom(vert, molid);
+        }
+      }
+    } else {
+      error->all(FLERR, "Error reading triangles from file {}: {}", filename, e.what());
+    }
   }
 
   if (ntriangle > 0) {

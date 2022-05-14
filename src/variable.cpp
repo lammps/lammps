@@ -51,7 +51,7 @@ using namespace MathConst;
 #define CHUNK 1024
 #define MAXFUNCARG 6
 
-#define MYROUND(a) (( a-floor(a) ) >= .5) ? ceil(a) : floor(a)
+#define MYROUND(a) (( (a)-floor(a) ) >= .5) ? ceil(a) : floor(a)
 
 enum{ARG,OP};
 
@@ -3252,20 +3252,20 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
 {
   // word not a match to any math function
 
-  if (strcmp(word,"sqrt") && strcmp(word,"exp") &&
-      strcmp(word,"ln") && strcmp(word,"log") &&
-      strcmp(word,"abs") &&
-      strcmp(word,"sin") && strcmp(word,"cos") &&
-      strcmp(word,"tan") && strcmp(word,"asin") &&
-      strcmp(word,"acos") && strcmp(word,"atan") &&
-      strcmp(word,"atan2") && strcmp(word,"random") &&
-      strcmp(word,"normal") && strcmp(word,"ceil") &&
-      strcmp(word,"floor") && strcmp(word,"round") &&
-      strcmp(word,"ramp") && strcmp(word,"stagger") &&
-      strcmp(word,"logfreq") && strcmp(word,"logfreq2") &&
-      strcmp(word,"logfreq3") && strcmp(word,"stride") &&
-      strcmp(word,"stride2") && strcmp(word,"vdisplace") &&
-      strcmp(word,"swiggle") && strcmp(word,"cwiggle"))
+  if (strcmp(word,"sqrt") != 0 && strcmp(word,"exp") &&
+      strcmp(word,"ln") != 0 && strcmp(word,"log") != 0 &&
+      strcmp(word,"abs") != 0 &&
+      strcmp(word,"sin") != 0 && strcmp(word,"cos") != 0 &&
+      strcmp(word,"tan") != 0 && strcmp(word,"asin") != 0 &&
+      strcmp(word,"acos") != 0 && strcmp(word,"atan") != 0 &&
+      strcmp(word,"atan2") != 0 && strcmp(word,"random") != 0 &&
+      strcmp(word,"normal") != 0 && strcmp(word,"ceil") != 0 &&
+      strcmp(word,"floor") != 0 && strcmp(word,"round") != 0 &&
+      strcmp(word,"ramp") != 0 && strcmp(word,"stagger") != 0 &&
+      strcmp(word,"logfreq") != 0 && strcmp(word,"logfreq2") != 0 &&
+      strcmp(word,"logfreq3") != 0 && strcmp(word,"stride") != 0 &&
+      strcmp(word,"stride2") != 0 && strcmp(word,"vdisplace") != 0 &&
+      strcmp(word,"swiggle") != 0 && strcmp(word,"cwiggle") != 0)
     return 0;
 
   // parse contents for comma-separated args
@@ -3676,13 +3676,13 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
 {
   // word not a match to any group function
 
-  if (strcmp(word,"count") && strcmp(word,"mass") &&
-      strcmp(word,"charge") && strcmp(word,"xcm") &&
-      strcmp(word,"vcm") && strcmp(word,"fcm") &&
-      strcmp(word,"bound") && strcmp(word,"gyration") &&
-      strcmp(word,"ke") && strcmp(word,"angmom") &&
-      strcmp(word,"torque") && strcmp(word,"inertia") &&
-      strcmp(word,"omega"))
+  if (strcmp(word,"count") != 0 && strcmp(word,"mass") &&
+      strcmp(word,"charge") != 0 && strcmp(word,"xcm") != 0 &&
+      strcmp(word,"vcm") != 0 && strcmp(word,"fcm") != 0 &&
+      strcmp(word,"bound") != 0 && strcmp(word,"gyration") != 0 &&
+      strcmp(word,"ke") != 0 && strcmp(word,"angmom") != 0 &&
+      strcmp(word,"torque") != 0 && strcmp(word,"inertia") != 0 &&
+      strcmp(word,"omega") != 0)
     return 0;
 
   // parse contents for comma-separated args
@@ -3925,11 +3925,11 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
 
   // word not a match to any special function
 
-  if (strcmp(word,"sum") && strcmp(word,"min") && strcmp(word,"max") && strcmp(word,"ave") &&
-      strcmp(word,"trap") && strcmp(word,"slope") && strcmp(word,"gmask") && strcmp(word,"rmask") &&
-      strcmp(word,"grmask") && strcmp(word,"next") && strcmp(word,"is_active") &&
-      strcmp(word,"is_defined") && strcmp(word,"is_available") && strcmp(word,"is_file") &&
-      strcmp(word,"extract_setting"))
+  if (strcmp(word,"sum") != 0 && strcmp(word,"min") && strcmp(word,"max") != 0 && strcmp(word,"ave") != 0 &&
+      strcmp(word,"trap") != 0 && strcmp(word,"slope") != 0 && strcmp(word,"gmask") != 0 && strcmp(word,"rmask") != 0 &&
+      strcmp(word,"grmask") != 0 && strcmp(word,"next") != 0 && strcmp(word,"is_active") != 0 &&
+      strcmp(word,"is_defined") != 0 && strcmp(word,"is_available") != 0 && strcmp(word,"is_file") != 0 &&
+      strcmp(word,"extract_setting") != 0)
     return 0;
 
   // parse contents for comma-separated args

@@ -334,28 +334,28 @@ double ComputeOrientOrderAtom::memory_usage()
 #define SWAP(a, b) \
   do {             \
     tmp = a;       \
-    a = b;         \
-    b = tmp;       \
+    (a) = b;         \
+    (b) = tmp;       \
   } while (0)
 
 #define ISWAP(a, b) \
   do {              \
     itmp = a;       \
-    a = b;          \
-    b = itmp;       \
+    (a) = b;          \
+    (b) = itmp;       \
   } while (0)
 
 #define SWAP3(a, b) \
   do {              \
-    tmp = a[0];     \
-    a[0] = b[0];    \
-    b[0] = tmp;     \
-    tmp = a[1];     \
-    a[1] = b[1];    \
-    b[1] = tmp;     \
-    tmp = a[2];     \
-    a[2] = b[2];    \
-    b[2] = tmp;     \
+    tmp = (a)[0];     \
+    (a)[0] = (b)[0];    \
+    (b)[0] = tmp;     \
+    tmp = (a)[1];     \
+    (a)[1] = (b)[1];    \
+    (b)[1] = tmp;     \
+    tmp = (a)[2];     \
+    (a)[2] = (b)[2];    \
+    (b)[2] = tmp;     \
   } while (0)
 
 /* ---------------------------------------------------------------------- */

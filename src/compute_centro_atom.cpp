@@ -323,12 +323,12 @@ void ComputeCentroAtom::compute_peratom()
 
 #define SWAP(a, b) \
   tmp = a;         \
-  a = b;           \
-  b = tmp;
+  (a) = b;           \
+  (b) = tmp;
 #define ISWAP(a, b) \
   itmp = a;         \
-  a = b;            \
-  b = itmp;
+  (a) = b;            \
+  (b) = itmp;
 
 void ComputeCentroAtom::select(int k, int n, double *arr)
 {

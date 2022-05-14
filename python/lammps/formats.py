@@ -17,11 +17,18 @@
 # and Axel Kohlmeyer <akohlmey@gmail.com>
 ################################################################################
 
-import re, yaml
+import re
+
+has_yaml = False
 try:
-  from yaml import CSafeLoader as Loader
-except ImportError:
-  from yaml import SafeLoader as Loader
+  import yaml
+  has_yaml = True
+  try:
+    from yaml import CSafeLoader as Loader
+  except ImportError:
+    from yaml import SafeLoader as Loader
+except ImportError: 
+  pass
 
 class LogFile:
   """Reads LAMMPS log files and extracts the thermo information
@@ -66,6 +73,8 @@ class LogFile:
                 style = LogFile.STYLE_YAML
                 yamllog += line;
                 current_run = {}
+                if not has_yaml:
+                  raise Exception('Cannot process YAML format logs without the PyYAML Python module')
 
             elif re.match(r'^\.\.\.$', line):
                 thermo = yaml.load(yamllog, Loader=Loader)

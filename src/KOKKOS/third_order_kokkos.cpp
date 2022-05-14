@@ -165,7 +165,7 @@ void ThirdOrderKokkos::update_force()
   force_clear();
 
   neighbor->ago = 0;
-  if ((modify->get_fix_by_id("package_intel")) ? true : false)
+  if ((modify->get_fix_by_id("package_intel")) != nullptr)
     neighbor->decide();
 
   if (n_pre_force) {

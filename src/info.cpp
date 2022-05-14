@@ -272,12 +272,11 @@ void Info::command(int narg, char **arg)
   fmt::print(out,"Printed on {:%a %b %d %H:%M:%S %Y}\n", fmt::localtime(now));
 
   if (flags & CONFIG) {
-    fmt::print(out,"\nLAMMPS version: {} / {}\n",
-               lmp->version, lmp->num_ver);
+    fmt::print(out,"\nLAMMPS version: {} / {}\n", lmp->version, lmp->num_ver);
 
-    if (lmp->has_git_info())
+    if (LAMMPS::has_git_info())
       fmt::print(out,"Git info: {} / {} / {}\n",
-                 lmp->git_branch(), lmp->git_descriptor(),lmp->git_commit());
+                 LAMMPS::git_branch(), LAMMPS::git_descriptor(),LAMMPS::git_commit());
 
     fmt::print(out,"\nOS information: {}\n\n",platform::os_info());
 
@@ -310,7 +309,7 @@ void Info::command(int narg, char **arg)
 
     int ncword, ncline = 0;
     fputs("\nInstalled packages:\n\n",out);
-    for (const char **pkg = lmp->installed_packages; *pkg != nullptr; ++pkg) {
+    for (const char **pkg = LAMMPS::installed_packages; *pkg != nullptr; ++pkg) {
       ncword = strlen(*pkg);
       if (ncline + ncword > 78) {
         ncline = 0;
@@ -842,7 +841,7 @@ bool Info::is_active(const char *category, const char *name)
       if (name_w_suffix == style) match = 1;
     }
   }
-  return match ? true : false;
+  return match != 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1174,8 +1173,7 @@ bool Info::has_accelerator_feature(const std::string &package,
 #if defined(LMP_KOKKOS)
   if (package == "KOKKOS") {
     if (category == "precision") {
-      if (setting == "double") return true;
-      else return false;
+      return setting == "double";
     }
     if (category == "api") {
 #if defined(KOKKOS_ENABLE_OPENMP)
@@ -1208,8 +1206,7 @@ bool Info::has_accelerator_feature(const std::string &package,
 #if defined(LMP_OPENMP)
   if (package == "OPENMP") {
     if (category == "precision") {
-      if (setting == "double") return true;
-      else return false;
+      return setting == "double";
     }
     if (category == "api") {
 #if defined(_OPENMP)
@@ -1246,7 +1243,7 @@ bool Info::has_accelerator_feature(const std::string &package,
 
 std::string Info::get_accelerator_info(const std::string &package)
 {
-  std::string mesg("");
+  std::string mesg;
   if ((package.empty() || (package == "GPU")) && has_package("GPU")) {
     mesg += "GPU package API:";
     if (has_accelerator_feature("GPU","api","cuda"))   mesg += " CUDA";

@@ -4594,7 +4594,6 @@ void Variable::print_tree(Tree *tree, int level)
   if (tree->second) print_tree(tree->second,level+1);
   if (tree->nextra)
     for (int i = 0; i < tree->nextra; i++) print_tree(tree->extra[i],level+1);
-  return;
 }
 
 /* ----------------------------------------------------------------------

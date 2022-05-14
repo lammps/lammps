@@ -361,8 +361,6 @@ void FixRxKokkos<DeviceType>::k_rkf45_step (const int neq, const double h, Vecto
     //y_out[k] = y[k] + r5; // Local extrapolation
       y_out[k] = y[k] + r4;
    }
-
-   return;
 }
 
 template <typename DeviceType>
@@ -682,8 +680,6 @@ void FixRxKokkos<DeviceType>::rkf45_step (const int neq, const double h, double 
     //y_out[k] = y[k] + r5; // Local extrapolation
       y_out[k] = y[k] + r4;
    }
-
-   return;
 }
 
 template <typename DeviceType>
@@ -1426,7 +1422,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int /*vflag*/, const bool is
   const int newton_pair = force->newton_pair;
 
   // Set the forward rates to zero if acting as setup_pre_force.
-  const bool setRatesToZero = (isPreForce == false);
+  const bool setRatesToZero = (!isPreForce);
 
   if (localTempFlag)
   {
@@ -1875,8 +1871,6 @@ void FixRxKokkos<DeviceType>::odeDiagnostics()
   // Reset the counters.
   for (int i = 0; i < numDiagnosticCounters; ++i)
     diagnosticCounter[i] = 0;
-
-  return;
 }
 
 /* ---------------------------------------------------------------------- */

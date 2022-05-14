@@ -408,7 +408,7 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
         // map lat string to an integer
         std::string lattice_type = values.next_string();
 
-        if (!MEAM::str_to_lat(lattice_type.c_str(), true, lat[index]))
+        if (!MEAM::str_to_lat(lattice_type, true, lat[index]))
           error->one(FLERR,"Unrecognized lattice type in MEAM "
                                        "library file: {}", lattice_type);
 

@@ -234,7 +234,6 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size, FILE *fp
     if (error) error->one(srcname, srcline, errmsg);
     if (s) *s = '\0';    // truncate string to empty in case error is null pointer
   }
-  return;
 }
 
 /* like fread() but aborts with an error or EOF is encountered */
@@ -262,7 +261,6 @@ void utils::sfread(const char *srcname, int srcline, void *s, size_t size, size_
 
     if (error) error->one(srcname, srcline, errmsg);
   }
-  return;
 }
 
 /* ------------------------------------------------------------------ */
@@ -303,7 +301,7 @@ std::string utils::check_packages_for_style(const std::string &style, const std:
 
   if (pkg) {
     errmsg += fmt::format(" is part of the {} package", pkg);
-    if (lmp->is_installed_pkg(pkg))
+    if (LAMMPS::is_installed_pkg(pkg))
       errmsg += ", but seems to be missing because of a dependency";
     else
       errmsg += " which is not enabled in this LAMMPS binary.";

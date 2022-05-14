@@ -1254,7 +1254,7 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
         delx_j [niters] = delx;
         dely_j [niters] = dely;
         delz_j [niters] = delz;
-        if (OneType == false)
+        if (!OneType)
           cutsq_j[niters] = cutsq_ij;
 
         neigh_j[niters] = d_neighbors(i,jptr);

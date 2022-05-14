@@ -474,9 +474,6 @@ void FixAveCorrelateLong::end_of_step()
         error->warning(FLERR,"Error while tuncating output: {}", utils::getsyserror());
     }
   }
-
-  return;
-
 }
 
 void FixAveCorrelateLong::evaluate() {

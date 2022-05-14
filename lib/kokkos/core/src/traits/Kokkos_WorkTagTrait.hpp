@@ -77,6 +77,7 @@ struct _trait_matches_spec_predicate {
 struct WorkTagTrait : TraitSpecificationBase<WorkTagTrait> {
   struct base_traits {
     using work_tag = void;
+    KOKKOS_IMPL_MSVC_NVCC_EBO_WORKAROUND
   };
   template <class WorkTag, class AnalyzeNextTrait>
   struct mixin_matching_trait : AnalyzeNextTrait {

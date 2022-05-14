@@ -164,23 +164,23 @@ struct TestViewMappingSubview {
     TestViewMappingSubview<ExecSpace> self;
 
     ASSERT_EQ(Aa.extent(0), AN);
-    ASSERT_EQ(Ab.extent(0), AN - 2);
-    ASSERT_EQ(Ac.extent(0), AN - 2);
+    ASSERT_EQ(Ab.extent(0), (size_t)AN - 2);
+    ASSERT_EQ(Ac.extent(0), (size_t)AN - 2);
     ASSERT_EQ(Ba.extent(0), BN0);
     ASSERT_EQ(Ba.extent(1), BN1);
     ASSERT_EQ(Ba.extent(2), BN2);
-    ASSERT_EQ(Bb.extent(0), BN0 - 2);
-    ASSERT_EQ(Bb.extent(1), BN1 - 2);
-    ASSERT_EQ(Bb.extent(2), BN2 - 2);
+    ASSERT_EQ(Bb.extent(0), (size_t)BN0 - 2);
+    ASSERT_EQ(Bb.extent(1), (size_t)BN1 - 2);
+    ASSERT_EQ(Bb.extent(2), (size_t)BN2 - 2);
 
     ASSERT_EQ(Ca.extent(0), CN0);
     ASSERT_EQ(Ca.extent(1), CN1);
     ASSERT_EQ(Ca.extent(2), CN2);
-    ASSERT_EQ(Ca.extent(3), 13);
-    ASSERT_EQ(Ca.extent(4), 14);
-    ASSERT_EQ(Cb.extent(0), CN0 - 2);
-    ASSERT_EQ(Cb.extent(1), CN1 - 2);
-    ASSERT_EQ(Cb.extent(2), CN2 - 2);
+    ASSERT_EQ(Ca.extent(3), (size_t)13);
+    ASSERT_EQ(Ca.extent(4), (size_t)14);
+    ASSERT_EQ(Cb.extent(0), (size_t)CN0 - 2);
+    ASSERT_EQ(Cb.extent(1), (size_t)CN1 - 2);
+    ASSERT_EQ(Cb.extent(2), (size_t)CN2 - 2);
 
     ASSERT_EQ(Da.extent(0), DN0);
     ASSERT_EQ(Da.extent(1), DN1);
@@ -188,9 +188,9 @@ struct TestViewMappingSubview {
     ASSERT_EQ(Da.extent(3), DN3);
     ASSERT_EQ(Da.extent(4), DN4);
 
-    ASSERT_EQ(Db.extent(0), DN1 - 2);
-    ASSERT_EQ(Db.extent(1), DN2 - 2);
-    ASSERT_EQ(Db.extent(2), DN3 - 2);
+    ASSERT_EQ(Db.extent(0), (size_t)DN1 - 2);
+    ASSERT_EQ(Db.extent(1), (size_t)DN2 - 2);
+    ASSERT_EQ(Db.extent(2), (size_t)DN3 - 2);
 
     ASSERT_EQ(Da.stride_1(), Db.stride_0());
     ASSERT_EQ(Da.stride_2(), Db.stride_1());

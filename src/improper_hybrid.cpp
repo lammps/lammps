@@ -160,7 +160,7 @@ void ImproperHybrid::compute(int eflag, int vflag)
 void ImproperHybrid::allocate()
 {
   allocated = 1;
-  int np1 = atom->nimpropertypes +1;
+  int np1 = atom->nimpropertypes + 1;
 
   memory->create(map, np1, "improper:map");
   memory->create(setflag, np1, "improper:setflag");

@@ -669,7 +669,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
           }
         }
 
-      // fix
+        // fix
 
       } else if (word[0] == 'f') {
         auto fix = lmp->modify->get_fix_by_id(id);
@@ -692,7 +692,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
           }
         }
 
-      // vector variable
+        // vector variable
 
       } else if (word[0] == 'v') {
         int index = lmp->input->variable->find(id.c_str());
@@ -709,8 +709,8 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
           }
         }
 
-      // only match custom array reference with a '*' wildcard
-      // number range in the first pair of square brackets
+        // only match custom array reference with a '*' wildcard
+        // number range in the first pair of square brackets
 
       } else if ((word[0] == 'i') || (word[0] == 'd')) {
         int flag, cols;

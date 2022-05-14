@@ -92,8 +92,7 @@ void Bond::init()
 
 void Bond::settings(int narg, char **args)
 {
-  if (narg > 0)
-    error->all(FLERR, "Illegal bond_style {} argument: {}", force->bond_style, args[0]);
+  if (narg > 0) error->all(FLERR, "Illegal bond_style {} argument: {}", force->bond_style, args[0]);
 }
 
 /* ----------------------------------------------------------------------

@@ -179,8 +179,8 @@ void CreateAtoms::command(int narg, char **arg)
         error->all(FLERR, "Illegal create_atoms command");
       iarg += 2;
     } else if (strcmp(arg[iarg], "var") == 0) {
-      if (style == SINGLE) error->all(FLERR, "Illegal create_atoms command: "
-          "can't combine 'var' keyword with 'single' style!");
+      if (style == SINGLE)
+        error->all(FLERR, "Cannot combine 'var' keyword with 'single' style of create_atoms");
       if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
       delete[] vstr;
       vstr = utils::strdup(arg[iarg + 1]);
@@ -244,7 +244,7 @@ void CreateAtoms::command(int narg, char **arg)
         error->all(FLERR, "Create_atoms maxtry can only be used with random style");
       if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
       maxtry = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (maxtry <= 0) error->all(FLERR,"Illegal create_atoms command");
+      if (maxtry <= 0) error->all(FLERR, "Illegal create_atoms command");
       iarg += 2;
     } else
       error->all(FLERR, "Illegal create_atoms command");
@@ -256,10 +256,8 @@ void CreateAtoms::command(int narg, char **arg)
     if (ntype <= 0 || ntype > atom->ntypes)
       error->all(FLERR, "Invalid atom type in create_atoms command");
   } else if (mode == MOLECULE) {
-    if (onemol->xflag == 0)
-      error->all(FLERR, "Create_atoms molecule must have coordinates");
-    if (onemol->typeflag == 0)
-      error->all(FLERR, "Create_atoms molecule must have atom types");
+    if (onemol->xflag == 0) error->all(FLERR, "Create_atoms molecule must have coordinates");
+    if (onemol->typeflag == 0) error->all(FLERR, "Create_atoms molecule must have atom types");
     if (ntype + onemol->ntypes <= 0 || ntype + onemol->ntypes > atom->ntypes)
       error->all(FLERR, "Invalid atom type in create_atoms mol command");
     if (onemol->tag_require && !atom->tag_enable)
@@ -670,7 +668,7 @@ void CreateAtoms::add_random()
   if (overlapflag) {
     double odist = overlap;
     if (mode == MOLECULE) odist += onemol->molradius;
-    odistsq = odist*odist;
+    odistsq = odist * odist;
   }
 
   // random number generator, same for all procs
@@ -718,7 +716,7 @@ void CreateAtoms::add_random()
 
   // insert Nrandom new atom/molecule into simulation box
 
-  int ntry,success;
+  int ntry, success;
   int ninsert = 0;
 
   for (int i = 0; i < nrandom; i++) {
@@ -766,7 +764,7 @@ void CreateAtoms::add_random()
           dely = xone[1] - x[i][1];
           delz = xone[2] - x[i][2];
           domain->minimum_image(delx, dely, delz);
-          distsq = delx*delx + dely*dely + delz*delz;
+          distsq = delx * delx + dely * dely + delz * delz;
           if (distsq < odistsq) {
             reject = 1;
             break;
@@ -982,8 +980,7 @@ void CreateAtoms::loop_lattice(int action)
 
           // if variable test specified, eval variable
 
-          if (varflag && vartest(x) == 0)
-            continue;
+          if (varflag && vartest(x) == 0) continue;
 
           // test if atom/molecule position is in my subbox
 

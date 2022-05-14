@@ -83,13 +83,6 @@ ThirdOrderKokkos::ThirdOrderKokkos(LAMMPS *lmp) : ThirdOrder(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-ThirdOrderKokkos::~ThirdOrderKokkos()
-{
-
-}
-
-/* ---------------------------------------------------------------------- */
-
 void ThirdOrderKokkos::command(int narg, char **arg)
 {
   atomKK->sync(Host, X_MASK|RMASS_MASK|TYPE_MASK);

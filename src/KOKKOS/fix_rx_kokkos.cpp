@@ -54,7 +54,7 @@ namespace /* anonymous */
 {
 
 typedef double TimerType;
-TimerType getTimeStamp(void) { return platform::walltime(); }
+TimerType getTimeStamp() { return platform::walltime(); }
 double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0; }
 
 } // end namespace
@@ -398,7 +398,7 @@ int FixRxKokkos<DeviceType>::k_rkf45_h0 (const int neq, const double t, const do
    // compute ydot at t=t0
    k_rhs (t, y, ydot, userData);
 
-   while (1)
+   while (true)
    {
       // Estimate y'' with finite-difference ...
 
@@ -717,7 +717,7 @@ int FixRxKokkos<DeviceType>::rkf45_h0(const int neq, const double t, const doubl
    // compute ydot at t=t0
    rhs (t, y, ydot, v_params);
 
-   while (1)
+   while (true)
    {
       // Estimate y'' with finite-difference ...
 
@@ -1217,7 +1217,7 @@ void FixRxKokkos<DeviceType>::operator()(SolverType, const int &i) const
 /* ---------------------------------------------------------------------- */
 
 template <typename DeviceType>
-void FixRxKokkos<DeviceType>::create_kinetics_data(void)
+void FixRxKokkos<DeviceType>::create_kinetics_data()
 {
   //printf("Inside FixRxKokkos::create_kinetics_data\n");
 
@@ -1695,7 +1695,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int /*vflag*/, const bool is
 /* ---------------------------------------------------------------------- */
 
 template <typename DeviceType>
-void FixRxKokkos<DeviceType>::odeDiagnostics(void)
+void FixRxKokkos<DeviceType>::odeDiagnostics()
 {
   TimerType timer_start = getTimeStamp();
 

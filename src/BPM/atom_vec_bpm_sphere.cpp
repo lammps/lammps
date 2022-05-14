@@ -61,7 +61,7 @@ AtomVecBPMSphere::AtomVecBPMSphere(LAMMPS *_lmp) : AtomVec(_lmp)
   fields_data_vel = {"id", "v", "omega"};
 
   bond_per_atom = 0;
-  bond_negative = NULL;
+  bond_negative = nullptr;
 }
 
 /* ----------------------------------------------------------------------

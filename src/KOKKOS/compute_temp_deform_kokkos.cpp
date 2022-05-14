@@ -46,13 +46,6 @@ ComputeTempDeformKokkos<DeviceType>::ComputeTempDeformKokkos(LAMMPS *lmp, int na
   maxbias = 0;
 }
 
-template<class DeviceType>
-ComputeTempDeformKokkos<DeviceType>::~ComputeTempDeformKokkos()
-{
-
-
-}
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>

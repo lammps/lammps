@@ -46,10 +46,6 @@ PairBuckCoulCutIntel::PairBuckCoulCutIntel(LAMMPS *lmp) :
   suffix_flag |= Suffix::INTEL;
 }
 
-PairBuckCoulCutIntel::~PairBuckCoulCutIntel()
-{
-}
-
 void PairBuckCoulCutIntel::compute(int eflag, int vflag)
 {
   if (fix->precision()==FixIntel::PREC_MODE_MIXED)

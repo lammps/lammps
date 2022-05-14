@@ -29,6 +29,9 @@ PairStyle(lj/cut/dipole/cut/kk/host,PairLJCutDipoleCutKokkos<LMPHostType>);
 
 namespace LAMMPS_NS {
 
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool STACKPARAMS>
+struct TagPairLJCutDipoleCutKernel{};
+
 template<class DeviceType>
 class PairLJCutDipoleCutKokkos : public PairLJCutDipoleCut {
  public:
@@ -36,6 +39,7 @@ class PairLJCutDipoleCutKokkos : public PairLJCutDipoleCut {
   enum {COUL_FLAG=1};
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
+  typedef EV_FLOAT value_type;
   PairLJCutDipoleCutKokkos(class LAMMPS *);
   ~PairLJCutDipoleCutKokkos() override;
 
@@ -45,27 +49,25 @@ class PairLJCutDipoleCutKokkos : public PairLJCutDipoleCut {
   void init_style() override;
   double init_one(int, int) override;
 
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool STACKPARAMS>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairLJCutDipoleCutKernel<NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS>, const int, EV_FLOAT &ev) const;
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool STACKPARAMS>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairLJCutDipoleCutKernel<NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS>, const int) const;
+
+  template<int NEWTON_PAIR>
+  KOKKOS_INLINE_FUNCTION
+  void ev_tally_xyz(EV_FLOAT &ev, int i, int j,
+                    F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
+                    X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const;
+  template<int NEIGHFLAG, int NEWTON_PAIR>
+  KOKKOS_INLINE_FUNCTION
+  void ev_tally_xyz_atom(EV_FLOAT &ev, int i, int j,
+                         F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
+                         X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const;
+
  protected:
-  template<bool STACKPARAMS, class Specialisation>
-  KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
-                        const int& itype, const int& jtype) const;
-
-  template<bool STACKPARAMS, class Specialisation>
-  KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j,
-                        const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const;
-
-  template<bool STACKPARAMS, class Specialisation>
-  KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j,
-                        const int& itype, const int& jtype) const;
-
-  template<bool STACKPARAMS, class Specialisation>
-  KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j,
-                        const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const;
-
   Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_lj_coul**,
     Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
@@ -89,8 +91,6 @@ class PairLJCutDipoleCutKokkos : public PairLJCutDipoleCut {
   typename AT::t_efloat_1d d_eatom;
   typename AT::t_virial_array d_vatom;
 
-  int newton_pair;
-
   typename AT::tdual_ffloat_2d k_cutsq;
   typename AT::t_ffloat_2d d_cutsq;
   typename AT::tdual_ffloat_2d k_cut_ljsq;
@@ -99,12 +99,17 @@ class PairLJCutDipoleCutKokkos : public PairLJCutDipoleCut {
   typename AT::t_ffloat_2d d_cut_coulsq;
 
 
-  int neighflag;
+  int neighflag,newton_pair;
   int nlocal,nall,eflag,vflag;
 
   double special_coul[4];
   double special_lj[4];
   double qqrd2e;
+
+  typename AT::t_neighbors_2d d_neighbors;
+  typename AT::t_int_1d_randomread d_ilist;
+  typename AT::t_int_1d_randomread d_numneigh;
+  //NeighListKokkos<DeviceType> k_list;
 
   void allocate() override;
   friend struct PairComputeFunctor<PairLJCutDipoleCutKokkos,FULL,true>;
@@ -118,7 +123,7 @@ class PairLJCutDipoleCutKokkos : public PairLJCutDipoleCut {
   friend EV_FLOAT pair_compute_neighlist<PairLJCutDipoleCutKokkos,HALFTHREAD,void>(PairLJCutDipoleCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairLJCutDipoleCutKokkos,void>(PairLJCutDipoleCutKokkos*,
                                                             NeighListKokkos<DeviceType>*);
-  friend void pair_virial_fdotr_compute<PairLJCutCoulCutKokkos>(PairLJCutDipoleCutKokkos*);
+  friend void pair_virial_fdotr_compute<PairLJCutDipoleCutKokkos>(PairLJCutDipoleCutKokkos*);
 
 };
 

@@ -42,6 +42,7 @@
 #define MAP_MASK       0x00008000
 #define ENERGY_MASK    0x00010000
 #define VIRIAL_MASK    0x00020000
+#define MU_MASK        0x00040000
 
 // SPIN
 

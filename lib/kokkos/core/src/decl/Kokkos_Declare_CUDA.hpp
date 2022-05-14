@@ -47,6 +47,8 @@
 
 #if defined(KOKKOS_ENABLE_CUDA)
 #include <Kokkos_Cuda.hpp>
+#include <Cuda/Kokkos_Cuda_Half_Impl_Type.hpp>
+#include <Cuda/Kokkos_Cuda_Half_Conversion.hpp>
 #include <Cuda/Kokkos_Cuda_Parallel.hpp>
 #include <Cuda/Kokkos_Cuda_KernelLaunch.hpp>
 #include <Cuda/Kokkos_Cuda_Instance.hpp>

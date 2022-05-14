@@ -154,6 +154,10 @@ if (test $1 = "RIGID") then
   depend DPD-SMOOTH
 fi
 
+if (test $1 = "ML-PACE") then
+  depend KOKKOS
+fi
+
 if (test $1 = "ML-SNAP") then
   depend KOKKOS
   depend ML-IAP

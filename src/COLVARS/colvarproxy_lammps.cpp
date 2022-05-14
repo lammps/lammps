@@ -27,35 +27,6 @@
 
 #define HASH_FAIL  -1
 
-////////////////////////////////////////////////////////////////////////
-// local helper functions
-
-// safely move filename to filename.extension
-static int my_backup_file(const char *filename, const char *extension)
-{
-  struct stat sbuf;
-  if (stat(filename, &sbuf) == 0) {
-    if (!extension) extension = ".BAK";
-    char *backup = new char[strlen(filename)+strlen(extension)+1];
-    strcpy(backup, filename);
-    strcat(backup, extension);
-#if defined(_WIN32) && !defined(__CYGWIN__)
-    remove(backup);
-#endif
-    if (rename(filename,backup)) {
-      char *sys_err_msg = strerror(errno);
-      if (!sys_err_msg)  sys_err_msg = (char *) "(unknown error)";
-      fprintf(stderr,"Error renaming file %s to %s: %s\n",
-              filename, backup, sys_err_msg);
-      delete [] backup;
-      return COLVARS_ERROR;
-    }
-    delete [] backup;
-  }
-  return COLVARS_OK;
-}
-
-////////////////////////////////////////////////////////////////////////
 
 colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
                                        const char *inp_name,
@@ -74,10 +45,6 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
   previous_step=-1;
   t_target=temp;
   do_exit=false;
-
-  // User-scripted forces are not available in LAMMPS
-  force_script_defined = false;
-  have_scripts = false;
 
   // set input restart name and strip the extension, if present
   input_prefix_str = std::string(inp_name ? inp_name : "");
@@ -130,6 +97,9 @@ void colvarproxy_lammps::init(const char *conf_file)
   cvm::log("Using LAMMPS interface, version "+
            cvm::to_str(COLVARPROXY_VERSION)+".\n");
 
+  colvars->cite_feature("LAMMPS engine");
+  colvars->cite_feature("Colvars-LAMMPS interface");
+
   my_angstrom  = _lmp->force->angstrom;
   // Front-end unit is the same as back-end
   angstrom_value = my_angstrom;
@@ -179,10 +149,6 @@ int colvarproxy_lammps::read_state_file(char const *state_filename)
 colvarproxy_lammps::~colvarproxy_lammps()
 {
   delete _random;
-  if (colvars != nullptr) {
-    delete colvars;
-    colvars = nullptr;
-  }
 }
 
 // re-initialize data where needed
@@ -339,17 +305,6 @@ int colvarproxy_lammps::set_unit_system(std::string const &units_in, bool /*chec
 }
 
 
-int colvarproxy_lammps::backup_file(char const *filename)
-{
-  if (std::string(filename).rfind(std::string(".colvars.state"))
-      != std::string::npos) {
-    return my_backup_file(filename, ".old");
-  } else {
-    return my_backup_file(filename, ".BAK");
-  }
-}
-
-
 // multi-replica support
 
 int colvarproxy_lammps::replica_enabled()
@@ -414,8 +369,8 @@ int colvarproxy_lammps::check_atom_id(int atom_number)
   // TODO add upper boundary check?
   if ((aid < 0)) {
     cvm::error("Error: invalid atom number specified, "+
-               cvm::to_str(atom_number)+"\n", INPUT_ERROR);
-    return INPUT_ERROR;
+               cvm::to_str(atom_number)+"\n", COLVARS_INPUT_ERROR);
+    return COLVARS_INPUT_ERROR;
   }
 
   return aid;

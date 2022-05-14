@@ -11,18 +11,26 @@ SPDX-License-Identifier: (BSD-3-Clause)
 
 // Macros
 
-#if defined(__GNUC__) && \
-    (!defined(__CUDA_ARCH__) || !defined(__NVCC__)) && \
-    (!defined(__HIP_DEVICE_COMPILE) || !defined(__HIP_PLATFORM_HCC__)) && \
-    !defined(__SYCL_DEVICE_ONLY__) && \
-    !defined(DESUL_HAVE_OPENMP_ATOMICS) && \
+#if (!defined(__CUDA_ARCH__) || !defined(__NVCC__)) &&                       \
+    (!defined(__HIP_DEVICE_COMPILE) || !defined(__HIP_PLATFORM_HCC__)) &&    \
+    !defined(__SYCL_DEVICE_ONLY__) && !defined(DESUL_HAVE_OPENMP_ATOMICS) && \
     !defined(DESUL_HAVE_SERIAL_ATOMICS)
+#define DESUL_IMPL_HAVE_GCC_OR_MSVC_ATOMICS
+#endif
+
+// ONLY use GNUC atomics if not compiling for the device
+// and we didn't explicitly say to use OPENMP or SERIAL atomics
+#if defined(__GNUC__) && defined(DESUL_IMPL_HAVE_GCC_OR_MSVC_ATOMICS)
 #define DESUL_HAVE_GCC_ATOMICS
 #endif
 
-#ifdef _MSC_VER
+// Equivalent to above: if we are compiling for the device we
+// need to use CUDA/HIP/SYCL atomics instead of MSVC atomics
+#if defined(_MSC_VER) && defined(DESUL_IMPL_HAVE_GCC_OR_MSVC_ATOMICS)
 #define DESUL_HAVE_MSVC_ATOMICS
 #endif
+
+#undef DESUL_IMPL_HAVE_GCC_OR_MSVC_ATOMICS
 
 #ifdef __CUDACC__
 #define DESUL_HAVE_CUDA_ATOMICS
@@ -34,14 +42,10 @@ SPDX-License-Identifier: (BSD-3-Clause)
 
 #ifdef __SYCL_DEVICE_ONLY__
 #define DESUL_HAVE_SYCL_ATOMICS
-#ifdef __clang__
-#define DESUL_SYCL_NAMESPACE sycl::ONEAPI
-#else
-#define DESUL_SYCL_NAMESPACE sycl
-#endif
 #endif
 
-#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__) || defined(__SYCL_DEVICE_ONLY__)
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__) || \
+    defined(__SYCL_DEVICE_ONLY__)
 #define DESUL_HAVE_GPU_LIKE_PROGRESS
 #endif
 

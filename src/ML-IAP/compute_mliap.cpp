@@ -22,6 +22,7 @@
 #include "mliap_model_linear.h"
 #include "mliap_model_quadratic.h"
 #include "mliap_descriptor_snap.h"
+#include "mliap_descriptor_so3.h"
 #ifdef MLIAP_PYTHON
 #include "mliap_model_python.h"
 #endif
@@ -88,6 +89,10 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"sna") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal compute mliap command");
         descriptor = new MLIAPDescriptorSNAP(lmp,arg[iarg+2]);
+        iarg += 3;
+      } else if (strcmp(arg[iarg+1],"so3") == 0) {
+        if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+        descriptor = new MLIAPDescriptorSO3(lmp,arg[iarg+2]);
         iarg += 3;
       } else error->all(FLERR,"Illegal compute mliap command");
       descriptorflag = 1;

@@ -141,12 +141,12 @@ For the *mesh* style, a file with a triangle mesh in `STL format
 more particles are placed into the area of each triangle.  The reader
 supports both ASCII and binary files conforming to the format on the
 Wikipedia page.  Binary STL files (e.g. as frequently offered for
-3d-printing) also be first converted to ASCII for editing with the
+3d-printing) can also be first converted to ASCII for editing with the
 :ref:`stl_bin2txt tool <stlconvert>`.  The use of the *units box* option
 is required. There are two algorithms for placing atoms available:
 *bisect* and *qrand*. They can be selected via the *meshmode* option;
-*bisect* is the default.  If the atom style allows to set a per-atom
-radius this radius is set to the average distance of the triangle
+*bisect* is the default.  If the atom style allows one to set a per-atom
+radius, this radius is set to the average distance of the triangle
 vertices from its center times the value of the *radscale* keyword
 (default: 1.0).  If the atom style supports it, the atoms created from
 the mesh are assigned a new molecule ID.
@@ -157,14 +157,14 @@ larger than the *radthresh* value (default is lattice spacing in
 x-direction).  In case the average distance is over the threshold, the
 triangle is recursively split into two halves along the the longest side
 until the threshold is reached. There will be at least one sphere per
-triangle. The value of *radthresh* is set as argument to *meshmode
+triangle. The value of *radthresh* is set as an argument to *meshmode
 bisect*.
 
 In *qrand* mode a quasirandom sequence is used to distribute particles
 on mesh triangles using an approach by :ref:`(Roberts) <Roberts2019>`.
-Particles are added to the triangle until minimum number density is met
+Particles are added to the triangle until the minimum number density is met
 or exceeded such that every triangle will have at least one particle.
-The minimum number density is set as argument to the *qrand* option.
+The minimum number density is set as an argument to the *qrand* option.
 
 .. note::
 

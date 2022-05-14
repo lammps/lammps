@@ -971,7 +971,7 @@ int CreateAtoms::add_quasirandom(const double vert[3][3], tagint molid)
     MathExtra::copy3(vert[0], ref);
   }
 
-  // Estimate number of particles from area, could scale by RCP
+  // Estimate number of particles from area
   MathExtra::cross3(ab, ac, temp);
   area = 0.5 * MathExtra::len3(temp);
   int nparticles = ceil(mesh_density * area);
@@ -979,7 +979,7 @@ int CreateAtoms::add_quasirandom(const double vert[3][3], tagint molid)
   for (int i = 0; i < nparticles; i++) {
     // Define point in unit square
     xi = (i + 1) * INV_P_CONST;
-    yi = (i + 1) * INV_SQ_P_CONST;    // Add seed function of vertices
+    yi = (i + 1) * INV_SQ_P_CONST;
 
     xi += seed;
     yi += seed;
@@ -987,7 +987,7 @@ int CreateAtoms::add_quasirandom(const double vert[3][3], tagint molid)
     xi = std::fmod(xi, 1.0);
     yi = std::fmod(yi, 1.0);
 
-    // Map to tirangle using parallelogram method
+    // Map to triangle using parallelogram method
     if ((xi + yi) < 1) {
       MathExtra::scale3(xi, ac, point);
       MathExtra::scale3(yi, ab, temp);

@@ -87,6 +87,16 @@ void Bond::init()
 }
 
 /* ----------------------------------------------------------------------
+   check that there are no arguments
+------------------------------------------------------------------------- */
+
+void Bond::settings(int narg, char **args)
+{
+  if (narg > 0)
+    error->all(FLERR, "Illegal bond_style {} argument: {}", force->bond_style, args[0]);
+}
+
+/* ----------------------------------------------------------------------
    setup for energy, virial computation
    see integrate::ev_set() for bitwise settings of eflag/vflag
    set the following flags, values are otherwise set to 0:

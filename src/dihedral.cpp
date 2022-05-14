@@ -75,6 +75,16 @@ void Dihedral::init()
 }
 
 /* ----------------------------------------------------------------------
+   check that there are no arguments
+------------------------------------------------------------------------- */
+
+void Dihedral::settings(int narg, char **args)
+{
+  if (narg > 0)
+    error->all(FLERR, "Illegal dihedral_style {} argument: {}", force->dihedral_style, args[0]);
+}
+
+/* ----------------------------------------------------------------------
    setup for energy, virial computation
    see integrate::ev_set() for bitwise settings of eflag/vflag
    set the following flags, values are otherwise set to 0:

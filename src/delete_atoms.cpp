@@ -40,7 +40,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{FRACTION,COUNT};
+enum { UNKNOWN, FRACTION, COUNT };
 
 /* ---------------------------------------------------------------------- */
 
@@ -77,15 +77,9 @@ void DeleteAtoms::command(int narg, char **arg)
     delete_partial(narg, arg);
   // deprecated porosity option, now included in new partial option
   else if (strcmp(arg[0], "porosity") == 0) {
-    if (comm->me == 0) {
-      printf("Deprecated version: "
-             "delete_atoms porosity group-ID region-ID frac seed\n");
-      printf("Equivalent new version: "
-             "delete_atoms partial fraction frac 0 group-ID region-ID seed\n");
-      printf("In both versions 'frac' = numeric fraction 0.0 to 1.0 \n");
-      printf("Change integer arg 0 to 1 if want exact fraction deleted\n");
-    }
-    error->all(FLERR,"Delete_atoms porosity option has been deprecated\n");
+    error->all(FLERR,
+               "The delete_atoms 'porosity' keyword has been removed.\n"
+               "Please use: delete_atoms partial fraction frac exact group-ID region-ID seed\n");
   } else if (strcmp(arg[0], "variable") == 0)
     delete_variable(narg, arg);
   else
@@ -432,43 +426,36 @@ void DeleteAtoms::delete_partial(int narg, char **arg)
 {
   if (narg < 7) utils::missing_cmd_args(FLERR, "delete_atoms partial", error);
 
-  int partial_style, exactflag, errorflag;
-  bigint ncount;
-  double fraction;
+  int partial_style = UNKNOWN;
+  bool exactflag = false;
+  bool errorflag = false;
+  bigint ncount = 0;
+  double fraction = 0.0;
 
-  if (strcmp(arg[1],"fraction") == 0) {
+  if (strcmp(arg[1], "fraction") == 0) {
     partial_style = FRACTION;
     fraction = utils::numeric(FLERR, arg[2], false, lmp);
-    exactflag = utils::inumeric(FLERR, arg[3], false, lmp);
+    exactflag = utils::logical(FLERR, arg[3], false, lmp);
     if (fraction < 0.0 || fraction > 1.0)
-      error->all(FLERR,"Delete atoms partial pvalue setting is invalid");
-    if (exactflag != 0 && exactflag != 1)
-      error->all(FLERR,"Delete atoms partial pflag setting is invalid");
-        
-  } else if (strcmp(arg[1],"count") == 0) {
+      error->all(FLERR, "Delete_atoms partial fraction has invalid value: {}", fraction);
+  } else if (strcmp(arg[1], "count") == 0) {
     partial_style = COUNT;
     ncount = utils::bnumeric(FLERR, arg[2], false, lmp);
-    errorflag = utils::inumeric(FLERR, arg[3], false, lmp);
-    if (ncount < 0)
-      error->all(FLERR,"Delete atoms partial pvalue setting is invalid");
-    if (errorflag != 0 && errorflag != 1)
-      error->all(FLERR,"Delete atoms partial pflag setting is invalid");
-    exactflag = 1;
-
+    errorflag = utils::logical(FLERR, arg[3], false, lmp);
+    if (ncount < 0) error->all(FLERR, "Delete_atoms partial count has invalid value: {}", ncount);
+    exactflag = true;
   } else {
-    error->all(FLERR,"Delete atoms partial pstyle setting is invalid");
+    error->all(FLERR, "Unknown delete_atoms partial style: {}", arg[1]);
   }
 
   int igroup = group->find(arg[4]);
-  if (igroup == -1) 
-    error->all(FLERR, "Could not find delete_atoms partial group ID {}", arg[4]);
+  if (igroup == -1) error->all(FLERR, "Could not find delete_atoms partial group ID {}", arg[4]);
 
   auto region = domain->get_region_by_id(arg[5]);
   if (!region && (strcmp(arg[5], "NULL") != 0))
     error->all(FLERR, "Could not find delete_atoms partial region ID {}", arg[5]);
 
   int seed = utils::inumeric(FLERR, arg[6], false, lmp);
-
   options(narg - 7, &arg[7]);
 
   auto ranmars = new RanMars(lmp, seed + comm->me);
@@ -483,7 +470,7 @@ void DeleteAtoms::delete_partial(int narg, char **arg)
 
   double **x = atom->x;
   int *mask = atom->mask;
-  
+
   int groupbit = group->bitmask[igroup];
   if (region) region->prematch();
 
@@ -496,7 +483,7 @@ void DeleteAtoms::delete_partial(int narg, char **arg)
       if (ranmars->uniform() <= fraction) dlist[i] = 1;
     }
 
-  // delete exact fraction or count of atoms in both group and region
+    // delete exact fraction or count of atoms in both group and region
 
   } else {
     double **x = atom->x;
@@ -515,25 +502,29 @@ void DeleteAtoms::delete_partial(int narg, char **arg)
 
     bigint bcount = count;
     bigint allcount;
-    MPI_Allreduce(&bcount,&allcount,1,MPI_LMP_BIGINT,MPI_SUM,world);
+    MPI_Allreduce(&bcount, &allcount, 1, MPI_LMP_BIGINT, MPI_SUM, world);
 
     if (partial_style == FRACTION) {
-      ncount = static_cast<bigint> (fraction * allcount);
+      ncount = static_cast<bigint>(fraction * allcount);
     } else if (partial_style == COUNT) {
       if (ncount > allcount) {
-        if (errorflag == 1)
-          error->all(FLERR,"Delete_atoms count exceeds eligible atoms");
-        else if (comm->me == 0)
-          error->warning(FLERR,"Delete_atoms count exceeds eligible atoms");
+        auto mesg = fmt::format("Delete_atoms count of {} exceeds number of eligible atoms {}",
+                                ncount, allcount);
+        ncount = allcount;
+        if (errorflag) {
+          error->all(FLERR, mesg);
+        } else {
+          if (comm->me == 0) error->warning(FLERR, mesg);
+        }
       }
     }
 
     // make selection
 
-    int *flag = memory->create(flag,count,"delete_atoms:flag");
-    int *work = memory->create(work,count,"delete_atoms:work");
+    int *flag = memory->create(flag, count, "delete_atoms:flag");
+    int *work = memory->create(work, count, "delete_atoms:work");
 
-    ranmars->select_subset(ncount,count,flag,work);
+    ranmars->select_subset(ncount, count, flag, work);
 
     // set dlist for atom indices in flag
     // flag vector from select_subset() is only for eligible atoms

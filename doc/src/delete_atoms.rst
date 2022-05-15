@@ -20,14 +20,14 @@ Syntax
          cutoff = delete one atom from pairs of atoms within the cutoff (distance units)
          group1-ID = one atom in pair must be in this group
          group2-ID = other atom in pair must be in this group
-       *partial* args = pstyle pvalue pflag group-ID region-ID seed
+       *partial* args = pstyle value flag group-ID region-ID seed
          pstyle = *fraction* or *count*
            for *fraction*:
-             pvalue = fraction (0.0 to 1.0) of eligible atoms to delete
-             pflag = 0 for approximate deletion, 1 for exact deletion
+             value = fraction (0.0 to 1.0) of eligible atoms to delete
+             flag = no/off for fast approximate deletion, yes/on for exact deletion
            for *count*:
-             pvalue = number of eligible atoms to delete
-             pflag = 0 for warning if count > eligible atoms, 1 for error
+             value = number of atoms to delete
+             flag = no/off for warning if count > eligible atoms, yes/on for error
          group-ID = group within which to perform deletions
          region-ID = region within which to perform deletions
                      or NULL to only impose the group criterion
@@ -93,27 +93,28 @@ atoms to delete are chosen randomly using the specified random number
 *seed*.  In all cases, which atoms are deleted may vary when running
 on different numbers of processors.
 
-For *pstyle* = *fraction*, the specified *pvalue* fraction (0.0 to
-1.0) of eligible atoms are deleted.  If *pflag* is set to 0, then the
-number deleted will be approximate.  If *pflag* is set to 1, then the
-number deleted will be exactly the requested fraction, but for very
-large systems the selection of deleted atoms may take longer to
-calculate.
+For *pstyle* = *fraction*, the specified fraction *value*(0.0 to 1.0) of
+eligible atoms are deleted.  If the *flag* is set to no/off/0, then the
+number of deleted atoms will be approximate, but the operation will
+always be fast.  If instead the *flag* is set to yes/on/1, then the
+number deleted will be match the requested fraction as close as
+possible, but for very large systems the selection of deleted atoms will
+take additional time to determine.
 
-For *pstyle* = *count*, the specified integer *pvalue* number of
-eligible atoms are deleted.  If *pflag* is set to 0, then if the
-requested number is larger then the number of eligible atoms, a
-warning is issued.  If *pflag* is set to one, an error is triggered
-and LAMMPS will exit.  In both cases exactly the number of requested
-atoms will be deleted (unless larger than eligible count).  For very
-large systems the selection of deleted atoms will require the same
-time as *pstyle* = *fraction* with *pflag* = 1.
+For *pstyle* = *count*, the specified integer *value* is the number of
+eligible atoms are deleted.  If the *flag* is set to no/off/0, then
+if the requested number is larger then the number of eligible atoms,
+a warning is issued and only the eligible atoms are deleted instead of
+the requested *value*.  If the *flag* is set to yes/on/1, an error is
+triggered instead and LAMMPS will exit.  For very large systems the
+selection of atoms to delete may take additional time same as for requesting
+the exact fraction with time as *pstyle* = *fraction*.
 
-Which atoms are eligible for deletion for style *partial* is
-determined by the specified *group-ID* and *region-ID*.  To be
-eligible, an atom must be in both the specified group and region.  If
-*group-ID* = all, there is effectively no group criterion.  If
-*region-ID* is specified as NULL, no region criterion is imposed.
+Which atoms are eligible for deletion for style *partial* is determined
+by the specified *group-ID* and *region-ID*.  To be eligible, an atom
+must be in both the specified group and region.  If *group-ID* = all,
+there is effectively no group criterion.  If *region-ID* is specified as
+NULL, no region criterion is imposed.
 
 For style *variable*, all atoms for which the atom-style variable with
 the given name evaluates to non-zero will be deleted. Additional atoms

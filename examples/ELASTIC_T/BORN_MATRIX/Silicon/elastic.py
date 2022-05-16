@@ -9,17 +9,15 @@
 #          uses in.elastic as LAMMPS input script
 
 from __future__ import print_function
-import sys
 from elastic_utils import *
 
 np.set_printoptions(precision = 3, suppress=True)
 
-# setup MPI, if wanted
-me = 0
-# uncomment this if running in parallel via mpi4py
-from mpi4py import MPI
-me = MPI.COMM_WORLD.Get_rank()
-nprocs = MPI.COMM_WORLD.Get_size()
+# get MPI settings from LAMMPS
+
+lmp = lammps()
+me = lmp.extract_setting("world_rank")
+nprocs = lmp.extract_setting("world_size")
 
 # cubic diamond lattice constants 
 
@@ -46,6 +44,7 @@ for i in range(3):
 hmat = np.eye(3)
 
 varlist = {
+    "logsuffix":"ortho",
     "a":alat,
     "a1x":hmat[0,0],
     "a2x":hmat[0,1],
@@ -74,14 +73,16 @@ basisstring += "basis %g %g %g " % (b[0],b[1],b[2])
 
 hmat1 = np.array([[1, 1, 0], [0, 1, 1], [1, 0, 1]]).T/np.sqrt(2)
 
-# rotate primitive cell to LAMMPS orientation (uper triangular)
+# rotate primitive cell to LAMMPS orientation
+# (upper triangular)
 
 qmat, rmat = np.linalg.qr(hmat1)
 ss = np.diagflat(np.sign(np.diag(rmat)))
 rot = ss @ qmat.T
-hmat2 = rot @ hmat1
+hmat2 = ss @ rmat
 
 varlist = {
+    "logsuffix":"tri",
     "a":alat,
     "a1x":hmat2[0,0],
     "a2x":hmat2[0,1],

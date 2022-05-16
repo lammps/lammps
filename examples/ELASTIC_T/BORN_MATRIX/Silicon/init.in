@@ -7,6 +7,11 @@
 # Kluge, Ray, and Rahman (1986) that is Ref.[15] in:
 # Y. Zhen, C. Chu, Computer Physics Communications 183(2012) 261-265
 
+# set log file
+
+variable logsuffix index ortho
+log log.elastic.${logsuffix}
+
 # select temperature and pressure (lattice constant)
 
 variable temp index 1477.0                 # temperature of initial sample

@@ -111,7 +111,7 @@ int es_rand(es_RNG_t &state_)
 LAMMPS_INLINE
 double es_drand(es_RNG_t &state_)
 {
-  return static_cast<double>(es_urand64(state_) / MAX_URAND64);
+  return 1.0 * es_urand64(state_) / static_cast<double>(MAX_URAND64);
 }
 
 //Marsaglia polar method for drawing a standard normal distributed random number

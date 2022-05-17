@@ -178,7 +178,7 @@ void AngleHybrid::allocate()
 
 void AngleHybrid::settings(int narg, char **arg)
 {
-  int i, m, istyle;
+  int i, m;
 
   if (narg < 1) utils::missing_cmd_args(FLERR, "angle_style hybrid", error);
 

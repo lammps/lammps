@@ -179,7 +179,7 @@ void ImproperHybrid::allocate()
 
 void ImproperHybrid::settings(int narg, char **arg)
 {
-  int i, m, istyle;
+  int i, m;
 
   if (narg < 1) utils::missing_cmd_args(FLERR, "improper_style hybrid", error);
 

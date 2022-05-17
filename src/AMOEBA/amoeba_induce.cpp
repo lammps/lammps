@@ -58,21 +58,10 @@ void PairAmoeba::induce()
   double sum,sump,term;
   double reduce[4],allreduce[4];
 
-  double *poli;
-  double **conj,**conjp;
-  double **vec,**vecp;
-  double **udir,**usum,**usump;
-
-  int debug = 1;
-
   // set cutoffs, taper coeffs, and PME params
-  // create qfac here, free at end of polar()
 
-  if (use_ewald) {
-    choose(POLAR_LONG);
-    int nmine = p_kspace->nfft_owned;
-    memory->create(qfac,nmine,"ameoba/induce:qfac");
-  } else choose(POLAR);
+  if (use_ewald) choose(POLAR_LONG);
+  else choose(POLAR);
 
   // owned atoms
 
@@ -88,19 +77,6 @@ void PairAmoeba::induce()
       uinp[i][j] = 0.0;
     }
   }
-
-  // allocation of arrays
-  // NOTE: not all are used by all methods
-  // NOTE: could be re-allocated dynamically
-
-  memory->create(poli,nlocal,"ameoba/induce:poli");
-  memory->create(conj,nlocal,3,"ameoba/induce:conj");
-  memory->create(conjp,nlocal,3,"ameoba/induce:conjp");
-  memory->create(vec,nlocal,3,"ameoba/induce:vec");
-  memory->create(vecp,nlocal,3,"ameoba/induce:vecp");
-  memory->create(udir,nlocal,3,"ameoba/induce:udir");
-  memory->create(usum,nlocal,3,"ameoba/induce:usum");
-  memory->create(usump,nlocal,3,"ameoba/induce:usump");
 
   // get the electrostatic field due to permanent multipoles
 
@@ -288,8 +264,6 @@ void PairAmoeba::induce()
 
       ufield0c(field,fieldp);
 
-      //error->all(FLERR,"STOP");
-
       crstyle = FIELD;
       comm->reverse_comm(this);
 
@@ -417,17 +391,6 @@ void PairAmoeba::induce()
       if (me == 0)
         error->warning(FLERR,"AMOEBA induced dipoles did not converge");
   }
-
-  // deallocation of arrays
-
-  memory->destroy(poli);
-  memory->destroy(conj);
-  memory->destroy(conjp);
-  memory->destroy(vec);
-  memory->destroy(vecp);
-  memory->destroy(udir);
-  memory->destroy(usum);
-  memory->destroy(usump);
 
   // update the lists of previous induced dipole values
   // shift previous m values up to m+1, add new values at m = 0
@@ -873,25 +836,10 @@ void PairAmoeba::umutual1(double **field, double **fieldp)
   int nxlo,nxhi,nylo,nyhi,nzlo,nzhi;
   double term;
   double a[3][3];  // indices not flipped vs Fortran
-  double **fuind,**fuinp;
-  double **fdip_phi1,**fdip_phi2,**fdip_sum_phi;
-  double **dipfield1,**dipfield2;
 
   // return if the Ewald coefficient is zero
 
   if (aewald < 1.0e-6) return;
-
-  // perform dynamic allocation of some local arrays
-  // NOTE: avoid reallocation every step?
-
-  int nlocal = atom->nlocal;
-  memory->create(fuind,nlocal,3,"ameoba/induce:fuind");
-  memory->create(fuinp,nlocal,3,"ameoba/induce:fuinp");
-  memory->create(fdip_phi1,nlocal,10,"ameoba/induce:fdip_phi1");
-  memory->create(fdip_phi2,nlocal,10,"ameoba/induce:fdip_phi2");
-  memory->create(fdip_sum_phi,nlocal,20,"ameoba/induce:fdip_dum_phi");
-  memory->create(dipfield1,nlocal,3,"ameoba/induce:dipfield1");
-  memory->create(dipfield2,nlocal,3,"ameoba/induce:dipfield2");
 
   // convert Cartesian dipoles to fractional coordinates
 
@@ -900,6 +848,8 @@ void PairAmoeba::umutual1(double **field, double **fieldp)
     a[1][j] = nfft2 * recip[1][j];
     a[2][j] = nfft3 * recip[2][j];
   }
+
+  int nlocal = atom->nlocal;
 
   for (i = 0; i < nlocal; i++) {
     for (j = 0; j < 3; j++) {
@@ -991,16 +941,6 @@ void PairAmoeba::umutual1(double **field, double **fieldp)
       fieldp[i][j] -= dipfield2[i][j];
     }
   }
-
-  // perform deallocation of some local arrays
-
-  memory->destroy(fuind);
-  memory->destroy(fuinp);
-  memory->destroy(fdip_phi1);
-  memory->destroy(fdip_phi2);
-  memory->destroy(fdip_sum_phi);
-  memory->destroy(dipfield1);
-  memory->destroy(dipfield2);
 }
 
 /* ----------------------------------------------------------------------
@@ -1096,16 +1036,6 @@ void PairAmoeba::udirect1(double **field)
   double volbox = domain->prd[0] * domain->prd[1] * domain->prd[2];
   volterm = MY_PI * volbox;
 
-  // perform dynamic allocation of 4 Cartesian and fractional arrays
-  // deallocate in polar
-  // NOTE: avoid reallocation every step?
-
-  int nlocal = atom->nlocal;
-  memory->create(cmp,nlocal,10,"ameoba/induce:cmp");
-  memory->create(fmp,nlocal,10,"ameoba/induce:fmp");
-  memory->create(cphi,nlocal,10,"ameoba/induce:cphi");
-  memory->create(fphi,nlocal,20,"ameoba/induce:fphi");
-
   // FFT moduli pre-computations
   // set igrid for each atom and its B-spline coeffs
 
@@ -1118,6 +1048,8 @@ void PairAmoeba::udirect1(double **field)
   bspline_fill();
 
   // copy the multipole moments into local storage areas
+
+  int nlocal = atom->nlocal;
 
   for (i = 0; i < nlocal; i++) {
     cmp[i][0] = rpole[i][0];

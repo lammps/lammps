@@ -11,17 +11,18 @@ dihedral_style  none
 # per-atom properties required by AMOEBA or HIPPO
 
 fix             amtype all property/atom i_amtype ghost yes
-fix             extra all property/atom i_amgroup d_redID d_pval ghost yes
-fix             extra2 all property/atom i_polaxe d_xaxis d_yaxis d_zaxis 
+fix             extra all property/atom &
+                i_amgroup d_redID d_xaxis d_yaxis d_zaxis d_pval ghost yes
+fix             extra2 all property/atom i_polaxe
 
 # read data file
 
-read_data       data.water_hexamer.hippo fix amtype NULL "Tinker Types"
+read_data       data.water_hexamer.amoeba fix amtype NULL "Tinker Types"
 
 # force field
 
-pair_style      hippo
-pair_coeff      * * hippo_water.prm hippo_water.key
+pair_style      amoeba
+pair_coeff      * * amoeba_water.prm amoeba_water.key
 
 special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
 

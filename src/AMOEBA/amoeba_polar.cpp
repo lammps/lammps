@@ -132,11 +132,6 @@ void PairAmoeba::polar()
     virpolar[4] -= vxz;
     virpolar[5] -= vyz;
   }
-
-  // clean up
-  // qfac was allocated in induce
-
-  if (use_ewald) memory->destroy(qfac);
 }
 
 /* ----------------------------------------------------------------------
@@ -1260,9 +1255,6 @@ void PairAmoeba::polar_kspace()
   double cphid[4],cphip[4];
   double a[3][3];    // indices not flipped vs Fortran
 
-  double **fuind,**fuinp,**fphid,**fphip;
-  double **fphidp,**cphidp;
-
   // indices into the electrostatic field array
   // decremented by 1 versus Fortran
 
@@ -1287,17 +1279,6 @@ void PairAmoeba::polar_kspace()
   // initialize variables required for the scalar summation
 
   felec = electric / am_dielectric;
-
-  // dynamic allocation of local arrays
-  // NOTE: just do this one time?
-  // NOTE: overlap with induce
-
-  memory->create(fuind,nlocal,3,"polar:fuind");
-  memory->create(fuinp,nlocal,3,"polar:fuinp");
-  memory->create(fphid,nlocal,10,"polar:fphid");
-  memory->create(fphip,nlocal,10,"polar:fphip");
-  memory->create(fphidp,nlocal,20,"polar:fphidp");
-  memory->create(cphidp,nlocal,10,"polar:cphidp");
 
   // remove scalar sum virial from prior multipole FFT
   // can only do this if multipoles were computed with same aeewald = apewald
@@ -1884,11 +1865,8 @@ void PairAmoeba::polar_kspace()
   gridfft = p_kspace->pre_convolution();
 
   // gridfft1 = copy of first FFT
-  // NOTE: need to allocate this, when is it freed?
 
-  FFT_SCALAR *gridfft1;
   int nfft_owned = p_kspace->nfft_owned;
-  memory->create(gridfft1,2*nfft_owned,"amoeba:gridfft1");
   memcpy(gridfft1,gridfft,2*nfft_owned*sizeof(FFT_SCALAR));
 
   // assign induced dipoles to the PME grid
@@ -1983,7 +1961,6 @@ void PairAmoeba::polar_kspace()
     double *gridfft = p_kspace->pre_convolution();
 
     // gridfft1 = copy of first FFT
-    // NOTE: do this same as above
 
     int nfft_owned = p_kspace->nfft_owned;
     memcpy(gridfft1,gridfft,2*nfft_owned*sizeof(double));
@@ -2192,18 +2169,4 @@ void PairAmoeba::polar_kspace()
   virpolar[3] -= vxy;
   virpolar[4] -= vxz;
   virpolar[5] -= vyz;
-
-  // deallocation of local arrays, some from induce
-
-  memory->destroy(gridfft1);
-  memory->destroy(cmp);
-  memory->destroy(fmp);
-  memory->destroy(cphi);
-  memory->destroy(fphi);
-  memory->destroy(fuind);
-  memory->destroy(fuinp);
-  memory->destroy(fphid);
-  memory->destroy(fphip);
-  memory->destroy(fphidp);
-  memory->destroy(cphidp);
 }

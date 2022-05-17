@@ -95,12 +95,26 @@ PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
   rsd = rsdp = NULL;
   zrsd = zrsdp = NULL;
 
+  cmp = fmp = NULL;
+  cphi = fphi = NULL;
+
+  poli = NULL;
+  conj = conjp = NULL;
+  vec = vecp = NULL;
+  udir = usum = usump = NULL;
+
+  fuind = fuinp = NULL;
+  fdip_phi1 = fdip_phi2 = fdip_sum_phi = NULL;
+  dipfield1 = dipfield2 = NULL;
+
+  fphid = fphip = NULL;
+  fphidp = cphidp = NULL;
+
   bsordermax = 0;
   thetai1 = thetai2 = thetai3 = NULL;
   bsmod1 = bsmod2 = bsmod3 = NULL;
   bsbuild = NULL;
   igrid = NULL;
-
   m_kspace = p_kspace = pc_kspace = d_kspace = NULL;
   i_kspace = ic_kspace = NULL;
 
@@ -116,6 +130,9 @@ PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
 
   firstneigh_pcpc = NULL;
   dpage_pcpc = NULL;
+
+  qfac = NULL;
+  gridfft1 = NULL;
 
   initialize_type_class();
   initialize_vdwl();
@@ -176,6 +193,7 @@ PairAmoeba::~PairAmoeba()
   memory->destroy(uoptp);
   memory->destroy(fopt);
   memory->destroy(foptp);
+
   memory->destroy(field);
   memory->destroy(fieldp);
   memory->destroy(ufld);
@@ -185,15 +203,46 @@ PairAmoeba::~PairAmoeba()
   memory->destroy(zrsd);
   memory->destroy(zrsdp);
 
+  memory->destroy(cmp);
+  memory->destroy(fmp);
+  memory->destroy(cphi);
+  memory->destroy(fphi);
+
+  memory->destroy(poli);
+  memory->destroy(conj);
+  memory->destroy(conjp);
+  memory->destroy(vec);
+  memory->destroy(vecp);
+  memory->destroy(udir);
+  memory->destroy(usum);
+  memory->destroy(usump);
+
+  memory->destroy(fuind);
+  memory->destroy(fuinp);
+  memory->destroy(fdip_phi1);
+  memory->destroy(fdip_phi2);
+  memory->destroy(fdip_sum_phi);
+  memory->destroy(dipfield1);
+  memory->destroy(dipfield2);
+
+  memory->destroy(fphid);
+  memory->destroy(fphip);
+  memory->destroy(fphidp);
+  memory->destroy(cphidp);
+
   memory->destroy(thetai1);
   memory->destroy(thetai2);
   memory->destroy(thetai3);
+  memory->destroy(igrid);
+
   memory->destroy(bsmod1);
   memory->destroy(bsmod2);
   memory->destroy(bsmod3);
   memory->destroy(bsbuild);
-  memory->destroy(igrid);
 
+  memory->destroy(qfac);
+  memory->destroy(gridfft1);
+ 
   delete m_kspace;
   delete p_kspace;
   delete pc_kspace;
@@ -263,7 +312,7 @@ void PairAmoeba::compute(int eflag, int vflag)
 
   // grow local vectors and arrays if necessary
 
-  if (atom->nlocal + atom->nghost > nmax) grow_local();
+  if (atom->nmax > nmax) grow_local();
 
   // set amtype/amgroup ptrs for rest of compute() to use it
 
@@ -824,6 +873,13 @@ void PairAmoeba::init_style()
         new AmoebaConvolution(lmp,this,nefft1,nefft2,nefft3,bsporder,INDUCE_GRID);
       ic_kspace =
         new AmoebaConvolution(lmp,this,nefft1,nefft2,nefft3,bsporder,INDUCE_GRIDC);
+
+      // qfac is shared by induce and polar
+      // gridfft1 is copy of FFT grid used within polar
+
+      int nmine = p_kspace->nfft_owned;
+      memory->create(qfac,nmine,"ameoba/induce:qfac");
+      memory->create(gridfft1,2*nmine,"amoeba/polar:gridfft1");
     }
     if (use_dewald) {
       d_kspace =
@@ -2090,43 +2146,17 @@ void *PairAmoeba::extract(const char *str, int &dim)
 
 /* ----------------------------------------------------------------------
   grow local vectors and arrays if necessary
-  some need space for ghost atoms, most do not
+  keep them all atom->nmax in length even if ghost storage not needed
 ------------------------------------------------------------------------- */
 
 void PairAmoeba::grow_local()
 {
-  // only reallocate if nlocal > nmax
-
-  if (atom->nlocal > nmax) {
-  }
-
-
-
-    // forward/reverse comm, so ghost values
-    uind;
-    uinp;
-    uopt;
-    uoptp;
-    rsd;
-    rsdp;
-    xred;  // AMOEBA
-
-    memory->destroy(rsd);
-    memory->destroy(rsdp);
-    memory->create(rsd,nmax,3,"amoeba:rsd");
-    memory->create(rsdp,nmax,3,"amoeba:rsdp");
-
-
-    memory->destroy(rpole);
-    memory->create(rpole,nmax,13,"amoeba:rpole");
-
-  
-
-  // free vectors and arrays
+ // free vectors and arrays
 
   memory->destroy(xaxis2local);
   memory->destroy(yaxis2local);
   memory->destroy(zaxis2local);
+  memory->destroy(rpole);
   memory->destroy(tq);
 
   if (amoeba) {
@@ -2143,17 +2173,57 @@ void PairAmoeba::grow_local()
     memory->destroy(fopt);
     memory->destroy(foptp);
   }
+
   memory->destroy(field);
   memory->destroy(fieldp);
   memory->destroy(ufld);
   memory->destroy(dufld);
+  memory->destroy(rsd);
+  memory->destroy(rsdp);
   memory->destroy(zrsd);
   memory->destroy(zrsdp);
 
-  memory->destroy(thetai1);
-  memory->destroy(thetai2);
-  memory->destroy(thetai3);
-  memory->destroy(igrid);
+  // multipole
+
+  memory->destroy(cmp);
+  memory->destroy(fmp);
+  memory->destroy(cphi);
+  memory->destroy(fphi);
+
+  // induce
+
+  memory->destroy(poli);
+  memory->destroy(conj);
+  memory->destroy(conjp);
+  memory->destroy(vec);
+  memory->destroy(vecp);
+  memory->destroy(udir);
+  memory->destroy(usum);
+  memory->destroy(usump);
+
+  memory->destroy(fuind);
+  memory->destroy(fuinp);
+  memory->destroy(fdip_phi1);
+  memory->destroy(fdip_phi2);
+  memory->destroy(fdip_sum_phi);
+  memory->destroy(dipfield1);
+  memory->destroy(dipfield2);
+
+  // polar
+
+  memory->destroy(fphid);
+  memory->destroy(fphip);
+  memory->destroy(fphidp);
+  memory->destroy(cphidp);
+
+  if (use_ewald || use_dewald) {
+    memory->destroy(thetai1);
+    memory->destroy(thetai2);
+    memory->destroy(thetai3);
+    memory->destroy(igrid);
+  }
+
+  // dipole and PCG neighbor lists
 
   memory->destroy(numneigh_dipole);
   memory->sfree(firstneigh_dipole);
@@ -2170,17 +2240,19 @@ void PairAmoeba::grow_local()
   nmax = atom->nmax;
 
   // re-allocate vectors and arrays
-  // note use of optorder+1 for uopt and uoptp
 
   memory->create(xaxis2local,nmax,"amoeba:xaxis2local");
   memory->create(yaxis2local,nmax,"amoeba:yaxis2local");
   memory->create(zaxis2local,nmax,"amoeba:zaxis2local");
+  memory->create(rpole,nmax,13,"amoeba:rpole");
   memory->create(tq,nmax,3,"amoeba:tq");
 
   if (amoeba) {
     memory->create(red2local,nmax,"amoeba:red2local");
     memory->create(xred,nmax,3,"amoeba:xred");
   }
+
+  // note use of optorder+1 for uopt and uoptp
 
   memory->create(uind,nmax,3,"amoeba:uind");
   memory->create(uinp,nmax,3,"amoeba:uinp");
@@ -2191,12 +2263,48 @@ void PairAmoeba::grow_local()
     memory->create(fopt,nmax,optorder,10,"amoeba:fopt");
     memory->create(foptp,nmax,optorder,10,"amoeba:foptp");
   }
+
   memory->create(field,nmax,3,"amoeba:field");
   memory->create(fieldp,nmax,3,"amoeba:fieldp");
   memory->create(ufld,nmax,3,"amoeba:ufld");
   memory->create(dufld,nmax,6,"amoeba:dufld");
+  memory->create(rsd,nmax,3,"amoeba:rsd");
+  memory->create(rsdp,nmax,3,"amoeba:rsdp");
   memory->create(zrsd,nmax,3,"amoeba:zrsd");
   memory->create(zrsdp,nmax,3,"amoeba:zrsdp");
+
+  // multipole
+
+  memory->create(cmp,nmax,10,"ameoba/mpole:cmp");
+  memory->create(fmp,nmax,10,"ameoba/mpole:fmp");
+  memory->create(cphi,nmax,10,"ameoba/mpole:cphi");
+  memory->create(fphi,nmax,20,"ameoba/mpole:fphi");
+
+  // induce
+
+  memory->create(poli,nmax,"ameoba/induce:poli");
+  memory->create(conj,nmax,3,"ameoba/induce:conj");
+  memory->create(conjp,nmax,3,"ameoba/induce:conjp");
+  memory->create(vec,nmax,3,"ameoba/induce:vec");
+  memory->create(vecp,nmax,3,"ameoba/induce:vecp");
+  memory->create(udir,nmax,3,"ameoba/induce:udir");
+  memory->create(usum,nmax,3,"ameoba/induce:usum");
+  memory->create(usump,nmax,3,"ameoba/induce:usump");
+
+  memory->create(fuind,nmax,3,"ameoba/induce:fuind");
+  memory->create(fuinp,nmax,3,"ameoba/induce:fuinp");
+  memory->create(fdip_phi1,nmax,10,"ameoba/induce:fdip_phi1");
+  memory->create(fdip_phi2,nmax,10,"ameoba/induce:fdip_phi2");
+  memory->create(fdip_sum_phi,nmax,20,"ameoba/induce:fdip_dum_phi");
+  memory->create(dipfield1,nmax,3,"ameoba/induce:dipfield1");
+  memory->create(dipfield2,nmax,3,"ameoba/induce:dipfield2");
+
+  // polar
+
+  memory->create(fphid,nmax,10,"polar:fphid");
+  memory->create(fphip,nmax,10,"polar:fphip");
+  memory->create(fphidp,nmax,20,"polar:fphidp");
+  memory->create(cphidp,nmax,10,"polar:cphidp");
 
   if (use_ewald || use_dewald) {
     memory->create(thetai1,nmax,bsordermax,4,"amoeba:thetai1");
@@ -2218,5 +2326,70 @@ void PairAmoeba::grow_local()
     firstneigh_pcpc = (double **)
       memory->smalloc(nmax*sizeof(double *),"induce:firstneigh_pcpc");
   }
+}
+
+/* ----------------------------------------------------------------------
+   memory usage of local atom-based arrays and FFTs
+------------------------------------------------------------------------- */
+
+double PairAmoeba::memory_usage()
+{
+  double bytes = 0.0;
+
+  bytes += (double) 3 * nmax * sizeof(int);       // xyz axis2local
+  bytes += (double) 13 * nmax * sizeof(double);   // rpole
+  bytes += (double) 3 * nmax * sizeof(double);    // tq
+
+  if (amoeba) {
+    bytes += (double) nmax * sizeof(int);          // red22local
+    bytes += (double) 3 * nmax * sizeof(double);   // xred
+  }
+
+  bytes += (double) 9 * nmax * sizeof(double);         // uind/uinp/udirp
+  if (poltyp == OPT) {
+    bytes += (double) 6 * (optorder+1) * nmax * sizeof(double);   // uopt/uoptp
+    bytes += (double) 20 * optorder * nmax * sizeof(double);      // fopt/foptp
+  }
+
+  bytes += (double) 15 * nmax * sizeof(double);   // field/fieldp/ufld/dufld
+  bytes += (double) 12 * nmax * sizeof(double);   // rsd/rsdp/zrsd/zrsdp
+
+  bytes += (double) 50 * nmax * sizeof(double);   // cmp/fmp/cphi/fphi
+
+  bytes += (double) nmax * sizeof(double);        // poli
+  bytes += (double) 12 * nmax * sizeof(double);   // conj/conjp/vec/vecp
+  bytes += (double) 9 * nmax * sizeof(double);    // udir/usum/usump
+
+  bytes += (double) 6 * nmax * sizeof(double);    // fuind/fuinp
+  bytes += (double) 20 * nmax * sizeof(double);   // fdip_phi1/fdip_phi1
+  bytes += (double) 20 * nmax * sizeof(double);   // fdip_sum_phi
+  bytes += (double) 6 * nmax * sizeof(double);    // dipfield1/dipfield2
+
+  bytes += (double) 50 * nmax * sizeof(double);   // fphid/fphip/fphidp/cphidp
+
+  if (use_ewald || use_dewald) {
+    bytes += (double) 12 * bsordermax * nmax *sizeof(double);   // theta123
+    bytes += (double) 3 * nmax *sizeof(int);                    // igrid
+  }    
+
+  bytes += (double) nmax * sizeof(int);        // numneigh_dipole
+  bytes += (double) nmax * sizeof(int *);      // firstneigh_dipole
+  bytes += (double) nmax * sizeof(double *);   // firstneigh_dipdip
+  for (int i = 0; i < comm->nthreads; i++) {   // 2 neighbor lists
+    bytes += ipage_dipole[i].size();
+    bytes += dpage_dipdip[i].size();
+  }
+
+  if (poltyp == MUTUAL && pcgprec) {
+    bytes += (double) nmax * sizeof(int);        // numneigh_rpecond
+    bytes += (double) nmax * sizeof(int *);      // firstneigh_precond
+    bytes += (double) nmax * sizeof(double *);   // firstneigh_pcpc
+    for (int i = 0; i < comm->nthreads; i++) {   // 2 neighbor lists
+      bytes += ipage_precond[i].size();
+      bytes += dpage_pcpc[i].size();
+    }
+  }
+
+  return bytes;
 }
 

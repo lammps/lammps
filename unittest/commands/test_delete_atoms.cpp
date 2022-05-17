@@ -111,7 +111,7 @@ TEST_F(DeleteAtomsTest, Simple)
     ASSERT_EQ(atom->natoms, 392);
 
     HIDE_OUTPUT([&] {
-        command("delete_atoms partial fraction 0.5 yes all right 43252");
+        command("delete_atoms random fraction 0.5 yes all right 43252");
     });
     ASSERT_EQ(atom->natoms, 364);
 
@@ -122,22 +122,22 @@ TEST_F(DeleteAtomsTest, Simple)
     ASSERT_EQ(atom->natoms, 178);
 
     HIDE_OUTPUT([&] {
-        command("delete_atoms partial count 3 no bottom right 443252");
+        command("delete_atoms random count 3 no bottom right 443252");
     });
     ASSERT_EQ(atom->natoms, 175);
 
     HIDE_OUTPUT([&] {
-        command("delete_atoms partial count 50 no all NULL 434325");
+        command("delete_atoms random count 50 no all NULL 434325");
     });
     ASSERT_EQ(atom->natoms, 125);
 
     HIDE_OUTPUT([&] {
-        command("delete_atoms partial fraction 0.2 no all NULL 34325");
+        command("delete_atoms random fraction 0.2 no all NULL 34325");
     });
     ASSERT_EQ(atom->natoms, 104);
 
     HIDE_OUTPUT([&] {
-        command("delete_atoms partial count 50 no bottom right 77325");
+        command("delete_atoms random count 50 no bottom right 77325");
     });
     ASSERT_EQ(atom->natoms, 102);
 
@@ -146,16 +146,16 @@ TEST_F(DeleteAtomsTest, Simple)
     TEST_FAILURE(".*ERROR: Unknown delete_atoms sub-command: xxx.*", command("delete_atoms xxx"););
     TEST_FAILURE(".*ERROR: The delete_atoms 'porosity' keyword has been removed.*",
                  command("delete_atoms porosity 0.5 all right 4325234"););
-    TEST_FAILURE(".*ERROR: Illegal delete_atoms partial command: missing argument.*",
-                 command("delete_atoms partial count 50 bottom right 77325"););
-    TEST_FAILURE(".*ERROR: Illegal delete_atoms partial command: missing argument.*",
-                 command("delete_atoms partial fraction 0.4 bottom right 77325"););
-    TEST_FAILURE(".*ERROR: Delete_atoms partial count has invalid value: -5.*",
-                 command("delete_atoms partial count -5 no bottom right 77325"););
+    TEST_FAILURE(".*ERROR: Illegal delete_atoms random command: missing argument.*",
+                 command("delete_atoms random count 50 bottom right 77325"););
+    TEST_FAILURE(".*ERROR: Illegal delete_atoms random command: missing argument.*",
+                 command("delete_atoms random fraction 0.4 bottom right 77325"););
+    TEST_FAILURE(".*ERROR: Delete_atoms random count has invalid value: -5.*",
+                 command("delete_atoms random count -5 no bottom right 77325"););
     TEST_FAILURE(".*ERROR: Delete_atoms count of 5 exceeds number of eligible atoms 0.*",
-                 command("delete_atoms partial count 5 yes bottom right 77325"););
-    TEST_FAILURE(".*ERROR: Delete_atoms partial fraction has invalid value: -0.4.*",
-                 command("delete_atoms partial fraction -0.4 no bottom right 77325"););
+                 command("delete_atoms random count 5 yes bottom right 77325"););
+    TEST_FAILURE(".*ERROR: Delete_atoms random fraction has invalid value: -0.4.*",
+                 command("delete_atoms random fraction -0.4 no bottom right 77325"););
 }
 } // namespace LAMMPS_NS
 

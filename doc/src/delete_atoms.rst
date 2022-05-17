@@ -10,7 +10,7 @@ Syntax
 
    delete_atoms style args keyword value ...
 
-* style = *group* or *region* or *overlap* or *partial* or *variable*
+* style = *group* or *region* or *overlap* or *random* or *variable*
 
   .. parsed-literal::
 
@@ -20,14 +20,14 @@ Syntax
          cutoff = delete one atom from pairs of atoms within the cutoff (distance units)
          group1-ID = one atom in pair must be in this group
          group2-ID = other atom in pair must be in this group
-       *random* args = ranstyle value flag group-ID region-ID seed
+       *random* args = ranstyle value eflag group-ID region-ID seed
          ranstyle = *fraction* or *count*
            for *fraction*:
              value = fraction (0.0 to 1.0) of eligible atoms to delete
-             flag = no/off for fast approximate deletion, yes/on for exact deletion
+             eflag =  *no* for fast approximate deletion, *yes* for exact deletion
            for *count*:
              value = number of atoms to delete
-             flag = no/off for warning if count > eligible atoms, yes/on for error
+             eflag = *no* for warning if count > eligible atoms, *yes* for error
          group-ID = group within which to perform deletions
          region-ID = region within which to perform deletions
                      or NULL to only impose the group criterion
@@ -52,9 +52,9 @@ Examples
    delete_atoms region sphere compress no
    delete_atoms overlap 0.3 all all
    delete_atoms overlap 0.5 solvent colloid
-   delete_atoms random fraction 0.1 1 all cube 482793 bond yes
-   delete_atoms random fraction 0.3 0 polymer NULL 482793 bond yes
-   delete_atoms random count 500 0 ions NULL 482793
+   delete_atoms random fraction 0.1 yes all cube 482793 bond yes
+   delete_atoms random fraction 0.3 no polymer NULL 482793 bond yes
+   delete_atoms random count 500 no ions NULL 482793
    detele_atoms variable checkers
 
 Description
@@ -90,31 +90,31 @@ be deleted when running on different numbers of processors.
 
 For style *random* a subset of eligible atoms are deleted.  Which
 atoms to delete are chosen randomly using the specified random number
-*seed*.  In all cases, which atoms are deleted may vary when running
-on different numbers of processors.
+*seed*.  Which atoms are deleted may vary when running on different
+numbers of processors.
 
-For *ranstyle* = *fraction*, the specified fraction *value*(0.0 to 1.0) of
-eligible atoms are deleted.  If the *flag* is set to no/off/0, then the
-number of deleted atoms will be approximate, but the operation will
-always be fast.  If instead the *flag* is set to yes/on/1, then the
-number deleted will be match the requested fraction as close as
-possible, but for very large systems the selection of deleted atoms will
-take additional time to determine.
+For *ranstyle* = *fraction*, the specified fractional *value* (0.0 to
+1.0) of eligible atoms are deleted.  If *eflag* is set to *no*, then
+the number of deleted atoms will be approximate, but the operation
+will be fast.  If *eflag* is set to *yes*, then the number deleted
+will match the requested fraction, but for large systems the selection
+of deleted atoms may take additional time to determine.
 
 For *ranstyle* = *count*, the specified integer *value* is the number
-of eligible atoms are deleted.  If the *flag* is set to no/off/0, then
-if the requested number is larger then the number of eligible atoms, a
+of eligible atoms are deleted.  If *eflag* is set to *no*, then if the
+requested number is larger then the number of eligible atoms, a
 warning is issued and only the eligible atoms are deleted instead of
-the requested *value*.  If the *flag* is set to yes/on/1, an error is
-triggered instead and LAMMPS will exit.  For very large systems the
-selection of atoms to delete may take additional time same as for
-requesting the exact fraction with time as *pstyle* = *fraction*.
+the requested *value*.  If *eflag* is set to *yes*, an error is
+triggered instead and LAMMPS will exit.  For large systems the
+selection of atoms to delete may take additional time to determine,
+the same as for requesting an exact fraction with *pstyle* =
+*fraction*.
 
-Which atoms are eligible for deletion for style *partial* is determined
+Which atoms are eligible for deletion for style *random* is determined
 by the specified *group-ID* and *region-ID*.  To be eligible, an atom
 must be in both the specified group and region.  If *group-ID* = all,
-there is effectively no group criterion.  If *region-ID* is specified as
-NULL, no region criterion is imposed.
+there is effectively no group criterion.  If *region-ID* is specified
+as NULL, no region criterion is imposed.
 
 For style *variable*, all atoms for which the atom-style variable with
 the given name evaluates to non-zero will be deleted. Additional atoms

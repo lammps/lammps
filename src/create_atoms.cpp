@@ -276,11 +276,12 @@ void CreateAtoms::command(int narg, char **arg)
       iarg += 3;
     } else if (strcmp(arg[iarg], "radscale") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms radscale", error);
-      if ((style != MESH) && (mesh_style != BISECTION))
-        error->all(FLERR, "Create_atoms radscale can only be used with mesh style in bisect mode");
+      if (style != MESH)
+        error->all(FLERR, "Create_atoms radscale can only be used with mesh style");
       if (!atom->radius_flag)
         error->all(FLERR, "Must have atom attribute radius to set radscale factor");
       radscale = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      if (radscale <= 0.0) error->all(FLERR, "Illegal create_atoms radscale value: {}", radscale);
       iarg += 2;
     } else
       error->all(FLERR, "Illegal create_atoms command option {}", arg[iarg]);
@@ -975,6 +976,8 @@ int CreateAtoms::add_quasirandom(const double vert[3][3], tagint molid)
   MathExtra::cross3(ab, ac, temp);
   area = 0.5 * MathExtra::len3(temp);
   int nparticles = ceil(mesh_density * area);
+  // estimate radius from number of particles and area
+  double rad = sqrt(area/MY_PI/nparticles);
 
   for (int i = 0; i < nparticles; i++) {
     // Define point in unit square
@@ -1009,6 +1012,7 @@ int CreateAtoms::add_quasirandom(const double vert[3][3], tagint molid)
       atom->avec->create_atom(ntype, point);
       int idx = atom->nlocal - 1;
       if (atom->molecule_flag) atom->molecule[idx] = molid;
+      if (atom->radius_flag) atom->radius[idx] = rad * radscale;
     }
   }
 

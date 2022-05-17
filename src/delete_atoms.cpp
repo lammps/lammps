@@ -73,13 +73,13 @@ void DeleteAtoms::command(int narg, char **arg)
     delete_region(narg, arg);
   else if (strcmp(arg[0], "overlap") == 0)
     delete_overlap(narg, arg);
-  else if (strcmp(arg[0], "partial") == 0)
-    delete_partial(narg, arg);
+  else if (strcmp(arg[0], "random") == 0)
+    delete_random(narg, arg);
   // deprecated porosity option, now included in new partial option
   else if (strcmp(arg[0], "porosity") == 0) {
     error->all(FLERR,
                "The delete_atoms 'porosity' keyword has been removed.\n"
-               "Please use: delete_atoms partial fraction frac exact group-ID region-ID seed\n");
+               "Please use: delete_atoms random fraction frac exact group-ID region-ID seed\n");
   } else if (strcmp(arg[0], "variable") == 0)
     delete_variable(narg, arg);
   else
@@ -422,38 +422,38 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
    delete specified portion of atoms within group and/or region
 ------------------------------------------------------------------------- */
 
-void DeleteAtoms::delete_partial(int narg, char **arg)
+void DeleteAtoms::delete_random(int narg, char **arg)
 {
-  if (narg < 7) utils::missing_cmd_args(FLERR, "delete_atoms partial", error);
+  if (narg < 7) utils::missing_cmd_args(FLERR, "delete_atoms random", error);
 
-  int partial_style = UNKNOWN;
+  int random_style = UNKNOWN;
   bool exactflag = false;
   bool errorflag = false;
   bigint ncount = 0;
   double fraction = 0.0;
 
   if (strcmp(arg[1], "fraction") == 0) {
-    partial_style = FRACTION;
+    random_style = FRACTION;
     fraction = utils::numeric(FLERR, arg[2], false, lmp);
     exactflag = utils::logical(FLERR, arg[3], false, lmp);
     if (fraction < 0.0 || fraction > 1.0)
-      error->all(FLERR, "Delete_atoms partial fraction has invalid value: {}", fraction);
+      error->all(FLERR, "Delete_atoms random fraction has invalid value: {}", fraction);
   } else if (strcmp(arg[1], "count") == 0) {
-    partial_style = COUNT;
+    random_style = COUNT;
     ncount = utils::bnumeric(FLERR, arg[2], false, lmp);
     errorflag = utils::logical(FLERR, arg[3], false, lmp);
-    if (ncount < 0) error->all(FLERR, "Delete_atoms partial count has invalid value: {}", ncount);
+    if (ncount < 0) error->all(FLERR, "Delete_atoms random count has invalid value: {}", ncount);
     exactflag = true;
   } else {
-    error->all(FLERR, "Unknown delete_atoms partial style: {}", arg[1]);
+    error->all(FLERR, "Unknown delete_atoms random style: {}", arg[1]);
   }
 
   int igroup = group->find(arg[4]);
-  if (igroup == -1) error->all(FLERR, "Could not find delete_atoms partial group ID {}", arg[4]);
+  if (igroup == -1) error->all(FLERR, "Could not find delete_atoms random group ID {}", arg[4]);
 
   auto region = domain->get_region_by_id(arg[5]);
   if (!region && (strcmp(arg[5], "NULL") != 0))
-    error->all(FLERR, "Could not find delete_atoms partial region ID {}", arg[5]);
+    error->all(FLERR, "Could not find delete_atoms random region ID {}", arg[5]);
 
   int seed = utils::inumeric(FLERR, arg[6], false, lmp);
   options(narg - 7, &arg[7]);
@@ -476,7 +476,7 @@ void DeleteAtoms::delete_partial(int narg, char **arg)
 
   // delete approximate fraction of atoms in both group and region
 
-  if (partial_style == FRACTION && !exactflag) {
+  if (random_style == FRACTION && !exactflag) {
     for (int i = 0; i < nlocal; i++) {
       if (!(mask[i] & groupbit)) continue;
       if (region && !region->match(x[i][0], x[i][1], x[i][2])) continue;
@@ -504,9 +504,9 @@ void DeleteAtoms::delete_partial(int narg, char **arg)
     bigint allcount;
     MPI_Allreduce(&bcount, &allcount, 1, MPI_LMP_BIGINT, MPI_SUM, world);
 
-    if (partial_style == FRACTION) {
+    if (random_style == FRACTION) {
       ncount = static_cast<bigint>(fraction * allcount);
-    } else if (partial_style == COUNT) {
+    } else if (random_style == COUNT) {
       if (ncount > allcount) {
         auto mesg = fmt::format("Delete_atoms count of {} exceeds number of eligible atoms {}",
                                 ncount, allcount);

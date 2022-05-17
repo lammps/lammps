@@ -316,7 +316,7 @@ void PairAmoeba::compute(int eflag, int vflag)
 
   // if reneighboring step:
   // augment neighbor list to include 1-5 neighbor flags
-  // re-create xyz axis2local and red2local
+  // re-create red2local and xyz axis2local
   // re-create induce neighbor list
 
   if (neighbor->ago == 0) {
@@ -710,15 +710,9 @@ void PairAmoeba::init_style()
   index_redID = atom->find_custom("redID",flag,cols);
   if (index_redID < 0 || !flag || cols)
     error->all(FLERR,"Pair amoeba redID is not defined");
-  index_xaxis = atom->find_custom("xaxis",flag,cols);
-  if (index_xaxis < 0 || !flag || cols)
-    error->all(FLERR,"Pair amoeba xaxis is not defined");
-  index_yaxis = atom->find_custom("yaxis",flag,cols);
-  if (index_yaxis < 0 || !flag || cols)
-    error->all(FLERR,"Pair amoeba yaxis is not defined");
-  index_zaxis = atom->find_custom("zaxis",flag,cols);
-  if (index_zaxis < 0 || !flag || cols)
-    error->all(FLERR,"Pair amoeba zaxis is not defined");
+  index_xyzaxis = atom->find_custom("xyzaxis",flag,cols);
+  if (index_xyzaxis < 0 || !flag || cols == 0)
+    error->all(FLERR,"Pair amoeba xyzaxis is not defined");
 
   index_polaxe = atom->find_custom("polaxe",flag,cols);
   if (index_polaxe < 0 || flag || cols)
@@ -1995,11 +1989,8 @@ void PairAmoeba::mix()
   double TWOSIX = pow(2.0,1.0/6.0);
 
   for (i = 1; i <= n_amclass; i++) {
-
-    // printf("MIX i %d nclass %d eps %g sigma %g\n",
-    //        i,n_amclass,vdwl_eps[i],vdwl_sigma[i]);
-
     for (j = i; j <= n_amclass; j++) {
+
       ei = vdwl_eps[i];
       ej = vdwl_eps[j];
       ri = vdwl_sigma[i];
@@ -2099,21 +2090,43 @@ void *PairAmoeba::extract(const char *str, int &dim)
 
 /* ----------------------------------------------------------------------
   grow local vectors and arrays if necessary
-  keep them atom->nmax in length
-  NOTE: some of these do not need to grow unless nlocal > atom->nmax
-        these are ones that never store ghost values
-        could realloc them separately
-        e.g. thetai,igrid,fopt
+  some need space for ghost atoms, most do not
 ------------------------------------------------------------------------- */
 
 void PairAmoeba::grow_local()
 {
+  // only reallocate if nlocal > nmax
+
+  if (atom->nlocal > nmax) {
+  }
+
+
+
+    // forward/reverse comm, so ghost values
+    uind;
+    uinp;
+    uopt;
+    uoptp;
+    rsd;
+    rsdp;
+    xred;  // AMOEBA
+
+    memory->destroy(rsd);
+    memory->destroy(rsdp);
+    memory->create(rsd,nmax,3,"amoeba:rsd");
+    memory->create(rsdp,nmax,3,"amoeba:rsdp");
+
+
+    memory->destroy(rpole);
+    memory->create(rpole,nmax,13,"amoeba:rpole");
+
+  
+
   // free vectors and arrays
 
   memory->destroy(xaxis2local);
   memory->destroy(yaxis2local);
   memory->destroy(zaxis2local);
-  memory->destroy(rpole);
   memory->destroy(tq);
 
   if (amoeba) {
@@ -2134,8 +2147,6 @@ void PairAmoeba::grow_local()
   memory->destroy(fieldp);
   memory->destroy(ufld);
   memory->destroy(dufld);
-  memory->destroy(rsd);
-  memory->destroy(rsdp);
   memory->destroy(zrsd);
   memory->destroy(zrsdp);
 
@@ -2164,7 +2175,6 @@ void PairAmoeba::grow_local()
   memory->create(xaxis2local,nmax,"amoeba:xaxis2local");
   memory->create(yaxis2local,nmax,"amoeba:yaxis2local");
   memory->create(zaxis2local,nmax,"amoeba:zaxis2local");
-  memory->create(rpole,nmax,13,"amoeba:rpole");
   memory->create(tq,nmax,3,"amoeba:tq");
 
   if (amoeba) {
@@ -2185,8 +2195,6 @@ void PairAmoeba::grow_local()
   memory->create(fieldp,nmax,3,"amoeba:fieldp");
   memory->create(ufld,nmax,3,"amoeba:ufld");
   memory->create(dufld,nmax,6,"amoeba:dufld");
-  memory->create(rsd,nmax,3,"amoeba:rsd");
-  memory->create(rsdp,nmax,3,"amoeba:rsdp");
   memory->create(zrsd,nmax,3,"amoeba:zrsd");
   memory->create(zrsdp,nmax,3,"amoeba:zrsdp");
 
@@ -2212,96 +2220,3 @@ void PairAmoeba::grow_local()
   }
 }
 
-// ----------------------------------------------------------------------
-// debug output methods
-// ----------------------------------------------------------------------
-
-/* ----------------------------------------------------------------------
-   dump ID + 6 values from 2 (N,3) per-atom arrays
-   only proc 0 can write
-   file is already open
-------------------------------------------------------------------------- */
-
-void PairAmoeba::dump6(FILE *fp, const char *columns, double scale,
-                       double **a, double **b)
-{
-  int i,j,m;
-  MPI_Status status;
-  MPI_Request request;
-
-  // setup
-
-  int size_one = 7;
-  int nlocal = atom->nlocal;
-
-  char boundstr[9];          // encoding of boundary flags
-  domain->boundary_string(boundstr);
-
-  int maxlocal;
-  MPI_Allreduce(&nlocal,&maxlocal,1,MPI_INT,MPI_MAX,world);
-
-  double *buf;
-  memory->create(buf,maxlocal*size_one,"amoeba:buf");
-
-  // pack my data
-
-  tagint *tag = atom->tag;
-
-  m = 0;
-  for (i = 0; i < nlocal; i++) {
-    buf[m++] = tag[i];
-    buf[m++] = scale*a[i][0];
-    buf[m++] = scale*a[i][1];
-    buf[m++] = scale*a[i][2];
-    buf[m++] = scale*b[i][0];
-    buf[m++] = scale*b[i][1];
-    buf[m++] = scale*b[i][2];
-  }
-
-  // write file
-
-  if (me == 0) {
-    fprintf(fp,"ITEM: TIMESTEP\n");
-    fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
-    fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
-    fprintf(fp,BIGINT_FORMAT "\n",atom->natoms);
-    fprintf(fp,"ITEM: BOX BOUNDS %s\n",boundstr);
-    fprintf(fp,"%-1.16e %-1.16e\n",domain->boxlo[0],domain->boxhi[0]);
-    fprintf(fp,"%-1.16e %-1.16e\n",domain->boxlo[1],domain->boxhi[1]);
-    fprintf(fp,"%-1.16e %-1.16e\n",domain->boxlo[2],domain->boxhi[2]);
-    fprintf(fp,"ITEM: ATOMS %s\n",columns);
-  }
-
-  int nlines;
-  double tmp;
-
-  if (me == 0) {
-    for (int iproc = 0; iproc < nprocs; iproc++) {
-      if (iproc) {
-        MPI_Irecv(buf,maxlocal*size_one,MPI_DOUBLE,iproc,0,world,&request);
-        MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
-        MPI_Wait(&request,&status);
-        MPI_Get_count(&status,MPI_DOUBLE,&nlines);
-        nlines /= size_one;
-      } else nlines = nlocal;
-
-      m = 0;
-      for (i = 0; i < nlines; i++) {
-        for (j = 0; j < size_one; j++) {
-          if (j == 0) fprintf(fp,"%d",static_cast<tagint> (buf[m]));
-          else fprintf(fp," %g",buf[m]);
-          m++;
-        }
-        fprintf(fp,"\n");
-      }
-    }
-
-  } else {
-    MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
-    MPI_Rsend(buf,nlocal*size_one,MPI_DOUBLE,0,0,world);
-  }
-
-  // clean up
-
-  memory->destroy(buf);
-}

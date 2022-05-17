@@ -23,10 +23,6 @@
 #include "math_const.h"
 #include "memory.h"
 
-// DEBUG
-
-#include "error.h"
-
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -1436,8 +1432,6 @@ void PairAmoeba::polar_kspace()
     }
   }
 
-  //PRINT fuind
-
   // gridpre2 = my portion of 4d grid in brick decomp w/ ghost values
 
   double ****gridpre2 = (double ****) pc_kspace->zero();
@@ -1879,17 +1873,6 @@ void PairAmoeba::polar_kspace()
   // zeroed by zero()
 
   double ***gridpre = (double ***) p_kspace->zero();
-
-  // DEBUG
-
-  double psum = 0.0;
-  for (k = p_kspace->nzlo_out; k <= p_kspace->nzhi_out; k++) {
-    for (j = p_kspace->nylo_out; j <= p_kspace->nyhi_out; j++) {
-      for (i = p_kspace->nxlo_out; i <= p_kspace->nxhi_out; i++) {
-        psum += gridpre[k][j][i];
-      }
-    }
-  }
 
   // map atoms to grid
 

@@ -159,7 +159,7 @@ class PairAmoeba : public Pair {
   // static per-atom properties, must persist as atoms migrate
 
   int index_amtype,index_amgroup,index_redID;
-  int index_xaxis,index_yaxis,index_zaxis,index_polaxe,index_pval;
+  int index_xyzaxis,index_polaxe,index_pval;
 
   int *amtype;                    // AMOEBA type, 1 to N_amtype
   int *amgroup;                   // AMOEBA polarization group, 1 to Ngroup

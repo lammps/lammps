@@ -40,8 +40,6 @@ enum{GORDON1,GORDON2};
 
 #define DEBYE 4.80321    // conversion factor from q-Angs (real units) to Debye
 
-#define UIND_DEBUG 0
-
 /* ----------------------------------------------------------------------
    induce = induced dipole moments via pre-conditioned CG solver
    adapted from Tinker induce0a() routine
@@ -113,17 +111,6 @@ void PairAmoeba::induce()
   crstyle = FIELD;
   comm->reverse_comm(this);
 
-  // DEBUG statements
-
-  /*
-  for (i = 0; i < nlocal; i++)
-    if (atom->tag[i] == 1)
-      printf("AAA FIELD atom %d: field %g %g %g: fieldp %g %g %g\n",
-             atom->tag[i],
-             field[i][0],field[i][1],field[i][2],
-             fieldp[i][0],fieldp[i][1],fieldp[i][2]);
-  */
-
   // set induced dipoles to polarizability times direct field
 
   for (i = 0; i < nlocal; i++) {
@@ -137,17 +124,6 @@ void PairAmoeba::induce()
       }
     }
   }
-
-  // DEBUG statements
-
-  /*
-  for (i = 0; i < nlocal; i++)
-    if (atom->tag[i] == 1)
-      printf("AAA UDIR atom %d: udir %g %g %g: udirp %g %g %g\n",
-             atom->tag[i],
-             DEBYE*udir[i][0],DEBYE*udir[i][1],DEBYE*udir[i][2],
-             DEBYE*udirp[i][0],DEBYE*udirp[i][1],DEBYE*udirp[i][2]);
-  */
 
   // get induced dipoles via the OPT extrapolation method
   // NOTE: any way to rewrite these loops to avoid allocating
@@ -258,20 +234,6 @@ void PairAmoeba::induce()
     crstyle = FIELD;
     comm->reverse_comm(this);
 
-    // DEBUG statements
-
-    /*
-    for (i = 0; i < nlocal; i++)
-      if (atom->tag[i] == 1)
-        printf("UFIELD atom %d: uind %g %g %g uinp %g %g %g "
-               "field %g %g %g: fieldp %g %g %g\n",
-               atom->tag[i],
-               uind[i][0],uind[i][1],uind[i][2],
-               uinp[i][0],uinp[i][1],uinp[i][2],
-               field[i][0],field[i][1],field[i][2],
-               fieldp[i][0],fieldp[i][1],fieldp[i][2]);
-    */
-
     // set initial conjugate gradient residual and conjugate vector
 
     for (i = 0; i < nlocal; i++) {
@@ -307,20 +269,6 @@ void PairAmoeba::induce()
       }
     }
 
-    // DEBUG statements
-
-    /*
-    for (i = 0; i < nlocal; i++)
-      if (atom->tag[i] == 1)
-        printf("CONJ atom %d: rsd %g %g %g rsdp %g %g %g "
-               "conj %g %g %g: conjp %g %g %g\n",
-               atom->tag[i],
-               rsd[i][0],rsd[i][1],rsd[i][2],
-               rsdp[i][0],rsdp[i][1],rsdp[i][2],
-               conj[i][0],conj[i][1],conj[i][2],
-               conjp[i][0],conjp[i][1],conjp[i][2]);
-    */
-
     // conjugate gradient iteration of the mutual induced dipoles
 
     while (!done) {
@@ -344,19 +292,6 @@ void PairAmoeba::induce()
 
       crstyle = FIELD;
       comm->reverse_comm(this);
-
-      // DEBUG statements
-
-      /*
-      for (i = 0; i < nlocal; i++)
-        if (atom->tag[i] == 1)
-          printf("POST-COMM FIELD atom %d: field %g %g %g: fieldp %g %g %g\n",
-                 atom->tag[i],
-                 uind[i][0],uind[i][1],uind[i][2],
-                 uinp[i][0],uinp[i][1],uinp[i][2],
-                 field[i][0],field[i][1],field[i][2],
-                 fieldp[i][0],fieldp[i][1],fieldp[i][2]);
-      */
 
       for (i = 0; i < nlocal; i++) {
         for (j = 0; j < 3; j++) {
@@ -405,17 +340,6 @@ void PairAmoeba::induce()
         }
       }
 
-      // DEBUG statements
-
-      /*
-      for (i = 0; i < nlocal; i++)
-        if (atom->tag[i] == 1)
-          printf("POST-MPI UIND atom %d: uind %g %g %g: uinp %g %g %g\n",
-                 atom->tag[i],
-                 uind[i][0],uind[i][1],uind[i][2],
-                 uinp[i][0],uinp[i][1],uinp[i][2]);
-      */
-
       if (pcgprec) {
         cfstyle = RSD;
         comm->forward_comm(this);
@@ -423,20 +347,6 @@ void PairAmoeba::induce()
         crstyle = ZRSD;
         comm->reverse_comm(this);
       }
-
-      // DEBUG statements
-
-      /*
-      for (i = 0; i < nlocal; i++)
-        if (atom->tag[i] == 1)
-          printf("POST-PRECOND atom %d: rsd %g %g %g: rsdp %g %g %g "
-                 "zrsd %g %g %g: zrsdp %g %g %g\n",
-                 atom->tag[i],
-                 rsd[i][0],rsd[i][1],rsd[i][2],
-                 rsdp[i][0],rsdp[i][1],rsdp[i][2],
-                 zrsd[i][0],zrsd[i][1],zrsd[i][2],
-                 zrsdp[i][0],zrsdp[i][1],zrsdp[i][2]);
-      */
 
       b = 0.0;
       bp = 0.0;
@@ -483,31 +393,11 @@ void PairAmoeba::induce()
       eps = MAX(epsd,epsp);
       eps = DEBYE * sqrt(eps/atom->natoms);
 
-      /*
-      if (debug) {
-        if (comm->me == 0 && screen) {
-          fprintf(screen,"SCF induced dipole moments: "
-                  "iter %d, RMS residual (Debye) %g\n",iter,eps);
-        }
-      }
-      */
-
       if (eps < poleps) done = true;
       if (eps > epsold) done = true;
       if (iter >= politer) done = true;
 
       //  apply a "peek" iteration to the mutual induced dipoles
-
-      // DEBUG statements
-
-      /*
-      printf("DONE %d\n",done);
-      for (i = 0; i < nlocal; i++)
-        printf("PRE-DONE UIND atom %d: uind %g %g %g: uinp %g %g %g\n",
-               atom->tag[i],
-               uind[i][0],uind[i][1],uind[i][2],
-               uinp[i][0],uinp[i][1],uinp[i][2]);
-      */
 
       if (done) {
         for (i = 0; i < nlocal; i++) {
@@ -518,17 +408,6 @@ void PairAmoeba::induce()
           }
         }
       }
-
-      // DEBUG statements
-
-      /*
-      for (i = 0; i < nlocal; i++)
-        if (atom->tag[i] == 1)
-          printf("POST-DONE UIND atom %d: uind %g %g %g: uinp %g %g %g\n",
-                 atom->tag[i],
-                 DEBYE*uind[i][0],DEBYE*uind[i][1],DEBYE*uind[i][2],
-                 DEBYE*uinp[i][0],DEBYE*uinp[i][1],DEBYE*uinp[i][2]);
-      */
     }
 
     // terminate the calculation if dipoles failed to converge
@@ -538,11 +417,6 @@ void PairAmoeba::induce()
       if (me == 0)
         error->warning(FLERR,"AMOEBA induced dipoles did not converge");
   }
-
-  // DEBUG output to dump file
-
-  if (UIND_DEBUG)
-    dump6(fp_uind,"id uindx uindy uindz uinpx uinpy uinpz",DEBYE,uind,uinp);
 
   // deallocation of arrays
 
@@ -731,14 +605,6 @@ void PairAmoeba::ufield0c(double **field, double **fieldp)
       field[i][j] += term*uind[i][j];
       fieldp[i][j] += term*uinp[i][j];
     }
-
-    /*
-    // DEBUG
-
-    printf("UMUTUAL2B SELF i %d term %g aewald %g uind %g %g %g field %g %g %g\n",
-           atom->tag[i],term,aewald,
-           uind[i][0],uind[i][1],uind[i][2],field[i][0],field[i][1],field[i][2]);
-    */
   }
 }
 
@@ -939,18 +805,6 @@ void PairAmoeba::uscale0b(int mode, double **rsd, double **rsdp,
       pclist[3] = rr5*yr*yr - rr3;
       pclist[4] = rr5*yr*zr;
       pclist[5] = rr5*zr*zr - rr3;
-
-      // DEBUG
-
-      /*
-      printf("PCLIST: ij %d %d: pc1-6 %g %g %g %g %g %g\n",
-             atom->tag[i],atom->tag[j],
-             pclist[0],pclist[1],pclist[2],pclist[3],pclist[4],pclist[5]);
-      printf("  AMOEBA: scale35 %g %g pdamp %g thole %g "
-             "pgamma %g facUscale %g damp %g\n",
-             scale3,scale5,pdamp[jtype],thole[jtype],pgamma,factor_uscale,damp);
-      */
-
       pclist += 6;
     }
   }
@@ -1054,11 +908,6 @@ void PairAmoeba::umutual1(double **field, double **fieldp)
     }
   }
 
-  /*
-  printf("fuind %g %g %g \n",fuind[0][0],fuind[0][1],fuind[0][2]);
-  printf("fuinp %g %g %g \n",fuinp[0][0],fuinp[0][1],fuinp[0][2]);
-  */
-
   // gridpre = my portion of 4d grid in brick decomp w/ ghost values
 
   double ****gridpre = (double ****) ic_kspace->zero();
@@ -1105,16 +954,6 @@ void PairAmoeba::umutual1(double **field, double **fieldp)
   // get potential
 
   fphi_uind(gridpost,fdip_phi1,fdip_phi2,fdip_sum_phi);
-
-  // printf ("fdip_phi1_uind %g %g %g %g %g %g %g %g %g %g\n",
-  // fdip_phi1[0][0],
-  // fdip_phi1[0][1],fdip_phi1[0][2],fdip_phi1[0][3],fdip_phi1[0][4],fdip_phi1[0][5],
-  // fdip_phi1[0][6],fdip_phi1[0][7],fdip_phi1[0][8],fdip_phi1[0][9],fdip_phi1[0][10]);
-
-  // printf ("fdip_phi2_uind %g %g %g %g %g %g %g %g %g %g\n",
-  // fdip_phi2[0][0],
-  // fdip_phi2[0][1],fdip_phi2[0][2],fdip_phi2[0][3],fdip_phi2[0][4],fdip_phi2[0][5],
-  // fdip_phi2[0][6],fdip_phi2[0][7],fdip_phi2[0][8],fdip_phi2[0][9],fdip_phi2[0][10]);
 
   // store fractional reciprocal potentials for OPT method
 
@@ -1216,21 +1055,6 @@ void PairAmoeba::umutual2b(double **field, double **fieldp)
       fkp[0] = tdipdip[0]*uinpi[0] + tdipdip[1]*uinpi[1] + tdipdip[2]*uinpi[2];
       fkp[1] = tdipdip[1]*uinpi[0] + tdipdip[3]*uinpi[1] + tdipdip[4]*uinpi[2];
       fkp[2] = tdipdip[2]*uinpi[0] + tdipdip[4]*uinpi[1] + tdipdip[5]*uinpi[2];
-
-      // DEBUG
-
-      /*
-      if (atom->tag[i] == 1 || atom->tag[j] == 1) {
-        printf ("TDIPDIP ij %d %d: tdd %g %g %g %g %g %g\n",
-                atom->tag[i],atom->tag[j],
-                tdipdip[0],tdipdip[1],tdipdip[2],
-                tdipdip[3],tdipdip[4],tdipdip[5]);
-        printf ("FIDFKD ij %d %d: fid %g %g %g fkd %g %g %g\n",
-                atom->tag[i],atom->tag[j],
-                fid[0],fid[1],fid[2],
-                fkd[0],fkd[1],fkd[2]);
-      }
-      */
 
       tdipdip += 6;
 
@@ -1375,11 +1199,6 @@ void PairAmoeba::udirect1(double **field)
 
   fphi_mpole(gridpost,fphi);
 
-        // printf ("fphi %g %g %g %g %g %g %g %g %g %g %g %g\n",
-        //      fphi[1][1],fphi[1][2],fphi[1][3],fphi[1][4],fphi[1][5],
-  //   fphi[1][6],fphi[1][7],fphi[1][8],fphi[1][9],fphi[1][10],
-  //   fphi[1][11],fphi[1][12]);
-
   // convert the field from fractional to Cartesian
 
   fphi_to_cphi(fphi,cphi);
@@ -1450,7 +1269,7 @@ void PairAmoeba::udirect2b(double **field, double **fieldp)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // NOTE: doesn't this have a problem if aewald is tiny ??
+  // NOTE: does this have a problem if aewald is tiny ??
 
   aesq2 = 2.0 * aewald * aewald;
   aesq2n = 0.0;
@@ -1496,18 +1315,6 @@ void PairAmoeba::udirect2b(double **field, double **fieldp)
       vali = pval[i];
     }
 
-    // DEBUG
-
-    /*
-    if (atom->tag[i] == 4) {
-      printf("Atom 4 is in group %d\n",igroup);
-      printf("Atoms in same group:");
-      for (int ig = 0; ig < atom->nlocal; ig++)
-        if (amgroup[ig] == igroup) printf(" %d",atom->tag[ig]);
-      printf("\n");
-    }
-    */
-
     // evaluate all sites within the cutoff distance
 
     for (jj = 0; jj < jnum; jj++) {
@@ -1545,16 +1352,6 @@ void PairAmoeba::udirect2b(double **field, double **fieldp)
           factor_uscale = 1.0;
         }
       }
-
-      // DEBUG
-
-      /*
-      if (atom->tag[i] == 4 || atom->tag[j] == 4) {
-        printf("PAIR ij %d %d ij group %d %d wpdu scale %g %g %g %g\n",
-               atom->tag[i],atom->tag[j],igroup,jgroup,
-               factor_wscale,factor_pscale,factor_dscale,factor_uscale);
-      }
-      */
 
       r = sqrt(r2);
       rr1 = 1.0 / r;
@@ -1748,16 +1545,6 @@ void PairAmoeba::udirect2b(double **field, double **fieldp)
           rr3 = rr2 * rr1;
           rr3ik = bn[1] - (1.0-scalek*dmpik[2])*rr3;
           rr5ik = bn[2] - (1.0-scalek*dmpik[4])*rr5;
-
-          // DEBUG
-
-          /*
-          if (atom->tag[i] == 1 || atom->tag[j] == 1)
-            printf ("DAMPMUT ij %d %d: bn12 %g %g dmpik-01234 %g %g %g %g %g\n",
-                    atom->tag[i],atom->tag[j],
-                    bn[1],bn[2],
-                    dmpik[0],dmpik[1],dmpik[2],dmpik[3],dmpik[4]);
-          */
 
           neighptr[n++] = j;
           tdipdip[ndip++] = -rr3ik + rr5ik*xr*xr;

@@ -86,16 +86,16 @@ Description
 """""""""""
 
 This command creates atoms (or molecules) within the simulation box,
-either on a lattice, or a single atom (or molecule), or from a triangle
-mesh, or a random collection of atoms (or molecules).  It is an
-alternative to reading in atom coordinates explicitly via a
-:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
-command.  A simulation box must already exist, which is typically
-created via the :doc:`create_box <create_box>` command.  Before using
-this command, a lattice must also be defined using the :doc:`lattice
-<lattice>` command, unless you specify the *single* style with
-units = box or the *random* style.  For the remainder of this doc page,
-a created atom or molecule is referred to as a "particle".
+either on a lattice, or a single atom (or molecule), or on a surface
+defined by a triangulated mesh, or a random collection of atoms (or
+molecules).  It is an alternative to reading in atom coordinates
+explicitly via a :doc:`read_data <read_data>` or :doc:`read_restart
+<read_restart>` command.  A simulation box must already exist, which is
+typically created via the :doc:`create_box <create_box>` command.
+Before using this command, a lattice must also be defined using the
+:doc:`lattice <lattice>` command, unless you specify the *single* style
+with units = box or the *random* style.  For the remainder of this doc
+page, a created atom or molecule is referred to as a "particle".
 
 If created particles are individual atoms, they are assigned the
 specified atom *type*, though this can be altered via the *basis*
@@ -143,13 +143,12 @@ supports both ASCII and binary files conforming to the format on the
 Wikipedia page.  Binary STL files (e.g. as frequently offered for
 3d-printing) can also be first converted to ASCII for editing with the
 :ref:`stl_bin2txt tool <stlconvert>`.  The use of the *units box* option
-is required. There are two algorithms for placing atoms available:
+is required. There are two algorithms available for placing atoms:
 *bisect* and *qrand*. They can be selected via the *meshmode* option;
-*bisect* is the default.  If the atom style allows one to set a per-atom
-radius, this radius is set to the average distance of the triangle
-vertices from its center times the value of the *radscale* keyword
-(default: 1.0).  If the atom style supports it, the atoms created from
-the mesh are assigned a new molecule ID.
+*bisect* is the default.  If the atom style allows it, the radius will
+be set to a value depending on the algorithm and the value of the
+*radscale* parameter (see below), and the atoms created from the mesh
+are assigned a new molecule ID.
 
 In *bisect* mode a particle is created at the center of each triangle
 unless the average distance of the triangle vertices from its center is
@@ -158,13 +157,17 @@ x-direction).  In case the average distance is over the threshold, the
 triangle is recursively split into two halves along the the longest side
 until the threshold is reached. There will be at least one sphere per
 triangle. The value of *radthresh* is set as an argument to *meshmode
-bisect*.
+bisect*.  The average distance of the vertices from the center is also
+used to set the radius.
 
-In *qrand* mode a quasirandom sequence is used to distribute particles
+In *qrand* mode a quasi-random sequence is used to distribute particles
 on mesh triangles using an approach by :ref:`(Roberts) <Roberts2019>`.
-Particles are added to the triangle until the minimum number density is met
-or exceeded such that every triangle will have at least one particle.
-The minimum number density is set as an argument to the *qrand* option.
+Particles are added to the triangle until the minimum number density is
+met or exceeded such that every triangle will have at least one
+particle.  The minimum number density is set as an argument to the
+*qrand* option.  The radius will be set so that the sum of the area of
+the radius of the particles created in place of a triangle will be equal
+to the area of that triangle.
 
 .. note::
 
@@ -173,6 +176,16 @@ The minimum number density is set as an argument to the *qrand* option.
    recommended to pre-process STL files to optimize the mesh
    accordingly.  There are multiple open source and commercial software
    tools available with the capability to generate optimized meshes.
+
+.. note::
+
+   In most cases the atoms created in *mesh* style will become an
+   immobile or rigid object that would not be time integrated or moved
+   by :doc:`fix move <fix_move>` or :doc:`fix rigid <fix_rigid>`.  For
+   computational efficiency *and* to avoid undesired contributions to
+   pressure and potential energy due to close contacts, it is usually
+   beneficial to exclude computing interactions between the created
+   particles using :doc:`neigh_modify exclude <neigh_modify>`.
 
 For the *random* style, *N* particles are added to the system at
 randomly generated coordinates, which can be useful for generating an
@@ -371,11 +384,12 @@ the atoms around the rotation axis is consistent with the right-hand
 rule: if your right-hand's thumb points along *R*, then your fingers
 wrap around the axis in the direction of rotation.
 
-The *radiusscale* keyword only applies to the *mesh* style and allows to
-adjust the radius of created particles, provided this is supported by
-the atom style.  Its value is a scaling factor (default: 1.0) that is
-applied to the radius inferred from the size of the individual triangles
-in the triangle mesh that the particle corresponds to.
+The *radscale* keyword only applies to the *mesh* style and adjusts the
+radius of created particles (see above), provided this is supported by
+the atom style.  Its value is a prefactor (must be > 0.0, default is
+1.0) that is applied to the atom radius inferred from the size of the
+individual triangles in the triangle mesh that the particle corresponds
+to.
 
 The *overlap* keyword only applies to the *random* style.  It prevents
 newly created particles from being created closer than the specified

@@ -333,13 +333,6 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-KokkosLMP::~KokkosLMP()
-{
-
-}
-
-/* ---------------------------------------------------------------------- */
-
 void KokkosLMP::initialize(Kokkos::InitArguments args, Error *error)
 {
   if (!Kokkos::is_initialized()) {

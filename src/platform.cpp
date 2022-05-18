@@ -673,7 +673,7 @@ bool platform::is_console(FILE *fp)
 
 std::string platform::current_directory()
 {
-  std::string cwd = "";
+  std::string cwd;
 
 #if defined(_WIN32)
   char *buf = new char[MAX_PATH];

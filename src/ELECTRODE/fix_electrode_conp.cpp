@@ -1105,7 +1105,7 @@ void FixElectrodeConp::write_to_file(FILE *file, const std::vector<tagint> &tags
 
 /*----------------------------------------------------------------------- */
 
-void FixElectrodeConp::read_from_file(std::string input_file, double **array,
+void FixElectrodeConp::read_from_file(const std::string& input_file, double **array,
                                       const std::string &filetype)
 {
   if (comm->me == 0) {

@@ -88,7 +88,7 @@ examples/ directory.
 The prefactor :math:`\epsilon` can be thought of as an
 effective Hamaker constant with energy units for the strength of the
 ellipsoid-wall interaction.  More specifically, the :math:`\epsilon`
-pre-factor is
+prefactor is
 
 .. math::
 

@@ -142,7 +142,8 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
 
   if (strchr(filename,'*')) multifile = 1;
 
-  if (utils::strmatch(filename, "\\.bin$")) binary = 1;
+  if (utils::strmatch(filename, "\\.bin$")
+      || utils::strmatch(filename, "\\.lammpsbin$")) binary = 1;
   if (platform::has_compress_extension(filename)) compressed = 1;
 }
 

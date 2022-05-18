@@ -434,7 +434,6 @@ void FixGLE::init_gles()
   delete[] rootCT;
   delete[] news;
   delete[] newg;
-  return;
 }
 
 /* ---------------------------------------------------------------------- */

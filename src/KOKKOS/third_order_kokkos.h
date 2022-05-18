@@ -30,7 +30,7 @@ namespace LAMMPS_NS {
 class ThirdOrderKokkos : public ThirdOrder {
  public:
   ThirdOrderKokkos(class LAMMPS *);
-  ~ThirdOrderKokkos() override;
+
   void command(int, char **) override;
   void setup();
 

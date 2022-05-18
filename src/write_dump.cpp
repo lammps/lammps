@@ -17,12 +17,13 @@
 ------------------------------------------------------------------------- */
 
 #include "write_dump.h"
-#include "style_dump.h"  // IWYU pragma: keep
 
 #include "comm.h"
 #include "dump.h"
+#include "dump_cfg.h"
 #include "dump_image.h"
 #include "error.h"
+#include "output.h"
 #include "update.h"
 
 #include <cstring>
@@ -45,29 +46,16 @@ void WriteDump::command(int narg, char **arg)
   // create the Dump instance
   // create dump command line with extra required args
 
-  Dump *dump = nullptr;
-
   auto dumpargs = new char*[modindex+2];
   dumpargs[0] = (char *) "WRITE_DUMP"; // dump id
   dumpargs[1] = arg[0];                // group
   dumpargs[2] = arg[1];                // dump style
-  dumpargs[3] = (char *) "1";          // dump frequency
+  std::string ntimestep = std::to_string(MAX(update->ntimestep,1));
+  dumpargs[3] = (char *) ntimestep.c_str();          // dump frequency
 
-  for (int i = 2; i < modindex; ++i)
-    dumpargs[i+2] = arg[i];
+  for (int i = 2; i < modindex; ++i) dumpargs[i+2] = arg[i];
 
-  if (false) {      // NOLINT
-    return;         // dummy branch to enable else-if macro expansion
-
-#define DUMP_CLASS
-#define DumpStyle(key,Class) \
-  } else if (strcmp(arg[1],#key) == 0) { \
-    dump = new Class(lmp,modindex+2,dumpargs);
-#include "style_dump.h"  // IWYU pragma: keep
-#undef DUMP_CLASS
-
-  } else error->all(FLERR,utils::check_packages_for_style("dump",arg[1],lmp));
-
+  Dump *dump = output->add_dump(modindex+2, dumpargs);
   if (modindex < narg) dump->modify_params(narg-modindex-1,&arg[modindex+1]);
 
   // write out one frame and then delete the dump again
@@ -87,6 +75,6 @@ void WriteDump::command(int narg, char **arg)
 
   // delete the Dump instance and local storage
 
-  delete dump;
+  output->delete_dump(dumpargs[0]);
   delete[] dumpargs;
 }

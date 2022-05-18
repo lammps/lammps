@@ -15,6 +15,10 @@ execute_process(
 )
 
 file(GLOB lib-pace ${CMAKE_BINARY_DIR}/lammps-user-pace-*)
+# enforce building libyaml-cpp as static library and turn off optional features
+set(YAML_BUILD_SHARED_LIBS OFF)
+set(YAML_CPP_BUILD_CONTRIB OFF)
+set(YAML_CPP_BUILD_TOOLS OFF)
 add_subdirectory(${lib-pace}/yaml-cpp build-yaml-cpp)
 set(YAML_CPP_INCLUDE_DIR ${lib-pace}/yaml-cpp/include)
 

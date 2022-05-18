@@ -36,7 +36,7 @@ class ComputeClusterAtom : public Compute {
   double memory_usage() override;
 
  private:
-  int nmax, commflag;
+  int nmax;
   double cutsq;
   class NeighList *list;
   double *clusterID;

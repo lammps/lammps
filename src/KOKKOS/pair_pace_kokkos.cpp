@@ -84,11 +84,13 @@ PairPACEKokkos<DeviceType>::~PairPACEKokkos()
 
   // deallocate views of views in serial to prevent issues in Kokkos tools
 
-  for (int i = 0; i < nelements; i++) {
-    for (int j = 0; j < nelements; j++) {
-      k_splines_gk.h_view(i, j).deallocate();
-      k_splines_rnl.h_view(i, j).deallocate();
-      k_splines_hc.h_view(i, j).deallocate();
+  if (k_splines_gk.h_view.data()) {
+    for (int i = 0; i < nelements; i++) {
+      for (int j = 0; j < nelements; j++) {
+        k_splines_gk.h_view(i, j).deallocate();
+        k_splines_rnl.h_view(i, j).deallocate();
+        k_splines_hc.h_view(i, j).deallocate();
+      }
     }
   }
 }
@@ -100,7 +102,7 @@ void PairPACEKokkos<DeviceType>::grow(int natom, int maxneigh)
 {
   auto basis_set = aceimpl->basis_set;
 
-  if (A.extent(0) < natom) {
+  if ((int)A.extent(0) < natom) {
 
     memoryKK->realloc_kokkos(A, "pace:A", natom, nelements, nradmax + 1, (lmax + 1) * (lmax + 1));
     memoryKK->realloc_kokkos(A_rank1, "pace:A_rank1", natom, nelements, nradbase);
@@ -122,7 +124,7 @@ void PairPACEKokkos<DeviceType>::grow(int natom, int maxneigh)
     memoryKK->realloc_kokkos(dB_flatten, "pace:dB_flatten", natom, idx_rho_max, basis_set->rankmax);
   }
 
-  if (ylm.extent(0) < natom || ylm.extent(1) < maxneigh) {
+  if (((int)ylm.extent(0) < natom) || ((int)ylm.extent(1) < maxneigh)) {
 
     // radial functions
     memoryKK->realloc_kokkos(fr, "pace:fr", natom, maxneigh, nradmax, lmax + 1);
@@ -179,7 +181,7 @@ void PairPACEKokkos<DeviceType>::copy_pertype()
 
     h_E0vals(n)= basis_set->E0vals(n);
 
-    const int ndensity = h_ndensity(n) = basis_set->map_embedding_specifications.at(n).ndensity;
+    h_ndensity(n) = basis_set->map_embedding_specifications.at(n).ndensity;
 
     string npoti = basis_set->map_embedding_specifications.at(n).npoti;
     if (npoti == "FinnisSinclair")
@@ -853,7 +855,6 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeAi, const typenam
   int ii = team.team_rank() + team.team_size() * (team.league_rank() %
            ((chunk_size+team.team_size()-1)/team.team_size()));
   if (ii >= chunk_size) return;
-  const int i = d_ilist[ii + chunk_offset];
 
   // Extract the neighbor number
   const int jj = team.league_rank() / ((chunk_size+team.team_size()-1)/team.team_size());
@@ -887,8 +888,6 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairPACEKokkos<DeviceType>::operator() (TagPairPACEConjugateAi, const int& ii) const
 {
-  const int i = d_ilist[ii + chunk_offset];
-
   //complex conjugate A's (for NEGATIVE (-m) terms)
   // for rank > 1
   for (int mu_j = 0; mu_j < nelements; mu_j++) {
@@ -1081,8 +1080,6 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeDerivative, const
 
   const int itype = type(i);
   const double scale = d_scale(itype,itype);
-
-  int j = d_nearest(ii,jj);
 
   const int mu_j = d_mu(ii, jj);
   double r_hat[3];
@@ -1553,8 +1550,9 @@ void PairPACEKokkos<DeviceType>::FS_values_and_derivatives(const int ii, double 
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairPACEKokkos<DeviceType>::evaluate_splines(const int ii, const int jj, double r, int nradbase_c, int nradial_c, int mu_i,
-                                                  int mu_j) const
+void PairPACEKokkos<DeviceType>::evaluate_splines(const int ii, const int jj, double r,
+                                                  int /*nradbase_c*/, int /*nradial_c*/,
+                                                  int mu_i, int mu_j) const
 {
   auto &spline_gk = k_splines_gk.template view<DeviceType>()(mu_i, mu_j);
   auto &spline_rnl = k_splines_rnl.template view<DeviceType>()(mu_i, mu_j);
@@ -1563,8 +1561,8 @@ void PairPACEKokkos<DeviceType>::evaluate_splines(const int ii, const int jj, do
   spline_gk.calcSplines(ii, jj, r, gr, dgr);
 
   spline_rnl.calcSplines(ii, jj, r, d_values, d_derivatives);
-  for (int kk = 0; kk < fr.extent(2); kk++) {
-    for (int ll = 0; ll < fr.extent(3); ll++) {
+  for (int kk = 0; kk < (int)fr.extent(2); kk++) {
+    for (int ll = 0; ll < (int)fr.extent(3); ll++) {
       const int flatten = kk*fr.extent(3) + ll;
       fr(ii, jj, kk, ll) = d_values(ii, jj, flatten);
       dfr(ii, jj, kk, ll) = d_derivatives(ii, jj, flatten);
@@ -1704,9 +1702,15 @@ double PairPACEKokkos<DeviceType>::memory_usage()
   bytes += memoryKK->memory_usage(cl);
   bytes += memoryKK->memory_usage(dl);
 
-  for (int i = 0; i < nelements; i++)
-    for (int j = 0; j < nelements; j++)
-      bytes += k_splines_gk.h_view(i, j).memory_usage();
+  if (k_splines_gk.h_view.data()) {
+    for (int i = 0; i < nelements; i++) {
+      for (int j = 0; j < nelements; j++) {
+        bytes += k_splines_gk.h_view(i, j).memory_usage();
+        bytes += k_splines_rnl.h_view(i, j).memory_usage();
+        bytes += k_splines_hc.h_view(i, j).memory_usage();
+      }
+    }
+  }
 
   return bytes;
 }

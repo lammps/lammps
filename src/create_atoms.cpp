@@ -193,8 +193,7 @@ void CreateAtoms::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg], "var") == 0) {
       if (style == SINGLE)
-        error->all(FLERR,
-                   "Illegal create_atoms command: cannot use 'var' keyword with 'single' style!");
+        error->all(FLERR, "Cannot use 'var' keyword with 'single' style for create_atoms");
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms var", error);
       delete[] vstr;
       vstr = utils::strdup(arg[iarg + 1]);

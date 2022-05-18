@@ -144,7 +144,7 @@ static char *dupstring(const std::string &text)
     return copy;
 }
 
-static int save_history(std::string range, std::string file)
+static int save_history(const std::string &range, const std::string &file)
 {
     int from = history_base;
     int to   = from + history_length - 1;

@@ -384,7 +384,6 @@ class PairReaxFFKokkos : public PairReaxFF {
  protected:
   void allocate();
   void allocate_array();
-  void deallocate_array();
   void setup();
   void init_md();
   int Init_Lookup_Tables();

@@ -27,7 +27,8 @@ try:
     from yaml import CSafeLoader as Loader
   except ImportError:
     from yaml import SafeLoader as Loader
-except ImportError: 
+except ImportError:
+  # ignore here, raise an exception when trying to parse yaml instead
   pass
 
 class LogFile:
@@ -70,11 +71,11 @@ class LogFile:
                     current_run[k] = []
 
             elif re.match(r'^(keywords:.*$|data:$|---$|  - \[.*\]$)', line):
+                if not has_yaml:
+                  raise Exception('Cannot process YAML format logs without the PyYAML Python module')
                 style = LogFile.STYLE_YAML
                 yamllog += line;
                 current_run = {}
-                if not has_yaml:
-                  raise Exception('Cannot process YAML format logs without the PyYAML Python module')
 
             elif re.match(r'^\.\.\.$', line):
                 thermo = yaml.load(yamllog, Loader=Loader)

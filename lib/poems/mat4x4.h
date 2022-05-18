@@ -28,7 +28,7 @@ class Mat4x4 : public VirtualMatrix  {
   double elements[4][4];
 public:
   Mat4x4();
-  ~Mat4x4();
+  ~Mat4x4() = default;
   Mat4x4(const Mat4x4& A);  // copy constructor
   Mat4x4(const VirtualMatrix& A);  // copy constructor
 

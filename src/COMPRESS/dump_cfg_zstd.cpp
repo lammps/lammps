@@ -35,10 +35,6 @@ DumpCFGZstd::DumpCFGZstd(LAMMPS *lmp, int narg, char **arg) : DumpCFG(lmp, narg,
   if (!compressed) error->all(FLERR, "Dump cfg/zstd only writes compressed files");
 }
 
-/* ---------------------------------------------------------------------- */
-
-DumpCFGZstd::~DumpCFGZstd() {}
-
 /* ----------------------------------------------------------------------
    generic opening of a dump file
    ASCII or binary or compressed
@@ -58,19 +54,7 @@ void DumpCFGZstd::openfile()
   if (multiproc) filecurrent = multiname;
 
   if (multifile) {
-    char *filestar = filecurrent;
-    filecurrent = new char[strlen(filestar) + 16];
-    char *ptr = strchr(filestar, '*');
-    *ptr = '\0';
-    if (padflag == 0)
-      sprintf(filecurrent, "%s" BIGINT_FORMAT "%s", filestar, update->ntimestep, ptr + 1);
-    else {
-      char bif[8], pad[16];
-      strcpy(bif, BIGINT_FORMAT);
-      sprintf(pad, "%%s%%0%d%s%%s", padflag, &bif[1]);
-      sprintf(filecurrent, pad, filestar, update->ntimestep, ptr + 1);
-    }
-    *ptr = '*';
+    filecurrent = utils::strdup(utils::star_subst(filecurrent, update->ntimestep, padflag));
     if (maxfiles > 0) {
       if (numfiles < maxfiles) {
         nameslist[numfiles] = utils::strdup(filecurrent);
@@ -121,16 +105,16 @@ void DumpCFGZstd::write_header(bigint n)
     scale = UNWRAPEXPAND;
 
   std::string header = fmt::format("Number of particles = {}\n", n);
-  header += fmt::format("A = {0:g} Angstrom (basic length-scale)\n", scale);
-  header += fmt::format("H0(1,1) = {0:g} A\n", domain->xprd);
-  header += fmt::format("H0(1,2) = 0 A \n");
-  header += fmt::format("H0(1,3) = 0 A \n");
-  header += fmt::format("H0(2,1) = {0:g} A \n", domain->xy);
-  header += fmt::format("H0(2,2) = {0:g} A\n", domain->yprd);
-  header += fmt::format("H0(2,3) = 0 A \n");
-  header += fmt::format("H0(3,1) = {0:g} A \n", domain->xz);
-  header += fmt::format("H0(3,2) = {0:g} A \n", domain->yz);
-  header += fmt::format("H0(3,3) = {0:g} A\n", domain->zprd);
+  header += fmt::format("A = {:g} Angstrom (basic length-scale)\n", scale);
+  header += fmt::format("H0(1,1) = {:g} A\n", domain->xprd);
+  header += fmt::format("H0(1,2) = 0 A\n");
+  header += fmt::format("H0(1,3) = 0 A\n");
+  header += fmt::format("H0(2,1) = {:g} A\n", domain->xy);
+  header += fmt::format("H0(2,2) = {:g} A\n", domain->yprd);
+  header += fmt::format("H0(2,3) = 0 A\n");
+  header += fmt::format("H0(3,1) = {:g} A\n", domain->xz);
+  header += fmt::format("H0(3,2) = {:g} A\n", domain->yz);
+  header += fmt::format("H0(3,3) = {:g} A\n", domain->zprd);
   header += fmt::format(".NO_VELOCITY.\n");
   header += fmt::format("entry_count = {}\n", nfield - 2);
   for (int i = 0; i < nfield - 5; i++) header += fmt::format("auxiliary[{}] = {}\n", i, auxname[i]);
@@ -233,17 +217,11 @@ int DumpCFGZstd::modify_param(int narg, char **arg)
     try {
       if (strcmp(arg[0], "checksum") == 0) {
         if (narg < 2) error->all(FLERR, "Illegal dump_modify command");
-        if (strcmp(arg[1], "yes") == 0)
-          writer.setChecksum(true);
-        else if (strcmp(arg[1], "no") == 0)
-          writer.setChecksum(false);
-        else
-          error->all(FLERR, "Illegal dump_modify command");
+        writer.setChecksum(utils::logical(FLERR, arg[1], false, lmp) == 1);
         return 2;
       } else if (strcmp(arg[0], "compression_level") == 0) {
         if (narg < 2) error->all(FLERR, "Illegal dump_modify command");
-        int compression_level = utils::inumeric(FLERR, arg[1], false, lmp);
-        writer.setCompressionLevel(compression_level);
+        writer.setCompressionLevel(utils::inumeric(FLERR, arg[1], false, lmp));
         return 2;
       }
     } catch (FileWriterException &e) {

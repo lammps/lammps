@@ -320,7 +320,7 @@ struct potdata2 {
     tdeppot.devol0 = maketempspline(ntemp,potlist,&(potlist[0].devol0));
 
 
-    tdeppot.ddl[0] = 0;
+    tdeppot.ddl[0] = nullptr;
     for(int k = 1; k<=4; k++)
       tdeppot.ddl[k] = maketempspline(ntemp,potlist,&(potlist[0].ddl[k]));
 

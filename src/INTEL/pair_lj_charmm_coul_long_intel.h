@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -34,10 +33,9 @@ class PairLJCharmmCoulLongIntel : public PairLJCharmmCoulLong {
 
  public:
   PairLJCharmmCoulLongIntel(class LAMMPS *);
-  virtual ~PairLJCharmmCoulLongIntel();
 
-  virtual void compute(int, int);
-  void init_style();
+  void compute(int, int) override;
+  void init_style() override;
 
   typedef struct {
     float x, y, z;
@@ -91,16 +89,3 @@ class PairLJCharmmCoulLongIntel : public PairLJCharmmCoulLong {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: The 'package intel' command is required for /intel styles
-
-Self-explanatory.
-
-E: Intel variant of lj/charmm/coul/long expects lj cutoff<=coulombic
-
-The intel accelerated version of the CHARMM style requires that the
-Lennard-Jones cutoff is not greater than the coulombic cutoff.
-
-*/

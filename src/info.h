@@ -29,7 +29,7 @@ namespace LAMMPS_NS {
 class Info : public Command {
  public:
   Info(class LAMMPS *lmp) : Command(lmp){};
-  void command(int, char **);
+  void command(int, char **) override;
 
   bool is_active(const char *, const char *);
   bool is_defined(const char *, const char *);
@@ -49,13 +49,6 @@ class Info : public Command {
                                       const std::string &);
   static bool has_gpu_device();
   static std::string get_gpu_device_info();
-
-  static std::string get_os_info();
-  static std::string get_compiler_info();
-  static std::string get_openmp_info();
-  static std::string get_mpi_vendor();
-  static std::string get_mpi_info(int &, int &);
-  static std::string get_cxx_info();
   static std::string get_accelerator_info(const std::string &pkg = "");
 
   void get_memory_info(double *);
@@ -84,36 +77,3 @@ class Info : public Command {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-W: Ignoring unknown or incorrect info command flag
-
-Self-explanatory.  An unknown argument was given to the info command.
-Compare your input with the documentation.
-
-E: Unknown name for info package category
-
-Self-explanatory.
-
-E: Unknown name for info newton category
-
-Self-explanatory.
-
-E: Unknown name for info pair category
-
-Self-explanatory.
-
-E: Unknown category for info is_active()
-
-Self-explanatory.
-
-E: Unknown category for info is_available()
-
-Self-explanatory.
-
-E: Unknown category for info is_defined()
-
-Self-explanatory.
-
-*/

@@ -27,22 +27,22 @@ namespace LAMMPS_NS {
 class FixPolarizeBEMGMRES : public Fix {
  public:
   FixPolarizeBEMGMRES(class LAMMPS *, int, char **);
-  ~FixPolarizeBEMGMRES();
-  virtual int setmask();
-  virtual void init();
-  virtual void setup(int);
-  virtual void pre_force(int);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  virtual double compute_vector(int);
+  ~FixPolarizeBEMGMRES() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void pre_force(int) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  double compute_vector(int) override;
 
-  int modify_param(int, char **);
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  void set_arrays(int);
+  int modify_param(int, char **) override;
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
   virtual void allocate();
   virtual void deallocate();
 
@@ -81,6 +81,7 @@ class FixPolarizeBEMGMRES : public Fix {
   int randomized;       // 1 if generating random induced charges, 0 otherwise
   double ave_charge;    // average random charge
   int seed_charge;
+  double epsilon0e2q;    // convert epsilon0 times efield to unit of charge per area
 
   double *c, *g, *h, *r, *s, *v, *y;    // vectors used by the solver
   double *rhs;                          // right-hand side vector of the equation Ax = b
@@ -108,13 +109,3 @@ class FixPolarizeBEMGMRES : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

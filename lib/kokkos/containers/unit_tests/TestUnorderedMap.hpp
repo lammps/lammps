@@ -294,11 +294,7 @@ void test_deep_copy(uint32_t num_nodes) {
   }
 }
 
-// FIXME_SYCL wrong results on Nvidia GPUs but correct on Host and Intel GPUs
-// FIXME_HIP
-// WORKAROUND MSVC
-#if !(defined(KOKKOS_ENABLE_HIP) && (HIP_VERSION < 401)) && \
-    !defined(_WIN32) && !defined(KOKKOS_ENABLE_SYCL)
+#if !defined(_WIN32)
 TEST(TEST_CATEGORY, UnorderedMap_insert) {
   for (int i = 0; i < 500; ++i) {
     test_insert<TEST_EXECSPACE>(100000, 90000, 100, true);
@@ -327,6 +323,23 @@ TEST(TEST_CATEGORY, UnorderedMap_valid_empty) {
   Kokkos::deep_copy(n, m);
   ASSERT_TRUE(m.is_allocated());
   ASSERT_TRUE(n.is_allocated());
+}
+
+TEST(TEST_CATEGORY, UnorderedMap_clear_zero_size) {
+  using Map =
+      Kokkos::UnorderedMap<int, void, Kokkos::DefaultHostExecutionSpace>;
+
+  Map m(11);
+  ASSERT_EQ(0u, m.size());
+
+  m.insert(2);
+  m.insert(3);
+  m.insert(5);
+  m.insert(7);
+  ASSERT_EQ(4u, m.size());
+
+  m.clear();
+  ASSERT_EQ(0u, m.size());
 }
 
 }  // namespace Test

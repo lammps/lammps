@@ -33,10 +33,10 @@ class PairTIP4PCutOMP : public PairTIP4PCut, public ThrOMP {
 
  public:
   PairTIP4PCutOMP(class LAMMPS *);
-  virtual ~PairTIP4PCutOMP();
+  ~PairTIP4PCutOMP() override;
 
-  virtual void compute(int, int);
-  virtual double memory_usage();
+  void compute(int, int) override;
+  double memory_usage() override;
 
  private:
   dbl3_t *newsite_thr;

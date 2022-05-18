@@ -85,7 +85,7 @@ endfunction(GenerateBinaryHeader)
 
 # fetch missing potential files
 function(FetchPotentials pkgfolder potfolder)
-  if (EXISTS "${pkgfolder}/potentials.txt")
+  if(EXISTS "${pkgfolder}/potentials.txt")
     file(STRINGS "${pkgfolder}/potentials.txt" linelist REGEX "^[^#].")
     foreach(line ${linelist})
       string(FIND ${line} " " blank)

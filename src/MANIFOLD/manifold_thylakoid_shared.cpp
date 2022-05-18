@@ -90,11 +90,6 @@ thyla_part::thyla_part( int type, double *args, double xlo, double ylo, double z
   z0 = (type == THYLA_TYPE_SPHERE) ? params[3] : params[5];
 }
 
-
-
-thyla_part::~thyla_part()
-{}
-
 double thyla_part::g(const double *x)
 {
   switch(type) {

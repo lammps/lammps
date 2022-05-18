@@ -1041,7 +1041,7 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
   inline void execute() const {
     enum { is_dynamic = std::is_same<SchedTag, Kokkos::Dynamic>::value };
 
-    if (m_policy.league_size() * m_policy.team_size() == 0) {
+    if (m_policy.league_size() == 0 || m_policy.team_size() == 0) {
       if (m_result_ptr) {
         ValueInit::init(ReducerConditional::select(m_functor, m_reducer),
                         m_result_ptr);

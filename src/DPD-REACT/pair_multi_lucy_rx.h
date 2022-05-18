@@ -27,20 +27,20 @@ namespace LAMMPS_NS {
 class PairMultiLucyRX : public Pair {
  public:
   PairMultiLucyRX(class LAMMPS *);
-  virtual ~PairMultiLucyRX();
+  ~PairMultiLucyRX() override;
 
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  virtual int pack_forward_comm(int, int *, double *, int, int *);
-  virtual void unpack_forward_comm(int, int, double *);
-  virtual int pack_reverse_comm(int, int, double *);
-  virtual void unpack_reverse_comm(int, int *, double *);
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
   void computeLocalDensity();
   double rho_0;
 
@@ -85,76 +85,3 @@ class PairMultiLucyRX : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Pair multi/lucy/rx command requires atom_style with density (e.g. dpd, meso)
-
-Self-explanatory
-
-E: Density < table inner cutoff
-
-The local density inner is smaller than the inner cutoff
-
-E: Density > table inner cutoff
-
-The local density inner is greater than the inner cutoff
-
-E: Only LOOKUP and LINEAR table styles have been implemented for pair multi/lucy/rx
-
-Self-explanatory
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E:  Unknown table style in pair_style command
-
-Self-explanatory
-
-E: Illegal number of pair table entries
-
-There must be at least 2 table entries.
-
-E: Illegal pair_coeff command
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-E: PairMultiLucyRX requires a fix rx command
-
-The fix rx command must come before the pair style command in the input file
-
-E:  There are no rx species specified
-
-There must be at least one species specified through the fix rx command
-
-E: Invalid pair table length
-
-Length of read-in pair table is invalid
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-E: Cannot open file %s
-
-The specified file cannot be opened.  Check that the path and name are
-correct.
-
-E: Did not find keyword in table file
-
-Keyword used in pair_coeff command was not found in table file.
-
-E: Invalid keyword in pair table parameters
-
-Keyword used in list of table parameters is not recognized.
-
-E: Pair table parameters did not set N
-
-List of pair table parameters must include N setting.
-
-*/

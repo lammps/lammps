@@ -51,9 +51,13 @@ Syntax
        *slab* value = volfactor or *nozforce*
          volfactor = ratio of the total extended volume used in the
            2d approximation compared with the volume of the simulation domain
+         *ew2d* EW2D correction (available with ELECTRODE package)
          *nozforce* turns off kspace forces in the z direction
        *splittol* value = tol
          tol = relative size of two eigenvalues (see discussion below)
+       *wire* value = volfactor (available with ELECTRODE package)
+         volfactor = ratio of the total extended dimension used in the 1d
+           approximation compared with the dimension of the simulation domain
 
 Examples
 """"""""

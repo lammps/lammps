@@ -21,12 +21,13 @@ Examples
 
 .. code-block:: LAMMPS
 
+   units    real
    compute  cos all viscosity/cos
    variable V equal c_cos[7]
-   variable A equal 0.02E-5
+   variable A equal 0.02E-5  # A/fs^2
    variable density equal density
    variable lz equal lz
-   variable reciprocalViscosity equal v_V/${A}/v_density*39.4784/v_lz/v_lz*100
+   variable reciprocalViscosity equal v_V/${A}/v_density*39.4784/v_lz/v_lz*100  # 1/(Pa*s)
 
 Description
 """""""""""

@@ -45,8 +45,11 @@
 #ifndef KOKKOS_KOKKOS_ITERATIONPATTERNTRAIT_HPP
 #define KOKKOS_KOKKOS_ITERATIONPATTERNTRAIT_HPP
 
-#include <Kokkos_Concepts.hpp>  // is_iteration_pattern
-#include <type_traits>          // is_void
+#include <Kokkos_Concepts.hpp>                   // is_iteration_pattern
+#include <traits/Kokkos_PolicyTraitAdaptor.hpp>  // TraitSpecificationBase
+#include <Kokkos_Rank.hpp>                       // Rank
+#include <Kokkos_Layout.hpp>                     // Iterate
+#include <type_traits>                           // is_void
 
 namespace Kokkos {
 namespace Impl {
@@ -54,32 +57,43 @@ namespace Impl {
 //==============================================================================
 // <editor-fold desc="trait specification"> {{{1
 
+template <class T>
+struct show_extra_iteration_pattern_erroneously_given_to_execution_policy;
+template <>
+struct show_extra_iteration_pattern_erroneously_given_to_execution_policy<
+    void> {};
 struct IterationPatternTrait : TraitSpecificationBase<IterationPatternTrait> {
   struct base_traits {
     using iteration_pattern = void;  // TODO set default iteration pattern
+    KOKKOS_IMPL_MSVC_NVCC_EBO_WORKAROUND
   };
-  template <class T>
-  using trait_matches_specification = is_iteration_pattern<T>;
+  template <class IterPattern, class AnalyzeNextTrait>
+  struct mixin_matching_trait : AnalyzeNextTrait {
+    using base_t = AnalyzeNextTrait;
+    using base_t::base_t;
+    static constexpr auto show_iteration_pattern_error_in_compilation_message =
+        show_extra_iteration_pattern_erroneously_given_to_execution_policy<
+            typename base_t::iteration_pattern>{};
+    static_assert(
+        std::is_void<typename base_t::iteration_pattern>::value,
+        "Kokkos Error: More than one index type given. Search "
+        "compiler output for 'show_extra_iteration_pattern' to see the "
+        "type of the errant tag.");
+    using iteration_pattern = IterPattern;
+  };
 };
 
 // </editor-fold> end trait specification }}}1
 //==============================================================================
 
 //==============================================================================
-// <editor-fold desc="AnalyzeExecPolicy specializations"> {{{1
+// <editor-fold desc="PolicyTraitMatcher specialization"> {{{1
 
-template <class IterationPattern, class... Traits>
-struct AnalyzeExecPolicy<
-    std::enable_if_t<is_iteration_pattern<IterationPattern>::value>,
-    IterationPattern, Traits...> : AnalyzeExecPolicy<void, Traits...> {
-  using base_t = AnalyzeExecPolicy<void, Traits...>;
-  using base_t::base_t;
-  static_assert(std::is_void<typename base_t::iteration_pattern>::value,
-                "Kokkos Error: More than one iteration pattern given");
-  using iteration_pattern = IterationPattern;
-};
+template <unsigned N, Iterate OuterDir, Iterate InnerDir>
+struct PolicyTraitMatcher<IterationPatternTrait, Rank<N, OuterDir, InnerDir>>
+    : std::true_type {};
 
-// </editor-fold> end AnalyzeExecPolicy specializations }}}1
+// </editor-fold> end  }}}1
 //==============================================================================
 
 }  // end namespace Impl

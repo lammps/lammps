@@ -26,43 +26,43 @@ namespace LAMMPS_NS {
 class FixCMAP : public Fix {
  public:
   FixCMAP(class LAMMPS *, int, char **);
-  ~FixCMAP();
-  int setmask();
-  void init();
-  void setup(int);
-  void setup_pre_neighbor();
-  void setup_pre_reverse(int, int);
-  void min_setup(int);
-  void pre_neighbor();
-  void pre_reverse(int, int);
-  void post_force(int);
-  void post_force_respa(int, int, int);
-  void min_post_force(int);
-  double compute_scalar();
+  ~FixCMAP() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void setup_pre_neighbor() override;
+  void setup_pre_reverse(int, int) override;
+  void min_setup(int) override;
+  void pre_neighbor() override;
+  void pre_reverse(int, int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  void min_post_force(int) override;
+  double compute_scalar() override;
 
-  void read_data_header(char *);
-  void read_data_section(char *, int, char *, tagint);
-  bigint read_data_skip_lines(char *);
-  void write_data_header(FILE *, int);
-  void write_data_section_size(int, int &, int &);
-  void write_data_section_pack(int, double **);
-  void write_data_section_keyword(int, FILE *);
-  void write_data_section(int, FILE *, int, double **, int);
+  void read_data_header(char *) override;
+  void read_data_section(char *, int, char *, tagint) override;
+  bigint read_data_skip_lines(char *) override;
+  void write_data_header(FILE *, int) override;
+  void write_data_section_size(int, int &, int &) override;
+  void write_data_section_pack(int, double **) override;
+  void write_data_section_keyword(int, FILE *) override;
+  void write_data_section(int, FILE *, int, double **, int) override;
 
-  void write_restart(FILE *);
-  void restart(char *);
-  int pack_restart(int, double *);
-  void unpack_restart(int, int);
-  int size_restart(int);
-  int maxsize_restart();
+  void write_restart(FILE *) override;
+  void restart(char *) override;
+  int pack_restart(int, double *) override;
+  void unpack_restart(int, int) override;
+  int size_restart(int) override;
+  int maxsize_restart() override;
 
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  void set_arrays(int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
 
-  double memory_usage();
+  double memory_usage() override;
 
  private:
   int nprocs, me;
@@ -127,39 +127,3 @@ class FixCMAP : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-E: CMAP atoms %d %d %d %d %d missing on proc %d at step %ld
-
-UNDOCUMENTED
-
-E: Invalid CMAP crossterm_type
-
-UNDOCUMENTED
-
-E: Cannot open fix cmap file %s
-
-UNDOCUMENTED
-
-E: CMAP: atan2 function cannot take 2 zero arguments
-
-UNDOCUMENTED
-
-E: Invalid read data header line for fix cmap
-
-UNDOCUMENTED
-
-E: Incorrect %s format in data file
-
-UNDOCUMENTED
-
-E: Too many CMAP crossterms for one atom
-
-UNDOCUMENTED
-
-*/

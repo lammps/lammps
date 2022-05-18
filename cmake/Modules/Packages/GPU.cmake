@@ -80,14 +80,14 @@ if(GPU_API STREQUAL "CUDA")
   # --arch translates directly instead of JIT, so this should be for the preferred or most common architecture
   set(GPU_CUDA_GENCODE "-arch=${GPU_ARCH}")
 
-  # apply the following to build "fat" CUDA binaries only for known CUDA toolkits
-  if(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
-    message(WARNING "Untested CUDA Toolkit version. Use at your own risk")
+  # apply the following to build "fat" CUDA binaries only for known CUDA toolkits since version 8.0
+  # only the Kepler achitecture and beyond is supported
+  if(CUDA_VERSION VERSION_LESS 8.0)
+    message(FATAL_ERROR "CUDA Toolkit version 8.0 or later is required")
+  elseif(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
+    message(WARNING "Untested CUDA Toolkit version ${CUDA_VERSION}. Use at your own risk")
+    set(GPU_CUDA_GENCODE "-arch=all")
   else()
-    # Fermi (GPU Arch 2.x) is supported by CUDA 3.2 to CUDA 8.0
-    if((CUDA_VERSION VERSION_GREATER_EQUAL "3.2") AND (CUDA_VERSION VERSION_LESS "9.0"))
-      string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_20,code=[sm_20,compute_20] ")
-    endif()
     # Kepler (GPU Arch 3.0) is supported by CUDA 5 to CUDA 10.2
     if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "11.0"))
       string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_30,code=[sm_30,compute_30] ")
@@ -120,6 +120,14 @@ if(GPU_API STREQUAL "CUDA")
     if(CUDA_VERSION VERSION_GREATER_EQUAL "11.1")
       string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_86,code=[sm_86,compute_86]")
     endif()
+    # Hopper (GPU Arch 9.0) is supported by CUDA 12.0? and later
+    if(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
+      string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
+    endif()
+    #    # Lovelace (GPU Arch 9.x) is supported by CUDA 12.0? and later
+    #if(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
+    #  string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_9x,code=[sm_9x,compute_9x]")
+    #endif()
   endif()
 
   cuda_compile_fatbin(GPU_GEN_OBJS ${GPU_LIB_CU} OPTIONS ${CUDA_REQUEST_PIC}
@@ -257,43 +265,47 @@ elseif(GPU_API STREQUAL "HIP")
     find_package(CUDA REQUIRED)
     set(HIP_ARCH "sm_50" CACHE STRING "HIP primary CUDA architecture (e.g. sm_60)")
 
-    # build arch/gencode commands for nvcc based on CUDA toolkit version and use choice
-    # --arch translates directly instead of JIT, so this should be for the preferred or most common architecture
-    set(HIP_CUDA_GENCODE "-arch=${HIP_ARCH}")
-    # Fermi (GPU Arch 2.x) is supported by CUDA 3.2 to CUDA 8.0
-    if((CUDA_VERSION VERSION_GREATER_EQUAL "3.2") AND (CUDA_VERSION VERSION_LESS "9.0"))
-      string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_20,code=[sm_20,compute_20]")
-    endif()
-    # Kepler (GPU Arch 3.0) is supported by CUDA 5 to CUDA 10.2
-    if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "11.0"))
-      string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_30,code=[sm_30,compute_30]")
-    endif()
-    # Kepler (GPU Arch 3.5) is supported by CUDA 5 to CUDA 11.0
-    if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "12.0"))
-      string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_35,code=[sm_35,compute_35]")
-    endif()
-    # Maxwell (GPU Arch 5.x) is supported by CUDA 6 and later
-    if(CUDA_VERSION VERSION_GREATER_EQUAL "6.0")
-      string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_50,code=[sm_50,compute_50] -gencode arch=compute_52,code=[sm_52,compute_52]")
-    endif()
-    # Pascal (GPU Arch 6.x) is supported by CUDA 8 and later
-    if(CUDA_VERSION VERSION_GREATER_EQUAL "8.0")
-      string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_60,code=[sm_60,compute_60] -gencode arch=compute_61,code=[sm_61,compute_61]")
-    endif()
-    # Volta (GPU Arch 7.0) is supported by CUDA 9 and later
-    if(CUDA_VERSION VERSION_GREATER_EQUAL "9.0")
-      string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_70,code=[sm_70,compute_70]")
-    endif()
-    # Turing (GPU Arch 7.5) is supported by CUDA 10 and later
-    if(CUDA_VERSION VERSION_GREATER_EQUAL "10.0")
-      string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_75,code=[sm_75,compute_75]")
-    endif()
-    # Ampere (GPU Arch 8.0) is supported by CUDA 11 and later
-    if(CUDA_VERSION VERSION_GREATER_EQUAL "11.0")
-      string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_80,code=[sm_80,compute_80]")
-    endif()
-    if(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
-      message(WARNING "Unsupported CUDA version. Use at your own risk.")
+    if(CUDA_VERSION VERSION_LESS 8.0)
+      message(FATAL_ERROR "CUDA Toolkit version 8.0 or later is required")
+    elseif(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
+      message(WARNING "Untested CUDA Toolkit version ${CUDA_VERSION}. Use at your own risk")
+      set(HIP_CUDA_GENCODE "-arch=all")
+    else()
+      # build arch/gencode commands for nvcc based on CUDA toolkit version and use choice
+      # --arch translates directly instead of JIT, so this should be for the preferred or most common architecture
+      set(HIP_CUDA_GENCODE "-arch=${HIP_ARCH}")
+      # Kepler (GPU Arch 3.0) is supported by CUDA 5 to CUDA 10.2
+      if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "11.0"))
+        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_30,code=[sm_30,compute_30]")
+      endif()
+      # Kepler (GPU Arch 3.5) is supported by CUDA 5 to CUDA 11.0
+      if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "12.0"))
+        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_35,code=[sm_35,compute_35]")
+      endif()
+      # Maxwell (GPU Arch 5.x) is supported by CUDA 6 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "6.0")
+        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_50,code=[sm_50,compute_50] -gencode arch=compute_52,code=[sm_52,compute_52]")
+      endif()
+      # Pascal (GPU Arch 6.x) is supported by CUDA 8 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "8.0")
+        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_60,code=[sm_60,compute_60] -gencode arch=compute_61,code=[sm_61,compute_61]")
+      endif()
+      # Volta (GPU Arch 7.0) is supported by CUDA 9 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "9.0")
+        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_70,code=[sm_70,compute_70]")
+      endif()
+      # Turing (GPU Arch 7.5) is supported by CUDA 10 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "10.0")
+        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_75,code=[sm_75,compute_75]")
+      endif()
+      # Ampere (GPU Arch 8.0) is supported by CUDA 11 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "11.0")
+        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_80,code=[sm_80,compute_80]")
+      endif()
+      # Hopper (GPU Arch 9.0) is supported by CUDA 12.0? and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
+        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
+      endif()
     endif()
   endif()
 
@@ -347,6 +359,10 @@ elseif(GPU_API STREQUAL "HIP")
   target_link_libraries(gpu PRIVATE hip::host)
 
   if(HIP_USE_DEVICE_SORT)
+    if(HIP_PLATFORM STREQUAL "amd")
+      # newer version of ROCm (5.1+) require c++14 for rocprim
+      set_property(TARGET gpu PROPERTY CXX_STANDARD 14)
+    endif()
     # add hipCUB
     target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
     target_compile_definitions(gpu PRIVATE -DUSE_HIP_DEVICE_SORT)
@@ -430,13 +446,12 @@ RegisterStylesExt(${GPU_SOURCES_DIR} gpu GPU_SOURCES)
 RegisterFixStyle(${GPU_SOURCES_DIR}/fix_gpu.h)
 
 get_property(GPU_SOURCES GLOBAL PROPERTY GPU_SOURCES)
-
-if(NOT BUILD_MPI)
-  # mpistubs is aliased to MPI::MPI_CXX, but older versions of cmake won't work forward the include path
-  target_link_libraries(gpu PRIVATE mpi_stubs)
-else()
+if(BUILD_MPI)
   target_link_libraries(gpu PRIVATE MPI::MPI_CXX)
+else()
+  target_link_libraries(gpu PRIVATE mpi_stubs)
 endif()
+
 target_compile_definitions(gpu PRIVATE -DLAMMPS_${LAMMPS_SIZES})
 set_target_properties(gpu PROPERTIES OUTPUT_NAME lammps_gpu${LAMMPS_MACHINE})
 target_sources(lammps PRIVATE ${GPU_SOURCES})

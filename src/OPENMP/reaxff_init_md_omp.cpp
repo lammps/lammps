@@ -29,8 +29,6 @@
 #include "reaxff_omp.h"
 #include "reaxff_api.h"
 
-#include "error.h"
-
 #include <mpi.h>
 #include <cstdlib>
 

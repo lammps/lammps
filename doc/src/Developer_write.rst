@@ -29,7 +29,9 @@ of code in the header before include guards:
 .. code-block:: c
 
    #ifdef FIX_CLASS
-   FixStyle(print/vel,FixPrintVel)
+   // clang-format off
+   FixStyle(print/vel,FixPrintVel);
+   // clang-format on
    #else
    /* the definition of the FixPrintVel class comes here */
    ...

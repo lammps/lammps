@@ -28,7 +28,6 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "potential_file_reader.h"
-#include "tokenizer.h"
 
 #include <cstring>
 #include <memory>
@@ -140,14 +139,14 @@ void PairMEAM::compute(int eflag, int vflag)
     offset += numneigh_half[i];
   }
 
-  comm->reverse_comm_pair(this);
+  comm->reverse_comm(this);
 
   meam_inst->meam_dens_final(nlocal,eflag_either,eflag_global,eflag_atom,
                    &eng_vdwl,eatom,ntype,type,map,scale,errorflag);
   if (errorflag)
     error->one(FLERR,"MEAM library error {}",errorflag);
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   offset = 0;
 
@@ -255,7 +254,7 @@ void PairMEAM::coeff(int narg, char **arg)
                                  "'maxelt' in meam.h and recompile.", maxelt);
 
   for (int i = 0; i < nlibelements; i++) {
-    libelements.push_back(arg[i+3]);
+    libelements.emplace_back(arg[i+3]);
     mass.push_back(0.0);
   }
 
@@ -313,14 +312,10 @@ void PairMEAM::init_style()
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style MEAM requires newton pair on");
 
-  // need full and half neighbor list
+  // need a full and a half neighbor list
 
-  int irequest_full = neighbor->request(this,instance_me);
-  neighbor->requests[irequest_full]->id = 1;
-  neighbor->requests[irequest_full]->half = 0;
-  neighbor->requests[irequest_full]->full = 1;
-  int irequest_half = neighbor->request(this,instance_me);
-  neighbor->requests[irequest_half]->id = 2;
+  neighbor->add_request(this, NeighConst::REQ_FULL)->set_id(1);
+  neighbor->add_request(this)->set_id(2);
 }
 
 /* ----------------------------------------------------------------------
@@ -413,7 +408,7 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
         // map lat string to an integer
         std::string lattice_type = values.next_string();
 
-        if (!MEAM::str_to_lat(lattice_type.c_str(), true, lat[index]))
+        if (!MEAM::str_to_lat(lattice_type, true, lat[index]))
           error->one(FLERR,"Unrecognized lattice type in MEAM "
                                        "library file: {}", lattice_type);
 
@@ -517,7 +512,7 @@ void PairMEAM::read_user_meam_file(const std::string &userfile)
   char * line = nullptr;
   char buffer[MAXLINE];
 
-  while (1) {
+  while (true) {
     int which;
     int nindex, index[3];
     double value;
@@ -542,8 +537,7 @@ void PairMEAM::read_user_meam_file(const std::string &userfile)
     for (which = 0; which < nkeywords; which++)
       if (keyword == keywords[which]) break;
     if (which == nkeywords)
-      error->all(FLERR,"Keyword {} in MEAM parameter file not "
-                                   "recognized", keyword);
+      error->all(FLERR,"Keyword {} in MEAM parameter file not recognized", keyword);
 
     nindex = nparams - 2;
     for (int i = 0; i < nindex; i++) index[i] = values.next_int() - 1;
@@ -553,8 +547,7 @@ void PairMEAM::read_user_meam_file(const std::string &userfile)
       std::string lattice_type = values.next_string();
       lattice_t latt;
       if (!MEAM::str_to_lat(lattice_type, false, latt))
-        error->all(FLERR, "Unrecognized lattice type in MEAM "
-                                      "parameter file: {}", lattice_type);
+        error->all(FLERR, "Unrecognized lattice type in MEAM parameter file: {}", lattice_type);
       value = latt;
     }
     else value = values.next_double();

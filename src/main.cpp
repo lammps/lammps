@@ -72,14 +72,14 @@ int main(int argc, char **argv)
 
 #ifdef LAMMPS_EXCEPTIONS
   try {
-    LAMMPS *lammps = new LAMMPS(argc, argv, lammps_comm);
+    auto lammps = new LAMMPS(argc, argv, lammps_comm);
     lammps->input->file();
     delete lammps;
   } catch (LAMMPSAbortException &ae) {
     KokkosLMP::finalize();
     Python::finalize();
     MPI_Abort(ae.universe, 1);
-  } catch (LAMMPSException &e) {
+  } catch (LAMMPSException &) {
     KokkosLMP::finalize();
     Python::finalize();
     MPI_Barrier(lammps_comm);
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
   }
 #else
   try {
-    LAMMPS *lammps = new LAMMPS(argc, argv, lammps_comm);
+    auto lammps = new LAMMPS(argc, argv, lammps_comm);
     lammps->input->file();
     delete lammps;
   } catch (fmt::format_error &fe) {

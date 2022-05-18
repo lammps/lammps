@@ -29,18 +29,18 @@ namespace LAMMPS_NS {
 class PairMESONTTPM : public Pair {
  public:
   PairMESONTTPM(class LAMMPS *);
-  virtual ~PairMESONTTPM();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  void write_data(FILE *);
-  void write_data_all(FILE *);
-  virtual void init_style();
+  ~PairMESONTTPM() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  void write_data(FILE *) override;
+  void write_data_all(FILE *) override;
+  void init_style() override;
 
   double energy_s;                        // accumulated energies for stretching
   double energy_b;                        // accumulated energies for bending
@@ -57,43 +57,10 @@ class PairMESONTTPM : public Pair {
   int nmax;
 
   virtual void allocate();
-  virtual void *extract(const char *, int &);
+  void *extract(const char *, int &) override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Pair style mesont/tpm requires newton pair on
-
-newton_pair must be set to on
-
-E: The selected cutoff is too small for the current system
-
-cutoff must be increased.
-
-E: Illegal pair_style command
-
-Incorrect argument list in the style init.
-
-E: Incorrect table path
-
-Incorrect path to the table files.
-
-E: Incorrect BendingMode
-
-Self-explanatory.
-
-E: Incorrect TPMType
-
-Self-explanatory.
-
-E: Inconsistent input and potential table
-
-The tube diameter is inconsistent with the chirality specified
-during generation of the potential table.
-
-*/

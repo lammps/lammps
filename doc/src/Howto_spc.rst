@@ -19,7 +19,7 @@ atoms and the water molecule to run a rigid SPC model.
 | LJ :math:`\sigma` of OO = 3.166
 | LJ :math:`\epsilon`, :math:`\sigma` of OH, HH = 0.0
 | :math:`r_0` of OH bond = 1.0
-| :math:`\theta` of HOH angle = 109.47\ :math:`^{\circ}`
+| :math:`\theta_0` of HOH angle = 109.47\ :math:`^{\circ}`
 |
 
 Note that as originally proposed, the SPC model was run with a 9

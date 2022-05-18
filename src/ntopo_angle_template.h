@@ -27,23 +27,10 @@ namespace LAMMPS_NS {
 class NTopoAngleTemplate : public NTopo {
  public:
   NTopoAngleTemplate(class LAMMPS *);
-  ~NTopoAngleTemplate() {}
-  void build();
+  void build() override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Angle atoms %d %d %d missing on proc %d at step %ld
-
-UNDOCUMENTED
-
-W: Angle atoms missing at step %ld
-
-UNDOCUMENTED
-
-*/

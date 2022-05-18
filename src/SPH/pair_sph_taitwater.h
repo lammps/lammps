@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class PairSPHTaitwater : public Pair {
  public:
   PairSPHTaitwater(class LAMMPS *);
-  virtual ~PairSPHTaitwater();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  virtual double init_one(int, int);
+  ~PairSPHTaitwater() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
 
  protected:
   double *rho0, *soundspeed, *B;

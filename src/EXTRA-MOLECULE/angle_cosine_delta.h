@@ -27,14 +27,11 @@ namespace LAMMPS_NS {
 class AngleCosineDelta : public AngleCosineSquared {
  public:
   AngleCosineDelta(class LAMMPS *);
-  virtual void compute(int, int);
-  double single(int, int, int, int);
+  void compute(int, int) override;
+  double single(int, int, int, int) override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-/* ERROR/WARNING messages:
-
-*/

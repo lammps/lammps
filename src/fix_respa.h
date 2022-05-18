@@ -31,15 +31,15 @@ class FixRespa : public Fix {
 
  public:
   FixRespa(class LAMMPS *, int, char **);
-  ~FixRespa();
-  int setmask();
-  void init() {}
+  ~FixRespa() override;
+  int setmask() override;
+  void init() override {}
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
 
  private:
   int nlevels;
@@ -52,6 +52,3 @@ class FixRespa : public Fix {
 
 #endif
 #endif
-/* ERROR/WARNING messages:
-
-*/

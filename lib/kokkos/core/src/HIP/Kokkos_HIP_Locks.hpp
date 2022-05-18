@@ -51,12 +51,15 @@
 
 #include <HIP/Kokkos_HIP_Error.hpp>
 
+#ifdef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
+#include <desul/atomics/Lock_Array_HIP.hpp>
+#endif
+
 namespace Kokkos {
 namespace Impl {
 
 struct HIPLockArrays {
   std::int32_t* atomic;
-  std::int32_t* scratch;
   std::int32_t n;
 };
 
@@ -147,7 +150,7 @@ inline int eliminate_warning_for_lock_array() { return lock_array_copied; }
 #define KOKKOS_COPY_HIP_LOCK_ARRAYS_TO_DEVICE()                 \
   {                                                             \
     if (::Kokkos::Impl::lock_array_copied == 0) {               \
-      HIP_SAFE_CALL(hipMemcpyToSymbol(                          \
+      KOKKOS_IMPL_HIP_SAFE_CALL(hipMemcpyToSymbol(              \
           HIP_SYMBOL(::Kokkos::Impl::g_device_hip_lock_arrays), \
           &::Kokkos::Impl::g_host_hip_lock_arrays,              \
           sizeof(::Kokkos::Impl::HIPLockArrays)));              \
@@ -155,12 +158,27 @@ inline int eliminate_warning_for_lock_array() { return lock_array_copied; }
     ::Kokkos::Impl::lock_array_copied = 1;                      \
   }
 
+#ifndef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
+
 #ifdef KOKKOS_ENABLE_HIP_RELOCATABLE_DEVICE_CODE
 #define KOKKOS_ENSURE_HIP_LOCK_ARRAYS_ON_DEVICE()
 #else
 #define KOKKOS_ENSURE_HIP_LOCK_ARRAYS_ON_DEVICE() \
   KOKKOS_COPY_HIP_LOCK_ARRAYS_TO_DEVICE()
 #endif
+
+#else
+
+#ifdef KOKKOS_ENABLE_HIP_RELOCATABLE_DEVICE_CODE
+#define KOKKOS_ENSURE_HIP_LOCK_ARRAYS_ON_DEVICE()
+#else
+// Still Need COPY_CUDA_LOCK_ARRAYS for team scratch etc.
+#define KOKKOS_ENSURE_HIP_LOCK_ARRAYS_ON_DEVICE() \
+  KOKKOS_COPY_HIP_LOCK_ARRAYS_TO_DEVICE()         \
+  DESUL_ENSURE_HIP_LOCK_ARRAYS_ON_DEVICE()
+#endif
+
+#endif /* defined( KOKKOS_ENABLE_IMPL_DESUL_ATOMICS ) */
 
 #endif /* defined( __HIPCC__ ) */
 

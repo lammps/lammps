@@ -21,14 +21,14 @@ namespace LAMMPS_NS {
 class ImproperZero2 : public Improper {
  public:
   ImproperZero2(class LAMMPS *);
-  virtual ~ImproperZero2();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
-  virtual void settings(int, char **);
+  ~ImproperZero2() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void settings(int, char **) override;
 
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
 
  protected:
   int coeffflag;

@@ -25,9 +25,6 @@ VirtualColMatrix::VirtualColMatrix(){
   numcols = 1;
 }
 
-VirtualColMatrix::~VirtualColMatrix(){
-}
-
 double& VirtualColMatrix::operator_2int(int i, int j){
   if(j!=1){
     cerr << "matrix index invalid in operator ()" << endl;

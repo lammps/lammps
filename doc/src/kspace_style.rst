@@ -4,6 +4,7 @@
 .. index:: kspace_style ewald/disp
 .. index:: kspace_style ewald/disp/dipole
 .. index:: kspace_style ewald/omp
+.. index:: kspace_style ewald/electrode
 .. index:: kspace_style pppm
 .. index:: kspace_style pppm/kk
 .. index:: kspace_style pppm/omp
@@ -23,6 +24,8 @@
 .. index:: kspace_style pppm/stagger
 .. index:: kspace_style pppm/tip4p
 .. index:: kspace_style pppm/tip4p/omp
+.. index:: kspace_style pppm/electrode
+.. index:: kspace_style pppm/electrode/intel
 .. index:: kspace_style msm
 .. index:: kspace_style msm/omp
 .. index:: kspace_style msm/cg
@@ -40,7 +43,7 @@ Syntax
 
    kspace_style style value
 
-* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos*
+* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *ewald/electrode* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *pppm/electrode* or *pppm/electrode/intel* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos*
 
   .. parsed-literal::
 
@@ -56,6 +59,8 @@ Syntax
        *ewald/disp/dipole* value = accuracy
          accuracy = desired relative error in forces
        *ewald/omp* value = accuracy
+         accuracy = desired relative error in forces
+       *ewald/electrode* value = accuracy
          accuracy = desired relative error in forces
        *pppm* value = accuracy
          accuracy = desired relative error in forces
@@ -96,6 +101,10 @@ Syntax
        *pppm/dielectric* value = accuracy
          accuracy = desired relative error in forces
        *pppm/disp/dielectric* value = accuracy
+         accuracy = desired relative error in forces
+       *pppm/electrode* value = accuracy
+         accuracy = desired relative error in forces
+       *pppm/electrode/intel* value = accuracy
          accuracy = desired relative error in forces
        *msm* value = accuracy
          accuracy = desired relative error in forces
@@ -273,6 +282,13 @@ parameters and how to choose them is described in
 
 ----------
 
+The *electrode* styles add methods that are required for the constant potential
+method implemented in :doc:`fix electrode/* <fix_electrode_conp>`.  The styles
+*ewald/electrode*, *pppm/electrode* and *pppm/electrode/intel* are available.
+These styles do not support the `kspace_modify slab nozforce` command.
+
+----------
+
 The *msm* style invokes a multi-level summation method MSM solver,
 :ref:`(Hardy) <Hardy2006>` or :ref:`(Hardy2) <Hardy2009>`, which maps atom charge
 to a 3d mesh, and uses a multi-level hierarchy of coarser and coarser
@@ -414,33 +430,26 @@ relative RMS error.
 
 ----------
 
-Styles with a *gpu*, *intel*, *kk*, *omp*, or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
+.. include:: accel_styles.rst
 
-More specifically, the *pppm/gpu* style performs charge assignment and
-force interpolation calculations on the GPU.  These processes are
-performed either in single or double precision, depending on whether
-the -DFFT_SINGLE setting was specified in your low-level Makefile, as
-discussed above.  The FFTs themselves are still calculated on the CPU.
-If *pppm/gpu* is used with a GPU-enabled pair style, part of the PPPM
-calculation can be performed concurrently on the GPU while other
-calculations for non-bonded and bonded force calculation are performed
-on the CPU.
+.. note::
 
-The *pppm/kk* style performs charge assignment and force interpolation
-calculations, along with the FFTs themselves, on the GPU or (optionally) threaded
-on the CPU when using OpenMP and FFTW3.
+  For the GPU package, the *pppm/gpu* style performs charge assignment
+  and force interpolation calculations on the GPU.  These processes
+  are performed either in single or double precision, depending on
+  whether the -DFFT_SINGLE setting was specified in your low-level
+  Makefile, as discussed above.  The FFTs themselves are still
+  calculated on the CPU.  If *pppm/gpu* is used with a GPU-enabled
+  pair style, part of the PPPM calculation can be performed
+  concurrently on the GPU while other calculations for non-bonded and
+  bonded force calculation are performed on the CPU.
 
-These accelerated styles are part of the GPU, INTEL, KOKKOS,
-OPENMP, and OPT packages respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` page for more info.
+.. note::
 
-See the :doc:`Speed packages <Speed_packages>` page for more
-instructions on how to use the accelerated styles effectively.
+  For the KOKKOS package, the *pppm/kk* style performs charge
+  assignment and force interpolation calculations, along with the FFTs
+  themselves, on the GPU or (optionally) threaded on the CPU when
+  using OpenMP and FFTW3.
 
 ----------
 

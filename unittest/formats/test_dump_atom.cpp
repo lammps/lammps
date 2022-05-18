@@ -74,6 +74,13 @@ public:
         END_HIDE_OUTPUT();
     }
 
+    void close_dump()
+    {
+        BEGIN_HIDE_OUTPUT();
+        command("undump id");
+        END_HIDE_OUTPUT();
+    }
+
     void generate_text_and_binary_dump(std::string text_file, std::string binary_file,
                                        std::string dump_modify_options, int ntimesteps)
     {
@@ -135,7 +142,7 @@ TEST_F(DumpAtomTest, format_line_run0)
 TEST_F(DumpAtomTest, no_scale_run0)
 {
     auto dump_file = dump_filename("no_scale_run0");
-    generate_dump(dump_file, "scale no", 0);
+    generate_dump(dump_file, "scale off", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -150,7 +157,7 @@ TEST_F(DumpAtomTest, no_scale_run0)
 TEST_F(DumpAtomTest, no_buffer_no_scale_run0)
 {
     auto dump_file = dump_filename("no_buffer_no_scale_run0");
-    generate_dump(dump_file, "buffer no scale no", 0);
+    generate_dump(dump_file, "buffer false scale false", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -165,7 +172,7 @@ TEST_F(DumpAtomTest, no_buffer_no_scale_run0)
 TEST_F(DumpAtomTest, no_buffer_with_scale_run0)
 {
     auto dump_file = dump_filename("no_buffer_with_scale_run0");
-    generate_dump(dump_file, "buffer no scale yes", 0);
+    generate_dump(dump_file, "buffer 0 scale 1", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -180,7 +187,7 @@ TEST_F(DumpAtomTest, no_buffer_with_scale_run0)
 TEST_F(DumpAtomTest, with_image_run0)
 {
     auto dump_file = dump_filename("with_image_run0");
-    generate_dump(dump_file, "scale no image yes", 0);
+    generate_dump(dump_file, "scale no image on", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -193,7 +200,7 @@ TEST_F(DumpAtomTest, with_image_run0)
 TEST_F(DumpAtomTest, with_units_run0)
 {
     auto dump_file = dump_filename("with_units_run0");
-    generate_dump(dump_file, "scale no units yes", 0);
+    generate_dump(dump_file, "scale false units 1", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -208,7 +215,7 @@ TEST_F(DumpAtomTest, with_units_run0)
 TEST_F(DumpAtomTest, with_time_run0)
 {
     auto dump_file = dump_filename("with_time_run0");
-    generate_dump(dump_file, "scale no time yes", 0);
+    generate_dump(dump_file, "scale off time true", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -222,7 +229,7 @@ TEST_F(DumpAtomTest, with_time_run0)
 TEST_F(DumpAtomTest, with_units_run1)
 {
     auto dump_file = dump_filename("with_units_run1");
-    generate_dump(dump_file, "scale no units yes", 1);
+    generate_dump(dump_file, "scale 0 units on", 1);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -237,7 +244,7 @@ TEST_F(DumpAtomTest, with_units_run1)
 TEST_F(DumpAtomTest, no_buffer_with_scale_and_image_run0)
 {
     auto dump_file = dump_filename("no_buffer_with_scale_and_image_run0");
-    generate_dump(dump_file, "buffer no scale yes image yes", 0);
+    generate_dump(dump_file, "buffer 0 scale 1 image true", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -268,7 +275,7 @@ TEST_F(DumpAtomTest, triclinic_with_units_run0)
 {
     auto dump_file = dump_filename("triclinic_with_units_run0");
     enable_triclinic();
-    generate_dump(dump_file, "units yes", 0);
+    generate_dump(dump_file, "units on", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -286,7 +293,7 @@ TEST_F(DumpAtomTest, triclinic_with_time_run0)
 {
     auto dump_file = dump_filename("triclinic_with_time_run0");
     enable_triclinic();
-    generate_dump(dump_file, "time yes", 0);
+    generate_dump(dump_file, "time on", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -505,6 +512,7 @@ TEST_F(DumpAtomTest, rerun)
     ASSERT_FILE_EXISTS(dump_file);
     ASSERT_EQ(count_lines(dump_file), 82);
     continue_dump(1);
+    close_dump();
     lmp->output->thermo->evaluate_keyword("pe", &pe_2);
     ASSERT_FILE_EXISTS(dump_file);
     ASSERT_EQ(count_lines(dump_file), 123);
@@ -518,6 +526,33 @@ TEST_F(DumpAtomTest, rerun)
     });
     lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
     ASSERT_DOUBLE_EQ(pe_2, pe_rerun);
+    delete_file(dump_file);
+}
+
+TEST_F(DumpAtomTest, rerun_bin)
+{
+    auto dump_file = binary_dump_filename("rerun");
+    HIDE_OUTPUT([&] {
+        command("fix 1 all nve");
+    });
+    generate_dump(dump_file, "", 1);
+    double pe_1, pe_2, pe_rerun;
+    lmp->output->thermo->evaluate_keyword("pe", &pe_1);
+    ASSERT_FILE_EXISTS(dump_file);
+    continue_dump(1);
+    close_dump();
+    lmp->output->thermo->evaluate_keyword("pe", &pe_2);
+    ASSERT_FILE_EXISTS(dump_file);
+    HIDE_OUTPUT([&] {
+        command(fmt::format("rerun {} first 1 last 1 every 1 post no dump x y z", dump_file));
+    });
+    lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
+    ASSERT_NEAR(pe_1, pe_rerun, 1.0e-14);
+    HIDE_OUTPUT([&] {
+        command(fmt::format("rerun {} first 2 last 2 every 1 post yes dump x y z", dump_file));
+    });
+    lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
+    ASSERT_NEAR(pe_2, pe_rerun, 1.0e-14);
     delete_file(dump_file);
 }
 
@@ -568,7 +603,8 @@ TEST_F(DumpAtomTest, dump_modify_scale_invalid)
     command("dump id all atom 1 dump.txt");
     END_HIDE_OUTPUT();
 
-    TEST_FAILURE(".*Illegal dump_modify command.*", command("dump_modify id scale true"););
+    TEST_FAILURE(".*Expected boolean parameter instead of 'xxx'.*",
+                 command("dump_modify id scale xxx"););
 }
 
 TEST_F(DumpAtomTest, dump_modify_image_invalid)
@@ -577,7 +613,8 @@ TEST_F(DumpAtomTest, dump_modify_image_invalid)
     command("dump id all atom 1 dump.txt");
     END_HIDE_OUTPUT();
 
-    TEST_FAILURE(".*Illegal dump_modify command.*", command("dump_modify id image true"););
+    TEST_FAILURE(".*Expected boolean parameter instead of 'xxx'.*",
+                 command("dump_modify id image xxx"););
 }
 
 TEST_F(DumpAtomTest, dump_modify_invalid)

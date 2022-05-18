@@ -47,8 +47,8 @@
 
 #include <Kokkos_HPX.hpp>
 
-#include <hpx/apply.hpp>
-#include <hpx/lcos/local/latch.hpp>
+#include <hpx/local/algorithm.hpp>
+#include <hpx/local/execution.hpp>
 
 namespace Kokkos {
 namespace Impl {
@@ -79,35 +79,37 @@ class ParallelFor<FunctorType, Kokkos::WorkGraphPolicy<Traits...>,
  public:
   void execute() const {
     dispatch_execute_task(this, m_policy.space());
-    m_policy.space().fence();
+    m_policy.space().fence(
+        "Kokkos::Experimental::Impl::HPX::ParallelFor<WorkGraphPolicy>: fence "
+        "after kernel execution");
   }
 
   void execute_task() const {
+    // See [note 1] in Kokkos_HPX.hpp for an explanation. The work graph policy
+    // does not store an execution space instance, so we only need to reset the
+    // parallel region count here.
+    Kokkos::Experimental::HPX::reset_count_on_exit_parallel reset_count_on_exit;
+
     const int num_worker_threads = Kokkos::Experimental::HPX::concurrency();
 
-    using hpx::apply;
-    using hpx::lcos::local::latch;
+    using hpx::for_loop;
+    using hpx::execution::par;
+    using hpx::execution::static_chunk_size;
 
-    latch num_tasks_remaining(num_worker_threads);
-    ChunkedRoundRobinExecutor exec(num_worker_threads);
+    auto exec = Kokkos::Experimental::HPX::impl_get_executor();
 
-    for (int thread = 0; thread < num_worker_threads; ++thread) {
-      apply(exec, [this, &num_tasks_remaining]() {
-        std::int32_t w = m_policy.pop_work();
-        while (w != Policy::COMPLETED_TOKEN) {
-          if (w != Policy::END_TOKEN) {
-            execute_functor<WorkTag>(w);
-            m_policy.completed_work(w);
-          }
+    for_loop(par.on(exec).with(static_chunk_size(1)), 0, num_worker_threads,
+             [this](int) {
+               std::int32_t w = m_policy.pop_work();
+               while (w != Policy::COMPLETED_TOKEN) {
+                 if (w != Policy::END_TOKEN) {
+                   execute_functor<WorkTag>(w);
+                   m_policy.completed_work(w);
+                 }
 
-          w = m_policy.pop_work();
-        }
-
-        num_tasks_remaining.count_down(1);
-      });
-    }
-
-    num_tasks_remaining.wait();
+                 w = m_policy.pop_work();
+               }
+             });
   }
 
   inline ParallelFor(const FunctorType &arg_functor, const Policy &arg_policy)

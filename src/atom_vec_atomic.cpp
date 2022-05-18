@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -30,18 +29,8 @@ AtomVecAtomic::AtomVecAtomic(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *) "";
-  fields_copy = (char *) "";
-  fields_comm = (char *) "";
-  fields_comm_vel = (char *) "";
-  fields_reverse = (char *) "";
-  fields_border = (char *) "";
-  fields_border_vel = (char *) "";
-  fields_exchange = (char *) "";
-  fields_restart = (char *) "";
-  fields_create = (char *) "";
-  fields_data_atom = (char *) "id type x";
-  fields_data_vel = (char *) "id v";
+  fields_data_atom = {"id", "type", "x"};
+  fields_data_vel = {"id", "v"};
 
   setup_fields();
 }

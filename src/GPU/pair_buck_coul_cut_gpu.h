@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class PairBuckCoulCutGPU : public PairBuckCoulCut {
  public:
   PairBuckCoulCutGPU(LAMMPS *lmp);
-  ~PairBuckCoulCutGPU();
+  ~PairBuckCoulCutGPU() override;
   void cpu_compute(int, int, int, int, int *, int *, int **);
-  void compute(int, int);
-  void init_style();
-  double memory_usage();
+  void compute(int, int) override;
+  void init_style() override;
+  double memory_usage() override;
 
   enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
@@ -43,16 +43,3 @@ class PairBuckCoulCutGPU : public PairBuckCoulCut {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Cannot use newton pair with buck/coul/cut/gpu pair style
-
-Self-explanatory.
-
-*/

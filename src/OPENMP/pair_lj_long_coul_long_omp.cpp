@@ -331,7 +331,7 @@ void PairLJLongCoulLongOMP::compute_inner()
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(0, 0, nall, 0, 0, nullptr, thr);
+    ev_setup_thr(0, 0, nall, nullptr, nullptr, nullptr, thr);
     eval_inner(ifrom, ito, thr);
     thr->timer(Timer::PAIR);
 
@@ -356,7 +356,7 @@ void PairLJLongCoulLongOMP::compute_middle()
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(0, 0, nall, 0, 0, nullptr, thr);
+    ev_setup_thr(0, 0, nall, nullptr, nullptr, nullptr, thr);
     eval_middle(ifrom, ito, thr);
     thr->timer(Timer::PAIR);
 
@@ -805,7 +805,7 @@ void PairLJLongCoulLongOMP::eval_inner(int iifrom, int iito, ThrData * const thr
   const double qqrd2e = force->qqrd2e;
 
   const double *x0 = x[0];
-  double *f0 = f[0], *fi = 0;
+  double *f0 = f[0], *fi = nullptr;
 
   int *ilist = list->ilist_inner;
 
@@ -896,7 +896,7 @@ void PairLJLongCoulLongOMP::eval_middle(int iifrom, int iito, ThrData * const th
   const double qqrd2e = force->qqrd2e;
 
   const double *x0 = x[0];
-  double *f0 = f[0], *fi = 0;
+  double *f0 = f[0], *fi = nullptr;
 
   int *ilist = list->ilist_middle;
 

@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class FixController : public Fix {
  public:
   FixController(class LAMMPS *, int, char **);
-  ~FixController();
-  int setmask();
-  void init();
-  void end_of_step();
-  void reset_dt();
-  double compute_vector(int);
+  ~FixController() override;
+  int setmask() override;
+  void init() override;
+  void end_of_step() override;
+  void reset_dt() override;
+  double compute_vector(int) override;
 
  private:
   double kp, ki, kd, alpha, tau;
@@ -52,47 +52,3 @@ class FixController : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-E: Compute ID for fix controller does not exist
-
-UNDOCUMENTED
-
-E: Fix controller compute does not calculate a global scalar or vector
-
-UNDOCUMENTED
-
-E: Fix controller compute vector is accessed out-of-range
-
-UNDOCUMENTED
-
-E: Fix ID for fix controller does not exist
-
-UNDOCUMENTED
-
-E: Fix controller fix does not calculate a global scalar or vector
-
-UNDOCUMENTED
-
-E: Fix controller fix vector is accessed out-of-range
-
-UNDOCUMENTED
-
-E: Variable name for fix controller does not exist
-
-UNDOCUMENTED
-
-E: Fix controller variable is not equal-style variable
-
-UNDOCUMENTED
-
-E: Fix controller variable is not internal-style variable
-
-UNDOCUMENTED
-
-*/

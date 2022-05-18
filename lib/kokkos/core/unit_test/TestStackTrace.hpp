@@ -73,10 +73,10 @@ void test_stacktrace(bool bTerminate, bool bCustom = true) {
 
     if (bDynamic) {
       printf("test_f1: %s \n", foutput.c_str());
-      ASSERT_TRUE(std::string::npos != foutput.find("stacktrace_test_f1"));
+      ASSERT_NE(std::string::npos, foutput.find("stacktrace_test_f1"));
       for (auto x : {"stacktrace_test_f0", "stacktrace_test_f2",
                      "stacktrace_test_f3", "stacktrace_test_f4"}) {
-        ASSERT_TRUE(std::string::npos == foutput.find(x));
+        ASSERT_EQ(std::string::npos, foutput.find(x));
       }
     }
   }
@@ -92,7 +92,7 @@ void test_stacktrace(bool bTerminate, bool bCustom = true) {
                   foutput.find("Test::stacktrace_test_f1"));
       for (auto x : {"stacktrace_test_f0", "stacktrace_test_f2",
                      "stacktrace_test_f3", "stacktrace_test_f4"}) {
-        ASSERT_TRUE(std::string::npos == foutput.find(x));
+        ASSERT_EQ(std::string::npos, foutput.find(x));
       }
     }
   }
@@ -114,7 +114,7 @@ void test_stacktrace(bool bTerminate, bool bCustom = true) {
       std::string foutput = sstream.str();
       printf("test_f3: %s \n", foutput.c_str());
       for (auto x : {"stacktrace_test_f1", "stacktrace_test_f3"}) {
-        ASSERT_TRUE(std::string::npos != foutput.find(x));
+        ASSERT_NE(std::string::npos, foutput.find(x));
       }
     }
     // TODO make sure stacktrace_test_f2/4 don't show up
@@ -129,7 +129,7 @@ void test_stacktrace(bool bTerminate, bool bCustom = true) {
       std::string foutput = sstream.str();
       printf("demangled test_f3: %s \n", foutput.c_str());
       for (auto x : {"stacktrace_test_f1", "stacktrace_test_f3"}) {
-        ASSERT_TRUE(std::string::npos != foutput.find(x));
+        ASSERT_NE(std::string::npos, foutput.find(x));
       }
     }
 

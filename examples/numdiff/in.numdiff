@@ -1,33 +1,127 @@
-# Numerical difference calculation of error in forces
+# Numerical difference calculation
+# of error in forces, virial stress, and Born matrix
 
-units   	metal
-atom_style      atomic
+# adjustable parameters
 
-atom_modify map yes
-lattice fcc 5.358000
-region box block 0 6 0 6 0 6
-create_box 1 box
-create_atoms 1 box
-mass 1 39.903
+variable    nsteps index 500    # length of run
+variable    nthermo index 10    # thermo output interval 
+variable    ndump index 500     # dump output interval
+variable    nlat index 3        # size of box
+variable    fdelta index 1.0e-4 # displacement size
+variable    vdelta index 1.0e-6 # strain size for numdiff/virial
+variable    bdelta index 1.0e-8 # strain size for numdiff Born matrix
+variable    temp index 10.0     # temperature
+variable    nugget equal 1.0e-6 # regularization for relerr
 
-velocity all create 10 2357 mom yes dist gaussian
+units  	    metal
+atom_style  atomic
 
-pair_style lj/cubic
-pair_coeff * * 0.0102701 3.42
+atom_modify	map yes
+lattice 	fcc 5.358000
+region 		box block 0 ${nlat} 0 ${nlat} 0 ${nlat}
+create_box  	1 box
+create_atoms 	1 box
+mass 		1 39.903
 
-neighbor 1 bin
+velocity     all create ${temp} 2357 mom yes dist gaussian
 
-timestep 0.001
+pair_style      lj/cut 5.0
+pair_coeff      1 1 0.0102701 3.42
 
-fix numdiff all numdiff 200 0.0001
-fix nve all nve
+neighbor     0.0 bin
+neigh_modify every 1 delay 0 check no
 
-variable errx atom fx-f_numdiff[1]
-variable erry atom fy-f_numdiff[2]
-variable errz atom fz-f_numdiff[3]
+timestep     0.001
+fix	     nve all nve
 
-write_dump all custom tmp.error f_numdiff[1] f_numdiff[2] f_numdiff[3]
+# define numerical force calculation
 
-dump forces all custom 200 force_error.dump v_errx v_erry v_errz
-thermo 200
-run 2000
+fix	     numforce all numdiff ${nthermo} ${fdelta}
+variable     ferrx atom f_numforce[1]-fx
+variable     ferry atom f_numforce[2]-fy
+variable     ferrz atom f_numforce[3]-fz
+variable     ferrsq atom v_ferrx^2+v_ferry^2+v_ferrz^2
+compute	     faverrsq all reduce ave v_ferrsq
+variable     fsq atom fx^2+fy^2+fz^2
+compute      favsq all reduce ave v_fsq
+variable     frelerr equal sqrt(c_faverrsq/(c_favsq+${nugget}))
+dump errors  all custom ${ndump} force_error.dump v_ferrx v_ferry v_ferrz
+
+# define numerical virial stress tensor calculation
+
+compute 	myvirial all pressure NULL virial
+fix 		numvirial all numdiff/virial ${nthermo} ${vdelta}
+variable 	errxx equal f_numvirial[1]-c_myvirial[1]
+variable 	erryy equal f_numvirial[2]-c_myvirial[2]
+variable 	errzz equal f_numvirial[3]-c_myvirial[3]
+variable 	erryz equal f_numvirial[4]-c_myvirial[6]
+variable 	errxz equal f_numvirial[5]-c_myvirial[5]
+variable 	errxy equal f_numvirial[6]-c_myvirial[4]
+variable 	verrsq equal "v_errxx^2 + &
+                              v_erryy^2 + &
+                              v_errzz^2 + &
+                              v_erryz^2 + &
+                              v_errxz^2 + &
+                              v_errxy^2"
+variable 	vsq equal "c_myvirial[1]^2 + &
+                           c_myvirial[3]^2 + &
+                           c_myvirial[3]^2 + &
+		           c_myvirial[4]^2 + &
+                           c_myvirial[5]^2 + &
+                           c_myvirial[6]^2"
+variable     	vrelerr equal sqrt(v_verrsq/(v_vsq+${nugget}))
+
+# define numerical Born matrix calculation
+
+compute         bornnum all born/matrix numdiff ${bdelta} myvirial
+compute         born all born/matrix
+variable        berr vector c_bornnum-c_born
+variable 	berrsq equal "v_berr[1]^2 + &
+ 		    	  v_berr[2]^2 + &
+ 		    	  v_berr[3]^2 + &
+ 		    	  v_berr[4]^2 + &
+ 		    	  v_berr[5]^2 + &
+ 		    	  v_berr[6]^2 + &
+ 		    	  v_berr[7]^2 + &
+ 		    	  v_berr[8]^2 + &
+ 		    	  v_berr[9]^2 + &
+ 		    	  v_berr[10]^2 + &
+ 		    	  v_berr[11]^2 + &
+ 		    	  v_berr[12]^2 + &
+ 		    	  v_berr[13]^2 + &
+ 		    	  v_berr[14]^2 + &
+ 		    	  v_berr[15]^2 + &
+ 		    	  v_berr[16]^2 + &
+ 		    	  v_berr[17]^2 + &
+ 		    	  v_berr[18]^2 + &
+ 		    	  v_berr[19]^2 + &
+ 		    	  v_berr[20]^2 + &
+ 		    	  v_berr[21]^2"
+
+variable 	bsq equal "c_born[1]^2 + &
+ 		    	  c_born[2]^2 + &
+ 		    	  c_born[3]^2 + &
+ 		    	  c_born[4]^2 + &
+ 		    	  c_born[5]^2 + &
+ 		    	  c_born[6]^2 + &
+ 		    	  c_born[7]^2 + &
+ 		    	  c_born[8]^2 + &
+ 		    	  c_born[9]^2 + &
+ 		    	  c_born[10]^2 + &
+ 		    	  c_born[11]^2 + &
+ 		    	  c_born[12]^2 + &
+ 		    	  c_born[13]^2 + &
+ 		    	  c_born[14]^2 + &
+ 		    	  c_born[15]^2 + &
+ 		    	  c_born[16]^2 + &
+ 		    	  c_born[17]^2 + &
+ 		    	  c_born[18]^2 + &
+ 		    	  c_born[19]^2 + &
+ 		    	  c_born[20]^2 + &
+ 		    	  c_born[21]^2"
+
+variable     	brelerr equal sqrt(v_berrsq/(v_bsq+${nugget}))
+
+thermo_style 	custom step temp pe etotal press v_frelerr v_vrelerr v_brelerr
+thermo 		${nthermo}
+run 		${nsteps}

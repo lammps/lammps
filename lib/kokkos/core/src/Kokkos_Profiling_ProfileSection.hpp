@@ -56,9 +56,16 @@ namespace Profiling {
 
 class ProfilingSection {
  public:
-  ProfilingSection(const std::string& sectionName) : secName(sectionName) {
+  ProfilingSection(ProfilingSection const&) = delete;
+  ProfilingSection& operator=(ProfilingSection const&) = delete;
+
+  ProfilingSection(const std::string& sectionName)
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+      : secName(sectionName)
+#endif
+  {
     if (Kokkos::Profiling::profileLibraryLoaded()) {
-      Kokkos::Profiling::createProfileSection(secName, &secID);
+      Kokkos::Profiling::createProfileSection(sectionName, &secID);
     }
   }
 
@@ -80,12 +87,16 @@ class ProfilingSection {
     }
   }
 
-  std::string getName() { return secName; }
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+  KOKKOS_DEPRECATED std::string getName() { return secName; }
 
-  uint32_t getSectionID() { return secID; }
+  KOKKOS_DEPRECATED uint32_t getSectionID() { return secID; }
+#endif
 
  protected:
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
   const std::string secName;
+#endif
   uint32_t secID;
 };
 

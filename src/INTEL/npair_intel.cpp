@@ -29,11 +29,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 NPairIntel::NPairIntel(LAMMPS *lmp) : NPair(lmp) {
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  _fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  _fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!_fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
   #ifdef _LMP_INTEL_OFFLOAD
   _cop = _fix->coprocessor_number();
   _off_map_stencil = 0;
@@ -42,15 +39,15 @@ NPairIntel::NPairIntel(LAMMPS *lmp) : NPair(lmp) {
 
 /* ---------------------------------------------------------------------- */
 
+#ifdef _LMP_INTEL_OFFLOAD
 NPairIntel::~NPairIntel() {
-  #ifdef _LMP_INTEL_OFFLOAD
   if (_off_map_stencil) {
     const int * stencil = this->stencil;
     #pragma offload_transfer target(mic:_cop)   \
       nocopy(stencil:alloc_if(0) free_if(1))
   }
-  #endif
 }
+#endif
 
 /* ---------------------------------------------------------------------- */
 
@@ -659,6 +656,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
           ns += n2 - pack_offset - maxnbors;
 
           #ifdef LMP_INTEL_3BODY_FAST
+          int alln = n;
           n = lane;
           for (int u = pack_offset; u < alln; u++) {
             neighptr[n] = neighptr2[u];

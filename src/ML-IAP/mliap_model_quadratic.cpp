@@ -34,10 +34,6 @@ MLIAPModelQuadratic::MLIAPModelQuadratic(LAMMPS* lmp, char* coefffilename) :
   nonlinearflag = 1;
 }
 
-/* ---------------------------------------------------------------------- */
-
-MLIAPModelQuadratic::~MLIAPModelQuadratic() {}
-
 /* ----------------------------------------------------------------------
    get number of parameters
    ---------------------------------------------------------------------- */

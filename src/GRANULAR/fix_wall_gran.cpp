@@ -50,7 +50,7 @@ using namespace MathConst;
 
 // XYZ PLANE need to be 0,1,2
 
-enum {XPLANE=0,YPLANE=1,ZPLANE=2,ZCYLINDER,REGION};
+enum {NOSTYLE=-1,XPLANE=0,YPLANE=1,ZPLANE=2,ZCYLINDER,REGION};
 
 enum {NONE,CONSTANT,EQUAL};
 enum {DAMPING_NONE, VELOCITY, MASS_VELOCITY, VISCOELASTIC, TSUJI};
@@ -371,7 +371,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     wallstyle = REGION;
     idregion = utils::strdup(arg[iarg+1]);
     iarg += 2;
-  }
+  } else wallstyle = NOSTYLE;
 
   // optional args
 
@@ -407,6 +407,8 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal fix wall/gran command");
   }
 
+  if (wallstyle == NOSTYLE)
+    error->all(FLERR,"No wall style defined");
   if (wallstyle == XPLANE && domain->xperiodic)
     error->all(FLERR,"Cannot use wall in periodic dimension");
   if (wallstyle == YPLANE && domain->yperiodic)
@@ -496,7 +498,7 @@ void FixWallGran::init()
   dt = update->dt;
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
 
   // check for FixRigid so can extract rigid body masses
 
@@ -548,9 +550,9 @@ void FixWallGran::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(nlevels_respa-1);
     post_force_respa(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(nlevels_respa-1);
   }
 }
 
@@ -575,7 +577,7 @@ void FixWallGran::post_force(int /*vflag*/)
   if (neighbor->ago == 0 && fix_rigid) {
     int tmp;
     int *body = (int *) fix_rigid->extract("body",tmp);
-    double *mass_body = (double *) fix_rigid->extract("masstotal",tmp);
+    auto mass_body = (double *) fix_rigid->extract("masstotal",tmp);
     if (atom->nmax > nmax) {
       memory->destroy(mass_rigid);
       nmax = atom->nmax;

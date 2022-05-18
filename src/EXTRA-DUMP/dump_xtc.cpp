@@ -24,19 +24,20 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_xtc.h"
-#include <cmath>
 
-#include <cstring>
-#include <climits>
-#include "domain.h"
 #include "atom.h"
-#include "update.h"
-#include "group.h"
-#include "output.h"
-#include "force.h"
 #include "comm.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
+#include "force.h"
+#include "group.h"
+#include "memory.h"
+#include "output.h"
+#include "update.h"
+
+#include <climits>
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -120,17 +121,24 @@ void DumpXTC::init_style()
 
   if (flush_flag) error->all(FLERR,"Cannot set dump_modify flush for dump xtc");
 
-  // check that dump frequency has not changed and is not a variable
+  // check that dump modify settings are compatible with xtc
+  // but only when not being called from the "write_dump" command
 
-  int idump;
-  for (idump = 0; idump < output->ndump; idump++)
-    if (strcmp(id,output->dump[idump]->id) == 0) break;
-  if (output->every_dump[idump] == 0)
-    error->all(FLERR,"Cannot use variable every setting for dump xtc");
+  if (strcmp(id,"WRITE_DUMP") != 0) {
+    int idump;
+    for (idump = 0; idump < output->ndump; idump++)
+      if (strcmp(id,output->dump[idump]->id) == 0) break;
 
-  if (nevery_save == 0) nevery_save = output->every_dump[idump];
-  else if (nevery_save != output->every_dump[idump])
-    error->all(FLERR,"Cannot change dump_modify every for dump xtc");
+    if (output->mode_dump[idump] == 1)
+      error->all(FLERR,"Cannot use every/time setting for dump xtc");
+
+    if (output->every_dump[idump] == 0)
+      error->all(FLERR,"Cannot use every variable setting for dump xtc");
+
+    if (nevery_save == 0) nevery_save = output->every_dump[idump];
+    else if (nevery_save != output->every_dump[idump])
+      error->all(FLERR,"Cannot change dump_modify every for dump xtc");
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -278,9 +286,7 @@ int DumpXTC::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"unwrap") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    if (strcmp(arg[1],"yes") == 0) unwrap_flag = 1;
-    else if (strcmp(arg[1],"no") == 0) unwrap_flag = 0;
-    else error->all(FLERR,"Illegal dump_modify command");
+    unwrap_flag = utils::logical(FLERR,arg[1],false,lmp);
     return 2;
   } else if (strcmp(arg[0],"precision") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
@@ -375,7 +381,7 @@ static int *buf = nullptr;
  | with some routines to assist in this task (those are marked
  | static and cannot be called from user programs)
 */
-#define MAXABS INT_MAX-2
+#define MAXABS (float)(INT_MAX-2)
 
 #ifndef SQR
 #define SQR(x) ((x)*(x))

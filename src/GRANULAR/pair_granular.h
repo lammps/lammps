@@ -27,21 +27,21 @@ namespace LAMMPS_NS {
 class PairGranular : public Pair {
  public:
   PairGranular(class LAMMPS *);
-  ~PairGranular();
-  void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void reset_dt();
-  double single(int, int, int, int, double, double, double, double &);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  double memory_usage();
-  double atom2cut(int);
-  double radii2cut(double, double);
+  ~PairGranular() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void reset_dt() override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  double memory_usage() override;
+  double atom2cut(int) override;
+  double radii2cut(double, double) override;
 
  protected:
   double dt;
@@ -63,7 +63,7 @@ class PairGranular : public Pair {
   int nmax;                // allocated size of mass_rigid
 
   void allocate();
-  void transfer_history(double *, double *);
+  void transfer_history(double *, double *) override;
 
  private:
   int size_history;
@@ -106,13 +106,3 @@ class PairGranular : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

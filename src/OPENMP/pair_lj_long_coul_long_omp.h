@@ -34,11 +34,11 @@ class PairLJLongCoulLongOMP : public PairLJLongCoulLong, public ThrOMP {
  public:
   PairLJLongCoulLongOMP(class LAMMPS *);
 
-  virtual void compute(int, int);
-  virtual void compute_inner();
-  virtual void compute_middle();
-  virtual void compute_outer(int, int);
-  virtual double memory_usage();
+  void compute(int, int) override;
+  void compute_inner() override;
+  void compute_middle() override;
+  void compute_outer(int, int) override;
+  double memory_usage() override;
 
  private:
   template <const int EVFLAG, const int EFLAG, const int NEWTON_PAIR, const int CTABLE,

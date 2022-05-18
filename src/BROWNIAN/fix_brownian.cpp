@@ -33,7 +33,8 @@ using namespace FixConst;
 
 FixBrownian::FixBrownian(LAMMPS *lmp, int narg, char **arg) : FixBrownianBase(lmp, narg, arg)
 {
-  if (dipole_flag || gamma_t_eigen_flag || gamma_r_eigen_flag || gamma_r_flag) {
+  if (dipole_flag || gamma_t_eigen_flag || gamma_r_eigen_flag || gamma_r_flag || rot_temp_flag ||
+      planar_rot_flag) {
     error->all(FLERR, "Illegal fix brownian command.");
   }
   if (!gamma_t_flag) { error->all(FLERR, "Illegal fix brownian command."); }
@@ -45,7 +46,7 @@ void FixBrownian::init()
 {
   FixBrownianBase::init();
   g1 /= gamma_t;
-  g2 *= sqrt(gamma_t);
+  g2 *= sqrt(temp / gamma_t);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -69,8 +70,7 @@ void FixBrownian::initial_integrate(int /*vflag */)
       initial_integrate_templated<1, 0, 0>();
     }
   }
-  return;
-}
+  }
 
 /* ---------------------------------------------------------------------- */
 
@@ -126,5 +126,4 @@ template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_2D> void FixBrownian::initial_int
       v[i][2] = dz / dt;
     }
   }
-  return;
-}
+  }

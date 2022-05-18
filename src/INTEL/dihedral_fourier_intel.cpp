@@ -221,7 +221,7 @@ void DihedralFourierIntel::eval(const int vflag,
       if (c < (flt_t)-1.0) c = (flt_t)-1.0;
 
       flt_t deng;
-      flt_t df = (flt_t)0.0;
+      auto  df = (flt_t)0.0;
       if (EFLAG) deng = (flt_t)0.0;
 
       for (int j = 0; j < nterms[type]; j++) {
@@ -230,7 +230,7 @@ void DihedralFourierIntel::eval(const int vflag,
         const flt_t tk = fc.fc[j][type].k;
         const int m = fc.fc[j][type].multiplicity;
 
-        flt_t p = (flt_t)1.0;
+        auto  p = (flt_t)1.0;
         flt_t ddf1, df1;
         ddf1 = df1 = (flt_t)0.0;
 
@@ -364,11 +364,8 @@ void DihedralFourierIntel::init_style()
 {
   DihedralFourier::init_style();
 
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   #ifdef _LMP_INTEL_OFFLOAD
   _use_base = 0;

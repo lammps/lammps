@@ -30,18 +30,18 @@ namespace LAMMPS_NS {
 class PairEIM : public Pair {
  public:
   PairEIM(class LAMMPS *);
-  virtual ~PairEIM();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
+  ~PairEIM() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  double memory_usage();
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
 
   struct Setfl {
     double division, rbig, rsmall;
@@ -149,34 +149,3 @@ class EIMPotentialFileReader : protected Pointers {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Cannot open EIM potential file %s
-
-The specified EIM potential file cannot be opened.  Check that the
-path and name are correct.
-
-E: Could not grab global entry from EIM potential file
-
-Self-explanatory.
-
-E: Could not grab element entry from EIM potential file
-
-Self-explanatory
-
-E: Could not grab pair entry from EIM potential file
-
-Self-explanatory.
-
-*/

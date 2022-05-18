@@ -89,8 +89,8 @@ void AngleClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
   double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22,b1,b2;
   double vx11,vx12,vy11,vy12,vz11,vz12,vx21,vx22,vy21,vy22,vz21,vz22;
 
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const auto * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const int4_t * _noalias const anglelist = (int4_t *) neighbor->anglelist[0];
   const int nlocal = atom->nlocal;
   eangle = 0.0;
@@ -175,6 +175,8 @@ void AngleClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
 
     // force & energy for bond-angle term
 
+    dr1 = r1 - ba_r1[type];
+    dr2 = r2 - ba_r2[type];
     aa1 = s * dr1 * ba_k1[type];
     aa2 = s * dr2 * ba_k2[type];
 

@@ -33,7 +33,7 @@ Syntax
 * R_1, R_2,... = list of cutoff radii, one for each type (distance units)
 * w_1, w_2,... = list of neighbor weights, one for each type
 * zero or more keyword/value pairs may be appended
-* keyword = *rmin0* or *switchflag* or *bzeroflag* or *quadraticflag* or *chem* or *bnormflag* or *wselfallflag*
+* keyword = *rmin0* or *switchflag* or *bzeroflag* or *quadraticflag* or *chem* or *bnormflag* or *wselfallflag* or *bikflag* or *switchinnerflag* or *sinner* or *dinner*
 
   .. parsed-literal::
 
@@ -56,6 +56,16 @@ Syntax
        *wselfallflag* value = *0* or *1*
           *0* = self-contribution only for element of central atom
           *1* = self-contribution for all elements
+       *bikflag* value = *0* or *1* (only implemented for compute snap)
+          *0* = per-atom bispectrum descriptors are summed over atoms
+          *1* = per-atom bispectrum descriptors are not summed over atoms
+       *switchinnerflag* value = *0* or *1*
+          *0* = do not use inner switching function
+          *1* = use inner switching function
+       *sinner* values = *sinnerlist*
+          *sinnerlist* = *ntypes* values of *Sinner* (distance units)
+       *dinner* values = *dinnerlist*
+          *dinnerlist* = *ntypes* values of *Dinner* (distance units)
 
 Examples
 """"""""
@@ -67,6 +77,7 @@ Examples
    compute vb all sna/atom 1.4 0.95 6 2.0 1.0
    compute snap all snap 1.4 0.95 6 2.0 1.0
    compute snap all snap 1.0 0.99363 6 3.81 3.83 1.0 0.93 chem 2 0 1
+   compute snap all snap 1.0 0.99363 6 3.81 3.83 1.0 0.93 switchinnerflag 1 sinner 1.35 1.6 dinner 0.25 0.3
 
 Description
 """""""""""
@@ -296,6 +307,39 @@ This option is typically used in conjunction with the *chem* keyword,
 and LAMMPS will generate a warning if both *chem* and *bnormflag*
 are not both set or not both unset.
 
+The keyword *bikflag* determines whether or not to expand the bispectrum
+rows of the global array returned by compute snap. If *bikflag* is set
+to *1* then the bispectrum row, which is typically the per-atom bispectrum
+descriptors :math:`B_{i,k}` summed over all atoms *i* to produce
+:math:`B_k`, becomes bispectrum rows equal to the number of atoms. Thus,
+the resulting bispectrum rows are :math:`B_{i,k}` instead of just
+:math:`B_k`. In this case, the entries in the final column for these rows
+are set to zero.
+
+The keyword *switchinnerflag* with value 1
+activates an additional radial switching
+function similar to :math:`f_c(r)` above, but acting to switch off
+smoothly contributions from neighbor atoms at short separation distances.
+This is useful when SNAP is used in combination with a simple
+repulsive potential. For a neighbor atom at
+distance :math:`r`, its contribution is scaled by a multiplicative
+factor :math:`f_{inner}(r)` defined as follows:
+
+.. math::
+
+               = & 0,  r \leq S_{inner} - D_{inner} \\
+  f_{inner}(r) = & \frac{1}{2}(1 - \cos(\frac{\pi}{2} (1 + \frac{r-S_{inner}}{D_{inner}})), S_{inner} - D_{inner} < r \leq S_{inner} + D_{inner} \\
+               = & 1,  r > S_{inner} + D_{inner}
+
+where the switching region is centered at :math:`S_{inner}` and it extends a distance :math:`D_{inner}`
+to the left and to the right of this.
+With this option, additional keywords *sinner* and *dinner* must be used,
+each followed by *ntypes*
+values for :math:`S_{inner}` and :math:`D_{inner}`, respectively.
+When the central atom and the neighbor atom have different types,
+the values of :math:`S_{inner}` and :math:`D_{inner}` are
+the arithmetic means of the values for both types.
+
 .. note::
 
    If you have a bonded system, then the settings of :doc:`special_bonds
@@ -414,7 +458,7 @@ Default
 
 The optional keyword defaults are *rmin0* = 0,
 *switchflag* = 1, *bzeroflag* = 1, *quadraticflag* = 0,
-*bnormflag* = 0, *wselfallflag* = 0
+*bnormflag* = 0, *wselfallflag* = 0, *switchinnerflag* = 0,
 
 ----------
 

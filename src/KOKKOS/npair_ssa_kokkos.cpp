@@ -463,7 +463,7 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
     // loop over bins with local atoms, storing half of the neighbors
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,ssa_phaseCt),
      LAMMPS_LAMBDA (const int workPhase) {
-      data.build_locals_onePhase(firstTry, comm->me, workPhase);
+      data.build_locals_onePhase(firstTry, workPhase);
     });
     k_ssa_itemLoc.modify<DeviceType>();
     k_ssa_itemLen.modify<DeviceType>();
@@ -527,7 +527,7 @@ fprintf(stdout, "Fina%03d %6d inum %6d gnum, total used %6d, allocated %6d\n"
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void NPairSSAKokkosExecute<DeviceType>::build_locals_onePhase(const bool firstTry, int /*me*/, int workPhase) const
+void NPairSSAKokkosExecute<DeviceType>::build_locals_onePhase(const bool firstTry, int workPhase) const
 {
   const typename ArrayTypes<DeviceType>::t_int_1d_const_um stencil = d_stencil;
   int which = 0;
@@ -613,7 +613,7 @@ void NPairSSAKokkosExecute<DeviceType>::build_locals_onePhase(const bool firstTr
           neigh_list.d_ilist(inum++) = i;
           if (n > neigh_list.maxneighs) {
             resize() = 1;
-            if (n > new_maxneighs()) Kokkos::atomic_fetch_max(&new_maxneighs(),n);
+            if (n > new_maxneighs()) Kokkos::atomic_max(&new_maxneighs(),n);
           }
         }
       }
@@ -741,7 +741,7 @@ void NPairSSAKokkosExecute<DeviceType>::build_ghosts_onePhase(int workPhase) con
           neigh_list.d_ilist(gNdx++) = i;
           if (n > neigh_list.maxneighs) {
             resize() = 1;
-            if (n > new_maxneighs()) Kokkos::atomic_fetch_max(&new_maxneighs(),n);
+            if (n > new_maxneighs()) Kokkos::atomic_max(&new_maxneighs(),n);
           }
         }
       }

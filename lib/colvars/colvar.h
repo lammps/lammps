@@ -272,9 +272,16 @@ public:
 
 private:
   /// Parse the CVC configuration for all components of a certain type
-  template<typename def_class_name> int init_components_type(std::string const &conf,
+  template<typename def_class_name> int init_components_type(std::string const & conf,
                                                              char const *def_desc,
                                                              char const *def_config_key);
+#if (__cplusplus >= 201103L)
+  /// For the C++11 case, the names of all available components are
+  /// registered in the global map at first, and then the CVC configuration
+  /// is parsed by this function
+  int init_components_type_from_global_map(const std::string& conf,
+                                           const char* def_config_key);
+#endif
 
 public:
 
@@ -345,6 +352,9 @@ public:
   /// colvar::communicate_forces()
   /// return colvar energy if extended Lagrandian active
   cvm::real update_forces_energy();
+
+  /// \brief Integrate equations of motion of extended Lagrangian coordinate if needed
+  void update_extended_Lagrangian();
 
   /// \brief Communicate forces (previously calculated in
   /// colvar::update()) to the external degrees of freedom
@@ -592,6 +602,7 @@ public:
   class alpha_angles;
   class dihedPC;
   class alch_lambda;
+  class alch_Flambda;
   class componentDisabled;
   class CartesianBasedPath;
   class gspath;
@@ -605,6 +616,8 @@ public:
   class euler_phi;
   class euler_psi;
   class euler_theta;
+  class neuralNetwork;
+  class customColvar;
 
   // non-scalar components
   class distance_vec;
@@ -622,6 +635,9 @@ public:
       return global_cvc_map;
   }
 #endif
+
+  /// \brief function for sorting cvcs by their names
+  static bool compare_cvc(const colvar::cvc* const i, const colvar::cvc* const j);
 
 protected:
 

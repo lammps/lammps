@@ -19,35 +19,18 @@
 #include "error.h"
 #include "fix.h"
 #include "fmt/chrono.h"
+#include "input.h"
 #include "memory.h"
 #include "modify.h"
 #include "text_file_reader.h"
-#include "tokenizer.h"
+#include "universe.h"
 #include "update.h"
+#include "variable.h"
 
 #include <cctype>
 #include <cerrno>
 #include <cstring>
 #include <ctime>
-
-#if defined(__linux__)
-#include <unistd.h>    // for readlink
-#endif
-
-#if defined(__APPLE__)
-#include <fcntl.h>    // for fcntl
-#include <sys/syslimits.h>
-#endif
-
-#if defined(_WIN32)
-// target Windows version is Windows 7 and later
-#if defined(_WIN32_WINNT)
-#undef _WIN32_WINNT
-#endif
-#define _WIN32_WINNT _WIN32_WINNT_WIN7
-#include <io.h>
-#include <windows.h>
-#endif
 
 /*! \file utils.cpp */
 
@@ -139,6 +122,12 @@ std::string utils::strfind(const std::string &text, const std::string &pattern)
     return "";
 }
 
+void utils::missing_cmd_args(const std::string &file, int line, const std::string &cmd,
+                             Error *error)
+{
+  if (error) error->all(file, line, "Illegal {} command: missing argument(s)", cmd);
+}
+
 /* specialization for the case of just a single string argument */
 
 void utils::logmesg(LAMMPS *lmp, const std::string &mesg)
@@ -156,50 +145,25 @@ void utils::fmtargs_logmesg(LAMMPS *lmp, fmt::string_view format, fmt::format_ar
   }
 }
 
+std::string utils::errorurl(int errorcode)
+{
+  return fmt::format("\nFor more information see https://docs.lammps.org/err{:04d}", errorcode);
+}
+
+void utils::flush_buffers(LAMMPS *lmp)
+{
+  if (lmp->screen) fflush(lmp->screen);
+  if (lmp->logfile) fflush(lmp->logfile);
+  if (lmp->universe->uscreen) fflush(lmp->universe->uscreen);
+  if (lmp->universe->ulogfile) fflush(lmp->universe->ulogfile);
+}
+
 /* define this here, so we won't have to include the headers
    everywhere and utils.h will more likely be included anyway. */
 
 std::string utils::getsyserror()
 {
-  return std::string(strerror(errno));
-}
-
-/** On Linux the folder /proc/self/fd holds symbolic links to the actual
- * pathnames associated with each open file descriptor of the current process.
- * On MacOS the same kind of information can be obtained using ``fcntl(fd,F_GETPATH,buf)``.
- * On Windows we use ``GetFinalPathNameByHandleA()`` which is available with
- * Windows Vista and later.
- *
- * This function is used to provide a filename with error messages in functions
- * where the filename is not passed as an argument, but the FILE * pointer.
- */
-const char *utils::guesspath(char *buf, int len, FILE *fp)
-{
-  memset(buf, 0, len);
-
-#if defined(__linux__)
-  int fd = fileno(fp);
-  // get pathname from /proc or copy (unknown)
-  if (readlink(fmt::format("/proc/self/fd/{}", fd).c_str(), buf, len - 1) <= 0)
-    strncpy(buf, "(unknown)", len - 1);
-#elif defined(__APPLE__)
-  int fd = fileno(fp);
-  char filepath[PATH_MAX];
-  if (fcntl(fd, F_GETPATH, filepath) != -1)
-    strncpy(buf, filepath, len - 1);
-  else
-    strncpy(buf, "(unknown)", len - 1);
-#elif defined(_WIN32)
-  char filepath[MAX_PATH];
-  HANDLE h = (HANDLE) _get_osfhandle(_fileno(fp));
-  if (GetFinalPathNameByHandleA(h, filepath, PATH_MAX, FILE_NAME_NORMALIZED) > 0)
-    strncpy(buf, filepath, len - 1);
-  else
-    strncpy(buf, "(unknown)", len - 1);
-#else
-  strncpy(buf, "(unknown)", len - 1);
-#endif
-  return buf;
+  return {strerror(errno)};
 }
 
 // read line into buffer. if line is too long keep reading until EOL or EOF
@@ -255,7 +219,7 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size, FILE *fp
     std::string errmsg;
 
     // try to figure out the file name from the file pointer
-    if (!filename) filename = guesspath(buf, MAXPATHLENBUF, fp);
+    if (!filename) filename = platform::guesspath(fp, buf, MAXPATHLENBUF);
 
     if (feof(fp)) {
       errmsg = "Unexpected end of file while reading file '";
@@ -270,7 +234,6 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size, FILE *fp
     if (error) error->one(srcname, srcline, errmsg);
     if (s) *s = '\0';    // truncate string to empty in case error is null pointer
   }
-  return;
 }
 
 /* like fread() but aborts with an error or EOF is encountered */
@@ -284,7 +247,7 @@ void utils::sfread(const char *srcname, int srcline, void *s, size_t size, size_
     std::string errmsg;
 
     // try to figure out the file name from the file pointer
-    if (!filename) filename = guesspath(buf, MAXPATHLENBUF, fp);
+    if (!filename) filename = platform::guesspath(fp, buf, MAXPATHLENBUF);
 
     if (feof(fp)) {
       errmsg = "Unexpected end of file while reading file '";
@@ -298,7 +261,6 @@ void utils::sfread(const char *srcname, int srcline, void *s, size_t size, size_
 
     if (error) error->one(srcname, srcline, errmsg);
   }
-  return;
 }
 
 /* ------------------------------------------------------------------ */
@@ -339,7 +301,7 @@ std::string utils::check_packages_for_style(const std::string &style, const std:
 
   if (pkg) {
     errmsg += fmt::format(" is part of the {} package", pkg);
-    if (lmp->is_installed_pkg(pkg))
+    if (LAMMPS::is_installed_pkg(pkg))
       errmsg += ", but seems to be missing because of a dependency";
     else
       errmsg += " which is not enabled in this LAMMPS binary.";
@@ -348,17 +310,65 @@ std::string utils::check_packages_for_style(const std::string &style, const std:
 }
 
 /* ----------------------------------------------------------------------
+   read a boolean value from a string
+   transform to lower case before checking
+   generate an error if is not a legitimate boolean
+   called by various commands to check validity of their arguments
+------------------------------------------------------------------------- */
+
+int utils::logical(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp)
+{
+  if (str.empty()) {
+    const char msg[] = "Expected boolean parameter instead of NULL or empty string "
+                       "in input script or data file";
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
+  }
+
+  // convert to ascii
+  std::string buf(str);
+  if (has_utf8(buf)) buf = utf8_subst(buf);
+
+  int rv = 0;
+  if ((buf == "yes") || (buf == "on") || (buf == "true") || (buf == "1")) {
+    rv = 1;
+  } else if ((buf == "no") || (buf == "off") || (buf == "false") || (buf == "0")) {
+    rv = 0;
+  } else {
+    std::string msg("Expected boolean parameter instead of '");
+    msg += buf + "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
+  }
+  return rv;
+}
+
+/* ----------------------------------------------------------------------
+   wrapper for logical() that accepts a char pointer instead of a string
+------------------------------------------------------------------------- */
+
+int utils::logical(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+{
+  if (str)
+    return logical(file, line, std::string(str), do_abort, lmp);
+  else
+    return logical(file, line, std::string(""), do_abort, lmp);
+}
+
+/* ----------------------------------------------------------------------
    read a floating point value from a string
    generate an error if not a legitimate floating point value
    called by various commands to check validity of their arguments
 ------------------------------------------------------------------------- */
 
-double utils::numeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+double utils::numeric(const char *file, int line, const std::string &str, bool do_abort,
+                      LAMMPS *lmp)
 {
-  int n = 0;
-
-  if (str) n = strlen(str);
-  if (n == 0) {
+  if (str.empty()) {
     const char msg[] = "Expected floating point parameter instead of"
                        " NULL or empty string in input script or data file";
     if (do_abort)
@@ -383,17 +393,26 @@ double utils::numeric(const char *file, int line, const char *str, bool do_abort
 }
 
 /* ----------------------------------------------------------------------
+   wrapper for numeric() that accepts a char pointer instead of a string
+------------------------------------------------------------------------- */
+
+double utils::numeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+{
+  if (str)
+    return numeric(file, line, std::string(str), do_abort, lmp);
+  else
+    return numeric(file, line, std::string(""), do_abort, lmp);
+}
+
+/* ----------------------------------------------------------------------
    read an integer value from a string
    generate an error if not a legitimate integer value
    called by various commands to check validity of their arguments
 ------------------------------------------------------------------------- */
 
-int utils::inumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+int utils::inumeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp)
 {
-  int n = 0;
-
-  if (str) n = strlen(str);
-  if (n == 0) {
+  if (str.empty()) {
     const char msg[] = "Expected integer parameter instead of"
                        " NULL or empty string in input script or data file";
     if (do_abort)
@@ -418,17 +437,27 @@ int utils::inumeric(const char *file, int line, const char *str, bool do_abort, 
 }
 
 /* ----------------------------------------------------------------------
+   wrapper for inumeric() that accepts a char pointer instead of a string
+------------------------------------------------------------------------- */
+
+int utils::inumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+{
+  if (str)
+    return inumeric(file, line, std::string(str), do_abort, lmp);
+  else
+    return inumeric(file, line, std::string(""), do_abort, lmp);
+}
+
+/* ----------------------------------------------------------------------
    read a big integer value from a string
    generate an error if not a legitimate integer value
    called by various commands to check validity of their arguments
 ------------------------------------------------------------------------- */
 
-bigint utils::bnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+bigint utils::bnumeric(const char *file, int line, const std::string &str, bool do_abort,
+                       LAMMPS *lmp)
 {
-  int n = 0;
-
-  if (str) n = strlen(str);
-  if (n == 0) {
+  if (str.empty()) {
     const char msg[] = "Expected integer parameter instead of"
                        " NULL or empty string in input script or data file";
     if (do_abort)
@@ -453,17 +482,27 @@ bigint utils::bnumeric(const char *file, int line, const char *str, bool do_abor
 }
 
 /* ----------------------------------------------------------------------
+   wrapper for bnumeric() that accepts a char pointer instead of a string
+------------------------------------------------------------------------- */
+
+bigint utils::bnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+{
+  if (str)
+    return bnumeric(file, line, std::string(str), do_abort, lmp);
+  else
+    return bnumeric(file, line, std::string(""), do_abort, lmp);
+}
+
+/* ----------------------------------------------------------------------
    read a tag integer value from a string
    generate an error if not a legitimate integer value
    called by various commands to check validity of their arguments
 ------------------------------------------------------------------------- */
 
-tagint utils::tnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+tagint utils::tnumeric(const char *file, int line, const std::string &str, bool do_abort,
+                       LAMMPS *lmp)
 {
-  int n = 0;
-
-  if (str) n = strlen(str);
-  if (n == 0) {
+  if (str.empty()) {
     const char msg[] = "Expected integer parameter instead of"
                        " NULL or empty string in input script or data file";
     if (do_abort)
@@ -485,6 +524,18 @@ tagint utils::tnumeric(const char *file, int line, const char *str, bool do_abor
   }
 
   return ATOTAGINT(buf.c_str());
+}
+
+/* ----------------------------------------------------------------------
+   wrapper for tnumeric() that accepts a char pointer instead of a string
+------------------------------------------------------------------------- */
+
+tagint utils::tnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+{
+  if (str)
+    return tnumeric(file, line, std::string(str), do_abort, lmp);
+  else
+    return tnumeric(file, line, std::string(""), do_abort, lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -526,14 +577,14 @@ void utils::bounds(const char *file, int line, const std::string &str,
       error->all(file, line, fmt::format("Invalid range string: {}", str));
 
     if (nlo < nmin)
-      error->all(file, line, fmt::format("Numeric index {} is out of bounds "
-                             "({}-{})", nlo, nmin, nmax));
+      error->all(file, line, fmt::format("Numeric index {} is out of bounds ({}-{})",
+                                         nlo, nmin, nmax));
     else if (nhi > nmax)
-      error->all(file, line, fmt::format("Numeric index {} is out of bounds "
-                             "({}-{})", nhi, nmin, nmax));
+      error->all(file, line, fmt::format("Numeric index {} is out of bounds ({}-{})",
+                                         nhi, nmin, nmax));
     else if (nlo > nhi)
-      error->all(file, line, fmt::format("Numeric index {} is out of bounds "
-                             "({}-{})", nlo, nmin, nhi));
+      error->all(file, line, fmt::format("Numeric index {} is out of bounds ({}-{})",
+                                         nlo, nmin, nhi));
   }
 }
 
@@ -580,7 +631,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
     // match compute, fix, or custom property array reference with a '*' wildcard
     // number range in the first pair of square brackets
 
-    if (strmatch(word, "^[cf]_\\w+\\[\\d*\\*\\d*\\]") ||
+    if (strmatch(word, "^[cfv]_\\w+\\[\\d*\\*\\d*\\]") ||
         strmatch(word, "^[id]2_\\w+\\[\\d*\\*\\d*\\]")) {
 
       // split off the compute/fix/property ID, the wildcard and trailing text
@@ -598,12 +649,11 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
       // compute
 
       if (word[0] == 'c') {
-        int icompute = lmp->modify->find_compute(id);
+        auto compute = lmp->modify->get_compute_by_id(id);
 
         // check for global vector/array, peratom array, local array
 
-        if (icompute >= 0) {
-          Compute *compute = lmp->modify->compute[icompute];
+        if (compute) {
           if (mode == 0 && compute->vector_flag) {
             nmax = compute->size_vector;
             expandflag = 1;
@@ -622,13 +672,11 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
         // fix
 
       } else if (word[0] == 'f') {
-        int ifix = lmp->modify->find_fix(id);
+        auto fix = lmp->modify->get_fix_by_id(id);
 
         // check for global vector/array, peratom array, local array
 
-        if (ifix >= 0) {
-          Fix *fix = lmp->modify->fix[ifix];
-
+        if (fix) {
           if (mode == 0 && fix->vector_flag) {
             nmax = fix->size_vector;
             expandflag = 1;
@@ -641,6 +689,23 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
           } else if (fix->local_flag && fix->size_local_cols) {
             nmax = fix->size_local_cols;
             expandflag = 1;
+          }
+        }
+
+        // vector variable
+
+      } else if (word[0] == 'v') {
+        int index = lmp->input->variable->find(id.c_str());
+
+        // check for global vector/array, peratom array, local array
+
+        if (index >= 0) {
+          if (mode == 0 && lmp->input->variable->vectorstyle(index)) {
+            utils::bounds(file, line, wc, 1, MAXSMALLINT, nlo, nhi, lmp->error);
+            if (nhi < MAXSMALLINT) {
+              nmax = nhi;
+              expandflag = 1;
+            }
           }
         }
 
@@ -668,6 +733,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
     if (expandflag) {
 
       // expand wild card string to nlo/nhi numbers
+
       utils::bounds(file, line, wc, 1, nmax, nlo, nhi, lmp->error);
 
       if (newarg + nhi - nlo + 1 > maxarg) {
@@ -707,9 +773,31 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
 
 char *utils::strdup(const std::string &text)
 {
-  char *tmp = new char[text.size() + 1];
+  auto tmp = new char[text.size() + 1];
   strcpy(tmp, text.c_str());    // NOLINT
   return tmp;
+}
+
+/* ----------------------------------------------------------------------
+   Return string converted to lowercase
+------------------------------------------------------------------------- */
+
+std::string utils::lowercase(const std::string &text)
+{
+  std::string converted(text);
+  for (auto &c : converted) c = ::tolower(c);
+  return converted;
+}
+
+/* ----------------------------------------------------------------------
+   Return string converted to uppercase
+------------------------------------------------------------------------- */
+
+std::string utils::uppercase(const std::string &text)
+{
+  std::string converted(text);
+  for (auto &c : converted) c = ::toupper(c);
+  return converted;
 }
 
 /* ----------------------------------------------------------------------
@@ -732,9 +820,21 @@ std::string utils::trim(const std::string &line)
 
 std::string utils::trim_comment(const std::string &line)
 {
-  auto end = line.find_first_of('#');
+  auto end = line.find('#');
   if (end != std::string::npos) { return line.substr(0, end); }
-  return std::string(line);
+  return {line};
+}
+
+/* ----------------------------------------------------------------------
+   Replace '*' with number and optional zero-padding
+------------------------------------------------------------------------- */
+
+std::string utils::star_subst(const std::string &name, bigint step, int pad)
+{
+  auto star = name.find('*');
+  if (star == std::string::npos) return name;
+
+  return fmt::format("{}{:0{}}{}", name.substr(0, star), step, pad, name.substr(star + 1));
 }
 
 /* ----------------------------------------------------------------------
@@ -743,7 +843,7 @@ std::string utils::trim_comment(const std::string &line)
 
 std::string utils::utf8_subst(const std::string &line)
 {
-  const unsigned char *const in = (const unsigned char *) line.c_str();
+  const auto *const in = (const unsigned char *) line.c_str();
   const int len = line.size();
   std::string out;
 
@@ -881,7 +981,7 @@ size_t utils::count_words(const std::string &text, const std::string &separators
 
 size_t utils::trim_and_count_words(const std::string &text, const std::string &separators)
 {
-  return utils::count_words(utils::trim_comment(text), separators);
+  return utils::count_words(trim_comment(text), separators);
 }
 
 /* ----------------------------------------------------------------------
@@ -950,7 +1050,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
     }
 
     // unquoted
-    while (1) {
+    while (true) {
       if ((c == '\'') || (c == '"')) goto quoted;
       // skip escaped quote
       if ((c == '\\') && ((buf[1] == '\'') || (buf[1] == '"'))) {
@@ -976,7 +1076,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
 ------------------------------------------------------------------------- */
 std::vector<std::string> utils::split_lines(const std::string &text)
 {
-  return Tokenizer(text, "\n").as_vector();
+  return Tokenizer(text, "\r\n").as_vector();
 }
 
 /* ----------------------------------------------------------------------
@@ -1027,71 +1127,6 @@ bool utils::is_id(const std::string &str)
 }
 
 /* ----------------------------------------------------------------------
-   strip off leading part of path, return just the filename
-------------------------------------------------------------------------- */
-
-std::string utils::path_basename(const std::string &path)
-{
-#if defined(_WIN32)
-  size_t start = path.find_last_of("/\\");
-#else
-  size_t start = path.find_last_of('/');
-#endif
-
-  if (start == std::string::npos) {
-    start = 0;
-  } else {
-    start += 1;
-  }
-
-  return path.substr(start);
-}
-
-/* ----------------------------------------------------------------------
-   Return only the leading part of a path, return just the directory
-------------------------------------------------------------------------- */
-
-std::string utils::path_dirname(const std::string &path)
-{
-#if defined(_WIN32)
-  size_t start = path.find_last_of("/\\");
-#else
-  size_t start = path.find_last_of('/');
-#endif
-
-  if (start == std::string::npos) return ".";
-
-  return path.substr(0, start);
-}
-
-/* ----------------------------------------------------------------------
-   join two paths
-------------------------------------------------------------------------- */
-
-std::string utils::path_join(const std::string &a, const std::string &b)
-{
-#if defined(_WIN32)
-  return fmt::format("{}\\{}", a, b);
-#else
-  return fmt::format("{}/{}", a, b);
-#endif
-}
-
-/* ----------------------------------------------------------------------
-   try to open file for reading
-------------------------------------------------------------------------- */
-
-bool utils::file_is_readable(const std::string &path)
-{
-  FILE *fp = fopen(path.c_str(), "r");
-  if (fp) {
-    fclose(fp);
-    return true;
-  }
-  return false;
-}
-
-/* ----------------------------------------------------------------------
    try to find potential file as specified by name
    search current directory and the LAMMPS_POTENTIALS directory if
    specified
@@ -1099,28 +1134,13 @@ bool utils::file_is_readable(const std::string &path)
 
 std::string utils::get_potential_file_path(const std::string &path)
 {
-  std::string filepath = path;
-  std::string filename = utils::path_basename(path);
-
-  if (utils::file_is_readable(filepath)) {
-    return filepath;
+  if (platform::file_is_readable(path)) {
+    return path;
   } else {
-    // try the environment variable directory
-    const char *var = getenv("LAMMPS_POTENTIALS");
-
-    if (var != nullptr) {
-#if defined(_WIN32)
-      Tokenizer dirs(var, ";");
-#else
-      Tokenizer dirs(var, ":");
-#endif
-      while (dirs.has_next()) {
-        auto pot = utils::path_basename(filepath);
-        auto dir = dirs.next();
-        filepath = utils::path_join(dir, pot);
-
-        if (utils::file_is_readable(filepath)) { return filepath; }
-      }
+    for (const auto &dir : platform::list_pathenv("LAMMPS_POTENTIALS")) {
+      auto pot = platform::path_basename(path);
+      auto filepath = platform::path_join(dir, pot);
+      if (platform::file_is_readable(filepath)) return filepath;
     }
   }
   return "";
@@ -1270,7 +1290,7 @@ double utils::timespec2seconds(const std::string &timespec)
       if (!values.has_next()) break;
       vals[i] = values.next_int();
     }
-  } catch (TokenizerException &e) {
+  } catch (TokenizerException &) {
     return -1.0;
   }
 
@@ -1557,7 +1577,7 @@ static int ismetachar(char c);
 int re_matchp(const char *text, re_t pattern, int *matchlen)
 {
   *matchlen = 0;
-  if (pattern != 0) {
+  if (pattern != nullptr) {
     if (pattern[0].type == RX_BEGIN) {
       return ((matchpattern(&pattern[1], text, matchlen)) ? 0 : -1);
     } else {
@@ -1671,7 +1691,7 @@ re_t re_compile(re_ctx_t context, const char *pattern)
           i += 1;                  /* Increment i to avoid including '^' in the char-buffer */
           if (pattern[i + 1] == 0) /* incomplete pattern, missing non-zero char after '^' */
           {
-            return 0;
+            return nullptr;
           }
         } else {
           re_compiled[j].type = RX_CHAR_CLASS;
@@ -1681,20 +1701,20 @@ re_t re_compile(re_ctx_t context, const char *pattern)
         while ((pattern[++i] != ']') && (pattern[i] != '\0')) {
           /* Missing ] */
           if (pattern[i] == '\\') {
-            if (ccl_bufidx >= MAX_CHAR_CLASS_LEN - 1) { return 0; }
+            if (ccl_bufidx >= MAX_CHAR_CLASS_LEN - 1) { return nullptr; }
             if (pattern[i + 1] == 0) /* incomplete pattern, missing non-zero char after '\\' */
             {
-              return 0;
+              return nullptr;
             }
             ccl_buf[ccl_bufidx++] = pattern[i++];
           } else if (ccl_bufidx >= MAX_CHAR_CLASS_LEN) {
-            return 0;
+            return nullptr;
           }
           ccl_buf[ccl_bufidx++] = pattern[i];
         }
         if (ccl_bufidx >= MAX_CHAR_CLASS_LEN) {
           /* Catches cases such as [00000000000000000000000000000000000000][ */
-          return 0;
+          return nullptr;
         }
         /* Null-terminate string end */
         ccl_buf[ccl_bufidx++] = 0;
@@ -1709,7 +1729,7 @@ re_t re_compile(re_ctx_t context, const char *pattern)
     }
     /* no buffer-out-of-bounds access on invalid patterns -
      * see https://github.com/kokke/tiny-regex-c/commit/1a279e04014b70b0695fba559a7c05d55e6ee90b */
-    if (pattern[i] == 0) { return 0; }
+    if (pattern[i] == 0) { return nullptr; }
 
     i += 1;
     j += 1;

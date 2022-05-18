@@ -50,15 +50,16 @@
 
 #include <Kokkos_Core_fwd.hpp>
 
-// Fundamental type description for half precision
-// Should not rely on other backend infrastructure
-#include <Kokkos_Half.hpp>
 #include <KokkosCore_Config_DeclareBackend.hpp>
 
+#include <Kokkos_Half.hpp>
 #include <Kokkos_AnonymousSpace.hpp>
 #include <Kokkos_LogicalSpaces.hpp>
 #include <Kokkos_Pair.hpp>
+#include <Kokkos_MinMaxClamp.hpp>
+#include <Kokkos_MathematicalConstants.hpp>
 #include <Kokkos_MathematicalFunctions.hpp>
+#include <Kokkos_MathematicalSpecialFunctions.hpp>
 #include <Kokkos_MemoryPool.hpp>
 #include <Kokkos_Array.hpp>
 #include <Kokkos_View.hpp>
@@ -74,6 +75,7 @@
 #include <iosfwd>
 #include <map>
 #include <memory>
+#include <vector>
 
 //----------------------------------------------------------------------------
 
@@ -100,6 +102,22 @@ struct InitArguments {
         skip_device{9999},
         disable_warnings{dw},
         tune_internals{ti} {}
+  Tools::InitArguments impl_get_tools_init_arguments() const {
+    Tools::InitArguments init_tools;
+    init_tools.tune_internals =
+        tune_internals ? Tools::InitArguments::PossiblyUnsetOption::on
+                       : Tools::InitArguments::PossiblyUnsetOption::unset;
+    init_tools.help = tool_help
+                          ? Tools::InitArguments::PossiblyUnsetOption::on
+                          : Tools::InitArguments::PossiblyUnsetOption::unset;
+    init_tools.lib = tool_lib.empty()
+                         ? Kokkos::Tools::InitArguments::unset_string_option
+                         : tool_lib;
+    init_tools.args = tool_args.empty()
+                          ? Kokkos::Tools::InitArguments::unset_string_option
+                          : tool_args;
+    return init_tools;
+  }
 };
 
 namespace Impl {
@@ -121,6 +139,7 @@ class ExecSpaceManager {
   void initialize_spaces(const Kokkos::InitArguments& args);
   void finalize_spaces(const bool all_spaces);
   void static_fence();
+  void static_fence(const std::string&);
   void print_configuration(std::ostream& msg, const bool detail);
   static ExecSpaceManager& get_instance();
 };
@@ -184,6 +203,7 @@ void push_finalize_hook(std::function<void()> f);
 void finalize_all();
 
 void fence();
+void fence(const std::string&);
 
 /** \brief Print "Bill of Materials" */
 void print_configuration(std::ostream&, const bool detail = false);
@@ -272,6 +292,44 @@ class ScopeGuard {
   ScopeGuard(const ScopeGuard&)            = delete;
 };
 
+}  // namespace Kokkos
+
+namespace Kokkos {
+namespace Experimental {
+// Partitioning an Execution Space: expects space and integer arguments for
+// relative weight
+//   Customization point for backends
+//   Default behavior is to return the passed in instance
+template <class ExecSpace, class... Args>
+std::vector<ExecSpace> partition_space(ExecSpace space, Args...) {
+  static_assert(is_execution_space<ExecSpace>::value,
+                "Kokkos Error: partition_space expects an Execution Space as "
+                "first argument");
+#ifdef __cpp_fold_expressions
+  static_assert(
+      (... && std::is_arithmetic_v<Args>),
+      "Kokkos Error: partitioning arguments must be integers or floats");
+#endif
+  std::vector<ExecSpace> instances(sizeof...(Args));
+  for (int s = 0; s < int(sizeof...(Args)); s++) instances[s] = space;
+  return instances;
+}
+
+template <class ExecSpace, class T>
+std::vector<ExecSpace> partition_space(ExecSpace space,
+                                       std::vector<T>& weights) {
+  static_assert(is_execution_space<ExecSpace>::value,
+                "Kokkos Error: partition_space expects an Execution Space as "
+                "first argument");
+  static_assert(
+      std::is_arithmetic<T>::value,
+      "Kokkos Error: partitioning arguments must be integers or floats");
+
+  std::vector<ExecSpace> instances(weights.size());
+  for (int s = 0; s < int(weights.size()); s++) instances[s] = space;
+  return instances;
+}
+}  // namespace Experimental
 }  // namespace Kokkos
 
 #include <Kokkos_Crs.hpp>

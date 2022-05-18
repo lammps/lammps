@@ -20,7 +20,6 @@ pair_coeff      * * BN.extep B N
 # Output 
 thermo          10
 thermo_style    custom step time etotal pe temp lx ly lz pxx pyy pzz
-thermo_modify   line one format float %14.8g
 
 # Setup NPT MD run
 timestep        0.0001 # ps

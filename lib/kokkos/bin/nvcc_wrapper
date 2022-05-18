@@ -96,10 +96,10 @@ replace_pragma_ident=0
 first_xcompiler_arg=1
 
 # Allow for setting temp dir without setting TMPDIR in parent (see https://docs.olcf.ornl.gov/systems/summit_user_guide.html#setting-tmpdir-causes-jsm-jsrun-errors-job-state-flip-flop)
-if [[ ! -z ${NVCC_WRAPPER_TMPDIR+x} ]]; then
+if [[ -z ${NVCC_WRAPPER_TMPDIR+x} ]]; then
   temp_dir=${TMPDIR:-/tmp}
 else
-  temp_dir=${NVCC_WRAPPER_TMPDIR+x}
+  temp_dir=${NVCC_WRAPPER_TMPDIR}
 fi
 
 # optimization flag added as a command-line argument
@@ -149,11 +149,16 @@ do
   *.cpp|*.cxx|*.cc|*.C|*.c++|*.cu)
     cpp_files="$cpp_files $1"
     ;;
-   # Ensure we only have one optimization flag because NVCC doesn't allow muliple
+   # Ensure we only have one optimization flag because NVCC doesn't allow multiple
   -O*)
     if [ -n "$optimization_flag" ]; then
-       echo "nvcc_wrapper - *warning* you have set multiple optimization flags (-O*), only the last is used because nvcc can only accept a single optimization setting."
-       shared_args=${shared_args/ $optimization_flag/}
+        if [ "$1" = "$optimization_flag" ]; then
+            # Silently consume duplicates of the same argument
+            shift
+            continue
+        fi
+        echo "nvcc_wrapper - *warning* you have set multiple optimization flags (-O*), only the last is used because nvcc can only accept a single optimization setting."
+        shared_args=${shared_args/ $optimization_flag/}
     fi
     if [ "$1" = "-O" ]; then
       optimization_flag="-O2"
@@ -222,18 +227,18 @@ do
     fi
     ;;
   #Handle known nvcc args
-  --dryrun|--verbose|--keep|--keep-dir*|-G|-lineinfo|-expt-extended-lambda|-expt-relaxed-constexpr|--resource-usage|-Xptxas*|--fmad=*|--use_fast_math|--Wext-lambda-captures-this|-Wext-lambda-captures-this)
+  --dryrun|--verbose|--keep|--keep-dir*|-G|-lineinfo|-expt-extended-lambda|-expt-relaxed-constexpr|--resource-usage|--fmad=*|--use_fast_math|--Wext-lambda-captures-this|-Wext-lambda-captures-this)
     cuda_args="$cuda_args $1"
     ;;
   #Handle more known nvcc args
-  --expt-extended-lambda|--expt-relaxed-constexpr|--Wno-deprecated-gpu-targets|-Wno-deprecated-gpu-targets)
+  --expt-extended-lambda|--expt-relaxed-constexpr|--Wno-deprecated-gpu-targets|-Wno-deprecated-gpu-targets|-allow-unsupported-compiler|--allow-unsupported-compiler)
     cuda_args="$cuda_args $1"
     ;;
   #Handle known nvcc args that have an argument
-  -maxrregcount=*|--maxrregcount=*)
+  -maxrregcount=*|--maxrregcount=*|-time=*|-Xptxas=*)
     cuda_args="$cuda_args $1"
     ;;
-  -maxrregcount|--default-stream|-Xnvlink|--fmad|-cudart|--cudart|-include)
+  -maxrregcount|--default-stream|-Xnvlink|--fmad|-cudart|--cudart|-include|-time|-Xptxas)
     cuda_args="$cuda_args $1 $2"
     shift
     ;;
@@ -552,14 +557,14 @@ if [ $host_only -eq 1 ]; then
   $host_command
 elif [ -n "$nvcc_depfile_command" ]; then
   if [ "$NVCC_WRAPPER_SHOW_COMMANDS_BEING_RUN" == "1" ] ; then
-    echo "$nvcc_command && $nvcc_depfile_command"
+    echo "TMPDIR=${temp_dir} $nvcc_command && TMPDIR=${temp_dir} $nvcc_depfile_command"
   fi
-  $nvcc_command && $nvcc_depfile_command
+  TMPDIR=${temp_dir} $nvcc_command && TMPDIR=${temp_dir} $nvcc_depfile_command
 else
   if [ "$NVCC_WRAPPER_SHOW_COMMANDS_BEING_RUN" == "1" ] ; then
-    echo "$nvcc_command"
+    echo "TMPDIR=${temp_dir} $nvcc_command"
   fi
-  $nvcc_command
+  TMPDIR=${temp_dir} $nvcc_command
 fi
 error_code=$?
 

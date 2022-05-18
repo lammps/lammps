@@ -167,7 +167,7 @@ inline void configure_shmem_preference(KernelFuncPtr const& func,
 #ifndef KOKKOS_ARCH_KEPLER
   // On Kepler the L1 has no benefit since it doesn't cache reads
   auto set_cache_config = [&] {
-    CUDA_SAFE_CALL(cudaFuncSetCacheConfig(
+    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaFuncSetCacheConfig(
         func,
         (prefer_shmem ? cudaFuncCachePreferShared : cudaFuncCachePreferL1)));
     return prefer_shmem;
@@ -372,14 +372,15 @@ struct CudaParallelLaunchKernelInvoker<
       params.kernelParams   = (void**)args;
       params.extra          = nullptr;
 
-      CUDA_SAFE_CALL(cudaGraphAddKernelNode(
+      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGraphAddKernelNode(
           &graph_node, graph, /* dependencies = */ nullptr,
           /* numDependencies = */ 0, &params));
     } else {
       // We still need an empty node for the dependency structure
-      CUDA_SAFE_CALL(cudaGraphAddEmptyNode(&graph_node, graph,
-                                           /* dependencies = */ nullptr,
-                                           /* numDependencies = */ 0));
+      KOKKOS_IMPL_CUDA_SAFE_CALL(
+          cudaGraphAddEmptyNode(&graph_node, graph,
+                                /* dependencies = */ nullptr,
+                                /* numDependencies = */ 0));
     }
     KOKKOS_ENSURES(bool(graph_node))
   }
@@ -475,14 +476,15 @@ struct CudaParallelLaunchKernelInvoker<
       params.kernelParams   = (void**)args;
       params.extra          = nullptr;
 
-      CUDA_SAFE_CALL(cudaGraphAddKernelNode(
+      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGraphAddKernelNode(
           &graph_node, graph, /* dependencies = */ nullptr,
           /* numDependencies = */ 0, &params));
     } else {
       // We still need an empty node for the dependency structure
-      CUDA_SAFE_CALL(cudaGraphAddEmptyNode(&graph_node, graph,
-                                           /* dependencies = */ nullptr,
-                                           /* numDependencies = */ 0));
+      KOKKOS_IMPL_CUDA_SAFE_CALL(
+          cudaGraphAddEmptyNode(&graph_node, graph,
+                                /* dependencies = */ nullptr,
+                                /* numDependencies = */ 0));
     }
     KOKKOS_ENSURES(bool(graph_node))
   }
@@ -538,7 +540,9 @@ struct CudaParallelLaunchKernelInvoker<
                             dim3 const& block, int shmem,
                             CudaInternal const* cuda_instance) {
     // Wait until the previous kernel that uses the constant buffer is done
-    CUDA_SAFE_CALL(cudaEventSynchronize(cuda_instance->constantMemReusable));
+    std::lock_guard<std::mutex> lock(CudaInternal::constantMemMutex);
+    KOKKOS_IMPL_CUDA_SAFE_CALL(
+        cudaEventSynchronize(CudaInternal::constantMemReusable));
 
     // Copy functor (synchronously) to staging buffer in pinned host memory
     unsigned long* staging = cuda_instance->constantMemHostStaging;
@@ -554,8 +558,9 @@ struct CudaParallelLaunchKernelInvoker<
          get_kernel_func())<<<grid, block, shmem, cuda_instance->m_stream>>>();
 
     // Record an event that says when the constant buffer can be reused
-    CUDA_SAFE_CALL(cudaEventRecord(cuda_instance->constantMemReusable,
-                                   cudaStream_t(cuda_instance->m_stream)));
+    KOKKOS_IMPL_CUDA_SAFE_CALL(
+        cudaEventRecord(CudaInternal::constantMemReusable,
+                        cudaStream_t(cuda_instance->m_stream)));
   }
 
 #ifdef KOKKOS_CUDA_ENABLE_GRAPHS
@@ -637,8 +642,9 @@ struct CudaParallelLaunchImpl<
       base_t::invoke_kernel(driver, grid, block, shmem, cuda_instance);
 
 #if defined(KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK)
-      CUDA_SAFE_CALL(cudaGetLastError());
-      cuda_instance->fence();
+      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetLastError());
+      cuda_instance->fence(
+          "Kokkos::Impl::launch_kernel: Debug Only Check for Execution Error");
 #endif
     }
   }
@@ -650,7 +656,7 @@ struct CudaParallelLaunchImpl<
     // the code and the result is visible.
     auto wrap_get_attributes = []() -> cudaFuncAttributes {
       cudaFuncAttributes attr_tmp;
-      CUDA_SAFE_CALL(
+      KOKKOS_IMPL_CUDA_SAFE_CALL(
           cudaFuncGetAttributes(&attr_tmp, base_t::get_kernel_func()));
       return attr_tmp;
     };

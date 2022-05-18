@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -20,56 +19,14 @@
 
 #include <cstring>
 
-#ifdef _WIN32
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <windows.h>
-#include <cstdint>
-#else
-#include <sys/time.h>
-#include <sys/resource.h>
-#endif
-
 using namespace LAMMPS_NS;
-
-
-// Return the CPU time for the current process in seconds very
-// much in the same way as MPI_Wtime() returns the wall time.
-
-static double CPU_Time()
-{
-  double rv = 0.0;
-
-#ifdef _WIN32
-
-  // from MSD docs.
-  FILETIME ct,et,kt,ut;
-  union { FILETIME ft; uint64_t ui; } cpu;
-  if (GetProcessTimes(GetCurrentProcess(),&ct,&et,&kt,&ut)) {
-    cpu.ft = ut;
-    rv = cpu.ui * 0.0000001;
-  }
-
-#else /* ! _WIN32 */
-
-  struct rusage ru;
-  if (getrusage(RUSAGE_SELF, &ru) == 0) {
-    rv = (double) ru.ru_utime.tv_sec;
-    rv += (double) ru.ru_utime.tv_usec * 0.000001;
-  }
-
-#endif /* ! _WIN32 */
-
-  return rv;
-}
 
 /* ---------------------------------------------------------------------- */
 
-Timer::Timer(LAMMPS *lmp) : Pointers(lmp)
+Timer::Timer(LAMMPS *_lmp) : Pointers(_lmp)
 {
   _level = NORMAL;
-  _sync  = OFF;
+  _sync = OFF;
   _timeout = -1;
   _s_timeout = -1;
   _checkfreq = 10;
@@ -91,22 +48,22 @@ void Timer::init()
 
 void Timer::_stamp(enum ttype which)
 {
-  double current_cpu=0.0, current_wall=0.0;
+  double current_cpu = 0.0, current_wall = 0.0;
 
-  if (_level > NORMAL) current_cpu = CPU_Time();
-  current_wall = MPI_Wtime();
+  if (_level > NORMAL) current_cpu = platform::cputime();
+  current_wall = platform::walltime();
 
   if ((which > TOTAL) && (which < NUM_TIMER)) {
     const double delta_cpu = current_cpu - previous_cpu;
     const double delta_wall = current_wall - previous_wall;
 
-    cpu_array[which]  += delta_cpu;
+    cpu_array[which] += delta_cpu;
     wall_array[which] += delta_wall;
-    cpu_array[ALL]    += delta_cpu;
-    wall_array[ALL]   += delta_wall;
+    cpu_array[ALL] += delta_cpu;
+    wall_array[ALL] += delta_wall;
   }
 
-  previous_cpu  = current_cpu;
+  previous_cpu = current_cpu;
   previous_wall = current_wall;
 
   if (which == RESET) {
@@ -117,12 +74,12 @@ void Timer::_stamp(enum ttype which)
 
   if (_sync) {
     MPI_Barrier(world);
-    if (_level > NORMAL) current_cpu = CPU_Time();
-    current_wall = MPI_Wtime();
+    if (_level > NORMAL) current_cpu = platform::cputime();
+    current_wall = platform::walltime();
 
-    cpu_array[SYNC]  += current_cpu - previous_cpu;
+    cpu_array[SYNC] += current_cpu - previous_cpu;
     wall_array[SYNC] += current_wall - previous_wall;
-    previous_cpu  = current_cpu;
+    previous_cpu = current_cpu;
     previous_wall = current_wall;
   }
 }
@@ -131,18 +88,18 @@ void Timer::_stamp(enum ttype which)
 
 void Timer::barrier_start()
 {
-  double current_cpu=0.0, current_wall=0.0;
+  double current_cpu = 0.0, current_wall = 0.0;
 
   MPI_Barrier(world);
 
   if (_level < LOOP) return;
 
-  current_cpu = CPU_Time();
-  current_wall = MPI_Wtime();
+  current_cpu = platform::cputime();
+  current_wall = platform::walltime();
 
-  cpu_array[TOTAL]  = current_cpu;
+  cpu_array[TOTAL] = current_cpu;
   wall_array[TOTAL] = current_wall;
-  previous_cpu  = current_cpu;
+  previous_cpu = current_cpu;
   previous_wall = current_wall;
 }
 
@@ -150,16 +107,16 @@ void Timer::barrier_start()
 
 void Timer::barrier_stop()
 {
-  double current_cpu=0.0, current_wall=0.0;
+  double current_cpu = 0.0, current_wall = 0.0;
 
   MPI_Barrier(world);
 
   if (_level < LOOP) return;
 
-  current_cpu = CPU_Time();
-  current_wall = MPI_Wtime();
+  current_cpu = platform::cputime();
+  current_wall = platform::walltime();
 
-  cpu_array[TOTAL]  = current_cpu - cpu_array[TOTAL];
+  cpu_array[TOTAL] = current_cpu - cpu_array[TOTAL];
   wall_array[TOTAL] = current_wall - wall_array[TOTAL];
 }
 
@@ -167,7 +124,7 @@ void Timer::barrier_stop()
 
 double Timer::cpu(enum ttype which)
 {
-  double current_cpu = CPU_Time();
+  double current_cpu = platform::cputime();
   return (current_cpu - cpu_array[which]);
 }
 
@@ -176,7 +133,7 @@ double Timer::cpu(enum ttype which)
 double Timer::elapsed(enum ttype which)
 {
   if (_level == OFF) return 0.0;
-  double current_wall = MPI_Wtime();
+  double current_wall = platform::walltime();
   return (current_wall - wall_array[which]);
 }
 
@@ -207,18 +164,17 @@ void Timer::print_timeout(FILE *fp)
   // format timeout setting
   if (_timeout > 0) {
     // time since init_timeout()
-    const double d = MPI_Wtime() - timeout_start;
+    const double d = platform::walltime() - timeout_start;
     // remaining timeout in seconds
     int s = _timeout - d;
     // remaining 1/100ths of seconds
-    const int hs = 100*((_timeout - d) -  s);
+    const int hs = 100 * ((_timeout - d) - s);
     // breaking s down into second/minutes/hours
     const int seconds = s % 60;
-    s  = (s - seconds) / 60;
+    s = (s - seconds) / 60;
     const int minutes = s % 60;
     const int hours = (s - minutes) / 60;
-    fprintf(fp,"  Walltime left : %d:%02d:%02d.%02d\n",
-            hours,minutes,seconds,hs);
+    fprintf(fp, "  Walltime left : %d:%02d:%02d.%02d\n", hours, minutes, seconds, hs);
   }
 }
 
@@ -226,16 +182,15 @@ void Timer::print_timeout(FILE *fp)
 
 bool Timer::_check_timeout()
 {
-  double walltime = MPI_Wtime() - timeout_start;
+  double walltime = platform::walltime() - timeout_start;
   // broadcast time to insure all ranks act the same.
-  MPI_Bcast(&walltime,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&walltime, 1, MPI_DOUBLE, 0, world);
 
   if (walltime < _timeout) {
     _nextcheck += _checkfreq;
     return false;
   } else {
-    if (comm->me == 0)
-      error->warning(FLERR,"Wall time limit reached");
+    if (comm->me == 0) error->warning(FLERR, "Wall time limit reached");
     _timeout = 0.0;
     return true;
   }
@@ -244,48 +199,50 @@ bool Timer::_check_timeout()
 /* ---------------------------------------------------------------------- */
 double Timer::get_timeout_remain()
 {
-  return (_timeout < 0.0) ? 0.0 : _timeout + timeout_start - MPI_Wtime();
+  return (_timeout < 0.0) ? 0.0 : _timeout + timeout_start - platform::walltime();
 }
 
 /* ----------------------------------------------------------------------
    modify parameters of the Timer class
 ------------------------------------------------------------------------- */
-static const char *timer_style[] = { "off", "loop", "normal", "full" };
-static const char *timer_mode[]  = { "nosync", "(dummy)", "sync" };
+static const char *timer_style[] = {"off", "loop", "normal", "full"};
+static const char *timer_mode[] = {"nosync", "(dummy)", "sync"};
 
 void Timer::modify_params(int narg, char **arg)
 {
   int iarg = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],timer_style[OFF])           == 0) {
+    if (strcmp(arg[iarg], timer_style[OFF]) == 0) {
       _level = OFF;
-    } else if (strcmp(arg[iarg],timer_style[LOOP]) == 0) {
+    } else if (strcmp(arg[iarg], timer_style[LOOP]) == 0) {
       _level = LOOP;
-    } else if (strcmp(arg[iarg],timer_style[NORMAL]) == 0) {
+    } else if (strcmp(arg[iarg], timer_style[NORMAL]) == 0) {
       _level = NORMAL;
-    } else if (strcmp(arg[iarg],timer_style[FULL])   == 0) {
+    } else if (strcmp(arg[iarg], timer_style[FULL]) == 0) {
       _level = FULL;
-    } else if (strcmp(arg[iarg],timer_mode[OFF])     == 0) {
-      _sync  = OFF;
-    } else if (strcmp(arg[iarg],timer_mode[NORMAL])  == 0) {
-      _sync  = NORMAL;
-    } else if (strcmp(arg[iarg],"timeout") == 0) {
+    } else if (strcmp(arg[iarg], timer_mode[OFF]) == 0) {
+      _sync = OFF;
+    } else if (strcmp(arg[iarg], timer_mode[NORMAL]) == 0) {
+      _sync = NORMAL;
+    } else if (strcmp(arg[iarg], "timeout") == 0) {
       ++iarg;
       if (iarg < narg) {
         _timeout = utils::timespec2seconds(arg[iarg]);
-      } else error->all(FLERR,"Illegal timer command");
-    } else if (strcmp(arg[iarg],"every") == 0) {
+      } else
+        error->all(FLERR, "Illegal timer command");
+    } else if (strcmp(arg[iarg], "every") == 0) {
       ++iarg;
       if (iarg < narg) {
-        _checkfreq = utils::inumeric(FLERR,arg[iarg],false,lmp);
-        if (_checkfreq <= 0)
-          error->all(FLERR,"Illegal timer command");
-      } else error->all(FLERR,"Illegal timer command");
-    } else error->all(FLERR,"Illegal timer command");
+        _checkfreq = utils::inumeric(FLERR, arg[iarg], false, lmp);
+        if (_checkfreq <= 0) error->all(FLERR, "Illegal timer command");
+      } else
+        error->all(FLERR, "Illegal timer command");
+    } else
+      error->all(FLERR, "Illegal timer command");
     ++iarg;
   }
 
-  timeout_start = MPI_Wtime();
+  timeout_start = platform::walltime();
   if (comm->me == 0) {
 
     // format timeout setting
@@ -295,7 +252,7 @@ void Timer::modify_params(int narg, char **arg)
       timeout = fmt::format("{:%H:%M:%S}", fmt::gmtime(tv));
     }
 
-    utils::logmesg(lmp,"New timer settings: style={}  mode={}  timeout={}\n",
-                   timer_style[_level],timer_mode[_sync],timeout);
+    utils::logmesg(lmp, "New timer settings: style={}  mode={}  timeout={}\n", timer_style[_level],
+                   timer_mode[_sync], timeout);
   }
 }

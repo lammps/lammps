@@ -58,7 +58,7 @@ struct PairExp6ParamDataType
           *epsilonOld2, *alphaOld2, *rmOld2, *mixWtSite2old;
 
    // Default constructor -- nullify everything.
-   PairExp6ParamDataType(void)
+   PairExp6ParamDataType()
       : n(0), epsilon1(nullptr), alpha1(nullptr), rm1(nullptr), mixWtSite1(nullptr),
               epsilon2(nullptr), alpha2(nullptr), rm2(nullptr), mixWtSite2(nullptr),
               epsilonOld1(nullptr), alphaOld1(nullptr), rmOld1(nullptr), mixWtSite1old(nullptr),
@@ -705,7 +705,7 @@ double PairExp6rx::init_one(int i, int j)
 void PairExp6rx::read_file(char *file)
 {
   int params_per_line = 5;
-  char **words = new char*[params_per_line+1];
+  auto words = new char*[params_per_line+1];
 
   memory->sfree(params);
   params = nullptr;
@@ -731,7 +731,7 @@ void PairExp6rx::read_file(char *file)
   char line[MAXLINE],*ptr;
   int eof = 0;
 
-  while (1) {
+  while (true) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == nullptr) {
@@ -820,7 +820,7 @@ void PairExp6rx::read_file(char *file)
 void PairExp6rx::read_file2(char *file)
 {
   int params_per_line = 7;
-  char **words = new char*[params_per_line+1];
+  auto words = new char*[params_per_line+1];
 
   // open file on proc 0
 
@@ -838,7 +838,7 @@ void PairExp6rx::read_file2(char *file)
   char line[MAXLINE],*ptr;
   int eof = 0;
 
-  while (1) {
+  while (true) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == nullptr) {

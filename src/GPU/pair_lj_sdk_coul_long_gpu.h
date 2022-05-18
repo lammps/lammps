@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class PairLJSDKCoulLongGPU : public PairLJSDKCoulLong {
  public:
   PairLJSDKCoulLongGPU(LAMMPS *lmp);
-  ~PairLJSDKCoulLongGPU();
+  ~PairLJSDKCoulLongGPU() override;
   template <int, int> void cpu_compute(int, int, int *, int *, int **);
-  void compute(int, int);
-  void init_style();
-  double memory_usage();
+  void compute(int, int) override;
+  void init_style() override;
+  double memory_usage() override;
 
   enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
@@ -43,25 +43,3 @@ class PairLJSDKCoulLongGPU : public PairLJSDKCoulLong {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Pair style lj/sdk/coul/long/gpu requires atom attribute q
-
-The atom style defined does not have this attribute.
-
-E: Cannot use newton pair with lj/sdk/coul/long/gpu pair style
-
-Self-explanatory.
-
-E: Pair style is incompatible with KSpace style
-
-If a pair style with a long-range Coulombic component is selected,
-then a kspace style must also be used.
-
-*/

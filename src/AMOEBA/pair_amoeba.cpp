@@ -289,6 +289,10 @@ void PairAmoeba::compute(int eflag, int vflag)
 {
   ev_init(eflag,vflag);
 
+  if (eflag_atom || vflag_atom)
+    error->all(FLERR,"Cannot (yet) compute per-atom energy/virial "
+               "with pair_style amoeba/hippo");
+
   // zero energy/virial components
 
   ehal = erepulse = edisp = epolar = empole = eqxfer = 0.0;

@@ -34,7 +34,6 @@ enum{NOFRAME,ZONLY,ZTHENX,BISECTOR,ZBISECT,THREEFOLD};
      any of the values can be 0 if not used
      yaxis can later be negative due to chkpole()
    also sets polaxe and pole[13] multipole for each owned atom
-   NOTE: may not always do this identically to Tinker b/c atom order matters
 ------------------------------------------------------------------------- */
 
 void PairAmoeba::kmpole()
@@ -71,6 +70,8 @@ void PairAmoeba::kmpole()
     flag = 0;
 
     // create a sorted version of bond/angle neighs from special[][]
+    // NOTE: this is try and do it identically to Tinker 
+    //   b/c I think in Tinker, atom order matters as to which case is seen fist
 
     for (j = 0; j < nspecial[i][0]; j++)
       bondneigh[j] = special[i][j];

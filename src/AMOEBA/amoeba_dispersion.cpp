@@ -245,7 +245,7 @@ void PairAmoeba::dispersion_kspace()
   int it1,it2,it3;
   int j0,jgrd0;
   int k0,kgrd0;
-  double e,fi,denom;
+  double e,fi,denom,scale;
   double r1,r2,r3;
   double h1,h2,h3;
   double term,vterm;
@@ -317,9 +317,6 @@ void PairAmoeba::dispersion_kspace()
   fac3 = -2.0*aewald*MY_PI*MY_PI;
   denom0 = (6.0*volbox)/pow(MY_PI,1.5);
 
-  //qgrid[0][0][0][0] = 0.0;   // NOTE: why is this needed?
-  //qgrid[0][0][0][1] = 0.0;
-
   n = 0;
   for (k = nzlo; k <= nzhi; k++) {
     for (j = nylo; j <= nyhi; j++) {
@@ -355,9 +352,9 @@ void PairAmoeba::dispersion_kspace()
             virdisp[5] -= h2*h3*vterm;
           }
         } else term1 = 0.0;
-        // NOTE: pre-calc this division only once
-        gridfft[n] *= -(term1/denom);
-        gridfft[n+1] *= -(term1/denom);
+        scale = -term1 / denom;
+        gridfft[n] *= scale;
+        gridfft[n+1] *= scale;
         n += 2;
       }
     }

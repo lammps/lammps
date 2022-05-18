@@ -102,8 +102,8 @@ void PairAmoeba::induce()
   }
 
   // get induced dipoles via the OPT extrapolation method
-  // NOTE: any way to rewrite these loops to avoid allocating
-  //       uopt,uoptp with a optorder+1 dimension, just optorder ??
+  // NOTE: could rewrite these loops to avoid allocating
+  //       uopt,uoptp with a optorder+1 dimension, just optorder
   //       since no need to store optorder+1 values after these loops
 
   if (poltyp == OPT) {
@@ -332,8 +332,6 @@ void PairAmoeba::induce()
         }
       }
 
-      // NOTE: comp of b,bp and allreduce only needed if pcgprec ?
-
       reduce[0] = b;
       reduce[1] = bp;
       MPI_Allreduce(reduce,allreduce,4,MPI_DOUBLE,MPI_SUM,world);
@@ -458,7 +456,6 @@ void PairAmoeba::ulspred()
     }
 
   // derive normal equations corresponding to least squares fit
-  // NOTE: check all N vs N-1 indices in code from here down
 
   } else if (polpred == LSQR) {
     double ***udalt = fixudalt->tstore;
@@ -1200,8 +1197,6 @@ void PairAmoeba::udirect2b(double **field, double **fieldp)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-
-  // NOTE: does this have a problem if aewald is tiny ??
 
   aesq2 = 2.0 * aewald * aewald;
   aesq2n = 0.0;

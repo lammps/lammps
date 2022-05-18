@@ -33,11 +33,11 @@ class AmoebaConvolution : protected Pointers {
  public:
   int nx,ny,nz;
   int order;
-  int nfft_global;             // nx * ny * nz
   int nfft_owned;              // owned grid points in FFT decomp
   int nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in;
   int nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out;
   int nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft;
+  bigint nfft_global;          // nx * ny * nz
   double *grid_brick_start;    // lower left corner of (c)grid_brick data
 
   AmoebaConvolution(class LAMMPS *, class Pair *,

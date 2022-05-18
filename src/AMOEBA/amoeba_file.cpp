@@ -107,8 +107,6 @@ void PairAmoeba::read_prmfile(char *filename)
     if (n < 0) break;
     MPI_Bcast(line,n+1,MPI_CHAR,0,world);
 
-    //printf("Section: %s\n",line);
-
     if (strstr(line,"Force Field") == line) section = FFIELD;
     else if (strstr(line,"Literature") == line) section = LITERATURE;
     else if (strstr(line,"Atom Type") == line) section = ATOMTYPE;

@@ -418,7 +418,7 @@ void Dump::write()
 
   if (sort_flag && sortcol == 0) pack(ids);
   else pack(nullptr);
-  if (sort_flag) sort();
+  if (sort_flag && ntotal > 1) sort();
   if (balance_flag) balance();
 
   // write timestep header

@@ -169,6 +169,7 @@ class Pair : protected Pointers {
     return 0.0;
   }
 
+  virtual void finish() {}
   virtual void settings(int, char **) = 0;
   virtual void coeff(int, char **) = 0;
 

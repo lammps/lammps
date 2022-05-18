@@ -49,8 +49,6 @@ enum{GEAR,ASPC,LSQR};
 
 #define DELTASTACK 16
 
-#define UIND_DEBUG 0       // also in amoeba_induce.cpp
-
 /* ---------------------------------------------------------------------- */
 
 PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
@@ -67,10 +65,16 @@ PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
   me = comm->me;
   nprocs = comm->nprocs;
 
-  // force field settings
+  // pair style settings
 
   one_coeff = 1;
   single_enable = 0;
+  no_virial_fdotr_compute = 1;
+
+  nextra = 6;
+  pvector = new double[nextra];
+
+  // force field settings
 
   amoeba = 1;
   hippo = 0;
@@ -165,6 +169,8 @@ PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
 
 PairAmoeba::~PairAmoeba()
 {
+  delete [] pvector;
+
   // check nfix in case all fixes have already been deleted
 
   if (modify->nfix) {
@@ -275,26 +281,12 @@ PairAmoeba::~PairAmoeba()
   }
 
   delete [] factors;
-
-  // DEBUG
-
-  if (me == 0 && UIND_DEBUG) fclose(fp_uind);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairAmoeba::compute(int eflag, int vflag)
 {
-  // DEBUG timer init
-
-  if (update->ntimestep <= 1) {
-    time_init = time_hal = time_repulse = time_disp = time_mpole = 0.0;
-    time_induce = time_polar = time_qxfer = 0.0;
-  }
-
-  double evdwl;
-
-  evdwl = 0.0;
   ev_init(eflag,vflag);
 
   // zero energy/virial components
@@ -357,6 +349,13 @@ void PairAmoeba::compute(int eflag, int vflag)
   // -------------------------------------------------------------------
   // end of one-time initializations
   // -------------------------------------------------------------------
+
+  // initialize timers on first compute() call after setup
+
+  if (update->ntimestep <= update->beginstep+1) {
+    time_init = time_hal = time_repulse = time_disp = time_mpole = 0.0;
+    time_induce = time_polar = time_qxfer = 0.0;
+  }
 
   double time0,time1,time2,time3,time4,time5,time6,time7,time8;
 
@@ -462,29 +461,27 @@ void PairAmoeba::compute(int eflag, int vflag)
   // charge transfer, pairwise
 
   if (hippo && qxfer_flag) charge_transfer();
-
   time8 = MPI_Wtime();
 
-  // energy, force, virial summations
+  // store energy components for output by compute pair command
 
-  eng_vdwl = ehal + erepulse + edisp + empole + epolar + eqxfer;
+  pvector[0] = ehal;
+  pvector[2] = erepulse;
+  pvector[3] = edisp;
+  pvector[4] = empole;
+  pvector[5] = epolar;
+  pvector[6] = eqxfer;
 
-  double **f = atom->f;
-  nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
+  // energy & virial summations
+
+  eng_vdwl = ehal + edisp;
+  eng_coul = erepulse + empole + epolar + eqxfer;
 
   for (int i = 0; i < 6; i++)
     virial[i] = virhal[i] + virrepulse[i] + virdisp[i] +
       virpolar[i] + virmpole[i] + virqxfer[i];
 
-  // virial computation
-  // NOTE: how does this work for AMOEBA ?
-  // do all terms get summed this way, or only pairwise
-  // it is 2x what summed virial[6] above is
-
-  // if (vflag_fdotr) virial_fdotr_compute();
-
-  // timing information
+  // accumulate timing information
 
   time_init    += time1 - time0;
   time_hal     += time2 - time1;
@@ -494,15 +491,18 @@ void PairAmoeba::compute(int eflag, int vflag)
   time_induce  += time6 - time5;
   time_polar   += time7 - time6;
   time_qxfer   += time8 - time7;
+}
 
-  // timing output
+/* ----------------------------------------------------------------------
+   print out AMOEBA/HIPPO timing info at end of run
+------------------------------------------------------------------------- */
 
-  if (update->ntimestep < update->laststep) return;
-
+void PairAmoeba::finish()
+{
   double ave;
   MPI_Allreduce(&time_init,&ave,1,MPI_DOUBLE,MPI_SUM,world);
   time_init = ave/nprocs;
-
+  
   MPI_Allreduce(&time_hal,&ave,1,MPI_DOUBLE,MPI_SUM,world);
   time_hal = ave/nprocs;
 
@@ -524,32 +524,32 @@ void PairAmoeba::compute(int eflag, int vflag)
   MPI_Allreduce(&time_qxfer,&ave,1,MPI_DOUBLE,MPI_SUM,world);
   time_qxfer = ave/nprocs;
 
-  double time_amtot = time_init + time_hal + time_repulse + time_disp +
+  double time_total = time_init + time_hal + time_repulse + time_disp +
     time_mpole + time_induce + time_polar + time_qxfer;
 
   if (me == 0) {
-    utils::logmesg(lmp,"\nAMEOBA/HIPPO timing info:\n");
-    utils::logmesg(lmp,"  Init   time: {:.6g} {:.6g}\n",
-                   time_init,time_init/time_amtot);
+    utils::logmesg(lmp,"\nAMEOBA/HIPPO timing breakdown:\n");
+    utils::logmesg(lmp,"  Init    time: {:.6g} {:.6g}\n",
+                   time_init,time_init/time_total);
     if (amoeba)
-      utils::logmesg(lmp,"  Hal    time: {:.6g} {:.6g}\n",
-                     time_hal,time_hal/time_amtot*100);
+      utils::logmesg(lmp,"  Hal     time: {:.6g} {:.6g}\n",
+                     time_hal,time_hal/time_total*100);
     if (hippo)
-      utils::logmesg(lmp,"  Repls  time: {:.6g} {:.6g}\n",
-                     time_repulse,time_repulse/time_amtot*100);
+      utils::logmesg(lmp,"  Repulse time: {:.6g} {:.6g}\n",
+                     time_repulse,time_repulse/time_total*100);
     if (hippo)
-      utils::logmesg(lmp,"  Disp   time: {:.6g} {:.6g}\n",
-                     time_disp,time_disp/time_amtot*100);
-    utils::logmesg(lmp,"  Mpole  time: {:.6g} {:.6g}\n",
-                   time_mpole,time_mpole/time_amtot*100);
-    utils::logmesg(lmp,"  Induce time: {:.6g} {:.6g}\n",
-                   time_induce,time_induce/time_amtot*100);
-    utils::logmesg(lmp,"  Polar  time: {:.6g} {:.6g}\n",
-                   time_polar,time_polar/time_amtot*100);
+      utils::logmesg(lmp,"  Disp    time: {:.6g} {:.6g}\n",
+                     time_disp,time_disp/time_total*100);
+    utils::logmesg(lmp,"  Mpole   time: {:.6g} {:.6g}\n",
+                   time_mpole,time_mpole/time_total*100);
+    utils::logmesg(lmp,"  Induce  time: {:.6g} {:.6g}\n",
+                   time_induce,time_induce/time_total*100);
+    utils::logmesg(lmp,"  Polar   time: {:.6g} {:.6g}\n",
+                   time_polar,time_polar/time_total*100);
     if (hippo)
-      utils::logmesg(lmp,"  Qxfer  time: {:.6g} {:.6g}\n",
-                     time_qxfer,time_qxfer/time_amtot*100);
-    utils::logmesg(lmp,"  Total  time: {:.6g}\n\n",time_amtot);
+      utils::logmesg(lmp,"  Qxfer   time: {:.6g} {:.6g}\n",
+                     time_qxfer,time_qxfer/time_total*100);
+    utils::logmesg(lmp,"  Total   time: {:.6g}\n",time_total);
   }
 }
 
@@ -1016,15 +1016,6 @@ void PairAmoeba::init_style()
   // request neighbor lists
 
   int irequest = neighbor->request(this,instance_me);
-
-  // open debug output files
-  // names are hard-coded
-
-  if (me == 0) {
-    char fname[32];
-    sprintf(fname,"tmp.uind.kspace.%d",nprocs);
-    if (UIND_DEBUG) fp_uind = fopen(fname,"w");
-  }
 }
 
 /* ----------------------------------------------------------------------

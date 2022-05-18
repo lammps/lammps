@@ -46,6 +46,7 @@ class PairAmoeba : public Pair {
   void coeff(int, char **);
   void init_style();
   double init_one(int, int);
+  void finish();
 
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);

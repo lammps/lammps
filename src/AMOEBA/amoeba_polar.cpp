@@ -100,6 +100,8 @@ void PairAmoeba::polar()
 
     torque2force(i,tep,fix,fiy,fiz,f);
 
+    if (!vflag_global) continue;
+
     iz = zaxis2local[i];
     ix = xaxis2local[i];
     iy = yaxis2local[i];
@@ -113,7 +115,7 @@ void PairAmoeba::polar()
     xiy = x[iy][0] - x[i][0];
     yiy = x[iy][1] - x[i][1];
     ziy = x[iy][2] - x[i][2];
-
+    
     vxx = xix*fix[0] + xiy*fiy[0] + xiz*fiz[0];
     vyy = yix*fix[1] + yiy*fiy[1] + yiz*fiz[1];
     vzz = zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
@@ -124,7 +126,7 @@ void PairAmoeba::polar()
                  xix*fix[2] + xiy*fiy[2] + xiz*fiz[2]);
     vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
-
+    
     virpolar[0] -= vxx;
     virpolar[1] -= vyy;
     virpolar[2] -= vzz;
@@ -1139,25 +1141,20 @@ void PairAmoeba::polar_real()
 
       // increment the virial due to pairwise Cartesian forces
 
-      vxx = xr * frcx;
-      vxy = 0.5 * (yr*frcx+xr*frcy);
-      vxz = 0.5 * (zr*frcx+xr*frcz);
-      vyy = yr * frcy;
-      vyz = 0.5 * (zr*frcy+yr*frcz);
-      vzz = zr * frcz;
+      if (vflag_global) {
+        vxx = xr * frcx;
+        vxy = 0.5 * (yr*frcx+xr*frcy);
+        vxz = 0.5 * (zr*frcx+xr*frcz);
+        vyy = yr * frcy;
+        vyz = 0.5 * (zr*frcy+yr*frcz);
+        vzz = zr * frcz;
 
-      virpolar[0] -= vxx;
-      virpolar[1] -= vyy;
-      virpolar[2] -= vzz;
-      virpolar[3] -= vxy;
-      virpolar[4] -= vxz;
-      virpolar[5] -= vyz;
-
-      // energy = e
-      // virial = 6-vec vir
-      // NOTE: add tally function
-
-      if (evflag) {
+        virpolar[0] -= vxx;
+        virpolar[1] -= vyy;
+        virpolar[2] -= vzz;
+        virpolar[3] -= vxy;
+        virpolar[4] -= vxz;
+        virpolar[5] -= vyz;
       }
     }
   }
@@ -1190,6 +1187,8 @@ void PairAmoeba::polar_real()
       2.0*qixy*(dufld[i][0]-dufld[i][2]) + (qiyy-qixx)*dufld[i][1];
 
     torque2force(i,tep,fix,fiy,fiz,f);
+
+    if (!vflag_global) continue;
 
     iz = zaxis2local[i];
     ix = xaxis2local[i];
@@ -2163,10 +2162,12 @@ void PairAmoeba::polar_kspace()
 
   // increment the total internal virial tensor components
 
-  virpolar[0] -= vxx;
-  virpolar[1] -= vyy;
-  virpolar[2] -= vzz;
-  virpolar[3] -= vxy;
-  virpolar[4] -= vxz;
-  virpolar[5] -= vyz;
+  if (vflag_global) {
+    virpolar[0] -= vxx;
+    virpolar[1] -= vyy;
+    virpolar[2] -= vzz;
+    virpolar[3] -= vxy;
+    virpolar[4] -= vxz;
+    virpolar[5] -= vyz;
+  }
 }

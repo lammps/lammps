@@ -354,31 +354,23 @@ void PairAmoeba::repulsion()
 
       // increment the virial due to pairwise Cartesian forces
 
-      vxx = -xr * frcx;
-      vxy = -0.5 * (yr*frcx+xr*frcy);
-      vxz = -0.5 * (zr*frcx+xr*frcz);
-      vyy = -yr * frcy;
-      vyz = -0.5 * (zr*frcy+yr*frcz);
-      vzz = -zr * frcz;
+      if (vflag_global) {
+        vxx = -xr * frcx;
+        vxy = -0.5 * (yr*frcx+xr*frcy);
+        vxz = -0.5 * (zr*frcx+xr*frcz);
+        vyy = -yr * frcy;
+        vyz = -0.5 * (zr*frcy+yr*frcz);
+        vzz = -zr * frcz;
 
-      virrepulse[0] -= vxx;
-      virrepulse[1] -= vyy;
-      virrepulse[2] -= vzz;
-      virrepulse[3] -= vxy;
-      virrepulse[4] -= vxz;
-      virrepulse[5] -= vyz;
-
-      // energy = e
-      // virial = 6-vec vir
-      // NOTE: add tally function
-
-      if (evflag) {
+        virrepulse[0] -= vxx;
+        virrepulse[1] -= vyy;
+        virrepulse[2] -= vzz;
+        virrepulse[3] -= vxy;
+        virrepulse[4] -= vxz;
+        virrepulse[5] -= vyz;
       }
     }
   }
-
-  // DEBUG
-  //fclose(fp);
 
   // reverse comm to sum torque from ghost atoms to owned atoms
 
@@ -389,6 +381,8 @@ void PairAmoeba::repulsion()
 
   for (i = 0; i < nlocal; i++) {
     torque2force(i,tq[i],fix,fiy,fiz,f);
+
+    if (!vflag_global) continue;
 
     iz = zaxis2local[i];
     ix = xaxis2local[i];
@@ -420,12 +414,6 @@ void PairAmoeba::repulsion()
     virrepulse[3] -= vxy;
     virrepulse[4] -= vxz;
     virrepulse[5] -= vyz;
-
-    // virial = 6-vec vir
-    // NOTE: add tally function
-
-    if (evflag) {
-    }
   }
 }
 

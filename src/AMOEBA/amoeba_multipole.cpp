@@ -497,25 +497,20 @@ void PairAmoeba::multipole_real()
 
       // increment the virial due to pairwise Cartesian forces
 
-      vxx = -xr * frcx;
-      vxy = -0.5 * (yr*frcx+xr*frcy);
-      vxz = -0.5 * (zr*frcx+xr*frcz);
-      vyy = -yr * frcy;
-      vyz = -0.5 * (zr*frcy+yr*frcz);
-      vzz = -zr * frcz;
-
-      virmpole[0] -= vxx;
-      virmpole[1] -= vyy;
-      virmpole[2] -= vzz;
-      virmpole[3] -= vxy;
-      virmpole[4] -= vxz;
-      virmpole[5] -= vyz;
-
-      // energy = e
-      // virial = 6-vec vir
-      // NOTE: add tally function
-
-      if (evflag) {
+      if (vflag_global) {
+        vxx = -xr * frcx;
+        vxy = -0.5 * (yr*frcx+xr*frcy);
+        vxz = -0.5 * (zr*frcx+xr*frcz);
+        vyy = -yr * frcy;
+        vyz = -0.5 * (zr*frcy+yr*frcz);
+        vzz = -zr * frcz;
+      
+        virmpole[0] -= vxx;
+        virmpole[1] -= vyy;
+        virmpole[2] -= vzz;
+        virmpole[3] -= vxy;
+        virmpole[4] -= vxz;
+        virmpole[5] -= vyz;
       }
     }
   }
@@ -530,6 +525,8 @@ void PairAmoeba::multipole_real()
   for (i = 0; i < nlocal; i++) {
     torque2force(i,tq[i],fix,fiy,fiz,f);
 
+    if (!vflag_global) continue;
+
     iz = zaxis2local[i];
     ix = xaxis2local[i];
     iy = yaxis2local[i];
@@ -543,7 +540,7 @@ void PairAmoeba::multipole_real()
     xiy = x[iy][0] - x[i][0];
     yiy = x[iy][1] - x[i][1];
     ziy = x[iy][2] - x[i][2];
-
+    
     vxx = xix*fix[0] + xiy*fiy[0] + xiz*fiz[0];
     vxy = 0.5 * (yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] +
                  xix*fix[1] + xiy*fiy[1] + xiz*fiz[1]);
@@ -553,7 +550,7 @@ void PairAmoeba::multipole_real()
     vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
     vzz = zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
-
+    
     virmpole[0] -= vxx;
     virmpole[1] -= vyy;
     virmpole[2] -= vzz;
@@ -768,22 +765,24 @@ void PairAmoeba::multipole_kspace()
 
   // augment the permanent multipole virial contributions
 
-  for (i = 0; i < nlocal; i++) {
-    vxx = vxx - cmp[i][1]*cphi[i][1] - 2.0*cmp[i][4]*cphi[i][4] -
-      cmp[i][7]*cphi[i][7] - cmp[i][8]*cphi[i][8];
-    vxy = vxy - 0.5*(cmp[i][2]*cphi[i][1]+cmp[i][1]*cphi[i][2]) -
-      (cmp[i][4]+cmp[i][5])*cphi[i][7] - 0.5*cmp[i][7]*(cphi[i][4]+cphi[i][5]) -
-      0.5*(cmp[i][8]*cphi[i][9]+cmp[i][9]*cphi[i][8]);
-    vxz = vxz - 0.5*(cmp[i][3]*cphi[i][1]+cmp[i][1]*cphi[i][3]) -
-      (cmp[i][4]+cmp[i][6])*cphi[i][8] - 0.5*cmp[i][8]*(cphi[i][4]+cphi[i][6]) -
-      0.5*(cmp[i][7]*cphi[i][9]+cmp[i][9]*cphi[i][7]);
-    vyy = vyy - cmp[i][2]*cphi[i][2] - 2.0*cmp[i][5]*cphi[i][5] -
-      cmp[i][7]*cphi[i][7] - cmp[i][9]*cphi[i][9];
-    vyz = vyz - 0.5*(cmp[i][3]*cphi[i][2]+cmp[i][2]*cphi[i][3]) -
-      (cmp[i][5]+cmp[i][6])*cphi[i][9] - 0.5*cmp[i][9]*(cphi[i][5]+cphi[i][6]) -
-      0.5*(cmp[i][7]*cphi[i][8]+cmp[i][8]*cphi[i][7]);
-    vzz = vzz - cmp[i][3]*cphi[i][3] - 2.0*cmp[i][6]*cphi[i][6] -
-      cmp[i][8]*cphi[i][8] - cmp[i][9]*cphi[i][9];
+  if (vflag_global) {
+    for (i = 0; i < nlocal; i++) {
+      vxx = vxx - cmp[i][1]*cphi[i][1] - 2.0*cmp[i][4]*cphi[i][4] -
+        cmp[i][7]*cphi[i][7] - cmp[i][8]*cphi[i][8];
+      vxy = vxy - 0.5*(cmp[i][2]*cphi[i][1]+cmp[i][1]*cphi[i][2]) -
+        (cmp[i][4]+cmp[i][5])*cphi[i][7] - 0.5*cmp[i][7]*(cphi[i][4]+cphi[i][5]) -
+        0.5*(cmp[i][8]*cphi[i][9]+cmp[i][9]*cphi[i][8]);
+      vxz = vxz - 0.5*(cmp[i][3]*cphi[i][1]+cmp[i][1]*cphi[i][3]) -
+        (cmp[i][4]+cmp[i][6])*cphi[i][8] - 0.5*cmp[i][8]*(cphi[i][4]+cphi[i][6]) -
+        0.5*(cmp[i][7]*cphi[i][9]+cmp[i][9]*cphi[i][7]);
+      vyy = vyy - cmp[i][2]*cphi[i][2] - 2.0*cmp[i][5]*cphi[i][5] -
+        cmp[i][7]*cphi[i][7] - cmp[i][9]*cphi[i][9];
+      vyz = vyz - 0.5*(cmp[i][3]*cphi[i][2]+cmp[i][2]*cphi[i][3]) -
+        (cmp[i][5]+cmp[i][6])*cphi[i][9] - 0.5*cmp[i][9]*(cphi[i][5]+cphi[i][6]) -
+        0.5*(cmp[i][7]*cphi[i][8]+cmp[i][8]*cphi[i][7]);
+      vzz = vzz - cmp[i][3]*cphi[i][3] - 2.0*cmp[i][6]*cphi[i][6] -
+        cmp[i][8]*cphi[i][8] - cmp[i][9]*cphi[i][9];
+    }
   }
 
   // resolve site torques then increment forces and virial
@@ -804,39 +803,43 @@ void PairAmoeba::multipole_kspace()
 
     torque2force(i,tem,fix,fiy,fiz,f);
 
-    iz = zaxis2local[i];
-    ix = xaxis2local[i];
-    iy = yaxis2local[i];
+    if (vflag_global) {
+      iz = zaxis2local[i];
+      ix = xaxis2local[i];
+      iy = yaxis2local[i];
 
-    xiz = x[iz][0] - x[i][0];
-    yiz = x[iz][1] - x[i][1];
-    ziz = x[iz][2] - x[i][2];
-    xix = x[ix][0] - x[i][0];
-    yix = x[ix][1] - x[i][1];
-    zix = x[ix][2] - x[i][2];
-    xiy = x[iy][0] - x[i][0];
-    yiy = x[iy][1] - x[i][1];
-    ziy = x[iy][2] - x[i][2];
+      xiz = x[iz][0] - x[i][0];
+      yiz = x[iz][1] - x[i][1];
+      ziz = x[iz][2] - x[i][2];
+      xix = x[ix][0] - x[i][0];
+      yix = x[ix][1] - x[i][1];
+      zix = x[ix][2] - x[i][2];
+      xiy = x[iy][0] - x[i][0];
+      yiy = x[iy][1] - x[i][1];
+      ziy = x[iy][2] - x[i][2];
 
-    vxx += xix*fix[0] + xiy*fiy[0] + xiz*fiz[0];
-    vxy += 0.5*(yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] +
-                xix*fix[1] + xiy*fiy[1] + xiz*fiz[1]);
-    vxz += 0.5*(zix*fix[0] + ziy*fiy[0] + ziz*fiz[0] +
-                xix*fix[2] + xiy*fiy[2] + xiz*fiz[2]);
-    vyy += yix*fix[1] + yiy*fiy[1] + yiz*fiz[1];
-    vyz += 0.5*(zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
-                yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
-    vzz += zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
+      vxx += xix*fix[0] + xiy*fiy[0] + xiz*fiz[0];
+      vxy += 0.5*(yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] +
+                  xix*fix[1] + xiy*fiy[1] + xiz*fiz[1]);
+      vxz += 0.5*(zix*fix[0] + ziy*fiy[0] + ziz*fiz[0] +
+                  xix*fix[2] + xiy*fiy[2] + xiz*fiz[2]);
+      vyy += yix*fix[1] + yiy*fiy[1] + yiz*fiz[1];
+      vyz += 0.5*(zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
+                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
+      vzz += zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
+    }
   }
 
   // increment total internal virial tensor components
 
-  virmpole[0] -= vxx;
-  virmpole[1] -= vyy;
-  virmpole[2] -= vzz;
-  virmpole[3] -= vxy;
-  virmpole[4] -= vxz;
-  virmpole[5] -= vyz;
+  if (vflag_global) {
+    virmpole[0] -= vxx;
+    virmpole[1] -= vyy;
+    virmpole[2] -= vzz;
+    virmpole[3] -= vxy;
+    virmpole[4] -= vxz;
+    virmpole[5] -= vyz;
+  }
 }
 
 /* ----------------------------------------------------------------------

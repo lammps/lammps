@@ -1,16 +1,31 @@
 .. index:: min_style
 
-min_style command
-=================
+min_style cg command
+====================
+
+min_style hftn command
+====================
+
+min_style sd command
+====================
+
+min_style quickmin command
+==========================
+
+min_style fire command
+======================
+
+min_style fire/old command
+==========================
 
 :doc:`min_style spin <min_spin>` command
-==================================
+========================================
 
 :doc:`min_style spin/cg <min_spin>` command
-==================================
+===========================================
 
 :doc:`min_style spin/lbfgs <min_spin>` command
-==================================
+==============================================
 
 Syntax
 """"""

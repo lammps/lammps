@@ -5,6 +5,7 @@ Notes for building LAMMPS on Windows
 * :ref:`Running Linux on Windows <linux>`
 * :ref:`Using GNU GCC ported to Windows <gnu>`
 * :ref:`Using Visual Studio <msvc>`
+* :ref:`Using Intel oneAPI compilers and libraries <oneapi>`
 * :ref:`Using a cross-compiler <cross>`
 
 ----------
@@ -25,8 +26,10 @@ assistance in resolving portability issues.  This is particularly true
 for compiling LAMMPS on Windows, since this platform has significant
 differences in some low-level functionality.  As of LAMMPS version 14
 December 2021, large parts of LAMMPS can be compiled natively with the
-Microsoft Visual C++ Compilers.  This is largely facilitated by using
-the :doc:`Developer_platform` in the ``platform`` namespace.
+Microsoft Visual C++ Compilers.  As of LAMMPS version 31 May 2022, also
+the Intel oneAPI compilers can compile large parts of LAMMPS natively on
+Windows.  This is mostly facilitated by using the
+:doc:`Developer_platform` in the ``platform`` namespace and CMake.
 
 Before trying to build LAMMPS on Windows yourself, please consider the
 `pre-compiled Windows installer packages <https://packages.lammps.org/windows.html>`_
@@ -128,6 +131,53 @@ LAMMPS with MPI enabled.
    This is work in progress and you should contact the LAMMPS developers
    via GitHub or the `LAMMPS forum at MatSci <https://matsci.org/c/lammps/lammps-development/>`_,
    if you have questions or LAMMPS specific problems.
+
+.. _oneapi:
+
+Using Intel oneAPI Compilers and Libraries
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionadded:: 31May2022
+
+After installing the `Intel oneAPI
+<https://www.intel.com/content/www/us/en/developer/tools/oneapi/toolkits.html>`_
+base toolkit and the HPC toolkit, it is also possible to compile large
+parts of LAMMPS natively on Windows using Intel compilers.  The HPC
+toolkit provides two sets of C/C++ and Fortran compilers: the so-called
+"classic" compilers (``icl.exe`` and ``ifort.exe``) and newer, LLVM
+based compilers (``icx.exe`` and ``ifx.exe``).  In addition to the
+compilers and their dependent modules, also the thread building blocks
+(TBB) and the math kernel library (MKL) need to be installed.  Two
+presets (``cmake/presets/windows-intel-llvm.cmake`` and
+``cmake/presets/windows-intel-classic.cmake``) are provided for
+selecting the LLVM based or classic compilers, respectively. The preset
+``cmake/presets/windows.cmake`` enables compatible packages that are not
+dependent on additional features or libraries.  You **must** use the
+CMake based build procedure and use Ninja as build tool.  For compiling
+from the command prompt, thus both `CMake <https://cmake.org>`_ and
+`Ninja-build <https://ninja-build.org>`_ binaries must be installed.  It
+is also possible to use Visual Studio, if it is started (``devenv.exe``)
+from a command prompt that has the Intel oneAPI compilers enabled.  The
+Visual Studio settings file in the ``cmake`` folder contains
+configurations for both compiler variants in debug and release settings.
+Those will use the CMake and Ninja binaries bundled with Visual Studio,
+thus a separate installation is not required.
+
+.. admonition:: Known Limitations
+   :class: note
+
+   In addition to portability issues with several packages and external
+   libraries, the classic Intel compilers are currently not able to
+   compile the googletest libraries and thus enabling the ``-DENABLE_TESTING``
+   option will result in compilation failure.  The LLVM based compilers
+   are compatible.
+
+.. note::
+
+   This is work in progress and you should contact the LAMMPS developers
+   via GitHub or the `LAMMPS forum at MatSci <https://matsci.org/c/lammps/lammps-development/>`_,
+   if you have questions or LAMMPS specific problems.
+
 
 .. _cross:
 

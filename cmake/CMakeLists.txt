@@ -107,7 +107,7 @@ endif()
 
 # silence excessive warnings for new Intel Compilers
 if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
-  set(CMAKE_TUNE_DEFAULT "-Wno-tautological-constant-compare")
+  set(CMAKE_TUNE_DEFAULT "-Wno-tautological-constant-compare -Wno-unused-command-line-argument")
 endif()
 
 # silence excessive warnings for PGI/NVHPC compilers
@@ -116,7 +116,7 @@ if((CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC") OR (CMAKE_CXX_COMPILER_ID STREQUAL "
 endif()
 
 # silence nvcc warnings
-if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA))
+if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA) AND NOT (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
   set(CMAKE_TUNE_DEFAULT "${CMAKE_TUNE_DEFAULT} -Xcudafe --diag_suppress=unrecognized_pragma")
 endif()
 
@@ -330,7 +330,9 @@ string(TOUPPER ${LAMMPS_SIZES} LAMMPS_SIZES)
 target_compile_definitions(lammps PUBLIC -DLAMMPS_${LAMMPS_SIZES})
 
 # posix_memalign is not available on Windows
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+# with INTEL package and Intel compilers we use TBB's aligned malloc
+if((CMAKE_SYSTEM_NAME STREQUAL "Windows")
+   AND NOT (PKG_INTEL AND ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") OR (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM"))))
   set(LAMMPS_MEMALIGN "0" CACHE STRING "posix_memalign() is not available on Windows" FORCE)
 else()
   set(LAMMPS_MEMALIGN "64" CACHE STRING "enables the use of the posix_memalign() call instead of malloc() when large chunks or memory are allocated by LAMMPS. Set to 0 to disable")

@@ -655,14 +655,13 @@ This list was last updated for version 3.5.0 of the Kokkos library.
       platform-appropriate vendor library: rocFFT on AMD GPUs or cuFFT on
       NVIDIA GPUs.
 
-      To simplify compilation, four preset files are included in the
+      To simplify compilation, five preset files are included in the
       ``cmake/presets`` folder, ``kokkos-serial.cmake``,
-      ``kokkos-openmp.cmake``, ``kokkos-cuda.cmake``, and
-      ``kokkos-sycl.cmake``.  They will enable the KOKKOS package and
-      enable some hardware choice.  So to compile with OpenMP host
-      parallelization, CUDA device parallelization (for GPUs with CC 5.0
-      and up) with some common packages enabled, you can do the
-      following:
+      ``kokkos-openmp.cmake``, ``kokkos-cuda.cmake``,
+      ``kokkos-hip.cmake``, and ``kokkos-sycl.cmake``.  They will enable
+      the KOKKOS package and enable some hardware choice.  So to compile
+      with CUDA device parallelization (for GPUs with CC 5.0 and up)
+      with some common packages enabled, you can do the following:
 
       .. code-block:: bash
 

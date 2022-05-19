@@ -3,14 +3,29 @@
 min_style command
 =================
 
+:doc:`min_style spin <min_spin>` command
+==================================
+
+:doc:`min_style spin/cg <min_spin>` command
+==================================
+
+:doc:`min_style spin/lbfgs <min_spin>` command
+==================================
+
 Syntax
 """"""
 
-.. code-block:: LAMMPS
+.. parsed-literal::
 
    min_style style
 
 * style = *cg* or *hftn* or *sd* or *quickmin* or *fire* or *fire/old* or *spin* or *spin/cg* or *spin/lbfgs*
+
+  .. parsed-literal::
+
+       *spin* is discussed briefly here and fully on :doc:`min_style spin <min_spin>` doc page
+       *spin/cg* is discussed briefly here and fully on :doc:`min_style spin <min_spin>` doc page
+       *spin/lbfgs* is discussed briefly here and fully on :doc:`min_style spin <min_spin>` doc page
 
 Examples
 """"""""
@@ -18,8 +33,8 @@ Examples
 .. code-block:: LAMMPS
 
    min_style cg
-   min_style spin
    min_style fire
+   min_style spin
 
 Description
 """""""""""
@@ -124,7 +139,9 @@ calculations via the :doc:`neb/spin <neb_spin>` command.
 Restrictions
 """"""""""""
 
-none
+The *spin*, *spin/cg*, and *spin/lbfgps* styles are part of the SPIN
+package.  They are only enabled if LAMMPS was built with that package.
+See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

@@ -66,7 +66,6 @@ An alphabetic list of general LAMMPS commands.
    * :doc:`minimize <minimize>`
    * :doc:`min_modify <min_modify>`
    * :doc:`min_style <min_style>`
-   * :doc:`min_style spin <min_spin>`
    * :doc:`molecule <molecule>`
    * :doc:`neigh_modify <neigh_modify>`
    * :doc:`neighbor <neighbor>`
@@ -80,7 +79,6 @@ An alphabetic list of general LAMMPS commands.
    * :doc:`partition <partition>`
    * :doc:`print <print>`
    * :doc:`processors <processors>`
-   * :doc:`python <python>`
    * :doc:`quit <quit>`
    * :doc:`read_data <read_data>`
    * :doc:`read_dump <read_dump>`
@@ -114,9 +112,9 @@ An alphabetic list of general LAMMPS commands.
    * :doc:`write_dump <write_dump>`
    * :doc:`write_restart <write_restart>`
 
-An alphabetic list of additional general LAMMPS commands provided by
-packages.  A few commands have accelerated versions.  This is
-indicated by an additional letter in parenthesis: k = KOKKOS.
+Additional general LAMMPS commands provided by packages.  A few
+commands have accelerated versions.  This is indicated by an
+additional letter in parenthesis: k = KOKKOS.
 
 .. table_from_list::
    :columns: 5
@@ -131,6 +129,7 @@ indicated by an additional letter in parenthesis: k = KOKKOS.
    * :doc:`neb/spin <neb_spin>`
    * :doc:`plugin <plugin>`
    * :doc:`prd <prd>`
+   * :doc:`python <python>`
    * :doc:`tad <tad>`
    * :doc:`temper <temper>`
    * :doc:`temper/grem <temper_grem>`

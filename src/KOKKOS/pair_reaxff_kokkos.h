@@ -435,6 +435,8 @@ class PairReaxFFKokkos : public PairReaxFF {
   typename AT::t_ffloat_2d_dl d_C1dbopi2, d_C2dbopi2, d_C3dbopi2, d_C4dbopi2;
   typename AT::t_ffloat_2d_dl d_Cdbo, d_Cdbopi, d_Cdbopi2, d_dDeltap_self;
 
+  int need_dup;
+
   using KKDeviceType = typename KKDevice<DeviceType>::value;
 
   template<typename DataType, typename Layout>
@@ -443,27 +445,19 @@ class PairReaxFFKokkos : public PairReaxFF {
   template<typename DataType, typename Layout>
   using NonDupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterNonDuplicated>;
 
-  DupScatterView<F_FLOAT*, typename DAT::t_float_1d::array_layout> dup_total_bo;
-  DupScatterView<F_FLOAT*, typename DAT::t_float_1d::array_layout> dup_CdDelta;
-  DupScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout> dup_eatom;
   DupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> dup_f;
+  DupScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout> dup_eatom;
   DupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> dup_vatom;
   DupScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout> dup_dDeltap_self;
-  DupScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout> dup_Cdbo;
-  DupScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout> dup_Cdbopi;
-  DupScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout> dup_Cdbopi2;
+  DupScatterView<F_FLOAT*, typename DAT::t_float_1d::array_layout> dup_total_bo;
+  DupScatterView<F_FLOAT*, typename DAT::t_float_1d::array_layout> dup_CdDelta;
 
-  NonDupScatterView<F_FLOAT*, typename DAT::t_float_1d::array_layout> ndup_total_bo;
-  NonDupScatterView<F_FLOAT*, typename DAT::t_float_1d::array_layout> ndup_CdDelta;
-  NonDupScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout> ndup_eatom;
   NonDupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> ndup_f;
+  NonDupScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout> ndup_eatom;
   NonDupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> ndup_vatom;
   NonDupScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout> ndup_dDeltap_self;
-  NonDupScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout> ndup_Cdbo;
-  NonDupScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout> ndup_Cdbopi;
-  NonDupScatterView<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout> ndup_Cdbopi2;
-
-  int need_dup;
+  NonDupScatterView<F_FLOAT*, typename DAT::t_float_1d::array_layout> ndup_total_bo;
+  NonDupScatterView<F_FLOAT*, typename DAT::t_float_1d::array_layout> ndup_CdDelta;
 
   typedef Kokkos::DualView<F_FLOAT**[7],typename DeviceType::array_layout,DeviceType> tdual_ffloat_2d_n7;
   typedef typename tdual_ffloat_2d_n7::t_dev_const_randomread t_ffloat_2d_n7_randomread;

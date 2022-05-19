@@ -284,7 +284,6 @@ template <typename TYPE>
 static void realloc_kokkos(TYPE &data, const char *name, int n1)
 {
   data = TYPE();
-  assert(data.use_count() == 0);
   data = TYPE(Kokkos::NoInit(std::string(name)),n1);
 }
 
@@ -292,7 +291,6 @@ template <typename TYPE>
 static void realloc_kokkos(TYPE &data, const char *name, int n1, int n2)
 {
   data = TYPE();
-  assert(data.use_count() == 0);
   data = TYPE(Kokkos::NoInit(std::string(name)),n1,n2);
 }
 
@@ -300,7 +298,6 @@ template <typename TYPE>
 static void realloc_kokkos(TYPE &data, const char *name, int n1, int n2, int n3)
 {
   data = TYPE();
-  assert(data.use_count() == 0);
   data = TYPE(Kokkos::NoInit(std::string(name)),n1,n2,n3);
 }
 
@@ -308,7 +305,6 @@ template <typename TYPE>
 static void realloc_kokkos(TYPE &data, const char *name, int n1, int n2, int n3, int n4)
 {
   data = TYPE();
-  assert(data.use_count() == 0);
   data = TYPE(Kokkos::NoInit(std::string(name)),n1,n2,n3,n4);
 }
 
@@ -316,7 +312,6 @@ template <typename TYPE>
 static void realloc_kokkos(TYPE &data, const char *name, int n1, int n2, int n3, int n4, int n5)
 {
   data = TYPE();
-  assert(data.use_count() == 0);
   data = TYPE(Kokkos::NoInit(std::string(name)),n1,n2,n3,n4,n5);
 }
 
@@ -324,7 +319,6 @@ template <typename TYPE>
 static void realloc_kokkos(TYPE &data, const char *name, int n1, int n2, int n3, int n4, int n5, int n6)
 {
   data = TYPE();
-  assert(data.use_count() == 0);
   data = TYPE(Kokkos::NoInit(std::string(name)),n1,n2,n3,n4,n5,n6);
 }
 

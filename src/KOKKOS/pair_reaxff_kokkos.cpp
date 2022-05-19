@@ -884,17 +884,10 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsFull>(0,ignum),*this);
 
   // allocate duplicated memory
-  if (need_dup) {
+  if (need_dup)
     dup_CdDelta = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_CdDelta);
-    //dup_Cdbo    = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_Cdbo);
-    //dup_Cdbopi  = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_Cdbopi);
-    //dup_Cdbopi2 = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_Cdbopi2);
-  } else {
+  else
     ndup_CdDelta = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_CdDelta);
-    //ndup_Cdbo    = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_Cdbo);
-    //ndup_Cdbopi  = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_Cdbopi);
-    //ndup_Cdbopi2 = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_Cdbopi2);
-  }
 
   // reduction over duplicated memory
   if (need_dup)
@@ -1034,25 +1027,11 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (need_dup) {
     Kokkos::Experimental::contribute(d_dDeltap_self, dup_dDeltap_self); // needed in ComputeBond2
     Kokkos::Experimental::contribute(d_CdDelta, dup_CdDelta); // needed in ComputeBond2
-
-    //Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in UpdateBond, but also used in UpdateBond
-    //Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in UpdateBond, but also used in UpdateBond
-    //Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in UpdateBond, but also used in UpdateBond
-    //dup_Cdbo.reset_except(d_Cdbo);
-    //dup_Cdbopi.reset_except(d_Cdbopi);
-    //dup_Cdbopi2.reset_except(d_Cdbopi2);
   }
 
   // Bond force
   if (neighflag == HALF) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxUpdateBond<HALF>>(0,ignum),*this);
-
-    // reduction over duplicated memory
-    //if (need_dup) {
-    //  Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in ComputeBond2
-    //  Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in ComputeBond2
-    //  Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in ComputeBond2
-    //}
 
     if (vflag_either)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeBond2<HALF,1>>(0,ignum),*this,ev);
@@ -1062,13 +1041,6 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     pvector[0] += ev.evdwl;
   } else { //if (neighflag == HALFTHREAD) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxUpdateBond<HALFTHREAD>>(0,ignum),*this);
-
-    // reduction over duplicated memory
-    //if (need_dup) {
-    //  Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in ComputeBond2
-    //  Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in ComputeBond2
-    //  Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in ComputeBond2
-    //}
 
     if (vflag_either)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeBond2<HALFTHREAD,1>>(0,ignum),*this,ev);
@@ -1117,7 +1089,7 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   copymode = 0;
 
-  // free duplicated memory
+  // free scatterview memory
   if (need_dup) {
     dup_f            = decltype(dup_f)();
     dup_eatom        = decltype(dup_eatom)();
@@ -1125,9 +1097,13 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     dup_dDeltap_self = decltype(dup_dDeltap_self)();
     dup_total_bo     = decltype(dup_total_bo)();
     dup_CdDelta      = decltype(dup_CdDelta)();
-    //dup_Cdbo         = decltype(dup_Cdbo)();
-    //dup_Cdbopi       = decltype(dup_Cdbopi)();
-    //dup_Cdbopi2      = decltype(dup_Cdbopi2)();
+  } else {
+    ndup_f            = decltype(ndup_f)();
+    ndup_eatom        = decltype(ndup_eatom)();
+    ndup_vatom        = decltype(ndup_vatom)();
+    ndup_dDeltap_self = decltype(ndup_dDeltap_self)();
+    ndup_total_bo     = decltype(ndup_total_bo)();
+    ndup_CdDelta      = decltype(ndup_CdDelta)();
   }
 
   d_neighbors = typename AT::t_neighbors_2d();
@@ -1513,6 +1489,17 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTabulatedLJCoulo
 template<class DeviceType>
 void PairReaxFFKokkos<DeviceType>::allocate_array()
 {
+  // free scatterview memory
+  if (need_dup) {
+    dup_dDeltap_self = decltype(dup_dDeltap_self)();
+    dup_total_bo     = decltype(dup_total_bo)();
+    dup_CdDelta      = decltype(dup_CdDelta)();
+  } else {
+    ndup_dDeltap_self = decltype(ndup_dDeltap_self)();
+    ndup_total_bo     = decltype(ndup_total_bo)();
+    ndup_CdDelta      = decltype(ndup_CdDelta)();
+  }
+
   if (cut_hbsq > 0.0) {
     MemKK::realloc_kokkos(d_hb_first,"reaxff/kk:hb_first",nmax);
     MemKK::realloc_kokkos(d_hb_num,"reaxff/kk:hb_num",nmax);
@@ -3482,9 +3469,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxUpdateBond<NEIGHFLAG>, 
   Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbo = d_Cdbo;
   Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi = d_Cdbopi;
   Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi2 = d_Cdbopi2;
-  //auto a_Cdbo = dup_Cdbo.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-  //auto a_Cdbopi = dup_Cdbopi.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-  //auto a_Cdbopi2 = dup_Cdbopi2.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   const int i = d_ilist[ii];
   const tagint itag = tag(i);

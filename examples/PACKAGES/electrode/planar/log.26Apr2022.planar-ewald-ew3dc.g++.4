@@ -1,0 +1,140 @@
+LAMMPS (24 Mar 2022)
+boundary p p f
+kspace_style ewald/electrode 1.0e-7
+kspace_modify slab 3.0 # ew3dc
+
+include "settings.mod" # styles, computes, groups and fixes
+# set boundary in main script because ffield is periodic
+units real
+# distribute electrode atoms among all processors:
+if "$(extract_setting(world_size) % 2) == 0" then "processors * * 2"
+processors * * 2
+
+atom_style full
+pair_style lj/cut/coul/long 14
+# kspace_style and _modify in main script to test different approaches
+
+read_data "data.au-vac"
+Reading data file ...
+  orthogonal box = (0.285001 -0.368323 -1.043333) to (25.325067 24.671743 43.303354)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  288 atoms
+  reading velocities ...
+  288 velocities
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.008 seconds
+  read_data CPU = 0.123 seconds
+
+group bot molecule 1
+144 atoms in group bot
+group top molecule 2
+144 atoms in group top
+
+# ramping potential difference
+variable v equal ramp(0,2)
+
+# get electrode charges
+variable q atom q
+compute qbot bot reduce sum v_q
+compute qtop top reduce sum v_q
+
+# get theoretical charges:
+# calculate distance dz between electrodes
+compute zbot bot reduce max z
+compute ztop top reduce min z
+variable dz equal c_ztop-c_zbot
+
+# calculate theoretical capacitance as eps0 * area / dz
+variable eps0 equal 55.26349406/10000 # epsilon zero
+variable capac equal "v_eps0 * lx * ly / v_dz"
+
+# calculate theoretical charges and deviation of constant potential charges from theory
+variable qtheory equal "v_capac * v_v"
+variable percdev equal "100 * (c_qtop - v_qtheory) / (v_qtheory + 1e-9)" # avoid divide-by-zero
+
+# constant potential electrodes with ramping potential difference
+fix conp bot electrode/conp 0 1.979 couple top v_v symm on
+288 atoms in group conp_group
+
+thermo 1
+# thermo: step, imposed potential, bottom charge, top charge, theory charge, percent deviation
+thermo_style custom step v_v c_qbot c_qtop v_qtheory v_percdev
+
+run 10
+WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
+Ewald/electrode initialization ...
+WARNING: System is not charge neutral, net charge = 0.000219 (src/kspace.cpp:327)
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:342)
+  G vector (1/distance) = 0.15955673
+  estimated absolute RMS force accuracy = 3.1187248e-05
+  estimated relative force accuracy = 9.3919471e-08
+  KSpace vectors: actual max1d max3d = 266 12 7812
+                  kxmax kymax kzmax  = 3 3 12
+  generated 1 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 16
+  ghost atom cutoff = 16
+  binsize = 8, bins = 4 4 6
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) fix electrode/conp, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 27.31 | 27.31 | 27.31 Mbytes
+   Step          v_v           c_qbot         c_qtop       v_qtheory      v_percdev   
+         0   0              0              0              0              0            
+         1   0.2           -0.030925182    0.030925182    0.031376826   -1.4394194    
+         2   0.4           -0.061850364    0.061850364    0.062753652   -1.4394194    
+         3   0.6           -0.092775546    0.092775546    0.094130479   -1.4394194    
+         4   0.8           -0.12370073     0.12370073     0.1255073     -1.4394195    
+         5   1             -0.15462591     0.15462591     0.15688413    -1.4394195    
+         6   1.2           -0.18555109     0.18555109     0.18826096    -1.4394195    
+         7   1.4           -0.21647627     0.21647627     0.21963778    -1.4394195    
+         8   1.6           -0.24740146     0.24740146     0.25101461    -1.4394195    
+         9   1.8           -0.27832664     0.27832664     0.28239144    -1.4394195    
+        10   2             -0.30925182     0.30925182     0.31376826    -1.4394195    
+Loop time of 0.0459561 on 4 procs for 10 steps with 288 atoms
+
+Performance: 18.801 ns/day, 1.277 hours/ns, 217.599 timesteps/s
+95.8% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0021527  | 0.0026891  | 0.0037845  |   1.3 |  5.85
+Bond    | 1.303e-06  | 1.9462e-06 | 3.206e-06  |   0.0 |  0.00
+Kspace  | 0.0066254  | 0.0077509  | 0.0083577  |   0.8 | 16.87
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.00285    | 0.0057275  | 0.0067088  |   2.2 | 12.46
+Output  | 0.0024325  | 0.0034682  | 0.0065316  |   3.0 |  7.55
+Modify  | 0.025911   | 0.025969   | 0.026007   |   0.0 | 56.51
+Other   |            | 0.0003494  |            |       |  0.76
+
+Nlocal:             72 ave          72 max          72 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:           1062 ave        1062 max        1062 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:           6624 ave        6936 max        6312 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 26496
+Ave neighs/atom = 92
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00

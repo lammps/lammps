@@ -356,7 +356,9 @@ void FixPOEMS::init()
     for (auto ifix : modify->get_fix_list()) {
       if (utils::strmatch(ifix->style, "^poems")) pflag = true;
       if (pflag && (ifix->setmask() & POST_FORCE) && !ifix->rigid_flag)
-        if (comm->me == 0) error->warning(FLERR, "Fix {} alters forces after fix poems", ifix->id);
+        if (comm->me == 0)
+          error->warning(FLERR, "Fix {} with ID {} alters forces after fix poems", ifix->style,
+                         ifix->id);
     }
   }
 

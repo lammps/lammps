@@ -18,7 +18,7 @@ WeakEquationElectronTemperature::WeakEquationElectronTemperature()
 //--------------------------------------------------------------
 //  Destructor
 //---------------------------------------------------------------------
-WeakEquationElectronTemperature::~WeakEquationElectronTemperature(void)
+WeakEquationElectronTemperature::~WeakEquationElectronTemperature()
 {}
 
 //---------------------------------------------------------------------
@@ -93,7 +93,7 @@ WeakEquationElectronTemperatureJouleHeating::WeakEquationElectronTemperatureJoul
 //--------------------------------------------------------------
 //  Destructor
 //---------------------------------------------------------------------
-WeakEquationElectronTemperatureJouleHeating::~WeakEquationElectronTemperatureJouleHeating(void)
+WeakEquationElectronTemperatureJouleHeating::~WeakEquationElectronTemperatureJouleHeating()
 {}
 
 //---------------------------------------------------------------------
@@ -162,7 +162,7 @@ WeakEquationElectronTemperatureConvection::WeakEquationElectronTemperatureConvec
 //--------------------------------------------------------------
 //  Destructor
 //---------------------------------------------------------------------
-WeakEquationElectronTemperatureConvection::~WeakEquationElectronTemperatureConvection(void)
+WeakEquationElectronTemperatureConvection::~WeakEquationElectronTemperatureConvection()
 {
   // do nothing
 }

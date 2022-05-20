@@ -104,7 +104,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   shld = nullptr;
 
   nn = n_cap = 0;
-  NN = nmax = 0;
+  nmax = 0;
   m_fill = m_cap = 0;
   pack_flag = 0;
   s = nullptr;
@@ -141,7 +141,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  reaxff = (PairReaxFF *) force->pair_match("^reax..",0);
+  reaxff = dynamic_cast<PairReaxFF *>( force->pair_match("^reax..",0));
 
   s_hist = t_hist = nullptr;
   atom->add_callback(Atom::GROW);
@@ -319,7 +319,7 @@ void FixQEqReaxFF::reallocate_storage()
 
 void FixQEqReaxFF::allocate_matrix()
 {
-  int i,ii,n,m;
+  int i,ii,m;
 
   int mincap;
   double safezone;
@@ -332,8 +332,7 @@ void FixQEqReaxFF::allocate_matrix()
     safezone = REAX_SAFE_ZONE;
   }
 
-  n = atom->nlocal;
-  n_cap = MAX((int)(n * safezone), mincap);
+  n_cap = MAX((int)(atom->nlocal * safezone), mincap);
 
   // determine the total space for the H matrix
 
@@ -396,7 +395,7 @@ void FixQEqReaxFF::init()
 
   efield = nullptr;
   auto fixes = modify->get_fix_by_style("^efield");
-  if (fixes.size() == 1) efield = (FixEfield *) fixes.front();
+  if (fixes.size() == 1) efield = dynamic_cast<FixEfield *>( fixes.front());
   else if (fixes.size() > 1)
     error->all(FLERR, "There may be only one fix efield instance used with fix {}", style);
 
@@ -424,7 +423,7 @@ void FixQEqReaxFF::init()
   init_taper();
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -493,13 +492,11 @@ void FixQEqReaxFF::setup_pre_force(int vflag)
 {
   if (reaxff) {
     nn = reaxff->list->inum;
-    NN = reaxff->list->inum + reaxff->list->gnum;
     ilist = reaxff->list->ilist;
     numneigh = reaxff->list->numneigh;
     firstneigh = reaxff->list->firstneigh;
   } else {
     nn = list->inum;
-    NN = list->inum + list->gnum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
@@ -537,7 +534,7 @@ void FixQEqReaxFF::init_storage()
 {
   if (efield) get_chi_field();
 
-  for (int ii = 0; ii < NN; ii++) {
+  for (int ii = 0; ii < nn; ii++) {
     int i = ilist[ii];
     if (atom->mask[i] & groupbit) {
       Hdia_inv[i] = 1. / eta[atom->type[i]];
@@ -561,13 +558,11 @@ void FixQEqReaxFF::pre_force(int /*vflag*/)
 
   if (reaxff) {
     nn = reaxff->list->inum;
-    NN = reaxff->list->inum + reaxff->list->gnum;
     ilist = reaxff->list->ilist;
     numneigh = reaxff->list->numneigh;
     firstneigh = reaxff->list->firstneigh;
   } else {
     nn = list->inum;
-    NN = list->inum + list->gnum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
@@ -791,11 +786,9 @@ void FixQEqReaxFF::sparse_matvec(sparse_matrix *A, double *x, double *b)
       b[i] = eta[atom->type[i]] * x[i];
   }
 
-  for (ii = nn; ii < NN; ++ii) {
-    i = ilist[ii];
-    if (atom->mask[i] & groupbit)
+  int nall = atom->nlocal + atom->nghost;
+  for (i = atom->nlocal; i < nall; ++i)
       b[i] = 0;
-  }
 
   for (ii = 0; ii < nn; ++ii) {
     i = ilist[ii];
@@ -1095,7 +1088,7 @@ void FixQEqReaxFF::get_chi_field()
   memset(&chi_field[0],0,atom->nmax*sizeof(double));
   if (!efield) return;
 
-  const double * const *x = (const double * const *)atom->x;
+  const auto x = (const double * const *)atom->x;
   const int *mask = atom->mask;
   const imageint *image = atom->image;
   const int nlocal = atom->nlocal;
@@ -1103,11 +1096,8 @@ void FixQEqReaxFF::get_chi_field()
 
   // update electric field region if necessary
 
-  Region *region = nullptr;
-  if (efield->iregion >= 0) {
-    region = domain->regions[efield->iregion];
-    region->prematch();
-  }
+  Region *region = efield->region;
+  if (region) region->prematch();
 
   // efield energy is in real units of kcal/mol/angstrom, need to convert to eV
 

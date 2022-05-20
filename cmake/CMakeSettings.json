@@ -151,6 +151,190 @@
           "type": "BOOL"
         }
       ]
+    },
+    {
+      "name": "x64-Debug-IntelLLVM",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "inheritEnvironments": [],
+      "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows-intel-llvm.cmake -C ${workspaceRoot}\\cmake\\presets\\windows.cmake",
+      "variables": [
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "PKG_PYTHON",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "ENABLE_TESTING",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "FFT",
+          "value": "MKL",
+          "type": "STRING"
+        },
+        {
+          "name": "PKG_PLUGIN",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "x64-Release-IntelLLVM",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows-intel-llvm.cmake -C ${workspaceRoot}\\cmake\\presets\\windows.cmake",
+      "inheritEnvironments": [],
+      "variables": [
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "PKG_PYTHON",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "ENABLE_TESTING",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "FFT",
+          "value": "MKL",
+          "type": "STRING"
+        },
+        {
+          "name": "PKG_PLUGIN",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "x64-Debug-Intel-Classic",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows-intel-classic.cmake -C ${workspaceRoot}\\cmake\\presets\\windows.cmake",
+      "inheritEnvironments": [],
+      "variables": [
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "PKG_PYTHON",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "ENABLE_TESTING",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "FFT",
+          "value": "MKL",
+          "type": "STRING"
+        },
+        {
+          "name": "PKG_PLUGIN",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "x64-Release-Intel-Classic",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows-intel-classic.cmake -C ${workspaceRoot}\\cmake\\presets\\windows.cmake",
+      "inheritEnvironments": [],
+      "variables": [
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "PKG_PYTHON",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "ENABLE_TESTING",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "FFT",
+          "value": "MKL",
+          "type": "STRING"
+        },
+        {
+          "name": "PKG_PLUGIN",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
     }
   ]
 }

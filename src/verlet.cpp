@@ -237,7 +237,7 @@ void Verlet::run(int n)
   int n_post_neighbor = modify->n_post_neighbor;
   int n_pre_force = modify->n_pre_force;
   int n_pre_reverse = modify->n_pre_reverse;
-  int n_post_force = modify->n_post_force;
+  int n_post_force_any = modify->n_post_force_any;
   int n_end_of_step = modify->n_end_of_step;
 
   if (atom->sortfreq > 0) sortflag = 1;
@@ -344,7 +344,7 @@ void Verlet::run(int n)
 
     // force modifications, final time integration, diagnostics
 
-    if (n_post_force) modify->post_force(vflag);
+    if (n_post_force_any) modify->post_force(vflag);
     modify->final_integrate();
     if (n_end_of_step) modify->end_of_step();
     timer->stamp(Timer::MODIFY);

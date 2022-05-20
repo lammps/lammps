@@ -64,15 +64,6 @@ FixNHKokkos<DeviceType>::FixNHKokkos(LAMMPS *lmp, int narg, char **arg) : FixNH(
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-FixNHKokkos<DeviceType>::~FixNHKokkos()
-{
-
-
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
 void FixNHKokkos<DeviceType>::init()
 {
   FixNH::init();

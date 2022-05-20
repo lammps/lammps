@@ -23,6 +23,7 @@ namespace MathConst {
   static constexpr double MY_2PI = 6.28318530717958647692;          // 2pi
   static constexpr double MY_3PI = 9.42477796076937971538;          // 3pi
   static constexpr double MY_4PI = 12.56637061435917295384;         // 4pi
+  static constexpr double MY_4PI3 = 4.18879020478639098461;         // 4/3pi
   static constexpr double MY_PI2 = 1.57079632679489661923;          // pi/2
   static constexpr double MY_PI4 = 0.78539816339744830962;          // pi/4
   static constexpr double MY_PIS = 1.77245385090551602729;          // sqrt(pi)

@@ -159,13 +159,13 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
 FixNVTManifoldRattle::~FixNVTManifoldRattle()
 {
   // Deallocate heap-allocated objects.
-  if (eta)        delete[] eta;
-  if (eta_dot)    delete[] eta_dot;
-  if (eta_dotdot) delete[] eta_dotdot;
-  if (eta_mass)   delete[] eta_mass;
+  delete[] eta;
+  delete[] eta_dot;
+  delete[] eta_dotdot;
+  delete[] eta_mass;
 
   modify->delete_compute(id_temp);
-  if (id_temp)    delete[] id_temp;
+  delete[] id_temp;
 }
 
 int FixNVTManifoldRattle::setmask()

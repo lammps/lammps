@@ -36,7 +36,7 @@ Syntax
 
 * ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms to be dumped
-* style = *atom* or *atom/gz* or *atom/zstd or *atom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *dcd* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *xyz/mpiio*
+* style = *atom* or *atom/gz* or *atom/zstd or *atom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *dcd* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *xyz/mpiio* or *yaml*
 * N = dump every this many timesteps
 * file = name of file to write dump info to
 * args = list of arguments for a particular style
@@ -68,8 +68,9 @@ Syntax
        *xyz/gz* args = none
        *xyz/zstd* args = none
        *xyz/mpiio* args = none
+       *yaml* args = same as *custom* args, see below
 
-* *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *netcdf* or *netcdf/mpiio* args = list of atom attributes
+* *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *netcdf* or *netcdf/mpiio* or *yaml* args = list of atom attributes
 
   .. parsed-literal::
 
@@ -132,13 +133,14 @@ Examples
 
 .. code-block:: LAMMPS
 
-   dump myDump all atom 100 dump.atom
+   dump myDump all atom 100 dump.lammpstrj
    dump myDump all atom/mpiio 100 dump.atom.mpiio
    dump myDump all atom/gz 100 dump.atom.gz
    dump myDump all atom/zstd 100 dump.atom.zst
    dump 2 subgroup atom 50 dump.run.bin
    dump 2 subgroup atom/mpiio 50 dump.run.mpiio.bin
    dump 4a all custom 100 dump.myforce.* id type x y vx fx
+   dump 4a all custom 100 dump.myvel.lammpsbin id type x y z vx vy vz
    dump 4b flow custom 100 dump.%.myforce id type c_myF[3] v_ke
    dump 4b flow custom 100 dump.%.myforce id type c_myF[*] v_ke
    dump 2 inner cfg 10 dump.snap.*.cfg mass type xs ys zs vx vy vz
@@ -386,6 +388,71 @@ from using the (numerical) atom type to an element name (or some
 other label). This will help many visualization programs to guess
 bonds and colors.
 
+Dump style *yaml* has the same command syntax as style *custom* and
+writes YAML format files that can be easily parsed by a variety of data
+processing tools and programming languages.  Each timestep will be
+written as a YAML "document" (i.e. starts with "---" and ends with
+"...").  The style supports writing one file per timestep through the
+"\*" wildcard but not multi-processor outputs with the "%" token in the
+filename.  In addition to per-atom data, :doc:`thermo <thermo>` data can
+be included in the *yaml* style dump file using the :doc:`dump_modify
+thermo yes <dump_modify>`. The data included in the dump file uses the
+"thermo" tag and is otherwise identical to data specified by the
+:doc:`thermo_style <thermo_style>` command.
+
+Below is an example for a YAML format dump created by the following commands.
+
+.. code-block:: LAMMPS
+
+   dump out all yaml 100 dump.yaml id type x y z vx vy vz ix iy iz
+   dump_modify out time yes units yes thermo yes format 1 %5d format "% 10.6e"
+
+The tags "time", "units", and "thermo" are optional and enabled by the
+dump_modify command. The list under the "box" tag has 3 lines for
+orthogonal boxes and 4 lines with triclinic boxes, where the first 3 are
+the box boundaries and the 4th the three tilt factors (xy, xz, yz).  The
+"thermo" data follows the format of the *yaml* thermo style.  The
+"keywords" tag lists the per-atom properties contained in the "data"
+columns, which contain a list with one line per atom.  The keywords may
+be renamed using the dump_modify command same as for the *custom* dump
+style.
+
+.. code-block:: yaml
+
+   ---
+   creator: LAMMPS
+   timestep: 0
+   units: lj
+   time: 0
+   natoms: 4000
+   boundary: [ p, p, p, p, p, p, ]
+   thermo:
+     - keywords: [ Step, Temp, E_pair, E_mol, TotEng, Press, ]
+     - data: [ 0, 0, -27093.472213010766, 0, 0, 0, ]
+   box:
+     - [ 0, 16.795961913825074 ]
+     - [ 0, 16.795961913825074 ]
+     - [ 0, 16.795961913825074 ]
+     - [ 0, 0, 0 ]
+   keywords: [ id, type, x, y, z, vx, vy, vz, ix, iy, iz,  ]
+   data:
+     - [     1 , 1 ,  0.000000e+00 ,  0.000000e+00 ,  0.000000e+00 ,  -1.841579e-01 , -9.710036e-01 , -2.934617e+00 , 0 , 0 , 0, ]
+     - [     2 , 1 ,  8.397981e-01 ,  8.397981e-01 ,  0.000000e+00 ,  -1.799591e+00 ,  2.127197e+00 ,  2.298572e+00 , 0 , 0 , 0, ]
+     - [     3 , 1 ,  8.397981e-01 ,  0.000000e+00 ,  8.397981e-01 ,  -1.807682e+00 , -9.585130e-01 ,  1.605884e+00 , 0 , 0 , 0, ]
+
+     [...]
+   ...
+   ---
+   timestep: 100
+   units: lj
+   time: 0.5
+
+     [...]
+
+   ...
+
+----------
+
 Note that *atom*, *custom*, *dcd*, *xtc*, and *xyz* style dump files
 can be read directly by `VMD <http://www.ks.uiuc.edu/Research/vmd>`_, a
 popular molecular viewing program.
@@ -427,9 +494,9 @@ If a "%" character appears in the filename, then each of P processors
 writes a portion of the dump file, and the "%" character is replaced
 with the processor ID from 0 to P-1.  For example, tmp.dump.% becomes
 tmp.dump.0, tmp.dump.1, ... tmp.dump.P-1, etc.  This creates smaller
-files and can be a fast mode of output on parallel machines that
-support parallel I/O for output. This option is not available for the
-*dcd*, *xtc*, and *xyz* styles.
+files and can be a fast mode of output on parallel machines that support
+parallel I/O for output. This option is **not** available for the *dcd*,
+*xtc*, *xyz*, and *yaml* styles.
 
 By default, P = the number of processors meaning one file per
 processor, but P can be set to a smaller value via the *nfile* or
@@ -469,11 +536,11 @@ MPI-IO.
 Note that MPI-IO dump files are one large file which all processors
 write to.  You thus cannot use the "%" wildcard character described
 above in the filename since that specifies generation of multiple
-files.  You can use the ".bin" suffix described below in an MPI-IO
+files.  You can use the ".bin" or ".lammpsbin" suffix described below in an MPI-IO
 dump file; again this file will be written in parallel and have the
 same binary format as if it were written without MPI-IO.
 
-If the filename ends with ".bin", the dump file (or files, if "\*" or
+If the filename ends with ".bin" or ".lammpsbin", the dump file (or files, if "\*" or
 "%" is also used) is written in binary format.  A binary dump file
 will be about the same size as a text version, but will typically
 write out much faster.  Of course, when post-processing, you will need
@@ -722,8 +789,8 @@ are part of the MPIIO package.  They are only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
-The *xtc* and *dcd* styles are part of the EXTRA-DUMP package.  They
-are only enabled if LAMMPS was built with that package.  See the
+The *xtc*, *dcd* and *yaml* styles are part of the EXTRA-DUMP package.
+They are only enabled if LAMMPS was built with that package.  See the
 :doc:`Build package <Build_package>` page for more info.
 
 Related commands

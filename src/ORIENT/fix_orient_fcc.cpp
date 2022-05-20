@@ -199,7 +199,7 @@ int FixOrientFCC::setmask()
 void FixOrientFCC::init()
 {
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
+    ilevel_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
 
@@ -222,9 +222,9 @@ void FixOrientFCC::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
+    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(ilevel_respa);
     post_force_respa(vflag,ilevel_respa,0);
-    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
+    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(ilevel_respa);
   }
 }
 
@@ -564,8 +564,8 @@ void FixOrientFCC::find_best_ref(double *displs, int which_crystal,
 
 int FixOrientFCC::compare(const void *pi, const void *pj)
 {
-  FixOrientFCC::Sort *ineigh = (FixOrientFCC::Sort *) pi;
-  FixOrientFCC::Sort *jneigh = (FixOrientFCC::Sort *) pj;
+  auto ineigh = (FixOrientFCC::Sort *) pi;
+  auto jneigh = (FixOrientFCC::Sort *) pj;
 
   if (ineigh->rsq < jneigh->rsq) return -1;
   else if (ineigh->rsq > jneigh->rsq) return 1;

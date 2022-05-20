@@ -53,17 +53,13 @@ enum{LT,LE,GT,GE,EQ,NEQ,XOR};
 /* ---------------------------------------------------------------------- */
 
 DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
-  Dump(lmp, narg, arg),
-  idregion(nullptr), thresh_array(nullptr), thresh_op(nullptr), thresh_value(nullptr),
-  thresh_last(nullptr), thresh_fix(nullptr),
-  thresh_fixID(nullptr), thresh_first(nullptr),
-  earg(nullptr), vtype(nullptr), vformat(nullptr), columns(nullptr), choose(nullptr),
-  dchoose(nullptr), clist(nullptr), field2index(nullptr),
-  argindex(nullptr), id_compute(nullptr),
-  compute(nullptr), id_fix(nullptr), fix(nullptr),
-  id_variable(nullptr), variable(nullptr),
-  vbuf(nullptr), id_custom(nullptr), custom(nullptr), custom_flag(nullptr),
-  typenames(nullptr), pack_choice(nullptr)
+  Dump(lmp, narg, arg), idregion(nullptr), thresh_array(nullptr), thresh_op(nullptr),
+  thresh_value(nullptr), thresh_last(nullptr), thresh_fix(nullptr), thresh_fixID(nullptr),
+  thresh_first(nullptr), earg(nullptr), vtype(nullptr), vformat(nullptr), columns(nullptr),
+  columns_default(nullptr), choose(nullptr), dchoose(nullptr), clist(nullptr),
+  field2index(nullptr), argindex(nullptr), id_compute(nullptr), compute(nullptr), id_fix(nullptr),
+  fix(nullptr), id_variable(nullptr), variable(nullptr), vbuf(nullptr), id_custom(nullptr),
+  custom(nullptr), custom_flag(nullptr), typenames(nullptr), pack_choice(nullptr)
 {
   if (narg == 5) error->all(FLERR,"No dump custom arguments specified");
 
@@ -90,39 +86,16 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   buffer_allow = 1;
   buffer_flag = 1;
-  iregion = -1;
-  idregion = nullptr;
 
   nthresh = 0;
-  thresh_array = nullptr;
-  thresh_op = nullptr;
-  thresh_value = nullptr;
-  thresh_last = nullptr;
-
   nthreshlast = 0;
-  thresh_fix = nullptr;
-  thresh_fixID = nullptr;
-  thresh_first = nullptr;
 
   // computes, fixes, variables which the dump accesses
 
   ncompute = 0;
-  id_compute = nullptr;
-  compute = nullptr;
-
   nfix = 0;
-  id_fix = nullptr;
-  fix = nullptr;
-
   nvariable = 0;
-  id_variable = nullptr;
-  variable = nullptr;
-  vbuf = nullptr;
-
   ncustom = 0;
-  id_custom = nullptr;
-  custom = nullptr;
-  custom_flag = nullptr;
 
   // process attributes
   // ioptional = start of additional optional args in expanded args
@@ -147,9 +120,6 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   // atom selection arrays
 
   maxlocal = 0;
-  choose = nullptr;
-  dchoose = nullptr;
-  clist = nullptr;
 
   // default element name for all types = C
 
@@ -180,13 +150,14 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   // setup column string
 
   cols.clear();
+  keyword_user.resize(nfield);
   for (int iarg = 0; iarg < nfield; iarg++) {
+    key2col[earg[iarg]] = iarg;
+    keyword_user[iarg].clear();
+    if (cols.size()) cols += " ";
     cols += earg[iarg];
-    cols += " ";
   }
-  // remove trailing blank and copy
-  cols.resize(cols.size()-1);
-  columns = utils::strdup(cols);
+  columns_default = utils::strdup(cols);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -257,6 +228,7 @@ DumpCustom::~DumpCustom()
     delete[] format_column_user;
   }
 
+  delete[] columns_default;
   delete[] columns;
 }
 
@@ -264,6 +236,19 @@ DumpCustom::~DumpCustom()
 
 void DumpCustom::init_style()
 {
+  // assemble ITEMS: column string from defaults and user values
+
+  delete[] columns;
+  std::string combined;
+  int icol = 0;
+  for (auto item : utils::split_words(columns_default)) {
+    if (combined.size()) combined += " ";
+    if (keyword_user[icol].size()) combined += keyword_user[icol];
+    else combined += item;
+    ++icol;
+  }
+  columns = utils::strdup(combined);
+
   // format = copy of default or user-specified line format
 
   delete[] format;
@@ -352,13 +337,10 @@ void DumpCustom::init_style()
     else if (flag && cols) custom_flag[i] = DARRAY;
   }
 
-  // set index and check validity of region
+  // check validity of region
 
-  if (iregion >= 0) {
-    iregion = domain->find_region(idregion);
-    if (iregion == -1)
-      error->all(FLERR,"Region ID for dump custom does not exist");
-  }
+  if (idregion && !domain->get_region_by_id(idregion))
+    error->all(FLERR,"Region {} for dump custom does not exist", idregion);
 
   // open single file, one time only
 
@@ -507,19 +489,21 @@ void DumpCustom::header_item(bigint ndump)
 {
   if (unit_flag && !unit_count) {
     ++unit_count;
-    fprintf(fp,"ITEM: UNITS\n%s\n",update->unit_style);
+    fmt::print(fp,"ITEM: UNITS\n{}\n",update->unit_style);
   }
-  if (time_flag) fprintf(fp,"ITEM: TIME\n%.16g\n",compute_time());
+  if (time_flag) fmt::print(fp,"ITEM: TIME\n{:.16}\n",compute_time());
 
-  fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
-  fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
-  fprintf(fp,BIGINT_FORMAT "\n",ndump);
-  fprintf(fp,"ITEM: BOX BOUNDS %s\n",boundstr);
-  fprintf(fp,"%-1.16e %-1.16e\n",boxxlo,boxxhi);
-  fprintf(fp,"%-1.16e %-1.16e\n",boxylo,boxyhi);
-  fprintf(fp,"%-1.16e %-1.16e\n",boxzlo,boxzhi);
-  fprintf(fp,"ITEM: ATOMS %s\n",columns);
+  fmt::print(fp,"ITEM: TIMESTEP\n{}\n"
+             "ITEM: NUMBER OF ATOMS\n{}\n",
+             update->ntimestep, ndump);
+
+  fmt::print(fp,"ITEM: BOX BOUNDS {}\n"
+             "{:>1.16e} {:>1.16e}\n"
+             "{:>1.16e} {:>1.16e}\n"
+             "{:>1.16e} {:>1.16e}\n",
+             boundstr,boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi);
+
+  fmt::print(fp,"ITEM: ATOMS {}\n",columns);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -528,19 +512,21 @@ void DumpCustom::header_item_triclinic(bigint ndump)
 {
   if (unit_flag && !unit_count) {
     ++unit_count;
-    fprintf(fp,"ITEM: UNITS\n%s\n",update->unit_style);
+    fmt::print(fp,"ITEM: UNITS\n{}\n",update->unit_style);
   }
-  if (time_flag) fprintf(fp,"ITEM: TIME\n%.16g\n",compute_time());
+  if (time_flag) fmt::print(fp,"ITEM: TIME\n{:.16}\n",compute_time());
 
-  fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,BIGINT_FORMAT "\n",update->ntimestep);
-  fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
-  fprintf(fp,BIGINT_FORMAT "\n",ndump);
-  fprintf(fp,"ITEM: BOX BOUNDS xy xz yz %s\n",boundstr);
-  fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxxlo,boxxhi,boxxy);
-  fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxylo,boxyhi,boxxz);
-  fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxzlo,boxzhi,boxyz);
-  fprintf(fp,"ITEM: ATOMS %s\n",columns);
+  fmt::print(fp,"ITEM: TIMESTEP\n{}\n"
+             "ITEM: NUMBER OF ATOMS\n{}\n",
+             update->ntimestep, ndump);
+
+  fmt::print(fp,"ITEM: BOX BOUNDS xy xz yz {}\n"
+             "{:>1.16e} {:>1.16e} {:>1.16e}\n"
+             "{:>1.16e} {:>1.16e} {:>1.16e}\n"
+             "{:>1.16e} {:>1.16e} {:>1.16e}\n",
+             boundstr,boxxlo,boxxhi,boxxy,boxylo,boxyhi,boxxz,boxzlo,boxzhi,boxyz);
+
+  fmt::print(fp,"ITEM: ATOMS {}\n",columns);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -609,8 +595,8 @@ int DumpCustom::count()
 
   // un-choose if not in region
 
-  if (iregion >= 0) {
-    Region *region = domain->regions[iregion];
+  if (idregion) {
+    auto region = domain->get_region_by_id(idregion);
     region->prematch();
     double **x = atom->x;
     for (i = 0; i < nlocal; i++)
@@ -1674,12 +1660,13 @@ int DumpCustom::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"region") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    if (strcmp(arg[1],"none") == 0) iregion = -1;
-    else {
-      iregion = domain->find_region(arg[1]);
-      if (iregion == -1)
-        error->all(FLERR,"Dump_modify region ID {} does not exist",arg[1]);
+    if (strcmp(arg[1],"none") == 0) {
       delete[] idregion;
+      idregion = nullptr;
+    } else {
+      delete[] idregion;
+      if (!domain->get_region_by_id(arg[1]))
+        error->all(FLERR,"Dump_modify region {} does not exist", arg[1]);
       idregion = utils::strdup(arg[1]);
     }
     return 2;
@@ -1724,7 +1711,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       int i = utils::inumeric(FLERR,arg[1],false,lmp) - 1;
       if (i < 0 || i >= nfield)
         error->all(FLERR,"Illegal dump_modify command");
-      if (format_column_user[i]) delete[] format_column_user[i];
+      delete[] format_column_user[i];
       format_column_user[i] = utils::strdup(arg[2]);
     }
     return 3;
@@ -2022,7 +2009,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       std::string threshid = fmt::format("{}{}_DUMP_STORE",id,nthreshlast);
       thresh_fixID[nthreshlast] = utils::strdup(threshid);
       threshid += fmt::format(" {} STORE peratom 1 1", group->names[igroup]);
-      thresh_fix[nthreshlast] = (FixStore *) modify->add_fix(threshid);
+      thresh_fix[nthreshlast] = dynamic_cast<FixStore *>( modify->add_fix(threshid));
 
       thresh_last[nthreshlast] = nthreshlast;
       thresh_first[nthreshlast] = 1;

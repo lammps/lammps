@@ -10,329 +10,216 @@ SPDX-License-Identifier: (BSD-3-Clause)
 
 #ifdef __HIP_DEVICE_COMPILE__
 namespace desul {
-namespace Impl {
-template <typename T>
-struct is_hip_atomic_integer_type {
-  static constexpr bool value = std::is_same<T, int>::value ||
-                                std::is_same<T, unsigned int>::value ||
-                                std::is_same<T, unsigned long long int>::value;
-};
 
-template <typename T>
-struct is_hip_atomic_add_type {
-  static constexpr bool value = is_hip_atomic_integer_type<T>::value ||
-                                std::is_same<T, double>::value ||
-                                std::is_same<T, float>::value;
-};
+// header file is organized as follows:
+//   1/ device-side overload set from atomic functions provided by HIP
+//   2/ fallback implementation on host-side for atomic functions defined in 1/ that are
+//      not included in the GCC overload set
+//   3/ fallback implementation on device-side for atomic functions from the GCC
+//      overload set that are not defined in 1/
 
-template <typename T>
-struct is_hip_atomic_sub_type {
-  static constexpr bool value =
-      std::is_same<T, int>::value || std::is_same<T, unsigned int>::value;
-};
-}  // namespace Impl
+// clang-format off
+inline __device__                int atomic_fetch_add(               int* ptr,                int val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicAdd(ptr, val); }
+inline __device__       unsigned int atomic_fetch_add(      unsigned int* ptr,       unsigned int val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicAdd(ptr, val); }
+inline __device__ unsigned long long atomic_fetch_add(unsigned long long* ptr, unsigned long long val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicAdd(ptr, val); }
+inline __device__              float atomic_fetch_add(             float* ptr,              float val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicAdd(ptr, val); }
+inline __device__             double atomic_fetch_add(            double* ptr,             double val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicAdd(ptr, val); }
 
-// Atomic Add
-template <typename T>
-__device__ inline
-    typename std::enable_if<Impl::is_hip_atomic_add_type<T>::value, T>::type
-    atomic_fetch_add(T* dest, T val, MemoryOrderRelaxed, MemoryScopeDevice) {
-  return atomicAdd(dest, val);
-}
+inline __device__                int atomic_fetch_sub(               int* ptr,                int val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicSub(ptr, val); }
+inline __device__       unsigned int atomic_fetch_sub(      unsigned int* ptr,       unsigned int val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicSub(ptr, val); }
+inline __device__ unsigned long long atomic_fetch_sub(unsigned long long* ptr, unsigned long long val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicAdd(ptr, -val); }
+inline __device__              float atomic_fetch_sub(             float* ptr,              float val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicAdd(ptr, -val); }
+inline __device__             double atomic_fetch_sub(            double* ptr,             double val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicAdd(ptr, -val); }
 
-template <typename T, typename MemoryOrder>
-__device__ inline
-    typename std::enable_if<Impl::is_hip_atomic_add_type<T>::value, T>::type
-    atomic_fetch_add(T* dest, T val, MemoryOrder, MemoryScopeDevice) {
-  __threadfence();
-  T return_val = atomicAdd(dest, val);
-  __threadfence();
+inline __device__                int atomic_fetch_min(               int* ptr,                int val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicMin(ptr, val); }
+inline __device__       unsigned int atomic_fetch_min(      unsigned int* ptr,       unsigned int val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicMin(ptr, val); }
+inline __device__ unsigned long long atomic_fetch_min(unsigned long long* ptr, unsigned long long val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicMin(ptr, val); }
 
-  return return_val;
-}
+inline __device__                int atomic_fetch_max(               int* ptr,                int val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicMax(ptr, val); }
+inline __device__       unsigned int atomic_fetch_max(      unsigned int* ptr,       unsigned int val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicMax(ptr, val); }
+inline __device__ unsigned long long atomic_fetch_max(unsigned long long* ptr, unsigned long long val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicMax(ptr, val); }
 
-template <typename T, typename MemoryOrder>
-__device__ inline
-    typename std::enable_if<Impl::is_hip_atomic_add_type<T>::value, T>::type
-    atomic_fetch_add(T* dest, T val, MemoryOrder, MemoryScopeCore) {
-  return atomic_fetch_add(dest, val, MemoryOrder(), MemoryScopeDevice());
-}
+inline __device__                int atomic_fetch_and(               int* ptr,                int val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicAnd(ptr, val); }
+inline __device__       unsigned int atomic_fetch_and(      unsigned int* ptr,       unsigned int val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicAnd(ptr, val); }
+inline __device__ unsigned long long atomic_fetch_and(unsigned long long* ptr, unsigned long long val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicAnd(ptr, val); }
 
-// Atomic Sub
-template <typename T>
-__device__ inline
-    typename std::enable_if<Impl::is_hip_atomic_sub_type<T>::value, T>::type
-    atomic_fetch_sub(T* dest, T val, MemoryOrderRelaxed, MemoryScopeDevice) {
-  return atomicSub(dest, val);
-}
+inline __device__                int atomic_fetch_or (               int* ptr,                int val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicOr (ptr, val); }
+inline __device__       unsigned int atomic_fetch_or (      unsigned int* ptr,       unsigned int val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicOr (ptr, val); }
+inline __device__ unsigned long long atomic_fetch_or (unsigned long long* ptr, unsigned long long val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicOr (ptr, val); }
 
-template <typename T, typename MemoryOrder>
-__device__ inline
-    typename std::enable_if<Impl::is_hip_atomic_sub_type<T>::value, T>::type
-    atomic_fetch_sub(T* dest, T val, MemoryOrder, MemoryScopeDevice) {
-  __threadfence();
-  T return_val = atomicSub(dest, val);
-  __threadfence();
-  return return_val;
-}
+inline __device__                int atomic_fetch_xor(               int* ptr,                int val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicXor(ptr, val); }
+inline __device__       unsigned int atomic_fetch_xor(      unsigned int* ptr,       unsigned int val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicXor(ptr, val); }
+inline __device__ unsigned long long atomic_fetch_xor(unsigned long long* ptr, unsigned long long val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicXor(ptr, val); }
 
-template <typename T, typename MemoryOrder>
-__device__ inline
-    typename std::enable_if<Impl::is_hip_atomic_sub_type<T>::value, T>::type
-    atomic_fetch_sub(T* dest, T val, MemoryOrder, MemoryScopeCore) {
-  return atomic_fetch_sub(dest, val, MemoryOrder(), MemoryScopeDevice());
-}
+inline __device__                int atomic_fetch_inc(               int* ptr,                         MemoryOrderRelaxed, MemoryScopeDevice) { return atomicAdd(ptr, 1   ); }
+inline __device__       unsigned int atomic_fetch_inc(      unsigned int* ptr,                         MemoryOrderRelaxed, MemoryScopeDevice) { return atomicAdd(ptr, 1u  ); }
+inline __device__ unsigned long long atomic_fetch_inc(unsigned long long* ptr,                         MemoryOrderRelaxed, MemoryScopeDevice) { return atomicAdd(ptr, 1ull); }
 
-// Atomic Inc
-__device__ inline unsigned int atomic_fetch_inc(unsigned int* dest,
-                                                unsigned int val,
-                                                MemoryOrderRelaxed,
-                                                MemoryScopeDevice) {
-  return atomicInc(dest, val);
-}
+inline __device__                int atomic_fetch_dec(               int* ptr,                         MemoryOrderRelaxed, MemoryScopeDevice) { return atomicSub(ptr, 1   ); }
+inline __device__       unsigned int atomic_fetch_dec(      unsigned int* ptr,                         MemoryOrderRelaxed, MemoryScopeDevice) { return atomicSub(ptr, 1u  ); }
+inline __device__ unsigned long long atomic_fetch_dec(unsigned long long* ptr,                         MemoryOrderRelaxed, MemoryScopeDevice) { return atomicAdd(ptr, -1  ); }
 
-template <typename MemoryOrder>
-__device__ inline unsigned int atomic_fetch_inc(unsigned int* dest,
-                                                unsigned int val,
-                                                MemoryOrder,
-                                                MemoryScopeDevice) {
-  __threadfence();
-  unsigned int return_val = atomicInc(dest, val);
-  __threadfence();
-  return return_val;
-}
+inline __device__       unsigned int atomic_fetch_inc_mod(  unsigned int* ptr,       unsigned int val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicInc(ptr, val); }
+inline __device__       unsigned int atomic_fetch_dec_mod(  unsigned int* ptr,       unsigned int val, MemoryOrderRelaxed, MemoryScopeDevice) { return atomicDec(ptr, val); }
+// clang-format on
 
-template <typename MemoryOrder>
-__device__ inline unsigned int atomic_fetch_inc(unsigned int* dest,
-                                                unsigned int val,
-                                                MemoryOrder,
-                                                MemoryScopeCore) {
-  return atomic_fetch_inc(dest, val, MemoryOrder(), MemoryScopeDevice());
-}
-
-// Atomic Dec
-__device__ inline unsigned int atomic_fetch_dec(unsigned int* dest,
-                                                unsigned int val,
-                                                MemoryOrderRelaxed,
-                                                MemoryScopeDevice) {
-  return atomicDec(dest, val);
-}
-
-template <typename MemoryOrder>
-__device__ inline unsigned int atomic_fetch_dec(unsigned int* dest,
-                                                unsigned int val,
-                                                MemoryOrder,
-                                                MemoryScopeDevice) {
-  __threadfence();
-  unsigned int return_val = atomicDec(dest, val);
-  __threadfence();
-  return return_val;
-}
-
-template <typename MemoryOrder>
-__device__ inline unsigned int atomic_fetch_dec(unsigned int* dest,
-                                                unsigned int val,
-                                                MemoryOrder,
-                                                MemoryScopeCore) {
-  return atomic_fetch_dec(dest, val, MemoryOrder(), MemoryScopeDevice());
-}
-
-// Atomic Max
-template <typename T>
-__device__ inline
-    typename std::enable_if<Impl::is_hip_atomic_integer_type<T>::value, T>::type
-    atomic_fetch_max(T* dest, T val, MemoryOrderRelaxed, MemoryScopeDevice) {
-  return atomicMax(dest, val);
-}
-
-template <typename T, typename MemoryOrder>
-__device__ inline
-    typename std::enable_if<Impl::is_hip_atomic_integer_type<T>::value, T>::type
-    atomic_fetch_max(T* dest, T val, MemoryOrder, MemoryScopeDevice) {
-  __threadfence();
-  T return_val = atomicMax(dest, val);
-  __threadfence();
-  return return_val;
-}
-
-template <typename T, typename MemoryOrder>
-__device__ inline
-    typename std::enable_if<Impl::is_hip_atomic_integer_type<T>::value, T>::type
-    atomic_fetch_max(T* dest, T val, MemoryOrder, MemoryScopeCore) {
-  return atomic_fetch_max(dest, val, MemoryOrder(), MemoryScopeDevice());
-}
-
-// Atomic Min
-template <typename T>
-__device__ inline
-    typename std::enable_if<Impl::is_hip_atomic_integer_type<T>::value, T>::type
-    atomic_fetch_min(T* dest, T val, MemoryOrderRelaxed, MemoryScopeDevice) {
-  return atomicMin(dest, val);
-}
-
-template <typename T, typename MemoryOrder>
-__device__ inline
-    typename std::enable_if<Impl::is_hip_atomic_integer_type<T>::value, T>::type
-    atomic_fetch_min(T* dest, T val, MemoryOrder, MemoryScopeDevice) {
-  __threadfence();
-  T return_val = atomicMin(dest, val);
-  __threadfence();
-  return return_val;
-}
-
-template <typename T, typename MemoryOrder>
-__device__ inline
-    typename std::enable_if<Impl::is_hip_atomic_integer_type<T>::value, T>::type
-    atomic_fetch_min(T* dest, T val, MemoryOrder, MemoryScopeCore) {
-  return atomic_fetch_min(dest, val, MemoryOrder(), MemoryScopeDevice());
-}
-
-// Atomic And
-template <typename T>
-__device__ inline
-    typename std::enable_if<Impl::is_hip_atomic_integer_type<T>::value, T>::type
-    atomic_fetch_and(T* dest, T val, MemoryOrderRelaxed, MemoryScopeDevice) {
-  return atomicAnd(dest, val);
-}
-
-template <typename T, typename MemoryOrder>
-__device__ inline
-    typename std::enable_if<Impl::is_hip_atomic_integer_type<T>::value, T>::type
-    atomic_fetch_and(T* dest, T val, MemoryOrder, MemoryScopeDevice) {
-  __threadfence();
-  T return_val = atomicAnd(dest, val);
-  __threadfence();
-  return return_val;
-}
-
-template <typename T, typename MemoryOrder>
-__device__ inline
-    typename std::enable_if<Impl::is_hip_atomic_integer_type<T>::value, T>::type
-    atomic_fetch_and(T* dest, T val, MemoryOrder, MemoryScopeCore) {
-  return atomic_fetch_and(dest, val, MemoryOrder(), MemoryScopeDevice());
-}
-
-// Atomic XOR
-template <typename T>
-__device__ inline
-    typename std::enable_if<Impl::is_hip_atomic_integer_type<T>::value, T>::type
-    atomic_fetch_xor(T* dest, T val, MemoryOrderRelaxed, MemoryScopeDevice) {
-  return atomicXor(dest, val);
-}
-
-template <typename T, typename MemoryOrder>
-__device__ inline
-    typename std::enable_if<Impl::is_hip_atomic_integer_type<T>::value, T>::type
-    atomic_fetch_xor(T* dest, T val, MemoryOrder, MemoryScopeDevice) {
-  __threadfence();
-  T return_val = atomicXor(dest, val);
-  __threadfence();
-  return return_val;
-}
-
-template <typename T, typename MemoryOrder>
-__device__ inline
-    typename std::enable_if<Impl::is_hip_atomic_integer_type<T>::value, T>::type
-    atomic_fetch_xor(T* dest, T val, MemoryOrder, MemoryScopeCore) {
-  return atomic_fetch_xor(dest, val, MemoryOrder(), MemoryScopeDevice());
-}
-
-// Atomic OR
-template <typename T>
-__device__ inline
-    typename std::enable_if<Impl::is_hip_atomic_integer_type<T>::value, T>::type
-    atomic_fetch_or(T* dest, T val, MemoryOrderRelaxed, MemoryScopeDevice) {
-  return atomicOr(dest, val);
-}
-
-template <typename T, typename MemoryOrder>
-__device__ inline
-    typename std::enable_if<Impl::is_hip_atomic_integer_type<T>::value, T>::type
-    atomic_fetch_or(T* dest, T val, MemoryOrder, MemoryScopeDevice) {
-  __threadfence();
-  T return_val = atomicOr(dest, val);
-  __threadfence();
-  return return_val;
-}
-
-template <typename T, typename MemoryOrder>
-__device__ inline
-    typename std::enable_if<Impl::is_hip_atomic_integer_type<T>::value, T>::type
-    atomic_fetch_or(T* dest, T val, MemoryOrder, MemoryScopeCore) {
-  return atomic_fetch_or(dest, val, MemoryOrder(), MemoryScopeDevice());
-}
-
-}
-
-#define DESUL_HIP_GCC_INTEGRAL_OP_ATOMICS_COMPATIBILITY(MEMORY_ORDER, MEMORY_SCOPE)                 \
-  template <typename T>                                                           \
-  __device__ typename std::enable_if<std::is_integral<T>::value && !Impl::is_hip_atomic_add_type<T>::value, T>::type atomic_fetch_add(  \
-      T* const dest, T value, MEMORY_ORDER, MEMORY_SCOPE) {                       \
-       return Impl::atomic_fetch_oper(Impl::AddOper<T, const T>(), dest, value, MEMORY_ORDER(), MEMORY_SCOPE()); \
-  }                                                                               \
-  template <typename T>                                                           \
-  __device__ typename std::enable_if<std::is_integral<T>::value && !Impl::is_hip_atomic_sub_type<T>::value, T>::type atomic_fetch_sub(  \
-      T* const dest, T value, MEMORY_ORDER, MEMORY_SCOPE) {                       \
-       return Impl::atomic_fetch_oper(Impl::SubOper<T, const T>(), dest, value, MEMORY_ORDER(), MEMORY_SCOPE()); \
-  }                                                                               \
-  template <typename T>                                                           \
-  __device__ typename std::enable_if<std::is_integral<T>::value && !Impl::is_hip_atomic_integer_type<T>::value, T>::type atomic_fetch_and(  \
-      T* const dest, T value, MEMORY_ORDER, MEMORY_SCOPE) {                       \
-       return Impl::atomic_fetch_oper(Impl::AndOper<T, const T>(), dest, value, MEMORY_ORDER(), MEMORY_SCOPE()); \
-  }                                                                               \
-  template <typename T>                                                           \
-  __device__ typename std::enable_if<std::is_integral<T>::value && !Impl::is_hip_atomic_integer_type<T>::value, T>::type atomic_fetch_or(   \
-      T* const dest, T value, MEMORY_ORDER, MEMORY_SCOPE) {                       \
-       return Impl::atomic_fetch_oper(Impl::OrOper<T, const T>(), dest, value, MEMORY_ORDER(), MEMORY_SCOPE()); \
-  }                                                                               \
-  template <typename T>                                                           \
-  __device__ typename std::enable_if<std::is_integral<T>::value && !Impl::is_hip_atomic_integer_type<T>::value, T>::type atomic_fetch_xor(  \
-      T* const dest, T value, MEMORY_ORDER, MEMORY_SCOPE) {                       \
-       return Impl::atomic_fetch_oper(Impl::XorOper<T, const T>(), dest, value, MEMORY_ORDER(), MEMORY_SCOPE()); \
-  }                                                                               \
-  template <typename T>                                                           \
-  __device__ typename std::enable_if<std::is_integral<T>::value && !Impl::is_hip_atomic_integer_type<T>::value, T>::type atomic_fetch_nand( \
-      T* const dest, T value, MEMORY_ORDER, MEMORY_SCOPE) {                       \
-       return Impl::atomic_fetch_oper(Impl::NandOper<T, const T>(), dest, value, MEMORY_ORDER(), MEMORY_SCOPE()); \
-  }                                                                               \
-  template <typename T>                                                           \
-  __device__ typename std::enable_if<std::is_integral<T>::value && !Impl::is_hip_atomic_add_type<T>::value, T>::type atomic_add_fetch(  \
-      T* const dest, T value, MEMORY_ORDER, MEMORY_SCOPE) {                       \
-       return Impl::atomic_oper_fetch(Impl::AddOper<T, const T>(), dest, value, MEMORY_ORDER(), MEMORY_SCOPE()); \
-  }                                                                               \
-  template <typename T>                                                           \
-  __device__ typename std::enable_if<std::is_integral<T>::value && !Impl::is_hip_atomic_sub_type<T>::value, T>::type atomic_sub_fetch(  \
-      T* const dest, T value, MEMORY_ORDER, MEMORY_SCOPE) {                       \
-       return Impl::atomic_oper_fetch(Impl::SubOper<T, const T>(), dest, value, MEMORY_ORDER(), MEMORY_SCOPE()); \
-  }                                                                               \
-  template <typename T>                                                           \
-  __device__ typename std::enable_if<std::is_integral<T>::value && !Impl::is_hip_atomic_integer_type<T>::value, T>::type atomic_and_fetch(  \
-      T* const dest, T value, MEMORY_ORDER, MEMORY_SCOPE) {                       \
-       return Impl::atomic_oper_fetch(Impl::AndOper<T, const T>(), dest, value, MEMORY_ORDER(), MEMORY_SCOPE()); \
-  }                                                                               \
-  template <typename T>                                                           \
-  __device__ typename std::enable_if<std::is_integral<T>::value && !Impl::is_hip_atomic_integer_type<T>::value, T>::type atomic_or_fetch(   \
-      T* const dest, T value, MEMORY_ORDER, MEMORY_SCOPE) {                       \
-       return Impl::atomic_oper_fetch(Impl::OrOper<T, const T>(), dest, value, MEMORY_ORDER(), MEMORY_SCOPE()); \
-  }                                                                               \
-  template <typename T>                                                           \
-  __device__ typename std::enable_if<std::is_integral<T>::value && !Impl::is_hip_atomic_integer_type<T>::value, T>::type atomic_xor_fetch(  \
-      T* const dest, T value, MEMORY_ORDER, MEMORY_SCOPE) {                       \
-       return Impl::atomic_oper_fetch(Impl::XorOper<T, const T>(), dest, value, MEMORY_ORDER(), MEMORY_SCOPE()); \
-  }                                                                               \
-  template <typename T>                                                           \
-  __device__ typename std::enable_if<std::is_integral<T>::value && !Impl::is_hip_atomic_integer_type<T>::value, T>::type atomic_nand_fetch( \
-      T* const dest, T value, MEMORY_ORDER, MEMORY_SCOPE) {                       \
-       return Impl::atomic_oper_fetch(Impl::NandOper<T, const T>(), dest, value, MEMORY_ORDER(), MEMORY_SCOPE()); \
+#define DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP(OP, TYPE)                         \
+  template <class MemoryOrder>                                                  \
+  inline __device__ TYPE atomic_fetch_##OP(                                     \
+      TYPE* ptr, TYPE val, MemoryOrder, MemoryScopeDevice) {                    \
+    __threadfence();                                                            \
+    TYPE return_val =                                                           \
+        atomic_fetch_##OP(ptr, val, MemoryOrderRelaxed(), MemoryScopeDevice()); \
+    __threadfence();                                                            \
+    return return_val;                                                          \
+  }                                                                             \
+  template <class MemoryOrder>                                                  \
+  inline __device__ TYPE atomic_fetch_##OP(                                     \
+      TYPE* ptr, TYPE val, MemoryOrder, MemoryScopeCore) {                      \
+    return atomic_fetch_##OP(ptr, val, MemoryOrder(), MemoryScopeDevice());     \
   }
-namespace desul {
-DESUL_HIP_GCC_INTEGRAL_OP_ATOMICS_COMPATIBILITY(MemoryOrderRelaxed, MemoryScopeNode)
-DESUL_HIP_GCC_INTEGRAL_OP_ATOMICS_COMPATIBILITY(MemoryOrderRelaxed, MemoryScopeDevice)
-DESUL_HIP_GCC_INTEGRAL_OP_ATOMICS_COMPATIBILITY(MemoryOrderRelaxed, MemoryScopeCore)
-DESUL_HIP_GCC_INTEGRAL_OP_ATOMICS_COMPATIBILITY(MemoryOrderSeqCst, MemoryScopeNode)
-DESUL_HIP_GCC_INTEGRAL_OP_ATOMICS_COMPATIBILITY(MemoryOrderSeqCst, MemoryScopeDevice)
-DESUL_HIP_GCC_INTEGRAL_OP_ATOMICS_COMPATIBILITY(MemoryOrderSeqCst, MemoryScopeCore)
+
+#define DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP_INTEGRAL(OP) \
+  DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP(OP, int)           \
+  DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP(OP, unsigned int)  \
+  DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP(OP, unsigned long long)
+
+#define DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP_FLOATING_POINT(OP) \
+  DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP(OP, float)               \
+  DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP(OP, double)
+
+DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP_INTEGRAL(min)
+DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP_INTEGRAL(max)
+DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP_INTEGRAL(and)
+DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP_INTEGRAL(or)
+DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP_INTEGRAL(xor)
+
+DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP_FLOATING_POINT(add)
+DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP_INTEGRAL(add)
+DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP_FLOATING_POINT(sub)
+DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP_INTEGRAL(sub)
+
+DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP_INTEGRAL(inc)
+DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP_INTEGRAL(dec)
+
+DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP(inc_mod, unsigned int)
+DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP(dec_mod, unsigned int)
+
+#undef DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP_FLOATING_POINT
+#undef DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP_INTEGRAL
+#undef DESUL_IMPL_HIP_DEVICE_ATOMIC_FETCH_OP
+
+
+// 2/ host-side fallback implementation for atomic functions not provided by GCC
+
+#define DESUL_IMPL_HIP_HOST_FALLBACK_ATOMIC_FUN(OP_LOWERCASE, OP_PASCAL_CASE, TYPE) \
+  template <class MemoryOrder>                                                      \
+  inline __host__ TYPE atomic_fetch_##OP_LOWERCASE(                                 \
+      TYPE* ptr, TYPE val, MemoryOrder order, MemoryScopeDevice scope) {            \
+    return Impl::atomic_fetch_oper(                                                 \
+        Impl::OP_PASCAL_CASE##Oper<TYPE, const TYPE>(), ptr, val, order, scope);    \
+  }                                                                                 \
+  template <class MemoryOrder>                                                      \
+  inline __host__ TYPE atomic_fetch_##OP_LOWERCASE(                                 \
+      TYPE* ptr, TYPE val, MemoryOrder order, MemoryScopeCore scope) {              \
+    return Impl::atomic_fetch_oper(                                                 \
+        Impl::OP_PASCAL_CASE##Oper<TYPE, const TYPE>(), ptr, val, order, scope);    \
+  }
+
+#define DESUL_IMPL_HIP_HOST_FALLBACK_ATOMIC_FUN_INTEGRAL(OP_LOWERCASE, OP_PASCAL_CASE) \
+  DESUL_IMPL_HIP_HOST_FALLBACK_ATOMIC_FUN(OP_LOWERCASE, OP_PASCAL_CASE, int)           \
+  DESUL_IMPL_HIP_HOST_FALLBACK_ATOMIC_FUN(OP_LOWERCASE, OP_PASCAL_CASE, unsigned int)  \
+  DESUL_IMPL_HIP_HOST_FALLBACK_ATOMIC_FUN(                                             \
+      OP_LOWERCASE, OP_PASCAL_CASE, unsigned long long)
+
+#define DESUL_IMPL_HIP_HOST_FALLBACK_ATOMIC_FUN_FLOATING_POINT(OP_LOWERCASE,   \
+                                                               OP_PASCAL_CASE) \
+  DESUL_IMPL_HIP_HOST_FALLBACK_ATOMIC_FUN(OP_LOWERCASE, OP_PASCAL_CASE, float) \
+  DESUL_IMPL_HIP_HOST_FALLBACK_ATOMIC_FUN(OP_LOWERCASE, OP_PASCAL_CASE, double)
+
+DESUL_IMPL_HIP_HOST_FALLBACK_ATOMIC_FUN_INTEGRAL(min, Min)
+DESUL_IMPL_HIP_HOST_FALLBACK_ATOMIC_FUN_INTEGRAL(max, Max)
+DESUL_IMPL_HIP_HOST_FALLBACK_ATOMIC_FUN_FLOATING_POINT(add, Add)
+DESUL_IMPL_HIP_HOST_FALLBACK_ATOMIC_FUN_FLOATING_POINT(sub, Sub)
+
+DESUL_IMPL_HIP_HOST_FALLBACK_ATOMIC_FUN(inc_mod, IncMod, unsigned int)
+DESUL_IMPL_HIP_HOST_FALLBACK_ATOMIC_FUN(dec_mod, DecMod, unsigned int)
+
+#undef DESUL_IMPL_HIP_HOST_FALLBACK_ATOMIC_FUN_FLOATING_POINT
+#undef DESUL_IMPL_HIP_HOST_FALLBACK_ATOMIC_FUN_INTEGRAL
+#undef DESUL_IMPL_HIP_HOST_FALLBACK_ATOMIC_FUN
+
+#define DESUL_IMPL_HIP_HOST_FALLBACK_ATOMIC_INCREMENT_DECREMENT(TYPE) \
+  template <class MemoryOrder>                                        \
+  inline __host__ TYPE atomic_fetch_inc(                              \
+      TYPE* ptr, MemoryOrder order, MemoryScopeDevice scope) {        \
+    return atomic_fetch_add(ptr, static_cast<TYPE>(1), order, scope); \
+  }                                                                   \
+  template <class MemoryOrder>                                        \
+  inline __host__ TYPE atomic_fetch_inc(                              \
+      TYPE* ptr, MemoryOrder order, MemoryScopeCore scope) {          \
+    return atomic_fetch_add(ptr, static_cast<TYPE>(1), order, scope); \
+  }                                                                   \
+  template <class MemoryOrder>                                        \
+  inline __host__ TYPE atomic_fetch_dec(                              \
+      TYPE* ptr, MemoryOrder order, MemoryScopeDevice scope) {        \
+    return atomic_fetch_sub(ptr, static_cast<TYPE>(1), order, scope); \
+  }                                                                   \
+  template <class MemoryOrder>                                        \
+  inline __host__ TYPE atomic_fetch_dec(                              \
+      TYPE* ptr, MemoryOrder order, MemoryScopeCore scope) {          \
+    return atomic_fetch_sub(ptr, static_cast<TYPE>(1), order, scope); \
+  }
+
+DESUL_IMPL_HIP_HOST_FALLBACK_ATOMIC_INCREMENT_DECREMENT(int)
+DESUL_IMPL_HIP_HOST_FALLBACK_ATOMIC_INCREMENT_DECREMENT(unsigned int)
+DESUL_IMPL_HIP_HOST_FALLBACK_ATOMIC_INCREMENT_DECREMENT(unsigned long long)
+
+#undef DESUL_IMPL_HIP_HOST_FALLBACK_ATOMIC_INCREMENT_DECREMENT
+
+
+// 3/ device-side fallback implementation for atomic functions defined in GCC overload
+// set
+
+#define DESUL_IMPL_HIP_DEVICE_FALLBACK_ATOMIC_FUN_ORDER_SCOPE(             \
+    OP_LOWERCASE, OP_PASCAL_CASE, MEMORY_ORDER, MEMORY_SCOPE)              \
+  template <class T>                                                       \
+  inline __device__ std::enable_if_t<std::is_integral<T>::value, T>        \
+      atomic_##OP_LOWERCASE##_fetch(                                       \
+          T* ptr, T val, MEMORY_ORDER order, MEMORY_SCOPE scope) {         \
+    return Impl::atomic_oper_fetch(                                        \
+        Impl::OP_PASCAL_CASE##Oper<T, const T>(), ptr, val, order, scope); \
+  }                                                                        \
+  template <class T>                                                       \
+  inline __device__ std::enable_if_t<std::is_integral<T>::value, T>        \
+      atomic_fetch_##OP_LOWERCASE(                                         \
+          T* ptr, T val, MEMORY_ORDER order, MEMORY_SCOPE scope) {         \
+    return Impl::atomic_fetch_oper(                                        \
+        Impl::OP_PASCAL_CASE##Oper<T, const T>(), ptr, val, order, scope); \
+  }
+
+// clang-format off
+#define DESUL_IMPL_HIP_DEVICE_FALLBACK_ATOMIC_FUN(OP_LOWERCASE, OP_PASCAL_CASE) \
+  DESUL_IMPL_HIP_DEVICE_FALLBACK_ATOMIC_FUN_ORDER_SCOPE(OP_LOWERCASE, OP_PASCAL_CASE, MemoryOrderRelaxed, MemoryScopeNode) \
+  DESUL_IMPL_HIP_DEVICE_FALLBACK_ATOMIC_FUN_ORDER_SCOPE(OP_LOWERCASE, OP_PASCAL_CASE, MemoryOrderRelaxed, MemoryScopeDevice) \
+  DESUL_IMPL_HIP_DEVICE_FALLBACK_ATOMIC_FUN_ORDER_SCOPE(OP_LOWERCASE, OP_PASCAL_CASE, MemoryOrderRelaxed, MemoryScopeCore) \
+  DESUL_IMPL_HIP_DEVICE_FALLBACK_ATOMIC_FUN_ORDER_SCOPE(OP_LOWERCASE, OP_PASCAL_CASE, MemoryOrderSeqCst,  MemoryScopeNode) \
+  DESUL_IMPL_HIP_DEVICE_FALLBACK_ATOMIC_FUN_ORDER_SCOPE(OP_LOWERCASE, OP_PASCAL_CASE, MemoryOrderSeqCst,  MemoryScopeDevice) \
+  DESUL_IMPL_HIP_DEVICE_FALLBACK_ATOMIC_FUN_ORDER_SCOPE(OP_LOWERCASE, OP_PASCAL_CASE, MemoryOrderSeqCst,  MemoryScopeCore)
+// clang-format on
+
+DESUL_IMPL_HIP_DEVICE_FALLBACK_ATOMIC_FUN(add, Add)
+DESUL_IMPL_HIP_DEVICE_FALLBACK_ATOMIC_FUN(sub, Sub)
+DESUL_IMPL_HIP_DEVICE_FALLBACK_ATOMIC_FUN(and, And)
+DESUL_IMPL_HIP_DEVICE_FALLBACK_ATOMIC_FUN(or, Or)
+DESUL_IMPL_HIP_DEVICE_FALLBACK_ATOMIC_FUN(xor, Xor)
+DESUL_IMPL_HIP_DEVICE_FALLBACK_ATOMIC_FUN(nand, Nand)
+
+#undef DESUL_IMPL_HIP_DEVICE_FALLBACK_ATOMIC_FUN
+#undef DESUL_IMPL_HIP_DEVICE_FALLBACK_ATOMIC_FUN_ORDER_SCOPE
+
 }  // namespace desul
 
 #endif
 #endif
+

@@ -30,8 +30,6 @@
 
 using namespace LAMMPS_NS;
 
-enum { CLUSTER, MASK, COORDS };
-
 /* ---------------------------------------------------------------------- */
 
 ComputeClusterAtom::ComputeClusterAtom(LAMMPS *lmp, int narg, char **arg) :
@@ -44,7 +42,7 @@ ComputeClusterAtom::ComputeClusterAtom(LAMMPS *lmp, int narg, char **arg) :
 
   peratom_flag = 1;
   size_peratom_cols = 0;
-  comm_forward = 3;
+  comm_forward = 1;
 
   nmax = 0;
 }
@@ -117,22 +115,6 @@ void ComputeClusterAtom::compute_peratom()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // if update->post_integrate set:
-  // a dynamic group in FixGroup is invoking a variable with this compute
-  // thus ghost atom coords need to be up-to-date after initial_integrate()
-
-  if (update->post_integrate) {
-    commflag = COORDS;
-    comm->forward_comm(this);
-  }
-
-  // if group is dynamic, insure ghost atom masks are current
-
-  if (group->dynamic[igroup]) {
-    commflag = MASK;
-    comm->forward_comm(this);
-  }
-
   // every atom starts in its own cluster, with clusterID = atomID
 
   tagint *tag = atom->tag;
@@ -153,7 +135,6 @@ void ComputeClusterAtom::compute_peratom()
   // iterate until no changes in my atoms
   // then check if any proc made changes
 
-  commflag = CLUSTER;
   double **x = atom->x;
 
   int change, done, anychange;
@@ -209,25 +190,9 @@ int ComputeClusterAtom::pack_forward_comm(int n, int *list, double *buf, int /*p
   int i, j, m;
 
   m = 0;
-  if (commflag == CLUSTER) {
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = clusterID[j];
-    }
-  } else if (commflag == MASK) {
-    int *mask = atom->mask;
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = ubuf(mask[j]).d;
-    }
-  } else if (commflag == COORDS) {
-    double **x = atom->x;
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = x[j][0];
-      buf[m++] = x[j][1];
-      buf[m++] = x[j][2];
-    }
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = clusterID[j];
   }
 
   return m;
@@ -241,19 +206,7 @@ void ComputeClusterAtom::unpack_forward_comm(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
-  if (commflag == CLUSTER) {
-    for (i = first; i < last; i++) clusterID[i] = buf[m++];
-  } else if (commflag == MASK) {
-    int *mask = atom->mask;
-    for (i = first; i < last; i++) mask[i] = (int) ubuf(buf[m++]).i;
-  } else if (commflag == COORDS) {
-    double **x = atom->x;
-    for (i = first; i < last; i++) {
-      x[i][0] = buf[m++];
-      x[i][1] = buf[m++];
-      x[i][2] = buf[m++];
-    }
-  }
+  for (i = first; i < last; i++) clusterID[i] = buf[m++];
 }
 
 /* ----------------------------------------------------------------------

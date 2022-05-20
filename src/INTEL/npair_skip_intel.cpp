@@ -36,7 +36,7 @@ NPairSkipIntel::NPairSkipIntel(LAMMPS *lmp) : NPair(lmp) {
   if (!_fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
   _inum_starts = new int[comm->nthreads];
   _inum_counts = new int[comm->nthreads];
-  _full_props = 0;
+  _full_props = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -44,7 +44,7 @@ NPairSkipIntel::NPairSkipIntel(LAMMPS *lmp) : NPair(lmp) {
 NPairSkipIntel::~NPairSkipIntel() {
   delete []_inum_starts;
   delete []_inum_counts;
-  if (_full_props) delete []_full_props;
+  delete[] _full_props;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -76,13 +76,12 @@ void NPairSkipIntel::build_t(NeighList *list, int *numhalf, int *cnumneigh,
   const int * _noalias const type = atom->type;
   int * _noalias const ilist = list->ilist;
   int * _noalias const numneigh = list->numneigh;
-  int ** _noalias const firstneigh = (int ** const)list->firstneigh;
+  int ** _noalias const firstneigh = (int ** const)list->firstneigh;  // NOLINT
   const int * _noalias const ilist_skip = list->listskip->ilist;
   const int * _noalias const numneigh_skip = list->listskip->numneigh;
-  const int ** _noalias const firstneigh_skip =
-    (const int ** const)list->listskip->firstneigh;
+  const int ** _noalias const firstneigh_skip = (const int ** const)list->listskip->firstneigh;  // NOLINT
   const int * _noalias const iskip = list->iskip;
-  const int ** _noalias const ijskip = (const int ** const)list->ijskip;
+  const int **  _noalias const ijskip = (const int ** const)list->ijskip;  // NOLINT
 
   int num_skip = list->listskip->inum;
   if (list->ghost) num_skip += list->listskip->gnum;
@@ -203,11 +202,11 @@ void NPairSkipIntel::build(NeighList *list)
   if (_fix->three_body_neighbor()==0 ||
       _full_props[list->listskip->index] == 0) {
     if (_fix->precision() == FixIntel::PREC_MODE_MIXED)
-      build_t<float,0>(list, 0, 0, 0);
+      build_t<float,0>(list, nullptr, nullptr, nullptr);
     else if (_fix->precision() == FixIntel::PREC_MODE_DOUBLE)
-      build_t<double,0>(list, 0, 0, 0);
+      build_t<double,0>(list, nullptr, nullptr, nullptr);
     else
-      build_t<float,0>(list, 0, 0, 0);
+      build_t<float,0>(list, nullptr, nullptr, nullptr);
   } else {
     int *nhalf, *cnumneigh, *nhalf_skip, *u;
     if (_fix->precision() == FixIntel::PREC_MODE_MIXED) {

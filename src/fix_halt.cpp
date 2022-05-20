@@ -107,15 +107,14 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"path") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix halt command");
       ++iarg;
-      int len = strlen(arg[iarg])+1;
       delete[] dlimit_path;
-      dlimit_path = new char[len];
-      // strip off quotes, if present
+      // strip off outer quotes, if present
+      int len = strlen(arg[iarg])+1;
       if ( ((arg[iarg][0] == '"') || (arg[iarg][0] == '\''))
            && (arg[iarg][0] == arg[iarg][len-2])) {
-        strcpy(dlimit_path,&arg[iarg][1]);
-        dlimit_path[len-3] = '\0';
-      } else strcpy(dlimit_path,arg[iarg]);
+        arg[iarg][len-2] = '\0';
+        dlimit_path = utils::strdup(arg[iarg]+1);
+      } else dlimit_path = utils::strdup(arg[iarg]);
       ++iarg;
     } else error->all(FLERR,"Illegal fix halt command");
   }

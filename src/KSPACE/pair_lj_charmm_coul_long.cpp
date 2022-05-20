@@ -690,7 +690,7 @@ void PairLJCharmmCoulLong::init_style()
   int list_style = NeighConst::REQ_DEFAULT;
 
   if (update->whichflag == 1 && utils::strmatch(update->integrate_style, "^respa")) {
-    auto respa = (Respa *) update->integrate;
+    auto respa = dynamic_cast<Respa *>( update->integrate);
     if (respa->level_inner >= 0) list_style = NeighConst::REQ_RESPA_INOUT;
     if (respa->level_middle >= 0) list_style = NeighConst::REQ_RESPA_ALL;
   }
@@ -713,8 +713,8 @@ void PairLJCharmmCoulLong::init_style()
   // set & error check interior rRESPA cutoffs
 
   if (utils::strmatch(update->integrate_style,"^respa") &&
-      ((Respa *) update->integrate)->level_inner >= 0) {
-    cut_respa = ((Respa *) update->integrate)->cutoff;
+      (dynamic_cast<Respa *>( update->integrate))->level_inner >= 0) {
+    cut_respa = (dynamic_cast<Respa *>( update->integrate))->cutoff;
     cut_in_off = cut_respa[0];
     cut_in_on = cut_respa[1];
     cut_out_on = cut_respa[2];

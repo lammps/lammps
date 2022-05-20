@@ -63,7 +63,3 @@ class FixSRP : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

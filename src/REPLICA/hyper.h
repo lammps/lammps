@@ -59,7 +59,3 @@ class Hyper : public Command {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

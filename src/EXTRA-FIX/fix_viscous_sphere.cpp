@@ -36,7 +36,7 @@ enum { NONE, TYPE, VARIABLE };
 
 FixViscousSphere::FixViscousSphere(LAMMPS *_lmp, int narg, char **arg) :
     Fix(_lmp, narg, arg), scalegamma(nullptr), scaleval(nullptr), scalevarid(nullptr),
-    scalestyle(NONE)
+    scalestyle(NONE), scalevar(-1)
 {
   dynamic_group_allow = 1;
 
@@ -114,7 +114,7 @@ void FixViscousSphere::init()
   int max_respa = 0;
 
   if (utils::strmatch(update->integrate_style, "^respa")) {
-    ilevel_respa = max_respa = ((Respa *) update->integrate)->nlevels - 1;
+    ilevel_respa = max_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels - 1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level, max_respa);
   }
 
@@ -135,9 +135,9 @@ void FixViscousSphere::setup(int vflag)
   if (utils::strmatch(update->integrate_style, "^verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
+    (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(ilevel_respa);
     post_force_respa(vflag, ilevel_respa, 0);
-    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
+    (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(ilevel_respa);
   }
 }
 

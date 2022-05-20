@@ -34,6 +34,3 @@ class KokkosBaseFFT {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

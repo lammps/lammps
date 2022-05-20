@@ -43,24 +43,3 @@ class PairLJCharmmCoulLongGPU : public PairLJCharmmCoulLong {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Pair style lj/charmm/coul/long/gpu requires atom attribute q
-
-The atom style defined does not have this attribute.
-
-E: Cannot use newton pair with lj/charmm/coul/long/gpu pair style
-
-Self-explanatory.
-
-E: Pair style requires a KSpace style
-
-No kspace style is defined.
-
-*/

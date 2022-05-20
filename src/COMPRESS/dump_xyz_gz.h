@@ -44,15 +44,3 @@ class DumpXYZGZ : public DumpXYZ {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Dump xyz/gz only writes compressed files
-
-The dump xyz/gz output file name must have a .gz suffix.
-
-E: Cannot open dump file
-
-Self-explanatory.
-
-*/

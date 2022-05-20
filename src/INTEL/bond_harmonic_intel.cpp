@@ -45,12 +45,6 @@ BondHarmonicIntel::BondHarmonicIntel(LAMMPS *lmp) : BondHarmonic(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-BondHarmonicIntel::~BondHarmonicIntel()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void BondHarmonicIntel::compute(int eflag, int vflag)
 {
   #ifdef _LMP_INTEL_OFFLOAD

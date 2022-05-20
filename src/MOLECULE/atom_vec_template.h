@@ -43,31 +43,3 @@ class AtomVecTemplate : public AtomVec {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Molecule template ID for atom_style template does not exist
-
-Self-explanatory.
-
-E: Atom style template molecule must have atom types
-
-The defined molecule(s) does not specify atom types.
-
-E: Invalid template index in Atoms section of data file
-
-The template indices must be between 1 to N, where N is the number of
-molecules in the template.
-
-E: Invalid template atom in Atoms section of data file
-
-The atom indices must be between 1 to N, where N is the number of
-atoms in the template molecule the atom belongs to.
-
-*/

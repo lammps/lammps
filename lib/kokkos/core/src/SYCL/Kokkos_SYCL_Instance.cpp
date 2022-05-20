@@ -51,9 +51,19 @@ namespace Impl {
 std::vector<std::optional<sycl::queue>*> SYCLInternal::all_queues;
 std::mutex SYCLInternal::mutex;
 
+Kokkos::View<uint32_t*, SYCLDeviceUSMSpace> sycl_global_unique_token_locks(
+    bool deallocate) {
+  static Kokkos::View<uint32_t*, SYCLDeviceUSMSpace> locks =
+      Kokkos::View<uint32_t*, SYCLDeviceUSMSpace>();
+  if (!deallocate && locks.extent(0) == 0)
+    locks = Kokkos::View<uint32_t*, SYCLDeviceUSMSpace>(
+        "Kokkos::UniqueToken<SYCL>::m_locks", SYCL().concurrency());
+  if (deallocate) locks = Kokkos::View<uint32_t*, SYCLDeviceUSMSpace>();
+  return locks;
+}
+
 SYCLInternal::~SYCLInternal() {
-  if (!was_finalized || m_scratchSpace || m_scratchFlags ||
-      m_scratchConcurrentBitset) {
+  if (!was_finalized || m_scratchSpace || m_scratchFlags) {
     std::cerr << "Kokkos::Experimental::SYCL ERROR: Failed to call "
                  "Kokkos::Experimental::SYCL::finalize()"
               << std::endl;
@@ -115,7 +125,7 @@ void SYCLInternal::initialize(const sycl::queue& q) {
     m_queue = q;
     // guard pushing to all_queues
     {
-      std::lock_guard<std::mutex> lock(mutex);
+      std::scoped_lock lock(mutex);
       all_queues.push_back(&m_queue);
     }
     const sycl::device& d = m_queue->get_device();
@@ -139,19 +149,15 @@ void SYCLInternal::initialize(const sycl::queue& q) {
                            "Kokkos::Experimental::SYCL::InternalScratchBitset",
                            sizeof(uint32_t) * buffer_bound);
       Record::increment(r);
-      m_scratchConcurrentBitset = reinterpret_cast<uint32_t*>(r->data());
-      auto event                = m_queue->memset(m_scratchConcurrentBitset, 0,
-                                   sizeof(uint32_t) * buffer_bound);
-      fence(event,
-            "Kokkos::Experimental::SYCLInternal::initialize: fence after "
-            "initializing m_scratchConcurrentBitset",
-            m_instance_id);
     }
 
     m_maxShmemPerBlock =
         d.template get_info<sycl::info::device::local_mem_size>();
-    m_indirectKernelMem.reset(*m_queue, m_instance_id);
-    m_indirectReducerMem.reset(*m_queue, m_instance_id);
+
+    for (auto& usm_mem : m_indirectKernelMem) {
+      usm_mem.reset(*m_queue, m_instance_id);
+    }
+
   } else {
     std::ostringstream msg;
     msg << "Kokkos::Experimental::SYCL::initialize(...) FAILED";
@@ -193,6 +199,10 @@ void SYCLInternal::finalize() {
                       m_instance_id);
   was_finalized = true;
 
+  // The global_unique_token_locks array is static and should only be
+  // deallocated once by the defualt instance
+  if (this == &singleton()) Impl::sycl_global_unique_token_locks(true);
+
   using RecordSYCL = Kokkos::Impl::SharedAllocationRecord<SYCLDeviceUSMSpace>;
   if (nullptr != m_scratchSpace)
     RecordSYCL::decrement(RecordSYCL::get_record(m_scratchSpace));
@@ -204,27 +214,22 @@ void SYCLInternal::finalize() {
   m_scratchFlagsCount = 0;
   m_scratchFlags      = nullptr;
 
-  RecordSYCL::decrement(RecordSYCL::get_record(m_scratchConcurrentBitset));
-  m_scratchConcurrentBitset = nullptr;
-
   if (m_team_scratch_current_size > 0)
     Kokkos::kokkos_free<Kokkos::Experimental::SYCLDeviceUSMSpace>(
         m_team_scratch_ptr);
   m_team_scratch_current_size = 0;
   m_team_scratch_ptr          = nullptr;
 
-  m_indirectKernelMem.reset();
-  m_indirectReducerMem.reset();
+  for (auto& usm_mem : m_indirectKernelMem) usm_mem.reset();
   // guard erasing from all_queues
   {
-    std::lock_guard<std::mutex> lock(mutex);
+    std::scoped_lock lock(mutex);
     all_queues.erase(std::find(all_queues.begin(), all_queues.end(), &m_queue));
   }
   m_queue.reset();
 }
 
-void* SYCLInternal::scratch_space(
-    const Kokkos::Experimental::SYCL::size_type size) {
+void* SYCLInternal::scratch_space(const std::size_t size) {
   const size_type sizeScratchGrain =
       sizeof(Kokkos::Experimental::SYCL::size_type);
   if (verify_is_initialized("scratch_space") &&
@@ -250,8 +255,7 @@ void* SYCLInternal::scratch_space(
   return m_scratchSpace;
 }
 
-void* SYCLInternal::scratch_flags(
-    const Kokkos::Experimental::SYCL::size_type size) {
+void* SYCLInternal::scratch_flags(const std::size_t size) {
   const size_type sizeScratchGrain =
       sizeof(Kokkos::Experimental::SYCL::size_type);
   if (verify_is_initialized("scratch_flags") &&
@@ -304,6 +308,17 @@ template void SYCLInternal::fence_helper<sycl::event>(sycl::event&,
                                                       const std::string&,
                                                       uint32_t);
 
+// This function cycles through a pool of USM allocations for functors
+SYCLInternal::IndirectKernelMem& SYCLInternal::get_indirect_kernel_mem() {
+  // Thread safety: atomically increment round robin variable
+  // NB: atomic_fetch_inc_mod returns values in range [0-N], not
+  // [0-N) as might be expected.
+  size_t next_pool = desul::atomic_fetch_inc_mod(
+      &m_pool_next, m_usm_pool_size - 1, desul::MemoryOrderRelaxed(),
+      desul::MemoryScopeDevice());
+  return m_indirectKernelMem[next_pool];
+}
+
 template <sycl::usm::alloc Kind>
 size_t SYCLInternal::USMObjectMem<Kind>::reserve(size_t n) {
   assert(m_q);
@@ -317,7 +332,9 @@ size_t SYCLInternal::USMObjectMem<Kind>::reserve(size_t n) {
         AllocationSpace(*m_q), "Kokkos::Experimental::SYCL::USMObjectMem", n);
     Record::increment(r);
 
-    m_data     = r->data();
+    m_data = r->data();
+    if constexpr (sycl::usm::alloc::device == Kind)
+      m_staging.reset(new char[n]);
     m_capacity = n;
   }
 

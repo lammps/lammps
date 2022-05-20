@@ -164,8 +164,8 @@ void test_1D_sort_impl(unsigned int n, bool force_kokkos) {
   unsigned int equal_sum =
       (ratio > (1.0 - epsilon)) && (ratio < (1.0 + epsilon)) ? 1 : 0;
 
-  ASSERT_EQ(sort_fails, 0);
-  ASSERT_EQ(equal_sum, 1);
+  ASSERT_EQ(sort_fails, 0u);
+  ASSERT_EQ(equal_sum, 1u);
 }
 
 template <class ExecutionSpace, typename KeyType>
@@ -215,8 +215,8 @@ void test_3D_sort_impl(unsigned int n) {
   if (sort_fails)
     printf("3D Sort Sum: %f %f Fails: %u\n", sum_before, sum_after, sort_fails);
 
-  ASSERT_EQ(sort_fails, 0);
-  ASSERT_EQ(equal_sum, 1);
+  ASSERT_EQ(sort_fails, 0u);
+  ASSERT_EQ(equal_sum, 1u);
 }
 
 //----------------------------------------------------------------------------
@@ -279,8 +279,8 @@ void test_dynamic_view_sort_impl(unsigned int n) {
               << std::endl;
   }
 
-  ASSERT_EQ(sort_fails, 0);
-  ASSERT_EQ(equal_sum, 1);
+  ASSERT_EQ(sort_fails, 0u);
+  ASSERT_EQ(equal_sum, 1u);
 }
 
 //----------------------------------------------------------------------------

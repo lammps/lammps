@@ -50,26 +50,3 @@ class FixThermalConductivity : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix thermal/conductivity swap value must be positive
-
-Self-explanatory.
-
-W: Fix thermal/conductivity comes before fix ave/spatial
-
-The order of these 2 fixes in your input script is such that fix
-thermal/conductivity comes first.  If you are using fix ave/spatial to
-measure the temperature profile induced by fix viscosity, then this
-may cause a glitch in the profile since you are averaging immediately
-after swaps have occurred.  Flipping the order of the 2 fixes
-typically helps.
-
-*/

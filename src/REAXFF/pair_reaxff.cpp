@@ -351,7 +351,7 @@ void PairReaxFF::init_style()
 
   api->system->acks2_flag = acks2_fixes.size();
   if (api->system->acks2_flag)
-    api->workspace->s = ((FixACKS2ReaxFF *)acks2_fixes.front())->get_s();
+    api->workspace->s = (dynamic_cast<FixACKS2ReaxFF *>(acks2_fixes.front()))->get_s();
 
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
@@ -373,7 +373,7 @@ void PairReaxFF::init_style()
                    "increased neighbor list skin.");
 
   if (fix_reaxff == nullptr)
-    fix_reaxff = (FixReaxFF *) modify->add_fix(fmt::format("{} all REAXFF",fix_id));
+    fix_reaxff = dynamic_cast<FixReaxFF *>( modify->add_fix(fmt::format("{} all REAXFF",fix_id)));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -467,7 +467,7 @@ void PairReaxFF::compute(int eflag, int vflag)
 
   if (api->system->acks2_flag) {
     auto ifix = modify->get_fix_by_style("^acks2/reax").front();
-    api->workspace->s = ((FixACKS2ReaxFF*) ifix)->get_s();
+    api->workspace->s = (dynamic_cast<FixACKS2ReaxFF*>( ifix))->get_s();
   }
 
   // setup data structures

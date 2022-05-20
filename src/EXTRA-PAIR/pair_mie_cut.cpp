@@ -499,7 +499,7 @@ void PairMIECut::init_style()
   int list_style = NeighConst::REQ_DEFAULT;
 
   if (update->whichflag == 1 && utils::strmatch(update->integrate_style, "^respa")) {
-    auto respa = (Respa *) update->integrate;
+    auto respa = dynamic_cast<Respa *>( update->integrate);
     if (respa->level_inner >= 0) list_style = NeighConst::REQ_RESPA_INOUT;
     if (respa->level_middle >= 0) list_style = NeighConst::REQ_RESPA_ALL;
   }
@@ -508,8 +508,8 @@ void PairMIECut::init_style()
   // set rRESPA cutoffs
 
   if (utils::strmatch(update->integrate_style,"^respa") &&
-      ((Respa *) update->integrate)->level_inner >= 0)
-    cut_respa = ((Respa *) update->integrate)->cutoff;
+      (dynamic_cast<Respa *>( update->integrate))->level_inner >= 0)
+    cut_respa = (dynamic_cast<Respa *>( update->integrate))->cutoff;
   else cut_respa = nullptr;
 }
 

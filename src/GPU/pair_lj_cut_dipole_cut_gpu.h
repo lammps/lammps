@@ -43,24 +43,3 @@ class PairLJCutDipoleCutGPU : public PairLJCutDipoleCut {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Pair dipole/cut/gpu requires atom attributes q, mu, torque
-
-The atom style defined does not have this attribute.
-
-E: Cannot use newton pair with dipole/cut/gpu pair style
-
-Self-explanatory.
-
-E: Cannot (yet) use 'electron' units with dipoles
-
-This feature is not yet supported.
-
-*/

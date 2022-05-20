@@ -23,7 +23,7 @@ namespace LAMMPS_NS {
 class MinKokkos : public Min {
  public:
   MinKokkos(class LAMMPS *);
-  ~MinKokkos() override;
+
   void init() override;
   void setup(int flag=1) override;
   void setup_minimal(int) override;
@@ -55,6 +55,3 @@ class MinKokkos : public Min {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

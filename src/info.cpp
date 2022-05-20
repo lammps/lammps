@@ -110,7 +110,7 @@ using namespace LAMMPS_NS;
 static const char *varstyles[] = {
   "index", "loop", "world", "universe", "uloop", "string", "getenv",
   "file", "atomfile", "format", "equal", "atom", "vector", "python",
-  "internal", "(unknown)"};
+  "timer", "internal", "(unknown)"};
 
 static const char *mapstyles[] = { "none", "array", "hash", "yes" };
 
@@ -272,12 +272,11 @@ void Info::command(int narg, char **arg)
   fmt::print(out,"Printed on {:%a %b %d %H:%M:%S %Y}\n", fmt::localtime(now));
 
   if (flags & CONFIG) {
-    fmt::print(out,"\nLAMMPS version: {} / {}\n",
-               lmp->version, lmp->num_ver);
+    fmt::print(out,"\nLAMMPS version: {} / {}\n", lmp->version, lmp->num_ver);
 
-    if (lmp->has_git_info())
+    if (LAMMPS::has_git_info())
       fmt::print(out,"Git info: {} / {} / {}\n",
-                 lmp->git_branch(), lmp->git_descriptor(),lmp->git_commit());
+                 LAMMPS::git_branch(), LAMMPS::git_descriptor(),LAMMPS::git_commit());
 
     fmt::print(out,"\nOS information: {}\n\n",platform::os_info());
 
@@ -310,7 +309,7 @@ void Info::command(int narg, char **arg)
 
     int ncword, ncline = 0;
     fputs("\nInstalled packages:\n\n",out);
-    for (const char **pkg = lmp->installed_packages; *pkg != nullptr; ++pkg) {
+    for (const char **pkg = LAMMPS::installed_packages; *pkg != nullptr; ++pkg) {
       ncword = strlen(*pkg);
       if (ncline + ncword > 78) {
         ncline = 0;
@@ -414,7 +413,7 @@ void Info::command(int narg, char **arg)
                atom->natoms, atom->ntypes, force->pair_style);
 
     if (force->pair && utils::strmatch(force->pair_style,"^hybrid")) {
-      PairHybrid *hybrid = (PairHybrid *)force->pair;
+      auto hybrid = dynamic_cast<PairHybrid *>(force->pair);
       fmt::print(out,"Hybrid sub-styles:");
       for (int i=0; i < hybrid->nstyles; ++i)
         fmt::print(out," {}", hybrid->keywords[i]);
@@ -546,19 +545,17 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & REGIONS) {
-    int nreg = domain->nregion;
-    Region **regs = domain->regions;
     fputs("\nRegion information:\n",out);
-    for (int i=0; i < nreg; ++i) {
+    int i=0;
+    for (auto &reg : domain->get_region_list()) {
       fmt::print(out,"Region[{:3d}]:  {:16}  style = {:16}  side = {}\n",
-                 i, std::string(regs[i]->id)+',',
-                 std::string(regs[i]->style)+',',
-                 regs[i]->interior ? "in" : "out");
-      if (regs[i]->bboxflag)
+                 i, std::string(reg->id)+',', std::string(reg->style)+',',
+                 reg->interior ? "in" : "out");
+      if (reg->bboxflag)
         fmt::print(out,"   Boundary:  lo {:.8} {:.8} {:.8}  hi {:.8} {:.8} {:.8}\n",
-                   regs[i]->extent_xlo, regs[i]->extent_ylo,
-                   regs[i]->extent_zlo, regs[i]->extent_xhi,
-                   regs[i]->extent_yhi, regs[i]->extent_zhi);
+                   reg->extent_xlo, reg->extent_ylo,
+                   reg->extent_zlo, reg->extent_xhi,
+                   reg->extent_yhi, reg->extent_zhi);
       else fputs("   No Boundary\n",out);
     }
   }
@@ -785,13 +782,13 @@ bool Info::is_active(const char *category, const char *name)
 
   if (strcmp(category,"package") == 0) {
     if (strcmp(name,"gpu") == 0) {
-      return (modify->get_fix_by_id("package_gpu")) ? true : false;
+      return modify->get_fix_by_id("package_gpu") != nullptr;
     } else if (strcmp(name,"intel") == 0) {
-      return (modify->get_fix_by_id("package_intel")) ? true : false;
+      return modify->get_fix_by_id("package_intel") != nullptr;
     } else if (strcmp(name,"kokkos") == 0) {
-      return (lmp->kokkos && lmp->kokkos->kokkos_exists) ? true : false;
+      return lmp->kokkos && lmp->kokkos->kokkos_exists;
     } else if (strcmp(name,"omp") == 0) {
-      return (modify->get_fix_by_id("package_omp")) ? true : false;
+      return modify->get_fix_by_id("package_omp") != nullptr;
     } else error->all(FLERR,"Unknown name for info package category: {}", name);
 
   } else if (strcmp(category,"newton") == 0) {
@@ -844,7 +841,7 @@ bool Info::is_active(const char *category, const char *name)
       if (name_w_suffix == style) match = 1;
     }
   }
-  return match ? true : false;
+  return match != 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -916,12 +913,8 @@ bool Info::is_defined(const char *category, const char *name)
         return true;
     }
   } else if (strcmp(category,"region") == 0) {
-    int nreg = domain->nregion;
-    Region **regs = domain->regions;
-    for (int i=0; i < nreg; ++i) {
-      if (strcmp(regs[i]->id,name) == 0)
-        return true;
-    }
+    for (auto &reg : domain->get_region_list())
+      if (strcmp(reg->id,name) == 0) return true;
   } else if (strcmp(category,"variable") == 0) {
     int nvar = input->variable->nvar;
     char **names = input->variable->names;
@@ -1053,7 +1046,7 @@ static void print_columns(FILE *fp, std::map<std::string, ValueType> *styles)
 
   // std::map keys are already sorted
   int pos = 80;
-  for (typename std::map<std::string, ValueType>::iterator it = styles->begin(); it != styles->end(); ++it) {
+  for (auto it = styles->begin(); it != styles->end(); ++it) {
     const std::string &style_name = it->first;
 
     // skip "internal" styles
@@ -1180,8 +1173,7 @@ bool Info::has_accelerator_feature(const std::string &package,
 #if defined(LMP_KOKKOS)
   if (package == "KOKKOS") {
     if (category == "precision") {
-      if (setting == "double") return true;
-      else return false;
+      return setting == "double";
     }
     if (category == "api") {
 #if defined(KOKKOS_ENABLE_OPENMP)
@@ -1214,8 +1206,7 @@ bool Info::has_accelerator_feature(const std::string &package,
 #if defined(LMP_OPENMP)
   if (package == "OPENMP") {
     if (category == "precision") {
-      if (setting == "double") return true;
-      else return false;
+      return setting == "double";
     }
     if (category == "api") {
 #if defined(_OPENMP)
@@ -1252,7 +1243,7 @@ bool Info::has_accelerator_feature(const std::string &package,
 
 std::string Info::get_accelerator_info(const std::string &package)
 {
-  std::string mesg("");
+  std::string mesg;
   if ((package.empty() || (package == "GPU")) && has_package("GPU")) {
     mesg += "GPU package API:";
     if (has_accelerator_feature("GPU","api","cuda"))   mesg += " CUDA";

@@ -326,8 +326,8 @@ struct pair<T1&, T2> {
 
 //! Equality operator for Kokkos::pair.
 template <class T1, class T2>
-KOKKOS_FORCEINLINE_FUNCTION bool operator==(const pair<T1, T2>& lhs,
-                                            const pair<T1, T2>& rhs) {
+KOKKOS_FORCEINLINE_FUNCTION constexpr bool operator==(const pair<T1, T2>& lhs,
+                                                      const pair<T1, T2>& rhs) {
   return lhs.first == rhs.first && lhs.second == rhs.second;
 }
 

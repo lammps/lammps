@@ -48,26 +48,11 @@
 #include <CL/sycl.hpp>
 
 #ifdef __SYCL_DEVICE_ONLY__
-#ifdef KOKKOS_IMPL_DISABLE_SYCL_DEVICE_PRINTF
-namespace Kokkos {
-namespace ImplSYCL {
-template <typename... Args>
-void sink(Args&&... args) {
-  (void)(sizeof...(args));
-}
-}  // namespace ImplSYCL
-}  // namespace Kokkos
-#define KOKKOS_IMPL_DO_NOT_USE_PRINTF(...) \
-  do {                                     \
-    Kokkos::ImplSYCL::sink(__VA_ARGS__);   \
-  } while (0)
-#else
 #define KOKKOS_IMPL_DO_NOT_USE_PRINTF(format, ...)                \
   do {                                                            \
     const __attribute__((opencl_constant)) char fmt[] = (format); \
-    sycl::ONEAPI::experimental::printf(fmt, ##__VA_ARGS__);       \
+    sycl::ext::oneapi::experimental::printf(fmt, ##__VA_ARGS__);  \
   } while (0)
-#endif
 #endif
 
 #endif

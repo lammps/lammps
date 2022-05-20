@@ -73,6 +73,14 @@ TEST(TEST_CATEGORY, atomic_operations_unsignedlong) {
                  unsigned long int, TEST_EXECSPACE>(start, end - i, 12)));
     ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
                  unsigned long int, TEST_EXECSPACE>(start, end - i, 13)));
+#ifdef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
+    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestUnsignedIntegralType<
+                 unsigned long int, TEST_EXECSPACE>(start, end - i,
+                                                    1)));  // Wrapping Inc
+    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestUnsignedIntegralType<
+                 unsigned long int, TEST_EXECSPACE>(start, end - i,
+                                                    2)));  // Wrapping Dec
+#endif
   }
 }
 }  // namespace Test

@@ -194,19 +194,19 @@ class TestAtomicViewAPI {
 
     dx = dView0("dx");
     dy = dView0("dy");
-    ASSERT_EQ(dx.use_count(), size_t(1));
-    ASSERT_EQ(dy.use_count(), size_t(1));
+    ASSERT_EQ(dx.use_count(), 1);
+    ASSERT_EQ(dy.use_count(), 1);
 
     ax = dx;
     ay = dy;
-    ASSERT_EQ(dx.use_count(), size_t(2));
-    ASSERT_EQ(dy.use_count(), size_t(2));
+    ASSERT_EQ(dx.use_count(), 2);
+    ASSERT_EQ(dy.use_count(), 2);
     ASSERT_EQ(dx.use_count(), ax.use_count());
 
     az = ax;
-    ASSERT_EQ(dx.use_count(), size_t(3));
-    ASSERT_EQ(ax.use_count(), size_t(3));
-    ASSERT_EQ(az.use_count(), size_t(3));
+    ASSERT_EQ(dx.use_count(), 3);
+    ASSERT_EQ(ax.use_count(), 3);
+    ASSERT_EQ(az.use_count(), 3);
     ASSERT_EQ(az.use_count(), ax.use_count());
   }
 
@@ -216,33 +216,33 @@ class TestAtomicViewAPI {
 
     dx = dView4("dx", N0);
     dy = dView4("dy", N0);
-    ASSERT_EQ(dx.use_count(), size_t(1));
-    ASSERT_EQ(dy.use_count(), size_t(1));
+    ASSERT_EQ(dx.use_count(), 1);
+    ASSERT_EQ(dy.use_count(), 1);
 
     ax = dx;
     ay = dy;
-    ASSERT_EQ(dx.use_count(), size_t(2));
-    ASSERT_EQ(dy.use_count(), size_t(2));
+    ASSERT_EQ(dx.use_count(), 2);
+    ASSERT_EQ(dy.use_count(), 2);
     ASSERT_EQ(dx.use_count(), ax.use_count());
 
     dView4_unmanaged unmanaged_dx = dx;
-    ASSERT_EQ(dx.use_count(), size_t(2));
+    ASSERT_EQ(dx.use_count(), 2);
 
     az = ax;
-    ASSERT_EQ(dx.use_count(), size_t(3));
-    ASSERT_EQ(ax.use_count(), size_t(3));
-    ASSERT_EQ(az.use_count(), size_t(3));
+    ASSERT_EQ(dx.use_count(), 3);
+    ASSERT_EQ(ax.use_count(), 3);
+    ASSERT_EQ(az.use_count(), 3);
     ASSERT_EQ(az.use_count(), ax.use_count());
 
     aView4_unmanaged unmanaged_ax = ax;
-    ASSERT_EQ(ax.use_count(), size_t(3));
+    ASSERT_EQ(ax.use_count(), 3);
 
     aView4_unmanaged unmanaged_ax_from_ptr_dx = aView4_unmanaged(
         dx.data(), dx.extent(0), dx.extent(1), dx.extent(2), dx.extent(3));
-    ASSERT_EQ(ax.use_count(), size_t(3));
+    ASSERT_EQ(ax.use_count(), 3);
 
     const_aView4 const_ax = ax;
-    ASSERT_EQ(ax.use_count(), size_t(4));
+    ASSERT_EQ(ax.use_count(), 4);
     ASSERT_EQ(const_ax.use_count(), ax.use_count());
 
     ASSERT_NE(ax.data(), nullptr);

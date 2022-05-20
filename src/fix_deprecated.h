@@ -19,6 +19,7 @@ FixStyle(ave/spatial,FixDeprecated);
 FixStyle(ave/spatial/sphere,FixDeprecated);
 FixStyle(lb/pc,FixDeprecated);
 FixStyle(lb/rigid/pc/sphere,FixDeprecated);
+FixStyle(client/md,FixDeprecated);
 // clang-format on
 #else
 
@@ -41,17 +42,3 @@ class FixDeprecated : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: This fix command has been removed from LAMMPS
-
-UNDOCUMENTED
-
-U: The fix ave/spatial command has been removed from LAMMPS
-
-It has been replaced by the more flexible fix ave/chunk and compute
-chunk/atom commands.  All the fix ave/spatial keywords and options are
-available in those two newer commands.
-
-*/

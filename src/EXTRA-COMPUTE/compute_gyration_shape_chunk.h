@@ -51,24 +51,3 @@ class ComputeGyrationShapeChunk : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute gyration/chunk ID does not exist for compute gyration/shape/chunk
-
-Self-explanatory.  Provide a valid compute ID
-
-E: Compute gyration/shape/chunk ID does not point to a gyration/chunk compute
-
-Self-explanatory.  Provide an ID of a compute gyration/chunk command.
-
-E: Compute gyration/chunk does not compute gyration tensor
-
-Self-explanatory. Use keyword tensor in compute gyration/chunk command
-*/

@@ -108,7 +108,7 @@ TEST(Platform, sharedload)
     double (*doublefunc)(double, int);
 
     for (const auto &obj : objs) {
-        handle = platform::dlopen(obj.c_str());
+        handle = platform::dlopen(obj);
         EXPECT_NE(handle, nullptr);
         intvar = (int *)platform::dlsym(handle, "some_int_val");
         EXPECT_NE(intvar, nullptr);

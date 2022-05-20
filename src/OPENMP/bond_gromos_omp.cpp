@@ -81,8 +81,8 @@ void BondGromosOMP::eval(int nfrom, int nto, ThrData * const thr)
   int i1,i2,n,type;
   double delx,dely,delz,ebond,fbond;
 
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const auto * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const int3_t * _noalias const bondlist = (int3_t *) neighbor->bondlist[0];
   const int nlocal = atom->nlocal;
   ebond = 0.0;

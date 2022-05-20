@@ -122,7 +122,7 @@ void Rerun::command(int narg, char **arg)
   // pass list of filenames to ReadDump
   // along with post-"dump" args and post-"format" args
 
-  ReadDump *rd = new ReadDump(lmp);
+  auto rd = new ReadDump(lmp);
 
   rd->store_files(nfile,arg);
   if (nremain)

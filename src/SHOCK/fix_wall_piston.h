@@ -47,34 +47,3 @@ class FixWallPiston : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix wall/piston command only available at zlo
-
-The face keyword must be zlo.
-
-E: Must shrink-wrap piston boundary
-
-The boundary style of the face where the piston is applied must be of
-type s (shrink-wrapped).
-
-E: Illegal fix wall/piston velocity
-
-The piston velocity must be positive.
-
-E: Cannot use wall in periodic dimension
-
-Self-explanatory.
-
-E: NL ramp in wall/piston only implemented in zlo for now
-
-The ramp keyword can only be used for piston applied to face zlo.
-
-*/

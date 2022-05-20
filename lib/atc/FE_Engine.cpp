@@ -430,7 +430,7 @@ namespace ATC{
   //-----------------------------------------------------------------
   //  write geometry
   //-----------------------------------------------------------------
-  void FE_Engine::write_geometry(void)
+  void FE_Engine::write_geometry()
   {
     outputManager_.write_geometry(feMesh_->coordinates(),
                                   feMesh_->connectivity());
@@ -2373,7 +2373,7 @@ namespace ATC{
         feMesh_->face_shape_function(face, _fN_, _fdN_, _nN_, _fweights_);
         feMesh_->element_coordinates(elem, xCoords);
 
-        MultAB(xCoords,_fN_,xAtIPs,0,1); //xAtIPs = xCoords*(N.transpose());
+        MultAB(xCoords,_fN_,xAtIPs,false,true); //xAtIPs = xCoords*(N.transpose());
 
         // interpolate prescribed flux at ips of this element
 

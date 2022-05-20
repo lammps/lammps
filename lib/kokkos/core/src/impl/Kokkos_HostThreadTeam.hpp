@@ -483,27 +483,18 @@ class HostThreadTeamMember {
   // Team collectives
   //--------------------------------------------------------------------------
 
-  KOKKOS_INLINE_FUNCTION void team_barrier() const noexcept
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-  {
-    if (m_data.team_rendezvous()) {
-      m_data.team_rendezvous_release();
-    };
+  KOKKOS_INLINE_FUNCTION void team_barrier() const noexcept {
+    KOKKOS_IF_ON_HOST(
+        (if (m_data.team_rendezvous()) { m_data.team_rendezvous_release(); }))
   }
-#else
-  {
-  }
-#endif
 
   //--------------------------------------------------------------------------
 
   template <typename T>
   KOKKOS_INLINE_FUNCTION void team_broadcast(T& value,
                                              const int source_team_rank) const
-      noexcept
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-  {
-    if (1 < m_data.m_team_size) {
+      noexcept {
+    KOKKOS_IF_ON_HOST((if (1 < m_data.m_team_size) {
       T volatile* const shared_value = (T*)m_data.team_reduce();
 
       // Don't overwrite shared memory until all threads arrive
@@ -521,54 +512,43 @@ class HostThreadTeamMember {
       } else {
         value = *shared_value;
       }
-    }
+    }))
+
+    KOKKOS_IF_ON_DEVICE(((void)value; (void)source_team_rank; Kokkos::abort(
+                             "HostThreadTeamMember team_broadcast\n");))
   }
-#else
-  {
-    (void)value;
-    (void)source_team_rank;
-    Kokkos::abort("HostThreadTeamMember team_broadcast\n");
-  }
-#endif
 
   //--------------------------------------------------------------------------
 
   template <class Closure, typename T>
   KOKKOS_INLINE_FUNCTION void team_broadcast(Closure const& f, T& value,
                                              const int source_team_rank) const
-      noexcept
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-  {
-    T volatile* const shared_value = (T*)m_data.team_reduce();
+      noexcept {
+    KOKKOS_IF_ON_HOST((
+        T volatile* const shared_value = (T*)m_data.team_reduce();
 
-    // Don't overwrite shared memory until all threads arrive
+        // Don't overwrite shared memory until all threads arrive
 
-    if (m_data.team_rendezvous(source_team_rank)) {
-      // All threads have entered 'team_rendezvous'
-      // only this thread returned from 'team_rendezvous'
-      // with a return value of 'true'
+        if (m_data.team_rendezvous(source_team_rank)) {
+          // All threads have entered 'team_rendezvous'
+          // only this thread returned from 'team_rendezvous'
+          // with a return value of 'true'
 
-      f(value);
+          f(value);
 
-      if (1 < m_data.m_team_size) {
-        *shared_value = value;
-      }
+          if (1 < m_data.m_team_size) {
+            *shared_value = value;
+          }
 
-      m_data.team_rendezvous_release();
-      // This thread released all other threads from 'team_rendezvous'
-      // with a return value of 'false'
-    } else {
-      value = *shared_value;
-    }
+          m_data.team_rendezvous_release();
+          // This thread released all other threads from 'team_rendezvous'
+          // with a return value of 'false'
+        } else { value = *shared_value; }))
+
+    KOKKOS_IF_ON_DEVICE(
+        ((void)f; (void)value; (void)source_team_rank;
+         Kokkos::abort("HostThreadTeamMember team_broadcast\n");))
   }
-#else
-  {
-    (void)f;
-    (void)value;
-    (void)source_team_rank;
-    Kokkos::abort("HostThreadTeamMember team_broadcast\n");
-  }
-#endif
 
   //--------------------------------------------------------------------------
   // team_reduce( Sum(result) );
@@ -586,171 +566,115 @@ class HostThreadTeamMember {
   KOKKOS_INLINE_FUNCTION
       typename std::enable_if<is_reducer<ReducerType>::value>::type
       team_reduce(ReducerType const& reducer,
-                  typename ReducerType::value_type contribution) const noexcept
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-  {
-    if (1 < m_data.m_team_size) {
-      using value_type = typename ReducerType::value_type;
+                  typename ReducerType::value_type contribution) const
+      noexcept {
+    KOKKOS_IF_ON_HOST((
+        if (1 < m_data.m_team_size) {
+          using value_type = typename ReducerType::value_type;
 
-      if (0 != m_data.m_team_rank) {
-        // Non-root copies to their local buffer:
-        /*reducer.copy( (value_type*) m_data.team_reduce_local()
-                    , reducer.data() );*/
-        *((value_type*)m_data.team_reduce_local()) = contribution;
-      }
+          if (0 != m_data.m_team_rank) {
+            // Non-root copies to their local buffer:
+            /*reducer.copy( (value_type*) m_data.team_reduce_local()
+                        , reducer.data() );*/
+            *((value_type*)m_data.team_reduce_local()) = contribution;
+          }
 
-      // Root does not overwrite shared memory until all threads arrive
-      // and copy to their local buffer.
+          // Root does not overwrite shared memory until all threads arrive
+          // and copy to their local buffer.
 
-      if (m_data.team_rendezvous()) {
-        // All threads have entered 'team_rendezvous'
-        // only this thread returned from 'team_rendezvous'
-        // with a return value of 'true'
-        //
-        // This thread sums contributed values
-        for (int i = 1; i < m_data.m_team_size; ++i) {
-          value_type* const src =
-              (value_type*)m_data.team_member(i)->team_reduce_local();
+          if (m_data.team_rendezvous()) {
+            // All threads have entered 'team_rendezvous'
+            // only this thread returned from 'team_rendezvous'
+            // with a return value of 'true'
+            //
+            // This thread sums contributed values
+            for (int i = 1; i < m_data.m_team_size; ++i) {
+              value_type* const src =
+                  (value_type*)m_data.team_member(i)->team_reduce_local();
 
-          reducer.join(contribution, *src);
-        }
+              reducer.join(contribution, *src);
+            }
 
-        // Copy result to root member's buffer:
-        // reducer.copy( (value_type*) m_data.team_reduce() , reducer.data() );
-        *((value_type*)m_data.team_reduce()) = contribution;
-        reducer.reference()                  = contribution;
-        m_data.team_rendezvous_release();
-        // This thread released all other threads from 'team_rendezvous'
-        // with a return value of 'false'
-      } else {
-        // Copy from root member's buffer:
-        reducer.reference() = *((value_type*)m_data.team_reduce());
-      }
-    } else {
-      reducer.reference() = contribution;
-    }
+            // Copy result to root member's buffer:
+            // reducer.copy( (value_type*) m_data.team_reduce() , reducer.data()
+            // );
+            *((value_type*)m_data.team_reduce()) = contribution;
+            reducer.reference()                  = contribution;
+            m_data.team_rendezvous_release();
+            // This thread released all other threads from 'team_rendezvous'
+            // with a return value of 'false'
+          } else {
+            // Copy from root member's buffer:
+            reducer.reference() = *((value_type*)m_data.team_reduce());
+          }
+        } else { reducer.reference() = contribution; }))
+
+    KOKKOS_IF_ON_DEVICE(((void)reducer; (void)contribution;
+                         Kokkos::abort("HostThreadTeamMember team_reduce\n");))
   }
-#else
-  {
-    (void)reducer;
-    (void)contribution;
-    Kokkos::abort("HostThreadTeamMember team_reduce\n");
-  }
-#endif
 
   //--------------------------------------------------------------------------
 
-  /*template< typename ValueType , class JoinOp >
-  KOKKOS_INLINE_FUNCTION
-  ValueType
-  team_reduce( ValueType const & value
-             , JoinOp    const & join ) const noexcept
-#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
-    {
-      if ( 0 != m_data.m_team_rank ) {
-        // Non-root copies to their local buffer:
-        *((ValueType*) m_data.team_reduce_local()) = value ;
-      }
-
-      // Root does not overwrite shared memory until all threads arrive
-      // and copy to their local buffer.
-
-      if ( m_data.team_rendezvous() ) {
-        const Impl::Reducer< ValueType , JoinOp > reducer( join );
-
-        // All threads have entered 'team_rendezvous'
-        // only this thread returned from 'team_rendezvous'
-        // with a return value of 'true'
-        //
-        // This thread sums contributed values
-
-        ValueType * const dst = (ValueType*) m_data.team_reduce_local();
-
-        *dst = value ;
-
-        for ( int i = 1 ; i < m_data.m_team_size ; ++i ) {
-          ValueType * const src =
-            (ValueType*) m_data.team_member(i)->team_reduce_local();
-
-          reducer.join( dst , src );
-        }
-
-        m_data.team_rendezvous_release();
-        // This thread released all other threads from 'team_rendezvous'
-        // with a return value of 'false'
-      }
-
-      return *((ValueType*) m_data.team_reduce());
-    }
-#else
-    { Kokkos::abort("HostThreadTeamMember team_reduce\n"); return ValueType(); }
-#endif*/
-
   template <typename T>
   KOKKOS_INLINE_FUNCTION T team_scan(T const& value,
-                                     T* const global = nullptr) const noexcept
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-  {
-    if (0 != m_data.m_team_rank) {
-      // Non-root copies to their local buffer:
-      ((T*)m_data.team_reduce_local())[1] = value;
-    }
-
-    // Root does not overwrite shared memory until all threads arrive
-    // and copy to their local buffer.
-
-    if (m_data.team_rendezvous()) {
-      // All threads have entered 'team_rendezvous'
-      // only this thread returned from 'team_rendezvous'
-      // with a return value of 'true'
-      //
-      // This thread scans contributed values
-
-      {
-        T* prev = (T*)m_data.team_reduce_local();
-
-        prev[0] = 0;
-        prev[1] = value;
-
-        for (int i = 1; i < m_data.m_team_size; ++i) {
-          T* const ptr = (T*)m_data.team_member(i)->team_reduce_local();
-
-          ptr[0] = prev[0] + prev[1];
-
-          prev = ptr;
-        }
-      }
-
-      // If adding to global value then atomic_fetch_add to that value
-      // and sum previous value to every entry of the scan.
-      if (global) {
-        T* prev = (T*)m_data.team_reduce_local();
-
-        {
-          T* ptr = (T*)m_data.team_member(m_data.m_team_size - 1)
-                       ->team_reduce_local();
-          prev[0] = Kokkos::atomic_fetch_add(global, ptr[0] + ptr[1]);
+                                     T* const global = nullptr) const noexcept {
+    KOKKOS_IF_ON_HOST((
+        if (0 != m_data.m_team_rank) {
+          // Non-root copies to their local buffer:
+          ((T*)m_data.team_reduce_local())[1] = value;
         }
 
-        for (int i = 1; i < m_data.m_team_size; ++i) {
-          T* ptr = (T*)m_data.team_member(i)->team_reduce_local();
-          ptr[0] += prev[0];
+        // Root does not overwrite shared memory until all threads arrive
+        // and copy to their local buffer.
+
+        if (m_data.team_rendezvous()) {
+          // All threads have entered 'team_rendezvous'
+          // only this thread returned from 'team_rendezvous'
+          // with a return value of 'true'
+          //
+          // This thread scans contributed values
+
+          {
+            T* prev = (T*)m_data.team_reduce_local();
+
+            prev[0] = 0;
+            prev[1] = value;
+
+            for (int i = 1; i < m_data.m_team_size; ++i) {
+              T* const ptr = (T*)m_data.team_member(i)->team_reduce_local();
+
+              ptr[0] = prev[0] + prev[1];
+
+              prev = ptr;
+            }
+          }
+
+          // If adding to global value then atomic_fetch_add to that value
+          // and sum previous value to every entry of the scan.
+          if (global) {
+            T* prev = (T*)m_data.team_reduce_local();
+
+            {
+              T* ptr = (T*)m_data.team_member(m_data.m_team_size - 1)
+                           ->team_reduce_local();
+              prev[0] = Kokkos::atomic_fetch_add(global, ptr[0] + ptr[1]);
+            }
+
+            for (int i = 1; i < m_data.m_team_size; ++i) {
+              T* ptr = (T*)m_data.team_member(i)->team_reduce_local();
+              ptr[0] += prev[0];
+            }
+          }
+
+          m_data.team_rendezvous_release();
         }
-      }
 
-      m_data.team_rendezvous_release();
-    }
+        return ((T*)m_data.team_reduce_local())[0];))
 
-    return ((T*)m_data.team_reduce_local())[0];
+    KOKKOS_IF_ON_DEVICE(((void)value; (void)global;
+                         Kokkos::abort("HostThreadTeamMember team_scan\n");
+                         return T();))
   }
-#else
-  {
-    (void)value;
-    (void)global;
-    Kokkos::abort("HostThreadTeamMember team_scan\n");
-    return T();
-  }
-#endif
 };
 
 }  // namespace Impl

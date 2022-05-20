@@ -277,6 +277,3 @@ class FixRxKokkos : public FixRX {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

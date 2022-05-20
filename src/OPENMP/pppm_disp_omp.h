@@ -37,8 +37,8 @@ class PPPMDispOMP : public PPPMDisp, public ThrOMP {
   virtual void compute_gf();
   virtual void compute_gf_6();
 
-  void particle_map(double, double, double, double, int **, int, int, int, int, int, int,
-                            int, int) override;
+  void particle_map(double, double, double, double, int **, int, int, int, int, int, int, int,
+                    int) override;
 
   void fieldforce_c_ik() override;
   void fieldforce_c_ad() override;

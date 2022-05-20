@@ -64,10 +64,7 @@ bool Neighbor::init(NeighborShared *shared, const int inum,
     // Not yet implemented
     assert(0==1);
 
-  if (pre_cut || gpu_nbor==0)
-    _alloc_packed=true;
-  else
-    _alloc_packed=false;
+  _alloc_packed = pre_cut || gpu_nbor==0;
 
   if (pre_cut)
     _packed_permissions=UCL_READ_WRITE;
@@ -113,7 +110,7 @@ bool Neighbor::init(NeighborShared *shared, const int inum,
   if (!success)
     return false;
 
-  if (_use_packing==false) {
+  if (!_use_packing) {
     #ifndef LAL_USE_OLD_NEIGHBOR
       _shared->compile_kernels(devi, gpu_nbor, compile_flags+
         " -DMAX_SUBGROUPS_PER_BLOCK="+toa(_block_nbor_build/_simd_size));
@@ -153,7 +150,7 @@ void Neighbor::alloc(bool &success) {
   int nt=_max_atoms+_max_host;
   if (_max_nbors)
     _max_nbors = ((_max_nbors-1)/_threads_per_atom+1)*_threads_per_atom;
-  if (_use_packing==false || _gpu_nbor>0) {
+  if (!_use_packing || _gpu_nbor>0) {
     if (_max_nbors)
       success=success &&
         (dev_nbor.alloc((_max_nbors+2)*_max_atoms,*dev)==UCL_SUCCESS);
@@ -166,7 +163,7 @@ void Neighbor::alloc(bool &success) {
 
   _c_bytes=dev_nbor.row_bytes();
   if (_alloc_packed) {
-    if (_use_packing==false) {
+    if (!_use_packing) {
       dev_packed_begin.clear();
       success=success && (dev_packed_begin.alloc(_max_atoms,*dev,
          _packed_permissions)==UCL_SUCCESS);
@@ -373,7 +370,7 @@ void Neighbor::get_host(const int inum, int *ilist, int *numj,
 
   time_nbor.stop();
 
-  if (_use_packing==false) {
+  if (!_use_packing) {
     time_kernel.start();
     int GX=static_cast<int>(ceil(static_cast<double>(inum)*_threads_per_atom/
                                  block_size));
@@ -450,7 +447,7 @@ void Neighbor::get_host3(const int inum, const int nlist, int *ilist, int *numj,
   }
   time_nbor.stop();
 
-  if (_use_packing==false) {
+  if (!_use_packing) {
     time_kernel.start();
     int GX=static_cast<int>(ceil(static_cast<double>(inum)*_threads_per_atom/
                                  block_size));
@@ -564,7 +561,7 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
 #endif
   }
 
-  const numtyp cutoff_cast=static_cast<numtyp>(_cutoff);
+  const auto cutoff_cast=static_cast<numtyp>(_cutoff);
 
   if (_maxspecial>0) {
     time_nbor.start();
@@ -741,12 +738,12 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
   // If binning on GPU, do this now
   if (_gpu_nbor==1) {
     mn = _max_nbors;
-    const numtyp i_cell_size=static_cast<numtyp>(1.0/_cell_size);
+    const auto i_cell_size=static_cast<numtyp>(1.0/_cell_size);
     const int neigh_block=_block_cell_id;
     const int GX=(int)ceil((double)nall/neigh_block);
-    const numtyp sublo0=static_cast<numtyp>(sublo[0]);
-    const numtyp sublo1=static_cast<numtyp>(sublo[1]);
-    const numtyp sublo2=static_cast<numtyp>(sublo[2]);
+    const auto sublo0=static_cast<numtyp>(sublo[0]);
+    const auto sublo1=static_cast<numtyp>(sublo[1]);
+    const auto sublo2=static_cast<numtyp>(sublo[2]);
     _shared->k_cell_id.set_size(GX,neigh_block);
     _shared->k_cell_id.run(&atom.x, &atom.dev_cell_id,
                            &atom.dev_particle_id, &sublo0, &sublo1,

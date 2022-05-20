@@ -130,7 +130,7 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
 #endif
   {
     const int tid = get_tid();
-    Timer *t = new Timer(lmp);
+    auto t = new Timer(lmp);
     thr[tid] = new ThrData(tid,t);
   }
 }
@@ -182,7 +182,7 @@ void FixOMP::init()
 #endif
     {
       const int tid = get_tid();
-      Timer *t = new Timer(lmp);
+      auto t = new Timer(lmp);
       thr[tid] = new ThrData(tid,t);
     }
   }
@@ -198,10 +198,8 @@ void FixOMP::init()
       && !utils::strmatch(update->integrate_style,"^respa/omp"))
     error->all(FLERR,"Must use respa/omp for r-RESPA with /omp styles");
 
-  if (force->pair && force->pair->compute_flag) _pair_compute_flag = true;
-  else _pair_compute_flag = false;
-  if (force->kspace && force->kspace->compute_flag) _kspace_compute_flag = true;
-  else _kspace_compute_flag = false;
+  _pair_compute_flag = force->pair && force->pair->compute_flag;
+  _kspace_compute_flag = force->kspace && force->kspace->compute_flag;
 
   int check_hybrid, kspace_split;
   last_pair_hybrid = nullptr;

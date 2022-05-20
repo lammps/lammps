@@ -136,7 +136,7 @@ class OpenMPTargetSpace {
  public:
   //! Tag this class as a kokkos memory space
   using memory_space = OpenMPTargetSpace;
-  using size_type    = size_t;
+  using size_type    = unsigned;
 
   /// \typedef execution_space
   /// \brief Default execution space for this memory space.
@@ -216,12 +216,11 @@ class SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>
  public:
   KOKKOS_INLINE_FUNCTION static SharedAllocationRecord* allocate(
       const Kokkos::Experimental::OpenMPTargetSpace& arg_space,
-      const std::string& arg_label, const size_t arg_alloc_size) {
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-    return new SharedAllocationRecord(arg_space, arg_label, arg_alloc_size);
-#else
-    return nullptr;
-#endif
+      const std::string& arg_label, const size_t arg_alloc) {
+    KOKKOS_IF_ON_HOST(
+        (return new SharedAllocationRecord(arg_space, arg_label, arg_alloc);))
+    KOKKOS_IF_ON_DEVICE(
+        ((void)arg_space; (void)arg_label; (void)arg_alloc; return nullptr;))
   }
 };
 

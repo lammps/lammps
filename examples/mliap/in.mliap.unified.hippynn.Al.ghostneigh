@@ -24,7 +24,7 @@ mass 1 26.981
 
 # choose potential
 
-pair_style	mliap unified ../../../hippynn/examples/mliap_unified_hippynn_Al.pkl
+pair_style	mliap unified ghostneigh ../../../hippynn/examples/mliap_unified_hippynn_Al.pkl
 pair_coeff	* * Al
 
 # Setup output
@@ -42,9 +42,15 @@ thermo_modify norm yes
 
 # Set up NVE run
 
+variable ninteractions equal 2
+variable cutdist equal 7.5
+variable skin equal 1.0
+variable commcut equal (${ninteractions}*${cutdist})+${skin}
+
 timestep 0.5e-3
 neighbor 1.0 bin
 neigh_modify once no every 1 delay 0 check yes
+comm_modify cutoff ${commcut}
 
 #dump 4 all custom 1 forces.xyz fx fy fz
 

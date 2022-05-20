@@ -104,55 +104,55 @@ void PairPACEKokkos<DeviceType>::grow(int natom, int maxneigh)
 
   if ((int)A.extent(0) < natom) {
 
-    memoryKK->realloc_kokkos(A, "pace:A", natom, nelements, nradmax + 1, (lmax + 1) * (lmax + 1));
-    memoryKK->realloc_kokkos(A_rank1, "pace:A_rank1", natom, nelements, nradbase);
+    MemKK::realloc_kokkos(A, "pace:A", natom, nelements, nradmax + 1, (lmax + 1) * (lmax + 1));
+    MemKK::realloc_kokkos(A_rank1, "pace:A_rank1", natom, nelements, nradbase);
 
-    memoryKK->realloc_kokkos(A_list, "pace:A_list", natom, idx_rho_max, basis_set->rankmax);
+    MemKK::realloc_kokkos(A_list, "pace:A_list", natom, idx_rho_max, basis_set->rankmax);
     //size is +1 of max to avoid out-of-boundary array access in double-triangular scheme
-    memoryKK->realloc_kokkos(A_forward_prod, "pace:A_forward_prod", natom, idx_rho_max, basis_set->rankmax + 1);
+    MemKK::realloc_kokkos(A_forward_prod, "pace:A_forward_prod", natom, idx_rho_max, basis_set->rankmax + 1);
 
-    memoryKK->realloc_kokkos(e_atom, "pace:e_atom", natom);
-    memoryKK->realloc_kokkos(rhos, "pace:rhos", natom, basis_set->ndensitymax + 1); // +1 density for core repulsion
-    memoryKK->realloc_kokkos(dF_drho, "pace:dF_drho", natom, basis_set->ndensitymax + 1); // +1 density for core repulsion
+    MemKK::realloc_kokkos(e_atom, "pace:e_atom", natom);
+    MemKK::realloc_kokkos(rhos, "pace:rhos", natom, basis_set->ndensitymax + 1); // +1 density for core repulsion
+    MemKK::realloc_kokkos(dF_drho, "pace:dF_drho", natom, basis_set->ndensitymax + 1); // +1 density for core repulsion
 
-    memoryKK->realloc_kokkos(weights, "pace:weights", natom, nelements, nradmax + 1, (lmax + 1) * (lmax + 1));
-    memoryKK->realloc_kokkos(weights_rank1, "pace:weights_rank1", natom, nelements, nradbase);
+    MemKK::realloc_kokkos(weights, "pace:weights", natom, nelements, nradmax + 1, (lmax + 1) * (lmax + 1));
+    MemKK::realloc_kokkos(weights_rank1, "pace:weights_rank1", natom, nelements, nradbase);
 
     // hard-core repulsion
-    memoryKK->realloc_kokkos(rho_core, "pace:rho_core", natom);
-    memoryKK->realloc_kokkos(dF_drho_core, "pace:dF_drho_core", natom);
-    memoryKK->realloc_kokkos(dB_flatten, "pace:dB_flatten", natom, idx_rho_max, basis_set->rankmax);
+    MemKK::realloc_kokkos(rho_core, "pace:rho_core", natom);
+    MemKK::realloc_kokkos(dF_drho_core, "pace:dF_drho_core", natom);
+    MemKK::realloc_kokkos(dB_flatten, "pace:dB_flatten", natom, idx_rho_max, basis_set->rankmax);
   }
 
   if (((int)ylm.extent(0) < natom) || ((int)ylm.extent(1) < maxneigh)) {
 
     // radial functions
-    memoryKK->realloc_kokkos(fr, "pace:fr", natom, maxneigh, nradmax, lmax + 1);
-    memoryKK->realloc_kokkos(dfr, "pace:dfr", natom, maxneigh, nradmax, lmax + 1);
-    memoryKK->realloc_kokkos(gr, "pace:gr", natom, maxneigh, nradbase);
-    memoryKK->realloc_kokkos(dgr, "pace:dgr", natom, maxneigh, nradbase);
+    MemKK::realloc_kokkos(fr, "pace:fr", natom, maxneigh, nradmax, lmax + 1);
+    MemKK::realloc_kokkos(dfr, "pace:dfr", natom, maxneigh, nradmax, lmax + 1);
+    MemKK::realloc_kokkos(gr, "pace:gr", natom, maxneigh, nradbase);
+    MemKK::realloc_kokkos(dgr, "pace:dgr", natom, maxneigh, nradbase);
     const int max_num_functions = MAX(nradbase, nradmax*(lmax + 1));
-    memoryKK->realloc_kokkos(d_values, "pace:d_values", natom, maxneigh, max_num_functions);
-    memoryKK->realloc_kokkos(d_derivatives, "pace:d_derivatives", natom, maxneigh, max_num_functions);
+    MemKK::realloc_kokkos(d_values, "pace:d_values", natom, maxneigh, max_num_functions);
+    MemKK::realloc_kokkos(d_derivatives, "pace:d_derivatives", natom, maxneigh, max_num_functions);
 
     // hard-core repulsion
-    memoryKK->realloc_kokkos(cr, "pace:cr", natom, maxneigh);
-    memoryKK->realloc_kokkos(dcr, "pace:dcr", natom, maxneigh);
+    MemKK::realloc_kokkos(cr, "pace:cr", natom, maxneigh);
+    MemKK::realloc_kokkos(dcr, "pace:dcr", natom, maxneigh);
 
     // spherical harmonics
-    memoryKK->realloc_kokkos(plm, "pace:plm", natom, maxneigh, (lmax + 1) * (lmax + 1));
-    memoryKK->realloc_kokkos(dplm, "pace:dplm", natom, maxneigh, (lmax + 1) * (lmax + 1));
-    memoryKK->realloc_kokkos(ylm, "pace:ylm", natom, maxneigh, (lmax + 1) * (lmax + 1));
-    memoryKK->realloc_kokkos(dylm, "pace:dylm", natom, maxneigh, (lmax + 1) * (lmax + 1));
+    MemKK::realloc_kokkos(plm, "pace:plm", natom, maxneigh, (lmax + 1) * (lmax + 1));
+    MemKK::realloc_kokkos(dplm, "pace:dplm", natom, maxneigh, (lmax + 1) * (lmax + 1));
+    MemKK::realloc_kokkos(ylm, "pace:ylm", natom, maxneigh, (lmax + 1) * (lmax + 1));
+    MemKK::realloc_kokkos(dylm, "pace:dylm", natom, maxneigh, (lmax + 1) * (lmax + 1));
 
     // short neigh list
-    memoryKK->realloc_kokkos(d_ncount, "pace:ncount", natom);
-    memoryKK->realloc_kokkos(d_mu, "pace:mu", natom, maxneigh);
-    memoryKK->realloc_kokkos(d_rhats, "pace:rhats", natom, maxneigh);
-    memoryKK->realloc_kokkos(d_rnorms, "pace:rnorms", natom, maxneigh);
-    memoryKK->realloc_kokkos(d_nearest, "pace:nearest", natom, maxneigh);
+    MemKK::realloc_kokkos(d_ncount, "pace:ncount", natom);
+    MemKK::realloc_kokkos(d_mu, "pace:mu", natom, maxneigh);
+    MemKK::realloc_kokkos(d_rhats, "pace:rhats", natom, maxneigh);
+    MemKK::realloc_kokkos(d_rnorms, "pace:rnorms", natom, maxneigh);
+    MemKK::realloc_kokkos(d_nearest, "pace:nearest", natom, maxneigh);
 
-    memoryKK->realloc_kokkos(f_ij, "pace:f_ij", natom, maxneigh);
+    MemKK::realloc_kokkos(f_ij, "pace:f_ij", natom, maxneigh);
   }
 }
 
@@ -163,11 +163,11 @@ void PairPACEKokkos<DeviceType>::copy_pertype()
 {
   auto basis_set = aceimpl->basis_set;
 
-  memoryKK->realloc_kokkos(d_rho_core_cutoff, "pace:rho_core_cutoff", nelements);
-  memoryKK->realloc_kokkos(d_drho_core_cutoff, "pace:drho_core_cutoff", nelements);
-  memoryKK->realloc_kokkos(d_E0vals, "pace:E0vals", nelements);
-  memoryKK->realloc_kokkos(d_ndensity, "pace:ndensity", nelements);
-  memoryKK->realloc_kokkos(d_npoti, "pace:npoti", nelements);
+  MemKK::realloc_kokkos(d_rho_core_cutoff, "pace:rho_core_cutoff", nelements);
+  MemKK::realloc_kokkos(d_drho_core_cutoff, "pace:drho_core_cutoff", nelements);
+  MemKK::realloc_kokkos(d_E0vals, "pace:E0vals", nelements);
+  MemKK::realloc_kokkos(d_ndensity, "pace:ndensity", nelements);
+  MemKK::realloc_kokkos(d_npoti, "pace:npoti", nelements);
 
   auto h_rho_core_cutoff = Kokkos::create_mirror_view(d_rho_core_cutoff);
   auto h_drho_core_cutoff = Kokkos::create_mirror_view(d_drho_core_cutoff);
@@ -196,8 +196,8 @@ void PairPACEKokkos<DeviceType>::copy_pertype()
   Kokkos::deep_copy(d_ndensity, h_ndensity);
   Kokkos::deep_copy(d_npoti, h_npoti);
 
-  memoryKK->realloc_kokkos(d_wpre, "pace:wpre", nelements, basis_set->ndensitymax);
-  memoryKK->realloc_kokkos(d_mexp, "pace:mexp", nelements, basis_set->ndensitymax);
+  MemKK::realloc_kokkos(d_wpre, "pace:wpre", nelements, basis_set->ndensitymax);
+  MemKK::realloc_kokkos(d_mexp, "pace:mexp", nelements, basis_set->ndensitymax);
 
   auto h_wpre = Kokkos::create_mirror_view(d_wpre);
   auto h_mexp = Kokkos::create_mirror_view(d_mexp);
@@ -266,7 +266,7 @@ void PairPACEKokkos<DeviceType>::copy_tilde()
   idx_rho_max = 0;
   int total_basis_size_max = 0;
 
-  memoryKK->realloc_kokkos(d_idx_rho_count, "pace:idx_rho_count", nelements);
+  MemKK::realloc_kokkos(d_idx_rho_count, "pace:idx_rho_count", nelements);
   auto h_idx_rho_count = Kokkos::create_mirror_view(d_idx_rho_count);
 
   for (int n = 0; n < nelements; n++) {
@@ -295,14 +295,14 @@ void PairPACEKokkos<DeviceType>::copy_tilde()
 
   Kokkos::deep_copy(d_idx_rho_count, h_idx_rho_count);
 
-  memoryKK->realloc_kokkos(d_rank, "pace:rank", nelements, total_basis_size_max);
-  memoryKK->realloc_kokkos(d_num_ms_combs, "pace:num_ms_combs", nelements, total_basis_size_max);
-  memoryKK->realloc_kokkos(d_offsets, "pace:offsets", nelements, idx_rho_max);
-  memoryKK->realloc_kokkos(d_mus, "pace:mus", nelements, total_basis_size_max, basis_set->rankmax);
-  memoryKK->realloc_kokkos(d_ns, "pace:ns", nelements, total_basis_size_max, basis_set->rankmax);
-  memoryKK->realloc_kokkos(d_ls, "pace:ls", nelements, total_basis_size_max, basis_set->rankmax);
-  memoryKK->realloc_kokkos(d_ms_combs, "pace:ms_combs", nelements, idx_rho_max, basis_set->rankmax);
-  memoryKK->realloc_kokkos(d_ctildes, "pace:ctildes", nelements, idx_rho_max, basis_set->ndensitymax);
+  MemKK::realloc_kokkos(d_rank, "pace:rank", nelements, total_basis_size_max);
+  MemKK::realloc_kokkos(d_num_ms_combs, "pace:num_ms_combs", nelements, total_basis_size_max);
+  MemKK::realloc_kokkos(d_offsets, "pace:offsets", nelements, idx_rho_max);
+  MemKK::realloc_kokkos(d_mus, "pace:mus", nelements, total_basis_size_max, basis_set->rankmax);
+  MemKK::realloc_kokkos(d_ns, "pace:ns", nelements, total_basis_size_max, basis_set->rankmax);
+  MemKK::realloc_kokkos(d_ls, "pace:ls", nelements, total_basis_size_max, basis_set->rankmax);
+  MemKK::realloc_kokkos(d_ms_combs, "pace:ms_combs", nelements, idx_rho_max, basis_set->rankmax);
+  MemKK::realloc_kokkos(d_ctildes, "pace:ctildes", nelements, idx_rho_max, basis_set->ndensitymax);
 
   auto h_rank = Kokkos::create_mirror_view(d_rank);
   auto h_num_ms_combs = Kokkos::create_mirror_view(d_num_ms_combs);
@@ -418,10 +418,10 @@ void PairPACEKokkos<DeviceType>::init_style()
 
   // spherical harmonics
 
-  memoryKK->realloc_kokkos(alm, "pace:alm", (lmax + 1) * (lmax + 1));
-  memoryKK->realloc_kokkos(blm, "pace:blm", (lmax + 1) * (lmax + 1));
-  memoryKK->realloc_kokkos(cl, "pace:cl", lmax + 1);
-  memoryKK->realloc_kokkos(dl, "pace:dl", lmax + 1);
+  MemKK::realloc_kokkos(alm, "pace:alm", (lmax + 1) * (lmax + 1));
+  MemKK::realloc_kokkos(blm, "pace:blm", (lmax + 1) * (lmax + 1));
+  MemKK::realloc_kokkos(cl, "pace:cl", lmax + 1);
+  MemKK::realloc_kokkos(dl, "pace:dl", lmax + 1);
 
   pre_compute_harmonics(lmax);
   copy_pertype();
@@ -474,12 +474,12 @@ void PairPACEKokkos<DeviceType>::allocate()
   PairPACE::allocate();
 
   int n = atom->ntypes + 1;
-  memoryKK->realloc_kokkos(d_map, "pace:map", n);
+  MemKK::realloc_kokkos(d_map, "pace:map", n);
 
-  memoryKK->realloc_kokkos(k_cutsq, "pace:cutsq", n, n);
+  MemKK::realloc_kokkos(k_cutsq, "pace:cutsq", n, n);
   d_cutsq = k_cutsq.template view<DeviceType>();
 
-  memoryKK->realloc_kokkos(k_scale, "pace:scale", n, n);
+  MemKK::realloc_kokkos(k_scale, "pace:scale", n, n);
   d_scale = k_scale.template view<DeviceType>();
 }
 
@@ -1651,56 +1651,56 @@ double PairPACEKokkos<DeviceType>::memory_usage()
 {
   double bytes = 0;
 
-  bytes += memoryKK->memory_usage(A);
-  bytes += memoryKK->memory_usage(A_rank1);
-  bytes += memoryKK->memory_usage(A_list);
-  bytes += memoryKK->memory_usage(A_forward_prod);
-  bytes += memoryKK->memory_usage(e_atom);
-  bytes += memoryKK->memory_usage(rhos);
-  bytes += memoryKK->memory_usage(dF_drho);
-  bytes += memoryKK->memory_usage(weights);
-  bytes += memoryKK->memory_usage(weights_rank1);
-  bytes += memoryKK->memory_usage(rho_core);
-  bytes += memoryKK->memory_usage(dF_drho_core);
-  bytes += memoryKK->memory_usage(dB_flatten);
-  bytes += memoryKK->memory_usage(fr);
-  bytes += memoryKK->memory_usage(dfr);
-  bytes += memoryKK->memory_usage(gr);
-  bytes += memoryKK->memory_usage(dgr);
-  bytes += memoryKK->memory_usage(d_values);
-  bytes += memoryKK->memory_usage(d_derivatives);
-  bytes += memoryKK->memory_usage(cr);
-  bytes += memoryKK->memory_usage(dcr);
-  bytes += memoryKK->memory_usage(plm);
-  bytes += memoryKK->memory_usage(dplm);
-  bytes += memoryKK->memory_usage(ylm);
-  bytes += memoryKK->memory_usage(dylm);
-  bytes += memoryKK->memory_usage(d_ncount);
-  bytes += memoryKK->memory_usage(d_mu);
-  bytes += memoryKK->memory_usage(d_rhats);
-  bytes += memoryKK->memory_usage(d_rnorms);
-  bytes += memoryKK->memory_usage(d_nearest);
-  bytes += memoryKK->memory_usage(f_ij);
-  bytes += memoryKK->memory_usage(d_rho_core_cutoff);
-  bytes += memoryKK->memory_usage(d_drho_core_cutoff);
-  bytes += memoryKK->memory_usage(d_E0vals);
-  bytes += memoryKK->memory_usage(d_ndensity);
-  bytes += memoryKK->memory_usage(d_npoti);
-  bytes += memoryKK->memory_usage(d_wpre);
-  bytes += memoryKK->memory_usage(d_mexp);
-  bytes += memoryKK->memory_usage(d_idx_rho_count);
-  bytes += memoryKK->memory_usage(d_rank);
-  bytes += memoryKK->memory_usage(d_num_ms_combs);
-  bytes += memoryKK->memory_usage(d_offsets);
-  bytes += memoryKK->memory_usage(d_mus);
-  bytes += memoryKK->memory_usage(d_ns);
-  bytes += memoryKK->memory_usage(d_ls);
-  bytes += memoryKK->memory_usage(d_ms_combs);
-  bytes += memoryKK->memory_usage(d_ctildes);
-  bytes += memoryKK->memory_usage(alm);
-  bytes += memoryKK->memory_usage(blm);
-  bytes += memoryKK->memory_usage(cl);
-  bytes += memoryKK->memory_usage(dl);
+  bytes += MemKK::memory_usage(A);
+  bytes += MemKK::memory_usage(A_rank1);
+  bytes += MemKK::memory_usage(A_list);
+  bytes += MemKK::memory_usage(A_forward_prod);
+  bytes += MemKK::memory_usage(e_atom);
+  bytes += MemKK::memory_usage(rhos);
+  bytes += MemKK::memory_usage(dF_drho);
+  bytes += MemKK::memory_usage(weights);
+  bytes += MemKK::memory_usage(weights_rank1);
+  bytes += MemKK::memory_usage(rho_core);
+  bytes += MemKK::memory_usage(dF_drho_core);
+  bytes += MemKK::memory_usage(dB_flatten);
+  bytes += MemKK::memory_usage(fr);
+  bytes += MemKK::memory_usage(dfr);
+  bytes += MemKK::memory_usage(gr);
+  bytes += MemKK::memory_usage(dgr);
+  bytes += MemKK::memory_usage(d_values);
+  bytes += MemKK::memory_usage(d_derivatives);
+  bytes += MemKK::memory_usage(cr);
+  bytes += MemKK::memory_usage(dcr);
+  bytes += MemKK::memory_usage(plm);
+  bytes += MemKK::memory_usage(dplm);
+  bytes += MemKK::memory_usage(ylm);
+  bytes += MemKK::memory_usage(dylm);
+  bytes += MemKK::memory_usage(d_ncount);
+  bytes += MemKK::memory_usage(d_mu);
+  bytes += MemKK::memory_usage(d_rhats);
+  bytes += MemKK::memory_usage(d_rnorms);
+  bytes += MemKK::memory_usage(d_nearest);
+  bytes += MemKK::memory_usage(f_ij);
+  bytes += MemKK::memory_usage(d_rho_core_cutoff);
+  bytes += MemKK::memory_usage(d_drho_core_cutoff);
+  bytes += MemKK::memory_usage(d_E0vals);
+  bytes += MemKK::memory_usage(d_ndensity);
+  bytes += MemKK::memory_usage(d_npoti);
+  bytes += MemKK::memory_usage(d_wpre);
+  bytes += MemKK::memory_usage(d_mexp);
+  bytes += MemKK::memory_usage(d_idx_rho_count);
+  bytes += MemKK::memory_usage(d_rank);
+  bytes += MemKK::memory_usage(d_num_ms_combs);
+  bytes += MemKK::memory_usage(d_offsets);
+  bytes += MemKK::memory_usage(d_mus);
+  bytes += MemKK::memory_usage(d_ns);
+  bytes += MemKK::memory_usage(d_ls);
+  bytes += MemKK::memory_usage(d_ms_combs);
+  bytes += MemKK::memory_usage(d_ctildes);
+  bytes += MemKK::memory_usage(alm);
+  bytes += MemKK::memory_usage(blm);
+  bytes += MemKK::memory_usage(cl);
+  bytes += MemKK::memory_usage(dl);
 
   if (k_splines_gk.h_view.data()) {
     for (int i = 0; i < nelements; i++) {

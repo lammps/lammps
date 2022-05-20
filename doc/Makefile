@@ -231,6 +231,7 @@ $(VENV):
 		$(PYTHON) -m venv $(VENV); \
 		. $(VENV)/bin/activate; \
 		pip $(PIP_OPTIONS) install --upgrade pip; \
+		pip $(PIP_OPTIONS) install --upgrade wheel; \
 		pip $(PIP_OPTIONS) install -r $(BUILDDIR)/utils/requirements.txt; \
 		deactivate;\
 	)

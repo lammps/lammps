@@ -1,5 +1,0 @@
-# Definition of HIPNN potential
- 
-# Specify MLIAP Unified pair style
-pair_style mliap unified mliap_unified_hippynn_InP.pkl
-pair_coeff * * In P

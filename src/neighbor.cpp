@@ -1778,7 +1778,7 @@ NeighList *Neighbor::find_list(void *classptr, const int id) const
   if (classptr == nullptr) return nullptr;
 
   for (int i = 0; i < nlist; i++)
-    if ((requests[i]->requestor == classptr) && (requests[i]->id == id)) return lists[i];
+    if ((lists[i]->requestor == classptr) && (lists[i]->id == id)) return lists[i];
 
   return nullptr;
 }

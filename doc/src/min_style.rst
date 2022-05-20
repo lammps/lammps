@@ -4,7 +4,7 @@ min_style cg command
 ====================
 
 min_style hftn command
-====================
+======================
 
 min_style sd command
 ====================

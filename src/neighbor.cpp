@@ -1742,15 +1742,15 @@ void Neighbor::requests_new2old()
 /* ----------------------------------------------------------------------
    find and return request made by classptr
    if not found or classptr = nullptr, return nullptr
-   TODO: should have optional argument "id" to match ID if multiple requests
+   id is optional and defaults to 0, which is the request id value unless set explicitly
 ------------------------------------------------------------------------- */
 
-NeighRequest *Neighbor::find_request(void *classptr) const
+NeighRequest *Neighbor::find_request(void *classptr, const int id) const
 {
   if (classptr == nullptr) return nullptr;
 
   for (int i = 0; i < nrequest; i++)
-    if (requests[i]->requestor == classptr) return requests[i];
+    if ((requests[i]->requestor == classptr) && (requests[i]->id == id)) return requests[i];
 
   return nullptr;
 }
@@ -1770,15 +1770,15 @@ const std::vector<NeighRequest *> Neighbor::get_pair_requests() const
 /* ----------------------------------------------------------------------
    find and return list requested by classptr
    if not found or classptr = nullptr, return nullptr
-   TODO: should have optional argument "id" to match ID if multiple requests
+   id is optional and defaults to 0, which is the request id value unless set explicitly
 ------------------------------------------------------------------------- */
 
-NeighList *Neighbor::find_list(void *classptr) const
+NeighList *Neighbor::find_list(void *classptr, const int id) const
 {
   if (classptr == nullptr) return nullptr;
 
   for (int i = 0; i < nlist; i++)
-    if (lists[i]->requestor == classptr) return lists[i];
+    if ((requests[i]->requestor == classptr) && (requests[i]->id == id)) return lists[i];
 
   return nullptr;
 }

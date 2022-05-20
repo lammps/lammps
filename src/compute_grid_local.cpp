@@ -81,6 +81,7 @@ void ComputeGridLocal::setup()
 
 /* ----------------------------------------------------------------------
    convert global array indexes to box coords
+   for triclinic, these will be lamda coords
 ------------------------------------------------------------------------- */
 
 void ComputeGridLocal::grid2x(int ix, int iy, int iz, double *x)
@@ -88,8 +89,6 @@ void ComputeGridLocal::grid2x(int ix, int iy, int iz, double *x)
   x[0] = ix*delx;
   x[1] = iy*dely;
   x[2] = iz*delz;
-
-  if (triclinic) domain->lamda2x(x, x);
 }
 
 /* ----------------------------------------------------------------------
@@ -245,6 +244,10 @@ void ComputeGridLocal::assign_coords()
 	    xgrid[1] < sublo[1] || xgrid[1] > subhi[1] ||
 	    xgrid[2] < sublo[2] || xgrid[2] > subhi[2])
 	  error->one(FLERR,"Invalid gridpoint position in compute grid/local");
+
+	// convert lamda to x, y, z, after sudomain check
+	
+	if (triclinic) domain->lamda2x(xgrid, xgrid);
 	
 	alocal[igrid][3] = xgrid[0];
 	alocal[igrid][4] = xgrid[1];

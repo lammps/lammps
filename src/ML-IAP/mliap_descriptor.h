@@ -33,6 +33,7 @@ class MLIAPDescriptor : protected Pointers {
   int nelements;       // # of unique elements
   char **elements;     // names of unique elements
   double **cutsq;      // nelem x nelem rcutsq values
+  double **cutghost;   // cutoff for each ghost pair
   double cutmax;       // maximum cutoff needed
   double *radelem;     // element radii
   double *wjelem;      // elements weights

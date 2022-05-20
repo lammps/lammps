@@ -34,6 +34,7 @@
 #include "force.h"
 #include "memory.h"
 #include "neighbor.h"
+#include "neigh_request.h"
 
 #include <cmath>
 #include <cstring>
@@ -65,6 +66,7 @@ PairMLIAP::~PairMLIAP()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
+    memory->destroy(cutghost);
     memory->destroy(map);
   }
 }
@@ -116,6 +118,7 @@ void PairMLIAP::allocate()
 
   memory->create(setflag,n+1,n+1,"pair:setflag");
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(cutghost,n+1,n+1,"pair:cutghost");
   memory->create(map,n+1,"pair:map");
 }
 
@@ -177,13 +180,22 @@ void PairMLIAP::settings(int narg, char ** arg)
       descriptorflag = 1;
 #ifdef MLIAP_PYTHON
     } else if (strcmp(arg[iarg], "unified") == 0) {
+      MLIAPBuildUnified_t build;
       if (iarg+1 > narg) error->all(FLERR,"Illegal pair_style mliap command");
-      MLIAPBuildUnified_t build = build_unified(arg[iarg+1], data, lmp);
+      if (strcmp(arg[iarg+1],"ghostneigh") == 0) {
+        if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+        build = build_unified(arg[iarg+2], data, lmp);
+        ghostneigh = 1;
+        iarg += 3;
+      } else {
+        if (iarg+1 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+        build = build_unified(arg[iarg+1], data, lmp);
+        iarg += 2;
+      }
       model = build.model;
       descriptor = build.descriptor;
       modelflag = 1;
       descriptorflag = 1;
-      iarg += 2;
 #endif
     } else
       error->all(FLERR,"Illegal pair_style mliap command");
@@ -324,7 +336,10 @@ void PairMLIAP::init_style()
 
   // need a full neighbor list
 
-  neighbor->add_request(this, NeighConst::REQ_FULL);
+  if (ghostneigh)
+    neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
+  else
+    neighbor->add_request(this, NeighConst::REQ_FULL);
 }
 
 
@@ -349,6 +364,7 @@ double PairMLIAP::memory_usage()
   int n = atom->ntypes+1;
   bytes += (double)n*n*sizeof(int);            // setflag
   bytes += (double)n*n*sizeof(int);            // cutsq
+  bytes += (double)n*n*sizeof(int);            // cutghost
   bytes += (double)n*sizeof(int);              // map
   bytes += descriptor->memory_usage(); // Descriptor object
   bytes += model->memory_usage();      // Model object

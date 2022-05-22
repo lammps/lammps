@@ -192,9 +192,9 @@ std::string platform::os_info()
   // enforce zero termination
   value[1023] = '\0';
   auto build = std::string(value);
-  
+
   if (build == "6002") {
-      buf = "Windows Vista";
+    buf = "Windows Vista";
   } else if (build == "7601") {
     buf = "Windows 7";
   } else if (build == "9200") {

@@ -319,7 +319,7 @@ requires the following settings:
 
       Otherwise, CMake will attempt to download, build, and link with
       jpeg, png, and zlib libraries statically from source code.
-         
+
    .. tab:: Traditional make
 
       .. code-block:: make

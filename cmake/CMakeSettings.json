@@ -144,7 +144,7 @@
       "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows-intel-llvm.cmake -C ${workspaceRoot}\\cmake\\presets\\windows.cmake",
       "variables": [
         {
-          "name": "PKG_ELECTRON",
+          "name": "PKG_ELECTRODE",
           "value": "True",
           "type": "BOOL"
         },
@@ -187,7 +187,7 @@
       "inheritEnvironments": [],
       "variables": [
         {
-          "name": "PKG_ELECTRON",
+          "name": "PKG_ELECTRODE",
           "value": "True",
           "type": "BOOL"
         },
@@ -230,7 +230,7 @@
       "inheritEnvironments": [],
       "variables": [
         {
-          "name": "PKG_ELECTRON",
+          "name": "PKG_ELECTRODE",
           "value": "True",
           "type": "BOOL"
         },
@@ -273,7 +273,7 @@
       "inheritEnvironments": [],
       "variables": [
         {
-          "name": "PKG_ELECTRON",
+          "name": "PKG_ELECTRODE",
           "value": "True",
           "type": "BOOL"
         },

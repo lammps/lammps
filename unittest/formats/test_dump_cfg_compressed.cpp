@@ -33,7 +33,7 @@ public:
 
 TEST_F(DumpCfgCompressTest, compressed_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name        = "run*.melt.cfg";
     auto text_files       = text_dump_filename(base_name);
@@ -67,7 +67,7 @@ TEST_F(DumpCfgCompressTest, compressed_run0)
 
 TEST_F(DumpCfgCompressTest, compressed_no_buffer_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name        = "no_buffer_run*.melt.cfg";
     auto text_files       = text_dump_filename(base_name);
@@ -101,7 +101,7 @@ TEST_F(DumpCfgCompressTest, compressed_no_buffer_run0)
 
 TEST_F(DumpCfgCompressTest, compressed_unwrap_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name        = "unwrap_run*.melt.cfg";
     auto text_files       = text_dump_filename(base_name);
@@ -130,7 +130,7 @@ TEST_F(DumpCfgCompressTest, compressed_unwrap_run0)
 
 TEST_F(DumpCfgCompressTest, compressed_multi_file_run1)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "multi_file_run1_*.melt.cfg";
     auto base_name_0       = "multi_file_run1_0.melt.cfg";
@@ -172,7 +172,7 @@ TEST_F(DumpCfgCompressTest, compressed_multi_file_run1)
 
 TEST_F(DumpCfgCompressTest, compressed_multi_file_with_pad_run1)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "multi_file_pad_run1_*.melt.cfg";
     auto base_name_0       = "multi_file_pad_run1_000.melt.cfg";
@@ -214,7 +214,7 @@ TEST_F(DumpCfgCompressTest, compressed_multi_file_with_pad_run1)
 
 TEST_F(DumpCfgCompressTest, compressed_multi_file_with_maxfiles_run1)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "multi_file_maxfiles_run1_*.melt.cfg";
     auto base_name_0       = "multi_file_maxfiles_run1_0.melt.cfg";
@@ -292,7 +292,7 @@ TEST_F(DumpCfgCompressTest, compressed_modify_multi_bad_param)
 
 TEST_F(DumpCfgCompressTest, compressed_modify_clevel_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "modify_clevel_run*.melt.cfg";
     auto base_name_0       = "modify_clevel_run0.melt.cfg";

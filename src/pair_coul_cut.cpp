@@ -74,6 +74,10 @@ void PairCoulCut::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  for (int i = 0; i < 6; i++)
+    printf("PRE COUL FORCE %d: fxyz %g %g %g\n",atom->tag[i],
+           f[i][0],f[i][1],f[i][2]);
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -112,12 +116,19 @@ void PairCoulCut::compute(int eflag, int vflag)
           f[j][2] -= delz * fpair;
         }
 
+        printf("COUL FORCE %d %d: fxyz %g %g %g\n",atom->tag[i],atom->tag[j],
+               delx*fpair,dely*fpair,delz*fpair);
+
         if (eflag) ecoul = factor_coul * qqrd2e * scale[itype][jtype] * qtmp * q[j] * rinv;
 
         if (evflag) ev_tally(i, j, nlocal, newton_pair, 0.0, ecoul, fpair, delx, dely, delz);
       }
     }
   }
+
+  for (int i = 0; i < 6; i++)
+    printf("POST COUL FORCE %d: fxyz %g %g %g\n",atom->tag[i],
+           f[i][0],f[i][1],f[i][2]);
 
   if (vflag_fdotr) virial_fdotr_compute();
 }

@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -506,8 +505,21 @@ void FixNWChem::pre_force_qmmm(int vflag)
   //   fqm,qqm = forces & charges
   //   qmenergy = QM energy of entire system
 
+  printf("PSPW XQM: x1 %g %g %g x2 %g %g %g x3 %g %g %g\n",
+         xqm[0][0],xqm[0][1],xqm[0][2],
+         xqm[1][0],xqm[1][1],xqm[1][2],
+         xqm[2][0],xqm[2][1],xqm[2][2]);
+  printf("PSPW QPOT: qpot %g %g %g\n",qpotential[0],qpotential[1],qpotential[2]);
+
   int nwerr = lammps_pspw_qmmm_minimizer(world,&xqm[0][0],qpotential,
                                          &fqm[0][0],qqm,&qmenergy);
+
+  printf("PSPW FQM: f1 %g %g %g f2 %g %g %g f3 %g %g %g\n",
+         fqm[0][0],fqm[0][1],fqm[0][2],
+         fqm[1][0],fqm[1][1],fqm[1][2],
+         fqm[2][0],fqm[2][1],fqm[2][2]);
+  printf("PSPW QQM: qpot %g %g %g\n",qqm[0],qqm[1],qqm[2]);
+  printf("PSPW ENG: %g\n",qmenergy);
 
   //int nwerr = dummy_pspw_qmmm_minimizer(world,&xqm[0][0],qpotential,
   //                                      &fqm[0][0],qqm,&qmenergy);
@@ -537,6 +549,8 @@ void FixNWChem::pre_force_qmmm(int vflag)
   // reset LAMMPS forces to zero
   // NOTE: what about check in force_clear() for external_force_clear = OPENMP ?
   // NOTE: what will whichflag be for single snapshot compute of QM forces?
+
+  printf("UPDATE WHICHFLAG %d\n",update->whichflag);
 
   if (update->whichflag == 1) 
     update->integrate->force_clear();  
@@ -697,8 +711,16 @@ void FixNWChem::post_force_qmmm(int vflag)
       f[ilocal][0] += fqm[i][0];
       f[ilocal][1] += fqm[i][1];
       f[ilocal][2] += fqm[i][2];
+      printf("NWCHEM QM FORCE %d: %g %g %g\n",
+             atom->tag[ilocal],fqm[i][0],fqm[i][1],fqm[i][2]);
     }
   }
+
+  // DEBUG
+
+  for (int i = 0; i < atom->nlocal; i++)
+    printf("FINAL QM-unit FORCE id %d f %g %g %g\n",atom->tag[i],
+           f[i][0]/qm2lmp_force,f[i][1]/qm2lmp_force,f[i][2]/qm2lmp_force);
 
   // trigger per-atom energy computation on next step by pair/kspace
   // NOTE: is this needed ?

@@ -88,6 +88,10 @@ void PairLJCut::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  for (int i = 0; i < 6; i++)
+    printf("PRE LJ FORCE %d: fxyz %g %g %g\n",atom->tag[i],
+           f[i][0],f[i][1],f[i][2]);
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -125,6 +129,9 @@ void PairLJCut::compute(int eflag, int vflag)
           f[j][2] -= delz * fpair;
         }
 
+        printf("LJ FORCE %d %d: fxyz %g %g %g\n",atom->tag[i],atom->tag[j],
+               delx*fpair,dely*fpair,delz*fpair);
+
         if (eflag) {
           evdwl = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]) - offset[itype][jtype];
           evdwl *= factor_lj;
@@ -134,6 +141,10 @@ void PairLJCut::compute(int eflag, int vflag)
       }
     }
   }
+
+  for (int i = 0; i < 6; i++)
+    printf("POST LJ FORCE %d: fxyz %g %g %g\n",atom->tag[i],
+           f[i][0],f[i][1],f[i][2]);
 
   if (vflag_fdotr) virial_fdotr_compute();
 }

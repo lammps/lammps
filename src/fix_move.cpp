@@ -35,11 +35,16 @@
 #include <cmath>
 #include <cstring>
 
+#include <sstream>
+#include <vector>
+#include <fstream>
+#include <string>
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum { LINEAR, WIGGLE, ROTATE, VARIABLE, TRANSROT };
+enum { LINEAR, WIGGLE, ROTATE, VARIABLE, TRANSROT, WIGGLE_EIGEN };
 enum { EQUAL, ATOM };
 
 #define INERTIA 0.2    // moment of inertia prefactor for ellipsoid
@@ -187,7 +192,80 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
     } else
       error->all(FLERR, "Illegal fix move command");
 
-  } else
+  }
+  // Fix move wiggle_eigen
+  else if (strcmp(arg[3], "wiggle_eigen") == 0) {
+    int natoms = atom->natoms;
+    int nlocal = atom->nlocal;
+    printf("----- fix move wiggle_eigen initialize -----\n");
+    printf("natoms: %d\n", natoms);
+    memory->create(emat,natoms*3,natoms*3,"move:emat");
+    memory->create(freq,natoms*3,"move:freq");
+
+    // Read EMAT
+    std::ifstream readfile2;
+    for (int i = 0; i < natoms*3; i++) {
+        for (int j = 0; j < natoms*3; j++) {
+            emat[i][j] = 0.0;
+        }
+    }
+    readfile2.open("../EMAT");
+    //readfile2.open("ev_real.txt");
+    if (!readfile2.is_open()) {
+        //printf("ASDFASDF");
+        printf("Unable to open ../EMAT\n");
+        exit(1);
+    }
+    //printf("natoms: %d\n",  natoms);
+    for (int i=0;i<3*natoms;i++){
+        for (int j=0;j<3*natoms;j++){
+            readfile2>>emat[i][j];
+        }
+    }
+
+    // Read FREQUENCIES
+    std::ifstream readfile3;
+    for (int i = 0; i < natoms*3; i++) {
+      freq[i]=0.0;
+    }
+    readfile3.open("FREQUENCIES");
+    //readfile2.open("ev_real.txt");
+
+    if (!readfile3.is_open()) {
+        printf("Unable to open FREQUENCIES.\n");
+        exit(1);
+    }
+    //printf("natoms: %d\n",  natoms);
+    for (int i=0;i<3*natoms;i++){
+      readfile3>>freq[i];
+    }
+
+
+    if (narg < 8) error->all(FLERR, "Illegal fix move command");
+    iarg = 8;
+    mstyle = WIGGLE_EIGEN;
+    if (strcmp(arg[4], "NULL") == 0)
+      axflag = 0;
+    else {
+      axflag = 1;
+      ax = utils::numeric(FLERR, arg[4], false, lmp);
+    }
+    if (strcmp(arg[5], "NULL") == 0)
+      ayflag = 0;
+    else {
+      ayflag = 1;
+      ay = utils::numeric(FLERR, arg[5], false, lmp);
+    }
+    if (strcmp(arg[6], "NULL") == 0)
+      azflag = 0;
+    else {
+      azflag = 1;
+      az = utils::numeric(FLERR, arg[6], false, lmp);
+    }
+    period = utils::numeric(FLERR, arg[7], false, lmp);
+    if (period <= 0.0) error->all(FLERR, "Illegal fix move command");
+  }
+  else
     error->all(FLERR, "Illegal fix move command");
 
   // optional args
@@ -236,6 +314,10 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
       if (axflag) ax *= xscale;
       if (ayflag) ay *= yscale;
       if (azflag) az *= zscale;
+  } else if (mstyle == WIGGLE_EIGEN) {
+      if (axflag) ax *= xscale;
+      if (ayflag) ay *= yscale;
+      if (azflag) az *= zscale;
     } else if (mstyle == ROTATE) {
       point[0] *= xscale;
       point[1] *= yscale;
@@ -252,7 +334,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
 
   // set omega_rotate from period
 
-  if ((mstyle == WIGGLE) || (mstyle == ROTATE) || (mstyle == TRANSROT))
+  if ((mstyle == WIGGLE) || (mstyle == ROTATE) || (mstyle == TRANSROT) || (mstyle == WIGGLE_EIGEN))
     omega_rotate = MY_2PI / period;
 
   // runit = unit vector along rotation axis
@@ -295,10 +377,10 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
 
   // AtomVec pointers to retrieve per-atom storage of extra quantities
 
-  avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
-  avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
-  avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
-  avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
+  avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
+  avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
+  avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
+  avec_body = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
 
   // xoriginal = initial unwrapped positions of atoms
   // toriginal = initial theta of lines
@@ -379,6 +461,11 @@ FixMove::~FixMove()
   memory->destroy(qoriginal);
   memory->destroy(displace);
   memory->destroy(velocity);
+
+  if (mstyle==WIGGLE_EIGEN){
+    memory->destroy(emat);
+    memory->destroy(freq);
+  }
 
   delete[] xvarstr;
   delete[] yvarstr;
@@ -495,7 +582,7 @@ void FixMove::init()
     velocity = nullptr;
 
   if (utils::strmatch(update->integrate_style, "^respa"))
-    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
 }
 
 /* ----------------------------------------------------------------------
@@ -527,6 +614,7 @@ void FixMove::initial_integrate(int /*vflag*/)
   int *tri = atom->tri;
   int *body = atom->body;
   int *mask = atom->mask;
+  int *tag = atom->tag;
 
   int nlocal = atom->nlocal;
 
@@ -638,6 +726,142 @@ void FixMove::initial_integrate(int /*vflag*/)
       }
     }
 
+    // for rotate by right-hand rule around omega:
+    // P = point = vector = point of rotation
+    // R = vector = axis of rotation
+    // w = omega of rotation (from period)
+    // X0 = xoriginal = initial coord of atom
+    // R0 = runit = unit vector for R
+    // D = X0 - P = vector from P to X0
+    // C = (D dot R0) R0 = projection of atom coord onto R line
+    // A = D - C = vector from R line to X0
+    // B = R0 cross A = vector perp to A in plane of rotation
+    // A,B define plane of circular rotation around R line
+    // X = P + C + A cos(w*dt) + B sin(w*dt)
+    // V = w R0 cross (A cos(w*dt) + B sin(w*dt))
+
+} else if (mstyle == WIGGLE_EIGEN) {
+    //printf("----- Wiggling!-----\n");
+    int modeindx = 10;
+    //printf("%f %f\n", omega_rotate, MY_2PI*freq[modeindx]);
+    omega_rotate = MY_2PI*freq[modeindx];
+    double arg = omega_rotate * delta;
+    double sine = sin(arg);
+    double cosine = cos(arg);
+
+    //printf("arg: %f\n", arg);
+    for (int alpha=0; alpha<3; alpha++){
+        for (int i=0; i<nlocal; i++){
+            if(mask[i] & groupbit){
+                xold[0] = x[i][0];
+                xold[1] = x[i][1];
+                xold[2] = x[i][2];
+
+                if (axflag) {
+                    //int modeindx = 3;
+                    //int alpha = 0;
+
+                    ax = emat[3*(tag[i]-1)+alpha][modeindx];
+                    v[i][alpha] = ax * omega_rotate * cosine;
+                    x[i][alpha] = xoriginal[i][alpha] + ax * sine;
+                } else if (rmass) {
+                    dtfm = dtf / rmass[i];
+                    v[i][alpha] += dtfm * f[i][alpha];
+                    x[i][alpha] += dtv * v[i][alpha];
+                } else {
+                    dtfm = dtf / mass[type[i]];
+                    v[i][alpha] += dtfm * f[i][alpha];
+                    x[i][alpha] += dtv * v[i][alpha];
+                }
+
+                domain->remap_near(x[i], xold);
+            }
+
+        }
+
+
+    }
+
+    /*
+    for (int i=0; i<nlocal; i++){
+        if(mask[i] & groupbit){
+            xold[0] = x[i][0];
+            xold[1] = x[i][1];
+            xold[2] = x[i][2];
+
+            if (axflag) {
+            //int modeindx = 3;
+            int alpha = 0;
+
+            ax = emat[3*(tag[i]-1)+alpha][modeindx];
+            v[i][0] = ax * omega_rotate * cosine;
+            x[i][0] = xoriginal[i][0] + ax * sine;
+            } else if (rmass) {
+              dtfm = dtf / rmass[i];
+              v[i][0] += dtfm * f[i][0];
+              x[i][0] += dtv * v[i][0];
+            } else {
+              dtfm = dtf / mass[type[i]];
+              v[i][0] += dtfm * f[i][0];
+              x[i][0] += dtv * v[i][0];
+            }
+
+            domain->remap_near(x[i], xold);
+        }
+
+    }
+    */
+
+    /*
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        xold[0] = x[i][0];
+        xold[1] = x[i][1];
+        xold[2] = x[i][2];
+
+        if (axflag) {
+          v[i][0] = ax * omega_rotate * cosine;
+          x[i][0] = xoriginal[i][0] + ax * sine;
+        } else if (rmass) {
+          dtfm = dtf / rmass[i];
+          v[i][0] += dtfm * f[i][0];
+          x[i][0] += dtv * v[i][0];
+        } else {
+          dtfm = dtf / mass[type[i]];
+          v[i][0] += dtfm * f[i][0];
+          x[i][0] += dtv * v[i][0];
+        }
+
+        if (ayflag) {
+          v[i][1] = ay * omega_rotate * cosine;
+          x[i][1] = xoriginal[i][1] + ay * sine;
+        } else if (rmass) {
+          dtfm = dtf / rmass[i];
+          v[i][1] += dtfm * f[i][1];
+          x[i][1] += dtv * v[i][1];
+        } else {
+          dtfm = dtf / mass[type[i]];
+          v[i][1] += dtfm * f[i][1];
+          x[i][1] += dtv * v[i][1];
+        }
+
+        if (azflag) {
+          v[i][2] = az * omega_rotate * cosine;
+          x[i][2] = xoriginal[i][2] + az * sine;
+        } else if (rmass) {
+          dtfm = dtf / rmass[i];
+          v[i][2] += dtfm * f[i][2];
+          x[i][2] += dtv * v[i][2];
+        } else {
+          dtfm = dtf / mass[type[i]];
+          v[i][2] += dtfm * f[i][2];
+          x[i][2] += dtv * v[i][2];
+        }
+
+        domain->remap_near(x[i], xold);
+      }
+    }
+    */
     // for rotate by right-hand rule around omega:
     // P = point = vector = point of rotation
     // R = vector = axis of rotation
@@ -1297,6 +1521,13 @@ void FixMove::set_arrays(int i)
     if (vzflag) xoriginal[i][2] -= vz * delta;
 
   } else if (mstyle == WIGGLE) {
+    double arg = omega_rotate * delta;
+    double sine = sin(arg);
+    if (axflag) xoriginal[i][0] -= ax * sine;
+    if (ayflag) xoriginal[i][1] -= ay * sine;
+    if (azflag) xoriginal[i][2] -= az * sine;
+
+} else if (mstyle == WIGGLE_EIGEN) {
     double arg = omega_rotate * delta;
     double sine = sin(arg);
     if (axflag) xoriginal[i][0] -= ax * sine;

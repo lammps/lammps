@@ -56,6 +56,7 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   bzeroflag = 1;
   quadraticflag = 0;
   bikflag = 0;
+  dbirjflag = 0;
   chemflag = 0;
   bnormflag = 0;
   wselfallflag = 0;
@@ -81,6 +82,7 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   memory->create(cutsq,ntypes+1,ntypes+1,"snap:cutsq");
   for (int i = 1; i <= ntypes; i++) {
     cut = 2.0*radelem[i]*rcutfac;
+    printf("cut: %f\n", cut);
     if (cut > cutmax) cutmax = cut;
     cutsq[i][i] = cut*cut;
     for (int j = i+1; j <= ntypes; j++) {
@@ -147,6 +149,11 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute snap command");
       bikflag = atoi(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"dbirjflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute snap command");
+      dbirjflag = atoi(arg[iarg+1]);
+      iarg += 2;
     } else if (strcmp(arg[iarg],"switchinnerflag") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute snap command");
@@ -194,7 +201,9 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   natoms = atom->natoms;
   bik_rows = 1;
   if (bikflag) bik_rows = natoms;
-  size_array_rows = bik_rows+ndims_force*natoms+ndims_virial;
+  //size_array_rows = bik_rows+ndims_force*natoms+ndims_virial;
+  dbirj_rows = ndims_force*natoms;
+  size_array_rows = bik_rows+dbirj_rows+ndims_virial;
   size_array_cols = nperdim*atom->ntypes+1;
   lastcol = size_array_cols-1;
 
@@ -222,6 +231,14 @@ ComputeSnap::~ComputeSnap()
     memory->destroy(sinnerelem);
     memory->destroy(dinnerelem);
   }
+
+  if (dbirjflag){
+    printf("dbirj_rows: %d\n", dbirj_rows);
+    memory->destroy(dbirj);
+    memory->destroy(nneighs);
+    memory->destroy(neighsum);
+    memory->destroy(icounter);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -231,8 +248,10 @@ void ComputeSnap::init()
   if (force->pair == nullptr)
     error->all(FLERR,"Compute snap requires a pair style be defined");
 
-  if (cutmax > force->pair->cutforce)
+  if (cutmax > force->pair->cutforce){
+    //printf("----- cutmax cutforce: %f %f\n", cutmax, force->pair->cutforce);
     error->all(FLERR,"Compute snap cutoff is longer than pairwise cutoff");
+  }
 
   // need an occasional full neighbor list
 
@@ -243,7 +262,7 @@ void ComputeSnap::init()
   snaptr->init();
 
   // allocate memory for global array
-
+  printf("----- dbirjflag: %d\n", dbirjflag);
   memory->create(snap,size_array_rows,size_array_cols,
                  "snap:snap");
   memory->create(snapall,size_array_rows,size_array_cols,
@@ -283,6 +302,13 @@ void ComputeSnap::init_list(int /*id*/, NeighList *ptr)
 
 void ComputeSnap::compute_array()
 {
+  if (dbirjflag){
+    printf("----- dbirjflag true.\n");
+    get_dbirj_length();
+    printf("----- got dbirj_length\n");
+  }
+  printf("----- cutmax cutforce: %f %f\n", cutmax, force->pair->cutforce);
+  //else{
   int ntotal = atom->nlocal + atom->nghost;
 
   invoked_array = update->ntimestep;
@@ -295,22 +321,22 @@ void ComputeSnap::compute_array()
     memory->create(snap_peratom,nmax,size_peratom,
                    "snap:snap_peratom");
   }
-
   // clear global array
-
-  for (int irow = 0; irow < size_array_rows; irow++)
-    for (int icoeff = 0; icoeff < size_array_cols; icoeff++)
+  printf("size_array_rows: %d\n", size_array_rows);
+  for (int irow = 0; irow < size_array_rows; irow++){
+    for (int icoeff = 0; icoeff < size_array_cols; icoeff++){
+      //printf("%d %d\n", irow, icoeff);
       snap[irow][icoeff] = 0.0;
+    }
+  }
 
   // clear local peratom array
-
   for (int i = 0; i < ntotal; i++)
     for (int icoeff = 0; icoeff < size_peratom; icoeff++) {
       snap_peratom[i][icoeff] = 0.0;
     }
 
   // invoke full neighbor list (will copy or build if necessary)
-
   neighbor->build_one(list);
 
   const int inum = list->inum;
@@ -324,11 +350,17 @@ void ComputeSnap::compute_array()
 
   double** const x = atom->x;
   const int* const mask = atom->mask;
-
+  //printf("----- inum: %d\n", inum);
+  //printf("----- NEIGHMASK: %d\n", NEIGHMASK);
+  int ninside;
+  int numneigh_sum = 0;
   for (int ii = 0; ii < inum; ii++) {
     int irow = 0;
     if (bikflag) irow = atom->tag[ilist[ii] & NEIGHMASK]-1;
+    printf("----- ii, ilist, itag, irow: %d %d %d %d\n", ii, ilist[ii] & NEIGHMASK, atom->tag[ilist[ii]], irow);
     const int i = ilist[ii];
+    //printf("----- ii, i: %d %d\n", ii, i);
+    //printf("----- mask[i] groupbit: %d %d\n", mask[i], groupbit);
     if (mask[i] & groupbit) {
 
       const double xtmp = x[i][0];
@@ -353,7 +385,13 @@ void ComputeSnap::compute_array()
       // typej = types of neighbors of I within cutoff
       // note Rij sign convention => dU/dRij = dU/dRj = -dU/dRi
 
-      int ninside = 0;
+      /*
+      This loop assigns quantities in snaptr.
+      snaptr is a SNA class instance, see sna.h
+
+      */
+      //int ninside = 0;
+      ninside=0;
       for (int jj = 0; jj < jnum; jj++) {
         int j = jlist[jj];
         j &= NEIGHMASK;
@@ -367,6 +405,7 @@ void ComputeSnap::compute_array()
         if (chemflag)
           jelem = map[jtype];
         if (rsq < cutsq[itype][jtype]&&rsq>1e-20) {
+          //printf("cutsq: %f\n", cutsq[itype][jtype]);
           snaptr->rij[ninside][0] = delx;
           snaptr->rij[ninside][1] = dely;
           snaptr->rij[ninside][2] = delz;
@@ -382,27 +421,94 @@ void ComputeSnap::compute_array()
         }
       }
 
+      /*
+      Now that we have assigned neighbor quantities with previous loop, we are ready to compute things.
+      Here we compute the wigner functions (U), Z is some other quantity, and bi is bispectrum.
+      */
       snaptr->compute_ui(ninside, ielem);
       snaptr->compute_zi();
       snaptr->compute_bi(ielem);
 
+      /*
+      Looks like this loop computes derivatives.
+      How does snaptr know what atom I we're dealing with?
+      I think it only needs neighbor info, and then it goes from there.
+      */
+      //printf("----- Derivative loop - looping over neighbors j.\n");
+      printf("-----   ninside: %d\n", ninside); // numneighs of I within cutoff
       for (int jj = 0; jj < ninside; jj++) {
+        //printf("-----   jj: %d\n", jj);
         const int j = snaptr->inside[jj];
+        //printf("-----   jj, j, jtag: %d %d %d\n", jj, j, atom->tag[j]);
+        //int dbirj_row_indx = 3*neighsum[i] + 3*jj ; // THIS IS WRONG, SEE NEXT LINE.
+        //int dbirj_row_indx = 3*neighsum[j] + 3*i_indx; // need to get i_indx.
+        // How to get i_indx?
+        /*
+        i_indx must start at zero and end at (nneighs[j]-1).
+        We can start a counter for each atom j.
+        Maybe this icounter can serve as an index for i as a neighbor of j.
+        icounter starts at zero and ends at (nneighs[j]-1).
+        */
+        //icounter[atom->tag[j]-1] += 1;
+        int dbirj_row_indx = 3*neighsum[atom->tag[j]-1] + 3*icounter[atom->tag[j]-1] ; // THIS IS WRONG, SEE NEXT VAR.
+        printf("jtag, icounter, dbirj_row_indx: %d, %d, %d %d %d\n", atom->tag[j], icounter[atom->tag[j]-1], dbirj_row_indx+0, dbirj_row_indx+1, dbirj_row_indx+2);
+        icounter[atom->tag[j]-1] += 1;
+        /*
+        j is an atom index starting from 0.
+        Use atom->tag[j] to get the atom in the box (index starts at 1).
+        Need to make sure that the order of these ij pairs is the same when multiplying by dE/dD later.
+        */
+        //printf("-----   jj, j, jtag: %d %d %d\n", jj, j, atom->tag[j]);
         snaptr->compute_duidrj(jj);
         snaptr->compute_dbidrj();
 
         // Accumulate dBi/dRi, -dBi/dRj
 
+        /*
+        snap_peratom[i] has type double * because each atom index has indices for descriptors.
+        */
         double *snadi = snap_peratom[i]+typeoffset_local;
         double *snadj = snap_peratom[j]+typeoffset_local;
-
+        //printf("-----   ncoeff: %d\n", ncoeff);
+        //printf("snadi: %f %f %f %f %f\n", snadi[0], snadi[1], snadi[2], snadi[3], snadi[4]);
+        //printf("----- typeoffset_local: %d\n", typeoffset_local);
+        //printf("snadi: ");
+        //for (int s=0; s<(ncoeff*3); s++){
+        //  printf("%f ", snadi[s]);
+        //}
+        /*
+        printf("snadj: ");
+        for (int s=0; s<(ncoeff*3); s++){
+          printf("%f ", snadj[s]);
+        }
+        */
+        //printf("\n");
         for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+          //printf("-----     dblist[icoeff]: %f %f %f\n", snaptr->dblist[icoeff][0], snaptr->dblist[icoeff][1], snaptr->dblist[icoeff][2]);
+          /*
+          I think these are the descriptor derivatives.
+          Desriptor derivatives wrt atom i.
+          What exactly is being summed here?
+          This is a loop over descriptors or coeff k.
+
+          */
           snadi[icoeff] += snaptr->dblist[icoeff][0];
           snadi[icoeff+yoffset] += snaptr->dblist[icoeff][1];
           snadi[icoeff+zoffset] += snaptr->dblist[icoeff][2];
+          /*
+          Descriptor derivatives wrt atom j
+          */
           snadj[icoeff] -= snaptr->dblist[icoeff][0];
           snadj[icoeff+yoffset] -= snaptr->dblist[icoeff][1];
           snadj[icoeff+zoffset] -= snaptr->dblist[icoeff][2];
+
+
+          if (dbirjflag){
+            dbirj[dbirj_row_indx+0][icoeff] = snaptr->dblist[icoeff][0];
+            dbirj[dbirj_row_indx+1][icoeff] = snaptr->dblist[icoeff][1];
+            dbirj[dbirj_row_indx+2][icoeff] = snaptr->dblist[icoeff][2];
+          }
+          
         }
 
         if (quadraticflag) {
@@ -453,9 +559,11 @@ void ComputeSnap::compute_array()
           }
 
         }
-      }
+      } // for (int jj = 0; jj < ninside; jj++)
+      //printf("---- irow after jj loop: %d\n", irow);
 
       // Accumulate Bi
+      //printf("----- Accumulate Bi.\n");
 
       // linear contributions
 
@@ -476,18 +584,38 @@ void ComputeSnap::compute_array()
         }
       }
     }
+
+    numneigh_sum += ninside;
+  } // for (int ii = 0; ii < inum; ii++)
+
+  // Check icounter.
+  for (int ii = 0; ii < inum; ii++) {
+    const int i = ilist[ii];
+    if (mask[i] & groupbit) {
+      printf("icounter[i]: %d\n", icounter[i]);
+    }
   }
 
+  //printf("----- Accumulate bispecturm force contributions to global array.\n");
   // accumulate bispectrum force contributions to global array
-
+  //printf("----- ntotal, nmax, natoms: %d %d %d\n", ntotal, nmax, atom->natoms);
   for (int itype = 0; itype < atom->ntypes; itype++) {
     const int typeoffset_local = ndims_peratom*nperdim*itype;
     const int typeoffset_global = nperdim*itype;
+    //printf("----- nperdim: %d\n", nperdim);
+    /*nperdim = ncoeff set previsouly*/
     for (int icoeff = 0; icoeff < nperdim; icoeff++) {
+      //printf("-----   icoeff: %d\n", icoeff);
       for (int i = 0; i < ntotal; i++) {
         double *snadi = snap_peratom[i]+typeoffset_local;
         int iglobal = atom->tag[i];
+        if (icoeff==4){
+          if ( (snadi[icoeff] != 0.0) || (snadi[icoeff+yoffset] != 0.0) || (snadi[icoeff+zoffset] != 0.0) ){
+            //printf("%d %d %f %f %f\n", i, iglobal, snadi[icoeff], snadi[icoeff+yoffset], snadi[icoeff+zoffset]);
+          }
+        }
         int irow = 3*(iglobal-1)+bik_rows;
+        //printf("-----     snadi[icoeff]: %f\n", snadi[icoeff]);
         snap[irow++][icoeff+typeoffset_global] += snadi[icoeff];
         snap[irow++][icoeff+typeoffset_global] += snadi[icoeff+yoffset];
         snap[irow][icoeff+typeoffset_global] += snadi[icoeff+zoffset];
@@ -495,13 +623,20 @@ void ComputeSnap::compute_array()
     }
   }
 
+  //printf("----- Accumulate forces to global array.\n");
+  /*
+  These are the last columns.
+  */
  // accumulate forces to global array
 
   for (int i = 0; i < atom->nlocal; i++) {
     int iglobal = atom->tag[i];
     int irow = 3*(iglobal-1)+bik_rows;
+    //printf("---- irow: %d\n", irow);
     snap[irow++][lastcol] = atom->f[i][0];
+    //printf("---- irow: %d\n", irow);
     snap[irow++][lastcol] = atom->f[i][1];
+    //printf("---- irow: %d\n", irow);
     snap[irow][lastcol] = atom->f[i][2];
   }
 
@@ -531,6 +666,9 @@ void ComputeSnap::compute_array()
   snapall[irow++][lastcol] = c_virial->vector[4];
   snapall[irow][lastcol] = c_virial->vector[3];
 
+  //}// else
+
+  printf("----- End of compute_array.\n");
 }
 
 /* ----------------------------------------------------------------------
@@ -565,6 +703,111 @@ void ComputeSnap::dbdotr_compute()
         snap[irow][icoeff+typeoffset_global] += dbdy*x[i][0];
       }
     }
+}
+
+/* ----------------------------------------------------------------------
+   compute dbirj length
+------------------------------------------------------------------------- */
+
+void ComputeSnap::get_dbirj_length()
+{
+  // invoke full neighbor list (will copy or build if necessary)
+  neighbor->build_one(list);
+  //memory->destroy(snap);
+  //memory->destroy(snapall);
+  dbirj_rows = 0;
+  const int inum = list->inum;
+  const int* const ilist = list->ilist;
+  const int* const numneigh = list->numneigh;
+  int** const firstneigh = list->firstneigh;
+  int * const type = atom->type;
+  const int* const mask = atom->mask;
+  double** const x = atom->x;
+  //printf("----- inum: %d\n", inum);
+  memory->create(neighsum, inum, "snap:neighsum");
+  memory->create(nneighs, inum, "snap:nneighs");
+  memory->create(icounter, inum, "snap:icounter");
+  for (int ii = 0; ii < inum; ii++) {
+    const int i = ilist[ii];
+    if (mask[i] & groupbit) {
+      icounter[i]=0;
+      neighsum[i] = 0;
+      nneighs[i] = 0;
+      const double xtmp = x[i][0];
+      const double ytmp = x[i][1];
+      const double ztmp = x[i][2];
+      const int itype = type[i];
+      const int* const jlist = firstneigh[i];
+      const int jnum = numneigh[i];
+      //printf("-----   jnum: %d\n", jnum);
+      int jnum_cutoff = 0;
+      for (int jj = 0; jj < jnum; jj++) {
+        int j = jlist[jj];
+        j &= NEIGHMASK;
+
+        const double delx = x[j][0] - xtmp;
+        const double dely = x[j][1] - ytmp;
+        const double delz = x[j][2] - ztmp;
+        const double rsq = delx*delx + dely*dely + delz*delz;
+        int jtype = type[j];
+
+        if (rsq < cutsq[itype][jtype]&&rsq>1e-20) {
+          dbirj_rows += 1; //jnum + 1;
+          jnum_cutoff += 1;
+          nneighs[i]+=1;
+        }
+      }
+      //printf("----- jnum_cutoff: %d\n", jnum_cutoff);
+    }
+  }
+
+  dbirj_rows *= ndims_force;
+
+  // Loop over all atoms again to calculate neighsum.
+  for (int ii = 0; ii < inum; ii++) {
+    const int i = ilist[ii];
+    if (mask[i] & groupbit) {
+      //printf("nneighs[i]: %d\n", nneighs[i]);
+      //neighsum[i] = 0;
+      //printf("i nneighs[i]: %d %d\n", i, nneighs[i]);
+      if (i==0){
+        neighsum[i]=0;
+      }
+      else{
+        for (int jj=0; jj < ii; jj++){
+          const int j = ilist[jj];
+          if (mask[j] & groupbit) {
+            //printf("  j nneighs[j-1]: %d %d\n", j, nneighs[j]);
+            neighsum[i] += nneighs[j];
+          }
+        }
+      }
+    }
+    //printf("%d\n", neighsum[i]);
+  }
+
+  memory->create(dbirj, dbirj_rows, ncoeff, "snap:dbirj");
+  // Set size array rows which now depends on dbirj_rows.
+  //size_array_rows = bik_rows+dbirj_rows+ndims_virial;
+  //printf("----- dbirj_rows: %d\n", dbirj_rows);
+  //printf("----- end of dbirj length.\n");
+  /*
+  memory->create(snap,size_array_rows,size_array_cols,
+                 "snap:snap");
+  memory->create(snapall,size_array_rows,size_array_cols,
+                 "snap:snapall");
+  array = snapall;
+  */
+}
+
+/* ----------------------------------------------------------------------
+   compute array length
+------------------------------------------------------------------------- */
+
+double ComputeSnap::compute_scalar()
+{
+  if (dbirjflag) get_dbirj_length();
+  return size_array_rows;
 }
 
 /* ----------------------------------------------------------------------

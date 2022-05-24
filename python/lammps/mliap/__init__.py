@@ -4,7 +4,8 @@
 # try to improperly start up a new interpreter.
 import sysconfig
 import ctypes
-library = sysconfig.get_config_vars('INSTSONAME')[0]
+#library = sysconfig.get_config_vars('INSTSONAME')[0]
+library="/usr/local/Cellar/python@3.10/3.10.2/Frameworks/Python.framework/Versions/3.10/Python"
 try:
     pylib = ctypes.CDLL(library)
 except OSError as e:

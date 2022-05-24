@@ -3,7 +3,7 @@
 # initialize simulation
 
 variable 	nsteps index 0
-variable 	nrep equal 1
+variable 	nrep equal 2
 variable 	a equal 2.0
 units		metal
 
@@ -81,7 +81,7 @@ thermo 		100
 
 # test output:   1: total potential energy
 #                2: xy component of stress tensor
-#                3: Sum(B_{000}^i, all i of type 2) 
+#                3: Sum(B_{000}^i, all i of type 2)
 #                4: xz component of Sum(Sum(r_j*dB_{222}^i/dR[j]), all i of type 2), all j)
 #                5: y component of -Sum(d(B_{222}^i)/dR[2]), all i of type 2)
 #
@@ -89,7 +89,7 @@ thermo 		100
 
 thermo_style	custom &
 		pe            pxy            c_bsum2[1]   c_vbsum[55]    v_db_2_25 &
-		c_snap[1][11] c_snap[13][11] c_snap[1][6] c_snap[12][10] c_snap[6][10] 
+		c_snap[1][11] c_snap[13][11] c_snap[1][6] c_snap[12][10] c_snap[6][10]
 thermo_modify 	norm no
 
 # dump 		mydump_db all custom 1000 dump_db id c_db[*]

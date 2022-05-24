@@ -31,6 +31,7 @@ class ComputeSnap : public Compute {
   void init() override;
   void init_list(int, class NeighList *) override;
   void compute_array() override;
+  double compute_scalar() override;
   double memory_usage() override;
 
  private:
@@ -52,13 +53,19 @@ class ComputeSnap : public Compute {
   class SNA *snaptr;
   double cutmax;
   int quadraticflag;
-  int bikflag;
-  int bik_rows;
+  //int bikflag;
+  //int bik_rows;
+  int bikflag, bik_rows, dbirjflag, dbirj_rows;
+  double **dbirj;
+  int *nneighs; // number of neighs inside the snap cutoff.
+  int *neighsum;
+  int *icounter; // counting atoms i for each j.
 
   Compute *c_pe;
   Compute *c_virial;
 
   void dbdotr_compute();
+  void get_dbirj_length();
 };
 
 }    // namespace LAMMPS_NS

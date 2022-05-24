@@ -776,6 +776,7 @@ void SNA::compute_dbidrj()
 
   int elem3 = elem_duarray;
 
+  //printf("----- idxb_max: %d\n", idxb_max);
   for (int jjb = 0; jjb < idxb_max; jjb++) {
     const int j1 = idxb[jjb].j1;
     const int j2 = idxb[jjb].j2;
@@ -1334,6 +1335,9 @@ double SNA::memory_usage()
 
 void SNA::create_twojmax_arrays()
 {
+
+  //printf("----- idxb_max: %d\n", idxb_max);
+  //printf("----- ntriples: %d\n", ntriples);
   int jdimpq = twojmax + 2;
   memory->create(rootpqarray, jdimpq, jdimpq,
                  "sna:rootpqarray");
@@ -1595,4 +1599,3 @@ double SNA::compute_dsfac(double r, double rcut, double sinner, double dinner)
 
   return dsfac;
 }
-

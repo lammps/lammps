@@ -457,8 +457,9 @@ class PyLammps(object):
   :vartype run: list
   """
 
-  def __init__(self, name="", cmdargs=None, ptr=None, comm=None):
+  def __init__(self, name="", cmdargs=None, ptr=None, comm=None, verbose=False):
     self.has_echo = False
+    self.verbose = verbose
 
     if cmdargs:
       if '-echo' in cmdargs:
@@ -869,8 +870,8 @@ class PyLammps(object):
       if comm:
         output = self.lmp.comm.bcast(output, root=0)
 
-      if 'verbose' in kwargs and kwargs['verbose']:
-        print(output)
+      if self.verbose or ('verbose' in kwargs and kwargs['verbose']):
+        print(output, end = '')
 
       lines = output.splitlines()
 

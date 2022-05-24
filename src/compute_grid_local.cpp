@@ -23,6 +23,10 @@
 #include "error.h"
 #include "comm.h"
 
+// For the subdomain test below; grid-points and subdomain boundaries
+// sometimes differ by minimal amounts (in the order of 2e-17).
+#define EPSILON 1.0e-10
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -239,11 +243,15 @@ void ComputeGridLocal::assign_coords()
 	grid2x(ix, iy, iz, xgrid);
 
 	// ensure gridpoint is not strictly outside subdomain
-	
-	if (xgrid[0] < sublo[0] || xgrid[0] > subhi[0] ||
-	    xgrid[1] < sublo[1] || xgrid[1] > subhi[1] ||
-	    xgrid[2] < sublo[2] || xgrid[2] > subhi[2])
-	  error->one(FLERR,"Invalid gridpoint position in compute grid/local");
+    // There have been some problem with a gridpoint being something like 2e-17 outside of the subdomain,
+    // thus the EPISLON check.
+      if ((sublo[0]-xgrid[0]) > EPSILON || (xgrid[0]-subhi[0]) > EPSILON  ||
+	      (sublo[1]-xgrid[1]) > EPSILON || (xgrid[1]-subhi[1]) > EPSILON  ||
+	      (sublo[2]-xgrid[2]) > EPSILON || (xgrid[2]-subhi[2]) > EPSILON)
+      {
+          error->one(FLERR,"Invalid gridpoint position in compute grid/local");
+      }
+
 
 	// convert lamda to x, y, z, after sudomain check
 	

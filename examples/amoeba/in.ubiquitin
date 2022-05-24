@@ -14,16 +14,16 @@ improper_style  amoeba
 # per-atom properties required by AMOEBA or HIPPO
 
 fix             amtype all property/atom i_amtype ghost yes
+fix             extra all property/atom i_amgroup d_redID d_pval ghost yes
+fix             extra2 all property/atom i_polaxe d2_xyzaxis 3
+
 fix             pit all amoeba/pitorsion
 fix_modify      pit energy yes
 fix             bit all amoeba/bitorsion bitorsion.ubiquitin.data
 fix_modify      bit energy yes
 
-fix             extra all property/atom &
-                i_amgroup d_redID d_xaxis d_yaxis d_zaxis d_pval ghost yes
-fix             extra2 all property/atom i_polaxe
+# read data file
 
-#read_data       data.ubiquitin fix amtype NULL "Tinker Types"
 read_data       data.ubiquitin fix amtype NULL "Tinker Types" &
                 fix pit "pitorsion types" "PiTorsion Coeffs" &
                 fix pit pitorsions PiTorsions &

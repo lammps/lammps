@@ -12,8 +12,8 @@ dihedral_style  none
 # per-atom properties required by AMOEBA or HIPPO
 
 fix             amtype all property/atom i_amtype ghost yes
-fix             extra all property/atom                 i_amgroup d_redID d_xaxis d_yaxis d_zaxis d_pval ghost yes
-fix             extra2 all property/atom i_polaxe
+fix             extra all property/atom i_amgroup d_redID d_pval ghost yes
+fix             extra2 all property/atom i_polaxe d2_xyzaxis 3
 
 # read data file
 
@@ -39,7 +39,7 @@ Finding 1-2 1-3 1-4 neighbors ...
      1 = max # of 1-4 neighbors
      2 = max # of special neighbors
   special bonds CPU = 0.000 seconds
-  read_data CPU = 0.007 seconds
+  read_data CPU = 0.012 seconds
 
 # force field
 
@@ -55,7 +55,7 @@ Finding 1-2 1-3 1-4 neighbors ...
      1 = max # of 1-4 neighbors
      2 = max # of 1-5 neighbors
      2 = max # of special neighbors
-  special bonds CPU = 0.000 seconds
+  special bonds CPU = 0.001 seconds
 
 # thermo output
 
@@ -98,7 +98,7 @@ Neighbor list info ...
       stencil: half/bin/3d
       bin: standard
   AMOEBA/HIPPO group count: 216
-Per MPI rank memory allocation (min/avg/max) = 10.89 | 10.89 | 10.89 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 57.8 | 57.8 | 57.8 Mbytes
    Step          Temp          E_pair         E_bond        E_angle        E_dihed        E_impro         E_mol          TotEng         Press       c_virial[1]    c_virial[2]    c_virial[3]    c_virial[4]    c_virial[5]    c_virial[6]  
          0   0             -2188.594       166.82637      77.478353      0              0              244.30473     -1944.2893     -10859.589     -9285.4645     -11598.049     -11695.254     -282.7072       3164.4148      2495.2578    
         10   100.94691     -2350.192       116.13156      88.56605       0              0              204.69761     -1950.8098     -11480.919     -13574.139     -12190.797     -12798.212     -263.77028      280.62864      1974.1486    
@@ -110,33 +110,32 @@ Per MPI rank memory allocation (min/avg/max) = 10.89 | 10.89 | 10.89 Mbytes
         70   184.86849     -2391.6106      39.916931      35.978152      0              0              75.895083     -1959.1811     -2146.9339     -4993.4021     -4095.6729     -4897.5768     -833.09046      1542.411      -1539.5266    
         80   164.75795     -2406.3017      101.94229      33.067832      0              0              135.01013     -1953.542      -8779.3265     -10545.409     -10418.702     -12098.858     -1319.194       1750.3511     -275.1272     
         90   151.17491     -2434.6876      152.21826      41.301673      0              0              193.51993     -1949.6141     -13330.691     -15436.505     -13791.461     -16934.674      149.25497      2289.1026      976.14333    
-
-AMEOBA/HIPPO timing info:
-  Init   time: 0.0135815 0.00137415
-  Repls  time: 1.1283 11.4159
-  Disp   time: 0.913907 9.24672
-  Mpole  time: 1.76939 17.9023
-  Induce time: 3.50511 35.4639
-  Polar  time: 2.23426 22.6058
-  Qxfer  time: 0.319009 3.22767
-  Total  time: 9.88358
-
        100   166.99163     -2452.5298      143.57768      35.341459      0              0              178.91914     -1951.5533     -14918.51      -16077.49      -17353.738     -18140.466      19.009088      1487.0469      1084.0231    
-Loop time of 9.91124 on 1 procs for 100 steps with 648 atoms
+Loop time of 9.27469 on 1 procs for 100 steps with 648 atoms
 
-Performance: 0.872 ns/day, 27.531 hours/ns, 10.090 timesteps/s
-98.6% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 0.932 ns/day, 25.763 hours/ns, 10.782 timesteps/s
+99.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+AMEOBA/HIPPO timing breakdown:
+  Init    time: 0.012403 0.00134127
+  Repulse time: 1.04474 11.2979
+  Disp    time: 0.83125 8.98919
+  Mpole   time: 1.66803 18.0382
+  Induce  time: 3.2846 35.5199
+  Polar   time: 2.12371 22.9659
+  Qxfer   time: 0.282486 3.05482
+  Total   time: 9.24722
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 9.8837     | 9.8837     | 9.8837     |   0.0 | 99.72
-Bond    | 0.0026063  | 0.0026063  | 0.0026063  |   0.0 |  0.03
-Neigh   | 0.0058854  | 0.0058854  | 0.0058854  |   0.0 |  0.06
-Comm    | 0.002753   | 0.002753   | 0.002753   |   0.0 |  0.03
-Output  | 0.014779   | 0.014779   | 0.014779   |   0.0 |  0.15
-Modify  | 0.00071385 | 0.00071385 | 0.00071385 |   0.0 |  0.01
-Other   |            | 0.0007555  |            |       |  0.01
+Pair    | 9.2473     | 9.2473     | 9.2473     |   0.0 | 99.70
+Bond    | 0.0023727  | 0.0023727  | 0.0023727  |   0.0 |  0.03
+Neigh   | 0.0055338  | 0.0055338  | 0.0055338  |   0.0 |  0.06
+Comm    | 0.0021428  | 0.0021428  | 0.0021428  |   0.0 |  0.02
+Output  | 0.016044   | 0.016044   | 0.016044   |   0.0 |  0.17
+Modify  | 0.00059122 | 0.00059122 | 0.00059122 |   0.0 |  0.01
+Other   |            | 0.0006893  |            |       |  0.01
 
 Nlocal:            648 ave         648 max         648 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -150,4 +149,4 @@ Ave neighs/atom = 151.99074
 Ave special neighs/atom = 2
 Neighbor list builds = 2
 Dangerous builds = 0
-Total wall time: 0:00:10
+Total wall time: 0:00:09

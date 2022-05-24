@@ -12,8 +12,8 @@ dihedral_style  none
 # per-atom properties required by AMOEBA or HIPPO
 
 fix             amtype all property/atom i_amtype ghost yes
-fix             extra all property/atom                 i_amgroup d_redID d_xaxis d_yaxis d_zaxis d_pval ghost yes
-fix             extra2 all property/atom i_polaxe
+fix             extra all property/atom i_amgroup d_redID d_pval ghost yes
+fix             extra2 all property/atom i_polaxe d2_xyzaxis 3
 
 # read data file
 
@@ -55,7 +55,7 @@ Finding 1-2 1-3 1-4 neighbors ...
      1 = max # of 1-4 neighbors
      2 = max # of 1-5 neighbors
      2 = max # of special neighbors
-  special bonds CPU = 0.001 seconds
+  special bonds CPU = 0.000 seconds
 
 # thermo output
 
@@ -97,7 +97,7 @@ Neighbor list info ...
       bin: standard
 WARNING: Proc sub-domain size < neighbor skin, could lead to lost atoms (../domain.cpp:974)
   AMOEBA/HIPPO group count: 6
-Per MPI rank memory allocation (min/avg/max) = 9.833 | 9.833 | 9.833 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 49.56 | 49.56 | 49.56 Mbytes
    Step          Temp          E_pair         E_bond        E_angle        E_dihed        E_impro         E_mol          TotEng         Press       c_virial[1]    c_virial[2]    c_virial[3]    c_virial[4]    c_virial[5]    c_virial[6]  
          0   0             -48.469664      1.9820353      2.2499329      0              0              4.2319683     -44.237696     -26322.671     -28303.103     -27669.614     -22995.296      1312.6688      2624.8394      4042.0489    
         10   6.3616471     -46.626437      1.7910812      0.25704063     0              0              2.0481218     -44.255947     -23813.06      -24671.886     -17167.34      -30208.043     -474.208       -8339.5934     -5278.359     
@@ -109,31 +109,30 @@ Per MPI rank memory allocation (min/avg/max) = 9.833 | 9.833 | 9.833 Mbytes
         70   11.272241     -45.411622      0.07431614     0.51778317     0              0              0.59209931    -44.248316      32055.564      39306.193      30181.52       25601.501      1373.4778     -4501.0686     -2570.4767    
         80   14.011502     -46.081444      0.089688317    1.006928       0              0              1.0966163     -44.274812      25661.838      38836.598      12603.734      24205.867     -867.36437     -4211.9639     -2820.6725    
         90   17.659498     -46.247295      0.21744649     0.82687716     0              0              1.0443237     -44.308098      12101.207      19426.995      14142.311      1046.299      -2157.5418     -2141.2454     -2621.456     
-
-AMEOBA/HIPPO timing info:
-  Init   time: 0.000876489 0.0216648
-  Hal    time: 0.0012315 3.04398
-  Mpole  time: 0.00349354 8.63522
-  Induce time: 0.0293642 72.5816
-  Polar  time: 0.00547642 13.5365
-  Total  time: 0.0404569
-
        100   17.630532     -46.788272      0.61811601     0.9654966      0              0              1.5836126     -44.311254     -4455.3587      3961.5737     -11554.095     -7458.8012     -3120.9771     -1532.1706     -1499.0117    
-Loop time of 0.0431834 on 4 procs for 100 steps with 18 atoms
+Loop time of 0.0405754 on 4 procs for 100 steps with 18 atoms
 
-Performance: 200.077 ns/day, 0.120 hours/ns, 2315.706 timesteps/s
-97.8% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 212.937 ns/day, 0.113 hours/ns, 2464.547 timesteps/s
+98.9% CPU use with 4 MPI tasks x no OpenMP threads
+
+AMEOBA/HIPPO timing breakdown:
+  Init    time: 0.000756446 0.0198927
+  Hal     time: 0.00120064 3.15739
+  Mpole   time: 0.00338295 8.89637
+  Induce  time: 0.0273688 71.9733
+  Polar   time: 0.00530425 13.9489
+  Total   time: 0.0380263
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.040628   | 0.040702   | 0.04082    |   0.0 | 94.25
-Bond    | 7.2822e-05 | 9.4953e-05 | 0.00011572 |   0.0 |  0.22
+Pair    | 0.03816    | 0.038221   | 0.038312   |   0.0 | 94.20
+Bond    | 7.0759e-05 | 8.5222e-05 | 0.00010449 |   0.0 |  0.21
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.00067844 | 0.00088282 | 0.0010398  |   0.0 |  2.04
-Output  | 0.0010464  | 0.0010868  | 0.0011886  |   0.2 |  2.52
-Modify  | 4.2857e-05 | 5.2307e-05 | 6.3734e-05 |   0.0 |  0.12
-Other   |            | 0.0003646  |            |       |  0.84
+Comm    | 0.00065721 | 0.00081724 | 0.00093857 |   0.0 |  2.01
+Output  | 0.0010275  | 0.0010663  | 0.0011758  |   0.2 |  2.63
+Modify  | 3.3884e-05 | 4.422e-05  | 5.7037e-05 |   0.0 |  0.11
+Other   |            | 0.000341   |            |       |  0.84
 
 Nlocal:            4.5 ave           6 max           3 min
 Histogram: 1 0 0 1 0 0 1 0 0 1

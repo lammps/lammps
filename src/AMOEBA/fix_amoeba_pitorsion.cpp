@@ -436,11 +436,9 @@ void FixAmoebaPiTorsion::post_force(int vflag)
     dphi2 = 2.0 * (cosine2*s2 - sine2*c2);
 
     // calculate pi-system torsion energy and master chain rule term
-    // NOTE: remove ptorunit if 1.0 ?
 
-    double ptorunit = 1.0;
-    e = ptorunit * v2 * phi2;
-    dedphi = ptorunit * v2 * dphi2;
+    e = v2 * phi2;
+    dedphi = v2 * dphi2;
 
     // fraction of energy for each atom
 

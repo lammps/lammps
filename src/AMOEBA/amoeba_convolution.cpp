@@ -72,7 +72,7 @@ AmoebaConvolution::AmoebaConvolution(LAMMPS *lmp, Pair *pair,
   flag3d = 1;
   if (which == POLAR_GRIDC || which == INDUCE_GRIDC) flag3d = 0;
 
-  nfft_global = (bingint) nx * ny * nz;
+  nfft_global = (bigint) nx * ny * nz;
 
   // global indices of grid range from 0 to N-1
   // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
@@ -109,7 +109,6 @@ AmoebaConvolution::AmoebaConvolution(LAMMPS *lmp, Pair *pair,
   // dist[3] = particle position bound = subbox + skin/2.0
   //   convert to triclinic if necessary
   // nlo_out,nhi_out = nlo,nhi + stencil size for particle mapping
-  // NOTE: this needs to be computed same as IGRID in PairAmoeba
 
   double *prd,*boxlo,*sublo,*subhi;
   int triclinic = domain->triclinic;

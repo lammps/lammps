@@ -101,7 +101,11 @@ The implementation of the AMOEBA and HIPPO force fields in LAMMPS was
 done using F90 code provided by the Ponder group from their `Tinker MD
 code <https://dasher.wustl.edu/tinker/>`_.
 
-NOTE: what version of AMOEBA and HIPPO does LAMMPS implement?
+The current implementaion (May 2022) of AMOEBA in LAMMPS matches the
+version discussed in :ref:`(Ponder) <amoeba-Ponder>`, :ref:`(Ren)
+<amoeba-Ren>`, and :ref:`(Shi) <amoeba-Shi>`.  Likewise th current
+implementaion of HIPPO in LAMMPS matches the version discussed in
+:ref:`(Rackers) <amoeba-Rackers>`.
 
 ----------
 
@@ -211,6 +215,14 @@ none
 
 ----------
 
+.. _amoeba-Ponder:
+
+**(Ponder)** Ponder, Wu, Ren, Pande, Chodera†, Schnieders, Haque, Mobley, Lambrecht, DiStasio Jr, M. Head-Gordon, Clark, Johnson, T. Head-Gordon, J Phys Chem B, 114, 2549–2564 (2010).
+
+.. _amobea-Rackers:
+
+**(Rackers)** Rackers, Silva, Wang, Ponder, J Chem Theory Comput, 17, 7056–7084 (2021).
+
 .. _amoeba-Ren:
 
 **(Ren)** Ren and Ponder, J Phys Chem B, 107, 5933 (2003).
@@ -219,6 +231,3 @@ none
 
 **(Shi)** Shi, Xiz, Znahg, Best, Wu, Ponder, Ren, J Chem Theory Comp, 9, 4046, 2013.
 
-.. _amoeba-Rackers:
-
-**(Rackers)** Rackers and Ponder, J Chem Phys, 150, 084104 (2010).

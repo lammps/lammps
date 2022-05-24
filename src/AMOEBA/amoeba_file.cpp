@@ -94,9 +94,6 @@ void PairAmoeba::read_prmfile(char *filename)
   // Atom Type Definitions must come before any other section
   // other sections can follow in any order
 
-  // NOTE: don't use tokenize when not needed, doc string methods better
-  // NOTE: how to insure each section had enough lines?
-
   int forcefield_flag = 0;
   int atomtype_flag = 0;
   int section;
@@ -152,7 +149,10 @@ void PairAmoeba::read_prmfile(char *filename)
       MPI_Bcast(&n,1,MPI_INT,0,world);
       if (n < 0) break;
       MPI_Bcast(line,n+1,MPI_CHAR,0,world);
-      if (n == 0) break;    // line starting with #### = next section line
+
+      // line starting with #### = next section line
+
+      if (n == 0) break;
 
       // convert all chars in line to lower-case
 
@@ -491,6 +491,8 @@ void PairAmoeba::read_keyfile(char *filename)
     } else if (strcmp(keyword,"pcg-peek") == 0) {
       if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
       pcgpeek = utils::numeric(FLERR,words[1],true,lmp);
+
+    // NOTE: throw an error if keyword LAMMPS does not recognize ?
 
     } else {}
 

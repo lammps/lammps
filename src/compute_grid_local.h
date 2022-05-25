@@ -49,6 +49,7 @@ class ComputeGridLocal : public Compute {
   void allocate();                     // create arrays
   void deallocate();                   // free arrays
   void grid2x(int, int, int, double*); // convert global indices to coordinates
+  void grid2lamda(int, int, int, double*); // convert global indices to lamda coordinates
   void set_grid_global();              // set global grid
   void set_grid_local();               // set bounds for local grid
   void assign_coords();                // assign coords for grid

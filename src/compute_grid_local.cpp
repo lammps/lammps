@@ -85,7 +85,6 @@ void ComputeGridLocal::setup()
 
 /* ----------------------------------------------------------------------
    convert global array indexes to box coords
-   for triclinic, these will be lamda coords
 ------------------------------------------------------------------------- */
 
 void ComputeGridLocal::grid2x(int ix, int iy, int iz, double *x)
@@ -93,7 +92,22 @@ void ComputeGridLocal::grid2x(int ix, int iy, int iz, double *x)
   x[0] = ix*delx;
   x[1] = iy*dely;
   x[2] = iz*delz;
+
+  if (triclinic) domain->lamda2x(x, x);
 }
+
+/* ----------------------------------------------------------------------
+   convert global array indexes to lamda coords; for orthorombic
+   cells defaults to grid2x.
+------------------------------------------------------------------------- */
+
+void ComputeGridLocal::grid2lamda(int ix, int iy, int iz, double *x)
+{
+    x[0] = ix*delx;
+    x[1] = iy*dely;
+    x[2] = iz*delz;
+}
+
 
 /* ----------------------------------------------------------------------
    create arrays
@@ -240,9 +254,20 @@ void ComputeGridLocal::assign_coords()
 	alocal[igrid][1] = iy;
 	alocal[igrid][2] = iz;
 	double xgrid[3];
-	grid2x(ix, iy, iz, xgrid);
 
-	// ensure gridpoint is not strictly outside subdomain
+    // For triclinic: create gridpoint in lamda coordinates and transform after check.
+    // For orthorombic: create gridpoint in box coordinates.
+
+    if (triclinic)
+    {
+        grid2lamda(ix, iy, iz, xgrid);
+    }
+    else
+    {
+        grid2x(ix, iy, iz, xgrid);
+    }
+
+	// Ensure gridpoint is not strictly outside subdomain.
     // There have been some problem with a gridpoint being something like 2e-17 outside of the subdomain,
     // thus the EPISLON check.
       if ((sublo[0]-xgrid[0]) > EPSILON || (xgrid[0]-subhi[0]) > EPSILON  ||
@@ -252,11 +277,10 @@ void ComputeGridLocal::assign_coords()
           error->one(FLERR,"Invalid gridpoint position in compute grid/local");
       }
 
-
 	// convert lamda to x, y, z, after sudomain check
-	
+
 	if (triclinic) domain->lamda2x(xgrid, xgrid);
-	
+
 	alocal[igrid][3] = xgrid[0];
 	alocal[igrid][4] = xgrid[1];
 	alocal[igrid][5] = xgrid[2];

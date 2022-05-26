@@ -4,7 +4,7 @@ Example for pair style sw/table
 This example contains all required input files for the simulation of CG SPC/E water with
 the user pair style sw/table, as well as a run.sh script.
 
-To run the example, you have to compile LAMMPS with the MANYBODY package, including pair_sw_3b_table.h and pair_sw_3b_table.h.
+To run the example, you have to compile LAMMPS with the MANYBODY package, including pair_sw_3b_table.h and pair_sw_3b_table.cpp.
 
 Running the simulation, you will reproduce results of the following publication:
 

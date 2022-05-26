@@ -1,7 +1,7 @@
-.. index:: pair_style sw_table
+.. index:: pair_style sw_3b_table
 
 pair_style sw/3b/table command
-===========================
+==============================
 
 Syntax
 """"""

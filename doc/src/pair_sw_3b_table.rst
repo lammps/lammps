@@ -1,4 +1,4 @@
-.. index:: pair_style sw_3b_table
+.. index:: pair_style sw/3b/table
 
 pair_style sw/3b/table command
 ==============================
@@ -26,10 +26,12 @@ Examples
 Description
 """""""""""
 
-The *sw/3b/table* style is a modification of the original :doc:`pair_style sw <pair_sw>`. It has been
-developed for coarse-grained simulations (of water) (:ref:`Scherer1 <Scherer1>`),
-but can be employed for all kinds of systems. It computes a modified 3-body :ref:`Stillinger-Weber <Stillinger2>`
-potential for the energy E of a system of atoms as
+The *sw/3b/table* style is a modification of the original
+:doc:`pair_style sw <pair_sw>`. It has been developed for coarse-grained
+simulations (of water) (:ref:`Scherer1 <Scherer1>`), but can be employed
+for all kinds of systems. It computes a modified 3-body
+:ref:`Stillinger-Weber <Stillinger3>` potential for the energy E of a
+system of atoms as
 
 .. math::
 
@@ -48,8 +50,8 @@ three-body term.  The summations in the formula are over all neighbors J
 and K of atom I within a cutoff distance :math:`a \sigma`.
 In contrast to the original *sw* style, *sw/3b/table* allows for a flexible
 three-body term :math:`f^{\textrm{3b}}\left(\theta_{ijk}\right)` which is read in
-as a tabulated interaction. It can be parametrized with the csg_fmatch app of VOTCA
-as available at: <https://gitlab.mpcdf.mpg.de/votca/votca>.
+as a tabulated interaction. It can be parameterized with the csg_fmatch app of VOTCA
+as available at: https://gitlab.mpcdf.mpg.de/votca/votca.
 
 Only a single pair_coeff command is used with the *sw/3b/table* style
 which specifies a modified Stillinger-Weber potential file with parameters for all
@@ -191,19 +193,21 @@ are estimated (less accurately) by the first two and last two
 derivative values in the table.
 
 The "EQ" parameter is also optional.  If used, it is followed by a the
-equilibrium angle value, which is used, for example, by the :doc:`fix shake <fix_shake>` command. If not used, the equilibrium angle is
-set to 180.0.
+equilibrium angle value, which is used, for example, by the :doc:`fix
+shake <fix_shake>` command. If not used, the equilibrium angle is set to
+180.0.
 
-Following a blank line, the next N lines of the angular table file list the tabulated values.
-On each line, the first value is the index from 1 to N, the second value is
-the angle value (in degrees), the third value is the energy (in energy
-units), and the fourth is -dE/d(theta) (also in energy units).  The third
-term is the energy of the 3-atom configuration for the specified
-angle.  The last term is the derivative of the energy with respect to
-the angle (in degrees, not radians).  Thus the units of the last term
-are still energy, not force.  The angle values must increase from one
-line to the next.  The angle values must also begin with 0.0 and end
-with 180.0, i.e. span the full range of possible angles.
+Following a blank line, the next N lines of the angular table file list
+the tabulated values.  On each line, the first value is the index from 1
+to N, the second value is the angle value (in degrees), the third value
+is the energy (in energy units), and the fourth is -dE/d(theta) (also in
+energy units).  The third term is the energy of the 3-atom configuration
+for the specified angle.  The last term is the derivative of the energy
+with respect to the angle (in degrees, not radians).  Thus the units of
+the last term are still energy, not force.  The angle values must
+increase from one line to the next.  The angle values must also begin
+with 0.0 and end with 180.0, i.e. span the full range of possible
+angles.
 
 Note that one angular potential file can contain many sections, each with a tabulated
 potential.  LAMMPS reads the file section by section until it finds
@@ -282,8 +286,8 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-This is a user pair style. For more information, see :ref:`Scherer1 <Scherer1>`. It is only enabled
-if LAMMPS was explicitly built with it.
+This is a user pair style. For more information, see :ref:`Scherer1
+<Scherer1>`. It is only enabled if LAMMPS was explicitly built with it.
 
 This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
@@ -294,12 +298,12 @@ in the tutorial folder.
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style sw <pair_sw>`, :doc:`pair_style 3b/table <pair_3b_table>`
 
 
 ----------
 
-.. _Stillinger2:
+.. _Stillinger3:
 
 **(Stillinger)** Stillinger and Weber, Phys Rev B, 31, 5262 (1985).
 

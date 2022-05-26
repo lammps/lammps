@@ -112,6 +112,7 @@ accelerated styles exist.
 * :doc:`hybrid/scaled <pair_hybrid>` - multiple styles of scaled superposed pairwise interactions
 * :doc:`zero <pair_zero>` - neighbor list but no interactions
 
+* :doc:`3b/table <pair_3b_table>` - generic tabulated three-body potential
 * :doc:`adp <pair_adp>` - angular dependent potential (ADP) of Mishin
 * :doc:`agni <pair_agni>` - AGNI machine-learning potential
 * :doc:`airebo <pair_airebo>` - AIREBO potential of Stuart
@@ -348,6 +349,7 @@ accelerated styles exist.
 * :doc:`spin/neel <pair_spin_neel>` -
 * :doc:`srp <pair_srp>` -
 * :doc:`sw <pair_sw>` - Stillinger-Weber 3-body potential
+* :doc:`sw/3b/table <pair_sw_3b_table>` - Stillinger-Weber potential with tabulated 3-body term
 * :doc:`sw/mod <pair_sw>` - modified Stillinger-Weber 3-body potential
 * :doc:`table <pair_table>` - tabulated pair potential
 * :doc:`table/rx <pair_table_rx>` -

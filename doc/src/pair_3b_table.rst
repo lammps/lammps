@@ -1,4 +1,4 @@
-.. index:: pair_style 3b_table
+.. index:: pair_style 3b/table
 
 pair_style 3b/table command
 ===========================
@@ -26,22 +26,22 @@ Examples
 Description
 """""""""""
 
-The *3b/table* style is a pair style for generic tabulated three-body interactions.
-It has been developed for (coarse-grained) simulations (of water)
-with Kernel-based machine learning (ML) potentials (:ref:`Scherer2 <Scherer2>`).
-As for the pair style :doc:`pair_style sw <pair_sw>`
-or :doc:`pair_style sw/table <pair_sw_table>`, the energy of a system
-is computed as a sum over three-body terms:
+The *3b/table* style is a pair style for generic tabulated three-body
+interactions.  It has been developed for (coarse-grained) simulations
+(of water) with Kernel-based machine learning (ML) potentials
+(:ref:`Scherer2 <Scherer2>`).  As for the pair style :doc:`pair_style sw
+<pair_sw>` or :doc:`pair_style sw/3b/table <pair_sw_3b_table>`, the energy of
+a system is computed as a sum over three-body terms:
 
 .. math::
 
    E =  \sum_i \sum_{j \neq i} \sum_{k > j} \phi_3 (r_{ij}, r_{ik}, \theta_{ijk})
 
-The summations in the formula are over all neighbors J
-and K of atom I within a cutoff distance :math:`cut`.
-In contrast to the Stillinger-Weber potential, all forces are not calculated analytically, but
-read in from a three-body force/energy table which can be generated with
-the csg_ml app of VOTCA as available at: <https://gitlab.mpcdf.mpg.de/votca/votca>.
+The summations in the formula are over all neighbors J and K of atom I
+within a cutoff distance :math:`cut`.  In contrast to the
+Stillinger-Weber potential, all forces are not calculated analytically,
+but read in from a three-body force/energy table which can be generated
+with the csg_ml app of VOTCA as available at: https://gitlab.mpcdf.mpg.de/votca/votca.
 
 Only a single pair_coeff command is used with the *3b/table* style
 which specifies a three-body potential (".3b") file with parameters for all
@@ -102,14 +102,14 @@ If element 2 and element 3 are of the same type (e.g. SiCC), the distance
 due to the symmetry of the triplet. If element 2 and element 3 are not
 of the same type (e.g. SiCSi), there is no additional symmetry and the
 distance :math:`r_{ik}` is also varied from rmin to rmax in "N" steps.
-The angle :math:`\theta_{ijk}` is alsways varied in "2N" steps from
+The angle :math:`\theta_{ijk}` is always varied in "2N" steps from
 (0.0 + 180.0/(4N)) to (180.0 - 180.0/(4N)). Therefore, the total number
 of table entries is "M = N * N * (N+1)" for the symmetric (element 2 and element 3
 are of the same type) and "M = 2 * N * N * N" for the general case
 (element 2 and element 3 are not of the same type).
 
 The forces on all three particles I, J, and K of a triplet
-of this type of thre-body interaction potential
+of this type of three-body interaction potential
 (:math:`\phi_3 (r_{ij}, r_{ik}, \theta_{ijk})`) lie within
 the plane defined by the three inter-particle distance vectors
 :math:`{\mathbf r}_{ij}`, :math:`{\mathbf r}_{ik}`, and :math:`{\mathbf r}_{jk}`.
@@ -187,13 +187,13 @@ one that matches the specified *keyword* of appropriate section of the ".3b" fil
 
 At the moment, only the *style* *linear* is allowed and implemented. After reading in the
 force table, it is internally stored in LAMMPS as a lookup table. For each triplet
-configuration occuring in the simulation within the cutoff distance,
+configuration occurring in the simulation within the cutoff distance,
 the next nearest tabulated triplet configuration is looked up. No interpolation is done.
 This allows for a very efficient force calculation
 with the stored force constants and energies. Due to the know table structure, the lookup
 can be done efficiently. It has been tested (:ref:`Scherer2 <Scherer2>`) that with a reasonably
 small bin size, the accuracy and speed is comparable to that of a Stillinger-Weber potential
-with tabulated three-body interactions (:doc:`pair_style sw/table <pair_sw_table>`) while
+with tabulated three-body interactions (:doc:`pair_style sw/table <pair_sw_3b_table>`) while
 the table format of this pair style allows for more flexible three-body interactions.
 
 As for the Stillinger-Weber potential, the three-body potential file must contain entries for all the
@@ -254,12 +254,12 @@ in the tutorial folder.
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair sw/3b/table <pair_sw_3b_table>`
 
 
 ----------
 
 .. _Scherer2:
 
-**(Scherer2)** C. Scherer, R. Scheid, D. Andrienko, and T. Bereau, J. Chem. Theor. Comp. 16, 3194–3204 (2020).
+**(Scherer2)** C. Scherer, R. Scheid, D. Andrienko, and T. Bereau, J. Chem. Theor. Comp. 16, 3194-3204 (2020).
 

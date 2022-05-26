@@ -55,7 +55,7 @@ class PairSW : public Pair {
 
   void settings(int, char **) override;
   virtual void allocate();
-  void read_file(char *);
+  virtual void read_file(char *);
   virtual void setup_params();
   void twobody(Param *, double, double &, int, double &);
   virtual void threebody(Param *, Param *, Param *, double, double, double *, double *, double *,

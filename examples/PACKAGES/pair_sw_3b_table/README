@@ -1,0 +1,41 @@
+Example for pair style sw/table
+================================
+
+This example contains all required input files for the simulation of CG SPC/E water with
+the user pair style sw/table, as well as a run.sh script.
+
+To run the example, you have to compile LAMMPS with the MANYBODY package, including pair_sw_3b_table.h and pair_sw_3b_table.h.
+
+Running the simulation, you will reproduce results of the following publication:
+
+C. Scherer, and D. Andrienko, Understanding three-body contributions to coarse-grained force fields, Phys. Chem. Chem. Phys, 20(34):22387–22394, 2018, http://xlink.rsc.org/?DOI=C8CP00746B
+
+Here, a water molecule is represented by one coarse-grained (CG) bead. The
+two-body (table_CG_CG.txt) and three-body angular (table_CG_CG_CG.txt) interaction potentials
+have been parametrized with force-matching (FM) with the VOTCA package (https://gitlab.mpcdf.mpg.de/votca/votca).
+For more details, have a look at the publication. For a example on the parametrization, have a look at
+https://gitlab.mpcdf.mpg.de/votca/votca/-/tree/master/csg-examples/guide and
+https://gitlab.mpcdf.mpg.de/votca/votca/-/tree/master/csg-examples/spce/3body_sw.
+
+The folder contains the LAMMPS data file (spce.data) with the starting configuration
+of 1000 CG water molecules, an input file (spce.in) and a (modified) Stillinger-Weber file (spce.sw).
+
+The lammps input file contains the lines specifying the pair style and coefficients:
+
+- pair_style  hybrid/overlay table linear 1200 sw/3b/table - use a combination of pair_style table with 1200 linear table entries and the pair_style sw/3b/table
+- pair_coeff  1 1 table table_CG_CG.txt VOTCA - set the table name and keyword for the pair_style table
+- pair_coeff  * * sw/3b/table spce.sw type - set the name of the Stillinger-Weber file for the pair_style sw/3b/table
+
+A hybrid pair style is used, where pair forces are calculated as a tabulated interaction (table_CG_CG.txt) and the
+pair style sw/table is only used to calculate the three-body forces. Therefore, in the Stillinger-Weber file all
+parameters refering to two-body interactions are set to zero. As explained in the documentation of this pair
+style, the .sw file contains the
+additional lines refering to the tabulated angular potential:
+
+- table_CG_CG_CG.txt - file name of tabulated angular potential
+- VOTCA - keyword for tabulated angular potential
+- linear - angular table is of linear style
+- 1001 - 1001 table entries
+
+The LAMMPS simulation is a standard nvt simulation. A dump file is output with the positions and forces every 10 time steps.
+You can calculate the pair distribution and compare it to the one(s) in the publicattion.

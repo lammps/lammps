@@ -112,7 +112,7 @@ The A, B, p, and q parameters are used only for two-body interactions.
 The :math:`\lambda` and :math:`\cos\theta_0` parameters, only used
 for three-body interactions in the original Stillinger-Weber style, are read
 in but ignored in this modified pair style. The :math:`\epsilon` parameter is only used
-for two-body interactions in this modified pair style and not for the three-body 
+for two-body interactions in this modified pair style and not for the three-body
 terms. The :math:`\sigma` and *a* parameters are used for both two-body and three-body
 interactions. :math:`\gamma` is used only in the three-body
 interactions, but is defined for pairs of atoms. The non-annotated
@@ -235,7 +235,7 @@ screening factors with parameter values from the ij pair and ik
 pairs. So :math:`\phi_3` for a C atom bonded to a Si atom and a second C atom
 will depend on the three-body parameters for the CSiC entry, and also
 on the two-body parameters for the CCC and CSiSi entries. Since the
-order of the two neighbors is arbitrary, the three-body parameters 
+order of the two neighbors is arbitrary, the three-body parameters
 and the tabulated angular potential for
 entries CSiC and CCSi should be the same.  Similarly, the two-body
 parameters for entries SiCC and CSiSi should also be the same.  The

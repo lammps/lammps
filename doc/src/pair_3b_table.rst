@@ -29,7 +29,7 @@ Description
 The *3b/table* style is a pair style for generic tabulated three-body interactions.
 It has been developed for (coarse-grained) simulations (of water)
 with Kernel-based machine learning (ML) potentials (:ref:`Scherer2 <Scherer2>`).
-As for the pair style :doc:`pair_style sw <pair_sw>` 
+As for the pair style :doc:`pair_style sw <pair_sw>`
 or :doc:`pair_style sw/table <pair_sw_table>`, the energy of a system
 is computed as a sum over three-body terms:
 
@@ -39,7 +39,7 @@ is computed as a sum over three-body terms:
 
 The summations in the formula are over all neighbors J
 and K of atom I within a cutoff distance :math:`cut`.
-In contrast to the Stillinger-Weber potential, all forces are not calculated analytically, but 
+In contrast to the Stillinger-Weber potential, all forces are not calculated analytically, but
 read in from a three-body force/energy table which can be generated with
 the csg_ml app of VOTCA as available at: <https://gitlab.mpcdf.mpg.de/votca/votca>.
 
@@ -63,7 +63,7 @@ pair_coeff command:
 .. code-block:: LAMMPS
 
    pair_coeff * * SiC.3b Si Si Si C
-   
+
 The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to the Si
 element in the ".3b" file.  The final C argument maps LAMMPS atom type 4
@@ -75,7 +75,7 @@ potentials.
 
 The three-body files have a ".3b" suffix. Lines that are not blank or
 comments (starting with #) define parameters for a triplet of
-elements. The parameters in a single entry specify to the 
+elements. The parameters in a single entry specify to the
 (three-body) cutoff distance and the tabulated
 three-body interaction. A single entry then contains:
 
@@ -100,18 +100,18 @@ If element 2 and element 3 are of the same type (e.g. SiCC), the distance
 :math:`r_{ij}` is varied in "N" steps from rmin to rmax and the distance
 :math:`r_{ik}` is varied from :math:`r_{ij}` to rmax. This can be done,
 due to the symmetry of the triplet. If element 2 and element 3 are not
-of the same type (e.g. SiCSi), there is no additional symmetry and the 
+of the same type (e.g. SiCSi), there is no additional symmetry and the
 distance :math:`r_{ik}` is also varied from rmin to rmax in "N" steps.
 The angle :math:`\theta_{ijk}` is alsways varied in "2N" steps from
 (0.0 + 180.0/(4N)) to (180.0 - 180.0/(4N)). Therefore, the total number
-of table entries is "M = N * N * (N+1)" for the symmetric (element 2 and element 3 
+of table entries is "M = N * N * (N+1)" for the symmetric (element 2 and element 3
 are of the same type) and "M = 2 * N * N * N" for the general case
 (element 2 and element 3 are not of the same type).
 
 The forces on all three particles I, J, and K of a triplet
-of this type of thre-body interaction potential 
+of this type of thre-body interaction potential
 (:math:`\phi_3 (r_{ij}, r_{ik}, \theta_{ijk})`) lie within
-the plane defined by the three inter-particle distance vectors 
+the plane defined by the three inter-particle distance vectors
 :math:`{\mathbf r}_{ij}`, :math:`{\mathbf r}_{ik}`, and :math:`{\mathbf r}_{jk}`.
 This property is used to project the forces onto the inter-particle
 distance vectors as follows
@@ -215,7 +215,7 @@ principle be specific to the three elements of the configuration.
 However, the user must ensure that it makes physically sense.
 E.g., the tabulated three-body forces for the
 entries CSiC and CCSi should be the same exchanging :math:`r_{ij}` with
-r_{ik}, :math:`f_{j1}` with :math:`f_{k1}`, 
+r_{ik}, :math:`f_{j1}` with :math:`f_{k1}`,
 and :math:`f_{j2}` with :math:`f_{k2}`.
 
 

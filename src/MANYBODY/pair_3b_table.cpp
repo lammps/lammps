@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -46,19 +46,15 @@ enum{LINEAR};
 
 /* ---------------------------------------------------------------------- */
 
-Pair3BTable::Pair3BTable(LAMMPS *lmp) : Pair(lmp)
+Pair3BTable::Pair3BTable(LAMMPS *lmp) : Pair(lmp), params(nullptr), neighshort(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
-  unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
-
-  params = nullptr;
 
   maxshort = 10;
-  neighshort = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -85,9 +81,9 @@ Pair3BTable::~Pair3BTable()
 void Pair3BTable::compute(int eflag, int vflag)
 {
   int i,j,k,ii,jj,kk,inum,jnum,jnumm1;
-  int itype,jtype,ktype,ijparam,ikparam,ijkparam;
+  int itype,jtype,ktype,ijparam,ijkparam;
   tagint itag,jtag;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl;
   double rsq,rsq1,rsq2;
   double delr1[3],delr2[3],fi[3],fj[3],fk[3];
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -99,8 +95,6 @@ void Pair3BTable::compute(int eflag, int vflag)
   double **f = atom->f;
   tagint *tag = atom->tag;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int newton_pair = force->newton_pair;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -178,7 +172,6 @@ void Pair3BTable::compute(int eflag, int vflag)
       for (kk = jj+1; kk < numshort; kk++) {
         k = neighshort[kk];
         ktype = map[type[k]];
-        ikparam = elem3param[itype][ktype][ktype];
         ijkparam = elem3param[itype][jtype][ktype];
 
         delr2[0] = x[k][0] - xtmp;
@@ -186,8 +179,7 @@ void Pair3BTable::compute(int eflag, int vflag)
         delr2[2] = x[k][2] - ztmp;
         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
 
-        threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
-                  rsq1,rsq2,delr1,delr2,fi,fj,fk,eflag,evdwl);
+        threebody(&params[ijkparam],rsq1,rsq2,delr1,delr2,fi,fj,fk,eflag,evdwl);
 
         fxtmp += fi[0];
         fytmp += fi[1];
@@ -230,9 +222,8 @@ void Pair3BTable::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void Pair3BTable::settings(int narg, char **arg)
+void Pair3BTable::settings(int narg, char ** /*arg*/)
 {
-  //one mre additional argument: number of table entries
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
 
@@ -290,14 +281,8 @@ void Pair3BTable::read_file(char *file)
   // open file on proc 0
 
   if (comm->me == 0) {
-    PotentialFileReader reader(lmp, file, "3b", unit_convert_flag);
+    PotentialFileReader reader(lmp, file, "3b/table", unit_convert_flag);
     char *line;
-
-    // transparently convert units for supported conversions
-
-    int unit_convert = reader.get_unit_convert();
-    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
-                                                            unit_convert);
 
     while ((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
@@ -348,22 +333,22 @@ void Pair3BTable::read_file(char *file)
         std::string tablename_string = values.next_string();
         params[nparams].tablenamelength = tablename_string.length()+1;
         memory->create(params[nparams].tablename, params[nparams].tablenamelength, "params.tablename");
-        for (int x = 0; x < params[nparams].tablenamelength; ++x) { 
+        for (int x = 0; x < params[nparams].tablenamelength; ++x) {
           params[nparams].tablename[x] = tablename_string[x];
         }
         std::string keyword_string = values.next_string();
         params[nparams].keywordlength = keyword_string.length()+1;
         memory->create(params[nparams].keyword, params[nparams].keywordlength, "params.keyword");
-        for (int x = 0; x < params[nparams].keywordlength; ++x) { 
+        for (int x = 0; x < params[nparams].keywordlength; ++x) {
           params[nparams].keyword[x] = keyword_string[x];
         }
         std::string tablestyle_string = values.next_string();
         char *tablestyle;
         memory->create(tablestyle, (tablestyle_string.length()+1), "tablestyle");
-        for (int x = 0; x < (tablestyle_string.length()+1); ++x) { 
+        for (int x = 0; x < ((int)tablestyle_string.length()+1); ++x) {
           tablestyle[x] = tablestyle_string[x];
-        }                
-        if (strcmp(tablestyle,"linear") == 0) params[nparams].tabstyle = LINEAR;        
+        }
+        if (strcmp(tablestyle,"linear") == 0) params[nparams].tabstyle = LINEAR;
         else error->all(FLERR,"Unknown table style in 3b table");
         params[nparams].tablength = values.next_int();
 
@@ -406,7 +391,7 @@ void Pair3BTable::read_file(char *file)
     if (comm->me == 0){
       read_table(params[m].mltable,params[m].tablename,params[m].keyword,params[m].symmetric);
     }
-    
+
     // broadcast read in 3btable to all processes
     bcast_table(params[m].mltable,params[m].symmetric);
 
@@ -484,7 +469,7 @@ void Pair3BTable::read_table(Table *tb, char *file, char *keyword, bool symmetri
 
   line = reader.next_line();
   param_extract(tb, line);
-  
+
   // if it is a symmetric 3body interaction, less table entries are required
   if (symmetric == true){
     memory->create(tb->r12file,tb->ninput*tb->ninput*(tb->ninput+1),"mltable:r12file");
@@ -721,7 +706,8 @@ void Pair3BTable::null_table(Table *tb)
    calculate potential u and force f at angle x
 ------------------------------------------------------------------------- */
 
-void Pair3BTable::uf_lookup(Param *pm, double r12, double r13, double theta, double &f11, double &f12, double &f21, double &f22, double &f31, double &f32, double &u)
+void Pair3BTable::uf_lookup(Param *pm, double r12, double r13, double theta, double &f11, double &f12,
+                            double &f21, double &f22, double &f31, double &f32, double &u)
 {
   int i,itable,nr12,nr13,ntheta;
   double dr,dtheta;
@@ -780,15 +766,13 @@ void Pair3BTable::uf_lookup(Param *pm, double r12, double r13, double theta, dou
     f22=pm->mltable->f22file[itable];
     f31=pm->mltable->f31file[itable];
     f32=pm->mltable->f32file[itable];
-  } 
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void Pair3BTable::threebody(Param *paramij, Param *paramik, Param *paramijk,
-                       double rsq1, double rsq2,
-                       double *delr1, double *delr2,
-                       double *fi, double *fj, double *fk, int eflag, double &eng)
+void Pair3BTable::threebody(Param *paramijk, double rsq1, double rsq2, double *delr1, double *delr2,
+                            double *fi, double *fj, double *fk, int eflag, double &eng)
 {
   double r12,r13,theta,rinv,cs;
 
@@ -807,7 +791,7 @@ void Pair3BTable::threebody(Param *paramij, Param *paramik, Param *paramijk,
   //compute angle between r12 and r13 in degrees
   theta = acos(cs)*180.0/MY_PI;
 
-  //if r12 > r13 swap them, as in lookup table always r13 > r12 do to symmetry reasons 
+  //if r12 > r13 swap them, as in lookup table always r13 > r12 do to symmetry reasons
   if (r12 > r13){
     temp = r12;
     r12 = r13;
@@ -818,15 +802,17 @@ void Pair3BTable::threebody(Param *paramij, Param *paramik, Param *paramijk,
   //look up forces and energy in table belonging to parameter set paramijk
 
   //only do lookup and add three-body interactions if r12 and r13 are both between rmin and rmax
- 
-  if ( (r12 >= (paramijk->mltable->rmin - 0.5*dr)) && (r13 <= (paramijk->mltable->rmax + 0.5*dr)) && (r13 >= (paramijk->mltable->rmin - 0.5*dr)) && (r13 <= (paramijk->mltable->rmax + 0.5*dr)) ){
+
+  if ((r12 >= (paramijk->mltable->rmin - 0.5*dr)) &&
+      (r13 <= (paramijk->mltable->rmax + 0.5*dr)) &&
+      (r13 >= (paramijk->mltable->rmin - 0.5*dr)) &&
+      (r13 <= (paramijk->mltable->rmax + 0.5*dr)) ){
     uf_lookup(paramijk, r12, r13, theta, f11, f12, f21, f22, f31, f32, u);
-  } 
-  else{
+  } else{
     f11 = f12 = f21 = f22 = f31 = f32 = u = 0.0;
   }
 
-  // if the indices have been swapped, swap tehm back
+  // if the indices have been swapped, swap them back
   if (swapped == true){
     temp = r12;
     r12 = r13;
@@ -853,9 +839,6 @@ void Pair3BTable::threebody(Param *paramij, Param *paramik, Param *paramijk,
   fk[0] = delr2[0]*f31+(delr2[0]-delr1[0])*f32;
   fk[1] = delr2[1]*f31+(delr2[1]-delr1[1])*f32;
   fk[2] = delr2[2]*f31+(delr2[2]-delr1[2])*f32;
-
-  double epsilon = 0.5;
-  double epsilon2 = epsilon*epsilon;  
 
   if (eflag) eng = u;
 }

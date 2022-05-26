@@ -33,7 +33,6 @@
 #include <cmath>
 #include <cstring>
 
-
 using namespace LAMMPS_NS;
 
 using MathConst::DEG2RAD;
@@ -44,25 +43,13 @@ using MathConst::RAD2DEG;
 
 enum { LINEAR, SPLINE };
 
-#define SMALL 0.001
-#define TINY 1.E-10
+static constexpr double TINY = 1.0e-10;
 
 /* ---------------------------------------------------------------------- */
 
-PairSW3BTable::PairSW3BTable(LAMMPS *lmp) : PairSW(lmp)
+PairSW3BTable::PairSW3BTable(LAMMPS *lmp) : PairSW(lmp), table_params(nullptr)
 {
-  single_enable = 0;
-  restartinfo = 0;
-  one_coeff = 1;
-  manybody_flag = 1;
-  centroidstressflag = CENTROID_NOTAVAIL;
-  unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
-
-  params = nullptr;
-  extended_params = nullptr;
-
-  maxshort = 10;
-  neighshort = nullptr;
+  unit_convert_flag = utils::NOCONVERT;
 }
 
 /* ----------------------------------------------------------------------
@@ -73,9 +60,9 @@ PairSW3BTable::~PairSW3BTable()
 {
   if (copymode) return;
 
-  for (int m = 0; m < nparams; m++) free_param(&extended_params[m]); // free_param will call free_table
+  for (int m = 0; m < nparams; m++) free_param(&table_params[m]); // free_param will call free_table
   memory->destroy(params);
-  memory->destroy(extended_params);
+  memory->destroy(table_params);
   memory->destroy(elem3param);
 
   if (allocated) {
@@ -201,8 +188,8 @@ void PairSW3BTable::compute(int eflag, int vflag)
         delr2[2] = x[k][2] - ztmp;
         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
 
-        threebody(&params[ijparam],&params[ikparam],&params[ijkparam], &extended_params[ijkparam],
-                  rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
+        threebody_table(&params[ijparam],&params[ikparam],&table_params[ijkparam],
+                        rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
 
         fxtmp -= fj[0] + fk[0];
         fytmp -= fj[1] + fk[1];
@@ -234,21 +221,15 @@ void PairSW3BTable::read_file(char *file)
 {
   memory->sfree(params);
   params = nullptr;
-  memory->sfree(extended_params);
-  extended_params = nullptr;
+  memory->sfree(table_params);
+  table_params = nullptr;
   nparams = maxparam = 0;
 
   // open file on proc 0
 
   if (comm->me == 0) {
-    PotentialFileReader reader(lmp, file, "sw", unit_convert_flag);
+    PotentialFileReader reader(lmp, file, "sw/3b", unit_convert_flag);
     char *line;
-
-    // transparently convert units for supported conversions
-
-    int unit_convert = reader.get_unit_convert();
-    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
-                                                            unit_convert);
 
     while ((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
@@ -279,8 +260,8 @@ void PairSW3BTable::read_file(char *file)
           maxparam += DELTA;
           params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
                                               "pair:params");
-          extended_params = (Param_Extension *) memory->srealloc(extended_params,maxparam*sizeof(Param_Extension),
-                                              "pair:extended_params");
+          table_params = (ParamTable *) memory->srealloc(table_params,maxparam*sizeof(ParamTable),
+                                              "pair:table_params");
 
           // make certain all addional allocated storage is initialized
           // to avoid false positives when checking with valgrind
@@ -305,34 +286,30 @@ void PairSW3BTable::read_file(char *file)
 
         // read parameters of angle table
         std::string tablename_string = values.next_string();
-        extended_params[nparams].tablenamelength = tablename_string.length()+1;
-        memory->create(extended_params[nparams].tablename, extended_params[nparams].tablenamelength, "extended_params.tablename");
-        for (int x = 0; x < extended_params[nparams].tablenamelength; ++x) { 
-          extended_params[nparams].tablename[x] = tablename_string[x];
+        table_params[nparams].tablenamelength = tablename_string.length()+1;
+        memory->create(table_params[nparams].tablename, table_params[nparams].tablenamelength, "table_params.tablename");
+        for (int i = 0; i < table_params[nparams].tablenamelength; ++i) {
+          table_params[nparams].tablename[i] = tablename_string[i];
         }
         std::string keyword_string = values.next_string();
-        extended_params[nparams].keywordlength = keyword_string.length()+1;
-        memory->create(extended_params[nparams].keyword, extended_params[nparams].keywordlength, "extended_params.keyword");
-        for (int x = 0; x < extended_params[nparams].keywordlength; ++x) { 
-          extended_params[nparams].keyword[x] = keyword_string[x];
+        table_params[nparams].keywordlength = keyword_string.length()+1;
+        memory->create(table_params[nparams].keyword, table_params[nparams].keywordlength, "table_params.keyword");
+        for (int i = 0; i < table_params[nparams].keywordlength; ++i) {
+          table_params[nparams].keyword[i] = keyword_string[i];
         }
         std::string tablestyle_string = values.next_string();
         char *tablestyle;
         memory->create(tablestyle, (tablestyle_string.length()+1), "tablestyle");
-        for (int x = 0; x < (tablestyle_string.length()+1); ++x) { 
-          tablestyle[x] = tablestyle_string[x];
-        }                
-        if (strcmp(tablestyle,"linear") == 0) extended_params[nparams].tabstyle = LINEAR;
-        else if (strcmp(tablestyle,"spline") == 0) extended_params[nparams].tabstyle = SPLINE;
+        for (int i = 0; i < ((int)tablestyle_string.length()+1); ++i) {
+          tablestyle[i] = tablestyle_string[i];
+        }
+        if (strcmp(tablestyle,"linear") == 0) table_params[nparams].tabstyle = LINEAR;
+        else if (strcmp(tablestyle,"spline") == 0) table_params[nparams].tabstyle = SPLINE;
         else error->all(FLERR,"Unknown table style of angle table file");
-        extended_params[nparams].tablength = values.next_int();
+        table_params[nparams].tablength = values.next_int();
 
       } catch (TokenizerException &e) {
         error->one(FLERR, e.what());
-      }
-
-      if (unit_convert) {
-        params[nparams].epsilon *= conversion_factor;
       }
 
       if (params[nparams].epsilon < 0.0 || params[nparams].sigma < 0.0 ||
@@ -340,7 +317,7 @@ void PairSW3BTable::read_file(char *file)
           params[nparams].gamma < 0.0 || params[nparams].biga < 0.0 ||
           params[nparams].bigb < 0.0 || params[nparams].powerp < 0.0 ||
           params[nparams].powerq < 0.0 || params[nparams].tol < 0.0 ||
-          extended_params[nparams].tabstyle < 0.0 || extended_params[nparams].tablength < 0.0)
+          table_params[nparams].tabstyle < 0.0 || table_params[nparams].tablength < 0.0)
         error->one(FLERR,"Illegal Stillinger-Weber parameter");
 
       nparams++;
@@ -352,64 +329,63 @@ void PairSW3BTable::read_file(char *file)
 
   if (comm->me != 0) {
     params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
-    extended_params = (Param_Extension *) memory->srealloc(extended_params,maxparam*sizeof(Param_Extension), "pair:extended_params");
+    table_params = (ParamTable *) memory->srealloc(table_params,maxparam*sizeof(ParamTable), "pair:table_params");
   }
 
   MPI_Bcast(params, maxparam*sizeof(Param), MPI_BYTE, 0, world);
-  MPI_Bcast(extended_params, maxparam*sizeof(Param_Extension), MPI_BYTE, 0, world);
+  MPI_Bcast(table_params, maxparam*sizeof(ParamTable), MPI_BYTE, 0, world);
 
   // for each set of parameters, broadcast table name and keyword and read angle table
   for (int m = 0; m < nparams; ++m){
     if (comm->me != 0) {
-      memory->create(extended_params[m].tablename, extended_params[m].tablenamelength, "extended_params.tablename");
+      memory->create(table_params[m].tablename, table_params[m].tablenamelength, "table_params.tablename");
     }
-    MPI_Bcast(&extended_params[m].tablename, extended_params[m].tablenamelength, MPI_CHAR, 0, world);
+    MPI_Bcast(&table_params[m].tablename, table_params[m].tablenamelength, MPI_CHAR, 0, world);
     if (comm->me != 0) {
-      memory->create(extended_params[m].keyword, extended_params[m].keywordlength, "extended_params.keyword");
+      memory->create(table_params[m].keyword, table_params[m].keywordlength, "table_params.keyword");
     }
-    MPI_Bcast(&extended_params[m].keyword, extended_params[m].keywordlength, MPI_CHAR, 0, world);
+    MPI_Bcast(&table_params[m].keyword, table_params[m].keywordlength, MPI_CHAR, 0, world);
 
     // initialize angtable
-    memory->create(extended_params[m].angtable,1,"extended_params:angtable");
-    null_table(extended_params[m].angtable);
+    memory->create(table_params[m].angtable,1,"table_params:angtable");
+    null_table(table_params[m].angtable);
 
     // call read_table to read corresponding tabulated angle file (only called by process 0)
-    if (comm->me == 0) read_table(extended_params[m].angtable,extended_params[m].tablename,extended_params[m].keyword);
+    if (comm->me == 0) read_table(table_params[m].angtable,table_params[m].tablename,table_params[m].keyword);
 
     // broadcast read in angtable to all processes
-    bcast_table(extended_params[m].angtable);
+    bcast_table(table_params[m].angtable);
 
     // the following table manipulations are done in all processes
     // error check on table parameters
-    if (extended_params[m].angtable->ninput <= 1) error->one(FLERR,"Invalid angle table length");
+    if (table_params[m].angtable->ninput <= 1) error->one(FLERR,"Invalid angle table length");
 
     // error check on parameter range of angle table
     double alo,ahi;
-    alo = extended_params[m].angtable->afile[0];
-    ahi = extended_params[m].angtable->afile[extended_params[m].angtable->ninput-1];
+    alo = table_params[m].angtable->afile[0];
+    ahi = table_params[m].angtable->afile[table_params[m].angtable->ninput-1];
     if (fabs(alo-0.0) > TINY || fabs(ahi-180.0) > TINY)
       error->all(FLERR,"Angle table must range from 0 to 180 degrees");
 
     // convert theta from degrees to radians
-    for (int i = 0; i < extended_params[m].angtable->ninput; ++i){
-      extended_params[m].angtable->afile[i] *= MY_PI/180.0;
-      extended_params[m].angtable->ffile[i] *= 180.0/MY_PI;
+    for (int i = 0; i < table_params[m].angtable->ninput; ++i){
+      table_params[m].angtable->afile[i] *= MY_PI/180.0;
+      table_params[m].angtable->ffile[i] *= 180.0/MY_PI;
     }
 
     // spline read-in table and compute a,e,f vectors within table
-    spline_table(extended_params[m].angtable);
+    spline_table(table_params[m].angtable);
     // compute_table needs parameter params[m].length for this specific interaction as
-    // read in value length from .sw file can be different from value in angle table file     
-    compute_table(extended_params[m].angtable,extended_params[m].tablength);
+    // read in value length from .sw file can be different from value in angle table file
+    compute_table(table_params[m].angtable,table_params[m].tablength);
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairSW3BTable::threebody(Param *paramij, Param *paramik, Param *paramijk, Param_Extension *extended_paramijk,
-                       double rsq1, double rsq2,
-                       double *delr1, double *delr2,
-                       double *fj, double *fk, int eflag, double &eng)
+void PairSW3BTable::threebody_table(Param *paramij, Param *paramik, ParamTable *table_paramijk,
+                                    double rsq1, double rsq2, double *delr1, double *delr2,
+                                    double *fj, double *fk, int eflag, double &eng)
 {
   double r1,rinvsq1,rainv1,gsrainv1,gsrainvsq1,expgsrainv1;
   double r2,rinvsq2,rainv2,gsrainv2,gsrainvsq2,expgsrainv2;
@@ -440,7 +416,7 @@ void PairSW3BTable::threebody(Param *paramij, Param *paramik, Param *paramijk, P
 
   // look up energy (f(theta), ftheta) and force (df(theta)/dtheta, fprimetheta) at
   // angle theta (var) in angle table belonging to parameter set paramijk
-  uf_lookup(extended_paramijk, var, ftheta, fprimetheta);
+  uf_lookup(table_paramijk, var, ftheta, fprimetheta);
 
   acosprime = 1.0 / (sqrt(1 - cs*cs ) );
 
@@ -469,7 +445,7 @@ void PairSW3BTable::threebody(Param *paramij, Param *paramik, Param *paramijk, P
 
 void PairSW3BTable::read_table(Table *tb, char *file, char *keyword)
 {
-  TableFileReader reader(lmp, file, "angle");
+  TableFileReader reader(lmp, file, "3b/table");
 
   char *line = reader.find_section_start(keyword);
 
@@ -642,7 +618,7 @@ void PairSW3BTable::free_table(Table *tb)
 
 /* ---------------------------------------------------------------------- */
 
-void PairSW3BTable::free_param(Param_Extension *pm)
+void PairSW3BTable::free_param(ParamTable *pm)
 {
   // call free_table to destroy associated angle table
   free_table(pm->angtable);
@@ -753,7 +729,7 @@ double PairSW3BTable::splint(double *xa, double *ya, double *y2a, int n, double 
    calculate potential u and force f at angle x
 ------------------------------------------------------------------------- */
 
-void PairSW3BTable::uf_lookup(Param_Extension *pm, double x, double &u, double &f)
+void PairSW3BTable::uf_lookup(ParamTable *pm, double x, double &u, double &f)
 {
   if (!std::isfinite(x)) { error->one(FLERR, "Illegal angle in angle style table"); }
 

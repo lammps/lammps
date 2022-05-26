@@ -189,11 +189,6 @@ PairBOP::~PairBOP()
 
 void PairBOP::compute(int eflag, int vflag)
 {
-  double minbox = MIN(MIN(domain->xprd, domain->yprd), domain->zprd);
-  if (minbox-0.001 < 6.0*cutmax)
-    error->all(FLERR,"Pair style bop requires system dimension "
-               "of at least {:.4}",6.0*cutmax);
-
   int i, ii, j, jj;
   int nlisti, *ilist;
   tagint i_tag,j_tag, itype, jtype;

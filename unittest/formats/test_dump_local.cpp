@@ -25,8 +25,8 @@
 
 using ::testing::Eq;
 
-char *BINARY2TXT_BINARY = nullptr;
-bool verbose            = false;
+char *BINARY2TXT_EXECUTABLE = nullptr;
+bool verbose                = false;
 
 class DumpLocalTest : public MeltTest {
     std::string dump_style = "local";
@@ -253,7 +253,7 @@ int main(int argc, char **argv)
         }
     }
 
-    BINARY2TXT_BINARY = getenv("BINARY2TXT_BINARY");
+    BINARY2TXT_EXECUTABLE = getenv("BINARY2TXT_EXECUTABLE");
 
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 

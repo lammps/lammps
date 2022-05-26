@@ -320,7 +320,7 @@ class PPPMDisp : public KSpace {
   void compute_drho1d(const FFT_SCALAR &, const FFT_SCALAR &, const FFT_SCALAR &, int,
                       FFT_SCALAR **, FFT_SCALAR **);
   void compute_rho_coeff(FFT_SCALAR **, FFT_SCALAR **, int);
-  void slabcorr(int);
+  virtual void slabcorr(int);
 
   // grid communication
 

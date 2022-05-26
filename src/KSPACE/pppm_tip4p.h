@@ -35,6 +35,7 @@ class PPPMTIP4P : public PPPM {
   void fieldforce_ik() override;
   void fieldforce_ad() override;
   void fieldforce_peratom() override;
+  void slabcorr() override;
 
  private:
   void find_M(int, int &, int &, double *);

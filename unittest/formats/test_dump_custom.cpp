@@ -100,7 +100,7 @@ public:
     std::string convert_binary_to_text(std::string binary_file)
     {
         BEGIN_HIDE_OUTPUT();
-        std::string cmdline = fmt::format("{} {}", BINARY2TXT_EXECUTABLE, binary_file);
+        std::string cmdline = fmt::format("\"{}\" {}", BINARY2TXT_EXECUTABLE, binary_file);
         system(cmdline.c_str());
         END_HIDE_OUTPUT();
         return fmt::format("{}.txt", binary_file);

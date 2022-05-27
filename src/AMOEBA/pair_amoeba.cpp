@@ -61,6 +61,14 @@ PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
     error->all(FLERR,"Pair style amoeba/hippo require newton pair on");
   if (domain->dimension == 2)
     error->all(FLERR,"Pair style amoeba/hippo requires 3d system");
+  if (domain->triclinic)
+    error->all(FLERR,"Pair style amoeba/hippo does not yet support "
+               "triclinic systems");
+
+  int nperiodic = domain->xperiodic + domain->yperiodic + domain->zperiodic;
+  if (nperiodic != 0 && nperiodic != 3)
+    error->all(FLERR,"Pair style amoeba/hippo requires "
+               "fully periodic or fully non-periodic system");
 
   me = comm->me;
   nprocs = comm->nprocs;
@@ -78,10 +86,6 @@ PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
 
   amoeba = 1;
   hippo = 0;
-
-  optorder = 0;
-  maxualt = 0;
-  tcgnab = 0;
 
   nmax = 0;
   xaxis2local = yaxis2local = zaxis2local = NULL;
@@ -1017,7 +1021,7 @@ void PairAmoeba::init_style()
 
   comm_reverse = 9;
 
-  // request neighbor lists
+  // request standard neighbor list
 
   int irequest = neighbor->request(this,instance_me);
 }
@@ -1825,10 +1829,12 @@ void PairAmoeba::precond_neigh()
   int *neighptr;
 
   // set cutoffs and taper coeffs
-  // NOTE: should this cutoff include skin = 2.0 ?
-  // Josh is checking
+  // add skin to cutoff, same as for main neighbor list
 
   choose(USOLV);
+
+  //double off = sqrt(off2);
+  //off2 = (off + neighbor->skin) * (off + neighbor->skin);
 
   // atoms and neighbor list
 
@@ -1839,8 +1845,8 @@ void PairAmoeba::precond_neigh()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // store all induce neighs of owned atoms
-  // scan full neighbor list of I
+  // store all induce neighs of owned atoms within shorter cutoff
+  // scan longer-cutoff neighbor list of I
 
   ipage_precond->reset();
 
@@ -1876,15 +1882,16 @@ void PairAmoeba::precond_neigh()
 
 /* ----------------------------------------------------------------------
    allocate Vdwl arrays
+   note that n_amclass = # of classes in Tinker PRM file
+   actual number of classes for atoms in simulation may be smaller
+   this is determined by the AMOEBA types listed in Tinker xyz file
+     and their mapping to AMOEBA classes
 ------------------------------------------------------------------------- */
 
 void PairAmoeba::initialize_vdwl()
 {
   radmin = radmin4 = epsilon = epsilon4 = NULL;
 }
-
-// NOTE: n_amclass may be much larger than actual atom classes ??
-//       due to format of Tinker PRM file
 
 void PairAmoeba::allocate_vdwl()
 {
@@ -1918,9 +1925,6 @@ void PairAmoeba::initialize_smallsize()
 
 void PairAmoeba::allocate_smallsize()
 {
-  // NOTE: are optorder and maxualt always initialized ?
-  //       maybe there should be if tests here
-
   // note use of optorder+1
 
   copt = new double[optorder+1];
@@ -2028,7 +2032,7 @@ void PairAmoeba::choose(int which)
 /* ----------------------------------------------------------------------
    compute mixing rules for all pairwise params on a per-class basis
    override default mixing with VDWLPR entries in force field file
-   NOTE: not yet processing explicit VDWL14 entries in force field file
+   no vdwl14 terms are used by AMOEBA or HIPPO force fields
 ------------------------------------------------------------------------- */
 
 void PairAmoeba::mix()
@@ -2387,4 +2391,3 @@ double PairAmoeba::memory_usage()
 
   return bytes;
 }
-

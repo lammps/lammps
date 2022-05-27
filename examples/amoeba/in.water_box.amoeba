@@ -1,4 +1,4 @@
-# water box with AMOEBA or HIPPO
+# replicate water box with AMOEBA or HIPPO
 
 units           real
 boundary        p p p

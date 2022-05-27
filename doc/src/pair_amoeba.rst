@@ -6,7 +6,6 @@ pair_style amoeba command
 
 pair_style hippo command
 ========================
-
 Syntax
 """"""
 
@@ -63,13 +62,13 @@ these terms:
 
 .. math::
 
-   U_{amoeba} = U_{hal} + U_{multipole} + U_{polar}
+   U_{amoeba} = U_{multipole} + U_{polar} + U_{hal}
 
 while the HIPPO force field contains these terms:
 
 .. math::
 
-   U_{hippo} = U_{repulsion} + U_{dispersion} + U_{multipole} + U_{polar} + U_{qxfer}
+   U_{hippo} = U_{multipole} + U_{polar} + U_{qxfer} + U_{repulsion} + U_{dispersion} 
 
 Conceptually, these terms compute the following interactions:
 
@@ -83,6 +82,27 @@ Conceptually, these terms compute the following interactions:
 Note that the AMOEBA versus HIPPO force fields typically compute the
 same term differently using their own formulas.  The references on
 this doc page give full details for both force fields.
+
+The formulas for the AMOEBA energy terms are:
+
+.. math:: 
+
+   U_{hal} = \epsilon_{ij} \left( \frac{1.07}{\rho_{ij} + 0.07} \right)^7 \left( \frac{1.12}{\rho_{ij}^7 + 0.12} - 2 \right)
+   U_{multipole} = \vec{M_i}\bold{T_{ij}}\vec{M_j}
+      \vec{M} = \left( q, \vec{\mu_{perm}}, \bold{\Theta} \right)
+   U_{polar} = \frac{1}{2}\vec{\mu_i}^{ind} \vec{E_i}^{perm}
+
+The formulas for the HIPPO energy terms are:
+
+.. math:: 
+
+   U_{multipole} = Z_i \frac{1}{r_{ij}} Z_j + Z_i T_{ij}^{damp} \vec{M_j} + Z_j T_{ji}^{damp} \vec{M_i} + \vec{M_i} T_{ij}^{damp} \vec{M_j}
+      \vec{M} = \left( Q, \vec{\mu_{perm}}, \bold{\Theta} \right)
+   U_{polar} = \frac{1}{2}\vec{\mu_i}^{ind} \vec{E_i}^{perm}
+   U_{qxfer} = \epsilon_i e^{-\eta_j r_{ij}} + \epsilon_j e^{-\eta_i r_{ij}}
+   U_{repulsion} = \frac{K_i K_j}{r_{ij}} S^2
+      S^2 = \left( \int{\phi_i \phi_j} dv \right)^2 = \vec{M_i}\bold{T_{ij}^{repulsion}}\vec{M_j}
+   U_{dispersion} = -\frac{C_6^iC_6^j}{r_{ij}^6} \left( f_{damp}^{dispersion} \right)_{ij}^2
 
 .. note::
 

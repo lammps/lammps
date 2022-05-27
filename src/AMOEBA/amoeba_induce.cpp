@@ -943,7 +943,7 @@ void PairAmoeba::umutual1(double **field, double **fieldp)
 /* ----------------------------------------------------------------------
    umutual2b = Ewald real mutual field via list
    umutual2b computes the real space contribution of the induced
-   atomic dipole moments to the field via a neighbor list
+     atomic dipole moments to the field via a neighbor list
 ------------------------------------------------------------------------- */
 
 void PairAmoeba::umutual2b(double **field, double **fieldp)

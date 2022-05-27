@@ -8,7 +8,7 @@ their `Tinker MD code <https://dasher.wustl.edu/tinker/>`_.
 
 The current implementaion (May 2022) of AMOEBA in LAMMPS matches the
 version discussed in :ref:`(Ponder) <amoeba-Ponder>`, :ref:`(Ren)
-<amoeba-Ren>`, and :ref:`(Shi) <amoeba-Shi>`.  Likewise th current
+<amoeba-Ren>`, and :ref:`(Shi) <amoeba-Shi>`.  Likewise the current
 implementaion of HIPPO in LAMMPS matches the version discussed in
 :ref:`(Rackers) <amoeba-Rackers>`.
 
@@ -26,6 +26,10 @@ Note that currently, HIPPO can only be used for water systems, but
 HIPPO files for a variety of small organic and biomolecules are in
 preparation by the Ponder group.  Those force field files will be
 included in the LAMMPS distribution when available.
+
+To use the AMOEBA or HIPPO force fields, a simulation must be 3d, and
+fully periodic or fully non-periodic, and use an orthogonal (not
+triclinic) simulation box.
 
 ----------
 
@@ -292,9 +296,6 @@ the LAMMPS data file that will be produced.
 For periodic systems, the -pbc switch is required.  It specifies the
 periodic box size for each dimension (x,y,z).  For a Tinker simulation
 these are specified in the KEY file.
-
-NOTE: What about a system with a free surface.  What about a triclinic
-box.
 
 The -bitorsion switch is only needed if the system contains Tinker
 bitorsion interactions.  The data for each type of bitorsion

@@ -51,6 +51,10 @@ enum{GEAR,ASPC,LSQR};
 
 void PairAmoeba::set_defaults()
 {
+  optorder = 0;
+  maxualt = 7;
+  tcgnab = 0;
+
   for (int i = 0; i <= 4; i++) {
     special_hal[i] = 1.0;
     special_repel[i] = 1.0;
@@ -492,9 +496,21 @@ void PairAmoeba::read_keyfile(char *filename)
       if (nwords != 2) error->all(FLERR,"AMOEBA keyfile line is invalid");
       pcgpeek = utils::numeric(FLERR,words[1],true,lmp);
 
-    // NOTE: throw an error if keyword LAMMPS does not recognize ?
+    // Tinker keywords that LAMMPS can skip
 
-    } else {}
+    } else if (strcmp(keyword,"parameters") == 0) {
+    } else if (strcmp(keyword,"verbose") == 0) {
+    } else if (strcmp(keyword,"openmp-threads") == 0) {
+    } else if (strcmp(keyword,"digits") == 0) {
+    } else if (strcmp(keyword,"neighbor-list") == 0) {
+    } else if (strcmp(keyword,"tau-temperature") == 0) {
+    } else if (strcmp(keyword,"tau-pressure") == 0) {
+
+    // error if LAMMPS does not recognize other keywords
+
+    } else error->all(FLERR,
+                      "LAMMPS does not recognize AMOEBA keyfile keyword {}",
+                      keyword);
 
     delete [] copy;
     delete [] words;
@@ -783,9 +799,6 @@ void PairAmoeba::file_ffield(int nwords, char **words)
     else if (strcmp(words[1],"direct") == 0) poltyp = DIRECT;
     else error->all(FLERR,"Unrecognized polarization in AMOEBA FF file");
 
-  // NOTE: enable all variants of special settings
-  //       do these need to be set to defaults if don't appear in file?
-
   } else if (strcmp(words[0],"vdw-12-scale") == 0) {
     special_hal[1] = utils::numeric(FLERR,words[1],true,lmp);
   } else if (strcmp(words[0],"vdw-13-scale") == 0) {
@@ -851,23 +864,29 @@ void PairAmoeba::file_ffield(int nwords, char **words)
 
   } else if (strcmp(words[0],"direct-11-scale") == 0) {
     polar_dscale = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"direct-12-scale") == 0) {
-    // NOTE: could error check that value = 1
-  } else if (strcmp(words[0],"direct-13-scale") == 0) {
-  } else if (strcmp(words[0],"direct-14-scale") == 0) {
+  } else if (strcmp(words[0],"direct-12-scale") == 0 ||
+             strcmp(words[0],"direct-13-scale") == 0 ||
+             strcmp(words[0],"direct-14-scale") == 0) {
+    double tmp = utils::numeric(FLERR,words[1],true,lmp);
+    if (tmp != 1.0) 
+      error->all(FLERR,"AMOEBA FF file direct-scale 1-2, 1-3, 1-4 values "
+                 "should be 1.0");
 
   } else if (strcmp(words[0],"mutual-11-scale") == 0) {
     polar_uscale = utils::numeric(FLERR,words[1],true,lmp);
-  } else if (strcmp(words[0],"mutual-12-scale") == 0) {
-    // NOTE: could error check that value = 1
-  } else if (strcmp(words[0],"mutual-13-scale") == 0) {
-  } else if (strcmp(words[0],"mutual-14-scale") == 0) {
+  } else if (strcmp(words[0],"mutual-12-scale") == 0 ||
+             strcmp(words[0],"mutual-13-scale") == 0 ||
+             strcmp(words[0],"mutual-14-scale") == 0) {
+    double tmp = utils::numeric(FLERR,words[1],true,lmp);
+    if (tmp != 1.0) 
+      error->all(FLERR,"AMOEBA FF file mutual-scale 1-2, 1-3, 1-4 values "
+                 "should be 1.0");
 
-  } else {
-    char str[128];
-    sprintf(str,"Unrecognized pair amoeba force field definition: %s",words[0]);
-    error->all(FLERR,str);
-  }
+  // error if LAMMPS does not recognize keyword
+
+  } else error->all(FLERR,
+                    "LAMMPS does not recognize AMOEBA PRM file setting {}",
+                    words[0]);
 }
 
 /* ---------------------------------------------------------------------- */

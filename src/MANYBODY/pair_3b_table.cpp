@@ -39,11 +39,6 @@ using MathConst::MY_PI;
 
 #define DELTA 4
 
-enum{LINEAR};
-
-#define SMALL 0.001
-#define TINY 1.E-10
-
 /* ---------------------------------------------------------------------- */
 
 Pair3BTable::Pair3BTable(LAMMPS *lmp) : Pair(lmp), params(nullptr), neighshort(nullptr)
@@ -342,14 +337,9 @@ void Pair3BTable::read_file(char *file)
         for (int x = 0; x < params[nparams].keywordlength; ++x) {
           params[nparams].keyword[x] = keyword_string[x];
         }
-        std::string tablestyle_string = values.next_string();
-        char *tablestyle;
-        memory->create(tablestyle, (tablestyle_string.length()+1), "tablestyle");
-        for (int x = 0; x < ((int)tablestyle_string.length()+1); ++x) {
-          tablestyle[x] = tablestyle_string[x];
-        }
-        if (strcmp(tablestyle,"linear") == 0) params[nparams].tabstyle = LINEAR;
-        else error->all(FLERR,"Unknown table style in 3b table");
+        auto tablestyle = values.next_string();
+        if (tablestyle != "linear")
+          error->all(FLERR,"Unknown table style {} in 3b table", tablestyle);
         params[nparams].tablength = values.next_int();
 
       } catch (TokenizerException &e) {
@@ -672,6 +662,8 @@ void Pair3BTable::free_param(Param *pm)
   // call free_table to destroy associated 3btable
   free_table(pm->mltable);
   // then destroy associated 3btable
+  memory->sfree(pm->tablename);
+  memory->sfree(pm->keyword);
   memory->sfree(pm->mltable);
 }
 
@@ -716,58 +708,55 @@ void Pair3BTable::uf_lookup(Param *pm, double r12, double r13, double theta, dou
 
   //lookup scheme
 
-  if (pm->tabstyle == LINEAR) {
-    // if it is a symmetric 3body interaction, less table entries are required
-    if (pm->symmetric == true){
-      nr12 = (r12 - pm->mltable->rmin + 0.5*dr - 0.00000001)/dr;
-      if (r12 == (pm->mltable->rmin - 0.5*dr)){
-        nr12 = 0;
-      }
-      nr13 = (r13 - pm->mltable->rmin + 0.5*dr - 0.00000001)/dr;
-      if (r13 == (pm->mltable->rmin - 0.5*dr)){
-        nr13 = 0;
-      }
-      nr13 -= nr12;
-      ntheta = (theta-0.00000001)/dtheta;
-      if (theta == 180.0){
-        ntheta = 79;
-      }
-      itable = 0;
-      for (i=0; i<nr12; i++){
-        itable += (pm->mltable->ninput-i);
-      }
-      itable += nr13;
-      itable *= (pm->mltable->ninput*2);
-      itable += ntheta;
+  // if it is a symmetric 3body interaction, less table entries are required
+  if (pm->symmetric == true){
+    nr12 = (r12 - pm->mltable->rmin + 0.5*dr - 0.00000001)/dr;
+    if (r12 == (pm->mltable->rmin - 0.5*dr)){
+      nr12 = 0;
     }
+    nr13 = (r13 - pm->mltable->rmin + 0.5*dr - 0.00000001)/dr;
+    if (r13 == (pm->mltable->rmin - 0.5*dr)){
+      nr13 = 0;
+    }
+    nr13 -= nr12;
+    ntheta = (theta-0.00000001)/dtheta;
+    if (theta == 180.0){
+      ntheta = 79;
+    }
+    itable = 0;
+    for (i=0; i<nr12; i++){
+      itable += (pm->mltable->ninput-i);
+    }
+    itable += nr13;
+    itable *= (pm->mltable->ninput*2);
+    itable += ntheta;
+  } else {
     // else, more (full) table entries are required
-    else{
-      nr12 = (r12 - pm->mltable->rmin + 0.5*dr - 0.00000001)/dr;
-      if (r12 == (pm->mltable->rmin - 0.5*dr)){
-        nr12 = 0;
-      }
-      nr13 = (r13 - pm->mltable->rmin + 0.5*dr - 0.00000001)/dr;
-      if (r13 == (pm->mltable->rmin - 0.5*dr)){
-        nr13 = 0;
-      }
-      ntheta = (theta-0.00000001)/dtheta;
-      if (theta == 180.0){
-        ntheta = 79;
-      }
-      itable = nr12*(pm->mltable->ninput);
-      itable += nr13;
-      itable *= (pm->mltable->ninput*2);
-      itable += ntheta;
+    nr12 = (r12 - pm->mltable->rmin + 0.5*dr - 0.00000001)/dr;
+    if (r12 == (pm->mltable->rmin - 0.5*dr)){
+      nr12 = 0;
     }
-
-    f11=pm->mltable->f11file[itable];
-    f12=pm->mltable->f12file[itable];
-    f21=pm->mltable->f21file[itable];
-    f22=pm->mltable->f22file[itable];
-    f31=pm->mltable->f31file[itable];
-    f32=pm->mltable->f32file[itable];
-    u=pm->mltable->efile[itable];
+    nr13 = (r13 - pm->mltable->rmin + 0.5*dr - 0.00000001)/dr;
+    if (r13 == (pm->mltable->rmin - 0.5*dr)){
+      nr13 = 0;
+    }
+    ntheta = (theta-0.00000001)/dtheta;
+    if (theta == 180.0){
+      ntheta = 79;
+    }
+    itable = nr12*(pm->mltable->ninput);
+    itable += nr13;
+    itable *= (pm->mltable->ninput*2);
+    itable += ntheta;
   }
+
+  f11=pm->mltable->f11file[itable];
+  f12=pm->mltable->f12file[itable];
+  f21=pm->mltable->f21file[itable];
+  f22=pm->mltable->f22file[itable];
+  f31=pm->mltable->f31file[itable];
+  f32=pm->mltable->f32file[itable];
+  u=pm->mltable->efile[itable];
 }
 
 /* ---------------------------------------------------------------------- */

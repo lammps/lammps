@@ -297,15 +297,10 @@ void PairSW3BTable::read_file(char *file)
         for (int i = 0; i < table_params[nparams].keywordlength; ++i) {
           table_params[nparams].keyword[i] = keyword_string[i];
         }
-        std::string tablestyle_string = values.next_string();
-        char *tablestyle;
-        memory->create(tablestyle, (tablestyle_string.length()+1), "tablestyle");
-        for (int i = 0; i < ((int)tablestyle_string.length()+1); ++i) {
-          tablestyle[i] = tablestyle_string[i];
-        }
-        if (strcmp(tablestyle,"linear") == 0) table_params[nparams].tabstyle = LINEAR;
-        else if (strcmp(tablestyle,"spline") == 0) table_params[nparams].tabstyle = SPLINE;
-        else error->all(FLERR,"Unknown table style of angle table file");
+        auto tablestyle = values.next_string();
+        if (tablestyle == "linear") table_params[nparams].tabstyle = LINEAR;
+        else if (tablestyle == "spline") table_params[nparams].tabstyle = SPLINE;
+        else error->all(FLERR,"Unknown table style {} of 3b/table file", tablestyle);
         table_params[nparams].tablength = values.next_int();
 
       } catch (TokenizerException &e) {
@@ -623,6 +618,8 @@ void PairSW3BTable::free_param(ParamTable *pm)
   // call free_table to destroy associated angle table
   free_table(pm->angtable);
   // then destroy associated angle table
+  memory->sfree(pm->keyword);
+  memory->sfree(pm->tablename);
   memory->sfree(pm->angtable);
 }
 

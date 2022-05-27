@@ -660,13 +660,13 @@ void FixDPPimd::initial_integrate(int /*vflag*/)
   imageint *image = atom->image;
 
   if(mapflag){
-    timer->stamp();
+    // timer->stamp();
     for(int i=0; i<nlocal; i++)
     {
       // fprintf(stdout, "i=%d, tag=%d\n", i, tag[i]);
       domain->unmap(x[i], image[i]);
     }
-    timer->stamp(Timer::UNMAP);
+    // timer->stamp(Timer::UNMAP);
   }
   
   if(integrator==obabo)
@@ -721,15 +721,15 @@ void FixDPPimd::initial_integrate(int /*vflag*/)
     if(removecomflag) remove_com_motion();
     if(method==NMPIMD)
     {
-      timer->stamp();
+      // timer->stamp();
       MPI_Barrier(universe->uworld);
       nmpimd_fill(atom->x);
       MPI_Barrier(universe->uworld);
       comm_exec(atom->x);
       MPI_Barrier(universe->uworld);
-      timer->stamp(Timer::NM_COMM);
+      // timer->stamp(Timer::NM_COMM);
       nmpimd_transform(buf_beads, atom->x, M_x2xp[universe->iworld]);
-      timer->stamp(Timer::NM_TRANS);
+      // timer->stamp(Timer::NM_TRANS);
     }
 
     // vnorm1 = vnorm1a = vnorm2 = 0.0;
@@ -915,7 +915,7 @@ void FixDPPimd::initial_integrate(int /*vflag*/)
 
     if(method==NMPIMD)
     {
-      timer->stamp();
+      // timer->stamp();
       MPI_Barrier(universe->uworld);
       nmpimd_fill(atom->x);
 
@@ -952,9 +952,9 @@ void FixDPPimd::initial_integrate(int /*vflag*/)
       // }
 
       MPI_Barrier(universe->uworld);
-      timer->stamp(Timer::NM_COMM);
+      // timer->stamp(Timer::NM_COMM);
       nmpimd_transform(buf_beads, atom->x, M_xp2x[universe->iworld]);
-      timer->stamp(Timer::NM_TRANS);
+      // timer->stamp(Timer::NM_TRANS);
     }
 
     // xnorm1 = xnorm1a = xnorm2 = 0.0;
@@ -982,14 +982,14 @@ void FixDPPimd::initial_integrate(int /*vflag*/)
 
     if(mapflag)
     {
-      timer->stamp();
+      // timer->stamp();
       // printf("REMAPPING!\n");
       for(int i=0; i<nlocal; i++)
       {
         // fprintf(stdout, "i=%d, tag=%d\n", i, tag[i]);
         domain->unmap_inv(x[i], image[i]);
       }
-      timer->stamp(Timer::UNMAP);
+      // timer->stamp(Timer::UNMAP);
     }
 
     // xnorm1 = xnorm1a = xnorm2 = 0.0;
@@ -1113,17 +1113,17 @@ void FixDPPimd::post_force(int /*flag*/)
   double **x = atom->x;
   imageint *image = atom->image;
   if(mapflag){
-    timer->stamp();
+    // timer->stamp();
     for(int i=0; i<nlocal; i++)
     {
       domain->unmap(x[i], image[i]);
     }
-    timer->stamp(Timer::UNMAP);
+    // timer->stamp(Timer::UNMAP);
   }
-  timer->stamp();
+  // timer->stamp();
   MPI_Barrier(universe->uworld);
   update_x_unwrap();
-  timer->stamp(Timer::UPDATE_X_UNWRAP);
+  // timer->stamp(Timer::UPDATE_X_UNWRAP);
   MPI_Barrier(universe->uworld);
   compute_xc();
   if(mapflag)
@@ -1132,7 +1132,7 @@ void FixDPPimd::post_force(int /*flag*/)
     {
       domain->unmap_inv(x[i], image[i]);
     }
-    timer->stamp(Timer::UNMAP);
+    // timer->stamp(Timer::UNMAP);
   }
     // double fnorm1 = 0.0, fnorm2 = 0.0, fnorm1a = 0.0; 
     // fnorm1 = fnorm1a = fnorm2 = 0.0;
@@ -1237,15 +1237,15 @@ void FixDPPimd::post_force(int /*flag*/)
   // transform the forces into normal mode representation
   if(method==NMPIMD)
   {
-    timer->stamp();
+    // timer->stamp();
     MPI_Barrier(universe->uworld);
     nmpimd_fill(atom->f);
     MPI_Barrier(universe->uworld);
     comm_exec(atom->f);
     MPI_Barrier(universe->uworld);
-    timer->stamp(Timer::NM_COMM);
+    // timer->stamp(Timer::NM_COMM);
     nmpimd_transform(buf_beads, atom->f, M_x2xp[universe->iworld]);
-    timer->stamp(Timer::NM_TRANS);
+    // timer->stamp(Timer::NM_TRANS);
   }
     // fnorm1 = fnorm1a = fnorm2 = 0.0;
     // for(int i=0; i<atom->nlocal; i++)
@@ -2122,11 +2122,11 @@ void FixDPPimd::comm_exec(double **ptr)
 
 void FixDPPimd::compute_xc()
 {
-  timer->stamp();
+  // timer->stamp();
   int natoms = atom->natoms;
   comm_exec(atom->x);
   MPI_Barrier(universe->uworld);
-  timer->stamp(Timer::XC_COMM);
+  // timer->stamp(Timer::XC_COMM);
   int nlocal = atom->nlocal;
   xc = (double*) memory->srealloc(xc, sizeof(double) * nlocal * 3, "FixDPPimd:xc");
   for(int i=0; i<nlocal; i++)
@@ -2142,7 +2142,7 @@ void FixDPPimd::compute_xc()
     xc[3*i+1] /= np;
     xc[3*i+2] /= np;
   } 
-  timer->stamp(Timer::COMPUTE_XC);
+  // timer->stamp(Timer::COMPUTE_XC);
 }
 
 /* ---------------------------------------------------------------------- */

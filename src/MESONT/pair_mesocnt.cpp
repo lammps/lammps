@@ -33,6 +33,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <string>
 #include <unordered_map>
 
 using namespace LAMMPS_NS;
@@ -83,6 +84,7 @@ PairMesoCNT::~PairMesoCNT()
     memory->destroy(numchainlist);
     memory->destroy(nchainlist);
     memory->destroy(endlist);
+    memory->destroy(modelist);
     memory->destroy(chainlist);
 
     memory->destroy(w);
@@ -134,6 +136,7 @@ void PairMesoCNT::allocate()
   memory->create(numchainlist, init_size, "pair:numchainlist");
   memory->create(nchainlist, init_size, init_size, "pair:nchainlist");
   memory->create(endlist, init_size, init_size, "pair:endlist");
+  memory->create(modelist, init_size, init_size, "pair:modelist");
   memory->create(chainlist, init_size, init_size, init_size, "pair:chainlist");
 
   memory->create(w, init_size, "pair:w");
@@ -563,6 +566,9 @@ void PairMesoCNT::bond_neigh()
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
 
+  int flag, cols;
+  int buckled_index = atom->find_custom("buckled", flag, cols);
+
   comm->forward_comm(this);
 
   // create version of atom->special with local ids and correct images
@@ -623,6 +629,7 @@ void PairMesoCNT::bond_neigh()
   memory->destroy(numchainlist);
   memory->destroy(nchainlist);
   memory->destroy(endlist);
+  memory->destroy(modelist);
   memory->destroy(chainlist);
 
   // split neighbor list into neighbor chains based on bond topology
@@ -749,6 +756,7 @@ void PairMesoCNT::bond_neigh()
   // MEMORY: prevent zero-size array creation for chainlist
 
   memory->create_ragged(endlist, nbondlist, numchainlist, "pair:endlist");
+  memory->create_ragged(modelist, nbondlist, numchainlist, "pair:modelist");
   if (empty_neigh)
     memory->create(chainlist, 1, 1, 1, "pair:chainlist");
   else
@@ -777,9 +785,21 @@ void PairMesoCNT::bond_neigh()
       int cstart = chainlist[i][j][0];
       int cend = chainlist[i][j][clen-1];
 
-      if (match_end(type[cstart])) endlist[i][j] = 1;
-      else if (match_end(type[cend])) endlist[i][j] = 2;
+      modelist[i][j] = 0;
+
+      if (nspecial[cstart][0] == 1 && nspecial[cend][0] == 1) modelist[i][j] = 1;
+      else if (nspecial[cstart][0] == 1) endlist[i][j] = 1;
+      else if (nspecial[cend][0] == 1) endlist[i][j] = 2;
       else endlist[i][j] = 0;
+      
+      if (buckled_index != -1) {
+        for (int k = 0; k < nchainlist[i][j]; k++) {
+          if (atom->ivector[buckled_index][chainlist[i][j][k]]) {
+            modelist[i][j] = 1;
+            break;
+          }
+        }
+      }
     }
   }
 

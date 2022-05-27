@@ -20,6 +20,7 @@
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
+#include "modify.h"
 #include "neighbor.h"
 
 #include <cmath>
@@ -72,6 +73,10 @@ void AngleMesoCNT::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
 
+  int flag, cols;
+  int index = atom->find_custom("buckled", flag, cols);
+  int *buckled = atom->ivector[index];
+
   for (n = 0; n < nanglelist; n++) {
     i1 = anglelist[n][0];
     i2 = anglelist[n][1];
@@ -117,12 +122,16 @@ void AngleMesoCNT::compute(int eflag, int vflag)
       tk = kh[type] * dtheta;
       if (eflag) eangle = tk * dtheta;
       a = -2.0 * tk * s;
+
+      buckled[i2] = 0;
     }
     // bending buckling
     else {
       if (eflag) eangle = kb[type] * fabs(dtheta) + thetab[type] * (kh[type] * thetab[type] - kb[type]);
       if (dtheta < 0) a = kb[type] * s;
       else a = -kb[type] * s;
+
+      buckled[i2] = 1;
     }
     a11 = a * c / rsq1;
     a12 = -a / (r1 * r2);
@@ -206,6 +215,13 @@ void AngleMesoCNT::coeff(int narg, char **arg)
   }
 
   if (count == 0) error->all(FLERR, "Incorrect args for angle coefficients");
+}
+
+void AngleMesoCNT::init_style()
+{
+  char *id_fix = utils::strdup("angle_mesocnt_buckled");
+  if (modify->find_fix(id_fix) < 0)
+    modify->add_fix(std::string(id_fix)+" all property/atom i_buckled ghost yes");
 }
 
 /* ---------------------------------------------------------------------- */

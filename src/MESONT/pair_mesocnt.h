@@ -39,7 +39,7 @@ class PairMesoCNT : public Pair {
   int nend_types;
   int uinf_points, gamma_points, phi_points, usemi_points;
   int *end_types, *reduced_nlist, *numchainlist;
-  int **reduced_neighlist, **nchainlist, **endlist;
+  int **reduced_neighlist, **nchainlist, **endlist, **modelist;
   int ***chainlist;
 
   double ang, ang_inv, eunit, funit;

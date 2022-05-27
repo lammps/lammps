@@ -217,26 +217,43 @@ __kernel void k_lj_tip4p_reneigh(const __global numtyp4 *restrict x_,
         // set iH1,iH2 to closest image to O
         iH1 = closest_image(i, iH1, sametag, x_);
         iH2 = closest_image(i, iH2, sametag, x_);
+
+        //printf("%d %f %f %f\n", (iH1 < 0 || iH2 < 0) ? 0:1, ix.x, ix.y, ix.z );
+        /*
+        if (iH1 < 0) {
+                printf("i=%d\ttag[i]=%d\tmap[tag[i]-1]=%d\tmap[tag[i]-2]=%d\n", i, tag[i], map[tag[i]+1], map[tag[i]+2]);
+        }
+        if (iH2 < 0) {
+                printf("i=%d\ttag[i]=%d\tmap[tag[i]-1]=%d\tmap[tag[i]-2]=%d\n", i, tag[i], map[tag[i]+1], map[tag[i]+2]);
+        }*/
+
         hneigh[i*4  ] = iH1;
         hneigh[i*4+1] = iH2;
         hneigh[i*4+2] = -1;
       }
     }
-    if (itype == typeH) {
+    if (i<inum && itype == typeH) {
       if (hneigh[i*4+2] != -1) {
         int iI, iH;
         iI = atom_mapping(map,tag[i] - 1);
-        numtyp4 iIx; fetch4(iIx,iI,pos_tex); //x_[iI];
+        iO  = closest_image(i,iI,sametag, x_);
+        //printf("%d %f %f %f\n", (iI < 0) ? 2:3, ix.x, ix.y, ix.z );
+        /*
+        // printf("iI = %d iO closest = %d\n",iI, iO);
+        if (iI < 0) {
+        printf("i=%d\ttag[i]=%d\tmap[tag[i]-1]=%d\tmap[tag[i]-2]=%d\n", i, tag[i], map[tag[i]-1],map[tag[i]-2]);
+        }*/
+        numtyp4 iIx; fetch4(iIx,iO,pos_tex); //x_[iI];
         if ((int)iIx.w == typeH) {
           iO = atom_mapping(map,tag[i] - 2);
           iO  = closest_image(i, iO, sametag, x_);
-          iH1 = closest_image(i, iI, sametag, x_);
-          iH2 = i;
+          //iH1 = closest_image(i, iI, sametag, x_);
+          //iH2 = i;
         } else { //if ((int)iIx.w == typeO)
-          iH = atom_mapping(map, tag[i] + 1);
-          iO  = closest_image(i,iI,sametag, x_);
-          iH1 = i;
-          iH2 = closest_image(i,iH,sametag, x_);
+          //iH = atom_mapping(map, tag[i] + 1);
+          //iO  = closest_image(i,iI,sametag, x_);
+          //iH1 = i;
+          //iH2 = closest_image(i,iH,sametag, x_);
         }
         hneigh[i*4+0] = iO;
         hneigh[i*4+1] += -1;
@@ -268,7 +285,14 @@ __kernel void k_lj_tip4p_newsite(const __global numtyp4 *restrict x_,
       iH2 = hneigh[i*4+1];
       iO  = i;
       numtyp qO; fetch(qO,iO,q_tex);
-      compute_newsite(iO,iH1,iH2, &m[iO], qO, alpha, x_);
+      if (iH1>=0 && iH2>=0) {
+      	compute_newsite(iO,iH1,iH2, &m[iO], qO, alpha, x_);
+      } else {
+        m[iO] = ix;
+        m[iO].w = qO;
+	hneigh[i*4] = iO;
+	hneigh[i*4+1] = iO;
+      }
     }
   }
 }

@@ -39,7 +39,7 @@ Finding 1-2 1-3 1-4 neighbors ...
      1 = max # of 1-4 neighbors
      2 = max # of special neighbors
   special bonds CPU = 0.001 seconds
-  read_data CPU = 0.018 seconds
+  read_data CPU = 0.015 seconds
 
 group bot molecule 641
 416 atoms in group bot
@@ -69,7 +69,7 @@ fix conq bot electrode/conq -1.0 1.979 couple top 1.0 etypes 5 # conq doesn't ta
 832 atoms in group conp_group
 
 thermo 50
-thermo_style custom step temp c_ctemp epair etotal c_qbot c_qtop f_conq[1][1] f_conq[2][1]
+thermo_style custom step temp c_ctemp epair etotal c_qbot c_qtop f_conq[1] f_conq[2]
 run 500
 PPPM/electrode initialization ...
   using 12-bit tables for long-range coulomb (src/kspace.cpp:342)
@@ -104,7 +104,7 @@ Neighbor list info ...
       stencil: none
       bin: none
 Per MPI rank memory allocation (min/avg/max) = 23.63 | 27.46 | 31.29 Mbytes
-   Step          Temp         c_ctemp         E_pair         TotEng         c_qbot         c_qtop      f_conq[1][1]   f_conq[2][1] 
+   Step          Temp         c_ctemp         E_pair         TotEng         c_qbot         c_qtop       f_conq[1]      f_conq[2]   
          0   0              0              25136984       25136984      -1              1             -9.931852       10.097344    
         50   20.206425      72.797911      25136825       25137033      -1              1             -9.4359366      9.5964514    
        100   55.931663      201.50563      25136587       25137163      -1              1             -8.0440112      8.1861787    
@@ -116,22 +116,22 @@ Per MPI rank memory allocation (min/avg/max) = 23.63 | 27.46 | 31.29 Mbytes
        400   122.8443       442.57252      25136991       25138256      -1              1             -3.4311003      3.3941657    
        450   128.63713      463.44243      25137048       25138373      -1              1             -4.132871       3.9852959    
        500   131.18361      472.61665      25137142       25138493      -1              1             -4.5104095      4.2567261    
-Loop time of 23.02 on 4 procs for 500 steps with 3776 atoms
+Loop time of 23.8659 on 4 procs for 500 steps with 3776 atoms
 
-Performance: 1.877 ns/day, 12.789 hours/ns, 21.720 timesteps/s
-93.3% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 1.810 ns/day, 13.259 hours/ns, 20.950 timesteps/s
+93.5% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 4.0178     | 4.1947     | 4.3354     |   6.8 | 18.22
-Bond    | 0.00061117 | 0.00068637 | 0.00072249 |   0.0 |  0.00
-Kspace  | 11.853     | 11.994     | 12.171     |   4.0 | 52.10
-Neigh   | 0.060425   | 0.060489   | 0.06052    |   0.0 |  0.26
-Comm    | 0.091334   | 0.092251   | 0.093191   |   0.3 |  0.40
-Output  | 0.00067425 | 0.00089541 | 0.0014804  |   0.0 |  0.00
-Modify  | 6.6612     | 6.662      | 6.6627     |   0.0 | 28.94
-Other   |            | 0.01505    |            |       |  0.07
+Pair    | 4.2231     | 4.3451     | 4.5145     |   5.6 | 18.21
+Bond    | 0.00048756 | 0.00052807 | 0.00058913 |   0.0 |  0.00
+Kspace  | 12.239     | 12.408     | 12.53      |   3.3 | 51.99
+Neigh   | 0.062108   | 0.062136   | 0.062173   |   0.0 |  0.26
+Comm    | 0.092261   | 0.096857   | 0.10111    |   1.1 |  0.41
+Output  | 0.00063911 | 0.00082467 | 0.0013664  |   0.0 |  0.00
+Modify  | 6.9315     | 6.9362     | 6.9417     |   0.2 | 29.06
+Other   |            | 0.01626    |            |       |  0.07
 
 Nlocal:            944 ave         948 max         940 min
 Histogram: 1 0 0 1 0 0 1 0 0 1

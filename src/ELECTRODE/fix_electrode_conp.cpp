@@ -68,12 +68,19 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
     vec_neighlist(nullptr), recvcounts(nullptr), displs(nullptr), iele_gathered(nullptr),
     buf_gathered(nullptr), potential_i(nullptr), potential_iele(nullptr), charge_iele(nullptr)
 {
+  // fix.h output flags
+  scalar_flag = 1;
+  vector_flag = 1;
+  array_flag = 1;
+  extscalar = 1;
+  extvector = 0;
+  extarray = 0;
+
   read_inv = read_mat = false;
   symm = false;
   ffield = false;
   thermo_time = 0.;
-  scalar_flag = 1;
-  array_flag = 1;
+
   top_group = 0;
   intelflag = false;
   tfflag = false;
@@ -222,6 +229,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
                "Cannot write elastance matrix if reading capacitance matrix "
                "from file");
   num_of_groups = static_cast<int>(groups.size());
+  size_vector = num_of_groups;
   size_array_rows = num_of_groups;
   size_array_cols = 2 + 2 * num_of_groups;
 
@@ -828,24 +836,25 @@ double FixElectrodeConp::compute_scalar()
 {
   return potential_energy(0);
 }
+
+/* ---------------------------------------------------------------------- */
+
+double FixElectrodeConp::compute_vector(int i)
+{
+  return group_psi[i];
+}
+
 /* ---------------------------------------------------------------------- */
 
 double FixElectrodeConp::compute_array(int i, int j)
 {
-  if (i < 0 || i >= num_of_groups) error->all(FLERR, "invalid fix electrode array row reference");
-  if (j < 0)
-    error->all(FLERR, "invalid fix electrode array column reference");
-  else if (j == 0)
-    return group_psi[i];
-  else if (j == 1)
+  if (j == 0)
     return sb_charges[i];
-  else if (j <= num_of_groups + 1)
-    return macro_capacitance[i][j - 2];
-  else if (j <= 2 * num_of_groups + 1)
-    return macro_elastance[i][j - num_of_groups - 2];
-  else
-    error->all(FLERR, "invalid fix electrode array column reference");
-  return 0.;    // avoid -Wreturn-type warning
+  else if (j <= num_of_groups)
+    return macro_capacitance[i][j - 1];
+  else if (j <= 2 * num_of_groups)
+    return macro_elastance[i][j - num_of_groups - 1];
+  else return 0.;    // avoid -Wreturn-type warning
 }
 
 /* ---------------------------------------------------------------------- */

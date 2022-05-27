@@ -46,6 +46,7 @@ class FixElectrodeConp : public Fix {
   void pre_force(int) override;
   void pre_reverse(int, int) override;
   double compute_scalar() override;
+  double compute_vector(int) override;
   double compute_array(int, int) override;
   int modify_param(int, char **) override;
   int modify_param(const std::string &);

@@ -31,7 +31,7 @@ Syntax
 
 * ID, group-ID are documented in fix command
 * mode = electrode/conp or electrode/conq or electrode/thermo
-* potential = electrode potential
+* potential = electrode potential (number, or equal-style variable)
 * charge = electrode charge
 * eta = reciprocal width of electrode charge smearing
 * T_v = temperature of thermo-potentiostat
@@ -86,6 +86,22 @@ fix electrode/thermo implements a thermo-potentiostat :ref:`(Deissenbeck)
 to be specified using the temp keyword. Currently, only two electrodes are possible with
 this style.
 
+For all three fixes, any potential (or charge for *conq*) can be specified as an
+equal-style variable prefixed with "v_". For example, the following code will
+ramp the potential difference between electrodes from 0.0V to 2.0V over the
+course of the simulation:
+
+.. code-block:: LAMMPS
+
+   fix fxconp bot electrode/conp 0.0 1.805 couple top v_v symm on
+   variable v equal ramp(0.0, 2.0)
+
+Note that these fixes only parse their supplied variable name when starting a
+run, and so these fixes will accept equal-style variables defined *after* the
+fix definition, including variables dependent on the fix's own output. For an
+advanced example of this see the in.conq2 input file in the directory
+examples/PACKAGES/electrode/graph-il.
+
 This fix necessitates the use of a long range solver that calculates and provides the matrix
 of electrode-electrode interactions and a vector of electrode-electrolyte
 interactions.  The Kspace styles *ewald/electrode*, *pppm/electrode* and
@@ -132,23 +148,33 @@ file, for code developers to track optimization.
 
 ----------
 
-These fixes compute a global array which can be accessed by various
-:doc:`output commands <Howto_output>`. The array has *N* rows and *2N+2*
-columns, where *N* is the number of electrode groups managed by the fix. For the
-*I*-th row of the array, the elements are:
+These fixes compute a global (extensive) scalar, a global (intensive) vector,
+and a global array, which can be accessed by various
+:doc:`output commands <Howto_output>`.
 
-* array[I][1] = potential instantaneously applied to group *I*
+The global scalar outputs the energy added to the system by this fix, which is
+the negative of the total charge on each electrode multiplied by that
+electrode's potential.
+
+The global vector outputs the potential on each electrode (and thus has *N*
+entries if the fix manages *N* electrode groups), in :doc:`units <Units>` of
+electric field multiplied by distance (thus volts for *real* and *metal* units).
+The electrode groups' ordering follows the order in which they were input in the
+fix command using *couple*. The global vector output is useful for
+*fix electrode/conq* and *fix electrode/thermo*,
+where potential is dynamically updated based on electrolyte configuration
+instead of being directly set.
+
+The global array has *N* rows and *2N+1* columns, where the fix manages *N*
+electrode groups managed by the fix. For the *I*-th row of the array, the
+elements are:
+
 * array[I][1] = total charge that group *I* would have had *if it were at 0 V
   applied potential*
 * array[I][2 to *N* + 1] = the *N* entries of the *I*-th row of the electrode
   capacitance matrix (definition follows)
 * array[I][*N* + 2 to *2N* + 1] = the *N* entries of the *I*-th row of the electrode
   elastance matrix (the inverse of the electrode capacitance matrix)
-
-The first column is handy for *fix electrode/conq* and *fix
-electrode/thermo* simulations, to output the potentials dynamically calculated and
-imposed by the fix (see following formula). The potential is in units of electric field times
-distance, which gives volts for most (but not all) :doc:`units <units>` settings.
 
 The :math:`N \times N` electrode capacitance matrix, denoted :math:`\mathbf{C}`
 in the following equation, summarizes how the total charge induced on each electrode
@@ -166,6 +192,11 @@ in *fix electrode/conq* and *fix electrode/thermo*. With the *symm on* option,
 the electrode capacitance matrix would be singular, and thus its last row is
 replaced with *N* copies of its top-left entry (:math:`\mathbf{C}_{11}`) for
 invertibility.
+
+The global array output is mainly useful for quickly determining the 'vacuum
+capacitance' of the system (capacitance with only electrodes, no electrolyte),
+and can also be used for advanced simulations setting the potential as some
+function of the charge-at-0V (such as in the in.conq2 example mentioned above).
 
 ----------
 

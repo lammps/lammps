@@ -10,6 +10,8 @@ Kokkos_Stacktrace.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_S
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_Stacktrace.cpp
 Kokkos_ExecPolicy.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_ExecPolicy.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_ExecPolicy.cpp
+Kokkos_Command_Line_Parsing.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_Command_Line_Parsing.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_Command_Line_Parsing.cpp
 Kokkos_HostSpace.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_HostSpace.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_HostSpace.cpp
 Kokkos_hwloc.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_hwloc.cpp
@@ -72,7 +74,7 @@ Lock_Array_HIP.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/desul/src/Lock_A
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/desul/src/Lock_Array_HIP.cpp
 endif
 
-ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)
+ifeq ($(KOKKOS_INTERNAL_USE_THREADS), 1)
 Kokkos_ThreadsExec_base.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Threads/Kokkos_ThreadsExec_base.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Threads/Kokkos_ThreadsExec_base.cpp
 Kokkos_ThreadsExec.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Threads/Kokkos_ThreadsExec.cpp

@@ -58,8 +58,8 @@ void memory_fence() {
 #elif defined(__HIP_DEVICE_COMPILE__)
   __threadfence();
 #elif defined(KOKKOS_ENABLE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
-  sycl::ONEAPI::atomic_fence(sycl::ONEAPI::memory_order::acq_rel,
-                             sycl::ONEAPI::memory_scope::device);
+  sycl::atomic_fence(sycl::ext::oneapi::memory_order::acq_rel,
+                     sycl::ext::oneapi::memory_scope::device);
 #elif defined(KOKKOS_ENABLE_ASM) && defined(KOKKOS_ENABLE_ISA_X86_64)
   asm volatile("mfence" ::: "memory");
 #elif defined(KOKKOS_ENABLE_GNU_ATOMICS) || \

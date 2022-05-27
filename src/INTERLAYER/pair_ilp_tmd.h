@@ -24,7 +24,7 @@ PairStyle(ilp/tmd,PairILPTMD);
 
 namespace LAMMPS_NS {
 
-class PairILPTMD : public PairILPGrapheneHBN {
+class PairILPTMD : virtual public PairILPGrapheneHBN {
  public:
   PairILPTMD(class LAMMPS *);
 

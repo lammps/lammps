@@ -34,6 +34,7 @@ class Min : protected Pointers {
   virtual void setup(int flag = 1);
   virtual void setup_minimal(int);
   virtual void run(int);
+  virtual void force_clear();
   void cleanup();
   int request(class Pair *, int, double);
   virtual double memory_usage() { return 0; }
@@ -138,7 +139,6 @@ class Min : protected Pointers {
   int neigh_every, neigh_delay, neigh_dist_check;    // neighboring params
 
   virtual double energy_force(int);
-  virtual void force_clear();
 
   void ev_setup();
   void ev_set(bigint);

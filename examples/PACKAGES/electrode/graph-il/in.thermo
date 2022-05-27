@@ -1,0 +1,19 @@
+# electrodes with thermopotentiostat
+# for graphene-ionic liquid supercapacitor
+
+boundary p p f # slab calculation
+include settings.mod # styles, groups, computes and fixes
+kspace_modify slab 3.0
+
+unfix nvt # remove NVT thermostat included from "settings.mod"
+fix conpthermo bot electrode/thermo -1.0 1.979 couple top 1.0 etypes 5 temp 500 100 7 # temp tau rng
+# to compare to regular constant potential, switch previous line to this:
+#fix conp bot electrode/conp -1.0 1.979 couple top 1.0 etypes 5 symm on
+fix nve electrolyte nve
+
+# note ionic liquid does not reach 500K immediately
+# because its thermal response time is finite
+# run this about 10k steps (10ps) to reach preset temperature
+thermo 50
+thermo_style custom step temp c_ctemp epair etotal c_qbot c_qtop
+run 500

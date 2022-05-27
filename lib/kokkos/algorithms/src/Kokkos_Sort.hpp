@@ -437,14 +437,39 @@ struct BinOp1D {
   BinOp1D(int max_bins__, typename KeyViewType::const_value_type min,
           typename KeyViewType::const_value_type max)
       : max_bins_(max_bins__ + 1),
-        mul_(1.0 * max_bins__ / (max - min)),
+        // Cast to int64_t to avoid possible overflow when using integer
+        mul_(std::is_integral<typename KeyViewType::const_value_type>::value
+                 ? 1.0 * max_bins__ / (int64_t(max) - int64_t(min))
+                 : 1.0 * max_bins__ / (max - min)),
         range_(max - min),
-        min_(min) {}
+        min_(min) {
+    // For integral types the number of bins may be larger than the range
+    // in which case we can exactly have one unique value per bin
+    // and then don't need to sort bins.
+    if (std::is_integral<typename KeyViewType::const_value_type>::value &&
+        static_cast<uint64_t>(range_) <= static_cast<uint64_t>(max_bins__)) {
+      mul_ = 1.;
+    }
+  }
 
   // Determine bin index from key value
-  template <class ViewType>
+  template <
+      class ViewType,
+      std::enable_if_t<!std::is_integral<typename ViewType::value_type>::value,
+                       bool> = true>
   KOKKOS_INLINE_FUNCTION int bin(ViewType& keys, const int& i) const {
     return int(mul_ * (keys(i) - min_));
+  }
+
+  // Determine bin index from key value
+  template <
+      class ViewType,
+      std::enable_if_t<std::is_integral<typename ViewType::value_type>::value,
+                       bool> = true>
+  KOKKOS_INLINE_FUNCTION int bin(ViewType& keys, const int& i) const {
+    // The cast to int64_t is necessary because otherwise HIP returns the wrong
+    // result.
+    return int(mul_ * (int64_t(keys(i)) - int64_t(min_)));
   }
 
   // Return maximum bin index + 1
@@ -564,8 +589,26 @@ std::enable_if_t<Kokkos::is_execution_space<ExecutionSpace>::value> sort(
                       exec, 0, view.extent(0)),
                   Impl::min_max_functor<ViewType>(view), reducer);
   if (result.min_val == result.max_val) return;
+  // For integral types the number of bins may be larger than the range
+  // in which case we can exactly have one unique value per bin
+  // and then don't need to sort bins.
+  bool sort_in_bins = true;
+  // TODO: figure out better max_bins then this ...
+  int64_t max_bins = view.extent(0) / 2;
+  if (std::is_integral<typename ViewType::non_const_value_type>::value) {
+    // Cast to int64_t to avoid possible overflow when using integer
+    int64_t const max_val = result.max_val;
+    int64_t const min_val = result.min_val;
+    // using 10M as the cutoff for special behavior (roughly 40MB for the count
+    // array)
+    if ((max_val - min_val) < 10000000) {
+      max_bins     = max_val - min_val + 1;
+      sort_in_bins = false;
+    }
+  }
+
   BinSort<ViewType, CompType> bin_sort(
-      view, CompType(view.extent(0) / 2, result.min_val, result.max_val), true);
+      view, CompType(max_bins, result.min_val, result.max_val), sort_in_bins);
   bin_sort.create_permute_vector(exec);
   bin_sort.sort(exec, view);
 }

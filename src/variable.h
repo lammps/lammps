@@ -71,6 +71,7 @@ class Variable : protected Pointers {
     ATOM,
     VECTOR,
     PYTHON,
+    TIMER,
     INTERNAL
   };
   static constexpr int VALUELENGTH = 64;

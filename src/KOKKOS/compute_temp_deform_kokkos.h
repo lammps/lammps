@@ -76,7 +76,6 @@ class ComputeTempDeformKokkos: public ComputeTempDeform {
   typedef ArrayTypes<DeviceType> AT;
 
   ComputeTempDeformKokkos(class LAMMPS *, int, char **);
-  ~ComputeTempDeformKokkos() override;
   double compute_scalar() override;
   void compute_vector() override;
   void remove_bias_all() override;

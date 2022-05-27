@@ -21,27 +21,7 @@ KSpaceStyle(pppm,PPPM);
 #define LMP_PPPM_H
 
 #include "kspace.h"
-
-#if defined(FFT_FFTW3)
-#define LMP_FFT_LIB "FFTW3"
-#elif defined(FFT_MKL)
-#define LMP_FFT_LIB "MKL FFT"
-#elif defined(FFT_CUFFT)
-#define LMP_FFT_LIB "cuFFT"
-#else
-#define LMP_FFT_LIB "KISS FFT"
-#endif
-
-#ifdef FFT_SINGLE
-typedef float FFT_SCALAR;
-#define LMP_FFT_PREC "single"
-#define MPI_FFT_SCALAR MPI_FLOAT
-#else
-
-typedef double FFT_SCALAR;
-#define LMP_FFT_PREC "double"
-#define MPI_FFT_SCALAR MPI_DOUBLE
-#endif
+#include "lmpfftsettings.h"
 
 namespace LAMMPS_NS {
 
@@ -121,7 +101,7 @@ class PPPM : public KSpace {
   double alpha;        // geometric factor
 
   virtual void set_grid_global();
-  void set_grid_local();
+  virtual void set_grid_local();
   void adjust_gewald();
   virtual double newton_raphson_f();
   double derivf();
@@ -132,7 +112,7 @@ class PPPM : public KSpace {
   virtual void deallocate();
   virtual void deallocate_peratom();
   int factorable(int);
-  double compute_df_kspace();
+  virtual double compute_df_kspace();
   double estimate_ik_error(double, double, bigint);
   virtual double compute_qopt();
   virtual void compute_gf_denom();

@@ -166,7 +166,7 @@ ValueTokenizer PotentialFileReader::next_values(int nparams, const std::string &
   } catch (FileReaderException &e) {
     error->one(FLERR, e.what());
   }
-  return ValueTokenizer("");
+  return {""};
 }
 
 /** Read next line and convert first word to a double

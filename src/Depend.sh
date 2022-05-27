@@ -78,6 +78,10 @@ if (test $1 = "DPD-BASIC") then
   depend INTEL
 fi
 
+if (test $1 = "ELECTRODE") then
+  depend INTEL
+fi
+
 if (test $1 = "EXTRA-COMPUTE") then
   depend KOKKOS
 fi
@@ -148,6 +152,10 @@ if (test $1 = "RIGID") then
   depend KOKKOS
   depend OPENMP
   depend DPD-SMOOTH
+fi
+
+if (test $1 = "ML-PACE") then
+  depend KOKKOS
 fi
 
 if (test $1 = "ML-SNAP") then

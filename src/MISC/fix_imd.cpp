@@ -159,8 +159,6 @@ static void rebuild_table_tagint(taginthash_t *tptr) {
 
   /* free memory used by old table */
   free(old_bucket);
-
-  return;
 }
 
 /*
@@ -190,8 +188,6 @@ void taginthash_init(taginthash_t *tptr, tagint buckets) {
 
   /* allocate memory for table */
   tptr->bucket=(taginthash_node_t **) calloc(tptr->size, sizeof(taginthash_node_t *));
-
-  return;
 }
 
 /*
@@ -579,7 +575,6 @@ FixIMD::~FixIMD()
   imdsock_destroy(localsock);
   clientsock=nullptr;
   localsock=nullptr;
-  return;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -596,8 +591,6 @@ void FixIMD::init()
 {
   if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
-
-  return;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -757,8 +750,7 @@ void FixIMD::setup(int)
     MPI_Rsend(comm_buf, nme*size_one, MPI_BYTE, 0, 0, world);
   }
 
-  return;
-}
+  }
 
 /* worker threads for asynchronous i/o */
 #if defined(LAMMPS_ASYNC_IMD)
@@ -1139,15 +1131,13 @@ void FixIMD::post_force(int /*vflag*/)
     MPI_Rsend(comm_buf, nme*size_one, MPI_BYTE, 0, 0, world);
   }
 
-  return;
-}
+  }
 
 /* ---------------------------------------------------------------------- */
 void FixIMD::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   /* only process IMD on the outmost RESPA level. */
   if (ilevel == nlevels_respa-1) post_force(vflag);
-  return;
 }
 
 /* ---------------------------------------------------------------------- */

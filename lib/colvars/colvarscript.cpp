@@ -11,13 +11,6 @@
 #include <cstring>
 #include <sstream>
 
-#if defined(NAMD_TCL) || defined(VMDTCL)
-#define COLVARS_TCL
-#endif
-#ifdef COLVARS_TCL
-#include <tcl.h>
-#endif
-
 #include "colvarproxy.h"
 #include "colvardeps.h"
 #include "colvarscript.h"
@@ -38,20 +31,25 @@ extern "C" int tcl_run_colvarscript_command(ClientData clientData,
 #endif
 
 
-colvarscript::colvarscript(colvarproxy *p)
+colvarscript::colvarscript(colvarproxy *p, colvarmodule *m)
  : proxy_(p),
-   colvars(p->colvars),
-   proxy_error(0)
+   colvars(m)
 {
   cmd_names = NULL;
   init_commands();
 #ifdef COLVARS_TCL
+  // must be called after constructing derived proxy class to allow for overloading
+  proxy()->init_tcl_pointers();
   // TODO put this in backend functions so we don't have to delete
-  Tcl_Interp *interp = reinterpret_cast<Tcl_Interp *>(proxy_->get_tcl_interp());
+  Tcl_Interp *const interp = proxy()->get_tcl_interp();
+  if (interp == NULL) {
+    cvm::error("Error: trying to construct colvarscript without a Tcl interpreter.\n");
+    return;
+  }
   Tcl_DeleteCommand(interp, "cv");
   Tcl_CreateObjCommand(interp, "cv", tcl_run_colvarscript_command,
                        (ClientData) this, (Tcl_CmdDeleteProc *) NULL);
-  cvm::log("Redefining the Tcl \"cv\" command to the new script interface.");
+  cvm::log("Redefining the Tcl \"cv\" command to the new script interface.\n");
 #endif
 }
 
@@ -136,7 +134,7 @@ int colvarscript::init_command(colvarscript::command const &comm,
     for (int iarg = 0; iarg < n_args_max; iarg++) {
       if (! std::getline(is, line)) {
         return cvm::error("Error: could not initialize help string for scripting "
-                          "command \""+std::string(name)+"\".\n", BUG_ERROR);
+                          "command \""+std::string(name)+"\".\n", COLVARS_BUG_ERROR);
       }
       cmd_arghelp[comm].push_back(line);
     }
@@ -180,7 +178,7 @@ std::string colvarscript::get_cmd_prefix(colvarscript::Object_type t)
   case use_bias:
     return std::string("bias_"); break;
   default:
-    cvm::error("Error: undefined colvarscript object type.", BUG_ERROR);
+    cvm::error("Error: undefined colvarscript object type.", COLVARS_BUG_ERROR);
     return std::string("");
   }
 }
@@ -194,7 +192,7 @@ char const *colvarscript::get_command_help(char const *cmd)
     return cmd_help[c].c_str();
   }
   cvm::error("Error: command "+std::string(cmd)+
-             " is not implemented.\n", INPUT_ERROR);
+             " is not implemented.\n", COLVARS_INPUT_ERROR);
   return NULL;
 }
 
@@ -206,7 +204,7 @@ char const *colvarscript::get_command_rethelp(char const *cmd)
     return cmd_rethelp[c].c_str();
   }
   cvm::error("Error: command "+std::string(cmd)+
-             " is not implemented.\n", INPUT_ERROR);
+             " is not implemented.\n", COLVARS_INPUT_ERROR);
   return NULL;
 }
 
@@ -218,7 +216,7 @@ char const *colvarscript::get_command_arghelp(char const *cmd, int i)
     return cmd_arghelp[c][i].c_str();
   }
   cvm::error("Error: command "+std::string(cmd)+
-             " is not implemented.\n", INPUT_ERROR);
+             " is not implemented.\n", COLVARS_INPUT_ERROR);
   return NULL;
 }
 
@@ -230,7 +228,7 @@ int colvarscript::get_command_n_args_min(char const *cmd)
     return cmd_n_args_min[c];
   }
   cvm::error("Error: command "+std::string(cmd)+
-             " is not implemented.\n", INPUT_ERROR);
+             " is not implemented.\n", COLVARS_INPUT_ERROR);
   return -1;
 }
 
@@ -242,7 +240,7 @@ int colvarscript::get_command_n_args_max(char const *cmd)
     return cmd_n_args_max[c];
   }
   cvm::error("Error: command "+std::string(cmd)+
-             " is not implemented.\n", INPUT_ERROR);
+             " is not implemented.\n", COLVARS_INPUT_ERROR);
   return -1;
 }
 
@@ -254,7 +252,7 @@ char const *colvarscript::get_command_full_help(char const *cmd)
     return cmd_full_help[c].c_str();
   }
   cvm::error("Error: command "+std::string(cmd)+
-             " is not implemented.\n", INPUT_ERROR);
+             " is not implemented.\n", COLVARS_INPUT_ERROR);
   return NULL;
 }
 
@@ -338,9 +336,8 @@ std::string colvarscript::get_command_cmdline_help(colvarscript::Object_type t,
     return get_command_cmdline_syntax(t, c)+"\n\n"+
       get_command_full_help(cmd_names[c]);
   }
-  cvm::error("Error: could not find scripting command \""+cmd+"\".",
-             INPUT_ERROR);
-  return std::string("");
+  cvm::set_error_bits(COLVARS_INPUT_ERROR);
+  return std::string("Could not find scripting command \""+cmd+"\".");
 }
 
 
@@ -477,7 +474,7 @@ std::vector<std::string> colvarscript::obj_to_str_vector(unsigned char *obj)
       i++;
       if (i >= str.length()) {
         cvm::error("Error: could not split the following string:\n"+
-                   str+"\n", INPUT_ERROR);
+                   str+"\n", COLVARS_INPUT_ERROR);
         break;
       }
       new_result.push_back(std::string(""));
@@ -485,7 +482,7 @@ std::vector<std::string> colvarscript::obj_to_str_vector(unsigned char *obj)
         new_result.back().append(1, str[i]);
         if (i >= str.length()) {
           cvm::error("Error: could not split the following string:\n"+
-                     str+"\n", INPUT_ERROR);
+                     str+"\n", COLVARS_INPUT_ERROR);
           break;
         } else {
           i++;
@@ -616,7 +613,7 @@ int run_colvarscript_command(int objc, unsigned char *const objv[])
   colvarscript *script = cv ? cv->proxy->script : NULL;
   if (!script) {
     cvm::error("Called run_colvarscript_command without a script object.\n",
-               BUG_ERROR);
+               COLVARS_BUG_ERROR);
     return -1;
   }
   int retval = script->run(objc, objv);
@@ -644,13 +641,13 @@ int tcl_colvars_vmd_init(Tcl_Interp *interp, int molid);
 #endif
 
 #if !defined(VMDTCL) && !defined(NAMD_TCL)
+// Initialize Colvars when loaded as a shared library into Tcl interpreter
 extern "C" {
   int Colvars_Init(Tcl_Interp *interp) {
     colvarproxy *proxy = new colvarproxy();
     colvarmodule *colvars = new colvarmodule(proxy);
-    proxy->set_tcl_interp(reinterpret_cast<void *>(interp));
+    proxy->set_tcl_interp(interp);
     proxy->colvars = colvars;
-    proxy->script = new colvarscript(proxy);
     Tcl_CreateObjCommand(interp, "cv", tcl_run_colvarscript_command,
                          (ClientData *) NULL, (Tcl_CmdDeleteProc *) NULL);
     Tcl_EvalEx(interp, "package provide colvars", -1, 0);
@@ -715,8 +712,7 @@ extern "C" int tcl_run_colvarscript_command(ClientData /* clientData */,
   }
 
   colvarproxy *proxy = colvars->proxy;
-  Tcl_Interp *interp = my_interp ? my_interp :
-    reinterpret_cast<Tcl_Interp *>(proxy->get_tcl_interp());
+  Tcl_Interp *interp = my_interp ? my_interp : proxy->get_tcl_interp();
   colvarscript *script = colvarscript_obj();
   if (!script) {
     char const *errstr = "Called tcl_run_colvarscript_command "
@@ -744,8 +740,8 @@ extern "C" int tcl_run_colvarscript_command(ClientData /* clientData */,
   Tcl_SetResult(interp, const_cast<char *>(result.c_str()),
                 TCL_VOLATILE);
 
-  if (proxy->delete_requested() || cvm::get_error_bit(FATAL_ERROR)) {
-    if (proxy->delete_requested() && !proxy->simulation_running()) {
+  if (proxy->delete_requested()) {
+    if (!proxy->simulation_running()) {
       // Running in VMD
       Tcl_SetResult(interp,
                     const_cast<char *>("Deleting Colvars module"

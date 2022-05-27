@@ -4464,10 +4464,8 @@ static void aut_lj_with_bo(
  }
 exceed_limits:
   for (int l = 0; l < fvec::VL; l++) {
-    ref_lennard_jones_single_interaction(ka, ivec::at(i, l), ivec::at(j, l),
-                                         MORSEFLAG);
+    ref_lennard_jones_single_interaction(ka, ivec::at(i, l), ivec::at(j, l), MORSEFLAG);
   }
-  return;
 }
 
 /*

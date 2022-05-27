@@ -564,10 +564,10 @@ int MolfileInterface::timestep(float *coords, float *vels,
 // functions to read properties from molfile structure
 
 #define PROPUPDATE(PROP,ENTRY,VAL)              \
-  if (propid == PROP) { VAL = a.ENTRY; }
+  if (propid == (PROP)) { (VAL) = a.ENTRY; }
 
 #define PROPSTRCPY(PROP,ENTRY,VAL)              \
-  if (propid == PROP) { strcpy(VAL,a.ENTRY); }
+  if (propid == (PROP)) { strcpy(VAL,a.ENTRY); }
 
 // single precision floating point props
 static float read_float_property(molfile_atom_t &a, const int propid)
@@ -645,10 +645,10 @@ static const char *read_string_property(molfile_atom_t &a,
 // functions to store properties into molfile structure
 
 #define PROPUPDATE(PROP,ENTRY,VAL)                                  \
-  if ((propid & PROP) == PROP) { a.ENTRY = VAL; plist |= PROP; }
+  if ((propid & (PROP)) == (PROP)) { a.ENTRY = VAL; plist |= (PROP); }
 
 #define PROPSTRCPY(PROP,ENTRY,VAL)                                      \
-  if ((propid & PROP) == PROP) { strcpy(a.ENTRY,VAL); plist |= PROP; }
+  if ((propid & (PROP)) == (PROP)) { strcpy(a.ENTRY,VAL); plist |= (PROP); }
 
 // floating point props
 static int write_atom_property(molfile_atom_t &a,

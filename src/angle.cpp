@@ -31,6 +31,7 @@ Angle::Angle(LAMMPS *_lmp) : Pointers(_lmp)
   energy = 0.0;
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
   writedata = 1;
+  reinitflag = 1;
 
   allocated = 0;
   suffix_flag = Suffix::NONE;
@@ -72,6 +73,16 @@ void Angle::init()
     if (setflag[i] == 0) error->all(FLERR, "All angle coeffs are not set");
 
   init_style();
+}
+
+/* ----------------------------------------------------------------------
+   check that there are no arguments
+------------------------------------------------------------------------- */
+
+void Angle::settings(int narg, char **args)
+{
+  if (narg > 0)
+    error->all(FLERR, "Illegal angle_style {} argument: {}", force->angle_style, args[0]);
 }
 
 /* ----------------------------------------------------------------------

@@ -263,6 +263,73 @@ void MLIAPDescriptorSO3::compute_forces(class MLIAPData *data)
 
 /* ---------------------------------------------------------------------- */
 
+void MLIAPDescriptorSO3::compute_force_gradients(class MLIAPData *data)
+{
+  bigint npairs = 0;
+  for (int ii = 0; ii < data->nlistatoms; ii++) npairs += data->numneighs[ii];
+
+  so3ptr->spectrum_dxdr(data->nlistatoms, data->numneighs, data->jelems, wjelem, data->rij, nmax,
+                        lmax, rcutfac, alpha, npairs, data->ndescriptors);
+  int ij = 0;
+
+  for (int ii = 0; ii < data->nlistatoms; ii++) {
+    const int i = data->iatoms[ii];
+
+    // insure rij, inside, wj, and rcutij are of size jnum
+
+    const int jnum = data->numneighs[ii];
+
+    for (int jj = 0; jj < jnum; jj++) {
+      int j = data->jatoms[ij];
+
+      for (int inz = 0; inz < data->gamma_nnz; inz++) {
+        const int l = data->gamma_row_index[ii][inz];
+        const int k = data->gamma_col_index[ii][inz];
+
+        data->gradforce[i][l] +=
+            data->gamma[ii][inz] * so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3];
+        data->gradforce[i][l + data->yoffset] +=
+            data->gamma[ii][inz] * so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3 + 1];
+        data->gradforce[i][l + data->zoffset] +=
+            data->gamma[ii][inz] * so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3 + 2];
+        data->gradforce[j][l] -=
+            data->gamma[ii][inz] * so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3];
+        data->gradforce[j][l + data->yoffset] -=
+            data->gamma[ii][inz] * so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3 + 1];
+        data->gradforce[j][l + data->zoffset] -=
+            data->gamma[ii][inz] * so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3 + 2];
+      }
+      ij++;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void MLIAPDescriptorSO3::compute_descriptor_gradients(class MLIAPData *data)
+{
+  bigint npairs = 0;
+  for (int ii = 0; ii < data->nlistatoms; ii++) npairs += data->numneighs[ii];
+
+  so3ptr->spectrum_dxdr(data->nlistatoms, data->numneighs, data->jelems, wjelem, data->rij, nmax,
+                        lmax, rcutfac, alpha, npairs, data->ndescriptors);
+  int ij = 0;
+
+  for (int ii = 0; ii < data->nlistatoms; ii++) {
+    const int jnum = data->numneighs[ii];
+    for (int jj = 0; jj < jnum; jj++) {
+      for (int k = 0; k < data->ndescriptors; k++) {
+        data->graddesc[ij][k][0] = so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3];
+        data->graddesc[ij][k][1] = so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3 + 1];
+        data->graddesc[ij][k][2] = so3ptr->m_dplist_r[(ij * (data->ndescriptors) + k) * 3 + 2];
+      }
+      ij++;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void MLIAPDescriptorSO3::init()
 {
   so3ptr->init();

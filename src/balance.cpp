@@ -491,7 +491,7 @@ void Balance::options(int iarg, int narg, char **arg)
 
 void Balance::weight_storage(char *prefix)
 {
-  std::string cmd = "";
+  std::string cmd;
 
   if (prefix) cmd = prefix;
   cmd += "IMBALANCE_WEIGHTS";

@@ -50,10 +50,6 @@
 #include <Kokkos_Core.hpp>
 #include <Kokkos_ErrorReporter.hpp>
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
 namespace Test {
 
 // Just save the data in the report.  Informative text goes in the
@@ -174,7 +170,8 @@ struct ErrorReporterDriver : public ErrorReporterDriverBase<DeviceType> {
   KOKKOS_INLINE_FUNCTION
   void operator()(const int work_idx) const {
     if (driver_base::error_condition(work_idx)) {
-      double val = M_PI * static_cast<double>(work_idx);
+      double val =
+          Kokkos::Experimental::pi_v<double> * static_cast<double>(work_idx);
       typename driver_base::report_type report = {work_idx, -2 * work_idx, val};
       driver_base::m_errorReporter.add_report(work_idx, report);
     }
@@ -200,7 +197,8 @@ struct ErrorReporterDriverUseLambda
         Kokkos::RangePolicy<execution_space>(0, test_size),
         KOKKOS_CLASS_LAMBDA(const int work_idx) {
           if (driver_base::error_condition(work_idx)) {
-            double val = M_PI * static_cast<double>(work_idx);
+            double val = Kokkos::Experimental::pi_v<double> *
+                         static_cast<double>(work_idx);
             typename driver_base::report_type report = {work_idx, -2 * work_idx,
                                                         val};
             driver_base::m_errorReporter.add_report(work_idx, report);
@@ -224,7 +222,8 @@ struct ErrorReporterDriverNativeOpenMP
 #pragma omp parallel for
     for (int work_idx = 0; work_idx < test_size; ++work_idx) {
       if (driver_base::error_condition(work_idx)) {
-        double val = M_PI * static_cast<double>(work_idx);
+        double val =
+            Kokkos::Experimental::pi_v<double> * static_cast<double>(work_idx);
         typename driver_base::report_type report = {work_idx, -2 * work_idx,
                                                     val};
         driver_base::m_errorReporter.add_report(work_idx, report);

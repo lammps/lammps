@@ -76,7 +76,9 @@ namespace LAMMPS_NS {
 class NPairIntel : public NPair {
  public:
   NPairIntel(class LAMMPS *);
+  #ifdef _LMP_INTEL_OFFLOAD
   ~NPairIntel() override;
+  #endif
   void copy_neighbor_info() override;
 
   #ifdef _LMP_INTEL_OFFLOAD

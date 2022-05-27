@@ -56,6 +56,8 @@ class PairPACE : public Pair {
 
   double **scale;
   bool recursive;    // "recursive" option for ACERecursiveEvaluator
+
+  int chunksize;
 };
 }    // namespace LAMMPS_NS
 

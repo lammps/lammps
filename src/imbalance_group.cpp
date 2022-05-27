@@ -74,7 +74,7 @@ void ImbalanceGroup::compute(double *weight)
 
 std::string ImbalanceGroup::info()
 {
-  std::string mesg = "";
+  std::string mesg;
 
   if (num > 0) {
     const char *const *const names = group->names;

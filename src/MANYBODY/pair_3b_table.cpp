@@ -766,6 +766,7 @@ void Pair3BTable::uf_lookup(Param *pm, double r12, double r13, double theta, dou
     f22=pm->mltable->f22file[itable];
     f31=pm->mltable->f31file[itable];
     f32=pm->mltable->f32file[itable];
+    u=pm->mltable->efile[itable];
   }
 }
 

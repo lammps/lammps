@@ -539,7 +539,6 @@ void PairTersoffKokkos<DeviceType>::ters_fc_k_and_ters_dfc(const Param& param, c
 
   fc = 0.5*(1.0 - sin(arg));
   dfc = -(MY_PI4/ters_D) * cos(arg);
-  return;
 }
 
 /* ---------------------------------------------------------------------- */

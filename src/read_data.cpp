@@ -313,11 +313,9 @@ void ReadData::command(int narg, char **arg)
     error->all(FLERR,"Reading a data file with shrinkwrap boundaries is "
                     "not compatible with a MSM KSpace style");
   if (domain->box_exist && !addflag)
-    error->all(FLERR,"Cannot read_data without add keyword "
-               "after simulation box is defined");
+    error->all(FLERR,"Cannot read_data without add keyword after simulation box is defined");
   if (!domain->box_exist && addflag)
-    error->all(FLERR,"Cannot use read_data add before "
-               "simulation box is defined");
+    error->all(FLERR,"Cannot use read_data add before simulation box is defined");
   if (offsetflag && addflag == NONE)
     error->all(FLERR,"Cannot use read_data offset without add flag");
   if (shiftflag && addflag == NONE)
@@ -330,8 +328,7 @@ void ReadData::command(int narg, char **arg)
   // check if data file is available and readable
 
   if (!platform::file_is_readable(arg[0]))
-    error->all(FLERR,fmt::format("Cannot open file {}: {}",
-                                 arg[0], utils::getsyserror()));
+    error->all(FLERR,fmt::format("Cannot open file {}: {}", arg[0], utils::getsyserror()));
 
   // reset so we can warn about reset image flags exactly once per data file
 

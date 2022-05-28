@@ -88,7 +88,7 @@ of (g,i,k,o,t) to indicate which accelerated styles exist.
 * :doc:`dipole <angle_dipole>` - angle that controls orientation of a point dipole
 * :doc:`fourier <angle_fourier>` - angle with multiple cosine terms
 * :doc:`fourier/simple <angle_fourier_simple>` - angle with a single cosine term
-* :doc:`gaussian <angle_gaussian>` - multicentered Gaussian-based angle potential
+* :doc:`gaussian <angle_gaussian>` - multi-centered Gaussian-based angle potential
 * :doc:`harmonic <angle_harmonic>` - harmonic angle
 * :doc:`mm3 <angle_mm3>` - anharmonic angle
 * :doc:`quartic <angle_quartic>` - angle with cubic and quartic terms

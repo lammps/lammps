@@ -56,11 +56,8 @@ class SNA : protected Pointers {
   void compute_duidrj(int);
   void compute_dbidrj();
   void compute_deidrj(double *);
-  double compute_sfac(double, double);
-  double compute_dsfac(double, double);
-
-  double compute_sfac_inner(double, double, double);
-  double compute_dsfac_inner(double, double, double);
+  double compute_sfac(double, double, double, double);
+  double compute_dsfac(double, double, double, double);
 
   // public bispectrum data
 
@@ -80,8 +77,8 @@ class SNA : protected Pointers {
 
   // only allocated for switch_inner_flag=1
 
-  double *rinnerij;     // short inner cutoff list
-  double *drinnerij;    // short inner range list
+  double *sinnerij; // short inner cutoff midpoint list
+  double *dinnerij; // short inner half-width list
 
   // only allocated for chem_flag=1
 

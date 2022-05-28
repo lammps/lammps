@@ -37,12 +37,6 @@ PairLJLongCoulLongIntel::PairLJLongCoulLongIntel(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-PairLJLongCoulLongIntel::~PairLJLongCoulLongIntel()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void PairLJLongCoulLongIntel::init_style()
 {
   PairLJLongCoulLong::init_style();

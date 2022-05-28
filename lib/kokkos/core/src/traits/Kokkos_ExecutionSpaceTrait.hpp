@@ -66,6 +66,7 @@ struct ExecutionSpaceTrait : TraitSpecificationBase<ExecutionSpaceTrait> {
     static constexpr auto execution_space_is_defaulted = true;
 
     using execution_space = Kokkos::DefaultExecutionSpace;
+    KOKKOS_IMPL_MSVC_NVCC_EBO_WORKAROUND
   };
   template <class T>
   using trait_matches_specification = Kokkos::is_execution_space<T>;

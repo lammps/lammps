@@ -335,10 +335,8 @@ void Thermo::header()
         hdr += fmt::format("{:^14} ", head);
       else if ((vtype[i] == INT) || (vtype[i] == BIGINT))
         hdr += fmt::format("{:^11} ", head);
-    } else if (lineflag == YAMLLINE) {
-      hdr += keyword[i];
-      hdr += ", ";
-    }
+    } else if (lineflag == YAMLLINE)
+      hdr += fmt::format("'{}', ", head);
   }
   if (lineflag == YAMLLINE)
     hdr += "]\ndata:";

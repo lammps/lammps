@@ -35,7 +35,7 @@ namespace LAMMPS_NS {
 class DumpAtomADIOSInternal {
 
  public:
-  DumpAtomADIOSInternal(){};
+  DumpAtomADIOSInternal() = default;
   ~DumpAtomADIOSInternal() = default;
 
   // name of adios group, referrable in adios2_config.xml

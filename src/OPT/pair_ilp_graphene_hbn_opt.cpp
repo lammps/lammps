@@ -64,7 +64,7 @@ static bool check_vdw(tagint itag, tagint jtag, double *xi, double *xj);
 
 PairILPGrapheneHBNOpt::PairILPGrapheneHBNOpt(LAMMPS *lmp) :
     PairILPGrapheneHBN(lmp), layered_neigh(nullptr), first_layered_neigh(nullptr),
-    num_intra(nullptr), num_inter(nullptr), num_vdw(nullptr)
+    special_type(nullptr), num_intra(nullptr), num_inter(nullptr), num_vdw(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_ilp_cur);
 
@@ -82,6 +82,7 @@ PairILPGrapheneHBNOpt::~PairILPGrapheneHBNOpt()
   memory->destroy(num_intra);
   memory->destroy(num_inter);
   memory->destroy(num_vdw);
+  memory->destroy(special_type);
 }
 
 /* ----------------------------------------------------------------------
@@ -109,32 +110,94 @@ void PairILPGrapheneHBNOpt::compute(int eflag, int vflag)
 
   if (neighbor->ago == 0) update_internal_list();
 
-  if (eflag_global || eflag_atom) {
-    if (vflag_either) {
-      if (tap_flag) {
-        eval<1, 1, 1>();
+  if (variant == ILP_GrhBN) {
+    if (eflag_global || eflag_atom) {
+      if (vflag_either) {
+        if (tap_flag) {
+          eval<3, 1, 1, 1>();
+        } else {
+          eval<3, 1, 1, 0>();
+        }
       } else {
-        eval<1, 1, 0>();
+        if (tap_flag) {
+          eval<3, 1, 0, 1>();
+        } else {
+          eval<3, 1, 0, 0>();
+        }
       }
     } else {
-      if (tap_flag) {
-        eval<1, 0, 1>();
+      if (vflag_either) {
+        if (tap_flag) {
+          eval<3, 0, 1, 1>();
+        } else {
+          eval<3, 0, 1, 0>();
+        }
       } else {
-        eval<1, 0, 0>();
+        if (tap_flag) {
+          eval<3, 0, 0, 1>();
+        } else {
+          eval<3, 0, 0, 0>();
+        }
       }
     }
-  } else {
-    if (vflag_either) {
-      if (tap_flag) {
-        eval<0, 1, 1>();
+  } else if (variant == ILP_TMD) {
+    if (eflag_global || eflag_atom) {
+      if (vflag_either) {
+        if (tap_flag) {
+          eval<6, 1, 1, 1, ILP_TMD>();
+        } else {
+          eval<6, 1, 1, 0, ILP_TMD>();
+        }
       } else {
-        eval<0, 1, 0>();
+        if (tap_flag) {
+          eval<6, 1, 0, 1, ILP_TMD>();
+        } else {
+          eval<6, 1, 0, 0, ILP_TMD>();
+        }
       }
     } else {
-      if (tap_flag) {
-        eval<0, 0, 1>();
+      if (vflag_either) {
+        if (tap_flag) {
+          eval<6, 0, 1, 1, ILP_TMD>();
+        } else {
+          eval<6, 0, 1, 0, ILP_TMD>();
+        }
       } else {
-        eval<0, 0, 0>();
+        if (tap_flag) {
+          eval<6, 0, 0, 1, ILP_TMD>();
+        } else {
+          eval<6, 0, 0, 0, ILP_TMD>();
+        }
+      }
+    }
+  } else if (variant == SAIP_METAL) {
+    if (eflag_global || eflag_atom) {
+      if (vflag_either) {
+        if (tap_flag) {
+          eval<3, 1, 1, 1, SAIP_METAL>();
+        } else {
+          eval<3, 1, 1, 0, SAIP_METAL>();
+        }
+      } else {
+        if (tap_flag) {
+          eval<3, 1, 0, 1, SAIP_METAL>();
+        } else {
+          eval<3, 1, 0, 0, SAIP_METAL>();
+        }
+      }
+    } else {
+      if (vflag_either) {
+        if (tap_flag) {
+          eval<3, 0, 1, 1, SAIP_METAL>();
+        } else {
+          eval<3, 0, 1, 0, SAIP_METAL>();
+        }
+      } else {
+        if (tap_flag) {
+          eval<3, 0, 0, 1, SAIP_METAL>();
+        } else {
+          eval<3, 0, 0, 0, SAIP_METAL>();
+        }
       }
     }
   }
@@ -144,7 +207,8 @@ void PairILPGrapheneHBNOpt::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-template <int EFLAG, int VFLAG_EITHER, int TAP_FLAG> void PairILPGrapheneHBNOpt::eval()
+template <int MAX_NNEIGH, int EFLAG, int VFLAG_EITHER, int TAP_FLAG, int VARIANT>
+void PairILPGrapheneHBNOpt::eval()
 {
   constexpr int EVFLAG = EFLAG || VFLAG_EITHER;
   int i, j, ii, jj, inum, itype, itype_map, jtype, k, kk;
@@ -181,7 +245,7 @@ template <int EFLAG, int VFLAG_EITHER, int TAP_FLAG> void PairILPGrapheneHBNOpt:
     int jnum_intra = num_intra[i];
     int jnum_inter = num_inter[i];
     int jnum_vdw = num_vdw[i];
-    int ILP_neigh[3];
+    int ILP_neigh[MAX_NNEIGH];
     int ILP_nneigh = 0;
     for (jj = 0; jj < jnum_intra; jj++) {
       j = jlist_intra[jj];
@@ -192,9 +256,12 @@ template <int EFLAG, int VFLAG_EITHER, int TAP_FLAG> void PairILPGrapheneHBNOpt:
       delz = ztmp - x[j][2];
       rsq = delx * delx + dely * dely + delz * delz;
 
-      if (rsq < cutILPsq[itype_map][jtype]) {
-        if (ILP_nneigh >= 3)
+      if (rsq != 0 && rsq < cutILPsq[itype_map][jtype]) {
+        if (VARIANT == ILP_TMD && special_type[itype] && itype != type[j]) continue;
+        if (ILP_nneigh >= MAX_NNEIGH) {
           error->one(FLERR, "There are too many neighbors for calculating normals");
+        }
+
         ILP_neigh[ILP_nneigh++] = j;
       }
     }    // loop over jj
@@ -203,8 +270,8 @@ template <int EFLAG, int VFLAG_EITHER, int TAP_FLAG> void PairILPGrapheneHBNOpt:
     dproddni[1] = 0.0;
     dproddni[2] = 0.0;
 
-    double norm[3], dnormdxi[3][3], dnormdxk[3][3][3];
-    calc_single_normal(i, ILP_neigh, ILP_nneigh, norm, dnormdxi, dnormdxk);
+    double norm[3], dnormdxi[3][3], dnormdxk[MAX_NNEIGH][3][3];
+    calc_normal<MAX_NNEIGH>(i, ILP_neigh, ILP_nneigh, norm, dnormdxi, dnormdxk);
 
     for (jj = 0; jj < jnum_inter; jj++) {
       j = jlist_inter[jj];
@@ -233,50 +300,51 @@ template <int EFLAG, int VFLAG_EITHER, int TAP_FLAG> void PairILPGrapheneHBNOpt:
           Tap = 1.0;
           dTap = 0.0;
         }
+        if (VARIANT != SAIP_METAL || !special_type[itype]) {
+          // Calculate the transverse distance
+          prodnorm1 = norm[0] * delx + norm[1] * dely + norm[2] * delz;
+          rhosq1 = rsq - prodnorm1 * prodnorm1;    // rho_ij
+          rdsq1 = rhosq1 * p.delta2inv;            // (rho_ij/delta)^2
 
-        // Calculate the transverse distance
-        prodnorm1 = norm[0] * delx + norm[1] * dely + norm[2] * delz;
-        rhosq1 = rsq - prodnorm1 * prodnorm1;    // rho_ij
-        rdsq1 = rhosq1 * p.delta2inv;            // (rho_ij/delta)^2
+          // store exponents
+          exp0 = exp(-p.lambda * (r - p.z0));
+          exp1 = exp(-rdsq1);
 
-        // store exponents
-        exp0 = exp(-p.lambda * (r - p.z0));
-        exp1 = exp(-rdsq1);
+          frho1 = exp1 * p.C;
+          Erep = 0.5 * p.epsilon + frho1;
+          if (VARIANT == SAIP_METAL && special_type[jtype]) { Erep += 0.5 * p.epsilon + p.C; }
+          Vilp = exp0 * Erep;
 
-        frho1 = exp1 * p.C;
-        Erep = 0.5 * p.epsilon + frho1;
+          // derivatives
+          fpair = p.lambda * exp0 * rinv * Erep;
+          fpair1 = 2.0 * exp0 * frho1 * p.delta2inv;
+          fsum = fpair + fpair1;
+          // derivatives of the product of rij and ni, the result is a vector
 
-        Vilp = exp0 * Erep;
+          fp1[0] = prodnorm1 * norm[0] * fpair1;
+          fp1[1] = prodnorm1 * norm[1] * fpair1;
+          fp1[2] = prodnorm1 * norm[2] * fpair1;
 
-        // derivatives
-        fpair = p.lambda * exp0 * rinv * Erep;
-        fpair1 = 2.0 * exp0 * frho1 * p.delta2inv;
-        fsum = fpair + fpair1;
-        // derivatives of the product of rij and ni, the result is a vector
+          fkcx = (delx * fsum - fp1[0]) * Tap - Vilp * dTap * delx * rinv;
+          fkcy = (dely * fsum - fp1[1]) * Tap - Vilp * dTap * dely * rinv;
+          fkcz = (delz * fsum - fp1[2]) * Tap - Vilp * dTap * delz * rinv;
 
-        fp1[0] = prodnorm1 * norm[0] * fpair1;
-        fp1[1] = prodnorm1 * norm[1] * fpair1;
-        fp1[2] = prodnorm1 * norm[2] * fpair1;
+          f[i][0] += fkcx;
+          f[i][1] += fkcy;
+          f[i][2] += fkcz;
+          f[j][0] -= fkcx;
+          f[j][1] -= fkcy;
+          f[j][2] -= fkcz;
 
-        fkcx = (delx * fsum - fp1[0]) * Tap - Vilp * dTap * delx * rinv;
-        fkcy = (dely * fsum - fp1[1]) * Tap - Vilp * dTap * dely * rinv;
-        fkcz = (delz * fsum - fp1[2]) * Tap - Vilp * dTap * delz * rinv;
+          cij = -prodnorm1 * fpair1 * Tap;
+          dproddni[0] += cij * delx;
+          dproddni[1] += cij * dely;
+          dproddni[2] += cij * delz;
 
-        f[i][0] += fkcx;
-        f[i][1] += fkcy;
-        f[i][2] += fkcz;
-        f[j][0] -= fkcx;
-        f[j][1] -= fkcy;
-        f[j][2] -= fkcz;
-
-        cij = -prodnorm1 * fpair1 * Tap;
-        dproddni[0] += cij * delx;
-        dproddni[1] += cij * dely;
-        dproddni[2] += cij * delz;
-
-        if (EFLAG) pvector[1] += evdwl = Tap * Vilp;
-        if (EVFLAG)
-          ev_tally_xyz(i, j, nlocal, newton_pair, evdwl, 0.0, fkcx, fkcy, fkcz, delx, dely, delz);
+          if (EFLAG) pvector[1] += evdwl = Tap * Vilp;
+          if (EVFLAG)
+            ev_tally_xyz(i, j, nlocal, newton_pair, evdwl, 0.0, fkcx, fkcy, fkcz, delx, dely, delz);
+        }
 
         /* ----------------------------------------------------------------------
            van der Waals forces and energy
@@ -318,12 +386,12 @@ template <int EFLAG, int VFLAG_EITHER, int TAP_FLAG> void PairILPGrapheneHBNOpt:
       k = ILP_neigh[kk];
       if (k == i) continue;
       // derivatives of the product of rij and ni respect to rk, k=0,1,2, where atom k is the neighbors of atom i
-      fk[0] = dnormdxk[0][0][kk] * dproddni[0] + dnormdxk[1][0][kk] * dproddni[1] +
-          dnormdxk[2][0][kk] * dproddni[2];
-      fk[1] = dnormdxk[0][1][kk] * dproddni[0] + dnormdxk[1][1][kk] * dproddni[1] +
-          dnormdxk[2][1][kk] * dproddni[2];
-      fk[2] = dnormdxk[0][2][kk] * dproddni[0] + dnormdxk[1][2][kk] * dproddni[1] +
-          dnormdxk[2][2][kk] * dproddni[2];
+      fk[0] = dnormdxk[kk][0][0] * dproddni[0] + dnormdxk[kk][1][0] * dproddni[1] +
+          dnormdxk[kk][2][0] * dproddni[2];
+      fk[1] = dnormdxk[kk][0][1] * dproddni[0] + dnormdxk[kk][1][1] * dproddni[1] +
+          dnormdxk[kk][2][1] * dproddni[2];
+      fk[2] = dnormdxk[kk][0][2] * dproddni[0] + dnormdxk[kk][1][2] * dproddni[1] +
+          dnormdxk[kk][2][2] * dproddni[2];
 
       f[k][0] += fk[0];
       f[k][1] += fk[1];
@@ -350,335 +418,109 @@ template <int EFLAG, int VFLAG_EITHER, int TAP_FLAG> void PairILPGrapheneHBNOpt:
 /* ----------------------------------------------------------------------
    Calculate the normals for one atom
 ------------------------------------------------------------------------- */
-void PairILPGrapheneHBNOpt::calc_single_normal(int i, int *ILP_neigh, int nneigh, double *normal,
-                                               double (*dnormdri)[3], double (*dnormdrk)[3][3])
+inline void deriv_normal(double dndr[3][3], double *del, double *n, double rnnorm)
 {
-  int cont, id, ip, m;
-  double nn, delx, dely, delz, nn2;
-  double pv12[3], pv31[3], pv23[3], n1[3], dni[3], dnn[3][3], vet[3][3], dpvdri[3][3];
-  double dn1[3][3][3], dpv12[3][3][3], dpv23[3][3][3], dpv31[3][3][3];
-
+  dndr[0][0] = (del[2] * n[0] * n[1] - del[1] * n[0] * n[2]) * rnnorm;
+  dndr[1][0] = (-del[2] * (n[0] * n[0] + n[2] * n[2]) - del[1] * n[1] * n[2]) * rnnorm;
+  dndr[2][0] = (del[2] * n[1] * n[2] + del[1] * (n[0] * n[0] + n[1] * n[1])) * rnnorm;
+  dndr[0][1] = (del[2] * (n[1] * n[1] + n[2] * n[2]) + del[0] * n[0] * n[2]) * rnnorm;
+  dndr[1][1] = (-del[2] * n[0] * n[1] + del[0] * n[1] * n[2]) * rnnorm;
+  dndr[2][1] = (-del[2] * n[0] * n[2] - del[0] * (n[0] * n[0] + n[1] * n[1])) * rnnorm;
+  dndr[0][2] = (-del[1] * (n[1] * n[1] + n[2] * n[2]) - del[0] * n[0] * n[1]) * rnnorm;
+  dndr[1][2] = (del[1] * n[0] * n[1] + del[0] * (n[0] * n[0] + n[2] * n[2])) * rnnorm;
+  dndr[2][2] = (del[1] * n[0] * n[2] - del[0] * n[1] * n[2]) * rnnorm;
+}
+inline double normalize_factor(double *n)
+{
+  double nnorm = sqrt(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
+  double rnnorm = 1 / nnorm;
+  n[0] *= rnnorm;
+  n[1] *= rnnorm;
+  n[2] *= rnnorm;
+  return rnnorm;
+}
+/*
+  Yet another normal calculation method for simpiler code.
+ */
+template <int MAX_NNEIGH>
+void PairILPGrapheneHBNOpt::calc_normal(int i, int *ILP_neigh, int nneigh, double *n,
+                                        double (*dnormdri)[3], double (*dnormdrk)[3][3])
+{
   double **x = atom->x;
-
-  for (id = 0; id < 3; id++) {
-    pv12[id] = 0.0;
-    pv31[id] = 0.0;
-    pv23[id] = 0.0;
-    n1[id] = 0.0;
-    dni[id] = 0.0;
-    normal[id] = 0.0;
-    for (ip = 0; ip < 3; ip++) {
-      vet[ip][id] = 0.0;
-      dnn[ip][id] = 0.0;
-      dpvdri[ip][id] = 0.0;
-      dnormdri[ip][id] = 0.0;
-      for (m = 0; m < 3; m++) {
-        dpv12[ip][id][m] = 0.0;
-        dpv31[ip][id][m] = 0.0;
-        dpv23[ip][id][m] = 0.0;
-        dn1[ip][id][m] = 0.0;
-        dnormdrk[ip][id][m] = 0.0;
+  double vet[MAX_NNEIGH][3];
+  //Sort neighbors for ilp/tmd, etc
+  if (MAX_NNEIGH > 3 && nneigh > 3) {
+    double *xlast = x[i];
+    for (int kk = 0; kk < nneigh; kk++) {
+      int jjmin;
+      double rsqmin;
+      for (int jj = kk; jj < nneigh; jj++) {
+        int j = ILP_neigh[jj] & NEIGHMASK;
+        double delx = x[j][0] - xlast[0];
+        double dely = x[j][1] - xlast[1];
+        double delz = x[j][2] - xlast[2];
+        double rsq = delx * delx + dely * dely + delz * delz;
+        if (jj == kk || rsq < rsqmin) {
+          jjmin = jj;
+          rsqmin = rsq;
+        }
       }
+      std::swap(ILP_neigh[jjmin], ILP_neigh[kk]);
+      xlast = x[ILP_neigh[kk]];
     }
   }
+  for (int jj = 0; jj < nneigh; jj++) {
+    int j = ILP_neigh[jj] & NEIGHMASK;
 
-  const double xtp = x[i][0];
-  const double ytp = x[i][1];
-  const double ztp = x[i][2];
-
-  cont = 0;
-  int j, *jlist = ILP_neigh;
-  const int jnum = nneigh;
-  for (int jj = 0; jj < jnum; jj++) {
-    j = jlist[jj];
-    j &= NEIGHMASK;
-
-    delx = x[j][0] - xtp;
-    dely = x[j][1] - ytp;
-    delz = x[j][2] - ztp;
-    vet[cont][0] = delx;
-    vet[cont][1] = dely;
-    vet[cont][2] = delz;
-    cont++;
+    vet[jj][0] = x[j][0] - x[i][0];
+    vet[jj][1] = x[j][1] - x[i][1];
+    vet[jj][2] = x[j][2] - x[i][2];
   }
 
-  if (cont <= 1) {
-    normal[0] = 0.0;
-    normal[1] = 0.0;
-    normal[2] = 1.0;
-    for (id = 0; id < 3; id++) {
-      for (ip = 0; ip < 3; ip++) {
-        dnormdri[id][ip] = 0.0;
-        for (m = 0; m < 3; m++) { dnormdrk[id][ip][m] = 0.0; }
+  if (nneigh <= 1) {
+    n[0] = 0.0;
+    n[1] = 0.0;
+    n[2] = 1.0;
+    for (int xx = 0; xx < 3; xx++) {
+      for (int yy = 0; yy < 3; yy++) { dnormdri[xx][yy] = 0.0; }
+    }
+  } else if (nneigh == 2) {
+    n[0] = vet[0][1] * vet[1][2] - vet[1][1] * vet[0][2];
+    n[1] = vet[0][2] * vet[1][0] - vet[1][2] * vet[0][0];
+    n[2] = vet[0][0] * vet[1][1] - vet[1][0] * vet[0][1];
+
+    double rnnorm = normalize_factor(n);
+    deriv_normal(dnormdrk[0], vet[1], n, rnnorm);
+    deriv_normal(dnormdrk[1], vet[0], n, -rnnorm);
+
+    for (int xx = 0; xx < 3; xx++) {
+      for (int yy = 0; yy < 3; yy++) {
+        dnormdri[xx][yy] = -(dnormdrk[0][xx][yy] + dnormdrk[1][xx][yy]);
       }
     }
-  } else if (cont == 2) {
-    pv12[0] = vet[0][1] * vet[1][2] - vet[1][1] * vet[0][2];
-    pv12[1] = vet[0][2] * vet[1][0] - vet[1][2] * vet[0][0];
-    pv12[2] = vet[0][0] * vet[1][1] - vet[1][0] * vet[0][1];
-
-    // derivatives of pv12[0] to ri
-
-    dpvdri[0][0] = 0.0;
-    dpvdri[0][1] = vet[0][2] - vet[1][2];
-    dpvdri[0][2] = vet[1][1] - vet[0][1];
-
-    // derivatives of pv12[1] to ri
-
-    dpvdri[1][0] = vet[1][2] - vet[0][2];
-    dpvdri[1][1] = 0.0;
-    dpvdri[1][2] = vet[0][0] - vet[1][0];
-
-    // derivatives of pv12[2] to ri
-
-    dpvdri[2][0] = vet[0][1] - vet[1][1];
-    dpvdri[2][1] = vet[1][0] - vet[0][0];
-    dpvdri[2][2] = 0.0;
-
-    dpv12[0][0][0] = 0.0;
-    dpv12[0][1][0] = vet[1][2];
-    dpv12[0][2][0] = -vet[1][1];
-    dpv12[1][0][0] = -vet[1][2];
-    dpv12[1][1][0] = 0.0;
-    dpv12[1][2][0] = vet[1][0];
-    dpv12[2][0][0] = vet[1][1];
-    dpv12[2][1][0] = -vet[1][0];
-    dpv12[2][2][0] = 0.0;
-
-    // derivatives respect to the second neighbor, atom l
-
-    dpv12[0][0][1] = 0.0;
-    dpv12[0][1][1] = -vet[0][2];
-    dpv12[0][2][1] = vet[0][1];
-    dpv12[1][0][1] = vet[0][2];
-    dpv12[1][1][1] = 0.0;
-    dpv12[1][2][1] = -vet[0][0];
-    dpv12[2][0][1] = -vet[0][1];
-    dpv12[2][1][1] = vet[0][0];
-    dpv12[2][2][1] = 0.0;
-
-    // derivatives respect to the third neighbor, atom n
-    // derivatives of pv12 to rn is zero
-
-    for (id = 0; id < 3; id++)
-      for (ip = 0; ip < 3; ip++) dpv12[id][ip][2] = 0.0;
-
-    n1[0] = pv12[0];
-    n1[1] = pv12[1];
-    n1[2] = pv12[2];
-
-    // the magnitude of the normal vector
-    nn2 = n1[0] * n1[0] + n1[1] * n1[1] + n1[2] * n1[2];
-    nn = sqrt(nn2);
-    if (nn == 0) error->one(FLERR, "The magnitude of the normal vector is zero");
-
-    // the unit normal vector
-
-    normal[0] = n1[0] / nn;
-    normal[1] = n1[1] / nn;
-    normal[2] = n1[2] / nn;
-
-    // derivatives of nn, dnn:3x1 vector
-
-    dni[0] = (n1[0] * dpvdri[0][0] + n1[1] * dpvdri[1][0] + n1[2] * dpvdri[2][0]) / nn;
-    dni[1] = (n1[0] * dpvdri[0][1] + n1[1] * dpvdri[1][1] + n1[2] * dpvdri[2][1]) / nn;
-    dni[2] = (n1[0] * dpvdri[0][2] + n1[1] * dpvdri[1][2] + n1[2] * dpvdri[2][2]) / nn;
-
-    // derivatives of unit vector ni respect to ri, the result is 3x3 matrix
-
-    for (id = 0; id < 3; id++) {
-      for (ip = 0; ip < 3; ip++) {
-        dnormdri[id][ip] = dpvdri[id][ip] / nn - n1[id] * dni[ip] / nn2;
-      }
+  } else if (nneigh >= 3) {
+    n[0] = n[1] = n[2] = 0.0;
+    for (int kk = 0; kk < nneigh; kk++) {
+      int kp1 = (kk + 1 >= nneigh) ? 0 : kk + 1;
+      n[0] += vet[kk][1] * vet[kp1][2] - vet[kp1][1] * vet[kk][2];
+      n[1] += vet[kk][2] * vet[kp1][0] - vet[kp1][2] * vet[kk][0];
+      n[2] += vet[kk][0] * vet[kp1][1] - vet[kp1][0] * vet[kk][1];
     }
 
-    // derivatives of non-normalized normal vector, dn1:3x3x3 array
+    double rnnorm = normalize_factor(n);
 
-    for (id = 0; id < 3; id++) {
-      for (ip = 0; ip < 3; ip++) {
-        for (m = 0; m < 3; m++) dn1[id][ip][m] = dpv12[id][ip][m];
-      }
+    for (int xx = 0; xx < 3; xx++) {
+      for (int yy = 0; yy < 3; yy++) { dnormdri[xx][yy] = 0.0; }
     }
-
-    // derivatives of nn, dnn:3x3 vector
-    // dnn[id][m]: the derivative of nn respect to r[id][m], id,m=0,1,2
-    // r[id][m]: the id's component of atom m
-
-    for (m = 0; m < 3; m++) {
-      for (id = 0; id < 3; id++)
-        dnn[id][m] = (n1[0] * dn1[0][id][m] + n1[1] * dn1[1][id][m] + n1[2] * dn1[2][id][m]) / nn;
+    for (int kk = 0; kk < nneigh; kk++) {
+      int km1 = (kk - 1 < 0) ? nneigh - 1 : kk - 1;
+      int kp1 = (kk + 1 >= nneigh) ? 0 : kk + 1;
+      double del[3];
+      del[0] = vet[kp1][0] - vet[km1][0];
+      del[1] = vet[kp1][1] - vet[km1][1];
+      del[2] = vet[kp1][2] - vet[km1][2];
+      deriv_normal(dnormdrk[kk], del, n, rnnorm);
     }
-
-    // dnormdrk[id][ip][m][i]: the derivative of normal[id] respect to r[ip][m], id,ip=0,1,2
-    // for atom m, which is a neighbor atom of atom i, m=0,jnum-1
-
-    for (m = 0; m < 3; m++) {
-      for (id = 0; id < 3; id++) {
-        for (ip = 0; ip < 3; ip++)
-          dnormdrk[id][ip][m] = dn1[id][ip][m] / nn - n1[id] * dnn[ip][m] / nn2;
-      }
-    }
-  }
-
-  //##############################################################################################
-
-  else if (cont == 3) {
-    pv12[0] = vet[0][1] * vet[1][2] - vet[1][1] * vet[0][2];
-    pv12[1] = vet[0][2] * vet[1][0] - vet[1][2] * vet[0][0];
-    pv12[2] = vet[0][0] * vet[1][1] - vet[1][0] * vet[0][1];
-
-    // derivatives respect to the first neighbor, atom k
-
-    dpv12[0][0][0] = 0.0;
-    dpv12[0][1][0] = vet[1][2];
-    dpv12[0][2][0] = -vet[1][1];
-    dpv12[1][0][0] = -vet[1][2];
-    dpv12[1][1][0] = 0.0;
-    dpv12[1][2][0] = vet[1][0];
-    dpv12[2][0][0] = vet[1][1];
-    dpv12[2][1][0] = -vet[1][0];
-    dpv12[2][2][0] = 0.0;
-
-    // derivatives respect to the second neighbor, atom l
-
-    dpv12[0][0][1] = 0.0;
-    dpv12[0][1][1] = -vet[0][2];
-    dpv12[0][2][1] = vet[0][1];
-    dpv12[1][0][1] = vet[0][2];
-    dpv12[1][1][1] = 0.0;
-    dpv12[1][2][1] = -vet[0][0];
-    dpv12[2][0][1] = -vet[0][1];
-    dpv12[2][1][1] = vet[0][0];
-    dpv12[2][2][1] = 0.0;
-
-    // derivatives respect to the third neighbor, atom n
-
-    for (id = 0; id < 3; id++) {
-      for (ip = 0; ip < 3; ip++) dpv12[id][ip][2] = 0.0;
-    }
-
-    pv31[0] = vet[2][1] * vet[0][2] - vet[0][1] * vet[2][2];
-    pv31[1] = vet[2][2] * vet[0][0] - vet[0][2] * vet[2][0];
-    pv31[2] = vet[2][0] * vet[0][1] - vet[0][0] * vet[2][1];
-
-    // derivatives respect to the first neighbor, atom k
-
-    dpv31[0][0][0] = 0.0;
-    dpv31[0][1][0] = -vet[2][2];
-    dpv31[0][2][0] = vet[2][1];
-    dpv31[1][0][0] = vet[2][2];
-    dpv31[1][1][0] = 0.0;
-    dpv31[1][2][0] = -vet[2][0];
-    dpv31[2][0][0] = -vet[2][1];
-    dpv31[2][1][0] = vet[2][0];
-    dpv31[2][2][0] = 0.0;
-
-    // derivatives respect to the third neighbor, atom n
-
-    dpv31[0][0][2] = 0.0;
-    dpv31[0][1][2] = vet[0][2];
-    dpv31[0][2][2] = -vet[0][1];
-    dpv31[1][0][2] = -vet[0][2];
-    dpv31[1][1][2] = 0.0;
-    dpv31[1][2][2] = vet[0][0];
-    dpv31[2][0][2] = vet[0][1];
-    dpv31[2][1][2] = -vet[0][0];
-    dpv31[2][2][2] = 0.0;
-
-    // derivatives respect to the second neighbor, atom l
-
-    for (id = 0; id < 3; id++) {
-      for (ip = 0; ip < 3; ip++) dpv31[id][ip][1] = 0.0;
-    }
-
-    pv23[0] = vet[1][1] * vet[2][2] - vet[2][1] * vet[1][2];
-    pv23[1] = vet[1][2] * vet[2][0] - vet[2][2] * vet[1][0];
-    pv23[2] = vet[1][0] * vet[2][1] - vet[2][0] * vet[1][1];
-
-    // derivatives respect to the second neighbor, atom k
-
-    for (id = 0; id < 3; id++) {
-      for (ip = 0; ip < 3; ip++) { dpv23[id][ip][0] = 0.0; }
-    }
-
-    // derivatives respect to the second neighbor, atom l
-
-    dpv23[0][0][1] = 0.0;
-    dpv23[0][1][1] = vet[2][2];
-    dpv23[0][2][1] = -vet[2][1];
-    dpv23[1][0][1] = -vet[2][2];
-    dpv23[1][1][1] = 0.0;
-    dpv23[1][2][1] = vet[2][0];
-    dpv23[2][0][1] = vet[2][1];
-    dpv23[2][1][1] = -vet[2][0];
-    dpv23[2][2][1] = 0.0;
-
-    // derivatives respect to the third neighbor, atom n
-
-    dpv23[0][0][2] = 0.0;
-    dpv23[0][1][2] = -vet[1][2];
-    dpv23[0][2][2] = vet[1][1];
-    dpv23[1][0][2] = vet[1][2];
-    dpv23[1][1][2] = 0.0;
-    dpv23[1][2][2] = -vet[1][0];
-    dpv23[2][0][2] = -vet[1][1];
-    dpv23[2][1][2] = vet[1][0];
-    dpv23[2][2][2] = 0.0;
-
-    //############################################################################################
-    // average the normal vectors by using the 3 neighboring planes
-
-    n1[0] = (pv12[0] + pv31[0] + pv23[0]) / cont;
-    n1[1] = (pv12[1] + pv31[1] + pv23[1]) / cont;
-    n1[2] = (pv12[2] + pv31[2] + pv23[2]) / cont;
-
-    // the magnitude of the normal vector
-
-    nn2 = n1[0] * n1[0] + n1[1] * n1[1] + n1[2] * n1[2];
-    nn = sqrt(nn2);
-    if (nn == 0) error->one(FLERR, "The magnitude of the normal vector is zero");
-
-    // the unit normal vector
-
-    normal[0] = n1[0] / nn;
-    normal[1] = n1[1] / nn;
-    normal[2] = n1[2] / nn;
-
-    // for the central atoms, dnormdri is always zero
-
-    for (id = 0; id < 3; id++) {
-      for (ip = 0; ip < 3; ip++) dnormdri[id][ip] = 0.0;
-    }
-
-    // derivatives of non-normalized normal vector, dn1:3x3x3 array
-
-    for (id = 0; id < 3; id++) {
-      for (ip = 0; ip < 3; ip++) {
-        for (m = 0; m < 3; m++)
-          dn1[id][ip][m] = (dpv12[id][ip][m] + dpv23[id][ip][m] + dpv31[id][ip][m]) / cont;
-      }
-    }
-
-    // derivatives of nn, dnn:3x3 vector
-    // dnn[id][m]: the derivative of nn respect to r[id][m], id,m=0,1,2
-    // r[id][m]: the id's component of atom m
-
-    for (m = 0; m < 3; m++) {
-      for (id = 0; id < 3; id++)
-        dnn[id][m] = (n1[0] * dn1[0][id][m] + n1[1] * dn1[1][id][m] + n1[2] * dn1[2][id][m]) / nn;
-    }
-
-    // dnormdrk[id][ip][m][i]: the derivative of normal[id] respect to r[ip][m], id,ip=0,1,2
-    // for atom m, which is a neighbor atom of atom i, m=0,jnum-1
-
-    for (m = 0; m < 3; m++) {
-      for (id = 0; id < 3; id++) {
-        for (ip = 0; ip < 3; ip++)
-          dnormdrk[id][ip][m] = dn1[id][ip][m] / nn - n1[id] * dnn[ip][m] / nn2;
-      }
-    }
-  } else {
-    error->one(FLERR, "There are too many neighbors for calculating normals");
   }
 }
 

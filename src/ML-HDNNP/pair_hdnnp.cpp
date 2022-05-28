@@ -96,7 +96,7 @@ void PairHDNNP::compute(int eflag, int vflag)
   interface->process();
 
   // Do all stuff related to extrapolation warnings.
-  if (showew == true || showewsum > 0 || maxew >= 0) { handleExtrapolationWarnings(); }
+  if (showew || showewsum > 0 || maxew >= 0) { handleExtrapolationWarnings(); }
 
   // Calculate forces of local and ghost atoms.
   interface->getForces(atom->f);

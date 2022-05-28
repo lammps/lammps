@@ -97,7 +97,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
   if (me == 0 && rene_flag)
     error->warning(FLERR,
                    "Resetting reneighboring criteria to 'delay {} every {} check no' "
-                   "for fix reaxff/species",
+                   "due to fix reaxff/species",
                    neighbor->delay, neighbor->every);
 
   if (me == 0) {
@@ -277,9 +277,7 @@ void FixReaxFFSpecies::init()
 
   reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reax..", 0));
   if (reaxff == nullptr)
-    error->all(FLERR,
-               "Cannot use fix reaxff/species without "
-               "pair_style reaxff, reaxff/kk, or reaxff/omp");
+    error->all(FLERR, "Cannot use fix reaxff/species without a reaxff pair_style");
 
   reaxff->fixspecies_flag = 1;
 

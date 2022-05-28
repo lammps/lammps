@@ -117,7 +117,7 @@ void RespaOMP::setup(int flag)
   ev_set(update->ntimestep);
 
   for (int ilevel = 0; ilevel < nlevels; ilevel++) {
-    force_clear(newton[ilevel]);
+    force_clear();
     modify->setup_pre_force_respa(vflag,ilevel);
 
     if (nhybrid_styles > 0) {
@@ -211,7 +211,7 @@ void RespaOMP::setup_minimal(int flag)
   ev_set(update->ntimestep);
 
   for (int ilevel = 0; ilevel < nlevels; ilevel++) {
-    force_clear(newton[ilevel]);
+    force_clear();
     modify->setup_pre_force_respa(vflag,ilevel);
 
     if (nhybrid_styles > 0) {
@@ -343,7 +343,7 @@ void RespaOMP::recurse(int ilevel)
     // so that any order dependencies are the same
     // when potentials are invoked at same level
 
-    force_clear(newton[ilevel]);
+    force_clear();
     if (modify->n_pre_force_respa) {
       timer->stamp();
       modify->pre_force_respa(vflag,ilevel,iloop);

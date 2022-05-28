@@ -36,6 +36,7 @@
 #include "kokkos.h"
 #include "math_const.h"
 #include "math_special.h"
+#include "memory_kokkos.h"
 #include "neigh_request.h"
 #include "neighbor.h"
 
@@ -78,8 +79,8 @@ PairReaxFFKokkos<DeviceType>::PairReaxFFKokkos(LAMMPS *lmp) : PairReaxFF(lmp)
   k_error_flag = DAT::tdual_int_scalar("pair:error_flag");
   k_nbuf_local = DAT::tdual_int_scalar("pair:nbuf_local");
 
-  d_torsion_pack = t_reax_int4_2d("reaxff:torsion_pack",1,2);
-  d_angular_pack = t_reax_int4_2d("reaxff:angular_pack",1,2);
+  MemKK::realloc_kokkos(d_torsion_pack,"reaxff:torsion_pack",1,2);
+  MemKK::realloc_kokkos(d_angular_pack,"reaxff:angular_pack",1,2);
 
   k_count_angular_torsion = DAT::tdual_int_1d("PairReaxFF::count_angular_torsion",2);
   d_count_angular_torsion = k_count_angular_torsion.template view<DeviceType>();
@@ -794,9 +795,9 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeLJCoulomb<HALF,0>>(0,inum),*this);
     } else if (neighflag == HALFTHREAD) {
       if (evflag)
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeLJCoulomb<HALFTHREAD,1>>(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeLJCoulomb<HALFTHREAD,1>,Kokkos::LaunchBounds<256,1>>(0,inum),*this,ev);
       else
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeLJCoulomb<HALFTHREAD,0>>(0,inum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeLJCoulomb<HALFTHREAD,0>,Kokkos::LaunchBounds<256,1>>(0,inum),*this);
     }
   }
   ev_all += ev;
@@ -883,17 +884,10 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsFull>(0,ignum),*this);
 
   // allocate duplicated memory
-  if (need_dup) {
+  if (need_dup)
     dup_CdDelta = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_CdDelta);
-    //dup_Cdbo    = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_Cdbo);
-    //dup_Cdbopi  = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_Cdbopi);
-    //dup_Cdbopi2 = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_Cdbopi2);
-  } else {
+  else
     ndup_CdDelta = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_CdDelta);
-    //ndup_Cdbo    = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_Cdbo);
-    //ndup_Cdbopi  = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_Cdbopi);
-    //ndup_Cdbopi2 = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_Cdbopi2);
-  }
 
   // reduction over duplicated memory
   if (need_dup)
@@ -959,9 +953,9 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   count_torsion = h_count_angular_torsion(1);
 
   if (count_angular > (int)d_angular_pack.extent(0))
-    d_angular_pack = t_reax_int4_2d("reaxff:angular_pack",(int)(count_angular * 1.1),2);
+    MemKK::realloc_kokkos(d_angular_pack,"reaxff:angular_pack",(int)(count_angular * 1.1),2);
   if (count_torsion > (int)d_torsion_pack.extent(0))
-    d_torsion_pack = t_reax_int4_2d("reaxff:torsion_pack",(int)(count_torsion * 1.1),2);
+    MemKK::realloc_kokkos(d_torsion_pack,"reaxff:torsion_pack",(int)(count_torsion * 1.1),2);
 
   // need to zero to re-count
   h_count_angular_torsion(0) = 0;
@@ -1033,25 +1027,11 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (need_dup) {
     Kokkos::Experimental::contribute(d_dDeltap_self, dup_dDeltap_self); // needed in ComputeBond2
     Kokkos::Experimental::contribute(d_CdDelta, dup_CdDelta); // needed in ComputeBond2
-
-    //Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in UpdateBond, but also used in UpdateBond
-    //Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in UpdateBond, but also used in UpdateBond
-    //Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in UpdateBond, but also used in UpdateBond
-    //dup_Cdbo.reset_except(d_Cdbo);
-    //dup_Cdbopi.reset_except(d_Cdbopi);
-    //dup_Cdbopi2.reset_except(d_Cdbopi2);
   }
 
   // Bond force
   if (neighflag == HALF) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxUpdateBond<HALF>>(0,ignum),*this);
-
-    // reduction over duplicated memory
-    //if (need_dup) {
-    //  Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in ComputeBond2
-    //  Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in ComputeBond2
-    //  Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in ComputeBond2
-    //}
 
     if (vflag_either)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeBond2<HALF,1>>(0,ignum),*this,ev);
@@ -1061,13 +1041,6 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     pvector[0] += ev.evdwl;
   } else { //if (neighflag == HALFTHREAD) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxUpdateBond<HALFTHREAD>>(0,ignum),*this);
-
-    // reduction over duplicated memory
-    //if (need_dup) {
-    //  Kokkos::Experimental::contribute(d_Cdbo, dup_Cdbo); // needed in ComputeBond2
-    //  Kokkos::Experimental::contribute(d_Cdbopi, dup_Cdbopi); // needed in ComputeBond2
-    //  Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in ComputeBond2
-    //}
 
     if (vflag_either)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeBond2<HALFTHREAD,1>>(0,ignum),*this,ev);
@@ -1116,7 +1089,7 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   copymode = 0;
 
-  // free duplicated memory
+  // free scatterview memory
   if (need_dup) {
     dup_f            = decltype(dup_f)();
     dup_eatom        = decltype(dup_eatom)();
@@ -1124,9 +1097,13 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     dup_dDeltap_self = decltype(dup_dDeltap_self)();
     dup_total_bo     = decltype(dup_total_bo)();
     dup_CdDelta      = decltype(dup_CdDelta)();
-    //dup_Cdbo         = decltype(dup_Cdbo)();
-    //dup_Cdbopi       = decltype(dup_Cdbopi)();
-    //dup_Cdbopi2      = decltype(dup_Cdbopi2)();
+  } else {
+    ndup_f            = decltype(ndup_f)();
+    ndup_eatom        = decltype(ndup_eatom)();
+    ndup_vatom        = decltype(ndup_vatom)();
+    ndup_dDeltap_self = decltype(ndup_dDeltap_self)();
+    ndup_total_bo     = decltype(ndup_total_bo)();
+    ndup_CdDelta      = decltype(ndup_CdDelta)();
   }
 
   d_neighbors = typename AT::t_neighbors_2d();
@@ -1512,131 +1489,74 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTabulatedLJCoulo
 template<class DeviceType>
 void PairReaxFFKokkos<DeviceType>::allocate_array()
 {
-  // deallocate first to reduce memory overhead
-
-  deallocate_array();
+  // free scatterview memory
+  if (need_dup) {
+    dup_dDeltap_self = decltype(dup_dDeltap_self)();
+    dup_total_bo     = decltype(dup_total_bo)();
+    dup_CdDelta      = decltype(dup_CdDelta)();
+  } else {
+    ndup_dDeltap_self = decltype(ndup_dDeltap_self)();
+    ndup_total_bo     = decltype(ndup_total_bo)();
+    ndup_CdDelta      = decltype(ndup_CdDelta)();
+  }
 
   if (cut_hbsq > 0.0) {
-    d_hb_first = typename AT::t_int_1d("reaxff/kk:hb_first",nmax);
-    d_hb_num = typename AT::t_int_1d("reaxff/kk:hb_num",nmax);
-    d_hb_list = typename AT::t_int_1d("reaxff/kk:hb_list",nmax*maxhb);
+    MemKK::realloc_kokkos(d_hb_first,"reaxff/kk:hb_first",nmax);
+    MemKK::realloc_kokkos(d_hb_num,"reaxff/kk:hb_num",nmax);
+    MemKK::realloc_kokkos(d_hb_list,"reaxff/kk:hb_list",nmax*maxhb);
   }
-  d_bo_first = typename AT::t_int_1d("reaxff/kk:bo_first",nmax);
-  d_bo_num = typename AT::t_int_1d("reaxff/kk:bo_num",nmax);
-  d_bo_list = typename AT::t_int_1d("reaxff/kk:bo_list",nmax*maxbo);
+  MemKK::realloc_kokkos(d_bo_first,"reaxff/kk:bo_first",nmax);
+  MemKK::realloc_kokkos(d_bo_num,"reaxff/kk:bo_num",nmax);
+  MemKK::realloc_kokkos(d_bo_list,"reaxff/kk:bo_list",nmax*maxbo);
 
-  d_BO = typename AT::t_ffloat_2d_dl("reaxff/kk:BO",nmax,maxbo);
-  d_BO_s = typename AT::t_ffloat_2d_dl("reaxff/kk:BO",nmax,maxbo);
-  d_BO_pi = typename AT::t_ffloat_2d_dl("reaxff/kk:BO_pi",nmax,maxbo);
-  d_BO_pi2 = typename AT::t_ffloat_2d_dl("reaxff/kk:BO_pi2",nmax,maxbo);
+  MemKK::realloc_kokkos(d_BO,"reaxff/kk:BO",nmax,maxbo);
+  MemKK::realloc_kokkos(d_BO_s,"reaxff/kk:BO",nmax,maxbo);
+  MemKK::realloc_kokkos(d_BO_pi,"reaxff/kk:BO_pi",nmax,maxbo);
+  MemKK::realloc_kokkos(d_BO_pi2,"reaxff/kk:BO_pi2",nmax,maxbo);
 
-  d_dln_BOp_pi = typename AT::t_ffloat_2d_dl("reaxff/kk:d_dln_BOp_pi",nmax,maxbo);
-  d_dln_BOp_pi2 = typename AT::t_ffloat_2d_dl("reaxff/kk:d_dln_BOp_pi2",nmax,maxbo);
+  MemKK::realloc_kokkos(d_dln_BOp_pi,"reaxff/kk:d_dln_BOp_pi",nmax,maxbo);
+  MemKK::realloc_kokkos(d_dln_BOp_pi2,"reaxff/kk:d_dln_BOp_pi2",nmax,maxbo);
 
-  d_C1dbo = typename AT::t_ffloat_2d_dl("reaxff/kk:d_C1dbo",nmax,maxbo);
-  d_C2dbo = typename AT::t_ffloat_2d_dl("reaxff/kk:d_C2dbo",nmax,maxbo);
-  d_C3dbo = typename AT::t_ffloat_2d_dl("reaxff/kk:d_C3dbo",nmax,maxbo);
+  MemKK::realloc_kokkos(d_C1dbo,"reaxff/kk:d_C1dbo",nmax,maxbo);
+  MemKK::realloc_kokkos(d_C2dbo,"reaxff/kk:d_C2dbo",nmax,maxbo);
+  MemKK::realloc_kokkos(d_C3dbo,"reaxff/kk:d_C3dbo",nmax,maxbo);
 
-  d_C1dbopi = typename AT::t_ffloat_2d_dl("reaxff/kk:d_C1dbopi",nmax,maxbo);
-  d_C2dbopi = typename AT::t_ffloat_2d_dl("reaxff/kk:d_C2dbopi",nmax,maxbo);
-  d_C3dbopi = typename AT::t_ffloat_2d_dl("reaxff/kk:d_C3dbopi",nmax,maxbo);
-  d_C4dbopi = typename AT::t_ffloat_2d_dl("reaxff/kk:d_C4dbopi",nmax,maxbo);
+  MemKK::realloc_kokkos(d_C1dbopi,"reaxff/kk:d_C1dbopi",nmax,maxbo);
+  MemKK::realloc_kokkos(d_C2dbopi,"reaxff/kk:d_C2dbopi",nmax,maxbo);
+  MemKK::realloc_kokkos(d_C3dbopi,"reaxff/kk:d_C3dbopi",nmax,maxbo);
+  MemKK::realloc_kokkos(d_C4dbopi,"reaxff/kk:d_C4dbopi",nmax,maxbo);
 
-  d_C1dbopi2 = typename AT::t_ffloat_2d_dl("reaxff/kk:d_C1dbopi2",nmax,maxbo);
-  d_C2dbopi2 = typename AT::t_ffloat_2d_dl("reaxff/kk:d_C2dbopi2",nmax,maxbo);
-  d_C3dbopi2 = typename AT::t_ffloat_2d_dl("reaxff/kk:d_C3dbopi2",nmax,maxbo);
-  d_C4dbopi2 = typename AT::t_ffloat_2d_dl("reaxff/kk:d_C4dbopi2",nmax,maxbo);
+  MemKK::realloc_kokkos(d_C1dbopi2,"reaxff/kk:d_C1dbopi2",nmax,maxbo);
+  MemKK::realloc_kokkos(d_C2dbopi2,"reaxff/kk:d_C2dbopi2",nmax,maxbo);
+  MemKK::realloc_kokkos(d_C3dbopi2,"reaxff/kk:d_C3dbopi2",nmax,maxbo);
+  MemKK::realloc_kokkos(d_C4dbopi2,"reaxff/kk:d_C4dbopi2",nmax,maxbo);
 
-  d_dBOp = typename AT::t_ffloat_2d_dl("reaxff/kk:dBOp",nmax,maxbo);
+  MemKK::realloc_kokkos(d_dBOp,"reaxff/kk:dBOp",nmax,maxbo);
 
-  d_dDeltap_self = typename AT::t_ffloat_2d_dl("reaxff/kk:dDeltap_self",nmax,3);
-  d_Deltap_boc = typename AT::t_ffloat_1d("reaxff/kk:Deltap_boc",nmax);
-  d_Deltap = typename AT::t_ffloat_1d("reaxff/kk:Deltap",nmax);
-  d_total_bo = typename AT::t_ffloat_1d("reaxff/kk:total_bo",nmax);
+  MemKK::realloc_kokkos(d_dDeltap_self,"reaxff/kk:dDeltap_self",nmax,3);
+  MemKK::realloc_kokkos(d_Deltap_boc,"reaxff/kk:Deltap_boc",nmax);
+  MemKK::realloc_kokkos(d_Deltap,"reaxff/kk:Deltap",nmax);
+  MemKK::realloc_kokkos(d_total_bo,"reaxff/kk:total_bo",nmax);
 
-  d_Cdbo = typename AT::t_ffloat_2d_dl("reaxff/kk:Cdbo",nmax,3*maxbo);
-  d_Cdbopi = typename AT::t_ffloat_2d_dl("reaxff/kk:Cdbopi",nmax,3*maxbo);
-  d_Cdbopi2 = typename AT::t_ffloat_2d_dl("reaxff/kk:Cdbopi2",nmax,3*maxbo);
+  MemKK::realloc_kokkos(d_Cdbo,"reaxff/kk:Cdbo",nmax,3*maxbo);
+  MemKK::realloc_kokkos(d_Cdbopi,"reaxff/kk:Cdbopi",nmax,3*maxbo);
+  MemKK::realloc_kokkos(d_Cdbopi2,"reaxff/kk:Cdbopi2",nmax,3*maxbo);
 
-  d_Delta = typename AT::t_ffloat_1d("reaxff/kk:Delta",nmax);
-  d_Delta_boc = typename AT::t_ffloat_1d("reaxff/kk:Delta_boc",nmax);
-  d_dDelta_lp = typename AT::t_ffloat_1d("reaxff/kk:dDelta_lp",nmax);
-  d_Delta_lp = typename AT::t_ffloat_1d("reaxff/kk:Delta_lp",nmax);
-  d_Delta_lp_temp = typename AT::t_ffloat_1d("reaxff/kk:Delta_lp_temp",nmax);
-  d_CdDelta = typename AT::t_ffloat_1d("reaxff/kk:CdDelta",nmax);
-  d_sum_ovun = typename AT::t_ffloat_2d_dl("reaxff/kk:sum_ovun",nmax,3);
+  MemKK::realloc_kokkos(d_Delta,"reaxff/kk:Delta",nmax);
+  MemKK::realloc_kokkos(d_Delta_boc,"reaxff/kk:Delta_boc",nmax);
+  MemKK::realloc_kokkos(d_dDelta_lp,"reaxff/kk:dDelta_lp",nmax);
+  MemKK::realloc_kokkos(d_Delta_lp,"reaxff/kk:Delta_lp",nmax);
+  MemKK::realloc_kokkos(d_Delta_lp_temp,"reaxff/kk:Delta_lp_temp",nmax);
+  MemKK::realloc_kokkos(d_CdDelta,"reaxff/kk:CdDelta",nmax);
+  MemKK::realloc_kokkos(d_sum_ovun,"reaxff/kk:sum_ovun",nmax,3);
 
   // FixReaxFFBonds
-  d_abo = typename AT::t_ffloat_2d("reaxff/kk:abo",nmax,maxbo);
-  d_neighid = typename AT::t_tagint_2d("reaxff/kk:neighid",nmax,maxbo);
-  d_numneigh_bonds = typename AT::t_int_1d("reaxff/kk:numneigh_bonds",nmax);
+  MemKK::realloc_kokkos(d_abo,"reaxff/kk:abo",nmax,maxbo);
+  MemKK::realloc_kokkos(d_neighid,"reaxff/kk:neighid",nmax,maxbo);
+  MemKK::realloc_kokkos(d_numneigh_bonds,"reaxff/kk:numneigh_bonds",nmax);
 
   // ComputeAngular intermediates
-  d_angular_intermediates = typename AT::t_ffloat_2d("reaxff/kk:angular_intermediates",nmax,4);
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairReaxFFKokkos<DeviceType>::deallocate_array()
-{
-  if (cut_hbsq > 0.0) {
-    d_hb_first = typename AT::t_int_1d();
-    d_hb_num = typename AT::t_int_1d();
-    d_hb_list = typename AT::t_int_1d();
-  }
-  d_bo_first = typename AT::t_int_1d();
-  d_bo_num = typename AT::t_int_1d();
-  d_bo_list = typename AT::t_int_1d();
-
-  d_BO = typename AT::t_ffloat_2d_dl();
-  d_BO_s = typename AT::t_ffloat_2d_dl();
-  d_BO_pi = typename AT::t_ffloat_2d_dl();
-  d_BO_pi2 = typename AT::t_ffloat_2d_dl();
-
-  d_dln_BOp_pi = typename AT::t_ffloat_2d_dl();
-  d_dln_BOp_pi2 = typename AT::t_ffloat_2d_dl();
-
-  d_C1dbo = typename AT::t_ffloat_2d_dl();
-  d_C2dbo = typename AT::t_ffloat_2d_dl();
-  d_C3dbo = typename AT::t_ffloat_2d_dl();
-
-  d_C1dbopi = typename AT::t_ffloat_2d_dl();
-  d_C2dbopi = typename AT::t_ffloat_2d_dl();
-  d_C3dbopi = typename AT::t_ffloat_2d_dl();
-  d_C4dbopi = typename AT::t_ffloat_2d_dl();
-
-  d_C1dbopi2 = typename AT::t_ffloat_2d_dl();
-  d_C2dbopi2 = typename AT::t_ffloat_2d_dl();
-  d_C3dbopi2 = typename AT::t_ffloat_2d_dl();
-  d_C4dbopi2 = typename AT::t_ffloat_2d_dl();
-
-  d_dBOp = typename AT::t_ffloat_2d_dl();
-
-  d_dDeltap_self = typename AT::t_ffloat_2d_dl();
-  d_Deltap_boc = typename AT::t_ffloat_1d();
-  d_Deltap = typename AT::t_ffloat_1d();
-  d_total_bo = typename AT::t_ffloat_1d();
-
-  d_Cdbo = typename AT::t_ffloat_2d_dl();
-  d_Cdbopi = typename AT::t_ffloat_2d_dl();
-  d_Cdbopi2 = typename AT::t_ffloat_2d_dl();
-
-  d_Delta = typename AT::t_ffloat_1d();
-  d_Delta_boc = typename AT::t_ffloat_1d();
-  d_dDelta_lp = typename AT::t_ffloat_1d();
-  d_Delta_lp = typename AT::t_ffloat_1d();
-  d_Delta_lp_temp = typename AT::t_ffloat_1d();
-  d_CdDelta = typename AT::t_ffloat_1d();
-  d_sum_ovun = typename AT::t_ffloat_2d_dl();
-
-  // FixReaxFFBonds
-  d_abo = typename AT::t_ffloat_2d();
-  d_neighid = typename AT::t_tagint_2d();
-  d_numneigh_bonds = typename AT::t_int_1d();
-
-  // ComputeAngular intermediates
-  d_angular_intermediates = typename AT::t_ffloat_2d();
+  MemKK::realloc_kokkos(d_angular_intermediates,"reaxff/kk:angular_intermediates",nmax,4);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -3549,9 +3469,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxUpdateBond<NEIGHFLAG>, 
   Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbo = d_Cdbo;
   Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi = d_Cdbopi;
   Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi2 = d_Cdbopi2;
-  //auto a_Cdbo = dup_Cdbo.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-  //auto a_Cdbopi = dup_Cdbopi.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-  //auto a_Cdbopi2 = dup_Cdbopi2.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   const int i = d_ilist[ii];
   const tagint itag = tag(i);

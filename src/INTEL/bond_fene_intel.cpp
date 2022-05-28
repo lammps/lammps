@@ -49,12 +49,6 @@ BondFENEIntel::BondFENEIntel(LAMMPS *lmp) : BondFENE(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-BondFENEIntel::~BondFENEIntel()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void BondFENEIntel::compute(int eflag, int vflag)
 {
   #ifdef _LMP_INTEL_OFFLOAD

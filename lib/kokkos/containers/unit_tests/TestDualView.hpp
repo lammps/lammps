@@ -258,7 +258,7 @@ struct test_dual_view_deep_copy {
   }
 };
 
-template <typename Scalar, class Device>
+template <typename Scalar, class Device, bool Initialize>
 struct test_dualview_resize {
   using scalar_type     = Scalar;
   using execution_space = Device;
@@ -274,7 +274,10 @@ struct test_dualview_resize {
 
     /* Covers case "Resize on Device" */
     a.modify_device();
-    Kokkos::resize(a, factor * n, factor * m);
+    if (Initialize)
+      Kokkos::resize(Kokkos::WithoutInitializing, a, factor * n, factor * m);
+    else
+      Kokkos::resize(a, factor * n, factor * m);
     ASSERT_EQ(a.extent(0), n * factor);
     ASSERT_EQ(a.extent(1), m * factor);
 
@@ -300,12 +303,15 @@ struct test_dualview_resize {
 
     // Check
     ASSERT_EQ(a_h_sum, a_d_sum);
-    ASSERT_EQ(a_h_sum, a.extent(0) * a.extent(1));
+    ASSERT_EQ(a_h_sum, scalar_type(a.extent(0) * a.extent(1)));
 
     /* Covers case "Resize on Host" */
     a.modify_host();
 
-    Kokkos::resize(a, n / factor, m / factor);
+    if (Initialize)
+      Kokkos::resize(Kokkos::WithoutInitializing, a, n / factor, m / factor);
+    else
+      Kokkos::resize(a, n / factor, m / factor);
     ASSERT_EQ(a.extent(0), n / factor);
     ASSERT_EQ(a.extent(1), m / factor);
 
@@ -330,7 +336,7 @@ struct test_dualview_resize {
       }
 
     // Check
-    ASSERT_EQ(a_h_sum, a.extent(0) * a.extent(1));
+    ASSERT_EQ(a_h_sum, scalar_type(a.extent(0) * a.extent(1)));
     ASSERT_EQ(a_h_sum, a_d_sum);
 
   }  // end run_me
@@ -340,7 +346,7 @@ struct test_dualview_resize {
   }
 };
 
-template <typename Scalar, class Device>
+template <typename Scalar, class Device, bool Initialize>
 struct test_dualview_realloc {
   using scalar_type     = Scalar;
   using execution_space = Device;
@@ -351,7 +357,10 @@ struct test_dualview_realloc {
     const unsigned int m = 5;
 
     ViewType a("A", n, m);
-    Kokkos::realloc(a, n, m);
+    if (Initialize)
+      Kokkos::realloc(Kokkos::WithoutInitializing, a, n, m);
+    else
+      Kokkos::realloc(a, n, m);
 
     Kokkos::deep_copy(a.d_view, 1);
     a.modify_device();
@@ -375,7 +384,7 @@ struct test_dualview_realloc {
       }
 
     // Check
-    ASSERT_EQ(a_h_sum, a.extent(0) * a.extent(1));
+    ASSERT_EQ(a_h_sum, scalar_type(a.extent(0) * a.extent(1)));
     ASSERT_EQ(a_h_sum, a_d_sum);
   }  // end run_me
 
@@ -405,12 +414,14 @@ void test_dualview_deep_copy() {
 
 template <typename Scalar, typename Device>
 void test_dualview_realloc() {
-  Impl::test_dualview_realloc<Scalar, Device>();
+  Impl::test_dualview_realloc<Scalar, Device, false>();
+  Impl::test_dualview_realloc<Scalar, Device, true>();
 }
 
 template <typename Scalar, typename Device>
 void test_dualview_resize() {
-  Impl::test_dualview_resize<Scalar, Device>();
+  Impl::test_dualview_resize<Scalar, Device, false>();
+  Impl::test_dualview_resize<Scalar, Device, true>();
 }
 
 TEST(TEST_CATEGORY, dualview_combination) {

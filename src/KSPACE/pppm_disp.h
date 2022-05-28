@@ -21,24 +21,7 @@ KSpaceStyle(pppm/disp,PPPMDisp);
 #define LMP_PPPM_DISP_H
 
 #include "kspace.h"
-
-#if defined(FFT_FFTW3)
-#define LMP_FFT_LIB "FFTW3"
-#elif defined(FFT_MKL)
-#define LMP_FFT_LIB "MKL FFT"
-#else
-#define LMP_FFT_LIB "KISS FFT"
-#endif
-
-#ifdef FFT_SINGLE
-typedef float FFT_SCALAR;
-#define LMP_FFT_PREC "single"
-#define MPI_FFT_SCALAR MPI_FLOAT
-#else
-typedef double FFT_SCALAR;
-#define LMP_FFT_PREC "double"
-#define MPI_FFT_SCALAR MPI_DOUBLE
-#endif
+#include "lmpfftsettings.h"
 
 namespace LAMMPS_NS {
 
@@ -337,7 +320,7 @@ class PPPMDisp : public KSpace {
   void compute_drho1d(const FFT_SCALAR &, const FFT_SCALAR &, const FFT_SCALAR &, int,
                       FFT_SCALAR **, FFT_SCALAR **);
   void compute_rho_coeff(FFT_SCALAR **, FFT_SCALAR **, int);
-  void slabcorr(int);
+  virtual void slabcorr(int);
 
   // grid communication
 

@@ -2202,7 +2202,7 @@ void FixBondReact::get_customvars()
 evaulate expression for variable constraint
 ------------------------------------------------------------------------- */
 
-double FixBondReact::custom_constraint(std::string varstr)
+double FixBondReact::custom_constraint(const std::string& varstr)
 {
   int pos,pos1,pos2,pos3,irxnfunc;
   int prev3 = -1;
@@ -2254,8 +2254,8 @@ double FixBondReact::custom_constraint(std::string varstr)
 currently two 'rxn' functions: rxnsum and rxnave
 ------------------------------------------------------------------------- */
 
-double FixBondReact::rxnfunction(std::string rxnfunc, std::string varid,
-                                 std::string fragid)
+double FixBondReact::rxnfunction(const std::string& rxnfunc, const std::string& varid,
+                                 const std::string& fragid)
 {
   int ivar = -1;
   for (int i = 0; i < ncustomvars; i++) {

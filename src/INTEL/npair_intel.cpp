@@ -39,15 +39,15 @@ NPairIntel::NPairIntel(LAMMPS *lmp) : NPair(lmp) {
 
 /* ---------------------------------------------------------------------- */
 
+#ifdef _LMP_INTEL_OFFLOAD
 NPairIntel::~NPairIntel() {
-  #ifdef _LMP_INTEL_OFFLOAD
   if (_off_map_stencil) {
     const int * stencil = this->stencil;
     #pragma offload_transfer target(mic:_cop)   \
       nocopy(stencil:alloc_if(0) free_if(1))
   }
-  #endif
 }
+#endif
 
 /* ---------------------------------------------------------------------- */
 

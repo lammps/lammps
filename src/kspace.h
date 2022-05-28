@@ -51,9 +51,10 @@ class KSpace : protected Pointers {
                             // of neighbor lists
   int mixflag;              // 1 if geometric mixing rules are enforced
                             // for LJ coefficients
-  int slabflag;
+  bool conp_one_step;       // calculate A matrix in one step with pppm
+  int slabflag, wireflag;
   int scalar_pressure_flag;    // 1 if using MSM fast scalar pressure
-  double slab_volfactor;
+  double slab_volfactor, wire_volfactor;
 
   int warn_nonneutral;    // 0 = error if non-neutral system
                           // 1 = warn once if non-neutral system

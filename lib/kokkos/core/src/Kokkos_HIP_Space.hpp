@@ -506,7 +506,7 @@ class HIP {
   //@{
 
   KOKKOS_INLINE_FUNCTION static int in_parallel() {
-#if defined(__HIP_ARCH__)
+#if defined(__HIP_DEVICE_COMPILE__)
     return true;
 #else
     return false;

@@ -338,13 +338,6 @@ void DumpH5MD::openfile()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpH5MD::write_header(bigint /* nbig */)
-{
-  return;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void DumpH5MD::pack(tagint *ids)
 {
   int m,n;

@@ -247,6 +247,7 @@ int ComputeBondLocal::compute_bonds(int flag)
   double mvv2e;
   double engpot,engtrans,engvib,engrot,fbond;
   double *ptr;
+  std::set<tagint> aset;
 
   double **x = atom->x;
   double **v = atom->v;
@@ -389,6 +390,11 @@ int ComputeBondLocal::compute_bonds(int flag)
           engvib *= mvv2e;
           engrot *= mvv2e;
         }
+
+        // populate map to access per-bond values from atom tags
+
+        aset = {tag[atom1], tag[atom2]};
+        atoms2bond.insert(std::make_pair(aset,m));
 
         if (nvalues == 1) ptr = &vlocal[m];
         else ptr = alocal[m];

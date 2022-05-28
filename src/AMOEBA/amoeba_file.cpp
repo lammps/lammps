@@ -610,7 +610,7 @@ int PairAmoeba::read_section_line(FILE *fp, char *line,
 
   char *ptr,*copy,*copy_next;
   char **words,**words_next;
-  int nwords_next;
+  int nwords, nwords_next;
 
   copy = copy_next = NULL;
   words = words_next = NULL;

@@ -61,13 +61,13 @@ void PairAmoeba::multipole()
 
   // owned atoms
 
-  int nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
 
   // zero repulsion torque on owned + ghost atoms
 
-  int nall = nlocal + atom->nghost;
+  const int nall = nlocal + atom->nghost;
 
-  for (i = 0; i < nall; i++) {
+  for (int i = 0; i < nall; i++) {
     tq[i][0] = 0.0;
     tq[i][1] = 0.0;
     tq[i][2] = 0.0;
@@ -90,7 +90,7 @@ void PairAmoeba::multipole()
   term = 2.0 * aewald * aewald;
   fterm = -felec * aewald / MY_PIS;
 
-  for (i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
     ci = rpole[i][0];
     dix = rpole[i][1];
     diy = rpole[i][2];

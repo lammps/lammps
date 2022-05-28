@@ -37,7 +37,7 @@ class ImproperAmoeba : public Improper {
 
  protected:
   int disable;
-  double opbend_cubic,opbend_quartic,opbend_pentic,opbend_sextic;
+  double opbend_cubic, opbend_quartic, opbend_pentic, opbend_sextic;
   double *k;
 
   virtual void allocate();

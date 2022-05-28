@@ -44,7 +44,7 @@ class AngleAmoeba : public Angle {
   double *ub_k, *ub_r0;
   int *setflag_a, *setflag_ba, *setflag_ub;
 
-  int enable_angle,enable_urey;
+  int enable_angle, enable_urey;
 
   void tinker_angle(int, int, int, int, int);
   void tinker_anglep(int, int, int, int, int);

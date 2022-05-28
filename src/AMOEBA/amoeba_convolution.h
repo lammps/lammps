@@ -31,42 +31,41 @@ namespace LAMMPS_NS {
 
 class AmoebaConvolution : protected Pointers {
  public:
-  int nx,ny,nz;
+  int nx, ny, nz;
   int order;
-  int nfft_owned;              // owned grid points in FFT decomp
-  int nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in;
-  int nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out;
-  int nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft;
+  int nfft_owned;    // owned grid points in FFT decomp
+  int nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in;
+  int nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out;
+  int nxlo_fft, nxhi_fft, nylo_fft, nyhi_fft, nzlo_fft, nzhi_fft;
   bigint nfft_global;          // nx * ny * nz
   double *grid_brick_start;    // lower left corner of (c)grid_brick data
 
-  AmoebaConvolution(class LAMMPS *, class Pair *,
-                    int, int, int, int, int);
+  AmoebaConvolution(class LAMMPS *, class Pair *, int, int, int, int, int);
   ~AmoebaConvolution();
   void *zero();
   FFT_SCALAR *pre_convolution();
   void *post_convolution();
 
  private:
-  int which;                   // caller name for convolution being performed
-  int flag3d;                  // 1 if using 3d grid_brick, 0 for 4d cgrid_brick
-  int nbrick_owned;            // owned grid points in brick decomp
-  int nbrick_ghosts;           // owned + ghost brick grid points
-  int ngrid_either;            // max of nbrick_owned or nfft_owned
+  int which;            // caller name for convolution being performed
+  int flag3d;           // 1 if using 3d grid_brick, 0 for 4d cgrid_brick
+  int nbrick_owned;     // owned grid points in brick decomp
+  int nbrick_ghosts;    // owned + ghost brick grid points
+  int ngrid_either;     // max of nbrick_owned or nfft_owned
 
   class Pair *amoeba;
-  class FFT3d *fft1,*fft2;
+  class FFT3d *fft1, *fft2;
   class GridComm *gc;
   class Remap *remap;
 
-  double ***grid_brick;        // 3d real brick grid with ghosts
-  double ****cgrid_brick;      // 4d complex brick grid with ghosts
+  double ***grid_brick;      // 3d real brick grid with ghosts
+  double ****cgrid_brick;    // 4d complex brick grid with ghosts
 
-  FFT_SCALAR *grid_fft;        // 3d FFT grid as 1d vector
-  FFT_SCALAR *cfft;            // 3d complex FFT grid as 1d vector
+  FFT_SCALAR *grid_fft;    // 3d FFT grid as 1d vector
+  FFT_SCALAR *cfft;        // 3d complex FFT grid as 1d vector
 
-  double *gc_buf1,*gc_buf2;    // buffers for GridComm
-  double *remap_buf;           // buffer for Remap
+  double *gc_buf1, *gc_buf2;    // buffers for GridComm
+  double *remap_buf;            // buffer for Remap
 
   void *zero_3d();
   void *zero_4d();
@@ -79,10 +78,10 @@ class AmoebaConvolution : protected Pointers {
 
   // DEBUG
 
-  void debug_scalar(int,const char *);
-  void debug_file(int,const char *);
+  void debug_scalar(int, const char *);
+  void debug_file(int, const char *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif

@@ -12,30 +12,21 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(amoeba,PairAmoeba)
-
+// clang-format off
+PairStyle(amoeba,PairAmoeba);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_AMOEBA_H
 #define LMP_PAIR_AMOEBA_H
 
+#include "lmpfftsettings.h"
 #include "pair.h"
-#include <cmath>
-#include <cstdio>
-
-#ifdef FFT_SINGLE
-typedef float FFT_SCALAR;
-#else
-typedef double FFT_SCALAR;
-#endif
 
 namespace LAMMPS_NS {
 
 #define SBBITS15 29
 #define NEIGHMASK15 0x1FFFFFFF
-  //#define SBBITS15 30
-  //#define NEIGHMASK15 0x3FFFFFFF
 
 class PairAmoeba : public Pair {
  public:
@@ -62,49 +53,49 @@ class PairAmoeba : public Pair {
   double memory_usage();
 
  protected:
-  int nmax;                     // allocation for owned+ghost
-  int nlocalmax;                // allocation for just owned
-  int cfstyle,crstyle;          // style of forward/reverse comm operations
+  int nmax;                // allocation for owned+ghost
+  int nlocalmax;           // allocation for just owned
+  int cfstyle, crstyle;    // style of forward/reverse comm operations
   int nualt;
   double electric;
-  double rotate[3][3];          // rotation matrix
+  double rotate[3][3];    // rotation matrix
 
-  bool amoeba;                  // which force field: amoeba == true, hippo == false
-  std::string mystyle;          // text label for style
+  bool amoeba;               // which force field: amoeba == true, hippo == false
+  std::string mystyle;       // text label for style
   int first_flag;            // 1 before first init_style()
   int first_flag_compute;    // 1 before first call to compute()
   int optlevel;
 
   // turn on/off components of force field
 
-  int hal_flag,repulse_flag,qxfer_flag;
-  int disp_rspace_flag,disp_kspace_flag;
-  int polar_rspace_flag,polar_kspace_flag;
-  int mpole_rspace_flag,mpole_kspace_flag;
-  int bond_flag,angle_flag,dihedral_flag,improper_flag;
-  int urey_flag,pitorsion_flag,bitorsion_flag;
+  int hal_flag, repulse_flag, qxfer_flag;
+  int disp_rspace_flag, disp_kspace_flag;
+  int polar_rspace_flag, polar_kspace_flag;
+  int mpole_rspace_flag, mpole_kspace_flag;
+  int bond_flag, angle_flag, dihedral_flag, improper_flag;
+  int urey_flag, pitorsion_flag, bitorsion_flag;
 
   // DEBUG timers
 
-  double time_init,time_hal,time_repulse,time_disp;
-  double time_mpole,time_induce,time_polar,time_qxfer;
+  double time_init, time_hal, time_repulse, time_disp;
+  double time_mpole, time_induce, time_polar, time_qxfer;
 
   // energy/virial components
 
-  double ehal,erepulse,edisp,epolar,empole,eqxfer;
-  double virhal[6],virrepulse[6],virdisp[6],virpolar[6],virmpole[6],virqxfer[6];
+  double ehal, erepulse, edisp, epolar, empole, eqxfer;
+  double virhal[6], virrepulse[6], virdisp[6], virpolar[6], virmpole[6], virqxfer[6];
 
   // scalar values defined in force-field file
 
-  char *forcefield;          // FF name
+  char *forcefield;    // FF name
   double am_dielectric;
 
-  int opbendtype,vdwtype;
-  int radius_rule,radius_type,radius_size,epsilon_rule;
+  int opbendtype, vdwtype;
+  int radius_rule, radius_type, radius_size, epsilon_rule;
 
-  double bond_cubic,bond_quartic;
-  double angle_cubic,angle_quartic,angle_pentic,angle_sextic;
-  double opbend_cubic,opbend_quartic,opbend_pentic,opbend_sextic;
+  double bond_cubic, bond_quartic;
+  double angle_cubic, angle_quartic, angle_pentic, angle_sextic;
+  double opbend_cubic, opbend_quartic, opbend_pentic, opbend_sextic;
   double torsion_unit;
 
   int poltyp;
@@ -117,178 +108,178 @@ class PairAmoeba : public Pair {
   double special_polar_piscale[5];
   double special_polar_wscale[5];
 
-  double polar_dscale,polar_uscale;
+  double polar_dscale, polar_uscale;
 
   // scalar values defined in keyfile
 
-  double dhal,ghal;
+  double dhal, ghal;
 
-  double vdwcut,vdwtaper;
-  double repcut,reptaper;
-  double dispcut,disptaper;
-  double mpolecut,mpoletaper;
-  double ctrncut,ctrntaper;
+  double vdwcut, vdwtaper;
+  double repcut, reptaper;
+  double dispcut, disptaper;
+  double mpolecut, mpoletaper;
+  double ctrncut, ctrntaper;
 
   double ewaldcut;
   double dewaldcut;
   double usolvcut;
 
-  int use_ewald,use_dewald;
+  int use_ewald, use_dewald;
 
   int use_pred;
-  int politer,polpred;
-  int pcgprec,pcgguess;
+  int politer, polpred;
+  int pcgprec, pcgguess;
   double pcgpeek;
-  int tcgnab,optorder;
+  int tcgnab, optorder;
   int maxualt;
   double poleps;
   double udiag;
 
-  int aeewald_key,apewald_key,adewald_key;
-  int pmegrid_key,dpmegrid_key;
+  int aeewald_key, apewald_key, adewald_key;
+  int pmegrid_key, dpmegrid_key;
 
   // types and classes
 
-  int n_amtype;                   // # of defined AMOEBA types, 1-N
-  int n_amclass;                  // # of defined AMOEBA classes, 1-N
-  int max_amtype;                 // allocation length of per-type data
-  int max_amclass;                // allocation length of per-class data
+  int n_amtype;       // # of defined AMOEBA types, 1-N
+  int n_amclass;      // # of defined AMOEBA classes, 1-N
+  int max_amtype;     // allocation length of per-type data
+  int max_amclass;    // allocation length of per-class data
 
-  int *amtype_defined;            // 1 if type was defined in FF file
-  int *amclass_defined;           // 1 if class was defined in FF file
-  int *amtype2class;              // amt2c[i] = class which type I belongs to
+  int *amtype_defined;     // 1 if type was defined in FF file
+  int *amclass_defined;    // 1 if class was defined in FF file
+  int *amtype2class;       // amt2c[i] = class which type I belongs to
 
   // static per-atom properties, must persist as atoms migrate
 
-  int index_amtype,index_amgroup,index_redID;
-  int index_xyzaxis,index_polaxe,index_pval;
+  int index_amtype, index_amgroup, index_redID;
+  int index_xyzaxis, index_polaxe, index_pval;
 
-  int *amtype;                    // AMOEBA type, 1 to N_amtype
-  int *amgroup;                   // AMOEBA polarization group, 1 to Ngroup
+  int *amtype;     // AMOEBA type, 1 to N_amtype
+  int *amgroup;    // AMOEBA polarization group, 1 to Ngroup
 
-  char *id_pole,*id_udalt,*id_upalt;
-  class FixStore *fixpole;        // stores pole = multipole components
-  class FixStore *fixudalt;       // stores udalt = induced dipole history
-  class FixStore *fixupalt;       // stores upalt = induced dipole history
+  char *id_pole, *id_udalt, *id_upalt;
+  class FixStore *fixpole;     // stores pole = multipole components
+  class FixStore *fixudalt;    // stores udalt = induced dipole history
+  class FixStore *fixupalt;    // stores upalt = induced dipole history
 
   // static per-type properties defined in force-field file
 
-  int *atomic_num;        // atomic number
-  int *valence;           // valence (# of possible bonds)
-  double *am_mass;        // atomic weight
-  double *am_q;           // charge
-  double **am_mu;         // dipole moment
+  int *atomic_num;    // atomic number
+  int *valence;       // valence (# of possible bonds)
+  double *am_mass;    // atomic weight
+  double *am_q;       // charge
+  double **am_mu;     // dipole moment
 
-  double *polarity;       // for polar
-  double *pdamp;          // for polar
-  double *thole;          // for polar
-  double *dirdamp;        // for polar
-  int *npolgroup;         // # of other types in polarization group, per-type
-  int **polgroup;         // list of other types in polarization group, per-type
+  double *polarity;    // for polar
+  double *pdamp;       // for polar
+  double *thole;       // for polar
+  double *dirdamp;     // for polar
+  int *npolgroup;      // # of other types in polarization group, per-type
+  int **polgroup;      // list of other types in polarization group, per-type
 
-  double *sizpr,*dmppr,*elepr;
+  double *sizpr, *dmppr, *elepr;
 
   // multipole frame info for each amtype, read from PRM file
 
-  int *nmultiframe;             // # of frames for each type
-  int **mpaxis;                 // polaxe values
-  int **xpole,**ypole,**zpole;  // other types in xyz dirs for multipole frame
-  double ***fpole;              // 13 values from file
-                                // 0 = monopole, same as q
-                                // 1,2,3 = 3 dipole components
-                                // 4-12 = 9 quadrupole components
+  int *nmultiframe;                 // # of frames for each type
+  int **mpaxis;                     // polaxe values
+  int **xpole, **ypole, **zpole;    // other types in xyz dirs for multipole frame
+  double ***fpole;                  // 13 values from file
+                                    // 0 = monopole, same as q
+                                    // 1,2,3 = 3 dipole components
+                                    // 4-12 = 9 quadrupole components
 
   // static per-class properties defined in force-field file
 
-  double *vdwl_eps;       // Vdwl epsilon for each class of atom
-  double *vdwl_sigma;     // Vdwl sigma for each class of atom
-  double *kred;           // fraction that H atoms move towards bonded atom
-                          // used in Vdwl, 0.0 if not H atom
-  double *csix,*adisp;    // used in dispersion
-  double *chgct,*dmpct;   // used in charge transfer
-  double *pcore,*palpha;  // for multipole
+  double *vdwl_eps;          // Vdwl epsilon for each class of atom
+  double *vdwl_sigma;        // Vdwl sigma for each class of atom
+  double *kred;              // fraction that H atoms move towards bonded atom
+                             // used in Vdwl, 0.0 if not H atom
+  double *csix, *adisp;      // used in dispersion
+  double *chgct, *dmpct;     // used in charge transfer
+  double *pcore, *palpha;    // for multipole
 
-  int **vdwl_class_pair;    // Vdwl iclass/jclass for pair of classes
-  double *vdwl_eps_pair;    // Vdwl epsilon for pair of classes
-  double *vdwl_sigma_pair;  // Vdwl sigma for pair of classes
-  int nvdwl_pair;           // # of pairwise Vdwl entries in file
-  int max_vdwl_pair;        // size of allocated data for pairwise Vdwl
+  int **vdwl_class_pair;      // Vdwl iclass/jclass for pair of classes
+  double *vdwl_eps_pair;      // Vdwl epsilon for pair of classes
+  double *vdwl_sigma_pair;    // Vdwl sigma for pair of classes
+  int nvdwl_pair;             // # of pairwise Vdwl entries in file
+  int max_vdwl_pair;          // size of allocated data for pairwise Vdwl
 
   // vectors and arrays of small size
 
-  double *copt,*copm;         // 0:optorder in length
-  double *gear,*aspc;
+  double *copt, *copm;    // 0:optorder in length
+  double *gear, *aspc;
 
-  double *a_ualt,*ap_ualt;    // maxualt*(maxualt+1)/2 in length
-  double *b_ualt,*bp_ualt;    // maxualt in length
-  double **c_ualt,**cp_ualt;  // maxualt x maxualt in size
-                              // indices NOT flipped vs Fortran
-  double *bpred,*bpredp,*bpreds,*bpredps;   // maxualt in length
+  double *a_ualt, *ap_ualt;                     // maxualt*(maxualt+1)/2 in length
+  double *b_ualt, *bp_ualt;                     // maxualt in length
+  double **c_ualt, **cp_ualt;                   // maxualt x maxualt in size
+                                                // indices NOT flipped vs Fortran
+  double *bpred, *bpredp, *bpreds, *bpredps;    // maxualt in length
 
-  double vmsave[6];           // multipole virial saved to use in polar
+  double vmsave[6];    // multipole virial saved to use in polar
 
-  double csixpr;              // square of csix for all atoms
+  double csixpr;    // square of csix for all atoms
 
   // params common to pairwise terms
 
-  double off2,cut2;
-  double c0,c1,c2,c3,c4,c5;
+  double off2, cut2;
+  double c0, c1, c2, c3, c4, c5;
 
   // Vdwl hal params - only for AMOEBA
 
-  double **radmin,**epsilon;
-  double **radmin4,**epsilon4;
+  double **radmin, **epsilon;
+  double **radmin4, **epsilon4;
 
   // peratom values computed each step
   // none of them persist with atoms
   // some of them need communication to ghosts
 
-  double **rpole;  // multipole, comm to ghosts
+  double **rpole;    // multipole, comm to ghosts
 
-  int *xaxis2local,*yaxis2local,*zaxis2local;  // xyz axis IDs -> local indices
-                                               // just for owned atoms
-                                               // set to self if not defined
+  int *xaxis2local, *yaxis2local, *zaxis2local;    // xyz axis IDs -> local indices
+                                                   // just for owned atoms
+                                                   // set to self if not defined
 
   int *red2local;    // local indices of ired IDs, computed for owned and ghost
   double **xred;     // altered coords for H atoms for Vdwl, comm to ghosts
 
-  double **tq;       // torque from pairwise multipole, reverse comm from ghosts
+  double **tq;    // torque from pairwise multipole, reverse comm from ghosts
 
-  double **uind,**uinp;     // computed by induce, comm to ghosts
+  double **uind, **uinp;    // computed by induce, comm to ghosts
   double **udirp;
-  double **rsd,**rsdp;      // used by induce, comm to ghosts
+  double **rsd, **rsdp;    // used by induce, comm to ghosts
 
-  double **field,**fieldp;  // used by induce, reverse comm from ghosts
-  double ***uopt,***uoptp;  // Nlocal x Optorder+1 x 3 arrays
+  double **field, **fieldp;    // used by induce, reverse comm from ghosts
+  double ***uopt, ***uoptp;    // Nlocal x Optorder+1 x 3 arrays
 
-  double **ufld,**dufld;    // used by polar, reverse comm from ghosts
-  double **zrsd,**zrsdp;    // used by induce, reverse comm from ghosts
+  double **ufld, **dufld;    // used by polar, reverse comm from ghosts
+  double **zrsd, **zrsdp;    // used by induce, reverse comm from ghosts
 
-  double ***uad,***uap,***ubd,***ubp;   // used by TCG (not for now)
+  double ***uad, ***uap, ***ubd, ***ubp;    // used by TCG (not for now)
 
-  double ***fopt,***foptp;        // computed in induce, used by polar, if OPT
-                                  // Nlocal x optorder x 10
+  double ***fopt, ***foptp;    // computed in induce, used by polar, if OPT
+                               // Nlocal x optorder x 10
 
   double *poli;
-  double **conj,**conjp;
-  double **vec,**vecp;
-  double **udir,**usum,**usump;
+  double **conj, **conjp;
+  double **vec, **vecp;
+  double **udir, **usum, **usump;
 
-  double **fuind,**fuinp;
-  double **fdip_phi1,**fdip_phi2,**fdip_sum_phi;
-  double **dipfield1,**dipfield2;
+  double **fuind, **fuinp;
+  double **fdip_phi1, **fdip_phi2, **fdip_sum_phi;
+  double **dipfield1, **dipfield2;
 
-  double **fphid,**fphip;
-  double **fphidp,**cphidp;
+  double **fphid, **fphip;
+  double **fphidp, **cphidp;
 
   // derived local neighbor lists
 
-  int *numneigh_dipole;          // number of dipole neighs for each atom
-  int **firstneigh_dipole;       // ptr to each atom's dipole neigh indices
-  MyPage<int> *ipage_dipole;     // pages of neighbor indices for dipole neighs
+  int *numneigh_dipole;         // number of dipole neighs for each atom
+  int **firstneigh_dipole;      // ptr to each atom's dipole neigh indices
+  MyPage<int> *ipage_dipole;    // pages of neighbor indices for dipole neighs
 
-  double **firstneigh_dipdip;    // ptr to each atom's dip/dip values
-  MyPage<double> *dpage_dipdip;  // pages of dip/dip values for dipole neighs
+  double **firstneigh_dipdip;      // ptr to each atom's dip/dip values
+  MyPage<double> *dpage_dipdip;    // pages of dip/dip values for dipole neighs
 
   int *numneigh_precond;         // number of precond neighs for each atom
   int **firstneigh_precond;      // ptr to each atom's precond neigh indices
@@ -302,61 +293,61 @@ class PairAmoeba : public Pair {
   // out indices = in + ghost grid cells
   // fft indices = owned portion of grid in FFT decomp
 
-  int nefft1,nefft2,nefft3;   // for electrostatic PME operations
-  int ndfft1,ndfft2,ndfft3;   // for dispersion PME operations
+  int nefft1, nefft2, nefft3;    // for electrostatic PME operations
+  int ndfft1, ndfft2, ndfft3;    // for dispersion PME operations
 
-  int bseorder;               // for electrostatics
-  int bsporder;               // for polarization
-  int bsdorder;               // for dispersion
-  int bsordermax;             // max of 3 bsorder values
+  int bseorder;      // for electrostatics
+  int bsporder;      // for polarization
+  int bsdorder;      // for dispersion
+  int bsordermax;    // max of 3 bsorder values
 
-  double aewald;              // current Ewald alpha
-  double aeewald;             // for electrostatics
-  double apewald;             // for polarization
-  double adewald;             // for dispersion
+  double aewald;     // current Ewald alpha
+  double aeewald;    // for electrostatics
+  double apewald;    // for polarization
+  double adewald;    // for dispersion
 
-  double *bsmod1,*bsmod2,*bsmod3;    // B-spline module along abc axes
-                                     // set to max of any nfft1,nfft2,nfft3
+  double *bsmod1, *bsmod2, *bsmod3;    // B-spline module along abc axes
+                                       // set to max of any nfft1,nfft2,nfft3
 
-  double ***thetai1,***thetai2,***thetai3;   // B-spline coeffs along abc axes
-                                             // Nlocal x max bsorder x 4
+  double ***thetai1, ***thetai2, ***thetai3;    // B-spline coeffs along abc axes
+                                                // Nlocal x max bsorder x 4
 
-  int **igrid;       // grid indices for each owned particle, Nlocal x 3
+  int **igrid;    // grid indices for each owned particle, Nlocal x 3
 
-  double **bsbuild;  // used internally in bsplgen, max-bsorder x max-bsorder
-                     // indices ARE flipped vs Fortran
+  double **bsbuild;    // used internally in bsplgen, max-bsorder x max-bsorder
+                       // indices ARE flipped vs Fortran
 
   // Kspace data for induce and polar
 
-  double *qfac;                    // convoulution pre-factors
-  double *gridfft1;                // copy of p_kspace FFT grid
+  double *qfac;        // convoulution pre-factors
+  double *gridfft1;    // copy of p_kspace FFT grid
 
-  double **cmp,**fmp;              // Cartesian and fractional multipoles
-  double **cphi,**fphi;
+  double **cmp, **fmp;    // Cartesian and fractional multipoles
+  double **cphi, **fphi;
 
   // params for current KSpace solve and FFT being worked on
 
-  int nfft1,nfft2,nfft3;   // size of FFT
-  int bsorder;             // stencil size
-  double recip[3][3];      // indices NOT flipped vs Fortran
-  double ctf[10][10];      // indices NOT flipped vs Fortran
-  double ftc[10][10];      // indices NOT flipped vs Fortran
+  int nfft1, nfft2, nfft3;    // size of FFT
+  int bsorder;                // stencil size
+  double recip[3][3];         // indices NOT flipped vs Fortran
+  double ctf[10][10];         // indices NOT flipped vs Fortran
+  double ftc[10][10];         // indices NOT flipped vs Fortran
 
-  class AmoebaConvolution *m_kspace,*p_kspace,*pc_kspace,*d_kspace;
-  class AmoebaConvolution *i_kspace,*ic_kspace;
+  class AmoebaConvolution *m_kspace, *p_kspace, *pc_kspace, *d_kspace;
+  class AmoebaConvolution *i_kspace, *ic_kspace;
 
   // FFT grid size factors
 
-  int nfactors;      // # of factors
-  int *factors;      // list of possible factors (2,3,5)
+  int nfactors;    // # of factors
+  int *factors;    // list of possible factors (2,3,5)
 
   // components of force field
 
   void hal();
 
   void repulsion();
-  void damprep(double, double, double, double, double, double, double, double,
-               int, double, double, double *);
+  void damprep(double, double, double, double, double, double, double, double, int, double, double,
+               double *);
 
   void dispersion();
   void dispersion_real();
@@ -407,10 +398,8 @@ class PairAmoeba : public Pair {
   void grid_disp(double ***);
 
   void kewald();
-  void kewald_parallel(int, int, int, int,
-                       int &, int &, int &, int &, int &, int &,
-                       int &, int &, int &, int &, int &, int &,
-                       int &, int &, int &, int &, int &, int &);
+  void kewald_parallel(int, int, int, int, int &, int &, int &, int &, int &, int &, int &, int &,
+                       int &, int &, int &, int &, int &, int &, int &, int &, int &, int &);
   double ewaldcof(double);
   int factorable(int);
 
@@ -490,12 +479,10 @@ class PairAmoeba : public Pair {
 
   // inline function for neighbor list unmasking
 
-  inline int sbmask15(int j) const {
-    return j >> SBBITS15 & 7;
-  }
+  inline int sbmask15(int j) const { return j >> SBBITS15 & 7; }
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

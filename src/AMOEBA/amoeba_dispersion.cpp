@@ -217,25 +217,20 @@ void PairAmoeba::dispersion_real()
 
       // increment the internal virial tensor components
 
-      vxx = xr * dedx;
-      vyx = yr * dedx;
-      vzx = zr * dedx;
-      vyy = yr * dedy;
-      vzy = zr * dedy;
-      vzz = zr * dedz;
+      if (vflag_global) {
+        vxx = xr * dedx;
+        vyx = yr * dedx;
+        vzx = zr * dedx;
+        vyy = yr * dedy;
+        vzy = zr * dedy;
+        vzz = zr * dedz;
 
-      virdisp[0] -= vxx;
-      virdisp[1] -= vyy;
-      virdisp[2] -= vzz;
-      virdisp[3] -= vyx;
-      virdisp[4] -= vzx;
-      virdisp[5] -= vzy;
-
-      // energy = e
-      // virial = 6-vec vir
-      // NOTE: add tally function
-
-      if (evflag) {
+        virdisp[0] -= vxx;
+        virdisp[1] -= vyy;
+        virdisp[2] -= vzz;
+        virdisp[3] -= vyx;
+        virdisp[4] -= vzx;
+        virdisp[5] -= vzy;
       }
     }
   }
@@ -251,7 +246,11 @@ void PairAmoeba::dispersion_kspace()
   int i,j,k,m,n,ib,jb,kb,itype,iclass;
   int nhalf1,nhalf2,nhalf3;
   int nxlo,nxhi,nylo,nyhi,nzlo,nzhi;
-  double e,fi,denom;
+  int i0,iatm,igrd0;
+  int it1,it2,it3;
+  int j0,jgrd0;
+  int k0,kgrd0;
+  double e,fi,denom,scale;
   double r1,r2,r3;
   double h1,h2,h3;
   double term,vterm;
@@ -322,9 +321,6 @@ void PairAmoeba::dispersion_kspace()
   fac3 = -2.0*aewald*MY_PI*MY_PI;
   denom0 = (6.0*volbox)/pow(MY_PI,1.5);
 
-  //qgrid[0][0][0][0] = 0.0;   // NOTE: why is this needed?
-  //qgrid[0][0][0][1] = 0.0;
-
   n = 0;
   for (k = nzlo; k <= nzhi; k++) {
     for (j = nylo; j <= nyhi; j++) {
@@ -350,17 +346,19 @@ void PairAmoeba::dispersion_kspace()
           struc2 = gridfft[n]*gridfft[n] + gridfft[n+1]*gridfft[n+1];
           e = -(term1 / denom) * struc2;
           edisp += e;
-          vterm = 3.0 * (fac1*erfcterm*h + fac3*expterm) * struc2/denom;
-          virdisp[0] += h1*h1*vterm - e;
-          virdisp[1] += h2*h2*vterm - e;
-          virdisp[2] += h3*h3*vterm - e;
-          virdisp[3] += h1*h2*vterm;
-          virdisp[4] += h1*h3*vterm;
-          virdisp[5] += h2*h3*vterm;
+          if (vflag_global) {
+            vterm = 3.0 * (fac1*erfcterm*h + fac3*expterm) * struc2/denom;
+            virdisp[0] -= h1*h1*vterm - e;
+            virdisp[1] -= h2*h2*vterm - e;
+            virdisp[2] -= h3*h3*vterm - e;
+            virdisp[3] -= h1*h2*vterm;
+            virdisp[4] -= h1*h3*vterm;
+            virdisp[5] -= h2*h3*vterm;
+          }
         } else term1 = 0.0;
-        // NOTE: pre-calc this division only once
-        gridfft[n] *= -(term1/denom);
-        gridfft[n+1] *= -(term1/denom);
+        scale = -term1 / denom;
+        gridfft[n] *= scale;
+        gridfft[n+1] *= scale;
         n += 2;
       }
     }
@@ -418,8 +416,10 @@ void PairAmoeba::dispersion_kspace()
 
   if (me == 0) {
     edisp -= term;
-    virdisp[0] -= term;
-    virdisp[1] -= term;
-    virdisp[2] -= term;
+    if (vflag_global) {
+      virdisp[0] -= term;
+      virdisp[1] -= term;
+      virdisp[2] -= term;
+    }
   }
 }

@@ -6,7 +6,11 @@ Ponder's group at the U Washington at St Louis.  Their implementation
 in LAMMPS was done using F90 code provided by the Ponder group from
 their `Tinker MD code <https://dasher.wustl.edu/tinker/>`_.
 
-NOTE: What version of AMOEBA and HIPPO does LAMMPS implement?
+The current implementaion (May 2022) of AMOEBA in LAMMPS matches the
+version discussed in :ref:`(Ponder) <amoeba-Ponder>`, :ref:`(Ren)
+<amoeba-Ren>`, and :ref:`(Shi) <amoeba-Shi>`.  Likewise the current
+implementaion of HIPPO in LAMMPS matches the version discussed in
+:ref:`(Rackers) <amoeba-Rackers>`.
 
 These force fields can be used when polarization effects are desired
 in simulations of water, organic molecules, and biomolecules including
@@ -14,23 +18,25 @@ proteins, provided that parameterizations (Tinker PRM force field
 files) are available for the systems you are interested in.  Files in
 the LAMMPS potentials directory with a "amoeba" or "hippo" suffix can
 be used.  The Tinker distribution and website have additional force
-field files as well.
-
-NOTE: Can we include a few Tinker FF files in the LAMMPS distro,
-e.g. ubiquitin.prm as potentials/ubiquitin.prm.amoeba ?
+field files as well:
+`https://github.com/TinkerTools/tinker/tree/release/params
+<https://github.com/TinkerTools/tinker/tree/release/params>`_.
 
 Note that currently, HIPPO can only be used for water systems, but
 HIPPO files for a variety of small organic and biomolecules are in
 preparation by the Ponder group.  Those force field files will be
 included in the LAMMPS distribution when available.
 
+To use the AMOEBA or HIPPO force fields, a simulation must be 3d, and
+fully periodic or fully non-periodic, and use an orthogonal (not
+triclinic) simulation box.
+
 ----------
 
 The AMOEBA and HIPPO force fields contain the following terms in their
-energy (U) computation.  Further details for AMOEBA are in these
-papers: :ref:`(Ren) <amoeba-Ren>`, :ref:`(Shi) <amoeba-Shi>`.  Further
-details for HIPPO are in this paper: :ref:`(Rackers)
-<amoeba-Rackers>`.
+energy (U) computation.  Further details for AMOEBA equations are in
+:ref:`(Ponder) <amoeba-Ponder>`, further details for the HIPPO
+equations are in :ref:`(Rackers) <amoeba-Rackers>`.
 
 .. math::
 
@@ -41,8 +47,10 @@ details for HIPPO are in this paper: :ref:`(Rackers)
 For intermolecular terms, the AMOEBA force field includes only the
 :math:`U_{hal}`, :math:`U_{multipole}`, :math:`U_{polar}` terms.  The
 HIPPO force field includes all but the :math:`U_{hal}` term.  In
-LAMMPS, these are all computed by the :doc:`pair_style <pair_style>`
-command.
+LAMMPS, these are all computed by the :doc:`pair_style amoeba or hippo
+<pair_style>` command.  Note that the :math:`U_{multipole}` and
+:math:`U_{polar}` terms in this formula are not the same for the
+AMOEBA and HIPPO force fields.
 
 For intramolecular terms, the :math:`U_{bond}`, :math:`U_{angle}`,
 :math:`U_{torsion}`, :math:`U_{oop}` terms are computed by the
@@ -262,16 +270,20 @@ all the options available to use with the tinker2lmp.py script:
 Switches and their arguments may be specified in any order.
 
 The -xyz switch is required and specifies an input XYZ file as an
-argument.  The format of this file is an extended XYZ format used by
-Tinker for its input.  Example \*.xyz files are in the examples/amoeba
-directory.  The file lists the atoms in the system.  Each atom has the
-following information: Tinker species name (ignored by LAMMPS), xyz
-coordinates, Tinker numeric type, and a list of atom IDs the atom is
-bonded to.
+argument.  The format of this file is an extended XYZ format defined
+and used by Tinker for its input.  Example \*.xyz files are in the
+examples/amoeba directory.  The file lists the atoms in the system.
+Each atom has the following information: Tinker species name (ignored
+by LAMMPS), xyz coordinates, Tinker numeric type, and a list of atom
+IDs the atom is bonded to.
 
-NOTE: is this a Tinker-unique augmented XYZ format or standard?  Where
-can a LAMMPS user get or generate this file for a system they want
-to simulate?
+Here is more information about the extended XYZ format defined and
+used by Tinker, and links to programs that convert standard PDB files
+to the extended XYZ format:
+
+* `http://openbabel.org/docs/current/FileFormats/Tinker_XYZ_format.html <http://openbabel.org/docs/current/FileFormats/Tinker_XYZ_format.html>`_
+* `https://github.com/emleddin/pdbxyz-xyzpdb <https://github.com/emleddin/pdbxyz-xyzpdb>`_
+* `https://github.com/TinkerTools/tinker/blob/release/source/pdbxyz.f <https://github.com/TinkerTools/tinker/blob/release/source/pdbxyz.f>`_
 
 The -amoeba or -hippo switch is required.  It specifies an input
 AMOEBA or HIPPO PRM force field file as an argument.  This should be
@@ -285,9 +297,6 @@ For periodic systems, the -pbc switch is required.  It specifies the
 periodic box size for each dimension (x,y,z).  For a Tinker simulation
 these are specified in the KEY file.
 
-NOTE: What about a system with a free surface.  What about a triclinic
-box.
-
 The -bitorsion switch is only needed if the system contains Tinker
 bitorsion interactions.  The data for each type of bitorsion
 interaction will be written to the specified file, and read by the
@@ -297,15 +306,19 @@ compatible with the LAMMPS data file format.
 
 ----------
 
+.. _howto-Ponder:
+
+**(Ponder)** Ponder, Wu, Ren, Pande, Chodera†, Schnieders, Haque,  Mobley, Lambrecht, DiStasio Jr, M. Head-Gordon, Clark,  Johnson, T. Head-Gordon, J Phys Chem B, 114, 2549–2564 (2010).
+
+.. _howto-Rackers:
+
+**(Rackers)** Rackers, Silva, Wang, Ponder, J Chem Theory Comput, 17, 7056–7084 (2021).
+
 .. _howto-Ren:
 
 **(Ren)** Ren and Ponder, J Phys Chem B, 107, 5933 (2003).
 
 .. _howto-Shi:
 
-**(Shi)** Shi, Xiz, Znahg, Best, Wu, Ponder, Ren, J Chem Theory Comp,
- 9, 4046, 2013.
+**(Shi)** Shi, Xiz, Znahg, Best, Wu, Ponder, Ren, J Chem Theory Comp, 9, 4046, 2013.
 
-.. _howto-Rackers:
-
-**(Rackers)** Rackers and Ponder, J Chem Phys, 150, 084104 (2010).

@@ -69,7 +69,6 @@ void PairAmoeba::moduli()
 
   double x = 0.0;
   bspline(x,bsorder,array);
-  //printf("AAA array %f %f %f %f \n",array[0],array[1],array[2],array[3]);
 
   for (i = 0; i < maxfft; i++) bsarray[i] = 0.0;
   for (i = 0; i < bsorder; i++) bsarray[i+1] = array[i];
@@ -209,6 +208,7 @@ void PairAmoeba::bspline_fill()
   for (int i = 0; i < nlocal; i++) {
 
     // NOTE: what about offset/shift and w < 0 or w > 1
+    // NOTE: could subtract off nlpts to start with
     // NOTE: this is place to check that stencil size does not
     //       go out of bounds relative to igrid for a proc's sub-domain
     // NOTE: could convert x -> lamda for entire set of Nlocal atoms
@@ -220,7 +220,7 @@ void PairAmoeba::bspline_fill()
     ifr = static_cast<int> (fr-eps);
     w = fr - ifr;
     igrid[i][0] = ifr;
-    //igrid[i][0] = ifr + 1;        // NOTE: could subtract off nlpts to start with
+    //igrid[i][0] = ifr + 1;
     //if (igrid[i][0] == nfft1) igrid[i][0] = 0;
     bsplgen(w,thetai1[i]);
 

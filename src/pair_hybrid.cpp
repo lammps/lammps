@@ -192,6 +192,12 @@ void PairHybrid::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
+/* ---------------------------------------------------------------------- */
+
+void PairHybrid::finish()
+{
+  for (int m = 0; m < nstyles; m++) styles[m]->finish();
+}
 
 /* ---------------------------------------------------------------------- */
 

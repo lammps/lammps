@@ -83,9 +83,7 @@ void PairAmoeba::multipole()
 
   // compute the reciprocal space part of the Ewald summation
 
-  //printf("zero check %e \n",empole);
   if (mpole_kspace_flag) multipole_kspace();
-  //printf("kspace energy %e \n",empole);
 
   // compute the Ewald self-energy term over all the atoms
 
@@ -370,11 +368,6 @@ void PairAmoeba::multipole_real()
         alphak = palpha[jclass];
         valk = pval[j];
 
-        /*
-        printf("HIPPO MPOLE ij %d %d: pcore/alpha/val I %g %g %g: J %g %g %g\n",
-               atom->tag[i],atom->tag[j],corei,alphai,vali,corek,alphak,valk);
-        */
-
         term1 = corei*corek;
         term1i = corek*vali;
         term2i = corek*dir;
@@ -454,28 +447,6 @@ void PairAmoeba::multipole_real()
 
       empole += e;
 
-      // DEBUG
-
-      /*
-      count++;
-
-      if (imin == 68 && imax == 1021) {
-        //printf("AAA %d %d %16.12g\n",imin,imax,e);
-        printf("AAA %d: %d %d: %d %d: %d: %16.12g\n",
-               me,atom->tag[i],atom->tag[j],i,j,atom->nlocal,e);
-        printf("XYZ %g %g %g: %g %g %g\n",
-               x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]);
-      }
-      */
-
-      /*
-      if (atom->tag[i] == 1 || atom->tag[j] == 1) {
-        printf("MPOLE %d %d %d: %15.12g %15.12g %g\n",
-               atom->tag[i],atom->tag[j],j,r,e,factor_mpole);
-        printf("  BN: %g %g %g: %g %g %g\n",bn[0],bn[1],bn[2],bn[3],bn[4],bn[5]);
-      }
-      */
-
       // compute the force components for this interaction
 
       frcx = de*xr + term1*dix + term2*dkx + term3*(diqkx-dkqix) +
@@ -520,25 +491,20 @@ void PairAmoeba::multipole_real()
 
       // increment the virial due to pairwise Cartesian forces
 
-      vxx = -xr * frcx;
-      vxy = -0.5 * (yr*frcx+xr*frcy);
-      vxz = -0.5 * (zr*frcx+xr*frcz);
-      vyy = -yr * frcy;
-      vyz = -0.5 * (zr*frcy+yr*frcz);
-      vzz = -zr * frcz;
-
-      virmpole[0] -= vxx;
-      virmpole[1] -= vyy;
-      virmpole[2] -= vzz;
-      virmpole[3] -= vxy;
-      virmpole[4] -= vxz;
-      virmpole[5] -= vyz;
-
-      // energy = e
-      // virial = 6-vec vir
-      // NOTE: add tally function
-
-      if (evflag) {
+      if (vflag_global) {
+        vxx = -xr * frcx;
+        vxy = -0.5 * (yr*frcx+xr*frcy);
+        vxz = -0.5 * (zr*frcx+xr*frcz);
+        vyy = -yr * frcy;
+        vyz = -0.5 * (zr*frcy+yr*frcz);
+        vzz = -zr * frcz;
+      
+        virmpole[0] -= vxx;
+        virmpole[1] -= vyy;
+        virmpole[2] -= vzz;
+        virmpole[3] -= vxy;
+        virmpole[4] -= vxz;
+        virmpole[5] -= vyz;
       }
     }
   }
@@ -553,6 +519,8 @@ void PairAmoeba::multipole_real()
   for (i = 0; i < nlocal; i++) {
     torque2force(i,tq[i],fix,fiy,fiz,f);
 
+    if (!vflag_global) continue;
+
     iz = zaxis2local[i];
     ix = xaxis2local[i];
     iy = yaxis2local[i];
@@ -566,7 +534,7 @@ void PairAmoeba::multipole_real()
     xiy = x[iy][0] - x[i][0];
     yiy = x[iy][1] - x[i][1];
     ziy = x[iy][2] - x[i][2];
-
+    
     vxx = xix*fix[0] + xiy*fiy[0] + xiz*fiz[0];
     vxy = 0.5 * (yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] +
                  xix*fix[1] + xiy*fiy[1] + xiz*fiz[1]);
@@ -576,7 +544,7 @@ void PairAmoeba::multipole_real()
     vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
     vzz = zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
-
+    
     virmpole[0] -= vxx;
     virmpole[1] -= vyy;
     virmpole[2] -= vzz;
@@ -636,14 +604,6 @@ void PairAmoeba::multipole_kspace()
   double volbox = domain->prd[0] * domain->prd[1] * domain->prd[2];
 
   felec = electric / am_dielectric;
-
-  // perform dynamic allocation of arrays
-  // NOTE: just do this one time?
-
-  memory->create(cmp,nlocal,10,"ameoba/mpole:cmp");
-  memory->create(fmp,nlocal,10,"ameoba/mpole:fmp");
-  memory->create(cphi,nlocal,10,"ameoba/mpole:cphi");
-  memory->create(fphi,nlocal,20,"ameoba/mpole:fphi");
 
   // FFT moduli pre-computations
   // set igrid for each atom and its B-spline coeffs
@@ -712,10 +672,6 @@ void PairAmoeba::multipole_kspace()
   pterm = pow((MY_PI/aewald),2.0);
   volterm = MY_PI * volbox;
 
-  // printf("bsmod1 %e %e %e %e %e %e \n",bsmod1[0],bsmod1[1],bsmod1[2],bsmod1[3],bsmod1[4],bsmod1[5]);
-  // printf("bsmod2 %e %e %e %e %e %e \n",bsmod2[0],bsmod2[1],bsmod2[2],bsmod2[3],bsmod2[4],bsmod2[5]);
-  // printf("bsmod3 %e %e %e %e %e %e \n",bsmod3[0],bsmod3[1],bsmod3[2],bsmod3[3],bsmod3[4],bsmod3[5]);
-
   n = 0;
   for (k = nzlo; k <= nzhi; k++) {
     for (j = nylo; j <= nyhi; j++) {
@@ -723,7 +679,6 @@ void PairAmoeba::multipole_kspace()
         r1 = (i >= nhalf1) ? i-nfft1 : i;
         r2 = (j >= nhalf2) ? j-nfft2 : j;
         r3 = (k >= nhalf3) ? k-nfft3 : k;
-  //printf("ijk %i %i %i r1r2r3 %f %f %f \n",i,j,k,r1,r2,r3);
         h1 = recip[0][0]*r1 + recip[0][1]*r2 + recip[0][2]*r3;  // matvec
         h2 = recip[1][0]*r1 + recip[1][1]*r2 + recip[1][2]*r3;
         h3 = recip[2][0]*r1 + recip[2][1]*r2 + recip[2][2]*r3;
@@ -733,7 +688,6 @@ void PairAmoeba::multipole_kspace()
         if (term > -50.0 && hsq != 0.0) {
           denom = volterm*hsq*bsmod1[i]*bsmod2[j]*bsmod3[k];
           expterm = exp(term) / denom;
-    //printf("bsmod %e %e %e expterm %e \n",bsmod1[i],bsmod2[j],bsmod3[k],expterm);
           struc2 = gridfft[n]*gridfft[n] + gridfft[n+1]*gridfft[n+1];
           eterm = 0.5 * felec * expterm * struc2;
           vterm = (2.0/hsq) * (1.0-term) * eterm;
@@ -768,8 +722,6 @@ void PairAmoeba::multipole_kspace()
   // get potential
 
   fphi_mpole(gridpost,fphi);
-
-  //printf("fphi %e %e %e %e \n",fphi[0][0],fphi[0][1],fphi[0][2],fphi[0][3]);
 
   for (i = 0; i < nlocal; i++) {
     for (k = 0; k < 20; k++)
@@ -807,22 +759,24 @@ void PairAmoeba::multipole_kspace()
 
   // augment the permanent multipole virial contributions
 
-  for (i = 0; i < nlocal; i++) {
-    vxx = vxx - cmp[i][1]*cphi[i][1] - 2.0*cmp[i][4]*cphi[i][4] -
-      cmp[i][7]*cphi[i][7] - cmp[i][8]*cphi[i][8];
-    vxy = vxy - 0.5*(cmp[i][2]*cphi[i][1]+cmp[i][1]*cphi[i][2]) -
-      (cmp[i][4]+cmp[i][5])*cphi[i][7] - 0.5*cmp[i][7]*(cphi[i][4]+cphi[i][5]) -
-      0.5*(cmp[i][8]*cphi[i][9]+cmp[i][9]*cphi[i][8]);
-    vxz = vxz - 0.5*(cmp[i][3]*cphi[i][1]+cmp[i][1]*cphi[i][3]) -
-      (cmp[i][4]+cmp[i][6])*cphi[i][8] - 0.5*cmp[i][8]*(cphi[i][4]+cphi[i][6]) -
-      0.5*(cmp[i][7]*cphi[i][9]+cmp[i][9]*cphi[i][7]);
-    vyy = vyy - cmp[i][2]*cphi[i][2] - 2.0*cmp[i][5]*cphi[i][5] -
-      cmp[i][7]*cphi[i][7] - cmp[i][9]*cphi[i][9];
-    vyz = vyz - 0.5*(cmp[i][3]*cphi[i][2]+cmp[i][2]*cphi[i][3]) -
-      (cmp[i][5]+cmp[i][6])*cphi[i][9] - 0.5*cmp[i][9]*(cphi[i][5]+cphi[i][6]) -
-      0.5*(cmp[i][7]*cphi[i][8]+cmp[i][8]*cphi[i][7]);
-    vzz = vzz - cmp[i][3]*cphi[i][3] - 2.0*cmp[i][6]*cphi[i][6] -
-      cmp[i][8]*cphi[i][8] - cmp[i][9]*cphi[i][9];
+  if (vflag_global) {
+    for (i = 0; i < nlocal; i++) {
+      vxx = vxx - cmp[i][1]*cphi[i][1] - 2.0*cmp[i][4]*cphi[i][4] -
+        cmp[i][7]*cphi[i][7] - cmp[i][8]*cphi[i][8];
+      vxy = vxy - 0.5*(cmp[i][2]*cphi[i][1]+cmp[i][1]*cphi[i][2]) -
+        (cmp[i][4]+cmp[i][5])*cphi[i][7] - 0.5*cmp[i][7]*(cphi[i][4]+cphi[i][5]) -
+        0.5*(cmp[i][8]*cphi[i][9]+cmp[i][9]*cphi[i][8]);
+      vxz = vxz - 0.5*(cmp[i][3]*cphi[i][1]+cmp[i][1]*cphi[i][3]) -
+        (cmp[i][4]+cmp[i][6])*cphi[i][8] - 0.5*cmp[i][8]*(cphi[i][4]+cphi[i][6]) -
+        0.5*(cmp[i][7]*cphi[i][9]+cmp[i][9]*cphi[i][7]);
+      vyy = vyy - cmp[i][2]*cphi[i][2] - 2.0*cmp[i][5]*cphi[i][5] -
+        cmp[i][7]*cphi[i][7] - cmp[i][9]*cphi[i][9];
+      vyz = vyz - 0.5*(cmp[i][3]*cphi[i][2]+cmp[i][2]*cphi[i][3]) -
+        (cmp[i][5]+cmp[i][6])*cphi[i][9] - 0.5*cmp[i][9]*(cphi[i][5]+cphi[i][6]) -
+        0.5*(cmp[i][7]*cphi[i][8]+cmp[i][8]*cphi[i][7]);
+      vzz = vzz - cmp[i][3]*cphi[i][3] - 2.0*cmp[i][6]*cphi[i][6] -
+        cmp[i][8]*cphi[i][8] - cmp[i][9]*cphi[i][9];
+    }
   }
 
   // resolve site torques then increment forces and virial
@@ -843,46 +797,43 @@ void PairAmoeba::multipole_kspace()
 
     torque2force(i,tem,fix,fiy,fiz,f);
 
-    iz = zaxis2local[i];
-    ix = xaxis2local[i];
-    iy = yaxis2local[i];
+    if (vflag_global) {
+      iz = zaxis2local[i];
+      ix = xaxis2local[i];
+      iy = yaxis2local[i];
 
-    xiz = x[iz][0] - x[i][0];
-    yiz = x[iz][1] - x[i][1];
-    ziz = x[iz][2] - x[i][2];
-    xix = x[ix][0] - x[i][0];
-    yix = x[ix][1] - x[i][1];
-    zix = x[ix][2] - x[i][2];
-    xiy = x[iy][0] - x[i][0];
-    yiy = x[iy][1] - x[i][1];
-    ziy = x[iy][2] - x[i][2];
+      xiz = x[iz][0] - x[i][0];
+      yiz = x[iz][1] - x[i][1];
+      ziz = x[iz][2] - x[i][2];
+      xix = x[ix][0] - x[i][0];
+      yix = x[ix][1] - x[i][1];
+      zix = x[ix][2] - x[i][2];
+      xiy = x[iy][0] - x[i][0];
+      yiy = x[iy][1] - x[i][1];
+      ziy = x[iy][2] - x[i][2];
 
-    vxx += xix*fix[0] + xiy*fiy[0] + xiz*fiz[0];
-    vxy += 0.5*(yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] +
-                xix*fix[1] + xiy*fiy[1] + xiz*fiz[1]);
-    vxz += 0.5*(zix*fix[0] + ziy*fiy[0] + ziz*fiz[0] +
-                xix*fix[2] + xiy*fiy[2] + xiz*fiz[2]);
-    vyy += yix*fix[1] + yiy*fiy[1] + yiz*fiz[1];
-    vyz += 0.5*(zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
-                yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
-    vzz += zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
+      vxx += xix*fix[0] + xiy*fiy[0] + xiz*fiz[0];
+      vxy += 0.5*(yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] +
+                  xix*fix[1] + xiy*fiy[1] + xiz*fiz[1]);
+      vxz += 0.5*(zix*fix[0] + ziy*fiy[0] + ziz*fiz[0] +
+                  xix*fix[2] + xiy*fiy[2] + xiz*fiz[2]);
+      vyy += yix*fix[1] + yiy*fiy[1] + yiz*fiz[1];
+      vyz += 0.5*(zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
+                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
+      vzz += zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
+    }
   }
 
   // increment total internal virial tensor components
 
-  virmpole[0] -= vxx;
-  virmpole[1] -= vyy;
-  virmpole[2] -= vzz;
-  virmpole[3] -= vxy;
-  virmpole[4] -= vxz;
-  virmpole[5] -= vyz;
-
-  // free local memory
-
-  memory->destroy(cmp);
-  memory->destroy(fmp);
-  memory->destroy(cphi);
-  memory->destroy(fphi);
+  if (vflag_global) {
+    virmpole[0] -= vxx;
+    virmpole[1] -= vyy;
+    virmpole[2] -= vzz;
+    virmpole[3] -= vxy;
+    virmpole[4] -= vxz;
+    virmpole[5] -= vyz;
+  }
 }
 
 /* ----------------------------------------------------------------------

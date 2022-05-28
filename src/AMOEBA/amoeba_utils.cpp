@@ -30,11 +30,10 @@ enum{NOFRAME,ZONLY,ZTHENX,BISECTOR,ZBISECT,THREEFOLD};
 
 /* ----------------------------------------------------------------------
    kmpole performs one-time assignment of
-     xaxis,yaxis,zaxis multipole neighbors to each owned atom
+     xyzaxis multipole neighbors to each owned atom
      any of the values can be 0 if not used
      yaxis can later be negative due to chkpole()
    also sets polaxe and pole[13] multipole for each owned atom
-   NOTE: may not always do this identically to Tinker b/c atom order matters
 ------------------------------------------------------------------------- */
 
 void PairAmoeba::kmpole()
@@ -52,9 +51,7 @@ void PairAmoeba::kmpole()
 
   amtype = atom->ivector[index_amtype];
   int *polaxe = atom->ivector[index_polaxe];
-  double *xaxis = atom->dvector[index_xaxis];
-  double *yaxis = atom->dvector[index_yaxis];
-  double *zaxis = atom->dvector[index_zaxis];
+  double **xyzaxis = atom->darray[index_xyzaxis];
   double **pole = fixpole->astore;
 
   int **nspecial = atom->nspecial;
@@ -73,6 +70,8 @@ void PairAmoeba::kmpole()
     flag = 0;
 
     // create a sorted version of bond/angle neighs from special[][]
+    // NOTE: this is to try and do it identically to Tinker 
+    //   b/c I think in Tinker, atom order matters as to which case is seen fist
 
     for (j = 0; j < nspecial[i][0]; j++)
       bondneigh[j] = special[i][j];
@@ -125,9 +124,9 @@ void PairAmoeba::kmpole()
             if (ktype == xtype) {
               if (ytype == 0 && !flag) {
                 flag = 1;
-                zaxis[i] = ubuf(jneigh).d;
-                xaxis[i] = ubuf(kneigh).d;
-                yaxis[i] = 0.0;
+                xyzaxis[i][2] = ubuf(jneigh).d;
+                xyzaxis[i][0] = ubuf(kneigh).d;
+                xyzaxis[i][1] = 0.0;
                 polaxe[i] = mpaxis[itype][iframe];
                 for (j = 0; j < 13; j++)
                   pole[i][j] = fpole[itype][iframe][j];
@@ -141,9 +140,9 @@ void PairAmoeba::kmpole()
                   mtype = amtype[m];
                   if (mtype == ytype && !flag) {
                     flag = 1;
-                    zaxis[i] = ubuf(jneigh).d;
-                    xaxis[i] = ubuf(kneigh).d;
-                    yaxis[i] = ubuf(mneigh).d;
+                    xyzaxis[i][2] = ubuf(jneigh).d;
+                    xyzaxis[i][0] = ubuf(kneigh).d;
+                    xyzaxis[i][1] = ubuf(mneigh).d;
                     polaxe[i] = mpaxis[itype][iframe];
                     for (j = 0; j < 13; j++)
                       pole[i][j] = fpole[itype][iframe][j];
@@ -183,9 +182,9 @@ void PairAmoeba::kmpole()
             if (ktype == xtype) {
               if (ytype == 0 && !flag) {
                 flag = 1;
-                zaxis[i] = ubuf(jneigh).d;
-                xaxis[i] = ubuf(kneigh).d;
-                yaxis[i] = 0.0;
+                xyzaxis[i][2] = ubuf(jneigh).d;
+                xyzaxis[i][0] = ubuf(kneigh).d;
+                xyzaxis[i][1] = 0.0;
                 polaxe[i] = mpaxis[itype][iframe];
                 for (j = 0; j < 13; j++)
                   pole[i][j] = fpole[itype][iframe][j];
@@ -203,9 +202,9 @@ void PairAmoeba::kmpole()
                   if (!path) continue;
                   if (mtype == ytype && !flag) {
                     flag = 1;
-                    zaxis[i] = ubuf(jneigh).d;
-                    xaxis[i] = ubuf(kneigh).d;
-                    yaxis[i] = ubuf(mneigh).d;
+                    xyzaxis[i][2] = ubuf(jneigh).d;
+                    xyzaxis[i][0] = ubuf(kneigh).d;
+                    xyzaxis[i][1] = ubuf(mneigh).d;
                     polaxe[i] = mpaxis[itype][iframe];
                     for (j = 0; j < 13; j++)
                       pole[i][j] = fpole[itype][iframe][j];
@@ -234,8 +233,8 @@ void PairAmoeba::kmpole()
         if (jtype == ztype) {
           if (xtype == 0 && !flag) {
             flag = 1;
-            zaxis[i] = ubuf(jneigh).d;
-            xaxis[i] = yaxis[i] = 0.0;
+            xyzaxis[i][2] = ubuf(jneigh).d;
+            xyzaxis[i][0] = xyzaxis[i][1] = 0.0;
             polaxe[i] = mpaxis[itype][iframe];
             for (j = 0; j < 13; j++)
               pole[i][j] = fpole[itype][iframe][j];
@@ -254,7 +253,7 @@ void PairAmoeba::kmpole()
       ztype = zpole[itype][iframe];
       if (ztype == 0 && !flag) {
         flag = 1;
-        zaxis[i] = xaxis[i] = yaxis[i] = 0.0;
+        xyzaxis[i][2] = xyzaxis[i][0] = xyzaxis[i][2] = 0.0;
         polaxe[i] = mpaxis[itype][iframe];
         for (j = 0; j < 13; j++)
           pole[i][j] = fpole[itype][iframe][j];
@@ -297,8 +296,8 @@ void PairAmoeba::chkpole(int i)
   double **pole = fixpole->astore;
 
   int *polaxe = atom->ivector[index_polaxe];
-  double *yaxis = atom->dvector[index_yaxis];
-  tagint yaxisID = (tagint) ubuf(yaxis[i]).i;
+  double **xyzaxis = atom->darray[index_xyzaxis];
+  tagint yaxisID = (tagint) ubuf(xyzaxis[i][1]).i;
 
   // test for chirality inversion
   // if not, return
@@ -334,7 +333,7 @@ void PairAmoeba::chkpole(int i)
   // flip sign in permanent yaxis, not yaxis2local
 
   if ((yaxisID < 0 && vol > 0.0) || (yaxisID > 0 && vol < 0.0)) {
-    yaxis[i] = -ubuf(yaxisID).d;
+    xyzaxis[i][1] = -ubuf(yaxisID).d;
     pole[i][2] = -pole[i][2];
     pole[i][5] = -pole[i][5];
     pole[i][7] = -pole[i][7];
@@ -716,21 +715,19 @@ void PairAmoeba::find_multipole_neighbors()
   tagint xaxisID,yaxisID,zaxisID;
 
   // grab current pts for xaxis,yaxis,zaxis
-  // xyz axis[i] = atom IDs that atom I uses for its multipole orientation
+  // xyzaxis[i] = atom IDs that atom I uses for its multipole orientation
   // can be zero if not used, in which case set local index to self
   // yaxis can be negative, in which case use absolute value
 
-  double *xaxis = atom->dvector[index_xaxis];
-  double *yaxis = atom->dvector[index_yaxis];
-  double *zaxis = atom->dvector[index_zaxis];
+  double **xyzaxis = atom->darray[index_xyzaxis];
 
   int nlocal = atom->nlocal;
   int nmissing = 0;
 
   for (int i = 0; i < nlocal; i++) {
-    xaxisID = (tagint) ubuf(xaxis[i]).i;
-    yaxisID = (tagint) ubuf(yaxis[i]).i;
-    zaxisID = (tagint) ubuf(zaxis[i]).i;
+    xaxisID = (tagint) ubuf(xyzaxis[i][0]).i;
+    yaxisID = (tagint) ubuf(xyzaxis[i][1]).i;
+    zaxisID = (tagint) ubuf(xyzaxis[i][2]).i;
 
     if (xaxisID) {
       index = atom->map(xaxisID);
@@ -742,7 +739,7 @@ void PairAmoeba::find_multipole_neighbors()
     } else xaxis2local[i] = i;
 
     if (yaxisID) {
-      if (yaxis[i] < 0) yaxisID = -yaxisID;
+      if (xyzaxis[i][1] < 0) yaxisID = -yaxisID;
       index = atom->map(yaxisID);
       if (index == -1) nmissing++;
       else {

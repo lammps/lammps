@@ -182,25 +182,20 @@ void PairAmoeba::hal()
 
       // increment the internal virial tensor components
 
-      vxx = xr * dedx;
-      vyx = yr * dedx;
-      vzx = zr * dedx;
-      vyy = yr * dedy;
-      vzy = zr * dedy;
-      vzz = zr * dedz;
+      if (vflag_global) {
+        vxx = xr * dedx;
+        vyx = yr * dedx;
+        vzx = zr * dedx;
+        vyy = yr * dedy;
+        vzy = zr * dedy;
+        vzz = zr * dedz;
 
-      virhal[0] -= vxx;
-      virhal[1] -= vyy;
-      virhal[2] -= vzz;
-      virhal[3] -= vyx;
-      virhal[4] -= vzx;
-      virhal[5] -= vzy;
-
-      // energy = e
-      // virial = 6-vec vir
-      // NOTE: add tally function
-
-      if (evflag) {
+        virhal[0] -= vxx;
+        virhal[1] -= vyy;
+        virhal[2] -= vzz;
+        virhal[3] -= vyx;
+        virhal[4] -= vzx;
+        virhal[5] -= vzy;
       }
     }
   }

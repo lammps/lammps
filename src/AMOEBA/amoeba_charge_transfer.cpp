@@ -143,25 +143,20 @@ void PairAmoeba::charge_transfer()
 
       // increment the internal virial tensor components
 
-      vxx = xr * frcx;
-      vxy = yr * frcx;
-      vxz = zr * frcx;
-      vyy = yr * frcy;
-      vyz = zr * frcy;
-      vzz = zr * frcz;
+      if (vflag_global) {
+        vxx = xr * frcx;
+        vxy = yr * frcx;
+        vxz = zr * frcx;
+        vyy = yr * frcy;
+        vyz = zr * frcy;
+        vzz = zr * frcz;
 
-      virqxfer[0] -= vxx;
-      virqxfer[1] -= vyy;
-      virqxfer[2] -= vzz;
-      virqxfer[3] -= vxy;
-      virqxfer[4] -= vxz;
-      virqxfer[5] -= vyz;
-
-      // energy = e
-      // virial = 6-vec vir
-      // NOTE: add tally function
-
-      if (evflag) {
+        virqxfer[0] -= vxx;
+        virqxfer[1] -= vyy;
+        virqxfer[2] -= vzz;
+        virqxfer[3] -= vxy;
+        virqxfer[4] -= vxz;
+        virqxfer[5] -= vyz;
       }
     }
   }

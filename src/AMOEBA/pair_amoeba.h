@@ -46,6 +46,7 @@ class PairAmoeba : public Pair {
   void coeff(int, char **);
   void init_style();
   double init_one(int, int);
+  void finish();
 
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
@@ -58,6 +59,7 @@ class PairAmoeba : public Pair {
   void unpack_reverse_grid(int, void *, int, int *);
 
   void *extract(const char *, int &);
+  double memory_usage();
 
  protected:
   int me,nprocs;
@@ -159,7 +161,7 @@ class PairAmoeba : public Pair {
   // static per-atom properties, must persist as atoms migrate
 
   int index_amtype,index_amgroup,index_redID;
-  int index_xaxis,index_yaxis,index_zaxis,index_polaxe,index_pval;
+  int index_xyzaxis,index_polaxe,index_pval;
 
   int *amtype;                    // AMOEBA type, 1 to N_amtype
   int *amgroup;                   // AMOEBA polarization group, 1 to Ngroup
@@ -267,6 +269,18 @@ class PairAmoeba : public Pair {
   double ***fopt,***foptp;        // computed in induce, used by polar, if OPT
                                   // Nlocal x optorder x 10
 
+  double *poli;
+  double **conj,**conjp;
+  double **vec,**vecp;
+  double **udir,**usum,**usump;
+
+  double **fuind,**fuinp;
+  double **fdip_phi1,**fdip_phi2,**fdip_sum_phi;
+  double **dipfield1,**dipfield2;
+
+  double **fphid,**fphip;
+  double **fphidp,**cphidp;
+
   // derived local neighbor lists
 
   int *numneigh_dipole;          // number of dipole neighs for each atom
@@ -314,8 +328,11 @@ class PairAmoeba : public Pair {
 
   // Kspace data for induce and polar
 
-  double *qfac;                         // convoulution pre-factors
-  double **cmp,**fmp,**cphi,**fphi;     // Cartesian and fractional multipoles
+  double *qfac;                    // convoulution pre-factors
+  double *gridfft1;                // copy of p_kspace FFT grid
+
+  double **cmp,**fmp;              // Cartesian and fractional multipoles
+  double **cphi,**fphi;     
 
   // params for current KSpace solve and FFT being worked on
 

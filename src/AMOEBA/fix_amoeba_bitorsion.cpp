@@ -61,10 +61,9 @@ static constexpr double WT[16][16] = {
 /* ---------------------------------------------------------------------- */
 
 FixAmoebaBiTorsion::FixAmoebaBiTorsion(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  bitorsion_list(nullptr), num_bitorsion(nullptr), bitorsion_type(nullptr),
-  bitorsion_atom1(nullptr), bitorsion_atom2(nullptr), bitorsion_atom3(nullptr),
-  bitorsion_atom4(nullptr), bitorsion_atom5(nullptr)
+  Fix(lmp, narg, arg), num_bitorsion(nullptr), bitorsion_type(nullptr), bitorsion_atom1(nullptr),
+  bitorsion_atom2(nullptr), bitorsion_atom3(nullptr), bitorsion_atom4(nullptr),
+  bitorsion_atom5(nullptr), bitorsion_list(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal fix amoeba/bitorsion command");
 
@@ -145,8 +144,8 @@ FixAmoebaBiTorsion::~FixAmoebaBiTorsion()
 
   // BiTorsion grid data
 
-  delete [] nxgrid;
-  delete [] nygrid;
+  delete[] nxgrid;
+  delete[] nygrid;
   for (int itype = 1; itype <= nbitypes; itype++) {
     memory->destroy(ttx[itype]);
     memory->destroy(tty[itype]);
@@ -155,12 +154,12 @@ FixAmoebaBiTorsion::~FixAmoebaBiTorsion()
     memory->destroy(tby[itype]);
     memory->destroy(tbxy[itype]);
   }
-  delete [] ttx;
-  delete [] tty;
-  delete [] tbf;
-  delete [] tbx;
-  delete [] tby;
-  delete [] tbxy;
+  delete[] ttx;
+  delete[] tty;
+  delete[] tbf;
+  delete[] tbx;
+  delete[] tby;
+  delete[] tbxy;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -326,7 +325,7 @@ void FixAmoebaBiTorsion::post_force(int vflag)
   int nx,ny,nlo,nhi,nt;
   int xlo,ylo;
   int pos1,pos2;
-  double e,fgrp,sign,dot;
+  double e,sign,dot;
   double angle1,angle2;
   double value1,value2;
   double cosine1,cosine2;
@@ -808,7 +807,7 @@ void FixAmoebaBiTorsion::read_grid_data(char *bitorsion_file)
 
 void FixAmoebaBiTorsion::create_splines()
 {
-  int i,j,nx,ny;
+  int nx,ny;
 
   // allocate work vectors for cspline() and nspline() methods
   // all are 0-indexed here and in Tinker
@@ -1149,7 +1148,7 @@ void FixAmoebaBiTorsion::cytsyp(int n, double *dm, double *du,
     if (dm[i] < 0.0) {
       iflag = -1;
       return;
-    } else if (abs(dm[i])*d <= eps) {
+    } else if (fabs(dm[i])*d <= eps) {
       iflag = 0;
       return;
     }

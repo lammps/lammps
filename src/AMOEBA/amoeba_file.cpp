@@ -187,8 +187,8 @@ void PairAmoeba::read_prmfile(char *filename)
       else if (section == QTRANSFER) file_charge_transfer(nwords,words);
       else if (section == UNKNOWN) {}
 
-      delete [] copy;
-      delete [] words;
+      delete[] copy;
+      delete[] words;
     }
 
     if (n < 0) break;
@@ -509,8 +509,8 @@ void PairAmoeba::read_keyfile(char *filename)
                       "LAMMPS does not recognize AMOEBA keyfile keyword {}",
                       keyword);
 
-    delete [] copy;
-    delete [] words;
+    delete[] copy;
+    delete[] words;
   }
 
   // close key file
@@ -562,8 +562,8 @@ int PairAmoeba::read_section_name(FILE *fp, char *line)
     if (strspn(line," \t\n\r") == strlen(line)) continue;
     nwords = tokenize(line,words,copy);
     if (nwords <= 2) {
-      delete [] copy;
-      delete [] words;
+      delete[] copy;
+      delete[] words;
       continue;
     }
     break;
@@ -580,8 +580,8 @@ int PairAmoeba::read_section_name(FILE *fp, char *line)
   }
   int n = strlen(line);
 
-  delete [] copy;
-  delete [] words;
+  delete[] copy;
+  delete[] words;
 
   // skip next 2 lines of section header
 
@@ -627,13 +627,13 @@ int PairAmoeba::read_section_line(FILE *fp, char *line,
     if (strspn(line," \t\n\r") == strlen(line)) continue;
     nwords = tokenize(line,words,copy);
     if (strstr(words[0],"####")) {
-      delete [] words;
-      delete [] copy;
+      delete[] words;
+      delete[] copy;
       return 0;
     }
     if (strstr(words[0],"#") || strstr(words[0],"!!") || !isalpha(words[0][0])) {
-      delete [] words;
-      delete [] copy;
+      delete[] words;
+      delete[] copy;
       words = NULL;
       copy = NULL;
       continue;
@@ -642,8 +642,8 @@ int PairAmoeba::read_section_line(FILE *fp, char *line,
       ptr = fgets(next,MAXLINE,fp);
       if (!ptr) {
         nextflag = 0;
-        delete [] words;
-        delete [] copy;
+        delete[] words;
+        delete[] copy;
         return strlen(line);
       }
       nwords_next = tokenize(next,words_next,copy_next);
@@ -651,17 +651,17 @@ int PairAmoeba::read_section_line(FILE *fp, char *line,
       if (words_next[0][0] == '#') break;
       if (isalpha(words_next[0][0])) break;
       strcat(line,next);
-      delete [] words_next;
-      delete [] copy_next;
+      delete[] words_next;
+      delete[] copy_next;
     }
     nextflag = 1;
     break;
   }
 
-  delete [] copy;
-  delete [] words;
-  delete [] copy_next;
-  delete [] words_next;
+  delete[] copy;
+  delete[] words;
+  delete[] copy_next;
+  delete[] words_next;
 
   int n = strlen(line);
   return n;
@@ -708,13 +708,13 @@ int PairAmoeba::count_words(const char *line)
   strcpy(copy,line);
 
   if (strtok(copy," \t\n\r\f") == NULL) {
-    delete [] copy;
+    delete[] copy;
     return 0;
   }
   n = 1;
   while (strtok(NULL," \t\n\r\f")) n++;
 
-  delete [] copy;
+  delete[] copy;
   return n;
 }
 
@@ -722,8 +722,6 @@ int PairAmoeba::count_words(const char *line)
 
 void PairAmoeba::file_ffield(int nwords, char **words)
 {
-  double tmp;
-
   if (strcmp(words[0],"forcefield") == 0) {
     int n = strlen(words[1]) + 1;
     forcefield = new char[n];
@@ -866,8 +864,7 @@ void PairAmoeba::file_ffield(int nwords, char **words)
              strcmp(words[0],"direct-14-scale") == 0) {
     double tmp = utils::numeric(FLERR,words[1],true,lmp);
     if (tmp != 1.0) 
-      error->all(FLERR,"AMOEBA FF file direct-scale 1-2, 1-3, 1-4 values "
-                 "should be 1.0");
+      error->all(FLERR,"AMOEBA FF file direct-scale 1-2, 1-3, 1-4 values should be 1.0");
 
   } else if (strcmp(words[0],"mutual-11-scale") == 0) {
     polar_uscale = utils::numeric(FLERR,words[1],true,lmp);
@@ -876,14 +873,11 @@ void PairAmoeba::file_ffield(int nwords, char **words)
              strcmp(words[0],"mutual-14-scale") == 0) {
     double tmp = utils::numeric(FLERR,words[1],true,lmp);
     if (tmp != 1.0) 
-      error->all(FLERR,"AMOEBA FF file mutual-scale 1-2, 1-3, 1-4 values "
-                 "should be 1.0");
+      error->all(FLERR,"AMOEBA FF file mutual-scale 1-2, 1-3, 1-4 values should be 1.0");
 
   // error if LAMMPS does not recognize keyword
 
-  } else error->all(FLERR,
-                    "LAMMPS does not recognize AMOEBA PRM file setting {}",
-                    words[0]);
+  } else error->all(FLERR, "LAMMPS does not recognize AMOEBA PRM file setting {}", words[0]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1184,7 +1178,7 @@ void PairAmoeba::file_dippolar(int nwords, char **words)
 {
   int nparams;
   if (amoeba) nparams = 4;
-  if (hippo) nparams = 3;
+  else nparams = 3;
 
   if (nwords < nparams)
     error->all(FLERR,"AMOEBA dipole polarizability line is invalid");

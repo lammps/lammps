@@ -29,7 +29,7 @@ enum{VDWL,REPULSE,QFER,DISP,MPOLE,POLAR,USOLV,DISP_LONG,MPOLE_LONG,POLAR_LONG};
 void PairAmoeba::charge_transfer()
 {
   int i,j,ii,jj,itype,jtype,iclass,jclass;
-  double e,de,felec,fgrp;
+  double e,de,felec;
   double rr1,r,r2;
   double r3,r4,r5;
   double xi,yi,zi;

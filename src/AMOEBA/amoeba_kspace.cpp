@@ -79,8 +79,8 @@ void PairAmoeba::moduli()
 
   // perform deallocation of local arrays
 
-  delete [] array;
-  delete [] bsarray;
+  delete[] array;
+  delete[] bsarray;
 }
 
 /* ----------------------------------------------------------------------

@@ -62,15 +62,15 @@ class PairAmoeba : public Pair {
   double memory_usage();
 
  protected:
-  int me,nprocs;
-  int nmax;        // allocation for owned+ghost
-  int nlocalmax;   // allocation for just owned
-  int cfstyle,crstyle;      // style of forward/reverse comm operations
+  int nmax;                     // allocation for owned+ghost
+  int nlocalmax;                // allocation for just owned
+  int cfstyle,crstyle;          // style of forward/reverse comm operations
   int nualt;
   double electric;
-  double rotate[3][3];   // rotation matrix
+  double rotate[3][3];          // rotation matrix
 
-  int amoeba,hippo;          // which force field, only one is set
+  bool amoeba;                  // which force field: amoeba == true, hippo == false
+  std::string mystyle;          // text label for style
   int first_flag;            // 1 before first init_style()
   int first_flag_compute;    // 1 before first call to compute()
   int optlevel;

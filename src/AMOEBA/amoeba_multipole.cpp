@@ -228,7 +228,7 @@ void PairAmoeba::multipole_real()
     qiyy = rpole[i][8];
     qiyz = rpole[i][9];
     qizz = rpole[i][12];
-    if (hippo) {
+    if (!amoeba) {
       corei = pcore[iclass];
       alphai = palpha[iclass];
       vali = pval[i];
@@ -363,7 +363,7 @@ void PairAmoeba::multipole_real()
 
       // find damped multipole intermediates and energy value
 
-      if (hippo) {
+      if (!amoeba) {
         corek = pcore[jclass];
         alphak = palpha[jclass];
         valk = pval[j];

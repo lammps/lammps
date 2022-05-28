@@ -42,10 +42,10 @@ void PairAmoeba::repulsion()
   double r,r2,r3,r4,r5;
   double rr1,rr3,rr5;
   double rr7,rr9,rr11;
-  double ci,dix,diy,diz;
+  double dix,diy,diz;
   double qixx,qixy,qixz;
   double qiyy,qiyz,qizz;
-  double ck,dkx,dky,dkz;
+  double dkx,dky,dkz;
   double qkxx,qkxy,qkxz;
   double qkyy,qkyz,qkzz;
   double dir,dkr,dik,qik;
@@ -128,7 +128,6 @@ void PairAmoeba::repulsion()
     sizi = sizpr[itype];
     dmpi = dmppr[itype];
     vali = elepr[itype];
-    ci = rpole[i][0];
     dix = rpole[i][1];
     diy = rpole[i][2];
     diz = rpole[i][3];
@@ -157,7 +156,6 @@ void PairAmoeba::repulsion()
       sizk = sizpr[jtype];
       dmpk = dmppr[jtype];
       valk = elepr[jtype];
-      ck = rpole[j][0];
       dkx = rpole[j][1];
       dky = rpole[j][2];
       dkz = rpole[j][3];
@@ -480,7 +478,7 @@ void PairAmoeba::damprep(double r, double r2, double rr1, double rr3,
       r8 = r7 * r;
       dmpi27 = dmpi2 * dmpi26;
       d5s = (dmpi25*r6 + dmpi26*r7 + dmpi27*r8/3.0) * expi / 945.0;
-    }
+    } else d5s = 0.0;
 
   // treat the case where alpha damping exponents are unequal
 
@@ -548,7 +546,7 @@ void PairAmoeba::damprep(double r, double r2, double rr1, double rr3,
          (4.0/945.0)*dmpi26*dmpk2*r5/term + (4.0/63.0)*dmpi25*dmpk2*r4/term +
          (4.0/9.0)*dmpi24*dmpk2*r3/term + (16.0/9.0)*dmpi23*dmpk2*r2/term +
          4.0*dmpi22*dmpk2*r/term + 4.0*dmpi2*dmpk2/term) * expi;
-    }
+    } else d5s = 0.0;
   }
 
   // convert partial derivatives into full derivatives

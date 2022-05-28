@@ -39,10 +39,9 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 FixAmoebaPiTorsion::FixAmoebaPiTorsion(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  pitorsion_list(nullptr), num_pitorsion(nullptr), pitorsion_type(nullptr),
-  pitorsion_atom1(nullptr), pitorsion_atom2(nullptr), pitorsion_atom3(nullptr),
-  pitorsion_atom4(nullptr), pitorsion_atom5(nullptr), pitorsion_atom6(nullptr)
+  Fix(lmp, narg, arg), num_pitorsion(nullptr), pitorsion_type(nullptr), pitorsion_atom1(nullptr),
+  pitorsion_atom2(nullptr), pitorsion_atom3(nullptr), pitorsion_atom4(nullptr), pitorsion_atom5(nullptr),
+  pitorsion_atom6(nullptr), pitorsion_list(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal fix amoeba/pitorsion command");
 
@@ -330,8 +329,6 @@ void FixAmoebaPiTorsion::post_force(int vflag)
   double dedxip,dedyip,dedzip;
   double dedxiq,dedyiq,dedziq;
   double vxterm,vyterm,vzterm;
-  double vxx,vyy,vzz;
-  double vyx,vzx,vzy;
 
   int nlist,list[6];
   double v[6];
@@ -611,10 +608,9 @@ void FixAmoebaPiTorsion::read_data_header(char *line)
    id_offset is applied to atomID fields if multiple data files are read
 ------------------------------------------------------------------------- */
 
-void FixAmoebaPiTorsion::read_data_section(char *keyword, int n, char *buf,
-                                     tagint id_offset)
+void FixAmoebaPiTorsion::read_data_section(char *keyword, int n, char *buf, tagint id_offset)
 {
-  int which;
+  int which = -1;
 
   if (strstr(keyword,"PiTorsions")) {
     sscanf(keyword,BIGINT_FORMAT,&npitorsions);
@@ -777,9 +773,9 @@ bigint FixAmoebaPiTorsion::read_data_skip_lines(char *keyword)
 
 void FixAmoebaPiTorsion::write_data_header(FILE *fp, int mth)
 {
-  if (mth == 0) fprintf(fp,BIGINT_FORMAT " pitorsions\n",npitorsions);
+  if (mth == 0) fmt::print(fp,"{} pitorsions\n",npitorsions);
   else if (mth == 1)
-    fprintf(fp,BIGINT_FORMAT " pitorsion types\n",npitorsion_types);
+    fmt::print(fp, "{} pitorsion types\n",npitorsion_types);
 }
 
 /* ----------------------------------------------------------------------

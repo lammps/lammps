@@ -15,6 +15,7 @@
 
 #include "amoeba_convolution.h"
 #include "atom.h"
+#include "comm.h"
 #include "domain.h"
 #include "neigh_list.h"
 #include "fft3d_wrap.h"
@@ -246,10 +247,6 @@ void PairAmoeba::dispersion_kspace()
   int i,j,k,m,n,ib,jb,kb,itype,iclass;
   int nhalf1,nhalf2,nhalf3;
   int nxlo,nxhi,nylo,nyhi,nzlo,nzhi;
-  int i0,iatm,igrd0;
-  int it1,it2,it3;
-  int j0,jgrd0;
-  int k0,kgrd0;
   double e,fi,denom,scale;
   double r1,r2,r3;
   double h1,h2,h3;
@@ -372,7 +369,6 @@ void PairAmoeba::dispersion_kspace()
   // get first derivatives of the reciprocal space energy
 
   int nlpts = (bsorder-1) / 2;
-  int nrpts = bsorder - nlpts - 1;
 
   for (m = 0; m < nlocal; m++) {
     itype = amtype[m];
@@ -414,7 +410,7 @@ void PairAmoeba::dispersion_kspace()
 
   term = csixpr * aewald*aewald*aewald / denom0;
 
-  if (me == 0) {
+  if (comm->me == 0) {
     edisp -= term;
     if (vflag_global) {
       virdisp[0] -= term;

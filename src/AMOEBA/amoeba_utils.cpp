@@ -287,7 +287,7 @@ void PairAmoeba::kmpole()
 void PairAmoeba::chkpole(int i)
 {
   bool check;
-  int ia,ib,ic,id;
+  int ib,ic,id;
   double xad,yad,zad;
   double xbd,ybd,zbd;
   double xcd,ycd,zcd;
@@ -350,7 +350,6 @@ void PairAmoeba::chkpole(int i)
 
 void PairAmoeba::rotmat(int i)
 {
-  int ii;
   int ix,iy,iz;
   double r,dot;
   double xi,yi,zi;
@@ -664,7 +663,6 @@ void PairAmoeba::add_onefive_neighbors()
       }
 
       if (which) jlist[jj] = j ^ (which << SBBITS15);
-      int newwhich = sbmask15(jlist[jj]);
     }
   }
 }
@@ -690,7 +688,6 @@ void PairAmoeba::find_hydrogen_neighbors()
 
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
-  int nmissing = 0;
 
   for (int i = 0; i < nall; i++) {
     if (redID[i] == 0.0) red2local[i] = i;
@@ -711,7 +708,7 @@ void PairAmoeba::find_hydrogen_neighbors()
 
 void PairAmoeba::find_multipole_neighbors()
 {
-  int index,ypos;
+  int index;
   tagint xaxisID,yaxisID,zaxisID;
 
   // grab current pts for xaxis,yaxis,zaxis
@@ -811,13 +808,13 @@ void PairAmoeba::torque2force(int i, double *trq,
   double ursiz,ussiz;
   double vssiz,wssiz;
   double delsiz,dphiddel;
-  double uvcos,uwcos,urcos;
-  double vwcos,vscos,wscos;
+  double uvcos,urcos;
+  double vscos,wscos;
   double upcos,vpcos,wpcos;
   double rwcos,rucos,rvcos;
   double ut1cos,ut2cos;
-  double uvsin,uwsin,ursin;
-  double vwsin,vssin,wssin;
+  double uvsin,ursin;
+  double vssin,wssin;
   double rwsin,rusin,rvsin;
   double ut1sin,ut2sin;
   double dphidu,dphidv,dphidw;
@@ -959,10 +956,6 @@ void PairAmoeba::torque2force(int i, double *trq,
 
   uvcos = u[0]*v[0] + u[1]*v[1] + u[2]*v[2];
   uvsin = sqrt(1.0 - uvcos*uvcos);
-  uwcos = u[0]*w[0] + u[1]*w[1] + u[2]*w[2];
-  uwsin = sqrt(1.0 - uwcos*uwcos);
-  vwcos = v[0]*w[0] + v[1]*w[1] + v[2]*w[2];
-  vwsin = sqrt(1.0 - vwcos*vwcos);
   if (axetyp == ZBISECT) {
     urcos = u[0]*r[0] + u[1]*r[1] + u[2]*r[2];
     ursin = sqrt(1.0 - urcos*urcos);

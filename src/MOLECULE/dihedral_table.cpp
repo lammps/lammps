@@ -1020,23 +1020,24 @@ void DihedralTable::read_table(Table *tb, char *file, char *keyword)
   // read a,e,f table values from file
 
   for (int i = 0; i < tb->ninput; i++) {
+    line = reader.next_line();
     try {
+      ValueTokenizer values(line);
       if (tb->f_unspecified) {
-        ValueTokenizer values = reader.next_values(3);
         values.next_int();
         tb->phifile[i] = values.next_double();
         tb->efile[i] = values.next_double();
       } else {
-        ValueTokenizer values = reader.next_values(4);
         values.next_int();
         tb->phifile[i] = values.next_double();
         tb->efile[i] = values.next_double();
         tb->ffile[i] = values.next_double();
       }
     } catch (TokenizerException &e) {
-      error->one(FLERR, e.what());
+      error->one(FLERR, "Error parsing dihedral table '{}' line {} of {}. {}\nLine was: {}",
+                 keyword, i + 1, tb->ninput, e.what(), line);
     }
-  } //for (int i = 0; (i < tb->ninput) && fp; i++) {
+  }
 }
 
 /* ----------------------------------------------------------------------

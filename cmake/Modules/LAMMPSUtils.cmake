@@ -105,23 +105,6 @@ function(FetchPotentials pkgfolder potfolder)
   endif()
 endfunction(FetchPotentials)
 
-# Check and record if we have a working internet connection
-function(check_for_internet_connection variable)
-  message("Checking internet connection... ")
-  if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (NOT CMAKE_CROSSCOMPILING))
-    execute_process(COMMAND ping www.google.com -n 2
-      OUTPUT_QUIET ERROR_QUIET RESULT_VARIABLE PING_STATUS)
-  else()
-    execute_process(COMMAND ping www.google.com -c 2
-      OUTPUT_QUIET ERROR_QUIET RESULT_VARIABLE PING_STATUS)
-  endif()
-  if(PING_STATUS EQUAL 0)
-    set(${variable} TRUE PARENT_SCOPE)
-  else()
-    set(${variable} FALSE PARENT_SCOPE)
-  endif()
-endfunction(check_for_internet_connection)
-
 # set CMAKE_LINUX_DISTRO and CMAKE_DISTRO_VERSION on Linux
 if((CMAKE_SYSTEM_NAME STREQUAL "Linux") AND (EXISTS /etc/os-release))
   file(STRINGS /etc/os-release distro REGEX "^NAME=")

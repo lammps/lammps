@@ -1,10 +1,4 @@
-if(NOT ZLIB_FOUND)
-  find_package(ZLIB)
-  if(NOT ZLIB_FOUND)
-    message(WARNING "zlib library not found skipping COMPRESS package")
-    return()
-  endif()
-endif()
+find_package(ZLIB REQUIRED)
 target_link_libraries(lammps PRIVATE ZLIB::ZLIB)
 
 find_package(PkgConfig QUIET)

@@ -453,11 +453,11 @@ void PairAmoeba::compute(int eflag, int vflag)
   // store energy components for output by compute pair command
 
   pvector[0] = ehal;
-  pvector[2] = erepulse;
-  pvector[3] = edisp;
-  pvector[4] = empole;
-  pvector[5] = epolar;
-  pvector[6] = eqxfer;
+  pvector[1] = erepulse;
+  pvector[2] = edisp;
+  pvector[3] = empole;
+  pvector[4] = epolar;
+  pvector[5] = eqxfer;
 
   // energy & virial summations
 

@@ -35,6 +35,7 @@ class ComputeSnap : public Compute {
   double memory_usage() override;
 
  private:
+  FILE * fh_d;
   int natoms, nmax, size_peratom, lastcol;
   int ncoeff, nperdim, yoffset, zoffset;
   int ndims_peratom, ndims_force, ndims_virial;
@@ -57,6 +58,7 @@ class ComputeSnap : public Compute {
   //int bik_rows;
   int bikflag, bik_rows, dbirjflag, dbirj_rows;
   double **dbirj;
+  double **dbiri; // dBi/dRi = sum(-dBi/dRj) over neighbors j
   int *nneighs; // number of neighs inside the snap cutoff.
   int *neighsum;
   int *icounter; // counting atoms i for each j.

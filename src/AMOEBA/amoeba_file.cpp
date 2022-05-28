@@ -863,7 +863,7 @@ void PairAmoeba::file_ffield(int nwords, char **words)
              strcmp(words[0],"direct-13-scale") == 0 ||
              strcmp(words[0],"direct-14-scale") == 0) {
     double tmp = utils::numeric(FLERR,words[1],true,lmp);
-    if (tmp != 1.0) 
+    if (tmp != 1.0)
       error->all(FLERR,"AMOEBA FF file direct-scale 1-2, 1-3, 1-4 values should be 1.0");
 
   } else if (strcmp(words[0],"mutual-11-scale") == 0) {
@@ -872,7 +872,7 @@ void PairAmoeba::file_ffield(int nwords, char **words)
              strcmp(words[0],"mutual-13-scale") == 0 ||
              strcmp(words[0],"mutual-14-scale") == 0) {
     double tmp = utils::numeric(FLERR,words[1],true,lmp);
-    if (tmp != 1.0) 
+    if (tmp != 1.0)
       error->all(FLERR,"AMOEBA FF file mutual-scale 1-2, 1-3, 1-4 values should be 1.0");
 
   // error if LAMMPS does not recognize keyword

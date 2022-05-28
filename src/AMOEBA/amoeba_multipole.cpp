@@ -498,7 +498,7 @@ void PairAmoeba::multipole_real()
         vyy = -yr * frcy;
         vyz = -0.5 * (zr*frcy+yr*frcz);
         vzz = -zr * frcz;
-      
+
         virmpole[0] -= vxx;
         virmpole[1] -= vyy;
         virmpole[2] -= vzz;
@@ -534,7 +534,7 @@ void PairAmoeba::multipole_real()
     xiy = x[iy][0] - x[i][0];
     yiy = x[iy][1] - x[i][1];
     ziy = x[iy][2] - x[i][2];
-    
+
     vxx = xix*fix[0] + xiy*fiy[0] + xiz*fiz[0];
     vxy = 0.5 * (yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] +
                  xix*fix[1] + xiy*fiy[1] + xiz*fiz[1]);
@@ -544,7 +544,7 @@ void PairAmoeba::multipole_real()
     vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
     vzz = zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
-    
+
     virmpole[0] -= vxx;
     virmpole[1] -= vyy;
     virmpole[2] -= vzz;

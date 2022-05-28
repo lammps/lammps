@@ -332,7 +332,7 @@ class PairAmoeba : public Pair {
   double *gridfft1;                // copy of p_kspace FFT grid
 
   double **cmp,**fmp;              // Cartesian and fractional multipoles
-  double **cphi,**fphi;     
+  double **cphi,**fphi;
 
   // params for current KSpace solve and FFT being worked on
 

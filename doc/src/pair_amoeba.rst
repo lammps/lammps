@@ -68,7 +68,7 @@ while the HIPPO force field contains these terms:
 
 .. math::
 
-   U_{hippo} = U_{multipole} + U_{polar} + U_{qxfer} + U_{repulsion} + U_{dispersion} 
+   U_{hippo} = U_{multipole} + U_{polar} + U_{qxfer} + U_{repulsion} + U_{dispersion}
 
 Conceptually, these terms compute the following interactions:
 
@@ -85,7 +85,7 @@ this doc page give full details for both force fields.
 
 The formulas for the AMOEBA energy terms are:
 
-.. math:: 
+.. math::
 
    U_{hal} = \epsilon_{ij} \left( \frac{1.07}{\rho_{ij} + 0.07} \right)^7 \left( \frac{1.12}{\rho_{ij}^7 + 0.12} - 2 \right)
    U_{multipole} = \vec{M_i}\bold{T_{ij}}\vec{M_j}
@@ -94,7 +94,7 @@ The formulas for the AMOEBA energy terms are:
 
 The formulas for the HIPPO energy terms are:
 
-.. math:: 
+.. math::
 
    U_{multipole} = Z_i \frac{1}{r_{ij}} Z_j + Z_i T_{ij}^{damp} \vec{M_j} + Z_j T_{ji}^{damp} \vec{M_i} + \vec{M_i} T_{ij}^{damp} \vec{M_j}
       \vec{M} = \left( Q, \vec{\mu_{perm}}, \bold{\Theta} \right)

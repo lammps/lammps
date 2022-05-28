@@ -232,7 +232,7 @@ PairAmoeba::~PairAmoeba()
 
   memory->destroy(qfac);
   memory->destroy(gridfft1);
- 
+
   delete m_kspace;
   delete p_kspace;
   delete pc_kspace;
@@ -489,7 +489,7 @@ void PairAmoeba::finish()
   double ave;
   MPI_Allreduce(&time_init,&ave,1,MPI_DOUBLE,MPI_SUM,world);
   time_init = ave/comm->nprocs;
-  
+
   MPI_Allreduce(&time_hal,&ave,1,MPI_DOUBLE,MPI_SUM,world);
   time_hal = ave/comm->nprocs;
 
@@ -2292,7 +2292,7 @@ double PairAmoeba::memory_usage()
   if (use_ewald || use_dewald) {
     bytes += (double) 12 * bsordermax * nmax *sizeof(double);   // theta123
     bytes += (double) 3 * nmax *sizeof(int);                    // igrid
-  }    
+  }
 
   bytes += (double) nmax * sizeof(int);        // numneigh_dipole
   bytes += (double) nmax * sizeof(int *);      // firstneigh_dipole

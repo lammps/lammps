@@ -111,7 +111,7 @@ void PairAmoeba::polar()
     xiy = x[iy][0] - x[i][0];
     yiy = x[iy][1] - x[i][1];
     ziy = x[iy][2] - x[i][2];
-    
+
     vxx = xix*fix[0] + xiy*fiy[0] + xiz*fiz[0];
     vyy = yix*fix[1] + yiy*fiy[1] + yiz*fiz[1];
     vzz = zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
@@ -122,7 +122,7 @@ void PairAmoeba::polar()
                  xix*fix[2] + xiy*fiy[2] + xiz*fiz[2]);
     vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
-    
+
     virpolar[0] -= vxx;
     virpolar[1] -= vyy;
     virpolar[2] -= vzz;

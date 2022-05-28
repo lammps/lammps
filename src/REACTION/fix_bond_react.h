@@ -25,6 +25,7 @@ FixStyle(bond/react,FixBondReact);
 #define LMP_FIX_BOND_REACT_H
 
 #include "fix.h"
+#include "compute.h"
 
 namespace LAMMPS_NS {
 
@@ -74,7 +75,8 @@ class FixBondReact : public Fix {
   int *nconstraints;
   char **constraintstr;
   int nrxnfunction;
-  std::vector<std::string> rxnfunclist;
+  std::vector<std::string> rxnfunclist;     // lists current special rxn function
+  std::vector<int> peratomflag;     // 1 if special rxn function uses per-atom variable (vs. per-bond)
   int narrhenius;
   int **var_flag, **var_id;    // for keyword values with variable inputs
   int status;
@@ -222,6 +224,7 @@ class FixBondReact : public Fix {
   std::vector<std::string> customvarstrs;
   int nvvec;
   double **vvec;    // per-atom vector to store variable constraint atom-style variable values
+  Compute *cperbond;    // pointer to 'compute bond/local' used by custom constraint ('rxnbond' function)
   std::vector<std::vector<Constraint>> constraints;
 
   // DEBUG

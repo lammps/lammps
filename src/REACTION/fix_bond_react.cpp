@@ -138,10 +138,15 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   status = PROCEED;
 
   // reaction functions used by 'custom' constraint
-  nrxnfunction = 2;
+  nrxnfunction = 3;
   rxnfunclist.resize(nrxnfunction);
+  peratomflag.resize(nrxnfunction);
   rxnfunclist[0] = "rxnsum";
+  peratomflag[0] = 1;
   rxnfunclist[1] = "rxnave";
+  peratomflag[1] = 1;
+  rxnfunclist[2] = "rxnbond";
+  peratomflag[2] = 0;
   nvvec = 0;
   ncustomvars = 0;
   vvec = nullptr;
@@ -2118,7 +2123,7 @@ double FixBondReact::get_temperature(tagint **myglove, int row_offset, int col)
 }
 
 /* ----------------------------------------------------------------------
-get per-atom variable names used by  custom constraint
+get per-atom variable names used by custom constraint
 ------------------------------------------------------------------------- */
 
 void FixBondReact::customvarnames()
@@ -2140,6 +2145,7 @@ void FixBondReact::customvarnames()
           // find next reaction special function occurrence
           pos1 = std::string::npos;
           for (int i = 0; i < nrxnfunction; i++) {
+            if (peratomflag[i] == 0) continue;
             pos = varstr.find(rxnfunclist[i],prev3+1);
             if (pos == std::string::npos) continue;
             if (pos < pos1) pos1 = pos;
@@ -2261,12 +2267,55 @@ double FixBondReact::custom_constraint(const std::string& varstr)
 }
 
 /* ----------------------------------------------------------------------
-currently two 'rxn' functions: rxnsum and rxnave
+currently three 'rxn' functions: rxnsum, rxnave, and rxnbond
 ------------------------------------------------------------------------- */
 
 double FixBondReact::rxnfunction(const std::string& rxnfunc, const std::string& varid,
                                  const std::string& fragid)
 {
+  int ifrag = -1;
+  if (fragid != "all") {
+    ifrag = onemol->findfragment(fragid.c_str());
+    if (ifrag < 0) error->one(FLERR,"Bond/react: Molecule fragment "
+                              "in reaction special function does not exist");
+  }
+
+  // start with 'rxnbond' per-bond function
+  // for 'rxnbond', varid corresponds to 'compute bond/local' name,
+  //                and fragid is a pre-reaction fragment containing the two atoms in the bond
+  if (rxnfunc == "rxnbond") {
+    int icompute,ibond,nsum;
+    double perbondval;
+    std::set<tagint> aset;
+    std::string computeid = varid;
+
+    if (computeid.substr(0,2) != "c_") error->one(FLERR,"Bond/react: Reaction special function compute "
+                                         "name should begin with 'c_'");
+    computeid = computeid.substr(2);
+    icompute = modify->find_compute(computeid);
+    if (icompute < 0) error->one(FLERR,"Bond/react: Reaction special function compute name does not exist");
+    cperbond = modify->compute[icompute];
+    std::string compute_style = cperbond->style;
+    if (compute_style != "bond/local") error->one(FLERR,"Bond/react: Compute used by reaction "
+                                         "special function 'rxnbond' must be of style 'bond/local'");
+    if (cperbond->size_local_cols > 0) error->one(FLERR,"Bond/react: 'Compute bond/local' used by reaction "
+                                         "special function 'rxnbond' must compute one value");
+
+    nsum = 0;
+    for (int i = 0; i < onemol->natoms; i++) {
+      if (onemol->fragmentmask[ifrag][i]) {
+        aset.insert(glove[i][1]);
+        nsum++;
+      }
+    }
+    if (nsum != 2) error->one(FLERR,"Bond/react: Molecule fragment of reaction special function 'rxnbond' "
+                     "must contain exactly two atoms");
+
+    ibond = cperbond->atoms2bond.find(aset)->second;
+    perbondval = cperbond->vector_local[ibond];
+    return perbondval;
+  }
+
   int ivar = -1;
   for (int i = 0; i < ncustomvars; i++) {
     if (varid == customvarstrs[i]) {
@@ -2279,13 +2328,6 @@ double FixBondReact::rxnfunction(const std::string& rxnfunc, const std::string& 
   if (ivar < 0)
     error->one(FLERR,"Fix bond/react: Reaction special function variable "
                                  "name does not exist");
-
-  int ifrag = -1;
-  if (fragid != "all") {
-    ifrag = onemol->findfragment(fragid.c_str());
-    if (ifrag < 0) error->one(FLERR,"Fix bond/react: Molecule fragment "
-                              "in reaction special function does not exist");
-  }
 
   int iatom;
   int nsum = 0;

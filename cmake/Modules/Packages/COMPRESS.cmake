@@ -1,5 +1,9 @@
 if(NOT ZLIB_FOUND)
-  find_package(ZLIB REQUIRED)
+  find_package(ZLIB)
+  if(NOT ZLIB_FOUND)
+    message(WARNING "zlib library not found skipping COMPRESS package")
+    return()
+  endif()
 endif()
 target_link_libraries(lammps PRIVATE ZLIB::ZLIB)
 

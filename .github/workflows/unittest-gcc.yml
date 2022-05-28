@@ -1,11 +1,9 @@
-# GitHub action to build LAMMPS on Windows with Visual C++
-name: "Native Windows Compilation and Unit Tests"
+# GitHub action to build LAMMPS on Windows with GCC and Ninja
+name: "Native Windows Compilation /w GCC and Unit Tests using Ninja"
 
 on:
   push:
     branches: [collected-small-changes]
-
-  workflow_dispatch:
 
 jobs:
   build:
@@ -27,6 +25,7 @@ jobs:
     - name: Building LAMMPS via CMake
       shell: bash
       run: |
+        choco install ninja
         python3 -m pip install numpy
         python3 -m pip install pyyaml
         cmake -C cmake/presets/windows.cmake \
@@ -34,16 +33,18 @@ jobs:
               -S cmake -B build \
               -D BUILD_SHARED_LIBS=on \
               -D LAMMPS_EXCEPTIONS=on \
-              -D ENABLE_TESTING=on
-        cmake --build build --config Release
+              -D ENABLE_TESTING=on \
+              -D CMAKE_BUILD_TYPE=Release \
+              -G Ninja
+        cmake --build build
 
     - name: Run LAMMPS executable
       shell: bash
       run: |
-        ./build/Release/lmp.exe -h
-        ./build/Release/lmp.exe -in bench/in.lj
+        ./build/lmp.exe -h
+        ./build/lmp.exe -in bench/in.lj
 
     - name: Run Unit Tests
       working-directory: build
       shell: bash
-      run: ctest -V -C Release
+      run: ctest -V

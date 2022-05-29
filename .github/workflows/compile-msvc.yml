@@ -3,14 +3,14 @@ name: "Native Windows Compilation and Unit Tests"
 
 on:
   push:
-    branches: [collected-small-changes]
+    branches: [develop]
 
   workflow_dispatch:
 
 jobs:
   build:
     name: Windows Compilation Test
-    if: ${{ github.repository == 'akohlmey/lammps' }}
+    if: ${{ github.repository == 'lammps/lammps' }}
     runs-on: windows-latest
 
     steps:

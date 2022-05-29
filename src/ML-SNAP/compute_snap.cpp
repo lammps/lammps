@@ -303,11 +303,13 @@ void ComputeSnap::init_list(int /*id*/, NeighList *ptr)
 
 void ComputeSnap::compute_array()
 {
+
   if (dbirjflag){
     printf("----- dbirjflag true.\n");
     get_dbirj_length();
     printf("----- got dbirj_length\n");
   }
+
   printf("----- cutmax cutforce: %f %f\n", cutmax, force->pair->cutforce);
   //else{
   int ntotal = atom->nlocal + atom->nghost;
@@ -599,7 +601,8 @@ void ComputeSnap::compute_array()
     numneigh_sum += ninside;
   } // for (int ii = 0; ii < inum; ii++)
 
-  printf("`-`-`-` snap[50][6]: %f\n", snap[50][6]);
+  printf("----- bik_rows: %d\n", bik_rows);
+  printf("----- bikflag: %d\n", bikflag);
 
   // Check icounter.
   /*
@@ -680,7 +683,7 @@ void ComputeSnap::compute_array()
 
   if (dbirjflag){
 
-    printf("ntypes: %d\n", atom->ntypes);
+    //printf("ntypes: %d\n", atom->ntypes);
     //for (int itype = 0; itype < atom->ntypes; itype++) {
     for (int itype=0; itype<1; itype++){
       const int typeoffset_local = ndims_peratom*nperdim*itype;
@@ -758,7 +761,6 @@ void ComputeSnap::compute_array()
     }
   }
 
-printf("`-`-`-` snap[50][6]: %f\n", snap[50][6]);
   //printf("----- Accumulate forces to global array.\n");
   /*
   These are the last columns.
@@ -861,8 +863,8 @@ void ComputeSnap::get_dbirj_length()
 {
   // invoke full neighbor list (will copy or build if necessary)
   neighbor->build_one(list);
-  memory->destroy(snap);
-  memory->destroy(snapall);
+  //memory->destroy(snap);
+  //memory->destroy(snapall);
   dbirj_rows = 0;
   const int inum = list->inum;
   const int* const ilist = list->ilist;
@@ -947,10 +949,8 @@ void ComputeSnap::get_dbirj_length()
   //printf("----- dbirj_rows: %d\n", dbirj_rows);
   //printf("----- end of dbirj length.\n");
 
-  memory->create(snap,size_array_rows,size_array_cols,
-                 "snap:snap");
-  memory->create(snapall,size_array_rows,size_array_cols,
-                 "snap:snapall");
+  memory->create(snap,size_array_rows,size_array_cols, "snap:snap");
+  memory->create(snapall,size_array_rows,size_array_cols, "snap:snapall");
   array = snapall;
 
 }

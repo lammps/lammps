@@ -309,8 +309,135 @@ void PairMesoCNT::mesolj()
       clen = nchain[j];
       if (clen < 2) continue;
 
-      if (modelist[i][j]) {
+      if (modelist[i][j] || true) {
+        for (k = 0; k < clen - 1; k++) {
+          j1 = chain[j][k];
+          j2 = chain[j][k + 1];
+          j1 &= NEIGHMASK;
+          j2 &= NEIGHMASK;
+          q1 = x[j1];
+          q2 = x[j2];
 
+          double l[3], delp1r1[3], delp2r1[3];
+          sub3(r2, r1, l);
+          norm3(l);
+          sub3(q1, r1, delp1r1);
+          sub3(q2, r1, delp2r1);
+
+          double cr1[3], cr2[3];
+          cross3(delp1r1, l, cr1);
+          cross3(delp2r1, l, cr2);
+
+          double d1 = len3(cr1);
+          double d2 = len3(cr2);
+
+          int jj1, jj2;
+          if (d1 < d2) {
+            jj1 = j1;
+            jj2 = j2;
+          }
+          else {
+            jj1 = j2;
+            jj2 = j1;
+          }
+
+          q1 = x[jj1];
+          q2 = x[jj2];
+
+          geometry(r1, r2, q1, q2, q1, p, m, param, basis);
+          if (param[0] > cutoff) continue;
+
+          double evdwl1 = 0.0;
+          double evdwl2 = 0.0;
+
+          // first force contribution
+
+          fsemi(param, evdwl1, fend, flocal);
+          
+          // transform to global coordinate system
+
+          matvec(basis[0], basis[1], basis[2], flocal[0], fglobal[0]);
+          matvec(basis[0], basis[1], basis[2], flocal[1], fglobal[1]);
+
+          // forces acting on segment 2
+
+          add3(fglobal[0], fglobal[1], ftotal);
+          scaleadd3(fend, m, ftotal, ftotal);
+          scale3(-0.5, ftotal);
+
+          sub3(r1, p, delr1);
+          sub3(r2, p, delr2);
+          cross3(delr1, fglobal[0], t1);
+          cross3(delr2, fglobal[1], t2);
+          add3(t1, t2, torque);
+        
+          cross3(torque, m, ftorque);
+          lp = param[5] - param[4];
+          scale3(1.0 / lp, ftorque);
+          
+          add3(ftotal, ftorque, fglobal[2]);
+          sub3(ftotal, ftorque, fglobal[3]);
+
+          // add forces to nodes
+
+          scaleadd3(0.5, fglobal[0], f[i1], f[i1]);
+          scaleadd3(0.5, fglobal[1], f[i2], f[i2]);
+          scaleadd3(0.5, fglobal[2], f[jj1], f[jj1]);
+          scaleadd3(0.5, fglobal[3], f[jj2], f[jj2]);
+          scaleadd3(0.5 * fend, m, f[jj1], f[jj1]);
+
+          // second force contribution
+
+          param[6] += lp;
+          
+          fsemi(param, evdwl2, fend, flocal);
+          
+          // transform to global coordinate system
+
+          matvec(basis[0], basis[1], basis[2], flocal[0], fglobal[0]);
+          matvec(basis[0], basis[1], basis[2], flocal[1], fglobal[1]);
+
+          // forces acting on segment 2
+
+          add3(fglobal[0], fglobal[1], ftotal);
+          scaleadd3(fend, m, ftotal, ftotal);
+          scale3(-0.5, ftotal);
+
+          scaleadd3(lp, m, p, p);
+
+          sub3(r1, p, delr1);
+          sub3(r2, p, delr2);
+          cross3(delr1, fglobal[0], t1);
+          cross3(delr2, fglobal[1], t2);
+          add3(t1, t2, torque);
+        
+          cross3(torque, m, ftorque);
+          scale3(1.0 / lp, ftorque);
+          
+          add3(ftotal, ftorque, fglobal[2]);
+          sub3(ftotal, ftorque, fglobal[3]);
+
+          // add forces to nodes
+
+          scaleadd3(-0.5, fglobal[0], f[i1], f[i1]);
+          scaleadd3(-0.5, fglobal[1], f[i2], f[i2]);
+          scaleadd3(-0.5, fglobal[2], f[jj2], f[jj2]);
+          scaleadd3(0.5, fglobal[3], f[jj1], f[jj1]);
+          sub3(f[jj2], fglobal[3], f[jj2]);
+          scaleadd3(-0.5 * fend, m, f[jj2], f[jj2]);
+
+          if (eflag_either) {
+            evdwl = 0.5 * (evdwl1 - evdwl2);
+            double evdwl_atom = 0.25 * evdwl;
+            if (eflag_global) eng_vdwl += evdwl;
+            if (eflag_atom) {
+              eatom[i1] += evdwl_atom;
+              eatom[i2] += evdwl_atom;
+              eatom[jj1] += evdwl_atom;
+              eatom[jj2] += evdwl_atom;
+            }
+          }
+        }
       }
       else {
         // assign end position

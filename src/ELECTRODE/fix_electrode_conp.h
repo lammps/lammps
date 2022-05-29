@@ -31,6 +31,7 @@ FixStyle(electrode/conp, FixElectrodeConp);
 
 #include <algorithm>
 #include <map>
+#include <memory>
 #include <unordered_map>
 
 namespace LAMMPS_NS {
@@ -82,7 +83,7 @@ class FixElectrodeConp : public Fix {
   bool ffield;                                           // possibly tweak electrode/conq's version
   std::string fixname;    // used by electrode/ffield to set up internal efield
   bool intelflag;
-  ElectrodeAccelInterface *accel_interface;    // used by /intel
+  std::unique_ptr<ElectrodeAccelInterface> accel_interface;    // used by /intel
 
  private:
   FILE *f_inv, *f_mat, *f_vec;    // files for capacitance, eleastance and vector

@@ -252,7 +252,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   groupbit = group->bitmask[igroup];
   ngroup = group->count(igroup);
 
-  accel_interface = new ElectrodeAccelInterface(lmp);
+  accel_interface = std::unique_ptr<ElectrodeAccelInterface>(new ElectrodeAccelInterface(lmp));
 
   memory->create(iele_gathered, ngroup, "FixElectrode:iele_gathered");
   memory->create(buf_gathered, ngroup, "FixElectrode:buf_gathered");
@@ -854,7 +854,8 @@ double FixElectrodeConp::compute_array(int i, int j)
     return macro_capacitance[i][j - 1];
   else if (j <= 2 * num_of_groups)
     return macro_elastance[i][j - num_of_groups - 1];
-  else return 0.;    // avoid -Wreturn-type warning
+  else
+    return 0.;    // avoid -Wreturn-type warning
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1008,7 +1009,6 @@ FixElectrodeConp::~FixElectrodeConp()
   if (!(read_mat || read_inv)) delete array_compute;
   delete ele_vector;
   memory->destroy(capacitance);
-  delete accel_interface;
   if (f_inv) fclose(f_inv);
   if (f_mat) fclose(f_mat);
   if (f_vec) fclose(f_vec);

@@ -48,27 +48,3 @@ class ResetMolIDs : public Command {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Reset_mol_ids command before simulation box is defined
-
-UNDOCUMENTED
-
-E: Can only use reset_mol_ids on molecular systems
-
-UNDOCUMENTED
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-E: Cannot use reset_mol_ids unless molecules have IDs
-
-UNDOCUMENTED
-
-E: Reset_mol_ids missing %d bond topology atom IDs - use comm_modify cutoff
-
-UNDOCUMENTED
-
-*/

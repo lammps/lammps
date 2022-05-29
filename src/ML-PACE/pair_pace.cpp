@@ -35,7 +35,6 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
 
@@ -92,6 +91,8 @@ PairPACE::PairPACE(LAMMPS *lmp) : Pair(lmp)
   recursive = false;
 
   scale = nullptr;
+
+  chunksize = 4096;
 }
 
 /* ----------------------------------------------------------------------
@@ -197,7 +198,6 @@ void PairPACE::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      const int jtype = type[j];
       j &= NEIGHMASK;
       delx = x[j][0] - xtmp;
       dely = x[j][1] - ytmp;
@@ -223,7 +223,7 @@ void PairPACE::compute(int eflag, int vflag)
     // tally energy contribution
     if (eflag) {
       // evdwl = energy of atom I
-      evdwl = scale[itype][itype]*aceimpl->ace->e_atom;
+      evdwl = scale[itype][itype] * aceimpl->ace->e_atom;
       ev_tally_full(i, 2.0 * evdwl, 0.0, 0.0, 0.0, 0.0, 0.0);
     }
   }
@@ -252,18 +252,25 @@ void PairPACE::allocate()
 
 void PairPACE::settings(int narg, char **arg)
 {
-  if (narg > 1) error->all(FLERR, "Illegal pair_style command.");
+  if (narg > 3) error->all(FLERR, "Illegal pair_style command.");
 
   // ACE potentials are parameterized in metal units
   if (strcmp("metal", update->unit_style) != 0)
     error->all(FLERR, "ACE potentials require 'metal' units");
 
   recursive = true;    // default evaluator style: RECURSIVE
-  if (narg > 0) {
-    if (strcmp(arg[0], "recursive") == 0)
+
+  int iarg = 0;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg], "recursive") == 0) {
       recursive = true;
-    else if (strcmp(arg[0], "product") == 0) {
+      iarg += 1;
+    } else if (strcmp(arg[iarg], "product") == 0) {
       recursive = false;
+      iarg += 1;
+    } else if (strcmp(arg[iarg], "chunksize") == 0) {
+      chunksize = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
     } else
       error->all(FLERR, "Illegal pair_style command");
   }
@@ -354,9 +361,7 @@ void PairPACE::init_style()
   if (force->newton_pair == 0) error->all(FLERR, "Pair style pACE requires newton pair on");
 
   // request a full neighbor list
-  int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 }
 
 /* ----------------------------------------------------------------------

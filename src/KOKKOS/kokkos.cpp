@@ -207,6 +207,11 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     error->all(FLERR,"Kokkos has been compiled with GPU-enabled backend but no GPUs are requested");
 #endif
 
+#if !defined(KOKKOS_ENABLE_OPENMP) && !defined(KOKKOS_ENABLE_THREADS)
+  if (nthreads > 1)
+    error->all(FLERR,"Multiple CPU threads are requested but Kokkos has not been compiled using a threading-enabled backend");
+#endif
+
 #ifndef KOKKOS_ENABLE_SERIAL
   if (nthreads == 1 && me == 0)
     error->warning(FLERR,"When using a single thread, the Kokkos Serial backend "
@@ -227,6 +232,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 #endif
   neigh_thread = 0;
   neigh_thread_set = 0;
+  neigh_transpose = 0;
   if (ngpus > 0) {
     neighflag = FULL;
     neighflag_qeq = FULL;
@@ -323,13 +329,6 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 #ifdef KILL_KOKKOS_ON_SIGSEGV
   signal(SIGSEGV, my_signal_handler);
 #endif
-}
-
-/* ---------------------------------------------------------------------- */
-
-KokkosLMP::~KokkosLMP()
-{
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -476,6 +475,10 @@ void KokkosLMP::accelerator(int narg, char **arg)
       neigh_thread = utils::logical(FLERR,arg[iarg+1],false,lmp);
       neigh_thread_set = 1;
       iarg += 2;
+    } else if (strcmp(arg[iarg],"neigh/transpose") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      neigh_transpose = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
     } else error->all(FLERR,"Illegal package kokkos command");
   }
 
@@ -600,7 +603,8 @@ void KokkosLMP::my_signal_handler(int sig)
 {
   if (sig == SIGSEGV) {
 #if defined(_WIN32)
-    kill(_getpid(),SIGABRT);
+    // there is no kill() function on Windows
+    exit(1);
 #else
     kill(getpid(),SIGABRT);
 #endif

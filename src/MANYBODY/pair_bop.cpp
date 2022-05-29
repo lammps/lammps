@@ -46,11 +46,9 @@
 #include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "potential_file_reader.h"
 #include "tabular_function.h"
-#include "tokenizer.h"
 
 #include <cmath>
 #include <cstring>
@@ -191,11 +189,6 @@ PairBOP::~PairBOP()
 
 void PairBOP::compute(int eflag, int vflag)
 {
-  double minbox = MIN(MIN(domain->xprd, domain->yprd), domain->zprd);
-  if (minbox-0.001 < 6.0*cutmax)
-    error->all(FLERR,"Pair style bop requires system dimension "
-               "of at least {:.4}",6.0*cutmax);
-
   int i, ii, j, jj;
   int nlisti, *ilist;
   tagint i_tag,j_tag, itype, jtype;
@@ -418,10 +411,7 @@ void PairBOP::init_style()
 
   // need a full neighbor list and neighbors of ghosts
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->ghost = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
 }
 
 /* ---------------------------------------------------------------------- */

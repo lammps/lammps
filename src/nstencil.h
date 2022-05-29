@@ -14,7 +14,7 @@
 #ifndef LMP_NSTENCIL_H
 #define LMP_NSTENCIL_H
 
-#include "pointers.h"
+#include "pointers.h"    // IWYU pragma: keep
 
 namespace LAMMPS_NS {
 
@@ -121,7 +121,3 @@ class NStencil : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

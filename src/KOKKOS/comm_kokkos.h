@@ -37,26 +37,28 @@ class CommKokkos : public CommBrick {
   ~CommKokkos() override;
   void init() override;
 
+  using CommBrick::forward_comm;
+  using CommBrick::reverse_comm;
   void forward_comm(int dummy = 0) override;    // forward comm of atom coords
   void reverse_comm() override;                 // reverse comm of atom coords
   void exchange() override;                     // move atoms to new procs
   void borders() override;                      // setup list of atoms to comm
 
-  void forward_comm_pair(class Pair *) override;    // forward comm from a Pair
-  void reverse_comm_pair(class Pair *) override;    // reverse comm from a Pair
-  void forward_comm_fix(class Fix *, int size=0) override;      // forward comm from a Fix
-  void reverse_comm_fix(class Fix *, int size=0) override;      // reverse comm from a Fix
-  void forward_comm_compute(class Compute *) override;  // forward from a Compute
-  void reverse_comm_compute(class Compute *) override;  // reverse from a Compute
-  void forward_comm_dump(class Dump *) override;    // forward comm from a Dump
-  void reverse_comm_dump(class Dump *) override;    // reverse comm from a Dump
+  void forward_comm(class Pair *) override;    // forward comm from a Pair
+  void reverse_comm(class Pair *) override;    // reverse comm from a Pair
+  void forward_comm(class Fix *, int size=0) override;      // forward comm from a Fix
+  void reverse_comm(class Fix *, int size=0) override;      // reverse comm from a Fix
+  void forward_comm(class Compute *) override;  // forward from a Compute
+  void reverse_comm(class Compute *) override;  // reverse from a Compute
+  void forward_comm(class Dump *) override;    // forward comm from a Dump
+  void reverse_comm(class Dump *) override;    // reverse comm from a Dump
 
   void forward_comm_array(int, double **) override;            // forward comm of array
 
   template<class DeviceType> void forward_comm_device(int dummy);
   template<class DeviceType> void reverse_comm_device();
-  template<class DeviceType> void forward_comm_pair_device(Pair *pair);
-  template<class DeviceType> void forward_comm_fix_device(Fix *fix, int size=0);
+  template<class DeviceType> void forward_comm_device(Pair *pair);
+  template<class DeviceType> void forward_comm_device(Fix *fix, int size=0);
   template<class DeviceType> void exchange_device();
   template<class DeviceType> void borders_device();
 
@@ -98,24 +100,3 @@ class CommKokkos : public CommBrick {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Ghost velocity forward comm not yet implemented with Kokkos
-
-This is a current restriction.
-
-W: Fixes cannot yet send data in Kokkos communication, switching to classic communication
-
-This is a current restriction with Kokkos.
-
-W: Required border comm not yet implemented in Kokkos communication, switching to classic communication
-
-There are various limitations in the communication options supported
-by Kokkos.
-
-E: Required border comm not yet implemented with Kokkos
-
-There are various limitations in the communication options supported
-by Kokkos.
-
-*/

@@ -95,10 +95,3 @@ class PairCoulDSFKokkos : public PairCoulDSF {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Cannot use chosen neighbor list style with coul/dsf/kk
-
-That style is not supported by Kokkos.
-
-*/

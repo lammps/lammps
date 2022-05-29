@@ -650,6 +650,8 @@ of analysis.
      - atom-ID atom-type rho esph cv x y z
    * - sphere
      - atom-ID atom-type diameter density x y z
+   * - bpm/sphere
+     - atom-ID molecule-ID atom-type diameter density x y z
    * - spin
      - atom-ID atom-type x y z spx spy spz sp
    * - tdpd

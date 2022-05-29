@@ -260,7 +260,7 @@ int ComputeBondLocal::compute_bonds(int flag)
 
   // communicate ghost velocities if needed
 
-  if (ghostvelflag && !initflag) comm->forward_comm_compute(this);
+  if (ghostvelflag && !initflag) comm->forward_comm(this);
 
   // loop over all atoms and their bonds
 

@@ -43,24 +43,3 @@ class PairTableGPU : public PairTable {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Cannot use newton pair with table/gpu pair style
-
-Self-explanatory.
-
-E: Pair distance < table inner cutoff
-
-Two atoms are closer together than the pairwise table allows.
-
-E: Pair distance > table outer cutoff
-
-Two atoms are further apart than the pairwise table allows.
-
-*/

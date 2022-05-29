@@ -735,7 +735,7 @@ double fermi_dirac(const double E, const double T)
     else
       ATC_Error("schrodinger-poisson solver:too many fixed");
   }
-  GlobalSliceSchrodingerPoissonSolver::~GlobalSliceSchrodingerPoissonSolver(void)  {
+  GlobalSliceSchrodingerPoissonSolver::~GlobalSliceSchrodingerPoissonSolver()  {
     if (solver_) delete solver_;
   }
   //--------------------------------------------------------------------------

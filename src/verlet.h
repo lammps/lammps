@@ -27,35 +27,19 @@ namespace LAMMPS_NS {
 class Verlet : public Integrate {
  public:
   Verlet(class LAMMPS *, int, char **);
-
   void init() override;
   void setup(int flag) override;
   void setup_minimal(int) override;
   void run(int) override;
+  void force_clear() override;
   void cleanup() override;
 
  protected:
   int triclinic;    // 0 if domain is orthog, 1 if triclinic
   int torqueflag, extraflag;
-
-  virtual void force_clear();
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-W: No fixes defined, atoms won't move
-
-If you are not using a fix like nve, nvt, npt then atom velocities and
-coordinates will not be updated during timestepping.
-
-E: KOKKOS package requires run_style verlet/kk
-
-The KOKKOS package requires the Kokkos version of run_style verlet; the
-regular version cannot be used.
-
-*/

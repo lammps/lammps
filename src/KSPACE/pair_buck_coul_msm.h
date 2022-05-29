@@ -41,11 +41,3 @@ class PairBuckCoulMSM : public PairBuckCoulLong {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Must use 'kspace_modify pressure/scalar no' to obtain per-atom virial with kspace_style MSM
-
-The kspace scalar pressure option cannot be used to obtain per-atom virial.
-
-*/

@@ -49,12 +49,6 @@ AngleHarmonicIntel::AngleHarmonicIntel(LAMMPS *lmp) : AngleHarmonic(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-AngleHarmonicIntel::~AngleHarmonicIntel()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void AngleHarmonicIntel::compute(int eflag, int vflag)
 {
   #ifdef _LMP_INTEL_OFFLOAD
@@ -299,11 +293,8 @@ void AngleHarmonicIntel::init_style()
 {
   AngleHarmonic::init_style();
 
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   #ifdef _LMP_INTEL_OFFLOAD
   _use_base = 0;
@@ -343,13 +334,11 @@ void AngleHarmonicIntel::pack_force_const(ForceConst<flt_t> &fc,
 template <class flt_t>
 void AngleHarmonicIntel::ForceConst<flt_t>::set_ntypes(const int nangletypes,
                                                      Memory *memory) {
+  if (memory != nullptr) _memory = memory;
   if (nangletypes != _nangletypes) {
-    if (_nangletypes > 0)
-      _memory->destroy(fc);
-
+    _memory->destroy(fc);
     if (nangletypes > 0)
       _memory->create(fc,nangletypes,"anglecharmmintel.fc");
   }
   _nangletypes = nangletypes;
-  _memory = memory;
 }

@@ -1129,7 +1129,7 @@ double FixChargeRegulation::energy_full() {
   if (force->kspace) force->kspace->compute(eflag, vflag);
 
   if (modify->n_pre_reverse) modify->pre_reverse(eflag,vflag);
-  if (modify->n_post_force) modify->post_force(vflag);
+  if (modify->n_post_force_any) modify->post_force(vflag);
 
   update->eflag_global = update->ntimestep;
   double total_energy = c_pe->compute_scalar();
@@ -1232,7 +1232,7 @@ void FixChargeRegulation::write_restart(FILE *fp)
 void FixChargeRegulation::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
 
   seed = static_cast<int> (list[n++]);
   random_equal->reset(seed);

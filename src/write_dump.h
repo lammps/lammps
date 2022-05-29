@@ -34,25 +34,3 @@ class WriteDump : public Command {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Unrecognized dump style
-
-The choice of dump style is unknown.
-
-W: Calling write_dump before a full system init.
-
-The write_dump command is used before the system has been fully
-initialized as part of a 'run' or 'minimize' command. Not all dump
-styles and features are fully supported at this point and thus the
-command may fail or produce incomplete or incorrect output. Insert
-a "run 0" command, if a full system init is required.
-
-*/

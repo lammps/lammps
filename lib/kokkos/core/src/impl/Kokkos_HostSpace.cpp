@@ -308,6 +308,7 @@ void HostSpace::impl_deallocate(
     const size_t arg_alloc_size, const size_t arg_logical_size,
     const Kokkos::Tools::SpaceHandle arg_handle) const {
   if (arg_alloc_ptr) {
+    Kokkos::fence("HostSpace::impl_deallocate before free");
     size_t reported_size =
         (arg_logical_size > 0) ? arg_logical_size : arg_alloc_size;
     if (Kokkos::Profiling::profileLibraryLoaded()) {
@@ -357,7 +358,7 @@ SharedAllocationRecord<Kokkos::HostSpace, void>::~SharedAllocationRecord()
     noexcept
 #endif
 {
-  m_space.deallocate(RecordBase::m_alloc_ptr->m_label,
+  m_space.deallocate(m_label.c_str(),
                      SharedAllocationRecord<void, void>::m_alloc_ptr,
                      SharedAllocationRecord<void, void>::m_alloc_size,
                      (SharedAllocationRecord<void, void>::m_alloc_size -
@@ -398,7 +399,8 @@ SharedAllocationRecord<Kokkos::HostSpace, void>::SharedAllocationRecord(
 #endif
           Impl::checked_allocation_with_header(arg_space, arg_label,
                                                arg_alloc_size),
-          sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc),
+          sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc,
+          arg_label),
       m_space(arg_space) {
   this->base_t::_fill_host_accessible_header_info(*RecordBase::m_alloc_ptr,
                                                   arg_label);

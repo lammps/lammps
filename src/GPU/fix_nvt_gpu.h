@@ -37,15 +37,3 @@ class FixNVTGPU : public FixNHGPU {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Temperature control must be used with fix nvt
-
-Self-explanatory.
-
-E: Pressure control can not be used with fix nvt
-
-Self-explanatory.
-
-*/

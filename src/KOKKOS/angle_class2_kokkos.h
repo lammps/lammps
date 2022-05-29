@@ -96,6 +96,3 @@ class AngleClass2Kokkos : public AngleClass2 {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

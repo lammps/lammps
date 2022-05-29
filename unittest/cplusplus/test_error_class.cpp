@@ -1,4 +1,4 @@
-// unit tests for issuing command to a LAMMPS instance through the Input class
+// unit tests for public member functions of the Error class
 
 #include "error.h"
 #include "info.h"
@@ -129,8 +129,7 @@ int main(int argc, char **argv)
     ::testing::InitGoogleMock(&argc, argv);
 
     if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. "
-                     "Death tests will be skipped\n";
+        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

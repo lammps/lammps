@@ -14,7 +14,7 @@
 #ifndef LMP_NTOPO_H
 #define LMP_NTOPO_H
 
-#include "pointers.h"
+#include "pointers.h"    // IWYU pragma: keep
 
 namespace LAMMPS_NS {
 
@@ -48,19 +48,3 @@ class NTopo : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Bond extent > half of periodic box length
-
-UNDOCUMENTED
-
-E: Angle extent > half of periodic box length
-
-UNDOCUMENTED
-
-E: Dihedral/improper extent > half of periodic box length
-
-UNDOCUMENTED
-
-*/

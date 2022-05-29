@@ -93,41 +93,11 @@ class FixNeighHistory : public Fix {
   virtual void pre_exchange_no_newton();
   void allocate_pages();
 
-  inline int sbmask(int j) const { return j >> SBBITS & 3; }
+  // Shift by HISTBITS and check the first bit
+  inline int histmask(int j) const { return j >> HISTBITS & 1; }
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-E: Neighbor history requires atoms have IDs
-
-UNDOCUMENTED
-
-E: Neighbor history overflow, boost neigh_modify one
-
-UNDOCUMENTED
-
-E: Unsupported comm mode in neighbor history
-
-UNDOCUMENTED
-
-U: Pair style granular with history requires atoms have IDs
-
-Atoms in the simulation do not have IDs, so history effects
-cannot be tracked by the granular pair potential.
-
-U: Shear history overflow, boost neigh_modify one
-
-There are too many neighbors of a single atom.  Use the neigh_modify
-command to increase the max number of neighbors allowed for one atom.
-You may also want to boost the page size.
-
-*/

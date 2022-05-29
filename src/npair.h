@@ -14,7 +14,7 @@
 #ifndef LMP_NPAIR_H
 #define LMP_NPAIR_H
 
-#include "pointers.h"
+#include "pointers.h"    // IWYU pragma: keep
 
 namespace LAMMPS_NS {
 
@@ -164,11 +164,3 @@ class NPair : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Non-numeric positions - simulation unstable
-
-UNDOCUMENTED
-
-*/

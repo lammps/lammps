@@ -17,10 +17,18 @@ jobs:
       with:
         fetch-depth: 2
 
+    - name: Select Python version
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+
     - name: Building LAMMPS via CMake
       shell: bash
       run: |
+        python3 -m pip install numpy
+        python3 -m pip install pyyaml
         cmake -C cmake/presets/windows.cmake \
+              -D PKG_PYTHON=on \
               -S cmake -B build \
               -D BUILD_SHARED_LIBS=on \
               -D LAMMPS_EXCEPTIONS=on \

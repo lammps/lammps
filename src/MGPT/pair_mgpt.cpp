@@ -769,7 +769,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
     if (domain->triclinic) {
       if (comm->me == 0)
         printf("Can not handle triclinic box yet\n");
-      error->all(__FILE__,__LINE__,"Can not handle triclinic cell with mgpt yet.");
+      error->all(FLERR,"Can not handle triclinic cell with mgpt yet.");
     }
 
   /*
@@ -876,7 +876,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
         if (first[i+1] > nneitot) {
           printf("nneitot = %d, short list full. i=%d\n",
                  nneitot,i);
-          error->one(__FILE__,__LINE__,"Shit! Short list full\n");
+          error->one(FLERR,"Shit! Short list full\n");
         }
 
       }
@@ -1272,7 +1272,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
                          "  k=%d  first[k]=%d  first[k+1]=%d  mk=%d\n",
                          j,first[j],first[j+1],mj,
                          k,first[k],first[k+1],mk);
-                  error->one(__FILE__,__LINE__,"Shit, brkoen quad loop");
+                  error->one(FLERR,"Shit, brkoen quad loop");
                 }
 
                 if (nlist_short[mj] == nlist_short[mk]) {
@@ -1804,7 +1804,7 @@ void PairMGPT::allocate()
 ------------------------------------------------------------------------- */
 void PairMGPT::settings(int narg, char **/*arg*/)
 {
-  if (narg != 0) error->all(__FILE__,__LINE__,"Illegal pair_style command");
+  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -1816,18 +1816,18 @@ void PairMGPT::coeff(int narg, char **arg)
   int single_precision = 0;
 
   if (narg < 5)
-    error->all(__FILE__,__LINE__,
+    error->all(FLERR,
                "Not enough arguments for mgpt (MGPT) pair coefficients.");
 
   if (!allocated) allocate();
 
   // Make sure I,J args are * *
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(__FILE__,__LINE__,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   double vol;
   if (sscanf(arg[4], "%lg", &vol) != 1 || vol <= 0.0)
-    error->all(__FILE__,__LINE__,"Invalid volume in mgpt (MGPT) pair coefficients.");
+    error->all(FLERR,"Invalid volume in mgpt (MGPT) pair coefficients.");
 
   volpres_flag = 1;
   single_precision = 0;
@@ -1846,8 +1846,8 @@ void PairMGPT::coeff(int narg, char **arg)
           char line[1024];
           sprintf(line,"(In %s:%d) Invalid value for volumetric pressure argument.\n"
                   "It should be \"volpress yes\" or \"volpress no\".\n"
-                  "The value is \"%s\".\n",__FILE__,__LINE__,arg[iarg+1]);
-          error->all(__FILE__,__LINE__,line);
+                  "The value is \"%s\".\n",FLERR,arg[iarg+1]);
+          error->all(FLERR,line);
         }
         volpres_tag = 1;
         iarg += 2;
@@ -1868,8 +1868,8 @@ void PairMGPT::coeff(int narg, char **arg)
                   "It should be e.g. \"nbody=1234\" (for single, pair, triple, and quad forces/energiers)\n"
                   "For e.g. only pair and triple forces/energies, use \"nbody=23\".\n"
                   "The default is \"nbody=1234\".\n"
-                  "The current value is \"%s\".\n",__FILE__,__LINE__,arg[iarg+1]);
-          error->all(__FILE__,__LINE__,line);
+                  "The current value is \"%s\".\n",FLERR,arg[iarg+1]);
+          error->all(FLERR,line);
         }
         nbody_tag = 1;
         iarg += 2;
@@ -1882,8 +1882,8 @@ void PairMGPT::coeff(int narg, char **arg)
           char line[1024];
           sprintf(line,"(In %s:%d) Invalid value for precision argument.\n"
                   "It should be \"precision single\" or \"precision double\".\n"
-                  "The value is \"%s\".\n",__FILE__,__LINE__,arg[iarg+1]);
-          error->all(__FILE__,__LINE__,line);
+                  "The value is \"%s\".\n",FLERR,arg[iarg+1]);
+          error->all(FLERR,line);
         }
         precision_tag = 1;
         iarg += 2;
@@ -1894,8 +1894,8 @@ void PairMGPT::coeff(int narg, char **arg)
                 "    volpress {yes|no} , default = yes\n"
                 "    precision {single|double} , default = double\n"
                 "    nbody {[1234,]*} , default = whichever terms potential require\n"
-                "The invalid argument is \"%s\".\n",__FILE__,__LINE__,arg[iarg]);
-        error->all(__FILE__,__LINE__,line);
+                "The invalid argument is \"%s\".\n",FLERR,arg[iarg]);
+        error->all(FLERR,line);
       }
     }
 
@@ -1995,18 +1995,11 @@ void PairMGPT::coeff(int narg, char **arg)
 void PairMGPT::init_style()
 {
         if (force->newton_pair == 0)
-          error->all(__FILE__,__LINE__,"Pair style mgpt requires newton pair on.");
+          error->all(FLERR,"Pair style mgpt requires newton pair on.");
 
-        // Need full neighbor list.
-        int irequest_full = neighbor->request(this);
-        neighbor->requests[irequest_full]->id = 1;
-        neighbor->requests[irequest_full]->half = 0;
-        neighbor->requests[irequest_full]->full = 1;
-        neighbor->requests[irequest_full]->ghost = 1;
-
-        // Also need half neighbor list.
-        int irequest_half = neighbor->request(this);
-        neighbor->requests[irequest_half]->id = 2;
+        // Need a half list and a full neighbor list with neighbors of ghosts
+        neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST)->set_id(1);
+        neighbor->add_request(this)->set_id(2);
 }
 
 /* ----------------------------------------------------------------------

@@ -76,7 +76,9 @@ namespace LAMMPS_NS {
 class NPairIntel : public NPair {
  public:
   NPairIntel(class LAMMPS *);
+  #ifdef _LMP_INTEL_OFFLOAD
   ~NPairIntel() override;
+  #endif
   void copy_neighbor_info() override;
 
   #ifdef _LMP_INTEL_OFFLOAD
@@ -103,21 +105,4 @@ class NPairIntel : public NPair {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Exclusion lists not yet supported for Intel offload
-
-Self explanatory.
-
-E: The 'package intel' command is required for /intel styles
-
-Self explanatory.
-
-E: Too many neighbor bins for INTEL package.
-
-The number of bins used in the stencil to check for neighboring atoms is too
-high for the Intel package. Either increase the bin size in the input script
-or recompile with a larger setting for INTEL_MAX_STENCIL in intel_preprocess.h.
-
-*/
 

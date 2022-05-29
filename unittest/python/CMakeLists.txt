@@ -17,16 +17,16 @@ if(CMAKE_VERSION VERSION_LESS 3.12)
     set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
   endif()
 else()
-  find_package(Python3 3.6 COMPONENTS Interpreter Development)
+  find_package(Python COMPONENTS Interpreter Development)
 endif()
 
 add_executable(test_python_package test_python_package.cpp)
 target_link_libraries(test_python_package PRIVATE lammps GTest::GMock)
 target_compile_definitions(test_python_package PRIVATE -DTEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
 # this requires CMake 3.12. don't care to add backward compatibility for this.
-if(Python3_Development_FOUND)
+if(Python_Development_FOUND)
   target_compile_definitions(test_python_package PRIVATE -DTEST_HAVE_PYTHON_DEVELOPMENT=1)
-  target_link_libraries(test_python_package PRIVATE Python3::Python)
+  target_link_libraries(test_python_package PRIVATE Python::Python)
 endif()
 add_test(NAME PythonPackage COMMAND test_python_package)
 
@@ -98,14 +98,10 @@ if(Python_EXECUTABLE)
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
   set_tests_properties(PythonCapabilities PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  message(STATUS "Skipping Tests for PyLammps Module: not yet ported to Windows")
-else()
   add_test(NAME PythonPyLammps
            COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-pylammps.py -v
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
   set_tests_properties(PythonPyLammps PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
-endif()
 
   add_test(NAME PythonFormats
            COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-formats.py -v

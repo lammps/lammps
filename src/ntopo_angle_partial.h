@@ -34,15 +34,3 @@ class NTopoAnglePartial : public NTopo {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Angle atoms %d %d %d missing on proc %d at step %ld
-
-UNDOCUMENTED
-
-W: Angle atoms missing at step %ld
-
-UNDOCUMENTED
-
-*/

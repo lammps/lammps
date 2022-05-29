@@ -6,10 +6,10 @@
 #  280 x 280 x 101 lattice-Boltzmann grid sites.                            #
 #                                                                           #
 #  This simulation is used to illustrate the simulation time of a realistic #
-#    implementation of the lb_fluid fix.                                    #
+#    implementation of the lb/fluid fix.                                    #
 #  The data file "confinedcolloids.dat" is quite large and so is not        #
 #  included here.  It can be obtained from:                                 #
-#  http://www.apmaths.uwo.ca/~cdennist/confinedcolloids.dat.gz              #
+#  http://publish.uwo.ca/~cdennist/confinedcolloids.dat.gz                  #
 #                                                                           #
 #  Sample output from this run can be found in the file:                    #
 #    results64.out                                                          #
@@ -19,7 +19,10 @@ units       micro
 dimension   3
 boundary    p p f
 atom_style  molecular
-read_data   confinedcolloids.dat
+
+# try to download
+shell test -f confinedcolloids.dat.gz || curl -L -o confinedcolloids.dat.gz http://publish.uwo.ca/~cdennist/confinedcolloids.dat.gz
+read_data   confinedcolloids.dat.gz
 
 mass * 0.00010287
 
@@ -62,23 +65,18 @@ pair_coeff * * 0.0 0.0 1.572
 pair_coeff 1 1 10.0 1.400492785 1.572
 pair_modify shift yes
 
-timestep 0.0006
+timestep 0.001
 
 #---------------------------------------------------------------------------
 # Create a lattice-Boltzmann fluid covering the simulation domain.
 # This fluid feels a force due to the particles specified through FluidAtoms 
 #   (however, this fix does not explicitly apply a force back on to these 
-#    particles...this is accomplished through the use of the viscous_lb fix).
-# Use the standard LB integration scheme, a fluid density = 1.0, 
-#   fluid viscosity = 1.0, lattice spacing dx=0.06, and mass unit, dm=0.00003.
-# Use the default method to calculate the interaction force between the 
-#   particles and the fluid.  This calculation makes use of the surface area 
-#   of the composite object represented by each particle node.  Since this is 
-#   not equal to dx*dx, it is input through the setArea keyword (i.e. 
-#   particles of type 2 correspond to a surface area of 0.0018337299).
-# Implement walls moving at speeds of 20.0 in opposite directions.
+#    particles...this is accomplished through the use of the lb/viscous fix).
+# Use a fluid density = 1.0, fluid viscosity = 1.0, (water at STP) and a
+# lattice spacing dx=0.06.
+# Implement top/bottomw walls moving at speeds of 20.0 in opposite directions
 #----------------------------------------------------------------------------
-fix   1 FluidAtoms lb/fluid 1 1 1.0 1.0 dx 0.06 dm 0.00003 setArea 2 0.0018337299 zwall_velocity -20.0 20.0 
+fix   1 FluidAtoms lb/fluid 1 1.0 1.0 dx 0.06 zwall_velocity -20.0 20.0 
 
 #----------------------------------------------------------------------------
 # Apply the force due to the fluid onto the FluidAtoms particles (again,
@@ -105,4 +103,7 @@ fix   walllo ForceAtoms wall/lj126 zlo 0.0  20.0 0.8071542386 0.906 units box
 
 #dump  ParticleTracking ForceAtoms custom 50 test.track id mol x y z vx vy vz
 
-run   400
+thermo 50
+
+#run   400
+run 100

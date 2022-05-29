@@ -11,8 +11,14 @@ if(Kokkos_ENABLE_CUDA)
 endif()
 # Adding OpenMP compiler flags without the checks done for
 # BUILD_OMP can result in compile failures. Enforce consistency.
-if(Kokkos_ENABLE_OPENMP AND NOT BUILD_OMP)
-  message(FATAL_ERROR "Must enable BUILD_OMP with Kokkos_ENABLE_OPENMP")
+if(Kokkos_ENABLE_OPENMP)
+  if(NOT BUILD_OMP)
+    message(FATAL_ERROR "Must enable BUILD_OMP with Kokkos_ENABLE_OPENMP")
+  else()
+    if(LAMMPS_OMP_COMPAT_LEVEL LESS 4)
+      message(FATAL_ERROR "Compiler must support OpenMP 4.0 or later with Kokkos_ENABLE_OPENMP")
+    endif()
+  endif()
 endif()
 ########################################################################
 
@@ -27,6 +33,8 @@ if(DOWNLOAD_KOKKOS)
   endforeach()
   message(STATUS "KOKKOS download requested - we will build our own")
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>")
+  # build KOKKOS downloaded libraries as static libraries but with PIC, if needed
+  list(APPEND KOKKOS_LIB_BUILD_ARGS "-DBUILD_SHARED_LIBS=OFF")
   if(CMAKE_REQUEST_PIC)
     list(APPEND KOKKOS_LIB_BUILD_ARGS ${CMAKE_REQUEST_PIC})
   endif()
@@ -39,34 +47,47 @@ if(DOWNLOAD_KOKKOS)
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_CXX_EXTENSIONS=${CMAKE_CXX_EXTENSIONS}")
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
   include(ExternalProject)
-  set(KOKKOS_URL "https://github.com/kokkos/kokkos/archive/3.5.00.tar.gz" CACHE STRING "URL for KOKKOS tarball")
-  set(KOKKOS_MD5 "079323d973ae0e1c38c0a54a150c674e" CACHE STRING "MD5 checksum of KOKKOS tarball")
+  set(KOKKOS_URL "https://github.com/kokkos/kokkos/archive/3.6.00.tar.gz" CACHE STRING "URL for KOKKOS tarball")
+  set(KOKKOS_MD5 "b5c44ea961031795f434002cd7b31c20" CACHE STRING "MD5 checksum of KOKKOS tarball")
   mark_as_advanced(KOKKOS_URL)
   mark_as_advanced(KOKKOS_MD5)
   ExternalProject_Add(kokkos_build
     URL     ${KOKKOS_URL}
     URL_MD5 ${KOKKOS_MD5}
     CMAKE_ARGS ${KOKKOS_LIB_BUILD_ARGS}
-    BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libkokkoscore.a
+    BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libkokkoscore.a <INSTALL_DIR>/lib/libkokkoscontainers.a
   )
   ExternalProject_get_property(kokkos_build INSTALL_DIR)
   file(MAKE_DIRECTORY ${INSTALL_DIR}/include)
-  add_library(LAMMPS::KOKKOS UNKNOWN IMPORTED)
-  set_target_properties(LAMMPS::KOKKOS PROPERTIES
+  add_library(LAMMPS::KOKKOSCORE UNKNOWN IMPORTED)
+  add_library(LAMMPS::KOKKOSCONTAINERS UNKNOWN IMPORTED)
+  set_target_properties(LAMMPS::KOKKOSCORE PROPERTIES
     IMPORTED_LOCATION "${INSTALL_DIR}/lib/libkokkoscore.a"
     INTERFACE_INCLUDE_DIRECTORIES "${INSTALL_DIR}/include"
     INTERFACE_LINK_LIBRARIES ${CMAKE_DL_LIBS})
-  target_link_libraries(lammps PRIVATE LAMMPS::KOKKOS)
-  target_link_libraries(lmp PRIVATE LAMMPS::KOKKOS)
-  add_dependencies(LAMMPS::KOKKOS kokkos_build)
+  set_target_properties(LAMMPS::KOKKOSCONTAINERS PROPERTIES
+    IMPORTED_LOCATION "${INSTALL_DIR}/lib/libkokkoscontainers.a")
+  target_link_libraries(lammps PRIVATE LAMMPS::KOKKOSCORE LAMMPS::KOKKOSCONTAINERS)
+  target_link_libraries(lmp PRIVATE LAMMPS::KOKKOSCORE LAMMPS::KOKKOSCONTAINERS)
+  add_dependencies(LAMMPS::KOKKOSCORE kokkos_build)
+  add_dependencies(LAMMPS::KOKKOSCONTAINERS kokkos_build)
 elseif(EXTERNAL_KOKKOS)
-  find_package(Kokkos 3.5.00 REQUIRED CONFIG)
+  find_package(Kokkos 3.6.00 REQUIRED CONFIG)
   target_link_libraries(lammps PRIVATE Kokkos::kokkos)
   target_link_libraries(lmp PRIVATE Kokkos::kokkos)
 else()
   set(LAMMPS_LIB_KOKKOS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos)
   set(LAMMPS_LIB_KOKKOS_BIN_DIR ${LAMMPS_LIB_BINARY_DIR}/kokkos)
+  # build KOKKOS internal libraries as static libraries but with PIC, if needed
+  if(BUILD_SHARED_LIBS)
+    set(BUILD_SHARED_LIBS_WAS_ON YES)
+    set(BUILD_SHARED_LIBS OFF)
+  endif()
+  if(CMAKE_REQUEST_PIC)
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+  endif()
   add_subdirectory(${LAMMPS_LIB_KOKKOS_SRC_DIR} ${LAMMPS_LIB_KOKKOS_BIN_DIR})
+
 
   set(Kokkos_INCLUDE_DIRS ${LAMMPS_LIB_KOKKOS_SRC_DIR}/core/src
                           ${LAMMPS_LIB_KOKKOS_SRC_DIR}/containers/src
@@ -75,6 +96,9 @@ else()
   target_include_directories(lammps PRIVATE ${Kokkos_INCLUDE_DIRS})
   target_link_libraries(lammps PRIVATE kokkos)
   target_link_libraries(lmp PRIVATE kokkos)
+  if(BUILD_SHARED_LIBS_WAS_ON)
+    set(BUILD_SHARED_LIBS ON)
+  endif()
 endif()
 target_compile_definitions(lammps PUBLIC $<BUILD_INTERFACE:LMP_KOKKOS>)
 
@@ -105,6 +129,11 @@ if(PKG_KSPACE)
     if(NOT (FFT STREQUAL "KISS"))
       target_compile_definitions(lammps PRIVATE -DFFT_CUFFT)
       target_link_libraries(lammps PRIVATE cufft)
+    endif()
+  elseif(Kokkos_ENABLE_HIP)
+    if(NOT (FFT STREQUAL "KISS"))
+      target_compile_definitions(lammps PRIVATE -DFFT_HIPFFT)
+      target_link_libraries(lammps PRIVATE hipfft)
     endif()
   endif()
 endif()

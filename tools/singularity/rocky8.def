@@ -74,7 +74,7 @@ EOF
         CUSTOM_PROMPT_ENV=/.singularity.d/env/99-zz_custom_prompt.sh
         cat >$CUSTOM_PROMPT_ENV <<EOF
 #!/bin/bash
-PS1="[centos8:\u@\h] \W> "
+PS1="[rocky8:\u@\h] \W> "
 EOF
         chmod 755 $CUSTOM_PROMPT_ENV
 

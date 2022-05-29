@@ -17,16 +17,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_table_kokkos.h"
-#include <cstring>
-#include "kokkos.h"
+
 #include "atom.h"
+#include "atom_masks.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
+#include "kokkos.h"
+#include "memory_kokkos.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
+#include "neighbor.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -510,25 +512,12 @@ void PairTableKokkos<DeviceType>::compute_table(Table *tb)
 template<class DeviceType>
 void PairTableKokkos<DeviceType>::init_style()
 {
-  neighbor->request(this,instance_me);
   neighflag = lmp->kokkos->neighflag;
-  int irequest = neighbor->nrequest - 1;
-
-  neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
-
-  if (neighflag == FULL) {
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->half = 0;
-  } else if (neighflag == HALF || neighflag == HALFTHREAD) {
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 1;
-  } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with lj/cut/kk");
-  }
+  auto request = neighbor->add_request(this);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  if (neighflag == FULL) request->enable_full();
 }
 
 namespace LAMMPS_NS {

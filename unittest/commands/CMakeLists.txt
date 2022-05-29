@@ -21,6 +21,14 @@ add_executable(test_groups test_groups.cpp)
 target_link_libraries(test_groups PRIVATE lammps GTest::GMock)
 add_test(NAME Groups COMMAND test_groups)
 
+add_executable(test_regions test_regions.cpp)
+target_link_libraries(test_regions PRIVATE lammps GTest::GMock)
+add_test(NAME Regions COMMAND test_regions)
+
+add_executable(test_delete_atoms test_delete_atoms.cpp)
+target_link_libraries(test_delete_atoms PRIVATE lammps GTest::GMock)
+add_test(NAME DeleteAtoms COMMAND test_delete_atoms)
+
 add_executable(test_variables test_variables.cpp)
 target_link_libraries(test_variables PRIVATE lammps GTest::GMock)
 add_test(NAME Variables COMMAND test_variables)
@@ -40,6 +48,11 @@ add_executable(test_reset_ids test_reset_ids.cpp)
 target_compile_definitions(test_reset_ids PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(test_reset_ids PRIVATE lammps GTest::GMock)
 add_test(NAME ResetIDs COMMAND test_reset_ids)
+
+add_executable(test_compute_global test_compute_global.cpp)
+target_compile_definitions(test_compute_global PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(test_compute_global PRIVATE lammps GTest::GMock)
+add_test(NAME ComputeGlobal COMMAND test_compute_global)
 
 add_executable(test_mpi_load_balancing test_mpi_load_balancing.cpp)
 target_link_libraries(test_mpi_load_balancing PRIVATE lammps GTest::GMock)

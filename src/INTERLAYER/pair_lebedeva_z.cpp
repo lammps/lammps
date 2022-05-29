@@ -33,7 +33,6 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "potential_file_reader.h"
-#include "tokenizer.h"
 
 #include <cmath>
 #include <cstring>
@@ -246,7 +245,7 @@ void PairLebedevaZ::init_style()
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style lebedeva/z requires newton pair on");
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

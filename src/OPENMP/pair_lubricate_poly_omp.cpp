@@ -38,8 +38,8 @@ enum{EDGE,CONSTANT,VARIABLE};
 
 /* ---------------------------------------------------------------------- */
 
-PairLubricatePolyOMP::PairLubricatePolyOMP(LAMMPS *lmp) :
-  PairLubricatePoly(lmp), ThrOMP(lmp, THR_PAIR)
+PairLubricatePolyOMP::PairLubricatePolyOMP(LAMMPS *_lmp) :
+  PairLubricatePoly(_lmp), ThrOMP(_lmp, THR_PAIR)
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
@@ -219,7 +219,7 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
 #if defined(_OPENMP)
 #pragma omp master
 #endif
-    { comm->forward_comm_pair(this); }
+    { comm->forward_comm(this); }
 
     sync_threads();
   }

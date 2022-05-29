@@ -39,7 +39,3 @@ class DihedralDeprecated : public Dihedral {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

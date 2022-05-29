@@ -38,14 +38,3 @@ class FixNPTKokkos : public FixNHKokkos<DeviceType> {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Temperature control must be used with fix npt
-
-Self-explanatory.
-
-E: Pressure control must be used with fix npt
-
-Self-explanatory.
-
-*/

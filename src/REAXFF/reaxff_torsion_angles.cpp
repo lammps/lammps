@@ -52,6 +52,11 @@ namespace ReaxFF {
     sin_jkl = sin(p_jkl->theta);
     cos_jkl = cos(p_jkl->theta);
 
+    if (sin_ijk >= 0 && sin_ijk <= MIN_SINE) sin_ijk = MIN_SINE;
+    else if (sin_ijk <= 0 && sin_ijk >= -MIN_SINE) sin_ijk = -MIN_SINE;
+    if (sin_jkl >= 0 && sin_jkl <= MIN_SINE) sin_jkl = MIN_SINE;
+    else if (sin_jkl <= 0 && sin_jkl >= -MIN_SINE) sin_jkl = -MIN_SINE;
+
     /* omega */
     unnorm_cos_omega = -rvec_Dot(dvec_ij, dvec_jk) * rvec_Dot(dvec_jk, dvec_kl) +
       SQR(r_jk) *  rvec_Dot(dvec_ij, dvec_kl);
@@ -71,21 +76,15 @@ namespace ReaxFF {
     hnhd = r_ij * r_kl * cos_ijk * sin_jkl;
     hnhe = r_ij * r_kl * sin_ijk * cos_jkl;
 
-    poem = 2.0 * r_ij * r_kl * sin_ijk * sin_jkl;
-    if (poem < 1e-20) poem = 1e-20;
-
     tel  = SQR(r_ij) + SQR(r_jk) + SQR(r_kl) - SQR(r_li) -
       2.0 * (r_ij * r_jk * cos_ijk - r_ij * r_kl * cos_ijk * cos_jkl +
               r_jk * r_kl * cos_jkl);
 
+    poem = 2.0 * r_ij * r_kl * sin_ijk * sin_jkl;
+
     arg  = tel / poem;
     if (arg >  1.0) arg =  1.0;
     if (arg < -1.0) arg = -1.0;
-
-    if (sin_ijk >= 0 && sin_ijk <= MIN_SINE) sin_ijk = MIN_SINE;
-    else if (sin_ijk <= 0 && sin_ijk >= -MIN_SINE) sin_ijk = -MIN_SINE;
-    if (sin_jkl >= 0 && sin_jkl <= MIN_SINE) sin_jkl = MIN_SINE;
-    else if (sin_jkl <= 0 && sin_jkl >= -MIN_SINE) sin_jkl = -MIN_SINE;
 
     // dcos_omega_di
     rvec_ScaledSum(dcos_omega_di, (htra-arg*hnra)/r_ij, dvec_ij, -1., dvec_li);

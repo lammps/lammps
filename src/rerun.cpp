@@ -122,7 +122,7 @@ void Rerun::command(int narg, char **arg)
   // pass list of filenames to ReadDump
   // along with post-"dump" args and post-"format" args
 
-  ReadDump *rd = new ReadDump(lmp);
+  auto rd = new ReadDump(lmp);
 
   rd->store_files(nfile,arg);
   if (nremain)
@@ -159,12 +159,13 @@ void Rerun::command(int narg, char **arg)
   while (true) {
     ndump++;
     rd->header(firstflag);
-    update->reset_timestep(ntimestep);
+    update->reset_timestep(ntimestep, false);
     rd->atoms();
 
     modify->init();
     update->integrate->setup_minimal(1);
     modify->end_of_step();
+    output->next_dump_any = ntimestep;
     if (firstflag) output->setup();
     else if (output->next) output->write(ntimestep);
 

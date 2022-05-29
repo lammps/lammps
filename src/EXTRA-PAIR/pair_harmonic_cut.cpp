@@ -24,8 +24,6 @@
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neighbor.h"
-#include "update.h"
 
 #include <cmath>
 #include <cstring>
@@ -101,8 +99,8 @@ void PairHarmonicCut::compute(int eflag, int vflag)
       if (rsq < cutsq[itype][jtype]) {
         const double r = sqrt(rsq);
         const double delta = cut[itype][jtype] - r;
-        const double philj = factor_lj * delta * k[itype][jtype];
-        const double fpair = delta * philj / r;
+        const double prefactor = factor_lj * delta * k[itype][jtype];
+        const double fpair = 2.0 * prefactor / r;
 
         fxtmp += delx * fpair;
         fytmp += dely * fpair;
@@ -113,7 +111,10 @@ void PairHarmonicCut::compute(int eflag, int vflag)
           f[j][2] -= delz * fpair;
         }
 
-        if (evflag) ev_tally(i, j, nlocal, newton_pair, philj, 0.0, fpair, delx, dely, delz);
+        if (evflag) {
+          const double philj = prefactor * delta;
+          ev_tally(i, j, nlocal, newton_pair, philj, 0.0, fpair, delx, dely, delz);
+        }
       }
     }
     f[i][0] += fxtmp;
@@ -146,7 +147,7 @@ void PairHarmonicCut::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairHarmonicCut::settings(int narg, char **arg)
+void PairHarmonicCut::settings(int narg, char ** /*arg*/)
 {
   if (narg > 0) error->all(FLERR, "Illegal pair_style command");
 }
@@ -188,10 +189,10 @@ double PairHarmonicCut::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
     cut[i][j] = mix_distance(cut[i][i], cut[j][j]);
-    cut[j][i] = cut[i][j];
     k[i][j] = mix_energy(k[i][i], k[j][j], cut[i][i], cut[j][j]);
-    k[j][i] = k[i][j];
   }
+  k[j][i] = k[i][j];
+  cut[j][i] = cut[i][j];
   return cut[i][j];
 }
 
@@ -298,8 +299,8 @@ double PairHarmonicCut::single(int /*i*/, int /*j*/, int itype, int jtype, doubl
   }
   const double r = sqrt(rsq);
   const double delta = cut[itype][jtype] - r;
-  const double philj = factor_lj * delta * k[itype][jtype];
-  fforce = delta * philj / r;
+  const double philj = factor_lj * delta * delta * k[itype][jtype];
+  fforce = 2.0 * philj / (r * delta);
   return philj;
 }
 

@@ -173,6 +173,7 @@ void test_allowed_access() {
       "access_allowed",
       Kokkos::RangePolicy<typename Space::execution_space>(0, data_size),
       functor);
+  Kokkos::fence();
 }
 
 using semantically_independent_logical_space =

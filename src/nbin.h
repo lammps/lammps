@@ -14,7 +14,7 @@
 #ifndef LMP_NBIN_H
 #define LMP_NBIN_H
 
-#include "pointers.h"
+#include "pointers.h"    // IWYU pragma: keep
 
 namespace LAMMPS_NS {
 
@@ -99,11 +99,3 @@ class NBin : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Non-numeric positions - simulation unstable
-
-UNDOCUMENTED
-
-*/

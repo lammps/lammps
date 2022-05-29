@@ -236,7 +236,7 @@ TEST_F(LAMMPS_omp, InitMembers)
     }
 }
 
-// test fixture for Kokkos tests
+// test fixture for Kokkos using 2 threads if threading is available
 class LAMMPS_kokkos : public ::testing::Test {
 protected:
     LAMMPS *lmp;
@@ -256,18 +256,15 @@ protected:
     void SetUp() override
     {
         const char *args[] = {"LAMMPS_test", "-log", "none", "-echo", "none", "-screen", "none",
-                              "-k",          "on",   "t",    "2",     "-sf",  "kk"};
-        char **argv        = (char **)args;
-        int argc           = sizeof(args) / sizeof(char *);
-
-        // only run this test fixture with kk suffix if KOKKOS package is installed
-        // also need to figure out a way to find which parallelizations are enabled
+                              "-k",          "on",   "t",    "1",     "-sf",  "kk"};
+        if (Info::has_accelerator_feature("KOKKOS", "api", "openmp")) args[10] = "2";
+        char **argv = (char **)args;
+        int argc    = sizeof(args) / sizeof(char *);
 
         if (LAMMPS::is_installed_pkg("KOKKOS")) {
             ::testing::internal::CaptureStdout();
-            lmp                = new LAMMPS(argc, argv, MPI_COMM_WORLD);
-            std::string output = ::testing::internal::GetCapturedStdout();
-            EXPECT_THAT(output, StartsWith("Kokkos::OpenMP::"));
+            lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+            ::testing::internal::GetCapturedStdout();
         } else
             GTEST_SKIP();
     }
@@ -307,6 +304,10 @@ TEST_F(LAMMPS_kokkos, InitMembers)
     EXPECT_EQ(lmp->num_package, 0);
     EXPECT_EQ(lmp->clientserver, 0);
 
+    if (Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
+        EXPECT_EQ(lmp->comm->nthreads, 2);
+    else
+        EXPECT_EQ(lmp->comm->nthreads, 1);
     EXPECT_NE(lmp->kokkos, nullptr);
     EXPECT_NE(lmp->atomKK, nullptr);
     EXPECT_NE(lmp->memoryKK, nullptr);

@@ -110,14 +110,3 @@ class PairBuckKokkos : public PairBuck {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Cannot use Kokkos pair style with rRESPA inner/middle
-
-Self-explanatory.
-
-E: Cannot use chosen neighbor list style with buck/kk
-
-That style is not supported by Kokkos.
-
-*/

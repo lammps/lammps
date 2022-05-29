@@ -45,25 +45,3 @@ class PairVashishtaGPU : public PairVashishta {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Pair style vashishta/gpu requires atom IDs
-
-This is a requirement to use this potential.
-
-E: Pair style vashishta/gpu requires newton pair off
-
-See the newton command.  This is a restriction to use this potential.
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-*/

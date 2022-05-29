@@ -32,43 +32,10 @@ class FixBrownianSphere : public FixBrownianBase {
   void initial_integrate(int) override;
 
  private:
-  template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_2D> void initial_integrate_templated();
+  template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_2D, int Tp_2Drot>
+  void initial_integrate_templated();
   double g3, g4;
 };
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal fix brownian/sphere command.
-
-Wrong number/type of input arguments.
-
-E: Compute brownian/sphere requires atom style sphere
-
-Self-explanatory.
-
-E: Compute brownian/sphere requires atom attribute mu
-
-Self-explanatory.
-
-E: Fix brownian/sphere translational viscous drag coefficient must be > 0.
-
-Self-explanatory.
-
-E: Fix brownian/sphere rotational viscous drag coefficient must be > 0.
-
-Self-explanatory.
-
-E: Fix brownian/sphere translational diffusion coefficient must be > 0.
-
-Self-explanatory.
-
-E: Fix brownian/sphere rotational diffusion coefficient must be > 0.
-
-Self-explanatory.
-
-E: Fix brownian/sphere seed must be > 0.
-
-*/

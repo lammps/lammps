@@ -28,6 +28,11 @@ HIP_HOST_INCLUDE += -I./
 # path to hipcub
 HIP_HOST_INCLUDE += -I$(HIP_PATH)/../include
 
+ifeq (amd,$(HIP_PLATFORM))
+	# newer version of ROCm (5.1+) require c++14 for rocprim
+	HIP_OPTS += -std=c++14
+endif
+
 # use mpi
 HIP_HOST_OPTS += -DMPI_GERYON -DUCL_NO_EXIT
 # this settings should match LAMMPS Makefile

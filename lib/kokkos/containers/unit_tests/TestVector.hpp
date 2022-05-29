@@ -60,7 +60,7 @@ struct test_vector_insert {
 
   template <typename Vector>
   void run_test(Vector& a) {
-    int n = a.size();
+    auto n = a.size();
 
     auto it = a.begin();
     if (n > 0) {
@@ -97,7 +97,7 @@ struct test_vector_insert {
 #endif
 
     ASSERT_EQ(a.size(), n + 1 + n + 5);
-    ASSERT_EQ(std::distance(it_return, a.begin() + 17), 0);
+    ASSERT_EQ(std::distance(it_return, a.begin() + 17), 0u);
 
     Vector b;
 
@@ -109,7 +109,7 @@ struct test_vector_insert {
 #else
     b.insert(b.begin(), 7, 9);
 #endif
-    ASSERT_EQ(b.size(), 7);
+    ASSERT_EQ(b.size(), 7u);
     ASSERT_EQ(b[0], scalar_type(9));
 
     it = a.begin();
@@ -121,7 +121,7 @@ struct test_vector_insert {
     it_return = a.insert(it, b.begin(), b.end());
 #endif
     ASSERT_EQ(a.size(), n + 1 + n + 5 + 7);
-    ASSERT_EQ(std::distance(it_return, a.begin() + 27 + n), 0);
+    ASSERT_EQ(std::distance(it_return, a.begin() + 27 + n), 0u);
 
     // Testing insert at end via all three function interfaces
     a.insert(a.end(), 11);

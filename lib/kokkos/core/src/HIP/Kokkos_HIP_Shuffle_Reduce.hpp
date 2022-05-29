@@ -163,7 +163,6 @@ __device__ inline bool hip_inter_block_shuffle_reduction(
   // One warp of last block performs inter block reduction through loading the
   // block values from global scratch_memory
   bool last_block = false;
-  __threadfence();
   __syncthreads();
   int constexpr warp_size = Kokkos::Experimental::Impl::HIPTraits::WarpSize;
   if (id < warp_size) {
@@ -180,7 +179,7 @@ __device__ inline bool hip_inter_block_shuffle_reduction(
       last_block = true;
       value      = neutral;
 
-      pointer_type const volatile global =
+      pointer_type const global =
           reinterpret_cast<pointer_type>(m_scratch_space);
 
       // Reduce all global values with splitting work over threads in one warp
@@ -286,7 +285,6 @@ __device__ inline bool hip_inter_block_shuffle_reduction(
   // block values from global scratch_memory
   bool last_block = false;
 
-  __threadfence();
   __syncthreads();
   int constexpr warp_size = Kokkos::Experimental::Impl::HIPTraits::WarpSize;
   if (id < warp_size) {
@@ -303,7 +301,7 @@ __device__ inline bool hip_inter_block_shuffle_reduction(
       last_block = true;
       reducer.init(value);
 
-      pointer_type const volatile global =
+      pointer_type const global =
           reinterpret_cast<pointer_type>(m_scratch_space);
 
       // Reduce all global values with splitting work over threads in one warp

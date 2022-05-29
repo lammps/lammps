@@ -54,12 +54,6 @@ ImproperHarmonicIntel::ImproperHarmonicIntel(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-ImproperHarmonicIntel::~ImproperHarmonicIntel()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void ImproperHarmonicIntel::compute(int eflag, int vflag)
 {
   #ifdef _LMP_INTEL_OFFLOAD
@@ -349,11 +343,8 @@ void ImproperHarmonicIntel::eval(const int vflag,
 
 void ImproperHarmonicIntel::init_style()
 {
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   #ifdef _LMP_INTEL_OFFLOAD
   _use_base = 0;
@@ -379,10 +370,10 @@ template <class flt_t, class acc_t>
 void ImproperHarmonicIntel::pack_force_const(ForceConst<flt_t> &fc,
                                              IntelBuffers<flt_t,acc_t> * /*buffers*/)
 {
-  const int bp1 = atom->nimpropertypes + 1;
-  fc.set_ntypes(bp1,memory);
+  const int ip1 = atom->nimpropertypes + 1;
+  fc.set_ntypes(ip1,memory);
 
-  for (int i = 1; i < bp1; i++) {
+  for (int i = 1; i < ip1; i++) {
     fc.fc[i].k = k[i];
     fc.fc[i].chi = chi[i];
   }
@@ -391,15 +382,14 @@ void ImproperHarmonicIntel::pack_force_const(ForceConst<flt_t> &fc,
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t>
-void ImproperHarmonicIntel::ForceConst<flt_t>::set_ntypes(const int nimproper,
+void ImproperHarmonicIntel::ForceConst<flt_t>::set_ntypes(const int nimpropertypes,
                                                           Memory *memory) {
-  if (nimproper != _nimpropertypes) {
-    if (_nimpropertypes > 0)
-      _memory->destroy(fc);
+  if (memory != nullptr) _memory = memory;
+  if (nimpropertypes != _nimpropertypes) {
+    _memory->destroy(fc);
 
-    if (nimproper > 0)
-      _memory->create(fc,nimproper,"improperharmonicintel.fc");
+    if (nimpropertypes > 0)
+      _memory->create(fc,nimpropertypes,"improperharmonicintel.fc");
   }
-  _nimpropertypes = nimproper;
-  _memory = memory;
+  _nimpropertypes = nimpropertypes;
 }

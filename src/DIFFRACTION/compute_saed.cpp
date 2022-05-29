@@ -348,7 +348,7 @@ void ComputeSAED::compute_vector()
     utils::logmesg(lmp,"-----\nComputing SAED intensities");
 
   double t0 = platform::walltime();
-  double *Fvec = new double[2*nRows]; // Strct factor (real & imaginary)
+  auto Fvec = new double[2*nRows]; // Strct factor (real & imaginary)
   // -- Note, vector entries correspond to different RELP
 
   ntypes = atom->ntypes;
@@ -364,7 +364,7 @@ void ComputeSAED::compute_vector()
     }
   }
 
-  double *xlocal = new double [3*nlocalgroup];
+  auto xlocal = new double [3*nlocalgroup];
   int *typelocal = new int [nlocalgroup];
 
   nlocalgroup = 0;
@@ -413,7 +413,7 @@ void ComputeSAED::compute_vector()
 #pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(offset,ASFSAED,typelocal,xlocal,Fvec,m,frac)
 #endif
   {
-    double *f = new double[ntypes];    // atomic structure factor by type
+    auto f = new double[ntypes];    // atomic structure factor by type
     int typei = 0;
     double Fatom1 = 0.0;               // structure factor per atom
     double Fatom2 = 0.0;               // structure factor per atom (imaginary)
@@ -481,7 +481,7 @@ void ComputeSAED::compute_vector()
     delete [] f;
   }
 
-  double *scratch = new double[2*nRows];
+  auto scratch = new double[2*nRows];
 
   // Sum intensity for each ang-hkl combination across processors
   MPI_Allreduce(Fvec,scratch,2*nRows,MPI_DOUBLE,MPI_SUM,world);

@@ -1,0 +1,130 @@
+LAMMPS (17 Feb 2022)
+# compute stress/spherical for a spherical droplet
+
+units           lj
+atom_style      atomic
+
+lattice         fcc 0.8442
+Lattice spacing in x,y,z = 1.6795962 1.6795962 1.6795962
+region          box block -10 10 -10 10 -10 10
+region    liquid sphere 0 0 0 5
+create_box      1 box
+Created orthogonal box = (-16.795962 -16.795962 -16.795962) to (16.795962 16.795962 16.795962)
+  1 by 2 by 2 MPI processor grid
+create_atoms    1 region liquid
+Created 2123 atoms
+  using lattice units in orthogonal box = (-16.795962 -16.795962 -16.795962) to (16.795962 16.795962 16.795962)
+  create_atoms CPU = 0.000 seconds
+mass            1 1.0
+
+velocity        all create 0.65 87287 loop geom
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0 2.5
+
+neighbor        0.3 bin
+neigh_modify    every 20 delay 0 check no
+
+fix             1 all nvt temp 0.65 0.65 0.2
+
+#dump           id all atom 50 dump.sphere
+
+#dump           2 all image 25 image.*.jpg type type #               axes yes 0.8 0.02 view 60 -30
+#dump_modify    2 pad 3
+
+#dump           3 all movie 25 movie.mpg type type #               axes yes 0.8 0.02 view 60 -30
+#dump_modify    3 pad 3
+
+fix 2 all recenter 0 0 0 units lattice
+compute p all stress/spherical 0 0 0 0.25 15
+Adjusting bin width for compute stress/spherical from 0.250000 to 0.245902
+fix 3 all ave/time 100 1 100 c_p[*] file sphere.out mode vector
+
+thermo          50
+thermo_style custom step temp epair emol etotal press c_p[15][3] c_p[15][4] c_p[15][5] c_p[15][6] c_p[15][7] c_p[15][8]
+
+run             1000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- compute stress/spherical:
+
+@article{galteland2022defining,
+title={Defining the pressures of a fluid in a nanoporous, heterogeneous medium},
+author={Galteland, Olav and Rauter, Michael T and Varughese, Kevin K and Bedeaux, Dick and Kjelstrup, Signe},
+journal={arXiv preprint arXiv:2201.13060},
+year={2022}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+  generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 20 steps, delay 0 steps, check no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 24 24 24
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) compute stress/spherical, occasional, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 3.068 | 3.078 | 3.082 Mbytes
+Step Temp E_pair E_mol TotEng Press c_p[15][3] c_p[15][4] c_p[15][5] c_p[15][6] c_p[15][7] c_p[15][8] 
+       0         0.65    -5.982005            0   -5.0074642  -0.32476388   0.35627939   0.62462251   0.46815062   -6.0757313   -6.2674721   -6.2664951 
+      50   0.42414771   -5.5700167            0   -4.9340948 -0.074492286   0.28886433   0.24978381   0.44948344   -3.0740097   -3.1912376   -3.3440998 
+     100   0.64021145   -5.7405134            0   -4.7806486 -0.0054535408   0.66078235   0.50006981   0.71100403    -1.475414   -2.2837434   -2.4415617 
+     150   0.72663247   -5.8366691            0   -4.7472338  0.089984367   0.67171939   0.88397719   0.68237586    1.6770061   0.61270415   0.21817975 
+     200   0.63460122   -5.8577473            0   -4.9062939   0.14140872   0.42462947   0.59385606    0.7268978     3.724825    5.4164976    5.6793442 
+     250   0.62199115   -5.9027866            0   -4.9702393   0.13328919   0.59870532   0.36146182   0.42120197    4.6915309    2.7849546    2.5902987 
+     300   0.62406364   -5.8889104            0   -4.9532559  0.063550326   0.52789691    0.2680398   0.54676177   0.46527871 -0.070774015  0.067168511 
+     350    0.6028994   -5.7552274            0   -4.8513043 -0.027499706   0.50997812   0.70982549    0.6490879   -1.0149299   -2.1276797   -1.9078706 
+     400   0.56811588   -5.5416058            0   -4.6898334 -0.061577561   0.47083533   0.77746521     0.675965   -1.2938321    -2.202316   -2.1025453 
+     450   0.54946762   -5.3409786            0   -4.5171654 -0.060007836   0.79992593   0.45761929   0.41283856    -1.652204   -2.8165097   -2.6321599 
+     500   0.57962648   -5.2096808            0   -4.3406506 -0.052541306   0.58252285   0.62111149   0.53587504   -1.9875759   -2.9154918   -2.5749065 
+     550   0.61149882   -5.0920642            0    -4.175248  -0.03806361   0.69036525   0.44434221   0.43153208   -1.9183958   -2.3974591   -2.3022723 
+     600   0.63683327   -4.9975996            0   -4.0427996 -0.016868781   0.61515828   0.47182625    0.4742184   -1.1994753   -1.1131664  -0.56565765 
+     650   0.67007543   -4.9684574            0   -3.9638177 -0.00087204466   0.78120956    1.0550498   0.80318482    0.5193751  -0.45357228  -0.48936452 
+     700   0.65648313   -4.9612522            0   -3.9769913  0.012954904   0.94001121   0.61816695   0.54104923   -0.9625773   -1.4649033   -1.0873728 
+     750   0.62636818   -4.9944273            0   -4.0553176   0.01206773   0.75957119   0.70733827   0.60927279 -0.054590821   -1.1571206   -1.2288301 
+     800   0.64474901   -5.0498682            0   -4.0832003 -0.0022579262   0.63509307   0.56543999   0.51633686  -0.85275527  -0.12649302  -0.79080252 
+     850   0.64765539   -5.0405969            0   -4.0695714 0.0061653637   0.56204713   0.59190191   0.44560131  -0.51984418  -0.92559078  -0.14336782 
+     900   0.65308258   -5.0187376            0   -4.0395752  0.016798783   0.50392257   0.49473611   0.46727165 -0.093317056   -1.3498298  -0.99991957 
+     950   0.65225966   -4.9974305            0   -4.0195019    0.0195366   0.47764992   0.56974826   0.58927977   0.93251392  -0.29722045   0.17614353 
+    1000    0.6407875   -4.9770134            0   -4.0162849  0.006441923   0.87635667   0.51303643   0.45437033   0.19199806   0.09464003   0.42241535 
+Loop time of 0.482332 on 4 procs for 1000 steps with 2123 atoms
+
+Performance: 895649.023 tau/day, 2073.262 timesteps/s
+99.5% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.16099    | 0.1807     | 0.19799    |   3.5 | 37.46
+Neigh   | 0.024387   | 0.027158   | 0.030308   |   1.6 |  5.63
+Comm    | 0.022206   | 0.043381   | 0.066483   |   8.5 |  8.99
+Output  | 0.14055    | 0.14125    | 0.14149    |   0.1 | 29.29
+Modify  | 0.087967   | 0.088908   | 0.090377   |   0.3 | 18.43
+Other   |            | 0.0009305  |            |       |  0.19
+
+Nlocal:         530.75 ave         542 max         513 min
+Histogram: 1 0 0 0 1 0 0 0 0 2
+Nghost:         627.75 ave         650 max         612 min
+Histogram: 1 0 1 0 1 0 0 0 0 1
+Neighs:        15919.2 ave       17564 max       14498 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
+
+Total # of neighbors = 63677
+Ave neighs/atom = 29.993877
+Neighbor list builds = 50
+Dangerous builds not checked
+Total wall time: 0:00:00

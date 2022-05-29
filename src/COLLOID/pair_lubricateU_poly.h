@@ -47,37 +47,3 @@ class PairLubricateUPoly : public PairLubricateU {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-W: Cannot include log terms without 1/r terms; setting flagHI to 1
-
-Self-explanatory.
-
-E: Pair lubricateU/poly requires newton pair off
-
-Self-explanatory.
-
-E: Pair lubricateU/poly requires ghost atoms store velocity
-
-Use the comm_modify vel yes command to enable this.
-
-E: Pair lubricate/poly requires atom style sphere
-
-Self-explanatory.
-
-E: Pair lubricate/poly requires extended particles
-
-One of the particles has radius 0.0.
-
-E: Cannot use multiple fix wall commands with pair lubricateU
-
-Self-explanatory.
-
-*/

@@ -49,29 +49,3 @@ class PairGWZBL : public PairGW {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Pair gw/zbl requires metal or real units
-
-UNDOCUMENTED
-
-E: Cannot open GW potential file %s
-
-The specified GW potential file cannot be opened.  Check that the
-path and name are correct.
-
-E: Incorrect format in GW potential file
-
-Incorrect number of words per line in the potential file.
-
-E: Illegal GW parameter
-
-One or more of the coefficients defined in the potential file is
-invalid.
-
-U: Pair GW/zbl requires metal or real units
-
-This is a current restriction of this pair potential.
-
-*/

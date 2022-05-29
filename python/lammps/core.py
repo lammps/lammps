@@ -164,6 +164,7 @@ class lammps(object):
     self.lib.lammps_open.restype = c_void_p
     self.lib.lammps_open_no_mpi.restype = c_void_p
     self.lib.lammps_close.argtypes = [c_void_p]
+    self.lib.lammps_flush_buffers.argtypes = [c_void_p]
     self.lib.lammps_free.argtypes = [c_void_p]
 
     self.lib.lammps_file.argtypes = [c_void_p, c_char_p]
@@ -408,6 +409,10 @@ class lammps(object):
         pythonapi.PyCObject_AsVoidPtr.restype = c_void_p
         pythonapi.PyCObject_AsVoidPtr.argtypes = [py_object]
         self.lmp = c_void_p(pythonapi.PyCObject_AsVoidPtr(ptr))
+
+    # check if library initilialization failed
+    if not self.lmp:
+      raise(RuntimeError("Failed to initialize LAMMPS object"))
 
     # optional numpy support (lazy loading)
     self._numpy = None
@@ -1115,6 +1120,16 @@ class lammps(object):
       else: return None
       return result
     return None
+
+  # -------------------------------------------------------------------------
+
+  def flush_buffers(self):
+    """Flush output buffers
+
+    This is a wrapper around the :cpp:func:`lammps_flush_buffers`
+    function of the C-library interface.
+    """
+    self.lib.lammps_flush_buffers(self.lmp)
 
   # -------------------------------------------------------------------------
 

@@ -21,7 +21,6 @@ FixStyle(ttm/mod,FixTTMMod);
 #define LMP_FIX_TTM_MOD_H
 
 #include "fix.h"
-#include <exception>
 
 namespace LAMMPS_NS {
 

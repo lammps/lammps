@@ -40,19 +40,3 @@ class NBinStandard : public NBin {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Domain too large for neighbor bins
-
-UNDOCUMENTED
-
-E: Cannot use neighbor bins - box size << cutoff
-
-UNDOCUMENTED
-
-E: Too many neighbor bins
-
-UNDOCUMENTED
-
-*/

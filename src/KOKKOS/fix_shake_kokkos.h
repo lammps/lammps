@@ -62,9 +62,9 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
 
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
-  int pack_forward_comm_fix_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
+  int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
                        int, int *) override;
-  void unpack_forward_comm_fix_kokkos(int, int, DAT::tdual_xfloat_1d&) override;
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
 
@@ -216,6 +216,3 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

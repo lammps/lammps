@@ -37,12 +37,3 @@ class ComputeReduceRegion : public ComputeReduce {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Fix used in compute reduce not computed at compatible time
-
-Fixes generate their values on specific timesteps.  Compute reduce is
-requesting a value on a non-allowed timestep.
-
-*/

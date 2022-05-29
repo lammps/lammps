@@ -233,7 +233,7 @@ void PairCoulLong::init_style()
 {
   if (!atom->q_flag) error->all(FLERR, "Pair style lj/cut/coul/long requires atom attribute q");
 
-  neighbor->request(this, instance_me);
+  neighbor->add_request(this);
 
   cut_coulsq = cut_coul * cut_coul;
 

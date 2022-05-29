@@ -2310,7 +2310,9 @@ double FixBondReact::rxnfunction(const std::string& rxnfunc, const std::string& 
     if (nsum != 2) error->one(FLERR,"Bond/react: Molecule fragment of reaction special function 'rxnbond' "
                      "must contain exactly two atoms");
 
-    cperbond->compute_local();
+    if (cperbond->invoked_local != lmp->update->ntimestep)
+      cperbond->compute_local();
+
     ibond = cperbond->atoms2bond.find(aset)->second;
     perbondval = cperbond->vector_local[ibond];
     return perbondval;

@@ -63,10 +63,10 @@ enum {
 //     0        1      2              3    4
 // fix fxupdate group1 electrode/conp pot1 eta couple group2 pot2
 FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), f_inv(nullptr), f_mat(nullptr), f_vec(nullptr), array_compute(nullptr),
-    ele_vector(nullptr), capacitance(nullptr), pair(nullptr), mat_neighlist(nullptr),
-    vec_neighlist(nullptr), recvcounts(nullptr), displs(nullptr), iele_gathered(nullptr),
-    buf_gathered(nullptr), potential_i(nullptr), potential_iele(nullptr), charge_iele(nullptr)
+    Fix(lmp, narg, arg), ele_vector(nullptr), capacitance(nullptr), pair(nullptr),
+    mat_neighlist(nullptr), vec_neighlist(nullptr), recvcounts(nullptr), displs(nullptr),
+    iele_gathered(nullptr), buf_gathered(nullptr), potential_i(nullptr), potential_iele(nullptr),
+    charge_iele(nullptr)
 {
   // fix.h output flags
   scalar_flag = 1;
@@ -76,7 +76,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   extvector = 0;
   extarray = 0;
 
-  read_inv = read_mat = false;
+  write_inv = write_mat = write_vec = read_inv = read_mat = false;
   symm = false;
   ffield = false;
   thermo_time = 0.;
@@ -139,23 +139,14 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
       if (iarg + 2 > narg) error->all(FLERR, "Need one argument after write command");
       if (comm->me == 0) {
         if ((strcmp(arg[iarg], "write_inv") == 0)) {    // capacitance matrix
-          f_inv = fopen(arg[++iarg], "w");
-          if (f_inv == nullptr)
-            error->one(FLERR,
-                       fmt::format("Cannot open capacitance matrix file {}: {}", arg[iarg],
-                                   utils::getsyserror()));
-        } else if ((strcmp(arg[iarg], "write_mat") == 0)) {    // b vector
-          f_mat = fopen(arg[++iarg], "w");
-          if (f_mat == nullptr)
-            error->one(FLERR,
-                       fmt::format("Cannot open elastance matrix file {}: {}", arg[iarg],
-                                   utils::getsyserror()));
+          write_inv = true;
+          output_file_inv = arg[++iarg];
+        } else if ((strcmp(arg[iarg], "write_mat") == 0)) {    // elastance matrix
+          write_mat = true;
+          output_file_mat = arg[++iarg];
         } else if ((strcmp(arg[iarg], "write_vec") == 0)) {    // b vector
-          f_vec = fopen(arg[++iarg], "w");
-          if (f_vec == nullptr)
-            error->one(
-                FLERR,
-                fmt::format("Cannot open vector file {}: {}", arg[iarg], utils::getsyserror()));
+          write_vec = true;
+          output_file_vec = arg[++iarg];
         } else {
           error->all(FLERR, "Illegal fix electrode/conp command with write");
         }
@@ -214,7 +205,6 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   if (igroup < 0) error->all(FLERR, "Failed to create union of groups");
   // construct computes
   ele_vector = new ElectrodeVector(lmp, igroup, igroup, eta, true);
-  if (!(read_inv || read_mat)) { array_compute = new ElectrodeMatrix(lmp, igroup, eta); }
 
   // error checks
   assert(groups.size() == group_bits.size());
@@ -222,9 +212,8 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   assert(groups.size() == group_psi_var_styles.size());
   assert(groups.size() == group_psi_var_names.size());
   assert(igroup == ele_vector->igroup);
-  if (!(read_mat || read_inv)) assert(igroup == array_compute->igroup);
   if (read_inv && read_mat) error->all(FLERR, "Cannot read matrix from two files");
-  if (f_mat && read_inv)
+  if (write_mat && read_inv)
     error->all(FLERR,
                "Cannot write elastance matrix if reading capacitance matrix "
                "from file");
@@ -442,11 +431,6 @@ void FixElectrodeConp::setup_post_neighbor()
 
   evscale = force->qe2f / force->qqrd2e;
   ele_vector->setup(pair, vec_neighlist, timer_flag);
-  if (!(read_mat || read_inv)) {
-    if (etypes_neighlists) neighbor->build_one(mat_neighlist, 0);
-    array_compute->setup(tag_to_iele, pair, mat_neighlist);
-    if (tfflag) { array_compute->setup_tf(tf_types); }
-  }
   // setup psi with target potentials
   iele_to_group = std::vector<int>(ngroup, -1);
   sd_vectors = std::vector<std::vector<double>>(num_of_groups, std::vector<double>(ngroup));
@@ -476,11 +460,23 @@ void FixElectrodeConp::setup_post_neighbor()
     // temporarily hold elastance in "capacitance"
     if (read_mat)
       read_from_file(input_file_mat, capacitance, "elastance");
-    else
+    else {
+      if (etypes_neighlists) neighbor->build_one(mat_neighlist, 0);
+      auto array_compute = std::unique_ptr<ElectrodeMatrix>(new ElectrodeMatrix(lmp, igroup, eta));
+      array_compute->setup(tag_to_iele, pair, mat_neighlist);
+      if (tfflag) { array_compute->setup_tf(tf_types); }
       array_compute->compute_array(capacitance, timer_flag);
-    if (f_mat && !(read_inv))
-      write_to_file(f_mat, taglist_bygroup, order_matrix(group_idx, capacitance));
-    invert();    // TODO  uncommented lots of stuff here
+      if (write_mat) {
+        auto f_mat = fopen(output_file_mat.c_str(), "w");
+        if (f_mat == nullptr)
+          error->one(FLERR,
+                     fmt::format("Cannot open elastance matrix file {}: {}", output_file_mat,
+                                 utils::getsyserror()));
+        write_to_file(f_mat, taglist_bygroup, order_matrix(group_idx, capacitance));
+        fclose(f_mat);
+      }
+      invert();    // TODO  uncommented lots of stuff here
+    }
   }
   if (symm) symmetrize();
 
@@ -507,12 +503,26 @@ void FixElectrodeConp::setup_post_neighbor()
   if (force->newton_pair) comm->reverse_comm(this);
   buffer_and_gather(potential_i, potential_iele);
   if (comm->me == 0) {
-    if (f_vec) {
+    if (write_vec) {
+      auto f_vec = fopen(output_file_vec.c_str(), "w");
+      if (f_vec == nullptr)
+        error->one(
+            FLERR,
+            fmt::format("Cannot open vector file {}: {}", output_file_vec, utils::getsyserror()));
       std::vector<std::vector<double>> vec(ngroup, std::vector<double>(1));
       for (int i = 0; i < ngroup; i++) { vec[group_idx[i]][0] = potential_iele[i]; }
       write_to_file(f_vec, taglist_bygroup, vec);
+      fclose(f_vec);
     }
-    if (f_inv) { write_to_file(f_inv, taglist_bygroup, order_matrix(group_idx, capacitance)); }
+    if (write_inv) {
+      auto f_inv = fopen(output_file_inv.c_str(), "w");
+      if (f_inv == nullptr)
+        error->one(FLERR,
+                   fmt::format("Cannot open capacitance matrix file {}: {}", output_file_inv,
+                               utils::getsyserror()));
+      write_to_file(f_inv, taglist_bygroup, order_matrix(group_idx, capacitance));
+      fclose(f_inv);
+    }
   }
 }
 
@@ -1006,12 +1016,8 @@ FixElectrodeConp::~FixElectrodeConp()
   memory->destroy(potential_iele);
   memory->destroy(charge_iele);
 
-  if (!(read_mat || read_inv)) delete array_compute;
   delete ele_vector;
   memory->destroy(capacitance);
-  if (f_inv) fclose(f_inv);
-  if (f_mat) fclose(f_mat);
-  if (f_vec) fclose(f_vec);
 }
 
 /* ---------------------------------------------------------------------- */

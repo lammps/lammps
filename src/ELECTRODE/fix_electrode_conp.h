@@ -86,13 +86,12 @@ class FixElectrodeConp : public Fix {
   std::unique_ptr<ElectrodeAccelInterface> accel_interface;    // used by /intel
 
  private:
-  FILE *f_inv, *f_mat, *f_vec;    // files for capacitance, eleastance and vector
+  std::string output_file_inv, output_file_mat, output_file_vec;
   std::string input_file_inv, input_file_mat;
-  class ElectrodeMatrix *array_compute;
   class ElectrodeVector *ele_vector;
   std::vector<int> groups;
   double **capacitance;
-  bool read_inv, read_mat;
+  bool read_inv, read_mat, write_inv, write_mat, write_vec;
   double eta;
   double update_time, mult_time;
   void create_taglist();

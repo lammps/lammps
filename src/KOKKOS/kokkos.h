@@ -55,7 +55,7 @@ class KokkosLMP : protected Pointers {
   static int init_ngpus;
 
   KokkosLMP(class LAMMPS *, int, char **);
-  ~KokkosLMP() override;
+
   static void initialize(Kokkos::InitArguments, Error *);
   static void finalize();
   void accelerator(int, char **);

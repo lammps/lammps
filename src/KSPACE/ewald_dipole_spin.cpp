@@ -76,7 +76,7 @@ void EwaldDipoleSpin::init()
 
   if (!atom->sp) error->all(FLERR,"Kspace style requires atom attribute sp");
 
-  if ((spinflag && strcmp(update->unit_style,"metal")) != 0)
+  if ((spinflag && strcmp(update->unit_style,"metal") != 0) != 0)
     error->all(FLERR,"'metal' units have to be used with spins");
 
   if (slabflag == 0 && domain->nonperiodic > 0)

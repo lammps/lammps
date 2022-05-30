@@ -25,7 +25,6 @@ namespace LAMMPS_NS {
 class FixNHGPU : public FixNH {
  public:
   FixNHGPU(class LAMMPS *, int, char **);
-  ~FixNHGPU() override;
   void setup(int vflag) override;
   void reset_dt() override;
   void final_integrate() override;

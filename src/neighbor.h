@@ -153,8 +153,12 @@ class Neighbor : protected Pointers {
 
   void exclusion_group_group_delete(int, int);    // rm a group-group exclusion
   int exclude_setting();                          // return exclude value to accelerator pkg
-  NeighList *find_list(void *) const;             // find a neighbor list based on requestor
-  NeighRequest *find_request(void *) const;       // find a neighbor request based on requestor
+
+  // find a neighbor list based on requestor
+  NeighList *find_list(void *, const int id = 0) const;
+  // find a neighbor request based on requestor
+  NeighRequest *find_request(void *, const int id = 0) const;
+
   const std::vector<NeighRequest *> get_pair_requests() const;
   int any_full();                // Check if any old requests had full neighbor lists
   void build_collection(int);    // build peratom collection array starting at the given index

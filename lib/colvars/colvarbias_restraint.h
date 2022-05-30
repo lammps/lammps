@@ -12,6 +12,11 @@
 
 #include "colvarbias.h"
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4250) // Silence diamond inheritance warning
+#endif
+
 /// \brief Most general definition of a colvar restraint:
 /// see derived classes for specific types
 /// (implementation of \link colvarbias \endlink)
@@ -359,5 +364,8 @@ protected:
   bool b_write_histogram;
 };
 
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #endif

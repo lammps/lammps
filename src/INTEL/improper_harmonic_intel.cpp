@@ -54,12 +54,6 @@ ImproperHarmonicIntel::ImproperHarmonicIntel(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-ImproperHarmonicIntel::~ImproperHarmonicIntel()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void ImproperHarmonicIntel::compute(int eflag, int vflag)
 {
   #ifdef _LMP_INTEL_OFFLOAD

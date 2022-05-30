@@ -55,6 +55,8 @@
 #include <Kokkos_HIP_Space.hpp>
 #include <Kokkos_Parallel.hpp>
 
+#include <HIP/Kokkos_HIP_Half_Impl_Type.hpp>
+#include <HIP/Kokkos_HIP_Half_Conversion.hpp>
 #include <HIP/Kokkos_HIP_Instance.hpp>
 #include <HIP/Kokkos_HIP_MDRangePolicy.hpp>
 #include <HIP/Kokkos_HIP_Parallel_Range.hpp>

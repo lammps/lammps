@@ -180,7 +180,7 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
   size_type* m_scratch_flags = nullptr;
   // Only let one ParallelReduce/Scan modify the shared memory. The
   // constructor acquires the mutex which is released in the destructor.
-  std::unique_lock<std::mutex> m_shared_memory_lock;
+  std::lock_guard<std::mutex> m_shared_memory_lock;
 
   static bool constexpr UseShflReduction =
       static_cast<bool>(ValueTraits::StaticValueSize);
@@ -357,12 +357,13 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
 
       m_scratch_space =
           ::Kokkos::Experimental::Impl::hip_internal_scratch_space(
+              m_policy.space(),
               ValueTraits::value_size(
                   ReducerConditional::select(m_functor, m_reducer)) *
-              block_size /* block_size == max block_count */);
+                  block_size /* block_size == max block_count */);
       m_scratch_flags =
           ::Kokkos::Experimental::Impl::hip_internal_scratch_flags(
-              sizeof(size_type));
+              m_policy.space(), sizeof(size_type));
 
       // REQUIRED ( 1 , N , 1 )
       dim3 block(1, block_size, 1);
@@ -484,7 +485,7 @@ class ParallelScanHIPBase {
   int m_grid_x               = 0;
   // Only let one ParallelReduce/Scan modify the shared memory. The
   // constructor acquires the mutex which is released in the destructor.
-  std::unique_lock<std::mutex> m_shared_memory_lock;
+  std::lock_guard<std::mutex> m_shared_memory_lock;
 
  private:
   template <class TagType>
@@ -657,9 +658,9 @@ class ParallelScanHIPBase {
       m_grid_x = (nwork + work_per_block - 1) / work_per_block;
 
       m_scratch_space = Kokkos::Experimental::Impl::hip_internal_scratch_space(
-          ValueTraits::value_size(m_functor) * m_grid_x);
+          m_policy.space(), ValueTraits::value_size(m_functor) * m_grid_x);
       m_scratch_flags = Kokkos::Experimental::Impl::hip_internal_scratch_flags(
-          sizeof(size_type) * 1);
+          m_policy.space(), sizeof(size_type) * 1);
 
       dim3 grid(m_grid_x, 1, 1);
       dim3 block(1, block_size, 1);  // REQUIRED DIMENSIONS ( 1 , N , 1 )

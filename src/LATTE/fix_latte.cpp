@@ -255,7 +255,7 @@ void FixLatte::post_force(int vflag)
   double *boxlo = domain->boxlo;
   double *boxhi = domain->boxhi;
   double *forces;
-  bool latteerror = 0;
+  bool latteerror = false;
   if (coulomb) forces = &flatte[0][0];
   else forces = &atom->f[0][0];
   int maxiter = -1;

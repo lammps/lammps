@@ -332,7 +332,7 @@ void PairHybrid::settings(int narg, char **arg)
     jarg = iarg + 1;
     while ((jarg < narg)
            && !force->pair_map->count(arg[jarg])
-           && !lmp->match_style("pair",arg[jarg])) jarg++;
+           && !lmp->match_style("pair", arg[jarg])) jarg++;
 
     styles[nstyles]->settings(jarg-iarg-1,&arg[iarg+1]);
     iarg = jarg;
@@ -1010,8 +1010,7 @@ void PairHybrid::modify_special(int m, int /*narg*/, char **arg)
   special[3] = utils::numeric(FLERR,arg[3],false,lmp);
 
   if (styles[m]->suffix_flag & (Suffix::INTEL|Suffix::GPU))
-    error->all(FLERR,"Pair_modify special is not compatible with "
-                     "suffix version of hybrid substyle");
+    error->all(FLERR,"Pair_modify special not compatible with suffix version of hybrid substyle");
 
   if (strcmp(arg[0],"lj/coul") == 0) {
     if (!special_lj[m]) special_lj[m] = new double[4];
@@ -1090,13 +1089,11 @@ void *PairHybrid::extract(const char *str, int &dim)
     ptr = styles[m]->extract(str,dim);
     if (ptr && strcmp(str,"cut_coul") == 0) {
       if (couldim != -1 && dim != couldim)
-        error->all(FLERR,
-                   "Coulomb styles of pair hybrid sub-styles do not match");
+        error->all(FLERR, "Coulomb styles of pair hybrid sub-styles do not match");
       auto p_newvalue = (double *) ptr;
       double newvalue = *p_newvalue;
       if (cutptr && (newvalue != cutvalue))
-        error->all(FLERR,
-                   "Coulomb cutoffs of pair hybrid sub-styles do not match");
+        error->all(FLERR, "Coulomb cutoffs of pair hybrid sub-styles do not match");
       if (dim == 0) {
         cutptr = ptr;
         cutvalue = newvalue;

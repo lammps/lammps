@@ -51,7 +51,7 @@ using namespace MathConst;
 #define CHUNK 1024
 #define MAXFUNCARG 6
 
-#define MYROUND(a) (( a-floor(a) ) >= .5) ? ceil(a) : floor(a)
+#define MYROUND(a) (( (a)-floor(a) ) >= .5) ? ceil(a) : floor(a)
 
 enum{ARG,OP};
 
@@ -500,6 +500,31 @@ void Variable::set(int narg, char **arg)
       strcpy(data[nvar][1],"(undefined)");
     }
 
+  // TIMER
+  // stores current walltime as a timestamp in seconds
+  // replace pre-existing var if also style TIMER (allows reset with current time)
+  // num = 1, for string representation of dvalue, set by retrieve()
+  // dvalue = numeric initialization via platform::walltime()
+
+  } else if (strcmp(arg[1],"timer") == 0) {
+    if (narg != 2) error->all(FLERR,"Illegal variable command");
+    int ivar = find(arg[0]);
+    if (ivar >= 0) {
+      if (style[ivar] != TIMER)
+        error->all(FLERR,"Cannot redefine variable as a different style");
+      dvalue[ivar] = platform::walltime();
+      replaceflag = 1;
+    } else {
+      if (nvar == maxvar) grow();
+      style[nvar] = TIMER;
+      num[nvar] = 1;
+      which[nvar] = 0;
+      pad[nvar] = 0;
+      data[nvar] = new char*[num[nvar]];
+      data[nvar][0] = new char[VALUELENGTH];
+      dvalue[nvar] = platform::walltime();
+    }
+
   // INTERNAL
   // replace pre-existing var if also style INTERNAL (allows it to be reset)
   // num = 1, for string representation of dvalue, set by retrieve()
@@ -523,6 +548,8 @@ void Variable::set(int narg, char **arg)
       data[nvar][0] = new char[VALUELENGTH];
       dvalue[nvar] = utils::numeric(FLERR,arg[2],false,lmp);
     }
+
+  // unrecognized variable style
 
   } else error->all(FLERR,"Illegal variable command");
 
@@ -610,13 +637,14 @@ int Variable::next(int narg, char **arg)
       error->all(FLERR,"All variables in next command must have same style");
   }
 
-  // invalid styles: STRING, EQUAL, WORLD, ATOM, VECTOR, GETENV,
-  //                 FORMAT, PYTHON, INTERNAL
+  // invalid styles: STRING, EQUAL, WORLD, GETENV, ATOM, VECTOR,
+  //                 FORMAT, PYTHON, TIMER, INTERNAL
 
   int istyle = style[find(arg[0])];
-  if (istyle == STRING || istyle == EQUAL || istyle == WORLD ||
-      istyle == GETENV || istyle == ATOM || istyle == VECTOR ||
-      istyle == FORMAT || istyle == PYTHON || istyle == INTERNAL)
+  if (istyle == STRING || istyle == EQUAL ||
+      istyle == WORLD || istyle == GETENV || istyle == ATOM ||
+      istyle == VECTOR || istyle == FORMAT || istyle == PYTHON ||
+      istyle == TIMER || istyle == INTERNAL)
     error->all(FLERR,"Invalid variable style with next command");
 
   // if istyle = UNIVERSE or ULOOP, insure all such variables are incremented
@@ -794,13 +822,15 @@ void Variable::python_command(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   return 1 if variable is EQUAL or INTERNAL or PYTHON numeric style, 0 if not
+   return 1 if variable is EQUAL style, 0 if not
+   TIMER, INTERNAL, PYTHON qualify as EQUAL style
    this is checked before call to compute_equal() to return a double
 ------------------------------------------------------------------------- */
 
 int Variable::equalstyle(int ivar)
 {
-  if (style[ivar] == EQUAL || style[ivar] == INTERNAL) return 1;
+  if (style[ivar] == EQUAL || style[ivar] == TIMER ||
+      style[ivar] == INTERNAL) return 1;
   if (style[ivar] == PYTHON) {
     int ifunc = python->variable_match(data[ivar][0],names[ivar],1);
     if (ifunc < 0) return 0;
@@ -925,7 +955,7 @@ char *Variable::retrieve(const char *name)
     // then the Python class stores the result, query it via long_string()
     char *strlong = python->long_string(ifunc);
     if (strlong) str = strlong;
-  } else if (style[ivar] == INTERNAL) {
+  } else if (style[ivar] == TIMER || style[ivar] == INTERNAL) {
     sprintf(data[ivar][0],"%.15g",dvalue[ivar]);
     str = data[ivar][0];
   } else if (style[ivar] == ATOM || style[ivar] == ATOMFILE ||
@@ -938,7 +968,7 @@ char *Variable::retrieve(const char *name)
 
 /* ----------------------------------------------------------------------
    return result of equal-style variable evaluation
-   can be EQUAL or INTERNAL style or PYTHON numeric style
+   can be EQUAL or TIMER or INTERNAL style or PYTHON numeric style
    for PYTHON, don't need to check python->variable_match() error return,
      since caller will have already checked via equalstyle()
 ------------------------------------------------------------------------- */
@@ -952,6 +982,7 @@ double Variable::compute_equal(int ivar)
 
   double value = 0.0;
   if (style[ivar] == EQUAL) value = evaluate(data[ivar][0],nullptr,ivar);
+  else if (style[ivar] == TIMER) value = dvalue[ivar];
   else if (style[ivar] == INTERNAL) value = dvalue[ivar];
   else if (style[ivar] == PYTHON) {
     int ifunc = python->find(data[ivar][0]);
@@ -3221,20 +3252,20 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
 {
   // word not a match to any math function
 
-  if (strcmp(word,"sqrt") && strcmp(word,"exp") &&
-      strcmp(word,"ln") && strcmp(word,"log") &&
-      strcmp(word,"abs") &&
-      strcmp(word,"sin") && strcmp(word,"cos") &&
-      strcmp(word,"tan") && strcmp(word,"asin") &&
-      strcmp(word,"acos") && strcmp(word,"atan") &&
-      strcmp(word,"atan2") && strcmp(word,"random") &&
-      strcmp(word,"normal") && strcmp(word,"ceil") &&
-      strcmp(word,"floor") && strcmp(word,"round") &&
-      strcmp(word,"ramp") && strcmp(word,"stagger") &&
-      strcmp(word,"logfreq") && strcmp(word,"logfreq2") &&
-      strcmp(word,"logfreq3") && strcmp(word,"stride") &&
-      strcmp(word,"stride2") && strcmp(word,"vdisplace") &&
-      strcmp(word,"swiggle") && strcmp(word,"cwiggle"))
+  if (strcmp(word,"sqrt") != 0 && strcmp(word,"exp") &&
+      strcmp(word,"ln") != 0 && strcmp(word,"log") != 0 &&
+      strcmp(word,"abs") != 0 &&
+      strcmp(word,"sin") != 0 && strcmp(word,"cos") != 0 &&
+      strcmp(word,"tan") != 0 && strcmp(word,"asin") != 0 &&
+      strcmp(word,"acos") != 0 && strcmp(word,"atan") != 0 &&
+      strcmp(word,"atan2") != 0 && strcmp(word,"random") != 0 &&
+      strcmp(word,"normal") != 0 && strcmp(word,"ceil") != 0 &&
+      strcmp(word,"floor") != 0 && strcmp(word,"round") != 0 &&
+      strcmp(word,"ramp") != 0 && strcmp(word,"stagger") != 0 &&
+      strcmp(word,"logfreq") != 0 && strcmp(word,"logfreq2") != 0 &&
+      strcmp(word,"logfreq3") != 0 && strcmp(word,"stride") != 0 &&
+      strcmp(word,"stride2") != 0 && strcmp(word,"vdisplace") != 0 &&
+      strcmp(word,"swiggle") != 0 && strcmp(word,"cwiggle") != 0)
     return 0;
 
   // parse contents for comma-separated args
@@ -3645,13 +3676,13 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
 {
   // word not a match to any group function
 
-  if (strcmp(word,"count") && strcmp(word,"mass") &&
-      strcmp(word,"charge") && strcmp(word,"xcm") &&
-      strcmp(word,"vcm") && strcmp(word,"fcm") &&
-      strcmp(word,"bound") && strcmp(word,"gyration") &&
-      strcmp(word,"ke") && strcmp(word,"angmom") &&
-      strcmp(word,"torque") && strcmp(word,"inertia") &&
-      strcmp(word,"omega"))
+  if (strcmp(word,"count") != 0 && strcmp(word,"mass") &&
+      strcmp(word,"charge") != 0 && strcmp(word,"xcm") != 0 &&
+      strcmp(word,"vcm") != 0 && strcmp(word,"fcm") != 0 &&
+      strcmp(word,"bound") != 0 && strcmp(word,"gyration") != 0 &&
+      strcmp(word,"ke") != 0 && strcmp(word,"angmom") != 0 &&
+      strcmp(word,"torque") != 0 && strcmp(word,"inertia") != 0 &&
+      strcmp(word,"omega") != 0)
     return 0;
 
   // parse contents for comma-separated args
@@ -3894,11 +3925,11 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
 
   // word not a match to any special function
 
-  if (strcmp(word,"sum") && strcmp(word,"min") && strcmp(word,"max") && strcmp(word,"ave") &&
-      strcmp(word,"trap") && strcmp(word,"slope") && strcmp(word,"gmask") && strcmp(word,"rmask") &&
-      strcmp(word,"grmask") && strcmp(word,"next") && strcmp(word,"is_active") &&
-      strcmp(word,"is_defined") && strcmp(word,"is_available") && strcmp(word,"is_file") &&
-      strcmp(word,"extract_setting"))
+  if (strcmp(word,"sum") != 0 && strcmp(word,"min") && strcmp(word,"max") != 0 && strcmp(word,"ave") != 0 &&
+      strcmp(word,"trap") != 0 && strcmp(word,"slope") != 0 && strcmp(word,"gmask") != 0 && strcmp(word,"rmask") != 0 &&
+      strcmp(word,"grmask") != 0 && strcmp(word,"next") != 0 && strcmp(word,"is_active") != 0 &&
+      strcmp(word,"is_defined") != 0 && strcmp(word,"is_available") != 0 && strcmp(word,"is_file") != 0 &&
+      strcmp(word,"extract_setting") != 0)
     return 0;
 
   // parse contents for comma-separated args
@@ -4563,7 +4594,6 @@ void Variable::print_tree(Tree *tree, int level)
   if (tree->second) print_tree(tree->second,level+1);
   if (tree->nextra)
     for (int i = 0; i < tree->nextra; i++) print_tree(tree->extra[i],level+1);
-  return;
 }
 
 /* ----------------------------------------------------------------------

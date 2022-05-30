@@ -13,7 +13,11 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author:  Stan Moore (SNL)
+   Contributing authors:  Stan Moore (SNL)
+
+   Tomas Oppelstrup (LLNL): Optimization which reduces the number
+   of iterations in the L,m1,m2 loops (by a factor of up to 10), and
+   avoids evaluation of Ylm functions of negative m
 ------------------------------------------------------------------------- */
 
 #include "compute_orientorder_atom_kokkos.h"
@@ -34,16 +38,15 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace MathSpecial;
-using namespace std;
+using MathSpecial::factorial;
 
 #ifdef DBL_EPSILON
-  #define MY_EPSILON (10.0*DBL_EPSILON)
+static constexpr double MY_EPSILON = (10.0 * DBL_EPSILON);
 #else
-  #define MY_EPSILON (10.0*2.220446049250313e-16)
+static constexpr double MY_EPSILON = (10.0 * 2.220446049250313e-16);
 #endif
 
-#define QEPSILON 1.0e-6
+static constexpr double QEPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
@@ -58,6 +61,20 @@ ComputeOrientOrderAtomKokkos<DeviceType>::ComputeOrientOrderAtomKokkos(LAMMPS *l
   datamask_modify = EMPTY_MASK;
 
   host_flag = (execution_space == Host);
+
+  d_qnormfac = t_sna_1d("orientorder/atom:qnormfac",nqlist);
+  d_qnormfac2 = t_sna_1d("orientorder/atom:qnormfac2",nqlist);
+
+  auto h_qnormfac = Kokkos::create_mirror_view(d_qnormfac);
+  auto h_qnormfac2 = Kokkos::create_mirror_view(d_qnormfac2);
+
+  for (int il = 0; il < nqlist; il++) {
+    h_qnormfac[il] = qnormfac[il];
+    h_qnormfac2[il] = qnormfac2[il];
+  }
+
+  Kokkos::deep_copy(d_qnormfac,h_qnormfac);
+  Kokkos::deep_copy(d_qnormfac2,h_qnormfac2);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -140,7 +157,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::compute_peratom()
   chunk_offset = 0;
 
   if (chunk_size > (int)d_ncount.extent(0)) {
-    d_qnm = t_sna_3c("orientorder/atom:qnm",chunk_size,nqlist,2*qmax+1);
+    d_qnm = t_sna_3c("orientorder/atom:qnm",chunk_size,nqlist,qmax+1);
     d_ncount = t_sna_1i("orientorder/atom:ncount",chunk_size);
   }
 
@@ -332,7 +349,6 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::operator() (TagComputeOrientOrder
   calc_boop2(ncount, ii);
 }
 
-
 /* ----------------------------------------------------------------------
    select3 routine from Numerical Recipes (slightly modified)
    find k smallest values in array of length n
@@ -466,26 +482,14 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop1(int /*ncount*/, int ii
 
     //d_qnm(ii,il,l).re += polar_prefactor(l, 0, costheta);
     const double polar_pf = polar_prefactor(l, 0, costheta);
-    Kokkos::atomic_add(&(d_qnm(ii,il,l).re), polar_pf);
+    Kokkos::atomic_add(&(d_qnm(ii,il,0).re), polar_pf);
     SNAcomplex expphim = {expphi.re,expphi.im};
     for (int m = 1; m <= +l; m++) {
       const double prefactor = polar_prefactor(l, m, costheta);
       SNAcomplex ylm = {prefactor * expphim.re, prefactor * expphim.im};
-      //d_qnm(ii,il,m+l).re += ylm.re;
-      //d_qnm(ii,il,m+l).im += ylm.im;
-      Kokkos::atomic_add(&(d_qnm(ii,il,m+l).re), ylm.re);
-      Kokkos::atomic_add(&(d_qnm(ii,il,m+l).im), ylm.im);
-      if (m & 1) {
-        //d_qnm(ii,il,-m+l).re -= ylm.re;
-        //d_qnm(ii,il,-m+l).im += ylm.im;
-        Kokkos::atomic_add(&(d_qnm(ii,il,-m+l).re), -ylm.re);
-        Kokkos::atomic_add(&(d_qnm(ii,il,-m+l).im), ylm.im);
-      } else {
-        //d_qnm(ii,il,-m+l).re += ylm.re;
-        //d_qnm(ii,il,-m+l).im -= ylm.im;
-        Kokkos::atomic_add(&(d_qnm(ii,il,-m+l).re), ylm.re);
-        Kokkos::atomic_add(&(d_qnm(ii,il,-m+l).im), -ylm.im);
-      }
+      Kokkos::atomic_add(&(d_qnm(ii,il,m).re), ylm.re);
+      Kokkos::atomic_add(&(d_qnm(ii,il,m).im), ylm.im);
+      // Skip calculation of qnm for m<0 due to symmetry
       SNAcomplex tmp;
       tmp.re = expphim.re*expphi.re - expphim.im*expphi.im;
       tmp.im = expphim.re*expphi.im + expphim.im*expphi.re;
@@ -510,7 +514,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
   double facn = 1.0 / ncount;
   for (int il = 0; il < nqlist; il++) {
     int l = d_qlist[il];
-    for (int m = 0; m < 2*l+1; m++) {
+    for (int m = 0; m < l+1; m++) {
       d_qnm(ii,il,m).re *= facn;
       d_qnm(ii,il,m).im *= facn;
     }
@@ -522,57 +526,57 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
   int jj = 0;
   for (int il = 0; il < nqlist; il++) {
     int l = d_qlist[il];
-    double qnormfac = sqrt(MY_4PI/(2*l+1));
-    double qm_sum = 0.0;
-    for (int m = 0; m < 2*l+1; m++)
-      qm_sum += d_qnm(ii,il,m).re*d_qnm(ii,il,m).re + d_qnm(ii,il,m).im*d_qnm(ii,il,m).im;
-    d_qnarray(i,jj++) = qnormfac * sqrt(qm_sum);
+    double qm_sum = d_qnm(ii,il,0).re*d_qnm(ii,il,0).re;
+    for (int m = 1; m < l+1; m++)
+      qm_sum += 2.0*(d_qnm(ii,il,m).re*d_qnm(ii,il,m).re + d_qnm(ii,il,m).im*d_qnm(ii,il,m).im);
+    d_qnarray(i,jj++) = d_qnormfac(il) * sqrt(qm_sum);
   }
 
   // calculate W_l
 
-  if (wlflag) {
-    int idxcg_count = 0;
+  int nterms = 0;
+  int widx_count = 0;
+  if (wlflag || wlhatflag) {
     for (int il = 0; il < nqlist; il++) {
       int l = d_qlist[il];
       double wlsum = 0.0;
-      for (int m1 = 0; m1 < 2*l+1; m1++) {
-        for (int m2 = MAX(0,l-m1); m2 < MIN(2*l+1,3*l-m1+1); m2++) {
-          int m = m1 + m2 - l;
-          SNAcomplex qm1qm2;
-          qm1qm2.re = d_qnm(ii,il,m1).re*d_qnm(ii,il,m2).re - d_qnm(ii,il,m1).im*d_qnm(ii,il,m2).im;
-          qm1qm2.im = d_qnm(ii,il,m1).re*d_qnm(ii,il,m2).im + d_qnm(ii,il,m1).im*d_qnm(ii,il,m2).re;
-          wlsum += (qm1qm2.re*d_qnm(ii,il,m).re + qm1qm2.im*d_qnm(ii,il,m).im)*d_cglist[idxcg_count];
-          idxcg_count++;
+      for (int m1 = -l; m1 <= 0; m1++) {
+        const int sgn = 1 - 2*(m1&1); // sgn = (-1)^m1
+        for (int m2 = 0; m2 <= ((-m1)>>1); m2++) {
+          const int m3 = -(m1 + m2);
+          // Loop enforces -L<=m1<=0<=m2<=m3<=L, and m1+m2+m3=0
+
+          // For even L, W3j is invariant under permutation of
+          // (m1,m2,m3) and (m1,m2,m3)->(-m1,-m2,-m3). The loop
+          // structure enforces visiting only one member of each
+          // such symmetry (invariance) group.
+
+          // m1 <= 0, and Qlm[-m] = (-1)^m*conjg(Qlm[m])
+          SNAcomplex Q1Q2;
+          Q1Q2.re = (d_qnm(ii,il,-m1).re*d_qnm(ii,il,m2).re + d_qnm(ii,il,-m1).im*d_qnm(ii,il,m2).im)*sgn;
+          Q1Q2.im = (d_qnm(ii,il,-m1).re*d_qnm(ii,il,m2).im - d_qnm(ii,il,-m1).im*d_qnm(ii,il,m2).re)*sgn;
+          const double Q1Q2Q3 = Q1Q2.re*d_qnm(ii,il,m3).re - Q1Q2.im*d_qnm(ii,il,m3).im;
+          const double c = d_w3jlist[widx_count++];
+          wlsum += Q1Q2Q3*c;
+
         }
       }
-      d_qnarray(i,jj++) = wlsum/sqrt(2.0*l+1.0);
+      d_qnarray(i,jj++) = wlsum/d_qnormfac2(il);
+      nterms++;
     }
   }
 
   // calculate W_l_hat
 
   if (wlhatflag) {
-    int idxcg_count = 0;
+    const int jptr = jj-nterms;
+    if (!wlflag) jj = jptr;
     for (int il = 0; il < nqlist; il++) {
-      int l = d_qlist[il];
-      double wlsum = 0.0;
-      for (int m1 = 0; m1 < 2*l+1; m1++) {
-        for (int m2 = MAX(0,l-m1); m2 < MIN(2*l+1,3*l-m1+1); m2++) {
-          const int m = m1 + m2 - l;
-          SNAcomplex qm1qm2;
-          qm1qm2.re = d_qnm(ii,il,m1).re*d_qnm(ii,il,m2).re - d_qnm(ii,il,m1).im*d_qnm(ii,il,m2).im;
-          qm1qm2.im = d_qnm(ii,il,m1).re*d_qnm(ii,il,m2).im + d_qnm(ii,il,m1).im*d_qnm(ii,il,m2).re;
-          wlsum += (qm1qm2.re*d_qnm(ii,il,m).re + qm1qm2.im*d_qnm(ii,il,m).im)*d_cglist[idxcg_count];
-          idxcg_count++;
-        }
-      }
       if (d_qnarray(i,il) < QEPSILON)
         d_qnarray(i,jj++) = 0.0;
       else {
-        const double qnormfac = sqrt(MY_4PI/(2*l+1));
-        const double qnfac = qnormfac/d_qnarray(i,il);
-        d_qnarray(i,jj++) = wlsum/sqrt(2.0*l+1.0)*(qnfac*qnfac*qnfac);
+        const double qnfac = d_qnormfac(il)/d_qnarray(i,il);
+        d_qnarray(i,jj++) = d_qnarray(i,jptr+il) * (qnfac*qnfac*qnfac) * d_qnormfac2(il);
       }
     }
   }
@@ -588,9 +592,15 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
         d_qnarray(i,jj++) = 0.0;
       }
     else {
-      const double qnormfac = sqrt(MY_4PI/(2*l+1));
-      const double qnfac = qnormfac/d_qnarray(i,il);
-      for (int m = 0; m < 2*l+1; m++) {
+      const double qnfac = d_qnormfac(il)/d_qnarray(i,il);
+      for (int m = -l; m < 0; m++) {
+        // Computed only qnm for m>=0.
+        // qnm[-m] = (-1)^m * conjg(qnm[m])
+        const int sgn = 1 - 2*(m&1); // sgn = (-1)^m
+        d_qnarray(i,jj++) =  d_qnm(ii,il,-m).re * qnfac * sgn;
+        d_qnarray(i,jj++) = -d_qnm(ii,il,-m).im * qnfac * sgn;
+      }
+      for (int m = 0; m < l+1; m++) {
         d_qnarray(i,jj++) = d_qnm(ii,il,m).re * qnfac;
         d_qnarray(i,jj++) = d_qnm(ii,il,m).im * qnfac;
       }
@@ -652,70 +662,21 @@ double ComputeOrientOrderAtomKokkos<DeviceType>::associated_legendre(int l, int 
 }
 
 /* ----------------------------------------------------------------------
-   assign Clebsch-Gordan coefficients
-   using the quasi-binomial formula VMK 8.2.1(3)
-   specialized for case j1=j2=j=l
+  Initialize table of Wigner 3j symbols
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void ComputeOrientOrderAtomKokkos<DeviceType>::init_clebsch_gordan()
+void ComputeOrientOrderAtomKokkos<DeviceType>::init_wigner3j()
 {
-  double sum,dcg,sfaccg, sfac1, sfac2;
-  int m, aa2, bb2, cc2;
-  int ifac, idxcg_count;
+  ComputeOrientOrderAtom::init_wigner3j();
 
-  idxcg_count = 0;
-  for (int il = 0; il < nqlist; il++) {
-    int l = qlist[il];
-    for (int m1 = 0; m1 < 2*l+1; m1++)
-      for (int m2 = MAX(0,l-m1); m2 < MIN(2*l+1,3*l-m1+1); m2++)
-        idxcg_count++;
-  }
-  idxcg_max = idxcg_count;
-  d_cglist = t_sna_1d("orientorder/atom:d_cglist",idxcg_max);
-  auto h_cglist = Kokkos::create_mirror_view(d_cglist);
+  d_w3jlist = t_sna_1d("computeorientorderatom:w3jlist",widx_max);
+  auto h_w3jlist = Kokkos::create_mirror_view(d_w3jlist);
 
-  idxcg_count = 0;
-  for (int il = 0; il < nqlist; il++) {
-    int l = qlist[il];
-    for (int m1 = 0; m1 < 2*l+1; m1++) {
-        aa2 = m1 - l;
-        for (int m2 = MAX(0,l-m1); m2 < MIN(2*l+1,3*l-m1+1); m2++) {
-          bb2 = m2 - l;
-          m = aa2 + bb2 + l;
+  for (int i = 0; i< widx_max; i++)
+    h_w3jlist(i) = w3jlist[i];
 
-          sum = 0.0;
-          for (int z = MAX(0, MAX(-aa2, bb2));
-               z <= MIN(l, MIN(l - aa2, l + bb2)); z++) {
-            ifac = z % 2 ? -1 : 1;
-            sum += ifac /
-              (factorial(z) *
-               factorial(l - z) *
-               factorial(l - aa2 - z) *
-               factorial(l + bb2 - z) *
-               factorial(aa2 + z) *
-               factorial(-bb2 + z));
-          }
-
-          cc2 = m - l;
-          sfaccg = sqrt(factorial(l + aa2) *
-                        factorial(l - aa2) *
-                        factorial(l + bb2) *
-                        factorial(l - bb2) *
-                        factorial(l + cc2) *
-                        factorial(l - cc2) *
-                        (2*l + 1));
-
-          sfac1 = factorial(3*l + 1);
-          sfac2 = factorial(l);
-          dcg = sqrt(sfac2*sfac2*sfac2 / sfac1);
-
-          h_cglist[idxcg_count] = sum * dcg * sfaccg;
-          idxcg_count++;
-        }
-      }
-  }
-  Kokkos::deep_copy(d_cglist,h_cglist);
+  Kokkos::deep_copy(d_w3jlist,h_w3jlist);
 }
 
 /* ----------------------------------------------------------------------

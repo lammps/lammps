@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -15,14 +14,13 @@
 #include "ntopo_bond_all.h"
 
 #include "atom.h"
-#include "force.h"
 #include "domain.h"
-#include "update.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
 #include "output.h"
 #include "thermo.h"
-#include "memory.h"
-#include "error.h"
-
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
@@ -39,7 +37,7 @@ NTopoBondAll::NTopoBondAll(LAMMPS *lmp) : NTopo(lmp)
 
 void NTopoBondAll::build()
 {
-  int i,m,atom1;
+  int i, m, atom1;
 
   int nlocal = atom->nlocal;
   int *num_bond = atom->num_bond;
@@ -58,16 +56,17 @@ void NTopoBondAll::build()
       if (atom1 == -1) {
         nmissing++;
         if (lostbond == Thermo::ERROR)
-          error->one(FLERR,"Bond atoms {} {} missing on "
-                                       "proc {} at step {}",tag[i],
-                                       bond_atom[i][m],me,update->ntimestep);
+          error->one(FLERR,
+                     "Bond atoms {} {} missing on "
+                     "proc {} at step {}",
+                     tag[i], bond_atom[i][m], me, update->ntimestep);
         continue;
       }
-      atom1 = domain->closest_image(i,atom1);
+      atom1 = domain->closest_image(i, atom1);
       if (newton_bond || i < atom1) {
         if (nbondlist == maxbond) {
           maxbond += DELTA;
-          memory->grow(bondlist,maxbond,3,"neigh_topo:bondlist");
+          memory->grow(bondlist, maxbond, 3, "neigh_topo:bondlist");
         }
         bondlist[nbondlist][0] = i;
         bondlist[nbondlist][1] = atom1;
@@ -80,7 +79,6 @@ void NTopoBondAll::build()
   if (lostbond == Thermo::IGNORE) return;
 
   int all;
-  MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
-  if (all && (me == 0))
-    error->warning(FLERR,"Bond atoms missing at step {}",update->ntimestep);
+  MPI_Allreduce(&nmissing, &all, 1, MPI_INT, MPI_SUM, world);
+  if (all && (me == 0)) error->warning(FLERR, "Bond atoms missing at step {}", update->ntimestep);
 }

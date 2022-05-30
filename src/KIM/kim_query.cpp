@@ -88,7 +88,7 @@ using namespace LAMMPS_NS;
 
 #if defined(LMP_KIM_CURL)
 namespace {
-static constexpr int kBufSize{10240};
+constexpr int kBufSize{10240};
 
 struct WriteBuf {
   char *dataptr;

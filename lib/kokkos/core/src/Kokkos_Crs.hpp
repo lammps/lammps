@@ -191,7 +191,8 @@ class CrsRowMapFromCounts {
   using execution_space = typename InCounts::execution_space;
   using value_type      = typename OutRowMap::value_type;
   using index_type      = typename InCounts::size_type;
-  using last_value_type = Kokkos::View<value_type, execution_space>;
+  using last_value_type =
+      Kokkos::View<value_type, typename InCounts::device_type>;
 
  private:
   InCounts m_in;
@@ -224,8 +225,8 @@ class CrsRowMapFromCounts {
     using closure_type = Kokkos::Impl::ParallelScan<self_type, policy_type>;
     closure_type closure(*this, policy_type(0, m_in.size() + 1));
     closure.execute();
-    auto last_value = Kokkos::create_mirror_view(m_last_value);
-    Kokkos::deep_copy(last_value, m_last_value);
+    auto last_value =
+        Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, m_last_value);
     return last_value();
   }
 };

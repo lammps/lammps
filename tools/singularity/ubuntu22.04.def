@@ -4,8 +4,8 @@ From: ubuntu:22.04
 %post
     export DEBIAN_FRONTEND=noninteractive
     apt-get update
-    apt-get install --no-install-recommends -y software-properties-common
-#    add-apt-repository ppa:openkim/latest
+    apt-get install --no-install-recommends -y software-properties-common gpg gpg-agent
+    add-apt-repository ppa:openkim/latest
     apt-get update
     apt-get upgrade --no-install-recommends -y
     apt-get install --no-install-recommends -y \
@@ -74,29 +74,28 @@ From: ubuntu:22.04
         zstd \
         libyaml-cpp-dev \
         libkim-api-dev \
-        gpg-agent \
-#        openkim-models
+        openkim-models
 
-#    ###########################################################################
-#    # KIM-API
-#    ###########################################################################
-#
-#    # workaround for installing files in /usr/share/doc inside of a container
-#    sed -i 's/path-exclude=\/usr\/share\/doc/#path-exclude=\/usr\/share\/doc/g' /etc/dpkg/dpkg.cfg.d/excludes
-#    apt-get install -y libkim-api-doc
-#    sed -i 's/#path-exclude=\/usr\/share\/doc/path-exclude=\/usr\/share\/doc/g' /etc/dpkg/dpkg.cfg.d/excludes
-#
-#    # install KIM models
-#    KIM_API_EXAMPLES=/usr/share/doc/libkim-api-dev/examples
+    ###########################################################################
+    # KIM-API
+    ###########################################################################
+
+    # workaround for installing files in /usr/share/doc inside of a container
+    sed -i 's/path-exclude=\/usr\/share\/doc/#path-exclude=\/usr\/share\/doc/g' /etc/dpkg/dpkg.cfg.d/excludes
+    apt-get install -y libkim-api-doc
+    sed -i 's/#path-exclude=\/usr\/share\/doc/path-exclude=\/usr\/share\/doc/g' /etc/dpkg/dpkg.cfg.d/excludes
+
+    # install KIM models
+    KIM_API_EXAMPLES=/usr/share/doc/libkim-api-dev/examples
 #    gunzip $KIM_API_EXAMPLES/portable-models/LennardJones612_UniversalShifted__MO_959249795837_003/LennardJones612_UniversalShifted.params.gz
 #    gunzip $KIM_API_EXAMPLES/model-drivers/ex_model_driver_P_LJ/ex_model_driver_P_LJ.f90.gz
-#
-#    kim-api-collections-management install system $KIM_API_EXAMPLES/model-drivers/LennardJones612__MD_414112407348_003
-#    kim-api-collections-management install system $KIM_API_EXAMPLES/model-drivers/ex_model_driver_P_LJ
-#    kim-api-collections-management install system $KIM_API_EXAMPLES/portable-models/LennardJones_Ar
-#    kim-api-collections-management install system $KIM_API_EXAMPLES/portable-models/ex_model_Ar_P_LJ
-#    kim-api-collections-management install system $KIM_API_EXAMPLES/portable-models/LennardJones612_UniversalShifted__MO_959249795837_003
-#    kim-api-collections-management install system $KIM_API_EXAMPLES/simulator-models/Sim_LAMMPS_LJcut_AkersonElliott_Alchemy_PbAu
+
+    kim-api-collections-management install system $KIM_API_EXAMPLES/model-drivers/LennardJones612__MD_414112407348_003
+    kim-api-collections-management install system $KIM_API_EXAMPLES/model-drivers/ex_model_driver_P_LJ
+    kim-api-collections-management install system $KIM_API_EXAMPLES/portable-models/LennardJones_Ar
+    kim-api-collections-management install system $KIM_API_EXAMPLES/portable-models/ex_model_Ar_P_LJ
+    kim-api-collections-management install system $KIM_API_EXAMPLES/portable-models/LennardJones612_UniversalShifted__MO_959249795837_003
+    kim-api-collections-management install system $KIM_API_EXAMPLES/simulator-models/Sim_LAMMPS_LJcut_AkersonElliott_Alchemy_PbAu
 
 
     ###########################################################################

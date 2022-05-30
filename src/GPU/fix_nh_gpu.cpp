@@ -54,12 +54,6 @@ FixNHGPU::FixNHGPU(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixNHGPU::~FixNHGPU()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixNHGPU::setup(int vflag)
 {
   FixNH::setup(vflag);

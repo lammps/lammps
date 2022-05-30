@@ -65,7 +65,6 @@ struct in_place_shfl_op {
     return *static_cast<Derived const*>(this);
   }
 
-  // FIXME_HIP depends on UB
   // sizeof(Scalar) < sizeof(int) case
   template <class Scalar>
   // requires _assignable_from_bits<Scalar>
@@ -76,17 +75,19 @@ struct in_place_shfl_op {
     union conv_type {
       Scalar orig;
       shfl_type conv;
+      // This should be fine, members get explicitly reset, which changes the
+      // active member
+      KOKKOS_FUNCTION conv_type() { conv = 0; }
     };
     conv_type tmp_in;
     tmp_in.orig = in;
-    conv_type tmp_out;
-    tmp_out.conv = tmp_in.conv;
+    shfl_type tmp_out;
+    tmp_out = reinterpret_cast<shfl_type&>(tmp_in.orig);
     conv_type res;
     //------------------------------------------------
-    res.conv = self().do_shfl_op(
-        reinterpret_cast<shfl_type const&>(tmp_out.conv), lane_or_delta, width);
+    res.conv = self().do_shfl_op(tmp_out, lane_or_delta, width);
     //------------------------------------------------
-    out = res.orig;
+    out = reinterpret_cast<Scalar&>(res.conv);
   }
 
   // sizeof(Scalar) == sizeof(int) case
@@ -121,6 +122,9 @@ struct in_place_shfl_op {
       reinterpret_cast<shuffle_as_t*>(&out)[i] = self().do_shfl_op(
           reinterpret_cast<shuffle_as_t const*>(&val)[i], lane_or_delta, width);
     }
+    // FIXME_HIP - this fence should be removed once the hip-clang compiler
+    // properly supports fence semanics for shuffles
+    __atomic_signal_fence(__ATOMIC_SEQ_CST);
   }
 };
 
@@ -128,12 +132,7 @@ struct in_place_shfl_fn : in_place_shfl_op<in_place_shfl_fn> {
   template <class T>
   __device__ KOKKOS_IMPL_FORCEINLINE T do_shfl_op(T& val, int lane,
                                                   int width) const noexcept {
-    // FIXME_HIP Not sure why there is a race condition here. Note that the
-    // problem was also found in the CUDA backend with CUDA clang
-    // (https://github.com/kokkos/kokkos/issues/941) but it seems more limited
-    // in CUDA clang.
     auto return_val = __shfl(val, lane, width);
-    __threadfence();
     return return_val;
   }
 };
@@ -147,12 +146,7 @@ struct in_place_shfl_up_fn : in_place_shfl_op<in_place_shfl_up_fn> {
   template <class T>
   __device__ KOKKOS_IMPL_FORCEINLINE T do_shfl_op(T& val, int lane,
                                                   int width) const noexcept {
-    // FIXME_HIP Not sure why there is a race condition here. Note that the
-    // problem was also found in the CUDA backend with CUDA clang
-    // (https://github.com/kokkos/kokkos/issues/941) but it seems more limited
-    // in CUDA clang.
     auto return_val = __shfl_up(val, lane, width);
-    __threadfence();
     return return_val;
   }
 };
@@ -167,12 +161,7 @@ struct in_place_shfl_down_fn : in_place_shfl_op<in_place_shfl_down_fn> {
   template <class T>
   __device__ KOKKOS_IMPL_FORCEINLINE T do_shfl_op(T& val, int lane,
                                                   int width) const noexcept {
-    // FIXME_HIP Not sure why there is a race condition here. Note that the
-    // problem was also found in the CUDA backend with CUDA clang
-    // (https://github.com/kokkos/kokkos/issues/941) but it seems more limited
-    // in CUDA clang.
     auto return_val = __shfl_down(val, lane, width);
-    __threadfence();
     return return_val;
   }
 };

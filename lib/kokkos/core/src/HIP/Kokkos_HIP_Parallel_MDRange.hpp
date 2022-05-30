@@ -84,17 +84,19 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
     using ClosureType =
         ParallelFor<FunctorType, Policy, Kokkos::Experimental::HIP>;
     if (m_policy.m_num_tiles == 0) return;
-    array_index_type const maxblocks = static_cast<array_index_type>(
-        m_policy.space().impl_internal_space_instance()->m_maxBlock);
+    auto const maxblocks =
+        Kokkos::Experimental::Impl::hip_internal_maximum_grid_count();
     if (Policy::rank == 2) {
       dim3 const block(m_policy.m_tile[0], m_policy.m_tile[1], 1);
       dim3 const grid(
-          std::min((m_policy.m_upper[0] - m_policy.m_lower[0] + block.x - 1) /
-                       block.x,
-                   maxblocks),
-          std::min((m_policy.m_upper[1] - m_policy.m_lower[1] + block.y - 1) /
-                       block.y,
-                   maxblocks),
+          std::min<array_index_type>(
+              (m_policy.m_upper[0] - m_policy.m_lower[0] + block.x - 1) /
+                  block.x,
+              maxblocks[0]),
+          std::min<array_index_type>(
+              (m_policy.m_upper[1] - m_policy.m_lower[1] + block.y - 1) /
+                  block.y,
+              maxblocks[1]),
           1);
       Kokkos::Experimental::Impl::hip_parallel_launch<ClosureType,
                                                       LaunchBounds>(
@@ -104,15 +106,18 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
       dim3 const block(m_policy.m_tile[0], m_policy.m_tile[1],
                        m_policy.m_tile[2]);
       dim3 const grid(
-          std::min((m_policy.m_upper[0] - m_policy.m_lower[0] + block.x - 1) /
-                       block.x,
-                   maxblocks),
-          std::min((m_policy.m_upper[1] - m_policy.m_lower[1] + block.y - 1) /
-                       block.y,
-                   maxblocks),
-          std::min((m_policy.m_upper[2] - m_policy.m_lower[2] + block.z - 1) /
-                       block.z,
-                   maxblocks));
+          std::min<array_index_type>(
+              (m_policy.m_upper[0] - m_policy.m_lower[0] + block.x - 1) /
+                  block.x,
+              maxblocks[0]),
+          std::min<array_index_type>(
+              (m_policy.m_upper[1] - m_policy.m_lower[1] + block.y - 1) /
+                  block.y,
+              maxblocks[1]),
+          std::min<array_index_type>(
+              (m_policy.m_upper[2] - m_policy.m_lower[2] + block.z - 1) /
+                  block.z,
+              maxblocks[2]));
       Kokkos::Experimental::Impl::hip_parallel_launch<ClosureType,
                                                       LaunchBounds>(
           *this, grid, block, 0,
@@ -123,15 +128,16 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
       dim3 const block(m_policy.m_tile[0] * m_policy.m_tile[1],
                        m_policy.m_tile[2], m_policy.m_tile[3]);
       dim3 const grid(
-          std::min(static_cast<uint32_t>(m_policy.m_tile_end[0] *
-                                         m_policy.m_tile_end[1]),
-                   static_cast<uint32_t>(maxblocks)),
-          std::min((m_policy.m_upper[2] - m_policy.m_lower[2] + block.y - 1) /
-                       block.y,
-                   maxblocks),
-          std::min((m_policy.m_upper[3] - m_policy.m_lower[3] + block.z - 1) /
-                       block.z,
-                   maxblocks));
+          std::min<array_index_type>(
+              m_policy.m_tile_end[0] * m_policy.m_tile_end[1], maxblocks[0]),
+          std::min<array_index_type>(
+              (m_policy.m_upper[2] - m_policy.m_lower[2] + block.y - 1) /
+                  block.y,
+              maxblocks[1]),
+          std::min<array_index_type>(
+              (m_policy.m_upper[3] - m_policy.m_lower[3] + block.z - 1) /
+                  block.z,
+              maxblocks[2]));
       Kokkos::Experimental::Impl::hip_parallel_launch<ClosureType,
                                                       LaunchBounds>(
           *this, grid, block, 0,
@@ -143,15 +149,14 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
                        m_policy.m_tile[2] * m_policy.m_tile[3],
                        m_policy.m_tile[4]);
       dim3 const grid(
-          std::min(static_cast<index_type>(m_policy.m_tile_end[0] *
-                                           m_policy.m_tile_end[1]),
-                   static_cast<index_type>(maxblocks)),
-          std::min(static_cast<index_type>(m_policy.m_tile_end[2] *
-                                           m_policy.m_tile_end[3]),
-                   static_cast<index_type>(maxblocks)),
-          std::min((m_policy.m_upper[4] - m_policy.m_lower[4] + block.z - 1) /
-                       block.z,
-                   maxblocks));
+          std::min<array_index_type>(
+              m_policy.m_tile_end[0] * m_policy.m_tile_end[1], maxblocks[0]),
+          std::min<array_index_type>(
+              m_policy.m_tile_end[2] * m_policy.m_tile_end[3], maxblocks[1]),
+          std::min<array_index_type>(
+              (m_policy.m_upper[4] - m_policy.m_lower[4] + block.z - 1) /
+                  block.z,
+              maxblocks[2]));
       Kokkos::Experimental::Impl::hip_parallel_launch<ClosureType,
                                                       LaunchBounds>(
           *this, grid, block, 0,
@@ -162,15 +167,13 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
       dim3 const block(m_policy.m_tile[0] * m_policy.m_tile[1],
                        m_policy.m_tile[2] * m_policy.m_tile[3],
                        m_policy.m_tile[4] * m_policy.m_tile[5]);
-      dim3 const grid(std::min(static_cast<index_type>(m_policy.m_tile_end[0] *
-                                                       m_policy.m_tile_end[1]),
-                               static_cast<index_type>(maxblocks)),
-                      std::min(static_cast<index_type>(m_policy.m_tile_end[2] *
-                                                       m_policy.m_tile_end[3]),
-                               static_cast<index_type>(maxblocks)),
-                      std::min(static_cast<index_type>(m_policy.m_tile_end[4] *
-                                                       m_policy.m_tile_end[5]),
-                               static_cast<index_type>(maxblocks)));
+      dim3 const grid(
+          std::min<array_index_type>(
+              m_policy.m_tile_end[0] * m_policy.m_tile_end[1], maxblocks[0]),
+          std::min<array_index_type>(
+              m_policy.m_tile_end[2] * m_policy.m_tile_end[3], maxblocks[1]),
+          std::min<array_index_type>(
+              m_policy.m_tile_end[4] * m_policy.m_tile_end[5], maxblocks[2]));
       Kokkos::Experimental::Impl::hip_parallel_launch<ClosureType,
                                                       LaunchBounds>(
           *this, grid, block, 0,
@@ -247,7 +250,7 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
   size_type* m_scratch_flags;
   // Only let one Parallel/Scan modify the shared memory. The
   // constructor acquires the mutex which is released in the destructor.
-  std::unique_lock<std::mutex> m_shared_memory_lock;
+  std::lock_guard<std::mutex> m_shared_memory_lock;
 
   using DeviceIteratePattern = typename Kokkos::Impl::Reduce::DeviceIterateTile<
       Policy::rank, Policy, FunctorType, WorkTag, reference_type>;
@@ -336,7 +339,7 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
   inline void execute() {
     using ClosureType = ParallelReduce<FunctorType, Policy, ReducerType,
                                        Kokkos::Experimental::HIP>;
-    const int nwork   = m_policy.m_num_tiles;
+    const auto nwork  = m_policy.m_num_tiles;
     if (nwork) {
       int block_size = m_policy.m_prod_tile_dims;
       // CONSTRAINT: Algorithm requires block_size >= product of tile dimensions
@@ -352,12 +355,13 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
 
       m_scratch_space =
           ::Kokkos::Experimental::Impl::hip_internal_scratch_space(
+              m_policy.space(),
               ValueTraits::value_size(
                   ReducerConditional::select(m_functor, m_reducer)) *
-              block_size /* block_size == max block_count */);
+                  block_size /* block_size == max block_count */);
       m_scratch_flags =
           ::Kokkos::Experimental::Impl::hip_internal_scratch_flags(
-              sizeof(size_type));
+              m_policy.space(), sizeof(size_type));
 
       // REQUIRED ( 1 , N , 1 )
       const dim3 block(1, block_size, 1);

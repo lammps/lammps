@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -41,19 +40,19 @@ void Reader::open_file(const std::string &file)
   if (platform::has_compress_extension(file)) {
     compressed = true;
     fp = platform::compressed_read(file);
-    if (!fp) error->one(FLERR,"Cannot open compressed file for reading");
+    if (!fp) error->one(FLERR, "Cannot open compressed file for reading");
   } else {
     compressed = false;
     if (utils::strmatch(file, "\\.bin$")) {
       binary = true;
-      fp = fopen(file.c_str(),"rb");
+      fp = fopen(file.c_str(), "rb");
     } else {
-      fp = fopen(file.c_str(),"r");
+      fp = fopen(file.c_str(), "r");
       binary = false;
     }
   }
 
-  if (!fp) error->one(FLERR,"Cannot open file {}: {}", file, utils::getsyserror());
+  if (!fp) error->one(FLERR, "Cannot open file {}: {}", file, utils::getsyserror());
 }
 
 /* ----------------------------------------------------------------------
@@ -64,8 +63,10 @@ void Reader::open_file(const std::string &file)
 void Reader::close_file()
 {
   if (fp == nullptr) return;
-  if (compressed) platform::pclose(fp);
-  else fclose(fp);
+  if (compressed)
+    platform::pclose(fp);
+  else
+    fclose(fp);
   fp = nullptr;
 }
 
@@ -73,8 +74,7 @@ void Reader::close_file()
    detect unused arguments
 ------------------------------------------------------------------------- */
 
-void Reader::settings(int narg, char** /*args*/)
+void Reader::settings(int narg, char ** /*args*/)
 {
-  if (narg > 0)
-    error->all(FLERR,"Illegal read_dump command");
+  if (narg > 0) error->all(FLERR, "Illegal read_dump command");
 }

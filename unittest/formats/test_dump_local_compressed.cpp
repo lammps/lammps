@@ -38,7 +38,7 @@ public:
 
 TEST_F(DumpLocalCompressTest, compressed_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "run*.melt.local";
     auto base_name_0       = "run0.melt.local";
@@ -71,7 +71,7 @@ TEST_F(DumpLocalCompressTest, compressed_run0)
 
 TEST_F(DumpLocalCompressTest, compressed_no_buffer_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "no_buffer_run*.melt.local";
     auto base_name_0       = "no_buffer_run0.melt.local";
@@ -104,7 +104,7 @@ TEST_F(DumpLocalCompressTest, compressed_no_buffer_run0)
 
 TEST_F(DumpLocalCompressTest, compressed_with_time_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "with_time_run*.melt.local";
     auto base_name_0       = "with_time_run0.melt.local";
@@ -137,7 +137,7 @@ TEST_F(DumpLocalCompressTest, compressed_with_time_run0)
 
 TEST_F(DumpLocalCompressTest, compressed_with_units_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "with_units_run*.melt.local";
     auto base_name_0       = "with_units_run0.melt.local";
@@ -170,7 +170,7 @@ TEST_F(DumpLocalCompressTest, compressed_with_units_run0)
 
 TEST_F(DumpLocalCompressTest, compressed_triclinic_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
     enable_triclinic();
 
     auto base_name         = "triclinic_run*.melt.local";
@@ -204,7 +204,7 @@ TEST_F(DumpLocalCompressTest, compressed_triclinic_run0)
 
 TEST_F(DumpLocalCompressTest, compressed_multi_file_run1)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "multi_file_run1_*.melt.local";
     auto base_name_0       = "multi_file_run1_0.melt.local";
@@ -246,7 +246,7 @@ TEST_F(DumpLocalCompressTest, compressed_multi_file_run1)
 
 TEST_F(DumpLocalCompressTest, compressed_multi_file_with_pad_run1)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "multi_file_pad_run1_*.melt.local";
     auto base_name_0       = "multi_file_pad_run1_000.melt.local";
@@ -288,7 +288,7 @@ TEST_F(DumpLocalCompressTest, compressed_multi_file_with_pad_run1)
 
 TEST_F(DumpLocalCompressTest, compressed_multi_file_with_maxfiles_run1)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "multi_file_maxfiles_run1_*.melt.local";
     auto base_name_0       = "multi_file_maxfiles_run1_0.melt.local";
@@ -368,7 +368,7 @@ TEST_F(DumpLocalCompressTest, compressed_modify_multi_bad_param)
 
 TEST_F(DumpLocalCompressTest, compressed_modify_clevel_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name       = "modify_clevel_run0.melt.local";
     auto text_file       = text_dump_filename(base_name);

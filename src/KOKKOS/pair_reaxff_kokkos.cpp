@@ -2782,174 +2782,174 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
   F_FLOAT fitmp[3],fjtmp[3];
   for (int j = 0; j < 3; j++) fitmp[j] = 0.0;
 
-    delij[0] = x(j,0) - xtmp;
-    delij[1] = x(j,1) - ytmp;
-    delij[2] = x(j,2) - ztmp;
-    const F_FLOAT rsqij = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
-    rij = sqrt(rsqij);
-    bo_ij = d_BO(i,j_index);
+  delij[0] = x(j,0) - xtmp;
+  delij[1] = x(j,1) - ytmp;
+  delij[2] = x(j,2) - ztmp;
+  const F_FLOAT rsqij = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
+  rij = sqrt(rsqij);
+  bo_ij = d_BO(i,j_index);
 
-    BOA_ij = bo_ij - thb_cut;
+  BOA_ij = bo_ij - thb_cut;
 
-    const int jtype = type(j);
+  const int jtype = type(j);
 
-    F_FLOAT CdDelta_j = 0.0;
-    for (int k = 0; k < 3; k++) fjtmp[k] = 0.0;
+  F_FLOAT CdDelta_j = 0.0;
+  for (int k = 0; k < 3; k++) fjtmp[k] = 0.0;
 
-      delik[0] = x(k,0) - xtmp;
-      delik[1] = x(k,1) - ytmp;
-      delik[2] = x(k,2) - ztmp;
-      const F_FLOAT rsqik = delik[0]*delik[0] + delik[1]*delik[1] + delik[2]*delik[2];
-      const F_FLOAT rik = sqrt(rsqik);
-      bo_ik = d_BO(i,k_index);
-      BOA_ik   = bo_ik - thb_cut;
+  delik[0] = x(k,0) - xtmp;
+  delik[1] = x(k,1) - ytmp;
+  delik[2] = x(k,2) - ztmp;
+  const F_FLOAT rsqik = delik[0]*delik[0] + delik[1]*delik[1] + delik[2]*delik[2];
+  const F_FLOAT rik = sqrt(rsqik);
+  bo_ik = d_BO(i,k_index);
+  BOA_ik   = bo_ik - thb_cut;
 
-      const int ktype = type(k);
+  const int ktype = type(k);
 
-      // theta and derivatives
+  // theta and derivatives
 
-      cos_theta = (delij[0]*delik[0]+delij[1]*delik[1]+delij[2]*delik[2])/(rij*rik);
-      if (cos_theta > 1.0) cos_theta  = 1.0;
-      if (cos_theta < -1.0) cos_theta  = -1.0;
-      theta = acos(cos_theta);
+  cos_theta = (delij[0]*delik[0]+delij[1]*delik[1]+delij[2]*delik[2])/(rij*rik);
+  if (cos_theta > 1.0) cos_theta  = 1.0;
+  if (cos_theta < -1.0) cos_theta  = -1.0;
+  theta = acos(cos_theta);
 
-      const F_FLOAT inv_dists = 1.0 / (rij * rik);
-      const F_FLOAT Cdot_inv3 = cos_theta * inv_dists * inv_dists;
+  const F_FLOAT inv_dists = 1.0 / (rij * rik);
+  const F_FLOAT Cdot_inv3 = cos_theta * inv_dists * inv_dists;
 
-      for (int t = 0; t < 3; t++) {
-        dcos_theta_di[t] = -(delik[t] + delij[t]) * inv_dists + Cdot_inv3 * (rsqik * delij[t] + rsqij * delik[t]);
-        dcos_theta_dj[t] = delik[t] * inv_dists - Cdot_inv3 * rsqik * delij[t];
-        dcos_theta_dk[t] = delij[t] * inv_dists - Cdot_inv3 * rsqij * delik[t];
-      }
+  for (int t = 0; t < 3; t++) {
+    dcos_theta_di[t] = -(delik[t] + delij[t]) * inv_dists + Cdot_inv3 * (rsqik * delij[t] + rsqij * delik[t]);
+    dcos_theta_dj[t] = delik[t] * inv_dists - Cdot_inv3 * rsqik * delij[t];
+    dcos_theta_dk[t] = delij[t] * inv_dists - Cdot_inv3 * rsqij * delik[t];
+  }
 
-      sin_theta = sin(theta);
-      if (sin_theta < 1.0e-5) sin_theta = 1.0e-5;
-      p_val1 = paramsthbp(jtype,itype,ktype).p_val1;
+  sin_theta = sin(theta);
+  if (sin_theta < 1.0e-5) sin_theta = 1.0e-5;
+  p_val1 = paramsthbp(jtype,itype,ktype).p_val1;
 
-      // ANGLE ENERGY
+  // ANGLE ENERGY
 
-      p_val1 = paramsthbp(jtype,itype,ktype).p_val1;
-      p_val2 = paramsthbp(jtype,itype,ktype).p_val2;
-      p_val4 = paramsthbp(jtype,itype,ktype).p_val4;
-      p_val7 = paramsthbp(jtype,itype,ktype).p_val7;
-      theta_00 = paramsthbp(jtype,itype,ktype).theta_00;
+  p_val1 = paramsthbp(jtype,itype,ktype).p_val1;
+  p_val2 = paramsthbp(jtype,itype,ktype).p_val2;
+  p_val4 = paramsthbp(jtype,itype,ktype).p_val4;
+  p_val7 = paramsthbp(jtype,itype,ktype).p_val7;
+  theta_00 = paramsthbp(jtype,itype,ktype).theta_00;
 
-      exp3ij = exp(-p_val3 * pow(BOA_ij, p_val4));
-      f7_ij = 1.0 - exp3ij;
-      Cf7ij = p_val3 * p_val4 * pow(BOA_ij, p_val4 - 1.0) * exp3ij;
-      exp3jk = exp(-p_val3 * pow(BOA_ik, p_val4));
-      f7_jk = 1.0 - exp3jk;
-      Cf7jk = p_val3 * p_val4 * pow(BOA_ik, p_val4 - 1.0) * exp3jk;
-      expval7 = exp(-p_val7 * d_Delta_boc[i]);
-      trm8 = 1.0 + expval6 + expval7;
-      f8_Dj = p_val5 - ((p_val5 - 1.0) * (2.0 + expval6) / trm8);
-      Cf8j = ((1.0 - p_val5) / (trm8*trm8)) *
-       (p_val6 * expval6 * trm8 - (2.0 + expval6) * (p_val6*expval6 - p_val7*expval7));
-      theta_0 = 180.0 - theta_00 * (1.0 - exp(-p_val10 * (2.0 - SBO2)));
-      theta_0 = theta_0*constPI/180.0;
+  exp3ij = exp(-p_val3 * pow(BOA_ij, p_val4));
+  f7_ij = 1.0 - exp3ij;
+  Cf7ij = p_val3 * p_val4 * pow(BOA_ij, p_val4 - 1.0) * exp3ij;
+  exp3jk = exp(-p_val3 * pow(BOA_ik, p_val4));
+  f7_jk = 1.0 - exp3jk;
+  Cf7jk = p_val3 * p_val4 * pow(BOA_ik, p_val4 - 1.0) * exp3jk;
+  expval7 = exp(-p_val7 * d_Delta_boc[i]);
+  trm8 = 1.0 + expval6 + expval7;
+  f8_Dj = p_val5 - ((p_val5 - 1.0) * (2.0 + expval6) / trm8);
+  Cf8j = ((1.0 - p_val5) / (trm8*trm8)) *
+   (p_val6 * expval6 * trm8 - (2.0 + expval6) * (p_val6*expval6 - p_val7*expval7));
+  theta_0 = 180.0 - theta_00 * (1.0 - exp(-p_val10 * (2.0 - SBO2)));
+  theta_0 = theta_0*constPI/180.0;
 
-      expval2theta  = exp(-p_val2 * (theta_0-theta)*(theta_0-theta));
-      if (p_val1 >= 0)
-        expval12theta = p_val1 * (1.0 - expval2theta);
-      else // To avoid linear Me-H-Me angles (6/6/06)
-        expval12theta = p_val1 * -expval2theta;
+  expval2theta  = exp(-p_val2 * (theta_0-theta)*(theta_0-theta));
+  if (p_val1 >= 0)
+    expval12theta = p_val1 * (1.0 - expval2theta);
+  else // To avoid linear Me-H-Me angles (6/6/06)
+    expval12theta = p_val1 * -expval2theta;
 
-      CEval1 = Cf7ij * f7_jk * f8_Dj * expval12theta;
-      CEval2 = Cf7jk * f7_ij * f8_Dj * expval12theta;
-      CEval3 = Cf8j  * f7_ij * f7_jk * expval12theta;
-      CEval4 = -2.0 * p_val1 * p_val2 * f7_ij * f7_jk * f8_Dj * expval2theta * (theta_0 - theta);
-      Ctheta_0 = p_val10 * theta_00*constPI/180.0 * exp(-p_val10 * (2.0 - SBO2));
-      CEval5 = -CEval4 * Ctheta_0 * CSBO2;
-      CEval6 = CEval5 * dSBO1;
-      CEval7 = CEval5 * dSBO2;
-      CEval8 = -CEval4 / sin_theta;
+  CEval1 = Cf7ij * f7_jk * f8_Dj * expval12theta;
+  CEval2 = Cf7jk * f7_ij * f8_Dj * expval12theta;
+  CEval3 = Cf8j  * f7_ij * f7_jk * expval12theta;
+  CEval4 = -2.0 * p_val1 * p_val2 * f7_ij * f7_jk * f8_Dj * expval2theta * (theta_0 - theta);
+  Ctheta_0 = p_val10 * theta_00*constPI/180.0 * exp(-p_val10 * (2.0 - SBO2));
+  CEval5 = -CEval4 * Ctheta_0 * CSBO2;
+  CEval6 = CEval5 * dSBO1;
+  CEval7 = CEval5 * dSBO2;
+  CEval8 = -CEval4 / sin_theta;
 
-      e_ang = f7_ij * f7_jk * f8_Dj * expval12theta;
-      if (eflag) ev.ereax[3] += e_ang;
+  e_ang = f7_ij * f7_jk * f8_Dj * expval12theta;
+  if (eflag) ev.ereax[3] += e_ang;
 
-      // Penalty energy
+  // Penalty energy
 
-      p_pen1 = paramsthbp(jtype,itype,ktype).p_pen1;
+  p_pen1 = paramsthbp(jtype,itype,ktype).p_pen1;
 
-      exp_pen2ij = exp(-p_pen2 * (BOA_ij - 2.0)*(BOA_ij - 2.0));
-      exp_pen2jk = exp(-p_pen2 * (BOA_ik - 2.0)*(BOA_ik - 2.0));
-      exp_pen3 = exp(-p_pen3 * d_Delta[i]);
-      exp_pen4 = exp(p_pen4 * d_Delta[i]);
-      trm_pen34 = 1.0 + exp_pen3 + exp_pen4;
-      f9_Dj = (2.0 + exp_pen3) / trm_pen34;
-      Cf9j = (-p_pen3 * exp_pen3 * trm_pen34 - (2.0 + exp_pen3) *
-       (-p_pen3 * exp_pen3 + p_pen4 * exp_pen4))/(trm_pen34*trm_pen34);
+  exp_pen2ij = exp(-p_pen2 * (BOA_ij - 2.0)*(BOA_ij - 2.0));
+  exp_pen2jk = exp(-p_pen2 * (BOA_ik - 2.0)*(BOA_ik - 2.0));
+  exp_pen3 = exp(-p_pen3 * d_Delta[i]);
+  exp_pen4 = exp(p_pen4 * d_Delta[i]);
+  trm_pen34 = 1.0 + exp_pen3 + exp_pen4;
+  f9_Dj = (2.0 + exp_pen3) / trm_pen34;
+  Cf9j = (-p_pen3 * exp_pen3 * trm_pen34 - (2.0 + exp_pen3) *
+   (-p_pen3 * exp_pen3 + p_pen4 * exp_pen4))/(trm_pen34*trm_pen34);
 
-      e_pen = p_pen1 * f9_Dj * exp_pen2ij * exp_pen2jk;
-      if (eflag) ev.ereax[4] += e_pen;
+  e_pen = p_pen1 * f9_Dj * exp_pen2ij * exp_pen2jk;
+  if (eflag) ev.ereax[4] += e_pen;
 
-      CEpen1 = e_pen * Cf9j / f9_Dj;
-      temp   = -2.0 * p_pen2 * e_pen;
-      CEpen2 = temp * (BOA_ij - 2.0);
-      CEpen3 = temp * (BOA_ik - 2.0);
+  CEpen1 = e_pen * Cf9j / f9_Dj;
+  temp   = -2.0 * p_pen2 * e_pen;
+  CEpen2 = temp * (BOA_ij - 2.0);
+  CEpen3 = temp * (BOA_ik - 2.0);
 
-      // ConjAngle energy
+  // ConjAngle energy
 
-      p_coa1 = paramsthbp(jtype,itype,ktype).p_coa1;
-      exp_coa2 = exp(p_coa2 * Delta_val);
-      e_coa = p_coa1 / (1. + exp_coa2) *
-              exp(-p_coa3 * SQR(d_total_bo[j]-BOA_ij)) *
-              exp(-p_coa3 * SQR(d_total_bo[k]-BOA_ik)) *
-              exp(-p_coa4 * SQR(BOA_ij - 1.5)) *
-              exp(-p_coa4 * SQR(BOA_ik - 1.5));
+  p_coa1 = paramsthbp(jtype,itype,ktype).p_coa1;
+  exp_coa2 = exp(p_coa2 * Delta_val);
+  e_coa = p_coa1 / (1. + exp_coa2) *
+	  exp(-p_coa3 * SQR(d_total_bo[j]-BOA_ij)) *
+	  exp(-p_coa3 * SQR(d_total_bo[k]-BOA_ik)) *
+	  exp(-p_coa4 * SQR(BOA_ij - 1.5)) *
+	  exp(-p_coa4 * SQR(BOA_ik - 1.5));
 
-      CEcoa1 = -2 * p_coa4 * (BOA_ij - 1.5) * e_coa;
-      CEcoa2 = -2 * p_coa4 * (BOA_ik - 1.5) * e_coa;
-      CEcoa3 = -p_coa2 * exp_coa2 * e_coa / (1 + exp_coa2);
-      CEcoa4 = -2 * p_coa3 * (d_total_bo[j]-BOA_ij) * e_coa;
-      CEcoa5 = -2 * p_coa3 * (d_total_bo[k]-BOA_ik) * e_coa;
+  CEcoa1 = -2 * p_coa4 * (BOA_ij - 1.5) * e_coa;
+  CEcoa2 = -2 * p_coa4 * (BOA_ik - 1.5) * e_coa;
+  CEcoa3 = -p_coa2 * exp_coa2 * e_coa / (1 + exp_coa2);
+  CEcoa4 = -2 * p_coa3 * (d_total_bo[j]-BOA_ij) * e_coa;
+  CEcoa5 = -2 * p_coa3 * (d_total_bo[k]-BOA_ik) * e_coa;
 
-      if (eflag) ev.ereax[5] += e_coa;
+  if (eflag) ev.ereax[5] += e_coa;
 
-      // Forces
+  // Forces
 
-      a_Cdbo(i,j_index) += (CEval1 + CEpen2 + (CEcoa1 - CEcoa4));
-      a_Cdbo(j,i_index) += (CEval1 + CEpen2 + (CEcoa1 - CEcoa4));
-      a_Cdbo(i,k_index) += (CEval2 + CEpen3 + (CEcoa2 - CEcoa5));
-      a_Cdbo(k,i_index) += (CEval2 + CEpen3 + (CEcoa2 - CEcoa5));
+  a_Cdbo(i,j_index) += (CEval1 + CEpen2 + (CEcoa1 - CEcoa4));
+  a_Cdbo(j,i_index) += (CEval1 + CEpen2 + (CEcoa1 - CEcoa4));
+  a_Cdbo(i,k_index) += (CEval2 + CEpen3 + (CEcoa2 - CEcoa5));
+  a_Cdbo(k,i_index) += (CEval2 + CEpen3 + (CEcoa2 - CEcoa5));
 
-      CdDelta_i += ((CEval3 + CEval7) + CEpen1 + CEcoa3);
-      CdDelta_j += CEcoa4;
-      a_CdDelta[k] += CEcoa5;
+  CdDelta_i += ((CEval3 + CEval7) + CEpen1 + CEcoa3);
+  CdDelta_j += CEcoa4;
+  a_CdDelta[k] += CEcoa5;
 
-      for (int ll = j_start; ll < j_end; ll++) {
-        int l = d_bo_list[ll];
-        l &= NEIGHMASK;
-        const int l_index = ll - j_start;
+  for (int ll = j_start; ll < j_end; ll++) {
+    int l = d_bo_list[ll];
+    l &= NEIGHMASK;
+    const int l_index = ll - j_start;
 
-        temp_bo_jt = d_BO(i,l_index);
-        temp = temp_bo_jt * temp_bo_jt * temp_bo_jt;
-        pBOjt7 = temp * temp * temp_bo_jt;
+    temp_bo_jt = d_BO(i,l_index);
+    temp = temp_bo_jt * temp_bo_jt * temp_bo_jt;
+    pBOjt7 = temp * temp * temp_bo_jt;
 
-        a_Cdbo(i,l_index) += (CEval6 * pBOjt7);
-        a_Cdbopi(i,l_index) += CEval5;
-        a_Cdbopi2(i,l_index) += CEval5;
-      }
+    a_Cdbo(i,l_index) += (CEval6 * pBOjt7);
+    a_Cdbopi(i,l_index) += CEval5;
+    a_Cdbopi2(i,l_index) += CEval5;
+  }
 
-      for (int d = 0; d < 3; d++) fi_tmp[d] = CEval8 * dcos_theta_di[d];
-      for (int d = 0; d < 3; d++) fj_tmp[d] = CEval8 * dcos_theta_dj[d];
-      for (int d = 0; d < 3; d++) fk_tmp[d] = CEval8 * dcos_theta_dk[d];
-      for (int d = 0; d < 3; d++) fitmp[d] -= fi_tmp[d];
-      for (int d = 0; d < 3; d++) fjtmp[d] -= fj_tmp[d];
-      for (int d = 0; d < 3; d++) a_f(k,d) -= fk_tmp[d];
+  for (int d = 0; d < 3; d++) fi_tmp[d] = CEval8 * dcos_theta_di[d];
+  for (int d = 0; d < 3; d++) fj_tmp[d] = CEval8 * dcos_theta_dj[d];
+  for (int d = 0; d < 3; d++) fk_tmp[d] = CEval8 * dcos_theta_dk[d];
+  for (int d = 0; d < 3; d++) fitmp[d] -= fi_tmp[d];
+  for (int d = 0; d < 3; d++) fjtmp[d] -= fj_tmp[d];
+  for (int d = 0; d < 3; d++) a_f(k,d) -= fk_tmp[d];
 
-      // energy/virial tally
-      if (EVFLAG) {
-        eng_tmp = e_ang + e_pen + e_coa;
-        //if (eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,eng_tmp,0.0,0.0,0.0,0.0);
-        for (int d = 0; d < 3; d++) delki[d] = -1.0 * delik[d];
-        for (int d = 0; d < 3; d++) delji[d] = -1.0 * delij[d];
-        if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,j,eng_tmp);
-        if (vflag_either) this->template v_tally3<NEIGHFLAG>(ev,i,j,k,fj_tmp,fk_tmp,delji,delki);
-      }
+  // energy/virial tally
+  if (EVFLAG) {
+    eng_tmp = e_ang + e_pen + e_coa;
+    //if (eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,eng_tmp,0.0,0.0,0.0,0.0);
+    for (int d = 0; d < 3; d++) delki[d] = -1.0 * delik[d];
+    for (int d = 0; d < 3; d++) delji[d] = -1.0 * delij[d];
+    if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,j,eng_tmp);
+    if (vflag_either) this->template v_tally3<NEIGHFLAG>(ev,i,j,k,fj_tmp,fk_tmp,delji,delki);
+  }
 
-    a_CdDelta[j] += CdDelta_j;
-    for (int d = 0; d < 3; d++) a_f(j,d) += fjtmp[d];
+  a_CdDelta[j] += CdDelta_j;
+  for (int d = 0; d < 3; d++) a_f(j,d) += fjtmp[d];
   a_CdDelta[i] += CdDelta_i;
   for (int d = 0; d < 3; d++) a_f(i,d) += fitmp[d];
 }
@@ -3019,285 +3019,281 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
   const X_FLOAT ztmp = x(i,2);
   Delta_i = d_Delta_boc[i];
 
-    const int jtype = type(j);
-
-    bo_ij = d_BO(i,j_index);
-
-    delij[0] = x(j,0) - xtmp;
-    delij[1] = x(j,1) - ytmp;
-    delij[2] = x(j,2) - ztmp;
-    const F_FLOAT rsqij = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
-    const F_FLOAT rij = sqrt(rsqij);
-
-    BOA_ij = bo_ij - thb_cut;
-    Delta_j = d_Delta_boc[j];
-    exp_tor2_ij = exp(-p_tor2 * BOA_ij);
-    exp_cot2_ij = exp(-p_cot2 * SQR(BOA_ij - 1.5));
-    exp_tor3_DiDj = exp(-p_tor3 * (Delta_i + Delta_j));
-    exp_tor4_DiDj = exp(p_tor4  * (Delta_i + Delta_j));
-    exp_tor34_inv = 1.0 / (1.0 + exp_tor3_DiDj + exp_tor4_DiDj);
-    f11_DiDj = (2.0 + exp_tor3_DiDj) * exp_tor34_inv;
-
-      const int ktype = type(k);
-
-      bo_ik = d_BO(i,k_index);
-
-      BOA_ik = bo_ik - thb_cut;
-      for (int d = 0; d < 3; d ++) delik[d] = x(k,d) - x(i,d);
-      const F_FLOAT rsqik = delik[0]*delik[0] + delik[1]*delik[1] + delik[2]*delik[2];
-      const F_FLOAT rik = sqrt(rsqik);
-
-      cos_ijk = (delij[0]*delik[0]+delij[1]*delik[1]+delij[2]*delik[2])/(rij*rik);
-      if (cos_ijk > 1.0) cos_ijk  = 1.0;
-      if (cos_ijk < -1.0) cos_ijk  = -1.0;
-      theta_ijk = acos(cos_ijk);
-
-      // dcos_ijk
-      const F_FLOAT inv_dists = 1.0 / (rij * rik);
-      const F_FLOAT cos_ijk_tmp = cos_ijk / ((rij*rik)*(rij*rik));
-
-      for (int d = 0; d < 3; d++) {
-        dcos_ijk_di[d] = -(delik[d] + delij[d]) * inv_dists + cos_ijk_tmp * (rsqik * delij[d] + rsqij * delik[d]);
-        dcos_ijk_dj[d] = delik[d] * inv_dists - cos_ijk_tmp * rsqik * delij[d];
-        dcos_ijk_dk[d] = delij[d] * inv_dists - cos_ijk_tmp * rsqij * delik[d];
-      }
-
-      sin_ijk = sin(theta_ijk);
-      if (sin_ijk >= 0 && sin_ijk <= 1e-10)
-        tan_ijk_i = cos_ijk / 1e-10;
-      else if (sin_ijk <= 0 && sin_ijk >= -1e-10)
-        tan_ijk_i = -cos_ijk / 1e-10;
-      else tan_ijk_i = cos_ijk / sin_ijk;
-
-      exp_tor2_ik = exp(-p_tor2 * BOA_ik);
-      exp_cot2_ik = exp(-p_cot2 * SQR(BOA_ik -1.5));
-
-        const int ltype = type(l);
-
-        bo_jl = d_BO(j,l_index);
-
-        for (int d = 0; d < 3; d ++) deljl[d] = x(l,d) - x(j,d);
-        const F_FLOAT rsqjl = deljl[0]*deljl[0] + deljl[1]*deljl[1] + deljl[2]*deljl[2];
-        const F_FLOAT rjl = sqrt(rsqjl);
-        BOA_jl = bo_jl - thb_cut;
-
-        cos_jil = -(delij[0]*deljl[0]+delij[1]*deljl[1]+delij[2]*deljl[2])/(rij*rjl);
-        if (cos_jil > 1.0) cos_jil  = 1.0;
-        if (cos_jil < -1.0) cos_jil  = -1.0;
-        theta_jil = acos(cos_jil);
-
-        // dcos_jil
-        const F_FLOAT inv_distjl = 1.0 / (rij * rjl);
-        const F_FLOAT cos_jil_tmp = cos_jil / ((rij*rjl)*(rij*rjl));
-
-        for (int d = 0; d < 3; d++) {
-          dcos_jil_di[d] = deljl[d] * inv_distjl - cos_jil_tmp * rsqjl * -delij[d];
-          dcos_jil_dj[d] = (-deljl[d] + delij[d]) * inv_distjl - cos_jil_tmp * (rsqjl * delij[d] + rsqij * -deljl[d]);
-          dcos_jil_dk[d] = -delij[d] * inv_distjl - cos_jil_tmp * rsqij * deljl[d];
-        }
-
-        sin_jil = sin(theta_jil);
-        if (sin_jil >= 0 && sin_jil <= 1e-10)
-          tan_jil_i = cos_jil / 1e-10;
-        else if (sin_jil <= 0 && sin_jil >= -1e-10)
-          tan_jil_i = -cos_jil / 1e-10;
-        else tan_jil_i = cos_jil / sin_jil;
-
-        for (int d = 0; d < 3; d ++) dellk[d] = x(k,d) - x(l,d);
-        const F_FLOAT rsqlk = dellk[0]*dellk[0] + dellk[1]*dellk[1] + dellk[2]*dellk[2];
-        const F_FLOAT rlk = sqrt(rsqlk);
+  const int jtype = type(j);
+
+  bo_ij = d_BO(i,j_index);
+
+  delij[0] = x(j,0) - xtmp;
+  delij[1] = x(j,1) - ytmp;
+  delij[2] = x(j,2) - ztmp;
+  const F_FLOAT rsqij = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
+  const F_FLOAT rij = sqrt(rsqij);
+
+  BOA_ij = bo_ij - thb_cut;
+  Delta_j = d_Delta_boc[j];
+  exp_tor2_ij = exp(-p_tor2 * BOA_ij);
+  exp_cot2_ij = exp(-p_cot2 * SQR(BOA_ij - 1.5));
+  exp_tor3_DiDj = exp(-p_tor3 * (Delta_i + Delta_j));
+  exp_tor4_DiDj = exp(p_tor4  * (Delta_i + Delta_j));
+  exp_tor34_inv = 1.0 / (1.0 + exp_tor3_DiDj + exp_tor4_DiDj);
+  f11_DiDj = (2.0 + exp_tor3_DiDj) * exp_tor34_inv;
+
+  const int ktype = type(k);
+
+  bo_ik = d_BO(i,k_index);
+
+  BOA_ik = bo_ik - thb_cut;
+  for (int d = 0; d < 3; d ++) delik[d] = x(k,d) - x(i,d);
+  const F_FLOAT rsqik = delik[0]*delik[0] + delik[1]*delik[1] + delik[2]*delik[2];
+  const F_FLOAT rik = sqrt(rsqik);
+
+  cos_ijk = (delij[0]*delik[0]+delij[1]*delik[1]+delij[2]*delik[2])/(rij*rik);
+  if (cos_ijk > 1.0) cos_ijk  = 1.0;
+  if (cos_ijk < -1.0) cos_ijk  = -1.0;
+  theta_ijk = acos(cos_ijk);
+
+  // dcos_ijk
+  const F_FLOAT inv_dists = 1.0 / (rij * rik);
+  const F_FLOAT cos_ijk_tmp = cos_ijk / ((rij*rik)*(rij*rik));
+
+  for (int d = 0; d < 3; d++) {
+    dcos_ijk_di[d] = -(delik[d] + delij[d]) * inv_dists + cos_ijk_tmp * (rsqik * delij[d] + rsqij * delik[d]);
+    dcos_ijk_dj[d] = delik[d] * inv_dists - cos_ijk_tmp * rsqik * delij[d];
+    dcos_ijk_dk[d] = delij[d] * inv_dists - cos_ijk_tmp * rsqij * delik[d];
+  }
+
+  sin_ijk = sin(theta_ijk);
+  if (sin_ijk >= 0 && sin_ijk <= 1e-10)
+    tan_ijk_i = cos_ijk / 1e-10;
+  else if (sin_ijk <= 0 && sin_ijk >= -1e-10)
+    tan_ijk_i = -cos_ijk / 1e-10;
+  else tan_ijk_i = cos_ijk / sin_ijk;
+
+  exp_tor2_ik = exp(-p_tor2 * BOA_ik);
+  exp_cot2_ik = exp(-p_cot2 * SQR(BOA_ik -1.5));
+
+  const int ltype = type(l);
+
+  bo_jl = d_BO(j,l_index);
+
+  for (int d = 0; d < 3; d ++) deljl[d] = x(l,d) - x(j,d);
+  const F_FLOAT rsqjl = deljl[0]*deljl[0] + deljl[1]*deljl[1] + deljl[2]*deljl[2];
+  const F_FLOAT rjl = sqrt(rsqjl);
+  BOA_jl = bo_jl - thb_cut;
+
+  cos_jil = -(delij[0]*deljl[0]+delij[1]*deljl[1]+delij[2]*deljl[2])/(rij*rjl);
+  if (cos_jil > 1.0) cos_jil  = 1.0;
+  if (cos_jil < -1.0) cos_jil  = -1.0;
+  theta_jil = acos(cos_jil);
+
+  // dcos_jil
+  const F_FLOAT inv_distjl = 1.0 / (rij * rjl);
+  const F_FLOAT cos_jil_tmp = cos_jil / ((rij*rjl)*(rij*rjl));
+
+  for (int d = 0; d < 3; d++) {
+    dcos_jil_di[d] = deljl[d] * inv_distjl - cos_jil_tmp * rsqjl * -delij[d];
+    dcos_jil_dj[d] = (-deljl[d] + delij[d]) * inv_distjl - cos_jil_tmp * (rsqjl * delij[d] + rsqij * -deljl[d]);
+    dcos_jil_dk[d] = -delij[d] * inv_distjl - cos_jil_tmp * rsqij * deljl[d];
+  }
+
+  sin_jil = sin(theta_jil);
+  if (sin_jil >= 0 && sin_jil <= 1e-10)
+    tan_jil_i = cos_jil / 1e-10;
+  else if (sin_jil <= 0 && sin_jil >= -1e-10)
+    tan_jil_i = -cos_jil / 1e-10;
+  else tan_jil_i = cos_jil / sin_jil;
+
+  for (int d = 0; d < 3; d ++) dellk[d] = x(k,d) - x(l,d);
+  const F_FLOAT rsqlk = dellk[0]*dellk[0] + dellk[1]*dellk[1] + dellk[2]*dellk[2];
+  const F_FLOAT rlk = sqrt(rsqlk);
+
+  F_FLOAT sin_ijk_rnd = sin_ijk;
+  F_FLOAT sin_jil_rnd = sin_jil;
+
+  if (sin_ijk >= 0 && sin_ijk <= 1e-10) sin_ijk_rnd = 1e-10;
+  else if (sin_ijk <= 0 && sin_ijk >= -1e-10) sin_ijk_rnd = -1e-10;
+  if (sin_jil >= 0 && sin_jil <= 1e-10) sin_jil_rnd = 1e-10;
+  else if (sin_jil <= 0 && sin_jil >= -1e-10) sin_jil_rnd = -1e-10;
 
-        F_FLOAT unnorm_cos_omega, unnorm_sin_omega, omega;
-        F_FLOAT htra, htrb, htrc, hthd, hthe, hnra, hnrc, hnhd, hnhe;
-        F_FLOAT arg, poem, tel;
-        F_FLOAT cross_ij_jl[3];
+  F_FLOAT unnorm_cos_omega, unnorm_sin_omega, omega;
+  F_FLOAT htra, htrb, htrc, hthd, hthe, hnra, hnrc, hnhd, hnhe;
+  F_FLOAT arg, poem, tel;
+  F_FLOAT cross_ij_jl[3];
 
-        // omega
-
-        F_FLOAT dot_ij_jk = -(delij[0]*delik[0]+delij[1]*delik[1]+delij[2]*delik[2]);
-        F_FLOAT dot_ij_lj = delij[0]*deljl[0]+delij[1]*deljl[1]+delij[2]*deljl[2];
-        F_FLOAT dot_ik_jl = delik[0]*deljl[0]+delik[1]*deljl[1]+delik[2]*deljl[2];
-        unnorm_cos_omega = dot_ij_jk * dot_ij_lj + rsqij * dot_ik_jl;
+  // omega
 
-        cross_ij_jl[0] = delij[1]*deljl[2] - delij[2]*deljl[1];
-        cross_ij_jl[1] = delij[2]*deljl[0] - delij[0]*deljl[2];
-        cross_ij_jl[2] = delij[0]*deljl[1] - delij[1]*deljl[0];
+  F_FLOAT dot_ij_jk = -(delij[0]*delik[0]+delij[1]*delik[1]+delij[2]*delik[2]);
+  F_FLOAT dot_ij_lj = delij[0]*deljl[0]+delij[1]*deljl[1]+delij[2]*deljl[2];
+  F_FLOAT dot_ik_jl = delik[0]*deljl[0]+delik[1]*deljl[1]+delik[2]*deljl[2];
+  unnorm_cos_omega = dot_ij_jk * dot_ij_lj + rsqij * dot_ik_jl;
 
-        unnorm_sin_omega = -rij*(delik[0]*cross_ij_jl[0]+delik[1]*cross_ij_jl[1]+delik[2]*cross_ij_jl[2]);
-        omega = atan2(unnorm_sin_omega, unnorm_cos_omega);
+  cross_ij_jl[0] = delij[1]*deljl[2] - delij[2]*deljl[1];
+  cross_ij_jl[1] = delij[2]*deljl[0] - delij[0]*deljl[2];
+  cross_ij_jl[2] = delij[0]*deljl[1] - delij[1]*deljl[0];
 
-        htra = rik + cos_ijk * (rjl * cos_jil - rij);
-        htrb = rij - rik * cos_ijk - rjl * cos_jil;
-        htrc = rjl + cos_jil * (rik * cos_ijk - rij);
-        hthd = rik * sin_ijk * (rij - rjl * cos_jil);
-        hthe = rjl * sin_jil * (rij - rik * cos_ijk);
-        hnra = rjl * sin_ijk * sin_jil;
-        hnrc = rik * sin_ijk * sin_jil;
-        hnhd = rik * rjl * cos_ijk * sin_jil;
-        hnhe = rik * rjl * sin_ijk * cos_jil;
+  unnorm_sin_omega = -rij*(delik[0]*cross_ij_jl[0]+delik[1]*cross_ij_jl[1]+delik[2]*cross_ij_jl[2]);
+  omega = atan2(unnorm_sin_omega, unnorm_cos_omega);
 
-        poem = 2.0 * rik * rjl * sin_ijk * sin_jil;
-        if (poem < 1e-20) poem = 1e-20;
+  htra = rik + cos_ijk * (rjl * cos_jil - rij);
+  htrb = rij - rik * cos_ijk - rjl * cos_jil;
+  htrc = rjl + cos_jil * (rik * cos_ijk - rij);
+  hthd = rik * sin_ijk_rnd * (rij - rjl * cos_jil);
+  hthe = rjl * sin_jil_rnd * (rij - rik * cos_ijk);
+  hnra = rjl * sin_ijk_rnd * sin_jil_rnd;
+  hnrc = rik * sin_ijk_rnd * sin_jil_rnd;
+  hnhd = rik * rjl * cos_ijk * sin_jil_rnd;
+  hnhe = rik * rjl * sin_ijk_rnd * cos_jil;
 
-        tel = SQR(rik) + SQR(rij) + SQR(rjl) - SQR(rlk) -
-              2.0 * (rik * rij * cos_ijk - rik * rjl * cos_ijk * cos_jil + rij * rjl * cos_jil);
+  tel = SQR(rik) + SQR(rij) + SQR(rjl) - SQR(rlk) -
+	2.0 * (rik * rij * cos_ijk - rik * rjl * cos_ijk * cos_jil + rij * rjl * cos_jil);
 
-        F_FLOAT inv_poem = 1.0 / poem;
+  poem = 2.0 * rik * rjl * sin_ijk_rnd * sin_jil_rnd;
+  F_FLOAT inv_poem = 1.0 / poem;
 
-        arg = tel * inv_poem;
-        if (arg >  1.0) arg =  1.0;
-        if (arg < -1.0) arg = -1.0;
+  arg = tel * inv_poem;
+  if (arg >  1.0) arg =  1.0;
+  if (arg < -1.0) arg = -1.0;
 
-        F_FLOAT sin_ijk_rnd = sin_ijk;
-        F_FLOAT sin_jil_rnd = sin_jil;
+  cos_omega = cos(omega);
+  cos2omega = cos(2. * omega);
+  cos3omega = cos(3. * omega);
 
-        if (sin_ijk >= 0 && sin_ijk <= 1e-10) sin_ijk_rnd = 1e-10;
-        else if (sin_ijk <= 0 && sin_ijk >= -1e-10) sin_ijk_rnd = -1e-10;
-        if (sin_jil >= 0 && sin_jil <= 1e-10) sin_jil_rnd = 1e-10;
-        else if (sin_jil <= 0 && sin_jil >= -1e-10) sin_jil_rnd = -1e-10;
+  // torsion energy
 
-        cos_omega = cos(omega);
-        cos2omega = cos(2. * omega);
-        cos3omega = cos(3. * omega);
+  p_tor1 = paramsfbp(ktype,itype,jtype,ltype).p_tor1;
+  p_cot1 = paramsfbp(ktype,itype,jtype,ltype).p_cot1;
+  V1 = paramsfbp(ktype,itype,jtype,ltype).V1;
+  V2 = paramsfbp(ktype,itype,jtype,ltype).V2;
+  V3 = paramsfbp(ktype,itype,jtype,ltype).V3;
 
-        // torsion energy
+  exp_tor1 = exp(p_tor1 * SQR(2.0 - d_BO_pi(i,j_index) - f11_DiDj));
+  exp_tor2_jl = exp(-p_tor2 * BOA_jl);
+  exp_cot2_jl = exp(-p_cot2 * SQR(BOA_jl - 1.5));
+  fn10 = (1.0 - exp_tor2_ik) * (1.0 - exp_tor2_ij) * (1.0 - exp_tor2_jl);
 
-        p_tor1 = paramsfbp(ktype,itype,jtype,ltype).p_tor1;
-        p_cot1 = paramsfbp(ktype,itype,jtype,ltype).p_cot1;
-        V1 = paramsfbp(ktype,itype,jtype,ltype).V1;
-        V2 = paramsfbp(ktype,itype,jtype,ltype).V2;
-        V3 = paramsfbp(ktype,itype,jtype,ltype).V3;
+  CV = 0.5 * (V1 * (1.0 + cos_omega) + V2 * exp_tor1 * (1.0 - cos2omega) + V3 * (1.0 + cos3omega));
 
-        exp_tor1 = exp(p_tor1 * SQR(2.0 - d_BO_pi(i,j_index) - f11_DiDj));
-        exp_tor2_jl = exp(-p_tor2 * BOA_jl);
-        exp_cot2_jl = exp(-p_cot2 * SQR(BOA_jl - 1.5));
-        fn10 = (1.0 - exp_tor2_ik) * (1.0 - exp_tor2_ij) * (1.0 - exp_tor2_jl);
+  e_tor = fn10 * sin_ijk * sin_jil * CV;
+  if (eflag) ev.ereax[6] += e_tor;
 
-        CV = 0.5 * (V1 * (1.0 + cos_omega) + V2 * exp_tor1 * (1.0 - cos2omega) + V3 * (1.0 + cos3omega));
+  dfn11 = (-p_tor3 * exp_tor3_DiDj + (p_tor3 * exp_tor3_DiDj - p_tor4 * exp_tor4_DiDj) *
+	  (2.0 + exp_tor3_DiDj) * exp_tor34_inv) * exp_tor34_inv;
 
-        e_tor = fn10 * sin_ijk * sin_jil * CV;
-        if (eflag) ev.ereax[6] += e_tor;
+  CEtors1 = sin_ijk * sin_jil * CV;
+
+  CEtors2 = -fn10 * 2.0 * p_tor1 * V2 * exp_tor1 * (2.0 - d_BO_pi(i,j_index) - f11_DiDj) *
+	    (1.0 - SQR(cos_omega)) * sin_ijk * sin_jil;
+  CEtors3 = CEtors2 * dfn11;
 
-        dfn11 = (-p_tor3 * exp_tor3_DiDj + (p_tor3 * exp_tor3_DiDj - p_tor4 * exp_tor4_DiDj) *
-                (2.0 + exp_tor3_DiDj) * exp_tor34_inv) * exp_tor34_inv;
-
-        CEtors1 = sin_ijk * sin_jil * CV;
-
-        CEtors2 = -fn10 * 2.0 * p_tor1 * V2 * exp_tor1 * (2.0 - d_BO_pi(i,j_index) - f11_DiDj) *
-                  (1.0 - SQR(cos_omega)) * sin_ijk * sin_jil;
-        CEtors3 = CEtors2 * dfn11;
-
-        CEtors4 = CEtors1 * p_tor2 * exp_tor2_ik * (1.0 - exp_tor2_ij) * (1.0 - exp_tor2_jl);
-        CEtors5 = CEtors1 * p_tor2 * (1.0 - exp_tor2_ik) * exp_tor2_ij * (1.0 - exp_tor2_jl);
-        CEtors6 = CEtors1 * p_tor2 * (1.0 - exp_tor2_ik) * (1.0 - exp_tor2_ij) * exp_tor2_jl;
-
-        cmn = -fn10 * CV;
-        CEtors7 = cmn * sin_jil * tan_ijk_i;
-        CEtors8 = cmn * sin_ijk * tan_jil_i;
-
-        CEtors9 = fn10 * sin_ijk * sin_jil *
-          (0.5 * V1 - 2.0 * V2 * exp_tor1 * cos_omega + 1.5 * V3 * (cos2omega + 2.0 * SQR(cos_omega)));
-
-        // 4-body conjugation energy
-
-        fn12 = exp_cot2_ik * exp_cot2_ij * exp_cot2_jl;
-        e_con = p_cot1 * fn12 * (1.0 + (SQR(cos_omega) - 1.0) * sin_ijk * sin_jil);
-        if (eflag) ev.ereax[7] += e_con;
-
-        Cconj = -2.0 * fn12 * p_cot1 * p_cot2 * (1.0 + (SQR(cos_omega) - 1.0) * sin_ijk * sin_jil);
-
-        CEconj1 = Cconj * (BOA_ik - 1.5e0);
-        CEconj2 = Cconj * (BOA_ij - 1.5e0);
-        CEconj3 = Cconj * (BOA_jl - 1.5e0);
-
-        CEconj4 = -p_cot1 * fn12 * (SQR(cos_omega) - 1.0) * sin_jil * tan_ijk_i;
-        CEconj5 = -p_cot1 * fn12 * (SQR(cos_omega) - 1.0) * sin_ijk * tan_jil_i;
-        CEconj6 = 2.0 * p_cot1 * fn12 * cos_omega * sin_ijk * sin_jil;
-
-        // forces
-
-        // contribution to bond order
-
-        a_Cdbopi(i,j_index) += CEtors2;
-
-        a_CdDelta[j] += CEtors3;
-        a_CdDelta[i] += CEtors3;
-
-        a_Cdbo(i,k_index) += CEtors4 + CEconj1;
-        a_Cdbo(i,j_index) += CEtors5 + CEconj2;
-        a_Cdbo(j,l_index) += CEtors6 + CEconj3; // trouble
-
-        const F_FLOAT coeff74 = CEtors7 + CEconj4;
-        const F_FLOAT coeff85 = CEtors8 + CEconj5;
-        const F_FLOAT coeff96 = CEtors9 + CEconj6;
-
-        const F_FLOAT inv_rij = 1.0 / rij;
-        const F_FLOAT inv_rik = 1.0 / rik;
-        const F_FLOAT inv_rjl = 1.0 / rjl;
-        const F_FLOAT inv_sin_ijk_rnd = 1.0 / sin_ijk_rnd;
-        const F_FLOAT inv_sin_jil_rnd = 1.0 / sin_jil_rnd;
-
-        #pragma unroll
-        for (int d = 0; d < 3; d++) {
-          // dcos_omega_di
-          F_FLOAT dcos_omega_dk = ((htra-arg*hnra) * inv_rik) * delik[d] - dellk[d];
-          dcos_omega_dk += (hthd-arg*hnhd) * inv_sin_ijk_rnd * -dcos_ijk_dk[d];
-          dcos_omega_dk *= 2.0 * inv_poem;
-
-          // dcos_omega_dj
-          F_FLOAT dcos_omega_di = -((htra-arg*hnra) * inv_rik) * delik[d] - htrb * inv_rij * delij[d];
-          dcos_omega_di += -(hthd-arg*hnhd) * inv_sin_ijk_rnd * dcos_ijk_di[d];
-          dcos_omega_di += -(hthe-arg*hnhe) * inv_sin_jil_rnd * dcos_jil_di[d];
-          dcos_omega_di *= 2.0 * inv_poem;
-
-          // dcos_omega_dk
-          F_FLOAT dcos_omega_dj = -((htrc-arg*hnrc) * inv_rjl) * deljl[d] + htrb * inv_rij * delij[d];
-          dcos_omega_dj += -(hthd-arg*hnhd) * inv_sin_ijk_rnd * dcos_ijk_dj[d];
-          dcos_omega_dj += -(hthe-arg*hnhe) * inv_sin_jil_rnd * dcos_jil_dj[d];
-          dcos_omega_dj *= 2.0 * inv_poem;
-
-          // dcos_omega_dl
-          F_FLOAT dcos_omega_dl = ((htrc-arg*hnrc) * inv_rjl) * deljl[d] + dellk[d];
-          dcos_omega_dl += (hthe-arg*hnhe) * inv_sin_jil_rnd * -dcos_jil_dk[d];
-          dcos_omega_dl *= 2.0 * inv_poem;
-
-          // dcos_theta_ijk
-          fi_tmp[d] = (coeff74) * dcos_ijk_di[d];
-          fj_tmp[d] = (coeff74) * dcos_ijk_dj[d];
-          fk_tmp[d] = (coeff74) * dcos_ijk_dk[d];
-
-          // dcos_theta_jil
-          fi_tmp[d] += (coeff85) * dcos_jil_di[d];
-          fj_tmp[d] += (coeff85) * dcos_jil_dj[d];
-          F_FLOAT fl_tmp =  (coeff85) * dcos_jil_dk[d];
-
-          // dcos_omega
-          fi_tmp[d] += (coeff96) * dcos_omega_di;
-          fj_tmp[d] += (coeff96) * dcos_omega_dj;
-          fk_tmp[d] += (coeff96) * dcos_omega_dk;
-          fl_tmp += (coeff96) * dcos_omega_dl;
-
-          // total forces
-          a_f(i,d) -= fi_tmp[d];
-          a_f(j,d) -= fj_tmp[d];
-          a_f(k,d) -= fk_tmp[d];
-          a_f(l,d) -= fl_tmp;
-        }
-
-        // per-atom energy/virial tally
-
-        if (EVFLAG) {
-          eng_tmp = e_tor + e_con;
-          //if (eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,eng_tmp,0.0,0.0,0.0,0.0);
-          if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,j,eng_tmp);
-          if (vflag_either) {
-              for (int d = 0; d < 3; d ++) delil[d] = x(l,d) - x(i,d);
-              for (int d = 0; d < 3; d ++) delkl[d] = x(l,d) - x(k,d);
-              this->template v_tally4<NEIGHFLAG>(ev,k,i,j,l,fk_tmp,fi_tmp,fj_tmp,delkl,delil,deljl);
-          }
-        }
-
-
+  CEtors4 = CEtors1 * p_tor2 * exp_tor2_ik * (1.0 - exp_tor2_ij) * (1.0 - exp_tor2_jl);
+  CEtors5 = CEtors1 * p_tor2 * (1.0 - exp_tor2_ik) * exp_tor2_ij * (1.0 - exp_tor2_jl);
+  CEtors6 = CEtors1 * p_tor2 * (1.0 - exp_tor2_ik) * (1.0 - exp_tor2_ij) * exp_tor2_jl;
+
+  cmn = -fn10 * CV;
+  CEtors7 = cmn * sin_jil * tan_ijk_i;
+  CEtors8 = cmn * sin_ijk * tan_jil_i;
+
+  CEtors9 = fn10 * sin_ijk * sin_jil *
+    (0.5 * V1 - 2.0 * V2 * exp_tor1 * cos_omega + 1.5 * V3 * (cos2omega + 2.0 * SQR(cos_omega)));
+
+  // 4-body conjugation energy
+
+  fn12 = exp_cot2_ik * exp_cot2_ij * exp_cot2_jl;
+  e_con = p_cot1 * fn12 * (1.0 + (SQR(cos_omega) - 1.0) * sin_ijk * sin_jil);
+  if (eflag) ev.ereax[7] += e_con;
+
+  Cconj = -2.0 * fn12 * p_cot1 * p_cot2 * (1.0 + (SQR(cos_omega) - 1.0) * sin_ijk * sin_jil);
+
+  CEconj1 = Cconj * (BOA_ik - 1.5e0);
+  CEconj2 = Cconj * (BOA_ij - 1.5e0);
+  CEconj3 = Cconj * (BOA_jl - 1.5e0);
+
+  CEconj4 = -p_cot1 * fn12 * (SQR(cos_omega) - 1.0) * sin_jil * tan_ijk_i;
+  CEconj5 = -p_cot1 * fn12 * (SQR(cos_omega) - 1.0) * sin_ijk * tan_jil_i;
+  CEconj6 = 2.0 * p_cot1 * fn12 * cos_omega * sin_ijk * sin_jil;
+
+  // forces
+
+  // contribution to bond order
+
+  a_Cdbopi(i,j_index) += CEtors2;
+
+  a_CdDelta[j] += CEtors3;
+  a_CdDelta[i] += CEtors3;
+
+  a_Cdbo(i,k_index) += CEtors4 + CEconj1;
+  a_Cdbo(i,j_index) += CEtors5 + CEconj2;
+  a_Cdbo(j,l_index) += CEtors6 + CEconj3;
+
+  const F_FLOAT coeff74 = CEtors7 + CEconj4;
+  const F_FLOAT coeff85 = CEtors8 + CEconj5;
+  const F_FLOAT coeff96 = CEtors9 + CEconj6;
+
+  const F_FLOAT inv_rij = 1.0 / rij;
+  const F_FLOAT inv_rik = 1.0 / rik;
+  const F_FLOAT inv_rjl = 1.0 / rjl;
+  const F_FLOAT inv_sin_ijk_rnd = 1.0 / sin_ijk_rnd;
+  const F_FLOAT inv_sin_jil_rnd = 1.0 / sin_jil_rnd;
+
+  #pragma unroll
+  for (int d = 0; d < 3; d++) {
+    // dcos_omega_di
+    F_FLOAT dcos_omega_dk = ((htra-arg*hnra) * inv_rik) * delik[d] - dellk[d];
+    dcos_omega_dk += (hthd-arg*hnhd) * inv_sin_ijk_rnd * -dcos_ijk_dk[d];
+    dcos_omega_dk *= 2.0 * inv_poem;
+
+    // dcos_omega_dj
+    F_FLOAT dcos_omega_di = -((htra-arg*hnra) * inv_rik) * delik[d] - htrb * inv_rij * delij[d];
+    dcos_omega_di += -(hthd-arg*hnhd) * inv_sin_ijk_rnd * dcos_ijk_di[d];
+    dcos_omega_di += -(hthe-arg*hnhe) * inv_sin_jil_rnd * dcos_jil_di[d];
+    dcos_omega_di *= 2.0 * inv_poem;
+
+    // dcos_omega_dk
+    F_FLOAT dcos_omega_dj = -((htrc-arg*hnrc) * inv_rjl) * deljl[d] + htrb * inv_rij * delij[d];
+    dcos_omega_dj += -(hthd-arg*hnhd) * inv_sin_ijk_rnd * dcos_ijk_dj[d];
+    dcos_omega_dj += -(hthe-arg*hnhe) * inv_sin_jil_rnd * dcos_jil_dj[d];
+    dcos_omega_dj *= 2.0 * inv_poem;
+
+    // dcos_omega_dl
+    F_FLOAT dcos_omega_dl = ((htrc-arg*hnrc) * inv_rjl) * deljl[d] + dellk[d];
+    dcos_omega_dl += (hthe-arg*hnhe) * inv_sin_jil_rnd * -dcos_jil_dk[d];
+    dcos_omega_dl *= 2.0 * inv_poem;
+
+    // dcos_theta_ijk
+    fi_tmp[d] = (coeff74) * dcos_ijk_di[d];
+    fj_tmp[d] = (coeff74) * dcos_ijk_dj[d];
+    fk_tmp[d] = (coeff74) * dcos_ijk_dk[d];
+
+    // dcos_theta_jil
+    fi_tmp[d] += (coeff85) * dcos_jil_di[d];
+    fj_tmp[d] += (coeff85) * dcos_jil_dj[d];
+    F_FLOAT fl_tmp =  (coeff85) * dcos_jil_dk[d];
+
+    // dcos_omega
+    fi_tmp[d] += (coeff96) * dcos_omega_di;
+    fj_tmp[d] += (coeff96) * dcos_omega_dj;
+    fk_tmp[d] += (coeff96) * dcos_omega_dk;
+    fl_tmp += (coeff96) * dcos_omega_dl;
+
+    // total forces
+    a_f(i,d) -= fi_tmp[d];
+    a_f(j,d) -= fj_tmp[d];
+    a_f(k,d) -= fk_tmp[d];
+    a_f(l,d) -= fl_tmp;
+  }
+
+  // per-atom energy/virial tally
+
+  if (EVFLAG) {
+    eng_tmp = e_tor + e_con;
+    //if (eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,eng_tmp,0.0,0.0,0.0,0.0);
+    if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,j,eng_tmp);
+    if (vflag_either) {
+	for (int d = 0; d < 3; d ++) delil[d] = x(l,d) - x(i,d);
+	for (int d = 0; d < 3; d ++) delkl[d] = x(l,d) - x(k,d);
+	this->template v_tally4<NEIGHFLAG>(ev,k,i,j,l,fk_tmp,fi_tmp,fj_tmp,delkl,delil,deljl);
+    }
+  }
 }
 
 template<class DeviceType>

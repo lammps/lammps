@@ -200,6 +200,7 @@ void PairBOP::compute(int eflag, int vflag)
 
   int newton_pair = force->newton_pair;
   int nlocal = atom->nlocal;
+  double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
   tagint *tag = atom->tag;
@@ -223,7 +224,15 @@ void PairBOP::compute(int eflag, int vflag)
       temp_ij = BOP_index[i] + jj;
       j = ilist[neigh_index[temp_ij]];
       j_tag = tag[j];
-      if (j_tag <= i_tag) continue;
+      if (i_tag > j_tag) {
+        if ((i_tag+j_tag) % 2 == 0) continue;
+      } else if (i_tag < j_tag) {
+        if ((i_tag+j_tag) % 2 == 1) continue;
+      } else {
+        if (x[j][2] < x[i][2]) continue;
+        if (x[j][2] == x[i][2] && x[j][1] < x[i][1]) continue;
+        if (x[j][2] == x[i][2] && x[j][1] == x[i][1] && x[j][0] < x[i][0]) continue;
+      }
       jtype = map[type[j]];
       int param_ij = elem2param[itype][jtype];
       sigB_0 = SigmaBo(ii,jj);
@@ -253,7 +262,15 @@ void PairBOP::compute(int eflag, int vflag)
       temp_ij = BOP_index2[i] + jj;
       j = ilist[neigh_index2[temp_ij]];
       j_tag = tag[j];
-      if (j_tag <= i_tag) continue;
+      if (i_tag > j_tag) {
+        if ((i_tag+j_tag) % 2 == 0) continue;
+      } else if (i_tag < j_tag) {
+        if ((i_tag+j_tag) % 2 == 1) continue;
+      } else {
+        if (x[j][2] < x[i][2]) continue;
+        if (x[j][2] == x[i][2] && x[j][1] < x[i][1]) continue;
+        if (x[j][2] == x[i][2] && x[j][1] == x[i][1] && x[j][0] < x[i][0]) continue;
+      }
       PairList2 & p2_ij = pairlist2[temp_ij];
       dpr2 = -p2_ij.dRep / p2_ij.r;
       ftmp1 = dpr2 * p2_ij.dis[0];

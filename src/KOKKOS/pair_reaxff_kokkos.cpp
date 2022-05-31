@@ -2893,10 +2893,10 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
   p_coa1 = paramsthbp(jtype,itype,ktype).p_coa1;
   exp_coa2 = exp(p_coa2 * Delta_val);
   e_coa = p_coa1 / (1. + exp_coa2) *
-	  exp(-p_coa3 * SQR(d_total_bo[j]-BOA_ij)) *
-	  exp(-p_coa3 * SQR(d_total_bo[k]-BOA_ik)) *
-	  exp(-p_coa4 * SQR(BOA_ij - 1.5)) *
-	  exp(-p_coa4 * SQR(BOA_ik - 1.5));
+          exp(-p_coa3 * SQR(d_total_bo[j]-BOA_ij)) *
+          exp(-p_coa3 * SQR(d_total_bo[k]-BOA_ik)) *
+          exp(-p_coa4 * SQR(BOA_ij - 1.5)) *
+          exp(-p_coa4 * SQR(BOA_ik - 1.5));
 
   CEcoa1 = -2 * p_coa4 * (BOA_ij - 1.5) * e_coa;
   CEcoa2 = -2 * p_coa4 * (BOA_ik - 1.5) * e_coa;
@@ -3148,7 +3148,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
   hnhe = rik * rjl * sin_ijk_rnd * cos_jil;
 
   tel = SQR(rik) + SQR(rij) + SQR(rjl) - SQR(rlk) -
-	2.0 * (rik * rij * cos_ijk - rik * rjl * cos_ijk * cos_jil + rij * rjl * cos_jil);
+        2.0 * (rik * rij * cos_ijk - rik * rjl * cos_ijk * cos_jil + rij * rjl * cos_jil);
 
   poem = 2.0 * rik * rjl * sin_ijk_rnd * sin_jil_rnd;
   F_FLOAT inv_poem = 1.0 / poem;
@@ -3180,12 +3180,12 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
   if (eflag) ev.ereax[6] += e_tor;
 
   dfn11 = (-p_tor3 * exp_tor3_DiDj + (p_tor3 * exp_tor3_DiDj - p_tor4 * exp_tor4_DiDj) *
-	  (2.0 + exp_tor3_DiDj) * exp_tor34_inv) * exp_tor34_inv;
+          (2.0 + exp_tor3_DiDj) * exp_tor34_inv) * exp_tor34_inv;
 
   CEtors1 = sin_ijk * sin_jil * CV;
 
   CEtors2 = -fn10 * 2.0 * p_tor1 * V2 * exp_tor1 * (2.0 - d_BO_pi(i,j_index) - f11_DiDj) *
-	    (1.0 - SQR(cos_omega)) * sin_ijk * sin_jil;
+            (1.0 - SQR(cos_omega)) * sin_ijk * sin_jil;
   CEtors3 = CEtors2 * dfn11;
 
   CEtors4 = CEtors1 * p_tor2 * exp_tor2_ik * (1.0 - exp_tor2_ij) * (1.0 - exp_tor2_jl);
@@ -3292,9 +3292,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
     //if (eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,eng_tmp,0.0,0.0,0.0,0.0);
     if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,j,eng_tmp);
     if (vflag_either) {
-	for (int d = 0; d < 3; d ++) delil[d] = x(l,d) - x(i,d);
-	for (int d = 0; d < 3; d ++) delkl[d] = x(l,d) - x(k,d);
-	this->template v_tally4<NEIGHFLAG>(ev,k,i,j,l,fk_tmp,fi_tmp,fj_tmp,delkl,delil,deljl);
+        for (int d = 0; d < 3; d ++) delil[d] = x(l,d) - x(i,d);
+        for (int d = 0; d < 3; d ++) delkl[d] = x(l,d) - x(k,d);
+        this->template v_tally4<NEIGHFLAG>(ev,k,i,j,l,fk_tmp,fi_tmp,fj_tmp,delkl,delil,deljl);
     }
   }
 }

@@ -3063,10 +3063,10 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
   }
 
   sin_ijk = sin(theta_ijk);
-  if (sin_ijk >= 0 && sin_ijk <= 1e-10)
-    tan_ijk_i = cos_ijk / 1e-10;
-  else if (sin_ijk <= 0 && sin_ijk >= -1e-10)
-    tan_ijk_i = -cos_ijk / 1e-10;
+  if (sin_ijk >= 0 && sin_ijk <= MIN_SINE)
+    tan_ijk_i = cos_ijk / MIN_SINE;
+  else if (sin_ijk <= 0 && sin_ijk >= -MIN_SINE)
+    tan_ijk_i = -cos_ijk / MIN_SINE;
   else tan_ijk_i = cos_ijk / sin_ijk;
 
   exp_tor2_ik = exp(-p_tor2 * BOA_ik);
@@ -3097,23 +3097,26 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
   }
 
   sin_jil = sin(theta_jil);
-  if (sin_jil >= 0 && sin_jil <= 1e-10)
-    tan_jil_i = cos_jil / 1e-10;
-  else if (sin_jil <= 0 && sin_jil >= -1e-10)
-    tan_jil_i = -cos_jil / 1e-10;
+  if (sin_jil >= 0 && sin_jil <= MIN_SINE)
+    tan_jil_i = cos_jil / MIN_SINE;
+  else if (sin_jil <= 0 && sin_jil >= -MIN_SINE)
+    tan_jil_i = -cos_jil / MIN_SINE;
   else tan_jil_i = cos_jil / sin_jil;
 
   for (int d = 0; d < 3; d ++) dellk[d] = x(k,d) - x(l,d);
   const F_FLOAT rsqlk = dellk[0]*dellk[0] + dellk[1]*dellk[1] + dellk[2]*dellk[2];
   const F_FLOAT rlk = sqrt(rsqlk);
 
+  // non-Kokkos ReaxFF has a separate function for computing omega, which
+  //  limits the scope of the MIN_SINE statements below
+
   F_FLOAT sin_ijk_rnd = sin_ijk;
   F_FLOAT sin_jil_rnd = sin_jil;
 
-  if (sin_ijk >= 0 && sin_ijk <= 1e-10) sin_ijk_rnd = 1e-10;
-  else if (sin_ijk <= 0 && sin_ijk >= -1e-10) sin_ijk_rnd = -1e-10;
-  if (sin_jil >= 0 && sin_jil <= 1e-10) sin_jil_rnd = 1e-10;
-  else if (sin_jil <= 0 && sin_jil >= -1e-10) sin_jil_rnd = -1e-10;
+  if (sin_ijk >= 0 && sin_ijk <= MIN_SINE) sin_ijk_rnd = MIN_SINE;
+  else if (sin_ijk <= 0 && sin_ijk >= -MIN_SINE) sin_ijk_rnd = -MIN_SINE;
+  if (sin_jil >= 0 && sin_jil <= MIN_SINE) sin_jil_rnd = MIN_SINE;
+  else if (sin_jil <= 0 && sin_jil >= -MIN_SINE) sin_jil_rnd = -MIN_SINE;
 
   F_FLOAT unnorm_cos_omega, unnorm_sin_omega, omega;
   F_FLOAT htra, htrb, htrc, hthd, hthe, hnra, hnrc, hnhd, hnhe;

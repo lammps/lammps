@@ -417,12 +417,12 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
             fO.x += delx * force_coul;
             fO.y += dely * force_coul;
             fO.z += delz * force_coul;
-            fO.w += 0;
+            //fO.w += 0;
           } else {
             f.x += delx * force_coul;
             f.y += dely * force_coul;
             f.z += delz * force_coul;
-            f.w += 0;
+            //f.w += 0;
           }
           if (EVFLAG && eflag) {
             e_coul += prefactor*(_erfc-factor_coul);
@@ -433,7 +433,7 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
             fd.y = dely*force_coul;
             fd.z = delz*force_coul;
             if (itype == typeO) {
-              numtyp cO = 1 - alpha, cH = 0.5*alpha;
+              numtyp cO = (numtyp)1.0 - alpha, cH = (numtyp)0.5*alpha;
               numtyp4 vdi, vdj;
               numtyp4 xH1; fetch4(xH1,iH1,pos_tex);
               numtyp4 xH2; fetch4(xH2,iH2,pos_tex);
@@ -451,15 +451,15 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
                 vdj.z = xjO.z*cO + xjH1.z*cH + xjH2.z*cH;
                 //vdj.w = vdj.w;
               } else vdj = jx;
-              vO[0] += 0.5*(vdi.x - vdj.x)*fd.x;
-              vO[1] += 0.5*(vdi.y - vdj.y)*fd.y;
-              vO[2] += 0.5*(vdi.z - vdj.z)*fd.z;
-              vO[3] += 0.5*(vdi.x - vdj.x)*fd.y;
-              vO[4] += 0.5*(vdi.x - vdj.x)*fd.z;
-              vO[5] += 0.5*(vdi.y - vdj.y)*fd.z;
+              vO[0] += (numtyp)0.5*(vdi.x - vdj.x)*fd.x;
+              vO[1] += (numtyp)0.5*(vdi.y - vdj.y)*fd.y;
+              vO[2] += (numtyp)0.5*(vdi.z - vdj.z)*fd.z;
+              vO[3] += (numtyp)0.5*(vdi.x - vdj.x)*fd.y;
+              vO[4] += (numtyp)0.5*(vdi.x - vdj.x)*fd.z;
+              vO[5] += (numtyp)0.5*(vdi.y - vdj.y)*fd.z;
             } else {
               if (jtype == typeO) {
-                numtyp cO = 1 - alpha, cH = 0.5*alpha;
+                numtyp cO = (numtyp)1.0 - alpha, cH = (numtyp)0.5*alpha;
                 numtyp4 vdj;
                 numtyp4 xjH1; fetch4(xjH1,jH1,pos_tex);
                 numtyp4 xjH2; fetch4(xjH2,jH2,pos_tex);
@@ -507,7 +507,7 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
             prefactor *= qqrd2e*x1m.w/r;
             numtyp force_coul = r2inv*prefactor * (_erfc + EWALD_F*grij*expm2 - factor_coul);
 
-            numtyp cO = 1 - alpha, cH = 0.5*alpha;
+            numtyp cO = (numtyp)1 - alpha, cH = (numtyp)0.5*alpha;
             numtyp4 fd;
             fd.x = delx * force_coul * cH;
             fd.y = dely * force_coul * cH;
@@ -518,7 +518,7 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
             f.z += fd.z;
 
             if (EVFLAG && eflag) {
-              e_coul += prefactor*(_erfc-factor_coul) * (acctyp)0.5 * alpha;
+              e_coul += prefactor*(_erfc-factor_coul) * (numtyp)0.5 * alpha;
             }
             if (EVFLAG && vflag) {
               numtyp4 xH1; fetch4(xH1,iH1,pos_tex);
@@ -748,12 +748,12 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
             fO.x += delx * force_coul;
             fO.y += dely * force_coul;
             fO.z += delz * force_coul;
-            fO.w += 0;
+            //fO.w += 0;
           } else {
             f.x += delx * force_coul;
             f.y += dely * force_coul;
             f.z += delz * force_coul;
-            f.w += 0;
+            //f.w += 0;
           }
           if (EVFLAG && eflag) {
             e_coul += prefactor*(_erfc-factor_coul);
@@ -764,7 +764,7 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
             fd.y = dely*force_coul;
             fd.z = delz*force_coul;
             if (itype == typeO) {
-              numtyp cO = 1 - alpha, cH = 0.5*alpha;
+              numtyp cO = (numtyp)1.0 - alpha, cH = (numtyp)0.5*alpha;
               numtyp4 vdi, vdj;
               numtyp4 xH1; fetch4(xH1,iH1,pos_tex);
               numtyp4 xH2; fetch4(xH2,iH2,pos_tex);
@@ -782,15 +782,15 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
                 vdj.z = xjO.z*cO + xjH1.z*cH + xjH2.z*cH;
                 //vdj.w = vdj.w;
               } else vdj = jx;
-              vO[0] += 0.5*(vdi.x - vdj.x)*fd.x;
-              vO[1] += 0.5*(vdi.y - vdj.y)*fd.y;
-              vO[2] += 0.5*(vdi.z - vdj.z)*fd.z;
-              vO[3] += 0.5*(vdi.x - vdj.x)*fd.y;
-              vO[4] += 0.5*(vdi.x - vdj.x)*fd.z;
-              vO[5] += 0.5*(vdi.y - vdj.y)*fd.z;
+              vO[0] += (numtyp)0.5*(vdi.x - vdj.x)*fd.x;
+              vO[1] += (numtyp)0.5*(vdi.y - vdj.y)*fd.y;
+              vO[2] += (numtyp)0.5*(vdi.z - vdj.z)*fd.z;
+              vO[3] += (numtyp)0.5*(vdi.x - vdj.x)*fd.y;
+              vO[4] += (numtyp)0.5*(vdi.x - vdj.x)*fd.z;
+              vO[5] += (numtyp)0.5*(vdi.y - vdj.y)*fd.z;
             } else {
               if (jtype == typeO) {
-                numtyp cO = 1 - alpha, cH = 0.5*alpha;
+                numtyp cO = (numtyp)1.0 - alpha, cH = (numtyp)0.5*alpha;
                 numtyp4 vdj;
                 numtyp4 xjH1; fetch4(xjH1,jH1,pos_tex);
                 numtyp4 xjH2; fetch4(xjH2,jH2,pos_tex);
@@ -838,7 +838,7 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
             prefactor *= qqrd2e*x1m.w/r;
             numtyp force_coul = r2inv*prefactor * (_erfc + EWALD_F*grij*expm2 - factor_coul);
 
-            numtyp cO = 1 - alpha, cH = 0.5*alpha;
+            numtyp cO = (numtyp)1.0 - alpha, cH = (numtyp)0.5*alpha;
             numtyp4 fd;
             fd.x = delx * force_coul * cH;
             fd.y = dely * force_coul * cH;

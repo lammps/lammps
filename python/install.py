@@ -62,10 +62,10 @@ shutil.copy(args.lib,'lammps')
 # create a virtual environment for building the wheel
 shutil.rmtree('buildwheel',True)
 try:
-  txt = subprocess.check_output([sys.executable, '-m', 'virtualenv', 'buildwheel', '-p', sys.executable], stderr=subprocess.STDOUT, shell=False)
+  txt = subprocess.check_output([sys.executable, '-m', 'venv', 'buildwheel'], stderr=subprocess.STDOUT, shell=False)
   print(txt.decode('UTF-8'))
 except subprocess.CalledProcessError as err:
-  sys.exit("Failed to create a virtualenv: {0}".format(err.output.decode('UTF-8')))
+  sys.exit("Failed to create a virtual environment: {0}".format(err.output.decode('UTF-8')))
 
 # now run the commands to build the wheel. those must be in a separate script
 # and run in subprocess, since this will use the virtual environment and

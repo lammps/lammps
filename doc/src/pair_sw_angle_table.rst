@@ -1,7 +1,7 @@
 .. index:: pair_style sw/angle/table
 
 pair_style sw/angle/table command
-==============================
+=================================
 
 Syntax
 """"""

@@ -318,34 +318,45 @@ void PairMesoCNT::mesolj()
           q1 = x[j1];
           q2 = x[j2];
 
-          double l[3], delp1r1[3], delp2r1[3];
-          sub3(r2, r1, l);
-          norm3(l);
-          sub3(q1, r1, delp1r1);
-          sub3(q2, r1, delp2r1);
+          geometry(r1, r2, q1, q2, q1, p, m, param, basis);
+          if (param[0] > cutoff) continue;
+          
+          double calpha = cos(param[1]);
+          double salpha = sin(param[1]);
+          
+          double ceta = calpha * param[4];
+          double seta = salpha * param[4];
+          double dsq1 = seta * seta;
+          if (ceta < param[2]) dsq1 += pow(ceta - param[2], 2);
+          else if (ceta > param[3]) dsq1 += pow(ceta - param[3], 2);
 
-          double cr1[3], cr2[3];
-          cross3(delp1r1, l, cr1);
-          cross3(delp2r1, l, cr2);
-
-          double d1 = len3(cr1);
-          double d2 = len3(cr2);
+          ceta = calpha * param[5];
+          seta = salpha * param[5];
+          
+          double dsq2 = seta * seta;
+          if (ceta < param[2]) dsq2 += pow(ceta - param[2], 2);
+          else if (ceta > param[3]) dsq2 += pow(ceta - param[3], 2);
 
           int jj1, jj2;
-          if (d1 < d2) {
+          
+          if (dsq1 < dsq2) {
             jj1 = j1;
             jj2 = j2;
           }
           else {
+            if (param[1] > MY_PI) param[1] -= MY_PI;
+            else param[1] += MY_PI;
+
+            double temp = -param[5];
+            param[5] = -param[4];
+            param[4] = temp;
+            param[6] = temp;
+
+            negate3(m);
+          
             jj1 = j2;
             jj2 = j1;
           }
-
-          q1 = x[jj1];
-          q2 = x[jj2];
-
-          geometry(r1, r2, q1, q2, q1, p, m, param, basis);
-          if (param[0] > cutoff) continue;
 
           double evdwl1 = 0.0;
           double evdwl2 = 0.0;
@@ -385,6 +396,26 @@ void PairMesoCNT::mesolj()
           scaleadd3(0.5, fglobal[2], f[jj1], f[jj1]);
           scaleadd3(0.5, fglobal[3], f[jj2], f[jj2]);
           scaleadd3(0.5 * fend, m, f[jj1], f[jj1]);
+          
+          bool seg1 = (atom->tag[i1] == 958412 && atom->tag[i2] == 958413) || (atom->tag[i1] == 958413 && atom->tag[i2] == 958412);
+          bool seg2 = (atom->tag[jj1] == 320636 && atom->tag[jj2] == 320637) || (atom->tag[jj1] == 320637 && atom->tag[jj2] == 320636);
+          
+          if (seg1 && seg2) {
+            printf("\n");
+            printf("tags: %d %d\n", atom->tag[jj1], atom->tag[jj2]);
+            printf("param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
+            printf("m: %f %f %f\n", m[0], m[1], m[2]);
+            printf("basis 1: %f %f %f\n", basis[0][0], basis[0][1], basis[0][2]);
+            printf("basis 2: %f %f %f\n", basis[1][0], basis[1][1], basis[1][2]);
+            printf("basis 3: %f %f %f\n\n", basis[2][0], basis[2][1], basis[2][2]);
+            
+            printf("fglobal 1: %f %f %f\n", fglobal[0][0], fglobal[0][1], fglobal[0][2]);
+            printf("fglobal 2: %f %f %f\n", fglobal[1][0], fglobal[1][1], fglobal[1][2]);
+            printf("fglobal 3: %f %f %f\n", fglobal[2][0], fglobal[2][1], fglobal[2][2]);
+            printf("fglobal 4: %f %f %f\n", fglobal[3][0], fglobal[3][1], fglobal[3][2]);
+            printf("fend: %f\n", fend);
+            printf("\n");
+          }
 
           // second force contribution
 
@@ -425,6 +456,15 @@ void PairMesoCNT::mesolj()
           scaleadd3(0.5, fglobal[3], f[jj1], f[jj1]);
           sub3(f[jj2], fglobal[3], f[jj2]);
           scaleadd3(-0.5 * fend, m, f[jj2], f[jj2]);
+          
+          if (seg1 && seg2) {
+            printf("fglobal 1: %f %f %f\n", fglobal[0][0], fglobal[0][1], fglobal[0][2]);
+            printf("fglobal 2: %f %f %f\n", fglobal[1][0], fglobal[1][1], fglobal[1][2]);
+            printf("fglobal 3: %f %f %f\n", fglobal[2][0], fglobal[2][1], fglobal[2][2]);
+            printf("fglobal 4: %f %f %f\n", fglobal[3][0], fglobal[3][1], fglobal[3][2]);
+            printf("fend: %f\n", fend);
+            printf("\n");
+          }
 
           if (eflag_either) {
             evdwl = 0.5 * (evdwl1 - evdwl2);
@@ -437,6 +477,7 @@ void PairMesoCNT::mesolj()
               eatom[jj2] += evdwl_atom;
             }
           }
+
         }
       }
       else {

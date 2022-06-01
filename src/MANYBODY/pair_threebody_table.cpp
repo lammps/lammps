@@ -31,8 +31,6 @@
 
 #include <cmath>
 #include <cstring>
-//
-#include <iostream>
 
 using namespace LAMMPS_NS;
 using MathConst::MY_PI;
@@ -205,12 +203,12 @@ void PairThreebodyTable::compute(int eflag, int vflag)
 void PairThreebodyTable::allocate()
 {
   allocated = 1;
-  int n = atom->ntypes;
+  int np1 = atom->ntypes + 1;
 
-  memory->create(setflag,n+1,n+1,"pair:setflag");
-  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(setflag,np1,np1,"pair:setflag");
+  memory->create(cutsq,np1,np1,"pair:cutsq");
   memory->create(neighshort,maxshort,"pair:neighshort");
-  map = new int[n+1];
+  map = new int[np1];
 }
 
 /* ----------------------------------------------------------------------
@@ -234,6 +232,11 @@ void PairThreebodyTable::coeff(int narg, char **arg)
 
   // read potential file and initialize potential parameters
 
+  if (params) {
+    for (int m = 0; m < nparams; m++) free_param(&params[m]); // free_param will call free_table
+    memory->sfree(params);
+    params = nullptr;
+  }
   read_file(arg[2]);
   setup_params();
 }
@@ -269,7 +272,6 @@ double PairThreebodyTable::init_one(int i, int j)
 
 void PairThreebodyTable::read_file(char *file)
 {
-  memory->sfree(params);
   params = nullptr;
   nparams = maxparam = 0;
 
@@ -325,21 +327,17 @@ void PairThreebodyTable::read_file(char *file)
         params[nparams].cut = values.next_double();
 
         // read parameters of angle table
-        std::string tablename_string = values.next_string();
-        params[nparams].tablenamelength = tablename_string.length()+1;
-        memory->create(params[nparams].tablename, params[nparams].tablenamelength, "params.tablename");
-        for (int x = 0; x < params[nparams].tablenamelength; ++x) {
-          params[nparams].tablename[x] = tablename_string[x];
-        }
-        std::string keyword_string = values.next_string();
-        params[nparams].keywordlength = keyword_string.length()+1;
-        memory->create(params[nparams].keyword, params[nparams].keywordlength, "params.keyword");
-        for (int x = 0; x < params[nparams].keywordlength; ++x) {
-          params[nparams].keyword[x] = keyword_string[x];
-        }
-        auto tablestyle = values.next_string();
-        if (tablestyle != "linear")
-          error->all(FLERR,"Unknown table style {} in threebody table", tablestyle);
+        std::string name = values.next_string();
+        params[nparams].tablenamelength = name.length()+1;
+        params[nparams].tablename = utils::strdup(name);
+
+        name = values.next_string();
+        params[nparams].keywordlength = name.length()+1;
+        params[nparams].keyword = utils::strdup(name);
+
+        name = values.next_string();
+        if (name != "linear")
+          error->all(FLERR,"Unknown table style {} in threebody table", name);
         params[nparams].tablength = values.next_int();
 
       } catch (TokenizerException &e) {
@@ -356,29 +354,25 @@ void PairThreebodyTable::read_file(char *file)
   MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
   MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
 
-  if (comm->me != 0) {
-    params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
-  }
-
+  if (comm->me != 0) params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
   MPI_Bcast(params, maxparam*sizeof(Param), MPI_BYTE, 0, world);
 
   // for each set of parameters, broadcast table name and keyword and read threebody table
   for (int m = 0; m < nparams; ++m){
     if (comm->me != 0) {
-      memory->create(params[m].tablename, params[m].tablenamelength, "params.tablename");
+      params[m].tablename = new char[params[m].tablenamelength];
+      params[m].keyword = new char[params[m].keywordlength];
     }
-    MPI_Bcast(&params[m].tablename, params[m].tablenamelength, MPI_CHAR, 0, world);
-    if (comm->me != 0) {
-      memory->create(params[m].keyword, params[m].keywordlength, "params.keyword");
-    }
-    MPI_Bcast(&params[m].keyword, params[m].keywordlength, MPI_CHAR, 0, world);
+    
+    MPI_Bcast(params[m].tablename, params[m].tablenamelength, MPI_CHAR, 0, world);
+    MPI_Bcast(params[m].keyword, params[m].keywordlength, MPI_CHAR, 0, world);
 
     // initialize threebodytable
     memory->create(params[m].mltable,1,"param:threebodytable");
     null_table(params[m].mltable);
 
     //call read_table to read corresponding tabulated threebody file (only called by process 0)
-    if (comm->me == 0){
+    if (comm->me == 0) {
       read_table(params[m].mltable,params[m].tablename,params[m].keyword,params[m].symmetric);
     }
 
@@ -570,7 +564,7 @@ void PairThreebodyTable::param_extract(Table *tb, char *line)
       } else if (word == "rmax") {
         tb->rmax = values.next_double();
       } else {
-        error->one(FLERR, "Invalid keyword in angle table parameters");
+        error->one(FLERR, "Invalid keyword {} in angle table parameters", word);
       }
     }
   } catch (TokenizerException &e) {
@@ -659,11 +653,11 @@ void PairThreebodyTable::bcast_table(Table *tb, bool symmetric)
 
 void PairThreebodyTable::free_param(Param *pm)
 {
-  // call free_table to destroy associated threebodytable
+  // call free_table to destroy associated threebodytables
   free_table(pm->mltable);
   // then destroy associated threebodytable
-  memory->sfree(pm->tablename);
-  memory->sfree(pm->keyword);
+  delete[] pm->tablename;
+  delete[] pm->keyword;
   memory->sfree(pm->mltable);
 }
 

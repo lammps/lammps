@@ -3220,6 +3220,7 @@ statvolt
 stdin
 stdio
 stdlib
+stdout
 steelblue
 Stegailov
 Steinbach

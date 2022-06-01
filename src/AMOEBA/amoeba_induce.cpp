@@ -1194,6 +1194,9 @@ void PairAmoeba::udirect2b(double **field, double **fieldp)
 
   // compute the real space portion of the Ewald summation
 
+  ipage_dipole->reset();
+  dpage_dipdip->reset();
+
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     itype = amtype[i];

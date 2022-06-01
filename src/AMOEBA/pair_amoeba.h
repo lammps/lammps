@@ -63,7 +63,6 @@ class PairAmoeba : public Pair {
 
  protected:
   int nmax;                     // allocation for owned+ghost
-  int nlocalmax;                // allocation for just owned
   int cfstyle,crstyle;          // style of forward/reverse comm operations
   int nualt;
   double electric;

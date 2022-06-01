@@ -57,10 +57,10 @@ mv dump.water_box dump.water_box.hippo.32.test
 # ubiquitin
 
 ../../src/lmp_mpi < in.ubiquitin.test
-mv log.lammps log.ubi.1.test
-mv dump.ubi dump.ubi.1.test
+mv log.lammps log.ubiquitin.1.test
+mv dump.ubiquitin dump.ubiquitin.1.test
 
 mpirun -np 32 ../../src/lmp_mpi < in.ubiquitin.test
-mv log.lammps log.ubi.32.test
-mv dump.ubi dump.ubi.32.test
+mv log.lammps log.ubiquitin.32.test
+mv dump.ubiquitin dump.ubiquitin.32.test
 

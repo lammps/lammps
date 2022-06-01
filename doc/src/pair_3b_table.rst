@@ -1,7 +1,7 @@
-.. index:: pair_style 3b/table
+.. index:: pair_style threebody/table
 
-pair_style 3b/table command
-===========================
+pair_style threebody/table command
+==================================
 
 Syntax
 """"""
@@ -10,7 +10,7 @@ Syntax
 
    pair_style style
 
-* style = *3b/table*
+* style = *threebody/table*
 
 
 Examples
@@ -18,7 +18,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   pair_style 3b/table
+   pair_style threebody/table
    pair_coeff * * spce.3b type
    pair_coeff * * GaN.3b Ga N Ga
 
@@ -26,11 +26,11 @@ Examples
 Description
 """""""""""
 
-The *3b/table* style is a pair style for generic tabulated three-body
+The *threebody/table* style is a pair style for generic tabulated three-body
 interactions.  It has been developed for (coarse-grained) simulations
 (of water) with Kernel-based machine learning (ML) potentials
 (:ref:`Scherer2 <Scherer2>`).  As for the pair style :doc:`pair_style sw
-<pair_sw>` or :doc:`pair_style sw/3b/table <pair_sw_3b_table>`, the energy of
+<pair_sw>` or :doc:`pair_style sw/threebody/table <pair_sw_threebody_table>`, the energy of
 a system is computed as a sum over three-body terms:
 
 .. math::
@@ -43,14 +43,14 @@ Stillinger-Weber potential, all forces are not calculated analytically,
 but read in from a three-body force/energy table which can be generated
 with the csg_ml app of VOTCA as available at: https://gitlab.mpcdf.mpg.de/votca/votca.
 
-Only a single pair_coeff command is used with the *3b/table* style
-which specifies a three-body potential (".3b") file with parameters for all
+Only a single pair_coeff command is used with the *threebody/table* style
+which specifies a threebody potential (".3b") file with parameters for all
 needed elements. These are then mapped to LAMMPS atom types by specifying
 N_el additional arguments after the ".3b" filename in the pair_coeff command,
 where N_el is the number of LAMMPS atom types:
 
 * ".3b" filename
-* N_el element names = mapping of 3b elements to atom types
+* N_el element names = mapping of threebody elements to atom types
 
 See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the potential file.
@@ -67,8 +67,8 @@ pair_coeff command:
 The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to the Si
 element in the ".3b" file.  The final C argument maps LAMMPS atom type 4
-to the C element in the 3b file.  If a mapping value is specified as
-NULL, the mapping is not performed.  This can be used when a *3b/table*
+to the C element in the threebody file. If a mapping value is specified as
+NULL, the mapping is not performed. This can be used when a *threebody/table*
 potential is used as part of the *hybrid* pair style.  The NULL values
 are placeholders for atom types that will be used with other
 potentials.
@@ -193,7 +193,7 @@ This allows for a very efficient force calculation
 with the stored force constants and energies. Due to the know table structure, the lookup
 can be done efficiently. It has been tested (:ref:`Scherer2 <Scherer2>`) that with a reasonably
 small bin size, the accuracy and speed is comparable to that of a Stillinger-Weber potential
-with tabulated three-body interactions (:doc:`pair_style sw/table <pair_sw_3b_table>`) while
+with tabulated three-body interactions (:doc:`pair_style sw/angle/table <pair_sw_angle_table>`) while
 the table format of this pair style allows for more flexible three-body interactions.
 
 As for the Stillinger-Weber potential, the three-body potential file must contain entries for all the
@@ -204,7 +204,7 @@ simulation; LAMMPS ignores those entries.
 For a single-element simulation, only a single entry is required
 (e.g. SiSiSi).  For a two-element simulation, the file must contain 8
 entries (for SiSiSi, SiSiC, SiCSi, SiCC, CSiSi, CSiC, CCSi, CCC), that
-specify 3b parameters for all permutations of the two elements
+specify threebody parameters for all permutations of the two elements
 interacting in three-body configurations.  Thus for 3 elements, 27
 entries would be required, etc.
 
@@ -254,7 +254,7 @@ in the tutorial folder.
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`, :doc:`pair sw/3b/table <pair_sw_3b_table>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair sw/angle/table <pair_sw_angle_table>`
 
 
 ----------

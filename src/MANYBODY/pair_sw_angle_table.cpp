@@ -219,10 +219,13 @@ void PairSWAngleTable::compute(int eflag, int vflag)
 
 void PairSWAngleTable::read_file(char *file)
 {
-  memory->sfree(params);
-  params = nullptr;
-  memory->sfree(table_params);
-  table_params = nullptr;
+  if (params) {
+    for (int m = 0; m < nparams; m++) free_param(&table_params[m]); // free_param will call free_table
+    memory->destroy(params);
+    memory->destroy(table_params);
+    memory->destroy(elem3param);
+  }
+
   nparams = maxparam = 0;
 
   // open file on proc 0
@@ -285,22 +288,18 @@ void PairSWAngleTable::read_file(char *file)
         params[nparams].tol      = values.next_double();
 
         // read parameters of angle table
-        std::string tablename_string = values.next_string();
-        table_params[nparams].tablenamelength = tablename_string.length()+1;
-        memory->create(table_params[nparams].tablename, table_params[nparams].tablenamelength, "table_params.tablename");
-        for (int i = 0; i < table_params[nparams].tablenamelength; ++i) {
-          table_params[nparams].tablename[i] = tablename_string[i];
-        }
-        std::string keyword_string = values.next_string();
-        table_params[nparams].keywordlength = keyword_string.length()+1;
-        memory->create(table_params[nparams].keyword, table_params[nparams].keywordlength, "table_params.keyword");
-        for (int i = 0; i < table_params[nparams].keywordlength; ++i) {
-          table_params[nparams].keyword[i] = keyword_string[i];
-        }
-        auto tablestyle = values.next_string();
-        if (tablestyle == "linear") table_params[nparams].tabstyle = LINEAR;
-        else if (tablestyle == "spline") table_params[nparams].tabstyle = SPLINE;
-        else error->all(FLERR,"Unknown table style {} of angle table file", tablestyle);
+        std::string name = values.next_string();
+        table_params[nparams].tablenamelength = name.length()+1;
+        table_params[nparams].tablename = utils::strdup(name);
+
+        name = values.next_string();
+        table_params[nparams].keywordlength = name.length()+1;
+        table_params[nparams].keyword = utils::strdup(name);
+
+        name = values.next_string();
+        if (name == "linear") table_params[nparams].tabstyle = LINEAR;
+        else if (name == "spline") table_params[nparams].tabstyle = SPLINE;
+        else error->all(FLERR,"Unknown table style {} of angle table file", name);
         table_params[nparams].tablength = values.next_int();
 
       } catch (TokenizerException &e) {
@@ -333,13 +332,11 @@ void PairSWAngleTable::read_file(char *file)
   // for each set of parameters, broadcast table name and keyword and read angle table
   for (int m = 0; m < nparams; ++m){
     if (comm->me != 0) {
-      memory->create(table_params[m].tablename, table_params[m].tablenamelength, "table_params.tablename");
+      table_params[m].tablename = new char[table_params[m].tablenamelength];
+      table_params[m].keyword = new char[table_params[m].keywordlength];
     }
-    MPI_Bcast(&table_params[m].tablename, table_params[m].tablenamelength, MPI_CHAR, 0, world);
-    if (comm->me != 0) {
-      memory->create(table_params[m].keyword, table_params[m].keywordlength, "table_params.keyword");
-    }
-    MPI_Bcast(&table_params[m].keyword, table_params[m].keywordlength, MPI_CHAR, 0, world);
+    MPI_Bcast(table_params[m].tablename, table_params[m].tablenamelength, MPI_CHAR, 0, world);
+    MPI_Bcast(table_params[m].keyword, table_params[m].keywordlength, MPI_CHAR, 0, world);
 
     // initialize angtable
     memory->create(table_params[m].angtable,1,"table_params:angtable");
@@ -618,8 +615,8 @@ void PairSWAngleTable::free_param(ParamTable *pm)
   // call free_table to destroy associated angle table
   free_table(pm->angtable);
   // then destroy associated angle table
-  memory->sfree(pm->keyword);
-  memory->sfree(pm->tablename);
+  delete[] pm->keyword;
+  delete[] pm->tablename;
   memory->sfree(pm->angtable);
 }
 

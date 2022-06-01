@@ -109,6 +109,7 @@ class PairBOP : public Pair {
   int npairs;             // number of element pairs
   int ntriples;           // number of all triples
   char **bop_elements;    // names of elements in potential file
+  double *bop_masses;     // masses of elements in potential file
   double bytes;
 
   int otfly;    // = 1 faster, more memory, = 0 slower, less memory

@@ -6,4 +6,3 @@ breathe
 Pygments
 six
 pyyaml
-wheel

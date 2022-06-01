@@ -23,8 +23,8 @@
 
 using ::testing::Eq;
 
-char *BINARY2TXT_BINARY = nullptr;
-bool verbose            = false;
+char *BINARY2TXT_EXECUTABLE = nullptr;
+bool verbose                = false;
 
 class DumpCustomTest : public MeltTest {
     std::string dump_style = "custom";
@@ -100,7 +100,7 @@ public:
     std::string convert_binary_to_text(std::string binary_file)
     {
         BEGIN_HIDE_OUTPUT();
-        std::string cmdline = fmt::format("{} {}", BINARY2TXT_BINARY, binary_file);
+        std::string cmdline = fmt::format("\"{}\" {}", BINARY2TXT_EXECUTABLE, binary_file);
         system(cmdline.c_str());
         END_HIDE_OUTPUT();
         return fmt::format("{}.txt", binary_file);
@@ -210,7 +210,7 @@ TEST_F(DumpCustomTest, custom_run0)
 
 TEST_F(DumpCustomTest, binary_run1)
 {
-    if (!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_EXECUTABLE) GTEST_SKIP();
 
     auto text_file   = text_dump_filename("run1");
     auto binary_file = binary_dump_filename("run1");
@@ -251,7 +251,7 @@ TEST_F(DumpCustomTest, triclinic_run1)
 
 TEST_F(DumpCustomTest, binary_triclinic_run1)
 {
-    if (!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_EXECUTABLE) GTEST_SKIP();
 
     auto text_file   = text_dump_filename("tri_run1");
     auto binary_file = binary_dump_filename("tri_run1");
@@ -399,7 +399,7 @@ int main(int argc, char **argv)
         }
     }
 
-    BINARY2TXT_BINARY = getenv("BINARY2TXT_BINARY");
+    BINARY2TXT_EXECUTABLE = getenv("BINARY2TXT_EXECUTABLE");
 
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 

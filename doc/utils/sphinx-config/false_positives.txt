@@ -1324,6 +1324,7 @@ hexatic
 hexorder
 Heyes
 HfO
+hftn
 hgrid
 hhmrr
 Hibbs
@@ -2804,6 +2805,7 @@ quatk
 quatw
 queryargs
 Queteschiner
+quickmin
 qw
 qx
 qy
@@ -3058,6 +3060,7 @@ screenshot
 screenshots
 Scripps
 Scripta
+sd
 sdk
 sdpd
 SDPD

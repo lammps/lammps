@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(3b/table,Pair3BTable);
+PairStyle(threebody/table,PairThreebodyTable);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_3B_TABLE_H
-#define LMP_PAIR_3B_TABLE_H
+#ifndef LMP_PAIR_THREEBODY_TABLE_H
+#define LMP_PAIR_THREEBODY_TABLE_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class Pair3BTable : public Pair {
+class PairThreebodyTable : public Pair {
  public:
-  Pair3BTable(class LAMMPS *);
-  ~Pair3BTable() override;
+  PairThreebodyTable(class LAMMPS *);
+  ~PairThreebodyTable() override;
   void compute(int, int) override;
   void coeff(int, char **) override;
   double init_one(int, int) override;
@@ -37,7 +37,7 @@ class Pair3BTable : public Pair {
 
   // no write or read from binary restart file
 
-  // struct for 3b/table
+  // struct for threebody/table
   struct Table {
     int ninput;
     double rmin, rmax;
@@ -54,7 +54,7 @@ class Pair3BTable : public Pair {
     int keywordlength;          // length of key in table
     char *keyword;              // key in table
     int tabstyle, tablength;    // length of interpolation table (not ninput) and style
-    Table *mltable;             // 3b Table
+    Table *mltable;             // threebody table
   };
 
  protected:

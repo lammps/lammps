@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(sw/3b/table,PairSW3BTable);
+PairStyle(sw/angle/table,PairSWAngleTable);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_SW_3B_TABLE_H
-#define LMP_PAIR_SW_3B_TABLE_H
+#ifndef LMP_PAIR_SW_ANGLE_TABLE_H
+#define LMP_PAIR_SW_ANGLE_TABLE_H
 
 #include "pair_sw.h"
 
 namespace LAMMPS_NS {
 
-class PairSW3BTable : public PairSW {
+class PairSWAngleTable : public PairSW {
  public:
-  PairSW3BTable(class LAMMPS *);
-  ~PairSW3BTable() override;
+  PairSWAngleTable(class LAMMPS *);
+  ~PairSWAngleTable() override;
   void compute(int, int) override;
 
   static constexpr int NPARAMS_PER_LINE = 18;

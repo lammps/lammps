@@ -164,14 +164,19 @@ class FixDPPimd : public Fix {
   double *omega_dot;
   double f_omega, mtk_term1;
   void press_v_step();
-  void v_press_step();
-  void x_press_step();
+  void compute_stress_tensor();
+  // void v_press_step();
+  // void x_press_step();
   void press_remap();
   //void press_x_step();
   void qc_step();
   void press_o_step();
-  int pextflag;
-  double W, tau_p, vw = 0.0, Pext, totenthalpy = 0.0, Vcoeff;
+  int pextflag, pstyle;
+  double W, tau_p, Pext, totenthalpy = 0.0, Vcoeff;
+  double vw[6];
+  double ke_tensor[6];
+  double c_vir_tensor[6];
+  double stress_tensor[6];
   void compute_totenthalpy();
 
   /* harmonic oscillator model system */
@@ -195,7 +200,7 @@ class FixDPPimd : public Fix {
   class Compute *c_pe;
   class Compute *c_press;
   class Compute *c_press2;
-  double virial[9];
+  double virial[6];
   double tdof, t_current;
 
   /* thermodynamic integration */

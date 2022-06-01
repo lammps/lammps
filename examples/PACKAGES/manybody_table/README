@@ -1,65 +1,56 @@
-Example for pair style threebody/table
+Three examples inputs for pair styles threebody/table (in.spce and
+in.spce2) and sw/angle/table (in.spce_sw).  All inputs are for the
+simulation of coarse-grained SPC/E water.
 
+A water molecule is represented by one coarse-grained (CG) bead.
 
-This example contains all required input files for the simulation of CG SPC/E water with
-the user pair style threebody/table, as well as a run.sh script.
-
-To run the example, you have to compile LAMMPS with the MANYBODY package, including pair_threebody_table.h and pair_threebody_table.cpp.
-
-Running the simulations, you will reproduce results of the following publication:
-
-C. Scherer, R. Scheid, D. Andrienko, and T. Bereau, Kernel-Based Machine Learning for Efficient Simulations of Molecular Liquids, J. Chem. Theor. Comp., 16(5):3194–3204, 2020, https://doi.org/10.1021/acs.jctc.9b01256
-
-Here, a water molecule is represented by one coarse-grained (CG) bead. The example contains
-two parts.
-The three-body (force) tables for both parts (1-1-1.table and 1-1-2.table) have been parametrized with the kernel-based machine learning (ML) with the VOTCA package (https://gitlab.mpcdf.mpg.de/votca/votca).
-For a general description of the table format have a look at the documentation of this pair style.
-For a example on the parametrization, have a look at https://gitlab.mpcdf.mpg.de/votca/votca/-/tree/master/csg-examples/guide and
+For the two threebody/table examples the three-body (force) tables are
+in the files 1-1-1.table and 1-1-2.table. These have been parametrized
+with the kernel-based machine learning (ML) with the VOTCA package
+(https://gitlab.mpcdf.mpg.de/votca/votca).  For a example on the
+parametrization, have a look at
+https://gitlab.mpcdf.mpg.de/votca/votca/-/tree/master/csg-examples/guide
+and
 https://gitlab.mpcdf.mpg.de/votca/votca/-/tree/master/csg-examples/ml.
-In both cases, the parametrization is done according to a sample system, using the three-body forces of a Stillinger-Weber potential with tabulated angular forces (sw/angle/table). These then are learned with the covariant meshing technique with the settings files used in https://gitlab.mpcdf.mpg.de/votca/votca/-/tree/master/csg-examples/ml/3body/with_binning.
 
-For the first part of example, the folder contains the contains the LAMMPS data file (spce.data) with the starting configuration of 1000 CG water molecules, an input file (spce.in) and a threebody file (spce.3b).
+In both cases, the parametrization is done according to a sample system,
+using the three-body forces of a Stillinger-Weber potential with
+tabulated angular forces (sw/angle/table) (see in.spce_sw). These then
+are learned with the covariant meshing technique with the settings files
+used in
+https://gitlab.mpcdf.mpg.de/votca/votca/-/tree/master/csg-examples/ml/3body/with_binning.
 
-The lammps input file contains the lines specifying the pair style and coefficients:
+The first example, in.spce uses the LAMMPS data file (data.spce) with
+the starting configuration of 1000 CG water molecules, and a threebody
+file (spce.3b) which loads the 1-1-1.table file.
 
-- pair_style   hybrid/overlay table linear 1200 threebody/table - use a combination of pair style table with 1200 linear table entries and the pair style threebody/table
-- pair_coeff   1 1 table table_CG_CG.txt VOTCA - set the table name and keyword for the pair style table
-- pair_coeff   * * threebody/table spce.3b type - set the name of threebody file and bead type for the pair style threebody/table
+A hybrid/overlay pair style is used to sum a tabulated pairwise
+interaction (table_CG_CG.txt) with the tabulated threebody interactions.
+The tabulated pair interaction is the effectively the same as in the
+what is used by the in.spce_sw input using sw/angle/table pair style.
 
-A hybrid pair style is used, where pair forces are calculated as a tabulated interaction (table_CG_CG.txt) and the pair style threebody/table is only used to calculate the three-body forces.
-The tabulated pair interaction is the same as in the example of the sw/angle/table pair style: examples/PACKAGES/pair_sw_angle_table
+IMPORTANT NOTE: The threebody tables are parameterized without storing
+energies (the last column of the threebody table files is zero).  This
+is due to a current limitation of the paramerization procedure.
 
-To run the simulation, one needs an additional threebody file (spce.3b).
-It has the following structure:
+This in.spce2 example uses the data.spce2 file and the threebody input
+spce2.3b.  This is essentially the same simulation as in in.spce only
+the atom type of the first 100 CG water molecules has been changed from
+1 to 2.  This is done to demonstrate how to run a simulation with
+different atom types.
 
-- type - relates to keyword type in LAMMPS input file
-- type - relates to keyword type in LAMMPS input file
-- type - relates to keyword type in LAMMPS input file
-- 3.7 - cutoff in Ang
-- 1-1-1.table - name of 3-body force table
-- ENTRY1 - keyword in 3-body force table for this interaction
-- linear - interpolation is linear
-- 12 - number of grid points in radial direction (automatically sets grid size, in this case to 1872)
+For this (artificial) two-element simulation, the threebody file now
+contain 8 entries for: type1 type1 type1, type1 type1 type2, type1 type2
+type1, type1 type2 type2, type2 type1 type1, type2 type1 type2, type2
+type2 type1, type2 type2 type2.  Each entry has the same structure as
+above. However, entries where the second and the third element are
+different require a different force table (1-1-2.table) instead of
+(1-1-1.table).  1-1-2.table contains exactly the force constants as
+1-1-1.table.  However it has to have the asymmetric structure where both
+interparticle distances (r_ij and r_ik) are varied from rmin to rmax and
+therefore contains "M = 2 * N * N * N" (2 * 12 * 12 * 12 = 3456)
+entries.
 
-As there is only one atom type (1), the force table is symmetric and contains "M = N * N * (N+1)" (12 * 12 * 13 = 1872) entries.
-
-The LAMMPS simulation is a standard nvt simulation. A dump file is output with the positions and forces every 10 time steps.
-You can calculate the pair distribution and compare it to the ones in the publication.
-
-For the second part of the example, have a look at the LAMMPS data file (spce_2.data), the input file (spce_2.in) and the threebody file (spce_2.3b).
-Running the second part, you will in fact perform the same MD simulation as in the first part of the example. However, the atom type of the first 100 CG water molecules has been changed from 1 to 2.
-This is done to demonstrate how to run a simulation with different atom types.
-
-Again, lammps input file (spce_2.in) contains the lines specifying the pair style and coefficients:
-
-- pair_style  hybrid/overlay table linear 1200 threebody/table - use a combination of pair style table with 1200 linear table entries and the pair style threebody/table
-- pair_coeff  1 1 table table_CG_CG.txt VOTCA - set the table name and keyword for the pair style table
-- pair_coeff  * * threebody/table spce_2.3b type1 type2 - set the name of threebody file and bead type for the pair style threebody/table
-
-Now, the atom type 1 is mapped to the element type1 and the atom type 2 is mapped to the element type2 in the threebody file (spce_2.3b).
-For this (artificial) two-element simulation, the threebody file now contain 8 entries for: type1 type1 type1, type1 type1 type2, type1 type2 type1, type1 type2 type2, type2 type1 type1, type2 type1 type2, type2 type2 type1, type2 type2 type2.
-Each entry has the same structure as above. However, entries where the second and the third element are different require a different force table (1-1-2.table) instead of (1-1-1.table).
-1-1-2.table contains exactly the force constants as 1-1-1.table.
-However it has to have the asymmetric structure where both interparticle distances (r_ij and r_ik) are varied from rmin to rmax and therefore contains "M = 2 * N * N * N" (2 * 12 * 12 * 12 = 3456) entries.
-
-Now run the simulation. The theromodynamic output, as well as, the pair correlation function should be exactly the same as for the first part of the example.
+The third example, in.spce_sw, contains the analytical twobody interactions
+and replaces the threebody term of the Stillinger-Weber potential with an
+angle/table style potential  which is stored in the table_CG_CG_CG.txt file.

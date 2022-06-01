@@ -10,7 +10,7 @@ Reading data file ...
   1 by 2 by 2 MPI processor grid
   reading atoms ...
   1000 atoms
-  read_data CPU = 0.002 seconds
+  read_data CPU = 0.004 seconds
 
 pair_style      hybrid/overlay table linear 1200 threebody/table
 
@@ -57,20 +57,20 @@ Per MPI rank memory allocation (min/avg/max) = 3.87 | 3.87 | 3.87 Mbytes
        800   314.09436     -5467.6073      0             -4532.2879      522.73489    
        900   300.85843     -5503.7551      0             -4607.85        491.78041    
       1000   302.84638     -5468.3331      0             -4566.5083      338.05123    
-Loop time of 1.4686 on 4 procs for 1000 steps with 1000 atoms
+Loop time of 1.54853 on 4 procs for 1000 steps with 1000 atoms
 
-Performance: 117.663 ns/day, 0.204 hours/ns, 680.919 timesteps/s
-98.1% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 111.590 ns/day, 0.215 hours/ns, 645.773 timesteps/s
+96.0% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 1.2491     | 1.2757     | 1.3162     |   2.3 | 86.87
-Neigh   | 0.06817    | 0.069468   | 0.071025   |   0.5 |  4.73
-Comm    | 0.069929   | 0.11236    | 0.14069    |   8.1 |  7.65
-Output  | 0.00016417 | 0.00050711 | 0.0015318  |   0.0 |  0.03
-Modify  | 0.0057514  | 0.0061681  | 0.0066503  |   0.5 |  0.42
-Other   |            | 0.004366   |            |       |  0.30
+Pair    | 1.2599     | 1.2908     | 1.3259     |   2.1 | 83.36
+Neigh   | 0.069097   | 0.071294   | 0.075502   |   0.9 |  4.60
+Comm    | 0.12731    | 0.15884    | 0.19196    |   5.7 | 10.26
+Output  | 0.00017674 | 0.0026016  | 0.0098653  |   8.2 |  0.17
+Modify  | 0.0093453  | 0.011999   | 0.014575   |   2.3 |  0.77
+Other   |            | 0.01295    |            |       |  0.84
 
 Nlocal:            250 ave         257 max         240 min
 Histogram: 1 0 0 0 0 1 0 0 1 1

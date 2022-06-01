@@ -1,10 +1,10 @@
-Example for pair style sw/3b/table
+Example for pair style sw/angle/table
 
 
 This example contains all required input files for the simulation of CG SPC/E water with
-the user pair style sw/3b/table, as well as a run.sh script.
+the user pair style sw/angle/table, as well as a run.sh script.
 
-To run the example, you have to compile LAMMPS with the MANYBODY package, including pair_sw_3b_table.h and pair_sw_3b_table.cpp.
+To run the example, you have to compile LAMMPS with the MANYBODY package, including pair_sw_angle_table.h and pair_sw_angle_table.cpp.
 
 Running the simulation, you will reproduce results of the following publication:
 
@@ -22,11 +22,11 @@ of 1000 CG water molecules, an input file (spce.in) and a (modified) Stillinger-
 
 The lammps input file contains the lines specifying the pair style and coefficients:
 
-- pair_style  hybrid/overlay table linear 1200 sw/3b/table - use a combination of pair style table with 1200 linear table entries and the pair style sw/3b/table
+- pair_style  hybrid/overlay table linear 1200 sw/angle/table - use a combination of pair style table with 1200 linear table entries and the pair style sw/angle/table
 - pair_coeff  1 1 table table_CG_CG.txt VOTCA - set the table name and keyword for the pair_style table
-- pair_coeff  * * sw/3b/table spce.sw type - set the name of the Stillinger-Weber file for the pair style sw/3b/table
+- pair_coeff  * * sw/angle/table spce.sw type - set the name of the Stillinger-Weber file for the pair style sw/angle/table
 
-A hybrid pair style is used, where pair forces are calculated as a tabulated interaction (table_CG_CG.txt) and the pair style sw/3b/table is only used to calculate the three-body forces.
+A hybrid pair style is used, where pair forces are calculated as a tabulated interaction (table_CG_CG.txt) and the pair style sw/angle/table is only used to calculate the three-body forces.
 Therefore, in the Stillinger-Weber file all parameters refering to two-body interactions are set to zero.
 As explained in the documentation of this pair style, the .sw file contains the additional lines refering to the tabulated angular potential:
 

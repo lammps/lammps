@@ -9,12 +9,12 @@ read_data	spce.data
 
 #hybrid pair style consisting of
 #pair_style table to read in CG pair potential
-#pair_style sw/table for tabulated sw interactions
-pair_style      hybrid/overlay table linear 1200 sw/3b/table
+#pair_style sw/angle/table for sw interactions with tabulated angular potential
+pair_style      hybrid/overlay table linear 1200 sw/angle/table
 
 #pair coefficients
 pair_coeff	1 1 table table_CG_CG.txt VOTCA
-pair_coeff      * * sw/3b/table spce.sw type
+pair_coeff      * * sw/angle/table spce.sw type
 
 #nvt run with nose-hoover thermostat
 #time coupling of 100 ts for thermostat

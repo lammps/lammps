@@ -228,7 +228,7 @@ void PairSWAngleTable::read_file(char *file)
   // open file on proc 0
 
   if (comm->me == 0) {
-    PotentialFileReader reader(lmp, file, "sw/angle/table", unit_convert_flag);
+    PotentialFileReader reader(lmp, file, "sw", unit_convert_flag);
     char *line;
 
     while ((line = reader.next_line(NPARAMS_PER_LINE))) {
@@ -440,7 +440,7 @@ void PairSWAngleTable::threebody_table(Param *paramij, Param *paramik, ParamTabl
 
 void PairSWAngleTable::read_table(Table *tb, char *file, char *keyword)
 {
-  TableFileReader reader(lmp, file, "angle table");
+  TableFileReader reader(lmp, file, "angletable");
 
   char *line = reader.find_section_start(keyword);
 

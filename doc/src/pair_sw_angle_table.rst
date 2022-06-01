@@ -1,6 +1,6 @@
-.. index:: pair_style sw/3b/table
+.. index:: pair_style sw/angle/table
 
-pair_style sw/3b/table command
+pair_style sw/angle/table command
 ==============================
 
 Syntax
@@ -10,7 +10,7 @@ Syntax
 
    pair_style style
 
-* style = *sw/3b/table*
+* style = *sw/angle/table*
 
 
 Examples
@@ -18,7 +18,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   pair_style sw/3b/table
+   pair_style sw/angle/table
    pair_coeff * * spce.sw type
    pair_coeff * * GaN.sw Ga N Ga
 
@@ -26,7 +26,7 @@ Examples
 Description
 """""""""""
 
-The *sw/3b/table* style is a modification of the original
+The *sw/angle/table* style is a modification of the original
 :doc:`pair_style sw <pair_sw>`. It has been developed for coarse-grained
 simulations (of water) (:ref:`Scherer1 <Scherer1>`), but can be employed
 for all kinds of systems. It computes a modified 3-body
@@ -48,12 +48,12 @@ system of atoms as
 where :math:`\phi_2` is a two-body term and :math:`\phi_3` is a
 three-body term.  The summations in the formula are over all neighbors J
 and K of atom I within a cutoff distance :math:`a \sigma`.
-In contrast to the original *sw* style, *sw/3b/table* allows for a flexible
+In contrast to the original *sw* style, *sw/angle/table* allows for a flexible
 three-body term :math:`f^{\textrm{3b}}\left(\theta_{ijk}\right)` which is read in
 as a tabulated interaction. It can be parameterized with the csg_fmatch app of VOTCA
 as available at: https://gitlab.mpcdf.mpg.de/votca/votca.
 
-Only a single pair_coeff command is used with the *sw/3b/table* style
+Only a single pair_coeff command is used with the *sw/angle/table* style
 which specifies a modified Stillinger-Weber potential file with parameters for all
 needed elements.  These are mapped to LAMMPS atom types by specifying
 N_el additional arguments after the ".sw" filename in the pair_coeff command,
@@ -78,7 +78,7 @@ The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to the Si
 element in the SW file.  The final C argument maps LAMMPS atom type 4
 to the C element in the SW file.  If a mapping value is specified as
-NULL, the mapping is not performed.  This can be used when a *sw/3b/table*
+NULL, the mapping is not performed.  This can be used when a *sw/angle/table*
 potential is used as part of the *hybrid* pair style.  The NULL values
 are placeholders for atom types that will be used with other
 potentials.
@@ -298,7 +298,7 @@ in the tutorial folder.
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style sw <pair_sw>`, :doc:`pair_style 3b/table <pair_3b_table>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style sw <pair_sw>`, :doc:`pair_style threebody/table <pair_threebody_table>`
 
 
 ----------

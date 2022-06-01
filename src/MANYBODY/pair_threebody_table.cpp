@@ -16,7 +16,7 @@
    scherer@mpip-mainz.mpg.de
 ------------------------------------------------------------------------- */
 
-#include "pair_3b_table.h"
+#include "pair_threebody_table.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -41,7 +41,7 @@ using MathConst::MY_PI;
 
 /* ---------------------------------------------------------------------- */
 
-Pair3BTable::Pair3BTable(LAMMPS *lmp) : Pair(lmp), params(nullptr), neighshort(nullptr)
+PairThreebodyTable::PairThreebodyTable(LAMMPS *lmp) : Pair(lmp), params(nullptr), neighshort(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -56,7 +56,7 @@ Pair3BTable::Pair3BTable(LAMMPS *lmp) : Pair(lmp), params(nullptr), neighshort(n
    check if allocated, since class can be destructed when incomplete
 ------------------------------------------------------------------------- */
 
-Pair3BTable::~Pair3BTable()
+PairThreebodyTable::~PairThreebodyTable()
 {
   if (copymode) return;
 
@@ -73,7 +73,7 @@ Pair3BTable::~Pair3BTable()
 
 /* ---------------------------------------------------------------------- */
 
-void Pair3BTable::compute(int eflag, int vflag)
+void PairThreebodyTable::compute(int eflag, int vflag)
 {
   int i,j,k,ii,jj,kk,inum,jnum,jnumm1;
   int itype,jtype,ktype,ijparam,ijkparam;
@@ -202,7 +202,7 @@ void Pair3BTable::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void Pair3BTable::allocate()
+void PairThreebodyTable::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -217,7 +217,7 @@ void Pair3BTable::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void Pair3BTable::settings(int narg, char ** /*arg*/)
+void PairThreebodyTable::settings(int narg, char ** /*arg*/)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
@@ -226,7 +226,7 @@ void Pair3BTable::settings(int narg, char ** /*arg*/)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void Pair3BTable::coeff(int narg, char **arg)
+void PairThreebodyTable::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
 
@@ -242,12 +242,12 @@ void Pair3BTable::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void Pair3BTable::init_style()
+void PairThreebodyTable::init_style()
 {
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style 3b/table requires atom IDs");
+    error->all(FLERR,"Pair style threebody/table requires atom IDs");
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style 3b/table requires newton pair on");
+    error->all(FLERR,"Pair style threebody/table requires newton pair on");
 
   // need a full neighbor list
 
@@ -258,7 +258,7 @@ void Pair3BTable::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double Pair3BTable::init_one(int i, int j)
+double PairThreebodyTable::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
@@ -267,7 +267,7 @@ double Pair3BTable::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-void Pair3BTable::read_file(char *file)
+void PairThreebodyTable::read_file(char *file)
 {
   memory->sfree(params);
   params = nullptr;
@@ -276,7 +276,7 @@ void Pair3BTable::read_file(char *file)
   // open file on proc 0
 
   if (comm->me == 0) {
-    PotentialFileReader reader(lmp, file, "3b/table", unit_convert_flag);
+    PotentialFileReader reader(lmp, file, "threebody", unit_convert_flag);
     char *line;
 
     while ((line = reader.next_line(NPARAMS_PER_LINE))) {
@@ -339,7 +339,7 @@ void Pair3BTable::read_file(char *file)
         }
         auto tablestyle = values.next_string();
         if (tablestyle != "linear")
-          error->all(FLERR,"Unknown table style {} in 3b table", tablestyle);
+          error->all(FLERR,"Unknown table style {} in threebody table", tablestyle);
         params[nparams].tablength = values.next_int();
 
       } catch (TokenizerException &e) {
@@ -347,7 +347,7 @@ void Pair3BTable::read_file(char *file)
       }
 
       if (params[nparams].cut < 0.0 || params[nparams].tablength < 0.0)
-        error->one(FLERR,"Illegal 3b/table parameters");
+        error->one(FLERR,"Illegal threebody/table parameters");
 
       nparams++;
     }
@@ -362,7 +362,7 @@ void Pair3BTable::read_file(char *file)
 
   MPI_Bcast(params, maxparam*sizeof(Param), MPI_BYTE, 0, world);
 
-  // for each set of parameters, broadcast table name and keyword and read 3b table
+  // for each set of parameters, broadcast table name and keyword and read threebody table
   for (int m = 0; m < nparams; ++m){
     if (comm->me != 0) {
       memory->create(params[m].tablename, params[m].tablenamelength, "params.tablename");
@@ -373,27 +373,27 @@ void Pair3BTable::read_file(char *file)
     }
     MPI_Bcast(&params[m].keyword, params[m].keywordlength, MPI_CHAR, 0, world);
 
-    // initialize 3btable
-    memory->create(params[m].mltable,1,"param:3btable");
+    // initialize threebodytable
+    memory->create(params[m].mltable,1,"param:threebodytable");
     null_table(params[m].mltable);
 
-    //call read_table to read corresponding tabulated 3b file (only called by process 0)
+    //call read_table to read corresponding tabulated threebody file (only called by process 0)
     if (comm->me == 0){
       read_table(params[m].mltable,params[m].tablename,params[m].keyword,params[m].symmetric);
     }
 
-    // broadcast read in 3btable to all processes
+    // broadcast read in threebodytable to all processes
     bcast_table(params[m].mltable,params[m].symmetric);
 
     // error check on table parameters
-    if (params[m].mltable->ninput <= 1) error->one(FLERR,"Invalid 3b table length");
+    if (params[m].mltable->ninput <= 1) error->one(FLERR,"Invalid threebody table length");
   }
 }
 
 
 /* ---------------------------------------------------------------------- */
 
-void Pair3BTable::setup_params()
+void PairThreebodyTable::setup_params()
 {
   int i,j,k,m,n;
   double rtmp;
@@ -446,9 +446,9 @@ void Pair3BTable::setup_params()
    read table file, only called by proc 0
 ------------------------------------------------------------------------- */
 
-void Pair3BTable::read_table(Table *tb, char *file, char *keyword, bool symmetric)
+void PairThreebodyTable::read_table(Table *tb, char *file, char *keyword, bool symmetric)
 {
-  TableFileReader reader(lmp, file, "3body");
+  TableFileReader reader(lmp, file, "threebodytable");
 
   char *line = reader.find_section_start(keyword);
 
@@ -460,7 +460,7 @@ void Pair3BTable::read_table(Table *tb, char *file, char *keyword, bool symmetri
   line = reader.next_line();
   param_extract(tb, line);
 
-  // if it is a symmetric 3body interaction, less table entries are required
+  // if it is a symmetric threebody interaction, less table entries are required
   if (symmetric == true){
     memory->create(tb->r12file,tb->ninput*tb->ninput*(tb->ninput+1),"mltable:r12file");
     memory->create(tb->r13file,tb->ninput*tb->ninput*(tb->ninput+1),"mltable:r13file");
@@ -488,11 +488,11 @@ void Pair3BTable::read_table(Table *tb, char *file, char *keyword, bool symmetri
   }
 
 
-  // read 3b table values from file
+  // read threebody table values from file
 
   int cerror = 0;
   reader.skip_line();
-  // if it is a symmetric 3body interaction, less table entries are required
+  // if it is a symmetric threebody interaction, less table entries are required
   if (symmetric == true){
     for (int i = 0; i < tb->ninput*tb->ninput*(tb->ninput+1); i++) {
       line = reader.next_line(11);
@@ -551,7 +551,7 @@ void Pair3BTable::read_table(Table *tb, char *file, char *keyword, bool symmetri
    only called by read_table, only called by proc 0
 ------------------------------------------------------------------------- */
 
-void Pair3BTable::param_extract(Table *tb, char *line)
+void PairThreebodyTable::param_extract(Table *tb, char *line)
 {
   tb->ninput = 0;
   tb->rmin = 0.0;
@@ -577,9 +577,9 @@ void Pair3BTable::param_extract(Table *tb, char *line)
     error->one(FLERR, e.what());
   }
 
-  if (tb->ninput == 0) error->one(FLERR, "3body table parameters did not set N");
-  if (tb->rmin == 0.0) error->one(FLERR, "3body table parameters did not set rmin");
-  if (tb->rmax == 0.0) error->one(FLERR, "3body table parameters did not set rmax");
+  if (tb->ninput == 0) error->one(FLERR, "threebodytable parameters did not set N");
+  if (tb->rmin == 0.0) error->one(FLERR, "threebodytable parameters did not set rmin");
+  if (tb->rmax == 0.0) error->one(FLERR, "threebodytable parameters did not set rmax");
 }
 
 
@@ -589,14 +589,14 @@ void Pair3BTable::param_extract(Table *tb, char *line)
      ninput,afile,efile,ffile,fpflag,fplo,fphi,theta0
 ------------------------------------------------------------------------- */
 
-void Pair3BTable::bcast_table(Table *tb, bool symmetric)
+void PairThreebodyTable::bcast_table(Table *tb, bool symmetric)
 {
   MPI_Bcast(&tb->ninput,1,MPI_INT,0,world);
 
   int me;
   MPI_Comm_rank(world, &me);
   if (me > 0) {
-    // if it is a symmetric 3body interaction, less table entries are required
+    // if it is a symmetric threebody interaction, less table entries are required
     if (symmetric == true){
       memory->create(tb->r12file,tb->ninput*tb->ninput*(tb->ninput+1),"mltable:r12file");
       memory->create(tb->r13file,tb->ninput*tb->ninput*(tb->ninput+1),"mltable:r13file");
@@ -624,7 +624,7 @@ void Pair3BTable::bcast_table(Table *tb, bool symmetric)
     }
   }
 
-  // if it is a symmetric 3body interaction, less table entries are required
+  // if it is a symmetric threebody interaction, less table entries are required
   if (symmetric == true){
     MPI_Bcast(tb->r12file,tb->ninput*tb->ninput*(tb->ninput+1),MPI_DOUBLE,0,world);
     MPI_Bcast(tb->r13file,tb->ninput*tb->ninput*(tb->ninput+1),MPI_DOUBLE,0,world);
@@ -657,11 +657,11 @@ void Pair3BTable::bcast_table(Table *tb, bool symmetric)
 
 /* ---------------------------------------------------------------------- */
 
-void Pair3BTable::free_param(Param *pm)
+void PairThreebodyTable::free_param(Param *pm)
 {
-  // call free_table to destroy associated 3btable
+  // call free_table to destroy associated threebodytable
   free_table(pm->mltable);
-  // then destroy associated 3btable
+  // then destroy associated threebodytable
   memory->sfree(pm->tablename);
   memory->sfree(pm->keyword);
   memory->sfree(pm->mltable);
@@ -669,7 +669,7 @@ void Pair3BTable::free_param(Param *pm)
 
 /* ---------------------------------------------------------------------- */
 
-void Pair3BTable::free_table(Table *tb)
+void PairThreebodyTable::free_table(Table *tb)
 {
   memory->destroy(tb->r12file);
   memory->destroy(tb->r13file);
@@ -685,7 +685,7 @@ void Pair3BTable::free_table(Table *tb)
 
 /* ---------------------------------------------------------------------- */
 
-void Pair3BTable::null_table(Table *tb)
+void PairThreebodyTable::null_table(Table *tb)
 {
   tb->r12file = tb->r13file = tb->thetafile = nullptr;
   tb->f11file = tb->f12file = nullptr;
@@ -698,7 +698,7 @@ void Pair3BTable::null_table(Table *tb)
    calculate potential u and force f at angle x
 ------------------------------------------------------------------------- */
 
-void Pair3BTable::uf_lookup(Param *pm, double r12, double r13, double theta, double &f11, double &f12,
+void PairThreebodyTable::uf_lookup(Param *pm, double r12, double r13, double theta, double &f11, double &f12,
                             double &f21, double &f22, double &f31, double &f32, double &u)
 {
   int i,itable,nr12,nr13,ntheta;
@@ -708,7 +708,7 @@ void Pair3BTable::uf_lookup(Param *pm, double r12, double r13, double theta, dou
 
   //lookup scheme
 
-  // if it is a symmetric 3body interaction, less table entries are required
+  // if it is a symmetric threebody interaction, less table entries are required
   if (pm->symmetric == true){
     nr12 = (r12 - pm->mltable->rmin + 0.5*dr - 0.00000001)/dr;
     if (r12 == (pm->mltable->rmin - 0.5*dr)){
@@ -761,7 +761,7 @@ void Pair3BTable::uf_lookup(Param *pm, double r12, double r13, double theta, dou
 
 /* ---------------------------------------------------------------------- */
 
-void Pair3BTable::threebody(Param *paramijk, double rsq1, double rsq2, double *delr1, double *delr2,
+void PairThreebodyTable::threebody(Param *paramijk, double rsq1, double rsq2, double *delr1, double *delr2,
                             double *fi, double *fj, double *fk, int eflag, double &eng)
 {
   double r12,r13,theta,rinv,cs;

@@ -17,7 +17,7 @@
    scherer@mpip-mainz.mpg.de
 ------------------------------------------------------------------------- */
 
-#include "pair_sw_3b_table.h"
+#include "pair_sw_angle_table.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -47,7 +47,7 @@ static constexpr double TINY = 1.0e-10;
 
 /* ---------------------------------------------------------------------- */
 
-PairSW3BTable::PairSW3BTable(LAMMPS *lmp) : PairSW(lmp), table_params(nullptr)
+PairSWAngleTable::PairSWAngleTable(LAMMPS *lmp) : PairSW(lmp), table_params(nullptr)
 {
   unit_convert_flag = utils::NOCONVERT;
 }
@@ -56,7 +56,7 @@ PairSW3BTable::PairSW3BTable(LAMMPS *lmp) : PairSW(lmp), table_params(nullptr)
    check if allocated, since class can be destructed when incomplete
 ------------------------------------------------------------------------- */
 
-PairSW3BTable::~PairSW3BTable()
+PairSWAngleTable::~PairSWAngleTable()
 {
   if (copymode) return;
 
@@ -74,7 +74,7 @@ PairSW3BTable::~PairSW3BTable()
 
 /* ---------------------------------------------------------------------- */
 
-void PairSW3BTable::compute(int eflag, int vflag)
+void PairSWAngleTable::compute(int eflag, int vflag)
 {
   int i,j,k,ii,jj,kk,inum,jnum,jnumm1;
   int itype,jtype,ktype,ijparam,ikparam,ijkparam;
@@ -217,7 +217,7 @@ void PairSW3BTable::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void PairSW3BTable::read_file(char *file)
+void PairSWAngleTable::read_file(char *file)
 {
   memory->sfree(params);
   params = nullptr;
@@ -228,7 +228,7 @@ void PairSW3BTable::read_file(char *file)
   // open file on proc 0
 
   if (comm->me == 0) {
-    PotentialFileReader reader(lmp, file, "sw/3b", unit_convert_flag);
+    PotentialFileReader reader(lmp, file, "sw/angle/table", unit_convert_flag);
     char *line;
 
     while ((line = reader.next_line(NPARAMS_PER_LINE))) {
@@ -300,7 +300,7 @@ void PairSW3BTable::read_file(char *file)
         auto tablestyle = values.next_string();
         if (tablestyle == "linear") table_params[nparams].tabstyle = LINEAR;
         else if (tablestyle == "spline") table_params[nparams].tabstyle = SPLINE;
-        else error->all(FLERR,"Unknown table style {} of 3b/table file", tablestyle);
+        else error->all(FLERR,"Unknown table style {} of angle table file", tablestyle);
         table_params[nparams].tablength = values.next_int();
 
       } catch (TokenizerException &e) {
@@ -378,7 +378,7 @@ void PairSW3BTable::read_file(char *file)
 
 /* ---------------------------------------------------------------------- */
 
-void PairSW3BTable::threebody_table(Param *paramij, Param *paramik, ParamTable *table_paramijk,
+void PairSWAngleTable::threebody_table(Param *paramij, Param *paramik, ParamTable *table_paramijk,
                                     double rsq1, double rsq2, double *delr1, double *delr2,
                                     double *fj, double *fk, int eflag, double &eng)
 {
@@ -438,9 +438,9 @@ void PairSW3BTable::threebody_table(Param *paramij, Param *paramik, ParamTable *
    read table file, only called by proc 0
 ------------------------------------------------------------------------- */
 
-void PairSW3BTable::read_table(Table *tb, char *file, char *keyword)
+void PairSWAngleTable::read_table(Table *tb, char *file, char *keyword)
 {
-  TableFileReader reader(lmp, file, "3b/table");
+  TableFileReader reader(lmp, file, "angle table");
 
   char *line = reader.find_section_start(keyword);
 
@@ -484,7 +484,7 @@ void PairSW3BTable::read_table(Table *tb, char *file, char *keyword)
    this function sets these values in e2file,f2file
 ------------------------------------------------------------------------- */
 
-void PairSW3BTable::spline_table(Table *tb)
+void PairSWAngleTable::spline_table(Table *tb)
 {
   memory->create(tb->e2file, tb->ninput, "angle:e2file");
   memory->create(tb->f2file, tb->ninput, "angle:f2file");
@@ -508,7 +508,7 @@ void PairSW3BTable::spline_table(Table *tb)
    compute a,e,f vectors from splined values
 ------------------------------------------------------------------------- */
 
-void PairSW3BTable::compute_table(Table *tb,int length)
+void PairSWAngleTable::compute_table(Table *tb,int length)
 {
   // delta = table spacing in angle for N-1 bins
 
@@ -558,7 +558,7 @@ void PairSW3BTable::compute_table(Table *tb,int length)
      ninput,afile,efile,ffile,fpflag,fplo,fphi,theta0
 ------------------------------------------------------------------------- */
 
-void PairSW3BTable::bcast_table(Table *tb)
+void PairSWAngleTable::bcast_table(Table *tb)
 {
   MPI_Bcast(&tb->ninput, 1, MPI_INT, 0, world);
 
@@ -584,7 +584,7 @@ void PairSW3BTable::bcast_table(Table *tb)
 
 /* ---------------------------------------------------------------------- */
 
-void PairSW3BTable::null_table(Table *tb)
+void PairSWAngleTable::null_table(Table *tb)
 {
   tb->afile = tb->efile = tb->ffile = nullptr;
   tb->e2file = tb->f2file = nullptr;
@@ -594,7 +594,7 @@ void PairSW3BTable::null_table(Table *tb)
 
 /* ---------------------------------------------------------------------- */
 
-void PairSW3BTable::free_table(Table *tb)
+void PairSWAngleTable::free_table(Table *tb)
 {
   memory->destroy(tb->afile);
   memory->destroy(tb->efile);
@@ -613,7 +613,7 @@ void PairSW3BTable::free_table(Table *tb)
 
 /* ---------------------------------------------------------------------- */
 
-void PairSW3BTable::free_param(ParamTable *pm)
+void PairSWAngleTable::free_param(ParamTable *pm)
 {
   // call free_table to destroy associated angle table
   free_table(pm->angtable);
@@ -631,7 +631,7 @@ void PairSW3BTable::free_param(ParamTable *pm)
    only called by read_table, only called by proc 0
 ------------------------------------------------------------------------- */
 
-void PairSW3BTable::param_extract(Table *tb, char *line)
+void PairSWAngleTable::param_extract(Table *tb, char *line)
 {
   tb->ninput = 0;
   tb->fpflag = 0;
@@ -668,7 +668,7 @@ void PairSW3BTable::param_extract(Table *tb, char *line)
    spline and splint routines modified from Numerical Recipes
 ------------------------------------------------------------------------- */
 
-void PairSW3BTable::spline(double *x, double *y, int n, double yp1, double ypn, double *y2)
+void PairSWAngleTable::spline(double *x, double *y, int n, double yp1, double ypn, double *y2)
 {
   int i, k;
   double p, qn, sig, un;
@@ -700,7 +700,7 @@ void PairSW3BTable::spline(double *x, double *y, int n, double yp1, double ypn, 
 }
 /* ---------------------------------------------------------------------- */
 
-double PairSW3BTable::splint(double *xa, double *ya, double *y2a, int n, double x)
+double PairSWAngleTable::splint(double *xa, double *ya, double *y2a, int n, double x)
 {
   int klo, khi, k;
   double h, b, a, y;
@@ -726,7 +726,7 @@ double PairSW3BTable::splint(double *xa, double *ya, double *y2a, int n, double 
    calculate potential u and force f at angle x
 ------------------------------------------------------------------------- */
 
-void PairSW3BTable::uf_lookup(ParamTable *pm, double x, double &u, double &f)
+void PairSWAngleTable::uf_lookup(ParamTable *pm, double x, double &u, double &f)
 {
   if (!std::isfinite(x)) { error->one(FLERR, "Illegal angle in angle style table"); }
 

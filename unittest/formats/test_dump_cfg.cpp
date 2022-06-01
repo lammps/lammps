@@ -27,8 +27,8 @@ class DumpCfgTest : public MeltTest {
     std::string dump_style = "cfg";
 
 public:
-    void generate_dump(std::string dump_file, std::string fields, std::string dump_modify_options,
-                       int ntimesteps)
+    void generate_dump(const std::string &dump_file, const std::string &fields,
+                       const std::string &dump_modify_options, int ntimesteps)
     {
         BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id all {} 1 {} {}", dump_style, dump_file, fields));

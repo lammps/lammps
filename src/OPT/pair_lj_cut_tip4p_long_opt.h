@@ -40,17 +40,3 @@ class PairLJCutTIP4PLongOpt : public PairLJCutTIP4PLong {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: TIP4P hydrogen is missing
-
-The TIP4P pairwise computation failed to find the correct H atom
-within a water molecule.
-
-E: TIP4P hydrogen has incorrect atom type
-
-The TIP4P pairwise computation found an H atom whose type does not
-agree with the specified H type.
-
-*/

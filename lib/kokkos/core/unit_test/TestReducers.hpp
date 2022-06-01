@@ -314,10 +314,7 @@ struct TestReducers {
 
       Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecSpace>(0, 0), f,
                               reducer_scalar);
-// Zero length reduction not yet supported
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
       ASSERT_EQ(sum_scalar, init);
-#endif
 
       Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecSpace>(0, N), f,
                               reducer_scalar);
@@ -340,10 +337,7 @@ struct TestReducers {
                               reducer_view);
       Kokkos::fence();
       Scalar sum_view_scalar = sum_view();
-// Zero length reduction not yet supported
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
       ASSERT_EQ(sum_view_scalar, init);
-#endif
 
       Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecSpace>(0, N), f,
                               reducer_view);
@@ -355,8 +349,6 @@ struct TestReducers {
       ASSERT_EQ(sum_view_view, reference_sum);
     }
 
-    // Reduction to device view not yet supported
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
     {
       Kokkos::View<Scalar, typename ExecSpace::memory_space> sum_view("View");
       Kokkos::deep_copy(sum_view, Scalar(1));
@@ -375,7 +367,6 @@ struct TestReducers {
       Kokkos::deep_copy(sum_view_scalar, sum_view);
       ASSERT_EQ(sum_view_scalar, reference_sum);
     }
-#endif
   }
 
   static void test_prod(int N) {
@@ -400,10 +391,7 @@ struct TestReducers {
       Kokkos::Prod<Scalar> reducer_scalar(prod_scalar);
       Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecSpace>(0, 0), f,
                               reducer_scalar);
-// Zero length reduction not yet supported
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
       ASSERT_EQ(prod_scalar, init);
-#endif
 
       Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecSpace>(0, N), f,
                               reducer_scalar);
@@ -426,10 +414,7 @@ struct TestReducers {
                               reducer_view);
       Kokkos::fence();
       Scalar prod_view_scalar = prod_view();
-// Zero length reduction not yet supported
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
       ASSERT_EQ(prod_view_scalar, init);
-#endif
 
       Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecSpace>(0, N), f,
                               reducer_view);
@@ -441,8 +426,6 @@ struct TestReducers {
       ASSERT_EQ(prod_view_view, reference_prod);
     }
 
-    // Reduction to device view not yet supported
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
     {
       Kokkos::View<Scalar, typename ExecSpace::memory_space> prod_view("View");
       Kokkos::deep_copy(prod_view, Scalar(0));
@@ -461,7 +444,6 @@ struct TestReducers {
       Kokkos::deep_copy(prod_view_scalar, prod_view);
       ASSERT_EQ(prod_view_scalar, reference_prod);
     }
-#endif
   }
 
   static void test_min(int N) {
@@ -1016,10 +998,10 @@ struct TestReducers {
     test_minloc(10003);
     test_max(10007);
     test_maxloc(10007);
-    // FIXME_OPENMPTARGET - The minmaxloc test fails in the Release and
-    // RelWithDebInfo builds for the OPENMPTARGET backend but passes in Debug
-    // mode.
-#if !defined(KOKKOS_ENABLE_OPENMPTARGET)
+#if defined(KOKKOS_ENABLE_OPENMPTARGET) && defined(KOKKOS_COMPILER_CLANG) && \
+    (KOKKOS_COMPILER_CLANG < 1300)
+    // FIXME_OPENMPTARGET - The minmaxloc test fails llvm <= 13 version.
+#else
     test_minmaxloc(10007);
 #endif
   }
@@ -1034,10 +1016,10 @@ struct TestReducers {
     test_minloc(10003);
     test_max(10007);
     test_maxloc(10007);
-    // FIXME_OPENMPTARGET - The minmaxloc test fails in the Release and
-    // RelWithDebInfo builds for the OPENMPTARGET backend but passes in Debug
-    // mode.
-#if !defined(KOKKOS_ENABLE_OPENMPTARGET)
+#if defined(KOKKOS_ENABLE_OPENMPTARGET) && defined(KOKKOS_COMPILER_CLANG) && \
+    (KOKKOS_COMPILER_CLANG < 1300)
+    // FIXME_OPENMPTARGET - The minmaxloc test fails llvm <= 13 version.
+#else
     test_minmaxloc(10007);
 #endif
     test_BAnd(35);
@@ -1049,6 +1031,11 @@ struct TestReducers {
   static void execute_basic() {
     test_sum(10001);
     test_prod(35);
+  }
+
+  static void execute_bool() {
+    test_LAnd(10001);
+    test_LOr(35);
   }
 };
 

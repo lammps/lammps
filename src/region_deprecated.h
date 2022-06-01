@@ -39,11 +39,3 @@ class RegionDeprecated : public Region {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: This region command has been removed from LAMMPS
-
-UNDOCUMENTED
-
-*/

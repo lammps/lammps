@@ -12,9 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_amoeba.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "amoeba_convolution.h"
 #include "atom.h"
 #include "domain.h"
@@ -26,6 +24,9 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -48,7 +49,7 @@ enum{GORDON1,GORDON2};
 void PairAmoeba::induce()
 {
   bool done;
-  int i,j,m,ii,itype;
+  int i,j,m,itype;
   int iter,maxiter;
   double polmin;
   double eps,epsold;
@@ -65,8 +66,6 @@ void PairAmoeba::induce()
 
   // owned atoms
 
-  double **x = atom->x;
-  double **f = atom->f;
   int nlocal = atom->nlocal;
 
   // zero out the induced dipoles at each site
@@ -386,8 +385,7 @@ void PairAmoeba::induce()
     // NOTE: could make this an error
 
     if (iter >= maxiter || eps > epsold)
-      if (me == 0)
-        error->warning(FLERR,"AMOEBA induced dipoles did not converge");
+      if (comm->me == 0) error->warning(FLERR,"AMOEBA induced dipoles did not converge");
   }
 
   // update the lists of previous induced dipole values
@@ -530,12 +528,8 @@ void PairAmoeba::ulspred()
 
 void PairAmoeba::ufield0c(double **field, double **fieldp)
 {
-  int i,j,ii;
+  int i,j;
   double term;
-  double ucell[3],ucellp[3];
-
-  int inum;
-  int *ilist;
 
   // zero field,fieldp for owned and ghost atoms
 
@@ -577,7 +571,7 @@ void PairAmoeba::ufield0c(double **field, double **fieldp)
 void PairAmoeba::uscale0b(int mode, double **rsd, double **rsdp,
                           double **zrsd, double **zrsdp)
 {
-  int i,j,k,m,itype,jtype,iclass,jclass,igroup,jgroup;
+  int i,j,itype,jtype,iclass,jclass,igroup,jgroup;
   int ii,jj;
   double xi,yi,zi;
   double xr,yr,zr;
@@ -585,8 +579,6 @@ void PairAmoeba::uscale0b(int mode, double **rsd, double **rsdp,
   double pdi,pti;
   double polmin;
   double poli,polik;
-  double corei,corek;
-  double vali,valk;
   double alphai,alphak;
   double damp,expdamp;
   double pgamma;
@@ -598,7 +590,6 @@ void PairAmoeba::uscale0b(int mode, double **rsd, double **rsdp,
 
   // owned atoms
 
-  double *pval = atom->dvector[index_pval];
   double **x = atom->x;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
@@ -703,10 +694,8 @@ void PairAmoeba::uscale0b(int mode, double **rsd, double **rsdp,
     if (amoeba) {
       pdi = pdamp[itype];
       pti = thole[itype];
-    } else if (hippo) {
-      corei = pcore[iclass];
+    } else {
       alphai = palpha[iclass];
-      vali = pval[i];
     }
 
     // evaluate all sites in induce neigh list, no cutoff
@@ -746,10 +735,8 @@ void PairAmoeba::uscale0b(int mode, double **rsd, double **rsdp,
             scale5 *= 1.0 - expdamp*(1.0-damp);
           }
         }
-      } else if (hippo) {
-        corek = pcore[jclass];
+      } else {
         alphak = palpha[jclass];
-        valk = pval[j];
         dampmut(r,alphai,alphak,dmpik);
         scale3 = factor_wscale * dmpik[2];
         scale5 = factor_wscale * dmpik[4];
@@ -778,11 +765,8 @@ void PairAmoeba::uscale0b(int mode, double **rsd, double **rsdp,
 
 void PairAmoeba::dfield0c(double **field, double **fieldp)
 {
-  int i,j,ii;
+  int i,j;
   double term;
-
-  int inum;
-  int *ilist;
 
   // zero out field,fieldp for owned and ghost atoms
 
@@ -1149,7 +1133,7 @@ void PairAmoeba::udirect1(double **field)
 
 void PairAmoeba::udirect2b(double **field, double **fieldp)
 {
-  int i,j,k,m,n,ii,jj,kk,kkk,jextra,ndip,itype,jtype,iclass,jclass,igroup,jgroup;
+  int i,j,m,n,ii,jj,jextra,ndip,itype,jtype,iclass,jclass,igroup,jgroup;
   double xr,yr,zr,r,r2;
   double rr1,rr2,rr3;
   double rr5,rr7;
@@ -1236,7 +1220,7 @@ void PairAmoeba::udirect2b(double **field, double **fieldp)
       pdi = pdamp[itype];
       pti = thole[itype];
       ddi = dirdamp[itype];
-    } else if (hippo) {
+    } else {
       corei = pcore[iclass];
       alphai = palpha[iclass];
       vali = pval[i];
@@ -1269,7 +1253,7 @@ void PairAmoeba::udirect2b(double **field, double **fieldp)
           factor_dscale = factor_uscale = 1.0;
         }
 
-      } else if (hippo) {
+      } else {
         factor_wscale = special_polar_wscale[sbmask15(jextra)];
         if (igroup == jgroup) {
           factor_dscale = factor_pscale = special_polar_piscale[sbmask15(jextra)];
@@ -1415,7 +1399,7 @@ void PairAmoeba::udirect2b(double **field, double **fieldp)
 
       // find the field components for charge penetration damping
 
-      } else if (hippo) {
+      } else {
         corek = pcore[jclass];
         alphak = palpha[jclass];
         valk = pval[j];

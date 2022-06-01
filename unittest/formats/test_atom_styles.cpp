@@ -2123,7 +2123,7 @@ TEST_F(AtomStyleTest, body_nparticle)
                              "12.0 0.0 12.0 0.0 0.0 0.0\n"
                              "0.0 1.0 0.0\n"
                              "0.0 -3.0 0.0\n";
-    FILE *fp               = fopen("input_atom_styles.data", "w");
+    FILE *fp = fopen("input_atom_styles.data", "w");
     fputs(data_file, fp);
     fclose(fp);
     BEGIN_HIDE_OUTPUT();
@@ -5159,7 +5159,7 @@ TEST_F(AtomStyleTest, oxdna)
     EXPECT_NEAR(bonus[9].shape[1], 0.5869922515711705, EPSILON);
     EXPECT_NEAR(bonus[9].shape[2], 0.5869922515711705, EPSILON);
 
-    EXPECT_NEAR(bonus[0].quat[0], 0.9890278201757743, EPSILON); 
+    EXPECT_NEAR(bonus[0].quat[0], 0.9890278201757743, EPSILON);
     EXPECT_NEAR(bonus[0].quat[1], 0.01779228232037064, EPSILON);
     EXPECT_NEAR(bonus[0].quat[2], -0.14337734159225404, EPSILON);
     EXPECT_NEAR(bonus[0].quat[3], 0.030827642240801516, EPSILON);
@@ -5246,7 +5246,6 @@ TEST_F(AtomStyleTest, oxdna)
     ASSERT_EQ(id5p[GETIDX(10)], -1);
 
     END_HIDE_OUTPUT();
-
 }
 
 } // namespace LAMMPS_NS

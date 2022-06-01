@@ -43,7 +43,7 @@ using namespace LAMMPS_NS;
 /*
  * deviator of a tensor
  */
-static Matrix3d Deviator(Matrix3d M) {
+static Matrix3d Deviator(const Matrix3d& M) {
         Matrix3d eye;
         eye.setIdentity();
         eye *= M.trace() / 3.0;

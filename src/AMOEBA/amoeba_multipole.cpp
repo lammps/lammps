@@ -12,8 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_amoeba.h"
-#include <cmath>
-#include <cstring>
+
 #include "amoeba_convolution.h"
 #include "atom.h"
 #include "domain.h"
@@ -22,6 +21,9 @@
 #include "fft3d_wrap.h"
 #include "math_const.h"
 #include "memory.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -44,20 +46,13 @@ enum{VDWL,REPULSE,QFER,DISP,MPOLE,POLAR,USOLV,DISP_LONG,MPOLE_LONG,POLAR_LONG};
 
 void PairAmoeba::multipole()
 {
-  int i,j,ii,itype;
-  double e,em;
+  double e;
   double felec;
-  double term,fterm,vterm;
+  double term,fterm;
   double ci;
   double dix,diy,diz;
   double qixx,qixy,qixz,qiyy,qiyz,qizz;
-  double xq,yq,zq;
-  double xv,yv,zv;
-  double xd,yd,zd;
   double cii,dii,qii;
-  double xdfield,ydfield,zdfield;
-  double tem[3];
-  double frcx[3],frcy[3],frcz[3];
 
   // set cutoffs, taper coeffs, and PME params
 
@@ -66,14 +61,13 @@ void PairAmoeba::multipole()
 
   // owned atoms
 
-  double **x = atom->x;
-  int nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
 
   // zero repulsion torque on owned + ghost atoms
 
-  int nall = nlocal + atom->nghost;
+  const int nall = nlocal + atom->nghost;
 
-  for (i = 0; i < nall; i++) {
+  for (int i = 0; i < nall; i++) {
     tq[i][0] = 0.0;
     tq[i][1] = 0.0;
     tq[i][2] = 0.0;
@@ -96,7 +90,7 @@ void PairAmoeba::multipole()
   term = 2.0 * aewald * aewald;
   fterm = -felec * aewald / MY_PIS;
 
-  for (i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
     ci = rpole[i][0];
     dix = rpole[i][1];
     diy = rpole[i][2];
@@ -234,7 +228,7 @@ void PairAmoeba::multipole_real()
     qiyy = rpole[i][8];
     qiyz = rpole[i][9];
     qizz = rpole[i][12];
-    if (hippo) {
+    if (!amoeba) {
       corei = pcore[iclass];
       alphai = palpha[iclass];
       vali = pval[i];
@@ -369,7 +363,7 @@ void PairAmoeba::multipole_real()
 
       // find damped multipole intermediates and energy value
 
-      if (hippo) {
+      if (!amoeba) {
         corek = pcore[jclass];
         alphak = palpha[jclass];
         valk = pval[j];

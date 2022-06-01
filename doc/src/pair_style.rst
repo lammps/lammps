@@ -325,6 +325,8 @@ accelerated styles exist.
 * :doc:`resquared <pair_resquared>` - Everaers RE-Squared ellipsoidal potential
 * :doc:`saip/metal <pair_saip_metal>` - interlayer potential for hetero-junctions formed with hexagonal 2D materials and metal surfaces
 * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>` - smoothed dissipative particle dynamics for water at isothermal conditions
+* :doc:`smatb <pair_smatb>` - Second Moment Approximation to the Tight Binding
+* :doc:`smatb/single <pair_smatb>` - Second Moment Approximation to the Tight Binding for single-element systems
 * :doc:`smd/hertz <pair_smd_hertz>` -
 * :doc:`smd/tlsph <pair_smd_tlsph>` -
 * :doc:`smd/tri_surface <pair_smd_triangulated_surface>` -

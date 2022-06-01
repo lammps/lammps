@@ -34,7 +34,7 @@ OPT.
    *
    *
    *
-   * :doc:`adp (o) <pair_adp>`
+   * :doc:`adp (ko) <pair_adp>`
    * :doc:`agni (o) <pair_agni>`
    * :doc:`airebo (io) <pair_airebo>`
    * :doc:`airebo/morse (io) <pair_airebo>`
@@ -126,8 +126,8 @@ OPT.
    * :doc:`hbond/dreiding/morse (o) <pair_hbond_dreiding>`
    * :doc:`hdnnp <pair_hdnnp>`
    * :doc:`hippo <pair_amoeba>`
-   * :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>`
-   * :doc:`ilp/tmd <pair_ilp_tmd>`
+   * :doc:`ilp/graphene/hbn (t) <pair_ilp_graphene_hbn>`
+   * :doc:`ilp/tmd (t) <pair_ilp_tmd>`
    * :doc:`kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`
    * :doc:`kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`
    * :doc:`lcbop <pair_lcbop>`
@@ -233,7 +233,7 @@ OPT.
    * :doc:`oxrna2/stk <pair_oxrna2>`
    * :doc:`oxrna2/xstk <pair_oxrna2>`
    * :doc:`oxrna2/coaxstk <pair_oxrna2>`
-   * :doc:`pace <pair_pace>`
+   * :doc:`pace (k) <pair_pace>`
    * :doc:`peri/eps <pair_peri>`
    * :doc:`peri/lps (o) <pair_peri>`
    * :doc:`peri/pmb (o) <pair_peri>`
@@ -245,8 +245,10 @@ OPT.
    * :doc:`reaxff (ko) <pair_reaxff>`
    * :doc:`rebo (io) <pair_airebo>`
    * :doc:`resquared (go) <pair_resquared>`
-   * :doc:`saip/metal <pair_saip_metal>`
+   * :doc:`saip/metal (t) <pair_saip_metal>`
    * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`
+   * :doc:`smatb <pair_smatb>`
+   * :doc:`smatb/single <pair_smatb>`
    * :doc:`smd/hertz <pair_smd_hertz>`
    * :doc:`smd/tlsph <pair_smd_tlsph>`
    * :doc:`smd/tri_surface <pair_smd_triangulated_surface>`

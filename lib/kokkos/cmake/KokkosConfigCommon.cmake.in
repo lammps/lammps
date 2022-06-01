@@ -13,6 +13,10 @@ ENDFOREACH()
 IF(NOT Kokkos_FIND_QUIETLY)
   MESSAGE(STATUS "Enabled Kokkos devices: ${Kokkos_DEVICES}")
 ENDIF()
+IF(Kokkos_ENABLE_THREADS AND NOT DEPRECATED_CODE_3 IN_LIST Kokkos_OPTIONS)  # for backward compatibility
+  SET(Kokkos_ENABLE_PTHREAD ON)
+  LIST(APPEND Kokkos_DEVICES PTHREAD)
+ENDIF()
 
 IF (Kokkos_ENABLE_CUDA)
   # If we are building CUDA, we have tricked CMake because we declare a CXX project

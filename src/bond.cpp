@@ -43,11 +43,13 @@ Bond::Bond(LAMMPS *_lmp) : Pointers(_lmp)
   energy = 0.0;
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
   writedata = 1;
+  reinitflag = 1;
 
   comm_forward = comm_reverse = comm_reverse_off = 0;
 
   allocated = 0;
   suffix_flag = Suffix::NONE;
+  born_matrix_enable = 0;
   partial_flag = 0;
 
   maxeatom = maxvatom = 0;
@@ -82,6 +84,15 @@ void Bond::init()
   for (int i = 1; i <= atom->nbondtypes; i++)
     if (setflag[i] == 0) error->all(FLERR, "All bond coeffs are not set");
   init_style();
+}
+
+/* ----------------------------------------------------------------------
+   check that there are no arguments
+------------------------------------------------------------------------- */
+
+void Bond::settings(int narg, char **args)
+{
+  if (narg > 0) error->all(FLERR, "Illegal bond_style {} argument: {}", force->bond_style, args[0]);
 }
 
 /* ----------------------------------------------------------------------
@@ -336,8 +347,9 @@ double Bond::memory_usage()
 }
 
 /* -----------------------------------------------------------------------
-   Reset all type-based bond params via init.
+   reset all type-based bond params via init()
 -------------------------------------------------------------------------- */
+
 void Bond::reinit()
 {
   if (!reinitflag) error->all(FLERR, "Fix adapt interface to this bond style not supported");

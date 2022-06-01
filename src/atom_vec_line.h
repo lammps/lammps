@@ -83,33 +83,3 @@ class AtomVecLine : public AtomVec {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Atom_style line can only be used in 2d simulations
-
-Self-explanatory.
-
-E: Per-processor system is too big
-
-The number of owned atoms plus ghost atoms on a single
-processor must fit in 32-bit integer.
-
-E: Invalid atom type in Atoms section of data file
-
-Atom types must range from 1 to specified # of types.
-
-E: Invalid density in Atoms section of data file
-
-Density value cannot be <= 0.0.
-
-E: Assigning line parameters to non-line atom
-
-Self-explanatory.
-
-E: Inconsistent line segment in data file
-
-The end points of the line segment are not equal distances from the
-center point which is the atom coordinate.
-
-*/

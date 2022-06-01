@@ -12,9 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_amoeba.h"
-#include <cmath>
-#include <cstring>
 #include "amoeba_convolution.h"
+
 #include "atom.h"
 #include "domain.h"
 #include "comm.h"
@@ -22,6 +21,9 @@
 #include "fft3d_wrap.h"
 #include "math_const.h"
 #include "memory.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -37,17 +39,11 @@ enum{VDWL,REPULSE,QFER,DISP,MPOLE,POLAR,USOLV,DISP_LONG,MPOLE_LONG,POLAR_LONG};
 
 void PairAmoeba::polar()
 {
-  int i,j,ii;
+  int i;
   int ix,iy,iz;
   double felec,term;
   double dix,diy,diz;
   double uix,uiy,uiz;
-  double xd,yd,zd;
-  double xq,yq,zq;
-  double xu,yu,zu;
-  double xup,yup,zup;
-  double xv,yv,zv,vterm;
-  double xufield,yufield,zufield;
   double xix,yix,zix;
   double xiy,yiy,ziy;
   double xiz,yiz,ziz;
@@ -143,16 +139,11 @@ void PairAmoeba::polar()
 
 void PairAmoeba::polar_energy()
 {
-  int i,j,ii,itype;
-  double e,felec,fi,term;
-  double xd,yd,zd;
-  double xu,yu,zu;
-  double dix,diy,diz;
-  double uix,uiy,uiz;
+  int i,j,itype;
+  double e,felec,fi;
 
   // owned atoms
 
-  double **x = atom->x;
   int nlocal = atom->nlocal;
 
   // set the energy unit conversion factor
@@ -184,7 +175,7 @@ void PairAmoeba::polar_real()
   double alsq2,alsq2n;
   double exp2a,ralpha;
   double damp,expdamp;
-  double pdi,pti,ddi;
+  double pdi,pti;
   double pgamma;
   double temp3,temp5,temp7;
   double sc3,sc5,sc7;
@@ -193,7 +184,7 @@ void PairAmoeba::polar_real()
   double usc3,usc5;
   double psr3,psr5,psr7;
   double dsr3,dsr5,dsr7;
-  double usr3,usr5;
+  double usr5;
   double rr3core,rr5core;
   double rr3i,rr5i;
   double rr7i,rr9i;
@@ -222,7 +213,6 @@ void PairAmoeba::polar_real()
   double vali,valk;
   double alphai,alphak;
   double uirm,ukrm;
-  double uirt,ukrt;
   double tuir,tukr;
   double tixx,tiyy,tizz;
   double tixy,tixz,tiyz;
@@ -343,8 +333,7 @@ void PairAmoeba::polar_real()
     if (amoeba) {
       pdi = pdamp[itype];
       pti = thole[itype];
-      ddi = dirdamp[itype];
-    } else if (hippo) {
+    } else {
       corei = pcore[iclass];
       alphai = palpha[iclass];
       vali = pval[i];
@@ -377,7 +366,7 @@ void PairAmoeba::polar_real()
           factor_dscale = factor_uscale = 1.0;
         }
 
-      } else if (hippo) {
+      } else {
         factor_wscale = special_polar_wscale[sbmask15(jextra)];
         if (igroup == jgroup) {
           factor_dscale = factor_pscale = special_polar_piscale[sbmask15(jextra)];
@@ -498,7 +487,6 @@ void PairAmoeba::polar_real()
           dsr3 = bn[1] - dsc3*rr3;
           dsr5 = bn[2] - dsc5*rr5;
           dsr7 = bn[3] - dsc7*rr7;
-          usr3 = bn[1] - usc3*rr3;
           usr5 = bn[2] - usc5*rr5;
           for (k = 0; k < 3; k++) {
             prc3[k] = rc3[k] * factor_pscale;
@@ -514,7 +502,7 @@ void PairAmoeba::polar_real()
 
       // apply charge penetration damping to scale factors
 
-      } else if (hippo) {
+      } else {
         corek = pcore[jclass];
         alphak = palpha[jclass];
         valk = pval[j];
@@ -544,7 +532,7 @@ void PairAmoeba::polar_real()
         tkz3 = psr3*uiz + dsr3*uizp;
         tuir = -psr5*ukr - dsr5*ukrp;
         tukr = -psr5*uir - dsr5*uirp;
-      } else if (hippo) {
+      } else {
         tix3 = 2.0*rr3i*ukx;
         tiy3 = 2.0*rr3i*uky;
         tiz3 = 2.0*rr3i*ukz;
@@ -574,7 +562,7 @@ void PairAmoeba::polar_real()
         tuir = -psr7*ukr - dsr7*ukrp;
         tukr = -psr7*uir - dsr7*uirp;
 
-      } else if (hippo) {
+      } else {
         tix5 = 4.0 * (rr5i*ukx);
         tiy5 = 4.0 * (rr5i*uky);
         tiz5 = 4.0 * (rr5i*ukz);
@@ -728,7 +716,7 @@ void PairAmoeba::polar_real()
 
       // get the field gradient for direct polarization force
 
-      } else if (hippo) {
+      } else {
         term1i = rr3i - rr5i*xr*xr;
         term1core = rr3core - rr5core*xr*xr;
         term2i = 2.0*rr5i*xr ;
@@ -895,7 +883,7 @@ void PairAmoeba::polar_real()
 
       // get the dtau/dr terms used for mutual polarization force
 
-      } else if (poltyp == MUTUAL && hippo) {
+      } else if (poltyp == MUTUAL && !amoeba) {
         term1 = 2.0 * rr5ik;
         term2 = term1*xr;
         term3 = rr5ik - rr7ik*xr*xr;
@@ -979,7 +967,7 @@ void PairAmoeba::polar_real()
 
       // get the dtau/dr terms used for OPT polarization force
 
-      } else if (poltyp == OPT && hippo) {
+      } else if (poltyp == OPT && !amoeba) {
         for (k = 0; k < optorder; k++) {
           uirm = uopt[i][k][0]*xr + uopt[i][k][1]*yr + uopt[i][k][2]*zr;
           for (m = 0; m < optorder-k; m++) {
@@ -1234,7 +1222,6 @@ void PairAmoeba::polar_kspace()
   int nhalf1,nhalf2,nhalf3;
   int nxlo,nxhi,nylo,nyhi,nzlo,nzhi;
   int j1,j2,j3;
-  int k1,k2,k3;
   int ix,iy,iz;
   double eterm,felec;
   double r1,r2,r3;

@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
  https://www.lammps.org/, Sandia National Laboratories
@@ -15,8 +14,6 @@
 #include "atom_vec_sph.h"
 
 #include "atom.h"
-
-#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -38,18 +35,18 @@ AtomVecSPH::AtomVecSPH(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *) "rho drho esph desph cv vest";
-  fields_copy = (char *) "rho drho esph desph cv vest";
-  fields_comm = (char *) "rho esph vest";
-  fields_comm_vel = (char *) "rho esph vest";
-  fields_reverse = (char *) "drho desph";
-  fields_border = (char *) "rho esph cv vest";
-  fields_border_vel = (char *) "rho esph cv vest";
-  fields_exchange = (char *) "rho esph cv vest";
-  fields_restart = (char * ) "rho esph cv vest";
-  fields_create = (char *) "rho esph cv vest desph drho";
-  fields_data_atom = (char *) "id type rho esph cv x";
-  fields_data_vel = (char *) "id v";
+  fields_grow = {"rho", "drho", "esph", "desph", "cv", "vest"};
+  fields_copy = {"rho", "drho", "esph", "desph", "cv", "vest"};
+  fields_comm = {"rho", "esph", "vest"};
+  fields_comm_vel = {"rho", "esph", "vest"};
+  fields_reverse = {"drho", "desph"};
+  fields_border = {"rho", "esph", "cv", "vest"};
+  fields_border_vel = {"rho", "esph", "cv", "vest"};
+  fields_exchange = {"rho", "esph", "cv", "vest"};
+  fields_restart = {"rho", "esph", "cv", "vest"};
+  fields_create = {"rho", "esph", "cv", "vest", "desph", "drho"};
+  fields_data_atom = {"id", "type", "rho", "esph", "cv", "x"};
+  fields_data_vel = {"id", "v"};
 
   setup_fields();
 }
@@ -76,8 +73,8 @@ void AtomVecSPH::grow_pointers()
 
 void AtomVecSPH::force_clear(int n, size_t nbytes)
 {
-  memset(&desph[n],0,nbytes);
-  memset(&drho[n],0,nbytes);
+  memset(&desph[n], 0, nbytes);
+  memset(&drho[n], 0, nbytes);
 }
 
 /* ----------------------------------------------------------------------
@@ -108,13 +105,13 @@ void AtomVecSPH::data_atom_post(int ilocal)
    return -1 if name is unknown to this atom style
 ------------------------------------------------------------------------- */
 
-int AtomVecSPH::property_atom(char *name)
+int AtomVecSPH::property_atom(const std::string &name)
 {
-  if (strcmp(name,"rho") == 0) return 0;
-  if (strcmp(name,"drho") == 0) return 1;
-  if (strcmp(name,"esph") == 0) return 2;
-  if (strcmp(name,"desph") == 0) return 3;
-  if (strcmp(name,"cv") == 0) return 4;
+  if (name == "rho") return 0;
+  if (name == "drho") return 1;
+  if (name == "esph") return 2;
+  if (name == "desph") return 3;
+  if (name == "cv") return 4;
   return -1;
 }
 
@@ -123,8 +120,7 @@ int AtomVecSPH::property_atom(char *name)
    index maps to data specific to this atom style
 ------------------------------------------------------------------------- */
 
-void AtomVecSPH::pack_property_atom(int index, double *buf,
-                                     int nvalues, int groupbit)
+void AtomVecSPH::pack_property_atom(int index, double *buf, int nvalues, int groupbit)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -132,32 +128,42 @@ void AtomVecSPH::pack_property_atom(int index, double *buf,
 
   if (index == 0) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = rho[i];
-      else buf[n] = 0.0;
+      if (mask[i] & groupbit)
+        buf[n] = rho[i];
+      else
+        buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 1) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = drho[i];
-      else buf[n] = 0.0;
+      if (mask[i] & groupbit)
+        buf[n] = drho[i];
+      else
+        buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 2) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = esph[i];
-      else buf[n] = 0.0;
+      if (mask[i] & groupbit)
+        buf[n] = esph[i];
+      else
+        buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 3) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = desph[i];
-      else buf[n] = 0.0;
+      if (mask[i] & groupbit)
+        buf[n] = desph[i];
+      else
+        buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 4) {
     for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) buf[n] = cv[i];
-      else buf[n] = 0.0;
+      if (mask[i] & groupbit)
+        buf[n] = cv[i];
+      else
+        buf[n] = 0.0;
       n += nvalues;
     }
   }

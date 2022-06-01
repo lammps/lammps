@@ -38,15 +38,3 @@ class PairHybridOverlay : public PairHybrid {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair coeff for hybrid has invalid style
-
-Style in pair coeff must have been listed in pair_style command.
-
-*/

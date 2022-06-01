@@ -53,25 +53,8 @@ enum{GEAR,ASPC,LSQR};
 
 PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
 {
-  // error checks
-
-  if (strcmp(update->unit_style,"real") != 0)
-    error->all(FLERR,"Pair style amoeba/hippo require real units");
-  if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style amoeba/hippo require newton pair on");
-  if (domain->dimension == 2)
-    error->all(FLERR,"Pair style amoeba/hippo requires 3d system");
-  if (domain->triclinic)
-    error->all(FLERR,"Pair style amoeba/hippo does not yet support "
-               "triclinic systems");
-
-  int nperiodic = domain->xperiodic + domain->yperiodic + domain->zperiodic;
-  if (nperiodic != 0 && nperiodic != 3)
-    error->all(FLERR,"Pair style amoeba/hippo requires "
-               "fully periodic or fully non-periodic system");
-
-  me = comm->me;
-  nprocs = comm->nprocs;
+  amoeba = true;
+  mystyle = "amoeba";
 
   // pair style settings
 
@@ -83,9 +66,6 @@ PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
   pvector = new double[nextra];
 
   // force field settings
-
-  amoeba = 1;
-  hippo = 0;
 
   nmax = 0;
   xaxis2local = yaxis2local = zaxis2local = NULL;
@@ -173,7 +153,7 @@ PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
 
 PairAmoeba::~PairAmoeba()
 {
-  delete [] pvector;
+  delete[] pvector;
 
   // check nfix in case all fixes have already been deleted
 
@@ -183,9 +163,9 @@ PairAmoeba::~PairAmoeba()
     if (id_upalt) modify->delete_fix(id_upalt);
   }
 
-  delete [] id_pole;
-  delete [] id_udalt;
-  delete [] id_upalt;
+  delete[] id_pole;
+  delete[] id_udalt;
+  delete[] id_upalt;
 
   memory->destroy(xaxis2local);
   memory->destroy(yaxis2local);
@@ -277,14 +257,14 @@ PairAmoeba::~PairAmoeba()
   if (amoeba) deallocate_vdwl();
   deallocate_smallsize();
 
-  delete [] forcefield;
+  delete[] forcefield;
 
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
   }
 
-  delete [] factors;
+  delete[] factors;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -294,8 +274,7 @@ void PairAmoeba::compute(int eflag, int vflag)
   ev_init(eflag,vflag);
 
   if (eflag_atom || vflag_atom)
-    error->all(FLERR,"Cannot (yet) compute per-atom energy/virial "
-               "with pair_style amoeba/hippo");
+    error->all(FLERR,"Cannot (yet) compute per-atom energy/virial with pair_style {}", mystyle);
 
   // zero energy/virial components
 
@@ -337,7 +316,7 @@ void PairAmoeba::compute(int eflag, int vflag)
     comm->forward_comm(this);
     kmpole();
 
-    if (hippo) {
+    if (!amoeba) {
       double *pval = atom->dvector[index_pval];
       double **pole = fixpole->astore;
       int nlocal = atom->nlocal;
@@ -438,12 +417,12 @@ void PairAmoeba::compute(int eflag, int vflag)
 
   // Pauli repulsion, pairwise
 
-  if (hippo && repulse_flag) repulsion();
+  if (!amoeba && repulse_flag) repulsion();
   time3 = MPI_Wtime();
 
   // Ewald dispersion, pairwise and long range
 
-  if (hippo && (disp_rspace_flag || disp_kspace_flag)) dispersion();
+  if (!amoeba && (disp_rspace_flag || disp_kspace_flag)) dispersion();
   time4 = MPI_Wtime();
 
   // multipole, pairwise and long range
@@ -468,17 +447,17 @@ void PairAmoeba::compute(int eflag, int vflag)
 
   // charge transfer, pairwise
 
-  if (hippo && qxfer_flag) charge_transfer();
+  if (!amoeba && qxfer_flag) charge_transfer();
   time8 = MPI_Wtime();
 
   // store energy components for output by compute pair command
 
   pvector[0] = ehal;
-  pvector[2] = erepulse;
-  pvector[3] = edisp;
-  pvector[4] = empole;
-  pvector[5] = epolar;
-  pvector[6] = eqxfer;
+  pvector[1] = erepulse;
+  pvector[2] = edisp;
+  pvector[3] = empole;
+  pvector[4] = epolar;
+  pvector[5] = eqxfer;
 
   // energy & virial summations
 
@@ -509,55 +488,47 @@ void PairAmoeba::finish()
 {
   double ave;
   MPI_Allreduce(&time_init,&ave,1,MPI_DOUBLE,MPI_SUM,world);
-  time_init = ave/nprocs;
+  time_init = ave/comm->nprocs;
   
   MPI_Allreduce(&time_hal,&ave,1,MPI_DOUBLE,MPI_SUM,world);
-  time_hal = ave/nprocs;
+  time_hal = ave/comm->nprocs;
 
   MPI_Allreduce(&time_repulse,&ave,1,MPI_DOUBLE,MPI_SUM,world);
-  time_repulse = ave/nprocs;
+  time_repulse = ave/comm->nprocs;
 
   MPI_Allreduce(&time_disp,&ave,1,MPI_DOUBLE,MPI_SUM,world);
-  time_disp = ave/nprocs;
+  time_disp = ave/comm->nprocs;
 
   MPI_Allreduce(&time_mpole,&ave,1,MPI_DOUBLE,MPI_SUM,world);
-  time_mpole = ave/nprocs;
+  time_mpole = ave/comm->nprocs;
 
   MPI_Allreduce(&time_induce,&ave,1,MPI_DOUBLE,MPI_SUM,world);
-  time_induce = ave/nprocs;
+  time_induce = ave/comm->nprocs;
 
   MPI_Allreduce(&time_polar,&ave,1,MPI_DOUBLE,MPI_SUM,world);
-  time_polar = ave/nprocs;
+  time_polar = ave/comm->nprocs;
 
   MPI_Allreduce(&time_qxfer,&ave,1,MPI_DOUBLE,MPI_SUM,world);
-  time_qxfer = ave/nprocs;
+  time_qxfer = ave/comm->nprocs;
 
-  double time_total = time_init + time_hal + time_repulse + time_disp +
-    time_mpole + time_induce + time_polar + time_qxfer;
+  double time_total = (time_init + time_hal + time_repulse + time_disp +
+                       time_mpole + time_induce + time_polar + time_qxfer) / 100.0;
 
-  if (me == 0) {
-    utils::logmesg(lmp,"\nAMEOBA/HIPPO timing breakdown:\n");
-    utils::logmesg(lmp,"  Init    time: {:.6g} {:.6g}\n",
-                   time_init,time_init/time_total);
-    if (amoeba)
-      utils::logmesg(lmp,"  Hal     time: {:.6g} {:.6g}\n",
-                     time_hal,time_hal/time_total*100);
-    if (hippo)
-      utils::logmesg(lmp,"  Repulse time: {:.6g} {:.6g}\n",
-                     time_repulse,time_repulse/time_total*100);
-    if (hippo)
-      utils::logmesg(lmp,"  Disp    time: {:.6g} {:.6g}\n",
-                     time_disp,time_disp/time_total*100);
-    utils::logmesg(lmp,"  Mpole   time: {:.6g} {:.6g}\n",
-                   time_mpole,time_mpole/time_total*100);
-    utils::logmesg(lmp,"  Induce  time: {:.6g} {:.6g}\n",
-                   time_induce,time_induce/time_total*100);
-    utils::logmesg(lmp,"  Polar   time: {:.6g} {:.6g}\n",
-                   time_polar,time_polar/time_total*100);
-    if (hippo)
-      utils::logmesg(lmp,"  Qxfer   time: {:.6g} {:.6g}\n",
-                     time_qxfer,time_qxfer/time_total*100);
-    utils::logmesg(lmp,"  Total   time: {:.6g}\n",time_total);
+  if (comm->me == 0) {
+    utils::logmesg(lmp,"\n{} timing breakdown:\n", utils::uppercase(mystyle));
+    utils::logmesg(lmp,"  Init    time: {:.6g} {:.3g}%\n", time_init, time_init/time_total);
+    if (amoeba) {
+      utils::logmesg(lmp,"  Hal     time: {:.6g} {:.3g}%\n", time_hal, time_hal/time_total);
+    } else { // hippo
+      utils::logmesg(lmp,"  Repulse time: {:.6g} {:.3g}%\n", time_repulse, time_repulse/time_total);
+      utils::logmesg(lmp,"  Disp    time: {:.6g} {:.3g}%\n", time_disp, time_disp/time_total);
+    }
+    utils::logmesg(lmp,"  Mpole   time: {:.6g} {:.3g}%\n", time_mpole, time_mpole/time_total);
+    utils::logmesg(lmp,"  Induce  time: {:.6g} {:.3g}%\n", time_induce, time_induce/time_total);
+    utils::logmesg(lmp,"  Polar   time: {:.6g} {:.3g}%\n", time_polar, time_polar/time_total);
+    if (!amoeba)
+      utils::logmesg(lmp,"  Qxfer   time: {:.6g} {:.6g}\n", time_qxfer, time_qxfer/time_total);
+    utils::logmesg(lmp,"  Total   time: {:.6g}\n",time_total * 100.0);
   }
 }
 
@@ -656,15 +627,9 @@ void PairAmoeba::coeff(int narg, char **arg)
 
   if (!allocated) allocate();
 
-  if (narg < 3 && narg > 4)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+  if ((narg < 3) || (narg > 4)) error->all(FLERR,"Incorrect args for pair coefficients");
 
-  // insure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // set setflag since coeff() called once with I,J = * *
+  // set setflag since coeff() is only called once with I,J = * *
 
   int n = atom->ntypes;
   for (i = 1; i <= n; i++)
@@ -741,17 +706,29 @@ void PairAmoeba::coeff(int narg, char **arg)
 void PairAmoeba::init_style()
 {
   // error checks
+  if (strcmp(update->unit_style,"real") != 0)
+    error->all(FLERR, "Pair style {} requires real units", mystyle);
+  if (force->newton_pair == 0)
+    error->all(FLERR, "Pair style {} requires newton pair on", mystyle);
+  if (domain->dimension == 2)
+    error->all(FLERR, "Pair style {} requires a 3d system", mystyle);
+  if (domain->triclinic)
+    error->all(FLERR, "Pair style {} does not (yet) support triclinic systems", mystyle);
+
+  int nperiodic = domain->xperiodic + domain->yperiodic + domain->zperiodic;
+  if ((nperiodic != 0) && (nperiodic != 3))
+    error->all(FLERR,"Pair style {} requires a fully periodic or fully non-periodic system",
+               mystyle);
 
   if (!atom->q_flag)
-    error->all(FLERR,"Pair style amoeba/hippo requires atom attribute q");
+    error->all(FLERR,"Pair style {} requires atom attribute q", mystyle);
   //if (!force->special_onefive)
   //  error->all(FLERR,"Pair style amoeba/hippo requires special_bonds one/five be set");
 
   // b/c polar uses mutipole virial terms
 
   if (apewald == aeewald && polar_kspace_flag && !mpole_kspace_flag)
-    error->all(FLERR,
-               "Pair amoeba with apewald = aeewald requires mpole and polar together");
+    error->all(FLERR, "Pair {} with apewald = aeewald requires mpole and polar together", mystyle);
 
   // check if all custom atom arrays were set via fix property/atom
 
@@ -759,24 +736,24 @@ void PairAmoeba::init_style()
 
   index_amtype = atom->find_custom("amtype",flag,cols);
   if (index_amtype < 0 || flag || cols)
-    error->all(FLERR,"Pair amoeba amtype is not defined");
+    error->all(FLERR,"Pair {} amtype is not defined", mystyle);
   index_amgroup = atom->find_custom("amgroup",flag,cols);
   if (index_amgroup < 0 || flag || cols)
-    error->all(FLERR,"Pair amoeba amgroup is not defined");
+    error->all(FLERR,"Pair {} amgroup is not defined", mystyle);
 
   index_redID = atom->find_custom("redID",flag,cols);
   if (index_redID < 0 || !flag || cols)
-    error->all(FLERR,"Pair amoeba redID is not defined");
+    error->all(FLERR,"Pair {} redID is not defined", mystyle);
   index_xyzaxis = atom->find_custom("xyzaxis",flag,cols);
   if (index_xyzaxis < 0 || !flag || cols == 0)
-    error->all(FLERR,"Pair amoeba xyzaxis is not defined");
+    error->all(FLERR,"Pair {} xyzaxis is not defined", mystyle);
 
   index_polaxe = atom->find_custom("polaxe",flag,cols);
   if (index_polaxe < 0 || flag || cols)
-    error->all(FLERR,"Pair amoeba polaxe is not defined");
+    error->all(FLERR,"Pair {} polaxe is not defined", mystyle);
   index_pval = atom->find_custom("pval",flag,cols);
   if (index_pval < 0 || !flag || cols)
-    error->all(FLERR,"Pair amoeba pval is not defined");
+    error->all(FLERR,"Pair {} pval is not defined", mystyle);
 
   // -------------------------------------------------------------------
   // one-time initializations
@@ -787,21 +764,14 @@ void PairAmoeba::init_style()
   // create a new fix STORE style for each atom's pole vector
   // id = "AMOEBA_pole", fix group = all
 
-  if (first_flag) {
-    int n = strlen("AMOEBA_pole") + 1;
-    id_pole = new char[n];
-    strcpy(id_pole,"AMOEBA_pole");
+  // TODO: shouldn't there be an instance_me added to the identifier
+  // in case there would be multiple pair style instances in a hybrid pair style?
 
-    char **newarg = new char*[6];
-    newarg[0] = id_pole;
-    newarg[1] = group->names[0];
-    newarg[2] = (char *) "STORE";
-    newarg[3] = (char *) "peratom";
-    newarg[4] = (char *) "1";
-    newarg[5] = (char *) "13";
-    modify->add_fix(6,newarg);
-    fixpole = (FixStore *) modify->fix[modify->nfix-1];
-    delete [] newarg;
+  Fix *myfix;
+  if (first_flag) {
+    id_pole = utils::strdup("AMOEBA_pole");
+    myfix = modify->add_fix(fmt::format("{} {} STORE peratom 1 13",id_pole,group->names[0]));
+    fixpole = dynamic_cast<FixStore *>(myfix);
   }
 
   // creation of per-atom storage
@@ -811,40 +781,15 @@ void PairAmoeba::init_style()
   // only if using preconditioner
 
   if (first_flag && use_pred) {
-    char ualt[8];
-    sprintf(ualt,"%d",maxualt);
+    id_udalt = utils::strdup("AMOEBA_udalt");
+    myfix = modify->add_fix(fmt::format("{} {} STORE peratom 1 {} 3",
+                                        id_udalt, group->names[0], maxualt));
+    fixudalt = dynamic_cast<FixStore *>(myfix);
 
-    int n = strlen("AMOEBA_udalt") + 1;
-    id_udalt = new char[n];
-    strcpy(id_udalt,"AMOEBA_udalt");
-
-    char **newarg = new char*[7];
-    newarg[0] = id_udalt;
-    newarg[1] = group->names[0];
-    newarg[2] = (char *) "STORE";
-    newarg[3] = (char *) "peratom";
-    newarg[4] = (char *) "1";
-    newarg[5] = ualt;
-    newarg[6] = (char *) "3";
-    modify->add_fix(7,newarg);
-    fixudalt = (FixStore *) modify->fix[modify->nfix-1];
-    delete [] newarg;
-
-    n = strlen("AMOEBA_upalt") + 1;
-    id_upalt = new char[n];
-    strcpy(id_udalt,"AMOEBA_upalt");
-
-    newarg = new char*[7];
-    newarg[0] = id_upalt;
-    newarg[1] = group->names[0];
-    newarg[2] = (char *) "STORE";
-    newarg[3] = (char *) "peratom";
-    newarg[4] = (char *) "1";
-    newarg[5] = ualt;
-    newarg[6] = (char *) "3";
-    modify->add_fix(7,newarg);
-    fixupalt = (FixStore *) modify->fix[modify->nfix-1];
-    delete [] newarg;
+    id_upalt = utils::strdup("AMOEBA_upalt");
+    myfix = modify->add_fix(fmt::format("{} {} STORE peratom 1 {} 3",
+                                        id_upalt, group->names[0], maxualt));
+    fixupalt = dynamic_cast<FixStore *>(myfix);
   }
 
   // create pages for storing pairwise data:
@@ -928,8 +873,8 @@ void PairAmoeba::init_style()
     for (int i = 1; i <= n_amclass; i++)
       csixpr += csix[i]*csix[i] * csix_num[i]*csix_num[i];
 
-    delete [] csix_num_one;
-    delete [] csix_num;
+    delete[] csix_num_one;
+    delete[] csix_num;
   }
 
   // initialize peratom pval to zero
@@ -944,12 +889,7 @@ void PairAmoeba::init_style()
 
   // output FF settings to screen and logfile
 
-  if (first_flag) {
-    if (comm->me == 0) {
-      if (screen) print_settings(screen);
-      if (logfile) print_settings(logfile);
-    }
-  }
+  if (first_flag && (comm->me == 0)) print_settings();
 
   // all done with one-time initializations
 
@@ -962,18 +902,20 @@ void PairAmoeba::init_style()
   // check for fixes which store persistent per-atom properties
 
   if (id_pole) {
-    int ifix = modify->find_fix(id_pole);
-    if (ifix < 0) error->all(FLERR,"Could not find pair amoeba fix ID");
-    fixpole = (FixStore *) modify->fix[ifix];
+    myfix = modify->get_fix_by_id(id_pole);
+    if (!myfix) error->all(FLERR,"Could not find internal pair amoeba fix STORE id {}", id_pole);
+    fixpole = dynamic_cast<FixStore *>(myfix);
+
   }
 
   if (id_udalt) {
-    int ifix = modify->find_fix(id_udalt);
-    if (ifix < 0) error->all(FLERR,"Could not find pair amoeba fix ID");
-    fixudalt = (FixStore *) modify->fix[ifix];
-    ifix = modify->find_fix(id_upalt);
-    if (ifix < 0) error->all(FLERR,"Could not find pair amoeba fix ID");
-    fixupalt = (FixStore *) modify->fix[ifix];
+    myfix = modify->get_fix_by_id(id_udalt);
+    if (!myfix) error->all(FLERR,"Could not find internal pair amoeba fix STORE id {}", id_udalt);
+    fixudalt = dynamic_cast<FixStore *>(myfix);
+
+    myfix = modify->get_fix_by_id(id_upalt);
+    if (!myfix) error->all(FLERR,"Could not find internal pair amoeba fix STORE id {}", id_upalt);
+    fixupalt = dynamic_cast<FixStore *>(myfix);
   }
 
   // assign hydrogen neighbors (redID) to each owned atom
@@ -1012,8 +954,8 @@ void PairAmoeba::init_style()
   // can now set comm size needed by this Pair
   // cfstyle KMPOLE is max # of 1-2 bond partners, smaller than comm_forward
 
-  if (amoeba) comm_forward = 16;         // xred, rpole
-  else if (hippo) comm_forward = 13;     // just rpole
+  if (amoeba) comm_forward = 16; // xred, rpole
+  else comm_forward = 13;        // just rpole
   int fsize = 6;
   if (poltyp == OPT) fsize += 6*optorder;
   //if (poltyp == TCG) fsize += 12*tcgnab;
@@ -1023,116 +965,101 @@ void PairAmoeba::init_style()
 
   // request standard neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------
    print settings to screen and logfile
 ------------------------------------------------------------------------- */
 
-void PairAmoeba::print_settings(FILE *fp)
+void PairAmoeba::print_settings()
 {
-  fprintf(fp,"AMOEBA/HIPPO force field settings\n");
+  std::string mesg = utils::uppercase(mystyle) + " force field settings\n";
 
   if (amoeba) {
     choose(HAL);
-    fprintf(fp,"  hal: cut %g taper %g vscale %g %g %g %g\n",
-            sqrt(off2),sqrt(cut2),
-            special_hal[1],special_hal[2],special_hal[3],special_hal[4]);
-  }
-
-  if (hippo) {
+    mesg += fmt::format("  hal: cut {} taper {} vscale {} {} {} {}\n", sqrt(off2),sqrt(cut2),
+                        special_hal[1],special_hal[2],special_hal[3],special_hal[4]);
+  } else {
     choose(REPULSE);
-    fprintf(fp,"  repulsion: cut %g taper %g rscale %g %g %g %g\n",
-            sqrt(off2),sqrt(cut2),
-            special_repel[1],special_repel[2],special_repel[3],special_repel[4]);
-  }
+    mesg += fmt::format("  repulsion: cut {} taper {} rscale {} {} {} {}\n", sqrt(off2),sqrt(cut2),
+                        special_repel[1],special_repel[2],special_repel[3],special_repel[4]);
 
-  if (hippo) {
     choose(QFER);
-    fprintf(fp,"  qxfer: cut %g taper %g mscale %g %g %g %g\n",
-            sqrt(off2),sqrt(cut2),
-            special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
-  }
+    mesg += fmt::format("  qxfer: cut {} taper {} mscale {} {} {} {}\n", sqrt(off2),sqrt(cut2),
+                        special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
 
-  if (hippo) {
     if (use_dewald) {
       choose(DISP_LONG);
-      fprintf(fp,"  dispersion: cut %g aewald %g bsorder %d "
-              "FFT %d %d %d dspscale %g %g %g %g\n",
-              sqrt(off2),aewald,bsdorder,ndfft1,ndfft2,ndfft3,
-              special_disp[1],special_disp[2],special_disp[3],special_disp[4]);
+      mesg += fmt::format("  dispersion: cut {} aewald {} bsorder {} FFT {} {} {} "
+                          "dspscale {} {} {} {}\n", sqrt(off2),aewald,bsdorder,ndfft1,ndfft2,ndfft3,
+                          special_disp[1],special_disp[2],special_disp[3],special_disp[4]);
     } else {
       choose(DISP);
-      fprintf(fp,"  dispersion: cut %g aewald %g dspscale %g %g %g %g\n",
-              sqrt(off2),aewald,
-              special_disp[1],special_disp[2],special_disp[3],special_disp[4]);
+      mesg += fmt::format("  dispersion: cut {} aewald {} dspscale {} {} {} {}\n",
+                          sqrt(off2),aewald,special_disp[1],
+                          special_disp[2],special_disp[3],special_disp[4]);
     }
   }
 
   if (use_ewald) {
     choose(MPOLE_LONG);
-    fprintf(fp,"  multipole: cut %g aewald %g bsorder %d "
-            "FFT %d %d %d mscale %g %g %g %g\n",
-            sqrt(off2),aewald,bseorder,nefft1,nefft2,nefft3,
-            special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
+    mesg += fmt::format("  multipole: cut {} aewald {} bsorder {} FFT {} {} {} "
+                        "mscale {} {} {} {}\n",
+                        sqrt(off2),aewald,bseorder,nefft1,nefft2,nefft3,
+                        special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
   } else {
     choose(MPOLE);
-    fprintf(fp,"  multipole: cut %g aewald %g mscale %g %g %g %g\n",
-            sqrt(off2),aewald,
-            special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
+    mesg += fmt::format("  multipole: cut {} aewald {} mscale {} {} {} {}\n", sqrt(off2),aewald,
+                        special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
   }
 
   if (use_ewald) {
     choose(POLAR_LONG);
-    fprintf(fp,"  polar: cut %g aewald %g bsorder %d FFT %d %d %d\n",
-            sqrt(off2),aewald,bsporder,nefft1,nefft2,nefft3);
-    fprintf(fp,"         pscale %g %g %g %g piscale %g %g %g %g "
-            "wscale %g %g %g %g d/u scale %g %g\n",
-            special_polar_pscale[1],special_polar_pscale[2],
-            special_polar_pscale[3],special_polar_pscale[4],
-            special_polar_piscale[1],special_polar_piscale[2],
-            special_polar_piscale[3],special_polar_piscale[4],
-            special_polar_wscale[1],special_polar_wscale[2],
-            special_polar_wscale[3],special_polar_wscale[4],
-            polar_dscale,polar_uscale);
+    mesg += fmt::format("  polar: cut {} aewald {} bsorder {} FFT {} {} {}\n",
+                        sqrt(off2),aewald,bsporder,nefft1,nefft2,nefft3);
+    mesg += fmt::format("         pscale {} {} {} {} piscale {} {} {} {} "
+                        "wscale {} {} {} {} d/u scale {} {}\n",
+                        special_polar_pscale[1],special_polar_pscale[2],
+                        special_polar_pscale[3],special_polar_pscale[4],
+                        special_polar_piscale[1],special_polar_piscale[2],
+                        special_polar_piscale[3],special_polar_piscale[4],
+                        special_polar_wscale[1],special_polar_wscale[2],
+                        special_polar_wscale[3],special_polar_wscale[4],
+                        polar_dscale,polar_uscale);
   } else {
     choose(POLAR);
-    fprintf(fp,"  polar: cut %g aewald %g\n",sqrt(off2),aewald);
-    fprintf(fp,"         pscale %g %g %g %g piscale %g %g %g %g "
-            "wscale %g %g %g %g d/u scale %g %g\n",
-            special_polar_pscale[1],special_polar_pscale[2],
-            special_polar_pscale[3],special_polar_pscale[4],
-            special_polar_piscale[1],special_polar_piscale[2],
-            special_polar_piscale[3],special_polar_piscale[4],
-            special_polar_wscale[1],special_polar_wscale[2],
-            special_polar_wscale[3],special_polar_wscale[4],
-            polar_dscale,polar_uscale);
+    mesg += fmt::format("  polar: cut {} aewald {}\n",sqrt(off2),aewald);
+    mesg += fmt::format("         pscale {} {} {} {} piscale {} {} {} {} "
+                        "wscale {} {} {} {} d/u scale {} {}\n",
+                        special_polar_pscale[1],special_polar_pscale[2],
+                        special_polar_pscale[3],special_polar_pscale[4],
+                        special_polar_piscale[1],special_polar_piscale[2],
+                        special_polar_piscale[3],special_polar_piscale[4],
+                        special_polar_wscale[1],special_polar_wscale[2],
+                        special_polar_wscale[3],special_polar_wscale[4],
+                        polar_dscale,polar_uscale);
   }
 
   choose(USOLV);
-  fprintf(fp,"  precondition: cut %g\n",sqrt(off2));
+  mesg += fmt::format("  precondition: cut {}\n",sqrt(off2));
+  utils::logmesg(lmp, mesg);
 }
 
 /* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairAmoeba::init_one(int i, int j)
+double PairAmoeba::init_one(int /*i*/, int /*j*/)
 {
   double cutoff = 0.0;
 
   if (amoeba) {
     choose(HAL);
     cutoff = MAX(cutoff,sqrt(off2));
-  }
-
-  if (hippo) {
+  } else {
     choose(REPULSE);
     cutoff = MAX(cutoff,sqrt(off2));
-  }
-
-  if (hippo) {
     if (use_dewald) choose(DISP_LONG);
     else choose(DISP);
     cutoff = MAX(cutoff,sqrt(off2));
@@ -1146,7 +1073,7 @@ double PairAmoeba::init_one(int i, int j)
   else choose(POLAR);
   cutoff = MAX(cutoff,sqrt(off2));
 
-  if (hippo) {
+  if (!amoeba) {
     choose(QFER);
     cutoff = MAX(cutoff,sqrt(off2));
   }
@@ -1653,7 +1580,6 @@ void PairAmoeba::assign_groups()
   int **nspecial = atom->nspecial;
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
 
   // initially, groupID = atomID
   // communicate new groupIDs to ghost atoms
@@ -1757,12 +1683,8 @@ void PairAmoeba::assign_groups()
   bigint allbcount;
   MPI_Allreduce(&bcount,&allbcount,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
-  if (comm->me == 0) {
-    if (screen)
-      fprintf(screen,"  AMOEBA/HIPPO group count: " BIGINT_FORMAT "\n",allbcount);
-    if (logfile)
-      fprintf(logfile,"  AMOEBA/HIPPO group count: " BIGINT_FORMAT "\n",allbcount);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp, "  {} group count: {}\n",utils::uppercase(mystyle), allbcount);
 }
 
 /* ----------------------------------------------------------------------
@@ -1948,20 +1870,20 @@ void PairAmoeba::allocate_smallsize()
 
 void PairAmoeba::deallocate_smallsize()
 {
-  delete [] copt;
-  delete [] copm;
-  delete [] a_ualt;
-  delete [] ap_ualt;
-  delete [] b_ualt;
-  delete [] bp_ualt;
+  delete[] copt;
+  delete[] copm;
+  delete[] a_ualt;
+  delete[] ap_ualt;
+  delete[] b_ualt;
+  delete[] bp_ualt;
   memory->destroy(c_ualt);
   memory->destroy(cp_ualt);
-  delete [] bpred;
-  delete [] bpredp;
-  delete [] bpreds;
-  delete [] bpredps;
-  delete [] gear;
-  delete [] aspc;
+  delete[] bpred;
+  delete[] bpredp;
+  delete[] bpreds;
+  delete[] bpredps;
+  delete[] gear;
+  delete[] aspc;
 }
 
 /* ----------------------------------------------------------------------
@@ -1970,7 +1892,8 @@ void PairAmoeba::deallocate_smallsize()
 
 void PairAmoeba::choose(int which)
 {
-  double off,cut;
+  double off = 0.0;
+  double cut = 0.0;
 
   // short-range only terms
 

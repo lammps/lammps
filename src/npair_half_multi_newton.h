@@ -36,7 +36,3 @@ class NPairHalfMultiNewton : public NPair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

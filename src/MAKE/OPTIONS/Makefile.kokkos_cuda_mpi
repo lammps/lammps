@@ -10,7 +10,7 @@ KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
 export MPICH_CXX = $(KOKKOS_ABSOLUTE_PATH)/bin/nvcc_wrapper
 export OMPI_CXX = $(KOKKOS_ABSOLUTE_PATH)/bin/nvcc_wrapper
 CC =		mpicxx
-CCFLAGS =	-g -O3 -DNDEBUG
+CCFLAGS =	-g -O3 -DNDEBUG -Xcudafe --diag_suppress=unrecognized_pragma
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
@@ -55,7 +55,7 @@ MPI_LIB =
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC = -DFFT_CUFFT	
+FFT_INC = -DFFT_CUFFT
 FFT_PATH = 
 FFT_LIB = -lcufft
 

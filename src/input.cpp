@@ -1195,11 +1195,9 @@ void Input::shell()
     if (me == 0) {
       for (int i = 1; i < narg; i++) {
         rv = (platform::mkdir(arg[i]) < 0) ? errno : 0;
-        MPI_Reduce(&rv,&err,1,MPI_INT,MPI_MAX,0,world);
-        errno = err;
-        if (err != 0)
-          error->warning(FLERR, "Shell command 'mkdir {}' failed with error '{}'",
-                         arg[i],utils::getsyserror());
+        if (rv != 0)
+          error->warning(FLERR, "Shell command 'mkdir {}' failed with error '{}'", arg[i],
+                         utils::getsyserror());
       }
     }
   } else if (strcmp(arg[0],"mv") == 0) {

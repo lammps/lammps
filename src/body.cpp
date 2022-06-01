@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -29,5 +28,5 @@ Body::Body(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
 
 Body::~Body()
 {
-  delete [] style;
+  delete[] style;
 }

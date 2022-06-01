@@ -25,15 +25,15 @@ using namespace LAMMPS_NS;
 
 // DEBUG
 
-#define DEBUG 0
-
+#define DEBUG_AMOEBA 0
+#if DEBUG_AMOEBA
 char *labels[7] =
   {(char *) "MPOLE_GRID", (char *) "POLAR_GRID",
    (char *) "POLAR_GRIDC", (char *) "DISP_GRID",
    (char *) "INDUCE_GRID", (char *) "INDUCE_GRIDC"};
 
 enum{GRIDBRICK_OUT,GRIDBRICK_IN,FFT,CFFT1,CFFT2};
-
+#endif
 // END DEBUG
 
 enum{MPOLE_GRID,POLAR_GRID,POLAR_GRIDC,DISP_GRID,INDUCE_GRID,INDUCE_GRIDC};
@@ -321,13 +321,17 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_3d()
 
   // reverse comm for 3d brick grid + ghosts
 
-  if (DEBUG) debug_scalar(GRIDBRICK_OUT,"PRE Convo / PRE GridComm");
+#if DEBUG_AMOEBA
+  debug_scalar(GRIDBRICK_OUT,"PRE Convo / PRE GridComm");
+#endif
 
   gc->reverse_comm(GridComm::PAIR,amoeba,1,sizeof(FFT_SCALAR),which,
                    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
-  if (DEBUG) debug_scalar(GRIDBRICK_IN,"PRE Convo / POST GridComm");
-  if (DEBUG) debug_file(GRIDBRICK_IN,"pre.convo.post.gridcomm");
+#if DEBUG_AMOEBA
+  debug_scalar(GRIDBRICK_IN,"PRE Convo / POST GridComm");
+  debug_file(GRIDBRICK_IN,"pre.convo.post.gridcomm");
+#endif
 
   // copy owned 3d brick grid values to FFT grid
 
@@ -341,8 +345,10 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_3d()
 
   remap->perform(grid_fft,grid_fft,remap_buf);
 
-  if (DEBUG) debug_scalar(FFT,"PRE Convo / POST Remap");
-  if (DEBUG) debug_file(FFT,"pre.convo.post.remap");
+#if DEBUG_AMOEBA
+  debug_scalar(FFT,"PRE Convo / POST Remap");
+  debug_file(FFT,"pre.convo.post.remap");
+#endif
 
   // copy real values into complex grid
 
@@ -361,9 +367,10 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_3d()
     for (int i = 0; i < 2*nfft_owned; i++) cfft[i] *= scale;
   }
 
-  if (DEBUG) debug_scalar(CFFT1,"PRE Convo / POST FFT");
-  if (DEBUG) debug_file(CFFT1,"pre.convo.post.fft");
-
+#if DEBUG_AMOEBA
+  debug_scalar(CFFT1,"PRE Convo / POST FFT");
+  debug_file(CFFT1,"pre.convo.post.fft");
+#endif
   return cfft;
 }
 
@@ -377,14 +384,17 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_4d()
 
   // reverse comm for 4d brick grid + ghosts
 
-  if (DEBUG) debug_scalar(GRIDBRICK_OUT,"PRE Convo / PRE GridComm");
+#if DEBUG_AMOEBA
+  debug_scalar(GRIDBRICK_OUT,"PRE Convo / PRE GridComm");
+#endif
 
   gc->reverse_comm(GridComm::PAIR,amoeba,2,sizeof(FFT_SCALAR),which,
                    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
-  if (DEBUG) debug_scalar(GRIDBRICK_IN,"PRE Convo / POST GridComm");
-  if (DEBUG) debug_file(GRIDBRICK_IN,"pre.convo.post.gridcomm");
-
+#if DEBUG_AMOEBA
+  debug_scalar(GRIDBRICK_IN,"PRE Convo / POST GridComm");
+  debug_file(GRIDBRICK_IN,"pre.convo.post.gridcomm");
+#endif
   // copy owned 4d brick grid values to FFT grid
 
   n = 0;
@@ -400,9 +410,10 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_4d()
 
   remap->perform(cfft,cfft,remap_buf);
 
-  if (DEBUG) debug_scalar(FFT,"PRE Convo / POST Remap");
-  if (DEBUG) debug_file(FFT,"pre.convo.post.remap");
-
+#if DEBUG_AMOEBA
+  debug_scalar(FFT,"PRE Convo / POST Remap");
+  debug_file(FFT,"pre.convo.post.remap");
+#endif
   // perform forward FFT
 
   fft1->compute(cfft,cfft,FFT3d::FORWARD);
@@ -412,9 +423,10 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_4d()
     for (int i = 0; i < 2*nfft_owned; i++) cfft[i] *= scale;
   }
 
-  if (DEBUG) debug_scalar(CFFT1,"PRE Convo / POST FFT");
-  if (DEBUG) debug_file(CFFT1,"pre.convo.post.fft");
-
+#if DEBUG_AMOEBA
+  debug_scalar(CFFT1,"PRE Convo / POST FFT");
+  debug_file(CFFT1,"pre.convo.post.fft");
+#endif
   return cfft;
 }
 
@@ -439,15 +451,16 @@ void *AmoebaConvolution::post_convolution_3d()
   int ix,iy,iz,n;
 
   // perform backward FFT
-
-  if (DEBUG) debug_scalar(CFFT1,"POST Convo / PRE FFT");
-  if (DEBUG) debug_file(CFFT1,"post.convo.pre.fft");
-
+#if DEBUG_AMOEBA
+  debug_scalar(CFFT1,"POST Convo / PRE FFT");
+  debug_file(CFFT1,"post.convo.pre.fft");
+#endif
   fft2->compute(cfft,cfft,FFT3d::BACKWARD);
 
-  if (DEBUG) debug_scalar(CFFT2,"POST Convo / POST FFT");
-  if (DEBUG) debug_file(CFFT2,"post.convo.post.fft");
-
+#if DEBUG_AMOEBA
+  debug_scalar(CFFT2,"POST Convo / POST FFT");
+  debug_file(CFFT2,"post.convo.post.fft");
+#endif
   // copy real portion of 1d complex values into 3d real grid
 
   n = 0;
@@ -460,9 +473,10 @@ void *AmoebaConvolution::post_convolution_3d()
 
   // forward comm to populate ghost grid values
 
-  if (DEBUG) debug_scalar(GRIDBRICK_IN,"POST Convo / PRE gridcomm");
-  if (DEBUG) debug_file(GRIDBRICK_IN,"post.convo.pre.gridcomm");
-
+#if DEBUG_AMOEBA
+  debug_scalar(GRIDBRICK_IN,"POST Convo / PRE gridcomm");
+  debug_file(GRIDBRICK_IN,"post.convo.pre.gridcomm");
+#endif
   gc->forward_comm(GridComm::PAIR,amoeba,1,sizeof(FFT_SCALAR),which,
                    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
@@ -479,14 +493,16 @@ void *AmoebaConvolution::post_convolution_4d()
 
   // perform backward FFT
 
-  if (DEBUG) debug_scalar(CFFT1,"POST Convo / PRE FFT");
-  if (DEBUG) debug_file(CFFT1,"post.convo.pre.fft");
-
+#if DEBUG_AMOEBA
+  debug_scalar(CFFT1,"POST Convo / PRE FFT");
+  debug_file(CFFT1,"post.convo.pre.fft");
+#endif
   fft2->compute(cfft,cfft,FFT3d::BACKWARD);
 
-  if (DEBUG) debug_scalar(CFFT2,"POST Convo / POST FFT");
-  if (DEBUG) debug_file(CFFT2,"post.convo.post.fft");
-
+#if DEBUG_AMOEBA
+  debug_scalar(CFFT2,"POST Convo / POST FFT");
+  debug_file(CFFT2,"post.convo.post.fft");
+#endif
   // copy 1d complex values into 4d complex grid
 
   n = 0;
@@ -499,9 +515,10 @@ void *AmoebaConvolution::post_convolution_4d()
 
   // forward comm to populate ghost grid values
 
-  if (DEBUG) debug_scalar(GRIDBRICK_IN,"POST Convo / PRE gridcomm");
-  if (DEBUG) debug_file(GRIDBRICK_IN,"post.convo.pre.gridcomm");
-
+#if DEBUG_AMOEBA
+  debug_scalar(GRIDBRICK_IN,"POST Convo / PRE gridcomm");
+  debug_file(GRIDBRICK_IN,"post.convo.pre.gridcomm");
+#endif
   gc->forward_comm(GridComm::PAIR,amoeba,2,sizeof(FFT_SCALAR),which,
                    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
@@ -570,6 +587,7 @@ void AmoebaConvolution::procs2grid2d(int nprocs, int nx, int ny, int &px, int &p
   }
 }
 
+#if DEBUG_AMOEBA
 /* ----------------------------------------------------------------------
    output a scalar value to screen
    array = which array is being summed over
@@ -820,3 +838,4 @@ void AmoebaConvolution::debug_file(int array, const char *label)
   memory->destroy(buf);
   memory->destroy(buf2);
 }
+#endif

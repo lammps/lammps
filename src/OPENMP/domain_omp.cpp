@@ -47,7 +47,7 @@ void DomainOMP::pbc()
   // verify owned atoms have valid numerical coords
   // may not if computed pairwise force between 2 atoms at same location
 
-  const double *_noalias const coord = atom->x[0];  // NOLINT
+  const double *_noalias const coord = atom->x[0];    // NOLINT
   const int n3 = 3 * nlocal;
   int flag = 0;
 #if defined(_OPENMP)    // clang-format off

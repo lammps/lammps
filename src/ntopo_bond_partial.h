@@ -34,15 +34,3 @@ class NTopoBondPartial : public NTopo {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Bond atoms %d %d missing on proc %d at step %ld
-
-UNDOCUMENTED
-
-W: Bond atoms missing at step %ld
-
-UNDOCUMENTED
-
-*/

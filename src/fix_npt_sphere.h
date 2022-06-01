@@ -33,15 +33,3 @@ class FixNPTSphere : public FixNHSphere {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Temperature control must be used with fix npt/sphere
-
-Self-explanatory.
-
-E: Pressure control must be used with fix npt/sphere
-
-Self-explanatory.
-
-*/

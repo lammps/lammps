@@ -48,29 +48,3 @@ class FixTFMC : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix tfmc displacement length must be > 0
-
-Self-explanatory.
-
-E: Fix tfmc temperature must be > 0
-
-Self-explanatory.
-
-E: Illegal fix tfmc random seed
-
-Seeds can only be nonzero positive integers.
-
-E: Fix tfmc is not compatible with fix shake
-
-These two commands cannot currently be used together.
-
-*/

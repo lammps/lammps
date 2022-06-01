@@ -225,10 +225,3 @@ class PairTersoffKokkos : public PairTersoff {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Must use half neighbor list style with pair tersoff/kk
-
-Self-explanatory.
-
-*/

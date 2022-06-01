@@ -70,7 +70,7 @@ grdtyp *PPPMT::init(const int nlocal, const int nall, FILE *_screen,
   flag=device->init(*ans,nlocal,nall);
   if (flag!=0)
     return nullptr;
-  if (sizeof(grdtyp)==sizeof(double) && device->double_precision()==false) {
+  if (sizeof(grdtyp)==sizeof(double) && !device->double_precision()) {
     flag=-15;
     return nullptr;
   }
@@ -374,7 +374,7 @@ void PPPMT::compile_kernels(UCL_Device &dev) {
   if (_compiled)
     return;
 
-  if (sizeof(grdtyp)==sizeof(double) && ucl_device->double_precision()==false)
+  if (sizeof(grdtyp)==sizeof(double) && !ucl_device->double_precision())
     return;
 
   std::string flags=device->compile_string();

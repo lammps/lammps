@@ -12,5 +12,3 @@ KOKKOS_ADD_EXAMPLE_DIRECTORIES(01_hello_world_lambda)
 KOKKOS_ADD_EXAMPLE_DIRECTORIES(02_simple_reduce_lambda)
 KOKKOS_ADD_EXAMPLE_DIRECTORIES(03_simple_view_lambda)
 
-
-

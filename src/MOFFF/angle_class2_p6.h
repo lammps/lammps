@@ -49,11 +49,3 @@ class AngleClass2P6 : public Angle {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args for angle coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

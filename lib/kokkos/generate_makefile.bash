@@ -148,7 +148,7 @@ display_help_text() {
       echo "--with-openmptarget:                  Enable OpenMPTarget backend."
       echo "--with-sycl:                          Enable Sycl backend."
       echo "--with-openmp:                        Enable OpenMP backend."
-      echo "--with-pthread:                       Enable Pthreads backend."
+      echo "--with-threads:                       Enable Threads backend."
       echo "--with-serial:                        Enable Serial backend."
       echo "--with-devices:                       Explicitly add a set of backends."
       echo ""
@@ -162,7 +162,7 @@ display_help_text() {
       echo "                 VEGA900         = AMD GPU MI25 GFX900"
       echo "                 VEGA906         = AMD GPU MI50/MI60 GFX906"
       echo "                 VEGA908         = AMD GPU MI100 GFX908"
-      echo "                 VEGA90A         = "
+      echo "                 VEGA90A         = AMD GPU MI200 GFX90A"
       echo "               [ARM]"
       echo "                 ARMV80          = ARMv8.0 Compatible CPU"
       echo "                 ARMV81          = ARMv8.1 Compatible CPU"
@@ -291,8 +291,12 @@ do
     --with-sycl)
       update_kokkos_devices Sycl
       ;;
+    --with-threads)
+      update_kokkos_devices Threads
+      ;;
     --with-pthread)
       update_kokkos_devices Pthread
+      echo "warning: The --with-pthread option is deprecated. Use --with-threads instead!"
       ;;
     --with-serial)
       update_kokkos_devices Serial

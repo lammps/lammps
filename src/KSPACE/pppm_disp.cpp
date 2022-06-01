@@ -2957,8 +2957,6 @@ void PPPMDisp::final_accuracy_6(double& acc, double& acc_real, double& acc_kspac
   double qopt = compute_qopt_6();
   acc_kspace = sqrt(qopt/natoms)*csum/(xprd*yprd*zprd_slab);
   acc = sqrt(acc_real*acc_real + acc_kspace*acc_kspace);
-
-  return;
 }
 
 /* ----------------------------------------------------------------------

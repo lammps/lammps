@@ -64,7 +64,7 @@ struct alignas(8) FullHalfMapper {
 template<class DeviceType, typename real_type_, int vector_length_>
 class SNAKokkos {
 
-public:
+ public:
   using real_type = real_type_;
   using complex = SNAComplex<real_type>;
   static constexpr int vector_length = vector_length_;
@@ -97,21 +97,22 @@ public:
   typedef Kokkos::View<complex**[3], DeviceType> t_sna_3c3;
   typedef Kokkos::View<complex*****, DeviceType> t_sna_5c;
 
-inline
+  inline
   SNAKokkos() {};
+
   KOKKOS_INLINE_FUNCTION
   SNAKokkos(const SNAKokkos<DeviceType,real_type,vector_length>& sna, const typename Kokkos::TeamPolicy<DeviceType>::member_type& team);
 
-inline
-  SNAKokkos(real_type, int, real_type, int, int, int, int, int, int);
+  inline
+  SNAKokkos(real_type, int, real_type, int, int, int, int, int, int, int);
 
   KOKKOS_INLINE_FUNCTION
   ~SNAKokkos();
 
-inline
+  inline
   void build_indexlist(); // SNAKokkos()
 
-inline
+  inline
   void init();            //
 
   double memory_usage();
@@ -192,13 +193,13 @@ inline
   void compute_deidrj_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int); // ForceSNAP
 
   KOKKOS_INLINE_FUNCTION
-  real_type compute_sfac(real_type, real_type); // add_uarraytot, compute_duarray
+  real_type compute_sfac(real_type, real_type, real_type, real_type); // add_uarraytot, compute_duarray
 
   KOKKOS_INLINE_FUNCTION
-  real_type compute_dsfac(real_type, real_type); // compute_duarray
+  real_type compute_dsfac(real_type, real_type, real_type, real_type); // compute_duarray
 
   KOKKOS_INLINE_FUNCTION
-  void compute_s_dsfac(const real_type, const real_type, real_type&, real_type&); // compute_cayley_klein
+  void compute_s_dsfac(const real_type, const real_type, const real_type, const real_type, real_type&, real_type&); // compute_cayley_klein
 
 #ifdef TIMING_INFO
   double* timers;
@@ -214,6 +215,8 @@ inline
   t_sna_2i inside;
   t_sna_2d wj;
   t_sna_2d rcutij;
+  t_sna_2d sinnerij;
+  t_sna_2d dinnerij;
   t_sna_2i element;
   t_sna_3d dedr;
   int natom, nmax;
@@ -255,7 +258,7 @@ inline
   int ndoubles;
   int ntriples;
 
-private:
+ private:
   real_type rmin0, rfac0;
 
   //use indexlist instead of loops, constructor generates these
@@ -264,13 +267,13 @@ private:
   Kokkos::View<int*[3], DeviceType> idxb;
   Kokkos::View<int***, DeviceType> idxcg_block;
 
-public:
+ public:
   Kokkos::View<int*, DeviceType> idxu_block;
   Kokkos::View<int*, DeviceType> idxu_half_block;
   Kokkos::View<int*, DeviceType> idxu_cache_block;
   Kokkos::View<FullHalfMapper*, DeviceType> idxu_full_half;
 
-private:
+ private:
   Kokkos::View<int***, DeviceType> idxz_block;
   Kokkos::View<int***, DeviceType> idxb_block;
 
@@ -290,14 +293,14 @@ private:
   KOKKOS_INLINE_FUNCTION
   void create_thread_scratch_arrays(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team); // SNAKokkos()
 
-inline
+  inline
   void init_clebsch_gordan(); // init()
 
-inline
+  inline
   void init_rootpqarray();    // init()
 
   KOKKOS_INLINE_FUNCTION
-  void add_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int, const real_type&, const real_type&, const real_type&, int); // compute_ui
+  void add_uarraytot(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int, const real_type&, const real_type&, const real_type&, const real_type&, const real_type&, int); // compute_ui
 
   KOKKOS_INLINE_FUNCTION
   void compute_uarray_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int,
@@ -308,17 +311,23 @@ inline
   inline
   double deltacg(int, int, int);  // init_clebsch_gordan
 
-inline
+  inline
   int compute_ncoeff();           // SNAKokkos()
   KOKKOS_INLINE_FUNCTION
   void compute_duarray_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int, int,
                        const real_type&, const real_type&, const real_type&, // compute_duidrj_cpu
-                       const real_type&, const real_type&, const real_type&, const real_type&, const real_type&);
+                           const real_type&, const real_type&, const real_type&, const real_type&, const real_type&,
+                           const real_type&, const real_type&);
 
   // Sets the style for the switching function
   // 0 = none
   // 1 = cosine
   int switch_flag;
+
+  // Sets the style for the inner switching function
+  // 0 = none
+  // 1 = cosine
+  int switch_inner_flag;
 
   // Chem snap flags
   int chem_flag;
@@ -337,11 +346,3 @@ inline
 #include "sna_kokkos_impl.h"
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Invalid argument to factorial %d
-
-N must be >= 0 and <= 167, otherwise the factorial result is too
-large.
-
-*/

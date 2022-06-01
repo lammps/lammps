@@ -1,7 +1,10 @@
 .. index:: pair_style saip/metal
+.. index:: pair_style saip/metal/opt
 
 pair_style saip/metal command
 ===================================
+
+Accelerator Variant: *saip/metal/opt*
 
 Syntax
 """"""
@@ -99,6 +102,10 @@ headings) the following commands could be included in an input script:
    variable Evdw  equal c_0[1]
    variable Erep  equal c_0[2]
    thermo_style custom step temp epair v_Erep v_Evdw
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

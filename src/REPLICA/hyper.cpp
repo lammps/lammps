@@ -155,12 +155,11 @@ void Hyper::command(int narg, char **arg)
 
   // cannot use hyper with time-dependent fixes or regions
 
-  for (int i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->time_depend)
-      error->all(FLERR,"Cannot use hyper with a time-dependent fix defined");
+  for (auto ifix : modify->get_fix_list())
+    if (ifix->time_depend) error->all(FLERR,"Cannot use hyper with a time-dependent fix defined");
 
-  for (int i = 0; i < domain->nregion; i++)
-    if (domain->regions[i]->dynamic_check())
+  for (auto reg : domain->get_region_list())
+    if (reg->dynamic_check())
       error->all(FLERR,"Cannot use hyper with a time-dependent region defined");
 
   // perform hyperdynamics simulation

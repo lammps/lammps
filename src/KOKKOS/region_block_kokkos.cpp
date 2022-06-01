@@ -28,14 +28,6 @@ RegBlockKokkos<DeviceType>::RegBlockKokkos(LAMMPS *lmp, int narg, char **arg) : 
   atomKK = (AtomKokkos*) atom;
 }
 
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-RegBlockKokkos<DeviceType>::~RegBlockKokkos()
-{
-
-}
-
 /* ----------------------------------------------------------------------
    inside = 1 if x,y,z is inside or on surface
    inside = 0 if x,y,z is outside and not on surface

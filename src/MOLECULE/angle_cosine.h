@@ -35,6 +35,8 @@ class AngleCosine : public Angle {
   void read_restart(FILE *) override;
   void write_data(FILE *) override;
   double single(int, int, int, int) override;
+  void born_matrix(int type, int i1, int i2, int i3, double &du, double &du2) override;
+  void *extract(const char *, int &) override;
 
  protected:
   double *k;
@@ -46,11 +48,3 @@ class AngleCosine : public Angle {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args for angle coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

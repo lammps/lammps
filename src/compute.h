@@ -108,7 +108,7 @@ class Compute : protected Pointers {
   Compute(class LAMMPS *, int, char **);
   ~Compute() override;
   void modify_params(int, char **);
-  void reset_extra_dof();
+  virtual void reset_extra_dof();
 
   virtual void init() = 0;
   virtual void init_list(int, class NeighList *) {}
@@ -180,26 +180,3 @@ class Compute : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute ID must be alphanumeric or underscore characters
-
-Self-explanatory.
-
-E: Could not find compute group ID
-
-Self-explanatory.
-
-E: Compute does not allow an extra compute or fix to be reset
-
-This is an internal LAMMPS error.  Please report it to the
-developers.
-
-*/

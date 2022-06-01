@@ -198,7 +198,9 @@ potentials only include the pair potential portion of the EAM
 interaction when used by this compute, not the embedding term.  Also
 bonded or Kspace interactions do not contribute to this compute.
 
-The computes in this package are not compatible with dynamic groups.
+When used with dynamic groups, a :doc:`run 0 <run>` command needs to
+be inserted in order to initialize the dynamic groups before accessing
+the computes.
 
 Related commands
 """"""""""""""""

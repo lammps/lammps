@@ -35,6 +35,7 @@ Dihedral::Dihedral(LAMMPS *_lmp) : Pointers(_lmp)
 
   allocated = 0;
   suffix_flag = Suffix::NONE;
+  born_matrix_enable = 0;
 
   maxeatom = maxvatom = maxcvatom = 0;
   eatom = nullptr;
@@ -71,6 +72,16 @@ void Dihedral::init()
   for (int i = 1; i <= atom->ndihedraltypes; i++)
     if (setflag[i] == 0) error->all(FLERR, "All dihedral coeffs are not set");
   init_style();
+}
+
+/* ----------------------------------------------------------------------
+   check that there are no arguments
+------------------------------------------------------------------------- */
+
+void Dihedral::settings(int narg, char **args)
+{
+  if (narg > 0)
+    error->all(FLERR, "Illegal dihedral_style {} argument: {}", force->dihedral_style, args[0]);
 }
 
 /* ----------------------------------------------------------------------

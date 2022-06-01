@@ -390,7 +390,7 @@ double FixMolSwap::energy_full()
 
   if (force->kspace) force->kspace->compute(eflag,vflag);
 
-  if (modify->n_post_force) modify->post_force(vflag);
+  if (modify->n_post_force_any) modify->post_force(vflag);
 
   update->eflag_global = update->ntimestep;
   double total_energy = c_pe->compute_scalar();

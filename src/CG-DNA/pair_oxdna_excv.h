@@ -54,7 +54,7 @@ class PairOxdnaExcv : public Pair {
   double **lj1_sb, **lj2_sb, **b_sb, **cut_sb_c, **cutsq_sb_c;
   double **epsilon_bb, **sigma_bb, **cut_bb_ast, **cutsq_bb_ast;
   double **lj1_bb, **lj2_bb, **b_bb, **cut_bb_c, **cutsq_bb_c;
-  double **nx, **ny, **nz; // per-atom arrays for local unit vectors
+  double **nx, **ny, **nz;    // per-atom arrays for local unit vectors
 
   virtual void allocate();
 };
@@ -63,17 +63,3 @@ class PairOxdnaExcv : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

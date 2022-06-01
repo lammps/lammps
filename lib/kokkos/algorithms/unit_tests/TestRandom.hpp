@@ -47,6 +47,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <cstdio>
+#include <Kokkos_DynRankView.hpp>
 #include <Kokkos_Timer.hpp>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Random.hpp>
@@ -327,10 +328,6 @@ template <class RandomGenerator, class Scalar>
 struct test_random_scalar {
   using rnd_type = typename RandomGenerator::generator_type;
 
-  int pass_mean, pass_var, pass_covar;
-  int pass_hist1d_mean, pass_hist1d_var, pass_hist1d_covar;
-  int pass_hist3d_mean, pass_hist3d_var, pass_hist3d_covar;
-
   test_random_scalar(
       typename test_random_functor<RandomGenerator, int>::type_1d& density_1d,
       typename test_random_functor<RandomGenerator, int>::type_3d& density_3d,
@@ -357,18 +354,15 @@ struct test_random_scalar {
           variance_expect / (result.variance / num_draws / 3) - 1.0;
       double covariance_eps =
           result.covariance / num_draws / 2 / variance_expect;
-      pass_mean = ((-tolerance < mean_eps) && (tolerance > mean_eps)) ? 1 : 0;
-      pass_var  = ((-1.5 * tolerance < variance_eps) &&
-                  (1.5 * tolerance > variance_eps))
-                     ? 1
-                     : 0;
-      pass_covar = ((-2.0 * tolerance < covariance_eps) &&
-                    (2.0 * tolerance > covariance_eps))
-                       ? 1
-                       : 0;
-      cout << "Pass: " << pass_mean << " " << pass_var << " " << mean_eps << " "
-           << variance_eps << " " << covariance_eps << " || " << tolerance
-           << endl;
+#if defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
+      if (!std::is_same<Scalar, Kokkos::Experimental::bhalf_t>::value) {
+#endif
+        EXPECT_LT(std::abs(mean_eps), tolerance);
+        EXPECT_LT(std::abs(variance_eps), 1.5 * tolerance);
+        EXPECT_LT(std::abs(covariance_eps), 2.0 * tolerance);
+#if defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
+      }
+#endif
     }
     {
       cout << " -- Testing 1-D histogram" << endl;
@@ -399,17 +393,15 @@ struct test_random_scalar {
       }
 #endif
 
-      pass_hist1d_mean =
-          ((-mean_eps_expect < mean_eps) && (mean_eps_expect > mean_eps)) ? 1
-                                                                          : 0;
-      pass_hist1d_var = ((-variance_eps_expect < variance_eps) &&
-                         (variance_eps_expect > variance_eps))
-                            ? 1
-                            : 0;
-      pass_hist1d_covar = ((-covariance_eps_expect < covariance_eps) &&
-                           (covariance_eps_expect > covariance_eps))
-                              ? 1
-                              : 0;
+#if defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
+      if (!std::is_same<Scalar, Kokkos::Experimental::bhalf_t>::value) {
+#endif
+        EXPECT_LT(std::abs(mean_eps), mean_eps_expect);
+        EXPECT_LT(std::abs(variance_eps), variance_eps_expect);
+        EXPECT_LT(std::abs(covariance_eps), covariance_eps_expect);
+#if defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
+      }
+#endif
 
       cout << "Density 1D: " << mean_eps << " " << variance_eps << " "
            << (result.covariance / HIST_DIM1D / HIST_DIM1D) << " || "
@@ -445,16 +437,15 @@ struct test_random_scalar {
       }
 #endif
 
-      pass_hist3d_mean =
-          ((-tolerance < mean_eps) && (tolerance > mean_eps)) ? 1 : 0;
-      pass_hist3d_var = ((-variance_factor * tolerance < variance_eps) &&
-                         (variance_factor * tolerance > variance_eps))
-                            ? 1
-                            : 0;
-      pass_hist3d_covar = ((-variance_factor * tolerance < covariance_eps) &&
-                           (variance_factor * tolerance > covariance_eps))
-                              ? 1
-                              : 0;
+#if defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
+      if (!std::is_same<Scalar, Kokkos::Experimental::bhalf_t>::value) {
+#endif
+        EXPECT_LT(std::abs(mean_eps), tolerance);
+        EXPECT_LT(std::abs(variance_eps), variance_factor);
+        EXPECT_LT(std::abs(covariance_eps), variance_factor);
+#if defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
+      }
+#endif
 
       cout << "Density 3D: " << mean_eps << " " << variance_eps << " "
            << result.covariance / HIST_DIM1D / HIST_DIM1D << " || " << tolerance
@@ -479,106 +470,79 @@ void test_random(unsigned int num_draws) {
   cout << "Test Scalar=int" << endl;
   test_random_scalar<RandomGenerator, int> test_int(density_1d, density_3d,
                                                     pool, num_draws);
-  ASSERT_EQ(test_int.pass_mean, 1);
-  ASSERT_EQ(test_int.pass_var, 1);
-  ASSERT_EQ(test_int.pass_covar, 1);
-  ASSERT_EQ(test_int.pass_hist1d_mean, 1);
-  ASSERT_EQ(test_int.pass_hist1d_var, 1);
-  ASSERT_EQ(test_int.pass_hist1d_covar, 1);
-  ASSERT_EQ(test_int.pass_hist3d_mean, 1);
-  ASSERT_EQ(test_int.pass_hist3d_var, 1);
-  ASSERT_EQ(test_int.pass_hist3d_covar, 1);
   deep_copy(density_1d, 0);
   deep_copy(density_3d, 0);
 
   cout << "Test Scalar=unsigned int" << endl;
   test_random_scalar<RandomGenerator, unsigned int> test_uint(
       density_1d, density_3d, pool, num_draws);
-  ASSERT_EQ(test_uint.pass_mean, 1);
-  ASSERT_EQ(test_uint.pass_var, 1);
-  ASSERT_EQ(test_uint.pass_covar, 1);
-  ASSERT_EQ(test_uint.pass_hist1d_mean, 1);
-  ASSERT_EQ(test_uint.pass_hist1d_var, 1);
-  ASSERT_EQ(test_uint.pass_hist1d_covar, 1);
-  ASSERT_EQ(test_uint.pass_hist3d_mean, 1);
-  ASSERT_EQ(test_uint.pass_hist3d_var, 1);
-  ASSERT_EQ(test_uint.pass_hist3d_covar, 1);
   deep_copy(density_1d, 0);
   deep_copy(density_3d, 0);
 
   cout << "Test Scalar=int64_t" << endl;
   test_random_scalar<RandomGenerator, int64_t> test_int64(
       density_1d, density_3d, pool, num_draws);
-  ASSERT_EQ(test_int64.pass_mean, 1);
-  ASSERT_EQ(test_int64.pass_var, 1);
-  ASSERT_EQ(test_int64.pass_covar, 1);
-  ASSERT_EQ(test_int64.pass_hist1d_mean, 1);
-  ASSERT_EQ(test_int64.pass_hist1d_var, 1);
-  ASSERT_EQ(test_int64.pass_hist1d_covar, 1);
-  ASSERT_EQ(test_int64.pass_hist3d_mean, 1);
-  ASSERT_EQ(test_int64.pass_hist3d_var, 1);
-  ASSERT_EQ(test_int64.pass_hist3d_covar, 1);
   deep_copy(density_1d, 0);
   deep_copy(density_3d, 0);
 
   cout << "Test Scalar=uint64_t" << endl;
   test_random_scalar<RandomGenerator, uint64_t> test_uint64(
       density_1d, density_3d, pool, num_draws);
-  ASSERT_EQ(test_uint64.pass_mean, 1);
-  ASSERT_EQ(test_uint64.pass_var, 1);
-  ASSERT_EQ(test_uint64.pass_covar, 1);
-  ASSERT_EQ(test_uint64.pass_hist1d_mean, 1);
-  ASSERT_EQ(test_uint64.pass_hist1d_var, 1);
-  ASSERT_EQ(test_uint64.pass_hist1d_covar, 1);
-  ASSERT_EQ(test_uint64.pass_hist3d_mean, 1);
-  ASSERT_EQ(test_uint64.pass_hist3d_var, 1);
-  ASSERT_EQ(test_uint64.pass_hist3d_covar, 1);
   deep_copy(density_1d, 0);
   deep_copy(density_3d, 0);
 
   cout << "Test Scalar=half" << endl;
   test_random_scalar<RandomGenerator, Kokkos::Experimental::half_t> test_half(
       density_1d, density_3d, pool, num_draws);
-  ASSERT_EQ(test_half.pass_mean, 1);
-  ASSERT_EQ(test_half.pass_var, 1);
-  ASSERT_EQ(test_half.pass_covar, 1);
-  ASSERT_EQ(test_half.pass_hist1d_mean, 1);
-  ASSERT_EQ(test_half.pass_hist1d_var, 1);
-  ASSERT_EQ(test_half.pass_hist1d_covar, 1);
-  ASSERT_EQ(test_half.pass_hist3d_mean, 1);
-  ASSERT_EQ(test_half.pass_hist3d_var, 1);
-  ASSERT_EQ(test_half.pass_hist3d_covar, 1);
+  deep_copy(density_1d, 0);
+  deep_copy(density_3d, 0);
+
+  cout << "Test Scalar=bhalf" << endl;
+  test_random_scalar<RandomGenerator, Kokkos::Experimental::bhalf_t> test_bhalf(
+      density_1d, density_3d, pool, num_draws);
   deep_copy(density_1d, 0);
   deep_copy(density_3d, 0);
 
   cout << "Test Scalar=float" << endl;
   test_random_scalar<RandomGenerator, float> test_float(density_1d, density_3d,
                                                         pool, num_draws);
-  ASSERT_EQ(test_float.pass_mean, 1);
-  ASSERT_EQ(test_float.pass_var, 1);
-  ASSERT_EQ(test_float.pass_covar, 1);
-  ASSERT_EQ(test_float.pass_hist1d_mean, 1);
-  ASSERT_EQ(test_float.pass_hist1d_var, 1);
-  ASSERT_EQ(test_float.pass_hist1d_covar, 1);
-  ASSERT_EQ(test_float.pass_hist3d_mean, 1);
-  ASSERT_EQ(test_float.pass_hist3d_var, 1);
-  ASSERT_EQ(test_float.pass_hist3d_covar, 1);
   deep_copy(density_1d, 0);
   deep_copy(density_3d, 0);
 
   cout << "Test Scalar=double" << endl;
   test_random_scalar<RandomGenerator, double> test_double(
       density_1d, density_3d, pool, num_draws);
-  ASSERT_EQ(test_double.pass_mean, 1);
-  ASSERT_EQ(test_double.pass_var, 1);
-  ASSERT_EQ(test_double.pass_covar, 1);
-  ASSERT_EQ(test_double.pass_hist1d_mean, 1);
-  ASSERT_EQ(test_double.pass_hist1d_var, 1);
-  ASSERT_EQ(test_double.pass_hist1d_covar, 1);
-  ASSERT_EQ(test_double.pass_hist3d_mean, 1);
-  ASSERT_EQ(test_double.pass_hist3d_var, 1);
-  ASSERT_EQ(test_double.pass_hist3d_covar, 1);
 }
+
+template <class ExecutionSpace, class Pool>
+struct TestDynRankView {
+  using ReducerType      = Kokkos::MinMax<double, Kokkos::HostSpace>;
+  using ReducerValueType = typename ReducerType::value_type;
+
+  Kokkos::DynRankView<double, ExecutionSpace> A;
+
+  TestDynRankView(int n) : A("a", n) {}
+
+  KOKKOS_FUNCTION void operator()(int i, ReducerValueType& update) const {
+    if (A(i) < update.min_val) update.min_val = A(i);
+    if (A(i) > update.max_val) update.max_val = A(i);
+  }
+
+  void run() {
+    Pool random(13);
+    double min = 10.;
+    double max = 100.;
+    Kokkos::fill_random(A, random, min, max);
+
+    ReducerValueType val;
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecutionSpace>(0, A.size()),
+                            *this, ReducerType(val));
+
+    Kokkos::fence();
+    ASSERT_GE(val.min_val, min);
+    ASSERT_LE(val.max_val, max);
+  }
+};
 }  // namespace Impl
 
 template <typename ExecutionSpace>
@@ -593,6 +557,9 @@ void test_random_xorshift64() {
   Impl::test_random<Kokkos::Random_XorShift64_Pool<
       Kokkos::Device<ExecutionSpace, typename ExecutionSpace::memory_space>>>(
       num_draws);
+  Impl::TestDynRankView<ExecutionSpace,
+                        Kokkos::Random_XorShift64_Pool<ExecutionSpace>>(10000)
+      .run();
 }
 
 template <typename ExecutionSpace>
@@ -608,6 +575,9 @@ void test_random_xorshift1024() {
   Impl::test_random<Kokkos::Random_XorShift1024_Pool<
       Kokkos::Device<ExecutionSpace, typename ExecutionSpace::memory_space>>>(
       num_draws);
+  Impl::TestDynRankView<ExecutionSpace,
+                        Kokkos::Random_XorShift1024_Pool<ExecutionSpace>>(10000)
+      .run();
 }
 }  // namespace Test
 

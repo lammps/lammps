@@ -43,13 +43,6 @@ PairHybridKokkos::PairHybridKokkos(LAMMPS *lmp) : PairHybrid(lmp)
   datamask_modify = EMPTY_MASK;
 }
 
-/* ---------------------------------------------------------------------- */
-
-PairHybridKokkos::~PairHybridKokkos()
-{
-
-}
-
 /* ----------------------------------------------------------------------
   call each sub-style's compute() or compute_outer() function
   accumulate sub-style global/peratom energy/virial in hybrid

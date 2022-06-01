@@ -97,10 +97,3 @@ class PairCoulWolfKokkos : public PairCoulWolf {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Cannot use chosen neighbor list style with coul/wolf/kk
-
-That style is not supported by Kokkos.
-
-*/

@@ -31,7 +31,7 @@ class AtomVecPeri : public AtomVec {
   void grow_pointers() override;
   void create_atom_post(int) override;
   void data_atom_post(int) override;
-  int property_atom(char *) override;
+  int property_atom(const std::string &) override;
   void pack_property_atom(int, double *, int, int) override;
 
  private:
@@ -43,7 +43,3 @@ class AtomVecPeri : public AtomVec {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

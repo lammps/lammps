@@ -87,6 +87,3 @@ class BondHarmonicKokkos : public BondHarmonic {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

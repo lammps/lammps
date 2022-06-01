@@ -28,8 +28,8 @@
 
 using ::testing::Eq;
 
-char *NCDUMP_BINARY = nullptr;
-bool verbose        = false;
+char *NCDUMP_EXECUTABLE = nullptr;
+bool verbose            = false;
 
 class DumpNetCDFTest : public MeltTest {
     std::string dump_style = "netcdf";
@@ -80,7 +80,7 @@ public:
     std::string convert_binary_to_text(std::string binary_file)
     {
         BEGIN_HIDE_OUTPUT();
-        std::string cmdline = fmt::format("{0} {1} > {1}.txt", NCDUMP_BINARY, binary_file);
+        std::string cmdline = fmt::format("{0} {1} > {1}.txt", NCDUMP_EXECUTABLE, binary_file);
         system(cmdline.c_str());
         END_HIDE_OUTPUT();
         return fmt::format("{}.txt", binary_file);
@@ -96,7 +96,7 @@ TEST_F(DumpNetCDFTest, run0_plain)
     generate_dump(dump_file, fields, "", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
-    if (NCDUMP_BINARY) {
+    if (NCDUMP_EXECUTABLE) {
         auto converted_file = convert_binary_to_text(dump_file);
         auto lines          = read_lines(converted_file);
         auto header         = utils::split_words(lines[0]);
@@ -246,7 +246,7 @@ TEST_F(DumpNetCDFTest, run0_mpi)
     generate_dump(dump_file, fields, "", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
-    if (NCDUMP_BINARY) {
+    if (NCDUMP_EXECUTABLE) {
         auto converted_file = convert_binary_to_text(dump_file);
         auto lines          = read_lines(converted_file);
         auto header         = utils::split_words(lines[0]);
@@ -402,7 +402,7 @@ int main(int argc, char **argv)
         }
     }
 
-    NCDUMP_BINARY = getenv("NCDUMP_BINARY");
+    NCDUMP_EXECUTABLE = getenv("NCDUMP_EXECUTABLE");
 
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 

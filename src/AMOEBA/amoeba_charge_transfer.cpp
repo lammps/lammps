@@ -29,18 +29,14 @@ enum{VDWL,REPULSE,QFER,DISP,MPOLE,POLAR,USOLV,DISP_LONG,MPOLE_LONG,POLAR_LONG};
 void PairAmoeba::charge_transfer()
 {
   int i,j,ii,jj,itype,jtype,iclass,jclass;
-  int special_flag;
-  double e,de,felec,fgrp;
+  double e,de,felec;
   double rr1,r,r2;
   double r3,r4,r5;
   double xi,yi,zi;
   double xr,yr,zr;
   double chgi,chgj;
-  double chgij;
   double alphai,alphaj;
-  double alphaij;
   double expi,expj;
-  double expij;
   double frcx,frcy,frcz;
   double vxx,vyy,vzz;
   double vxy,vxz,vyz;
@@ -58,7 +54,6 @@ void PairAmoeba::charge_transfer()
 
   double **x = atom->x;
   double **f = atom->f;
-  int nlocal = atom->nlocal;
 
   // neigh list
 

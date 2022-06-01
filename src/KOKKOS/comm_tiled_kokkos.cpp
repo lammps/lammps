@@ -30,10 +30,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-CommTiledKokkos::CommTiledKokkos(LAMMPS *lmp) : CommTiled(lmp)
-{
-
-}
+CommTiledKokkos::CommTiledKokkos(LAMMPS *lmp) : CommTiled(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 //IMPORTANT: we *MUST* pass "*oldcomm" to the Comm initializer here, as
@@ -42,20 +39,9 @@ CommTiledKokkos::CommTiledKokkos(LAMMPS *lmp) : CommTiled(lmp)
 //           The call to Comm::copy_arrays() then converts the shallow copy
 //           into a deep copy of the class with the new layout.
 
-CommTiledKokkos::CommTiledKokkos(LAMMPS *lmp, Comm *oldcomm) : CommTiled(lmp,oldcomm)
-{
-
-}
+CommTiledKokkos::CommTiledKokkos(LAMMPS *lmp, Comm *oldcomm) : CommTiled(lmp,oldcomm) {}
 
 /* ---------------------------------------------------------------------- */
-
-CommTiledKokkos::~CommTiledKokkos()
-{
-
-}
-
-/* ---------------------------------------------------------------------- */
-
 
 /* ----------------------------------------------------------------------
    forward communication of atom coords every timestep

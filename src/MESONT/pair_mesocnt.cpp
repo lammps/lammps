@@ -323,19 +323,22 @@ void PairMesoCNT::mesolj()
           
           double calpha = cos(param[1]);
           double salpha = sin(param[1]);
-          
+          double hsq = param[0] * param[0];
+
           double ceta = calpha * param[4];
           double seta = salpha * param[4];
-          double dsq1 = seta * seta;
+          double dsq1 = hsq + seta * seta;
           if (ceta < param[2]) dsq1 += pow(ceta - param[2], 2);
           else if (ceta > param[3]) dsq1 += pow(ceta - param[3], 2);
 
           ceta = calpha * param[5];
           seta = salpha * param[5];
           
-          double dsq2 = seta * seta;
+          double dsq2 = hsq + seta * seta;
           if (ceta < param[2]) dsq2 += pow(ceta - param[2], 2);
           else if (ceta > param[3]) dsq2 += pow(ceta - param[3], 2);
+
+          if (dsq1 > cutoffsq && dsq2 > cutoffsq) continue;
 
           int jj1, jj2;
           
@@ -358,12 +361,11 @@ void PairMesoCNT::mesolj()
             jj2 = j1;
           }
 
-          double evdwl1 = 0.0;
-          double evdwl2 = 0.0;
-
           // first force contribution
 
-          fsemi(param, evdwl1, fend, flocal);
+          fsemi(param, evdwl, fend, flocal);          
+
+          if (evdwl == 0.0) continue;
           
           // transform to global coordinate system
 
@@ -397,32 +399,28 @@ void PairMesoCNT::mesolj()
           scaleadd3(0.5, fglobal[3], f[jj2], f[jj2]);
           scaleadd3(0.5 * fend, m, f[jj1], f[jj1]);
           
-          bool seg1 = (atom->tag[i1] == 958412 && atom->tag[i2] == 958413) || (atom->tag[i1] == 958413 && atom->tag[i2] == 958412);
-          bool seg2 = (atom->tag[jj1] == 320636 && atom->tag[jj2] == 320637) || (atom->tag[jj1] == 320637 && atom->tag[jj2] == 320636);
-          
-          if (seg1 && seg2) {
-            printf("\n");
-            printf("tags: %d %d\n", atom->tag[jj1], atom->tag[jj2]);
-            printf("param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
-            printf("m: %f %f %f\n", m[0], m[1], m[2]);
-            printf("basis 1: %f %f %f\n", basis[0][0], basis[0][1], basis[0][2]);
-            printf("basis 2: %f %f %f\n", basis[1][0], basis[1][1], basis[1][2]);
-            printf("basis 3: %f %f %f\n\n", basis[2][0], basis[2][1], basis[2][2]);
-            
-            printf("fglobal 1: %f %f %f\n", fglobal[0][0], fglobal[0][1], fglobal[0][2]);
-            printf("fglobal 2: %f %f %f\n", fglobal[1][0], fglobal[1][1], fglobal[1][2]);
-            printf("fglobal 3: %f %f %f\n", fglobal[2][0], fglobal[2][1], fglobal[2][2]);
-            printf("fglobal 4: %f %f %f\n", fglobal[3][0], fglobal[3][1], fglobal[3][2]);
-            printf("fend: %f\n", fend);
-            printf("\n");
-          }
+          // add energy
 
+          if (eflag_either) {
+            evdwl = 0.5 * evdwl;
+            double evdwl_atom = 0.25 * evdwl;
+            if (eflag_global) eng_vdwl += evdwl;
+            if (eflag_atom) {
+              eatom[i1] += evdwl_atom;
+              eatom[i2] += evdwl_atom;
+              eatom[jj1] += evdwl_atom;
+              eatom[jj2] += evdwl_atom;
+            }
+          }
+          
           // second force contribution
 
           param[6] += lp;
           
-          fsemi(param, evdwl2, fend, flocal);
+          fsemi(param, evdwl, fend, flocal);
           
+          if (evdwl == 0.0) continue;
+
           // transform to global coordinate system
 
           matvec(basis[0], basis[1], basis[2], flocal[0], fglobal[0]);
@@ -456,18 +454,11 @@ void PairMesoCNT::mesolj()
           scaleadd3(0.5, fglobal[3], f[jj1], f[jj1]);
           sub3(f[jj2], fglobal[3], f[jj2]);
           scaleadd3(-0.5 * fend, m, f[jj2], f[jj2]);
-          
-          if (seg1 && seg2) {
-            printf("fglobal 1: %f %f %f\n", fglobal[0][0], fglobal[0][1], fglobal[0][2]);
-            printf("fglobal 2: %f %f %f\n", fglobal[1][0], fglobal[1][1], fglobal[1][2]);
-            printf("fglobal 3: %f %f %f\n", fglobal[2][0], fglobal[2][1], fglobal[2][2]);
-            printf("fglobal 4: %f %f %f\n", fglobal[3][0], fglobal[3][1], fglobal[3][2]);
-            printf("fend: %f\n", fend);
-            printf("\n");
-          }
+
+          // add energy
 
           if (eflag_either) {
-            evdwl = 0.5 * (evdwl1 - evdwl2);
+            evdwl = -0.5 * evdwl;
             double evdwl_atom = 0.25 * evdwl;
             if (eflag_global) eng_vdwl += evdwl;
             if (eflag_atom) {
@@ -759,8 +750,6 @@ void PairMesoCNT::bond_neigh()
       atom2 = atom->map(special[i][1]);
       special_local[i][1] = domain->closest_image(i, atom2);
     }
-    
-    // printf("%d %d %d (%d) %d (%d)\n", atom->tag[i], nspecial[i][0], atom->tag[atom1], atom1, atom->tag[atom2], atom2);
   }
 
   int *numneigh = list->numneigh;
@@ -979,21 +968,6 @@ void PairMesoCNT::bond_neigh()
       }
     }
   }
-
-  /*
-  for (int i = 0; i < nbondlist; i++) {
-    printf("bond: %d\n", i + 1);
-    for (int j = 0; j < reduced_nlist[i]; j++)
-      printf("%d ", atom->tag[reduced_neighlist[i][j]]);
-    printf("\n");
-    for (int j = 0; j < numchainlist[i]; j++) {
-      printf("chain %d: ", j + 1);
-      for (int k = 0; k < nchainlist[i][j]; k++)
-        printf("%d ", atom->tag[chainlist[i][j][k]]);
-      printf("\n");
-    }
-  }
-  */
 
   // destroy remaining temporary arrays for chain creation
 

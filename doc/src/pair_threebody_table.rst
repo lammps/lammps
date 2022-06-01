@@ -29,9 +29,8 @@ Description
 The *threebody/table* style is a pair style for generic tabulated three-body
 interactions.  It has been developed for (coarse-grained) simulations
 (of water) with Kernel-based machine learning (ML) potentials
-(:ref:`Scherer2 <Scherer2>`).  As for the pair style :doc:`pair_style sw
-<pair_sw>` or :doc:`pair_style sw/threebody/table <pair_sw_threebody_table>`, the energy of
-a system is computed as a sum over three-body terms:
+(:ref:`Scherer2 <Scherer2>`).  As for many other MANYBODY package pair styles
+the energy of a system is computed as a sum over three-body terms:
 
 .. math::
 

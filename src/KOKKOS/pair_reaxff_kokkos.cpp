@@ -3470,6 +3470,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxUpdateBond<NEIGHFLAG>, 
   Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,KKDeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi2 = d_Cdbopi2;
 
   const int i = d_ilist[ii];
+  const X_FLOAT xtmp = x(i,0);
+  const X_FLOAT ytmp = x(i,1);
+  const X_FLOAT ztmp = x(i,2);
   const tagint itag = tag(i);
   const int j_start = d_bo_first[i];
   const int j_end = j_start + d_bo_num[i];
@@ -3478,6 +3481,21 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxUpdateBond<NEIGHFLAG>, 
     int j = d_bo_list[jj];
     j &= NEIGHMASK;
     const tagint jtag = tag(j);
+
+    int flag = 0;
+
+    if (itag > jtag) {
+      if ((itag+jtag) % 2 == 0) flag = 1;
+    } else if (itag < jtag) {
+      if ((itag+jtag) % 2 == 1) flag = 1;
+    } else {
+      if (x(j,2)  < ztmp) flag = 1;
+      if (x(j,2) == ztmp && x(j,1)  < ytmp) flag = 1;
+      if (x(j,2) == ztmp && x(j,1) == ytmp && x(j,0) < xtmp) flag = 1;
+    }
+
+    if (!flag) continue;
+
     const int j_index = jj - j_start;
     const F_FLOAT Cdbo_i = d_Cdbo(i,j_index);
     const F_FLOAT Cdbopi_i = d_Cdbopi(i,j_index);
@@ -3492,18 +3510,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxUpdateBond<NEIGHFLAG>, 
       if (k != i) continue;
       const int k_index = kk - k_start;
 
-      int flag = 0;
-      if (itag > jtag) {
-        if ((itag+jtag) % 2 == 0) flag = 1;
-      } else if (itag < jtag) {
-        if ((itag+jtag) % 2 == 1) flag = 1;
-      }
-
-      if (flag) {
-        a_Cdbo(j,k_index) += Cdbo_i;
-        a_Cdbopi(j,k_index) += Cdbopi_i;
-        a_Cdbopi2(j,k_index) += Cdbopi2_i;
-      }
+      a_Cdbo(j,k_index) += Cdbo_i;
+      a_Cdbopi(j,k_index) += Cdbopi_i;
+      a_Cdbopi2(j,k_index) += Cdbopi2_i;
     }
   }
 }

@@ -1,10 +1,10 @@
-Example for pair style 3b/table
+Example for pair style threebody/table
 
 
 This example contains all required input files for the simulation of CG SPC/E water with
-the user pair style 3b/table, as well as a run.sh script.
+the user pair style threebody/table, as well as a run.sh script.
 
-To run the example, you have to compile LAMMPS with the MANYBODY package, including pair_3b_table.h and pair_3b_table.cpp.
+To run the example, you have to compile LAMMPS with the MANYBODY package, including pair_threebody_table.h and pair_threebody_table.cpp.
 
 Running the simulations, you will reproduce results of the following publication:
 
@@ -16,20 +16,20 @@ The three-body (force) tables for both parts (1-1-1.table and 1-1-2.table) have 
 For a general description of the table format have a look at the documentation of this pair style.
 For a example on the parametrization, have a look at https://gitlab.mpcdf.mpg.de/votca/votca/-/tree/master/csg-examples/guide and
 https://gitlab.mpcdf.mpg.de/votca/votca/-/tree/master/csg-examples/ml.
-In both cases, the parametrization has been done according to the three-body forces of the FM tabulated Stillinger-Weber (sw/3b/table) potential with the covariant meshing technique with the settings files used in https://gitlab.mpcdf.mpg.de/votca/votca/-/tree/master/csg-examples/ml/3body/with_binning.
+In both cases, the parametrization is done according to a sample system, using the three-body forces of a Stillinger-Weber potential with tabulated angular forces (sw/angle/table). These then are learned with the covariant meshing technique with the settings files used in https://gitlab.mpcdf.mpg.de/votca/votca/-/tree/master/csg-examples/ml/3body/with_binning.
 
-For the first part of example, the folder contains the contains the LAMMPS data file (spce.data) with the starting configuration of 1000 CG water molecules, an input file (spce.in) and a three-body file (spce.3b).
+For the first part of example, the folder contains the contains the LAMMPS data file (spce.data) with the starting configuration of 1000 CG water molecules, an input file (spce.in) and a threebody file (spce.3b).
 
 The lammps input file contains the lines specifying the pair style and coefficients:
 
-- pair_style   hybrid/overlay table linear 1200 3b/table - use a combination of pair style table with 1200 linear table entries and the pair style 3b/table
+- pair_style   hybrid/overlay table linear 1200 threebody/table - use a combination of pair style table with 1200 linear table entries and the pair style threebody/table
 - pair_coeff   1 1 table table_CG_CG.txt VOTCA - set the table name and keyword for the pair style table
-- pair_coeff   * * 3b/table spce.3b type - set the name of 3body file and bead type for the pair style 3b/table
+- pair_coeff   * * threebody/table spce.3b type - set the name of threebody file and bead type for the pair style threebody/table
 
-A hybrid pair style is used, where pair forces are calculated as a tabulated interaction (table_CG_CG.txt) and the pair style 3b/table is only used to calculate the three-body forces.
-The tabulated pair interaction is the same as in the example of the sw/3b/table pair style: examples/PACKAGES/pair_sw_3b_table
+A hybrid pair style is used, where pair forces are calculated as a tabulated interaction (table_CG_CG.txt) and the pair style threebody/table is only used to calculate the three-body forces.
+The tabulated pair interaction is the same as in the example of the sw/angle/table pair style: examples/PACKAGES/pair_sw_angle_table
 
-To run the simulation, one needs an additional 3body file (spce.3b).
+To run the simulation, one needs an additional threebody file (spce.3b).
 It has the following structure:
 
 - type - relates to keyword type in LAMMPS input file
@@ -46,18 +46,18 @@ As there is only one atom type (1), the force table is symmetric and contains "M
 The LAMMPS simulation is a standard nvt simulation. A dump file is output with the positions and forces every 10 time steps.
 You can calculate the pair distribution and compare it to the ones in the publication.
 
-For the second part of the example, have a look at the LAMMPS data file (spce_2.data), the input file (spce_2.in) and the three-body file (spce_2.3b).
+For the second part of the example, have a look at the LAMMPS data file (spce_2.data), the input file (spce_2.in) and the threebody file (spce_2.3b).
 Running the second part, you will in fact perform the same MD simulation as in the first part of the example. However, the atom type of the first 100 CG water molecules has been changed from 1 to 2.
 This is done to demonstrate how to run a simulation with different atom types.
 
 Again, lammps input file (spce_2.in) contains the lines specifying the pair style and coefficients:
 
-- pair_style  hybrid/overlay table linear 1200 3b/table - use a combination of pair style table with 1200 linear table entries and the pair style 3b/table
+- pair_style  hybrid/overlay table linear 1200 threebody/table - use a combination of pair style table with 1200 linear table entries and the pair style threebody/table
 - pair_coeff  1 1 table table_CG_CG.txt VOTCA - set the table name and keyword for the pair style table
-- pair_coeff  * * 3b/table spce_2.3b type1 type2 - set the name of 3body file and bead type for the pair style 3b/table
+- pair_coeff  * * threebody/table spce_2.3b type1 type2 - set the name of threebody file and bead type for the pair style threebody/table
 
-Now, the atom type 1 is mapped to the element type1 and the atom type 2 is mapped to the element type2 in the 3body file (spce_2.3b).
-For this (artificial) two-element simulation, the 3body file now contain 8 entries for: type1 type1 type1, type1 type1 type2, type1 type2 type1, type1 type2 type2, type2 type1 type1, type2 type1 type2, type2 type2 type1, type2 type2 type2.
+Now, the atom type 1 is mapped to the element type1 and the atom type 2 is mapped to the element type2 in the threebody file (spce_2.3b).
+For this (artificial) two-element simulation, the threebody file now contain 8 entries for: type1 type1 type1, type1 type1 type2, type1 type2 type1, type1 type2 type2, type2 type1 type1, type2 type1 type2, type2 type2 type1, type2 type2 type2.
 Each entry has the same structure as above. However, entries where the second and the third element are different require a different force table (1-1-2.table) instead of (1-1-1.table).
 1-1-2.table contains exactly the force constants as 1-1-1.table.
 However it has to have the asymmetric structure where both interparticle distances (r_ij and r_ik) are varied from rmin to rmax and therefore contains "M = 2 * N * N * N" (2 * 12 * 12 * 12 = 3456) entries.

@@ -21,6 +21,7 @@
 #include "atom.h"
 #include "error.h"
 #include "force.h"
+#include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "neigh_list.h"
@@ -31,6 +32,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 using namespace MathExtra;
 
 #define RHOMIN 10.0
@@ -48,6 +50,7 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
   int **chain;
   double fend, lp, scale, sumw, sumw_inv;
   double evdwl, evdwl_chain;
+  double vtot, fvisc_tot;
   double *r1, *r2, *q1, *q2, *qe;
   double *vr1, *vr2, *vq1, *vq2;
   double vr[3], vp1[3], vp2[3], vp[3], vrel[3], fvisc[3];

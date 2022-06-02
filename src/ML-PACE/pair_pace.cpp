@@ -146,7 +146,10 @@ void PairPACE::compute(int eflag, int vflag)
   // the pointer to the list of neighbors of "i"
   firstneigh = list->firstneigh;
 
+#if 0
+  // when using a hybrid pair style inum != nlocal
   if (inum != nlocal) error->all(FLERR, "inum: {} nlocal: {} are different", inum, nlocal);
+#endif
 
   // Aidan Thompson told RD (26 July 2019) that practically always holds:
   // inum = nlocal
@@ -325,21 +328,27 @@ void PairPACE::coeff(int narg, char **arg)
 
   const int n = atom->ntypes;
   for (int i = 1; i <= n; i++) {
-    char *elemname = elemtypes[i - 1];
-    int atomic_number = AtomicNumberByName_pace(elemname);
-    if (atomic_number == -1) error->all(FLERR, "'{}' is not a valid element\n", elemname);
-
-    SPECIES_TYPE mu = aceimpl->basis_set->get_species_index_by_name(elemname);
-    if (mu != -1) {
-      if (comm->me == 0)
-        utils::logmesg(lmp, "Mapping LAMMPS atom type #{}({}) -> ACE species type #{}\n", i,
-                       elemname, mu);
-      map[i] = mu;
-      // set up LAMMPS atom type to ACE species  mapping for ace evaluator
-      aceimpl->ace->element_type_mapping(i) = mu;
+    SPECIES_TYPE mu = -1;
+    char *elemname = arg[2+i];
+    if (strcmp(elemname, "NULL") == 0) {
+      aceimpl->ace->element_type_mapping(i) = 0;
+      map[i] = -1;
+      if (comm->me == 0) utils::logmesg(lmp, "Skipping LAMMPS atom type #{}(NULL)\n", i);
     } else {
-      error->all(FLERR, "Element {} is not supported by ACE-potential from file {}", elemname,
-                 potential_file_name);
+      int atomic_number = AtomicNumberByName_pace(elemname);
+      if (atomic_number == -1) error->all(FLERR, "'{}' is not a valid element\n", elemname);
+      mu = aceimpl->basis_set->get_species_index_by_name(elemname);
+      if (mu != -1) {
+        if (comm->me == 0)
+          utils::logmesg(lmp, "Mapping LAMMPS atom type #{}({}) -> ACE species type #{}\n", i,
+                         elemname, mu);
+        map[i] = mu;
+        // set up LAMMPS atom type to ACE species  mapping for ace evaluator
+        aceimpl->ace->element_type_mapping(i) = mu;
+      } else {
+        error->all(FLERR, "Element {} is not supported by ACE-potential from file {}", elemname,
+                   potential_file_name);
+      }
     }
   }
 

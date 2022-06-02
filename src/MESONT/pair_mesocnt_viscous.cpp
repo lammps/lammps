@@ -102,7 +102,12 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
       clen = nchain[j];
       if (clen < 2) continue;
 
-      if (modelist[i][j]) {
+      if (modelist[i][j] || true) {
+
+        zero3(vp1);
+        zero3(vp2);
+        sumw = 0.0;
+
         for (k = 0; k < clen - 1; k++) {
           j1 = chain[j][k];
           j2 = chain[j][k + 1];
@@ -110,6 +115,18 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           j2 &= NEIGHMASK;
           q1 = x[j1];
           q2 = x[j2];
+          vq1 = v[j1];
+          vq2 = v[j2];
+
+          // weighted velocity for friction
+
+          w[k] = weight(r1, r2, q1, q2);
+          if (w[k] == 0.0) continue;
+          sumw += w[k];
+          scaleadd3(w[k], vq1, vp1, vp1);
+          scaleadd3(w[k], vq2, vp2, vp2);
+
+          // check if orientation of segment needs to be flipped to prevent overlap
 
           geometry(r1, r2, q1, q2, q1, p, m, param, basis);
           if (param[0] > cutoff) continue;
@@ -135,6 +152,8 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
 
           int jj1, jj2;
           
+          // do flip if necessary
+
           if (dsq1 < dsq2) {
             jj1 = j1;
             jj2 = j2;
@@ -261,7 +280,38 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
               eatom[jj2] += evdwl_atom;
             }
           }
+        }
 
+        if (sumw == 0.0) continue;
+        sumw_inv = 1.0 / sumw;
+
+        // friction forces
+
+        vtot = len3(vrel);
+        if (vtot < vswitch) scale3(0.25 * (1 - s(sumw)) * a1, vrel, fvisc);
+        else {
+          fvisc_tot = b2 / vtot - a2;
+          if (fvisc_tot < 0.0) zero3(fvisc);
+          else scale3(0.25 * (1 - s(sumw)) * fvisc_tot, vrel, fvisc);
+        }
+
+        // add friction forces to current segment
+
+        add3(fvisc, f[i1], f[i1]);
+        add3(fvisc, f[i2], f[i2]);
+
+        // add friction forces to neighbor chain
+
+        for (k = 0; k < clen - 1; k++) {
+          if (w[k] == 0.0) continue;
+          j1 = chain[j][k];
+          j2 = chain[j][k + 1];
+          j1 &= NEIGHMASK;
+          j2 &= NEIGHMASK;
+          scale = w[k] * sumw_inv;
+        
+          scaleadd3(-scale, fvisc, f[j1], f[j1]);
+          scaleadd3(-scale, fvisc, f[j2], f[j2]);
         }
       }
       else {
@@ -282,6 +332,8 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
         zero3(p2);
         zero3(dr1_sumw);
         zero3(dr2_sumw);
+        zero3(vp1);
+        zero3(vp2);
         zeromat3(q1_dr1_w);
         zeromat3(q2_dr1_w);
         zeromat3(q1_dr2_w);
@@ -646,12 +698,35 @@ void PairMesoCNTViscous::coeff(int narg, char **arg)
     for (int j = i; j <= ntypes; j++) setflag[i][j] = 1;
 }
 
+/* ----------------------------------------------------------------------
+   weight for averaged friction from CNT chain
+------------------------------------------------------------------------- */
+
+inline double PairMesoCNTViscous::weight(const double *r1, const double *r2, const double *p1,
+                                const double *p2)
+{
+  double dr, dp, rhoc, rhomin, rho, frac, arg;
+  double r[3], p[3];
+
+  add3(r1, r2, r);
+  add3(p1, p2, p);
+
+  dr = sqrt(0.25 * distsq3(r1, r2) + rsq);
+  dp = sqrt(0.25 * distsq3(p1, p2) + rsq);
+  rhoc = dr + dp + rc;
+  rhomin = RHOMIN * ang;
+  rho = 0.5 * sqrt(distsq3(r, p));
+
+  return s((rho - rhomin) / (rhoc - rhomin));
+}
+
 
 /* ----------------------------------------------------------------------
    weight for substitute CNT chain
+   computes gradients with respect to positions
 ------------------------------------------------------------------------- */
 
-inline void PairMesoCNT::weight(const double *r1, const double *r2, const double *p1,
+inline void PairMesoCNTViscous::weight(const double *r1, const double *r2, const double *p1,
                                 const double *p2, double &w, double *dr1_w, double *dr2_w,
                                 double *dp1_w, double *dp2_w)
 {

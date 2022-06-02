@@ -136,9 +136,6 @@ ComputeStressCartesian::ComputeStressCartesian(LAMMPS *lmp, int narg, char **arg
   size_array_cols = 7 + dims;    // dir1, dir2, number density, pkxx, pkyy, pkzz, pcxx, pcyy, pczz
   size_array_rows = nbins1 * nbins2;
 
-  memory->create(v0x, nbins1 * nbins2, "v0x");
-  memory->create(v0y, nbins1 * nbins2, "v0y");
-  memory->create(v0z, nbins1 * nbins2, "v0z");
   memory->create(dens, nbins1 * nbins2, "dens");
   memory->create(pkxx, nbins1 * nbins2, "pkxx");
   memory->create(pkyy, nbins1 * nbins2, "pkyy");
@@ -161,9 +158,6 @@ ComputeStressCartesian::ComputeStressCartesian(LAMMPS *lmp, int narg, char **arg
 ComputeStressCartesian::~ComputeStressCartesian()
 {
   memory->destroy(dens);
-  memory->destroy(v0x);
-  memory->destroy(v0y);
-  memory->destroy(v0z);
   memory->destroy(pkxx);
   memory->destroy(pkyy);
   memory->destroy(pkzz);
@@ -240,9 +234,6 @@ void ComputeStressCartesian::compute_array()
   // Zero arrays
   for (bin = 0; bin < nbins1 * nbins2; bin++) {
     tdens[bin] = 0;
-    v0x[bin] = 0;
-    v0y[bin] = 0;
-    v0z[bin] = 0;
     tpkxx[bin] = 0;
     tpkyy[bin] = 0;
     tpkzz[bin] = 0;
@@ -259,9 +250,9 @@ void ComputeStressCartesian::compute_array()
 
     j = bin1 + bin2 * nbins1;
     tdens[j] += 1;
-    tpkxx[j] += mass[type[i]] * (v[i][0]-v0x[j]) * (v[i][0]-v0x[j]);
-    tpkyy[j] += mass[type[i]] * (v[i][1]-v0y[j]) * (v[i][1]-v0y[j]);
-    tpkzz[j] += mass[type[i]] * (v[i][2]-v0z[j]) * (v[i][2]-v0z[j]);
+    tpkxx[j] += mass[type[i]] * v[i][0] * v[i][0];
+    tpkyy[j] += mass[type[i]] * v[i][1] * v[i][1];
+    tpkzz[j] += mass[type[i]] * v[i][2] * v[i][2];
   }
 
   // loop over neighbors of my atoms

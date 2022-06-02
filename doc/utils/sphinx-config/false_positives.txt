@@ -1564,6 +1564,7 @@ jpeglib
 jpg
 JPG
 jpl
+json
 Jth
 jtranch
 jtype
@@ -3213,6 +3214,7 @@ statvolt
 stdin
 stdio
 stdlib
+stdout
 steelblue
 Stegailov
 Steinbach

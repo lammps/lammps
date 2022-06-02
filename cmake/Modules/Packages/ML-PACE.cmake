@@ -13,8 +13,8 @@ execute_process(
   COMMAND ${CMAKE_COMMAND} -E tar xzf libpace.tar.gz
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
+get_newest_file(${CMAKE_BINARY_DIR}/lammps-user-pace-* lib-pace)
 
-file(GLOB lib-pace ${CMAKE_BINARY_DIR}/lammps-user-pace-*)
 # enforce building libyaml-cpp as static library and turn off optional features
 set(YAML_BUILD_SHARED_LIBS OFF)
 set(YAML_CPP_BUILD_CONTRIB OFF)

@@ -68,16 +68,11 @@ class AtomVecHybrid : public AtomVec {
   void pack_property_atom(int, double *, int, int) override;
 
  private:
-  int nallstyles;
-  char **allstyles;
-
   int nstyles_bonus;
   class AtomVec **styles_bonus;
 
   void merge_fields(std::vector<std::string> &, const std::vector<std::string> &, int,
                     std::vector<std::string> &);
-  void build_styles();
-  int known_style(char *);
 };
 
 }    // namespace LAMMPS_NS

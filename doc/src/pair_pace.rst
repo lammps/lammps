@@ -1,7 +1,10 @@
 .. index:: pair_style pace
+.. index:: pair_style pace/kk
 
 pair_style pace command
-========================
+=======================
+
+Accelerator Variants: *pace/kk*
 
 Syntax
 """"""
@@ -10,13 +13,14 @@ Syntax
 
    pair_style pace ... keyword values ...
 
-* an optional keyword may be appended
-* keyword = *product* or *recursive*
+* one or more keyword/value pairs may be appended
 
   .. parsed-literal::
 
+     keyword = *product* or *recursive* or *chunksize*
        *product* = use product algorithm for basis functions
        *recursive* = use recursive algorithm for basis functions
+       *chunksize* value = number of atoms in each pass
 
 Examples
 """"""""
@@ -24,7 +28,7 @@ Examples
 .. code-block:: LAMMPS
 
    pair_style pace
-   pair_style pace product
+   pair_style pace product chunksize 2048
    pair_coeff * * Cu-PBE-core-rep.ace Cu
 
 Description
@@ -59,10 +63,18 @@ Note that unlike for other potentials, cutoffs are
 not set in the pair_style or pair_coeff command; they are specified in
 the ACE file.
 
-The pair_style *pace* command may be followed by an optional keyword
+The pair_style *pace* command may be followed by the optional keyword
 *product* or *recursive*, which determines which of two algorithms
 is used for the calculation of basis functions and derivatives.
 The default is *recursive*.
+
+The keyword *chunksize* is only applicable when
+using the pair style *pace* with the KOKKOS package on GPUs and is
+ignored otherwise.  This keyword controls the number of atoms
+in each pass used to compute the atomic cluster expansion and is used to
+avoid running out of memory.  For example if there are 8192 atoms in the
+simulation and the *chunksize* is set to 4096, the ACE
+calculation will be broken up into two passes (running on a single GPU).
 
 See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the ACE coefficient file.
@@ -88,6 +100,10 @@ This pair style can only be used via the *pair* keyword of the
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Restrictions
 """"""""""""
 
@@ -103,7 +119,7 @@ Related commands
 Default
 """""""
 
-recursive
+recursive, chunksize = 4096
 
 .. _Drautz20191:
 

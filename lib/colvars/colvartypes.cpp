@@ -253,10 +253,18 @@ namespace {
 #endif
 
 
-colvarmodule::rotation::rotation()
+int colvarmodule::rotation::init()
 {
   b_debug_gradients = false;
   lambda = 0.0;
+  cvm::main()->cite_feature("Optimal rotation via flexible fitting");
+  return COLVARS_OK;
+}
+
+
+colvarmodule::rotation::rotation()
+{
+  init();
 #ifdef COLVARS_LAMMPS
   jacobi = new_Jacobi_solver(4);
 #else
@@ -268,8 +276,7 @@ colvarmodule::rotation::rotation()
 colvarmodule::rotation::rotation(cvm::quaternion const &qi)
   : q(qi)
 {
-  b_debug_gradients = false;
-  lambda = 0.0;
+  init();
 #ifdef COLVARS_LAMMPS
   jacobi = new_Jacobi_solver(4);
 #else
@@ -280,12 +287,11 @@ colvarmodule::rotation::rotation(cvm::quaternion const &qi)
 
 colvarmodule::rotation::rotation(cvm::real angle, cvm::rvector const &axis)
 {
-  b_debug_gradients = false;
+  init();
   cvm::rvector const axis_n = axis.unit();
   cvm::real const sina = cvm::sin(angle/2.0);
   q = cvm::quaternion(cvm::cos(angle/2.0),
                       sina * axis_n.x, sina * axis_n.y, sina * axis_n.z);
-  lambda = 0.0;
 #ifdef COLVARS_LAMMPS
   jacobi = new_Jacobi_solver(4);
 #else

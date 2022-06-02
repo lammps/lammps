@@ -294,9 +294,7 @@ void test_deep_copy(uint32_t num_nodes) {
   }
 }
 
-// FIXME_SYCL wrong results on Nvidia GPUs but correct on Host and Intel GPUs
-// WORKAROUND MSVC
-#if !defined(_WIN32) && !defined(KOKKOS_ENABLE_SYCL)
+#if !defined(_WIN32)
 TEST(TEST_CATEGORY, UnorderedMap_insert) {
   for (int i = 0; i < 500; ++i) {
     test_insert<TEST_EXECSPACE>(100000, 90000, 100, true);

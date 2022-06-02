@@ -1,4 +1,5 @@
 #include <Kokkos_Core.hpp>
+#include <cstddef>
 
 namespace Test {
 
@@ -62,7 +63,7 @@ struct TestDeepCopy {
     reset_a_copy_and_b(a_char_copy, b_char);
 
     {
-      int check = compare_equal(a_char_copy, a_char);
+      size_t check = compare_equal(a_char_copy, a_char);
       ASSERT_EQ(check, a_char.extent(0));
     }
 

@@ -48,12 +48,6 @@ PairLJCutCoulLongIntel::PairLJCutCoulLongIntel(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulLongIntel::~PairLJCutCoulLongIntel()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void PairLJCutCoulLongIntel::compute(int eflag, int vflag)
 {
   if (fix->precision()==FixIntel::PREC_MODE_MIXED)

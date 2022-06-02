@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -35,7 +34,7 @@ class PairBuckCoulCutIntel : public PairBuckCoulCut {
 
  public:
   PairBuckCoulCutIntel(class LAMMPS *);
-  ~PairBuckCoulCutIntel() override;
+
   void compute(int, int) override;
   void init_style() override;
   typedef struct {

@@ -2,11 +2,16 @@ import os
 import unittest
 from lammps.formats import LogFile, AvgChunkFile
 
-import yaml
+has_yaml = False
 try:
-    from yaml import CSafeLoader as Loader, CSafeDumper as Dumper
-except ImportError:
-    from yaml import SafeLoader, SafeDumper
+    import yaml
+    has_yaml = True
+    try:
+        from yaml import CSafeLoader as Loader, CSafeDumper as Dumper
+    except ImportError:
+        from yaml import SafeLoader, SafeDumper
+except:
+    pass
 
 EXAMPLES_DIR=os.path.abspath(os.path.join(__file__, '..', '..', '..', 'examples'))
 
@@ -65,6 +70,7 @@ class Logfiles(unittest.TestCase):
 
         self.assertEqual(run0["Step"], list(range(0,350, 50)))
 
+    @unittest.skipIf(not has_yaml,"Missing the PyYAML python module")
     def testYamlLogFile(self):
         log = LogFile(os.path.join(EXAMPLES_DIR, YAML_STYLE_EXAMPLE_LOG))
         self.assertEqual(len(log.runs), 2)
@@ -127,7 +133,7 @@ try:
 except:
     pass
 
-@unittest.skipIf(not has_dump_yaml, "Either atom_style full or dump_style yaml are not available")
+@unittest.skipIf(not (has_dump_yaml and has_yaml), "Either atom_style full, dump_style yaml, or the python PyYAML module are not available")
 class PythonDump(unittest.TestCase):
     def setUp(self):
         machine = None

@@ -199,7 +199,7 @@ inside the colloid particle and wall.  Note that the cutoff distance Rc
 in this case is the distance from the colloid particle center to the
 wall.  The prefactor :math:`\epsilon` can be thought of as an effective
 Hamaker constant with energy units for the strength of the colloid-wall
-interaction.  More specifically, the :math:`\epsilon` pre-factor is
+interaction.  More specifically, the :math:`\epsilon` prefactor is
 :math:`4\pi^2 \rho_{wall} \rho_{colloid} \epsilon \sigma^6`, where
 :math:`\epsilon` and :math:`\sigma` are the LJ parameters for the
 constituent LJ particles. :math:`\rho_{wall}` and :math:`\rho_{colloid}`
@@ -211,7 +211,7 @@ constituent LJ particles of size :math:`\sigma` within the colloid particle
 and a 3d half-lattice of Lennard-Jones 12/6 particles of size :math:`\sigma`
 in the wall.  As mentioned in the preceding paragraph, the density of
 particles in the wall and colloid can be different, as specified by
-the :math:`\epsilon` pre-factor.
+the :math:`\epsilon` prefactor.
 
 For the *wall/harmonic* style, :math:`\epsilon` is effectively the spring
 constant K, and has units (energy/distance\^2).  The input parameter

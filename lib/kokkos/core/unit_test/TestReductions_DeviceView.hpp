@@ -54,6 +54,11 @@ void test_reduce_device_view(int64_t N, PolicyType policy,
   Kokkos::deep_copy(reducer_result, result);
   Kokkos::deep_copy(result, 0);
   ASSERT_EQ(N, reducer_result);
+
+  // We need a warm-up to get reasonable results
+  Kokkos::parallel_reduce("Test::ReduceDeviceView::TestView", policy, functor,
+                          result);
+  Kokkos::fence();
   timer.reset();
 
   // Test View

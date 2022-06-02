@@ -66,6 +66,7 @@ struct ScheduleTrait : TraitSpecificationBase<ScheduleTrait> {
     static constexpr auto schedule_type_is_defaulted = true;
 
     using schedule_type = Schedule<Static>;
+    KOKKOS_IMPL_MSVC_NVCC_EBO_WORKAROUND
   };
   template <class Sched, class AnalyzeNextTrait>
   struct mixin_matching_trait : AnalyzeNextTrait {

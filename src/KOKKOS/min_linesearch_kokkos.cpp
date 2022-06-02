@@ -264,7 +264,7 @@ int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
   //        etmp-eoriginal+alphatmp*fdothall);
   // alpha_step(0.0,1);
 
-  while (1) {
+  while (true) {
     ecurrent = alpha_step(alpha,1);
 
     // compute new fh, alpha, delfh

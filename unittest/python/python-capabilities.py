@@ -38,6 +38,7 @@ class PythonCapabilities(unittest.TestCase):
 
         system = platform.system()
         osinfo = self.lmp.get_os_info()
+        print("System: %s   LAMMPS OS Info: %s" % (system, osinfo))
         self.assertEqual(osinfo.find(system),0)
 
     def test_has_gzip_support(self):

@@ -444,6 +444,7 @@ chris
 Christoph
 Chu
 chunkID
+chunksize
 Ciccotti
 Cieplak
 Cii
@@ -1318,6 +1319,7 @@ hexatic
 hexorder
 Heyes
 HfO
+hftn
 hgrid
 hhmrr
 Hibbs
@@ -1326,6 +1328,7 @@ hiID
 Hijazi
 Hilger
 Hinestrosa
+hipFFT
 histo
 histogrammed
 histogramming
@@ -1695,6 +1698,7 @@ lamda
 lammps
 Lammps
 LAMMPS
+lammpsbin
 lammpsplot
 lammpsplugin
 Lamoureux
@@ -1951,6 +1955,7 @@ maxsize
 maxspecial
 maxSteps
 maxstrain
+maxtry
 maxwell
 Maxwellian
 maxX
@@ -2227,6 +2232,7 @@ Navier
 nb
 Nbin
 Nbins
+nbodies
 nbody
 Nbody
 nbond
@@ -2266,6 +2272,7 @@ nelem
 Nelement
 Nelements
 nelems
+nellipsoids
 nemd
 netapp
 netcdf
@@ -2408,6 +2415,7 @@ nthreads
 ntimestep
 Ntptask
 Ntriples
+ntris
 Ntype
 ntypes
 Ntypes
@@ -2791,6 +2799,7 @@ quatk
 quatw
 queryargs
 Queteschiner
+quickmin
 qw
 qx
 qy
@@ -2951,6 +2960,7 @@ rnage
 rng
 rNEMD
 ro
+rocFFT
 Rochus
 Rockett
 rocksalt
@@ -3043,6 +3053,7 @@ screenshot
 screenshots
 Scripps
 Scripta
+sd
 sdk
 sdpd
 SDPD
@@ -3213,6 +3224,7 @@ Stesmans
 stiffnesses
 Stillinger
 stk
+stl
 stochastically
 stochasticity
 Stockmayer

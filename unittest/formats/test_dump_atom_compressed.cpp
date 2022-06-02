@@ -33,7 +33,7 @@ public:
 
 TEST_F(DumpAtomCompressTest, compressed_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto text_file       = text_dump_filename("run0.melt");
     auto compressed_file = compressed_dump_filename("run0.melt");
@@ -62,7 +62,7 @@ TEST_F(DumpAtomCompressTest, compressed_run0)
 
 TEST_F(DumpAtomCompressTest, compressed_no_buffer_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto text_file       = text_dump_filename("no_buffer_run0.melt");
     auto compressed_file = compressed_dump_filename("no_buffer_run0.melt");
@@ -91,7 +91,7 @@ TEST_F(DumpAtomCompressTest, compressed_no_buffer_run0)
 
 TEST_F(DumpAtomCompressTest, compressed_multi_file_run1)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "multi_file_run1_*.melt";
     auto base_name_0       = "multi_file_run1_0.melt";
@@ -131,7 +131,7 @@ TEST_F(DumpAtomCompressTest, compressed_multi_file_run1)
 
 TEST_F(DumpAtomCompressTest, compressed_multi_file_with_pad_run1)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "multi_file_pad_run1_*.melt";
     auto base_name_0       = "multi_file_pad_run1_000.melt";
@@ -172,7 +172,7 @@ TEST_F(DumpAtomCompressTest, compressed_multi_file_with_pad_run1)
 
 TEST_F(DumpAtomCompressTest, compressed_multi_file_with_maxfiles_run1)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "multi_file_maxfiles_run1_*.melt";
     auto base_name_0       = "multi_file_maxfiles_run1_0.melt";
@@ -218,7 +218,7 @@ TEST_F(DumpAtomCompressTest, compressed_multi_file_with_maxfiles_run1)
 
 TEST_F(DumpAtomCompressTest, compressed_with_units_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name       = "with_units_run0.melt";
     auto text_file       = text_dump_filename(base_name);
@@ -242,7 +242,7 @@ TEST_F(DumpAtomCompressTest, compressed_with_units_run0)
 
 TEST_F(DumpAtomCompressTest, compressed_with_time_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name       = "with_time_run0.melt";
     auto text_file       = text_dump_filename(base_name);
@@ -266,7 +266,7 @@ TEST_F(DumpAtomCompressTest, compressed_with_time_run0)
 
 TEST_F(DumpAtomCompressTest, compressed_triclinic_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name       = "tri_run0.melt";
     auto text_file       = text_dump_filename(base_name);
@@ -291,7 +291,7 @@ TEST_F(DumpAtomCompressTest, compressed_triclinic_run0)
 
 TEST_F(DumpAtomCompressTest, compressed_triclinic_with_units_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name       = "tri_with_units_run0.melt";
     auto text_file       = text_dump_filename(base_name);
@@ -316,7 +316,7 @@ TEST_F(DumpAtomCompressTest, compressed_triclinic_with_units_run0)
 
 TEST_F(DumpAtomCompressTest, compressed_triclinic_with_time_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name       = "tri_with_time_run0.melt";
     auto text_file       = text_dump_filename(base_name);
@@ -341,7 +341,7 @@ TEST_F(DumpAtomCompressTest, compressed_triclinic_with_time_run0)
 
 TEST_F(DumpAtomCompressTest, compressed_triclinic_with_image_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name       = "tri_with_image_run0.melt";
     auto text_file       = text_dump_filename(base_name);
@@ -394,7 +394,7 @@ TEST_F(DumpAtomCompressTest, compressed_modify_multi_bad_param)
 
 TEST_F(DumpAtomCompressTest, compressed_modify_clevel_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name       = "modify_clevel_run0.melt";
     auto text_file       = text_dump_filename(base_name);

@@ -199,8 +199,7 @@ void Output::setup(int memflag)
       // wrap step dumps that invoke computes or do variable eval with clear/add
       // see NOTE in write() about also wrapping time dumps
 
-      if (mode_dump[idump] == 0 &&
-          (dump[idump]->clearstep || var_dump[idump]))
+      if (mode_dump[idump] == 0 && (dump[idump]->clearstep || var_dump[idump]))
         modify->clearstep_compute();
 
       // write a snapshot at setup only if any of these 3 conditions hold
@@ -248,8 +247,7 @@ void Output::setup(int memflag)
       // if dump not written now, use addstep_compute_all()
       // since don't know what computes the dump will invoke
 
-      if (mode_dump[idump] == 0 &&
-          (dump[idump]->clearstep || var_dump[idump])) {
+      if (mode_dump[idump] == 0 && (dump[idump]->clearstep || var_dump[idump])) {
         if (writeflag) modify->addstep_compute(next_dump[idump]);
         else modify->addstep_compute_all(next_dump[idump]);
       }
@@ -495,8 +493,7 @@ void Output::calculate_next_dump(int which, int idump, bigint ntimestep)
        // which = WRITE: increment nextdump by every_dump
 
        if (which == SETUP)
-         next_dump[idump] =
-           (ntimestep/every_dump[idump])*every_dump[idump] + every_dump[idump];
+         next_dump[idump] = (ntimestep/every_dump[idump])*every_dump[idump] + every_dump[idump];
        else if (which == WRITE)
          next_dump[idump] += every_dump[idump];
 
@@ -736,15 +733,15 @@ void Output::reset_dt()
    add a Dump to list of Dumps
 ------------------------------------------------------------------------- */
 
-void Output::add_dump(int narg, char **arg)
+Dump *Output::add_dump(int narg, char **arg)
 {
   if (narg < 5) error->all(FLERR,"Illegal dump command");
 
   // error checks
 
   for (int idump = 0; idump < ndump; idump++)
-    if (strcmp(arg[0],dump[idump]->id) == 0)
-      error->all(FLERR,"Reuse of dump ID: {}", arg[0]);
+    if (strcmp(arg[0],dump[idump]->id) == 0) error->all(FLERR,"Reuse of dump ID: {}", arg[0]);
+
   int igroup = group->find(arg[1]);
   if (igroup == -1) error->all(FLERR,"Could not find dump group ID: {}", arg[1]);
   if (utils::inumeric(FLERR,arg[3],false,lmp) <= 0)
@@ -754,38 +751,39 @@ void Output::add_dump(int narg, char **arg)
 
   if (ndump == max_dump) {
     max_dump += DELTA;
-    dump = (Dump **)
-      memory->srealloc(dump,max_dump*sizeof(Dump *),"output:dump");
+    dump = (Dump **) memory->srealloc(dump,max_dump*sizeof(Dump *),"output:dump");
     memory->grow(mode_dump,max_dump,"output:mode_dump");
     memory->grow(every_dump,max_dump,"output:every_dump");
     memory->grow(every_time_dump,max_dump,"output:every_time_dump");
     memory->grow(next_dump,max_dump,"output:next_dump");
     memory->grow(next_time_dump,max_dump,"output:next_time_dump");
     memory->grow(last_dump,max_dump,"output:last_dump");
-    var_dump = (char **)
-      memory->srealloc(var_dump,max_dump*sizeof(char *),"output:var_dump");
+    var_dump = (char **) memory->srealloc(var_dump,max_dump*sizeof(char *),"output:var_dump");
     memory->grow(ivar_dump,max_dump,"output:ivar_dump");
   }
 
   // create the Dump
+  int idump = ndump;
 
   if (dump_map->find(arg[2]) != dump_map->end()) {
     DumpCreator &dump_creator = (*dump_map)[arg[2]];
-    dump[ndump] = dump_creator(lmp, narg, arg);
+    dump[idump] = dump_creator(lmp, narg, arg);
   } else error->all(FLERR,utils::check_packages_for_style("dump",arg[2],lmp));
 
   // initialize per-dump data to suitable default values
 
-  mode_dump[ndump] = 0;
-  every_dump[ndump] = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (every_dump[ndump] <= 0) error->all(FLERR,"Illegal dump command");
-  every_time_dump[ndump] = 0.0;
-  next_time_dump[ndump] = -1.0;
-  last_dump[ndump] = -1;
-  var_dump[ndump] = nullptr;
-  ivar_dump[ndump] = -1;
+  mode_dump[idump] = 0;
+  every_dump[idump] = utils::inumeric(FLERR,arg[3],false,lmp);
+  if (every_dump[idump] <= 0) error->all(FLERR,"Illegal dump command");
+  every_time_dump[idump] = 0.0;
+  next_time_dump[idump] = -1.0;
+  last_dump[idump] = -1;
+  var_dump[idump] = nullptr;
+  ivar_dump[idump] = -1;
+  next_dump[idump] = 0;
 
   ndump++;
+  return dump[idump];
 }
 
 /* ----------------------------------------------------------------------
@@ -810,13 +808,12 @@ void Output::modify_dump(int narg, char **arg)
    delete a Dump from list of Dumps
 ------------------------------------------------------------------------- */
 
-void Output::delete_dump(char *id)
+void Output::delete_dump(const std::string &id)
 {
   // find which dump it is and delete it
 
   int idump;
-  for (idump = 0; idump < ndump; idump++)
-    if (strcmp(id,dump[idump]->id) == 0) break;
+  for (idump = 0; idump < ndump; idump++) if (id == dump[idump]->id) break;
   if (idump == ndump) error->all(FLERR,"Could not find undump ID: {}", id);
 
   delete dump[idump];
@@ -851,6 +848,18 @@ int Output::find_dump(const char *id)
     if (strcmp(id,dump[idump]->id) == 0) break;
   if (idump == ndump) return -1;
   return idump;
+}
+
+/* ----------------------------------------------------------------------
+   find a dump by ID
+   return pointer to dump
+------------------------------------------------------------------------- */
+
+Dump *Output::get_dump_by_id(const std::string &id)
+{
+  if (id.empty()) return nullptr;
+  for (int idump = 0; idump < ndump; idump++) if (id == dump[idump]->id) return dump[idump];
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------

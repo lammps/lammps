@@ -151,14 +151,6 @@ void PairPACE::compute(int eflag, int vflag)
   if (inum != nlocal) error->all(FLERR, "inum: {} nlocal: {} are different", inum, nlocal);
 #endif
 
-  // Aidan Thompson told RD (26 July 2019) that practically always holds:
-  // inum = nlocal
-  // i = ilist(ii) < inum
-  // j = jlist(jj) < nall
-  // neighborlist contains neighbor atoms plus skin atoms,
-  //       skin atoms can be removed by setting skin to zero but here
-  //       they are disregarded anyway
-
   //determine the maximum number of neighbours
   int max_jnum = 0;
   int nei = 0;

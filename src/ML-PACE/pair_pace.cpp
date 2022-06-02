@@ -146,11 +146,6 @@ void PairPACE::compute(int eflag, int vflag)
   // the pointer to the list of neighbors of "i"
   firstneigh = list->firstneigh;
 
-#if 0
-  // when using a hybrid pair style inum != nlocal
-  if (inum != nlocal) error->all(FLERR, "inum: {} nlocal: {} are different", inum, nlocal);
-#endif
-
   //determine the maximum number of neighbours
   int max_jnum = 0;
   int nei = 0;

@@ -64,6 +64,7 @@ FixDPPimd::FixDPPimd(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   random(nullptr), c_pe(nullptr), c_press(nullptr), c_temp(nullptr)
 {
+  time_integrate = 1;
   method        = NMPIMD;
   fmmode        = physical;
   integrator    = obabo;

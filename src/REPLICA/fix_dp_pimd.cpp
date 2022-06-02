@@ -1111,8 +1111,9 @@ void FixDPPimd::update_x_unwrap()
   // {
   //   n_unwrap = nlocal + 200;
     // for(int i=0; i<n_unwrap; i++) delete [] x_unwrap[i];
-    x_unwrap = nullptr;
-    delete [] x_unwrap;
+    // x_unwrap = nullptr;
+    if(x_unwrap) delete x_unwrap;
+    x_unwrap = new double[nlocal*3];
     // for(int i=0; i<n_unwrap; i++) x_unwrap[i] = nullptr;
 
     // x_unwrap = (double**) memory->srealloc(x_unwrap, sizeof(double*)*n_unwrap, "FixDPPimd::x_unwrap");
@@ -1122,7 +1123,7 @@ void FixDPPimd::update_x_unwrap()
     // {
       // printf("x_unw[%d]\n", i);
       // x_unwrap[i] = new double[3];
-      x_unwrap = (double*) memory->srealloc(x_unwrap, sizeof(double)*(nlocal+200)*3, "FixDPPimd::x_unwrap");
+      // x_unwrap = (double*) memory->srealloc(x_unwrap, sizeof(double)*(nlocal+200)*3, "FixDPPimd::x_unwrap");
     // }
   // }
   // printf("trying to copy\n");
@@ -2256,7 +2257,9 @@ void FixDPPimd::compute_xc()
   MPI_Barrier(universe->uworld);
   // timer->stamp(Timer::XC_COMM);
   int nlocal = atom->nlocal;
-  xc = (double*) memory->srealloc(xc, sizeof(double) * nlocal * 3, "FixDPPimd:xc");
+  // xc = (double*) memory->srealloc(xc, sizeof(double) * nlocal * 3, "FixDPPimd:xc");
+  if(xc) delete xc;
+  xc = new double[nlocal*3];
   // printf("start of compute_xc, x, xu, x-xu\n");
   // for(int i=0; i<nlocal; i++){
   //   printf("i=%d\n",i);

@@ -1,5 +1,5 @@
-#ifndef LEPTON_COMPILED_EXPRESSION_H_
-#define LEPTON_COMPILED_EXPRESSION_H_
+#ifndef LEPTON_VECTOR_EXPRESSION_H_
+#define LEPTON_VECTOR_EXPRESSION_H_
 
 /* -------------------------------------------------------------------------- *
  *                                   Lepton                                   *
@@ -34,6 +34,7 @@
 
 #include "ExpressionTreeNode.h"
 #include "windowsIncludes.h"
+#include <array>
 #include <map>
 #include <set>
 #include <string>
@@ -53,72 +54,92 @@ class Operation;
 class ParsedExpression;
 
 /**
- * A CompiledExpression is a highly optimized representation of an expression for cases when you want to evaluate
- * it many times as quickly as possible.  You should treat it as an opaque object; none of the internal representation
- * is visible.
+ * A CompiledVectorExpression is a highly optimized representation of an expression for cases when you want to evaluate
+ * it many times as quickly as possible.  It is similar to CompiledExpression, with the extra feature that it uses the CPU's
+ * vector unit (AVX on x86, NEON on ARM) to evaluate the expression for multiple sets of arguments at once.  It also differs
+ * from CompiledExpression and ParsedExpression in using single precision rather than double precision to evaluate the expression.
+ * You should treat it as an opaque object; none of the internal representation is visible.
  *
- * A CompiledExpression is created by calling createCompiledExpression() on a ParsedExpression.
+ * A CompiledVectorExpression is created by calling createCompiledVectorExpression() on a ParsedExpression.  When you create
+ * it, you must specify the width of the vectors on which to compute the expression.  The allowed widths depend on the type of
+ * CPU it is running on.  4 is always allowed, and 8 is allowed on x86 processors with AVX.  Call getAllowedWidths() to query
+ * the allowed values.
  *
- * WARNING: CompiledExpression is NOT thread safe.  You should never access a CompiledExpression from two threads at
+ * WARNING: CompiledVectorExpression is NOT thread safe.  You should never access a CompiledVectorExpression from two threads at
  * the same time.
  */
 
-class LEPTON_EXPORT CompiledExpression {
+class LEPTON_EXPORT CompiledVectorExpression {
 public:
-    CompiledExpression();
-    CompiledExpression(const CompiledExpression& expression);
-    ~CompiledExpression();
-    CompiledExpression& operator=(const CompiledExpression& expression);
+    CompiledVectorExpression();
+    CompiledVectorExpression(const CompiledVectorExpression& expression);
+    ~CompiledVectorExpression();
+    CompiledVectorExpression& operator=(const CompiledVectorExpression& expression);
+    /**
+     * Get the width of the vectors on which the expression is computed.
+     */
+    int getWidth() const;
     /**
      * Get the names of all variables used by this expression.
      */
     const std::set<std::string>& getVariables() const;
     /**
-     * Get a reference to the memory location where the value of a particular variable is stored.  This can be used
+     * Get a pointer to the memory location where the value of a particular variable is stored.  This can be used
      * to set the value of the variable before calling evaluate().
+     *
+     * @param name    the name of the variable to query
+     * @return a pointer to N floating point values, where N is the vector width
      */
-    double& getVariableReference(const std::string& name);
+    float* getVariablePointer(const std::string& name);
     /**
      * You can optionally specify the memory locations from which the values of variables should be read.
      * This is useful, for example, when several expressions all use the same variable.  You can then set
-     * the value of that variable in one place, and it will be seen by all of them.
+     * the value of that variable in one place, and it will be seen by all of them.  The location should
+     * be a pointer to N floating point values, where N is the vector width.
      */
-    void setVariableLocations(std::map<std::string, double*>& variableLocations);
+    void setVariableLocations(std::map<std::string, float*>& variableLocations);
     /**
      * Evaluate the expression.  The values of all variables should have been set before calling this.
+     *
+     * @return a pointer to N floating point values, where N is the vector width
      */
-    double evaluate() const;
+    const float* evaluate() const;
+    /**
+     * Get the list of vector widths that are supported on the current processor.
+     */
+    static const std::vector<int>& getAllowedWidths();
 private:
     friend class ParsedExpression;
-    CompiledExpression(const ParsedExpression& expression);
-    void compileExpression(const ExpressionTreeNode& node, std::vector<std::pair<ExpressionTreeNode, int> >& temps);
+    CompiledVectorExpression(const ParsedExpression& expression, int width);
+    void compileExpression(const ExpressionTreeNode& node, std::vector<std::pair<ExpressionTreeNode, int> >& temps, int& workspaceSize);
     int findTempIndex(const ExpressionTreeNode& node, std::vector<std::pair<ExpressionTreeNode, int> >& temps);
-    std::map<std::string, double*> variablePointers;
-    std::vector<std::pair<double*, double*> > variablesToCopy;
+    int width;
+    std::map<std::string, float*> variablePointers;
+    std::vector<std::pair<float*, float*> > variablesToCopy;
     std::vector<std::vector<int> > arguments;
     std::vector<int> target;
     std::vector<Operation*> operation;
     std::map<std::string, int> variableIndices;
     std::set<std::string> variableNames;
-    mutable std::vector<double> workspace;
+    mutable std::vector<float> workspace;
     mutable std::vector<double> argValues;
     std::map<std::string, double> dummyVariables;
-    double (*jitCode)();
+    void (*jitCode)();
 #ifdef LEPTON_USE_JIT
     void findPowerGroups(std::vector<std::vector<int> >& groups, std::vector<std::vector<int> >& groupPowers, std::vector<int>& stepGroup);
     void generateJitCode();
 #if defined(__ARM__) || defined(__ARM64__)
-    void generateSingleArgCall(asmjit::a64::Compiler& c, asmjit::arm::Vec& dest, asmjit::arm::Vec& arg, double (*function)(double));
-    void generateTwoArgCall(asmjit::a64::Compiler& c, asmjit::arm::Vec& dest, asmjit::arm::Vec& arg1, asmjit::arm::Vec& arg2, double (*function)(double, double));
+    void generateSingleArgCall(asmjit::a64::Compiler& c, asmjit::arm::Vec& dest, asmjit::arm::Vec& arg, float (*function)(float));
+    void generateTwoArgCall(asmjit::a64::Compiler& c, asmjit::arm::Vec& dest, asmjit::arm::Vec& arg1, asmjit::arm::Vec& arg2, float (*function)(float, float));
 #else
-    void generateSingleArgCall(asmjit::x86::Compiler& c, asmjit::x86::Xmm& dest, asmjit::x86::Xmm& arg, double (*function)(double));
-    void generateTwoArgCall(asmjit::x86::Compiler& c, asmjit::x86::Xmm& dest, asmjit::x86::Xmm& arg1, asmjit::x86::Xmm& arg2, double (*function)(double, double));
+    void generateSingleArgCall(asmjit::x86::Compiler& c, asmjit::x86::Ymm& dest, asmjit::x86::Ymm& arg, float (*function)(float));
+    void generateTwoArgCall(asmjit::x86::Compiler& c, asmjit::x86::Ymm& dest, asmjit::x86::Ymm& arg1, asmjit::x86::Ymm& arg2, float (*function)(float, float));
 #endif
-    std::vector<double> constants;
+    std::vector<float> constants;
     asmjit::JitRuntime runtime;
 #endif
 };
 
 } // namespace Lepton
 
-#endif /*LEPTON_COMPILED_EXPRESSION_H_*/
+#endif /*LEPTON_VECTOR_EXPRESSION_H_*/

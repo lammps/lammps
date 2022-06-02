@@ -29,24 +29,30 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.                                     *
  * -------------------------------------------------------------------------- */
 
-#include "lepton/CompiledExpression.h"
+#include "lepton/CompiledVectorExpression.h"
 #include "lepton/Operation.h"
 #include "lepton/ParsedExpression.h"
+#include <algorithm>
 #include <utility>
 
 using namespace Lepton;
 using namespace std;
 #ifdef LEPTON_USE_JIT
-    using namespace asmjit;
+using namespace asmjit;
 #endif
 
-CompiledExpression::CompiledExpression() : jitCode(NULL) {
+CompiledVectorExpression::CompiledVectorExpression() : jitCode(NULL) {
 }
 
-CompiledExpression::CompiledExpression(const ParsedExpression& expression) : jitCode(NULL) {
+CompiledVectorExpression::CompiledVectorExpression(const ParsedExpression& expression, int width) : jitCode(NULL), width(width) {
+    const vector<int> allowedWidths = getAllowedWidths();
+    if (find(allowedWidths.begin(), allowedWidths.end(), width) == allowedWidths.end())
+        throw Exception("Unsupported width for vector expression: "+to_string(width));
     ParsedExpression expr = expression.optimize(); // Just in case it wasn't already optimized.
     vector<pair<ExpressionTreeNode, int> > temps;
-    compileExpression(expr.getRootNode(), temps);
+    int workspaceSize = 0;
+    compileExpression(expr.getRootNode(), temps, workspaceSize);
+    workspace.resize(workspaceSize*width);
     int maxArguments = 1;
     for (int i = 0; i < (int) operation.size(); i++)
         if (operation[i]->getNumArguments() > maxArguments)
@@ -57,18 +63,19 @@ CompiledExpression::CompiledExpression(const ParsedExpression& expression) : jit
 #endif
 }
 
-CompiledExpression::~CompiledExpression() {
+CompiledVectorExpression::~CompiledVectorExpression() {
     for (int i = 0; i < (int) operation.size(); i++)
         if (operation[i] != NULL)
             delete operation[i];
 }
 
-CompiledExpression::CompiledExpression(const CompiledExpression& expression) : jitCode(NULL) {
+CompiledVectorExpression::CompiledVectorExpression(const CompiledVectorExpression& expression) : jitCode(NULL) {
     *this = expression;
 }
 
-CompiledExpression& CompiledExpression::operator=(const CompiledExpression& expression) {
+CompiledVectorExpression& CompiledVectorExpression::operator=(const CompiledVectorExpression& expression) {
     arguments = expression.arguments;
+    width = expression.width;
     target = expression.target;
     variableIndices = expression.variableIndices;
     variableNames = expression.variableNames;
@@ -81,7 +88,20 @@ CompiledExpression& CompiledExpression::operator=(const CompiledExpression& expr
     return *this;
 }
 
-void CompiledExpression::compileExpression(const ExpressionTreeNode& node, vector<pair<ExpressionTreeNode, int> >& temps) {
+const vector<int>& CompiledVectorExpression::getAllowedWidths() {
+    static vector<int> widths;
+    if (widths.size() == 0) {
+        widths.push_back(4);
+#ifdef LEPTON_USE_JIT
+        const CpuInfo& cpu = CpuInfo::host();
+        if (cpu.hasFeature(CpuFeatures::X86::kAVX))
+            widths.push_back(8);
+#endif
+    }
+    return widths;
+}
+
+void CompiledVectorExpression::compileExpression(const ExpressionTreeNode& node, vector<pair<ExpressionTreeNode, int> >& temps, int& workspaceSize) {
     if (findTempIndex(node, temps) != -1)
         return; // We have already processed a node identical to this one.
 
@@ -89,20 +109,20 @@ void CompiledExpression::compileExpression(const ExpressionTreeNode& node, vecto
 
     vector<int> args;
     for (int i = 0; i < node.getChildren().size(); i++) {
-        compileExpression(node.getChildren()[i], temps);
+        compileExpression(node.getChildren()[i], temps, workspaceSize);
         args.push_back(findTempIndex(node.getChildren()[i], temps));
     }
 
     // Process this node.
 
     if (node.getOperation().getId() == Operation::VARIABLE) {
-        variableIndices[node.getOperation().getName()] = (int) workspace.size();
+        variableIndices[node.getOperation().getName()] = workspaceSize;
         variableNames.insert(node.getOperation().getName());
     }
     else {
         int stepIndex = (int) arguments.size();
         arguments.push_back(vector<int>());
-        target.push_back((int) workspace.size());
+        target.push_back(workspaceSize);
         operation.push_back(node.getOperation().clone());
         if (args.size() == 0)
             arguments[stepIndex].push_back(0); // The value won't actually be used.  We just need something there.
@@ -111,7 +131,7 @@ void CompiledExpression::compileExpression(const ExpressionTreeNode& node, vecto
 
             bool sequential = true;
             for (int i = 1; i < args.size(); i++)
-                if (args[i] != args[i-1]+1)
+                if (args[i] != args[i - 1] + 1)
                     sequential = false;
             if (sequential)
                 arguments[stepIndex].push_back(args[0]);
@@ -119,32 +139,36 @@ void CompiledExpression::compileExpression(const ExpressionTreeNode& node, vecto
                 arguments[stepIndex] = args;
         }
     }
-    temps.push_back(make_pair(node, (int) workspace.size()));
-    workspace.push_back(0.0);
+    temps.push_back(make_pair(node, workspaceSize));
+    workspaceSize++;
 }
 
-int CompiledExpression::findTempIndex(const ExpressionTreeNode& node, vector<pair<ExpressionTreeNode, int> >& temps) {
+int CompiledVectorExpression::findTempIndex(const ExpressionTreeNode& node, vector<pair<ExpressionTreeNode, int> >& temps) {
     for (int i = 0; i < (int) temps.size(); i++)
         if (temps[i].first == node)
             return i;
     return -1;
 }
 
-const set<string>& CompiledExpression::getVariables() const {
+int CompiledVectorExpression::getWidth() const {
+    return width;
+}
+
+const set<string>& CompiledVectorExpression::getVariables() const {
     return variableNames;
 }
 
-double& CompiledExpression::getVariableReference(const string& name) {
-    map<string, double*>::iterator pointer = variablePointers.find(name);
+float* CompiledVectorExpression::getVariablePointer(const string& name) {
+    map<string, float*>::iterator pointer = variablePointers.find(name);
     if (pointer != variablePointers.end())
-        return *pointer->second;
+        return pointer->second;
     map<string, int>::iterator index = variableIndices.find(name);
     if (index == variableIndices.end())
-        throw Exception("getVariableReference: Unknown variable '"+name+"'");
-    return workspace[index->second];
+        throw Exception("getVariableReference: Unknown variable '" + name + "'");
+    return &workspace[index->second*width];
 }
 
-void CompiledExpression::setVariableLocations(map<string, double*>& variableLocations) {
+void CompiledVectorExpression::setVariableLocations(map<string, float*>& variableLocations) {
     variablePointers = variableLocations;
 #ifdef LEPTON_USE_JIT
     // Rebuild the JIT code.
@@ -156,40 +180,50 @@ void CompiledExpression::setVariableLocations(map<string, double*>& variableLoca
 
     variablesToCopy.clear();
     for (map<string, int>::const_iterator iter = variableIndices.begin(); iter != variableIndices.end(); ++iter) {
-        map<string, double*>::iterator pointer = variablePointers.find(iter->first);
+        map<string, float*>::iterator pointer = variablePointers.find(iter->first);
         if (pointer != variablePointers.end())
-            variablesToCopy.push_back(make_pair(&workspace[iter->second], pointer->second));
+            variablesToCopy.push_back(make_pair(&workspace[iter->second*width], pointer->second));
     }
 }
 
-double CompiledExpression::evaluate() const {
-    if (jitCode)
-        return jitCode();
+const float* CompiledVectorExpression::evaluate() const {
+    if (jitCode) {
+        jitCode();
+        return &workspace[workspace.size()-width];
+    }
     for (int i = 0; i < variablesToCopy.size(); i++)
-        *variablesToCopy[i].first = *variablesToCopy[i].second;
+        for (int j = 0; j < width; j++)
+            variablesToCopy[i].first[j] = variablesToCopy[i].second[j];
 
     // Loop over the operations and evaluate each one.
 
     for (int step = 0; step < operation.size(); step++) {
         const vector<int>& args = arguments[step];
-        if (args.size() == 1)
-            workspace[target[step]] = operation[step]->evaluate(&workspace[args[0]], dummyVariables);
-        else {
-            for (int i = 0; i < args.size(); i++)
-                argValues[i] = workspace[args[i]];
-            workspace[target[step]] = operation[step]->evaluate(&argValues[0], dummyVariables);
+        if (args.size() == 1) {
+            for (int j = 0; j < width; j++) {
+                for (int i = 0; i < operation[step]->getNumArguments(); i++)
+                    argValues[i] = workspace[(args[0]+i)*width+j];
+                workspace[target[step]*width+j] = operation[step]->evaluate(&argValues[0], dummyVariables);
+            }
+        } else {
+            for (int j = 0; j < width; j++) {
+                for (int i = 0; i < args.size(); i++)
+                    argValues[i] = workspace[args[i]*width+j];
+                workspace[target[step]*width+j] = operation[step]->evaluate(&argValues[0], dummyVariables);
+            }
         }
     }
-    return workspace[workspace.size()-1];
+    return &workspace[workspace.size()-width];
 }
 
 #ifdef LEPTON_USE_JIT
+
 static double evaluateOperation(Operation* op, double* args) {
     static map<string, double> dummyVariables;
     return op->evaluate(args, dummyVariables);
 }
 
-void CompiledExpression::findPowerGroups(vector<vector<int> >& groups, vector<vector<int> >& groupPowers, vector<int>& stepGroup) {
+void CompiledVectorExpression::findPowerGroups(vector<vector<int> >& groups, vector<vector<int> >& groupPowers, vector<int>& stepGroup) {
     // Identify every step that raises an argument to an integer power.
 
     vector<int> stepPower(operation.size(), 0);
@@ -202,7 +236,7 @@ void CompiledExpression::findPowerGroups(vector<vector<int> >& groups, vector<ve
         else if (op.getId() == Operation::CUBE)
             power = 3;
         else if (op.getId() == Operation::POWER_CONSTANT) {
-            double realPower = dynamic_cast<const Operation::PowerConstant*>(&op)->getValue();
+            double realPower = dynamic_cast<const Operation::PowerConstant*> (&op)->getValue();
             if (realPower == (int) realPower)
                 power = (int) realPower;
         }
@@ -220,7 +254,7 @@ void CompiledExpression::findPowerGroups(vector<vector<int> >& groups, vector<ve
             continue;
         vector<int> group, power;
         for (int j = i; j < operation.size(); j++) {
-            if (stepArg[i] == stepArg[j] && stepPower[i]*stepPower[j] > 0) {
+            if (stepArg[i] == stepArg[j] && stepPower[i] * stepPower[j] > 0) {
                 stepGroup[j] = groups.size();
                 group.push_back(j);
                 power.push_back(stepPower[j]);
@@ -232,14 +266,15 @@ void CompiledExpression::findPowerGroups(vector<vector<int> >& groups, vector<ve
 }
 
 #if defined(__ARM__) || defined(__ARM64__)
-void CompiledExpression::generateJitCode() {
+
+void CompiledVectorExpression::generateJitCode() {
     CodeHolder code;
     code.init(runtime.environment());
     a64::Compiler c(&code);
-    c.addFunc(FuncSignatureT<double>());
-    vector<arm::Vec> workspaceVar(workspace.size());
+    c.addFunc(FuncSignatureT<void>());
+    vector<arm::Vec> workspaceVar(workspace.size()/width);
     for (int i = 0; i < (int) workspaceVar.size(); i++)
-        workspaceVar[i] = c.newVecD();
+        workspaceVar[i] = c.newVecQ();
     arm::Gp argsPointer = c.newIntPtr();
     c.mov(argsPointer, imm(&argValues[0]));
     vector<vector<int> > groups, groupPowers;
@@ -248,11 +283,11 @@ void CompiledExpression::generateJitCode() {
 
     // Load the arguments into variables.
 
+    arm::Gp variablePointer = c.newIntPtr();
     for (set<string>::const_iterator iter = variableNames.begin(); iter != variableNames.end(); ++iter) {
         map<string, int>::iterator index = variableIndices.find(*iter);
-        arm::Gp variablePointer = c.newIntPtr();
-        c.mov(variablePointer, imm(&getVariableReference(index->first)));
-        c.ldr(workspaceVar[index->second], arm::ptr(variablePointer, 0));
+        c.mov(variablePointer, imm(getVariablePointer(index->first)));
+        c.ldr(workspaceVar[index->second].s4(), arm::ptr(variablePointer, 0));
     }
 
     // Make a list of all constants that will be needed for evaluation.
@@ -262,13 +297,13 @@ void CompiledExpression::generateJitCode() {
         // Find the constant value (if any) used by this operation.
 
         Operation& op = *operation[step];
-        double value;
+        float value;
         if (op.getId() == Operation::CONSTANT)
-            value = dynamic_cast<Operation::Constant&>(op).getValue();
+            value = dynamic_cast<Operation::Constant&> (op).getValue();
         else if (op.getId() == Operation::ADD_CONSTANT)
-            value = dynamic_cast<Operation::AddConstant&>(op).getValue();
+            value = dynamic_cast<Operation::AddConstant&> (op).getValue();
         else if (op.getId() == Operation::MULTIPLY_CONSTANT)
-            value = dynamic_cast<Operation::MultiplyConstant&>(op).getValue();
+            value = dynamic_cast<Operation::MultiplyConstant&> (op).getValue();
         else if (op.getId() == Operation::RECIPROCAL)
             value = 1.0;
         else if (op.getId() == Operation::STEP)
@@ -277,11 +312,10 @@ void CompiledExpression::generateJitCode() {
             value = 1.0;
         else if (op.getId() == Operation::POWER_CONSTANT) {
             if (stepGroup[step] == -1)
-                value = dynamic_cast<Operation::PowerConstant&>(op).getValue();
+                value = dynamic_cast<Operation::PowerConstant&> (op).getValue();
             else
                 value = 1.0;
-        }
-        else
+        } else
             continue;
 
         // See if we already have a variable for this constant.
@@ -302,16 +336,19 @@ void CompiledExpression::generateJitCode() {
     vector<arm::Vec> constantVar(constants.size());
     if (constants.size() > 0) {
         arm::Gp constantsPointer = c.newIntPtr();
-        c.mov(constantsPointer, imm(&constants[0]));
         for (int i = 0; i < (int) constants.size(); i++) {
-            constantVar[i] = c.newVecD();
-            c.ldr(constantVar[i], arm::ptr(constantsPointer, 8*i));
+            c.mov(constantsPointer, imm(&constants[i]));
+            constantVar[i] = c.newVecQ();
+            c.ld1r(constantVar[i].s4(), arm::ptr(constantsPointer));
         }
     }
 
     // Evaluate the operations.
 
     vector<bool> hasComputedPower(operation.size(), false);
+    arm::Vec argReg = c.newVecS();
+    arm::Vec doubleArgReg = c.newVecD();
+    arm::Vec doubleResultReg = c.newVecD();
     for (int step = 0; step < (int) operation.size(); step++) {
         if (hasComputedPower[step])
             continue;
@@ -322,11 +359,11 @@ void CompiledExpression::generateJitCode() {
         if (stepGroup[step] != -1) {
             vector<int>& group = groups[stepGroup[step]];
             vector<int>& powers = groupPowers[stepGroup[step]];
-            arm::Vec multiplier = c.newVecD();
+            arm::Vec multiplier = c.newVecQ();
             if (powers[0] > 0)
-                c.fmov(multiplier, workspaceVar[arguments[step][0]]);
+                c.mov(multiplier.s4(), workspaceVar[arguments[step][0]].s4());
             else {
-                c.fdiv(multiplier, constantVar[operationConstantIndex[step]], workspaceVar[arguments[step][0]]);
+                c.fdiv(multiplier.s4(), constantVar[operationConstantIndex[step]].s4(), workspaceVar[arguments[step][0]].s4());
                 for (int i = 0; i < powers.size(); i++)
                     powers[i] = -powers[i];
             }
@@ -335,11 +372,11 @@ void CompiledExpression::generateJitCode() {
             while (!done) {
                 done = true;
                 for (int i = 0; i < group.size(); i++) {
-                    if (powers[i]%2 == 1) {
+                    if (powers[i] % 2 == 1) {
                         if (!hasAssigned[i])
-                            c.fmov(workspaceVar[target[group[i]]], multiplier);
+                            c.mov(workspaceVar[target[group[i]]].s4(), multiplier.s4());
                         else
-                            c.fmul(workspaceVar[target[group[i]]], workspaceVar[target[group[i]]], multiplier);
+                            c.fmul(workspaceVar[target[group[i]]].s4(), workspaceVar[target[group[i]]].s4(), multiplier.s4());
                         hasAssigned[i] = true;
                     }
                     powers[i] >>= 1;
@@ -347,7 +384,7 @@ void CompiledExpression::generateJitCode() {
                         done = false;
                 }
                 if (!done)
-                    c.fmul(multiplier, multiplier, multiplier);
+                    c.fmul(multiplier.s4(), multiplier.s4(), multiplier.s4());
             }
             for (int step : group)
                 hasComputedPower[step] = true;
@@ -362,169 +399,192 @@ void CompiledExpression::generateJitCode() {
             // One or more sequential arguments.  Fill out the list.
 
             for (int i = 1; i < op.getNumArguments(); i++)
-                args.push_back(args[0]+i);
+                args.push_back(args[0] + i);
         }
 
         // Generate instructions to execute this operation.
 
         switch (op.getId()) {
             case Operation::CONSTANT:
-                c.fmov(workspaceVar[target[step]], constantVar[operationConstantIndex[step]]);
+                c.mov(workspaceVar[target[step]].s4(), constantVar[operationConstantIndex[step]].s4());
                 break;
             case Operation::ADD:
-                c.fadd(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
+                c.fadd(workspaceVar[target[step]].s4(), workspaceVar[args[0]].s4(), workspaceVar[args[1]].s4());
                 break;
             case Operation::SUBTRACT:
-                c.fsub(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
+                c.fsub(workspaceVar[target[step]].s4(), workspaceVar[args[0]].s4(), workspaceVar[args[1]].s4());
                 break;
             case Operation::MULTIPLY:
-                c.fmul(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
+                c.fmul(workspaceVar[target[step]].s4(), workspaceVar[args[0]].s4(), workspaceVar[args[1]].s4());
                 break;
             case Operation::DIVIDE:
-                c.fdiv(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
+                c.fdiv(workspaceVar[target[step]].s4(), workspaceVar[args[0]].s4(), workspaceVar[args[1]].s4());
                 break;
             case Operation::POWER:
-                generateTwoArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]], pow);
+                generateTwoArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]], powf);
                 break;
             case Operation::NEGATE:
-                c.fneg(workspaceVar[target[step]], workspaceVar[args[0]]);
+                c.fneg(workspaceVar[target[step]].s4(), workspaceVar[args[0]].s4());
                 break;
             case Operation::SQRT:
-                c.fsqrt(workspaceVar[target[step]], workspaceVar[args[0]]);
+                c.fsqrt(workspaceVar[target[step]].s4(), workspaceVar[args[0]].s4());
                 break;
             case Operation::EXP:
-                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], exp);
+                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], expf);
                 break;
             case Operation::LOG:
-                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], log);
+                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], logf);
                 break;
             case Operation::SIN:
-                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], sin);
+                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], sinf);
                 break;
             case Operation::COS:
-                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], cos);
+                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], cosf);
                 break;
             case Operation::TAN:
-                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], tan);
+                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], tanf);
                 break;
             case Operation::ASIN:
-                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], asin);
+                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], asinf);
                 break;
             case Operation::ACOS:
-                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], acos);
+                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], acosf);
                 break;
             case Operation::ATAN:
-                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], atan);
+                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], atanf);
                 break;
             case Operation::ATAN2:
-                generateTwoArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]], atan2);
+                generateTwoArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]], atan2f);
                 break;
             case Operation::SINH:
-                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], sinh);
+                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], sinhf);
                 break;
             case Operation::COSH:
-                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], cosh);
+                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], coshf);
                 break;
             case Operation::TANH:
-                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], tanh);
+                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], tanhf);
                 break;
             case Operation::STEP:
-                c.cmge(workspaceVar[target[step]], workspaceVar[args[0]], imm(0));
+                c.cmge(workspaceVar[target[step]].s4(), workspaceVar[args[0]].s4(), imm(0));
                 c.and_(workspaceVar[target[step]], workspaceVar[target[step]], constantVar[operationConstantIndex[step]]);
                 break;
             case Operation::DELTA:
-                c.cmeq(workspaceVar[target[step]], workspaceVar[args[0]], imm(0));
+                c.cmeq(workspaceVar[target[step]].s4(), workspaceVar[args[0]].s4(), imm(0));
                 c.and_(workspaceVar[target[step]], workspaceVar[target[step]], constantVar[operationConstantIndex[step]]);
                 break;
             case Operation::SQUARE:
-                c.fmul(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[0]]);
+                c.fmul(workspaceVar[target[step]].s4(), workspaceVar[args[0]].s4(), workspaceVar[args[0]].s4());
                 break;
             case Operation::CUBE:
-                c.fmul(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[0]]);
-                c.fmul(workspaceVar[target[step]], workspaceVar[target[step]], workspaceVar[args[0]]);
+                c.fmul(workspaceVar[target[step]].s4(), workspaceVar[args[0]].s4(), workspaceVar[args[0]].s4());
+                c.fmul(workspaceVar[target[step]].s4(), workspaceVar[target[step]].s4(), workspaceVar[args[0]].s4());
                 break;
             case Operation::RECIPROCAL:
-                c.fdiv(workspaceVar[target[step]], constantVar[operationConstantIndex[step]], workspaceVar[args[0]]);
+                c.fdiv(workspaceVar[target[step]].s4(), constantVar[operationConstantIndex[step]].s4(), workspaceVar[args[0]].s4());
                 break;
             case Operation::ADD_CONSTANT:
-                c.fadd(workspaceVar[target[step]], workspaceVar[args[0]], constantVar[operationConstantIndex[step]]);
+                c.fadd(workspaceVar[target[step]].s4(), workspaceVar[args[0]].s4(), constantVar[operationConstantIndex[step]].s4());
                 break;
             case Operation::MULTIPLY_CONSTANT:
-                c.fmul(workspaceVar[target[step]], workspaceVar[args[0]], constantVar[operationConstantIndex[step]]);
+                c.fmul(workspaceVar[target[step]].s4(), workspaceVar[args[0]].s4(), constantVar[operationConstantIndex[step]].s4());
                 break;
             case Operation::POWER_CONSTANT:
-                generateTwoArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], constantVar[operationConstantIndex[step]], pow);
+                generateTwoArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], constantVar[operationConstantIndex[step]], powf);
                 break;
             case Operation::MIN:
-                c.fmin(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
+                c.fmin(workspaceVar[target[step]].s4(), workspaceVar[args[0]].s4(), workspaceVar[args[1]].s4());
                 break;
             case Operation::MAX:
-                c.fmax(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
+                c.fmax(workspaceVar[target[step]].s4(), workspaceVar[args[0]].s4(), workspaceVar[args[1]].s4());
                 break;
             case Operation::ABS:
-                c.fabs(workspaceVar[target[step]], workspaceVar[args[0]]);
+                c.fabs(workspaceVar[target[step]].s4(), workspaceVar[args[0]].s4());
                 break;
             case Operation::FLOOR:
-                c.frintm(workspaceVar[target[step]], workspaceVar[args[0]]);
+                c.frintm(workspaceVar[target[step]].s4(), workspaceVar[args[0]].s4());
                 break;
             case Operation::CEIL:
-                c.frintp(workspaceVar[target[step]], workspaceVar[args[0]]);
+                c.frintp(workspaceVar[target[step]].s4(), workspaceVar[args[0]].s4());
                 break;
             case Operation::SELECT:
-                c.fcmeq(workspaceVar[target[step]], workspaceVar[args[0]], imm(0));
+                c.fcmeq(workspaceVar[target[step]].s4(), workspaceVar[args[0]].s4(), imm(0));
                 c.bsl(workspaceVar[target[step]], workspaceVar[args[2]], workspaceVar[args[1]]);
                 break;
             default:
                 // Just invoke evaluateOperation().
-
-                for (int i = 0; i < (int) args.size(); i++)
-                    c.str(workspaceVar[args[i]], arm::ptr(argsPointer, 8*i));
-                arm::Gp fn = c.newIntPtr();
-                c.mov(fn, imm((void*) evaluateOperation));
-                InvokeNode* invoke;
-                c.invoke(&invoke, fn, FuncSignatureT<double, Operation*, double*>());
-                invoke->setArg(0, imm(&op));
-                invoke->setArg(1, imm(&argValues[0]));
-                invoke->setRet(0, workspaceVar[target[step]]);
+                for (int element = 0; element < width; element++) {
+                    for (int i = 0; i < (int) args.size(); i++) {
+                        c.ins(argReg.s(0), workspaceVar[args[i]].s(element));
+                        c.fcvt(doubleArgReg, argReg);
+                        c.str(doubleArgReg, arm::ptr(argsPointer, 8*i));
+                    }
+                    arm::Gp fn = c.newIntPtr();
+                    c.mov(fn, imm((void*) evaluateOperation));
+                    InvokeNode* invoke;
+                    c.invoke(&invoke, fn, FuncSignatureT<double, Operation*, double*>());
+                    invoke->setArg(0, imm(&op));
+                    invoke->setArg(1, imm(&argValues[0]));
+                    invoke->setRet(0, doubleResultReg);
+                    c.fcvt(argReg, doubleResultReg);
+                    c.ins(workspaceVar[target[step]].s(element), argReg.s(0));
+                }
         }
     }
-    c.ret(workspaceVar[workspace.size()-1]);
+    arm::Gp resultPointer = c.newIntPtr();
+    c.mov(resultPointer, imm(&workspace[workspace.size()-width]));
+    c.str(workspaceVar.back().s4(), arm::ptr(resultPointer, 0));
     c.endFunc();
     c.finalize();
     runtime.add(&jitCode, &code);
 }
 
-void CompiledExpression::generateSingleArgCall(a64::Compiler& c, arm::Vec& dest, arm::Vec& arg, double (*function)(double)) {
+void CompiledVectorExpression::generateSingleArgCall(a64::Compiler& c, arm::Vec& dest, arm::Vec& arg, float (*function)(float)) {
     arm::Gp fn = c.newIntPtr();
     c.mov(fn, imm((void*) function));
-    InvokeNode* invoke;
-    c.invoke(&invoke, fn, FuncSignatureT<double, double>());
-    invoke->setArg(0, arg);
-    invoke->setRet(0, dest);
+    arm::Vec a = c.newVecS();
+    arm::Vec d = c.newVecS();
+    for (int element = 0; element < width; element++) {
+        c.ins(a.s(0), arg.s(element));
+        InvokeNode* invoke;
+        c.invoke(&invoke, fn, FuncSignatureT<float, float>());
+        invoke->setArg(0, a);
+        invoke->setRet(0, d);
+        c.ins(dest.s(element), d.s(0));
+    }
 }
 
-void CompiledExpression::generateTwoArgCall(a64::Compiler& c, arm::Vec& dest, arm::Vec& arg1, arm::Vec& arg2, double (*function)(double, double)) {
+void CompiledVectorExpression::generateTwoArgCall(a64::Compiler& c, arm::Vec& dest, arm::Vec& arg1, arm::Vec& arg2, float (*function)(float, float)) {
     arm::Gp fn = c.newIntPtr();
     c.mov(fn, imm((void*) function));
-    InvokeNode* invoke;
-    c.invoke(&invoke, fn, FuncSignatureT<double, double, double>());
-    invoke->setArg(0, arg1);
-    invoke->setArg(1, arg2);
-    invoke->setRet(0, dest);
+    arm::Vec a1 = c.newVecS();
+    arm::Vec a2 = c.newVecS();
+    arm::Vec d = c.newVecS();
+    for (int element = 0; element < width; element++) {
+        c.ins(a1.s(0), arg1.s(element));
+        c.ins(a2.s(0), arg2.s(element));
+        InvokeNode* invoke;
+        c.invoke(&invoke, fn, FuncSignatureT<float, float, float>());
+        invoke->setArg(0, a1);
+        invoke->setArg(1, a2);
+        invoke->setRet(0, d);
+        c.ins(dest.s(element), d.s(0));
+    }
 }
 #else
-void CompiledExpression::generateJitCode() {
+
+void CompiledVectorExpression::generateJitCode() {
     const CpuInfo& cpu = CpuInfo::host();
     if (!cpu.hasFeature(CpuFeatures::X86::kAVX))
         return;
     CodeHolder code;
     code.init(runtime.environment());
     x86::Compiler c(&code);
-    FuncNode* funcNode = c.addFunc(FuncSignatureT<double>());
+    FuncNode* funcNode = c.addFunc(FuncSignatureT<void>());
     funcNode->frame().setAvxEnabled();
-    vector<x86::Xmm> workspaceVar(workspace.size());
+    vector<x86::Ymm> workspaceVar(workspace.size()/width);
     for (int i = 0; i < (int) workspaceVar.size(); i++)
-        workspaceVar[i] = c.newXmmSd();
+        workspaceVar[i] = c.newYmmPs();
     x86::Gp argsPointer = c.newIntPtr();
     c.mov(argsPointer, imm(&argValues[0]));
     vector<vector<int> > groups, groupPowers;
@@ -533,11 +593,14 @@ void CompiledExpression::generateJitCode() {
 
     // Load the arguments into variables.
 
-    x86::Gp variablePointer = c.newIntPtr();
     for (set<string>::const_iterator iter = variableNames.begin(); iter != variableNames.end(); ++iter) {
         map<string, int>::iterator index = variableIndices.find(*iter);
-        c.mov(variablePointer, imm(&getVariableReference(index->first)));
-        c.vmovsd(workspaceVar[index->second], x86::ptr(variablePointer, 0, 0));
+        x86::Gp variablePointer = c.newIntPtr();
+        c.mov(variablePointer, imm(getVariablePointer(index->first)));
+        if (width == 4)
+            c.vmovdqu(workspaceVar[index->second].xmm(), x86::ptr(variablePointer, 0, 0));
+        else
+            c.vmovdqu(workspaceVar[index->second], x86::ptr(variablePointer, 0, 0));
     }
 
     // Make a list of all constants that will be needed for evaluation.
@@ -549,11 +612,11 @@ void CompiledExpression::generateJitCode() {
         Operation& op = *operation[step];
         double value;
         if (op.getId() == Operation::CONSTANT)
-            value = dynamic_cast<Operation::Constant&>(op).getValue();
+            value = dynamic_cast<Operation::Constant&> (op).getValue();
         else if (op.getId() == Operation::ADD_CONSTANT)
-            value = dynamic_cast<Operation::AddConstant&>(op).getValue();
+            value = dynamic_cast<Operation::AddConstant&> (op).getValue();
         else if (op.getId() == Operation::MULTIPLY_CONSTANT)
-            value = dynamic_cast<Operation::MultiplyConstant&>(op).getValue();
+            value = dynamic_cast<Operation::MultiplyConstant&> (op).getValue();
         else if (op.getId() == Operation::RECIPROCAL)
             value = 1.0;
         else if (op.getId() == Operation::STEP)
@@ -561,16 +624,15 @@ void CompiledExpression::generateJitCode() {
         else if (op.getId() == Operation::DELTA)
             value = 1.0;
         else if (op.getId() == Operation::ABS) {
-            long long mask = 0x7FFFFFFFFFFFFFFF;
-            value = *reinterpret_cast<double*>(&mask);
+            int mask = 0x7FFFFFFF;
+            value = *reinterpret_cast<float*>(&mask);
         }
         else if (op.getId() == Operation::POWER_CONSTANT) {
             if (stepGroup[step] == -1)
-                value = dynamic_cast<Operation::PowerConstant&>(op).getValue();
+                value = dynamic_cast<Operation::PowerConstant&> (op).getValue();
             else
                 value = 1.0;
-        }
-        else
+        } else
             continue;
 
         // See if we already have a variable for this constant.
@@ -588,19 +650,22 @@ void CompiledExpression::generateJitCode() {
 
     // Load constants into variables.
 
-    vector<x86::Xmm> constantVar(constants.size());
+    vector<x86::Ymm> constantVar(constants.size());
     if (constants.size() > 0) {
         x86::Gp constantsPointer = c.newIntPtr();
         c.mov(constantsPointer, imm(&constants[0]));
         for (int i = 0; i < (int) constants.size(); i++) {
-            constantVar[i] = c.newXmmSd();
-            c.vmovsd(constantVar[i], x86::ptr(constantsPointer, 8*i, 0));
+            constantVar[i] = c.newYmmPs();
+            c.vbroadcastss(constantVar[i], x86::ptr(constantsPointer, 4*i, 0));
         }
     }
 
     // Evaluate the operations.
 
     vector<bool> hasComputedPower(operation.size(), false);
+    x86::Ymm argReg = c.newYmm();
+    x86::Ymm doubleArgReg = c.newYmm();
+    x86::Ymm doubleResultReg = c.newYmm();
     for (int step = 0; step < (int) operation.size(); step++) {
         if (hasComputedPower[step])
             continue;
@@ -611,11 +676,11 @@ void CompiledExpression::generateJitCode() {
         if (stepGroup[step] != -1) {
             vector<int>& group = groups[stepGroup[step]];
             vector<int>& powers = groupPowers[stepGroup[step]];
-            x86::Xmm multiplier = c.newXmmSd();
+            x86::Ymm multiplier = c.newYmmPs();
             if (powers[0] > 0)
-                c.vmovsd(multiplier, workspaceVar[arguments[step][0]], workspaceVar[arguments[step][0]]);
+                c.vmovdqu(multiplier, workspaceVar[arguments[step][0]]);
             else {
-                c.vdivsd(multiplier, constantVar[operationConstantIndex[step]], workspaceVar[arguments[step][0]]);
+                c.vdivps(multiplier, constantVar[operationConstantIndex[step]], workspaceVar[arguments[step][0]]);
                 for (int i = 0; i < powers.size(); i++)
                     powers[i] = -powers[i];
             }
@@ -624,11 +689,11 @@ void CompiledExpression::generateJitCode() {
             while (!done) {
                 done = true;
                 for (int i = 0; i < group.size(); i++) {
-                    if (powers[i]%2 == 1) {
+                    if (powers[i] % 2 == 1) {
                         if (!hasAssigned[i])
-                            c.vmovsd(workspaceVar[target[group[i]]], multiplier, multiplier);
+                            c.vmovdqu(workspaceVar[target[group[i]]], multiplier);
                         else
-                            c.vmulsd(workspaceVar[target[group[i]]], workspaceVar[target[group[i]]], multiplier);
+                            c.vmulps(workspaceVar[target[group[i]]], workspaceVar[target[group[i]]], multiplier);
                         hasAssigned[i] = true;
                     }
                     powers[i] >>= 1;
@@ -636,7 +701,7 @@ void CompiledExpression::generateJitCode() {
                         done = false;
                 }
                 if (!done)
-                    c.vmulsd(multiplier, multiplier, multiplier);
+                    c.vmulps(multiplier, multiplier, multiplier);
             }
             for (int step : group)
                 hasComputedPower[step] = true;
@@ -651,162 +716,218 @@ void CompiledExpression::generateJitCode() {
             // One or more sequential arguments.  Fill out the list.
 
             for (int i = 1; i < op.getNumArguments(); i++)
-                args.push_back(args[0]+i);
+                args.push_back(args[0] + i);
         }
 
         // Generate instructions to execute this operation.
 
         switch (op.getId()) {
             case Operation::CONSTANT:
-                c.vmovsd(workspaceVar[target[step]], constantVar[operationConstantIndex[step]], constantVar[operationConstantIndex[step]]);
+                c.vmovdqu(workspaceVar[target[step]], constantVar[operationConstantIndex[step]]);
                 break;
             case Operation::ADD:
-                c.vaddsd(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
+                c.vaddps(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
                 break;
             case Operation::SUBTRACT:
-                c.vsubsd(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
+                c.vsubps(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
                 break;
             case Operation::MULTIPLY:
-                c.vmulsd(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
+                c.vmulps(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
                 break;
             case Operation::DIVIDE:
-                c.vdivsd(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
+                c.vdivps(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
                 break;
             case Operation::POWER:
-                generateTwoArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]], pow);
+                generateTwoArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]], powf);
                 break;
             case Operation::NEGATE:
                 c.vxorps(workspaceVar[target[step]], workspaceVar[target[step]], workspaceVar[target[step]]);
-                c.vsubsd(workspaceVar[target[step]], workspaceVar[target[step]], workspaceVar[args[0]]);
+                c.vsubps(workspaceVar[target[step]], workspaceVar[target[step]], workspaceVar[args[0]]);
                 break;
             case Operation::SQRT:
-                c.vsqrtsd(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[0]]);
+                c.vsqrtps(workspaceVar[target[step]], workspaceVar[args[0]]);
                 break;
             case Operation::EXP:
-                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], exp);
+                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], expf);
                 break;
             case Operation::LOG:
-                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], log);
+                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], logf);
                 break;
             case Operation::SIN:
-                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], sin);
+                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], sinf);
                 break;
             case Operation::COS:
-                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], cos);
+                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], cosf);
                 break;
             case Operation::TAN:
-                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], tan);
+                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], tanf);
                 break;
             case Operation::ASIN:
-                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], asin);
+                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], asinf);
                 break;
             case Operation::ACOS:
-                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], acos);
+                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], acosf);
                 break;
             case Operation::ATAN:
-                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], atan);
+                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], atanf);
                 break;
             case Operation::ATAN2:
-                generateTwoArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]], atan2);
+                generateTwoArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]], atan2f);
                 break;
             case Operation::SINH:
-                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], sinh);
+                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], sinhf);
                 break;
             case Operation::COSH:
-                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], cosh);
+                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], coshf);
                 break;
             case Operation::TANH:
-                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], tanh);
+                generateSingleArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], tanhf);
                 break;
             case Operation::STEP:
                 c.vxorps(workspaceVar[target[step]], workspaceVar[target[step]], workspaceVar[target[step]]);
-                c.vcmpsd(workspaceVar[target[step]], workspaceVar[target[step]], workspaceVar[args[0]], imm(18)); // Comparison mode is _CMP_LE_OQ = 18
+                c.vcmpps(workspaceVar[target[step]], workspaceVar[target[step]], workspaceVar[args[0]], imm(18)); // Comparison mode is _CMP_LE_OQ = 18
                 c.vandps(workspaceVar[target[step]], workspaceVar[target[step]], constantVar[operationConstantIndex[step]]);
                 break;
             case Operation::DELTA:
                 c.vxorps(workspaceVar[target[step]], workspaceVar[target[step]], workspaceVar[target[step]]);
-                c.vcmpsd(workspaceVar[target[step]], workspaceVar[target[step]], workspaceVar[args[0]], imm(16)); // Comparison mode is _CMP_EQ_OS = 16
+                c.vcmpps(workspaceVar[target[step]], workspaceVar[target[step]], workspaceVar[args[0]], imm(16)); // Comparison mode is _CMP_EQ_OQ = 0
                 c.vandps(workspaceVar[target[step]], workspaceVar[target[step]], constantVar[operationConstantIndex[step]]);
                 break;
             case Operation::SQUARE:
-                c.vmulsd(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[0]]);
+                c.vmulps(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[0]]);
                 break;
             case Operation::CUBE:
-                c.vmulsd(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[0]]);
-                c.vmulsd(workspaceVar[target[step]], workspaceVar[target[step]], workspaceVar[args[0]]);
+                c.vmulps(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[0]]);
+                c.vmulps(workspaceVar[target[step]], workspaceVar[target[step]], workspaceVar[args[0]]);
                 break;
             case Operation::RECIPROCAL:
-                c.vdivsd(workspaceVar[target[step]], constantVar[operationConstantIndex[step]], workspaceVar[args[0]]);
+                c.vdivps(workspaceVar[target[step]], constantVar[operationConstantIndex[step]], workspaceVar[args[0]]);
                 break;
             case Operation::ADD_CONSTANT:
-                c.vaddsd(workspaceVar[target[step]], workspaceVar[args[0]], constantVar[operationConstantIndex[step]]);
+                c.vaddps(workspaceVar[target[step]], workspaceVar[args[0]], constantVar[operationConstantIndex[step]]);
                 break;
             case Operation::MULTIPLY_CONSTANT:
-                c.vmulsd(workspaceVar[target[step]], workspaceVar[args[0]], constantVar[operationConstantIndex[step]]);
+                c.vmulps(workspaceVar[target[step]], workspaceVar[args[0]], constantVar[operationConstantIndex[step]]);
                 break;
             case Operation::POWER_CONSTANT:
-                generateTwoArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], constantVar[operationConstantIndex[step]], pow);
+                generateTwoArgCall(c, workspaceVar[target[step]], workspaceVar[args[0]], constantVar[operationConstantIndex[step]], powf);
                 break;
             case Operation::MIN:
-                c.vminsd(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
+                c.vminps(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
                 break;
             case Operation::MAX:
-                c.vmaxsd(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
+                c.vmaxps(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[1]]);
                 break;
             case Operation::ABS:
-                c.vandpd(workspaceVar[target[step]], workspaceVar[args[0]], constantVar[operationConstantIndex[step]]);
+                c.vandps(workspaceVar[target[step]], workspaceVar[args[0]], constantVar[operationConstantIndex[step]]);
                 break;
             case Operation::FLOOR:
-                c.vroundsd(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[0]], imm(1));
+                c.vroundps(workspaceVar[target[step]], workspaceVar[args[0]], imm(1));
                 break;
             case Operation::CEIL:
-                c.vroundsd(workspaceVar[target[step]], workspaceVar[args[0]], workspaceVar[args[0]], imm(2));
+                c.vroundps(workspaceVar[target[step]], workspaceVar[args[0]], imm(2));
                 break;
             case Operation::SELECT:
             {
-                x86::Xmm mask = c.newXmmSd();
+                x86::Ymm mask = c.newYmmPs();
                 c.vxorps(mask, mask, mask);
-                c.vcmpsd(mask, mask, workspaceVar[args[0]], imm(0)); // Comparison mode is _CMP_EQ_OQ = 0
+                c.vcmpps(mask, mask, workspaceVar[args[0]], imm(0)); // Comparison mode is _CMP_EQ_OQ = 0
                 c.vblendvps(workspaceVar[target[step]], workspaceVar[args[1]], workspaceVar[args[2]], mask);
                 break;
             }
             default:
                 // Just invoke evaluateOperation().
 
-                for (int i = 0; i < (int) args.size(); i++)
-                    c.vmovsd(x86::ptr(argsPointer, 8*i, 0), workspaceVar[args[i]]);
-                x86::Gp fn = c.newIntPtr();
-                c.mov(fn, imm((void*) evaluateOperation));
-                InvokeNode* invoke;
-                c.invoke(&invoke, fn, FuncSignatureT<double, Operation*, double*>());
-                invoke->setArg(0, imm(&op));
-                invoke->setArg(1, imm(&argValues[0]));
-                invoke->setRet(0, workspaceVar[target[step]]);
+                for (int element = 0; element < width; element++) {
+                    for (int i = 0; i < (int) args.size(); i++) {
+                        if (element < 4)
+                            c.vshufps(argReg, workspaceVar[args[i]], workspaceVar[args[i]], imm(element));
+                        else {
+                            c.vperm2f128(argReg, workspaceVar[args[i]], workspaceVar[args[i]], imm(1));
+                            c.vshufps(argReg, argReg, argReg, imm(element-4));
+                        }
+                        c.vcvtss2sd(doubleArgReg.xmm(), doubleArgReg.xmm(), argReg.xmm());
+                        c.vmovsd(x86::ptr(argsPointer, 8*i, 0), doubleArgReg.xmm());
+                    }
+                    x86::Gp fn = c.newIntPtr();
+                    c.mov(fn, imm((void*) evaluateOperation));
+                    InvokeNode* invoke;
+                    c.invoke(&invoke, fn, FuncSignatureT<double, Operation*, double*>());
+                    invoke->setArg(0, imm(&op));
+                    invoke->setArg(1, imm(&argValues[0]));
+                    invoke->setRet(0, doubleResultReg);
+                    c.vcvtsd2ss(argReg.xmm(), argReg.xmm(), doubleResultReg.xmm());
+                    if (element > 3)
+                        c.vperm2f128(argReg, argReg, argReg, imm(0));
+                    if (element != 0)
+                        c.vshufps(argReg, argReg, argReg, imm(0));
+                    c.vblendps(workspaceVar[target[step]], workspaceVar[target[step]], argReg, 1<<element);
+                }
         }
     }
-    c.ret(workspaceVar[workspace.size()-1]);
+    x86::Gp resultPointer = c.newIntPtr();
+    c.mov(resultPointer, imm(&workspace[workspace.size()-width]));
+    if (width == 4)
+        c.vmovdqu(x86::ptr(resultPointer, 0, 0), workspaceVar.back().xmm());
+    else
+        c.vmovdqu(x86::ptr(resultPointer, 0, 0), workspaceVar.back());
     c.endFunc();
     c.finalize();
     runtime.add(&jitCode, &code);
 }
 
-void CompiledExpression::generateSingleArgCall(x86::Compiler& c, x86::Xmm& dest, x86::Xmm& arg, double (*function)(double)) {
+void CompiledVectorExpression::generateSingleArgCall(x86::Compiler& c, x86::Ymm& dest, x86::Ymm& arg, float (*function)(float)) {
     x86::Gp fn = c.newIntPtr();
     c.mov(fn, imm((void*) function));
-    InvokeNode* invoke;
-    c.invoke(&invoke, fn, FuncSignatureT<double, double>());
-    invoke->setArg(0, arg);
-    invoke->setRet(0, dest);
+    x86::Ymm a = c.newYmm();
+    x86::Ymm d = c.newYmm();
+    for (int element = 0; element < width; element++) {
+        if (element < 4)
+            c.vshufps(a, arg, arg, imm(element));
+        else {
+            c.vperm2f128(a, arg, arg, imm(1));
+            c.vshufps(a, a, a, imm(element-4));
+        }
+        InvokeNode* invoke;
+        c.invoke(&invoke, fn, FuncSignatureT<float, float>());
+        invoke->setArg(0, a);
+        invoke->setRet(0, d);
+        if (element > 3)
+            c.vperm2f128(d, d, d, imm(0));
+        if (element != 0)
+            c.vshufps(d, d, d, imm(0));
+        c.vblendps(dest, dest, d, 1<<element);
+    }
 }
 
-void CompiledExpression::generateTwoArgCall(x86::Compiler& c, x86::Xmm& dest, x86::Xmm& arg1, x86::Xmm& arg2, double (*function)(double, double)) {
+void CompiledVectorExpression::generateTwoArgCall(x86::Compiler& c, x86::Ymm& dest, x86::Ymm& arg1, x86::Ymm& arg2, float (*function)(float, float)) {
     x86::Gp fn = c.newIntPtr();
     c.mov(fn, imm((void*) function));
-    InvokeNode* invoke;
-    c.invoke(&invoke, fn, FuncSignatureT<double, double, double>());
-    invoke->setArg(0, arg1);
-    invoke->setArg(1, arg2);
-    invoke->setRet(0, dest);
+    x86::Ymm a1 = c.newYmm();
+    x86::Ymm a2 = c.newYmm();
+    x86::Ymm d = c.newYmm();
+    for (int element = 0; element < width; element++) {
+        if (element < 4) {
+            c.vshufps(a1, arg1, arg1, imm(element));
+            c.vshufps(a2, arg2, arg2, imm(element));
+        }
+        else {
+            c.vperm2f128(a1, arg1, arg1, imm(1));
+            c.vperm2f128(a2, arg2, arg2, imm(1));
+            c.vshufps(a1, a1, a1, imm(element-4));
+            c.vshufps(a2, a2, a2, imm(element-4));
+        }
+        InvokeNode* invoke;
+        c.invoke(&invoke, fn, FuncSignatureT<float, float, float>());
+        invoke->setArg(0, a1);
+        invoke->setArg(1, a2);
+        invoke->setRet(0, d);
+        if (element > 3)
+            c.vperm2f128(d, d, d, imm(0));
+        if (element != 0)
+            c.vshufps(d, d, d, imm(0));
+        c.vblendps(dest, dest, d, 1<<element);
+    }
 }
 #endif
 #endif

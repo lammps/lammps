@@ -107,158 +107,6 @@ void PairMesoCNT::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
 
-  mesolj();
-
-  if (vflag_fdotr) virial_fdotr_compute();
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairMesoCNT::allocate()
-{
-  allocated = 1;
-  int ntypes = atom->ntypes;
-  int np1 = ntypes + 1;
-  int init_size = 1;
-
-  memory->create(cutsq, np1, np1, "pair:cutsq");
-  memory->create(setflag, np1, np1, "pair:setflag");
-  for (int i = 1; i <= ntypes; i++)
-    for (int j = i; j <= ntypes; j++) setflag[i][j] = 0;
-
-  memory->create(end_types, nend_types, "pair:end_types");
-
-  memory->create(uinf_coeff, uinf_points, 4, "pair:uinf_coeff");
-  memory->create(gamma_coeff, gamma_points, 4, "pair:gamma_coeff");
-  memory->create(phi_coeff, phi_points, phi_points, 4, 4, "pair:phi_coeff");
-  memory->create(usemi_coeff, usemi_points, usemi_points, 4, 4, "pair:usemi_coeff");
-
-  memory->create(numchainlist, init_size, "pair:numchainlist");
-  memory->create(nchainlist, init_size, init_size, "pair:nchainlist");
-  memory->create(endlist, init_size, init_size, "pair:endlist");
-  memory->create(modelist, init_size, init_size, "pair:modelist");
-  memory->create(chainlist, init_size, init_size, init_size, "pair:chainlist");
-
-  memory->create(w, init_size, "pair:w");
-  memory->create(wnode, init_size, "pair:wnode");
-  memory->create(dq_w, init_size, 3, "pair:dq_w");
-  memory->create(q1_dq_w, init_size, 3, 3, "pair:q1_dq_w");
-  memory->create(q2_dq_w, init_size, 3, 3, "pair:q2_dq_w");
-
-  memory->create(param, 7, "pair:param");
-
-  memory->create(flocal, 2, 3, "pair:flocal");
-  memory->create(fglobal, 4, 3, "pair:fglobal");
-  memory->create(basis, 3, 3, "pair:basis");
-}
-
-/* ----------------------------------------------------------------------
-   global settings
-------------------------------------------------------------------------- */
-
-void PairMesoCNT::settings(int narg, char ** /* arg */)
-{
-  if (narg != 0) error->all(FLERR, "Illegal pair_style command");
-}
-
-/* ----------------------------------------------------------------------
-   set coeffs for one or more type pairs
-------------------------------------------------------------------------- */
-
-void PairMesoCNT::coeff(int narg, char **arg)
-{
-  if (narg < 4) error->all(FLERR, "Incorrect args for pair coefficients");
-  read_file(arg[2]);
-
-  nend_types = narg - 3;
-
-  if (!allocated) allocate();
-
-  // end atom types
-  for (int i = 3; i < narg; i++) end_types[i - 3] = utils::inumeric(FLERR, arg[i], false, lmp);
-
-  // units, eV to energy unit conversion
-  ang = force->angstrom;
-  ang_inv = 1.0 / ang;
-  if (strcmp(update->unit_style, "lj") == 0)
-    error->all(FLERR, "Pair style mesocnt does not support lj units");
-  else if (strcmp(update->unit_style, "real") == 0)
-    eunit = 23.06054966;
-  else if (strcmp(update->unit_style, "metal") == 0)
-    eunit = 1.0;
-  else if (strcmp(update->unit_style, "si") == 0)
-    eunit = 1.6021765e-19;
-  else if (strcmp(update->unit_style, "cgs") == 0)
-    eunit = 1.6021765e-12;
-  else if (strcmp(update->unit_style, "electron") == 0)
-    eunit = 3.674932248e-2;
-  else if (strcmp(update->unit_style, "micro") == 0)
-    eunit = 1.6021765e-4;
-  else if (strcmp(update->unit_style, "nano") == 0)
-    eunit = 1.6021765e2;
-  else
-    error->all(FLERR, "Pair style mesocnt does not recognize this units style");
-  funit = eunit * ang_inv;
-
-  // potential variables
-  sig = sig_ang * ang;
-  r = r_ang * ang;
-  rsq = r * r;
-  d = 2.0 * r;
-  d_ang = 2.0 * r_ang;
-  rc = 3.0 * sig;
-  cutoff = rc + d;
-  cutoffsq = cutoff * cutoff;
-  cutoff_ang = cutoff * ang_inv;
-  cutoffsq_ang = cutoff_ang * cutoff_ang;
-  comega = 0.275 * (1.0 - 1.0 / (1.0 + 0.59 * r_ang));
-  ctheta = 0.35 + 0.0226 * (r_ang - 6.785);
-
-  // compute spline coefficients
-  spline_coeff(uinf_data, uinf_coeff, delh_uinf, uinf_points);
-  spline_coeff(gamma_data, gamma_coeff, delh_gamma, gamma_points);
-  spline_coeff(phi_data, phi_coeff, delh_phi, delpsi_phi, phi_points);
-  spline_coeff(usemi_data, usemi_coeff, delh_usemi, delxi_usemi, usemi_points);
-
-  memory->destroy(uinf_data);
-  memory->destroy(gamma_data);
-  memory->destroy(phi_data);
-  memory->destroy(usemi_data);
-
-  int ntypes = atom->ntypes;
-  for (int i = 1; i <= ntypes; i++)
-    for (int j = i; j <= ntypes; j++) setflag[i][j] = 1;
-}
-
-/* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void PairMesoCNT::init_style()
-{
-  if (atom->tag_enable == 0) error->all(FLERR, "Pair style mesocnt requires atom IDs");
-  if (force->newton_pair == 0) error->all(FLERR, "Pair style mesocnt requires newton pair on");
-
-  // need a full neighbor list
-
-  neighbor->add_request(this, NeighConst::REQ_FULL);
-}
-
-/* ----------------------------------------------------------------------
-   init for one type pair i,j and corresponding j,i
-------------------------------------------------------------------------- */
-
-double PairMesoCNT::init_one(int /* i */, int /* j */)
-{
-  return cutoff;
-}
-
-/* ----------------------------------------------------------------------
-   calculate energy and forces due to mesoscopic LJ potential
-------------------------------------------------------------------------- */
-
-void PairMesoCNT::mesolj()
-{
   int i, j, k, i1, i2, j1, j2;
   int endflag, endindex;
   int clen, numchain;
@@ -743,6 +591,149 @@ void PairMesoCNT::mesolj()
       }
     }
   }
+
+  if (vflag_fdotr) virial_fdotr_compute();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairMesoCNT::allocate()
+{
+  allocated = 1;
+  int ntypes = atom->ntypes;
+  int np1 = ntypes + 1;
+  int init_size = 1;
+
+  memory->create(cutsq, np1, np1, "pair:cutsq");
+  memory->create(setflag, np1, np1, "pair:setflag");
+  for (int i = 1; i <= ntypes; i++)
+    for (int j = i; j <= ntypes; j++) setflag[i][j] = 0;
+
+  memory->create(end_types, nend_types, "pair:end_types");
+
+  memory->create(uinf_coeff, uinf_points, 4, "pair:uinf_coeff");
+  memory->create(gamma_coeff, gamma_points, 4, "pair:gamma_coeff");
+  memory->create(phi_coeff, phi_points, phi_points, 4, 4, "pair:phi_coeff");
+  memory->create(usemi_coeff, usemi_points, usemi_points, 4, 4, "pair:usemi_coeff");
+
+  memory->create(numchainlist, init_size, "pair:numchainlist");
+  memory->create(nchainlist, init_size, init_size, "pair:nchainlist");
+  memory->create(endlist, init_size, init_size, "pair:endlist");
+  memory->create(modelist, init_size, init_size, "pair:modelist");
+  memory->create(chainlist, init_size, init_size, init_size, "pair:chainlist");
+
+  memory->create(w, init_size, "pair:w");
+  memory->create(wnode, init_size, "pair:wnode");
+  memory->create(dq_w, init_size, 3, "pair:dq_w");
+  memory->create(q1_dq_w, init_size, 3, 3, "pair:q1_dq_w");
+  memory->create(q2_dq_w, init_size, 3, 3, "pair:q2_dq_w");
+
+  memory->create(param, 7, "pair:param");
+
+  memory->create(flocal, 2, 3, "pair:flocal");
+  memory->create(fglobal, 4, 3, "pair:fglobal");
+  memory->create(basis, 3, 3, "pair:basis");
+}
+
+/* ----------------------------------------------------------------------
+   global settings
+------------------------------------------------------------------------- */
+
+void PairMesoCNT::settings(int narg, char ** /* arg */)
+{
+  if (narg != 0) error->all(FLERR, "Illegal pair_style command");
+}
+
+/* ----------------------------------------------------------------------
+   set coeffs for one or more type pairs
+------------------------------------------------------------------------- */
+
+void PairMesoCNT::coeff(int narg, char **arg)
+{
+  if (narg < 4) error->all(FLERR, "Incorrect args for pair coefficients");
+  read_file(arg[2]);
+
+  nend_types = narg - 3;
+
+  if (!allocated) allocate();
+
+  // end atom types
+  for (int i = 3; i < narg; i++) end_types[i - 3] = utils::inumeric(FLERR, arg[i], false, lmp);
+
+  // units, eV to energy unit conversion
+  ang = force->angstrom;
+  ang_inv = 1.0 / ang;
+  if (strcmp(update->unit_style, "lj") == 0)
+    error->all(FLERR, "Pair style mesocnt does not support lj units");
+  else if (strcmp(update->unit_style, "real") == 0)
+    eunit = 23.06054966;
+  else if (strcmp(update->unit_style, "metal") == 0)
+    eunit = 1.0;
+  else if (strcmp(update->unit_style, "si") == 0)
+    eunit = 1.6021765e-19;
+  else if (strcmp(update->unit_style, "cgs") == 0)
+    eunit = 1.6021765e-12;
+  else if (strcmp(update->unit_style, "electron") == 0)
+    eunit = 3.674932248e-2;
+  else if (strcmp(update->unit_style, "micro") == 0)
+    eunit = 1.6021765e-4;
+  else if (strcmp(update->unit_style, "nano") == 0)
+    eunit = 1.6021765e2;
+  else
+    error->all(FLERR, "Pair style mesocnt does not recognize this units style");
+  funit = eunit * ang_inv;
+
+  // potential variables
+  sig = sig_ang * ang;
+  r = r_ang * ang;
+  rsq = r * r;
+  d = 2.0 * r;
+  d_ang = 2.0 * r_ang;
+  rc = 3.0 * sig;
+  cutoff = rc + d;
+  cutoffsq = cutoff * cutoff;
+  cutoff_ang = cutoff * ang_inv;
+  cutoffsq_ang = cutoff_ang * cutoff_ang;
+  comega = 0.275 * (1.0 - 1.0 / (1.0 + 0.59 * r_ang));
+  ctheta = 0.35 + 0.0226 * (r_ang - 6.785);
+
+  // compute spline coefficients
+  spline_coeff(uinf_data, uinf_coeff, delh_uinf, uinf_points);
+  spline_coeff(gamma_data, gamma_coeff, delh_gamma, gamma_points);
+  spline_coeff(phi_data, phi_coeff, delh_phi, delpsi_phi, phi_points);
+  spline_coeff(usemi_data, usemi_coeff, delh_usemi, delxi_usemi, usemi_points);
+
+  memory->destroy(uinf_data);
+  memory->destroy(gamma_data);
+  memory->destroy(phi_data);
+  memory->destroy(usemi_data);
+
+  int ntypes = atom->ntypes;
+  for (int i = 1; i <= ntypes; i++)
+    for (int j = i; j <= ntypes; j++) setflag[i][j] = 1;
+}
+
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairMesoCNT::init_style()
+{
+  if (atom->tag_enable == 0) error->all(FLERR, "Pair style mesocnt requires atom IDs");
+  if (force->newton_pair == 0) error->all(FLERR, "Pair style mesocnt requires newton pair on");
+
+  // need a full neighbor list
+
+  neighbor->add_request(this, NeighConst::REQ_FULL);
+}
+
+/* ----------------------------------------------------------------------
+   init for one type pair i,j and corresponding j,i
+------------------------------------------------------------------------- */
+
+double PairMesoCNT::init_one(int /* i */, int /* j */)
+{
+  return cutoff;
 }
 
 /* ----------------------------------------------------------------------

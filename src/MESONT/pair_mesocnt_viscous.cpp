@@ -40,7 +40,7 @@ using namespace MathExtra;
 void PairMesoCNTViscous::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
-  
+
   int i, j, k, i1, i2, j1, j2;
   int endflag, endindex;
   int clen, numchain;
@@ -48,7 +48,6 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
   int **chain;
   double fend, lp, scale, sumw, sumw_inv;
   double evdwl, evdwl_chain;
-  double vtot, fvisc_tot;
   double *r1, *r2, *q1, *q2, *qe;
   double *vr1, *vr2, *vq1, *vq2;
   double vr[3], vp1[3], vp2[3], vp[3], vrel[3], fvisc[3];
@@ -83,7 +82,7 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
 
     r1 = x[i1];
     r2 = x[i2];
-
+    
     vr1 = v[i1];
     vr2 = v[i2];
     add3(vr1, vr2, vr);
@@ -100,274 +99,464 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
       clen = nchain[j];
       if (clen < 2) continue;
 
-      // assign end position
+      if (modelist[i][j]) {
+        for (k = 0; k < clen - 1; k++) {
+          j1 = chain[j][k];
+          j2 = chain[j][k + 1];
+          j1 &= NEIGHMASK;
+          j2 &= NEIGHMASK;
+          q1 = x[j1];
+          q2 = x[j2];
 
-      endflag = end[j];
-      if (endflag == 1) {
-        endindex = chain[j][0];
-        qe = x[endindex];
-      } else if (endflag == 2) {
-        endindex = chain[j][clen - 1];
-        qe = x[endindex];
+          geometry(r1, r2, q1, q2, q1, p, m, param, basis);
+          if (param[0] > cutoff) continue;
+          
+          double calpha = cos(param[1]);
+          double salpha = sin(param[1]);
+          double hsq = param[0] * param[0];
+
+          double ceta = calpha * param[4];
+          double seta = salpha * param[4];
+          double dsq1 = hsq + seta * seta;
+          if (ceta < param[2]) dsq1 += pow(ceta - param[2], 2);
+          else if (ceta > param[3]) dsq1 += pow(ceta - param[3], 2);
+
+          ceta = calpha * param[5];
+          seta = salpha * param[5];
+          
+          double dsq2 = hsq + seta * seta;
+          if (ceta < param[2]) dsq2 += pow(ceta - param[2], 2);
+          else if (ceta > param[3]) dsq2 += pow(ceta - param[3], 2);
+
+          if (dsq1 > cutoffsq && dsq2 > cutoffsq) continue;
+
+          int jj1, jj2;
+          
+          if (dsq1 < dsq2) {
+            jj1 = j1;
+            jj2 = j2;
+          }
+          else {
+            if (param[1] > MY_PI) param[1] -= MY_PI;
+            else param[1] += MY_PI;
+
+            double temp = -param[5];
+            param[5] = -param[4];
+            param[4] = temp;
+            param[6] = temp;
+
+            negate3(m);
+          
+            jj1 = j2;
+            jj2 = j1;
+          }
+
+          // first force contribution
+
+          fsemi(param, evdwl, fend, flocal);          
+
+          if (evdwl == 0.0) continue;
+          
+          // transform to global coordinate system
+
+          matvec(basis[0], basis[1], basis[2], flocal[0], fglobal[0]);
+          matvec(basis[0], basis[1], basis[2], flocal[1], fglobal[1]);
+
+          // forces acting on segment 2
+
+          add3(fglobal[0], fglobal[1], ftotal);
+          scaleadd3(fend, m, ftotal, ftotal);
+          scale3(-0.5, ftotal);
+
+          sub3(r1, p, delr1);
+          sub3(r2, p, delr2);
+          cross3(delr1, fglobal[0], t1);
+          cross3(delr2, fglobal[1], t2);
+          add3(t1, t2, torque);
+        
+          cross3(torque, m, ftorque);
+          lp = param[5] - param[4];
+          scale3(1.0 / lp, ftorque);
+          
+          add3(ftotal, ftorque, fglobal[2]);
+          sub3(ftotal, ftorque, fglobal[3]);
+
+          // add forces to nodes
+
+          scaleadd3(0.5, fglobal[0], f[i1], f[i1]);
+          scaleadd3(0.5, fglobal[1], f[i2], f[i2]);
+          scaleadd3(0.5, fglobal[2], f[jj1], f[jj1]);
+          scaleadd3(0.5, fglobal[3], f[jj2], f[jj2]);
+          scaleadd3(0.5 * fend, m, f[jj1], f[jj1]);
+          
+          // add energy
+
+          if (eflag_either) {
+            evdwl = 0.5 * evdwl;
+            double evdwl_atom = 0.25 * evdwl;
+            if (eflag_global) eng_vdwl += evdwl;
+            if (eflag_atom) {
+              eatom[i1] += evdwl_atom;
+              eatom[i2] += evdwl_atom;
+              eatom[jj1] += evdwl_atom;
+              eatom[jj2] += evdwl_atom;
+            }
+          }
+          
+          // second force contribution
+
+          param[6] += lp;
+          
+          fsemi(param, evdwl, fend, flocal);
+          
+          if (evdwl == 0.0) continue;
+
+          // transform to global coordinate system
+
+          matvec(basis[0], basis[1], basis[2], flocal[0], fglobal[0]);
+          matvec(basis[0], basis[1], basis[2], flocal[1], fglobal[1]);
+
+          // forces acting on segment 2
+
+          add3(fglobal[0], fglobal[1], ftotal);
+          scaleadd3(fend, m, ftotal, ftotal);
+          scale3(-0.5, ftotal);
+
+          scaleadd3(lp, m, p, p);
+
+          sub3(r1, p, delr1);
+          sub3(r2, p, delr2);
+          cross3(delr1, fglobal[0], t1);
+          cross3(delr2, fglobal[1], t2);
+          add3(t1, t2, torque);
+        
+          cross3(torque, m, ftorque);
+          scale3(1.0 / lp, ftorque);
+          
+          add3(ftotal, ftorque, fglobal[2]);
+          sub3(ftotal, ftorque, fglobal[3]);
+
+          // add forces to nodes
+
+          scaleadd3(-0.5, fglobal[0], f[i1], f[i1]);
+          scaleadd3(-0.5, fglobal[1], f[i2], f[i2]);
+          scaleadd3(-0.5, fglobal[2], f[jj2], f[jj2]);
+          scaleadd3(0.5, fglobal[3], f[jj1], f[jj1]);
+          sub3(f[jj2], fglobal[3], f[jj2]);
+          scaleadd3(-0.5 * fend, m, f[jj2], f[jj2]);
+
+          // add energy
+
+          if (eflag_either) {
+            evdwl = -0.5 * evdwl;
+            double evdwl_atom = 0.25 * evdwl;
+            if (eflag_global) eng_vdwl += evdwl;
+            if (eflag_atom) {
+              eatom[i1] += evdwl_atom;
+              eatom[i2] += evdwl_atom;
+              eatom[jj1] += evdwl_atom;
+              eatom[jj2] += evdwl_atom;
+            }
+          }
+
+        }
       }
+      else {
+        // assign end position
 
-      // compute substitute straight (semi-)infinite CNT
-
-      zero3(p1);
-      zero3(p2);
-      zero3(dr1_sumw);
-      zero3(dr2_sumw);
-      zero3(vp1);
-      zero3(vp2);
-      zeromat3(q1_dr1_w);
-      zeromat3(q2_dr1_w);
-      zeromat3(q1_dr2_w);
-      zeromat3(q2_dr2_w);
-      for (k = 0; k < clen; k++) {
-        wnode[k] = 0.0;
-        zero3(dq_w[k]);
-        zeromat3(q1_dq_w[k]);
-        zeromat3(q2_dq_w[k]);
-      }
-      sumw = 0.0;
-
-      for (k = 0; k < clen - 1; k++) {
-        j1 = chain[j][k];
-        j2 = chain[j][k + 1];
-        j1 &= NEIGHMASK;
-        j2 &= NEIGHMASK;
-        q1 = x[j1];
-        q2 = x[j2];
-        vq1 = v[j1];
-        vq2 = v[j2];
-
-        weight(r1, r2, q1, q2, w[k], dr1_w, dr2_w, dq1_w, dq2_w);
-
-        if (w[k] == 0.0) {
-          if (endflag == 1 && k == 0)
-            endflag = 0;
-          else if (endflag == 2 && k == clen - 2)
-            endflag = 0;
-          continue;
+        endflag = end[j];
+        if (endflag == 1) {
+          endindex = chain[j][0];
+          qe = x[endindex];
+        } else if (endflag == 2) {
+          endindex = chain[j][clen - 1];
+          qe = x[endindex];
         }
 
-        sumw += w[k];
-        wnode[k] += w[k];
-        wnode[k + 1] += w[k];
+        // compute substitute straight (semi-)infinite CNT
 
-        scaleadd3(w[k], q1, p1, p1);
-        scaleadd3(w[k], q2, p2, p2);
+        zero3(p1);
+        zero3(p2);
+        zero3(dr1_sumw);
+        zero3(dr2_sumw);
+        zeromat3(q1_dr1_w);
+        zeromat3(q2_dr1_w);
+        zeromat3(q1_dr2_w);
+        zeromat3(q2_dr2_w);
+        for (k = 0; k < clen; k++) {
+          wnode[k] = 0.0;
+          zero3(dq_w[k]);
+          zeromat3(q1_dq_w[k]);
+          zeromat3(q2_dq_w[k]);
+        }
+        sumw = 0.0;
+
+        for (k = 0; k < clen - 1; k++) {
+          j1 = chain[j][k];
+          j2 = chain[j][k + 1];
+          j1 &= NEIGHMASK;
+          j2 &= NEIGHMASK;
+          q1 = x[j1];
+          q2 = x[j2];
+
+          weight(r1, r2, q1, q2, w[k], dr1_w, dr2_w, dq1_w, dq2_w);
+
+          if (w[k] == 0.0) {
+            if (endflag == 1 && k == 0)
+              endflag = 0;
+            else if (endflag == 2 && k == clen - 2)
+              endflag = 0;
+            continue;
+          }
+
+          sumw += w[k];
+          wnode[k] += w[k];
+          wnode[k + 1] += w[k];
+
+          scaleadd3(w[k], q1, p1, p1);
+          scaleadd3(w[k], q2, p2, p2);
         
-        // weighted velocity for friction
+          // weighted velocity for friction
 
-        scaleadd3(w[k], vq1, vp1, vp1);
-        scaleadd3(w[k], vq2, vp2, vp2);
+          scaleadd3(w[k], vq1, vp1, vp1);
+          scaleadd3(w[k], vq2, vp2, vp2);
 
-        // weight gradient terms
+          // weight gradient terms
 
-        add3(dr1_w, dr1_sumw, dr1_sumw);
-        add3(dr2_w, dr2_sumw, dr2_sumw);
+          add3(dr1_w, dr1_sumw, dr1_sumw);
+          add3(dr2_w, dr2_sumw, dr2_sumw);
 
-        outer3(q1, dr1_w, temp);
-        plus3(temp, q1_dr1_w, q1_dr1_w);
-        outer3(q2, dr1_w, temp);
-        plus3(temp, q2_dr1_w, q2_dr1_w);
-        outer3(q1, dr2_w, temp);
-        plus3(temp, q1_dr2_w, q1_dr2_w);
-        outer3(q2, dr2_w, temp);
-        plus3(temp, q2_dr2_w, q2_dr2_w);
+          outer3(q1, dr1_w, temp);
+          plus3(temp, q1_dr1_w, q1_dr1_w);
+          outer3(q2, dr1_w, temp);
+          plus3(temp, q2_dr1_w, q2_dr1_w);
+          outer3(q1, dr2_w, temp);
+          plus3(temp, q1_dr2_w, q1_dr2_w);
+          outer3(q2, dr2_w, temp);
+          plus3(temp, q2_dr2_w, q2_dr2_w);
 
-        add3(dq1_w, dq_w[k], dq_w[k]);
-        add3(dq2_w, dq_w[k + 1], dq_w[k + 1]);
+          add3(dq1_w, dq_w[k], dq_w[k]);
+          add3(dq2_w, dq_w[k + 1], dq_w[k + 1]);
 
-        outer3(q1, dq1_w, temp);
-        plus3(temp, q1_dq_w[k], q1_dq_w[k]);
-        outer3(q1, dq2_w, temp);
-        plus3(temp, q1_dq_w[k + 1], q1_dq_w[k + 1]);
-        outer3(q2, dq1_w, temp);
-        plus3(temp, q2_dq_w[k], q2_dq_w[k]);
-        outer3(q2, dq2_w, temp);
-        plus3(temp, q2_dq_w[k + 1], q2_dq_w[k + 1]); 
-      }
+          outer3(q1, dq1_w, temp);
+          plus3(temp, q1_dq_w[k], q1_dq_w[k]);
+          outer3(q1, dq2_w, temp);
+          plus3(temp, q1_dq_w[k + 1], q1_dq_w[k + 1]);
+          outer3(q2, dq1_w, temp);
+          plus3(temp, q2_dq_w[k], q2_dq_w[k]);
+          outer3(q2, dq2_w, temp);
+          plus3(temp, q2_dq_w[k + 1], q2_dq_w[k + 1]);
+        }
 
-      if (sumw == 0.0) continue;
+        if (sumw == 0.0) continue;
 
-      sumw_inv = 1.0 / sumw;
-      scale3(sumw_inv, p1);
-      scale3(sumw_inv, p2);
+        sumw_inv = 1.0 / sumw;
+        scale3(sumw_inv, p1);
+        scale3(sumw_inv, p2);
 
-      // compute geometry and forces
+        // compute geometry and forces
 
-      // infinite CNT case
+        if (endflag == 0) {
+          
+          // infinite CNT case
+          
+          geometry(r1, r2, p1, p2, nullptr, p, m, param, basis);
+          
+          if (param[0] > cutoff) continue;
+          double salpha = sin(param[1]);
+          double sxi1 = salpha * param[2];
+          double sxi2 = salpha * param[3];
+          double hsq = param[0] * param[0];
+          if (sxi1 * sxi1 + hsq > cutoffsq && sxi2 * sxi2 + hsq > cutoffsq)
+            continue;
 
-      if (endflag == 0) {
-        geometry(r1, r2, p1, p2, nullptr, p, m, param, basis);
-        if (param[0] > cutoff) continue;
-        finf(param, evdwl, flocal);
+          finf(param, evdwl, flocal);
 
-        // semi-infinite CNT case with end at start of chain
+        } else {
+          
+          // semi-infinite CNT case
+          // endflag == 1: CNT end at start of chain
+          // endflag == 2: CNT end at end of chain
+        
+          if (endflag == 1) geometry(r1, r2, p1, p2, qe, p, m, param, basis);
+          else geometry(r1, r2, p2, p1, qe, p, m, param, basis);
+          
+          if (param[0] > cutoff) continue;
+          double hsq = param[0] * param[0];
+          double calpha = cos(param[1]);
+          double etamin = calpha * param[2];
+          double dsq1;
+          if (etamin < param[6]) {
+            dsq1 = hsq + pow(sin(param[1]) * param[6], 2);
+            dsq1 += pow(param[2] - calpha * param[6], 2);
+          }
+          else
+            dsq1 = hsq + pow(sin(param[1]) * param[2], 2);
+          
+          etamin = calpha * param[3];
+          double dsq2;
+          if (etamin < param[6]) {
+            dsq2 = hsq + pow(sin(param[1]) * param[6], 2);
+            dsq2 += pow(param[3] - calpha * param[6], 2);
+          }
+          else
+            dsq2 = hsq + pow(sin(param[1]) * param[3], 2);
 
-      } else if (endflag == 1) {
-        geometry(r1, r2, p1, p2, qe, p, m, param, basis);
-        if (param[0] > cutoff) continue;
-        fsemi(param, evdwl, fend, flocal);
+          if (dsq1 > cutoffsq && dsq2 > cutoffsq) continue;
 
-        // semi-infinite CNT case with end at end of chain
+          fsemi(param, evdwl, fend, flocal);
+        }
 
-      } else {
-        geometry(r1, r2, p2, p1, qe, p, m, param, basis);
-        if (param[0] > cutoff) continue;
-        fsemi(param, evdwl, fend, flocal);
-      }
+        if (evdwl == 0.0) continue;
+        evdwl *= 0.5;
 
-      evdwl *= 0.5;
+        // transform to global coordinate system
 
-      // transform to global coordinate system
-
-      matvec(basis[0], basis[1], basis[2], flocal[0], fglobal[0]);
-      matvec(basis[0], basis[1], basis[2], flocal[1], fglobal[1]);
+        matvec(basis[0], basis[1], basis[2], flocal[0], fglobal[0]);
+        matvec(basis[0], basis[1], basis[2], flocal[1], fglobal[1]);
       
-      // mean chain velocity and relative velocity
+        // mean chain velocity and relative velocity
 
-      add3(vp1, vp2, vp);
-      scale3(0.5*sumw_inv, vp);
-      sub3(vp, vr, vrel);
+        add3(vp1, vp2, vp);
+        scale3(0.5*sumw_inv, vp);
+        sub3(vp, vr, vrel);
 
-      // friction forces
-
-      vtot = len3(vrel);
-      if (vtot < vswitch) scale3(0.25*a1, vrel, fvisc);
-      else {
-        fvisc_tot = b2 / vtot - a2;
-        if (fvisc_tot < 0.0) zero3(fvisc);
-        else scale3(0.25*fvisc_tot, vrel, fvisc);
-      }
-
-      add3(fvisc, f[i1], f[i1]);
-      add3(fvisc, f[i2], f[i2]);
-
-      // forces acting on approximate chain
-
-      add3(fglobal[0], fglobal[1], ftotal);
-      if (endflag) scaleadd3(fend, m, ftotal, ftotal);
-      scale3(-0.5, ftotal);
-
-      sub3(r1, p, delr1);
-      sub3(r2, p, delr2);
-      cross3(delr1, fglobal[0], t1);
-      cross3(delr2, fglobal[1], t2);
-      add3(t1, t2, torque);
-
-      // additional torque contribution from chain end
-
-      if (endflag) {
-        sub3(qe, p, delqe);
-        cross3(delqe, m, t3);
-        scale3(fend, t3);
-        add3(t3, torque, torque);
-      }
-
-      cross3(torque, m, ftorque);
-      lp = param[5] - param[4];
-      scale3(1.0 / lp, ftorque);
-
-      if (endflag == 2) {
-        add3(ftotal, ftorque, fglobal[3]);
-        sub3(ftotal, ftorque, fglobal[2]);
-      } else {
-        add3(ftotal, ftorque, fglobal[2]);
-        sub3(ftotal, ftorque, fglobal[3]);
-      }
-
-      scale3(0.5, fglobal[0]);
-      scale3(0.5, fglobal[1]);
-      scale3(0.5, fglobal[2]);
-      scale3(0.5, fglobal[3]);
-
-      // weight gradient terms acting on current segment
-
-      outer3(p1, dr1_sumw, temp);
-      minus3(q1_dr1_w, temp, dr1_p1);
-      outer3(p2, dr1_sumw, temp);
-      minus3(q2_dr1_w, temp, dr1_p2);
-      outer3(p1, dr2_sumw, temp);
-      minus3(q1_dr2_w, temp, dr2_p1);
-      outer3(p2, dr2_sumw, temp);
-      minus3(q2_dr2_w, temp, dr2_p2);
-
-      transpose_matvec(dr1_p1, fglobal[2], fgrad_r1_p1);
-      transpose_matvec(dr1_p2, fglobal[3], fgrad_r1_p2);
-      transpose_matvec(dr2_p1, fglobal[2], fgrad_r2_p1);
-      transpose_matvec(dr2_p2, fglobal[3], fgrad_r2_p2);
-
-      // add forces to nodes in current segment
-
-      add3(fglobal[0], f[i1], f[i1]);
-      add3(fglobal[1], f[i2], f[i2]);
-
-      scaleadd3(sumw_inv, fgrad_r1_p1, f[i1], f[i1]);
-      scaleadd3(sumw_inv, fgrad_r1_p2, f[i1], f[i1]);
-      scaleadd3(sumw_inv, fgrad_r2_p1, f[i2], f[i2]);
-      scaleadd3(sumw_inv, fgrad_r2_p2, f[i2], f[i2]);
-
-      // add forces in approximate chain
-
-      for (k = 0; k < clen - 1; k++) {
-        if (w[k] == 0.0) continue;
-        j1 = chain[j][k];
-        j2 = chain[j][k + 1];
-        j1 &= NEIGHMASK;
-        j2 &= NEIGHMASK;
-        scale = w[k] * sumw_inv;
-        scaleadd3(scale, fglobal[2], f[j1], f[j1]);
-        scaleadd3(scale, fglobal[3], f[j2], f[j2]);
-      
         // friction forces
+
+        vtot = len3(vrel);
+        if (vtot < vswitch) scale3(0.25*a1, vrel, fvisc);
+        else {
+          fvisc_tot = b2 / vtot - a2;
+          if (fvisc_tot < 0.0) zero3(fvisc);
+          else scale3(0.25*fvisc_tot, vrel, fvisc);
+        }
+
+        add3(fvisc, f[i1], f[i1]);
+        add3(fvisc, f[i2], f[i2]);
+
+        // forces acting on approximate chain
+
+        add3(fglobal[0], fglobal[1], ftotal);
+        if (endflag) scaleadd3(fend, m, ftotal, ftotal);
+        scale3(-0.5, ftotal);
+
+        sub3(r1, p, delr1);
+        sub3(r2, p, delr2);
+        cross3(delr1, fglobal[0], t1);
+        cross3(delr2, fglobal[1], t2);
+        add3(t1, t2, torque);
+
+        // additional torque contribution from chain end
+
+        if (endflag) {
+          sub3(qe, p, delqe);
+          cross3(delqe, m, t3);
+          scale3(fend, t3);
+          add3(t3, torque, torque);
+        }
+
+        cross3(torque, m, ftorque);
+        lp = param[5] - param[4];
+        scale3(1.0 / lp, ftorque);
+
+        if (endflag == 2) {
+          add3(ftotal, ftorque, fglobal[3]);
+          sub3(ftotal, ftorque, fglobal[2]);
+        } else {
+          add3(ftotal, ftorque, fglobal[2]);
+          sub3(ftotal, ftorque, fglobal[3]);
+        }
+
+        scale3(0.5, fglobal[0]);
+        scale3(0.5, fglobal[1]);
+        scale3(0.5, fglobal[2]);
+        scale3(0.5, fglobal[3]);
+
+        // weight gradient terms acting on current segment
+
+        outer3(p1, dr1_sumw, temp);
+        minus3(q1_dr1_w, temp, dr1_p1);
+        outer3(p2, dr1_sumw, temp);
+        minus3(q2_dr1_w, temp, dr1_p2);
+        outer3(p1, dr2_sumw, temp);
+        minus3(q1_dr2_w, temp, dr2_p1);
+        outer3(p2, dr2_sumw, temp);
+        minus3(q2_dr2_w, temp, dr2_p2);
+
+        transpose_matvec(dr1_p1, fglobal[2], fgrad_r1_p1);
+        transpose_matvec(dr1_p2, fglobal[3], fgrad_r1_p2);
+        transpose_matvec(dr2_p1, fglobal[2], fgrad_r2_p1);
+        transpose_matvec(dr2_p2, fglobal[3], fgrad_r2_p2);
+
+        // add forces to nodes in current segment
+
+        add3(fglobal[0], f[i1], f[i1]);
+        add3(fglobal[1], f[i2], f[i2]);
+
+        scaleadd3(sumw_inv, fgrad_r1_p1, f[i1], f[i1]);
+        scaleadd3(sumw_inv, fgrad_r1_p2, f[i1], f[i1]);
+        scaleadd3(sumw_inv, fgrad_r2_p1, f[i2], f[i2]);
+        scaleadd3(sumw_inv, fgrad_r2_p2, f[i2], f[i2]);
+
+        // add forces in approximate chain
+
+        for (k = 0; k < clen - 1; k++) {
+          if (w[k] == 0.0) continue;
+          j1 = chain[j][k];
+          j2 = chain[j][k + 1];
+          j1 &= NEIGHMASK;
+          j2 &= NEIGHMASK;
+          scale = w[k] * sumw_inv;
+          scaleadd3(scale, fglobal[2], f[j1], f[j1]);
+          scaleadd3(scale, fglobal[3], f[j2], f[j2]);
         
-        scaleadd3(-scale, fvisc, f[j1], f[j1]);
-        scaleadd3(-scale, fvisc, f[j2], f[j2]);
-      }
+          // friction forces
+          
+          scaleadd3(-scale, fvisc, f[j1], f[j1]);
+          scaleadd3(-scale, fvisc, f[j2], f[j2]);
+        }
 
-      // weight gradient terms acting on approximate chain
-      // iterate over nodes instead of segments
+        // weight gradient terms acting on approximate chain
+        // iterate over nodes instead of segments
 
-      for (k = 0; k < clen; k++) {
-        if (wnode[k] == 0.0) continue;
-        j1 = chain[j][k];
-        j1 &= NEIGHMASK;
+        for (k = 0; k < clen; k++) {
+          if (wnode[k] == 0.0) continue;
+          j1 = chain[j][k];
+          j1 &= NEIGHMASK;
 
-        outer3(p1, dq_w[k], temp);
-        minus3(q1_dq_w[k], temp, dq_p1);
-        outer3(p2, dq_w[k], temp);
-        minus3(q2_dq_w[k], temp, dq_p2);
+          outer3(p1, dq_w[k], temp);
+          minus3(q1_dq_w[k], temp, dq_p1);
+          outer3(p2, dq_w[k], temp);
+          minus3(q2_dq_w[k], temp, dq_p2);
 
-        transpose_matvec(dq_p1, fglobal[2], fgrad_q_p1);
-        transpose_matvec(dq_p2, fglobal[3], fgrad_q_p2);
+          transpose_matvec(dq_p1, fglobal[2], fgrad_q_p1);
+          transpose_matvec(dq_p2, fglobal[3], fgrad_q_p2);
 
-        scaleadd3(sumw_inv, fgrad_q_p1, f[j1], f[j1]);
-        scaleadd3(sumw_inv, fgrad_q_p2, f[j1], f[j1]);
-      }
+          scaleadd3(sumw_inv, fgrad_q_p1, f[j1], f[j1]);
+          scaleadd3(sumw_inv, fgrad_q_p2, f[j1], f[j1]);
+        }
 
-      // force on node at CNT end
+        // force on node at CNT end
 
-      if (endflag) scaleadd3(0.5 * fend, m, f[endindex], f[endindex]);
+        if (endflag) scaleadd3(0.5 * fend, m, f[endindex], f[endindex]);
 
-      // compute energy
+        // compute energy
 
-      if (eflag_either) {
-        if (eflag_global) eng_vdwl += evdwl;
-        if (eflag_atom) {
-          eatom[i1] += 0.25 * evdwl;
-          eatom[i2] += 0.25 * evdwl;
-          for (k = 0; k < clen - 1; k++) {
-            if (w[k] == 0.0) continue;
-            j1 = chain[j][k];
-            j2 = chain[j][k + 1];
-            j1 &= NEIGHMASK;
-            j2 &= NEIGHMASK;
-            evdwl_chain = 0.5 * w[k] * sumw_inv * evdwl;
-            eatom[j1] += evdwl_chain;
-            eatom[j2] += evdwl_chain;
+        if (eflag_either) {
+          if (eflag_global) eng_vdwl += evdwl;
+          if (eflag_atom) {
+            eatom[i1] += 0.25 * evdwl;
+            eatom[i2] += 0.25 * evdwl;
+            for (k = 0; k < clen - 1; k++) {
+              if (w[k] == 0.0) continue;
+              j1 = chain[j][k];
+              j2 = chain[j][k + 1];
+              j1 &= NEIGHMASK;
+              j2 &= NEIGHMASK;
+              evdwl_chain = 0.5 * w[k] * sumw_inv * evdwl;
+              eatom[j1] += evdwl_chain;
+              eatom[j2] += evdwl_chain;
+            }
           }
         }
       }

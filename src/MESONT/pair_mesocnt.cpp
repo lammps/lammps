@@ -309,7 +309,7 @@ void PairMesoCNT::mesolj()
       clen = nchain[j];
       if (clen < 2) continue;
 
-      if (modelist[i][j] || true) {
+      if (modelist[i][j]) {
         for (k = 0; k < clen - 1; k++) {
           j1 = chain[j][k];
           j2 = chain[j][k + 1];
@@ -561,28 +561,58 @@ void PairMesoCNT::mesolj()
 
         // compute geometry and forces
 
-        // infinite CNT case
-
         if (endflag == 0) {
+          
+          // infinite CNT case
+          
           geometry(r1, r2, p1, p2, nullptr, p, m, param, basis);
+          
           if (param[0] > cutoff) continue;
+          double salpha = sin(param[1]);
+          double sxi1 = salpha * param[2];
+          double sxi2 = salpha * param[3];
+          double hsq = param[0] * param[0];
+          if (sxi1 * sxi1 + hsq > cutoffsq && sxi2 * sxi2 + hsq > cutoffsq)
+            continue;
+
           finf(param, evdwl, flocal);
 
-          // semi-infinite CNT case with end at start of chain
-
-        } else if (endflag == 1) {
-          geometry(r1, r2, p1, p2, qe, p, m, param, basis);
-          if (param[0] > cutoff) continue;
-          fsemi(param, evdwl, fend, flocal);
-
-          // semi-infinite CNT case with end at end of chain
-
         } else {
-          geometry(r1, r2, p2, p1, qe, p, m, param, basis);
+          
+          // semi-infinite CNT case
+          // endflag == 1: CNT end at start of chain
+          // endflag == 2: CNT end at end of chain
+        
+          if (endflag == 1) geometry(r1, r2, p1, p2, qe, p, m, param, basis);
+          else geometry(r1, r2, p2, p1, qe, p, m, param, basis);
+          
           if (param[0] > cutoff) continue;
+          double hsq = param[0] * param[0];
+          double calpha = cos(param[1]);
+          double etamin = calpha * param[2];
+          double dsq1;
+          if (etamin < param[6]) {
+            dsq1 = hsq + pow(sin(param[1]) * param[6], 2);
+            dsq1 += pow(param[2] - calpha * param[6], 2);
+          }
+          else
+            dsq1 = hsq + pow(sin(param[1]) * param[2], 2);
+          
+          etamin = calpha * param[3];
+          double dsq2;
+          if (etamin < param[6]) {
+            dsq2 = hsq + pow(sin(param[1]) * param[6], 2);
+            dsq2 += pow(param[3] - calpha * param[6], 2);
+          }
+          else
+            dsq2 = hsq + pow(sin(param[1]) * param[3], 2);
+
+          if (dsq1 > cutoffsq && dsq2 > cutoffsq) continue;
+
           fsemi(param, evdwl, fend, flocal);
         }
 
+        if (evdwl == 0.0) continue;
         evdwl *= 0.5;
 
         // transform to global coordinate system
@@ -1757,6 +1787,10 @@ void PairMesoCNT::geometry(const double *r1, const double *r2, const double *p1,
   sub3(pbar, rbar, delrbar);
 
   double h = len3(delrbar);
+  if (h > cutoff) {
+    param[0] = h;
+    return;
+  }
   if (h * ang_inv < SMALL) h = SMALL * ang;
 
   copy3(delrbar, ex);

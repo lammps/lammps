@@ -102,7 +102,7 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
       clen = nchain[j];
       if (clen < 2) continue;
 
-      if (modelist[i][j] || true) {
+      if (modelist[i][j]) {
 
         zero3(vp1);
         zero3(vp2);

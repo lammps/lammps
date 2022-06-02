@@ -38,7 +38,7 @@ class ComputeStressCartesian : public Compute {
   double bin_width1, bin_width2, invV;
 
   // Number density, kinetic and configurational contribution to the pressure.
-  double *v0x, *v0y, *v0z, *dens, *pkxx, *pkyy, *pkzz, *pcxx, *pcyy, *pczz;
+  double *dens, *pkxx, *pkyy, *pkzz, *pcxx, *pcyy, *pczz;
   double *tdens, *tpkxx, *tpkyy, *tpkzz, *tpcxx, *tpcyy, *tpczz;
   class NeighList *list;
   void compute_pressure(double, double, double, double, double, double, double, double);

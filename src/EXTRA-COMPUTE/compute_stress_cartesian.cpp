@@ -443,5 +443,5 @@ memory usage of data
 
 double ComputeStressCartesian::memory_usage()
 {
-  return (14.0 + dims + 10) * (double) (nbins1 * nbins2) * sizeof(double);
+  return (14.0 + dims + 7) * (double) (nbins1 * nbins2) * sizeof(double);
 }

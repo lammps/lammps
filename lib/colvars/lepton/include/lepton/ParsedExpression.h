@@ -106,7 +106,7 @@ public:
     /**
      * Create a CompiledVectorExpression that allows the expression to be evaluated efficiently
      * using the CPU's vector unit.
-     * 
+     *
      * @param width    the width of the vectors to evaluate it on.  The allowed values
      *                 depend on the CPU.  4 is always allowed, and 8 is allowed on
      *                 x86 processors with AVX.  Call CompiledVectorExpression::getAllowedWidths()

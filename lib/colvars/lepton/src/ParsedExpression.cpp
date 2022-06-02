@@ -152,10 +152,10 @@ ExpressionTreeNode ParsedExpression::substituteSimplerExpression(const Expressio
         else
             children[i] = cached->second;
     }
-    
+
     // Collect some info on constant expressions in children
     bool first_const = children.size() > 0 && isConstant(children[0]); // is first child constant?
-    bool second_const = children.size() > 1 && isConstant(children[1]); ; // is second child constant?   
+    bool second_const = children.size() > 1 && isConstant(children[1]); ; // is second child constant?
     double first, second; // if yes, value of first and second child
     if (first_const)
         first = getConstantValue(children[0]);
@@ -205,7 +205,7 @@ ExpressionTreeNode ParsedExpression::substituteSimplerExpression(const Expressio
             break;
         }
         case Operation::MULTIPLY:
-        {   
+        {
             if ((first_const && first == 0.0) || (second_const && second == 0.0)) // Multiply by 0
                 return ExpressionTreeNode(new Operation::Constant(0.0));
             if (first_const && first == 1.0) // Multiply by 1

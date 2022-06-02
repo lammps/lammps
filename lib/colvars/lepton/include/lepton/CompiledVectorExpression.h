@@ -59,12 +59,12 @@ class ParsedExpression;
  * vector unit (AVX on x86, NEON on ARM) to evaluate the expression for multiple sets of arguments at once.  It also differs
  * from CompiledExpression and ParsedExpression in using single precision rather than double precision to evaluate the expression.
  * You should treat it as an opaque object; none of the internal representation is visible.
- * 
+ *
  * A CompiledVectorExpression is created by calling createCompiledVectorExpression() on a ParsedExpression.  When you create
  * it, you must specify the width of the vectors on which to compute the expression.  The allowed widths depend on the type of
  * CPU it is running on.  4 is always allowed, and 8 is allowed on x86 processors with AVX.  Call getAllowedWidths() to query
  * the allowed values.
- * 
+ *
  * WARNING: CompiledVectorExpression is NOT thread safe.  You should never access a CompiledVectorExpression from two threads at
  * the same time.
  */
@@ -86,7 +86,7 @@ public:
     /**
      * Get a pointer to the memory location where the value of a particular variable is stored.  This can be used
      * to set the value of the variable before calling evaluate().
-     * 
+     *
      * @param name    the name of the variable to query
      * @return a pointer to N floating point values, where N is the vector width
      */
@@ -100,7 +100,7 @@ public:
     void setVariableLocations(std::map<std::string, float*>& variableLocations);
     /**
      * Evaluate the expression.  The values of all variables should have been set before calling this.
-     * 
+     *
      * @return a pointer to N floating point values, where N is the vector width
      */
     const float* evaluate() const;

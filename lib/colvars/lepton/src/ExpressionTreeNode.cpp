@@ -132,7 +132,7 @@ void ExpressionTreeNode::assignTags(vector<const ExpressionTreeNode*>& examples)
         child.assignTags(examples);
     if (numTags == examples.size()) {
         // All the children matched existing tags, so possibly this node does too.
-        
+
         for (int i = 0; i < examples.size(); i++) {
             const ExpressionTreeNode& example = *examples[i];
             bool matches = (getChildren().size() == example.getChildren().size() && getOperation() == example.getOperation());
@@ -145,9 +145,9 @@ void ExpressionTreeNode::assignTags(vector<const ExpressionTreeNode*>& examples)
             }
         }
     }
-    
+
     // This node does not match any previous node, so assign a new tag.
-    
+
     tag = examples.size();
     examples.push_back(this);
 }

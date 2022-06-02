@@ -56,9 +56,9 @@ class ParsedExpression;
  * A CompiledExpression is a highly optimized representation of an expression for cases when you want to evaluate
  * it many times as quickly as possible.  You should treat it as an opaque object; none of the internal representation
  * is visible.
- * 
+ *
  * A CompiledExpression is created by calling createCompiledExpression() on a ParsedExpression.
- * 
+ *
  * WARNING: CompiledExpression is NOT thread safe.  You should never access a CompiledExpression from two threads at
  * the same time.
  */

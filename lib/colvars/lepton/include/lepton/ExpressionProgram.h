@@ -67,7 +67,7 @@ public:
     const Operation& getOperation(int index) const;
     /**
      * Change an Operation in this program.
-     * 
+     *
      * The Operation must have been allocated on the heap with the "new" operator.
      * The ExpressionProgram assumes ownership of it and will delete it when it
      * is no longer needed.

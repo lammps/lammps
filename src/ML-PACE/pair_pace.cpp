@@ -180,7 +180,7 @@ void PairPACE::compute(int eflag, int vflag)
 
     try {
       aceimpl->ace->compute_atom(i, x, type, jnum, jlist);
-    } catch (exception &e) {
+    } catch (std::exception &e) {
       error->one(FLERR, e.what());
     }
 
@@ -317,7 +317,9 @@ void PairPACE::coeff(int narg, char **arg)
   for (int i = 1; i <= n; i++) {
     char *elemname = arg[2 + i];
     if (strcmp(elemname, "NULL") == 0) {
-      aceimpl->ace->element_type_mapping(i) = 0;
+      // species_type=-1 value will not reach ACE Evaluator::compute_atom,
+      // but if it will ,then error will be thrown there
+      aceimpl->ace->element_type_mapping(i) = -1;
       map[i] = -1;
       if (comm->me == 0) utils::logmesg(lmp, "Skipping LAMMPS atom type #{}(NULL)\n", i);
     } else {

@@ -24,7 +24,7 @@ checksums = { \
         'v.2021.9.28'     : 'f98363bb98adc7295ea63974738c2a1b',
         'v.2021.10.25'    : 'a2ac3315c41a1a4a5c912bcb1bc9c5cc',
         'v.2021.10.25.fix': 'e0572de57039d4afedefb25707b6ceae',
-        'v.2021.10.25.fix2': 'd1984c9d5bf88715fc20b23dcf95aa12'
+        'v.2021.10.25.fix2': '32394d799bc282bb57696c78c456e64f'
         }
 
 

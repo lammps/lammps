@@ -80,21 +80,23 @@ ComputeStressCartesian::ComputeStressCartesian(LAMMPS *lmp, int narg, char **arg
 
   dir2 = 0;
   bin_width1 = utils::numeric(FLERR, arg[4], false, lmp);
-  bin_width2 = 0.0;
+  bin_width2 = domain->boxhi[dir2]-domain->boxlo[dir2];
   nbins1 = (int) ((domain->boxhi[dir1] - domain->boxlo[dir1]) / bin_width1);
   nbins2 = 1;
+  
   // adjust bin width if not a perfect match
-  invV = (domain->boxhi[dir1] - domain->boxlo[dir1]) / nbins1;
-  if ((fabs(invV - bin_width1) > SMALL) && (comm->me == 0))
-    utils::logmesg(lmp, "Adjusting first bin width for compute {} from {:.6f} to {:.6f}\n", style,
-                   bin_width1, invV);
-  bin_width1 = invV;
+  double tmp_binwidth = (domain->boxhi[dir1] - domain->boxlo[dir1]) / nbins1;
+  if ((fabs(tmp_binwidth - bin_width1) > SMALL) && (comm->me == 0))
+    utils::logmesg(lmp, "Adjusting second bin width for compute {} from {:.6f} to {:.6f}\n",
+                   style, bin_width1, tmp_binwidth);
+  bin_width1 = tmp_binwidth;
 
   if (bin_width1 <= 0.0)
     error->all(FLERR, "Illegal compute stress/cartesian command. Bin width must be > 0");
   else if (bin_width1 > domain->boxhi[dir1] - domain->boxlo[dir1])
     error->all(FLERR, "Illegal compute stress/cartesian command. Bin width larger than box.");
-
+  
+  invV = bin_width1;
   if (dims == 2) {
     if (strcmp(arg[5], "x") == 0)
       dir2 = 0;
@@ -107,7 +109,9 @@ ComputeStressCartesian::ComputeStressCartesian(LAMMPS *lmp, int narg, char **arg
 
     bin_width2 = utils::numeric(FLERR, arg[6], false, lmp);
     nbins2 = (int) ((domain->boxhi[dir2] - domain->boxlo[dir2]) / bin_width2);
-    double tmp_binwidth = (domain->boxhi[dir2] - domain->boxlo[dir2]) / nbins2;
+    
+    // adjust bin width if not a perfect match
+    tmp_binwidth = (domain->boxhi[dir2] - domain->boxlo[dir2]) / nbins2;
     if ((fabs(tmp_binwidth - bin_width2) > SMALL) && (comm->me == 0))
       utils::logmesg(lmp, "Adjusting second bin width for compute {} from {:.6f} to {:.6f}\n",
                      style, bin_width2, tmp_binwidth);
@@ -132,6 +136,9 @@ ComputeStressCartesian::ComputeStressCartesian(LAMMPS *lmp, int narg, char **arg
   size_array_cols = 7 + dims;    // dir1, dir2, number density, pkxx, pkyy, pkzz, pcxx, pcyy, pczz
   size_array_rows = nbins1 * nbins2;
 
+  memory->create(v0x, nbins1 * nbins2, "v0x");
+  memory->create(v0y, nbins1 * nbins2, "v0y");
+  memory->create(v0z, nbins1 * nbins2, "v0z");
   memory->create(dens, nbins1 * nbins2, "dens");
   memory->create(pkxx, nbins1 * nbins2, "pkxx");
   memory->create(pkyy, nbins1 * nbins2, "pkyy");
@@ -154,6 +161,9 @@ ComputeStressCartesian::ComputeStressCartesian(LAMMPS *lmp, int narg, char **arg
 ComputeStressCartesian::~ComputeStressCartesian()
 {
   memory->destroy(dens);
+  memory->destroy(v0x);
+  memory->destroy(v0y);
+  memory->destroy(v0z);
   memory->destroy(pkxx);
   memory->destroy(pkyy);
   memory->destroy(pkzz);
@@ -230,6 +240,9 @@ void ComputeStressCartesian::compute_array()
   // Zero arrays
   for (bin = 0; bin < nbins1 * nbins2; bin++) {
     tdens[bin] = 0;
+    v0x[bin] = 0;
+    v0y[bin] = 0;
+    v0z[bin] = 0;
     tpkxx[bin] = 0;
     tpkyy[bin] = 0;
     tpkzz[bin] = 0;
@@ -237,7 +250,7 @@ void ComputeStressCartesian::compute_array()
     tpcyy[bin] = 0;
     tpczz[bin] = 0;
   }
-
+  
   // calculate number density and kinetic contribution to pressure
   for (i = 0; i < nlocal; i++) {
     bin1 = (int) (x[i][dir1] / bin_width1) % nbins1;
@@ -246,9 +259,9 @@ void ComputeStressCartesian::compute_array()
 
     j = bin1 + bin2 * nbins1;
     tdens[j] += 1;
-    tpkxx[j] += mass[type[i]] * v[i][0] * v[i][0];
-    tpkyy[j] += mass[type[i]] * v[i][1] * v[i][1];
-    tpkzz[j] += mass[type[i]] * v[i][2] * v[i][2];
+    tpkxx[j] += mass[type[i]] * (v[i][0]-v0x[j]) * (v[i][0]-v0x[j]);
+    tpkyy[j] += mass[type[i]] * (v[i][1]-v0y[j]) * (v[i][1]-v0y[j]);
+    tpkzz[j] += mass[type[i]] * (v[i][2]-v0z[j]) * (v[i][2]-v0z[j]);
   }
 
   // loop over neighbors of my atoms
@@ -314,8 +327,7 @@ void ComputeStressCartesian::compute_array()
       // Check if inside cut-off
       if (rsq >= cutsq[itype][jtype]) continue;
       pair->single(i, j, itype, jtype, rsq, factor_coul, factor_lj, fpair);
-      if (dims == 1) compute_pressure_1d(fpair, xi1, xj1, delx, dely, delz);
-      if (dims == 2) compute_pressure_2d(fpair, xi1, xi2, xj1, xj2, delx, dely, delz);
+      compute_pressure(fpair, xi1, xi2, xj1, xj2, delx, dely, delz);
     }
   }
 
@@ -353,107 +365,9 @@ void ComputeStressCartesian::compute_array()
   }
 }
 
-void ComputeStressCartesian::compute_pressure_1d(double fpair, double xi, double xj, double delx,
-                                                 double dely, double delz)
-{
-  int bin_s, bin_e, bin_step, bin, bin_limit;
-  double xa, xb;
 
-  if (xi < domain->boxlo[dir1])
-    xi += (domain->boxhi[dir1] - domain->boxlo[dir1]);
-  else if (xi > domain->boxhi[dir1])
-    xi -= (domain->boxhi[dir1] - domain->boxlo[dir1]);
-  if (xj < domain->boxlo[dir1])
-    xj += (domain->boxhi[dir1] - domain->boxlo[dir1]);
-  else if (xj > domain->boxhi[dir1])
-    xj -= (domain->boxhi[dir1] - domain->boxlo[dir1]);
-
-  // Integrating contour from bin_s to bin_e
-  bin_s = ((int) lround((xi - domain->boxlo[dir1]) / bin_width1)) % nbins1;
-  bin_e = ((int) lround((xj - domain->boxlo[dir1]) / bin_width1)) % nbins1;
-
-  // If not periodic in dir1
-  if (domain->periodicity[dir1] == 0) {
-    bin_s = ((int) lround((xi - domain->boxlo[dir1]) / bin_width1));
-    bin_e = ((int) lround((xj - domain->boxlo[dir1]) / bin_width1));
-
-    if (bin_e == nbins1) bin_e--;
-    if (bin_s == nbins1) bin_s--;
-  }
-
-  bin_step = 1;
-  if (domain->periodicity[dir1] == 1) {
-    if (bin_e - bin_s > 0.5 * nbins1)
-      bin_step = -1;
-    else if (bin_s - bin_e > 0.5 * nbins1)
-      bin_step = 1;
-    else if (bin_s > bin_e)
-      bin_step = -1;
-  } else {
-    if (bin_s > bin_e) bin_step = -1;
-  }
-  if (domain->periodicity[dir1] == 1)
-    bin_limit = (bin_e + bin_step) % nbins1 < 0 ? (bin_e + bin_step) % nbins1 + nbins1
-                                                : (bin_e + bin_step) % nbins1;
-  else
-    bin_limit = bin_e + bin_step;
-
-  bin = bin_s;
-  // Integrate from bin_s to bin_e with step bin_step.
-  while (bin < bin_limit) {
-
-    // Calculating exit and entry point (xa, xb). Checking if inside current bin.
-    if (bin == bin_s) {
-      if (domain->periodicity[dir1] == 1)
-        xa = fmod(xi, domain->boxhi[dir1]) + domain->boxlo[dir1];
-      else
-        xa = xi;
-    } else
-      xa = (bin_step == 1) ? bin * bin_width1 : (bin + 1) * bin_width1;
-    if (bin == bin_e) {
-      if (domain->periodicity[dir1] == 1)
-        xb = fmod(xj, domain->boxhi[dir1]) + domain->boxlo[dir1];
-      else
-        xb = xj;
-    } else
-      xb = (bin_step == 1) ? (bin + 1) * bin_width1 : bin * bin_width1;
-
-    if (bin < 0 || bin >= nbins1) error->all(FLERR, "ERROR: Bin outside simulation.");
-
-    if (bin_s != bin_e) {
-      if (dir1 == 0) {
-        tpcxx[bin] += (fpair * delx * delx) * (xb - xa) / delx;
-        tpcyy[bin] += (fpair * dely * dely) * (xb - xa) / delx;
-        tpczz[bin] += (fpair * delz * delz) * (xb - xa) / delx;
-      } else if (dir1 == 1) {
-        tpcxx[bin] += (fpair * delx * delx) * (xb - xa) / dely;
-        tpcyy[bin] += (fpair * dely * dely) * (xb - xa) / dely;
-        tpczz[bin] += (fpair * delz * delz) * (xb - xa) / dely;
-      } else if (dir1 == 2) {
-        tpcxx[bin] += (fpair * delx * delx) * (xb - xa) / delz;
-        tpcyy[bin] += (fpair * dely * dely) * (xb - xa) / delz;
-        tpczz[bin] += (fpair * delz * delz) * (xb - xa) / delz;
-      }
-    }
-    // Particle i and j in same bin. Avoiding zero divided by zero.
-    else {
-      tpcxx[bin] += fpair * delx * delx;
-      tpcyy[bin] += fpair * dely * dely;
-      tpczz[bin] += fpair * delz * delz;
-    }
-
-    // Stepping bin to next bin
-    if (domain->periodicity[dir1] == 1)
-      bin = (bin + bin_step) % nbins1 < 0 ? (bin + bin_step) % nbins1 + nbins1
-                                          : (bin + bin_step) % nbins1;
-    else
-      bin = bin + bin_step;
-  }
-}
-
-void ComputeStressCartesian::compute_pressure_2d(double fpair, double xi, double yi, double /*xj*/,
-                                                 double /*yj*/, double delx, double dely,
-                                                 double delz)
+void ComputeStressCartesian::compute_pressure(double fpair, double xi, double yi, double xj,
+                                                 double yj, double delx, double dely, double delz)
 {
   int bin1, bin2, next_bin1, next_bin2;
   double la = 0.0, lb = 0.0, l_sum = 0.0;
@@ -464,7 +378,7 @@ void ComputeStressCartesian::compute_pressure_2d(double fpair, double xi, double
 
   next_bin1 = (int) floor(xi / bin_width1);
   next_bin2 = (int) floor(yi / bin_width2);
-
+  
   // Integrating along line
   while (lb < 1.0) {
     bin1 = next_bin1;
@@ -529,5 +443,5 @@ memory usage of data
 
 double ComputeStressCartesian::memory_usage()
 {
-  return (14.0 + dims + 7) * (double) (nbins1 * nbins2) * sizeof(double);
+  return (14.0 + dims + 10) * (double) (nbins1 * nbins2) * sizeof(double);
 }

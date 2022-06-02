@@ -1017,7 +1017,7 @@ public:
     double evaluate(double* args, const std::map<std::string, double>& variables) const {
         if (isIntPower) {
             // Integer powers can be computed much more quickly by repeated multiplication.
-
+            
             int exponent = intValue;
             double base = args[0];
             if (exponent < 0) {

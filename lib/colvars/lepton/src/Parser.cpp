@@ -66,7 +66,7 @@ private:
 
 string Parser::trim(const string& expression) {
     // Remove leading and trailing spaces.
-
+    
     int start, end;
     for (start = 0; start < (int) expression.size() && isspace(expression[start]); start++)
         ;

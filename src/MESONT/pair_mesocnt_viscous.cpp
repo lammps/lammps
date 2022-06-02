@@ -301,6 +301,8 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           j2 &= NEIGHMASK;
           q1 = x[j1];
           q2 = x[j2];
+          vq1 = v[j1];
+          vq2 = v[j2];
 
           weight(r1, r2, q1, q2, w[k], dr1_w, dr2_w, dq1_w, dq2_w);
 
@@ -427,11 +429,11 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
         // friction forces
 
         vtot = len3(vrel);
-        if (vtot < vswitch) scale3(0.25*a1, vrel, fvisc);
+        if (vtot < vswitch) scale3(0.25 * (1 - s(sumw)) * a1, vrel, fvisc);
         else {
           fvisc_tot = b2 / vtot - a2;
           if (fvisc_tot < 0.0) zero3(fvisc);
-          else scale3(0.25*fvisc_tot, vrel, fvisc);
+          else scale3(0.25 * (1 - s(sumw)) * fvisc_tot, vrel, fvisc);
         }
 
         add3(fvisc, f[i1], f[i1]);

@@ -44,9 +44,9 @@ kdiff.py dump.water_box.hippo.32 dump.water_box.hippo.32.test
 
 # ubiquitin
 
-kdiff.py log.ubi.1 log.ubi.1.test
-kdiff.py dump.ubi.1 dump.ubi.1.test
+kdiff.py log.ubiquitin.1 log.ubiquitin.1.test
+kdiff.py dump.ubiquitin.1 dump.ubiquitin.1.test
 
-kdiff.py log.ubi.32 log.ubi.32.test
-kdiff.py dump.ubi.32 dump.ubi.32.test
+kdiff.py log.ubiquitin.32 log.ubiquitin.32.test
+kdiff.py dump.ubiquitin.32 dump.ubiquitin.32.test
 

@@ -272,7 +272,7 @@ void PairPACE::settings(int narg, char **arg)
       recursive = false;
       iarg += 1;
     } else if (strcmp(arg[iarg], "chunksize") == 0) {
-      chunksize = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      chunksize = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else
       error->all(FLERR, "Illegal pair_style command");
@@ -328,8 +328,7 @@ void PairPACE::coeff(int narg, char **arg)
 
   const int n = atom->ntypes;
   for (int i = 1; i <= n; i++) {
-    SPECIES_TYPE mu = -1;
-    char *elemname = arg[2+i];
+    char *elemname = arg[2 + i];
     if (strcmp(elemname, "NULL") == 0) {
       aceimpl->ace->element_type_mapping(i) = 0;
       map[i] = -1;
@@ -337,7 +336,7 @@ void PairPACE::coeff(int narg, char **arg)
     } else {
       int atomic_number = AtomicNumberByName_pace(elemname);
       if (atomic_number == -1) error->all(FLERR, "'{}' is not a valid element\n", elemname);
-      mu = aceimpl->basis_set->get_species_index_by_name(elemname);
+      SPECIES_TYPE mu = aceimpl->basis_set->get_species_index_by_name(elemname);
       if (mu != -1) {
         if (comm->me == 0)
           utils::logmesg(lmp, "Mapping LAMMPS atom type #{}({}) -> ACE species type #{}\n", i,
@@ -354,7 +353,7 @@ void PairPACE::coeff(int narg, char **arg)
 
   // initialize scale factor
   for (int i = 1; i <= n; i++) {
-    for (int j = i; j <= n; j++) { scale[i][j] = 1.0; }
+    for (int j = i; j <= n; j++) scale[i][j] = 1.0;
   }
 
   aceimpl->ace->set_basis(*aceimpl->basis_set, 1);

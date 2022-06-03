@@ -22,7 +22,7 @@
 
 const char *COMPRESS_SUFFIX    = nullptr;
 const char *COMPRESS_EXTENSION = nullptr;
-char *COMPRESS_BINARY          = nullptr;
+char *COMPRESS_EXECUTABLE      = nullptr;
 bool verbose                   = false;
 
 int main(int argc, char **argv)
@@ -46,7 +46,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    COMPRESS_BINARY = getenv("COMPRESS_BINARY");
+    COMPRESS_EXECUTABLE = getenv("COMPRESS_EXECUTABLE");
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

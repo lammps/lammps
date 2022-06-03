@@ -120,8 +120,6 @@ ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 3) error->all(FLERR, "Illegal compute born/matrix command");
 
-  MPI_Comm_rank(world, &me);
-
   nvalues = 21;
 
   numflag = 0;
@@ -288,8 +286,6 @@ ComputeBornMatrix::~ComputeBornMatrix()
 
 void ComputeBornMatrix::init()
 {
-  dt = update->dt;
-
   if (!numflag) {
 
     // need an occasional half neighbor list

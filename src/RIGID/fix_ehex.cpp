@@ -253,9 +253,10 @@ void FixEHEX::rescale()
 
   escale = 1. + (F * dt) / Kr;
 
-  // safety check for kinetic energy
+  // safety checks for kinetic energy rescaling
 
-  if (escale < 0.0) error->all(FLERR, "Fix ehex kinetic energy went negative");
+  if (escale < 0.0) error->all(FLERR, "Fix ehex kinetic energy went negative: {}", escale);
+  if (escale > 100.0) error->all(FLERR, "Fix ehex kinetic energy rescaling too large: {}", escale);
 
   scale = sqrt(escale);
   vsub[0] = (scale - 1.0) * vcm[0];
@@ -569,7 +570,11 @@ void FixEHEX::com_properties(double *vr, double *sfr, double *sfvr, double *K, d
 
   *mr = buf[4];
 
-  if (*mr < 1.e-14) { error->all(FLERR, "Fix ehex error mass of region is close to zero"); }
+  if (nlocal > 0)
+    mi = (rmass) ? rmass[0] : mass[type[0]];
+  else
+    mi = 1.0;
+  if ((*mr / mi) < 1.e-14)  error->all(FLERR, "Fix ehex error mass of region is close to zero");
 
   // total kinetic energy of region
 

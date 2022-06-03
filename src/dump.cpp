@@ -416,10 +416,10 @@ void Dump::write()
   // if sorting on IDs also request ID list from pack()
   // sort buf as needed
 
-  if (sort_flag && sortcol == 0) pack(ids);
+  if (sort_flag && (ntotal > 1) && sortcol == 0) pack(ids);
   else pack(nullptr);
-  if (sort_flag) sort();
-  if (balance_flag) balance();
+  if (sort_flag && (ntotal > 1)) sort();
+  if (balance_flag && (ntotal > 1)) balance();
 
   // write timestep header
   // for multiproc,

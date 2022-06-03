@@ -29,7 +29,7 @@ public:
 
 TEST_F(DumpXYZCompressTest, compressed_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "run*.melt.xyz";
     auto base_name_0       = "run0.melt.xyz";
@@ -61,7 +61,7 @@ TEST_F(DumpXYZCompressTest, compressed_run0)
 
 TEST_F(DumpXYZCompressTest, compressed_no_buffer_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "no_buffer_run*.melt.xyz";
     auto base_name_0       = "no_buffer_run0.melt.xyz";
@@ -93,7 +93,7 @@ TEST_F(DumpXYZCompressTest, compressed_no_buffer_run0)
 
 TEST_F(DumpXYZCompressTest, compressed_multi_file_run1)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "multi_file_run1_*.melt.xyz";
     auto base_name_0       = "multi_file_run1_0.melt.xyz";
@@ -133,7 +133,7 @@ TEST_F(DumpXYZCompressTest, compressed_multi_file_run1)
 
 TEST_F(DumpXYZCompressTest, compressed_multi_file_with_pad_run1)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "multi_file_pad_run1_*.melt.xyz";
     auto base_name_0       = "multi_file_pad_run1_000.melt.xyz";
@@ -174,7 +174,7 @@ TEST_F(DumpXYZCompressTest, compressed_multi_file_with_pad_run1)
 
 TEST_F(DumpXYZCompressTest, compressed_multi_file_with_maxfiles_run1)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "multi_file_maxfiles_run1_*.melt.xyz";
     auto base_name_0       = "multi_file_maxfiles_run1_0.melt.xyz";
@@ -248,7 +248,7 @@ TEST_F(DumpXYZCompressTest, compressed_modify_multi_bad_param)
 
 TEST_F(DumpXYZCompressTest, compressed_modify_clevel_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name       = "modify_clevel_run0.melt.xyz";
     auto text_file       = text_dump_filename(base_name);

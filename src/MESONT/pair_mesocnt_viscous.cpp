@@ -72,6 +72,9 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
   double **f = atom->f;
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
+  
+  int flag, cols;
+  int buckled_index = atom->find_custom("buckled", flag, cols);
 
   // update bond neighbor list when necessary
 
@@ -101,8 +104,21 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
     for (j = 0; j < numchain; j++) {
       clen = nchain[j];
       if (clen < 2) continue;
+      
+      // check if segment-segment interactions are necessary
 
-      if (modelist[i][j]) {
+      endflag = end[j];
+      int buckled = 0;
+      if (buckled_index != -1) {
+        for (k = 0; k < clen; k++) {
+          if (atom->ivector[buckled_index][chain[j][k]]) {
+            buckled = 1;
+            break;
+          }
+        }
+      }
+
+      if (buckled || endflag == 3) {
 
         zero3(vp1);
         zero3(vp2);
@@ -176,6 +192,12 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           // first force contribution
 
           fsemi(param, evdwl, fend, flocal);          
+          if (evdwl > 1.0e1) {
+            printf("high energy detected in first contribution (%f eV)\n", evdwl);
+            printf("segment1: %d %d\n", atom->tag[i1], atom->tag[i2]);
+            printf("segment2: %d %d\n", atom->tag[jj1], atom->tag[jj2]);
+            printf("param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
+          }
 
           if (evdwl == 0.0) continue;
           
@@ -211,6 +233,18 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           scaleadd3(0.5, fglobal[3], f[jj2], f[jj2]);
           scaleadd3(0.5 * fend, m, f[jj1], f[jj1]);
           
+          bool nan0 = fglobal[0][0] == fglobal[0][0];
+          bool nan1 = fglobal[1][0] == fglobal[1][0];
+          bool nan2 = fglobal[2][0] == fglobal[2][0];
+          bool nan3 = fglobal[3][0] == fglobal[3][0];
+          
+          if (!(nan0 || nan1 || nan2 || nan3)) {
+            printf("nan in segment-segment 1\n");
+            printf("segment 1: %d %d\n", atom->tag[i1], atom->tag[i2]);
+            printf("segment 2: %d %d\n", atom->tag[jj1], atom->tag[jj2]);
+            printf("param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
+          }
+          
           // add energy
 
           if (eflag_either) {
@@ -230,6 +264,13 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           param[6] += lp;
           
           fsemi(param, evdwl, fend, flocal);
+          if (evdwl > 1.0e1) {
+            printf("high energy detected in second contribution (%f eV)\n", evdwl);
+            printf("segment1: %d %d\n", atom->tag[i1], atom->tag[i2]);
+            printf("segment2: %d %d\n", atom->tag[jj1], atom->tag[jj2]);
+            printf("param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
+          }
+        
           
           if (evdwl == 0.0) continue;
 
@@ -266,6 +307,18 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           scaleadd3(0.5, fglobal[3], f[jj1], f[jj1]);
           sub3(f[jj2], fglobal[3], f[jj2]);
           scaleadd3(-0.5 * fend, m, f[jj2], f[jj2]);
+          
+          nan0 = fglobal[0][0] == fglobal[0][0];
+          nan1 = fglobal[1][0] == fglobal[1][0];
+          nan2 = fglobal[2][0] == fglobal[2][0];
+          nan3 = fglobal[3][0] == fglobal[3][0];
+
+          if (!(nan0 || nan1 || nan2 || nan3)) {
+            printf("nan in segment-segment 2\n");
+            printf("segment 1: %d %d\n", atom->tag[i1], atom->tag[i2]);
+            printf("segment 2: %d %d\n", atom->tag[jj1], atom->tag[jj2]);
+            printf("param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
+          }
 
           // add energy
 
@@ -464,6 +517,16 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           fsemi(param, evdwl, fend, flocal);
         }
 
+        if (evdwl > 1.0e1) {
+          printf("high energy detected in segment-chain interaction (%f eV)\n", evdwl);
+          printf("segment1: %d %d\n", atom->tag[i1], atom->tag[i2]);
+          printf("chain: ");
+          for (k = 0; k < clen; k++)
+            printf("%d ", atom->tag[chain[j][k]]);
+          printf("\n");
+          printf("param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
+        }
+
         if (evdwl == 0.0) continue;
         evdwl *= 0.5;
 
@@ -596,6 +659,17 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
         // force on node at CNT end
 
         if (endflag) scaleadd3(0.5 * fend, m, f[endindex], f[endindex]);
+
+        bool nan0 = fglobal[0][0] == fglobal[0][0];
+        bool nan1 = fglobal[1][0] == fglobal[1][0];
+        bool nan2 = fglobal[2][0] == fglobal[2][0];
+        bool nan3 = fglobal[3][0] == fglobal[3][0];
+
+        if (!(nan0 || nan1 || nan2 || nan3)) {
+          printf("nan in segment-chain\n");
+          printf("tags: %d %d\n", atom->tag[i1], atom->tag[i2]);
+          printf("param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
+        }
 
         // compute energy
 

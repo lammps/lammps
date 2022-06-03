@@ -84,7 +84,6 @@ PairMesoCNT::~PairMesoCNT()
     memory->destroy(numchainlist);
     memory->destroy(nchainlist);
     memory->destroy(endlist);
-    memory->destroy(modelist);
     memory->destroy(chainlist);
 
     memory->destroy(w);
@@ -133,6 +132,9 @@ void PairMesoCNT::compute(int eflag, int vflag)
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
 
+  int flag, cols;
+  int buckled_index = atom->find_custom("buckled", flag, cols);
+
   // update bond neighbor list when necessary
 
   if (update->ntimestep == neighbor->lastcall) bond_neigh();
@@ -156,8 +158,21 @@ void PairMesoCNT::compute(int eflag, int vflag)
     for (j = 0; j < numchain; j++) {
       clen = nchain[j];
       if (clen < 2) continue;
+      
+      // check if segment-segment interactions are necessary
 
-      if (modelist[i][j]) {
+      endflag = end[j];
+      int buckled = 0;
+      if (buckled_index != -1) {
+        for (k = 0; k < clen; k++) {
+          if (atom->ivector[buckled_index][chain[j][k]]) {
+            buckled = 1;
+            break;
+          }
+        }
+      }
+
+      if (buckled || endflag == 3) {
         for (k = 0; k < clen - 1; k++) {
           j1 = chain[j][k];
           j2 = chain[j][k + 1];
@@ -322,7 +337,6 @@ void PairMesoCNT::compute(int eflag, int vflag)
       else {
         // assign end position
 
-        endflag = end[j];
         if (endflag == 1) {
           endindex = chain[j][0];
           qe = x[endindex];
@@ -619,7 +633,6 @@ void PairMesoCNT::allocate()
   memory->create(numchainlist, init_size, "pair:numchainlist");
   memory->create(nchainlist, init_size, init_size, "pair:nchainlist");
   memory->create(endlist, init_size, init_size, "pair:endlist");
-  memory->create(modelist, init_size, init_size, "pair:modelist");
   memory->create(chainlist, init_size, init_size, init_size, "pair:chainlist");
 
   memory->create(w, init_size, "pair:w");
@@ -751,9 +764,6 @@ void PairMesoCNT::bond_neigh()
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
 
-  int flag, cols;
-  int buckled_index = atom->find_custom("buckled", flag, cols);
-
   comm->forward_comm(this);
 
   // create version of atom->special with local ids and correct images
@@ -813,7 +823,6 @@ void PairMesoCNT::bond_neigh()
   memory->destroy(numchainlist);
   memory->destroy(nchainlist);
   memory->destroy(endlist);
-  memory->destroy(modelist);
   memory->destroy(chainlist);
 
   // split neighbor list into neighbor chains based on bond topology
@@ -940,7 +949,6 @@ void PairMesoCNT::bond_neigh()
   // MEMORY: prevent zero-size array creation for chainlist
 
   memory->create_ragged(endlist, nbondlist, numchainlist, "pair:endlist");
-  memory->create_ragged(modelist, nbondlist, numchainlist, "pair:modelist");
   if (empty_neigh)
     memory->create(chainlist, 1, 1, 1, "pair:chainlist");
   else
@@ -969,24 +977,13 @@ void PairMesoCNT::bond_neigh()
       int cstart = chainlist[i][j][0];
       int cend = chainlist[i][j][clen-1];
 
-      modelist[i][j] = 0;
-
       bool estart = match_end(type[cstart]);
       bool eend = match_end(type[cend]);
 
-      if (estart && eend) modelist[i][j] = 1;
+      if (estart && eend) endlist[i][j] = 3;
       else if (estart) endlist[i][j] = 1;
       else if (eend) endlist[i][j] = 2;
       else endlist[i][j] = 0;
-      
-      if (buckled_index != -1) {
-        for (int k = 0; k < nchainlist[i][j]; k++) {
-          if (atom->ivector[buckled_index][chainlist[i][j][k]]) {
-            modelist[i][j] = 1;
-            break;
-          }
-        }
-      }
     }
   }
 

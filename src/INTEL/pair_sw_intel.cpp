@@ -64,12 +64,6 @@ PairSWIntel::PairSWIntel(LAMMPS *lmp) : PairSW(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-PairSWIntel::~PairSWIntel()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void PairSWIntel::compute(int eflag, int vflag)
 {
   if (fix->precision() == FixIntel::PREC_MODE_MIXED)

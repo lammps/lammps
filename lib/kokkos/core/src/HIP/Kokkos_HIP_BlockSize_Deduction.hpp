@@ -101,6 +101,10 @@ template <typename DriverType, typename LaunchBounds = Kokkos::LaunchBounds<>,
           HIPLaunchMechanism LaunchMechanism =
               DeduceHIPLaunchMechanism<DriverType>::launch_mechanism>
 hipFuncAttributes get_hip_func_attributes_impl() {
+#ifndef KOKKOS_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS
+  return HIPParallelLaunch<DriverType, LaunchBounds,
+                           LaunchMechanism>::get_hip_func_attributes();
+#else
   // FIXME_HIP - could be if constexpr for c++17
   if (!HIPParallelLaunch<DriverType, LaunchBounds,
                          LaunchMechanism>::default_launchbounds()) {
@@ -129,6 +133,7 @@ hipFuncAttributes get_hip_func_attributes_impl() {
       }
     }
   }
+#endif
 }
 
 // Given an initial block-size limitation based on register usage

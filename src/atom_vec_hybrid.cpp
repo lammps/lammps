@@ -61,10 +61,6 @@ AtomVecHybrid::~AtomVecHybrid()
 
 void AtomVecHybrid::process_args(int narg, char **arg)
 {
-  // create list of all known atom styles
-
-  build_styles();
-
   // allocate list of sub-styles as big as possibly needed if no extra args
 
   styles = new AtomVec *[narg];
@@ -85,8 +81,15 @@ void AtomVecHybrid::process_args(int narg, char **arg)
         error->all(FLERR, "Atom style hybrid cannot use same atom style twice");
     styles[nstyles] = atom->new_avec(arg[iarg], 1, dummy);
     keywords[nstyles] = utils::strdup(arg[iarg]);
+
+    // determine list of arguments for atom style settings
+    // by looking for the next known atom style name.
+
     int jarg = iarg + 1;
-    while (jarg < narg && !known_style(arg[jarg])) jarg++;
+    while ((jarg < narg) && !atom->avec_map->count(arg[jarg]) &&
+           !lmp->match_style("atom", arg[jarg]))
+      jarg++;
+
     styles[nstyles]->process_args(jarg - iarg - 1, &arg[iarg + 1]);
     iarg = jarg;
     nstyles++;
@@ -131,11 +134,6 @@ void AtomVecHybrid::process_args(int narg, char **arg)
                    "Atom style hybrid defines both, per-type "
                    "and per-atom masses; both must be set, but only "
                    "per-atom masses will be used");
-
-  // free allstyles created by build_styles()
-
-  for (int i = 0; i < nallstyles; i++) delete[] allstyles[i];
-  delete[] allstyles;
 
   // merge field strings from all sub-styles
   // save concat_grow to check for duplicates of special-case fields
@@ -479,40 +477,4 @@ void AtomVecHybrid::merge_fields(std::vector<std::string> &root,
     if (concat_flag) concat.push_back(field);
     if (std::find(root.begin(), root.end(), field) == root.end()) root.push_back(field);
   }
-}
-
-/* ----------------------------------------------------------------------
-   allstyles = list of all atom styles in this LAMMPS executable
-------------------------------------------------------------------------- */
-
-void AtomVecHybrid::build_styles()
-{
-  nallstyles = 0;
-#define ATOM_CLASS
-#define AtomStyle(key, Class) nallstyles++;
-#include "style_atom.h"    // IWYU pragma: keep
-#undef AtomStyle
-#undef ATOM_CLASS
-
-  allstyles = new char *[nallstyles];
-
-  nallstyles = 0;
-#define ATOM_CLASS
-#define AtomStyle(key, Class)                  \
-  allstyles[nallstyles] = utils::strdup(#key); \
-  nallstyles++;
-#include "style_atom.h"    // IWYU pragma: keep
-#undef AtomStyle
-#undef ATOM_CLASS
-}
-
-/* ----------------------------------------------------------------------
-   allstyles = list of all known atom styles
-------------------------------------------------------------------------- */
-
-int AtomVecHybrid::known_style(char *str)
-{
-  for (int i = 0; i < nallstyles; i++)
-    if (strcmp(str, allstyles[i]) == 0) return 1;
-  return 0;
 }

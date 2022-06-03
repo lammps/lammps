@@ -54,7 +54,7 @@ namespace /* anonymous */
 {
 
 typedef double TimerType;
-TimerType getTimeStamp(void) { return platform::walltime(); }
+TimerType getTimeStamp() { return platform::walltime(); }
 double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0; }
 
 } // end namespace
@@ -361,8 +361,6 @@ void FixRxKokkos<DeviceType>::k_rkf45_step (const int neq, const double h, Vecto
     //y_out[k] = y[k] + r5; // Local extrapolation
       y_out[k] = y[k] + r4;
    }
-
-   return;
 }
 
 template <typename DeviceType>
@@ -398,7 +396,7 @@ int FixRxKokkos<DeviceType>::k_rkf45_h0 (const int neq, const double t, const do
    // compute ydot at t=t0
    k_rhs (t, y, ydot, userData);
 
-   while (1)
+   while (true)
    {
       // Estimate y'' with finite-difference ...
 
@@ -682,8 +680,6 @@ void FixRxKokkos<DeviceType>::rkf45_step (const int neq, const double h, double 
     //y_out[k] = y[k] + r5; // Local extrapolation
       y_out[k] = y[k] + r4;
    }
-
-   return;
 }
 
 template <typename DeviceType>
@@ -717,7 +713,7 @@ int FixRxKokkos<DeviceType>::rkf45_h0(const int neq, const double t, const doubl
    // compute ydot at t=t0
    rhs (t, y, ydot, v_params);
 
-   while (1)
+   while (true)
    {
       // Estimate y'' with finite-difference ...
 
@@ -1217,7 +1213,7 @@ void FixRxKokkos<DeviceType>::operator()(SolverType, const int &i) const
 /* ---------------------------------------------------------------------- */
 
 template <typename DeviceType>
-void FixRxKokkos<DeviceType>::create_kinetics_data(void)
+void FixRxKokkos<DeviceType>::create_kinetics_data()
 {
   //printf("Inside FixRxKokkos::create_kinetics_data\n");
 
@@ -1426,7 +1422,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int /*vflag*/, const bool is
   const int newton_pair = force->newton_pair;
 
   // Set the forward rates to zero if acting as setup_pre_force.
-  const bool setRatesToZero = (isPreForce == false);
+  const bool setRatesToZero = (!isPreForce);
 
   if (localTempFlag)
   {
@@ -1695,7 +1691,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int /*vflag*/, const bool is
 /* ---------------------------------------------------------------------- */
 
 template <typename DeviceType>
-void FixRxKokkos<DeviceType>::odeDiagnostics(void)
+void FixRxKokkos<DeviceType>::odeDiagnostics()
 {
   TimerType timer_start = getTimeStamp();
 
@@ -1875,8 +1871,6 @@ void FixRxKokkos<DeviceType>::odeDiagnostics(void)
   // Reset the counters.
   for (int i = 0; i < numDiagnosticCounters; ++i)
     diagnosticCounter[i] = 0;
-
-  return;
 }
 
 /* ---------------------------------------------------------------------- */

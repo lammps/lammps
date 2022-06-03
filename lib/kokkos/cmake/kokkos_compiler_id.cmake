@@ -20,31 +20,36 @@ MACRO(kokkos_internal_have_compiler_nvcc)
 ENDMACRO()
 
 IF(Kokkos_ENABLE_CUDA)
-  # find kokkos_launch_compiler
-  FIND_PROGRAM(Kokkos_COMPILE_LAUNCHER
-      NAMES           kokkos_launch_compiler
-      HINTS           ${PROJECT_SOURCE_DIR}
-      PATHS           ${PROJECT_SOURCE_DIR}
-      PATH_SUFFIXES   bin)
+  # kokkos_enable_options is not yet called so use lower case here
+  IF(Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
+    kokkos_internal_have_compiler_nvcc(${CMAKE_CUDA_COMPILER})
+  ELSE()
+    # find kokkos_launch_compiler
+    FIND_PROGRAM(Kokkos_COMPILE_LAUNCHER
+        NAMES           kokkos_launch_compiler
+        HINTS           ${PROJECT_SOURCE_DIR}
+        PATHS           ${PROJECT_SOURCE_DIR}
+        PATH_SUFFIXES   bin)
 
-  FIND_PROGRAM(Kokkos_NVCC_WRAPPER
-      NAMES           nvcc_wrapper
-      HINTS           ${PROJECT_SOURCE_DIR}
-      PATHS           ${PROJECT_SOURCE_DIR}
-      PATH_SUFFIXES   bin)
+    FIND_PROGRAM(Kokkos_NVCC_WRAPPER
+        NAMES           nvcc_wrapper
+        HINTS           ${PROJECT_SOURCE_DIR}
+        PATHS           ${PROJECT_SOURCE_DIR}
+        PATH_SUFFIXES   bin)
 
-  # check if compiler was set to nvcc_wrapper
-  kokkos_internal_have_compiler_nvcc(${CMAKE_CXX_COMPILER})
-  # if launcher was found and nvcc_wrapper was not specified as
-  # compiler, set to use launcher. Will ensure CMAKE_CXX_COMPILER
-  # is replaced by nvcc_wrapper
-  IF(Kokkos_COMPILE_LAUNCHER AND NOT INTERNAL_HAVE_COMPILER_NVCC AND NOT KOKKOS_CXX_COMPILER_ID STREQUAL Clang)
-    # the first argument to launcher is always the C++ compiler defined by cmake
-    # if the second argument matches the C++ compiler, it forwards the rest of the
-    # args to nvcc_wrapper
-    kokkos_internal_have_compiler_nvcc(
-      ${Kokkos_COMPILE_LAUNCHER} ${Kokkos_NVCC_WRAPPER} ${CMAKE_CXX_COMPILER} ${CMAKE_CXX_COMPILER} -DKOKKOS_DEPENDENCE)
-    SET(INTERNAL_USE_COMPILER_LAUNCHER true)
+    # check if compiler was set to nvcc_wrapper
+    kokkos_internal_have_compiler_nvcc(${CMAKE_CXX_COMPILER})
+    # if launcher was found and nvcc_wrapper was not specified as
+    # compiler, set to use launcher. Will ensure CMAKE_CXX_COMPILER
+    # is replaced by nvcc_wrapper
+    IF(Kokkos_COMPILE_LAUNCHER AND NOT INTERNAL_HAVE_COMPILER_NVCC AND NOT KOKKOS_CXX_COMPILER_ID STREQUAL Clang)
+      # the first argument to launcher is always the C++ compiler defined by cmake
+      # if the second argument matches the C++ compiler, it forwards the rest of the
+      # args to nvcc_wrapper
+      kokkos_internal_have_compiler_nvcc(
+        ${Kokkos_COMPILE_LAUNCHER} ${Kokkos_NVCC_WRAPPER} ${CMAKE_CXX_COMPILER} ${CMAKE_CXX_COMPILER} -DKOKKOS_DEPENDENCE)
+      SET(INTERNAL_USE_COMPILER_LAUNCHER true)
+    ENDIF()
   ENDIF()
 ENDIF()
 
@@ -102,6 +107,11 @@ IF(KOKKOS_CXX_COMPILER_ID STREQUAL Clang)
   IF (INTERNAL_HAVE_INTEL_COMPILER) #not actually Clang
     SET(KOKKOS_CLANG_IS_INTEL TRUE)
     SET(KOKKOS_CXX_COMPILER_ID IntelLLVM CACHE STRING INTERNAL FORCE)
+    EXECUTE_PROCESS(COMMAND ${CMAKE_CXX_COMPILER} --version
+                  OUTPUT_VARIABLE INTERNAL_CXX_COMPILER_VERSION
+                  OUTPUT_STRIP_TRAILING_WHITESPACE)
+    STRING(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+"
+           KOKKOS_CXX_COMPILER_VERSION ${INTERNAL_CXX_COMPILER_VERSION})
   ENDIF()
 ENDIF()
 
@@ -133,12 +143,14 @@ ENDIF()
 
 # Enforce the minimum compilers supported by Kokkos.
 SET(KOKKOS_MESSAGE_TEXT "Compiler not supported by Kokkos.  Required compiler versions:")
-SET(KOKKOS_MESSAGE_TEXT "${KOKKOS_MESSAGE_TEXT}\n    Clang      4.0.0 or higher")
-SET(KOKKOS_MESSAGE_TEXT "${KOKKOS_MESSAGE_TEXT}\n    GCC        5.3.0 or higher")
-SET(KOKKOS_MESSAGE_TEXT "${KOKKOS_MESSAGE_TEXT}\n    Intel     17.0.0 or higher")
-SET(KOKKOS_MESSAGE_TEXT "${KOKKOS_MESSAGE_TEXT}\n    NVCC      9.2.88 or higher")
-SET(KOKKOS_MESSAGE_TEXT "${KOKKOS_MESSAGE_TEXT}\n    HIPCC      4.2.0 or higher")
-SET(KOKKOS_MESSAGE_TEXT "${KOKKOS_MESSAGE_TEXT}\n    PGI         17.4 or higher\n")
+SET(KOKKOS_MESSAGE_TEXT "${KOKKOS_MESSAGE_TEXT}\n    Clang        4.0.0 or higher")
+SET(KOKKOS_MESSAGE_TEXT "${KOKKOS_MESSAGE_TEXT}\n    GCC          5.3.0 or higher")
+SET(KOKKOS_MESSAGE_TEXT "${KOKKOS_MESSAGE_TEXT}\n    Intel       17.0.0 or higher")
+SET(KOKKOS_MESSAGE_TEXT "${KOKKOS_MESSAGE_TEXT}\n    IntelLLVM 2022.0.0 or higher")
+SET(KOKKOS_MESSAGE_TEXT "${KOKKOS_MESSAGE_TEXT}\n    NVCC        9.2.88 or higher")
+SET(KOKKOS_MESSAGE_TEXT "${KOKKOS_MESSAGE_TEXT}\n    HIPCC        4.5.0 or higher")
+SET(KOKKOS_MESSAGE_TEXT "${KOKKOS_MESSAGE_TEXT}\n    PGI           17.4 or higher")
+SET(KOKKOS_MESSAGE_TEXT "${KOKKOS_MESSAGE_TEXT}\nCompiler: ${KOKKOS_CXX_COMPILER_ID} ${KOKKOS_CXX_COMPILER_VERSION}\n")
 
 IF(KOKKOS_CXX_COMPILER_ID STREQUAL Clang)
   IF(KOKKOS_CXX_COMPILER_VERSION VERSION_LESS 4.0.0)
@@ -152,13 +164,18 @@ ELSEIF(KOKKOS_CXX_COMPILER_ID STREQUAL Intel)
   IF(KOKKOS_CXX_COMPILER_VERSION VERSION_LESS 17.0.0)
     MESSAGE(FATAL_ERROR "${KOKKOS_MESSAGE_TEXT}")
   ENDIF()
+ELSEIF(KOKKOS_CXX_COMPILER_ID STREQUAL IntelLLVM AND Kokkos_ENABLE_SYCL)
+  IF(KOKKOS_CXX_COMPILER_VERSION VERSION_LESS 2022.0.0)
+    MESSAGE(FATAL_ERROR "${KOKKOS_MESSAGE_TEXT}")
+  ENDIF()
 ELSEIF(KOKKOS_CXX_COMPILER_ID STREQUAL NVIDIA)
   IF(KOKKOS_CXX_COMPILER_VERSION VERSION_LESS 9.2.88)
     MESSAGE(FATAL_ERROR "${KOKKOS_MESSAGE_TEXT}")
   ENDIF()
   SET(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Kokkos turns off CXX extensions" FORCE)
 ELSEIF(KOKKOS_CXX_COMPILER_ID STREQUAL HIPCC)
-  IF(KOKKOS_CXX_COMPILER_VERSION VERSION_LESS 4.2.0)
+  # Note that ROCm 4.5 reports as version 4.4
+  IF(KOKKOS_CXX_COMPILER_VERSION VERSION_LESS 4.4.0)
     MESSAGE(FATAL_ERROR "${KOKKOS_MESSAGE_TEXT}")
   ENDIF()
 ELSEIF(KOKKOS_CXX_COMPILER_ID STREQUAL PGI)

@@ -186,7 +186,7 @@ FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) :
   if (atom->tag_consecutive() == 0)
     error->all(FLERR,"Fix ipi requires consecutive atom IDs");
 
-  if (strcmp(arg[1],"all"))
+  if (strcmp(arg[1],"all") != 0)
     error->warning(FLERR,"Fix ipi always uses group all");
 
   host = strdup(arg[3]);

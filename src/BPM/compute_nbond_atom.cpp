@@ -20,7 +20,7 @@
 #include "memory.h"
 #include "update.h"
 
-#include <string.h>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

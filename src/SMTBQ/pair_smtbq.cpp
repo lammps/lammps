@@ -3844,8 +3844,6 @@ void PairSMTBQ::gammas(double &na, double &nb, double &za, double &zb, double &r
   d2zra=d2zra*trm3+rfct1*dgam;
   d2zrb=d2zrb*trm3;
   d2gamr2=d2gamr2*trm3;
-  return;
-
 }
 /* --------------------------------------------------------------------------------
    Css
@@ -4010,8 +4008,6 @@ void PairSMTBQ::css(double &s, double nn1, double nn2, double alpha, double beta
 
   memory->destroy(a);
   memory->destroy(b);
-
-  return;
 }
 /* -------------------------------------------------------------------------------
    coeffs
@@ -4063,7 +4059,6 @@ void PairSMTBQ::caintgs (double x, int k, double *a)
   for (i = 1; i <= k; i++) {
     a[i+1]=(a[i]*static_cast<double>(i)+cste)*rx;
   }
-  return;
 }
 /* -----------------------------------------------------------------------------------
    Cbintgs

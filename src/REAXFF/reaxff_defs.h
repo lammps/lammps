@@ -56,6 +56,8 @@
 #define REAX_MAX_3BODY_PARAM 5
 #define REAX_MAX_4BODY_PARAM 5
 
+#define MIN_SINE 1e-10
+
 namespace ReaxFF {
 /******************* ENUMERATORS *************************/
 enum { BONDS, THREE_BODIES, HBONDS, FAR_NBRS, LIST_N };

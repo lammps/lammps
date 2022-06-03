@@ -123,6 +123,60 @@ template <class> struct norm_min_helper {};
 template <> struct norm_min_helper<float> { static constexpr float value = FLT_MIN; };
 template <> struct norm_min_helper<double> { static constexpr double value = DBL_MIN; };
 template <> struct norm_min_helper<long double> { static constexpr long double value = LDBL_MIN; };
+template <class> struct denorm_min_helper {};
+//                               Workaround for GCC <9.2, Clang <9, Intel
+//                               vvvvvvvvvvvvvvvvvvvvvvvvv
+#if defined(KOKKOS_ENABLE_CXX17) && defined (FLT_TRUE_MIN) || defined(_MSC_VER)
+template <> struct denorm_min_helper<float> { static constexpr float value = FLT_TRUE_MIN; };
+template <> struct denorm_min_helper<double> { static constexpr double value = DBL_TRUE_MIN; };
+template <> struct denorm_min_helper<long double> { static constexpr long double value = LDBL_TRUE_MIN; };
+#else
+template <> struct denorm_min_helper<float> { static constexpr float value = __FLT_DENORM_MIN__; };
+template <> struct denorm_min_helper<double> { static constexpr double value = __DBL_DENORM_MIN__; };
+template <> struct denorm_min_helper<long double> { static constexpr long double value = __LDBL_DENORM_MIN__; };
+#endif
+// GCC <10.3 is not able to evaluate T(1) / finite_max_v<T> at compile time when passing -frounding-math
+// https://godbolt.org/z/zj9svb1T7
+// Similar issue was reported on IBM Power without the compiler option
+#define KOKKOS_IMPL_WORKAROUND_CONSTANT_EXPRESSION_COMPILER_BUG
+#ifndef KOKKOS_IMPL_WORKAROUND_CONSTANT_EXPRESSION_COMPILER_BUG
+// NOTE see ?lamch routine from LAPACK that determines machine parameters for floating-point arithmetic
+template <class T>
+constexpr T safe_minimum(T /*ignored*/) {
+  constexpr auto one  = static_cast<T>(1);
+  constexpr auto eps  = epsilon_helper<T>::value;
+  constexpr auto tiny = norm_min_helper<T>::value;
+  constexpr auto huge = finite_max_helper<T>::value;
+  constexpr auto small = one / huge;  // error: is not a constant expression
+  return small >= tiny ? small * (one + eps) : tiny;
+}
+template <class> struct reciprocal_overflow_threshold_helper {};
+template <> struct reciprocal_overflow_threshold_helper<float> { static constexpr float value = safe_minimum(0.f); };
+template <> struct reciprocal_overflow_threshold_helper<double> { static constexpr double value = safe_minimum(0.); };
+template <> struct reciprocal_overflow_threshold_helper<long double> { static constexpr long double value = safe_minimum(0.l); };
+#else
+template <class> struct reciprocal_overflow_threshold_helper {};
+template <> struct reciprocal_overflow_threshold_helper<float> { static constexpr float value = norm_min_helper<float>::value; };  // OK for IEEE-754 floating-point numbers
+template <> struct reciprocal_overflow_threshold_helper<double> { static constexpr double value = norm_min_helper<double>::value; };
+template <> struct reciprocal_overflow_threshold_helper<long double> { static constexpr long double value = norm_min_helper<long double>::value; };
+#endif
+#undef KOKKOS_IMPL_WORKAROUND_CONSTANT_EXPRESSION_COMPILER_BUG
+template <class> struct quiet_NaN_helper {};
+template <> struct quiet_NaN_helper<float> { static constexpr float value = __builtin_nanf(""); };
+template <> struct quiet_NaN_helper<double> { static constexpr double value = __builtin_nan(""); };
+#if defined(_MSC_VER)
+template <> struct quiet_NaN_helper<long double> { static constexpr long double value = __builtin_nan(""); };
+#else
+template <> struct quiet_NaN_helper<long double> { static constexpr long double value = __builtin_nanl(""); };
+#endif
+template <class> struct signaling_NaN_helper {};
+template <> struct signaling_NaN_helper<float> { static constexpr float value = __builtin_nansf(""); };
+template <> struct signaling_NaN_helper<double> { static constexpr double value = __builtin_nans(""); };
+#if defined(_MSC_VER)
+template <> struct signaling_NaN_helper<long double> { static constexpr long double value = __builtin_nans(""); };
+#else
+template <> struct signaling_NaN_helper<long double> { static constexpr long double value = __builtin_nansl(""); };
+#endif
 template <class> struct digits_helper {};
 template <> struct digits_helper<bool> { static constexpr int value = 1; };
 template <> struct digits_helper<char> { static constexpr int value = CHAR_BIT - std::is_signed<char>::value; };
@@ -219,15 +273,15 @@ template <> struct max_exponent10_helper<long double> { static constexpr int val
 }  // namespace Impl
 
 #if defined(KOKKOS_ENABLE_CXX17)
-#define KOKKOS_IMPL_DEFINE_TRAIT(TRAIT)      \
-  template <class T>                         \
-  struct TRAIT : Impl::TRAIT##_helper<T> {}; \
-  template <class T>                         \
+#define KOKKOS_IMPL_DEFINE_TRAIT(TRAIT)                        \
+  template <class T>                                           \
+  struct TRAIT : Impl::TRAIT##_helper<std::remove_cv_t<T>> {}; \
+  template <class T>                                           \
   inline constexpr auto TRAIT##_v = TRAIT<T>::value;
 #else
 #define KOKKOS_IMPL_DEFINE_TRAIT(TRAIT) \
   template <class T>                    \
-  struct TRAIT : Impl::TRAIT##_helper<T> {};
+  struct TRAIT : Impl::TRAIT##_helper<std::remove_cv_t<T>> {};
 #endif
 
 // Numeric distinguished value traits
@@ -237,6 +291,10 @@ KOKKOS_IMPL_DEFINE_TRAIT(finite_max)
 KOKKOS_IMPL_DEFINE_TRAIT(epsilon)
 KOKKOS_IMPL_DEFINE_TRAIT(round_error)
 KOKKOS_IMPL_DEFINE_TRAIT(norm_min)
+KOKKOS_IMPL_DEFINE_TRAIT(denorm_min)
+KOKKOS_IMPL_DEFINE_TRAIT(reciprocal_overflow_threshold)
+KOKKOS_IMPL_DEFINE_TRAIT(quiet_NaN)
+KOKKOS_IMPL_DEFINE_TRAIT(signaling_NaN)
 
 // Numeric characteristics traits
 KOKKOS_IMPL_DEFINE_TRAIT(digits)
@@ -303,6 +361,16 @@ struct reduction_identity<signed char> {
   }
   KOKKOS_FORCEINLINE_FUNCTION constexpr static signed char land() {
     return static_cast<signed char>(1);
+  }
+};
+
+template <>
+struct reduction_identity<bool> {
+  KOKKOS_FORCEINLINE_FUNCTION constexpr static bool lor() {
+    return static_cast<bool>(false);
+  }
+  KOKKOS_FORCEINLINE_FUNCTION constexpr static bool land() {
+    return static_cast<bool>(true);
   }
 };
 
@@ -570,24 +638,15 @@ struct reduction_identity<double> {
   KOKKOS_FORCEINLINE_FUNCTION constexpr static double min() { return DBL_MAX; }
 };
 
-#if !defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA) && \
-    !defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HIP_GPU)
+// No __host__ __device__ annotation because long double treated as double in
+// device code.  May be revisited later if that is not true any more.
 template <>
 struct reduction_identity<long double> {
-  KOKKOS_FORCEINLINE_FUNCTION constexpr static long double sum() {
-    return static_cast<long double>(0.0);
-  }
-  KOKKOS_FORCEINLINE_FUNCTION constexpr static long double prod() {
-    return static_cast<long double>(1.0);
-  }
-  KOKKOS_FORCEINLINE_FUNCTION constexpr static long double max() {
-    return -LDBL_MAX;
-  }
-  KOKKOS_FORCEINLINE_FUNCTION constexpr static long double min() {
-    return LDBL_MAX;
-  }
+  constexpr static long double sum() { return static_cast<long double>(0.0); }
+  constexpr static long double prod() { return static_cast<long double>(1.0); }
+  constexpr static long double max() { return -LDBL_MAX; }
+  constexpr static long double min() { return LDBL_MAX; }
 };
-#endif
 
 }  // namespace Kokkos
 

@@ -432,8 +432,8 @@ void ComputeBasalAtom::compute_peratom()
    2nd routine sorts auxiliary array at same time
 ------------------------------------------------------------------------- */
 
-#define SWAP(a,b)   tmp = a; a = b; b = tmp;
-#define ISWAP(a,b) itmp = a; a = b; b = itmp;
+#define SWAP(a,b)   tmp = a; (a) = b; (b) = tmp;
+#define ISWAP(a,b) itmp = a; (a) = b; (b) = itmp;
 
 void ComputeBasalAtom::select(int k, int n, double *arr)
   {

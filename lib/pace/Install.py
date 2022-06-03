@@ -15,14 +15,16 @@ from install_helpers import fullpath, geturl, checkmd5sum
 # settings
 
 thisdir = fullpath('.')
-version = 'v.2021.10.25'
+version = 'v.2021.10.25.fix2'
 
 # known checksums for different PACE versions. used to validate the download.
 checksums = { \
         'v.2021.2.3.upd2' : '8fd1162724d349b930e474927197f20d',
         'v.2021.4.9'      : '4db54962fbd6adcf8c18d46e1798ceb5',
         'v.2021.9.28'     : 'f98363bb98adc7295ea63974738c2a1b',
-        'v.2021.10.25'    : 'a2ac3315c41a1a4a5c912bcb1bc9c5cc'
+        'v.2021.10.25'    : 'a2ac3315c41a1a4a5c912bcb1bc9c5cc',
+        'v.2021.10.25.fix': 'e0572de57039d4afedefb25707b6ceae',
+        'v.2021.10.25.fix2': '32394d799bc282bb57696c78c456e64f'
         }
 
 

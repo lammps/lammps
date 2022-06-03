@@ -91,9 +91,8 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::init_style()
 {
   if (host_flag) {
     if (lmp->kokkos->nthreads > 1)
-      if (comm->me == 0)
-        utils::logmesg(lmp,"Pair style snap/kk currently only runs on a single "
-                           "CPU thread, even if more threads are requested\n");
+      error->all(FLERR,"Pair style snap/kk can currently only run on a single "
+                         "CPU thread");
 
     PairSNAP::init_style();
     return;
@@ -207,10 +206,10 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::compute(int eflag_in,
 
   if (beta_max < inum) {
     beta_max = inum;
-    d_beta = Kokkos::View<real_type**, DeviceType>("PairSNAPKokkos:beta",ncoeff,inum);
+    MemKK::realloc_kokkos(d_beta,"PairSNAPKokkos:beta",ncoeff,inum);
     if (!host_flag)
-      d_beta_pack = Kokkos::View<real_type***, Kokkos::LayoutLeft, DeviceType>("PairSNAPKokkos:beta_pack",vector_length,ncoeff,(inum + vector_length - 1) / vector_length);
-    d_ninside = Kokkos::View<int*, DeviceType>("PairSNAPKokkos:ninside",inum);
+      MemKK::realloc_kokkos(d_beta_pack,"PairSNAPKokkos:beta_pack",vector_length,ncoeff,(inum + vector_length - 1) / vector_length);
+    MemKK::realloc_kokkos(d_ninside,"PairSNAPKokkos:ninside",inum);
   }
 
   chunk_size = MIN(chunksize,inum); // "chunksize" variable is set by user
@@ -546,7 +545,7 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::allocate()
   PairSNAP::allocate();
 
   int n = atom->ntypes;
-  d_map = Kokkos::View<T_INT*, DeviceType>("PairSNAPKokkos::map",n+1);
+  MemKK::realloc_kokkos(d_map,"PairSNAPKokkos::map",n+1);
 }
 
 
@@ -575,11 +574,11 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::coeff(int narg, char 
 
   // Set up element lists
 
-  d_radelem = Kokkos::View<real_type*, DeviceType>("pair:radelem",nelements);
-  d_wjelem = Kokkos::View<real_type*, DeviceType>("pair:wjelem",nelements);
-  d_coeffelem = Kokkos::View<real_type**, Kokkos::LayoutRight, DeviceType>("pair:coeffelem",nelements,ncoeffall);
-  d_sinnerelem = Kokkos::View<real_type*, DeviceType>("pair:sinnerelem",nelements);
-  d_dinnerelem = Kokkos::View<real_type*, DeviceType>("pair:dinnerelem",nelements);
+  MemKK::realloc_kokkos(d_radelem,"pair:radelem",nelements);
+  MemKK::realloc_kokkos(d_wjelem,"pair:wjelem",nelements);
+  MemKK::realloc_kokkos(d_coeffelem,"pair:coeffelem",nelements,ncoeffall);
+  MemKK::realloc_kokkos(d_sinnerelem,"pair:sinnerelem",nelements);
+  MemKK::realloc_kokkos(d_dinnerelem,"pair:dinnerelem",nelements);
 
   auto h_radelem = Kokkos::create_mirror_view(d_radelem);
   auto h_wjelem = Kokkos::create_mirror_view(d_wjelem);
@@ -1412,12 +1411,16 @@ template<class DeviceType, typename real_type, int vector_length>
 double PairSNAPKokkos<DeviceType, real_type, vector_length>::memory_usage()
 {
   double bytes = Pair::memory_usage();
-  int n = atom->ntypes+1;
-  bytes += n*n*sizeof(int);
-  bytes += n*n*sizeof(real_type);
-  bytes += (2*ncoeffall)*sizeof(real_type);
-  bytes += (ncoeff*3)*sizeof(real_type);
-  bytes += snaKK.memory_usage();
+  bytes += MemKK::memory_usage(d_beta);
+  if (!host_flag)
+    bytes += MemKK::memory_usage(d_beta_pack);
+  bytes += MemKK::memory_usage(d_ninside);
+  bytes += MemKK::memory_usage(d_map);
+  bytes += MemKK::memory_usage(d_radelem);
+  bytes += MemKK::memory_usage(d_wjelem);
+  bytes += MemKK::memory_usage(d_coeffelem);
+  bytes += MemKK::memory_usage(d_sinnerelem);
+  bytes += MemKK::memory_usage(d_dinnerelem);
   return bytes;
 }
 

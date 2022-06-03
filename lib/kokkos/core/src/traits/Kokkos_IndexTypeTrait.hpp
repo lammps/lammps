@@ -67,6 +67,7 @@ struct IndexTypeTrait : TraitSpecificationBase<IndexTypeTrait> {
   struct base_traits {
     static constexpr bool index_type_is_defaulted = true;
     using index_type = dependent_policy_trait_default;
+    KOKKOS_IMPL_MSVC_NVCC_EBO_WORKAROUND
   };
   template <class IdxType, class AnalyzeNextTrait>
   using mixin_matching_trait = IndexTypePolicyMixin<IdxType, AnalyzeNextTrait>;

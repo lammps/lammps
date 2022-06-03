@@ -13,6 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author (ratio and subset) : Jake Gissinger (U Colorado)
+   Contributing author (maxtry & overlap) : Eugen Rozic (IRB, Zagreb)
 ------------------------------------------------------------------------- */
 
 #include "create_atoms.h"
@@ -34,22 +35,30 @@
 #include "random_park.h"
 #include "region.h"
 #include "special.h"
+#include "text_file_reader.h"
 #include "variable.h"
 
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::MY_2PI;
+using MathConst::MY_PI;
+using MathConst::THIRD;
 
-#define BIG 1.0e30
-#define EPSILON 1.0e-6
-#define LB_FACTOR 1.1
+static constexpr double BIG = 1.0e30;
+static constexpr double EPSILON = 1.0e-6;
+static constexpr double LB_FACTOR = 1.1;
+static constexpr double INV_P_CONST = 0.7548777;
+static constexpr double INV_SQ_P_CONST = 0.5698403;
+static constexpr int DEFAULT_MAXTRY = 1000;
 
-enum { BOX, REGION, SINGLE, RANDOM };
+enum { BOX, REGION, SINGLE, RANDOM, MESH };
 enum { ATOM, MOLECULE };
 enum { COUNT, INSERT, INSERT_SELECTED };
 enum { NONE, RATIO, SUBSET };
+enum { BISECTION, QUASIRANDOM };
 
+static constexpr const char *mesh_name[] = {"recursive bisection", "quasi-random"};
 /* ---------------------------------------------------------------------- */
 
 CreateAtoms::CreateAtoms(LAMMPS *lmp) : Command(lmp), basistype(nullptr) {}
@@ -61,9 +70,7 @@ void CreateAtoms::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all(FLERR, "Create_atoms command before simulation box is defined");
   if (modify->nfix_restart_peratom)
-    error->all(FLERR,
-               "Cannot create_atoms after "
-               "reading restart file with per-atom info");
+    error->all(FLERR, "Cannot create_atoms after reading restart file with per-atom info");
 
   // check for compatible lattice
 
@@ -79,9 +86,10 @@ void CreateAtoms::command(int narg, char **arg)
 
   // parse arguments
 
-  if (narg < 2) error->all(FLERR, "Illegal create_atoms command");
+  if (narg < 2) utils::missing_cmd_args(FLERR, "create_atoms", error);
   ntype = utils::inumeric(FLERR, arg[0], false, lmp);
 
+  const char *meshfile;
   int iarg;
   if (strcmp(arg[1], "box") == 0) {
     style = BOX;
@@ -89,25 +97,26 @@ void CreateAtoms::command(int narg, char **arg)
     region = nullptr;
   } else if (strcmp(arg[1], "region") == 0) {
     style = REGION;
-    if (narg < 3) error->all(FLERR, "Illegal create_atoms command");
+    if (narg < 3) utils::missing_cmd_args(FLERR, "create_atoms region", error);
     region = domain->get_region_by_id(arg[2]);
     if (!region) error->all(FLERR, "Create_atoms region {} does not exist", arg[2]);
     region->init();
     region->prematch();
     iarg = 3;
-    ;
   } else if (strcmp(arg[1], "single") == 0) {
     style = SINGLE;
-    if (narg < 5) error->all(FLERR, "Illegal create_atoms command");
+    if (narg < 5) utils::missing_cmd_args(FLERR, "create_atoms single", error);
     xone[0] = utils::numeric(FLERR, arg[2], false, lmp);
     xone[1] = utils::numeric(FLERR, arg[3], false, lmp);
     xone[2] = utils::numeric(FLERR, arg[4], false, lmp);
     iarg = 5;
   } else if (strcmp(arg[1], "random") == 0) {
     style = RANDOM;
-    if (narg < 5) error->all(FLERR, "Illegal create_atoms command");
+    if (narg < 5) utils::missing_cmd_args(FLERR, "create_atoms random", error);
     nrandom = utils::inumeric(FLERR, arg[2], false, lmp);
+    if (nrandom < 0) error->all(FLERR, "Illegal create_atoms number of random atoms {}", nrandom);
     seed = utils::inumeric(FLERR, arg[3], false, lmp);
+    if (seed <= 0) error->all(FLERR, "Illegal create_atoms random seed {}", seed);
     if (strcmp(arg[4], "NULL") == 0)
       region = nullptr;
     else {
@@ -117,8 +126,13 @@ void CreateAtoms::command(int narg, char **arg)
       region->prematch();
     }
     iarg = 5;
+  } else if (strcmp(arg[1], "mesh") == 0) {
+    style = MESH;
+    if (narg < 3) utils::missing_cmd_args(FLERR, "create_atoms mesh", error);
+    meshfile = arg[2];
+    iarg = 3;
   } else
-    error->all(FLERR, "Illegal create_atoms command");
+    error->all(FLERR, "Unknown create_atoms command option {}", arg[1]);
 
   // process optional keywords
 
@@ -126,36 +140,42 @@ void CreateAtoms::command(int narg, char **arg)
   remapflag = 0;
   mode = ATOM;
   int molseed;
+  ranmol = nullptr;
   varflag = 0;
   vstr = xstr = ystr = zstr = nullptr;
-  quatone[0] = quatone[1] = quatone[2] = 0.0;
+  quat_user = 0;
+  quatone[0] = quatone[1] = quatone[2] = quatone[3] = 0.0;
   subsetflag = NONE;
   int subsetseed;
-
+  overlapflag = 0;
+  maxtry = DEFAULT_MAXTRY;
+  radscale = 1.0;
+  radthresh = domain->lattice->xlattice;
+  mesh_style = BISECTION;
+  mesh_density = 1.0;
   nbasis = domain->lattice->nbasis;
   basistype = new int[nbasis];
   for (int i = 0; i < nbasis; i++) basistype[i] = ntype;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg], "basis") == 0) {
-      if (iarg + 3 > narg) error->all(FLERR, "Illegal create_atoms command");
+      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "create_atoms basis", error);
       int ibasis = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       int itype = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       if (ibasis <= 0 || ibasis > nbasis || itype <= 0 || itype > atom->ntypes)
-        error->all(FLERR, "Invalid basis setting in create_atoms command");
+        error->all(FLERR, "Out of range basis setting '{} {}' in create_atoms command", ibasis,
+                   itype);
       basistype[ibasis - 1] = itype;
       iarg += 3;
     } else if (strcmp(arg[iarg], "remap") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms remap", error);
       remapflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "mol") == 0) {
-      if (iarg + 3 > narg) error->all(FLERR, "Illegal create_atoms command");
+      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "create_atoms mol", error);
       int imol = atom->find_molecule(arg[iarg + 1]);
       if (imol == -1)
-        error->all(FLERR,
-                   "Molecule template ID for "
-                   "create_atoms does not exist");
+        error->all(FLERR, "Molecule template ID {} for create_atoms does not exist", arg[iarg + 1]);
       if ((atom->molecules[imol]->nset > 1) && (comm->me == 0))
         error->warning(FLERR, "Molecule template for create_atoms has multiple molecules");
       mode = MOLECULE;
@@ -163,22 +183,24 @@ void CreateAtoms::command(int narg, char **arg)
       molseed = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       iarg += 3;
     } else if (strcmp(arg[iarg], "units") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms units", error);
       if (strcmp(arg[iarg + 1], "box") == 0)
         scaleflag = 0;
       else if (strcmp(arg[iarg + 1], "lattice") == 0)
         scaleflag = 1;
       else
-        error->all(FLERR, "Illegal create_atoms command");
+        error->all(FLERR, "Unknown create_atoms units option {}", arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "var") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
+      if (style == SINGLE)
+        error->all(FLERR, "Cannot use 'var' keyword with 'single' style for create_atoms");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms var", error);
       delete[] vstr;
       vstr = utils::strdup(arg[iarg + 1]);
       varflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg], "set") == 0) {
-      if (iarg + 3 > narg) error->all(FLERR, "Illegal create_atoms command");
+      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "create_atoms set", error);
       if (strcmp(arg[iarg + 1], "x") == 0) {
         delete[] xstr;
         xstr = utils::strdup(arg[iarg + 2]);
@@ -189,72 +211,107 @@ void CreateAtoms::command(int narg, char **arg)
         delete[] zstr;
         zstr = utils::strdup(arg[iarg + 2]);
       } else
-        error->all(FLERR, "Illegal create_atoms command");
+        error->all(FLERR, "Unknown create_atoms set option {}", arg[iarg + 2]);
       iarg += 3;
     } else if (strcmp(arg[iarg], "rotate") == 0) {
-      if (iarg + 5 > narg) error->all(FLERR, "Illegal create_atoms command");
+      if (iarg + 5 > narg) utils::missing_cmd_args(FLERR, "create_atoms rotate", error);
+      quat_user = 1;
       double thetaone;
       double axisone[3];
       thetaone = utils::numeric(FLERR, arg[iarg + 1], false, lmp) / 180.0 * MY_PI;
-      ;
       axisone[0] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       axisone[1] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       axisone[2] = utils::numeric(FLERR, arg[iarg + 4], false, lmp);
       if (axisone[0] == 0.0 && axisone[1] == 0.0 && axisone[2] == 0.0)
-        error->all(FLERR, "Illegal create_atoms command");
+        error->all(FLERR, "Illegal create_atoms rotate arguments");
       if (domain->dimension == 2 && (axisone[0] != 0.0 || axisone[1] != 0.0))
         error->all(FLERR, "Invalid create_atoms rotation vector for 2d model");
       MathExtra::norm3(axisone);
       MathExtra::axisangle_to_quat(axisone, thetaone, quatone);
       iarg += 5;
     } else if (strcmp(arg[iarg], "ratio") == 0) {
-      if (iarg + 3 > narg) error->all(FLERR, "Illegal create_atoms command");
+      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "create_atoms ratio", error);
       subsetflag = RATIO;
       subsetfrac = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       subsetseed = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       if (subsetfrac <= 0.0 || subsetfrac > 1.0 || subsetseed <= 0)
-        error->all(FLERR, "Illegal create_atoms command");
+        error->all(FLERR, "Illegal create_atoms ratio settings");
       iarg += 3;
     } else if (strcmp(arg[iarg], "subset") == 0) {
-      if (iarg + 3 > narg) error->all(FLERR, "Illegal create_atoms command");
+      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "create_atoms subset", error);
       subsetflag = SUBSET;
       nsubset = utils::bnumeric(FLERR, arg[iarg + 1], false, lmp);
       subsetseed = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
-      if (nsubset <= 0 || subsetseed <= 0) error->all(FLERR, "Illegal create_atoms command");
+      if ((nsubset <= 0) || (subsetseed <= 0))
+        error->all(FLERR, "Illegal create_atoms subset settings");
       iarg += 3;
+    } else if (strcmp(arg[iarg], "overlap") == 0) {
+      if (style != RANDOM)
+        error->all(FLERR, "Create_atoms overlap can only be used with random style");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
+      overlap = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      if (overlap <= 0) error->all(FLERR, "Illegal create_atoms overlap value: {}", overlap);
+      overlapflag = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "maxtry") == 0) {
+      if (style != RANDOM)
+        error->all(FLERR, "Create_atoms maxtry can only be used with random style");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal create_atoms command");
+      maxtry = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      if (maxtry <= 0) error->all(FLERR, "Illegal create_atoms command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "meshmode") == 0) {
+      if (style != MESH)
+        error->all(FLERR, "Create_atoms meshmode can only be used with mesh style");
+      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "create_atoms meshmode", error);
+      if (strcmp(arg[iarg + 1], "bisect") == 0) {
+        mesh_style = BISECTION;
+        radthresh = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      } else if (strcmp(arg[iarg + 1], "qrand") == 0) {
+        mesh_style = QUASIRANDOM;
+        mesh_density = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      } else
+        error->all(FLERR, "Unknown create_atoms meshmode {}", arg[iarg + 2]);
+      iarg += 3;
+    } else if (strcmp(arg[iarg], "radscale") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms radscale", error);
+      if (style != MESH)
+        error->all(FLERR, "Create_atoms radscale can only be used with mesh style");
+      if (!atom->radius_flag)
+        error->all(FLERR, "Must have atom attribute radius to set radscale factor");
+      radscale = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      if (radscale <= 0.0) error->all(FLERR, "Illegal create_atoms radscale value: {}", radscale);
+      iarg += 2;
     } else
-      error->all(FLERR, "Illegal create_atoms command");
+      error->all(FLERR, "Illegal create_atoms command option {}", arg[iarg]);
   }
 
-  // error checks
+  // error checks and further setup for mode = MOLECULE
 
-  if (mode == ATOM && (ntype <= 0 || ntype > atom->ntypes))
-    error->all(FLERR, "Invalid atom type in create_atoms command");
-
-  if (style == RANDOM) {
-    if (nrandom < 0) error->all(FLERR, "Illegal create_atoms command");
-    if (seed <= 0) error->all(FLERR, "Illegal create_atoms command");
-  }
-
-  // error check and further setup for mode = MOLECULE
-
-  ranmol = nullptr;
-  if (mode == MOLECULE) {
+  if (mode == ATOM) {
+    if ((ntype <= 0) || (ntype > atom->ntypes))
+      error->all(FLERR, "Invalid atom type in create_atoms command");
+  } else if (mode == MOLECULE) {
     if (onemol->xflag == 0) error->all(FLERR, "Create_atoms molecule must have coordinates");
     if (onemol->typeflag == 0) error->all(FLERR, "Create_atoms molecule must have atom types");
     if (ntype + onemol->ntypes <= 0 || ntype + onemol->ntypes > atom->ntypes)
       error->all(FLERR, "Invalid atom type in create_atoms mol command");
     if (onemol->tag_require && !atom->tag_enable)
       error->all(FLERR, "Create_atoms molecule has atom IDs, but system does not");
+
     onemol->check_attributes(0);
 
-    // create_atoms uses geoemetric center of molecule for insertion
-
-    onemol->compute_center();
-
+    // use geometric center of molecule for insertion
     // molecule random number generator, different for each proc
 
+    onemol->compute_center();
     ranmol = new RanMars(lmp, molseed + comm->me);
+  }
+
+  if (style == MESH) {
+    if (mode == MOLECULE)
+      error->all(FLERR, "Create_atoms mesh is not compatible with the 'mol' option");
+    if (scaleflag) error->all(FLERR, "Create_atoms mesh must use 'units box' option");
   }
 
   ranlatt = nullptr;
@@ -299,12 +356,13 @@ void CreateAtoms::command(int narg, char **arg)
   //   lattice to box, but not consistent with other uses of units=lattice
   // triclinic remapping occurs in add_single()
 
-  if (style == BOX || style == REGION) {
+  if ((style == BOX) || (style == REGION) || (style == MESH)) {
     if (nbasis == 0) error->all(FLERR, "Cannot create atoms with undefined lattice");
   } else if (scaleflag == 1) {
     xone[0] *= domain->lattice->xlattice;
     xone[1] *= domain->lattice->ylattice;
     xone[2] *= domain->lattice->zlattice;
+    overlap *= domain->lattice->xlattice;
   }
 
   // set bounds for my proc in sublo[3] & subhi[3]
@@ -376,7 +434,7 @@ void CreateAtoms::command(int narg, char **arg)
     }
   }
 
-  // Record wall time for atom creation
+  // record wall time for atom creation
 
   MPI_Barrier(world);
   double time1 = platform::walltime();
@@ -397,6 +455,8 @@ void CreateAtoms::command(int narg, char **arg)
     add_single();
   else if (style == RANDOM)
     add_random();
+  else if (style == MESH)
+    add_mesh(meshfile);
   else
     add_lattice();
 
@@ -630,12 +690,11 @@ void CreateAtoms::add_single()
 
   if (coord[0] >= sublo[0] && coord[0] < subhi[0] && coord[1] >= sublo[1] && coord[1] < subhi[1] &&
       coord[2] >= sublo[2] && coord[2] < subhi[2]) {
-    if (mode == ATOM)
+    if (mode == ATOM) {
       atom->avec->create_atom(ntype, xone);
-    else if (quatone[0] == 0.0 && quatone[1] == 0.0 && quatone[2] == 0.0)
+    } else {
       add_molecule(xone);
-    else
-      add_molecule(xone, quatone);
+    }
   }
 }
 
@@ -646,8 +705,15 @@ void CreateAtoms::add_single()
 void CreateAtoms::add_random()
 {
   double xlo, ylo, zlo, xhi, yhi, zhi, zmid;
+  double delx, dely, delz, distsq, odistsq;
   double lamda[3], *coord;
   double *boxlo, *boxhi;
+
+  if (overlapflag) {
+    double odist = overlap;
+    if (mode == MOLECULE) odist += onemol->molradius;
+    odistsq = odist * odist;
+  }
 
   // random number generator, same for all procs
   // warm up the generator 30x to avoid correlations in first-particle
@@ -689,52 +755,400 @@ void CreateAtoms::add_random()
     zhi = MIN(zhi, region->extent_zhi);
   }
 
-  // generate random positions for each new atom/molecule within bounding box
-  // iterate until atom is within region, variable, and triclinic simulation box
-  // if final atom position is in my subbox, create it
-
   if (xlo > xhi || ylo > yhi || zlo > zhi)
     error->all(FLERR, "No overlap of box and region for create_atoms");
 
-  int valid;
+  // insert Nrandom new atom/molecule into simulation box
+
+  int ntry, success;
+  int ninsert = 0;
+
   for (int i = 0; i < nrandom; i++) {
-    while (true) {
+
+    // attempt to insert an atom/molecule up to maxtry times
+    // criteria for insertion: region, variable, triclinic box, overlap
+
+    success = 0;
+    ntry = 0;
+
+    while (ntry < maxtry) {
+      ntry++;
+
       xone[0] = xlo + random->uniform() * (xhi - xlo);
       xone[1] = ylo + random->uniform() * (yhi - ylo);
       xone[2] = zlo + random->uniform() * (zhi - zlo);
       if (domain->dimension == 2) xone[2] = zmid;
 
-      valid = 1;
-      if (region && (region->match(xone[0], xone[1], xone[2]) == 0)) valid = 0;
-      if (varflag && vartest(xone) == 0) valid = 0;
+      if (region && (region->match(xone[0], xone[1], xone[2]) == 0)) continue;
+      if (varflag && vartest(xone) == 0) continue;
+
       if (triclinic) {
         domain->x2lamda(xone, lamda);
         coord = lamda;
         if (coord[0] < boxlo[0] || coord[0] >= boxhi[0] || coord[1] < boxlo[1] ||
             coord[1] >= boxhi[1] || coord[2] < boxlo[2] || coord[2] >= boxhi[2])
-          valid = 0;
-      } else
+          continue;
+      } else {
         coord = xone;
+      }
 
-      if (valid) break;
+      // check for overlap of new atom/mol with all other atoms
+      //   including prior insertions
+      // minimum_image() needed to account for distances across PBC
+      // new molecule only checks its center pt against others
+      //   odistsq is expanded for mode=MOLECULE to account for molecule size
+
+      if (overlapflag) {
+        double **x = atom->x;
+        int nlocal = atom->nlocal;
+
+        int reject = 0;
+        for (int i = 0; i < nlocal; i++) {
+          delx = xone[0] - x[i][0];
+          dely = xone[1] - x[i][1];
+          delz = xone[2] - x[i][2];
+          domain->minimum_image(delx, dely, delz);
+          distsq = delx * delx + dely * dely + delz * delz;
+          if (distsq < odistsq) {
+            reject = 1;
+            break;
+          }
+        }
+        int reject_any;
+        MPI_Allreduce(&reject, &reject_any, 1, MPI_INT, MPI_MAX, world);
+        if (reject_any) continue;
+      }
+
+      // all tests passed
+
+      success = 1;
+      break;
     }
 
+    // insertion failed, advance to next atom/molecule
+
+    if (!success) continue;
+
+    // insertion criteria were met
+    // if final atom position is in my subbox, create it
     // if triclinic, coord is now in lamda units
+
+    ninsert++;
 
     if (coord[0] >= sublo[0] && coord[0] < subhi[0] && coord[1] >= sublo[1] &&
         coord[1] < subhi[1] && coord[2] >= sublo[2] && coord[2] < subhi[2]) {
-      if (mode == ATOM)
+      if (mode == ATOM) {
         atom->avec->create_atom(ntype, xone);
-      else if (quatone[0] == 0 && quatone[1] == 0 && quatone[2] == 0)
+      } else {
         add_molecule(xone);
-      else
-        add_molecule(xone, quatone);
+      }
     }
   }
+
+  // warn if did not successfully insert Nrandom atoms/molecules
+
+  if (ninsert < nrandom && comm->me == 0)
+    error->warning(FLERR, "Only inserted {} particles out of {}", ninsert, nrandom);
 
   // clean-up
 
   delete random;
+}
+
+/* ----------------------------------------------------------------------
+   add atom at center of triangle
+   or split into two halves along the longest side and recurse
+------------------------------------------------------------------------- */
+
+int CreateAtoms::add_bisection(const double vert[3][3], tagint molid)
+{
+  double center[3], temp[3];
+
+  MathExtra::add3(vert[0], vert[1], center);
+  MathExtra::add3(center, vert[2], temp);
+  MathExtra::scale3(THIRD, temp, center);
+
+  MathExtra::sub3(center, vert[0], temp);
+  double ravg = MathExtra::len3(temp);
+  MathExtra::sub3(center, vert[1], temp);
+  ravg += MathExtra::len3(temp);
+  MathExtra::sub3(center, vert[2], temp);
+  ravg += MathExtra::len3(temp);
+  ravg *= THIRD;
+
+  // if the average distance of the vertices from the center is larger than the
+  // lattice parameter, the triangle is split it in half along its longest side
+
+  int ilocal = 0;
+  if (ravg > radthresh) {
+    double vert1[3][3], vert2[3][3], side[3][3];
+
+    // determine side vectors
+    MathExtra::sub3(vert[0], vert[1], side[0]);
+    MathExtra::sub3(vert[1], vert[2], side[1]);
+    MathExtra::sub3(vert[2], vert[0], side[2]);
+
+    // determine longest side
+    const double l1 = MathExtra::len3(side[0]);
+    const double l2 = MathExtra::len3(side[1]);
+    const double l3 = MathExtra::len3(side[2]);
+
+    int isplit = 0;
+    if (l1 < l2) {
+      isplit = 1;
+      if (l2 < l3) isplit = 2;
+    } else {
+      if (l1 < l3) isplit = 2;
+    }
+
+    MathExtra::scaleadd3(-0.5, side[isplit], vert[isplit], temp);
+    int inext = (isplit + 1) % 3;
+
+    // create two new triangles
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 3; ++j) {
+        vert1[i][j] = vert2[i][j] = vert[i][j];
+        vert1[isplit][j] = temp[j];
+        vert2[inext][j] = temp[j];
+      }
+    }
+
+    ilocal = add_bisection(vert1, molid);
+    ilocal += add_bisection(vert2, molid);
+  } else {
+
+    /*
+     * if atom/molecule is in my subbox, create it
+     * ... use x to hold triangle center
+     * ... radius is the mmaximal distance from triangle center to all vertices
+     */
+
+    if ((center[0] >= sublo[0]) && (center[0] < subhi[0]) && (center[1] >= sublo[1]) &&
+        (center[1] < subhi[1]) && (center[2] >= sublo[2]) && (center[2] < subhi[2])) {
+
+      atom->avec->create_atom(ntype, center);
+      int idx = atom->nlocal - 1;
+      if (atom->radius_flag) atom->radius[idx] = ravg * radscale;
+      if (atom->molecule_flag) atom->molecule[idx] = molid;
+      ++ilocal;
+    }
+  }
+  return ilocal;
+}
+
+/* ----------------------------------------------------------------------
+   add monodisperse atoms by mapping quasirandom sequence onto a triangle
+   method by Martin Roberts 2019 http://extremelearning.com.au/evenly-distributing-points-in-a-triangle/
+------------------------------------------------------------------------- */
+
+int CreateAtoms::add_quasirandom(const double vert[3][3], tagint molid)
+{
+  double ab[3], ac[3], bc[3], temp[3], point[3], ref[3];
+  double lab, lac, lbc, area, xi, yi;
+  double seed = 0.5;
+
+  // Order vertices such that a has the largest angle
+  MathExtra::sub3(vert[1], vert[0], ab);
+  MathExtra::sub3(vert[2], vert[0], ac);
+  MathExtra::sub3(vert[2], vert[1], bc);
+
+  lab = MathExtra::len3(ab);
+  lac = MathExtra::len3(ac);
+  lbc = MathExtra::len3(bc);
+
+  if (lac > lab && lac > lbc) {
+    // B has the largest angle, relabel as A
+    MathExtra::scale3(-1.0, ab);
+    MathExtra::copy3(bc, ac);
+    MathExtra::copy3(vert[1], ref);
+  } else if (lab > lac && lab > lbc) {
+    // C has the largest angle, relabel as A
+    MathExtra::scale3(-1.0, ac);
+    MathExtra::copy3(bc, ab);
+    MathExtra::scale3(-1.0, ab);
+    MathExtra::copy3(vert[2], ref);
+  } else {
+    MathExtra::copy3(vert[0], ref);
+  }
+
+  // Estimate number of particles from area
+  MathExtra::cross3(ab, ac, temp);
+  area = 0.5 * MathExtra::len3(temp);
+  int nparticles = ceil(mesh_density * area);
+  // estimate radius from number of particles and area
+  double rad = sqrt(area/MY_PI/nparticles);
+
+  for (int i = 0; i < nparticles; i++) {
+    // Define point in unit square
+    xi = (i + 1) * INV_P_CONST;
+    yi = (i + 1) * INV_SQ_P_CONST;
+
+    xi += seed;
+    yi += seed;
+
+    xi = std::fmod(xi, 1.0);
+    yi = std::fmod(yi, 1.0);
+
+    // Map to triangle using parallelogram method
+    if ((xi + yi) < 1) {
+      MathExtra::scale3(xi, ac, point);
+      MathExtra::scale3(yi, ab, temp);
+      MathExtra::add3(point, temp, point);
+    } else {
+      xi = 1.0 - xi;
+      yi = 1.0 - yi;
+      MathExtra::scale3(xi, ac, point);
+      MathExtra::scale3(yi, ab, temp);
+      MathExtra::add3(point, temp, point);
+    }
+
+    MathExtra::add3(point, ref, point);
+
+    // if atom/molecule is in my subbox, create it
+    if ((point[0] >= sublo[0]) && (point[0] < subhi[0]) && (point[1] >= sublo[1]) &&
+        (point[1] < subhi[1]) && (point[2] >= sublo[2]) && (point[2] < subhi[2])) {
+
+      atom->avec->create_atom(ntype, point);
+      int idx = atom->nlocal - 1;
+      if (atom->molecule_flag) atom->molecule[idx] = molid;
+      if (atom->radius_flag) atom->radius[idx] = rad * radscale;
+    }
+  }
+
+  return nparticles;
+}
+
+/* ----------------------------------------------------------------------
+   add atoms at center of triangulated mesh
+------------------------------------------------------------------------- */
+
+void CreateAtoms::add_mesh(const char *filename)
+{
+  double vert[3][3];
+  tagint *mol = atom->molecule;
+  int nlocal_previous = atom->nlocal;
+  bigint atomlocal = 0, atomall = 0, ntriangle = 0;
+
+  // find next molecule ID, if available
+  tagint molid = 0;
+  if (atom->molecule_flag) {
+    tagint max = 0;
+    for (int i = 0; i < nlocal_previous; i++) max = MAX(max, mol[i]);
+    tagint maxmol;
+    MPI_Allreduce(&max, &maxmol, 1, MPI_LMP_TAGINT, MPI_MAX, world);
+    molid = maxmol + 1;
+  }
+
+  FILE *fp = fopen(filename, "rb");
+  if (fp == nullptr) error->one(FLERR, "Cannot open file {}: {}", filename, utils::getsyserror());
+
+  // first try reading the file in ASCII format
+
+  TextFileReader reader(fp, "STL mesh");
+  try {
+    char *line = reader.next_line();
+    if (!line || !utils::strmatch(line, "^solid"))
+      throw TokenizerException("Invalid STL mesh file format", "");
+
+    line += 6;
+    if (comm->me == 0)
+      utils::logmesg(lmp, "Reading STL object {} from text file {}\n", utils::trim(line), filename);
+
+    while ((line = reader.next_line())) {
+
+      // next line is facet line with 5 words
+      auto values = utils::split_words(line);
+      // otherwise stop reading
+      if ((values.size() != 5) || !utils::strmatch(values[0], "^facet")) break;
+
+      // ignore normal
+
+      line = reader.next_line(2);
+      if (!line || !utils::strmatch(line, "^ *outer *loop"))
+        throw TokenizerException("Error reading outer loop", "");
+
+      for (int k = 0; k < 3; ++k) {
+        line = reader.next_line(4);
+        values = utils::split_words(line);
+        if ((values.size() != 4) || !utils::strmatch(values[0], "^vertex"))
+          throw TokenizerException("Error reading vertex", "");
+
+        vert[k][0] = utils::numeric(FLERR, values[1], false, lmp);
+        vert[k][1] = utils::numeric(FLERR, values[2], false, lmp);
+        vert[k][2] = utils::numeric(FLERR, values[3], false, lmp);
+      }
+
+      line = reader.next_line(1);
+      if (!line || !utils::strmatch(line, "^ *endloop"))
+        throw TokenizerException("Error reading endloop", "");
+      line = reader.next_line(1);
+      if (!line || !utils::strmatch(line, "^ *endfacet"))
+        throw TokenizerException("Error reading endfacet", "");
+
+      // now we have the three vertices ... proceed with adding atoms
+      ++ntriangle;
+      if (mesh_style == BISECTION) {
+        // add in center of triangle or bisecting recursively along longest edge
+        // as needed to get the desired atom density/radii
+        atomlocal += add_bisection(vert, molid);
+      } else if (mesh_style == QUASIRANDOM) {
+        // add quasi-random distribution of atoms
+        atomlocal += add_quasirandom(vert, molid);
+      }
+    }
+  } catch (std::exception &e) {
+
+    // if ASCII failed for the first line, try reading as binary
+    if (utils::strmatch(e.what(), "^Invalid STL mesh file format")) {
+      char title[80];
+      float triangle[12];
+      uint32_t ntri;
+      uint16_t attr;
+      size_t count;
+
+      rewind(fp);
+      count = fread(title, sizeof(char), 80, fp);
+      title[79] = '\0';
+      count = fread(&ntri, sizeof(ntri), 1, fp);
+      if (count <= 0) {
+        error->all(FLERR, "Error reading STL file {}: {}", filename, utils::getsyserror());
+      } else {
+        if (comm->me == 0)
+          utils::logmesg(lmp, "Reading STL object {} from binary file {}\n", utils::trim(title),
+                         filename);
+      }
+
+      for (uint32_t i = 0U; i < ntri; ++i) {
+        count = fread(triangle, sizeof(float), 12, fp);
+        if (count != 12)
+          error->all(FLERR, "Error reading STL file {}: {}", filename, utils::getsyserror());
+        count = fread(&attr, sizeof(attr), 1, fp);
+
+        for (int j = 0; j < 3; ++j)
+          for (int k = 0; k < 3; ++k) vert[j][k] = triangle[3 * j + 3 + k];
+
+        ++ntriangle;
+        if (mesh_style == BISECTION) {
+          // add in center of triangle or bisecting recursively along longest edge
+          // as needed to get the desired atom density/radii
+          atomlocal += add_bisection(vert, molid);
+        } else if (mesh_style == QUASIRANDOM) {
+          // add quasi-random distribution of atoms
+          atomlocal += add_quasirandom(vert, molid);
+        }
+      }
+    } else {
+      error->all(FLERR, "Error reading triangles from file {}: {}", filename, e.what());
+    }
+  }
+
+  if (ntriangle > 0) {
+    MPI_Allreduce(&atomlocal, &atomall, 1, MPI_LMP_BIGINT, MPI_SUM, world);
+    double ratio = (double) atomall / (double) ntriangle;
+    if (comm->me == 0)
+      utils::logmesg(lmp, "  read {} triangles with {:.2f} atoms per triangle added in {} mode\n",
+                     ntriangle, ratio, mesh_name[mesh_style]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -785,6 +1199,7 @@ void CreateAtoms::add_lattice()
   xmax = ymax = zmax = -BIG;
 
   // convert to lattice coordinates and set bounding box
+
   domain->lattice->bbox(1, bboxlo[0], bboxlo[1], bboxlo[2], xmin, ymin, zmin, xmax, ymax, zmax);
   domain->lattice->bbox(1, bboxhi[0], bboxlo[1], bboxlo[2], xmin, ymin, zmin, xmax, ymax, zmax);
   domain->lattice->bbox(1, bboxlo[0], bboxhi[1], bboxlo[2], xmin, ymin, zmin, xmax, ymax, zmax);
@@ -924,21 +1339,19 @@ void CreateAtoms::loop_lattice(int action)
           // add = add an atom or entire molecule to my list of atoms
 
           if (action == INSERT) {
-            if (mode == ATOM)
+            if (mode == ATOM) {
               atom->avec->create_atom(basistype[m], x);
-            else if (quatone[0] == 0 && quatone[1] == 0 && quatone[2] == 0)
+            } else {
               add_molecule(x);
-            else
-              add_molecule(x, quatone);
+            }
           } else if (action == COUNT) {
             if (nlatt == MAXSMALLINT) nlatt_overflow = 1;
           } else if (action == INSERT_SELECTED && flag[nlatt]) {
-            if (mode == ATOM)
+            if (mode == ATOM) {
               atom->avec->create_atom(basistype[m], x);
-            else if (quatone[0] == 0 && quatone[1] == 0 && quatone[2] == 0)
+            } else {
               add_molecule(x);
-            else
-              add_molecule(x, quatone);
+            }
           }
 
           nlatt++;
@@ -949,43 +1362,42 @@ void CreateAtoms::loop_lattice(int action)
 }
 
 /* ----------------------------------------------------------------------
-   add a randomly rotated molecule with its center at center
-   if quat_user set, perform requested rotation
+   add a molecule with its center at center
 ------------------------------------------------------------------------- */
 
-void CreateAtoms::add_molecule(double *center, double *quat_user)
+void CreateAtoms::add_molecule(double *center)
 {
-  int n;
-  double r[3], rotmat[3][3], quat[4], xnew[3];
+  double r[3], rotmat[3][3];
 
-  if (quat_user) {
-    quat[0] = quat_user[0];
-    quat[1] = quat_user[1];
-    quat[2] = quat_user[2];
-    quat[3] = quat_user[3];
-  } else {
+  // use quatone as-is if user set it
+  // else generate random quaternion in quatone
+
+  if (!quat_user) {
     if (domain->dimension == 3) {
       r[0] = ranmol->uniform() - 0.5;
       r[1] = ranmol->uniform() - 0.5;
       r[2] = ranmol->uniform() - 0.5;
+      MathExtra::norm3(r);
     } else {
       r[0] = r[1] = 0.0;
       r[2] = 1.0;
     }
-    MathExtra::norm3(r);
     double theta = ranmol->uniform() * MY_2PI;
-    MathExtra::axisangle_to_quat(r, theta, quat);
+    MathExtra::axisangle_to_quat(r, theta, quatone);
   }
 
-  MathExtra::quat_to_mat(quat, rotmat);
-  onemol->quat_external = quat;
+  MathExtra::quat_to_mat(quatone, rotmat);
 
   // create atoms in molecule with atom ID = 0 and mol ID = 0
-  // reset in caller after all molecules created by all procs
+  // IDs are reset in caller after all molecules created by all procs
   // pass add_molecule_atom an offset of 0 since don't know
   //   max tag of atoms in previous molecules at this point
+  // onemol->quat_external is used by atom->add_moleclue_atom()
 
-  int natoms = onemol->natoms;
+  onemol->quat_external = quatone;
+
+  int n, natoms = onemol->natoms;
+  double xnew[3];
   for (int m = 0; m < natoms; m++) {
     MathExtra::matvec(rotmat, onemol->dx[m], xnew);
     MathExtra::add3(xnew, center, xnew);

@@ -93,7 +93,7 @@ struct TestDynamicView {
         ASSERT_TRUE(d3.is_allocated());
       }
       view_type da("da", 1024, arg_total_size);
-      ASSERT_EQ(da.size(), 0);
+      ASSERT_EQ(da.size(), 0u);
       // Init
       unsigned da_size = arg_total_size / 8;
       da.resize_serial(da_size);
@@ -145,7 +145,7 @@ struct TestDynamicView {
     //   Case 2: min_chunk_size is NOT a power of 2
     {
       view_type da("da", 1023, arg_total_size);
-      ASSERT_EQ(da.size(), 0);
+      ASSERT_EQ(da.size(), 0u);
       // Init
       unsigned da_size = arg_total_size / 8;
       da.resize_serial(da_size);
@@ -197,7 +197,7 @@ struct TestDynamicView {
     //   Case 3: resize reduces the size
     {
       view_type da("da", 1023, arg_total_size);
-      ASSERT_EQ(da.size(), 0);
+      ASSERT_EQ(da.size(), 0u);
       // Init
       unsigned da_size = arg_total_size / 2;
       da.resize_serial(da_size);

@@ -238,44 +238,14 @@ class PairSNAPKokkos : public PairSNAP {
   typename AT::t_efloat_1d d_eatom;
   typename AT::t_virial_array d_vatom;
 
-  typedef Kokkos::View<F_FLOAT**> t_bvec;
-  t_bvec bvec;
-  typedef Kokkos::View<F_FLOAT***> t_dbvec;
-  t_dbvec dbvec;
   SNAKokkos<DeviceType, real_type, vector_length> snaKK;
 
   int inum,max_neighs,chunk_size,chunk_offset;
-  int host_flag;
+  int host_flag,neighflag;
 
   int eflag,vflag;
 
   void allocate() override;
-  //void read_files(char *, char *);
-  /*template<class DeviceType>
-  inline int equal(double* x,double* y);
-  template<class DeviceType>
-  inline double dist2(double* x,double* y);
-  double extra_cutoff();
-  void load_balance();
-  void set_sna_to_shared(int snaid,int i);
-  void build_per_atom_arrays();*/
-
-  int neighflag;
-
-  Kokkos::View<T_INT*, DeviceType> ilistmast;
-  Kokkos::View<T_INT*, DeviceType> ghostilist;
-  Kokkos::View<T_INT*, DeviceType> ghostnumneigh;
-  Kokkos::View<T_INT*, DeviceType> ghostneighs;
-  Kokkos::View<T_INT*, DeviceType> ghostfirstneigh;
-
-  Kokkos::View<T_INT**, Kokkos::LayoutRight, DeviceType> i_pairs;
-  Kokkos::View<T_INT***, Kokkos::LayoutRight, DeviceType> i_rij;
-  Kokkos::View<T_INT**, Kokkos::LayoutRight, DeviceType> i_inside;
-  Kokkos::View<F_FLOAT**, Kokkos::LayoutRight, DeviceType> i_wj;
-  Kokkos::View<F_FLOAT***, Kokkos::LayoutRight, DeviceType>i_rcutij;
-  Kokkos::View<T_INT*, DeviceType> i_ninside;
-  Kokkos::View<F_FLOAT****, Kokkos::LayoutRight, DeviceType> i_uarraytot_r, i_uarraytot_i;
-  Kokkos::View<F_FLOAT******, Kokkos::LayoutRight, DeviceType> i_zarray_r, i_zarray_i;
 
   Kokkos::View<real_type*, DeviceType> d_radelem;              // element radii
   Kokkos::View<real_type*, DeviceType> d_wjelem;               // elements weights
@@ -286,7 +256,6 @@ class PairSNAPKokkos : public PairSNAP {
   Kokkos::View<T_INT*, DeviceType> d_ninside;                // ninside for all atoms in list
   Kokkos::View<real_type**, DeviceType> d_beta;                // betas for all atoms in list
   Kokkos::View<real_type***, Kokkos::LayoutLeft, DeviceType> d_beta_pack;          // betas for all atoms in list, GPU
-  Kokkos::View<real_type**, DeviceType> d_bispectrum;          // bispectrum components for all atoms in list
 
   typedef Kokkos::DualView<F_FLOAT**, DeviceType> tdual_fparams;
   tdual_fparams k_cutsq;

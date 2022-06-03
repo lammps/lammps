@@ -157,8 +157,7 @@ void FixBrownianAsphere::initial_integrate(int /*vflag */)
       }
     }
   }
-  return;
-}
+  }
 
 /* ---------------------------------------------------------------------- */
 
@@ -298,5 +297,4 @@ void FixBrownianAsphere::initial_integrate_templated()
     }
   }
 
-  return;
-}
+  }

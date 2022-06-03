@@ -1770,7 +1770,7 @@ void PairTlsph::unpack_forward_comm(int n, int first, double *buf) {
  ------------------------------------------------------------------------- */
 
 void PairTlsph::effective_longitudinal_modulus(const int itype, const double dt, const double d_iso, const double p_rate,
-                                               const Matrix3d d_dev, const Matrix3d sigma_dev_rate, const double /*damage*/, double &K_eff, double &mu_eff, double &M_eff) {
+                                               const Matrix3d& d_dev, const Matrix3d& sigma_dev_rate, const double /*damage*/, double &K_eff, double &mu_eff, double &M_eff) {
   double M0; // initial longitudinal modulus
   double shear_rate_sq;
 
@@ -1859,7 +1859,7 @@ void PairTlsph::ComputePressure(const int i, const double rho, const double mass
 /* ----------------------------------------------------------------------
  Compute stress deviator. Called from AssembleStress().
  ------------------------------------------------------------------------- */
-void PairTlsph::ComputeStressDeviator(const int i, const Matrix3d sigmaInitial_dev, const Matrix3d d_dev, Matrix3d &sigmaFinal_dev,
+void PairTlsph::ComputeStressDeviator(const int i, const Matrix3d& sigmaInitial_dev, const Matrix3d& d_dev, Matrix3d &sigmaFinal_dev,
                                       Matrix3d &sigma_dev_rate, double &plastic_strain_increment) {
   double *eff_plastic_strain = atom->eff_plastic_strain;
   double *eff_plastic_strain_rate = atom->eff_plastic_strain_rate;
@@ -1915,7 +1915,7 @@ void PairTlsph::ComputeStressDeviator(const int i, const Matrix3d sigmaInitial_d
 /* ----------------------------------------------------------------------
  Compute damage. Called from AssembleStress().
  ------------------------------------------------------------------------- */
-void PairTlsph::ComputeDamage(const int i, const Matrix3d strain, const Matrix3d stress, Matrix3d &/*stress_damaged*/) {
+void PairTlsph::ComputeDamage(const int i, const Matrix3d& strain, const Matrix3d& stress, Matrix3d &/*stress_damaged*/) {
   double *eff_plastic_strain = atom->eff_plastic_strain;
   double *eff_plastic_strain_rate = atom->eff_plastic_strain_rate;
   double *radius = atom->radius;

@@ -56,7 +56,7 @@ Examples
    read_data ../run7/data.polymer.gz
    read_data data.protein fix mycmap crossterm CMAP
    read_data data.water add append offset 3 1 1 1 1 shift 0.0 0.0 50.0
-   read_data data.water add merge 1 group solvent
+   read_data data.water add merge group solvent
 
 Description
 """""""""""

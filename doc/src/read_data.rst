@@ -622,6 +622,8 @@ of analysis.
      - atom-ID molecule-ID atom-type x y z
    * - charge
      - atom-ID atom-type q x y z
+   * - dielectric
+     - atom-ID atom-type q x y z normx normy normz area ed em epsilon curvature
    * - dipole
      - atom-ID atom-type q x y z mux muy muz
    * - dpd

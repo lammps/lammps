@@ -178,10 +178,10 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
             if (param[1] > MY_PI) param[1] -= MY_PI;
             else param[1] += MY_PI;
 
-            double temp = -param[5];
+            double eta2 = -param[5];
             param[5] = -param[4];
-            param[4] = temp;
-            param[6] = temp;
+            param[4] = eta2;
+            param[6] = eta2;
 
             negate3(m);
           
@@ -195,7 +195,11 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           if (evdwl > 1.0e1) {
             printf("high energy detected in first contribution (%f eV)\n", evdwl);
             printf("segment1: %d %d\n", atom->tag[i1], atom->tag[i2]);
+            printf("%f %f %f\n", r1[0], r1[1], r1[2]);
+            printf("%f %f %f\n", r2[0], r2[1], r2[2]);
             printf("segment2: %d %d\n", atom->tag[jj1], atom->tag[jj2]);
+            printf("%f %f %f\n", q1[0], q1[1], q1[2]);
+            printf("%f %f %f\n", q2[0], q2[1], q2[2]);
             printf("param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
           }
 
@@ -241,7 +245,11 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           if (!(nan0 || nan1 || nan2 || nan3)) {
             printf("nan in segment-segment 1\n");
             printf("segment 1: %d %d\n", atom->tag[i1], atom->tag[i2]);
+            printf("%f %f %f\n", r1[0], r1[1], r1[2]);
+            printf("%f %f %f\n", r2[0], r2[1], r2[2]);
             printf("segment 2: %d %d\n", atom->tag[jj1], atom->tag[jj2]);
+            printf("%f %f %f\n", q1[0], q1[1], q1[2]);
+            printf("%f %f %f\n", q2[0], q2[1], q2[2]);
             printf("param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
           }
           
@@ -267,7 +275,11 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           if (evdwl > 1.0e1) {
             printf("high energy detected in second contribution (%f eV)\n", evdwl);
             printf("segment1: %d %d\n", atom->tag[i1], atom->tag[i2]);
+            printf("%f %f %f\n", r1[0], r1[1], r1[2]);
+            printf("%f %f %f\n", r2[0], r2[1], r2[2]);
             printf("segment2: %d %d\n", atom->tag[jj1], atom->tag[jj2]);
+            printf("%f %f %f\n", q1[0], q1[1], q1[2]);
+            printf("%f %f %f\n", q2[0], q2[1], q2[2]);
             printf("param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
           }
         
@@ -316,7 +328,11 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           if (!(nan0 || nan1 || nan2 || nan3)) {
             printf("nan in segment-segment 2\n");
             printf("segment 1: %d %d\n", atom->tag[i1], atom->tag[i2]);
+            printf("%f %f %f\n", r1[0], r1[1], r1[2]);
+            printf("%f %f %f\n", r2[0], r2[1], r2[2]);
             printf("segment 2: %d %d\n", atom->tag[jj1], atom->tag[jj2]);
+            printf("%f %f %f\n", q1[0], q1[1], q1[2]);
+            printf("%f %f %f\n", q2[0], q2[1], q2[2]);
             printf("param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
           }
 
@@ -337,6 +353,12 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
 
         if (sumw == 0.0) continue;
         sumw_inv = 1.0 / sumw;
+              
+        // mean chain velocity and relative velocity
+
+        add3(vp1, vp2, vp);
+        scale3(0.5*sumw_inv, vp);
+        sub3(vp, vr, vrel);
 
         // friction forces
 
@@ -346,8 +368,13 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           fvisc_tot = b2 / vtot - a2;
           if (fvisc_tot < 0.0) zero3(fvisc);
           else scale3(0.25 * (1 - s(sumw)) * fvisc_tot, vrel, fvisc);
+          if (std::isnan(fvisc_tot)) {
+            printf("nan in segment-segment friction\n");
+            printf("fvisc: %f %f %f\n", fvisc[0], fvisc[1], fvisc[2]);
+            printf("vrel: %f %f %f\n", vrel[0], vrel[1], vrel[2]);
+          }
         }
-
+          
         // add friction forces to current segment
 
         add3(fvisc, f[i1], f[i1]);
@@ -519,11 +546,12 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
 
         if (evdwl > 1.0e1) {
           printf("high energy detected in segment-chain interaction (%f eV)\n", evdwl);
-          printf("segment1: %d %d\n", atom->tag[i1], atom->tag[i2]);
-          printf("chain: ");
+          printf("segment: %d %d\n", atom->tag[i1], atom->tag[i2]);
+          printf("%f %f %f\n", r1[0], r1[1], r1[2]);
+          printf("%f %f %f\n", r2[0], r2[1], r2[2]);
+          printf("chain: \n");
           for (k = 0; k < clen; k++)
-            printf("%d ", atom->tag[chain[j][k]]);
-          printf("\n");
+            printf("%d %f %f %f\n", atom->tag[chain[j][k]], x[chain[j][k]][0], x[chain[j][k]][1], x[chain[j][k]][2]);
           printf("param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
         }
 
@@ -549,8 +577,13 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
           fvisc_tot = b2 / vtot - a2;
           if (fvisc_tot < 0.0) zero3(fvisc);
           else scale3(0.25 * (1 - s(sumw)) * fvisc_tot, vrel, fvisc);
+          if (std::isnan(fvisc_tot)) {
+            printf("nan in segment-chain friction\n");
+            printf("fvisc: %f %f %f\n", fvisc[0], fvisc[1], fvisc[2]);
+            printf("vrel: %f %f %f\n", vrel[0], vrel[1], vrel[2]);
+          }
         }
-
+        
         add3(fvisc, f[i1], f[i1]);
         add3(fvisc, f[i2], f[i2]);
 
@@ -667,7 +700,12 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
 
         if (!(nan0 || nan1 || nan2 || nan3)) {
           printf("nan in segment-chain\n");
-          printf("tags: %d %d\n", atom->tag[i1], atom->tag[i2]);
+          printf("segment: %d %d\n", atom->tag[i1], atom->tag[i2]);
+          printf("%f %f %f\n", r1[0], r1[1], r1[2]);
+          printf("%f %f %f\n", r2[0], r2[1], r2[2]);
+          printf("chain: \n");
+          for (k = 0; k < clen; k++)
+            printf("%d %f %f %f\n", atom->tag[chain[j][k]], x[chain[j][k]][0], x[chain[j][k]][1], x[chain[j][k]][2]);
           printf("param: %f %f %f %f %f %f %f\n", param[0], param[1], param[2], param[3], param[4], param[5], param[6]);
         }
 

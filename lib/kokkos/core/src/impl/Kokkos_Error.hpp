@@ -72,6 +72,7 @@ void throw_runtime_exception(const std::string &);
 void traceback_callstack(std::ostream &);
 
 std::string human_memory_size(size_t arg_bytes);
+void throw_runtime_exception(const std::string &msg);
 
 }  // namespace Impl
 

@@ -81,7 +81,7 @@ MDIPlugin::MDIPlugin(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
   // build full plugin_args string for args to plugin library
 
   int n = strlen(mdi_arg) + strlen(infile_arg) + strlen(extra_arg) + 16;
-  char *plugin_args = new char[n];
+  auto plugin_args = new char[n];
   plugin_args[0] = 0;
   strcat(plugin_args, "-mdi \"");
   strcat(plugin_args, mdi_arg);
@@ -91,11 +91,6 @@ MDIPlugin::MDIPlugin(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
     strcat(plugin_args, " ");
     strcat(plugin_args, extra_arg);
   }
-
-  // find FixMDIAimd instance so can reset its mdicomm
-  // NOTE: this is a kludge - need better way to handle this
-
-  fixptr = modify->get_fix_by_style("mdi/aimd")[0];
 
   // launch the MDI plugin library
   // path for lib was specified in -mdi command-line arg when LAMMPS started
@@ -108,20 +103,14 @@ MDIPlugin::MDIPlugin(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
 
 /* ----------------------------------------------------------------------
    callback function from MDI_Launch_plugin()
-   this function must wrap entire interaction of LAMMPS as a driver
-     with the plugin
+   this function wraps entire interaction of LAMMPS driver with the plugin
 ---------------------------------------------------------------------- */
 
 int MDIPlugin::plugin_wrapper(void * /*pmpicomm*/, MDI_Comm mdicomm, void *vptr)
 {
-  MDIPlugin *ptr = (MDIPlugin *) vptr;
+  auto ptr = (MDIPlugin *) vptr;
   LAMMPS *lammps = ptr->lmp;
   char *lammps_command = ptr->lammps_command;
-
-  // set FixMDIAimd mdicomm to driver's mdicomm passed to this callback
-
-  FixMDIAimd *aimdptr = (FixMDIAimd *) (ptr->fixptr);
-  aimdptr->mdicomm = mdicomm;
 
   // invoke the specified LAMMPS command
   // that operation will issue MDI commands to the plugin engine

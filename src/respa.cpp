@@ -121,7 +121,7 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) :
       // the hybrid keyword requires a hybrid pair style
       if (!utils::strmatch(force->pair_style, "^hybrid"))
         error->all(FLERR, "Illegal run_style respa command");
-      PairHybrid *hybrid = (PairHybrid *) force->pair;
+      auto hybrid = dynamic_cast<PairHybrid *>(force->pair);
       nhybrid_styles = hybrid->nstyles;
       // each hybrid sub-style needs to be assigned to a respa level
       if (iarg + nhybrid_styles > narg) error->all(FLERR, "Illegal run_style respa command");
@@ -296,7 +296,7 @@ void Respa::init()
 
   std::string cmd = fmt::format("RESPA all RESPA {}", nlevels);
   if (atom->torque_flag) cmd += " torque";
-  fix_respa = (FixRespa *) modify->add_fix(cmd);
+  fix_respa = dynamic_cast<FixRespa *>(modify->add_fix(cmd));
 
   // insure respa inner/middle/outer is using Pair class that supports it
 
@@ -372,7 +372,7 @@ void Respa::setup(int flag)
         mesg += fmt::format(" {}:{}", ilevel + 1, step[ilevel]);
 
       mesg += "\n  r-RESPA fixes :";
-      for (int l = 0; l < modify->n_post_force_respa; ++l) {
+      for (int l = 0; l < modify->n_post_force_respa_any; ++l) {
         Fix *f = modify->get_fix_by_index(modify->list_post_force_respa[l]);
         if (f->respa_level >= 0)
           mesg += fmt::format(" {}:{}[{}]", MIN(f->respa_level + 1, nlevels), f->style, f->id);
@@ -413,7 +413,7 @@ void Respa::setup(int flag)
   ev_set(update->ntimestep);
 
   for (int ilevel = 0; ilevel < nlevels; ilevel++) {
-    force_clear(newton[ilevel]);
+    force_clear();
     modify->setup_pre_force_respa(vflag, ilevel);
 
     if (nhybrid_styles > 0) {
@@ -481,7 +481,7 @@ void Respa::setup_minimal(int flag)
   ev_set(update->ntimestep);
 
   for (int ilevel = 0; ilevel < nlevels; ilevel++) {
-    force_clear(newton[ilevel]);
+    force_clear();
     modify->setup_pre_force_respa(vflag, ilevel);
 
     if (nhybrid_styles > 0) {
@@ -644,7 +644,7 @@ void Respa::recurse(int ilevel)
     // so that any order dependencies are the same
     // when potentials are invoked at same level
 
-    force_clear(newton[ilevel]);
+    force_clear();
     if (modify->n_pre_force_respa) {
       timer->stamp();
       modify->pre_force_respa(vflag, ilevel, iloop);
@@ -704,7 +704,7 @@ void Respa::recurse(int ilevel)
       timer->stamp(Timer::COMM);
     }
     timer->stamp();
-    if (modify->n_post_force_respa) modify->post_force_respa(vflag, ilevel, iloop);
+    if (modify->n_post_force_respa_any) modify->post_force_respa(vflag, ilevel, iloop);
     modify->final_integrate_respa(ilevel, iloop);
     timer->stamp(Timer::MODIFY);
   }
@@ -717,7 +717,7 @@ void Respa::recurse(int ilevel)
    clear other arrays as needed
 ------------------------------------------------------------------------- */
 
-void Respa::force_clear(int /*newtonflag*/)
+void Respa::force_clear()
 {
   if (external_force_clear) return;
 

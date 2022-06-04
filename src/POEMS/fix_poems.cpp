@@ -357,8 +357,8 @@ void FixPOEMS::init()
       if (utils::strmatch(ifix->style, "^poems")) pflag = true;
       if (pflag && (ifix->setmask() & POST_FORCE) && !ifix->rigid_flag)
         if (comm->me == 0)
-          error->warning(FLERR,"Fix {} with ID {} alters forces after fix poems",
-                         ifix->style, ifix->id);
+          error->warning(FLERR, "Fix {} with ID {} alters forces after fix poems", ifix->style,
+                         ifix->id);
     }
   }
 

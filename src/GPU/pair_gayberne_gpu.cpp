@@ -145,7 +145,7 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
 
 void PairGayBerneGPU::init_style()
 {
-  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
   if (!avec) error->all(FLERR, "Pair gayberne/gpu requires atom style ellipsoid");
   if (!atom->ellipsoid_flag) error->all(FLERR, "Pair gayberne/gpu requires atom style ellipsoid");
 

@@ -42,6 +42,3 @@ class FixMomentumKokkos : public FixMomentum {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

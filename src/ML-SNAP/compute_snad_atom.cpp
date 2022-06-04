@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 
 ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), snad(nullptr),
-  radelem(nullptr), wjelem(nullptr), rinnerelem(nullptr), drinnerelem(nullptr)
+  radelem(nullptr), wjelem(nullptr), sinnerelem(nullptr), dinnerelem(nullptr)
 {
   double rfac0, rmin0;
   int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
@@ -57,8 +57,8 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // process required arguments
 
-  memory->create(radelem,ntypes+1,"sna/atom:radelem"); // offset by 1 to match up with types
-  memory->create(wjelem,ntypes+1,"sna/atom:wjelem");
+  memory->create(radelem,ntypes+1,"snad/atom:radelem"); // offset by 1 to match up with types
+  memory->create(wjelem,ntypes+1,"snad/atom:wjelem");
   rcutfac = atof(arg[3]);
   rfac0 = atof(arg[4]);
   twojmax = atoi(arg[5]);
@@ -71,7 +71,7 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
 
   double cut;
   cutmax = 0.0;
-  memory->create(cutsq,ntypes+1,ntypes+1,"sna/atom:cutsq");
+  memory->create(cutsq,ntypes+1,ntypes+1,"snad/atom:cutsq");
   for (int i = 1; i <= ntypes; i++) {
     cut = 2.0*radelem[i]*rcutfac;
     if (cut > cutmax) cutmax = cut;
@@ -81,6 +81,11 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
       cutsq[i][j] = cutsq[j][i] = cut*cut;
     }
   }
+
+  // set local input checks
+
+  int sinnerflag = 0;
+  int dinnerflag = 0;
 
   // process optional args
 
@@ -131,20 +136,37 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
       wselfallflag = atoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"switchinnerflag") == 0) {
-      if (iarg+1+2*ntypes > narg)
+      if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute snad/atom command");
-      switchinnerflag = 1;
+      switchinnerflag = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"sinner") == 0) {
       iarg++;
-      memory->create(rinnerelem,ntypes+1,"snad/atom:rinnerelem");
-      memory->create(drinnerelem,ntypes+1,"snad/atom:drinnerelem");
+      if (iarg+ntypes > narg)
+        error->all(FLERR,"Illegal compute snad/atom command");
+      memory->create(sinnerelem,ntypes+1,"snad/atom:sinnerelem");
       for (int i = 0; i < ntypes; i++)
-       rinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+        sinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+      sinnerflag = 1;
       iarg += ntypes;
+    } else if (strcmp(arg[iarg],"dinner") == 0) {
+      iarg++;
+      if (iarg+ntypes > narg)
+        error->all(FLERR,"Illegal compute snad/atom command");
+      memory->create(dinnerelem,ntypes+1,"snad/atom:dinnerelem");
       for (int i = 0; i < ntypes; i++)
-       drinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+        dinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+      dinnerflag = 1;
       iarg += ntypes;
     } else error->all(FLERR,"Illegal compute snad/atom command");
   }
+
+  if (switchinnerflag && !(sinnerflag && dinnerflag))
+    error->all(FLERR,"Illegal compute snad/atom command: switchinnerflag = 1, missing sinner/dinner keyword");
+
+  if (!switchinnerflag && (sinnerflag || dinnerflag))
+    error->all(FLERR,"Illegal compute snad/atom command: switchinnerflag = 0, unexpected sinner/dinner keyword");
+
 
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
@@ -177,8 +199,8 @@ ComputeSNADAtom::~ComputeSNADAtom()
   if (chemflag) memory->destroy(map);
 
   if (switchinnerflag) {
-    memory->destroy(rinnerelem);
-    memory->destroy(drinnerelem);
+    memory->destroy(sinnerelem);
+    memory->destroy(dinnerelem);
   }
 }
 
@@ -190,7 +212,7 @@ void ComputeSNADAtom::init()
     error->all(FLERR,"Compute snad/atom requires a pair style be defined");
 
   if (cutmax > force->pair->cutforce)
-    error->all(FLERR,"Compute sna/atom cutoff is longer than pairwise cutoff");
+    error->all(FLERR,"Compute snad/atom cutoff is longer than pairwise cutoff");
 
   // need an occasional full neighbor list
 
@@ -299,8 +321,8 @@ void ComputeSNADAtom::compute_peratom()
           snaptr->wj[ninside] = wjelem[jtype];
           snaptr->rcutij[ninside] = (radi+radelem[jtype])*rcutfac;
           if (switchinnerflag) {
-            snaptr->rinnerij[ninside] = 0.5*(rinnerelem[itype]+rinnerelem[jtype]);
-            snaptr->drinnerij[ninside] = 0.5*(drinnerelem[itype]+drinnerelem[jtype]);
+            snaptr->sinnerij[ninside] = 0.5*(sinnerelem[itype]+sinnerelem[jtype]);
+            snaptr->dinnerij[ninside] = 0.5*(dinnerelem[itype]+dinnerelem[jtype]);
           }
           if (chemflag) snaptr->element[ninside] = jelem;
           ninside++;

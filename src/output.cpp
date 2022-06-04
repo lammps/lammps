@@ -66,7 +66,7 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
 
   // create default Thermo class
 
-  char **newarg = new char*[1];
+  auto newarg = new char*[1];
   newarg[0] = (char *) "one";
   thermo = new Thermo(lmp,1,newarg);
   delete[] newarg;
@@ -199,8 +199,7 @@ void Output::setup(int memflag)
       // wrap step dumps that invoke computes or do variable eval with clear/add
       // see NOTE in write() about also wrapping time dumps
 
-      if (mode_dump[idump] == 0 &&
-          (dump[idump]->clearstep || var_dump[idump]))
+      if (mode_dump[idump] == 0 && (dump[idump]->clearstep || var_dump[idump]))
         modify->clearstep_compute();
 
       // write a snapshot at setup only if any of these 3 conditions hold
@@ -248,8 +247,7 @@ void Output::setup(int memflag)
       // if dump not written now, use addstep_compute_all()
       // since don't know what computes the dump will invoke
 
-      if (mode_dump[idump] == 0 &&
-          (dump[idump]->clearstep || var_dump[idump])) {
+      if (mode_dump[idump] == 0 && (dump[idump]->clearstep || var_dump[idump])) {
         if (writeflag) modify->addstep_compute(next_dump[idump]);
         else modify->addstep_compute_all(next_dump[idump]);
       }
@@ -275,7 +273,7 @@ void Output::setup(int memflag)
            (ntimestep/restart_every_single)*restart_every_single +
            restart_every_single;
        else {
-         bigint nextrestart = static_cast<bigint>
+         auto  nextrestart = static_cast<bigint>
            (input->variable->compute_equal(ivar_restart_single));
          if (nextrestart <= ntimestep)
            error->all(FLERR,"Restart variable returned a bad timestep");
@@ -288,7 +286,7 @@ void Output::setup(int memflag)
            (ntimestep/restart_every_double)*restart_every_double +
            restart_every_double;
        else {
-         bigint nextrestart = static_cast<bigint>
+         auto  nextrestart = static_cast<bigint>
            (input->variable->compute_equal(ivar_restart_double));
          if (nextrestart <= ntimestep)
            error->all(FLERR,"Restart variable returned a bad timestep");
@@ -401,7 +399,7 @@ void Output::setup(int memflag)
        if (restart_every_single) next_restart_single += restart_every_single;
        else {
          modify->clearstep_compute();
-         bigint nextrestart = static_cast<bigint>
+         auto  nextrestart = static_cast<bigint>
            (input->variable->compute_equal(ivar_restart_single));
          if (nextrestart <= ntimestep)
            error->all(FLERR,"Restart variable returned a bad timestep");
@@ -422,7 +420,7 @@ void Output::setup(int memflag)
        if (restart_every_double) next_restart_double += restart_every_double;
        else {
          modify->clearstep_compute();
-         bigint nextrestart = static_cast<bigint>
+         auto  nextrestart = static_cast<bigint>
            (input->variable->compute_equal(ivar_restart_double));
          if (nextrestart <= ntimestep)
            error->all(FLERR,"Restart variable returned a bad timestep");
@@ -495,8 +493,7 @@ void Output::calculate_next_dump(int which, int idump, bigint ntimestep)
        // which = WRITE: increment nextdump by every_dump
 
        if (which == SETUP)
-         next_dump[idump] =
-           (ntimestep/every_dump[idump])*every_dump[idump] + every_dump[idump];
+         next_dump[idump] = (ntimestep/every_dump[idump])*every_dump[idump] + every_dump[idump];
        else if (which == WRITE)
          next_dump[idump] += every_dump[idump];
 
@@ -648,7 +645,7 @@ int Output::check_time_dumps(bigint ntimestep)
      } else {
        modify->clearstep_compute();
        update->ntimestep--;
-       bigint nextrestart = static_cast<bigint>
+       auto  nextrestart = static_cast<bigint>
          (input->variable->compute_equal(ivar_restart_single));
        if (nextrestart < ntimestep)
          error->all(FLERR,"Restart variable returned a bad timestep");
@@ -667,7 +664,7 @@ int Output::check_time_dumps(bigint ntimestep)
      } else {
        modify->clearstep_compute();
        update->ntimestep--;
-       bigint nextrestart = static_cast<bigint>
+       auto  nextrestart = static_cast<bigint>
          (input->variable->compute_equal(ivar_restart_double));
        if (nextrestart < ntimestep)
          error->all(FLERR,"Restart variable returned a bad timestep");
@@ -736,56 +733,57 @@ void Output::reset_dt()
    add a Dump to list of Dumps
 ------------------------------------------------------------------------- */
 
-void Output::add_dump(int narg, char **arg)
+Dump *Output::add_dump(int narg, char **arg)
 {
   if (narg < 5) error->all(FLERR,"Illegal dump command");
 
   // error checks
 
   for (int idump = 0; idump < ndump; idump++)
-    if (strcmp(arg[0],dump[idump]->id) == 0)
-      error->all(FLERR,"Reuse of dump ID");
+    if (strcmp(arg[0],dump[idump]->id) == 0) error->all(FLERR,"Reuse of dump ID: {}", arg[0]);
+
   int igroup = group->find(arg[1]);
-  if (igroup == -1) error->all(FLERR,"Could not find dump group ID");
+  if (igroup == -1) error->all(FLERR,"Could not find dump group ID: {}", arg[1]);
   if (utils::inumeric(FLERR,arg[3],false,lmp) <= 0)
-    error->all(FLERR,"Invalid dump frequency");
+    error->all(FLERR,"Invalid dump frequency {}", arg[3]);
 
   // extend Dump list if necessary
 
   if (ndump == max_dump) {
     max_dump += DELTA;
-    dump = (Dump **)
-      memory->srealloc(dump,max_dump*sizeof(Dump *),"output:dump");
+    dump = (Dump **) memory->srealloc(dump,max_dump*sizeof(Dump *),"output:dump");
     memory->grow(mode_dump,max_dump,"output:mode_dump");
     memory->grow(every_dump,max_dump,"output:every_dump");
     memory->grow(every_time_dump,max_dump,"output:every_time_dump");
     memory->grow(next_dump,max_dump,"output:next_dump");
     memory->grow(next_time_dump,max_dump,"output:next_time_dump");
     memory->grow(last_dump,max_dump,"output:last_dump");
-    var_dump = (char **)
-      memory->srealloc(var_dump,max_dump*sizeof(char *),"output:var_dump");
+    var_dump = (char **) memory->srealloc(var_dump,max_dump*sizeof(char *),"output:var_dump");
     memory->grow(ivar_dump,max_dump,"output:ivar_dump");
   }
 
   // create the Dump
+  int idump = ndump;
 
   if (dump_map->find(arg[2]) != dump_map->end()) {
     DumpCreator &dump_creator = (*dump_map)[arg[2]];
-    dump[ndump] = dump_creator(lmp, narg, arg);
+    dump[idump] = dump_creator(lmp, narg, arg);
   } else error->all(FLERR,utils::check_packages_for_style("dump",arg[2],lmp));
 
   // initialize per-dump data to suitable default values
 
-  mode_dump[ndump] = 0;
-  every_dump[ndump] = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (every_dump[ndump] <= 0) error->all(FLERR,"Illegal dump command");
-  every_time_dump[ndump] = 0.0;
-  next_time_dump[ndump] = -1.0;
-  last_dump[ndump] = -1;
-  var_dump[ndump] = nullptr;
-  ivar_dump[ndump] = -1;
+  mode_dump[idump] = 0;
+  every_dump[idump] = utils::inumeric(FLERR,arg[3],false,lmp);
+  if (every_dump[idump] <= 0) error->all(FLERR,"Illegal dump command");
+  every_time_dump[idump] = 0.0;
+  next_time_dump[idump] = -1.0;
+  last_dump[idump] = -1;
+  var_dump[idump] = nullptr;
+  ivar_dump[idump] = -1;
+  next_dump[idump] = 0;
 
   ndump++;
+  return dump[idump];
 }
 
 /* ----------------------------------------------------------------------
@@ -794,14 +792,14 @@ void Output::add_dump(int narg, char **arg)
 
 void Output::modify_dump(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal dump_modify command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "dump_modify",error);
 
   // find which dump it is
 
   int idump;
   for (idump = 0; idump < ndump; idump++)
     if (strcmp(arg[0],dump[idump]->id) == 0) break;
-  if (idump == ndump) error->all(FLERR,"Cound not find dump_modify ID");
+  if (idump == ndump) error->all(FLERR,"Could not find dump_modify ID: {}", arg[0]);
 
   dump[idump]->modify_params(narg-1,&arg[1]);
 }
@@ -810,14 +808,13 @@ void Output::modify_dump(int narg, char **arg)
    delete a Dump from list of Dumps
 ------------------------------------------------------------------------- */
 
-void Output::delete_dump(char *id)
+void Output::delete_dump(const std::string &id)
 {
   // find which dump it is and delete it
 
   int idump;
-  for (idump = 0; idump < ndump; idump++)
-    if (strcmp(id,dump[idump]->id) == 0) break;
-  if (idump == ndump) error->all(FLERR,"Could not find undump ID");
+  for (idump = 0; idump < ndump; idump++) if (id == dump[idump]->id) break;
+  if (idump == ndump) error->all(FLERR,"Could not find undump ID: {}", id);
 
   delete dump[idump];
   delete[] var_dump[idump];
@@ -854,6 +851,18 @@ int Output::find_dump(const char *id)
 }
 
 /* ----------------------------------------------------------------------
+   find a dump by ID
+   return pointer to dump
+------------------------------------------------------------------------- */
+
+Dump *Output::get_dump_by_id(const std::string &id)
+{
+  if (id.empty()) return nullptr;
+  for (int idump = 0; idump < ndump; idump++) if (id == dump[idump]->id) return dump[idump];
+  return nullptr;
+}
+
+/* ----------------------------------------------------------------------
    set thermo output frequency from input script
 ------------------------------------------------------------------------- */
 
@@ -871,7 +880,7 @@ void Output::set_thermo(int narg, char **arg)
     var_thermo = utils::strdup(arg[0]+2);
   } else {
     thermo_every = utils::inumeric(FLERR,arg[0],false,lmp);
-    if (thermo_every < 0) error->all(FLERR,"Illegal thermo command");
+    if (thermo_every < 0) error->all(FLERR,"Illegal thermo output frequency {}", thermo_every);
   }
 }
 
@@ -881,7 +890,7 @@ void Output::set_thermo(int narg, char **arg)
 
 void Output::create_thermo(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal thermo_style command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "thermo_style", error);
 
   // don't allow this so that dipole style can safely allocate inertia vector
 
@@ -891,8 +900,7 @@ void Output::create_thermo(int narg, char **arg)
   // warn if previous thermo had been modified via thermo_modify command
 
   if (thermo->modified && comm->me == 0)
-    error->warning(FLERR,"New thermo_style command, "
-                   "previous thermo_modify settings will be lost");
+    error->warning(FLERR,"New thermo_style command, previous thermo_modify settings will be lost");
 
   // set thermo = nullptr in case new Thermo throws an error
 
@@ -908,7 +916,7 @@ void Output::create_thermo(int narg, char **arg)
 
 void Output::create_restart(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal restart command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "restart", error);
 
   int every = 0;
   int varflag = 0;

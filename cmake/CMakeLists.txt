@@ -105,8 +105,28 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   endif()
 endif()
 
+# silence excessive warnings for new Intel Compilers
+if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+  set(CMAKE_TUNE_DEFAULT "-Wno-tautological-constant-compare -Wno-unused-command-line-argument")
+endif()
+
+# silence excessive warnings for PGI/NVHPC compilers
+if((CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC") OR (CMAKE_CXX_COMPILER_ID STREQUAL "PGI"))
+  set(CMAKE_TUNE_DEFAULT "-Minform=severe")
+endif()
+
+# silence nvcc warnings
+if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA) AND NOT (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
+  set(CMAKE_TUNE_DEFAULT "${CMAKE_TUNE_DEFAULT} -Xcudafe --diag_suppress=unrecognized_pragma")
+endif()
+
 # we require C++11 without extensions. Kokkos requires at least C++14 (currently)
-set(CMAKE_CXX_STANDARD 11)
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 11)
+endif()
+if(CMAKE_CXX_STANDARD LESS 11)
+  message(FATAL_ERROR "C++ standard must be set to at least 11")
+endif()
 if(PKG_KOKKOS AND (CMAKE_CXX_STANDARD LESS 14))
   set(CMAKE_CXX_STANDARD 14)
 endif()
@@ -118,6 +138,9 @@ if(MSVC)
   add_compile_options(/Zc:__cplusplus)
   add_compile_options(/wd4244)
   add_compile_options(/wd4267)
+  if(LAMMPS_EXCEPTIONS)
+    add_compile_options(/EHsc)
+  endif()
   add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
 
@@ -141,10 +164,12 @@ option(CMAKE_POSITION_INDEPENDENT_CODE "Create object compatible with shared lib
 option(BUILD_TOOLS "Build and install LAMMPS tools (msi2lmp, binary2txt, chain)" OFF)
 option(BUILD_LAMMPS_SHELL "Build and install the LAMMPS shell" OFF)
 
-# allow enabling clang-tidy for C++ files
+# Support using clang-tidy for C++ files with selected options
 set(ENABLE_CLANG_TIDY OFF CACHE BOOL "Include clang-tidy processing when compiling")
 if(ENABLE_CLANG_TIDY)
-  set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=*-header-filter=.*" CACHE STRING "")
+  set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=-*,performance-trivially-destructible,performance-unnecessary-copy-initialization,performance-unnecessary-value-param,readability-redundant-control-flow,readability-redundant-declaration,readability-redundant-function-ptr-dereference,readability-redundant-member-init,readability-redundant-string-cstr,readability-redundant-string-init,readability-simplify-boolean-expr,readability-static-accessed-through-instance,readability-static-definition-in-anonymous-namespace,modernize-use-override,modernize-use-bool-literals,modernize-use-emplace,modernize-return-braced-init-list,modernize-use-equals-default,modernize-use-equals-delete,modernize-replace-random-shuffle,modernize-deprecated-headers,modernize-use-nullptr,modernize-use-noexcept,modernize-redundant-void-arg;-fix;-header-filter=.*,header-filter=library.h,header-filter=fmt/*.h" CACHE STRING "clang-tidy settings")
+else()
+  unset(CMAKE_CXX_CLANG_TIDY CACHE)
 endif()
 
 include(GNUInstallDirs)
@@ -172,6 +197,7 @@ set(STANDARD_PACKAGES
   AWPMD
   BOCS
   BODY
+  BPM
   BROWNIAN
   CG-DNA
   CG-SDK
@@ -188,6 +214,7 @@ set(STANDARD_PACKAGES
   DPD-SMOOTH
   DRUDE
   EFF
+  ELECTRODE
   EXTRA-COMPUTE
   EXTRA-DUMP
   EXTRA-FIX
@@ -306,7 +333,9 @@ string(TOUPPER ${LAMMPS_SIZES} LAMMPS_SIZES)
 target_compile_definitions(lammps PUBLIC -DLAMMPS_${LAMMPS_SIZES})
 
 # posix_memalign is not available on Windows
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+# with INTEL package and Intel compilers we use TBB's aligned malloc
+if((CMAKE_SYSTEM_NAME STREQUAL "Windows")
+   AND NOT (PKG_INTEL AND ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") OR (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM"))))
   set(LAMMPS_MEMALIGN "0" CACHE STRING "posix_memalign() is not available on Windows" FORCE)
 else()
   set(LAMMPS_MEMALIGN "64" CACHE STRING "enables the use of the posix_memalign() call instead of malloc() when large chunks or memory are allocated by LAMMPS. Set to 0 to disable")
@@ -331,6 +360,7 @@ pkg_depends(DIELECTRIC KSPACE)
 pkg_depends(DIELECTRIC EXTRA-PAIR)
 pkg_depends(CG-DNA MOLECULE)
 pkg_depends(CG-DNA ASPHERE)
+pkg_depends(ELECTRODE KSPACE)
 
 # detect if we may enable OpenMP support by default
 set(BUILD_OMP_DEFAULT OFF)
@@ -368,7 +398,7 @@ if(BUILD_OMP)
   target_link_libraries(lmp PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
-if(PKG_MSCG OR PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_LATTE)
+if(PKG_MSCG OR PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_LATTE OR PKG_ELECTRODE)
   enable_language(C)
   find_package(LAPACK)
   find_package(BLAS)
@@ -467,6 +497,7 @@ set(CMAKE_TUNE_FLAGS "${CMAKE_TUNE_DEFAULT}" CACHE STRING "Compiler and machine 
 separate_arguments(CMAKE_TUNE_FLAGS)
 foreach(_FLAG ${CMAKE_TUNE_FLAGS})
   target_compile_options(lammps PRIVATE ${_FLAG})
+  target_compile_options(lmp PRIVATE ${_FLAG})
 endforeach()
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
@@ -570,6 +601,10 @@ foreach(PKG_LIB POEMS ATC AWPMD H5MD MESONT)
     endif()
   endif()
 endforeach()
+
+if(PKG_ELECTRODE)
+  target_link_libraries(lammps PRIVATE ${LAPACK_LIBRARIES})
+endif()
 
 if(PKG_AWPMD)
   target_link_libraries(awpmd PRIVATE ${LAPACK_LIBRARIES})
@@ -918,6 +953,12 @@ if(PKG_KSPACE)
         message(STATUS "Kokkos FFT: KISS")
       else()
         message(STATUS "Kokkos FFT: cuFFT")
+      endif()
+    elseif(Kokkos_ENABLE_HIP)
+      if(FFT STREQUAL "KISS")
+        message(STATUS "Kokkos FFT: KISS")
+      else()
+        message(STATUS "Kokkos FFT: hipFFT")
       endif()
     else()
       message(STATUS "Kokkos FFT: ${FFT}")

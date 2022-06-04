@@ -10,7 +10,7 @@ Syntax
 
    thermo_style style args
 
-* style = *one* or *multi* *yaml* or *custom*
+* style = *one* or *multi* or *yaml* or *custom*
 * args = list of arguments for a particular style
 
   .. parsed-literal::
@@ -85,7 +85,7 @@ Syntax
            f_ID[I] = Ith component of global vector calculated by a fix with ID, I can include wildcard (see below)
            f_ID[I][J] = I,J component of global array calculated by a fix with ID
            v_name = value calculated by an equal-style variable with name
-           v_name[I] = value calculated by a vector-style variable with name
+           v_name[I] = value calculated by a vector-style variable with name, I can include wildcard (see below)
 
 Examples
 """"""""
@@ -348,16 +348,15 @@ dimensions *lx*, *ly*, *lz*, *yz*, *xz*, *xy*\ .
 
 ----------
 
-For output values from a compute or fix, the bracketed index I used to
-index a vector, as in *c_ID[I]* or *f_ID[I]*, can be specified
-using a wildcard asterisk with the index to effectively specify
-multiple values.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".
-If N = the size of the vector (for *mode* = scalar) or the number of
-columns in the array (for *mode* = vector), then an asterisk with no
-numeric values means all indices from 1 to N.  A leading asterisk
-means all indices from 1 to n (inclusive).  A trailing asterisk means
-all indices from n to N (inclusive).  A middle asterisk means all
-indices from m to n (inclusive).
+For output values from a compute or fix or variable, the bracketed
+index I used to index a vector, as in *c_ID[I]* or *f_ID[I]* or
+*v_name[I]*, can be specified using a wildcard asterisk with the index
+to effectively specify multiple values.  This takes the form "\*" or
+"\*n" or "n\*" or "m\*n".  If N = the size of the vector, then an
+asterisk with no numeric values means all indices from 1 to N.  A
+leading asterisk means all indices from 1 to n (inclusive).  A
+trailing asterisk means all indices from n to N (inclusive).  A middle
+asterisk means all indices from m to n (inclusive).
 
 Using a wildcard is the same as if the individual elements of the
 vector had been listed one by one.  E.g. these 2 thermo_style commands
@@ -371,6 +370,15 @@ creates a global vector with 6 values.
    thermo_style custom step temp etotal &
                 c_myTemp[1] c_myTemp[2] c_myTemp[3] &
                 c_myTemp[4] c_myTemp[5] c_myTemp[6]
+
+
+.. note::
+
+   For a vector-style variable, only the wildcard forms "\*n" or
+   "m\*n" are allowed.  You must specify the upper bound, because
+   vector-style variable lengths are not determined until the variable
+   is evaluated.  If n is specified larger than the vector length
+   turns out to be, zeroes are output for missing vector values.
 
 ----------
 

@@ -117,6 +117,3 @@ class PairTableRXKokkos : public PairTable {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
- */

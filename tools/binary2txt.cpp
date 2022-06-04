@@ -83,7 +83,7 @@ int main(int narg, char **arg)
     }
 
     n = strlen(arg[iarg]) + 1 + 4;
-    char *filetxt = new char[n];
+    auto filetxt = new char[n];
     strcpy(filetxt, arg[iarg]);
     strcat(filetxt, ".txt");
     FILE *fptxt = fopen(filetxt, "w");
@@ -226,7 +226,7 @@ int main(int narg, char **arg)
         // extend buffer to fit chunk size
 
         if (n > maxbuf) {
-          if (buf) delete[] buf;
+          delete[] buf;
           buf = new double[n];
           maxbuf = n;
         }
@@ -260,6 +260,6 @@ int main(int narg, char **arg)
     unit_style = nullptr;
   }
 
-  if (buf) delete[] buf;
+  delete[] buf;
   return 0;
 }

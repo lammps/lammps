@@ -23,14 +23,24 @@ class Bond : protected Pointers {
   friend class FixOMP;
 
  public:
+  static int instance_total;    // # of Bond classes ever instantiated
+
   int allocated;
   int *setflag;
+  int partial_flag;          // 1 if bond type can be set to 0 and deleted
   int writedata;             // 1 if writes coeffs to data file
   double energy;             // accumulated energies
   double virial[6];          // accumulated virial: xx,yy,zz,xy,xz,yz
   double *eatom, **vatom;    // accumulated per-atom energy/virial
 
-  int reinitflag;    // 1 if compatible with fix adapt and alike
+  int born_matrix_enable;
+
+  int comm_forward;        // size of forward communication (0 if none)
+  int comm_reverse;        // size of reverse communication (0 if none)
+  int comm_reverse_off;    // size of reverse comm even if newton off
+
+  int reinitflag;    // 0 if not compatible with fix adapt
+                     // extract() method may still need to be added
 
   // KOKKOS host/device flag and data masks
 
@@ -43,7 +53,7 @@ class Bond : protected Pointers {
   virtual void init();
   virtual void init_style() {}
   virtual void compute(int, int) = 0;
-  virtual void settings(int, char **) {}
+  virtual void settings(int, char **);
   virtual void coeff(int, char **) = 0;
   virtual double equilibrium_distance(int) = 0;
   virtual void write_restart(FILE *) = 0;
@@ -56,9 +66,22 @@ class Bond : protected Pointers {
   virtual void *extract(const char *, int &) { return nullptr; }
   virtual void reinit();
 
+  virtual int pack_forward_comm(int, int *, double *, int, int *) { return 0; }
+  virtual void unpack_forward_comm(int, int, double *) {}
+  virtual int pack_reverse_comm(int, int, double *) { return 0; }
+  virtual void unpack_reverse_comm(int, int *, double *) {}
+
+  virtual void born_matrix(int /*btype*/, double /*rsq*/, int /*at1*/, int /*at2*/, double &du,
+                           double &du2)
+  {
+    du = 0.0;
+    du2 = 0.0;
+  }
+
   void write_file(int, char **);
 
  protected:
+  int instance_me;    // which Bond class instantiation I am
   int suffix_flag;    // suffix compatibility flag
 
   int evflag;
@@ -81,37 +104,3 @@ class Bond : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Bond coeffs are not set
-
-No bond coefficients have been assigned in the data file or via the
-bond_coeff command.
-
-E: All bond coeffs are not set
-
-All bond coefficients must be set in the data file or by the
-bond_coeff command before running a simulation.
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-E: Invalid atom types in bond_write command
-
-UNDOCUMENTED
-
-E: Invalid rlo/rhi values in bond_write command
-
-UNDOCUMENTED
-
-E: Cannot open bond_write file
-
-UNDOCUMENTED
-
-E: Fix adapt interface to this bond style not supported
-
-UNDOCUMENTED
-
-*/

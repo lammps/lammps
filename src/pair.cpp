@@ -58,6 +58,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   comm_forward = comm_reverse = comm_reverse_off = 0;
 
   single_enable = 1;
+  born_matrix_enable = 0;
   single_hessian_enable = 0;
   restartinfo = 1;
   respa_enable = 0;
@@ -283,7 +284,7 @@ void Pair::init()
 
   if (!manybody_flag && (comm->me == 0)) {
     const int num_mixed_pairs = atom->ntypes * (atom->ntypes - 1) / 2;
-    utils::logmesg(lmp,"  generated {} of {} mixed pair_coeff terms from {} mixing rule\n",
+    utils::logmesg(lmp,"Generated {} of {} mixed pair_coeff terms from {} mixing rule\n",
                    mixed_count, num_mixed_pairs, mixing_rule_names[mix_flag]);
   }
 }

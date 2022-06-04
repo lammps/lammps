@@ -8,7 +8,7 @@
       "installRoot": "${workspaceRoot}\\install\\${name}",
       "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows.cmake",
       "buildCommandArgs": "",
-      "ctestCommandArgs": "",
+      "ctestCommandArgs": "-V",
       "inheritEnvironments": [ "msvc_x64_x64" ],
       "variables": [
         {
@@ -23,11 +23,6 @@
         },
         {
           "name": "LAMMPS_EXCEPTIONS",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
-          "name": "PKG_PYTHON",
           "value": "True",
           "type": "BOOL"
         },
@@ -46,7 +41,7 @@
       "installRoot": "${workspaceRoot}\\install\\${name}",
       "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows.cmake",
       "buildCommandArgs": "",
-      "ctestCommandArgs": "",
+      "ctestCommandArgs": "-V",
       "inheritEnvironments": [ "msvc_x64_x64" ],
       "variables": [
         {
@@ -61,11 +56,6 @@
         },
         {
           "name": "LAMMPS_EXCEPTIONS",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
-          "name": "PKG_PYTHON",
           "value": "True",
           "type": "BOOL"
         },
@@ -103,11 +93,6 @@
           "type": "BOOL"
         },
         {
-          "name": "PKG_PYTHON",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
           "name": "ENABLE_TESTING",
           "value": "True",
           "type": "BOOL"
@@ -122,7 +107,7 @@
       "installRoot": "${workspaceRoot}\\install\\${name}",
       "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows.cmake -DCMAKE_C_COMPILER=clang-cl.exe -DCMAKE_CXX_COMPILER=clang-cl.exe",
       "buildCommandArgs": "",
-      "ctestCommandArgs": "",
+      "ctestCommandArgs": "-V",
       "inheritEnvironments": [ "clang_cl_x64" ],
       "variables": [
         {
@@ -141,7 +126,40 @@
           "type": "BOOL"
         },
         {
-          "name": "PKG_PYTHON",
+          "name": "ENABLE_TESTING",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "x64-Debug-IntelLLVM",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "-V",
+      "inheritEnvironments": [],
+      "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows-intel-llvm.cmake -C ${workspaceRoot}\\cmake\\presets\\windows.cmake",
+      "variables": [
+        {
+          "name": "PKG_ELECTRODE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
           "value": "True",
           "type": "BOOL"
         },
@@ -149,6 +167,140 @@
           "name": "ENABLE_TESTING",
           "value": "True",
           "type": "BOOL"
+        },
+        {
+          "name": "FFT",
+          "value": "MKL",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "name": "x64-Release-IntelLLVM",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows-intel-llvm.cmake -C ${workspaceRoot}\\cmake\\presets\\windows.cmake",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "-V",
+      "inheritEnvironments": [],
+      "variables": [
+        {
+          "name": "PKG_ELECTRODE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "ENABLE_TESTING",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "FFT",
+          "value": "MKL",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "name": "x64-Debug-Intel-Classic",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows-intel-classic.cmake -C ${workspaceRoot}\\cmake\\presets\\windows.cmake",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "-V",
+      "inheritEnvironments": [],
+      "variables": [
+        {
+          "name": "PKG_ELECTRODE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "ENABLE_TESTING",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "FFT",
+          "value": "MKL",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "name": "x64-Release-Intel-Classic",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows-intel-classic.cmake -C ${workspaceRoot}\\cmake\\presets\\windows.cmake",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "-V",
+      "inheritEnvironments": [],
+      "variables": [
+        {
+          "name": "PKG_ELECTRODE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "ENABLE_TESTING",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "FFT",
+          "value": "MKL",
+          "type": "STRING"
         }
       ]
     }

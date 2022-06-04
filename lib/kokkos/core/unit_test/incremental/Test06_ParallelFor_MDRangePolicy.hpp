@@ -170,6 +170,7 @@ struct TestMDRangePolicy {
     // Copy the data back to Host memory space
     Kokkos::Impl::DeepCopy<h_memspace_type, d_memspace_type>(
         hostData, deviceData, num_elements * sizeof(value_type));
+    Kokkos::fence("Fence after copying data to host");
 
     // Check if all data has been update correctly
     compare_equal_2D();
@@ -201,6 +202,7 @@ struct TestMDRangePolicy {
     // Copy the data back to Host memory space
     Kokkos::Impl::DeepCopy<h_memspace_type, d_memspace_type>(
         hostData, deviceData, num_elements * sizeof(value_type));
+    Kokkos::fence("Fence after copying data to host");
 
     // Check if all data has been update correctly
     compare_equal_3D();
@@ -232,6 +234,7 @@ struct TestMDRangePolicy {
     // Copy the data back to Host memory space
     Kokkos::Impl::DeepCopy<h_memspace_type, d_memspace_type>(
         hostData, deviceData, num_elements * sizeof(value_type));
+    Kokkos::fence("Fence after copying data to host");
 
     // Check if all data has been update correctly
     compare_equal_4D();

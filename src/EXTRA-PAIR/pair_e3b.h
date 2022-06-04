@@ -49,8 +49,8 @@ class PairE3B : public Pair {
   int pairmax, pairPerAtom;    // size of pair list
   int **pairO, ***pairH;       // pair lists
   double ***exps, ****del3, ***fpair3, *sumExp;
-  int maxID;        //size of global sumExp array
-  int natoms;       //to make sure number of atoms is constant
+  int maxID;     //size of global sumExp array
+  int natoms;    //to make sure number of atoms is constant
 
   virtual void allocate();
   void allocateE3B();

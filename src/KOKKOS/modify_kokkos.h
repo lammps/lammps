@@ -77,6 +77,3 @@ class ModifyKokkos : public Modify {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

@@ -200,9 +200,9 @@ void ComputeBasalAtom::compute_peratom()
       chi[0] = chi[1] = chi[2] = chi[3] = chi[4] = chi[5] = chi[6] = chi[7] = 0;
       double x_ij, y_ij, z_ij, x_ik, y_ik, z_ik, xmean5, ymean5, zmean5,
              xmean6, ymean6, zmean6, xmean7, ymean7, zmean7;
-      double *x3 = new double[n0];
-      double *y3 = new double[n0];
-      double *z3 = new double[n0];
+      auto x3 = new double[n0];
+      auto y3 = new double[n0];
+      auto z3 = new double[n0];
       for (j = 0; j < n0; j++) {
         x_ij = x[i][0]-x[nearest_n0[j]][0];
         y_ij = x[i][1]-x[nearest_n0[j]][1];
@@ -432,8 +432,8 @@ void ComputeBasalAtom::compute_peratom()
    2nd routine sorts auxiliary array at same time
 ------------------------------------------------------------------------- */
 
-#define SWAP(a,b)   tmp = a; a = b; b = tmp;
-#define ISWAP(a,b) itmp = a; a = b; b = itmp;
+#define SWAP(a,b)   tmp = a; (a) = b; (b) = tmp;
+#define ISWAP(a,b) itmp = a; (a) = b; (b) = itmp;
 
 void ComputeBasalAtom::select(int k, int n, double *arr)
   {

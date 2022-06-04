@@ -25,8 +25,8 @@
 
 using ::testing::Eq;
 
-char *BINARY2TXT_BINARY = nullptr;
-bool verbose            = false;
+char *BINARY2TXT_EXECUTABLE = nullptr;
+bool verbose                = false;
 
 class DumpAtomTest : public MeltTest {
     std::string dump_style = "atom";
@@ -39,22 +39,23 @@ public:
         END_HIDE_OUTPUT();
     }
 
-    std::string dump_filename(std::string ident)
+    std::string dump_filename(const std::string &ident)
     {
         return fmt::format("dump_{}_{}.melt", dump_style, ident);
     }
 
-    std::string text_dump_filename(std::string ident)
+    std::string text_dump_filename(const std::string &ident)
     {
         return fmt::format("dump_{}_text_{}.melt", dump_style, ident);
     }
 
-    std::string binary_dump_filename(std::string ident)
+    std::string binary_dump_filename(const std::string &ident)
     {
         return fmt::format("dump_{}_binary_{}.melt.bin", dump_style, ident);
     }
 
-    void generate_dump(std::string dump_file, std::string dump_modify_options, int ntimesteps)
+    void generate_dump(const std::string &dump_file, const std::string &dump_modify_options,
+                       int ntimesteps)
     {
         BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id all {} 1 {}", dump_style, dump_file));
@@ -81,8 +82,8 @@ public:
         END_HIDE_OUTPUT();
     }
 
-    void generate_text_and_binary_dump(std::string text_file, std::string binary_file,
-                                       std::string dump_modify_options, int ntimesteps)
+    void generate_text_and_binary_dump(const std::string &text_file, const std::string &binary_file,
+                                       const std::string &dump_modify_options, int ntimesteps)
     {
         BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id0 all {} 1 {}", dump_style, text_file));
@@ -97,10 +98,10 @@ public:
         END_HIDE_OUTPUT();
     }
 
-    std::string convert_binary_to_text(std::string binary_file)
+    std::string convert_binary_to_text(const std::string &binary_file)
     {
         BEGIN_HIDE_OUTPUT();
-        std::string cmdline = fmt::format("{} {}", BINARY2TXT_BINARY, binary_file);
+        std::string cmdline = fmt::format("\"{}\" {}", BINARY2TXT_EXECUTABLE, binary_file);
         system(cmdline.c_str());
         END_HIDE_OUTPUT();
         return fmt::format("{}.txt", binary_file);
@@ -328,7 +329,7 @@ TEST_F(DumpAtomTest, triclinic_with_image_run0)
 
 TEST_F(DumpAtomTest, binary_run0)
 {
-    if (!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_EXECUTABLE) GTEST_SKIP();
 
     auto text_file   = text_dump_filename("run0");
     auto binary_file = binary_dump_filename("run0");
@@ -349,7 +350,7 @@ TEST_F(DumpAtomTest, binary_run0)
 
 TEST_F(DumpAtomTest, binary_with_units_run0)
 {
-    if (!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_EXECUTABLE) GTEST_SKIP();
 
     auto text_file   = text_dump_filename("with_units_run0");
     auto binary_file = binary_dump_filename("with_units_run0");
@@ -370,7 +371,7 @@ TEST_F(DumpAtomTest, binary_with_units_run0)
 
 TEST_F(DumpAtomTest, binary_with_time_run0)
 {
-    if (!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_EXECUTABLE) GTEST_SKIP();
 
     auto text_file   = text_dump_filename("with_time_run0");
     auto binary_file = binary_dump_filename("with_time_run0");
@@ -391,7 +392,7 @@ TEST_F(DumpAtomTest, binary_with_time_run0)
 
 TEST_F(DumpAtomTest, binary_triclinic_run0)
 {
-    if (!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_EXECUTABLE) GTEST_SKIP();
 
     auto text_file   = text_dump_filename("tri_run0");
     auto binary_file = binary_dump_filename("tri_run0");
@@ -413,7 +414,7 @@ TEST_F(DumpAtomTest, binary_triclinic_run0)
 
 TEST_F(DumpAtomTest, binary_triclinic_with_units_run0)
 {
-    if (!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_EXECUTABLE) GTEST_SKIP();
 
     auto text_file   = text_dump_filename("tri_with_units_run0");
     auto binary_file = binary_dump_filename("tri_with_units_run0");
@@ -435,7 +436,7 @@ TEST_F(DumpAtomTest, binary_triclinic_with_units_run0)
 
 TEST_F(DumpAtomTest, binary_triclinic_with_time_run0)
 {
-    if (!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_EXECUTABLE) GTEST_SKIP();
 
     auto text_file   = text_dump_filename("tri_with_time_run0");
     auto binary_file = binary_dump_filename("tri_with_time_run0");
@@ -457,7 +458,7 @@ TEST_F(DumpAtomTest, binary_triclinic_with_time_run0)
 
 TEST_F(DumpAtomTest, binary_triclinic_with_image_run0)
 {
-    if (!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_EXECUTABLE) GTEST_SKIP();
 
     auto text_file   = text_dump_filename("tri_with_image_run0");
     auto binary_file = binary_dump_filename("tri_with_image_run0");
@@ -649,7 +650,7 @@ TEST_F(DumpAtomTest, write_dump)
 
 TEST_F(DumpAtomTest, binary_write_dump)
 {
-    if (!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_EXECUTABLE) GTEST_SKIP();
 
     auto reference = binary_dump_filename("write_run0_ref");
     auto dump_file = fmt::format("write_{}", binary_dump_filename("write_dump_atom_run*_p%"));
@@ -693,7 +694,7 @@ int main(int argc, char **argv)
         }
     }
 
-    BINARY2TXT_BINARY = getenv("BINARY2TXT_BINARY");
+    BINARY2TXT_EXECUTABLE = getenv("BINARY2TXT_EXECUTABLE");
 
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 

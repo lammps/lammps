@@ -57,6 +57,3 @@ class FixMinimize : public Fix {
 
 #endif
 #endif
-/* ERROR/WARNING messages:
-
-*/

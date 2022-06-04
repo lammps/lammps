@@ -1,0 +1,48 @@
+SHELL = /bin/sh
+
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.linalg
+
+# ------ DEFINITIONS ------
+
+LIB = libelectrode.a
+OBJ =   $(SRC:.cpp=.o)
+
+# ------ SETTINGS ------
+
+# include any MPI settings needed for the ELECTRODE library to build with
+# the same MPI library that LAMMPS is built with
+
+CC =	    mpicxx
+CCFLAGS = -O3 -fPIC -DMPICH_IGNORE_CXX_SEEK -DOMPI_SKIP_MPICXX=1
+
+ARCHIVE =	ar
+ARCHFLAG =	-rc
+DEPFLAGS =  -M
+#LINK =         
+#LINKFLAGS =	
+USRLIB =
+SYSLIB =
+
+# ------ MAKE PROCEDURE ------
+
+lib: 	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
+	@cp $(EXTRAMAKE) Makefile.lammps
+
+# ------ COMPILE RULES ------
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $< -o $@
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(DEPFLAGS) $< > $@		
+
+# ------ DEPENDENCIES ------
+
+DEPENDS = $(OBJ:.o=.d)
+
+# ------ CLEAN ------
+
+clean:
+	-rm -f *.d *~ $(OBJ) $(LIB)

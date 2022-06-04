@@ -27,35 +27,6 @@
 
 #define HASH_FAIL  -1
 
-////////////////////////////////////////////////////////////////////////
-// local helper functions
-
-// safely move filename to filename.extension
-static int my_backup_file(const char *filename, const char *extension)
-{
-  struct stat sbuf;
-  if (stat(filename, &sbuf) == 0) {
-    if (!extension) extension = ".BAK";
-    char *backup = new char[strlen(filename)+strlen(extension)+1];
-    strcpy(backup, filename);
-    strcat(backup, extension);
-#if defined(_WIN32) && !defined(__CYGWIN__)
-    remove(backup);
-#endif
-    if (rename(filename,backup)) {
-      char *sys_err_msg = strerror(errno);
-      if (!sys_err_msg)  sys_err_msg = (char *) "(unknown error)";
-      fprintf(stderr,"Error renaming file %s to %s: %s\n",
-              filename, backup, sys_err_msg);
-      delete [] backup;
-      return COLVARS_ERROR;
-    }
-    delete [] backup;
-  }
-  return COLVARS_OK;
-}
-
-////////////////////////////////////////////////////////////////////////
 
 colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
                                        const char *inp_name,
@@ -74,10 +45,6 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
   previous_step=-1;
   t_target=temp;
   do_exit=false;
-
-  // User-scripted forces are not available in LAMMPS
-  force_script_defined = false;
-  have_scripts = false;
 
   // set input restart name and strip the extension, if present
   input_prefix_str = std::string(inp_name ? inp_name : "");
@@ -98,10 +65,10 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
 
   // try to extract a restart prefix from a potential restart command.
   LAMMPS_NS::Output *outp = _lmp->output;
-  if ((outp->restart_every_single > 0) && (outp->restart1 != 0)) {
+  if ((outp->restart_every_single > 0) && (outp->restart1 != nullptr)) {
     restart_frequency_engine = outp->restart_every_single;
     restart_output_prefix_str = std::string(outp->restart1);
-  } else if  ((outp->restart_every_double > 0) && (outp->restart2a != 0)) {
+  } else if  ((outp->restart_every_double > 0) && (outp->restart2a != nullptr)) {
     restart_frequency_engine = outp->restart_every_double;
     restart_output_prefix_str = std::string(outp->restart2a);
   }
@@ -130,6 +97,9 @@ void colvarproxy_lammps::init(const char *conf_file)
   cvm::log("Using LAMMPS interface, version "+
            cvm::to_str(COLVARPROXY_VERSION)+".\n");
 
+  colvars->cite_feature("LAMMPS engine");
+  colvars->cite_feature("Colvars-LAMMPS interface");
+
   my_angstrom  = _lmp->force->angstrom;
   // Front-end unit is the same as back-end
   angstrom_value = my_angstrom;
@@ -147,7 +117,7 @@ void colvarproxy_lammps::init(const char *conf_file)
   if (_lmp->update->ntimestep != 0) {
     cvm::log("Setting initial step number from LAMMPS: "+
              cvm::to_str(_lmp->update->ntimestep)+"\n");
-    colvars->it = colvars->it_restart =
+    colvarmodule::it = colvarmodule::it_restart =
       static_cast<cvm::step_number>(_lmp->update->ntimestep);
   }
 
@@ -179,10 +149,6 @@ int colvarproxy_lammps::read_state_file(char const *state_filename)
 colvarproxy_lammps::~colvarproxy_lammps()
 {
   delete _random;
-  if (colvars != nullptr) {
-    delete colvars;
-    colvars = nullptr;
-  }
 }
 
 // re-initialize data where needed
@@ -208,7 +174,7 @@ double colvarproxy_lammps::compute()
   } else {
     // Use the time step number from LAMMPS Update object
     if (_lmp->update->ntimestep - previous_step == 1) {
-      colvars->it++;
+      colvarmodule::it++;
       b_simulation_continuing = false;
     } else {
       // Cases covered by this condition:
@@ -243,7 +209,7 @@ double colvarproxy_lammps::compute()
 
   if (cvm::debug()) {
     cvm::log(std::string(cvm::line_marker)+
-             "colvarproxy_lammps, step no. "+cvm::to_str(colvars->it)+"\n"+
+             "colvarproxy_lammps, step no. "+cvm::to_str(colvarmodule::it)+"\n"+
              "Updating internal data.\n");
   }
 
@@ -303,7 +269,7 @@ cvm::rvector colvarproxy_lammps::position_distance(cvm::atom_pos const &pos1,
   double ytmp = pos2.y - pos1.y;
   double ztmp = pos2.z - pos1.z;
   _lmp->domain->minimum_image(xtmp,ytmp,ztmp);
-  return cvm::rvector(xtmp, ytmp, ztmp);
+  return {xtmp, ytmp, ztmp};
 }
 
 
@@ -336,17 +302,6 @@ int colvarproxy_lammps::set_unit_system(std::string const &units_in, bool /*chec
     return COLVARS_ERROR;
   }
   return COLVARS_OK;
-}
-
-
-int colvarproxy_lammps::backup_file(char const *filename)
-{
-  if (std::string(filename).rfind(std::string(".colvars.state"))
-      != std::string::npos) {
-    return my_backup_file(filename, ".old");
-  } else {
-    return my_backup_file(filename, ".BAK");
-  }
 }
 
 
@@ -414,8 +369,8 @@ int colvarproxy_lammps::check_atom_id(int atom_number)
   // TODO add upper boundary check?
   if ((aid < 0)) {
     cvm::error("Error: invalid atom number specified, "+
-               cvm::to_str(atom_number)+"\n", INPUT_ERROR);
-    return INPUT_ERROR;
+               cvm::to_str(atom_number)+"\n", COLVARS_INPUT_ERROR);
+    return COLVARS_INPUT_ERROR;
   }
 
   return aid;

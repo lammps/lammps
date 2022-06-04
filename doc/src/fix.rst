@@ -209,6 +209,9 @@ accelerated styles exist.
 * :doc:`edpd/source <fix_dpd_source>` - add heat source to eDPD simulations
 * :doc:`efield <fix_efield>` - impose electric field on system
 * :doc:`ehex <fix_ehex>` - enhanced heat exchange algorithm
+* :doc:`electrode/conp <fix_electrode_conp>` - impose electric potential
+* :doc:`electrode/conq <fix_electrode_conp>` - impose total electric charge
+* :doc:`electrode/thermo <fix_electrode_conp>` - apply thermo-potentiostat
 * :doc:`electron/stopping <fix_electron_stopping>` - electronic stopping power as a friction force
 * :doc:`electron/stopping/fit <fix_electron_stopping>` - electronic stopping power as a friction force
 * :doc:`enforce2d <fix_enforce2d>` - zero out z-dimension velocity and force
@@ -284,6 +287,7 @@ accelerated styles exist.
 * :doc:`nve/manifold/rattle <fix_nve_manifold_rattle>` -
 * :doc:`nve/noforce <fix_nve_noforce>` - NVE without forces (v only)
 * :doc:`nve/sphere <fix_nve_sphere>` - NVE for spherical particles
+* :doc:`nve/bpm/sphere <fix_nve_bpm_sphere>` - NVE for spherical particles used in the BPM package
 * :doc:`nve/spin <fix_nve_spin>` - NVE for a spin or spin-lattice system
 * :doc:`nve/tri <fix_nve_tri>` - NVE for triangles
 * :doc:`nvk <fix_nvk>` - constant kinetic energy time integration
@@ -301,7 +305,6 @@ accelerated styles exist.
 * :doc:`orient/fcc <fix_orient>` - add grain boundary migration force for FCC
 * :doc:`orient/eco <fix_orient_eco>` - add generalized grain boundary migration force
 * :doc:`pafi <fix_pafi>` - constrained force averages on hyper-planes to compute free energies (PAFI)
-* :doc:`pair/tracker <fix_pair_tracker>` - track properties of pairwise interactions
 * :doc:`phonon <fix_phonon>` - calculate dynamical matrix from MD simulations
 * :doc:`pimd <fix_pimd>` - Feynman path integral molecular dynamics
 * :doc:`planeforce <fix_planeforce>` - constrain atoms to move in a plane

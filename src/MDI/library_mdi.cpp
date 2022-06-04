@@ -129,6 +129,6 @@ The function executes a single command from an external MDI driver.
 
 int lammps_execute_mdi_command(const char *command, MDI_Comm comm, void *class_obj)
 {
-  MDIEngine *mdi_engine = (MDIEngine *) class_obj;
+  auto mdi_engine = (MDIEngine *) class_obj;
   return mdi_engine->execute_command(command, comm);
 }

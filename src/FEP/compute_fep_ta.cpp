@@ -115,8 +115,6 @@ ComputeFEPTA::~ComputeFEPTA()
 
 void ComputeFEPTA::init()
 {
-  int i, j;
-
   if (!fepinitflag)    // avoid init to run entirely when called by write_data
     fepinitflag = 1;
   else
@@ -135,15 +133,15 @@ void ComputeFEPTA::init()
 
   // detect if package gpu is present
 
-  int ifixgpu = modify->find_fix("package_gpu");
-  if (ifixgpu >= 0) fixgpu = modify->fix[ifixgpu];
+  fixgpu = modify->get_fix_by_id("package_gpu");
 
-  if (comm->me == 0) {
-    auto mesg = fmt::format("FEP/TA settings ...\n  temperature = {:f}\n", temp_fep);
-    mesg += fmt::format("  scale factor = {:f}\n", scale_factor);
-    mesg += fmt::format("  tail {}\n", (tailflag ? "yes" : "no"));
-    utils::logmesg(lmp, mesg);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp,
+                   "FEP/TA settings ...\n"
+                   "  temperature = {:f}\n"
+                   "  scale factor = {:f}\n"
+                   "  tail {}\n",
+                   temp_fep, scale_factor, tailflag ? "yes" : "no");
 }
 
 /* ---------------------------------------------------------------------- */

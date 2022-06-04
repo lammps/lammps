@@ -35,7 +35,7 @@ namespace LAMMPS_NS {
 class DumpAtomADIOSInternal {
 
  public:
-  DumpAtomADIOSInternal(){};
+  DumpAtomADIOSInternal() = default;
   ~DumpAtomADIOSInternal() = default;
 
   // name of adios group, referrable in adios2_config.xml
@@ -134,10 +134,10 @@ void DumpAtomADIOS::write()
 
   // Now we know the global size and the local subset size and offset
   // of the atoms table
-  size_t nAtomsGlobal = static_cast<size_t>(ntotal);
-  size_t startRow = static_cast<size_t>(atomOffset);
-  size_t nAtomsLocal = static_cast<size_t>(nme);
-  size_t nColumns = static_cast<size_t>(size_one);
+  auto nAtomsGlobal = static_cast<size_t>(ntotal);
+  auto startRow = static_cast<size_t>(atomOffset);
+  auto nAtomsLocal = static_cast<size_t>(nme);
+  auto nColumns = static_cast<size_t>(size_one);
   internal->varAtoms.SetShape({nAtomsGlobal, nColumns});
   internal->varAtoms.SetSelection({{startRow, 0}, {nAtomsLocal, nColumns}});
 
@@ -238,7 +238,7 @@ void DumpAtomADIOS::init_style()
     columnNames = {"id", "type", "xs", "ys", "zs", "ix", "iy", "iz"};
   }
 
-  for (int icol = 0; icol < (int)columnNames.size(); ++icol)
+  for (int icol = 0; icol < (int) columnNames.size(); ++icol)
     if (keyword_user[icol].size()) columnNames[icol] = keyword_user[icol];
 
   // setup function ptrs
@@ -296,7 +296,7 @@ void DumpAtomADIOS::init_style()
   int *boundaryptr = reinterpret_cast<int *>(domain->boundary);
   internal->io.DefineAttribute<int>("boundary", boundaryptr, 6);
 
-  size_t nColumns = static_cast<size_t>(size_one);
+  auto nColumns = static_cast<size_t>(size_one);
   internal->io.DefineAttribute<std::string>("columns", columnNames.data(), nColumns);
   internal->io.DefineAttribute<std::string>("columnstr", columns);
   internal->io.DefineAttribute<std::string>("boundarystr", boundstr);

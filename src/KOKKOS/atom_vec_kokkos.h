@@ -204,6 +204,3 @@ class AtomVecKokkos : public AtomVec {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

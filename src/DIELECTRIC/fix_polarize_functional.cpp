@@ -44,6 +44,7 @@
 #include "pair_coul_cut_dielectric.h"
 #include "pair_coul_long_dielectric.h"
 #include "pair_lj_cut_coul_cut_dielectric.h"
+#include "pair_lj_cut_coul_debye_dielectric.h"
 #include "pair_lj_cut_coul_long_dielectric.h"
 #include "pair_lj_cut_coul_msm_dielectric.h"
 #include "pppm_dielectric.h"
@@ -60,18 +61,16 @@ using namespace MathSpecial;
 
 enum { REAL2SCALED = 0, SCALED2REAL = 1 };
 
-#define EPSILON 1e-6
-
-//#define _POLARIZE_DEBUG
+static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-FixPolarizeFunctional::FixPolarizeFunctional(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg)
+FixPolarizeFunctional::FixPolarizeFunctional(LAMMPS *_lmp, int narg, char **arg) :
+    Fix(_lmp, narg, arg)
 {
   if (narg < 4) error->all(FLERR, "Illegal fix polarize/functional command");
 
-  avec = (AtomVecDielectric *) atom->style_match("dielectric");
+  avec = dynamic_cast<AtomVecDielectric *>(atom->style_match("dielectric"));
   if (!avec) error->all(FLERR, "Fix polarize/functional requires atom style dielectric");
 
   nevery = utils::inumeric(FLERR, arg[3], false, lmp);
@@ -290,19 +289,23 @@ void FixPolarizeFunctional::setup(int /*vflag*/)
   // check if the pair styles in use are compatible
 
   if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric") == 0)
-    efield_pair = ((PairLJCutCoulLongDielectric *) force->pair)->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulLongDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric/omp") == 0)
-    efield_pair = ((PairLJCutCoulLongDielectric *) force->pair)->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulLongDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/msm/dielectric") == 0)
-    efield_pair = ((PairLJCutCoulMSMDielectric *) force->pair)->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulMSMDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric") == 0)
-    efield_pair = ((PairLJCutCoulCutDielectric *) force->pair)->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric/omp") == 0)
-    efield_pair = ((PairLJCutCoulCutDielectric *) force->pair)->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/debye/dielectric") == 0)
+    efield_pair = (dynamic_cast<PairLJCutCoulDebyeDielectric *>(force->pair))->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/debye/dielectric/omp") == 0)
+    efield_pair = (dynamic_cast<PairLJCutCoulDebyeDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "coul/long/dielectric") == 0)
-    efield_pair = ((PairCoulLongDielectric *) force->pair)->efield;
+    efield_pair = (dynamic_cast<PairCoulLongDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "coul/cut/dielectric") == 0)
-    efield_pair = ((PairCoulCutDielectric *) force->pair)->efield;
+    efield_pair = (dynamic_cast<PairCoulCutDielectric *>(force->pair))->efield;
   else
     error->all(FLERR, "Pair style not compatible with fix polarize/functional");
 
@@ -310,9 +313,9 @@ void FixPolarizeFunctional::setup(int /*vflag*/)
 
     kspaceflag = 1;
     if (strcmp(force->kspace_style, "pppm/dielectric") == 0)
-      efield_kspace = ((PPPMDielectric *) force->kspace)->efield;
+      efield_kspace = (dynamic_cast<PPPMDielectric *>(force->kspace))->efield;
     else if (strcmp(force->kspace_style, "msm/dielectric") == 0)
-      efield_kspace = ((MSMDielectric *) force->kspace)->efield;
+      efield_kspace = (dynamic_cast<MSMDielectric *>(force->kspace))->efield;
     else
       error->all(FLERR, "Kspace style not compatible with fix polarize/functional");
 
@@ -804,16 +807,6 @@ void FixPolarizeFunctional::calculate_Rww_cutoff()
 
   MPI_Allreduce(buffer1[0], Rww[0], num_induced_charges * num_induced_charges, MPI_DOUBLE, MPI_SUM,
                 world);
-
-#ifdef _POLARIZE_DEBUG
-  if (comm->me == 0) {
-    FILE *fp = fopen("Rww-functional.txt", "w");
-    for (int i = 0; i < num_induced_charges; i++)
-      fprintf(fp, "%d %g %g %g\n", i, Rww[i][i], Rww[i][num_induced_charges / 2],
-              Rww[num_induced_charges / 2][i]);
-    fclose(fp);
-  }
-#endif
 }
 
 /* ---------------------------------------------------------------------- */

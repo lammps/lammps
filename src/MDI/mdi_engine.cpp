@@ -168,7 +168,7 @@ MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char ** /*arg*/) : Pointers(_lmp)
   node_match = true;
   exit_command = false;
 
-  while (1) {
+  while (true) {
 
     // top-level mdi engine only recognizes three nodes
     // DEFAULT, INIT_MD, INIT_OPTG
@@ -601,7 +601,8 @@ void MDIEngine::mdi_md()
   // delete the instance before this method returns
 
   modify->add_fix("MDI_ENGINE_INTERNAL all MDI/ENGINE");
-  FixMDIEngine *mdi_fix = (FixMDIEngine *) modify->get_fix_by_id("MDI_ENGINE_INTERNAL");
+  FixMDIEngine *mdi_fix =
+      dynamic_cast<FixMDIEngine *>(modify->get_fix_by_id("MDI_ENGINE_INTERNAL"));
   mdi_fix->mdi_engine = this;
 
   // initialize LAMMPS and setup() the simulation
@@ -723,7 +724,8 @@ void MDIEngine::mdi_optg()
   // delete the instance before this method returns
 
   modify->add_fix("MDI_ENGINE_INTERNAL all MDI/ENGINE");
-  FixMDIEngine *mdi_fix = (FixMDIEngine *) modify->get_fix_by_id("MDI_ENGINE_INTERNAL");
+  FixMDIEngine *mdi_fix =
+      dynamic_cast<FixMDIEngine *>(modify->get_fix_by_id("MDI_ENGINE_INTERNAL"));
   mdi_fix->mdi_engine = this;
 
   // initialize LAMMPS and setup() the simulation
@@ -760,7 +762,7 @@ void MDIEngine::mdi_optg()
   timer->init();
   timer->barrier_start();
 
-  while (1) {
+  while (true) {
     update->minimize->run(1);
 
     if (strcmp(mdicmd, "@COORDS") != 0 && strcmp(mdicmd, "@FORCES") != 0) break;
@@ -956,9 +958,10 @@ void MDIEngine::create_system()
   // optionally set charges if specified by ">CHARGES"
 
   if (flag_velocities)
-    lammps_create_atoms(lmp, sys_natoms, NULL, sys_types, sys_coords, sys_velocities, NULL, 1);
+    lammps_create_atoms(lmp, sys_natoms, nullptr, sys_types, sys_coords, sys_velocities, nullptr,
+                        1);
   else
-    lammps_create_atoms(lmp, sys_natoms, NULL, sys_types, sys_coords, NULL, NULL, 1);
+    lammps_create_atoms(lmp, sys_natoms, nullptr, sys_types, sys_coords, nullptr, nullptr, 1);
 
   if (flag_charges) lammps_scatter_atoms(lmp, (char *) "q", 1, 1, sys_charges);
 
@@ -1349,7 +1352,7 @@ void MDIEngine::send_total_energy()
 
 void MDIEngine::send_labels()
 {
-  char *labels = new char[atom->natoms * MDI_LABEL_LENGTH];
+  auto labels = new char[atom->natoms * MDI_LABEL_LENGTH];
   memset(labels, ' ', atom->natoms * MDI_LABEL_LENGTH);
 
   memset(ibuf1, 0, atom->natoms * sizeof(int));
@@ -1579,7 +1582,7 @@ void MDIEngine::single_command()
 {
   if (nbytes < 0) error->all(FLERR, "MDI: COMMAND nbytes has not been set");
 
-  char *cmd = new char[nbytes + 1];
+  auto cmd = new char[nbytes + 1];
   int ierr = MDI_Recv(cmd, nbytes + 1, MDI_CHAR, mdicomm);
   if (ierr) error->all(FLERR, "MDI: COMMAND data");
   MPI_Bcast(cmd, nbytes + 1, MPI_CHAR, 0, world);
@@ -1600,7 +1603,7 @@ void MDIEngine::many_commands()
 {
   if (nbytes < 0) error->all(FLERR, "MDI: COMMANDS nbytes has not been set");
 
-  char *cmds = new char[nbytes + 1];
+  auto cmds = new char[nbytes + 1];
   int ierr = MDI_Recv(cmds, nbytes + 1, MDI_CHAR, mdicomm);
   if (ierr) error->all(FLERR, "MDI: COMMANDS data");
   MPI_Bcast(cmds, nbytes + 1, MPI_CHAR, 0, world);
@@ -1621,7 +1624,7 @@ void MDIEngine::infile()
 {
   if (nbytes < 0) error->all(FLERR, "MDI: INFILE nbytes has not been set");
 
-  char *infile = new char[nbytes + 1];
+  auto infile = new char[nbytes + 1];
   int ierr = MDI_Recv(infile, nbytes + 1, MDI_CHAR, mdicomm);
   if (ierr) error->all(FLERR, "MDI: INFILE data for {}", infile);
   MPI_Bcast(infile, nbytes + 1, MPI_CHAR, 0, world);

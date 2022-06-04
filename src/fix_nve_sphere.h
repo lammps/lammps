@@ -42,33 +42,3 @@ class FixNVESphere : public FixNVE {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix nve/sphere disc requires 2d simulation
-
-UNDOCUMENTED
-
-E: Fix nve/sphere requires atom style sphere
-
-Self-explanatory.
-
-E: Fix nve/sphere update dipole requires atom attribute mu
-
-An atom style with this attribute is needed.
-
-E: Fix nve/sphere requires extended particles
-
-This fix can only be used for particles of a finite size.
-
-U: Fix nve/sphere dlm must be used with update dipole
-
-The DLM algorithm can only be used in conjunction with update dipole.
-
-*/

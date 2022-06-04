@@ -301,7 +301,7 @@ void FixEOStableRX::read_file(char *file)
 {
   int min_params_per_line = 2;
   int max_params_per_line = 5;
-  char **words = new char*[max_params_per_line+1];
+  auto words = new char*[max_params_per_line+1];
 
   // open file on proc 0
 
@@ -641,7 +641,7 @@ void FixEOStableRX::spline(double *x, double *y, int n,
 {
   int i,k;
   double p,qn,sig,un;
-  double *u = new double[n];
+  auto u = new double[n];
 
   if (yp1 > 0.99e30) y2[0] = u[0] = 0.0;
   else {

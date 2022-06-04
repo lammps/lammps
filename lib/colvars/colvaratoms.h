@@ -90,6 +90,9 @@ public:
   /// Destructor
   ~atom();
 
+  /// Assignment operator (added to appease LGTM)
+  atom & operator = (atom const &a);
+
   /// Set mutable data (everything except id and mass) to zero
   inline void reset_data()
   {

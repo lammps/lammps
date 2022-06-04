@@ -100,6 +100,3 @@ class DihedralHarmonicKokkos : public DihedralHarmonic {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

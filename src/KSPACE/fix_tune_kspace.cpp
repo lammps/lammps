@@ -36,17 +36,15 @@
 
 #define SWAP(a,b) {temp=(a);(a)=(b);(b)=temp;}
 #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
-#define GOLD 1.618034
+static constexpr double GOLD = 1.618034;
 
-using namespace std;
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
 FixTuneKspace::FixTuneKspace(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  acc_str(""), kspace_style(""), pair_style(""), base_pair_style("")
+  Fix(lmp, narg, arg)
 {
   if (narg < 3) error->all(FLERR,"Illegal fix tune/kspace command");
 
@@ -104,7 +102,7 @@ void FixTuneKspace::init()
   acc_str = std::to_string(old_acc);
 
   int itmp;
-  double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   pair_cut_coul = *p_cutoff;
 }
 
@@ -120,7 +118,7 @@ void FixTuneKspace::pre_exchange()
   if (next_reneighbor != update->ntimestep) return;
   next_reneighbor = update->ntimestep + nevery;
 
-  Info *info = new Info(lmp);
+  auto info = new Info(lmp);
   bool has_msm = info->has_style("pair", base_pair_style + "/msm");
   delete info;
 
@@ -230,7 +228,7 @@ void FixTuneKspace::update_pair_style(const std::string &new_pair_style,
                                       double pair_cut_coul)
 {
   int itmp;
-  double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   *p_cutoff = pair_cut_coul;
 
   // check to see if we need to change pair styles
@@ -245,12 +243,12 @@ void FixTuneKspace::update_pair_style(const std::string &new_pair_style,
     utils::logmesg(lmp,"Creating new pair style: {}\n",new_pair_style);
 
   // delete old pair style and create new one
-  force->create_pair(new_pair_style.c_str(),1);
+  force->create_pair(new_pair_style,1);
 
   // restore current pair settings from temporary file
   force->pair->read_restart(p_pair_settings_file);
 
-  double *pcutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto pcutoff = (double *) force->pair->extract("cut_coul",itmp);
   double current_cutoff = *pcutoff;
   if (comm->me == 0)
     utils::logmesg(lmp,"Coulomb cutoff for real space: {}\n",current_cutoff);
@@ -268,8 +266,8 @@ void FixTuneKspace::update_kspace_style(const std::string &new_kspace_style,
 {
   // delete old kspace style and create new one
 
-  char *tmp_acc_str = (char *)new_acc_str.c_str();
-  force->create_kspace(new_kspace_style.c_str(),1);
+  auto tmp_acc_str = (char *)new_acc_str.c_str();
+  force->create_kspace(new_kspace_style,1);
   force->kspace->settings(1,&tmp_acc_str);
   force->kspace->differentiation_flag = old_differentiation_flag;
   force->kspace->slabflag = old_slabflag;
@@ -305,7 +303,7 @@ void FixTuneKspace::adjust_rcut(double time)
 
   // get the current cutoff
   int itmp;
-  double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   double current_cutoff = *p_cutoff;
   if (comm->me == 0)
     utils::logmesg(lmp,"Old Coulomb cutoff for real space: {}\n",current_cutoff);
@@ -376,7 +374,7 @@ void FixTuneKspace::adjust_rcut(double time)
   *p_cutoff = pair_cut_coul;
 
   // report the new cutoff
-  double *new_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto new_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   current_cutoff = *new_cutoff;
   if (comm->me == 0)
     utils::logmesg(lmp,"Adjusted Coulomb cutoff for real space: {}\n", current_cutoff);
@@ -475,8 +473,8 @@ void FixTuneKspace::brent0()
 
 void FixTuneKspace::brent1()
 {
-  const double CGOLD=0.3819660;
-  const double ZEPS=numeric_limits<double>::epsilon()*1.0e-3;
+  constexpr double CGOLD=0.3819660;
+  const double ZEPS=std::numeric_limits<double>::epsilon()*1.0e-3;
   double d=0.0,etemp;
   double p,q,r,tol1,tol2,xm;
   double e=0.0;
@@ -512,8 +510,6 @@ void FixTuneKspace::brent1()
   dx_brent=(fabs(d) >= tol1 ? x_brent+d : x_brent+SIGN(tol1,d));
 
   first_brent_pass = false;
-
-  return;
 }
 
 /* ----------------------------------------------------------------------

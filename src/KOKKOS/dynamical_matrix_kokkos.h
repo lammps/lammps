@@ -30,23 +30,22 @@ namespace LAMMPS_NS {
 class DynamicalMatrixKokkos : public DynamicalMatrix {
  public:
   DynamicalMatrixKokkos(class LAMMPS *);
-  ~DynamicalMatrixKokkos() override;
+
   void command(int, char **) override;
   void setup();
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (const int& i) const {
-    f(i,0) += f_merge_copy(i,0);
-    f(i,1) += f_merge_copy(i,1);
-    f(i,2) += f_merge_copy(i,2);
+  void operator()(const int &i) const
+  {
+    f(i, 0) += f_merge_copy(i, 0);
+    f(i, 1) += f_merge_copy(i, 1);
+    f(i, 2) += f_merge_copy(i, 2);
   }
 
  protected:
   void update_force() override;
   void force_clear() override;
-  DAT::t_f_array f_merge_copy,f;
-
-
+  DAT::t_f_array f_merge_copy, f;
 };
 }    // namespace LAMMPS_NS
 

@@ -665,7 +665,7 @@ void PairMEAMSpline::SplineFunction::prepareSpline()
   h = (xmax-xmin)/(N-1);
   hsq = h*h;
 
-  double* u = new double[N];
+  auto  u = new double[N];
   Y2[0] = -0.5;
   u[0] = (3.0/(X[1]-X[0])) * ((Y[1]-Y[0])/(X[1]-X[0]) - deriv0);
   for (int i = 1; i <= N-2; i++) {

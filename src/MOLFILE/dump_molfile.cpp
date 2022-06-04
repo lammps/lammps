@@ -98,7 +98,7 @@ DumpMolfile::DumpMolfile(LAMMPS *lmp, int narg, char **arg)
 
     mf = new MolfileInterface(arg[5],MFI::M_WRITE);
 
-    const char *path = (const char *) ".";
+    const char *path = (const char *) "."; // NOLINT
     if (narg > 6)
       path=arg[6];
 

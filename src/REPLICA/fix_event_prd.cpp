@@ -82,7 +82,7 @@ void FixEventPRD::write_restart(FILE *fp)
 void FixEventPRD::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
 
   event_number = static_cast<int> (list[n++]);
   event_timestep = static_cast<bigint> (list[n++]);

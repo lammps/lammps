@@ -474,9 +474,6 @@ void FixAveCorrelateLong::end_of_step()
         error->warning(FLERR,"Error while tuncating output: {}", utils::getsyserror());
     }
   }
-
-  return;
-
 }
 
 void FixAveCorrelateLong::evaluate() {
@@ -739,7 +736,7 @@ void FixAveCorrelateLong::write_restart(FILE *fp) {
 void FixAveCorrelateLong::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
   int npairin = static_cast<int> (list[n++]);
   int numcorrelatorsin = static_cast<int> (list[n++]);
   int pin = static_cast<int> (list[n++]);

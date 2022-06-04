@@ -1,4 +1,4 @@
-/* 
+/*
 Copyright (c) 2019, Lawrence Livermore National Security, LLC
 and DESUL project contributors. See the COPYRIGHT file for details.
 Source: https://github.com/desul/desul
@@ -9,135 +9,108 @@ SPDX-License-Identifier: (BSD-3-Clause)
 #define DESUL_ATOMICS_SYCL_HPP_
 
 #ifdef DESUL_HAVE_SYCL_ATOMICS
+
+// clang-format off
+#include "desul/atomics/SYCLConversions.hpp"
 #include "desul/atomics/Common.hpp"
+// clang-format on
 
 namespace desul {
-namespace Impl {
-template<class T>
-struct is_sycl_atomic_type {
-  static constexpr bool value = std::is_same<T, int>::value ||
-                                std::is_same<T, unsigned int>::value ||
-				std::is_same<T, long>::value ||
-				std::is_same<T, unsigned long>::value ||
-				std::is_same<T, long long>::value ||
-                                std::is_same<T, unsigned long long int>::value ||
-				std::is_same<T, float>::value ||
-				std::is_same<T, double>::value;
-};
-} // Impl
 
-// Atomic Add
-template<class T, class MemoryOrder/*, class MemoryScope*/>
-inline
-typename std::enable_if<Impl::is_sycl_atomic_type<T>::value,T>::type
-atomic_fetch_add(T* dest, T val, MemoryOrder, MemoryScopeDevice) {
-  DESUL_SYCL_NAMESPACE::atomic_ref<
-    T, 
-    DesulToSYCLMemoryOrder<MemoryOrder>::value, 
-    DesulToSYCLMemoryScope<MemoryScopeDevice>::value,  
-    sycl::access::address_space::global_device_space> 
-  dest_ref(*dest);
-  return dest_ref.fetch_add(val);
-}
+// FIXME_SYCL We need to either use generic_space or figure out how to check for the
+// correct adress space in a SYCL-portable way.
+#ifndef __NVPTX__
+#define DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER(OPER, TYPE)                              \
+  template <class MemoryOrder>                                                     \
+  TYPE atomic_fetch_##OPER(TYPE* dest, TYPE val, MemoryOrder, MemoryScopeDevice) { \
+    auto l = __SYCL_GenericCastToPtrExplicit_ToLocal<TYPE>(dest);                  \
+    if (l) {                                                                       \
+      Impl::sycl_atomic_ref<TYPE,                                                  \
+                            MemoryOrder,                                           \
+                            MemoryScopeDevice,                                     \
+                            sycl::access::address_space::local_space>              \
+          dest_ref(*dest);                                                         \
+      return dest_ref.fetch_##OPER(val);                                           \
+    } else {                                                                       \
+      Impl::sycl_atomic_ref<TYPE,                                                  \
+                            MemoryOrder,                                           \
+                            MemoryScopeDevice,                                     \
+                            sycl::access::address_space::global_space>             \
+          dest_ref(*dest);                                                         \
+      return dest_ref.fetch_##OPER(val);                                           \
+    }                                                                              \
+  }                                                                                \
+  template <class MemoryOrder>                                                     \
+  TYPE atomic_fetch_##OPER(TYPE* dest, TYPE val, MemoryOrder, MemoryScopeCore) {   \
+    auto l = __SYCL_GenericCastToPtrExplicit_ToLocal<TYPE>(dest);                  \
+    if (l) {                                                                       \
+      Impl::sycl_atomic_ref<TYPE,                                                  \
+                            MemoryOrder,                                           \
+                            MemoryScopeDevice,                                     \
+                            sycl::access::address_space::local_space>              \
+          dest_ref(*dest);                                                         \
+      return dest_ref.fetch_##OPER(val);                                           \
+    } else {                                                                       \
+      Impl::sycl_atomic_ref<TYPE,                                                  \
+                            MemoryOrder,                                           \
+                            MemoryScopeDevice,                                     \
+                            sycl::access::address_space::global_space>             \
+          dest_ref(*dest);                                                         \
+      return dest_ref.fetch_##OPER(val);                                           \
+    }                                                                              \
+  }
+#else
+#define DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER(OPER, TYPE)                              \
+  template <class MemoryOrder>                                                     \
+  TYPE atomic_fetch_##OPER(TYPE* dest, TYPE val, MemoryOrder, MemoryScopeDevice) { \
+    Impl::sycl_atomic_ref<TYPE,                                                    \
+                          MemoryOrder,                                             \
+                          MemoryScopeDevice,                                       \
+                          sycl::access::address_space::global_space>               \
+        dest_ref(*dest);                                                           \
+    return dest_ref.fetch_##OPER(val);                                             \
+  }                                                                                \
+  template <class MemoryOrder>                                                     \
+  TYPE atomic_fetch_##OPER(TYPE* dest, TYPE val, MemoryOrder, MemoryScopeCore) {   \
+    Impl::sycl_atomic_ref<TYPE,                                                    \
+                          MemoryOrder,                                             \
+                          MemoryScopeCore,                                         \
+                          sycl::access::address_space::global_space>               \
+        dest_ref(*dest);                                                           \
+    return dest_ref.fetch_##OPER(val);                                             \
+  }
+#endif
 
-// Atomic Sub 
-template<class T, class MemoryOrder/*, class MemoryScope*/>
-inline
-typename std::enable_if<Impl::is_sycl_atomic_type<T>::value,T>::type
-atomic_fetch_sub(T* dest, T val, MemoryOrder, MemoryScopeDevice) {
-  DESUL_SYCL_NAMESPACE::atomic_ref<
-    T,
-    DesulToSYCLMemoryOrder<MemoryOrder>::value,
-    DesulToSYCLMemoryScope<MemoryScopeDevice>::value,
-    sycl::access::address_space::global_device_space>
-  dest_ref(*dest);
-  return dest_ref.fetch_sub(val);
-}
+#define DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER_INTEGRAL(OPER) \
+  DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER(OPER, int)           \
+  DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER(OPER, unsigned int)  \
+  DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER(OPER, long)          \
+  DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER(OPER, unsigned long) \
+  DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER(OPER, long long)     \
+  DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER(OPER, unsigned long long)
 
-// Atomic Inc
-template<class MemoryOrder/*, class MemoryScope*/>
-inline
-unsigned int atomic_fetch_inc(unsigned int* dest, unsigned int val, MemoryOrder memory_order, MemoryScopeDevice memory_scope) {
-  return atomic_fetch_add(dest, val, memory_order, memory_scope);
-}
+#define DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER_FLOATING_POINT(OPER) \
+  DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER(OPER, float)               \
+  DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER(OPER, double)
 
-// Atomic Dec
-template<class MemoryOrder/*, class MemoryScope*/>
-inline
-unsigned int atomic_fetch_dec(unsigned int* dest, unsigned int val, MemoryOrder memory_order, MemoryScopeDevice memory_scope) {
-  return atomic_fetch_sub(dest, val, memory_order, memory_scope);
-}
+DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER_INTEGRAL(add)
+DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER_INTEGRAL(sub)
+DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER_INTEGRAL(and)
+DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER_INTEGRAL(or)
+DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER_INTEGRAL(xor)
+DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER_INTEGRAL(min)
+DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER_INTEGRAL(max)
 
-// Atomic Max
-template<class T, class MemoryOrder/*, class MemoryScope*/>
-inline
-typename std::enable_if<Impl::is_sycl_atomic_type<T>::value,T>::type
-atomic_fetch_max(T* dest, T val, MemoryOrder, MemoryScopeDevice) {
-  DESUL_SYCL_NAMESPACE::atomic_ref<
-    T,
-    DesulToSYCLMemoryOrder<MemoryOrder>::value,
-    DesulToSYCLMemoryScope<MemoryScopeDevice>::value,
-    sycl::access::address_space::global_device_space>
-  dest_ref(*dest);
-  return dest_ref.fetch_max(val);
-}
+DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER_FLOATING_POINT(add)
+DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER_FLOATING_POINT(sub)
+DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER_FLOATING_POINT(min)
+DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER_FLOATING_POINT(max)
 
-// Atomic Min
-template<class T, class MemoryOrder/*, class MemoryScope*/>
-inline
-typename std::enable_if<Impl::is_sycl_atomic_type<T>::value,T>::type
-atomic_fetch_min(T* dest, T val, MemoryOrder, MemoryScopeDevice) {
-  DESUL_SYCL_NAMESPACE::atomic_ref<
-    T,
-    DesulToSYCLMemoryOrder<MemoryOrder>::value,
-    DesulToSYCLMemoryScope<MemoryScopeDevice>::value,
-    sycl::access::address_space::global_device_space>
-  dest_ref(*dest);
-  return dest_ref.fetch_min(val);
-}
+#undef DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER_FLOATING_POINT
+#undef DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER_INTEGRAL
+#undef DESUL_IMPL_SYCL_ATOMIC_FETCH_OPER
 
-// Atomic And
-template<class T, class MemoryOrder/*, class MemoryScope*/>
-inline
-typename std::enable_if<Impl::is_sycl_atomic_type<T>::value,T>::type
-atomic_fetch_and(T* dest, T val, MemoryOrder, MemoryScopeDevice) {
-  DESUL_SYCL_NAMESPACE::atomic_ref<
-    T,
-    DesulToSYCLMemoryOrder<MemoryOrder>::value,
-    DesulToSYCLMemoryScope<MemoryScopeDevice>::value,
-    sycl::access::address_space::global_device_space>
-  dest_ref(*dest);
-  return dest_ref.fetch_and(val);
-}
+}  // namespace desul
 
-// Atomic XOR
-template<class T, class MemoryOrder/*, class MemoryScope*/>
-inline
-typename std::enable_if<Impl::is_sycl_atomic_type<T>::value,T>::type
-atomic_fetch_xor(T* dest, T val, MemoryOrder, MemoryScopeDevice) {
-  DESUL_SYCL_NAMESPACE::atomic_ref<
-    T,
-    DesulToSYCLMemoryOrder<MemoryOrder>::value,
-    DesulToSYCLMemoryScope<MemoryScopeDevice>::value,
-    sycl::access::address_space::global_device_space>
-  dest_ref(*dest);
-  return dest_ref.fetch_xor(val);
-}
-
-// Atomic OR
-template<class T, class MemoryOrder/*, class MemoryScope*/>
-inline
-typename std::enable_if<Impl::is_sycl_atomic_type<T>::value,T>::type
-atomic_fetch_or(T* dest, T val, MemoryOrder, MemoryScopeDevice) {
-  DESUL_SYCL_NAMESPACE::atomic_ref<
-    T,
-    DesulToSYCLMemoryOrder<MemoryOrder>::value,
-    DesulToSYCLMemoryScope<MemoryScopeDevice>::value,
-    sycl::access::address_space::global_device_space>
-  dest_ref(*dest);
-  return dest_ref.fetch_or(val);
-}
-
-} // desul
 #endif  // DESUL_HAVE_SYCL_ATOMICS
 #endif  // DESUL_ATOMICS_SYCL_HPP_

@@ -309,7 +309,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   int icompute = modify->find_compute(idchunk);
   if (icompute < 0)
     error->all(FLERR,"Chunk/atom compute does not exist for fix ave/chunk");
-  cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
   if (strcmp(cchunk->style,"chunk/atom") != 0)
     error->all(FLERR,"Fix ave/chunk does not use chunk/atom compute");
 
@@ -432,7 +432,7 @@ FixAveChunk::~FixAveChunk()
   if (nrepeat > 1 || ave == RUNNING || ave == WINDOW) {
     int icompute = modify->find_compute(idchunk);
     if (icompute >= 0) {
-      cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+      cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
       if (ave == RUNNING || ave == WINDOW) cchunk->unlock(this);
       cchunk->lockcount--;
     }
@@ -478,7 +478,7 @@ void FixAveChunk::init()
   int icompute = modify->find_compute(idchunk);
   if (icompute < 0)
     error->all(FLERR,"Chunk/atom compute does not exist for fix ave/chunk");
-  cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
 
   if (biasflag) {
     int i = modify->find_compute(id_bias);

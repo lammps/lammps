@@ -191,28 +191,3 @@ class PairEAMFSKokkos : public PairEAM, public KokkosBase {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Cannot use chosen neighbor list style with pair eam/kk/fs
-
-Self-explanatory.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: No matching element in EAM potential file
-
-The EAM potential file does not contain elements that match the
-requested elements.
-
-E: Cannot open EAM potential file %s
-
-The specified EAM potential file cannot be opened.  Check that the
-path and name are correct.
-
-E: Incorrect element names in EAM potential file
-
-The element names in the EAM file do not match those requested.
-
-*/

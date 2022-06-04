@@ -141,25 +141,17 @@ struct MappingClassValueType {
   KOKKOS_INLINE_FUNCTION
   MappingClassValueType() {
 #if 0
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA)
-      printf( "TestViewMappingClassValue construct on Cuda\n" );
-#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-      printf( "TestViewMappingClassValue construct on Host\n" );
-#else
-      printf( "TestViewMappingClassValue construct unknown\n" );
-#endif
+    KOKKOS_IF_ON_DEVICE(
+        (printf("TestViewMappingClassValue construct on Device\n");))
+    KOKKOS_IF_ON_HOST((printf("TestViewMappingClassValue construct on Host\n");))
 #endif
   }
   KOKKOS_INLINE_FUNCTION
   ~MappingClassValueType() {
 #if 0
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA)
-      printf( "TestViewMappingClassValue destruct on Cuda\n" );
-#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-      printf( "TestViewMappingClassValue destruct on Host\n" );
-#else
-      printf( "TestViewMappingClassValue destruct unknown\n" );
-#endif
+    KOKKOS_IF_ON_DEVICE(
+        (printf("TestViewMappingClassValue destruct on Device\n");))
+    KOKKOS_IF_ON_HOST((printf("TestViewMappingClassValue destruct on Host\n");))
 #endif
   }
 };

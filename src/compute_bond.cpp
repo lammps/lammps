@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -25,10 +24,9 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeBond::ComputeBond(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  emine(nullptr)
+    Compute(lmp, narg, arg), emine(nullptr)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute bond command");
+  if (narg != 3) error->all(FLERR, "Illegal compute bond command");
 
   vector_flag = 1;
   extvector = 1;
@@ -37,9 +35,8 @@ ComputeBond::ComputeBond(LAMMPS *lmp, int narg, char **arg) :
 
   // check if bond style hybrid exists
 
-  bond = (BondHybrid *) force->bond_match("hybrid");
-  if (!bond)
-    error->all(FLERR,"Bond style for compute bond command is not hybrid");
+  bond = dynamic_cast<BondHybrid *>(force->bond_match("hybrid"));
+  if (!bond) error->all(FLERR, "Bond style for compute bond command is not hybrid");
   size_vector = nsub = bond->nstyles;
 
   emine = new double[nsub];
@@ -50,8 +47,8 @@ ComputeBond::ComputeBond(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeBond::~ComputeBond()
 {
-  delete [] emine;
-  delete [] vector;
+  delete[] emine;
+  delete[] vector;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -60,11 +57,9 @@ void ComputeBond::init()
 {
   // recheck bond style in case it has been changed
 
-  bond = (BondHybrid *) force->bond_match("hybrid");
-  if (!bond)
-    error->all(FLERR,"Bond style for compute bond command is not hybrid");
-  if (bond->nstyles != nsub)
-    error->all(FLERR,"Bond style for compute bond command has changed");
+  bond = dynamic_cast<BondHybrid *>(force->bond_match("hybrid"));
+  if (!bond) error->all(FLERR, "Bond style for compute bond command is not hybrid");
+  if (bond->nstyles != nsub) error->all(FLERR, "Bond style for compute bond command has changed");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -73,10 +68,9 @@ void ComputeBond::compute_vector()
 {
   invoked_vector = update->ntimestep;
   if (update->eflag_global != invoked_vector)
-    error->all(FLERR,"Energy was not tallied on needed timestep");
+    error->all(FLERR, "Energy was not tallied on needed timestep");
 
-  for (int i = 0; i < nsub; i++)
-    emine[i] = bond->styles[i]->energy;
+  for (int i = 0; i < nsub; i++) emine[i] = bond->styles[i]->energy;
 
-  MPI_Allreduce(emine,vector,nsub,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(emine, vector, nsub, MPI_DOUBLE, MPI_SUM, world);
 }

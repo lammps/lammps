@@ -35,11 +35,3 @@ class ComputeDeprecated : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: This compute command has been removed from LAMMPS
-
-UNDOCUMENTED
-
-*/

@@ -111,7 +111,7 @@ TEST_F(TextFileReaderTest, usefp)
     delete reader;
 
     // check that we reached EOF and the destructor didn't close the file.
-    ASSERT_EQ(feof(fp), 1);
+    ASSERT_NE(feof(fp), 0);
     ASSERT_EQ(fclose(fp), 0);
 }
 

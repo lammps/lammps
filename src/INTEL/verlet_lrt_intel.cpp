@@ -67,7 +67,7 @@ void VerletLRTIntel::init()
 {
   Verlet::init();
 
-  _intel_kspace = (PPPMIntel*)(force->kspace_match("^pppm/intel", 0));
+  _intel_kspace = dynamic_cast<PPPMIntel*>(force->kspace_match("^pppm/intel", 0));
 
   #ifndef LMP_INTEL_USELRT
   error->all(FLERR,
@@ -81,7 +81,7 @@ void VerletLRTIntel::init()
 
 void VerletLRTIntel::setup(int flag)
 {
-  if (_intel_kspace == 0) {
+  if (_intel_kspace == nullptr) {
     Verlet::setup(flag);
     return;
   }
@@ -202,7 +202,7 @@ void VerletLRTIntel::setup(int flag)
 
 void VerletLRTIntel::run(int n)
 {
-  if (_intel_kspace == 0) {
+  if (_intel_kspace == nullptr) {
     Verlet::run(n);
     return;
   }
@@ -215,7 +215,7 @@ void VerletLRTIntel::run(int n)
   int n_pre_neighbor = modify->n_pre_neighbor;
   int n_pre_force = modify->n_pre_force;
   int n_pre_reverse = modify->n_pre_reverse;
-  int n_post_force = modify->n_post_force;
+  int n_post_force = modify->n_post_force_any;
   int n_end_of_step = modify->n_end_of_step;
 
   if (atom->sortfreq > 0) sortflag = 1;
@@ -388,7 +388,7 @@ void VerletLRTIntel::run(int n)
 ------------------------------------------------------------------------- */
 void * VerletLRTIntel::k_launch_loop(void *context)
 {
-  VerletLRTIntel * const c = (VerletLRTIntel *)context;
+  auto  const c = (VerletLRTIntel *)context;
 
   if (c->kspace_compute_flag)
     c->_intel_kspace->compute_first(c->eflag, c->vflag);

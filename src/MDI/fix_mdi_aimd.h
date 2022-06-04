@@ -27,14 +27,11 @@ namespace LAMMPS_NS {
 
 class FixMDIAimd : public Fix {
  public:
-  // MDI communicator, public so that LAMMPS can work with a plugin
-
-  MDI_Comm mdicomm;
-
   FixMDIAimd(class LAMMPS *, int, char **);
   ~FixMDIAimd();
   int setmask();
 
+  void init();
   void setup(int);
   void setup_pre_reverse(int, int);
   void pre_reverse(int, int);
@@ -45,6 +42,8 @@ class FixMDIAimd : public Fix {
  private:
   int nprocs;
   int plugin;
+
+  MDI_Comm mdicomm;
 
   int eflag_caller;
   double engine_energy;
@@ -73,7 +72,3 @@ class FixMDIAimd : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

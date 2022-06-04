@@ -325,20 +325,20 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
 
   // read r,e,f table values from file
 
-  int cerror = 0;
   int r0idx = -1;
 
   reader.skip_line();
   for (int i = 0; i < tb->ninput; i++) {
-    line = reader.next_line(4);
+    line = reader.next_line();
     try {
       ValueTokenizer values(line);
       values.next_int();
       tb->rfile[i] = values.next_double();
       tb->efile[i] = values.next_double();
       tb->ffile[i] = values.next_double();
-    } catch (TokenizerException &) {
-      ++cerror;
+    } catch (TokenizerException &e) {
+      error->one(FLERR, "Error parsing bond table '{}' line {} of {}. {}\nLine was: {}", keyword,
+                 i + 1, tb->ninput, e.what(), line);
     }
 
     if (tb->efile[i] < emin) {
@@ -373,21 +373,11 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
     if (f > fleft && f > fright) ferror++;
   }
 
-  if (ferror) {
+  if (ferror)
     error->warning(FLERR,
                    "{} of {} force values in table are inconsistent with -dE/dr.\n"
                    "WARNING:  Should only be flagged at inflection points",
                    ferror, tb->ninput);
-  }
-
-  // warn if data was read incompletely, e.g. columns were missing
-
-  if (cerror) {
-    error->warning(FLERR,
-                   "{} of {} lines in table were incomplete or could not be"
-                   " parsed completely",
-                   cerror, tb->ninput);
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -538,7 +528,7 @@ void BondTable::spline(double *x, double *y, int n, double yp1, double ypn, doub
 {
   int i, k;
   double p, qn, sig, un;
-  double *u = new double[n];
+  auto u = new double[n];
 
   if (yp1 > 0.99e300)
     y2[0] = u[0] = 0.0;

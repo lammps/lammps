@@ -69,27 +69,3 @@ class PairSpinDipoleLong : public PairSpin {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args in pair_style command
-
-Self-explanatory.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair dipole/long requires atom attributes q, mu, torque
-
-The atom style defined does not have these attributes.
-
-E: Can only use 'metal' units with spins
-
-This feature is not yet supported.
-
-E: Pair style requires a KSpace style
-
-No kspace style is defined.
-
-*/

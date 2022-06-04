@@ -33,11 +33,11 @@ class Modify : protected Pointers {
  public:
   int n_initial_integrate, n_post_integrate, n_pre_exchange;
   int n_pre_neighbor, n_post_neighbor;
-  int n_pre_force, n_pre_reverse, n_post_force;
+  int n_pre_force, n_pre_reverse, n_post_force_any;
   int n_final_integrate, n_end_of_step;
   int n_energy_couple, n_energy_global, n_energy_atom;
   int n_initial_integrate_respa, n_post_integrate_respa;
-  int n_pre_force_respa, n_post_force_respa, n_final_integrate_respa;
+  int n_pre_force_respa, n_post_force_respa_any, n_final_integrate_respa;
   int n_min_pre_exchange, n_min_pre_neighbor, n_min_post_neighbor;
   int n_min_pre_force, n_min_pre_reverse, n_min_post_force, n_min_energy;
 
@@ -113,7 +113,7 @@ class Modify : protected Pointers {
   int find_fix(const std::string &);
   // new API
   Fix *get_fix_by_id(const std::string &) const;
-  Fix *get_fix_by_index(int idx) const { return fix[idx]; }
+  Fix *get_fix_by_index(int idx) const { return ((idx >= 0) && (idx < nfix)) ? fix[idx] : nullptr; }
   const std::vector<Fix *> get_fix_by_style(const std::string &) const;
   const std::vector<Fix *> &get_fix_list();
 
@@ -127,7 +127,10 @@ class Modify : protected Pointers {
   int find_compute(const std::string &);
   // new API
   Compute *get_compute_by_id(const std::string &) const;
-  Compute *get_compute_by_index(int idx) const { return compute[idx]; }
+  Compute *get_compute_by_index(int idx) const
+  {
+    return ((idx >= 0) && (idx < ncompute)) ? compute[idx] : nullptr;
+  }
   const std::vector<Compute *> get_compute_by_style(const std::string &) const;
   const std::vector<Compute *> &get_compute_list();
 
@@ -147,11 +150,16 @@ class Modify : protected Pointers {
   double memory_usage();
 
  protected:
+  // internal fix counts
+
+  int n_post_force, n_post_force_group, n_post_force_respa;
+
   // lists of fixes to apply at different stages of timestep
 
   int *list_initial_integrate, *list_post_integrate;
   int *list_pre_exchange, *list_pre_neighbor, *list_post_neighbor;
-  int *list_pre_force, *list_pre_reverse, *list_post_force;
+  int *list_pre_force, *list_pre_reverse;
+  int *list_post_force, *list_post_force_group;
   int *list_final_integrate, *list_end_of_step;
   int *list_energy_couple, *list_energy_global, *list_energy_atom;
   int *list_initial_integrate_respa, *list_post_integrate_respa;
@@ -179,14 +187,16 @@ class Modify : protected Pointers {
   int index_permanent;    // fix/compute index returned to library call
 
   // vectors to be used for new-API accessors as wrapper
-  std::vector<Fix *>fix_list;
-  std::vector<Compute *>compute_list;
+  std::vector<Fix *> fix_list;
+  std::vector<Compute *> compute_list;
 
   void list_init(int, int &, int *&);
   void list_init_end_of_step(int, int &, int *&);
   void list_init_energy_couple(int &, int *&);
   void list_init_energy_global(int &, int *&);
   void list_init_energy_atom(int &, int *&);
+  void list_init_post_force_group(int &, int *&);
+  void list_init_post_force_respa_group(int &, int *&);
   void list_init_dofflag(int &, int *&);
   void list_init_compute();
 
@@ -206,85 +216,3 @@ class Modify : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Fix %s does not allow use of dynamic group
-
-Dynamic groups have not yet been enabled for this fix.
-
-E: Compute %s does not allow use of dynamic group
-
-Dynamic groups have not yet been enabled for this compute.
-
-W: One or more atoms are time integrated more than once
-
-This is probably an error since you typically do not want to
-advance the positions or velocities of an atom more than once
-per timestep.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix command before simulation box is defined
-
-The fix command cannot be used before a read_data, read_restart, or
-create_box command.
-
-E: Could not find fix group ID
-
-A group ID used in the fix command does not exist.
-
-E: Replacing a fix, but new style != old style
-
-A fix ID can be used a 2nd time, but only if the style matches the
-previous fix.  In this case it is assumed you with to reset a fix's
-parameters.  This error may mean you are mistakenly re-using a fix ID
-when you do not intend to.
-
-W: Replacing a fix, but new group != old group
-
-The ID and style of a fix match for a fix you are changing with a fix
-command, but the new group you are specifying does not match the old
-group.
-
-E: Unrecognized fix style %s
-
-The choice of fix style is unknown.
-
-E: Could not find fix_modify ID
-
-A fix ID used in the fix_modify command does not exist.
-
-E: Could not find fix ID to delete
-
-Self-explanatory.
-
-E: Reuse of compute ID
-
-A compute ID cannot be used twice.
-
-E: Unrecognized compute style %s
-
-The choice of compute style is unknown.
-
-E: Could not find compute_modify ID
-
-Self-explanatory.
-
-E: Could not find compute ID to delete
-
-Self-explanatory.
-
-U: Unknown fix style
-
-The choice of fix style is unknown.
-
-U: Unknown compute style
-
-The choice of compute style is unknown.
-
-*/

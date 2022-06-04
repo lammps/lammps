@@ -44,7 +44,7 @@ Syntax
          color = *type*
          bflag1,bflag2 = 2 numeric flags to affect how bodies are drawn
        *fix* = fixID color fflag1 fflag2
-         fixID = ID of fix that generates objects to dray
+         fixID = ID of fix that generates objects to draw
          color = *type*
          fflag1,fflag2 = 2 numeric flags to affect how fix objects are drawn
        *size* values = width height = size of images

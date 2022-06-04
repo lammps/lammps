@@ -121,8 +121,6 @@ static void rebuild_table_tagint(taginthash_t *tptr) {
 
   /* free memory used by old table */
   free(old_bucket);
-
-  return;
 }
 
 /*
@@ -152,8 +150,6 @@ void taginthash_init(taginthash_t *tptr, tagint buckets) {
 
   /* allocate memory for table */
   tptr->bucket=(taginthash_node_t **) calloc(tptr->size, sizeof(taginthash_node_t *));
-
-  return;
 }
 
 /*
@@ -520,8 +516,6 @@ void FixQMMM::exchange_positions()
       }
     }
   }
-
-  return;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -632,7 +626,6 @@ void FixQMMM::exchange_forces()
     // use qm_coord array as a communication buffer
     MPI_Send(reduced_mm_force_on_qm_atoms, 3*num_qm, MPI_DOUBLE, 0, QMMM_TAG_FORCE, mm_comm);
   }
-  return;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -781,7 +774,7 @@ void FixQMMM::setup(int)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQMMM::post_force(int vflag)
+void FixQMMM::post_force(int /*vflag*/)
 {
   exchange_forces();
 }

@@ -33,6 +33,7 @@ Improper::Improper(LAMMPS *_lmp) : Pointers(_lmp)
 
   allocated = 0;
   suffix_flag = Suffix::NONE;
+  born_matrix_enable = 0;
 
   maxeatom = maxvatom = maxcvatom = 0;
   eatom = nullptr;
@@ -70,6 +71,16 @@ void Improper::init()
     if (setflag[i] == 0) error->all(FLERR, "All improper coeffs are not set");
 
   init_style();
+}
+
+/* ----------------------------------------------------------------------
+   check that there are no arguments
+------------------------------------------------------------------------- */
+
+void Improper::settings(int narg, char **args)
+{
+  if (narg > 0)
+    error->all(FLERR, "Illegal improper_style {} argument: {}", force->improper_style, args[0]);
 }
 
 /* ----------------------------------------------------------------------

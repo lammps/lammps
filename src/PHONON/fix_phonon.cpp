@@ -671,7 +671,7 @@ void FixPhonon::postprocess( )
 
   // to get Phi = KT.G^-1; normalization of FFTW data is done here
   double boltz = force->boltz, TempAve = 0.;
-  double *kbtsqrt = new double[sysdim];
+  auto kbtsqrt = new double[sysdim];
   double TempFac = inv_neval * inv_nTemp;
   double NormFac = TempFac * double(ntotal);
 
@@ -695,7 +695,7 @@ void FixPhonon::postprocess( )
   MPI_Gatherv(Phi_q[0],mynq*fft_dim2*2,MPI_DOUBLE,Phi_all[0],recvcnts,displs,MPI_DOUBLE,0,world);
 
   // to collect all basis info and averaged it on root
-  double *basis_root = new double[fft_dim];
+  auto basis_root = new double[fft_dim];
   if (fft_dim > sysdim) MPI_Reduce(&basis[1][0], &basis_root[sysdim], fft_dim-sysdim, MPI_DOUBLE, MPI_SUM, 0, world);
 
   if (me == 0) { // output dynamic matrix by root

@@ -52,12 +52,6 @@ ImproperCvffIntel::ImproperCvffIntel(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-ImproperCvffIntel::~ImproperCvffIntel()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void ImproperCvffIntel::compute(int eflag, int vflag)
 {
   #ifdef _LMP_INTEL_OFFLOAD

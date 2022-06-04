@@ -19,9 +19,9 @@
 #include "text_file_reader.h"
 #include "utils.h"
 
-#include <mpi.h>
-#include <exception>
 #include <deque>
+#include <exception>
+#include <mpi.h>
 
 ////////////////////////////////////////////////////////////////////////
 // include system headers and tweak system settings
@@ -71,11 +71,11 @@
 struct compress_info {
   /// identifier for the different compression algorithms
   enum styles { NONE, GZIP, BZIP2, ZSTD, XZ, LZMA, LZ4 };
-  const std::string extension;     ///< filename extension for the current algorithm
-  const std::string command;       ///< command to perform compression or decompression
+  const std::string extension;          ///< filename extension for the current algorithm
+  const std::string command;            ///< command to perform compression or decompression
   const std::string compressflags;      ///< flags to append to compress from stdin to stdout
   const std::string uncompressflags;    ///< flags to decompress file to stdout
-  const int style;                 ///< compression style flag
+  const int style;                      ///< compression style flag
 };
 
 // clang-format off
@@ -186,13 +186,63 @@ std::string platform::os_info()
   char value[1024];
   DWORD value_length = 1024;
   const char *subkey = "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion";
-  const char *entry = "ProductName";
+  const char *entry = "CurrentBuild";
   RegGetValue(HKEY_LOCAL_MACHINE, subkey, entry, RRF_RT_REG_SZ, nullptr, &value,
               (LPDWORD) &value_length);
   // enforce zero termination
   value[1023] = '\0';
-  buf = value;
+  auto build = std::string(value);
 
+  if (build == "6002") {
+    buf = "Windows Vista";
+  } else if (build == "6003") {
+    buf = "Windows Server 2008";
+  } else if (build == "7601") {
+    buf = "Windows 7";
+  } else if (build == "9200") {
+    buf = "Windows 8";
+  } else if (build == "9600") {
+    buf = "Windows 8.1";
+  } else if (build == "10240") {
+    buf = "Windows 10 1507";
+  } else if (build == "10586") {
+    buf = "Windows 10 1511";
+  } else if (build == "14393") {
+    buf = "Windows 10 1607";
+  } else if (build == "15063") {
+    buf = "Windows 10 1703";
+  } else if (build == "16299") {
+    buf = "Windows 10 1709";
+  } else if (build == "17134") {
+    buf = "Windows 10 1803";
+  } else if (build == "17763") {
+    buf = "Windows 10 1809";
+  } else if (build == "18362") {
+    buf = "Windows 10 1903";
+  } else if (build == "18363") {
+    buf = "Windows 10 1909";
+  } else if (build == "19041") {
+    buf = "Windows 10 2004";
+  } else if (build == "19042") {
+    buf = "Windows 10 20H2";
+  } else if (build == "19043") {
+    buf = "Windows 10 21H1";
+  } else if (build == "19044") {
+    buf = "Windows 10 21H2";
+  } else if (build == "20348") {
+    buf = "Windows Server 2022";
+  } else if (build == "22000") {
+    buf = "Windows 11 21H2";
+  } else if (build == "22621") {
+    buf = "Windows 11 22H2";
+  } else {
+    const char *entry = "ProductName";
+    RegGetValue(HKEY_LOCAL_MACHINE, subkey, entry, RRF_RT_REG_SZ, nullptr, &value,
+                (LPDWORD) &value_length);
+    // enforce zero termination
+    value[1023] = '\0';
+    buf = value;
+  }
   DWORD fullversion, majorv, minorv, buildv = 0;
   fullversion = GetVersion();
   majorv = (DWORD) (LOBYTE(LOWORD(fullversion)));
@@ -230,16 +280,16 @@ std::string platform::os_info()
 
   if (platform::file_is_readable("/etc/os-release")) {
     try {
-        TextFileReader reader("/etc/os-release","");
-        while (true) {
-          auto words = reader.next_values(0,"=");
-          if ((words.count() > 1) && (words.next_string() == "PRETTY_NAME")) {
-            buf += " " + utils::trim(words.next_string());
-            break;
-          }
+      TextFileReader reader("/etc/os-release", "");
+      while (true) {
+        auto words = reader.next_values(0, "=");
+        if ((words.count() > 1) && (words.next_string() == "PRETTY_NAME")) {
+          buf += " " + utils::trim(words.next_string());
+          break;
         }
+      }
     } catch (std::exception &e) {
-      ; // EOF but keyword not found
+      ;    // EOF but keyword not found
     }
   }
 
@@ -303,11 +353,18 @@ std::string platform::compiler_info()
                     __MINGW32_MINOR_VERSION, __VERSION__);
 #elif defined(__GNUC__)
   buf = fmt::format("GNU C++ {}", __VERSION__);
-#elif defined(_MSC_VER) && (_MSC_VER > 1920) && (_MSC_VER < 2000)
+#elif defined(_MSC_VER) && (_MSC_VER >= 1920) && (_MSC_VER < 1930)
   constexpr int major = _MSC_VER / 100;
   constexpr int minor = _MSC_VER - major * 100;
-  buf = "Microsoft Visual Studio 20" + std::to_string(major) + ", C/C++ " +
-      std::to_string(major - 5) + "." + std::to_string(minor);
+  constexpr int patch = minor - 20;
+  buf = fmt::format("Microsoft Visual Studio 2019 Version 16.{}, C/C++ {}.{}", patch, major - 5,
+                    minor);
+#elif defined(_MSC_VER) && (_MSC_VER >= 1930) && (_MSC_VER < 2000)
+  constexpr int major = _MSC_VER / 100;
+  constexpr int minor = _MSC_VER - major * 100;
+  constexpr int patch = minor - 30;
+  buf = fmt::format("Microsoft Visual Studio 2022 Version 17.{}, C/C++ {}.{}", patch, major - 5,
+                    minor);
 #else
   buf = "(Unknown)";
 #endif
@@ -427,11 +484,11 @@ std::string platform::compress_info()
   std::string buf = "Available compression formats:\n\n";
   bool none_found = true;
   for (const auto &cmpi : compress_styles) {
-     if (cmpi.style == ::compress_info::NONE) continue;
-     if (find_exe_path(cmpi.command).size()) {
-       none_found = false;
-       buf += fmt::format("Extension: .{:6} Command: {}\n", cmpi.extension, cmpi.command);
-     }
+    if (cmpi.style == ::compress_info::NONE) continue;
+    if (find_exe_path(cmpi.command).size()) {
+      none_found = false;
+      buf += fmt::format("Extension: .{:6} Command: {}\n", cmpi.extension, cmpi.command);
+    }
   }
   if (none_found) buf += "None\n";
   return buf;
@@ -450,7 +507,7 @@ int platform::putenv(const std::string &vardef)
   if (found == std::string::npos)
     return _putenv_s(vardef.c_str(), "1");
   else
-    return _putenv_s(vardef.substr(0, found).c_str(), vardef.substr(found+1).c_str());
+    return _putenv_s(vardef.substr(0, found).c_str(), vardef.substr(found + 1).c_str());
 #else
   if (found == std::string::npos)
     return setenv(vardef.c_str(), "", 1);
@@ -472,7 +529,7 @@ int platform::unsetenv(const std::string &variable)
   const char *ptr = getenv(variable.c_str());
   if (!ptr) return -1;
   // empty _putenv_s() definition deletes variable
-  return _putenv_s(variable.c_str(),"");
+  return _putenv_s(variable.c_str(), "");
 #else
   return ::unsetenv(variable.c_str());
 #endif
@@ -579,8 +636,10 @@ void *platform::dlopen(const std::string &fname)
 std::string platform::dlerror()
 {
   const char *errmesg = ::dlerror();
-  if (errmesg) return {errmesg};
-  else return {""};
+  if (errmesg)
+    return {errmesg};
+  else
+    return {""};
 }
 
 // close a shared object
@@ -671,14 +730,14 @@ bool platform::is_console(FILE *fp)
 
 std::string platform::current_directory()
 {
-  std::string cwd = "";
+  std::string cwd;
 
 #if defined(_WIN32)
   char *buf = new char[MAX_PATH];
   if (_getcwd(buf, MAX_PATH)) { cwd = buf; }
   delete[] buf;
 #else
-  char *buf = new char[PATH_MAX];
+  auto buf = new char[PATH_MAX];
   if (::getcwd(buf, PATH_MAX)) { cwd = buf; }
   delete[] buf;
 #endif
@@ -758,7 +817,7 @@ int platform::chdir(const std::string &path)
 
 int platform::mkdir(const std::string &path)
 {
-  std::deque<std::string> dirlist = { path };
+  std::deque<std::string> dirlist = {path};
   std::string dirname = path_dirname(path);
 
   while ((dirname != ".") && (dirname != "")) {

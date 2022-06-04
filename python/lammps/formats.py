@@ -17,11 +17,19 @@
 # and Axel Kohlmeyer <akohlmey@gmail.com>
 ################################################################################
 
-import re, yaml
+import re
+
+has_yaml = False
 try:
-  from yaml import CSafeLoader as Loader, CSafeDumper as Dumper
+  import yaml
+  has_yaml = True
+  try:
+    from yaml import CSafeLoader as Loader
+  except ImportError:
+    from yaml import SafeLoader as Loader
 except ImportError:
-  from yaml import SafeLoader as Loader, SafeDumper as Dumper
+  # ignore here, raise an exception when trying to parse yaml instead
+  pass
 
 class LogFile:
   """Reads LAMMPS log files and extracts the thermo information
@@ -63,6 +71,8 @@ class LogFile:
                     current_run[k] = []
 
             elif re.match(r'^(keywords:.*$|data:$|---$|  - \[.*\]$)', line):
+                if not has_yaml:
+                  raise Exception('Cannot process YAML format logs without the PyYAML Python module')
                 style = LogFile.STYLE_YAML
                 yamllog += line;
                 current_run = {}

@@ -99,11 +99,11 @@ ReadData::ReadData(LAMMPS *lmp) : Command(lmp)
   // pointers to atom styles that store bonus info
 
   nellipsoids = 0;
-  avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
   nlines = 0;
-  avec_line = (AtomVecLine *) atom->style_match("line");
+  avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
   ntris = 0;
-  avec_tri = (AtomVecTri *) atom->style_match("tri");
+  avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
   nbodies = 0;
   avec_body = (AtomVecBody *) atom->style_match("body");
 }
@@ -313,11 +313,9 @@ void ReadData::command(int narg, char **arg)
     error->all(FLERR,"Reading a data file with shrinkwrap boundaries is "
                     "not compatible with a MSM KSpace style");
   if (domain->box_exist && !addflag)
-    error->all(FLERR,"Cannot read_data without add keyword "
-               "after simulation box is defined");
+    error->all(FLERR,"Cannot read_data without add keyword after simulation box is defined");
   if (!domain->box_exist && addflag)
-    error->all(FLERR,"Cannot use read_data add before "
-               "simulation box is defined");
+    error->all(FLERR,"Cannot use read_data add before simulation box is defined");
   if (offsetflag && addflag == NONE)
     error->all(FLERR,"Cannot use read_data offset without add flag");
   if (shiftflag && addflag == NONE)
@@ -330,8 +328,7 @@ void ReadData::command(int narg, char **arg)
   // check if data file is available and readable
 
   if (!platform::file_is_readable(arg[0]))
-    error->all(FLERR,fmt::format("Cannot open file {}: {}",
-                                 arg[0], utils::getsyserror()));
+    error->all(FLERR,fmt::format("Cannot open file {}: {}", arg[0], utils::getsyserror()));
 
   // reset so we can warn about reset image flags exactly once per data file
 
@@ -744,9 +741,9 @@ void ReadData::command(int narg, char **arg)
             break;
           }
         if (i == nfix)
-          error->all(FLERR,"Unknown identifier in data file: {}",keyword);
+          error->all(FLERR,"Unknown identifier in data file: {}{}", keyword, utils::errorurl(1));
 
-      } else error->all(FLERR,"Unknown identifier in data file: {}",keyword);
+      } else error->all(FLERR,"Unknown identifier in data file: {}{}", keyword, utils::errorurl(1));
 
       parse_keyword(0);
     }
@@ -871,7 +868,7 @@ void ReadData::command(int narg, char **arg)
 
   if (addflag != NONE) {
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
-    Irregular *irregular = new Irregular(lmp);
+    auto irregular = new Irregular(lmp);
     irregular->migrate_atoms(1);
     delete irregular;
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
@@ -887,7 +884,7 @@ void ReadData::command(int narg, char **arg)
   if (domain->nonperiodic == 2) {
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->reset_box();
-    Irregular *irregular = new Irregular(lmp);
+    auto irregular = new Irregular(lmp);
     irregular->migrate_atoms(1);
     delete irregular;
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
@@ -1738,7 +1735,7 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
 void ReadData::mass()
 {
   char *next;
-  char *buf = new char[ntypes*MAXLINE];
+  auto buf = new char[ntypes*MAXLINE];
 
   int eof = utils::read_lines_from_file(fp,ntypes,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
@@ -1758,7 +1755,7 @@ void ReadData::mass()
 void ReadData::paircoeffs()
 {
   char *next;
-  char *buf = new char[ntypes*MAXLINE];
+  auto buf = new char[ntypes*MAXLINE];
 
   int eof = utils::read_lines_from_file(fp,ntypes,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
@@ -1784,7 +1781,7 @@ void ReadData::pairIJcoeffs()
   char *next;
 
   int nsq = ntypes * (ntypes+1) / 2;
-  char *buf = new char[nsq * MAXLINE];
+  auto buf = new char[nsq * MAXLINE];
 
   int eof = utils::read_lines_from_file(fp,nsq,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
@@ -1810,7 +1807,7 @@ void ReadData::bondcoeffs()
   if (!nbondtypes) return;
 
   char *next;
-  char *buf = new char[nbondtypes*MAXLINE];
+  auto buf = new char[nbondtypes*MAXLINE];
 
   int eof = utils::read_lines_from_file(fp,nbondtypes,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
@@ -1835,7 +1832,7 @@ void ReadData::anglecoeffs(int which)
   if (!nangletypes) return;
 
   char *next;
-  char *buf = new char[nangletypes*MAXLINE];
+  auto buf = new char[nangletypes*MAXLINE];
 
   int eof = utils::read_lines_from_file(fp,nangletypes,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
@@ -1861,7 +1858,7 @@ void ReadData::dihedralcoeffs(int which)
   if (!ndihedraltypes) return;
 
   char *next;
-  char *buf = new char[ndihedraltypes*MAXLINE];
+  auto buf = new char[ndihedraltypes*MAXLINE];
 
   int eof = utils::read_lines_from_file(fp,ndihedraltypes,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
@@ -1891,7 +1888,7 @@ void ReadData::impropercoeffs(int which)
   if (!nimpropertypes) return;
 
   char *next;
-  char *buf = new char[nimpropertypes*MAXLINE];
+  auto buf = new char[nimpropertypes*MAXLINE];
 
   int eof = utils::read_lines_from_file(fp,nimpropertypes,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");

@@ -142,7 +142,8 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
 
   if (strchr(filename,'*')) multifile = 1;
 
-  if (utils::strmatch(filename, "\\.bin$")) binary = 1;
+  if (utils::strmatch(filename, "\\.bin$")
+      || utils::strmatch(filename, "\\.lammpsbin$")) binary = 1;
   if (platform::has_compress_extension(filename)) compressed = 1;
 }
 
@@ -270,12 +271,12 @@ void Dump::init()
         reorderflag = 1;
         double range = maxall-minall + EPSILON;
         idlo = static_cast<tagint> (range*me/nprocs + minall);
-        tagint idhi = static_cast<tagint> (range*(me+1)/nprocs + minall);
+        auto  idhi = static_cast<tagint> (range*(me+1)/nprocs + minall);
 
-        tagint lom1 = static_cast<tagint> ((idlo-1-minall)/range * nprocs);
-        tagint lo = static_cast<tagint> ((idlo-minall)/range * nprocs);
-        tagint him1 = static_cast<tagint> ((idhi-1-minall)/range * nprocs);
-        tagint hi = static_cast<tagint> ((idhi-minall)/range * nprocs);
+        auto  lom1 = static_cast<tagint> ((idlo-1-minall)/range * nprocs);
+        auto  lo = static_cast<tagint> ((idlo-minall)/range * nprocs);
+        auto  him1 = static_cast<tagint> ((idhi-1-minall)/range * nprocs);
+        auto  hi = static_cast<tagint> ((idhi-minall)/range * nprocs);
         if (me && me == lom1) idlo--;
         else if (me && me != lo) idlo++;
         if (me+1 == him1) idhi--;
@@ -415,10 +416,10 @@ void Dump::write()
   // if sorting on IDs also request ID list from pack()
   // sort buf as needed
 
-  if (sort_flag && sortcol == 0) pack(ids);
+  if (sort_flag && (ntotal > 1) && sortcol == 0) pack(ids);
   else pack(nullptr);
-  if (sort_flag) sort();
-  if (balance_flag) balance();
+  if (sort_flag && (ntotal > 1)) sort();
+  if (balance_flag && (ntotal > 1)) balance();
 
   // write timestep header
   // for multiproc,
@@ -841,7 +842,7 @@ int Dump::idcompare(const int i, const int j, void *ptr)
 
 int Dump::bufcompare(const int i, const int j, void *ptr)
 {
-  Dump *dptr = (Dump *) ptr;
+  auto dptr = (Dump *) ptr;
   double *bufsort     = dptr->bufsort;
   const int size_one  = dptr->size_one;
   const int sortcolm1 = dptr->sortcolm1;
@@ -862,7 +863,7 @@ int Dump::bufcompare(const int i, const int j, void *ptr)
 
 int Dump::bufcompare_reverse(const int i, const int j, void *ptr)
 {
-  Dump *dptr = (Dump *) ptr;
+  auto dptr = (Dump *) ptr;
   double *bufsort     = dptr->bufsort;
   const int size_one  = dptr->size_one;
   const int sortcolm1 = dptr->sortcolm1;
@@ -938,7 +939,7 @@ void Dump::balance()
   // post recvs first
 
   int nswap = 0;
-  MPI_Request *request = new MPI_Request[nprocs];
+  auto request = new MPI_Request[nprocs];
 
   // find which proc starting atom belongs to
 
@@ -1086,6 +1087,7 @@ void Dump::modify_params(int narg, char **arg)
       }
       output->mode_dump[idump] = 1;
       output->every_time_dump[idump] = delta;
+      output->next_dump[idump] = update->ntimestep;
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"fileper") == 0) {
@@ -1181,7 +1183,7 @@ void Dump::modify_params(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"header") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
-      header_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      write_header_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"maxfiles") == 0) {

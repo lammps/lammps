@@ -494,7 +494,7 @@ void PairBrownian::init_style()
     else if (strstr(modify->fix[i]->style, "wall") != nullptr) {
       if (flagwall) error->all(FLERR, "Cannot use multiple fix wall commands with pair brownian");
       flagwall = 1;    // Walls exist
-      wallfix = (FixWall *) modify->fix[i];
+      wallfix = dynamic_cast<FixWall *>(modify->fix[i]);
       if (wallfix->xflag) flagwall = 2;    // Moving walls exist
     }
   }

@@ -179,6 +179,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`body/local <compute_body_local>` - attributes of body sub-particles
 * :doc:`bond <compute_bond>` - energy of each bond sub-style
 * :doc:`bond/local <compute_bond_local>` - distance and energy of each bond
+* :doc:`born/matrix <compute_born_matrix>` - second derivative or potential with respect to strain
 * :doc:`centro/atom <compute_centro_atom>` - centro-symmetry parameter for each atom
 * :doc:`centroid/stress/atom <compute_stress_atom>` - centroid based stress tensor for each atom
 * :doc:`chunk/atom <compute_chunk_atom>` - assign chunk IDs to each atom
@@ -236,6 +237,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`msd <compute_msd>` - mean-squared displacement of group of atoms
 * :doc:`msd/chunk <compute_msd_chunk>` - mean-squared displacement for each chunk
 * :doc:`msd/nongauss <compute_msd_nongauss>` - MSD and non-Gaussian parameter of group of atoms
+* :doc:`nbond/atom <compute_nbond_atom>` - calculates number of bonds per atom
 * :doc:`omega/chunk <compute_omega_chunk>` - angular velocity for each chunk
 * :doc:`orientorder/atom <compute_orientorder_atom>` - Steinhardt bond orientational order parameters Ql
 * :doc:`pair <compute_pair>` - values computed by a pair style

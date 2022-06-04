@@ -19,7 +19,7 @@ WeakEquationMassDiffusion::WeakEquationMassDiffusion()
 //--------------------------------------------------------------
 //  Destructor
 //--------------------------------------------------------------
-WeakEquationMassDiffusion::~WeakEquationMassDiffusion(void)
+WeakEquationMassDiffusion::~WeakEquationMassDiffusion()
 {}
 //---------------------------------------------------------------------
 //   compute capacity

@@ -50,37 +50,3 @@ class FixHalt : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Could not find fix halt variable name
-
-Self-explanatory.
-
-E: Fix halt variable is not equal-style variable
-
-Self-explanatory.
-
-E: Invalid fix halt attribute
-
-Self-explanatory.
-
-E: Invalid fix halt operator
-
-Self-explanatory.
-
-E: Disk limit not supported by OS or illegal path
-
-Self-explanatory.
-
-W: Fix halt condition for fix-id %s met on step %ld with value %g
-
-Self explanatory.
-
-*/

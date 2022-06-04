@@ -783,6 +783,11 @@ void PairMesoCNT::bond_neigh()
     }
   }
 
+  if (comm->me == 379) {
+    printf("rank %d created special_local\n", comm->me);
+    fflush(stdout);
+  }
+
   int *numneigh = list->numneigh;
   int *numneigh_max;
   memory->create(numneigh_max, nbondlist, "pair:numneigh_max");
@@ -817,6 +822,11 @@ void PairMesoCNT::bond_neigh()
     int i2 = bondlist[i][1];
     neigh_common(i1, i2, reduced_nlist[i], reduced_neighlist[i]);
   }
+  
+  if (comm->me == 379) {
+    printf("rank %d created common neighbor list\n", comm->me);
+    fflush(stdout);
+  }
 
   // resize chain arrays
 
@@ -836,11 +846,15 @@ void PairMesoCNT::bond_neigh()
 
   bool empty_neigh = true;
   for (int i = 0; i < nbondlist; i++) {
+    
+    if (comm->me == 379) {
+      printf("rank %d, splitting chains for bond %d (%d %d)\n", comm->me, i, atom->tag[bondlist[i][0]], atom->tag[bondlist[i][1]]);
+      printf("reduced_nlist: %d\n", reduced_nlist[i]);
+      fflush(stdout);
+    }
 
     numchainlist[i] = 0;
     if (reduced_nlist[i] == 0) continue;
-
-    empty_neigh = false;
 
     // map local ids to reduced neighbor list ids
     
@@ -848,6 +862,11 @@ void PairMesoCNT::bond_neigh()
     for (int j = 0; j < reduced_nlist[i]; j++) {
       reduced_map[reduced_neighlist[i][j]] = j;
       chainid[i][j] = -1;
+    }
+    
+    if (comm->me == 379) {
+      printf("reduced map created\n");
+      fflush(stdout);
     }
 
     // assign chain ids and positions
@@ -906,8 +925,14 @@ void PairMesoCNT::bond_neigh()
       numchainlist[i]++;
     }
     numchainlist[i]--;
+    if (numchainlist[i]) empty_neigh = false;
   }
-  
+ 
+  if (comm->me == 379) {
+    printf("rank %d split chains\n", comm->me);
+    fflush(stdout);
+  }
+
   memory->destroy(special_local);
 
   // count neighbor chain lengths per bond
@@ -944,7 +969,12 @@ void PairMesoCNT::bond_neigh()
       if (clen > nchain_max) nchain_max = clen;
     }
   }
- 
+  
+  if (comm->me == 379) {
+    printf("rank %d counted neighbor chain lengths\n", comm->me);
+    fflush(stdout);
+  }
+
   // create connected neighbor chains and check for ends
   // MEMORY: prevent zero-size array creation for chainlist
 
@@ -985,6 +1015,11 @@ void PairMesoCNT::bond_neigh()
       else if (eend) endlist[i][j] = 2;
       else endlist[i][j] = 0;
     }
+  }
+  
+  if (comm->me == 379) {
+    printf("rank %d created chain and end list\n", comm->me);
+    fflush(stdout);
   }
 
   // destroy remaining temporary arrays for chain creation

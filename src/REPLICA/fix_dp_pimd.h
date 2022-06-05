@@ -59,6 +59,8 @@ class FixDPPimd : public Fix {
   int removecomflag;
   void remove_com_motion(); double masstotal;
 
+  double fixedpoint[3];    // location of dilation fixed-point
+
   /* ring-polymer model */
 
   double omega_np, fbond, spring_energy, sp;

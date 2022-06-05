@@ -244,6 +244,10 @@ FixDPPimd::FixDPPimd(LAMMPS *lmp, int narg, char **arg) :
   vol0 = domain->xprd * domain->yprd * domain->zprd;
   omega_dot = nullptr;
 
+  fixedpoint[0] = 0.5*(domain->boxlo[0]+domain->boxhi[0]);
+  fixedpoint[1] = 0.5*(domain->boxlo[1]+domain->boxhi[1]);
+  fixedpoint[2] = 0.5*(domain->boxlo[2]+domain->boxhi[2]);
+
   // initialize Marsaglia RNG with processor-unique seed
 
   if(integrator==baoab || integrator==obabo)
@@ -1045,6 +1049,14 @@ void FixDPPimd::initial_integrate(int /*vflag*/)
     // printf("xnorm1: %.30e\n", xnorm1);
     // printf("xnorm1a: %.30e\n", xnorm1a);
     // printf("iworld = %d, xnorm2: %.30e\n", universe->iworld, xnorm2);
+
+    // if(update->ntimestep==66){
+      // printf("%.8f %.8f %.8f\n", domain->xprd, domain->yprd, domain->zprd);
+    // for(int i=0; i<nlocal; i++){
+      // int idx = atom->map(i+1);
+      // printf("%d %d %d %.6f %.6f %.6f\n", i, idx, atom->type[idx], atom->x[idx][0], atom->x[idx][1], atom->x[idx][2]);
+    // }
+    // }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1621,6 +1633,7 @@ void FixDPPimd::qc_step(){
   double **x = atom->x;
   double **v = atom->v;
   tagint *tag = atom->tag;
+  double oldlo, oldhi;
 
   // if(universe->iworld==0) 
   // {
@@ -1665,6 +1678,7 @@ void FixDPPimd::qc_step(){
       }
       if(barostat == BZP)
       {
+        // domain->x2lamda(nlocal);
         for(int i=0; i<nlocal; i++)
         {
           for(int j=0; j<3; j++)
@@ -1673,24 +1687,47 @@ void FixDPPimd::qc_step(){
             v[i][j] = expp[j] * v[i][j];
           } 
         }
-        domain->xprd *= expq[0];
-        domain->yprd *= expq[1];
-        domain->zprd *= expq[2];
+        // domain->xprd *= expq[0];
+        // domain->yprd *= expq[1];
+        // domain->zprd *= expq[2];
+        // domain->lamda2x(nlocal);
+        oldlo = domain->boxlo[0];
+        oldhi = domain->boxhi[0];
+      
+        domain->boxlo[0] = (oldlo-fixedpoint[0])*expq[0] + fixedpoint[0];
+        domain->boxhi[0] = (oldhi-fixedpoint[0])*expq[0] + fixedpoint[0];
 
+        oldlo = domain->boxlo[1];
+        oldhi = domain->boxhi[1];
+        domain->boxlo[1] = (oldlo-fixedpoint[1])*expq[1] + fixedpoint[1];
+        domain->boxhi[1] = (oldhi-fixedpoint[1])*expq[1] + fixedpoint[1];
+  
+        oldlo = domain->boxlo[2];
+        oldhi = domain->boxhi[2];
+        domain->boxlo[2] = (oldlo-fixedpoint[2])*expq[2] + fixedpoint[2];
+        domain->boxhi[2] = (oldhi-fixedpoint[2])*expq[2] + fixedpoint[2];
+  
       }
     }    
 
       MPI_Barrier(universe->uworld);
-      MPI_Bcast(&domain->xprd, 1, MPI_DOUBLE, 0, universe->uworld);
-      MPI_Bcast(&domain->yprd, 1, MPI_DOUBLE, 0, universe->uworld);
-      MPI_Bcast(&domain->zprd, 1, MPI_DOUBLE, 0, universe->uworld);
+      MPI_Bcast(&domain->boxlo[0], 3, MPI_DOUBLE, 0, universe->uworld);
+      MPI_Bcast(&domain->boxhi[0], 3, MPI_DOUBLE, 0, universe->uworld);
 
-      domain->boxlo[0] = -0.5*domain->xprd;
-      domain->boxlo[1] = -0.5*domain->yprd;
-      domain->boxlo[2] = -0.5*domain->zprd;
-      domain->boxhi[0] = 0.5*domain->xprd;
-      domain->boxhi[1] = 0.5*domain->yprd;
-      domain->boxhi[2] = 0.5*domain->zprd;
+      // domain->pbc();
+      // domain->boxlo[0] = -0.5*domain->xprd;
+      // domain->boxlo[1] = -0.5*domain->yprd;
+      // domain->boxlo[2] = -0.5*domain->zprd;
+      // domain->boxhi[0] = 0.5*domain->xprd;
+      // domain->boxhi[1] = 0.5*domain->yprd;
+      // domain->boxhi[2] = 0.5*domain->zprd;
+
+      // domain->boxlo[0] = 0; 
+      // domain->boxlo[1] = 0; 
+      // domain->boxlo[2] = 0; 
+      // domain->boxhi[0] = domain->xprd; 
+      // domain->boxhi[1] = domain->yprd; 
+      // domain->boxhi[2] = domain->zprd; 
 
       domain->set_global_box();
       domain->set_local_box();

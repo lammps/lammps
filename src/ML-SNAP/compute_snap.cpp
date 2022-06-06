@@ -204,7 +204,7 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   //size_array_rows = bik_rows+ndims_force*natoms+ndims_virial;
   dbirj_rows = ndims_force*natoms;
   size_array_rows = bik_rows+dbirj_rows+ndims_virial;
-  if (dbirjflag) size_array_cols = nperdim;
+  if (dbirjflag) size_array_cols = nperdim+3; // plus 3 for tag[i], tag[2], and cartesian index
   else size_array_cols = nperdim*atom->ntypes+1;
   lastcol = size_array_cols-1;
 
@@ -528,10 +528,35 @@ void ComputeSnap::compute_array()
             dbirj[dbirj_row_indx+0][icoeff] = snaptr->dblist[icoeff][0];
             dbirj[dbirj_row_indx+1][icoeff] = snaptr->dblist[icoeff][1];
             dbirj[dbirj_row_indx+2][icoeff] = snaptr->dblist[icoeff][2];
+            if (icoeff==(ncoeff-1)){
+              dbirj[dbirj_row_indx+0][ncoeff] = atom->tag[i];
+              dbirj[dbirj_row_indx+0][ncoeff+1] = atom->tag[j];
+              dbirj[dbirj_row_indx+0][ncoeff+2] = 0;
+              dbirj[dbirj_row_indx+1][ncoeff] = atom->tag[i];
+              dbirj[dbirj_row_indx+1][ncoeff+1] = atom->tag[j];
+              dbirj[dbirj_row_indx+1][ncoeff+2] = 1;
+              dbirj[dbirj_row_indx+2][ncoeff] = atom->tag[i];
+              dbirj[dbirj_row_indx+2][ncoeff+1] = atom->tag[j];
+              dbirj[dbirj_row_indx+2][ncoeff+2] = 2;
+            }
             // Accumulate dBi/dRi = sum (-dBi/dRj) for neighbors j of if i.
             dbiri[3*(atom->tag[i]-1)+0][icoeff] -= snaptr->dblist[icoeff][0];
             dbiri[3*(atom->tag[i]-1)+1][icoeff] -= snaptr->dblist[icoeff][1];
             dbiri[3*(atom->tag[i]-1)+2][icoeff] -= snaptr->dblist[icoeff][2];
+            // Get last columns
+            if (icoeff==(ncoeff-1)){
+              dbiri[3*(atom->tag[i]-1)+0][ncoeff] = atom->tag[i];
+              dbiri[3*(atom->tag[i]-1)+0][ncoeff+1] = atom->tag[i];
+              dbiri[3*(atom->tag[i]-1)+0][ncoeff+2] = 0;
+
+              dbiri[3*(atom->tag[i]-1)+1][ncoeff] = atom->tag[i];
+              dbiri[3*(atom->tag[i]-1)+1][ncoeff+1] = atom->tag[i];
+              dbiri[3*(atom->tag[i]-1)+1][ncoeff+2] = 1;
+
+              dbiri[3*(atom->tag[i]-1)+2][ncoeff] = atom->tag[i];
+              dbiri[3*(atom->tag[i]-1)+2][ncoeff+1] = atom->tag[i];
+              dbiri[3*(atom->tag[i]-1)+2][ncoeff+2] = 2;
+            }
           }
 
 
@@ -696,11 +721,31 @@ void ComputeSnap::compute_array()
               //int irow = dbirj_row_indx+bik_rows;
               irow = snap_row_indx + bik_rows;
               //printf("  row_indx, irow: %d %d\n", dbirj_row_indx, irow);
-              snap[irow++][icoeff+typeoffset_global] += dbirj[dbirj_row_indx+0][icoeff];
+              // x-coordinate
+              snap[irow][icoeff+typeoffset_global] += dbirj[dbirj_row_indx+0][icoeff];
+              if (icoeff==(ncoeff-1)){
+                snap[irow][ncoeff] += dbirj[dbirj_row_indx+0][ncoeff];
+                snap[irow][ncoeff+1] += dbirj[dbirj_row_indx+0][ncoeff+1];
+                snap[irow][ncoeff+2] += dbirj[dbirj_row_indx+0][ncoeff+2];
+              }
+              irow++;
               //printf("    irow: %d\n", irow);
-              snap[irow++][icoeff+typeoffset_global] += dbirj[dbirj_row_indx+1][icoeff];
+              // y-coordinate
+              snap[irow][icoeff+typeoffset_global] += dbirj[dbirj_row_indx+1][icoeff];
+              if (icoeff==(ncoeff-1)){
+                snap[irow][ncoeff] += dbirj[dbirj_row_indx+1][ncoeff];
+                snap[irow][ncoeff+1] += dbirj[dbirj_row_indx+1][ncoeff+1];
+                snap[irow][ncoeff+2] += dbirj[dbirj_row_indx+1][ncoeff+2];
+              }
+              irow++;
               //printf("    irow: %d\n", irow);
+              // z-coordinate
               snap[irow][icoeff+typeoffset_global]   += dbirj[dbirj_row_indx+2][icoeff];
+              if (icoeff==(ncoeff-1)){
+                snap[irow][ncoeff] += dbirj[dbirj_row_indx+2][ncoeff];
+                snap[irow][ncoeff+1] += dbirj[dbirj_row_indx+2][ncoeff+1];
+                snap[irow][ncoeff+2] += dbirj[dbirj_row_indx+2][ncoeff+2];
+              }
               dbiri_indx = dbiri_indx+3;
             }
             // Put dBi/dRi at end of each dBj/dRi chunk.
@@ -708,11 +753,30 @@ void ComputeSnap::compute_array()
             irow = dbiri_indx + bik_rows;
             //printf("dbiri_indx: %d\n", dbiri_indx);
             //printf("dbiri: %f %f %f\n", dbiri[3*i+0][icoeff], dbiri[3*i+1][icoeff], dbiri[3*i+2][icoeff]);
-            snap[irow++][icoeff+typeoffset_global] += dbiri[3*i+0][icoeff];
+            // x-coordinate
+            snap[irow][icoeff+typeoffset_global] += dbiri[3*i+0][icoeff];
+            if (icoeff==(ncoeff-1)){
+              snap[irow][ncoeff] += dbiri[3*i+0][ncoeff];
+              snap[irow][ncoeff+1] += dbiri[3*i+0][ncoeff+1];
+              snap[irow][ncoeff+2] += dbiri[3*i+0][ncoeff+2];
+            }
+            irow++;
             //printf("    irow: %d\n", irow);
-            snap[irow++][icoeff+typeoffset_global] += dbiri[3*i+1][icoeff];
+            // y-coordinate
+            snap[irow][icoeff+typeoffset_global] += dbiri[3*i+1][icoeff];
+            if (icoeff==(ncoeff-1)){
+              snap[irow][ncoeff] += dbiri[3*i+1][ncoeff];
+              snap[irow][ncoeff+1] += dbiri[3*i+1][ncoeff+1];
+              snap[irow][ncoeff+2] += dbiri[3*i+1][ncoeff+2];
+            }
+            irow++;
             //printf("    irow: %d\n", irow);
             snap[irow][icoeff+typeoffset_global]   += dbiri[3*i+2][icoeff];
+            if (icoeff==(ncoeff-1)){
+              snap[irow][ncoeff] += dbiri[3*i+2][ncoeff];
+              snap[irow][ncoeff+1] += dbiri[3*i+2][ncoeff+1];
+              snap[irow][ncoeff+2] += dbiri[3*i+2][ncoeff+2];
+            }
 
             dbiri_indx = dbiri_indx+3;
         }
@@ -871,7 +935,7 @@ void ComputeSnap::get_dbirj_length()
   memory->create(neighsum, inum, "snap:neighsum");
   memory->create(nneighs, inum, "snap:nneighs");
   memory->create(icounter, inum, "snap:icounter");
-  memory->create(dbiri, 3*atom->nlocal,ncoeff, "snap:dbiri");
+  memory->create(dbiri, 3*atom->nlocal,ncoeff+3, "snap:dbiri");
   for (int ii=0; ii<3*atom->nlocal; ii++){
     for (int icoeff=0; icoeff<ncoeff; icoeff++){
       dbiri[ii][icoeff]=0.0;
@@ -939,9 +1003,9 @@ void ComputeSnap::get_dbirj_length()
 
   //printf("----- dbirj_rows: %d\n", dbirj_rows);
 
-  memory->create(dbirj, dbirj_rows, ncoeff, "snap:dbirj");
+  memory->create(dbirj, dbirj_rows, ncoeff+3, "snap:dbirj");
   for (int i=0; i<dbirj_rows; i++){
-    for (int j=0; j<ncoeff; j++){
+    for (int j=0; j<ncoeff+3; j++){
       dbirj[i][j]=0.0;
     }
   }

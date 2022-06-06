@@ -1887,8 +1887,8 @@ void FixDPPimd::svr_step(MPI_Comm which)
 
 void FixDPPimd::press_v_step()
 {
-  // if(universe->iworld==0) printf("iworld = %d, start press_v_step, pw = %.8e.\n", universe->iworld, vw*W);
-  // printf("me = %d iworld = %d, start, vw = %.30e.\n", universe->me, universe->iworld, vw);
+  // if(universe->iworld==0) printf("iworld = %d, start press_v_step, pw = %.30e.\n", universe->iworld, vw[0]*W);
+  // printf("me = %d iworld = %d, start, vw = %.30e.\n", universe->me, universe->iworld, vw[0]);
   // printf("me = %d iworld = %d, start, p_cv = %.30e.\n", universe->me, universe->iworld, p_cv);
   int nlocal = atom->nlocal;
   double **f = atom->f;
@@ -1902,8 +1902,8 @@ void FixDPPimd::press_v_step()
     {
       vw[0] += dtv * 3 * (volume * np * (p_cv - Pext) / force->nktv2p + Vcoeff / beta_np) / W;
       // printf("iworld = %d, p_cv = %.6e, Pext = %.6e, beta_np = %.6e, W = %.6e.\n", universe->iworld, np*p_cv, Pext, beta_np, W);
-      // printf("me = %d iworld = %d, after press, vw = %.30e.\n", universe->me, universe->iworld, vw);
-      // if(universe->iworld==0) printf("iworld = %d, after adding kinetic part, pw = %.30e.\n", universe->iworld, vw*W);
+      // printf("me = %d iworld = %d, after press, vw = %.30e.\n", universe->me, universe->iworld, vw[0]);
+      // if(universe->iworld==0) printf("iworld = %d, after adding kinetic part, pw = %.30e.\n", universe->iworld, vw[0]*W);
       if(universe->iworld==0)
       {
         double dvw_proc = 0.0, dvw = 0.0;
@@ -1920,7 +1920,7 @@ void FixDPPimd::press_v_step()
         // MPI_Allreduce(&dvw_proc, &dvw, 1, MPI_DOUBLE, MPI_SUM, world);
         vw[0] += dvw;
         // printf("me = %d iworld = %d, before broadcasting vw = %.30e.\n", universe->me, universe->iworld, vw);
-        // if(universe->iworld==0) printf("iworld = %d, after adding force part, pw = %.30e.\n", universe->iworld, vw*W);
+        // if(universe->iworld==0) printf("iworld = %d, after adding force part, pw = %.30e.\n\n", universe->iworld, vw[0]*W);
       }
       MPI_Barrier(universe->uworld);
       MPI_Bcast(&vw[0], 1, MPI_DOUBLE, 0, universe->uworld);
@@ -2737,11 +2737,11 @@ void FixDPPimd::compute_totenthalpy()
   {
     if(pstyle == ISO)
     {
-      totenthalpy = tote + 0.5*W*vw[0]*vw[0]/np + Pext * volume / force->nktv2p - Vcoeff * kBT * log(volume);
+      totenthalpy = tote + 0.5*W*vw[0]*vw[0]/np + Pext * volume / force->nktv2p - Vcoeff * kBT * log(volume*6.748334529146908);
     }
     else if(pstyle == ANISO)
     {
-      totenthalpy = tote + 0.5*W*vw[0]*vw[0]/np + 0.5*W*vw[1]*vw[1]/np + 0.5*W*vw[2]*vw[2]/np + Pext * volume / force->nktv2p - Vcoeff * kBT * log(volume);
+      totenthalpy = tote + 0.5*W*vw[0]*vw[0]/np + 0.5*W*vw[1]*vw[1]/np + 0.5*W*vw[2]*vw[2]/np + Pext * volume / force->nktv2p - Vcoeff * kBT * log(volume*6.748334529146908);
     }
   }
   else if(barostat == MTTK)  totenthalpy = tote + 1.5*W*vw[0]*vw[0]/np + Pext * (volume - vol0);
@@ -2776,6 +2776,8 @@ double FixDPPimd::compute_vector(int n)
   // if(n==5) { return vir_; }
   if(n==7) { return p_prim; }
   if(n==8) { return p_md; }
+  // if(n==7) { volume = domain->xprd * domain->yprd * domain->zprd; return np * Pext * volume / force->nktv2p; }
+  // if(n==8) { volume = domain->xprd * domain->yprd * domain->zprd; return - Vcoeff * np * kBT * log(volume*6.748334529146908); }
   // if(n==7) { return centroid_vir; }
   // if(n==7) { return vir_-vir; }
   // if(n==7) { return p_cv - p_cv_; }

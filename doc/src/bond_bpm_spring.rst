@@ -163,6 +163,13 @@ output options.
 The vector or array will be floating point values that correspond to
 the specified attribute.
 
+The single() function of this bond style returns 0.0 for the energy
+of a bonded interaction, since energy is not conserved in these
+dissipative potentials.  The single() function also calculates an
+extra bond quantity, the initial distance :math:`r_0`. This
+extra quantity can be accessed by the
+:doc:`compute bond/local <compute_bond_local>` command as *b1*\ .
+
 Restrictions
 """"""""""""
 

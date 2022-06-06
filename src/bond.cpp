@@ -52,6 +52,9 @@ Bond::Bond(LAMMPS *_lmp) : Pointers(_lmp)
   born_matrix_enable = 0;
   partial_flag = 0;
 
+  single_extra = 0;
+  svector = nullptr;
+
   maxeatom = maxvatom = 0;
   eatom = nullptr;
   vatom = nullptr;

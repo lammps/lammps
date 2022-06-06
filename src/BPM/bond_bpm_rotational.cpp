@@ -49,12 +49,17 @@ BondBPMRotational::BondBPMRotational(LAMMPS *_lmp) : BondBPM(_lmp)
   gtwist = nullptr;
   partial_flag = 1;
   smooth_flag = 1;
+
+  single_extra = 7;
+  svector = new double[7];
 }
 
 /* ---------------------------------------------------------------------- */
 
 BondBPMRotational::~BondBPMRotational()
 {
+  delete[] svector;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(Kr);
@@ -753,11 +758,12 @@ double BondBPMRotational::single(int type, double rsq, int i, int j, double &ffo
   // Not yet enabled
   if (type <= 0) return 0.0;
 
-  int itmp;
+  int flipped = 0;
   if (atom->tag[j] < atom->tag[i]) {
-    itmp = i;
+    int itmp = i;
     i = j;
     j = itmp;
+    flipped = 1;
   }
 
   double r0_mag, r_mag, r_mag_inv;
@@ -792,5 +798,26 @@ double BondBPMRotational::single(int type, double rsq, int i, int j, double &ffo
     smooth = 1.0 - smooth * smooth;
     fforce *= smooth;
   }
+
+  // set single_extra quantities
+
+  svector[0] = r0_mag;
+  if (flipped) {
+    svector[1] = -r0[0];
+    svector[2] = -r0[1];
+    svector[3] = -r0[2];
+    svector[4] = force1on2[0];
+    svector[5] = force1on2[1];
+    svector[6] = force1on2[2];
+  } else {
+    svector[1] = r0[0];
+    svector[2] = r0[1];
+    svector[3] = r0[2];
+    svector[4] = -force1on2[0];
+    svector[5] = -force1on2[1];
+    svector[6] = -force1on2[2];
+  }
+
+
   return 0.0;
 }

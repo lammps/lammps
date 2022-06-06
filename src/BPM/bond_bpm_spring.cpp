@@ -34,12 +34,17 @@ BondBPMSpring::BondBPMSpring(LAMMPS *_lmp) :
 {
   partial_flag = 1;
   smooth_flag = 1;
+
+  single_extra = 1;
+  svector = new double[1];
 }
 
 /* ---------------------------------------------------------------------- */
 
 BondBPMSpring::~BondBPMSpring()
 {
+  delete[] svector;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);
@@ -376,6 +381,10 @@ double BondBPMSpring::single(int type, double rsq, int i, int j, double &fforce)
     smooth = 1 - smooth;
     fforce *= smooth;
   }
+
+  // set single_extra quantities
+
+  svector[0] = r0;
 
   return 0.0;
 }

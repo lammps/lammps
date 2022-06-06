@@ -201,6 +201,20 @@ output options.
 The vector or array will be floating point values that correspond to
 the specified attribute.
 
+The single() function of this bond style returns 0.0 for the energy
+of a bonded interaction, since energy is not conserved in these
+dissipative potentials.  It also returns only the normal component of
+the bonded interaction force.  However, the single() function also
+calculates 7 extra bond quantities.  The first 4 are data from the
+reference state of the bond including the magnitude :math:`r_0`
+followed by the :math:`x`, :math:`y`, and :math:`z` components of the
+initial unit vector pointing to particle I from particle J. The next 3
+(5-7) are the components of the total force, including normal and
+tangential contributions, acting on particle I.
+
+These extra quantities can be accessed by the :doc:`compute bond/local <compute_bond_local>`
+command, as *b1*, *b2*, ..., *b7*\ .
+
 Restrictions
 """"""""""""
 

@@ -82,7 +82,7 @@ ComputeSnapneigh::ComputeSnapneigh(LAMMPS *lmp, int narg, char **arg) :
   memory->create(cutsq,ntypes+1,ntypes+1,"snapneigh:cutsq");
   for (int i = 1; i <= ntypes; i++) {
     cut = 2.0*radelem[i]*rcutfac;
-    printf("cut: %f\n", cut);
+    //printf("cut: %f\n", cut);
     if (cut > cutmax) cutmax = cut;
     cutsq[i][i] = cut*cut;
     for (int j = i+1; j <= ntypes; j++) {
@@ -235,12 +235,12 @@ ComputeSnapneigh::~ComputeSnapneigh()
   }
 
   if (dbirjflag){
-    printf("dbirj_rows: %d\n", dbirj_rows);
-    memory->destroy(dbirj);
+    //printf("dbirj_rows: %d\n", dbirj_rows);
+    //memory->destroy(dbirj);
     memory->destroy(nneighs);
     memory->destroy(neighsum);
     memory->destroy(icounter);
-    memory->destroy(dbiri);
+    //memory->destroy(dbiri);
   }
 }
 
@@ -276,12 +276,12 @@ void ComputeSnapneigh::compute_array()
 {
 
   if (dbirjflag){
-    printf("----- dbirjflag true.\n");
+    //printf("----- dbirjflag true.\n");
     get_dbirj_length();
-    printf("----- got dbirj_length\n");
+    //printf("----- got dbirj_length\n");
   }
 
-  printf("----- cutmax cutforce: %f %f\n", cutmax, force->pair->cutforce);
+  //printf("----- cutmax cutforce: %f %f\n", cutmax, force->pair->cutforce);
   //else{
   int ntotal = atom->nlocal + atom->nghost;
 
@@ -306,6 +306,7 @@ void ComputeSnapneigh::compute_array()
   int ninside;
   int numneigh_sum = 0;
   int dbirj_row_indx;
+  int dbiri_indx=0;
   for (int ii = 0; ii < inum; ii++) {
     int irow = 0;
     if (bikflag) irow = atom->tag[ilist[ii] & NEIGHMASK]-1;
@@ -358,7 +359,10 @@ void ComputeSnapneigh::compute_array()
           jelem = map[jtype];
         if (rsq < cutsq[itype][jtype]&&rsq>1e-20) {
           if (dbirjflag){
-            dbirj_row_indx = 3*neighsum[atom->tag[j]-1] + 3*icounter[atom->tag[j]-1] ; // THIS IS WRONG, SEE NEXT VAR.
+            //dbirj_row_indx = 3*neighsum[atom->tag[j]-1] + 3*icounter[atom->tag[j]-1] ; // THIS IS WRONG, SEE NEXT VAR.
+            //dbirj_row_indx = 3*neighsum[atom->tag[i]-1] + 3*(atom->tag[i]-1) + 3*icounter[atom->tag[j]-1]; // 3*tagi is to leave space for dBi/dRi
+            dbirj_row_indx = 3*neighsum[atom->tag[j]-1] + 3*icounter[atom->tag[j]-1] + 3*(atom->tag[j]-1); // THIS IS WRONG, SEE NEXT VAR.
+            //printf("--- %d %d %d %d\n", dbirj_row_indx, 3*neighsum[atom->tag[i]-1], 3*(atom->tag[i]-1), jj);
             //printf("jtag, icounter, dbirj_row_indx: %d, %d, %d %d %d\n", atom->tag[j], icounter[atom->tag[j]-1], dbirj_row_indx+0, dbirj_row_indx+1, dbirj_row_indx+2);
             icounter[atom->tag[j]-1] += 1;
 
@@ -369,13 +373,32 @@ void ComputeSnapneigh::compute_array()
             neighs[dbirj_row_indx+0][1] = atom->tag[j];
             neighs[dbirj_row_indx+1][1] = atom->tag[j];
             neighs[dbirj_row_indx+2][1] = atom->tag[j];
+
+            neighs[dbirj_row_indx+0][2] = 0;
+            neighs[dbirj_row_indx+1][2] = 1;
+            neighs[dbirj_row_indx+2][2] = 2;
+
+            dbiri_indx = dbiri_indx+3;
           }
         }
       }
 
-      // for (int jj = 0; jj < ninside; jj++)
-      //printf("---- irow after jj loop: %d\n", irow);
+      //printf("--- dbiri_indx: %d\n", dbiri_indx);
+      // Put dBi/dRi in
 
+      neighs[dbiri_indx+0][0] = atom->tag[i];
+      neighs[dbiri_indx+1][0] = atom->tag[i];
+      neighs[dbiri_indx+2][0] = atom->tag[i];
+
+      neighs[dbiri_indx+0][1] = atom->tag[i];
+      neighs[dbiri_indx+1][1] = atom->tag[i];
+      neighs[dbiri_indx+2][1] = atom->tag[i];
+
+      neighs[dbiri_indx+0][2] = 0;
+      neighs[dbiri_indx+1][2] = 1;
+      neighs[dbiri_indx+2][2] = 2;
+
+      dbiri_indx = dbiri_indx+3;
     }
 
     numneigh_sum += ninside;
@@ -404,14 +427,14 @@ void ComputeSnapneigh::compute_array()
   snapall[irow][lastcol] = reference_energy;
   */
 
-
+  /*
   for (int i=0; i<dbirj_rows; i++){
     printf("----- %d: %f %f\n", i, array[i][0], array[i][1]);
   }
 
   //printf("vector[0]: %d\n", vector[0]);
   printf("----- End of compute snapneigh.\n");
-
+  */
 }
 
 /* ----------------------------------------------------------------------
@@ -431,15 +454,17 @@ void ComputeSnapneigh::get_dbirj_length()
   const int* const mask = atom->mask;
   double** const x = atom->x;
   //printf("----- inum: %d\n", inum);
-  memory->create(neighsum, inum, "snapneigh:neighsum");
-  memory->create(nneighs, inum, "snapneigh:nneighs");
-  memory->create(icounter, inum, "snapneigh:icounter");
-  memory->create(dbiri, 3*inum,ncoeff, "snapneigh:dbiri");
+  memory->create(neighsum, atom->nlocal, "snapneigh:neighsum");
+  memory->create(nneighs, atom->nlocal, "snapneigh:nneighs");
+  memory->create(icounter, atom->nlocal, "snapneigh:icounter");
+  //memory->create(dbiri, 3*inum,ncoeff, "snapneigh:dbiri");
+  /*
   for (int ii=0; ii<inum; ii++){
     for (int icoeff=0; icoeff<ncoeff; icoeff++){
       dbiri[ii][icoeff]=0.0;
     }
   }
+  */
   for (int ii = 0; ii < inum; ii++) {
     const int i = ilist[ii];
     if (mask[i] & groupbit) {
@@ -500,10 +525,11 @@ void ComputeSnapneigh::get_dbirj_length()
     //printf("%d\n", neighsum[i]);
   }
 
-  memory->create(dbirj, dbirj_rows, ncoeff, "snapneigh:dbirj");
-  memory->create(neighs, dbirj_rows, 2, "snapneigh:neighs");
-  size_array_rows = dbirj_rows;
-  size_array_cols = 2;
+  size_array_rows = dbirj_rows+(3*atom->nlocal);
+  size_array_cols = 3;
+  //memory->create(dbirj, dbirj_rows, ncoeff, "snapneigh:dbirj");
+  memory->create(neighs, size_array_rows, size_array_cols, "snapneigh:neighs");
+
   //vector = neighs;
   array = neighs;
   // Set size array rows which now depends on dbirj_rows.

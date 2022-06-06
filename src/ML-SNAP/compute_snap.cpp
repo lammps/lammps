@@ -82,7 +82,7 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   memory->create(cutsq,ntypes+1,ntypes+1,"snap:cutsq");
   for (int i = 1; i <= ntypes; i++) {
     cut = 2.0*radelem[i]*rcutfac;
-    printf("cut: %f\n", cut);
+    //printf("cut: %f\n", cut);
     if (cut > cutmax) cutmax = cut;
     cutsq[i][i] = cut*cut;
     for (int j = i+1; j <= ntypes; j++) {
@@ -204,7 +204,8 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   //size_array_rows = bik_rows+ndims_force*natoms+ndims_virial;
   dbirj_rows = ndims_force*natoms;
   size_array_rows = bik_rows+dbirj_rows+ndims_virial;
-  size_array_cols = nperdim*atom->ntypes+1;
+  if (dbirjflag) size_array_cols = nperdim;
+  else size_array_cols = nperdim*atom->ntypes+1;
   lastcol = size_array_cols-1;
 
   ndims_peratom = ndims_force;
@@ -217,6 +218,7 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeSnap::~ComputeSnap()
 {
+
   memory->destroy(snap);
   memory->destroy(snapall);
   memory->destroy(snap_peratom);
@@ -233,12 +235,18 @@ ComputeSnap::~ComputeSnap()
   }
 
   if (dbirjflag){
-    printf("dbirj_rows: %d\n", dbirj_rows);
+    //printf("dbirj_rows: %d\n", dbirj_rows);
+    //printf("----- destroy dbirj\n");
     memory->destroy(dbirj);
+    //printf("----- 1-1-1-1-1-1\n");
     memory->destroy(nneighs);
+    //printf("----- 2-1-1-1-1-1\n");
     memory->destroy(neighsum);
+    //printf("----- 3-1-1-1-1-1\n");
     memory->destroy(icounter);
+    //printf("----- 4-1-1-1-1-1\n");
     memory->destroy(dbiri);
+    //printf("----- 5-1-1-1-1-1\n");
   }
 }
 
@@ -263,7 +271,8 @@ void ComputeSnap::init()
   snaptr->init();
 
   // allocate memory for global array
-  printf("----- dbirjflag: %d\n", dbirjflag);
+
+  //printf("----- dbirjflag: %d\n", dbirjflag);
   memory->create(snap,size_array_rows,size_array_cols,
                  "snap:snap");
   memory->create(snapall,size_array_rows,size_array_cols,
@@ -279,7 +288,6 @@ void ComputeSnap::init()
   c_pe = modify->compute[ipe];
 
   // add compute for reference virial tensor
-
   std::string id_virial = std::string("snap_press");
   std::string pcmd = id_virial + " all pressure NULL virial";
   modify->add_compute(pcmd);
@@ -304,13 +312,17 @@ void ComputeSnap::init_list(int /*id*/, NeighList *ptr)
 void ComputeSnap::compute_array()
 {
 
+  //printf(" -----2 dbirjflag: %d\n", dbirjflag);
   if (dbirjflag){
-    printf("----- dbirjflag true.\n");
+    //printf("----- dbirjflag true.\n");
     get_dbirj_length();
-    printf("----- got dbirj_length\n");
+    //printf("----- got dbirj_length\n");
   }
+  //else{
+  //  printf("----- dbirjflag false.\n");
+  //}
 
-  printf("----- cutmax cutforce: %f %f\n", cutmax, force->pair->cutforce);
+  //printf("----- cutmax cutforce: %f %f\n", cutmax, force->pair->cutforce);
   //else{
   int ntotal = atom->nlocal + atom->nghost;
 
@@ -325,7 +337,7 @@ void ComputeSnap::compute_array()
                    "snap:snap_peratom");
   }
   // clear global array
-  printf("size_array_rows: %d\n", size_array_rows);
+  //printf("size_array_rows: %d\n", size_array_rows);
   for (int irow = 0; irow < size_array_rows; irow++){
     for (int icoeff = 0; icoeff < size_array_cols; icoeff++){
       //printf("%d %d\n", irow, icoeff);
@@ -361,7 +373,7 @@ void ComputeSnap::compute_array()
   for (int ii = 0; ii < inum; ii++) {
     int irow = 0;
     if (bikflag) irow = atom->tag[ilist[ii] & NEIGHMASK]-1;
-    printf("----- i, itag: %d %d\n", ilist[ii] & NEIGHMASK, atom->tag[ilist[ii]]);
+    //printf("----- i, itag: %d %d\n", ilist[ii] & NEIGHMASK, atom->tag[ilist[ii]]);
     const int i = ilist[ii];
     //printf("----- ii, i: %d %d\n", ii, i);
     //printf("----- mask[i] groupbit: %d %d\n", mask[i], groupbit);
@@ -439,7 +451,7 @@ void ComputeSnap::compute_array()
       I think it only needs neighbor info, and then it goes from there.
       */
       //printf("----- Derivative loop - looping over neighbors j.\n");
-      printf("-----   ninside: %d\n", ninside); // numneighs of I within cutoff
+      //printf("-----   ninside: %d\n", ninside); // numneighs of I within cutoff
       for (int jj = 0; jj < ninside; jj++) {
         //printf("-----   jj: %d\n", jj);
         const int j = snaptr->inside[jj];
@@ -456,7 +468,7 @@ void ComputeSnap::compute_array()
         //icounter[atom->tag[j]-1] += 1;
         if (dbirjflag){
           dbirj_row_indx = 3*neighsum[atom->tag[j]-1] + 3*icounter[atom->tag[j]-1] ; // THIS IS WRONG, SEE NEXT VAR.
-          printf("jtag, icounter, dbirj_row_indx: %d, %d, %d %d %d\n", atom->tag[j], icounter[atom->tag[j]-1], dbirj_row_indx+0, dbirj_row_indx+1, dbirj_row_indx+2);
+          //printf("jtag, icounter, dbirj_row_indx: %d, %d, %d %d %d\n", atom->tag[j], icounter[atom->tag[j]-1], dbirj_row_indx+0, dbirj_row_indx+1, dbirj_row_indx+2);
           icounter[atom->tag[j]-1] += 1;
         }
         //int dbirj_row_indx = 3*neighsum[atom->tag[j]-1] + 3*icounter[atom->tag[j]-1] ; // THIS IS WRONG, SEE NEXT VAR.
@@ -522,6 +534,7 @@ void ComputeSnap::compute_array()
             dbiri[3*(atom->tag[i]-1)+2][icoeff] -= snaptr->dblist[icoeff][2];
           }
 
+
         }
 
         if (quadraticflag) {
@@ -579,10 +592,13 @@ void ComputeSnap::compute_array()
       //printf("----- Accumulate Bi.\n");
 
       // linear contributions
-
-      int k = typeoffset_global;
-      for (int icoeff = 0; icoeff < ncoeff; icoeff++)
+      int k;
+      if (dbirjflag) k = 0;
+      else k = typeoffset_global;
+      for (int icoeff = 0; icoeff < ncoeff; icoeff++){
+        //printf("----- %d %f\n", icoeff, snaptr->blist[icoeff]);
         snap[irow][k++] += snaptr->blist[icoeff];
+      }
 
       // quadratic contributions
 
@@ -601,8 +617,8 @@ void ComputeSnap::compute_array()
     numneigh_sum += ninside;
   } // for (int ii = 0; ii < inum; ii++)
 
-  printf("----- bik_rows: %d\n", bik_rows);
-  printf("----- bikflag: %d\n", bikflag);
+  //printf("----- bik_rows: %d\n", bik_rows);
+  //printf("----- bikflag: %d\n", bikflag);
 
   // Check icounter.
   /*
@@ -615,16 +631,19 @@ void ComputeSnap::compute_array()
   */
 
   // Sum all the derivatives we calculated to check usual compute snap output.
+  /*
   if (dbirjflag){
     fh_d = fopen("DEBUG", "w");
     int row_indx=0;
+    double sum;
     for (int ii=0; ii<inum; ii++){
+      printf("ii: %d\n", ii);
       for (int a=0; a<3; a++){
         for (int k=0; k<ncoeff; k++){
           //double sumx = 0.0;
           //double sumy = 0.0;
           //double sumz = 0.0;
-          double sum=0.0;
+          sum=0.0;
           for (int jj=0; jj<nneighs[ii]; jj++){
             row_indx=3*neighsum[ii]+3*jj;
             //sumx+=dbirj[row_indx+a][k];
@@ -636,99 +655,70 @@ void ComputeSnap::compute_array()
           //sumx+=dbiri[3*ii+0][k];
           //sumy+=dbiri[3*ii+1][k];
           //sumz+=dbiri[3*ii+2][k];
+
           sum+=dbiri[3*ii+a][k];
+
           //printf("%d %f %f %f\n", ii, sumx, sumy, sumz);
           fprintf(fh_d, "%f ", sum);
         }
         fprintf(fh_d, "\n");
 
       }
-      /*
-      for (int k=0; k<ncoeff; k++){
-        double sumx = 0.0;
-        double sumy = 0.0;
-        double sumz = 0.0;
-        for (int jj=0; jj<nneighs[ii]; jj++){
-          row_indx=3*neighsum[ii]+3*jj;
-          sumx+=dbirj[row_indx+0][k];
-          sumy+=dbirj[row_indx+1][k];
-          sumz+=dbirj[row_indx+2][k];
-        }
-        // Add dBi/dRi
-        sumx+=dbiri[3*ii+0][k];
-        sumy+=dbiri[3*ii+1][k];
-        sumz+=dbiri[3*ii+2][k];
-        printf("%d %f %f %f\n", ii, sumx, sumy, sumz);
-      }
-      */
-      /*
-      double sumx = 0.0;
-      double sumy = 0.0;
-      double sumz = 0.0;
-      for (int jj=0; jj<nneighs[ii]; jj++){
-        row_indx=3*neighsum[ii]+3*jj;
-        sumx+=dbirj[row_indx+0][4];
-        sumy+=dbirj[row_indx+1][4];
-        sumz+=dbirj[row_indx+2][4];
-      }
-      // Add dBi/dRi
-      sumx+=dbiri[3*ii+0][4];
-      sumy+=dbiri[3*ii+1][4];
-      sumz+=dbiri[3*ii+2][4];
-      printf("%d %f %f %f\n", ii, sumx, sumy, sumz);
-      */
     }
     fclose(fh_d);
   }
+  */
 
   if (dbirjflag){
 
+    //printf(" Accumulate to global array.\n");
     //printf("ntypes: %d\n", atom->ntypes);
     //for (int itype = 0; itype < atom->ntypes; itype++) {
+    int dbiri_indx;
+    int irow;
     for (int itype=0; itype<1; itype++){
       const int typeoffset_local = ndims_peratom*nperdim*itype;
       const int typeoffset_global = nperdim*itype;
       //printf("----- nperdim: %d\n", nperdim);
-      /*nperdim = ncoeff set previsouly*/
       for (int icoeff = 0; icoeff < nperdim; icoeff++) {
         //printf("-----   icoeff: %d\n", icoeff);
+        dbiri_indx=0;
         for (int i = 0; i < atom->nlocal; i++) {
             //printf("i: %d\n", i);
 
-
+            //int dbiri_indx = 0;
+            //int irow;
             for (int jj=0; jj<nneighs[i]; jj++){
               //printf("  jj: %d\n", jj);
               int dbirj_row_indx = 3*neighsum[atom->tag[i]-1] + 3*jj;
-              int irow = dbirj_row_indx+bik_rows;
+              int snap_row_indx = 3*neighsum[atom->tag[i]-1] + 3*(atom->tag[i]-1) + 3*jj;
+              //printf("snap_row_indx: %d\n", snap_row_indx);
+              //int irow = dbirj_row_indx+bik_rows;
+              irow = snap_row_indx + bik_rows;
               //printf("  row_indx, irow: %d %d\n", dbirj_row_indx, irow);
               snap[irow++][icoeff+typeoffset_global] += dbirj[dbirj_row_indx+0][icoeff];
               //printf("    irow: %d\n", irow);
               snap[irow++][icoeff+typeoffset_global] += dbirj[dbirj_row_indx+1][icoeff];
               //printf("    irow: %d\n", irow);
               snap[irow][icoeff+typeoffset_global]   += dbirj[dbirj_row_indx+2][icoeff];
+              dbiri_indx = dbiri_indx+3;
             }
+            // Put dBi/dRi at end of each dBj/dRi chunk.
+            //int dbiri_row_indx;
+            irow = dbiri_indx + bik_rows;
+            //printf("dbiri_indx: %d\n", dbiri_indx);
+            //printf("dbiri: %f %f %f\n", dbiri[3*i+0][icoeff], dbiri[3*i+1][icoeff], dbiri[3*i+2][icoeff]);
+            snap[irow++][icoeff+typeoffset_global] += dbiri[3*i+0][icoeff];
+            //printf("    irow: %d\n", irow);
+            snap[irow++][icoeff+typeoffset_global] += dbiri[3*i+1][icoeff];
+            //printf("    irow: %d\n", irow);
+            snap[irow][icoeff+typeoffset_global]   += dbiri[3*i+2][icoeff];
 
-
-            //int dbirj_row_indx = 3*neighsum[atom->tag[i]-1] + 3*icounter[atom->tag[i]-1];
-            //printf("  row_indx: %d\n", dbirj_row_indx);
-
-          /*
-          double *snadi = snap_peratom[i]+typeoffset_local;
-          int iglobal = atom->tag[i];
-          if (icoeff==4){
-            if ( (snadi[icoeff] != 0.0) || (snadi[icoeff+yoffset] != 0.0) || (snadi[icoeff+zoffset] != 0.0) ){
-              //printf("%d %d %f %f %f\n", i, iglobal, snadi[icoeff], snadi[icoeff+yoffset], snadi[icoeff+zoffset]);
-            }
-          }
-          int irow = 3*(iglobal-1)+bik_rows;
-          //printf("-----     snadi[icoeff]: %f\n", snadi[icoeff]);
-          snap[irow++][icoeff+typeoffset_global] += snadi[icoeff];
-          snap[irow++][icoeff+typeoffset_global] += snadi[icoeff+yoffset];
-          snap[irow][icoeff+typeoffset_global] += snadi[icoeff+zoffset];
-          */
+            dbiri_indx = dbiri_indx+3;
         }
       }
     }
+    //printf(" Accumulated to global array.\n");
 
   }
 
@@ -784,22 +774,26 @@ void ComputeSnap::compute_array()
 
   // accumulate bispectrum virial contributions to global array
 
-  dbdotr_compute();
+  //dbdotr_compute();
 
   // sum up over all processes
-printf("`-`-`-` snap[50][6]: %f\n", snap[50][6]);
-printf("`-`-`-` snapall[50][6]: %f\n", snapall[50][6]);
   MPI_Allreduce(&snap[0][0],&snapall[0][0],size_array_rows*size_array_cols,MPI_DOUBLE,MPI_SUM,world);
   // assign energy to last column
-  for (int i = 0; i < bik_rows; i++) snapall[i][lastcol] = 0;
-  int irow = 0;
-  double reference_energy = c_pe->compute_scalar();
-  snapall[irow][lastcol] = reference_energy;
+  if (dbirjflag){
+
+  }
+  else{
+    for (int i = 0; i < bik_rows; i++) snapall[i][lastcol] = 0;
+    int irow = 0;
+    double reference_energy = c_pe->compute_scalar();
+    snapall[irow][lastcol] = reference_energy;
+  }
 
   // assign virial stress to last column
   // switch to Voigt notation
 
   c_virial->compute_vector();
+  /*
   irow += 3*natoms+bik_rows;
   snapall[irow++][lastcol] = c_virial->vector[0];
   snapall[irow++][lastcol] = c_virial->vector[1];
@@ -807,10 +801,9 @@ printf("`-`-`-` snapall[50][6]: %f\n", snapall[50][6]);
   snapall[irow++][lastcol] = c_virial->vector[5];
   snapall[irow++][lastcol] = c_virial->vector[4];
   snapall[irow][lastcol] = c_virial->vector[3];
+  */
 
   //}// else
-
-  printf("----- End of compute_array.\n");
 }
 
 /* ----------------------------------------------------------------------
@@ -824,7 +817,7 @@ void ComputeSnap::dbdotr_compute()
 
   int irow0;
   if (dbirjflag){
-    irow0 = bik_rows+dbirj_rows;
+    irow0 = bik_rows+dbirj_rows+(3*natoms);
   }
   else{
     irow0 = bik_rows+ndims_force*natoms;
@@ -861,10 +854,11 @@ void ComputeSnap::dbdotr_compute()
 
 void ComputeSnap::get_dbirj_length()
 {
+
+  memory->destroy(snap);
+  memory->destroy(snapall);
   // invoke full neighbor list (will copy or build if necessary)
   neighbor->build_one(list);
-  //memory->destroy(snap);
-  //memory->destroy(snapall);
   dbirj_rows = 0;
   const int inum = list->inum;
   const int* const ilist = list->ilist;
@@ -877,8 +871,8 @@ void ComputeSnap::get_dbirj_length()
   memory->create(neighsum, inum, "snap:neighsum");
   memory->create(nneighs, inum, "snap:nneighs");
   memory->create(icounter, inum, "snap:icounter");
-  memory->create(dbiri, 3*inum,ncoeff, "snap:dbiri");
-  for (int ii=0; ii<inum; ii++){
+  memory->create(dbiri, 3*atom->nlocal,ncoeff, "snap:dbiri");
+  for (int ii=0; ii<3*atom->nlocal; ii++){
     for (int icoeff=0; icoeff<ncoeff; icoeff++){
       dbiri[ii][icoeff]=0.0;
     }
@@ -943,9 +937,17 @@ void ComputeSnap::get_dbirj_length()
     //printf("%d\n", neighsum[i]);
   }
 
+  //printf("----- dbirj_rows: %d\n", dbirj_rows);
+
   memory->create(dbirj, dbirj_rows, ncoeff, "snap:dbirj");
+  for (int i=0; i<dbirj_rows; i++){
+    for (int j=0; j<ncoeff; j++){
+      dbirj[i][j]=0.0;
+    }
+  }
   // Set size array rows which now depends on dbirj_rows.
-  size_array_rows = bik_rows+dbirj_rows+ndims_virial;
+  //size_array_rows = bik_rows+dbirj_rows+ndims_virial;
+  size_array_rows = bik_rows+dbirj_rows+ndims_virial+3*atom->nlocal; // Add 3*N for dBi/dRi
   //printf("----- dbirj_rows: %d\n", dbirj_rows);
   //printf("----- end of dbirj length.\n");
 

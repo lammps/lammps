@@ -29,11 +29,17 @@ using namespace LAMMPS_NS;
 ComputeNBondAtom::ComputeNBondAtom(LAMMPS *_lmp, int narg, char **arg) :
     Compute(_lmp, narg, arg), nbond(nullptr)
 {
-  if (narg < 3) error->all(FLERR, "Illegal compute nbond/atom command");
+  if ((narg < 3) || (narg > 4)) error->all(FLERR, "Illegal compute nbond/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
   comm_reverse = 1;
+  comm_forward = 0;
+
+  if (narg == 4) {
+    if (utils::strmatch(arg[3], "forward")) comm_forward = 1;
+    else error->all(FLERR, "Illegal compute nbond/atom command");
+  }
 
   nmax = 0;
 }
@@ -100,6 +106,9 @@ void ComputeNBondAtom::compute_peratom()
 
   for (i = 0; i < nlocal; i++)
     if (!(mask[i] & groupbit)) nbond[i] = 0.0;
+
+  // forward to ghosts if requested
+  if (comm_forward != 0) comm->forward_comm(this);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -125,6 +134,31 @@ void ComputeNBondAtom::unpack_reverse_comm(int n, int *list, double *buf)
     j = list[i];
     nbond[j] += buf[m++];
   }
+}
+/* ---------------------------------------------------------------------- */
+
+int ComputeNBondAtom::pack_forward_comm(int n, int *list, double *buf,
+                                          int /*pbc_flag*/, int * /*pbc*/)
+{
+  int i,j,m;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = nbond[j];
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeNBondAtom::unpack_forward_comm(int n, int first, double *buf)
+{
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) nbond[i] = buf[m++];
 }
 
 /* ----------------------------------------------------------------------

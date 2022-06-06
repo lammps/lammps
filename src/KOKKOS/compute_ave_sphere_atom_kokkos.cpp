@@ -188,8 +188,8 @@ void ComputeAveSphereAtomKokkos<DeviceType>::operator()(TagComputeAveSphereAtom,
     for (int jj = 0; jj < jnum; jj++) {
       int j = d_neighbors(i,jj);
       j &= NEIGHMASK;
-      if (rmass.data()) massone_j = rmass[i];
-      else massone_j = mass[type[i]];
+      if (rmass.data()) massone_j = rmass[j];
+      else massone_j = mass[type[j]];
 
       const F_FLOAT delx = x(j,0) - xtmp;
       const F_FLOAT dely = x(j,1) - ytmp;

@@ -160,8 +160,7 @@ void ComputeAveSphereAtom::compute_peratom()
   double *rmass = atom->rmass;
   int *type = atom->type;
   int *mask = atom->mask;
-  double massone_i,massone_j;
-  double totalmass = 0.0;
+  double massone_i,massone_j,totalmass;
 
   double adof = domain->dimension;
   double mvv2e = force->mvv2e;

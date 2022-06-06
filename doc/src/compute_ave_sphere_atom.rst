@@ -35,7 +35,7 @@ Examples
 Description
 """""""""""
 
-Define a computation that calculates the local density and temperature
+Define a computation that calculates the local mass density and temperature
 for each atom and neighbors inside a spherical cutoff.
 
 The optional keyword *cutoff* defines the distance cutoff
@@ -58,7 +58,7 @@ too frequently.
    interactions between atoms in the same bond, angle, or dihedral.  This
    is the default setting for the :doc:`special_bonds <special_bonds>`
    command, and means those pairwise interactions do not appear in the
-   neighbor list.  Because this fix uses the neighbor list, it also means
+   neighbor list.  Because this compute uses the neighbor list, it also means
    those pairs will not be included in the order parameter.  This
    difficulty can be circumvented by writing a dump file, and using the
    :doc:`rerun <rerun>` command to compute the order parameter for
@@ -77,7 +77,7 @@ too frequently.
 Output info
 """""""""""
 
-This compute calculates a per-atom array with two columns: density and temperature.
+This compute calculates a per-atom array with two columns: mass density and temperature.
 
 These values can be accessed by any command that uses per-atom values
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc

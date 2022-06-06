@@ -16,6 +16,7 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "comm.h"
+#include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "memory_kokkos.h"
@@ -105,10 +106,18 @@ void ComputeAveSphereAtomKokkos<DeviceType>::compute_peratom()
   // compute properties for each atom in group
   // use full neighbor list to count atoms less than cutoff
 
-  atomKK->sync(execution_space,X_MASK|V_MASK|TYPE_MASK|MASK_MASK);
+  atomKK->sync(execution_space,X_MASK|V_MASK|RMASS_MASK|TYPE_MASK|MASK_MASK);
   x = atomKK->k_x.view<DeviceType>();
   v = atomKK->k_v.view<DeviceType>();
+  rmass = atomKK->k_rmass.view<DeviceType>();
+  mass = atomKK->k_mass.view<DeviceType>();
+  type = atomKK->k_type.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();
+
+  adof = domain->dimension;
+  mvv2e = force->mvv2e;
+  mv2d = force->mv2d;
+  boltz = force->boltz;
 
   Kokkos::deep_copy(d_result,0.0);
 
@@ -125,8 +134,13 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void ComputeAveSphereAtomKokkos<DeviceType>::operator()(TagComputeAveSphereAtom, const int &ii) const
 {
+  double massone_i,massone_j,totalmass;
+
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
+    if (rmass.data()) massone_i = rmass[i];
+    else massone_i = mass[type[i]];
+
     const X_FLOAT xtmp = x(i,0);
     const X_FLOAT ytmp = x(i,1);
     const X_FLOAT ztmp = x(i,2);
@@ -164,15 +178,18 @@ void ComputeAveSphereAtomKokkos<DeviceType>::operator()(TagComputeAveSphereAtom,
     // i atom contribution
 
     count = 1;
+    totalmass = massone_i;
     double vnet[3];
     vnet[0] = v(i,0) - vavg[0];
     vnet[1] = v(i,1) - vavg[1];
     vnet[2] = v(i,2) - vavg[2];
-    double ke_sum = vnet[0]*vnet[0] + vnet[1]*vnet[1] + vnet[2]*vnet[2];
+    double ke_sum = massone_i * (vnet[0]*vnet[0] + vnet[1]*vnet[1] + vnet[2]*vnet[2]);
 
     for (int jj = 0; jj < jnum; jj++) {
       int j = d_neighbors(i,jj);
       j &= NEIGHMASK;
+      if (rmass.data()) massone_j = rmass[i];
+      else massone_j = mass[type[i]];
 
       const F_FLOAT delx = x(j,0) - xtmp;
       const F_FLOAT dely = x(j,1) - ytmp;
@@ -180,14 +197,15 @@ void ComputeAveSphereAtomKokkos<DeviceType>::operator()(TagComputeAveSphereAtom,
       const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
       if (rsq < cutsq) {
         count++;
+        totalmass += massone_j;
         vnet[0] = v(j,0) - vavg[0];
         vnet[1] = v(j,1) - vavg[1];
         vnet[2] = v(j,2) - vavg[2];
-        ke_sum += vnet[0]*vnet[0] + vnet[1]*vnet[1] + vnet[2]*vnet[2];
+        ke_sum += massone_j * (vnet[0]*vnet[0] + vnet[1]*vnet[1] + vnet[2]*vnet[2]);
       }
     }
-    double density = count/sphere_vol;
-    double temp = ke_sum/3.0/count;
+    double density = mv2d*totalmass/volume;
+    double temp = mvv2e*ke_sum/(adof*count*boltz);
     d_result(i,0) = density;
     d_result(i,1) = temp;
   }

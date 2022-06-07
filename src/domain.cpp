@@ -1572,7 +1572,6 @@ void Domain::unmap_inv(double *x, imageint image)
   int zbox = (image >> IMG2BITS) - IMGMAX;
 
   if (triclinic == 0) {
-    //fprintf(stdout, "in unmap, image=%d, xbox=%d, ybox=%d, zbox=%d.\n", image, xbox, ybox, zbox);
     x[0] -= xbox*xprd;
     x[1] -= ybox*yprd;
     x[2] -= zbox*zprd;
@@ -1596,7 +1595,6 @@ void Domain::unmap(double *x, imageint image)
   int zbox = (image >> IMG2BITS) - IMGMAX;
 
   if (triclinic == 0) {
-    //fprintf(stdout, "in unmap, image=%d, xbox=%d, ybox=%d, zbox=%d.\n", image, xbox, ybox, zbox);
     x[0] += xbox*xprd;
     x[1] += ybox*yprd;
     x[2] += zbox*zprd;

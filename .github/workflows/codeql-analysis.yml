@@ -5,6 +5,8 @@ on:
   push:
     branches: [develop]
 
+  workflow_dispatch:
+
 jobs:
   analyze:
     name: Analyze

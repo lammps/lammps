@@ -22,9 +22,7 @@
 
 colvarproxy_tcl::colvarproxy_tcl()
 {
-#ifdef COLVARS_TCL
   tcl_interp_ = NULL;
-#endif
 }
 
 

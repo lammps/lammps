@@ -111,7 +111,6 @@ class AtomVec : protected Pointers {
   virtual int size_restart();
   virtual int pack_restart(int, double *);
   virtual int unpack_restart(double *);
-  virtual int unpack_restart(double *, Atom *&);
 
   virtual void pack_restart_pre(int) {}
   virtual void pack_restart_post(int) {}

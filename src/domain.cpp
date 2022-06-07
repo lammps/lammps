@@ -1618,7 +1618,6 @@ void Domain::unmap(const double *x, imageint image, double *y)
   int zbox = (image >> IMG2BITS) - IMGMAX;
 
   if (triclinic == 0) {
-    //fprintf(stdout, "in unmap, image=%d, xbox=%d.\n", image, xbox);
     y[0] = x[0] + xbox*xprd;
     y[1] = x[1] + ybox*yprd;
     y[2] = x[2] + zbox*zprd;

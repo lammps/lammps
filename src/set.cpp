@@ -48,7 +48,7 @@ enum{TYPE,TYPE_FRACTION,TYPE_RATIO,TYPE_SUBSET,
      MOLECULE,X,Y,Z,VX,VY,VZ,CHARGE,MASS,SHAPE,LENGTH,TRI,
      DIPOLE,DIPOLE_RANDOM,SPIN,SPIN_RANDOM,QUAT,QUAT_RANDOM,
      THETA,THETA_RANDOM,ANGMOM,OMEGA,
-     DIAMETER,ERADIUS,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
+     DIAMETER,ERADIUS,ESPIN,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
      SPH_E,SPH_CV,SPH_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
      SMD_CONTACT_RADIUS,DPDTHETA,EPSILON,IVEC,DVEC,IARRAY,DARRAY};
 
@@ -379,6 +379,15 @@ void Set::command(int narg, char **arg)
       if (!atom->eradius_flag)
         error->all(FLERR,"Cannot set this attribute for this atom style");
       set(ERADIUS);
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"espin") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+      if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
+      else ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      if (!atom->spin_flag)
+        error->all(FLERR,"Cannot set this attribute for this atom style");
+      set(ESPIN);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"density") == 0 ||
@@ -838,6 +847,10 @@ void Set::set(int keyword)
     else if (keyword == ERADIUS) {
       if (dvalue < 0.0) error->one(FLERR,"Invalid eradius in set command");
       atom->eradius[i] = dvalue;
+    }
+    else if (keyword == ESPIN) {
+      //if (ivalue < 0) error->one(FLERR,"Invalid espin in set command");
+      atom->spin[i] = ivalue;
     }
     else if (keyword == VOLUME) {
       if (dvalue <= 0.0) error->one(FLERR,"Invalid volume in set command");

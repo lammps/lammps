@@ -22,6 +22,8 @@ CommandStyle(replicate,Replicate);
 
 #include "command.h"
 
+#include <unordered_map>
+
 namespace LAMMPS_NS {
 
 class Replicate : public Command {
@@ -30,8 +32,10 @@ class Replicate : public Command {
   void command(int, char **) override;
 
  private:
-  Atom *old;
+  std::unordered_map<tagint, int> old_map;
+  double **old_x;
   double old_prd_half[3], old_center[3];
+  tagint *old_tag;
   tagint maxtag;
   int thisrep[3], allnrep[3];
   void newtag(tagint, tagint &);

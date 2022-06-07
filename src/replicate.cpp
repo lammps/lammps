@@ -166,7 +166,7 @@ void Replicate::command(int narg, char **arg)
   // atom = new replicated atom class
   // also set atomKK for Kokkos version of Atom class
 
-  old = atom;
+  Atom *old = atom;
   atomKK = nullptr;
   if (lmp->kokkos) atom = atomKK = new AtomKokkos(lmp);
   else atom = new Atom(lmp);
@@ -434,15 +434,22 @@ void Replicate::command(int narg, char **arg)
 
     int num_replicas_added = 0;
 
-    // let's repurpose the old atom class to allow atom->map for all atoms
-    // tag and x for the whole system (before replication) stored in 'old'
+    // store x and tag for the whole system (before replication)
 
     if (bondlist_flag) {
-      m = 0;
-      old->nlocal = 0;
-      while (m < size_buf_all) m += old_avec->unpack_restart(&buf_all[m],old);
-      old->map_init();
-      old->map_set();
+      memory->create(old_x,old->natoms,3,"replicate:old_x");
+      memory->create(old_tag,old->natoms,"replicate:old_tag");
+
+      i = m = 0;
+      while (m < size_buf_all) {
+          old_x[i][0] = buf_all[m+1];
+          old_x[i][1] = buf_all[m+2];
+          old_x[i][2] = buf_all[m+3];
+          old_tag[i] = (tagint) ubuf(buf_all[m+4]).i;
+          old_map.insert({old_tag[i],i});
+          m += static_cast<int> (buf_all[m]);
+          i++;
+      }
     }
 
     for (ix = 0; ix < nx; ix++) {
@@ -698,6 +705,10 @@ void Replicate::command(int narg, char **arg)
     memory->destroy(size_buf_rnk);
     memory->destroy(disp_buf_rnk);
     memory->destroy(buf_all);
+    if (bondlist_flag) {
+      memory->destroy(old_x);
+      memory->destroy(old_tag);
+    }
 
     int sum = 0;
     MPI_Reduce(&num_replicas_added, &sum, 1, MPI_INT, MPI_SUM, 0, world);
@@ -866,12 +877,12 @@ void Replicate::command(int narg, char **arg)
 void Replicate::newtag(tagint atom0tag, tagint &tag2bond) {
   double del;
   int repshift,rep2bond[3];
-  int atom0 = old->map(atom0tag);
-  int atom2bond = old->map(tag2bond);
+  int atom0 = old_map.find(atom0tag)->second;
+  int atom2bond = old_map.find(tag2bond)->second;
   for (int i = 0; i < 3; i++) {
-    del = fabs(old->x[atom0][i] - old->x[atom2bond][i]);
+    del = fabs(old_x[atom0][i] - old_x[atom2bond][i]);
     if (del > old_prd_half[i]) {
-      if (old->x[atom0][i] > old_center[i]) repshift = 1;
+      if (old_x[atom0][i] > old_center[i]) repshift = 1;
       else repshift = -1;
     } else repshift = 0;
     rep2bond[i] = thisrep[i] + repshift;

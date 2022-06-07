@@ -171,7 +171,7 @@ MLIAPBuildUnified_t LAMMPS_NS::build_unified(char *unified_fname, MLIAPData *dat
 
   PyObject *unified_module = PyImport_ImportModule("mliap_unifiedpy");
 
-  if (!unified_module) {
+  if (PyErr_Occurred()) {
     PyErr_Print();
     PyErr_Clear();
     PyGILState_Release(gstate);

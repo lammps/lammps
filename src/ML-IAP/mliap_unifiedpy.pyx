@@ -52,11 +52,9 @@ cdef extern from "mliap_data.h" namespace "LAMMPS_NS":
         # data structures for mliap neighbor list
         # only neighbors strictly inside descriptor cutoff
 
-        int nlocal
-        int nghost
-        int ntotal
-        int * elems
+        int ntotal              # total # of owned and ghost atoms on this proc
         int nlistatoms          # current number of atoms in neighborlist
+        int nlistghosts         # current number of ghost atoms in neighborlist
         int * numneighs         # neighbors count for each atom
         int * iatoms            # index of each atom
         int * pair_i            # index of each i atom for each ij pair
@@ -65,6 +63,7 @@ cdef extern from "mliap_data.h" namespace "LAMMPS_NS":
         int npairs              # number of ij neighbor pairs
         int * jatoms            # index of each neighbor
         int * jelems            # element of each neighbor
+        int * elems             # element of each atom in or not in the neighborlist
         double ** rij           # distance vector of each neighbor
         # ----- write only -----
         double *** graddesc     # descriptor gradient w.r.t. each neighbor
@@ -75,7 +74,7 @@ cdef extern from "mliap_data.h" namespace "LAMMPS_NS":
 
 cdef extern from "mliap_unified.h" namespace "LAMMPS_NS":
     cdef cppclass MLIAPDummyDescriptor:
-        MLIAPDummyDescriptor(PyObject *, LAMMPS *)
+        MLIAPDummyDescriptor(PyObject *, LAMMPS *) except +
         int ndescriptors    # number of descriptors
         int nelements       # # of unique elements
         char **elements     # names of unique elements
@@ -88,15 +87,15 @@ cdef extern from "mliap_unified.h" namespace "LAMMPS_NS":
         void set_elements(char **, int)
 
     cdef cppclass MLIAPDummyModel:
-        MLIAPDummyModel(PyObject *, LAMMPS *, char * = NULL)
+        MLIAPDummyModel(PyObject *, LAMMPS *, char * = NULL) except +
         int ndescriptors    # number of descriptors
         int nparams         # number of parameters per element
         int nelements;      # # of unique elements
 
         void compute_gradients(MLIAPData *)
 
-    cdef void update_pair_energy(MLIAPData *, double *)
-    cdef void update_pair_forces(MLIAPData *, double *)
+    cdef void update_pair_energy(MLIAPData *, double *) except +
+    cdef void update_pair_forces(MLIAPData *, double *) except +
 
 
 # @property sans getter
@@ -210,14 +209,6 @@ cdef class MLIAPDataPy:
     # only neighbors strictly inside descriptor cutoff
 
     @property
-    def nlocal(self):
-        return self.data.nlocal
-
-    @property
-    def nghost(self):
-        return self.data.nghost
-
-    @property
     def ntotal(self):
         return self.data.ntotal
     
@@ -230,6 +221,10 @@ cdef class MLIAPDataPy:
     @property
     def nlistatoms(self):
         return self.data.nlistatoms
+    
+    @property
+    def nlistghosts(self):
+        return self.data.nlistghosts
 
     @property
     def numneighs(self):
@@ -318,19 +313,19 @@ cdef class MLIAPUnifiedInterface:
         self.unified_impl.compute_forces(data)
 
 
-cdef public void compute_gradients_python(unified_int, MLIAPData *data) with gil:
+cdef public void compute_gradients_python(unified_int, MLIAPData *data) except * with gil:
     pydata = MLIAPDataPy()
     pydata.data = data
     unified_int.compute_gradients(pydata)
 
 
-cdef public void compute_descriptors_python(unified_int, MLIAPData *data) with gil:
+cdef public void compute_descriptors_python(unified_int, MLIAPData *data) except * with gil:
     pydata = MLIAPDataPy()
     pydata.data = data
     unified_int.compute_descriptors(pydata)
 
 
-cdef public void compute_forces_python(unified_int, MLIAPData *data) with gil:
+cdef public void compute_forces_python(unified_int, MLIAPData *data) except * with gil:
     pydata = MLIAPDataPy()
     pydata.data = data
     unified_int.compute_forces(pydata)
@@ -361,8 +356,10 @@ cdef public object mliap_unified_connect(char *fname, MLIAPDummyModel * model,
     
     cdef int nelements = <int>len(unified.element_types)
     cdef char **elements = <char**>malloc(nelements * sizeof(char*))
+
     if not elements:
         raise MemoryError("failed to allocate memory for element names")
+
     cdef char *elem_name
     for i, elem in enumerate(unified.element_types):
         elem_name_bytes = elem.encode('UTF-8')

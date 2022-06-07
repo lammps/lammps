@@ -57,9 +57,10 @@ class MLIAPData : protected Pointers {
   // data structures for mliap neighbor list
   // only neighbors strictly inside descriptor cutoff
 
-  int nlocal, nghost, ntotal;    // # of owned and ghost atoms on this proc, and sum of both
+  int ntotal;                    // total # of owned and ghost atoms on this proc
   int nlistatoms;                // current number of atoms in neighborlist
   int nlistatoms_max;            // allocated size of descriptor array
+  int nlistghosts;               // current number of ghost atoms in neighborlist
   int natomneigh_max;            // allocated size of atom neighbor arrays
   int *numneighs;                // neighbors count for each atom
   int *iatoms;                   // index of each atom

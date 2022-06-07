@@ -38,7 +38,6 @@ MLIAPData::MLIAPData(LAMMPS *lmp, int gradgradflag_in, int *map_in,
   jatoms(nullptr), jelems(nullptr), elems(nullptr), rij(nullptr),
   graddesc(nullptr), model(nullptr), descriptor(nullptr), list(nullptr)
 {
-  f = atom->f;
   gradgradflag = gradgradflag_in;
   map = map_in;
   model = model_in;
@@ -111,12 +110,9 @@ void MLIAPData::init()
 void MLIAPData::generate_neighdata(NeighList* list_in, int eflag_in, int vflag_in)
 {
   list = list_in;
+  f = atom->f;
   double **x = atom->x;
   int *type = atom->type;
-
-  nlocal = atom->nlocal;
-  nghost = atom->nghost;
-  ntotal = nlocal + nghost;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -134,6 +130,7 @@ void MLIAPData::generate_neighdata(NeighList* list_in, int eflag_in, int vflag_i
   // clear gradforce, elems arrays
 
   int nall = atom->nlocal + atom->nghost;
+  ntotal = nall;
   for (int i = 0; i < nall; i++) {
     for (int j = 0; j < size_gradforce; j++) {
       gradforce[i][j] = 0.0;
@@ -150,6 +147,11 @@ void MLIAPData::generate_neighdata(NeighList* list_in, int eflag_in, int vflag_i
     memory->grow(eatoms,nlistatoms,"MLIAPData:eatoms");
     nlistatoms_max = nlistatoms;
   }
+  
+  if (list->ghost == 1)
+    nlistghosts = list->gnum;
+  else
+    nlistghosts = 0;
 
   // grow gamma arrays if necessary
 

@@ -34,8 +34,6 @@ class PPPMDielectric : public PPPM {
   double *phi;
   int potflag;    // 1/0 if per-atom electrostatic potential phi is needed
 
-  void qsum_qsq();
-
  protected:
   void slabcorr() override;
 

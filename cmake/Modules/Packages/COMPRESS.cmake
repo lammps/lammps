@@ -1,6 +1,4 @@
-if(NOT ZLIB_FOUND)
-  find_package(ZLIB REQUIRED)
-endif()
+find_package(ZLIB REQUIRED)
 target_link_libraries(lammps PRIVATE ZLIB::ZLIB)
 
 find_package(PkgConfig QUIET)

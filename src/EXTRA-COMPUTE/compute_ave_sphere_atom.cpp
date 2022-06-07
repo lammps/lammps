@@ -160,7 +160,7 @@ void ComputeAveSphereAtom::compute_peratom()
   double *rmass = atom->rmass;
   int *type = atom->type;
   int *mask = atom->mask;
-  double massone_i,massone_j,totalmass;
+  double massone_i, massone_j, totalmass;
 
   double adof = domain->dimension;
   double mvv2e = force->mvv2e;
@@ -171,8 +171,10 @@ void ComputeAveSphereAtom::compute_peratom()
     i = ilist[ii];
 
     if (mask[i] & groupbit) {
-      if (rmass) massone_i = rmass[i];
-      else massone_i = mass[type[i]];
+      if (rmass)
+        massone_i = rmass[i];
+      else
+        massone_i = mass[type[i]];
 
       xtmp = x[i][0];
       ytmp = x[i][1];
@@ -190,8 +192,10 @@ void ComputeAveSphereAtom::compute_peratom()
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
         j &= NEIGHMASK;
-        if (rmass) massone_j = rmass[j];
-        else massone_j = mass[type[j]];
+        if (rmass)
+          massone_j = rmass[j];
+        else
+          massone_j = mass[type[j]];
 
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];

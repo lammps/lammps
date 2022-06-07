@@ -310,8 +310,8 @@ FixDPPimd::FixDPPimd(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   thermo_energy = 1;
   vector_flag = 1;
-  if(pstyle==ISO) {size_vector = 13;}
-  else if(pstyle==ANISO) {size_vector = 21;}
+  if(pstyle==ISO) {size_vector = 15;}
+  else if(pstyle==ANISO) {size_vector = 23;}
   scalar_flag = 0;
   extvector   = 1;
   comm_forward = 3;
@@ -535,7 +535,8 @@ void FixDPPimd::init()
 
   if(pextflag)
   {
-    W = 3 * (atom->natoms) * tau_p * tau_p * np * kBT; // consistent with the definition in i-Pi
+    if(pstyle == ISO) W = 3 * (atom->natoms) * tau_p * tau_p * np * kBT; // consistent with the definition in i-Pi
+    else if(pstyle == ANISO) W = atom->natoms * tau_p * tau_p * np * kBT;
     //W = 4 * tau_p * tau_p / beta_np;
     //printf("N=%d, tau_p=%f, beta=%f, W=%f\n", atom->natoms, tau_p, beta_np, W);
     Vcoeff = 1.0;
@@ -2776,8 +2777,6 @@ double FixDPPimd::compute_vector(int n)
   // if(n==5) { return vir_; }
   if(n==7) { return p_prim; }
   if(n==8) { return p_md; }
-  // if(n==7) { volume = domain->xprd * domain->yprd * domain->zprd; return np * Pext * volume / force->nktv2p; }
-  // if(n==8) { volume = domain->xprd * domain->yprd * domain->zprd; return - Vcoeff * np * kBT * log(volume*6.748334529146908); }
   // if(n==7) { return centroid_vir; }
   // if(n==7) { return vir_-vir; }
   // if(n==7) { return p_cv - p_cv_; }
@@ -2790,11 +2789,15 @@ double FixDPPimd::compute_vector(int n)
       if(barostat == BZP) {  return 0.5*W*vw[0]*vw[0]; }
       else if(barostat == MTTK) {  return 1.5*W*vw[0]*vw[0]; }
     }
+    if(n==13) { volume = domain->xprd * domain->yprd * domain->zprd; return np * Pext * volume / force->nktv2p; }
+    if(n==14) { volume = domain->xprd * domain->yprd * domain->zprd; return - Vcoeff * np * kBT * log(volume); }
   }
   else if(pstyle==ANISO){
     if(n>10 && n<=13) return vw[n-11];
-    if(n==14) return 0.5*W*vw[0]*vw[0]+0.5*W*vw[1]*vw[1]+0.5*W*vw[1]*vw[1];
-    if(n>14) return stress_tensor[n-15];
+    if(n==14) return 0.5*W*vw[0]*vw[0]+0.5*W*vw[1]*vw[1]+0.5*W*vw[2]*vw[2];
+    if(n>14 && n<21) return stress_tensor[n-15];
+    if(n==21) { volume = domain->xprd * domain->yprd * domain->zprd; return np * Pext * volume / force->nktv2p; }
+    if(n==22) { volume = domain->xprd * domain->yprd * domain->zprd; return - Vcoeff * np * kBT * log(volume); }
   }
   return 0.0;
 }

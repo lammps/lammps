@@ -52,9 +52,9 @@ cdef extern from "mliap_data.h" namespace "LAMMPS_NS":
         # data structures for mliap neighbor list
         # only neighbors strictly inside descriptor cutoff
 
-        int ntotal              # total # of owned and ghost atoms on this proc
-        int nlistatoms          # current number of atoms in neighborlist
-        int nlistghosts         # current number of ghost atoms in neighborlist
+        int ntotal              # total number of owned and ghost atoms on this proc
+        int nlistatoms          # current number of atoms in local atom lists
+        int natomneigh          # current number of atoms and ghosts in atom neighbor arrays
         int * numneighs         # neighbors count for each atom
         int * iatoms            # index of each atom
         int * pair_i            # index of each i atom for each ij pair
@@ -223,20 +223,20 @@ cdef class MLIAPDataPy:
         return self.data.nlistatoms
     
     @property
-    def nlistghosts(self):
-        return self.data.nlistghosts
+    def natomneigh(self):
+        return self.data.natomneigh
 
     @property
     def numneighs(self):
         if self.data.numneighs is NULL:
             return None
-        return np.asarray(<int[:self.nlistatoms]> &self.data.numneighs[0])
+        return np.asarray(<int[:self.natomneigh]> &self.data.numneighs[0])
 
     @property
     def iatoms(self):
         if self.data.iatoms is NULL:
             return None
-        return np.asarray(<int[:self.nlistatoms]> &self.data.iatoms[0])
+        return np.asarray(<int[:self.natomneigh]> &self.data.iatoms[0])
     
     @property
     def pair_i(self):
@@ -248,7 +248,7 @@ cdef class MLIAPDataPy:
     def ielems(self):
         if self.data.ielems is NULL:
             return None
-        return np.asarray(<int[:self.nlistatoms]> &self.data.ielems[0])
+        return np.asarray(<int[:self.natomneigh]> &self.data.ielems[0])
     
     @property
     def npairs(self):

@@ -148,11 +148,6 @@ void MLIAPData::generate_neighdata(NeighList* list_in, int eflag_in, int vflag_i
     nlistatoms_max = nlistatoms;
   }
   
-  if (list->ghost == 1)
-    nlistghosts = list->gnum;
-  else
-    nlistghosts = 0;
-
   // grow gamma arrays if necessary
 
   if (gradgradflag == 1) {
@@ -168,7 +163,7 @@ void MLIAPData::generate_neighdata(NeighList* list_in, int eflag_in, int vflag_i
 
   npairs = 0;
   int ij = 0;
-  for (int ii = 0; ii < nlistatoms; ii++) {
+  for (int ii = 0; ii < natomneigh; ii++) {
     const int i = ilist[ii];
 
     const double xtmp = x[i][0];
@@ -225,12 +220,14 @@ void MLIAPData::grow_neigharrays()
 {
 
   // grow neighbor atom arrays if necessary
-
-  if (natomneigh_max < nlistatoms) {
-    memory->grow(iatoms,nlistatoms,"MLIAPData:iatoms");
-    memory->grow(ielems,nlistatoms,"MLIAPData:ielems");
-    memory->grow(numneighs,nlistatoms,"MLIAPData:numneighs");
-    natomneigh_max = nlistatoms;
+  natomneigh = list->inum;
+  if (list->ghost == 1)
+    natomneigh += list->gnum;
+  if (natomneigh_max < natomneigh) {
+    memory->grow(iatoms,natomneigh,"MLIAPData:iatoms");
+    memory->grow(ielems,natomneigh,"MLIAPData:ielems");
+    memory->grow(numneighs,natomneigh,"MLIAPData:numneighs");
+    natomneigh_max = natomneigh;
   }
 
   // grow neighbor arrays if necessary
@@ -242,7 +239,7 @@ void MLIAPData::grow_neigharrays()
   int *type = atom->type;
 
   int nneigh = 0;
-  for (int ii = 0; ii < nlistatoms; ii++) {
+  for (int ii = 0; ii < natomneigh; ii++) {
     const int i = ilist[ii];
 
     const double xtmp = x[i][0];

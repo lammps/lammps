@@ -315,7 +315,9 @@
 
 // Enable minimal optimizations for more compact code in debug mode.
 FMT_GCC_PRAGMA("GCC push_options")
-#ifndef __OPTIMIZE__
+// LAMMPS CUSTOMIZATION: suppress warning about pragma with KOKKOS
+#if !defined(__OPTIMIZE__) && !defined(LMP_KOKKOS)
+// END LAMMPS CUSTOMIZATION
 FMT_GCC_PRAGMA("GCC optimize(\"Og\")")
 #endif
 

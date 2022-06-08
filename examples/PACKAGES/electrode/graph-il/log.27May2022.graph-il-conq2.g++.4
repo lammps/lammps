@@ -1,5 +1,5 @@
 LAMMPS (24 Mar 2022)
-# electrodes with constrained total charges
+# electrodes with constrained total charges imposed from dynamically computed potentials
 # for graphene-ionic liquid supercapacitor
 
 boundary p p f # slab calculation
@@ -8,6 +8,7 @@ include settings.mod # styles, groups, computes and fixes
 units real
 # distribute electrode atoms among all processors:
 if "$(extract_setting(world_size) % 2) == 0" then "processors * * 2"
+processors * * 2
 
 atom_style full
 pair_style lj/cut/coul/long 16
@@ -19,7 +20,7 @@ kspace_style pppm/electrode 1e-7
 read_data "data.graph-il"
 Reading data file ...
   orthogonal box = (0 0 -68) to (32.2 34.4 68)
-  1 by 1 by 1 MPI processor grid
+  1 by 2 by 2 MPI processor grid
   reading atoms ...
   3776 atoms
   scanning bonds ...
@@ -38,7 +39,7 @@ Finding 1-2 1-3 1-4 neighbors ...
      1 = max # of 1-4 neighbors
      2 = max # of special neighbors
   special bonds CPU = 0.001 seconds
-  read_data CPU = 0.012 seconds
+  read_data CPU = 0.015 seconds
 
 group bot molecule 641
 416 atoms in group bot
@@ -56,7 +57,7 @@ fix shake bmi shake 1e-4 20 0 b 1 2 a 1
        0 = # of size 3 clusters
        0 = # of size 4 clusters
      320 = # of frozen angles
-  find clusters CPU = 0.000 seconds
+  find clusters CPU = 0.001 seconds
 
 variable q atom q
 compute qtop top reduce sum v_q
@@ -64,14 +65,17 @@ compute qbot bot reduce sum v_q
 compute ctemp electrolyte temp
 kspace_modify slab 3.0
 
-fix conq bot electrode/conq -1.0 1.979 couple top 1.0 etypes 5 # conq doesn't take symm option
+fix conp bot electrode/conp v_vbot 1.979 couple top v_vtop etypes 5
 832 atoms in group conp_group
 
-# ask fix conq to output electrode potentials to internal variables
-variable vbot internal 0.0
-variable vtop internal 0.0
-fix_modify conq set v bot vbot
-fix_modify conq set v top vtop
+variable qex_bot equal -1.0-f_conp[1][1] # difference between desired and 0V charge
+variable qex_top equal  1.0-f_conp[2][1] # difference between desired and 0V charge
+
+# calculate imposed potential as elastance * excess charge
+# note: fix will wait until the run setup to look for its potential variables
+# which is why we can define variable names *after* fix conp without error
+variable vbot equal f_conp[1][4]*v_qex_bot+f_conp[1][5]*v_qex_top
+variable vtop equal f_conp[2][4]*v_qex_bot+f_conp[2][5]*v_qex_top
 
 thermo 50
 thermo_style custom step temp c_ctemp epair etotal c_qbot c_qtop v_vbot v_vtop
@@ -84,7 +88,7 @@ PPPM/electrode initialization ...
   estimated absolute RMS force accuracy = 3.7023506e-05
   estimated relative force accuracy = 1.1149519e-07
   using double precision MKL FFT
-  3d grid and FFT values/proc = 307242 204800
+  3d grid and FFT values/proc = 151593 85504
   generated 10 of 10 mixed pair_coeff terms from geometric mixing rule
 Neighbor list info ...
   update every 1 steps, delay 10 steps, check yes
@@ -98,17 +102,17 @@ Neighbor list info ...
       pair build: half/bin/newton
       stencil: half/bin/3d
       bin: standard
-  (2) fix electrode/conq, occasional, skip from (1)
+  (2) fix electrode/conp, occasional, skip from (1)
       attributes: half, newton on
       pair build: skip
       stencil: none
       bin: none
-  (3) fix electrode/conq, perpetual, skip from (1)
+  (3) fix electrode/conp, perpetual, skip from (1)
       attributes: half, newton on
       pair build: skip
       stencil: none
       bin: none
-Per MPI rank memory allocation (min/avg/max) = 56.89 | 56.89 | 56.89 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 23.63 | 27.46 | 31.29 Mbytes
    Step          Temp         c_ctemp         E_pair         TotEng         c_qbot         c_qtop         v_vbot         v_vtop    
          0   0              0              25136984       25136984      -1              1             -9.931852       10.097344    
         50   20.206425      72.797911      25136825       25137033      -1              1             -9.4359366      9.5964514    
@@ -121,33 +125,33 @@ Per MPI rank memory allocation (min/avg/max) = 56.89 | 56.89 | 56.89 Mbytes
        400   122.8443       442.57252      25136991       25138256      -1              1             -3.4311003      3.3941657    
        450   128.63713      463.44243      25137048       25138373      -1              1             -4.132871       3.9852959    
        500   131.18361      472.61665      25137142       25138493      -1              1             -4.5104095      4.2567261    
-Loop time of 48.9361 on 1 procs for 500 steps with 3776 atoms
+Loop time of 23.4081 on 4 procs for 500 steps with 3776 atoms
 
-Performance: 0.883 ns/day, 27.187 hours/ns, 10.217 timesteps/s
-393.9% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 1.846 ns/day, 13.005 hours/ns, 21.360 timesteps/s
+93.5% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 17.652     | 17.652     | 17.652     |   0.0 | 36.07
-Bond    | 0.0010418  | 0.0010418  | 0.0010418  |   0.0 |  0.00
-Kspace  | 16.566     | 16.566     | 16.566     |   0.0 | 33.85
-Neigh   | 0.21584    | 0.21584    | 0.21584    |   0.0 |  0.44
-Comm    | 0.04167    | 0.04167    | 0.04167    |   0.0 |  0.09
-Output  | 0.0014585  | 0.0014585  | 0.0014585  |   0.0 |  0.00
-Modify  | 14.445     | 14.445     | 14.445     |   0.0 | 29.52
-Other   |            | 0.0134     |            |       |  0.03
+Pair    | 4.1792     | 4.3002     | 4.4836     |   5.7 | 18.37
+Bond    | 0.00045023 | 0.00053483 | 0.00058432 |   0.0 |  0.00
+Kspace  | 12.016     | 12.199     | 12.32      |   3.4 | 52.11
+Neigh   | 0.062683   | 0.062707   | 0.062734   |   0.0 |  0.27
+Comm    | 0.086385   | 0.08861    | 0.090874   |   0.7 |  0.38
+Output  | 0.00082773 | 0.0010401  | 0.0016576  |   1.1 |  0.00
+Modify  | 6.7386     | 6.7413     | 6.7443     |   0.1 | 28.80
+Other   |            | 0.0151     |            |       |  0.06
 
-Nlocal:           3776 ave        3776 max        3776 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:          12510 ave       12510 max       12510 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    1.72559e+06 ave 1.72559e+06 max 1.72559e+06 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:            944 ave         948 max         940 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+Nghost:         5920.5 ave        5941 max        5899 min
+Histogram: 1 0 0 0 1 1 0 0 0 1
+Neighs:         431397 ave      442329 max      421103 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
 
 Total # of neighbors = 1725588
 Ave neighs/atom = 456.98835
 Ave special neighs/atom = 0.50847458
 Neighbor list builds = 6
 Dangerous builds = 0
-Total wall time: 0:01:43
+Total wall time: 0:00:45

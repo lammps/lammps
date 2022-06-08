@@ -68,12 +68,19 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
     vec_neighlist(nullptr), recvcounts(nullptr), displs(nullptr), iele_gathered(nullptr),
     buf_gathered(nullptr), potential_i(nullptr), potential_iele(nullptr), charge_iele(nullptr)
 {
+  // fix.h output flags
+  scalar_flag = 1;
+  vector_flag = 1;
+  array_flag = 1;
+  extscalar = 1;
+  extvector = 0;
+  extarray = 0;
+
   read_inv = read_mat = false;
   symm = false;
   ffield = false;
   thermo_time = 0.;
-  scalar_flag = 1;
-  vector_flag = 1;
+
   top_group = 0;
   intelflag = false;
   tfflag = false;
@@ -223,6 +230,8 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
                "from file");
   num_of_groups = static_cast<int>(groups.size());
   size_vector = num_of_groups;
+  size_array_rows = num_of_groups;
+  size_array_cols = 2 + 2 * num_of_groups;
 
   // check groups are consistent
   int *mask = atom->mask;
@@ -260,12 +269,6 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-//                     0   1   2       3 return 4 if successful
-// fix_modify fxupdate set v   [group] [var]
-// fix_modify fxupdate set qsb [group] [var]
-//                     0   1   2        3        4 return 5 if successful
-// fix_modify fxupdate set mc  [group1] [group2] [var]
-// fix_modify fxupdate set me  [group1] [group2] [var]
 int FixElectrodeConp::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0], "tf") == 0) {
@@ -306,49 +309,6 @@ int FixElectrodeConp::modify_param(int narg, char **arg)
     timer_flag = utils::logical(FLERR, arg[1], false, lmp);
     return 2;
 
-  } else if (strcmp(arg[0], "set") == 0) {
-    if (strcmp(arg[1], "v") == 0 || strcmp(arg[1], "qsb") == 0) {
-      if (narg != 4)
-        error->all(FLERR,
-                   fmt::format("Incorrect number of arguments for fix_modify set {}", arg[1]));
-      int outputgrp = groupnum_from_name(arg[2]);
-      int outputvar = input->variable->find(arg[3]);
-      if (outputvar < 0)
-        error->all(FLERR,
-                   fmt::format("Variable {} for fix_modify electrode does not exist", arg[3]));
-      if (!input->variable->internalstyle(outputvar))
-        error->all(FLERR,
-                   fmt::format("Variable {} for fix_modify electrode is invalid style", arg[3]));
-      if (strcmp(arg[1], "v") == 0)
-        setvars_types.push_back(V);
-      else
-        setvars_types.push_back(QSB);
-      setvars_groups.push_back(outputgrp);
-      setvars_vars.push_back(outputvar);
-      return 4;
-    } else if (strcmp(arg[1], "mc") == 0 || strcmp(arg[1], "me") == 0) {
-      if (narg != 5)
-        error->all(FLERR,
-                   fmt::format("Incorrect number of arguments for fix_modify set {}", arg[1]));
-      int outputgrpi = groupnum_from_name(arg[2]);
-      int outputgrpj = groupnum_from_name(arg[3]);
-      int outputgrpij = outputgrpi * num_of_groups + outputgrpj;
-      int outputvar = input->variable->find(arg[4]);
-      if (outputvar < 0)
-        error->all(FLERR,
-                   fmt::format("Variable {} for fix_modify electrode does not exist", arg[4]));
-      if (!input->variable->internalstyle(outputvar))
-        error->all(FLERR,
-                   fmt::format("Variable {} for fix_modify electrode is invalid style", arg[4]));
-      if (strcmp(arg[1], "mc") == 0)
-        setvars_types.push_back(MC);
-      else
-        setvars_types.push_back(ME);
-      setvars_groups.push_back(outputgrpij);
-      setvars_vars.push_back(outputvar);
-      return 5;
-    } else
-      error->all(FLERR, "Invalid set option for fix_modify electrode");
   } else
     error->all(FLERR, "Invalid argument for fix_modify electrode");
   return 0;
@@ -451,10 +411,6 @@ void FixElectrodeConp::setup_post_neighbor()
   int const nlocal = atom->nlocal;
   int *mask = atom->mask;
   tagint *tag = atom->tag;
-
-  // setvars asserts:
-  assert(setvars_groups.size() == setvars_vars.size());
-  assert(setvars_groups.size() == setvars_types.size());
 
   // if Thomas-Fermi, make sure all electrode atoms have parameters
   if (tfflag) {
@@ -789,9 +745,7 @@ void FixElectrodeConp::update_charges()
   gather_elevec(charge_iele);
   MPI_Allreduce(MPI_IN_PLACE, &sb_charges.front(), num_of_groups, MPI_DOUBLE, MPI_SUM, world);
 
-  update_setvars(QSB);
-  update_psi();         // use for equal-style and conq
-  update_setvars(V);    // push psi into 'fix_modify set' vars
+  update_psi();    // use for equal-style and conq
 
   for (int g = 0; g < num_of_groups; g++)
     for (int j = 0; j < ngroup; j++) { charge_iele[j] += sd_vectors[g][j] * group_psi[g]; }
@@ -815,34 +769,6 @@ void FixElectrodeConp::update_psi()
   for (int g = 0; g < num_of_groups; g++) {
     if (group_psi_var_styles[g] == CONST) continue;
     group_psi[g] = input->variable->compute_equal(group_psi_var_ids[g]);
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixElectrodeConp::update_setvars(int vtype)
-{
-  int num_of_vars = static_cast<int>(setvars_groups.size());
-  for (int v = 0; v < num_of_vars; v++) {
-    if (vtype != setvars_types[v]) continue;
-    switch (vtype) {
-      case V:
-        input->variable->internal_set(setvars_vars[v], group_psi[setvars_groups[v]]);
-        break;
-      case QSB:
-        input->variable->internal_set(setvars_vars[v], sb_charges[setvars_groups[v]]);
-        break;
-      case MC: {
-        int groupi = setvars_groups[v] / num_of_groups;
-        int groupj = setvars_groups[v] % num_of_groups;
-        input->variable->internal_set(setvars_vars[v], macro_capacitance[groupi][groupj]);
-      } break;
-      case ME: {
-        int groupi = setvars_groups[v] / num_of_groups;
-        int groupj = setvars_groups[v] % num_of_groups;
-        input->variable->internal_set(setvars_vars[v], macro_elastance[groupi][groupj]);
-      }
-    }
   }
 }
 
@@ -902,9 +828,6 @@ void FixElectrodeConp::compute_macro_matrices()
       }
     }
   }
-
-  update_setvars(MC);
-  update_setvars(ME);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -913,11 +836,25 @@ double FixElectrodeConp::compute_scalar()
 {
   return potential_energy(0);
 }
+
 /* ---------------------------------------------------------------------- */
 
 double FixElectrodeConp::compute_vector(int i)
 {
   return group_psi[i];
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixElectrodeConp::compute_array(int i, int j)
+{
+  if (j == 0)
+    return sb_charges[i];
+  else if (j <= num_of_groups)
+    return macro_capacitance[i][j - 1];
+  else if (j <= 2 * num_of_groups)
+    return macro_elastance[i][j - num_of_groups - 1];
+  else return 0.;    // avoid -Wreturn-type warning
 }
 
 /* ---------------------------------------------------------------------- */

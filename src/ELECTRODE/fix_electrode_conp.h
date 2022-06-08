@@ -47,6 +47,7 @@ class FixElectrodeConp : public Fix {
   void pre_reverse(int, int) override;
   double compute_scalar() override;
   double compute_vector(int) override;
+  double compute_array(int, int) override;
   int modify_param(int, char **) override;
   int modify_param(const std::string &);
   void init() override;
@@ -104,8 +105,6 @@ class FixElectrodeConp : public Fix {
   void read_from_file(const std::string& input_file, double **, const std::string &);
   void compute_sd_vectors();
   void compute_sd_vectors_ffield();
-  std::vector<int> setvars_types, setvars_groups, setvars_vars;
-  void update_setvars(int);
   int groupnum_from_name(char *);
   double evscale;
   class Pair *pair;

@@ -120,6 +120,7 @@ Antonelli
 api
 Apoorva
 Appl
+apptainer
 Apu
 arallel
 arccos

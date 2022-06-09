@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Stan Moore (SNL)
+------------------------------------------------------------------------- */
+
 #include "compute_ave_sphere_atom_kokkos.h"
 
 #include "atom_kokkos.h"

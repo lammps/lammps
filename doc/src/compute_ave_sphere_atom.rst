@@ -36,7 +36,9 @@ Description
 """""""""""
 
 Define a computation that calculates the local mass density and temperature
-for each atom and neighbors inside a spherical cutoff.
+for each atom and neighbors inside a spherical cutoff. The center-of-mass
+velocity of the atoms in the sphere is subtracted out before computing the
+temperature, which leaves only the thermal velocity, similar to :doc:`compute temp/com <compute_temp_com>`.
 
 The optional keyword *cutoff* defines the distance cutoff
 used when searching for neighbors. The default value is the cutoff
@@ -77,7 +79,8 @@ too frequently.
 Output info
 """""""""""
 
-This compute calculates a per-atom array with two columns: mass density and temperature.
+This compute calculates a per-atom array with two columns: mass density in density
+:doc:`units <units>` and temperature in temperature :doc:`units <units>`.
 
 These values can be accessed by any command that uses per-atom values
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc

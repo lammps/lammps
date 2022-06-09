@@ -229,6 +229,10 @@ void ComputeAveSphereAtom::compute_peratom()
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
         j &= NEIGHMASK;
+        if (rmass)
+          massone_j = rmass[j];
+        else
+          massone_j = mass[type[j]];
 
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];

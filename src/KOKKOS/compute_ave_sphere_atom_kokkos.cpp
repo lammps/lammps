@@ -149,10 +149,11 @@ void ComputeAveSphereAtomKokkos<DeviceType>::operator()(TagComputeAveSphereAtom,
     // i atom contribution
 
     int count = 1;
-    double vsum[3];
-    vsum[0] = v(i,0);
-    vsum[1] = v(i,1);
-    vsum[2] = v(i,2);
+    double totalmass = massone_i;
+    double p[3];
+    p[0] = v(i,0)*massone_i;
+    p[1] = v(i,1)*massone_i;
+    p[2] = v(i,2)*massone_i;
 
     for (int jj = 0; jj < jnum; jj++) {
       int j = d_neighbors(i,jj);
@@ -164,24 +165,25 @@ void ComputeAveSphereAtomKokkos<DeviceType>::operator()(TagComputeAveSphereAtom,
       const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
       if (rsq < cutsq) {
         count++;
-        vsum[0] += v(j,0);
-        vsum[1] += v(j,1);
-        vsum[2] += v(j,2);
+        totalmass += massone_j;
+        p[0] += v(j,0)*massone_j;
+        p[1] += v(j,1)*massone_j;
+        p[2] += v(j,2)*massone_j;
       }
     }
 
-    double vavg[3];
-    vavg[0] = vsum[0]/count;
-    vavg[1] = vsum[1]/count;
-    vavg[2] = vsum[2]/count;
+    double vcom[3];
+    vcom[0] = p[0]/totalmass;
+    vcom[1] = p[1]/totalmass;
+    vcom[2] = p[2]/totalmass;
 
     // i atom contribution
 
     totalmass = massone_i;
     double vnet[3];
-    vnet[0] = v(i,0) - vavg[0];
-    vnet[1] = v(i,1) - vavg[1];
-    vnet[2] = v(i,2) - vavg[2];
+    vnet[0] = v(i,0) - vcom[0];
+    vnet[1] = v(i,1) - vcom[1];
+    vnet[2] = v(i,2) - vcom[2];
     double ke_sum = massone_i * (vnet[0]*vnet[0] + vnet[1]*vnet[1] + vnet[2]*vnet[2]);
 
     for (int jj = 0; jj < jnum; jj++) {
@@ -195,10 +197,9 @@ void ComputeAveSphereAtomKokkos<DeviceType>::operator()(TagComputeAveSphereAtom,
       const F_FLOAT delz = x(j,2) - ztmp;
       const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
       if (rsq < cutsq) {
-        totalmass += massone_j;
-        vnet[0] = v(j,0) - vavg[0];
-        vnet[1] = v(j,1) - vavg[1];
-        vnet[2] = v(j,2) - vavg[2];
+        vnet[0] = v(j,0) - vcom[0];
+        vnet[1] = v(j,1) - vcom[1];
+        vnet[2] = v(j,2) - vcom[2];
         ke_sum += massone_j * (vnet[0]*vnet[0] + vnet[1]*vnet[1] + vnet[2]*vnet[2]);
       }
     }

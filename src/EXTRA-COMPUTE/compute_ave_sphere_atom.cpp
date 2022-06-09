@@ -125,7 +125,7 @@ void ComputeAveSphereAtom::compute_peratom()
   double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
   int *ilist, *jlist, *numneigh, **firstneigh;
   int count;
-  double vsum[3], vavg[3], vnet[3];
+  double p[3], vcom[3], vnet[3];
 
   invoked_peratom = update->ntimestep;
 
@@ -185,9 +185,10 @@ void ComputeAveSphereAtom::compute_peratom()
       // i atom contribution
 
       count = 1;
-      vsum[0] = v[i][0];
-      vsum[1] = v[i][1];
-      vsum[2] = v[i][2];
+      totalmass = massone_i;
+      p[0] = v[i][0] * massone_i;
+      p[1] = v[i][1] * massone_i;
+      p[2] = v[i][2] * massone_i;
 
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
@@ -203,22 +204,22 @@ void ComputeAveSphereAtom::compute_peratom()
         rsq = delx * delx + dely * dely + delz * delz;
         if (rsq < cutsq) {
           count++;
-          vsum[0] += v[j][0];
-          vsum[1] += v[j][1];
-          vsum[2] += v[j][2];
+          totalmass += massone_j;
+          p[0] += v[j][0] * massone_j;
+          p[1] += v[j][1] * massone_j;
+          p[2] += v[j][2] * massone_j;
         }
       }
 
-      vavg[0] = vsum[0] / count;
-      vavg[1] = vsum[1] / count;
-      vavg[2] = vsum[2] / count;
+      vcom[0] = p[0] / totalmass;
+      vcom[1] = p[1] / totalmass;
+      vcom[2] = p[2] / totalmass;
 
       // i atom contribution
 
-      totalmass = massone_i;
-      vnet[0] = v[i][0] - vavg[0];
-      vnet[1] = v[i][1] - vavg[1];
-      vnet[2] = v[i][2] - vavg[2];
+      vnet[0] = v[i][0] - vcom[0];
+      vnet[1] = v[i][1] - vcom[1];
+      vnet[2] = v[i][2] - vcom[2];
       double ke_sum = massone_i * (vnet[0] * vnet[0] + vnet[1] * vnet[1] + vnet[2] * vnet[2]);
 
       for (jj = 0; jj < jnum; jj++) {
@@ -230,10 +231,9 @@ void ComputeAveSphereAtom::compute_peratom()
         delz = ztmp - x[j][2];
         rsq = delx * delx + dely * dely + delz * delz;
         if (rsq < cutsq) {
-          totalmass += massone_j;
-          vnet[0] = v[j][0] - vavg[0];
-          vnet[1] = v[j][1] - vavg[1];
-          vnet[2] = v[j][2] - vavg[2];
+          vnet[0] = v[j][0] - vcom[0];
+          vnet[1] = v[j][1] - vcom[1];
+          vnet[2] = v[j][2] - vcom[2];
           ke_sum += massone_j * (vnet[0] * vnet[0] + vnet[1] * vnet[1] + vnet[2] * vnet[2]);
         }
       }

@@ -271,6 +271,7 @@ OPT.
    * :doc:`spin/neel <pair_spin_neel>`
    * :doc:`srp <pair_srp>`
    * :doc:`sw (giko) <pair_sw>`
+   * :doc:`sw/angle/table <pair_sw_angle_table>`
    * :doc:`sw/mod (o) <pair_sw>`
    * :doc:`table (gko) <pair_table>`
    * :doc:`table/rx (k) <pair_table_rx>`
@@ -281,6 +282,7 @@ OPT.
    * :doc:`tersoff/table (o) <pair_tersoff>`
    * :doc:`tersoff/zbl (gko) <pair_tersoff_zbl>`
    * :doc:`thole <pair_thole>`
+   * :doc:`threebody/table <pair_threebody_table>`
    * :doc:`tip4p/cut (o) <pair_coul>`
    * :doc:`tip4p/long (o) <pair_coul>`
    * :doc:`tip4p/long/soft (o) <pair_fep_soft>`

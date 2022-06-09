@@ -195,6 +195,8 @@ std::string platform::os_info()
 
   if (build == "6002") {
     buf = "Windows Vista";
+  } else if (build == "6003") {
+    buf = "Windows Server 2008";
   } else if (build == "7601") {
     buf = "Windows 7";
   } else if (build == "9200") {
@@ -227,8 +229,12 @@ std::string platform::os_info()
     buf = "Windows 10 21H1";
   } else if (build == "19044") {
     buf = "Windows 10 21H2";
+  } else if (build == "20348") {
+    buf = "Windows Server 2022";
   } else if (build == "22000") {
     buf = "Windows 11 21H2";
+  } else if (build == "22621") {
+    buf = "Windows 11 22H2";
   } else {
     const char *entry = "ProductName";
     RegGetValue(HKEY_LOCAL_MACHINE, subkey, entry, RRF_RT_REG_SZ, nullptr, &value,

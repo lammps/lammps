@@ -215,7 +215,6 @@ void ComputeAveSphereAtom::compute_peratom()
 
       // i atom contribution
 
-      count = 1;
       totalmass = massone_i;
       vnet[0] = v[i][0] - vavg[0];
       vnet[1] = v[i][1] - vavg[1];
@@ -231,7 +230,6 @@ void ComputeAveSphereAtom::compute_peratom()
         delz = ztmp - x[j][2];
         rsq = delx * delx + dely * dely + delz * delz;
         if (rsq < cutsq) {
-          count++;
           totalmass += massone_j;
           vnet[0] = v[j][0] - vavg[0];
           vnet[1] = v[j][1] - vavg[1];

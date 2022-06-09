@@ -177,7 +177,6 @@ void ComputeAveSphereAtomKokkos<DeviceType>::operator()(TagComputeAveSphereAtom,
 
     // i atom contribution
 
-    count = 1;
     totalmass = massone_i;
     double vnet[3];
     vnet[0] = v(i,0) - vavg[0];
@@ -196,7 +195,6 @@ void ComputeAveSphereAtomKokkos<DeviceType>::operator()(TagComputeAveSphereAtom,
       const F_FLOAT delz = x(j,2) - ztmp;
       const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
       if (rsq < cutsq) {
-        count++;
         totalmass += massone_j;
         vnet[0] = v(j,0) - vavg[0];
         vnet[1] = v(j,1) - vavg[1];

@@ -117,7 +117,7 @@ void colvarproxy_lammps::init(const char *conf_file)
   if (_lmp->update->ntimestep != 0) {
     cvm::log("Setting initial step number from LAMMPS: "+
              cvm::to_str(_lmp->update->ntimestep)+"\n");
-    colvars->it = colvars->it_restart =
+    colvarmodule::it = colvarmodule::it_restart =
       static_cast<cvm::step_number>(_lmp->update->ntimestep);
   }
 
@@ -174,7 +174,7 @@ double colvarproxy_lammps::compute()
   } else {
     // Use the time step number from LAMMPS Update object
     if (_lmp->update->ntimestep - previous_step == 1) {
-      colvars->it++;
+      colvarmodule::it++;
       b_simulation_continuing = false;
     } else {
       // Cases covered by this condition:
@@ -209,7 +209,7 @@ double colvarproxy_lammps::compute()
 
   if (cvm::debug()) {
     cvm::log(std::string(cvm::line_marker)+
-             "colvarproxy_lammps, step no. "+cvm::to_str(colvars->it)+"\n"+
+             "colvarproxy_lammps, step no. "+cvm::to_str(colvarmodule::it)+"\n"+
              "Updating internal data.\n");
   }
 
@@ -269,7 +269,7 @@ cvm::rvector colvarproxy_lammps::position_distance(cvm::atom_pos const &pos1,
   double ytmp = pos2.y - pos1.y;
   double ztmp = pos2.z - pos1.z;
   _lmp->domain->minimum_image(xtmp,ytmp,ztmp);
-  return cvm::rvector(xtmp, ytmp, ztmp);
+  return {xtmp, ytmp, ztmp};
 }
 
 

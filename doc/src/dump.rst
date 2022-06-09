@@ -133,13 +133,14 @@ Examples
 
 .. code-block:: LAMMPS
 
-   dump myDump all atom 100 dump.atom
+   dump myDump all atom 100 dump.lammpstrj
    dump myDump all atom/mpiio 100 dump.atom.mpiio
    dump myDump all atom/gz 100 dump.atom.gz
    dump myDump all atom/zstd 100 dump.atom.zst
    dump 2 subgroup atom 50 dump.run.bin
    dump 2 subgroup atom/mpiio 50 dump.run.mpiio.bin
    dump 4a all custom 100 dump.myforce.* id type x y vx fx
+   dump 4a all custom 100 dump.myvel.lammpsbin id type x y z vx vy vz
    dump 4b flow custom 100 dump.%.myforce id type c_myF[3] v_ke
    dump 4b flow custom 100 dump.%.myforce id type c_myF[*] v_ke
    dump 2 inner cfg 10 dump.snap.*.cfg mass type xs ys zs vx vy vz
@@ -419,6 +420,7 @@ style.
 .. code-block:: yaml
 
    ---
+   creator: LAMMPS
    timestep: 0
    units: lj
    time: 0
@@ -534,11 +536,11 @@ MPI-IO.
 Note that MPI-IO dump files are one large file which all processors
 write to.  You thus cannot use the "%" wildcard character described
 above in the filename since that specifies generation of multiple
-files.  You can use the ".bin" suffix described below in an MPI-IO
+files.  You can use the ".bin" or ".lammpsbin" suffix described below in an MPI-IO
 dump file; again this file will be written in parallel and have the
 same binary format as if it were written without MPI-IO.
 
-If the filename ends with ".bin", the dump file (or files, if "\*" or
+If the filename ends with ".bin" or ".lammpsbin", the dump file (or files, if "\*" or
 "%" is also used) is written in binary format.  A binary dump file
 will be about the same size as a text version, but will typically
 write out much faster.  Of course, when post-processing, you will need

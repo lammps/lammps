@@ -24,12 +24,12 @@ int unsetenv(const char *name) { return _putenv_s(name, ""); }
 
 // Needed because https://github.com/google/googletest/issues/952 has not been
 // resolved
-#define EXPECT_THROW_WITH_MESSAGE(stmt, etype, whatstring) \
-  EXPECT_THROW(                                            \
-      try { stmt; } catch (const etype &ex) {              \
-        EXPECT_EQ(whatstring, std::string(ex.what()));     \
-        throw;                                             \
-      },                                                   \
+#define EXPECT_THROW_WITH_MESSAGE(stmt, etype, whatstring)      \
+  EXPECT_THROW(                                                 \
+      try { stmt; } catch (const etype &ex) {                   \
+        EXPECT_EQ(std::string(ex.what()).find(whatstring), 0u); \
+        throw;                                                  \
+      },                                                        \
       etype)
 
 class ctest_environment : public ::testing::Test {
@@ -80,54 +80,43 @@ TEST_F(ctest_environment, invalid_rank) {
   EXPECT_THROW_WITH_MESSAGE(
       Kokkos::Impl::get_ctest_gpu("10"), std::runtime_error,
       "Error: local rank 10 is outside the bounds of resource groups provided "
-      "by"
-      " CTest. Raised by Kokkos::Impl::get_ctest_gpu().\nTraceback "
-      "functionality"
-      " not available\n");
+      "by CTest.");
 }
 
 TEST_F(ctest_environment, no_type_str) {
   EXPECT_THROW_WITH_MESSAGE(
       Kokkos::Impl::get_ctest_gpu("0"), std::runtime_error,
       "Error: CTEST_RESOURCE_GROUP_0 is not specified. Raised by "
-      "Kokkos::Impl::get_ctest_gpu().\nTraceback functionality not "
-      "available\n");
+      "Kokkos::Impl::get_ctest_gpu().");
 }
 
 TEST_F(ctest_environment, missing_type) {
   EXPECT_THROW_WITH_MESSAGE(
       Kokkos::Impl::get_ctest_gpu("1"), std::runtime_error,
       "Error: device type 'gpus' not included in CTEST_RESOURCE_GROUP_1. "
-      "Raised "
-      "by Kokkos::Impl::get_ctest_gpu().\nTraceback functionality not available"
-      "\n");
+      "Raised by Kokkos::Impl::get_ctest_gpu().");
   EXPECT_THROW_WITH_MESSAGE(
       Kokkos::Impl::get_ctest_gpu("2"), std::runtime_error,
       "Error: device type 'gpus' not included in CTEST_RESOURCE_GROUP_2. "
-      "Raised "
-      "by Kokkos::Impl::get_ctest_gpu().\nTraceback functionality not available"
-      "\n");
+      "Raised by Kokkos::Impl::get_ctest_gpu().");
 }
 
 TEST_F(ctest_environment, no_id_str) {
   EXPECT_THROW_WITH_MESSAGE(
       Kokkos::Impl::get_ctest_gpu("3"), std::runtime_error,
       "Error: CTEST_RESOURCE_GROUP_3_GPUS is not specified. Raised by "
-      "Kokkos::Impl::get_ctest_gpu().\nTraceback functionality not "
-      "available\n");
+      "Kokkos::Impl::get_ctest_gpu().");
 }
 
 TEST_F(ctest_environment, invalid_id_str) {
   EXPECT_THROW_WITH_MESSAGE(
       Kokkos::Impl::get_ctest_gpu("4"), std::runtime_error,
       "Error: invalid value of CTEST_RESOURCE_GROUP_4_GPUS: 'id:2'. Raised by "
-      "Kokkos::Impl::get_ctest_gpu().\nTraceback functionality not "
-      "available\n");
+      "Kokkos::Impl::get_ctest_gpu().");
   EXPECT_THROW_WITH_MESSAGE(
       Kokkos::Impl::get_ctest_gpu("5"), std::runtime_error,
       "Error: invalid value of CTEST_RESOURCE_GROUP_5_GPUS: 'slots:1,id:2'. "
-      "Raised by Kokkos::Impl::get_ctest_gpu().\nTraceback functionality not "
-      "available\n");
+      "Raised by Kokkos::Impl::get_ctest_gpu().");
 }
 
 TEST_F(ctest_environment, good) {

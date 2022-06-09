@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -23,19 +22,15 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixNVTSphere::FixNVTSphere(LAMMPS *lmp, int narg, char **arg) :
-  FixNHSphere(lmp, narg, arg)
+FixNVTSphere::FixNVTSphere(LAMMPS *lmp, int narg, char **arg) : FixNHSphere(lmp, narg, arg)
 {
-  if (!tstat_flag)
-    error->all(FLERR,"Temperature control must be used with fix nvt/sphere");
-  if (pstat_flag)
-    error->all(FLERR,"Pressure control can not be used with fix nvt/sphere");
+  if (!tstat_flag) error->all(FLERR, "Temperature control must be used with fix nvt/sphere");
+  if (pstat_flag) error->all(FLERR, "Pressure control can not be used with fix nvt/sphere");
 
   // create a new compute temp style
   // id = fix-ID + temp
 
   id_temp = utils::strdup(std::string(id) + "_temp");
-  modify->add_compute(fmt::format("{} {} temp/sphere",
-                                  id_temp,group->names[igroup]));
+  modify->add_compute(fmt::format("{} {} temp/sphere", id_temp, group->names[igroup]));
   tcomputeflag = 1;
 }

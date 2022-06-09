@@ -47,12 +47,6 @@ PairLJCharmmCoulLongIntel::PairLJCharmmCoulLongIntel(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCharmmCoulLongIntel::~PairLJCharmmCoulLongIntel()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void PairLJCharmmCoulLongIntel::compute(int eflag, int vflag)
 {
   if (fix->precision()==FixIntel::PREC_MODE_MIXED)

@@ -160,7 +160,19 @@ inline __device__ ctype atomic_fetch_inc(ctype* dest, __DESUL_IMPL_CUDA_ASM_MEMO
           "{\n\t" \
           ".reg .pred p;\n\t" \
           "isspacep.global p, %1;\n\t" \
-          "@p  atom.inc.gobal" __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER_ASM __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE_ASM asm_ctype " %0,[%1],%2;\n\t" \
+          "@p  atom.inc.global" __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER_ASM __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE_ASM asm_ctype " %0,[%1],%2;\n\t" \
+          "@!p atom.inc"       __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER_ASM __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE_ASM asm_ctype " %0,[%1],%2;\n\t" \
+          "}\n\t" \
+    : reg_ret_ctype(result) : "l"(dest),reg_ctype(limit) : "memory"); \
+  return result; \
+} \
+inline __device__ ctype atomic_fetch_inc_mod(ctype* dest, ctype limit, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
+  ctype result = 0; \
+  asm volatile( \
+          "{\n\t" \
+          ".reg .pred p;\n\t" \
+          "isspacep.global p, %1;\n\t" \
+          "@p  atom.inc.global" __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER_ASM __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE_ASM asm_ctype " %0,[%1],%2;\n\t" \
           "@!p atom.inc"       __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER_ASM __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE_ASM asm_ctype " %0,[%1],%2;\n\t" \
           "}\n\t" \
     : reg_ret_ctype(result) : "l"(dest),reg_ctype(limit) : "memory"); \
@@ -171,6 +183,18 @@ inline __device__ ctype atomic_fetch_inc(ctype* dest, __DESUL_IMPL_CUDA_ASM_MEMO
 inline __device__ ctype atomic_fetch_dec(ctype* dest, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
   ctype result = 0; \
   ctype limit = desul::Impl::numeric_limits_max<ctype>::value; \
+  asm volatile( \
+          "{\n\t" \
+          ".reg .pred p;\n\t" \
+          "isspacep.global p, %1;\n\t" \
+          "@p  atom.dec.global" __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER_ASM __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE_ASM asm_ctype " %0,[%1],%2;\n\t" \
+          "@!p atom.dec"        __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER_ASM __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE_ASM asm_ctype " %0,[%1],%2;\n\t" \
+          "}\n\t" \
+    : reg_ret_ctype(result) : "l"(dest),reg_ctype(limit) : "memory"); \
+  return result; \
+} \
+inline __device__ ctype atomic_fetch_dec_mod(ctype* dest, ctype limit, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
+  ctype result = 0; \
   asm volatile( \
           "{\n\t" \
           ".reg .pred p;\n\t" \
@@ -195,10 +219,10 @@ __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_SUB(ctype,asm_ctype,reg_ctype,reg_ret_ctype) 
 __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MIN(ctype,asm_ctype,reg_ctype,reg_ret_ctype) \
 __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MAX(ctype,asm_ctype,reg_ctype,reg_ret_ctype)
 
-#define __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_BIN_OP(ctype) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_AND(ctype) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_OR(ctype) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_XOR(ctype)
+#define __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_BIN_OP() \
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_AND() \
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_OR() \
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_XOR()
 
 
 // Instantiate Functions

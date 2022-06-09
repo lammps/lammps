@@ -83,13 +83,6 @@ DynamicalMatrixKokkos::DynamicalMatrixKokkos(LAMMPS *lmp) : DynamicalMatrix(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-DynamicalMatrixKokkos::~DynamicalMatrixKokkos()
-{
-
-}
-
-/* ---------------------------------------------------------------------- */
-
 void DynamicalMatrixKokkos::command(int narg, char **arg)
 {
   atomKK->sync(Host, X_MASK|RMASS_MASK|TYPE_MASK);
@@ -171,7 +164,7 @@ void DynamicalMatrixKokkos::update_force()
   force_clear();
 
   neighbor->ago = 0;
-  if ((modify->get_fix_by_id("package_intel")) ? true : false)
+  if ((modify->get_fix_by_id("package_intel")) != nullptr)
     neighbor->decide();
 
 

@@ -1,6 +1,6 @@
-set(PACELIB_URL "https://github.com/ICAMS/lammps-user-pace/archive/refs/tags/v.2021.10.25.tar.gz" CACHE STRING "URL for PACE evaluator library sources")
+set(PACELIB_URL "https://github.com/ICAMS/lammps-user-pace/archive/refs/tags/v.2021.10.25.fix2.tar.gz" CACHE STRING "URL for PACE evaluator library sources")
 
-set(PACELIB_MD5 "a2ac3315c41a1a4a5c912bcb1bc9c5cc" CACHE STRING "MD5 checksum of PACE evaluator library tarball")
+set(PACELIB_MD5 "32394d799bc282bb57696c78c456e64f" CACHE STRING "MD5 checksum of PACE evaluator library tarball")
 mark_as_advanced(PACELIB_URL)
 mark_as_advanced(PACELIB_MD5)
 
@@ -13,8 +13,12 @@ execute_process(
   COMMAND ${CMAKE_COMMAND} -E tar xzf libpace.tar.gz
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
+get_newest_file(${CMAKE_BINARY_DIR}/lammps-user-pace-* lib-pace)
 
-file(GLOB lib-pace ${CMAKE_BINARY_DIR}/lammps-user-pace-*)
+# enforce building libyaml-cpp as static library and turn off optional features
+set(YAML_BUILD_SHARED_LIBS OFF)
+set(YAML_CPP_BUILD_CONTRIB OFF)
+set(YAML_CPP_BUILD_TOOLS OFF)
 add_subdirectory(${lib-pace}/yaml-cpp build-yaml-cpp)
 set(YAML_CPP_INCLUDE_DIR ${lib-pace}/yaml-cpp/include)
 
@@ -28,5 +32,6 @@ target_include_directories(pace PUBLIC ${PACE_EVALUATOR_INCLUDE_DIR} ${YAML_CPP_
 
 
 target_link_libraries(pace PRIVATE yaml-cpp-pace)
-
-target_link_libraries(lammps PRIVATE pace)
+if(CMAKE_PROJECT_NAME STREQUAL "lammps")
+  target_link_libraries(lammps PRIVATE pace)
+endif()

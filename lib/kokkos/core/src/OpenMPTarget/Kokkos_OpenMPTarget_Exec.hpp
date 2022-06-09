@@ -408,6 +408,316 @@ struct OpenMPTargetReducerWrapper<MinMaxLoc<Scalar, Index, Space>> {
     val.min_loc = reduction_identity<index_type>::min();
   }
 };
+
+//
+// specialize for MaxFirstLoc
+//
+template <class Scalar, class Index, class Space>
+struct OpenMPTargetReducerWrapper<MaxFirstLoc<Scalar, Index, Space>> {
+ private:
+  using scalar_type = typename std::remove_cv<Scalar>::type;
+  using index_type  = typename std::remove_cv<Index>::type;
+
+ public:
+  // Required
+  using value_type = ValLocScalar<scalar_type, index_type>;
+
+// WORKAROUND OPENMPTARGET
+// This pragma omp declare target should not be necessary, but Intel compiler
+// fails without it
+#pragma omp declare target
+  KOKKOS_INLINE_FUNCTION
+  static void join(value_type& dest, const value_type& src) {
+    if (dest.val < src.val) {
+      dest = src;
+    } else if (!(src.val < dest.val)) {
+      dest.loc = (src.loc < dest.loc) ? src.loc : dest.loc;
+    }
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  static void join(volatile value_type& dest, const volatile value_type& src) {
+    if (dest.val < src.val) {
+      dest = src;
+    } else if (!(src.val < dest.val)) {
+      dest.loc = (src.loc < dest.loc) ? src.loc : dest.loc;
+    }
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  static void init(value_type& val) {
+    val.val = reduction_identity<scalar_type>::max();
+    val.loc = reduction_identity<index_type>::min();
+  }
+#pragma omp end declare target
+};
+
+//
+// specialize for MinFirstLoc
+//
+template <class Scalar, class Index, class Space>
+struct OpenMPTargetReducerWrapper<MinFirstLoc<Scalar, Index, Space>> {
+ private:
+  using scalar_type = typename std::remove_cv<Scalar>::type;
+  using index_type  = typename std::remove_cv<Index>::type;
+
+ public:
+  // Required
+  using value_type = ValLocScalar<scalar_type, index_type>;
+
+// WORKAROUND OPENMPTARGET
+// This pragma omp declare target should not be necessary, but Intel compiler
+// fails without it
+#pragma omp declare target
+  KOKKOS_INLINE_FUNCTION
+  static void join(value_type& dest, const value_type& src) {
+    if (src.val < dest.val) {
+      dest = src;
+    } else if (!(dest.val < src.val)) {
+      dest.loc = (src.loc < dest.loc) ? src.loc : dest.loc;
+    }
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  static void join(volatile value_type& dest, const volatile value_type& src) {
+    if (src.val < dest.val) {
+      dest = src;
+    } else if (!(dest.val < src.val)) {
+      dest.loc = (src.loc < dest.loc) ? src.loc : dest.loc;
+    }
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  static void init(value_type& val) {
+    val.val = reduction_identity<scalar_type>::min();
+    val.loc = reduction_identity<index_type>::min();
+  }
+#pragma omp end declare target
+};
+
+//
+// specialize for MinMaxFirstLastLoc
+//
+template <class Scalar, class Index, class Space>
+struct OpenMPTargetReducerWrapper<MinMaxFirstLastLoc<Scalar, Index, Space>> {
+ private:
+  using scalar_type = typename std::remove_cv<Scalar>::type;
+  using index_type  = typename std::remove_cv<Index>::type;
+
+ public:
+  // Required
+  using value_type = MinMaxLocScalar<scalar_type, index_type>;
+
+// WORKAROUND OPENMPTARGET
+// This pragma omp declare target should not be necessary, but Intel compiler
+// fails without it
+#pragma omp declare target
+  // Required
+  KOKKOS_INLINE_FUNCTION
+  static void join(value_type& dest, const value_type& src) {
+    if (src.min_val < dest.min_val) {
+      dest.min_val = src.min_val;
+      dest.min_loc = src.min_loc;
+    } else if (!(dest.min_val < src.min_val)) {
+      dest.min_loc = (src.min_loc < dest.min_loc) ? src.min_loc : dest.min_loc;
+    }
+
+    if (dest.max_val < src.max_val) {
+      dest.max_val = src.max_val;
+      dest.max_loc = src.max_loc;
+    } else if (!(src.max_val < dest.max_val)) {
+      dest.max_loc = (src.max_loc > dest.max_loc) ? src.max_loc : dest.max_loc;
+    }
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  static void join(volatile value_type& dest, const volatile value_type& src) {
+    if (src.min_val < dest.min_val) {
+      dest.min_val = src.min_val;
+      dest.min_loc = src.min_loc;
+    } else if (!(dest.min_val < src.min_val)) {
+      dest.min_loc = (src.min_loc < dest.min_loc) ? src.min_loc : dest.min_loc;
+    }
+
+    if (dest.max_val < src.max_val) {
+      dest.max_val = src.max_val;
+      dest.max_loc = src.max_loc;
+    } else if (!(src.max_val < dest.max_val)) {
+      dest.max_loc = (src.max_loc > dest.max_loc) ? src.max_loc : dest.max_loc;
+    }
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  static void init(value_type& val) {
+    val.max_val = reduction_identity<scalar_type>::max();
+    val.min_val = reduction_identity<scalar_type>::min();
+    val.max_loc = reduction_identity<index_type>::max();
+    val.min_loc = reduction_identity<index_type>::min();
+  }
+#pragma omp end declare target
+};
+
+//
+// specialize for FirstLoc
+//
+template <class Index, class Space>
+struct OpenMPTargetReducerWrapper<FirstLoc<Index, Space>> {
+ private:
+  using index_type = typename std::remove_cv<Index>::type;
+
+ public:
+  // Required
+  using value_type = FirstLocScalar<index_type>;
+
+// WORKAROUND OPENMPTARGET
+// This pragma omp declare target should not be necessary, but Intel compiler
+// fails without it
+#pragma omp declare target
+  // Required
+  KOKKOS_INLINE_FUNCTION
+  static void join(value_type& dest, const value_type& src) {
+    dest.min_loc_true = (src.min_loc_true < dest.min_loc_true)
+                            ? src.min_loc_true
+                            : dest.min_loc_true;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  static void join(volatile value_type& dest, const volatile value_type& src) {
+    dest.min_loc_true = (src.min_loc_true < dest.min_loc_true)
+                            ? src.min_loc_true
+                            : dest.min_loc_true;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  static void init(value_type& val) {
+    val.min_loc_true = reduction_identity<index_type>::min();
+  }
+#pragma omp end declare target
+};
+
+//
+// specialize for LastLoc
+//
+template <class Index, class Space>
+struct OpenMPTargetReducerWrapper<LastLoc<Index, Space>> {
+ private:
+  using index_type = typename std::remove_cv<Index>::type;
+
+ public:
+  // Required
+  using value_type = LastLocScalar<index_type>;
+
+// WORKAROUND OPENMPTARGET
+// This pragma omp declare target should not be necessary, but Intel compiler
+// fails without it
+#pragma omp declare target
+  // Required
+  KOKKOS_INLINE_FUNCTION
+  static void join(value_type& dest, const value_type& src) {
+    dest.max_loc_true = (src.max_loc_true > dest.max_loc_true)
+                            ? src.max_loc_true
+                            : dest.max_loc_true;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  static void join(volatile value_type& dest, const volatile value_type& src) {
+    dest.max_loc_true = (src.max_loc_true > dest.max_loc_true)
+                            ? src.max_loc_true
+                            : dest.max_loc_true;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  static void init(value_type& val) {
+    val.max_loc_true = reduction_identity<index_type>::max();
+  }
+#pragma omp end declare target
+};
+
+//
+// specialize for StdIsPartitioned
+//
+template <class Index, class Space>
+struct OpenMPTargetReducerWrapper<StdIsPartitioned<Index, Space>> {
+ private:
+  using index_type = typename std::remove_cv<Index>::type;
+
+ public:
+  // Required
+  using value_type = StdIsPartScalar<index_type>;
+
+// WORKAROUND OPENMPTARGET
+// This pragma omp declare target should not be necessary, but Intel compiler
+// fails without it
+#pragma omp declare target
+  // Required
+  KOKKOS_INLINE_FUNCTION
+  static void join(value_type& dest, const value_type& src) {
+    dest.max_loc_true = (dest.max_loc_true < src.max_loc_true)
+                            ? src.max_loc_true
+                            : dest.max_loc_true;
+
+    dest.min_loc_false = (dest.min_loc_false < src.min_loc_false)
+                             ? dest.min_loc_false
+                             : src.min_loc_false;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  static void join(volatile value_type& dest, const volatile value_type& src) {
+    dest.max_loc_true = (dest.max_loc_true < src.max_loc_true)
+                            ? src.max_loc_true
+                            : dest.max_loc_true;
+
+    dest.min_loc_false = (dest.min_loc_false < src.min_loc_false)
+                             ? dest.min_loc_false
+                             : src.min_loc_false;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  static void init(value_type& val) {
+    val.max_loc_true  = ::Kokkos::reduction_identity<index_type>::max();
+    val.min_loc_false = ::Kokkos::reduction_identity<index_type>::min();
+  }
+#pragma omp end declare target
+};
+
+//
+// specialize for StdPartitionPoint
+//
+template <class Index, class Space>
+struct OpenMPTargetReducerWrapper<StdPartitionPoint<Index, Space>> {
+ private:
+  using index_type = typename std::remove_cv<Index>::type;
+
+ public:
+  // Required
+  using value_type = StdPartPointScalar<index_type>;
+
+// WORKAROUND OPENMPTARGET
+// This pragma omp declare target should not be necessary, but Intel compiler
+// fails without it
+#pragma omp declare target
+  // Required
+  KOKKOS_INLINE_FUNCTION
+  static void join(value_type& dest, const value_type& src) {
+    dest.min_loc_false = (dest.min_loc_false < src.min_loc_false)
+                             ? dest.min_loc_false
+                             : src.min_loc_false;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  static void join(volatile value_type& dest, const volatile value_type& src) {
+    dest.min_loc_false = (dest.min_loc_false < src.min_loc_false)
+                             ? dest.min_loc_false
+                             : src.min_loc_false;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  static void init(value_type& val) {
+    val.min_loc_false = ::Kokkos::reduction_identity<index_type>::min();
+  }
+#pragma omp end declare target
+};
+
 /*
 template<class ReducerType>
 class OpenMPTargetReducerWrapper {
@@ -835,8 +1145,9 @@ class TeamPolicyInternal<Kokkos::Experimental::OpenMPTarget, Properties...>
         m_chunk_size(p.m_chunk_size) {}
 
   /** \brief  Specify league size, request team size */
-  TeamPolicyInternal(typename traits::execution_space&, int league_size_request,
-                     int team_size_request, int vector_length_request = 1)
+  TeamPolicyInternal(const typename traits::execution_space&,
+                     int league_size_request, int team_size_request,
+                     int vector_length_request = 1)
       : m_team_scratch_size{0, 0},
         m_thread_scratch_size{0, 0},
         m_tune_team_size(false),
@@ -845,7 +1156,8 @@ class TeamPolicyInternal<Kokkos::Experimental::OpenMPTarget, Properties...>
     init(league_size_request, team_size_request, vector_length_request);
   }
 
-  TeamPolicyInternal(typename traits::execution_space&, int league_size_request,
+  TeamPolicyInternal(const typename traits::execution_space&,
+                     int league_size_request,
                      const Kokkos::AUTO_t& /* team_size_request */
                      ,
                      int vector_length_request = 1)
@@ -858,7 +1170,8 @@ class TeamPolicyInternal<Kokkos::Experimental::OpenMPTarget, Properties...>
          vector_length_request);
   }
 
-  TeamPolicyInternal(typename traits::execution_space&, int league_size_request,
+  TeamPolicyInternal(const typename traits::execution_space&,
+                     int league_size_request,
                      const Kokkos::AUTO_t& /* team_size_request */
                      ,
                      const Kokkos::AUTO_t& /* vector_length_request */)
@@ -869,8 +1182,8 @@ class TeamPolicyInternal<Kokkos::Experimental::OpenMPTarget, Properties...>
         m_chunk_size(0) {
     init(league_size_request, default_team_size, 1);
   }
-  TeamPolicyInternal(typename traits::execution_space&, int league_size_request,
-                     int team_size_request,
+  TeamPolicyInternal(const typename traits::execution_space&,
+                     int league_size_request, int team_size_request,
                      const Kokkos::AUTO_t& /* vector_length_request */)
       : m_team_scratch_size{0, 0},
         m_thread_scratch_size{0, 0},

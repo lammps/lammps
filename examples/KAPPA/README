@@ -46,17 +46,17 @@ energy flux, and dTemp/dZ = temperature gradient.
 
 (1) in.langevin
 
-dQ = 8000 * 0.5*(0.905+0.947) / 100 / 18.82^2 / 2
+dQ = 8000 * 0.5*(0.890+0.883) / 100 / 18.82^2 / 2
   8000 atoms
-  0.5*(0.905+0.947) = from log file =
+  0.5*(0.890+0.883) = from log file =
     ave of total in/out energy for 2 regions normalized by # of atoms
   100 = 20,000 steps at 0.005 tau timestep = run time in tau
   xy box area = 18.82^2
   divide by 2 since energy flux goes in 2 directions due to periodic z
-dTemp = 0.578 from log file for average Temp difference between 2 regions
+dTemp = 0.574 from log file for average Temp difference between 2 regions
 dZ = 18.82
 
-Kappa = 3.41
+Kappa = 3.29
 
 (2) in.heat
 
@@ -82,17 +82,17 @@ dZ = 18.82
 
 Kappa = 3.45
 
-(4) in.mp 
+(4) in.mp
 
-dQ = 15087 / 100 / 18.82^2 / 2
-  15087 = cumulative delta energy, tallied by fix thermal/conductivity
+dQ = 15068 / 100 / 18.82^2 / 2
+  15068 = cumulative delta energy, tallied by fix thermal/conductivity
   100 = 20,000 steps at 0.005 tau timestep = run time in tau
   xy box area = 18.82^2
   divide by 2 since energy flux goes in 2 directions due to periodic z
-dTemp = 1.16 from log file for average Temp difference between 2 regions
+dTemp = 1.175 from log file for average Temp difference between 2 regions
 dZ = 18.82
 
-Kappa = 3.45
+Kappa = 3.41
 
 (5) in.heatflux
 
@@ -101,4 +101,4 @@ integration of the formulas discussed on the compute heat/flux doc
 page - the resulting value prints at the end of the run and is in the
 log file
 
-Kappa = 3.78
+Kappa = 3.88

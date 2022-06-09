@@ -24,7 +24,6 @@ class CommTiledKokkos : public CommTiled {
  public:
   CommTiledKokkos(class LAMMPS *);
   CommTiledKokkos(class LAMMPS *, class Comm *);
-  ~CommTiledKokkos() override;
 
   using CommTiled::forward_comm;
   using CommTiled::reverse_comm;

@@ -734,8 +734,8 @@ double PairTriSurf::memory_usage() {
  % https://www.geometrictools.com/Documentation/DistancePoint3Triangle3.pdf
  */
 
-void PairTriSurf::PointTriangleDistance(const Vector3d sourcePosition, const Vector3d TRI0, const Vector3d TRI1,
-                const Vector3d TRI2, Vector3d &CP, double &dist) {
+void PairTriSurf::PointTriangleDistance(const Vector3d& sourcePosition, const Vector3d& TRI0, const Vector3d& TRI1,
+                const Vector3d& TRI2, Vector3d &CP, double &dist) {
 
         Vector3d edge0 = TRI1 - TRI0;
         Vector3d edge1 = TRI2 - TRI0;

@@ -24,7 +24,7 @@
 
 #if defined(FFT_MKL)
 #include "mkl_dfti.h"
-typedef float _Complex FFT_DATA;
+typedef MKL_Complex8 FFT_DATA;
 #define FFT_MKL_PREC DFTI_SINGLE
 
 #elif defined(FFT_FFTW3)
@@ -57,7 +57,7 @@ typedef struct kiss_fft_state *kiss_fft_cfg;
 
 #if defined(FFT_MKL)
 #include "mkl_dfti.h"
-typedef double _Complex FFT_DATA;
+typedef MKL_Complex16 FFT_DATA;
 #define FFT_MKL_PREC DFTI_DOUBLE
 
 #elif defined(FFT_FFTW3)

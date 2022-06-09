@@ -52,17 +52,15 @@ class ComputeBornMatrix : public Compute {
   void virial_addon();                      // restore atom positions
   void reallocate();                        // grow the atom arrays
 
-  int me;             // process rank
   int nvalues;        // length of elastic tensor
   int numflag;        // 1 if using finite differences
   double numdelta;    // size of finite strain
   int maxatom;        // allocated size of atom arrays
 
   int pairflag, bondflag, angleflag;
-  int dihedflag, impflag, kspaceflag;
+  int dihedflag, impflag;
 
   double *values_local, *values_global;
-  double pos, pos1, dt, nktv2p, ftm2v;
   class NeighList *list;
 
   char *id_virial;                  // name of virial compute

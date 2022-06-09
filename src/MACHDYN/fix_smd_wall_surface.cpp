@@ -260,8 +260,7 @@ void FixSMDWallSurface::read_triangles(int pass) {
       double r1 = (center - vert[0]).norm();
       double r2 = (center - vert[1]).norm();
       double r3 = (center - vert[2]).norm();
-      double r = MAX(r1, r2);
-      r = MAX(r, r3);
+      double r = MAX(MAX(r1, r2), r3);
 
       /*
        * if atom/molecule is in my subbox, create it

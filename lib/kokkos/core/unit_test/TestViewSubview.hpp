@@ -336,7 +336,7 @@ void test_left_0(bool constr) {
     make_subview(constr, x0, x_static_8, 0, 0, 0, 0, 0, 0, 0, 0);
 
     ASSERT_TRUE(x0.span_is_contiguous());
-    ASSERT_EQ(x0.span(), 1);
+    ASSERT_EQ(x0.span(), 1u);
     ASSERT_EQ(&x0(), &x_static_8(0, 0, 0, 0, 0, 0, 0, 0));
 
     Kokkos::View<int*, Kokkos::LayoutLeft, Space> x1;
@@ -344,7 +344,7 @@ void test_left_0(bool constr) {
                  0, 1, 2, 3);
 
     ASSERT_TRUE(x1.span_is_contiguous());
-    ASSERT_EQ(x1.span(), 2);
+    ASSERT_EQ(x1.span(), 2u);
     ASSERT_EQ(&x1(0), &x_static_8(0, 1, 2, 3, 0, 1, 2, 3));
     ASSERT_EQ(&x1(1), &x_static_8(1, 1, 2, 3, 0, 1, 2, 3));
 
@@ -353,7 +353,7 @@ void test_left_0(bool constr) {
                  3, 0, 1, 2, 3);
 
     ASSERT_TRUE(x_deg1.span_is_contiguous());
-    ASSERT_EQ(x_deg1.span(), 0);
+    ASSERT_EQ(x_deg1.span(), 0u);
     ASSERT_EQ(x_deg1.data(), &x_static_8(0, 1, 2, 3, 0, 1, 2, 3));
 
     Kokkos::View<int*, Kokkos::LayoutLeft, Space> x_deg2;
@@ -361,7 +361,7 @@ void test_left_0(bool constr) {
                  4, 1, 2, 3, 4);
 
     ASSERT_TRUE(x_deg2.span_is_contiguous());
-    ASSERT_EQ(x_deg2.span(), 0);
+    ASSERT_EQ(x_deg2.span(), 0u);
     ASSERT_EQ(x_deg2.data(), x_static_8.data() + x_static_8.span());
 
     Kokkos::View<int**, Kokkos::LayoutLeft, Space> x2;
@@ -444,14 +444,14 @@ void test_left_1(bool use_constr) {
                  0, 1, 2, 3);
 
     ASSERT_TRUE(x1_deg1.span_is_contiguous());
-    ASSERT_EQ(0, x1_deg1.span());
+    ASSERT_EQ(0u, x1_deg1.span());
     ASSERT_EQ(x1_deg1.data(), &x8(0, 1, 2, 3, 0, 1, 2, 3));
 
     Kokkos::View<int*, Kokkos::LayoutLeft, Space> x1_deg2;
     make_subview(use_constr, x1_deg2, x8, Kokkos::pair<int, int>(2, 2), 2, 3, 4,
                  1, 2, 3, 4);
 
-    ASSERT_EQ(0, x1_deg2.span());
+    ASSERT_EQ(0u, x1_deg2.span());
     ASSERT_TRUE(x1_deg2.span_is_contiguous());
     ASSERT_EQ(x1_deg2.data(), x8.data() + x8.span());
 
@@ -468,7 +468,7 @@ void test_left_1(bool use_constr) {
     Kokkos::View<int**, Kokkos::LayoutLeft, Space> x2_deg2;
     make_subview(use_constr, x2_deg2, x8, Kokkos::pair<int, int>(2, 2), 2, 3, 4,
                  1, 2, Kokkos::pair<int, int>(2, 3), 4);
-    ASSERT_EQ(0, x2_deg2.span());
+    ASSERT_EQ(0u, x2_deg2.span());
 
     // Kokkos::View< int**, Kokkos::LayoutLeft, Space > error_2 =
     Kokkos::View<int**, Kokkos::LayoutStride, Space> sx2;
@@ -484,7 +484,7 @@ void test_left_1(bool use_constr) {
     Kokkos::View<int**, Kokkos::LayoutStride, Space> sx2_deg;
     make_subview(use_constr, sx2, x8, 1, Kokkos::pair<int, int>(0, 0), 2, 3,
                  Kokkos::pair<int, int>(0, 2), 1, 2, 3);
-    ASSERT_EQ(0, sx2_deg.span());
+    ASSERT_EQ(0u, sx2_deg.span());
 
     Kokkos::View<int****, Kokkos::LayoutStride, Space> sx4;
     make_subview(use_constr, sx4, x8, 0,
@@ -625,14 +625,14 @@ void test_left_3() {
     Kokkos::View<int**, Kokkos::LayoutLeft, Space> x2_n1 =
         Kokkos::subview(xm, std::pair<int, int>(1, 1), Kokkos::ALL);
 
-    ASSERT_EQ(x2_n1.extent(0), 0);
+    ASSERT_EQ(x2_n1.extent(0), 0u);
     ASSERT_EQ(x2_n1.extent(1), xm.extent(1));
 
     Kokkos::View<int**, Kokkos::LayoutLeft, Space> x2_n2 =
         Kokkos::subview(xm, Kokkos::ALL, std::pair<int, int>(1, 1));
 
     ASSERT_EQ(x2_n2.extent(0), xm.extent(0));
-    ASSERT_EQ(x2_n2.extent(1), 0);
+    ASSERT_EQ(x2_n2.extent(1), 0u);
   }
 }
 
@@ -656,7 +656,7 @@ void test_right_0(bool use_constr) {
     make_subview(use_constr, x1, x_static_8, 0, 1, 2, 3, 0, 1, 2,
                  Kokkos::pair<int, int>(1, 3));
 
-    ASSERT_EQ(x1.extent(0), 2);
+    ASSERT_EQ(x1.extent(0), 2u);
     ASSERT_EQ(&x1(0), &x_static_8(0, 1, 2, 3, 0, 1, 2, 1));
     ASSERT_EQ(&x1(1), &x_static_8(0, 1, 2, 3, 0, 1, 2, 2));
 
@@ -665,8 +665,8 @@ void test_right_0(bool use_constr) {
                  Kokkos::pair<int, int>(1, 3), 0, 1, 2,
                  Kokkos::pair<int, int>(1, 3));
 
-    ASSERT_EQ(x2.extent(0), 2);
-    ASSERT_EQ(x2.extent(1), 2);
+    ASSERT_EQ(x2.extent(0), 2u);
+    ASSERT_EQ(x2.extent(1), 2u);
     ASSERT_EQ(&x2(0, 0), &x_static_8(0, 1, 2, 1, 0, 1, 2, 1));
     ASSERT_EQ(&x2(1, 0), &x_static_8(0, 1, 2, 2, 0, 1, 2, 1));
     ASSERT_EQ(&x2(0, 1), &x_static_8(0, 1, 2, 1, 0, 1, 2, 2));
@@ -677,8 +677,8 @@ void test_right_0(bool use_constr) {
     make_subview(use_constr, sx2, x_static_8, 1, Kokkos::pair<int, int>(0, 2),
                  2, 3, Kokkos::pair<int, int>(0, 2), 1, 2, 3);
 
-    ASSERT_EQ(sx2.extent(0), 2);
-    ASSERT_EQ(sx2.extent(1), 2);
+    ASSERT_EQ(sx2.extent(0), 2u);
+    ASSERT_EQ(sx2.extent(1), 2u);
     ASSERT_EQ(&sx2(0, 0), &x_static_8(1, 0, 2, 3, 0, 1, 2, 3));
     ASSERT_EQ(&sx2(1, 0), &x_static_8(1, 1, 2, 3, 0, 1, 2, 3));
     ASSERT_EQ(&sx2(0, 1), &x_static_8(1, 0, 2, 3, 1, 1, 2, 3));
@@ -695,10 +695,10 @@ void test_right_0(bool use_constr) {
                  2, Kokkos::pair<int, int>(2, 4) /* of [5] */
     );
 
-    ASSERT_EQ(sx4.extent(0), 2);
-    ASSERT_EQ(sx4.extent(1), 2);
-    ASSERT_EQ(sx4.extent(2), 2);
-    ASSERT_EQ(sx4.extent(3), 2);
+    ASSERT_EQ(sx4.extent(0), 2u);
+    ASSERT_EQ(sx4.extent(1), 2u);
+    ASSERT_EQ(sx4.extent(2), 2u);
+    ASSERT_EQ(sx4.extent(3), 2u);
     for (int i0 = 0; i0 < (int)sx4.extent(0); ++i0)
       for (int i1 = 0; i1 < (int)sx4.extent(1); ++i1)
         for (int i2 = 0; i2 < (int)sx4.extent(2); ++i2)
@@ -739,7 +739,7 @@ void test_right_1(bool use_constr) {
     Kokkos::View<int*, Kokkos::LayoutRight, Space> x1_deg1;
     make_subview(use_constr, x1_deg1, x8, 0, 1, 2, 3, 0, 1, 2,
                  Kokkos::pair<int, int>(3, 3));
-    ASSERT_EQ(0, x1_deg1.span());
+    ASSERT_EQ(0u, x1_deg1.span());
 
     Kokkos::View<int**, Kokkos::LayoutRight, Space> x2;
     make_subview(use_constr, x2, x8, 0, 1, 2, Kokkos::pair<int, int>(1, 3), 0,
@@ -753,7 +753,7 @@ void test_right_1(bool use_constr) {
     Kokkos::View<int**, Kokkos::LayoutRight, Space> x2_deg2;
     make_subview(use_constr, x2_deg2, x8, 0, 1, 2, Kokkos::pair<int, int>(1, 3),
                  0, 1, 2, Kokkos::pair<int, int>(3, 3));
-    ASSERT_EQ(0, x2_deg2.span());
+    ASSERT_EQ(0u, x2_deg2.span());
 
     // Kokkos::View< int**, Kokkos::LayoutRight, Space > error_2 =
     Kokkos::View<int**, Kokkos::LayoutStride, Space> sx2;
@@ -768,7 +768,7 @@ void test_right_1(bool use_constr) {
     Kokkos::View<int**, Kokkos::LayoutStride, Space> sx2_deg;
     make_subview(use_constr, sx2_deg, x8, 1, Kokkos::pair<int, int>(0, 2), 2, 3,
                  1, 1, 2, Kokkos::pair<int, int>(3, 3));
-    ASSERT_EQ(0, sx2_deg.span());
+    ASSERT_EQ(0u, sx2_deg.span());
 
     Kokkos::View<int****, Kokkos::LayoutStride, Space> sx4;
     make_subview(use_constr, sx4, x8, 0,
@@ -842,14 +842,14 @@ void test_right_3() {
     Kokkos::View<int**, Kokkos::LayoutRight, Space> x2_n1 =
         Kokkos::subview(xm, std::pair<int, int>(1, 1), Kokkos::ALL);
 
-    ASSERT_EQ(x2_n1.extent(0), 0);
+    ASSERT_EQ(x2_n1.extent(0), 0u);
     ASSERT_EQ(x2_n1.extent(1), xm.extent(1));
 
     Kokkos::View<int**, Kokkos::LayoutRight, Space> x2_n2 =
         Kokkos::subview(xm, Kokkos::ALL, std::pair<int, int>(1, 1));
 
     ASSERT_EQ(x2_n2.extent(0), xm.extent(0));
-    ASSERT_EQ(x2_n2.extent(1), 0);
+    ASSERT_EQ(x2_n2.extent(1), 0u);
   }
 }
 

@@ -399,7 +399,7 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   double boxlo[3];
 
   void set_grid_global() override;
-  void set_grid_local();
+  void set_grid_local() override;
   void adjust_gewald();
   double newton_raphson_f() override;
   double derivf();
@@ -410,7 +410,7 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   void deallocate() override;
   void deallocate_peratom() override;
   int factorable(int);
-  double compute_df_kspace();
+  double compute_df_kspace() override;
   double estimate_ik_error(double, double, bigint);
   void compute_gf_denom() override;
   void compute_gf_ik() override;

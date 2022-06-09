@@ -45,6 +45,7 @@
 #include <Kokkos_Core.hpp>
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_ExecSpaceInitializer.hpp>
+#include <impl/Kokkos_Command_Line_Parsing.hpp>
 #include <cctype>
 #include <cstring>
 #include <iostream>
@@ -282,16 +283,8 @@ int get_gpu(const InitArguments& args) {
   }
   return use_gpu;
 }
+
 namespace {
-bool is_unsigned_int(const char* str) {
-  const size_t len = strlen(str);
-  for (size_t i = 0; i < len; ++i) {
-    if (!isdigit(str[i])) {
-      return false;
-    }
-  }
-  return true;
-}
 
 void initialize_backends(const InitArguments& args) {
 // This is an experimental setting
@@ -304,21 +297,29 @@ void initialize_backends(const InitArguments& args) {
   Impl::ExecSpaceManager::get_instance().initialize_spaces(args);
 }
 
-void initialize_profiling(const InitArguments& args) {
-  Kokkos::Profiling::initialize(args.tool_lib);
-  if (args.tool_help) {
-    if (!Kokkos::Tools::printHelp(args.tool_args)) {
-      std::cerr << "Tool has not provided a help message" << std::endl;
-    }
+void initialize_profiling(const Tools::InitArguments& args) {
+  auto initialization_status =
+      Kokkos::Tools::Impl::initialize_tools_subsystem(args);
+  if (initialization_status.result ==
+      Kokkos::Tools::Impl::InitializationStatus::InitializationResult::
+          help_request) {
     g_is_initialized = true;
     ::Kokkos::finalize();
     std::exit(EXIT_SUCCESS);
-  }
-  Kokkos::Tools::parseArgs(args.tool_args);
-  for (const auto& category_value : Kokkos::Impl::metadata_map) {
-    for (const auto& key_value : category_value.second) {
-      Kokkos::Tools::declareMetadata(key_value.first, key_value.second);
+  } else if (initialization_status.result ==
+             Kokkos::Tools::Impl::InitializationStatus::InitializationResult::
+                 success) {
+    Kokkos::Tools::parseArgs(args.args);
+    for (const auto& category_value : Kokkos::Impl::metadata_map) {
+      for (const auto& key_value : category_value.second) {
+        Kokkos::Tools::declareMetadata(key_value.first, key_value.second);
+      }
     }
+  } else {
+    std::cerr << "Error initializing Kokkos Tools subsystem" << std::endl;
+    g_is_initialized = true;
+    ::Kokkos::finalize();
+    std::exit(EXIT_FAILURE);
   }
 }
 
@@ -517,7 +518,7 @@ void pre_initialize_internal(const InitArguments& args) {
 }
 
 void post_initialize_internal(const InitArguments& args) {
-  initialize_profiling(args);
+  initialize_profiling(args.impl_get_tools_init_arguments());
   g_is_initialized = true;
 }
 
@@ -568,68 +569,6 @@ void fence_internal(const std::string& name) {
   Impl::ExecSpaceManager::get_instance().static_fence(name);
 }
 
-bool check_arg(char const* arg, char const* expected) {
-  std::size_t arg_len = std::strlen(arg);
-  std::size_t exp_len = std::strlen(expected);
-  if (arg_len < exp_len) return false;
-  if (std::strncmp(arg, expected, exp_len) != 0) return false;
-  if (arg_len == exp_len) return true;
-  /* if expected is "--threads", ignore "--threads-for-application"
-     by checking this character          ---------^
-     to see if it continues to make a longer name */
-  if (std::isalnum(arg[exp_len]) || arg[exp_len] == '-' ||
-      arg[exp_len] == '_') {
-    return false;
-  }
-  return true;
-}
-
-bool check_int_arg(char const* arg, char const* expected, int* value) {
-  if (!check_arg(arg, expected)) return false;
-  std::size_t arg_len = std::strlen(arg);
-  std::size_t exp_len = std::strlen(expected);
-  bool okay           = true;
-  if (arg_len == exp_len || arg[exp_len] != '=') okay = false;
-  char const* number = arg + exp_len + 1;
-  if (!Impl::is_unsigned_int(number) || strlen(number) == 0) okay = false;
-  *value = std::stoi(number);
-  if (!okay) {
-    std::ostringstream ss;
-    ss << "Error: expecting an '=INT' after command line argument '" << expected
-       << "'";
-    ss << ". Raised by Kokkos::initialize(int narg, char* argc[]).";
-    Impl::throw_runtime_exception(ss.str());
-  }
-  return true;
-}
-
-bool check_str_arg(char const* arg, char const* expected, std::string& value) {
-  if (!check_arg(arg, expected)) return false;
-  std::size_t arg_len = std::strlen(arg);
-  std::size_t exp_len = std::strlen(expected);
-  bool okay           = true;
-  if (arg_len == exp_len || arg[exp_len] != '=') okay = false;
-  char const* remain = arg + exp_len + 1;
-  value              = remain;
-  if (!okay) {
-    std::ostringstream ss;
-    ss << "Error: expecting an '=STRING' after command line argument '"
-       << expected << "'";
-    ss << ". Raised by Kokkos::initialize(int narg, char* argc[]).";
-    Impl::throw_runtime_exception(ss.str());
-  }
-  return true;
-}
-
-void warn_deprecated_command_line_argument(std::string deprecated,
-                                           std::string valid) {
-  std::cerr
-      << "Warning: command line argument '" << deprecated
-      << "' is deprecated. Use '" << valid
-      << "' instead. Raised by Kokkos::initialize(int narg, char* argc[])."
-      << std::endl;
-}
-
 unsigned get_process_id() {
 #ifdef _WIN32
   return unsigned(GetCurrentProcessId());
@@ -655,6 +594,26 @@ void parse_command_line_arguments(int& narg, char* arg[],
   bool kokkos_numa_found     = false;
   bool kokkos_device_found   = false;
   bool kokkos_ndevices_found = false;
+  auto tools_init_arguments  = arguments.impl_get_tools_init_arguments();
+  Tools::Impl::parse_command_line_arguments(narg, arg, tools_init_arguments);
+  if (tools_init_arguments.tune_internals !=
+      Kokkos::Tools::InitArguments::PossiblyUnsetOption::unset) {
+    tune_internals = (tools_init_arguments.tune_internals ==
+                      Kokkos::Tools::InitArguments::PossiblyUnsetOption::on);
+  }
+  if (tools_init_arguments.help !=
+      Kokkos::Tools::InitArguments::PossiblyUnsetOption::unset) {
+    tool_help = (tools_init_arguments.help ==
+                 Kokkos::Tools::InitArguments::PossiblyUnsetOption::on);
+  }
+  if (tools_init_arguments.lib !=
+      Kokkos::Tools::InitArguments::unset_string_option) {
+    tool_lib = tools_init_arguments.lib;
+  }
+  if (tools_init_arguments.args !=
+      Kokkos::Tools::InitArguments::unset_string_option) {
+    tool_args = tools_init_arguments.args;
+  }
 
   int iarg = 0;
 
@@ -770,37 +729,6 @@ void parse_command_line_arguments(int& narg, char* arg[],
         arg[k] = arg[k + 1];
       }
       narg--;
-    } else if (check_str_arg(arg[iarg], "--kokkos-tools-library", tool_lib)) {
-      for (int k = iarg; k < narg - 1; k++) {
-        arg[k] = arg[k + 1];
-      }
-      narg--;
-    } else if (check_str_arg(arg[iarg], "--kokkos-tools-args", tool_args)) {
-      for (int k = iarg; k < narg - 1; k++) {
-        arg[k] = arg[k + 1];
-      }
-      narg--;
-      // strip any leading and/or trailing quotes if they were retained in the
-      // string because this will very likely cause parsing issues for tools.
-      // If the quotes are retained (via bypassing the shell):
-      //    <EXE> --kokkos-tools-args="-c my example"
-      // would be tokenized as:
-      //    "<EXE>" "\"-c" "my" "example\""
-      // instead of:
-      //    "<EXE>" "-c" "my" "example"
-      if (!tool_args.empty()) {
-        if (tool_args.front() == '"') tool_args = tool_args.substr(1);
-        if (tool_args.back() == '"')
-          tool_args = tool_args.substr(0, tool_args.length() - 1);
-      }
-      // add the name of the executable to the beginning
-      if (narg > 0) tool_args = std::string(arg[0]) + " " + tool_args;
-    } else if (check_arg(arg[iarg], "--kokkos-tools-help")) {
-      tool_help = true;
-      for (int k = iarg; k < narg - 1; k++) {
-        arg[k] = arg[k + 1];
-      }
-      narg--;
     } else if (check_arg(arg[iarg], "--kokkos-help") ||
                check_arg(arg[iarg], "--help")) {
       auto const help_message = R"(
@@ -859,7 +787,10 @@ void parse_command_line_arguments(int& narg, char* arg[],
     } else
       iarg++;
   }
-  if (tool_args.empty() && narg > 0) tool_args = arg[0];
+  if ((tools_init_arguments.args ==
+       Kokkos::Tools::InitArguments::unset_string_option) &&
+      narg > 0)
+    tool_args = arg[0];
 }
 
 void parse_environment_variables(InitArguments& arguments) {
@@ -871,7 +802,43 @@ void parse_environment_variables(InitArguments& arguments) {
   auto& disable_warnings = arguments.disable_warnings;
   auto& tune_internals   = arguments.tune_internals;
   auto& tool_lib         = arguments.tool_lib;
+  auto& tool_args        = arguments.tool_args;
+  auto& tool_help        = arguments.tool_help;
   char* endptr;
+
+  auto tools_init_arguments = arguments.impl_get_tools_init_arguments();
+  auto init_result =
+      Tools::Impl::parse_environment_variables(tools_init_arguments);
+  if (init_result.result == Kokkos::Tools::Impl::InitializationStatus::
+                                environment_argument_mismatch) {
+    Impl::throw_runtime_exception(init_result.error_message);
+  }
+
+  tool_lib = tools_init_arguments.lib;
+
+  if (tools_init_arguments.tune_internals !=
+      Kokkos::Tools::InitArguments::PossiblyUnsetOption::unset) {
+    tune_internals = (tools_init_arguments.tune_internals ==
+                      Kokkos::Tools::InitArguments::PossiblyUnsetOption::on)
+                         ? true
+                         : false;
+  }
+  if (tools_init_arguments.help !=
+      Kokkos::Tools::InitArguments::PossiblyUnsetOption::unset) {
+    tool_help = (tools_init_arguments.help ==
+                 Kokkos::Tools::InitArguments::PossiblyUnsetOption::on)
+                    ? true
+                    : false;
+  }
+  if (tools_init_arguments.lib !=
+      Kokkos::Tools::InitArguments::unset_string_option) {
+    tool_lib = tools_init_arguments.lib;
+  }
+  if (tools_init_arguments.args !=
+      Kokkos::Tools::InitArguments::unset_string_option) {
+    tool_args = tools_init_arguments.args;
+  }
+
   auto env_num_threads_str = std::getenv("KOKKOS_NUM_THREADS");
   if (env_num_threads_str != nullptr) {
     errno                = 0;
@@ -1025,30 +992,6 @@ void parse_environment_variables(InitArguments& arguments) {
           "Error: expecting a match between --kokkos-disable-warnings and "
           "KOKKOS_DISABLE_WARNINGS if both are set. Raised by "
           "Kokkos::initialize(int narg, char* argc[]).");
-  }
-  char* env_tuneinternals_str = std::getenv("KOKKOS_TUNE_INTERNALS");
-  if (env_tuneinternals_str != nullptr) {
-    std::string env_str(env_tuneinternals_str);  // deep-copies string
-    for (char& c : env_str) {
-      c = toupper(c);
-    }
-    if ((env_str == "TRUE") || (env_str == "ON") || (env_str == "1"))
-      tune_internals = true;
-    else if (tune_internals)
-      Impl::throw_runtime_exception(
-          "Error: expecting a match between --kokkos-tune-internals and "
-          "KOKKOS_TUNE_INTERNALS if both are set. Raised by "
-          "Kokkos::initialize(int narg, char* argc[]).");
-  }
-  auto env_tool_lib = std::getenv("KOKKOS_PROFILE_LIBRARY");
-  if (env_tool_lib != nullptr) {
-    if (!tool_lib.empty() && std::string(env_tool_lib) != tool_lib)
-      Impl::throw_runtime_exception(
-          "Error: expecting a match between --kokkos-tools-library and "
-          "KOKKOS_PROFILE_LIBRARY if both are set. Raised by "
-          "Kokkos::initialize(int narg, char* argc[]).");
-    else
-      tool_lib = env_tool_lib;
   }
 }
 

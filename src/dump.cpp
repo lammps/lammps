@@ -142,7 +142,8 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
 
   if (strchr(filename,'*')) multifile = 1;
 
-  if (utils::strmatch(filename, "\\.bin$")) binary = 1;
+  if (utils::strmatch(filename, "\\.bin$")
+      || utils::strmatch(filename, "\\.lammpsbin$")) binary = 1;
   if (platform::has_compress_extension(filename)) compressed = 1;
 }
 
@@ -415,10 +416,10 @@ void Dump::write()
   // if sorting on IDs also request ID list from pack()
   // sort buf as needed
 
-  if (sort_flag && sortcol == 0) pack(ids);
+  if (sort_flag && (ntotal > 1) && sortcol == 0) pack(ids);
   else pack(nullptr);
-  if (sort_flag) sort();
-  if (balance_flag) balance();
+  if (sort_flag && (ntotal > 1)) sort();
+  if (balance_flag && (ntotal > 1)) balance();
 
   // write timestep header
   // for multiproc,

@@ -62,7 +62,7 @@ else
    STACK_TRACE_TERMINATE_FILTER :=
 endif
 
-TESTS = AtomicOperations_int AtomicOperations_unsignedint AtomicOperations_longint AtomicOperations_unsignedlongint AtomicOperations_longlongint AtomicOperations_double AtomicOperations_float AtomicOperations_complexdouble AtomicOperations_complexfloat AtomicViews Atomics BlockSizeDeduction Concepts Complex Crs DeepCopyAlignment FunctorAnalysis Init LocalDeepCopy MDRange_a MDRange_b MDRange_c MDRange_d MDRange_e MDRange_f Other RangePolicy RangePolicyRequire Reductions Reducers_a Reducers_b Reducers_c Reducers_d Reductions_DeviceView Scan SharedAlloc TeamBasic TeamReductionScan TeamScratch TeamTeamSize TeamVectorRange UniqueToken ViewAPI_a ViewAPI_b ViewAPI_c ViewAPI_d ViewAPI_e ViewCopy_a ViewCopy_b ViewLayoutStrideAssignment ViewMapping_a ViewMapping_b ViewMapping_subview ViewOfClass WorkGraph View_64bit ViewResize
+TESTS = AtomicOperations_int AtomicOperations_unsignedint AtomicOperations_longint AtomicOperations_unsignedlongint AtomicOperations_longlongint AtomicOperations_double AtomicOperations_float AtomicOperations_complexdouble AtomicOperations_complexfloat AtomicViews Atomics BlockSizeDeduction Concepts Complex Crs DeepCopyAlignment FunctorAnalysis Init LocalDeepCopy MDRange_a MDRange_b MDRange_c MDRange_d MDRange_e MDRange_f Other RangePolicy RangePolicyRequire Reductions Reducers_a Reducers_b Reducers_c Reducers_d Reducers_e Reductions_DeviceView Scan SharedAlloc TeamBasic TeamReductionScan TeamScratch TeamTeamSize TeamVectorRange UniqueToken ViewAPI_a ViewAPI_b ViewAPI_c ViewAPI_d ViewAPI_e ViewCopy_a ViewCopy_b ViewLayoutStrideAssignment ViewMapping_a ViewMapping_b ViewMapping_subview ViewOfClass WorkGraph View_64bit ViewResize
 
 tmp := $(foreach device, $(KOKKOS_DEVICELIST), \
   tmp2 := $(foreach test, $(TESTS), \
@@ -129,7 +129,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
     OBJ_CUDA += TestCuda_SubView_c13.o
     OBJ_CUDA += TestCuda_Reductions.o TestCuda_Scan.o
     OBJ_CUDA += TestCuda_Reductions_DeviceView.o
-    OBJ_CUDA += TestCuda_Reducers_a.o TestCuda_Reducers_b.o TestCuda_Reducers_c.o TestCuda_Reducers_d.o
+    OBJ_CUDA += TestCuda_Reducers_a.o TestCuda_Reducers_b.o TestCuda_Reducers_c.o TestCuda_Reducers_d.o TestCuda_Reducers_e.o
     OBJ_CUDA += TestCuda_Complex.o
     OBJ_CUDA += TestCuda_AtomicOperations_int.o TestCuda_AtomicOperations_unsignedint.o TestCuda_AtomicOperations_longint.o
     OBJ_CUDA += TestCuda_AtomicOperations_unsignedlongint.o TestCuda_AtomicOperations_longlongint.o TestCuda_AtomicOperations_double.o TestCuda_AtomicOperations_float.o
@@ -155,7 +155,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
     TEST_TARGETS += test-cuda
 endif
 
-ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)
+ifeq ($(KOKKOS_INTERNAL_USE_THREADS), 1)
     OBJ_THREADS = UnitTestMainInit.o gtest-all.o
     OBJ_THREADS += TestThreads_Init.o
     OBJ_THREADS += TestThreads_SharedAlloc.o
@@ -173,7 +173,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)
     OBJ_THREADS += TestThreads_SubView_c10.o TestThreads_SubView_c11.o TestThreads_SubView_c12.o
     OBJ_THREADS += TestThreads_Reductions.o TestThreads_Scan.o
     OBJ_THREADS += TestThreads_Reductions_DeviceView.o
-    OBJ_THREADS += TestThreads_Reducers_a.o TestThreads_Reducers_b.o TestThreads_Reducers_c.o TestThreads_Reducers_d.o
+    OBJ_THREADS += TestThreads_Reducers_a.o TestThreads_Reducers_b.o TestThreads_Reducers_c.o TestThreads_Reducers_d.o TestThreads_Reducers_e.o
     OBJ_THREADS += TestThreads_Complex.o
     OBJ_THREADS += TestThreads_AtomicOperations_int.o TestThreads_AtomicOperations_unsignedint.o TestThreads_AtomicOperations_longint.o
     OBJ_THREADS += TestThreads_AtomicOperations_unsignedlongint.o TestThreads_AtomicOperations_longlongint.o TestThreads_AtomicOperations_double.o TestThreads_AtomicOperations_float.o
@@ -209,7 +209,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
     OBJ_OPENMP += TestOpenMP_SubView_c13.o
     OBJ_OPENMP += TestOpenMP_Reductions.o TestOpenMP_Scan.o
     OBJ_OPENMP += TestOpenMP_Reductions_DeviceView.o
-    OBJ_OPENMP += TestOpenMP_Reducers_a.o TestOpenMP_Reducers_b.o TestOpenMP_Reducers_c.o TestOpenMP_Reducers_d.o
+    OBJ_OPENMP += TestOpenMP_Reducers_a.o TestOpenMP_Reducers_b.o TestOpenMP_Reducers_c.o TestOpenMP_Reducers_d.o TestOpenMP_Reducers_e.o
     OBJ_OPENMP += TestOpenMP_Complex.o
     OBJ_OPENMP += TestOpenMP_AtomicOperations_int.o TestOpenMP_AtomicOperations_unsignedint.o TestOpenMP_AtomicOperations_longint.o
     OBJ_OPENMP += TestOpenMP_AtomicOperations_unsignedlongint.o TestOpenMP_AtomicOperations_longlongint.o TestOpenMP_AtomicOperations_double.o TestOpenMP_AtomicOperations_float.o
@@ -250,7 +250,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMPTARGET), 1)
     #OBJ_OPENMPTARGET += TestOpenMPTarget_SubView_c07.o TestOpenMPTarget_SubView_c08.o TestOpenMPTarget_SubView_c09.o
     #OBJ_OPENMPTARGET += TestOpenMPTarget_SubView_c10.o TestOpenMPTarget_SubView_c11.o TestOpenMPTarget_SubView_c12.o
     #OBJ_OPENMPTARGET += TestOpenMPTarget_Reductions.o # Need custom reductions
-    OBJ_OPENMPTARGET += TestOpenMPTarget_Reducers_a.o TestOpenMPTarget_Reducers_b.o TestOpenMPTarget_Reducers_c.o TestOpenMPTarget_Reducers_d.o
+    OBJ_OPENMPTARGET += TestOpenMPTarget_Reducers_a.o TestOpenMPTarget_Reducers_b.o TestOpenMPTarget_Reducers_c.o TestOpenMPTarget_Reducers_d.o TestOpenMPTarget_Reducers_e.o
     #OBJ_OPENMPTARGET += TestOpenMPTarget_Scan.o
     OBJ_OPENMPTARGET += TestOpenMPTarget_Complex.o
     OBJ_OPENMPTARGET += TestOpenMPTarget_AtomicOperations_int.o TestOpenMPTarget_AtomicOperations_unsignedint.o TestOpenMPTarget_AtomicOperations_longint.o
@@ -285,7 +285,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_HIP), 1)
 
 	OBJ_HIP = UnitTestMainInit.o gtest-all.o
 	OBJ_HIP += TestHIP_Init.o
-	OBJ_HIP += TestHIP_Reducers_a.o TestHIP_Reducers_b.o TestHIP_Reducers_c.o TestHIP_Reducers_d.o
+	OBJ_HIP += TestHIP_Reducers_a.o TestHIP_Reducers_b.o TestHIP_Reducers_c.o TestHIP_Reducers_d.o TestHIP_Reducers_e.o
 	OBJ_HIP += TestHIP_Reductions.o
 	OBJ_HIP += TestHIP_MDRange_a.o TestHIP_MDRange_b.o TestHIP_MDRange_c.o TestHIP_MDRange_d.o TestHIP_MDRange_e.o
 	OBJ_HIP += TestHIP_Spaces.o
@@ -316,7 +316,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
 	OBJ_HPX += TestHPX_SubView_c13.o
 	OBJ_HPX += TestHPX_Reductions.o
 	OBJ_HPX += TestHPX_Scan.o
-	OBJ_HPX += TestHPX_Reducers_a.o TestHPX_Reducers_b.o TestHPX_Reducers_c.o TestHPX_Reducers_d.o
+	OBJ_HPX += TestHPX_Reducers_a.o TestHPX_Reducers_b.o TestHPX_Reducers_c.o TestHPX_Reducers_d.o TestHPX_Reducers_e.o
 	OBJ_HPX += TestHPX_Complex.o
 	OBJ_HPX += TestHPX_AtomicOperations_int.o TestHPX_AtomicOperations_unsignedint.o TestHPX_AtomicOperations_longint.o
 	OBJ_HPX += TestHPX_AtomicOperations_unsignedlongint.o TestHPX_AtomicOperations_longlongint.o TestHPX_AtomicOperations_double.o TestHPX_AtomicOperations_float.o
@@ -356,7 +356,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_SERIAL), 1)
     OBJ_SERIAL += TestSerial_SubView_c13.o
     OBJ_SERIAL += TestSerial_Reductions.o TestSerial_Scan.o
     OBJ_SERIAL += TestSerial_Reductions_DeviceView.o
-    OBJ_SERIAL += TestSerial_Reducers_a.o TestSerial_Reducers_b.o TestSerial_Reducers_c.o TestSerial_Reducers_d.o
+    OBJ_SERIAL += TestSerial_Reducers_a.o TestSerial_Reducers_b.o TestSerial_Reducers_c.o TestSerial_Reducers_d.o TestSerial_Reducers_e.o
     OBJ_SERIAL += TestSerial_Complex.o
     OBJ_SERIAL += TestSerial_AtomicOperations_int.o TestSerial_AtomicOperations_unsignedint.o TestSerial_AtomicOperations_longint.o
     OBJ_SERIAL += TestSerial_AtomicOperations_unsignedlongint.o TestSerial_AtomicOperations_longlongint.o TestSerial_AtomicOperations_double.o TestSerial_AtomicOperations_float.o

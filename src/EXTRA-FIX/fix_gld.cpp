@@ -633,6 +633,4 @@ void FixGLD::init_s_gld()
       }
     }
   }
-
-  return;
 }

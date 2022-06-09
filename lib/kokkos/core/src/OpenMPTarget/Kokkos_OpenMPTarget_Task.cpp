@@ -95,8 +95,6 @@ TaskExec<Kokkos::Experimental::OpenMPTarget>::TaskExec(
   Kokkos::memory_fence();
 }
 
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-
 void TaskExec<Kokkos::Experimental::OpenMPTarget>::team_barrier_impl() const {
   if (m_team_exec->scratch_reduce_size() < int(2 * sizeof(int64_t))) {
     Kokkos::abort("TaskQueue<OpenMPTarget> scratch_reduce memory too small");
@@ -124,8 +122,6 @@ void TaskExec<Kokkos::Experimental::OpenMPTarget>::team_barrier_impl() const {
     if (1000 < m_sync_step) m_sync_step = 0;
   }
 }
-
-#endif
 
 //----------------------------------------------------------------------------
 

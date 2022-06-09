@@ -1751,7 +1751,7 @@ void PairAmoeba::precond_neigh()
   int *neighptr;
 
   // set cutoffs and taper coeffs
-  // add skin to cutoff, same as for main neighbor list
+  // NOTE: add skin to cutoff, same as for main neighbor list ??
 
   choose(USOLV);
 

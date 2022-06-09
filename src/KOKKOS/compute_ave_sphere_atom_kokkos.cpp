@@ -138,7 +138,7 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void ComputeAveSphereAtomKokkos<DeviceType>::operator()(TagComputeAveSphereAtom, const int &ii) const
 {
-  double massone_i,massone_j,totalmass;
+  double massone_i,massone_j;
 
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
@@ -183,7 +183,6 @@ void ComputeAveSphereAtomKokkos<DeviceType>::operator()(TagComputeAveSphereAtom,
 
     // i atom contribution
 
-    totalmass = massone_i;
     double vnet[3];
     vnet[0] = v(i,0) - vcom[0];
     vnet[1] = v(i,1) - vcom[1];

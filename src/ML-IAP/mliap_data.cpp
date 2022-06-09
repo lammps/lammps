@@ -163,7 +163,7 @@ void MLIAPData::generate_neighdata(NeighList* list_in, int eflag_in, int vflag_i
 
   npairs = 0;
   int ij = 0;
-  for (int ii = 0; ii < natomneigh; ii++) {
+  for (int ii = 0; ii < nlistatoms; ii++) {
     const int i = ilist[ii];
 
     const double xtmp = x[i][0];

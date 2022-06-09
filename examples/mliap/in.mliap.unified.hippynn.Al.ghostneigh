@@ -24,7 +24,7 @@ mass 1 26.981
 
 # choose potential
 
-pair_style	mliap unified ghostneigh ../../../hippynn/examples/mliap_unified_hippynn_Al_multiple_layers.pkl
+pair_style	mliap unified ghostneigh ../../../hippynn/examples/mliap_unified_hippynn_Al_multilayer.pkl
 pair_coeff	* * Al
 
 # Setup output

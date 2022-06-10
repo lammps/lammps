@@ -1,6 +1,6 @@
-.. index:: fix mdi/aimd
+.. index:: fix mdi/qm
 
-fix mdi/aimd command
+fix mdi/qm command
 ======================
 
 Syntax
@@ -8,11 +8,21 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID mdi/aimd keyword
+   fix ID group-ID mdi/qm keyword
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* mdi/aimd = style name of this fix command
-* optional keyword = *plugin*
+* mdi/qm = style name of this fix command
+* zero or more keyword/value pairs may be appended
+* keyword = *plugin* or *add* of *every*
+
+  .. parsed-literal::
+
+       *plugin* args = none
+       *add* args = *yes* or *no*
+         yes = add returned value from server code to LAMMPS quantities
+         no = do not add returned values to LAMMPS quantities
+       *every* args = Nevery
+         Nevery = request values from server code once every Nevery steps
 
 Examples
 """"""""
@@ -26,17 +36,31 @@ Description
 """""""""""
 
 This command enables LAMMPS to act as a client with another server
-code to couple the two codes together to perform ab initio MD (AIMD)
-simulations.
+code that will compute the total energy, per-atom forces, and total
+virial for conformations and box size/shape that LAMMPS sends it.
 
-More specifically, this command causes LAMMPS to begin using the `MDI
-Library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_
-to run as an MDI driver (client), which sends MDI commands to an
-external MDI engine code (server) which in the case of AIMD is a
-quantum mechanics (QM) code, or could be LAMMPS itself, acting as a
-surrogate for a QM code.  See the :doc:`Howto mdi <Howto_mdi>` page
-for more information about how LAMMPS can operate as either an MDI
-driver or engine.
+Typically the server code will be a quantum code, hence the name of
+the fix.  However this is not required, the server code could be
+another classical molecular dynamics code or LAMMPS itself.  The
+server code must support use of the `MDI Library
+<https://molssi-mdi.github.io/MDI_Library/html/index.html>`_ as
+explained below.
+
+Example use cases for this fix are the following (discussed further
+below):
+
+* perform an ab intitio MD (AIMD) simulation with quantum forces
+* perform an energy minimziation with quantum forces
+* perform a nudged elatic band (NEB) calculation with quantum forces
+* LAMMPS reads or creates a series of configurations and requests a QM calculation for each one
+
+The code coupling performed by this command is done via the `MDI
+Library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
+LAMMPS runs as an MDI driver (client), and sends MDI commands to an
+external MDI engine code (server), e.g. a quantum code which has
+support for MDI.  See the :doc:`Howto mdi <Howto_mdi>` page for more
+information about how LAMMPS can operate as either an MDI driver or
+engine.
 
 The examples/mdi directory contains input scripts performing AIMD in
 this manner with LAMMPS acting as both a driver and an engine
@@ -47,11 +71,18 @@ MDI could be used in place of LAMMPS acting as a QM surrogate.  See
 the :doc:`Howto mdi <Howto_mdi>` page for a current list (March 2022)
 of such QM codes.
 
-The engine code can run either as a stand-alone code, launched at the
-same time as LAMMPS, or as a plugin library.  See the :doc:`mdi plugin
-<mdi>` command for how to trigger LAMMPS to load the plugin library.
-Again, the examples/mdi/README file explains how to launch both driver
-and engine codes so that engine is used in plugin mode.
+Engine codes can support MDI in either or both of two ways.  The
+engine code can support being used as a stand-alone code, launched at
+the same time as LAMMPS.  Or the engine code can support being used as
+a plugin library, which LAMMPS loads.  See the :doc:`mdi plugin <mdi>`
+command for how to trigger LAMMPS to load the plugin library.  The
+examples/mdi/README file explains both use cases: launching both the
+driver and engine as stand-alone codes or having the driver code load
+an engine as a plugin library.
+
+----------
+
+
 
 To use this fix with a plugin engine, you must specify the
 *plugin* keyword as the last argument, as illustrated above.
@@ -63,7 +94,9 @@ To use this fix with a plugin engine, you must specify the
 
 ----------
 
-This fix performs the timestepping portion of an AIMD simulation.
+----------
+
+This fix performs the timestepping portion of anAIMD simulation.
 Both LAMMPS and the engine code (QM or LAMMPS) should define the same
 system (simulation box, atoms and their types) in their respective
 input scripts.  LAMMPS then begins its timestepping.
@@ -83,11 +116,15 @@ This command is part of the MDI package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
 
+Stored values by fix: energy, per-atoms forces, virial.
+
+
+
 To use LAMMPS as an MDI driver in conjunction with other MDI-enabled
 atomistic codes, the :doc:`units <units>` command should be used to
 specify *real* or *metal* units.  This will ensure the correct unit
-conversions between LAMMPS and MDI units, which the other codes will
-also perform in their preferred units.
+conversions between LAMMPS and MDI units.  The other code will also
+perform similar unit conversions into its preferred units.
 
 LAMMPS can also be used as an MDI driver in other unit choices it
 supports, e.g. *lj*, but then no unit conversion is performed.
@@ -100,4 +137,5 @@ Related commands
 Default
 """""""
 
-none
+The default for the optional keywords is add = yes, every = 1.
+

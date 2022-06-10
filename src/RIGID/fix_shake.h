@@ -39,6 +39,7 @@ class FixShake : public Fix {
   void post_force(int) override;
   void post_force_respa(int, int, int) override;
   void min_post_force(int) override;
+  void post_run() override;
 
   double memory_usage() override;
   void grow_arrays(int) override;
@@ -59,6 +60,7 @@ class FixShake : public Fix {
   int dof(int) override;
   void reset_dt() override;
   void *extract(const char *, int &) override;
+  double compute_scalar() override;
 
  protected:
   int vflag_post_force;    // store the vflag of last post_force call
@@ -78,6 +80,7 @@ class FixShake : public Fix {
   int molecular;                             // copy of atom->molecular
   double *bond_distance, *angle_distance;    // constraint distances
   double kbond;                              // force constant for restraint
+  double ebond;                              // energy of bond restraints
 
   class FixRespa *fix_respa;    // rRESPA fix needed by SHAKE
   int nlevels_respa;            // copies of needed rRESPA variables

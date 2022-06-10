@@ -58,7 +58,9 @@ Description
 
 Apply bond and angle constraints to specified bonds and angles in the
 simulation by either the SHAKE or RATTLE algorithms.  This typically
-enables a longer timestep.
+enables a longer timestep.  This SHAKE or RATTLE algorithms can *only*
+be applied during molecular dynamics runs.  When this fix is used during
+a minimization, the constraints are replaced by strong harmonic restraints.
 
 **SHAKE vs RATTLE:**
 
@@ -166,10 +168,13 @@ See the :doc:`molecule <molecule>` command for details.  The only
 settings required to be in this file (by this command) are the SHAKE
 info of atoms in the molecule.
 
-The *kbond* keyword allows to set the restraint force constant when
-fix shake or fix rattle are used during minimization. In that case
-the constraint algorithms are **not** applied and restraint
-forces are used instead to help maintaining the geometries.
+The *kbond* keyword allows to set the restraint force constant when fix
+shake or fix rattle are used during minimization. In that case the
+constraint algorithms are *not* applied and restraint forces are used
+instead to help maintaining the geometries.  How well the geometries
+are maintained and how quickly a minimization will converge depends on
+the magnitude of the force constant (kbond).  If it is chosen too large
+the minimization may converge slowly.  The default is 1.0e6*k_B.
 
 ----------
 
@@ -202,6 +207,9 @@ Restart, fix_modify, output, run start/stop, minimize info
 No information about these fixes is written to :doc:`binary restart
 files <restart>`.
 
+When used during minimization, the SHAKE or RATTLE algorithms are **not**
+applied.  Strong restraint forces are applied instead.
+
 The :doc:`fix_modify <fix_modify>` *virial* option is supported by
 these fixes to add the contribution due to the added forces on atoms
 to both the global pressure and per-atom stress of the system via the
@@ -209,14 +217,15 @@ to both the global pressure and per-atom stress of the system via the
 stress/atom <compute_stress_atom>` commands.  The former can be
 accessed by :doc:`thermodynamic output <thermo_style>`.  The default
 setting for this fix is :doc:`fix_modify virial yes <fix_modify>`.
+During minimization, the virial contribution is *NOT* available.
 
-No global or per-atom quantities are stored by these fixes for access
-by various :doc:`output commands <Howto_output>`.  No parameter of
-these fixes can be used with the *start/stop* keywords of the
+No global or per-atom quantities are stored by these fixes for access by
+various :doc:`output commands <Howto_output>` during a run.  During
+minimization, this fix computes a global scalar which is the energy of
+the restraint forces applied insteat of the constraints.  No parameter
+of these fixes can be used with the *start/stop* keywords of the
 :doc:`run <run>` command.
 
-When used during minimization, the SHAKE or RATTLE algorithms are **not**
-applied.  Strong restraint forces are applied instead.
 
 Restrictions
 """"""""""""
@@ -249,7 +258,7 @@ Related commands
 Default
 """""""
 
-kbond = 1.0e6
+kbond = 1.0e9*k_B
 
 ----------
 

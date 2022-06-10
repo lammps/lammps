@@ -52,16 +52,17 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   loop_respa(nullptr), step_respa(nullptr), x(nullptr), v(nullptr), f(nullptr), ftmp(nullptr),
   vtmp(nullptr), mass(nullptr), rmass(nullptr), type(nullptr), shake_flag(nullptr),
   shake_atom(nullptr), shake_type(nullptr), xshake(nullptr), nshake(nullptr), list(nullptr),
-  b_count(nullptr), b_count_all(nullptr), b_atom(nullptr), b_atom_all(nullptr), b_ave(nullptr), b_max(nullptr),
-  b_min(nullptr), b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr), a_count(nullptr),
-  a_count_all(nullptr), a_ave(nullptr), a_max(nullptr), a_min(nullptr), a_ave_all(nullptr),
-  a_max_all(nullptr), a_min_all(nullptr), atommols(nullptr), onemols(nullptr)
+  b_count(nullptr), b_count_all(nullptr), b_atom(nullptr), b_atom_all(nullptr), b_ave(nullptr),
+  b_max(nullptr), b_min(nullptr), b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr),
+  a_count(nullptr), a_count_all(nullptr), a_ave(nullptr), a_max(nullptr), a_min(nullptr),
+  a_ave_all(nullptr), a_max_all(nullptr), a_min_all(nullptr), atommols(nullptr), onemols(nullptr)
 {
   energy_global_flag = energy_peratom_flag = 1;
   virial_global_flag = virial_peratom_flag = 1;
   thermo_energy = thermo_virial = 1;
   create_attribute = 1;
   dof_flag = 1;
+  scalar_flag = 1;
   stores_ids = 1;
   centroidstressflag = CENTROID_AVAIL;
   next_output = -1;
@@ -162,7 +163,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   // parse optional args
 
   onemols = nullptr;
-  kbond = 1.0e6;
+  kbond = 1.0e6*force->boltz;
 
   int iarg = next;
   while (iarg < narg) {
@@ -328,6 +329,7 @@ int FixShake::setmask()
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
+  mask |= POST_RUN;
   return mask;
 }
 
@@ -351,8 +353,8 @@ void FixShake::init()
   // that should contribute to potential energy
 
   if ((comm->me == 0) && (update->whichflag == 2))
-    error->warning(FLERR,"Using fix {} with minimization. Substituting constraints with "
-                   "restraint forces using k={:.4g}", style, kbond);
+    error->warning(FLERR,"Using fix {} with minimization.\n  Substituting constraints with "
+                   "harmonic restraint forces using kbond={:.4g}", style, kbond);
 
   // error if a fix changing the box comes before shake fix
   bool boxflag = false;
@@ -590,6 +592,7 @@ void FixShake::post_force(int vflag)
   // virial setup
 
   v_init(vflag);
+  ebond = 0.0;
 
   // loop over clusters to add constraint forces
 
@@ -669,13 +672,12 @@ void FixShake::min_post_force(int vflag)
       next_output = (ntimestep/output_every)*output_every + output_every;
   } else next_output = -1;
 
-  v_init(vflag);
-
   x = atom->x;
   f = atom->f;
   nlocal = atom->nlocal;
+  ebond = 0.0;
 
-  // loop over clusters to add strong restraint forces
+  // loop over shake clusters to add restraint forces
 
   for (int i = 0; i < nlist; i++) {
     int m = list[i];
@@ -2506,7 +2508,6 @@ void FixShake::shake3angle(int m)
 
 void FixShake::bond_force(tagint id1, tagint id2, double length)
 {
-
   int i1 = atom->map(id1);
   int i2 = atom->map(id2);
 
@@ -2525,25 +2526,18 @@ void FixShake::bond_force(tagint id1, tagint id2, double length)
   const double dr = r - length;
   const double rk = kbond * dr;
   const double fbond = (r > 0.0) ? -2.0 * rk / r : 0.0;
-  double v[6];
-  v[0] = 0.5 * delx * delx * fbond;
-  v[1] = 0.5 * dely * dely * fbond;
-  v[2] = 0.5 * delz * delz * fbond;
-  v[3] = 0.5 * delx * dely * fbond;
-  v[4] = 0.5 * delx * delz * fbond;
-  v[5] = 0.5 * dely * delz * fbond;
 
   if (i1 < nlocal) {
     f[i1][0] += delx * fbond;
     f[i1][1] += dely * fbond;
     f[i1][2] += delz * fbond;
-    if (evflag) v_tally(i1, v);
+    ebond += 0.5*rk*dr;
   }
   if (i2 < nlocal) {
     f[i2][0] -= delx * fbond;
     f[i2][1] -= dely * fbond;
     f[i2][2] -= delz * fbond;
-    if (evflag) v_tally(i2, v);
+    ebond += 0.5*rk*dr;
   }
 }
 
@@ -3101,6 +3095,26 @@ void *FixShake::extract(const char *str, int &dim)
   if (strcmp(str,"onemol") == 0) return onemols;
   return nullptr;
 }
+
+/* ----------------------------------------------------------------------
+   energy due to restraint forces
+------------------------------------------------------------------------- */
+
+double FixShake::compute_scalar()
+{
+  double all;
+  MPI_Allreduce(&ebond, &all, 1, MPI_DOUBLE, MPI_SUM, world);
+  return all;
+}
+
+/*  ----------------------------------------------------------------------
+   print shake stats at the end of a minimization
+------------------------------------------------------------------------- */
+void FixShake::post_run()
+{
+  if ((update->whichflag == 2) && (output_every > 0)) stats();
+}
+
 
 /* ----------------------------------------------------------------------
    add coordinate constraining forces

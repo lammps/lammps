@@ -46,13 +46,18 @@ template <class DeviceType> class ComputeAveSphereAtomKokkos : public ComputeAve
   void operator()(TagComputeAveSphereAtom, const int &) const;
 
  private:
-  typename AT::t_x_array_randomread x;
-  typename AT::t_v_array_randomread v;
+  double adof,mvv2e,mv2d,boltz;
+
+  typename AT::t_x_array x;
+  typename AT::t_v_array v;
+  typename ArrayTypes<DeviceType>::t_float_1d rmass;
+  typename ArrayTypes<DeviceType>::t_float_1d mass;
+  typename ArrayTypes<DeviceType>::t_int_1d type;
   typename ArrayTypes<DeviceType>::t_int_1d mask;
 
   typename AT::t_neighbors_2d d_neighbors;
-  typename AT::t_int_1d_randomread d_ilist;
-  typename AT::t_int_1d_randomread d_numneigh;
+  typename AT::t_int_1d d_ilist;
+  typename AT::t_int_1d d_numneigh;
 
   DAT::tdual_float_2d k_result;
   typename AT::t_float_2d d_result;

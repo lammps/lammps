@@ -168,13 +168,17 @@ See the :doc:`molecule <molecule>` command for details.  The only
 settings required to be in this file (by this command) are the SHAKE
 info of atoms in the molecule.
 
-The *kbond* keyword allows to set the restraint force constant when fix
-shake or fix rattle are used during minimization. In that case the
-constraint algorithms are *not* applied and restraint forces are used
-instead to help maintaining the geometries.  How well the geometries
-are maintained and how quickly a minimization will converge depends on
-the magnitude of the force constant (kbond).  If it is chosen too large
-the minimization may converge slowly.  The default is 1.0e6*k_B.
+The *kbond* keyword sets the restraint force constant when fix shake or
+fix rattle are used during minimization.  In that case the constraint
+algorithms are *not* applied and restraint forces are used instead to
+maintain the geometries similar to the constraints.  How well the
+geometries are maintained and how quickly a minimization converges,
+depends on the force constant *kbond*: larger values will reduce the
+deviation from the desired geometry, but can also lead to slower
+convergence of the minimization or lead to instabilities depending on
+the minimization algorithm requiring to reduce the value of
+:doc:`timestep <timestep>`.  The default value for *kbond* depends on
+the :doc:`units <units>` setting and is 1.0e6*k_B.
 
 ----------
 
@@ -190,7 +194,7 @@ LAMMPS closely follows (:ref:`Andersen (1983) <Andersen3>`).
 
 .. note::
 
-   The fix rattle command modifies forces and velocities and thus
+   The *fix rattle* command modifies forces and velocities and thus
    should be defined after all other integration fixes in your input
    script.  If you define other fixes that modify velocities or forces
    after fix rattle operates, then fix rattle will not take them into
@@ -207,24 +211,28 @@ Restart, fix_modify, output, run start/stop, minimize info
 No information about these fixes is written to :doc:`binary restart
 files <restart>`.
 
-When used during minimization, the SHAKE or RATTLE algorithms are **not**
-applied.  Strong restraint forces are applied instead.
+Fix *shake* and *rattle* behave differently during minimization and
+during a molecular dynamics run.
 
-The :doc:`fix_modify <fix_modify>` *virial* option is supported by
-these fixes to add the contribution due to the added forces on atoms
-to both the global pressure and per-atom stress of the system via the
-:doc:`compute pressure <compute_pressure>` and :doc:`compute
-stress/atom <compute_stress_atom>` commands.  The former can be
-accessed by :doc:`thermodynamic output <thermo_style>`.  The default
-setting for this fix is :doc:`fix_modify virial yes <fix_modify>`.
-During minimization, the virial contribution is *NOT* available.
+When used during minimization, the SHAKE or RATTLE algorithms are
+**not** applied.  The constraints are replaced by restraint forces
+instead.  The energy due to restraint forces is included in the global
+potential energy, but virial contributions from them are not included in
+the global pressure.  The restraint energy is also accessible as a
+global scalar property of the fix.
 
-No global or per-atom quantities are stored by these fixes for access by
-various :doc:`output commands <Howto_output>` during a run.  During
-minimization, this fix computes a global scalar which is the energy of
-the restraint forces applied insteat of the constraints.  No parameter
-of these fixes can be used with the *start/stop* keywords of the
-:doc:`run <run>` command.
+During molecular dynamics runs, the fixes apply the requested
+constraints.  The :doc:`fix_modify <fix_modify>` *virial* option is in
+this case supported by these fixes to add the contribution due to the
+added constraint forces on atoms to both the global pressure and
+per-atom stress of the system via the :doc:`compute pressure
+<compute_pressure>` and :doc:`compute stress/atom <compute_stress_atom>`
+commands.  The former can be accessed by :doc:`thermodynamic output
+<thermo_style>`.  The default setting for this fix is :doc:`fix_modify
+virial yes <fix_modify>`. No global or per-atom quantities are stored by
+these fixes for access by various :doc:`output commands <Howto_output>`
+during a run.  No parameter of these fixes can be used with the
+*start/stop* keywords of the :doc:`run <run>` command.
 
 
 Restrictions

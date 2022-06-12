@@ -1,0 +1,142 @@
+// clang-format off
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+#include "fix_temp_integrate.h"
+
+#include "atom.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "respa.h"
+#include "update.h"
+
+using namespace LAMMPS_NS;
+using namespace FixConst;
+
+enum {NONE, CONSTANT, TYPE};
+
+/* ---------------------------------------------------------------------- */
+
+FixTempIntegrate::FixTempIntegrate(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg)
+{
+  if (narg < 4) error->all(FLERR,"Illegal fix command");
+
+  cp_style = NONE;
+
+  int ntypes = atom->ntypes;
+  int iarg = 3;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg+1],"constant") == 0) {
+      if (iarg+2 >= narg) error->all(FLERR,"Illegal fix command");
+      cp_style = CONSTANT;
+      cp = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      if (cp < 0.0) error->all(FLERR,"Illegal fix command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg+1],"type") == 0) {
+      if (iarg+1+ntypes >= narg) error->all(FLERR,"Illegal fix command");
+      cp_style = TYPE;
+      memory->create(cp_type,ntypes+1,"fix/temp/integrate:cp_type");
+      for (int i = 1; i <= ntypes; i++) {
+        cp_type[i] = utils::numeric(FLERR,arg[iarg+1+i],false,lmp);
+        if (cp_type[i] < 0.0) error->all(FLERR,"Illegal fix command");
+      }
+      iarg += 1+ntypes;
+    } else {
+      error->all(FLERR,"Illegal fix command");
+    }
+    iarg += 1;
+  }
+
+  if (cp_style == NONE)
+    error->all(FLERR, "Must specify specific heat in fix temp/integrate");
+  dynamic_group_allow = 1;
+  time_integrate = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixTempIntegrate::setmask()
+{
+  int mask = 0;
+  mask |= FINAL_INTEGRATE;
+  mask |= FINAL_INTEGRATE_RESPA;
+  return mask;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixTempIntegrate::init()
+{
+  dt = update->dt;
+
+  if (!atom->temperature_flag)
+    error->all(FLERR,"Fix temp/integrate requires atom style with temperature property");
+  if (!atom->heatflux_flag)
+    error->all(FLERR,"Fix temp/integrate requires atom style with heatflux property");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixTempIntegrate::final_integrate()
+{
+  // update temperature of atoms in group
+
+  double *temperature = atom->temperature;
+  double *heatflux = atom->heatflux;
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+
+  if (rmass) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+        temperature[i] += dt * heatflux[i] / (calc_cp(i) * rmass[i]);
+      }
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+        temperature[i] += dt * heatflux[i] / (calc_cp(i) * mass[type[i]]);
+      }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixTempIntegrate::final_integrate_respa(int ilevel, int /*iloop*/)
+{
+  dt = update->dt;
+  final_integrate();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixTempIntegrate::reset_dt()
+{
+  dt = update->dt;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixTempIntegrate::calc_cp(int i)
+{
+  if (cp_style == TYPE) {
+    return cp_type[atom->type[i]];
+  } else {
+    return cp;
+  }
+}

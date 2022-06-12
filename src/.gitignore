@@ -421,14 +421,14 @@
 /atom_vec_full.h
 /atom_vec_full_hars.cpp
 /atom_vec_full_hars.h
-/atom_vec_granular.cpp
-/atom_vec_granular.h
 /atom_vec_molecular.cpp
 /atom_vec_molecular.h
 /atom_vec_oxdna.cpp
 /atom_vec_oxdna.h
 /atom_vec_peri.cpp
 /atom_vec_peri.h
+/atom_vec_sphere_temperature.cpp
+/atom_vec_sphere_temperature.h
 /atom_vec_template.cpp
 /atom_vec_template.h
 /body_nparticle.cpp
@@ -1510,6 +1510,8 @@
 /fix_smd_wall_surface.h
 /fix_srp.cpp
 /fix_srp.h
+/fix_temp_integrate.cpp
+/fix_temp_integrate.h
 /fix_tfmc.cpp
 /fix_tfmc.h
 /fix_ttm.cpp

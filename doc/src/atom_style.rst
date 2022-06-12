@@ -121,6 +121,8 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *sphere*     | diameter, mass, angular velocity                    | granular models                      |
 +--------------+-----------------------------------------------------+--------------------------------------+
+| *sphere/temp*| diameter, mass, angular velocity, temperature       | thermal granular models              |
++--------------+-----------------------------------------------------+--------------------------------------+
 | *bpm/sphere* | diameter, mass, angular velocity, quaternion        | granular bonded particle models (BPM)|
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *spin*       | magnetic moment                                     | system with magnetic particles       |
@@ -144,7 +146,7 @@ quantities.
    output the custom values.
 
 All of the above styles define point particles, except the *sphere*,
-*bpm/sphere*, *ellipsoid*, *electron*, *peri*, *wavepacket*, *line*,
+*sphere/temp*, *bpm/sphere*, *ellipsoid*, *electron*, *peri*, *wavepacket*, *line*,
 *tri*, and *body* styles, which define finite-size particles.  See the
 :doc:`Howto spherical <Howto_spherical>` page for an overview of using
 finite-size particle models with LAMMPS.
@@ -154,15 +156,15 @@ per-type basis, using the :doc:`mass <mass>` command, The finite-size
 particle styles assign mass to individual particles on a per-particle
 basis.
 
-For the *sphere* and *bpm/sphere* styles, the particles are spheres and each stores a
-per-particle diameter and mass.  If the diameter > 0.0, the particle
-is a finite-size sphere.  If the diameter = 0.0, it is a point
-particle.  Note that by use of the *disc* keyword with the :doc:`fix
+For the *sphere*, *sphere/temp*, and *bpm/sphere* styles, the particles
+are spheres and each stores a per-particle diameter and mass.  If the
+diameter > 0.0, the particle is a finite-size sphere.  If the diameter = 0.0,
+it is a point particle.  Note that by use of the *disc* keyword with the :doc:`fix
 nve/sphere <fix_nve_sphere>`, :doc:`fix nvt/sphere <fix_nvt_sphere>`,
 :doc:`fix nph/sphere <fix_nph_sphere>`, :doc:`fix npt/sphere
 <fix_npt_sphere>` commands for the *sphere* style, spheres can be effectively treated as 2d
 discs for a 2d simulation if desired.  See also the :doc:`set
-density/disc <set>` command.  The *sphere* and *bpm/sphere* styles take an optional 0
+density/disc <set>` command.  These styles take an optional 0
 or 1 argument.  A value of 0 means the radius of each sphere is
 constant for the duration of the simulation.  A value of 1 means the
 radii may vary dynamically during the simulation, e.g. due to use of

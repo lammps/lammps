@@ -63,12 +63,18 @@ The package also provides a :doc:`mdi plugin <mdi>` command which
 enables LAMMPS to operate as an MDI driver and load an MDI engine as a
 plugin library.
 
-The package also has a `fix mdi/aimd <fix_mdi_aimd>` command in which
-LAMMPS operates as an MDI driver to perform *ab initio* MD simulations
-in conjunction with a quantum mechanics code.  Its post_force() method
-illustrates how a driver issues MDI commands to another code.  This
-command can be used to couple to an MDI engine which is either a
-stand-alone code or a plugin library.
+The package also has a `fix mdi/qm <fix_mdi_qm>` command in which
+LAMMPS operates as an MDI driver in conjunction with a quantum
+mechanics code as an MDI engine.  The post_force() method of the
+fix_mdi_qm.cpp file shows how a driver issues MDI commands to another
+code.  This command can be used to couple to an MDI engine which is
+either a stand-alone code or a plugin library.
+
+As explained on the `fix mdi/qm <fix_mdi_qm>` command doc page, it can
+be used to perform *ab initio* MD simulations or energy minimizations,
+or to evalute the quantum energy and forces for a series of
+independent systems.  The examples/mdi directory has example input
+scripts for all of these use cases.
 
 ----------
 

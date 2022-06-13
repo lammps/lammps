@@ -13,22 +13,22 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(mdi/aimd,FixMDIAimd);
+FixStyle(mdi/qm,FixMDIQM);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_MDI_AIMD_H
-#define LMP_FIX_MDI_AIMD_H
+#ifndef LMP_FIX_MDI_QM_H
+#define LMP_FIX_MDI_QM_H
 
 #include "fix.h"
 #include <mdi.h>
 
 namespace LAMMPS_NS {
 
-class FixMDIAimd : public Fix {
+class FixMDIQM : public Fix {
  public:
-  FixMDIAimd(class LAMMPS *, int, char **);
-  ~FixMDIAimd();
+  FixMDIQM(class LAMMPS *, int, char **);
+  ~FixMDIQM();
   int setmask();
 
   void init();

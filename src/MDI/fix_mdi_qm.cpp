@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "fix_mdi_aimd.h"
+#include "fix_mdi_qm.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
@@ -27,10 +27,8 @@ enum { NATIVE, REAL, METAL };    // LAMMPS units which MDI supports
 
 /* ---------------------------------------------------------------------- */
 
-FixMDIAimd::FixMDIAimd(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR, "Illegal fix mdi/aimd command");
-
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
@@ -40,8 +38,8 @@ FixMDIAimd::FixMDIAimd(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   // check requirements for LAMMPS to work with MDI as an engine
 
-  if (atom->tag_enable == 0) error->all(FLERR, "Cannot use MDI engine without atom IDs");
-
+  if (atom->tag_enable == 0) 
+    error->all(FLERR, "Cannot use MDI engine without atom IDs");
   if (atom->natoms && atom->tag_consecutive() == 0)
     error->all(FLERR, "MDI engine requires consecutive atom IDs");
 
@@ -50,7 +48,28 @@ FixMDIAimd::FixMDIAimd(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   int role;
   MDI_Get_role(&role);
   if (role != MDI_DRIVER)
-    error->all(FLERR, "Must invoke LAMMPS as an MDI driver to use fix mdi/aimd");
+    error->all(FLERR, "Must invoke LAMMPS as an MDI driver to use fix mdi/qm");
+
+  // optional args
+
+  addflag = 1;
+  every = 1;
+
+  int iarg = 3;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"add") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix mdi/qm command");
+      if (strcmp(arg[iarg],"yes") == 0) addflag = 1;
+      else if (strcmp(arg[iarg],"no") == 0) addflag = 0;
+      else error->all(FLERR,"Illegal fix mdi/qm command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"every") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix mdi/qm command");
+      every = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      if (every < 0) error->all(FLERR,"Illegal fix mdi/qm command");
+      iarg += 2;
+    } else error->all(FLERR,"Illegal fix mdi/qm command");
+  }
 
   // mdicomm will be one-time initialized in init()
   // cannot be done here for a plugin library, b/c mdi plugin command is later
@@ -78,7 +97,7 @@ FixMDIAimd::FixMDIAimd(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
 /* ---------------------------------------------------------------------- */
 
-FixMDIAimd::~FixMDIAimd()
+FixMDIQM::~FixMDIQM()
 {
   // send exit command to engine if it is a stand-alone code
   // for plugin, this happens in MDIPlugin::plugin_wrapper()
@@ -96,7 +115,7 @@ FixMDIAimd::~FixMDIAimd()
 
 /* ---------------------------------------------------------------------- */
 
-int FixMDIAimd::setmask()
+int FixMDIQM::setmask()
 {
   int mask = 0;
   mask |= PRE_REVERSE;
@@ -107,7 +126,7 @@ int FixMDIAimd::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIAimd::init()
+void FixMDIQM::init()
 {
   if (mdicomm != MDI_COMM_NULL) return;
 
@@ -120,25 +139,27 @@ void FixMDIAimd::init()
   if (mdicomm == MDI_COMM_NULL) {
     plugin = 0;
     MDI_Accept_communicator(&mdicomm);
-    if (mdicomm == MDI_COMM_NULL) error->all(FLERR, "MDI unable to connect to stand-alone engine");
+    if (mdicomm == MDI_COMM_NULL) 
+      error->all(FLERR, "MDI unable to connect to stand-alone engine");
   } else {
     plugin = 1;
     int method;
     MDI_Get_method(&method, mdicomm);
-    if (method != MDI_PLUGIN) error->all(FLERR, "MDI internal error for plugin engine");
+    if (method != MDI_PLUGIN) 
+      error->all(FLERR, "MDI internal error for plugin engine");
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIAimd::setup(int vflag)
+void FixMDIQM::setup(int vflag)
 {
   post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIAimd::setup_pre_reverse(int eflag, int vflag)
+void FixMDIQM::setup_pre_reverse(int eflag, int vflag)
 {
   pre_reverse(eflag, vflag);
 }
@@ -147,14 +168,14 @@ void FixMDIAimd::setup_pre_reverse(int eflag, int vflag)
    store eflag, so can use it in post_force to request energy
 ------------------------------------------------------------------------- */
 
-void FixMDIAimd::pre_reverse(int eflag, int /*vflag*/)
+void FixMDIQM::pre_reverse(int eflag, int /*vflag*/)
 {
   eflag_caller = eflag;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIAimd::post_force(int vflag)
+void FixMDIQM::post_force(int vflag)
 {
   int ilocal, ierr;
   double cell[9];
@@ -266,7 +287,7 @@ void FixMDIAimd::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIAimd::min_post_force(int vflag)
+void FixMDIQM::min_post_force(int vflag)
 {
   post_force(vflag);
 }
@@ -275,7 +296,7 @@ void FixMDIAimd::min_post_force(int vflag)
    energy from MDI engine
 ------------------------------------------------------------------------- */
 
-double FixMDIAimd::compute_scalar()
+double FixMDIQM::compute_scalar()
 {
   return engine_energy;
 }
@@ -284,12 +305,12 @@ double FixMDIAimd::compute_scalar()
    reallocate storage for all atoms if necessary
 ------------------------------------------------------------------------- */
 
-void FixMDIAimd::reallocate()
+void FixMDIQM::reallocate()
 {
   if (atom->natoms <= maxbuf) return;
 
   if (3 * atom->natoms > MAXSMALLINT)
-    error->all(FLERR, "Natoms too large to use with fix mdi/aimd");
+    error->all(FLERR, "Natoms too large to use with fix mdi/qm");
 
   maxbuf = atom->natoms;
 
@@ -304,7 +325,7 @@ void FixMDIAimd::reallocate()
    MDI to/from LAMMPS conversion factors
 ------------------------------------------------------------------------- */
 
-void FixMDIAimd::unit_conversions()
+void FixMDIQM::unit_conversions()
 {
   double angstrom_to_bohr, kelvin_to_hartree, ev_to_hartree, second_to_aut;
 

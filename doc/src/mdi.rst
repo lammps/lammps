@@ -270,7 +270,7 @@ The *command* keyword is required.  It specifies a LAMMPS input script
 command (as a single argument in quotes if it is multiple words).
 Once the plugin library is launched, LAMMPS will execute this command.
 Other previously-defined commands in the input script, such as the
-:doc:`fix mdi/aimd <fix_mdi_aimd>` command, should perform MDI
+:doc:`fix mdi/qm <fix_mdi_qm>` command, should perform MDI
 communication with the engine, while the specified *command* executes.
 Note that if *command* is an :doc:`include <include>` command, then it
 could specify a filename with multiple LAMMPS commands.
@@ -304,7 +304,7 @@ supports, e.g. *lj*, but then no unit conversion is performed.
 Related commands
 """"""""""""""""
 
-:doc:`fix mdi/aimd <fix_mdi_aimd>`
+:doc:`fix mdi/qm <fix_mdi_qm>`
 
 Default
 """""""

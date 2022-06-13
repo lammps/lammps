@@ -43,7 +43,7 @@ class PairMEAM : public Pair {
   void unpack_reverse_comm(int, int *, double *) override;
   double memory_usage() override;
 
- private:
+ protected:
   class MEAM *meam_inst;
   double cutmax;                           // max cutoff for all elements
   int nlibelements;                        // # of library elements
@@ -52,7 +52,7 @@ class PairMEAM : public Pair {
 
   double **scale;    // scaling factor for adapt
 
-  void allocate();
+  virtual void allocate();
   void read_files(const std::string &, const std::string &);
   void read_global_meam_file(const std::string &);
   void read_user_meam_file(const std::string &);

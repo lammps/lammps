@@ -207,6 +207,13 @@ action nbin_ssa_kokkos.cpp nbin_ssa.cpp
 action nbin_ssa_kokkos.h nbin_ssa.h
 action math_special_kokkos.cpp
 action math_special_kokkos.h
+action meam_setup_done_kokkos.h meam_setup_done.cpp
+action meam_kokkos.h meam.h
+action meam_impl_kokkos.h meam_impl.cpp
+action meam_funcs_kokkos.h meam_funcs.cpp
+action meam_force_kokkos.h meam_force.cpp
+action meam_dens_init_kokkos.h meam_dens_init.cpp
+action meam_dens_final_kokkos.h meam_dens_final.cpp
 action min_cg_kokkos.cpp
 action min_cg_kokkos.h
 action min_kokkos.cpp
@@ -287,6 +294,8 @@ action pair_lj_gromacs_kokkos.cpp pair_lj_gromacs.cpp
 action pair_lj_gromacs_kokkos.h pair_lj_gromacs.h
 action pair_lj_sdk_kokkos.cpp pair_lj_sdk.cpp
 action pair_lj_sdk_kokkos.h pair_lj_sdk.h
+action pair_meam_kokkos.h pair_meam.h
+action pair_meam_kokkos.cpp pair_meam.cpp
 action pair_morse_kokkos.cpp
 action pair_morse_kokkos.h
 action pair_multi_lucy_rx_kokkos.cpp pair_multi_lucy_rx.cpp

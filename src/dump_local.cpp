@@ -101,11 +101,15 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   // setup column string
 
   std::string cols;
+  cols.clear();
+  keyword_user.resize(nfield);
   for (int iarg = 0; iarg < nfield; iarg++) {
+    key2col[earg[iarg]] = iarg;
+    keyword_user[iarg].clear();
+    if (cols.size()) cols += " ";
     cols += earg[iarg];
-    cols += " ";
   }
-  columns = utils::strdup(cols);
+  columns_default = utils::strdup(cols);
 
   // setup default label string
 
@@ -152,6 +156,19 @@ void DumpLocal::init_style()
 {
   if (sort_flag && sortcol == 0)
     error->all(FLERR,"Dump local cannot sort by atom ID");
+
+  // assemble ITEMS: column string from defaults and user values
+
+  delete[] columns;
+  std::string combined;
+  int icol = 0;
+  for (auto item : utils::split_words(columns_default)) {
+    if (combined.size()) combined += " ";
+    if (keyword_user[icol].size()) combined += keyword_user[icol];
+    else combined += item;
+    ++icol;
+  }
+  columns = utils::strdup(combined);
 
   // format = copy of default or user-specified line format
 

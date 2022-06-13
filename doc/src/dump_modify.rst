@@ -17,7 +17,7 @@ Syntax
 * one or more keyword/value pairs may be appended
 
 * these keywords apply to various dump styles
-* keyword = *append* or *at* or *balance* or *buffer* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
+* keyword = *append* or *at* or *balance* or *buffer* or *colname* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
 
   .. parsed-literal::
 
@@ -381,10 +381,10 @@ performed with dump style *xtc*\ .
 ----------
 
 The *colname* keyword can be used to change the default header keyword
-for dump styles: *atom*, *custom*, and *cfg* and their compressed, ADIOS,
-and MPIIO variants.  The setting for *ID string* replaces the default
-text with the provided string.  *ID* can be a positive integer when it
-represents the column number counting from the left, a negative integer
+for dump styles: *atom*, *custom*, *cfg*, and *local* and their compressed,
+ADIOS, and MPIIO variants.  The setting for *ID string* replaces the
+default text with the provided string.  *ID* can be a positive integer when
+it represents the column number counting from the left, a negative integer
 when it represents the column number from the right (i.e. -1 is the last
 column/keyword), or a custom dump keyword (or compute, fix, property, or
 variable reference) and then it replaces the string for that specific

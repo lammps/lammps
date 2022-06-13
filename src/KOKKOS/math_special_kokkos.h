@@ -50,6 +50,18 @@ namespace MathSpecialKokkos {
 #endif
   }
 
+#define FM_DOUBLE_LOG2OFE  1.4426950408889634074
+  // fast e**x function for little endian CPUs, falls back to libc on other platforms
+  KOKKOS_INLINE_FUNCTION
+  static double fm_exp(double x)
+  {
+#if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+    return exp2_x86(FM_DOUBLE_LOG2OFE * x);
+#else
+    return ::exp(x);
+#endif
+  }
+
   // x**2, use instead of pow(x,2.0)
   KOKKOS_INLINE_FUNCTION
   static double square(const double &x) { return x*x; }

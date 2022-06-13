@@ -29,7 +29,7 @@ class MEAM {
   MEAM(Memory *mem);
   ~MEAM();
 
- private:
+ protected:
   Memory *memory;
 
   // cutforce = force cutoff

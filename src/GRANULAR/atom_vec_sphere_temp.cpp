@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "atom_vec_sphere_temperature.h"
+#include "atom_vec_sphere_temp.h"
 
 #include "atom.h"
 #include "error.h"
@@ -25,7 +25,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecSphereTemperature::AtomVecSphereTemperature(LAMMPS *lmp) : AtomVec(lmp)
+AtomVecSphereTemp::AtomVecSphereTemp(LAMMPS *lmp) : AtomVec(lmp)
 {
   mass_type = PER_ATOM;
   molecular = Atom::ATOMIC;
@@ -57,7 +57,7 @@ AtomVecSphereTemperature::AtomVecSphereTemperature(LAMMPS *lmp) : AtomVec(lmp)
    optional arg = 0/1 for static/dynamic particle radii
 ------------------------------------------------------------------------- */
 
-void AtomVecSphereTemperature::process_args(int narg, char **arg)
+void AtomVecSphereTemp::process_args(int narg, char **arg)
 {
   if (narg != 0 && narg != 1) error->all(FLERR, "Illegal atom_style sphere command");
 
@@ -81,7 +81,7 @@ void AtomVecSphereTemperature::process_args(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-void AtomVecSphereTemperature::init()
+void AtomVecSphereTemp::init()
 {
   AtomVec::init();
 
@@ -100,7 +100,7 @@ void AtomVecSphereTemperature::init()
    needed in replicate when 2 atom classes exist and it calls pack_restart()
 ------------------------------------------------------------------------- */
 
-void AtomVecSphereTemperature::grow_pointers()
+void AtomVecSphereTemp::grow_pointers()
 {
   radius = atom->radius;
   rmass = atom->rmass;
@@ -111,7 +111,7 @@ void AtomVecSphereTemperature::grow_pointers()
    initialize non-zero atom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVecSphereTemperature::create_atom_post(int ilocal)
+void AtomVecSphereTemp::create_atom_post(int ilocal)
 {
   radius[ilocal] = 0.5;
   rmass[ilocal] = 4.0 * MY_PI / 3.0 * 0.5 * 0.5 * 0.5;
@@ -122,7 +122,7 @@ void AtomVecSphereTemperature::create_atom_post(int ilocal)
    or initialize other atom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVecSphereTemperature::data_atom_post(int ilocal)
+void AtomVecSphereTemp::data_atom_post(int ilocal)
 {
   radius_one = 0.5 * atom->radius[ilocal];
   radius[ilocal] = radius_one;
@@ -139,7 +139,7 @@ void AtomVecSphereTemperature::data_atom_post(int ilocal)
    modify values for AtomVec::pack_data() to pack
 ------------------------------------------------------------------------- */
 
-void AtomVecSphereTemperature::pack_data_pre(int ilocal)
+void AtomVecSphereTemp::pack_data_pre(int ilocal)
 {
   radius_one = radius[ilocal];
   rmass_one = rmass[ilocal];
@@ -153,7 +153,7 @@ void AtomVecSphereTemperature::pack_data_pre(int ilocal)
    unmodify values packed by AtomVec::pack_data()
 ------------------------------------------------------------------------- */
 
-void AtomVecSphereTemperature::pack_data_post(int ilocal)
+void AtomVecSphereTemp::pack_data_post(int ilocal)
 {
   radius[ilocal] = radius_one;
   rmass[ilocal] = rmass_one;

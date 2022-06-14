@@ -48,25 +48,32 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   virialflag = 0;
   addflag = 1;
   every = 1;
+  extflag = 0;
 
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"virial") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix mdi/qm command");
-      if (strcmp(arg[iarg],"yes") == 0) virialflag = 1;
-      else if (strcmp(arg[iarg],"no") == 0) virialflag = 0;
+      if (strcmp(arg[iarg+1],"yes") == 0) virialflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) virialflag = 0;
       else error->all(FLERR,"Illegal fix mdi/qm command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"add") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix mdi/qm command");
-      if (strcmp(arg[iarg],"yes") == 0) addflag = 1;
-      else if (strcmp(arg[iarg],"no") == 0) addflag = 0;
+      if (strcmp(arg[iarg+1],"yes") == 0) addflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) addflag = 0;
       else error->all(FLERR,"Illegal fix mdi/qm command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix mdi/qm command");
       every = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (every <= 0) error->all(FLERR,"Illegal fix mdi/qm command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"external") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix mdi/qm command");
+      if (strcmp(arg[iarg+1],"yes") == 0) extflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) extflag = 0;
+      else error->all(FLERR,"Illegal fix mdi/qm command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix mdi/qm command");
   }
@@ -77,10 +84,14 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   global_freq = every;
   extscalar = 1;
 
+  peratom_flag = 1;
+  size_peratom_cols = 3;
+  peratom_freq = every;
+  extvector = 0;
+
   if (virialflag) {
     vector_flag = 1;
     size_vector = 6;
-    extvector = 1;
   }
 
   if (addflag) {
@@ -135,7 +146,7 @@ FixMDIQM::~FixMDIQM()
   // send exit command to engine if it is a stand-alone code
   // for plugin, this happens in MDIPlugin::plugin_wrapper()
 
-  if (!plugin) {
+  if (!plugin && !extflag) {
     int ierr = MDI_Send_command("EXIT", mdicomm);
     if (ierr) error->all(FLERR, "MDI: EXIT command");
   }
@@ -169,6 +180,8 @@ void FixMDIQM::init()
   // also initializes mdicomm
   // set plugin = 0/1 for engine = stand-alone code vs plugin library
 
+  if (!extflag) {
+
   if (mdicomm == MDI_COMM_NULL) {
     MDI_Get_communicator(&mdicomm, 0);
     if (mdicomm == MDI_COMM_NULL) {
@@ -185,16 +198,23 @@ void FixMDIQM::init()
     }
   }
 
+  } else {
+    plugin = 0;
+    mdicomm = lmp->mdicomm;
+  }
+
   // send natoms, atom types, and simulation box to engine
   // this will trigger setup of a new system
   // subsequent calls in post_force() will be for same system until new init()
+
+  reallocate();
 
   int ierr = MDI_Send_command(">NATOMS", mdicomm);
   if (ierr) error->all(FLERR, "MDI: >NATOMS command");
   int n = static_cast<int> (atom->natoms);
   ierr = MDI_Send(&n, 1, MDI_INT, mdicomm);
   if (ierr) error->all(FLERR, "MDI: >NATOMS data");
-  
+
   send_types();
   send_box();
 }
@@ -293,31 +313,25 @@ void FixMDIQM::post_force(int vflag)
   }
 
   // optionally request pressure tensor from MDI engine, convert to virial
-  // divide by nprocs so each proc stores a portion
-  //   MPI_Allreduce is performed in compute_vector()
   // qm_virial = fix output for global QM virial
 
   if (virialflag) {
-    double ptensor[6];
     ierr = MDI_Send_command("<STRESS", mdicomm);
     if (ierr) error->all(FLERR, "MDI: <STRESS command");
-    ierr = MDI_Recv(ptensor, 6, MDI_DOUBLE, mdicomm);
+    ierr = MDI_Recv(qm_virial, 6, MDI_DOUBLE, mdicomm);
     if (ierr) error->all(FLERR, "MDI: <STRESS data");
-    MPI_Bcast(ptensor, 6, MPI_DOUBLE, 0, world);
+    MPI_Bcast(qm_virial, 6, MPI_DOUBLE, 0, world);
 
-    double volume = domain->xprd * domain->yprd * domain->zprd;
-    for (int i = 0; i < 6; i++) {
-      ptensor[i] *= mdi2lmp_pressure;
-      qm_virial[i] = ptensor[i] * volume / force->nktv2p / nprocs;
-    }
-    sumflag = 0;
+    for (int i = 0; i < 6; i++)
+      qm_virial[i] *= mdi2lmp_pressure;
   }
 
   // optionally set fix->virial
+  // divide by nprocs so each proc stores a portion
 
   if (virialflag && addflag) {
     for (int i = 0; i < 6; i++)
-      virial[i] = qm_virial[i];
+      virial[i] = qm_virial[i]/nprocs;
   }
 }
 
@@ -343,14 +357,7 @@ double FixMDIQM::compute_scalar()
 
 double FixMDIQM::compute_vector(int n)
 {
-  // only sum across procs one time
-
-  if (sumflag == 0) {
-    MPI_Allreduce(qm_virial, qm_virial_all, 6, MPI_DOUBLE, MPI_SUM, world);
-    sumflag = 1;
-  }
-
-  return qm_virial_all[n];
+  return qm_virial[n];
 }
 
 /* ----------------------------------------------------------------------
@@ -388,7 +395,8 @@ void FixMDIQM::reallocate()
 
 void FixMDIQM::send_types()
 {
-  memset(ibuf1, 0, atom->natoms * sizeof(int));
+  int n = static_cast<int> (atom->natoms);
+  memset(ibuf1, 0, n * sizeof(int));
 
   // use local atomID to index into ordered ibuf1
 
@@ -402,10 +410,11 @@ void FixMDIQM::send_types()
     ibuf1[index] = type[i];
   }
 
-  int n = static_cast<int> (atom->natoms);
   MPI_Reduce(ibuf1, ibuf1all, n, MPI_INT, MPI_SUM, 0, world);
 
-  int ierr = MDI_Send(ibuf1all, n, MDI_INT, mdicomm);
+  int ierr = MDI_Send_command(">TYPES", mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >TYPES command");
+  ierr = MDI_Send(ibuf1all, n, MDI_INT, mdicomm);
   if (ierr) error->all(FLERR, "MDI: >TYPES data");
 }
 

@@ -40,7 +40,7 @@ class FixMDIQM : public Fix {
 
  private:
   int nprocs;
-  int virialflag,addflag,every;
+  int virialflag,addflag,extflag,every;
   int plugin;
   int maxlocal;
   int sumflag;

@@ -303,5 +303,5 @@ if not plugin:
 
 if plugin:
   world = MPI.COMM_WORLD
-  plugin_args += " -mdi \"-role ENGINE -name lammps -method LINK\""
+  plugin_args += " -mdi \"-role ENGINE -name LMP -method LINK\""
   mdi.MDI_Launch_plugin(plugin,plugin_args,world,perform_tasks,None)

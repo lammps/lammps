@@ -50,7 +50,7 @@ changed in the in.aimd.engine or in.aimd.engine.plugin scripts.
 Run the entire calculation with a single instance of LAMMPS by itself
   results should be identical to running this example with MDI
 
-% lmp_mpi < in.aimd.alone
+% lmp_mpi -log log.aimd.alone < in.aimd.alone
 
 With MDI, the thermo output of the driver should match the thermo
 output of the in.aimd.alone script.
@@ -59,41 +59,157 @@ output of the in.aimd.alone script.
 
 Run with TCP: 1 proc each
 
-% lmp_mpi -mdi "-name aimd -role DRIVER -method TCP -port 8021" -log log.aimd.driver -in in.aimd.driver
+% lmp_mpi -mdi "-name LMP1 -role DRIVER -method TCP -port 8021" -log log.aimd.driver.tcp -in in.aimd.driver
 
-% lmp_mpi -mdi "-name LAMMPS -role ENGINE -method TCP -port 8021 -hostname localhost" -log log.aimd.engine -in in.aimd.engine
+% lmp_mpi -mdi "-name LMP2 -role ENGINE -method TCP -port 8021 -hostname localhost" -log log.aimd.engine.tcp -in in.aimd.engine
 
 ---
 
 Run with TCP: 3 procs + 4 procs
 
-% mpirun -np 3 lmp_mpi -mdi "-name aimd -role DRIVER -method TCP -port 8021" -log log.aimd.driver -in in.aimd.driver
+% mpirun -np 3 lmp_mpi -mdi "-name LMP1 -role DRIVER -method TCP -port 8021" -log log.aimd.driver.tcp -in in.aimd.driver
 
-% mpirun -np 4 lmp_mpi -mdi "-name LAMMPS -role ENGINE -method TCP -port 8021 -hostname localhost" -log log.aimd.engine -in in.aimd.engine
+% mpirun -np 4 lmp_mpi -mdi "-name LMP2 -role ENGINE -method TCP -port 8021 -hostname localhost" -log log.aimd.engine.tcp -in in.aimd.engine
 
 ---
 
 Run with MPI: 1 proc each
 
-% mpirun -np 1 lmp_mpi -mdi "-name aimd -role DRIVER -method MPI" -log log.aimd.driver -in in.aimd.driver : -np 1 lmp_mpi -mdi "-name LAMMPS -role ENGINE -method MPI" -log log.aimd.engine -in in.aimd.engine
+% mpirun -np 1 lmp_mpi -mdi "-name LMP1 -role DRIVER -method MPI" -log log.aimd.driver.mpi -in in.aimd.driver : -np 1 lmp_mpi -mdi "-name LMP2 -role ENGINE -method MPI" -log log.aimd.engine.mpi -in in.aimd.engine
 
 ---
 
 Run with MPI: 3 procs + 4 procs
 
-% mpirun -np 3 lmp_mpi -mdi "-name aimd -role DRIVER -method MPI" -log log.aimd.driver -in in.aimd.driver : -np 4 lmp_mpi -mdi "-name LAMMPS -role ENGINE -method MPI" -log log.aimd.engine -in in.aimd.engine
+% mpirun -np 3 lmp_mpi -mdi "-name LMP1 -role DRIVER -method MPI" -log log.aimd.driver.mpi -in in.aimd.driver : -np 4 lmp_mpi -mdi "-name LMP2 -role ENGINE -method MPI" -log log.aimd.engine.mpi -in in.aimd.engine
 
 ---
 
 Run in plugin mode: 1 proc
 
-% lmp_mpi -mdi "-name aimd -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/src" -log log.aimd.driver.plugin -in in.aimd.driver.plugin
+% lmp_mpi -mdi "-name LMP1 -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/src" -log log.aimd.driver.plugin -in in.aimd.driver.plugin
 
 ---
 
 Run in plugin mode: 3 procs
 
-% mpirun -np 3 lmp_mpi -mdi "-name aimd -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/src" -log log.aimd.driver.plugin -in in.aimd.driver.plugin
+% mpirun -np 3 lmp_mpi -mdi "-name LMP1 -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/src" -log log.aimd.driver.plugin -in in.aimd.driver.plugin
+
+-------------------------------------------------
+-------------------------------------------------
+
+* Example #1b = run LAMMPS, compute QM forces on snapshots from a long run
+  Two instances of LAMMPS operate as a driver and engine
+  As an engine, LAMMPS is a surrogate for a quantum code
+
+---
+
+Run the entire calculation with a single instance of LAMMPS by itself
+  results should be identical to running this example with MDI
+
+% lmp_mpi -log log.snapshot.alone < in.snapshot.alone
+
+With MDI, the thermo output of the driver should match the thermo
+output of the in.snapshot.alone script.  Likewise the dump file written
+by the driver should match dump.snapshot.alone.
+
+---
+
+Run with TCP: 1 proc each
+
+% lmp_mpi -mdi "-name LMP1 -role DRIVER -method TCP -port 8021" -log log.snapshot.driver.tcp -in in.snapshot.driver
+
+% lmp_mpi -mdi "-name LMP2 -role ENGINE -method TCP -port 8021 -hostname localhost" -log log.snapshot.engine.tcp -in in.snapshot.engine
+
+---
+
+Run with TCP: 3 procs + 4 procs
+
+% mpirun -np 3 lmp_mpi -mdi "-name LMP1 -role DRIVER -method TCP -port 8021" -log log.snapshot.driver.tcp -in in.snapshot.driver
+
+% mpirun -np 4 lmp_mpi -mdi "-name LMP2 -role ENGINE -method TCP -port 8021 -hostname localhost" -log log.snapshot.engine.tcp -in in.snapshot.engine
+
+---
+
+Run with MPI: 1 proc each
+
+% mpirun -np 1 lmp_mpi -mdi "-name LMP1 -role DRIVER -method MPI" -log log.snapshot.driver.mpi -in in.snapshot.driver : -np 1 lmp_mpi -mdi "-name LMP2 -role ENGINE -method MPI" -log log.snapshot.engine.mpi -in in.snapshot.engine
+
+---
+
+Run with MPI: 3 procs + 4 procs
+
+% mpirun -np 3 lmp_mpi -mdi "-name LMP1 -role DRIVER -method MPI" -log log.snapshot.driver.mpi -in in.snapshot.driver : -np 4 lmp_mpi -mdi "-name LMP2 -role ENGINE -method MPI" -log log.snapshot.engine.mpi -in in.snapshot.engine
+
+---
+
+Run in plugin mode: 1 proc
+
+% lmp_mpi -mdi "-name LMP1 -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/src" -log log.snapshot.driver.plugin -in in.snapshot.driver.plugin
+
+---
+
+Run in plugin mode: 3 procs
+
+% mpirun -np 3 lmp_mpi -mdi "-name LMP1 -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/src" -log log.snapshot.driver.plugin -in in.snapshot.driver.plugin
+
+-------------------------------------------------
+-------------------------------------------------
+
+* Example #1c = run LAMMPS, compute QM forces on series of independent systems
+  Two instances of LAMMPS operate as a driver and engine
+  As an engine, LAMMPS is a surrogate for a quantum code
+
+---
+
+Run the entire calculation with a single instance of LAMMPS by itself
+  results should be identical to running this example with MDI
+
+% lmp_mpi -log log.series.alone < in.series.alone
+
+With MDI, the thermo output of the driver should match the thermo
+output of the in.series.alone script.  Likewise the dump files written
+by the driver should match dump.series.alone files.
+
+---
+
+Run with TCP: 1 proc each
+
+% lmp_mpi -mdi "-name LMP1 -role DRIVER -method TCP -port 8021" -log log.series.driver.tcp -in in.series.driver
+
+% lmp_mpi -mdi "-name LMP2 -role ENGINE -method TCP -port 8021 -hostname localhost" -log log.series.engine.tcp -in in.series.engine
+
+---
+
+Run with TCP: 3 procs + 4 procs
+
+% mpirun -np 3 lmp_mpi -mdi "-name LMP1 -role DRIVER -method TCP -port 8021" -log log.series.driver.tcp -in in.series.driver
+
+% mpirun -np 4 lmp_mpi -mdi "-name LMP2 -role ENGINE -method TCP -port 8021 -hostname localhost" -log log.series.engine.tcp -in in.series.engine
+
+---
+
+Run with MPI: 1 proc each
+
+% mpirun -np 1 lmp_mpi -mdi "-name LMP1 -role DRIVER -method MPI" -log log.series.driver.mpi -in in.series.driver : -np 1 lmp_mpi -mdi "-name LMP2 -role ENGINE -method MPI" -log log.series.engine.mpi -in in.series.engine
+
+---
+
+Run with MPI: 3 procs + 4 procs
+
+% mpirun -np 3 lmp_mpi -mdi "-name LMP1 -role DRIVER -method MPI" -log log.series.driver.mpi -in in.series.driver : -np 4 lmp_mpi -mdi "-name LMP2 -role ENGINE -method MPI" -log log.series.engine.mpi -in in.series.engine
+
+---
+
+Run in plugin mode: 1 proc
+
+% lmp_mpi -mdi "-name LMP1 -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/src" -log log.series.driver.plugin -in in.series.driver.plugin
+
+---
+
+Run in plugin mode: 3 procs
+
+% mpirun -np 3 lmp_mpi -mdi "-name LMP1 -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/src" -log log.series.driver.plugin -in in.series.driver.plugin
 
 -------------------------------------------------
 -------------------------------------------------
@@ -134,7 +250,7 @@ Run with TCP: 1 proc each
 
 % python3 sequence_driver.py -mdi "-role DRIVER -name sequence -method TCP -port 8021"
 
-% lmp_mpi -mdi "-role ENGINE -name LAMMPS -method TCP -port 8021 -hostname localhost" -log log.sequence -in in.sequence
+% lmp_mpi -mdi "-role ENGINE -name LMP -method TCP -port 8021 -hostname localhost" -log log.sequence -in in.sequence.python
 
 ---
 
@@ -142,31 +258,31 @@ Run with TCP: 2 proc + 4 procs
 
 % mpirun -np 2 python3 sequence_driver.py -mdi "-role DRIVER -name sequence -method TCP -port 8021"
 
-% mpirun -np 4 lmp_mpi -mdi "-role ENGINE -name LAMMPS -method TCP -port 8021 -hostname localhost" -log log.sequence -in in.sequence
+% mpirun -np 4 lmp_mpi -mdi "-role ENGINE -name LMP -method TCP -port 8021 -hostname localhost" -log log.sequence -in in.sequence.python
 
 ---
 
 Run with MPI: 1 proc each
 
-% mpirun -np 1 python3 sequence_driver.py -mdi "-role DRIVER -name sequence -method MPI" : -np 1 lmp_mpi -mdi "-role ENGINE -name LAMMPS -method MPI" -log log.sequence -in in.sequence
+% mpirun -np 1 python3 sequence_driver.py -mdi "-role DRIVER -name sequence -method MPI" : -np 1 lmp_mpi -mdi "-role ENGINE -name LAMMPS -method MPI" -log log.sequence -in in.sequence.python
 
 ---
 
 Run with MPI: 2 procs + 4 procs
 
-% mpirun -np 2 python3 sequence_driver.py -mdi "-role DRIVER -name sequence -method MPI" : -np 4 lmp_mpi -mdi "-role ENGINE -name LAMMPS -method MPI" -log log.sequence -in in.sequence
+% mpirun -np 2 python3 sequence_driver.py -mdi "-role DRIVER -name sequence -method MPI" : -np 4 lmp_mpi -mdi "-role ENGINE -name LMP -method MPI" -log log.sequence -in in.sequence.python
 
 ---
 
 Run in plugin mode: 1 proc
 
-% python3 sequence_driver.py -plugin lammps -mdi "-role DRIVER -name sequence -method LINK -plugin_path /home/sjplimp/lammps/git/src" -plugin_args "-log log.sequence -in in.sequence"
+% python3 sequence_driver.py -plugin lammps -mdi "-role DRIVER -name sequence -method LINK -plugin_path /home/sjplimp/lammps/git/src" -plugin_args "-log log.sequence -in in.sequence".python
 
 ---
 
 Run in plugin mode: 3 procs
 
-% mpirun -np 3 python3 sequence_driver.py -plugin lammps -mdi "-role DRIVER -name sequence -method LINK -plugin_path /home/sjplimp/lammps/git/src" -plugin_args "-log log.sequence -in in.sequence"
+% mpirun -np 3 python3 sequence_driver.py -plugin lammps -mdi "-role DRIVER -name sequence -method LINK -plugin_path /home/sjplimp/lammps/git/src" -plugin_args "-log log.sequence -in in.sequence".python
 
 -------------------------------------------------
 -------------------------------------------------
@@ -190,7 +306,7 @@ here:
 Run the entire calculation with a single instance of LAMMPS by itself
   results should be identical to running this example with MDI
 
-% lmp_mpi < in.aimd.alone
+% lmp_mpi -log log.aimd.alone < in.aimd.alone
 
 With MDI, the driver prints the QM and Total energies.  These should
 match the PotEng and TotEng output of the in.aimd.alone script.

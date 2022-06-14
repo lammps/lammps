@@ -219,10 +219,10 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
             fprintf(fdel,"\t%s",del_species[i].c_str());
           fprintf(fdel,"\n");
           fflush(fdel);
-        } else error->all(FLERR, "Illegal fix reaxff/species command");
+        }
 
         iarg += ndelspec + 4;
-      }
+      } else error->all(FLERR, "Illegal fix reaxff/species command");
 
       // position of molecules
     } else if (strcmp(arg[iarg], "position") == 0) {

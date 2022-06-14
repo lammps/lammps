@@ -135,7 +135,7 @@ MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char ** /*arg*/) : Pointers(_lmp)
   ibuf1 = ibuf1all = nullptr;
 
   maxatom = 0;
-  sys_natoms = atom->natoms;
+  sys_natoms = static_cast<int> (atom->natoms);
   reallocate();
 
   nsteps = 0;
@@ -1239,7 +1239,7 @@ void MDIEngine::receive_velocities()
 
 void MDIEngine::receive_double3(int which)
 {
-  int n = 3 * atom->natoms;
+  int n = 3 * sys_natoms;
   int ierr = MDI_Recv(buf3, n, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: <double3 data");
   MPI_Bcast(buf3, n, MPI_DOUBLE, 0, world);
@@ -1352,10 +1352,10 @@ void MDIEngine::send_total_energy()
 
 void MDIEngine::send_labels()
 {
-  auto labels = new char[atom->natoms * MDI_LABEL_LENGTH];
-  memset(labels, ' ', atom->natoms * MDI_LABEL_LENGTH);
+  auto labels = new char[sys_natoms * MDI_LABEL_LENGTH];
+  memset(labels, ' ', sys_natoms * MDI_LABEL_LENGTH);
 
-  memset(ibuf1, 0, atom->natoms * sizeof(int));
+  memset(ibuf1, 0, sys_natoms * sizeof(int));
 
   // use atomID to index into ordered ibuf1
 
@@ -1370,17 +1370,17 @@ void MDIEngine::send_labels()
     ibuf1[ilocal] = type[i];
   }
 
-  MPI_Reduce(ibuf1, ibuf1all, atom->natoms, MPI_INT, MPI_SUM, 0, world);
+  MPI_Reduce(ibuf1, ibuf1all, sys_natoms, MPI_INT, MPI_SUM, 0, world);
 
   if (comm->me == 0) {
-    for (int iatom = 0; iatom < atom->natoms; iatom++) {
+    for (int iatom = 0; iatom < sys_natoms; iatom++) {
       std::string label = std::to_string(ibuf1all[iatom]);
       int label_len = std::min(int(label.length()), MDI_LABEL_LENGTH);
       strncpy(&labels[iatom * MDI_LABEL_LENGTH], label.c_str(), label_len);
     }
   }
 
-  int ierr = MDI_Send(labels, atom->natoms * MDI_LABEL_LENGTH, MDI_CHAR, mdicomm);
+  int ierr = MDI_Send(labels, sys_natoms * MDI_LABEL_LENGTH, MDI_CHAR, mdicomm);
   if (ierr) error->all(FLERR, "MDI: <LABELS data");
 
   delete[] labels;
@@ -1393,8 +1393,7 @@ void MDIEngine::send_labels()
 
 void MDIEngine::send_natoms()
 {
-  int natoms = static_cast<int>(atom->natoms);
-  int ierr = MDI_Send(&natoms, 1, MDI_INT, mdicomm);
+  int ierr = MDI_Send(&sys_natoms, 1, MDI_INT, mdicomm);
   if (ierr != 0) error->all(FLERR, "MDI: <NATOMS data");
 }
 
@@ -1435,7 +1434,7 @@ void MDIEngine::send_stress()
 
 void MDIEngine::send_double1(int which)
 {
-  memset(buf1, 0, atom->natoms * sizeof(double));
+  memset(buf1, 0, sys_natoms * sizeof(double));
 
   // use atomID to index into ordered buf1
 
@@ -1467,9 +1466,9 @@ void MDIEngine::send_double1(int which)
     }
   }
 
-  MPI_Reduce(buf1, buf1all, atom->natoms, MPI_DOUBLE, MPI_SUM, 0, world);
+  MPI_Reduce(buf1, buf1all, sys_natoms, MPI_DOUBLE, MPI_SUM, 0, world);
 
-  int ierr = MDI_Send(buf1all, atom->natoms, MDI_DOUBLE, mdicomm);
+  int ierr = MDI_Send(buf1all, sys_natoms, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: <double1 data");
 }
 
@@ -1481,7 +1480,7 @@ void MDIEngine::send_double1(int which)
 
 void MDIEngine::send_int1(int which)
 {
-  memset(ibuf1, 0, atom->natoms * sizeof(int));
+  memset(ibuf1, 0, sys_natoms * sizeof(int));
 
   // use atomID to index into ordered ibuf1
 
@@ -1498,9 +1497,9 @@ void MDIEngine::send_int1(int which)
     }
   }
 
-  MPI_Reduce(ibuf1, ibuf1all, atom->natoms, MPI_INT, MPI_SUM, 0, world);
+  MPI_Reduce(ibuf1, ibuf1all, sys_natoms, MPI_INT, MPI_SUM, 0, world);
 
-  int ierr = MDI_Send(ibuf1all, atom->natoms, MDI_INT, mdicomm);
+  int ierr = MDI_Send(ibuf1all, sys_natoms, MDI_INT, mdicomm);
   if (ierr) error->all(FLERR, "MDI: <int1 data");
 }
 
@@ -1512,7 +1511,7 @@ void MDIEngine::send_int1(int which)
 
 void MDIEngine::send_double3(int which)
 {
-  memset(buf3, 0, 3 * atom->natoms * sizeof(double));
+  memset(buf3, 0, 3 * sys_natoms * sizeof(double));
 
   // use atomID to index into ordered buf3
 
@@ -1547,9 +1546,9 @@ void MDIEngine::send_double3(int which)
     }
   }
 
-  MPI_Reduce(buf3, buf3all, 3 * atom->natoms, MPI_DOUBLE, MPI_SUM, 0, world);
+  MPI_Reduce(buf3, buf3all, 3 * sys_natoms, MPI_DOUBLE, MPI_SUM, 0, world);
 
-  int ierr = MDI_Send(buf3all, 3 * atom->natoms, MDI_DOUBLE, mdicomm);
+  int ierr = MDI_Send(buf3all, 3 * sys_natoms, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: <double3 data");
 }
 
@@ -1663,7 +1662,8 @@ void MDIEngine::reallocate()
 {
   if (sys_natoms <= maxatom) return;
 
-  if (3 * sys_natoms > MAXSMALLINT) error->all(FLERR, "Natoms too large to use with mdi engine");
+  bigint nsize = (bigint) sys_natoms * 3;
+  if (nsize > MAXSMALLINT) error->all(FLERR, "Natoms too large to use with mdi engine");
 
   maxatom = sys_natoms;
 

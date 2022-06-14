@@ -29,13 +29,6 @@ enum { NATIVE, REAL, METAL };    // LAMMPS units which MDI supports
 
 FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
-  scalar_flag = 1;
-  global_freq = 1;
-  extscalar = 1;
-  energy_global_flag = 1;
-  virial_global_flag = 1;
-  thermo_energy = thermo_virial = 1;
-
   // check requirements for LAMMPS to work with MDI as an engine
 
   if (atom->tag_enable == 0) 
@@ -52,12 +45,19 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   // optional args
 
+  virialflag = 0;
   addflag = 1;
   every = 1;
 
   int iarg = 3;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"add") == 0) {
+    if (strcmp(arg[iarg],"virial") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix mdi/qm command");
+      if (strcmp(arg[iarg],"yes") == 0) virialflag = 1;
+      else if (strcmp(arg[iarg],"no") == 0) virialflag = 0;
+      else error->all(FLERR,"Illegal fix mdi/qm command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"add") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix mdi/qm command");
       if (strcmp(arg[iarg],"yes") == 0) addflag = 1;
       else if (strcmp(arg[iarg],"no") == 0) addflag = 0;
@@ -66,9 +66,27 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix mdi/qm command");
       every = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (every < 0) error->all(FLERR,"Illegal fix mdi/qm command");
+      if (every <= 0) error->all(FLERR,"Illegal fix mdi/qm command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix mdi/qm command");
+  }
+
+  // fix output settings are based on optional keywords
+
+  scalar_flag = 1;
+  global_freq = every;
+  extscalar = 1;
+
+  if (virialflag) {
+    vector_flag = 1;
+    size_vector = 6;
+    extvector = 1;
+  }
+
+  if (addflag) {
+    energy_global_flag = 1;
+    virial_global_flag = 1;
+    thermo_energy = thermo_virial = 1;
   }
 
   // mdicomm will be one-time initialized in init()
@@ -76,8 +94,12 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   mdicomm = MDI_COMM_NULL;
 
-  // storage for all atoms
+  // peratom storage, both for nlocal and global natoms
 
+  fqm = nullptr;
+  maxlocal = 0;
+
+  ibuf1 = ibuf1all = nullptr;
   buf3 = buf3all = nullptr;
   maxbuf = 0;
 
@@ -93,6 +115,17 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   unit_conversions();
 
   nprocs = comm->nprocs;
+
+  // initialize outputs
+
+  qm_energy = 0.0;
+  if (virialflag) {
+    for (int i = 0; i < 6; i++) {
+      qm_virial[i] = 0.0;
+      virial[i] = 0.0;
+    }
+    sumflag = 0;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -109,6 +142,10 @@ FixMDIQM::~FixMDIQM()
 
   // clean up
 
+  memory->destroy(fqm);
+
+  memory->destroy(ibuf1);
+  memory->destroy(ibuf1all);
   memory->destroy(buf3);
   memory->destroy(buf3all);
 }
@@ -128,26 +165,38 @@ int FixMDIQM::setmask()
 
 void FixMDIQM::init()
 {
-  if (mdicomm != MDI_COMM_NULL) return;
-
   // one-time auto-detect whether engine is stand-alone code or plugin library
   // also initializes mdicomm
-  // plugin = 0/1 for engine = stand-alone code vs plugin library
-
-  MDI_Get_communicator(&mdicomm, 0);
+  // set plugin = 0/1 for engine = stand-alone code vs plugin library
 
   if (mdicomm == MDI_COMM_NULL) {
-    plugin = 0;
-    MDI_Accept_communicator(&mdicomm);
-    if (mdicomm == MDI_COMM_NULL) 
-      error->all(FLERR, "MDI unable to connect to stand-alone engine");
-  } else {
-    plugin = 1;
-    int method;
-    MDI_Get_method(&method, mdicomm);
-    if (method != MDI_PLUGIN) 
-      error->all(FLERR, "MDI internal error for plugin engine");
+    MDI_Get_communicator(&mdicomm, 0);
+    if (mdicomm == MDI_COMM_NULL) {
+      plugin = 0;
+      MDI_Accept_communicator(&mdicomm);
+      if (mdicomm == MDI_COMM_NULL) 
+        error->all(FLERR, "MDI unable to connect to stand-alone engine");
+    } else {
+      plugin = 1;
+      int method;
+      MDI_Get_method(&method, mdicomm);
+      if (method != MDI_PLUGIN) 
+        error->all(FLERR, "MDI internal error for plugin engine");
+    }
   }
+
+  // send natoms, atom types, and simulation box to engine
+  // this will trigger setup of a new system
+  // subsequent calls in post_force() will be for same system until new init()
+
+  int ierr = MDI_Send_command(">NATOMS", mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >NATOMS command");
+  int n = static_cast<int> (atom->natoms);
+  ierr = MDI_Send(&n, 1, MDI_INT, mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >NATOMS data");
+  
+  send_types();
+  send_box();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -159,59 +208,25 @@ void FixMDIQM::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIQM::setup_pre_reverse(int eflag, int vflag)
-{
-  pre_reverse(eflag, vflag);
-}
-
-/* ----------------------------------------------------------------------
-   store eflag, so can use it in post_force to request energy
-------------------------------------------------------------------------- */
-
-void FixMDIQM::pre_reverse(int eflag, int /*vflag*/)
-{
-  eflag_caller = eflag;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixMDIQM::post_force(int vflag)
 {
-  int ilocal, ierr;
-  double cell[9];
+  int index, ierr;
 
-  int eflag = eflag_caller;
-  ev_init(eflag, vflag);
+  // skip if timestep is not a multiple of every
+
+  if (update->ntimestep % every) return;
+
+  // reallocate peratom storage if necessary, both natoms and nlocal
+
+  reallocate();
 
   // if simulation box dynamically changes, send current box to MDI engine
 
-  if (domain->box_change_size || domain->box_change_shape) {
-    ierr = MDI_Send_command(">CELL_DISPL", mdicomm);
-    if (ierr) error->all(FLERR, "MDI: >CELL_DISPL command");
-    cell[0] = domain->boxlo[0] * lmp2mdi_length;
-    cell[1] = domain->boxlo[1] * lmp2mdi_length;
-    cell[2] = domain->boxlo[2] * lmp2mdi_length;
-    ierr = MDI_Send(cell, 3, MDI_DOUBLE, mdicomm);
-    if (ierr) error->all(FLERR, "MDI: >CELL_DISPL data");
-
-    ierr = MDI_Send_command(">CELL", mdicomm);
-    if (ierr) error->all(FLERR, "MDI: >CELL command");
-    cell[0] = domain->boxhi[0] - domain->boxlo[0];
-    cell[1] = 0.0;
-    cell[2] = 0.0;
-    cell[3] = domain->xy;
-    cell[4] = domain->boxhi[1] - domain->boxlo[1];
-    cell[5] = 0.0;
-    cell[6] = domain->xz;
-    cell[7] = domain->yz;
-    cell[8] = domain->boxhi[2] - domain->boxlo[2];
-    ierr = MDI_Send(cell, 9, MDI_DOUBLE, mdicomm);
-    if (ierr) error->all(FLERR, "MDI: >CELL data");
-  }
+  if (domain->box_change_size || domain->box_change_shape)
+    send_box();
 
   // gather all coords, ordered by atomID
 
-  reallocate();
   memset(buf3, 0, 3 * atom->natoms * sizeof(double));
 
   double **x = atom->x;
@@ -219,13 +234,14 @@ void FixMDIQM::post_force(int vflag)
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    ilocal = static_cast<int>(tag[i]) - 1;
-    buf3[3 * ilocal + 0] = x[i][0] * lmp2mdi_length;
-    buf3[3 * ilocal + 1] = x[i][1] * lmp2mdi_length;
-    buf3[3 * ilocal + 2] = x[i][2] * lmp2mdi_length;
+    index = static_cast<int>(tag[i]) - 1;
+    buf3[3 * index + 0] = x[i][0] * lmp2mdi_length;
+    buf3[3 * index + 1] = x[i][1] * lmp2mdi_length;
+    buf3[3 * index + 2] = x[i][2] * lmp2mdi_length;
   }
 
-  MPI_Reduce(buf3, buf3all, 3 * atom->natoms, MPI_DOUBLE, MPI_SUM, 0, world);
+  int n = static_cast<int> (atom->natoms);
+  MPI_Reduce(buf3, buf3all, 3 * n, MPI_DOUBLE, MPI_SUM, 0, world);
 
   // send current coords to MDI engine
 
@@ -234,42 +250,54 @@ void FixMDIQM::post_force(int vflag)
   ierr = MDI_Send(buf3all, 3 * atom->natoms, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: >COORDS data");
 
+  // request potential energy from MDI engine
+  // this triggers engine to perform QM calculation
+  // qm_energy = fix output for global QM energy
+
+  ierr = MDI_Send_command("<PE", mdicomm);
+  if (ierr) error->all(FLERR, "MDI: <PE command");
+  ierr = MDI_Recv(&qm_energy, 1, MDI_DOUBLE, mdicomm);
+  if (ierr) error->all(FLERR, "MDI: <PE data");
+  MPI_Bcast(&qm_energy, 1, MPI_DOUBLE, 0, world);
+  qm_energy *= mdi2lmp_energy;
+
   // request forces from MDI engine
-  // this triggers engine to evaluate forces,energy,stress for current system
 
   ierr = MDI_Send_command("<FORCES", mdicomm);
   if (ierr) error->all(FLERR, "MDI: <FORCES command");
   ierr = MDI_Recv(buf3, 3 * atom->natoms, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: <FORCES data");
-  MPI_Bcast(buf3, 3 * atom->natoms, MPI_DOUBLE, 0, world);
+  MPI_Bcast(buf3, 3 * n, MPI_DOUBLE, 0, world);
 
-  // add forces to owned atoms
-  // use atomID to index into ordered buf3
-
-  double **f = atom->f;
+  // fqm = fix output for peratom QM forces
+  // use atomID of local atoms to index into ordered buf3
 
   for (int i = 0; i < nlocal; i++) {
-    ilocal = static_cast<int>(tag[i]) - 1;
-    f[i][0] += buf3[3 * ilocal + 0] * mdi2lmp_force;
-    f[i][1] += buf3[3 * ilocal + 1] * mdi2lmp_force;
-    f[i][2] += buf3[3 * ilocal + 2] * mdi2lmp_force;
+    index = static_cast<int>(tag[i]) - 1;
+    fqm[i][0] = buf3[3 * index + 0] * mdi2lmp_force;
+    fqm[i][1] = buf3[3 * index + 1] * mdi2lmp_force;
+    fqm[i][2] = buf3[3 * index + 2] * mdi2lmp_force;
   }
 
-  // optionally request potential energy from MDI engine
+  // optionally add forces to owned atoms
+  // use atomID of local atoms to index into ordered buf3
 
-  if (eflag_global) {
-    ierr = MDI_Send_command("<PE", mdicomm);
-    if (ierr) error->all(FLERR, "MDI: <PE command");
-    ierr = MDI_Recv(&engine_energy, 1, MDI_DOUBLE, mdicomm);
-    if (ierr) error->all(FLERR, "MDI: <PE data");
-    MPI_Bcast(&engine_energy, 1, MPI_DOUBLE, 0, world);
-    engine_energy *= mdi2lmp_energy;
+  if (addflag) {
+    double **f = atom->f;
+    for (int i = 0; i < nlocal; i++) {
+      index = static_cast<int>(tag[i]) - 1;
+      f[i][0] += buf3[3 * index + 0] * mdi2lmp_force;
+      f[i][1] += buf3[3 * index + 1] * mdi2lmp_force;
+      f[i][2] += buf3[3 * index + 2] * mdi2lmp_force;
+    }
   }
 
   // optionally request pressure tensor from MDI engine, convert to virial
   // divide by nprocs so each proc stores a portion
+  //   MPI_Allreduce is performed in compute_vector()
+  // qm_virial = fix output for global QM virial
 
-  if (vflag_global) {
+  if (virialflag) {
     double ptensor[6];
     ierr = MDI_Send_command("<STRESS", mdicomm);
     if (ierr) error->all(FLERR, "MDI: <STRESS command");
@@ -280,8 +308,16 @@ void FixMDIQM::post_force(int vflag)
     double volume = domain->xprd * domain->yprd * domain->zprd;
     for (int i = 0; i < 6; i++) {
       ptensor[i] *= mdi2lmp_pressure;
-      virial[i] = ptensor[i] * volume / force->nktv2p / nprocs;
+      qm_virial[i] = ptensor[i] * volume / force->nktv2p / nprocs;
     }
+    sumflag = 0;
+  }
+
+  // optionally set fix->virial
+
+  if (virialflag && addflag) {
+    for (int i = 0; i < 6; i++)
+      virial[i] = qm_virial[i];
   }
 }
 
@@ -298,27 +334,111 @@ void FixMDIQM::min_post_force(int vflag)
 
 double FixMDIQM::compute_scalar()
 {
-  return engine_energy;
+  return qm_energy;
 }
 
 /* ----------------------------------------------------------------------
-   reallocate storage for all atoms if necessary
+   virial from MDI engine
+------------------------------------------------------------------------- */
+
+double FixMDIQM::compute_vector(int n)
+{
+  // only sum across procs one time
+
+  if (sumflag == 0) {
+    MPI_Allreduce(qm_virial, qm_virial_all, 6, MPI_DOUBLE, MPI_SUM, world);
+    sumflag = 1;
+  }
+
+  return qm_virial_all[n];
+}
+
+/* ----------------------------------------------------------------------
+   reallocate storage for local and global and atoms if needed
 ------------------------------------------------------------------------- */
 
 void FixMDIQM::reallocate()
 {
-  if (atom->natoms <= maxbuf) return;
+  if (atom->nlocal > maxlocal) {
+    maxlocal = atom->nmax;
+    memory->destroy(fqm);
+    memory->create(fqm, maxlocal, 3, "mdi:fqm");
+    array_atom = fqm;
+  }
 
-  if (3 * atom->natoms > MAXSMALLINT)
-    error->all(FLERR, "Natoms too large to use with fix mdi/qm");
+  if (atom->natoms > maxbuf) {
+    bigint nsize = atom->natoms * 3;
+    if (nsize > MAXSMALLINT)
+      error->all(FLERR, "Natoms too large to use with fix mdi/qm");
+    
+    maxbuf = static_cast<int> (atom->natoms);
+    memory->destroy(ibuf1);
+    memory->destroy(buf3);
+    memory->destroy(buf3all);
+    memory->create(ibuf1, maxbuf, "mdi:ibuf1");
+    memory->create(ibuf1all, maxbuf, "mdi:ibuf1all");
+    memory->create(buf3, 3 * maxbuf, "mdi:buf3");
+    memory->create(buf3all, 3 * maxbuf, "mdi:buf3all");
+  }
+}
 
-  maxbuf = atom->natoms;
+/* ----------------------------------------------------------------------
+   send numeric atom types to MDI engine
+------------------------------------------------------------------------- */
 
-  memory->destroy(buf3);
-  memory->destroy(buf3all);
+void FixMDIQM::send_types()
+{
+  memset(ibuf1, 0, atom->natoms * sizeof(int));
 
-  memory->create(buf3, 3 * maxbuf, "mdi:buf3");
-  memory->create(buf3all, 3 * maxbuf, "mdi:buf3all");
+  // use local atomID to index into ordered ibuf1
+
+  tagint *tag = atom->tag; 
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+  
+  int index;
+  for (int i = 0; i < nlocal; i++) {
+    index = static_cast<int>(tag[i]) - 1;
+    ibuf1[index] = type[i];
+  }
+
+  int n = static_cast<int> (atom->natoms);
+  MPI_Reduce(ibuf1, ibuf1all, n, MPI_INT, MPI_SUM, 0, world);
+
+  int ierr = MDI_Send(ibuf1all, n, MDI_INT, mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >TYPES data");
+}
+
+
+/* ----------------------------------------------------------------------
+   send simulation box size and shape to MDI engine
+------------------------------------------------------------------------- */
+
+void FixMDIQM::send_box()
+{
+  double cell[9];
+
+  int ierr = MDI_Send_command(">CELL_DISPL", mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >CELL_DISPL command");
+  cell[0] = domain->boxlo[0] * lmp2mdi_length;
+  cell[1] = domain->boxlo[1] * lmp2mdi_length;
+  cell[2] = domain->boxlo[2] * lmp2mdi_length;
+  ierr = MDI_Send(cell, 3, MDI_DOUBLE, mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >CELL_DISPL data");
+
+  ierr = MDI_Send_command(">CELL", mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >CELL command");
+  cell[0] = domain->boxhi[0] - domain->boxlo[0];
+  cell[1] = 0.0;
+  cell[2] = 0.0;
+  cell[3] = domain->xy;
+  cell[4] = domain->boxhi[1] - domain->boxlo[1];
+  cell[5] = 0.0;
+  cell[6] = domain->xz;
+  cell[7] = domain->yz;
+  cell[8] = domain->boxhi[2] - domain->boxlo[2];
+  ierr = MDI_Send(cell, 9, MDI_DOUBLE, mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >CELL data");
 }
 
 /* ----------------------------------------------------------------------
@@ -383,18 +503,5 @@ void FixMDIQM::unit_conversions()
     lmp2mdi_pressure =
         ev_to_hartree / (angstrom_to_bohr * angstrom_to_bohr * angstrom_to_bohr) / force->nktv2p;
     mdi2lmp_pressure = 1.0 / lmp2mdi_pressure;
-  }
-
-  // velocity units = distance/time
-
-  mdi2lmp_velocity = 1.0;
-  lmp2mdi_velocity = 1.0;
-
-  if (lmpunits == REAL) {
-    lmp2mdi_velocity = angstrom_to_bohr / (1.0e-15 * second_to_aut);
-    mdi2lmp_velocity = 1.0 / lmp2mdi_velocity;
-  } else if (lmpunits == METAL) {
-    lmp2mdi_velocity = angstrom_to_bohr / (1.0e-12 * second_to_aut);
-    mdi2lmp_velocity = 1.0 / lmp2mdi_velocity;
   }
 }

@@ -33,21 +33,24 @@ class FixMDIQM : public Fix {
 
   void init();
   void setup(int);
-  void setup_pre_reverse(int, int);
-  void pre_reverse(int, int);
   void post_force(int);
   void min_post_force(int);
   double compute_scalar();
+  double compute_vector(int);
 
  private:
   int nprocs;
+  int virialflag,addflag,every;
   int plugin;
+  int maxlocal;
+  int sumflag;
+
+  double qm_energy;
+  int lmpunits;
+  double qm_virial[6],qm_virial_all[6];
+  double **fqm;
 
   MDI_Comm mdicomm;
-
-  int eflag_caller;
-  double engine_energy;
-  int lmpunits;
 
   // unit conversion factors
 
@@ -60,11 +63,14 @@ class FixMDIQM : public Fix {
   // buffers for MDI comm
 
   int maxbuf;
+  int *ibuf1, *ibuf1all;
   double *buf3, *buf3all;
 
   // methods
 
   void reallocate();
+  void send_types();
+  void send_box();
   void unit_conversions();
 };
 

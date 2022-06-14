@@ -13,10 +13,13 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * mdi/qm = style name of this fix command
 * zero or more keyword/value pairs may be appended
-* keyword = *add* or *every*
+* keyword = *virial* or *add* or *every*
 
   .. parsed-literal::
 
+       *virial* args = *yes* or *no*
+         yes = request virial tensor from server code
+         no = do not request virial tensor from server code
        *add* args = *yes* or *no*
          yes = add returned value from server code to LAMMPS quantities
          no = do not add returned values to LAMMPS quantities
@@ -29,6 +32,7 @@ Examples
 .. code-block:: LAMMPS
 
    fix 1 all mdi/qm
+   fix 1 all mdi/qm virial yes
    fix 1 all mdi/qm add no every 100
 
 Description
@@ -79,13 +83,17 @@ explains how to launch the two codes in either mode.
 
 ----------
 
+The *virial* keyword setting of yes or no determines whether
+LAMMPS will request the QM code to also compute and return
+a 6-element symmetric virial tensor for the system.
+
 The *add* keyword setting of *yes* or *no* determines whether the
-energy and forces returned by the QM code will be added to the LAMMPS
-internal energy and forces or not.  If the setting is *no* then the
-default :doc:`fix_modify energy <fix_modify>` and :doc:`fix_modify
-virial <fix_modify>` settings are also set to *no* and your input
-scripts should not set them to yes.  See more details on these
-fix_modify settings below.
+energy and forces and virial returned by the QM code will be added to
+the LAMMPS internal energy and forces and virial or not.  If the
+setting is *no* then the default :doc:`fix_modify energy <fix_modify>`
+and :doc:`fix_modify virial <fix_modify>` settings are also set to
+*no* and your input scripts should not set them to yes.  See more
+details on these fix_modify settings below.
 
 Whatever the setting for the *add* keyword, the QM energy, forces, and
 virial will be stored by the fix, so they can be accessed by other
@@ -103,30 +111,36 @@ configuration of atoms.  The QM code will be called once every
 (1) To run an ab initio MD (AIMD) dynamics simulation, or an energy
 minimization with QM forces, or a multi-replica NEB calculation, use
 *add yes* and *every 1* (the defaults).  This is so that every time
-LAMMPS needs energy and forces, the QM code will be invoked.
+LAMMPS needs energy and forces, the QM code will be invoked.  
 
 Both LAMMPS and the QM code should define the same system (simulation
 box, atoms and their types) in their respective input scripts.  Note
 that on this scenario, it may not be necessary for LAMMPS to define a
 pair style or use a neighbor list.
 
-LAMMPS will then perform the timestepping for the simulation.  At the
-point in each timestep when LAMMPS needs the force on each atom, it
-communicates with the engine code.  It sends the current simulation
-box size and shape (if they change dynamically, e.g. during an NPT
-simulation), and the current atom coordinates.  The engine code
-computes quantum forces on each atom and returns them to LAMMPS.  If
-LAMMPS also needs the system energy and/or virial, it requests those
-values from the engine code as well.
+LAMMPS will then perform the timestepping or minimization iterations
+for the simulation.  At the point in each timestep or iteration when
+LAMMPS needs the force on each atom, it communicates with the engine
+code.  It sends the current simulation box size and shape (if they
+change dynamically, e.g. during an NPT simulation), and the current
+atom coordinates.  The engine code computes quantum forces on each
+atom and the total energy of the system and returns them to LAMMPS.
+
+Note that if the AIMD simulation is an NPT or NPH model, or the energy
+minimization includesf :doc:`fix box relax <fix_box_relaxq>` to
+equilibrate the box size/shape, then LAMMPS computes a pressure.  This
+means the *virial* keyword should be set to *yes* so that the QM
+contribution to the pressure can be included.
 
 (2) To run dynamics with a LAMMPS interatomic potential, and evaluate
 the QM energy and forces once every 1000 steps, use *add no* and
 *every 1000*.  This could be useful for using an MD run to generate
-randomized configurations which then generate QM data for training a
-machine learning potential.  A :doc:`dump custom <dump>` command could
-be invoked every 1000 steps to dump the atom coordinates and QM forces
-to a file.  Likewise the QM energy could be output with the
-:doc:`thermo_style custom <thermo_style>` command.
+randomized configurations which are then passed to the QM code to
+produce training data for a machine learning potential.  A :doc:`dump
+custom <dump>` command could be invoked every 1000 steps to dump the
+atom coordinates and QM forces to a file.  Likewise the QM energy and
+virial could be output with the :doc:`thermo_style custom
+<thermo_style>` command.
 
 (3) To do a QM evaulation of energy and forces for a series of *N*
 independent systems (simulation box and atoms), use *add no* and
@@ -138,10 +152,10 @@ could be initialized by reading them from data files with
 :doc:`lattice <lattice>` , :doc:`create_atoms <create_atoms>`,
 :doc:`delete_atoms <deletea_atoms>`, and/or :doc:`displace_atoms
 random <displace_atoms>` commands to generate a series of different
-systems.  At the end of the loop perform :doc:`run 0 <run>`
-and :doc:`write_dump <write_dump>` commands to invoke the QM code
-and output the QM energy and forces.  As in (2) this be useful
-to generate QM data for training a machine learning potential.
+systems.  At the end of the loop perform :doc:`run 0 <run>` and
+:doc:`write_dump <write_dump>` commands to invoke the QM code and
+output the QM energy and forces.  As in (2) this be useful to produce
+QM data for training a machine learning potential.
 
 ----------
 
@@ -228,5 +242,5 @@ Related commands
 Default
 """""""
 
-The default for the optional keywords is add = yes, every = 1.
-
+The default for the optional keywords are virial = no, add = yes,
+every = 1.

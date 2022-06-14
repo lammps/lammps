@@ -13,6 +13,11 @@ jobs:
     if: ${{ github.repository == 'lammps/lammps' }}
     runs-on: ubuntu-latest
 
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
     strategy:
       fail-fast: false
       matrix:

@@ -534,8 +534,7 @@ void PairPACEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   copymode = 1;
-  int newton_pair = force->newton_pair;
-  if (newton_pair == false)
+  if (!force->newton_pair)
     error->all(FLERR,"PairPACEKokkos requires 'newton on'");
 
   if (recursive)

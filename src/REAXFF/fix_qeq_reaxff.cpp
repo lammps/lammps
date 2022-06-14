@@ -163,7 +163,7 @@ FixQEqReaxFF::~FixQEqReaxFF()
   memory->destroy(t_hist);
 
   FixQEqReaxFF::deallocate_storage();
-  deallocate_matrix();
+  FixQEqReaxFF::deallocate_matrix();
 
   memory->destroy(shld);
 
@@ -640,7 +640,7 @@ void FixQEqReaxFF::compute_H()
   int jnum;
   int i, j, ii, jj, flag;
   double dx, dy, dz, r_sqr;
-  const double SMALL = 0.0001;
+  constexpr double EPSILON = 0.0001;
 
   int *type = atom->type;
   tagint *tag = atom->tag;
@@ -671,10 +671,10 @@ void FixQEqReaxFF::compute_H()
           if (j < atom->nlocal) flag = 1;
           else if (tag[i] < tag[j]) flag = 1;
           else if (tag[i] == tag[j]) {
-            if (dz > SMALL) flag = 1;
-            else if (fabs(dz) < SMALL) {
-              if (dy > SMALL) flag = 1;
-              else if (fabs(dy) < SMALL && dx > SMALL)
+            if (dz > EPSILON) flag = 1;
+            else if (fabs(dz) < EPSILON) {
+              if (dy > EPSILON) flag = 1;
+              else if (fabs(dy) < EPSILON && dx > EPSILON)
                 flag = 1;
             }
           }

@@ -11,7 +11,7 @@ independently and used to build the wheel without installing it.
 """
 
 from __future__ import print_function
-import sys,os,shutil,time,glob,subprocess
+import sys,os,shutil,glob,subprocess
 from argparse import ArgumentParser
 
 parser = ArgumentParser(prog='install.py',

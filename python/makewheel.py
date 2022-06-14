@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys,os,shutil
+import sys,os
 
 # find python script to activate the virtual environment and source it
 if sys.platform == 'win32':

@@ -148,7 +148,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
   eletype = nullptr;
   ele = filepos = filedel = nullptr;
   eleflag = posflag = padflag = 0;
-  delflag = masslimitflag = 0;
+  delflag = specieslistflag = masslimitflag = 0;
 
   singlepos_opened = multipos_opened = del_opened = 0;
   multipos = 0;
@@ -188,7 +188,6 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
       // delete species
     } else if (strcmp(arg[iarg],"delete") == 0) {
       delflag = 1;
-
       filedel = new char[255];
       strcpy(filedel,arg[iarg+1]);
       if (me == 0) {
@@ -199,17 +198,19 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
       del_opened = 1;
 
       if (strcmp(arg[iarg+2],"masslimit") == 0) {
+        if (iarg+5 > narg) error->all(FLERR,"Illegal fix reaxff/species command");
         masslimitflag = 1;
         massmin = atof(arg[iarg+3]);
         massmax = atof(arg[iarg+4]);
         iarg += 5;
-      } else {
-        ndelspec = atoi(arg[iarg+2]);
-        if (iarg+ndelspec+3 > narg) error->all(FLERR,"Illegal fix reaxff/species command");
+      } else if (strcmp(arg[iarg+2],"specieslist") == 0) {
+        specieslistflag = 1;
+        ndelspec = atoi(arg[iarg+3]);
+        if (iarg+ndelspec+4 > narg) error->all(FLERR,"Illegal fix reaxff/species command");
 
         del_species.resize(ndelspec);
         for (int i = 0; i < ndelspec; i ++)
-          del_species[i] = arg[iarg+3+i];
+          del_species[i] = arg[iarg+4+i];
 
         if (me == 0) {
           fprintf(fdel,"Timestep");
@@ -217,9 +218,9 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
             fprintf(fdel,"\t%s",del_species[i].c_str());
           fprintf(fdel,"\n");
           fflush(fdel);
-        }
+        } else error->all(FLERR, "Illegal fix reaxff/species command");
 
-        iarg += ndelspec + 3;
+        iarg += ndelspec + 4;
       }
 
       // position of molecules
@@ -254,6 +255,9 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
     if (ntypes > 2) ele[2] = 'O';
     if (ntypes > 3) ele[3] = 'N';
   }
+
+  if (delflag && specieslistflag && masslimitflag)
+    error->all(FLERR, "Illegal fix reaxff/species command");
 
   vector_nmole = 0;
   vector_nspec = 0;

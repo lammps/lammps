@@ -28,6 +28,7 @@
 #include "fix_neigh_history.h"
 #include "force.h"
 #include "math_const.h"
+#include "math_extra.h"
 #include "math_special.h"
 #include "memory.h"
 #include "modify.h"
@@ -149,37 +150,35 @@ PairGranular::~PairGranular()
 void PairGranular::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz,nx,ny,nz;
+  double dx[3],fx[3],nx[3];
   double radi,radj,radsum,rsq,r,rinv,factor_lj;
   double Reff, delta, dR, dR2, dist_to_contact;
 
-  double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
-  double wr1,wr2,wr3;
-  double vtr1,vtr2,vtr3,vrel;
+  double vr[3],vnnr,vn[3],vt[3],wr[3],vtr[3],vrel[3];
+  double temp[3], temp_dbl;
 
-  double knfac, damp_normal=0.0, damp_normal_prefactor;
+  double damp_normal=0.0, damp_normal_prefactor;
   double k_tangential, damp_tangential;
   double Fne, Ft, Fdamp, Fntot, Fncrit, Fscrit, Frcrit;
-  double fs, fs1, fs2, fs3, tor1, tor2, tor3;
+  double magfs, fs[3], tor[3];
 
   double mi,mj,meff;
-  double relrot1,relrot2,relrot3,vrl1,vrl2,vrl3;
+  double relrot[3],vrl[3];
 
-  // for JKR
-  double R2, coh, F_pulloff, delta_pulloff, dist_pulloff, a, a2, E;
-  double t0, t1, t2, t3, t4, t5, t6;
-  double sqrt1, sqrt2, sqrt3;
+  ContactModel model;
+  ContactGeom geom;
 
   // rolling
   double k_roll, damp_roll;
-  double torroll1, torroll2, torroll3;
+  int rhist0, rhist1, rhist2;
+  double torroll[3];
   double rollmag, rolldotn, scalefac;
-  double fr, fr1, fr2, fr3;
+  double magfr, fr[3];
 
   // twisting
   double k_twist, damp_twist, mu_twist;
   double signtwist, magtwist, magtortwist, Mtcrit;
-  double tortwist1, tortwist2, tortwist3;
+  double tortwist[3];
 
   double shrmag,rsht,prjmag;
   bool frameupdate;
@@ -236,9 +235,6 @@ void PairGranular::compute(int eflag, int vflag)
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     itype = type[i];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
     itype = type[i];
     radi = radius[i];
     if (use_history) {
@@ -255,30 +251,21 @@ void PairGranular::compute(int eflag, int vflag)
 
       if (factor_lj == 0) continue;
 
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
+      MathExtra::sub3(x[i], x[j], dx);
       jtype = type[j];
-      rsq = delx*delx + dely*dely + delz*delz;
+      rsq = MathExtra::lensq3(dx);
       radj = radius[j];
       radsum = radi + radj;
-
-      E = normal_coeffs[itype][jtype][0];
       Reff = radi*radj/radsum;
-      touchflag = false;
 
+      // Copy data into structures to easily pass to functions
+      geom.rsq = rsq;
+      geom.Reff = Reff;
+      geom.radsum = radsum;
+
+      touchflag = false;
       if (normal_model[itype][jtype] == JKR) {
-        E *= THREEQUARTERS;
-        if (touch[jj]) {
-          R2 = Reff*Reff;
-          coh = normal_coeffs[itype][jtype][3];
-          a = cbrt(9.0*MY_PI*coh*R2/(4*E));
-          delta_pulloff = a*a/Reff - 2*sqrt(MY_PI*coh*a/E);
-          dist_pulloff = radsum-delta_pulloff;
-          touchflag = (rsq < dist_pulloff*dist_pulloff);
-        } else {
-          touchflag = (rsq < radsum*radsum);
-        }
+        touchflag = touch_JKR(touch[jj], geom, model)
       } else {
         touchflag = (rsq < radsum*radsum);
       }
@@ -294,22 +281,30 @@ void PairGranular::compute(int eflag, int vflag)
         r = sqrt(rsq);
         rinv = 1.0/r;
 
-        nx = delx*rinv;
-        ny = dely*rinv;
-        nz = delz*rinv;
+        // Copy data into structures to easily pass to functions
+        geom.r = r;
+        geom.rinv = rinv
+        geom.delta = radsum - r;
+        geom.dR = geom.delta*Reff;
+
+        model.normal = normal_model[itype][jtype];
+        model.damping = damping_model[itype][jtype];
+        model.tangential = tangential_model[itype][jtype];
+        model.roll = roll_model[itype][jtype];
+        model.twist = twist_model[itype][jtype];
+        model.E = normal_coeffs[itype][jtype][0];
+        model.damp = normal_coeffs[itype][jtype][1];
+        model.poisson = normal_coeffs[itype][jtype][2];
+        model.coh = normal_coeffs[itype][jtype][3];
+
+        MathExtra::scale3(rinv, dx, nx);
 
         // relative translational velocity
-
-        vr1 = v[i][0] - v[j][0];
-        vr2 = v[i][1] - v[j][1];
-        vr3 = v[i][2] - v[j][2];
+        MathExtra::sub3(v[i], v[j], vr);
 
         // normal component
-
-        vnnr = vr1*nx + vr2*ny + vr3*nz; //v_R . n
-        vn1 = nx*vnnr;
-        vn2 = ny*vnnr;
-        vn3 = nz*vnnr;
+        vnnr = MathExtra::dot3(vr, nx); //v_R . n
+        MathExtra::scale3(vnnr, nx, vn);
 
         // meff = effective mass of pair of particles
         // if I or J part of rigid body, use body mass
@@ -322,60 +317,22 @@ void PairGranular::compute(int eflag, int vflag)
           if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
         }
 
-        meff = mi*mj / (mi+mj);
+        meff = mi * mj / (mi + mj);
         if (mask[i] & freeze_group_bit) meff = mj;
         if (mask[j] & freeze_group_bit) meff = mi;
 
-        delta = radsum - r;
-        dR = delta*Reff;
-
-        if (normal_model[itype][jtype] == JKR) {
+        if (model.normal == JKR) {
           touch[jj] = 1;
-          R2=Reff*Reff;
-          coh = normal_coeffs[itype][jtype][3];
-          dR2 = dR*dR;
-          t0 = coh*coh*R2*R2*E;
-          t1 = PI27SQ*t0;
-          t2 = 8*dR*dR2*E*E*E;
-          t3 = 4*dR2*E;
-          // in case sqrt(0) < 0 due to precision issues
-          sqrt1 = MAX(0, t0*(t1+2*t2));
-          t4 = cbrt(t1+t2+THREEROOT3*MY_PI*sqrt(sqrt1));
-          t5 = t3/t4 + t4/E;
-          sqrt2 = MAX(0, 2*dR + t5);
-          t6 = sqrt(sqrt2);
-          sqrt3 = MAX(0, 4*dR - t5 + SIXROOT6*coh*MY_PI*R2/(E*t6));
-          a = INVROOT6*(t6 + sqrt(sqrt3));
-          a2 = a*a;
-          knfac = normal_coeffs[itype][jtype][0]*a;
-          Fne = knfac*a2/Reff - MY_2PI*a2*sqrt(4*coh*E/(MY_PI*a));
+          normal_JKR(Fne, Fncrit, geom, model);
+        } else if (model.normal == DMT) {
+          normal_DMT(Fne, Fncrit, geom, model);
         } else {
-          knfac = E; // Hooke
-          Fne = knfac*delta;
-          a = sqrt(dR);
-          if (normal_model[itype][jtype] != HOOKE) {
-            Fne *= a;
-            knfac *= a;
-          }
-          if (normal_model[itype][jtype] == DMT)
-            Fne -= 4*MY_PI*normal_coeffs[itype][jtype][3]*Reff;
+          normal_hooke(Fne, Fncrit, geom, model);
         }
 
         // NOTE: consider restricting Hooke to only have
         // 'velocity' as an option for damping?
-
-        if (damping_model[itype][jtype] == VELOCITY) {
-          damp_normal = 1;
-        } else if (damping_model[itype][jtype] == MASS_VELOCITY) {
-          damp_normal = meff;
-        } else if (damping_model[itype][jtype] == VISCOELASTIC) {
-          damp_normal = a*meff;
-        } else if (damping_model[itype][jtype] == TSUJI) {
-          damp_normal = sqrt(meff*knfac);
-        } else damp_normal = 0.0;
-
-        damp_normal_prefactor = normal_coeffs[itype][jtype][1]*damp_normal;
-        Fdamp = -damp_normal_prefactor*vnnr;
+        Fdamp = normal_damping(vnnr, meff, geom, model);
 
         Fntot = Fne + Fdamp;
         if (limit_damping[itype][jtype] && (Fntot < 0.0)) Fntot = 0.0;
@@ -391,21 +348,15 @@ void PairGranular::compute(int eflag, int vflag)
         // history = cumulative tangential elastic force
 
         // tangential component
-        vt1 = vr1 - vn1;
-        vt2 = vr2 - vn2;
-        vt3 = vr3 - vn3;
+        MathExtra::sub3(vr, vn, vt);
 
         // relative rotational velocity
-        wr1 = (radi*omega[i][0] + radj*omega[j][0]);
-        wr2 = (radi*omega[i][1] + radj*omega[j][1]);
-        wr3 = (radi*omega[i][2] + radj*omega[j][2]);
+        MathExtra::scaleadd3(radi, omega[i], radj, omega[j], wr);
 
         // relative tangential velocities
-        vtr1 = vt1 - (nz*wr2-ny*wr3);
-        vtr2 = vt2 - (nx*wr3-nz*wr1);
-        vtr3 = vt3 - (ny*wr1-nx*wr2);
-        vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
-        vrel = sqrt(vrel);
+        MathExtra::cross3(wr, nx, temp);
+        MathExtra::sub3(vt, temp, vtr);
+        vrel = MathExtra::len(vtr);
 
         // if any history is needed
         if (use_history) {
@@ -413,20 +364,13 @@ void PairGranular::compute(int eflag, int vflag)
           history = &allhistory[size_history*jj];
         }
 
-        if (normal_model[itype][jtype] == JKR) {
-          F_pulloff = 3*MY_PI*coh*Reff;
-          Fncrit = fabs(Fne + 2*F_pulloff);
-        } else if (normal_model[itype][jtype] == DMT) {
-          F_pulloff = 4*MY_PI*coh*Reff;
-          Fncrit = fabs(Fne + 2*F_pulloff);
-        } else {
-          Fncrit = fabs(Fntot);
-        }
-        Fscrit = tangential_coeffs[itype][jtype][2] * Fncrit;
+        Fncrit = critical_normal(Fne, Fntot, geom, model);
+        Fscrit = model.poisson * Fncrit;
 
         //------------------------------
         // tangential forces
         //------------------------------
+
         k_tangential = tangential_coeffs[itype][jtype][0];
         damp_tangential = tangential_coeffs[itype][jtype][1] *
           damp_normal_prefactor;
@@ -443,9 +387,7 @@ void PairGranular::compute(int eflag, int vflag)
             // on unloading, rescale the shear displacements/force
             if (a < history[3]) {
               double factor = a/history[3];
-              history[0] *= factor;
-              history[1] *= factor;
-              history[2] *= factor;
+              MathExtra::scale3(history, factor);
             }
           }
           // rotate and update displacements / force.
@@ -455,40 +397,33 @@ void PairGranular::compute(int eflag, int vflag)
             if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_FORCE ||
                 tangential_model[itype][jtype] ==
                 TANGENTIAL_MINDLIN_RESCALE_FORCE)
-              frameupdate = fabs(rsht) > EPSILON*Fscrit;
+              frameupdate = fabs(rsht) > EPSILON * Fscrit;
             else
-              frameupdate = fabs(rsht)*k_tangential > EPSILON*Fscrit;
+              frameupdate = fabs(rsht) * k_tangential > EPSILON * Fscrit;
             if (frameupdate) {
               shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
                                                history[2]*history[2]);
               // projection
-              history[0] -= rsht*nx;
-              history[1] -= rsht*ny;
-              history[2] -= rsht*nz;
+              MathExtra::scale3(rsht, nx, history);
 
               // also rescale to preserve magnitude
-              prjmag = sqrt(history[0]*history[0] + history[1]*history[1] +
-                                               history[2]*history[2]);
+              prjmag = MathExtra::len3(history);
               if (prjmag > 0) scalefac = shrmag/prjmag;
               else scalefac = 0;
-              history[0] *= scalefac;
-              history[1] *= scalefac;
-              history[2] *= scalefac;
+              MathExtra::scale3(scalefac, history);
             }
             // update history
             if (tangential_model[itype][jtype] == TANGENTIAL_HISTORY ||
                 tangential_model[itype][jtype] == TANGENTIAL_MINDLIN ||
                 tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE) {
               // tangential displacement
-              history[0] += vtr1*dt;
-              history[1] += vtr2*dt;
-              history[2] += vtr3*dt;
+              MathExtra::scale3(dt, vtr, temp);
+              MathExtra::add3(temp, history, history);
             } else {
               // tangential force
               // see e.g. eq. 18 of Thornton et al, Pow. Tech. 2013, v223,p30-46
-              history[0] -= k_tangential*vtr1*dt;
-              history[1] -= k_tangential*vtr2*dt;
-              history[2] -= k_tangential*vtr3*dt;
+              MathExtra::scale3(k_tangential*dt, vtr, temp);
+              MathExtra::sub3(history, temp, history);
             }
             if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE ||
                 tangential_model[itype][jtype] ==
@@ -497,58 +432,41 @@ void PairGranular::compute(int eflag, int vflag)
           }
 
           // tangential forces = history + tangential velocity damping
+          MathExtra::scale3(-damp_tangential, vtr, fs);
           if (tangential_model[itype][jtype] == TANGENTIAL_HISTORY ||
               tangential_model[itype][jtype] == TANGENTIAL_MINDLIN ||
               tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE) {
-            fs1 = -k_tangential*history[0] - damp_tangential*vtr1;
-            fs2 = -k_tangential*history[1] - damp_tangential*vtr2;
-            fs3 = -k_tangential*history[2] - damp_tangential*vtr3;
-          } else {
-            fs1 = history[0] - damp_tangential*vtr1;
-            fs2 = history[1] - damp_tangential*vtr2;
-            fs3 = history[2] - damp_tangential*vtr3;
+            MathExtra::scale3(-k_tangential, history, temp);
+            MathExtra::add3(fs, temp, fs);
           }
 
           // rescale frictional displacements and forces if needed
-          fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
+          magfs = MathExtra::len3(fs);
           if (fs > Fscrit) {
-            shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
-                                    history[2]*history[2]);
+            shrmag = MathExtra::len3(history);
             if (shrmag != 0.0) {
+              history[0] = Fscrit*fs[0]/magfs + damp_tangential*vtr[0];
+              history[1] = Fscrit*fs[1]/magfs + damp_tangential*vtr[1];
+              history[2] = Fscrit*fs[2]/magfs + damp_tangential*vtr[2];
               if (tangential_model[itype][jtype] == TANGENTIAL_HISTORY ||
                   tangential_model[itype][jtype] == TANGENTIAL_MINDLIN ||
                   tangential_model[itype][jtype] ==
                   TANGENTIAL_MINDLIN_RESCALE) {
-                history[0] = -1.0/k_tangential*(Fscrit*fs1/fs +
-                                                damp_tangential*vtr1);
-                history[1] = -1.0/k_tangential*(Fscrit*fs2/fs +
-                                                damp_tangential*vtr2);
-                history[2] = -1.0/k_tangential*(Fscrit*fs3/fs +
-                                                damp_tangential*vtr3);
-              } else {
-                history[0] = Fscrit*fs1/fs + damp_tangential*vtr1;
-                history[1] = Fscrit*fs2/fs + damp_tangential*vtr2;
-                history[2] = Fscrit*fs3/fs + damp_tangential*vtr3;
+                MathExtra::scale3(-1.0/k_tangential, history);
               }
-              fs1 *= Fscrit/fs;
-              fs2 *= Fscrit/fs;
-              fs3 *= Fscrit/fs;
-            } else fs1 = fs2 = fs3 = 0.0;
+              MathExtra::scale3(Fscrit/magfs, fs);
+            } else MathExtra::zero3(fs);
           }
         } else { // classic pair gran/hooke (no history)
           fs = damp_tangential*vrel;
           if (vrel != 0.0) Ft = MIN(Fscrit,fs) / vrel;
           else Ft = 0.0;
-          fs1 = -Ft*vtr1;
-          fs2 = -Ft*vtr2;
-          fs3 = -Ft*vtr3;
+          MathExtra::scale3(-Ft, vtr, fs);
         }
 
         if (roll_model[itype][jtype] != ROLL_NONE ||
             twist_model[itype][jtype] != TWIST_NONE) {
-          relrot1 = omega[i][0] - omega[j][0];
-          relrot2 = omega[i][1] - omega[j][1];
-          relrot3 = omega[i][2] - omega[j][2];
+          MathExtra::sub3(omega[i], omega[j], relrot);
         }
         //****************************************
         // rolling resistance
@@ -560,64 +478,63 @@ void PairGranular::compute(int eflag, int vflag)
           // this is different from the Marshall papers,
           // which use the Bagi/Kuhn formulation
           // for rolling velocity (see Wang et al for why the latter is wrong)
-          vrl1 = Reff*(relrot2*nz - relrot3*ny);
-          vrl2 = Reff*(relrot3*nx - relrot1*nz);
-          vrl3 = Reff*(relrot1*ny - relrot2*nx);
+          vrl[0] = Reff * (relrot[1] * n[2] - relrot[2] * nx[1]);
+          vrl[1] = Reff * (relrot[2] * n[0] - relrot[0] * nx[2]);
+          vrl[2] = Reff * (relrot[0] * n[1] - relrot[1] * nx[0]);
 
-          int rhist0 = roll_history_index;
-          int rhist1 = rhist0 + 1;
-          int rhist2 = rhist1 + 1;
+          rhist0 = roll_history_index;
+          rhist1 = rhist0 + 1;
+          rhist2 = rhist1 + 1;
 
           k_roll = roll_coeffs[itype][jtype][0];
           damp_roll = roll_coeffs[itype][jtype][1];
           Frcrit = roll_coeffs[itype][jtype][2] * Fncrit;
 
           if (historyupdate) {
-            rolldotn = history[rhist0]*nx + history[rhist1]*ny + history[rhist2]*nz;
+            temp[0] = history[rhist0];
+            temp[1] = history[rhist1];
+            temp[2] = history[rhist2];
+            rolldotn = MathExtra::dot3(temp, nx);
             frameupdate = fabs(rolldotn)*k_roll > EPSILON*Frcrit;
             if (frameupdate) { // rotate into tangential plane
-              rollmag = sqrt(history[rhist0]*history[rhist0] +
-                            history[rhist1]*history[rhist1] +
-                            history[rhist2]*history[rhist2]);
+              rollmag = MathExtra::len3(temp);
               // projection
-              history[rhist0] -= rolldotn*nx;
-              history[rhist1] -= rolldotn*ny;
-              history[rhist2] -= rolldotn*nz;
+              temp[0] -= rolldotn*nx[0];
+              temp[1] -= rolldotn*nx[1];
+              temp[2] -= rolldotn*nx[2];
               // also rescale to preserve magnitude
-              prjmag = sqrt(history[rhist0]*history[rhist0] +
-                            history[rhist1]*history[rhist1] +
-                            history[rhist2]*history[rhist2]);
+              prjmag = MathExtra::len3(temp);
               if (prjmag > 0) scalefac = rollmag/prjmag;
               else scalefac = 0;
-              history[rhist0] *= scalefac;
-              history[rhist1] *= scalefac;
-              history[rhist2] *= scalefac;
+              MathExtra::scale3(scalefac, temp);
             }
-            history[rhist0] += vrl1*dt;
-            history[rhist1] += vrl2*dt;
-            history[rhist2] += vrl3*dt;
+            temp[0] += vrl[0]*dt;
+            temp[1] += vrl[1]*dt;
+            temp[2] += vrl[2]*dt;
           }
 
-          fr1 = -k_roll*history[rhist0] - damp_roll*vrl1;
-          fr2 = -k_roll*history[rhist1] - damp_roll*vrl2;
-          fr3 = -k_roll*history[rhist2] - damp_roll*vrl3;
+          fr[0] = -k_roll*temp[0] - damp_roll*vrl[0];
+          fr[1] = -k_roll*temp[1] - damp_roll*vrl[1];
+          fr[2] = -k_roll*temp[2] - damp_roll*vrl[2];
 
           // rescale frictional displacements and forces if needed
 
-          fr = sqrt(fr1*fr1 + fr2*fr2 + fr3*fr3);
-          if (fr > Frcrit) {
-            rollmag = sqrt(history[rhist0]*history[rhist0] +
-                                    history[rhist1]*history[rhist1] +
-                                    history[rhist2]*history[rhist2]);
+          magfr = MathExtra::len3(fr);
+          if (magfr > Frcrit) {
+            rollmag = MathExtra::len3(temp);
             if (rollmag != 0.0) {
-              history[rhist0] = -1.0/k_roll*(Frcrit*fr1/fr + damp_roll*vrl1);
-              history[rhist1] = -1.0/k_roll*(Frcrit*fr2/fr + damp_roll*vrl2);
-              history[rhist2] = -1.0/k_roll*(Frcrit*fr3/fr + damp_roll*vrl3);
-              fr1 *= Frcrit/fr;
-              fr2 *= Frcrit/fr;
-              fr3 *= Frcrit/fr;
-            } else fr1 = fr2 = fr3 = 0.0;
+              temp[0] = -1.0/k_roll*(Frcrit*fr[0]/magfr + damp_roll*vrl[0]);
+              temp[1] = -1.0/k_roll*(Frcrit*fr[1]/magfr + damp_roll*vrl[1]);
+              temp[2] = -1.0/k_roll*(Frcrit*fr[2]/magfr + damp_roll*vrl[2]);
+              fr[0] *= Frcrit/magfr;
+              fr[1] *= Frcrit/magfr;
+              fr[2] *= Frcrit/magfr;
+            } else MathExtra::zero3(fr);
           }
+
+          history[rhist0] = temp[0];
+          history[rhist1] = temp[1];
+          history[rhist2] = temp[2];
         }
 
         //****************************************
@@ -626,7 +543,7 @@ void PairGranular::compute(int eflag, int vflag)
 
         if (twist_model[itype][jtype] != TWIST_NONE) {
           // omega_T (eq 29 of Marshall)
-          magtwist = relrot1*nx + relrot2*ny + relrot3*nz;
+          magtwist = MathExtra::dot3(relrot, nx);
           if (twist_model[itype][jtype] == TWIST_MARSHALL) {
             k_twist = 0.5*k_tangential*a*a;; // eq 32 of Marshall paper
             damp_twist = 0.5*damp_tangential*a*a;
@@ -652,72 +569,45 @@ void PairGranular::compute(int eflag, int vflag)
 
         // apply forces & torques
 
-        fx = nx*Fntot + fs1;
-        fy = ny*Fntot + fs2;
-        fz = nz*Fntot + fs3;
-        fx *= factor_lj;
-        fy *= factor_lj;
-        fz *= factor_lj;
+        MathExtra::scale3(Fntot, nx, fx);
+        MathExtra::add3(fx, fs, fx);
+        MathExtra::scale3(factor_lj, fx);
+        MathExtra::add3(f[i], fx, f[i]);
 
-        f[i][0] += fx;
-        f[i][1] += fy;
-        f[i][2] += fz;
-
-        tor1 = ny*fs3 - nz*fs2;
-        tor2 = nz*fs1 - nx*fs3;
-        tor3 = nx*fs2 - ny*fs1;
-        tor1 *= factor_lj;
-        tor2 *= factor_lj;
-        tor3 *= factor_lj;
+        MathExtra::cross3(nx, fs, tor);
+        MathExtra::scale3(factor_lj, tor);
 
         dist_to_contact = radi-0.5*delta;
-        torque[i][0] -= dist_to_contact*tor1;
-        torque[i][1] -= dist_to_contact*tor2;
-        torque[i][2] -= dist_to_contact*tor3;
+        MathExtra::scale3(dist_to_contact, tor, temp);
+        MathExtra::sub3(torque[i], temp, torque[i]);
 
         if (twist_model[itype][jtype] != TWIST_NONE) {
-          tortwist1 = magtortwist * nx * factor_lj;
-          tortwist2 = magtortwist * ny * factor_lj;
-          tortwist3 = magtortwist * nz * factor_lj;
-
-          torque[i][0] += tortwist1;
-          torque[i][1] += tortwist2;
-          torque[i][2] += tortwist3;
+          MathExtra::scale3(magtortwist, nx, tortwist);
+          MathExtra::scale3(factor_lj, tortwist);
+          MathExtra::add3(torque[i], tortwist, torque[i]);
         }
 
         if (roll_model[itype][jtype] != ROLL_NONE) {
-          torroll1 = Reff*(ny*fr3 - nz*fr2) * factor_lj; // n cross fr
-          torroll2 = Reff*(nz*fr1 - nx*fr3) * factor_lj;
-          torroll3 = Reff*(nx*fr2 - ny*fr1) * factor_lj;
-
-          torque[i][0] += torroll1;
-          torque[i][1] += torroll2;
-          torque[i][2] += torroll3;
+          MathExtra::cross3(nx, fr, torroll);
+          MathExtra::scale3(Reff, torroll);
+          MathExtra::scale3(factor_lj, torroll);
+          MathExtra::add3(torque[i], torroll, torque[i]);
         }
 
         if (force->newton_pair || j < nlocal) {
-          f[j][0] -= fx;
-          f[j][1] -= fy;
-          f[j][2] -= fz;
+          MathExtra::sub3(f[j], fx, f[j]);
 
           dist_to_contact = radj-0.5*delta;
-          torque[j][0] -= dist_to_contact*tor1;
-          torque[j][1] -= dist_to_contact*tor2;
-          torque[j][2] -= dist_to_contact*tor3;
+          MathExtra::scale3(dist_to_contact, tor, temp);
+          MathExtra::sub3(torque[j], tor, torque[j]);
 
-          if (twist_model[itype][jtype] != TWIST_NONE) {
-            torque[j][0] -= tortwist1;
-            torque[j][1] -= tortwist2;
-            torque[j][2] -= tortwist3;
-          }
-          if (roll_model[itype][jtype] != ROLL_NONE) {
-            torque[j][0] -= torroll1;
-            torque[j][1] -= torroll2;
-            torque[j][2] -= torroll3;
-          }
+          if (twist_model[itype][jtype] != TWIST_NONE)
+            MathExtra::sub3(torque[j], tortwist, torque[j]);
+          if (roll_model[itype][jtype] != ROLL_NONE)
+            MathExtra::sub3(torque[j], torroll, torque[j]);
         }
         if (evflag) ev_tally_xyz(i,j,nlocal,force->newton_pair,
-            0.0,0.0,fx,fy,fz,delx,dely,delz);
+            0.0,0.0,fx[0],fx[1],fx[2],dx[0],dy[1],dx[2]);
       }
     }
   }
@@ -1389,346 +1279,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
                             double rsq, double /* factor_coul */,
                             double /* factor_lj */, double &fforce)
 {
-  double radi,radj,radsum;
-  double r,rinv,delx,dely,delz, nx, ny, nz, Reff;
-  double dR, dR2;
-  double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3,wr1,wr2,wr3;
-  double vtr1,vtr2,vtr3,vrel;
-  double mi,mj,meff;
-  double relrot1,relrot2,relrot3,vrl1,vrl2,vrl3;
 
-  double knfac, damp_normal, damp_normal_prefactor;
-  double k_tangential, damp_tangential;
-  double Fne, Ft, Fdamp, Fntot, Fncrit, Fscrit, Frcrit;
-  double fs, fs1, fs2, fs3;
-
-  // for JKR
-  double R2, coh, F_pulloff, delta_pulloff, dist_pulloff, a, a2, E;
-  double delta, t0, t1, t2, t3, t4, t5, t6;
-  double sqrt1, sqrt2, sqrt3;
-
-  // rolling
-  double k_roll, damp_roll;
-  double rollmag;
-  double fr, fr1, fr2, fr3;
-
-  // twisting
-  double k_twist, damp_twist, mu_twist;
-  double signtwist, magtwist, magtortwist, Mtcrit;
-
-  double shrmag;
-  int jnum;
-  int *jlist;
-  double *history,*allhistory;
-
-  int nall = atom->nlocal + atom->nghost;
-  if ((i >= nall) || (j >= nall))
-    error->all(FLERR,"Not enough atoms for pair granular single function");
-
-  double *radius = atom->radius;
-  radi = radius[i];
-  radj = radius[j];
-  radsum = radi + radj;
-  Reff = (radsum > 0.0) ? radi*radj/radsum : 0.0;
-
-  bool touchflag;
-  E = normal_coeffs[itype][jtype][0];
-  if (normal_model[itype][jtype] == JKR) {
-    E *= THREEQUARTERS;
-    R2 = Reff*Reff;
-    coh = normal_coeffs[itype][jtype][3];
-    a = cbrt(9.0*MY_PI*coh*R2/(4*E));
-    delta_pulloff = a*a/Reff - 2*sqrt(MY_PI*coh*a/E);
-    dist_pulloff = radsum+delta_pulloff;
-    touchflag = (rsq <= dist_pulloff*dist_pulloff);
-  } else touchflag = (rsq <= radsum*radsum);
-
-  if (!touchflag) {
-    fforce = 0.0;
-    for (int m = 0; m < single_extra; m++) svector[m] = 0.0;
-    return 0.0;
-  }
-
-  double **x = atom->x;
-  delx = x[i][0] - x[j][0];
-  dely = x[i][1] - x[j][1];
-  delz = x[i][2] - x[j][2];
-  r = sqrt(rsq);
-  rinv = 1.0/r;
-
-  nx = delx*rinv;
-  ny = dely*rinv;
-  nz = delz*rinv;
-
-  // relative translational velocity
-
-  double **v = atom->v;
-  vr1 = v[i][0] - v[j][0];
-  vr2 = v[i][1] - v[j][1];
-  vr3 = v[i][2] - v[j][2];
-
-  // normal component
-
-  vnnr = vr1*nx + vr2*ny + vr3*nz;
-  vn1 = nx*vnnr;
-  vn2 = ny*vnnr;
-  vn3 = nz*vnnr;
-
-  // tangential component
-
-  vt1 = vr1 - vn1;
-  vt2 = vr2 - vn2;
-  vt3 = vr3 - vn3;
-
-  // relative rotational velocity
-
-  double **omega = atom->omega;
-  wr1 = (radi*omega[i][0] + radj*omega[j][0]);
-  wr2 = (radi*omega[i][1] + radj*omega[j][1]);
-  wr3 = (radi*omega[i][2] + radj*omega[j][2]);
-
-  // meff = effective mass of pair of particles
-  // if I or J part of rigid body, use body mass
-  // if I or J is frozen, meff is other particle
-
-  double *rmass = atom->rmass;
-  int *mask = atom->mask;
-
-  mi = rmass[i];
-  mj = rmass[j];
-  if (fix_rigid) {
-    // NOTE: ensure mass_rigid is current for owned+ghost atoms?
-    if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
-    if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
-  }
-
-  meff = mi*mj / (mi+mj);
-  if (mask[i] & freeze_group_bit) meff = mj;
-  if (mask[j] & freeze_group_bit) meff = mi;
-
-  delta = radsum - r;
-  dR = delta*Reff;
-  if (normal_model[itype][jtype] == JKR) {
-    dR2 = dR*dR;
-    t0 = coh*coh*R2*R2*E;
-    t1 = PI27SQ*t0;
-    t2 = 8*dR*dR2*E*E*E;
-    t3 = 4*dR2*E;
-    // in case sqrt(0) < 0 due to precision issues
-    sqrt1 = MAX(0, t0*(t1+2*t2));
-    t4 = cbrt(t1+t2+THREEROOT3*MY_PI*sqrt(sqrt1));
-    t5 = t3/t4 + t4/E;
-    sqrt2 = MAX(0, 2*dR + t5);
-    t6 = sqrt(sqrt2);
-    sqrt3 = MAX(0, 4*dR - t5 + SIXROOT6*coh*MY_PI*R2/(E*t6));
-    a = INVROOT6*(t6 + sqrt(sqrt3));
-    a2 = a*a;
-    knfac = normal_coeffs[itype][jtype][0]*a;
-    Fne = knfac*a2/Reff - MY_2PI*a2*sqrt(4*coh*E/(MY_PI*a));
-  } else {
-    knfac = E;
-    Fne = knfac*delta;
-    a = sqrt(dR);
-    if (normal_model[itype][jtype] != HOOKE) {
-      Fne *= a;
-      knfac *= a;
-    }
-    if (normal_model[itype][jtype] == DMT)
-      Fne -= 4*MY_PI*normal_coeffs[itype][jtype][3]*Reff;
-  }
-
-  if (damping_model[itype][jtype] == VELOCITY) {
-    damp_normal = 1;
-  } else if (damping_model[itype][jtype] == MASS_VELOCITY) {
-    damp_normal = meff;
-  } else if (damping_model[itype][jtype] == VISCOELASTIC) {
-    damp_normal = a*meff;
-  } else if (damping_model[itype][jtype] == TSUJI) {
-    damp_normal = sqrt(meff*knfac);
-  } else damp_normal = 0.0;
-
-  damp_normal_prefactor = normal_coeffs[itype][jtype][1]*damp_normal;
-  Fdamp = -damp_normal_prefactor*vnnr;
-
-  Fntot = Fne + Fdamp;
-  if (limit_damping[itype][jtype] && (Fntot < 0.0)) Fntot = 0.0;
-
-  jnum = list->numneigh[i];
-  jlist = list->firstneigh[i];
-
-  if (use_history) {
-    if ((fix_history == nullptr) || (fix_history->firstvalue == nullptr))
-      error->one(FLERR,"Pair granular single computation needs history");
-    allhistory = fix_history->firstvalue[i];
-    for (int jj = 0; jj < jnum; jj++) {
-      neighprev++;
-      if (neighprev >= jnum) neighprev = 0;
-      if (jlist[neighprev] == j) break;
-    }
-    history = &allhistory[size_history*neighprev];
-  }
-
-  //****************************************
-  // tangential force, including history effects
-  //****************************************
-
-  // For linear, mindlin, mindlin_rescale:
-  // history = cumulative tangential displacement
-  //
-  // For mindlin/force, mindlin_rescale/force:
-  // history = cumulative tangential elastic force
-
-  // tangential component
-  vt1 = vr1 - vn1;
-  vt2 = vr2 - vn2;
-  vt3 = vr3 - vn3;
-
-  // relative rotational velocity
-  wr1 = (radi*omega[i][0] + radj*omega[j][0]);
-  wr2 = (radi*omega[i][1] + radj*omega[j][1]);
-  wr3 = (radi*omega[i][2] + radj*omega[j][2]);
-
-  // relative tangential velocities
-  vtr1 = vt1 - (nz*wr2-ny*wr3);
-  vtr2 = vt2 - (nx*wr3-nz*wr1);
-  vtr3 = vt3 - (ny*wr1-nx*wr2);
-  vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
-  vrel = sqrt(vrel);
-
-  if (normal_model[itype][jtype] == JKR) {
-    F_pulloff = 3*MY_PI*coh*Reff;
-    Fncrit = fabs(Fne + 2*F_pulloff);
-  } else if (normal_model[itype][jtype] == DMT) {
-    F_pulloff = 4*MY_PI*coh*Reff;
-    Fncrit = fabs(Fne + 2*F_pulloff);
-  } else {
-    Fncrit = fabs(Fntot);
-  }
-  Fscrit = tangential_coeffs[itype][jtype][2] * Fncrit;
-
-  //------------------------------
-  // tangential forces
-  //------------------------------
-  k_tangential = tangential_coeffs[itype][jtype][0];
-  damp_tangential = tangential_coeffs[itype][jtype][1]*damp_normal_prefactor;
-
-  if (tangential_history) {
-    if (tangential_model[itype][jtype] != TANGENTIAL_HISTORY) {
-      k_tangential *= a;
-    }
-
-    shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
-        history[2]*history[2]);
-
-    // tangential forces = history + tangential velocity damping
-    if (tangential_model[itype][jtype] == TANGENTIAL_HISTORY ||
-        tangential_model[itype][jtype] == TANGENTIAL_MINDLIN ||
-        tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_RESCALE) {
-      fs1 = -k_tangential*history[0] - damp_tangential*vtr1;
-      fs2 = -k_tangential*history[1] - damp_tangential*vtr2;
-      fs3 = -k_tangential*history[2] - damp_tangential*vtr3;
-    } else {
-      fs1 = history[0] - damp_tangential*vtr1;
-      fs2 = history[1] - damp_tangential*vtr2;
-      fs3 = history[2] - damp_tangential*vtr3;
-    }
-
-    // rescale frictional forces if needed
-    fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
-    if (fs > Fscrit) {
-      if (shrmag != 0.0) {
-        fs1 *= Fscrit/fs;
-        fs2 *= Fscrit/fs;
-        fs3 *= Fscrit/fs;
-        fs *= Fscrit/fs;
-      } else fs1 = fs2 = fs3 = fs = 0.0;
-    }
-
-  // classic pair gran/hooke (no history)
-  } else {
-    fs = damp_tangential*vrel;
-    if (vrel != 0.0) Ft = MIN(Fscrit,fs) / vrel;
-    else Ft = 0.0;
-    fs1 = -Ft*vtr1;
-    fs2 = -Ft*vtr2;
-    fs3 = -Ft*vtr3;
-    fs = Ft*vrel;
-  }
-
-  //****************************************
-  // rolling resistance
-  //****************************************
-
-  if ((roll_model[itype][jtype] != ROLL_NONE)
-      || (twist_model[itype][jtype] != TWIST_NONE)) {
-    relrot1 = omega[i][0] - omega[j][0];
-    relrot2 = omega[i][1] - omega[j][1];
-    relrot3 = omega[i][2] - omega[j][2];
-
-    // rolling velocity, see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
-    // this is different from the Marshall papers,
-    // which use the Bagi/Kuhn formulation
-    // for rolling velocity (see Wang et al for why the latter is wrong)
-
-    vrl1 = Reff*(relrot2*nz - relrot3*ny); //- 0.5*((radj-radi)/radsum)*vtr1;
-    vrl2 = Reff*(relrot3*nx - relrot1*nz); //- 0.5*((radj-radi)/radsum)*vtr2;
-    vrl3 = Reff*(relrot1*ny - relrot2*nx); //- 0.5*((radj-radi)/radsum)*vtr3;
-
-    int rhist0 = roll_history_index;
-    int rhist1 = rhist0 + 1;
-    int rhist2 = rhist1 + 1;
-
-    // rolling displacement
-    rollmag = sqrt(history[rhist0]*history[rhist0] +
-        history[rhist1]*history[rhist1] +
-        history[rhist2]*history[rhist2]);
-
-    k_roll = roll_coeffs[itype][jtype][0];
-    damp_roll = roll_coeffs[itype][jtype][1];
-    fr1 = -k_roll*history[rhist0] - damp_roll*vrl1;
-    fr2 = -k_roll*history[rhist1] - damp_roll*vrl2;
-    fr3 = -k_roll*history[rhist2] - damp_roll*vrl3;
-
-    // rescale frictional displacements and forces if needed
-    Frcrit = roll_coeffs[itype][jtype][2] * Fncrit;
-
-    fr = sqrt(fr1*fr1 + fr2*fr2 + fr3*fr3);
-    if (fr > Frcrit) {
-      if (rollmag != 0.0) {
-        fr1 *= Frcrit/fr;
-        fr2 *= Frcrit/fr;
-        fr3 *= Frcrit/fr;
-                fr *= Frcrit/fr;
-      } else fr1 = fr2 = fr3 = fr = 0.0;
-    }
-  } else fr1 = fr2 = fr3 = fr = 0.0;
-
-  //****************************************
-  // twisting torque, including history effects
-  //****************************************
-
-  if (twist_model[itype][jtype] != TWIST_NONE) {
-    // omega_T (eq 29 of Marshall)
-    magtwist = relrot1*nx + relrot2*ny + relrot3*nz;
-    if (twist_model[itype][jtype] == TWIST_MARSHALL) {
-      k_twist = 0.5*k_tangential*a*a;; //eq 32
-      damp_twist = 0.5*damp_tangential*a*a;
-      mu_twist = TWOTHIRDS*a*tangential_coeffs[itype][jtype][2];;
-    } else {
-      k_twist = twist_coeffs[itype][jtype][0];
-      damp_twist = twist_coeffs[itype][jtype][1];
-      mu_twist = twist_coeffs[itype][jtype][2];
-    }
-    // M_t torque (eq 30)
-    magtortwist = -k_twist*history[twist_history_index] - damp_twist*magtwist;
-    signtwist = (magtwist > 0) - (magtwist < 0);
-    Mtcrit = mu_twist*Fncrit; // critical torque (eq 44)
-    if (fabs(magtortwist) > Mtcrit) {
-      magtortwist = -Mtcrit * signtwist; // eq 34
-    } else magtortwist = 0.0;
-  } else magtortwist = 0.0;
-
-  // set force and return no energy
 
   fforce = Fntot*rinv;
 
@@ -1888,4 +1439,100 @@ double PairGranular::radii2cut(double r1, double r2)
   cut += r1 + r2;
 
   return cut;
+}
+
+double PairGranular::touch_JKR(int touch, ContactGeom geom, ContactModel model)
+{
+  double E, R2, a, delta_pulloff, dist_pulloff;
+  bool touchflag;
+  E = model.E;
+  E *= THREEQUARTERS;
+  if (touch) {
+    R2 = geom.Reff * geom.Reff;
+    a = cbrt(9.0 * MY_PI * model.coh * R2 / (4 * E));
+    delta_pulloff = a * a / Reff - 2 * sqrt(MY_PI * coh * a / E);
+    dist_pulloff = geom.radsum - delta_pulloff;
+    touchflag = (geom.rsq < dist_pulloff * dist_pulloff);
+  } else {
+    touchflag = (geom.rsq < geom.radsum * geom.radsum);
+  }
+  return touchflag;
+}
+
+void PairGranular::normal_JKR(double &Fne, ContactGeom geom, ContactModel model)
+{
+  double R2, dR2, t0, t1, t2, t3, t4, t5, t6;
+  double sqrt1, sqrt2, sqrt3, a, a2, F_pulloff;
+
+  R2 = geom.Reff * geom.Reff;
+  dR2 = geom.dR * geom.dR;
+  t0 = model.coh * model.coh * R2 * R2 * model.E;
+  t1 = PI27SQ*t0;
+  t2 = 8 * geom.dR * dR2 * model.E * model.E * model.E;
+  t3 = 4 * dR2 * E;
+
+  // in case sqrt(0) < 0 due to precision issues
+  sqrt1 = MAX(0, t0 * (t1 + 2 * t2));
+  t4 = cbrt(t1 + t2 + THREEROOT3 * MY_PI * sqrt(sqrt1));
+  t5 = t3 / t4 + t4 / E;
+  sqrt2 = MAX(0, 2 * dR + t5);
+  t6 = sqrt(sqrt2);
+  sqrt3 = MAX(0, 4 * dR - t5 + SIXROOT6 * model.coh * MY_PI * R2 / (model.E * t6));
+  a = INVROOT6 * (t6 + sqrt(sqrt3));
+  a2 = a * a;
+
+  Fne = model.E * a * a2 / Reff - MY_2PI * a2 * sqrt(4 * model.coh * model.E / (MY_PI * a));
+  model.a = a;
+  model.knfac = model.E*a;
+}
+
+void PairGraunular::normal_DMT(double &Fne, ContactGeom geom, ContactModel model)
+{
+  double a = sqrt(geom.dR);
+  Fne = a * model.E * geom.delta;
+  Fne -= 4 * MY_PI * model.coh * geom.Reff;
+  F_pulloff = 4 * MY_PI * model.coh * geom.Reff;
+  model.a = a;
+  model.knfact = model.E * a;
+}
+
+void PairGraunular::normal_Hooke(double &Fne, ContactGeom geom, ContactModel model)
+{
+  double a = sqrt(geom.dR);
+  Fne = model.E * geom.delta;
+  if (model.normal != HOOKE) Fne *= a;
+  model.a = a;
+  model.knfac = model.E;
+  if (model.normal != HOOKE) model.knfac *= a;
+}
+
+double PairGranular::normal_damping(double vnnr, double meff, ContactGeom geom, ContactModel model)
+{
+  double damp_normal, a;
+  if (model.damping == VELOCITY) {
+    damp_normal = 1;
+  } else if (model.damping == MASS_VELOCITY) {
+    damp_normal = meff;
+  } else if (model.damping == VISCOELASTIC) {
+    damp_normal = model.a * meff;
+  } else if (model.damping == TSUJI) {
+    damp_normal = sqrt(meff * model.knfac);
+  } else damp_normal = 0.0;
+
+  damp_normal_prefactor = model.damp * damp_normal;
+  return -damp_normal_prefactor * vnnr;
+}
+
+double PairGranular::critical_normal(double Fne, double Fntot, ContactGeom geom, Contactmodel model)
+{
+  if (model.normal == JKR) {
+    F_pulloff = 3*MY_PI*model.coh*geom.Reff;
+    Fncrit = fabs(Fne + 2*F_pulloff);
+  } else if (model.normal == DMT) {
+    F_pulloff = 4*MY_PI*model.coh*geom.Reff;
+    Fncrit = fabs(Fne + 2*F_pulloff);
+  } else {
+    Fncrit = fabs(Fntot);
+  }
+  return Fncrit;
 }

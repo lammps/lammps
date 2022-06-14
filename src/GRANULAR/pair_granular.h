@@ -100,6 +100,18 @@ class PairGranular : public Pair {
   double mix_stiffnessG(double, double, double, double);
   double mix_geom(double, double);
   double pulloff_distance(double, double, int, int);
+
+  // Structure to store details of model
+  struct ContactModel {
+    int normal, damping, tangential, roll, twist;
+    double E, damp, poisson, coh;
+    double a, knfac;
+  };
+
+  struct ContactGeom {
+    double r, rinv, rsq, Reff, radsum;
+    double delta, dR;
+  }
 };
 
 }    // namespace LAMMPS_NS

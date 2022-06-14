@@ -14,6 +14,7 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Ray Shan (Sandia, tnshan@sandia.gov)
                          Oleg Sergeev (VNIIA, sergeev@vniia.ru)
+                         Jacob Gissinger (NASA, jacob.r.gissinger@gmail.com), 'delete' keyword
 ------------------------------------------------------------------------- */
 
 #include "fix_reaxff_species.h"

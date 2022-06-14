@@ -220,20 +220,26 @@ ComputeSnap::~ComputeSnap()
 {
 
   memory->destroy(snap);
+  //printf("---------------- 1\n");
   memory->destroy(snapall);
+  //printf("---------------- 2\n");
   memory->destroy(snap_peratom);
+  //printf("---------------- 3\n");
   memory->destroy(radelem);
+  //printf("---------------- 4\n");
   memory->destroy(wjelem);
+  //printf("---------------- 5\n");
   memory->destroy(cutsq);
+  //printf("---------------- 6\n");
   delete snaptr;
-
+  //printf("---------------- 7\n");
   if (chemflag) memory->destroy(map);
 
   if (switchinnerflag) {
     memory->destroy(sinnerelem);
     memory->destroy(dinnerelem);
   }
-
+  //printf("---------------- 8\n");
   if (dbirjflag){
     //printf("dbirj_rows: %d\n", dbirj_rows);
     //printf("----- destroy dbirj\n");
@@ -248,6 +254,7 @@ ComputeSnap::~ComputeSnap()
     memory->destroy(dbiri);
     //printf("----- 5-1-1-1-1-1\n");
   }
+  //printf("---------------- 9\n");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -529,14 +536,14 @@ void ComputeSnap::compute_array()
             dbirj[dbirj_row_indx+1][icoeff] = snaptr->dblist[icoeff][1];
             dbirj[dbirj_row_indx+2][icoeff] = snaptr->dblist[icoeff][2];
             if (icoeff==(ncoeff-1)){
-              dbirj[dbirj_row_indx+0][ncoeff] = atom->tag[i];
-              dbirj[dbirj_row_indx+0][ncoeff+1] = atom->tag[j];
+              dbirj[dbirj_row_indx+0][ncoeff] = atom->tag[i]-1;
+              dbirj[dbirj_row_indx+0][ncoeff+1] = atom->tag[j]-1;
               dbirj[dbirj_row_indx+0][ncoeff+2] = 0;
-              dbirj[dbirj_row_indx+1][ncoeff] = atom->tag[i];
-              dbirj[dbirj_row_indx+1][ncoeff+1] = atom->tag[j];
+              dbirj[dbirj_row_indx+1][ncoeff] = atom->tag[i]-1;
+              dbirj[dbirj_row_indx+1][ncoeff+1] = atom->tag[j]-1;
               dbirj[dbirj_row_indx+1][ncoeff+2] = 1;
-              dbirj[dbirj_row_indx+2][ncoeff] = atom->tag[i];
-              dbirj[dbirj_row_indx+2][ncoeff+1] = atom->tag[j];
+              dbirj[dbirj_row_indx+2][ncoeff] = atom->tag[i]-1;
+              dbirj[dbirj_row_indx+2][ncoeff+1] = atom->tag[j]-1;
               dbirj[dbirj_row_indx+2][ncoeff+2] = 2;
             }
             // Accumulate dBi/dRi = sum (-dBi/dRj) for neighbors j of if i.
@@ -545,16 +552,16 @@ void ComputeSnap::compute_array()
             dbiri[3*(atom->tag[i]-1)+2][icoeff] -= snaptr->dblist[icoeff][2];
             // Get last columns
             if (icoeff==(ncoeff-1)){
-              dbiri[3*(atom->tag[i]-1)+0][ncoeff] = atom->tag[i];
-              dbiri[3*(atom->tag[i]-1)+0][ncoeff+1] = atom->tag[i];
+              dbiri[3*(atom->tag[i]-1)+0][ncoeff] = atom->tag[i]-1;
+              dbiri[3*(atom->tag[i]-1)+0][ncoeff+1] = atom->tag[i]-1;
               dbiri[3*(atom->tag[i]-1)+0][ncoeff+2] = 0;
 
-              dbiri[3*(atom->tag[i]-1)+1][ncoeff] = atom->tag[i];
-              dbiri[3*(atom->tag[i]-1)+1][ncoeff+1] = atom->tag[i];
+              dbiri[3*(atom->tag[i]-1)+1][ncoeff] = atom->tag[i]-1;
+              dbiri[3*(atom->tag[i]-1)+1][ncoeff+1] = atom->tag[i]-1;
               dbiri[3*(atom->tag[i]-1)+1][ncoeff+2] = 1;
 
-              dbiri[3*(atom->tag[i]-1)+2][ncoeff] = atom->tag[i];
-              dbiri[3*(atom->tag[i]-1)+2][ncoeff+1] = atom->tag[i];
+              dbiri[3*(atom->tag[i]-1)+2][ncoeff] = atom->tag[i]-1;
+              dbiri[3*(atom->tag[i]-1)+2][ncoeff+1] = atom->tag[i]-1;
               dbiri[3*(atom->tag[i]-1)+2][ncoeff+2] = 2;
             }
           }
@@ -821,7 +828,15 @@ void ComputeSnap::compute_array()
   */
  // accumulate forces to global array
  if (dbirjflag){
+   for (int i=0; i<atom->nlocal; i++){
 
+
+     int iglobal = atom->tag[i];
+     snap[iglobal-1][ncoeff+0] = atom->f[i][0];
+     snap[iglobal-1][ncoeff+1] = atom->f[i][1];
+     snap[iglobal-1][ncoeff+2] = atom->f[i][2];
+
+   }
  }
  else{
     for (int i = 0; i < atom->nlocal; i++) {
@@ -838,13 +853,22 @@ void ComputeSnap::compute_array()
 
   // accumulate bispectrum virial contributions to global array
 
-  //dbdotr_compute();
+  if (dbirjflag){
+
+  }
+  else{
+    dbdotr_compute();
+  }
 
   // sum up over all processes
   MPI_Allreduce(&snap[0][0],&snapall[0][0],size_array_rows*size_array_cols,MPI_DOUBLE,MPI_SUM,world);
   // assign energy to last column
   if (dbirjflag){
-
+    // Assign reference energy right after the dbirj rows, first column.
+    int irow = bik_rows + dbirj_rows + 3*natoms; // add 3N for the dBi/dRi rows
+    //printf("irow bik_rows dbirj_rows: %d %d %d\n", irow, bik_rows, dbirj_rows);
+    double reference_energy = c_pe->compute_scalar();
+    snapall[irow][0] = reference_energy;
   }
   else{
     for (int i = 0; i < bik_rows; i++) snapall[i][lastcol] = 0;
@@ -857,15 +881,18 @@ void ComputeSnap::compute_array()
   // switch to Voigt notation
 
   c_virial->compute_vector();
-  /*
-  irow += 3*natoms+bik_rows;
-  snapall[irow++][lastcol] = c_virial->vector[0];
-  snapall[irow++][lastcol] = c_virial->vector[1];
-  snapall[irow++][lastcol] = c_virial->vector[2];
-  snapall[irow++][lastcol] = c_virial->vector[5];
-  snapall[irow++][lastcol] = c_virial->vector[4];
-  snapall[irow][lastcol] = c_virial->vector[3];
-  */
+  if (dbirjflag){
+
+  }
+  else{
+    int irow = 3*natoms+bik_rows;
+    snapall[irow++][lastcol] = c_virial->vector[0];
+    snapall[irow++][lastcol] = c_virial->vector[1];
+    snapall[irow++][lastcol] = c_virial->vector[2];
+    snapall[irow++][lastcol] = c_virial->vector[5];
+    snapall[irow++][lastcol] = c_virial->vector[4];
+    snapall[irow][lastcol] = c_virial->vector[3];
+  }
 
   //}// else
 }

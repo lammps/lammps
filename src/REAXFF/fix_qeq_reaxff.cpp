@@ -163,7 +163,7 @@ FixQEqReaxFF::~FixQEqReaxFF()
   memory->destroy(t_hist);
 
   FixQEqReaxFF::deallocate_storage();
-  deallocate_matrix();
+  FixQEqReaxFF::deallocate_matrix();
 
   memory->destroy(shld);
 

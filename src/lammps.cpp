@@ -130,7 +130,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   num_ver = utils::date2num(version);
 
   external_comm = 0;
-  mdicomm = 0;
+  mdicomm = nullptr;
 
   skiprunflag = 0;
 

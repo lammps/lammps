@@ -4,7 +4,6 @@ variable	x index 5
 variable	y index 5
 variable	z index 5
 
-variable        ifile loop 3
 variable        rho index 0.7 0.8 0.9
 
 label LOOP
@@ -32,12 +31,11 @@ label LOOP
 
   run           0
 
-  write_dump    all custom dump.series.alone.${ifile} &
-                id type x y z fx fy fz modify sort id
+  write_dump    all custom dump.series.alone &
+                id type x y z fx fy fz modify sort id append yes
 
   clear
 
-next ifile
 next rho
 
 jump SELF LOOP

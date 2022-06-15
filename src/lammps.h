@@ -69,7 +69,7 @@ class LAMMPS {
                                // when multiple programs launched by mpirun
                                // set by -mpicolor command line arg
 
-  int mdicomm;                 // for use with MDI code coupling library
+  void *mdicomm;               // for use with MDI code coupling library
 
   const char *match_style(const char *style, const char *name);
   static const char *installed_packages[];

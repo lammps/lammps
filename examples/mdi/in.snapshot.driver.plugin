@@ -32,7 +32,7 @@ thermo_style    custom step temp pe c_1 c_1[1] c_1[2] c_1[3]
 
 thermo          100
 
-dump            1 all custom 500 dump.snapshot.driver &
+dump            1 all custom 500 dump.snapshot.driver.plugin &
                 id type x y z f_2[1] f_2[2] f_2[3]
 dump_modify     1 sort id
 

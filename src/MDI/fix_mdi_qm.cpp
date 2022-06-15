@@ -48,7 +48,7 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   virialflag = 0;
   addflag = 1;
   every = 1;
-  extflag = 0;
+  connectflag = 1;
 
   int iarg = 3;
   while (iarg < narg) {
@@ -69,10 +69,10 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       every = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (every <= 0) error->all(FLERR,"Illegal fix mdi/qm command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"external") == 0) {
+    } else if (strcmp(arg[iarg],"connect") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix mdi/qm command");
-      if (strcmp(arg[iarg+1],"yes") == 0) extflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) extflag = 0;
+      if (strcmp(arg[iarg+1],"yes") == 0) connectflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) connectflag = 0;
       else error->all(FLERR,"Illegal fix mdi/qm command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix mdi/qm command");
@@ -100,8 +100,8 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     thermo_energy = thermo_virial = 1;
   }
 
-  // mdicomm will be one-time initialized in init()
-  // cannot be done here for a plugin library, b/c mdi plugin command is later
+  // mdicomm will be initialized in init()
+  // cannot do here for a plugin library, b/c mdi plugin command comes later
 
   mdicomm = MDI_COMM_NULL;
 
@@ -143,10 +143,11 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
 FixMDIQM::~FixMDIQM()
 {
-  // send exit command to engine if it is a stand-alone code
-  // for plugin, this happens in MDIPlugin::plugin_wrapper()
+  // send exit command to stand-alone engine code
+  // for connnectflag = 0, this is done via "mdi exit" command
+  // for plugin, this is done in MDIPlugin::plugin_wrapper()
 
-  if (!plugin && !extflag) {
+  if (mdicomm != MDI_COMM_NULL && connectflag && !plugin) {
     int ierr = MDI_Send_command("EXIT", mdicomm);
     if (ierr) error->all(FLERR, "MDI: EXIT command");
   }
@@ -176,31 +177,47 @@ int FixMDIQM::setmask()
 
 void FixMDIQM::init()
 {
-  // one-time auto-detect whether engine is stand-alone code or plugin library
-  // also initializes mdicomm
-  // set plugin = 0/1 for engine = stand-alone code vs plugin library
-
-  if (!extflag) {
+  // set local mdicomm one-time only
+  // also set plugin = 0/1 for engine = stand-alone code vs plugin library
 
   if (mdicomm == MDI_COMM_NULL) {
-    MDI_Get_communicator(&mdicomm, 0);
-    if (mdicomm == MDI_COMM_NULL) {
-      plugin = 0;
-      MDI_Accept_communicator(&mdicomm);
-      if (mdicomm == MDI_COMM_NULL) 
-        error->all(FLERR, "MDI unable to connect to stand-alone engine");
-    } else {
-      plugin = 1;
-      int method;
-      MDI_Get_method(&method, mdicomm);
-      if (method != MDI_PLUGIN) 
-        error->all(FLERR, "MDI internal error for plugin engine");
-    }
-  }
 
-  } else {
-    plugin = 0;
-    mdicomm = lmp->mdicomm;
+    // this fix makes one-time connection to engine
+
+    if (connectflag) {
+      
+      // if MDI's mdicomm not set, need to Accept_comm() with stand-alone engine
+      // othewise are already connected to plugin engine
+
+      MDI_Get_communicator(&mdicomm, 0);
+
+      if (mdicomm == MDI_COMM_NULL) {
+        plugin = 0;
+        MDI_Accept_communicator(&mdicomm);
+        if (mdicomm == MDI_COMM_NULL) 
+          error->all(FLERR, "MDI unable to connect to stand-alone engine");
+
+      } else {
+        plugin = 1;
+        int method;
+        MDI_Get_method(&method, mdicomm);
+        if (method != MDI_PLUGIN) 
+          error->all(FLERR, "MDI internal error for plugin engine");
+      }
+ 
+    // connection should have been already made by "mdi connect" command
+    // only works for stand-alone engines
+
+    } else {
+      plugin = 0;
+
+      if (lmp->mdicomm == nullptr)  
+        error->all(FLERR,"Fix mdi/qm is not connected to engine via mdi connect");
+
+      int nbytes = sizeof(MDI_Comm);
+      char *ptrcomm = (char *) lmp->mdicomm;
+      memcpy(&mdicomm,ptrcomm,nbytes);
+    }
   }
 
   // send natoms, atom types, and simulation box to engine

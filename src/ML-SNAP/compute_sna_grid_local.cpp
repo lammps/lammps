@@ -173,6 +173,12 @@ ComputeSNAGridLocal::ComputeSNAGridLocal(LAMMPS *lmp, int narg, char **arg) :
 
   }
 
+  if (switchinnerflag && !(sinnerflag && dinnerflag))
+    error->all(FLERR,"Illegal compute sna/grid/local command: switchinnerflag = 1, missing sinner/dinner keyword");
+  
+  if (!switchinnerflag && (sinnerflag || dinnerflag))
+    error->all(FLERR,"Illegal compute sna/grid/local command: switchinnerflag = 0, unexpected sinner/dinner keyword");
+
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
                    chemflag, bnormflag, wselfallflag,

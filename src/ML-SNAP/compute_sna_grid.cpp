@@ -173,6 +173,12 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
 
   }
 
+  if (switchinnerflag && !(sinnerflag && dinnerflag))
+    error->all(FLERR,"Illegal compute sna/grid command: switchinnerflag = 1, missing sinner/dinner keyword");
+  
+  if (!switchinnerflag && (sinnerflag || dinnerflag))
+    error->all(FLERR,"Illegal compute sna/grid command: switchinnerflag = 0, unexpected sinner/dinner keyword");
+
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
                    chemflag, bnormflag, wselfallflag,
@@ -201,21 +207,6 @@ ComputeSNAGrid::~ComputeSNAGrid()
 
 void ComputeSNAGrid::init()
 {
-  // if (force->pair == nullptr)
-  //   error->all(FLERR,"Compute sna/grid requires a pair style be defined");
-
-  // if (cutmax > force->pair->cutforce)
-  //   error->all(FLERR,"Compute sna/grid cutoff is longer than pairwise cutoff");
-
-  // // need an occasional full neighbor list
-
-  // int irequest = neighbor->request(this,instance_me);
-  // neighbor->requests[irequest]->pair = 0;
-  // neighbor->requests[irequest]->compute = 1;
-  // neighbor->requests[irequest]->half = 0;
-  // neighbor->requests[irequest]->full = 1;
-  // neighbor->requests[irequest]->occasional = 1;
-
   int count = 0;
   for (int i = 0; i < modify->ncompute; i++)
     if (strcmp(modify->compute[i]->style,"sna/grid") == 0) count++;
@@ -284,6 +275,8 @@ void ComputeSNAGrid::compute_array()
 	  if (chemflag)
             jelem = map[jtype];
 
+	  // printf("jtype = %d cutsq[jtype][jtype] = %g\n",
+	  // 	jtype, cutsq[jtype][jtype]);
 	  if (rsq < cutsq[jtype][jtype] && rsq > 1e-20) {
 	    snaptr->rij[ninside][0] = delx;
 	    snaptr->rij[ninside][1] = dely;

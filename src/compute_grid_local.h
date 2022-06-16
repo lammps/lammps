@@ -53,7 +53,6 @@ class ComputeGridLocal : public Compute {
   void set_grid_global();              // set global grid
   void set_grid_local();               // set bounds for local grid
   void assign_coords();                // assign coords for grid
-  void copy_gridlocal_to_local_array();// copy 4d gridlocal array to 2d local array
  private:
 };
 

@@ -117,8 +117,6 @@ void ComputeGridLocal::allocate()
 {
   if (nxlo <= nxhi && nylo <= nyhi && nzlo <= nzhi) {
     gridlocal_allocated = 1;
-    memory->create4d_offset(gridlocal,size_local_cols,nzlo,nzhi,nylo,nyhi,
-			    nxlo,nxhi,"grid:gridlocal");
     memory->create(alocal, size_local_rows, size_local_cols, "compute/grid/local:alocal");
     array_local = alocal;
   }
@@ -132,7 +130,6 @@ void ComputeGridLocal::deallocate()
 {
   if (gridlocal_allocated) {
     gridlocal_allocated = 0;
-    memory->destroy4d_offset(gridlocal,nzlo,nylo,nxlo);
     memory->destroy(alocal);
   }
   array_local = nullptr;
@@ -208,19 +205,6 @@ void ComputeGridLocal::set_grid_local()
     zfrachi = comm->mysplit[2][1];
   }
 
-  // // not fully clear why this works
-  // // without, sometimes get uneven assignments
-  // // in case where ngridz is multiple of nprocz
-
-  // double MYEPS = 1.0e-10;
-
-  // xfraclo += MYEPS;
-  // xfrachi += MYEPS;
-  // yfraclo += MYEPS;
-  // yfrachi += MYEPS;
-  // zfraclo += MYEPS;
-  // zfrachi += MYEPS;
-
   nxlo = static_cast<int> (xfraclo * nx);
   if (1.0*nxlo != xfraclo*nx) nxlo++;
   nxhi = static_cast<int> (xfrachi * nx);
@@ -255,27 +239,20 @@ void ComputeGridLocal::assign_coords()
 	alocal[igrid][2] = iz;
 	double xgrid[3];
 
-    // For triclinic: create gridpoint in lamda coordinates and transform after check.
-    // For orthorombic: create gridpoint in box coordinates.
+	// for triclinic: create gridpoint in lamda coordinates and transform after check.
+	// for orthorombic: create gridpoint in box coordinates.
 
-    if (triclinic)
-    {
-        grid2lamda(ix, iy, iz, xgrid);
-    }
-    else
-    {
-        grid2x(ix, iy, iz, xgrid);
-    }
+	if (triclinic)
+	  grid2lamda(ix, iy, iz, xgrid);
+	else
+	  grid2x(ix, iy, iz, xgrid);
 
-	// Ensure gridpoint is not strictly outside subdomain.
-    // There have been some problem with a gridpoint being something like 2e-17 outside of the subdomain,
-    // thus the EPISLON check.
-      if ((sublo[0]-xgrid[0]) > EPSILON || (xgrid[0]-subhi[0]) > EPSILON  ||
-	      (sublo[1]-xgrid[1]) > EPSILON || (xgrid[1]-subhi[1]) > EPSILON  ||
-	      (sublo[2]-xgrid[2]) > EPSILON || (xgrid[2]-subhi[2]) > EPSILON)
-      {
-          error->one(FLERR,"Invalid gridpoint position in compute grid/local");
-      }
+	// ensure gridpoint is not strictly outside subdomain
+
+	if ((sublo[0]-xgrid[0]) > EPSILON || (xgrid[0]-subhi[0]) > EPSILON  ||
+	    (sublo[1]-xgrid[1]) > EPSILON || (xgrid[1]-subhi[1]) > EPSILON  ||
+	    (sublo[2]-xgrid[2]) > EPSILON || (xgrid[2]-subhi[2]) > EPSILON)
+	  error->one(FLERR,"Invalid gridpoint position in compute grid/local");
 
 	// convert lamda to x, y, z, after sudomain check
 
@@ -284,22 +261,6 @@ void ComputeGridLocal::assign_coords()
 	alocal[igrid][3] = xgrid[0];
 	alocal[igrid][4] = xgrid[1];
 	alocal[igrid][5] = xgrid[2];
-	igrid++;
-      }
-}
-
-/* ----------------------------------------------------------------------
-   copy the 4d gridlocal array values to the 2d local array
-------------------------------------------------------------------------- */
-
-void ComputeGridLocal::copy_gridlocal_to_local_array()
-{
-  int igrid = 0;
-  for (int iz = nzlo; iz <= nzhi; iz++)
-    for (int iy = nylo; iy <= nyhi; iy++)
-      for (int ix = nxlo; ix <= nxhi; ix++) {
-	for (int icol = size_local_cols_base; icol < size_local_cols; icol++)
-	  alocal[igrid][icol] = gridlocal[icol][iz][iy][ix];
 	igrid++;
       }
 }

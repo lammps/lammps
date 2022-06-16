@@ -200,21 +200,6 @@ ComputeSNAGridLocal::~ComputeSNAGridLocal()
 
 void ComputeSNAGridLocal::init()
 {
-  // if (force->pair == nullptr)
-  //   error->all(FLERR,"Compute sna/grid/local requires a pair style be defined");
-
-  // if (cutmax > force->pair->cutforce)
-  //   error->all(FLERR,"Compute sna/grid/local cutoff is longer than pairwise cutoff");
-
-  // // need an occasional full neighbor list
-
-  // int irequest = neighbor->request(this,instance_me);
-  // neighbor->requests[irequest]->pair = 0;
-  // neighbor->requests[irequest]->compute = 1;
-  // neighbor->requests[irequest]->half = 0;
-  // neighbor->requests[irequest]->full = 1;
-  // neighbor->requests[irequest]->occasional = 1;
-
   int count = 0;
   for (int i = 0; i < modify->ncompute; i++)
     if (strcmp(modify->compute[i]->style,"sna/grid/local") == 0) count++;
@@ -234,7 +219,6 @@ void ComputeSNAGridLocal::init_list(int /*id*/, NeighList *ptr)
 
 void ComputeSNAGridLocal::compute_local()
 {
-  printf("Entering compute_local()\n");
   invoked_array = update->ntimestep;
 
   // compute sna for each gridpoint
@@ -248,6 +232,7 @@ void ComputeSNAGridLocal::compute_local()
   
   snaptr->grow_rij(ntotal);
 
+  int igrid = 0;
   for (int iz = nzlo; iz <= nzhi; iz++)
     for (int iy = nylo; iy <= nyhi; iy++)
       for (int ix = nxlo; ix <= nxhi; ix++) {
@@ -307,8 +292,7 @@ void ComputeSNAGridLocal::compute_local()
 	// linear contributions
 
 	for (int icoeff = 0; icoeff < ncoeff; icoeff++)
-	  gridlocal[size_local_cols_base+icoeff][iz][iy][ix] = 
-	    snaptr->blist[icoeff];
+	    alocal[igrid][size_local_cols_base+icoeff] = snaptr->blist[icoeff];
 
 	// quadratic contributions
 
@@ -316,19 +300,14 @@ void ComputeSNAGridLocal::compute_local()
 	  int ncount = ncoeff;
 	  for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
 	    double bveci = snaptr->blist[icoeff];
-	    gridlocal[size_local_cols_base+ncount++][iz][iy][ix] = 
-	      0.5*bveci*bveci;
+	      alocal[igrid][size_local_cols_base+ncount++] = 0.5*bveci*bveci;
 	    for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++)
-	      gridlocal[size_local_cols_base+ncount++][iz][iy][ix] = 
+	      alocal[igrid][size_local_cols_base+ncount++] = 
 		bveci*snaptr->blist[jcoeff];
 	  }
 	}
+	igrid++;
       }
-
-  // copy 4d array to 2d array
-
-  copy_gridlocal_to_local_array();
-  printf("Exiting compute_local()\n");
 }
 
 
@@ -340,7 +319,7 @@ double ComputeSNAGridLocal::memory_usage()
 {
   double nbytes = snaptr->memory_usage();    // SNA object
   int n = atom->ntypes+1;
-  nbytes += (double)n*sizeof(int);            // map
+  nbytes += (double)n*sizeof(int);           // map
 
   return nbytes;
 }

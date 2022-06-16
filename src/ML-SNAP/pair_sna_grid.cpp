@@ -59,12 +59,6 @@ void PairSNAGrid::init_style()
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style sna/grid requires newton pair on");
 
-  // // need a full neighbor list
-
-  // int irequest = neighbor->request(this,instance_me);
-  // neighbor->requests[irequest]->half = 0;
-  // neighbor->requests[irequest]->full = 1;
-
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
                    chemflag, bnormflag, wselfallflag,

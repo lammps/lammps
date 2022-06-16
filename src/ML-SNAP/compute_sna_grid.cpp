@@ -61,6 +61,7 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
   chemflag = 0;
   bnormflag = 0;
   wselfallflag = 0;
+  switchinnerflag = 0;
   nelements = 1;
   
   // process required arguments
@@ -91,6 +92,11 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
       cutsq[i][j] = cutsq[j][i] = cut*cut;
     }
   }
+
+  // set local input checks
+
+  int sinnerflag = 0;
+  int dinnerflag = 0;
 
   // process optional args
 
@@ -140,13 +146,37 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute sna/grid command");
       wselfallflag = atoi(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"switchinnerflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute snap command");
+      switchinnerflag = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"sinner") == 0) {
+      iarg++;
+      if (iarg+ntypes > narg)
+        error->all(FLERR,"Illegal compute snap command");
+      memory->create(sinnerelem,ntypes+1,"snap:sinnerelem");
+      for (int i = 0; i < ntypes; i++)
+        sinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+      sinnerflag = 1;
+      iarg += ntypes;
+    } else if (strcmp(arg[iarg],"dinner") == 0) {
+      iarg++;
+      if (iarg+ntypes > narg)
+        error->all(FLERR,"Illegal compute snap command");
+      memory->create(dinnerelem,ntypes+1,"snap:dinnerelem");
+      for (int i = 0; i < ntypes; i++)
+        dinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+      dinnerflag = 1;
+      iarg += ntypes;
     } else error->all(FLERR,"Illegal compute sna/grid command");
 
   }
 
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
-                   chemflag, bnormflag, wselfallflag, nelements);
+                   chemflag, bnormflag, wselfallflag,
+		   nelements, switchinnerflag);
 
   ncoeff = snaptr->ncoeff;
   nvalues = ncoeff;
@@ -287,6 +317,8 @@ void ComputeSNAGrid::compute_array()
 	}
       }
 
+  memset(grid[0],0,ngrid*size_array_cols*sizeof(double));
+
   for (int iz = nzlo; iz <= nzhi; iz++)
     for (int iy = nylo; iy <= nyhi; iy++)
       for (int ix = nxlo; ix <= nxhi; ix++) {
@@ -295,7 +327,7 @@ void ComputeSNAGrid::compute_array()
   	  grid[igrid][size_array_cols_base + j] = gridlocal[size_array_cols_base + j][iz][iy][ix];
       }
   MPI_Allreduce(&grid[0][0],&gridall[0][0],ngrid*size_array_cols,MPI_DOUBLE,MPI_SUM,world);
-
+  assign_coords_all();
 
 }
 

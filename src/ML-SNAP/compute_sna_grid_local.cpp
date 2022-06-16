@@ -61,8 +61,14 @@ ComputeSNAGridLocal::ComputeSNAGridLocal(LAMMPS *lmp, int narg, char **arg) :
   chemflag = 0;
   bnormflag = 0;
   wselfallflag = 0;
+  switchinnerflag = 0;
   nelements = 1;
   
+  // set local input checks
+
+  int sinnerflag = 0;
+  int dinnerflag = 0;
+
   // process required arguments
 
   memory->create(radelem,ntypes+1,"sna/grid/local:radelem"); // offset by 1 to match up with types
@@ -140,13 +146,37 @@ ComputeSNAGridLocal::ComputeSNAGridLocal(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute sna/grid/local command");
       wselfallflag = atoi(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"switchinnerflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute snap command");
+      switchinnerflag = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"sinner") == 0) {
+      iarg++;
+      if (iarg+ntypes > narg)
+        error->all(FLERR,"Illegal compute snap command");
+      memory->create(sinnerelem,ntypes+1,"snap:sinnerelem");
+      for (int i = 0; i < ntypes; i++)
+        sinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+      sinnerflag = 1;
+      iarg += ntypes;
+    } else if (strcmp(arg[iarg],"dinner") == 0) {
+      iarg++;
+      if (iarg+ntypes > narg)
+        error->all(FLERR,"Illegal compute snap command");
+      memory->create(dinnerelem,ntypes+1,"snap:dinnerelem");
+      for (int i = 0; i < ntypes; i++)
+        dinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+      dinnerflag = 1;
+      iarg += ntypes;
     } else error->all(FLERR,"Illegal compute sna/grid/local command");
 
   }
 
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
-                   chemflag, bnormflag, wselfallflag, nelements);
+                   chemflag, bnormflag, wselfallflag,
+		   nelements, switchinnerflag);
 
   ncoeff = snaptr->ncoeff;
   nvalues = ncoeff;

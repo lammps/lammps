@@ -128,7 +128,7 @@ spectrum while consumes more memory.  With fixed *f_max* and
 :math:`\gamma`, *N_f* should be big enough to converge the classical
 temperature :math:`T^{cl}` as a function of target quantum bath
 temperature. Memory usage per processor could be from 10 to 100
-Mbytes.
+MBytes.
 
 .. note::
 

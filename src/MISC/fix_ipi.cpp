@@ -18,18 +18,19 @@
 
 #include "fix_ipi.h"
 
-#include <cstring>
 #include "atom.h"
-#include "force.h"
-#include "update.h"
+#include "comm.h"
+#include "compute.h"
+#include "domain.h"
 #include "error.h"
+#include "force.h"
+#include "irregular.h"
 #include "kspace.h"
 #include "modify.h"
-#include "compute.h"
-#include "comm.h"
 #include "neighbor.h"
-#include "irregular.h"
-#include "domain.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -46,13 +47,18 @@ using namespace FixConst;
 
 // socket interface
 #ifndef _WIN32
-
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/un.h>
 #include <netdb.h>
+#else
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <io.h>
+#include <windows.h>
 #endif
 
 #define MSGLEN 12
@@ -83,15 +89,13 @@ static void open_socket(int &sockfd, int inet, int port, char* host,
 
     // fetches information on the host
     struct addrinfo hints, *res;
-    char service[256];
 
     memset(&hints, 0, sizeof(hints));
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_family = AF_UNSPEC;
     hints.ai_flags = AI_PASSIVE;
 
-    sprintf(service,"%d",port); // convert the port number to a string
-    ai_err = getaddrinfo(host, service, &hints, &res);
+    ai_err = getaddrinfo(host, std::to_string(port).c_str(), &hints, &res);
     if (ai_err!=0)
       error->one(FLERR,"Error fetching host data. Wrong host name?");
 
@@ -182,7 +186,7 @@ FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) :
   if (atom->tag_consecutive() == 0)
     error->all(FLERR,"Fix ipi requires consecutive atom IDs");
 
-  if (strcmp(arg[1],"all"))
+  if (strcmp(arg[1],"all") != 0)
     error->warning(FLERR,"Fix ipi always uses group all");
 
   host = strdup(arg[3]);
@@ -196,22 +200,10 @@ FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) :
   hasdata = bsize = 0;
 
   // creates a temperature compute for all atoms
-  char** newarg = new char*[3];
-  newarg[0] = (char *) "IPI_TEMP";
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "temp";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  modify->add_compute("IPI_TEMP all temp");
 
   // creates a  pressure compute to extract the virial
-  newarg = new char*[5];
-  newarg[0] = (char *) "IPI_PRESS";
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pressure";
-  newarg[3] = (char *) "IPI_TEMP";
-  newarg[4] = (char *) "virial";
-  modify->add_compute(5,newarg);
-  delete [] newarg;
+  modify->add_compute("IPI_PRESS all pressure IPI_TEMP virial");
 
   // create instance of Irregular class
   irregular = new Irregular(lmp);
@@ -424,7 +416,7 @@ void FixIPI::final_integrate()
 
   int nat=bsize/3;
   double **f= atom->f;
-  double *lbuf = new double[bsize];
+  auto lbuf = new double[bsize];
 
   // reassembles the force vector from the local arrays
   int nlocal = atom->nlocal;

@@ -77,7 +77,7 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
   // Perform initial allocation of atom-based array
   // Register with Atom class
   xoriginal = nullptr;
-  grow_arrays(atom->nmax);
+  FixTISpring::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
 
@@ -143,7 +143,7 @@ int FixTISpring::setmask()
 void FixTISpring::init()
 {
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -153,9 +153,9 @@ void FixTISpring::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(nlevels_respa-1);
     post_force_respa(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(nlevels_respa-1);
   }
 }
 

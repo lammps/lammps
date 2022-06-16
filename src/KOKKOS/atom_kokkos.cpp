@@ -257,25 +257,49 @@ void AtomKokkos::grow(unsigned int mask)
    return index in ivector or dvector of its location
 ------------------------------------------------------------------------- */
 
-int AtomKokkos::add_custom(const char *name, int flag)
+int AtomKokkos::add_custom(const char *name, int flag, int cols)
 {
   int index;
 
-  if (flag == 0) {
+  if (flag == 0 && cols == 0) {
     index = nivector;
     nivector++;
-    iname = (char **) memory->srealloc(iname, nivector * sizeof(char *), "atom:iname");
-    iname[index] = utils::strdup(name);
+    ivname = (char **) memory->srealloc(ivname, nivector * sizeof(char *), "atom:ivname");
+    ivname[index] = utils::strdup(name);
     ivector = (int **) memory->srealloc(ivector, nivector * sizeof(int *), "atom:ivector");
     memory->create(ivector[index], nmax, "atom:ivector");
-  } else {
+
+  } else if (flag == 1 && cols == 0) {
     index = ndvector;
     ndvector++;
-    dname = (char **) memory->srealloc(dname, ndvector * sizeof(char *), "atom:dname");
-    dname[index] = utils::strdup(name);
+    dvname = (char **) memory->srealloc(dvname, ndvector * sizeof(char *), "atom:dvname");
+    dvname[index] = utils::strdup(name);
+    dvector = (double **) memory->srealloc(dvector, ndvector * sizeof(double *), "atom:dvector");
     this->sync(Device, DVECTOR_MASK);
     memoryKK->grow_kokkos(k_dvector, dvector, ndvector, nmax, "atom:dvector");
     this->modified(Device, DVECTOR_MASK);
+
+  } else if (flag == 0 && cols) {
+    index = niarray;
+    niarray++;
+    ianame = (char **) memory->srealloc(ianame, niarray * sizeof(char *), "atom:ianame");
+    ianame[index] = utils::strdup(name);
+    iarray = (int ***) memory->srealloc(iarray, niarray * sizeof(int **), "atom:iarray");
+    memory->create(iarray[index], nmax, cols, "atom:iarray");
+
+    icols = (int *) memory->srealloc(icols, niarray * sizeof(int), "atom:icols");
+    icols[index] = cols;
+
+  } else if (flag == 1 && cols) {
+    index = ndarray;
+    ndarray++;
+    daname = (char **) memory->srealloc(daname, ndarray * sizeof(char *), "atom:daname");
+    daname[index] = utils::strdup(name);
+    darray = (double ***) memory->srealloc(darray, ndarray * sizeof(double **), "atom:darray");
+    memory->create(darray[index], nmax, cols, "atom:darray");
+
+    dcols = (int *) memory->srealloc(dcols, ndarray * sizeof(int), "atom:dcols");
+    dcols[index] = cols;
   }
 
   return index;
@@ -283,22 +307,34 @@ int AtomKokkos::add_custom(const char *name, int flag)
 
 /* ----------------------------------------------------------------------
    remove a custom variable of type flag = 0/1 for int/double at index
-   free memory for vector and name and set ptrs to a null pointer
-   ivector/dvector and iname/dname lists never shrink
+   free memory for vector/array and name and set ptrs to a null pointer
+   these lists never shrink
 ------------------------------------------------------------------------- */
 
-void AtomKokkos::remove_custom(int flag, int index)
+void AtomKokkos::remove_custom(int index, int flag, int cols)
 {
-  if (flag == 0) {
+  if (flag == 0 && cols == 0) {
     memory->destroy(ivector[index]);
     ivector[index] = nullptr;
-    delete[] iname[index];
-    iname[index] = nullptr;
-  } else {
-    //memoryKK->destroy_kokkos(dvector);
+    delete[] ivname[index];
+    ivname[index] = nullptr;
+
+  } else if (flag == 1 && cols == 0) {
     dvector[index] = nullptr;
-    delete[] dname[index];
-    dname[index] = nullptr;
+    delete[] dvname[index];
+    dvname[index] = nullptr;
+
+  } else if (flag == 0 && cols) {
+    memory->destroy(iarray[index]);
+    iarray[index] = nullptr;
+    delete[] ianame[index];
+    ianame[index] = nullptr;
+
+  } else if (flag == 1 && cols) {
+    memory->destroy(darray[index]);
+    darray[index] = nullptr;
+    delete[] daname[index];
+    daname[index] = nullptr;
   }
 }
 

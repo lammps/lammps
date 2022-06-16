@@ -23,7 +23,9 @@ endfunction(validate_option)
 # LAMMPS C++ interface. We only need the header related parts.
 add_library(lammps INTERFACE)
 target_include_directories(lammps INTERFACE ${LAMMPS_HEADER_DIR})
-
+if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
+  target_link_libraries(lammps INTERFACE ${CMAKE_BINARY_DIR}/../liblammps.dll.a)
+endif()
 ################################################################################
 # MPI configuration
 if(NOT CMAKE_CROSSCOMPILING)

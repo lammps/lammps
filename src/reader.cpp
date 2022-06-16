@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -25,40 +24,35 @@ using namespace LAMMPS_NS;
 Reader::Reader(LAMMPS *lmp) : Pointers(lmp)
 {
   fp = nullptr;
+  binary = false;
+  compressed = false;
 }
 
 /* ----------------------------------------------------------------------
    try to open given file
-   generic version for ASCII files that may be compressed
+   generic version for ASCII files with optional compression or for native binary dumps
 ------------------------------------------------------------------------- */
 
-void Reader::open_file(const char *file)
+void Reader::open_file(const std::string &file)
 {
   if (fp != nullptr) close_file();
 
-  if (utils::strmatch(file,"\\.gz$")) {
-    compressed = 1;
-
-#ifdef LAMMPS_GZIP
-    auto gunzip = fmt::format("gzip -c -d {}",file);
-
-#ifdef _WIN32
-    fp = _popen(gunzip.c_str(),"rb");
-#else
-    fp = popen(gunzip.c_str(),"r");
-#endif
-
-#else
-    error->one(FLERR,"Cannot open gzipped file without gzip support");
-#endif
+  if (platform::has_compress_extension(file)) {
+    compressed = true;
+    fp = platform::compressed_read(file);
+    if (!fp) error->one(FLERR, "Cannot open compressed file for reading");
   } else {
-    compressed = 0;
-    fp = fopen(file,"r");
+    compressed = false;
+    if (utils::strmatch(file, "\\.bin$")) {
+      binary = true;
+      fp = fopen(file.c_str(), "rb");
+    } else {
+      fp = fopen(file.c_str(), "r");
+      binary = false;
+    }
   }
 
-  if (fp == nullptr)
-    error->one(FLERR,"Cannot open file {}: {}",
-                                 file, utils::getsyserror());
+  if (!fp) error->one(FLERR, "Cannot open file {}: {}", file, utils::getsyserror());
 }
 
 /* ----------------------------------------------------------------------
@@ -69,8 +63,10 @@ void Reader::open_file(const char *file)
 void Reader::close_file()
 {
   if (fp == nullptr) return;
-  if (compressed) pclose(fp);
-  else fclose(fp);
+  if (compressed)
+    platform::pclose(fp);
+  else
+    fclose(fp);
   fp = nullptr;
 }
 
@@ -78,8 +74,7 @@ void Reader::close_file()
    detect unused arguments
 ------------------------------------------------------------------------- */
 
-void Reader::settings(int narg, char** /*args*/)
+void Reader::settings(int narg, char ** /*args*/)
 {
-  if (narg > 0)
-    error->all(FLERR,"Illegal read_dump command");
+  if (narg > 0) error->all(FLERR, "Illegal read_dump command");
 }

@@ -40,27 +40,27 @@ class FixReaxFF : public Fix {
   friend class PairReaxFFOMP;
 
  public:
-  FixReaxFF(class LAMMPS *,int, char **);
-  ~FixReaxFF();
-  int setmask();
+  FixReaxFF(class LAMMPS *, int, char **);
+  ~FixReaxFF() override;
+  int setmask() override;
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
  private:
-  int maxbonds;              // max # of bonds for any atom
-  int maxhbonds;             // max # of Hbonds for any atom
-  int *num_bonds;            // # of bonds for each atom
-  int *num_hbonds;           // # of Hbonds for each atom
-  int oldnmax;               // arrays' size before growing
+  int maxbonds;       // max # of bonds for any atom
+  int maxhbonds;      // max # of Hbonds for any atom
+  int *num_bonds;     // # of bonds for each atom
+  int *num_hbonds;    // # of Hbonds for each atom
+  int oldnmax;        // arrays' size before growing
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

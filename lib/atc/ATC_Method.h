@@ -66,12 +66,12 @@ namespace ATC {
 
     /** Predictor phase, executed before Verlet */
     virtual void pre_init_integrate() {
-      feEngine_->partition_mesh(); 
+      feEngine_->partition_mesh();
       update_step();
     };
 
     /** Predictor phase, Verlet first step for velocity and position */
-    virtual void init_integrate(); 
+    virtual void init_integrate();
 
     /** Predictor phase, executed after Verlet */
     virtual void post_init_integrate();
@@ -127,7 +127,7 @@ namespace ATC {
     /** access to interscale manager */
     InterscaleManager & interscale_manager() {return interscaleManager_;};
     /** access to lammps interface */
-    
+
     LammpsInterface const * lammps_interface() const {return lammpsInterface_;};
     /** access to time filter */
     TimeFilterManager * time_filter_manager() {return &timeFilterManager_;};
@@ -142,7 +142,7 @@ namespace ATC {
     /** compute vector for output */
     virtual double compute_vector(int /* n */) {return 0.;}
     /** compute vector for output */
-    virtual double compute_array(int /* irow */, int /* icol */) {return 0.;}; 
+    virtual double compute_array(int /* irow */, int /* icol */) {return 0.;};
     int scalar_flag() const {return scalarFlag_;}
     int vector_flag() const {return vectorFlag_;}
     int size_vector() const {return sizeVector_;}
@@ -164,16 +164,16 @@ namespace ATC {
 
     /** time/step functions */
     bool sample_now(void) const
-    { 
+    {
       int s = step();
       bool now =  ( (sampleFrequency_ > 0) && (s % sampleFrequency_ == 0));
       return now;
     }
     bool output_now(void) const
-    { 
+    {
       int s = step();
 
-      bool now = ( (outputFrequency_ > 0) && (s == 1 || s % outputFrequency_ == 0) ); 
+      bool now = ( (outputFrequency_ > 0) && (s == 1 || s % outputFrequency_ == 0) );
       now = now || outputNow_;
       return now;
     }
@@ -328,7 +328,7 @@ namespace ATC {
     const std::map<std::string,std::pair<MolSize,int> > & molecule_ids() const {return moleculeIds_;};
     /** access to internal element set */
     const std::string & internal_element_set() {return internalElementSet_;};
-    
+
 
     //----------------------------------------------------------------
     /** \name mass matrix operations */
@@ -339,7 +339,7 @@ namespace ATC {
     //      inverted using GMRES
     void apply_inverse_mass_matrix(MATRIX & data, FieldName thisField)
     {
-      
+
       if (useConsistentMassMatrix_(thisField)) {
         //data = consistentMassInverse_*data;
         data = (consistentMassMatsInv_[thisField].quantity())*data;
@@ -351,7 +351,7 @@ namespace ATC {
     void apply_inverse_mass_matrix(const MATRIX & data_in, MATRIX & data_out,
                                    FieldName thisField)
     {
-      if (useConsistentMassMatrix_(thisField)) { 
+      if (useConsistentMassMatrix_(thisField)) {
         //data_out = consistentMassInverse_*data_in;
         data_out = (consistentMassMatsInv_[thisField].quantity())*data_in;
         return;
@@ -365,7 +365,7 @@ namespace ATC {
 
     DIAG_MAN &mass_mat(FieldName thisField)
       { return massMats_[thisField];};
-    
+
 
     //---------------------------------------------------------------
     /** \name mass matrices  */
@@ -383,13 +383,13 @@ namespace ATC {
     void register_mass_matrix_dependency(DependencyManager * dependent,
                                          FieldName thisField)
     {
-      if (useConsistentMassMatrix_(thisField)) { 
+      if (useConsistentMassMatrix_(thisField)) {
         consistentMassMatsInv_[thisField].register_dependence(dependent);
         return;
       }
       massMatsInv_[thisField].register_dependence(dependent);
     };
-    
+
     void apply_inverse_md_mass_matrix(MATRIX & data, FieldName thisField)
     { data = (massMatsMdInv_[thisField].quantity())*data; };
     void register_md_mass_matrix_dependency(DependencyManager * dependent,
@@ -416,11 +416,11 @@ namespace ATC {
        return man->second;
      };
     /*@}*/
-                
+
     //----------------------------------------------------------------
     /** \name Interscale operators */
     //----------------------------------------------------------------
-    bool use_md_mass_normalization() const { return mdMassNormalization_;}  
+    bool use_md_mass_normalization() const { return mdMassNormalization_;}
     bool kernel_based() { return kernelBased_; }
     bool kernel_on_the_fly() const { return kernelOnTheFly_;}
     bool has_kernel_function() { return kernelFunction_ != nullptr; }
@@ -439,20 +439,20 @@ namespace ATC {
 
     double ke_scale() { return keScale_; }
     double pe_scale() { return peScale_; }
-    
+
     /** from a atom group, find the nodes that have non-zero shape function contributions */
 
     bool nodal_influence(const int groupbit, std::set<int>& nset, std::set<int>& aset, double tol =1.e-8);
-    int nodal_influence(const int groupbit, std::set<int>& nset, std::set<int>& aset, 
+    int nodal_influence(const int groupbit, std::set<int>& nset, std::set<int>& aset,
       bool ghost,
       double tol =1.e-8);
     /*@{*/
 
-    
+
 
  /** Restrict based on atomic volume integration for volumetric quantities : given w_\alpha, w_I = \sum_\alpha N_{I\alpha} w_\alpha */
     void restrict_volumetric_quantity(const MATRIX &atomData,
-                                      MATRIX &nodeData); 
+                                      MATRIX &nodeData);
     void restrict_volumetric_quantity(const MATRIX &atomData,
                                       MATRIX &nodeData,
                                       const SPAR_MAT & shpFcn);
@@ -474,7 +474,7 @@ namespace ATC {
   protected: /** methods */
     /** time functions */
     void set_time(double t=0) {simTime_=t;};
-    void update_time(double alpha = 1.0)  
+    void update_time(double alpha = 1.0)
     {
       double dt = lammpsInterface_->dt();
       simTime_ += alpha*dt;
@@ -506,7 +506,7 @@ namespace ATC {
 
     virtual void  read_restart_data(std::string fileName_, RESTART_LIST & data);
     virtual void write_restart_data(std::string fileName_, RESTART_LIST & data);
-    void pack_fields(RESTART_LIST & data); 
+    void pack_fields(RESTART_LIST & data);
 
    /** mass matrices */
     DIAG_MAT  massMatInv_;
@@ -564,11 +564,11 @@ namespace ATC {
 
     void reset_fields();
 
-  private: /** methods */ 
+  private: /** methods */
     ATC_Method(); // do not define
 
   protected: /** data */
-    
+
     /* parsed input requires changes */
     bool needReset_;
 
@@ -609,7 +609,7 @@ namespace ATC {
     PerAtomQuantity<double> * atomProcGhostCoarseGrainingPositions_;
     PerAtomQuantity<double> * atomReferencePositions_;
 
-    
+
     /** number of unique FE nodes */
     int nNodes_;
 
@@ -631,17 +631,17 @@ namespace ATC {
     bool trackDisplacement_;
 
     /** map from reference positions to element id, pointer is to internal only */
-    
+
     bool needsAtomToElementMap_;
     PerAtomQuantity<int> * atomElement_;
     PerAtomQuantity<int> * atomGhostElement_;
 
     /* use element sets to define internal and/or ghost regions */
     std::string internalElementSet_;
-    
+
     /** atomic ATC material tag */
-    
-    
+
+
     double Xprd_,Yprd_,Zprd_; // lengths of periodic box in reference frame
     double XY_,YZ_,XZ_;
     double boxXlo_,boxXhi_; // lo/hi bounds of periodic box in reference frame
@@ -671,22 +671,22 @@ namespace ATC {
     /** base name for output files */
     std::string outputPrefix_;
 
-    /** output flag */ 
-    
+    /** output flag */
+
     bool outputNow_;
     /** output time or step (for lammps compatibility) */
     bool outputTime_;
-  
+
     /** output frequency */
     int outputFrequency_;
-  
+
     /** sample frequency */
     int sampleFrequency_;
-  
+
     /** sample counter */
     int sampleCounter_;
 
-    TAG_FIELDS filteredData_; 
+    TAG_FIELDS filteredData_;
 
     double peScale_,keScale_;
 
@@ -702,7 +702,7 @@ namespace ATC {
     int sizeVector_;              // N = size of global vector
     int scalarVectorFreq_;        // frequency compute s/v data is available at
     int sizePerAtomCols_;         // N = size of per atom vector to dump
-    
+
     double **perAtomOutput_;      // per atom data
     double **&perAtomArray_;      // per atom data
     int extScalar_;               // 0/1 if scalar is intensive/extensive
@@ -724,15 +724,15 @@ namespace ATC {
     /** \name time integration and filtering fields */
     //---------------------------------------------------------------
     /*@{*/
-    
-    FIELDS dot_fields_; 
+
+    FIELDS dot_fields_;
     FIELDS ddot_fields_;
     FIELDS dddot_fields_;
 
     /** Restricted Fields */
 
     FIELDS nodalAtomicFields_;  // replaces fieldNdFiltered_
-    FIELDS nodalAtomicFieldsRoc_; 
+    FIELDS nodalAtomicFieldsRoc_;
 
     /*@}*/
 
@@ -740,9 +740,9 @@ namespace ATC {
     /** \name quadrature weights */
     //---------------------------------------------------------------
     /*@{*/
-    
-    DIAG_MAT NodeVolumes_; 
-    DIAG_MAN invNodeVolumes_; 
+
+    DIAG_MAT NodeVolumes_;
+    DIAG_MAN invNodeVolumes_;
     /** atomic quadrature integration weights (V_\alpha) */
     ProtectedAtomDiagonalMatrix<double> * atomVolume_;
     std::string atomicWeightsFile_;
@@ -770,7 +770,7 @@ namespace ATC {
     bool needProcGhost_;
     std::string groupTag_;
     std::string groupTagGhost_;
-  
+
     /** number of atoms of correct type,
         ghosts are atoms outside our domain of interest
         boundary are atoms contributing to boundary flux terms */
@@ -824,7 +824,7 @@ namespace ATC {
     SPAR_MAN  kernelAccumulantMol_; // KKM add
     SPAR_MAN  kernelAccumulantMolGrad_; // KKM add
     DIAG_MAN* accumulantWeights_;
-    DIAG_MAN* accumulantInverseVolumes_;  
+    DIAG_MAN* accumulantInverseVolumes_;
     int accumulantBandwidth_;
     /*@}*/
 
@@ -845,7 +845,7 @@ namespace ATC {
 
 
     //---------------------------------------------------------------
-    /** \name reference data */ 
+    /** \name reference data */
     //---------------------------------------------------------------
     bool hasRefPE_;
     bool setRefPE_;

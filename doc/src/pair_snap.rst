@@ -135,7 +135,8 @@ with #) anywhere. Each non-blank non-comment line must contain one
 keyword/value pair. The required keywords are *rcutfac* and
 *twojmax*\ . Optional keywords are *rfac0*, *rmin0*,
 *switchflag*, *bzeroflag*, *quadraticflag*, *chemflag*,
-*bnormflag*, *wselfallflag*, and *chunksize*\ .
+*bnormflag*, *wselfallflag*,  *switchinnerflag*,
+*sinner*, *dinner*, *chunksize*, and *parallelthresh*\ .
 
 The default values for these keywords are
 
@@ -147,7 +148,12 @@ The default values for these keywords are
 * *chemflag* = 0
 * *bnormflag* = 0
 * *wselfallflag* = 0
-* *chunksize* = 4096
+* *switchinnerflag* = 0
+* *chunksize* = 32768
+* *parallelthresh* = 8192
+
+For detailed definitions of all of these keywords,
+see the :doc:`compute sna/atom <compute_sna_atom>` doc page.
 
 If *quadraticflag* is set to 1, then the SNAP energy expression includes
 additional quadratic terms that have been shown to increase the overall
@@ -188,17 +194,31 @@ corresponding *K*-vector of linear coefficients for element
 which must equal the number of unique elements appearing in the LAMMPS
 pair_coeff command, to avoid ambiguity in the number of coefficients.
 
-The keyword *chunksize* is only applicable when using the
-pair style *snap* with the KOKKOS package and is ignored otherwise.
-This keyword controls
-the number of atoms in each pass used to compute the bispectrum
-components and is used to avoid running out of memory. For example
-if there are 8192 atoms in the simulation and the *chunksize*
-is set to 4096, the bispectrum calculation will be broken up
-into two passes.
+The keyword *switchinnerflag* activates an additional switching function
+that smoothly turns off contributions to the SNAP potential from neighbor
+atoms at short separations. If *switchinnerflag* is set to 1 then
+the additional keywords *sinner* and *dinner* must also be provided.
+Each of these is followed by *nelements* values, where *nelements*
+is the number of unique elements appearing in appearing in the LAMMPS
+pair_coeff command. The element order should correspond to the order
+in which elements first appear in the pair_coeff command reading from
+left to right.
 
-Detailed definitions for all the other keywords
-are given on the :doc:`compute sna/atom <compute_sna_atom>` doc page.
+The keywords *chunksize* and *parallelthresh* are only applicable when
+using the pair style *snap* with the KOKKOS package on GPUs and are
+ignored otherwise.  The *chunksize* keyword controls the number of atoms
+in each pass used to compute the bispectrum components and is used to
+avoid running out of memory.  For example if there are 8192 atoms in the
+simulation and the *chunksize* is set to 4096, the bispectrum
+calculation will be broken up into two passes (running on a single GPU).
+The *parallelthresh* keyword controls a crossover threshold for
+performing extra parallelism.  For small systems, exposing additional
+parallelism can be beneficial when there is not enough work to fully
+saturate the GPU threads otherwise.  However, the extra parallelism also
+leads to more divergence and can hurt performance when the system is
+already large enough to saturate the GPU threads.  Extra parallelism
+will be performed if the *chunksize* (or total number of atoms per GPU)
+is smaller than *parallelthresh*.
 
 .. note::
 

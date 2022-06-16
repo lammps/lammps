@@ -18,7 +18,7 @@ namespace ATC {
 //  PrescribedDataManager
 //-------------------------------------------------------------------------
   PrescribedDataManager::PrescribedDataManager
-  (FE_Engine * feEngine, 
+  (FE_Engine * feEngine,
    const map<FieldName,int> & fieldSize) :
     fieldSizes_(fieldSize), feEngine_(feEngine)
   {
@@ -34,8 +34,8 @@ namespace ATC {
       bcs_[thisField].reset(nNodes_,thisSize);
       for (int inode = 0; inode < nNodes_ ; ++inode) {
         for (int idof = 0; idof < thisSize ; ++idof) {
-          ics_[thisField](inode,idof) = nullptr;          
-          bcs_[thisField](inode,idof) = nullptr;          
+          ics_[thisField](inode,idof) = nullptr;
+          bcs_[thisField](inode,idof) = nullptr;
         }
       }
       // compact inode, value lists
@@ -44,7 +44,7 @@ namespace ATC {
       elementSources_[thisField].reset(nElems_,thisSize);
       for (int ielem = 0; ielem < nElems_ ; ++ielem) {
         for (int idof = 0; idof < thisSize ; ++idof) {
-          elementSources_[thisField](ielem,idof) = nullptr;          
+          elementSources_[thisField](ielem,idof) = nullptr;
         }
       }
       // node based sources
@@ -70,14 +70,14 @@ namespace ATC {
     // construct & initialize internal data
     nNodes_ =  feEngine_->num_nodes();
     nElems_ =  feEngine_->num_elements();
-  
+
     // nodal ics & essential bcs
     ics_[fieldName].reset(nNodes_,size);
     bcs_[fieldName].reset(nNodes_,size);
     for (int inode = 0; inode < nNodes_ ; ++inode) {
       for (int idof = 0; idof < size ; ++idof) {
-        ics_[fieldName](inode,idof) = nullptr;          
-        bcs_[fieldName](inode,idof) = nullptr;          
+        ics_[fieldName](inode,idof) = nullptr;
+        bcs_[fieldName](inode,idof) = nullptr;
       }
     }
 
@@ -85,7 +85,7 @@ namespace ATC {
     elementSources_[fieldName].reset(nElems_,size);
     for (int ielem = 0; ielem < nElems_ ; ++ielem) {
       for (int idof = 0; idof < size ; ++idof) {
-        elementSources_[fieldName](ielem,idof) = nullptr;          
+        elementSources_[fieldName](ielem,idof) = nullptr;
       }
     }
   }
@@ -98,7 +98,7 @@ namespace ATC {
     // check to see if field exists
     if (fieldSizes_.find(fieldName) == fieldSizes_.end())
       return;
-    
+
     // delete field in maps
     fieldSizes_.erase(fieldName);
     ics_.erase(fieldName);
@@ -110,28 +110,28 @@ namespace ATC {
 //  fix_initial_field
 //-------------------------------------------------------------------------
   void PrescribedDataManager::fix_initial_field
-  (const string nodesetName, 
-   const FieldName thisField, 
-   const int thisIndex, 
+  (const string nodesetName,
+   const FieldName thisField,
+   const int thisIndex,
    const XT_Function * f)
   {
     set<int> nodeSet = (feEngine_->fe_mesh())->nodeset(nodesetName);
     set<int>::const_iterator iset;
     for (iset = nodeSet.begin(); iset != nodeSet.end(); iset++) {
       int inode = *iset;
-      ics_[thisField](inode,thisIndex) = (XT_Function*) f; 
+      ics_[thisField](inode,thisIndex) = (XT_Function*) f;
     }
   }
 //-------------------------------------------------------------------------
 //  fix_field
 //-------------------------------------------------------------------------
   void PrescribedDataManager::fix_field
-  (const std::set<int>  nodeSet, 
-   const FieldName thisField, 
-   const int thisIndex, 
+  (const std::set<int>  nodeSet,
+   const FieldName thisField,
+   const int thisIndex,
    const XT_Function * f)
   {
-    // fix fields 
+    // fix fields
     set<int>::const_iterator iset;
     for (iset = nodeSet.begin(); iset != nodeSet.end(); iset++) {
       int inode = *iset;
@@ -139,9 +139,9 @@ namespace ATC {
     }
   }
   void PrescribedDataManager::fix_field
-  (const string nodesetName, 
-   const FieldName thisField, 
-   const int thisIndex, 
+  (const string nodesetName,
+   const FieldName thisField,
+   const int thisIndex,
    const XT_Function * f)
   {
     set<int> nodeSet = (feEngine_->fe_mesh())->nodeset(nodesetName);
@@ -151,8 +151,8 @@ namespace ATC {
 //  unfix_field
 //-------------------------------------------------------------------------
   void PrescribedDataManager::unfix_field
-  (const string nodesetName, 
-   const FieldName thisField, 
+  (const string nodesetName,
+   const FieldName thisField,
    const int thisIndex)
   {
     set<int> nodeSet = (feEngine_->fe_mesh())->nodeset(nodesetName);
@@ -167,9 +167,9 @@ namespace ATC {
 //  fix_field
 //-------------------------------------------------------------------------
   void PrescribedDataManager::fix_field
-  (const int nodeId, 
-   const FieldName thisField, 
-   const int thisIndex, 
+  (const int nodeId,
+   const FieldName thisField,
+   const int thisIndex,
    const XT_Function * f)
   {
     bcs_[thisField](nodeId,thisIndex) = (XT_Function*) f;
@@ -178,8 +178,8 @@ namespace ATC {
 //  unfix_field
 //-------------------------------------------------------------------------
   void PrescribedDataManager::unfix_field
-  (const int nodeId, 
-   const FieldName thisField, 
+  (const int nodeId,
+   const FieldName thisField,
    const int thisIndex)
   {
     bcs_[thisField](nodeId,thisIndex) = nullptr;
@@ -188,12 +188,12 @@ namespace ATC {
 //  fix_flux
 //-------------------------------------------------------------------------
   void PrescribedDataManager::fix_flux
-  (const string facesetName, 
-   const FieldName thisField, 
-   const int thisIndex, 
+  (const string facesetName,
+   const FieldName thisField,
+   const int thisIndex,
    const XT_Function * f)
   {
-    const set< pair <int,int> > * fset 
+    const set< pair <int,int> > * fset
       = & ( (feEngine_->fe_mesh())->faceset(facesetName));
     set< pair<int,int> >::const_iterator iset;
     for (iset = fset->begin(); iset != fset->end(); iset++) {
@@ -203,7 +203,7 @@ namespace ATC {
       if (dof.size() == 0) {
         int ndof = (fieldSizes_.find(thisField))->second;
         dof.reset(ndof);
-        for(int i = 0; i < ndof; i++)  dof(i) = nullptr; 
+        for(int i = 0; i < ndof; i++)  dof(i) = nullptr;
       }
       dof(thisIndex) = (XT_Function*) f;
     }
@@ -212,11 +212,11 @@ namespace ATC {
 //  unfix_flux
 //-------------------------------------------------------------------------
   void PrescribedDataManager::unfix_flux
-  (const string facesetName, 
-   const FieldName thisField, 
-   const int thisIndex) 
+  (const string facesetName,
+   const FieldName thisField,
+   const int thisIndex)
   {
-    const set< pair <int,int> > * fset 
+    const set< pair <int,int> > * fset
       = & ( (feEngine_->fe_mesh())->faceset(facesetName));
     set< pair<int,int> >::const_iterator iset;
     for (iset = fset->begin(); iset != fset->end(); iset++) {
@@ -229,12 +229,12 @@ namespace ATC {
 //  fix_robin
 //-------------------------------------------------------------------------
   void PrescribedDataManager::fix_robin
-  (const string facesetName, 
-   const FieldName thisField, 
-   const int thisIndex, 
+  (const string facesetName,
+   const FieldName thisField,
+   const int thisIndex,
    const UXT_Function * f)
   {
-    const set< pair <int,int> > * fset 
+    const set< pair <int,int> > * fset
       = & ( (feEngine_->fe_mesh())->faceset(facesetName));
     set< pair<int,int> >::const_iterator iset;
     for (iset = fset->begin(); iset != fset->end(); iset++) {
@@ -244,7 +244,7 @@ namespace ATC {
       if (dof.size() == 0) {
         int ndof = (fieldSizes_.find(thisField))->second;
         dof.reset(ndof);
-        for(int i = 0; i < ndof; i++)  dof(i) = nullptr; 
+        for(int i = 0; i < ndof; i++)  dof(i) = nullptr;
       }
       dof(thisIndex) = (UXT_Function*) f;
     }
@@ -253,11 +253,11 @@ namespace ATC {
 //  unfix_robin
 //-------------------------------------------------------------------------
   void PrescribedDataManager::unfix_robin
-  (const string facesetName, 
-   const FieldName thisField, 
-   const int thisIndex) 
+  (const string facesetName,
+   const FieldName thisField,
+   const int thisIndex)
   {
-    const set< pair <int,int> > * fset 
+    const set< pair <int,int> > * fset
       = & ( (feEngine_->fe_mesh())->faceset(facesetName));
     set< pair<int,int> >::const_iterator iset;
     for (iset = fset->begin(); iset != fset->end(); iset++) {
@@ -270,10 +270,10 @@ namespace ATC {
 //  fix_open
 //-------------------------------------------------------------------------
   void PrescribedDataManager::fix_open
-  (const string facesetName, 
+  (const string facesetName,
    const FieldName thisField)
   {
-    const set< pair <int,int> > * fset 
+    const set< pair <int,int> > * fset
       = & ( (feEngine_->fe_mesh())->faceset(facesetName));
     set< pair<int,int> >::const_iterator iset;
     for (iset = fset->begin(); iset != fset->end(); iset++) {
@@ -285,10 +285,10 @@ namespace ATC {
 //  unfix_open
 //-------------------------------------------------------------------------
   void PrescribedDataManager::unfix_open
-  (const string facesetName, 
-   const FieldName thisField) 
+  (const string facesetName,
+   const FieldName thisField)
   {
-    const set< pair <int,int> > * fset 
+    const set< pair <int,int> > * fset
       = & ( (feEngine_->fe_mesh())->faceset(facesetName));
     set< pair<int,int> >::const_iterator iset;
     for (iset = fset->begin(); iset != fset->end(); iset++) {
@@ -300,9 +300,9 @@ namespace ATC {
 //  fix_source
 //-------------------------------------------------------------------------
   void PrescribedDataManager::fix_source
-  (const string elemsetName, 
-   const FieldName thisField, 
-   const int thisIndex, 
+  (const string elemsetName,
+   const FieldName thisField,
+   const int thisIndex,
    const XT_Function *f)
   {
     set<int> elemSet = (feEngine_->fe_mesh())->elementset(elemsetName);
@@ -317,8 +317,8 @@ namespace ATC {
 //  fix_source
 //-------------------------------------------------------------------------
   void PrescribedDataManager::fix_source
-  (const FieldName thisField, 
-   const int thisIndex, 
+  (const FieldName thisField,
+   const int thisIndex,
    const set<pair<int,double> > & s)
   {
     set<pair<int,double> >::const_iterator iset;
@@ -334,8 +334,8 @@ namespace ATC {
 //  unfix_source
 //-------------------------------------------------------------------------
   void PrescribedDataManager::unfix_source
-  (const string elemsetName, 
-   const FieldName thisField, 
+  (const string elemsetName,
+   const FieldName thisField,
    const int thisIndex)
   {
     set<int> elemSet = (feEngine_->fe_mesh())->elementset(elemsetName);
@@ -348,7 +348,7 @@ namespace ATC {
 //-------------------------------------------------------------------------
 //  set_initial_conditions
 //-------------------------------------------------------------------------
-  void PrescribedDataManager::set_initial_conditions(const double t,  
+  void PrescribedDataManager::set_initial_conditions(const double t,
                                                      FIELDS &fields,
                                                      FIELDS &dot_fields,
                                                      FIELDS &ddot_fields,
@@ -367,15 +367,15 @@ namespace ATC {
         for (int thisIndex = 0; thisIndex < thisSize ; ++thisIndex) {
           XT_Function *f = ics_[thisField](inode,thisIndex);
           if (!f)  f = bcs_[thisField](inode,thisIndex);
-          if (f) 
+          if (f)
           {
-            DENS_VEC coords(3); 
+            DENS_VEC coords(3);
             coords = (feEngine_->fe_mesh())->nodal_coordinates(inode);
             double *x = coords.ptr();
             myField(inode,thisIndex) = f->f(x,t);
-            myDotField(inode,thisIndex) = f->dfdt(x,t); 
-            myDDotField(inode,thisIndex) = f->ddfdt(x,t); 
-            myDDDotField(inode,thisIndex) = f->dddfdt(x,t); 
+            myDotField(inode,thisIndex) = f->dfdt(x,t);
+            myDDotField(inode,thisIndex) = f->ddfdt(x,t);
+            myDDDotField(inode,thisIndex) = f->dddfdt(x,t);
           }
           else {
             myField(inode,thisIndex) = 0;
@@ -397,7 +397,7 @@ namespace ATC {
 //-------------------------------------------------------------------------
 //  set_fixed_fields
 //-------------------------------------------------------------------------
-  void PrescribedDataManager::set_fixed_fields(const double t, 
+  void PrescribedDataManager::set_fixed_fields(const double t,
                                                FIELDS &fields,
                                                FIELDS &dot_fields,
                                                FIELDS &ddot_fields,
@@ -408,20 +408,20 @@ namespace ATC {
       FieldName thisField = field->first;
       int thisSize = field->second;
       for (int thisIndex = 0; thisIndex < thisSize ; ++thisIndex) {
-        BC_SET & bcs =  (bcValues_[thisField])[thisIndex]; 
+        BC_SET & bcs =  (bcValues_[thisField])[thisIndex];
         bcs.clear();
         for (int inode = 0; inode < nNodes_ ; ++inode) {
           XT_Function * f = bcs_[thisField](inode,thisIndex);
           if (f) {
-            DENS_VEC coords(3); 
+            DENS_VEC coords(3);
             coords = (feEngine_->fe_mesh())->nodal_coordinates(inode);
             double * x = coords.ptr();
             double val = f->f(x,t);
-            
+
             (fields      [thisField].set_quantity())(inode,thisIndex) = val;
-            (dot_fields  [thisField].set_quantity())(inode,thisIndex) = f->dfdt(x,t); 
-            (ddot_fields [thisField].set_quantity())(inode,thisIndex) = f->ddfdt(x,t); 
-            (dddot_fields[thisField].set_quantity())(inode,thisIndex) = f->dddfdt(x,t); 
+            (dot_fields  [thisField].set_quantity())(inode,thisIndex) = f->dfdt(x,t);
+            (ddot_fields [thisField].set_quantity())(inode,thisIndex) = f->ddfdt(x,t);
+            (dddot_fields[thisField].set_quantity())(inode,thisIndex) = f->dddfdt(x,t);
             // compact set
             pair <int, double > bc = make_pair(inode,val);
             bcs.insert(bc);
@@ -434,7 +434,7 @@ namespace ATC {
 //  set_fixed_field
 //-------------------------------------------------------------------------
   void PrescribedDataManager::set_fixed_field(
-    const double t, 
+    const double t,
     const FieldName & fieldName,
     DENS_MAT & fieldMatrix)
   {
@@ -447,7 +447,7 @@ namespace ATC {
       for (int thisIndex = 0; thisIndex < thisSize ; ++thisIndex) {
         XT_Function * f = bcs_[fieldName](inode,thisIndex);
         if (f) {
-          DENS_VEC coords(3); 
+          DENS_VEC coords(3);
           coords = (feEngine_->fe_mesh())->nodal_coordinates(inode);
           fieldMatrix(inode,thisIndex) = f->f(coords.ptr(),t);
         }
@@ -458,7 +458,7 @@ namespace ATC {
 //  set_fixed_dfield
 //-------------------------------------------------------------------------
   void PrescribedDataManager::set_fixed_dfield(
-    const double t, 
+    const double t,
     const FieldName & fieldName,
     DENS_MAT & dfieldMatrix)
   {
@@ -471,7 +471,7 @@ namespace ATC {
       for (int thisIndex = 0; thisIndex < thisSize ; ++thisIndex) {
         XT_Function * f = bcs_[fieldName](inode,thisIndex);
         if (f) {
-          DENS_VEC coords(3); 
+          DENS_VEC coords(3);
           coords = (feEngine_->fe_mesh())->nodal_coordinates(inode);
           dfieldMatrix(inode,thisIndex) = f->dfdt(coords.ptr(),t);
         }
@@ -482,7 +482,7 @@ namespace ATC {
 //  set_sources
 //-------------------------------------------------------------------------
   void PrescribedDataManager::set_sources
-  (double t,  
+  (double t,
    FIELDS & sources)
   {
     // zero
@@ -497,7 +497,7 @@ namespace ATC {
     }
     // compute boundary fluxes
     feEngine_->add_fluxes(fieldMask,t,faceSources_,sources);
-  
+
     // compute internal sources
     feEngine_->add_sources(fieldMask,t,elementSources_,sources);
     feEngine_->add_sources(fieldMask,t,nodalSources_,sources);
@@ -510,20 +510,20 @@ namespace ATC {
         for (int thisIndex = 0; thisIndex < thisSize ; ++thisIndex) {
           XT_Function * f = bcs_[thisField](inode,thisIndex);
           if (f) {
-            
+
             (sources[thisField].set_quantity())(inode,thisIndex) = 0.0;
           }
         }
       }
     }
-  
+
   }
 
 //-------------------------------------------------------------------------
 //  print
 //-------------------------------------------------------------------------
 
-  void PrescribedDataManager::print(void) 
+  void PrescribedDataManager::print()
   {
     // print and check consistency
     enum dataType {FREE=0,FIELD,SOURCE};
@@ -548,17 +548,17 @@ namespace ATC {
       for (int ielem = 0; ielem < nElems_ ; ++ielem) {
         for (int thisIndex = 0; thisIndex < thisSize ; ++thisIndex) {
           f = elementSources_[thisField](ielem,thisIndex);
-          if (f) { 
+          if (f) {
             feEngine_->element_connectivity(ielem,conn);
             for (int i = 0; i < conn.size() ; ++i) {
               int inode = conn(i);
-              if (bcTypes(inode,thisIndex) != FIELD) 
+              if (bcTypes(inode,thisIndex) != FIELD)
               { bcTypes(inode,thisIndex) = SOURCE; }
             }
           }
         }
       }
-      map < pair<int,int>, Array < XT_Function * > > & fset 
+      map < pair<int,int>, Array < XT_Function * > > & fset
         = faceSources_[thisField];
       map < pair<int,int>, Array < XT_Function * > > ::const_iterator iset;
       for (iset = fset.begin(); iset != fset.end(); iset++) {
@@ -566,11 +566,11 @@ namespace ATC {
         Array < XT_Function * > fs = iset->second;
         for (int thisIndex = 0; thisIndex < thisSize ; ++thisIndex) {
           f = fs(thisIndex);
-          if (f) { 
+          if (f) {
             feEngine_->face_connectivity(face,conn);
             for (int i = 0; i < conn.size() ; ++i) {
               int inode = conn(i);
-              if (bcTypes(inode,thisIndex) != FIELD) 
+              if (bcTypes(inode,thisIndex) != FIELD)
               { bcTypes(inode,thisIndex) = SOURCE; }
             }
           }
@@ -603,7 +603,7 @@ namespace ATC {
       int i = 0;
       for (iset = nodeSet.begin(); iset != nodeSet.end(); iset++) {
         int inode = *iset;
-        const BC_SET & allBCs 
+        const BC_SET & allBCs
           = ((bcValues_.find(thisField))->second)[thisIndex];
         BC_SET::const_iterator bset;
         for (bset = allBCs.begin(); bset != allBCs.end(); bset++) {

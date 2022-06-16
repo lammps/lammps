@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -20,6 +19,7 @@ FixStyle(npt/kk/host,FixNPTKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_NPT_KOKKOS_H
 #define LMP_FIX_NPT_KOKKOS_H
 
@@ -31,7 +31,6 @@ template<class DeviceType>
 class FixNPTKokkos : public FixNHKokkos<DeviceType> {
  public:
   FixNPTKokkos(class LAMMPS *, int, char **);
-  ~FixNPTKokkos() {}
 };
 
 }
@@ -39,14 +38,3 @@ class FixNPTKokkos : public FixNHKokkos<DeviceType> {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Temperature control must be used with fix npt
-
-Self-explanatory.
-
-E: Pressure control must be used with fix npt
-
-Self-explanatory.
-
-*/

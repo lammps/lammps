@@ -23,22 +23,22 @@
 
 #include "pair_body_rounded_polyhedron.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "body_rounded_polyhedron.h"
 #include "comm.h"
-#include "force.h"
-#include "fix.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
-#include "math_extra.h"
+#include "fix.h"
+#include "force.h"
 #include "math_const.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -390,13 +390,13 @@ void PairBodyRoundedPolyhedron::coeff(int narg, char **arg)
 
 void PairBodyRoundedPolyhedron::init_style()
 {
-  avec = (AtomVecBody *) atom->style_match("body");
+  avec = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
   if (!avec) error->all(FLERR,"Pair body/rounded/polyhedron requires "
                         "atom style body");
   if (strcmp(avec->bptr->style,"rounded/polyhedron") != 0)
     error->all(FLERR,"Pair body/rounded/polyhedron requires "
                "body style rounded/polyhedron");
-  bptr = (BodyRoundedPolyhedron *) avec->bptr;
+  bptr = dynamic_cast<BodyRoundedPolyhedron *>( avec->bptr);
 
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style body/rounded/polyhedron requires "
@@ -406,7 +406,7 @@ void PairBodyRoundedPolyhedron::init_style()
     error->all(FLERR,"Pair body/rounded/polyhedron requires "
                "ghost atoms store velocity");
 
-  neighbor->request(this);
+  neighbor->add_request(this);
 
   // find the maximum enclosing radius for each atom type
 
@@ -1212,10 +1212,7 @@ int PairBodyRoundedPolyhedron::interaction_edge_to_edge(int ibody,
       contact_list[num_contacts].unique = 1;
       num_contacts++;
     }
-  } else {
-
   }
-
   return interact;
 }
 

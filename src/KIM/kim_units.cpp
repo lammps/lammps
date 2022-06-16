@@ -54,10 +54,9 @@
    Designed for use with the kim-api-2.0.2 (and newer) package
 ------------------------------------------------------------------------- */
 
-#include <iostream>
-#include <math.h>
-#include <string>
+#include <cmath>
 #include <map>
+#include <string>
 #include <utility>
 
 using namespace std;

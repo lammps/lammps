@@ -40,13 +40,38 @@ potential with coefficients 120.0, 30 for :math:`K`, :math:`\chi_0`.
 Improper type 2 would be computed with a *cvff* potential with coefficients
 20.0, -1, 2 for K, d, and n, respectively.
 
-If the improper *class2* potential is one of the hybrid styles, it
-requires additional AngleAngle coefficients be specified in the data
-file.  These lines must also have an additional "class2" argument
-added after the improper type.  For improper types which are assigned
-to other hybrid styles, use the style name (e.g. "harmonic")
-appropriate to that style.  The AngleAngle coeffs for that improper
-type will then be ignored.
+If improper coefficients are specified in the data file read via the
+:doc:`read_data <read_data>` command, then the same rule applies.
+E.g. "harmonic" or "cvff", must be added after the improper type, for
+each line in the "Improper Coeffs" section, e.g.
+
+.. parsed-literal::
+
+   Improper Coeffs
+
+   1 harmonic 120.0 30
+   2 cvff 20.0 -1 2
+   ...
+
+If *class2* is one of the improper hybrid styles, the same rule holds
+for specifying additional AngleAngle coefficients either via the input
+script or in the data file. I.e. *class2* must be added to each line
+after the improper type.  For
+lines in the AngleAngle Coeffs section of the data
+file for dihedral types that are not *class2*, you must use an
+improper style of *skip* as a placeholder, e.g.
+
+.. parsed-literal::
+
+   AngleAngle Coeffs
+
+   1 skip
+   2 class2 0.0 0.0 0.0 115.06 130.01 115.06
+   ...
+
+Note that it is not necessary to use the improper style *skip* in the
+input script, since AngleAngle coefficients
+need not be specified at all for improper types that are not *class2*.
 
 An improper style of *none* can be specified as the second argument to
 the improper_coeff command, if you desire to turn off certain improper

@@ -2,6 +2,7 @@
 
 SHELL = /bin/bash
 PYTHON = python
+DYN_LIB = -ldl
 
 #.IGNORE:
 
@@ -53,6 +54,7 @@ PACKAGE = \
 	awpmd \
 	bocs \
 	body \
+        bpm \
 	brownian \
 	cg-dna \
 	cg-sdk \
@@ -92,7 +94,6 @@ PACKAGE = \
 	mdi \
 	meam \
 	mesont \
-	message \
 	mgpt \
 	misc \
 	ml-hdnnp \
@@ -135,6 +136,7 @@ PACKAGE = \
 	yaff \
 	atc \
 	dielectric \
+	electrode \
 	ml-iap \
 	phonon
 
@@ -147,7 +149,8 @@ PACKMOST = \
 	asphere \
 	bocs \
 	body \
-	brownian \
+	bpm \
+        brownian \
 	cg-dna \
 	cg-sdk \
 	class2 \
@@ -182,7 +185,6 @@ PACKMOST = \
 	orient \
 	peri \
 	plugin \
-	poems \
 	qeq \
 	reaction \
 	reaxff \
@@ -207,7 +209,6 @@ PACKLIB = \
 	kim \
 	kokkos \
 	latte \
-	message \
 	mpiio \
 	mscg \
 	poems \
@@ -230,11 +231,12 @@ PACKLIB = \
 	ml-quip \
 	scafacos \
 	machdyn \
-	vtk
+	vtk \
+	electrode
 
 PACKSYS = compress latboltz mpiio python
 
-PACKINT = atc awpmd colvars gpu kokkos mesont message poems
+PACKINT = atc awpmd colvars electrode gpu kokkos mesont poems
 
 PACKEXT = \
 	adios \
@@ -260,12 +262,11 @@ uppercase_internal=$(if $1,$$(subst $(firstword $1),$(call uppercase_internal,$(
 uppercase=$(eval uppercase_RESULT:=$(call uppercase_internal,$(uppercase_TABLE),$1))$(uppercase_RESULT)
 
 PACKAGEUC = $(call uppercase,$(PACKAGE))
-PACKUSERUC = $(call uppercase,$(PACKUSER))
+PACKAGESORTED = $(sort $(PACKAGEUC))
 
 YESDIR = $(call uppercase,$(@:yes-%=%))
 NODIR  = $(call uppercase,$(@:no-%=%))
 LIBDIR = $(@:lib-%=%)
-LIBUSERDIR = $(@:lib-%=%)
 
 # List of all targets
 
@@ -280,14 +281,15 @@ help:
 	@echo 'make package                 list available packages and their dependencies'
 	@echo 'make package-status (ps)     status of all packages'
 	@echo 'make package-installed (pi)  list of installed packages'
-	@echo 'make yes-package             install a single pgk in src dir'
+	@echo 'make yes-package             install a single pkg in src dir'
 	@echo 'make no-package              remove a single pkg from src dir'
-	@echo 'make yes-all                 install all pgks in src dir'
+	@echo 'make yes-all                 install all pkgs in src dir'
 	@echo 'make no-all                  remove all pkgs from src dir'
-	@echo 'make yes-basic               install a few commonly used pgks'
+	@echo 'make no-installed (ni)       quick uninstall of installed pkgs'
+	@echo 'make yes-basic               install a few commonly used pkgs'
 	@echo 'make no-basic                remove a few commonly used pkgs'
-	@echo 'make yes-most                install most pgks w/o libs'
-	@echo 'make no-most                 remove most pgks w/o libs'
+	@echo 'make yes-most                install most pkgs w/o libs'
+	@echo 'make no-most                 remove most pkgs w/o libs'
 	@echo 'make yes-lib       install all pkgs with libs (included or ext)'
 	@echo 'make no-lib        remove all pkgs with libs (included or ext)'
 	@echo 'make yes-ext                 install all pkgs with external libs'
@@ -332,7 +334,7 @@ lmpinstalledpkgs.h: $(SRC) $(INC)
 	@echo '#ifndef LMP_INSTALLED_PKGS_H' >  ${TMPNAME}.lmpinstalled
 	@echo '#define LMP_INSTALLED_PKGS_H' >> ${TMPNAME}.lmpinstalled
 	@echo 'const char * LAMMPS_NS::LAMMPS::installed_packages[] = {' >> ${TMPNAME}.lmpinstalled
-	@for p in $(PACKAGEUC) $(PACKUSERUC); do info=$$($(SHELL) Package.sh $$p installed); \
+	@for p in $(PACKAGEUC); do info=$$($(SHELL) Package.sh $$p installed); \
              [ -n "$$info" ] && echo "\"$$info\"" | sed -e 's/".*package \(.*\)"/"\1",/' >> ${TMPNAME}.lmpinstalled || :; done
 	@echo ' NULL };' >> ${TMPNAME}.lmpinstalled
 	@echo '#endif' >> ${TMPNAME}.lmpinstalled
@@ -356,10 +358,10 @@ gitversion:
 	  branch='(unknown)' ;				\
 	  describe='(unknown)' ;			\
 	fi ; \
-	echo "const bool LAMMPS_NS::LAMMPS::has_git_info = $${git};"        >> ${TMPNAME}.lmpgitversion ; \
-	echo "const char LAMMPS_NS::LAMMPS::git_commit[] = \"$${commit}\";" >> ${TMPNAME}.lmpgitversion ; \
-	echo "const char LAMMPS_NS::LAMMPS::git_branch[] = \"$${branch}\";" >> ${TMPNAME}.lmpgitversion ; \
-	echo "const char LAMMPS_NS::LAMMPS::git_descriptor[] = \"$${describe}\";" >> ${TMPNAME}.lmpgitversion
+	echo "bool LAMMPS_NS::LAMMPS::has_git_info() { return $${git}; }"        >> ${TMPNAME}.lmpgitversion ; \
+	echo "const char *LAMMPS_NS::LAMMPS::git_commit() { return \"$${commit}\"; }" >> ${TMPNAME}.lmpgitversion ; \
+	echo "const char *LAMMPS_NS::LAMMPS::git_branch() { return \"$${branch}\"; }" >> ${TMPNAME}.lmpgitversion ; \
+	echo "const char *LAMMPS_NS::LAMMPS::git_descriptor() { return \"$${describe}\"; }" >> ${TMPNAME}.lmpgitversion
 	@echo '#endif' >> ${TMPNAME}.lmpgitversion
 	@if [ -f lmpgitversion.h ]; \
           then test "`diff --brief ${TMPNAME}.lmpgitversion lmpgitversion.h`" != "" && \
@@ -401,14 +403,14 @@ ifeq ($(mode),static)
 	@cd $(objdir); \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJLIB)" "INC = $(INC)" "SHFLAGS =" \
 	  "LMPLIB = $(ARLIB)" "ARLIB = $(ARLIB)" "SHLIB = $(SHLIB)" \
-	  "LMPLINK = $(LMPLINK)" "EXE = ../$(EXE)" ../$(EXE)
+	  "LMPLINK = $(LMPLINK)" "DYN_LIB = $(DYN_LIB)" "EXE = ../$(EXE)" ../$(EXE)
 	@ln -s $(ARLIB) $(ARLINK)
 endif
 ifeq ($(mode),shared)
 	@cd $(objdir); \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJLIB)" "INC = $(INC)" \
 	  "LMPLIB = $(SHLIB)" "ARLIB = $(ARLIB)" "SHLIB = $(SHLIB)" \
-	  "LMPLINK = $(LMPLINK)" "EXE = ../$(EXE)" ../$(EXE)
+	  "LMPLINK = $(LMPLINK)" "DYN_LIB = $(DYN_LIB)" "EXE = ../$(EXE)" ../$(EXE)
 	@ln -s $(SHLIB) $(SHLINK)
 endif
 # backward compatibility
@@ -439,6 +441,7 @@ clean:
 
 clean-all:
 	rm -rf Obj_*
+	rm -f style_*.h packages_*.h lmpgitversion.h lmpinstalledpkgs.h
 
 clean-%:
 	@if [ $@ = "clean-serial" ]; \
@@ -458,8 +461,7 @@ mpi-stubs:
 sinclude ../lib/python/Makefile.lammps
 install-python:
 	@rm -rf ../python/build
-	@$(PYTHON) ../python/install.py -v ../src/version.h \
-		-p ../python/lammps -l ../src/liblammps.so
+	@$(PYTHON) ../python/install.py -p ../python/lammps -l ../src/liblammps.so
 
 # Create a tarball of src dir and packages
 
@@ -468,17 +470,48 @@ tar:
 	@cd ..; tar cvzf src/$(ROOT)_src.tar.gz \
 	  src/Make* src/Package.sh src/Depend.sh src/Install.sh src/Fetch.sh \
 	  src/MAKE src/DEPEND src/*.cpp src/*.h src/STUBS \
-	  $(patsubst %,src/%,$(PACKAGEUC)) $(patsubst %,src/%,$(PACKUSERUC)) \
+	  $(patsubst %,src/%,$(PACKAGEUC)) \
           --exclude=*/.svn
 	@cd STUBS; $(MAKE)
 	@echo "Created $(ROOT)_src.tar.gz"
 
+check: check-whitespace check-permissions check-homepage check-errordocs
+
+check-whitespace:
+	$(PYTHON) ../tools/coding_standard/whitespace.py ..
+
+fix-whitespace:
+	$(PYTHON) ../tools/coding_standard/whitespace.py .. -f
+
+check-permissions:
+	$(PYTHON) ../tools/coding_standard/permissions.py ..
+
+fix-permissions:
+	$(PYTHON) ../tools/coding_standard/permissions.py .. -f
+
+check-homepage:
+	$(PYTHON) ../tools/coding_standard/homepage.py ..
+
+fix-homepage:
+	$(PYTHON) ../tools/coding_standard/homepage.py .. -f
+
+check-errordocs:
+	$(PYTHON) ../tools/coding_standard/errordocs.py ..
+
+fix-errordocs:
+	$(PYTHON) ../tools/coding_standard/errordocs.py .. -f
+
+format-src:
+	clang-format -i --verbose --style=file *.cpp *.h */*.cpp */*.h
+
+format-tests:
+	clang-format -i --verbose --style=file ../unittest/*/*.cpp ../unittest/*/*.h
+
+
 # Package management
 
 package:
-	@echo 'Standard packages:' $(PACKAGE)
-	@echo ''
-	@echo 'User-contributed packages:' $(PACKUSER)
+	@echo 'Available packages:' $(PACKAGE)
 	@echo ''
 	@echo 'Packages that need system libraries:' $(PACKSYS)
 	@echo ''
@@ -514,6 +547,9 @@ yes-all:
 
 no-all:
 	@for p in $(PACKAGE); do $(MAKE) no-$$p; done
+
+no-installed ni:
+	@for p in $(PACKAGESORTED); do $(SHELL) Package.sh $$p info && $(MAKE) no-$$p || : ; done
 
 yes-standard yes-std:
 	@echo 'There are no more "standard" or "user" packages in LAMMPS'
@@ -589,9 +625,6 @@ lib-%:
 	@if [ -e ../lib/$(LIBDIR)/Install.py ]; then \
 	  echo "Installing lib $(@:lib-%=%)"; \
 	  ( cd ../lib/$(LIBDIR); $(PYTHON) Install.py $(args) ); \
-	elif [ -e ../lib/$(LIBUSERDIR)/Install.py ]; then \
-	  echo "Installing lib $(@:lib-%=%)"; \
-	  ( cd ../lib/$(LIBUSERDIR); $(PYTHON) Install.py $(args) ); \
 	else \
 	  echo "Install script for lib $(@:lib-%=%) does not exist"; \
 	fi; touch main.cpp
@@ -604,28 +637,21 @@ lib-%:
 # purge = delete obsolete and auto-generated package files
 
 package-status ps:
-	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p status; done
-	@echo ''
-	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p status; done
+	@for p in $(PACKAGESORTED); do $(SHELL) Package.sh $$p status; done
 
 package-installed pi:
-	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p installed; done
-	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p installed; done
+	@for p in $(PACKAGESORTED); do $(SHELL) Package.sh $$p installed; done
 
 package-update pu: purge
+	@echo 'Updating installed packages:'
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p update; done
-	@echo ''
-	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p update; done
 
 package-overwrite: purge
-	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p overwrite; done
-	@echo ''
-	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p overwrite; done
+	@echo 'Overwriting installed packages:'
+	@for p in $(PACKAGESORTED); do $(SHELL) Package.sh $$p overwrite; done
 
 package-diff pd:
-	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p diff; done
-	@echo ''
-	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p diff; done
+	@for p in $(PACKAGESORTED); do $(SHELL) Package.sh $$p diff; done
 
 purge: Purge.list
 	@echo 'Purging obsolete and auto-generated source files'

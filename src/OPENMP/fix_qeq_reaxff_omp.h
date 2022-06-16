@@ -29,11 +29,11 @@ class FixQEqReaxFFOMP : public FixQEqReaxFF {
 
  public:
   FixQEqReaxFFOMP(class LAMMPS *, int, char **);
-  ~FixQEqReaxFFOMP();
-  virtual void init();
-  virtual void init_storage();
-  virtual void pre_force(int);
-  virtual void post_constructor();
+  ~FixQEqReaxFFOMP() override;
+  void init() override;
+  void init_storage() override;
+  void pre_force(int) override;
+  void post_constructor() override;
 
  protected:
   double **b_temp;
@@ -43,17 +43,17 @@ class FixQEqReaxFFOMP : public FixQEqReaxFF {
   double aspc_omega;
   double *aspc_b;
 
-  virtual void allocate_storage();
-  virtual void deallocate_storage();
-  virtual void init_matvec();
-  virtual void compute_H();
+  void allocate_storage() override;
+  void deallocate_storage() override;
+  void init_matvec() override;
+  void compute_H() override;
 
-  virtual int CG(double *, double *);
-  virtual void sparse_matvec(sparse_matrix *, double *, double *);
-  virtual void calculate_Q();
+  int CG(double *, double *) override;
+  void sparse_matvec(sparse_matrix *, double *, double *) override;
+  void calculate_Q() override;
 
-  virtual void vector_sum(double *, double, double *, double, double *, int);
-  virtual void vector_add(double *, double, double *, int);
+  void vector_sum(double *, double, double *, double, double *, int) override;
+  void vector_add(double *, double, double *, int) override;
 
   // dual CG support
   virtual int dual_CG(double *, double *, double *, double *);

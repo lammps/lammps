@@ -3,7 +3,7 @@
  *      POEMS: PARALLELIZABLE OPEN SOURCE EFFICIENT MULTIBODY SOFTWARE     *
  *      DESCRIPTION: SEE READ-ME                                           *
  *      FILE NAME: onsolver.cpp                                            *
- *      AUTHORS: See Author List                                           * 
+ *      AUTHORS: See Author List                                           *
  *      GRANTS: See Grants List                                            *
  *      COPYRIGHT: (C) 2005 by Authors as listed in Author's List          *
  *      LICENSE: Please see License Agreement                              *
@@ -11,7 +11,7 @@
  *      ADMINISTRATOR: Prof. Kurt Anderson                                 *
  *                     Computational Dynamics Lab                          *
  *                     Rensselaer Polytechnic Institute                    *
- *                     110 8th St. Troy NY 12180                           * 
+ *                     110 8th St. Troy NY 12180                           *
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
@@ -28,8 +28,8 @@ using namespace std;
 
 OnSolver::OnSolver(){
   numbodies = 0;
-  bodyarray = 0;
-  q=0;u=0; qdot=0; udot=0; qdotdot=0;  
+  bodyarray = nullptr;
+  q=nullptr;u=nullptr; qdot=nullptr; udot=nullptr; qdotdot=nullptr;
   type = ONSOLVER;
 }
 
@@ -44,10 +44,10 @@ void OnSolver::DeleteModel(){
   delete [] u;
 
   delete [] qdot;
-  delete [] udot; 
-  
+  delete [] udot;
+
   delete [] qdotdot;
-  
+
   numbodies = 0;
 }
 
@@ -57,7 +57,7 @@ void OnSolver::CreateModel(){
 
   // clear system body IDs (primer for traversal algorithm)
   system->ClearBodyIDs();
-  
+
 
   // error check for inertial frame
   Body* sysbasebody = system->bodies.GetHeadElement()->value;
@@ -72,77 +72,77 @@ void OnSolver::CreateModel(){
     cerr << "ERROR: unable to create O(n) model" << endl;
     exit(1);
   }
-  
-  
-  
+
+
+
   bodyarray = new OnBody* [numbodies];
-  
-  CreateTopologyArray(0,&inertialframe);	  
-  
-  CreateStateMatrixMaps();  
+
+  CreateTopologyArray(0,&inertialframe);
+
+  CreateStateMatrixMaps();
 }
 
 int OnSolver::CreateTopologyArray(int num, OnBody* body){
   int i = num;
-  bodyarray[i] = body;    
+  bodyarray[i] = body;
   i++;
 
-  
+
   OnBody* child;
-  ListElement<OnBody>* ele = body->children.GetHeadElement();    
-  
+  ListElement<OnBody>* ele = body->children.GetHeadElement();
+
   while(ele){
-    child = ele->value;    
+    child = ele->value;
     i = CreateTopologyArray(i,child);
-    ele = ele->next;        
-  }  
-  return i;  
+    ele = ele->next;
+  }
+  return i;
 }
 
 void OnSolver::CreateStateMatrixMaps(){
-  
-	
+
+
   int numstates=0;
-  for(int i=1;i<numbodies;i++)    
-    numstates += bodyarray[i]->q->GetNumRows();       
-  
+  for(int i=1;i<numbodies;i++)
+    numstates += bodyarray[i]->q->GetNumRows();
+
   state.Dim(numstates);
   statedot.Dim(numstates);
-  statedoubledot.Dim(numstates); 
+  statedoubledot.Dim(numstates);
 
-  
+
   int count=0;
-  
+
   for(int i=1;i<numbodies;i++){
-	  for(int j=0;j<bodyarray[i]->q->GetNumRows();j++){
-		  state.SetElementPointer(count,bodyarray[i]->q->GetElementPointer(j));      
-		  statedot.SetElementPointer(count,bodyarray[i]->qdot->GetElementPointer(j));        	
-		  statedoubledot.SetElementPointer(count,bodyarray[i]->qdotdot->GetElementPointer(j));       
-		  count++;      
-	  }        
+    for(int j=0;j<bodyarray[i]->q->GetNumRows();j++){
+      state.SetElementPointer(count,bodyarray[i]->q->GetElementPointer(j));
+      statedot.SetElementPointer(count,bodyarray[i]->qdot->GetElementPointer(j));
+      statedoubledot.SetElementPointer(count,bodyarray[i]->qdotdot->GetElementPointer(j));
+      count++;
+    }
   }
 }
 
 
 void OnSolver::Solve(double time, Matrix& FF){
-	system->SetTime(time);
-	for(int i=1;i<numbodies;i++)
-		bodyarray[i]->LocalKinematics();
-	
-	Vect3 Torque; Torque.Zeros();
-	Vect3 Force; Force.Zeros();
-	
-	for(int i=numbodies-1;i>0;i--){
-		Torque(1)=FF(1,i);     
-		Torque(2)=FF(2,i);
-		Torque(3)=FF(3,i);		
-		Force(1)=FF(4,i);     
-		Force(2)=FF(5,i);
-		Force(3)=FF(6,i);   
-		bodyarray[i]->LocalTriangularization(Torque,Force);
-	}
-   	
-	for(int i=1;i<numbodies;i++){
-		bodyarray[i]->LocalForwardSubstitution();
-	}  
+  system->SetTime(time);
+  for(int i=1;i<numbodies;i++)
+    bodyarray[i]->LocalKinematics();
+
+  Vect3 Torque; Torque.Zeros();
+  Vect3 Force; Force.Zeros();
+
+  for(int i=numbodies-1;i>0;i--){
+    Torque(1)=FF(1,i);
+    Torque(2)=FF(2,i);
+    Torque(3)=FF(3,i);
+    Force(1)=FF(4,i);
+    Force(2)=FF(5,i);
+    Force(3)=FF(6,i);
+    bodyarray[i]->LocalTriangularization(Torque,Force);
+  }
+
+  for(int i=1;i<numbodies;i++){
+    bodyarray[i]->LocalForwardSubstitution();
+  }
 }

@@ -258,7 +258,7 @@ void FixTempBerendsen::write_restart(FILE *fp)
 
 void FixTempBerendsen::restart(char *buf)
 {
-  double *list = (double *) buf;
+  auto list = (double *) buf;
 
   energy = list[0];
 }

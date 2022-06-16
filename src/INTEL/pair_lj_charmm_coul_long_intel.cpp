@@ -17,10 +17,9 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "group.h"
 #include "kspace.h"
-#include "memory.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
@@ -29,6 +28,7 @@
 #include "suffix.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -43,12 +43,6 @@ PairLJCharmmCoulLongIntel::PairLJCharmmCoulLongIntel(LAMMPS *lmp) :
   suffix_flag |= Suffix::INTEL;
   respa_enable = 0;
   cut_respa = nullptr;
-}
-
-/* ---------------------------------------------------------------------- */
-
-PairLJCharmmCoulLongIntel::~PairLJCharmmCoulLongIntel()
-{
 }
 
 /* ---------------------------------------------------------------------- */
@@ -149,7 +143,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
 
   const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
-  const int ** _noalias const firstneigh = (const int **)list->firstneigh;
+  const int ** _noalias const firstneigh = (const int **)list->firstneigh;  // NOLINT
 
   const flt_t * _noalias const special_coul = fc.special_coul;
   const flt_t * _noalias const special_lj = fc.special_lj;
@@ -513,7 +507,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
   if (EFLAG || vflag)
     fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
   else
-    fix->add_result_array(f_start, 0, offload);
+    fix->add_result_array(f_start, nullptr, offload);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -521,19 +515,11 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
 void PairLJCharmmCoulLongIntel::init_style()
 {
   PairLJCharmmCoulLong::init_style();
-  auto request = neighbor->find_request(this);
+  if (force->newton_pair == 0)
+    neighbor->find_request(this)->enable_full();
 
-  if (force->newton_pair == 0) {
-    request->half = 0;
-    request->full = 1;
-  }
-  request->intel = 1;
-
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   fix->pair_init_check();
   #ifdef _LMP_INTEL_OFFLOAD
@@ -654,7 +640,8 @@ void PairLJCharmmCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                               const int ntable,
                                                               Memory *memory,
                                                               const int cop) {
-  if ((ntypes != _ntypes || ntable != _ntable)) {
+  if (memory != nullptr) _memory = memory;
+  if ((ntypes != _ntypes) || (ntable != _ntable)) {
     if (_ntypes > 0) {
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * ospecial_lj = special_lj;
@@ -688,13 +675,13 @@ void PairLJCharmmCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
     }
     if (ntypes > 0) {
       _cop = cop;
-      memory->create(cutsq,ntypes,ntypes,"fc.cutsq");
-      memory->create(lj,ntypes,ntypes,"fc.lj");
-      memory->create(table,ntable,"pair:fc.table");
-      memory->create(etable,ntable,"pair:fc.etable");
-      memory->create(detable,ntable,"pair:fc.detable");
-      memory->create(ctable,ntable,"pair:fc.ctable");
-      memory->create(dctable,ntable,"pair:fc.dctable");
+      _memory->create(cutsq,ntypes,ntypes,"fc.cutsq");
+      _memory->create(lj,ntypes,ntypes,"fc.lj");
+      _memory->create(table,ntable,"pair:fc.table");
+      _memory->create(etable,ntable,"pair:fc.etable");
+      _memory->create(detable,ntable,"pair:fc.detable");
+      _memory->create(ctable,ntable,"pair:fc.ctable");
+      _memory->create(dctable,ntable,"pair:fc.dctable");
 
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * ospecial_lj = special_lj;
@@ -724,5 +711,4 @@ void PairLJCharmmCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
   }
   _ntypes=ntypes;
   _ntable=ntable;
-  _memory=memory;
 }

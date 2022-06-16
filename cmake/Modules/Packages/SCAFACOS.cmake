@@ -23,6 +23,11 @@ if(DOWNLOAD_SCAFACOS)
   file(DOWNLOAD ${LAMMPS_THIRDPARTY_URL}/scafacos-1.0.1-fix.diff ${CMAKE_CURRENT_BINARY_DIR}/scafacos-1.0.1.fix.diff
           EXPECTED_HASH MD5=4baa1333bb28fcce102d505e1992d032)
 
+  find_program(HAVE_PATCH patch)
+  if(NOT HAVE_PATCH)
+    message(FATAL_ERROR "The 'patch' program is required to build the ScaFaCoS library")
+  endif()
+
   include(ExternalProject)
   ExternalProject_Add(scafacos_build
     URL     ${SCAFACOS_URL}

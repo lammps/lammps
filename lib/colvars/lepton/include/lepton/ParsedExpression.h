@@ -9,7 +9,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2009=2013 Stanford University and the Authors.      *
+ * Portions copyright (c) 2009-2022 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -41,6 +41,7 @@ namespace Lepton {
 
 class CompiledExpression;
 class ExpressionProgram;
+class CompiledVectorExpression;
 
 /**
  * This class represents the result of parsing an expression.  It provides methods for working with the
@@ -103,6 +104,16 @@ public:
      */
     CompiledExpression createCompiledExpression() const;
     /**
+     * Create a CompiledVectorExpression that allows the expression to be evaluated efficiently
+     * using the CPU's vector unit.
+     *
+     * @param width    the width of the vectors to evaluate it on.  The allowed values
+     *                 depend on the CPU.  4 is always allowed, and 8 is allowed on
+     *                 x86 processors with AVX.  Call CompiledVectorExpression::getAllowedWidths()
+     *                 to query the allowed widths on the current processor.
+     */
+    CompiledVectorExpression createCompiledVectorExpression(int width) const;
+    /**
      * Create a new ParsedExpression which is identical to this one, except that the names of some
      * variables have been changed.
      *
@@ -113,9 +124,10 @@ public:
 private:
     static double evaluate(const ExpressionTreeNode& node, const std::map<std::string, double>& variables);
     static ExpressionTreeNode preevaluateVariables(const ExpressionTreeNode& node, const std::map<std::string, double>& variables);
-    static ExpressionTreeNode precalculateConstantSubexpressions(const ExpressionTreeNode& node);
-    static ExpressionTreeNode substituteSimplerExpression(const ExpressionTreeNode& node);
-    static ExpressionTreeNode differentiate(const ExpressionTreeNode& node, const std::string& variable);
+    static ExpressionTreeNode precalculateConstantSubexpressions(const ExpressionTreeNode& node, std::map<int, ExpressionTreeNode>& nodeCache);
+    static ExpressionTreeNode substituteSimplerExpression(const ExpressionTreeNode& node, std::map<int, ExpressionTreeNode>& nodeCache);
+    static ExpressionTreeNode differentiate(const ExpressionTreeNode& node, const std::string& variable, std::map<int, ExpressionTreeNode>& nodeCache);
+    static bool isConstant(const ExpressionTreeNode& node);
     static double getConstantValue(const ExpressionTreeNode& node);
     static ExpressionTreeNode renameNodeVariables(const ExpressionTreeNode& node, const std::map<std::string, std::string>& replacements);
     ExpressionTreeNode rootNode;

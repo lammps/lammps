@@ -10,7 +10,7 @@ SparseVector<T> sparse_rand(INDEX n, INDEX fill, int seed=1234)
   srand(seed);
   const double rmax_inv = 1.0/double(RAND_MAX);
   SparseVector<T> r(n);
-  while (r.size()<fill) 
+  while (r.size()<fill)
     r(std::rand()%r.nRows())=double(std::rand()*rmax_inv);
   return r;
 }
@@ -52,7 +52,7 @@ T dot(const SparseVector<T> &a, const SparseVector<T> &b)
     STORE::const_iterator bi=b.data_.find(ai->first);
     if (bi == b.data_.end()) continue;
     v += ai->second * bi->second;
-  } 
+  }
   return v;
 }
 // Computes the product of a SparseMatrix transpose with a SparseVector (M'*v).
@@ -70,7 +70,7 @@ SparseVector<T> operator*(const SparseMatrix<T> &M, const SparseVector<T> &v)
     }
     if (yi!=0.0) y(i)+=yi;
   }
-  return y; 
+  return y;
 }
 
 // computes the product of a SparseMatrix transpose with a SparseVector (M'*v).
@@ -81,7 +81,7 @@ SparseVector<T> operator*(const SparseVector<T> &v, const SparseMatrix<T> &M)
   for (INDEX i=0; i<M.nRows(); i++) {
     STORE::const_iterator it = v._data.find(i);
     if (it == v._data.end()) continue;
-    for (INDEX ij=M._ia[i]; ij<M._ia[i+1]; ij++) 
+    for (INDEX ij=M._ia[i]; ij<M._ia[i+1]; ij++)
       y(M._ja[ij]) += it->second * M._v[ij];
   }
   return y;
@@ -104,7 +104,7 @@ std::string SparseVector<T>::to_string() const
   return str;
 }
 
-// Indexes the ith component of the vector or returns zero if not found. 
+// Indexes the ith component of the vector or returns zero if not found.
 template<class T>
 T SparseVector<T>::operator()(INDEX i, INDEX /* j */) const
 {
@@ -113,27 +113,27 @@ T SparseVector<T>::operator()(INDEX i, INDEX /* j */) const
   return it->second;
 }
 
-// Indexes the ith component of the vector or returns zero if not found. 
+// Indexes the ith component of the vector or returns zero if not found.
 template<class T>
 T& SparseVector<T>::operator()(INDEX i, INDEX /* j */)
 {
-  return data_[i]; 
+  return data_[i];
 }
 
-// Indexes the ith component of the vector or returns zero if not found. 
+// Indexes the ith component of the vector or returns zero if not found.
 template<class T> T SparseVector<T>::operator[](INDEX i) const
 {
   return (*this)(i);
 }
 
-// Indexes the ith component of the vector or returns zero if not found. 
+// Indexes the ith component of the vector or returns zero if not found.
 template<class T> T& SparseVector<T>::operator[](INDEX i)
 {
   return (*this)(i);
 }
 
 // Returns a pair (index, value) for a nonzero in the vector.
-template<class T> 
+template<class T>
 std::pair<INDEX, T> SparseVector<T>::pair(INDEX i) const
 {
   STORE::const_iterator it=data_.begin() + i;
@@ -141,7 +141,7 @@ std::pair<INDEX, T> SparseVector<T>::pair(INDEX i) const
 }
 
 //* Adds SparseVector x, scaled by s to this one.  Can be different sparcity.
-template<class T> 
+template<class T>
 void SparseVector<T>::add_scaled(SparseVector<T>& x, const T& s)
 {
   STORE::const_iterator it;
@@ -212,7 +212,7 @@ void SparseVector<T>::write_restart(FILE */* F */) const
 {
 }
 
-// writes a stream to a matlab script to recreate this variable 
+// writes a stream to a matlab script to recreate this variable
 template<class T>
 void SparseVector<T>::matlab(std::ostream &o, const std::string &s) const
 {

@@ -41,7 +41,7 @@ ImplicitSolveOperator::operator * (const DENS_VEC & x) const
   // fast field. In brief, if the ODE for the fast field can be written:
   //
   //  dx/dt = R(x)
-  // 
+  //
   // A generalized discretization can be written:
   //
   //  1/dt * (x^n+1 - x^n) = alpha * R(x^n+1) + (1-alpha) * R(x^n)
@@ -120,14 +120,14 @@ FieldImplicitSolveOperator(ATC_Coupling * atc,
   int nNodes = f.nRows();
   set<int> fixedNodes_ = atc_->prescribed_data_manager()->fixed_nodes(fieldName_);
   n_ = nNodes;
-  vector<bool> tag(nNodes); 
+  vector<bool> tag(nNodes);
   set<int>::const_iterator it;  int i = 0;
   for (i = 0; i < nNodes; ++i) { tag[i] = true; }
   for (it=fixedNodes_.begin();it!=fixedNodes_.end();++it) {tag[*it]=false;}
   int m = 0;
   for (i = 0; i < nNodes; ++i) { if (tag[i]) freeNodes_[i]= m++; }
 //std::cout << " nodes " << n_ << " " << nNodes << "\n";
-  
+
   // Save current field
   x0_.reset(n_);
   to_free(f,x0_);
@@ -143,7 +143,7 @@ FieldImplicitSolveOperator(ATC_Coupling * atc,
   massMask_.reset(1);
   massMask_(0) = fieldName_;
   rhs_[fieldName_].reset(nNodes,dof_);
-  // Compute the RHS vector R(T^n) 
+  // Compute the RHS vector R(T^n)
   R0_.reset(n_);
   R_ .reset(n_);
   R(x0_, R0_);
@@ -163,7 +163,7 @@ void FieldImplicitSolveOperator::to_free(const MATRIX &r, VECTOR &v) const
     v(i) = r(i,0);
   }
 }
-void 
+void
 FieldImplicitSolveOperator::R(const DENS_VEC &x, DENS_VEC &v ) const
 {
   DENS_MAT & f = fields_[fieldName_].set_quantity();
@@ -192,7 +192,7 @@ void FieldImplicitSolveOperator::solution(const DENS_MAT & dx, DENS_MAT &f) cons
 }
 void FieldImplicitSolveOperator::rhs(const DENS_MAT & r, DENS_MAT &rhs) const
 {
-  
+
   to_all(column(r,0),rhs);
 }
 

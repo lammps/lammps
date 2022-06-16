@@ -28,9 +28,9 @@ class AtomVecDPD : public AtomVec {
  public:
   AtomVecDPD(class LAMMPS *);
 
-  void grow_pointers();
-  void unpack_restart_init(int);
-  void data_atom_post(int);
+  void grow_pointers() override;
+  void unpack_restart_init(int) override;
+  void data_atom_post(int) override;
 
  private:
   double *rho, *dpdTheta;
@@ -42,11 +42,3 @@ class AtomVecDPD : public AtomVec {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Internal temperature in Atoms section of data file must be > zero
-
-All internal temperatures must be > zero
-
-*/

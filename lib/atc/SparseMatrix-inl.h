@@ -6,17 +6,17 @@
 
 namespace ATC_matrix {
 
-template <typename T> 
+template <typename T>
 TRI_COORD<T>::TRI_COORD(INDEX row, INDEX col) : i(row), j(col) {}
-template <typename T> 
-TRI_COORD<T>::TRI_COORD(INDEX row, INDEX col, T val, bool add_to) 
+template <typename T>
+TRI_COORD<T>::TRI_COORD(INDEX row, INDEX col, T val, bool add_to)
   : i(row), j(col), v(val), add(add_to) {}
-  
+
 //-----------------------------------------------------------------------------
 // default constructor - creates an empty sparsematrix with specified size
 //-----------------------------------------------------------------------------
 template<typename T>
-SparseMatrix<T>::SparseMatrix(INDEX rows, INDEX cols) 
+SparseMatrix<T>::SparseMatrix(INDEX rows, INDEX cols)
  : _val(nullptr), _ia(nullptr), _ja(nullptr), _size(0), _nRowsCRS(0), hasTemplate_(false),
    _nRows(rows),_nCols(cols) {}
 //-----------------------------------------------------------------------------
@@ -26,16 +26,16 @@ template<typename T>
 SparseMatrix<T>::SparseMatrix(const SparseMatrix<T>& C)
  : Matrix<T>(), _val(nullptr), _ia(nullptr), _ja(nullptr), hasTemplate_(false)
 {
-  _copy(C); 
+  _copy(C);
 }
 //-----------------------------------------------------------------------------
 // copy constructor - converts from DenseMatrix
 //-----------------------------------------------------------------------------
 template<typename T>
-SparseMatrix<T>::SparseMatrix(const DenseMatrix<T>& C) 
+SparseMatrix<T>::SparseMatrix(const DenseMatrix<T>& C)
 : Matrix<T>(), _val(nullptr), _ia(nullptr), _ja(nullptr), hasTemplate_(false)
 {
-  reset(C); 
+  reset(C);
 }
 
 //-----------------------------------------------------------------------------
@@ -43,9 +43,9 @@ SparseMatrix<T>::SparseMatrix(const DenseMatrix<T>& C)
 // an array of col indeces, and an array of nonzero values.
 //-----------------------------------------------------------------------------
 template<typename T>
-SparseMatrix<T>::SparseMatrix(INDEX* rows, INDEX* cols, T* vals, 
+SparseMatrix<T>::SparseMatrix(INDEX* rows, INDEX* cols, T* vals,
                               INDEX size, INDEX nRows, INDEX nCols, INDEX nRowsCRS)
- : hasTemplate_(true) 
+ : hasTemplate_(true)
 {
   _val = vals;
   _ia = rows;
@@ -77,7 +77,7 @@ void SparseMatrix<T>::_create(INDEX size, INDEX nrows)
     ERROR_FOR_BACKTRACE
       exit(EXIT_FAILURE);
   }
-  if (!_ia) return;  
+  if (!_ia) return;
   // automatically handle the ends of rowpointer
   *_ia = 0;               // first non-zero is the zero index
   _ia[_nRowsCRS] = _size; // last row pointer is the size
@@ -88,7 +88,7 @@ void SparseMatrix<T>::_create(INDEX size, INDEX nrows)
 template<typename T>
 void SparseMatrix<T>::_delete()
 {
-  
+
   std::vector<TRI_COORD<T> >().swap(_tri); // completely deletes _tri
   if (_val) delete [] _val;
   if (_ia)  delete [] _ia;
@@ -101,7 +101,7 @@ void SparseMatrix<T>::_delete()
 // full memory copy of C into this
 //-----------------------------------------------------------------------------
 template<typename T>
-void SparseMatrix<T>::_copy(const SparseMatrix<T> &C) 
+void SparseMatrix<T>::_copy(const SparseMatrix<T> &C)
 {
   compress(C);
   _delete();
@@ -116,7 +116,7 @@ void SparseMatrix<T>::_copy(const SparseMatrix<T> &C)
   _nCols = C._nCols;
   _nRows = C._nRows;
   if (_nCols > 0 && _nRows > 0) hasTemplate_ = true; // needs if since map seems to call the copy instead of the default constructor
-} 
+}
 // this version is accessible to derived classes
 template<typename T>
 void SparseMatrix<T>::copy(const SparseMatrix<T> &C)
@@ -138,21 +138,21 @@ void SparseMatrix<T>::_set_equal(const Matrix<T> &r)
     for (INDEX i=0; i<r.size(); i++) set(i,i,r[i]);
   else if (dynamic_cast<const DenseMatrix<T>*>(ptr_r))  this->reset(r);
   else
-  { 
+  {
     std::cout <<"Error in general sparse matrix assignment\n";
     exit(1);
   }
-} 
+}
 // General flat index by value operator (by nth nonzero)
-template <typename T> inline T SparseMatrix<T>::operator[](INDEX i) const 
+template <typename T> inline T SparseMatrix<T>::operator[](INDEX i) const
 {
-  VICK(i); return _val[i]; 
+  VICK(i); return _val[i];
 }
 
 // General flat index by reference operator (by nth nonzero)
 template <typename T> inline T& SparseMatrix<T>::operator[](INDEX i)
 {
-  VICK(i); return _val[i]; 
+  VICK(i); return _val[i];
 }
 
 template<typename T>
@@ -163,7 +163,7 @@ T SparseMatrix<T>::_zero = T(0);
 //-----------------------------------------------------------------------------
 template <typename T>
 bool triplet_comparision(const TRI_COORD<T> &x, const TRI_COORD<T> &y)
-{ 
+{
   const bool row_less  = (x.i) <  (y.i);
   const bool row_equal = (x.i) == (y.i);
   const bool col_less  = (x.j) <  (y.j);
@@ -174,7 +174,7 @@ bool triplet_comparision(const TRI_COORD<T> &x, const TRI_COORD<T> &y)
 //-----------------------------------------------------------------------------
 template <typename T>
 bool triplets_equal(const TRI_COORD<T> &x, const TRI_COORD<T> &y)
-{ 
+{
   return x.i==y.i && x.j==y.j;
 }
 //-----------------------------------------------------------------------------
@@ -217,12 +217,12 @@ SparseMatrix<T> operator*(const SparseMatrix<T> &A, const DiagonalMatrix<T>& D)
 {
   GCK(A, D, A.nCols()!=D.nRows(),"SparseMatrix * DiagonalMatrix")
   SparseMatrix<T> C(A);  // C has same sparcity as A
- 
+
   // C(i,j) = A(i,k) * D(k, j) * j==k
   INDEX i, ij;
-  for (i=0; i<A._nRowsCRS; i++) 
-    for (ij=A._ia[i]; ij<A._ia[i+1]; ij++) 
-      C[ij] = A._val[ij]*D(A._ja[ij],A._ja[ij]); 
+  for (i=0; i<A._nRowsCRS; i++)
+    for (ij=A._ia[i]; ij<A._ia[i+1]; ij++)
+      C[ij] = A._val[ij]*D(A._ja[ij],A._ja[ij]);
 
   return C;
 }
@@ -239,7 +239,7 @@ SparseMatrix<T> operator*(const SparseMatrix<T> &A, const SparseMatrix<T> &B)
 
   SparseMatrix<T> C(A.nRows(), B.nCols());
   if (At.empty() || B.empty()) return C;
-  
+
   INDEX k, ki, kj;
   INDEX K = std::min(At._nRowsCRS, B._nRowsCRS);
   for (k=0; k<K; k++)   // loop over rows of A or B (smallest)
@@ -280,11 +280,11 @@ void SparseMatrix<T>::compress()
 
   // Sort and find the number of unique triplets.
   // Triplet values will all be not present in existing CRS structure.
-  const INDEX nUnique = CountUniqueTriplets();  
+  const INDEX nUnique = CountUniqueTriplets();
 
   // Max number of rows in new CRS structure.
   const INDEX nRows = std::max((INDEX)_tri.back().i+1, _nRowsCRS);
-  
+
   // make a new CRS structure
   INDEX *ia = new INDEX [nRows+1];
   INDEX *ja = new INDEX [nUnique];
@@ -296,7 +296,7 @@ void SparseMatrix<T>::compress()
   INDEX i;
   for (i=1; i<nRows; i++) ia[i]=~0;  // ~0 is max(INDEX)
   ia[nRows] = nUnique;
-  
+
   INDEX crs_pt, crs_row;
   unsigned tri_ct; // must be unsigned to interface with std::vector without warnings
 
@@ -310,7 +310,7 @@ void SparseMatrix<T>::compress()
   for (i=0; i<nUnique; i++)
   {
     // is the next non-zero in the new triplet vector
-    if (tri_ct < _tri.size() 
+    if (tri_ct < _tri.size()
         && (triplet_comparision(nextTRI, nextCRS) || crs_pt>=_size)) {
       next = nextTRI;
       // advance the triplet counter, and skip voided TRIPLET entries
@@ -324,7 +324,7 @@ void SparseMatrix<T>::compress()
     else if (crs_pt < _size) {
       next = nextCRS;
       // Advance the CRS counter, don't set next if we are at the end.
-      if (++crs_pt < _size) {  
+      if (++crs_pt < _size) {
         // advance to the row corresponding to this value
         while (crs_pt >= _ia[crs_row+1]) {
           crs_row++;
@@ -360,8 +360,8 @@ INDEX SparseMatrix<T>::CountUniqueTriplets()
   if (_tri.empty()) return _size;
   std::sort(_tri.begin(), _tri.end(), triplet_comparision<T>);
   INDEX nUnique=1 + _size;
-  
-  typename std::vector<TRI_COORD<T> >::reverse_iterator t;  
+
+  typename std::vector<TRI_COORD<T> >::reverse_iterator t;
   // Loop backwards over all new triplets.
   for (t = _tri.rbegin(); t+1!=_tri.rend();  ++t) {
     // If this triplet is the same as the preceding one.
@@ -388,7 +388,7 @@ bool SparseMatrix<T>::has_entry(INDEX i, INDEX j) const
 template<typename T>
 bool SparseMatrix<T>::has_entry_uncompressed(INDEX i, INDEX j) const
 {
-  for (unsigned k=0; k<_tri.size() ; k++) {  
+  for (unsigned k=0; k<_tri.size() ; k++) {
     if (_tri[k].i == i && _tri[k].j == j) return true;
   }
   return false;
@@ -416,7 +416,7 @@ bool SparseMatrix<T>::has_template(void) const
 // Index by copy operator - return zero if not found
 //-----------------------------------------------------------------------------
 template<typename T>
-T SparseMatrix<T>::operator()(INDEX i, INDEX j) const 
+T SparseMatrix<T>::operator()(INDEX i, INDEX j) const
 {
   MICK(i,j);  // Matrix Index ChecKing
   compress(*this);
@@ -438,7 +438,7 @@ T& SparseMatrix<T>::operator()(INDEX i, INDEX j)
     if (f>=_ia[i] && f<_ia[i+1] && _ja[f] == j) return _val[f];
   }
   // NEVER use index operator as LHS to modify values not already in the
-  // sparcity pattern - the crude check below will only catch this on the 
+  // sparcity pattern - the crude check below will only catch this on the
   // second infraction.
   if (_zero != T(0)) std::cout << "Use add or set for SparseMatrix\n";
   return _zero;
@@ -489,7 +489,7 @@ TRIPLET<T> SparseMatrix<T>::triplet(INDEX i) const
   if (i >= _ia[_nRowsCRS]) {
     gerror("ERROR: tried indexing triplet of sparse matrix beyond range");
   }
-    
+
   INDEX row(std::lower_bound(_ia, _ia+_nRowsCRS, i)-_ia);
   row -= _ia[row] != i;
   return TRIPLET<T>(row, _ja[i], _val[i]);
@@ -511,11 +511,11 @@ void SparseMatrix<T>::reset(INDEX rows, INDEX cols, bool /* zero */)
 template<typename T>
 void SparseMatrix<T>::resize(INDEX rows, INDEX cols, bool copy)
 {
-//if (copy) throw; 
+//if (copy) throw;
   if (_nRowsCRS>rows) {
     _delete();
   }
-  if (copy) 
+  if (copy)
   _nRows = rows;
   _nCols = cols;  // a check on this would be expensive
 }
@@ -523,7 +523,7 @@ void SparseMatrix<T>::resize(INDEX rows, INDEX cols, bool copy)
 // get sparsity from DenseMatrix, if TOL < 0, then only zero values are added
 //-----------------------------------------------------------------------------
 template<typename T>
-void SparseMatrix<T>::reset(const DenseMatrix<T>& D, double TOL) 
+void SparseMatrix<T>::reset(const DenseMatrix<T>& D, double TOL)
 {
   _delete(); // clears all values
   // if TOL is specified then TOL = TOL^2 * max(abs(D))^2
@@ -558,8 +558,8 @@ void SparseMatrix<T>::dense_copy(DenseMatrix <T> & D ) const
 {
   SparseMatrix<T>::compress(*this);
   D.reset(nRows(),nCols());
-  for (INDEX i=0; i<_nRowsCRS; i++) 
-    for (INDEX j=_ia[i]; j<_ia[i+1]; j++)  
+  for (INDEX i=0; i<_nRowsCRS; i++)
+    for (INDEX j=_ia[i]; j<_ia[i+1]; j++)
       D(i, _ja[j]) = _val[j];
 }
 template<typename T>
@@ -573,15 +573,15 @@ DenseMatrix <T> SparseMatrix<T>::dense_copy(void) const
 // returns true if the matrix has no non-zero elements
 //-----------------------------------------------------------------------------
 template<typename T>
-bool SparseMatrix<T>::empty()                                             const 
+bool SparseMatrix<T>::empty()                                             const
 {
-  return _size==0 && _tri.empty(); 
+  return _size==0 && _tri.empty();
 }
 //-----------------------------------------------------------------------------
-// returns the number of rows specified by the user 
+// returns the number of rows specified by the user
 //-----------------------------------------------------------------------------
 template<typename T>
-inline INDEX SparseMatrix<T>::nRows()                                     const 
+inline INDEX SparseMatrix<T>::nRows()                                     const
 {
   return _nRows;
 }
@@ -589,12 +589,12 @@ inline INDEX SparseMatrix<T>::nRows()                                     const
 // returns ??????????????????????
 //-----------------------------------------------------------------------------
 template<typename T>
-inline INDEX SparseMatrix<T>::nRowsCRS()                                     const 
+inline INDEX SparseMatrix<T>::nRowsCRS()                                     const
 {
   return _nRowsCRS;
 }
 //-----------------------------------------------------------------------------
-// returns the number of columns specified by the user 
+// returns the number of columns specified by the user
 //-----------------------------------------------------------------------------
 template<typename T>
 inline INDEX SparseMatrix<T>::nCols()                                     const
@@ -605,21 +605,21 @@ inline INDEX SparseMatrix<T>::nCols()                                     const
 // returns the number of non-zeros in the matrix
 //-----------------------------------------------------------------------------
 template<typename T>
-INDEX SparseMatrix<T>::size()                                             const 
+INDEX SparseMatrix<T>::size()                                             const
 {
   compress(*this);
-  return _size; 
+  return _size;
 }
 //-----------------------------------------------------------------------------
 // returns the number of nonzero elements in a row
 //-----------------------------------------------------------------------------
 template<typename T>
-INDEX SparseMatrix<T>::RowSize(INDEX r)    const 
+INDEX SparseMatrix<T>::RowSize(INDEX r)    const
 {
   compress(*this);
   GCHK(r>=_nRows, "Rowsize: invalid row");
   if (r >= _nRowsCRS) return 0;
-  return _ia[r+1]-_ia[r]; 
+  return _ia[r+1]-_ia[r];
 }
 //-----------------------------------------------------------------------------
 // returns a pointer to the data, causes a compress
@@ -628,22 +628,22 @@ template<typename T>
 T* SparseMatrix<T>::ptr()                                             const
 {
   compress(*this);
-  return _val; 
+  return _val;
 }
 template<typename T>
 INDEX* SparseMatrix<T>::rows()                                             const
 {
   compress(*this);
-  return _ia; 
+  return _ia;
 }
 template<typename T>
 INDEX* SparseMatrix<T>::cols()                                             const
 {
   compress(*this);
-  return _ja; 
+  return _ja;
 }
 //-----------------------------------------------------------------------------
-// returns true if (i,j) falls in the user specified range 
+// returns true if (i,j) falls in the user specified range
 //-----------------------------------------------------------------------------
 template<typename T>
 bool SparseMatrix<T>::in_range(INDEX i, INDEX j)                          const
@@ -654,7 +654,7 @@ bool SparseMatrix<T>::in_range(INDEX i, INDEX j)                          const
 // assigns this sparsematrix from another one - full memory copy
 //-----------------------------------------------------------------------------
 template<typename T>
-SparseMatrix<T>& SparseMatrix<T>::operator=(const SparseMatrix<T> &C) 
+SparseMatrix<T>& SparseMatrix<T>::operator=(const SparseMatrix<T> &C)
 {
   _delete();
   _copy(C);
@@ -673,7 +673,7 @@ SparseMatrix<T>& SparseMatrix<T>::operator=(const T v)
 // scales this sparse matrix by a constant
 //-----------------------------------------------------------------------------
 template<typename T>
-void SparseMatrix<T>::set_all_elements_to(const T &a) 
+void SparseMatrix<T>::set_all_elements_to(const T &a)
 {
   compress(*this);
   for (INDEX i=0; i<size(); i++)  _val[i] = a;
@@ -682,7 +682,7 @@ void SparseMatrix<T>::set_all_elements_to(const T &a)
 // scales this sparse matrix by a constant
 //-----------------------------------------------------------------------------
 template<typename T>
-SparseMatrix<T>& SparseMatrix<T>::operator*=(const T &a) 
+SparseMatrix<T>& SparseMatrix<T>::operator*=(const T &a)
 {
   compress(*this);
   for (INDEX i=0; i<size(); i++)  _val[i] *= a;
@@ -698,10 +698,10 @@ SparseMatrix<T>& SparseMatrix<T>::operator*=(const SparseMatrix<T> &a)
 }
 
 //-----------------------------------------------------------------------------
-// Adds two sparse matrices together. 
+// Adds two sparse matrices together.
 //-----------------------------------------------------------------------------
 template<typename T>
-SparseMatrix<T>& SparseMatrix<T>::operator+=(const SparseMatrix & R) 
+SparseMatrix<T>& SparseMatrix<T>::operator+=(const SparseMatrix & R)
 {
 
   compress(R);
@@ -711,16 +711,16 @@ SparseMatrix<T>& SparseMatrix<T>::operator+=(const SparseMatrix & R)
   T *Rval = R.ptr();
 
   int nRowsCRS = R.nRowsCRS();
-    
+
   int rowR, colR;
   T valR;
-  for (rowR = 0; rowR < nRowsCRS; ++rowR) { 
+  for (rowR = 0; rowR < nRowsCRS; ++rowR) {
 
     for (int j = Ria[rowR]; j < Ria[rowR+1]; ++j) {
       colR = Rja[j];
       valR = Rval[j];
-      
-      // Because we simply want to add the value, we call add and let compress 
+
+      // Because we simply want to add the value, we call add and let compress
       // take care of the rest--we don't have to worry about extant entries.
       add(rowR, colR, valR);
     }
@@ -729,13 +729,13 @@ SparseMatrix<T>& SparseMatrix<T>::operator+=(const SparseMatrix & R)
 }
 
 //-----------------------------------------------------------------------------
-// Return matrix transpose 
+// Return matrix transpose
 //-----------------------------------------------------------------------------
 template<typename T>
-SparseMatrix<T> SparseMatrix<T>::transpose() const 
+SparseMatrix<T> SparseMatrix<T>::transpose() const
 {
   compress(*this);
-  SparseMatrix<T> At(nCols(), nRows());  
+  SparseMatrix<T> At(nCols(), nRows());
 
   for (INDEX i=0; i<_nRowsCRS; i++)
     for (INDEX ij=_ia[i]; ij<_ia[i+1]; ij++)
@@ -753,7 +753,7 @@ SparseMatrix<T>& SparseMatrix<T>::row_scale(const Vector<T> &v)
   compress(*this);
   INDEX i,ij;
   GCK(*this, v, v.size()!=nRows(), "Incompatible Vector length in row_scale.");
-  for(i=0; i<_nRowsCRS; i++) 
+  for(i=0; i<_nRowsCRS; i++)
     for(ij=_ia[i]; ij<_ia[i+1]; ij++) _val[ij] *= v[i];
   return *this;
 }
@@ -766,7 +766,7 @@ SparseMatrix<T>& SparseMatrix<T>::col_scale(const Vector<T> &v)
   compress(*this);
   INDEX i,ij;
   GCK(*this, v, v.size()!=nCols(), "Incompatible Vector length in col_scale.");
-  for(i=0; i<_nRowsCRS; i++) 
+  for(i=0; i<_nRowsCRS; i++)
     for(ij=_ia[i]; ij<_ia[i+1]; ij++) _val[ij] *= v[_ja[ij]];
   return *this;
 }
@@ -780,7 +780,7 @@ DenseVector<T> SparseMatrix<T>::col_sum() const
   INDEX i,ij;
   GCHK(!nRows(), "SparseMatrix::Matrix not initialized in col_sum.")
   DenseVector<T> csum(nCols());
-  for(i=0; i<_nRowsCRS; i++) 
+  for(i=0; i<_nRowsCRS; i++)
     for(ij=_ia[i]; ij<_ia[i+1]; ij++)  csum(_ja[ij]) += _val[ij];
   return(csum);
 }
@@ -793,8 +793,8 @@ DenseVector<INDEX> SparseMatrix<T>::column_count() const
   compress(*this);
   INDEX i,j;
   DenseVector<INDEX> counts(nCols());
-  
-  for (i=0; i<_nRowsCRS; i++) 
+
+  for (i=0; i<_nRowsCRS; i++)
     for(j=_ia[i]; j<_ia[i+1]; j++)  counts(_ja[j])++;
   return(counts);
 }
@@ -802,7 +802,7 @@ DenseVector<INDEX> SparseMatrix<T>::column_count() const
 // Writes a the nonzeros of a row to a vector
 //-----------------------------------------------------------------------------
 template<typename T>
-void SparseMatrix<T>::row(INDEX i, DenseVector<T>& row, DenseVector<INDEX>& indx) const 
+void SparseMatrix<T>::row(INDEX i, DenseVector<T>& row, DenseVector<INDEX>& indx) const
 {
   compress(*this);
   GCHK(i>=nRows(), "get_row() - invalid row number");
@@ -814,7 +814,7 @@ void SparseMatrix<T>::row(INDEX i, DenseVector<T>& row, DenseVector<INDEX>& indx
   row.resize(RowSize(i));
   indx.resize(row.size());
   INDEX idx=0, ij;
-  for(ij=_ia[i]; ij<_ia[i+1]; ij++) 
+  for(ij=_ia[i]; ij<_ia[i+1]; ij++)
   {
     row(idx)    = _val[ij];
     indx(idx++) = _ja[ij];
@@ -825,7 +825,7 @@ void SparseMatrix<T>::row(INDEX i, DenseVector<T>& row, DenseVector<INDEX>& indx
 //-----------------------------------------------------------------------------
 template<typename T>
 void SparseMatrix<T>::
-weighted_least_squares(const SparseMatrix<T> &N, const DiagonalMatrix<T> &D) 
+weighted_least_squares(const SparseMatrix<T> &N, const DiagonalMatrix<T> &D)
 {
   compress(N);
   GCK(N,D,N.nRows()!=D.nRows(),"SparseMatrix::WeightedLeastSquares()");
@@ -841,17 +841,17 @@ weighted_least_squares(const SparseMatrix<T> &N, const DiagonalMatrix<T> &D)
   compress();
 }
 //-----------------------------------------------------------------------------
-// Return a diagonal matrix containing the diagonal entries of this matrix 
+// Return a diagonal matrix containing the diagonal entries of this matrix
 //-----------------------------------------------------------------------------
 template<typename T>
-DiagonalMatrix<T> SparseMatrix<T>::diag() const 
+DiagonalMatrix<T> SparseMatrix<T>::diag() const
 {
   compress(*this);
   DiagonalMatrix<T> D(nRows(), true); // initialized to zero
   INDEX i, ij;
   for (i=0; i<_nRowsCRS; i++)
-  { 
-    for(ij=_ia[i]; ij<_ia[i+1]; ij++) 
+  {
+    for(ij=_ia[i]; ij<_ia[i+1]; ij++)
     {
       if (_ja[ij]>=i)  // have we reached or passed the diagonal?
       {
@@ -866,14 +866,14 @@ DiagonalMatrix<T> SparseMatrix<T>::diag() const
 // Return a diagonal matrix containing row-sum lumped entries of the matrix
 //-----------------------------------------------------------------------------
 template<typename T>
-DiagonalMatrix<T> SparseMatrix<T>::row_sum_lump() const 
+DiagonalMatrix<T> SparseMatrix<T>::row_sum_lump() const
 {
   compress(*this);
   DiagonalMatrix<T> D(nRows(), true); // initialized to zero
   INDEX i, ij;
   for (i=0; i<_nRowsCRS; i++)
-  { 
-    for(ij=_ia[i]; ij<_ia[i+1]; ij++) 
+  {
+    for(ij=_ia[i]; ij<_ia[i+1]; ij++)
     {
       D(i,i) += _val[ij];
     }
@@ -884,14 +884,14 @@ DiagonalMatrix<T> SparseMatrix<T>::row_sum_lump() const
 // output function - builds a string with each nonzero triplet value
 //-----------------------------------------------------------------------------
 template<typename T>
-std::string SparseMatrix<T>::to_string() const 
+std::string SparseMatrix<T>::to_string() const
 {
   compress(*this);
-  std::string out;  
+  std::string out;
   INDEX i, ij;
   for(i=0; i<_nRowsCRS; i++)
   {
-    for(ij=_ia[i]; ij<_ia[i+1]; ij++) 
+    for(ij=_ia[i]; ij<_ia[i+1]; ij++)
     {
       if (ij) out += "\n";               // append newline if not first nonzero
       out += "(" + ATC_Utility::to_string(i) + ", ";          // append "(i,"
@@ -905,7 +905,7 @@ std::string SparseMatrix<T>::to_string() const
 // returns the maximum value in the row
 //-----------------------------------------------------------------------------
 template<typename T>
-T SparseMatrix<T>::row_max(INDEX row) const 
+T SparseMatrix<T>::row_max(INDEX row) const
 {
   compress(*this);
   if (!RowSize(row)) return (T)0; // if there are no nonzeros in the row
@@ -918,7 +918,7 @@ T SparseMatrix<T>::row_max(INDEX row) const
 // returns the minimum value in the row
 //-----------------------------------------------------------------------------
 template<typename T>
-T SparseMatrix<T>::row_min(INDEX row) const 
+T SparseMatrix<T>::row_min(INDEX row) const
 {
   compress(*this);
   if (!RowSize(row)) return (T)0; // if there are no nonzeros in the row
@@ -931,13 +931,13 @@ T SparseMatrix<T>::row_min(INDEX row) const
 // prints a histogram of the values of a row to the screen
 //-----------------------------------------------------------------------------
 template<typename T>
-void SparseMatrix<T>::print_row_histogram(const std::string &name, INDEX nbins) const 
+void SparseMatrix<T>::print_row_histogram(const std::string &name, INDEX nbins) const
 {
   compress(*this);
   std::cout << "Begin histogram " << name << "\n";
-  std::cout << "#  rows: " << _nRows << " columns: " << _nCols 
+  std::cout << "#  rows: " << _nRows << " columns: " << _nCols
        << " size:  " << _size << "\n";
-  for(INDEX i=0; i<_nRows; i++) 
+  for(INDEX i=0; i<_nRows; i++)
   {
     print_row_histogram(i, nbins);
     std::cout << "\n";
@@ -948,7 +948,7 @@ void SparseMatrix<T>::print_row_histogram(const std::string &name, INDEX nbins) 
 // prints a histogram of the values of a row to the screen
 //-----------------------------------------------------------------------------
 template<typename T>
-void SparseMatrix<T>::print_row_histogram(INDEX row, INDEX nbins) const 
+void SparseMatrix<T>::print_row_histogram(INDEX row, INDEX nbins) const
 {
   compress(*this);
   if (!nbins) nbins++;
@@ -958,9 +958,9 @@ void SparseMatrix<T>::print_row_histogram(INDEX row, INDEX nbins) const
   const T range = max-min;
   const double bin_size = range/double(nbins);
   if (range<=0.0) counts[nbins-1]=RowSize(row);
-  else 
+  else
   {
-    for(INDEX ij=_ia[row]; ij<_ia[row+1]; ij++) 
+    for(INDEX ij=_ia[row]; ij<_ia[row+1]; ij++)
     {
       INDEX bin = INDEX((_val[ij]-min)/bin_size);
       counts[bin-(bin==nbins)]++;
@@ -969,7 +969,7 @@ void SparseMatrix<T>::print_row_histogram(INDEX row, INDEX nbins) const
   std::cout<<std::showbase<<std::scientific;
   std::cout<<"# Histogram: row "<<row<<" min "<<min<<" max "<<max<<" cnt " <<RowSize(row)<<"\n";
   T bin_start = min;
-  for(INDEX i=0; i<nbins; i++) 
+  for(INDEX i=0; i<nbins; i++)
   {
     std::cout << "(" << bin_start << ",";
     bin_start += bin_size;
@@ -980,7 +980,7 @@ void SparseMatrix<T>::print_row_histogram(INDEX row, INDEX nbins) const
 // prints the triplets the screen
 //-----------------------------------------------------------------------------
 template<typename T>
-void SparseMatrix<T>::print_triplets() const 
+void SparseMatrix<T>::print_triplets() const
 {
   typename std::vector<TRI_COORD<T> >::const_iterator t;
   std::string out;
@@ -999,13 +999,13 @@ void SparseMatrix<T>::print_triplets() const
 // Outputs a string to a sparse Matlab type
 //-----------------------------------------------------------------------------
 template<typename T>
-void SparseMatrix<T>::matlab(std::ostream &o, const std::string &s) const 
+void SparseMatrix<T>::matlab(std::ostream &o, const std::string &s) const
 {
   compress(*this);
   INDEX i, ij;
   o << s <<" = sparse(" << nRows() << "," << nCols() << ");\n";
   o << std::showbase << std::scientific;
-  for(i=0; i<_nRowsCRS; i++) 
+  for(i=0; i<_nRowsCRS; i++)
     for(ij=_ia[i]; ij<_ia[i+1]; ij++)
       o<<s<<"("<<i+1<<","<<_ja[ij]+1<<")="<<_val[ij]<<";\n";
 }
@@ -1016,15 +1016,15 @@ void SparseMatrix<T>::matlab(std::ostream &o, const std::string &s) const
 template<typename T>
 void SparseMatrix<T>::binary_write(std::fstream& f) const
 {
-  compress(*this);  
-  f.write((char*)&_size,     sizeof(INDEX));  // writes number of nonzeros  
+  compress(*this);
+  f.write((char*)&_size,     sizeof(INDEX));  // writes number of nonzeros
   f.write((char*)&_nRowsCRS, sizeof(INDEX));  // writes number of rows in crs
   f.write((char*)&_nRows,    sizeof(INDEX));  // write matrix rows
   f.write((char*)&_nCols,    sizeof(INDEX));  // write number of columns
   if (!_size) return;
-  f.write((char*)_val, sizeof(T)    *_size); 
-  f.write((char*)_ja,  sizeof(INDEX)*_size); 
-  f.write((char*)_ia,  sizeof(INDEX)*(_nRowsCRS+1));  
+  f.write((char*)_val, sizeof(T)    *_size);
+  f.write((char*)_ja,  sizeof(INDEX)*_size);
+  f.write((char*)_ia,  sizeof(INDEX)*(_nRowsCRS+1));
 }
 //-----------------------------------------------------------------------------
 // Reads a SparseMatrix from a binary file.  (wipes out any original data)
@@ -1041,7 +1041,7 @@ void SparseMatrix<T>::binary_read(std::fstream& f)
   _create(_size,_nRowsCRS);
   f.read((char*)_val,      sizeof(T)*_size);
   f.read((char*)_ja,       sizeof(INDEX)*_size);
-  f.read((char*)_ia,       sizeof(INDEX)*(_nRowsCRS+1)); 
+  f.read((char*)_ia,       sizeof(INDEX)*(_nRowsCRS+1));
 }
 
 //-----------------------------------------------------------------------------

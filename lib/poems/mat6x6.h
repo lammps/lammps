@@ -3,7 +3,7 @@
  *      POEMS: PARALLELIZABLE OPEN SOURCE EFFICIENT MULTIBODY SOFTWARE     *
  *      DESCRIPTION: SEE READ-ME                                           *
  *      FILE NAME: mat6x6.h                                                *
- *      AUTHORS: See Author List                                           * 
+ *      AUTHORS: See Author List                                           *
  *      GRANTS: See Grants List                                            *
  *      COPYRIGHT: (C) 2005 by Authors as listed in Author's List          *
  *      LICENSE: Please see License Agreement                              *
@@ -11,7 +11,7 @@
  *      ADMINISTRATOR: Prof. Kurt Anderson                                 *
  *                     Computational Dynamics Lab                          *
  *                     Rensselaer Polytechnic Institute                    *
- *                     110 8th St. Troy NY 12180                           * 
+ *                     110 8th St. Troy NY 12180                           *
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
@@ -29,7 +29,7 @@ class Mat6x6 : public VirtualMatrix  {
   double elements[6][6];
 public:
   Mat6x6();
-  ~Mat6x6();
+  ~Mat6x6() = default;
   Mat6x6(const Mat6x6& A);  // copy constructor
   Mat6x6(const VirtualMatrix& A);  // copy constructor
 

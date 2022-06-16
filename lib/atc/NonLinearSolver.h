@@ -29,7 +29,7 @@ class TangentOperator {
 /**
  *  @class NonLinearSolver
  *  @brief a class to solve a system of non-linear equations
- *  f(x) = 0 
+ *  f(x) = 0
  */
 
 
@@ -41,7 +41,7 @@ class NonLinearSolver {
   };
 
   /** Constructor */
-  NonLinearSolver( 
+  NonLinearSolver(
     TangentOperator * f, // provides f and f' at x, pointer for polymorphism
     const BC_SET * bcs = nullptr,
     const int dof = 0,
@@ -52,7 +52,7 @@ class NonLinearSolver {
   virtual ~NonLinearSolver() {};
 
   /** residual norm */
-  double residual_norm(VECTOR & x); 
+  double residual_norm(VECTOR & x);
 
   /** solve */
   bool solve(VECTOR & x); // incoming: initial guess, outgoing: solution
@@ -60,7 +60,7 @@ class NonLinearSolver {
   /** line search */
   bool line_search(VECTOR & x);
 
-  
+
   /** access to current state */
   DENS_MAT & tangent()  { return A_;}
   DENS_VEC & residual() { return r_;}
@@ -87,7 +87,7 @@ class NonLinearSolver {
   /** flavors */
   int solverType_;
 
-  /** state */ 
+  /** state */
   double rNorm0_, rNorm0P_, rNorm_, rNormP_;
 
   /** parameters & tolerances */

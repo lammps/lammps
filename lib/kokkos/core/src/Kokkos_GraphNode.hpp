@@ -397,9 +397,6 @@ class GraphNodeRef {
     using return_value_adapter =
         Kokkos::Impl::ParallelReduceReturnValue<void, return_type,
                                                 functor_type>;
-    using functor_adaptor = Kokkos::Impl::ParallelReduceFunctorType<
-        functor_type, Policy, typename return_value_adapter::value_type,
-        execution_space>;
     // End of Kokkos reducer disaster
     //----------------------------------------
 
@@ -408,8 +405,8 @@ class GraphNodeRef {
 
     using next_policy_t = decltype(policy);
     using next_kernel_t = Kokkos::Impl::GraphNodeKernelImpl<
-        ExecutionSpace, next_policy_t, typename functor_adaptor::functor_type,
-        Kokkos::ParallelReduceTag, typename return_value_adapter::reducer_type>;
+        ExecutionSpace, next_policy_t, functor_type, Kokkos::ParallelReduceTag,
+        typename return_value_adapter::reducer_type>;
 
     return this->_then_kernel(next_kernel_t{
         std::move(arg_name), graph_impl_ptr->get_execution_space(),

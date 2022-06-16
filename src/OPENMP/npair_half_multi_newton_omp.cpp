@@ -101,7 +101,7 @@ void NPairHalfMultiNewtonOmp::build(NeighList *list)
 
       // if same collection use own bin
       if (icollection == jcollection) jbin = ibin;
-	  else jbin = coord2bin(x[i], jcollection);
+          else jbin = coord2bin(x[i], jcollection);
 
       // if same size: uses half stencil so check central bin
       if (cutcollectionsq[icollection][icollection] == cutcollectionsq[jcollection][jcollection]){
@@ -117,41 +117,41 @@ void NPairHalfMultiNewtonOmp::build(NeighList *list)
         //   if j is owned atom, store it if j > i
         //   if j is ghost, only store if j coords are "above and to the right" of i
 
-	    for (j = js; j >= 0; j = bins[j]) {
+            for (j = js; j >= 0; j = bins[j]) {
           if ((icollection != jcollection) && (j < i)) continue;
 
-	      if (j >= nlocal) {
-	        if (x[j][2] < ztmp) continue;
-	        if (x[j][2] == ztmp) {
-	          if (x[j][1] < ytmp) continue;
-	          if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
-	        }
-	      }
+              if (j >= nlocal) {
+                if (x[j][2] < ztmp) continue;
+                if (x[j][2] == ztmp) {
+                  if (x[j][1] < ytmp) continue;
+                  if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
+                }
+              }
 
           jtype = type[j];
           if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
-	      delx = xtmp - x[j][0];
-	      dely = ytmp - x[j][1];
-	      delz = ztmp - x[j][2];
-	      rsq = delx*delx + dely*dely + delz*delz;
+              delx = xtmp - x[j][0];
+              dely = ytmp - x[j][1];
+              delz = ztmp - x[j][2];
+              rsq = delx*delx + dely*dely + delz*delz;
 
-	      if (rsq <= cutneighsq[itype][jtype]) {
-	        if (molecular) {
-	          if (!moltemplate)
-	            which = find_special(special[i],nspecial[i],tag[j]);
-	          else if (imol >= 0)
-	            which = find_special(onemols[imol]->special[iatom],
-	    		       onemols[imol]->nspecial[iatom],
-	    		       tag[j]-tagprev);
-	          else which = 0;
-	          if (which == 0) neighptr[n++] = j;
-	          else if (domain->minimum_image_check(delx,dely,delz))
-	            neighptr[n++] = j;
-	          else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-	        } else neighptr[n++] = j;
-	      }
-	    }
+              if (rsq <= cutneighsq[itype][jtype]) {
+                if (molecular) {
+                  if (!moltemplate)
+                    which = find_special(special[i],nspecial[i],tag[j]);
+                  else if (imol >= 0)
+                    which = find_special(onemols[imol]->special[iatom],
+                               onemols[imol]->nspecial[iatom],
+                               tag[j]-tagprev);
+                  else which = 0;
+                  if (which == 0) neighptr[n++] = j;
+                  else if (domain->minimum_image_check(delx,dely,delz))
+                    neighptr[n++] = j;
+                  else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
+                } else neighptr[n++] = j;
+              }
+            }
       }
 
       // for all collections, loop over all atoms in other bins in stencil, store every pair
@@ -159,38 +159,38 @@ void NPairHalfMultiNewtonOmp::build(NeighList *list)
       // stencil is half if i same size as j
       // stencil is full if i smaller than j
 
-	  s = stencil_multi[icollection][jcollection];
-	  ns = nstencil_multi[icollection][jcollection];
+          s = stencil_multi[icollection][jcollection];
+          ns = nstencil_multi[icollection][jcollection];
 
-	  for (k = 0; k < ns; k++) {
-	    js = binhead_multi[jcollection][jbin + s[k]];
-	    for (j = js; j >= 0; j = bins[j]) {
+          for (k = 0; k < ns; k++) {
+            js = binhead_multi[jcollection][jbin + s[k]];
+            for (j = js; j >= 0; j = bins[j]) {
 
           jtype = type[j];
           if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
-	      delx = xtmp - x[j][0];
-	      dely = ytmp - x[j][1];
-	      delz = ztmp - x[j][2];
-	      rsq = delx*delx + dely*dely + delz*delz;
+              delx = xtmp - x[j][0];
+              dely = ytmp - x[j][1];
+              delz = ztmp - x[j][2];
+              rsq = delx*delx + dely*dely + delz*delz;
 
-	      if (rsq <= cutneighsq[itype][jtype]) {
-	        if (molecular != Atom::ATOMIC) {
-	  	    if (!moltemplate)
-	  	      which = find_special(special[i],nspecial[i],tag[j]);
-	  	    else if (imol >= 0)
-	  	      which = find_special(onemols[imol]->special[iatom],
-	  			       onemols[imol]->nspecial[iatom],
-	  			       tag[j]-tagprev);
-	  	    else which = 0;
-	  	    if (which == 0) neighptr[n++] = j;
-	  	    else if (domain->minimum_image_check(delx,dely,delz))
-	  	      neighptr[n++] = j;
-	  	    else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-	        } else neighptr[n++] = j;
-	      }
-	    }
-	  }
+              if (rsq <= cutneighsq[itype][jtype]) {
+                if (molecular != Atom::ATOMIC) {
+                    if (!moltemplate)
+                      which = find_special(special[i],nspecial[i],tag[j]);
+                    else if (imol >= 0)
+                      which = find_special(onemols[imol]->special[iatom],
+                                       onemols[imol]->nspecial[iatom],
+                                       tag[j]-tagprev);
+                    else which = 0;
+                    if (which == 0) neighptr[n++] = j;
+                    else if (domain->minimum_image_check(delx,dely,delz))
+                      neighptr[n++] = j;
+                    else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
+                } else neighptr[n++] = j;
+              }
+            }
+          }
     }
 
     ilist[i] = i;

@@ -5,7 +5,7 @@
                        ${OPENMP_SOURCES_DIR}/fix_nh_omp.cpp
                        ${OPENMP_SOURCES_DIR}/fix_nh_sphere_omp.cpp
                        ${OPENMP_SOURCES_DIR}/domain_omp.cpp)
-  target_compile_definitions(lammps PRIVATE -DLMP_USER_OMP)
+  target_compile_definitions(lammps PRIVATE -DLMP_OPENMP)
   set_property(GLOBAL PROPERTY "OMP_SOURCES" "${OPENMP_SOURCES}")
 
   # detects styles which have OPENMP version

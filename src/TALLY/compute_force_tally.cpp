@@ -39,7 +39,6 @@ ComputeForceTally::ComputeForceTally(LAMMPS *lmp, int narg, char **arg) : Comput
   vector_flag = 0;
   peratom_flag = 1;
   timeflag = 1;
-  dynamic_group_allow = 0;
 
   comm_reverse = size_peratom_cols = 3;
   extscalar = 1;
@@ -199,7 +198,7 @@ void ComputeForceTally::compute_peratom()
   // collect contributions from ghost atoms
 
   if (force->newton_pair) {
-    comm->reverse_comm_compute(this);
+    comm->reverse_comm(this);
 
     // clear out ghost atom data after it has been collected to local atoms
     const int nall = atom->nlocal + atom->nghost;
@@ -214,6 +213,6 @@ void ComputeForceTally::compute_peratom()
 
 double ComputeForceTally::memory_usage()
 {
-  double bytes = (nmax < 0) ? 0 : nmax * (double)size_peratom_cols * sizeof(double);
+  double bytes = (nmax < 0) ? 0 : nmax * (double) size_peratom_cols * sizeof(double);
   return bytes;
 }

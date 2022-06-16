@@ -92,6 +92,13 @@ void PotentialFileReader::ignore_comments(bool value)
   reader->ignore_comments = value;
 }
 
+/** Reset file to the beginning */
+
+void PotentialFileReader::rewind()
+{
+  reader->rewind();
+}
+
 /** Read a line but ignore its content */
 
 void PotentialFileReader::skip_line()
@@ -159,7 +166,7 @@ ValueTokenizer PotentialFileReader::next_values(int nparams, const std::string &
   } catch (FileReaderException &e) {
     error->one(FLERR, e.what());
   }
-  return ValueTokenizer("");
+  return {""};
 }
 
 /** Read next line and convert first word to a double

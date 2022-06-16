@@ -18,24 +18,24 @@
 
 #include "pair_table_rx_kokkos.h"
 
-#include <cmath>
-#include <cstring>
-#include "kokkos.h"
 #include "atom.h"
-#include "force.h"
+#include "atom_masks.h"
 #include "comm.h"
-#include "neighbor.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "kokkos.h"
+#include "kokkos.h"
+#include "kokkos_few.h"
+#include "memory_kokkos.h"
+#include "modify.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
-#include "fix.h"
-#include "kokkos_few.h"
-#include "kokkos.h"
-#include "modify.h"
+#include "neighbor.h"
 
 #include <cassert>
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -1048,15 +1048,16 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
   site1 = utils::strdup(arg[4]);
 
   int ispecies;
-  for (ispecies = 0; ispecies < nspecies; ispecies++)
-    if (strcmp(site1,&atom->dname[ispecies][0]) == 0) break;
+  for (ispecies = 0; ispecies < nspecies; ispecies++) {
+    if (strcmp(site1,&atom->dvname[ispecies][0]) == 0) break;
+  }
 
   if (ispecies == nspecies && strcmp(site1,"1fluid") != 0)
     error->all(FLERR,"Site1 name not recognized in pair coefficients");
-
   site2 = utils::strdup(arg[5]);
+
   for (ispecies = 0; ispecies < nspecies; ispecies++)
-    if (strcmp(site2,&atom->dname[ispecies][0]) == 0) break;
+    if (strcmp(site2,&atom->dvname[ispecies][0]) == 0) break;
 
   if (ispecies == nspecies && strcmp(site2,"1fluid") != 0)
     error->all(FLERR,"Site2 name not recognized in pair coefficients");
@@ -1123,7 +1124,7 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
        isite1 = nspecies;
 
        for (int k = 0; k < nspecies; k++) {
-         if (strcmp(site1, atom->dname[k]) == 0) {
+         if (strcmp(site1, atom->dvname[k]) == 0) {
            isite1 = k;
            break;
          }
@@ -1138,7 +1139,7 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
        isite2 = nspecies;
 
        for (int k = 0; k < nspecies; k++) {
-         if (strcmp(site2, atom->dname[k]) == 0) {
+         if (strcmp(site2, atom->dvname[k]) == 0) {
            isite2 = ispecies;
            break;
          }
@@ -1264,25 +1265,12 @@ void PairTableRXKokkos<DeviceType>::compute_table(Table *tb)
 template<class DeviceType>
 void PairTableRXKokkos<DeviceType>::init_style()
 {
-  neighbor->request(this,instance_me);
   neighflag = lmp->kokkos->neighflag;
-  int irequest = neighbor->nrequest - 1;
-
-  neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
-
-  if (neighflag == FULL) {
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->half = 0;
-  } else if (neighflag == HALF || neighflag == HALFTHREAD) {
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 1;
-  } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with lj/cut/kk");
-  }
+  auto request = neighbor->add_request(this);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  if (neighflag == FULL) request->enable_full();
 }
 
 namespace LAMMPS_NS {

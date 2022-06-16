@@ -23,6 +23,10 @@ either a user mistake or a bug in the code.  Bugs can be reported in
 the LAMMPS project
 [issue tracker on GitHub](https://github.com/lammps/lammps/issues).
 
+To mitigate issues with using homoglyphs or bidirectional reordering in
+unicode, which have been demonstrated as a vector to obfuscate and hide
+malicious changes to the source code, all LAMMPS submissions are checked
+for unicode characters and only all-ASCII source code is accepted.
 
 # Version Updates
 

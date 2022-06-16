@@ -260,9 +260,13 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
            const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
            const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG)
       : modified_flags(t_modified_flags("DualView::modified_flags")),
-        d_view(arg_prop, n0, n1, n2, n3, n4, n5, n6, n7),
-        h_view(create_mirror_view(d_view))  // without UVM, host View mirrors
-  {}
+        d_view(arg_prop, n0, n1, n2, n3, n4, n5, n6, n7) {
+    // without UVM, host View mirrors
+    if (Kokkos::Impl::has_type<Impl::WithoutInitializing_t, P...>::value)
+      h_view = Kokkos::create_mirror_view(Kokkos::WithoutInitializing, d_view);
+    else
+      h_view = Kokkos::create_mirror_view(d_view);
+  }
 
   //! Copy constructor (shallow copy)
   template <class SS, class LS, class DS, class MS>
@@ -597,8 +601,10 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
     }
     if (std::is_same<typename t_host::memory_space,
                      typename t_dev::memory_space>::value) {
-      typename t_dev::execution_space().fence();
-      typename t_host::execution_space().fence();
+      typename t_dev::execution_space().fence(
+          "Kokkos::DualView<>::sync: fence after syncing DualView");
+      typename t_host::execution_space().fence(
+          "Kokkos::DualView<>::sync: fence after syncing DualView");
     }
   }
 
@@ -776,10 +782,11 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   /// If \c Device is the same as this DualView's device type, then
   /// mark the device's data as modified.  Otherwise, mark the host's
   /// data as modified.
-  template <class Device>
+  template <class Device, class Dummy = DualView,
+            std::enable_if_t<!Dummy::impl_dualview_is_single_device::value>* =
+                nullptr>
   void modify() {
     if (modified_flags.data() == nullptr) return;
-    if (impl_dualview_is_single_device::value) return;
     int dev = get_device_side<Device>();
 
     if (dev == 1) {  // if Device is the same as DualView's device type
@@ -811,8 +818,17 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
 #endif
   }
 
+  template <
+      class Device, class Dummy = DualView,
+      std::enable_if_t<Dummy::impl_dualview_is_single_device::value>* = nullptr>
+  void modify() {
+    return;
+  }
+
+  template <class Dummy = DualView,
+            std::enable_if_t<!Dummy::impl_dualview_is_single_device::value>* =
+                nullptr>
   inline void modify_host() {
-    if (impl_dualview_is_single_device::value) return;
     if (modified_flags.data() != nullptr) {
       modified_flags(0) =
           (modified_flags(1) > modified_flags(0) ? modified_flags(1)
@@ -832,8 +848,17 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
     }
   }
 
+  template <
+      class Dummy = DualView,
+      std::enable_if_t<Dummy::impl_dualview_is_single_device::value>* = nullptr>
+  inline void modify_host() {
+    return;
+  }
+
+  template <class Dummy = DualView,
+            std::enable_if_t<!Dummy::impl_dualview_is_single_device::value>* =
+                nullptr>
   inline void modify_device() {
-    if (impl_dualview_is_single_device::value) return;
     if (modified_flags.data() != nullptr) {
       modified_flags(1) =
           (modified_flags(1) > modified_flags(0) ? modified_flags(1)
@@ -853,6 +878,13 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
     }
   }
 
+  template <
+      class Dummy = DualView,
+      std::enable_if_t<Dummy::impl_dualview_is_single_device::value>* = nullptr>
+  inline void modify_device() {
+    return;
+  }
+
   inline void clear_sync_state() {
     if (modified_flags.data() != nullptr)
       modified_flags(1) = modified_flags(0) = 0;
@@ -867,16 +899,22 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   /// This discards any existing contents of the objects, and resets
   /// their modified flags.  It does <i>not</i> copy the old contents
   /// of either View into the new View objects.
-  void realloc(const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-               const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-               const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-               const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-               const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-               const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-               const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-               const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
-    ::Kokkos::realloc(d_view, n0, n1, n2, n3, n4, n5, n6, n7);
-    h_view = create_mirror_view(d_view);
+  template <class... I>
+  void impl_realloc(const size_t n0, const size_t n1, const size_t n2,
+                    const size_t n3, const size_t n4, const size_t n5,
+                    const size_t n6, const size_t n7, const I&... arg_prop) {
+    const size_t new_extents[8] = {n0, n1, n2, n3, n4, n5, n6, n7};
+    const bool sizeMismatch =
+        Impl::size_mismatch(h_view, h_view.rank_dynamic, new_extents);
+
+    if (sizeMismatch) {
+      ::Kokkos::realloc(arg_prop..., d_view, n0, n1, n2, n3, n4, n5, n6, n7);
+      h_view = create_mirror_view(arg_prop..., typename t_host::memory_space(),
+                                  d_view);
+    } else if (!Kokkos::Impl::has_type<Kokkos::Impl::WithoutInitializing_t,
+                                       I...>::value) {
+      ::Kokkos::deep_copy(d_view, typename t_dev::value_type{});
+    }
 
     /* Reset dirty flags */
     if (modified_flags.data() == nullptr) {
@@ -885,10 +923,68 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
       modified_flags(1) = modified_flags(0) = 0;
   }
 
+  void realloc(const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
+    impl_realloc(n0, n1, n2, n3, n4, n5, n6, n7);
+  }
+
+  template <typename I>
+  std::enable_if_t<Impl::is_view_ctor_property<I>::value> realloc(
+      const I& arg_prop, const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
+    impl_realloc(n0, n1, n2, n3, n4, n5, n6, n7, arg_prop);
+  }
+
   /// \brief Resize both views, copying old contents into new if necessary.
   ///
   /// This method only copies the old contents into the new View
   /// objects for the device which was last marked as modified.
+  template <class... I>
+  void impl_resize(const size_t n0, const size_t n1, const size_t n2,
+                   const size_t n3, const size_t n4, const size_t n5,
+                   const size_t n6, const size_t n7, const I&... arg_prop) {
+    const size_t new_extents[8] = {n0, n1, n2, n3, n4, n5, n6, n7};
+    const bool sizeMismatch =
+        Impl::size_mismatch(h_view, h_view.rank_dynamic, new_extents);
+
+    if (modified_flags.data() == nullptr) {
+      modified_flags = t_modified_flags("DualView::modified_flags");
+    }
+    if (modified_flags(1) >= modified_flags(0)) {
+      /* Resize on Device */
+      if (sizeMismatch) {
+        ::Kokkos::resize(arg_prop..., d_view, n0, n1, n2, n3, n4, n5, n6, n7);
+        h_view = create_mirror_view(arg_prop...,
+                                    typename t_host::memory_space(), d_view);
+
+        /* Mark Device copy as modified */
+        modified_flags(1) = modified_flags(1) + 1;
+      }
+    } else {
+      /* Realloc on Device */
+      if (sizeMismatch) {
+        ::Kokkos::resize(arg_prop..., h_view, n0, n1, n2, n3, n4, n5, n6, n7);
+        d_view = create_mirror_view(arg_prop..., typename t_dev::memory_space(),
+                                    h_view);
+
+        /* Mark Host copy as modified */
+        modified_flags(0) = modified_flags(0) + 1;
+      }
+    }
+  }
+
   void resize(const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
               const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
               const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
@@ -897,42 +993,20 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
               const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
               const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
               const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
-    if (modified_flags.data() == nullptr) {
-      modified_flags = t_modified_flags("DualView::modified_flags");
-    }
-    if (modified_flags(1) >= modified_flags(0)) {
-      /* Resize on Device */
-      ::Kokkos::resize(d_view, n0, n1, n2, n3, n4, n5, n6, n7);
-      h_view = create_mirror_view(d_view);
+    impl_resize(n0, n1, n2, n3, n4, n5, n6, n7);
+  }
 
-      /* Mark Device copy as modified */
-      modified_flags(1) = modified_flags(1) + 1;
-
-    } else {
-      /* Realloc on Device */
-
-      ::Kokkos::realloc(d_view, n0, n1, n2, n3, n4, n5, n6, n7);
-
-      const bool sizeMismatch =
-          (h_view.extent(0) != n0) || (h_view.extent(1) != n1) ||
-          (h_view.extent(2) != n2) || (h_view.extent(3) != n3) ||
-          (h_view.extent(4) != n4) || (h_view.extent(5) != n5) ||
-          (h_view.extent(6) != n6) || (h_view.extent(7) != n7);
-      if (sizeMismatch)
-        ::Kokkos::resize(h_view, n0, n1, n2, n3, n4, n5, n6, n7);
-
-      t_host temp_view = create_mirror_view(d_view);
-
-      /* Remap on Host */
-      Kokkos::deep_copy(temp_view, h_view);
-
-      h_view = temp_view;
-
-      d_view = create_mirror_view(typename t_dev::execution_space(), h_view);
-
-      /* Mark Host copy as modified */
-      modified_flags(0) = modified_flags(0) + 1;
-    }
+  template <class I>
+  std::enable_if_t<Impl::is_view_ctor_property<I>::value> resize(
+      const I& arg_prop, const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
+    impl_resize(n0, n1, n2, n3, n4, n5, n6, n7, arg_prop);
   }
 
   //@}
@@ -1056,10 +1130,27 @@ void resize(DualView<Properties...>& dv, Args&&... args) noexcept(
   dv.resize(std::forward<Args>(args)...);
 }
 
+template <class I, class... Properties, class... Args>
+std::enable_if_t<Impl::is_view_ctor_property<I>::value> resize(
+    const I& arg_prop, DualView<Properties...>& dv,
+    Args&&... args) noexcept(noexcept(dv.resize(arg_prop,
+                                                std::forward<Args>(args)...))) {
+  dv.resize(arg_prop, std::forward<Args>(args)...);
+}
+
 template <class... Properties, class... Args>
 void realloc(DualView<Properties...>& dv, Args&&... args) noexcept(
     noexcept(dv.realloc(std::forward<Args>(args)...))) {
   dv.realloc(std::forward<Args>(args)...);
+}
+
+template <class I, class... Properties, class... Args>
+std::enable_if_t<Impl::is_view_ctor_property<I>::value> realloc(
+    const I& arg_prop, DualView<Properties...>& dv,
+    Args&&... args) noexcept(noexcept(dv.realloc(arg_prop,
+                                                 std::forward<Args>(
+                                                     args)...))) {
+  dv.realloc(arg_prop, std::forward<Args>(args)...);
 }
 
 }  // end namespace Kokkos

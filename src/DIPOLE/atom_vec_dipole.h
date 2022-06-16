@@ -28,8 +28,8 @@ class AtomVecDipole : public AtomVec {
  public:
   AtomVecDipole(class LAMMPS *);
 
-  void grow_pointers();
-  void data_atom_post(int);
+  void grow_pointers() override;
+  void data_atom_post(int) override;
 
  private:
   double **mu;
@@ -39,7 +39,3 @@ class AtomVecDipole : public AtomVec {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

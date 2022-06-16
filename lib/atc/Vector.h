@@ -10,7 +10,7 @@ namespace ATC_matrix {
 
 //* Matrix-vector product
 //template<typename T>
-//void MultMv(const Matrix<T> &A, const Vector<T> &v, DenseVector<T> &c, 
+//void MultMv(const Matrix<T> &A, const Vector<T> &v, DenseVector<T> &c,
 //            const bool At=0, T a=1, T b=0);
 
 /******************************************************************************
@@ -40,7 +40,7 @@ public:
   virtual void copy(const T * ptr, INDEX nRows, INDEX nCols=1)=0;
   void write_restart(FILE *f)               const; // will be virtual
 
-  
+
   // output to matlab
   using Matrix<T>::matlab;
   void matlab(std::ostream &o, const std::string &s="v") const;
@@ -60,7 +60,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 //* performs a matrix-vector multiply with default naive implementation
 template<typename T>
-void MultMv(const Matrix<T> &A, const Vector<T> &v, DenseVector<T> &c, 
+void MultMv(const Matrix<T> &A, const Vector<T> &v, DenseVector<T> &c,
             const bool At, T /* a */, T b)
 {
   const INDEX sA[2] = {A.nRows(), A.nCols()};  // m is sA[At] k is sA[!At]
@@ -95,12 +95,12 @@ DenseVector<T> operator*(const Vector<T> &a, const Matrix<T> &B)
   return c;
 }
 ///////////////////////////////////////////////////////////////////////////////
-//* Multiply a vector by a scalar 
+//* Multiply a vector by a scalar
 template<typename T>
 DenseVector<T> operator*(const Vector<T> &v, const T s)
 {
   DenseVector<T> r(v);
-  r*=s; 
+  r*=s;
   return r;
 }
 ///////////////////////////////////////////////////////////////////////////////
@@ -109,7 +109,7 @@ template<typename T>
 DenseVector<T> operator*(const T s, const Vector<T> &v)
 {
   DenseVector<T> r(v);
-  r*=s; 
+  r*=s;
   return r;
 }
 ///////////////////////////////////////////////////////////////////////////////
@@ -148,8 +148,8 @@ template<typename T>
 std::string Vector<T>::to_string() const
 {
   std::string s;
-  int sz = this->size(); 
-  for (INDEX i = 0; i < sz; i++) 
+  int sz = this->size();
+  for (INDEX i = 0; i < sz; i++)
     s += std::string(i?"\t":"") + ATC_Utility::to_string((*this)[i],myPrecision);
   return s;
 }
@@ -159,8 +159,8 @@ template<typename T>
 void Vector<T>::matlab(std::ostream &o, const std::string &s) const
 {
   o << s <<"=zeros(" << this->size() << ",1);\n";
-  int sz = this->size(); 
-  for (INDEX i = 0; i < sz; i++) 
+  int sz = this->size();
+  for (INDEX i = 0; i < sz; i++)
     o << s << "("<<i+1<<") = " << (*this)[i] << ";\n";
 }
 ///////////////////////////////////////////////////////////////////////////////
@@ -177,28 +177,28 @@ void Vector<T>::write_restart(FILE *f)                                    const
 template<typename T>
 inline INDEX Vector<T>::nCols()                                           const
 {
-  return 1; 
+  return 1;
 }
 ///////////////////////////////////////////////////////////////////////////////
 //* returns true if INDEX i is within the range of the vector
 template<typename T>
-bool Vector<T>::in_range(INDEX i)                                         const  
+bool Vector<T>::in_range(INDEX i)                                         const
 {
-  return i<this->size(); 
+  return i<this->size();
 }
 ///////////////////////////////////////////////////////////////////////////////
 //* returns true if m has the same number of elements this vector
 template<typename T>
-bool Vector<T>::same_size(const Vector &m)                                const 
+bool Vector<T>::same_size(const Vector &m)                                const
 {
-  return this->size() == m.size(); 
+  return this->size() == m.size();
 }
 ///////////////////////////////////////////////////////////////////////////////
 //* returns true if a and b have the same number of elements
 template<typename T>
 inline bool Vector<T>::same_size(const Vector &a, const Vector &b)
 {
-  return a.same_size(b); 
+  return a.same_size(b);
 }
 //----------------------------------------------------------------------------
 // general matrix assignment (for densely packed matrices)
@@ -209,9 +209,9 @@ void Vector<T>::_set_equal(const Matrix<T> &r)
   this->resize(r.nRows(), r.nCols());
   const Matrix<T> *pr = &r;
 #ifdef OBSOLETE
-  if (const SparseMatrix<T> *ps = dynamic_cast<const SparseMatrix<T>*>(pr))//sparse_cast(pr)) 
+  if (const SparseMatrix<T> *ps = dynamic_cast<const SparseMatrix<T>*>(pr))//sparse_cast(pr))
     copy_sparse_to_matrix(ps, *this);
-  
+
   else if (dynamic_cast<const DiagonalMatrix<T>*>(pr))//diag_cast(pr))  // r is Diagonal?
   {
     this->zero();

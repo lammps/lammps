@@ -57,7 +57,7 @@ FixSRP::FixSRP(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // initial allocation of atom-based array
   // register with Atom class
   array = nullptr;
-  grow_arrays(atom->nmax);
+  FixSRP::grow_arrays(atom->nmax);
 
   // extends pack_exchange()
   atom->add_callback(Atom::GROW);
@@ -106,7 +106,7 @@ void FixSRP::init()
 
   int has_rigid = 0;
   for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"rigid",5) == 0) ++has_rigid;
+    if (utils::strmatch(modify->fix[i]->style,"^rigid")) ++has_rigid;
 
   if (has_rigid > 0)
     error->all(FLERR,"Pair srp is not compatible with rigid fixes.");
@@ -242,14 +242,11 @@ void FixSRP::setup_pre_force(int /*zz*/)
   memory->destroy(xold);
   memory->destroy(tagold);
 
-  char str[128];
   int nadd_all = 0, ndel_all = 0;
   MPI_Allreduce(&ndel,&ndel_all,1,MPI_INT,MPI_SUM,world);
   MPI_Allreduce(&nadd,&nadd_all,1,MPI_INT,MPI_SUM,world);
-  if (comm->me == 0) {
-    sprintf(str, "Removed/inserted %d/%d bond particles.", ndel_all,nadd_all);
-    error->message(FLERR,str);
-  }
+  if (comm->me == 0)
+    error->message(FLERR,"Removed/inserted {}/{} bond particles.", ndel_all,nadd_all);
 
   // check ghost comm distances
   // warn and change if shorter from estimate
@@ -276,11 +273,9 @@ void FixSRP::setup_pre_force(int /*zz*/)
     cutghostmin = comm->cutghost[2]/length2;
 
   // stop if cutghost is insufficient
-  if (cutneighmax_srp > cutghostmin) {
-    sprintf(str, "Communication cutoff too small for fix srp. "
-            "Need %f, current %f.", cutneighmax_srp, cutghostmin);
-    error->all(FLERR,str);
-  }
+  if (cutneighmax_srp > cutghostmin)
+    error->all(FLERR,"Communication cutoff too small for fix srp. "
+            "Need {:.8}, current {:.8}", cutneighmax_srp, cutghostmin);
 
   // assign tags for new atoms, update map
   atom->tag_extend();
@@ -453,10 +448,10 @@ int FixSRP::unpack_border(int n, int first, double *buf)
   int m = 0;
   last = first + n;
 
-      for (i = first; i < last; i++) {
-        array[i][0] = buf[m++];
-        array[i][1] = buf[m++];
-      }
+  for (i = first; i < last; i++) {
+    array[i][0] = buf[m++];
+    array[i][1] = buf[m++];
+  }
   return m;
 }
 
@@ -515,14 +510,8 @@ void FixSRP::post_run()
 
   bigint ndelete = natoms_previous - atom->natoms;
 
-  if (comm->me == 0) {
-    if (screen) fprintf(screen,"Deleted " BIGINT_FORMAT
-                        " atoms, new total = " BIGINT_FORMAT "\n",
-                        ndelete,atom->natoms);
-    if (logfile) fprintf(logfile,"Deleted " BIGINT_FORMAT
-                         " atoms, new total = " BIGINT_FORMAT "\n",
-                         ndelete,atom->natoms);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp,"Deleted {} atoms, new total = {}\n",ndelete,atom->natoms);
 
   // verlet calls box_too_small_check() in post_run
   // this check maps all bond partners
@@ -618,7 +607,7 @@ void FixSRP::write_restart(FILE *fp)
 void FixSRP::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
 
   comm->cutghostuser = static_cast<double> (list[n++]);
   btype = static_cast<int> (list[n++]);

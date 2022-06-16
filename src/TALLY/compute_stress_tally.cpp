@@ -39,7 +39,6 @@ ComputeStressTally::ComputeStressTally(LAMMPS *lmp, int narg, char **arg) : Comp
   vector_flag = 0;
   peratom_flag = 1;
   timeflag = 1;
-  dynamic_group_allow = 0;
 
   comm_reverse = size_peratom_cols = 6;
   extscalar = 0;
@@ -227,7 +226,7 @@ void ComputeStressTally::compute_peratom()
   // collect contributions from ghost atoms
 
   if (force->newton_pair) {
-    comm->reverse_comm_compute(this);
+    comm->reverse_comm(this);
 
     const int nall = atom->nlocal + atom->nghost;
     for (int i = atom->nlocal; i < nall; ++i)
@@ -253,6 +252,6 @@ void ComputeStressTally::compute_peratom()
 
 double ComputeStressTally::memory_usage()
 {
-  double bytes = (nmax < 0) ? 0 : nmax * (double)size_peratom_cols * sizeof(double);
+  double bytes = (nmax < 0) ? 0 : nmax * (double) size_peratom_cols * sizeof(double);
   return bytes;
 }

@@ -20,20 +20,20 @@ namespace ATC_matrix {
 
 template<typename T>
 class Array2D {
-public: 
+public:
    Array2D();
    Array2D(int nrows, int ncols);
    Array2D(const Array2D<T>& A); // copy constructor
   ~Array2D();
- 
+
    // Resize and reinitalize matrix
    void reset(int nrows, int ncols);
    // Access method to get the (i,j) element:
-   T& operator() (int i, int j);       
-   // Access method to get the i-th col 
-   AliasArray<T> column(int i) const;       
+   T& operator() (int i, int j);
+   // Access method to get the i-th col
+   AliasArray<T> column(int i) const;
    // Access method to get the (i,j) element:
-   const T& operator() (int i, int j) const;       
+   const T& operator() (int i, int j) const;
    // Copy operator
    Array2D<T>& operator= (const Array2D<T>& other);
    // assignment operator
@@ -48,10 +48,10 @@ public:
    // Dump templated type to disk; operation not safe for all types
    void write_restart(FILE *f) const;
 
-private: 
+private:
    int nrows_, ncols_;
-   T *data_; 
-}; 
+   T *data_;
+};
 
 template<typename T>
 Array2D<T>::Array2D() {
@@ -172,7 +172,7 @@ template<typename T>
 Array2D<T>::~Array2D() {
    if (data_ != nullptr)
      delete[] data_;
-} 
+}
 
 template<typename T>
 void Array2D<T>::print(std::string name) const {

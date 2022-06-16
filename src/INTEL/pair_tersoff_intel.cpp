@@ -18,17 +18,12 @@
 
 #include "pair_tersoff_intel.h"
 
-#include "atom.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "force.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
-
-#include <cmath>
-#include <cstring>
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
 using namespace LAMMPS_NS;
 
@@ -411,16 +406,10 @@ void PairTersoffIntel::init_style()
 
   // need a full neighbor list
 
-  int irequest = neighbor->request(this);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->intel = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   fix->pair_init_check();
   fix->three_body_neighbor(1);
@@ -550,6 +539,7 @@ template <class flt_t>
 void PairTersoffIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                            Memory *memory,
                                                            const int cop) {
+  if (memory != nullptr) _memory = memory;
   if ((ntypes != _ntypes)) {
     if (_ntypes > 0) {
       #ifdef _LMP_INTEL_OFFLOAD
@@ -581,13 +571,13 @@ void PairTersoffIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       _cop = cop;
       size_t VL = 512 / 8 / sizeof(flt_t);
       int ntypes_pad = ntypes + VL - ntypes % VL;
-      memory->create(c_first_loop,ntypes,ntypes,"fc.c_first_loop");
-      memory->create(c_second_loop,ntypes,ntypes,"fc.c_second_loop");
-      memory->create(c_cutoff_outer,ntypes,ntypes,"fc.c_cutoff_outer");
-      memory->create(c_inner_loop,ntypes,ntypes,ntypes,"fc.c_inner_loop");
-      memory->create(c_cutoff_inner,ntypes,ntypes,ntypes_pad,"fc.c_cutoff_inner");
-      memory->create(c_inner,ntypes,ntypes,ntypes,"fc.c_inner");
-      memory->create(c_outer,ntypes,ntypes,"fc.c_outer");
+      _memory->create(c_first_loop,ntypes,ntypes,"fc.c_first_loop");
+      _memory->create(c_second_loop,ntypes,ntypes,"fc.c_second_loop");
+      _memory->create(c_cutoff_outer,ntypes,ntypes,"fc.c_cutoff_outer");
+      _memory->create(c_inner_loop,ntypes,ntypes,ntypes,"fc.c_inner_loop");
+      _memory->create(c_cutoff_inner,ntypes,ntypes,ntypes_pad,"fc.c_cutoff_inner");
+      _memory->create(c_inner,ntypes,ntypes,ntypes,"fc.c_inner");
+      _memory->create(c_outer,ntypes,ntypes,"fc.c_outer");
       #ifdef _LMP_INTEL_OFFLOAD
       c_first_loop_t * oc_first_loop = c_first_loop[0];
       c_second_loop_t * oc_second_loop = c_second_loop[0];
@@ -614,7 +604,6 @@ void PairTersoffIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
     }
   }
   _ntypes=ntypes;
-  _memory=memory;
 }
 
 #ifdef _LMP_INTEL_OFFLOAD

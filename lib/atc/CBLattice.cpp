@@ -12,7 +12,7 @@ namespace ATC {
     std::vector<DENS_VEC>::iterator R(ref_coords_.begin()), Rp;
     const double TOL = 1.0e-6 * R->dot(*R);
 
-    for (; R!=ref_coords_.end(); R++, r++) { 
+    for (; R!=ref_coords_.end(); R++, r++) {
       for (Rp=R+1; Rp!=ref_coords_.end(); Rp++) {
         if (sum_difference_squared(*Rp, *R) < TOL) {
           ref_coords_.erase(R--);
@@ -59,13 +59,13 @@ namespace ATC {
       fid << ((i+1)%3==0 ? "\n" : " ");
     }
     fid << "\nCELLS "<<npts<<" "<<2*npts<<"\n";
-    for (int i=0; i<npts; i++) fid << "1" << " " << i << "\n"; 
+    for (int i=0; i<npts; i++) fid << "1" << " " << i << "\n";
 
     fid << "CELL_TYPES " << npts << "\n";
     for (int i=0; i<npts; i++) fid << "1" << "\n";
   }
   //===========================================================================
-  // constructor 
+  // constructor
   // @param N 3x3 DenseMatrix with each column as a base vector
   // @param B 3xn DenseMatrix with each column being a basis vector
   // @param R vector of 3D bond Vectors to representative atom in ref config
@@ -79,7 +79,7 @@ namespace ATC {
     for (int a=-1; a<2; a++)
       for (int b=-1; b<2; b++)
         for (int c=-1; c<2; c++)
-           if ( a!=0 || b!=0 || c!=0) queue0_.push(hash(a,b,c));  
+           if ( a!=0 || b!=0 || c!=0) queue0_.push(hash(a,b,c));
   }
   //=============================================================================
   // writes out default lattice parameters
@@ -111,7 +111,7 @@ namespace ATC {
     _FindAtomsInCutoff(v);
   }
   //=============================================================================
-  // Computes forces on central atom, with atom I displaced by u. 
+  // Computes forces on central atom, with atom I displaced by u.
   //=============================================================================
   DENS_VEC AtomCluster::perturbed_force(const CbPotential *p, int I, DENS_VEC *u) const
   {
@@ -167,19 +167,19 @@ namespace ATC {
     }
   }
   //===========================================================================
-  // Computes \f$r^2 = \Vert a n_1 + b n_2 +c n_3 + b_d \Vert^2 \f$ 
+  // Computes \f$r^2 = \Vert a n_1 + b n_2 +c n_3 + b_d \Vert^2 \f$
   // and adds atom (a,b,c,d) if \f$r^2 < r_{cutoff}^2 \f$
   // @param a cell x-index
   // @param b cell y-index
   // @param c cell z-index
   //===========================================================================
-  bool CBLattice::_CheckUnitCell(char a, char b, char c, AtomCluster &v) 
+  bool CBLattice::_CheckUnitCell(char a, char b, char c, AtomCluster &v)
   {
     const int nsd = n_.nRows();  // number of spatial dimensions
     const double A=double(a), B=double(b), C=double(c);
     bool found=false;
     DENS_VEC r0(nsd,false), R0(nsd,false), Rd(nsd,false);  // don't initialize
-  
+
     for (int i=0; i<nsd; i++) { // precompute locations of cell
       R0(i) = A*N_(0,i) + B*N_(1,i) + C*N_(2,i); // reference
     }

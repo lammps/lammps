@@ -82,13 +82,13 @@ namespace ATC {
   AtomInElementSet::AtomInElementSet(ATC_Method * atc,
                      PerAtomQuantity<int> * map,
                      ESET eset, int type):
-  atc_(atc,INTERNAL), 
+  atc_(atc,INTERNAL),
   map_(map),eset_(eset),type_(type),
   quantityToLammps_(atc_.atc_to_lammps_map())
   {
     map_->register_dependence(this);
     needReset_ = true;
-    
+
   }
   //--------------------------------------------------------
   //  destructor
@@ -100,12 +100,12 @@ namespace ATC {
   //--------------------------------------------------------
   //  reset
   //--------------------------------------------------------
-  void AtomInElementSet::reset() 
+  void AtomInElementSet::reset()
   {
     if (map_->need_reset() || needReset_) {
       list_.clear();
       INT_ARRAY map = map_->quantity();
-      int * type = ATC::LammpsInterface::instance()->atom_type(); 
+      int * type = ATC::LammpsInterface::instance()->atom_type();
       ESET::const_iterator itr;
       const Array<int> & quantityToLammps = atc_.atc_to_lammps_map();
       for (int i = 0; i < map.size(); i++) {
@@ -113,7 +113,7 @@ namespace ATC {
           if (map(i,0) == *itr) {
             int a = quantityToLammps(i);
             if (type[a] == type_) {
-              list_.push_back(ID_PAIR(i,a)); 
+              list_.push_back(ID_PAIR(i,a));
               break;
             }
           }
@@ -150,7 +150,7 @@ namespace ATC {
   {
     // do nothing
   }
-  
+
   //--------------------------------------------------------
   //  reset
   //--------------------------------------------------------
@@ -196,18 +196,18 @@ namespace ATC {
     int ngroup = lammpsInterface_->ngroup();
     const int *mask = lammpsInterface_->atom_mask();
     double * bounds;
-      
+
     bounds = new double[6];
     for (int i = 0; i < ngroup; ++i) {
       lammpsInterface_->group_bounds(i, bounds);
-      atomGroupVolume_[lammpsInterface_->group_bit(i)] = 
+      atomGroupVolume_[lammpsInterface_->group_bit(i)] =
         (bounds[1]-bounds[0])*(bounds[3]-bounds[2])*(bounds[5]-bounds[4]);
     }
     delete [] bounds;
-      
+
     INT_VECTOR localCount(ngroup);
     INT_VECTOR globalCount(ngroup);
-      
+
     // loop over atoms
     localCount = 0;
     for (int i = 0; i < atcToLammps_.size(); ++i) {
@@ -216,13 +216,13 @@ namespace ATC {
           localCount(j)++;
       }
     }
-      
+
     // communication to get total atom counts per group
     lammpsInterface_->int_allsum(localCount.ptr(),
                                  globalCount.ptr(),ngroup);
-    
+
     for (int i = 0; i < ngroup; ++i) {
-      int iGroupBit = lammpsInterface_->group_bit(i); 
+      int iGroupBit = lammpsInterface_->group_bit(i);
       if (globalCount(i) > 0)
         atomGroupVolume_[iGroupBit] /= globalCount(i);
       else
@@ -257,13 +257,13 @@ namespace ATC {
       quantity_ = lammpsInterface_->volume_per_atom();
     }
   }
-  
+
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class AtomVolumeElement
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -303,19 +303,19 @@ namespace ATC {
       _elementAtomCount_.resize(nElts);
       const INT_ARRAY & atomElement(atomElement_->quantity());
        _elementAtomVolume_.resize(nElts);
-      
+
       // determine number of atoms in each element, partial sum
       for (int i = 0; i < nLocal; ++i) {
         _elementAtomCountLocal_(atomElement(i,0)) += 1;
       }
-      
+
       // mpi to determine total atoms
       lammpsInterface_->int_allsum(_elementAtomCountLocal_.ptr(),_elementAtomCount_.ptr(),nElts);
-      
+
       // divide element volume by total atoms to get atomic volume
       if (nLocal>0) {
         for (int i = 0; i < nElts; ++i) {
-          
+
           double minx, maxx, miny, maxy, minz, maxz;
           feMesh_->element_coordinates(i,_nodalCoordinates_);
           minx = _nodalCoordinates_(0,0); maxx = _nodalCoordinates_(0,0);
@@ -333,7 +333,7 @@ namespace ATC {
           if (eltVol<0) eltVol *= -1.;
           _elementAtomVolume_(i) = eltVol/_elementAtomCount_(i);
         }
-        
+
         for (int i = 0; i < nLocal; ++i)
           quantity_(i,i) = _elementAtomVolume_(atomElement(i,0));
       }
@@ -364,16 +364,16 @@ namespace ATC {
     // compute volumes and atom counts in each region
     int nregion = lammpsInterface_->nregion();
     regionalAtomVolume_.resize(nregion);
-    
+
     for (int i = 0; i < nregion; ++i) {
-      regionalAtomVolume_(i) = 
+      regionalAtomVolume_(i) =
         (lammpsInterface_->region_xhi(i)-lammpsInterface_->region_xlo(i))
         *(lammpsInterface_->region_yhi(i)-lammpsInterface_->region_ylo(i))
         *(lammpsInterface_->region_zhi(i)-lammpsInterface_->region_zlo(i));
     }
-      
+
     INT_VECTOR localCount(nregion);
-    INT_VECTOR globalCount(nregion);  
+    INT_VECTOR globalCount(nregion);
     // loop over atoms
     localCount = 0;
     const DENS_MAT atomicCoordinates(atomCoarseGrainingPositions->quantity());
@@ -390,7 +390,7 @@ namespace ATC {
     // communication to get total atom counts per group
     lammpsInterface_->int_allsum(localCount.ptr(),
                                  globalCount.ptr(),nregion);
-        
+
     for (int i = 0; i < nregion; ++i) {
       if (globalCount(i) > 0)
         regionalAtomVolume_(i) /= globalCount(i);
@@ -414,7 +414,7 @@ namespace ATC {
   {
     if (need_reset()) {
       PerAtomDiagonalMatrix<double>::reset();
-      const DENS_MAT & atomicCoordinates(atomCoarseGrainingPositions_->quantity());  
+      const DENS_MAT & atomicCoordinates(atomCoarseGrainingPositions_->quantity());
       for (int i = 0; i < quantity_.nRows(); i++) {
         for (int iregion = 0; iregion < lammpsInterface_->nregion(); iregion++) {
           if (lammpsInterface_->region_match(iregion,
@@ -457,7 +457,7 @@ namespace ATC {
       ifstream in;
       const int lineSize = 256;
       char line[lineSize];
-      const char* fname = &atomVolumeFile_[0]; 
+      const char* fname = &atomVolumeFile_[0];
 
       // create tag to local id map for this processor
       map <int,int> tag2id;
@@ -477,13 +477,13 @@ namespace ATC {
         if (! in.good()) throw ATC_Error(msg);
         in.getline(line,lineSize); // header
         in.getline(line,lineSize); // blank line
-        in.getline(line,lineSize); // number of atoms 
+        in.getline(line,lineSize); // number of atoms
         stringstream inss (line,stringstream::in | stringstream::out);
         inss >> natoms; // number of atoms
-        stringstream ss; 
+        stringstream ss;
         ss << " found " << natoms << " atoms in atomic weights file";
         lammpsInterface_->print_msg(ss.str());
-        if (natoms != lammpsInterface_->natoms()) { 
+        if (natoms != lammpsInterface_->natoms()) {
           throw ATC_Error("Incorrect number of atomic weights read-in!");
         }
         in.getline(line,lineSize); // blank line
@@ -496,7 +496,7 @@ namespace ATC {
         if (ATC::LammpsInterface::instance()->rank_zero()) {
           in.getline(line,lineSize);
           stringstream ss (line,stringstream::in | stringstream::out);
-          ss >> tag >> atomic_weight; 
+          ss >> tag >> atomic_weight;
           nread++;
         }
         lammpsInterface_->int_broadcast(&nread);
@@ -511,11 +511,11 @@ namespace ATC {
       }
       if (lammpsInterface_->rank_zero()) {
         in.close();
-        stringstream ss; 
+        stringstream ss;
         ss << " read  " << nread << " atomic weights";
         lammpsInterface_->print_msg(ss.str());
       }
-      if (count != nlocal) 
+      if (count != nlocal)
         throw ATC_Error("reset "+to_string(count)+" atoms vs "+to_string(nlocal));
     }
   }
@@ -532,7 +532,7 @@ namespace ATC {
   //--------------------------------------------------------
   AtomNumber::AtomNumber(ATC_Method * atc, AtomType atomType) :
     ProtectedAtomQuantity<double>(atc,1,atomType),
-    atc_(atc)  
+    atc_(atc)
   {
   }
 
@@ -552,32 +552,32 @@ namespace ATC {
   //--------------------------------------------------------
   //  constructor
   //--------------------------------------------------------
-  AtomTypeVector::AtomTypeVector(ATC_Method * atc, 
+  AtomTypeVector::AtomTypeVector(ATC_Method * atc,
     vector<int> typeList, AtomType atomType) :
     ProtectedAtomQuantity<double>(atc,
     typeList.size(),
     atomType),
     atc_(atc), ntypes_(ATC::LammpsInterface::instance()->ntypes()),
-    typeList_(typeList)  
+    typeList_(typeList)
   {
     if (typeList_.size() == 0) throw ATC_Error("type list is empty");
-    index_.resize(ntypes_,-1); 
+    index_.resize(ntypes_,-1);
     for (unsigned int i = 0; i < typeList_.size(); i++) {
       index_[typeList_[i]] = i;
     }
   }
-  AtomTypeVector::AtomTypeVector(ATC_Method * atc, 
+  AtomTypeVector::AtomTypeVector(ATC_Method * atc,
     vector<int> typeList, vector<int> groupList, AtomType atomType) :
     ProtectedAtomQuantity<double>(atc,
     typeList.size()+groupList.size(),
     atomType),
     atc_(atc), ntypes_(ATC::LammpsInterface::instance()->ntypes()),
     typeList_(typeList),
-    groupList_(groupList)  
+    groupList_(groupList)
   {
     if ((typeList_.size() == 0) && (groupList_.size() == 0)) throw ATC_Error("type/group lists are empty");
     // reverse map
-    index_.resize(ntypes_,-1); 
+    index_.resize(ntypes_,-1);
     for (unsigned int i = 0; i < typeList_.size(); i++) {
       index_[typeList_[i]-1] = i;
     }
@@ -590,16 +590,16 @@ namespace ATC {
       int nlocal = atc_->nlocal();
       quantity_.reset(nlocal,typeList_.size()+groupList_.size());
       const Array<int> & quantityToLammps = (PerAtomQuantity<double>::atc_).atc_to_lammps_map();
-      if (typeList_.size()) { 
-        int * type = ATC::LammpsInterface::instance()->atom_type(); 
+      if (typeList_.size()) {
+        int * type = ATC::LammpsInterface::instance()->atom_type();
         for (int i = 0; i < nlocal; i++) {
-          int a = quantityToLammps(i); 
+          int a = quantityToLammps(i);
           int index = index_[type[a]-1];
           if (index > -1) quantity_(i,index) = 1;
         }
       }
       int index = typeList_.size();
-      if (groupList_.size()) { 
+      if (groupList_.size()) {
         const int * mask = ATC::LammpsInterface::instance()->atom_mask();
         for (unsigned int j = 0; j < groupList_.size(); j++) {
           int group = groupList_[j];
@@ -618,7 +618,7 @@ namespace ATC {
   //  Class XrefWrapper
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  constructor
   //--------------------------------------------------------
@@ -686,7 +686,7 @@ namespace ATC {
   //--------------------------------------------------------
   void AtomicMassWeightedDisplacement::reset() const
   {
-    if (need_reset()) { 
+    if (need_reset()) {
       PerAtomQuantity<double>::reset();
       const DENS_MAT & position(atomPositions_->quantity());
       const DENS_MAT & mass(atomMasses_->quantity());
@@ -749,7 +749,7 @@ namespace ATC {
 
       // q = m * v
       quantity_ = velocity;
-      quantity_ *= mass;    
+      quantity_ *= mass;
     }
   }
 
@@ -800,7 +800,7 @@ namespace ATC {
       PerAtomQuantity<double>::reset();
       const DENS_MAT & mass(atomMasses_->quantity());
       const DENS_MAT & velocity(atomVelocities_->quantity());
-      
+
       // q = m * (v dot v)
       for (int i = 0; i < quantity_.nRows(); i++) {
           quantity_(i,0) = velocity(i,0)*velocity(i,0);
@@ -860,7 +860,7 @@ namespace ATC {
       PerAtomQuantity<double>::reset();
       const DENS_MAT & velocity(atomVelocities_->quantity());
       const DENS_MAT & meanVelocity(atomMeanVelocities_->quantity());
-      
+
       // q = m * (v dot v)
       for (int i = 0; i < quantity_.nRows(); i++) {
         for (int j = 0; j < velocity.nCols(); j++) {
@@ -969,7 +969,7 @@ namespace ATC {
       PerAtomQuantity<double>::reset();
       const DENS_MAT & velocity(fluctuatingVelocities_->quantity());
       const DENS_MAT & tv(atomTypeVector_->quantity());
-      
+
       for (int i = 0; i < quantity_.nRows(); i++) {
         int m = 0;
         for (int j = 0; j < velocity.nCols(); j++) {
@@ -1038,7 +1038,7 @@ namespace ATC {
       const DENS_MAT & mass(atomMasses_->quantity());
       const DENS_MAT & velocity(atomVelocities_->quantity());
       const DENS_MAT & meanVelocity(atomMeanVelocities_->quantity());
-      
+
       // q = m * (v dot v)
       double vRel;
       for (int i = 0; i < quantity_.nRows(); i++) {
@@ -1102,7 +1102,7 @@ namespace ATC {
       PerAtomQuantity<double>::reset();
       const DENS_MAT & mass(atomMasses_->quantity());
       const DENS_MAT & velocity(atomVelocities_->quantity());
-      
+
       // K = m * (v \otimes v)
       for (int i = 0; i < quantity_.nRows(); i++) {
         double m = mass(i,0);
@@ -1173,7 +1173,7 @@ namespace ATC {
       const DENS_MAT & mass(atomMasses_->quantity());
       const DENS_MAT & velocity(atomVelocities_->quantity());
       const DENS_MAT & meanVelocity(atomMeanVelocities_->quantity());
-      
+
       // K = m * (v \otimes v)
       for (int i = 0; i < quantity_.nRows(); i++) {
         double m = mass(i,0);
@@ -1324,7 +1324,7 @@ namespace ATC {
     if (!referencePotential_) {
        referencePotential_ = interscaleManager.per_atom_quantity("AtomicReferencePotential");
     }
-    
+
     potentialEnergy_->register_dependence(this);
     referencePotential_->register_dependence(this);
   }
@@ -1539,7 +1539,7 @@ namespace ATC {
     type_(type)
   {
     // DO NOTHING
-    
+
   }
 
   //--------------------------------------------------------
@@ -1580,7 +1580,7 @@ namespace ATC {
     group_(group)
   {
     // DO NOTHING
-    
+
   }
 
   //--------------------------------------------------------
@@ -1641,7 +1641,7 @@ namespace ATC {
   //--------------------------------------------------------
   void AtomToNodeset::reset() const
   {
-    
+
     //so it has been commented out.
     /*
     if (need_reset()) {
@@ -1761,7 +1761,7 @@ namespace ATC {
       const DENS_MAT & source(source_->quantity());
       const INT_ARRAY & map(map_->quantity());
       quantity_.resize(map_->size(),source.nCols());
-      
+
       for (int i = 0; i < source.nRows(); i++) {
         int idx = map(i,0);
         if (idx > -1) {
@@ -1901,7 +1901,7 @@ namespace ATC {
   //    computes the classical atomic heat capacity
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  constructor
   //--------------------------------------------------------
@@ -2114,7 +2114,7 @@ namespace ATC {
       atomVelocities_ = interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_VELOCITY,
                                                                     atomType);
     }
-    
+
     atomLambdas_->register_dependence(this);
     atomVelocities_->register_dependence(this);
   }
@@ -2137,7 +2137,7 @@ namespace ATC {
       PerAtomQuantity<double>::reset();
       const DENS_MAT & v(atomVelocities_->quantity());
       const DENS_MAT & lambda(atomLambdas_->quantity());
-      
+
       // force = -lambda*v
       quantity_ = v;
       quantity_ *= lambda;
@@ -2170,7 +2170,7 @@ namespace ATC {
       atomMass_ = interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_MASS,
                                                               atomType);
     }
-    
+
     atomLambda_->register_dependence(this);
     atomMass_->register_dependence(this);
   }
@@ -2194,7 +2194,7 @@ namespace ATC {
       const DENS_MAT & m(atomMass_->quantity());
       const DENS_MAT & lambda(atomLambda_->quantity());
       double timeFactor = time_step_factor(0.5*atc_.dt());
-      
+
       //force = -lambda*m*(timestep factor)
       quantity_ = lambda;
       quantity_ *= m;
@@ -2221,7 +2221,7 @@ namespace ATC {
     if (!atomLambda_) {
       atomLambda_ = interscaleManager.per_atom_quantity("AtomLambdaMomentum");
     }
-    
+
     atomLambda_->register_dependence(this);
   }
 
@@ -2241,7 +2241,7 @@ namespace ATC {
     if (need_reset()) {
       PerAtomQuantity<double>::reset();
       const DENS_MAT & lambda(atomLambda_->quantity());
-      
+
       // force = -lambda
       quantity_ = lambda;
       quantity_ *= -1.;
@@ -2372,7 +2372,7 @@ namespace ATC {
     if (!nodeToOverlapMap_) {
       nodeToOverlapMap_ = (atc->interscale_manager()).dense_matrix_int("NodeToOverlapMap");
     }
-    
+
     shapeFunction_->register_dependence(this);
     nodeToOverlapMap_->register_dependence(this);
   }
@@ -2388,7 +2388,7 @@ namespace ATC {
       const SPAR_MAT & shapeFunction(shapeFunction_->quantity());
       quantity_.reset(shapeFunction.nRows(),nNodeOverlap); // number of atoms X number of nodes overlapping MD region
       const INT_ARRAY nodeToOverlapMap(nodeToOverlapMap_->quantity());
-    
+
       for (int i = 0; i < shapeFunction.size(); ++i) {
         TRIPLET<double> myTriplet = shapeFunction.triplet(i);
         int myCol = nodeToOverlapMap(myTriplet.j,0);
@@ -2418,7 +2418,7 @@ namespace ATC {
     if (!lambdaAtomMap_) {
       lambdaAtomMap_ = (atc->interscale_manager()).dense_matrix_int("LambdaAtomMap");
     }
-    
+
     lambdaAtomMap_->register_dependence(this);
   }
 
@@ -2436,7 +2436,7 @@ namespace ATC {
       const SPAR_MAT & shapeFunction(shapeFunction_->quantity());
       const INT_ARRAY nodeToOverlapMap(nodeToOverlapMap_->quantity());
       const INT_ARRAY lambdaAtomMap(lambdaAtomMap_->quantity());
-      
+
       for (int i = 0; i < shapeFunction.size(); ++i) {
         TRIPLET<double> myTriplet = shapeFunction.triplet(i);
         int myRow = lambdaAtomMap(myTriplet.i,0);
@@ -2488,7 +2488,7 @@ namespace ATC {
         }
       }
       quantity_.compress();
-      
+
       //int nNodes = nodeToOverlapMap_->nRows();
       _activeNodes_.reset(nNodes);
       for (int i = 0; i < nNodes; ++i) {

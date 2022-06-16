@@ -27,9 +27,9 @@ namespace LAMMPS_NS {
 class ComputeERotateSphere : public Compute {
  public:
   ComputeERotateSphere(class LAMMPS *, int, char **);
-  ~ComputeERotateSphere() {}
-  void init();
-  double compute_scalar();
+
+  void init() override;
+  double compute_scalar() override;
 
  private:
   double pfactor;
@@ -39,17 +39,3 @@ class ComputeERotateSphere : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute erotate/sphere requires atom style sphere
-
-Self-explanatory.
-
-*/

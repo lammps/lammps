@@ -18,7 +18,7 @@ WeakEquationElectronTemperature::WeakEquationElectronTemperature()
 //--------------------------------------------------------------
 //  Destructor
 //---------------------------------------------------------------------
-WeakEquationElectronTemperature::~WeakEquationElectronTemperature(void)
+WeakEquationElectronTemperature::~WeakEquationElectronTemperature()
 {}
 
 //---------------------------------------------------------------------
@@ -86,14 +86,14 @@ WeakEquationElectronTemperatureJouleHeating::WeakEquationElectronTemperatureJoul
   //eV2E_ = (ATC::LammpsInterface::instance()->qe2f())
   //      * (ATC::LammpsInterface::instance()->ftm2v());
   eV2E_ = ATC::LammpsInterface::instance()->qv2e();
-  int nSD = 3; 
-  _J_.assign(nSD, DENS_MAT()); 
+  int nSD = 3;
+  _J_.assign(nSD, DENS_MAT());
   _E_.assign(nSD, DENS_MAT());
 }
 //--------------------------------------------------------------
 //  Destructor
 //---------------------------------------------------------------------
-WeakEquationElectronTemperatureJouleHeating::~WeakEquationElectronTemperatureJouleHeating(void)
+WeakEquationElectronTemperatureJouleHeating::~WeakEquationElectronTemperatureJouleHeating()
 {}
 
 //---------------------------------------------------------------------
@@ -130,18 +130,18 @@ bool WeakEquationElectronTemperatureJouleHeating::N_integrand(
   const Material * material,
   DENS_MAT &flux) const
 {
-  
+
   // call base class to get electron_temperature terms
   WeakEquationElectronTemperature::N_integrand(fields, grad_fields, material, flux);
   // Joule heating = -I.grad Psi = J.grad Psi \approx J.E
-  DENS_MAT jouleHeating; 
-  material->electron_flux (fields, grad_fields, _J_); 
+  DENS_MAT jouleHeating;
+  material->electron_flux (fields, grad_fields, _J_);
   material->electric_field(fields, grad_fields, _E_);
   jouleHeating = _J_[0].mult_by_element(_E_[0]);
   for (DENS_MAT_VEC::size_type i=1; i < _J_.size(); i++)
     jouleHeating += _J_[i].mult_by_element(_E_[i]);
   jouleHeating *= eV2E_;
-  flux -= jouleHeating; 
+  flux -= jouleHeating;
   return true;
 }
 
@@ -155,14 +155,14 @@ bool WeakEquationElectronTemperatureJouleHeating::N_integrand(
 WeakEquationElectronTemperatureConvection::WeakEquationElectronTemperatureConvection()
   : WeakEquationElectronTemperatureJouleHeating()
 {
-  int nSD = 3; 
-  _convectiveFlux_.assign(nSD, DENS_MAT()); 
+  int nSD = 3;
+  _convectiveFlux_.assign(nSD, DENS_MAT());
 }
 
 //--------------------------------------------------------------
 //  Destructor
 //---------------------------------------------------------------------
-WeakEquationElectronTemperatureConvection::~WeakEquationElectronTemperatureConvection(void)
+WeakEquationElectronTemperatureConvection::~WeakEquationElectronTemperatureConvection()
 {
   // do nothing
 }
@@ -175,7 +175,7 @@ void WeakEquationElectronTemperatureConvection::B_integrand(
   DENS_MAT_VEC &flux) const
 {
   // add diffusion term
-  
+
   WeakEquationElectronTemperatureJouleHeating::B_integrand(fields, grad_fields, material, flux);
   //flux[0] = 0.;
   //flux[1] = 0.;
@@ -204,8 +204,8 @@ bool WeakEquationElectronTemperatureConvection::N_integrand(
   DENS_MAT capacity;
   material->electron_heat_capacity(fields, capacity);
   capacity *= 2./3.; // correction in DDM equations
-  
-  
+
+
   //FIELD_MATS::const_iterator dField = fields.find(ELECTRON_DENSITY);
   FIELD_MATS::const_iterator tField = fields.find(ELECTRON_TEMPERATURE);
   //const DENS_MAT & density = dField->second;
@@ -221,10 +221,10 @@ bool WeakEquationElectronTemperatureConvection::N_integrand(
   //keExchange *= density;
   keExchange *= temperature;
   keExchange *= capacity;
-  
+
   flux -= keExchange;
 #endif
-  return true;  
+  return true;
 }
 
 }; // end namespace

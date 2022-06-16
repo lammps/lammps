@@ -23,15 +23,9 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "gridcomm.h"
 #include "math_const.h"
 #include "memory.h"
-#include "neighbor.h"
-#include "pair.h"
-
-#include <cstring>
-#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -40,7 +34,7 @@ enum{REVERSE_RHO,REVERSE_AD,REVERSE_AD_PERATOM};
 enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
 /* ---------------------------------------------------------------------- */
 
-MSMDielectric::MSMDielectric(LAMMPS *lmp) : MSM(lmp)
+MSMDielectric::MSMDielectric(LAMMPS *_lmp) : MSM(_lmp)
 {
   efield = nullptr;
   phi = nullptr;
@@ -64,7 +58,7 @@ void MSMDielectric::init()
 {
   MSM::init();
 
-  avec = (AtomVecDielectric *) atom->style_match("dielectric");
+  avec = dynamic_cast<AtomVecDielectric *>( atom->style_match("dielectric"));
   if (!avec) error->all(FLERR,"msm/dielectric requires atom style dielectric");
 }
 
@@ -136,8 +130,8 @@ void MSMDielectric::compute(int eflag, int vflag)
   // to fully sum contribution in their 3d grid
 
   current_level = 0;
-  gcall->reverse_comm_kspace(this,1,sizeof(double),REVERSE_RHO,
-                             gcall_buf1,gcall_buf2,MPI_DOUBLE);
+  gcall->reverse_comm(GridComm::KSPACE,this,1,sizeof(double),REVERSE_RHO,
+                      gcall_buf1,gcall_buf2,MPI_DOUBLE);
 
   // forward communicate charge density values to fill ghost grid points
   // compute direct sum interaction and then restrict to coarser grid
@@ -145,8 +139,8 @@ void MSMDielectric::compute(int eflag, int vflag)
   for (int n=0; n<=levels-2; n++) {
     if (!active_flag[n]) continue;
     current_level = n;
-    gc[n]->forward_comm_kspace(this,1,sizeof(double),FORWARD_RHO,
-                               gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
+    gc[n]->forward_comm(GridComm::KSPACE,this,1,sizeof(double),FORWARD_RHO,
+                        gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
     direct(n);
     restriction(n);
   }
@@ -158,16 +152,16 @@ void MSMDielectric::compute(int eflag, int vflag)
     if (domain->nonperiodic) {
       current_level = levels-1;
       gc[levels-1]->
-        forward_comm_kspace(this,1,sizeof(double),FORWARD_RHO,
-                            gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
+        forward_comm(GridComm::KSPACE,this,1,sizeof(double),FORWARD_RHO,
+                     gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
       direct_top(levels-1);
       gc[levels-1]->
-        reverse_comm_kspace(this,1,sizeof(double),REVERSE_AD,
-                            gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
+        reverse_comm(GridComm::KSPACE,this,1,sizeof(double),REVERSE_AD,
+                     gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
       if (vflag_atom)
         gc[levels-1]->
-          reverse_comm_kspace(this,6,sizeof(double),REVERSE_AD_PERATOM,
-                              gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
+          reverse_comm(GridComm::KSPACE,this,6,sizeof(double),REVERSE_AD_PERATOM,
+                       gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
 
     } else {
       // Here using MPI_Allreduce is cheaper than using commgrid
@@ -177,8 +171,8 @@ void MSMDielectric::compute(int eflag, int vflag)
       current_level = levels-1;
       if (vflag_atom)
         gc[levels-1]->
-          reverse_comm_kspace(this,6,sizeof(double),REVERSE_AD_PERATOM,
-                              gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
+          reverse_comm(GridComm::KSPACE,this,6,sizeof(double),REVERSE_AD_PERATOM,
+                       gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
     }
   }
 
@@ -190,28 +184,28 @@ void MSMDielectric::compute(int eflag, int vflag)
     prolongation(n);
 
     current_level = n;
-    gc[n]->reverse_comm_kspace(this,1,sizeof(double),REVERSE_AD,
-                               gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
+    gc[n]->reverse_comm(GridComm::KSPACE,this,1,sizeof(double),REVERSE_AD,
+                        gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
 
     // extra per-atom virial communication
 
     if (vflag_atom)
-      gc[n]->reverse_comm_kspace(this,6,sizeof(double),REVERSE_AD_PERATOM,
-                                 gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
+      gc[n]->reverse_comm(GridComm::KSPACE,this,6,sizeof(double),
+                          REVERSE_AD_PERATOM,gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
   }
 
   // all procs communicate E-field values
   // to fill ghost cells surrounding their 3d bricks
 
   current_level = 0;
-  gcall->forward_comm_kspace(this,1,sizeof(double),FORWARD_AD,
-                             gcall_buf1,gcall_buf2,MPI_DOUBLE);
+  gcall->forward_comm(GridComm::KSPACE,this,1,sizeof(double),FORWARD_AD,
+                      gcall_buf1,gcall_buf2,MPI_DOUBLE);
 
   // extra per-atom energy/virial communication
 
   if (vflag_atom)
-    gcall->forward_comm_kspace(this,6,sizeof(double),FORWARD_AD_PERATOM,
-                               gcall_buf1,gcall_buf2,MPI_DOUBLE);
+    gcall->forward_comm(GridComm::KSPACE,this,6,sizeof(double),FORWARD_AD_PERATOM,
+                        gcall_buf1,gcall_buf2,MPI_DOUBLE);
 
   // calculate the force on my particles (interpolation)
 

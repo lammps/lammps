@@ -12,7 +12,7 @@
 
 using namespace std;
 
-/** @file wpmd.h 
+/** @file wpmd.h
     @brief Classes to handle Gaussian Wave Packets. */
 
 // Constants
@@ -89,7 +89,7 @@ public:
   WavePacket operator*(const WavePacket& other) const {
     return WavePacket(a+other.a,b+other.b,lz+other.lz);
   }
- 
+
   /// returns the integral of w(x) over 3D space
   cdouble integral() const {
     cdouble z = lz + b.norm2()/(4.*a);
@@ -171,7 +171,7 @@ public:
   ///\en Transforms derivatives of a function with respect to WP parameters
   ///    from internal into physical representation, i. e.:\n
   ///    from df/d{are,aim,b0re,b0im,b1re,b1im,b2re,b2im} (8 values accessed by input iterator d_it in the given order)\n
-  ///    to   df/d{x0,x1,x2}, df/d{p0,p1,p2}, df/dw, df/dpw 
+  ///    to   df/d{x0,x1,x2}, df/d{p0,p1,p2}, df/dw, df/dpw
   ///    The supplied inputs (val) are modified by op: val=op(val,phys_der).
   ///    Use operation=eq_second for the supplied inputs to be replaced by new physical derivative values.
   ///    The input and output locations may coinside, an internal buffer is used for transformation.
@@ -189,7 +189,7 @@ public:
     for(int i=0;i<3;i++){
       dfn[i]= 2*real(a)*dfdi[2+2*i]+2*imag(a)*dfdi[2+2*i+1];
       dfn[3+i]= dfdi[2+2*i+1]*(/*m_electron*/1./h_p) ; //*(h_plank/m_electron);
-      dfn[7]+=-(r[i]*dfdi[2+2*i+1]/w)/h_p;  
+      dfn[7]+=-(r[i]*dfdi[2+2*i+1]/w)/h_p;
       dfn[6]+=-2*r[i]*(t*dfdi[2+2*i]+imag(a)*dfdi[2+2*i+1]/w);
     }
     int i=0;
@@ -201,7 +201,7 @@ public:
     *dfdpw=op(*dfdpw,dfn[i++]);
   }
 
-  
+
   ///\en Compares the wave packet to another on a per component basis.
   ///    \return  \retval 0 if all component differences are 0 within tolerance \a tol (EQUAL),
   ///             \retval -1 for LESS
@@ -229,7 +229,7 @@ public:
           for(int i=0;i<3;i++){
             fe_x[ic1+k1][i]+= -2*real(wk.a)*E_der[s1][indw1+8*k1+2+2*i]-2*imag(wk.a)*E_der[s1][indw1+8*k1+2+2*i+1];
             fe_p[ic1+k1][i]+= (-E_der[s1][indw1+8*k1+2+2*i+1])*(m_electron/h_plank); //*(h_plank/m_electron);
-            fe_pw[ic1+k1]+=(r[i]*E_der[s1][indw1+8*k1+2+2*i+1]/w)/h_plank;  
+            fe_pw[ic1+k1]+=(r[i]*E_der[s1][indw1+8*k1+2+2*i+1]/w)/h_plank;
             fe_w[ic1+k1]+=2*r[i]*(t*E_der[s1][indw1+8*k1+2+2*i]+imag(wk.a)*E_der[s1][indw1+8*k1+2+2*i+1]/w);
           }
 #endif

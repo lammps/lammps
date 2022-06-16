@@ -4,15 +4,15 @@ Optional build settings
 LAMMPS can be built with several optional settings.  Each sub-section
 explain how to do this for building both with CMake and make.
 
-* :ref:`C++11 standard compliance <cxx11>` when building all of LAMMPS
-* :ref:`FFT library <fft>` for use with the :doc:`kspace_style pppm <kspace_style>` command
-* :ref:`Size of LAMMPS integer types <size>`
-* :ref:`Read or write compressed files <gzip>`
-* :ref:`Output of JPG and PNG files <graphics>` via the :doc:`dump image <dump_image>` command
-* :ref:`Output of movie files <graphics>` via the :doc:`dump_movie <dump_image>` command
-* :ref:`Memory allocation alignment <align>`
-* :ref:`Workaround for long long integers <longlong>`
-* :ref:`Error handling exceptions <exceptions>` when using LAMMPS as a library
+* `C++11 standard compliance`_ when building all of LAMMPS
+* `FFT library`_ for use with the :doc:`kspace_style pppm <kspace_style>` command
+* `Size of LAMMPS integer types and size limits`_
+* `Read or write compressed files`_
+* `Output of JPG, PNG, and move files` via the :doc:`dump image <dump_image>` or :doc:`dump movie <dump_image>` commands
+* `Memory allocation alignment`_
+* `Workaround for long long integers`_
+* `Exception handling when using LAMMPS as a library`_ to capture errors
+* `Trigger selected floating-point exceptions`_
 
 ----------
 
@@ -71,7 +71,8 @@ LAMMPS can use them if they are available on your system.
 
          -D FFTW3_INCLUDE_DIR=path   # path to FFTW3 include files
          -D FFTW3_LIBRARY=path       # path to FFTW3 libraries
-         -D FFT_FFTW_THREADS=on      # enable using threaded FFTW3 libraries
+         -D FFTW3_OMP_LIBRARY=path   # path to FFTW3 OpenMP wrapper libraries
+         -D FFT_FFTW_THREADS=on      # enable using OpenMP threaded FFTW3 libraries
          -D MKL_INCLUDE_DIR=path     # ditto for Intel MKL library
          -D FFT_MKL_THREADS=on       # enable using threaded FFTs with MKL libraries
          -D MKL_LIBRARY=path         # path to MKL libraries
@@ -286,8 +287,8 @@ Output of JPG, PNG, and movie files
 
 The :doc:`dump image <dump_image>` command has options to output JPEG or
 PNG image files.  Likewise the :doc:`dump movie <dump_image>` command
-outputs movie files in MPEG format.  Using these options requires the
-following settings:
+outputs movie files in a variety of movie formats.  Using these options
+requires the following settings:
 
 .. tabs::
 
@@ -320,20 +321,19 @@ following settings:
 
       .. code-block:: make
 
-         LMP_INC = -DLAMMPS_JPEG
-         LMP_INC = -DLAMMPS_PNG
-         LMP_INC = -DLAMMPS_FFMPEG
+         LMP_INC = -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_FFMPEG  <other LMP_INC settings>
 
          JPG_INC = -I/usr/local/include   # path to jpeglib.h, png.h, zlib.h header files if make cannot find them
          JPG_PATH = -L/usr/lib            # paths to libjpeg.a, libpng.a, libz.a (.so) files if make cannot find them
          JPG_LIB = -ljpeg -lpng -lz       # library names
 
       As with CMake, you do not need to set ``JPG_INC`` or ``JPG_PATH``,
-      if make can find the graphics header and library files.  You must
-      specify ``JPG_LIB`` with a list of graphics libraries to include
-      in the link.  You must insure ffmpeg is in a directory where
-      LAMMPS can find it at runtime, that is a directory in your PATH
-      environment variable.
+      if make can find the graphics header and library files in their
+      default system locations.  You must specify ``JPG_LIB`` with a
+      list of graphics libraries to include in the link.  You must make
+      certain that the ffmpeg executable (or ffmpeg.exe on Windows) is
+      in a directory where LAMMPS can find it at runtime; that is
+      usually a directory list in your ``PATH`` environment variable.
 
 Using ``ffmpeg`` to output movie files requires that your machine
 supports the "popen" function in the standard runtime library.
@@ -353,8 +353,10 @@ Read or write compressed files
 -----------------------------------------
 
 If this option is enabled, large files can be read or written with
-gzip compression by several LAMMPS commands, including
-:doc:`read_data <read_data>`, :doc:`rerun <rerun>`, and :doc:`dump <dump>`.
+compression by ``gzip`` or similar tools by several LAMMPS commands,
+including :doc:`read_data <read_data>`, :doc:`rerun <rerun>`, and
+:doc:`dump <dump>`.  Currently supported compression tools are:
+``gzip``, ``bzip2``, ``zstd``, and ``lzma``.
 
 .. tabs::
 
@@ -363,23 +365,23 @@ gzip compression by several LAMMPS commands, including
       .. code-block:: bash
 
          -D WITH_GZIP=value       # yes or no
-                                  # default is yes if CMake can find gzip, else no
-         -D GZIP_EXECUTABLE=path  # path to gzip executable if CMake cannot find it
+                                  # default is yes if CMake can find the gzip program, else no
 
    .. tab:: Traditional make
 
       .. code-block:: make
 
-         LMP_INC = -DLAMMPS_GZIP
+         LMP_INC = -DLAMMPS_GZIP   <other LMP_INC settings>
 
-This option requires that your operating system fully supports the "popen()"
-function in the standard runtime library and that a ``gzip`` executable can be
-found by LAMMPS during a run.
+This option requires that your operating system fully supports the
+"popen()" function in the standard runtime library and that a ``gzip``
+or other executable can be found by LAMMPS in the standard search path
+during a run.
 
 .. note::
 
-   On some clusters with high-speed networks, using the "fork()" library
-   call (required by "popen()") can interfere with the fast communication
+   On clusters with high-speed networks, using the "fork()" library call
+   (required by "popen()") can interfere with the fast communication
    library and lead to simulations using compressed output or input to
    hang or crash. For selected operations, compressed file I/O is also
    available using a compression library instead, which is what the
@@ -451,7 +453,7 @@ those systems:
 
       .. code-block:: make
 
-         LMP_INC = -DLAMMPS_LONGLONG_TO_LONG
+         LMP_INC = -DLAMMPS_LONGLONG_TO_LONG  <other LMP_INC settings>
 
 ----------
 
@@ -478,7 +480,7 @@ e.g. to Python. Of course, the calling code has to be set up to
 
       .. code-block:: make
 
-         LMP_INC = -DLAMMPS_EXCEPTIONS
+         LMP_INC = -DLAMMPS_EXCEPTIONS   <other LMP_INC settings>
 
 .. note::
 
@@ -519,7 +521,7 @@ executable, not the library.
 
       .. code-block:: make
 
-         LMP_INC = -DLAMMPS_TRAP_FPE
+         LMP_INC = -DLAMMPS_TRAP_FPE  <other LMP_INC settings>
 
 After compilation with this flag set, the LAMMPS executable will stop
 and produce a core dump when a division by zero, overflow, illegal math

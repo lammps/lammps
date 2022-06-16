@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class ComputeChunkSpreadAtom : public Compute {
  public:
   ComputeChunkSpreadAtom(class LAMMPS *, int, char **);
-  ~ComputeChunkSpreadAtom();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeChunkSpreadAtom() override;
+  void init() override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  protected:
   int mode, nvalues;
@@ -48,13 +48,3 @@ class ComputeChunkSpreadAtom : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

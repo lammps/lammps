@@ -7,7 +7,7 @@
 #include "ATC_TypeDefs.h"
 
 namespace ATC {
-  
+
   class Material;
 
   /**
@@ -54,16 +54,16 @@ namespace ATC {
       double exchangeCoef_;
   };
   //-------------------------------------------------------------------
-  
+
   /**
    *  @class  ElectronPhononExchangePowerLaw
    *  @brief  Class for electron-phonon exchange proportional to the temperature difference raised to a constant power
-   */  
-  
+   */
+
   class ElectronPhononExchangePowerLaw : public ElectronPhononExchange
   {
     public:
-      ElectronPhononExchangePowerLaw(std::fstream &matfile,  
+      ElectronPhononExchangePowerLaw(std::fstream &matfile,
                                      std::map<std::string,double> & parameters);
       virtual ~ElectronPhononExchangePowerLaw() {};
       virtual bool electron_phonon_exchange(const FIELD_MATS &fields,
@@ -78,22 +78,22 @@ namespace ATC {
         flux = (Te - T).pow(exponent_);
         flux *= exchangeCoef_;
         return true;
-      }; 
+      };
     protected:
       double exchangeCoef_;
       int exponent_;
   };
   //-------------------------------------------------------------------
-  
+
   /**
    *  @class  ElectronPhononExchangeHertel
    *  @brief  Class for electron-phonon exchange based on the formulation of Hertel for Cu
-   */  
-  
+   */
+
   class ElectronPhononExchangeHertel : public ElectronPhononExchange
   {
     public:
-      ElectronPhononExchangeHertel(std::fstream &matfile,  
+      ElectronPhononExchangeHertel(std::fstream &matfile,
                                    std::map<std::string,double> & parameters,
                                    Material * material);
       virtual ~ElectronPhononExchangeHertel() {};
@@ -104,13 +104,13 @@ namespace ATC {
       double debeyeTemperature_;
       double massEnhancement_;
       Material * material_;
-      
+
   private:
       ElectronPhononExchangeHertel() {};
       DENS_MAT capacityWorkspace_;
   };
 }
 
-#endif 
+#endif
 
 

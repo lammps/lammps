@@ -99,37 +99,32 @@ KOKKOS_INLINE_FUNCTION void offsetview_verify_operator_bounds(
     Kokkos::Impl::SharedAllocationTracker const& tracker, const MapType& map,
     const BeginsType& begins, Args... args) {
   if (!offsetview_verify_operator_bounds<0>(map, begins, args...)) {
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-    enum { LEN = 1024 };
-    char buffer[LEN];
-    const std::string label = tracker.template get_label<MemorySpace>();
-    int n =
-        snprintf(buffer, LEN, "OffsetView bounds error of view labeled %s (",
-                 label.c_str());
-    offsetview_error_operator_bounds<0>(buffer + n, LEN - n, map, begins,
-                                        args...);
-    Kokkos::Impl::throw_runtime_exception(std::string(buffer));
-#else
-    /* Check #1: is there a SharedAllocationRecord?
-      (we won't use it, but if its not there then there isn't
-       a corresponding SharedAllocationHeader containing a label).
-      This check should cover the case of Views that don't
-      have the Unmanaged trait but were initialized by pointer. */
-    if (tracker.has_record()) {
-      Kokkos::Impl::operator_bounds_error_on_device<MapType>(
-          map, Kokkos::Impl::has_printable_label_typedef<MapType>());
-    } else {
-      Kokkos::abort("OffsetView bounds error");
-    }
-#endif
+    KOKKOS_IF_ON_HOST(
+        (enum {LEN = 1024}; char buffer[LEN];
+         const std::string label = tracker.template get_label<MemorySpace>();
+         int n                   = snprintf(buffer, LEN,
+                          "OffsetView bounds error of view labeled %s (",
+                          label.c_str());
+         offsetview_error_operator_bounds<0>(buffer + n, LEN - n, map, begins,
+                                             args...);
+         Kokkos::Impl::throw_runtime_exception(std::string(buffer));))
+
+    KOKKOS_IF_ON_DEVICE((
+        /* Check #1: is there a SharedAllocationRecord?
+          (we won't use it, but if it is not there then there isn't
+           a corresponding SharedAllocationHeader containing a label).
+          This check should cover the case of Views that don't
+          have the Unmanaged trait but were initialized by pointer. */
+        if (tracker.has_record()) {
+          Kokkos::Impl::operator_bounds_error_on_device(map);
+        } else { Kokkos::abort("OffsetView bounds error"); }))
   }
 }
 
-#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-KOKKOS_INLINE_FUNCTION
-void runtime_check_rank_host(const size_t rank_dynamic, const size_t rank,
-                             const index_list_type minIndices,
-                             const std::string& label) {
+inline void runtime_check_rank_host(const size_t rank_dynamic,
+                                    const size_t rank,
+                                    const index_list_type minIndices,
+                                    const std::string& label) {
   bool isBad = false;
   std::string message =
       "Kokkos::Experimental::OffsetView ERROR: for OffsetView labeled '" +
@@ -156,7 +151,6 @@ void runtime_check_rank_host(const size_t rank_dynamic, const size_t rank,
 
   if (isBad) Kokkos::abort(message.c_str());
 }
-#endif
 
 KOKKOS_INLINE_FUNCTION
 void runtime_check_rank_device(const size_t rank_dynamic, const size_t rank,
@@ -379,18 +373,22 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
 
 #if defined(KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK)
 
-#define KOKKOS_IMPL_OFFSETVIEW_OPERATOR_VERIFY(ARG)                    \
-  Kokkos::Impl::verify_space<Kokkos::Impl::ActiveExecutionMemorySpace, \
-                             typename traits::memory_space>::check();  \
-  Kokkos::Experimental::Impl::offsetview_verify_operator_bounds<       \
-      typename traits::memory_space>                                   \
+#define KOKKOS_IMPL_OFFSETVIEW_OPERATOR_VERIFY(ARG)                      \
+  Kokkos::Impl::runtime_check_memory_access_violation<                   \
+      typename traits::memory_space>(                                    \
+      "Kokkos::OffsetView ERROR: attempt to access inaccessible memory " \
+      "space");                                                          \
+  Kokkos::Experimental::Impl::offsetview_verify_operator_bounds<         \
+      typename traits::memory_space>                                     \
       ARG;
 
 #else
 
-#define KOKKOS_IMPL_OFFSETVIEW_OPERATOR_VERIFY(ARG)                    \
-  Kokkos::Impl::verify_space<Kokkos::Impl::ActiveExecutionMemorySpace, \
-                             typename traits::memory_space>::check();
+#define KOKKOS_IMPL_OFFSETVIEW_OPERATOR_VERIFY(ARG)                      \
+  Kokkos::Impl::runtime_check_memory_access_violation<                   \
+      typename traits::memory_space>(                                    \
+      "Kokkos::OffsetView ERROR: attempt to access inaccessible memory " \
+      "space");
 
 #endif
  public:
@@ -864,14 +862,11 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
                   "Incompatible OffsetView copy construction");
     Mapping::assign(m_map, aview.impl_map(), m_track);
 
-#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-    Kokkos::Experimental::Impl::runtime_check_rank_host(
-        traits::rank_dynamic, Rank, minIndices, label());
-#else
-    Kokkos::Experimental::Impl::runtime_check_rank_device(traits::rank_dynamic,
-                                                          Rank, minIndices);
+    KOKKOS_IF_ON_HOST((Kokkos::Experimental::Impl::runtime_check_rank_host(
+                           traits::rank_dynamic, Rank, minIndices, label());))
 
-#endif
+    KOKKOS_IF_ON_DEVICE((Kokkos::Experimental::Impl::runtime_check_rank_device(
+                             traits::rank_dynamic, Rank, minIndices);))
 
     for (size_t i = 0; i < minIndices.size(); ++i) {
       m_begins[i] = minIndices.begin()[i];
@@ -886,15 +881,6 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
     static_assert(Mapping::is_assignable,
                   "Incompatible OffsetView copy construction");
     Mapping::assign(m_map, aview.impl_map(), m_track);
-
-    //#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-    //        Kokkos::Experimental::Impl::runtime_check_rank_host(traits::rank_dynamic,
-    //        Rank, minIndices, label());
-    //#else
-    //        Kokkos::Experimental::Impl::runtime_check_rank_device(traits::rank_dynamic,
-    //        Rank, minIndices);
-    //
-    //#endif
   }
 
   // may assign unmanaged from managed.
@@ -942,12 +928,11 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
     return *(a.begin() + pos);
   }
 
-#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
   // Check that begins < ends for all elements
   // B, E can be begins_type and/or index_list_type
   template <typename B, typename E>
-  KOKKOS_INLINE_FUNCTION static subtraction_failure
-  runtime_check_begins_ends_host(const B& begins, const E& ends) {
+  static subtraction_failure runtime_check_begins_ends_host(const B& begins,
+                                                            const E& ends) {
     std::string message;
     if (begins.size() != Rank)
       message +=
@@ -1016,7 +1001,6 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
 
     return subtraction_failure::none;
   }
-#endif  // KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
 
   // Check the begins < ends for all elements
   template <typename B, typename E>
@@ -1048,6 +1032,14 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
     }
 
     return subtraction_failure::none;
+  }
+
+  template <typename B, typename E>
+  KOKKOS_INLINE_FUNCTION static subtraction_failure runtime_check_begins_ends(
+      const B& begins, const E& ends) {
+    KOKKOS_IF_ON_HOST((return runtime_check_begins_ends_host(begins, ends);))
+    KOKKOS_IF_ON_DEVICE(
+        (return runtime_check_begins_ends_device(begins, ends);))
   }
 
   // Constructor around unmanaged data after checking begins < ends for all
@@ -1082,54 +1074,26 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
   KOKKOS_INLINE_FUNCTION
   OffsetView(const pointer_type& p, const begins_type& begins_,
              const begins_type& ends_)
-#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
       : OffsetView(p, begins_, ends_,
-                   runtime_check_begins_ends_host(begins_, ends_))
-#else
-      : OffsetView(p, begins_, ends_,
-                   runtime_check_begins_ends_device(begins_, ends_))
-#endif
-  {
-  }
+                   runtime_check_begins_ends(begins_, ends_)) {}
 
   KOKKOS_INLINE_FUNCTION
   OffsetView(const pointer_type& p, const begins_type& begins_,
              index_list_type ends_)
-#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
       : OffsetView(p, begins_, ends_,
-                   runtime_check_begins_ends_host(begins_, ends_))
-#else
-      : OffsetView(p, begins_, ends_,
-                   runtime_check_begins_ends_device(begins_, ends_))
-#endif
-  {
-  }
+                   runtime_check_begins_ends(begins_, ends_)) {}
 
   KOKKOS_INLINE_FUNCTION
   OffsetView(const pointer_type& p, index_list_type begins_,
              const begins_type& ends_)
-#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
       : OffsetView(p, begins_, ends_,
-                   runtime_check_begins_ends_host(begins_, ends_))
-#else
-      : OffsetView(p, begins_, ends_,
-                   runtime_check_begins_ends_device(begins_, ends_))
-#endif
-  {
-  }
+                   runtime_check_begins_ends(begins_, ends_)) {}
 
   KOKKOS_INLINE_FUNCTION
   OffsetView(const pointer_type& p, index_list_type begins_,
              index_list_type ends_)
-#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
       : OffsetView(p, begins_, ends_,
-                   runtime_check_begins_ends_host(begins_, ends_))
-#else
-      : OffsetView(p, begins_, ends_,
-                   runtime_check_begins_ends_device(begins_, ends_))
-#endif
-  {
-  }
+                   runtime_check_begins_ends(begins_, ends_)) {}
 
   //----------------------------------------
   // Allocation tracking properties
@@ -1244,7 +1208,8 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
     // to avoid incomplete type errors from usng Kokkos::Cuda directly.
     if (std::is_same<Kokkos::CudaUVMSpace,
                      typename traits::device_type::memory_space>::value) {
-      typename traits::device_type::memory_space::execution_space().fence();
+      typename traits::device_type::memory_space::execution_space().fence(
+          "Kokkos::OffsetView::OffsetView(): fence before UVM allocation");
     }
 #endif
     //------------------------------------------------------------
@@ -1256,7 +1221,8 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
 #if defined(KOKKOS_ENABLE_CUDA)
     if (std::is_same<Kokkos::CudaUVMSpace,
                      typename traits::device_type::memory_space>::value) {
-      typename traits::device_type::memory_space::execution_space().fence();
+      typename traits::device_type::memory_space::execution_space().fence(
+          "Kokkos::OffsetView::OffsetView(): fence after UVM allocation");
     }
 #endif
     //------------------------------------------------------------
@@ -1264,14 +1230,11 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
     // Setup and initialization complete, start tracking
     m_track.assign_allocated_record_to_uninitialized(record);
 
-#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-    Kokkos::Experimental::Impl::runtime_check_rank_host(
-        traits::rank_dynamic, Rank, minIndices, label());
-#else
-    Kokkos::Experimental::Impl::runtime_check_rank_device(traits::rank_dynamic,
-                                                          Rank, minIndices);
+    KOKKOS_IF_ON_HOST((Kokkos::Experimental::Impl::runtime_check_rank_host(
+                           traits::rank_dynamic, Rank, minIndices, label());))
 
-#endif
+    KOKKOS_IF_ON_DEVICE((Kokkos::Experimental::Impl::runtime_check_rank_device(
+                             traits::rank_dynamic, Rank, minIndices);))
   }
 };
 
@@ -1886,12 +1849,12 @@ struct MirrorOffsetViewType {
   // The array_layout
   using array_layout = typename src_view_type::array_layout;
   // The data type (we probably want it non-const since otherwise we can't even
-  // deep_copy to it.
+  // deep_copy to it.)
   using data_type = typename src_view_type::non_const_data_type;
   // The destination view type if it is not the same memory space
   using dest_view_type =
       Kokkos::Experimental::OffsetView<data_type, array_layout, Space>;
-  // If it is the same memory_space return the existsing view_type
+  // If it is the same memory_space return the existing view_type
   // This will also keep the unmanaged trait if necessary
   using view_type = typename std::conditional<is_same_memspace, src_view_type,
                                               dest_view_type>::type;
@@ -1911,7 +1874,7 @@ struct MirrorOffsetType {
   // The array_layout
   using array_layout = typename src_view_type::array_layout;
   // The data type (we probably want it non-const since otherwise we can't even
-  // deep_copy to it.
+  // deep_copy to it.)
   using data_type = typename src_view_type::non_const_data_type;
   // The destination view type if it is not the same memory space
   using view_type =

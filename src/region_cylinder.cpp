@@ -40,7 +40,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
   if (openflag && (open_faces[3] || open_faces[4] || open_faces[5]))
     error->all(FLERR,"Invalid region cylinder open setting");
 
-  if (strcmp(arg[2],"x") && strcmp(arg[2],"y") && strcmp(arg[2],"z"))
+  if (strcmp(arg[2],"x") != 0 && strcmp(arg[2],"y") && strcmp(arg[2],"z") != 0)
     error->all(FLERR,"Illegal region cylinder command");
   axis = arg[2][0];
 
@@ -117,7 +117,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
 
   if (varshape) {
     variable_check();
-    shape_update();
+    RegCylinder::shape_update();
   }
 
   if (strcmp(arg[6],"INF") == 0 || strcmp(arg[6],"EDGE") == 0) {

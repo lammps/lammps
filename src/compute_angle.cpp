@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -25,10 +24,9 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeAngle::ComputeAngle(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  emine(nullptr)
+    Compute(lmp, narg, arg), emine(nullptr)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute angle command");
+  if (narg != 3) error->all(FLERR, "Illegal compute angle command");
 
   vector_flag = 1;
   extvector = 1;
@@ -37,9 +35,8 @@ ComputeAngle::ComputeAngle(LAMMPS *lmp, int narg, char **arg) :
 
   // check if bond style hybrid exists
 
-  angle = (AngleHybrid *) force->angle_match("hybrid");
-  if (!angle)
-    error->all(FLERR,"Angle style for compute angle command is not hybrid");
+  angle = dynamic_cast<AngleHybrid *>(force->angle_match("hybrid"));
+  if (!angle) error->all(FLERR, "Angle style for compute angle command is not hybrid");
   size_vector = nsub = angle->nstyles;
 
   emine = new double[nsub];
@@ -50,8 +47,8 @@ ComputeAngle::ComputeAngle(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeAngle::~ComputeAngle()
 {
-  delete [] emine;
-  delete [] vector;
+  delete[] emine;
+  delete[] vector;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -60,11 +57,10 @@ void ComputeAngle::init()
 {
   // recheck angle style in case it has been changed
 
-  angle = (AngleHybrid *) force->angle_match("hybrid");
-  if (!angle)
-    error->all(FLERR,"Angle style for compute angle command is not hybrid");
+  angle = dynamic_cast<AngleHybrid *>(force->angle_match("hybrid"));
+  if (!angle) error->all(FLERR, "Angle style for compute angle command is not hybrid");
   if (angle->nstyles != nsub)
-    error->all(FLERR,"Angle style for compute angle command has changed");
+    error->all(FLERR, "Angle style for compute angle command has changed");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -73,10 +69,9 @@ void ComputeAngle::compute_vector()
 {
   invoked_vector = update->ntimestep;
   if (update->eflag_global != invoked_vector)
-    error->all(FLERR,"Energy was not tallied on needed timestep");
+    error->all(FLERR, "Energy was not tallied on needed timestep");
 
-  for (int i = 0; i < nsub; i++)
-    emine[i] = angle->styles[i]->energy;
+  for (int i = 0; i < nsub; i++) emine[i] = angle->styles[i]->energy;
 
-  MPI_Allreduce(emine,vector,nsub,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(emine, vector, nsub, MPI_DOUBLE, MPI_SUM, world);
 }

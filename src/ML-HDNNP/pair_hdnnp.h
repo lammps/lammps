@@ -30,7 +30,7 @@ PairStyle(hdnnp,PairHDNNP);
 #include "pair.h"
 
 namespace nnp {
-    class InterfaceLammps;
+class InterfaceLammps;
 }
 
 namespace LAMMPS_NS {
@@ -38,17 +38,15 @@ namespace LAMMPS_NS {
 class PairHDNNP : public Pair {
 
  public:
-
   PairHDNNP(class LAMMPS *);
-  virtual ~PairHDNNP();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  virtual void coeff(int, char **);
-  virtual void init_style();
-  virtual double init_one(int, int);
+  ~PairHDNNP() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
  protected:
-
   virtual void allocate();
   void transferNeighborList();
   void handleExtrapolationWarnings();
@@ -67,7 +65,7 @@ class PairHDNNP : public Pair {
   nnp::InterfaceLammps *interface;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -20,6 +19,7 @@ PairStyle(lj/cut/coul/debye/kk/host,PairLJCutCoulDebyeKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_LJ_CUT_COUL_DEBYE_KOKKOS_H
 #define LMP_PAIR_LJ_CUT_COUL_DEBYE_KOKKOS_H
 
@@ -37,13 +37,13 @@ class PairLJCutCoulDebyeKokkos : public PairLJCutCoulDebye {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairLJCutCoulDebyeKokkos(class LAMMPS *);
-  ~PairLJCutCoulDebyeKokkos();
+  ~PairLJCutCoulDebyeKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
  protected:
   template<bool STACKPARAMS, class Specialisation>
@@ -103,7 +103,7 @@ class PairLJCutCoulDebyeKokkos : public PairLJCutCoulDebye {
   double special_lj[4];
   double qqrd2e;
 
-  void allocate();
+  void allocate() override;
   friend struct PairComputeFunctor<PairLJCutCoulDebyeKokkos,FULL,true>;
   friend struct PairComputeFunctor<PairLJCutCoulDebyeKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairLJCutCoulDebyeKokkos,HALFTHREAD,true>;
@@ -124,20 +124,3 @@ class PairLJCutCoulDebyeKokkos : public PairLJCutCoulDebye {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot use Kokkos pair style with rRESPA inner/middle
-
-Self-explanatory.
-
-E: Cannot use chosen neighbor list style with lj/cut/coul/debye/kk
-
-Self-explanatory.
-
-*/

@@ -15,7 +15,10 @@
 #include "npair_half_size_multi_newton_tri.h"
 
 #include "atom.h"
+#include "atom_vec.h"
+#include "domain.h"
 #include "error.h"
+#include "molecule.h"
 #include "my_page.h"
 #include "neighbor.h"
 #include "neigh_list.h"
@@ -36,7 +39,9 @@ NPairHalfSizeMultiNewtonTri::NPairHalfSizeMultiNewtonTri(LAMMPS *lmp) : NPair(lm
 
 void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,icollection,jcollection,ibin,jbin,ns,js;
+  int i,j,jh,k,n,itype,jtype,icollection,jcollection,ibin,jbin,ns,js;
+  int which,imol,iatom,moltemplate;
+  tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutdistsq;
   int *neighptr,*s;
@@ -46,9 +51,18 @@ void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
   double *radius = atom->radius;
   int *type = atom->type;
   int *mask = atom->mask;
+  tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
+  tagint **special = atom->special;
+  int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
   if (includegroup) nlocal = atom->nfirst;
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
+  if (molecular == Atom::TEMPLATE) moltemplate = 1;
+  else moltemplate = 0;
 
   int history = list->history;
   int *ilist = list->ilist;
@@ -56,7 +70,7 @@ void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
   int **firstneigh = list->firstneigh;
   MyPage<int> *ipage = list->ipage;
 
-  int mask_history = 3 << SBBITS;
+  int mask_history = 1 << HISTBITS;
 
   int inum = 0;
   ipage->reset();
@@ -70,6 +84,11 @@ void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
     ytmp = x[i][1];
     ztmp = x[i][2];
     radi = radius[i];
+    if (moltemplate) {
+      imol = molindex[i];
+      iatom = molatom[i];
+      tagprev = tag[i] - iatom - 1;
+    }
 
     ibin = atom2bin[i];
 
@@ -78,7 +97,7 @@ void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
 
       // if same collection use own bin
       if (icollection == jcollection) jbin = ibin;
-	  else jbin = coord2bin(x[i], jcollection);
+          else jbin = coord2bin(x[i], jcollection);
 
       // loop over all atoms in bins in stencil
       // stencil is empty if i larger than j
@@ -89,12 +108,12 @@ void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
       //         (equal zyx and j <= i)
       // latter excludes self-self interaction but allows superposed atoms
 
-	  s = stencil_multi[icollection][jcollection];
-	  ns = nstencil_multi[icollection][jcollection];
+          s = stencil_multi[icollection][jcollection];
+          ns = nstencil_multi[icollection][jcollection];
 
-	  for (k = 0; k < ns; k++) {
-	    js = binhead_multi[jcollection][jbin + s[k]];
-	    for (j = js; j >= 0; j = bins[j]) {
+          for (k = 0; k < ns; k++) {
+            js = binhead_multi[jcollection][jbin + s[k]];
+            for (j = js; j >= 0; j = bins[j]) {
 
           // if same size (same collection), use half stencil
           if (cutcollectionsq[icollection][icollection] == cutcollectionsq[jcollection][jcollection]){
@@ -111,21 +130,34 @@ void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
           jtype = type[j];
           if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
-	      delx = xtmp - x[j][0];
-	      dely = ytmp - x[j][1];
-	      delz = ztmp - x[j][2];
-	      rsq = delx*delx + dely*dely + delz*delz;
-	      radsum = radi + radius[j];
-	      cutdistsq = (radsum+skin) * (radsum+skin);
+              delx = xtmp - x[j][0];
+              dely = ytmp - x[j][1];
+              delz = ztmp - x[j][2];
+              rsq = delx*delx + dely*dely + delz*delz;
+              radsum = radi + radius[j];
+              cutdistsq = (radsum+skin) * (radsum+skin);
 
-	      if (rsq <= cutdistsq) {
-	        if (history && rsq < radsum*radsum)
-	  	    neighptr[n++] = j ^ mask_history;
-	        else
-	  	    neighptr[n++] = j;
-	      }
-	    }
-	  }
+              if (rsq <= cutdistsq) {
+                jh = j;
+                if (history && rsq < radsum*radsum)
+                  jh = jh ^ mask_history;
+
+                if (molecular != Atom::ATOMIC) {
+                  if (!moltemplate)
+                    which = find_special(special[i],nspecial[i],tag[j]);
+                  else if (imol >= 0)
+                    which = find_special(onemols[imol]->special[iatom],
+                                         onemols[imol]->nspecial[iatom],
+                                         tag[j]-tagprev);
+                  else which = 0;
+                  if (which == 0) neighptr[n++] = jh;
+                  else if (domain->minimum_image_check(delx,dely,delz))
+                    neighptr[n++] = jh;
+                  else if (which > 0) neighptr[n++] = jh ^ (which << SBBITS);
+                } else neighptr[n++] = jh;
+              }
+            }
+          }
     }
 
     ilist[inum++] = i;

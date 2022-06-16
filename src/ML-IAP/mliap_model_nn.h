@@ -16,26 +16,28 @@
 
 #include "mliap_model.h"
 
+#include <cmath>
+
 namespace LAMMPS_NS {
 
 class MLIAPModelNN : public MLIAPModel {
  public:
   MLIAPModelNN(LAMMPS *, char * = nullptr);
-  ~MLIAPModelNN();
-  virtual int get_nparams();
-  virtual int get_gamma_nnz(class MLIAPData *);
-  virtual void compute_gradients(class MLIAPData *);
-  virtual void compute_gradgrads(class MLIAPData *);
-  virtual void compute_force_gradients(class MLIAPData *);
-  virtual double memory_usage();
+  ~MLIAPModelNN() override;
+  int get_nparams() override;
+  int get_gamma_nnz(class MLIAPData *) override;
+  void compute_gradients(class MLIAPData *) override;
+  void compute_gradgrads(class MLIAPData *) override;
+  void compute_force_gradients(class MLIAPData *) override;
+  double memory_usage() override;
 
   int nlayers;    // number of layers per element
 
  protected:
-  int *activation;       // activation functions
-  int *nnodes;           // number of nodes per layer
-  double ***scale;       // element scale values
-  virtual void read_coeffs(char *);
+  int *activation;    // activation functions
+  int *nnodes;        // number of nodes per layer
+  double ***scale;    // element scale values
+  void read_coeffs(char *) override;
 
   inline double sigm(double x, double &deriv)
   {

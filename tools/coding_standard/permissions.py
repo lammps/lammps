@@ -2,8 +2,16 @@
 # Utility for detecting and fixing file permission issues in LAMMPS
 #
 # Written by Richard Berger (Temple University)
-import os
+from __future__ import print_function
 import sys
+
+if sys.version_info.major < 3:
+    sys.exit('This script must be run with Python 3.5 or later')
+
+if sys.version_info.minor < 5:
+    sys.exit('This script must be run with Python 3.5 or later')
+
+import os
 import glob
 import yaml
 import argparse
@@ -82,6 +90,7 @@ def main():
     parser.add_argument('-v', '--verbose', action='store_true', help='verbose output')
     parser.add_argument('DIRECTORY', help='directory that should be checked')
     args = parser.parse_args()
+    lammpsdir = os.path.abspath(os.path.expanduser(args.DIRECTORY))
 
     if args.config:
         with open(args.config, 'r') as cfile:
@@ -89,7 +98,7 @@ def main():
     else:
         config = yaml.load(DEFAULT_CONFIG, Loader=yaml.FullLoader)
 
-    if not check_folder(args.DIRECTORY, config, args.fix, args.verbose):
+    if not check_folder(lammpsdir, config, args.fix, args.verbose):
         sys.exit(1)
 
 if __name__ == "__main__":

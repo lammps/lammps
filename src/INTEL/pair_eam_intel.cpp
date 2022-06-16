@@ -44,7 +44,7 @@ using namespace LAMMPS_NS;
 PairEAMIntel::PairEAMIntel(LAMMPS *lmp) : PairEAM(lmp)
 {
   suffix_flag |= Suffix::INTEL;
-  fp_float = 0;
+  fp_float = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -197,7 +197,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
 
   const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
-  const int ** _noalias const firstneigh = (const int **)list->firstneigh;
+  const int ** _noalias const firstneigh = (const int **)list->firstneigh;  // NOLINT
   const FC_PACKED1_T * _noalias const rhor_spline_f = fc.rhor_spline_f;
   const FC_PACKED1_T * _noalias const rhor_spline_e = fc.rhor_spline_e;
   const FC_PACKED2_T * _noalias const z2r_spline_t = fc.z2r_spline_t;
@@ -306,7 +306,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
         const flt_t ytmp = x[i].y;
         const flt_t ztmp = x[i].z;
 
-        acc_t rhoi = (acc_t)0.0;
+        auto  rhoi = (acc_t)0.0;
         int ej = 0;
         #if defined(LMP_SIMD_COMPILER)
         #pragma vector aligned
@@ -416,7 +416,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
 
       if (NEWTON_PAIR) {
         if (tid == 0)
-          comm->reverse_comm_pair(this);
+          comm->reverse_comm(this);
       }
       #if defined(_OPENMP)
       #pragma omp barrier
@@ -474,7 +474,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
       #endif
 
       if (tid == 0)
-        comm->forward_comm_pair(this);
+        comm->forward_comm(this);
 
       #if defined(_OPENMP)
       #pragma omp barrier
@@ -656,7 +656,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
   if (EFLAG || vflag)
     fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
   else
-    fix->add_result_array(f_start, 0, offload);
+    fix->add_result_array(f_start, nullptr, offload);
 }
 
 /* ----------------------------------------------------------------------
@@ -666,19 +666,11 @@ void PairEAMIntel::eval(const int offload, const int vflag,
 void PairEAMIntel::init_style()
 {
   PairEAM::init_style();
-  auto request = neighbor->find_request(this);
+  if (force->newton_pair == 0)
+    neighbor->find_request(this)->enable_full();
 
-  if (force->newton_pair == 0) {
-    request->half = 0;
-    request->full = 1;
-  }
-  request->intel = 1;
-
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   fix->pair_init_check();
   #ifdef _LMP_INTEL_OFFLOAD
@@ -781,7 +773,8 @@ void PairEAMIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                  const int nr, const int nrho,
                                                  Memory *memory,
                                                  const int cop) {
-  if (ntypes != _ntypes || nr + 1 > _nr || nrho + 1 > _nrho) {
+  if (memory != nullptr) _memory = memory;
+  if ((ntypes != _ntypes) || (nr + 1 > _nr) || (nrho + 1 > _nrho)) {
     if (_ntypes > 0) {
       _memory->destroy(rhor_spline_f);
       _memory->destroy(rhor_spline_e);
@@ -794,18 +787,17 @@ void PairEAMIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       _cop = cop;
       _nr = nr + 1;
       IP_PRE_edge_align(_nr, sizeof(flt_t));
-      memory->create(rhor_spline_f,ntypes*ntypes*_nr,"fc.rhor_spline_f");
-      memory->create(rhor_spline_e,ntypes*ntypes*_nr,"fc.rhor_spline_e");
-      memory->create(z2r_spline_t,ntypes*ntypes*_nr,"fc.z2r_spline_t");
+      _memory->create(rhor_spline_f,ntypes*ntypes*_nr,"fc.rhor_spline_f");
+      _memory->create(rhor_spline_e,ntypes*ntypes*_nr,"fc.rhor_spline_e");
+      _memory->create(z2r_spline_t,ntypes*ntypes*_nr,"fc.z2r_spline_t");
       _nrho = nrho + 1;
       IP_PRE_edge_align(_nrho, sizeof(flt_t));
-      memory->create(frho_spline_f,ntypes*_nrho,"fc.frho_spline_f");
-      memory->create(frho_spline_e,ntypes*_nrho,"fc.frho_spline_e");
-      memory->create(scale_f,ntypes,ntypes,"fc.scale_f");
+      _memory->create(frho_spline_f,ntypes*_nrho,"fc.frho_spline_f");
+      _memory->create(frho_spline_e,ntypes*_nrho,"fc.frho_spline_e");
+      _memory->create(scale_f,ntypes,ntypes,"fc.scale_f");
     }
   }
   _ntypes = ntypes;
-  _memory = memory;
 }
 
 /* ---------------------------------------------------------------------- */

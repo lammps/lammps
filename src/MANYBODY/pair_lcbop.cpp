@@ -24,7 +24,6 @@
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "my_page.h"
 #include "memory.h"
 #include "error.h"
@@ -153,10 +152,7 @@ void PairLCBOP::init_style()
 
   // need a full neighbor list, including neighbors of ghosts
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->ghost = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
 
   // local SR neighbor list
   // create pages if first time or if neighbor pgsize/oneatom has changed
@@ -930,15 +926,12 @@ void PairLCBOP::read_file(char *filename)
 
   if (comm->me == 0) {
     FILE *fp = utils::open_potential(filename,lmp,nullptr);
-    if (fp == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open LCBOP potential file %s",filename);
-      error->one(FLERR,str);
-    }
+    if (fp == nullptr)
+      error->one(FLERR,"Cannot open LCBOP potential file {}: {}",filename,utils::getsyserror());
 
     // skip initial comment lines
 
-    while (1) {
+    while (true) {
       utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
       if (s[0] != '#') break;
     }
@@ -974,7 +967,7 @@ void PairLCBOP::read_file(char *filename)
     utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&eps);
     utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&delta);
 
-    while (1) {
+    while (true) {
       utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
       if (s[0] != '#') break;
     }
@@ -991,7 +984,7 @@ void PairLCBOP::read_file(char *filename)
             &F_conj_data[i][2][k][l],
             &F_conj_data[i][3][k][l]);
         }
-        while (1) { utils::sfgets(FLERR,s,MAXLINE,fp,filename,error); if (s[0] != '#') break; }
+        while (true) { utils::sfgets(FLERR,s,MAXLINE,fp,filename,error); if (s[0] != '#') break; }
       }
     }
 

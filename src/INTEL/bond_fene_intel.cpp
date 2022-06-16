@@ -28,8 +28,10 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "suffix.h"
+#include "update.h"
 
 #include <cmath>
+#include <cstring>
 
 #include "omp_compat.h"
 
@@ -43,12 +45,6 @@ typedef struct { int a,b,t;  } int3_t;
 BondFENEIntel::BondFENEIntel(LAMMPS *lmp) : BondFENE(lmp)
 {
   suffix_flag |= Suffix::INTEL;
-}
-
-/* ---------------------------------------------------------------------- */
-
-BondFENEIntel::~BondFENEIntel()
-{
 }
 
 /* ---------------------------------------------------------------------- */
@@ -275,11 +271,8 @@ void BondFENEIntel::init_style()
 {
   BondFENE::init_style();
 
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   #ifdef _LMP_INTEL_OFFLOAD
   _use_base = 0;
@@ -321,13 +314,12 @@ void BondFENEIntel::pack_force_const(ForceConst<flt_t> &fc,
 template <class flt_t>
 void BondFENEIntel::ForceConst<flt_t>::set_ntypes(const int nbondtypes,
                                                       Memory *memory) {
+  if (memory != nullptr) _memory = memory;
   if (nbondtypes != _nbondtypes) {
-    if (_nbondtypes > 0)
-      _memory->destroy(fc);
+    _memory->destroy(fc);
 
     if (nbondtypes > 0)
       _memory->create(fc,nbondtypes,"bondfeneintel.fc");
   }
   _nbondtypes = nbondtypes;
-  _memory = memory;
 }

@@ -22,7 +22,7 @@ ElectronHeatFlux::ElectronHeatFlux(ElectronHeatCapacity * electronHeatCapacity)
 }
 
 ElectronHeatFluxLinear::ElectronHeatFluxLinear(fstream &fileId, map<string,double> & parameters,
-                                               ElectronHeatCapacity * electronHeatCapacity) 
+                                               ElectronHeatCapacity * electronHeatCapacity)
   : ElectronHeatFlux(electronHeatCapacity),
   conductivity_(0)
 {
@@ -43,7 +43,7 @@ ElectronHeatFluxLinear::ElectronHeatFluxLinear(fstream &fileId, map<string,doubl
 }
 
 ElectronHeatFluxPowerLaw::ElectronHeatFluxPowerLaw(fstream &fileId, map<string,double> & parameters,
-                                                   ElectronHeatCapacity * electronHeatCapacity) 
+                                                   ElectronHeatCapacity * electronHeatCapacity)
   : ElectronHeatFlux(electronHeatCapacity),
   conductivity_(0)
 {
@@ -66,7 +66,7 @@ ElectronHeatFluxPowerLaw::ElectronHeatFluxPowerLaw(fstream &fileId, map<string,d
 ElectronHeatFluxThermopower::ElectronHeatFluxThermopower(
   fstream &fileId, map<string,double> & parameters,
   /*const*/ ElectronFlux * electronFlux,
-  ElectronHeatCapacity * electronHeatCapacity) 
+  ElectronHeatCapacity * electronHeatCapacity)
   : ElectronHeatFlux(electronHeatCapacity),
     conductivity_(0),
     seebeckCoef_(0),
@@ -86,7 +86,7 @@ ElectronHeatFluxThermopower::ElectronHeatFluxThermopower(
     else {
       throw ATC_Error( "unrecognized material function "+line[0]);
     }
-    
+
     seebeckCoef_ = parameters["seebeck_coefficient"];
   }
 }

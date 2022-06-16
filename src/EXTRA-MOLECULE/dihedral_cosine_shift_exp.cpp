@@ -18,16 +18,15 @@
 
 #include "dihedral_cosine_shift_exp.h"
 
-#include <cmath>
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "force.h"
-#include "update.h"
-#include "memory.h"
-#include "math_const.h"
 #include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "memory.h"
+#include "neighbor.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

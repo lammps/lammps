@@ -25,8 +25,8 @@ PairStyle(lj/cut/intel,PairLJCutIntel);
 #ifndef LMP_PAIR_LJ_CUT_INTEL_H
 #define LMP_PAIR_LJ_CUT_INTEL_H
 
-#include "pair_lj_cut.h"
 #include "fix_intel.h"
+#include "pair_lj_cut.h"
 
 namespace LAMMPS_NS {
 
@@ -35,8 +35,8 @@ class PairLJCutIntel : public PairLJCut {
  public:
   PairLJCutIntel(class LAMMPS *);
 
-  virtual void compute(int, int);
-  void init_style();
+  void compute(int, int) override;
+  void init_style() override;
 
  private:
   FixIntel *fix;
@@ -44,30 +44,31 @@ class PairLJCutIntel : public PairLJCut {
 
   template <class flt_t> class ForceConst;
   template <class flt_t, class acc_t>
-  void compute(int eflag, int vflag, IntelBuffers<flt_t,acc_t> *buffers,
+  void compute(int eflag, int vflag, IntelBuffers<flt_t, acc_t> *buffers,
                const ForceConst<flt_t> &fc);
   template <int ONETYPE, int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
-  void eval(const int offload, const int vflag,
-            IntelBuffers<flt_t,acc_t> * buffers,
+  void eval(const int offload, const int vflag, IntelBuffers<flt_t, acc_t> *buffers,
             const ForceConst<flt_t> &fc, const int astart, const int aend);
 
   template <class flt_t, class acc_t>
-  void pack_force_const(ForceConst<flt_t> &fc,
-                        IntelBuffers<flt_t, acc_t> *buffers);
+  void pack_force_const(ForceConst<flt_t> &fc, IntelBuffers<flt_t, acc_t> *buffers);
 
   // ----------------------------------------------------------------------
 
-  template <class flt_t>
-  class ForceConst {
+  template <class flt_t> class ForceConst {
    public:
-    typedef struct { flt_t cutsq, lj1, lj2, offset; } fc_packed1;
-    typedef struct { flt_t lj3, lj4; } fc_packed2;
+    typedef struct {
+      flt_t cutsq, lj1, lj2, offset;
+    } fc_packed1;
+    typedef struct {
+      flt_t lj3, lj4;
+    } fc_packed2;
 
-    _alignvar(flt_t special_lj[4],64);
+    _alignvar(flt_t special_lj[4], 64);
     fc_packed1 **ljc12o;
     fc_packed2 **lj34;
 
-    ForceConst() : _ntypes(0)  {}
+    ForceConst() : _ntypes(0) {}
     ~ForceConst() { set_ntypes(0, nullptr, _cop); }
 
     void set_ntypes(const int ntypes, Memory *memory, const int cop);
@@ -80,15 +81,7 @@ class PairLJCutIntel : public PairLJCut {
   ForceConst<double> force_const_double;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: The 'package intel' command is required for /intel styles
-
-Self-explanatory.
-
-*/

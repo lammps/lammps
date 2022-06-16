@@ -25,7 +25,7 @@ Syntax
        f_ID = global scalar calculated by a fix with ID
        f_ID[I] = Ith component of global vector calculated by a fix with ID, I can include wildcard (see below)
        v_name = global value calculated by an equal-style variable with name
-       v_name[I] = Ith component of a vector-style variable with name
+       v_name[I] = Ith component of a vector-style variable with name, I can include wildcard (see below)
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *type* or *ave* or *start* or *prefactor* or *file* or *overwrite* or *title1* or *title2* or *title3*
@@ -105,20 +105,21 @@ individual fixes for info on which ones produce such values.
 ones that can be used with this fix.  Variables of style *atom* cannot
 be used, since they produce per-atom values.
 
-Note that for values from a compute or fix, the bracketed index I can
-be specified using a wildcard asterisk with the index to effectively
-specify multiple values.  This takes the form "\*" or "\*n" or "n\*" or
-"m\*n".  If N = the size of the vector (for *mode* = scalar) or the
-number of columns in the array (for *mode* = vector), then an asterisk
-with no numeric values means all indices from 1 to N.  A leading
-asterisk means all indices from 1 to n (inclusive).  A trailing
-asterisk means all indices from n to N (inclusive).  A middle asterisk
-means all indices from m to n (inclusive).
+----------
+
+For input values from a compute or fix or variable , the bracketed
+index I can be specified using a wildcard asterisk with the index to
+effectively specify multiple values.  This takes the form "\*" or
+"\*n" or "n\*" or "m\*n".  If N = the size of the vector, then an
+asterisk with no numeric values means all indices from 1 to N.  A
+leading asterisk means all indices from 1 to n (inclusive).  A
+trailing asterisk means all indices from n to N (inclusive).  A middle
+asterisk means all indices from m to n (inclusive).
 
 Using a wildcard is the same as if the individual elements of the
 vector had been listed one by one.  E.g. these 2 fix ave/correlate
-commands are equivalent, since the :doc:`compute pressure <compute_pressure>` command creates a global vector with 6
-values.
+commands are equivalent, since the :doc:`compute pressure
+<compute_pressure>` command creates a global vector with 6 values.
 
 .. code-block:: LAMMPS
 
@@ -127,6 +128,14 @@ values.
    fix 1 all ave/correlate 1 50 10000 &
              c_myPress[1] c_myPress[2] c_myPress[3] &
              c_myPress[4] c_myPress[5] c_myPress[6]
+
+.. note::
+
+   For a vector-style variable, only the wildcard forms "\*n" or
+   "m\*n" are allowed.  You must specify the upper bound, because
+   vector-style variable lengths are not determined until the variable
+   is evaluated.  If n is specified larger than the vector length
+   turns out to be, zeroes are output for missing vector values.
 
 ----------
 

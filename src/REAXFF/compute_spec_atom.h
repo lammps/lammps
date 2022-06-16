@@ -28,10 +28,10 @@ namespace LAMMPS_NS {
 class ComputeSpecAtom : public Compute {
  public:
   ComputeSpecAtom(class LAMMPS *, int, char **);
-  ~ComputeSpecAtom();
-  void init() {}
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeSpecAtom() override;
+  void init() override {}
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nvalues;
@@ -78,25 +78,7 @@ class ComputeSpecAtom : public Compute {
   class PairReaxFF *reaxff;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute reaxc/atom for atom reaxc that isn't allocated
-
-Self-explanatory.
-
-E: Invalid keyword in compute reaxc/atom command
-
-Self-explanatory.
-
-*/

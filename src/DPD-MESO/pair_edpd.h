@@ -27,17 +27,17 @@ namespace LAMMPS_NS {
 class PairEDPD : public Pair {
  public:
   PairEDPD(class LAMMPS *);
-  virtual ~PairEDPD();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  virtual void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  virtual void write_restart(FILE *);
-  virtual void read_restart(FILE *);
-  virtual void write_restart_settings(FILE *);
-  virtual void read_restart_settings(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
+  ~PairEDPD() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  double single(int, int, int, int, double, double, double, double &) override;
 
  protected:
   double cut_global;
@@ -60,26 +60,3 @@ class PairEDPD : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-W: Pair tdpd needs newton pair on for momentum conservation
-
-Self-explanatory.
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-*/

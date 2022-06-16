@@ -184,7 +184,7 @@ void AngleDipole::coeff(int narg, char **arg)
 void AngleDipole::init_style()
 {
   if (!atom->mu_flag || !atom->torque_flag)
-    error->all(FLERR,"Angle style dipole requires atom attributes mu and torque");
+    error->all(FLERR, "Angle style dipole requires atom attributes mu and torque");
 }
 
 /* ----------------------------------------------------------------------

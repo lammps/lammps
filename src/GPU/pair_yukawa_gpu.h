@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class PairYukawaGPU : public PairYukawa {
  public:
   PairYukawaGPU(LAMMPS *lmp);
-  ~PairYukawaGPU();
+  ~PairYukawaGPU() override;
   void cpu_compute(int, int, int, int, int *, int *, int **);
-  void compute(int, int);
-  void init_style();
-  double memory_usage();
+  void compute(int, int) override;
+  void init_style() override;
+  double memory_usage() override;
 
   enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
@@ -43,16 +43,3 @@ class PairYukawaGPU : public PairYukawa {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Insufficient memory on accelerator
-
-There is insufficient memory on one of the devices specified for the gpu
-package
-
-E: Cannot use newton pair with yukawa/gpu pair style
-
-Self-explanatory.
-
-*/

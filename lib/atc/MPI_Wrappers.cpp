@@ -221,14 +221,14 @@ namespace MPI_Wrappers {
 void sparse_allsum(MPI_Comm comm,SparseMatrix<double> &toShare) const
 {
   toShare.compress();
-  
+
   // initialize MPI information
   int nProcs = size(comm);
   int myRank = rank(comm);;
 
   int error;
 
-  // get numbers of rows, columns, rowsCRS, and 
+  // get numbers of rows, columns, rowsCRS, and
   // sizes (number of nonzero elements in matrix)
   SparseMatInfo *recInfo = new SparseMatInfo[nProcs];
   SparseMatInfo myInfo;
@@ -283,7 +283,7 @@ void sparse_allsum(MPI_Comm comm,SparseMatrix<double> &toShare) const
                          rec_ja, sizeCounts, sizeOffsets, MPI_INT, lammps_->world);
   if (error != MPI_SUCCESS)
     throw ATC_Error("error in sparse_allsum_colarray "+to_string(error));
-     
+
   // get the array of values
   double *rec_vals = new double[totalSize];
   error = MPI_Allgatherv(toShare.ptr(), sizeCounts[myRank], MPI_DOUBLE,
@@ -291,8 +291,8 @@ void sparse_allsum(MPI_Comm comm,SparseMatrix<double> &toShare) const
   if (error != MPI_SUCCESS)
     throw ATC_Error("error in sparse_allsum_valarray "+to_string(error));
 
-  INDEX *rec_ia_proc; 
-  INDEX *rec_ja_proc; 
+  INDEX *rec_ia_proc;
+  INDEX *rec_ja_proc;
   double *rec_vals_proc;
   for (int i = 0; i < nProcs; i++) {
     if (myRank != i) {
@@ -300,24 +300,24 @@ void sparse_allsum(MPI_Comm comm,SparseMatrix<double> &toShare) const
       rec_ia_proc = new INDEX[rowCounts[i]];
       rec_ja_proc = new INDEX[sizeCounts[i]];
       rec_vals_proc = new double[sizeCounts[i]];
-       
+
       // copy the data passed with MPI into the new spots
-      copy(rec_ia + rowOffsets[i], 
+      copy(rec_ia + rowOffsets[i],
            rec_ia + rowOffsets[i] + rowCounts[i],
            rec_ia_proc);
-      copy(rec_ja + sizeOffsets[i], 
+      copy(rec_ja + sizeOffsets[i],
            rec_ja + sizeOffsets[i] + sizeCounts[i],
            rec_ja_proc);
-      copy(rec_vals + sizeOffsets[i], 
+      copy(rec_vals + sizeOffsets[i],
            rec_vals + sizeOffsets[i] + sizeCounts[i],
            rec_vals_proc);
 
       // Does anyone know why we have to declare tempMat here (as well as set it equal to
-      // something) to avoid segfaults? there are still segfaults, but they happen at a much 
+      // something) to avoid segfaults? there are still segfaults, but they happen at a much
       // later stage of the game now (and for less benchmarks overall).
       SparseMatrix<double> tempMat =
-        SparseMatrix<double>(rec_ia_proc, rec_ja_proc, rec_vals_proc, 
-                             recInfo[i].size, recInfo[i].rows, 
+        SparseMatrix<double>(rec_ia_proc, rec_ja_proc, rec_vals_proc,
+                             recInfo[i].size, recInfo[i].rows,
                              recInfo[i].cols, recInfo[i].rowsCRS);
       toShare += tempMat;
     }
@@ -330,13 +330,13 @@ void sparse_allsum(MPI_Comm comm,SparseMatrix<double> &toShare) const
 }
 #endif
 
- void print_msg(MPI_Comm comm, string msg) 
+ void print_msg(MPI_Comm comm, string msg)
   {
     if (serial(comm)) { cout << " ATC: " << msg << "\n"; }
     else { cout << " ATC: P" << rank(comm) << ", " << msg << "\n"; }
   }
 
-  void print_msg_once(MPI_Comm comm, string msg, bool prefix, bool endline) 
+  void print_msg_once(MPI_Comm comm, string msg, bool prefix, bool endline)
   {
     if (rank_zero(comm)) {
       if (prefix) cout << " ATC: ";

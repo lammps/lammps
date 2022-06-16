@@ -75,7 +75,7 @@ uint32_t fmix32(uint32_t h) {
 
 KOKKOS_INLINE_FUNCTION
 uint32_t MurmurHash3_x86_32(const void* key, int len, uint32_t seed) {
-  const uint8_t* data = (const uint8_t*)key;
+  const uint8_t* data = static_cast<const uint8_t*>(key);
   const int nblocks   = len / 4;
 
   uint32_t h1 = seed;
@@ -106,8 +106,8 @@ uint32_t MurmurHash3_x86_32(const void* key, int len, uint32_t seed) {
   uint32_t k1 = 0;
 
   switch (len & 3) {
-    case 3: k1 ^= tail[2] << 16;
-    case 2: k1 ^= tail[1] << 8;
+    case 3: k1 ^= tail[2] << 16; KOKKOS_IMPL_FALLTHROUGH
+    case 2: k1 ^= tail[1] << 8; KOKKOS_IMPL_FALLTHROUGH
     case 1:
       k1 ^= tail[0];
       k1 *= c1;

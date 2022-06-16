@@ -18,6 +18,7 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
@@ -28,6 +29,9 @@
 
 #include <cmath>
 
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
 using namespace LAMMPS_NS;
 
 #define LMP_MKL_RNG VSL_BRNG_MT19937
@@ -175,12 +179,12 @@ void PairDPDIntel::eval(const int offload, const int vflag,
 
   ATOM_T * _noalias const x = buffers->get_x(offload);
   typedef struct { double x, y, z; } lmp_vt;
-  lmp_vt *v = (lmp_vt *)atom->v[0];
+  auto *v = (lmp_vt *)atom->v[0];
   const flt_t dtinvsqrt = 1.0/sqrt(update->dt);
 
   const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
-  const int ** _noalias const firstneigh = (const int **)list->firstneigh;
+  const int ** _noalias const firstneigh = (const int **)list->firstneigh;  // NOLINT
   const FC_PACKED1_T * _noalias const param = fc.param[0];
   const flt_t * _noalias const special_lj = fc.special_lj;
   int * _noalias const rngi_thread = fc.rngi;
@@ -424,7 +428,7 @@ void PairDPDIntel::eval(const int offload, const int vflag,
   if (EFLAG || vflag)
     fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
   else
-    fix->add_result_array(f_start, 0, offload);
+    fix->add_result_array(f_start, nullptr, offload);
 }
 
 /* ----------------------------------------------------------------------
@@ -480,19 +484,11 @@ void PairDPDIntel::settings(int narg, char **arg) {
 void PairDPDIntel::init_style()
 {
   PairDPD::init_style();
-  auto request = neighbor->find_request(this);
+  if (force->newton_pair == 0)
+    neighbor->find_request(this)->enable_full();
 
-  if (force->newton_pair == 0) {
-    request->half = 0;
-    request->full = 1;
-  }
-  request->intel = 1;
-
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   fix->pair_init_check();
   #ifdef _LMP_INTEL_OFFLOAD
@@ -558,6 +554,7 @@ void PairDPDIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                  const int max_nbors,
                                                  Memory *memory,
                                                  const int cop) {
+  if (memory != nullptr) _memory = memory;
   if (ntypes != _ntypes) {
     if (_ntypes > 0) {
       _memory->destroy(param);
@@ -566,15 +563,14 @@ void PairDPDIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
     }
     if (ntypes > 0) {
       _cop = cop;
-      memory->create(param,ntypes,ntypes,"fc.param");
-      memory->create(rand_buffer_thread, nthreads, max_nbors,
+      _memory->create(param,ntypes,ntypes,"fc.param");
+      _memory->create(rand_buffer_thread, nthreads, max_nbors,
                      "fc.rand_buffer_thread");
-      memory->create(rngi,nthreads,"fc.param");
+      _memory->create(rngi,nthreads,"fc.param");
       for (int i = 0; i < nthreads; i++) rngi[i] = max_nbors;
     }
   }
   _ntypes = ntypes;
-  _memory = memory;
 }
 
 /* ----------------------------------------------------------------------

@@ -30,8 +30,9 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
  */
 
 #include "rann_fingerprint_radialscreened.h"
+#include "pair_rann.h"
 
-
+#include <cmath>
 
 using namespace LAMMPS_NS::RANN;
 
@@ -67,30 +68,30 @@ bool Fingerprint_radialscreened::parse_values(std::string constant,std::vector<s
   int l;
   int nwords=line1.size();
   if (constant.compare("re")==0) {
-    re = strtod(line1[0].c_str(),NULL);
+    re = strtod(line1[0].c_str(),nullptr);
   }
   else if (constant.compare("rc")==0) {
-    rc = strtod(line1[0].c_str(),NULL);
+    rc = strtod(line1[0].c_str(),nullptr);
   }
   else if (constant.compare("alpha")==0) {
     delete[] alpha;
     alpha = new double[nwords];
     for (l=0;l<nwords;l++) {
-      alpha[l]=strtod(line1[l].c_str(),NULL);
+      alpha[l]=strtod(line1[l].c_str(),nullptr);
     }
   }
   else if (constant.compare("dr")==0) {
-    dr = strtod(line1[0].c_str(),NULL);
+    dr = strtod(line1[0].c_str(),nullptr);
   }
   else if (constant.compare("n")==0) {
-    nmax = strtol(line1[0].c_str(),NULL,10);
+    nmax = strtol(line1[0].c_str(),nullptr,10);
   }
   else if (constant.compare("o")==0) {
-    omin = strtol(line1[0].c_str(),NULL,10);
+    omin = strtol(line1[0].c_str(),nullptr,10);
   }
   else pair->errorf(FLERR,"Undefined value for radial power");
   //code will run with default o=0 if o is never specified. All other values must be defined in potential file.
-  if (re!=0 && rc!=0 && alpha!=0 && dr!=0 && nmax!=0)return true;
+  if (re!=0 && rc!=0 && alpha!=nullptr && dr!=0 && nmax!=0)return true;
   return false;
 }
 

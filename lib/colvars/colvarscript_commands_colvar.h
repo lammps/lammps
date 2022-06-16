@@ -9,7 +9,8 @@
 
 
 CVSCRIPT(colvar_addforce,
-         "Apply the given force onto this colvar and return the same",
+         "Apply the given force onto this colvar and return the same\n"
+         "force : float or array - Applied force; matches colvar dimensionality",
          1, 1,
          "force : float or array - Applied force; must match colvar dimensionality",
          std::string const f_str(script->obj_to_str(script->get_colvar_cmd_arg(0, objc, objv)));
@@ -23,7 +24,15 @@ CVSCRIPT(colvar_addforce,
            return COLVARSCRIPT_ERROR;
          }
          this_colvar->add_bias_force(force);
-         script->set_result_str(force.to_simple_string());
+         script->set_result_colvarvalue(force);
+         return COLVARS_OK;
+         )
+
+CVSCRIPT(colvar_communicateforces,
+         "Communicate bias forces from this colvar to atoms",
+         0, 0,
+         "",
+         this_colvar->communicate_forces();
          return COLVARS_OK;
          )
 
@@ -56,22 +65,33 @@ CVSCRIPT(colvar_delete,
          )
 
 CVSCRIPT(colvar_get,
-         "Get the value of the given feature for this colvar",
+         "Get the value of the given feature for this colvar\n"
+         "state : 1/0 - State of the given feature",
          1, 1,
          "feature : string - Name of the feature",
          return script->proc_features(this_colvar, objc, objv);
          )
 
 CVSCRIPT(colvar_getappliedforce,
+         "Return the total of the forces applied to this colvar\n"
+         "force : float - Applied force; matches the colvar dimensionality",
+         0, 0,
+         "",
+         script->set_result_colvarvalue(this_colvar->applied_force());
+         return COLVARS_OK;
+         )
+
+CVSCRIPT(colvar_resetbiasforce,
          "Return the total of the forces applied to this colvar",
          0, 0,
          "",
-         script->set_result_str((this_colvar->applied_force()).to_simple_string());
+         this_colvar->reset_bias_force();
          return COLVARS_OK;
          )
 
 CVSCRIPT(colvar_getatomgroups,
-         "Return the atom indices used by this colvar as a list of lists",
+         "Return the atom indices used by this colvar as a list of lists\n"
+         "groups : array of arrays of ints - Atom indices",
          0, 0,
          "",
          std::string result;
@@ -91,21 +111,17 @@ CVSCRIPT(colvar_getatomgroups,
          )
 
 CVSCRIPT(colvar_getatomids,
-         "Return the list of atom indices used by this colvar",
+         "Return the list of atom indices used by this colvar\n"
+         "indices : array of ints - Atom indices",
          0, 0,
          "",
-         std::string result;
-         std::vector<int>::iterator li = this_colvar->atom_ids.begin();
-         for ( ; li != this_colvar->atom_ids.end(); ++li) {
-           result += cvm::to_str(*li);
-           result += " ";
-         }
-         script->set_result_str(result);
+         script->set_result_int_vec(this_colvar->atom_ids);
          return COLVARS_OK;
          )
 
 CVSCRIPT(colvar_getconfig,
-         "Return the configuration string of this colvar",
+         "Return the configuration string of this colvar\n"
+         "conf : string - Current configuration string",
          0, 0,
          "",
          script->set_result_str(this_colvar->get_config());
@@ -113,35 +129,34 @@ CVSCRIPT(colvar_getconfig,
          )
 
 CVSCRIPT(colvar_getgradients,
-         "Return the atomic gradients of this colvar",
+         "Return the atomic gradients of this colvar\n"
+         "gradients : array of arrays of floats - Atomic gradients",
          0, 0,
          "",
-         std::string result;
-         std::vector<cvm::rvector>::iterator li =
-           this_colvar->atomic_gradients.begin();
-         for ( ; li != this_colvar->atomic_gradients.end(); ++li) {
-           result += "{";
-           int j;
-           for (j = 0; j < 3; ++j) {
-             result += cvm::to_str((*li)[j]);
-             result += " ";
-           }
-           result += "} ";
-         }
-         script->set_result_str(result);
+         script->set_result_rvector_vec(this_colvar->atomic_gradients);
          return COLVARS_OK;
          )
 
 CVSCRIPT(colvar_gettotalforce,
-         "Return the sum of internal and external forces to this colvar",
+         "Return the sum of internal and external forces to this colvar\n"
+         "force : float - Total force; matches the colvar dimensionality",
          0, 0,
          "",
-         script->set_result_str((this_colvar->total_force()).to_simple_string());
+         script->set_result_colvarvalue(this_colvar->total_force());
+         return COLVARS_OK;
+         )
+
+CVSCRIPT(colvar_getvolmapids,
+         "Return the list of volumetric map indices used by this colvar",
+         0, 0,
+         "",
+         script->set_result_int_vec(this_colvar->get_volmap_ids());
          return COLVARS_OK;
          )
 
 CVSCRIPT(colvar_help,
-         "Get a help summary or the help string of one colvar subcommand",
+         "Get a help summary or the help string of one colvar subcommand\n"
+         "help : string - Help string",
          0, 1,
          "command : string - Get the help string of this specific command",
          unsigned char *const cmdobj =
@@ -167,7 +182,7 @@ CVSCRIPT(colvar_modifycvcs,
          "Modify configuration of individual components by passing string arguments",
          1, 1,
          "confs : sequence of strings - New configurations; empty strings are skipped",
-         std::vector<std::string> const confs(script->proxy()->script_obj_to_str_vector(script->get_colvar_cmd_arg(0, objc, objv)));
+         std::vector<std::string> const confs(script->obj_to_str_vector(script->get_colvar_cmd_arg(0, objc, objv)));
          cvm::increase_depth();
          int res = this_colvar->update_cvc_config(confs);
          cvm::decrease_depth();
@@ -180,10 +195,11 @@ CVSCRIPT(colvar_modifycvcs,
          )
 
 CVSCRIPT(colvar_run_ave,
-         "Get the current running average of the value of this colvar",
+         "Get the current running average of the value of this colvar\n"
+         "value : float or array - Averaged value; matches the colvar dimensionality",
          0, 0,
          "",
-         script->set_result_str(this_colvar->run_ave().to_simple_string());
+         script->set_result_colvarvalue(this_colvar->run_ave());
          return COLVARS_OK;
          )
 
@@ -196,7 +212,8 @@ CVSCRIPT(colvar_set,
          )
 
 CVSCRIPT(colvar_state,
-         "Print a string representation of the feature state of this colvar",
+         "Print a string representation of the feature state of this colvar\n"
+         "state : string - The feature state",
          0, 0,
          "",
          this_colvar->print_state();
@@ -204,7 +221,8 @@ CVSCRIPT(colvar_state,
          )
 
 CVSCRIPT(colvar_type,
-         "Get the type description of this colvar",
+         "Get the type description of this colvar\n"
+         "type : string - Type description",
          0, 0,
          "",
          script->set_result_str(this_colvar->value().type_desc(this_colvar->value().value_type));
@@ -212,25 +230,28 @@ CVSCRIPT(colvar_type,
          )
 
 CVSCRIPT(colvar_update,
-         "Recompute this colvar and return its up-to-date value",
+         "Recompute this colvar and return its up-to-date value\n"
+         "value : float or array - Current value; matches the colvar dimensionality",
          0, 0,
          "",
          this_colvar->calc();
          this_colvar->update_forces_energy();
-         script->set_result_str((this_colvar->value()).to_simple_string());
+         script->set_result_colvarvalue(this_colvar->value());
          return COLVARS_OK;
          )
 
 CVSCRIPT(colvar_value,
-         "Get the current value of this colvar",
+         "Get the current value of this colvar\n"
+         "value : float or array - Current value; matches the colvar dimensionality",
          0, 0,
          "",
-         script->set_result_str(this_colvar->value().to_simple_string());
+         script->set_result_colvarvalue(this_colvar->value());
          return COLVARS_OK;
          )
 
 CVSCRIPT(colvar_width,
-         "Get the width of this colvar",
+         "Get the width of this colvar\n"
+         "width : float - Value of the width",
          0, 0,
          "",
          script->set_result_str(cvm::to_str(this_colvar->width, 0,

@@ -1,7 +1,9 @@
 ---
-lammps_version: 10 Feb 2021
-date_generated: Fri Feb 26 23:08:58 2021
+lammps_version: 17 Feb 2022
+tags: slow
+date_generated: Fri Mar 18 22:17:36 2022
 epsilon: 5e-13
+skip_tests:
 prerequisites: ! |
   pair adp
 pre_commands: ! ""
@@ -12,7 +14,7 @@ pair_coeff: ! |
   * * AlCu.adp Al Cu
 extract: ! ""
 natoms: 32
-init_vdwl: -96.3621905354495
+init_vdwl: -96.36219053544953
 init_coul: 0
 init_stress: ! |2-
    1.0950940963019309e+02  9.8793143617200286e+01  8.2868514028589203e+01  4.4674243524583641e+00 -1.6359979177752422e+00  3.1824061950082316e+00

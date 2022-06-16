@@ -20,15 +20,13 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "error.h"
 #include "force.h"
 #include "neighbor.h"
-#include "suffix.h"
-#include "update.h"
 
 #include <cmath>
 
 #include "omp_compat.h"
+#include "suffix.h"
 using namespace LAMMPS_NS;
 
 #define TOLERANCE 0.05
@@ -93,8 +91,8 @@ void ImproperCossqOMP::eval(int nfrom, int nto, ThrData * const thr)
 
   eimproper = 0.0;
 
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const auto * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const int5_t * _noalias const improperlist = (int5_t *) neighbor->improperlist[0];
   const int nlocal = atom->nlocal;
 

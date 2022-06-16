@@ -12,13 +12,13 @@
 #include <typeinfo>
 
 #include <Kokkos_Core.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 
 using exec_space = Kokkos::DefaultExecutionSpace;
 
 template <typename T>
 void test(const int length) {
-  Kokkos::Impl::Timer timer;
+  Kokkos::Timer timer;
 
   using vector = Kokkos::View<T*, exec_space>;
 

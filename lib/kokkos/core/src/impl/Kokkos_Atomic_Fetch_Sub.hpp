@@ -50,10 +50,6 @@
 #if defined(KOKKOS_ATOMIC_HPP) && !defined(KOKKOS_ATOMIC_FETCH_SUB_HPP)
 #define KOKKOS_ATOMIC_FETCH_SUB_HPP
 
-#if defined(KOKKOS_ENABLE_CUDA)
-#include <Cuda/Kokkos_Cuda_Version_9_8_Compatibility.hpp>
-#endif
-
 namespace Kokkos {
 
 //----------------------------------------------------------------------------
@@ -143,13 +139,9 @@ atomic_fetch_sub(volatile T* const dest,
                                          const T>::type& val) {
   T return_val;
   // This is a way to (hopefully) avoid dead lock in a warp
-  int done = 0;
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-  unsigned int mask   = KOKKOS_IMPL_CUDA_ACTIVEMASK;
-  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask, 1);
-#else
-  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT(1);
-#endif
+  int done                 = 0;
+  unsigned int mask        = __activemask();
+  unsigned int active      = __ballot_sync(mask, 1);
   unsigned int done_active = 0;
   while (active != done_active) {
     if (!done) {
@@ -162,11 +154,7 @@ atomic_fetch_sub(volatile T* const dest,
         done = 1;
       }
     }
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-    done_active = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask, done);
-#else
-    done_active = KOKKOS_IMPL_CUDA_BALLOT(done);
-#endif
+    done_active = __ballot_sync(mask, done);
   }
   return return_val;
 }

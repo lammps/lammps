@@ -42,6 +42,7 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
+#include "potential_file_reader.h"
 
 #include <cmath>
 #include <cstring>
@@ -55,6 +56,8 @@ PairMEAMSpline::PairMEAMSpline(LAMMPS *lmp) : Pair(lmp)
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
+  manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   Uprime_values = nullptr;
   nmax = 0;
@@ -275,7 +278,7 @@ void PairMEAMSpline::compute(int eflag, int vflag)
 
   // Communicate U'(rho) values
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // Compute two-body pair interactions
   for (int ii = 0; ii < listhalf->inum; ii++) {
@@ -442,86 +445,69 @@ void PairMEAMSpline::coeff(int narg, char **arg)
 void PairMEAMSpline::read_file(const char* filename)
 {
   int nmultichoose2; // = (n+1)*n/2;
+  bool isNewFormat = false;
 
   if (comm->me == 0) {
-    FILE *fp = utils::open_potential(filename,lmp,nullptr);
-    if (fp == nullptr) {
-      char str[1024];
-      snprintf(str,128,"Cannot open spline MEAM potential file %s", filename);
-      error->one(FLERR,str);
-    }
+    PotentialFileReader reader(lmp, filename, "meam/spline");
 
-    // Skip first line of file. It's a comment.
-    char line[MAXLINE];
-    char *ptr;
-    utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
-
-    // Second line holds potential type ("meam/spline")
-    // in new potential format.
-
-    bool isNewFormat = false;
-    utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
-    ptr = strtok(line, " \t\n\r\f");
-
-    if (strcmp(ptr, "meam/spline") == 0) {
-      isNewFormat = true;
-      // parse the rest of the line!
-      ptr = strtok(nullptr," \t\n\r\f");
-      if (ptr == nullptr)
-        error->one(FLERR,"Need to include number of atomic species on"
-                   " meam/spline line in multi-element potential file");
-      nelements = atoi(ptr);
-      if (nelements < 1)
-        error->one(FLERR, "Invalid number of atomic species on"
-                   " meam/spline line in potential file");
+    try {
       if (elements)
-        for (int i = 0; i < nelements; i++) delete [] elements[i];
-      delete [] elements;
-      elements = new char*[nelements];
-      for (int i=0; i<nelements; ++i) {
-        ptr = strtok(nullptr," \t\n\r\f");
-        if (ptr == nullptr)
-          error->one(FLERR, "Not enough atomic species in meam/spline"
-                     " line of multi-element potential file");
-        elements[i] = new char[strlen(ptr)+1];
-        strcpy(elements[i], ptr);
+        for (int i = 0; i < nelements; i++) delete[] elements[i];
+      delete[] elements;
+
+      // Skip first line of file. It's a comment.
+      reader.skip_line();
+
+      // Second line holds potential type ("meam/spline")
+      // in new potential format.
+      char *line = reader.next_line(0);
+      if (utils::strmatch(line, "^meam/spline")) {
+        isNewFormat = true;
+        auto values = ValueTokenizer(line);
+        values.skip();
+
+        nelements = values.next_int();
+        if (nelements < 1)
+          throw TokenizerException("Invalid number of atomic species on meam/spline line in potential file",
+                                   std::to_string(nelements));
+        elements = new char*[nelements];
+        for (int i=0; i < nelements; ++i)
+          elements[i] = utils::strdup(values.next_string());
+
+      } else {
+
+        isNewFormat = false;
+        nelements = 1; // old format only handles one species; (backwards compatibility)
+        elements = new char*[1];
+        elements[0] = utils::strdup("");
+
+        reader.rewind();
+        reader.skip_line();
       }
-    } else {
-      isNewFormat = false;
-      nelements = 1; // old format only handles one species; (backwards compatibility)
-      elements = new char*[1];
-      elements[0] = new char[1];
-      strcpy(elements[0], "");
-      rewind(fp);
-      utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
+
+      nmultichoose2 = ((nelements+1)*nelements)/2;
+      if (nelements != atom->ntypes)
+        throw TokenizerException("Pair style meam/spline requires one atom type per element","");
+
+      allocate();
+
+      // Parse spline functions.
+
+      for (int i = 0; i < nmultichoose2; i++) phis[i].parse(reader, isNewFormat);
+      for (int i = 0; i < nelements; i++) rhos[i].parse(reader, isNewFormat);
+      for (int i = 0; i < nelements; i++) Us[i].parse(reader, isNewFormat);
+      for (int i = 0; i < nelements; i++) fs[i].parse(reader, isNewFormat);
+      for (int i = 0; i < nmultichoose2; i++) gs[i].parse(reader, isNewFormat);
+
+    } catch (std::exception &e) {
+      error->one(FLERR, "Error reading meam/spline potential file: {}", e.what());
     }
-
-    nmultichoose2 = ((nelements+1)*nelements)/2;
-
-    if (nelements != atom->ntypes)
-      error->all(FLERR,"Pair style meam/spline requires one atom type per element");
-
-    allocate();
-
-    // Parse spline functions.
-
-    for (int i = 0; i < nmultichoose2; i++)
-      phis[i].parse(fp, error, isNewFormat);
-    for (int i = 0; i < nelements; i++)
-      rhos[i].parse(fp, error, isNewFormat);
-    for (int i = 0; i < nelements; i++)
-      Us[i].parse(fp, error, isNewFormat);
-    for (int i = 0; i < nelements; i++)
-      fs[i].parse(fp, error, isNewFormat);
-    for (int i = 0; i < nmultichoose2; i++)
-      gs[i].parse(fp, error, isNewFormat);
-
-    fclose(fp);
   }
 
   // Transfer spline functions from master processor to all other processors.
   MPI_Bcast(&nelements, 1, MPI_INT, 0, world);
   MPI_Bcast(&nmultichoose2, 1, MPI_INT, 0, world);
+
   // allocate!!
   if (comm->me != 0) {
     allocate();
@@ -536,20 +522,14 @@ void PairMEAMSpline::read_file(const char* filename)
       elements[i] = new char[n+1];
     MPI_Bcast(elements[i], n+1, MPI_CHAR, 0, world);
   }
-  for (int i = 0; i < nmultichoose2; i++)
-    phis[i].communicate(world, comm->me);
-  for (int i = 0; i < nelements; i++)
-    rhos[i].communicate(world, comm->me);
-  for (int i = 0; i < nelements; i++)
-    fs[i].communicate(world, comm->me);
-  for (int i = 0; i < nelements; i++)
-    Us[i].communicate(world, comm->me);
-  for (int i = 0; i < nmultichoose2; i++)
-    gs[i].communicate(world, comm->me);
+  for (int i = 0; i < nmultichoose2; i++) phis[i].communicate(world, comm->me);
+  for (int i = 0; i < nelements; i++) rhos[i].communicate(world, comm->me);
+  for (int i = 0; i < nelements; i++) fs[i].communicate(world, comm->me);
+  for (int i = 0; i < nelements; i++) Us[i].communicate(world, comm->me);
+  for (int i = 0; i < nmultichoose2; i++) gs[i].communicate(world, comm->me);
 
   // Calculate 'zero-point energy' of single atom in vacuum.
-  for (int i = 0; i < nelements; i++)
-    zero_atom_energies[i] = Us[i].eval(0.0);
+  for (int i = 0; i < nelements; i++) zero_atom_energies[i] = Us[i].eval(0.0);
 
   // Determine maximum cutoff radius of all relevant spline functions.
   cutoff = 0.0;
@@ -570,7 +550,6 @@ void PairMEAMSpline::read_file(const char* filename)
       cutsq[i][j] = cutoff;
     }
   }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -582,15 +561,8 @@ void PairMEAMSpline::init_style()
     error->all(FLERR,"Pair style meam/spline requires newton pair on");
 
   // Need both full and half neighbor list.
-  int irequest_full = neighbor->request(this,instance_me);
-  neighbor->requests[irequest_full]->id = 1;
-  neighbor->requests[irequest_full]->half = 0;
-  neighbor->requests[irequest_full]->full = 1;
-  int irequest_half = neighbor->request(this,instance_me);
-  neighbor->requests[irequest_half]->id = 2;
-  // neighbor->requests[irequest_half]->half = 1;
-  // neighbor->requests[irequest_half]->halffull = 1;
-  // neighbor->requests[irequest_half]->halffulllist = irequest_full;
+  neighbor->add_request(this, NeighConst::REQ_FULL)->set_id(1);
+  neighbor->add_request(this)->set_id(2);
 }
 
 /* ----------------------------------------------------------------------
@@ -653,46 +625,38 @@ double PairMEAMSpline::memory_usage()
 
 
 /// Parses the spline knots from a text file.
-void PairMEAMSpline::SplineFunction::parse(FILE* fp, Error* error,
-                                           bool isNewFormat)
+void PairMEAMSpline::SplineFunction::parse(PotentialFileReader &reader, bool isNewFormat)
 {
-  char line[MAXLINE];
-
   // If new format, read the spline format.  Should always be "spline3eq" for now.
-  if (isNewFormat)
-    utils::sfgets(FLERR,line,MAXLINE,fp,nullptr,error);
+  if (isNewFormat) reader.skip_line();
 
   // Parse number of spline knots.
-  utils::sfgets(FLERR,line,MAXLINE,fp,nullptr,error);
-  int n = atoi(line);
+  int n = reader.next_int();
   if (n < 2)
-    error->one(FLERR,"Invalid number of spline knots in MEAM potential file");
+    throw TokenizerException("Invalid number of spline knots in MEAM potential file", std::to_string(n));
 
   // Parse first derivatives at beginning and end of spline.
-  utils::sfgets(FLERR,line,MAXLINE,fp,nullptr,error);
-  double d0 = atof(strtok(line, " \t\n\r\f"));
-  double dN = atof(strtok(nullptr, " \t\n\r\f"));
+  auto values = reader.next_values(2);
+  double d0 = values.next_double();
+  double dN = values.next_double();
   init(n, d0, dN);
 
   // Skip line in old format
-  if (!isNewFormat)
-    utils::sfgets(FLERR,line,MAXLINE,fp,nullptr,error);
+  if (!isNewFormat) reader.skip_line();
 
   // Parse knot coordinates.
-  for (int i=0; i<n; i++) {
-    utils::sfgets(FLERR,line,MAXLINE,fp,nullptr,error);
-    double x, y, y2;
-    if (sscanf(line, "%lg %lg %lg", &x, &y, &y2) != 3) {
-      error->one(FLERR,"Invalid knot line in MEAM potential file");
-    }
+  for (int i=0; i < n; ++i) {
+    values = reader.next_values(3);
+    double x = values.next_double();
+    double y = values.next_double();
+    // double y2 = values.next_double(); ignored
     setKnot(i, x, y);
   }
-
-  prepareSpline(error);
+  prepareSpline();
 }
 
 /// Calculates the second derivatives at the knots of the cubic spline.
-void PairMEAMSpline::SplineFunction::prepareSpline(Error* error)
+void PairMEAMSpline::SplineFunction::prepareSpline()
 {
   xmin = X[0];
   xmax = X[N-1];
@@ -701,7 +665,7 @@ void PairMEAMSpline::SplineFunction::prepareSpline(Error* error)
   h = (xmax-xmin)/(N-1);
   hsq = h*h;
 
-  double* u = new double[N];
+  auto  u = new double[N];
   Y2[0] = -0.5;
   u[0] = (3.0/(X[1]-X[0])) * ((Y[1]-Y[0])/(X[1]-X[0]) - deriv0);
   for (int i = 1; i <= N-2; i++) {
@@ -726,7 +690,10 @@ void PairMEAMSpline::SplineFunction::prepareSpline(Error* error)
 
 #if !SPLINE_MEAM_SUPPORT_NON_GRID_SPLINES
   if (!isGridSpline)
-    error->one(FLERR,"Support for MEAM potentials with non-uniform cubic splines has not been enabled in the MEAM potential code. Set SPLINE_MEAM_SUPPORT_NON_GRID_SPLINES in pair_spline_meam.h to 1 to enable it");
+    throw TokenizerException("Support for MEAM potentials with non-uniform cubic splines "
+                             "has not been enabled in the MEAM potential code. Set "
+                             "SPLINE_MEAM_SUPPORT_NON_GRID_SPLINES in pair_spline_meam.h "
+                             "to 1 to enable it", "");
 #endif
 
   // Shift the spline to X=0 to speed up interpolation.
@@ -833,5 +800,3 @@ void PairMEAMSpline::SplineFunction::writeGnuplot(const char* filename,
  * Lawrence Livermore National Security, LLC, and shall not be used for
  * advertising or product endorsement purposes.
 ------------------------------------------------------------------------- */
-
-

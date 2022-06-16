@@ -1,9 +1,9 @@
 #include "Stress.h"
 #include "CauchyBorn.h"
 #include "CBLattice.h"
-#include "CbLjCut.h" 
-#include "CbLjSmoothLinear.h" 
-#include "CbEam.h" 
+#include "CbLjCut.h"
+#include "CbLjSmoothLinear.h"
+#include "CbEam.h"
 #include "ATC_Error.h"
 #include "LammpsInterface.h"
 #include "VoigtOperations.h"
@@ -24,7 +24,7 @@ using std::fstream;
 
 namespace ATC {
 //=============================================================================
-// extracts a stress at an integration point 
+// extracts a stress at an integration point
 // Note: Utility function: not in header
 //=============================================================================
 DENS_MAT extract_stress(const DENS_MAT_VEC &sigma, INDEX ip=0)
@@ -41,7 +41,7 @@ double compute_pressure(const DENS_MAT_VEC &sigma, const DENS_MAT &F)
 {
   // pressure in units (mass-velocity^2)/Volume (LAMMPS real)
   double p = (sigma[0](0,0) + sigma[1](0,1) + sigma[2](0,2)) * (1.0/3.0);
-  p *= 1.0e14/6.0221415;            // convert from units real to Pa 
+  p *= 1.0e14/6.0221415;            // convert from units real to Pa
   p *= 1.0/101235.0;                // convert from Pa to ATM
   return p * pow(det(F), -1.0/3.0); // convert from PK2 to Cauchy stress
 }
@@ -55,7 +55,7 @@ void deformation_gradient(const DENS_MAT_VEC &du, INDEX q, MATRIX &F)
   for (INDEX j=0; j<F.nCols(); j++) {
     for (INDEX i=0; i<F.nRows(); i++) F(i,j) = du[j](q,i);
     F(j,j) += 1.0;
-  } 
+  }
 }
 
 //=============================================================================
@@ -69,13 +69,13 @@ void deformation_gradient(const DENS_MAT_VEC &du, INDEX q, MATRIX &F)
  int nRows = ( ((gradFields.find(DISPLACEMENT))->second)[0]).nRows();
  energy.reset(nRows,1);
  ATC::LammpsInterface::instance()->print_msg("WARNING: returning dummy elastic energy");
- 
+
 }
 
 //=============================================================================
 // isotropic linear elastic
 //=============================================================================
-StressLinearElastic::StressLinearElastic(fstream &fileId) 
+StressLinearElastic::StressLinearElastic(fstream &fileId)
   : StressCubicElastic(), E_(0), nu_(0), mu_(0), lambda_(0)
 {
   if (!fileId.is_open()) throw ATC_Error("cannot open material file");
@@ -88,8 +88,8 @@ StressLinearElastic::StressLinearElastic(fstream &fileId)
       StressCubicElastic::c11_ = E_*(1-nu_)/(1+nu_)/(1-2*nu_);
       StressCubicElastic::c12_ = E_*nu_    /(1+nu_)/(1-2*nu_);
       StressCubicElastic::c44_ = E_/(1+nu_)/2;
-      if (nu_ < 0.0 || nu_ > 1.0) 
-        throw ATC_Error("bad linear elastic constants");   
+      if (nu_ < 0.0 || nu_ > 1.0)
+        throw ATC_Error("bad linear elastic constants");
       if (lambda_ < 0.0 || mu_ < 0.0)
         throw ATC_Error("bad continuum material parameter");
       return;
@@ -141,7 +141,7 @@ StressLinearElastic::StressLinearElastic(fstream &fileId)
 //=============================================================================
 // cubic elastic
 //=============================================================================
-StressCubicElastic::StressCubicElastic(fstream &fileId) 
+StressCubicElastic::StressCubicElastic(fstream &fileId)
   : c11_(0), c12_(0), c44_(0)
 {
   if (!fileId.is_open()) throw ATC_Error("cannot open material file");
@@ -152,16 +152,16 @@ StressCubicElastic::StressCubicElastic(fstream &fileId)
     else if (line[0]=="c11") c11_ = str2dbl(line[1]);
     else if (line[0]=="c12") c12_ = str2dbl(line[1]);
     else if (line[0]=="c44") c44_ = str2dbl(line[1]);
-    else throw ATC_Error( "unrecognized material function"); 
+    else throw ATC_Error( "unrecognized material function");
   }
 }
 //---------------------------------------------------------------------------
 // compute the stress at N integration points from the displacement gradient
-// T_{ij} = 1/2*C_{ijkl}*(u_{k,l} + u_{l,k}) 
+// T_{ij} = 1/2*C_{ijkl}*(u_{k,l} + u_{l,k})
 //---------------------------------------------------------------------------
   void StressCubicElastic::stress(const FIELD_MATS      & /* fields */,
                                 const GRAD_FIELD_MATS &gradFields,
-                                DENS_MAT_VEC  &sigma)  
+                                DENS_MAT_VEC  &sigma)
 {
   GRAD_FIELD_MATS::const_iterator du_itr = gradFields.find(DISPLACEMENT);
   const DENS_MAT_VEC &du = du_itr->second;
@@ -197,7 +197,7 @@ StressCubicElastic::StressCubicElastic(fstream &fileId)
 //---------------------------------------------------------------------------
 // compute the elastic energy at N integration points from displacement gradient
 // E = 1/8*C_{ijkl}* (u_{k,l} + u_{l,k})* (u_{i,j} + u_{j,i})*rho ?
-//   = 1/2 (4 c44 (u12^2 + u13^2 + u23^2) + 2 c12 (u11 u22 + u11 u33 + u22 u33) 
+//   = 1/2 (4 c44 (u12^2 + u13^2 + u23^2) + 2 c12 (u11 u22 + u11 u33 + u22 u33)
 //        + c11 (u11^2 + u22^2 + u33^2))
 //---------------------------------------------------------------------------
   void StressCubicElastic::elastic_energy(const FIELD_MATS      & /* fields */,
@@ -223,21 +223,21 @@ StressCubicElastic::StressCubicElastic(fstream &fileId)
   const double c44 = c44_;
   //double scale = (ATC::LammpsInterface::instance()->mvv2e());
   for (INDEX gp=0; gp<du.front().nRows(); gp++) {
-    double u11 = uxx(gp); 
-    double u22 = uyy(gp); 
-    double u33 = uzz(gp); 
-    double u12 = 0.5*(uxy(gp)+uyx(gp)); 
+    double u11 = uxx(gp);
+    double u22 = uyy(gp);
+    double u33 = uzz(gp);
+    double u12 = 0.5*(uxy(gp)+uyx(gp));
     double u13 = 0.5*(uxz(gp)+uzx(gp));
     double u23 = 0.5*(uyz(gp)+uzy(gp));
-    double EE  = 0.5* (4.0*c44*(u12*u12 + u13*u13 + u23*u23) 
-                     + 2.0*c12*(u11*u22 + u11*u33 + u22*u33) 
+    double EE  = 0.5* (4.0*c44*(u12*u12 + u13*u13 + u23*u23)
+                     + 2.0*c12*(u11*u22 + u11*u33 + u22*u33)
                          + c11*(u11*u11 + u22*u22 + u33*u33));
-    
+
     E(gp) = EE;
   }
 }
 
-void StressCubicElastic::set_tangent(void) 
+void StressCubicElastic::set_tangent()
 {
   C_.reset(6,6);
   C_(0,0)=C_(1,1)=C_(2,2)                        =c11_;
@@ -248,7 +248,7 @@ void StressCubicElastic::set_tangent(void)
 //=============================================================================
 // damped cubic elastic
 //=============================================================================
-StressCubicElasticDamped::StressCubicElasticDamped(fstream &fileId) 
+StressCubicElasticDamped::StressCubicElasticDamped(fstream &fileId)
   : StressCubicElastic(), gamma_(0)
 {
   if (!fileId.is_open()) throw ATC_Error("cannot open material file");
@@ -264,12 +264,12 @@ StressCubicElasticDamped::StressCubicElasticDamped(fstream &fileId)
   }
 }
 //---------------------------------------------------------------------------
-// compute the stress at N integration points 
+// compute the stress at N integration points
 //---------------------------------------------------------------------------
 
 void StressCubicElasticDamped::stress(const FIELD_MATS      &fields,
                                 const GRAD_FIELD_MATS &gradFields,
-                                DENS_MAT_VEC  &sigma)  
+                                DENS_MAT_VEC  &sigma)
 {
   StressCubicElastic::stress(fields,gradFields,sigma);
   GRAD_FIELD_MATS::const_iterator dv_itr = gradFields.find(VELOCITY);
@@ -307,7 +307,7 @@ StressCauchyBorn::StressCauchyBorn(fstream &fileId, CbData &cb)
      fixed_temperature_(0.),
      cbdata_(cb)
 {
-  if (!fileId.is_open()) throw ATC_Error("cannot open material file"); 
+  if (!fileId.is_open()) throw ATC_Error("cannot open material file");
   while(fileId.good()) {
     // reads a line from the material file
     vector<string> line;
@@ -315,8 +315,8 @@ StressCauchyBorn::StressCauchyBorn(fstream &fileId, CbData &cb)
     if (line.empty()) continue;   // skip blank lines
     else if (line[0]=="end") {
       delete cblattice_;
-      if (!potential_) throw ATC_Error( "no potential defined"); 
-      cblattice_ = new CBLattice(cbdata_.cell_vectors, cbdata_.basis_vectors); 
+      if (!potential_) throw ATC_Error( "no potential defined");
+      cblattice_ = new CBLattice(cbdata_.cell_vectors, cbdata_.basis_vectors);
       return;
     }
     else if (line[0] == "pair_style") {
@@ -324,7 +324,7 @@ StressCauchyBorn::StressCauchyBorn(fstream &fileId, CbData &cb)
         if (line.size()<3) throw(ATC_Error("no lj/cut cutoff radius"));
         const double rc = str2dbl(line[2]);
         while (!fileId.eof()) { // find next pair_coeff command
-          command_line(fileId, line); 
+          command_line(fileId, line);
           if (line.size() && line[0]=="pair_coeff") break;
         }
         if (line[0] != "pair_coeff" || line.size() != 3) {
@@ -346,7 +346,7 @@ StressCauchyBorn::StressCauchyBorn(fstream &fileId, CbData &cb)
         delete potential_;
         potential_ = new CbLjSmoothLinear(str2dbl(line[1]), str2dbl(line[2]), rc);
       }
-      else if (line[1] == "eam") {      // Embedded atom method potential 
+      else if (line[1] == "eam") {      // Embedded atom method potential
         delete potential_;
         potential_ = new CbEam();
       }
@@ -356,7 +356,7 @@ StressCauchyBorn::StressCauchyBorn(fstream &fileId, CbData &cb)
     else if (line[0] == "temperature" && line.size() == 2) {
       fixed_temperature_ = str2dbl(line[1]);
     }
-    else if (line[0]=="material" || line[0]=="stress") /* ignore this */; 
+    else if (line[0]=="material" || line[0]=="stress") /* ignore this */;
     else throw ATC_Error( "Unrecognized Cauchy-Born parameter: "+line[0]+".");
   }
 
@@ -374,13 +374,13 @@ StressCauchyBorn::~StressCauchyBorn()
 //==============================================================================
 // initialize
 //==============================================================================
-void StressCauchyBorn::initialize(void) 
+void StressCauchyBorn::initialize()
 {
   if (!initialized_) {
     if (makeLinear_) linearize();
 
     stringstream ss;
-    double k = stiffness()*cbdata_.e2mvv; 
+    double k = stiffness()*cbdata_.e2mvv;
     double m = cbdata_.atom_mass;
     double w0 = sqrt(k*m);
     ss << "CB stiffness: " << stiffness() << " Einstein freq: " << w0;
@@ -393,7 +393,7 @@ void StressCauchyBorn::initialize(void)
 //==============================================================================
 // compute the bond stiffness consistent with the einstein freq
 //==============================================================================
-double StressCauchyBorn::stiffness(void) const
+double StressCauchyBorn::stiffness() const
 {
   AtomCluster vac;
   cblattice_->atom_cluster(eye<double>(3,3), potential_->cutoff_radius(), vac);
@@ -403,8 +403,8 @@ double StressCauchyBorn::stiffness(void) const
 //==============================================================================
 // compute the stress at N integration points from the displacement gradient
 //==============================================================================
-void StressCauchyBorn::stress(const FIELD_MATS &fields, 
-                              const GRAD_FIELD_MATS &gradFields, 
+void StressCauchyBorn::stress(const FIELD_MATS &fields,
+                              const GRAD_FIELD_MATS &gradFields,
                               DENS_MAT_VEC &sigma)
 {
   if (cubicMat_) {
@@ -418,9 +418,9 @@ void StressCauchyBorn::stress(const FIELD_MATS &fields,
   // negative because stress must return (-) stress
   const double fact = -cbdata_.inv_atom_volume * cbdata_.e2mvv;
   const DENS_MAT_VEC &du(disp_gradient->second);
-  const INDEX num_integration_pts = du.front().nRows(); 
+  const INDEX num_integration_pts = du.front().nRows();
   const INDEX nsd = du.size();
-  DENS_MAT F(nsd,nsd);                // displacement gradient 
+  DENS_MAT F(nsd,nsd);                // displacement gradient
   bool temp_varies = (temp != fields.end());
   sigma.assign(nsd, DENS_MAT(num_integration_pts, nsd));
   StressAtIP S(sigma); // wrapper for quadrature points.
@@ -440,8 +440,8 @@ void StressCauchyBorn::stress(const FIELD_MATS &fields,
     cb_stress(args, S);
 
     // copy symmetric part of stress and scale by V0
-    for (INDEX i=0; i<nsd; i++) { 
-      S(i,i) *= fact;  
+    for (INDEX i=0; i<nsd; i++) {
+      S(i,i) *= fact;
       for (INDEX j=i+1; j<nsd; j++)  S(j,i)=(S(i,j)*=fact);
     }
   }
@@ -450,7 +450,7 @@ void StressCauchyBorn::stress(const FIELD_MATS &fields,
 //==============================================================================
 // Computes free (T>0)/potential(T=0) energy density.  [mvv/L^3]
 //==============================================================================
-void StressCauchyBorn::elastic_energy(const FIELD_MATS &fields, 
+void StressCauchyBorn::elastic_energy(const FIELD_MATS &fields,
                                       const GRAD_FIELD_MATS &gradFields,
                                       DENS_MAT &energy) const
 {
@@ -471,14 +471,14 @@ void StressCauchyBorn::elastic_energy(const FIELD_MATS &fields,
     energy[gp] = cb_energy(StressArgs(vac, potential_, cbdata_.boltzmann, cbdata_.hbar, T));
   }
   // Scaling factor - scale by atomic volume and energy conversion.
-  
+
   energy *= cbdata_.inv_atom_volume * cbdata_.e2mvv;
 }
 
 //==============================================================================
 // Computes entropic energy density.  [mvv/L^3]
 //==============================================================================
-void StressCauchyBorn::entropic_energy(const FIELD_MATS &fields, 
+void StressCauchyBorn::entropic_energy(const FIELD_MATS &fields,
                                        const GRAD_FIELD_MATS &gradFields,
                                        DENS_MAT &energy) const
 {
@@ -504,7 +504,7 @@ void StressCauchyBorn::entropic_energy(const FIELD_MATS &fields,
 void StressCauchyBorn::linearize(MATRIX *F)
 {
   if (cubicMat_) delete cubicMat_;
-  DENS_MAT C;   
+  DENS_MAT C;
   if (F) tangent(*F, C);
   else   tangent(eye<double>(3,3), C);
   cubicMat_ = new StressCubicElastic(C(0,0), C(0,1), C(3,3));
@@ -514,7 +514,7 @@ void StressCauchyBorn::linearize(MATRIX *F)
   double c12 = C(0,1)/cbdata_.e2mvv;
   double c44 = C(3,3)/cbdata_.e2mvv;
   ss << "created cubic stress function:"
-     << "\n   lammps         ATC units" 
+     << "\n   lammps         ATC units"
      << "\n   c11=" << c11 << " " << C(0,0)
      << "\n   c12=" << c12 << " " << C(0,1)
      << "\n   c44=" << c44 << " " << C(3,3);
@@ -546,7 +546,7 @@ DENS_VEC StressCauchyBorn::elasticity_tensor(const VECTOR &Fv, MATRIX &C, const 
 }
 DENS_VEC StressCauchyBorn::elasticity_tensor(const MATRIX &F, MATRIX &C, const ElasticityTensorType type)  const
 {
-  double T = 0; 
+  double T = 0;
   AtomCluster vac;
   cblattice_->atom_cluster(F, potential_->cutoff_radius(), vac);
   if (vac.size() < 4) throw ATC_Error("StressCauchyBorn::second_elasticity_tensor cluster does not have sufficient atoms");
@@ -569,7 +569,7 @@ DENS_VEC StressCauchyBorn::elasticity_tensor(const MATRIX &F, MATRIX &C, const E
   C.reset(size,size);
   for (INDEX a=0; a<vac.size(); a++) {
     const DENS_VEC &Ra = vac.R(a);
-    if (type == FIRST_ELASTICITY_TENSOR) { 
+    if (type == FIRST_ELASTICITY_TENSOR) {
       DENS_VEC ra = F*Ra;
       for (INDEX i=0; i<size; i++) { Z(i)=ra(voigt_idx1[i])*Ra(voigt_idx2[i]); }
     }
@@ -581,23 +581,23 @@ DENS_VEC StressCauchyBorn::elasticity_tensor(const MATRIX &F, MATRIX &C, const E
     double phi_r  = potential_->phi_r(d);  // computes phi'
     double phi_rr = potential_->phi_rr(d); // computes phi''
     double fact1 = 0.5*phi_r*rinv;  // 1/2 see Philips
-    double fact2 = 0.5*(phi_rr - phi_r*rinv) * rinv*rinv; 
+    double fact2 = 0.5*(phi_rr - phi_r*rinv) * rinv*rinv;
     if (hasEAM) {
       double rho_r  = potential_->rho_r(d);  // computes rho'
       double rho_rr = potential_->rho_rr(d); // computes rho''
       fact1 += embed_p*rho_r*rinv;
-      fact2 += embed_p*(rho_rr - rho_r*rinv) * rinv*rinv; 
+      fact2 += embed_p*(rho_rr - rho_r*rinv) * rinv*rinv;
       Zfp += Z*(rho_r*rinv);
     }
     for (INDEX i=0; i<size; i++) {
       S(i) += fact1*Z(i);
-      for (INDEX j=0; j<size; j++) { 
-        C(i,j) += fact2*Z(i)*Z(j); 
+      for (INDEX j=0; j<size; j++) {
+        C(i,j) += fact2*Z(i)*Z(j);
       }
     }
-    if (type == FIRST_ELASTICITY_TENSOR) { 
+    if (type == FIRST_ELASTICITY_TENSOR) {
       for (INDEX i=0; i<9; i++) {
-        for (INDEX j=0; j<9; j++) { 
+        for (INDEX j=0; j<9; j++) {
           if ( voigt_idx1[i] == voigt_idx1[j] )  { // \delta_ik S_JL
             C(i,j) += fact1*Ra(voigt_idx2[i])*Ra(voigt_idx2[j]);
           }
@@ -607,12 +607,12 @@ DENS_VEC StressCauchyBorn::elasticity_tensor(const MATRIX &F, MATRIX &C, const E
   }
   if (hasEAM) {
     for (INDEX i=0; i<6; i++) {
-      for (INDEX j=0; j<6; j++) { 
-        C(i,j) += embed_pp*Zfp(i)*Zfp(j);  
+      for (INDEX j=0; j<6; j++) {
+        C(i,j) += embed_pp*Zfp(i)*Zfp(j);
       }
     }
   }
-  double s = cbdata_.inv_atom_volume * cbdata_.e2mvv;  
+  double s = cbdata_.inv_atom_volume * cbdata_.e2mvv;
   S *= s;
   C *= s;
   return S;

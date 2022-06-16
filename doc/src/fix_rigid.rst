@@ -73,7 +73,7 @@ Syntax
        *single* args = none
        *molecule* args = none
        *custom* args = *i_propname* or *v_varname*
-         i_propname = an integer property defined via fix property/atom
+         i_propname = a custom integer vector defined via fix property/atom
          v_varname  = an atom-style or atomfile-style variable
        *group* args = N groupID1 groupID2 ...
          N = # of groups
@@ -296,15 +296,16 @@ includes atoms you want to be part of rigid bodies.
 
 Bodystyle *custom* is similar to bodystyle *molecule* except that it
 is more flexible in using other per-atom properties to define the sets
-of atoms that form rigid bodies.  An integer vector defined by the
-:doc:`fix property/atom <fix_property_atom>` command can be used.  Or an
-:doc:`atom-style or atomfile-style variable <variable>` can be used; the
-floating-point value produced by the variable is rounded to an
-integer.  As with bodystyle *molecule*, each set of atoms in the fix
-groups with the same integer value is treated as a different rigid
-body.  Since fix property/atom vectors and atom-style variables
-produce values for all atoms, you should be careful to use a fix group
-that only includes atoms you want to be part of rigid bodies.
+of atoms that form rigid bodies.  A custom per-atom integer vector
+defined by the :doc:`fix property/atom <fix_property_atom>` command
+can be used.  Or an :doc:`atom-style or atomfile-style variable
+<variable>` can be used; the floating-point value produced by the
+variable is rounded to an integer.  As with bodystyle *molecule*\ ,
+each set of atoms in the fix groups with the same integer value is
+treated as a different rigid body.  Since fix property/atom custom
+vectors and atom-style variables produce values for all atoms, you
+should be careful to use a fix group that only includes atoms you want
+to be part of rigid bodies.
 
 .. note::
 

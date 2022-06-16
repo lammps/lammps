@@ -3,7 +3,9 @@ name: "CodeQL Code Analysis"
 
 on:
   push:
-    branches: [master]
+    branches: [develop]
+
+  workflow_dispatch:
 
 jobs:
   analyze:

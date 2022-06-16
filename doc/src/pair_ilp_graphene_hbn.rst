@@ -1,7 +1,10 @@
 .. index:: pair_style ilp/graphene/hbn
+.. index:: pair_style ilp/graphene/hbn/opt
 
 pair_style ilp/graphene/hbn command
 ===================================
+
+Accelerator Variant: *ilp/graphene/hbn/opt*
 
 Syntax
 """"""
@@ -125,6 +128,10 @@ headings) the following commands could be included in an input script:
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -159,6 +166,8 @@ Related commands
 :doc:`pair_none <pair_none>`,
 :doc:`pair_style hybrid/overlay <pair_hybrid>`,
 :doc:`pair_style drip <pair_drip>`,
+:doc:`pair_style ilp_tmd <pair_ilp_tmd>`,
+:doc:`pair_style saip_metal <pair_saip_metal>`,
 :doc:`pair_style pair_kolmogorov_crespi_z <pair_kolmogorov_crespi_z>`,
 :doc:`pair_style pair_kolmogorov_crespi_full <pair_kolmogorov_crespi_full>`,
 :doc:`pair_style pair_lebedeva_z <pair_lebedeva_z>`,

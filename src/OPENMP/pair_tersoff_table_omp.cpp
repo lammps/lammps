@@ -53,7 +53,7 @@ PairTersoffTableOMP::PairTersoffTableOMP(LAMMPS *lmp) :
 PairTersoffTableOMP::~PairTersoffTableOMP()
 {
   if (allocated) {
-    deallocatePreLoops();
+    PairTersoffTableOMP::deallocatePreLoops();
   }
 }
 
@@ -112,8 +112,8 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   double evdwl = 0.0;
 
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const auto * _noalias const x = (dbl3_t *) atom->x[0];
+  auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
   const int tid = thr->get_tid();
@@ -502,7 +502,7 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
   } // loop on I
 }
 
-void PairTersoffTableOMP::deallocatePreLoops(void)
+void PairTersoffTableOMP::deallocatePreLoops()
 {
     memory->destroy(thrGtetaFunction);
     memory->destroy(thrGtetaFunctionDerived);
@@ -510,7 +510,7 @@ void PairTersoffTableOMP::deallocatePreLoops(void)
     memory->destroy(thrCutoffFunctionDerived);
 }
 
-void PairTersoffTableOMP::allocatePreLoops(void)
+void PairTersoffTableOMP::allocatePreLoops()
 {
   const int nthreads = comm->nthreads;
   memory->create(thrGtetaFunction,nthreads,leadingDimensionInteractionList,leadingDimensionInteractionList,"tersofftable:thrGtetaFunction");

@@ -10,7 +10,9 @@ valgrind --show-leak-kinds=all --track-origins=yes \
    --suppressions=/path/to/lammps/tools/valgrind/OpenMPI.supp \
    --suppressions=/path/to/lammps/tools/valgrind/Python3.supp \
    --suppressions=/path/to/lammps/tools/valgrind/GTest.supp \
+   --suppressions=/path/to/lammps/tools/valgrind/FlexiBLAS.supp \
+   --suppressions=/path/to/lammps/tools/valgrind/readline.supp \
     lmp -in in.melt
 
-Last update: 2020-07-09
+Last update: 2021-08-04
 

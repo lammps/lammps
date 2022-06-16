@@ -29,7 +29,6 @@
 
 #include "error.h"
 
-#include <mpi.h>
 #include <cstring>
 
 namespace ReaxFF {

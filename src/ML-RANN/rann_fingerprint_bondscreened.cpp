@@ -30,6 +30,9 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
  */
 
 #include "rann_fingerprint_bondscreened.h"
+#include "pair_rann.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS::RANN;
 
@@ -75,26 +78,26 @@ bool Fingerprint_bondscreened::parse_values(std::string constant,std::vector<std
   int nwords,l;
   nwords=line1.size();
   if (constant.compare("re")==0) {
-    re = strtod(line1[0].c_str(),NULL);
+    re = strtod(line1[0].c_str(),nullptr);
   }
   else if (constant.compare("rc")==0) {
-    rc = strtod(line1[0].c_str(),NULL);
+    rc = strtod(line1[0].c_str(),nullptr);
   }
   else if (constant.compare("alphak")==0) {
     delete[] alpha_k;
     alpha_k = new double[nwords];
     for (l=0;l<nwords;l++) {
-      alpha_k[l]=strtod(line1[l].c_str(),NULL);
+      alpha_k[l]=strtod(line1[l].c_str(),nullptr);
     }
   }
   else if (constant.compare("dr")==0) {
-    dr = strtod(line1[0].c_str(),NULL);
+    dr = strtod(line1[0].c_str(),nullptr);
   }
   else if (constant.compare("k")==0) {
-    kmax = strtol(line1[0].c_str(),NULL,10);
+    kmax = strtol(line1[0].c_str(),nullptr,10);
   }
   else if (constant.compare("m")==0) {
-    mlength = strtol(line1[0].c_str(),NULL,10);
+    mlength = strtol(line1[0].c_str(),nullptr,10);
   }
   else pair->errorf(FLERR,"Undefined value for bond power");
   if (re!=0.0 && rc!=0.0 && alpha_k[0]!=-1 && dr!=0.0 && mlength!=0 && kmax!=0)return true;
@@ -627,16 +630,16 @@ void Fingerprint_bondscreened::do3bodyfeatureset_doubleneighborloop(double * fea
     if (Bij[jj]==false) {continue;}
     jtype = tn[jj];
     if (jtypes != nelements && jtypes != jtype && ktypes != nelements && ktypes != jtype) {
-    	expr[jj][0]=0;
-    	continue;
+        expr[jj][0]=0;
+        continue;
     }
     delx = xn[jj];
     dely = yn[jj];
     delz = zn[jj];
     rsq = delx*delx + dely*dely + delz*delz;
     if (rsq>rc*rc) {
-    	expr[jj][0]=0;
-    	continue;
+        expr[jj][0]=0;
+        continue;
     }
     double r1 = (rsq*((double)res)*cutinv2);
     int m1 = (int)r1;
@@ -647,8 +650,8 @@ void Fingerprint_bondscreened::do3bodyfeatureset_doubleneighborloop(double * fea
     double *p2 = &expcuttable[(m1+1)*kmax];
     double *p3 = &expcuttable[(m1+2)*kmax];
     for (kk=0;kk<kmax;kk++) {
-    	expr[jj][kk] = p1[kk]+0.5*r1*(p2[kk]-p0[kk]+r1*(2.0*p0[kk]-5.0*p1[kk]+4.0*p2[kk]-p3[kk]+r1*(3.0*(p1[kk]-p2[kk])+p3[kk]-p0[kk])));
-    	expr[jj][kk] *= Sik[jj];
+        expr[jj][kk] = p1[kk]+0.5*r1*(p2[kk]-p0[kk]+r1*(2.0*p0[kk]-5.0*p1[kk]+4.0*p2[kk]-p3[kk]+r1*(3.0*(p1[kk]-p2[kk])+p3[kk]-p0[kk])));
+        expr[jj][kk] *= Sik[jj];
     }
     double* q = &dfctable[m1-1];
     double* r2 = &rinvsqrttable[m1-1];

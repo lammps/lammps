@@ -225,7 +225,7 @@ follows:
   commands in an input script.
 
 - The Force class computes various forces between atoms.  The Pair
-  parent class is for non-bonded or pair-wise forces, which in LAMMPS
+  parent class is for non-bonded or pairwise forces, which in LAMMPS
   also includes many-body forces such as the Tersoff 3-body potential if
   those are computed by walking pairwise neighbor lists.  The Bond,
   Angle, Dihedral, Improper parent classes are styles for bonded
@@ -251,12 +251,6 @@ follows:
 
 - The Timer class logs timing information, output at the end
   of a run.
-
-.. TODO section on "Spatial decomposition and parallel operations"
-..       diagram of 3d processor grid, brick vs. tiled. local vs. ghost
-..       atoms, 6-way communication with pack/unpack functions,
-..       PBC as part of the communication, forward and reverse communication
-..       rendezvous communication, ring communication.
 
 .. TODO section on "Fixes, Computes, and Variables"
 ..      how and when data is computed and provided and how it is

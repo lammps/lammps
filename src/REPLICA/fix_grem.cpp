@@ -76,20 +76,19 @@ FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
   // pass id_temp as 4th arg to pressure constructor
 
   id_press = utils::strdup(std::string(id) + "_press");
-  modify->add_compute(fmt::format("{} all PRESSURE/GREM {}",
-                                  id_press, id_temp));
+  modify->add_compute(fmt::format("{} all PRESSURE/GREM {} {}", id_press, id_temp, id));
 
   // create a new compute ke style
   // id = fix-ID + ke
 
   id_ke = utils::strdup(std::string(id) + "_ke");
-  modify->add_compute(fmt::format("{} all ke",id_temp));
+  modify->add_compute(fmt::format("{} all ke",id_ke));
 
   // create a new compute pe style
   // id = fix-ID + pe
 
   id_pe = utils::strdup(std::string(id) + "_pe");
-  modify->add_compute(fmt::format("{} all pe",id_temp));
+  modify->add_compute(fmt::format("{} all pe",id_pe));
 
   int ifix = modify->find_fix(id_nh);
   if (ifix < 0)
@@ -167,8 +166,8 @@ void FixGrem::init()
     error->all(FLERR,"Fix id for nvt or npt fix does not exist");
   Fix *nh = modify->fix[ifix];
 
-  double *t_start = (double *)nh->extract("t_start",ifix);
-  double *t_stop = (double *)nh->extract("t_stop",ifix);
+  auto t_start = (double *)nh->extract("t_start",ifix);
+  auto t_stop = (double *)nh->extract("t_stop",ifix);
   if ((t_start != nullptr) && (t_stop != nullptr) && (ifix == 0)) {
     tbath = *t_start;
     if (*t_start != *t_stop)
@@ -179,8 +178,8 @@ void FixGrem::init()
   pressref = 0.0;
   if (pressflag) {
     int *p_flag = (int *)nh->extract("p_flag",ifix);
-    double *p_start = (double *) nh->extract("p_start",ifix);
-    double *p_stop = (double *) nh->extract("p_stop",ifix);
+    auto p_start = (double *) nh->extract("p_start",ifix);
+    auto p_stop = (double *) nh->extract("p_stop",ifix);
     if ((p_flag != nullptr) && (p_start != nullptr) && (p_stop != nullptr)
         && (ifix == 1)) {
       ifix = 0;

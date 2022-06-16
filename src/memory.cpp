@@ -16,7 +16,7 @@
 
 #include "error.h"
 
-#if defined(LMP_USER_INTEL) && \
+#if defined(LMP_INTEL) && \
   ((defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)))
 #ifndef LMP_INTEL_NO_TBB
 #define LMP_USE_TBB_ALLOCATOR
@@ -31,7 +31,7 @@
 #endif
 #endif
 
-#if defined(LMP_USER_INTEL) && !defined(LAMMPS_MEMALIGN) && !defined(_WIN32)
+#if defined(LMP_INTEL) && !defined(LAMMPS_MEMALIGN) && !defined(_WIN32)
 #define LAMMPS_MEMALIGN 64
 #endif
 

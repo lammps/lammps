@@ -27,9 +27,9 @@ namespace LAMMPS_NS {
 class FixWallEES : public FixWall {
  public:
   FixWallEES(class LAMMPS *, int, char **);
-  void precompute(int);
-  void init();
-  void wall_particle(int, int, double);
+  void precompute(int) override;
+  void init() override;
+  void wall_particle(int, int, double) override;
 
  private:
   double coeff1[6], coeff2[6], coeff3[6], coeff4[6], coeff5[6], coeff6[6];
@@ -40,12 +40,3 @@ class FixWallEES : public FixWall {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Particle on or inside fix wall surface
-
-Particles must be "exterior" to the wall in order for energy/force to
-be calculated.
-
-*/

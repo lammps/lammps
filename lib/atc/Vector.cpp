@@ -10,7 +10,7 @@ void MultMv(const Matrix<double> &A, const Vector<double> &v, DenseVector<double
   char *ta=t+At;
   int sA[2] = {A.nRows(), A.nCols()};  // sizes of A
   int sV[2] = {v.size(), 1};           // sizes of v
-  
+
   GCK(A, v, sA[!At]!=sV[0], "MultAB<double>: matrix-vector multiply");
   if (c.size() != sA[At])
   {
@@ -25,9 +25,9 @@ void MultMv(const Matrix<double> &A, const Vector<double> &v, DenseVector<double
   double *pa=A.ptr(), *pv=v.ptr(), *pc=c.ptr();
 
 #ifdef COL_STORAGE
-  dgemm_(ta, t, M, N, K, &a, pa, sA, pv, sV, &b, pc, M); 
+  dgemm_(ta, t, M, N, K, &a, pa, sA, pv, sV, &b, pc, M);
 #else
-  dgemm_(t, ta, N, M, K, &a, pv, sV+1, pa, sA+1, &b, pc, N); 
+  dgemm_(t, ta, N, M, K, &a, pv, sV+1, pa, sA+1, &b, pc, N);
 #endif
 }
 

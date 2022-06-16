@@ -30,7 +30,8 @@ using namespace LAMMPS_NS;
 
 ArgInfo::ArgInfo(const std::string &arg, int allowed) : type(NONE), dim(0), index1(-1), index2(-1)
 {
-  if ((arg.size() > 2) && (arg[1] == '_')) {
+  if (((arg.size() > 3) && (arg[1] == '2') && (arg[2] == '_')) ||
+      ((arg.size() > 2) && (arg[1] == '_'))) {
     if ((arg[0] == 'c') && (allowed & COMPUTE))
       type = COMPUTE;
     else if ((arg[0] == 'f') && (allowed & FIX))
@@ -46,10 +47,11 @@ ArgInfo::ArgInfo(const std::string &arg, int allowed) : type(NONE), dim(0), inde
       name = arg;
       return;
     }
+    const int offset = (arg[1] == '_') ? 2 : 3;
 
-    std::size_t has_idx1 = arg.find('[', 2);
+    std::size_t has_idx1 = arg.find('[', offset);
     if (has_idx1 != std::string::npos) {
-      name = arg.substr(2, has_idx1 - 2);
+      name = arg.substr(offset, has_idx1 - offset);
       dim = 1;
 
       std::size_t has_idx2 = arg.find('[', has_idx1 + 1);
@@ -79,7 +81,7 @@ ArgInfo::ArgInfo(const std::string &arg, int allowed) : type(NONE), dim(0), inde
       }
     } else {
       index1 = 0;
-      name = arg.substr(2);
+      name = arg.substr(offset);
     }
   } else {
     index1 = 0;
@@ -101,7 +103,7 @@ ArgInfo::ArgInfo(const std::string &arg, int allowed) : type(NONE), dim(0), inde
 
 char *ArgInfo::copy_name()
 {
-  char *dest = new char[name.size() + 1];
+  auto dest = new char[name.size() + 1];
   strcpy(dest, name.c_str());    // NOLINT
   return dest;
 }

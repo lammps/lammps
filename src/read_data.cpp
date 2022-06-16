@@ -35,10 +35,12 @@
 #include "molecule.h"
 #include "pair.h"
 #include "special.h"
+#include "tokenizer.h"
 #include "update.h"
 
 #include <cctype>
 #include <cstring>
+#include <unordered_set>
 
 using namespace LAMMPS_NS;
 
@@ -49,9 +51,27 @@ static constexpr int DELTA = 4;    // must be 2 or larger
 static constexpr int MAXBODY = 32; // max # of lines in one body
 
 // customize for new sections
-// change when add to header::section_keywords
-static constexpr int NSECTIONS = 25;
 
+static std::unordered_set<std::string> section_keywords = {
+  "Atoms", "Velocities", "Ellipsoids", "Lines", "Triangles", "Bodies",
+  "Bonds", "Angles", "Dihedrals", "Impropers",
+  "Masses", "Pair Coeffs", "PairIJ Coeffs", "Bond Coeffs", "Angle Coeffs",
+  "Dihedral Coeffs", "Improper Coeffs",
+  "BondBond Coeffs", "BondAngle Coeffs", "MiddleBondTorsion Coeffs",
+  "EndBondTorsion Coeffs", "AngleTorsion Coeffs",
+  "AngleAngleTorsion Coeffs", "BondBond13 Coeffs", "AngleAngle Coeffs"
+};
+
+// function to check whether a string is a known data section name
+// made a static class member, so it can be called from other classes
+
+bool ReadData::is_data_section(const std::string &keyword)
+{
+  return section_keywords.count(keyword) > 0;
+}
+
+
+// clang-format off
 enum{NONE,APPEND,VALUE,MERGE};
 
 // pair style suffixes to ignore
@@ -79,11 +99,11 @@ ReadData::ReadData(LAMMPS *lmp) : Command(lmp)
   // pointers to atom styles that store bonus info
 
   nellipsoids = 0;
-  avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
   nlines = 0;
-  avec_line = (AtomVecLine *) atom->style_match("line");
+  avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
   ntris = 0;
-  avec_tri = (AtomVecTri *) atom->style_match("tri");
+  avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
   nbodies = 0;
   avec_body = (AtomVecBody *) atom->style_match("body");
 }
@@ -114,7 +134,7 @@ void ReadData::command(int narg, char **arg)
   if (narg < 1) error->all(FLERR,"Illegal read_data command");
 
   MPI_Barrier(world);
-  double time1 = MPI_Wtime();
+  double time1 = platform::walltime();
 
   // optional args
 
@@ -266,18 +286,19 @@ void ReadData::command(int narg, char **arg)
       if (iarg+4 > narg)
         error->all(FLERR,"Illegal read_data command");
       memory->grow(fix_index,nfix+1,"read_data:fix_index");
-      fix_header = (char **)
-        memory->srealloc(fix_header,(nfix+1)*sizeof(char *),
-                         "read_data:fix_header");
-      fix_section = (char **)
-        memory->srealloc(fix_section,(nfix+1)*sizeof(char *),
-                         "read_data:fix_section");
+      fix_header = (char **) memory->srealloc(fix_header,(nfix+1)*sizeof(char *),
+                                              "read_data:fix_header");
+      fix_section = (char **) memory->srealloc(fix_section,(nfix+1)*sizeof(char *),
+                                               "read_data:fix_section");
+      if (is_data_section(arg[iarg+3]))
+        error->all(FLERR,"Custom data section name {} for fix {} collides with existing "
+                   "data section",arg[iarg+3],arg[iarg+1]);
       fix_index[nfix] = modify->find_fix(arg[iarg+1]);
-      if (fix_index[nfix] < 0)
-        error->all(FLERR,"Fix ID for read_data does not exist");
+      if (fix_index[nfix] < 0) error->all(FLERR,"Fix ID for read_data does not exist");
       if (strcmp(arg[iarg+2],"NULL") == 0) fix_header[nfix] = nullptr;
       else fix_header[nfix] = utils::strdup(arg[iarg+2]);
-      fix_section[nfix] = utils::strdup(arg[iarg+3]);
+      if (strcmp(arg[iarg+3],"NULL") == 0) fix_section[nfix] = utils::strdup(arg[iarg+1]);
+      else fix_section[nfix] = utils::strdup(arg[iarg+3]);
       nfix++;
       iarg += 4;
 
@@ -292,11 +313,9 @@ void ReadData::command(int narg, char **arg)
     error->all(FLERR,"Reading a data file with shrinkwrap boundaries is "
                     "not compatible with a MSM KSpace style");
   if (domain->box_exist && !addflag)
-    error->all(FLERR,"Cannot read_data without add keyword "
-               "after simulation box is defined");
+    error->all(FLERR,"Cannot read_data without add keyword after simulation box is defined");
   if (!domain->box_exist && addflag)
-    error->all(FLERR,"Cannot use read_data add before "
-               "simulation box is defined");
+    error->all(FLERR,"Cannot use read_data add before simulation box is defined");
   if (offsetflag && addflag == NONE)
     error->all(FLERR,"Cannot use read_data offset without add flag");
   if (shiftflag && addflag == NONE)
@@ -308,9 +327,12 @@ void ReadData::command(int narg, char **arg)
 
   // check if data file is available and readable
 
-  if (!utils::file_is_readable(arg[0]))
-    error->all(FLERR,fmt::format("Cannot open file {}: {}",
-                                 arg[0], utils::getsyserror()));
+  if (!platform::file_is_readable(arg[0]))
+    error->all(FLERR,fmt::format("Cannot open file {}: {}", arg[0], utils::getsyserror()));
+
+  // reset so we can warn about reset image flags exactly once per data file
+
+  atom->reset_image_flag[0] = atom->reset_image_flag[1] = atom->reset_image_flag[2] = false;
 
   // first time system initialization
 
@@ -426,7 +448,7 @@ void ReadData::command(int narg, char **arg)
   nlocal_previous = atom->nlocal;
   int firstpass = 1;
 
-  while (1) {
+  while (true) {
 
     // open file on proc 0
 
@@ -509,21 +531,6 @@ void ReadData::command(int narg, char **arg)
 
     while (strlen(keyword)) {
 
-      // if special fix matches, it processes section
-
-      if (nfix) {
-        int i;
-        for (i = 0; i < nfix; i++)
-          if (strcmp(keyword,fix_section[i]) == 0) {
-            if (firstpass) fix(fix_index[i],keyword);
-            else skip_lines(modify->fix[fix_index[i]]->
-                            read_data_skip_lines(keyword));
-            parse_keyword(0);
-            break;
-          }
-        if (i < nfix) continue;
-      }
-
       if (strcmp(keyword,"Atoms") == 0) {
         atomflag = 1;
         if (firstpass) {
@@ -532,6 +539,7 @@ void ReadData::command(int narg, char **arg)
                            "from currently defined atom style");
           atoms();
         } else skip_lines(natoms);
+
       } else if (strcmp(keyword,"Velocities") == 0) {
         if (atomflag == 0)
           error->all(FLERR,"Must read Atoms before Velocities");
@@ -540,52 +548,50 @@ void ReadData::command(int narg, char **arg)
 
       } else if (strcmp(keyword,"Bonds") == 0) {
         topoflag = bondflag = 1;
-        if (nbonds == 0)
-          error->all(FLERR,"Invalid data file section: Bonds");
+        if (nbonds == 0) error->all(FLERR,"Invalid data file section: Bonds");
         if (atomflag == 0) error->all(FLERR,"Must read Atoms before Bonds");
         bonds(firstpass);
+
       } else if (strcmp(keyword,"Angles") == 0) {
         topoflag = angleflag = 1;
-        if (nangles == 0)
-          error->all(FLERR,"Invalid data file section: Angles");
+        if (nangles == 0) error->all(FLERR,"Invalid data file section: Angles");
         if (atomflag == 0) error->all(FLERR,"Must read Atoms before Angles");
         angles(firstpass);
+
       } else if (strcmp(keyword,"Dihedrals") == 0) {
         topoflag = dihedralflag = 1;
-        if (ndihedrals == 0)
-          error->all(FLERR,"Invalid data file section: Dihedrals");
+        if (ndihedrals == 0) error->all(FLERR,"Invalid data file section: Dihedrals");
         if (atomflag == 0) error->all(FLERR,"Must read Atoms before Dihedrals");
         dihedrals(firstpass);
+
       } else if (strcmp(keyword,"Impropers") == 0) {
         topoflag = improperflag = 1;
-        if (nimpropers == 0)
-          error->all(FLERR,"Invalid data file section: Impropers");
+        if (nimpropers == 0) error->all(FLERR,"Invalid data file section: Impropers");
         if (atomflag == 0) error->all(FLERR,"Must read Atoms before Impropers");
         impropers(firstpass);
 
       } else if (strcmp(keyword,"Ellipsoids") == 0) {
         ellipsoidflag = 1;
-        if (!avec_ellipsoid)
-          error->all(FLERR,"Invalid data file section: Ellipsoids");
-        if (atomflag == 0)
-          error->all(FLERR,"Must read Atoms before Ellipsoids");
+        if (!avec_ellipsoid) error->all(FLERR,"Invalid data file section: Ellipsoids");
+        if (atomflag == 0) error->all(FLERR,"Must read Atoms before Ellipsoids");
         if (firstpass)
           bonus(nellipsoids,(AtomVec *) avec_ellipsoid,"ellipsoids");
         else skip_lines(nellipsoids);
+
       } else if (strcmp(keyword,"Lines") == 0) {
         lineflag = 1;
-        if (!avec_line)
-          error->all(FLERR,"Invalid data file section: Lines");
+        if (!avec_line) error->all(FLERR,"Invalid data file section: Lines");
         if (atomflag == 0) error->all(FLERR,"Must read Atoms before Lines");
         if (firstpass) bonus(nlines,(AtomVec *) avec_line,"lines");
         else skip_lines(nlines);
+
       } else if (strcmp(keyword,"Triangles") == 0) {
         triflag = 1;
-        if (!avec_tri)
-          error->all(FLERR,"Invalid data file section: Triangles");
+        if (!avec_tri) error->all(FLERR,"Invalid data file section: Triangles");
         if (atomflag == 0) error->all(FLERR,"Must read Atoms before Triangles");
         if (firstpass) bonus(ntris,(AtomVec *) avec_tri,"triangles");
         else skip_lines(ntris);
+
       } else if (strcmp(keyword,"Bodies") == 0) {
         bodyflag = 1;
         if (!avec_body)
@@ -666,6 +672,7 @@ void ReadData::command(int narg, char **arg)
           error->all(FLERR,"Must define angle_style before BondBond Coeffs");
         if (firstpass) anglecoeffs(1);
         else skip_lines(nangletypes);
+
       } else if (strcmp(keyword,"BondAngle Coeffs") == 0) {
         if (atom->avec->angles_allow == 0)
           error->all(FLERR,"Invalid data file section: BondAngle Coeffs");
@@ -676,46 +683,41 @@ void ReadData::command(int narg, char **arg)
 
       } else if (strcmp(keyword,"MiddleBondTorsion Coeffs") == 0) {
         if (atom->avec->dihedrals_allow == 0)
-          error->all(FLERR,
-                     "Invalid data file section: MiddleBondTorsion Coeffs");
+          error->all(FLERR,"Invalid data file section: MiddleBondTorsion Coeffs");
         if (force->dihedral == nullptr)
-          error->all(FLERR,
-                     "Must define dihedral_style before "
-                     "MiddleBondTorsion Coeffs");
+          error->all(FLERR,"Must define dihedral_style before MiddleBondTorsion Coeffs");
         if (firstpass) dihedralcoeffs(1);
         else skip_lines(ndihedraltypes);
+
       } else if (strcmp(keyword,"EndBondTorsion Coeffs") == 0) {
         if (atom->avec->dihedrals_allow == 0)
           error->all(FLERR,"Invalid data file section: EndBondTorsion Coeffs");
         if (force->dihedral == nullptr)
-          error->all(FLERR,
-                     "Must define dihedral_style before EndBondTorsion Coeffs");
+          error->all(FLERR,"Must define dihedral_style before EndBondTorsion Coeffs");
         if (firstpass) dihedralcoeffs(2);
         else skip_lines(ndihedraltypes);
+
       } else if (strcmp(keyword,"AngleTorsion Coeffs") == 0) {
         if (atom->avec->dihedrals_allow == 0)
           error->all(FLERR,"Invalid data file section: AngleTorsion Coeffs");
         if (force->dihedral == nullptr)
-          error->all(FLERR,
-                     "Must define dihedral_style before AngleTorsion Coeffs");
+          error->all(FLERR,"Must define dihedral_style before AngleTorsion Coeffs");
         if (firstpass) dihedralcoeffs(3);
         else skip_lines(ndihedraltypes);
+
       } else if (strcmp(keyword,"AngleAngleTorsion Coeffs") == 0) {
         if (atom->avec->dihedrals_allow == 0)
-          error->all(FLERR,
-                     "Invalid data file section: AngleAngleTorsion Coeffs");
+          error->all(FLERR,"Invalid data file section: AngleAngleTorsion Coeffs");
         if (force->dihedral == nullptr)
-          error->all(FLERR,
-                     "Must define dihedral_style before "
-                     "AngleAngleTorsion Coeffs");
+          error->all(FLERR,"Must define dihedral_style before AngleAngleTorsion Coeffs");
         if (firstpass) dihedralcoeffs(4);
         else skip_lines(ndihedraltypes);
+
       } else if (strcmp(keyword,"BondBond13 Coeffs") == 0) {
         if (atom->avec->dihedrals_allow == 0)
           error->all(FLERR,"Invalid data file section: BondBond13 Coeffs");
         if (force->dihedral == nullptr)
-          error->all(FLERR,
-                     "Must define dihedral_style before BondBond13 Coeffs");
+          error->all(FLERR,"Must define dihedral_style before BondBond13 Coeffs");
         if (firstpass) dihedralcoeffs(5);
         else skip_lines(ndihedraltypes);
 
@@ -723,13 +725,25 @@ void ReadData::command(int narg, char **arg)
         if (atom->avec->impropers_allow == 0)
           error->all(FLERR,"Invalid data file section: AngleAngle Coeffs");
         if (force->improper == nullptr)
-          error->all(FLERR,
-                     "Must define improper_style before AngleAngle Coeffs");
+          error->all(FLERR,"Must define improper_style before AngleAngle Coeffs");
         if (firstpass) impropercoeffs(1);
         else skip_lines(nimpropertypes);
 
-      } else error->all(FLERR,"Unknown identifier in data file: {}",
-                                          keyword);
+      // if specified fix matches, it processes section
+
+      } else if (nfix) {
+        int i;
+        for (i = 0; i < nfix; i++)
+          if (strcmp(keyword,fix_section[i]) == 0) {
+            if (firstpass) fix(fix_index[i],keyword);
+            else skip_lines(modify->fix[fix_index[i]]->read_data_skip_lines(keyword));
+            parse_keyword(0);
+            break;
+          }
+        if (i == nfix)
+          error->all(FLERR,"Unknown identifier in data file: {}{}", keyword, utils::errorurl(1));
+
+      } else error->all(FLERR,"Unknown identifier in data file: {}{}", keyword, utils::errorurl(1));
 
       parse_keyword(0);
     }
@@ -742,7 +756,7 @@ void ReadData::command(int narg, char **arg)
     // close file
 
     if (me == 0) {
-      if (compressed) pclose(fp);
+      if (compressed) platform::pclose(fp);
       else fclose(fp);
       fp = nullptr;
     }
@@ -854,7 +868,7 @@ void ReadData::command(int narg, char **arg)
 
   if (addflag != NONE) {
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
-    Irregular *irregular = new Irregular(lmp);
+    auto irregular = new Irregular(lmp);
     irregular->migrate_atoms(1);
     delete irregular;
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
@@ -870,7 +884,7 @@ void ReadData::command(int narg, char **arg)
   if (domain->nonperiodic == 2) {
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->reset_box();
-    Irregular *irregular = new Irregular(lmp);
+    auto irregular = new Irregular(lmp);
     irregular->migrate_atoms(1);
     delete irregular;
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
@@ -879,30 +893,34 @@ void ReadData::command(int narg, char **arg)
     bigint nblocal = atom->nlocal;
     MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
     if (natoms != atom->natoms)
-      error->all(FLERR,
-                 "Read_data shrink wrap did not assign all atoms correctly");
+      error->all(FLERR,"Read_data shrink wrap did not assign all atoms correctly");
   }
 
   // restore old styles, when reading with nocoeff flag given
 
   if (coeffflag == 0) {
-    if (force->pair) delete force->pair;
+    delete force->pair;
+    delete[] force->pair_style;
     force->pair = saved_pair;
     force->pair_style = saved_pair_style;
 
-    if (force->bond) delete force->bond;
+    delete force->bond;
+    delete[] force->bond_style;
     force->bond = saved_bond;
     force->bond_style = saved_bond_style;
 
-    if (force->angle) delete force->angle;
+    delete force->angle;
+    delete[] force->angle_style;
     force->angle = saved_angle;
     force->angle_style = saved_angle_style;
 
-    if (force->dihedral) delete force->dihedral;
+    delete force->dihedral;
+    delete[] force->dihedral_style;
     force->dihedral = saved_dihedral;
     force->dihedral_style = saved_dihedral_style;
 
-    if (force->improper) delete force->improper;
+    delete force->improper;
+    delete[] force->improper_style;
     force->improper = saved_improper;
     force->improper_style = saved_improper_style;
 
@@ -915,7 +933,7 @@ void ReadData::command(int narg, char **arg)
   MPI_Barrier(world);
 
   if (comm->me == 0)
-    utils::logmesg(lmp,"  read_data CPU = {:.3f} seconds\n",MPI_Wtime()-time1);
+    utils::logmesg(lmp,"  read_data CPU = {:.3f} seconds\n",platform::walltime()-time1);
 }
 
 /* ----------------------------------------------------------------------
@@ -944,17 +962,6 @@ void ReadData::header(int firstpass)
     atom->nimpropertypes = extra_improper_types;
   }
 
-  // customize for new sections
-
-  const char *section_keywords[NSECTIONS] =
-    {"Atoms","Velocities","Ellipsoids","Lines","Triangles","Bodies",
-     "Bonds","Angles","Dihedrals","Impropers",
-     "Masses","Pair Coeffs","PairIJ Coeffs","Bond Coeffs","Angle Coeffs",
-     "Dihedral Coeffs","Improper Coeffs",
-     "BondBond Coeffs","BondAngle Coeffs","MiddleBondTorsion Coeffs",
-     "EndBondTorsion Coeffs","AngleTorsion Coeffs",
-     "AngleAngleTorsion Coeffs","BondBond13 Coeffs","AngleAngle Coeffs"};
-
   // skip 1st line of file
 
   if (me == 0) {
@@ -962,7 +969,7 @@ void ReadData::header(int firstpass)
     if (eof == nullptr) error->one(FLERR,"Unexpected end of data file");
   }
 
-  while (1) {
+  while (true) {
 
     // read a line and bcast length
 
@@ -1003,119 +1010,80 @@ void ReadData::header(int firstpass)
 
     // search line for header keyword and set corresponding variable
     // customize for new header lines
-    // check for triangles before angles so "triangles" not matched as "angles"
+
     int extra_flag_value = 0;
-    int rv;
+    auto words = utils::split_words(line);
 
     if (utils::strmatch(line,"^\\s*\\d+\\s+atoms\\s")) {
-      rv = sscanf(line,BIGINT_FORMAT,&natoms);
-      if (rv != 1)
-        error->all(FLERR,"Could not parse 'atoms' line in data file header");
+      natoms = utils::bnumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE) atom->natoms = natoms;
       else if (firstpass) atom->natoms += natoms;
 
     } else if (utils::strmatch(line,"^\\s*\\d+\\s+ellipsoids\\s")) {
-      if (!avec_ellipsoid)
-        error->all(FLERR,"No ellipsoids allowed with this atom style");
-      rv = sscanf(line,BIGINT_FORMAT,&nellipsoids);
-      if (rv != 1)
-        error->all(FLERR,"Could not parse 'ellipsoids' line in data file header");
+      if (!avec_ellipsoid) error->all(FLERR,"No ellipsoids allowed with this atom style");
+      nellipsoids = utils::bnumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE) atom->nellipsoids = nellipsoids;
       else if (firstpass) atom->nellipsoids += nellipsoids;
 
     } else if (utils::strmatch(line,"^\\s*\\d+\\s+lines\\s")) {
-      if (!avec_line)
-        error->all(FLERR,"No lines allowed with this atom style");
-      rv =  sscanf(line,BIGINT_FORMAT,&nlines);
-      if (rv != 1)
-        error->all(FLERR,"Could not parse 'lines' line in data file header");
+      if (!avec_line) error->all(FLERR,"No lines allowed with this atom style");
+      nlines = utils::bnumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE) atom->nlines = nlines;
       else if (firstpass) atom->nlines += nlines;
 
     } else if (utils::strmatch(line,"^\\s*\\d+\\s+triangles\\s")) {
-      if (!avec_tri)
-        error->all(FLERR,"No triangles allowed with this atom style");
-      rv = sscanf(line,BIGINT_FORMAT,&ntris);
-      if (rv != 1)
-        error->all(FLERR,"Could not parse 'triangles' line in data file header");
+      if (!avec_tri) error->all(FLERR,"No triangles allowed with this atom style");
+      ntris = utils::bnumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE) atom->ntris = ntris;
       else if (firstpass) atom->ntris += ntris;
 
     } else if (utils::strmatch(line,"^\\s*\\d+\\s+bodies\\s")) {
-      if (!avec_body)
-        error->all(FLERR,"No bodies allowed with this atom style");
-      rv = sscanf(line,BIGINT_FORMAT,&nbodies);
-      if (rv != 1)
-        error->all(FLERR,"Could not parse 'bodies' line in data file header");
+      if (!avec_body) error->all(FLERR,"No bodies allowed with this atom style");
+      nbodies = utils::bnumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE) atom->nbodies = nbodies;
       else if (firstpass) atom->nbodies += nbodies;
 
     } else if (utils::strmatch(line,"^\\s*\\d+\\s+bonds\\s")) {
-      rv = sscanf(line,BIGINT_FORMAT,&nbonds);
-      if (rv != 1)
-        error->all(FLERR,"Could not parse 'bonds' line in data file header");
+      nbonds = utils::bnumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE) atom->nbonds = nbonds;
       else if (firstpass) atom->nbonds += nbonds;
 
     } else if (utils::strmatch(line,"^\\s*\\d+\\s+angles\\s")) {
-      rv = sscanf(line,BIGINT_FORMAT,&nangles);
-      if (rv != 1)
-        error->all(FLERR,"Could not parse 'angles' line in data file header");
+      nangles = utils::bnumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE) atom->nangles = nangles;
       else if (firstpass) atom->nangles += nangles;
 
     } else if (utils::strmatch(line,"^\\s*\\d+\\s+dihedrals\\s")) {
-      rv = sscanf(line,BIGINT_FORMAT,&ndihedrals);
-      if (rv != 1)
-        error->all(FLERR,"Could not parse 'dihedrals' line in data file header");
+      ndihedrals = utils::bnumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE) atom->ndihedrals = ndihedrals;
       else if (firstpass) atom->ndihedrals += ndihedrals;
 
     } else if (utils::strmatch(line,"^\\s*\\d+\\s+impropers\\s")) {
-      rv = sscanf(line,BIGINT_FORMAT,&nimpropers);
-      if (rv != 1)
-        error->all(FLERR,"Could not parse 'impropers' line in data file header");
+      nimpropers = utils::bnumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE) atom->nimpropers = nimpropers;
       else if (firstpass) atom->nimpropers += nimpropers;
 
     // Atom class type settings are only set by first data file
 
     } else if (utils::strmatch(line,"^\\s*\\d+\\s+atom\\s+types\\s")) {
-      rv = sscanf(line,"%d",&ntypes);
-      if (rv != 1)
-        error->all(FLERR,"Could not parse 'atom types' line "
-                   "in data file header");
+      ntypes = utils::inumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE) atom->ntypes = ntypes + extra_atom_types;
 
     } else if (utils::strmatch(line,"\\s*\\d+\\s+bond\\s+types\\s")) {
-      rv = sscanf(line,"%d",&nbondtypes);
-      if (rv != 1)
-        error->all(FLERR,"Could not parse 'bond types' line "
-                   "in data file header");
+      nbondtypes = utils::inumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE) atom->nbondtypes = nbondtypes + extra_bond_types;
 
     } else if (utils::strmatch(line,"^\\s*\\d+\\s+angle\\s+types\\s")) {
-      rv = sscanf(line,"%d",&nangletypes);
-      if (rv != 1)
-        error->all(FLERR,"Could not parse 'angle types' line "
-                   "in data file header");
+      nangletypes = utils::inumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE) atom->nangletypes = nangletypes + extra_angle_types;
 
     } else if (utils::strmatch(line,"^\\s*\\d+\\s+dihedral\\s+types\\s")) {
-      rv = sscanf(line,"%d",&ndihedraltypes);
-      if (rv != 1)
-        error->all(FLERR,"Could not parse 'dihedral types' line "
-                   "in data file header");
-      if (addflag == NONE)
-        atom->ndihedraltypes = ndihedraltypes + extra_dihedral_types;
+      ndihedraltypes = utils::inumeric(FLERR, words[0], false, lmp);
+      if (addflag == NONE) atom->ndihedraltypes = ndihedraltypes + extra_dihedral_types;
 
     } else if (utils::strmatch(line,"^\\s*\\d+\\s+improper\\s+types\\s")) {
-      rv = sscanf(line,"%d",&nimpropertypes);
-      if (rv != 1)
-        error->all(FLERR,"Could not parse 'improper types' line "
-                   "in data file header");
-      if (addflag == NONE)
-        atom->nimpropertypes = nimpropertypes + extra_improper_types;
+      nimpropertypes = utils::inumeric(FLERR, words[0], false, lmp);
+      if (addflag == NONE) atom->nimpropertypes = nimpropertypes + extra_improper_types;
 
     // these settings only used by first data file
     // also, these are obsolescent. we parse them to maintain backward
@@ -1124,45 +1092,41 @@ void ReadData::header(int firstpass)
     // the input and the data file, we use the larger of the two.
 
     } else if (strstr(line,"extra bond per atom")) {
-      if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
+      if (addflag == NONE) extra_flag_value = utils::inumeric(FLERR, words[0], false, lmp);
       atom->extra_bond_per_atom = MAX(atom->extra_bond_per_atom,extra_flag_value);
     } else if (strstr(line,"extra angle per atom")) {
-      if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
+      if (addflag == NONE) extra_flag_value = utils::inumeric(FLERR, words[0], false, lmp);
       atom->extra_angle_per_atom = MAX(atom->extra_angle_per_atom,extra_flag_value);
     } else if (strstr(line,"extra dihedral per atom")) {
-      if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
+      if (addflag == NONE) extra_flag_value = utils::inumeric(FLERR, words[0], false, lmp);
       atom->extra_dihedral_per_atom = MAX(atom->extra_dihedral_per_atom,extra_flag_value);
     } else if (strstr(line,"extra improper per atom")) {
-      if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
+      if (addflag == NONE) extra_flag_value = utils::inumeric(FLERR, words[0], false, lmp);
       atom->extra_improper_per_atom = MAX(atom->extra_improper_per_atom,extra_flag_value);
     } else if (strstr(line,"extra special per atom")) {
-      if (addflag == NONE) sscanf(line,"%d",&extra_flag_value);
+      if (addflag == NONE) extra_flag_value = utils::inumeric(FLERR, words[0], false, lmp);
       force->special_extra = MAX(force->special_extra,extra_flag_value);
 
     // local copy of box info
     // so can treat differently for first vs subsequent data files
 
     } else if (utils::strmatch(line,"^\\s*\\f+\\s+\\f+\\s+xlo\\s+xhi\\s")) {
-      rv = sscanf(line,"%lg %lg",&boxlo[0],&boxhi[0]);
-      if (rv != 2)
-        error->all(FLERR,"Could not parse 'xlo xhi' line in data file header");
+      boxlo[0] = utils::numeric(FLERR, words[0], false, lmp);
+      boxhi[0] = utils::numeric(FLERR, words[1], false, lmp);
 
     } else if (utils::strmatch(line,"^\\s*\\f+\\s+\\f+\\s+ylo\\s+yhi\\s")) {
-      rv = sscanf(line,"%lg %lg",&boxlo[1],&boxhi[1]);
-      if (rv != 2)
-        error->all(FLERR,"Could not parse 'ylo yhi' line in data file header");
+      boxlo[1] = utils::numeric(FLERR, words[0], false, lmp);
+      boxhi[1] = utils::numeric(FLERR, words[1], false, lmp);
 
     } else if (utils::strmatch(line,"^\\s*\\f+\\s+\\f+\\s+zlo\\s+zhi\\s")) {
-      rv = sscanf(line,"%lg %lg",&boxlo[2],&boxhi[2]);
-      if (rv != 2)
-        error->all(FLERR,"Could not parse 'zlo zhi' line in data file header");
+      boxlo[2] = utils::numeric(FLERR, words[0], false, lmp);
+      boxhi[2] = utils::numeric(FLERR, words[1], false, lmp);
 
-    } else if (utils::strmatch(line,"^\\s*\\f+\\s+\\f+\\s+\\f+"
-                               "\\s+xy\\s+xz\\s+yz\\s")) {
+    } else if (utils::strmatch(line,"^\\s*\\f+\\s+\\f+\\s+\\f+\\s+xy\\s+xz\\s+yz\\s")) {
       triclinic = 1;
-      rv = sscanf(line,"%lg %lg %lg",&xy,&xz,&yz);
-      if (rv != 3)
-        error->all(FLERR,"Could not parse 'xy xz yz' line in data file header");
+      xy = utils::numeric(FLERR, words[0], false, lmp);
+      xz = utils::numeric(FLERR, words[1], false, lmp);
+      yz = utils::numeric(FLERR, words[2], false, lmp);
 
     } else break;
   }
@@ -1183,9 +1147,7 @@ void ReadData::header(int firstpass)
   // check that exiting string is a valid section keyword
 
   parse_keyword(1);
-  for (n = 0; n < NSECTIONS; n++)
-    if (strcmp(keyword,section_keywords[n]) == 0) break;
-  if (n == NSECTIONS)
+  if (!is_data_section(keyword))
     error->all(FLERR,"Unknown identifier in data file: {}",keyword);
 
   // error checks on header values
@@ -1237,6 +1199,22 @@ void ReadData::atoms()
     if (eof) error->all(FLERR,"Unexpected end of data file");
     atom->data_atoms(nchunk,buffer,id_offset,mol_offset,toffset,shiftflag,shift);
     nread += nchunk;
+  }
+
+  // warn if we have read data with non-zero image flags for non-periodic boundaries.
+  // we may want to turn this into an error at some point, since this essentially
+  // creates invalid position information that works by accident most of the time.
+
+  if (comm->me == 0) {
+    if (atom->reset_image_flag[0])
+      error->warning(FLERR,"Non-zero imageflag(s) in x direction for "
+                           "non-periodic boundary reset to zero");
+    if (atom->reset_image_flag[1])
+      error->warning(FLERR,"Non-zero imageflag(s) in y direction for "
+                           "non-periodic boundary reset to zero");
+    if (atom->reset_image_flag[2])
+      error->warning(FLERR,"Non-zero imageflag(s) in z direction for "
+                           "non-periodic boundary reset to zero");
   }
 
   // check that all atoms were assigned correctly
@@ -1322,7 +1300,7 @@ void ReadData::bonds(int firstpass)
   int *count = nullptr;
   if (firstpass) {
     memory->create(count,nlocal,"read_data:count");
-    memset(count,0,nlocal*sizeof(int));
+    if (count) memset(count,0,nlocal*sizeof(int));
   }
 
   // read and process bonds
@@ -1396,7 +1374,7 @@ void ReadData::angles(int firstpass)
   int *count = nullptr;
   if (firstpass) {
     memory->create(count,nlocal,"read_data:count");
-    memset(count,0,nlocal*sizeof(int));
+    if (count) memset(count,0,nlocal*sizeof(int));
   }
 
   // read and process angles
@@ -1470,7 +1448,7 @@ void ReadData::dihedrals(int firstpass)
   int *count = nullptr;
   if (firstpass) {
     memory->create(count,nlocal,"read_data:count");
-    memset(count,0,nlocal*sizeof(int));
+    if (count) memset(count,0,nlocal*sizeof(int));
   }
 
   // read and process dihedrals
@@ -1544,7 +1522,7 @@ void ReadData::impropers(int firstpass)
   int *count = nullptr;
   if (firstpass) {
     memory->create(count,nlocal,"read_data:count");
-    memset(count,0,nlocal*sizeof(int));
+    if (count) memset(count,0,nlocal*sizeof(int));
   }
 
   // read and process impropers
@@ -1639,12 +1617,12 @@ void ReadData::bonus(bigint nbonus, AtomVec *ptr, const char *type)
    read all body data
    variable amount of info per body, described by ninteger and ndouble
    to find atoms, must build atom map if not a molecular system
-   if not firstpass, just read past data, but no processing of data
+   if not firstpass, just read past body data and only process body header
 ------------------------------------------------------------------------- */
 
 void ReadData::bodies(int firstpass, AtomVec *ptr)
 {
-  int m,nchunk,nline,nmax,ninteger,ndouble,nword,ncount,onebody,tmp,rv;
+  int m,nchunk,nline,nmax,ninteger,ndouble,nword,ncount,onebody;
   char *eof;
 
   int mapflag = 0;
@@ -1658,11 +1636,11 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
   // nchunk = actual # read
 
   bigint nread = 0;
-  bigint natoms = nbodies;
+  bigint nblocks = nbodies;
 
-  while (nread < natoms) {
-    if (natoms-nread > CHUNK) nmax = CHUNK;
-    else nmax = natoms-nread;
+  while (nread < nblocks) {
+    if (nblocks-nread > CHUNK) nmax = CHUNK;
+    else nmax = nblocks-nread;
 
     if (me == 0) {
       nchunk = 0;
@@ -1671,11 +1649,25 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
 
       while (nchunk < nmax && nline <= CHUNK-MAXBODY) {
         eof = utils::fgets_trunc(&buffer[m],MAXLINE,fp);
+        const char *buf = &buffer[m];
         if (eof == nullptr) error->one(FLERR,"Unexpected end of data file");
-        rv = sscanf(&buffer[m],"%d %d %d",&tmp,&ninteger,&ndouble);
-        if (rv != 3)
-          error->one(FLERR,"Incorrect format in Bodies section of data file");
-        m += strlen(&buffer[m]);
+        try {
+          auto values = ValueTokenizer(utils::trim_comment(buf));
+          tagint tagdata = values.next_tagint() + id_offset;
+          ninteger = values.next_int();
+          ndouble = values.next_double();
+          if (tagdata <= 0 || tagdata > atom->map_tag_max)
+            throw TokenizerException("Invalid atom ID in body header", utils::trim(buf));
+          if (ninteger < 0)
+            throw TokenizerException("Invalid number of integers", utils::trim(buf));
+          if (ndouble < 0)
+            throw TokenizerException("Invalid number of doubles", utils::trim(buf));
+          if (values.has_next())
+            throw TokenizerException("Too many tokens in body header", utils::trim(buf));
+        } catch (TokenizerException &e) {
+          error->one(FLERR,std::string(e.what()) + " while reading Bodies section of data file");
+        }
+        m += strlen(buf);
 
         // read lines one at a time into buffer and count words
         // count to ninteger and ndouble until have enough lines
@@ -1711,8 +1703,7 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
           error->one(FLERR,"Too many values in body lines in data file");
 
         if (onebody+1 > MAXBODY)
-          error->one(FLERR,
-                     "Too many lines in one body in data file - boost MAXBODY");
+          error->one(FLERR,"Too many lines in one body in data file - boost MAXBODY");
 
         nchunk++;
         nline += onebody+1;
@@ -1736,7 +1727,7 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
   }
 
   if (me == 0 && firstpass)
-    utils::logmesg(lmp,"  {} bodies\n",natoms);
+    utils::logmesg(lmp,"  {} bodies\n",nblocks);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1744,7 +1735,7 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
 void ReadData::mass()
 {
   char *next;
-  char *buf = new char[ntypes*MAXLINE];
+  auto buf = new char[ntypes*MAXLINE];
 
   int eof = utils::read_lines_from_file(fp,ntypes,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
@@ -1764,7 +1755,7 @@ void ReadData::mass()
 void ReadData::paircoeffs()
 {
   char *next;
-  char *buf = new char[ntypes*MAXLINE];
+  auto buf = new char[ntypes*MAXLINE];
 
   int eof = utils::read_lines_from_file(fp,ntypes,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
@@ -1790,7 +1781,7 @@ void ReadData::pairIJcoeffs()
   char *next;
 
   int nsq = ntypes * (ntypes+1) / 2;
-  char *buf = new char[nsq * MAXLINE];
+  auto buf = new char[nsq * MAXLINE];
 
   int eof = utils::read_lines_from_file(fp,nsq,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
@@ -1816,7 +1807,7 @@ void ReadData::bondcoeffs()
   if (!nbondtypes) return;
 
   char *next;
-  char *buf = new char[nbondtypes*MAXLINE];
+  auto buf = new char[nbondtypes*MAXLINE];
 
   int eof = utils::read_lines_from_file(fp,nbondtypes,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
@@ -1841,7 +1832,7 @@ void ReadData::anglecoeffs(int which)
   if (!nangletypes) return;
 
   char *next;
-  char *buf = new char[nangletypes*MAXLINE];
+  auto buf = new char[nangletypes*MAXLINE];
 
   int eof = utils::read_lines_from_file(fp,nangletypes,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
@@ -1867,7 +1858,7 @@ void ReadData::dihedralcoeffs(int which)
   if (!ndihedraltypes) return;
 
   char *next;
-  char *buf = new char[ndihedraltypes*MAXLINE];
+  auto buf = new char[ndihedraltypes*MAXLINE];
 
   int eof = utils::read_lines_from_file(fp,ndihedraltypes,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
@@ -1897,7 +1888,7 @@ void ReadData::impropercoeffs(int which)
   if (!nimpropertypes) return;
 
   char *next;
-  char *buf = new char[nimpropertypes*MAXLINE];
+  auto buf = new char[nimpropertypes*MAXLINE];
 
   int eof = utils::read_lines_from_file(fp,nimpropertypes,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
@@ -1952,34 +1943,20 @@ int ReadData::reallocate(int **pcount, int cmax, int amax)
 
 /* ----------------------------------------------------------------------
    proc 0 opens data file
-   test if gzipped
+   test if compressed
 ------------------------------------------------------------------------- */
 
-void ReadData::open(char *file)
+void ReadData::open(const std::string &file)
 {
-  if (utils::strmatch(file,"\\.gz$")) {
+  if (platform::has_compress_extension(file)) {
     compressed = 1;
-
-#ifdef LAMMPS_GZIP
-    auto gunzip = fmt::format("gzip -c -d {}",file);
-
-#ifdef _WIN32
-    fp = _popen(gunzip.c_str(),"rb");
-#else
-    fp = popen(gunzip.c_str(),"r");
-#endif
-
-#else
-    error->one(FLERR,"Cannot open gzipped file without gzip support");
-#endif
+    fp = platform::compressed_read(file);
+    if (!fp) error->one(FLERR,"Cannot open compressed file {}", file);
   } else {
     compressed = 0;
-    fp = fopen(file,"r");
+    fp = fopen(file.c_str(),"r");
+    if (!fp) error->one(FLERR,"Cannot open file {}: {}", file, utils::getsyserror());
   }
-
-  if (fp == nullptr)
-    error->one(FLERR,"Cannot open file {}: {}",
-                                 file, utils::getsyserror());
 }
 
 /* ----------------------------------------------------------------------

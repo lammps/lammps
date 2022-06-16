@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -28,10 +27,10 @@ PairStyle(mgpt,PairMGPT);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_MGPT_H
 #define LMP_PAIR_MGPT_H
 
-#include <cstdlib>
 #include <cassert>
 
 #include "pair.h"
@@ -147,7 +146,7 @@ public:
 
       table = new Link *[size];
       for(int i = 0; i<size; i++)
-        table[i] = 0;
+        table[i] = nullptr;
 
       /* Counters for statistics */
       maxlength = 0;
@@ -158,7 +157,7 @@ public:
     ~Hash() {
       for(int i = 0; i<size; i++) {
         Link *p = table[i];
-        while(p != 0) {
+        while(p != nullptr) {
           Link *q = p->next;
         delete p;
         p = q;
@@ -189,9 +188,9 @@ public:
         return &table[idx]->data;
       } else { /* This is for threading... and incomplete */
         typedef Link *LinkPtr;
-        LinkPtr ptr = table[idx],last = 0,dataptr = new Link(key,0);
+        LinkPtr ptr = table[idx],last = nullptr,dataptr = new Link(key,nullptr);
 
-        while(ptr != 0) {
+        while(ptr != nullptr) {
           last = ptr;
           ptr = ptr->next;
         }
@@ -242,7 +241,7 @@ public:
 
 
       p = table[idx];
-      while(p != 0 && !(p->key == key)) {
+      while(p != nullptr && !(p->key == key)) {
         p = p->next;
         count = count + 1;
       }
@@ -252,21 +251,21 @@ public:
       nsearch = nsearch + 1;
       nstep = nstep + count;
 
-      if(p != 0) p->hits++;
+      if(p != nullptr) p->hits++;
 
-      return (p == 0) ? 0 : &p->data;
+      return (p == nullptr) ? nullptr : &p->data;
     }
   };
 
  public:
   PairMGPT(class LAMMPS *);
-  ~PairMGPT();
-  void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  void init_list(int, class NeighList *);
-  double init_one(int, int);
+  ~PairMGPT() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  void init_list(int, class NeighList *) override;
+  double init_one(int, int) override;
 
  private:
 
@@ -470,8 +469,8 @@ public:
     return 0;
   }
   double get_weight(const int triclinic,
-                    const double a[3] = 0,const double b[3] = 0,
-                    const double c[3] = 0,const double d[3] = 0) {
+                    const double a[3] = nullptr,const double b[3] = nullptr,
+                    const double c[3] = nullptr,const double d[3] = nullptr) {
     const double
       *s0 = triclinic ? domain->sublo_lamda : domain->sublo,
       *s1 = triclinic ? domain->subhi_lamda : domain->subhi;
@@ -480,10 +479,10 @@ public:
 
     for(int p = 0; p<3; p++) {
       double cog = 0.0,q,w,n = 0.0;
-      if(a != 0) { cog = cog + a[p]; n = n + 1; }
-      if(b != 0) { cog = cog + b[p]; n = n + 1; }
-      if(c != 0) { cog = cog + c[p]; n = n + 1; }
-      if(d != 0) { cog = cog + d[p]; n = n + 1; }
+      if(a != nullptr) { cog = cog + a[p]; n = n + 1; }
+      if(b != nullptr) { cog = cog + b[p]; n = n + 1; }
+      if(c != nullptr) { cog = cog + c[p]; n = n + 1; }
+      if(d != nullptr) { cog = cog + d[p]; n = n + 1; }
       cog = cog * (1.0/n);
 
       if(cog < 0.5*(s0[p]+s1[p])) q = cog - s0[p];

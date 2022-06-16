@@ -22,6 +22,7 @@
 #include "utils.h"
 
 #include <cstring>
+#include <utility>
 
 using namespace LAMMPS_NS;
 
@@ -41,8 +42,9 @@ using namespace LAMMPS_NS;
  * \param  filetype  Description of file type for error messages */
 
 TextFileReader::TextFileReader(const std::string &filename, const std::string &filetype) :
-    filetype(filetype), closefp(true), ignore_comments(true)
+    filetype(filetype), closefp(true), line(nullptr), ignore_comments(true)
 {
+  set_bufsize(1024);
   fp = fopen(filename.c_str(), "r");
 
   if (fp == nullptr) {
@@ -68,9 +70,10 @@ This function is useful in combination with :cpp:func:`utils::open_potential`.
  * \param  fp        File descriptor of the already opened file
  * \param  filetype  Description of file type for error messages */
 
-TextFileReader::TextFileReader(FILE *fp, const std::string &filetype) :
-    filetype(filetype), closefp(false), fp(fp), ignore_comments(true)
+TextFileReader::TextFileReader(FILE *fp, std::string filetype) :
+    filetype(std::move(filetype)), closefp(false), line(nullptr), fp(fp), ignore_comments(true)
 {
+  set_bufsize(1024);
   if (fp == nullptr) throw FileReaderException("Invalid file descriptor");
 }
 
@@ -79,13 +82,34 @@ TextFileReader::TextFileReader(FILE *fp, const std::string &filetype) :
 TextFileReader::~TextFileReader()
 {
   if (closefp) fclose(fp);
+  delete[] line;
+}
+
+/** adjust line buffer size */
+
+void TextFileReader::set_bufsize(int newsize)
+{
+  if (newsize < 100) {
+    throw FileReaderException(
+        fmt::format("line buffer size {} for {} file too small, must be > 100", newsize, filetype));
+  }
+  delete[] line;
+  bufsize = newsize;
+  line = new char[bufsize];
+}
+
+/** Reset file to the beginning */
+
+void TextFileReader::rewind()
+{
+  ::rewind(fp);
 }
 
 /** Read the next line and ignore it */
 
 void TextFileReader::skip_line()
 {
-  char *ptr = fgets(line, MAXLINE, fp);
+  char *ptr = fgets(line, bufsize, fp);
   if (ptr == nullptr) {
     // EOF
     throw EOFException(fmt::format("Missing line in {} file!", filetype));
@@ -112,7 +136,7 @@ char *TextFileReader::next_line(int nparams)
   int n = 0;
   int nwords = 0;
 
-  char *ptr = fgets(line, MAXLINE, fp);
+  char *ptr = fgets(line, bufsize, fp);
 
   if (ptr == nullptr) {
     // EOF
@@ -126,7 +150,7 @@ char *TextFileReader::next_line(int nparams)
   if (nwords > 0) n = strlen(line);
 
   while (nwords == 0 || nwords < nparams) {
-    ptr = fgets(&line[n], MAXLINE - n, fp);
+    ptr = fgets(&line[n], bufsize - n, fp);
 
     if (ptr == nullptr) {
       // EOF
@@ -173,7 +197,7 @@ void TextFileReader::next_dvector(double *list, int n)
     }
 
     ValueTokenizer values(line);
-    while (values.has_next()) { list[i++] = values.next_double(); }
+    while (values.has_next() && i < n) { list[i++] = values.next_double(); }
   }
 }
 
@@ -191,5 +215,5 @@ ValueTokenizer TextFileReader::next_values(int nparams, const std::string &separ
 {
   char *ptr = next_line(nparams);
   if (ptr == nullptr) throw EOFException(fmt::format("Missing line in {} file!", filetype));
-  return ValueTokenizer(line, separators);
+  return {line, separators};
 }

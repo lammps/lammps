@@ -1,6 +1,4 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
-
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -21,6 +19,7 @@ PairStyle(eam/kk/host,PairEAMKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_EAM_KOKKOS_H
 #define LMP_PAIR_EAM_KOKKOS_H
 
@@ -57,10 +56,9 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   typedef EV_FLOAT value_type;
 
   PairEAMKokkos(class LAMMPS *);
-  virtual ~PairEAMKokkos();
-  void compute(int, int);
-  void init_style();
-  void *extract(const char *, int &) { return nullptr; }
+  ~PairEAMKokkos() override;
+  void compute(int, int) override;
+  void init_style() override;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMPackForwardComm, const int&) const;
@@ -106,12 +104,12 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
                   const F_FLOAT &dely, const F_FLOAT &delz) const;
 
   int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
-                       int, int *);
-  void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
+                       int, int *) override;
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
 
  protected:
   typename AT::t_x_array x;
@@ -121,18 +119,27 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;
-  typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
-  typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
+  typename AT::t_efloat_1d d_eatom;
+  typename AT::t_virial_array d_vatom;
 
   int need_dup;
-  Kokkos::Experimental::ScatterView<F_FLOAT*, typename DAT::t_ffloat_1d::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_rho;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_f;
-  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_eatom;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_vatom;
-  Kokkos::Experimental::ScatterView<F_FLOAT*, typename DAT::t_ffloat_1d::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_rho;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_f;
-  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_eatom;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_vatom;
+
+  using KKDeviceType = typename KKDevice<DeviceType>::value;
+
+  template<typename DataType, typename Layout>
+  using DupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterDuplicated>;
+
+  template<typename DataType, typename Layout>
+  using NonDupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterNonDuplicated>;
+
+  DupScatterView<F_FLOAT*, typename DAT::t_ffloat_1d::array_layout> dup_rho;
+  DupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> dup_f;
+  DupScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout> dup_eatom;
+  DupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> dup_vatom;
+  NonDupScatterView<F_FLOAT*, typename DAT::t_ffloat_1d::array_layout> ndup_rho;
+  NonDupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> ndup_f;
+  NonDupScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout> ndup_eatom;
+  NonDupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> ndup_vatom;
 
   DAT::tdual_ffloat_1d k_rho;
   DAT::tdual_ffloat_1d k_fp;
@@ -153,20 +160,17 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   t_ffloat_2d_n7 d_rhor_spline;
   t_ffloat_2d_n7 d_z2r_spline;
   void interpolate(int, double, double *, t_host_ffloat_2d_n7, int);
-
-  void file2array();
-  void array2spline();
+  void file2array() override;
+  void array2spline() override;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d d_ilist;
   typename AT::t_int_1d d_numneigh;
-  //NeighListKokkos<DeviceType> k_list;
 
   int iswap;
   int first;
   typename AT::t_int_2d d_sendlist;
   typename AT::t_xfloat_1d_um v_buf;
-
 
   int neighflag,newton_pair;
   int nlocal,nall,eflag,vflag;
@@ -175,14 +179,6 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
 };
 
 }
-
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Cannot use chosen neighbor list style with pair eam/kk
-
-That style is not supported by Kokkos.
-
-*/

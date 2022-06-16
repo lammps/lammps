@@ -43,12 +43,6 @@ PairLJCharmmCoulCharmmIntel::PairLJCharmmCoulCharmmIntel(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCharmmCoulCharmmIntel::~PairLJCharmmCoulCharmmIntel()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void PairLJCharmmCoulCharmmIntel::compute(int eflag, int vflag)
 {
   if (fix->precision()==FixIntel::PREC_MODE_MIXED)
@@ -145,7 +139,7 @@ void PairLJCharmmCoulCharmmIntel::eval(const int offload, const int vflag,
 
   const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
-  const int ** _noalias const firstneigh = (const int **)list->firstneigh;
+  const int ** _noalias const firstneigh = (const int **)list->firstneigh;  // NOLINT
 
   const flt_t * _noalias const special_coul = fc.special_coul;
   const flt_t * _noalias const special_lj = fc.special_lj;
@@ -448,7 +442,7 @@ void PairLJCharmmCoulCharmmIntel::eval(const int offload, const int vflag,
   if (EFLAG || vflag)
     fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
   else
-    fix->add_result_array(f_start, 0, offload);
+    fix->add_result_array(f_start, nullptr, offload);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -456,19 +450,11 @@ void PairLJCharmmCoulCharmmIntel::eval(const int offload, const int vflag,
 void PairLJCharmmCoulCharmmIntel::init_style()
 {
   PairLJCharmmCoulCharmm::init_style();
-  auto request = neighbor->find_request(this);
+  if (force->newton_pair == 0)
+    neighbor->find_request(this)->enable_full();
 
-  if (force->newton_pair == 0) {
-    request->half = 0;
-    request->full = 1;
-  }
-  request->intel = 1;
-
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   fix->pair_init_check();
   #ifdef _LMP_INTEL_OFFLOAD
@@ -559,6 +545,7 @@ void PairLJCharmmCoulCharmmIntel::pack_force_const(ForceConst<flt_t> &fc,
 template <class flt_t>
 void PairLJCharmmCoulCharmmIntel::ForceConst<flt_t>::set_ntypes(
   const int ntypes, Memory *memory, const int cop) {
+  if (memory != nullptr) _memory = memory;
   if (ntypes != _ntypes) {
     if (_ntypes > 0) {
       #ifdef _LMP_INTEL_OFFLOAD
@@ -579,8 +566,8 @@ void PairLJCharmmCoulCharmmIntel::ForceConst<flt_t>::set_ntypes(
     }
     if (ntypes > 0) {
       _cop = cop;
-      memory->create(cutsq,ntypes,ntypes,"fc.cutsq");
-      memory->create(lj,ntypes,ntypes,"fc.lj");
+      _memory->create(cutsq,ntypes,ntypes,"fc.cutsq");
+      _memory->create(lj,ntypes,ntypes,"fc.lj");
 
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * ospecial_lj = special_lj;
@@ -599,5 +586,4 @@ void PairLJCharmmCoulCharmmIntel::ForceConst<flt_t>::set_ntypes(
     }
   }
   _ntypes=ntypes;
-  _memory=memory;
 }

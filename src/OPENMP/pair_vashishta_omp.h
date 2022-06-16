@@ -34,8 +34,8 @@ class PairVashishtaOMP : public PairVashishta, public ThrOMP {
  public:
   PairVashishtaOMP(class LAMMPS *);
 
-  virtual void compute(int, int);
-  virtual double memory_usage();
+  void compute(int, int) override;
+  double memory_usage() override;
 
  private:
   template <int EVFLAG, int EFLAG> void eval(int ifrom, int ito, ThrData *const thr);

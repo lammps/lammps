@@ -36,13 +36,11 @@ You can browse the class hierarchy or the list of source files.
 #define COLVARS_OK 0
 #define COLVARS_ERROR   1
 #define COLVARS_NOT_IMPLEMENTED (1<<1)
-#define INPUT_ERROR     (1<<2) // out of bounds or inconsistent input
-#define BUG_ERROR       (1<<3) // Inconsistent state indicating bug
-#define FILE_ERROR      (1<<4)
-#define MEMORY_ERROR    (1<<5)
-#define FATAL_ERROR     (1<<6) // Should be set, or not, together with other bits
-//#define DELETE_COLVARS  (1<<7) // Instruct the caller to delete cvm
-#define COLVARS_NO_SUCH_FRAME (1<<8) // Cannot load the requested frame
+#define COLVARS_INPUT_ERROR     (1<<2) // out of bounds or inconsistent input
+#define COLVARS_BUG_ERROR       (1<<3) // Inconsistent state indicating bug
+#define COLVARS_FILE_ERROR      (1<<4)
+#define COLVARS_MEMORY_ERROR    (1<<5)
+#define COLVARS_NO_SUCH_FRAME (1<<6) // Cannot load the requested frame
 
 #include <iostream>
 #include <iomanip>
@@ -80,6 +78,12 @@ private:
   int version_int;
 
 public:
+
+  /// Get the version string (YYYY-MM-DD format)
+  std::string version() const
+  {
+    return std::string(COLVARS_VERSION);
+  }
 
   /// Get the version number (higher = more recent)
   int version_number() const
@@ -151,6 +155,12 @@ public:
   }
 
   /// Reimplemented to work around MS compiler issues
+  static inline real asin(real const &x)
+  {
+    return ::asin(static_cast<double>(x));
+  }
+
+  /// Reimplemented to work around MS compiler issues
   static inline real acos(real const &x)
   {
     return ::acos(static_cast<double>(x));
@@ -176,13 +186,13 @@ public:
     return ::log(static_cast<double>(x));
   }
 
-
+  // Forward declarations
   class rvector;
   template <class T> class vector1d;
   template <class T> class matrix2d;
   class quaternion;
   class rotation;
-
+  class usage;
 
   /// Residue identifier
   typedef int residue_id;
@@ -310,6 +320,9 @@ public:
 
 private:
 
+  /// Pointer to a map counting how many biases of each type were used
+  void *num_biases_types_used_;
+
   /// Array of active collective variable biases
   std::vector<colvarbias *> biases_active_;
 
@@ -324,10 +337,11 @@ public:
     return COLVARS_DEBUG;
   }
 
-  /// \brief How many objects are configured yet?
+  /// How many objects (variables and biases) are configured yet?
   size_t size() const;
 
-  /// \brief Constructor
+  /// Constructor
+  /// \param Pointer to instance of the proxy class (communicate with engine)
   colvarmodule(colvarproxy *proxy);
 
   /// Destructor
@@ -362,6 +376,9 @@ public:
   /// Parse and initialize collective variables
   int parse_colvars(std::string const &conf);
 
+  /// Run provided Tcl script
+  int run_tcl_script(std::string const &filename);
+
   /// Parse and initialize collective variable biases
   int parse_biases(std::string const &conf);
 
@@ -389,6 +406,9 @@ private:
   /// Test error condition and keyword parsing
   /// on error, delete new bias
   bool check_new_bias(std::string &conf, char const *key);
+
+  /// Initialization Tcl script, user-provided
+  std::string source_Tcl_script;
 
 public:
 
@@ -626,13 +646,16 @@ public:
   /// Request calculation of total force from MD engine
   static void request_total_force();
 
+  /// Track usage of the given Colvars feature
+  int cite_feature(std::string const &feature);
+
+  /// Report usage of the Colvars features
+  std::string feature_report(int flag = 0);
+
   /// Print a message to the main log
   /// \param message Message to print
   /// \param min_log_level Only print if cvm::log_level() >= min_log_level
   static void log(std::string const &message, int min_log_level = 10);
-
-  /// Print a message to the main log and exit with error code
-  static int fatal_error(std::string const &message);
 
   /// Print a message to the main log and set global error code
   static int error(std::string const &message, int code = COLVARS_ERROR);
@@ -684,6 +707,9 @@ public:
   /// correctly
   static rvector position_distance(atom_pos const &pos1,
                                    atom_pos const &pos2);
+
+  /// \brief Names of .ndx files that have been loaded
+  std::vector<std::string> index_file_names;
 
   /// \brief Names of groups from one or more Gromacs .ndx files
   std::vector<std::string> index_group_names;
@@ -758,7 +784,11 @@ protected:
   /// Write labels at the next iteration
   bool cv_traj_write_labels;
 
-private:
+  /// Version of the most recent state file read
+  std::string restart_version_str;
+
+  /// Integer version of the most recent state file read
+  int restart_version_int;
 
   /// Counter for the current depth in the object hierarchy (useg e.g. in output)
   size_t depth_s;
@@ -769,7 +799,22 @@ private:
   /// Track how many times the XYZ reader has been used
   int xyz_reader_use_count;
 
+  /// Track usage of Colvars features
+  usage *usage_;
+
 public:
+
+  /// Version of the most recent state file read
+  inline std::string restart_version() const
+  {
+    return restart_version_str;
+  }
+
+  /// Integer version of the most recent state file read
+  inline int restart_version_number() const
+  {
+    return restart_version_int;
+  }
 
   /// Get the current object depth in the hierarchy
   static size_t & depth();

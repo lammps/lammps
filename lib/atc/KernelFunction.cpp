@@ -11,12 +11,12 @@ using namespace ATC_Utility;
 
 static const double tol = 1.0e-8;
 
-static const int line_ngauss = 10; 
+static const int line_ngauss = 10;
 static double line_xg[line_ngauss], line_wg[line_ngauss];
 
 namespace ATC {
 
-  
+
   //========================================================================
   //  KernelFunctionMgr
   //========================================================================
@@ -36,10 +36,10 @@ namespace ATC {
   //------------------------------------------------------------------------
   KernelFunction* KernelFunctionMgr::function(char ** arg, int narg)
   {
-    /*! \page man_kernel_function fix_modify AtC kernel 
+    /*! \page man_kernel_function fix_modify AtC kernel
       \section syntax
       fix_modify AtC kernel <type> <parameters>
-      - type (keyword) = step, cell, cubic_bar, cubic_cylinder, cubic_sphere, 
+      - type (keyword) = step, cell, cubic_bar, cubic_cylinder, cubic_sphere,
                          quartic_bar, quartic_cylinder, quartic_sphere \n
       - parameters :\n
       step = radius (double) \n
@@ -54,7 +54,7 @@ namespace ATC {
       fix_modify AtC kernel cell 1.0 1.0 1.0
       fix_modify AtC kernel quartic_sphere 10.0
       \section description
-      
+
       \section restrictions
       Must be used with the hardy AtC fix \n
       For bar kernel types, half-width oriented along x-direction \n
@@ -80,11 +80,11 @@ namespace ATC {
       ptr = new KernelFunctionCell(2,parameters);
     }
     else if (strcmp(type,"cubic_bar")==0) {
-      double parameters[1] = {atof(arg[argIdx])}; // cutoff half-length 
+      double parameters[1] = {atof(arg[argIdx])}; // cutoff half-length
       ptr = new KernelFunctionCubicBar(1,parameters);
     }
     else if (strcmp(type,"linear_bar")==0) {
-      double parameters[1] = {atof(arg[argIdx])}; // cutoff half-length 
+      double parameters[1] = {atof(arg[argIdx])}; // cutoff half-length
       ptr = new KernelFunctionLinearBar(1,parameters);
     }
     else if (strcmp(type,"cubic_cylinder")==0) {
@@ -96,7 +96,7 @@ namespace ATC {
       ptr = new KernelFunctionCubicSphere(1,parameters);
     }
     else if (strcmp(type,"quartic_bar")==0) {
-      double parameters[1] = {atof(arg[argIdx])}; // cutoff half-length 
+      double parameters[1] = {atof(arg[argIdx])}; // cutoff half-length
       ptr = new KernelFunctionQuarticBar(1,parameters);
     }
     else if (strcmp(type,"quartic_cylinder")==0) {
@@ -126,7 +126,7 @@ namespace ATC {
   KernelFunction::KernelFunction(int /* nparameters */, double* parameters):
     Rc_(0),invRc_(0),nsd_(3),
     lammpsInterface_(LammpsInterface::instance())
-  { 
+  {
     Rc_ = parameters[0];
     invRc_ = 1.0/Rc_;
     Rc_ = parameters[0];
@@ -142,8 +142,8 @@ namespace ATC {
                                      box_bounds[0][1],box_bounds[1][1],
                                      box_bounds[0][2],box_bounds[1][2]);
     for (int k = 0; k < 3; k++) {
-      box_length[k] = box_bounds[1][k] - box_bounds[0][k]; 
-    } 
+      box_length[k] = box_bounds[1][k] - box_bounds[0][k];
+    }
   }
 
   // does an input node's kernel intersect bonds on this processor
@@ -160,7 +160,7 @@ namespace ATC {
       if (i < nsd_) {
         kernel_bounds[0][i] -= (Rc_+lammpsInterface_->pair_cutoff());
         kernel_bounds[1][i] += (Rc_+lammpsInterface_->pair_cutoff());
-        contributes = contributes && (node(i) >= kernel_bounds[0][i]) 
+        contributes = contributes && (node(i) >= kernel_bounds[0][i])
                                   && (node(i) <  kernel_bounds[1][i]);
         if (periodicity[i]) {
           if (node[i] <= box_bounds[0][i] + box_length[i]/2) {
@@ -168,8 +168,8 @@ namespace ATC {
           } else {
             ghostNode[i] -= box_length[i];
           }
-          ghostContributes = ghostContributes 
-                          && ((ghostNode(i) >= kernel_bounds[0][i]) || 
+          ghostContributes = ghostContributes
+                          && ((ghostNode(i) >= kernel_bounds[0][i]) ||
                                    (node(i) >= kernel_bounds[0][i]))
                           && ((ghostNode(i) <  kernel_bounds[1][i]) ||
                                    (node(i) <  kernel_bounds[1][i]));
@@ -202,12 +202,12 @@ namespace ATC {
     return 0.5*(lam2-lam1)*bhsum;
   }
 
-  // localization-volume intercepts for bond calculation 
+  // localization-volume intercepts for bond calculation
   // bond intercept values assuming spherical support
   void KernelFunction::bond_intercepts(DENS_VEC& xa,
                  DENS_VEC& xb, double &lam1, double &lam2) const
   {
-    if (nsd_ == 2) {// for cylinders, axis is always z! 
+    if (nsd_ == 2) {// for cylinders, axis is always z!
       const int iaxis = 2;
       xa[iaxis] = 0.0;
       xb[iaxis] = 0.0;
@@ -223,8 +223,8 @@ namespace ATC {
     bool a_in = (ra_n <= 1.0);
     bool b_in = (rb_n <= 1.0);
     if (a_in && b_in) {
-      lam1 = 0.0; 
-      lam2 = 1.0; 
+      lam1 = 0.0;
+      lam2 = 1.0;
       return;
     }
     DENS_VEC xab = xa - xb;
@@ -240,7 +240,7 @@ namespace ATC {
       double aux = -0.5*(b-sqrt(discrim));
       s1 = c/aux;
       s2 = aux/a;
-    } 
+    }
     else {
       double aux = -0.5*(b+sqrt(discrim));
       s1 = aux/a;
@@ -249,15 +249,15 @@ namespace ATC {
     if (a_in && !b_in) {
       lam1 = s1;
       lam2 = 1.0;
-    } 
-    else if (!a_in && b_in) { 
+    }
+    else if (!a_in && b_in) {
       lam1 = 0.0;
-      lam2 = s2; 
+      lam2 = s2;
     }
     else {
-      if (s1 >= 0.0 && s2 <= 1.0) { 
-        lam1 = s1; 
-        lam2 = s2; 
+      if (s1 >= 0.0 && s2 <= 1.0) {
+        lam1 = s1;
+        lam2 = s2;
       }
     }
   }
@@ -265,8 +265,8 @@ namespace ATC {
   //------------------------------------------------------------------------
   // constructor
   KernelFunctionStep::KernelFunctionStep
-    (int nparameters, double* parameters): 
-    KernelFunction(nparameters, parameters) 
+    (int nparameters, double* parameters):
+    KernelFunction(nparameters, parameters)
   {
     for (int k = 0; k < nsd_; k++ ) {
       if ((bool) periodicity[k]) {
@@ -274,7 +274,7 @@ namespace ATC {
           throw ATC_Error("Size of localization volume is too large for periodic boundary condition");
         }
       }
-    } 
+    }
   }
 
   // function value
@@ -284,7 +284,7 @@ namespace ATC {
     if (rn <= 1.0) { return 1.0; }
     else           { return 0.0; }
   }
-  
+
   // function derivative value
   void KernelFunctionStep::derivative(const DENS_VEC& /* x_atom */, DENS_VEC& deriv) const
   {
@@ -295,8 +295,8 @@ namespace ATC {
   /** a step with rectangular support suitable for a rectangular grid */
   // constructor
   KernelFunctionCell::KernelFunctionCell
-    (int nparameters, double* parameters): 
-    KernelFunction(nparameters, parameters) 
+    (int nparameters, double* parameters):
+    KernelFunction(nparameters, parameters)
   {
     hx = parameters[0];
     hy = parameters[1];
@@ -309,7 +309,7 @@ namespace ATC {
     cellBounds_(3) =  hy;
     cellBounds_(4) = -hz;
     cellBounds_(5) =  hz;
-      
+
     for (int k = 0; k < nsd_; k++ ) {
       if ((bool) periodicity[k]) {
         if (parameters[k] > 0.5*box_length[k]) {
@@ -332,9 +332,9 @@ namespace ATC {
     for (int i=0; i<3; ++i) {
       kernel_bounds[0][i] -= (cellBounds_(i*2+1) +
                               lammpsInterface_->pair_cutoff());
-      kernel_bounds[1][i] += (cellBounds_(i*2+1) + 
+      kernel_bounds[1][i] += (cellBounds_(i*2+1) +
                               lammpsInterface_->pair_cutoff());
-      contributes = contributes && (node(i) >= kernel_bounds[0][i]) 
+      contributes = contributes && (node(i) >= kernel_bounds[0][i])
                                 && (node(i) <  kernel_bounds[1][i]);
       if (periodicity[i]) {
         if (node[i] <= box_bounds[0][i] + box_length[i]/2) {
@@ -342,7 +342,7 @@ namespace ATC {
         } else {
           ghostNode[i] -= box_length[i];
         }
-        ghostContributes = ghostContributes 
+        ghostContributes = ghostContributes
                         && ((ghostNode(i) >= kernel_bounds[0][i]) ||
                                  (node(i) >= kernel_bounds[0][i]))
                         && ((ghostNode(i) <  kernel_bounds[1][i]) ||
@@ -367,13 +367,13 @@ namespace ATC {
   // function value
   double KernelFunctionCell::value(DENS_VEC& x_atom) const
   {
-    if ((cellBounds_(0) <= x_atom(0)) && (x_atom(0) < cellBounds_(1)) 
-     && (cellBounds_(2) <= x_atom(1)) && (x_atom(1) < cellBounds_(3)) 
-     && (cellBounds_(4) <= x_atom(2)) && (x_atom(2) < cellBounds_(5))) { 
-      return 1.0; 
-    } 
-    else { 
-      return 0.0; 
+    if ((cellBounds_(0) <= x_atom(0)) && (x_atom(0) < cellBounds_(1))
+     && (cellBounds_(2) <= x_atom(1)) && (x_atom(1) < cellBounds_(3))
+     && (cellBounds_(4) <= x_atom(2)) && (x_atom(2) < cellBounds_(5))) {
+      return 1.0;
+    }
+    else {
+      return 0.0;
     }
   }
 
@@ -382,7 +382,7 @@ namespace ATC {
   {
      deriv.reset(nsd_);
   }
- 
+
   // bond intercept values for rectangular region : origin is the node position
   void KernelFunctionCell::bond_intercepts(DENS_VEC& xa,
                  DENS_VEC& xb, double &lam1, double &lam2) const
@@ -409,21 +409,21 @@ namespace ATC {
             double s = (cellBounds_(2*i+j) - xb(i))/xab(i);
             // check if between a & b
             if (s >= 0 && s <= 1) {
-              bool in_bounds = false; 
+              bool in_bounds = false;
               DENS_VEC x = xb + s*xab;
-              if (i == 0) { 
+              if (i == 0) {
                 if ((cellBounds_(2) <= x(1)) && (x(1) <= cellBounds_(3))
                  && (cellBounds_(4) <= x(2)) && (x(2) <= cellBounds_(5))) {
                   in_bounds = true;
                 }
               }
-              else if (i == 1) { 
+              else if (i == 1) {
                 if ((cellBounds_(0) <= x(0)) && (x(0) <= cellBounds_(1))
                  && (cellBounds_(4) <= x(2)) && (x(2) <= cellBounds_(5))) {
                   in_bounds = true;
                 }
               }
-              else if (i == 2) { 
+              else if (i == 2) {
                 if ((cellBounds_(0) <= x(0)) && (x(0) <= cellBounds_(1))
                  && (cellBounds_(2) <= x(1)) && (x(1) <= cellBounds_(3))) {
                   in_bounds = true;
@@ -436,7 +436,7 @@ namespace ATC {
               }
             }
           }
-        } 
+        }
       }
       throw ATC_Error("logic failure in HardyKernel Cell for single intersection\n");
     }
@@ -455,19 +455,19 @@ namespace ATC {
             if (s >= 0 && s <= 1) {
               // check if in face
               DENS_VEC x = xb + s*xab;
-              if (i == 0) { 
+              if (i == 0) {
                 if ((cellBounds_(2) <= x(1)) && (x(1) <= cellBounds_(3))
                  && (cellBounds_(4) <= x(2)) && (x(2) <= cellBounds_(5))) {
                   ss[is++] = s;
                 }
               }
-              else if (i == 1) { 
+              else if (i == 1) {
                 if ((cellBounds_(0) <= x(0)) && (x(0) <= cellBounds_(1))
                  && (cellBounds_(4) <= x(2)) && (x(2) <= cellBounds_(5))) {
                   ss[is++] = s;
                 }
               }
-              else if (i == 2) { 
+              else if (i == 2) {
                 if ((cellBounds_(0) <= x(0)) && (x(0) <= cellBounds_(1))
                  && (cellBounds_(2) <= x(1)) && (x(1) <= cellBounds_(3))) {
                   ss[is++] = s;
@@ -475,7 +475,7 @@ namespace ATC {
               }
             }
           }
-        } 
+        }
       }
       if (is == 1) {
       // intersection occurs at a box edge - leave lam1 = lam2
@@ -496,8 +496,8 @@ namespace ATC {
   //------------------------------------------------------------------------
   // constructor
   KernelFunctionCubicSphere::KernelFunctionCubicSphere
-    (int nparameters, double* parameters): 
-    KernelFunction(nparameters, parameters) 
+    (int nparameters, double* parameters):
+    KernelFunction(nparameters, parameters)
   {
     for (int k = 0; k < nsd_; k++ ) {
       if ((bool) periodicity[k]) {
@@ -515,7 +515,7 @@ namespace ATC {
      double rn=r/Rc_;
      if (rn < 1.0) { return 5.0*(1.0-3.0*rn*rn+2.0*rn*rn*rn); }
      else          { return 0.0; }
-  } 
+  }
 
   // function derivative value
   void KernelFunctionCubicSphere::derivative(const DENS_VEC& /* x_atom */, DENS_VEC& deriv) const
@@ -526,8 +526,8 @@ namespace ATC {
   //------------------------------------------------------------------------
   // constructor
   KernelFunctionQuarticSphere::KernelFunctionQuarticSphere
-    (int nparameters, double* parameters): 
-    KernelFunction(nparameters, parameters) 
+    (int nparameters, double* parameters):
+    KernelFunction(nparameters, parameters)
   {
     for (int k = 0; k < nsd_; k++ ) {
       if ((bool) periodicity[k]) {
@@ -539,13 +539,13 @@ namespace ATC {
   }
 
   // function value
-  double KernelFunctionQuarticSphere::value(DENS_VEC& x_atom) const 
+  double KernelFunctionQuarticSphere::value(DENS_VEC& x_atom) const
   {
      double r=x_atom.norm();
      double rn=r/Rc_;
      if (rn < 1.0) { return 35.0/8.0*pow((1.0-rn*rn),2); }
      else          { return 0.0; }
-  } 
+  }
 
   // function derivative value
   void KernelFunctionQuarticSphere::derivative(const DENS_VEC& /* x_atom */, DENS_VEC& deriv) const
@@ -556,7 +556,7 @@ namespace ATC {
   //------------------------------------------------------------------------
   // constructor
   KernelFunctionCubicCyl::KernelFunctionCubicCyl
-    (int nparameters, double* parameters): 
+    (int nparameters, double* parameters):
     KernelFunction(nparameters, parameters)
   {
     nsd_ = 2;
@@ -578,7 +578,7 @@ namespace ATC {
      double rn=r/Rc_;
      if (rn < 1.0) { return 10.0/3.0*(1.0-3.0*rn*rn+2.0*rn*rn*rn); }
      else          { return 0.0; }
-  } 
+  }
 
   // function derivative value
   void KernelFunctionCubicCyl::derivative(const DENS_VEC& /* x_atom */, DENS_VEC& deriv) const
@@ -589,7 +589,7 @@ namespace ATC {
   //------------------------------------------------------------------------
   // constructor
   KernelFunctionQuarticCyl::KernelFunctionQuarticCyl
-    (int nparameters, double* parameters): 
+    (int nparameters, double* parameters):
     KernelFunction(nparameters, parameters)
   {
     nsd_ = 2;
@@ -611,7 +611,7 @@ namespace ATC {
     double rn=r/Rc_;
     if (rn < 1.0) { return 3.0*pow((1.0-rn*rn),2); }
     else          { return 0.0; }
-  } 
+  }
 
   // function derivative value
   void KernelFunctionQuarticCyl::derivative(const DENS_VEC& /* x_atom */, DENS_VEC& deriv) const
@@ -621,7 +621,7 @@ namespace ATC {
   //------------------------------------------------------------------------
   // constructor
   KernelFunctionCubicBar::KernelFunctionCubicBar
-    (int nparameters, double* parameters): 
+    (int nparameters, double* parameters):
     KernelFunction(nparameters, parameters)
   {
     // Note: Bar is assumed to be oriented in the x(0) direction
@@ -643,7 +643,7 @@ namespace ATC {
      double rn=r/Rc_;
      if (rn < 1.0) { return 2.0*(1.0-3.0*rn*rn+2.0*rn*rn*rn); }
      else          { return 0.0; }
-  } 
+  }
 
   // function derivative value
   void KernelFunctionCubicBar::derivative(const DENS_VEC& /* x_atom */, DENS_VEC& deriv) const
@@ -654,7 +654,7 @@ namespace ATC {
   //------------------------------------------------------------------------
   // constructor
   KernelFunctionLinearBar::KernelFunctionLinearBar
-    (int nparameters, double* parameters): 
+    (int nparameters, double* parameters):
     KernelFunction(nparameters, parameters)
   {
     // Note: Bar is assumed to be oriented in the z(0) direction
@@ -675,7 +675,7 @@ namespace ATC {
      double rn=r/Rc_;
      if (rn < 1.0) { return 1.0-rn; }
      else          { return 0.0; }
-  } 
+  }
 
   // function derivative value
   void KernelFunctionLinearBar::derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const
@@ -693,7 +693,7 @@ namespace ATC {
   //------------------------------------------------------------------------
   // constructor
   KernelFunctionQuarticBar::KernelFunctionQuarticBar
-    (int nparameters, double* parameters): 
+    (int nparameters, double* parameters):
     KernelFunction(nparameters, parameters)
   {
     // Note: Bar is assumed to be oriented in the x(0) direction
@@ -716,7 +716,7 @@ namespace ATC {
      // if (rn < 1.0) { return 5.0/2.0*(1.0-6*rn*rn+8*rn*rn*rn-3*rn*rn*rn*rn); } - alternative quartic
      if (rn < 1.0) { return 15.0/8.0*pow((1.0-rn*rn),2); }
      else          { return 0.0; }
-  } 
+  }
 
   // function derivative value
   void KernelFunctionQuarticBar::derivative(const DENS_VEC& /* x_atom */, DENS_VEC& deriv) const

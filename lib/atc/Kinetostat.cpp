@@ -28,7 +28,7 @@ namespace ATC {
   {
     // do nothing
   }
-  
+
   //--------------------------------------------------------
   //  modify:
   //    parses and adjusts kinetostat state based on
@@ -46,20 +46,20 @@ namespace ATC {
       /*! \page man_control_momentum fix_modify AtC control momentum
         \section syntax
         fix_modify AtC control momentum none \n
-      
+
         fix_modify AtC control momentum rescale <frequency>\n
         - frequency (int) = time step frequency for applying displacement and velocity rescaling \n
-      
+
         fix_modify AtC control momentum glc_displacement \n
-  
+
         fix_modify AtC control momentum glc_velocity \n
 
         fix_modify AtC control momentum hoover \n
 
-        fix_modify AtC control momentum flux [faceset face_set_id, interpolate] 
+        fix_modify AtC control momentum flux [faceset face_set_id, interpolate]
         - face_set_id (string) = id of boundary face set, if not specified
-        (or not possible when the atomic domain does not line up with 
-        mesh boundaries) defaults to an atomic-quadrature approximate 
+        (or not possible when the atomic domain does not line up with
+        mesh boundaries) defaults to an atomic-quadrature approximate
         evaulation\n
         \section examples
         fix_modify AtC control momentum glc_velocity \n
@@ -108,7 +108,7 @@ namespace ATC {
         foundMatch = true;
       }
     }
-  
+
     if (!foundMatch)
       foundMatch = AtomicRegulator::modify(narg,arg);
     if (foundMatch)
@@ -126,13 +126,13 @@ namespace ATC {
     DENS_MAN * lambdaForceFiltered = regulator_data("LambdaForceFiltered",nsd_);
     lambdaForceFiltered->set_quantity() = target;
   }
- 
+
   //--------------------------------------------------------
   //  initialize:
   //    sets up methods before a run
-  
+
   //    dependence, but in general there is also a
-  //    time integrator dependence.  In general the 
+  //    time integrator dependence.  In general the
   //    precedence order is:
   //    time filter -> time integrator -> kinetostat
   //    In the future this may need to be added if
@@ -147,7 +147,7 @@ namespace ATC {
     if (atc_->reset_methods()) {
       // eliminate existing methods
       delete_method();
-      
+
       DENS_MAT nodalGhostForceFiltered;
       TimeIntegrator::TimeIntegrationType myIntegrationType = (atc_->time_integrator(VELOCITY))->time_integration_type();
       TimeFilterManager * timeFilterManager = atc_->time_filter_manager();
@@ -156,9 +156,9 @@ namespace ATC {
         myMethod = dynamic_cast<StressFlux *>(regulatorMethod_);
         nodalGhostForceFiltered = (myMethod->filtered_ghost_force()).quantity();
       }
-      
+
       // update time filter
-      
+
       if (timeFilterManager->need_reset()) {
         if (myIntegrationType == TimeIntegrator::FRACTIONAL_STEP) {
           timeFilter_ = timeFilterManager->construct(TimeFilterManager::EXPLICIT_IMPLICIT);
@@ -167,7 +167,7 @@ namespace ATC {
           timeFilter_ = timeFilterManager->construct(TimeFilterManager::IMPLICIT_UPDATE);
         }
       }
-                         
+
       if (timeFilterManager->filter_dynamics()) {
         switch (regulatorTarget_) {
         case NONE: {
@@ -297,7 +297,7 @@ namespace ATC {
   //  Class KinetostatShapeFunction
   //--------------------------------------------------------
   //--------------------------------------------------------
- 
+
   //--------------------------------------------------------
   //  Constructor
   //         Grab references to ATC and kinetostat data
@@ -369,7 +369,7 @@ namespace ATC {
   //  Class GlcKinetostat
   //--------------------------------------------------------
   //--------------------------------------------------------
- 
+
   //--------------------------------------------------------
   //  Constructor
   //         Grab references to ATC and kinetostat data
@@ -391,7 +391,7 @@ namespace ATC {
 
     // needed fundamental quantities
     atomPositions_ = interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_POSITION);
-    
+
     // base class transfers
     KinetostatShapeFunction::construct_transfers();
   }
@@ -404,7 +404,7 @@ namespace ATC {
   {
     KinetostatShapeFunction::initialize();
 
-    
+
     // set up list of nodes using Hoover coupling
     // (a) nodes with prescribed values
     PrescribedDataManager * prescribedDataMgr(atc_->prescribed_data_manager());
@@ -455,7 +455,7 @@ namespace ATC {
   //  Class DisplacementGlc
   //--------------------------------------------------------
   //--------------------------------------------------------
- 
+
   //--------------------------------------------------------
   //  Constructor
   //         Grab references to ATC and kinetostat data
@@ -501,7 +501,7 @@ namespace ATC {
     else {
       linearSolverType_ = AtomicRegulator::CG_SOLVE;
     }
-    
+
 
     // base class transfers
     GlcKinetostat::construct_transfers();
@@ -510,14 +510,14 @@ namespace ATC {
     atomKinetostatForce_ = new AtomicKinetostatForceDisplacement(atc_);
     interscaleManager.add_per_atom_quantity(atomKinetostatForce_,
                                             regulatorPrefix_+"AtomKinetostatForce");
-        
+
     // restricted force due to kinetostat
     nodalAtomicLambdaForce_ = new AtfShapeFunctionRestriction(atc_,
                                                               atomKinetostatForce_,
                                                               interscaleManager.per_atom_sparse_matrix("Interpolant"));
     interscaleManager.add_dense_matrix(nodalAtomicLambdaForce_,
                                        regulatorPrefix_+"NodalAtomicLambdaForce");
-    
+
     // nodal displacement restricted from atoms
     nodalAtomicMassWeightedDisplacement_ = interscaleManager.dense_matrix("NodalAtomicMassWeightedDisplacement");
   }
@@ -640,7 +640,7 @@ namespace ATC {
                                                       DENS_MAT & nodalField,
                                                       double weight)
   {
-    
+
     DENS_MAT nodalLambdaRoc(nNodes_,nsd_);
     atc_->apply_inverse_mass_matrix(source,
                                     nodalLambdaRoc,
@@ -666,13 +666,13 @@ namespace ATC {
       outputData[regulatorPrefix_+"NodalLambdaForce"] = &(_nodalAtomicLambdaForceOut_);
     }
   }
-  
+
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class DisplacementGlcFiltered
   //--------------------------------------------------------
   //--------------------------------------------------------
- 
+
   //--------------------------------------------------------
   //  Constructor
   //         Grab references to ATC and kinetostat data
@@ -683,7 +683,7 @@ namespace ATC {
   {
     // do nothing
   }
- 
+
   //--------------------------------------------------------
   //  apply_pre_filtering
   //            applies first step of filtering to
@@ -750,13 +750,13 @@ namespace ATC {
       outputData[regulatorPrefix_+"NodalLambdaForce"] = &lambdaForceFiltered;
     }
   }
-  
+
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class VelocityGlc
   //--------------------------------------------------------
   //--------------------------------------------------------
- 
+
   //--------------------------------------------------------
   //  Constructor
   //         Grab references to ATC and kinetostat data
@@ -805,7 +805,7 @@ namespace ATC {
     else {
       linearSolverType_ = AtomicRegulator::CG_SOLVE;
     }
-    
+
     // base class transfers
     GlcKinetostat::construct_transfers();
 
@@ -813,18 +813,18 @@ namespace ATC {
     atomKinetostatForce_ = new AtomicKinetostatForceVelocity(atc_);
     interscaleManager.add_per_atom_quantity(atomKinetostatForce_,
                                             regulatorPrefix_+"AtomKinetostatForce");
-        
+
     // restricted force due to kinetostat
     nodalAtomicLambdaForce_ = new AtfShapeFunctionRestriction(atc_,
                                                               atomKinetostatForce_,
                                                               interscaleManager.per_atom_sparse_matrix("Interpolant"));
     interscaleManager.add_dense_matrix(nodalAtomicLambdaForce_,
                                        regulatorPrefix_+"NodalAtomicLambdaForce");
-    
+
     // nodal momentum restricted from atoms
     nodalAtomicMomentum_ = interscaleManager.dense_matrix("NodalAtomicMomentum");
 
-    
+
   }
 
   //--------------------------------------------------------
@@ -891,7 +891,7 @@ namespace ATC {
     // set up rhs
     DENS_MAT rhs(nNodes_,nsd_);
     this->set_kinetostat_rhs(rhs,dt);
-    
+
     // solve linear system for lambda
     solve_for_lambda(rhs,lambda_->set_quantity());
 #ifdef OBSOLETE
@@ -975,7 +975,7 @@ namespace ATC {
                                                   DENS_MAT & nodalField,
                                                   double weight)
   {
-    
+
     DENS_MAT nodalLambdaRoc(nNodes_,nsd_);
     atc_->apply_inverse_mass_matrix(source,
                                     nodalLambdaRoc,
@@ -984,7 +984,7 @@ namespace ATC {
     for (iter = hooverNodes_.begin(); iter != hooverNodes_.end(); ++iter) {
       nodalLambdaRoc(iter->first,iter->second) = 0.;
     }
-   
+
     nodalField += weight*nodalLambdaRoc;
   }
 
@@ -1000,18 +1000,18 @@ namespace ATC {
       outputData[regulatorPrefix_+"NodalLambdaForce"] = &(_nodalAtomicLambdaForceOut_);
     }
   }
- 
+
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class VelocityGlcFiltered
   //--------------------------------------------------------
   //--------------------------------------------------------
- 
+
   //--------------------------------------------------------
   //  Constructor
   //         Grab references to ATC and kinetostat data
   //--------------------------------------------------------
-  VelocityGlcFiltered::VelocityGlcFiltered(AtomicRegulator *kinetostat) 
+  VelocityGlcFiltered::VelocityGlcFiltered(AtomicRegulator *kinetostat)
     : VelocityGlc(kinetostat),
       nodalAtomicVelocities_(atc_->nodal_atomic_field(VELOCITY))
   {
@@ -1087,7 +1087,7 @@ namespace ATC {
   //  Class StressFlux
   //--------------------------------------------------------
   //--------------------------------------------------------
- 
+
   //--------------------------------------------------------
   //  Constructor
   //         Grab references to ATC and kinetostat data
@@ -1152,7 +1152,7 @@ namespace ATC {
     atomKinetostatForce_ = new AtomicKinetostatForceStress(atc_,atomLambdas_);
     interscaleManager.add_per_atom_quantity(atomKinetostatForce_,
                                             regulatorPrefix_+"AtomKinetostatForce");
-        
+
     // restricted force due to kinetostat
     nodalAtomicLambdaForce_ = new AtfShapeFunctionRestriction(atc_,
                                                               atomKinetostatForce_,
@@ -1254,7 +1254,7 @@ namespace ATC {
   //--------------------------------------------------------
   void StressFlux::set_kinetostat_rhs(DENS_MAT & rhs, double /* dt */)
   {
-    // (a) for flux based : 
+    // (a) for flux based :
     // form rhs :  \int N_I r dV - \sum_g N_Ig^* f_g
     // sources are set in ATC transfer
     rhs.reset(nNodes_,nsd_);
@@ -1262,9 +1262,9 @@ namespace ATC {
     if (nodalGhostForce_) {
       rhs -= nodalGhostForce_->quantity();
     }
-    
+
     // (b) for ess. bcs
-    
+
     // form rhs : {sum_a (N_Ia * f_ia) - M_md * (ddupsilon/dt)_I}
     DENS_MAT rhsPrescribed = -1.*nodalForce_.quantity();
     atc_->apply_inverse_mass_matrix(rhsPrescribed,VELOCITY);
@@ -1352,7 +1352,7 @@ namespace ATC {
   //  Class StressFluxGhost
   //--------------------------------------------------------
   //--------------------------------------------------------
- 
+
   //--------------------------------------------------------
   //  Constructor
   //         Grab references to ATC and kinetostat data
@@ -1409,14 +1409,14 @@ namespace ATC {
   //--------------------------------------------------------
   void StressFluxGhost::set_kinetostat_rhs(DENS_MAT & rhs, double /* dt */)
   {
-    // (a) for flux based : 
+    // (a) for flux based :
     // form rhs :  \int N_I r dV - \sum_g N_Ig^* f_g
     // sources are set in ATC transfer
     rhs.reset(nNodes_,nsd_);
     rhs = momentumSource_.quantity();
-    
+
     // (b) for ess. bcs
-    
+
     // form rhs : {sum_a (N_Ia * f_ia) - M_md * (ddupsilon/dt)_I}
     DENS_MAT rhsPrescribed = -1.*nodalForce_.quantity();
     atc_->apply_inverse_mass_matrix(rhsPrescribed,VELOCITY);
@@ -1434,7 +1434,7 @@ namespace ATC {
   //  Class StressFluxFiltered
   //--------------------------------------------------------
   //--------------------------------------------------------
- 
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -1453,14 +1453,14 @@ namespace ATC {
   void StressFluxFiltered::set_kinetostat_rhs(DENS_MAT & rhs, double dt)
   {
     // set basic terms
-    // (a) for flux based : 
+    // (a) for flux based :
     // form rhs :  \int N_I r dV - \sum_g N_Ig^* f_g
     // sources are set in ATC transfer
     rhs.reset(nNodes_,nsd_);
     rhs = momentumSource_.quantity() - nodalGhostForceFiltered_.quantity();
-    
+
     // (b) for ess. bcs
-    
+
     // form rhs : {sum_a (N_Ia * f_ia) - M_md * (ddupsilon/dt)_I}
     DENS_MAT rhsPrescribed = -1.*nodalForce_.quantity();
     atc_->apply_inverse_mass_matrix(rhsPrescribed,VELOCITY);
@@ -1530,7 +1530,7 @@ namespace ATC {
   //  Class KinetostatGlcFs
   //--------------------------------------------------------
   //--------------------------------------------------------
- 
+
   //--------------------------------------------------------
   //  Constructor
   //         Grab references to ATC and kinetostat data
@@ -1597,7 +1597,7 @@ namespace ATC {
   void KinetostatGlcFs::initialize()
   {
     KinetostatShapeFunction::initialize();
-    
+
     TimeFilterManager * timeFilterManager = atc_->time_filter_manager();
     if (!timeFilterManager->end_equilibrate()) {
       // we should reset lambda and lambdaForce to zero in this case
@@ -1675,7 +1675,7 @@ namespace ATC {
     // update filtered forces
     timeFilter_->apply_pre_step1(lambdaForceFiltered,nodalAtomicLambdaForce,dt);
 
-    // apply lambda force to atoms and compute instantaneous lambda force 
+    // apply lambda force to atoms and compute instantaneous lambda force
     this->apply_to_atoms(atomVelocities_,nodalAtomicMomentum_,
                          atomKinetostatForce_->quantity(),
                          nodalAtomicLambdaForce,0.5*dt);
@@ -1710,13 +1710,13 @@ namespace ATC {
                    nodalAtomicPredictedMomentum_,
                    atomKinetostatForce_->quantity(),
                    myNodalAtomicLambdaForce,0.5*dt);
-    
+
     // update predicted nodal variables for second half of time step
     this->add_to_momentum(myNodalAtomicLambdaForce,deltaMomentum_,0.5*dt);
     atc_->apply_inverse_mass_matrix(deltaMomentum_,VELOCITY);
     velocity_ += deltaMomentum_;
   }
- 
+
   //--------------------------------------------------------
   //  apply_post_corrector:
   //    apply the kinetostat to the atoms in the
@@ -1746,7 +1746,7 @@ namespace ATC {
     atc_->apply_inverse_mass_matrix(deltaMomentum_,VELOCITY);
     velocity_ += deltaMomentum_;
 
-    
+
     isFirstTimestep_ = false;
   }
 
@@ -1787,7 +1787,7 @@ namespace ATC {
   //  Class KinetostatFlux
   //--------------------------------------------------------
   //--------------------------------------------------------
- 
+
   //--------------------------------------------------------
   //  Constructor
   //         Grab references to ATC and kinetostat data
@@ -1838,7 +1838,7 @@ namespace ATC {
 
     // sets up space for ghost force related variables
     if (atc_->groupbit_ghost()) {
-      MatrixDependencyManager<DenseMatrix, int> * nodeToOverlapMap = 
+      MatrixDependencyManager<DenseMatrix, int> * nodeToOverlapMap =
         interscaleManager.dense_matrix_int(regulatorPrefix_+"NodeToOverlapMap");
       GhostCouplingMatrix * shapeFunctionGhost = new GhostCouplingMatrix(atc_,interscaleManager.per_atom_sparse_matrix("InterpolantGhost"),
                                                                          regulatedNodes_,
@@ -1861,7 +1861,7 @@ namespace ATC {
   void KinetostatFlux::initialize()
   {
     KinetostatGlcFs::initialize();
-    
+
     TimeFilterManager * timeFilterManager = atc_->time_filter_manager();
     if (!timeFilterManager->end_equilibrate()) {
       // we should reset lambda and lambdaForce to zero in this case
@@ -1894,13 +1894,13 @@ namespace ATC {
       interscaleManager.add_set_int(regulatedNodes_,
                                     regulatorPrefix_+"KinetostatRegulatedNodes");
     }
-    
+
     // if localized monitor nodes with applied fluxes
     if (atomicRegulator_->use_localized_lambda()) {
       if ((atomicRegulator_->coupling_mode() == Kinetostat::FLUX) && (atomicRegulator_->boundary_integration_type() != NO_QUADRATURE)) {
         // include boundary nodes
         applicationNodes_ = new FluxBoundaryNodes(atc_);
-        
+
         boundaryNodes_ = new BoundaryNodes(atc_);
         interscaleManager.add_set_int(boundaryNodes_,
                                       regulatorPrefix_+"KinetostatBoundaryNodes");
@@ -1916,7 +1916,7 @@ namespace ATC {
       applicationNodes_ = regulatedNodes_;
     }
 
-    // special set of boundary elements for boundary flux quadrature  
+    // special set of boundary elements for boundary flux quadrature
     if ((atomicRegulator_->boundary_integration_type() == FE_INTERPOLATION)
         && (atomicRegulator_->use_localized_lambda())) {
       elementMask_ = interscaleManager.dense_matrix_bool(regulatorPrefix_+"BoundaryElementMask");
@@ -1943,7 +1943,7 @@ namespace ATC {
 
     KinetostatGlcFs::apply_pre_predictor(dt);
   }
- 
+
   //--------------------------------------------------------
   //  apply_post_corrector:
   //    apply the kinetostat to the atoms in the
@@ -1956,7 +1956,7 @@ namespace ATC {
       timeFilter_->apply_post_step1(nodalGhostForceFiltered_->set_quantity(),
                                     nodalGhostForce_->quantity(),dt);
     }
-    
+
     // compute the kinetostat equation and update lambda
     KinetostatGlcFs::apply_post_corrector(dt);
   }
@@ -1987,7 +1987,7 @@ namespace ATC {
   //--------------------------------------------------------
   void KinetostatFlux::set_kinetostat_rhs(DENS_MAT & rhs, double /* dt */)
   {
-    // (a) for flux based : 
+    // (a) for flux based :
     // form rhs :  \int N_I r dV - \sum_g N_Ig^* f_g
     // sources are set in ATC transfer
     rhs.reset(nNodes_,nsd_);
@@ -2026,7 +2026,7 @@ namespace ATC {
   //  Class KinetostatFluxGhost
   //--------------------------------------------------------
   //--------------------------------------------------------
- 
+
   //--------------------------------------------------------
   //  Constructor
   //         Grab references to ATC and kinetostat data
@@ -2088,7 +2088,7 @@ namespace ATC {
   //--------------------------------------------------------
   void KinetostatFluxGhost::set_kinetostat_rhs(DENS_MAT & rhs, double /* dt */)
   {
-    // (a) for flux based : 
+    // (a) for flux based :
     // form rhs :  \int N_I r dV - \sum_g N_Ig^* f_g
     // sources are set in ATC transfer
     rhs.reset(nNodes_,nsd_);
@@ -2107,7 +2107,7 @@ namespace ATC {
   //  Class KinetostatFixed
   //--------------------------------------------------------
   //--------------------------------------------------------
- 
+
   //--------------------------------------------------------
   //  Constructor
   //         Grab references to ATC and kinetostat data
@@ -2211,14 +2211,14 @@ namespace ATC {
       else {
         throw ATC_Error("KinetostatFixed::construct_regulated_nodes - couldn't determine set of regulated nodes");
       }
-     
+
       interscaleManager.add_set_int(regulatedNodes_,
                                     regulatorPrefix_+"RegulatedNodes");
     }
 
     applicationNodes_ = regulatedNodes_;
 
-    // special set of boundary elements for defining regulated atoms 
+    // special set of boundary elements for defining regulated atoms
     if (atomicRegulator_->use_localized_lambda()) {
       elementMask_ = interscaleManager.dense_matrix_bool(regulatorPrefix_+"BoundaryElementMask");
       if (!elementMask_) {
@@ -2310,15 +2310,15 @@ namespace ATC {
       nodalAtomicMomentumFiltered_ = _tempNodalAtomicMomentumFiltered_;
     }
   }
- 
+
   //--------------------------------------------------------
   //  apply_post_corrector:
   //    apply the kinetostat to the atoms in the
   //    post-corrector integration phase
   //--------------------------------------------------------
   void KinetostatFixed::apply_post_corrector(double dt)
-  {  
-    
+  {
+
     bool halveForce = halve_force();
 
     KinetostatGlcFs::apply_post_corrector(dt);
@@ -2333,8 +2333,8 @@ namespace ATC {
       // 1) makes up for poor initial condition
       // 2) accounts for possibly large value of lambda when atomic shape function values change
       //    from eulerian mapping after more than 1 timestep
-      //    avoids unstable oscillations arising from 
-      //    thermostat having to correct for error introduced in lambda changing the 
+      //    avoids unstable oscillations arising from
+      //    thermostat having to correct for error introduced in lambda changing the
       //    shape function matrices
       *lambda_ *= 0.5;
     }
@@ -2396,7 +2396,7 @@ namespace ATC {
   //  Class KinetostatFluxFixed
   //--------------------------------------------------------
   //--------------------------------------------------------
- 
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------

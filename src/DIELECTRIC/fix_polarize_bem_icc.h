@@ -27,15 +27,15 @@ namespace LAMMPS_NS {
 class FixPolarizeBEMICC : public Fix {
  public:
   FixPolarizeBEMICC(class LAMMPS *, int, char **);
-  ~FixPolarizeBEMICC();
-  virtual int setmask();
-  virtual void init();
-  virtual void setup(int);
-  virtual void pre_force(int);
-  virtual double compute_vector(int);
-  int modify_param(int, char **);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void pre_force(int) override;
+  double compute_vector(int) override;
+  int modify_param(int, char **) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
   virtual void compute_induced_charges();
   void set_dielectric_params(double, double, double, double, int, double);
@@ -60,19 +60,10 @@ class FixPolarizeBEMICC : public Fix {
   int randomized;             // 1 if generating random induced charges, 0 otherwise
   double ave_charge;          // average random charge
   int seed_charge;
+  double epsilon0e2q;    // convert epsilon0 times efield to unit of charge per area
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

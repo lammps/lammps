@@ -41,10 +41,10 @@ namespace ATC {
   //   class FE_Mesh
   // =============================================================
   FE_Mesh::FE_Mesh()
-    : decomposition_(false), 
+    : decomposition_(false),
     lammpsPartition_(false),
     partitioned_(false),
-    nNodes_(0), 
+    nNodes_(0),
     nNodesUnique_(0),
     feElement_(nullptr),
     twoDimensional_(false),
@@ -66,7 +66,7 @@ namespace ATC {
   {
     bool match = false;
 
-    if (strcmp(arg[0],"mesh")==0) 
+    if (strcmp(arg[0],"mesh")==0)
     {
      /*! \page man_mesh_create_faceset_box fix_modify AtC mesh create_faceset box
         \section syntax
@@ -75,7 +75,7 @@ namespace ATC {
          - <id> = id to assign to the collection of FE faces
          - <xmin> <xmax> <ymin> <ymax> <zmin> <zmax> = coordinates of
          the bounding box that is coincident with the desired FE faces
-         - <in|out> = "in" gives inner faces to the box, 
+         - <in|out> = "in" gives inner faces to the box,
                       "out" gives the outer faces to the box
          - units = option to specify real as opposed to lattice units
         \section examples
@@ -88,46 +88,46 @@ namespace ATC {
         \section default
         The default options are units = lattice and the use of outer faces
        */
-     /*! \page man_mesh_create_faceset_plane fix_modify AtC mesh create_faceset plane 
+     /*! \page man_mesh_create_faceset_plane fix_modify AtC mesh create_faceset plane
         \section syntax
-         fix_modify AtC mesh create_faceset <id> plane 
+         fix_modify AtC mesh create_faceset <id> plane
          <x|y|z> <val1> <x|y|z> <lval2> <uval2> [units]
          - <id> = id to assign to the collection of FE faces
-         - <x|y|z> = coordinate directions that define plane on which faceset lies 
+         - <x|y|z> = coordinate directions that define plane on which faceset lies
          - <val1>,<lval2>,<uval2> = plane is specified as the x|y|z=val1 plane bounded by
-              the segments x|y|z = [lval2,uval2]  
+              the segments x|y|z = [lval2,uval2]
          - units = option to specify real as opposed to lattice units
         \section examples
          <TT> fix_modify AtC mesh create_faceset xyplane plane y 0 x -4 0 </TT>
         \section description
-          Command to assign an id to a set of FE faces. 
+          Command to assign an id to a set of FE faces.
         \section restrictions
-        Only viable for rectangular grids. 
+        Only viable for rectangular grids.
         \section related
         \section default
         The default option is units = lattice.
        */
-      if (strcmp(arg[1],"create_faceset")==0) 
+      if (strcmp(arg[1],"create_faceset")==0)
       {
         int argIdx = 2;
         string tag = arg[argIdx++];
-        if (strcmp(arg[argIdx],"plane")==0) 
+        if (strcmp(arg[argIdx],"plane")==0)
         {
           argIdx++;
           int ndir, idir[3], isgn;
           double xlimits[3][2];
           parse_plane(argIdx, narg, arg, ndir, idir, isgn, xlimits);
-          if (xlimits[idir[1]][0] == xlimits[idir[1]][1]) 
+          if (xlimits[idir[1]][0] == xlimits[idir[1]][1])
             split_values(xlimits[idir[1]][0],xlimits[idir[1]][1]);
-          if (xlimits[idir[2]][0] == xlimits[idir[2]][1]) 
+          if (xlimits[idir[2]][0] == xlimits[idir[2]][1])
             split_values(xlimits[idir[2]][0],xlimits[idir[2]][1]);
           parse_units(argIdx,narg,arg,
             xlimits[0][0],xlimits[0][1],
             xlimits[1][0],xlimits[1][1],
             xlimits[2][0],xlimits[2][1]);
           if (ndir > 1) {
-            create_faceset(tag, xlimits[idir[0]][0], idir[0], isgn, 
-              idir[1], xlimits[idir[1]][0], xlimits[idir[1]][1], 
+            create_faceset(tag, xlimits[idir[0]][0], idir[0], isgn,
+              idir[1], xlimits[idir[1]][0], xlimits[idir[1]][1],
               idir[2], xlimits[idir[2]][0], xlimits[idir[2]][1]);
           }
           else {
@@ -136,7 +136,7 @@ namespace ATC {
           match = true;
         }
         // bounding_box
-        else 
+        else
         {
           if (strcmp(arg[argIdx],"box")==0) argIdx++;
           double xmin = parse_min(arg[argIdx++]);
@@ -146,7 +146,7 @@ namespace ATC {
           double zmin = parse_min(arg[argIdx++]);
           double zmax = parse_max(arg[argIdx++]);
           bool outward = true;
-          if (narg > argIdx && (strcmp(arg[argIdx++],"in") == 0)) 
+          if (narg > argIdx && (strcmp(arg[argIdx++],"in") == 0))
             outward = false;
           parse_units(argIdx,narg,arg, xmin,xmax,ymin,ymax,zmin,zmax);
           create_faceset(tag, xmin, xmax, ymin, ymax, zmin, zmax, outward);
@@ -205,7 +205,7 @@ namespace ATC {
       \section syntax
       fix_modify AtC mesh add_to_nodeset <id>
       <xmin> <xmax> <ymin> <ymax> <zmin> <zmax>
-      - <id> = id of FE nodeset to be added to 
+      - <id> = id of FE nodeset to be added to
       - <xmin> <xmax> <ymin> <ymax> <zmin> <zmax> = coordinates of
       the bounding box that contains the desired nodes to be added
       \section examples
@@ -316,13 +316,13 @@ namespace ATC {
       }
    /*! \page man_mesh_output fix_modify AtC mesh output
       \section syntax
-      fix_modify AtC mesh output <file_prefix> 
+      fix_modify AtC mesh output <file_prefix>
       \section examples
       <TT> fix_modify AtC mesh output meshData </TT> \n
       \section description
       Command to output mesh and associated data: nodesets, facesets, and
       elementsets. This data is only output once upon initialization since
-      currently the mesh is static. Creates (binary, "gold" format) Ensight 
+      currently the mesh is static. Creates (binary, "gold" format) Ensight
       output of mesh data.
       \section restrictions
       none
@@ -340,11 +340,11 @@ namespace ATC {
   }
   // -------------------------------------------------------------
   void FE_Mesh::parse_units(int & argIdx, int narg, char ** arg,
-    double & xmin, double & xmax, double & ymin, double & ymax, 
+    double & xmin, double & xmax, double & ymin, double & ymax,
     double & zmin, double & zmax)
   {
     if (narg > argIdx && (strcmp(arg[argIdx++],"units") == 0)) {}
-    else 
+    else
     { // scale from lattice units to physical units
       xmin *= xscale_; xmax *= xscale_;
       ymin *= yscale_; ymax *= yscale_;
@@ -354,7 +354,7 @@ namespace ATC {
   // -------------------------------------------------------------
   //   parse plane
   // -------------------------------------------------------------
-  void FE_Mesh::parse_plane(int & argIdx, int narg, char ** arg,  
+  void FE_Mesh::parse_plane(int & argIdx, int narg, char ** arg,
     int & ndir, int * idir, int & isgn, double xlimits[][2])
   {
     ndir = 0;
@@ -375,14 +375,14 @@ namespace ATC {
     if (narg > argIdx ) {
       if (string_to_index(arg[argIdx],i2dir)) {
         argIdx++;
-        xlimits[i2dir][0] = parse_min(arg[argIdx++]); 
+        xlimits[i2dir][0] = parse_min(arg[argIdx++]);
         xlimits[i2dir][1] = parse_max(arg[argIdx++]);
         idir[ndir++] = i2dir;
       }
       if (narg > argIdx ) {
         if (string_to_index(arg[argIdx],i3dir)) {
           argIdx++;
-          xlimits[i3dir][0] = parse_min(arg[argIdx++]); 
+          xlimits[i3dir][0] = parse_min(arg[argIdx++]);
           xlimits[i3dir][1] = parse_max(arg[argIdx++]);
         }
       }
@@ -398,13 +398,13 @@ namespace ATC {
       idir[ndir++] = i3dir;
     }
     if ((idir[0]==idir[1]) || (idir[0]==idir[2]) || (idir[1]==idir[2]) ) {
-      throw ATC_Error( "inconsistent directions in plane:"+to_string(idir[0]+1)+" "+to_string(idir[1]+1)+" "+to_string(idir[2]+1));  
+      throw ATC_Error( "inconsistent directions in plane:"+to_string(idir[0]+1)+" "+to_string(idir[1]+1)+" "+to_string(idir[2]+1));
     }
   }
   // -------------------------------------------------------------
   //   initialize
   // -------------------------------------------------------------
-  void FE_Mesh::initialize(void) 
+  void FE_Mesh::initialize()
   {
 
     bool aligned = is_aligned();
@@ -413,15 +413,15 @@ namespace ATC {
       ATC::LammpsInterface::instance()->print_msg_once("WARNING: mesh is not aligned with the coordinate directions atom-to-element mapping will be expensive");
       // if HEX8 -> orient();
     }
-    bool twoD = is_two_dimensional(); 
+    bool twoD = is_two_dimensional();
     if (twoD) {
       feElement_->set_projection_guess(TWOD_ANALYTIC);
-      if (feElement_->order()< 3) hasPlanarFaces_ = true; 
+      if (feElement_->order()< 3) hasPlanarFaces_ = true;
       ATC::LammpsInterface::instance()->print_msg_once(" mesh is two dimensional");
     }
   }
   //-----------------------------------------------------------------
-  
+
   //-----------------------------------------------------------------
   void FE_Mesh::write_mesh(string meshFile)
   {
@@ -460,7 +460,7 @@ namespace ATC {
         out << name << " " << nset.size() << "\n";
         set<int>::const_iterator iter;
         for (iter = nset.begin(); iter != nset.end(); iter++) {
-          out << *iter << "  " ;   
+          out << *iter << "  " ;
         }
         out << "\n";
       }
@@ -469,7 +469,7 @@ namespace ATC {
   // -------------------------------------------------------------
   //   test whether almost structured
   // -------------------------------------------------------------
-  bool FE_Mesh::is_aligned(void) const
+  bool FE_Mesh::is_aligned() const
   {
     vector<bool> foundBestMatch(nSD_,false);
     vector<DENS_VEC> tangents(nSD_);
@@ -478,7 +478,7 @@ namespace ATC {
     DENS_MAT eltCoords;
     for (int ielem = 0; ielem < nElts_; ielem++) {
        element_coordinates(ielem,eltCoords);
-       feElement_->tangents(eltCoords,xi0,tangents,true); 
+       feElement_->tangents(eltCoords,xi0,tangents,true);
 
       for (unsigned i = 0; i < tangents.size(); i++) {
         // find maximum value for which global axis its closest to
@@ -518,8 +518,8 @@ namespace ATC {
   // -------------------------------------------------------------
   //   element_type
   // -------------------------------------------------------------
-  string FE_Mesh::element_type(void) const  {
-      int npe = feElement_->num_elt_nodes(); 
+  string FE_Mesh::element_type() const  {
+      int npe = feElement_->num_elt_nodes();
       if      (npe == 4)  { return "TET4"; }
       else if (npe == 8)  { return "HEX8"; }
       else if (npe == 20) { return "HEX20"; }
@@ -541,7 +541,7 @@ namespace ATC {
         xCoords(isd,inode) = nodalCoords_(isd,id);
       }
     }
-  
+
   }
   // -------------------------------------------------------------
   //   position
@@ -553,7 +553,7 @@ namespace ATC {
     const int nne = num_nodes_per_element();
     DENS_VEC N;
     feElement_->shape_function(xi,N);
-    x.reset(nSD_); 
+    x.reset(nSD_);
     for (int inode=0; inode<nne; inode++) {
       const int id = element_connectivity_global(eltID, inode);
       for (int isd=0; isd<nSD_; isd++) {
@@ -566,7 +566,7 @@ namespace ATC {
   // element size in each direction
   // -------------------------------------------------------------
   void FE_Mesh::bounding_box(const int ielem,
-                              DENS_VEC & xmin, DENS_VEC & xmax) 
+                              DENS_VEC & xmin, DENS_VEC & xmax)
   {
     xmin.reset(nSD_);
     xmax.reset(nSD_);
@@ -586,10 +586,10 @@ namespace ATC {
   }
 
   // -------------------------------------------------------------
-  // element size in each direction 
+  // element size in each direction
   // -------------------------------------------------------------
   void FE_Mesh::element_size(const int ielem,
-                              double & hx, double & hy, double & hz) 
+                              double & hx, double & hy, double & hz)
   {
     DENS_VEC xmin(nSD_), xmax(nSD_);
     bounding_box(ielem,xmin,xmax);
@@ -609,10 +609,10 @@ namespace ATC {
 
     xCoords.reset(nSD_, nnf, false);
 
-    for (int inode=0; inode < nnf; inode++) 
+    for (int inode=0; inode < nnf; inode++)
     {
       int id = element_connectivity_global(eltID, local_conn(faceID,inode));
-      for (int isd=0; isd<nSD_; isd++) 
+      for (int isd=0; isd<nSD_; isd++)
         xCoords(isd,inode) = nodalCoords_(isd,id);
     }
   }
@@ -653,8 +653,8 @@ namespace ATC {
   {
     NODE_SET_MAP::const_iterator iter = nodeSetMap_.find(name);
     if (name == "all") return nodeSetAll_;
-    else if (iter == nodeSetMap_.end()) 
-      throw ATC_Error( "No nodeset with name " + name + " found.");  
+    else if (iter == nodeSetMap_.end())
+      throw ATC_Error( "No nodeset with name " + name + " found.");
     else return iter->second;
   }
 
@@ -665,8 +665,8 @@ namespace ATC {
   {
     NODE_SET_MAP::const_iterator iter = elementSetMap_.find(name);
     if (name == "all") return elementSetAll_;
-    else if (iter == elementSetMap_.end()) 
-      throw ATC_Error( "No elementset with name " + name + " found.");  
+    else if (iter == elementSetMap_.end())
+      throw ATC_Error( "No elementset with name " + name + " found.");
     else return iter->second;
   }
 
@@ -683,7 +683,7 @@ namespace ATC {
     }
     else {
       NODE_SET_MAP::const_iterator iter = nodeSetMap_.find(name);
-      if (iter == nodeSetMap_.end()) 
+      if (iter == nodeSetMap_.end())
         throw ATC_Error( "No nodeset with name " + name + " found.");
       nodeset_to_minimal_elementset(iter->second,elemSet);
       if (elemSet.size()==0) {
@@ -724,7 +724,7 @@ namespace ATC {
     }
     else {
       NODE_SET_MAP::const_iterator iter = nodeSetMap_.find(name);
-      if (iter == nodeSetMap_.end()) 
+      if (iter == nodeSetMap_.end())
         throw ATC_Error( "No nodeset with name " + name + " found.");
       nodeset_to_maximal_elementset(iter->second,elemSet);
       if (elemSet.size()==0) {
@@ -760,10 +760,10 @@ namespace ATC {
   {
     int npe = num_nodes_per_element();
     set<int>::const_iterator itr;
-    for (itr = elemSet.begin(); itr != elemSet.end(); itr++) 
+    for (itr = elemSet.begin(); itr != elemSet.end(); itr++)
     {
       int ielem = *itr;
-      for (int inode=0; inode < npe; inode++) 
+      for (int inode=0; inode < npe; inode++)
       {
         int node = element_connectivity_global(ielem, inode);
         nodeSet.insert(node);
@@ -778,22 +778,22 @@ namespace ATC {
     (const string & name, set<int>  nodeSet) const
   {
     if (name == "all")
-      for (int ielem = 0; ielem < nElts_; ielem++) 
+      for (int ielem = 0; ielem < nElts_; ielem++)
         nodeSet.insert(ielem);
 
-    else 
+    else
     {
       ELEMENT_SET_MAP::const_iterator iter = elementSetMap_.find(name);
-      if (iter == elementSetMap_.end()) 
+      if (iter == elementSetMap_.end())
         throw ATC_Error( "No elementset with name " + name + " found.");
 
       int npe = num_nodes_per_element();
       const set<int> &elemSet = iter->second;
       set<int>::const_iterator itr;
-      for (itr = elemSet.begin(); itr != elemSet.end(); itr++) 
+      for (itr = elemSet.begin(); itr != elemSet.end(); itr++)
       {
         int ielem = *itr;
-        for (int inode=0; inode < npe; inode++) 
+        for (int inode=0; inode < npe; inode++)
         {
           int node = element_connectivity_unique(ielem, inode);
           nodeSet.insert(node);
@@ -818,17 +818,17 @@ namespace ATC {
   {
     // return:  set - complement_of_set
     if (name == "all")  { return;}
-    else 
+    else
     {
       elementset_to_nodeset(name,nodeSet);
       set<int> compElemSet;
       elementset_complement(name,compElemSet);
       int npe = num_nodes_per_element();
       set<int>::const_iterator itr;
-      for (itr = compElemSet.begin(); itr != compElemSet.end(); itr++) 
+      for (itr = compElemSet.begin(); itr != compElemSet.end(); itr++)
       {
         int ielem = *itr;
-        for (int inode=0; inode < npe; inode++) 
+        for (int inode=0; inode < npe; inode++)
         {
           int node = element_connectivity_unique(ielem, inode);
           nodeSet.erase(node);
@@ -846,14 +846,14 @@ namespace ATC {
   {
     // return:  set - complement_of_set
     if (name == "all")  { return;}
-    else 
+    else
     {
       ELEMENT_SET_MAP::const_iterator iter = elementSetMap_.find(name);
-      if (iter == elementSetMap_.end()) 
+      if (iter == elementSetMap_.end())
         throw ATC_Error( "No elementset with name " + name + " found.");
 
       const set<int> &elemSet = iter->second;
-      for (int ielem = 0; ielem < nElts_; ielem++) 
+      for (int ielem = 0; ielem < nElts_; ielem++)
       {
         if(elemSet.find(ielem) == elemSet.end() ) cElemSet.insert(ielem);
       }
@@ -866,7 +866,7 @@ namespace ATC {
   void FE_Mesh::elementset_complement
     (const set<int> & elemSet, set<int> & cElemSet) const
   {
-    for (int ielem = 0; ielem < nElts_; ielem++) 
+    for (int ielem = 0; ielem < nElts_; ielem++)
     {
       if(elemSet.find(ielem) == elemSet.end() ) cElemSet.insert(ielem);
     }
@@ -880,15 +880,15 @@ namespace ATC {
       for (int inode = 0; inode < nNodesUnique_; inode++)
         nodeSet.insert(inode);
     }
-    else 
+    else
     {
       FACE_SET_MAP::const_iterator faceset = faceSetMap_.find(name);
-      if (faceset == faceSetMap_.end()) 
+      if (faceset == faceSetMap_.end())
         throw ATC_Error( "No faceset with name " + name + " found.");
       const set<PAIR> & faceSet = faceset->second;
       set<PAIR>::const_iterator iter;
       Array <int> conn;
-      for (iter = faceSet.begin(); iter != faceSet.end(); iter++) 
+      for (iter = faceSet.begin(); iter != faceSet.end(); iter++)
       {
         PAIR face = *iter;
         face_connectivity_unique(face,conn);
@@ -903,7 +903,7 @@ namespace ATC {
   {
     set<PAIR>::const_iterator iter;
     Array <int> conn;
-    for (iter = faceSet.begin(); iter != faceSet.end(); iter++) 
+    for (iter = faceSet.begin(); iter != faceSet.end(); iter++)
     {
       PAIR face = *iter;
       face_connectivity_unique(face,conn);
@@ -922,15 +922,15 @@ namespace ATC {
       for (int inode = 0; inode < nNodes_; inode++)
         nodeSet.insert(inode);
     }
-    else 
+    else
     {
       FACE_SET_MAP::const_iterator faceset = faceSetMap_.find(name);
-      if (faceset == faceSetMap_.end()) 
+      if (faceset == faceSetMap_.end())
         throw ATC_Error( "No faceset with name " + name + " found.");
       const set<PAIR> & faceSet = faceset->second;
       set<PAIR>::const_iterator iter;
       Array <int> conn;
-      for (iter = faceSet.begin(); iter != faceSet.end(); iter++) 
+      for (iter = faceSet.begin(); iter != faceSet.end(); iter++)
       {
         PAIR face = *iter;
         face_connectivity(face,conn);
@@ -945,7 +945,7 @@ namespace ATC {
   {
     set<PAIR>::const_iterator iter;
     Array <int> conn;
-    for (iter = faceSet.begin(); iter != faceSet.end(); iter++) 
+    for (iter = faceSet.begin(); iter != faceSet.end(); iter++)
     {
       PAIR face = *iter;
       face_connectivity(face,conn);
@@ -983,19 +983,19 @@ namespace ATC {
     }
     nodeSetMap_[name] = nodeSet;
 
-    if (ATC::LammpsInterface::instance()->rank_zero()) { 
+    if (ATC::LammpsInterface::instance()->rank_zero()) {
       stringstream ss;
-      ss << "created nodeset " << name 
+      ss << "created nodeset " << name
          << " with " << nodeSet.size() << " nodes";
       ATC::LammpsInterface::instance()->print_msg_once(ss.str());
     }
   }
   void FE_Mesh::create_nodeset(const string & name,
-                               double xmin, 
+                               double xmin,
                                double xmax,
-                               double ymin, 
+                               double ymin,
                                double ymax,
-                               double zmin, 
+                               double zmin,
                                double zmax)
   {
     // Make sure we don't already have a nodeset with this name
@@ -1027,9 +1027,9 @@ namespace ATC {
 
     nodeSetMap_[name] = nodeSet;
 
-    if (ATC::LammpsInterface::instance()->rank_zero()) { 
+    if (ATC::LammpsInterface::instance()->rank_zero()) {
       stringstream ss;
-      ss << "created nodeset " << name 
+      ss << "created nodeset " << name
          << " with " << nodeSet.size() << " nodes";
       ATC::LammpsInterface::instance()->print_msg_once(ss.str());
     }
@@ -1039,11 +1039,11 @@ namespace ATC {
   //   add_to_nodeset
   // -------------------------------------------------------------
   void FE_Mesh::add_to_nodeset(const string & name,
-                               double xmin, 
+                               double xmin,
                                double xmax,
-                               double ymin, 
+                               double ymin,
                                double ymax,
-                               double zmin, 
+                               double zmin,
                                double zmax)
   {
     // Make sure we already have a nodeset with this name
@@ -1075,7 +1075,7 @@ namespace ATC {
 
     nodeSetMap_[name].insert(nodeSet.begin(),nodeSet.end());
 
-    if (ATC::LammpsInterface::instance()->rank_zero()) { 
+    if (ATC::LammpsInterface::instance()->rank_zero()) {
       stringstream ss;
       ss   << "added " << nodeSet.size() << " nodes to nodeset " << name ;
       ATC::LammpsInterface::instance()->print_msg_once(ss.str());
@@ -1086,17 +1086,17 @@ namespace ATC {
   //   create_faceset
   // -------------------------------------------------------------
   void FE_Mesh::create_faceset(const string & name,
-                               double xmin, 
+                               double xmin,
                                double xmax,
-                               double ymin, 
+                               double ymin,
                                double ymax,
-                               double zmin, 
-                               double zmax, 
+                               double zmin,
+                               double zmax,
                                bool outward)
   {
     // Make sure we don't already have a nodeset with this name
     FACE_SET_MAP::iterator iter = faceSetMap_.find(name);
-    if (iter != faceSetMap_.end()) 
+    if (iter != faceSetMap_.end())
       throw ATC_Error( "A faceset with name " + name + " is already defined.");
 
     set<PAIR> faceSet;
@@ -1105,24 +1105,24 @@ namespace ATC {
     const int nf = num_faces_per_element();
     const int npf = num_nodes_per_face();
     const Array2D<int> & face_conn = local_face_connectivity();
-    for (int ielem = 0; ielem < nElts_; ielem++) 
+    for (int ielem = 0; ielem < nElts_; ielem++)
     {
-      for (int iface = 0; iface < nf; iface++) 
+      for (int iface = 0; iface < nf; iface++)
       {
         bool in = true;
-        bool on_xmin = true, on_xmax = true; 
+        bool on_xmin = true, on_xmax = true;
         bool on_ymin = true, on_ymax = true;
         bool on_zmin = true, on_zmax = true;
         bool x_neg = false, x_pos = false;
         bool y_neg = false, y_pos = false;
         bool z_neg = false, z_pos = false;
         double x,y,z;
-        for (int inode = 0; inode < npf; inode++) 
+        for (int inode = 0; inode < npf; inode++)
         {
           x = nodalCoords_(0,connectivity_(face_conn(iface,inode),ielem));
           y = nodalCoords_(1,connectivity_(face_conn(iface,inode),ielem));
           z = nodalCoords_(2,connectivity_(face_conn(iface,inode),ielem));
-          
+
           if ( x + tol < xmin) { in = false; break; }
           if ( x - tol > xmax) { in = false; break; }
           if ( y + tol < ymin) { in = false; break; }
@@ -1139,7 +1139,7 @@ namespace ATC {
         }
         if (in) {
           // note based on structured grid
-          if (outward) 
+          if (outward)
           {
             if (on_xmin && iface==0) { x_neg = true;}
             if (on_xmax && iface==1) { x_pos = true;}
@@ -1148,7 +1148,7 @@ namespace ATC {
             if (on_zmin && iface==4) { z_neg = true;}
             if (on_zmax && iface==5) { z_pos = true;}
           }
-          else 
+          else
           {
             if (on_xmin && iface==1) { x_pos = true;}
             if (on_xmax && iface==0) { x_neg = true;}
@@ -1157,7 +1157,7 @@ namespace ATC {
             if (on_zmin && iface==5) { z_pos = true;}
             if (on_zmax && iface==4) { z_neg = true;}
           }
-  
+
           if (  (x_neg || x_pos) || (y_neg || y_pos) || (z_neg || z_pos) ) {
             PAIR face(ielem,iface);
             faceSet.insert(face);
@@ -1168,16 +1168,16 @@ namespace ATC {
     if (faceSet.empty()) throw ATC_Error( "faceset "+name+" is empty.");
 
     faceSetMap_[name] = faceSet;
-    if (ATC::LammpsInterface::instance()->comm_rank() == 0) { 
+    if (ATC::LammpsInterface::instance()->comm_rank() == 0) {
       stringstream ss;
-      ss   << "created faceset " << name 
+      ss   << "created faceset " << name
            << " with " << faceSet.size() << " faces";
       ATC::LammpsInterface::instance()->print_msg_once(ss.str());
     }
   }
 
   void FE_Mesh::create_faceset(const string & name,
-                               double xRef, 
+                               double xRef,
                                int nIdx, int nSgn,
                                int nIdx2, double x2lo, double x2hi,
                                int nIdx3, double x3lo, double x3hi)
@@ -1185,7 +1185,7 @@ namespace ATC {
     double xtol = tolerance(xRef);
     // Make sure we don't already have a faceset with this name
     FACE_SET_MAP::iterator iter = faceSetMap_.find(name);
-    if (iter != faceSetMap_.end()) 
+    if (iter != faceSetMap_.end())
       throw ATC_Error( "A faceset with name "+name+" is already defined.");
 
     bool finite2 = (nIdx2 >= 0);
@@ -1196,9 +1196,9 @@ namespace ATC {
     int nf = num_faces_per_element();
     int npf = num_nodes_per_face();
     const Array2D<int> & face_conn = local_face_connectivity();
-    for (int ielem = 0; ielem < nElts_; ielem++) 
+    for (int ielem = 0; ielem < nElts_; ielem++)
     {
-      for (int iface = 0; iface < nf; iface++) 
+      for (int iface = 0; iface < nf; iface++)
       {
         bool in = true;
         // all nodes must be on the plane
@@ -1216,9 +1216,9 @@ namespace ATC {
           }
         }
         // check correct orientation
-        if (in) 
+        if (in)
         {
-          if ( (nIdx == 0 && iface==0 && nSgn == -1) 
+          if ( (nIdx == 0 && iface==0 && nSgn == -1)
             || (nIdx == 0 && iface==1 && nSgn ==  1)
             || (nIdx == 1 && iface==2 && nSgn == -1)
             || (nIdx == 1 && iface==3 && nSgn ==  1)
@@ -1232,13 +1232,13 @@ namespace ATC {
       }
     }
 
-    if (faceSet.empty()) 
+    if (faceSet.empty())
       throw ATC_Error( "faceset "+name+" is empty.");
 
     faceSetMap_[name] = faceSet;
-    if (ATC::LammpsInterface::instance()->comm_rank() == 0) { 
+    if (ATC::LammpsInterface::instance()->comm_rank() == 0) {
       stringstream ss;
-      ss   << "created faceset " << name 
+      ss   << "created faceset " << name
            << " with " << faceSet.size() << " faces";
       ATC::LammpsInterface::instance()->print_msg_once(ss.str());
     }
@@ -1248,11 +1248,11 @@ namespace ATC {
   //   create_elementset
   // -------------------------------------------------------------
   void FE_Mesh::create_elementset(const string & name,
-                               double xmin, 
+                               double xmin,
                                double xmax,
-                               double ymin, 
+                               double ymin,
                                double ymax,
-                               double zmin, 
+                               double zmin,
                                double zmax)
   {
     // Make sure we don't already have a elementset with this name
@@ -1285,11 +1285,11 @@ namespace ATC {
     // create a minimal element set from all the nodes included in the region
     set<int> elemSet;
     int npe = num_nodes_per_element();
-    for (int ielem=0; ielem < nElts_; ielem++) 
+    for (int ielem=0; ielem < nElts_; ielem++)
     {
       int inode = 0;
       bool in = true;
-      while (in && inode < npe) 
+      while (in && inode < npe)
       {
         int node = connectivityUnique_(inode, ielem);
         set<int>::const_iterator iter = nodeSet.find(node);
@@ -1304,9 +1304,9 @@ namespace ATC {
     }
     elementSetMap_[name] = elemSet;
 
-    if (ATC::LammpsInterface::instance()->comm_rank() == 0) { 
+    if (ATC::LammpsInterface::instance()->comm_rank() == 0) {
       stringstream ss;
-      ss   << "created elementset " << name 
+      ss   << "created elementset " << name
            << " with " << elemSet.size() << " elements";
       ATC::LammpsInterface::instance()->print_msg_once(ss.str());
     }
@@ -1349,8 +1349,8 @@ namespace ATC {
   // -------------------------------------------------------------
   //   mappings from element id to associated nodes
   // -------------------------------------------------------------
-  
-  
+
+
   void FE_Mesh::element_connectivity_global(const int eltID,
                                             Array<int> & nodes) const
   {
@@ -1360,16 +1360,16 @@ namespace ATC {
     // use connectivity arrays
     if (decomposition_ && partitioned_) {
       for (int inode = 0; inode < npe; inode++) {
-        nodes(inode) = myConnectivity_(inode, map_elem_to_myElem(eltID)); 
+        nodes(inode) = myConnectivity_(inode, map_elem_to_myElem(eltID));
       }
     } else {
       for (int inode = 0; inode < npe; inode++) {
-        nodes(inode) = connectivity_(inode, eltID); 
+        nodes(inode) = connectivity_(inode, eltID);
       }
     }
   }
   // -------------------------------------------------------------
-  //   
+  //
   // -------------------------------------------------------------
   void FE_Mesh::element_connectivity_unique(const int eltID,
                                             Array<int> & nodes) const
@@ -1380,17 +1380,17 @@ namespace ATC {
     // use connectivity arrays
     if (decomposition_ && partitioned_) {
       for (int inode = 0; inode < npe; inode++) {
-        nodes(inode) = myConnectivityUnique_(inode, map_elem_to_myElem(eltID)); 
+        nodes(inode) = myConnectivityUnique_(inode, map_elem_to_myElem(eltID));
       }
     } else {
       for (int inode = 0; inode < npe; inode++) {
-        nodes(inode) = connectivityUnique_(inode, eltID); 
+        nodes(inode) = connectivityUnique_(inode, eltID);
       }
     }
   }
 
   // -------------------------------------------------------------
-  //  
+  //
   // -------------------------------------------------------------
   int FE_Mesh::element_connectivity_global(const int eltID,
                                             const int inode) const
@@ -1402,7 +1402,7 @@ namespace ATC {
     }
   }
   // -------------------------------------------------------------
-  //   
+  //
   // -------------------------------------------------------------
   int FE_Mesh::element_connectivity_unique(const int eltID,
                                             const int inode) const
@@ -1414,7 +1414,7 @@ namespace ATC {
     }
   }
   // -------------------------------------------------------------
-  //  
+  //
   // -------------------------------------------------------------
   AliasArray<int> FE_Mesh::element_connectivity_global(const int eltID) const
   {
@@ -1425,7 +1425,7 @@ namespace ATC {
     }
   }
   // -------------------------------------------------------------
-  //   
+  //
   // -------------------------------------------------------------
   AliasArray<int> FE_Mesh::element_connectivity_unique(const int eltID) const
   {
@@ -1449,23 +1449,23 @@ namespace ATC {
 
   int FE_Mesh::map_elem_to_myElem(int elemID) const
   {
-    
+
     return elemToMyElemMap_.find(elemID)->second;
   }
 
   int FE_Mesh::map_myElem_to_elem(int myElemID) const
   {
-    return myElts_[myElemID]; 
+    return myElts_[myElemID];
   }
-  
+
   // -------------------------------------------------------------
   //   shape function evaluation
   // -------------------------------------------------------------
-  
+
   // set quadrature scheme pass-through
-  void FE_Mesh::set_quadrature(FeIntQuadrature type) 
-  { 
-    feElement_->set_quadrature(type); 
+  void FE_Mesh::set_quadrature(FeIntQuadrature type)
+  {
+    feElement_->set_quadrature(type);
   }
 
   // shape function evaluation
@@ -1475,12 +1475,12 @@ namespace ATC {
   {
     // get element id from global coordinates
     int eltID = map_to_element(x);
-    
+
     // call appropriate function below, with eltID
     shape_functions(x,eltID,N,nodeList);
   }
 
-  void FE_Mesh::shape_functions(const DENS_VEC &x, 
+  void FE_Mesh::shape_functions(const DENS_VEC &x,
                                 DENS_VEC &N,
                                 DENS_MAT &dNdx,
                                 Array<int> &nodeList) const
@@ -1500,10 +1500,10 @@ namespace ATC {
     // Get element node coordinates from mesh
     DENS_MAT eltCoords;
     element_coordinates(eltID, eltCoords);
-    
+
     // pass through call
     feElement_->shape_function(eltCoords,x,N);
-    
+
     // determine nodes which correspond to shape function indices
     element_connectivity_unique(eltID,nodeList);
   }
@@ -1520,7 +1520,7 @@ namespace ATC {
 
     // pass through call
     feElement_->shape_function(eltCoords,x,N,dNdx);
-    
+
     // determine nodes which correspond to shp function indices
     element_connectivity_unique(eltID,nodeList);
   }
@@ -1536,13 +1536,13 @@ namespace ATC {
 
     // pass through call
     feElement_->shape_function_derivatives(eltCoords,x,dNdx);
-    
+
     // determine nodes which correspond to shp function indices
     element_connectivity_unique(eltID,nodeList);
   }
 
   void FE_Mesh::shape_function(const int eltID,
-                               DENS_MAT &N, 
+                               DENS_MAT &N,
                                DIAG_MAT &weights) const
   {
     // unused data (but required to calc weights)
@@ -1553,7 +1553,7 @@ namespace ATC {
   }
 
   void FE_Mesh::shape_function(int eltID,
-                               DENS_MAT &N, 
+                               DENS_MAT &N,
                                vector<DENS_MAT> &dN,
                                DIAG_MAT &weights) const
   {
@@ -1572,7 +1572,7 @@ namespace ATC {
   {
     int eltID = face.first;
     int faceID = face.second;
-    
+
     // Get element node coordinates from mesh
     DENS_MAT eltCoords;
     element_coordinates(eltID,eltCoords);
@@ -1589,7 +1589,7 @@ namespace ATC {
   {
     int eltID = face.first;
     int faceID = face.second;
-    
+
     // Get element node coordinates from mesh
     DENS_MAT eltCoords;
     element_coordinates(eltID,eltCoords);
@@ -1604,7 +1604,7 @@ namespace ATC {
   {
     int eltID = face.first;
     int faceID = face.second;
-    
+
     // Get element node coordinates from mesh
     DENS_MAT eltCoords;
     element_coordinates(eltID,eltCoords);
@@ -1639,7 +1639,7 @@ namespace ATC {
       nodesets[nodeset].reset(size,1);
       set<int>::const_iterator iter;
       for (iter = nset.begin(); iter != nset.end(); iter++) {
-        (nodesets[nodeset])(*iter,0) = 1;  
+        (nodesets[nodeset])(*iter,0) = 1;
       }
       subsetData[nodeset] = & nodesets[nodeset];
     }
@@ -1671,7 +1671,7 @@ namespace ATC {
         Array<int> nodes;
         element_connectivity_unique(*iter, nodes);
         for(int i = 0; i < nodes.size(); ++i) {
-          (elemsets[elemset])(nodes(i),0) = 1; 
+          (elemsets[elemset])(nodes(i),0) = 1;
         }
       }
       subsetData[elemset] = & elemsets[elemset];
@@ -1690,7 +1690,7 @@ namespace ATC {
 
   bool FE_Mesh::is_owned_elt(int elt) const
   {
-    return (find(myElts_.begin(), myElts_.end(), elt) != myElts_.end()); 
+    return (find(myElts_.begin(), myElts_.end(), elt) != myElts_.end());
   }
 
 
@@ -1700,9 +1700,9 @@ namespace ATC {
   // -------------------------------------------------------------
   // -------------------------------------------------------------
   FE_3DMesh::FE_3DMesh(const string elementType,
-                       const int nNodes, 
+                       const int nNodes,
                        const int nElements,
-                       const Array2D<int> *connectivity, 
+                       const Array2D<int> *connectivity,
                        const DENS_MAT *nodalCoordinates,
                        const Array<bool> periodicity,
                        const Array< pair< string, set<int> > > *nodeSets):
@@ -1724,7 +1724,7 @@ namespace ATC {
       throw ATC_Error("Unrecognized element type specified.");
     }
 
-    
+
     nSD_ = 3;
     nNodes_ = nNodes;
     nNodesUnique_ = nNodes;
@@ -1739,7 +1739,7 @@ namespace ATC {
     nodalCoords_ = (*nodalCoordinates);
 
     // set minimum element size
-    minEltSize_ = 1.e20; 
+    minEltSize_ = 1.e20;
     for (int i=0; i< connectivity_.nCols(); ++i) {
       int n1 = connectivity_(0,i);
       int n2 = connectivity_(1,i);
@@ -1754,12 +1754,12 @@ namespace ATC {
     setup_periodicity();
 
     // Create the "all" elementset, the "all" nodeset, and the read-in nodesets.
-    for (int elem = 0; elem < nElts_; elem++) elementSetAll_.insert(elem); 
+    for (int elem = 0; elem < nElts_; elem++) elementSetAll_.insert(elem);
     for (int node = 0; node < nNodesUnique_; node++) nodeSetAll_.insert(node);
     const Array<pair<string,set<int> > > & sets = *nodeSets;
     for (int nodeSet = 0; nodeSet < sets.size(); ++nodeSet) {
       const set<int> & nset = sets(nodeSet).second;
-      set<int> copy; 
+      set<int> copy;
       if (compactRemap_.size() > 0) {
         for (set<int>::iterator itr = nset.begin(); itr != nset.end(); itr++) {
           copy.insert(globalToUniqueMap_(compactRemap_(*itr)));
@@ -1772,17 +1772,17 @@ namespace ATC {
       }
       create_nodeset(sets(nodeSet).first, copy);
     }
-    
+
     // Insert nodes and elements into KD-tree for PIE search.
     if (tree_ == nullptr) {
-      tree_ = KD_Tree::create_KD_tree(feElement_->num_elt_nodes(), nNodes_, 
+      tree_ = KD_Tree::create_KD_tree(feElement_->num_elt_nodes(), nNodes_,
         &nodalCoords_, nElts_, connectivity_);
     }
 
   }
 
   FE_3DMesh::~FE_3DMesh() {
-    if (tree_) delete tree_; 
+    if (tree_) delete tree_;
   }
 
   // -------------------------------------------------------------
@@ -1802,7 +1802,7 @@ namespace ATC {
     if (periodicity_(2)) { fix_periodicity(3); }
     if (periodicity_(1)) { fix_periodicity(2); }
     if (periodicity_(0)) { fix_periodicity(1); }
-    
+
 
     // renumber to compact unique numbering
     // unique nodes map to the same id with global to unique
@@ -1914,8 +1914,8 @@ namespace ATC {
     ATC::LammpsInterface::instance()->print_msg_once(ss.str());
     return true;
   }
-  
-  void FE_3DMesh::set_unique_connectivity(void) 
+
+  void FE_3DMesh::set_unique_connectivity()
   {
     int numEltNodes = feElement_->num_elt_nodes();
     connectivityUnique_.reset(numEltNodes, nElts_);
@@ -1987,14 +1987,14 @@ namespace ATC {
     // add duplicate coordinates
     int iNew = nNodes_;
     int iNewUnique = nNodesUnique_;
-    for (itr = dupNodes.begin(); itr != dupNodes.end(); 
+    for (itr = dupNodes.begin(); itr != dupNodes.end();
          itr++,iNew++) {
       int iOld = *itr;
       oldToNewMap[iOld] = iNew;      // global ids
       if (iOld == node_map(iOld)) {  // non-image atom
-        node_map(iNew) = iNewUnique++; 
-      } else { 
-        node_map(iNew) = -1; 
+        node_map(iNew) = iNewUnique++;
+      } else {
+        node_map(iNew) = -1;
       }
       for(int j = 0; j < nsd; j++) {
         coordinates(j,iNew) = coordinates(j,iOld);
@@ -2002,7 +2002,7 @@ namespace ATC {
     }
     nNodes_ = iNew;
     nNodesUnique_ = iNewUnique;
-    for (itr = dupNodes.begin(); itr != dupNodes.end(); 
+    for (itr = dupNodes.begin(); itr != dupNodes.end();
          itr++,iNew++) {
       int iOld = *itr;
       iNew = oldToNewMap[iOld];        // global ids
@@ -2016,7 +2016,7 @@ namespace ATC {
     const int nnf = num_nodes_per_face();
     const Array2D <int> & local_conn = feElement_->local_face_conn();
     set< PAIR >::iterator iter;
-    for (iter = faceSet.begin(); iter != faceSet.end(); iter++) 
+    for (iter = faceSet.begin(); iter != faceSet.end(); iter++)
     {
       PAIR face = *iter;
       int eltID=face.first, faceID=face.second;
@@ -2026,7 +2026,7 @@ namespace ATC {
         if (oldToNewMap.find(id) != oldToNewMap.end() ) {
           int new_id = (*oldToNewMap.find(id)).second;
           connectivity_(lid,eltID)        = new_id;
-          connectivityUnique_(lid, eltID) = node_map(new_id); 
+          connectivityUnique_(lid, eltID) = node_map(new_id);
         }
       }
     }
@@ -2045,7 +2045,7 @@ namespace ATC {
     set<int> newToOld;
     map<int,int> oldToNewMap;
     elementset_to_nodeset(elementsNew,newToOld);
-    int nNodesNew = newToOld.size(); 
+    int nNodesNew = newToOld.size();
     set<int>::const_iterator itr;
 
     // coordinates & node map (from nodes to data)
@@ -2073,9 +2073,9 @@ namespace ATC {
       for(int j = 0; j < nPE; j++) {
         int old_node = connectivity_(j,ielem);
         map<int,int>::iterator map_itr = oldToNewMap.find(old_node);
-        if (map_itr == oldToNewMap.end()) { 
-          stringstream ss; 
-          ss << "map failure " << old_node << "\n"; 
+        if (map_itr == oldToNewMap.end()) {
+          stringstream ss;
+          ss << "map failure " << old_node << "\n";
           ATC::LammpsInterface::instance()->print_msg(ss.str());
         }
         int node = map_itr->second;
@@ -2089,9 +2089,9 @@ namespace ATC {
   }
 
   // -------------------------------------------------------------
-  //  partition_mesh 
+  //  partition_mesh
   // -------------------------------------------------------------
-  
+
   void FE_3DMesh::partition_mesh()
   {
     if (lammpsPartition_) {
@@ -2108,8 +2108,8 @@ namespace ATC {
     // use the KD tree for partitioning, getting more blocks than
     // processors
     if (tree_ == nullptr) {
-      tree_ = KD_Tree::create_KD_tree(feElement_->num_elt_nodes(), 
-                                      nNodes_, &nodalCoords_, 
+      tree_ = KD_Tree::create_KD_tree(feElement_->num_elt_nodes(),
+                                      nNodes_, &nodalCoords_,
                                       nElts_, connectivity_);
     }
 
@@ -2119,14 +2119,14 @@ namespace ATC {
       // divide between all processors, we get the next-highest
       // power of 2.
     vector<vector<int> > procEltLists = tree_->getElemIDs(depth);
-    
+
     // Make sure the KD tree is behaving as expected.
     assert(procEltLists.size() >= nProcs);
- 
+
     // If the KD-tree was not able to return enough divisions,
     // duplicate the largest list.
-      
-      // elements, then the division would be more even. 
+
+      // elements, then the division would be more even.
     vector<vector<int> >::iterator it;
     if (numNonempty(procEltLists) < nProcs) {
       // Find the list of maximum size and assign it to empty processors
@@ -2142,7 +2142,7 @@ namespace ATC {
         }
       }
     }
-   
+
     // We will store the owning processor for each element.
     int * eltToOwners = new int[nElts_];
     for (int i = 0; i < nElts_; ++i) {
@@ -2180,7 +2180,7 @@ namespace ATC {
     partitioned_ = false;
   }
 
-  void FE_3DMesh::prune_duplicate_elements(vector<vector<int> > & procEltLists, 
+  void FE_3DMesh::prune_duplicate_elements(vector<vector<int> > & procEltLists,
                                            int * eltToOwners)
   {
     int procID = 0;
@@ -2195,7 +2195,7 @@ namespace ATC {
         // record it as belonging to processor *it.
         if (eltToOwners[*it] == -1) {
           eltToOwners[*it] = procID;
-        } 
+        }
         else {
           // If it does have a processor in eltToOwners, then we need
           // to remove it from either processor *topIt or from the processor
@@ -2205,7 +2205,7 @@ namespace ATC {
             // Delete element from processor *topIt, if it has more elements.
             it = topIt->erase(it);
             --it;
-          } 
+          }
           else {
             // Delete element from conflicting processor otherwise.
             toErase = find(conflictingProc->begin(), conflictingProc->end(), *it);
@@ -2219,9 +2219,9 @@ namespace ATC {
   }
 
   // -------------------------------------------------------------
-  //  lammps_partition_mesh 
+  //  lammps_partition_mesh
   // -------------------------------------------------------------
-  
+
   void FE_3DMesh::lammps_partition_mesh()
   {
     if (LammpsInterface::instance()->domain_triclinic()) {
@@ -2234,10 +2234,10 @@ namespace ATC {
     LammpsInterface::instance()->sub_bounds(xlo, xhi, ylo, yhi, zlo, zhi);
     LammpsInterface::instance()->box_bounds(boxxlo, boxxhi, boxylo, boxyhi, boxzlo, boxzhi);
 
-    
+
     myElts_.clear();
     double xCent, yCent, zCent;
-    
+
     // Assign elements to processors based on the centroid of the element.
     int numNodes = num_nodes_per_element();
     for (int i = 0; i < nElts_; ++i)
@@ -2259,7 +2259,7 @@ namespace ATC {
       if (yCent < boxylo) yCent = boxylo;
       if (yCent < boxyhi) yCent = boxyhi;
       if (zCent < boxzlo) zCent = boxzlo;
-      if (zCent < boxzhi) zCent = boxzhi; 
+      if (zCent < boxzhi) zCent = boxzhi;
       if ( dbl_geq(xCent, xlo) &&
           ((xhi == boxxhi) || !dbl_geq(xCent, xhi)) &&
            dbl_geq(yCent, ylo) &&
@@ -2284,13 +2284,13 @@ namespace ATC {
       nodeset_to_maximal_elementset(nodes,elms);
       myAndGhostElts_.clear();
       set<int>::const_iterator iter;
-      for (iter=elms.begin(); iter!=elms.end(); iter++) 
+      for (iter=elms.begin(); iter!=elms.end(); iter++)
         {myAndGhostElts_.push_back(*iter);}
       distribute_mesh_data();
     }
     partitioned_ = true;
     return;
-    
+
   }
 
   void FE_3DMesh::redistribute_extra_proclists(vector<vector<int> > &procEltLists,
@@ -2300,7 +2300,7 @@ namespace ATC {
       faceAdjacencies = -1; // Set all values to -1, indicating uninitialized/uncalculated
 
       int currentElt, adjacentElt, procID;
-      
+
       // Put all of the hobos onto one master list, allHomelessElts.
       list<int> allHomelessElts;
       vector<int> oneHomelessList;
@@ -2309,11 +2309,11 @@ namespace ATC {
       for (int i = 0; i < nHoboLists; ++i) {
         current = min_element(procEltLists.begin(), procEltLists.end(), vectorCompSize);
         oneHomelessList = *current;
-        allHomelessElts.insert(allHomelessElts.end(), 
+        allHomelessElts.insert(allHomelessElts.end(),
                                oneHomelessList.begin(), oneHomelessList.end());
         current->clear();
       }
-      
+
       // Make sure the hobos lose their association with their old processor.
       list<int>::iterator it;
       for (it = allHomelessElts.begin(); it != allHomelessElts.end(); it++){
@@ -2322,34 +2322,34 @@ namespace ATC {
 
       // Figure out which elements the hobos are adjacent to. That way, they
       // will know what processors they can be redistributed to.
-      compute_face_adjacencies(allHomelessElts, faceAdjacencies); 
+      compute_face_adjacencies(allHomelessElts, faceAdjacencies);
 
       // Place homeless elements onto lists that correspond to actual processors.
       while (!allHomelessElts.empty()) {
         currentElt = allHomelessElts.back();
-        
+
         // This will store the ID of the processor with the fewest elements
         // so far that has an element adjacent to currentElt.
         PAIR smallestProc(-1, INT_MAX);
-        
+
         // Iterate over the faces, check the processors of adjacent elements,
-        // and slate the element to go on the adjacent processor with the fewest 
+        // and slate the element to go on the adjacent processor with the fewest
         // elements.
         for (int localFaceID = 0; localFaceID < num_faces_per_element(); ++localFaceID) {
-          adjacentElt = faceAdjacencies(currentElt, localFaceID); 
-          
+          adjacentElt = faceAdjacencies(currentElt, localFaceID);
+
           // This means that there is no adjacency through this face.
           if (adjacentElt >= nElts_) continue;
-          
+
           procID = eltToOwners[adjacentElt];
           // The procID > -1 check makes sure we're not adjacent to another
           // homeless element by this face, in which case it won't have a
           // processor to put currentElt onto yet.
           if (procID > -1 && ((int) procEltLists[procID].size()) < smallestProc.second) {
             smallestProc = PAIR(procID, procEltLists[procID].size());
-          } 
+          }
         }
-        
+
         allHomelessElts.pop_back();
 
         // If we couldn't find an adjacent element that had a processor,
@@ -2357,7 +2357,7 @@ namespace ATC {
         if (smallestProc.first == -1) {
           allHomelessElts.push_front(currentElt);
         }
-        // Otherwise, put it onto the processor with the fewest elements that 
+        // Otherwise, put it onto the processor with the fewest elements that
         // we found.
         else {
           procEltLists[smallestProc.first].push_back(currentElt);
@@ -2366,8 +2366,8 @@ namespace ATC {
       }
   }
 
-  
-  void FE_3DMesh::compute_face_adjacencies(const list<int> &elts, 
+
+  void FE_3DMesh::compute_face_adjacencies(const list<int> &elts,
                                          DENS_MAT &faceAdjacencies)
   {
     list<int>::const_iterator cit;
@@ -2382,9 +2382,9 @@ namespace ATC {
         // Put the first node's elements into the accumulator to start.
         vector<int> vIntersect = uniqueNodeToElementMap_(faceNodes(0));
         vector<int> vCurrent;
-        // set_intersect requires a vector large enough to contain the 
-        // max possible intersect, which cannot be larger than the entirety 
-        // of the first vector involved. 
+        // set_intersect requires a vector large enough to contain the
+        // max possible intersect, which cannot be larger than the entirety
+        // of the first vector involved.
         vector<int> vTemp(vIntersect.size(), -1);
         // Find the intersection of each of the nodes' element vectors.
         for (int ithOnFace = 1; ithOnFace < num_nodes_per_face(); ++ithOnFace) {
@@ -2404,32 +2404,32 @@ namespace ATC {
         if (vIntersect.size() == 2) {
           // We want to choose the element id of NOT the current
           // element to be listed as the adjacency.
-          
-          //    well, but that requires more complicated memoization and 
+
+          //    well, but that requires more complicated memoization and
           //    this doesn't take much extra time.
           if (*cit == vIntersect[0]) {
             faceAdjacencies(*cit, localFaceID) = vIntersect[1];
-          } 
+          }
           else {
             faceAdjacencies(*cit, localFaceID) = vIntersect[0];
           }
-        } 
+        }
         // This means the element is on the border.
         else if (vIntersect.size() == 1) {
           faceAdjacencies(*cit, localFaceID) = INT_MAX;
-        } 
+        }
         else {
           // This should never ever happen! The nodes should at least
           // share one element, since they are all on one face!
           // There should also never be more than two elements on the
-          // same face... that would defy mathematics and physics in 
+          // same face... that would defy mathematics and physics in
           // every way.
         }
       }
     }
   }
 
-  // Sometimes we want to count the number of vectors that actually 
+  // Sometimes we want to count the number of vectors that actually
   // have stuff in them. We use this.
   int FE_3DMesh::numNonempty(vector<vector<int> > & v)
   {
@@ -2450,10 +2450,10 @@ namespace ATC {
     vector<int> matches = vector<int>();
 
     // Search through each of the nearest elements
-    for (vector<int>::iterator elem = candidates.begin(); 
+    for (vector<int>::iterator elem = candidates.begin();
                                elem < candidates.end(); elem++) {
       if (contains_point(*elem, query)) {
-        matches.push_back(*elem); // Keep track of the elements 
+        matches.push_back(*elem); // Keep track of the elements
                                   // which contain it
       }
     }
@@ -2477,7 +2477,7 @@ namespace ATC {
   }
 
   //-----------------------------------------------------------------------
-  void FE_3DMesh::distribute_mesh_data() 
+  void FE_3DMesh::distribute_mesh_data()
   {
     myNElts_ = myElts_.size();
 
@@ -2531,10 +2531,10 @@ namespace ATC {
     borders_[1][0] = xmax;
     borders_[1][1] = ymax;
     borders_[1][2] = zmax;
-    L_[0] = xmax-xmin; 
+    L_[0] = xmax-xmin;
     L_[1] = ymax-ymin;
     L_[2] = zmax-zmin;
-    n_[0] = hx_.size(); 
+    n_[0] = hx_.size();
     n_[1] = hy_.size();
     n_[2] = hz_.size();
     // Compute region size and element size
@@ -2556,13 +2556,13 @@ namespace ATC {
     nSD_ = 3;
     x_.reserve(nSD_);
     for (int i = 0; i < nSD_; ++i) {x_.push_back(Array<double>(n_[i]+1)); }
-    Array<double> & xI = x_[0]; 
+    Array<double> & xI = x_[0];
     xI(0) = xmin;
     for (int i = 0; i < n_[0]; ++i) { xI(i+1) = xI(i)+hx_(i); }
-    Array<double> & yI = x_[1]; 
+    Array<double> & yI = x_[1];
     yI(0) = ymin;
     for (int i = 0; i < n_[1]; ++i) { yI(i+1) = yI(i)+hy_(i); }
-    Array<double> & zI = x_[2]; 
+    Array<double> & zI = x_[2];
     zI(0) = zmin;
     for (int i = 0; i < n_[2]; ++i) { zI(i+1) = zI(i)+hz_(i); }
 
@@ -2620,9 +2620,9 @@ namespace ATC {
   }
 
   // -------------------------------------------------------------
-  //  partition_mesh 
+  //  partition_mesh
   // -------------------------------------------------------------
-  
+
   void FE_Rectangular3DMesh::partition_mesh()
   {
     if (lammpsPartition_) {
@@ -2632,7 +2632,7 @@ namespace ATC {
     if (partitioned_) return;
 
 
-    // Currently this code has been rather naively copied from 
+    // Currently this code has been rather naively copied from
     // FE_Uniform3DMesh::partition_mesh()
 
     // Determine dimensions of mesh in order to partition according to largest dimension.
@@ -2645,10 +2645,10 @@ namespace ATC {
 
     int numProcs;
     MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
-    
+
     int processorRank;
     MPI_Comm_rank(MPI_COMM_WORLD, &processorRank);
-      
+
     // Spatially partition along the largest dimension.
     procs_.clear();
     if (max(max(L_[0], L_[1]), L_[2]) == L_[0]) {
@@ -2687,9 +2687,9 @@ namespace ATC {
         myNodes_.push_back(i);
       }
     }
-   
+
     // Distribute each element to the correct processor - assign it to the processor
-    // which owns its node of lowest index. (this partitioning scheme is unambiguous) 
+    // which owns its node of lowest index. (this partitioning scheme is unambiguous)
     myElts_.clear();
     for (int i = 0; i < nElts_; ++i) {
       int min = INT_MAX;
@@ -2705,7 +2705,7 @@ namespace ATC {
     /* Commented out because ghost nodes are never used and dx_ is not a member of
        FE_Rectangular3DMesh.
 
-    // Compute the facesets that describes the left and right boundaries 
+    // Compute the facesets that describes the left and right boundaries
     // in order to determine ghost nodes.
     int leftMult = 0;
     while ((leftMult+1)*dx_[partitionAxis_] < procs_[processorRank]) {
@@ -2745,13 +2745,13 @@ namespace ATC {
     nNodesUnique_ = 1;
     for (int i = 0; i < 3; i++) {
       nNodesUnique_ *= (n_[i] + 1 - periodicity_(i));
-    } 
-    
+    }
+
     // form maximal nodeset
     for (int i = 0; i < nNodesUnique_; i++) {
-      nodeSetAll_.insert(i); 
+      nodeSetAll_.insert(i);
     }
-    
+
     // Create global-to-unique map: globalToUniqueMap_(ig) = iu
     globalToUniqueMap_.reset(nNodes_);
     uniqueToGlobalMap_.reset(nNodesUnique_);
@@ -2762,7 +2762,7 @@ namespace ATC {
         for (int i = 0; i <= n_[0]; ++i) {
           int iper = (i == n_[0] && periodicity_(0)) ? 0 : i;
           int id = i + j*(n_[0]+1) + k*(n_[0]+1)*(n_[1]+1);
-          int uid = iper + jper*(n_[0]+1-periodicity_(0)) 
+          int uid = iper + jper*(n_[0]+1-periodicity_(0))
             + kper*(n_[0]+1-periodicity_(0))*(n_[1]+1-periodicity_(1));
           globalToUniqueMap_(id) = uid;
           uniqueToGlobalMap_(uid) = id;
@@ -2773,7 +2773,7 @@ namespace ATC {
 
     // form maximal elementset
     for (int i = 0; i < nElts_; i++) {
-      elementSetAll_.insert(i); 
+      elementSetAll_.insert(i);
     }
   }
 
@@ -2788,7 +2788,7 @@ namespace ATC {
          int shift = int(diff/L_[i]);
          if (diff < 0.) shift--;
          y -= shift*L_[i];
-      } 
+      }
       // project into element
       ix[i] = x_[i].index(y);
       if (fabs(y-borders_[0][i]) < tol) { ix[i] = 0; } // on the lower boundary
@@ -2898,15 +2898,15 @@ namespace ATC {
   // -------------------------------------------------------------
   //  destructor
   // -------------------------------------------------------------
-  FE_Uniform3DMesh::~FE_Uniform3DMesh() 
+  FE_Uniform3DMesh::~FE_Uniform3DMesh()
   {
     // Clean up is currently unimplemented
   }
 
   // -------------------------------------------------------------
-  //  partition_mesh 
+  //  partition_mesh
   // -------------------------------------------------------------
-  
+
   void FE_Uniform3DMesh::partition_mesh()
   {
     if (lammpsPartition_) {
@@ -2926,10 +2926,10 @@ namespace ATC {
 
     int numProcs;
     MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
-    
+
     int processorRank;
     MPI_Comm_rank(MPI_COMM_WORLD, &processorRank);
-      
+
     // Spatially partition along the largest dimension.
     procs_.clear();
     if (max(max(L_[0], L_[1]), L_[2]) == L_[0]) {
@@ -2968,9 +2968,9 @@ namespace ATC {
         myNodes_.push_back(i);
       }
     }
-   
+
     // Distribute each element to the correct processor - assign it to the processor
-    // which owns its node of lowest index. (this partitioning scheme is unambiguous) 
+    // which owns its node of lowest index. (this partitioning scheme is unambiguous)
     myElts_.clear();
     for (int i = 0; i < nElts_; ++i) {
       int min = INT_MAX;
@@ -2983,7 +2983,7 @@ namespace ATC {
       }
     }
 
-    // Compute the facesets that describes the left and right boundaries 
+    // Compute the facesets that describes the left and right boundaries
     // in order to determine ghost nodes.
     int leftMult = 0;
     while ((leftMult+1)*dx_[partitionAxis_] < procs_[processorRank]) {
@@ -3020,11 +3020,11 @@ namespace ATC {
   // -------------------------------------------------------------
   int FE_Uniform3DMesh::map_to_element(const DENS_VEC &x) const
   {
-    // countx[i] is the number of the element, where 1 is the 
+    // countx[i] is the number of the element, where 1 is the
     // element adjacent to the lower border, in the ith direction
     int countx[3];
     for (int i = 0; i < 3; ++i) {
-      // handle points on upper boundary; not sure why this is 
+      // handle points on upper boundary; not sure why this is
       // hard-coded in, though...
       if (fabs(x(i)-borders_[1][i]) < tol) {
         countx[i] = n_[i] - 1;
@@ -3032,26 +3032,26 @@ namespace ATC {
         // find the x, y, and z bins for the point in the mesh
         countx[i] = (int)floor((x(i)-borders_[0][i])/dx_[i]);
       }
-      
+
       // handle points out-of-range [0:nx-1] w/ periodicity
       if (countx[i] < 0 || countx[i] >= n_[i]) {
         if (periodicity_(i)) {
           countx[i] = countx[i] % n_[i];
           // handles c++ ambiguous mod problems
-          if (countx[i] < 0) countx[i] += n_[i]; 
+          if (countx[i] < 0) countx[i] += n_[i];
         } else {
-          string msg = " point maps outside " 
-                       "of mesh, coordinate "                     + 
-                       index_to_string(i) + " " + to_string(x(i)) + 
-                       " not in " + to_string(borders_[0][i])     + 
+          string msg = " point maps outside "
+                       "of mesh, coordinate "                     +
+                       index_to_string(i) + " " + to_string(x(i)) +
+                       " not in " + to_string(borders_[0][i])     +
                        " : "      + to_string(borders_[1][i]);
           throw ATC_Error(FILELINE,msg);
         }
       }
     }
 
-    int elt = countx[2]*(n_[0]*n_[1]) + 
-              countx[1]*n_[0]          + 
+    int elt = countx[2]*(n_[0]*n_[1]) +
+              countx[1]*n_[0]          +
               countx[0];
     return elt;
   }

@@ -11,7 +11,7 @@ using std::set;
 
 
 namespace ATC {
-const double  kPenalty = 1.0e4; 
+const double  kPenalty = 1.0e4;
 const double  kTol     = 1.0e-8;
 const int kMaxDirect   = 1000;
 
@@ -45,7 +45,7 @@ LinearSolver::LinearSolver(
     maxIterations_(0), maxRestarts_(0), tol_(0),
     parallel_(parallel)
 {
-  // deep copy 
+  // deep copy
   matrixCopy_ = A;
   matrixSparse_ = &matrixCopy_;
   setup();
@@ -63,13 +63,13 @@ LinearSolver::LinearSolver(
     initializedMatrix_(true),
     initializedInverse_(false),
     matrixModified_(false),
-    allowReinitialization_(false), 
+    allowReinitialization_(false),
     homogeneousBCs_(false),
     bcs_(nullptr), // null implies no constraints will be added later
     rhs_(nullptr),
     rhsDense_(), b_(nullptr),
     matrix_(A),
-    matrixDense_(), 
+    matrixDense_(),
     matrixFreeFree_(), matrixFreeFixed_(),matrixInverse_(),
     penalty_(1),
     maxIterations_(0), maxRestarts_(0), tol_(0),
@@ -77,14 +77,14 @@ LinearSolver::LinearSolver(
 {
   // shallow copy
   matrixSparse_ = &A;
-  setup(); 
+  setup();
 }
 
 
 // --------------------------------------------------------------------
 //  Setup
 // --------------------------------------------------------------------
-void LinearSolver::setup(void)
+void LinearSolver::setup()
 {
   tol_     = kTol;
   nVariables_ = matrix_.nRows();
@@ -96,7 +96,7 @@ void LinearSolver::setup(void)
   if (solverType_ < 0) {
     if (nVariables_ > kMaxDirect ) {
       solverType_ = ITERATIVE_SOLVE_SYMMETRIC;
-      constraintHandlerType_ = PENALIZE_CONSTRAINTS; 
+      constraintHandlerType_ = PENALIZE_CONSTRAINTS;
     }
     else {
       solverType_ = DIRECT_SOLVE;
@@ -113,7 +113,7 @@ void LinearSolver::setup(void)
 // --------------------------------------------------------------------
 //  Initialize
 // --------------------------------------------------------------------
-void LinearSolver::allow_reinitialization(void) 
+void LinearSolver::allow_reinitialization()
 {
   if (constraintHandlerType_ == PENALIZE_CONSTRAINTS) {
     if (matrixModified_ ) throw ATC_Error("LinearSolver: can't allow reinitialization after matrix has been modified");
@@ -124,7 +124,7 @@ void LinearSolver::allow_reinitialization(void)
 
 void LinearSolver::initialize(const BC_SET * bcs)
 {
-  if (bcs) { 
+  if (bcs) {
     if (! allowReinitialization_ ) throw ATC_Error("LinearSolver: reinitialization not allowed");
    //if (! bcs_ ) throw ATC_Error("LinearSolver: adding constraints after constructing without constraints is not allowed");
     // shallow --> deep copy
@@ -157,14 +157,14 @@ void LinearSolver::initialize(const BC_SET * bcs)
 // --------------------------------------------------------------------
 //  initialize_matrix
 // --------------------------------------------------------------------
-void LinearSolver::initialize_matrix(void)
+void LinearSolver::initialize_matrix()
 {
   if ( initializedMatrix_ ) return;
   if       (constraintHandlerType_ == PENALIZE_CONSTRAINTS) {
     add_matrix_penalty();
   }
   else if  (constraintHandlerType_ == CONDENSE_CONSTRAINTS) {
-    partition_matrix(); 
+    partition_matrix();
   }
   initializedMatrix_ = true;
 }
@@ -172,7 +172,7 @@ void LinearSolver::initialize_matrix(void)
 // --------------------------------------------------------------------
 //  initialize_inverse
 // --------------------------------------------------------------------
-void LinearSolver::initialize_inverse(void)
+void LinearSolver::initialize_inverse()
 {
   if ( initializedInverse_ ) return;
   if (solverType_ == ITERATIVE_SOLVE_SYMMETRIC
@@ -182,12 +182,12 @@ void LinearSolver::initialize_inverse(void)
   else { // DIRECT_SOLVE
     if (constraintHandlerType_ == CONDENSE_CONSTRAINTS) {
       if( num_unknowns() > 0 ) {
-        matrixInverse_ = inv(matrixFreeFree_); 
+        matrixInverse_ = inv(matrixFreeFree_);
       }
     }
     else { // NO_CONSTRAINTS || PENALIZE_CONSTRAINTS
       matrixDense_ = matrixSparse_->dense_copy(); // need dense for lapack
-      matrixInverse_ = inv(matrixDense_); 
+      matrixInverse_ = inv(matrixDense_);
     }
   }
   initializedInverse_ = true;
@@ -196,7 +196,7 @@ void LinearSolver::initialize_inverse(void)
 // --------------------------------------------------------------------
 //  initialize_rhs
 // --------------------------------------------------------------------
-void LinearSolver::initialize_rhs(void)
+void LinearSolver::initialize_rhs()
 {
   if (! rhs_ ) return;
   if (! bcs_ ) {
@@ -215,11 +215,11 @@ void LinearSolver::initialize_rhs(void)
 // add matrix penalty
 // - change matrix for Dirichlet conditions: add penalty
 // --------------------------------------------------------------------
-void LinearSolver::add_matrix_penalty(void)
+void LinearSolver::add_matrix_penalty()
 {
   penalty_ = kPenalty; // relative to matrix diagonal
   SPAR_MAT & A = matrixCopy_;
-  penalty_ *= (A.diag()).maxabs(); 
+  penalty_ *= (A.diag()).maxabs();
   BC_SET::const_iterator itr;
   for (itr = bcs_->begin(); itr != bcs_->end(); itr++) {
     int i = itr->first;
@@ -233,7 +233,7 @@ void LinearSolver::add_matrix_penalty(void)
 // partition matrix
 // - partition matrix based on Dirichlet constraints
 // --------------------------------------------------------------------
-void LinearSolver::partition_matrix(void)
+void LinearSolver::partition_matrix()
 {
   fixedSet_.clear();
   BC_SET::const_iterator itr;
@@ -253,7 +253,7 @@ void LinearSolver::partition_matrix(void)
 
   if (matrixDense_.nRows() == 0) matrixDense_ =matrixSparse_->dense_copy();
   DENS_MAT & K = matrixDense_;
-  K.row_partition(freeSet_,matrixFreeFree_,matrixFreeFixed_); 
+  K.row_partition(freeSet_,matrixFreeFree_,matrixFreeFixed_);
 }
 
 // --------------------------------------------------------------------
@@ -269,7 +269,7 @@ void LinearSolver::add_rhs_penalty()
   int size = r.nRows();
   b.reset(size);
   for (int i = 0; i < size;  i++) {
-    b(i) = r(i); 
+    b(i) = r(i);
   }
 
   if ( ! homogeneousBCs_ ){
@@ -304,7 +304,7 @@ void LinearSolver::add_rhs_influence()
       for (itr = bcs_->begin(); itr != bcs_->end(); itr++,i++) {
         double v = itr->second;
         xFixed(i,0) = -v;
-      }  
+      }
       b = matrixFreeFixed_*xFixed; // matrix and bcs have same ordering
     }
     else {
@@ -314,7 +314,7 @@ void LinearSolver::add_rhs_influence()
     set<int>::const_iterator iter;
     int i = 0;
     for (iter = freeSet_.begin(); iter != freeSet_.end(); iter++,i++) {
-      b(i) += r(*iter);  
+      b(i) += r(*iter);
     }
     b_ = &rhsDense_;
   }
@@ -347,15 +347,15 @@ void LinearSolver::eigen_system( DENS_MAT & eigenvalues, DENS_MAT & eigenvectors
   const DENS_MAT * Mp =M;
   DENS_MAT MM;
   DENS_MAT KM;
-  if (constraintHandlerType_ == CONDENSE_CONSTRAINTS) { 
+  if (constraintHandlerType_ == CONDENSE_CONSTRAINTS) {
     Kp = &matrixFreeFree_;
     if (M) {
       DENS_MAT MfreeFixed; // not used
-      M->row_partition(freeSet_,MM,MfreeFixed); 
+      M->row_partition(freeSet_,MM,MfreeFixed);
       Mp = &MM;
     }
   }
-  else { 
+  else {
     if (matrixDense_.nRows() == 0) matrixDense_ =matrixSparse_->dense_copy();
     Kp = &matrixDense_;
   }
@@ -399,9 +399,9 @@ bool LinearSolver::solve(VECTOR & x, const VECTOR & b)
   }
   const VECTOR & r = *b_;
   if (solverType_ == ITERATIVE_SOLVE_SYMMETRIC) {
-    
-    
-    
+
+
+
     if (parallel_) {
       A = new PAR_SPAR_MAT(LammpsInterface::instance()->world(), *matrixSparse_);
     }
@@ -434,7 +434,7 @@ bool LinearSolver::solve(VECTOR & x, const VECTOR & b)
     DENS_MAT H(maxRestarts_+1, maxRestarts_);
     DENS_VEC xx(nVariables_);
     DENS_VEC bb;
-    bb = b; 
+    bb = b;
     int convergence = GMRES(*A, xx, bb, PC, H, restarts, iterations, tol);
     if (convergence>0) {
        stringstream ss;
@@ -443,7 +443,7 @@ bool LinearSolver::solve(VECTOR & x, const VECTOR & b)
        ss << " residual: " << tol;
        throw ATC_Error(ss.str());
     }
-    x.copy(xx.ptr(),xx.nRows()); 
+    x.copy(xx.ptr(),xx.nRows());
   }
   else { // DIRECT_SOLVE
     const DENS_MAT & invA = matrixInverse_;
@@ -532,7 +532,7 @@ void LinearSolver::greens_function(int I, VECTOR & G_I)
        ss << " residual: " << tol;
        throw ATC_Error(ss.str());
     }
-    x.copy(xx.ptr(),xx.nRows()); 
+    x.copy(xx.ptr(),xx.nRows());
   }
   else {
     const DENS_MAT & invA = matrixInverse_;
@@ -556,7 +556,7 @@ void LinearSolver::greens_function(int I, VECTOR & G_I)
       for (int i = 0; i < nVariables_; ++i) x(i) = invA(I,i);
     }
   }
-  
+
   delete A;
 }
 

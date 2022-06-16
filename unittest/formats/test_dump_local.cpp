@@ -25,8 +25,8 @@
 
 using ::testing::Eq;
 
-char *BINARY2TXT_BINARY = nullptr;
-bool verbose            = false;
+char *BINARY2TXT_EXECUTABLE = nullptr;
+bool verbose                = false;
 
 class DumpLocalTest : public MeltTest {
     std::string dump_style = "local";
@@ -39,7 +39,8 @@ public:
         END_HIDE_OUTPUT();
     }
 
-    void generate_dump(std::string dump_file, std::string dump_options, std::string dump_modify_options, int ntimesteps)
+    void generate_dump(const std::string &dump_file, const std::string &dump_options,
+                       const std::string &dump_modify_options, int ntimesteps)
     {
         BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id all {} 1 {} {}", dump_style, dump_file, dump_options));
@@ -59,7 +60,8 @@ public:
         END_HIDE_OUTPUT();
     }
 
-    void SetUp() override {
+    void SetUp() override
+    {
         MeltTest::SetUp();
 
         BEGIN_HIDE_OUTPUT();
@@ -251,7 +253,7 @@ int main(int argc, char **argv)
         }
     }
 
-    BINARY2TXT_BINARY = getenv("BINARY2TXT_BINARY");
+    BINARY2TXT_EXECUTABLE = getenv("BINARY2TXT_EXECUTABLE");
 
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 

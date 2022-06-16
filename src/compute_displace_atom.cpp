@@ -74,10 +74,8 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
 
   id_fix = utils::strdup(std::string(id) + "_COMPUTE_STORE");
-  std::string cmd = id_fix + fmt::format(" {} STORE peratom 1 3",
-                                         group->names[igroup]);
-  modify->add_fix(cmd);
-  fix = (FixStore *) modify->fix[modify->nfix-1];
+  fix = dynamic_cast<FixStore *>( modify->add_fix(fmt::format("{} {} STORE peratom 1 3",
+                                                 id_fix, group->names[igroup])));
 
   // calculate xu,yu,zu for fix store array
   // skip if reset from restart file
@@ -122,9 +120,8 @@ void ComputeDisplaceAtom::init()
 {
   // set fix which stores original atom coords
 
-  int ifix = modify->find_fix(id_fix);
-  if (ifix < 0) error->all(FLERR,"Could not find compute displace/atom fix ID");
-  fix = (FixStore *) modify->fix[ifix];
+  fix = dynamic_cast<FixStore *>( modify->get_fix_by_id(id_fix));
+  if (!fix) error->all(FLERR,"Could not find compute displace/atom fix with ID {}", id_fix);
 
   if (refreshflag) {
     ivar = input->variable->find(rvar);

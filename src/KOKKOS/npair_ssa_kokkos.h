@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -26,6 +25,7 @@ NPairStyle(half/bin/newton/ssa/kk/device,
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_NPAIR_SSA_KOKKOS_H
 #define LMP_NPAIR_SSA_KOKKOS_H
 
@@ -59,11 +59,10 @@ class NPairSSAKokkos : public NPair {
   typename AT::t_int_2d ssa_gitemLen;
 
   NPairSSAKokkos(class LAMMPS *);
-  ~NPairSSAKokkos() {}
-  void copy_neighbor_info();
-  void copy_bin_info();
-  void copy_stencil_info();
-  void build(class NeighList *);
+  void copy_neighbor_info() override;
+  void copy_bin_info() override;
+  void copy_stencil_info() override;
+  void build(class NeighList *) override;
  private:
   // data from Neighbor class
 
@@ -293,7 +292,7 @@ class NPairSSAKokkosExecute
   ~NPairSSAKokkosExecute() {neigh_list.copymode = 1;};
 
   KOKKOS_FUNCTION
-  void build_locals_onePhase(const bool firstTry, int me, int workPhase) const;
+  void build_locals_onePhase(const bool firstTry, int workPhase) const;
 
   KOKKOS_FUNCTION
   void build_ghosts_onePhase(int workPhase) const;
@@ -355,6 +354,3 @@ class NPairSSAKokkosExecute
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

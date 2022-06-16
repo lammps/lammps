@@ -27,6 +27,7 @@
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
@@ -34,6 +35,8 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "suffix.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -232,7 +235,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
 
   const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
-  const int ** _noalias const firstneigh = (const int **)list->firstneigh;
+  const int ** _noalias const firstneigh = (const int **)list->firstneigh;  // NOLINT
   const flt_t * _noalias const special_lj = fc.special_lj;
 
   const FC_PACKED1_T * _noalias const ijc = fc.ijc[0];
@@ -878,7 +881,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
   if (EFLAG || vflag)
     fix->add_result_array(f_start, ev_global, offload, eatom, 0, 2);
   else
-    fix->add_result_array(f_start, 0, offload, 0, 0, 2);
+    fix->add_result_array(f_start, nullptr, offload, 0, 0, 2);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -886,19 +889,11 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
 void PairGayBerneIntel::init_style()
 {
   PairGayBerne::init_style();
-  auto request = neighbor->find_request(this);
+  if (force->newton_pair == 0)
+    neighbor->find_request(this)->enable_full();
 
-  if (force->newton_pair == 0) {
-    request->half = 0;
-    request->full = 1;
-  }
-  request->intel = 1;
-
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   fix->pair_init_check();
   #ifdef _LMP_INTEL_OFFLOAD
@@ -990,6 +985,7 @@ void PairGayBerneIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                       const int nthreads,
                                                       Memory *memory,
                                                       const int cop) {
+  if (memory != nullptr) _memory = memory;
   if (ntypes != _ntypes) {
     if (_ntypes > 0) {
       fc_packed3 *oic = ic;
@@ -1029,15 +1025,15 @@ void PairGayBerneIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
 
     if (ntypes > 0) {
       _cop = cop;
-      memory->create(ijc, ntypes, ntypes, "fc.ijc");
-      memory->create(lj34, ntypes, ntypes, "fc.lj34");
-      memory->create(ic, ntypes, "fc.ic");
-      memory->create(rsq_form, nthreads, one_length, "rsq_form");
-      memory->create(delx_form, nthreads, one_length, "delx_form");
-      memory->create(dely_form, nthreads, one_length, "dely_form");
-      memory->create(delz_form, nthreads, one_length, "delz_form");
-      memory->create(jtype_form, nthreads, one_length, "jtype_form");
-      memory->create(jlist_form, nthreads, one_length, "jlist_form");
+      _memory->create(ijc, ntypes, ntypes, "fc.ijc");
+      _memory->create(lj34, ntypes, ntypes, "fc.lj34");
+      _memory->create(ic, ntypes, "fc.ic");
+      _memory->create(rsq_form, nthreads, one_length, "rsq_form");
+      _memory->create(delx_form, nthreads, one_length, "delx_form");
+      _memory->create(dely_form, nthreads, one_length, "dely_form");
+      _memory->create(delz_form, nthreads, one_length, "delz_form");
+      _memory->create(jtype_form, nthreads, one_length, "jtype_form");
+      _memory->create(jlist_form, nthreads, one_length, "jlist_form");
 
       for (int zn = 0; zn < nthreads; zn++)
         for (int zo = 0; zo < one_length; zo++) {
@@ -1082,5 +1078,4 @@ void PairGayBerneIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
     }
   }
   _ntypes = ntypes;
-  _memory = memory;
 }

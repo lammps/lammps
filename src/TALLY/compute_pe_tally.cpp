@@ -38,7 +38,6 @@ ComputePETally::ComputePETally(LAMMPS *lmp, int narg, char **arg) : Compute(lmp,
   vector_flag = 0;
   peratom_flag = 1;
   timeflag = 1;
-  dynamic_group_allow = 0;
 
   comm_reverse = size_peratom_cols = 2;
   extscalar = 1;
@@ -189,7 +188,7 @@ void ComputePETally::compute_peratom()
   // collect contributions from ghost atoms
 
   if (force->newton_pair) {
-    comm->reverse_comm_compute(this);
+    comm->reverse_comm(this);
 
     // clear out ghost atom data after it has been collected to local atoms
     const int nall = atom->nlocal + atom->nghost;
@@ -203,6 +202,6 @@ void ComputePETally::compute_peratom()
 
 double ComputePETally::memory_usage()
 {
-  double bytes = (nmax < 0) ? 0 : nmax * (double)size_peratom_cols * sizeof(double);
+  double bytes = (nmax < 0) ? 0 : nmax * (double) size_peratom_cols * sizeof(double);
   return bytes;
 }

@@ -54,6 +54,8 @@ if(ENABLE_COVERAGE)
 
     if(COVERAGE_FOUND)
         set(PYTHON_COVERAGE_HTML_DIR ${CMAKE_BINARY_DIR}/python_coverage_html)
+        configure_file(.coveragerc.in ${CMAKE_BINARY_DIR}/.coveragerc @ONLY)
+
         add_custom_command(
             OUTPUT ${CMAKE_BINARY_DIR}/unittest/python/.coverage
             COMMAND ${COVERAGE_BINARY} combine
@@ -63,16 +65,16 @@ if(ENABLE_COVERAGE)
 
         add_custom_target(
             gen_python_coverage_html
-            COMMAND ${COVERAGE_BINARY} html -d ${PYTHON_COVERAGE_HTML_DIR}
-            DEPENDS ${CMAKE_BINARY_DIR}/unittest/python/.coverage
+            COMMAND ${COVERAGE_BINARY} html --rcfile=${CMAKE_BINARY_DIR}/.coveragerc -d ${PYTHON_COVERAGE_HTML_DIR}
+            DEPENDS ${CMAKE_BINARY_DIR}/unittest/python/.coverage ${CMAKE_BINARY_DIR}/.coveragerc
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/unittest/python
             COMMENT "Generating HTML Python coverage report..."
         )
 
         add_custom_target(
             gen_python_coverage_xml
-            COMMAND ${COVERAGE_BINARY} xml -o ${CMAKE_BINARY_DIR}/python_coverage.xml
-            DEPENDS ${CMAKE_BINARY_DIR}/unittest/python/.coverage
+            COMMAND ${COVERAGE_BINARY} xml --rcfile=${CMAKE_BINARY_DIR}/.coveragerc -o ${CMAKE_BINARY_DIR}/python_coverage.xml
+            DEPENDS ${CMAKE_BINARY_DIR}/unittest/python/.coverage ${CMAKE_BINARY_DIR}/.coveragerc
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/unittest/python
             COMMENT "Generating XML Python coverage report..."
         )

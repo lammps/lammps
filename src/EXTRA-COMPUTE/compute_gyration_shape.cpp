@@ -92,8 +92,8 @@ void ComputeGyrationShape::compute_vector()
   ione[1][1] = gyration_tensor[1];
   ione[2][2] = gyration_tensor[2];
   ione[0][1] = ione[1][0] = gyration_tensor[3];
-  ione[1][2] = ione[2][1] = gyration_tensor[4];
-  ione[0][2] = ione[2][0] = gyration_tensor[5];
+  ione[0][2] = ione[2][0] = gyration_tensor[4];
+  ione[1][2] = ione[2][1] = gyration_tensor[5];
 
   int ierror = MathEigen::jacobi3(ione,evalues,evectors);
   if (ierror) error->all(FLERR, "Insufficient Jacobi rotations "

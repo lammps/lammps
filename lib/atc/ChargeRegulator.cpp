@@ -20,7 +20,7 @@ using std::vector;
 using std::set;
 using std::pair;
 using std::string;
-   
+
 
 namespace ATC {
 
@@ -47,7 +47,7 @@ namespace ATC {
     }
   }
 
-  
+
   //--------------------------------------------------------
   //  modify:
   //    parses and adjusts charge regulator state based on
@@ -97,7 +97,7 @@ namespace ATC {
           regulators_[tag] = new ChargeRegulatorMethodEffectiveCharge(this,p);
           break;
         }
-        default: 
+        default:
           throw ATC_Error("ChargeRegulator::construct_method unknown charge regulator type");
         }
       }
@@ -110,12 +110,12 @@ namespace ATC {
   void ChargeRegulator::initialize()
   {
 
-    
+
     map<string, ChargeRegulatorMethod *>::iterator itr;
     for (itr = regulators_.begin();
          itr != regulators_.end(); itr++) { itr->second->initialize(); }
 
-    atc_->set_boundary_integration_type(boundaryIntegrationType_); 
+    atc_->set_boundary_integration_type(boundaryIntegrationType_);
     AtomicRegulator::reset_nlocal();
     AtomicRegulator::delete_unused_data();
     needReset_ = false;
@@ -152,23 +152,23 @@ namespace ATC {
   //========================================================
   //  Class ChargeRegulatorMethod
   //========================================================
- 
+
   //--------------------------------------------------------
   //  Constructor
-  //         Grab references to ATC and ChargeRegulator 
+  //         Grab references to ATC and ChargeRegulator
   //--------------------------------------------------------
   ChargeRegulatorMethod::ChargeRegulatorMethod
-    (ChargeRegulator *chargeRegulator, 
+    (ChargeRegulator *chargeRegulator,
      ChargeRegulator::ChargeRegulatorParameters & p)
-      : RegulatorShapeFunction(chargeRegulator), 
+      : RegulatorShapeFunction(chargeRegulator),
         chargeRegulator_(chargeRegulator),
         lammpsInterface_(LammpsInterface::instance()),
         rC_(0), rCsq_(0),
-        targetValue_(nullptr), 
-        targetPhi_(p.value), 
+        targetValue_(nullptr),
+        targetPhi_(p.value),
         surface_(p.faceset),
-        atomGroupBit_(p.groupBit), 
-        boundary_(false), 
+        atomGroupBit_(p.groupBit),
+        boundary_(false),
         depth_(p.depth),
         surfaceType_(p.surfaceType),
         permittivity_(p.permittivity),
@@ -185,7 +185,7 @@ namespace ATC {
     point_.reset(nsd_);
     for (int i=0; i < nsd_; i++) { point_(i) = faceCoords(i,0); }
 #ifdef ATC_VERBOSE
-    stringstream ss; ss << "point: (" << point_(0) << "," << point_(1) << "," << point_(2) << ") normal: (" << normal_(0) << "," << normal_(1) << "," << normal_(2) << ") depth: " << depth_; 
+    stringstream ss; ss << "point: (" << point_(0) << "," << point_(1) << "," << point_(2) << ") normal: (" << normal_(0) << "," << normal_(1) << "," << normal_(2) << ") depth: " << depth_;
     lammpsInterface_->print_msg_once(ss.str());
 #endif
     sum_.reset(nsd_);
@@ -193,12 +193,12 @@ namespace ATC {
 
   //--------------------------------------------------------
   //  Initialize
-  
+
   //--------------------------------------------------------
 
 
 // nomenclature might be a bit backwark: control --> nodes that exert the control, & influence --> atoms that feel the influence
-  void ChargeRegulatorMethod::initialize(void)
+  void ChargeRegulatorMethod::initialize()
   {
     interscaleManager_ = &(atc_->interscale_manager());
 
@@ -217,10 +217,10 @@ namespace ATC {
     // note derived method set initialized to true
   }
 
-  
+
   int ChargeRegulatorMethod::nlocal() { return atc_->nlocal(); }
 
-  void ChargeRegulatorMethod::set_greens_functions(void)
+  void ChargeRegulatorMethod::set_greens_functions()
   {
     // set up Green's function per node
     for (int i = 0; i < nNodes_; i++) {
@@ -260,31 +260,31 @@ namespace ATC {
   //  Constructor
   //--------------------------------------------------------
   ChargeRegulatorMethodFeedback::ChargeRegulatorMethodFeedback
-    (ChargeRegulator *chargeRegulator, 
+    (ChargeRegulator *chargeRegulator,
      ChargeRegulator::ChargeRegulatorParameters & p)
       : ChargeRegulatorMethod (chargeRegulator, p),
       controlNodes_(nodes_),
       influenceGroupBit_(p.groupBit)
   {
-    nControlNodes_   = controlNodes_.size(); 
-    sum_.resize(1); 
+    nControlNodes_   = controlNodes_.size();
+    sum_.resize(1);
   }
   //--------------------------------------------------------
   //  Initialize
   //--------------------------------------------------------
-  void ChargeRegulatorMethodFeedback::initialize(void)
+  void ChargeRegulatorMethodFeedback::initialize()
   {
     ChargeRegulatorMethod::initialize();
-    if (surfaceType_ != ChargeRegulator::CONDUCTOR) 
+    if (surfaceType_ != ChargeRegulator::CONDUCTOR)
       throw ATC_Error("currently charge feedback can only mimic a conductor");
-    set_influence();  
-    set_influence_matrix(); 
+    set_influence();
+    set_influence_matrix();
     initialized_ = true;
   }
   //--------------------------------------------------------
   //  Initialize
   //--------------------------------------------------------
-  void ChargeRegulatorMethodFeedback::construct_transfers(void)
+  void ChargeRegulatorMethodFeedback::construct_transfers()
   {
     ChargeRegulatorMethod::construct_transfers();
 
@@ -299,13 +299,13 @@ namespace ATC {
     }
   }
   //--------------------------------------------------------
-  //  find measurement atoms and nodes 
+  //  find measurement atoms and nodes
   //--------------------------------------------------------
-  void ChargeRegulatorMethodFeedback::set_influence(void)
+  void ChargeRegulatorMethodFeedback::set_influence()
   {
 
     // get nodes that overlap influence atoms & compact list of influence atoms
-    boundary_ = 
+    boundary_ =
       atc_->nodal_influence(influenceGroupBit_,influenceNodes_,influenceAtoms_);
     nInfluenceAtoms_ = influenceAtoms_.size(); // local
     nInfluenceNodes_ = influenceNodes_.size(); // global
@@ -313,15 +313,15 @@ namespace ATC {
     lammpsInterface_->print_msg(ss.str());
     if (nInfluenceNodes_ == 0) throw ATC_Error("no influence nodes");
 
-    const Array<int> & map = (boundary_) ? atc_->ghost_to_atom_map() : atc_->internal_to_atom_map(); 
+    const Array<int> & map = (boundary_) ? atc_->ghost_to_atom_map() : atc_->internal_to_atom_map();
     for (set<int>::const_iterator itr = influenceAtoms_.begin(); itr != influenceAtoms_.end(); itr++) {
       influenceAtomsIds_.insert(map(*itr));
     }
   }
   //--------------------------------------------------------
-  //  constuct a Green's submatrix 
+  //  constuct a Green's submatrix
   //--------------------------------------------------------
-  void ChargeRegulatorMethodFeedback::set_influence_matrix(void)
+  void ChargeRegulatorMethodFeedback::set_influence_matrix()
   {
     // construct control-influence matrix bar{G}^-1: ds{p} = G{p,m}^-1 dphi{m}
 
@@ -329,7 +329,7 @@ namespace ATC {
 //
     if (nInfluenceNodes_ < nControlNodes_) throw ATC_Error(" least square not implemented ");
     if (nInfluenceNodes_ > nControlNodes_) throw ATC_Error(" solve not possible ");
-    DENS_MAT G(nInfluenceNodes_,nControlNodes_); 
+    DENS_MAT G(nInfluenceNodes_,nControlNodes_);
     DENS_VEC G_I;
     set<int>::const_iterator itr,itr2,itr3;
     const Array<int> & nmap = atc_->fe_engine()->fe_mesh()->global_to_unique_map();
@@ -339,7 +339,7 @@ namespace ATC {
       int j = 0;
       for (itr2 = controlNodes_.begin(); itr2 != controlNodes_.end(); itr2++) {
         int jnode = nmap(*itr2);
-        G(i,j++) = G_I(jnode);  
+        G(i,j++) = G_I(jnode);
       }
       i++;
     }
@@ -371,33 +371,33 @@ namespace ATC {
     }
     // swap contributions across processors
     DENS_MAT localNNT = NNT;
-    int count = NNT.nRows()*NNT.nCols(); 
+    int count = NNT.nRows()*NNT.nCols();
     lammpsInterface_->allsum(localNNT.ptr(),NNT.ptr(),count);
     invNNT_ = inv(NNT);
-  
+
     // total influence matrix
     if (nInfluenceAtoms_ > 0) { NTinvNNTinvG_ = NT_*invNNT_*invG_; }
 
   }
-  
+
   //--------------------------------------------------------
   // change potential/charge pre-force calculation
   //--------------------------------------------------------
   void ChargeRegulatorMethodFeedback::apply_pre_force(double /* dt */)
   {
 
-    sum_ = 0; 
+    sum_ = 0;
     if (nInfluenceAtoms_ == 0) return; // nothing to do
     apply_feedback_charges();
   }
   //--------------------------------------------------------
-  // apply feedback charges to atoms                        
+  // apply feedback charges to atoms
   //--------------------------------------------------------
   void ChargeRegulatorMethodFeedback::apply_feedback_charges()
   {
     double * q = lammpsInterface_->atom_charge();
     // calculate error in potential on the control nodes
-    
+
     const DENS_MAT & phiField = (atc_->field(ELECTRIC_POTENTIAL)).quantity();
     DENS_MAT dphi(nControlNodes_,1);
     int i = 0;
@@ -410,10 +410,10 @@ namespace ATC {
     DENS_MAT dq = NTinvNNTinvG_*dphi;
     i = 0;
     for (itr = influenceAtomsIds_.begin(); itr != influenceAtomsIds_.end(); itr++) {
-      sum_(0) += dq(i,0); 
-      q[*itr] += dq(i++,0); 
+      sum_(0) += dq(i,0);
+      q[*itr] += dq(i++,0);
     }
-    
+
     (interscaleManager_->fundamental_atom_quantity(LammpsInterface::ATOM_CHARGE))->force_reset();
     (interscaleManager_->fundamental_atom_quantity(LammpsInterface::ATOM_CHARGE, GHOST))->force_reset();
   }
@@ -425,7 +425,7 @@ namespace ATC {
   //  Constructor
   //--------------------------------------------------------
   ChargeRegulatorMethodImageCharge::ChargeRegulatorMethodImageCharge
-    (ChargeRegulator *chargeRegulator, 
+    (ChargeRegulator *chargeRegulator,
      ChargeRegulator::ChargeRegulatorParameters & p)
       : ChargeRegulatorMethod (chargeRegulator, p),
       imageNodes_(nodes_)
@@ -434,7 +434,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  Initialize
   //--------------------------------------------------------
-  void ChargeRegulatorMethodImageCharge::initialize(void)
+  void ChargeRegulatorMethodImageCharge::initialize()
   {
     ChargeRegulatorMethod::initialize();
     if (surfaceType_ != ChargeRegulator::DIELECTRIC) throw ATC_Error("currently image charge can only mimic a dielectric");
@@ -459,12 +459,12 @@ namespace ATC {
   {
     sum_ = 0;
     apply_local_forces();
-    
+
     //correct_forces();
   }
- 
+
   //--------------------------------------------------------
-  //  apply local coulomb forces 
+  //  apply local coulomb forces
   //  -- due to image charges
   //--------------------------------------------------------
   void ChargeRegulatorMethodImageCharge::apply_local_forces()
@@ -477,8 +477,8 @@ namespace ATC {
 
     const int *mask = lammpsInterface_->atom_mask();
 ///..............................................
-    double ** x = lammpsInterface_->xatom(); 
-    double ** f = lammpsInterface_->fatom(); 
+    double ** x = lammpsInterface_->xatom();
+    double ** f = lammpsInterface_->fatom();
     double *  q = lammpsInterface_->atom_charge();
 
     // loop over neighbor list
@@ -487,13 +487,13 @@ namespace ATC {
       double qi = q[i];
       if ((mask[i] & atomGroupBit_) && qi != 0.) {
         double* fi = f[i];
-        DENS_VEC xi(x[i],nsd_); 
+        DENS_VEC xi(x[i],nsd_);
         // distance to surface
         double dn = reflect(xi);
         // all ions near the interface/wall
         // (a) self image
         if (dn < rC_) { // close enough to wall to have explicit image charges
-          double factor_coul = 1; 
+          double factor_coul = 1;
           double dx = 2.*dn; // distance to image charge
           double fn = factor_coul*qi*qi*permittivityRatio_/dx;
           fi[0] += fn*normal_[0];
@@ -513,8 +513,8 @@ namespace ATC {
             dn = reflect(xj);
             DENS_VEC dx = xi-xj;
             double r2 = dx.norm_sq();
-            // neighbor image j' inside cutoff from i 
-            if (r2 < rCsq_) { 
+            // neighbor image j' inside cutoff from i
+            if (r2 < rCsq_) {
               double fm = factor_coul*qi*qj*permittivityRatio_/r2;
               fi[0] += fm*dx(0);
               fi[1] += fm*dx(1);
@@ -532,7 +532,7 @@ namespace ATC {
 
   //--------------------------------------------------------
   // correct charge densities
-  //  - to reflect image charges 
+  //  - to reflect image charges
   //--------------------------------------------------------
   void ChargeRegulatorMethodImageCharge::correct_charge_densities()
   {
@@ -554,19 +554,19 @@ namespace ATC {
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
-  
-  ChargeRegulatorMethodEffectiveCharge::ChargeRegulatorMethodEffectiveCharge( 
-    ChargeRegulator *chargeRegulator, 
+
+  ChargeRegulatorMethodEffectiveCharge::ChargeRegulatorMethodEffectiveCharge(
+    ChargeRegulator *chargeRegulator,
     ChargeRegulator::ChargeRegulatorParameters & p)
       : ChargeRegulatorMethod (chargeRegulator, p),
       chargeDensity_(p.value),
-      useSlab_(false) 
+      useSlab_(false)
   {
   }
   //--------------------------------------------------------
   //  add_charged_surface
   //--------------------------------------------------------
-  void ChargeRegulatorMethodEffectiveCharge::initialize( ) 
+  void ChargeRegulatorMethodEffectiveCharge::initialize( )
   {
     ChargeRegulatorMethod::initialize();
     boundary_ = atc_->is_ghost_group(atomGroupBit_);
@@ -644,7 +644,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  add effective forces post LAMMPS force call
   //--------------------------------------------------------
-  void ChargeRegulatorMethodEffectiveCharge::apply_post_force(double /* dt */) 
+  void ChargeRegulatorMethodEffectiveCharge::apply_post_force(double /* dt */)
   {
     apply_local_forces();
   }
@@ -664,7 +664,7 @@ namespace ATC {
     const DENS_MAT & xa((interscaleManager_->per_atom_quantity("AtomicCoarseGrainingPositions"))->quantity());
 
 // WORKSPACE - most are static
-    SparseVector<double> dv(nNodes_); 
+    SparseVector<double> dv(nNodes_);
     vector<SparseVector<double> > derivativeVectors;
     derivativeVectors.reserve(nsd_);
     const SPAR_MAT_VEC & shapeFunctionDerivatives((interscaleManager_->vector_sparse_matrix("InterpolateGradient"))->quantity());
@@ -674,7 +674,7 @@ namespace ATC {
 
     NODE_TO_XF_MAP::const_iterator inode;
     for (inode = nodeXFMap_.begin(); inode != nodeXFMap_.end(); inode++) {
-      
+
       int node = inode->first;
       DENS_VEC xI = (inode->second).first;
       double qI = (inode->second).second;
@@ -682,46 +682,46 @@ namespace ATC {
       for (int i = 0; i < nlocal(); i++) {
         int atom = (atc_->internal_to_atom_map())(i);
         double qa = q[atom];
-        if (qa != 0) { 
+        if (qa != 0) {
           double dxSq = 0.;
           for (int j = 0; j < nsd_; j++) {
             dx[j] = xa(i,j) - xI(j);
             dxSq += dx[j]*dx[j];
           }
-          if (dxSq < rCsq_) { 
+          if (dxSq < rCsq_) {
             // first apply pairwise coulombic interaction
-            if (!useSlab_) { 
+            if (!useSlab_) {
               double coulForce = qqrd2e_*qI*qa/(dxSq*sqrtf(dxSq));
               for (int j = 0; j < nsd_; j++) {
                 _atomElectricalForce_(i,j) += dx[j]*coulForce; }
             }
-            
+
             // second correct for FE potential induced by BCs
             // determine shape function derivatives at atomic location
             // and construct sparse vectors to store derivative data
-            
-            
+
+
             for (int j = 0; j < nsd_; j++) {
               shapeFunctionDerivatives[j]->row(i,nodeValues,nodeIndices);
               derivativeVectors.push_back(dv);
               for (int k = 0; k < nodeIndices.size(); k++) {
                 derivativeVectors[j](nodeIndices(k)) = nodeValues(k); }
             }
-              
+
             // compute greens function from charge quadrature
-            
-            SparseVector<double> shortFePotential(nNodes_); 
+
+            SparseVector<double> shortFePotential(nNodes_);
             shortFePotential.add_scaled(greensFunctions_[node],penalty*phiI);
-              
+
             // compute electric field induced by charge
             DENS_VEC efield(nsd_);
             for (int j = 0; j < nsd_; j++) {
               efield(j) = -.1*dot(derivativeVectors[j],shortFePotential); }
-              
+
             // apply correction in atomic forces
             double c = qV2e_*qa;
             for (int j = 0; j < nsd_; j++) {
-              if ((!useSlab_) || (j==nsd_)) { 
+              if ((!useSlab_) || (j==nsd_)) {
                 _atomElectricalForce_(i,j) -= c*efield(j);
               }
             }
@@ -729,7 +729,7 @@ namespace ATC {
         }
       }
     }
-    
+
   }
 
 }; // end namespace

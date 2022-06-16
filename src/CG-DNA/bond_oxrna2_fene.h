@@ -26,39 +26,12 @@ namespace LAMMPS_NS {
 
 class BondOxrna2Fene : public BondOxdnaFene {
  public:
-  BondOxrna2Fene(class LAMMPS *);
-  virtual ~BondOxrna2Fene();
-  virtual void compute_interaction_sites(double *, double *, double *, double *);
+  BondOxrna2Fene(class LAMMPS *lmp) : BondOxdnaFene(lmp) {}
+
+  void compute_interaction_sites(double *, double *, double *, double *) const override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-W: FENE bond too long: %ld %d %d %g
-
-A FENE bond has stretched dangerously far.  It's interaction strength
-will be truncated to attempt to prevent the bond from blowing up.
-
-E: Bad FENE bond
-
-Two atoms in a FENE bond have become so far apart that the bond cannot
-be computed.
-
-E: Incorrect args for bond coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-W: Use special bonds = 0,1,1 with bond style oxrna
-
-Most FENE models need this setting for the special_bonds command.
-
-W: FENE bond too long: %ld %g
-
-A FENE bond has stretched dangerously far.  It's interaction strength
-will be truncated to attempt to prevent the bond from blowing up.
-
-*/

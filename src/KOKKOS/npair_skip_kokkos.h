@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -44,6 +43,7 @@ NPairStyle(skip/ghost/kk/host,
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_NPAIR_SKIP_KOKKOS_H
 #define LMP_NPAIR_SKIP_KOKKOS_H
 
@@ -63,8 +63,7 @@ class NPairSkipKokkos : public NPair {
   typedef ArrayTypes<DeviceType> AT;
 
   NPairSkipKokkos(class LAMMPS *);
-  ~NPairSkipKokkos() {}
-  void build(class NeighList *);
+  void build(class NeighList *) override;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNPairSkipCompute, const int&, int&, const bool&) const;
@@ -98,6 +97,3 @@ class NPairSkipKokkos : public NPair {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

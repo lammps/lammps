@@ -24,19 +24,19 @@
 
 #include "compute_cnp_atom.h"
 
-#include <cstring>
-#include <cmath>
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "pair.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -111,12 +111,7 @@ void ComputeCNPAtom::init()
     error->warning(FLERR,"More than one compute cnp/atom defined");
 
   // need an occasional full neighbor list
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -204,11 +199,8 @@ void ComputeCNPAtom::compute_peratom()
 
   int nerrorall;
   MPI_Allreduce(&nerror,&nerrorall,1,MPI_INT,MPI_SUM,world);
-  if (nerrorall && comm->me == 0) {
-    char str[128];
-    sprintf(str,"Too many neighbors in CNP for %d atoms",nerrorall);
-    error->warning(FLERR,str);
-  }
+  if (nerrorall && comm->me == 0)
+    error->warning(FLERR,"Too many neighbors in CNP for {} atoms",nerrorall);
 
   // compute CNP value for each atom in group
   // only performed if # of nearest neighbors = 12 or 14 (fcc,hcp)
@@ -311,11 +303,8 @@ void ComputeCNPAtom::compute_peratom()
 
   // warning message
   MPI_Allreduce(&nerror,&nerrorall,1,MPI_INT,MPI_SUM,world);
-  if (nerrorall && comm->me == 0) {
-    char str[128];
-    sprintf(str,"Too many common neighbors in CNP %d times",nerrorall);
-    error->warning(FLERR,str);
-  }
+  if (nerrorall && comm->me == 0)
+    error->warning(FLERR,"Too many common neighbors in CNP {} times",nerrorall);
 }
 
 /* ----------------------------------------------------------------------

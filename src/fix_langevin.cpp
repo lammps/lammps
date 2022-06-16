@@ -128,9 +128,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"omega") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix langevin command");
-      if (strcmp(arg[iarg+1],"no") == 0) oflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) oflag = 1;
-      else error->all(FLERR,"Illegal fix langevin command");
+      oflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"scale") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix langevin command");
@@ -142,15 +140,11 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
       iarg += 3;
     } else if (strcmp(arg[iarg],"tally") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix langevin command");
-      if (strcmp(arg[iarg+1],"no") == 0) tallyflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) tallyflag = 1;
-      else error->all(FLERR,"Illegal fix langevin command");
+      tallyflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"zero") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix langevin command");
-      if (strcmp(arg[iarg+1],"no") == 0) zeroflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) zeroflag = 1;
-      else error->all(FLERR,"Illegal fix langevin command");
+      zeroflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix langevin command");
   }
@@ -178,7 +172,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   // no need to set peratom_flag, b/c data is for internal use only
 
   if (gjfflag) {
-    grow_arrays(atom->nmax);
+    FixLangevin::grow_arrays(atom->nmax);
     atom->add_callback(Atom::GROW);
 
   // initialize franprev to zero
@@ -276,7 +270,7 @@ void FixLangevin::init()
   }
 
   if (ascale) {
-    avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+    avec = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
     if (!avec)
       error->all(FLERR,"Fix langevin angmom requires atom style ellipsoid");
 
@@ -312,7 +306,7 @@ void FixLangevin::init()
   else tbiasflag = NOBIAS;
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
 
   if (utils::strmatch(update->integrate_style,"^respa") && gjfflag)
     error->all(FLERR,"Fix langevin gjf and respa are not compatible");
@@ -371,9 +365,9 @@ void FixLangevin::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(nlevels_respa-1);
     post_force_respa(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(nlevels_respa-1);
   }
   if (gjfflag) {
     double dtfm;

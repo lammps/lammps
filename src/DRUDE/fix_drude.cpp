@@ -14,18 +14,17 @@
 
 #include "fix_drude.h"
 
-#include <cstring>
-#include <map>
 #include "atom.h"
+#include "atom_vec.h"
 #include "comm.h"
-#include "modify.h"
 #include "error.h"
 #include "memory.h"
+#include "modify.h"
 #include "molecule.h"
-#include "atom_vec.h"
 
+#include <cstring>
+#include <map>
 #include <set>
-#include <vector>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -55,7 +54,7 @@ FixDrude::FixDrude(LAMMPS *lmp, int narg, char **arg) :
   }
 
   drudeid = nullptr;
-  grow_arrays(atom->nmax);
+  FixDrude::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
   atom->add_callback(Atom::BORDER);
@@ -175,7 +174,7 @@ void FixDrude::build_drudeid() {
 ------------------------------------------------------------------------- */
 void FixDrude::ring_search_drudeid(int size, char *cbuf, void *ptr) {
   // Search for the drude partner of my cores
-  FixDrude *fdptr = (FixDrude *) ptr;
+  auto fdptr = (FixDrude *) ptr;
   Atom *atom = fdptr->atom;
   int nlocal = atom->nlocal;
   int *type = atom->type;
@@ -183,7 +182,7 @@ void FixDrude::ring_search_drudeid(int size, char *cbuf, void *ptr) {
   tagint *drudeid = fdptr->drudeid;
   int *drudetype = fdptr->drudetype;
 
-  tagint *first = (tagint *) cbuf;
+  auto first = (tagint *) cbuf;
   tagint *last = first + size;
   std::set<tagint> drude_set(first, last);
   std::set<tagint>::iterator it;
@@ -205,11 +204,11 @@ void FixDrude::ring_search_drudeid(int size, char *cbuf, void *ptr) {
 ------------------------------------------------------------------------- */
 void FixDrude::ring_build_partner(int size, char *cbuf, void *ptr) {
   // Add partners from incoming list
-  FixDrude *fdptr = (FixDrude *) ptr;
+  auto fdptr = (FixDrude *) ptr;
   Atom *atom = fdptr->atom;
   int nlocal = atom->nlocal;
   std::set<tagint> *partner_set = fdptr->partner_set;
-  tagint *it = (tagint *) cbuf;
+  auto it = (tagint *) cbuf;
   tagint *last = it + size;
 
   while (it < last) {
@@ -311,20 +310,17 @@ void FixDrude::rebuild_special() {
   //build_drudeid();
 
   // Log info
-  if (comm->me == 0) {
-    if (screen) fprintf(screen, "Rebuild special list taking Drude particles into account\n");
-    if (logfile) fprintf(logfile, "Rebuild special list taking Drude particles into account\n");
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp, "Rebuild special list taking Drude particles into account\n");
+
   int nspecmax, nspecmax_old, nspecmax_loc;
   nspecmax_loc = 0;
   for (int i=0; i<nlocal; i++) {
     if (nspecmax_loc < nspecial[i][2]) nspecmax_loc = nspecial[i][2];
   }
   MPI_Allreduce(&nspecmax_loc, &nspecmax_old, 1, MPI_INT, MPI_MAX, world);
-  if (comm->me == 0) {
-    if (screen) fprintf(screen, "Old max number of 1-2 to 1-4 neighbors: %d\n", nspecmax_old);
-    if (logfile) fprintf(logfile, "Old max number of 1-2 to 1-4 neighbors: %d\n", nspecmax_old);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp, "Old max number of 1-2 to 1-4 neighbors: {}\n", nspecmax_old);
 
   // Build lists of drude and core-drude pairs
   std::vector<tagint> drude_vec, core_drude_vec, core_special_vec;
@@ -351,15 +347,11 @@ void FixDrude::rebuild_special() {
     if (nspecmax_loc < nspecial[i][2]) nspecmax_loc = nspecial[i][2];
   }
   MPI_Allreduce(&nspecmax_loc, &nspecmax, 1, MPI_INT, MPI_MAX, world);
-  if (comm->me == 0) {
-    if (screen) fprintf(screen, "New max number of 1-2 to 1-4 neighbors: %d (+%d)\n", nspecmax, nspecmax - nspecmax_old);
-    if (logfile) fprintf(logfile, "New max number of 1-2 to 1-4 neighbors: %d (+%d)\n", nspecmax, nspecmax - nspecmax_old);
-  }
-  if (atom->maxspecial < nspecmax) {
-    char str[1024];
-    sprintf(str, "Not enough space in special: extra/special/per/atom should be at least %d", nspecmax - nspecmax_old);
-    error->all(FLERR, str);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp, "New max number of 1-2 to 1-4 neighbors: {} (+{})\n", nspecmax, nspecmax - nspecmax_old);
+
+  if (atom->maxspecial < nspecmax)
+    error->all(FLERR, "Not enough space in special: extra/special/per/atom should be at least {}", nspecmax - nspecmax_old);
 
   // Build list of cores' special lists to communicate to ghost drude particles
   for (int i=0; i<nlocal; i++) {
@@ -383,13 +375,13 @@ void FixDrude::rebuild_special() {
 ------------------------------------------------------------------------- */
 void FixDrude::ring_remove_drude(int size, char *cbuf, void *ptr) {
   // Remove all drude particles from special list
-  FixDrude *fdptr = (FixDrude *) ptr;
+  auto fdptr = (FixDrude *) ptr;
   Atom *atom = fdptr->atom;
   int nlocal = atom->nlocal;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
   int *type = atom->type;
-  tagint *first = (tagint *) cbuf;
+  auto first = (tagint *) cbuf;
   tagint *last = first + size;
   std::set<tagint> drude_set(first, last);
   int *drudetype = fdptr->drudetype;
@@ -420,7 +412,7 @@ void FixDrude::ring_remove_drude(int size, char *cbuf, void *ptr) {
 void FixDrude::ring_add_drude(int size, char *cbuf, void *ptr) {
   // Assume special array size is big enough
   // Add all particle just after their core in the special list
-  FixDrude *fdptr = (FixDrude *) ptr;
+  auto fdptr = (FixDrude *) ptr;
   Atom *atom = fdptr->atom;
   int nlocal = atom->nlocal;
   int **nspecial = atom->nspecial;
@@ -429,7 +421,7 @@ void FixDrude::ring_add_drude(int size, char *cbuf, void *ptr) {
   tagint *drudeid = fdptr->drudeid;
   int *drudetype = fdptr->drudetype;
 
-  tagint *first = (tagint *) cbuf;
+  auto first = (tagint *) cbuf;
   tagint *last = first + size;
   std::map<tagint, tagint> core_drude_map;
 
@@ -476,7 +468,7 @@ void FixDrude::ring_add_drude(int size, char *cbuf, void *ptr) {
 ------------------------------------------------------------------------- */
 void FixDrude::ring_copy_drude(int size, char *cbuf, void *ptr) {
   // Copy special list of drude from its core (except itself)
-  FixDrude *fdptr = (FixDrude *) ptr;
+  auto fdptr = (FixDrude *) ptr;
   Atom *atom = fdptr->atom;
   int nlocal = atom->nlocal;
   int **nspecial = atom->nspecial;
@@ -485,7 +477,7 @@ void FixDrude::ring_copy_drude(int size, char *cbuf, void *ptr) {
   tagint *drudeid = fdptr->drudeid;
   int *drudetype = fdptr->drudetype;
 
-  tagint *first = (tagint *) cbuf;
+  auto first = (tagint *) cbuf;
   tagint *last = first + size;
   std::map<tagint, tagint*> core_special_map;
 
@@ -523,7 +515,8 @@ void FixDrude::ring_copy_drude(int size, char *cbuf, void *ptr) {
  * ----------------------------------------------------------------------*/
 void FixDrude::set_arrays(int i) {
     if (drudetype[atom->type[i]] != NOPOL_TYPE) {
-        if (atom->nspecial[i] ==0) error->all(FLERR, "Polarizable atoms cannot be inserted with special lists info from the molecule template");
+        if (atom->nspecial[i] == nullptr)
+          error->all(FLERR, "Polarizable atoms cannot be inserted with special lists info from the molecule template");
         drudeid[i] = atom->special[i][0]; // Drude partner should be at first place in the special list
     } else {
         drudeid[i] = 0;

@@ -21,31 +21,18 @@ namespace LAMMPS_NS {
 class FixNHAsphereOMP : public FixNHOMP {
  public:
   FixNHAsphereOMP(class LAMMPS *, int, char **);
-  virtual ~FixNHAsphereOMP() {}
-  virtual void init();
+
+  void init() override;
 
  protected:
   double dtq;
   class AtomVecEllipsoid *avec;
 
-  virtual void nve_v();
-  virtual void nve_x();
-  virtual void nh_v_temp();
+  void nve_v() override;
+  void nve_x() override;
+  void nh_v_temp() override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Compute nvt/nph/npt asphere requires atom style ellipsoid
-
-Self-explanatory.
-
-E: Fix nvt/nph/npt asphere requires extended particles
-
-The shape setting for a particle in the fix group has shape = 0.0,
-which means it is a point particle.
-
-*/

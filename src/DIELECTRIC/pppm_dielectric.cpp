@@ -23,15 +23,11 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fft3d_wrap.h"
 #include "force.h"
 #include "gridcomm.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
-#include "neighbor.h"
-#include "pair.h"
-#include "remap_wrap.h"
 
 #include <cmath>
 
@@ -54,7 +50,7 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-PPPMDielectric::PPPMDielectric(LAMMPS *lmp) : PPPM(lmp)
+PPPMDielectric::PPPMDielectric(LAMMPS *_lmp) : PPPM(_lmp)
 {
   group_group_enable = 0;
 
@@ -62,7 +58,10 @@ PPPMDielectric::PPPMDielectric(LAMMPS *lmp) : PPPM(lmp)
   phi = nullptr;
   potflag = 0;
 
-  avec = (AtomVecDielectric *) atom->style_match("dielectric");
+  // no warnings about non-neutral systems from qsum_qsq()
+  warn_nonneutral = 2;
+
+  avec = dynamic_cast<AtomVecDielectric *>( atom->style_match("dielectric"));
   if (!avec) error->all(FLERR,"pppm/dielectric requires atom style dielectric");
 }
 
@@ -130,8 +129,8 @@ void PPPMDielectric::compute(int eflag, int vflag)
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
-                          gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+  gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+                   REVERSE_RHO,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // compute potential gradient on my FFT grid and
@@ -145,21 +144,21 @@ void PPPMDielectric::compute(int eflag, int vflag)
   // to fill ghost cells surrounding their 3d bricks
 
   if (differentiation_flag == 1)
-    gc->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD,
-                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->forward_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+                     FORWARD_AD,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   else
-    gc->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK,
-                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->forward_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),
+                     FORWARD_IK,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
     if (differentiation_flag == 1 && vflag_atom)
-      gc->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM,
-                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(GridComm::KSPACE,this,6,sizeof(FFT_SCALAR),
+                       FORWARD_AD_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     else if (differentiation_flag == 0)
-      gc->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM,
-                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
+                       FORWARD_IK_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   }
 
   // calculate the force on my particles
@@ -466,26 +465,4 @@ void PPPMDielectric::slabcorr()
     f[i][2] += ffact * eps[i]*q[i]*(dipole_all - qsum*x[i][2]);
     efield[i][2] += ffact * eps[i]*(dipole_all - qsum*x[i][2]);
   }
-}
-
-/* ----------------------------------------------------------------------
-   compute qsum,qsqsum,q2 and ignore error/warning if not charge neutral
-   called whenever charges are changed
-------------------------------------------------------------------------- */
-
-void PPPMDielectric::qsum_qsq()
-{
-  const double * const q = atom->q;
-  const int nlocal = atom->nlocal;
-  double qsum_local(0.0), qsqsum_local(0.0);
-
-  for (int i = 0; i < nlocal; i++) {
-    qsum_local += q[i];
-    qsqsum_local += q[i]*q[i];
-  }
-
-  MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(&qsqsum_local,&qsqsum,1,MPI_DOUBLE,MPI_SUM,world);
-
-  q2 = qsqsum * force->qqrd2e;
 }

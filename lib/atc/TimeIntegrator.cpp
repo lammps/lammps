@@ -10,7 +10,7 @@ namespace ATC {
   //  Class AtomTimeIntegratorType
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -45,14 +45,14 @@ namespace ATC {
   void AtomTimeIntegratorType::init_integrate_velocity(double dt)
   {
     const DENS_MAT & m(mass_->quantity());
-  
+
     _deltaQuantity_ = force_->quantity();
     _deltaQuantity_ /= m;
     _deltaQuantity_ *= 0.5*dt;
 
     (*velocity_) += _deltaQuantity_;
   }
-      
+
   //--------------------------------------------------------
   //  initial_integrate_position
   //    position update in first part of velocity-verlet
@@ -84,7 +84,7 @@ namespace ATC {
   //  Class TimeIntegrator
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -170,7 +170,7 @@ namespace ATC {
 
   //--------------------------------------------------------
   //  pre_final_integrate1
-  //    first time integration computations 
+  //    first time integration computations
   //    before Verlet step 2
   //--------------------------------------------------------
   void TimeIntegrator::pre_final_integrate1(double dt)
@@ -190,7 +190,7 @@ namespace ATC {
 
   //--------------------------------------------------------
   //  post_final_integrate1
-  //    first time integration computations 
+  //    first time integration computations
   //    after Verlet step 2
   //--------------------------------------------------------
   void TimeIntegrator::post_final_integrate1(double dt)
@@ -270,7 +270,7 @@ namespace ATC {
   void TimeIntegrator::pack_fields(RESTART_LIST & data)
   {
     timeIntegrationMethod_->pack_fields(data);
-    
+
     //timeFilter_->pack_fields(data);
   }
 
@@ -292,7 +292,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  Constructor
   //        Grab data from ATC
-  //-------------------------------------------------------- 
+  //--------------------------------------------------------
   TimeIntegrationMethod::TimeIntegrationMethod(TimeIntegrator * timeIntegrator) :
     timeIntegrator_(timeIntegrator),
     atc_(timeIntegrator_->atc())

@@ -224,7 +224,7 @@ FixMesoMove::FixMesoMove (LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based array
   // register with Atom class
 
-  grow_arrays(atom->nmax);
+  FixMesoMove::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
 
@@ -818,7 +818,7 @@ void FixMesoMove::write_restart (FILE *fp) {
 
 void FixMesoMove::restart (char *buf) {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
 
   time_origin = static_cast<int> (list[n++]);
 }

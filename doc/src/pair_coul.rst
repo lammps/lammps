@@ -10,6 +10,7 @@
 .. index:: pair_style coul/dsf/gpu
 .. index:: pair_style coul/dsf/kk
 .. index:: pair_style coul/dsf/omp
+.. index:: pair_style coul/exclude
 .. index:: pair_style coul/cut/global
 .. index:: pair_style coul/cut/global/omp
 .. index:: pair_style coul/long
@@ -41,6 +42,9 @@ pair_style coul/dsf command
 ===========================
 
 Accelerator Variants: *coul/dsf/gpu*, *coul/dsf/kk*, *coul/dsf/omp*
+
+pair_style coul/exclude command
+===============================
 
 pair_style coul/cut/global command
 ==================================
@@ -83,6 +87,7 @@ Syntax
    pair_style coul/cut cutoff
    pair_style coul/debye kappa cutoff
    pair_style coul/dsf alpha cutoff
+   pair_style coul/exclude cutoff
    pair_style coul/cut/global cutoff
    pair_style coul/long cutoff
    pair_style coul/wolf alpha cutoff
@@ -109,6 +114,9 @@ Examples
 
    pair_style coul/dsf 0.05 10.0
    pair_coeff * *
+
+   pair_style hybrid/overlay coul/exclude 10.0 ...
+   pair_coeff * * coul/exclude
 
    pair_style coul/long 10.0
    pair_coeff * *
@@ -256,6 +264,19 @@ Pair style *coul/cut/global* computes the same Coulombic interactions
 as style *coul/cut* except that it allows only a single global cutoff
 and thus makes it compatible for use in combination with long-range
 coulomb styles in :doc:`hybrid pair styles <pair_hybrid>`.
+
+Pair style *coul/exclude* computes Coulombic interactions like *coul/cut*
+but **only** applies them to excluded pairs using a scaling factor
+of :math:`\gamma - 1.0` with :math:`\gamma` being the factor assigned
+to that excluded pair via the :doc:`special_bonds coul <special_bonds>`
+setting. With this it is possible to treat Coulomb interactions for
+molecular systems with :doc:`kspace style scafacos <kspace_style>`,
+which always computes the *full* Coulomb interactions without exclusions.
+Pair style *coul/exclude* will then *subtract* the excluded interactions
+accordingly. So to achieve the same forces as with ``pair_style lj/cut/coul/long 12.0``
+with ``kspace_style pppm 1.0e-6``, one would use
+``pair_style hybrid/overlay lj/cut 12.0 coul/exclude 12.0`` with
+``kspace_style scafacos p3m 1.0e-6``.
 
 Styles *coul/long* and *coul/msm* compute the same Coulombic
 interactions as style *coul/cut* except that an additional damping

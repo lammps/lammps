@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -20,6 +19,7 @@ AtomStyle(spin/kk/host,AtomVecSpinKokkos);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_ATOM_VEC_SPIN_KOKKOS_H
 #define LMP_ATOM_VEC_SPIN_KOKKOS_H
 
@@ -31,52 +31,52 @@ namespace LAMMPS_NS {
 class AtomVecSpinKokkos : public AtomVecKokkos {
  public:
   AtomVecSpinKokkos(class LAMMPS *);
-  void grow(int);
-  void copy(int, int, int);
-  int pack_border(int, int *, double *, int, int *);
-  int pack_border_vel(int, int *, double *, int, int *);
-  int pack_border_hybrid(int, int *, double *);
-  void unpack_border(int, int, double *);
-  void unpack_border_vel(int, int, double *);
-  int unpack_border_hybrid(int, int, double *);
-  int pack_exchange(int, double *);
-  int unpack_exchange(double *);
-  int size_restart();
-  int pack_restart(int, double *);
-  int unpack_restart(double *);
-  void create_atom(int, double *);
-  void data_atom(double *, imageint, char **);
-  int data_atom_hybrid(int, char **);
-  void pack_data(double **);
-  int pack_data_hybrid(int, double *);
-  void write_data(FILE *, int, double **);
-  int write_data_hybrid(FILE *, double *);
-  double memory_usage();
+  void grow(int) override;
+  void copy(int, int, int) override;
+  int pack_border(int, int *, double *, int, int *) override;
+  int pack_border_vel(int, int *, double *, int, int *) override;
+  int pack_border_hybrid(int, int *, double *) override;
+  void unpack_border(int, int, double *) override;
+  void unpack_border_vel(int, int, double *) override;
+  int unpack_border_hybrid(int, int, double *) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(double *) override;
+  int size_restart() override;
+  int pack_restart(int, double *) override;
+  int unpack_restart(double *) override;
+  void create_atom(int, double *) override;
+  void data_atom(double *, imageint, const std::vector<std::string> &) override;
+  int data_atom_hybrid(int, const std::vector<std::string> &, int) override;
+  void pack_data(double **) override;
+  int pack_data_hybrid(int, double *) override;
+  void write_data(FILE *, int, double **) override;
+  int write_data_hybrid(FILE *, double *) override;
+  double memory_usage() override;
 
   // clear magnetic and mechanic forces
 
-  void force_clear(int, size_t);
+  void force_clear(int, size_t) override;
 
-  void grow_pointers();
+  void grow_pointers() override;
   // input lists to be checked
   int pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
                          DAT::tdual_xfloat_2d buf,int iswap,
-                         int pbc_flag, int *pbc, ExecutionSpace space);
+                         int pbc_flag, int *pbc, ExecutionSpace space) override;
   void unpack_border_kokkos(const int &n, const int &nfirst,
                             const DAT::tdual_xfloat_2d &buf,
-                            ExecutionSpace space);
+                            ExecutionSpace space) override;
   int pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &buf,
                            DAT::tdual_int_1d k_sendlist,
                            DAT::tdual_int_1d k_copylist,
                            ExecutionSpace space, int dim,
-                           X_FLOAT lo, X_FLOAT hi);
+                           X_FLOAT lo, X_FLOAT hi) override;
   int unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int nrecv,
                              int nlocal, int dim, X_FLOAT lo, X_FLOAT hi,
-                             ExecutionSpace space);
+                             ExecutionSpace space) override;
 
-  void sync(ExecutionSpace space, unsigned int mask);
-  void modified(ExecutionSpace space, unsigned int mask);
-  void sync_overlapping_device(ExecutionSpace space, unsigned int mask);
+  void sync(ExecutionSpace space, unsigned int mask) override;
+  void modified(ExecutionSpace space, unsigned int mask) override;
+  void sync_overlapping_device(ExecutionSpace space, unsigned int mask) override;
 
  protected:
   tagint *tag;
@@ -119,15 +119,3 @@ class AtomVecSpinKokkos : public AtomVecKokkos {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Per-processor system is too big
-
-The number of owned atoms plus ghost atoms on a single
-processor must fit in 32-bit integer.
-
-E: Invalid atom type in Atoms section of data file
-
-Atom types must range from 1 to specified # of types.
-
-*/

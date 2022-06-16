@@ -12,15 +12,18 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "npair_half_size_multi_old_newtoff_omp.h"
-#include "npair_omp.h"
-#include "neigh_list.h"
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "my_page.h"
+#include "domain.h"
 #include "error.h"
+#include "molecule.h"
+#include "my_page.h"
+#include "neigh_list.h"
+#include "npair_omp.h"
 
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -40,8 +43,10 @@ NPairHalfSizeMultiOldNewtoffOmp::NPairHalfSizeMultiOldNewtoffOmp(LAMMPS *lmp) :
 void NPairHalfSizeMultiOldNewtoffOmp::build(NeighList *list)
 {
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
+  const int molecular = atom->molecular;
+  const int moltemplate = (molecular == Atom::TEMPLATE) ? 1 : 0;
   const int history = list->history;
-  const int mask_history = 3 << SBBITS;
+  const int mask_history = 1 << HISTBITS;
 
   NPAIR_OMP_INIT;
 #if defined(_OPENMP)
@@ -49,7 +54,8 @@ void NPairHalfSizeMultiOldNewtoffOmp::build(NeighList *list)
 #endif
   NPAIR_OMP_SETUP(nlocal);
 
-  int i,j,k,n,itype,jtype,ibin,ns;
+  int i,j,jh,k,n,itype,jtype,ibin,ns,which,imol,iatom;
+  tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutdistsq;
   int *neighptr,*s;
@@ -59,7 +65,14 @@ void NPairHalfSizeMultiOldNewtoffOmp::build(NeighList *list)
   double *radius = atom->radius;
   int *type = atom->type;
   int *mask = atom->mask;
+  tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
+  tagint **special = atom->special;
+  int **nspecial = atom->nspecial;
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -79,6 +92,11 @@ void NPairHalfSizeMultiOldNewtoffOmp::build(NeighList *list)
     ytmp = x[i][1];
     ztmp = x[i][2];
     radi = radius[i];
+    if (moltemplate) {
+      imol = molindex[i];
+      iatom = molatom[i];
+      tagprev = tag[i] - iatom - 1;
+    }
 
     // loop over all atoms in other bins in stencil including self
     // only store pair if i < j
@@ -107,10 +125,23 @@ void NPairHalfSizeMultiOldNewtoffOmp::build(NeighList *list)
         cutdistsq = (radsum+skin) * (radsum+skin);
 
         if (rsq <= cutdistsq) {
+          jh = j;
           if (history && rsq < radsum*radsum)
-            neighptr[n++] = j ^ mask_history;
-          else
-            neighptr[n++] = j;
+            jh = jh ^ mask_history;
+
+          if (molecular != Atom::ATOMIC) {
+            if (!moltemplate)
+              which = find_special(special[i],nspecial[i],tag[j]);
+            else if (imol >=0)
+              which = find_special(onemols[imol]->special[iatom],
+                                   onemols[imol]->nspecial[iatom],
+                                   tag[j]-tagprev);
+            else which = 0;
+            if (which == 0) neighptr[n++] = jh;
+            else if (domain->minimum_image_check(delx,dely,delz))
+              neighptr[n++] = jh;
+            else if (which > 0) neighptr[n++] = jh ^ (which << SBBITS);
+          } else neighptr[n++] = jh;
         }
       }
     }

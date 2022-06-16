@@ -18,7 +18,6 @@
 #include "comm.h"
 #include "error.h"
 #include "group.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 
 #include "ATC_Method.h"
@@ -558,11 +557,7 @@ int FixATC::modify_param(int narg, char** arg)
 void FixATC::init()
 {
   // Guarantee construction of full neighborlist
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 
   // create computes, if necessary
   atc_->init_computes();
@@ -575,7 +570,7 @@ void FixATC::min_setup(int vflag)
 
 void FixATC::setup(int /* vflag */)
 {
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   try {
     atc_->initialize();
@@ -700,20 +695,17 @@ int FixATC::size_restart(int /* nlocal */) {
 
 void FixATC::write_restart(FILE * /* fp */) {
 
-  char ** args = new char*[2];
-  args[0] = new char[50];
-  args[1] = new char[50];
-  sprintf(args[0],"write_restart");
-  sprintf(args[1],"ATC.restart");
+  char *args[2];
+  args[0] = utils::strdup("write_restart");
+  args[1] = utils::strdup("ATC.restart");
 
   // Then call all objects I own to write their data
   if (comm->me == 0) {
     atc_->modify(2,args);
   }
 
-  delete [] args[0];
-  delete [] args[1];
-  delete [] args;
+  delete[] args[0];
+  delete[] args[1];
 }
 
 /* ----------------------------------------------------------------------
@@ -722,20 +714,17 @@ void FixATC::write_restart(FILE * /* fp */) {
 
 void FixATC::restart(char * /* buf */) {
 
-  char ** args = new char*[2];
-  args[0] = new char[50];
-  args[1] = new char[50];
-  sprintf(args[0],"read_restart");
-  sprintf(args[1],"ATC.restart");
+  char *args[2];
+  args[0] = utils::strdup("read_restart");
+  args[1] = utils::strdup("ATC.restart");
 
   // Then call all objects I own to write their data
   if (comm->me == 0) {
     atc_->modify(2,args);
   }
 
-  delete [] args[0];
-  delete [] args[1];
-  delete [] args;
+  delete[] args[0];
+  delete[] args[1];
 }
 
 /* ----------------------------------------------------------------------
@@ -820,7 +809,7 @@ void FixATC::pre_neighbor()
 {
   try {
     atc_->pre_neighbor();
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
   }
   catch (ATC::ATC_Error& atcError) {
     ATC::LammpsInterface::instance()->print_msg(atcError.error_description());

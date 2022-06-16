@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -20,6 +19,7 @@ FixStyle(nve/sphere/kk/host,FixNVESphereKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_NVE_SPHERE_KOKKOS_H
 #define LMP_FIX_NVE_SPHERE_KOKKOS_H
 
@@ -32,11 +32,11 @@ template<class DeviceType>
 class FixNVESphereKokkos : public FixNVESphere {
   public:
     FixNVESphereKokkos(class LAMMPS *, int, char **);
-    virtual ~FixNVESphereKokkos() {}
+
     void cleanup_copy();
-    void init();
-    void initial_integrate(int);
-    void final_integrate();
+    void init() override;
+    void initial_integrate(int) override;
+    void final_integrate() override;
 
     KOKKOS_INLINE_FUNCTION
     void initial_integrate_item(const int i) const;
@@ -56,6 +56,7 @@ class FixNVESphereKokkos : public FixNVESphere {
 
 template <class DeviceType>
 struct FixNVESphereKokkosInitialIntegrateFunctor {
+  typedef DeviceType device_type;
   FixNVESphereKokkos<DeviceType> c;
   FixNVESphereKokkosInitialIntegrateFunctor(FixNVESphereKokkos<DeviceType> *c_ptr): c(*c_ptr) { c.cleanup_copy(); }
   KOKKOS_INLINE_FUNCTION
@@ -66,6 +67,7 @@ struct FixNVESphereKokkosInitialIntegrateFunctor {
 
 template <class DeviceType>
 struct FixNVESphereKokkosFinalIntegrateFunctor {
+  typedef DeviceType device_type;
   FixNVESphereKokkos<DeviceType> c;
   FixNVESphereKokkosFinalIntegrateFunctor(FixNVESphereKokkos<DeviceType> *c_ptr): c(*c_ptr) { c.cleanup_copy(); }
   KOKKOS_INLINE_FUNCTION

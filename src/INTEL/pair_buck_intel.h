@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -25,57 +24,60 @@ PairStyle(buck/intel,PairBuckIntel);
 #ifndef LMP_PAIR_BUCK_INTEL_H
 #define LMP_PAIR_BUCK_INTEL_H
 
-#include "pair_buck.h"
 #include "fix_intel.h"
+#include "pair_buck.h"
 
 namespace LAMMPS_NS {
 
 class PairBuckIntel : public PairBuck {
 
-public:
+ public:
   PairBuckIntel(class LAMMPS *);
-  virtual ~PairBuckIntel();
-  virtual void compute(int, int);
-  void init_style();
-  typedef struct { float x, y, z; int w; } sng4_t;
 
-private:
+  void compute(int, int) override;
+  void init_style() override;
+  typedef struct {
+    float x, y, z;
+    int w;
+  } sng4_t;
+
+ private:
   FixIntel *fix;
   int _cop;
 
   template <class flt_t> class ForceConst;
 
   template <class flt_t, class acc_t>
-  void compute(int eflag, int vflag, IntelBuffers<flt_t,acc_t> * buffers,
+  void compute(int eflag, int vflag, IntelBuffers<flt_t, acc_t> *buffers,
                const ForceConst<flt_t> &fc);
 
   template <int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
-  void eval(const int offload, const int vflag,
-            IntelBuffers<flt_t,acc_t> * buffers,
+  void eval(const int offload, const int vflag, IntelBuffers<flt_t, acc_t> *buffers,
             const ForceConst<flt_t> &fc, const int astart, const int aend);
 
   template <class flt_t, class acc_t>
-  void pack_force_const(ForceConst<flt_t> &fc,
-                        IntelBuffers<flt_t, acc_t> *buffers);
+  void pack_force_const(ForceConst<flt_t> &fc, IntelBuffers<flt_t, acc_t> *buffers);
 
-  template <class flt_t>
-  class ForceConst {
+  template <class flt_t> class ForceConst {
 
-  public:
-    typedef struct { flt_t buck1, buck2, rhoinv, cutsq; } c_force_t;
-    typedef struct { flt_t a, c, offset, pad; } c_energy_t;
-    _alignvar(flt_t special_lj[4],64);
+   public:
+    typedef struct {
+      flt_t buck1, buck2, rhoinv, cutsq;
+    } c_force_t;
+    typedef struct {
+      flt_t a, c, offset, pad;
+    } c_energy_t;
+    _alignvar(flt_t special_lj[4], 64);
 
     c_force_t **c_force;
     c_energy_t **c_energy;
 
     ForceConst() : _ntypes(0) {}
-    ~ForceConst() { set_ntypes(0,nullptr,_cop); }
+    ~ForceConst() { set_ntypes(0, nullptr, _cop); }
 
-    void set_ntypes(const int ntypes, Memory *memory,
-                    const int cop);
+    void set_ntypes(const int ntypes, Memory *memory, const int cop);
 
-  private:
+   private:
     int _ntypes, _cop;
     Memory *_memory;
   };
@@ -84,7 +86,7 @@ private:
   ForceConst<double> force_const_double;
 };
 
-}
+}    // namespace LAMMPS_NS
 
-#endif // LMP_PAIR_BUCK_INTEL_H
+#endif    // LMP_PAIR_BUCK_INTEL_H
 #endif

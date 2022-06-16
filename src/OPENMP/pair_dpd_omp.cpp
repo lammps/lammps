@@ -127,9 +127,9 @@ void PairDPDOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   evdwl = 0.0;
 
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  const dbl3_t * _noalias const v = (dbl3_t *) atom->v[0];
-  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const auto * _noalias const x = (dbl3_t *) atom->x[0];
+  const auto * _noalias const v = (dbl3_t *) atom->v[0];
+  auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
   const double *special_lj = force->special_lj;

@@ -34,30 +34,30 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 #include "rann_fingerprint.h"
 
 namespace LAMMPS_NS {
-  namespace RANN {
+namespace RANN {
 
-    class Fingerprint_radial : public Fingerprint {
-     public:
-      Fingerprint_radial(PairRANN *);
-      ~Fingerprint_radial();
-      bool parse_values(std::string,std::vector<std::string>);
-      void write_values(FILE *);
-      void init(int*,int);
-      void allocate();
-      void compute_fingerprint(double*,double*,double*,double*,int,int,double*,double*,double*,int*,int,int*);
-      int get_length();
+  class Fingerprint_radial : public Fingerprint {
+   public:
+    Fingerprint_radial(PairRANN *);
+    ~Fingerprint_radial() override;
+    bool parse_values(std::string, std::vector<std::string>) override;
+    void write_values(FILE *) override;
+    void init(int *, int) override;
+    void allocate() override;
+    void compute_fingerprint(double *, double *, double *, double *, int, int, double *, double *,
+                             double *, int *, int, int *) override;
+    int get_length() override;
 
-      double *radialtable;
-      double *dfctable;
-      double dr;
-      double *alpha;
-      double re;
-      int nmax;//highest term
-      int omin;//lowest term
+    double *radialtable;
+    double *dfctable;
+    double dr;
+    double *alpha;
+    double re;
+    int nmax;    //highest term
+    int omin;    //lowest term
+  };
 
-    };
-
-  }
-}
+}    // namespace RANN
+}    // namespace LAMMPS_NS
 
 #endif /* FINGERPRINT_RADIAL_H_ */

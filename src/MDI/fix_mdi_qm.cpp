@@ -329,18 +329,22 @@ void FixMDIQM::post_force(int vflag)
     }
   }
 
-  // optionally request pressure tensor from MDI engine, convert to virial
+  // optionally request stress tensor from MDI engine, convert to virial
   // qm_virial = fix output for global QM virial
 
   if (virialflag) {
     ierr = MDI_Send_command("<STRESS", mdicomm);
     if (ierr) error->all(FLERR, "MDI: <STRESS command");
-    ierr = MDI_Recv(qm_virial, 6, MDI_DOUBLE, mdicomm);
+    ierr = MDI_Recv(qm_virial, 9, MDI_DOUBLE, mdicomm);
     if (ierr) error->all(FLERR, "MDI: <STRESS data");
-    MPI_Bcast(qm_virial, 6, MPI_DOUBLE, 0, world);
+    MPI_Bcast(qm_virial, 9, MPI_DOUBLE, 0, world);
 
-    for (int i = 0; i < 6; i++)
-      qm_virial[i] *= mdi2lmp_pressure;
+    qm_virial_symmetric[0] = qm_virial[0] * mdi2lmp_pressure;
+    qm_virial_symmetric[1] = qm_virial[4] * mdi2lmp_pressure;
+    qm_virial_symmetric[2] = qm_virial[8] * mdi2lmp_pressure;
+    qm_virial_symmetric[3] = 0.5*(qm_virial[1]+qm_virial[3]) * mdi2lmp_pressure;
+    qm_virial_symmetric[4] = 0.5*(qm_virial[2]+qm_virial[6]) * mdi2lmp_pressure;
+    qm_virial_symmetric[5] = 0.5*(qm_virial[5]+qm_virial[7]) * mdi2lmp_pressure;
   }
 
   // optionally set fix->virial
@@ -356,7 +360,7 @@ void FixMDIQM::post_force(int vflag)
     else if (domain->dimension == 3)
       volume = domain->xprd * domain->yprd * domain->zprd;
     for (int i = 0; i < 6; i++)
-      virial[i] = qm_virial[i]*volume/nprocs;
+      virial[i] = qm_virial_symmetric[i]*volume/nprocs;
   }
 }
 
@@ -382,7 +386,7 @@ double FixMDIQM::compute_scalar()
 
 double FixMDIQM::compute_vector(int n)
 {
-  return qm_virial[n];
+  return qm_virial_symmetric[n];
 }
 
 /* ----------------------------------------------------------------------

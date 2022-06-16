@@ -47,7 +47,7 @@ class FixMDIQM : public Fix {
 
   double qm_energy;
   int lmpunits;
-  double qm_virial[6],qm_virial_all[6];
+  double qm_virial[9],qm_virial_symmetric[6];
   double **fqm;
 
   MDI_Comm mdicomm;

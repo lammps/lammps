@@ -1413,16 +1413,21 @@ void MDIEngine::send_pe()
 
 /* ----------------------------------------------------------------------
    <STRESS command
-   send 6-component stress tensor (no kinetic energy term)
+   send 9-component stress tensor (no kinetic energy term)
 ---------------------------------------------------------------------- */
 
 void MDIEngine::send_stress()
 {
-  double vtensor[6];
+  double vtensor_full[9];
   press->compute_vector();
-  for (int i = 0; i < 6; i++) vtensor[i] = press->vector[i] * lmp2mdi_pressure;
+  vtensor_full[0] = press->vector[0] * lmp2mdi_pressure;
+  vtensor_full[4] = press->vector[1] * lmp2mdi_pressure;
+  vtensor_full[8] = press->vector[2] * lmp2mdi_pressure;
+  vtensor_full[1] = vtensor_full[3] = press->vector[3] * lmp2mdi_pressure;
+  vtensor_full[2] = vtensor_full[6] = press->vector[4] * lmp2mdi_pressure;
+  vtensor_full[5] = vtensor_full[7] = press->vector[5] * lmp2mdi_pressure;
 
-  int ierr = MDI_Send(vtensor, 6, MDI_DOUBLE, mdicomm);
+  int ierr = MDI_Send(vtensor_full, 9, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: <STRESS data");
 }
 

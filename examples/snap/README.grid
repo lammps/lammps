@@ -7,3 +7,13 @@ in.grid.test   # stress test of grid and grid/local
 in.grid.tri    #  grid with triclinic cell
 
 grid.py # access data from Python library interface
+
+For the LAMMPS public repo, the only examples that will be provided are:
+
+ in.grid.snap # simple test of grid and grid/local
+ in.grid.tri  # same for a triclinic box
+ log.15Jun22.grid.snap.g++.1
+ log.15Jun22.grid.snap.g++.4
+ log.15Jun22.grid.tri.g++.1
+ log.15Jun22.grid.tri.g++.4
+

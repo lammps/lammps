@@ -148,13 +148,13 @@ ComputeSNAGridLocal::ComputeSNAGridLocal(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"switchinnerflag") == 0) {
       if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snap command");
+        error->all(FLERR,"Illegal compute sna/grid/local command");
       switchinnerflag = atoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"sinner") == 0) {
       iarg++;
       if (iarg+ntypes > narg)
-        error->all(FLERR,"Illegal compute snap command");
+        error->all(FLERR,"Illegal compute sna/grid/local command");
       memory->create(sinnerelem,ntypes+1,"snap:sinnerelem");
       for (int i = 0; i < ntypes; i++)
         sinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
@@ -163,7 +163,7 @@ ComputeSNAGridLocal::ComputeSNAGridLocal(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"dinner") == 0) {
       iarg++;
       if (iarg+ntypes > narg)
-        error->all(FLERR,"Illegal compute snap command");
+        error->all(FLERR,"Illegal compute sna/grid/local command");
       memory->create(dinnerelem,ntypes+1,"snap:dinnerelem");
       for (int i = 0; i < ntypes; i++)
         dinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
@@ -200,20 +200,20 @@ ComputeSNAGridLocal::~ComputeSNAGridLocal()
 
 void ComputeSNAGridLocal::init()
 {
-  if (force->pair == nullptr)
-    error->all(FLERR,"Compute sna/grid/local requires a pair style be defined");
+  // if (force->pair == nullptr)
+  //   error->all(FLERR,"Compute sna/grid/local requires a pair style be defined");
 
-  if (cutmax > force->pair->cutforce)
-    error->all(FLERR,"Compute sna/grid/local cutoff is longer than pairwise cutoff");
+  // if (cutmax > force->pair->cutforce)
+  //   error->all(FLERR,"Compute sna/grid/local cutoff is longer than pairwise cutoff");
 
-  // need an occasional full neighbor list
+  // // need an occasional full neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  // int irequest = neighbor->request(this,instance_me);
+  // neighbor->requests[irequest]->pair = 0;
+  // neighbor->requests[irequest]->compute = 1;
+  // neighbor->requests[irequest]->half = 0;
+  // neighbor->requests[irequest]->full = 1;
+  // neighbor->requests[irequest]->occasional = 1;
 
   int count = 0;
   for (int i = 0; i < modify->ncompute; i++)
@@ -234,6 +234,7 @@ void ComputeSNAGridLocal::init_list(int /*id*/, NeighList *ptr)
 
 void ComputeSNAGridLocal::compute_local()
 {
+  printf("Entering compute_local()\n");
   invoked_array = update->ntimestep;
 
   // compute sna for each gridpoint
@@ -290,7 +291,11 @@ void ComputeSNAGridLocal::compute_local()
 	    snaptr->inside[ninside] = j;
 	    snaptr->wj[ninside] = wjelem[jtype];
 	    snaptr->rcutij[ninside] = 2.0*radelem[jtype]*rcutfac;
-	    snaptr->element[ninside] = jelem; // element index for multi-element snap
+	    if (switchinnerflag) {
+	      snaptr->sinnerij[ninside] = sinnerelem[jelem];
+	      snaptr->dinnerij[ninside] = dinnerelem[jelem];
+	    }
+	    if (chemflag) snaptr->element[ninside] = jelem; // element index for multi-element snap
 	    ninside++;
 	  }
 	}
@@ -323,6 +328,7 @@ void ComputeSNAGridLocal::compute_local()
   // copy 4d array to 2d array
 
   copy_gridlocal_to_local_array();
+  printf("Exiting compute_local()\n");
 }
 
 

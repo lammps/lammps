@@ -45,6 +45,9 @@ class PairSNAGrid : public PairGrid {
   int quadraticflag;
   int twojmax, switchflag, bzeroflag, bnormflag;
   int chemflag, wselfallflag;
+  int switchinnerflag;
+  double *sinnerelem;
+  double *dinnerelem;
   double rfac0, rmin0;
 };
 

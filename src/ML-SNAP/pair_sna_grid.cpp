@@ -59,15 +59,16 @@ void PairSNAGrid::init_style()
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style sna/grid requires newton pair on");
 
-  // need a full neighbor list
+  // // need a full neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  // int irequest = neighbor->request(this,instance_me);
+  // neighbor->requests[irequest]->half = 0;
+  // neighbor->requests[irequest]->full = 1;
 
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
-                   chemflag, bnormflag, wselfallflag, nelements);  
+                   chemflag, bnormflag, wselfallflag,
+		   nelements, switchinnerflag);  
   ncoeff = snaptr->ncoeff;
   ndesc = ndesc_base + ncoeff;
   snaptr->init();
@@ -213,8 +214,8 @@ void PairSNAGrid::compute(int eflag, int vflag)
 	  const double rsq = delx*delx + dely*dely + delz*delz;
 	  int jtype = type[j];
 	  int jelem = 0;
-	  if (chemflag)
-	    jelem = map[jtype];
+	  jelem = map[jtype];
+
 	  if (rsq < cutsq[jtype][jtype] && rsq > 1e-20) {
 	    snaptr->rij[ninside][0] = delx;
 	    snaptr->rij[ninside][1] = dely;
@@ -222,7 +223,11 @@ void PairSNAGrid::compute(int eflag, int vflag)
 	    snaptr->inside[ninside] = j;
 	    snaptr->wj[ninside] = wjelem[jtype];
 	    snaptr->rcutij[ninside] = 2.0*radelem[jtype]*rcutfac;
-	    snaptr->element[ninside] = jelem; // element index for multi-element snap
+	    if (switchinnerflag) {
+	      snaptr->sinnerij[ninside] = 0.5*(sinnerelem[ielem]+sinnerelem[jelem]);
+	      snaptr->dinnerij[ninside] = 0.5*(dinnerelem[ielem]+dinnerelem[jelem]);
+	    }
+	    if (chemflag) snaptr->element[ninside] = jelem;
 	    ninside++;
 	  }
 	}
@@ -243,12 +248,7 @@ void PairSNAGrid::compute(int eflag, int vflag)
 
 	for (int jj = 0; jj < ninside; jj++) {
 	  int j = snaptr->inside[jj];
-	  if (chemflag)
-	    snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-				   snaptr->rcutij[jj],jj, snaptr->element[jj]);
-	  else
-	    snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-				   snaptr->rcutij[jj],jj, 0);
+	  snaptr->compute_duidrj(jj);
 
 	  snaptr->compute_deidrj(fij);
 
@@ -326,6 +326,7 @@ void PairSNAGrid::settings(int narg, char ** arg)
   chemflag = 0;
   bnormflag = 0;
   wselfallflag = 0;
+  switchinnerflag = 0;
   nelements = 1;
   
   // process required arguments
@@ -356,6 +357,11 @@ void PairSNAGrid::settings(int narg, char ** arg)
       cutsq[i][j] = cutsq[j][i] = cut*cut;
     }
   }
+
+  // set local input checks
+
+  int sinnerflag = 0;
+  int dinnerflag = 0;
 
   // process optional args
 
@@ -405,6 +411,29 @@ void PairSNAGrid::settings(int narg, char ** arg)
         error->all(FLERR,"Illegal pair sna/grid command");
       wselfallflag = atoi(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"switchinnerflag") == 0) {
+      if (iarg+2 > narg)
+	error->all(FLERR,"Illegal pair sna/grid command");
+      switchinnerflag = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"sinner") == 0) {
+      iarg++;
+      if (iarg+ntypes > narg)
+	error->all(FLERR,"Illegal pair sna/grid command");
+      memory->create(sinnerelem,ntypes+1,"snap:sinnerelem");
+      for (int i = 0; i < ntypes; i++)
+        sinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+      sinnerflag = 1;
+      iarg += ntypes;
+    } else if (strcmp(arg[iarg],"dinner") == 0) {
+      iarg++;
+      if (iarg+ntypes > narg)
+	error->all(FLERR,"Illegal pair sna/grid command");
+      memory->create(dinnerelem,ntypes+1,"snap:dinnerelem");
+      for (int i = 0; i < ntypes; i++)
+        dinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+      dinnerflag = 1;
+      iarg += ntypes;
     } else error->all(FLERR,"Illegal pair sna/grid command");
 
   }

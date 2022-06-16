@@ -28,7 +28,7 @@ jobs:
       run: mkdir build
 
     - name: Set up ccache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ${{ env.CCACHE_DIR }}
         key: macos-ccache-${{ github.sha }}

@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeGridLocal::ComputeGridLocal(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), gridlocal(nullptr), alocal(nullptr)
+  Compute(lmp, narg, arg), alocal(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal compute grid/local command");
 
@@ -220,8 +220,7 @@ void ComputeGridLocal::set_grid_local()
   nzhi = static_cast<int> (zfrachi * nz);
   if (1.0*nzhi == zfrachi*nz) nzhi--;
 
-  ngridlocal = (nxhi - nxlo + 1) * (nyhi - nylo + 1) * (nzhi - nzlo + 1);
-  size_local_rows = ngridlocal;
+  size_local_rows = (nxhi - nxlo + 1) * (nyhi - nylo + 1) * (nzhi - nzlo + 1);
 }
 
 /* ----------------------------------------------------------------------
@@ -271,6 +270,6 @@ void ComputeGridLocal::assign_coords()
 
 double ComputeGridLocal::memory_usage()
 {
-  int nbytes = size_local_cols*ngridlocal*sizeof(double); // gridlocal
+  int nbytes = size_local_rows * size_local_cols * sizeof(double); // gridlocal
   return nbytes;
 }

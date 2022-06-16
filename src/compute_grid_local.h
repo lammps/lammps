@@ -32,9 +32,7 @@ class ComputeGridLocal : public Compute {
  protected:
   int nx, ny, nz;                      // global grid dimensions
   int nxlo, nxhi, nylo, nyhi, nzlo, nzhi; // local grid bounds, inclusive
-  int ngridlocal;                      // number of local grid points
   int nvalues;                         // number of values per grid point
-  double ****gridlocal;                // local grid, redundant w.r.t. alocal
   double **alocal;                     // pointer to Compute::array_local
   int triclinic;                       // triclinic flag
   double *boxlo, *prd;                 // box info (units real/ortho or reduced/tri)

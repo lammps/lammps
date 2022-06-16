@@ -46,16 +46,12 @@ class ComputeGrid : public Compute {
   int nargbase;                        // number of base class args 
   double cutmax;                       // largest cutoff distance
   int size_array_cols_base;            // number of columns used for coords, etc.
-  int *local_flags;                    // local flag for each grid point
   int gridlocal_allocated;             // shows if gridlocal allocated
 
   void allocate();                     // create arrays
   void deallocate();                   // free arrays
   void grid2x(int, double*);           // convert grid point to coord
-  void grid2ix(int, int&, int&, int&); // convert grid point to ix, iy, iz
-  void assign_coords();                // assign coords for grid
-  void assign_local_flags();           // set local flag for each grid point
-  int check_local(int);                // check if grid point is local
+  void assign_coords_all();                // assign coords for global grid
   void set_grid_global();              // set global grid
   void set_grid_local();               // set bounds for local grid
  private:

@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeGrid::ComputeGrid(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), grid(nullptr), gridall(nullptr), local_flags(nullptr), gridlocal(nullptr)
+  Compute(lmp, narg, arg), grid(nullptr), gridall(nullptr), gridlocal(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal compute grid command");
 
@@ -77,8 +77,6 @@ void ComputeGrid::setup()
   set_grid_global();
   set_grid_local();
   allocate();
-  assign_coords();
-  assign_local_flags();
 }
 
 /* ----------------------------------------------------------------------
@@ -102,90 +100,17 @@ void ComputeGrid::grid2x(int igrid, double *x)
 }
 
 /* ----------------------------------------------------------------------
-   convert global array index to box coords
-------------------------------------------------------------------------- */
-
-void ComputeGrid::grid2ix(int igrid, int& ix, int& iy, int& iz)
-{
-  iz = igrid / (nx*ny);
-  igrid -= iz * (nx*ny);
-  iy = igrid / nx;
-  igrid -= iy * nx;
-  ix = igrid;
-}
-
-// /* ----------------------------------------------------------------------
-//    check if grid point is local
-// ------------------------------------------------------------------------- */
-
-// int ComputeGrid::check_local(int igrid)
-// {
-//   double x[3];
-
-//   int iz = igrid / (nx*ny);
-//   igrid -= iz * (nx*ny);
-//   int iy = igrid / nx;
-//   igrid -= iy * nx;
-//   int ix = igrid;
-
-//   x[0] = ix*delx;
-//   x[1] = iy*dely;
-//   x[2] = iz*delz;
-
-//   int islocal = 
-//     x[0] >= sublo[0] && x[0] < subhi[0] &&
-//     x[1] >= sublo[1] && x[1] < subhi[1] &&
-//     x[2] >= sublo[2] && x[2] < subhi[2];
-
-//   return islocal;
-// }
-
-/* ----------------------------------------------------------------------
-   check if grid point is local
-------------------------------------------------------------------------- */
-
-int ComputeGrid::check_local(int igrid)
-{
-  int ix, iy, iz;
-
-  grid2ix(igrid, ix, iy, iz);
-
-  int islocal = 
-    ix >= nxlo && ix <= nxhi &&
-    iy >= nylo && iy <= nyhi &&
-    iz >= nzlo && iz <= nzhi;
-
-  return islocal;
-}
-
-/* ----------------------------------------------------------------------
    copy coords to global array
 ------------------------------------------------------------------------- */
 
-void ComputeGrid::assign_coords()
+void ComputeGrid::assign_coords_all()
 {
   double x[3];
   for (int igrid = 0; igrid < ngrid; igrid++) {
     grid2x(igrid,x);
-    grid[igrid][0] = x[0];
-    grid[igrid][1] = x[1];
-    grid[igrid][2] = x[2];
-  }
-}
-
-/* ----------------------------------------------------------------------
-   copy coords to global array
-------------------------------------------------------------------------- */
-
-void ComputeGrid::assign_local_flags()
-{
-  for (int igrid = 0; igrid < ngrid; igrid++) {
-    if (check_local(igrid))
-      local_flags[igrid] = 1;
-    else {
-      local_flags[igrid] = 0;
-      memset(grid[igrid],0,size_array_cols * sizeof(double));
-    }
+    gridall[igrid][0] = x[0];
+    gridall[igrid][1] = x[1];
+    gridall[igrid][2] = x[2];
   }
 }
 
@@ -199,7 +124,6 @@ void ComputeGrid::allocate()
 
   memory->create(grid,size_array_rows,size_array_cols,"grid:grid");
   memory->create(gridall,size_array_rows,size_array_cols,"grid:gridall");
-  memory->create(local_flags,size_array_rows,"grid:local_flags");
   if (nxlo <= nxhi && nylo <= nyhi && nzlo <= nzhi) {
     gridlocal_allocated = 1;
     memory->create4d_offset(gridlocal,size_array_cols,nzlo,nzhi,nylo,nyhi,
@@ -217,7 +141,6 @@ void ComputeGrid::deallocate()
 {
   memory->destroy(grid);
   memory->destroy(gridall);
-  memory->destroy(local_flags);
   if (gridlocal_allocated) {
     gridlocal_allocated = 0;
     memory->destroy4d_offset(gridlocal,nzlo,nylo,nxlo);
@@ -322,8 +245,9 @@ void ComputeGrid::set_grid_local()
 double ComputeGrid::memory_usage()
 {
   double nbytes = size_array_rows*size_array_cols * 
-    sizeof(double);                             // grid
-  nbytes += size_array_rows*sizeof(int); // local_flags
+    sizeof(double);                                    // grid
+  nbytes += size_array_rows*size_array_cols * 
+    sizeof(double);                                    // gridall
   nbytes += size_array_cols*ngridlocal*sizeof(double); // gridlocal
   return nbytes;
 }

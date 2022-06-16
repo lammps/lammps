@@ -11,11 +11,7 @@ label LOOP
   units		lj
   atom_style	atomic
 
-  lattice	fcc ${rho}
-  region	box block 0 $x 0 $y 0 $z
-  create_box	1 box
-  create_atoms	1 box
-  mass		1 1.0
+  read_data     data.series.${rho}
 
   displace_atoms all random 0.1 0.1 0.1 48294
 

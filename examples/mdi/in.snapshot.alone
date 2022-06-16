@@ -1,17 +1,9 @@
 # 3d Lennard-Jones melt - MDI driver script
 
-variable	x index 5
-variable	y index 5
-variable	z index 5
-
 units		lj
 atom_style	atomic
 
-lattice		fcc 0.8442
-region		box block 0 $x 0 $y 0 $z
-create_box	1 box
-create_atoms	1 box
-mass		1 1.0
+read_data       data.snapshot
 
 velocity	all create 1.44 87287 loop geom
 
@@ -29,8 +21,8 @@ thermo_style    custom step temp pe c_1 c_1[1] c_1[2] c_1[3]
 
 thermo          100
 
-dump            1 all custom 500 dump.snapshot.alone &
+dump            1 all custom 100 dump.snapshot.alone &
                 id type x y z fx fy fz
 dump_modify     1 sort id
 
-run             1500
+run             300

@@ -30,4 +30,4 @@ thermo          1
 
 mdi             plugin lammps mdi "-role ENGINE -name LMP2 -method LINK" &
                 infile in.aimd.engine extra "-log log.aimd.engine.plugin" &
-                command "run 5"
+                command "run 10"

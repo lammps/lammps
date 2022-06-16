@@ -344,11 +344,19 @@ void FixMDIQM::post_force(int vflag)
   }
 
   // optionally set fix->virial
-  // divide by nprocs so each proc stores a portion
+  //   multiply by volume to make it extensive
+  //   divide by nprocs so each proc stores a portion
+  // this is b/c ComputePressure expects that as input from a fix
+  //   it will do an MPI_Allreduce and divide by volume
 
   if (virialflag && addflag) {
+    double volume;
+    if (domain->dimension == 2)
+      volume = domain->xprd * domain->yprd;
+    else if (domain->dimension == 3)
+      volume = domain->xprd * domain->yprd * domain->zprd;
     for (int i = 0; i < 6; i++)
-      virial[i] = qm_virial[i]/nprocs;
+      virial[i] = qm_virial[i]*volume/nprocs;
   }
 }
 

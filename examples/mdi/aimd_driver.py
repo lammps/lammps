@@ -23,8 +23,8 @@
 #   -plugin_args arglist
 #     args to add when launching plugin library, only when using plugin mode
 #     enclose arglist in quotes if multiple words
-#   -nsteps 5
-#     number of timesteps, default = 5
+#   -nsteps 10
+#     number of timesteps, default = 10
 
 import sys,math,random
 import mdi
@@ -183,7 +183,7 @@ mdiarg = ""
 plugin = ""
 plugin_args = ""
 
-nsteps = 5
+nsteps = 10
 
 # parse command-line args
 

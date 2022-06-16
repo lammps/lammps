@@ -28,4 +28,4 @@ fix             2 all mdi/qm virial yes
 thermo_style    custom step temp pe etotal press vol
 thermo          1
 
-run             5
+run             10

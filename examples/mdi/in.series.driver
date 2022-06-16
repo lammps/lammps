@@ -13,11 +13,7 @@ label LOOP
   units		lj
   atom_style	atomic
 
-  lattice	fcc ${rho}
-  region	box block 0 $x 0 $y 0 $z
-  create_box	1 box
-  create_atoms	1 box
-  mass		1 1.0
+  read_data     data.series.${rho}
 
   displace_atoms all random 0.1 0.1 0.1 48294
 
@@ -25,9 +21,9 @@ label LOOP
   neigh_modify	delay 0 every 1 check yes
 
   fix           1 all mdi/qm add no virial yes connect no
-  variable      epress equal (f_1[1]+f_1[2]+f_1[3])/3
+  variable      evirial equal (f_1[1]+f_1[2]+f_1[3])/3
 
-  thermo_style  custom step temp f_1 v_epress f_1[1] f_1[2] f_1[3]
+  thermo_style  custom step temp f_1 v_evirial f_1[1] f_1[2] f_1[3]
 
   run           0
 

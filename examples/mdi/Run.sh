@@ -227,30 +227,30 @@ mpirun -np 3 python3 sequence_driver.py -plugin lammps -mdi "-role DRIVER -name 
 
 # Run with TCP: 1 proc each
 
-python3 aimd_driver.py -mdi "-role DRIVER -name aimd -method TCP -port 8021" &
+python3 aimd_driver.py -mdi "-role DRIVER -name aimdpy -method TCP -port 8021" > log.aimdpy.driver.tcp.1 &
 
-lmp_mpi -mdi "-role ENGINE -name MM -method TCP -port 8021 -hostname localhost" -log log.aimdpy.mm.tcp.1 -in in.aimd.mm &
+lmp_mpi -mdi "-role ENGINE -name MM -method TCP -port 8021 -hostname localhost" -log log.aimdpy.mm.tcp.1 -in in.aimdpy.mm &
 
-lmp_mpi -mdi "-role ENGINE -name QM -method TCP -port 8021 -hostname localhost" -log log.aimdpy.qm.tcp.1 -in in.aimd.qm
+lmp_mpi -mdi "-role ENGINE -name QM -method TCP -port 8021 -hostname localhost" -log log.aimdpy.qm.tcp.1 -in in.aimdpy.qm
 
 # ---
 
 # Run with TCP: 2 procs + 2 procs + 3 procs
 
-mpirun -np 2 python3 aimd_driver.py -mdi "-role DRIVER -name aimd -method TCP -port 8021" &
+mpirun -np 2 python3 aimd_driver.py -mdi "-role DRIVER -name aimdpy -method TCP -port 8021" > log.aimdpy.driver.tcp.2 &
 
-mpirun -np 2 lmp_mpi -mdi "-role ENGINE -name MM -method TCP -port 8021 -hostname localhost" -log log.aimd.mm.tcp.2 -in in.aimd.mm &
+mpirun -np 2 lmp_mpi -mdi "-role ENGINE -name MM -method TCP -port 8021 -hostname localhost" -log log.aimdpy.mm.tcp.2 -in in.aimdpy.mm &
 
-mpirun -np 3 lmp_mpi -mdi "-role ENGINE -name QM -method TCP -port 8021 -hostname localhost" -log log.aimd.qm.tcp.3 -in in.aimd.qm
+mpirun -np 3 lmp_mpi -mdi "-role ENGINE -name QM -method TCP -port 8021 -hostname localhost" -log log.aimdpy.qm.tcp.3 -in in.aimdpy.qm
 
 # ---
 
 # Run with MPI: 1 proc each
 
-mpirun -np 1 python3 aimd_driver.py -mdi "-role DRIVER -name aimd -method MPI" : -np 1 lmp_mpi -mdi "-role ENGINE -name MM -method MPI" -log log.aimd.mm.mpi.1 -in in.aimd.mm : -np 1 lmp_mpi -mdi "-role ENGINE -name QM -method MPI" -log log.aimd.qm.qm.1 -in in.aimd.qm
+mpirun -np 1 python3 aimd_driver.py -mdi "-role DRIVER -name aimdpy -method MPI" : -np 1 lmp_mpi -mdi "-role ENGINE -name MM -method MPI" -log log.aimdpy.mm.mpi.1 -in in.aimdpy.mm : -np 1 lmp_mpi -mdi "-role ENGINE -name QM -method MPI" -log log.aimdpy.qm.mpi.1 -in in.aimdpy.qm > log.aimdpy.driver.mpi.1
 
 # ---
 
 # Run with MPI: 2 procs + 2 procs + 3 procs
 
-mpirun -np 2 python3 aimd_driver.py -mdi "-role DRIVER -name aimd -method MPI" : -np 2 lmp_mpi -mdi "-role ENGINE -name MM -method MPI" -log log.aimd.mm.mpi.2 -in in.aimd.mm : -np 3 lmp_mpi -mdi "-role ENGINE -name QM -method MPI" -log log.aimd.qm.mpi.3 -in in.aimd.qm
+mpirun -np 2 python3 aimd_driver.py -mdi "-role DRIVER -name aimdpy -method MPI" : -np 2 lmp_mpi -mdi "-role ENGINE -name MM -method MPI" -log log.aimdpy.mm.mpi.2 -in in.aimdpy.mm : -np 3 lmp_mpi -mdi "-role ENGINE -name QM -method MPI" -log log.aimdpy.qm.mpi.3 -in in.aimdpy.qm > log.aimdpy.driver.mpi.2

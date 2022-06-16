@@ -69,10 +69,8 @@ class PairGranular : public Pair {
   int size_history;
   int *history_transfer_factors;
 
-  // model choices
-  int **normal_model, **damping_model;
-  int **tangential_model, **roll_model, **twist_model;
-  int **limit_damping;
+  // contact models
+  ContactModel **models;
 
   // history flags
   int normal_history, tangential_history, roll_history, twist_history;
@@ -83,15 +81,6 @@ class PairGranular : public Pair {
   int roll_history_index;
   int twist_history_index;
 
-  // per-type material coefficients
-  double **Emod, **poiss, **Gmod;
-
-  // per-type coefficients, set in pair coeff command
-  double ***normal_coeffs;
-  double ***tangential_coeffs;
-  double ***roll_coeffs;
-  double ***twist_coeffs;
-
   // optional user-specified global cutoff, per-type user-specified cutoffs
   double **cutoff_type;
   double cutoff_global;
@@ -99,19 +88,6 @@ class PairGranular : public Pair {
   double mix_stiffnessE(double, double, double, double);
   double mix_stiffnessG(double, double, double, double);
   double mix_geom(double, double);
-  double pulloff_distance(double, double, int, int);
-
-  // Structure to store details of model
-  struct ContactModel {
-    int normal, damping, tangential, roll, twist;
-    double E, damp, poisson, coh;
-    double a, knfac;
-  };
-
-  struct ContactGeom {
-    double r, rinv, rsq, Reff, radsum;
-    double delta, dR;
-  }
 };
 
 }    // namespace LAMMPS_NS

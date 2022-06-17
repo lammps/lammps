@@ -955,15 +955,22 @@ void MDIEngine::create_system()
   lammps_reset_box(lmp, boxlo, boxhi, xy, yz, xz);
 
   // invoke lib->create_atoms()
+  // create list of 1 to sys_natoms IDs
   // optionally set charges if specified by ">CHARGES"
 
+  tagint* sys_ids;
+  memory->create(sys_ids, sys_natoms, "mdi:sys_ids");
+  for (int i = 0; i < sys_natoms; i++) sys_ids[i] = i+1;
+
   if (flag_velocities)
-    lammps_create_atoms(lmp, sys_natoms, nullptr, sys_types, sys_coords, sys_velocities, nullptr,
+    lammps_create_atoms(lmp, sys_natoms, sys_ids, sys_types, sys_coords, sys_velocities, nullptr,
                         1);
   else
-    lammps_create_atoms(lmp, sys_natoms, nullptr, sys_types, sys_coords, nullptr, nullptr, 1);
+    lammps_create_atoms(lmp, sys_natoms, sys_ids, sys_types, sys_coords, nullptr, nullptr, 1);
 
   if (flag_charges) lammps_scatter_atoms(lmp, (char *) "q", 1, 1, sys_charges);
+
+  memory->destroy(sys_ids);
 
   // new system
 

@@ -601,7 +601,8 @@ void FixShake::post_force(int vflag)
 
   // virial setup
 
-  v_init(vflag);
+  int eflag = eflag_pre_reverse;
+  ev_init(eflag, vflag);
   ebond = 0.0;
 
   // loop over clusters to add constraint forces

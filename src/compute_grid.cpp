@@ -66,10 +66,6 @@ ComputeGrid::~ComputeGrid()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeGrid::init() {}
-
-/* ---------------------------------------------------------------------- */
-
 void ComputeGrid::setup()
 {
   deallocate();
@@ -120,7 +116,6 @@ void ComputeGrid::allocate()
 {
   // allocate arrays
 
-  printf("In allocate() %d %d \n", size_array_rows, size_array_cols);
   memory->create(grid, size_array_rows, size_array_cols, "grid:grid");
   memory->create(gridall, size_array_rows, size_array_cols, "grid:gridall");
   if (nxlo <= nxhi && nylo <= nyhi && nzlo <= nzhi) {

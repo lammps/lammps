@@ -70,10 +70,6 @@ ComputeGridLocal::~ComputeGridLocal()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeGridLocal::init() {}
-
-/* ---------------------------------------------------------------------- */
-
 void ComputeGridLocal::setup()
 {
   deallocate();

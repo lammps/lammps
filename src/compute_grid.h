@@ -22,7 +22,6 @@ class ComputeGrid : public Compute {
  public:
   ComputeGrid(class LAMMPS *, int, char **);
   ~ComputeGrid() override;
-  void init() override;
   void setup() override;
   void compute_array() override = 0;
 

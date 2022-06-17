@@ -22,7 +22,6 @@ class ComputeGridLocal : public Compute {
  public:
   ComputeGridLocal(class LAMMPS *, int, char **);
   ~ComputeGridLocal() override;
-  void init() override;
   void setup() override;
   void compute_local() override = 0;
 

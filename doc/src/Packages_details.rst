@@ -657,7 +657,7 @@ advection-diffusion-reaction systems. The equations of motion of these
 DPD extensions are integrated through a modified velocity-Verlet (MVV)
 algorithm.
 
-**Author:** Zhen Li (Division of Applied Mathematics, Brown University)
+**Author:** Zhen Li (Department of Mechanical Engineering, Clemson University)
 
 **Supporting info:**
 

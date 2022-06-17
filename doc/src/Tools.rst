@@ -95,7 +95,7 @@ Miscellaneous tools
    * :ref:`LAMMPS shell <lammps_shell>`
    * :ref:`LAMMPS magic patterns for file(1) <magic>`
    * :ref:`Offline build tool <offline>`
-   * :ref:`singularity <singularity_tool>`
+   * :ref:`singularity/apptainer <singularity_tool>`
    * :ref:`SWIG interface <swig>`
    * :ref:`vim <vim>`
 
@@ -1007,14 +1007,15 @@ Ivanov, at University of Iceland (ali5 at hi.is).
 
 .. _singularity_tool:
 
-singularity tool
-----------------------------------------
+singularity/apptainer tool
+--------------------------
 
-The singularity sub-directory contains container definitions files
-that can be used to build container images for building and testing
-LAMMPS on specific OS variants using the `Singularity <https://sylabs.io>`_
-container software. Contributions for additional variants are welcome.
-For more details please see the README.md file in that folder.
+The singularity sub-directory contains container definitions files that
+can be used to build container images for building and testing LAMMPS on
+specific OS variants using the `Apptainer <https://apptainer.org>`_ or
+`Singularity <https://sylabs.io>`_ container software. Contributions for
+additional variants are welcome.  For more details please see the
+README.md file in that folder.
 
 ----------
 

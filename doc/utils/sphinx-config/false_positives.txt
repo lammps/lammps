@@ -120,6 +120,7 @@ Antonelli
 api
 Apoorva
 Appl
+apptainer
 Apu
 arallel
 arccos
@@ -2370,6 +2371,9 @@ Nord
 norder
 Nordlund
 normals
+normx
+normy
+normz
 Noskov
 noslip
 noticable

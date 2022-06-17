@@ -35,7 +35,7 @@ Syntax
 * twojmax = band limit for bispectrum components (non-negative integer)
 * R_1, R_2,... = list of cutoff radii, one for each type (distance units)
 * w_1, w_2,... = list of neighbor weights, one for each type
-* nx, ny, nz = number of grid points in x, y, and z directions (positive integer)  
+* nx, ny, nz = number of grid points in x, y, and z directions (positive integer)
 * zero or more keyword/value pairs may be appended
 * keyword = *rmin0* or *switchflag* or *bzeroflag* or *quadraticflag* or *chem* or *bnormflag* or *wselfallflag* or *bikflag* or *switchinnerflag* or *sinner* or *dinner*
 
@@ -223,7 +223,7 @@ These are calculated from the local density of nearby atoms *i'*
 around each grid point, as if there was a central atom *i*
 at the grid point. This is useful for characterizing fine-scale
 structure in a configuration of atoms, and it has been used
-to build a machine-learning surrogate for finite-temperature Kohn-Sham 
+to build a machine-learning surrogate for finite-temperature Kohn-Sham
 density functional theory (:ref:`Ellis et al. <Ellis2021>`).
 Neighbor atoms not in the group do not contribute to the
 bispectrum components of the grid points. The distance cutoff :math:`R_{ii'}`
@@ -231,7 +231,7 @@ and other parameters are defined as for a central atom with the same type as the
 neighbor atoms *i'*.
 
 Compute *sna/grid* calculates a global array containing bispectrum
-components for a regular grid of points.  
+components for a regular grid of points.
 The grid is aligned with the current box dimensions, with the
 first point at the box origin, and forming a regular 3d array with
 *nx*, *ny*, and *nz* points in the x, y, and z directions. For triclinic
@@ -720,7 +720,7 @@ The array contains one row for each of the
 :math:`nx \times ny \times nz` grid points, looping over the index for *ix* fastest,
 then *iy*, and *iz* slowest.  Each row of the array contains the *x*, *y*,
 and *z* coordinates of the grid point, followed by the bispectrum
-components. 
+components.
 
 Compute *sna/grid/local* evaluates a local array.
 The array contains one row for each of the
@@ -754,7 +754,7 @@ The optional keyword defaults are *rmin0* = 0,
 .. _Thompson20141:
 
 **(Thompson)** Thompson, Swiler, Trott, Foiles, Tucker, J Comp Phys, 285, 316, (2015).
-   
+
 .. _Bartok20101:
 
 **(Bartok)** Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -164,7 +164,7 @@ void ComputeGridLocal::set_grid_global()
   delxinv = nx/xprd;
   delyinv = ny/yprd;
   delzinv = nz/zprd;
-  
+
   delx = 1.0/delxinv;
   dely = 1.0/delyinv;
   delz = 1.0/delzinv;
@@ -233,34 +233,34 @@ void ComputeGridLocal::assign_coords()
   for (int iz = nzlo; iz <= nzhi; iz++)
     for (int iy = nylo; iy <= nyhi; iy++)
       for (int ix = nxlo; ix <= nxhi; ix++) {
-	alocal[igrid][0] = ix;
-	alocal[igrid][1] = iy;
-	alocal[igrid][2] = iz;
-	double xgrid[3];
+        alocal[igrid][0] = ix;
+        alocal[igrid][1] = iy;
+        alocal[igrid][2] = iz;
+        double xgrid[3];
 
-	// for triclinic: create gridpoint in lamda coordinates and transform after check.
-	// for orthorombic: create gridpoint in box coordinates.
+        // for triclinic: create gridpoint in lamda coordinates and transform after check.
+        // for orthorombic: create gridpoint in box coordinates.
 
-	if (triclinic)
-	  grid2lamda(ix, iy, iz, xgrid);
-	else
-	  grid2x(ix, iy, iz, xgrid);
+        if (triclinic)
+          grid2lamda(ix, iy, iz, xgrid);
+        else
+          grid2x(ix, iy, iz, xgrid);
 
-	// ensure gridpoint is not strictly outside subdomain
+        // ensure gridpoint is not strictly outside subdomain
 
-	if ((sublo[0]-xgrid[0]) > EPSILON || (xgrid[0]-subhi[0]) > EPSILON  ||
-	    (sublo[1]-xgrid[1]) > EPSILON || (xgrid[1]-subhi[1]) > EPSILON  ||
-	    (sublo[2]-xgrid[2]) > EPSILON || (xgrid[2]-subhi[2]) > EPSILON)
-	  error->one(FLERR,"Invalid gridpoint position in compute grid/local");
+        if ((sublo[0]-xgrid[0]) > EPSILON || (xgrid[0]-subhi[0]) > EPSILON  ||
+            (sublo[1]-xgrid[1]) > EPSILON || (xgrid[1]-subhi[1]) > EPSILON  ||
+            (sublo[2]-xgrid[2]) > EPSILON || (xgrid[2]-subhi[2]) > EPSILON)
+          error->one(FLERR,"Invalid gridpoint position in compute grid/local");
 
-	// convert lamda to x, y, z, after sudomain check
+        // convert lamda to x, y, z, after sudomain check
 
-	if (triclinic) domain->lamda2x(xgrid, xgrid);
+        if (triclinic) domain->lamda2x(xgrid, xgrid);
 
-	alocal[igrid][3] = xgrid[0];
-	alocal[igrid][4] = xgrid[1];
-	alocal[igrid][5] = xgrid[2];
-	igrid++;
+        alocal[igrid][3] = xgrid[0];
+        alocal[igrid][4] = xgrid[1];
+        alocal[igrid][5] = xgrid[2];
+        igrid++;
       }
 }
 

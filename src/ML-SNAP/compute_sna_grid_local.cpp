@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -41,7 +41,7 @@ ComputeSNAGridLocal::ComputeSNAGridLocal(LAMMPS *lmp, int narg, char **arg) :
   int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
 
   // skip over arguments used by base class
-  // so that argument positions are identical to 
+  // so that argument positions are identical to
   // regular per-atom compute
 
   arg += nargbase;
@@ -63,7 +63,7 @@ ComputeSNAGridLocal::ComputeSNAGridLocal(LAMMPS *lmp, int narg, char **arg) :
   wselfallflag = 0;
   switchinnerflag = 0;
   nelements = 1;
-  
+
   // set local input checks
 
   int sinnerflag = 0;
@@ -175,14 +175,14 @@ ComputeSNAGridLocal::ComputeSNAGridLocal(LAMMPS *lmp, int narg, char **arg) :
 
   if (switchinnerflag && !(sinnerflag && dinnerflag))
     error->all(FLERR,"Illegal compute sna/grid/local command: switchinnerflag = 1, missing sinner/dinner keyword");
-  
+
   if (!switchinnerflag && (sinnerflag || dinnerflag))
     error->all(FLERR,"Illegal compute sna/grid/local command: switchinnerflag = 0, unexpected sinner/dinner keyword");
 
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
                    chemflag, bnormflag, wselfallflag,
-		   nelements, switchinnerflag);
+                   nelements, switchinnerflag);
 
   ncoeff = snaptr->ncoeff;
   nvalues = ncoeff;
@@ -235,84 +235,84 @@ void ComputeSNAGridLocal::compute_local()
   const int ntotal = atom->nlocal + atom->nghost;
 
   // insure rij, inside, and typej are of size jnum
-  
+
   snaptr->grow_rij(ntotal);
 
   int igrid = 0;
   for (int iz = nzlo; iz <= nzhi; iz++)
     for (int iy = nylo; iy <= nyhi; iy++)
       for (int ix = nxlo; ix <= nxhi; ix++) {
-	double xgrid[3];
-	grid2x(ix, iy, iz, xgrid);
-	const double xtmp = xgrid[0];
-	const double ytmp = xgrid[1];
-	const double ztmp = xgrid[2];
+        double xgrid[3];
+        grid2x(ix, iy, iz, xgrid);
+        const double xtmp = xgrid[0];
+        const double ytmp = xgrid[1];
+        const double ztmp = xgrid[2];
 
-	// currently, all grid points are type 1
-	
-	const int itype = 1;
-	int ielem = 0;
-	if (chemflag)
-	  ielem = map[itype];
-	const double radi = radelem[itype];
+        // currently, all grid points are type 1
 
-	// rij[][3] = displacements between atom I and those neighbors
-	// inside = indices of neighbors of I within cutoff
-	// typej = types of neighbors of I within cutoff
+        const int itype = 1;
+        int ielem = 0;
+        if (chemflag)
+          ielem = map[itype];
+        const double radi = radelem[itype];
 
-	int ninside = 0;
-	for (int j = 0; j < ntotal; j++) {
+        // rij[][3] = displacements between atom I and those neighbors
+        // inside = indices of neighbors of I within cutoff
+        // typej = types of neighbors of I within cutoff
 
-	  // check that j is in compute group
+        int ninside = 0;
+        for (int j = 0; j < ntotal; j++) {
 
-	  if (!(mask[j] & groupbit)) continue;
+          // check that j is in compute group
 
-	  const double delx = xtmp - x[j][0];
-	  const double dely = ytmp - x[j][1];
-	  const double delz = ztmp - x[j][2];
-	  const double rsq = delx*delx + dely*dely + delz*delz;
-	  int jtype = type[j];
-	  int jelem = 0;
-	  if (chemflag)
-	    jelem = map[jtype];
-	  if (rsq < cutsq[jtype][jtype] && rsq > 1e-20) {
-	    snaptr->rij[ninside][0] = delx;
-	    snaptr->rij[ninside][1] = dely;
-	    snaptr->rij[ninside][2] = delz;
-	    snaptr->inside[ninside] = j;
-	    snaptr->wj[ninside] = wjelem[jtype];
-	    snaptr->rcutij[ninside] = 2.0*radelem[jtype]*rcutfac;
-	    if (switchinnerflag) {
-	      snaptr->sinnerij[ninside] = sinnerelem[jelem];
-	      snaptr->dinnerij[ninside] = dinnerelem[jelem];
-	    }
-	    if (chemflag) snaptr->element[ninside] = jelem; // element index for multi-element snap
-	    ninside++;
-	  }
-	}
+          if (!(mask[j] & groupbit)) continue;
 
-	snaptr->compute_ui(ninside, ielem);
-	snaptr->compute_zi();
-	snaptr->compute_bi(ielem);
+          const double delx = xtmp - x[j][0];
+          const double dely = ytmp - x[j][1];
+          const double delz = ztmp - x[j][2];
+          const double rsq = delx*delx + dely*dely + delz*delz;
+          int jtype = type[j];
+          int jelem = 0;
+          if (chemflag)
+            jelem = map[jtype];
+          if (rsq < cutsq[jtype][jtype] && rsq > 1e-20) {
+            snaptr->rij[ninside][0] = delx;
+            snaptr->rij[ninside][1] = dely;
+            snaptr->rij[ninside][2] = delz;
+            snaptr->inside[ninside] = j;
+            snaptr->wj[ninside] = wjelem[jtype];
+            snaptr->rcutij[ninside] = 2.0*radelem[jtype]*rcutfac;
+            if (switchinnerflag) {
+              snaptr->sinnerij[ninside] = sinnerelem[jelem];
+              snaptr->dinnerij[ninside] = dinnerelem[jelem];
+            }
+            if (chemflag) snaptr->element[ninside] = jelem; // element index for multi-element snap
+            ninside++;
+          }
+        }
 
-	// linear contributions
+        snaptr->compute_ui(ninside, ielem);
+        snaptr->compute_zi();
+        snaptr->compute_bi(ielem);
 
-	for (int icoeff = 0; icoeff < ncoeff; icoeff++)
-	    alocal[igrid][size_local_cols_base+icoeff] = snaptr->blist[icoeff];
+        // linear contributions
 
-	// quadratic contributions
+        for (int icoeff = 0; icoeff < ncoeff; icoeff++)
+            alocal[igrid][size_local_cols_base+icoeff] = snaptr->blist[icoeff];
 
-	if (quadraticflag) {
-	  int ncount = ncoeff;
-	  for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-	    double bveci = snaptr->blist[icoeff];
-	      alocal[igrid][size_local_cols_base+ncount++] = 0.5*bveci*bveci;
-	    for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++)
-	      alocal[igrid][size_local_cols_base+ncount++] = 
-		bveci*snaptr->blist[jcoeff];
-	  }
-	}
-	igrid++;
+        // quadratic contributions
+
+        if (quadraticflag) {
+          int ncount = ncoeff;
+          for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+            double bveci = snaptr->blist[icoeff];
+              alocal[igrid][size_local_cols_base+ncount++] = 0.5*bveci*bveci;
+            for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++)
+              alocal[igrid][size_local_cols_base+ncount++] =
+                bveci*snaptr->blist[jcoeff];
+          }
+        }
+        igrid++;
       }
 }
 

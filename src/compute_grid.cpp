@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -128,7 +128,7 @@ void ComputeGrid::allocate()
   if (nxlo <= nxhi && nylo <= nyhi && nzlo <= nzhi) {
     gridlocal_allocated = 1;
     memory->create4d_offset(gridlocal,size_array_cols,nzlo,nzhi,nylo,nyhi,
-  			    nxlo,nxhi,"grid:gridlocal");
+                            nxlo,nxhi,"grid:gridlocal");
   }
   array = gridall;
 }
@@ -179,7 +179,7 @@ void ComputeGrid::set_grid_global()
   delxinv = nx/xprd;
   delyinv = ny/yprd;
   delzinv = nz/zprd;
-  
+
   delx = 1.0/delxinv;
   dely = 1.0/delyinv;
   delz = 1.0/delzinv;
@@ -245,9 +245,9 @@ void ComputeGrid::set_grid_local()
 
 double ComputeGrid::memory_usage()
 {
-  double nbytes = size_array_rows*size_array_cols * 
+  double nbytes = size_array_rows*size_array_cols *
     sizeof(double);                                    // grid
-  nbytes += size_array_rows*size_array_cols * 
+  nbytes += size_array_rows*size_array_cols *
     sizeof(double);                                    // gridall
   nbytes += size_array_cols*ngridlocal*sizeof(double); // gridlocal
   return nbytes;

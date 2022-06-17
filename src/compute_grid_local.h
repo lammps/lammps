@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -39,7 +39,7 @@ class ComputeGridLocal : public Compute {
   double *sublo, *subhi;               // subdomain info (units real/ortho or reduced/tri)
   double delxinv,delyinv,delzinv;      // inverse grid spacing
   double delx,dely,delz;               // grid spacing
-  int nargbase;                        // number of base class args 
+  int nargbase;                        // number of base class args
   double cutmax;                       // largest cutoff distance
   int size_local_cols_base;            // number of columns used for coords, etc.
   int gridlocal_allocated;             // shows if gridlocal allocated
@@ -57,13 +57,3 @@ class ComputeGridLocal : public Compute {
 }
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

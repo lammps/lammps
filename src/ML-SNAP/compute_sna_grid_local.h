@@ -29,14 +29,12 @@ class ComputeSNAGridLocal : public ComputeGridLocal {
   ComputeSNAGridLocal(class LAMMPS *, int, char **);
   ~ComputeSNAGridLocal() override;
   void init() override;
-  void init_list(int, class NeighList *) override;
   void compute_local() override;
   double memory_usage() override;
 
  private:
   int ncoeff;
   double **cutsq;
-  class NeighList *list;
   double rcutfac;
   double *radelem;
   double *wjelem;

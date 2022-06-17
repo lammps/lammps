@@ -15,17 +15,11 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "neighbor.h"
-#include "pair.h"
 #include "sna.h"
-#include "tokenizer.h"
 #include "update.h"
 
 #include <cmath>
@@ -33,12 +27,11 @@
 
 using namespace LAMMPS_NS;
 
+#define SNAPCOMPUTENAME "sna/grid"
+
 ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
     ComputeGrid(lmp, narg, arg), cutsq(nullptr), radelem(nullptr), wjelem(nullptr)
 {
-  double rfac0, rmin0;
-  int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
-
   // skip over arguments used by base class
   // so that argument positions are identical to
   // regular per-atom compute
@@ -46,10 +39,15 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
   arg += nargbase;
   narg -= nargbase;
 
+  // code common to all SNAP computes
+
+  double rfac0, rmin0;
+  int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
+
   int ntypes = atom->ntypes;
   int nargmin = 6 + 2 * ntypes;
 
-  if (narg < nargmin) error->all(FLERR, "Illegal compute sna/grid command");
+  if (narg < nargmin) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
 
   // default values
 
@@ -65,15 +63,19 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
 
   // process required arguments
 
-  memory->create(radelem, ntypes + 1, "sna/grid:radelem");    // offset by 1 to match up with types
+  memory->create(radelem, ntypes + 1, "sna/grid:radelem"); // offset by 1 to match up with types
   memory->create(wjelem, ntypes + 1, "sna/grid:wjelem");
 
-  rcutfac = atof(arg[3]);
-  rfac0 = atof(arg[4]);
-  twojmax = atoi(arg[5]);
+  rcutfac = utils::numeric(FLERR, arg[3], false, lmp);
+  rfac0 = utils::numeric(FLERR, arg[4], false, lmp);
+  twojmax = utils::inumeric(FLERR, arg[5], false, lmp);
 
-  for (int i = 0; i < ntypes; i++) radelem[i + 1] = atof(arg[6 + i]);
-  for (int i = 0; i < ntypes; i++) wjelem[i + 1] = atof(arg[6 + ntypes + i]);
+  for (int i = 0; i < ntypes; i++)
+    radelem[i + 1] =
+        utils::numeric(FLERR, arg[6 + i], false, lmp);
+  for (int i = 0; i < ntypes; i++)
+    wjelem[i + 1] =
+        utils::numeric(FLERR, arg[6 + ntypes + i], false, lmp);
 
   // construct cutsq
 
@@ -101,47 +103,47 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg], "rmin0") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute sna/grid command");
-      rmin0 = atof(arg[iarg + 1]);
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
+      rmin0 = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "switchflag") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute sna/grid command");
-      switchflag = atoi(arg[iarg + 1]);
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
+      switchflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "bzeroflag") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute sna/grid command");
-      bzeroflag = atoi(arg[iarg + 1]);
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
+      bzeroflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "quadraticflag") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute sna/grid command");
-      quadraticflag = atoi(arg[iarg + 1]);
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
+      quadraticflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "chem") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute sna/grid command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
       chemflag = 1;
       memory->create(map, ntypes + 1, "compute_sna_grid:map");
       nelements = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       for (int i = 0; i < ntypes; i++) {
         int jelem = utils::inumeric(FLERR, arg[iarg + 2 + i], false, lmp);
-        if (jelem < 0 || jelem >= nelements) error->all(FLERR, "Illegal compute sna/grid command");
+        if (jelem < 0 || jelem >= nelements) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
         map[i + 1] = jelem;
       }
       iarg += 2 + ntypes;
     } else if (strcmp(arg[iarg], "bnormflag") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute sna/grid command");
-      bnormflag = atoi(arg[iarg + 1]);
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
+      bnormflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "wselfallflag") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute sna/grid command");
-      wselfallflag = atoi(arg[iarg + 1]);
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
+      wselfallflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "switchinnerflag") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute sna/grid command");
-      switchinnerflag = atoi(arg[iarg + 1]);
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
+      switchinnerflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "sinner") == 0) {
       iarg++;
-      if (iarg + ntypes > narg) error->all(FLERR, "Illegal compute sna/grid command");
+      if (iarg + ntypes > narg) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
       memory->create(sinnerelem, ntypes + 1, "snap:sinnerelem");
       for (int i = 0; i < ntypes; i++)
         sinnerelem[i + 1] = utils::numeric(FLERR, arg[iarg + i], false, lmp);
@@ -149,25 +151,25 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
       iarg += ntypes;
     } else if (strcmp(arg[iarg], "dinner") == 0) {
       iarg++;
-      if (iarg + ntypes > narg) error->all(FLERR, "Illegal compute sna/grid command");
+      if (iarg + ntypes > narg) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
       memory->create(dinnerelem, ntypes + 1, "snap:dinnerelem");
       for (int i = 0; i < ntypes; i++)
         dinnerelem[i + 1] = utils::numeric(FLERR, arg[iarg + i], false, lmp);
       dinnerflag = 1;
       iarg += ntypes;
     } else
-      error->all(FLERR, "Illegal compute sna/grid command");
+      error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
   }
 
   if (switchinnerflag && !(sinnerflag && dinnerflag))
     error->all(
         FLERR,
-        "Illegal compute sna/grid command: switchinnerflag = 1, missing sinner/dinner keyword");
+        "Illegal compute ", SNAPCOMPUTENAME, " command: switchinnerflag = 1, missing sinner/dinner keyword");
 
   if (!switchinnerflag && (sinnerflag || dinnerflag))
     error->all(
         FLERR,
-        "Illegal compute sna/grid command: switchinnerflag = 0, unexpected sinner/dinner keyword");
+        "Illegal compute ", SNAPCOMPUTENAME, " command: switchinnerflag = 0, unexpected sinner/dinner keyword");
 
   snaptr = new SNA(lmp, rfac0, twojmax, rmin0, switchflag, bzeroflag, chemflag, bnormflag,
                    wselfallflag, nelements, switchinnerflag);
@@ -175,6 +177,9 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
   ncoeff = snaptr->ncoeff;
   nvalues = ncoeff;
   if (quadraticflag) nvalues += (ncoeff * (ncoeff + 1)) / 2;
+
+  // end code common to all SNAP computes
+
   size_array_cols = size_array_cols_base + nvalues;
   array_flag = 1;
 }
@@ -195,18 +200,9 @@ ComputeSNAGrid::~ComputeSNAGrid()
 
 void ComputeSNAGrid::init()
 {
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style, "sna/grid") == 0) count++;
-  if (count > 1 && comm->me == 0) error->warning(FLERR, "More than one compute sna/grid");
+  if ((modify->get_compute_by_style("sna/grid").size() > 1) && (comm->me == 0))
+    error->warning(FLERR, "More than one instance of compute sna/grid");
   snaptr->init();
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputeSNAGrid::init_list(int /*id*/, NeighList *ptr)
-{
-  list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */

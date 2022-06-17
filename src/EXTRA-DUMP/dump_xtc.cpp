@@ -433,10 +433,10 @@ int xdropen(XDR *xdrs, const char *filename, const char *type)
     return 0;
   }
   if (*type == 'w' || *type == 'W') {
-    type = (char *) "w+";
+    type = (char *) "wb+";
     lmode = XDR_ENCODE;
   } else {
-    type = (char *) "r";
+    type = (char *) "rb";
     lmode = XDR_DECODE;
   }
   xdrfiles[xdrid] = fopen(filename, type);

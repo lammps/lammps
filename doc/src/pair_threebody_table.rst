@@ -27,10 +27,10 @@ Examples
 
 Used in example input scripts:
 
-  .. parsed-literal::
+.. parsed-literal::
 
-     examples/PACKAGES/manybody_table/in.spce
-     examples/PACKAGES/manybody_table/in.spce2
+   examples/PACKAGES/manybody_table/in.spce
+   examples/PACKAGES/manybody_table/in.spce2
 
 Description
 """""""""""

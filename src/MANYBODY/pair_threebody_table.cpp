@@ -450,7 +450,7 @@ void PairThreebodyTable::read_table(Table *tb, char *file, char *keyword, bool s
   param_extract(tb, line);
 
   // if it is a symmetric threebody interaction, less table entries are required
-  if (symmetric == true) {
+  if (symmetric) {
     memory->create(tb->r12file, tb->ninput * tb->ninput * (tb->ninput + 1), "mltable:r12file");
     memory->create(tb->r13file, tb->ninput * tb->ninput * (tb->ninput + 1), "mltable:r13file");
     memory->create(tb->thetafile, tb->ninput * tb->ninput * (tb->ninput + 1), "mltable:thetafile");
@@ -481,7 +481,7 @@ void PairThreebodyTable::read_table(Table *tb, char *file, char *keyword, bool s
   int cerror = 0;
   reader.skip_line();
   // if it is a symmetric threebody interaction, less table entries are required
-  if (symmetric == true) {
+  if (symmetric) {
     for (int i = 0; i < tb->ninput * tb->ninput * (tb->ninput + 1); i++) {
       line = reader.next_line(11);
       try {
@@ -583,7 +583,7 @@ void PairThreebodyTable::bcast_table(Table *tb, bool symmetric)
   MPI_Comm_rank(world, &me);
   if (me > 0) {
     // if it is a symmetric threebody interaction, less table entries are required
-    if (symmetric == true) {
+    if (symmetric) {
       memory->create(tb->r12file, tb->ninput * tb->ninput * (tb->ninput + 1), "mltable:r12file");
       memory->create(tb->r13file, tb->ninput * tb->ninput * (tb->ninput + 1), "mltable:r13file");
       memory->create(tb->thetafile, tb->ninput * tb->ninput * (tb->ninput + 1),
@@ -612,7 +612,7 @@ void PairThreebodyTable::bcast_table(Table *tb, bool symmetric)
   }
 
   // if it is a symmetric threebody interaction, less table entries are required
-  if (symmetric == true) {
+  if (symmetric) {
     MPI_Bcast(tb->r12file, tb->ninput * tb->ninput * (tb->ninput + 1), MPI_DOUBLE, 0, world);
     MPI_Bcast(tb->r13file, tb->ninput * tb->ninput * (tb->ninput + 1), MPI_DOUBLE, 0, world);
     MPI_Bcast(tb->thetafile, tb->ninput * tb->ninput * (tb->ninput + 1), MPI_DOUBLE, 0, world);
@@ -697,7 +697,7 @@ void PairThreebodyTable::uf_lookup(Param *pm, double r12, double r13, double the
   //lookup scheme
 
   // if it is a symmetric threebody interaction, less table entries are required
-  if (pm->symmetric == true) {
+  if (pm->symmetric) {
     nr12 = (r12 - pm->mltable->rmin + 0.5 * dr - 0.00000001) / dr;
     if (r12 == (pm->mltable->rmin - 0.5 * dr)) { nr12 = 0; }
     nr13 = (r13 - pm->mltable->rmin + 0.5 * dr - 0.00000001) / dr;
@@ -778,7 +778,7 @@ void PairThreebodyTable::threebody(Param *paramijk, double rsq1, double rsq2, do
   }
 
   // if the indices have been swapped, swap them back
-  if (swapped == true) {
+  if (swapped) {
     temp = r12;
     r12 = r13;
     r13 = temp;

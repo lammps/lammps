@@ -81,7 +81,7 @@ mv dump.snapshot.driver dump.snapshot.driver.tcp.1
 mpirun -np 3 lmp_mpi -mdi "-name LMP1 -role DRIVER -method TCP -port 8021" -log log.snapshot.driver.tcp.3 -in in.snapshot.driver &
 
 mpirun -np 4 lmp_mpi -mdi "-name LMP2 -role ENGINE -method TCP -port 8021 -hostname localhost" -log log.snapshot.engine.tcp.4 -in in.snapshot.engine
-mv dump.snapshot.driver dump.snapshot.driver.tcp.3
+mv dump.snapshot.driver dump.snapshot.driver.tcp.4
 
 # ---
 
@@ -95,7 +95,7 @@ mv dump.snapshot.driver dump.snapshot.driver.mpi.1
 # Run with MPI: 3 procs + 4 procs
 
 mpirun -np 3 lmp_mpi -mdi "-name LMP1 -role DRIVER -method MPI" -log log.snapshot.driver.mpi.3 -in in.snapshot.driver : -np 4 lmp_mpi -mdi "-name LMP2 -role ENGINE -method MPI" -log log.snapshot.engine.mpi.3 -in in.snapshot.engine
-mv dump.snapshot.driver dump.snapshot.driver.mpi.3
+mv dump.snapshot.driver dump.snapshot.driver.mpi.4
 
 # ---
 
@@ -141,7 +141,7 @@ mv dump.series.driver dump.series.driver.tcp.1
 mpirun -np 3 lmp_mpi -mdi "-name LMP1 -role DRIVER -method TCP -port 8021" -log log.series.driver.tcp.3 -in in.series.driver &
 
 mpirun -np 4 lmp_mpi -mdi "-name LMP2 -role ENGINE -method TCP -port 8021 -hostname localhost" -log log.series.engine.tcp.4 -in in.series.engine
-mv dump.series.driver dump.series.driver.tcp.3
+mv dump.series.driver dump.series.driver.tcp.4
 
 # ---
 
@@ -155,7 +155,7 @@ mv dump.series.driver dump.series.driver.mpi.1
 # Run with MPI: 3 procs + 4 procs
 
 mpirun -np 3 lmp_mpi -mdi "-name LMP1 -role DRIVER -method MPI" -log log.series.driver.mpi.3 -in in.series.driver : -np 4 lmp_mpi -mdi "-name LMP2 -role ENGINE -method MPI" -log log.series.engine.mpi.4 -in in.series.engine
-mv dump.series.driver dump.series.driver.mpi.3
+mv dump.series.driver dump.series.driver.mpi.4
 
 # ---
 

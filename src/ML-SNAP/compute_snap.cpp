@@ -32,8 +32,6 @@ using namespace LAMMPS_NS;
 
 enum{SCALAR,VECTOR,ARRAY};
 
-#define SNAPCOMPUTENAME "snap"
-
 ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), snap(nullptr),
   snapall(nullptr), snap_peratom(nullptr), radelem(nullptr), wjelem(nullptr),
@@ -51,7 +49,7 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   int ntypes = atom->ntypes;
   int nargmin = 6 + 2 * ntypes;
 
-  if (narg < nargmin) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
+  if (narg < nargmin) error->all(FLERR, "Illegal compute {} command", style);
 
   // default values
 
@@ -107,47 +105,47 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg], "rmin0") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
       rmin0 = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "switchflag") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
       switchflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "bzeroflag") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
       bzeroflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "quadraticflag") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
       quadraticflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "chem") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
       chemflag = 1;
       memory->create(map, ntypes + 1, "compute_sna_grid:map");
       nelements = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       for (int i = 0; i < ntypes; i++) {
         int jelem = utils::inumeric(FLERR, arg[iarg + 2 + i], false, lmp);
-        if (jelem < 0 || jelem >= nelements) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
+        if (jelem < 0 || jelem >= nelements) error->all(FLERR, "Illegal compute {} command", style);
         map[i + 1] = jelem;
       }
       iarg += 2 + ntypes;
     } else if (strcmp(arg[iarg], "bnormflag") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
       bnormflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "wselfallflag") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
       wselfallflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "switchinnerflag") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
       switchinnerflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "sinner") == 0) {
       iarg++;
-      if (iarg + ntypes > narg) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
+      if (iarg + ntypes > narg) error->all(FLERR, "Illegal compute {} command", style);
       memory->create(sinnerelem, ntypes + 1, "snap:sinnerelem");
       for (int i = 0; i < ntypes; i++)
         sinnerelem[i + 1] = utils::numeric(FLERR, arg[iarg + i], false, lmp);
@@ -155,25 +153,25 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
       iarg += ntypes;
     } else if (strcmp(arg[iarg], "dinner") == 0) {
       iarg++;
-      if (iarg + ntypes > narg) error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
+      if (iarg + ntypes > narg) error->all(FLERR, "Illegal compute {} command", style);
       memory->create(dinnerelem, ntypes + 1, "snap:dinnerelem");
       for (int i = 0; i < ntypes; i++)
         dinnerelem[i + 1] = utils::numeric(FLERR, arg[iarg + i], false, lmp);
       dinnerflag = 1;
       iarg += ntypes;
     } else
-      error->all(FLERR, "Illegal compute ", SNAPCOMPUTENAME, " command");
+      error->all(FLERR, "Illegal compute {} command", style);
   }
 
   if (switchinnerflag && !(sinnerflag && dinnerflag))
     error->all(
         FLERR,
-        "Illegal compute ", SNAPCOMPUTENAME, " command: switchinnerflag = 1, missing sinner/dinner keyword");
+        "Illegal compute {} command:, style switchinnerflag = 1, missing sinner/dinner keyword");
 
   if (!switchinnerflag && (sinnerflag || dinnerflag))
     error->all(
         FLERR,
-        "Illegal compute ", SNAPCOMPUTENAME, " command: switchinnerflag = 0, unexpected sinner/dinner keyword");
+        "Illegal compute {} command:, style switchinnerflag = 0, unexpected sinner/dinner keyword");
 
   snaptr = new SNA(lmp, rfac0, twojmax, rmin0, switchflag, bzeroflag, chemflag, bnormflag,
                    wselfallflag, nelements, switchinnerflag);

@@ -84,6 +84,10 @@ if args.noinstall:
 
 # install the wheel with pip. first try to install in the default environment.
 # that will be a virtual environment, if active, or the system folder.
+# if in a virtual environment, we must not use the python executable
+# that is running this script (configured by cmake), but use "python"
+# from the regular system path. The user may have changed to the virtual
+# environment *after* running cmake.
 # recent versions of pip will automatically drop to use the user folder
 # in case the system folder is not writable.
 
@@ -93,10 +97,16 @@ if args.noinstall:
 # must be uninstalled manually. We must not ignore this and drop
 # back to install into a (forced) user folder.
 
-print("Installing wheel")
+if "VIRTUAL_ENV" in os.environ:
+  print("Installing wheel into virtual environment")
+  py_exe = 'python'
+else:
+  print("Installing wheel into system site-packages folder")
+  py_exe = sys.executable
+
 for wheel in glob.glob('lammps-*.whl'):
   try:
-    txt = subprocess.check_output([sys.executable, '-m', 'pip', 'install', '--force-reinstall', wheel], stderr=subprocess.STDOUT, shell=False)
+    txt = subprocess.check_output([py_exe, '-m', 'pip', 'install', '--force-reinstall', wheel], stderr=subprocess.STDOUT, shell=False)
     print(txt.decode('UTF-8'))
     continue
   except subprocess.CalledProcessError as err:
@@ -104,7 +114,7 @@ for wheel in glob.glob('lammps-*.whl'):
     if errmsg.find("distutils installed"):
       sys.exit(errmsg + "You need to uninstall the LAMMPS python module manually first.\n")
   try:
-    print('Installing wheel into standard site-packages folder failed. Trying user folder now')
+    print('Installing wheel into system site-packages folder failed. Trying user folder now')
     txt = subprocess.check_output([sys.executable, '-m', 'pip', 'install', '--user', '--force-reinstall', wheel], stderr=subprocess.STDOUT, shell=False)
     print(txt.decode('UTF-8'))
   except:

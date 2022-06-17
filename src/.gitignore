@@ -179,6 +179,10 @@
 /compute_snad_atom.h
 /compute_snav_atom.cpp
 /compute_snav_atom.h
+/compute_sna_grid.cpp
+/compute_sna_grid.h
+/compute_sna_grid_local.cpp
+/compute_sna_grid_local.h
 /compute_snap.cpp
 /compute_snap.h
 /openmp_snap.h

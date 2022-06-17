@@ -317,7 +317,11 @@ void SNAKokkos<DeviceType, real_type, vector_length>::grow_rij(int newnatom, int
     MemKK::realloc_kokkos(ulisttot_full,"sna:ulisttot",1,1,1);
     MemKK::realloc_kokkos(ulisttot_re_pack,"sna:ulisttot_re_pack",vector_length,idxu_half_max,nelements,natom_div);
     MemKK::realloc_kokkos(ulisttot_im_pack,"sna:ulisttot_im_pack",vector_length,idxu_half_max,nelements,natom_div);
-    MemKK::realloc_kokkos(ulisttot_pack,"sna:ulisttot_pack",vector_length,idxu_max,nelements,natom_div);
+    if (use_scatter) {
+      MemKK::realloc_kokkos(ulisttot_pack_scatter,"sna:ulisttot_pack_scatter",vector_length,4,idxu_max,nelements,natom_div);
+    } else {
+      MemKK::realloc_kokkos(ulisttot_pack,"sna:ulisttot_pack",vector_length,idxu_max,nelements,natom_div);
+    }
     MemKK::realloc_kokkos(ulist,"sna:ulist",1,1,1);
     MemKK::realloc_kokkos(zlist,"sna:zlist",1,1,1);
     MemKK::realloc_kokkos(zlist_pack,"sna:zlist_pack",vector_length,idxz_max,ndoubles,natom_div);
@@ -339,6 +343,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::grow_rij(int newnatom, int
     MemKK::realloc_kokkos(ulisttot_re_pack,"sna:ulisttot_re",1,1,1,1);
     MemKK::realloc_kokkos(ulisttot_im_pack,"sna:ulisttot_im",1,1,1,1);
     MemKK::realloc_kokkos(ulisttot_pack,"sna:ulisttot_pack",1,1,1,1);
+    MemKK::realloc_kokkos(ulisttot_pack_scatter,"sna:ulisttot_pack_scatter",1,1,1,1);
     MemKK::realloc_kokkos(ulist,"sna:ulist",idxu_cache_max,natom,nmax);
     MemKK::realloc_kokkos(zlist,"sna:zlist",idxz_max,ndoubles,natom);
     MemKK::realloc_kokkos(zlist_pack,"sna:zlist_pack",1,1,1,1);
@@ -727,7 +732,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_bi(const int& iato
             const int jju_index = jju+mb*(j+1)+ma;
             const int jjz_index = jjz+mb*(j+1)+ma;
             if (2*mb == j) return; // I think we can remove this?
-            const complex utot = ulisttot_pack(iatom_mod, jju_index, elem3, iatom_div);
+            const complex utot = scatter_load(iatom_mod, jju_index, elem3, iatom_div);
             const complex zloc = zlist_pack(iatom_mod, jjz_index, idouble, iatom_div);
             sumzu_temp += utot.re * zloc.re + utot.im * zloc.im;
           }
@@ -743,7 +748,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_bi(const int& iato
             const int jju_index = jju+(mb-1)*(j+1)+(j+1)+ma;
             const int jjz_index = jjz+(mb-1)*(j+1)+(j+1)+ma;
 
-            const complex utot = ulisttot_pack(iatom_mod, jju_index, elem3, iatom_div);
+            const complex utot = scatter_load(iatom_mod, jju_index, elem3, iatom_div);
             const complex zloc = zlist_pack(iatom_mod, jjz_index, idouble, iatom_div);
             sumzu_temp += utot.re * zloc.re + utot.im * zloc.im;
 
@@ -754,7 +759,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_bi(const int& iato
           const int jju_index = jju+(mb-1)*(j+1)+(j+1)+ma;
           const int jjz_index = jjz+(mb-1)*(j+1)+(j+1)+ma;
 
-          const complex utot = ulisttot_pack(iatom_mod, jju_index, elem3, iatom_div);
+          const complex utot = scatter_load(iatom_mod, jju_index, elem3, iatom_div);
           const complex zloc = zlist_pack(iatom_mod, jjz_index, idouble, iatom_div);
           sumzu += static_cast<real_type>(0.5) * (utot.re * zloc.re + utot.im * zloc.im);
         } // end if jeven
@@ -892,8 +897,8 @@ typename SNAKokkos<DeviceType, real_type, vector_length>::complex SNAKokkos<Devi
     #pragma unroll
     #endif
     for (int ia = 0; ia < na; ia++) {
-      const complex utot1 = ulisttot_pack(iatom_mod, jju1+ma1, elem1, iatom_div);
-      const complex utot2 = ulisttot_pack(iatom_mod, jju2+ma2, elem2, iatom_div);
+      const complex utot1 = scatter_load(iatom_mod, jju1+ma1, elem1, iatom_div);
+      const complex utot2 = scatter_load(iatom_mod, jju2+ma2, elem2, iatom_div);
       const real_type cgcoeff_a = cgblock[icga];
       const real_type cgcoeff_b = cgblock[icgb];
       ztmp.re += cgcoeff_a * cgcoeff_b * (utot1.re * utot2.re - utot1.im * utot2.im);
@@ -2375,6 +2380,7 @@ double SNAKokkos<DeviceType, real_type, vector_length>::memory_usage()
     bytes += MemKK::memory_usage(ulisttot_re_pack);
     bytes += MemKK::memory_usage(ulisttot_im_pack);
     bytes += MemKK::memory_usage(ulisttot_pack);
+    bytes += MemKK::memory_usage(ulisttot_pack_scatter);
 
     bytes += MemKK::memory_usage(zlist_pack);
     bytes += MemKK::memory_usage(blist_pack);

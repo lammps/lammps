@@ -61,6 +61,17 @@ struct alignas(8) FullHalfMapper {
   int flip_sign; // 0 -> isn't flipped, 1 -> conj, -1 -> -conj
 };
 
+union scatter_mapper {
+public:
+  KOKKOS_INLINE_FUNCTION
+  scatter_mapper() : c(0., 0.) {}
+  SNAComplex<double> c;
+  unsigned x;
+  unsigned y;
+  unsigned z;
+  unsigned w;
+};
+
 template<class DeviceType, typename real_type_, int vector_length_>
 class SNAKokkos {
 
@@ -94,6 +105,7 @@ class SNAKokkos {
   typedef Kokkos::View<complex***[3], DeviceType> t_sna_4c;
   typedef Kokkos::View<complex***[3], Kokkos::LayoutLeft, DeviceType> t_sna_4c3_ll;
   typedef Kokkos::View<complex****, Kokkos::LayoutLeft, DeviceType> t_sna_4c_ll;
+  typedef Kokkos::View<unsigned*****, Kokkos::LayoutLeft, DeviceType> t_sna_5u_ll;
   typedef Kokkos::View<complex**[3], DeviceType> t_sna_3c3;
   typedef Kokkos::View<complex*****, DeviceType> t_sna_5c;
 
@@ -119,6 +131,38 @@ class SNAKokkos {
 
   int ncoeff;
   int host_flag;
+
+  // mapper for scatter loads
+  KOKKOS_INLINE_FUNCTION
+  complex scatter_load(const int& i0, const int& i1, const int& i2, const int& i3) {
+    if (use_scatter) {
+      static_assert(std::is_same<real_type, double>::value, "Undefined for floats");
+      scatter_mapper s;
+      s.x = ulisttot_pack_scatter(i0, 0, i1, i2, i3);
+      s.y = ulisttot_pack_scatter(i0, 1, i1, i2, i3);
+      s.z = ulisttot_pack_scatter(i0, 2, i1, i2, i3);
+      s.w = ulisttot_pack_scatter(i0, 3, i1, i2, i3);
+      return s.c;
+    } else {
+      return ulisttot_pack(i0, i1, i2, i3);
+    }
+  }
+
+  // mapper for scatter stores
+  KOKKOS_INLINE_FUNCTION
+  void scatter_store(const complex& out, const int& i0, const int& i1, const int& i2, const int& i3) {
+    if (use_scatter) {
+      static_assert(std::is_same<real_type, double>::value, "Undefined for floats");
+      scatter_mapper s;
+      s.c = out;
+      ulisttot_pack_scatter(i0, 0, i1, i2, i3) = s.x;
+      ulisttot_pack_scatter(i0, 1, i1, i2, i3) = s.y;
+      ulisttot_pack_scatter(i0, 2, i1, i2, i3) = s.z;
+      ulisttot_pack_scatter(i0, 3, i1, i2, i3) = s.w;
+    } else {
+      ulisttot_pack(i0, i1, i2, i3) = out;
+    }
+  }
 
   // functions for bispectrum coefficients, GPU only
   KOKKOS_INLINE_FUNCTION
@@ -245,7 +289,13 @@ class SNAKokkos {
 
   t_sna_4d_ll ulisttot_re_pack; // split real,
   t_sna_4d_ll ulisttot_im_pack; // imag, AoSoA, flattened
+  #ifdef KOKKOS_ENABLE_HIP
+  static constexpr bool use_scatter = true;
+  #else
+  static constexpr bool use_scatter = false;
+  #endif
   t_sna_4c_ll ulisttot_pack; // AoSoA layout
+  t_sna_5u_ll ulisttot_pack_scatter; // AoSoA_scatter layout
   t_sna_4c_ll zlist_pack; // AoSoA layout
   t_sna_4d_ll blist_pack;
   t_sna_4d_ll ylist_pack_re; // split real,
@@ -345,4 +395,3 @@ class SNAKokkos {
 
 #include "sna_kokkos_impl.h"
 #endif
-

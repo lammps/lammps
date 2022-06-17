@@ -5,9 +5,9 @@ Client/server coupling of two (or more) codes is where one code is the
 "client" and sends request messages (data) to one (or more) "server"
 code(s).  A server responds to each request with a reply message
 (data).  This enables two (or more) codes to work in tandem to perform
-a simulation.  LAMMPS can act as either a client or server code; it
-does this by using the `MolSSI Driver Interface (MDI) library
-<https://molssi-mdi.github.io/MDI_Library/html/index.html>`_,
+a simulation.  In this context, LAMMPS can act as either a client or
+server code.  It does this by using the `MolSSI Driver Interface (MDI)
+library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_,
 developed by the `Molecular Sciences Software Institute (MolSSI)
 <https://molssi.org>`_, which is supported by the :ref:`MDI <PKG-MDI>`
 package.
@@ -80,11 +80,22 @@ scripts for all of these use cases.
 
 The examples/mdi directory contains Python scripts and LAMMPS input
 script which use LAMMPS as either an MDI driver or engine or both.
-Three example use cases are provided:
+Currently, 5 example use cases are provided:
 
-* Run ab initio MD (AIMD) using 2 instances of LAMMPS, one as driver
-  and one as an engine.  As an engine, LAMMPS is a surrogate for a
-  quantum code.
+* Run ab initio MD (AIMD) using 2 instances of LAMMPS.  As a driver
+  LAMMPS performs the timestepping in either NVE or NPT mode.  As an
+  engine, LAMMPS computes forces and is a surrogate for a quantum
+  code.
+
+* As a driver, LAMMPS runs an MD simulation.  Every N steps it passes
+  the current snapshot to an MDI engine to evaluate the energy,
+  virial, and peratom forces.  As the engine LAMMPS is a surrogate for
+  a quantum code.
+
+* As a driver, LAMMPS loops over a series of data files and passes the
+  configuration to an MDI engine to evaluate the energy, virial, and
+  peratom forces.  As the engine LAMMPS is a surrogate for a quantum
+  code.
 
 * A Python script driver invokes a sequence of unrelated LAMMPS
   calculations.  Calculations can be single-point energy/force
@@ -97,20 +108,22 @@ Three example use cases are provided:
 
 Note that in any of these example where LAMMPS is used as an engine,
 an actual QM code (which supports MDI) could be used in its place,
-without modifying other code or scripts, except to specify the name of
-the QM code.
+without modifying the input scripts or launch commands, except to
+specify the name of the QM code.
 
-The examples/mdi/README file explains how to launch both driver and
+The examples/mdi/Run.sh file illustrates how to launch both driver and
 engine codes so that they communicate using the MDI library via either
-MPI or sockets.
+MPI or sockets.  Or using the engine as a stand-alone code or plugin
+library.
 
 -------------
 
-Currently there are two quantum DFT codes which have direct MDI
-support, `Quantum ESPRESSO (QE) <https://www.quantum-espresso.org/>`_
-and `INQ <https://qsg.llnl.gov/node/101.html>`_.  There are also
-several QM codes which have indirect support through QCEngine or i-PI.
-The former means they require a wrapper program (QCEngine) with MDI
+Currently there are at least two quantum DFT codes which have direct
+MDI support, `Quantum ESPRESSO (QE)
+<https://www.quantum-espresso.org/>`_ and `INQ
+<https://qsg.llnl.gov/node/101.html>`_.  There are also several QM
+codes which have indirect support through QCEngine or i-PI.  The
+former means they require a wrapper program (QCEngine) with MDI
 support which writes/read files to pass data to the quantum code
 itself.  The list of QCEngine-supported and i-PI-supported quantum
 codes is on the `MDI webpage

@@ -8,9 +8,9 @@ Syntax
 
 .. parsed-literal::
 
-   mdi mode args
+   mdi option args
 
-* mode = *engine* or *plugin*
+* option = *engine* or *plugin* or *connect* or *exit*
 
   .. parsed-literal::
 
@@ -22,7 +22,8 @@ Syntax
          *infile* value = filename the engine will read at start-up
          *extra* value = aditional command-line args to pass to engine library when loaded
          *command* value = a LAMMPS input script command to execute
-
+     *connect* args = none
+     *exit* args = none
 
 Examples
 """"""""
@@ -33,23 +34,15 @@ Examples
    mdi plugin lammps mdi "-role ENGINE -name lammps -method LINK" &
               infile in.aimd.engine extra "-log log.aimd.engine.plugin" &
               command "run 5"
+   mdi connect
+   mdi exit
 
 Description
 """""""""""
 
-This command implements two high-level operations within LAMMPS to use
-the `MDI Library
-<https://molssi-mdi.github.io/MDI_Library/html/index.html>` for
-coupling to other codes in a client/server protocol.
-
-The *engine* mode enables LAMMPS to act as an MDI engine (server),
-responding to requests from an MDI driver (client) code.
-
-The *plugin* mode enables LAMMPS to act as an MDI driver (client), and
-load the MDI engine (server) code as a library plugin.  In this case
-the MDI engine is a library plugin.  It can also be a stand-alone
-code, launched separately from LAMMPS, in which case the mdi plugin
-command is not used.
+This command implements operations within LAMMPS to use the `MDI
+Library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`
+for coupling to other codes in a client/server protocol.
 
 See the Howto MDI doc page for a discussion of all the different ways
 2 or more codes can interact via MDI.
@@ -60,6 +53,22 @@ code or as a plugin, and as an engine operating as either a
 stand-alone code or as a plugin.  The README file in that directory
 shows how to launch and couple codes for all the 4 usage modes, and so
 they communicate via the MDI library using either MPI or sockets.
+
+The scripts in that directory illustrate the use of all the options
+for this command.
+
+The *engine* option enables LAMMPS to act as an MDI engine (server),
+responding to requests from an MDI driver (client) code.
+
+The *plugin* option enables LAMMPS to act as an MDI driver (client),
+and load the MDI engine (server) code as a library plugin.  In this
+case the MDI engine is a library plugin.  An MDI engine can also be a
+stand-alone code, launched separately from LAMMPS, in which case the
+mdi plugin command is not used.
+
+The *connect* and *exit* options are only used when LAMMPS is acting
+as an MDI driver.  As explained below, these options are normally not
+needed, except for a specific kind of use case.
 
 ----------
 
@@ -121,7 +130,7 @@ commands, which are described further below.
    * - <PE
      - Request potential energy of the system (1 value)
    * - <STRESS
-     - Request stress tensor (virial) of the system (6 values)
+     - Request symmetric stress tensor (virial) of the system (9 values)
    * - >TOLERANCE
      - Send 4 tolerance parameters for next MD minimization via OPTG command
    * - >TYPES or <TYPES
@@ -283,6 +292,31 @@ could specify a filename with multiple LAMMPS commands.
    (if any) in the LAMMPS input script will be processed.  A subsequent
    "mdi plugin" command could then load the same library plugin or
    a different one if desired.
+
+----------
+
+The *mdi connect* and *mdi exit* commands are only used when LAMMPS is
+operating as an MDI driver.  And when other LAMMPS command(s) which
+send MDI commands and associated data to/from the MDI engine are not
+able to initiate and terminate the connection to the engine code.
+
+The only current MDI driver command in LAMMPS is the :doc:`fix mdi/qm
+<fix_mdi_qm>` command.  If it is only used once in an input script
+then it can initiate and terminate the connection.  But if it is being
+issuedd multiple times, e.g. in a loop that issues a :doc:`clear
+<clear>` command, then it cannot initiate/terminate the connection
+multiple times.  Instead, the *mdi connect* and *mdi exit* commands
+should be used outside the loop to intiate/terminate the connection.
+
+See the examples/mdi/in.series.driver script for an example of how
+this is done.  The LOOP in that script is reading a series of data
+file configurations and passing them to an MDI engine (e.g. quantum
+code) for enery and force evaluation.  A *clear* command inside the
+loop wipes out the current system so a new one can be defined.  This
+operation also destroys all fixes.  So the :doc:`fix mdi/qm
+<fix_mdi_qm>` command is issued once per loop iteration.  Note that it
+includes a "connect no" option which disables the initiate/terminate
+logic within that fix.
 
 
 Restrictions

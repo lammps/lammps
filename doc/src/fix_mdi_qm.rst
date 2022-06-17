@@ -13,7 +13,7 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * mdi/qm = style name of this fix command
 * zero or more keyword/value pairs may be appended
-* keyword = *virial* or *add* or *every*
+* keyword = *virial* or *add* or *every* or *connect*
 
   .. parsed-literal::
 
@@ -25,6 +25,9 @@ Syntax
          no = do not add returned values to LAMMPS quantities
        *every* args = Nevery
          Nevery = request values from server code once every Nevery steps
+       *connect* args = *yes* or *no*
+         yes = perform a one-time connection to the MDI engine code
+         no = do not perform the connection operation
 
 Examples
 """"""""
@@ -66,7 +69,7 @@ information about how LAMMPS can operate as either an MDI driver or
 engine.
 
 The examples/mdi directory contains input scripts using this fix in
-the various use cases listed above.  In each case, two instances of
+the various use cases dicussed below.  In each case, two instances of
 LAMMPS are used, once as an MDI driver, once as an MDI engine
 (surrogate for a QM code).  The examples/mdi/README file explains how
 to launch two codes so that they communicate via the MDI library using
@@ -104,9 +107,21 @@ during a dynamics run with the current LAMMPS simulation box and
 configuration of atoms.  The QM code will be called once every
 *Nevery* timesteps.
 
+The *connect* keyword determines whether this fix performs a one-time
+connection to the QM code.  The default is *yes*.  The only time a
+*no* is needed is if this command is used multiple times in an input
+script.  E.g. if it used inside a loop which also uses the :doc:`clear
+<clear>` command to destroy the system (including any defined fixes).
+See the examples/mdi/in.series.driver script as an example of this,
+where LAMMPS is using the QM code to compute energy and forces for a
+series of system configurations.  In this use case *connect no*
+is used along with the :doc:`mdi connect and exit <mdi>` command
+to one-time initiate/terminate the connection outside the loop.
+
 ----------
 
-3 example use cases:
+The following 3 example use cases are illustrated in the examples/mdi
+directory.  See its README file for more details.
 
 (1) To run an ab initio MD (AIMD) dynamics simulation, or an energy
 minimization with QM forces, or a multi-replica NEB calculation, use
@@ -243,4 +258,4 @@ Default
 """""""
 
 The default for the optional keywords are virial = no, add = yes,
-every = 1.
+every = 1, connect = yes.

@@ -34,10 +34,12 @@ class FixShake : public Fix {
   int setmask() override;
   void init() override;
   void setup(int) override;
+  void setup_pre_reverse(int, int) override;
   void min_setup(int) override;
   void pre_neighbor() override;
   void post_force(int) override;
   void post_force_respa(int, int, int) override;
+  void min_pre_reverse(int, int) override;
   void min_post_force(int) override;
   void post_run() override;
 
@@ -64,6 +66,7 @@ class FixShake : public Fix {
 
  protected:
   int vflag_post_force;    // store the vflag of last post_force call
+  int eflag_pre_reverse;   // store the eflag of last pre_reverse call
   int respa;               // 0 = vel. Verlet, 1 = respa
   int rattle;              // 0 = SHAKE, 1 = RATTLE
   double tolerance;        // SHAKE tolerance

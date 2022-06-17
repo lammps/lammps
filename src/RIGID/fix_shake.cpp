@@ -67,6 +67,11 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   centroidstressflag = CENTROID_AVAIL;
   next_output = -1;
 
+  // to avoid uninitialized access
+  vflag_post_force = 0;
+  eflag_pre_reverse = 0;
+  ebond = 0.0;
+
   // error check
 
   molecular = atom->molecular;
@@ -324,6 +329,7 @@ int FixShake::setmask()
   mask |= PRE_NEIGHBOR;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
+  mask |= MIN_PRE_REVERSE;
   mask |= MIN_POST_FORCE;
   mask |= POST_RUN;
   return mask;
@@ -505,6 +511,13 @@ void FixShake::min_setup(int vflag)
   min_post_force(vflag);
 }
 
+/* --------------------------------------------------------------------- */
+
+void FixShake::setup_pre_reverse(int eflag, int vflag)
+{
+  min_pre_reverse(eflag,vflag);
+}
+
 /* ----------------------------------------------------------------------
    build list of SHAKE clusters to constrain
    if one or more atoms in cluster are on this proc,
@@ -513,6 +526,7 @@ void FixShake::min_setup(int vflag)
 
 void FixShake::pre_neighbor()
 {
+  ebond = 0.0;
   int atom1,atom2,atom3,atom4;
 
   // local copies of atom quantities
@@ -654,6 +668,15 @@ void FixShake::post_force_respa(int vflag, int ilevel, int iloop)
 }
 
 /* ----------------------------------------------------------------------
+   store eflag so it can be used in min_post_force
+------------------------------------------------------------------------- */
+
+void FixShake::min_pre_reverse(int eflag, int /*vflag*/)
+{
+  eflag_pre_reverse = eflag;
+}
+
+/* ----------------------------------------------------------------------
    substitute shake constraints with very strong bonds
 ------------------------------------------------------------------------- */
 
@@ -667,6 +690,9 @@ void FixShake::min_post_force(int vflag)
     if (ntimestep % output_every != 0)
       next_output = (ntimestep/output_every)*output_every + output_every;
   } else next_output = -1;
+
+  int eflag = eflag_pre_reverse;
+  ev_init(eflag, vflag);
 
   x = atom->x;
   f = atom->f;
@@ -2522,18 +2548,33 @@ void FixShake::bond_force(tagint id1, tagint id2, double length)
   const double dr = r - length;
   const double rk = kbond * dr;
   const double fbond = (r > 0.0) ? -2.0 * rk / r : 0.0;
+  const double eb = rk*dr;
+  int list[2];
+  int nlist = 0;
 
   if (i1 < nlocal) {
     f[i1][0] += delx * fbond;
     f[i1][1] += dely * fbond;
     f[i1][2] += delz * fbond;
-    ebond += 0.5*rk*dr;
+    list[nlist++] = i1;
+    ebond += 0.5*eb;
   }
   if (i2 < nlocal) {
     f[i2][0] -= delx * fbond;
     f[i2][1] -= dely * fbond;
     f[i2][2] -= delz * fbond;
-    ebond += 0.5*rk*dr;
+    list[nlist++] = i2;
+    ebond += 0.5*eb;
+  }
+  if (evflag) {
+    double v[6];
+    v[0] = 0.5 * delx * delx * fbond;
+    v[1] = 0.5 * dely * dely * fbond;
+    v[2] = 0.5 * delz * delz * fbond;
+    v[3] = 0.5 * delx * dely * fbond;
+    v[4] = 0.5 * delx * delz * fbond;
+    v[5] = 0.5 * dely * delz * fbond;
+    ev_tally(nlist, list, 2.0, eb, v);
   }
 }
 

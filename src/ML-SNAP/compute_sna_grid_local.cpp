@@ -254,7 +254,6 @@ void ComputeSNAGridLocal::compute_local()
         int ielem = 0;
         if (chemflag)
           ielem = map[itype];
-        const double radi = radelem[itype];
 
         // rij[][3] = displacements between atom I and those neighbors
         // inside = indices of neighbors of I within cutoff

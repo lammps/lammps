@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(sna/grid,ComputeSNAGrid)
-
+// clang-format off
+ComputeStyle(sna/grid,ComputeSNAGrid);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SNA_GRID_H
@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class ComputeSNAGrid : public ComputeGrid {
  public:
   ComputeSNAGrid(class LAMMPS *, int, char **);
-  ~ComputeSNAGrid();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_array();
-  double memory_usage();
+  ~ComputeSNAGrid() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_array() override;
+  double memory_usage() override;
 
  private:
   int ncoeff;

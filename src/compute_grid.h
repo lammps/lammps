@@ -22,12 +22,12 @@ class ComputeGrid : public Compute {
  public:
 
   ComputeGrid(class LAMMPS *, int, char **);
-  virtual ~ComputeGrid();
-  void init();
-  void setup();
-  virtual void compute_array() = 0;
+  ~ComputeGrid() override;
+  void init() override;
+  void setup() override;
+  void compute_array() override = 0;
 
-  double memory_usage();
+  double memory_usage() override;
 
  protected:
   int nx, ny, nz;                      // global grid dimensions
@@ -53,7 +53,6 @@ class ComputeGrid : public Compute {
   void assign_coords_all();                // assign coords for global grid
   void set_grid_global();              // set global grid
   void set_grid_local();               // set bounds for local grid
- private:
 };
 
 }

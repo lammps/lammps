@@ -5,10 +5,10 @@
 # Purpose: mimic operation of examples/COUPLE/simple/simple.cpp via Python
 
 # Serial syntax: simple.py in.lammps
-#                in.lammps = LAMMPS input script
+#                in.simple = LAMMPS input script
 
-# Parallel syntax: mpirun -np 4 simple.py in.lammps
-#                  in.lammps = LAMMPS input script
+# Parallel syntax: mpirun -np 4 python simple.py in.simple
+#                  in.simple = LAMMPS input script
 # also need to uncomment mpi4py sections below
 
 from __future__ import print_function
@@ -27,9 +27,9 @@ infile = sys.argv[1]
 me = 0
 
 # uncomment this if running in parallel via mpi4py
-#from mpi4py import MPI
-#me = MPI.COMM_WORLD.Get_rank()
-#nprocs = MPI.COMM_WORLD.Get_size()
+from mpi4py import MPI
+me = MPI.COMM_WORLD.Get_rank()
+nprocs = MPI.COMM_WORLD.Get_size()
 
 from lammps import lammps
 lmp = lammps()
@@ -122,10 +122,10 @@ if me == 0: print("Gather post scatter subset:",
 boxlo,boxhi,xy,yz,xz,periodicity,box_change = lmp.extract_box()
 if me == 0: print("Box info",boxlo,boxhi,xy,yz,xz,periodicity,box_change)
 
-lmp.reset_box([0,0,0],[10,10,8],0,0,0)
+#lmp.reset_box([0,0,0],[10,10,8],0,0,0)
 
-boxlo,boxhi,xy,yz,xz,periodicity,box_change = lmp.extract_box()
-if me == 0: print("Box info",boxlo,boxhi,xy,yz,xz,periodicity,box_change)
+#boxlo,boxhi,xy,yz,xz,periodicity,box_change = lmp.extract_box()
+#if me == 0: print("Box info",boxlo,boxhi,xy,yz,xz,periodicity,box_change)
 
 # uncomment if running in parallel via mpi4py
-#print("Proc %d out of %d procs has" % (me,nprocs), lmp)
+print("Proc %d out of %d procs has" % (me,nprocs), lmp)

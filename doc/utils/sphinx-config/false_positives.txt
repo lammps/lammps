@@ -372,6 +372,7 @@ Caltech
 Camilloni
 Camiloni
 Campana
+Cangi
 Cao
 Capolungo
 Caro
@@ -2676,6 +2677,7 @@ polyhedra
 Polym
 polymorphism
 popen
+Popoola
 Popov
 popstore
 Poresag
@@ -2819,6 +2821,7 @@ radians
 Rafferty
 rahman
 Rahman
+Rajamanickam
 Ralf
 Raman
 ramped

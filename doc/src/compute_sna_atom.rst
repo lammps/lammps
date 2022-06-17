@@ -24,6 +24,9 @@ Syntax
    compute ID group-ID snad/atom rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ...
    compute ID group-ID snav/atom rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ...
    compute ID group-ID snap rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ...
+   compute ID group-ID snap rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ...
+   compute ID group-ID sna/grid nx ny nz rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ...
+   compute ID group-ID sna/grid/local nx ny nz rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * sna/atom = style name of this compute command
@@ -32,6 +35,7 @@ Syntax
 * twojmax = band limit for bispectrum components (non-negative integer)
 * R_1, R_2,... = list of cutoff radii, one for each type (distance units)
 * w_1, w_2,... = list of neighbor weights, one for each type
+* nx, ny, nz = number of grid points in x, y, and z directions (positive integer)  
 * zero or more keyword/value pairs may be appended
 * keyword = *rmin0* or *switchflag* or *bzeroflag* or *quadraticflag* or *chem* or *bnormflag* or *wselfallflag* or *bikflag* or *switchinnerflag* or *sinner* or *dinner*
 
@@ -78,6 +82,7 @@ Examples
    compute snap all snap 1.4 0.95 6 2.0 1.0
    compute snap all snap 1.0 0.99363 6 3.81 3.83 1.0 0.93 chem 2 0 1
    compute snap all snap 1.0 0.99363 6 3.81 3.83 1.0 0.93 switchinnerflag 1 sinner 1.35 1.6 dinner 0.25 0.3
+   compute bgrid all sna/grid/local 200 200 200 1.4 0.95 6 2.0 1.0
 
 Description
 """""""""""
@@ -210,6 +215,46 @@ command:
    compute snap_press all pressure NULL virial
 
 See section below on output for a detailed explanation of the data
+layout in the global array.
+
+The compute *sna/grid* and *sna/grid/local* commands calculate
+bispectrum components for a regular grid of points.
+These are calculated from the local density of nearby atoms *i'*
+around each grid point, as if there was a central atom *i*
+at the grid point. This is useful for characterizing fine-scale
+structure in a configuration of atoms, and it has been used
+to build a machine-learning surrogate for finite-temperature Kohn-Sham 
+density functional theory (:ref:`Ellis et al. <Ellis2021>`).
+Neighbor atoms not in the group do not contribute to the
+bispectrum components of the grid points. The distance cutoff :math:`R_{ii'}`
+and other parameters are defined as for a central atom with the same type as the
+neighbor atoms *i'*.
+
+Compute *sna/grid* calculates a global array containing bispectrum
+components for a regular grid of points.  
+The grid is aligned with the current box dimensions, with the
+first point at the box origin, and forming a regular 3d array with
+*nx*, *ny*, and *nz* points in the x, y, and z directions. For triclinic
+boxes, the array is congruent with the periodic lattice vectors
+a, b, and c. The array contains one row for each of the
+:math:`nx \times ny \times nz` grid points, looping over the index for *ix* fastest,
+then *iy*, and *iz* slowest.  Each row of the array contains the *x*, *y*,
+and *z* coordinates of the grid point, followed by the bispectrum
+components. See section below on output for a detailed explanation of the data
+layout in the global array.
+
+Compute *sna/grid/local* calculates bispectrum components of a regular
+grid of points similarly to compute *sna/grid* described above.
+However, because the array is local, it contains only rows for grid points
+that are local to the processor subdomain. The global grid
+of :math:`nx \times ny \times nz` points is still laid out in space the same as for *sna/grid*,
+but grid points are strictly partitioned, so that every grid point appears in
+one and only one local array.  The array contains one row for each of the
+local grid points, looping over the global index *ix* fastest,
+then *iy*, and *iz* slowest.  Each row of the array contains
+the global indexes *ix*, *iy*, and *iz* first, followed by the *x*, *y*,
+and *z* coordinates of the grid point, followed by the bispectrum
+components. See section below on output for a detailed explanation of the data
 layout in the global array.
 
 The value of all bispectrum components will be zero for atoms not in
@@ -441,6 +486,250 @@ page for an overview of LAMMPS output options. To see how this command
 can be used within a Python workflow to train SNAP potentials, see the
 examples in `FitSNAP <https://github.com/FitSNAP/FitSNAP>`_.
 
+The value of all bispectrum components will be zero for atoms not in
+the group. Neighbor atoms not in the group do not contribute to the
+bispectrum of atoms in the group.
+
+The neighbor list needed to compute this quantity is constructed each
+time the calculation is performed (i.e. each time a snapshot of atoms
+is dumped).  Thus it can be inefficient to compute/dump this quantity
+too frequently.
+
+The argument *rcutfac* is a scale factor that controls the ratio of
+atomic radius to radial cutoff distance.
+
+The argument *rfac0* and the optional keyword *rmin0* define the
+linear mapping from radial distance to polar angle :math:`theta_0` on the
+3-sphere, given above.
+
+The argument *twojmax* defines which
+bispectrum components are generated. See section below on output for a
+detailed explanation of the number of bispectrum components and the
+ordered in which they are listed.
+
+The keyword *switchflag* can be used to turn off the switching
+function :math:`f_c(r)`.
+
+The keyword *bzeroflag* determines whether or not *B0*, the bispectrum
+components of an atom with no neighbors, are subtracted from the
+calculated bispectrum components. This optional keyword normally only
+affects compute *sna/atom*\ . However, when *quadraticflag* is on, it
+also affects *snad/atom* and *snav/atom*\ .
+
+The keyword *quadraticflag* determines whether or not the quadratic
+combinations of bispectrum quantities are generated.  These are formed
+by taking the outer product of the vector of bispectrum components with
+itself.  See section below on output for a detailed explanation of the
+number of quadratic terms and the ordered in which they are listed.
+
+The keyword *chem* activates the explicit multi-element variant of the
+SNAP bispectrum components. The argument *nelements* specifies the
+number of SNAP elements that will be handled.  This is followed by
+*elementlist*, a list of integers of length *ntypes*, with values in the
+range [0, *nelements* ), which maps each LAMMPS type to one of the SNAP
+elements.  Note that multiple LAMMPS types can be mapped to the same
+element, and some elements may be mapped by no LAMMPS type. However, in
+typical use cases (training SNAP potentials) the mapping from LAMMPS
+types to elements is one-to-one.
+
+The explicit multi-element variant invoked by the *chem* keyword
+partitions the density of neighbors into partial densities for each
+chemical element.  This is described in detail in the paper by
+:ref:`Cusentino et al. <Cusentino2020>` The bispectrum components are
+indexed on ordered triplets of elements:
+
+.. math::
+
+   B_{j_1,j_2,j}^{\kappa\lambda\mu} =
+   \sum_{m_1,m'_1=-j_1}^{j_1}\sum_{m_2,m'_2=-j_2}^{j_2}\sum_{m,m'=-j}^{j} (u^{\mu}_{j,m,m'})^*
+   H {\scriptscriptstyle \begin{array}{l} {j} {m} {m'} \\
+        {j_1} {m_1} {m'_1} \\
+        {j_2} {m_2} {m'_2} \end{array}}
+        u^{\kappa}_{j_1,m_1,m'_1} u^{\lambda}_{j_2,m_2,m'_2}
+
+where :math:`u^{\mu}_{j,m,m'}` is an expansion coefficient for the partial density of neighbors
+of element :math:`\mu`
+
+.. math::
+
+  u^{\mu}_{j,m,m'} =  w^{self}_{\mu_{i}\mu} U^{j,m,m'}(0,0,0) + \sum_{r_{ii'} < R_{ii'}}{\delta_{\mu\mu_{i'}}f_c(r_{ii'}) w_{\mu_{i'}} U^{j,m,m'}(\theta_0,\theta,\phi)}
+
+where :math:`w^{self}_{\mu_{i}\mu}` is the self-contribution, which is
+either 1 or 0 (see keyword *wselfallflag* below),
+:math:`\delta_{\mu\mu_{i'}}` indicates that the sum is only over
+neighbor atoms of element :math:`\mu`, and all other quantities are the
+same as those appearing in the original equation for :math:`u^j_{m,m'}`
+given above.
+
+The keyword *wselfallflag* defines the rule used for the
+self-contribution.  If *wselfallflag* is on, then
+:math:`w^{self}_{\mu_{i}\mu}` = 1. If it is off then
+:math:`w^{self}_{\mu_{i}\mu}` = 0, except in the case of
+:math:`{\mu_{i}=\mu}`, when :math:`w^{self}_{\mu_{i}\mu}` = 1.  When the
+*chem* keyword is not used, this keyword has no effect.
+
+The keyword *bnormflag* determines whether or not the bispectrum
+component :math:`B_{j_1,j_2,j}` is divided by a factor of :math:`2j+1`.
+This normalization simplifies force calculations because of the
+following symmetry relation
+
+.. math::
+
+ \frac{B_{j_1,j_2,j}}{2j+1} = \frac{B_{j,j_2,j_1}}{2j_1+1} = \frac{B_{j_1,j,j_2}}{2j_2+1}
+
+This option is typically used in conjunction with the *chem* keyword,
+and LAMMPS will generate a warning if both *chem* and *bnormflag*
+are not both set or not both unset.
+
+The keyword *bikflag* determines whether or not to expand the bispectrum
+rows of the global array returned by compute snap. If *bikflag* is set
+to *1* then the bispectrum row, which is typically the per-atom bispectrum
+descriptors :math:`B_{i,k}` summed over all atoms *i* to produce
+:math:`B_k`, becomes bispectrum rows equal to the number of atoms. Thus,
+the resulting bispectrum rows are :math:`B_{i,k}` instead of just
+:math:`B_k`. In this case, the entries in the final column for these rows
+are set to zero.
+
+The keyword *switchinnerflag* with value 1
+activates an additional radial switching
+function similar to :math:`f_c(r)` above, but acting to switch off
+smoothly contributions from neighbor atoms at short separation distances.
+This is useful when SNAP is used in combination with a simple
+repulsive potential. For a neighbor atom at
+distance :math:`r`, its contribution is scaled by a multiplicative
+factor :math:`f_{inner}(r)` defined as follows:
+
+.. math::
+
+               = & 0,  r \leq S_{inner} - D_{inner} \\
+  f_{inner}(r) = & \frac{1}{2}(1 - \cos(\frac{\pi}{2} (1 + \frac{r-S_{inner}}{D_{inner}})), S_{inner} - D_{inner} < r \leq S_{inner} + D_{inner} \\
+               = & 1,  r > S_{inner} + D_{inner}
+
+where the switching region is centered at :math:`S_{inner}` and it extends a distance :math:`D_{inner}`
+to the left and to the right of this.
+With this option, additional keywords *sinner* and *dinner* must be used,
+each followed by *ntypes*
+values for :math:`S_{inner}` and :math:`D_{inner}`, respectively.
+When the central atom and the neighbor atom have different types,
+the values of :math:`S_{inner}` and :math:`D_{inner}` are
+the arithmetic means of the values for both types.
+
+.. note::
+
+   If you have a bonded system, then the settings of :doc:`special_bonds
+   <special_bonds>` command can remove pairwise interactions between
+   atoms in the same bond, angle, or dihedral.  This is the default
+   setting for the :doc:`special_bonds <special_bonds>` command, and
+   means those pairwise interactions do not appear in the neighbor list.
+   Because this fix uses the neighbor list, it also means those pairs
+   will not be included in the calculation.  One way to get around this,
+   is to write a dump file, and use the :doc:`rerun <rerun>` command to
+   compute the bispectrum components for snapshots in the dump file.
+   The rerun script can use a :doc:`special_bonds <special_bonds>`
+   command that includes all pairs in the neighbor list.
+
+----------
+
+Output info
+"""""""""""
+
+Compute *sna/atom* calculates a per-atom array, each column
+corresponding to a particular bispectrum component.  The total number of
+columns and the identity of the bispectrum component contained in each
+column depend of the value of *twojmax*, as described by the following
+piece of python code:
+
+.. parsed-literal::
+
+   for j1 in range(0,twojmax+1):
+       for j2 in range(0,j1+1):
+           for j in range(j1-j2,min(twojmax,j1+j2)+1,2):
+               if (j>=j1): print j1/2.,j2/2.,j/2.
+
+For even twojmax = 2(*m*\ -1), :math:`K = m(m+1)(2m+1)/6`, the *m*\ -th pyramidal number. For odd twojmax = 2 *m*\ -1, :math:`K = m(m+1)(m+2)/3`, twice the *m*\ -th tetrahedral number.
+
+.. note::
+
+   the *diagonal* keyword allowing other possible choices
+   for the number of bispectrum components was removed in 2019,
+   since all potentials use the value of 3, corresponding to the
+   above set of bispectrum components.
+
+Compute *snad/atom* evaluates a per-atom array. The columns are arranged
+into *ntypes* blocks, listed in order of atom type *I*\ .  Each block
+contains three sub-blocks corresponding to the *x*, *y*, and *z*
+components of the atom position.  Each of these sub-blocks contains *K*
+columns for the *K* bispectrum components, the same as for compute
+*sna/atom*
+
+Compute *snav/atom* evaluates a per-atom array. The columns are arranged
+into *ntypes* blocks, listed in order of atom type *I*\ .  Each block
+contains six sub-blocks corresponding to the *xx*, *yy*, *zz*,
+*yz*, *xz*, and *xy* components of the virial tensor in Voigt
+notation.  Each of these sub-blocks contains *K* columns for the *K*
+bispectrum components, the same as for compute *sna/atom*
+
+Compute *snap* evaluates a global array.  The columns are arranged into
+*ntypes* blocks, listed in order of atom type *I*\ . Each block contains
+one column for each bispectrum component, the same as for compute
+*sna/atom*\ . A final column contains the corresponding energy, force
+component on an atom, or virial stress component. The rows of the array
+appear in the following order:
+
+* 1 row: *sna/atom* quantities summed for all atoms of type *I*
+* 3\*\ *N* rows: *snad/atom* quantities, with derivatives w.r.t. x, y, and z coordinate of atom *i* appearing in consecutive rows. The atoms are sorted based on atom ID.
+* 6 rows: *snav/atom* quantities summed for all atoms of type *I*
+
+For example, if *K* =30 and ntypes=1, the number of columns in the
+per-atom arrays generated by *sna/atom*, *snad/atom*, and
+*snav/atom* are 30, 90, and 180, respectively. With *quadratic* value=1,
+the numbers of columns are 930, 2790, and 5580, respectively.  The
+number of columns in the global array generated by *snap* are 31, and
+931, respectively, while the number of rows is 1+3\*\ *N*\ +6, where *N*
+is the total number of atoms.
+
+If the *quadratic* keyword value is set to 1, then additional columns
+are generated, corresponding to the products of all distinct pairs of
+bispectrum components. If the number of bispectrum components is *K*,
+then the number of distinct pairs is *K*\ (\ *K*\ +1)/2.  For compute
+*sna/atom* these columns are appended to existing *K* columns.  The
+ordering of quadratic terms is upper-triangular, (1,1),(1,2)...(1,\ *K*\
+),(2,1)...(\ *K*\ -1,\ *K*\ -1),(\ *K*\ -1,\ *K*\ ),(\ *K*,\ *K*\ ).
+For computes *snad/atom* and *snav/atom* each set of *K*\ (\ *K*\ +1)/2
+additional columns is inserted directly after each of sub-block of
+linear terms i.e. linear and quadratic terms are contiguous.  So the
+nesting order from inside to outside is bispectrum component, linear
+then quadratic, vector/tensor component, type.
+
+If the *chem* keyword is used, then the data is arranged into
+:math:`N_{elem}^3` sub-blocks, each sub-block corresponding to a
+particular chemical labeling :math:`\kappa\lambda\mu` with the last
+label changing fastest.  Each sub-block contains *K* bispectrum
+components. For the purposes of handling contributions to force, virial,
+and quadratic combinations, these :math:`N_{elem}^3` sub-blocks are
+treated as a single block of :math:`K N_{elem}^3` columns.
+
+These values can be accessed by any command that uses per-atom values
+from a compute as input.  See the :doc:`Howto output <Howto_output>` doc
+page for an overview of LAMMPS output options. To see how this command
+can be used within a Python workflow to train SNAP potentials, see the
+examples in `FitSNAP <https://github.com/FitSNAP/FitSNAP>`_.
+
+Compute *sna/grid* evaluates a global array.
+The array contains one row for each of the
+:math:`nx \times ny \times nz` grid points, looping over the index for *ix* fastest,
+then *iy*, and *iz* slowest.  Each row of the array contains the *x*, *y*,
+and *z* coordinates of the grid point, followed by the bispectrum
+components. 
+
+Compute *sna/grid/local* evaluates a local array.
+The array contains one row for each of the
+local grid points, looping over the global index *ix* fastest,
+then *iy*, and *iz* slowest.  Each row of the array contains
+the global indexes *ix*, *iy*, and *iz* first, followed by the *x*, *y*,
+and *z* coordinates of the grid point, followed by the bispectrum
+components.
+
 Restrictions
 """"""""""""
 
@@ -464,9 +753,8 @@ The optional keyword defaults are *rmin0* = 0,
 
 .. _Thompson20141:
 
-**(Thompson)** Thompson, Swiler, Trott, Foiles, Tucker, under review, preprint
-available at `arXiv:1409.3880 <http://arxiv.org/abs/1409.3880>`_
-
+**(Thompson)** Thompson, Swiler, Trott, Foiles, Tucker, J Comp Phys, 285, 316, (2015).
+   
 .. _Bartok20101:
 
 **(Bartok)** Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).
@@ -486,4 +774,8 @@ of Angular Momentum, World Scientific, Singapore (1987).
 
 .. _Cusentino2020:
 
-**(Cusentino)** Cusentino, Wood, and Thompson, J Phys Chem A, xxx, xxxxx, (2020)
+**(Cusentino)** Cusentino, Wood, Thompson, J Phys Chem A, 124, 5456, (2020)
+
+.. _Ellis2021:
+
+**(Ellis)** Ellis, Fiedler, Popoola, Modine, Stephens, Thompson, Cangi, Rajamanickam,  Phys Rev B, 104, 035120, (2021)

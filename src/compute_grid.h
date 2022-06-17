@@ -32,7 +32,6 @@ class ComputeGrid : public Compute {
  protected:
   int nx, ny, nz;                      // global grid dimensions
   int nxlo, nxhi, nylo, nyhi, nzlo, nzhi; // local grid bounds, inclusive
-  int ngrid;                           // number of global grid points
   int ngridlocal;                      // number of local grid points
   int nvalues;                         // number of values per grid point
   double **grid;                       // global grid

@@ -51,7 +51,7 @@ ComputeGrid::ComputeGrid(LAMMPS *lmp, int narg, char **arg) :
 
   nargbase = iarg - iarg0;
 
-  size_array_rows = ngrid = nx*ny*nz;
+  size_array_rows = nx*ny*nz;
   size_array_cols_base = 3;
   gridlocal_allocated = 0;
 }
@@ -106,7 +106,7 @@ void ComputeGrid::grid2x(int igrid, double *x)
 void ComputeGrid::assign_coords_all()
 {
   double x[3];
-  for (int igrid = 0; igrid < ngrid; igrid++) {
+  for (int igrid = 0; igrid < size_array_rows; igrid++) {
     grid2x(igrid,x);
     gridall[igrid][0] = x[0];
     gridall[igrid][1] = x[1];
@@ -122,12 +122,13 @@ void ComputeGrid::allocate()
 {
   // allocate arrays
 
+  printf("In allocate() %d %d \n", size_array_rows,size_array_cols);
   memory->create(grid,size_array_rows,size_array_cols,"grid:grid");
   memory->create(gridall,size_array_rows,size_array_cols,"grid:gridall");
   if (nxlo <= nxhi && nylo <= nyhi && nzlo <= nzhi) {
     gridlocal_allocated = 1;
     memory->create4d_offset(gridlocal,size_array_cols,nzlo,nzhi,nylo,nyhi,
-			    nxlo,nxhi,"grid:gridlocal");
+  			    nxlo,nxhi,"grid:gridlocal");
   }
   array = gridall;
 }

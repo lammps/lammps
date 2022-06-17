@@ -242,10 +242,12 @@ void ComputeSNAGrid::compute_array()
   for (int iz = nzlo; iz <= nzhi; iz++)
     for (int iy = nylo; iy <= nyhi; iy++)
       for (int ix = nxlo; ix <= nxhi; ix++) {
+	double xgrid[3];
 	const int igrid = iz*(nx*ny) + iy*nx + ix;
-	const double xtmp = grid[igrid][0];
-	const double ytmp = grid[igrid][1];
-	const double ztmp = grid[igrid][2];
+	grid2x(igrid, xgrid);
+	const double xtmp = xgrid[0];
+	const double ytmp = xgrid[1];
+	const double ztmp = xgrid[2];
 
 	// currently, all grid points are type 1
 	
@@ -275,8 +277,6 @@ void ComputeSNAGrid::compute_array()
 	  if (chemflag)
             jelem = map[jtype];
 
-	  // printf("jtype = %d cutsq[jtype][jtype] = %g\n",
-	  // 	jtype, cutsq[jtype][jtype]);
 	  if (rsq < cutsq[jtype][jtype] && rsq > 1e-20) {
 	    snaptr->rij[ninside][0] = delx;
 	    snaptr->rij[ninside][1] = dely;
@@ -315,7 +315,7 @@ void ComputeSNAGrid::compute_array()
 	}
       }
 
-  memset(grid[0],0,ngrid*size_array_cols*sizeof(double));
+  memset(&grid[0][0],0,size_array_rows*size_array_cols*sizeof(double));
 
   for (int iz = nzlo; iz <= nzhi; iz++)
     for (int iy = nylo; iy <= nyhi; iy++)
@@ -324,7 +324,7 @@ void ComputeSNAGrid::compute_array()
   	for (int j = 0; j < nvalues; j++)
   	  grid[igrid][size_array_cols_base + j] = gridlocal[size_array_cols_base + j][iz][iy][ix];
       }
-  MPI_Allreduce(&grid[0][0],&gridall[0][0],ngrid*size_array_cols,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&grid[0][0],&gridall[0][0],size_array_rows*size_array_cols,MPI_DOUBLE,MPI_SUM,world);
   assign_coords_all();
 
 }

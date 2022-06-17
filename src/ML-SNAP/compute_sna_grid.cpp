@@ -200,7 +200,7 @@ ComputeSNAGrid::~ComputeSNAGrid()
 
 void ComputeSNAGrid::init()
 {
-  if ((modify->get_compute_by_style("sna/grid").size() > 1) && (comm->me == 0))
+  if ((modify->get_compute_by_style("^sna/grid$").size() > 1) && (comm->me == 0))
     error->warning(FLERR, "More than one instance of compute sna/grid");
   snaptr->init();
 }

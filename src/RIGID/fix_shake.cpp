@@ -52,8 +52,8 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   loop_respa(nullptr), step_respa(nullptr), x(nullptr), v(nullptr), f(nullptr), ftmp(nullptr),
   vtmp(nullptr), mass(nullptr), rmass(nullptr), type(nullptr), shake_flag(nullptr),
   shake_atom(nullptr), shake_type(nullptr), xshake(nullptr), nshake(nullptr), list(nullptr),
-  b_count(nullptr), b_count_all(nullptr), b_atom(nullptr), b_atom_all(nullptr), b_ave(nullptr), b_max(nullptr),
-  b_min(nullptr), b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr), a_count(nullptr),
+  b_count(nullptr), b_count_all(nullptr), b_ave(nullptr), b_max(nullptr), b_min(nullptr),
+  b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr), a_count(nullptr),
   a_count_all(nullptr), a_ave(nullptr), a_max(nullptr), a_min(nullptr), a_ave_all(nullptr),
   a_max_all(nullptr), a_min_all(nullptr), atommols(nullptr), onemols(nullptr)
 {
@@ -62,6 +62,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   thermo_energy = thermo_virial = 1;
   create_attribute = 1;
   dof_flag = 1;
+  scalar_flag = 1;
   stores_ids = 1;
   centroidstressflag = CENTROID_AVAIL;
   next_output = -1;
@@ -162,7 +163,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   // parse optional args
 
   onemols = nullptr;
-  kbond = 1.0e6;
+  kbond = 1.0e6*force->boltz;
 
   int iarg = next;
   while (iarg < narg) {
@@ -203,8 +204,6 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
     int nb = atom->nbondtypes + 1;
     b_count = new int[nb];
     b_count_all = new int[nb];
-    b_atom = new int[nb];
-    b_atom_all = new int[nb];
     b_ave = new double[nb];
     b_ave_all = new double[nb];
     b_max = new double[nb];
@@ -297,8 +296,6 @@ FixShake::~FixShake()
   if (output_every) {
     delete[] b_count;
     delete[] b_count_all;
-    delete[] b_atom;
-    delete[] b_atom_all;
     delete[] b_ave;
     delete[] b_ave_all;
     delete[] b_max;
@@ -328,6 +325,7 @@ int FixShake::setmask()
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
+  mask |= POST_RUN;
   return mask;
 }
 
@@ -351,8 +349,8 @@ void FixShake::init()
   // that should contribute to potential energy
 
   if ((comm->me == 0) && (update->whichflag == 2))
-    error->warning(FLERR,"Using fix {} with minimization. Substituting constraints with "
-                   "restraint forces using k={:.4g}", style, kbond);
+    error->warning(FLERR,"Using fix {} with minimization.\n  Substituting constraints with "
+                   "harmonic restraint forces using kbond={:.4g}", style, kbond);
 
   // error if a fix changing the box comes before shake fix
   bool boxflag = false;
@@ -590,6 +588,7 @@ void FixShake::post_force(int vflag)
   // virial setup
 
   v_init(vflag);
+  ebond = 0.0;
 
   // loop over clusters to add constraint forces
 
@@ -669,13 +668,12 @@ void FixShake::min_post_force(int vflag)
       next_output = (ntimestep/output_every)*output_every + output_every;
   } else next_output = -1;
 
-  v_init(vflag);
-
   x = atom->x;
   f = atom->f;
   nlocal = atom->nlocal;
+  ebond = 0.0;
 
-  // loop over clusters to add strong restraint forces
+  // loop over shake clusters to add restraint forces
 
   for (int i = 0; i < nlist; i++) {
     int m = list[i];
@@ -2506,7 +2504,6 @@ void FixShake::shake3angle(int m)
 
 void FixShake::bond_force(tagint id1, tagint id2, double length)
 {
-
   int i1 = atom->map(id1);
   int i2 = atom->map(id2);
 
@@ -2525,25 +2522,18 @@ void FixShake::bond_force(tagint id1, tagint id2, double length)
   const double dr = r - length;
   const double rk = kbond * dr;
   const double fbond = (r > 0.0) ? -2.0 * rk / r : 0.0;
-  double v[6];
-  v[0] = 0.5 * delx * delx * fbond;
-  v[1] = 0.5 * dely * dely * fbond;
-  v[2] = 0.5 * delz * delz * fbond;
-  v[3] = 0.5 * delx * dely * fbond;
-  v[4] = 0.5 * delx * delz * fbond;
-  v[5] = 0.5 * dely * delz * fbond;
 
   if (i1 < nlocal) {
     f[i1][0] += delx * fbond;
     f[i1][1] += dely * fbond;
     f[i1][2] += delz * fbond;
-    if (evflag) v_tally(i1, v);
+    ebond += 0.5*rk*dr;
   }
   if (i2 < nlocal) {
     f[i2][0] -= delx * fbond;
     f[i2][1] -= dely * fbond;
     f[i2][2] -= delz * fbond;
-    if (evflag) v_tally(i2, v);
+    ebond += 0.5*rk*dr;
   }
 }
 
@@ -2553,7 +2543,6 @@ void FixShake::bond_force(tagint id1, tagint id2, double length)
 
 void FixShake::stats()
 {
-  int i,j,m,n,iatom,jatom,katom;
   double delx,dely,delz;
   double r,r1,r2,r3,angle;
 
@@ -2562,13 +2551,12 @@ void FixShake::stats()
   int nb = atom->nbondtypes + 1;
   int na = atom->nangletypes + 1;
 
-  for (i = 0; i < nb; i++) {
+  for (int i = 0; i < nb; i++) {
     b_count[i] = 0;
     b_ave[i] = b_max[i] = 0.0;
     b_min[i] = BIG;
-    b_atom[i] = -1;
   }
-  for (i = 0; i < na; i++) {
+  for (int i = 0; i < na; i++) {
     a_count[i] = 0;
     a_ave[i] = a_max[i] = 0.0;
     a_min[i] = BIG;
@@ -2580,25 +2568,26 @@ void FixShake::stats()
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
-  for (i = 0; i < nlocal; i++) {
-    if (shake_flag[i] == 0) continue;
+  for (int ii = 0; ii < nlist; ++ii) {
+    int i = list[ii];
+    int n = shake_flag[i];
+    if (n == 0) continue;
 
     // bond stats
 
-    n = shake_flag[i];
     if (n == 1) n = 3;
-    iatom = atom->map(shake_atom[i][0]);
-    for (j = 1; j < n; j++) {
-      jatom = atom->map(shake_atom[i][j]);
+    int iatom = atom->map(shake_atom[i][0]);
+    for (int j = 1; j < n; j++) {
+      int jatom = atom->map(shake_atom[i][j]);
+      if (jatom >= nlocal) continue;
       delx = x[iatom][0] - x[jatom][0];
       dely = x[iatom][1] - x[jatom][1];
       delz = x[iatom][2] - x[jatom][2];
       domain->minimum_image(delx,dely,delz);
-      r = sqrt(delx*delx + dely*dely + delz*delz);
 
-      m = shake_type[i][j-1];
+      r = sqrt(delx*delx + dely*dely + delz*delz);
+      int m = shake_type[i][j-1];
       b_count[m]++;
-      b_atom[m] = n;
       b_ave[m] += r;
       b_max[m] = MAX(b_max[m],r);
       b_min[m] = MIN(b_min[m],r);
@@ -2607,9 +2596,13 @@ void FixShake::stats()
     // angle stats
 
     if (shake_flag[i] == 1) {
-      iatom = atom->map(shake_atom[i][0]);
-      jatom = atom->map(shake_atom[i][1]);
-      katom = atom->map(shake_atom[i][2]);
+      int iatom = atom->map(shake_atom[i][0]);
+      int jatom = atom->map(shake_atom[i][1]);
+      int katom = atom->map(shake_atom[i][2]);
+      int n = 0;
+      if (iatom < nlocal) ++n;
+      if (jatom < nlocal) ++n;
+      if (katom < nlocal) ++n;
 
       delx = x[iatom][0] - x[jatom][0];
       dely = x[iatom][1] - x[jatom][1];
@@ -2631,9 +2624,9 @@ void FixShake::stats()
 
       angle = acos((r1*r1 + r2*r2 - r3*r3) / (2.0*r1*r2));
       angle *= 180.0/MY_PI;
-      m = shake_type[i][2];
-      a_count[m]++;
-      a_ave[m] += angle;
+      int m = shake_type[i][2];
+      a_count[m] += n;
+      a_ave[m] += n*angle;
       a_max[m] = MAX(a_max[m],angle);
       a_min[m] = MIN(a_min[m],angle);
     }
@@ -2642,7 +2635,6 @@ void FixShake::stats()
   // sum across all procs
 
   MPI_Allreduce(b_count,b_count_all,nb,MPI_INT,MPI_SUM,world);
-  MPI_Allreduce(b_atom,b_atom_all,nb,MPI_INT,MPI_MAX,world);
   MPI_Allreduce(b_ave,b_ave_all,nb,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(b_max,b_max_all,nb,MPI_DOUBLE,MPI_MAX,world);
   MPI_Allreduce(b_min,b_min_all,nb,MPI_DOUBLE,MPI_MIN,world);
@@ -2658,13 +2650,13 @@ void FixShake::stats()
     const int width = log10((MAX(MAX(1,nb),na)))+2;
     auto mesg = fmt::format("{} stats (type/ave/delta/count) on step {}\n",
                             utils::uppercase(style), update->ntimestep);
-    for (i = 1; i < nb; i++) {
+    for (int i = 1; i < nb; i++) {
       const auto bcnt = b_count_all[i];
       if (bcnt)
         mesg += fmt::format("Bond:  {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
-                            b_ave_all[i]/bcnt,b_max_all[i]-b_min_all[i],bcnt/b_atom_all[i]);
+                            b_ave_all[i]/bcnt,b_max_all[i]-b_min_all[i],bcnt);
     }
-    for (i = 1; i < na; i++) {
+    for (int i = 1; i < na; i++) {
       const auto acnt = a_count_all[i];
       if (acnt)
         mesg += fmt::format("Angle: {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
@@ -3101,6 +3093,26 @@ void *FixShake::extract(const char *str, int &dim)
   if (strcmp(str,"onemol") == 0) return onemols;
   return nullptr;
 }
+
+/* ----------------------------------------------------------------------
+   energy due to restraint forces
+------------------------------------------------------------------------- */
+
+double FixShake::compute_scalar()
+{
+  double all;
+  MPI_Allreduce(&ebond, &all, 1, MPI_DOUBLE, MPI_SUM, world);
+  return all;
+}
+
+/*  ----------------------------------------------------------------------
+   print shake stats at the end of a minimization
+------------------------------------------------------------------------- */
+void FixShake::post_run()
+{
+  if ((update->whichflag == 2) && (output_every > 0)) stats();
+}
+
 
 /* ----------------------------------------------------------------------
    add coordinate constraining forces

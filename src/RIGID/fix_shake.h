@@ -39,6 +39,7 @@ class FixShake : public Fix {
   void post_force(int) override;
   void post_force_respa(int, int, int) override;
   void min_post_force(int) override;
+  void post_run() override;
 
   double memory_usage() override;
   void grow_arrays(int) override;
@@ -59,6 +60,7 @@ class FixShake : public Fix {
   int dof(int) override;
   void reset_dt() override;
   void *extract(const char *, int &) override;
+  double compute_scalar() override;
 
  protected:
   int vflag_post_force;    // store the vflag of last post_force call
@@ -78,6 +80,7 @@ class FixShake : public Fix {
   int molecular;                             // copy of atom->molecular
   double *bond_distance, *angle_distance;    // constraint distances
   double kbond;                              // force constant for restraint
+  double ebond;                              // energy of bond restraints
 
   class FixRespa *fix_respa;    // rRESPA fix needed by SHAKE
   int nlevels_respa;            // copies of needed rRESPA variables
@@ -110,8 +113,7 @@ class FixShake : public Fix {
   int nlist, maxlist;    // size and max-size of list
 
   // stat quantities
-  int *b_count, *b_count_all, *b_atom,
-      *b_atom_all;                              // counts for each bond type, atoms in bond cluster
+  int *b_count, *b_count_all;                   // counts for each bond type, atoms in bond cluster
   double *b_ave, *b_max, *b_min;                // ave/max/min dist for each bond type
   double *b_ave_all, *b_max_all, *b_min_all;    // MPI summing arrays
   int *a_count, *a_count_all;                   // ditto for angle types

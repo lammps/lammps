@@ -216,23 +216,25 @@ during a molecular dynamics run.
 
 When used during minimization, the SHAKE or RATTLE algorithms are
 **not** applied.  The constraints are replaced by restraint forces
-instead.  The energy due to restraint forces is included in the global
-potential energy, but virial contributions from them are not included in
-the global pressure.  The restraint energy is also accessible as a
-global scalar property of the fix.
+instead.  The energy and virial contributions due to the restraint
+forces are tallied into global and per-atom accumulators. The total
+restraint energy is also accessible as a global scalar property of the
+fix.
 
 During molecular dynamics runs, the fixes apply the requested
-constraints.  The :doc:`fix_modify <fix_modify>` *virial* option is in
-this case supported by these fixes to add the contribution due to the
-added constraint forces on atoms to both the global pressure and
-per-atom stress of the system via the :doc:`compute pressure
-<compute_pressure>` and :doc:`compute stress/atom <compute_stress_atom>`
-commands.  The former can be accessed by :doc:`thermodynamic output
-<thermo_style>`.  The default setting for this fix is :doc:`fix_modify
-virial yes <fix_modify>`. No global or per-atom quantities are stored by
-these fixes for access by various :doc:`output commands <Howto_output>`
-during a run.  No parameter of these fixes can be used with the
-*start/stop* keywords of the :doc:`run <run>` command.
+constraints.
+
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by these
+fixes to add the contribution due to the added constraint forces on
+atoms to both the global pressure and per-atom stress of the system via
+the :doc:`compute pressure <compute_pressure>` and :doc:`compute
+stress/atom <compute_stress_atom>` commands.  The former can be accessed
+by :doc:`thermodynamic output <thermo_style>`.  The default setting for
+this fix is :doc:`fix_modify virial yes <fix_modify>`. No global or
+per-atom quantities are stored by these fixes for access by various
+:doc:`output commands <Howto_output>` during an MD run.  No parameter of
+these fixes can be used with the *start/stop* keywords of the :doc:`run
+<run>` command.
 
 
 Restrictions
@@ -255,6 +257,11 @@ SHAKE or RATTLE should not be used to constrain an angle at 180
 degrees (e.g. linear CO2 molecule).  This causes numeric difficulties.
 You can use :doc:`fix rigid or fix rigid/small <fix_rigid>` instead to
 make a linear molecule rigid.
+
+When used during minimization choosing a too large value of the *kbond*
+can make minimization very inefficent and also cause stability problems
+with some minimization algorithms.  Sometimes those can be avoided by
+reducing the :doc:`timestep <timestep>`.
 
 Related commands
 """"""""""""""""

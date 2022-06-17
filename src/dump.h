@@ -153,6 +153,8 @@ class Dump : protected Pointers {
   virtual void pack(tagint *) = 0;
   virtual int convert_string(int, double *) { return 0; }
   virtual void write_data(int, double *) = 0;
+  virtual void write_footer() {}
+
   void pbc_allocate();
   double compute_time();
 

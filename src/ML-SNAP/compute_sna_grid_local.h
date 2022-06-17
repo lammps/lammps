@@ -50,7 +50,7 @@ class ComputeSNAGridLocal : public ComputeGridLocal {
   int quadraticflag;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

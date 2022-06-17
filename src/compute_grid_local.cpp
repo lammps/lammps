@@ -12,29 +12,30 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_grid_local.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
+#include "comm.h"
 #include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
-#include "comm.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 // For the subdomain test below; grid-points and subdomain boundaries
 // sometimes differ by minimal amounts (in the order of 2e-17).
-#define EPSILON 1.0e-10
+static constexpr double EPSILON = 1.0e-10;
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeGridLocal::ComputeGridLocal(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), alocal(nullptr)
+    Compute(lmp, narg, arg), alocal(nullptr)
 {
-  if (narg < 6) error->all(FLERR,"Illegal compute grid/local command");
+  if (narg < 6) error->all(FLERR, "Illegal compute grid/local command");
 
   local_flag = 1;
   size_local_cols = 0;
@@ -43,15 +44,16 @@ ComputeGridLocal::ComputeGridLocal(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg0 = 3;
   int iarg = iarg0;
-  if (strcmp(arg[iarg],"grid") == 0) {
-    if (iarg+4 > narg) error->all(FLERR,"Illegal compute grid/local command");
-    nx = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-    ny = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
-    nz = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
+  if (strcmp(arg[iarg], "grid") == 0) {
+    if (iarg + 4 > narg) error->all(FLERR, "Illegal compute grid/local command");
+    nx = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+    ny = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
+    nz = utils::inumeric(FLERR, arg[iarg + 3], false, lmp);
     if (nx <= 0 || ny <= 0 || nz <= 0)
-      error->all(FLERR,"All grid/local dimensions must be positive");
+      error->all(FLERR, "All grid/local dimensions must be positive");
     iarg += 4;
-  } else error->all(FLERR,"Illegal compute grid/local command");
+  } else
+    error->all(FLERR, "Illegal compute grid/local command");
 
   nargbase = iarg - iarg0;
 
@@ -68,9 +70,7 @@ ComputeGridLocal::~ComputeGridLocal()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeGridLocal::init()
-{
-}
+void ComputeGridLocal::init() {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -89,9 +89,9 @@ void ComputeGridLocal::setup()
 
 void ComputeGridLocal::grid2x(int ix, int iy, int iz, double *x)
 {
-  x[0] = ix*delx;
-  x[1] = iy*dely;
-  x[2] = iz*delz;
+  x[0] = ix * delx;
+  x[1] = iy * dely;
+  x[2] = iz * delz;
 
   if (triclinic) domain->lamda2x(x, x);
 }
@@ -103,11 +103,10 @@ void ComputeGridLocal::grid2x(int ix, int iy, int iz, double *x)
 
 void ComputeGridLocal::grid2lamda(int ix, int iy, int iz, double *x)
 {
-    x[0] = ix*delx;
-    x[1] = iy*dely;
-    x[2] = iz*delz;
+  x[0] = ix * delx;
+  x[1] = iy * dely;
+  x[2] = iz * delz;
 }
-
 
 /* ----------------------------------------------------------------------
    create arrays
@@ -141,7 +140,7 @@ void ComputeGridLocal::deallocate()
 
 void ComputeGridLocal::set_grid_global()
 {
- // calculate grid layout
+  // calculate grid layout
 
   triclinic = domain->triclinic;
 
@@ -161,13 +160,13 @@ void ComputeGridLocal::set_grid_global()
   double yprd = prd[1];
   double zprd = prd[2];
 
-  delxinv = nx/xprd;
-  delyinv = ny/yprd;
-  delzinv = nz/zprd;
+  delxinv = nx / xprd;
+  delyinv = ny / yprd;
+  delzinv = nz / zprd;
 
-  delx = 1.0/delxinv;
-  dely = 1.0/delyinv;
-  delz = 1.0/delzinv;
+  delx = 1.0 / delxinv;
+  dely = 1.0 / delyinv;
+  delz = 1.0 / delzinv;
 }
 
 /* ----------------------------------------------------------------------
@@ -187,15 +186,15 @@ void ComputeGridLocal::set_grid_local()
   //   the 2 equality if tests insure a consistent decision
   //   as to which proc owns it
 
-  double xfraclo,xfrachi,yfraclo,yfrachi,zfraclo,zfrachi;
+  double xfraclo, xfrachi, yfraclo, yfrachi, zfraclo, zfrachi;
 
   if (comm->layout != Comm::LAYOUT_TILED) {
     xfraclo = comm->xsplit[comm->myloc[0]];
-    xfrachi = comm->xsplit[comm->myloc[0]+1];
+    xfrachi = comm->xsplit[comm->myloc[0] + 1];
     yfraclo = comm->ysplit[comm->myloc[1]];
-    yfrachi = comm->ysplit[comm->myloc[1]+1];
+    yfrachi = comm->ysplit[comm->myloc[1] + 1];
     zfraclo = comm->zsplit[comm->myloc[2]];
-    zfrachi = comm->zsplit[comm->myloc[2]+1];
+    zfrachi = comm->zsplit[comm->myloc[2] + 1];
   } else {
     xfraclo = comm->mysplit[0][0];
     xfrachi = comm->mysplit[0][1];
@@ -205,20 +204,20 @@ void ComputeGridLocal::set_grid_local()
     zfrachi = comm->mysplit[2][1];
   }
 
-  nxlo = static_cast<int> (xfraclo * nx);
-  if (1.0*nxlo != xfraclo*nx) nxlo++;
-  nxhi = static_cast<int> (xfrachi * nx);
-  if (1.0*nxhi == xfrachi*nx) nxhi--;
+  nxlo = static_cast<int>(xfraclo * nx);
+  if (1.0 * nxlo != xfraclo * nx) nxlo++;
+  nxhi = static_cast<int>(xfrachi * nx);
+  if (1.0 * nxhi == xfrachi * nx) nxhi--;
 
-  nylo = static_cast<int> (yfraclo * ny);
-  if (1.0*nylo != yfraclo*ny) nylo++;
-  nyhi = static_cast<int> (yfrachi * ny);
-  if (1.0*nyhi == yfrachi*ny) nyhi--;
+  nylo = static_cast<int>(yfraclo * ny);
+  if (1.0 * nylo != yfraclo * ny) nylo++;
+  nyhi = static_cast<int>(yfrachi * ny);
+  if (1.0 * nyhi == yfrachi * ny) nyhi--;
 
-  nzlo = static_cast<int> (zfraclo * nz);
-  if (1.0*nzlo != zfraclo*nz) nzlo++;
-  nzhi = static_cast<int> (zfrachi * nz);
-  if (1.0*nzhi == zfrachi*nz) nzhi--;
+  nzlo = static_cast<int>(zfraclo * nz);
+  if (1.0 * nzlo != zfraclo * nz) nzlo++;
+  nzhi = static_cast<int>(zfrachi * nz);
+  if (1.0 * nzhi == zfrachi * nz) nzhi--;
 
   size_local_rows = (nxhi - nxlo + 1) * (nyhi - nylo + 1) * (nzhi - nzlo + 1);
 }
@@ -248,10 +247,10 @@ void ComputeGridLocal::assign_coords()
 
         // ensure gridpoint is not strictly outside subdomain
 
-        if ((sublo[0]-xgrid[0]) > EPSILON || (xgrid[0]-subhi[0]) > EPSILON  ||
-            (sublo[1]-xgrid[1]) > EPSILON || (xgrid[1]-subhi[1]) > EPSILON  ||
-            (sublo[2]-xgrid[2]) > EPSILON || (xgrid[2]-subhi[2]) > EPSILON)
-          error->one(FLERR,"Invalid gridpoint position in compute grid/local");
+        if ((sublo[0] - xgrid[0]) > EPSILON || (xgrid[0] - subhi[0]) > EPSILON ||
+            (sublo[1] - xgrid[1]) > EPSILON || (xgrid[1] - subhi[1]) > EPSILON ||
+            (sublo[2] - xgrid[2]) > EPSILON || (xgrid[2] - subhi[2]) > EPSILON)
+          error->one(FLERR, "Invalid gridpoint position in compute grid/local");
 
         // convert lamda to x, y, z, after sudomain check
 
@@ -270,6 +269,6 @@ void ComputeGridLocal::assign_coords()
 
 double ComputeGridLocal::memory_usage()
 {
-  int nbytes = size_local_rows * size_local_cols * sizeof(double); // gridlocal
+  int nbytes = size_local_rows * size_local_cols * sizeof(double);    // gridlocal
   return nbytes;
 }

@@ -353,7 +353,8 @@ void FixNeighHistory::pre_exchange_newton()
 
   // Ensure npartner is zeroed across all atoms, nall_neigh can be less than nall
   // when writing restarts when comm calls are made but modify->post_neighbor() isn't
-  for (i = 0; i < MAX(nall_neigh, atom->nall); i++) npartner[i] = 0;
+  int nall = atom->nlocal + atom->nghost;
+  for (i = 0; i < MAX(nall_neigh, nall); i++) npartner[i] = 0;
 
   tagint *tag = atom->tag;
   NeighList *list = pair->list;
@@ -408,7 +409,7 @@ void FixNeighHistory::pre_exchange_newton()
   // store partner IDs and values for owned+ghost atoms
   // re-zero npartner to use as counter
 
-  for (i = 0; i < MAX(nall_neigh, atom->nall); i++) npartner[i] = 0;
+  for (i = 0; i < MAX(nall_neigh, nall); i++) npartner[i] = 0;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];

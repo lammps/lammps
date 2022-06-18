@@ -28,6 +28,7 @@ using namespace MathConst;
 AtomVecSphereTemp::AtomVecSphereTemp(LAMMPS *lmp) : AtomVec(lmp)
 {
   mass_type = PER_ATOM;
+  forceclearflag = 1;
   molecular = Atom::ATOMIC;
 
   atom->sphere_flag = 1;
@@ -105,6 +106,16 @@ void AtomVecSphereTemp::grow_pointers()
   radius = atom->radius;
   rmass = atom->rmass;
   omega = atom->omega;
+}
+
+/* ----------------------------------------------------------------------
+   clear extra forces starting at atom N
+   nbytes = # of bytes to clear for a per-atom vector
+------------------------------------------------------------------------- */
+
+void AtomVecSphereTemp::force_clear(int n, size_t nbytes)
+{
+  memset(&heatflux[n], 0, nbytes);
 }
 
 /* ----------------------------------------------------------------------

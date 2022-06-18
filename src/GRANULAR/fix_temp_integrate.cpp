@@ -36,27 +36,21 @@ FixTempIntegrate::FixTempIntegrate(LAMMPS *lmp, int narg, char **arg) :
   cp_style = NONE;
 
   int ntypes = atom->ntypes;
-  int iarg = 3;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg+1],"constant") == 0) {
-      if (iarg+2 >= narg) error->all(FLERR,"Illegal fix command");
-      cp_style = CONSTANT;
-      cp = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      if (cp < 0.0) error->all(FLERR,"Illegal fix command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg+1],"type") == 0) {
-      if (iarg+1+ntypes >= narg) error->all(FLERR,"Illegal fix command");
-      cp_style = TYPE;
-      memory->create(cp_type,ntypes+1,"fix/temp/integrate:cp_type");
-      for (int i = 1; i <= ntypes; i++) {
-        cp_type[i] = utils::numeric(FLERR,arg[iarg+1+i],false,lmp);
-        if (cp_type[i] < 0.0) error->all(FLERR,"Illegal fix command");
-      }
-      iarg += 1+ntypes;
-    } else {
-      error->all(FLERR,"Illegal fix command");
+  if (strcmp(arg[3],"constant") == 0) {
+    if (narg != 5) error->all(FLERR,"Illegal fix command");
+    cp_style = CONSTANT;
+    cp = utils::numeric(FLERR,arg[4],false,lmp);
+    if (cp < 0.0) error->all(FLERR,"Illegal fix command");
+  } else if (strcmp(arg[3],"type") == 0) {
+    if (narg != 4 + ntypes) error->all(FLERR,"Illegal fix command");
+    cp_style = TYPE;
+    memory->create(cp_type,ntypes+1,"fix/temp/integrate:cp_type");
+    for (int i = 1; i <= ntypes; i++) {
+      cp_type[i] = utils::numeric(FLERR,arg[3+i],false,lmp);
+      if (cp_type[i] < 0.0) error->all(FLERR,"Illegal fix command");
     }
-    iarg += 1;
+  } else {
+    error->all(FLERR,"Illegal fix command");
   }
 
   if (cp_style == NONE)

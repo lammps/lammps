@@ -37,6 +37,9 @@ Examples
    pair_coeff 1 1 dmt 1000.0 50.0 0.3 0.0 tangential mindlin NULL 0.5 0.5 rolling sds 500.0 200.0 0.5 twisting marshall
    pair_coeff 2 2 dmt 1000.0 50.0 0.3 10.0 tangential mindlin NULL 0.5 0.1 rolling sds 500.0 200.0 0.1 twisting marshall
 
+   pair_style granular
+   pair_coeff * * hertz 1000.0 50.0 tangential mindlin 1000.0 1.0 0.4 heat 0.1
+
 Description
 """""""""""
 
@@ -628,6 +631,13 @@ is a possibility that the particles could experience an effective attractive
 force due to damping. If the optional *limit_damping* keyword is used, this option
 will zero out the normal component of the force if there is an effective
 attractive force. This keyword cannot be used with the JKR or DMT models.
+
+----------
+
+The optional *heat* keyword enables heat conduction and it must be followed by
+a non-negative numeric value for the conductivity. Note that the *heat* keyword
+must be included in either all or none of of the *pair_coeff* calls. See
+:doc:`fix temp/integrate <fix_temp_integrate>` for more information on this option.
 
 ----------
 

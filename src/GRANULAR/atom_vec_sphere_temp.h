@@ -31,6 +31,7 @@ class AtomVecSphereTemp : public AtomVec {
   void init() override;
 
   void grow_pointers() override;
+  void force_clear(int, size_t) override;
   void create_atom_post(int) override;
   void data_atom_post(int) override;
   void pack_data_pre(int) override;

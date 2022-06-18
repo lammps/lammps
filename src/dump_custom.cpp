@@ -41,7 +41,7 @@ enum{ID,MOL,PROC,PROCP1,TYPE,ELEMENT,MASS,
      XSU,YSU,ZSU,XSUTRI,YSUTRI,ZSUTRI,
      IX,IY,IZ,
      VX,VY,VZ,FX,FY,FZ,
-     Q,MUX,MUY,MUZ,MU,RADIUS,DIAMETER,
+     Q,MUX,MUY,MUZ,MU,RADIUS,DIAMETER,HEATFLUX,TEMPERATURE,
      OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
      TQX,TQY,TQZ,
      COMPUTE,FIX,VARIABLE,IVEC,DVEC,IARRAY,DARRAY};
@@ -930,6 +930,18 @@ int DumpCustom::count()
         for (i = 0; i < nlocal; i++) dchoose[i] = 2.0*radius[i];
         ptr = dchoose;
         nstride = 1;
+      } else if (thresh_array[ithresh] == HEATFLUX) {
+        if (!atom->heatflux_flag)
+          error->all(FLERR,
+                     "Threshold for an atom property that isn't allocated");
+        ptr = atom->heatflux;
+        nstride = 1;
+      } else if (thresh_array[ithresh] == TEMPERATURE) {
+        if (!atom->temperature_flag)
+          error->all(FLERR,
+                     "Threshold for an atom property that isn't allocated");
+        ptr = atom->temperature;
+        nstride = 1;
       } else if (thresh_array[ithresh] == OMEGAX) {
         if (!atom->omega_flag)
           error->all(FLERR,
@@ -1379,6 +1391,16 @@ int DumpCustom::parse_fields(int narg, char **arg)
       if (!atom->radius_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[iarg] = &DumpCustom::pack_diameter;
+      vtype[iarg] = Dump::DOUBLE;
+    } else if (strcmp(arg[iarg],"heatflux") == 0) {
+      if (!atom->heatflux_flag)
+        error->all(FLERR,"Dumping an atom property that isn't allocated");
+      pack_choice[iarg] = &DumpCustom::pack_heatflux;
+      vtype[iarg] = Dump::DOUBLE;
+    } else if (strcmp(arg[iarg],"temperature") == 0) {
+      if (!atom->temperature_flag)
+        error->all(FLERR,"Dumping an atom property that isn't allocated");
+      pack_choice[iarg] = &DumpCustom::pack_temperature;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"omegax") == 0) {
       if (!atom->omega_flag)
@@ -1845,6 +1867,8 @@ int DumpCustom::modify_param(int narg, char **arg)
 
     else if (strcmp(arg[1],"radius") == 0) thresh_array[nthresh] = RADIUS;
     else if (strcmp(arg[1],"diameter") == 0) thresh_array[nthresh] = DIAMETER;
+    else if (strcmp(arg[1],"heatflux") == 0) thresh_array[nthresh] = HEATFLUX;
+    else if (strcmp(arg[1],"temperature") == 0) thresh_array[nthresh] = TEMPERATURE;
     else if (strcmp(arg[1],"omegax") == 0) thresh_array[nthresh] = OMEGAX;
     else if (strcmp(arg[1],"omegay") == 0) thresh_array[nthresh] = OMEGAY;
     else if (strcmp(arg[1],"omegaz") == 0) thresh_array[nthresh] = OMEGAZ;
@@ -2753,6 +2777,30 @@ void DumpCustom::pack_diameter(int n)
 
   for (int i = 0; i < nchoose; i++) {
     buf[n] = 2.0*radius[clist[i]];
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_heatflux(int n)
+{
+  double *heatflux = atom->heatflux;
+
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = heatflux[clist[i]];
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_temperature(int n)
+{
+  double *temperature = atom->temperature;
+
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = temperature[clist[i]];
     n += size_one;
   }
 }

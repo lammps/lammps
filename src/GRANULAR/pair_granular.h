@@ -20,7 +20,9 @@ PairStyle(granular,PairGranular);
 #ifndef LMP_PAIR_GRANULAR_H
 #define LMP_PAIR_GRANULAR_H
 
+#include "contact.h"
 #include "pair.h"
+#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -68,9 +70,10 @@ class PairGranular : public Pair {
  private:
   int size_history;
   int *history_transfer_factors;
+  int heat_flag;
 
   // contact models
-  ContactModel **models;
+  std::vector <std::vector <Contact::ContactModel>> models;
 
   // history flags
   int normal_history, tangential_history, roll_history, twist_history;

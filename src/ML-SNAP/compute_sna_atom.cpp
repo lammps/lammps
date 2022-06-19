@@ -160,15 +160,14 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
   if (switchinnerflag && !(sinnerflag && dinnerflag))
     error->all(
         FLERR,
-        "Illegal compute {} command:, style switchinnerflag = 1, missing sinner/dinner keyword",
-	style);
+        "Illegal compute {} command: switchinnerflag = 1, missing sinner/dinner keyword",
+        style);
 
   if (!switchinnerflag && (sinnerflag || dinnerflag))
     error->all(
         FLERR,
-        "Illegal compute {} command:, style switchinnerflag = 0, unexpected sinner/dinner keyword",
-	style);
-	
+        "Illegal compute {} command: switchinnerflag = 0, unexpected sinner/dinner keyword",
+        style);
 
   snaptr = new SNA(lmp, rfac0, twojmax, rmin0, switchflag, bzeroflag, chemflag, bnormflag,
                    wselfallflag, nelements, switchinnerflag);

@@ -177,7 +177,7 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
   if (quadraticflag) nvalues += (ncoeff * (ncoeff + 1)) / 2;
 
   // end code common to all SNAP computes
-  
+
   yoffset = nvalues;
   zoffset = 2*nvalues;
   size_peratom_cols = 3*nvalues*atom->ntypes;

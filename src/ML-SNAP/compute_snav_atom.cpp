@@ -177,7 +177,7 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
   if (quadraticflag) nvalues += (ncoeff * (ncoeff + 1)) / 2;
 
   // end code common to all SNAP computes
-  
+
   size_peratom_cols = 6*nvalues*atom->ntypes;
   comm_reverse = size_peratom_cols;
   peratom_flag = 1;

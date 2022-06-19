@@ -41,7 +41,7 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   array_flag = 1;
   extarray = 0;
 
-  // code common to all SNAP computes
+  // begin code common to all SNAP computes
 
   double rfac0, rmin0;
   int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
@@ -65,8 +65,8 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
 
   // process required arguments
 
-  memory->create(radelem, ntypes + 1, "snap:radelem"); // offset by 1 to match up with types
-  memory->create(wjelem, ntypes + 1, "snap:wjelem");
+  memory->create(radelem, ntypes + 1, "sna/atom:radelem"); // offset by 1 to match up with types
+  memory->create(wjelem, ntypes + 1, "sna/atom:wjelem");
 
   rcutfac = utils::numeric(FLERR, arg[3], false, lmp);
   rfac0 = utils::numeric(FLERR, arg[4], false, lmp);
@@ -83,7 +83,7 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
 
   double cut;
   cutmax = 0.0;
-  memory->create(cutsq, ntypes + 1, ntypes + 1, "snap:cutsq");
+  memory->create(cutsq, ntypes + 1, ntypes + 1, "sna/atom:cutsq");
   for (int i = 1; i <= ntypes; i++) {
     cut = 2.0 * radelem[i] * rcutfac;
     if (cut > cutmax) cutmax = cut;
@@ -166,12 +166,15 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   if (switchinnerflag && !(sinnerflag && dinnerflag))
     error->all(
         FLERR,
-        "Illegal compute {} command:, style switchinnerflag = 1, missing sinner/dinner keyword");
+        "Illegal compute {} command:, style switchinnerflag = 1, missing sinner/dinner keyword",
+	style);
 
   if (!switchinnerflag && (sinnerflag || dinnerflag))
     error->all(
         FLERR,
-        "Illegal compute {} command:, style switchinnerflag = 0, unexpected sinner/dinner keyword");
+        "Illegal compute {} command:, style switchinnerflag = 0, unexpected sinner/dinner keyword",
+	style);
+	
 
   snaptr = new SNA(lmp, rfac0, twojmax, rmin0, switchflag, bzeroflag, chemflag, bnormflag,
                    wselfallflag, nelements, switchinnerflag);

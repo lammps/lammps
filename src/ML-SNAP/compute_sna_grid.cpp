@@ -37,7 +37,7 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
   arg += nargbase;
   narg -= nargbase;
 
-  // code common to all SNAP computes
+  // begin code common to all SNAP computes
 
   double rfac0, rmin0;
   int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
@@ -61,22 +61,25 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
 
   // process required arguments
 
-  memory->create(radelem, ntypes + 1, "sna/grid:radelem");    // offset by 1 to match up with types
-  memory->create(wjelem, ntypes + 1, "sna/grid:wjelem");
+  memory->create(radelem, ntypes + 1, "sna/atom:radelem"); // offset by 1 to match up with types
+  memory->create(wjelem, ntypes + 1, "sna/atom:wjelem");
 
   rcutfac = utils::numeric(FLERR, arg[3], false, lmp);
   rfac0 = utils::numeric(FLERR, arg[4], false, lmp);
   twojmax = utils::inumeric(FLERR, arg[5], false, lmp);
 
-  for (int i = 0; i < ntypes; i++) radelem[i + 1] = utils::numeric(FLERR, arg[6 + i], false, lmp);
   for (int i = 0; i < ntypes; i++)
-    wjelem[i + 1] = utils::numeric(FLERR, arg[6 + ntypes + i], false, lmp);
+    radelem[i + 1] =
+        utils::numeric(FLERR, arg[6 + i], false, lmp);
+  for (int i = 0; i < ntypes; i++)
+    wjelem[i + 1] =
+        utils::numeric(FLERR, arg[6 + ntypes + i], false, lmp);
 
   // construct cutsq
 
   double cut;
   cutmax = 0.0;
-  memory->create(cutsq, ntypes + 1, ntypes + 1, "sna/grid:cutsq");
+  memory->create(cutsq, ntypes + 1, ntypes + 1, "sna/atom:cutsq");
   for (int i = 1; i <= ntypes; i++) {
     cut = 2.0 * radelem[i] * rcutfac;
     if (cut > cutmax) cutmax = cut;
@@ -157,14 +160,17 @@ ComputeSNAGrid::ComputeSNAGrid(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (switchinnerflag && !(sinnerflag && dinnerflag))
-    error->all(FLERR,
-               "Illegal compute {} command: switchinnerflag = 1, missing sinner/dinner keyword",
-               style);
+    error->all(
+        FLERR,
+        "Illegal compute {} command:, style switchinnerflag = 1, missing sinner/dinner keyword",
+	style);
 
   if (!switchinnerflag && (sinnerflag || dinnerflag))
-    error->all(FLERR,
-               "Illegal compute {} command: switchinnerflag = 0, unexpected sinner/dinner keyword",
-               style);
+    error->all(
+        FLERR,
+        "Illegal compute {} command:, style switchinnerflag = 0, unexpected sinner/dinner keyword",
+	style);
+	
 
   snaptr = new SNA(lmp, rfac0, twojmax, rmin0, switchflag, bzeroflag, chemflag, bnormflag,
                    wselfallflag, nelements, switchinnerflag);

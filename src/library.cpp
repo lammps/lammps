@@ -1660,13 +1660,17 @@ lists the available options.
      - ``double **``
      - Local data array
    * - LMP_STYLE_LOCAL
+     - LMP_SIZE_VECTOR
+     - ``int *``
+     - Alias for using LMP_SIZE_ROWS
+   * - LMP_STYLE_LOCAL
      - LMP_SIZE_ROWS
      - ``int *``
-     - Number of local data rows
+     - Number of local array rows or length of vector
    * - LMP_STYLE_LOCAL
      - LMP_SIZE_COLS
      - ``int *``
-     - Number of local data columns
+     - Number of local array columns, 0 if vector
 
 .. warning::
 

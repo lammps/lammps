@@ -231,6 +231,8 @@ void LAMMPS_NS::update_pair_forces(MLIAPData *data, double *fij) {
         f[j][0] -= fij[ii3];
         f[j][1] -= fij[ii3 + 1];
         f[j][2] -= fij[ii3 + 2];
+
+        if (data->vflag) data->pairmliap->v_tally(i, j, &fij[ii3], data->rij[ii]);
     }
 }
 

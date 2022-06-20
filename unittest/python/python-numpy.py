@@ -93,17 +93,39 @@ class PythonNumpy(unittest.TestCase):
         # TODO
         pass
 
-    def testExtractComputeLocalScalar(self):
-        # TODO
-        pass
-
     def testExtractComputeLocalVector(self):
-        # TODO
-        pass
+        self.lmp.command("region       box block 0 2 0 2 0 2")
+        self.lmp.command("create_box 1 box")
+        self.lmp.command("create_atoms 1 single 1.0 1.0 1.0")
+        self.lmp.command("create_atoms 1 single 1.0 1.0 1.5")
+        self.lmp.command("mass 1 1.0")
+        self.lmp.command("pair_style lj/cut 1.9")
+        self.lmp.command("pair_coeff 1 1 1.0 1.0")
+        self.lmp.command("compute r0 all pair/local dist")
+        self.lmp.command("run 0 post no")
+        values = self.lmp.numpy.extract_compute("r0", LMP_STYLE_LOCAL, LMP_TYPE_VECTOR)
+        self.assertEqual(values.ndim, 1)
+        self.assertEqual(values.size, 2)
+        self.assertEqual(values[0], 0.5)
+        self.assertEqual(values[1], 1.5)
 
     def testExtractComputeLocalArray(self):
-        # TODO
-        pass
+        self.lmp.command("region       box block 0 2 0 2 0 2")
+        self.lmp.command("create_box 1 box")
+        self.lmp.command("create_atoms 1 single 1.0 1.0 1.0")
+        self.lmp.command("create_atoms 1 single 1.0 1.0 1.5")
+        self.lmp.command("mass 1 1.0")
+        self.lmp.command("pair_style lj/cut 1.9")
+        self.lmp.command("pair_coeff 1 1 1.0 1.0")
+        self.lmp.command("compute r0 all pair/local dist dx dy dz")
+        self.lmp.command("run 0 post no")
+        values = self.lmp.numpy.extract_compute("r0", LMP_STYLE_LOCAL, LMP_TYPE_ARRAY)
+        self.assertEqual(values.ndim, 2)
+        self.assertEqual(values.size, 8)
+        self.assertEqual(values[0,0], 0.5)
+        self.assertEqual(values[0,3], -0.5)
+        self.assertEqual(values[1,0], 1.5)
+        self.assertEqual(values[1,3], 1.5)
 
     def testExtractAtomDeprecated(self):
         self.lmp.command("units lj")

@@ -64,10 +64,10 @@ class MLIAPData : protected Pointers {
   int natomneigh_max;            // allocated size of atom neighbor arrays
   int *numneighs;                // neighbors count for each atom
   int *iatoms;                   // index of each atom
-  int *pair_i;                   // index of each i atom for each ij pair
   int *ielems;                   // element of each atom
   int nneigh_max;                // number of ij neighbors allocated
   int npairs;                    // number of ij neighbor pairs
+  int *pair_i;                   // index of each i atom for each ij pair
   int *jatoms;                   // index of each neighbor
   int *jelems;                   // element of each neighbor
   int *elems;                    // element of each atom in or not in the neighborlist

@@ -239,12 +239,6 @@ cdef class MLIAPDataPy:
         return np.asarray(<int[:self.natomneigh]> &self.data.iatoms[0])
     
     @property
-    def pair_i(self):
-        if self.data.pair_i is NULL:
-            return None
-        return np.asarray(<int[:self.npairs]> &self.data.pair_i[0])
-
-    @property
     def ielems(self):
         if self.data.ielems is NULL:
             return None
@@ -255,15 +249,21 @@ cdef class MLIAPDataPy:
         return self.data.npairs
 
     @property
-    def jatoms(self):
-        if self.data.jatoms is NULL:
+    def pair_i(self):
+        if self.data.pair_i is NULL:
             return None
-        return np.asarray(<int[:self.npairs]> &self.data.jatoms[0])
+        return np.asarray(<int[:self.npairs]> &self.data.pair_i[0])
     
     @property
     def pair_j(self):
         return self.jatoms
 
+    @property
+    def jatoms(self):
+        if self.data.jatoms is NULL:
+            return None
+        return np.asarray(<int[:self.npairs]> &self.data.jatoms[0])
+    
     @property
     def jelems(self):
         if self.data.jelems is NULL:

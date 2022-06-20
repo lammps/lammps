@@ -30,6 +30,7 @@
 #endif
 
 #include "atom.h"
+#include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "memory.h"
@@ -336,10 +337,11 @@ void PairMLIAP::init_style()
 
   // need a full neighbor list
 
-  if (ghostneigh == 1)
-    neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
-  else
+  if (ghostneigh == 1) {
+    neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST | NeighConst::REQ_NEWTON_OFF);
+  } else {
     neighbor->add_request(this, NeighConst::REQ_FULL);
+  }
 }
 
 
@@ -350,7 +352,9 @@ void PairMLIAP::init_style()
 double PairMLIAP::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
-  return sqrt(descriptor->cutsq[map[i]][map[j]]);
+  double cutmax = sqrt(descriptor->cutsq[map[i]][map[j]]);
+  cutghost[i][j] = cutghost[j][i] = 2.0 * cutmax + neighbor->skin;
+  return cutmax;
 }
 
 /* ----------------------------------------------------------------------

@@ -35,6 +35,7 @@ class DumpYAML : public DumpCustom {
   void write() override;
   void write_header(bigint) override;
   void write_data(int, double *) override;
+  void write_footer() override;
 
   int modify_param(int, char **) override;
 };

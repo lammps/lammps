@@ -2628,7 +2628,7 @@ int PairReaxFFKokkos<DeviceType>::preprocess_angular(int i, int itype, int j_sta
 template<class DeviceType>
 template<bool POPULATE>
 KOKKOS_INLINE_FUNCTION
-int PairReaxFFKokkos<DeviceType>::preprocess_torsion(int i, int /*itype*/, int itag,
+int PairReaxFFKokkos<DeviceType>::preprocess_torsion(int i, int /*itype*/, tagint itag,
   F_FLOAT xtmp, F_FLOAT ytmp, F_FLOAT ztmp, int j_start, int j_end, int location_torsion) const {
 
   // in reaxff_torsion_angles: j = i, k = j, i = k;

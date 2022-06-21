@@ -34,13 +34,20 @@
 #include "error.h"
 #include "update.h"
 
+
+// DEBUG
+
+#include <iostream>
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 extern void lammps_pspw_input(MPI_Comm, std::string &);
-extern int lammps_pspw_aimd_minimizer(MPI_Comm, double *, double *, double *);
+extern int lammps_pspw_aimd_minimizer(MPI_Comm, double *, double *, double *,
+                                      bool, bool, std::ostream&);
 extern int lammps_pspw_qmmm_minimizer(MPI_Comm, double *, double *, 
-                                      double *, double *, double *);
+                                      double *, double *, double *,
+                                      bool, bool, std::ostream&);
 
 //extern int nwchem_abiversion();
 
@@ -512,7 +519,8 @@ void FixNWChem::pre_force_qmmm(int vflag)
   printf("PSPW QPOT: qpot %g %g %g\n",qpotential[0],qpotential[1],qpotential[2]);
 
   int nwerr = lammps_pspw_qmmm_minimizer(world,&xqm[0][0],qpotential,
-                                         &fqm[0][0],qqm,&qmenergy);
+                                         &fqm[0][0],qqm,&qmenergy,
+                                         false,true,std::cout);
 
   printf("PSPW FQM: f1 %g %g %g f2 %g %g %g f3 %g %g %g\n",
          fqm[0][0],fqm[0][1],fqm[0][2],
@@ -593,7 +601,8 @@ void FixNWChem::post_force_aimd(int vflag)
   //   fqm = forces
   //   qmenergy = QM energy of entire system
 
-  int nwerr = lammps_pspw_aimd_minimizer(world,&xqm[0][0],&fqm[0][0],&qmenergy);
+  int nwerr = lammps_pspw_aimd_minimizer(world,&xqm[0][0],&fqm[0][0],&qmenergy,
+                                         false,true,std::cout);
   if (nwerr) error->all(FLERR,"Internal NWChem error");
 
   // unit conversion from NWChem to LAMMPS

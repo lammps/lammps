@@ -2369,6 +2369,7 @@ nopreliminary
 Nord
 norder
 Nordlund
+noremap
 normals
 normx
 normy

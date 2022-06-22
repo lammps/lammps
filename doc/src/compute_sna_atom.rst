@@ -33,7 +33,7 @@ Syntax
 * R_1, R_2,... = list of cutoff radii, one for each type (distance units)
 * w_1, w_2,... = list of neighbor weights, one for each type
 * zero or more keyword/value pairs may be appended
-* keyword = *rmin0* or *switchflag* or *bzeroflag* or *quadraticflag* or *chem* or *bnormflag* or *wselfallflag* or *bikflag* or *switchinnerflag* or *sinner* or *dinner*
+* keyword = *rmin0* or *switchflag* or *bzeroflag* or *quadraticflag* or *chem* or *bnormflag* or *wselfallflag* or *bikflag* or *switchinnerflag* or *sinner* or *dinner* or *dgradflag*
 
   .. parsed-literal::
 
@@ -66,6 +66,9 @@ Syntax
           *sinnerlist* = *ntypes* values of *Sinner* (distance units)
        *dinner* values = *dinnerlist*
           *dinnerlist* = *ntypes* values of *Dinner* (distance units)
+       *dgradflag* value = *0* or *1*
+          *0* = bispectrum descriptor gradients are summed over neighbors
+          *1* = bispectrum descriptor gradients are not summed over neighbors
 
 Examples
 """"""""
@@ -340,6 +343,14 @@ When the central atom and the neighbor atom have different types,
 the values of :math:`S_{inner}` and :math:`D_{inner}` are
 the arithmetic means of the values for both types.
 
+The keyword *dgradflag* determines whether or not to sum the bispectrum descriptor gradients over neighboring atoms *i'*
+as explained with *snad/atom* above. If *dgradflag* is set to 1 then the descriptor gradient rows of the global snap array
+are not summed over atoms *i'*. Instead, each row corresponds to a single term :math:`\frac{\partial {B_{i,k}  }}{\partial {r}^a_j}`
+where :math:`a` is the Cartesian direction for the gradient. This also changes
+the number of columns to be equal to the number of bispectrum components, with 3
+additional columns representing the indices :math:`i`, :math:`j`, and :math:`a`,
+as explained more in the Output info section below. The option *dgradflag=1* must be used with *bikflag=1*.
+
 .. note::
 
    If you have a bonded system, then the settings of :doc:`special_bonds
@@ -434,6 +445,36 @@ label changing fastest.  Each sub-block contains *K* bispectrum
 components. For the purposes of handling contributions to force, virial,
 and quadratic combinations, these :math:`N_{elem}^3` sub-blocks are
 treated as a single block of :math:`K N_{elem}^3` columns.
+
+If the *bik* keyword is set to 1, then the first :math:`N` rows of the snap array
+correspond to :math:`B_{i,k}` instead of the sum over atoms :math:`i`. In this case, the entries in the final column for these rows
+are set to zero.
+
+If the *dgradflag* keyword is set to 1, this changes the structure of the snap array completely.
+Here the *snad/atom* quantities are replaced with rows corresponding to descriptor
+gradient components
+
+.. math::
+
+  \frac{\partial {B_{i,k}  }}{\partial {r}^a_j}
+
+where :math:`a` is the Cartesian direction for the gradient. The rows are organized in chunks, where each chunk corresponds to
+an atom :math:`j` in the system of :math:`N` atoms. The rows in an atom :math:`j` chunk correspond to neighbors :math:`i` of :math:`j`.
+The number of rows in the atom :math:`j` chunk is therefore equal to the number of neighbors :math:`N_{neighs}[j]` within the SNAP
+potential cutoff radius of atom :math:`j`, times 3 for each Cartesian direction.
+The total number of rows for these descriptor gradients is therefore
+
+.. math::
+
+  3 \sum_j^{N} N_{neighs}[j].
+
+For *dgradflag=1*, the number of columns is equal to the number of bispectrum components,
+plus 3 additional columns representing the indices :math:`i`, :math:`j`, and :math:`a` which
+identify the atoms :math:`i` and :math:`j`, and Cartesian direction :math:`a` for which
+a particular gradient :math:`\frac{\partial {B_{i,k}  }}{\partial {r}^a_j}` belongs to. The reference energy and forces are also located in different parts of the array.
+The last 3 columns of the first :math:`N` rows belong to the reference potential force components.
+The first column of the last row, after the first :math:`N + 3 \sum_j^{N} N_{neighs}[j]` rows,
+contains the reference potential energy. The virial components are not used with this option.
 
 These values can be accessed by any command that uses per-atom values
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc

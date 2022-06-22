@@ -56,8 +56,8 @@ class ComputeSnap : public Compute {
   int quadraticflag;
   //int bikflag;
   //int bik_rows;
-  int bikflag, bik_rows, dbirjflag, dbirj_rows;
-  double **dbirj;
+  int bikflag, bik_rows, dgradflag, dgrad_rows;
+  double **dgrad;
   double **dbiri; // dBi/dRi = sum(-dBi/dRj) over neighbors j
   int *nneighs; // number of neighs inside the snap cutoff.
   int *neighsum;
@@ -67,7 +67,7 @@ class ComputeSnap : public Compute {
   Compute *c_virial;
 
   void dbdotr_compute();
-  void get_dbirj_length();
+  void get_dgrad_length();
 };
 
 }    // namespace LAMMPS_NS

@@ -1,8 +1,8 @@
 """
 compute_snap_dgrad.py
 Purpose: Demonstrate extraction of descriptor gradient (dB/dR) array from compute snap.
-         Show that dBi/dRj components summed over neighbors i yields same output as regular compute snap with dbirjflag=0.
-         This shows that the dBi/dRj components extracted with dbirjflag=1 are correct.
+         Show that dBi/dRj components summed over neighbors i yields same output as regular compute snap with dgradflag=0.
+         This shows that the dBi/dRj components extracted with dgradflag=1 are correct.
 Serial syntax:
     python compute_snap_dgrad.py
 Parallel syntax:
@@ -24,7 +24,7 @@ from lammps import lammps, LMP_TYPE_ARRAY, LMP_STYLE_GLOBAL
 cmds = ["-screen", "none", "-log", "none"]
 lmp = lammps(cmdargs=cmds)
 
-def run_lammps(dbirjflag):
+def run_lammps(dgradflag):
     lmp.command("clear")
     lmp.command("units metal")
     lmp.command("boundary	p p p")
@@ -36,7 +36,7 @@ def run_lammps(dbirjflag):
     lmp.command("mass 		* 180.88")
     lmp.command("displace_atoms 	all random 0.01 0.01 0.01 123456")
     # Pair style
-    snap_options=f'{rcutfac} {rfac0} {twojmax} {radelem1} {radelem2} {wj1} {wj2} rmin0 {rmin0} quadraticflag {quadratic} bzeroflag {bzero} switchflag {switch} bikflag {bikflag} dbirjflag {dbirjflag}'
+    snap_options=f'{rcutfac} {rfac0} {twojmax} {radelem1} {radelem2} {wj1} {wj2} rmin0 {rmin0} quadraticflag {quadratic} bzeroflag {bzero} switchflag {switch} bikflag {bikflag} dgradflag {dgradflag}'
     lmp.command(f"pair_style 	zero {rcutfac}")
     lmp.command(f"pair_coeff 	* *")
     lmp.command(f"pair_style 	zbl {zblcutinner} {zblcutouter}")
@@ -70,7 +70,7 @@ quadratic=0
 bzero=0
 switch=0
 bikflag=1
-dbirjflag=1
+dgradflag=1
 
 # Declare reference potential variables
 zblcutinner=4.0
@@ -84,7 +84,8 @@ else:
     nd = int(m*(m+1)*(m+2)/3)
 print(f"Number of descriptors based on twojmax : {nd}")
 
-# Run lammps with dbirjflag on
+# Run lammps with dgradflag on
+print("Running with dgradflag on")
 run_lammps(1)
 
 # Get global snap array
@@ -93,12 +94,12 @@ lmp_snap = lmp.numpy.extract_compute("snap",0, 2)
 # Extract dBj/dRi (includes dBi/dRi)
 natoms = lmp.get_natoms()
 fref1 = lmp_snap[0:natoms,-3:].flatten()
-eref1 = lmp_snap[-6,0]
-dbdr_length = np.shape(lmp_snap)[0]-(natoms)-6 # Length of neighborlist pruned dbdr array
+eref1 = lmp_snap[-1,0] #lmp_snap[-6,0]
+dbdr_length = np.shape(lmp_snap)[0]-(natoms) - 1 #-6 # Length of neighborlist pruned dbdr array
 dBdR = lmp_snap[natoms:(natoms+dbdr_length),:]
 force_indices = lmp_snap[natoms:(natoms+dbdr_length),-3:].astype(np.int32)
 
-# Sum over neighbors j for each atom i, like dbirjflag=0 does.
+# Sum over neighbors j for each atom i, like dgradflag=0 does.
 array1 = np.zeros((3*natoms,nd))
 a = 0
 for k in range(0,nd):
@@ -111,7 +112,8 @@ for k in range(0,nd):
         if (a>2):
             a=0
 
-# Run lammps with dbirjflag off
+# Run lammps with dgradflag off
+print("Running with dgradflag off")
 run_lammps(0)
 
 # Get global snap array
@@ -121,7 +123,7 @@ fref2 = lmp_snap[natoms:(natoms+3*natoms),-1]
 eref2 = lmp_snap[0,-1]
 array2 = lmp_snap[natoms:natoms+(3*natoms), nd:-1]
 
-# Sum the arrays obtained from dbirjflag on and off.
+# Sum the arrays obtained from dgradflag on and off.
 summ = array1 + array2
 #np.savetxt("sum.dat", summ)
 

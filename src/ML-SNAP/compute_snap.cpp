@@ -56,7 +56,7 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   bzeroflag = 1;
   quadraticflag = 0;
   bikflag = 0;
-  dbirjflag = 0;
+  dgradflag = 0;
   chemflag = 0;
   bnormflag = 0;
   wselfallflag = 0;
@@ -148,10 +148,10 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute snap command");
       bikflag = atoi(arg[iarg+1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"dbirjflag") == 0) {
+    } else if (strcmp(arg[iarg],"dgradflag") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute snap command");
-      dbirjflag = atoi(arg[iarg+1]);
+      dgradflag = atoi(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"switchinnerflag") == 0) {
       if (iarg+2 > narg)
@@ -185,6 +185,9 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   if (!switchinnerflag && (sinnerflag || dinnerflag))
     error->all(FLERR,"Illegal compute snap command: switchinnerflag = 0, unexpected sinner/dinner keyword");
 
+  if (dgradflag && !bikflag)
+    error->all(FLERR,"Illegal compute snap command: dgradflag=1 requires bikflag=1");
+
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
                    chemflag, bnormflag, wselfallflag,
@@ -200,9 +203,9 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   natoms = atom->natoms;
   bik_rows = 1;
   if (bikflag) bik_rows = natoms;
-  dbirj_rows = ndims_force*natoms;
-  size_array_rows = bik_rows+dbirj_rows+ndims_virial;
-  if (dbirjflag) size_array_cols = nperdim+3; // plus 3 for tag[i], tag[j], and cartesian index
+  dgrad_rows = ndims_force*natoms;
+  size_array_rows = bik_rows+dgrad_rows+ndims_virial;
+  if (dgradflag) size_array_cols = nperdim+3; // plus 3 for tag[i], tag[j], and cartesian index
   else size_array_cols = nperdim*atom->ntypes+1;
   lastcol = size_array_cols-1;
 
@@ -230,8 +233,8 @@ ComputeSnap::~ComputeSnap()
     memory->destroy(sinnerelem);
     memory->destroy(dinnerelem);
   }
-  if (dbirjflag){
-    memory->destroy(dbirj);
+  if (dgradflag){
+    memory->destroy(dgrad);
     memory->destroy(nneighs);
     memory->destroy(neighsum);
     memory->destroy(icounter);
@@ -260,10 +263,19 @@ void ComputeSnap::init()
 
   // allocate memory for global array
 
-  memory->create(snap,size_array_rows,size_array_cols,
-                 "snap:snap");
-  memory->create(snapall,size_array_rows,size_array_cols,
-                 "snap:snapall");
+  if (dgradflag){
+    // Initially allocate natoms^2 rows, will prune with neighborlist later
+    memory->create(snap,natoms*natoms,ncoeff+3,
+                   "snap:snap");
+    memory->create(snapall,natoms*natoms,ncoeff+3,
+                   "snap:snapall");
+  }
+  else{
+    memory->create(snap,size_array_rows,size_array_cols,
+                   "snap:snap");
+    memory->create(snapall,size_array_rows,size_array_cols,
+                   "snap:snapall");
+  }
   array = snapall;
 
   // find compute for reference energy
@@ -299,8 +311,8 @@ void ComputeSnap::init_list(int /*id*/, NeighList *ptr)
 void ComputeSnap::compute_array()
 {
 
-  if (dbirjflag){
-    get_dbirj_length();
+  if (dgradflag){
+    get_dgrad_length();
   }
 
   int ntotal = atom->nlocal + atom->nghost;
@@ -345,7 +357,7 @@ void ComputeSnap::compute_array()
   const int* const mask = atom->mask;
   int ninside;
   int numneigh_sum = 0;
-  int dbirj_row_indx;
+  int dgrad_row_indx;
   for (int ii = 0; ii < inum; ii++) {
     int irow = 0;
     if (bikflag) irow = atom->tag[ilist[ii] & NEIGHMASK]-1;
@@ -416,8 +428,8 @@ void ComputeSnap::compute_array()
       for (int jj = 0; jj < ninside; jj++) {
         const int j = snaptr->inside[jj];
 
-        if (dbirjflag){
-          dbirj_row_indx = 3*neighsum[atom->tag[j]-1] + 3*icounter[atom->tag[j]-1] ;
+        if (dgradflag){
+          dgrad_row_indx = 3*neighsum[atom->tag[j]-1] + 3*icounter[atom->tag[j]-1] ;
           icounter[atom->tag[j]-1] += 1;
         }
 
@@ -440,20 +452,20 @@ void ComputeSnap::compute_array()
           snadj[icoeff+zoffset] -= snaptr->dblist[icoeff][2];
 
 
-          if (dbirjflag){
-            dbirj[dbirj_row_indx+0][icoeff] = snaptr->dblist[icoeff][0];
-            dbirj[dbirj_row_indx+1][icoeff] = snaptr->dblist[icoeff][1];
-            dbirj[dbirj_row_indx+2][icoeff] = snaptr->dblist[icoeff][2];
+          if (dgradflag){
+            dgrad[dgrad_row_indx+0][icoeff] = snaptr->dblist[icoeff][0];
+            dgrad[dgrad_row_indx+1][icoeff] = snaptr->dblist[icoeff][1];
+            dgrad[dgrad_row_indx+2][icoeff] = snaptr->dblist[icoeff][2];
             if (icoeff==(ncoeff-1)){
-              dbirj[dbirj_row_indx+0][ncoeff] = atom->tag[i]-1;
-              dbirj[dbirj_row_indx+0][ncoeff+1] = atom->tag[j]-1;
-              dbirj[dbirj_row_indx+0][ncoeff+2] = 0;
-              dbirj[dbirj_row_indx+1][ncoeff] = atom->tag[i]-1;
-              dbirj[dbirj_row_indx+1][ncoeff+1] = atom->tag[j]-1;
-              dbirj[dbirj_row_indx+1][ncoeff+2] = 1;
-              dbirj[dbirj_row_indx+2][ncoeff] = atom->tag[i]-1;
-              dbirj[dbirj_row_indx+2][ncoeff+1] = atom->tag[j]-1;
-              dbirj[dbirj_row_indx+2][ncoeff+2] = 2;
+              dgrad[dgrad_row_indx+0][ncoeff] = atom->tag[i]-1;
+              dgrad[dgrad_row_indx+0][ncoeff+1] = atom->tag[j]-1;
+              dgrad[dgrad_row_indx+0][ncoeff+2] = 0;
+              dgrad[dgrad_row_indx+1][ncoeff] = atom->tag[i]-1;
+              dgrad[dgrad_row_indx+1][ncoeff+1] = atom->tag[j]-1;
+              dgrad[dgrad_row_indx+1][ncoeff+2] = 1;
+              dgrad[dgrad_row_indx+2][ncoeff] = atom->tag[i]-1;
+              dgrad[dgrad_row_indx+2][ncoeff+1] = atom->tag[j]-1;
+              dgrad[dgrad_row_indx+2][ncoeff+2] = 2;
             }
             // Accumulate dBi/dRi = sum (-dBi/dRj) for neighbors j of if i
             dbiri[3*(atom->tag[i]-1)+0][icoeff] -= snaptr->dblist[icoeff][0];
@@ -530,7 +542,7 @@ void ComputeSnap::compute_array()
 
       // linear contributions
       int k;
-      if (dbirjflag) k = 0;
+      if (dgradflag) k = 0;
       else k = typeoffset_global;
       for (int icoeff = 0; icoeff < ncoeff; icoeff++){
         snap[irow][k++] += snaptr->blist[icoeff];
@@ -555,7 +567,7 @@ void ComputeSnap::compute_array()
 
   // Accumulate contributions to global array
 
-  if (dbirjflag){
+  if (dgradflag){
 
     int dbiri_indx;
     int irow;
@@ -568,34 +580,34 @@ void ComputeSnap::compute_array()
 
             for (int jj=0; jj<nneighs[i]; jj++){
 
-              int dbirj_row_indx = 3*neighsum[atom->tag[i]-1] + 3*jj;
+              int dgrad_row_indx = 3*neighsum[atom->tag[i]-1] + 3*jj;
               int snap_row_indx = 3*neighsum[atom->tag[i]-1] + 3*(atom->tag[i]-1) + 3*jj;
               irow = snap_row_indx + bik_rows;
 
               // x-coordinate
-              snap[irow][icoeff+typeoffset_global] += dbirj[dbirj_row_indx+0][icoeff];
+              snap[irow][icoeff+typeoffset_global] += dgrad[dgrad_row_indx+0][icoeff];
               if (icoeff==(ncoeff-1)){
-                snap[irow][ncoeff] += dbirj[dbirj_row_indx+0][ncoeff];
-                snap[irow][ncoeff+1] += dbirj[dbirj_row_indx+0][ncoeff+1];
-                snap[irow][ncoeff+2] += dbirj[dbirj_row_indx+0][ncoeff+2];
+                snap[irow][ncoeff] += dgrad[dgrad_row_indx+0][ncoeff];
+                snap[irow][ncoeff+1] += dgrad[dgrad_row_indx+0][ncoeff+1];
+                snap[irow][ncoeff+2] += dgrad[dgrad_row_indx+0][ncoeff+2];
               }
               irow++;
 
               // y-coordinate
-              snap[irow][icoeff+typeoffset_global] += dbirj[dbirj_row_indx+1][icoeff];
+              snap[irow][icoeff+typeoffset_global] += dgrad[dgrad_row_indx+1][icoeff];
               if (icoeff==(ncoeff-1)){
-                snap[irow][ncoeff] += dbirj[dbirj_row_indx+1][ncoeff];
-                snap[irow][ncoeff+1] += dbirj[dbirj_row_indx+1][ncoeff+1];
-                snap[irow][ncoeff+2] += dbirj[dbirj_row_indx+1][ncoeff+2];
+                snap[irow][ncoeff] += dgrad[dgrad_row_indx+1][ncoeff];
+                snap[irow][ncoeff+1] += dgrad[dgrad_row_indx+1][ncoeff+1];
+                snap[irow][ncoeff+2] += dgrad[dgrad_row_indx+1][ncoeff+2];
               }
               irow++;
 
               // z-coordinate
-              snap[irow][icoeff+typeoffset_global]   += dbirj[dbirj_row_indx+2][icoeff];
+              snap[irow][icoeff+typeoffset_global]   += dgrad[dgrad_row_indx+2][icoeff];
               if (icoeff==(ncoeff-1)){
-                snap[irow][ncoeff] += dbirj[dbirj_row_indx+2][ncoeff];
-                snap[irow][ncoeff+1] += dbirj[dbirj_row_indx+2][ncoeff+1];
-                snap[irow][ncoeff+2] += dbirj[dbirj_row_indx+2][ncoeff+2];
+                snap[irow][ncoeff] += dgrad[dgrad_row_indx+2][ncoeff];
+                snap[irow][ncoeff+1] += dgrad[dgrad_row_indx+2][ncoeff+1];
+                snap[irow][ncoeff+2] += dgrad[dgrad_row_indx+2][ncoeff+2];
               }
               dbiri_indx = dbiri_indx+3;
             }
@@ -659,8 +671,8 @@ void ComputeSnap::compute_array()
 
  // accumulate forces to global array
 
- if (dbirjflag){
-   // for dbirjflag=1, put forces at last 3 columns of bik rows
+ if (dgradflag){
+   // for dgradflag=1, put forces at last 3 columns of bik rows
    for (int i=0; i<atom->nlocal; i++){
      int iglobal = atom->tag[i];
      snap[iglobal-1][ncoeff+0] = atom->f[i][0];
@@ -681,8 +693,8 @@ void ComputeSnap::compute_array()
 
   // accumulate bispectrum virial contributions to global array
 
-  if (dbirjflag){
-    // no virial terms for dbirj yet
+  if (dgradflag){
+    // no virial terms for dgrad yet
   }
   else{
     dbdotr_compute();
@@ -691,10 +703,10 @@ void ComputeSnap::compute_array()
   // sum up over all processes
   MPI_Allreduce(&snap[0][0],&snapall[0][0],size_array_rows*size_array_cols,MPI_DOUBLE,MPI_SUM,world);
   // assign energy to last column
-  if (dbirjflag){
-    // Assign reference energy right after the dbirj rows, first column.
+  if (dgradflag){
+    // Assign reference energy right after the dgrad rows, first column.
     // Add 3N for the dBi/dRi rows.
-    int irow = bik_rows + dbirj_rows + 3*natoms;
+    int irow = bik_rows + dgrad_rows + 3*natoms;
     double reference_energy = c_pe->compute_scalar();
     snapall[irow][0] = reference_energy;
   }
@@ -709,10 +721,11 @@ void ComputeSnap::compute_array()
   // switch to Voigt notation
 
   c_virial->compute_vector();
-  if (dbirjflag){
-    // no virial terms for dbirj yet
+  if (dgradflag){
+    // no virial terms for dgrad yet
   }
   else{
+    c_virial->compute_vector();
     int irow = 3*natoms+bik_rows;
     snapall[irow++][lastcol] = c_virial->vector[0];
     snapall[irow++][lastcol] = c_virial->vector[1];
@@ -760,10 +773,10 @@ void ComputeSnap::dbdotr_compute()
 }
 
 /* ----------------------------------------------------------------------
-   compute dbirj length
+   compute dgrad length
 ------------------------------------------------------------------------- */
 
-void ComputeSnap::get_dbirj_length()
+void ComputeSnap::get_dgrad_length()
 {
 
   int rank = universe->me; // for MPI debugging
@@ -772,7 +785,7 @@ void ComputeSnap::get_dbirj_length()
   memory->destroy(snapall);
   // invoke full neighbor list
   neighbor->build_one(list);
-  dbirj_rows = 0;
+  dgrad_rows = 0;
   const int inum = list->inum;
   const int* const ilist = list->ilist;
   const int* const numneigh = list->numneigh;
@@ -791,7 +804,7 @@ void ComputeSnap::get_dbirj_length()
   memory->create(icounter, natoms, "snap:icounter");
   memory->create(dbiri, 3*natoms,ncoeff+3, "snap:dbiri");
   if (atom->nlocal != natoms){
-    error->all(FLERR,"Compute snap dbirjflag=1 does not support parallelism.");
+    error->all(FLERR,"Compute snap dgradflag=1 does not support parallelism.");
   }
   for (int ii=0; ii<3*natoms; ii++){
     for (int icoeff=0; icoeff<ncoeff; icoeff++){
@@ -822,7 +835,7 @@ void ComputeSnap::get_dbirj_length()
         int jtype = type[j];
 
         if (rsq < cutsq[itype][jtype]&&rsq>1e-20) {
-          dbirj_rows += 1; //jnum + 1;
+          dgrad_rows += 1; //jnum + 1;
           jnum_cutoff += 1;
           nneighs[i]+=1;
         }
@@ -830,7 +843,7 @@ void ComputeSnap::get_dbirj_length()
     }
   }
 
-  dbirj_rows *= ndims_force;
+  dgrad_rows *= ndims_force;
 
   // Loop over all atoms again to calculate neighsum.
   for (int ii = 0; ii < inum; ii++) {
@@ -850,14 +863,15 @@ void ComputeSnap::get_dbirj_length()
     }
   }
 
-  memory->create(dbirj, dbirj_rows, ncoeff+3, "snap:dbirj");
-  for (int i=0; i<dbirj_rows; i++){
+  memory->create(dgrad, dgrad_rows, ncoeff+3, "snap:dgrad");
+  for (int i=0; i<dgrad_rows; i++){
     for (int j=0; j<ncoeff+3; j++){
-      dbirj[i][j]=0.0;
+      dgrad[i][j]=0.0;
     }
   }
-  // Set size array rows which now depends on dbirj_rows.
-  size_array_rows = bik_rows+dbirj_rows+ndims_virial+3*atom->nlocal; // Add 3*N for dBi/dRi
+  // Set size array rows which now depends on dgrad_rows.
+  //size_array_rows = bik_rows+dgrad_rows+ndims_virial+3*atom->nlocal; // Add 3*N for dBi/dRi
+  size_array_rows = bik_rows + dgrad_rows + 3*atom->nlocal + 1; // Add 3*N for dBi/dRi. and add 1 for reference energy
 
   memory->create(snap,size_array_rows,size_array_cols, "snap:snap");
   memory->create(snapall,size_array_rows,size_array_cols, "snap:snapall");
@@ -871,7 +885,7 @@ void ComputeSnap::get_dbirj_length()
 
 double ComputeSnap::compute_scalar()
 {
-  if (dbirjflag) get_dbirj_length();
+  if (dgradflag) get_dgrad_length();
   return size_array_rows;
 }
 

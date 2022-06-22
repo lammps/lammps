@@ -266,7 +266,7 @@ void DihedralCharmmIntel::eval(const int vflag,
       const flt_t tk = fc.fc[type].k;
       const int m = fc.fc[type].multiplicity;
 
-      flt_t p = (flt_t)1.0;
+      auto  p = (flt_t)1.0;
       flt_t ddf1, df1;
       ddf1 = df1 = (flt_t)0.0;
 
@@ -384,7 +384,7 @@ void DihedralCharmmIntel::eval(const int vflag,
       }
 
       if (EFLAG || VFLAG) {
-        flt_t ev_pre = (flt_t)0;
+        auto  ev_pre = (flt_t)0;
         if (NEWTON_BOND || i1 < nlocal)
           ev_pre += (flt_t)0.5;
         if (NEWTON_BOND || i4 < nlocal)
@@ -905,11 +905,8 @@ void DihedralCharmmIntel::init_style()
 {
   DihedralCharmm::init_style();
 
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   #ifdef _LMP_INTEL_OFFLOAD
   _use_base = 0;

@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class AtomVecMolecular : public AtomVec {
  public:
   AtomVecMolecular(class LAMMPS *);
-  ~AtomVecMolecular();
+  ~AtomVecMolecular() override;
 
-  void grow_pointers();
-  void pack_restart_pre(int);
-  void pack_restart_post(int);
-  void unpack_restart_init(int);
-  void data_atom_post(int);
+  void grow_pointers() override;
+  void pack_restart_pre(int) override;
+  void pack_restart_post(int) override;
+  void unpack_restart_init(int) override;
+  void data_atom_post(int) override;
 
  private:
   int *num_bond, *num_angle, *num_dihedral, *num_improper;
@@ -49,7 +49,3 @@ class AtomVecMolecular : public AtomVec {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

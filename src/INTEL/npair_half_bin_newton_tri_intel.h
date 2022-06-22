@@ -31,8 +31,7 @@ namespace LAMMPS_NS {
 class NPairHalfBinNewtonTriIntel : public NPairIntel {
  public:
   NPairHalfBinNewtonTriIntel(class LAMMPS *);
-  ~NPairHalfBinNewtonTriIntel() {}
-  void build(class NeighList *);
+  void build(class NeighList *) override;
 
  private:
   template <class flt_t, class acc_t> void hbnti(NeighList *, IntelBuffers<flt_t, acc_t> *);
@@ -42,7 +41,3 @@ class NPairHalfBinNewtonTriIntel : public NPairIntel {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

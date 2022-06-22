@@ -37,19 +37,19 @@ using namespace FixConst;
 FixNVEAsphereIntel::FixNVEAsphereIntel(LAMMPS *lmp, int narg, char **arg) :
   FixNVE(lmp, narg, arg)
 {
-  _dtfm = 0;
+  _dtfm = nullptr;
   _nlocal3 = 0;
   _nlocal_max = 0;
-  _inertia0 = 0;
-  _inertia1 = 0;
-  _inertia2 = 0;
+  _inertia0 = nullptr;
+  _inertia1 = nullptr;
+  _inertia2 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixNVEAsphereIntel::init()
 {
-  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  avec = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
   if (!avec)
     error->all(FLERR,"Compute nve/asphere requires atom style ellipsoid");
 

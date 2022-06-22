@@ -94,16 +94,16 @@ struct TestMDRangePolicy {
   using int_index = Kokkos::IndexType<int>;
 
   // An MDRangePolicy for 2 nested loops
-  using MDPolicyType_2D = typename Kokkos::Experimental::MDRangePolicy<
-      ExecSpace, Kokkos::Experimental::Rank<2>, int_index>;
+  using MDPolicyType_2D =
+      typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>, int_index>;
 
   // An MDRangePolicy for 3 nested loops
-  using MDPolicyType_3D = typename Kokkos::Experimental::MDRangePolicy<
-      ExecSpace, Kokkos::Experimental::Rank<3>, int_index>;
+  using MDPolicyType_3D =
+      typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>, int_index>;
 
   // An MDRangePolicy for 4 nested loops
-  using MDPolicyType_4D = typename Kokkos::Experimental::MDRangePolicy<
-      ExecSpace, Kokkos::Experimental::Rank<4>, int_index>;
+  using MDPolicyType_4D =
+      typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>, int_index>;
 
   // Device and Host Data structure pointer
   value_type *deviceData, *hostData;
@@ -170,6 +170,7 @@ struct TestMDRangePolicy {
     // Copy the data back to Host memory space
     Kokkos::Impl::DeepCopy<h_memspace_type, d_memspace_type>(
         hostData, deviceData, num_elements * sizeof(value_type));
+    Kokkos::fence("Fence after copying data to host");
 
     // Check if all data has been update correctly
     compare_equal_2D();
@@ -201,6 +202,7 @@ struct TestMDRangePolicy {
     // Copy the data back to Host memory space
     Kokkos::Impl::DeepCopy<h_memspace_type, d_memspace_type>(
         hostData, deviceData, num_elements * sizeof(value_type));
+    Kokkos::fence("Fence after copying data to host");
 
     // Check if all data has been update correctly
     compare_equal_3D();
@@ -232,6 +234,7 @@ struct TestMDRangePolicy {
     // Copy the data back to Host memory space
     Kokkos::Impl::DeepCopy<h_memspace_type, d_memspace_type>(
         hostData, deviceData, num_elements * sizeof(value_type));
+    Kokkos::fence("Fence after copying data to host");
 
     // Check if all data has been update correctly
     compare_equal_4D();

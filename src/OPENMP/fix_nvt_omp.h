@@ -27,22 +27,9 @@ namespace LAMMPS_NS {
 class FixNVTOMP : public FixNHOMP {
  public:
   FixNVTOMP(class LAMMPS *, int, char **);
-  ~FixNVTOMP() {}
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Temperature control must be used with fix nvt
-
-Self-explanatory.
-
-E: Pressure control can not be used with fix nvt
-
-Self-explanatory.
-
-*/

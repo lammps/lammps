@@ -43,16 +43,16 @@ bool verbose = false;
 using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
+using ::testing::ContainsRegex;
 using ::testing::Eq;
 using ::testing::HasSubstr;
-using ::testing::MatchesRegex;
 using ::testing::StrEq;
 
 class PythonPackageTest : public LAMMPSTest {
 protected:
     void InitSystem() override
     {
-        if (!info->has_package("PYTHON")) GTEST_SKIP();
+        if (!Info::has_package("PYTHON")) GTEST_SKIP();
 
         HIDE_OUTPUT([&] {
             command("units real");
@@ -73,7 +73,7 @@ class FixPythonInvokeTest : public MeltTest {
 protected:
     void InitSystem() override
     {
-        if (!info->has_package("PYTHON")) GTEST_SKIP();
+        if (!Info::has_package("PYTHON")) GTEST_SKIP();
 
         MeltTest::InitSystem();
     }
@@ -89,7 +89,7 @@ TEST_F(PythonPackageTest, InvokeFunctionFromFile)
     auto output = CAPTURE_OUTPUT([&]() {
         command("python printnum invoke");
     });
-    ASSERT_THAT(output, HasSubstr("2.25\n"));
+    ASSERT_THAT(output, HasSubstr("2.25"));
 }
 
 #if defined(TEST_HAVE_PYTHON_DEVELOPMENT)
@@ -210,7 +210,7 @@ TEST_F(PythonPackageTest, InvokeOtherFunctionFromFile)
     auto output = CAPTURE_OUTPUT([&] {
         command("python printtxt invoke");
     });
-    ASSERT_THAT(output, HasSubstr("sometext\n"));
+    ASSERT_THAT(output, HasSubstr("sometext"));
 }
 
 TEST_F(PythonPackageTest, InvokeFunctionThatUsesLAMMPSModule)
@@ -224,7 +224,7 @@ TEST_F(PythonPackageTest, InvokeFunctionThatUsesLAMMPSModule)
     auto output = CAPTURE_OUTPUT([&] {
         command("python getidxvar invoke");
     });
-    ASSERT_THAT(output, HasSubstr("2.25\n"));
+    ASSERT_THAT(output, HasSubstr("2.25"));
 }
 
 TEST_F(PythonPackageTest, python_variable)
@@ -238,7 +238,7 @@ TEST_F(PythonPackageTest, python_variable)
     std::string output = CAPTURE_OUTPUT([&] {
         command("print \"${sq}\"");
     });
-    ASSERT_THAT(output, MatchesRegex("print.*2.25.*"));
+    ASSERT_THAT(output, ContainsRegex("print.*\n.*2.25.*"));
 }
 
 TEST_F(PythonPackageTest, InlineFunction)
@@ -309,7 +309,7 @@ TEST_F(FixPythonInvokeTest, end_of_step)
     auto output = CAPTURE_OUTPUT([&] {
         command("run 50");
     });
-
+    fprintf(stderr, "lines: %s\n", output.c_str());
     auto lines = utils::split_lines(output);
     int count  = 0;
 

@@ -65,19 +65,22 @@ struct PairComputeFunctor  {
   typename AT::t_efloat_1d d_eatom;
   typename AT::t_virial_array d_vatom;
 
+  using KKDeviceType = typename KKDevice<device_type>::value;
+  using DUP = typename NeedDup<NEIGHFLAG,device_type>::value;
+
   // The force array is atomic for Half/Thread neighbor style
   //Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,
   //             typename KKDevice<device_type>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > f;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<device_type>::value,typename Kokkos::Experimental::ScatterSum,typename NeedDup<NEIGHFLAG,device_type>::value > dup_f;
+  KKScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,KKDeviceType,KKScatterSum,DUP> dup_f;
 
   // The eatom and vatom arrays are atomic for Half/Thread neighbor style
   //Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,
   //             typename KKDevice<device_type>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > eatom;
-  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<device_type>::value,typename Kokkos::Experimental::ScatterSum,typename NeedDup<NEIGHFLAG,device_type>::value > dup_eatom;
+  KKScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,KKDeviceType,KKScatterSum,DUP> dup_eatom;
 
   //Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,
   //             typename KKDevice<device_type>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > vatom;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<device_type>::value,typename Kokkos::Experimental::ScatterSum,typename NeedDup<NEIGHFLAG,device_type>::value > dup_vatom;
+  KKScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,KKDeviceType,KKScatterSum,DUP> dup_vatom;
 
 
 
@@ -90,9 +93,9 @@ struct PairComputeFunctor  {
     f = c.f;
     d_eatom = c.d_eatom;
     d_vatom = c.d_vatom;
-    dup_f     = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, typename NeedDup<NEIGHFLAG,device_type>::value >(c.f);
-    dup_eatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, typename NeedDup<NEIGHFLAG,device_type>::value >(c.d_eatom);
-    dup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, typename NeedDup<NEIGHFLAG,device_type>::value >(c.d_vatom);
+    dup_f     = Kokkos::Experimental::create_scatter_view<KKScatterSum, DUP>(c.f);
+    dup_eatom = Kokkos::Experimental::create_scatter_view<KKScatterSum, DUP>(c.d_eatom);
+    dup_vatom = Kokkos::Experimental::create_scatter_view<KKScatterSum, DUP>(c.d_vatom);
   };
 
   // Set copymode = 1 so parent allocations aren't destructed by copies of the style
@@ -840,6 +843,3 @@ void pair_virial_fdotr_compute(PairStyle* fpair) {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

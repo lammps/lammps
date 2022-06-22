@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -33,9 +32,8 @@ namespace LAMMPS_NS {
 class AngleCharmmIntel : public AngleCharmm {
  public:
   AngleCharmmIntel(class LAMMPS *);
-  virtual ~AngleCharmmIntel();
-  virtual void compute(int, int);
-  virtual void init_style();
+  void compute(int, int) override;
+  void init_style() override;
 
  protected:
   FixIntel *fix;
@@ -77,11 +75,3 @@ class AngleCharmmIntel : public AngleCharmm {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args for angle coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class ComputeVCMChunk : public Compute {
  public:
   ComputeVCMChunk(class LAMMPS *, int, char **);
-  ~ComputeVCMChunk();
-  void init();
-  void setup();
-  void compute_array();
+  ~ComputeVCMChunk() override;
+  void init() override;
+  void setup() override;
+  void compute_array() override;
 
-  void lock_enable();
-  void lock_disable();
-  int lock_length();
-  void lock(class Fix *, bigint, bigint);
-  void unlock(class Fix *);
+  void lock_enable() override;
+  void lock_disable() override;
+  int lock_length() override;
+  void lock(class Fix *, bigint, bigint) override;
+  void unlock(class Fix *) override;
 
-  double memory_usage();
+  double memory_usage() override;
 
  private:
   int nchunk, maxchunk;
@@ -56,21 +56,3 @@ class ComputeVCMChunk : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Chunk/atom compute does not exist for compute vcm/chunk
-
-Self-explanatory.
-
-E: Compute vcm/chunk does not use chunk/atom compute
-
-The style of the specified compute is not chunk/atom.
-
-*/

@@ -39,13 +39,13 @@ namespace LAMMPS_NS {
 class FixSMDMoveTriSurf : public Fix {
  public:
   FixSMDMoveTriSurf(class LAMMPS *, int, char **);
-  ~FixSMDMoveTriSurf();
-  int setmask();
-  virtual void init();
-  virtual void initial_integrate(int);
-  void reset_dt();
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+
+  int setmask() override;
+  void init() override;
+  void initial_integrate(int) override;
+  void reset_dt() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
  protected:
   double dtv;

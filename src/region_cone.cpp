@@ -31,7 +31,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
-  Region(lmp, narg, arg)
+  Region(lmp, narg, arg), lo(0.0), hi(0.0)
 {
   options(narg-9,&arg[9]);
 
@@ -40,7 +40,7 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
   if (openflag && (open_faces[3] || open_faces[4] || open_faces[5]))
     error->all(FLERR,"Invalid region cone open setting");
 
-  if (strcmp(arg[2],"x") && strcmp(arg[2],"y") && strcmp(arg[2],"z"))
+  if (strcmp(arg[2],"x") != 0 && strcmp(arg[2],"y") && strcmp(arg[2],"z") != 0)
     error->all(FLERR,"Illegal region cylinder command");
   axis = arg[2][0];
 

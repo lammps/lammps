@@ -20,7 +20,7 @@ namespace LAMMPS_NS {
 
 class MLIAPModelPython : public MLIAPModel {
  public:
-  MLIAPModelPython(LAMMPS *, char * = NULL);
+  MLIAPModelPython(LAMMPS *, char * = nullptr);
   ~MLIAPModelPython();
   virtual int get_nparams();
   virtual int get_gamma_nnz(class MLIAPData *);

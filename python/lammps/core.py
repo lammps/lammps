@@ -89,6 +89,9 @@ class lammps(object):
     modpath = dirname(abspath(getsourcefile(lambda:0)))
     # for windows installers the shared library is in a different folder
     winpath = abspath(os.path.join(modpath,'..','..','bin'))
+    # allow override for running tests on Windows
+    if (os.environ.get("LAMMPSDLLPATH")):
+      winpath = os.environ.get("LAMMPSDLLPATH")
     self.lib = None
     self.lmp = None
 
@@ -99,7 +102,7 @@ class lammps(object):
     # load a shared object.
 
     try:
-      if ptr: self.lib = CDLL("",RTLD_GLOBAL)
+      if ptr is not None: self.lib = CDLL("",RTLD_GLOBAL)
     except OSError:
       self.lib = None
 
@@ -161,6 +164,7 @@ class lammps(object):
     self.lib.lammps_open.restype = c_void_p
     self.lib.lammps_open_no_mpi.restype = c_void_p
     self.lib.lammps_close.argtypes = [c_void_p]
+    self.lib.lammps_flush_buffers.argtypes = [c_void_p]
     self.lib.lammps_free.argtypes = [c_void_p]
 
     self.lib.lammps_file.argtypes = [c_void_p, c_char_p]
@@ -184,20 +188,17 @@ class lammps(object):
       [c_void_p,POINTER(c_double),POINTER(c_double),c_double,c_double,c_double]
     self.lib.lammps_reset_box.restype = None
 
-    self.lib.lammps_gather_atoms.argtypes = \
-      [c_void_p,c_char_p,c_int,c_int,c_void_p]
+    self.lib.lammps_gather_atoms.argtypes = [c_void_p,c_char_p,c_int,c_int,c_void_p]
     self.lib.lammps_gather_atoms.restype = None
 
-    self.lib.lammps_gather_atoms_concat.argtypes = \
-      [c_void_p,c_char_p,c_int,c_int,c_void_p]
+    self.lib.lammps_gather_atoms_concat.argtypes = [c_void_p,c_char_p,c_int,c_int,c_void_p]
     self.lib.lammps_gather_atoms_concat.restype = None
 
     self.lib.lammps_gather_atoms_subset.argtypes = \
       [c_void_p,c_char_p,c_int,c_int,c_int,POINTER(c_int),c_void_p]
     self.lib.lammps_gather_atoms_subset.restype = None
 
-    self.lib.lammps_scatter_atoms.argtypes = \
-      [c_void_p,c_char_p,c_int,c_int,c_void_p]
+    self.lib.lammps_scatter_atoms.argtypes = [c_void_p,c_char_p,c_int,c_int,c_void_p]
     self.lib.lammps_scatter_atoms.restype = None
 
     self.lib.lammps_scatter_atoms_subset.argtypes = \
@@ -207,20 +208,17 @@ class lammps(object):
     self.lib.lammps_gather_bonds.argtypes = [c_void_p,c_void_p]
     self.lib.lammps_gather_bonds.restype = None
 
-    self.lib.lammps_gather.argtypes = \
-      [c_void_p,c_char_p,c_int,c_int,c_void_p]
+    self.lib.lammps_gather.argtypes = [c_void_p,c_char_p,c_int,c_int,c_void_p]
     self.lib.lammps_gather.restype = None
 
-    self.lib.lammps_gather_concat.argtypes = \
-      [c_void_p,c_char_p,c_int,c_int,c_void_p]
+    self.lib.lammps_gather_concat.argtypes = [c_void_p,c_char_p,c_int,c_int,c_void_p]
     self.lib.lammps_gather_concat.restype = None
 
     self.lib.lammps_gather_subset.argtypes = \
       [c_void_p,c_char_p,c_int,c_int,c_int,POINTER(c_int),c_void_p]
     self.lib.lammps_gather_subset.restype = None
 
-    self.lib.lammps_scatter.argtypes = \
-      [c_void_p,c_char_p,c_int,c_int,c_void_p]
+    self.lib.lammps_scatter.argtypes = [c_void_p,c_char_p,c_int,c_int,c_void_p]
     self.lib.lammps_scatter.restype = None
 
     self.lib.lammps_scatter_subset.argtypes = \
@@ -240,7 +238,8 @@ class lammps(object):
     self.lib.lammps_neighlist_num_elements.argtypes = [c_void_p, c_int]
     self.lib.lammps_neighlist_num_elements.restype  = c_int
 
-    self.lib.lammps_neighlist_element_neighbors.argtypes = [c_void_p, c_int, c_int, POINTER(c_int), POINTER(c_int), POINTER(POINTER(c_int))]
+    self.lib.lammps_neighlist_element_neighbors.argtypes = \
+      [c_void_p, c_int, c_int, POINTER(c_int), POINTER(c_int), POINTER(POINTER(c_int))]
     self.lib.lammps_neighlist_element_neighbors.restype  = None
 
     self.lib.lammps_is_running.argtypes = [c_void_p]
@@ -332,7 +331,7 @@ class lammps(object):
     #   ptr is the desired instance of LAMMPS
     #   just convert it to ctypes ptr and store in self.lmp
 
-    if not ptr:
+    if ptr is None:
 
       # with mpi4py v2+, we can pass MPI communicators to LAMMPS
       # need to adjust for type of MPI communicator object
@@ -341,7 +340,7 @@ class lammps(object):
         from mpi4py import MPI
         self.MPI = MPI
 
-      if comm:
+      if comm is not None:
         if not self.has_mpi_support:
           raise Exception('LAMMPS not compiled with real MPI library')
         if not self.has_mpi4py:
@@ -357,18 +356,16 @@ class lammps(object):
 
         narg = 0
         cargs = None
-        if cmdargs:
+        if cmdargs is not None:
           cmdargs.insert(0,"lammps")
           narg = len(cmdargs)
           for i in range(narg):
             if type(cmdargs[i]) is str:
               cmdargs[i] = cmdargs[i].encode()
           cargs = (c_char_p*narg)(*cmdargs)
-          self.lib.lammps_open.argtypes = [c_int, c_char_p*narg, \
-                                           MPI_Comm, c_void_p]
+          self.lib.lammps_open.argtypes = [c_int, c_char_p*narg, MPI_Comm, c_void_p]
         else:
-          self.lib.lammps_open.argtypes = [c_int, c_char_p, \
-                                           MPI_Comm, c_void_p]
+          self.lib.lammps_open.argtypes = [c_int, c_char_p, MPI_Comm, c_void_p]
 
         self.opened = 1
         comm_ptr = self.MPI._addressof(comm)
@@ -379,15 +376,14 @@ class lammps(object):
         if self.has_mpi4py and self.has_mpi_support:
           self.comm = self.MPI.COMM_WORLD
         self.opened = 1
-        if cmdargs:
+        if cmdargs is not None:
           cmdargs.insert(0,"lammps")
           narg = len(cmdargs)
           for i in range(narg):
             if type(cmdargs[i]) is str:
               cmdargs[i] = cmdargs[i].encode()
           cargs = (c_char_p*narg)(*cmdargs)
-          self.lib.lammps_open_no_mpi.argtypes = [c_int, c_char_p*narg, \
-                                                  c_void_p]
+          self.lib.lammps_open_no_mpi.argtypes = [c_int, c_char_p*narg, c_void_p]
           self.lmp = c_void_p(self.lib.lammps_open_no_mpi(narg,cargs,None))
         else:
           self.lib.lammps_open_no_mpi.argtypes = [c_int, c_char_p, c_void_p]
@@ -405,6 +401,10 @@ class lammps(object):
         pythonapi.PyCObject_AsVoidPtr.restype = c_void_p
         pythonapi.PyCObject_AsVoidPtr.argtypes = [py_object]
         self.lmp = c_void_p(pythonapi.PyCObject_AsVoidPtr(ptr))
+
+    # check if library initilialization failed
+    if not self.lmp:
+      raise(RuntimeError("Failed to initialize LAMMPS object"))
 
     # optional numpy support (lazy loading)
     self._numpy = None
@@ -955,17 +955,14 @@ class lammps(object):
       return ptr
 
     elif ctype == LMP_SIZE_COLS:
-      if cstyle == LMP_STYLE_GLOBAL  \
-         or cstyle == LMP_STYLE_ATOM \
-         or cstyle == LMP_STYLE_LOCAL:
+      if cstyle == LMP_STYLE_GLOBAL or cstyle == LMP_STYLE_ATOM or cstyle == LMP_STYLE_LOCAL:
         self.lib.lammps_extract_compute.restype = POINTER(c_int)
         with ExceptionCheck(self):
           ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)
         return ptr[0]
 
     elif ctype == LMP_SIZE_VECTOR or ctype == LMP_SIZE_ROWS:
-      if cstyle == LMP_STYLE_GLOBAL  \
-         or cstyle == LMP_STYLE_LOCAL:
+      if cstyle == LMP_STYLE_GLOBAL or cstyle == LMP_STYLE_LOCAL:
         self.lib.lammps_extract_compute.restype = POINTER(c_int)
         with ExceptionCheck(self):
           ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)
@@ -1112,6 +1109,16 @@ class lammps(object):
       else: return None
       return result
     return None
+
+  # -------------------------------------------------------------------------
+
+  def flush_buffers(self):
+    """Flush output buffers
+
+    This is a wrapper around the :cpp:func:`lammps_flush_buffers`
+    function of the C-library interface.
+    """
+    self.lib.lammps_flush_buffers(self.lmp)
 
   # -------------------------------------------------------------------------
 
@@ -1364,7 +1371,7 @@ class lammps(object):
     This function is a wrapper around the :cpp:func:`lammps_create_atoms`
     function of the C-library interface, and the behavior is similar except
     that the *v*, *image*, and *shrinkexceed* arguments are optional and
-    default to *None*, *None*, and *False*, respectively. With none being
+    default to *None*, *None*, and *False*, respectively. With *None* being
     equivalent to a ``NULL`` pointer in C.
 
     The lists of coordinates, types, atom IDs, velocities, image flags can
@@ -1392,7 +1399,7 @@ class lammps(object):
     :return: number of atoms created. 0 if insufficient or invalid data
     :rtype: int
     """
-    if id:
+    if id is not None:
       id_lmp = (self.c_tagint*n)()
       try:
         id_lmp[:] = id[0:n]
@@ -1414,7 +1421,7 @@ class lammps(object):
     except ValueError:
       return 0
 
-    if v:
+    if v is not None:
       v_lmp = (c_double*(three_n))()
       try:
         v_lmp[:] = v[0:three_n]
@@ -1423,7 +1430,7 @@ class lammps(object):
     else:
       v_lmp = None
 
-    if image:
+    if image is not None:
       img_lmp = (self.c_imageint*n)()
       try:
         img_lmp[:] = image[0:n]

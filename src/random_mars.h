@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class RanMars : protected Pointers {
  public:
   RanMars(class LAMMPS *, int);
-  ~RanMars();
+  ~RanMars() override;
   double uniform();
   double gaussian();
   double gaussian(double mu, double sigma);
@@ -42,12 +42,3 @@ class RanMars : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Invalid seed for Marsaglia random # generator
-
-The initial seed for this random number generator must be a positive
-integer less than or equal to 900 million.
-
-*/

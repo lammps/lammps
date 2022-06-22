@@ -37,7 +37,6 @@ ComputeHeatFluxTally::ComputeHeatFluxTally(LAMMPS *lmp, int narg, char **arg) :
 
   vector_flag = 1;
   timeflag = 1;
-  dynamic_group_allow = 0;
 
   comm_reverse = 7;
   extvector = 1;
@@ -210,7 +209,7 @@ void ComputeHeatFluxTally::compute_vector()
   // collect contributions from ghost atoms
 
   if (force->newton_pair) {
-    comm->reverse_comm_compute(this);
+    comm->reverse_comm(this);
 
     const int nall = atom->nlocal + atom->nghost;
     for (int i = atom->nlocal; i < nall; ++i) {

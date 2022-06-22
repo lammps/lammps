@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class FixMSST : public Fix {
  public:
   FixMSST(class LAMMPS *, int, char **);
-  ~FixMSST();
-  int setmask();
-  void init();
-  void setup(int);
-  void initial_integrate(int);
-  void final_integrate();
-  double compute_scalar();
-  double compute_vector(int);
-  void write_restart(FILE *);
-  void restart(char *);
-  int modify_param(int, char **);
-  double memory_usage();
+  ~FixMSST() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  double compute_scalar() override;
+  double compute_vector(int) override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
+  int modify_param(int, char **) override;
+  double memory_usage() override;
 
  private:
   double dtv, dtf, dthalf;        // full and half step sizes
@@ -112,68 +112,3 @@ class FixMSST : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix msst tscale must satisfy 0 <= tscale < 1
-
-Self-explanatory.
-
-E: Fix msst requires a periodic box
-
-Self-explanatory.
-
-E: Cannot use fix msst without per-type mass defined
-
-Self-explanatory.
-
-E: Could not find fix msst compute ID
-
-Self-explanatory.
-
-E: Fix msst compute ID does not compute temperature
-
-Self-explanatory.
-
-E: Fix msst compute ID does not compute pressure
-
-Self-explanatory.
-
-E: Fix msst compute ID does not compute potential energy
-
-Self-explanatory.
-
-E: Fix msst dftb cannot be used w/out fix external
-
-UNDOCUMENTED
-
-E: Could not find fix_modify temperature ID
-
-The compute ID for computing temperature does not exist.
-
-E: Fix_modify temperature ID does not compute temperature
-
-The compute ID assigned to the fix must compute temperature.
-
-W: Temperature for MSST is not for group all
-
-User-assigned temperature to MSST fix does not compute temperature for
-all atoms.  Since MSST computes a global pressure, the kinetic energy
-contribution from the temperature is assumed to also be for all atoms.
-Thus the pressure used by MSST could be inaccurate.
-
-E: Could not find fix_modify pressure ID
-
-The compute ID for computing pressure does not exist.
-
-E: Fix_modify pressure ID does not compute pressure
-
-The compute ID assigned to the fix must compute pressure.
-
-*/

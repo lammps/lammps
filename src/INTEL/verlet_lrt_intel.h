@@ -46,10 +46,10 @@ namespace LAMMPS_NS {
 class VerletLRTIntel : public Verlet {
  public:
   VerletLRTIntel(class LAMMPS *, int, char **);
-  virtual ~VerletLRTIntel();
-  virtual void init();
-  virtual void setup(int flag);
-  virtual void run(int);
+  ~VerletLRTIntel() override;
+  void init() override;
+  void setup(int flag) override;
+  void run(int) override;
 
  protected:
   PPPMIntel *_intel_kspace;
@@ -68,17 +68,3 @@ class VerletLRTIntel : public Verlet {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: LRT otion for Intel package disabled at compile time
-
-This option cannot be used with the Intel package because LAMMPS was not built
-with support for it.
-
-W: No fixes defined, atoms won't move
-
-If you are not using a fix like nve, nvt, npt then atom velocities and
-coordinates will not be updated during timestepping.
-
-*/

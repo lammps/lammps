@@ -28,20 +28,20 @@ namespace LAMMPS_NS {
 class PPPMTIP4POMP : public PPPMTIP4P, public ThrOMP {
  public:
   PPPMTIP4POMP(class LAMMPS *);
-  virtual ~PPPMTIP4POMP();
-  virtual void compute(int, int);
+  ~PPPMTIP4POMP() override;
+  void compute(int, int) override;
 
  protected:
-  virtual void allocate();
+  void allocate() override;
 
-  virtual void compute_gf_ik();
-  virtual void compute_gf_ad();
+  void compute_gf_ik() override;
+  void compute_gf_ad() override;
 
-  virtual void particle_map();
-  virtual void make_rho();    // XXX: not (yet) multi-threaded
+  void particle_map() override;
+  void make_rho() override;    // XXX: not (yet) multi-threaded
 
-  virtual void fieldforce_ik();
-  virtual void fieldforce_ad();
+  void fieldforce_ik() override;
+  void fieldforce_ad() override;
   // virtual void fieldforce_peratom();  XXX: need to benchmark first.
 
  private:
@@ -59,11 +59,3 @@ class PPPMTIP4POMP : public PPPMTIP4P, public ThrOMP {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Kspace style pppm/tip4p/omp requires newton on
-
-Self-explanatory.
-
-*/

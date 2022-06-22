@@ -56,7 +56,7 @@ Examples
    read_data ../run7/data.polymer.gz
    read_data data.protein fix mycmap crossterm CMAP
    read_data data.water add append offset 3 1 1 1 1 shift 0.0 0.0 50.0
-   read_data data.water add merge 1 group solvent
+   read_data data.water add merge group solvent
 
 Description
 """""""""""
@@ -254,7 +254,9 @@ the fix defines the syntax of the header line(s) and section that it
 reads from the data file.  Note that the *header-string* can be
 specified as NULL, in which case no header lines are passed to the
 fix.  This means the fix can infer the length of its Section from
-standard header settings, such as the number of atoms.
+standard header settings, such as the number of atoms.  Also the
+*section-string* may be specified as NULL, and in that case the fix
+ID is used as section name.
 
 The formatting of individual lines in the data file (indentation,
 spacing between words and numbers) is not important except that header
@@ -620,6 +622,8 @@ of analysis.
      - atom-ID molecule-ID atom-type x y z
    * - charge
      - atom-ID atom-type q x y z
+   * - dielectric
+     - atom-ID atom-type q x y z normx normy normz area ed em epsilon curvature
    * - dipole
      - atom-ID atom-type q x y z mux muy muz
    * - dpd
@@ -648,6 +652,8 @@ of analysis.
      - atom-ID atom-type rho esph cv x y z
    * - sphere
      - atom-ID atom-type diameter density x y z
+   * - bpm/sphere
+     - atom-ID molecule-ID atom-type diameter density x y z
    * - spin
      - atom-ID atom-type x y z spx spy spz sp
    * - tdpd

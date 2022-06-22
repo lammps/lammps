@@ -17,20 +17,16 @@
 ------------------------------------------------------------------------- */
 
 #include "molfile_interface.h"
+
+#include "platform.h"
+#include "tokenizer.h"
+#include "utils.h"
+
 #include "molfile_plugin.h"
 
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
-#include <cctype>
-#include <strings.h>    // for strcasecmp()
-
-#if defined(_WIN32)
-#include <windows.h>
-#else
-#include <dirent.h>
-#include <dlfcn.h>
-#endif
 
 #if vmdplugin_ABIVERSION < 16
 #error "unsupported VMD molfile plugin ABI version"
@@ -39,9 +35,9 @@
 #define DEBUG 0
 
 extern "C" {
-  typedef int (*initfunc)(void);
+  typedef int (*initfunc)();
   typedef int (*regfunc)(void *, vmdplugin_register_cb);
-  typedef int (*finifunc)(void);
+  typedef int (*finifunc)();
 
   typedef struct {
     void *p;
@@ -51,7 +47,7 @@ extern "C" {
   // callback function for plugin registration.
   static int plugin_register_cb(void *v, vmdplugin_t *p)
   {
-    plugin_reginfo_t *r = static_cast<plugin_reginfo_t *>(v);
+    auto r = static_cast<plugin_reginfo_t *>(v);
     // make sure we have the proper plugin type (native reader)
     // for the desired file type (called "name" at this level)
     if ((strcmp(MOLFILE_PLUGIN_TYPE,p->type) == 0)
@@ -79,25 +75,25 @@ extern "C" {
 
   /* corresponding table of masses. */
   static const float pte_mass[] = {
-    /* X  */ 0.00000, 1.00794, 4.00260, 6.941, 9.012182, 10.811,
-    /* C  */ 12.0107, 14.0067, 15.9994, 18.9984032, 20.1797,
-    /* Na */ 22.989770, 24.3050, 26.981538, 28.0855, 30.973761,
-    /* S  */ 32.065, 35.453, 39.948, 39.0983, 40.078, 44.955910,
-    /* Ti */ 47.867, 50.9415, 51.9961, 54.938049, 55.845, 58.9332,
-    /* Ni */ 58.6934, 63.546, 65.409, 69.723, 72.64, 74.92160,
-    /* Se */ 78.96, 79.904, 83.798, 85.4678, 87.62, 88.90585,
-    /* Zr */ 91.224, 92.90638, 95.94, 98.0, 101.07, 102.90550,
-    /* Pd */ 106.42, 107.8682, 112.411, 114.818, 118.710, 121.760,
-    /* Te */ 127.60, 126.90447, 131.293, 132.90545, 137.327,
-    /* La */ 138.9055, 140.116, 140.90765, 144.24, 145.0, 150.36,
-    /* Eu */ 151.964, 157.25, 158.92534, 162.500, 164.93032,
-    /* Er */ 167.259, 168.93421, 173.04, 174.967, 178.49, 180.9479,
-    /* W  */ 183.84, 186.207, 190.23, 192.217, 195.078, 196.96655,
-    /* Hg */ 200.59, 204.3833, 207.2, 208.98038, 209.0, 210.0, 222.0,
-    /* Fr */ 223.0, 226.0, 227.0, 232.0381, 231.03588, 238.02891,
-    /* Np */ 237.0, 244.0, 243.0, 247.0, 247.0, 251.0, 252.0, 257.0,
-    /* Md */ 258.0, 259.0, 262.0, 261.0, 262.0, 266.0, 264.0, 269.0,
-    /* Mt */ 268.0, 271.0, 272.0
+    /* X  */ 0.00000f, 1.00794f, 4.00260f, 6.941f, 9.012182f, 10.811f,
+    /* C  */ 12.0107f, 14.0067f, 15.9994f, 18.9984032f, 20.1797f,
+    /* Na */ 22.989770f, 24.3050f, 26.981538f, 28.0855f, 30.973761f,
+    /* S  */ 32.065f, 35.453f, 39.948f, 39.0983f, 40.078f, 44.955910f,
+    /* Ti */ 47.867f, 50.9415f, 51.9961f, 54.938049f, 55.845f, 58.9332f,
+    /* Ni */ 58.6934f, 63.546f, 65.409f, 69.723f, 72.64f, 74.92160f,
+    /* Se */ 78.96f, 79.904f, 83.798f, 85.4678f, 87.62f, 88.90585f,
+    /* Zr */ 91.224f, 92.90638f, 95.94f, 98.0f, 101.07f, 102.90550f,
+    /* Pd */ 106.42f, 107.8682f, 112.411f, 114.818f, 118.710f, 121.760f,
+    /* Te */ 127.60f, 126.90447f, 131.293f, 132.90545f, 137.327f,
+    /* La */ 138.9055f, 140.116f, 140.90765f, 144.24f, 145.0f, 150.36f,
+    /* Eu */ 151.964f, 157.25f, 158.92534f, 162.500f, 164.93032f,
+    /* Er */ 167.259f, 168.93421f, 173.04f, 174.967f, 178.49f, 180.9479f,
+    /* W  */ 183.84f, 186.207f, 190.23f, 192.217f, 195.078f, 196.96655f,
+    /* Hg */ 200.59f, 204.3833f, 207.2f, 208.98038f, 209.0f, 210.0f, 222.0f,
+    /* Fr */ 223.0f, 226.0f, 227.0f, 232.0381f, 231.03588f, 238.02891f,
+    /* Np */ 237.0f, 244.0f, 243.0f, 247.0f, 247.0f, 251.0f, 252.0f, 257.0f,
+    /* Md */ 258.0f, 259.0f, 262.0f, 261.0f, 262.0f, 266.0f, 264.0f, 269.0f,
+    /* Mt */ 268.0f, 271.0f, 272.0f
   };
 
   /*
@@ -111,25 +107,25 @@ extern "C" {
    * Rmin/2 parameters for (SOD, POT, CLA, CAL, MG, CES) by default.
    */
   static const float pte_vdw_radius[] = {
-    /* X  */ 1.5, 1.2, 1.4, 1.82, 2.0, 2.0,
-    /* C  */ 1.7, 1.55, 1.52, 1.47, 1.54,
-    /* Na */ 1.36, 1.18, 2.0, 2.1, 1.8,
-    /* S  */ 1.8, 2.27, 1.88, 1.76, 1.37, 2.0,
-    /* Ti */ 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
-    /* Ni */ 1.63, 1.4, 1.39, 1.07, 2.0, 1.85,
-    /* Se */ 1.9, 1.85, 2.02, 2.0, 2.0, 2.0,
-    /* Zr */ 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
-    /* Pd */ 1.63, 1.72, 1.58, 1.93, 2.17, 2.0,
-    /* Te */ 2.06, 1.98, 2.16, 2.1, 2.0,
-    /* La */ 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
-    /* Eu */ 2.0, 2.0, 2.0, 2.0, 2.0,
-    /* Er */ 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
-    /* W  */ 2.0, 2.0, 2.0, 2.0, 1.72, 1.66,
-    /* Hg */ 1.55, 1.96, 2.02, 2.0, 2.0, 2.0, 2.0,
-    /* Fr */ 2.0, 2.0, 2.0, 2.0, 2.0, 1.86,
-    /* Np */ 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
-    /* Md */ 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
-    /* Mt */ 2.0, 2.0, 2.0
+    /* X  */ 1.5f, 1.2f, 1.4f, 1.82f, 2.0f, 2.0f,
+    /* C  */ 1.7f, 1.55f, 1.52f, 1.47f, 1.54f,
+    /* Na */ 1.36f, 1.18f, 2.0f, 2.1f, 1.8f,
+    /* S  */ 1.8f, 2.27f, 1.88f, 1.76f, 1.37f, 2.0f,
+    /* Ti */ 2.0f, 2.0f, 2.0f, 2.0f, 2.0f, 2.0f,
+    /* Ni */ 1.63f, 1.4f, 1.39f, 1.07f, 2.0f, 1.85f,
+    /* Se */ 1.9f, 1.85f, 2.02f, 2.0f, 2.0f, 2.0f,
+    /* Zr */ 2.0f, 2.0f, 2.0f, 2.0f, 2.0f, 2.0f,
+    /* Pd */ 1.63f, 1.72f, 1.58f, 1.93f, 2.17f, 2.0f,
+    /* Te */ 2.06f, 1.98f, 2.16f, 2.1f, 2.0f,
+    /* La */ 2.0f, 2.0f, 2.0f, 2.0f, 2.0f, 2.0f,
+    /* Eu */ 2.0f, 2.0f, 2.0f, 2.0f, 2.0f,
+    /* Er */ 2.0f, 2.0f, 2.0f, 2.0f, 2.0f, 2.0f,
+    /* W  */ 2.0f, 2.0f, 2.0f, 2.0f, 1.72f, 1.66f,
+    /* Hg */ 1.55f, 1.96f, 2.02f, 2.0f, 2.0f, 2.0f, 2.0f,
+    /* Fr */ 2.0f, 2.0f, 2.0f, 2.0f, 2.0f, 1.86f,
+    /* Np */ 2.0f, 2.0f, 2.0f, 2.0f, 2.0f, 2.0f, 2.0f, 2.0f,
+    /* Md */ 2.0f, 2.0f, 2.0f, 2.0f, 2.0f, 2.0f, 2.0f, 2.0f,
+    /* Mt */ 2.0f, 2.0f, 2.0f
   };
 
   /* lookup functions */
@@ -199,172 +195,17 @@ extern "C" {
     return 0;
   }
 
-  // directory traversal helper functions
-
-#if defined(_WIN32)
-
-  // Win32 directory traversal handle
-  typedef struct {
-    HANDLE h;
-    WIN32_FIND_DATA fd;
-    char *name;
-    char *searchname;
-    int dlen;
-  } dirhandle_t;
-
-  // open a directory handle
-  static dirhandle_t *my_opendir(const char *dirname)
-  {
-    dirhandle_t *d;
-    int len;
-
-    if (dirname == nullptr)
-      return nullptr;
-    d = new dirhandle_t;
-
-    len = 2 + strlen(dirname);
-    d->name = new char[len];
-    strcpy(d->name, dirname);
-    strcat(d->name, "\\");
-    d->dlen = len;
-
-    len += 1;
-    d->searchname = new char[len];
-    strcpy(d->searchname, dirname);
-    strcat(d->searchname, "\\*");
-
-    d->h = FindFirstFile(d->searchname, &(d->fd));
-    if (d->h == ((HANDLE)(-1))) {
-      delete[] d->searchname;
-      delete[] d->name;
-      delete d;
-      return nullptr;
-    }
-    return d;
-  }
-
-  // get next file name from directory handle
-  static char *my_readdir(dirhandle_t *d)
-  {
-    if (FindNextFile(d->h, &(d->fd))) {
-      return d->fd.cFileName;
-    }
-    return nullptr;
-  }
-
-  // close directory handle
-  static void my_closedir(dirhandle_t *d)
-  {
-    if (d->h != nullptr) {
-      FindClose(d->h);
-    }
-    delete[] d->searchname;
-    delete[] d->name;
-    delete d;
-  }
-
-  // open a shared object file
-  static void *my_dlopen(const char *fname) {
-    return (void *)LoadLibrary(fname);
-  }
-
-  // resolve a symbol in shared object
-  static void *my_dlsym(void *h, const char *sym) {
-    return (void *)GetProcAddress((HINSTANCE)h, sym);
-  }
-
-  // close a shared object
-  static int my_dlclose(void *h) {
-    /* FreeLibrary returns nonzero on success */
-    return !FreeLibrary((HINSTANCE)h);
-  }
-
-#else
-
-  // Unix directory traversal handle
-  typedef struct {
-    DIR *d;
-    char *name;
-    int dlen;
-  } dirhandle_t;
-
-  // open a directory handle
-  static dirhandle_t *my_opendir(const char *dirname)
-  {
-    dirhandle_t *d;
-    int len;
-
-    if (dirname == nullptr) return nullptr;
-
-    d = new dirhandle_t;
-    len = 2 + strlen(dirname);
-    d->name = new char[len];
-    strcpy(d->name,dirname);
-    strcat(d->name,"/");
-    d->dlen = len;
-
-    d->d = opendir(d->name);
-    if (d->d == nullptr) {
-      delete[] d->name;
-      delete d;
-      return nullptr;
-    }
-    return d;
-  }
-
-  // get next file name from directory handle
-  static char *my_readdir(dirhandle_t *d)
-  {
-    struct dirent *p;
-
-    if ((p = readdir(d->d)) != nullptr) {
-      return p->d_name;
-    }
-
-    return nullptr;
-  }
-
-  // close directory handle
-  static void my_closedir(dirhandle_t *d)
-  {
-    if (d->d != nullptr) {
-      closedir(d->d);
-    }
-    delete[] d->name;
-    delete d;
-    return;
-  }
-
-  // open a shared object file
-  static void *my_dlopen(const char *fname) {
-    return dlopen(fname, RTLD_NOW);
-  }
-
-  // resolve a symbol in shared object
-  static void *my_dlsym(void *h, const char *sym) {
-    return dlsym(h, sym);
-  }
-
-  // close a shared object
-  static int my_dlclose(void *h) {
-    return dlclose(h);
-  }
-
-#endif
-
 } // end of extern "C" region
 
 using namespace LAMMPS_NS;
 
 // constructor.
 MolfileInterface::MolfileInterface(const char *type, const int mode)
-  : _plugin(0), _dso(0), _ptr(0), _info(0), _natoms(0),
-    _mode(mode), _caps(M_NONE)
+  : _plugin(nullptr), _dso(nullptr), _ptr(nullptr), _info(nullptr), _natoms(0),
+    _mode(mode), _caps(M_NONE), _props(0)
 {
-  _name = new char[5];
-  strcpy(_name,"none");
-  _type = new char[1+strlen(type)];
-  strcpy(_type,type);
+  _name = utils::strdup("none");
+  _type = utils::strdup(type);
 }
 
 // destructor.
@@ -373,7 +214,7 @@ MolfileInterface::~MolfileInterface()
   forget_plugin();
 
   if (_info) {
-    molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+    auto a = static_cast<molfile_atom_t *>(_info);
     delete[] a;
     _info = nullptr;
   }
@@ -384,62 +225,21 @@ MolfileInterface::~MolfileInterface()
 // register the best matching plugin in a given directory
 int MolfileInterface::find_plugin(const char *pluginpath)
 {
-  dirhandle_t *dir;
-  char *filename, *ext, *next, *path, *plugindir;
   int retval = E_NONE;
 
-#if defined(_WIN32)
-#define MY_PATHSEP ';'
-#else
-#define MY_PATHSEP ':'
-#endif
   if (pluginpath == nullptr) return E_DIR;
-  plugindir = path = strdup(pluginpath);
 
-  while (plugindir) {
-    // check if this a single directory or path.
-    next = strchr(plugindir,MY_PATHSEP);
-    if (next) {
-      *next = '\0';
-      ++next;
+  // search for suitable file names in provided path and try to inspect them
+  // only look at .so files, since this is what VMD uses on all platforms
+
+  for (const auto &dir : Tokenizer(pluginpath,":").as_vector()) {
+    for (const auto &filename : platform::list_directory(dir)) {
+      if (utils::strmatch(filename,"\\.so$")) {
+        int rv = load_plugin(platform::path_join(dir,filename).c_str());
+        if (rv > retval) retval = rv;
+      }
     }
-
-    dir = my_opendir(plugindir);
-    if (!dir)
-      retval = (retval > E_DIR) ? retval : E_DIR;
-
-    // search for suitable file names and try to inspect them
-    while (dir) {
-      char *fullname;
-      int len;
-
-      filename = my_readdir(dir);
-      if (filename == nullptr) break;
-
-      // only look at .so files
-      ext = strrchr(filename, '.');
-      if (ext == nullptr) continue;
-      if (strcasecmp(ext,".so") != 0) continue;
-
-      // construct full pathname of potential DSO
-      len = dir->dlen;
-      len += strlen(filename);
-      fullname = new char[len];
-      strcpy(fullname,dir->name);
-      strcat(fullname,filename);
-
-      // try to register plugin at file name.
-      int rv = load_plugin(fullname);
-      if (rv > retval) retval = rv;
-
-      delete[] fullname;
-    }
-    if (dir)
-      my_closedir(dir);
-
-    plugindir = next;
   }
-  free(path);
   return retval;
 }
 
@@ -447,25 +247,25 @@ int MolfileInterface::find_plugin(const char *pluginpath)
 int MolfileInterface::load_plugin(const char *filename)
 {
   void *dso;
-  int len, retval = E_NONE;
+  int retval = E_NONE;
 
   // access shared object
-  dso = my_dlopen(filename);
+  dso = platform::dlopen(filename);
   if (dso == nullptr)
     return E_FILE;
 
   // check for required plugin symbols
-  void *ifunc = my_dlsym(dso,"vmdplugin_init");
-  void *rfunc = my_dlsym(dso,"vmdplugin_register");
-  void *ffunc = my_dlsym(dso,"vmdplugin_fini");
+  void *ifunc = platform::dlsym(dso,"vmdplugin_init");
+  void *rfunc = platform::dlsym(dso,"vmdplugin_register");
+  void *ffunc = platform::dlsym(dso,"vmdplugin_fini");
   if (ifunc == nullptr || rfunc == nullptr || ffunc == nullptr) {
-    my_dlclose(dso);
+    platform::dlclose(dso);
     return E_SYMBOL;
   }
 
   // initialize plugin. skip plugin if it fails.
   if (((initfunc)(ifunc))()) {
-    my_dlclose(dso);
+    platform::dlclose(dso);
     return E_SYMBOL;
   }
 
@@ -478,7 +278,7 @@ int MolfileInterface::load_plugin(const char *filename)
   ((regfunc)rfunc)(&reginfo, plugin_register_cb);
 
   // make some checks to see if the plugin is suitable or not.
-  molfile_plugin_t *plugin = static_cast<molfile_plugin_t *>(reginfo.p);
+  auto plugin = static_cast<molfile_plugin_t *>(reginfo.p);
 
   // if the callback found a matching plugin and copied the struct,
   // its name element will point to a different location now.
@@ -528,12 +328,8 @@ int MolfileInterface::load_plugin(const char *filename)
     forget_plugin();
 
     delete[] _name;
-    len = 16;
-    len += strlen(plugin->prettyname);
-    len += strlen(plugin->author);
-    _name = new char[len];
-    sprintf(_name,"%s v%d.%d by %s",plugin->prettyname,
-            plugin->majorv, plugin->minorv, plugin->author);
+    _name = utils::strdup(fmt::format("{} v{}.{} by {}", plugin->prettyname,
+                                      plugin->majorv, plugin->minorv, plugin->author));
 
     // determine plugin capabilities
     _caps = M_NONE;
@@ -569,7 +365,7 @@ int MolfileInterface::load_plugin(const char *filename)
   }
 
   // better luck next time. clean up and return.
-  my_dlclose(dso);
+  platform::dlclose(dso);
   return retval;
 }
 
@@ -583,10 +379,10 @@ void MolfileInterface::forget_plugin()
     _plugin = nullptr;
 
   if (_dso) {
-    void *ffunc = my_dlsym(_dso,"vmdplugin_fini");
+    void *ffunc = platform::dlsym(_dso,"vmdplugin_fini");
     if (ffunc)
       ((finifunc)ffunc)();
-    my_dlclose(_dso);
+    platform::dlclose(_dso);
   }
   _dso = nullptr;
 
@@ -602,7 +398,7 @@ int MolfileInterface::open(const char *name, int *natoms)
 {
   if (!_plugin || !_dso || !natoms)
     return E_FILE;
-  molfile_plugin_t *p = static_cast<molfile_plugin_t *>(_plugin);
+  auto p = static_cast<molfile_plugin_t *>(_plugin);
 
   if (_mode & M_WRITE)
     _ptr = p->open_file_write(name,_type,*natoms);
@@ -616,7 +412,7 @@ int MolfileInterface::open(const char *name, int *natoms)
   // we need to deal with structure information,
   // so we allocate and initialize storage for it.
   if (_mode & (M_RSTRUCT|M_WSTRUCT)) {
-    molfile_atom_t *a = new molfile_atom_t[_natoms];
+    auto a = new molfile_atom_t[_natoms];
     _info = a;
     memset(_info,0,_natoms*sizeof(molfile_atom_t));
     for (int i=0; i < _natoms; ++i) {
@@ -635,7 +431,7 @@ int MolfileInterface::structure()
 {
   if (!_plugin || !_dso)
     return E_FILE;
-  molfile_plugin_t *p = static_cast<molfile_plugin_t *>(_plugin);
+  auto p = static_cast<molfile_plugin_t *>(_plugin);
 
   int optflags = MOLFILE_NOOPTIONS;
 
@@ -647,10 +443,10 @@ int MolfileInterface::structure()
     optflags |= (_props & P_RADS) ? MOLFILE_RADIUS : 0;
     optflags |= (_props & P_ATMN) ? MOLFILE_ATOMICNUMBER : 0;
 
-    molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+    auto a = static_cast<molfile_atom_t *>(_info);
     p->write_structure(_ptr,optflags,a);
   } else if (_mode & M_RSTRUCT) {
-    molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+    auto a = static_cast<molfile_atom_t *>(_info);
     p->read_structure(_ptr,&optflags,a);
     // mandatory properties
     _props = P_NAME|P_TYPE|P_RESN|P_RESI|P_SEGN|P_CHAI;
@@ -671,7 +467,7 @@ int MolfileInterface::close()
   if (!_plugin || !_dso || !_ptr)
     return E_FILE;
 
-  molfile_plugin_t *p = static_cast<molfile_plugin_t *>(_plugin);
+  auto p = static_cast<molfile_plugin_t *>(_plugin);
 
   if (_mode & M_WRITE) {
     p->close_file_write(_ptr);
@@ -680,7 +476,7 @@ int MolfileInterface::close()
   }
 
   if (_info) {
-    molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+    auto a = static_cast<molfile_atom_t *>(_info);
     delete[] a;
     _info = nullptr;
   }
@@ -698,8 +494,8 @@ int MolfileInterface::timestep(float *coords, float *vels,
   if (!_plugin || !_dso || !_ptr)
     return 1;
 
-  molfile_plugin_t *p = static_cast<molfile_plugin_t *>(_plugin);
-  molfile_timestep_t *t = new molfile_timestep_t;
+  auto p = static_cast<molfile_plugin_t *>(_plugin);
+  auto t = new molfile_timestep_t;
   int rv;
 
   if (_mode & M_WRITE) {
@@ -768,10 +564,10 @@ int MolfileInterface::timestep(float *coords, float *vels,
 // functions to read properties from molfile structure
 
 #define PROPUPDATE(PROP,ENTRY,VAL)              \
-  if (propid == PROP) { VAL = a.ENTRY; }
+  if (propid == (PROP)) { (VAL) = a.ENTRY; }
 
 #define PROPSTRCPY(PROP,ENTRY,VAL)              \
-  if (propid == PROP) { strcpy(VAL,a.ENTRY); }
+  if (propid == (PROP)) { strcpy(VAL,a.ENTRY); }
 
 // single precision floating point props
 static float read_float_property(molfile_atom_t &a, const int propid)
@@ -849,10 +645,10 @@ static const char *read_string_property(molfile_atom_t &a,
 // functions to store properties into molfile structure
 
 #define PROPUPDATE(PROP,ENTRY,VAL)                                  \
-  if ((propid & PROP) == PROP) { a.ENTRY = VAL; plist |= PROP; }
+  if ((propid & (PROP)) == (PROP)) { a.ENTRY = VAL; plist |= (PROP); }
 
 #define PROPSTRCPY(PROP,ENTRY,VAL)                                      \
-  if ((propid & PROP) == PROP) { strcpy(a.ENTRY,VAL); plist |= PROP; }
+  if ((propid & (PROP)) == (PROP)) { strcpy(a.ENTRY,VAL); plist |= (PROP); }
 
 // floating point props
 static int write_atom_property(molfile_atom_t &a,
@@ -914,7 +710,7 @@ int MolfileInterface::property(int propid, int idx, float *prop)
   if ((_info == nullptr) || (prop == nullptr) || (idx < 0) || (idx >= _natoms))
     return P_NONE;
 
-  molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+  auto a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT)
     _props |= write_atom_property(a[idx], propid, *prop);
@@ -931,7 +727,7 @@ int MolfileInterface::property(int propid, int *types, float *prop)
   if ((_info == nullptr) || (types == nullptr) || (prop == nullptr))
     return P_NONE;
 
-  molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+  auto a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT) {
     for (int i=0; i < _natoms; ++i)
@@ -951,7 +747,7 @@ int MolfileInterface::property(int propid, float *prop)
   if ((_info == nullptr) || (prop == nullptr))
     return P_NONE;
 
-  molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+  auto a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT) {
     for (int i=0; i < _natoms; ++i)
@@ -972,7 +768,7 @@ int MolfileInterface::property(int propid, int idx, double *prop)
   if ((_info == nullptr) || (prop == nullptr) || (idx < 0) || (idx >= _natoms))
     return P_NONE;
 
-  molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+  auto a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT)
     return write_atom_property(a[idx], propid, *prop);
@@ -989,7 +785,7 @@ int MolfileInterface::property(int propid, int *types, double *prop)
   if ((_info == nullptr) || (types == nullptr) || (prop == nullptr))
     return P_NONE;
 
-  molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+  auto a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT) {
     for (int i=0; i < _natoms; ++i)
@@ -1009,7 +805,7 @@ int MolfileInterface::property(int propid, double *prop)
   if ((_info == nullptr) || (prop == nullptr))
     return P_NONE;
 
-  molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+  auto a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT) {
     for (int i=0; i < _natoms; ++i)
@@ -1044,7 +840,7 @@ int MolfileInterface::property(int propid, int idx, int *prop)
   if ((_info == nullptr) || (prop == nullptr) || (idx < 0) || (idx >= _natoms))
     return P_NONE;
 
-  molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+  auto a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT) {
     char buf[64];
@@ -1069,7 +865,7 @@ int MolfileInterface::property(int propid, int *types, int *prop)
   if ((_info == nullptr) || (types == nullptr) || (prop == nullptr))
     return P_NONE;
 
-  molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+  auto a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT) {
     char buf[64];
@@ -1098,7 +894,7 @@ int MolfileInterface::property(int propid, int *prop)
   if ((_info == nullptr) || (prop == nullptr))
     return P_NONE;
 
-  molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+  auto a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT) {
     char buf[64];
@@ -1129,7 +925,7 @@ int MolfileInterface::property(int propid, int idx, char *prop)
   if ((_info == nullptr) || (prop == nullptr) || (idx < 0) || (idx >= _natoms))
     return P_NONE;
 
-  molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+  auto a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT) {
     _props |= write_atom_property(a[idx], propid, prop);
@@ -1147,7 +943,7 @@ int MolfileInterface::property(int propid, int *types, char **prop)
   if ((_info == nullptr) || (types == nullptr) || (prop == nullptr))
     return P_NONE;
 
-  molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+  auto a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT) {
     for (int i=0; i < _natoms; ++i) {
@@ -1168,7 +964,7 @@ int MolfileInterface::property(int propid, char **prop)
   if ((_info == nullptr) || (prop == nullptr))
     return P_NONE;
 
-  molfile_atom_t *a = static_cast<molfile_atom_t *>(_info);
+  auto a = static_cast<molfile_atom_t *>(_info);
 
   if (_mode & M_WSTRUCT) {
     for (int i=0; i < _natoms; ++i) {

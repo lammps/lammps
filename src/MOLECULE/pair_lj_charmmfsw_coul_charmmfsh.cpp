@@ -22,17 +22,17 @@
 
 #include "pair_lj_charmmfsw_coul_charmmfsh.h"
 
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "update.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-
 
 using namespace LAMMPS_NS;
 
@@ -305,10 +305,9 @@ void PairLJCharmmfswCoulCharmmfsh::coeff(int narg, char **arg)
 void PairLJCharmmfswCoulCharmmfsh::init_style()
 {
   if (!atom->q_flag)
-    error->all(FLERR,"Pair style lj/charmmfsw/coul/charmmfsh "
-               "requires atom attribute q");
+    error->all(FLERR,"Pair style lj/charmmfsw/coul/charmmfsh requires atom attribute q");
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 
   // require cut_lj_inner < cut_lj
 

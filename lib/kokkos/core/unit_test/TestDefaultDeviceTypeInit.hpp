@@ -79,18 +79,26 @@ char** init_kokkos_args(bool do_threads, bool do_numa, bool do_device,
   int numa_idx    = (do_other ? 3 : 0) + (do_threads ? 1 : 0);
   int device_idx =
       (do_other ? 3 : 0) + (do_threads ? 1 : 0) + (do_numa ? 1 : 0);
-  int tune_idx = (do_other ? 3 : 0) + (do_threads ? 1 : 0) + (do_numa ? 1 : 0) +
+  int tune_idx = (do_other ? 4 : 0) + (do_threads ? 1 : 0) + (do_numa ? 1 : 0) +
                  (do_device ? 1 : 0);
 
   if (do_threads) {
     int nthreads = 3;
 
 #ifdef KOKKOS_ENABLE_OPENMP
-    if (omp_get_max_threads() < 3) nthreads = omp_get_max_threads();
+    if (omp_get_max_threads() < nthreads) {
+      nthreads = omp_get_max_threads();
+    }
+#elif defined(KOKKOS_ENABLE_HPX)
+    const auto concurrency = std::thread::hardware_concurrency();
+    if (concurrency < nthreads) {
+      nthreads = concurrency;
+    }
 #endif
 
     if (Kokkos::hwloc::available()) {
-      if (Kokkos::hwloc::get_available_threads_per_core() < 3)
+      if (Kokkos::hwloc::get_available_threads_per_core() <
+          static_cast<unsigned>(nthreads))
         nthreads = Kokkos::hwloc::get_available_threads_per_core() *
                    Kokkos::hwloc::get_available_numa_count();
     }
@@ -153,13 +161,19 @@ Kokkos::InitArguments init_initstruct(bool do_threads, bool do_numa,
     int nthreads = 3;
 
 #ifdef KOKKOS_ENABLE_OPENMP
-    if (omp_get_max_threads() < 3) {
+    if (omp_get_max_threads() < nthreads) {
       nthreads = omp_get_max_threads();
+    }
+#elif defined(KOKKOS_ENABLE_HPX)
+    const auto concurrency = std::thread::hardware_concurrency();
+    if (concurrency < nthreads) {
+      nthreads = concurrency;
     }
 #endif
 
     if (Kokkos::hwloc::available()) {
-      if (Kokkos::hwloc::get_available_threads_per_core() < 3) {
+      if (Kokkos::hwloc::get_available_threads_per_core() <
+          static_cast<unsigned>(nthreads)) {
         nthreads = Kokkos::hwloc::get_available_threads_per_core() *
                    Kokkos::hwloc::get_available_numa_count();
       }

@@ -151,6 +151,7 @@ class ReferenceCountedBase {
   bool decrement_and_check_reference_count() {
     // TODO @tasking @memory_order DSH memory order
     auto old_count = Kokkos::atomic_fetch_add(&m_ref_count, -1);
+    Kokkos::memory_fence();
 
     KOKKOS_ASSERT(old_count > 0 && "reference count greater less than zero!");
 
@@ -158,7 +159,11 @@ class ReferenceCountedBase {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void increment_reference_count() { Kokkos::atomic_increment(&m_ref_count); }
+  void increment_reference_count() {
+    Kokkos::Impl::desul_atomic_inc(&m_ref_count,
+                                   Kokkos::Impl::MemoryOrderSeqCst(),
+                                   Kokkos::Impl::MemoryScopeDevice());
+  }
 };
 
 template <class TaskQueueTraits, class SchedulingInfo>
@@ -664,7 +669,7 @@ class alignas(16) RunnableTask
     // If team then only one thread calls destructor.
 
     const bool only_one_thread =
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA)
+#ifdef __CUDA_ARCH__  // FIXME_CUDA
         0 == threadIdx.x && 0 == threadIdx.y;
 #else
         0 == member->team_rank();

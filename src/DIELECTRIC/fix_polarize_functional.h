@@ -27,25 +27,25 @@ namespace LAMMPS_NS {
 class FixPolarizeFunctional : public Fix {
  public:
   FixPolarizeFunctional(class LAMMPS *, int, char **);
-  ~FixPolarizeFunctional();
-  int setmask();
-  void init();
-  void init_list(int, class NeighList *);
-  void setup(int);
-  void setup_pre_force(int vflag);
-  void pre_force(int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  ~FixPolarizeFunctional() override;
+  int setmask() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void setup(int) override;
+  void setup_pre_force(int vflag) override;
+  void pre_force(int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
-  int modify_param(int, char **);
-  double memory_usage();
+  int modify_param(int, char **) override;
+  double memory_usage() override;
   void allocate();
   void deallocate();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  void set_arrays(int);
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
 
  protected:
   int nmax;
@@ -121,13 +121,3 @@ class FixPolarizeFunctional : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

@@ -14,7 +14,7 @@ CXXLIB = -lstdc++    # replace with your C++ runtime libs
 # Flags for Fortran compiler, C++ compiler, and C preprocessor, respectively
 FFLAGS = -O2 -fPIC
 CXXFLAGS = -O2 -fPIC
-CPPFLAGS = -DOMPI_SKIP_MPICXX=1 -DMPICH_SKIP_MPICXX -DLAMMPS_LIB_MPI
+CPPFLAGS = -DOMPI_SKIP_MPICXX=1 -DMPICH_SKIP_MPICXX
 
 all : liblammps_fortran.a liblammps_fortran.so
 

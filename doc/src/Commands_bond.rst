@@ -32,9 +32,12 @@ OPT.
    *
    *
    *
+   * :doc:`bpm/rotational <bond_bpm_rotational>`
+   * :doc:`bpm/spring <bond_bpm_spring>`
    * :doc:`class2 (ko) <bond_class2>`
    * :doc:`fene (iko) <bond_fene>`
    * :doc:`fene/expand (o) <bond_fene_expand>`
+   * :doc:`fene/nm <bond_fene>`
    * :doc:`gaussian <bond_gaussian>`
    * :doc:`gromos (o) <bond_gromos>`
    * :doc:`harmonic (iko) <bond_harmonic>`
@@ -85,7 +88,7 @@ OPT.
    * :doc:`dipole (o) <angle_dipole>`
    * :doc:`fourier (o) <angle_fourier>`
    * :doc:`fourier/simple (o) <angle_fourier_simple>`
-   * :doc:`gaussian <angle_gaussian>` - multicentered Gaussian-based angle potential
+   * :doc:`gaussian <angle_gaussian>`
    * :doc:`harmonic (iko) <angle_harmonic>`
    * :doc:`mm3 <angle_mm3>`
    * :doc:`quartic (o) <angle_quartic>`

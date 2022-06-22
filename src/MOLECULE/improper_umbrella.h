@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class ImproperUmbrella : public Improper {
  public:
   ImproperUmbrella(class LAMMPS *);
-  virtual ~ImproperUmbrella();
-  virtual void compute(int, int);
-  void coeff(int, char **);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
+  ~ImproperUmbrella() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
 
  protected:
   double *kw, *w0, *C;
@@ -44,16 +44,3 @@ class ImproperUmbrella : public Improper {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-W: Improper problem: %d %ld %d %d %d %d
-
-Conformation of the 4 listed improper atoms is extreme; you may want
-to check your simulation geometry.
-
-E: Incorrect args for improper coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

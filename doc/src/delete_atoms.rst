@@ -10,7 +10,7 @@ Syntax
 
    delete_atoms style args keyword value ...
 
-* style = *group* or *region* or *overlap* or *porosity*
+* style = *group* or *region* or *overlap* or *random* or *variable*
 
   .. parsed-literal::
 
@@ -20,10 +20,19 @@ Syntax
          cutoff = delete one atom from pairs of atoms within the cutoff (distance units)
          group1-ID = one atom in pair must be in this group
          group2-ID = other atom in pair must be in this group
-       *porosity* args = region-ID fraction seed
+       *random* args = ranstyle value eflag group-ID region-ID seed
+         ranstyle = *fraction* or *count*
+           for *fraction*:
+             value = fraction (0.0 to 1.0) of eligible atoms to delete
+             eflag =  *no* for fast approximate deletion, *yes* for exact deletion
+           for *count*:
+             value = number of atoms to delete
+             eflag = *no* for warning if count > eligible atoms, *yes* for error
+         group-ID = group within which to perform deletions
          region-ID = region within which to perform deletions
-         fraction = delete this fraction of atoms
+                     or NULL to only impose the group criterion
          seed = random number seed (positive integer)
+       *variable* args = variable-name
 
 * zero or more keyword/value pairs may be appended
 * keyword = *compress* or *bond* or *mol*
@@ -43,14 +52,17 @@ Examples
    delete_atoms region sphere compress no
    delete_atoms overlap 0.3 all all
    delete_atoms overlap 0.5 solvent colloid
-   delete_atoms porosity cube 0.1 482793 bond yes
+   delete_atoms random fraction 0.1 yes all cube 482793 bond yes
+   delete_atoms random fraction 0.3 no polymer NULL 482793 bond yes
+   delete_atoms random count 500 no ions NULL 482793
+   detele_atoms variable checkers
 
 Description
 """""""""""
 
-Delete the specified atoms.  This command can be used to carve out
-voids from a block of material or to delete created atoms that are too
-close to each other (e.g. at a grain boundary).
+Delete the specified atoms.  This command can be used, for example, to
+carve out voids from a block of material or to delete created atoms
+that are too close to each other (e.g. at a grain boundary).
 
 For style *group*, all atoms belonging to the group are deleted.
 
@@ -76,12 +88,44 @@ have occurred that no atom pairs within the cutoff will remain
 minimum number of atoms will be deleted, or that the same atoms will
 be deleted when running on different numbers of processors.
 
-For style *porosity* a specified *fraction* of atoms are deleted
-within the specified region.  For example, if fraction is 0.1, then
-10% of the atoms will be deleted.  The atoms to delete are chosen
-randomly.  There is no guarantee that the exact fraction of atoms will
-be deleted, or that the same atoms will be deleted when running on
-different numbers of processors.
+For style *random* a subset of eligible atoms are deleted.  Which
+atoms to delete are chosen randomly using the specified random number
+*seed*.  Which atoms are deleted may vary when running on different
+numbers of processors.
+
+For *ranstyle* = *fraction*, the specified fractional *value* (0.0 to
+1.0) of eligible atoms are deleted.  If *eflag* is set to *no*, then
+the number of deleted atoms will be approximate, but the operation
+will be fast.  If *eflag* is set to *yes*, then the number deleted
+will match the requested fraction, but for large systems the selection
+of deleted atoms may take additional time to determine.
+
+For *ranstyle* = *count*, the specified integer *value* is the number
+of eligible atoms are deleted.  If *eflag* is set to *no*, then if the
+requested number is larger then the number of eligible atoms, a
+warning is issued and only the eligible atoms are deleted instead of
+the requested *value*.  If *eflag* is set to *yes*, an error is
+triggered instead and LAMMPS will exit.  For large systems the
+selection of atoms to delete may take additional time to determine,
+the same as for requesting an exact fraction with *pstyle* =
+*fraction*.
+
+Which atoms are eligible for deletion for style *random* is determined
+by the specified *group-ID* and *region-ID*.  To be eligible, an atom
+must be in both the specified group and region.  If *group-ID* = all,
+there is effectively no group criterion.  If *region-ID* is specified
+as NULL, no region criterion is imposed.
+
+For style *variable*, all atoms for which the atom-style variable with
+the given name evaluates to non-zero will be deleted. Additional atoms
+can be deleted if they are in a molecule for which one or more atoms
+were deleted within the region; see the *mol* keyword discussion below.
+This option allows complex selections of atoms not covered by the
+other options listed above.
+
+----------
+
+Here is the meaning of the optional keywords.
 
 If the *compress* keyword is set to *yes*, then after atoms are
 deleted, then atom IDs are re-assigned so that they run from 1 to the
@@ -89,8 +133,8 @@ number of atoms in the system.  Note that this is not done for
 molecular systems (see the :doc:`atom_style <atom_style>` command),
 regardless of the *compress* setting, since it would foul up the bond
 connectivity that has already been assigned.  However, the
-:doc:`reset_atom_ids <reset_atom_ids>` command can be used after this command to
-accomplish the same thing.
+:doc:`reset_atom_ids <reset_atom_ids>` command can be used after this
+command to accomplish the same thing.
 
 Note that the re-assignment of IDs is not really a compression, where
 gaps in atom IDs are removed by decrementing atom IDs that are larger.
@@ -100,15 +144,15 @@ the :doc:`create_atoms <create_atoms>` command explains.
 
 A molecular system with fixed bonds, angles, dihedrals, or improper
 interactions, is one where the topology of the interactions is
-typically defined in the data file read by the
-:doc:`read_data <read_data>` command, and where the interactions
-themselves are defined with the :doc:`bond_style <bond_style>`,
-:doc:`angle_style <angle_style>`, etc commands.  If you delete atoms
-from such a system, you must be careful not to end up with bonded
-interactions that are stored by remaining atoms but which include
-deleted atoms.  This will cause LAMMPS to generate a "missing atoms"
-error when the bonded interaction is computed.  The *bond* and *mol*
-keywords offer two ways to do that.
+typically defined in the data file read by the :doc:`read_data
+<read_data>` command, and where the interactions themselves are
+defined with the :doc:`bond_style <bond_style>`, :doc:`angle_style
+<angle_style>`, etc commands.  If you delete atoms from such a system,
+you must be careful not to end up with bonded interactions that are
+stored by remaining atoms but which include deleted atoms.  This will
+cause LAMMPS to generate a "missing atoms" error when the bonded
+interaction is computed.  The *bond* and *mol* keywords offer two ways
+to do that.
 
 It the *bond* keyword is set to *yes* then any bond or angle or
 dihedral or improper interaction that includes a deleted atom is also

@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class ComputeMSDChunk : public Compute {
  public:
   ComputeMSDChunk(class LAMMPS *, int, char **);
-  ~ComputeMSDChunk();
-  void init();
-  void setup();
-  void compute_array();
+  ~ComputeMSDChunk() override;
+  void init() override;
+  void setup() override;
+  void compute_array() override;
 
-  void lock_enable();
-  void lock_disable();
-  int lock_length();
-  void lock(class Fix *, bigint, bigint);
-  void unlock(class Fix *);
+  void lock_enable() override;
+  void lock_disable() override;
+  int lock_length() override;
+  void lock(class Fix *, bigint, bigint) override;
+  void unlock(class Fix *) override;
 
-  double memory_usage();
+  double memory_usage() override;
 
  private:
   int nchunk;
@@ -59,31 +59,3 @@ class ComputeMSDChunk : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Chunk/atom compute does not exist for compute msd/chunk
-
-Self-explanatory.
-
-E: Compute msd/chunk does not use chunk/atom compute
-
-The style of the specified compute is not chunk/atom.
-
-E: Could not find compute msd/chunk fix ID
-
-The compute creates an internal fix, which has been deleted.
-
-E: Compute msd/chunk nchunk is not static
-
-This is required because the MSD cannot be computed consistently if
-the number of chunks is changing.  Compute chunk/atom allows setting
-nchunk to be static.
-
-*/

@@ -51,6 +51,23 @@ lmpinstalledpkgs.h
 lmpgitversion.h
 mliap_model_python_couple.cpp
 mliap_model_python_couple.h
+# removed on 8 April 2022
+fix_client_md.cpp
+fix_client_md.h
+message.cpp
+message.h
+server.cpp
+server.h
+server_mc.cpp
+server_mc.h
+server_md.cpp
+server_md.h
+# removed on 8 March 2022
+fix_peri_neigh_omp.cpp
+fix_peri_neigh_omp.h
+# renamed on 7 March 2022
+compute_pressure_cylinder.cpp
+compute_pressure_cylinder.h
 # renamed on 21 July 2021
 fix_qeq_reax_kokkos.cpp
 fix_qeq_reax_kokkos.h

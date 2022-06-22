@@ -30,24 +30,24 @@ class FixWallGran : public Fix {
   enum { NORMAL_NONE, NORMAL_HOOKE, NORMAL_HERTZ, HERTZ_MATERIAL, DMT, JKR };
 
   FixWallGran(class LAMMPS *, int, char **);
-  virtual ~FixWallGran();
-  int setmask();
-  virtual void init();
-  void setup(int);
-  virtual void post_force(int);
-  virtual void post_force_respa(int, int, int);
+  ~FixWallGran() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
 
-  virtual double memory_usage();
-  virtual void grow_arrays(int);
-  virtual void copy_arrays(int, int, int);
-  virtual void set_arrays(int);
-  virtual int pack_exchange(int, double *);
-  virtual int unpack_exchange(int, double *);
-  virtual int pack_restart(int, double *);
-  virtual void unpack_restart(int, int);
-  virtual int size_restart(int);
-  virtual int maxsize_restart();
-  void reset_dt();
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  int pack_restart(int, double *) override;
+  void unpack_restart(int, int) override;
+  int size_restart(int) override;
+  int maxsize_restart() override;
+  void reset_dt() override;
 
   void hooke(double, double, double, double, double *, double *, double *, double *, double *,
              double, double, double *);
@@ -119,46 +119,3 @@ class FixWallGran : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix wall/gran requires atom style sphere
-
-Self-explanatory.
-
-E: Invalid fix wall/gran interaction style
-
-UNDOCUMENTED
-
-E: Cannot use wall in periodic dimension
-
-Self-explanatory.
-
-E: Cannot wiggle and shear fix wall/gran
-
-Cannot specify both options at the same time.
-
-E: Invalid wiggle direction for fix wall/gran
-
-Self-explanatory.
-
-E: Invalid shear direction for fix wall/gran
-
-Self-explanatory.
-
-E: Cannot wiggle or shear with fix wall/gran/region
-
-UNDOCUMENTED
-
-U: Fix wall/gran is incompatible with Pair style
-
-Must use a granular pair style to define the parameters needed for
-this fix.
-
-*/

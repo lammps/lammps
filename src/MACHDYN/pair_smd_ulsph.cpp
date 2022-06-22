@@ -31,7 +31,6 @@
 #include "error.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "smd_kernels.h"
 #include "smd_material_models.h"
@@ -458,7 +457,7 @@ void PairULSPH::compute(int eflag, int vflag) {
          * QUANTITIES ABOVE HAVE ONLY BEEN CALCULATED FOR NLOCAL PARTICLES.
          * NEED TO DO A FORWARD COMMUNICATION TO GHOST ATOMS NOW
          */
-        comm->forward_comm_pair(this);
+        comm->forward_comm(this);
 
         updateFlag = 0;
 
@@ -1136,7 +1135,7 @@ void PairULSPH::coeff(int narg, char **arg) {
                         } // end Linear EOS
                         else if (strcmp(arg[ioffset], "*STRENGTH_LINEAR_PLASTIC") == 0) {
 
-                                if (velocity_gradient != true) {
+                                if (!velocity_gradient) {
                                         error->all(FLERR, "A strength model was requested but *VELOCITY_GRADIENT is not set");
                                 }
 
@@ -1181,7 +1180,7 @@ void PairULSPH::coeff(int narg, char **arg) {
                         } // end *STRENGTH_LINEAR_PLASTIC
                         else if (strcmp(arg[ioffset], "*STRENGTH_LINEAR") == 0) {
 
-                                if (velocity_gradient != true) {
+                                if (!velocity_gradient) {
                                         error->all(FLERR, "A strength model was requested but *VELOCITY_GRADIENT is not set");
                                 }
 
@@ -1219,7 +1218,7 @@ void PairULSPH::coeff(int narg, char **arg) {
                         } // end *STRENGTH_LINEAR
                         else if (strcmp(arg[ioffset], "*VISCOSITY_NEWTON") == 0) {
 
-                                if (velocity_gradient != true) {
+                                if (!velocity_gradient) {
                                         error->all(FLERR, "A viscosity model was requested but *VELOCITY_GRADIENT is not set");
                                 }
 
@@ -1434,10 +1433,8 @@ double PairULSPH::init_one(int i, int j) {
 void PairULSPH::init_style() {
         int i;
 
-//printf(" in init style\n");
-// request a granular neighbor list
-        int irequest = neighbor->request(this);
-        neighbor->requests[irequest]->size = 1;
+ // request a granular neighbor list
+        neighbor->add_request(this, NeighConst::REQ_SIZE);
 
 // set maxrad_dynamic and maxrad_frozen for each type
 // include future Fix pour particles as dynamic
@@ -1584,7 +1581,7 @@ void *PairULSPH::extract(const char *str, int &/*i*/) {
  compute effective shear modulus by dividing rate of deviatoric stress with rate of shear deformation
  ------------------------------------------------------------------------- */
 
-double PairULSPH::effective_shear_modulus(const Matrix3d d_dev, const Matrix3d deltaStressDev, const double dt, const int itype) {
+double PairULSPH::effective_shear_modulus(const Matrix3d& d_dev, const Matrix3d& deltaStressDev, const double dt, const int itype) {
         double G_eff; // effective shear modulus, see Pronto 2d eq. 3.4.7
         double deltaStressDevSum, shearRateSq, strain_increment;
 
@@ -1618,8 +1615,8 @@ double PairULSPH::effective_shear_modulus(const Matrix3d d_dev, const Matrix3d d
  input: particles indices i, j, particle types ityep, jtype
  ------------------------------------------------------------------------- */
 
-Vector3d PairULSPH::ComputeHourglassForce(const int i, const int itype, const int j, const int jtype, const Vector3d dv,
-                const Vector3d xij, const Vector3d g, const double c_ij, const double mu_ij, const double rho_ij) {
+Vector3d PairULSPH::ComputeHourglassForce(const int i, const int itype, const int j, const int jtype, const Vector3d& dv,
+                const Vector3d& xij, const Vector3d& g, const double c_ij, const double mu_ij, const double rho_ij) {
 
         double *rmass = atom->rmass;
         Vector3d dv_est, f_hg;

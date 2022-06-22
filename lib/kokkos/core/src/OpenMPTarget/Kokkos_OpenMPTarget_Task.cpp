@@ -95,8 +95,6 @@ TaskExec<Kokkos::Experimental::OpenMPTarget>::TaskExec(
   Kokkos::memory_fence();
 }
 
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-
 void TaskExec<Kokkos::Experimental::OpenMPTarget>::team_barrier_impl() const {
   if (m_team_exec->scratch_reduce_size() < int(2 * sizeof(int64_t))) {
     Kokkos::abort("TaskQueue<OpenMPTarget> scratch_reduce memory too small");
@@ -112,34 +110,10 @@ void TaskExec<Kokkos::Experimental::OpenMPTarget>::team_barrier_impl() const {
   // This team member sets one byte within the sync variable
   int8_t volatile *const sync_self = ((int8_t *)sync) + m_team_rank;
 
-#if 0
-fprintf( stdout
-       , "barrier group(%d) member(%d) step(%d) wait(%lx) : before(%lx)\n"
-       , m_group_rank
-       , m_team_rank
-       , m_sync_step
-       , m_sync_value
-       , *sync
-       );
-fflush(stdout);
-#endif
-
   *sync_self = int8_t(m_sync_value & 0x03);  // signal arrival
 
   while (m_sync_value != *sync)
     ;  // wait for team to arrive
-
-#if 0
-fprintf( stdout
-       , "barrier group(%d) member(%d) step(%d) wait(%lx) : after(%lx)\n"
-       , m_group_rank
-       , m_team_rank
-       , m_sync_step
-       , m_sync_value
-       , *sync
-       );
-fflush(stdout);
-#endif
 
   ++m_sync_step;
 
@@ -148,8 +122,6 @@ fflush(stdout);
     if (1000 < m_sync_step) m_sync_step = 0;
   }
 }
-
-#endif
 
 //----------------------------------------------------------------------------
 
@@ -221,17 +193,6 @@ void TaskQueueSpecialization<Kokkos::Experimental::OpenMPTarget>::execute(
 
         task = *task_shared;
       }
-
-#if 0
-fprintf( stdout
-       , "\nexecute group(%d) member(%d) task_shared(0x%lx) task(0x%lx)\n"
-       , team_exec.m_group_rank
-       , team_exec.m_team_rank
-       , uintptr_t(task_shared)
-       , uintptr_t(task)
-       );
-fflush(stdout);
-#endif
 
       if (0 == task) break;  // 0 == m_ready_count
 

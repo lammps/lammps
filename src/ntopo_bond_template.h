@@ -27,23 +27,10 @@ namespace LAMMPS_NS {
 class NTopoBondTemplate : public NTopo {
  public:
   NTopoBondTemplate(class LAMMPS *);
-  ~NTopoBondTemplate() {}
-  void build();
+  void build() override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Bond atoms %d %d missing on proc %d at step %ld
-
-UNDOCUMENTED
-
-W: Bond atoms missing at step %ld
-
-UNDOCUMENTED
-
-*/

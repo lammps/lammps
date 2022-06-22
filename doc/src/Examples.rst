@@ -54,6 +54,8 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | body        | body particles, 2d system                                        |
 +-------------+------------------------------------------------------------------+
+| bpm         | BPM simulations of pouring elastic grains and plate impact       |
++-------------+------------------------------------------------------------------+
 | cmap        | CMAP 5-body contributions to CHARMM force field                  |
 +-------------+------------------------------------------------------------------+
 | colloid     | big colloid particles in a small particle solvent, 2d system     |
@@ -80,7 +82,7 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | friction    | frictional contact of spherical asperities between 2d surfaces   |
 +-------------+------------------------------------------------------------------+
-| gcmc        | Grand Canonical Monte Carlo (GCMC) via the fix gcmc command      |
+| mc          | Monte Carlo features via fix gcmc, widom and other commands      |
 +-------------+------------------------------------------------------------------+
 | granregion  | use of fix wall/region/gran as boundary on granular particles    |
 +-------------+------------------------------------------------------------------+
@@ -94,11 +96,11 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | latte       | examples for using fix latte for DFTB via the LATTE library      |
 +-------------+------------------------------------------------------------------+
+| mdi         | use of the MDI package and MolSSI MDI code coupling library      |
++-------------+------------------------------------------------------------------+
 | meam        | MEAM test for SiC and shear (same as shear examples)             |
 +-------------+------------------------------------------------------------------+
 | melt        | rapid melt of 3d LJ system                                       |
-+-------------+------------------------------------------------------------------+
-| message     | demos for LAMMPS client/server coupling with the MESSAGE package |
 +-------------+------------------------------------------------------------------+
 | micelle     | self-assembly of small lipid-like molecules into 2d bilayers     |
 +-------------+------------------------------------------------------------------+
@@ -205,7 +207,7 @@ Uppercase directories
 +------------+--------------------------------------------------------------------------------------------------+
 | KAPPA      | compute thermal conductivity via several methods                                                 |
 +------------+--------------------------------------------------------------------------------------------------+
-| MC         | using LAMMPS in a Monte Carlo mode to relax the energy of a system                               |
+| MC-LOOP    | using LAMMPS in a Monte Carlo mode to relax the energy of a system in a input script loop        |
 +------------+--------------------------------------------------------------------------------------------------+
 | PACKAGES   | examples for specific packages and contributed commands                                          |
 +------------+--------------------------------------------------------------------------------------------------+

@@ -59,16 +59,15 @@ class AtomVec : protected Pointers {
   // additional list of peratom fields operated on by different methods
   // set or created by child styles
 
-  char *fields_grow, *fields_copy;
-  char *fields_comm, *fields_comm_vel, *fields_reverse;
-  char *fields_border, *fields_border_vel;
-  char *fields_exchange, *fields_restart;
-  char *fields_create, *fields_data_atom, *fields_data_vel;
+  std::vector<std::string> fields_grow, fields_copy, fields_comm, fields_comm_vel;
+  std::vector<std::string> fields_reverse, fields_border, fields_border_vel;
+  std::vector<std::string> fields_exchange, fields_restart, fields_create;
+  std::vector<std::string> fields_data_atom, fields_data_vel;
 
   // methods
 
   AtomVec(class LAMMPS *);
-  virtual ~AtomVec();
+  ~AtomVec() override;
 
   void store_args(int, char **);
   virtual void process_args(int, char **);
@@ -124,9 +123,9 @@ class AtomVec : protected Pointers {
   virtual void create_atom(int, double *);
   virtual void create_atom_post(int) {}
 
-  virtual void data_atom(double *, imageint, char **);
+  virtual void data_atom(double *, imageint, const std::vector<std::string> &);
   virtual void data_atom_post(int) {}
-  virtual void data_atom_bonus(int, char **) {}
+  virtual void data_atom_bonus(int, const std::vector<std::string> &) {}
   virtual void data_body(int, int, int, int *, double *) {}
 
   virtual void data_bonds_post(int, int, tagint, tagint, tagint) {}
@@ -136,7 +135,7 @@ class AtomVec : protected Pointers {
   virtual void pack_data_pre(int) {}
   virtual void pack_data_post(int) {}
 
-  virtual void data_vel(int, char **);
+  virtual void data_vel(int, const std::vector<std::string> &);
   virtual void pack_vel(double **);
   virtual void write_vel(FILE *, int, double **);
 
@@ -152,7 +151,7 @@ class AtomVec : protected Pointers {
   virtual int pack_data_bonus(double *, int) { return 0; }
   virtual void write_data_bonus(FILE *, int, double *, int) {}
 
-  virtual int property_atom(char *) { return -1; }
+  virtual int property_atom(const std::string &) { return -1; }
   virtual void pack_property_atom(int, double *, int, int) {}
 
   virtual double memory_usage();
@@ -166,8 +165,8 @@ class AtomVec : protected Pointers {
   virtual int unpack_reverse_hybrid(int, int *, double *) { return 0; }
   virtual int pack_border_hybrid(int, int *, double *) { return 0; }
   virtual int unpack_border_hybrid(int, int, double *) { return 0; }
-  virtual int data_atom_hybrid(int, char **) { return 0; }
-  virtual int data_vel_hybrid(int, char **) { return 0; }
+  virtual int data_atom_hybrid(int, const std::vector<std::string> &, int) { return 0; }
+  virtual int data_vel_hybrid(int, const std::vector<std::string> &, int) { return 0; }
   virtual int pack_data_hybrid(int, double *) { return 0; }
   virtual int write_data_hybrid(FILE *, double *) { return 0; }
   virtual int pack_vel_hybrid(int, double *) { return 0; }
@@ -187,11 +186,10 @@ class AtomVec : protected Pointers {
   // standard list of peratom fields always operated on by different methods
   // common to all styles, so not listed in field strings
 
-  const char *default_grow, *default_copy;
-  const char *default_comm, *default_comm_vel, *default_reverse;
-  const char *default_border, *default_border_vel;
-  const char *default_exchange, *default_restart;
-  const char *default_create, *default_data_atom, *default_data_vel;
+  static const std::vector<std::string> default_grow, default_copy, default_comm, default_comm_vel;
+  static const std::vector<std::string> default_reverse, default_border, default_border_vel;
+  static const std::vector<std::string> default_exchange, default_restart, default_create;
+  static const std::vector<std::string> default_data_atom, default_data_vel;
 
   struct Method {
     std::vector<void *> pdata;
@@ -223,31 +221,10 @@ class AtomVec : protected Pointers {
   void grow_nmax();
   int grow_nmax_bonus(int);
   void setup_fields();
-  int process_fields(char *, const char *, Method *);
+  int process_fields(const std::vector<std::string> &, const std::vector<std::string> &, Method *);
   void init_method(int, Method *);
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Invalid atom_style command
-
-Self-explanatory.
-
-E: KOKKOS package requires a kokkos enabled atom_style
-
-Self-explanatory.
-
-E: Per-processor system is too big
-
-The number of owned atoms plus ghost atoms on a single
-processor must fit in 32-bit integer.
-
-E: Invalid atom type in Atoms section of data file
-
-Atom types must range from 1 to specified # of types.
-
-*/

@@ -15,10 +15,13 @@
 #include "pointers.h"
 #include "test_config.h"
 #include "test_config_reader.h"
+#include "error_stats.h"
 #include "utils.h"
 #include "yaml_writer.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "lammps.h"
+#include "atom.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -27,8 +30,69 @@
 #include <mpi.h>
 #include <vector>
 
+using LAMMPS_NS::LAMMPS;
+using LAMMPS_NS::Atom;
 using LAMMPS_NS::utils::split_words;
 using LAMMPS_NS::utils::trim;
+using LAMMPS_NS::tagint;
+
+void EXPECT_STRESS(const std::string & name, double * stress, const stress_t & expected_stress, double epsilon)
+{
+    SCOPED_TRACE("EXPECT_STRESS: " + name);
+    ErrorStats stats;
+    EXPECT_FP_LE_WITH_EPS(stress[0], expected_stress.xx, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], expected_stress.yy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], expected_stress.zz, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], expected_stress.xy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], expected_stress.xz, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], expected_stress.yz, epsilon);
+    if (print_stats) std::cerr << name << " stats" << stats << std::endl;
+}
+
+void EXPECT_FORCES(const std::string & name, Atom * atom, const std::vector<coord_t> & f_ref, double epsilon) {
+    SCOPED_TRACE("EXPECT_FORCES: " + name);
+    double ** f = atom->f;
+    tagint * tag = atom->tag;
+    const int nlocal = atom->nlocal;
+    ASSERT_EQ(nlocal + 1, f_ref.size());
+    ErrorStats stats;
+    for (int i = 0; i < nlocal; ++i) {
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
+    }
+    if (print_stats) std::cerr << name << " stats" << stats << std::endl;
+}
+
+void EXPECT_POSITIONS(const std::string & name, Atom * atom, const std::vector<coord_t> & x_ref, double epsilon) {
+    SCOPED_TRACE("EXPECT_POSITIONS: " + name);
+    double ** x = atom->x;
+    tagint * tag = atom->tag;
+    const int nlocal = atom->nlocal;
+    ASSERT_EQ(nlocal + 1, x_ref.size());
+    ErrorStats stats;
+    for (int i = 0; i < nlocal; ++i) {
+        EXPECT_FP_LE_WITH_EPS(x[i][0], x_ref[tag[i]].x, epsilon);
+        EXPECT_FP_LE_WITH_EPS(x[i][1], x_ref[tag[i]].y, epsilon);
+        EXPECT_FP_LE_WITH_EPS(x[i][2], x_ref[tag[i]].z, epsilon);
+    }
+    if (print_stats) std::cerr << name << " stats" << stats << std::endl;
+}
+
+void EXPECT_VELOCITIES(const std::string & name, Atom * atom, const std::vector<coord_t> & v_ref, double epsilon) {
+    SCOPED_TRACE("EXPECT_VELOCITIES: " + name);
+    double ** v = atom->v;
+    tagint * tag = atom->tag;
+    const int nlocal = atom->nlocal;
+    ASSERT_EQ(nlocal + 1, v_ref.size());
+    ErrorStats stats;
+    for (int i = 0; i < nlocal; ++i) {
+        EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
+        EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
+        EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
+    }
+    if (print_stats) std::cerr << name << " stats" << stats << std::endl;
+}
 
 // common read_yaml_file function
 bool read_yaml_file(const char *infile, TestConfig &config)
@@ -46,8 +110,11 @@ void write_yaml_header(YamlWriter *writer, TestConfig *cfg, const char *version)
     // lammps_version
     writer->emit("lammps_version", version);
 
+    // tags
+    writer->emit("tags", cfg->tags_line());
+
     // date_generated
-    std::time_t now   = time(NULL);
+    std::time_t now   = time(nullptr);
     std::string block = trim(ctime(&now));
     writer->emit("date_generated", block);
 

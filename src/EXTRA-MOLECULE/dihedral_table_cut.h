@@ -27,30 +27,17 @@ namespace LAMMPS_NS {
 class DihedralTableCut : public DihedralTable {
  public:
   DihedralTableCut(class LAMMPS *);
-  virtual ~DihedralTableCut();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
+  ~DihedralTableCut() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
 
  protected:
   double *aat_k, *aat_theta0_1, *aat_theta0_2;
 
-  virtual void allocate();
+  void allocate() override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-W: Dihedral problem: %d %ld %d %d %d %d
-
-Conformation of the 4 listed dihedral atoms is extreme; you may want
-to check your simulation geometry.
-
-E: Incorrect args for dihedral coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

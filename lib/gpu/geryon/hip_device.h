@@ -379,18 +379,9 @@ UCL_Device::UCL_Device() {
     prop.regsPerBlock = hip_prop.regsPerBlock;
     prop.clockRate = hip_prop.clockRate;
     prop.computeMode = hip_prop.computeMode;
-    //CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.memPitch, CU_DEVICE_ATTRIBUTE_MAX_PITCH, dev));
-    //CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.textureAlign, CU_DEVICE_ATTRIBUTE_TEXTURE_ALIGNMENT, dev));
 
-    //#if CUDA_VERSION >= 2020
-    //CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.kernelExecTimeoutEnabled, CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT,dev));
     CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.integrated, hipDeviceAttributeIntegrated, dev));
-    //CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.canMapHostMemory, CU_DEVICE_ATTRIBUTE_CAN_MAP_HOST_MEMORY, dev));
-    //#endif
-    //#if CUDA_VERSION >= 3010
     prop.concurrentKernels = hip_prop.concurrentKernels;
-    //CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.ECCEnabled, CU_DEVICE_ATTRIBUTE_ECC_ENABLED, dev));
-    //#endif
 
     _properties.push_back(prop);
   }
@@ -447,13 +438,11 @@ void UCL_Device::clear() {
 
 // List all devices along with all properties
 void UCL_Device::print_all(std::ostream &out) {
-  //#if CUDA_VERSION >= 2020
   int driver_version;
   hipDriverGetVersion(&driver_version);
   out << "Driver Version:                           "
       << driver_version/1000 << "." << driver_version%100
                   << std::endl;
-  //#endif
 
   if (num_devices() == 0)
     out << "There is no device supporting HIP\n";
@@ -470,12 +459,10 @@ void UCL_Device::print_all(std::ostream &out) {
       out << "No\n";
     out << "  Total amount of global memory:                 "
         << gigabytes(i) << " GB\n";
-    //#if CUDA_VERSION >= 2000
     out << "  Number of compute units/multiprocessors:       "
         << _properties[i].multiProcessorCount << std::endl;
     out << "  Number of cores:                               "
         << cores(i) << std::endl;
-    //#endif
     out << "  Total amount of constant memory:               "
         << _properties[i].totalConstantMemory << " bytes\n";
     out << "  Total amount of local/shared memory per block: "
@@ -494,58 +481,29 @@ void UCL_Device::print_all(std::ostream &out) {
         << _properties[i].maxGridSize[0] << " x "
         << _properties[i].maxGridSize[1] << " x "
         << _properties[i].maxGridSize[2] << std::endl;
-    //out << "  Maximum memory pitch:                          "
-    //    << max_pitch(i) << " bytes\n";
-    //out << "  Texture alignment:                             "
-    //    << _properties[i].textureAlign << " bytes\n";
     out << "  Clock rate:                                    "
         << clock_rate(i) << " GHz\n";
-    //#if CUDA_VERSION >= 2020
-    //out << "  Run time limit on kernels:                     ";
-    //if (_properties[i].kernelExecTimeoutEnabled)
-    //  out << "Yes\n";
-    //else
-    //  out << "No\n";
     out << "  Integrated:                                    ";
     if (_properties[i].integrated)
       out << "Yes\n";
     else
       out << "No\n";
-    //out << "  Support host page-locked memory mapping:       ";
-    //if (_properties[i].canMapHostMemory)
-    //  out << "Yes\n";
-    //else
-    //  out << "No\n";
     out << "  Compute mode:                                  ";
     if (_properties[i].computeMode == hipComputeModeDefault)
       out << "Default\n"; // multiple threads can use device
-//#if CUDA_VERSION >= 8000
-//    else if (_properties[i].computeMode == hipComputeModeExclusiveProcess)
-//#else
     else if (_properties[i].computeMode == hipComputeModeExclusive)
-//#endif
       out << "Exclusive\n"; // only thread can use device
     else if (_properties[i].computeMode == hipComputeModeProhibited)
       out << "Prohibited\n"; // no thread can use device
-    //#if CUDART_VERSION >= 4000
     else if (_properties[i].computeMode == hipComputeModeExclusiveProcess)
       out << "Exclusive Process\n"; // multiple threads 1 process
-    //#endif
     else
       out << "Unknown\n";
-    //#endif
-    //#if CUDA_VERSION >= 3010
     out << "  Concurrent kernel execution:                   ";
     if (_properties[i].concurrentKernels)
       out << "Yes\n";
     else
       out << "No\n";
-    //out << "  Device has ECC support enabled:                ";
-    //if (_properties[i].ECCEnabled)
-    //  out << "Yes\n";
-    //else
-    //  out << "No\n";
-    //#endif
   }
 }
 

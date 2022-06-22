@@ -38,23 +38,14 @@
 #include "universe.h"
 #include "update.h"
 
-#include "colvarproxy_lammps.h"
-#include "colvarmodule.h"
-
 #include <cstring>
 #include <iostream>
 #include <memory>
+#include <vector>
 
-static const char colvars_pub[] =
-  "fix colvars command:\n\n"
-  "@Article{fiorin13,\n"
-  " author =  {G.~Fiorin and M.{\\,}L.~Klein and J.~H{\\'e}nin},\n"
-  " title =   {Using collective variables to drive molecular"
-  " dynamics simulations},\n"
-  " journal = {Mol.~Phys.},\n"
-  " year =    2013,\n"
-  " note =    {doi: 10.1080/00268976.2013.813594}\n"
-  "}\n\n";
+#include "colvarproxy_lammps.h"
+#include "colvarmodule.h"
+
 
 /* struct for packed data communication of coordinates and forces. */
 struct LAMMPS_NS::commdata {
@@ -144,8 +135,6 @@ static void rebuild_table_int(inthash_t *tptr) {
 
   /* free memory used by old table */
   free(old_bucket);
-
-  return;
 }
 
 /*
@@ -175,8 +164,6 @@ void inthash_init(inthash_t *tptr, int buckets) {
 
   /* allocate memory for table */
   tptr->bucket=(inthash_node_t **) calloc(tptr->size, sizeof(inthash_node_t *));
-
-  return;
 }
 
 /*
@@ -303,7 +290,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   me = comm->me;
   root2root = MPI_COMM_NULL;
 
-  conf_file = strdup(arg[3]);
+  conf_file = utils::strdup(arg[3]);
   rng_seed = 1966;
   unwrap_flag = 1;
 
@@ -312,35 +299,29 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   tmp_name = nullptr;
 
   /* parse optional arguments */
-  int argsdone = 4;
-  while (argsdone < narg) {
+  int iarg = 4;
+  while (iarg < narg) {
     // we have keyword/value pairs. check if value is missing
-    if (argsdone+1 == narg)
+    if (iarg+1 == narg)
       error->all(FLERR,"Missing argument to keyword");
 
-    if (0 == strcmp(arg[argsdone], "input")) {
-      inp_name = strdup(arg[argsdone+1]);
-    } else if (0 == strcmp(arg[argsdone], "output")) {
-      out_name = strdup(arg[argsdone+1]);
-    } else if (0 == strcmp(arg[argsdone], "seed")) {
-      rng_seed = utils::inumeric(FLERR,arg[argsdone+1],false,lmp);
-    } else if (0 == strcmp(arg[argsdone], "unwrap")) {
-      if (0 == strcmp(arg[argsdone+1], "yes")) {
-        unwrap_flag = 1;
-      } else if (0 == strcmp(arg[argsdone+1], "no")) {
-        unwrap_flag = 0;
-      } else {
-        error->all(FLERR,"Incorrect fix colvars unwrap flag");
-      }
-    } else if (0 == strcmp(arg[argsdone], "tstat")) {
-      tmp_name = strdup(arg[argsdone+1]);
+    if (0 == strcmp(arg[iarg], "input")) {
+      inp_name = utils::strdup(arg[iarg+1]);
+    } else if (0 == strcmp(arg[iarg], "output")) {
+      out_name = utils::strdup(arg[iarg+1]);
+    } else if (0 == strcmp(arg[iarg], "seed")) {
+      rng_seed = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+    } else if (0 == strcmp(arg[iarg], "unwrap")) {
+      unwrap_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+    } else if (0 == strcmp(arg[iarg], "tstat")) {
+      tmp_name = utils::strdup(arg[iarg+1]);
     } else {
       error->all(FLERR,"Unknown fix colvars parameter");
     }
-    ++argsdone; ++argsdone;
+    ++iarg; ++iarg;
   }
 
-  if (!out_name) out_name = strdup("out");
+  if (!out_name) out_name = utils::strdup("out");
 
   /* initialize various state variables. */
   tstat_id = -1;
@@ -355,8 +336,6 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
 
   /* storage required to communicate a single coordinate or force. */
   size_one = sizeof(struct commdata);
-
-  if (lmp->citeme) lmp->citeme->add(colvars_pub);
 }
 
 /*********************************
@@ -365,10 +344,10 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
 
 FixColvars::~FixColvars()
 {
-  memory->sfree(conf_file);
-  memory->sfree(inp_name);
-  memory->sfree(out_name);
-  memory->sfree(tmp_name);
+  delete[] conf_file;
+  delete[] inp_name;
+  delete[] out_name;
+  delete[] tmp_name;
   memory->sfree(comm_buf);
 
   if (proxy) {
@@ -436,17 +415,15 @@ void FixColvars::one_time_init()
   // create and initialize the colvars proxy
 
   if (me == 0) {
-    if (screen) fputs("colvars: Creating proxy instance\n",screen);
-    if (logfile) fputs("colvars: Creating proxy instance\n",logfile);
+    utils::logmesg(lmp,"colvars: Creating proxy instance\n");
 
 #ifdef LAMMPS_BIGBIG
-    if (screen) fputs("colvars: cannot handle atom ids > 2147483647\n",screen);
-    if (logfile) fputs("colvars: cannot handle atom ids > 2147483647\n",logfile);
+    utils::logmesg(lmp,"colvars: cannot handle atom ids > 2147483647\n");
 #endif
 
     if (inp_name) {
       if (strcmp(inp_name,"NULL") == 0) {
-        memory->sfree(inp_name);
+        delete[] inp_name;
         inp_name = nullptr;
       }
     }
@@ -464,8 +441,7 @@ void FixColvars::one_time_init()
       }
     }
 
-    proxy = new colvarproxy_lammps(lmp,inp_name,out_name,
-                                   rng_seed,t_target,root2root);
+    proxy = new colvarproxy_lammps(lmp,inp_name,out_name,rng_seed,t_target,root2root);
     proxy->init(conf_file);
 
     num_coords = (proxy->modify_atom_positions()->size());
@@ -867,7 +843,6 @@ void FixColvars::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   /* only process colvar forces on the outmost RESPA level. */
   if (ilevel == nlevels_respa-1) post_force(vflag);
-  return;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -959,7 +934,7 @@ void FixColvars::end_of_step()
 void FixColvars::write_restart(FILE *fp)
 {
   if (me == 0) {
-    std::string rest_text("");
+    std::string rest_text;
     proxy->serialize_status(rest_text);
     // TODO call write_output_files()
     const char *cvm_state = rest_text.c_str();
@@ -987,6 +962,9 @@ void FixColvars::post_run()
 {
   if (me == 0) {
     proxy->post_run();
+    if (lmp->citeme) {
+      lmp->citeme->add(proxy->colvars->feature_report(1));
+    }
   }
 }
 

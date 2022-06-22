@@ -29,13 +29,13 @@ namespace LAMMPS_NS {
 class ComputeMesoNT : public Compute {
  public:
   ComputeMesoNT(class LAMMPS *, int, char **);
-  ~ComputeMesoNT();
-  void init() {}
-  void compute_peratom();
-  double compute_scalar();
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  double memory_usage();
+  ~ComputeMesoNT() override;
+  void init() override {}
+  void compute_peratom() override;
+  double compute_scalar() override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
 
  private:
   int nmax;
@@ -49,19 +49,3 @@ class ComputeMesoNT : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal compute mesont command
-
-Incorrect argument list in the compute init.
-
-E: Per-atom energy was not tallied on needed timestep
-
-UNSPECIFIED.
-
-E: compute mesont is allowed only with mesont/tpm pair style
-
-Use mesont pair style.
-
-*/

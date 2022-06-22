@@ -1,7 +1,8 @@
-Sphinx==4.2.0
-sphinxcontrib-spelling==7.2.1
+Sphinx==4.5.0
+sphinxcontrib-spelling==7.5.0
 git+https://github.com/akohlmey/sphinx-fortran@parallel-read
-sphinx_tabs==3.2.0
-breathe==4.31.0
-Pygments==2.10.0
+sphinx_tabs==3.3.1
+breathe==4.33.1
+Pygments==2.12.0
 six==1.16.0
+pyyaml==6.0

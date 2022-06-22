@@ -327,7 +327,7 @@ namespace ATC {
   //--------------------------------------------------------------------
   //     compute_scalar : added energy
   //--------------------------------------------------------------------
-  double ATC_CouplingMomentumEnergy::compute_scalar(void)
+  double ATC_CouplingMomentumEnergy::compute_scalar()
   {
     double energy = 0.0;
     energy += extrinsicModelManager_.compute_scalar();
@@ -337,7 +337,7 @@ namespace ATC {
     //--------------------------------------------------------------------
   //     total kinetic energy
   //--------------------------------------------------------------------
-  double ATC_CouplingMomentumEnergy::kinetic_energy(void)
+  double ATC_CouplingMomentumEnergy::kinetic_energy()
   {
     const MATRIX & M = massMats_[VELOCITY].quantity();
 
@@ -355,7 +355,7 @@ namespace ATC {
   //--------------------------------------------------------------------
   //     total potential energy
   //--------------------------------------------------------------------
-  double ATC_CouplingMomentumEnergy::potential_energy(void)
+  double ATC_CouplingMomentumEnergy::potential_energy()
   {
     Array<FieldName> mask(1);
     mask(0) = VELOCITY;

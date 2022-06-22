@@ -111,7 +111,7 @@ void ComputeRigidLocal::init()
   int ifix = modify->find_fix(idrigid);
   if (ifix < 0)
     error->all(FLERR,"FixRigidSmall ID for compute rigid/local does not exist");
-  fixrigid = (FixRigidSmall *) modify->fix[ifix];
+  fixrigid = dynamic_cast<FixRigidSmall *>( modify->fix[ifix]);
 
   int flag = 0;
   if (strstr(fixrigid->style,"rigid/") == nullptr) flag = 1;

@@ -67,15 +67,15 @@ void PairHybridScaled::compute(int eflag, int vflag)
 
   const int nvars = scalevars.size();
   if (nvars > 0) {
-    double *vals = new double[nvars];
-    for (i = 0; i < nvars; ++i) {
-      j = input->variable->find(scalevars[i].c_str());
-      if (j < 0)
-        error->all(FLERR, "Variable '{}' not found when updating scale factors", scalevars[i]);
-      vals[i] = input->variable->compute_equal(j);
+    auto vals = new double[nvars];
+    for (int k = 0; k < nvars; ++k) {
+      int m = input->variable->find(scalevars[k].c_str());
+      if (m < 0)
+        error->all(FLERR, "Variable '{}' not found when updating scale factors", scalevars[k]);
+      vals[k] = input->variable->compute_equal(m);
     }
-    for (i = 0; i < nstyles; ++i) {
-      if (scaleidx[i] >= 0) scaleval[i] = vals[scaleidx[i]];
+    for (int k = 0; k < nstyles; ++k) {
+      if (scaleidx[k] >= 0) scaleval[k] = vals[scaleidx[k]];
     }
     delete[] vals;
   }
@@ -130,7 +130,7 @@ void PairHybridScaled::compute(int eflag, int vflag)
   Respa *respa = nullptr;
   respaflag = 0;
   if (utils::strmatch(update->integrate_style, "^respa")) {
-    respa = (Respa *) update->integrate;
+    respa = dynamic_cast<Respa *>(update->integrate);
     if (respa->nhybrid_styles > 0) respaflag = 1;
   }
 
@@ -250,8 +250,8 @@ void PairHybridScaled::settings(int narg, char **arg)
     for (int m = 0; m < nstyles; m++) {
       delete styles[m];
       delete[] keywords[m];
-      if (special_lj[m]) delete[] special_lj[m];
-      if (special_coul[m]) delete[] special_coul[m];
+      delete[] special_lj[m];
+      delete[] special_coul[m];
     }
     delete[] styles;
     delete[] keywords;
@@ -328,7 +328,7 @@ void PairHybridScaled::settings(int narg, char **arg)
       error->all(FLERR, "Pair style hybrid/scaled cannot have none as an argument");
 
     styles[nstyles] = force->new_pair(arg[iarg], 1, dummy);
-    force->store_style(keywords[nstyles], arg[iarg], 0);
+    keywords[nstyles] = force->store_style(arg[iarg], 0);
     special_lj[nstyles] = special_coul[nstyles] = nullptr;
     compute_tally[nstyles] = 1;
 
@@ -385,15 +385,15 @@ double PairHybridScaled::single(int i, int j, int itype, int jtype, double rsq, 
 
   const int nvars = scalevars.size();
   if (nvars > 0) {
-    double *vals = new double[nvars];
-    for (i = 0; i < nvars; ++i) {
-      j = input->variable->find(scalevars[i].c_str());
-      if (j < 0)
-        error->all(FLERR, "Variable '{}' not found when updating scale factors", scalevars[i]);
-      vals[i] = input->variable->compute_equal(j);
+    auto vals = new double[nvars];
+    for (int k = 0; k < nvars; ++k) {
+      int m = input->variable->find(scalevars[k].c_str());
+      if (m < 0)
+        error->all(FLERR, "Variable '{}' not found when updating scale factors", scalevars[k]);
+      vals[k] = input->variable->compute_equal(m);
     }
-    for (i = 0; i < nstyles; ++i) {
-      if (scaleidx[i] >= 0) scaleval[i] = vals[scaleidx[i]];
+    for (int k = 0; k < nstyles; ++k) {
+      if (scaleidx[k] >= 0) scaleval[k] = vals[scaleidx[k]];
     }
     delete[] vals;
   }
@@ -401,7 +401,6 @@ double PairHybridScaled::single(int i, int j, int itype, int jtype, double rsq, 
   double fone;
   fforce = 0.0;
   double esum = 0.0;
-  double scale;
 
   for (int m = 0; m < nmap[itype][jtype]; m++) {
     auto pstyle = styles[map[itype][jtype][m]];
@@ -413,7 +412,7 @@ double PairHybridScaled::single(int i, int j, int itype, int jtype, double rsq, 
           (special_coul[map[itype][jtype][m]] != nullptr))
         error->one(FLERR, "Pair hybrid single() does not support per sub-style special_bond");
 
-      scale = scaleval[map[itype][jtype][m]];
+      double scale = scaleval[map[itype][jtype][m]];
       esum += scale * pstyle->single(i, j, itype, jtype, rsq, factor_coul, factor_lj, fone);
       fforce += scale * fone;
     }
@@ -421,6 +420,57 @@ double PairHybridScaled::single(int i, int j, int itype, int jtype, double rsq, 
 
   if (single_extra) copy_svector(itype, jtype);
   return esum;
+}
+
+/* ----------------------------------------------------------------------
+   call sub-style to compute born matrix interaction
+   error if sub-style does not support born_matrix call
+   since overlay could have multiple sub-styles, sum results explicitly
+------------------------------------------------------------------------- */
+
+void PairHybridScaled::born_matrix(int i, int j, int itype, int jtype, double rsq,
+                                   double factor_coul, double factor_lj, double &dupair,
+                                   double &du2pair)
+{
+  if (nmap[itype][jtype] == 0) error->one(FLERR, "Invoked pair born_matrix on pair style none");
+
+  // update scale values from variables where needed
+
+  const int nvars = scalevars.size();
+  if (nvars > 0) {
+    double *vals = new double[nvars];
+    for (int k = 0; k < nvars; ++k) {
+      int m = input->variable->find(scalevars[k].c_str());
+      if (m < 0)
+        error->all(FLERR, "Variable '{}' not found when updating scale factors", scalevars[k]);
+      vals[k] = input->variable->compute_equal(m);
+    }
+    for (int k = 0; k < nstyles; ++k) {
+      if (scaleidx[k] >= 0) scaleval[k] = vals[scaleidx[k]];
+    }
+    delete[] vals;
+  }
+
+  double du, du2, scale;
+  dupair = du2pair = scale = 0.0;
+
+  for (int m = 0; m < nmap[itype][jtype]; m++) {
+    auto pstyle = styles[map[itype][jtype][m]];
+    if (rsq < pstyle->cutsq[itype][jtype]) {
+      if (pstyle->born_matrix_enable == 0)
+        error->one(FLERR, "Pair hybrid sub-style does not support born_matrix call");
+
+      if ((special_lj[map[itype][jtype][m]] != nullptr) ||
+          (special_coul[map[itype][jtype][m]] != nullptr))
+        error->one(FLERR, "Pair hybrid born_matrix() does not support per sub-style special_bond");
+
+      du = du2 = 0.0;
+      scale = scaleval[map[itype][jtype][m]];
+      pstyle->born_matrix(i, j, itype, jtype, rsq, factor_coul, factor_lj, du, du2);
+      dupair += scale * du;
+      du2pair += scale * du2;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -477,8 +527,8 @@ void PairHybridScaled::coeff(int narg, char **arg)
   // ensure that one_coeff flag is honored
 
   if (!none && styles[m]->one_coeff)
-    if ((strcmp(arg[0],"*") != 0) || (strcmp(arg[1],"*") != 0))
-      error->all(FLERR,"Incorrect args for pair coefficients");
+    if ((strcmp(arg[0], "*") != 0) || (strcmp(arg[1], "*") != 0))
+      error->all(FLERR, "Incorrect args for pair coefficients");
 
   // invoke sub-style coeff() starting with 1st remaining arg
 
@@ -524,7 +574,7 @@ void PairHybridScaled::write_restart(FILE *fp)
 
   int n = scalevars.size();
   fwrite(&n, sizeof(int), 1, fp);
-  for (auto var : scalevars) {
+  for (auto &var : scalevars) {
     n = var.size() + 1;
     fwrite(&n, sizeof(int), 1, fp);
     fwrite(var.c_str(), sizeof(char), n, fp);
@@ -593,7 +643,7 @@ void PairHybridScaled::init_svector()
 void PairHybridScaled::copy_svector(int itype, int jtype)
 {
   int n = 0;
-  Pair *this_style;
+  Pair *this_style = nullptr;
 
   // fill svector array.
   // copy data from active styles and use 0.0 for inactive ones

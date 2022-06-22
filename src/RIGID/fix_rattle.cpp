@@ -158,7 +158,7 @@ void FixRattle::post_force(int vflag)
 
   if (nprocs > 1) {
     comm_mode = VP;
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
   }
 
   // correct the velocity for each molecule accordingly
@@ -190,7 +190,7 @@ void FixRattle::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 
   if (nprocs > 1) {
     comm_mode = VP;
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
   }
 
   // correct the velocity for each molecule accordingly
@@ -720,7 +720,7 @@ void FixRattle::shake_end_of_step(int vflag) {
 
   if (nprocs > 1) {
     comm_mode = V;
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
   }
 
   comm_mode = XSHAKE;
@@ -761,7 +761,7 @@ void FixRattle::correct_velocities() {
 
   if (nprocs > 1) {
     comm_mode = VP;
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
   }
 
   // correct the velocity for each molecule accordingly
@@ -790,7 +790,7 @@ void FixRattle::end_of_step()
 {
   if (nprocs > 1) {
        comm_mode = V;
-       comm->forward_comm_fix(this);
+       comm->forward_comm(this);
   }
   if (!check_constraints(v, RATTLE_TEST_POS, RATTLE_TEST_VEL) && RATTLE_RAISE_ERROR) {
     error->one(FLERR, "Rattle failed ");

@@ -53,7 +53,9 @@
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_Utilities.hpp>
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
 #include <Kokkos_MasterLock.hpp>
+#endif
 
 //----------------------------------------------------------------------------
 // Have assumed a 64bit build (8byte pointers) throughout the code base.
@@ -81,7 +83,7 @@ struct InvalidType {};
 }  // namespace Kokkos
 
 //----------------------------------------------------------------------------
-// Forward declarations for class inter-relationships
+// Forward declarations for class interrelationships
 
 namespace Kokkos {
 
@@ -181,19 +183,69 @@ using DefaultHostExecutionSpace KOKKOS_IMPL_DEFAULT_HOST_EXEC_SPACE_ANNOTATION =
 // a given memory space.
 
 namespace Kokkos {
+
+template <class AccessSpace, class MemorySpace>
+struct SpaceAccessibility;
+
 namespace Impl {
+
+// primary template: memory space is accessible, do nothing.
+template <class MemorySpace, class AccessSpace,
+          bool = SpaceAccessibility<AccessSpace, MemorySpace>::accessible>
+struct RuntimeCheckMemoryAccessViolation {
+  KOKKOS_FUNCTION RuntimeCheckMemoryAccessViolation(char const *const) {}
+};
+
+// explicit specialization: memory access violation will occur, call abort with
+// the specified error message.
+template <class MemorySpace, class AccessSpace>
+struct RuntimeCheckMemoryAccessViolation<AccessSpace, MemorySpace, false> {
+  KOKKOS_FUNCTION RuntimeCheckMemoryAccessViolation(char const *const msg) {
+    Kokkos::abort(msg);
+  }
+};
+
+// calls abort with default error message at runtime if memory access violation
+// will occur
+template <class MemorySpace>
+KOKKOS_FUNCTION void runtime_check_memory_access_violation() {
+  KOKKOS_IF_ON_HOST((
+      RuntimeCheckMemoryAccessViolation<MemorySpace, DefaultHostExecutionSpace>(
+          "ERROR: attempt to access inaccessible memory space");))
+  KOKKOS_IF_ON_DEVICE(
+      (RuntimeCheckMemoryAccessViolation<MemorySpace, DefaultExecutionSpace>(
+           "ERROR: attempt to access inaccessible memory space");))
+}
+
+// calls abort with specified error message at runtime if memory access
+// violation will occur
+template <class MemorySpace>
+KOKKOS_FUNCTION void runtime_check_memory_access_violation(
+    char const *const msg) {
+  KOKKOS_IF_ON_HOST((
+      (void)RuntimeCheckMemoryAccessViolation<MemorySpace,
+                                              DefaultHostExecutionSpace>(msg);))
+  KOKKOS_IF_ON_DEVICE((
+      (void)
+          RuntimeCheckMemoryAccessViolation<MemorySpace, DefaultExecutionSpace>(
+              msg);))
+}
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
 
 #if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA) && \
     defined(KOKKOS_ENABLE_CUDA)
-using ActiveExecutionMemorySpace = Kokkos::CudaSpace;
+using ActiveExecutionMemorySpace KOKKOS_DEPRECATED = Kokkos::CudaSpace;
 #elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_SYCL)
-using ActiveExecutionMemorySpace = Kokkos::Experimental::SYCLDeviceUSMSpace;
+using ActiveExecutionMemorySpace KOKKOS_DEPRECATED =
+    Kokkos::Experimental::SYCLDeviceUSMSpace;
 #elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HIP_GPU)
-using ActiveExecutionMemorySpace = Kokkos::Experimental::HIPSpace;
+using ActiveExecutionMemorySpace KOKKOS_DEPRECATED =
+    Kokkos::Experimental::HIPSpace;
 #elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-using ActiveExecutionMemorySpace = Kokkos::HostSpace;
+using ActiveExecutionMemorySpace KOKKOS_DEPRECATED = Kokkos::HostSpace;
 #else
-using ActiveExecutionMemorySpace = void;
+using ActiveExecutionMemorySpace KOKKOS_DEPRECATED = void;
 #endif
 
 template <typename DstMemorySpace, typename SrcMemorySpace>
@@ -203,16 +255,17 @@ template <typename DstMemorySpace, typename SrcMemorySpace,
           bool = Kokkos::Impl::MemorySpaceAccess<DstMemorySpace,
                                                  SrcMemorySpace>::accessible>
 struct verify_space {
-  KOKKOS_FUNCTION static void check() {}
+  KOKKOS_DEPRECATED KOKKOS_FUNCTION static void check() {}
 };
 
 template <typename DstMemorySpace, typename SrcMemorySpace>
 struct verify_space<DstMemorySpace, SrcMemorySpace, false> {
-  KOKKOS_FUNCTION static void check() {
+  KOKKOS_DEPRECATED KOKKOS_FUNCTION static void check() {
     Kokkos::abort(
         "Kokkos::View ERROR: attempt to access inaccessible memory space");
   };
 };
+#endif
 
 // Base class for exec space initializer factories
 class ExecSpaceInitializerBase;
@@ -226,6 +279,7 @@ class LogicalMemorySpace;
 
 }  // namespace Kokkos
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
 #define KOKKOS_RESTRICT_EXECUTION_TO_DATA(DATA_SPACE, DATA_PTR)        \
   Kokkos::Impl::verify_space<Kokkos::Impl::ActiveExecutionMemorySpace, \
                              DATA_SPACE>::check();
@@ -233,12 +287,14 @@ class LogicalMemorySpace;
 #define KOKKOS_RESTRICT_EXECUTION_TO_(DATA_SPACE)                      \
   Kokkos::Impl::verify_space<Kokkos::Impl::ActiveExecutionMemorySpace, \
                              DATA_SPACE>::check();
+#endif
 
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
 void fence();
-}
+void fence(const std::string &);
+}  // namespace Kokkos
 
 //----------------------------------------------------------------------------
 
@@ -250,8 +306,12 @@ class View;
 namespace Impl {
 
 template <class DstSpace, class SrcSpace,
-          class ExecutionSpace = typename DstSpace::execution_space>
+          class ExecutionSpace = typename DstSpace::execution_space,
+          class Enable         = void>
 struct DeepCopy;
+
+template <typename ExecutionSpace, class DT, class... DP>
+struct ZeroMemset;
 
 template <class ViewType, class Layout = typename ViewType::array_layout,
           class ExecSpace = typename ViewType::execution_space,
@@ -330,6 +390,32 @@ struct LAnd;
 template <class ScalarType, class Space = HostSpace>
 struct LOr;
 
+template <class Scalar, class Index, class Space = HostSpace>
+struct MaxFirstLoc;
+template <class Scalar, class Index, class ComparatorType,
+          class Space = HostSpace>
+struct MaxFirstLocCustomComparator;
+
+template <class Scalar, class Index, class Space = HostSpace>
+struct MinFirstLoc;
+template <class Scalar, class Index, class ComparatorType,
+          class Space = HostSpace>
+struct MinFirstLocCustomComparator;
+
+template <class Scalar, class Index, class Space = HostSpace>
+struct MinMaxFirstLastLoc;
+template <class Scalar, class Index, class ComparatorType,
+          class Space = HostSpace>
+struct MinMaxFirstLastLocCustomComparator;
+
+template <class Index, class Space = HostSpace>
+struct FirstLoc;
+template <class Index, class Space = HostSpace>
+struct LastLoc;
+template <class Index, class Space = HostSpace>
+struct StdIsPartitioned;
+template <class Index, class Space = HostSpace>
+struct StdPartitionPoint;
 }  // namespace Kokkos
 
 #endif /* #ifndef KOKKOS_CORE_FWD_HPP */

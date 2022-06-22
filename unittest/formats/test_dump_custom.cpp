@@ -23,8 +23,8 @@
 
 using ::testing::Eq;
 
-char *BINARY2TXT_BINARY = nullptr;
-bool verbose            = false;
+char *BINARY2TXT_EXECUTABLE = nullptr;
+bool verbose                = false;
 
 class DumpCustomTest : public MeltTest {
     std::string dump_style = "custom";
@@ -37,23 +37,23 @@ public:
         END_HIDE_OUTPUT();
     }
 
-    std::string dump_filename(std::string ident)
+    std::string dump_filename(const std::string &ident)
     {
         return fmt::format("dump_{}_{}.melt", dump_style, ident);
     }
 
-    std::string text_dump_filename(std::string ident)
+    std::string text_dump_filename(const std::string &ident)
     {
         return fmt::format("dump_{}_text_{}.melt", dump_style, ident);
     }
 
-    std::string binary_dump_filename(std::string ident)
+    std::string binary_dump_filename(const std::string &ident)
     {
         return fmt::format("dump_{}_binary_{}.melt.bin", dump_style, ident);
     }
 
-    void generate_dump(std::string dump_file, std::string fields, std::string dump_modify_options,
-                       int ntimesteps)
+    void generate_dump(const std::string &dump_file, const std::string &fields,
+                       const std::string &dump_modify_options, int ntimesteps)
     {
         BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id all {} 1 {} {}", dump_style, dump_file, fields));
@@ -73,9 +73,16 @@ public:
         END_HIDE_OUTPUT();
     }
 
-    void generate_text_and_binary_dump(std::string text_file, std::string binary_file,
-                                       std::string fields, std::string dump_modify_options,
-                                       int ntimesteps)
+    void close_dump()
+    {
+        BEGIN_HIDE_OUTPUT();
+        command("undump id");
+        END_HIDE_OUTPUT();
+    }
+
+    void generate_text_and_binary_dump(const std::string &text_file, const std::string &binary_file,
+                                       const std::string &fields,
+                                       const std::string &dump_modify_options, int ntimesteps)
     {
         BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id0 all {} 1 {} {}", dump_style, text_file, fields));
@@ -90,10 +97,10 @@ public:
         END_HIDE_OUTPUT();
     }
 
-    std::string convert_binary_to_text(std::string binary_file)
+    std::string convert_binary_to_text(const std::string &binary_file)
     {
         BEGIN_HIDE_OUTPUT();
-        std::string cmdline = fmt::format("{} {}", BINARY2TXT_BINARY, binary_file);
+        std::string cmdline = fmt::format("\"{}\" {}", BINARY2TXT_EXECUTABLE, binary_file);
         system(cmdline.c_str());
         END_HIDE_OUTPUT();
         return fmt::format("{}.txt", binary_file);
@@ -203,7 +210,7 @@ TEST_F(DumpCustomTest, custom_run0)
 
 TEST_F(DumpCustomTest, binary_run1)
 {
-    if (!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_EXECUTABLE) GTEST_SKIP();
 
     auto text_file   = text_dump_filename("run1");
     auto binary_file = binary_dump_filename("run1");
@@ -244,7 +251,7 @@ TEST_F(DumpCustomTest, triclinic_run1)
 
 TEST_F(DumpCustomTest, binary_triclinic_run1)
 {
-    if (!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_EXECUTABLE) GTEST_SKIP();
 
     auto text_file   = text_dump_filename("tri_run1");
     auto binary_file = binary_dump_filename("tri_run1");
@@ -330,6 +337,7 @@ TEST_F(DumpCustomTest, rerun)
     ASSERT_FILE_EXISTS(dump_file);
     ASSERT_EQ(count_lines(dump_file), 82);
     continue_dump(1);
+    close_dump();
     lmp->output->thermo->evaluate_keyword("pe", &pe_2);
     ASSERT_FILE_EXISTS(dump_file);
     ASSERT_EQ(count_lines(dump_file), 123);
@@ -338,11 +346,41 @@ TEST_F(DumpCustomTest, rerun)
     });
     lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
     ASSERT_DOUBLE_EQ(pe_1, pe_rerun);
+
     HIDE_OUTPUT([&] {
         command(fmt::format("rerun {} first 2 last 2 every 1 post yes dump x y z", dump_file));
     });
     lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
     ASSERT_DOUBLE_EQ(pe_2, pe_rerun);
+    delete_file(dump_file);
+}
+
+TEST_F(DumpCustomTest, rerun_bin)
+{
+    auto dump_file = binary_dump_filename("rerun");
+    auto fields    = "id type xs ys zs";
+
+    HIDE_OUTPUT([&] {
+        command("fix 1 all nve");
+    });
+    generate_dump(dump_file, fields, "", 1);
+    double pe_1, pe_2, pe_rerun;
+    lmp->output->thermo->evaluate_keyword("pe", &pe_1);
+    ASSERT_FILE_EXISTS(dump_file);
+    continue_dump(1);
+    close_dump();
+    lmp->output->thermo->evaluate_keyword("pe", &pe_2);
+    ASSERT_FILE_EXISTS(dump_file);
+    HIDE_OUTPUT([&] {
+        command(fmt::format("rerun {} first 1 last 1 every 1 post no dump x y z", dump_file));
+    });
+    lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
+    ASSERT_NEAR(pe_1, pe_rerun, 1.0e-14);
+    HIDE_OUTPUT([&] {
+        command(fmt::format("rerun {} first 2 last 2 every 1 post yes dump x y z", dump_file));
+    });
+    lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
+    ASSERT_NEAR(pe_2, pe_rerun, 1.0e-14);
     delete_file(dump_file);
 }
 
@@ -361,7 +399,7 @@ int main(int argc, char **argv)
         }
     }
 
-    BINARY2TXT_BINARY = getenv("BINARY2TXT_BINARY");
+    BINARY2TXT_EXECUTABLE = getenv("BINARY2TXT_EXECUTABLE");
 
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 

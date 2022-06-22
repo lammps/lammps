@@ -19,6 +19,8 @@
 namespace LAMMPS_NS {
 
 class Fix : protected Pointers {
+  friend class Neighbor;
+
  public:
   static int instance_total;    // # of Fix classes ever instantiated
 
@@ -113,6 +115,7 @@ class Fix : protected Pointers {
 
   double virial[6];          // virial for this timestep
   double *eatom, **vatom;    // per-atom energy/virial for this timestep
+  double **cvatom;           // per-atom centroid virial for this timestep
 
   int centroidstressflag;    // centroid stress compared to two-body stress
                              // CENTROID_SAME = same as two-body stress
@@ -129,7 +132,7 @@ class Fix : protected Pointers {
   unsigned int datamask_read, datamask_modify;
 
   Fix(class LAMMPS *, int, char **);
-  virtual ~Fix();
+  ~Fix() override;
   void modify_params(int, char **);
 
   virtual int setmask() = 0;
@@ -249,8 +252,8 @@ class Fix : protected Pointers {
 
   int evflag;
   int eflag_either, eflag_global, eflag_atom;
-  int vflag_either, vflag_global, vflag_atom;
-  int maxeatom, maxvatom;
+  int vflag_either, vflag_global, vflag_atom, cvflag_atom;
+  int maxeatom, maxvatom, maxcvatom;
 
   int copymode;    // if set, do not deallocate during destruction
                    // required when classes are used as functors by Kokkos
@@ -263,7 +266,7 @@ class Fix : protected Pointers {
       ev_setup(eflag, vflag);
     else
       evflag = eflag_either = eflag_global = eflag_atom = vflag_either = vflag_global = vflag_atom =
-          0;
+          cvflag_atom = 0;
   }
   void ev_setup(int, int);
   void ev_tally(int, int *, double, double, double *);
@@ -273,10 +276,12 @@ class Fix : protected Pointers {
     if (vflag && thermo_virial)
       v_setup(vflag);
     else
-      evflag = vflag_either = vflag_global = vflag_atom = 0;
+      evflag = vflag_either = vflag_global = vflag_atom = cvflag_atom = 0;
   }
   void v_setup(int);
   void v_tally(int, int *, double, double *);
+  void v_tally(int, int *, double, double *, int, int, int[][2], double *, double[][3]);
+  void v_tally(int, int *, double, double *, double[][3], double[][3], double[]);
   void v_tally(int, double *);
   void v_tally(int, int, double);
 };
@@ -312,21 +317,3 @@ namespace FixConst {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Fix ID must be alphanumeric or underscore characters
-
-Self-explanatory.
-
-E: Could not find fix group ID
-
-A group ID used in the fix command does not exist.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

@@ -37,20 +37,12 @@ PairLJLongCoulLongIntel::PairLJLongCoulLongIntel(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-PairLJLongCoulLongIntel::~PairLJLongCoulLongIntel()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void PairLJLongCoulLongIntel::init_style()
 {
   PairLJLongCoulLong::init_style();
-  neighbor->find_request(this)->intel = 1;
 
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,"The 'package intel' command is required for /intel styles");
-  auto fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  auto fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
+
   fix->pair_init_check();
 }

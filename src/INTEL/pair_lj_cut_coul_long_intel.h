@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -34,10 +33,9 @@ class PairLJCutCoulLongIntel : public PairLJCutCoulLong {
 
  public:
   PairLJCutCoulLongIntel(class LAMMPS *);
-  virtual ~PairLJCutCoulLongIntel();
 
-  virtual void compute(int, int);
-  void init_style();
+  void compute(int, int) override;
+  void init_style() override;
 
   typedef struct {
     float x, y, z;
@@ -96,11 +94,3 @@ class PairLJCutCoulLongIntel : public PairLJCutCoulLong {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: The 'package intel' command is required for /intel styles
-
-Self-explanatory.
-
-*/

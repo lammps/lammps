@@ -14,8 +14,6 @@
 #ifndef LMP_MEAM_H
 #define LMP_MEAM_H
 
-#include "math_const.h"    // IWYU pragma: export
-
 #include <cmath>
 #include <string>
 

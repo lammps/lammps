@@ -67,9 +67,7 @@ public:
   double get_t_from_x( double xx ) const
   {
     if (xx < x0 || xx > x1) {
-      char msg[2048];
-      sprintf(msg, "x ( %g ) out of bounds [%g, %g]", xx, x0, x1 );
-      err->one(FLERR, msg);
+      err->one(FLERR,"x ( {} ) out of bounds [{}, {}]", xx, x0, x1 );
     }
 
     // Newton iterate to get right t.
@@ -271,8 +269,6 @@ void manifold_gaussian_bump::post_param_init()
 
 
   make_lut();
-
-  // test_lut();
 }
 
 
@@ -359,32 +355,4 @@ void manifold_gaussian_bump::lut_get_z_and_zp( double rr, double &zz,
 
   zz  =  zleft * fmin +  zright * frac;
   zzp = zpleft * fmin + zpright * frac;
-}
-
-
-void manifold_gaussian_bump::test_lut()
-{
-  double x[3], nn[3];
-  if (comm->me != 0) return;
-
-  FILE *fp = fopen( "test_lut_gaussian.dat", "w" );
-  double dx = 0.1;
-  for (double xx = 0; xx < 20; xx += dx) {
-    x[0] = xx;
-    x[1] = 0.0;
-    x[2] = 0.0;
-    double gg = g( x );
-    n( x, nn );
-    double taper_z;
-    if (xx <= rc1) {
-            taper_z = gaussian_bump(xx);
-    } else if (xx < rc2) {
-            taper_z = lut_get_z( xx );
-    } else {
-            taper_z = 0.0;
-    }
-    fprintf( fp, "%g %g %g %g %g %g %g\n", xx, gaussian_bump(xx), taper_z,
-             gg, nn[0], nn[1], nn[2] );
-  }
-  fclose(fp);
 }

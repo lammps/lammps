@@ -1,7 +1,10 @@
 .. index:: third_order
+.. index:: third_order/kk
 
 third_order command
 ===================
+
+Accelerator Variants: third_order/kk
 
 Syntax
 """"""
@@ -36,8 +39,9 @@ Description
 
 Calculate the third order force constant tensor by finite difference of the selected group,
 
-.. image:: JPG/third_order_force_constant.png
-   :align: center
+.. math::
+
+    \Phi^{\alpha\beta\gamma}_{ijk} = \frac{\partial^3 U}{\partial x_{i,\alpha} \partial x_{j,\beta} \partial x_{k, \gamma}}
 
 where Phi is the third order force constant tensor.
 
@@ -48,6 +52,12 @@ The initial five numbers are i, alpha, j, beta, and k respectively.
 If the style eskm is selected, the tensor will be using energy units of 10 J/mol.
 These units conform to eskm style from the dynamical_matrix command, which
 will simplify operations using dynamical matrices with third order tensors.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

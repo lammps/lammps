@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class MLIAPModel : protected Pointers {
  public:
   MLIAPModel(LAMMPS *, char *);
-  virtual ~MLIAPModel();
+  ~MLIAPModel() override;
   void set_ndescriptors(int);
   void set_nelements(int);
   virtual int get_nparams() = 0;
@@ -44,11 +44,11 @@ class MLIAPModel : protected Pointers {
 class MLIAPModelSimple : public MLIAPModel {
  public:
   MLIAPModelSimple(LAMMPS *, char *);
-  ~MLIAPModelSimple(){};
-  virtual double memory_usage();
+
+  double memory_usage() override;
 
  protected:
-  virtual void read_coeffs(char *);
+  void read_coeffs(char *) override;
 };
 
 }    // namespace LAMMPS_NS

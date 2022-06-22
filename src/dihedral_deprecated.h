@@ -27,20 +27,15 @@ namespace LAMMPS_NS {
 class DihedralDeprecated : public Dihedral {
  public:
   DihedralDeprecated(class LAMMPS *lmp) : Dihedral(lmp) {}
-  virtual ~DihedralDeprecated() {}
 
-  virtual void compute(int, int) {}
-  virtual void settings(int, char **);
-  virtual void coeff(int, char **) {}
-  virtual void write_restart(FILE *) {}
-  virtual void read_restart(FILE *) {}
+  void compute(int, int) override {}
+  void settings(int, char **) override;
+  void coeff(int, char **) override {}
+  void write_restart(FILE *) override {}
+  void read_restart(FILE *) override {}
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

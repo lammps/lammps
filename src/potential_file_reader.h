@@ -18,8 +18,8 @@
 #ifndef LMP_POTENTIAL_FILE_READER_H
 #define LMP_POTENTIAL_FILE_READER_H
 
-#include "pointers.h"    // IWYU pragma: export
-#include "tokenizer.h"
+#include "pointers.h"     // IWYU pragma: export
+#include "tokenizer.h"    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 class TextFileReader;
@@ -39,10 +39,11 @@ class PotentialFileReader : protected Pointers {
   PotentialFileReader(class LAMMPS *lmp, const std::string &filename,
                       const std::string &potential_name, const std::string &name_suffix,
                       const int auto_convert = 0);
-  virtual ~PotentialFileReader();
+  ~PotentialFileReader() override;
 
   void ignore_comments(bool value);
 
+  void rewind();
   void skip_line();
   char *next_line(int nparams = 0);
   void next_dvector(double *list, int n);

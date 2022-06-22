@@ -66,18 +66,18 @@ class FixNVEManifoldRattle : public Fix {
   };
 
   FixNVEManifoldRattle(LAMMPS *, int &, char **, int = 1);
-  virtual ~FixNVEManifoldRattle();
+  ~FixNVEManifoldRattle() override;
   // All this stuff is interface, so you DO need to implement them.
   // Just delegate them to the workhorse classes.
-  virtual int setmask();
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
-  virtual void init();
-  virtual void reset_dt();
-  virtual void end_of_step();
-  virtual int dof(int);
-  virtual void setup(int) {}    // Not needed for fixNVE but is for fixNVT
-  virtual double memory_usage();
+  int setmask() override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  void init() override;
+  void reset_dt() override;
+  void end_of_step() override;
+  int dof(int) override;
+  void setup(int) override {}    // Not needed for fixNVE but is for fixNVT
+  double memory_usage() override;
 
  protected:
   int nevery, next_output;
@@ -111,58 +111,3 @@ class FixNVEManifoldRattle : public Fix {
 
 #endif    // LMP_FIX_NVE_MANIFOLD_RATTLE_H
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: There is no manifold named ...
-
-Self-explanatory.  You requested a manifold whose name was not
-registered at the factory.
-
-E: Manifold pointer was nullptr for some reason!
-
-This indicates a bug.  The factory was unable to properly create
-the requested manifold even though it was registered. Send the
-maintainer an e-mail.
-
-E: Manifold ... needs at least ... argument(s)!
-
-Self-explanatory.  Provide enough arguments for the proper
-creating of the requested manifold.
-
-E: Parameter pointer was nullptr!
-
-This indicates a bug.  The array that contains the parameters
-could not be allocated. Send the maintainer an e-mail.
-
-E: Could not allocate space for arg!
-
-One of the arguments provided was too long (it contained
-too many characters)
-
-E: Option ... needs ... argument(s):
-
-Self-explanatory.  Read the documentation of this fix properly.
-
-
-E: Illegal fix nve/manifold/rattle command! Option ... not recognized!
-
-Self-explanatory.  The given option(s) do not exist.
-
-E: Variable name for fix nve/manifold/rattle does not exist
-
-Self-explanatory.
-
-E: Variable for fix nve/manifold/rattle is invalid style
-
-fix nve/manifold/rattle only supports equal style variables.
-
-
-
-*/

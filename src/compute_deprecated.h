@@ -28,19 +28,10 @@ namespace LAMMPS_NS {
 class ComputeDeprecated : public Compute {
  public:
   ComputeDeprecated(class LAMMPS *, int, char **);
-  ~ComputeDeprecated() {}
-  void init() {}
+  void init() override {}
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: This compute command has been removed from LAMMPS
-
-UNDOCUMENTED
-
-*/

@@ -159,7 +159,7 @@ void ComputePEAtom::compute_peratom()
   // communicate ghost energy between neighbor procs
 
   if (force->newton || (force->kspace && force->kspace->tip4pflag))
-    comm->reverse_comm_compute(this);
+    comm->reverse_comm(this);
 
   // zero energy of atoms not in group
   // only do this after comm since ghost contributions must be included

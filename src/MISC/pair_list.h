@@ -27,19 +27,17 @@ namespace LAMMPS_NS {
 class PairList : public Pair {
  public:
   PairList(class LAMMPS *);
-  virtual ~PairList();
+  ~PairList() override;
 
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  virtual void coeff(int, char **);
-  virtual void init_style();
-  virtual double init_one(int, int);
-  virtual double memory_usage();
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  double memory_usage() override;
 
  protected:
   void allocate();
-
-  enum { NONE = 0, HARM, MORSE, LJ126 };
 
   // potential specific parameters
   struct harm_p {
@@ -52,71 +50,28 @@ class PairList : public Pair {
     double epsilon, sigma;
   };
 
-  union parm_u {
-    struct harm_p harm;
-    struct morse_p morse;
-    struct lj126_p lj126;
+  union param_u {
+    harm_p harm;
+    morse_p morse;
+    lj126_p lj126;
   };
 
-  typedef struct {
-    tagint id1, id2;      // global atom ids
-    double cutsq;         // cutoff**2 for this pair
-    double offset;        // energy offset
-    union parm_u parm;    // parameters for style
-  } list_parm_t;
+  struct list_param {
+    int style;              // potential style indicator
+    tagint id1, id2;        // global atom ids
+    double cutsq;           // cutoff**2 for this pair
+    double offset;          // energy offset
+    union param_u param;    // parameters for style
+  };
 
  protected:
-  double cut_global;      // global cutoff distance
-  int *style;             // list of styles for pair interactions
-  list_parm_t *params;    // lisf of pair interaction parameters
-  int npairs;             // # of atom pairs in global list
-  int check_flag;         // 1 if checking for missing pairs
+  double cut_global;     // global cutoff distance
+  list_param *params;    // lisf of pair interaction parameters
+  int npairs;            // # of atom pairs in global list
+  int check_flag;        // 1 if checking for missing pairs
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Not all pairs processed in pair_style list
-
-Not all interacting pairs for which coefficients were found. This can be intentional
-and then you need to set the 'nocheck' option. If not, it usually means that the
-communication cutoff is too small. This can be ameliorated by either increasing
-the cutoff in the pair_style command or the communication cutoff.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot open pair list file
-
-Self-explanatory.  The file with the list of pairs cannot be open for reading.
-Check the path and permissions.
-
-E: Incorrectly formatted ...
-
-Self-explanatory.  The content of the pair list file does not match the documented
-format. Please re-read the documentation and carefully compare it to your file.
-
-E: Unknown pair list potential style
-
-Self-explanatory.  You requested a potential type that is not yet implemented or have a typo.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair style list requires atom IDs
-
-Self-explanatory.  The pairs in the list are identified via atom IDs, so they need to be present.
-
-E: Pair style list requires an atom map
-
-Self-explanatory.  Atoms are looked up via an atom map. Create one using the atom_style map command.
-
-*/

@@ -23,7 +23,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <cmath>
 #include <cstdio>
 #include <cstring>
-#include <stdint.h>
+#include <cstdint>
 
 static double calculate_interatomic_distance(int type, double scale) {
         assert(type >= 1 && type <= 8);
@@ -185,7 +185,7 @@ static void output_data(ptm::result_t *res, double (*points)[3],
         memcpy(q, res->q, 4 * sizeof(double));
 }
 
-extern bool ptm_initialized;
+
 
 int ptm_index(ptm_local_handle_t local_handle, size_t atom_index,
               int(get_neighbours)(void *vdata, size_t central_index, size_t atom_index, int num,

@@ -78,8 +78,8 @@
 namespace random_external_state {
 typedef uint64_t es_RNG_t;
 
-enum { MAX_URAND = 0xffffffffU };
-enum { MAX_URAND64 = 0xffffffffffffffffULL - 1 };
+constexpr uint32_t MAX_URAND = 0xffffffffU;
+constexpr uint64_t MAX_URAND64 = 0xffffffffffffffffULL - 1;
 
 LAMMPS_INLINE
 uint32_t es_urand(es_RNG_t &state_)
@@ -111,7 +111,7 @@ int es_rand(es_RNG_t &state_)
 LAMMPS_INLINE
 double es_drand(es_RNG_t &state_)
 {
-  return 1.0 * es_urand64(state_) / MAX_URAND64;
+  return static_cast<double>(es_urand64(state_)) / static_cast<double>(MAX_URAND64);
 }
 
 //Marsaglia polar method for drawing a standard normal distributed random number
@@ -169,12 +169,3 @@ void es_genNextParallelState(es_RNG_t &serial_state, es_RNG_t &new_state)
 }    // namespace random_external_state
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Invalid seed for Marsaglia random # generator
-
-The initial seed for this random number generator must be a positive
-integer less than or equal to 900 million.
-
-*/

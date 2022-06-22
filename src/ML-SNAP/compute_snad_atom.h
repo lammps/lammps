@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class ComputeSNADAtom : public Compute {
  public:
   ComputeSNADAtom(class LAMMPS *, int, char **);
-  ~ComputeSNADAtom();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_peratom();
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  double memory_usage();
+  ~ComputeSNADAtom() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_peratom() override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
 
  private:
   int nmax;
@@ -46,6 +46,9 @@ class ComputeSNADAtom : public Compute {
   double *wjelem;
   int *map;    // map types to [0,nelements)
   int nelements, chemflag;
+  int switchinnerflag;
+  double *sinnerelem;
+  double *dinnerelem;
   class SNA *snaptr;
   double cutmax;
   int quadraticflag;
@@ -55,29 +58,3 @@ class ComputeSNADAtom : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute snad/atom requires a pair style be defined
-
-Self-explanatory.
-
-E: Compute sna/atom cutoff is longer than pairwise cutoff
-
-UNDOCUMENTED
-
-W: More than one compute snad/atom
-
-Self-explanatory.
-
-U: Compute snad/atom cutoff is longer than pairwise cutoff
-
-Self-explanatory.
-
-*/

@@ -31,7 +31,6 @@
 #include "memory.h"
 #include "my_page.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "potential_file_reader.h"
 #include "text_file_reader.h"
@@ -126,13 +125,13 @@ PairComb3::~PairComb3()
   memory->destroy(sht_num);
   memory->sfree(sht_first);
 
-  delete [] ipage;
+  delete[] ipage;
 
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
     memory->destroy(cutghost);
-    delete [] esm;
+    delete[] esm;
   }
 
 }
@@ -216,11 +215,8 @@ void PairComb3::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style COMB3 requires atom attribute q");
 
-  // need a full neighbor list
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->ghost = 1;
+// need a full neighbor list
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
 
   // local Comb neighbor list
   // create pages if first time or if neighbor pgsize/oneatom has changed
@@ -231,7 +227,7 @@ void PairComb3::init_style()
   if (oneatom != neighbor->oneatom) create = 1;
 
   if (create) {
-    delete [] ipage;
+    delete[] ipage;
     pgsize = neighbor->pgsize;
     oneatom = neighbor->oneatom;
 
@@ -777,7 +773,7 @@ void PairComb3::Short_neigh()
 
   // communicating coordination number to all nodes
   pack_flag = 2;
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
 }
 
@@ -2503,10 +2499,10 @@ void PairComb3::tables()
     }
   }
 
-  delete [] vrc;
-  delete [] rrc;
-  delete [] cc2;
-  delete [] cc3;
+  delete[] vrc;
+  delete[] rrc;
+  delete[] cc2;
+  delete[] cc3;
   memory->destroy(rvdw);
 }
 
@@ -3154,7 +3150,7 @@ double PairComb3::combqeq(double *qf_fix, int &igroup)
   // communicating charge force to all nodes, first forward then reverse
 
   pack_flag = 1;
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // self energy correction term: potal
 
@@ -3265,7 +3261,7 @@ double PairComb3::combqeq(double *qf_fix, int &igroup)
     }
   }
 
-  comm->reverse_comm_pair(this);
+  comm->reverse_comm(this);
 
   // sum charge force on each node and return it
 

@@ -29,30 +29,14 @@ namespace LAMMPS_NS {
 class NBinStandard : public NBin {
  public:
   NBinStandard(class LAMMPS *);
-  ~NBinStandard() {}
-  void bin_atoms_setup(int);
-  void setup_bins(int);
-  void bin_atoms();
-  double memory_usage();
+
+  void bin_atoms_setup(int) override;
+  void setup_bins(int) override;
+  void bin_atoms() override;
+  double memory_usage() override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Domain too large for neighbor bins
-
-UNDOCUMENTED
-
-E: Cannot use neighbor bins - box size << cutoff
-
-UNDOCUMENTED
-
-E: Too many neighbor bins
-
-UNDOCUMENTED
-
-*/

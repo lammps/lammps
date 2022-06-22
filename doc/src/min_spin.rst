@@ -98,6 +98,10 @@ see their implementation reported in :ref:`(Ivanov) <Ivanov1>`.
 Restrictions
 """"""""""""
 
+The *spin*, *spin/cg*, and *spin/lbfgps* styles are part of the SPIN
+package.  They are only enabled if LAMMPS was built with that package.
+See the :doc:`Build package <Build_package>` page for more info.
+
 This minimization procedure is only applied to spin degrees of
 freedom for a frozen lattice configuration.
 

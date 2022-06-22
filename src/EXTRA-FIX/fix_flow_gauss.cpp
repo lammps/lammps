@@ -91,9 +91,7 @@ FixFlowGauss::FixFlowGauss(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"energy") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal energy keyword");
-      if (strcmp(arg[iarg+1],"yes") == 0) workflag = true;
-      else if (strcmp(arg[iarg+1],"no") != 0)
-        error->all(FLERR,"Illegal energy keyword");
+      workflag = utils::logical(FLERR,arg[iarg+1],false,lmp) == 1;
       iarg += 2;
     } else error->all(FLERR,"Illegal fix flow/gauss command");
   }
@@ -125,7 +123,7 @@ void FixFlowGauss::init()
   //if respa level specified by fix_modify, then override default (outermost)
   //if specified level too high, set to max level
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
+    ilevel_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels-1;
     if (respa_level >= 0)
       ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -148,9 +146,9 @@ void FixFlowGauss::setup(int vflag)
     error->all(FLERR,"Invalid group mass in fix flow/gauss");
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
+    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(ilevel_respa);
     post_force_respa(vflag,ilevel_respa,0);
-    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
+    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(ilevel_respa);
   }
   else
     post_force(vflag);

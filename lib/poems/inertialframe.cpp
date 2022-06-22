@@ -33,8 +33,7 @@ InertialFrame::InertialFrame(){
   alpha.Zeros();
   alpha_t.Zeros();
 }
-InertialFrame::~InertialFrame(){
-}
+InertialFrame::~InertialFrame() = default;
 
 BodyType InertialFrame::GetType(){
   return INERTIALFRAME;

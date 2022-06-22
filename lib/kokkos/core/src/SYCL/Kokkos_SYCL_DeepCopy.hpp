@@ -48,181 +48,144 @@
 #include <Kokkos_Core_fwd.hpp>
 #include <Kokkos_SYCL.hpp>
 
+#include <vector>
+
 #ifdef KOKKOS_ENABLE_SYCL
 
 namespace Kokkos {
 namespace Impl {
 
-template <>
-struct DeepCopy<Kokkos::Experimental::SYCLDeviceUSMSpace,
-                Kokkos::Experimental::SYCLDeviceUSMSpace,
-                Kokkos::Experimental::SYCL> {
-  DeepCopy(void* dst, const void* src, size_t);
-  DeepCopy(const Kokkos::Experimental::SYCL&, void* dst, const void* src,
-           size_t);
-};
-
-template <>
-struct DeepCopy<Kokkos::HostSpace, Kokkos::Experimental::SYCLDeviceUSMSpace,
-                Kokkos::Experimental::SYCL> {
-  DeepCopy(void* dst, const void* src, size_t);
-  DeepCopy(const Kokkos::Experimental::SYCL&, void* dst, const void* src,
-           size_t);
-};
-
-template <>
-struct DeepCopy<Kokkos::Experimental::SYCLDeviceUSMSpace, Kokkos::HostSpace,
-                Kokkos::Experimental::SYCL> {
-  DeepCopy(void* dst, const void* src, size_t);
-  DeepCopy(const Kokkos::Experimental::SYCL&, void* dst, const void* src,
-           size_t);
-};
-
-template <class ExecutionSpace>
-struct DeepCopy<Kokkos::Experimental::SYCLDeviceUSMSpace,
-                Kokkos::Experimental::SYCLDeviceUSMSpace, ExecutionSpace> {
-  DeepCopy(void* dst, const void* src, size_t n) {
-    (void)DeepCopy<Kokkos::Experimental::SYCLDeviceUSMSpace,
-                   Kokkos::Experimental::SYCLDeviceUSMSpace,
-                   Kokkos::Experimental::SYCL>(dst, src, n);
+template <class DT, class... DP>
+struct ZeroMemset<Kokkos::Experimental::SYCL, DT, DP...> {
+  ZeroMemset(const Kokkos::Experimental::SYCL& exec_space,
+             const View<DT, DP...>& dst,
+             typename View<DT, DP...>::const_value_type&) {
+    auto event = exec_space.impl_internal_space_instance()->m_queue->memset(
+        dst.data(), 0,
+        dst.size() * sizeof(typename View<DT, DP...>::value_type));
+    exec_space.impl_internal_space_instance()
+        ->m_queue->ext_oneapi_submit_barrier(std::vector<sycl::event>{event});
   }
 
-  DeepCopy(const ExecutionSpace& exec, void* dst, const void* src, size_t n) {
-    exec.fence();
-    DeepCopy<Kokkos::Experimental::SYCLDeviceUSMSpace,
-             Kokkos::Experimental::SYCLDeviceUSMSpace,
-             Kokkos::Experimental::SYCL>(Kokkos::Experimental::SYCL(), dst, src,
-                                         n);
-    Kokkos::Experimental::SYCL().fence();
+  ZeroMemset(const View<DT, DP...>& dst,
+             typename View<DT, DP...>::const_value_type&) {
+    Experimental::Impl::SYCLInternal::singleton().m_queue->memset(
+        dst.data(), 0,
+        dst.size() * sizeof(typename View<DT, DP...>::value_type));
   }
 };
 
-template <class ExecutionSpace>
-struct DeepCopy<Kokkos::HostSpace, Kokkos::Experimental::SYCLDeviceUSMSpace,
-                ExecutionSpace> {
-  DeepCopy(void* dst, const void* src, size_t n) {
-    (void)DeepCopy<Kokkos::HostSpace, Kokkos::Experimental::SYCLDeviceUSMSpace,
-                   Kokkos::Experimental::SYCL>(dst, src, n);
-  }
+void DeepCopySYCL(void* dst, const void* src, size_t n);
+void DeepCopyAsyncSYCL(const Kokkos::Experimental::SYCL& instance, void* dst,
+                       const void* src, size_t n);
+void DeepCopyAsyncSYCL(void* dst, const void* src, size_t n);
 
-  DeepCopy(const ExecutionSpace& exec, void* dst, const void* src, size_t n) {
-    exec.fence();
-    DeepCopy<Kokkos::HostSpace, Kokkos::Experimental::SYCLDeviceUSMSpace,
-             Kokkos::Experimental::SYCL>(Kokkos::Experimental::SYCL(), dst, src,
-                                         n);
-    Kokkos::Experimental::SYCL().fence();
+template <class MemSpace>
+struct DeepCopy<MemSpace, HostSpace, Kokkos::Experimental::SYCL,
+                std::enable_if_t<is_sycl_type_space<MemSpace>::value>> {
+  DeepCopy(void* dst, const void* src, size_t n) { DeepCopySYCL(dst, src, n); }
+  DeepCopy(const Kokkos::Experimental::SYCL& instance, void* dst,
+           const void* src, size_t n) {
+    DeepCopyAsyncSYCL(instance, dst, src, n);
   }
 };
 
-template <class ExecutionSpace>
-struct DeepCopy<Kokkos::Experimental::SYCLDeviceUSMSpace, Kokkos::HostSpace,
-                ExecutionSpace> {
-  DeepCopy(void* dst, const void* src, size_t n) {
-    (void)DeepCopy<Kokkos::Experimental::SYCLDeviceUSMSpace, Kokkos::HostSpace,
-                   Kokkos::Experimental::SYCL>(dst, src, n);
-  }
-
-  DeepCopy(const ExecutionSpace& exec, void* dst, const void* src, size_t n) {
-    exec.fence();
-    DeepCopy<Kokkos::Experimental::SYCLDeviceUSMSpace, Kokkos::HostSpace,
-             Kokkos::Experimental::SYCL>(Kokkos::Experimental::SYCL(), dst, src,
-                                         n);
-    Kokkos::Experimental::SYCL().fence();
+template <class MemSpace>
+struct DeepCopy<HostSpace, MemSpace, Kokkos::Experimental::SYCL,
+                std::enable_if_t<is_sycl_type_space<MemSpace>::value>> {
+  DeepCopy(void* dst, const void* src, size_t n) { DeepCopySYCL(dst, src, n); }
+  DeepCopy(const Kokkos::Experimental::SYCL& instance, void* dst,
+           const void* src, size_t n) {
+    DeepCopyAsyncSYCL(instance, dst, src, n);
   }
 };
 
-template <>
-struct DeepCopy<Experimental::SYCLSharedUSMSpace,
-                Experimental::SYCLSharedUSMSpace, Kokkos::Experimental::SYCL>
-    : public DeepCopy<Experimental::SYCLDeviceUSMSpace,
-                      Experimental::SYCLDeviceUSMSpace,
-                      Kokkos::Experimental::SYCL> {
-  using DeepCopy<Experimental::SYCLDeviceUSMSpace,
-                 Experimental::SYCLDeviceUSMSpace,
-                 Kokkos::Experimental::SYCL>::DeepCopy;
+template <class MemSpace1, class MemSpace2>
+struct DeepCopy<MemSpace1, MemSpace2, Kokkos::Experimental::SYCL,
+                std::enable_if_t<is_sycl_type_space<MemSpace1>::value &&
+                                 is_sycl_type_space<MemSpace2>::value>> {
+  DeepCopy(void* dst, const void* src, size_t n) { DeepCopySYCL(dst, src, n); }
+  DeepCopy(const Kokkos::Experimental::SYCL& instance, void* dst,
+           const void* src, size_t n) {
+    DeepCopyAsyncSYCL(instance, dst, src, n);
+  }
 };
 
-template <>
-struct DeepCopy<Experimental::SYCLSharedUSMSpace, HostSpace,
-                Kokkos::Experimental::SYCL>
-    : public DeepCopy<Experimental::SYCLDeviceUSMSpace, HostSpace,
-                      Kokkos::Experimental::SYCL> {
-  using DeepCopy<Experimental::SYCLDeviceUSMSpace, HostSpace,
-                 Kokkos::Experimental::SYCL>::DeepCopy;
+template <class MemSpace1, class MemSpace2, class ExecutionSpace>
+struct DeepCopy<
+    MemSpace1, MemSpace2, ExecutionSpace,
+    std::enable_if_t<
+        is_sycl_type_space<MemSpace1>::value &&
+        is_sycl_type_space<MemSpace2>::value &&
+        !std::is_same<ExecutionSpace, Kokkos::Experimental::SYCL>::value>> {
+  inline DeepCopy(void* dst, const void* src, size_t n) {
+    DeepCopySYCL(dst, src, n);
+  }
+
+  inline DeepCopy(const ExecutionSpace& exec, void* dst, const void* src,
+                  size_t n) {
+    exec.fence(fence_string());
+    DeepCopyAsyncSYCL(dst, src, n);
+  }
+
+ private:
+  static const std::string& fence_string() {
+    static const std::string string =
+        std::string("Kokkos::Impl::DeepCopy<") + MemSpace1::name() + "Space, " +
+        MemSpace2::name() +
+        "Space, ExecutionSpace>::DeepCopy: fence before copy";
+    return string;
+  }
 };
 
-template <>
-struct DeepCopy<HostSpace, Experimental::SYCLSharedUSMSpace,
-                Kokkos::Experimental::SYCL>
-    : public DeepCopy<HostSpace, Experimental::SYCLDeviceUSMSpace,
-                      Kokkos::Experimental::SYCL> {
-  using DeepCopy<HostSpace, Experimental::SYCLDeviceUSMSpace,
-                 Kokkos::Experimental::SYCL>::DeepCopy;
+template <class MemSpace, class ExecutionSpace>
+struct DeepCopy<
+    MemSpace, HostSpace, ExecutionSpace,
+    std::enable_if_t<
+        is_sycl_type_space<MemSpace>::value &&
+        !std::is_same<ExecutionSpace, Kokkos::Experimental::SYCL>::value>> {
+  inline DeepCopy(void* dst, const void* src, size_t n) {
+    DeepCopySYCL(dst, src, n);
+  }
+
+  inline DeepCopy(const ExecutionSpace& exec, void* dst, const void* src,
+                  size_t n) {
+    exec.fence(fence_string());
+    DeepCopyAsyncSYCL(dst, src, n);
+  }
+
+ private:
+  static const std::string& fence_string() {
+    static const std::string string =
+        std::string("Kokkos::Impl::DeepCopy<") + MemSpace::name() +
+        "Space, HostSpace, ExecutionSpace>::DeepCopy: fence before copy";
+    return string;
+  }
 };
 
-template <>
-struct DeepCopy<Experimental::SYCLSharedUSMSpace,
-                Experimental::SYCLDeviceUSMSpace, Kokkos::Experimental::SYCL>
-    : public DeepCopy<Experimental::SYCLDeviceUSMSpace,
-                      Experimental::SYCLDeviceUSMSpace,
-                      Kokkos::Experimental::SYCL> {
-  using DeepCopy<Experimental::SYCLDeviceUSMSpace,
-                 Experimental::SYCLDeviceUSMSpace,
-                 Kokkos::Experimental::SYCL>::DeepCopy;
-};
+template <class MemSpace, class ExecutionSpace>
+struct DeepCopy<
+    HostSpace, MemSpace, ExecutionSpace,
+    std::enable_if_t<
+        is_sycl_type_space<MemSpace>::value &&
+        !std::is_same<ExecutionSpace, Kokkos::Experimental::SYCL>::value>> {
+  inline DeepCopy(void* dst, const void* src, size_t n) {
+    DeepCopySYCL(dst, src, n);
+  }
 
-template <>
-struct DeepCopy<Experimental::SYCLDeviceUSMSpace,
-                Experimental::SYCLSharedUSMSpace, Kokkos::Experimental::SYCL>
-    : public DeepCopy<Experimental::SYCLDeviceUSMSpace,
-                      Experimental::SYCLDeviceUSMSpace,
-                      Kokkos::Experimental::SYCL> {
-  using DeepCopy<Experimental::SYCLDeviceUSMSpace,
-                 Experimental::SYCLDeviceUSMSpace,
-                 Kokkos::Experimental::SYCL>::DeepCopy;
-};
+  inline DeepCopy(const ExecutionSpace& exec, void* dst, const void* src,
+                  size_t n) {
+    exec.fence(fence_string());
+    DeepCopyAsyncSYCL(dst, src, n);
+  }
 
-template <class ExecutionSpace>
-struct DeepCopy<Experimental::SYCLDeviceUSMSpace,
-                Experimental::SYCLSharedUSMSpace, ExecutionSpace>
-    : public DeepCopy<Experimental::SYCLDeviceUSMSpace,
-                      Experimental::SYCLDeviceUSMSpace, ExecutionSpace> {
-  using DeepCopy<Experimental::SYCLDeviceUSMSpace,
-                 Experimental::SYCLDeviceUSMSpace, ExecutionSpace>::DeepCopy;
-};
-
-template <class ExecutionSpace>
-struct DeepCopy<Experimental::SYCLSharedUSMSpace,
-                Experimental::SYCLDeviceUSMSpace, ExecutionSpace>
-    : public DeepCopy<Experimental::SYCLDeviceUSMSpace,
-                      Experimental::SYCLDeviceUSMSpace, ExecutionSpace> {
-  using DeepCopy<Experimental::SYCLDeviceUSMSpace,
-                 Experimental::SYCLDeviceUSMSpace, ExecutionSpace>::DeepCopy;
-};
-
-template <class ExecutionSpace>
-struct DeepCopy<Experimental::SYCLSharedUSMSpace,
-                Experimental::SYCLSharedUSMSpace, ExecutionSpace>
-    : public DeepCopy<Experimental::SYCLDeviceUSMSpace,
-                      Experimental::SYCLDeviceUSMSpace, ExecutionSpace> {
-  using DeepCopy<Experimental::SYCLDeviceUSMSpace,
-                 Experimental::SYCLDeviceUSMSpace, ExecutionSpace>::DeepCopy;
-};
-
-template <class ExecutionSpace>
-struct DeepCopy<Experimental::SYCLSharedUSMSpace, HostSpace, ExecutionSpace>
-    : public DeepCopy<Experimental::SYCLDeviceUSMSpace, HostSpace,
-                      ExecutionSpace> {
-  using DeepCopy<Experimental::SYCLDeviceUSMSpace, HostSpace,
-                 ExecutionSpace>::DeepCopy;
-};
-
-template <class ExecutionSpace>
-struct DeepCopy<HostSpace, Experimental::SYCLSharedUSMSpace, ExecutionSpace>
-    : public DeepCopy<HostSpace, Experimental::SYCLDeviceUSMSpace,
-                      ExecutionSpace> {
-  using DeepCopy<HostSpace, Experimental::SYCLDeviceUSMSpace,
-                 ExecutionSpace>::DeepCopy;
+ private:
+  static const std::string& fence_string() {
+    static const std::string string =
+        std::string("Kokkos::Impl::DeepCopy<HostSpace, ") + MemSpace::name() +
+        "Space, ExecutionSpace>::DeepCopy: fence before copy";
+    return string;
+  }
 };
 
 }  // namespace Impl

@@ -32,8 +32,7 @@ namespace LAMMPS_NS {
 class NPairFullBinIntel : public NPairIntel {
  public:
   NPairFullBinIntel(class LAMMPS *);
-  ~NPairFullBinIntel() {}
-  void build(class NeighList *);
+  void build(class NeighList *) override;
 
  private:
   template <class flt_t, class acc_t> void fbi(NeighList *, IntelBuffers<flt_t, acc_t> *);
@@ -43,7 +42,3 @@ class NPairFullBinIntel : public NPairIntel {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

@@ -5,37 +5,49 @@
 namespace Test {
 
 namespace {
-template <class ExecSpace>
-struct SpaceInstance {
-  static ExecSpace create() { return ExecSpace(); }
-  static void destroy(ExecSpace&) {}
-  static bool overlap() { return false; }
-};
+
+template <class ExecutionSpace>
+bool is_overlapping(const ExecutionSpace&) {
+  return false;
+}
 
 #ifndef KOKKOS_ENABLE_DEBUG
 #ifdef KOKKOS_ENABLE_CUDA
 template <>
-struct SpaceInstance<Kokkos::Cuda> {
-  static Kokkos::Cuda create() {
-    cudaStream_t stream;
-    cudaStreamCreate(&stream);
-    return Kokkos::Cuda(stream);
+bool is_overlapping<Kokkos::Cuda>(const Kokkos::Cuda&) {
+  bool value          = true;
+  auto local_rank_str = std::getenv("CUDA_LAUNCH_BLOCKING");
+  if (local_rank_str) {
+    value = (std::stoi(local_rank_str) == 0);
   }
-  static void destroy(Kokkos::Cuda& space) {
-    cudaStream_t stream = space.cuda_stream();
-    cudaStreamDestroy(stream);
-  }
-  static bool overlap() {
-    bool value          = true;
-    auto local_rank_str = std::getenv("CUDA_LAUNCH_BLOCKING");
-    if (local_rank_str) {
-      value = (std::stoi(local_rank_str) == 0);
-    }
-    return value;
-  }
-};
+  return value;
+}
+#endif
+
+#ifdef KOKKOS_ENABLE_HIP
+template <>
+bool is_overlapping<Kokkos::Experimental::HIP>(
+    const Kokkos::Experimental::HIP&) {
+  // FIXME_HIP This doesn't pass yet in CI.
+  return false;
+  // bool value          = true;
+  // auto local_rank_str = std::getenv("HIP_LAUNCH_BLOCKING");
+  // if (local_rank_str) {
+  //  value = (std::stoi(local_rank_str) == 0);
+  //}
+  // return value;
+}
+#endif
+
+#ifdef KOKKOS_ENABLE_SYCL
+template <>
+bool is_overlapping<Kokkos::Experimental::SYCL>(
+    const Kokkos::Experimental::SYCL&) {
+  return true;
+}
 #endif
 #endif
+
 }  // namespace
 
 struct FunctorRange {
@@ -133,8 +145,10 @@ TEST(default_exec, overlap_range_policy) {
   int R = 10;
 
   TEST_EXECSPACE space;
-  TEST_EXECSPACE space1 = SpaceInstance<TEST_EXECSPACE>::create();
-  TEST_EXECSPACE space2 = SpaceInstance<TEST_EXECSPACE>::create();
+  std::vector<TEST_EXECSPACE> execution_space_instances =
+      Kokkos::Experimental::partition_space(space, 1, 1);
+  TEST_EXECSPACE space1 = execution_space_instances[0];
+  TEST_EXECSPACE space2 = execution_space_instances[1];
 
   Kokkos::View<double**, TEST_EXECSPACE> a("A", N, M);
   FunctorRange f(M, R, a);
@@ -204,8 +218,8 @@ TEST(default_exec, overlap_range_policy) {
   Kokkos::fence();
   double time_end = timer.seconds();
 
-  if (SpaceInstance<TEST_EXECSPACE>::overlap()) {
-    ASSERT_TRUE((time_end > 1.5 * time_overlap));
+  if (is_overlapping(space)) {
+    ASSERT_GT(time_end, 1.5 * time_overlap);
   }
   printf("Time RangePolicy: NonOverlap: %lf Time Overlap: %lf\n", time_end,
          time_overlap);
@@ -237,8 +251,8 @@ TEST(default_exec, overlap_range_policy) {
       fr, result);
   double time_not_fenced = timer.seconds();
   Kokkos::fence();
-  if (SpaceInstance<TEST_EXECSPACE>::overlap()) {
-    ASSERT_TRUE(time_fenced > 2.0 * time_not_fenced);
+  if (is_overlapping(space)) {
+    ASSERT_GT(time_fenced, 2.0 * time_not_fenced);
   }
 
   timer.reset();
@@ -279,13 +293,11 @@ TEST(default_exec, overlap_range_policy) {
   ASSERT_EQ(h_result1(), h_result());
   ASSERT_EQ(h_result2(), h_result());
 
-  if (SpaceInstance<TEST_EXECSPACE>::overlap()) {
-    ASSERT_TRUE(time_overlapped_reduce < 1.5 * time_no_overlapped_reduce);
+  if (is_overlapping(space)) {
+    ASSERT_LT(time_overlapped_reduce, 1.5 * time_no_overlapped_reduce);
   }
   printf("Time RangePolicy Reduce: NonOverlap: %lf Time Overlap: %lf\n",
          time_no_overlapped_reduce, time_overlapped_reduce);
-  SpaceInstance<TEST_EXECSPACE>::destroy(space1);
-  SpaceInstance<TEST_EXECSPACE>::destroy(space2);
 }
 
 TEST(default_exec, overlap_mdrange_policy) {
@@ -294,8 +306,10 @@ TEST(default_exec, overlap_mdrange_policy) {
   int R = 10;
 
   TEST_EXECSPACE space;
-  TEST_EXECSPACE space1 = SpaceInstance<TEST_EXECSPACE>::create();
-  TEST_EXECSPACE space2 = SpaceInstance<TEST_EXECSPACE>::create();
+  std::vector<TEST_EXECSPACE> execution_space_instances =
+      Kokkos::Experimental::partition_space(space, 1, 1);
+  TEST_EXECSPACE space1 = execution_space_instances[0];
+  TEST_EXECSPACE space2 = execution_space_instances[1];
 
   Kokkos::View<double**, TEST_EXECSPACE> a("A", N, M);
   FunctorMDRange f(M, R, a);
@@ -377,8 +391,8 @@ TEST(default_exec, overlap_mdrange_policy) {
   Kokkos::fence();
   double time_end = timer.seconds();
 
-  if (SpaceInstance<TEST_EXECSPACE>::overlap()) {
-    ASSERT_TRUE((time_end > 1.5 * time_overlap));
+  if (is_overlapping(space)) {
+    ASSERT_GT(time_end, 1.5 * time_overlap);
   }
   printf("Time MDRangePolicy: NonOverlap: %lf Time Overlap: %lf\n", time_end,
          time_overlap);
@@ -412,8 +426,8 @@ TEST(default_exec, overlap_mdrange_policy) {
       fr, result);
   double time_not_fenced = timer.seconds();
   Kokkos::fence();
-  if (SpaceInstance<TEST_EXECSPACE>::overlap()) {
-    ASSERT_TRUE(time_fenced > 2.0 * time_not_fenced);
+  if (is_overlapping(space)) {
+    ASSERT_GT(time_fenced, 2.0 * time_not_fenced);
   }
 
   timer.reset();
@@ -458,13 +472,11 @@ TEST(default_exec, overlap_mdrange_policy) {
   ASSERT_EQ(h_result1(), h_result());
   ASSERT_EQ(h_result2(), h_result());
 
-  if (SpaceInstance<TEST_EXECSPACE>::overlap()) {
-    ASSERT_TRUE(time_overlapped_reduce < 1.5 * time_no_overlapped_reduce);
+  if (is_overlapping(space)) {
+    ASSERT_LT(time_overlapped_reduce, 1.5 * time_no_overlapped_reduce);
   }
   printf("Time MDRangePolicy Reduce: NonOverlap: %lf Time Overlap: %lf\n",
          time_no_overlapped_reduce, time_overlapped_reduce);
-  SpaceInstance<TEST_EXECSPACE>::destroy(space2);
-  SpaceInstance<TEST_EXECSPACE>::destroy(space1);
 }
 
 TEST(default_exec, overlap_team_policy) {
@@ -473,8 +485,10 @@ TEST(default_exec, overlap_team_policy) {
   int R = 10;
 
   TEST_EXECSPACE space;
-  TEST_EXECSPACE space1 = SpaceInstance<TEST_EXECSPACE>::create();
-  TEST_EXECSPACE space2 = SpaceInstance<TEST_EXECSPACE>::create();
+  std::vector<TEST_EXECSPACE> execution_space_instances =
+      Kokkos::Experimental::partition_space(space, 1, 1);
+  TEST_EXECSPACE space1 = execution_space_instances[0];
+  TEST_EXECSPACE space2 = execution_space_instances[1];
 
   Kokkos::View<double**, Kokkos::LayoutRight, TEST_EXECSPACE> a("A", N, M);
   FunctorTeam f(M, R, a);
@@ -547,8 +561,8 @@ TEST(default_exec, overlap_team_policy) {
   Kokkos::fence();
   double time_end = timer.seconds();
 
-  if (SpaceInstance<TEST_EXECSPACE>::overlap()) {
-    ASSERT_TRUE((time_end > 1.5 * time_overlap));
+  if (is_overlapping(space)) {
+    ASSERT_GT(time_end, 1.5 * time_overlap);
   }
   printf("Time TeamPolicy: NonOverlap: %lf Time Overlap: %lf\n", time_end,
          time_overlap);
@@ -580,8 +594,8 @@ TEST(default_exec, overlap_team_policy) {
       fr, result);
   double time_not_fenced = timer.seconds();
   Kokkos::fence();
-  if (SpaceInstance<TEST_EXECSPACE>::overlap()) {
-    ASSERT_TRUE(time_fenced > 2.0 * time_not_fenced);
+  if (is_overlapping(space)) {
+    ASSERT_GT(time_fenced, 2.0 * time_not_fenced);
   }
   timer.reset();
   Kokkos::parallel_reduce(
@@ -621,12 +635,10 @@ TEST(default_exec, overlap_team_policy) {
   ASSERT_EQ(h_result1(), h_result());
   ASSERT_EQ(h_result2(), h_result());
 
-  if (SpaceInstance<TEST_EXECSPACE>::overlap()) {
-    ASSERT_TRUE(time_overlapped_reduce < 1.5 * time_no_overlapped_reduce);
+  if (is_overlapping(space)) {
+    ASSERT_LT(time_overlapped_reduce, 1.5 * time_no_overlapped_reduce);
   }
   printf("Time TeamPolicy Reduce: NonOverlap: %lf Time Overlap: %lf\n",
          time_no_overlapped_reduce, time_overlapped_reduce);
-  SpaceInstance<TEST_EXECSPACE>::destroy(space1);
-  SpaceInstance<TEST_EXECSPACE>::destroy(space2);
 }
 }  // namespace Test

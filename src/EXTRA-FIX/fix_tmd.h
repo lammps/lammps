@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class FixTMD : public Fix {
  public:
   FixTMD(class LAMMPS *, int, char **);
-  ~FixTMD();
-  int setmask();
-  void init();
-  void initial_integrate(int);
-  void initial_integrate_respa(int, int, int);
+  ~FixTMD() override;
+  int setmask() override;
+  void init() override;
+  void initial_integrate(int) override;
+  void initial_integrate_respa(int, int, int) override;
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  void reset_dt();
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  void reset_dt() override;
 
  private:
   int me;
@@ -52,66 +52,10 @@ class FixTMD : public Fix {
   double **xf, **xold;
 
   void readfile(char *);
-  void open(char *);
+  void open(const std::string &);
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot use fix TMD unless atom map exists
-
-Using this fix requires the ability to lookup an atom index, which is
-provided by an atom map.  An atom map does not exist (by default) for
-non-molecular problems.  Using the atom_modify map command will force
-an atom map to be created.
-
-E: Cannot open fix tmd file %s
-
-The output file for the fix tmd command cannot be opened.  Check that
-the path and name are correct.
-
-E: Cannot use fix TMD on massless group
-
-UNDOCUMENTED
-
-E: Fix tmd must come after integration fixes
-
-Any fix tmd command must appear in the input script after all time
-integration fixes (nve, nvt, npt).  See the fix tmd documentation for
-details.
-
-E: Incorrect format in TMD target file
-
-Format of file read by fix tmd command is incorrect.
-
-W: Ignoring empty or incorrectly formatted line in target file
-
-UNDOCUMENTED
-
-E: TMD target file did not list all group atoms
-
-The target file for the fix tmd command did not list all atoms in the
-fix group.
-
-E: Cannot open gzipped file
-
-LAMMPS was compiled without support for reading and writing gzipped
-files through a pipeline to the gzip program with -DLAMMPS_GZIP.
-
-E: Cannot open file %s
-
-The specified file cannot be opened.  Check that the path and name are
-correct. If the file is a compressed file, also check that the gzip
-executable can be found and run.
-
-*/

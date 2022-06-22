@@ -30,10 +30,10 @@ class PairBuckLongCoulLongOMP : public PairBuckLongCoulLong, public ThrOMP {
  public:
   PairBuckLongCoulLongOMP(class LAMMPS *);
 
-  virtual void compute(int, int);
-  virtual void compute_inner();
-  virtual void compute_middle();
-  virtual void compute_outer(int, int);
+  void compute(int, int) override;
+  void compute_inner() override;
+  void compute_middle() override;
+  void compute_outer(int, int) override;
 
  private:
   template <const int EVFLAG, const int EFLAG, const int NEWTON_PAIR, const int CTABLE,
@@ -52,59 +52,3 @@ class PairBuckLongCoulLongOMP : public PairBuckLongCoulLong, public ThrOMP {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-W: Geometric mixing assumed for 1/r^6 coefficients
-
-Self-explanatory.
-
-W: Using largest cutoff for buck/long/coul/long
-
-Self-explanatory.
-
-E: Cutoffs missing in pair_style buck/long/coul/long
-
-Self-explanatory.
-
-E: LJ6 off not supported in pair_style buck/long/coul/long
-
-Self-explanatory.
-
-E: Coulomb cut not supported in pair_style buck/long/coul/coul
-
-Must use long-range Coulombic interactions.
-
-E: Only one cutoff allowed when requesting all long
-
-Self-explanatory.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair style buck/long/coul/long requires atom attribute q
-
-The atom style defined does not have this attribute.
-
-E: Pair style requires a KSpace style
-
-No kspace style is defined.
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-E: Pair cutoff < Respa interior cutoff
-
-One or more pairwise cutoffs are too short to use with the specified
-rRESPA cutoffs.
-
-*/

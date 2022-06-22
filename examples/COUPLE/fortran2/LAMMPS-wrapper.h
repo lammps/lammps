@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------
-    Contributing author:  Karl D. Hammond <karlh@ugcs.caltech.edu>
+    Contributing author:  Karl D. Hammond <hammondkd@missouri.edu>
                           University of Tennessee, Knoxville (USA), 2012
 ------------------------------------------------------------------------- */
 

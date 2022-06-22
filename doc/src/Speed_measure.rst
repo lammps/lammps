@@ -42,5 +42,4 @@ inaccurate relative timing data, because processors have to wait when
 communication occurs for other processors to catch up.  Thus the
 reported times for "Communication" or "Other" may be higher than they
 really are, due to load-imbalance.  If this is an issue, you can
-uncomment the MPI_Barrier() lines in src/timer.cpp, and re-compile
-LAMMPS, to obtain synchronized timings.
+use the :doc:`timer sync <timer>` command to obtain synchronized timings.

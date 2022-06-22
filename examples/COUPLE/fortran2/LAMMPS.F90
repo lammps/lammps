@@ -1292,7 +1292,7 @@ contains !! Wrapper functions local to this module {{{1
       Cname = string2Cstring (name)
       Ccount = size(data) / natoms
       if ( Ccount /= 1 .and. Ccount /= 3 ) &
-         call lammps_error_all (ptr, FLERR, 'lammps_gather_atoms requires&
+         call lammps_error_all (ptr, FLERR, 'lammps_scatter_atoms requires&
             & count to be either 1 or 3')
       Fdata = data
       Cdata = C_loc (Fdata(1))

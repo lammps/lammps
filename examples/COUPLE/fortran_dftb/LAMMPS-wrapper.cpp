@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------
-    Contributing author:  Karl D. Hammond <karlh@ugcs.caltech.edu>
-                          University of Tennessee, Knoxville (USA), 2012
+    Contributing author:  Karl D. Hammond <hammondkd@missouri.edu>
+                          University of Missouri (USA), 2012
 ------------------------------------------------------------------------- */
 
 /* This is set of "wrapper" functions to assist LAMMPS.F90, which itself

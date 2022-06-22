@@ -11,7 +11,6 @@ Syntax
    read_restart file flag
 
 * file = name of binary restart file to read in
-* flag = noremap (optional)
 
 Examples
 """"""""
@@ -19,10 +18,8 @@ Examples
 .. code-block:: LAMMPS
 
    read_restart save.10000
-   read_restart save.10000 noremap
    read_restart restart.*
    read_restart restart.*.mpiio
-   read_restart poly.*.% noremap
 
 Description
 """""""""""
@@ -40,19 +37,20 @@ processors in the current simulation and the settings of the
 changed by the :doc:`balance <balance>` or :doc:`fix balance
 <fix_balance>` commands.
 
-.. note::
-
-   When restart files are read, atoms are explicitly remapped back into
-   the simulation box and image flags updated accordingly.  In most
-   cases this will not make a difference since writing a restart file
-   will also trigger a rebuild of the neighbor lists and remapping of
-   atoms into the simulation box.  This extra remap results in some
-   overhead that can be avoided by appending the optional *noremap* flag
-   to the read_restart command.
-
 Restart files are saved in binary format to enable exact restarts,
 meaning that the trajectories of a restarted run will precisely match
 those produced by the original run had it continued on.
+
+The binary restart file format was not designed with backward, forward,
+or cross-platform compatibility in mind, so the files are only expected
+to be read correctly by the same LAMMPS executable on the same platform.
+Changes to the architecture, compilation settings, or LAMMPS version can
+render a restart file unreadable or it may read the data incorrectly.
+If you want a more portable format, you can use the data file format as
+created by the :doc:`write_data <write_data>` command.  Binary restart
+files can also be converted into a data file from the command line by
+the LAMMPS executable that wrote them using the :ref:`-restart2data
+<restart2data>` command line flag.
 
 Several things can prevent exact restarts due to round-off effects, in
 which case the trajectories in the 2 runs will slowly diverge.  These
@@ -221,17 +219,17 @@ its calculations in a consistent manner.
 
 .. note::
 
-   There are a handful of commands which can be used before or
-   between runs which may require a system initialization.  Examples
-   include the "balance", "displace_atoms", "delete_atoms", "set" (some
-   options), and "velocity" (some options) commands.  This is because
-   they can migrate atoms to new processors.  Thus they will also discard
-   unused "state" information from fixes.  You will know the discard has
+   There are a handful of commands which can be used before or between
+   runs which may require a system initialization.  Examples include the
+   "balance", "displace_atoms", "delete_atoms", "set" (some options),
+   and "velocity" (some options) commands.  This is because they can
+   migrate atoms to new processors.  Thus they will also discard unused
+   "state" information from fixes.  You will know the discard has
    occurred because a list of discarded fixes will be printed to the
    screen and log file, as explained above.  This means that if you wish
    to retain that info in a restarted run, you must re-specify the
-   relevant fixes and computes (which create fixes) before those commands
-   are used.
+   relevant fixes and computes (which create fixes) before those
+   commands are used.
 
 Some pair styles, like the :doc:`granular pair styles <pair_gran>`, also
 use a fix to store "state" information that persists from timestep to
@@ -244,18 +242,19 @@ LAMMPS allows bond interactions (angle, etc) to be turned off or
 deleted in various ways, which can affect how their info is stored in
 a restart file.
 
-If bonds (angles, etc) have been turned off by the :doc:`fix shake <fix_shake>` or :doc:`delete_bonds <delete_bonds>` command,
-their info will be written to a restart file as if they are turned on.
-This means they will need to be turned off again in a new run after
-the restart file is read.
+If bonds (angles, etc) have been turned off by the :doc:`fix shake
+<fix_shake>` or :doc:`delete_bonds <delete_bonds>` command, their info
+will be written to a restart file as if they are turned on.  This means
+they will need to be turned off again in a new run after the restart
+file is read.
 
 Bonds that are broken (e.g. by a bond-breaking potential) are written
 to the restart file as broken bonds with a type of 0.  Thus these
 bonds will still be broken when the restart file is read.
 
-Bonds that have been broken by the :doc:`fix bond/break <fix_bond_break>` command have disappeared from the
-system.  No information about these bonds is written to the restart
-file.
+Bonds that have been broken by the :doc:`fix bond/break
+<fix_bond_break>` command have disappeared from the system.  No
+information about these bonds is written to the restart file.
 
 ----------
 

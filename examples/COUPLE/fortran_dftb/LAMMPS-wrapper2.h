@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------
-    Contributing author:  Nir Goldman, ngoldman@llnl.gov, Oct. 19th, 2016
+    Contributing author:  Nir Goldman, LLNL <ngoldman@llnl.gov>, 2016
 ------------------------------------------------------------------------- */
 
 /* This is set of "wrapper" functions to assist LAMMPS.F90, which itself

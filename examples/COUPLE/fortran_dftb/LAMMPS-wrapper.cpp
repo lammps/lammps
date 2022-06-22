@@ -23,6 +23,7 @@
 
 #include <mpi.h>
 #include "LAMMPS-wrapper.h"
+#define LAMMPS_LIB_MPI 1
 #include <library.h>
 #include <lammps.h>
 #include <atom.h>

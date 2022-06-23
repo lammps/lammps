@@ -48,7 +48,7 @@ class Dihedral : protected Pointers {
   virtual void init();
   virtual void init_style() {}
   virtual void compute(int, int) = 0;
-  virtual void settings(int, char **) {}
+  virtual void settings(int, char **);
   virtual void coeff(int, char **) = 0;
   virtual void write_restart(FILE *) = 0;
   virtual void read_restart(FILE *) = 0;

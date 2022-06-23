@@ -41,7 +41,7 @@ namespace LAMMPS_NS {
 class ReadADIOSInternal {
 
  public:
-  ReadADIOSInternal(){};
+  ReadADIOSInternal() = default;
   ~ReadADIOSInternal() = default;
 
   // name of adios group, referrable in adios2_config.xml

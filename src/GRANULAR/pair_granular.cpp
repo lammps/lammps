@@ -47,7 +47,7 @@ using namespace MathSpecial;
 #define THREEROOT3 5.19615242270663202362  // 3*sqrt(3)
 #define SIXROOT6 14.69693845669906728801   // 6*sqrt(6)
 #define INVROOT6 0.40824829046386307274    // 1/sqrt(6)
-#define FOURTHIRDS 4.0/3.0                 // 4/3
+#define FOURTHIRDS (4.0/3.0)                 // 4/3
 #define THREEQUARTERS 0.75                 // 3/4
 
 #define EPSILON 1e-10

@@ -181,9 +181,10 @@ class FixBondReact : public Fix {
   double get_temperature(tagint **, int, int);
   void customvarnames();    // get per-atom variables names used by custom constraint
   void get_customvars();    // evaluate local values for variables names used by custom constraint
-  double custom_constraint(std::string);    // evaulate expression for custom constraint
-  double rxnfunction(std::string, std::string, std::string);    // eval rxn_sum and rxn_ave
-  int get_chirality(double[12]);    // get handedness given an ordered set of coordinates
+  double custom_constraint(const std::string &);    // evaulate expression for custom constraint
+  double rxnfunction(const std::string &, const std::string &,
+                     const std::string &);    // eval rxn_sum and rxn_ave
+  int get_chirality(double[12]);              // get handedness given an ordered set of coordinates
 
   void open(char *);
   void readline(char *);

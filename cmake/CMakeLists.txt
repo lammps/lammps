@@ -107,7 +107,7 @@ endif()
 
 # silence excessive warnings for new Intel Compilers
 if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
-  set(CMAKE_TUNE_DEFAULT "-Wno-tautological-constant-compare")
+  set(CMAKE_TUNE_DEFAULT "-Wno-tautological-constant-compare -Wno-unused-command-line-argument")
 endif()
 
 # silence excessive warnings for PGI/NVHPC compilers
@@ -116,7 +116,7 @@ if((CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC") OR (CMAKE_CXX_COMPILER_ID STREQUAL "
 endif()
 
 # silence nvcc warnings
-if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA))
+if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA) AND NOT (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
   set(CMAKE_TUNE_DEFAULT "${CMAKE_TUNE_DEFAULT} -Xcudafe --diag_suppress=unrecognized_pragma")
 endif()
 
@@ -135,9 +135,14 @@ set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Use compiler extensions")
 # ugly hacks for MSVC which by default always reports an old C++ standard in the __cplusplus macro
 # and prints lots of pointless warnings about "unsafe" functions
 if(MSVC)
-  add_compile_options(/Zc:__cplusplus)
-  add_compile_options(/wd4244)
-  add_compile_options(/wd4267)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    add_compile_options(/Zc:__cplusplus)
+    add_compile_options(/wd4244)
+    add_compile_options(/wd4267)
+    if(LAMMPS_EXCEPTIONS)
+      add_compile_options(/EHsc)
+    endif()
+  endif()
   add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
 
@@ -161,10 +166,12 @@ option(CMAKE_POSITION_INDEPENDENT_CODE "Create object compatible with shared lib
 option(BUILD_TOOLS "Build and install LAMMPS tools (msi2lmp, binary2txt, chain)" OFF)
 option(BUILD_LAMMPS_SHELL "Build and install the LAMMPS shell" OFF)
 
-# allow enabling clang-tidy for C++ files
+# Support using clang-tidy for C++ files with selected options
 set(ENABLE_CLANG_TIDY OFF CACHE BOOL "Include clang-tidy processing when compiling")
 if(ENABLE_CLANG_TIDY)
-  set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=*-header-filter=.*" CACHE STRING "")
+  set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=-*,performance-trivially-destructible,performance-unnecessary-copy-initialization,performance-unnecessary-value-param,readability-redundant-control-flow,readability-redundant-declaration,readability-redundant-function-ptr-dereference,readability-redundant-member-init,readability-redundant-string-cstr,readability-redundant-string-init,readability-simplify-boolean-expr,readability-static-accessed-through-instance,readability-static-definition-in-anonymous-namespace,modernize-use-override,modernize-use-bool-literals,modernize-use-emplace,modernize-return-braced-init-list,modernize-use-equals-default,modernize-use-equals-delete,modernize-replace-random-shuffle,modernize-deprecated-headers,modernize-use-nullptr,modernize-use-noexcept,modernize-redundant-void-arg;-fix;-header-filter=.*,header-filter=library.h,header-filter=fmt/*.h" CACHE STRING "clang-tidy settings")
+else()
+  unset(CMAKE_CXX_CLANG_TIDY CACHE)
 endif()
 
 include(GNUInstallDirs)
@@ -328,7 +335,9 @@ string(TOUPPER ${LAMMPS_SIZES} LAMMPS_SIZES)
 target_compile_definitions(lammps PUBLIC -DLAMMPS_${LAMMPS_SIZES})
 
 # posix_memalign is not available on Windows
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+# with INTEL package and Intel compilers we use TBB's aligned malloc
+if((CMAKE_SYSTEM_NAME STREQUAL "Windows")
+   AND NOT (PKG_INTEL AND ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") OR (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM"))))
   set(LAMMPS_MEMALIGN "0" CACHE STRING "posix_memalign() is not available on Windows" FORCE)
 else()
   set(LAMMPS_MEMALIGN "64" CACHE STRING "enables the use of the posix_memalign() call instead of malloc() when large chunks or memory are allocated by LAMMPS. Set to 0 to disable")
@@ -777,14 +786,16 @@ if(BUILD_SHARED_LIBS)
     find_package(Python COMPONENTS Interpreter)
   endif()
   if(BUILD_IS_MULTI_CONFIG)
-    set(LIBLAMMPS_SHARED_BINARY ${CMAKE_BINARY_DIR}/$<CONFIG>/liblammps${LAMMPS_MACHINE}${CMAKE_SHARED_LIBRARY_SUFFIX})
+    set(MY_BUILD_DIR ${CMAKE_BINARY_DIR}/$<CONFIG>)
   else()
-    set(LIBLAMMPS_SHARED_BINARY ${CMAKE_BINARY_DIR}/liblammps${LAMMPS_MACHINE}${CMAKE_SHARED_LIBRARY_SUFFIX})
+    set(MY_BUILD_DIR ${CMAKE_BINARY_DIR})
   endif()
+  set(LIBLAMMPS_SHARED_BINARY ${MY_BUILD_DIR}/liblammps${LAMMPS_MACHINE}${CMAKE_SHARED_LIBRARY_SUFFIX})
   if(Python_EXECUTABLE)
     add_custom_target(
       install-python ${CMAKE_COMMAND} -E remove_directory build
-      COMMAND ${Python_EXECUTABLE} ${LAMMPS_PYTHON_DIR}/install.py -p ${LAMMPS_PYTHON_DIR}/lammps -l ${LIBLAMMPS_SHARED_BINARY}
+      COMMAND ${Python_EXECUTABLE} ${LAMMPS_PYTHON_DIR}/install.py -p ${LAMMPS_PYTHON_DIR}/lammps
+              -l ${LIBLAMMPS_SHARED_BINARY} -w ${MY_BUILD_DIR}
       COMMENT "Installing LAMMPS Python module")
   else()
     add_custom_target(

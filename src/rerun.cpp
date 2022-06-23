@@ -165,6 +165,7 @@ void Rerun::command(int narg, char **arg)
     modify->init();
     update->integrate->setup_minimal(1);
     modify->end_of_step();
+    output->next_dump_any = ntimestep;
     if (firstflag) output->setup();
     else if (output->next) output->write(ntimestep);
 

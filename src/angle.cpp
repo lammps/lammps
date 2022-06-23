@@ -76,6 +76,16 @@ void Angle::init()
 }
 
 /* ----------------------------------------------------------------------
+   check that there are no arguments
+------------------------------------------------------------------------- */
+
+void Angle::settings(int narg, char **args)
+{
+  if (narg > 0)
+    error->all(FLERR, "Illegal angle_style {} argument: {}", force->angle_style, args[0]);
+}
+
+/* ----------------------------------------------------------------------
    setup for energy, virial computation
    see integrate::ev_set() for bitwise settings of eflag/vflag
    set the following flags, values are otherwise set to 0:

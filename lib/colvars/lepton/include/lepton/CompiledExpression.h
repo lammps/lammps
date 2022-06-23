@@ -9,7 +9,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2013-2019 Stanford University and the Authors.      *
+ * Portions copyright (c) 2013-2022 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -40,7 +40,11 @@
 #include <utility>
 #include <vector>
 #ifdef LEPTON_USE_JIT
-    #include "asmjit.h"
+#if defined(__ARM__) || defined(__ARM64__)
+#include "asmjit/a64.h"
+#else
+#include "asmjit/x86.h"
+#endif
 #endif
 
 namespace Lepton {
@@ -101,9 +105,15 @@ private:
     std::map<std::string, double> dummyVariables;
     double (*jitCode)();
 #ifdef LEPTON_USE_JIT
+    void findPowerGroups(std::vector<std::vector<int> >& groups, std::vector<std::vector<int> >& groupPowers, std::vector<int>& stepGroup);
     void generateJitCode();
-    void generateSingleArgCall(asmjit::X86Compiler& c, asmjit::X86Xmm& dest, asmjit::X86Xmm& arg, double (*function)(double));
-    void generateTwoArgCall(asmjit::X86Compiler& c, asmjit::X86Xmm& dest, asmjit::X86Xmm& arg1, asmjit::X86Xmm& arg2, double (*function)(double, double));
+#if defined(__ARM__) || defined(__ARM64__)
+    void generateSingleArgCall(asmjit::a64::Compiler& c, asmjit::arm::Vec& dest, asmjit::arm::Vec& arg, double (*function)(double));
+    void generateTwoArgCall(asmjit::a64::Compiler& c, asmjit::arm::Vec& dest, asmjit::arm::Vec& arg1, asmjit::arm::Vec& arg2, double (*function)(double, double));
+#else
+    void generateSingleArgCall(asmjit::x86::Compiler& c, asmjit::x86::Xmm& dest, asmjit::x86::Xmm& arg, double (*function)(double));
+    void generateTwoArgCall(asmjit::x86::Compiler& c, asmjit::x86::Xmm& dest, asmjit::x86::Xmm& arg1, asmjit::x86::Xmm& arg2, double (*function)(double, double));
+#endif
     std::vector<double> constants;
     asmjit::JitRuntime runtime;
 #endif

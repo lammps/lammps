@@ -53,12 +53,6 @@ FixNHIntel::FixNHIntel(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixNHIntel::~FixNHIntel()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixNHIntel::setup(int vflag)
 {
   FixNH::setup(vflag);

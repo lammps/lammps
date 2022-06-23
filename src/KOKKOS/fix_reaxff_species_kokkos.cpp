@@ -51,13 +51,6 @@ FixReaxFFSpeciesKokkos::FixReaxFFSpeciesKokkos(LAMMPS *lmp, int narg, char **arg
 
 /* ---------------------------------------------------------------------- */
 
-FixReaxFFSpeciesKokkos::~FixReaxFFSpeciesKokkos()
-{
-
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixReaxFFSpeciesKokkos::init()
 {
   Pair* pair_kk = force->pair_match("^reax../kk",0);
@@ -101,12 +94,12 @@ void FixReaxFFSpeciesKokkos::FindMolecule()
   }
 
   loop = 0;
-  while (1) {
+  while (true) {
     comm->forward_comm(this);
     loop ++;
 
     change = 0;
-    while (1) {
+    while (true) {
       done = 1;
 
       for (ii = 0; ii < inum; ii++) {

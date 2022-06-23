@@ -81,7 +81,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
   gpu=new UCL_Device();
 
   // ---------------------- OpenCL Compiler Args -------------------------
-  std::string extra_args="";
+  std::string extra_args;
   if (ocl_args) extra_args+=":"+std::string(ocl_args);
   #ifdef LAL_OCL_EXTRA_ARGS
   extra_args+=":" LAL_PRE_STRINGIFY(LAL_OCL_EXTRA_ARGS);
@@ -144,7 +144,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
 
   // Setup OpenCL platform and parameters based on platform
   // and device type specifications
-  std::string ocl_vstring="";
+  std::string ocl_vstring;
   if (device_type_flags != nullptr) ocl_vstring=device_type_flags;
 
   // Setup the OpenCL platform
@@ -161,7 +161,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
   if (_platform_id>=0)
     pres=gpu->set_platform(_platform_id);
   else {
-    std::string vendor="";
+    std::string vendor;
     if (device_type_flags!=nullptr) {
       if (ocl_vstring=="intelgpu")
         vendor="intel";
@@ -578,7 +578,7 @@ template <class numtyp, class acctyp>
 void DeviceT::init_message(FILE *screen, const char *name,
                            const int first_gpu, const int last_gpu) {
   #if defined(USE_OPENCL)
-  std::string fs="";
+  std::string fs;
   #elif defined(USE_CUDART)
   std::string fs="";
   #else

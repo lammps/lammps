@@ -56,6 +56,7 @@ Pre-processing tools
    * :ref:`moltemplate <moltemplate>`
    * :ref:`msi2lmp <msi>`
    * :ref:`polybond <polybond>`
+   * :ref:`stl_bin2txt <stlconvert>`
 
 
 Post-processing tools
@@ -94,7 +95,7 @@ Miscellaneous tools
    * :ref:`LAMMPS shell <lammps_shell>`
    * :ref:`LAMMPS magic patterns for file(1) <magic>`
    * :ref:`Offline build tool <offline>`
-   * :ref:`singularity <singularity_tool>`
+   * :ref:`singularity/apptainer <singularity_tool>`
    * :ref:`SWIG interface <swig>`
    * :ref:`vim <vim>`
 
@@ -1006,14 +1007,37 @@ Ivanov, at University of Iceland (ali5 at hi.is).
 
 .. _singularity_tool:
 
-singularity tool
-----------------------------------------
+singularity/apptainer tool
+--------------------------
 
-The singularity sub-directory contains container definitions files
-that can be used to build container images for building and testing
-LAMMPS on specific OS variants using the `Singularity <https://sylabs.io>`_
-container software. Contributions for additional variants are welcome.
-For more details please see the README.md file in that folder.
+The singularity sub-directory contains container definitions files that
+can be used to build container images for building and testing LAMMPS on
+specific OS variants using the `Apptainer <https://apptainer.org>`_ or
+`Singularity <https://sylabs.io>`_ container software. Contributions for
+additional variants are welcome.  For more details please see the
+README.md file in that folder.
+
+----------
+
+.. _stlconvert:
+
+stl_bin2txt tool
+----------------
+
+The file stl_bin2txt.cpp converts binary STL files - like they are
+frequently offered for download on the web - into ASCII format STL files
+that LAMMPS can read with the :doc:`create_atoms mesh <create_atoms>` or
+the :doc:`fix smd/wall_surface <fix_smd_wall_surface>` commands.  The syntax
+for running the tool is
+
+.. code-block:: bash
+
+   stl_bin2txt infile.stl outfile.stl
+
+which creates outfile.stl from infile.stl.  This tool must be compiled
+on a platform compatible with the byte-ordering that was used to create
+the binary file.  This usually is a so-called little endian hardware
+(like x86).
 
 ----------
 

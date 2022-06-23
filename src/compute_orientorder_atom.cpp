@@ -334,28 +334,28 @@ double ComputeOrientOrderAtom::memory_usage()
 #define SWAP(a, b) \
   do {             \
     tmp = a;       \
-    a = b;         \
-    b = tmp;       \
+    (a) = b;       \
+    (b) = tmp;     \
   } while (0)
 
 #define ISWAP(a, b) \
   do {              \
     itmp = a;       \
-    a = b;          \
-    b = itmp;       \
+    (a) = b;        \
+    (b) = itmp;     \
   } while (0)
 
-#define SWAP3(a, b) \
-  do {              \
-    tmp = a[0];     \
-    a[0] = b[0];    \
-    b[0] = tmp;     \
-    tmp = a[1];     \
-    a[1] = b[1];    \
-    b[1] = tmp;     \
-    tmp = a[2];     \
-    a[2] = b[2];    \
-    b[2] = tmp;     \
+#define SWAP3(a, b)  \
+  do {               \
+    tmp = (a)[0];    \
+    (a)[0] = (b)[0]; \
+    (b)[0] = tmp;    \
+    tmp = (a)[1];    \
+    (a)[1] = (b)[1]; \
+    (b)[1] = tmp;    \
+    tmp = (a)[2];    \
+    (a)[2] = (b)[2]; \
+    (b)[2] = tmp;    \
   } while (0)
 
 /* ---------------------------------------------------------------------- */
@@ -719,7 +719,7 @@ double ComputeOrientOrderAtom::w3j(const int lmax, const int j1, const int j2, c
   int t = 0;
   while (c - b + t + alpha < 0 || c - a + t - beta < 0) t++;
   //     ^^ t>=-j1       ^^ t>=j2
-  while (1) {
+  while (true) {
     if (a + b - c - t < 0) break;    // t<=lmax
     if (a - t - alpha < 0) break;    // t<=lmax-j1
     if (b - t + beta < 0) break;     // t<=lmax+j2

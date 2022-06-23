@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -21,15 +20,14 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeDeprecated::ComputeDeprecated(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+ComputeDeprecated::ComputeDeprecated(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
 {
   std::string my_style = style;
 
   if (my_style == "DEPRECATED") {
     if (lmp->comm->me == 0)
-      utils::logmesg(lmp,"\nCompute style 'DEPRECATED' is a dummy style\n\n");
+      utils::logmesg(lmp, "\nCompute style 'DEPRECATED' is a dummy style\n\n");
     return;
   }
-  error->all(FLERR,"This compute style is no longer available");
+  error->all(FLERR, "This compute style is no longer available");
 }

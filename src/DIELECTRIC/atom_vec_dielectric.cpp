@@ -78,9 +78,9 @@ AtomVecDielectric::AtomVecDielectric(LAMMPS *_lmp) : AtomVec(_lmp)
     "mu", "area", "ed", "em", "epsilon", "curvature", "q_unscaled"};
   fields_create = {"q", "molecule", "num_bond", "num_angle", "num_dihedral", "num_improper",
     "nspecial", "mu", "area", "ed", "em", "epsilon", "curvature", "q_unscaled"};
-  fields_data_atom = { "id", "molecule", "type", "q", "x", "mu3", "area", "ed", "em", "epsilon",
+  fields_data_atom = {"id", "molecule", "type", "q", "x", "mu3", "area", "ed", "em", "epsilon",
     "curvature"};
-  fields_data_vel = {"id v"};
+  fields_data_vel = {"id", "v"};
   // clang-format on
 
   setup_fields();

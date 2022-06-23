@@ -171,9 +171,9 @@ void BondHybrid::allocate()
 
 void BondHybrid::settings(int narg, char **arg)
 {
-  int i, m, istyle;
+  int i, m;
 
-  if (narg < 1) error->all(FLERR, "Illegal bond_style command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "bond_style hybrid", error);
 
   // delete old lists, since cannot just change settings
 
@@ -195,60 +195,47 @@ void BondHybrid::settings(int narg, char **arg)
   }
   allocated = 0;
 
-  // count sub-styles by skipping numeric args
-  // one exception is 1st arg of style "table", which is non-numeric word
-  // need a better way to skip these exceptions
-
-  nstyles = 0;
-  i = 0;
-  while (i < narg) {
-    if (strcmp(arg[i], "table") == 0) i++;
-    i++;
-    while (i < narg && !isalpha(arg[i][0])) i++;
-    nstyles++;
-  }
-
   // allocate list of sub-styles
 
-  styles = new Bond *[nstyles];
-  keywords = new char *[nstyles];
+  styles = new Bond *[narg];
+  keywords = new char *[narg];
 
   // allocate each sub-style and call its settings() with subset of args
   // allocate uses suffix, but don't store suffix version in keywords,
   //   else syntax in coeff() will not match
-  // define subset of args for a sub-style by skipping numeric args
-  // one exception is 1st arg of style "table", which is non-numeric
-  // need a better way to skip these exceptions
 
   int dummy;
   nstyles = 0;
   i = 0;
-
   while (i < narg) {
-
-    for (m = 0; m < nstyles; m++)
-      if (strcmp(arg[i], keywords[m]) == 0)
-        error->all(FLERR, "Bond style hybrid cannot use same bond style twice");
-
     if (strcmp(arg[i], "hybrid") == 0)
       error->all(FLERR, "Bond style hybrid cannot have hybrid as an argument");
 
     if (strcmp(arg[i], "none") == 0)
       error->all(FLERR, "Bond style hybrid cannot have none as an argument");
 
+    for (m = 0; m < nstyles; m++)
+      if (strcmp(arg[i], keywords[m]) == 0)
+        error->all(FLERR, "Bond style hybrid cannot use same bond style twice");
+
     // register index of quartic bond type,
     // so that bond type 0 can be mapped to it
 
-    if (strncmp(arg[i], "quartic", 7) == 0) has_quartic = m;
+    if (utils::strmatch(arg[i], "^quartic")) has_quartic = m;
 
     styles[nstyles] = force->new_bond(arg[i], 1, dummy);
     keywords[nstyles] = force->store_style(arg[i], 0);
 
-    istyle = i;
-    if (strcmp(arg[i], "table") == 0) i++;
-    i++;
-    while (i < narg && !isalpha(arg[i][0])) i++;
-    styles[nstyles]->settings(i - istyle - 1, &arg[istyle + 1]);
+    // determine list of arguments for bond style settings
+    // by looking for the next known bond style name.
+
+    int jarg = i + 1;
+    while ((jarg < narg) && !force->bond_map->count(arg[jarg]) &&
+           !lmp->match_style("bond", arg[jarg]))
+      jarg++;
+
+    styles[nstyles]->settings(jarg - i - 1, &arg[i + 1]);
+    i = jarg;
     nstyles++;
   }
 }

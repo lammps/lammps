@@ -92,6 +92,6 @@ void AtomVecDPD::data_atom_post(int ilocal)
   uCG[ilocal] = 0.0;
   uCGnew[ilocal] = 0.0;
 
-  if (dpdTheta[ilocal] <= 0)
-    error->one(FLERR, "Internal temperature in Atoms section of date file must be > zero");
+  if (dpdTheta[ilocal] <= 0.0)
+    error->one(FLERR, "Internal temperature theta in Atoms section of data file must be > 0.0");
 }

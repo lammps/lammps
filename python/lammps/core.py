@@ -188,20 +188,17 @@ class lammps(object):
       [c_void_p,POINTER(c_double),POINTER(c_double),c_double,c_double,c_double]
     self.lib.lammps_reset_box.restype = None
 
-    self.lib.lammps_gather_atoms.argtypes = \
-      [c_void_p,c_char_p,c_int,c_int,c_void_p]
+    self.lib.lammps_gather_atoms.argtypes = [c_void_p,c_char_p,c_int,c_int,c_void_p]
     self.lib.lammps_gather_atoms.restype = None
 
-    self.lib.lammps_gather_atoms_concat.argtypes = \
-      [c_void_p,c_char_p,c_int,c_int,c_void_p]
+    self.lib.lammps_gather_atoms_concat.argtypes = [c_void_p,c_char_p,c_int,c_int,c_void_p]
     self.lib.lammps_gather_atoms_concat.restype = None
 
     self.lib.lammps_gather_atoms_subset.argtypes = \
       [c_void_p,c_char_p,c_int,c_int,c_int,POINTER(c_int),c_void_p]
     self.lib.lammps_gather_atoms_subset.restype = None
 
-    self.lib.lammps_scatter_atoms.argtypes = \
-      [c_void_p,c_char_p,c_int,c_int,c_void_p]
+    self.lib.lammps_scatter_atoms.argtypes = [c_void_p,c_char_p,c_int,c_int,c_void_p]
     self.lib.lammps_scatter_atoms.restype = None
 
     self.lib.lammps_scatter_atoms_subset.argtypes = \
@@ -211,20 +208,17 @@ class lammps(object):
     self.lib.lammps_gather_bonds.argtypes = [c_void_p,c_void_p]
     self.lib.lammps_gather_bonds.restype = None
 
-    self.lib.lammps_gather.argtypes = \
-      [c_void_p,c_char_p,c_int,c_int,c_void_p]
+    self.lib.lammps_gather.argtypes = [c_void_p,c_char_p,c_int,c_int,c_void_p]
     self.lib.lammps_gather.restype = None
 
-    self.lib.lammps_gather_concat.argtypes = \
-      [c_void_p,c_char_p,c_int,c_int,c_void_p]
+    self.lib.lammps_gather_concat.argtypes = [c_void_p,c_char_p,c_int,c_int,c_void_p]
     self.lib.lammps_gather_concat.restype = None
 
     self.lib.lammps_gather_subset.argtypes = \
       [c_void_p,c_char_p,c_int,c_int,c_int,POINTER(c_int),c_void_p]
     self.lib.lammps_gather_subset.restype = None
 
-    self.lib.lammps_scatter.argtypes = \
-      [c_void_p,c_char_p,c_int,c_int,c_void_p]
+    self.lib.lammps_scatter.argtypes = [c_void_p,c_char_p,c_int,c_int,c_void_p]
     self.lib.lammps_scatter.restype = None
 
     self.lib.lammps_scatter_subset.argtypes = \
@@ -244,7 +238,8 @@ class lammps(object):
     self.lib.lammps_neighlist_num_elements.argtypes = [c_void_p, c_int]
     self.lib.lammps_neighlist_num_elements.restype  = c_int
 
-    self.lib.lammps_neighlist_element_neighbors.argtypes = [c_void_p, c_int, c_int, POINTER(c_int), POINTER(c_int), POINTER(POINTER(c_int))]
+    self.lib.lammps_neighlist_element_neighbors.argtypes = \
+      [c_void_p, c_int, c_int, POINTER(c_int), POINTER(c_int), POINTER(POINTER(c_int))]
     self.lib.lammps_neighlist_element_neighbors.restype  = None
 
     self.lib.lammps_is_running.argtypes = [c_void_p]
@@ -368,11 +363,9 @@ class lammps(object):
             if type(cmdargs[i]) is str:
               cmdargs[i] = cmdargs[i].encode()
           cargs = (c_char_p*narg)(*cmdargs)
-          self.lib.lammps_open.argtypes = [c_int, c_char_p*narg, \
-                                           MPI_Comm, c_void_p]
+          self.lib.lammps_open.argtypes = [c_int, c_char_p*narg, MPI_Comm, c_void_p]
         else:
-          self.lib.lammps_open.argtypes = [c_int, c_char_p, \
-                                           MPI_Comm, c_void_p]
+          self.lib.lammps_open.argtypes = [c_int, c_char_p, MPI_Comm, c_void_p]
 
         self.opened = 1
         comm_ptr = self.MPI._addressof(comm)
@@ -390,8 +383,7 @@ class lammps(object):
             if type(cmdargs[i]) is str:
               cmdargs[i] = cmdargs[i].encode()
           cargs = (c_char_p*narg)(*cmdargs)
-          self.lib.lammps_open_no_mpi.argtypes = [c_int, c_char_p*narg, \
-                                                  c_void_p]
+          self.lib.lammps_open_no_mpi.argtypes = [c_int, c_char_p*narg, c_void_p]
           self.lmp = c_void_p(self.lib.lammps_open_no_mpi(narg,cargs,None))
         else:
           self.lib.lammps_open_no_mpi.argtypes = [c_int, c_char_p, c_void_p]
@@ -963,17 +955,14 @@ class lammps(object):
       return ptr
 
     elif ctype == LMP_SIZE_COLS:
-      if cstyle == LMP_STYLE_GLOBAL  \
-         or cstyle == LMP_STYLE_ATOM \
-         or cstyle == LMP_STYLE_LOCAL:
+      if cstyle == LMP_STYLE_GLOBAL or cstyle == LMP_STYLE_ATOM or cstyle == LMP_STYLE_LOCAL:
         self.lib.lammps_extract_compute.restype = POINTER(c_int)
         with ExceptionCheck(self):
           ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)
         return ptr[0]
 
     elif ctype == LMP_SIZE_VECTOR or ctype == LMP_SIZE_ROWS:
-      if cstyle == LMP_STYLE_GLOBAL  \
-         or cstyle == LMP_STYLE_LOCAL:
+      if cstyle == LMP_STYLE_GLOBAL or cstyle == LMP_STYLE_LOCAL:
         self.lib.lammps_extract_compute.restype = POINTER(c_int)
         with ExceptionCheck(self):
           ptr = self.lib.lammps_extract_compute(self.lmp,cid,cstyle,ctype)

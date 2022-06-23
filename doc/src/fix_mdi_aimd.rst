@@ -12,7 +12,6 @@ Syntax
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * mdi/aimd = style name of this fix command
-* optional keyword = *plugin*
 
 Examples
 """"""""
@@ -20,7 +19,6 @@ Examples
 .. code-block:: LAMMPS
 
    fix 1 all mdi/aimd
-   fix 1 all mdi/aimd plugin
 
 Description
 """""""""""
@@ -52,14 +50,6 @@ same time as LAMMPS, or as a plugin library.  See the :doc:`mdi plugin
 <mdi>` command for how to trigger LAMMPS to load the plugin library.
 Again, the examples/mdi/README file explains how to launch both driver
 and engine codes so that engine is used in plugin mode.
-
-To use this fix with a plugin engine, you must specify the
-*plugin* keyword as the last argument, as illustrated above.
-
-.. note::
-
-   As of April 2022, the *plugin* keyword is needed.  In a future
-   version of the MDI library it will no longer be necessary.
 
 ----------
 

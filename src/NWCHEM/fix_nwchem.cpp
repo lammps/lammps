@@ -124,7 +124,7 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
   nw_input = new char[n];
   strcpy(nw_input,arg[4]);
 
-  nw_output = nullptr;
+  nw_output = (char *) "";
   if (strcmp(arg[5],"NULL") != 0) {
     n = strlen(arg[5]) + 1;
     nw_output = new char[n];

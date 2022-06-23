@@ -459,7 +459,8 @@ gradient components
   \frac{\partial {B_{i,k}  }}{\partial {r}^a_j}
 
 where :math:`a` is the Cartesian direction for the gradient. The rows are organized in chunks, where each chunk corresponds to
-an atom :math:`j` in the system of :math:`N` atoms. The rows in an atom :math:`j` chunk correspond to neighbors :math:`i` of :math:`j`.
+an atom :math:`j` in the system of :math:`N` atoms. The rows in an atom
+:math:`j` chunk correspond to atoms :math:`i` that have :math:`j` as a neighbor.
 The number of rows in the atom :math:`j` chunk is therefore equal to the number of neighbors :math:`N_{neighs}[j]` within the SNAP
 potential cutoff radius of atom :math:`j`, times 3 for each Cartesian direction.
 The total number of rows for these descriptor gradients is therefore

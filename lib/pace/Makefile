@@ -5,8 +5,14 @@ SHELL = /bin/sh
 YAML_CPP_PATH = src/yaml-cpp
 YAML_CPP_INC = $(YAML_CPP_PATH)/include
 
+WIGNER_CPP_INC = src/wigner-cpp/include/wigner
+
+CNPY_CPP_PATH = src/cnpy
+CNPY_CPP_INC = $(CNPY_CPP_PATH)
+CNPY_SRC_FILES =  $(CNPY_CPP_PATH)/cnpy.cpp
+
 SRC_FILES = $(wildcard src/ML-PACE/*.cpp)
-SRC = $(filter-out src/ML-PACE/pair_pace.cpp, $(SRC_FILES))
+SRC = $(filter-out src/ML-PACE/pair_pace.cpp, $(SRC_FILES)) $(CNPY_SRC_FILES)
 
 # ------ DEFINITIONS ------
 
@@ -15,7 +21,7 @@ OBJ =   $(SRC:.cpp=.o)
 
 
 # ------ SETTINGS ------
-CXXFLAGS = -O3 -fPIC -Isrc/ML-PACE -I$(YAML_CPP_INC)
+CXXFLAGS = -O3 -fPIC -Isrc/ML-PACE -I$(YAML_CPP_INC) -I$(WIGNER_CPP_INC) -I$(CNPY_CPP_INC) -DEXTRA_C_PROJECTIONS
 
 ARCHIVE =	ar
 ARCHFLAG =	-rc

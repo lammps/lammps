@@ -54,8 +54,6 @@ class ComputeSnap : public Compute {
   class SNA *snaptr;
   double cutmax;
   int quadraticflag;
-  //int bikflag;
-  //int bik_rows;
   int bikflag, bik_rows, dgradflag, dgrad_rows;
   double **dgrad;
   double **dbiri; // dBi/dRi = sum(-dBi/dRj) over neighbors j

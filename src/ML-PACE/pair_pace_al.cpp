@@ -1,26 +1,20 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
 /*
-Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
- Sarath Menon^1, Matteo Rinaldi^1, Thomas Hammerschmidt^1, Matous Mrovec^1,
- Aidan Thompson^3, Gabor Csanyi^2, Christoph Ortner^4, Ralf Drautz^1
+Copyright 2022 Yury Lysogorskiy^1, Anton Bochkarev^1, Matous Mrovec^1, Ralf Drautz^1
 
 ^1: Ruhr-University Bochum, Bochum, Germany
-^2: University of Cambridge, Cambridge, United Kingdom
-^3: Sandia National Laboratories, Albuquerque, New Mexico, USA
-^4: University of British Columbia, Vancouver, BC, Canada
-
-
-    This FILENAME is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 
@@ -48,7 +42,25 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
 
 #include "math_const.h"
 
+#include "ace_b_evaluator.h"
+#include "ace_b_basis.h"
+#include "ace_recursive.h"
 #include "ace_version.h"
+
+namespace LAMMPS_NS {
+    struct ACEALImpl {
+        ACEALImpl() : basis_set(nullptr), ace(nullptr), ctilde_basis_set(nullptr), rec_ace(nullptr) {}
+        ~ACEALImpl()
+        {
+            delete basis_set;
+            delete ace;
+        }
+        ACEBBasisSet *basis_set;
+        ACEBEvaluator* ace;
+        ACECTildeBasisSet *ctilde_basis_set;
+        ACERecursiveEvaluator* rec_ace;
+    };
+}    // namespace LAMMPS_NS
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -100,16 +112,14 @@ void dump_extrapolation_grade(int timestep, double gamma) {
 
 /* ---------------------------------------------------------------------- */
 PairPACEActiveLearning::PairPACEActiveLearning(LAMMPS *lmp) : Pair(lmp) {
-    //single_enable = 0;
+    single_enable = 0;
     restartinfo = 0;
     one_coeff = 1;
     manybody_flag = 1;
 
-    nelements = 0;
-    ace = NULL;
-    potential_file_name = NULL;
-    elements = NULL;
-    map = NULL;
+
+    aceimpl = new ACEALImpl;
+    scale= nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -119,20 +129,11 @@ PairPACEActiveLearning::PairPACEActiveLearning(LAMMPS *lmp) : Pair(lmp) {
 PairPACEActiveLearning::~PairPACEActiveLearning() {
     if (copymode) return;
 
-    if (elements)
-        for (int i = 0; i < nelements; i++) delete[] elements[i];
-    delete[] elements;
-
-
-    delete[] potential_file_name;
-
-    delete basis_set;
-    delete ace;
+    delete aceimpl;
 
     if (allocated) {
         memory->destroy(setflag);
         memory->destroy(cutsq);
-        memory->destroy(map);
         memory->destroy(scale);
     }
 
@@ -208,9 +209,9 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
     bool is_bevaluator = current_timestep % gamma_grade_eval_freq == 0;
 
     if (is_bevaluator)
-        ace->resize_neighbours_cache(max_jnum);
+        aceimpl->ace->resize_neighbours_cache(max_jnum);
     else
-        rec_ace->resize_neighbours_cache(max_jnum);
+        aceimpl->rec_ace->resize_neighbours_cache(max_jnum);
 
     //loop over atoms
     for (ii = 0; ii < list->inum; ii++) {
@@ -233,21 +234,21 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
         // jlist(neigh ind of 0-atom) = [1,2,10,7,99,25, .. 50 element in total]
         try {
             if (is_bevaluator)
-                ace->compute_atom(i, x, type, jnum, jlist);
+                aceimpl->ace->compute_atom(i, x, type, jnum, jlist);
             else
-                rec_ace->compute_atom(i, x, type, jnum, jlist);
-        } catch (exception &e) {
+                aceimpl->rec_ace->compute_atom(i, x, type, jnum, jlist);
+        } catch (std::exception &e) {
             error->all(FLERR, e.what());
             exit(EXIT_FAILURE);
         }
         // 'compute_atom' will update the `ace->e_atom` and `ace->neighbours_forces(jj, alpha)` arrays and max_gamma_grade
 
         if (is_bevaluator) {
-            if (gamma_grade < ace->max_gamma_grade)
-                gamma_grade = ace->max_gamma_grade;
+            if (gamma_grade < aceimpl->ace->max_gamma_grade)
+                gamma_grade = aceimpl->ace->max_gamma_grade;
         }
 
-        Array2D<DOUBLE_TYPE> &neighbours_forces = (is_bevaluator ? ace->neighbours_forces : rec_ace->neighbours_forces);
+        Array2D<DOUBLE_TYPE> &neighbours_forces = (is_bevaluator ? aceimpl->ace->neighbours_forces : aceimpl->rec_ace->neighbours_forces);
         for (jj = 0; jj < jnum; jj++) {
             j = jlist[jj];
             const int jtype = type[j];
@@ -280,10 +281,10 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
             // evdwl = energy of atom I
             DOUBLE_TYPE e_atom;
             if (is_bevaluator)
-                e_atom= ace->e_atom;
+                e_atom= aceimpl->ace->e_atom;
             else
-                e_atom= rec_ace->e_atom;
-            evdwl = scale[1][1] * e_atom;
+                e_atom= aceimpl->rec_ace->e_atom;
+            evdwl = scale[itype][itype] * e_atom;
             ev_tally_full(i, 2.0 * evdwl, 0.0, 0.0, 0.0, 0.0, 0.0);
         }
     }
@@ -291,7 +292,7 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
 
     if (vflag_fdotr) virial_fdotr_compute();
 
-
+    //TODO: check correctness of MPI usage, maybe use comm->me==0 instead ?
     if (is_bevaluator) {
         //gather together global_gamma_grade
         MPI_Allreduce(&gamma_grade, &global_gamma_grade, 1, MPI_DOUBLE, MPI_MAX, world);
@@ -326,6 +327,7 @@ void PairPACEActiveLearning::allocate() {
 
     memory->create(setflag, n + 1, n + 1, "pair:setflag");
     memory->create(cutsq, n + 1, n + 1, "pair:cutsq");
+    //TODO: remove ?
     memory->create(map, n + 1, "pair:map");
     memory->create(scale, n + 1, n + 1, "pair:scale");
 }
@@ -367,22 +369,12 @@ void PairPACEActiveLearning::settings(int narg, char **arg) {
 
     if (comm->me == 0) {
         if (screen) {
-            fprintf(screen, "ACE/AL version: %d.%d.%d\n", VERSION_YEAR, VERSION_MONTH, VERSION_DAY);
-            fprintf(screen, "Extrapolation grade thresholds (lower/upper): %f/%f\n", gamma_lower_bound,
+            utils::logmesg(lmp, "ACE/AL version: {}.{}.{}\n", VERSION_YEAR, VERSION_MONTH, VERSION_DAY);
+            utils::logmesg(lmp, "Extrapolation grade thresholds (lower/upper): {}/{}\n", gamma_lower_bound,
                     gamma_upper_bound);
-            fprintf(screen, "Extrapolation grade evaluation frequency: %d\n", gamma_grade_eval_freq);
+            utils::logmesg(lmp, "Extrapolation grade evaluation frequency: {}\n", gamma_grade_eval_freq);
         }
-        if (logfile) {
-            fprintf(logfile, "ACE/AL version: %d.%d.%d\n", VERSION_YEAR, VERSION_MONTH, VERSION_DAY);
-            fprintf(logfile, "Extrapolation grade thresholds (lower/upper): %f/%f\n", gamma_lower_bound,
-                    gamma_upper_bound);
-            fprintf(logfile, "Extrapolation grade evaluation frequency: %d\n", gamma_grade_eval_freq);
-        }
-
-
     }
-
-
 }
 
 /* ----------------------------------------------------------------------
@@ -397,133 +389,95 @@ void PairPACEActiveLearning::coeff(int narg, char **arg) {
 
     if (!allocated) allocate();
 
-    //number of provided elements in pair_coeff line
-    int ntypes_coeff = narg - 4;
+    map_element2type(narg - 4, arg + 4);
 
-    if (ntypes_coeff != atom->ntypes) {
-        char error_message[1024];
-        snprintf(error_message, 1024,
-                 "Incorrect args for pair coefficients. You provided %d elements in pair_coeff, but structure has %d atom types",
-                 ntypes_coeff, atom->ntypes);
-        error->all(FLERR, error_message);
-    }
-
-    char *type1 = arg[0];
-    char *type2 = arg[1];
-    char *potential_file_name = arg[2];
-    active_set_inv_filename = arg[3];
+    auto potential_file_name = utils::get_potential_file_path(arg[2]);
+    auto active_set_inv_filename = utils::get_potential_file_path(arg[3]);
     char **elemtypes = &arg[4];
 
-    // insure that I,J are identical
-    if (strcmp(type1, type2) != 0)
-        error->all(FLERR, "Incorrect args for PACE/AL:pair_coeff coefficients");
-    int ilo, ihi, jlo, jhi;
-    force->bounds(FLERR, type1, atom->ntypes, ilo, ihi);
-    force->bounds(FLERR, type2, atom->ntypes, jlo, jhi);
 
+    delete aceimpl->basis_set;
+    delete aceimpl->ctilde_basis_set;
 
     //load potential file
-    basis_set = new ACEBBasisSet();
-    if (comm->me == 0) {
-        if (screen) fprintf(screen, "Loading %s\n", potential_file_name);
-        if (logfile) fprintf(logfile, "Loading %s\n", potential_file_name);
-    }
-    basis_set->load(potential_file_name);
+    aceimpl->basis_set = new ACEBBasisSet();
+    if (comm->me == 0) utils::logmesg(lmp, "Loading {}\n", potential_file_name);
+    aceimpl->basis_set->load(potential_file_name);
 
-    // convert the basis set to CTilde format
-    ctilde_basis_set = new ACECTildeBasisSet();
-    *ctilde_basis_set = basis_set->to_ACECTildeBasisSet();
+    //convert the basis set to CTilde format
+    aceimpl->ctilde_basis_set = new ACECTildeBasisSet();
+    *aceimpl->ctilde_basis_set = aceimpl->basis_set->to_ACECTildeBasisSet();
 
     if (comm->me == 0) {
-        if (screen) fprintf(screen, "Total number of basis functions\n");
-        if (logfile) fprintf(logfile, "Total number of basis functions\n");
+        utils::logmesg(lmp, "Total number of basis functions\n");
 
-        for (SPECIES_TYPE mu = 0; mu < basis_set->nelements; mu++) {
-            int n_r1 = basis_set->total_basis_size_rank1[mu];
-            int n = basis_set->total_basis_size[mu];
-            if (screen) fprintf(screen, "\t%s: %d (r=1) %d (r>1)\n", basis_set->elements_name[mu].c_str(), n_r1, n);
-            if (logfile) fprintf(logfile, "\t%s: %d (r=1) %d (r>1)\n", basis_set->elements_name[mu].c_str(), n_r1, n);
+        for (SPECIES_TYPE mu = 0; mu < aceimpl->basis_set->nelements; mu++) {
+            int n_r1 = aceimpl->basis_set->total_basis_size_rank1[mu];
+            int n = aceimpl->basis_set->total_basis_size[mu];
+            utils::logmesg(lmp, "\t{}: {} (r=1) {} (r>1)\n", aceimpl->basis_set->elements_name[mu], n_r1,
+                           n);
         }
     }
 
 
-    // read args that map atom types to pACE elements
+    // read args that map atom types to PACE elements
     // map[i] = which element the Ith atom type is, -1 if not mapped
     // map[0] is not used
+    delete aceimpl->ace;
+    delete aceimpl->rec_ace;
 
-    ace = new ACEBEvaluator();
-    ace->element_type_mapping.init(atom->ntypes + 1);
+    aceimpl->ace = new ACEBEvaluator();
+    aceimpl->ace->element_type_mapping.init(atom->ntypes + 1);
 
-    rec_ace = new ACERecursiveEvaluator();
-    rec_ace->set_recursive(true);
-    rec_ace->element_type_mapping.init(atom->ntypes + 1);
-    rec_ace->element_type_mapping.fill(-1); //-1 means atom not included into potential
+    aceimpl->rec_ace = new ACERecursiveEvaluator();
+    aceimpl->rec_ace->set_recursive(true);
+    aceimpl->rec_ace->element_type_mapping.init(atom->ntypes + 1);
+    aceimpl->rec_ace->element_type_mapping.fill(-1); //-1 means atom not included into potential
 
     FILE *species_type_file = fopen("species_types.dat", "w");
-    for (int i = 1; i <= atom->ntypes; i++) {
+    const int n = atom->ntypes;
+    for (int i = 1; i <= n; i++) {
         char *elemname = elemtypes[i - 1];
-        // dump species types for reconstruction of atomic configurations
-        fprintf(species_type_file, "%s ", elemname);
-        int atomic_number = AtomicNumberByName_pace_al(elemname);
-        if (atomic_number == -1) {
-            char error_msg[1024];
-            snprintf(error_msg, 1024, "String '%s' is not a valid element\n", elemname);
-            fclose(species_type_file);
-            error->all(FLERR, error_msg);
-        }
-        SPECIES_TYPE mu = basis_set->get_species_index_by_name(elemname);
-        if (mu != -1) {
-            if (comm->me == 0) {
-                if (screen)
-                    fprintf(screen, "Mapping LAMMPS atom type #%d(%s) -> ACE species type #%d\n", i, elemname, mu);
-                if (logfile)
-                    fprintf(logfile, "Mapping LAMMPS atom type #%d(%s) -> ACE species type #%d\n", i, elemname, mu);
-            }
-            map[i] = mu;
-            ace->element_type_mapping(i) = mu; // set up LAMMPS atom type to ACE species  mapping for ace evaluator
-            rec_ace->element_type_mapping(i) = mu;
+        if (strcmp(elemname, "NULL") == 0) {
+            // species_type=-1 value will not reach ACE Evaluator::compute_atom,
+            // but if it will ,then error will be thrown there
+            aceimpl->ace->element_type_mapping(i) = -1;
+            map[i] = -1;
+            if (comm->me == 0) utils::logmesg(lmp, "Skipping LAMMPS atom type #{}(NULL)\n", i);
         } else {
-            char error_msg[1024];
-            snprintf(error_msg, 1024, "Element %s is not supported by ACE-potential from file %s", elemname,
-                     potential_file_name);
-            fclose(species_type_file);
-            error->all(FLERR, error_msg);
+
+            // dump species types for reconstruction of atomic configurations
+            fprintf(species_type_file, "%s ", elemname);
+            int atomic_number = AtomicNumberByName_pace_al(elemname);
+            if (atomic_number == -1) error->all(FLERR, "'{}' is not a valid element\n", elemname);
+            SPECIES_TYPE mu = aceimpl->basis_set->get_species_index_by_name(elemname);
+            if (mu != -1) {
+                if (comm->me == 0)
+                    utils::logmesg(lmp, "Mapping LAMMPS atom type #{}({}) -> ACE species type #{}\n", i,
+                                   elemname, mu);
+                map[i] = mu;
+                // set up LAMMPS atom type to ACE species  mapping for ace evaluators
+                aceimpl->ace->element_type_mapping(i) = mu;
+                aceimpl->rec_ace->element_type_mapping(i) = mu;
+            } else {
+                error->all(FLERR, "Element {} is not supported by ACE-potential from file {}", elemname,
+                           potential_file_name);
+            }
         }
     }
     fclose(species_type_file);
-    ace->set_basis(*basis_set);
-    rec_ace->set_basis(*ctilde_basis_set);
+    aceimpl->ace->set_basis(*aceimpl->basis_set);
+    aceimpl->rec_ace->set_basis(*aceimpl->ctilde_basis_set);
 
-    if (comm->me == 0) {
-        if (screen) fprintf(screen, "Loading ASI %s\n", active_set_inv_filename);
-        if (logfile) fprintf(logfile, "Loading ASI %s\n", active_set_inv_filename);
-    }
-    ace->load_active_set(active_set_inv_filename);
+    if (comm->me == 0) utils::logmesg(lmp, "Loading ASI {}\n", active_set_inv_filename);
+    aceimpl->ace->load_active_set(active_set_inv_filename);
 
     // clear setflag since coeff() called once with I,J = * *
-    int n = atom->ntypes;
-    for (int i = 1; i <= n; i++) {
-        for (int j = i; j <= n; j++) {
-            setflag[i][j] = 1;
+    for (int i = 1; i <= n; i++) 
+        for (int j = i; j <= n; j++) 
             scale[i][j] = 1.0;
-        }
-    }
-
-    // set setflag i,j for type pairs where both are mapped to elements
-
-    int count = 1;
-    for (int i = 1; i <= n; i++)
-        for (int j = i; j <= n; j++)
-            if (map[i] >= 0 && map[j] >= 0) {
-                setflag[i][j] = 1;
-                count++;
-            }
-
-    if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
-
-
+    
     // prepare dump class
-
     if (!dump) {
         // dump WRITE_DUMP all cfg 10 dump.snap.*.cfg mass type xs ys zs
         // dump WRITE_DUMP all custom freq extrapolation.dat id type mass x y z
@@ -561,14 +515,12 @@ void PairPACEActiveLearning::coeff(int narg, char **arg) {
 
 void PairPACEActiveLearning::init_style() {
     if (atom->tag_enable == 0)
-        error->all(FLERR, "Pair style pACE requires atom IDs");
+        error->all(FLERR, "Pair style PACE requires atom IDs");
     if (force->newton_pair == 0)
-        error->all(FLERR, "Pair style pACE requires newton pair on");
+        error->all(FLERR, "Pair style PACE requires newton pair on");
 
     // request a full neighbor list
-    int irequest = neighbor->request(this, instance_me);
-    neighbor->requests[irequest]->half = 0;
-    neighbor->requests[irequest]->full = 1;
+    neighbor->add_request(this, NeighConst::REQ_FULL);
 }
 
 /* ----------------------------------------------------------------------
@@ -579,7 +531,7 @@ double PairPACEActiveLearning::init_one(int i, int j) {
     if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
     //cutoff from the basis set's radial functions settings
     scale[j][i] = scale[i][j];
-    return basis_set->radial_functions->cut(map[i], map[j]);
+    return aceimpl->basis_set->radial_functions->cut(map[i], map[j]);
 }
 
 /* ---------------------------------------------------------------------- 
@@ -588,6 +540,6 @@ double PairPACEActiveLearning::init_one(int i, int j) {
 void *PairPACEActiveLearning::extract(const char *str, int &dim) {
     dim = 2;
     if (strcmp(str, "scale") == 0) return (void *) scale;
-    return NULL;
+    return nullptr;
 }
 

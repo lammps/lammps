@@ -6,7 +6,7 @@ if(NOT DEFINED LOCAL_ML-PACE)
   mark_as_advanced(PACELIB_URL)
   mark_as_advanced(PACELIB_MD5)
 
-  message("ML-PACE: Downloading from  ${PACELIB_URL}")
+#  message("-- [ML-PACE]: Downloading from  ${PACELIB_URL}")
   # download library sources to build folder
   file(DOWNLOAD ${PACELIB_URL} ${CMAKE_BINARY_DIR}/libpace.tar.gz EXPECTED_HASH MD5=${PACELIB_MD5}) #SHOW_PROGRESS
 
@@ -22,9 +22,9 @@ else()
 
   if(EXISTS ${LOCAL_ML-PACE})
     set(lib-pace ${LOCAL_ML-PACE})
-    message("ML-PACE: Using local folder ${lib-pace}")
+    message("-- [ML-PACE]: Using local folder ${lib-pace}")
   else()
-    message(FATAL_ERROR "ML-PACE: ERROR! Folder ${LOCAL_ML-PACE} does not exist")
+    message(FATAL_ERROR "-- [ML-PACE]: ERROR! Folder ${LOCAL_ML-PACE} does not exist")
   endif()
 endif()
 
@@ -43,7 +43,6 @@ set(CNPY_SRC ${CNPY_PATH}/cnpy.cpp)
 add_library(cnpy-static STATIC ${CNPY_SRC})
 set_target_properties(cnpy-static PROPERTIES LINKER_LANGUAGE CXX)
 
-
 ## winger-cpp
 # this is header-only library
 set(WIGNER_PATH ${lib-pace}/wigner-cpp)
@@ -57,7 +56,7 @@ list(FILTER PACE_EVALUATOR_SOURCES EXCLUDE REGEX pair_pace*.cpp)
 add_library(pace STATIC ${PACE_EVALUATOR_SOURCES})
 set_target_properties(pace PROPERTIES CXX_EXTENSIONS ON OUTPUT_NAME lammps_pace${LAMMPS_MACHINE})
 target_include_directories(pace PUBLIC ${PACE_EVALUATOR_INCLUDE_DIR} ${YAML_CPP_INCLUDE_DIR} ${CNPY_INCLUDE_PATH} ${WIGNER_INCLUDE_PATH})
-
+target_compile_definitions(pace PUBLIC EXTRA_C_PROJECTIONS)
 target_link_libraries(pace PRIVATE yaml-cpp-pace cnpy-static)
 if(CMAKE_PROJECT_NAME STREQUAL "lammps")
   target_link_libraries(lammps PRIVATE pace)

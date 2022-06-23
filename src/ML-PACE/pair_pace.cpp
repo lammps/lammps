@@ -286,7 +286,6 @@ void PairPACE::coeff(int narg, char **arg)
   map_element2type(narg - 3, arg + 3);
 
   auto potential_file_name = utils::get_potential_file_path(arg[2]);
-  char **elemtypes = &arg[3];
 
   //load potential file
   delete aceimpl->basis_set;
@@ -304,7 +303,7 @@ void PairPACE::coeff(int narg, char **arg)
     }
   }
 
-  // read args that map atom types to pACE elements
+  // read args that map atom types to PACE elements
   // map[i] = which element the Ith atom type is, -1 if not mapped
   // map[0] is not used
 
@@ -354,8 +353,8 @@ void PairPACE::coeff(int narg, char **arg)
 
 void PairPACE::init_style()
 {
-  if (atom->tag_enable == 0) error->all(FLERR, "Pair style pACE requires atom IDs");
-  if (force->newton_pair == 0) error->all(FLERR, "Pair style pACE requires newton pair on");
+  if (atom->tag_enable == 0) error->all(FLERR, "Pair style PACE requires atom IDs");
+  if (force->newton_pair == 0) error->all(FLERR, "Pair style PACE requires newton pair on");
 
   // request a full neighbor list
   neighbor->add_request(this, NeighConst::REQ_FULL);

@@ -13,14 +13,14 @@ from __future__ import print_function
 import sys
 import ctypes
 import numpy as np
-
-# uncomment this if running in parallel via mpi4py
-#me = 0
-#from mpi4py import MPI
-#me = MPI.COMM_WORLD.Get_rank()
-#nprocs = MPI.COMM_WORLD.Get_size()
-
 from lammps import lammps, LMP_TYPE_ARRAY, LMP_STYLE_GLOBAL
+
+# get MPI settings from LAMMPS
+
+lmp = lammps()
+me = lmp.extract_setting("world_rank")
+nprocs = lmp.extract_setting("world_size")
+
 cmds = ["-screen", "none", "-log", "none"]
 lmp = lammps(cmdargs=cmds)
 
@@ -82,10 +82,12 @@ if (twojmax % 2 == 0):
     nd = int(m*(m+1)*(2*m+1)/6)
 else:
     nd = int(m*(m+1)*(m+2)/3)
-print(f"Number of descriptors based on twojmax : {nd}")
+if me == 0:
+    print(f"Number of descriptors based on twojmax : {nd}")
 
 # Run lammps with dgradflag on
-print("Running with dgradflag on")
+if me == 0:
+    print("Running with dgradflag on")
 run_lammps(1)
 
 # Get global snap array

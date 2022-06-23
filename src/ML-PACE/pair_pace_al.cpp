@@ -327,8 +327,6 @@ void PairPACEActiveLearning::allocate() {
 
     memory->create(setflag, n + 1, n + 1, "pair:setflag");
     memory->create(cutsq, n + 1, n + 1, "pair:cutsq");
-    //TODO: remove ?
-    memory->create(map, n + 1, "pair:map");
     memory->create(scale, n + 1, n + 1, "pair:scale");
 }
 

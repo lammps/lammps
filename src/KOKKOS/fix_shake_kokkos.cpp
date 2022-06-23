@@ -192,6 +192,7 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
   // local copies of atom quantities
   // used by SHAKE until next re-neighboring
 
+  ebond = 0.0;
   x = atom->x;
   v = atom->v;
   f = atom->f;
@@ -302,6 +303,7 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
 template<class DeviceType>
 void FixShakeKokkos<DeviceType>::post_force(int vflag)
 {
+  ebond = 0.0;
   copymode = 1;
 
   d_x = atomKK->k_x.view<DeviceType>();

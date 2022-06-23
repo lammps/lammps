@@ -35,7 +35,6 @@ class ComputeSnap : public Compute {
   double memory_usage() override;
 
  private:
-  FILE * fh_d;
   int natoms, nmax, size_peratom, lastcol;
   int ncoeff, nperdim, yoffset, zoffset;
   int ndims_peratom, ndims_force, ndims_virial;

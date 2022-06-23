@@ -34,20 +34,16 @@
 #include "error.h"
 #include "update.h"
 
-
-// DEBUG
-
-#include <iostream>
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-extern void lammps_pspw_input(MPI_Comm, std::string &);
-extern int lammps_pspw_aimd_minimizer(MPI_Comm, double *, double *, double *,
-                                      bool, bool, std::ostream&);
-extern int lammps_pspw_qmmm_minimizer(MPI_Comm, double *, double *, 
-                                      double *, double *, double *,
-                                      bool, bool, std::ostream&);
+extern void c_lammps_pspw_input_filename(MPI_Comm, const char *, const char *);
+extern int c_lammps_pspw_aimd_minimizer_filename(MPI_Comm, 
+                                                 double *, double *, double *,
+                                                 const char *);
+extern int c_lammps_pspw_qmmm_minimizer_filename(MPI_Comm, double *, double *, 
+                                                 double *, double *, double *,
+                                                 bool, bool, const char *);
 
 //extern int nwchem_abiversion();
 
@@ -128,9 +124,12 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
   nw_input = new char[n];
   strcpy(nw_input,arg[4]);
 
-  n = strlen(arg[5]) + 1;
-  nw_output = new char[n];
-  strcpy(nw_output,arg[5]);
+  nw_output = nullptr;
+  if (strcmp(arg[5],"NULL") != 0) {
+    n = strlen(arg[5]) + 1;
+    nw_output = new char[n];
+    strcpy(nw_output,arg[5]);
+  }
 
   elements = new char*[narg-6];
 
@@ -345,13 +344,6 @@ void FixNWChem::init()
                  "Fix nwchem QMMM mode requires Coulomb-only pair sub-style");
   }
 
-  // NOTE: is this needed ?
-  // c_pe = instance of compute pe/atom
-  
-  //int ipe = modify->find_compute(id_pe);
-  //if (ipe < 0) error->all(FLERR,"Could not find fix nwchem compute ID");
-  //c_pe = modify->compute[ipe];
-
   // one-time initialization of NWChem with its input file
   // also one-time setup of qqm = atom charges for all QM atoms
   //   later calls to NWChem change charges for QM atoms
@@ -364,11 +356,20 @@ void FixNWChem::init()
     set_tqm();
     set_xqm();
     if (comm->me == 0) nwchem_initialize();
-    MPI_Barrier(world);
+ 
+    if (comm->me == 0) 
+      utils::logmesg(lmp, "Calling pspw_input() in NWChem ...\n");
 
-    std::string filename = nw_input;
-    lammps_pspw_input(world,filename);
+    MPI_Barrier(world);
+    double tstart = platform::walltime();
+
+    c_lammps_pspw_input_filename(world,nw_input,nw_output);
     //dummy_pspw_input(world,filename);
+
+    MPI_Barrier(world);
+    if (comm->me == 0) 
+      utils::logmesg(lmp, "  time = {:.3f} seconds\n",
+                     platform::walltime() - tstart);
   }
 }
 
@@ -518,9 +519,25 @@ void FixNWChem::pre_force_qmmm(int vflag)
          xqm[2][0],xqm[2][1],xqm[2][2]);
   printf("PSPW QPOT: qpot %g %g %g\n",qpotential[0],qpotential[1],qpotential[2]);
 
-  int nwerr = lammps_pspw_qmmm_minimizer(world,&xqm[0][0],qpotential,
-                                         &fqm[0][0],qqm,&qmenergy,
-                                         false,true,std::cout);
+  if (comm->me == 0) 
+    utils::logmesg(lmp, "Calling pspw_qmmm() in NWChem ...\n");
+
+  MPI_Barrier(world);
+  double tstart = platform::walltime();
+
+  int nwerr = c_lammps_pspw_qmmm_minimizer_filename(world,&xqm[0][0],qpotential,
+                                                    &fqm[0][0],qqm,&qmenergy,
+                                                    false,true,nw_output);
+
+  //int nwerr = dummy_pspw_qmmm_minimizer(world,&xqm[0][0],qpotential,
+  //                                      &fqm[0][0],qqm,&qmenergy);
+
+  if (nwerr) error->all(FLERR,"Internal NWChem error");
+
+  MPI_Barrier(world);
+  if (comm->me == 0) 
+    utils::logmesg(lmp, "  time = {:.3f} seconds\n",
+                   platform::walltime() - tstart);
 
   printf("PSPW FQM: f1 %g %g %g f2 %g %g %g f3 %g %g %g\n",
          fqm[0][0],fqm[0][1],fqm[0][2],
@@ -528,11 +545,6 @@ void FixNWChem::pre_force_qmmm(int vflag)
          fqm[2][0],fqm[2][1],fqm[2][2]);
   printf("PSPW QQM: qpot %g %g %g\n",qqm[0],qqm[1],qqm[2]);
   printf("PSPW ENG: %g\n",qmenergy);
-
-  //int nwerr = dummy_pspw_qmmm_minimizer(world,&xqm[0][0],qpotential,
-  //                                      &fqm[0][0],qqm,&qmenergy);
-
-  if (nwerr) error->all(FLERR,"Internal NWChem error");
 
   // unit conversion from NWChem to LAMMPS
 
@@ -601,9 +613,21 @@ void FixNWChem::post_force_aimd(int vflag)
   //   fqm = forces
   //   qmenergy = QM energy of entire system
 
-  int nwerr = lammps_pspw_aimd_minimizer(world,&xqm[0][0],&fqm[0][0],&qmenergy,
-                                         false,true,std::cout);
+  if (comm->me == 0) 
+    utils::logmesg(lmp, "Calling pspw_aimd() in NWChem ...\n");
+
+  MPI_Barrier(world);
+  double tstart = platform::walltime();
+
+  int nwerr = c_lammps_pspw_aimd_minimizer_filename(world,
+                                                    &xqm[0][0],&fqm[0][0],
+                                                    &qmenergy,nw_output);
   if (nwerr) error->all(FLERR,"Internal NWChem error");
+
+  MPI_Barrier(world);
+  if (comm->me == 0) 
+    utils::logmesg(lmp, "  time = {:.3f} seconds\n",
+                   platform::walltime() - tstart);
 
   // unit conversion from NWChem to LAMMPS
 
@@ -874,8 +898,6 @@ void FixNWChem::nwchem_initialize()
                nw_input,utils::getsyserror());
   
   // read nw_template file line by line and echo to nw_input file
-  // when FILEINSERT line is read:
-  //   replace it with line for filename prefix for NWChem output
   // when GEOMINSERT line is read:
   //   replace it with lines that specify the simulation box and list of atoms
   //   each atom's element ID and coords are written to file
@@ -885,14 +907,6 @@ void FixNWChem::nwchem_initialize()
     eof = fgets(line,MAXLINE,nwfile);
     if (eof == nullptr) break;
 
-    if (strcmp(line,"FILEINSERT\n") == 0) {
-      fprintf(infile,"start %s\n",nw_input);
-      if (strcmp(nw_output,"SCREEN") == 0) {
-      } else if (strcmp(nw_output,"NULL") == 0) fprintf(infile,"print off\n");
-      else fprintf(infile,"redirect_filename %s\n",nw_output);
-      continue;
-    }
-    
     if (strcmp(line,"GEOMINSERT\n") == 0) {
       fprintf(infile,"geometry noautosym noautoz nocenter\n");
       fprintf(infile,"system crystal cartesian\n");
@@ -914,7 +928,7 @@ void FixNWChem::nwchem_initialize()
         }
         fprintf(infile,"end\n");
         
-        // triclinic box
+      // triclinic box
         
       } else {
         fprintf(infile,"%20.17g %20.17g %20.17g\n",domain->xprd,0.0,0.0);

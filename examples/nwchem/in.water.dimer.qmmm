@@ -8,8 +8,8 @@ angle_style     harmonic
 
 read_data       data.water.dimer
 
-group           mm molecule 1
-group           qm molecule 2
+group           qm molecule 1
+group           mm molecule 2
 
 # remove bonds/angles in QM water molecule
 
@@ -18,11 +18,11 @@ delete_bonds    qm multi remove special
 # pair style must define stand-alone short-range Coulombics
 
 pair_style      hybrid/overlay lj/cut 6.0 coul/cut 6.0
-pair_coeff      1 1 lj/cut 0.13506 3.166         
-pair_coeff      2 2 lj/cut 0.0 1.0         
+pair_coeff      1 1 lj/cut 0.155394 3.165558         
+pair_coeff      2 2 lj/cut 0.0 0.7         
 pair_coeff      * * coul/cut
 
-velocity        all create 300.0 458732
+#velocity        all create 300.0 458732
 
 neighbor	1.0 bin
 neigh_modify	delay 0 every 1 check yes
@@ -47,9 +47,9 @@ dump_modify     1 sort id format float "%20.16g"
 
 timestep        1.0
 
-thermo_style    custom step cpu temp ke evdwl ecoul epair emol elong f_2 pe etotal press &
-                c_2 c_3[*]
+thermo_style    custom step cpu temp ke evdwl ecoul epair emol elong &
+                f_2 pe etotal press c_2 c_3[*]
 
 thermo          1
 
-run		10
+run		1

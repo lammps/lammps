@@ -2,8 +2,6 @@ Title "LAMMPS wrapping of PWDFT"
 
 memory 1900 mb
 
-FILEINSERT
-
 echo
 
 GEOMINSERT

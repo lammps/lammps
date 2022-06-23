@@ -117,9 +117,11 @@ PairPACEActiveLearning::PairPACEActiveLearning(LAMMPS *lmp) : Pair(lmp) {
     one_coeff = 1;
     manybody_flag = 1;
 
+    natoms = 0;
 
     aceimpl = new ACEALImpl;
-    scale= nullptr;
+    scale = nullptr;
+    extrapolation_grade_gamma = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -135,6 +137,8 @@ PairPACEActiveLearning::~PairPACEActiveLearning() {
         memory->destroy(setflag);
         memory->destroy(cutsq);
         memory->destroy(scale);
+        memory->destroy(map);
+        memory->destroy(extrapolation_grade_gamma);
     }
 
     if (dump)
@@ -149,7 +153,7 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
     double fij[3];
     int *ilist, *jlist, *numneigh, **firstneigh;
     double gamma_grade = 0;
-    double global_gamma_grade = 0;
+    per_structure_gamma_grade = 0;
     ev_init(eflag, vflag);
 
     // downwards modified by YL
@@ -184,6 +188,12 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
         error->all(FLERR, str);
     }
 
+
+    if (atom->natoms > natoms) {
+        memory->destroy(extrapolation_grade_gamma);
+        natoms = atom->natoms;
+        memory->create(extrapolation_grade_gamma, natoms, "pace/atom:gamma");
+    }
 
     // Aidan Thompson told RD (26 July 2019) that practically always holds:
     // inum = nlocal
@@ -246,9 +256,12 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
         if (is_bevaluator) {
             if (gamma_grade < aceimpl->ace->max_gamma_grade)
                 gamma_grade = aceimpl->ace->max_gamma_grade;
+
+            extrapolation_grade_gamma[i] = gamma_grade;
         }
 
-        Array2D<DOUBLE_TYPE> &neighbours_forces = (is_bevaluator ? aceimpl->ace->neighbours_forces : aceimpl->rec_ace->neighbours_forces);
+        Array2D<DOUBLE_TYPE> &neighbours_forces = (is_bevaluator ? aceimpl->ace->neighbours_forces
+                                                                 : aceimpl->rec_ace->neighbours_forces);
         for (jj = 0; jj < jnum; jj++) {
             j = jlist[jj];
             const int jtype = type[j];
@@ -281,9 +294,9 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
             // evdwl = energy of atom I
             DOUBLE_TYPE e_atom;
             if (is_bevaluator)
-                e_atom= aceimpl->ace->e_atom;
+                e_atom = aceimpl->ace->e_atom;
             else
-                e_atom= aceimpl->rec_ace->e_atom;
+                e_atom = aceimpl->rec_ace->e_atom;
             evdwl = scale[itype][itype] * e_atom;
             ev_tally_full(i, 2.0 * evdwl, 0.0, 0.0, 0.0, 0.0, 0.0);
         }
@@ -294,13 +307,13 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
 
     //TODO: check correctness of MPI usage, maybe use comm->me==0 instead ?
     if (is_bevaluator) {
-        //gather together global_gamma_grade
-        MPI_Allreduce(&gamma_grade, &global_gamma_grade, 1, MPI_DOUBLE, MPI_MAX, world);
+        //gather together per_structure_gamma_grade
+        MPI_Allreduce(&gamma_grade, &per_structure_gamma_grade, 1, MPI_DOUBLE, MPI_MAX, world);
         int mpi_rank;
         MPI_Comm_rank(world, &mpi_rank);
 
-        if (global_gamma_grade > gamma_upper_bound) {
-            if (mpi_rank == 0) dump_extrapolation_grade(update->ntimestep, global_gamma_grade);
+        if (per_structure_gamma_grade > gamma_upper_bound) {
+            if (mpi_rank == 0) dump_extrapolation_grade(update->ntimestep, per_structure_gamma_grade);
             dump->write();
             MPI_Barrier(world);
 
@@ -310,8 +323,8 @@ void PairPACEActiveLearning::compute(int eflag, int vflag) {
 
             MPI_Abort(world, 1); //abort properly with error code '1' if not using 4 processes
             exit(EXIT_FAILURE);
-        } else if (global_gamma_grade > gamma_lower_bound) {
-            if (mpi_rank == 0) dump_extrapolation_grade(update->ntimestep, global_gamma_grade);
+        } else if (per_structure_gamma_grade > gamma_lower_bound) {
+            if (mpi_rank == 0) dump_extrapolation_grade(update->ntimestep, per_structure_gamma_grade);
             dump->write();
         }
     }
@@ -327,6 +340,7 @@ void PairPACEActiveLearning::allocate() {
 
     memory->create(setflag, n + 1, n + 1, "pair:setflag");
     memory->create(cutsq, n + 1, n + 1, "pair:cutsq");
+    memory->create(map, n + 1, "pair:map");
     memory->create(scale, n + 1, n + 1, "pair:scale");
 }
 
@@ -369,7 +383,7 @@ void PairPACEActiveLearning::settings(int narg, char **arg) {
         if (screen) {
             utils::logmesg(lmp, "ACE/AL version: {}.{}.{}\n", VERSION_YEAR, VERSION_MONTH, VERSION_DAY);
             utils::logmesg(lmp, "Extrapolation grade thresholds (lower/upper): {}/{}\n", gamma_lower_bound,
-                    gamma_upper_bound);
+                           gamma_upper_bound);
             utils::logmesg(lmp, "Extrapolation grade evaluation frequency: {}\n", gamma_grade_eval_freq);
         }
     }
@@ -471,10 +485,10 @@ void PairPACEActiveLearning::coeff(int narg, char **arg) {
     aceimpl->ace->load_active_set(active_set_inv_filename);
 
     // clear setflag since coeff() called once with I,J = * *
-    for (int i = 1; i <= n; i++) 
-        for (int j = i; j <= n; j++) 
+    for (int i = 1; i <= n; i++)
+        for (int j = i; j <= n; j++)
             scale[i][j] = 1.0;
-    
+
     // prepare dump class
     if (!dump) {
         // dump WRITE_DUMP all cfg 10 dump.snap.*.cfg mass type xs ys zs

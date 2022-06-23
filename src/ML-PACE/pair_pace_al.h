@@ -31,41 +31,51 @@ PairStyle(pace/al,PairPACEActiveLearning)
 
 #include "pair.h"
 #include "dump_custom.h"
-
+#include "compute_pace.h"
 
 namespace LAMMPS_NS {
 
     class PairPACEActiveLearning : public Pair {
+        friend class ComputePaceAtom;
+
     public:
         PairPACEActiveLearning(class LAMMPS *);
 
         ~PairPACEActiveLearning() override;
 
         void compute(int, int) override;
+
         void settings(int, char **) override;
+
         void coeff(int, char **) override;
+
         void init_style() override;
+
         double init_one(int, int) override;
+
         void *extract(const char *, int &) override;
 
     protected:
         struct ACEALImpl *aceimpl;
 
-
-
         int gamma_grade_eval_freq = 1;
         DumpCustom *dump = nullptr;
-
+        int natoms; //total number of atoms
 
         double gamma_lower_bound = 1.5;
         double gamma_upper_bound = 10;
+        double per_structure_gamma_grade = 0;
 
         virtual void allocate();
+
         void read_files(char *, char *);
+
         inline int equal(double *x, double *y);
 
         double rcutmax;               // max cutoff for all elements
         int nelements;                // # of unique elements
+
+        double *extrapolation_grade_gamma; //per-atom gamma value
 
         double **scale;
     };

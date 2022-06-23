@@ -54,7 +54,8 @@ class ComputeSnap : public Compute {
   double cutmax;
   int quadraticflag;
   int bikflag, bik_rows, dgradflag, dgrad_rows;
-  double **dgrad;
+  double **dgrad; // First ncoeff columns are descriptor derivatives.
+                  // Last 3 columns are indices i,j,a
   double **dbiri; // dBi/dRi = sum(-dBi/dRj) over neighbors j
   int *nneighs; // number of neighs inside the snap cutoff.
   int *neighsum;

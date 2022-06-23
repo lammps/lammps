@@ -343,13 +343,16 @@ When the central atom and the neighbor atom have different types,
 the values of :math:`S_{inner}` and :math:`D_{inner}` are
 the arithmetic means of the values for both types.
 
-The keyword *dgradflag* determines whether or not to sum the bispectrum descriptor gradients over neighboring atoms *i'*
-as explained with *snad/atom* above. If *dgradflag* is set to 1 then the descriptor gradient rows of the global snap array
-are not summed over atoms *i'*. Instead, each row corresponds to a single term :math:`\frac{\partial {B_{i,k}  }}{\partial {r}^a_j}`
+The keyword *dgradflag* determines whether or not to sum the bispectrum
+descriptor gradients over neighboring atoms *i'* as explained with *snad/atom*
+above. If *dgradflag* is set to 1 then the descriptor gradient rows of the
+global snap array are not summed over atoms *i'*. Instead, each row corresponds
+to a single term :math:`\frac{\partial {B_{i,k}  }}{\partial {r}^a_j}`
 where :math:`a` is the Cartesian direction for the gradient. This also changes
 the number of columns to be equal to the number of bispectrum components, with 3
 additional columns representing the indices :math:`i`, :math:`j`, and :math:`a`,
-as explained more in the Output info section below. The option *dgradflag=1* must be used with *bikflag=1*.
+as explained more in the Output info section below. The option *dgradflag=1*
+must be used with *bikflag=1*.
 
 .. note::
 
@@ -458,12 +461,14 @@ gradient components
 
   \frac{\partial {B_{i,k}  }}{\partial {r}^a_j}
 
-where :math:`a` is the Cartesian direction for the gradient. The rows are organized in chunks, where each chunk corresponds to
-an atom :math:`j` in the system of :math:`N` atoms. The rows in an atom
-:math:`j` chunk correspond to atoms :math:`i` that have :math:`j` as a neighbor.
-The number of rows in the atom :math:`j` chunk is therefore equal to the number of neighbors :math:`N_{neighs}[j]` within the SNAP
-potential cutoff radius of atom :math:`j`, times 3 for each Cartesian direction.
-The total number of rows for these descriptor gradients is therefore
+where :math:`a` is the Cartesian direction for the gradient. The rows are
+organized in chunks, where each chunk corresponds to an atom :math:`j` in the
+system of :math:`N` atoms. The rows in an atom :math:`j` chunk correspond to
+atoms :math:`i` that have :math:`j` as a neighbor. The number of rows in the
+atom :math:`j` chunk is therefore equal to the number of neighbors
+:math:`N_{neighs}[j]` within the SNAP potential cutoff radius of atom :math:`j`
+, times 3 for each Cartesian direction. The total number of rows for these
+descriptor gradients is therefore
 
 .. math::
 
@@ -472,10 +477,14 @@ The total number of rows for these descriptor gradients is therefore
 For *dgradflag=1*, the number of columns is equal to the number of bispectrum components,
 plus 3 additional columns representing the indices :math:`i`, :math:`j`, and :math:`a` which
 identify the atoms :math:`i` and :math:`j`, and Cartesian direction :math:`a` for which
-a particular gradient :math:`\frac{\partial {B_{i,k}  }}{\partial {r}^a_j}` belongs to. The reference energy and forces are also located in different parts of the array.
-The last 3 columns of the first :math:`N` rows belong to the reference potential force components.
-The first column of the last row, after the first :math:`N + 3 \sum_j^{N} N_{neighs}[j]` rows,
-contains the reference potential energy. The virial components are not used with this option.
+a particular gradient :math:`\frac{\partial {B_{i,k}  }}{\partial {r}^a_j}` belongs to.
+For the descriptor gradient rows, the first 3 columns contain the indices
+:math:`i`, :math:`j`, and :math:`a`, and the remaining columns contain gradients
+of different descriptors indexed by :math:`k`.
+The first 3 columns of the first :math:`N` rows belong to the reference
+potential force components. The first column of the last row, after the first
+:math:`N + 3 \sum_j^{N} N_{neighs}[j]` rows, contains the reference potential
+energy. The virial components are not used with this option.
 
 These values can be accessed by any command that uses per-atom values
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc

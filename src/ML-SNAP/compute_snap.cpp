@@ -541,11 +541,20 @@ void ComputeSnap::compute_array()
       }
 
       // linear contributions
+
       int k;
-      if (dgradflag) k = 0;
-      else k = typeoffset_global;
-      for (int icoeff = 0; icoeff < ncoeff; icoeff++){
-        snap[irow][k++] += snaptr->blist[icoeff];
+      if (dgradflag){
+        k = 0;
+        for (int icoeff = 0; icoeff < ncoeff; icoeff++){
+          snap[irow][k+3] += snaptr->blist[icoeff];
+          k = k+1;
+        }
+      }
+      else{
+        k = typeoffset_global;
+        for (int icoeff = 0; icoeff < ncoeff; icoeff++){
+          snap[irow][k++] += snaptr->blist[icoeff];
+        }
       }
 
       // quadratic contributions
@@ -585,29 +594,29 @@ void ComputeSnap::compute_array()
               irow = snap_row_indx + bik_rows;
 
               // x-coordinate
-              snap[irow][icoeff+typeoffset_global] += dgrad[dgrad_row_indx+0][icoeff];
+              snap[irow][icoeff+3] += dgrad[dgrad_row_indx+0][icoeff];
               if (icoeff==(ncoeff-1)){
-                snap[irow][ncoeff] += dgrad[dgrad_row_indx+0][ncoeff];
-                snap[irow][ncoeff+1] += dgrad[dgrad_row_indx+0][ncoeff+1];
-                snap[irow][ncoeff+2] += dgrad[dgrad_row_indx+0][ncoeff+2];
+                snap[irow][0] += dgrad[dgrad_row_indx+0][ncoeff];
+                snap[irow][0+1] += dgrad[dgrad_row_indx+0][ncoeff+1];
+                snap[irow][0+2] += dgrad[dgrad_row_indx+0][ncoeff+2];
               }
               irow++;
 
               // y-coordinate
-              snap[irow][icoeff+typeoffset_global] += dgrad[dgrad_row_indx+1][icoeff];
+              snap[irow][icoeff+3] += dgrad[dgrad_row_indx+1][icoeff];
               if (icoeff==(ncoeff-1)){
-                snap[irow][ncoeff] += dgrad[dgrad_row_indx+1][ncoeff];
-                snap[irow][ncoeff+1] += dgrad[dgrad_row_indx+1][ncoeff+1];
-                snap[irow][ncoeff+2] += dgrad[dgrad_row_indx+1][ncoeff+2];
+                snap[irow][0] += dgrad[dgrad_row_indx+1][ncoeff];
+                snap[irow][0+1] += dgrad[dgrad_row_indx+1][ncoeff+1];
+                snap[irow][0+2] += dgrad[dgrad_row_indx+1][ncoeff+2];
               }
               irow++;
 
               // z-coordinate
-              snap[irow][icoeff+typeoffset_global]   += dgrad[dgrad_row_indx+2][icoeff];
+              snap[irow][icoeff+3]   += dgrad[dgrad_row_indx+2][icoeff];
               if (icoeff==(ncoeff-1)){
-                snap[irow][ncoeff] += dgrad[dgrad_row_indx+2][ncoeff];
-                snap[irow][ncoeff+1] += dgrad[dgrad_row_indx+2][ncoeff+1];
-                snap[irow][ncoeff+2] += dgrad[dgrad_row_indx+2][ncoeff+2];
+                snap[irow][0] += dgrad[dgrad_row_indx+2][ncoeff];
+                snap[irow][0+1] += dgrad[dgrad_row_indx+2][ncoeff+1];
+                snap[irow][0+2] += dgrad[dgrad_row_indx+2][ncoeff+2];
               }
               dbiri_indx = dbiri_indx+3;
             }
@@ -617,29 +626,29 @@ void ComputeSnap::compute_array()
             irow = dbiri_indx + bik_rows;
 
             // x-coordinate
-            snap[irow][icoeff+typeoffset_global] += dbiri[3*i+0][icoeff];
+            snap[irow][icoeff+3] += dbiri[3*i+0][icoeff];
             if (icoeff==(ncoeff-1)){
-              snap[irow][ncoeff] += dbiri[3*i+0][ncoeff];
-              snap[irow][ncoeff+1] += dbiri[3*i+0][ncoeff+1];
-              snap[irow][ncoeff+2] += dbiri[3*i+0][ncoeff+2];
+              snap[irow][0] += dbiri[3*i+0][ncoeff];
+              snap[irow][0+1] += dbiri[3*i+0][ncoeff+1];
+              snap[irow][0+2] += dbiri[3*i+0][ncoeff+2];
             }
             irow++;
 
             // y-coordinate
-            snap[irow][icoeff+typeoffset_global] += dbiri[3*i+1][icoeff];
+            snap[irow][icoeff+3] += dbiri[3*i+1][icoeff];
             if (icoeff==(ncoeff-1)){
-              snap[irow][ncoeff] += dbiri[3*i+1][ncoeff];
-              snap[irow][ncoeff+1] += dbiri[3*i+1][ncoeff+1];
-              snap[irow][ncoeff+2] += dbiri[3*i+1][ncoeff+2];
+              snap[irow][0] += dbiri[3*i+1][ncoeff];
+              snap[irow][0+1] += dbiri[3*i+1][ncoeff+1];
+              snap[irow][0+2] += dbiri[3*i+1][ncoeff+2];
             }
             irow++;
 
             // z-coordinate
-            snap[irow][icoeff+typeoffset_global]   += dbiri[3*i+2][icoeff];
+            snap[irow][icoeff+3]   += dbiri[3*i+2][icoeff];
             if (icoeff==(ncoeff-1)){
-              snap[irow][ncoeff] += dbiri[3*i+2][ncoeff];
-              snap[irow][ncoeff+1] += dbiri[3*i+2][ncoeff+1];
-              snap[irow][ncoeff+2] += dbiri[3*i+2][ncoeff+2];
+              snap[irow][0] += dbiri[3*i+2][ncoeff];
+              snap[irow][0+1] += dbiri[3*i+2][ncoeff+1];
+              snap[irow][0+2] += dbiri[3*i+2][ncoeff+2];
             }
 
             dbiri_indx = dbiri_indx+3;
@@ -672,12 +681,12 @@ void ComputeSnap::compute_array()
  // accumulate forces to global array
 
  if (dgradflag){
-   // for dgradflag=1, put forces at last 3 columns of bik rows
+   // for dgradflag=1, put forces at first 3 columns of bik rows
    for (int i=0; i<atom->nlocal; i++){
      int iglobal = atom->tag[i];
-     snap[iglobal-1][ncoeff+0] = atom->f[i][0];
-     snap[iglobal-1][ncoeff+1] = atom->f[i][1];
-     snap[iglobal-1][ncoeff+2] = atom->f[i][2];
+     snap[iglobal-1][0+0] = atom->f[i][0];
+     snap[iglobal-1][0+1] = atom->f[i][1];
+     snap[iglobal-1][0+2] = atom->f[i][2];
 
    }
  }
@@ -793,18 +802,13 @@ void ComputeSnap::get_dgrad_length()
   int * const type = atom->type;
   const int* const mask = atom->mask;
   double** const x = atom->x;
-  /*
-  memory->create(neighsum, inum, "snap:neighsum");
-  memory->create(nneighs, inum, "snap:nneighs");
-  memory->create(icounter, inum, "snap:icounter");
-  memory->create(dbiri, 3*atom->nlocal,ncoeff+3, "snap:dbiri");
-  */
+
   memory->create(neighsum, natoms, "snap:neighsum");
   memory->create(nneighs, natoms, "snap:nneighs");
   memory->create(icounter, natoms, "snap:icounter");
   memory->create(dbiri, 3*natoms,ncoeff+3, "snap:dbiri");
   if (atom->nlocal != natoms){
-    error->all(FLERR,"Compute snap dgradflag=1 does not support parallelism.");
+    error->all(FLERR,"Compute snap dgradflag=1 does not support parallelism yet.");
   }
   for (int ii=0; ii<3*natoms; ii++){
     for (int icoeff=0; icoeff<ncoeff; icoeff++){
@@ -870,7 +874,6 @@ void ComputeSnap::get_dgrad_length()
     }
   }
   // Set size array rows which now depends on dgrad_rows.
-  //size_array_rows = bik_rows+dgrad_rows+ndims_virial+3*atom->nlocal; // Add 3*N for dBi/dRi
   size_array_rows = bik_rows + dgrad_rows + 3*atom->nlocal + 1; // Add 3*N for dBi/dRi. and add 1 for reference energy
 
   memory->create(snap,size_array_rows,size_array_cols, "snap:snap");

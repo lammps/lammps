@@ -95,11 +95,11 @@ lmp_snap = lmp.numpy.extract_compute("snap",0, 2)
 
 # Extract dBj/dRi (includes dBi/dRi)
 natoms = lmp.get_natoms()
-fref1 = lmp_snap[0:natoms,-3:].flatten()
+fref1 = lmp_snap[0:natoms,0:3].flatten()
 eref1 = lmp_snap[-1,0] #lmp_snap[-6,0]
-dbdr_length = np.shape(lmp_snap)[0]-(natoms) - 1 #-6 # Length of neighborlist pruned dbdr array
-dBdR = lmp_snap[natoms:(natoms+dbdr_length),:]
-force_indices = lmp_snap[natoms:(natoms+dbdr_length),-3:].astype(np.int32)
+dbdr_length = np.shape(lmp_snap)[0]-(natoms) - 1 # Length of neighborlist pruned dbdr array
+dBdR = lmp_snap[natoms:(natoms+dbdr_length),3:(nd+3)]
+force_indices = lmp_snap[natoms:(natoms+dbdr_length),0:3].astype(np.int32)
 
 # Sum over neighbors j for each atom i, like dgradflag=0 does.
 array1 = np.zeros((3*natoms,nd))
@@ -108,7 +108,6 @@ for k in range(0,nd):
     for l in range(0,dbdr_length):
         j = force_indices[l,0]
         i = force_indices[l,1]
-        #array1[3*(i-1)+a,k] += dBdR[l,k]
         array1[3*(i)+a,k] += dBdR[l,k]
         a = a+1
         if (a>2):

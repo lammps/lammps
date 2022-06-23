@@ -66,9 +66,9 @@
 *  The program is started by supplying information at the command prompt
 * according to the usage described below.
 *
-*  USAGE: msi2lmp3 ROOTNAME {-print #} {-class #} {-frc FRC_FILE} {-ignore} {-nocenter} {-oldstyle}
+*  USAGE: msi2lmp ROOTNAME {-print #} {-class #} {-frc FRC_FILE} {-ignore} {-nocenter} {-oldstyle}
 *
-*  -- msi2lmp3 is the name of the executable
+*  -- msi2lmp is the name of the executable
 *  -- ROOTNAME is the base name of the .car and .mdf files
 *  -- all opther flags are optional and can be abbreviated (e.g. -p instead of -print)
 *

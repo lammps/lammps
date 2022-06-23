@@ -786,14 +786,16 @@ if(BUILD_SHARED_LIBS)
     find_package(Python COMPONENTS Interpreter)
   endif()
   if(BUILD_IS_MULTI_CONFIG)
-    set(LIBLAMMPS_SHARED_BINARY ${CMAKE_BINARY_DIR}/$<CONFIG>/liblammps${LAMMPS_MACHINE}${CMAKE_SHARED_LIBRARY_SUFFIX})
+    set(MY_BUILD_DIR ${CMAKE_BINARY_DIR}/$<CONFIG>)
   else()
-    set(LIBLAMMPS_SHARED_BINARY ${CMAKE_BINARY_DIR}/liblammps${LAMMPS_MACHINE}${CMAKE_SHARED_LIBRARY_SUFFIX})
+    set(MY_BUILD_DIR ${CMAKE_BINARY_DIR})
   endif()
+  set(LIBLAMMPS_SHARED_BINARY ${MY_BUILD_DIR}/liblammps${LAMMPS_MACHINE}${CMAKE_SHARED_LIBRARY_SUFFIX})
   if(Python_EXECUTABLE)
     add_custom_target(
       install-python ${CMAKE_COMMAND} -E remove_directory build
-      COMMAND ${Python_EXECUTABLE} ${LAMMPS_PYTHON_DIR}/install.py -p ${LAMMPS_PYTHON_DIR}/lammps -l ${LIBLAMMPS_SHARED_BINARY}
+      COMMAND ${Python_EXECUTABLE} ${LAMMPS_PYTHON_DIR}/install.py -p ${LAMMPS_PYTHON_DIR}/lammps
+              -l ${LIBLAMMPS_SHARED_BINARY} -w ${MY_BUILD_DIR}
       COMMENT "Installing LAMMPS Python module")
   else()
     add_custom_target(

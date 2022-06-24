@@ -32,5 +32,6 @@ target_include_directories(pace PUBLIC ${PACE_EVALUATOR_INCLUDE_DIR} ${YAML_CPP_
 
 
 target_link_libraries(pace PRIVATE yaml-cpp-pace)
-
-target_link_libraries(lammps PRIVATE pace)
+if(CMAKE_PROJECT_NAME STREQUAL "lammps")
+  target_link_libraries(lammps PRIVATE pace)
+endif()

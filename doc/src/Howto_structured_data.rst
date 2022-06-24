@@ -184,7 +184,7 @@ frame.
 
 .. code-block:: python
 
-   import re, yaml
+   import yaml
    import pandas as pd
 
    try:
@@ -193,7 +193,7 @@ frame.
        from yaml import SafeLoader as Loader
 
    with open("ave.yaml") as f:
-       ave = yaml.load(docs, Loader=Loader)
+       ave = yaml.load(f, Loader=Loader)
 
    keys = ave['keywords']
    df = {}

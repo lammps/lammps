@@ -3,7 +3,7 @@
 # -------------------------------------------------
 # -------------------------------------------------
 
-# Example 1
+# Example 1 = run ab initio MD (AIMD)
 
 # ---
 
@@ -56,7 +56,7 @@ mv log.aimd.engine.plugin log.aimd.engine.plugin.3
 # -------------------------------------------------
 # -------------------------------------------------
 
-# Example 2
+# Example 2 = run LAMMPS, compute QM forces on snapshots from a long run
 
 # ---
 
@@ -116,7 +116,7 @@ mv dump.snapshot.driver.plugin dump.snapshot.driver.plugin.3
 # -------------------------------------------------
 # -------------------------------------------------
 
-# Example 3
+# Example 3 = run LAMMPS, compute QM forces on series of independent systems
 
 # ---
 
@@ -176,7 +176,7 @@ mv dump.series.driver.plugin dump.series.driver.plugin.3
 # -------------------------------------------------
 # -------------------------------------------------
 
-# Example 4
+# Example 4 = Python driver runs a sequence of unrelated LAMMPS calculations
 
 # ---
 
@@ -221,7 +221,7 @@ mpirun -np 3 python3 sequence_driver.py -plugin lammps -mdi "-role DRIVER -name 
 # -------------------------------------------------
 # -------------------------------------------------
 
-# Example 5
+# Example 5 = run AIMD with Python driver code and 2 LAMMPS instances as engines
 
 # ---
 

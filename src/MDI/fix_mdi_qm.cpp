@@ -25,6 +25,8 @@ using namespace FixConst;
 
 enum { NATIVE, REAL, METAL };    // LAMMPS units which MDI supports
 
+#define MAXELEMENT 103           // used elsewhere in MDI package
+
 /* ---------------------------------------------------------------------- */
 
 FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
@@ -49,6 +51,7 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   addflag = 1;
   every = 1;
   connectflag = 1;
+  elements = nullptr;
 
   int iarg = 3;
   while (iarg < narg) {
@@ -75,6 +78,17 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       else if (strcmp(arg[iarg+1],"no") == 0) connectflag = 0;
       else error->all(FLERR,"Illegal fix mdi/qm command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"elements") == 0) {
+      int ntypes = atom->ntypes;
+      if (iarg+ntypes+1 > narg) error->all(FLERR,"Illegal fix mdi/qm command");
+      delete [] elements;
+      elements = new int[ntypes+1];
+      for (int i = 1; i <= ntypes; i++) {
+        elements[i] = utils::inumeric(FLERR,arg[iarg+i],false,lmp);
+        if (elements[i] < 1 || elements[i] > MAXELEMENT)
+          error->all(FLERR,"Illegal fix mdi/qm command");
+      }
+      iarg += ntypes+1;
     } else error->all(FLERR,"Illegal fix mdi/qm command");
   }
 
@@ -154,6 +168,8 @@ FixMDIQM::~FixMDIQM()
 
   // clean up
 
+  delete[] elements;
+
   memory->destroy(fqm);
 
   memory->destroy(ibuf1);
@@ -220,7 +236,7 @@ void FixMDIQM::init()
     }
   }
 
-  // send natoms, atom types, and simulation box to engine
+  // send natoms, atom types or elements, and simulation box to engine
   // this will trigger setup of a new system
   // subsequent calls in post_force() will be for same system until new init()
 
@@ -232,7 +248,8 @@ void FixMDIQM::init()
   ierr = MDI_Send(&n, 1, MDI_INT, mdicomm);
   if (ierr) error->all(FLERR, "MDI: >NATOMS data");
 
-  send_types();
+  if (elements) send_elements();
+  else send_types();
   send_box();
 }
 
@@ -420,7 +437,7 @@ void FixMDIQM::reallocate()
 }
 
 /* ----------------------------------------------------------------------
-   send numeric atom types to MDI engine
+   send LAMMPS atom types to MDI engine
 ------------------------------------------------------------------------- */
 
 void FixMDIQM::send_types()
@@ -448,6 +465,34 @@ void FixMDIQM::send_types()
   if (ierr) error->all(FLERR, "MDI: >TYPES data");
 }
 
+/* ----------------------------------------------------------------------
+   send elements to MDI engine = atomic numbers for each type
+------------------------------------------------------------------------- */
+
+void FixMDIQM::send_elements()
+{
+  int n = static_cast<int> (atom->natoms);
+  memset(ibuf1, 0, n * sizeof(int));
+
+  // use local atomID to index into ordered ibuf1
+
+  tagint *tag = atom->tag; 
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+  
+  int index;
+  for (int i = 0; i < nlocal; i++) {
+    index = static_cast<int>(tag[i]) - 1;
+    ibuf1[index] = elements[type[i]];
+  }
+
+  MPI_Reduce(ibuf1, ibuf1all, n, MPI_INT, MPI_SUM, 0, world);
+
+  int ierr = MDI_Send_command(">ELEMENTS", mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >ELEMENTS command");
+  ierr = MDI_Send(ibuf1all, n, MDI_INT, mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >ELEMETNS data");
+}
 
 /* ----------------------------------------------------------------------
    send simulation box size and shape to MDI engine

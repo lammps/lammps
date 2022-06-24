@@ -54,6 +54,8 @@ enum { DEFAULT, MD, OPT };       // top-level MDI engine modes
 
 enum { TYPE, CHARGE, MASS, COORD, VELOCITY, FORCE, ADDFORCE };
 
+#define MAXELEMENT 103           // used elsewhere in MDI package
+
 /* ----------------------------------------------------------------------
    trigger LAMMPS to start acting as an MDI engine
    either in standalone mode or plugin mode
@@ -63,16 +65,46 @@ enum { TYPE, CHARGE, MASS, COORD, VELOCITY, FORCE, ADDFORCE };
    when EXIT command is received, mdi engine command exits
 ---------------------------------------------------------------------- */
 
-MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char ** /*arg*/) : Pointers(_lmp)
+MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char ** arg) : Pointers(_lmp)
 {
-  if (narg) error->all(FLERR, "Illegal mdi engine command");
-
   // check requirements for LAMMPS to work with MDI as an engine
 
-  if (atom->tag_enable == 0) error->all(FLERR, "Cannot use MDI engine without atom IDs");
+  if (atom->tag_enable == 0) error->all(FLERR, "MDI engine requires atom IDs");
 
   if (atom->natoms && atom->tag_consecutive() == 0)
     error->all(FLERR, "MDI engine requires consecutive atom IDs");
+
+  // optional args
+
+  elements = nullptr;
+
+  int iarg = 0;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"elements") == 0) {
+      int ntypes = atom->ntypes;
+      delete [] elements;
+      elements = new int[ntypes+1];
+      if (iarg+ntypes+1 > narg) error->all(FLERR,"Illegal mdi engine command");
+      for (int i = 1; i <= ntypes; i++) {
+        elements[i] = utils::inumeric(FLERR,arg[iarg+i],false,lmp);
+        if (elements[i] < 0 || elements[i] > MAXELEMENT)
+          error->all(FLERR,"Illegal mdi engine command");
+      }
+      iarg += ntypes+1;
+    } else error->all(FLERR,"Illegal mdi engine command");
+  }
+
+  // error check an MDI element does not map to multiple atom types
+
+  if (elements) {
+    int ntypes = atom->ntypes;
+    for (int i = 1; i < ntypes; i++)
+      for (int j = i+1; j <= ntypes; j++) {
+        if (elements[i] == 0 || elements[j] == 0) continue;
+        if (elements[i] == elements[j]) 
+          error->all(FLERR,"MDI engine element cannot map to multiple types");
+      }
+  }
 
   // confirm LAMMPS is being run as an engine
 
@@ -194,6 +226,8 @@ MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char ** /*arg*/) : Pointers(_lmp)
 
   // clean up
 
+  delete[] elements;
+
   delete[] mdicmd;
   delete[] node_engine;
   delete[] node_driver;
@@ -299,6 +333,11 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   } else if (strcmp(command, ">COORDS") == 0) {
     receive_coords();
 
+  } else if (strcmp(command, ">ELEMENTS") == 0) {
+    if (!elements)
+      error->all(FLERR,"MDI engine command did not define element list");
+    receive_elements();
+
   } else if (strcmp(command, ">FORCES") == 0) {
     receive_double3(FORCE);
 
@@ -323,7 +362,7 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     else
       receive_double3(VELOCITY);
 
-    // -----------------------------------------------
+  // -----------------------------------------------
 
   } else if (strcmp(command, "<@") == 0) {
     ierr = MDI_Send(node_engine, MDI_NAME_LENGTH, MDI_CHAR, mdicomm);
@@ -372,9 +411,9 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   } else if (strcmp(command, "<VELOCITIES") == 0) {
     send_double3(VELOCITY);
 
-    // -----------------------------------------------
+  // -----------------------------------------------
 
-    // MDI action commands at @DEFAULT node
+  // MDI action commands at @DEFAULT node
 
   } else if (strcmp(command, "MD") == 0) {
     md();
@@ -382,9 +421,9 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   } else if (strcmp(command, "OPTG") == 0) {
     optg();
 
-    // -----------------------------------------------
+  // -----------------------------------------------
 
-    // MDI node commands
+  // MDI node commands
 
   } else if (strcmp(command, "@INIT_MD") == 0) {
     if (mode != DEFAULT) error->all(FLERR, "MDI: MDI engine is already performing a simulation");
@@ -419,14 +458,14 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     strncpy(node_driver, command, MDI_COMMAND_LENGTH);
     node_match = false;
 
-    // exit command
+  // exit command
 
   } else if (strcmp(command, "EXIT") == 0) {
     exit_command = true;
 
-    // -------------------------------------------------------
-    // custom LAMMPS commands
-    // -------------------------------------------------------
+  // -------------------------------------------------------
+  // custom LAMMPS commands
+  // -------------------------------------------------------
 
   } else if (strcmp(command, "NBYTES") == 0) {
     nbytes_command();
@@ -439,9 +478,9 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   } else if (strcmp(command, "<KE") == 0) {
     send_ke();
 
-    // -------------------------------------------------------
-    // unknown command
-    // -------------------------------------------------------
+  // -------------------------------------------------------
+  // unknown command
+  // -------------------------------------------------------
 
   } else {
     error->all(FLERR, "MDI: Unknown command {} received from driver", command);
@@ -479,6 +518,7 @@ void MDIEngine::mdi_commands()
   MDI_Register_command("@DEFAULT", ">CELL_DISPL");
   MDI_Register_command("@DEFAULT", ">CHARGES");
   MDI_Register_command("@DEFAULT", ">COORDS");
+  MDI_Register_command("@DEFAULT", ">ELEMENTS");
   MDI_Register_command("@DEFAULT", ">NATOMS");
   MDI_Register_command("@DEFAULT", ">NSTEPS");
   MDI_Register_command("@DEFAULT", ">TOLERANCE");
@@ -914,7 +954,7 @@ void MDIEngine::evaluate()
 
 /* ----------------------------------------------------------------------
    create a new system
-   >CELL, >NATOMS, >TYPES, >COORDS commands are required
+   >CELL, >NATOMS, >TYPES or >ELEMENTS, >COORDS commands are required
    >CELL_DISPL, >CHARGES, >VELOCITIES commands are optional
 ---------------------------------------------------------------------- */
 
@@ -924,8 +964,8 @@ void MDIEngine::create_system()
 
   if (flag_cell == 0 || flag_natoms == 0 || flag_types == 0 || flag_coords == 0)
     error->all(FLERR,
-               "MDI create_system requires >CELL, >NATOMS, >TYPES, >COORDS "
-               "MDI commands");
+               "MDI create_system requires >CELL, >NATOMS, "
+               ">TYPES or >ELEMENTS, >COORDS MDI commands");
 
   // remove all existing atoms via delete_atoms command
 
@@ -1158,6 +1198,38 @@ void MDIEngine::receive_coords()
   if (ierr) error->all(FLERR, "MDI: >COORDS data");
   MPI_Bcast(sys_coords, n, MPI_DOUBLE, 0, world);
   for (int i = 0; i < n; i++) sys_coords[i] *= mdi2lmp_length;
+}
+
+/* ----------------------------------------------------------------------
+   >ELEMENTS command
+   receive elements for each atom = atomic numbers
+   convert to LAMMPS atom types and store in sys_types
+---------------------------------------------------------------------- */
+
+void MDIEngine::receive_elements()
+{
+  actionflag = 0;
+  flag_types = 1;
+  int ierr = MDI_Recv(sys_types, sys_natoms, MDI_INT, mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >ELEMENTS data");
+  MPI_Bcast(sys_types, sys_natoms, MPI_INT, 0, world);
+
+  // convert from element atomic numbers to LAMMPS atom types
+  // use maping provided by mdi engine command
+
+  int ntypes = atom->ntypes;
+  int itype;
+
+  for (int i = 0; i < sys_natoms; i++) {
+    for (itype = 1; itype <= ntypes; itype++) {
+      if (sys_types[i] == elements[itype]) {
+        sys_types[i] = itype;
+        break;
+      }
+    }
+    if (itype > ntypes) 
+      error->all(FLERR,"MDI element not found in element list");
+  }
 }
 
 /* ----------------------------------------------------------------------

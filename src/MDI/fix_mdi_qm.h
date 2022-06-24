@@ -44,6 +44,7 @@ class FixMDIQM : public Fix {
   int plugin;
   int maxlocal;
   int sumflag;
+  int *elements;
 
   double qm_energy;
   int lmpunits;
@@ -70,6 +71,7 @@ class FixMDIQM : public Fix {
 
   void reallocate();
   void send_types();
+  void send_elements();
   void send_box();
   void unit_conversions();
 };

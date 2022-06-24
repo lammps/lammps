@@ -99,6 +99,7 @@ endif()
 ################################################################################
 # MPI configuration
 if(NOT CMAKE_CROSSCOMPILING)
+  set(MPI_CXX_SKIP_MPICXX TRUE)
   find_package(MPI QUIET)
   option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
 else()

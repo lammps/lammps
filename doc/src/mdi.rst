@@ -14,14 +14,18 @@ Syntax
 
   .. parsed-literal::
 
-     *engine* args = none
-     *plugin* args = name keyword value keyword value
+     *engine* args = zero or more keyword arg pairs
+       keywords = *elements*
+         *elements* args = N_1 N_2 ... N_ntypes
+           N_1,N_2,...N_ntypes = atomic number for each of ntypes LAMMPS atom types
+     *plugin* args = name keyword value keyword value ...
        name = name of plugin library, e.g. lammps means a liblammps.so library will be loaded
+       keyword/value pairs in any order, some are required, some are optional
        keywords = *mdi* or *infile* or *extra* or *command*
-         *mdi* value = args passed to MDI for driver to operate with plugins
-         *infile* value = filename the engine will read at start-up
+         *mdi* value = args passed to MDI for driver to operate with plugins (required)
+         *infile* value = filename the engine will read at start-up (optional)
          *extra* value = aditional command-line args to pass to engine library when loaded
-         *command* value = a LAMMPS input script command to execute
+         *command* value = a LAMMPS input script command to execute (required)
      *connect* args = none
      *exit* args = none
 
@@ -31,6 +35,7 @@ Examples
 .. code-block:: LAMMPS
 
    mdi engine
+   mdi engine elements 13 29
    mdi plugin lammps mdi "-role ENGINE -name lammps -method LINK" &
               infile in.aimd.engine extra "-log log.aimd.engine.plugin" &
               command "run 5"
@@ -109,6 +114,8 @@ commands, which are described further below.
      - Send/request charge on each atom (N values)
    * - >COORDS or <COORDS
      - Send/request coordinates of each atom (3N values)
+   * - >ELEMENTS
+     - Send elements (atomic numbers) for each atom (N values)
    * - <ENERGY
      - Request total energy (potential + kinetic) of the system (1 value)
    * - >FORCES or <FORCES
@@ -134,7 +141,7 @@ commands, which are described further below.
    * - >TOLERANCE
      - Send 4 tolerance parameters for next MD minimization via OPTG command
    * - >TYPES or <TYPES
-     - Send/request the numeric type of each atom (N values)
+     - Send/request the LAMMPS atom type for each atom (N values)
    * - >VELOCITIES or <VELOCITIES
      - Send/request the velocity of each atom (3N values)
    * - @INIT_MD or @INIT_OPTG
@@ -154,9 +161,25 @@ commands, which are described further below.
    builds.  If the change in atom positions is large (since the
    previous >COORDS command), then LAMMPS will do a more expensive
    operation to migrate atoms to new processors as needed and
-   re-neighbor.  If the >NATOMS or >TYPES commands have been sent
-   (since the previous >COORDS command), then LAMMPS assumes the
-   system is new and re-initializes an entirely new simulation.
+   re-neighbor.  If the >NATOMS or >TYPES or >ELEMENTS commands have
+   been sent (since the previous >COORDS command), then LAMMPS assumes
+   the system is new and re-initializes an entirely new simulation.
+
+.. note::
+
+   The >TYPES or >ELEMENTS commands are how the MDI driver tells the
+   LAMMPS engine which LAMMPS atom type to assign to each atom.  If
+   both the MDI driver and the LAMMPS engine are initialized so that
+   atom type values are consistent in both codes, then the >TYPES
+   command can be used.  If not, the optional *elements* keyword can
+   be used to specify what element each LAMMPS atom type corresponds
+   to.  This is specified by the atomic number of the element, e.g. 13
+   for Al.  An atomic number must be specified for each of the ntypes
+   LAMMPS atom types.  Ntypes is typically specified via the
+   create_box command or in the data file read by the read_data
+   command.  In this has been done, the MDI driver can send an
+   >ELEMENTS command to the LAMMPS driver with the atomic number of
+   each atom.
 
 The MD and OPTG commands perform an entire MD simulation or energy
 minimization (to convergence) with no communication from the driver

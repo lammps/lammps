@@ -13,7 +13,7 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * mdi/qm = style name of this fix command
 * zero or more keyword/value pairs may be appended
-* keyword = *virial* or *add* or *every* or *connect*
+* keyword = *virial* or *add* or *every* or *connect* or *elements*
 
   .. parsed-literal::
 
@@ -28,6 +28,8 @@ Syntax
        *connect* args = *yes* or *no*
          yes = perform a one-time connection to the MDI engine code
          no = do not perform the connection operation
+       *elements* args = N_1 N_2 ... N_ntypes
+         N_1,N_2,...N_ntypes = atomic number for each of ntypes LAMMPS atom types
 
 Examples
 """"""""
@@ -36,7 +38,7 @@ Examples
 
    fix 1 all mdi/qm
    fix 1 all mdi/qm virial yes
-   fix 1 all mdi/qm add no every 100
+   fix 1 all mdi/qm add no every 100 elements 13 29
 
 Description
 """""""""""
@@ -117,6 +119,19 @@ where LAMMPS is using the QM code to compute energy and forces for a
 series of system configurations.  In this use case *connect no*
 is used along with the :doc:`mdi connect and exit <mdi>` command
 to one-time initiate/terminate the connection outside the loop.
+
+The *elements* keyword allows specification of what element each
+LAMMPS atom type corresponds to.  This is specified by the atomic
+number of the element, e.g. 13 for Al.  An atomic number must be
+specified for each of the ntypes LAMMPS atom types.  Ntypes is
+typically specified via the create_box command or in the data file
+read by the read_data command.  If this keyword is not specified, then
+this fix will send the LAMMPS atom type for each atom to the MDI
+engine.  If both the LAMMPS driver and the MDI engine are initialized
+so that atom type values are consistent in both codes, then the
+*elements* keyword is not needed.  Otherwise the keyword can be used
+to insure the two codes are consistent in their definition of atomic
+species.
 
 ----------
 
